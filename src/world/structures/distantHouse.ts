@@ -76,7 +76,7 @@ import { BoxGeometry, BufferGeometry, Color, CylinderGeometry, Float32BufferAttr
 import type { TrunkSeat, WorldContext } from '../system';
 import type { Rng } from '../util/prng';
 import { basisMatrix, gridSurface, merge, setColorAttribute, TAU } from './geometry';
-import { MOSS_ALBEDO_PEAK, Noise3D, type StructureMaterials } from './materials';
+import { MOSS_ALBEDO_PEAK, Noise3D, WOOD_ON_FENCE_WOOD, type StructureMaterials } from './materials';
 import { buildMossTufts, type MossTuftSpec } from './mossTufts';
 
 export interface DistantHouseDef {
@@ -255,6 +255,11 @@ export interface DistantHouseBuild {
   group: Group;
   /** the one emissive mesh shared by all houses */
   glow: Mesh;
+  /**
+   * round 45 (details-1): the huts' boarded undersides, one mesh in the fences' material, NOT in
+   * `group` — the caller adds it to the hero group so it folds into the fences' static bucket
+   */
+  soffit: Mesh | null;
   triangles: number;
   /** zero-area triangles left in the huts' geometry (round 18: none — the cap pole and the pod lathes' apexes are filtered) */
   degenerateTriangles: number;
@@ -328,11 +333,13 @@ const SOFFIT: RGB = [0.3, 0.27, 0.22];
  * twice that, rendered the deck's bottom at p50 0.30 sRGB from the hollow path (w13-spine-u) — a
  * flat pale panel over the 0.06 joists, since a single grid with alternating vertex tints
  * interpolates to a wave, not boards; so the boards are built as boards (see the soffit block).
- * round 45 (details-1): the boards are lit planks now — this is their vertex tint on `propWood`
- * (the planks map × the wood tint × this, under PROP_WOOD_FLOOR's lift 8). Above 1 like the
- * signpost's board (the planks map is dark, ≈ 0.06 linear): the
- * floor is lift × the hemisphere mean × albedo / π, and this tint puts a board at ≈ 0.045
- * linear, the round-44 level — the tint the floor reads through the map, not the lit deck's.
+ * round 45 (details-1): the boards are lit planks now — this is their vertex tint as set for
+ * `wood`'s tint under a lift-8 floor (the planks map × the wood tint × this). Above 1 like the
+ * signpost's board (the planks map is dark, ≈ 0.06 linear): the floor is lift × the hemisphere
+ * mean × albedo / π, and this tint puts a board at ≈ 0.045 linear, the round-44 level — the
+ * tint the floor reads through the map, not the lit deck's. The boards draw in `fenceWood`
+ * (materials.ts: the fences' floor, lift 11, a darker tint), so the soffit block applies
+ * WOOD_ON_FENCE_WOOD on top to land at that same level.
  */
 const SOFFIT_BOARD: RGB = [1.55, 1.32, 1.05];
 /** an sRGB hex as a linear tint scaled so its peak channel is `peak` (the glow material is white × 2.2) */
@@ -699,7 +706,7 @@ export function buildDistantHouses(ctx: WorldContext, mats: StructureMaterials, 
   const group = new Group();
   group.name = 'distant-houses';
   const glowParts: BufferGeometry[] = [];
-  /** round 45 (details-1): the huts' soffit boards, one mesh on `mats.propWood` */
+  /** round 45 (details-1): the huts' soffit boards, one mesh in `mats.fenceWood` (see `soffit`) */
   const soffitParts: BufferGeometry[] = [];
   const audit: DistantHouseBuild['audit'] = [];
   let tris = 0;
@@ -1192,13 +1199,14 @@ export function buildDistantHouses(ctx: WorldContext, mats: StructureMaterials, 
     // the bole to the rim, three brace struts from the bole up to the rim, two bearers and three
     // cross joists under the deck — so the underside has structure and shadow instead of one face.
     // Round 45 (details-1): the boards were on the unlit glow material at a fixed brown
-    // (≈ 0.05 linear, see SOFFIT_BOARD); they now go on `propWood` — the planks' maps and
-    // tint under PROP_WOOD_FLOOR (materials.ts) — so they take the floor's light, the grain
-    // and the fog like every other lit face, at the same level. The per-board tone
-    // (SOFFIT_BOARD × 0.72–1.28, darker toward the bole) is the vertex tint the floor reads
-    // through the map. One mesh for every hut: +1 draw. ----
+    // (≈ 0.05 linear, see SOFFIT_BOARD); they now go on `fenceWood` — the planks' maps under
+    // the fences' shade floor (materials.ts FENCE_WOOD_FLOOR) — so they take the floor's light,
+    // the grain and the fog like every other lit face, at the same level. The per-board tone
+    // (SOFFIT_BOARD × 0.72–1.28, darker toward the bole, × WOOD_ON_FENCE_WOOD for the fence
+    // tint and lift) is the vertex tint the floor reads through the map. One mesh for every hut,
+    // handed to the caller (`soffit`) to fold into the fences' static bucket: no draw of its own. ----
     {
-      const soffitTint = (k: number): RGB => [SOFFIT_BOARD[0] * k, SOFFIT_BOARD[1] * k, SOFFIT_BOARD[2] * k];
+      const soffitTint = (k: number): RGB => [SOFFIT_BOARD[0] * WOOD_ON_FENCE_WOOD[0] * k, SOFFIT_BOARD[1] * WOOD_ON_FENCE_WOOD[1] * k, SOFFIT_BOARD[2] * WOOD_ON_FENCE_WOOD[2] * k];
       const sr = r.fork('soffit');
       // BOARDS, each its own quad strip with one tone (a board's tone is constant across it and
       // varies along it, with a dark gap between neighbours — from 8 m below, planks). The
@@ -1311,15 +1319,17 @@ export function buildDistantHouses(ctx: WorldContext, mats: StructureMaterials, 
   group.add(glow);
   tris += triangles(glowGeo);
   degenerate += countDegenerate(glowGeo);
+  let soffit: Mesh | null = null;
   if (soffitParts.length) {
     const soffitGeo = dropDegenerate(merge(soffitParts));
-    const soffitMesh = new Mesh(soffitGeo, mats.propWood);
-    soffitMesh.name = 'distant-soffit';
-    // a thin board 1.5 mm under a plank face: nothing to cast, and the sun never reaches its face.
-    // (The huts are consolidated as their own group — index.ts, round 20 — so this mesh is its
-    // own bucket whatever its flags; with shadows on it cost a shadow-pass draw for nothing.)
-    soffitMesh.castShadow = soffitMesh.receiveShadow = false;
-    group.add(soffitMesh);
+    soffit = new Mesh(soffitGeo, mats.fenceWood);
+    soffit.name = 'distant-soffit';
+    // the fences' flags, so the mesh folds into their bucket (a thin board 1.5 mm under a plank
+    // face has nothing to cast and the sun never reaches it — the flags cost nothing). It is NOT
+    // added to `group`: the huts are consolidated apart from the hero structures (index.ts, round
+    // 20), where this mesh would be a bucket of its own — a colour draw in every view that sees a
+    // hut; the caller attaches it to the hero group before that group is merged.
+    soffit.castShadow = soffit.receiveShadow = true;
     tris += triangles(soffitGeo);
     degenerate += countDegenerate(soffitGeo);
   }
@@ -1330,6 +1340,7 @@ export function buildDistantHouses(ctx: WorldContext, mats: StructureMaterials, 
   return {
     group,
     glow,
+    soffit,
     triangles: tris,
     degenerateTriangles: degenerate,
     hostSource: shared === audit.length ? 'shared' : shared === 0 ? 'constants' : 'mixed',

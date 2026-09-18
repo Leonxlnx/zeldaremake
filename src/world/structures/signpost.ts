@@ -14,7 +14,7 @@ import type { WorldContext } from '../system';
 import type { Rng } from '../util/prng';
 import { Noise2D, clamp, lerp, smoothstep } from '../util/noise';
 import { basisMatrix, merge, setColorAttribute, sweepTube } from './geometry';
-import { Noise3D, type StructureMaterials } from './materials';
+import { Noise3D, WOOD_ON_FENCE_WOOD, type StructureMaterials } from './materials';
 import { buildMossTufts } from './mossTufts';
 import { checkedCap, endFrame, footMoss, woodFibre, woodGrain } from './woodGrain';
 
@@ -86,14 +86,7 @@ function grainPlank(geo: BufferGeometry, W: number, H: number, T: number, rng: R
 }
 const TAU = Math.PI * 2;
 
-/**
- * Round 45 (details-1): the signpost's wood draws in the fences' material — see the mesh below.
- * Per-channel factor on its vertex tints: `wood`'s linear tint over `fenceWood`'s
- * ((0.871, 0.672, 0.391) / (0.578, 0.496, 0.391)) × 8 / 11 (PROP_WOOD_FLOOR's lift, the level
- * the tints were calibrated at, over FENCE_WOOD_FLOOR's).
- */
-const SIGNPOST_ON_FENCE_WOOD: [number, number, number] = [1.096, 0.985, 0.727];
-
+/** round 45 (details-1): the signpost's wood draws in the fences' material — see the mesh below */
 function scaleColors(geo: BufferGeometry, k: [number, number, number]): void {
   const c = geo.attributes.color;
   if (!c) return;
@@ -233,13 +226,13 @@ export function buildSignpost(def: { id: string; position: readonly [number, num
   // board rendered p10 / p50 / p90 at 0.056 / 0.070 / 0.088 and 0.044 / 0.078 / 0.090, a black
   // box with the runes lost in it. Sharing the fences' material folds the signpost into their
   // static bucket (consolidateStaticMeshes: same flags, same vertex layout), so the lit signpost
-  // costs no draw; a material of its own cost a colour draw and a shadow draw. The vertex tints
-  // above were set against `wood`'s tint (0xf0d6a8) and calibrated under a lift-8 floor (a board
-  // at ≈ 0.055 linear, sRGB ≈ 0.26; the post ≈ 0.15): SIGNPOST_ON_FENCE_WOOD rescales them by
-  // the tints' linear ratio (wood / fence = 1.507, 1.355, 1.0) × 8 / 11 for the fence floor's
-  // lift, so the shaded planks land at that same level and colour; the sunlit faces (rare, the
-  // post stands in canopy shade) come out 27 % darker than on `wood`.
-  scaleColors(woodGeo, SIGNPOST_ON_FENCE_WOOD);
+  // costs no draw of its own; a material of its own cost a colour draw and a shadow draw. The
+  // vertex tints above were set against `wood`'s tint and calibrated under a lift-8 floor (a
+  // board at ≈ 0.055 linear, sRGB ≈ 0.26; the post ≈ 0.15): WOOD_ON_FENCE_WOOD (materials.ts)
+  // rescales them for the fence tint and the fence floor's lift 11, so the shaded planks land at
+  // that same level and colour; the sunlit faces (rare, the post stands in canopy shade) come out
+  // 27 % darker than on `wood`.
+  scaleColors(woodGeo, WOOD_ON_FENCE_WOOD);
   const woodMesh = new Mesh(woodGeo, mats.fenceWood);
   woodMesh.name = 'signpost-wood';
   woodMesh.castShadow = woodMesh.receiveShadow = true;
