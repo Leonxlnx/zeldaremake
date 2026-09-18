@@ -191,15 +191,17 @@ export const TRUNK_BARK_FLOOR: ShadeFloor = { ...HOUSE_BARK_FLOOR, lift: 4.75, t
 export const FENCE_WOOD_FLOOR: ShadeFloor = { ...HOUSE_BARK_FLOOR, lift: 11, texture: 1.0, albedo: 0.1 };
 /**
  * Round 44 (structures-28): the threshold slab's stone stands in the eave's shade at the door
- * (survey-1 crop 26 / w31-house-d): with no floor the worn top rendered ≈ 0.05 and the moss
- * doormat read as a green mat on a black slab. Textured, at the stone's own mean albedo (0.28).
- * Lift 3.4 with the default leaf-filtered light (canopy 0.6) rendered the slab's walked middle
- * at lum 0.07 in w31-house-d and GREEN — at 1 m the pixel is the floor alone, and the leaf filter
- * on a (0.95, 1.1, 0.75) tint over the ≈ 0.1 shaded albedo made a dark olive stone under the
- * doormat. Lift 8 (≈ 0.07 linear on the walked top → lum ≈ 0.3, the frame's threshold band) with
- * the filter nearly off (canopy 0.15): a pale grey stone under the sill, not a second moss.
+ * (survey-1 crop 26 / w31-house-d). Textured, at the stone's own mean albedo (0.28), the leaf
+ * filter nearly off (canopy 0.15: a grey stone under the sill, not a second moss). The lift is
+ * LOW against the bark floors' (4.75–13): those top up albedos of ≈ 0.02, this one an albedo of
+ * ≈ 0.26, and the floor is lift × ambient × Lambert(albedo). Round-8's flat plank rendered the
+ * walked band (w31-house-d, 520–780 × 420–510) at p50 0.286 (p10 0.273 / p90 0.302 — a flat
+ * grey; the reference's threshold ≈ 0.3): lift 8 rendered the worn top at 0.488 (≈ 0.2 linear),
+ * lift 3 lands it at ≈ 0.3 with the wear and the vertex tints (0.78–1.0, house.ts) as its range.
+ * (The lift-8 probes were measured on a slab whose top was back-face culled — house.ts — and
+ * read the hidden doormat film; they said nothing about the stone.)
  */
-export const STONE_FLOOR: ShadeFloor = { ...HOUSE_BARK_FLOOR, lift: 8, texture: 1.0, albedo: 0.28, canopy: 0.15, chroma: 0.5 };
+export const STONE_FLOOR: ShadeFloor = { ...HOUSE_BARK_FLOOR, lift: 3, texture: 1.0, albedo: 0.28, canopy: 0.15, chroma: 0.5 };
 /**
  * Round 44 (structures-28): the log arch's own floor. Under HOUSE_BARK_FLOOR the flat 40 % of the
  * floor (0.4 × 0.08 at lift 7.2 ≈ 0.032) outweighed the belly's own textured term (0.6 × ≈ 0.02),
@@ -1229,16 +1231,18 @@ export async function loadMaterials(ctx: WorldContext, rng: () => number): Promi
   // round 44 (structures-28): the threshold slab — grey worn stone, the flagstones' set; the
   // vertex tints carry the worn pale top / damp dark sides (house.ts). Replaces the houses' shared
   // flat-grey `stone` (moss normals at 0.25), which read as a white plank (survey-1 crop 26).
-  // The set leans orange (linear R/G 1.44 — hardscape/material.ts desaturates it in-shader); the
-  // tint pulls it to the flagstones' simulated albedo hue (R/G ≈ 1.2) at their level (≈ 0.3 lum
-  // sunlit tops under the vertex tints house.ts sets).
+  // The set leans orange (linear mean (0.395, 0.275, 0.144): R/G 1.44, B/G 0.52 — hardscape/
+  // material.ts desaturates it in-shader); the tint pulls it to the flagstones' simulated albedo
+  // hue (R/G ≈ 1.2, B/G ≈ 0.75 — a warm grey, the round-8 plank's B/G 0.85 in sRGB) at the same
+  // mean albedo (≈ 0.28: STONE_FLOOR.albedo). The first cut's (0.95, 1.1, 0.75) rendered a cream
+  // stone (B/G 0.67 in sRGB) once the top drew.
   const stone = new MeshStandardMaterial({
     map: stoneC,
     normalMap: stoneN,
     normalScale: new Vector2(0.9, 0.9),
     roughnessMap: stoneR,
     roughness: 1,
-    color: new Color(0.95, 1.1, 0.75),
+    color: new Color(0.83, 1.0, 1.44),
     vertexColors: true,
   });
   // kept below the tone-mapper's shoulder so the glow stays orange instead of clipping to cream

@@ -1776,8 +1776,10 @@ export function buildHouse(def: HouseDef, ctx: WorldContext, mats: StructureMate
         const g = Math.max(0, v * 2 - 1);
         const top = v <= 0.5;
         const wob = outline(th);
-        // the sides batter out 6 mm at the base
-        const rr = Math.max(0.04, f) * wob * (1 + 0.012 * g);
+        // the sides batter out 6 mm at the base. The centre ring is r = 0 (the 31 vertices
+        // coincide, the first ring's triangles are slivers): a floor of 0.04 left a hole 3 × 2 cm
+        // open in the middle of the top
+        const rr = f * wob * (1 + 0.012 * g);
         const w = slabCW + Math.cos(th) * slabW * rr;
         const d = slabCD + Math.sin(th) * slabD * rr;
         // the top: a worn undulation, dished along the walked line through the door's middle,
@@ -1800,6 +1802,18 @@ export function buildHouse(def: HouseDef, ctx: WorldContext, mats: StructureMate
       { cols: 30, rows: 7, closedU: true },
     );
     faceTowards(slab, (p, o) => o.copy(p).sub(slabC).multiplyScalar(4).add(p).setY(p.y + 1.5));
+    // the centre ring's 31 coincident vertices have no u-derivative: gridSurface gave them its
+    // +Y fallback, and the flip faceTowards applies to the whole grid (the door frame's w × d
+    // is left-handed about y, so the analytic normals came out inside-out) turned them −Y — a
+    // dark dimple over the inner third of the top. They take ring 1's mean normal.
+    {
+      const nrm = slab.attributes.normal;
+      const nu = 31;
+      const mean = new Vector3();
+      for (let i = 0; i < nu; i++) mean.add(_bd.fromBufferAttribute(nrm, nu + i));
+      mean.normalize();
+      for (let i = 0; i < nu; i++) nrm.setXYZ(i, mean.x, mean.y, mean.z);
+    }
     const slabMesh = new Mesh(slab, mats.stone);
     slabMesh.name = 'threshold';
     slabMesh.castShadow = slabMesh.receiveShadow = true;
