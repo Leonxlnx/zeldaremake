@@ -314,7 +314,54 @@ export interface DepthBand {
   stream?: string;
 }
 
-export function placeDistantTrees(rng: Rng, terrain: Terrain, variants: DistantVariant[], target: number, inner = 60, outer = 215, bands: DepthBand[] = []): DistantPlacement[] {
+/**
+ * Ground a distant tree may not stand on (round 45, structures-28's ray pick: a depth-row trunk
+ * 5 m off the path spine, inside the log arch's west root mass, dead on the arch's north sight
+ * line). `spine` is a polyline (xz) every instance keeps `spineClearance` metres off; an instance
+ * drawn closer is slid out along the perpendicular to `spineClearance + 0.5` (the depth rows fill
+ * a hero frame's far layer, so a tree is moved, not dropped, when the ground there allows it).
+ * `footprints` are oriented boxes (a hollow log's body) nothing may stand in. Applied AFTER every
+ * random draw of the candidate, so every other placement — the other rows, the radial layer — is
+ * exactly what it was without the rule.
+ */
+export interface DistantClearance {
+  spine: [number, number][];
+  spineClearance: number;
+  footprints: { x: number; z: number; ax: number; az: number; halfLength: number; halfWidth: number }[];
+}
+
+function pointSegment(px: number, pz: number, ax: number, az: number, bx: number, bz: number): { d: number; nx: number; nz: number } {
+  const abx = bx - ax;
+  const abz = bz - az;
+  const l2 = abx * abx + abz * abz || 1;
+  const t = Math.max(0, Math.min(1, ((px - ax) * abx + (pz - az) * abz) / l2));
+  const qx = ax + abx * t;
+  const qz = az + abz * t;
+  const dx = px - qx;
+  const dz = pz - qz;
+  const d = Math.hypot(dx, dz);
+  return d > 1e-6 ? { d, nx: dx / d, nz: dz / d } : { d, nx: -abz / Math.sqrt(l2), nz: abx / Math.sqrt(l2) };
+}
+
+/** nearest point of the clearance spine: distance and the unit vector away from it */
+function spineOffset(spine: [number, number][], x: number, z: number): { d: number; nx: number; nz: number } {
+  let best = { d: Infinity, nx: 1, nz: 0 };
+  for (let i = 0; i + 1 < spine.length; i++) {
+    const s = pointSegment(x, z, spine[i][0], spine[i][1], spine[i + 1][0], spine[i + 1][1]);
+    if (s.d < best.d) best = s;
+  }
+  return best;
+}
+
+function inFootprint(f: DistantClearance['footprints'][number], x: number, z: number): boolean {
+  const rx = x - f.x;
+  const rz = z - f.z;
+  const along = rx * f.ax + rz * f.az;
+  const across = -rx * f.az + rz * f.ax;
+  return Math.abs(along) <= f.halfLength && Math.abs(across) <= f.halfWidth;
+}
+
+export function placeDistantTrees(rng: Rng, terrain: Terrain, variants: DistantVariant[], target: number, inner = 60, outer = 215, bands: DepthBand[] = [], clearance?: DistantClearance): DistantPlacement[] {
   const r = rng.fork('distant-placement');
   const clump = new Noise2D('distant-clumps');
   const out: DistantPlacement[] = [];
@@ -326,6 +373,30 @@ export function placeDistantTrees(rng: Rng, terrain: Terrain, variants: DistantV
     const k = key(p.x, p.z);
     if (!grid.has(k)) grid.set(k, []);
     grid.get(k)!.push(p);
+  };
+  /** a candidate that has drawn everything: keep as is, slide off the spine, or drop (null) */
+  let moved = 0;
+  let dropped = 0;
+  const cleared = (p: DistantPlacement, minD: number): DistantPlacement | null => {
+    if (!clearance) return p;
+    const spine = spineOffset(clearance.spine, p.x, p.z);
+    const inside = (x: number, z: number) => clearance.footprints.some((f) => inFootprint(f, x, z));
+    if (spine.d < clearance.spineClearance || inside(p.x, p.z)) {
+      // slide out along the perpendicular: to the clearance ring first, then a metre at a time
+      // (≤ 8 m) until the point is out of every footprint too
+      for (let push = Math.max(0, clearance.spineClearance + 0.5 - spine.d); push <= clearance.spineClearance + 8.5; push += 1) {
+        const x = p.x + spine.nx * push;
+        const z = p.z + spine.nz * push;
+        if (inside(x, z)) continue;
+        const m = terrain.mask(x, z);
+        if (m.structure > 0.4 || m.path > 0.4 || terrain.slope(x, z) > 0.72 || tooCloseIn(grid, cell, x, z, minD)) break;
+        moved++;
+        return { ...p, x, z, y: terrain.height(x, z) };
+      }
+      dropped++;
+      return null;
+    }
+    return p;
   };
   const broadOnly = variants.map((v, i) => (v.kind === 'broad' && !v.bandOnly ? i : -1)).filter((i) => i >= 0);
   for (const band of bands) {
@@ -346,7 +417,8 @@ export function placeDistantTrees(rng: Rng, terrain: Terrain, variants: DistantV
         if (tooCloseIn(grid, cell, x, z, band.spacing * 0.6)) continue;
         const tintShift = rb.range(-0.05, 0.05);
         const tint = new Color(1 + tintShift * 0.5, 1 + tintShift, 1 - tintShift * 0.6).multiplyScalar(band.shade * rb.range(0.9, 1.05));
-        push({ variant: bandPool[rb.int(0, bandPool.length)], x, y: terrain.height(x, z), z, yaw: rb() * TAU, scale: rb.range(band.scale[0], band.scale[1]), tint });
+        const p = cleared({ variant: bandPool[rb.int(0, bandPool.length)], x, y: terrain.height(x, z), z, yaw: rb() * TAU, scale: rb.range(band.scale[0], band.scale[1]), tint }, band.spacing * 0.6);
+        if (p) push(p);
       }
     }
   }
@@ -354,8 +426,10 @@ export function placeDistantTrees(rng: Rng, terrain: Terrain, variants: DistantV
   const broadIdx = broadOnly;
   const slenderIdx = variants.map((v, i) => (v.kind === 'slender' && !v.bandOnly ? i : -1)).filter((i) => i >= 0);
   let attempts = 0;
-  const bandCount = out.length;
-  while (out.length - bandCount < target && attempts < target * 40) {
+  // a radial candidate the clearance drops still counts toward the target: the loop then ends on
+  // the same draw it always did and no later tree appears to replace it
+  let placed = 0;
+  while (placed < target && attempts < target * 40) {
     attempts++;
     const a = r() * TAU;
     // area-uniform radius in the annulus, slightly biased inward so the near band is dense
@@ -373,9 +447,18 @@ export function placeDistantTrees(rng: Rng, terrain: Terrain, variants: DistantV
     const variant = slender ? slenderIdx[r.int(0, slenderIdx.length)] : broadIdx[r.int(0, broadIdx.length)];
     const tintShift = r.range(-0.06, 0.06);
     const tint = new Color(1 + tintShift * 0.5, 1 + tintShift, 1 - tintShift * 0.6).multiplyScalar(r.range(0.82, 1.08));
-    push({ variant, x, y: terrain.height(x, z), z, yaw: r() * TAU, scale: r.range(0.8, 1.28), tint });
+    const p = cleared({ variant, x, y: terrain.height(x, z), z, yaw: r() * TAU, scale: r.range(0.8, 1.28), tint }, minD);
+    placed++;
+    if (p) push(p);
   }
+  lastClearanceTally = { moved, dropped };
   return out;
+}
+
+let lastClearanceTally = { moved: 0, dropped: 0 };
+/** how many placements the last `placeDistantTrees` clearance slid off the spine / dropped (audit) */
+export function distantClearanceTally(): { moved: number; dropped: number } {
+  return { ...lastClearanceTally };
 }
 
 function tooCloseIn(grid: Map<string, DistantPlacement[]>, cell: number, x: number, z: number, minD: number): boolean {

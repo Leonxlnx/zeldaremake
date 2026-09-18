@@ -33,7 +33,7 @@ import { NEAR_CANOPY_HERO_MARGIN, NEAR_CANOPY_IN_M, NEAR_CANOPY_MAX_Y, NEAR_CANO
 import { LodPool, type PoolBuilt, type PoolItem } from './lodPool';
 import type { GiantTreeDef } from '../layout';
 import type { RootKitFit } from './rootkit';
-import { createDistantVariants, placeDistantTrees, type DepthBand, type DistantPlacement, type DistantVariant } from './distant';
+import { createDistantVariants, distantClearanceTally, placeDistantTrees, type DepthBand, type DistantClearance, type DistantPlacement, type DistantVariant } from './distant';
 import { TAU, mergeParts, type Detail } from './writer';
 import type { ViewGap } from './placement';
 
@@ -1184,6 +1184,22 @@ const DEPTH_BANDS: DepthBand[] = [
   // instance tint lifts the shaded bark's ambient term to ≈ 0.46 at that depth.
   { xMin: -17.5, xMax: -6.5, zMin: -46.5, zMax: -45, spacing: 2.2, scale: [1.2, 1.35], shade: 1.3, kind: 'slender', minVariantHeight: 20, stream: 'depth-band-far-trunks-d' },
 ];
+/** round 45: no distant tree within this of the path spine (m) … */
+const DISTANT_SPINE_CLEARANCE = 6;
+/** … the spine extended this far north past its last point (the sight line out of the log arch) */
+const DISTANT_SPINE_EXTEND_M = 12;
+function spineDistance(spine: [number, number][], x: number, z: number): number {
+  let best = Infinity;
+  for (let i = 0; i + 1 < spine.length; i++) {
+    const [ax, az] = spine[i];
+    const [bx, bz] = spine[i + 1];
+    const abx = bx - ax;
+    const abz = bz - az;
+    const t = Math.max(0, Math.min(1, ((x - ax) * abx + (z - az) * abz) / (abx * abx + abz * abz || 1)));
+    best = Math.min(best, Math.hypot(x - ax - abx * t, z - az - abz * t));
+  }
+  return best;
+}
 /**
  * Column trees (column.ts) — the dark boles of the mid-distance forest wall (round 13).
  *
@@ -2301,7 +2317,31 @@ export async function create(ctx: WorldContext): Promise<WorldSystem> {
   distantGroup.name = 'distant';
   const distantVariants = createDistantVariants(rng, palette);
   const distantTarget = Math.round(680 * Math.max(0.7, Math.min(1.2, ctx.quality.density)));
-  const distantPlacements = placeDistantTrees(rng, terrain, distantVariants, distantTarget, 60, 215, DEPTH_BANDS);
+  // Round 45 (structures-28's ray pick at w21-spine-f): the first depth row ran through the log
+  // arch's north mouth — its instance at (0.73, −59.8) was a hex-prism trunk 5 m off the spine,
+  // INSIDE the log's west root mass, dead on the path's north sight line — and the radial pool
+  // put a 10 m slender pole 4.7 m off the sight line 14 m past the arch. No distant tree may
+  // stand within DISTANT_SPINE_CLEARANCE of the path spine, extended DISTANT_SPINE_EXTEND_M north
+  // past its last point (the sight line out of the arch), nor inside the log's body + root mass;
+  // one that is drawn there slides out along the perpendicular (distant.ts DistantClearance:
+  // after every draw, so every other tree is where it was).
+  const spineXZ: [number, number][] = ctx.layout.pathSpine.map((p) => [p[0], p[2]]);
+  {
+    const a = spineXZ[spineXZ.length - 2];
+    const b = spineXZ[spineXZ.length - 1];
+    const l = Math.hypot(b[0] - a[0], b[1] - a[1]) || 1;
+    spineXZ.push([b[0] + ((b[0] - a[0]) / l) * DISTANT_SPINE_EXTEND_M, b[1] + ((b[1] - a[1]) / l) * DISTANT_SPINE_EXTEND_M]);
+  }
+  const arch = ctx.layout.logArch;
+  const archYaw = (arch.yawDeg * Math.PI) / 180;
+  const distantClearance: DistantClearance = {
+    spine: spineXZ,
+    spineClearance: DISTANT_SPINE_CLEARANCE,
+    // the log's long axis as logArch.ts builds it (east, slightly north); body plus the root masses
+    footprints: [{ x: arch.position[0], z: arch.position[2], ax: Math.cos(archYaw), az: -Math.sin(archYaw), halfLength: arch.length / 2 + 2, halfWidth: arch.radius + 1 }],
+  };
+  const distantPlacements = placeDistantTrees(rng, terrain, distantVariants, distantTarget, 60, 215, DEPTH_BANDS, distantClearance);
+  const distantCleared = distantClearanceTally();
   const distantSets: DistantSet[] = distantVariants.map((variant, i) => {
     const placements = distantPlacements.filter((p) => p.variant === i);
     const n = Math.max(1, placements.length);
@@ -2815,6 +2855,8 @@ export async function create(ctx: WorldContext): Promise<WorldSystem> {
       leafCount: leafCount + columnLeaves + giantLeaves,
       whiteBarkLeafCount: leafCount,
       distantTrees: distantPlacements.length,
+      /** round 45: instances slid off the path's sight line / dropped from the arch's footprint, and the spine clearance (m) */
+      distantClearance: { ...distantCleared, spine: DISTANT_SPINE_CLEARANCE, minSpineDistance: Math.round(Math.min(...distantPlacements.map((p) => spineDistance(spineXZ, p.x, p.z))) * 100) / 100 },
       distantLod: [distantNearCount, distantFarCount],
       lodLevels: 3,
       windLayers: mats.windLayers,
