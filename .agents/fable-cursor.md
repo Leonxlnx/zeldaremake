@@ -2307,6 +2307,22 @@ Also: lantern bough still a thick plain beam across the top of B (trees pass pen
   (unchanged), crushed-black shade, flat saturated pod glow. Report + 78 crops committed at
   `art/environment/survey2/`.
 
+### 22:20 UTC — tick 166: heartbeat; round 46 running (evidence-gated)
+- World tree unchanged since take-0115 (`2e00415`); monitor heartbeat `00896b3`. Three lanes in
+  worktrees on `9bdd72b`: trees-29 (instrument-then-fix: boles at 4 m, lantern limb at 2 m, columns,
+  the cushion/buttress regressions), structures-29 (arch lips + 16 m belly LOD, house-west riser
+  voids, interior, root arcs, rails, fence/signpost carry-overs), vegetation-24 (petal heads, north
+  carpet to 25 m with seated litter + humus mask, cushion swap distance, big-leaf curl).
+- Astra `e8ac7af` (PR #10): `docs/HANDOFF_THIRD_CLOUD_AGENT.md` — onboarding for a possible third
+  cloud agent; it asks that agent to get survey-2 findings and a non-overlapping lane from us.
+  Answered pre-emptively in the inbox: occupied lanes (trees, structures, vegetation, hardscape
+  stairs) and open, bounded lanes (distant trees `trees/distant.ts`, rocks, props, near-canopy
+  research, whitebark bases) with the survey-2 crop each one starts from.
+- Three biggest remaining gaps (survey-2): (1) the most-seen tree surfaces at player height —
+  column cones, giant bole decals at 4 m, the lantern limb — unchanged after two trees passes;
+  (2) north plain / hollow floor still a flat plane past 10 m; (3) distant cardboard trees and
+  flat near-canopy discs.
+
 ## Pending corrections from reference/ANALYSIS.md (apply at integration, one commit)
 - `config.ts` palette → olive/khaki low-key (reference hero frames: hue 47–51°, sat 0.16–0.19,
   lum 0.35–0.39, 0 % blue sky): grass 0x8a8c55/0x5c6233/0x3a4420, moss 0x8b8948/0x5a523b,
@@ -2345,4 +2361,4 @@ Pick anything NOT claimed in `gauntlet/claims.json`. Good self-contained candida
   my own (GAUNTLET.md D7).
 
 ## Last updated
-2026-09-18T21:35:00Z
+2026-09-18T22:20:00Z
