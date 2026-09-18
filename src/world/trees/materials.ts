@@ -177,11 +177,18 @@ interface WindOpts {
  */
 const CARD_ALPHA_TEST = 0.42;
 /**
- * Round 45: a flat lobe card's (writer.ts leafFlat) coverage by |cos| of the angle between its
- * normal and the view ray — 0 at and under the first value, full from the second — so a card
- * turned to the ray is never a line over the haze (survey crop 27's plateau "T"). Ordinary
- * cards are untouched. Exported for the audit.
+ * Round 45 (item 5, survey crop 27 / pose w26-stairs-f: a giant's cluster card seen edge-on
+ * over a distant trunk read as a "T" — the kind probe put the sliver in the ordinary canopy
+ * cards, not the flat-shaded authored lobes): a card's coverage by |cos| of the angle between
+ * its plane normal and the view ray — 0 at and under the first value, full from the second.
+ * A card's normal leans out of and up from its lobe (giant.ts clusterCards), so a lobe's top
+ * cards are systematically edge-on to a walker looking up at it; under cos 0.1 (5.7° from
+ * edge-on) a card is a line a tenth of its own width and goes, full from 0.22 (12.7°) — about a
+ * tenth of the cards, carrying under 1 % of the card area. The flat-shaded cards (writer.ts
+ * leafFlat: one even dark, no cards behind them to hide an edge) fade over a wider band.
+ * Exported for the audit.
  */
+export const CARD_EDGE_FADE: [number, number] = [0.1, 0.22];
 export const CARD_FLAT_EDGE_FADE: [number, number] = [0.15, 0.4];
 const CARD_MIP_BIAS = -0.75;
 function biasedMap(shader: WebGLProgramParametersWithUniforms, flatAware = false) {
@@ -1172,13 +1179,12 @@ export async function createTreeMaterials(ctx: WorldContext): Promise<TreeMateri
             sampledDiffuseColor.a = mix(sampledDiffuseColor.a, nearColor.a, leafNear);
           }
           diffuseColor *= vec4(mix(sampledDiffuseColor.rgb, vec3(${LEAF_FLAT_MAP_LUM.toFixed(2)}), vLeafFlat), sampledDiffuseColor.a);
-          // round 45 (survey crop 27, pose w26-stairs-f: a plateau-oak flat lobe card seen
-          // edge-on over a distant trunk read as a "T"): a flat card's coverage goes out as
-          // its plane turns to the view ray — nothing under ~9° to it (cos 0.15, below the
-          // alpha test), full from ~24° (0.4). Only the flat-tagged cards (vLeafFlat): the
-          // ordinary lobes' cards stand at every angle and hide one another's edges.
+          // round 45 (survey crop 27, pose w26-stairs-f: a cluster card seen edge-on over a
+          // distant trunk read as a "T"): a card's coverage goes out as its plane turns to the
+          // view ray (CARD_EDGE_FADE; the flat-shaded cards over CARD_FLAT_EDGE_FADE's wider
+          // band) — a card under the first cos is a line, not a leaf clump, and goes.
           float cardFacing = abs(dot(normalize(vNormal), normalize(vViewPosition)));
-          diffuseColor.a *= mix(1.0, smoothstep(${CARD_FLAT_EDGE_FADE[0].toFixed(2)}, ${CARD_FLAT_EDGE_FADE[1].toFixed(2)}, cardFacing), vLeafFlat);
+          diffuseColor.a *= mix(smoothstep(${CARD_EDGE_FADE[0].toFixed(2)}, ${CARD_EDGE_FADE[1].toFixed(2)}, cardFacing), smoothstep(${CARD_FLAT_EDGE_FADE[0].toFixed(2)}, ${CARD_FLAT_EDGE_FADE[1].toFixed(2)}, cardFacing), vLeafFlat);
         #endif
         `,
       );
