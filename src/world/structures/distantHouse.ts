@@ -1315,8 +1315,10 @@ export function buildDistantHouses(ctx: WorldContext, mats: StructureMaterials, 
     const soffitGeo = dropDegenerate(merge(soffitParts));
     const soffitMesh = new Mesh(soffitGeo, mats.propWood);
     soffitMesh.name = 'distant-soffit';
-    // a thin board 1.5 mm under a plank face: nothing to cast, and the sun never reaches its face
-    soffitMesh.castShadow = soffitMesh.receiveShadow = false;
+    // the shadow flags match the signpost's wood mesh so consolidateStaticMeshes folds the two
+    // `propWood` users into one bucket (one colour draw and one shadow draw for both); the boards
+    // have nothing to cast under the platform, but a separate no-shadow bucket cost a draw more
+    soffitMesh.castShadow = soffitMesh.receiveShadow = true;
     group.add(soffitMesh);
     tris += triangles(soffitGeo);
     degenerate += countDegenerate(soffitGeo);
