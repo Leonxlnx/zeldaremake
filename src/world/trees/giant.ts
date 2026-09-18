@@ -34,7 +34,7 @@ import { CARD_UV0 } from './leaf-cluster-texture';
 import { LEAF_FLAT_MAP_LUM } from './materials';
 import { buttressRoot, consumeTubeDraws, kneeBump, kneeStub, reliefBole, reliefBoleSteps, sweepAxisAt, type BoleKnee, type TubeDraws } from './bole';
 import { basePlants, basePlantsSteps, type BasePlantResult } from './base-plants';
-import { NEAR_CANOPY_MAX_Y, createNearCanopyKit, runSteps, swapRadiiFor, type HeroDistanceFn, type NearCanopyPart, type NearLimbRecord, type NearLobeRecord } from './nearCanopy';
+import { NEAR_CANOPY_FLAT_SWAP_M, NEAR_CANOPY_MAX_Y, createNearCanopyKit, runSteps, swapRadiiFor, type HeroDistanceFn, type NearCanopyPart, type NearLimbRecord, type NearLobeRecord } from './nearCanopy';
 
 /**
  * Near-bole LOD (round 39, the owner's walk-down note: "the bottom of the trees need to be super
@@ -1305,7 +1305,7 @@ export function createGiantTree(def: GiantTreeDef, rng: Rng, o: GiantOptions): G
     // version every other lobe gets, on the wood the core hid.
     const flatEligible = lobeFlat && !compact && !ghost;
     if (near && !ghost && (flatEligible || (!lobeFlat && !compact && lobeTone === 1 && leaves.leafShade === 1 && eyeOverride !== 1)) && center.y <= NEAR_CANOPY_MAX_Y) {
-      const radii2 = swapRadii(center, hR + 1.4);
+      const radii2 = flatEligible && NEAR_CANOPY_FLAT_SWAP_M ? NEAR_CANOPY_FLAT_SWAP_M : swapRadii(center, hR + 1.4);
       if (radii2) {
         rec = { group: nearGroups++, center: center.clone(), hR, vR, stem: bough, stemRadii: stemRadii ?? taper(bough, boughRadius, 0.02), secondaries: [], twigs: [], farLeaves: 0, farCards: 0, inM: radii2[0], outM: radii2[1], floorY: lobeFloorY ?? undefined };
         leaves.leafSwapGroup = rec.group;

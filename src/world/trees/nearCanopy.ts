@@ -45,6 +45,14 @@ export const NEAR_CANOPY_OUT_M = 26;
 export const NEAR_CANOPY_HERO_MARGIN = 1.5;
 export const NEAR_CANOPY_MIN_IN_M = 7;
 /**
+ * Round 45 (trees-28, item 6): the FLAT lobes' swap radii [in, out] when set — in place of the
+ * hero cut, which holds the four bank-canopy flat lobes (10.5–14 m from A, 11–14 from B / E,
+ * 12.6–15.7 from F) at 9–12.4 m in. Set to [14, 17] the hero cameras stand inside the swap and
+ * render the lit, layered near versions in place of the even masses their frames are matched
+ * to; null = the hero cut (the measured setting — see the round-45 trees report).
+ */
+export const NEAR_CANOPY_FLAT_SWAP_M: [number, number] | null = null;
+/**
  * local height (m) of the lobe centre above which a lobe keeps its far foliage at every distance
  * (a 21 m lobe is 19.5 m over a standing eye — the top of what NEAR_CANOPY_IN_M can reach)
  */
