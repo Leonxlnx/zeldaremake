@@ -213,7 +213,10 @@ export function buildSignpost(def: { id: string; position: readonly [number, num
     parts.push(peg);
   }
   const woodGeo = merge(parts);
-  const woodMesh = new Mesh(woodGeo, mats.wood);
+  // round 45 (details-1): `propWood` — the same planks under a shade floor (materials.ts
+  // PROP_WOOD_FLOOR); at 2 m in the canopy's shade (sn-signpost) the post and board on `wood`
+  // rendered p50 0.07 / 0.08, a black box with the runes lost in it
+  const woodMesh = new Mesh(woodGeo, mats.propWood);
   woodMesh.name = 'signpost-wood';
   woodMesh.castShadow = woodMesh.receiveShadow = true;
   group.add(woodMesh);

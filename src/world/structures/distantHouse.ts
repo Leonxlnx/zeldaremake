@@ -328,12 +328,13 @@ const SOFFIT: RGB = [0.3, 0.27, 0.22];
  * twice that, rendered the deck's bottom at p50 0.30 sRGB from the hollow path (w13-spine-u) — a
  * flat pale panel over the 0.06 joists, since a single grid with alternating vertex tints
  * interpolates to a wave, not boards; so the boards are built as boards (see the soffit block).
- * round 45 (details-1): the boards are lit planks now — this is their vertex tint on `soffitWood`
- * (the planks map × the wood tint × this, under SOFFIT_WOOD_FLOOR, whose lift materials.ts sets
- * so the boards land at the round-44 level). Warmer and paler than PLANK: the tint the floor
- * reads through the map, not the lit deck's.
+ * round 45 (details-1): the boards are lit planks now — this is their vertex tint on `propWood`
+ * (the planks map × the wood tint × this, under PROP_WOOD_FLOOR's lift 8, shared with the
+ * signpost). Above 1 like the signpost's board (the planks map is dark, ≈ 0.06 linear): the
+ * floor is lift × the hemisphere mean × albedo / π, and this tint puts a board at ≈ 0.045
+ * linear, the round-44 level — the tint the floor reads through the map, not the lit deck's.
  */
-const SOFFIT_BOARD: RGB = [0.62, 0.53, 0.42];
+const SOFFIT_BOARD: RGB = [1.55, 1.32, 1.05];
 /** an sRGB hex as a linear tint scaled so its peak channel is `peak` (the glow material is white × 2.2) */
 const tint = (hex: number, peak = 1): RGB => {
   const c = new Color(hex);
@@ -698,7 +699,7 @@ export function buildDistantHouses(ctx: WorldContext, mats: StructureMaterials, 
   const group = new Group();
   group.name = 'distant-houses';
   const glowParts: BufferGeometry[] = [];
-  /** round 45 (details-1): the huts' soffit boards, one mesh on `mats.soffitWood` */
+  /** round 45 (details-1): the huts' soffit boards, one mesh on `mats.propWood` */
   const soffitParts: BufferGeometry[] = [];
   const audit: DistantHouseBuild['audit'] = [];
   let tris = 0;
@@ -1191,8 +1192,8 @@ export function buildDistantHouses(ctx: WorldContext, mats: StructureMaterials, 
     // the bole to the rim, three brace struts from the bole up to the rim, two bearers and three
     // cross joists under the deck — so the underside has structure and shadow instead of one face.
     // Round 45 (details-1): the boards were on the unlit glow material at a fixed brown
-    // (≈ 0.05 linear, see SOFFIT_BOARD); they now go on `soffitWood` — the planks' maps and
-    // tint under SOFFIT_WOOD_FLOOR (materials.ts) — so they take the floor's light, the grain
+    // (≈ 0.05 linear, see SOFFIT_BOARD); they now go on `propWood` — the planks' maps and
+    // tint under PROP_WOOD_FLOOR (materials.ts) — so they take the floor's light, the grain
     // and the fog like every other lit face, at the same level. The per-board tone
     // (SOFFIT_BOARD × 0.72–1.28, darker toward the bole) is the vertex tint the floor reads
     // through the map. One mesh for every hut: +1 draw. ----
@@ -1312,7 +1313,7 @@ export function buildDistantHouses(ctx: WorldContext, mats: StructureMaterials, 
   degenerate += countDegenerate(glowGeo);
   if (soffitParts.length) {
     const soffitGeo = dropDegenerate(merge(soffitParts));
-    const soffitMesh = new Mesh(soffitGeo, mats.soffitWood);
+    const soffitMesh = new Mesh(soffitGeo, mats.propWood);
     soffitMesh.name = 'distant-soffit';
     // a thin board 1.5 mm under a plank face: nothing to cast, and the sun never reaches its face
     soffitMesh.castShadow = soffitMesh.receiveShadow = false;
