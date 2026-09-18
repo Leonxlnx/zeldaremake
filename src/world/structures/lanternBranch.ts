@@ -442,11 +442,13 @@ export function buildLanternBranch(ctx: WorldContext, mats: StructureMaterials, 
     // cover it (round 11: the lime (0.3, 0.72, 0.34) of round 10 read as a green tube under the
     // shade floor — the reference bough's moss line is hazed grey-olive, hue 53°, sat 0.16)
     const moss = 0.8 * smoothstep(0.15, 0.7, mossFringe(s, psi));
-    // round 46: the furrows between the cords carry grime (a darker, cooler bark), the crests
-    // the bark's own tone — the pre-floor share of the cord contrast (the rest is aSleeveAO)
+    // round 46: the furrows between the cords carry grime (a darker, cooler bark), the crests a
+    // little lighter than the bark's tone — the pre-floor share of the cord contrast (the rest
+    // is aSleeveAO), about the field's mean furrow share (≈ 0.5) so the bough's mean tone from
+    // camera A's 5.8 m is what it was
     const cordH = cordAt(s, psi);
     const furrow = (1 - cordH) * emerge(s);
-    const crevice = 1 - 0.28 * furrow;
+    const crevice = 1 - 0.28 * (furrow - 0.5 * emerge(s));
     // round 37: darker bark and a duller moss cap (the frame's bough is a dark band, 0.27–0.33,
     // with a lighter moss line only along its top edge)
     return [lerp(d * 0.24 * crevice, 0.22, moss), lerp(d * 0.23 * crevice, 0.34, moss), lerp(d * 0.2 * (crevice + 0.04 * furrow), 0.15, moss)];
