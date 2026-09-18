@@ -1763,12 +1763,18 @@ export function buildHouse(def: HouseDef, ctx: WorldContext, mats: StructureMate
     thresholdSlab = { w: slabW, d: slabD, cw: slabCW, cd: slabCD, top: slabTop };
     const slabDepth = 0.12 * k;
     const outline = (th: number) => 1 + 0.12 * noise.noise(Math.cos(th) * slabW * 3.1 + 7, Math.sin(th) * slabD * 3.1);
+    // v runs 0 → 0.5 over the top (centre → rim, f) and 0.5 → 1 down the sides (g). The mapping
+    // is CONTINUOUS in v: gridSurface takes its normals from central differences in u and v,
+    // and a per-row `Math.round(v * 6)` (the first cut of this slab) made the surface piecewise
+    // constant in v — every normal fell back to +Y, `faceTowards` saw nothing to flip, and the
+    // top's winding faced DOWN: the stone's top was back-face culled and the door showed the
+    // hidden moss film and the porch earth through it (w31-house-d read as a dark green mat).
     const slab = gridSurface(
       (u, v, out) => {
         const th = u * TAU;
-        const row = Math.round(v * 6);
-        const f = row <= 3 ? row / 3 : 1;
-        const g = row <= 3 ? 0 : (row - 3) / 3;
+        const f = Math.min(1, v * 2);
+        const g = Math.max(0, v * 2 - 1);
+        const top = v <= 0.5;
         const wob = outline(th);
         // the sides batter out 6 mm at the base
         const rr = Math.max(0.04, f) * wob * (1 + 0.012 * g);
@@ -1781,14 +1787,14 @@ export function buildHouse(def: HouseDef, ctx: WorldContext, mats: StructureMate
         const chip = 0.025 * smoothstep(0.45, 0.85, noise.noise(th * 2.1 + 11, 2.5)) * smoothstep(0.75, 1, f);
         const round = 0.006 * smoothstep(0.8, 1, f);
         const topY = slabTop + wear - chip - round;
-        const y = row <= 3 ? topY : topY - slabDepth * g;
+        const y = topY - slabDepth * g;
         frame.door(w, y, d, out.position);
-        out.uv = row <= 3 ? [w / 1.2, d / 1.2] : [(th * (slabW + slabD)) / 1.2, y / 1.2];
+        out.uv = top ? [w / 1.2, d / 1.2] : [(th * (slabW + slabD)) / 1.2, y / 1.2];
         // tints: pale worn top (palest on the walked line), damp rim, dark sides with a moss foot
         const mottle = 0.9 + 0.2 * noise.noise(w * 9 + 1, d * 9 + 5);
-        let t = row <= 3 ? lerp(0.78, 1.0, walk) * lerp(1, 0.72, smoothstep(0.82, 1, f)) * mottle : lerp(0.55, 0.36, g) * mottle;
+        let t = top ? lerp(0.78, 1.0, walk) * lerp(1, 0.72, smoothstep(0.82, 1, f)) * mottle : lerp(0.55, 0.36, g) * mottle;
         t *= 1 - 0.5 * clamp(chip / 0.025, 0, 1);
-        const mossFoot = row <= 3 ? 0 : smoothstep(0.5, 1, g) * smoothstep(0.35, 0.65, noise.noise(th * 3 + 2, 7));
+        const mossFoot = top ? 0 : smoothstep(0.5, 1, g) * smoothstep(0.35, 0.65, noise.noise(th * 3 + 2, 7));
         out.color = [lerp(t, 0.12, mossFoot), lerp(t * 0.98, 0.2, mossFoot), lerp(t * 0.92, 0.05, mossFoot)];
       },
       { cols: 30, rows: 7, closedU: true },
