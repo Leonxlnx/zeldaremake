@@ -208,21 +208,25 @@ export const FENCE_WOOD_FLOOR: ShadeFloor = { ...HOUSE_BARK_FLOOR, lift: 11, tex
  */
 export const STONE_FLOOR: ShadeFloor = { ...HOUSE_BARK_FLOOR, lift: 3, texture: 1.0, albedo: 0.28, canopy: 0.15, chroma: 0.5 };
 /**
- * Round 45 (details-1): `propWood` — the planks (`wood`'s maps and tint) under a floor, for the
- * small wooden props that stand in the canopy's shade at walking distance: the signpost and the
- * distant huts' boarded undersides. Both read as black boxes without it: a plank facing the
- * ground gets nothing from the sun and ≈ 0.001 from the hemisphere's ground half, and the
- * signpost at 2 m (sn-signpost) rendered its post p10 / p50 / p90 at 0.056 / 0.070 / 0.088 and
- * its board at 0.044 / 0.078 / 0.090 — the fence's round-44 reading, the ×0.66–1.12 grain
- * inside four grey levels — because in the canopy's shade the hemisphere alone lights a vertical
- * face at ≈ 0.08 × albedo. The floor is that same hemisphere mean × `lift`, fully textured (the
+ * Round 45 (details-1): `propWood` — the planks (`wood`'s maps and tint) under a floor, for
+ * small wooden faces that stand in the canopy's shade and read as black boxes without one: a
+ * plank facing the ground gets nothing from the sun and ≈ 0.001 from the hemisphere's ground
+ * half, and in the canopy's shade the hemisphere alone lights a vertical face at ≈ 0.08 × albedo
+ * (the signpost at 2 m, sn-signpost, rendered its post p10 / p50 / p90 at 0.056 / 0.070 / 0.088
+ * and its board at 0.044 / 0.078 / 0.090 — the fence's round-44 reading, the ×0.66–1.12 grain
+ * inside four grey levels). The floor is that same hemisphere mean × `lift`, fully textured (the
  * grain and the vertex tints are the point), leaf-filtered through the bark tint like the fence's,
- * at chroma 0.7 (weathered, not fresh-cut). Lift 8: the board (albedo ≈ 0.08 — signpost.ts tints
- * the planks map ×2.3 to a sunlit tan) lands at ≈ 0.055 linear, sRGB ≈ 0.26, the post at ≈ 0.15;
- * the huts' soffit boards carry a vertex tint (distantHouse.ts SOFFIT_BOARD) set so the same lift
- * puts them at the round-44 level (≈ 0.045 linear) under the haze at 25–40 m. `wood` itself keeps
- * no floor: Saria's planks and the huts' decks and joists would all lift with it, and their shaded
- * faces are dark on purpose (the joist frame under this soffit included).
+ * at chroma 0.7 (weathered, not fresh-cut). Lift 8 was calibrated on the signpost: its board
+ * (albedo ≈ 0.08 — signpost.ts tints the planks map ×2.3 to a sunlit tan) at ≈ 0.055 linear,
+ * sRGB ≈ 0.26, the post at ≈ 0.15. The signpost itself now draws in `fenceWood` (its tints
+ * rescaled to that same level — signpost.ts SIGNPOST_ON_FENCE_WOOD) so it folds into the fences'
+ * static bucket: a material of its own cost a colour draw and a shadow draw. `propWood` carries
+ * the distant huts' soffit boards (their vertex tint, distantHouse.ts SOFFIT_BOARD, is set so
+ * this lift puts them at the round-44 level, ≈ 0.045 linear, under the haze at 25–40 m); the huts
+ * are their own consolidation group (index.ts), so those boards are one draw whatever material
+ * they take. `wood` itself keeps no floor: Saria's planks and the huts' decks and joists would
+ * all lift with it, and their shaded faces are dark on purpose (the joist frame under the soffit
+ * included).
  */
 export const PROP_WOOD_FLOOR: ShadeFloor = { ...HOUSE_BARK_FLOOR, lift: 8, texture: 1.0, albedo: 0.1, chroma: 0.7 };
 /**
@@ -357,7 +361,7 @@ export interface StructureMaterials {
   wood: MeshStandardMaterial;
   /** fence posts + rails: dark, silvered weathered wood that silhouettes against the haze */
   fenceWood: MeshStandardMaterial;
-  /** round 45 (details-1): `wood` under PROP_WOOD_FLOOR — the signpost and the distant huts' boarded undersides, props that stand in the canopy's shade at walking distance */
+  /** round 45 (details-1): `wood` under PROP_WOOD_FLOOR — the distant huts' boarded undersides (planks in the canopy's shade that the sun never reaches; the signpost draws in `fenceWood`) */
   propWood: MeshStandardMaterial;
   /** round 44 (structures-28): worn stone for the houses' threshold slabs (worn_rock_natural_01; vertex tints carry wear and damp) */
   stone: MeshStandardMaterial;
@@ -1481,7 +1485,7 @@ export async function loadMaterials(ctx: WorldContext, rng: () => number): Promi
   // posts F sees at 25 m stay the frame's dark posts while the grain reads at 2 m.
   applyShadeFloor(fenceWood, FENCE_WOOD_FLOOR, new Color(HOUSE_BARK_TINT));
   applyShadeFloor(stone, STONE_FLOOR);
-  // round 45 (details-1): the signpost's and the huts' soffit boards' wood — `wood`'s maps and tint under their own floor
+  // round 45 (details-1): the huts' soffit boards' wood — `wood`'s maps and tint under their own floor
   const propWood = wood.clone();
   propWood.name = 'structures:prop-wood';
   applyShadeFloor(propWood, PROP_WOOD_FLOOR, new Color(HOUSE_BARK_TINT));

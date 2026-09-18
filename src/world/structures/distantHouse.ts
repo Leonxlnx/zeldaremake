@@ -329,8 +329,8 @@ const SOFFIT: RGB = [0.3, 0.27, 0.22];
  * flat pale panel over the 0.06 joists, since a single grid with alternating vertex tints
  * interpolates to a wave, not boards; so the boards are built as boards (see the soffit block).
  * round 45 (details-1): the boards are lit planks now — this is their vertex tint on `propWood`
- * (the planks map × the wood tint × this, under PROP_WOOD_FLOOR's lift 8, shared with the
- * signpost). Above 1 like the signpost's board (the planks map is dark, ≈ 0.06 linear): the
+ * (the planks map × the wood tint × this, under PROP_WOOD_FLOOR's lift 8). Above 1 like the
+ * signpost's board (the planks map is dark, ≈ 0.06 linear): the
  * floor is lift × the hemisphere mean × albedo / π, and this tint puts a board at ≈ 0.045
  * linear, the round-44 level — the tint the floor reads through the map, not the lit deck's.
  */
@@ -1315,10 +1315,10 @@ export function buildDistantHouses(ctx: WorldContext, mats: StructureMaterials, 
     const soffitGeo = dropDegenerate(merge(soffitParts));
     const soffitMesh = new Mesh(soffitGeo, mats.propWood);
     soffitMesh.name = 'distant-soffit';
-    // the shadow flags match the signpost's wood mesh so consolidateStaticMeshes folds the two
-    // `propWood` users into one bucket (one colour draw and one shadow draw for both); the boards
-    // have nothing to cast under the platform, but a separate no-shadow bucket cost a draw more
-    soffitMesh.castShadow = soffitMesh.receiveShadow = true;
+    // a thin board 1.5 mm under a plank face: nothing to cast, and the sun never reaches its face.
+    // (The huts are consolidated as their own group — index.ts, round 20 — so this mesh is its
+    // own bucket whatever its flags; with shadows on it cost a shadow-pass draw for nothing.)
+    soffitMesh.castShadow = soffitMesh.receiveShadow = false;
     group.add(soffitMesh);
     tris += triangles(soffitGeo);
     degenerate += countDegenerate(soffitGeo);
