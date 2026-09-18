@@ -375,12 +375,13 @@ export function buildStairway(def: StairDef, terrain: Terrain, rng: Rng, seed: s
         bevel: 0.012,
         color: riserColor,
         sideColor: [riserColor[0] * 0.92, riserColor[1] * 0.9, riserColor[2] * 0.9],
-        // round 44 (crop 36): the house-west risers' faces take a fifth of the top's shading
+        // round 44 (crop 36): the house-west risers' faces take a tenth of the top's shading
         // normal and the shader's grime / lichen mottling, so in the giant's shade they read as
         // weathered stone under the lip rather than flat black; the main run's are the control's.
         // (0.3 with the cheeks at 0.5 / × 0.88 lit the flight's south flank in camera D's
-        // bottom-right corner, where frame 56 s is shadow — SSIM −0.0037 there, over the budget)
-        sideNormalUp: isHouseWest ? 0.2 : 0,
+        // bottom-right corner, where frame 56 s is shadow — SSIM −0.0037 there, over the budget;
+        // 0.2 with the cheeks at 0.3 / × 0.78 still −0.0032)
+        sideNormalUp: isHouseWest ? 0.1 : 0,
         sideWear: isHouseWest ? 0.7 : 0,
         // across: the horizontal distance from the leaning line x = fissA + lean · y; along: the
         // height over the fissure's half-length (the shader fades it out toward its top). Affine
@@ -466,15 +467,17 @@ export function buildStairway(def: StairDef, terrain: Terrain, rng: Rng, seed: s
         // B), and at player height from the path (w29-house-d, 1.6 m) their faces rendered as flat
         // near-black planes with a hard top/side break — the flat side colour (× 0.7, grime × 0.75)
         // under the true outward normal in the giant's shade. The house-west blocks take the
-        // kerb treatment: the face a step up from the control's (× 0.78 against × 0.7), its
-        // shading normal a third of the way to +y (sideNormalUp 0.3 — it takes some of the top's
+        // kerb treatment: the face a touch up from the control's (× 0.72 against × 0.7), its
+        // shading normal 15 % of the way to +y (sideNormalUp — it takes a little of the top's
         // sky light, the shadow map still shades it), the shader's grime / lichen mottling on the
         // face (sideWear), a soil band at the foot (sideStain), and a 5–8 cm two-band roll
         // (bevelRings 2, softBevel) instead of a one-crease chamfer. Draw-free: only the slab
         // options change. The main run's cheeks are the control's (cameras A / F). The first cut
         // (× 0.88, sideNormalUp 0.5) lit the flight's south flank in camera D's bottom-right
-        // corner where frame 56 s is shadow — D's SSIM fell 0.0037, over the 0.003 budget — so
-        // the face keeps its texture and roll but stays in the shade's key.
+        // corner where frame 56 s is shadow — D's SSIM fell 0.0037, over the 0.003 budget; the
+        // second (× 0.78, 0.3) still −0.0032 with −0.0019 of it in that one corner cell (the
+        // reference there is smooth shadow, so every lit gradient on the flank costs) — so the
+        // face keeps its texture and roll but stays in the shade's key.
         const block = isHouseWest;
         placeSlab(outline, ac, top - th, uc, yawJ, tiltXJ * (southEast ? 2 : 1), tiltZJ, {
           thickness: th,
@@ -483,12 +486,12 @@ export function buildStairway(def: StairDef, terrain: Terrain, rng: Rng, seed: s
           softBevel: block,
           dip: -0.01,
           color: [tint, tint, tint * 0.97],
-          sideColor: block ? [tint * 0.78, tint * 0.78, tint * 0.8] : [tint * 0.7, tint * 0.7, tint * 0.72],
-          sideNormalUp: block ? 0.3 : 0,
+          sideColor: block ? [tint * 0.72, tint * 0.72, tint * 0.74] : [tint * 0.7, tint * 0.7, tint * 0.72],
+          sideNormalUp: block ? 0.15 : 0,
           sideGrime: block ? 0.9 : 0.75,
           sideStain: block ? 0.8 : 0,
           sideWear: block ? 0.9 : 0,
-          wear: block ? 0.6 : 0,
+          wear: block ? 0.3 : 0,
           mossEdge: 1.0,
           mossInner: southEast ? 0.85 : 0.6,
           mossFn: (x, z) => 0.55 + 0.45 * (noise.fbm((x + ac) * 2.3, (z + uc) * 2.3 + 5, 2) * 0.5 + 0.5),
