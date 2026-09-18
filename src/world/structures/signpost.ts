@@ -122,7 +122,7 @@ function roughen(geo: BufferGeometry, rng: Rng, amount: number) {
 }
 
 /** round 46 (structures-29): the board's and the post's tint scales — see the plank note in `buildSignpost` */
-const BOARD_LIFT = 3.0;
+const BOARD_LIFT = 4.5;
 const POST_LIFT = 1.4;
 
 export function buildSignpost(def: { id: string; position: readonly [number, number, number]; facing: readonly [number, number] }, ctx: WorldContext, mats: StructureMaterials, rng: Rng): SignpostBuild {
@@ -205,9 +205,12 @@ export function buildSignpost(def: { id: string; position: readonly [number, num
   // lum p50 0.253 at (0.62–0.655, 0.455–0.48); the frame's board rgb(186,145,85), 0.587, hue 35°
   // at (0.552–0.598, 0.445–0.5) — a pale tan plank lit by the pods, 2.3× ours in sRGB. The
   // round-45 rescale had held the board at the round-44 SHADED level (sRGB ≈ 0.26) and left its
-  // lit faces 27 % darker still; the board's tint goes ×3 (albedo ≈ 0.33 linear — a pale plank,
-  // which is what the sign is), the post, brace, pegs and cap ×1.4, so under the fences' floor the
-  // board lands near 0.45 and the pods' spill takes it the rest of the way. The runes decal stays.
+  // lit faces 27 % darker still. Measured at ×3 in B: p50 0.253 → 0.333, p90 0.288 → 0.471 — the
+  // veil at 12 m is ≈ 0.63 of the pixel there (0.052 = 0.63 H + 0.37 S; H ≈ S ≈ 0.05 linear), so
+  // the board's own albedo has to carry the whole move: ×4.5 (albedo ≈ 0.5 linear — a pale
+  // plank, which is what the sign is) lands the pixel near 0.39; the frame's 0.587 is its pods'
+  // light, which ours does not put there. The post, brace, pegs and cap go ×1.4. The runes decal
+  // stays.
   grainPlank(plank, plankW, plankH, plankT, detailRng.fork('plank'), grainNoise, [2.3 * BOARD_LIFT, 1.95 * BOARD_LIFT, 1.35 * BOARD_LIFT]);
   const plankY = 1.08;
   const plankCentre = axisAt(plankY + plankH / 2).addScaledVector(F, 0.085);
