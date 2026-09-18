@@ -630,7 +630,16 @@ grassMaterial.dispose();for(const t of grass.tiles){t.mesh.dispose();for(const g
     assert.strictEqual(litter.northTwigs.opts.variants,litter.twigs.opts.variants,'north twigs: the disc twigs\' geometry');assert.deepEqual(litter.northTwigs.opts.lodDistances,[TWIG_ULTRA_M]);
     assert.deepEqual(litter.northLeaves.opts.lodDistances,[LITTER_ULTRA_M,LEAF_FAR_M]);assert.deepEqual(litter.northLeaves.packLayout,[[[0,1,2,3]],[[0],[1],[2],[3]],[[0,1],[2,3]]],'north leaves: far folds in pairs');
     assert.deepEqual(litter.northTwigs.packLayout,[[[0,1,2]],[[0,1,2]]],'north twigs: one draw a LOD');
-    assert.ok(litter.northTwigs.count>=300&&litter.northTwigs.count<=700&&litter.northLeaves.count>=3000&&litter.northLeaves.count<=6000,`north litter ${litter.northTwigs.count} twigs, ${litter.northLeaves.count} leaves`);
+    // round 46 (survey-2 #06): the north pass floors the disc falloff at NORTH_LITTER_REACH_FLOOR — the hollow floor and the
+    // plain are strewn to 25 m (≈ 6.4 K leaves, was ≈ 4.7 K ≤ 6 000); its leaves' far LOD lies FLAT on the floor (the fold's
+    // clipped sliver read as a raised chip) and every piece seats on the exact terrain height and normal
+    assert.ok(litter.northTwigs.count>=300&&litter.northTwigs.count<=900&&litter.northLeaves.count>=3000&&litter.northLeaves.count<=8000,`north litter ${litter.northTwigs.count} twigs, ${litter.northLeaves.count} leaves`);
+    {const {NORTH_LITTER_REACH_FLOOR,NORTH_LITTER_LIFT}=read('vegetation/litter');assert.ok(NORTH_LITTER_REACH_FLOOR>=0.75&&NORTH_LITTER_LIFT<=0.002);
+      const onPath=it=>{a.field.sample(it.x,it.z,sampleN);return sampleN.path>0.5;};const sampleN=newSample();const nrm=new THREE.Vector3();
+      for(const it of litter.northLeaves.items){if(onPath(it))continue;const gap=it.y-a.ctx.terrain.height(it.x,it.z);assert.ok(Math.abs(gap-NORTH_LITTER_LIFT)<5e-5,`north leaf ${gap.toFixed(5)} m over the ground (float32 seat)`);
+        a.ctx.terrain.normal(it.x,it.z,nrm);const uy=[it.matrix[4],it.matrix[5],it.matrix[6]],l=Math.hypot(...uy);assert.ok(Math.abs(uy[0]/l-nrm.x)<1e-4&&Math.abs(uy[1]/l-nrm.y)<1e-4&&Math.abs(uy[2]/l-nrm.z)<1e-4,'north leaf up = the exact terrain normal');}
+      for(const [,,flat] of litter.northLeaves.opts.variants){flat.computeBoundingBox();const fb=flat.boundingBox;assert.equal(flat.index.count/3,2,'north far leaf: two triangles');assert.ok(fb.min.y>=0&&fb.max.y<=0.012,`north far leaf lies flat: y ${fb.min.y.toFixed(4)}…${fb.max.y.toFixed(4)}`);}
+      for(const [ultra,near] of litter.northLeaves.opts.variants){assert.equal(near.index.count/3,14);assert.ok(ultra.index.count/3>=28);}}
     assert.ok(litter.northTwigs.items.every(it=>it.z<-15)&&litter.northTwigs.items.some(it=>it.z<-56),'north twigs lie north of the plaza, some past the arch');
     const sample=newSample();for(const it of litter.northTwigs.items){a.field.sample(it.x,it.z,sample);assert.ok(a.field.allowed(it.x,it.z,sample),'north twigs never lie on the paving');}
     assert.equal(litter.count,litter.leaves.count+litter.northLeaves.count+litter.twigs.count+litter.northTwigs.count+litter.roots.count,'every litter piece audited once');}

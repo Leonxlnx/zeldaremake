@@ -119,9 +119,34 @@ const NORTH_FLOOR_MAT_KEEP = 0.7;
 const NORTH_FLOOR_TINT = 0.5;
 const NORTH_FLOOR_DRY = 0.3;
 const NORTH_FLOOR_HEIGHT = 0.75;
+/**
+ * Round 46 (survey-2 #06, checks 09 / 10 — poses w19-spine-l / w21-spine-f / w18-spine-r: "the
+ * round-44 carpet reaches ≈ 10 m; beyond it a flat pale-olive plane with sparse tufts") — the
+ * north corridor's OWN clump set. The disc's fans stop at CLUMP_MAX_DISTANCE (16 m) for the fixed
+ * cameras' far cells; a walker on the north path stands 20–40 m from the plaza's cameras and sees
+ * the corridor's ground to 25 m and more, so every 8 m tile wholly north of NORTH_CARPET_Z seats
+ * its fans in `northClumps` — the same cards, atlas and material, running to
+ * NORTH_CLUMP_MAX_DISTANCE — with the forest floor's thinning eased to NORTH_CARPET_KEEP (was
+ * NORTH_FLOOR_CLUMP_KEEP), the disc falloff floored at NORTH_CARPET_REACH_FLOOR (the hollow floor
+ * and the plain lie at reach 27–38 m, where the disc rule had thinned them to 0.4–0.7) and the
+ * cards cut to NORTH_CARPET_HEIGHT: a dense, short carpet, not tufts on a plane. The mats on
+ * those tiles take the same keep and floor. Only camera D looks north: its 25 m ring ends at
+ * z ≈ −28, so it gains a 4 m band of far cards on the corridor at 21–25 m and nothing nearer;
+ * the tiles south of the line seat exactly as before (their streams are untouched).
+ */
+const NORTH_CARPET_Z = -24;
+const NORTH_CLUMP_MAX_DISTANCE = 25;
+const NORTH_CARPET_KEEP = 0.9;
+const NORTH_MAT_KEEP = 0.9;
+const NORTH_CARPET_REACH_FLOOR = 0.8;
+const NORTH_CARPET_HEIGHT = 0.85;
+/** the north carpet's constants, for the audit and the tests */
+export const NORTH_CARPET = { z: NORTH_CARPET_Z, maxDistance: NORTH_CLUMP_MAX_DISTANCE, keep: NORTH_CARPET_KEEP, matKeep: NORTH_MAT_KEEP, reachFloor: NORTH_CARPET_REACH_FLOOR, height: NORTH_CARPET_HEIGHT };
 
 export interface CarpetResult {
   clumps: LodInstancedSet;
+  /** round 46: the north corridor's fans (NORTH_CARPET), running to NORTH_CLUMP_MAX_DISTANCE */
+  northClumps: LodInstancedSet;
   mats: LodInstancedSet;
   all: LodInstancedSet[];
   materials: Material[];
@@ -237,6 +262,18 @@ export function buildCarpet(ctx: WorldContext, field: VegField, parent: Group): 
     instanceData: { attribute: 'aData', size: 4 },
     cullPad: 0.8,
   });
+  // round 46: the north corridor's fans — the same cards, running to NORTH_CLUMP_MAX_DISTANCE
+  const northClumps = new LodInstancedSet({
+    name: 'grass-clumps-north',
+    variants: clumps.opts.variants,
+    material: clumpMaterial,
+    lodDistances: [CLUMP_LOD_NEAR * q.distance],
+    maxDistance: NORTH_CLUMP_MAX_DISTANCE * q.distance,
+    castShadowLods: 0,
+    receiveShadow: true,
+    instanceData: { attribute: 'aData', size: 4 },
+    cullPad: 0.8,
+  });
   const mats = new LodInstancedSet({
     name: 'turf-mats',
     variants: [[turfMatGeometry()]],
@@ -304,7 +341,8 @@ export function buildCarpet(ctx: WorldContext, field: VegField, parent: Group): 
   };
 
   const half = Math.ceil((R + 2) / 8);
-  const seatClump = (x: number, z: number, rng: Rng) => {
+  /** `north`: the tile lies wholly north of NORTH_CARPET_Z (round 46) — the north set's rules and set */
+  const seatClump = (x: number, z: number, rng: Rng, north: boolean) => {
     const t = turfAt(x, z, CLUMP_RIM_CLEAR);
     if (!t) return;
     if (t.stone < 0.22) return;
@@ -323,12 +361,15 @@ export function buildCarpet(ctx: WorldContext, field: VegField, parent: Group): 
     // stair foot 5 m before camera A are the frame's tufts (A's bottom-right −0.0010 without
     // them) — where they hurt is far, and that is the LOD's business (CLUMP_MAX_DISTANCE)
     const slopeK = 1 - smoothstep(SLOPE_THIN[0], SLOPE_THIN[1], s.slope);
-    const density = field.falloffReach(x, z) * (0.82 + 0.18 * t.cluster) * (1 - 0.75 * t.giant) * (1 - 0.5 * t.npc) * (1 - 0.35 * t.trod - 0.5 * t.bare) * (1 - 0.85 * t.shoulder) * (1 - 0.3 * t.hollow) * (1 - CLUMP_FOOT_CUT * t.foot) * (1 - CLUMP_BANK_CUT * t.bank) * (1 - CLUMP_SHADE_CUT * t.shade) * (1 - (1 - NORTH_FLOOR_CLUMP_KEEP) * t.nfloor) * slopeK * (1 - s.cliff) * q.density;
+    // round 46: the north set eases the forest floor's thinning and floors the disc falloff (NORTH_CARPET)
+    const reachK = north ? Math.max(field.falloffReach(x, z), NORTH_CARPET_REACH_FLOOR) : field.falloffReach(x, z);
+    const keep = north ? NORTH_CARPET_KEEP : NORTH_FLOOR_CLUMP_KEEP;
+    const density = reachK * (0.82 + 0.18 * t.cluster) * (1 - 0.75 * t.giant) * (1 - 0.5 * t.npc) * (1 - 0.35 * t.trod - 0.5 * t.bare) * (1 - 0.85 * t.shoulder) * (1 - 0.3 * t.hollow) * (1 - CLUMP_FOOT_CUT * t.foot) * (1 - CLUMP_BANK_CUT * t.bank) * (1 - CLUMP_SHADE_CUT * t.shade) * (1 - (1 - keep) * t.nfloor) * slopeK * (1 - s.cliff) * q.density;
     if (rng() > density) return;
     const clusterVar = 0.85 + 0.3 * t.cluster;
     let w = (CLUMP_WIDTH[0] + (CLUMP_WIDTH[1] - CLUMP_WIDTH[0]) * rng()) * clusterVar;
     let h = (CLUMP_HEIGHT[0] + (CLUMP_HEIGHT[1] - CLUMP_HEIGHT[0]) * Math.pow(rng(), 1.3)) * clusterVar * (t.edge < 2.5 ? 1.08 : 1);
-    h = Math.min(h, CLUMP_MAX_H) * t.hk;
+    h = Math.min(h, CLUMP_MAX_H) * t.hk * (north ? NORTH_CARPET_HEIGHT : 1);
     // the caps below, tracked for the round-40 scale jitter (applied after the seating test, so
     // every card seats exactly where round 39 seated it, then re-capped)
     let hCap = CLUMP_MAX_H * t.hk;
@@ -371,11 +412,12 @@ export function buildCarpet(ctx: WorldContext, field: VegField, parent: Group): 
     // (a fresh array per card: the set keeps the reference)
     const hue = hashAt(x, z, 4) * 2 - 1;
     const light = 1 + (hashAt(x, z, 5) * 2 - 1) * CLUMP_LIGHT_JITTER;
-    clumps.add(M, 0, [light * (1 + CLUMP_HUE_JITTER * hue), light * (1 + CLUMP_HUE_JITTER * 0.25 * Math.abs(hue)), light * (1 - CLUMP_HUE_JITTER * 1.2 * hue)], data);
-    if (clumps.count % 61 === 0) clumpSamples.push([Math.round(x * 1000) / 1000, Math.round(y * 10000) / 10000, Math.round(z * 1000) / 1000]);
+    const set = north ? northClumps : clumps;
+    set.add(M, 0, [light * (1 + CLUMP_HUE_JITTER * hue), light * (1 + CLUMP_HUE_JITTER * 0.25 * Math.abs(hue)), light * (1 - CLUMP_HUE_JITTER * 1.2 * hue)], data);
+    if (set.count % 61 === 0) clumpSamples.push([Math.round(x * 1000) / 1000, Math.round(y * 10000) / 10000, Math.round(z * 1000) / 1000]);
   };
 
-  const seatMat = (x: number, z: number, rng: Rng) => {
+  const seatMat = (x: number, z: number, rng: Rng, north: boolean) => {
     const t = turfAt(x, z, MAT_RIM_CLEAR);
     if (!t) return;
     if (t.stone < 0.12) return;
@@ -384,7 +426,10 @@ export function buildCarpet(ctx: WorldContext, field: VegField, parent: Group): 
     // litter under the giants, the dark bank masses (none in the last two — the fans thin there,
     // the blades hold them); steep faces take smaller mats and none past the thin band
     const slopeK = 1 - smoothstep(MAT_SLOPE_THIN[0], MAT_SLOPE_THIN[1], s.slope);
-    const density = field.falloffReach(x, z) * (1 - 0.85 * t.giant) * (1 - 0.6 * t.npc) * (1 - 0.7 * t.bare) * (1 - 0.9 * t.shoulder) * (1 - MAT_FOOT_CUT * t.foot) * (1 - MAT_BANK_CUT * t.bank) * (1 - (1 - NORTH_FLOOR_MAT_KEEP) * t.nfloor) * slopeK * (1 - s.cliff) * q.density;
+    // round 46: the north tiles' mats take the north carpet's keep and falloff floor (NORTH_CARPET)
+    const reachK = north ? Math.max(field.falloffReach(x, z), NORTH_CARPET_REACH_FLOOR) : field.falloffReach(x, z);
+    const keep = north ? NORTH_MAT_KEEP : NORTH_FLOOR_MAT_KEEP;
+    const density = reachK * (1 - 0.85 * t.giant) * (1 - 0.6 * t.npc) * (1 - 0.7 * t.bare) * (1 - 0.9 * t.shoulder) * (1 - MAT_FOOT_CUT * t.foot) * (1 - MAT_BANK_CUT * t.bank) * (1 - (1 - keep) * t.nfloor) * slopeK * (1 - s.cliff) * q.density;
     if (rng() > density) return;
     let w = (MAT_WIDTH[0] + (MAT_WIDTH[1] - MAT_WIDTH[0]) * rng()) * (1 - 0.4 * smoothstep(MAT_SLOPE_THIN[0] * 0.6, MAT_SLOPE_THIN[1], s.slope));
     // across the house flight's north-flank feather (a 0.6-entry step in the palette the blades
@@ -430,6 +475,8 @@ export function buildCarpet(ctx: WorldContext, field: VegField, parent: Group): 
       const x0 = cx * 8;
       const z0 = cz * 8;
       if (field.reach(x0 + 4, z0 + 4) > R + 8 * 0.71) continue;
+      // round 46: a tile wholly north of NORTH_CARPET_Z seats the north carpet (its own set and rules)
+      const north = z0 + 8 <= NORTH_CARPET_Z;
       const cRng = ctx.rng.fork(`carpet/clumps/${cx}/${cz}`);
       const nc = Math.round(8 / CLUMP_CELL);
       for (let j = 0; j < nc; j++) {
@@ -437,7 +484,7 @@ export function buildCarpet(ctx: WorldContext, field: VegField, parent: Group): 
           const x = Math.round((x0 + (i + cRng()) * CLUMP_CELL) * 1000) / 1000;
           const z = Math.round((z0 + (j + cRng()) * CLUMP_CELL) * 1000) / 1000;
           if (Math.hypot(x, z) <= R) lawnCellsM2 += CLUMP_CELL * CLUMP_CELL;
-          seatClump(x, z, cRng);
+          seatClump(x, z, cRng, north);
         }
       }
       const mRng = ctx.rng.fork(`carpet/mats/${cx}/${cz}`);
@@ -446,7 +493,7 @@ export function buildCarpet(ctx: WorldContext, field: VegField, parent: Group): 
         for (let i = 0; i < nm; i++) {
           const x = Math.round((x0 + (i + mRng()) * MAT_CELL) * 1000) / 1000;
           const z = Math.round((z0 + (j + mRng()) * MAT_CELL) * 1000) / 1000;
-          seatMat(x, z, mRng);
+          seatMat(x, z, mRng, north);
         }
       }
     }
@@ -456,11 +503,13 @@ export function buildCarpet(ctx: WorldContext, field: VegField, parent: Group): 
   // by material / depth order; the cards' alpha test needs no ordering
   parent.add(mats.build());
   parent.add(clumps.build());
+  parent.add(northClumps.build());
 
   return {
     clumps,
+    northClumps,
     mats,
-    all: [mats, clumps],
+    all: [mats, clumps, northClumps],
     materials,
     atlas,
     lawnCellsM2,
