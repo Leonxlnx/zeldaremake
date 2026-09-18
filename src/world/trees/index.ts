@@ -210,10 +210,23 @@ const GIANT_PROFILES: Record<string, GiantProfile> = {
       { azimuthDeg: 176, height: 5.6, length: 8.0, rise: 0.48, radius: 0.95, foliage: 1.0, density: 0.85 },
     ],
   },
+  // Round 45 (vegetation-23's plateau-walk finding, survey crop 15): the two limbs left the bole at
+  // 3.3 / 2.6 m (8.7 / 8.0 m world) and drooped to 7.3 / 6.4 m over the fenced plateau top (ground
+  // 5.4–5.6), their lobes 0.4 m above the wood — a built-geometry probe over x 15–26, z −6…5 found
+  // leaves 0.1–1.6 m and wood 0.6–2.3 m above the ground everywhere between the stair top and the
+  // east giant's foot: the survey's eye at 6.6 m stood in the leaves. Both limbs now leave at
+  // 5.0 / 4.0 m (10.7 / 9.7 m world), droop half as fast and carry their lobes 1.7 / 1.5 m above
+  // the wood, and their foliage is FLOORED at 9.3 m world (`floor`, giant.ts lobeFloorY: a lobe's
+  // twigs droop ~2 m under its ellipsoid — the probe found the limb lobes' twig tips 3.0–3.7 m
+  // over the walk with the wood at 9.3–10.7): nothing of the limbs' leaves is under 9.3 m —
+  // ≥ 3.7 m over the highest plateau ground (5.6), 2.3+ m over a walker's eye (1.45). In F the
+  // limbs' lobes leave the frame top (they were the dark roof at F (0.5–0.7, 0.09–0.12),
+  // 0.12–0.18 UNDER frame 8 s's hazed canopy there: the top row read 0.30 against 0.45); the
+  // frame's top band is now the haze and the moved canopy-bough lobes (below).
   'east-giant': {
     spread: [
-      { azimuthDeg: -140, height: 3.3, length: 9.5, rise: -0.08, radius: 0.55, foliage: 1.1, density: 1.0, lift: 0.2 },
-      { azimuthDeg: -172.6, height: 2.6, length: 11.6, rise: -0.06, radius: 0.5, foliage: 1.1, density: 1.0, lift: 0.2 },
+      { azimuthDeg: -140, height: 5.0, length: 9.5, rise: -0.04, radius: 0.55, foliage: 1.1, density: 1.0, lift: 0.9, floor: 9.3 - 5.74 },
+      { azimuthDeg: -172.6, height: 4.0, length: 11.6, rise: -0.03, radius: 0.5, foliage: 1.1, density: 1.0, lift: 0.8, floor: 9.3 - 5.74 },
     ],
   },
   // reference F's right edge: a straight column, no ballooning foot (its base is 9 m from the
@@ -436,7 +449,7 @@ const EXTRA_GIANTS: GiantTreeDef[] = []; // stair-bank-giant adopted into LAYOUT
  * window (structures distantHouse.ts). They stand in the frame's bright haze (0.55–0.61 at those
  * points), so they are as small as covers the lamps and ordinary leaves, not shade curtains.
  */
-const CANOPY_BOUGHS: { giant: string; fromY: number; to: [number, number, number]; radius: number; tipRadius?: number; ghostWood?: boolean; dress?: CanopyBough['dress']; lobes: { t: number; center: [number, number, number]; hR: number; vR: number; density?: number; tone?: number; eye?: number; shade?: number; corridors?: boolean; compact?: boolean; castShadow?: boolean; flat?: boolean; core?: number }[] }[] = [
+const CANOPY_BOUGHS: { giant: string; fromY: number; to: [number, number, number]; radius: number; tipRadius?: number; ghostWood?: boolean; dress?: CanopyBough['dress']; lobes: { t: number; center: [number, number, number]; hR: number; vR: number; density?: number; tone?: number; eye?: number; shade?: number; corridors?: boolean; compact?: boolean; castShadow?: boolean; flat?: boolean; core?: number; floor?: number }[] }[] = [
   // Round 33: the four north-west-near boughs leave at 18.4–19 m instead of 11.8–13.2 (above the
   // fork, from the sheared axis' top at (−10, −21.4)). The sun lines through shot D's air box
   // (x 0.35–0.75, y 0.10–0.27; air 2.5–11 m up over the path) climb WNW at 38°: at height Y they
@@ -484,16 +497,31 @@ const CANOPY_BOUGHS: { giant: string; fromY: number; to: [number, number, number
       { t: 0.96, center: [5.0, 19.0, -24.1], hR: 2.6, vR: 1.8, density: 4, eye: 0 },
     ],
   },
-  // the plateau-lip canopy of shot F (round 9): a west bough of the east giant, its two lobes the
-  // dark leaf mass the reference shows over the stair top (F x 0.5–0.7, y 0.05–0.2)
+  // the plateau-lip canopy of shot F (round 9): a bough of the east giant, its two lobes the
+  // dark leaf mass the reference shows over the stair top (F x 0.5–0.7, y 0.05–0.2).
+  // Round 45 (vegetation-23's finding, survey crop 15 / pose w27-plateau-r): the lobes hung at
+  // (19.2, 7.8, −1.2) hR 2.4 vR 1.3 and (17.9, 7.3, −2.5) hR 2.2 vR 1.2 — ellipsoid undersides
+  // 6.5 / 6.1 m and their twigs' leaves down to 5.5 m over the fenced plateau top (ground 5.1–5.5
+  // under them; the walk's eye is 6.6 m) at the end of a west bough whose wood ran 0.6–2.3 m over
+  // the same ground. Each lobe moved out along ITS OWN camera-F ray (F stands at (−1.96, 1.8,
+  // 4.0)): centre → F + k (centre − F) with the radii × k, so F frames the same disc at the same
+  // place (L1 (0.49, 0.09), L2 (0.44, 0.10)) 38–39 m out instead of 22 — k 1.70 / 1.86 put the
+  // ellipsoid undersides at 9.8 m, and the lobes are FLOORED there (`floor` 9.8, giant.ts
+  // lobeFloorY: no lamina, card or twig below it — the twigs droop 2 m under an unfloored lobe):
+  // 3.85+ m over the highest walkable ground under them (the plateau east of the bole, 5.2–5.95),
+  // 2.4 m over the walker's eye. The floor is F's y 0.165 at that distance, the ellipsoid's own
+  // rim, so F keeps the disc and loses only the hanging fringe (F y 0.17–0.27, which was the
+  // twigs 5.5–7.8 m over the lip). The bough now leaves the bole at 13.8 m and runs 16 m
+  // north-east over the plateau (wood 11.9–13.8 m over 5.3–5.7 m ground). A's top-right corner:
+  // L2's rim at A (1.08, 0.01) 39 m out, hR 4.1 = ±0.09 of the frame (was (0.96, 0.05) ± 0.08).
   {
     giant: 'east-giant',
-    fromY: 9.6,
-    to: [17.6, 8.2, -2.4],
+    fromY: 13.8,
+    to: [35.5, 11.9, -9.0],
     radius: 0.5,
     lobes: [
-      { t: 0.8, center: [19.2, 7.8, -1.2], hR: 2.4, vR: 1.3, density: 2, eye: 0 },
-      { t: 0.97, center: [17.9, 7.3, -2.5], hR: 2.2, vR: 1.2, density: 2, eye: 0 },
+      { t: 0.72, center: [34.0, 12.0, -4.85], hR: 4.1, vR: 2.2, density: 3, eye: 0, floor: 9.8 },
+      { t: 0.96, center: [35.0, 12.05, -8.1], hR: 4.1, vR: 2.25, density: 3, eye: 0, floor: 9.8 },
     ],
   },
   // the plaza roof (round 14): the casters that frame shot A's lit plaza box — one bough across
@@ -2070,7 +2098,7 @@ export async function create(ctx: WorldContext): Promise<WorldSystem> {
       tipRadius: b.tipRadius,
       ghostWood: b.ghostWood,
       dress: b.dress,
-      lobes: b.lobes.map((l) => ({ t: l.t, center: new Vector3(l.center[0], l.center[1], l.center[2]).sub(origin), hR: l.hR, vR: l.vR, density: l.density, tone: l.tone, eye: l.eye, shade: l.shade, corridors: l.corridors, compact: l.compact, castShadow: l.castShadow, flat: l.flat, core: l.core })),
+      lobes: b.lobes.map((l) => ({ t: l.t, center: new Vector3(l.center[0], l.center[1], l.center[2]).sub(origin), hR: l.hR, vR: l.vR, density: l.density, tone: l.tone, eye: l.eye, shade: l.shade, corridors: l.corridors, compact: l.compact, castShadow: l.castShadow, flat: l.flat, core: l.core, floor: l.floor === undefined ? undefined : l.floor - gy })),
     }));
     const asset = createGiantTree(def, rng, {
       groundAt: (lx, lz) => terrain.height(px + lx, pz + lz) - gy,

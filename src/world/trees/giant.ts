@@ -248,6 +248,8 @@ export interface SpreadLimb {
   density?: number;
   /** how far the lobes ride above the limb (1 = the wild-limb 1.2–1.8 m; 0 = wrapped around it) */
   lift?: number;
+  /** local y below which none of the limb's foliage is written (walk clearance; see CanopyLobe.floor) */
+  floor?: number;
 }
 
 /**
@@ -339,6 +341,13 @@ export interface CanopyLobe {
   shade?: number;
   corridors?: boolean;
   compact?: boolean;
+  /**
+   * Local y below which none of the lobe's foliage is written — laminae and cards are culled
+   * (draws kept), its twigs level off 0.35 m above it (round 45: a lobe over walkable ground
+   * keeps its leaves 2.4 m over the walker's eye however far its twigs would droop). The near
+   * version (nearCanopy.ts) honours it too.
+   */
+  floor?: number;
   /**
    * false: the lobe's laminae go to GiantAsset.authoredLeaves, which the caller draws without a
    * shadow pass (its cards and stem still cast). For lobes that exist to stand on a camera ray,
@@ -987,16 +996,25 @@ export function createGiantTree(def: GiantTreeDef, rng: Rng, o: GiantOptions): G
    * it to their porosity
    */
   let corridorExempt = false;
-  /** false when a lamina at p must be dropped for a corridor */
+  /**
+   * Round 45 (survey crop 15: the east giant's plateau-lip lobes hung their twigs at the walk's
+   * eye height): set while a lobe with a `floor` (CanopyLobe.floor / SpreadLimb.floor, local y) is
+   * foliated — no lamina, card or twig of it is written below that height. Culls keep every draw
+   * (like the corridors), so the lobe's own stream and everything after it are unchanged.
+   */
+  let lobeFloorY: number | null = null;
+  /** false when a lamina at p must be dropped for a corridor (or the lobe's walk-clearance floor) */
   const leafAllowed = (p: Vector3) => {
     if (ghost) return false;
+    if (lobeFloorY !== null && p.y < lobeFloorY + 0.2) return false;
     if (!corridors.length) return true;
     const c = inCorridor(p, 0, corridorExempt);
     return !c || survives(p, c.porosity ?? 0);
   };
-  /** false when a cluster card of half-size `s` at p must be dropped for a corridor */
+  /** false when a cluster card of half-size `s` at p must be dropped for a corridor (or the floor) */
   const cardAllowed = (p: Vector3, s: number) => {
     if (ghost) return false;
+    if (lobeFloorY !== null && p.y - s < lobeFloorY) return false;
     if (!corridors.length) return true;
     const c = inCorridor(p, s * 0.7, corridorExempt);
     return !c || survives(p, c.cardPorosity ?? 0);
@@ -1289,7 +1307,7 @@ export function createGiantTree(def: GiantTreeDef, rng: Rng, o: GiantOptions): G
     if (near && !ghost && (flatEligible || (!lobeFlat && !compact && lobeTone === 1 && leaves.leafShade === 1 && eyeOverride !== 1)) && center.y <= NEAR_CANOPY_MAX_Y) {
       const radii2 = swapRadii(center, hR + 1.4);
       if (radii2) {
-        rec = { group: nearGroups++, center: center.clone(), hR, vR, stem: bough, stemRadii: stemRadii ?? taper(bough, boughRadius, 0.02), secondaries: [], twigs: [], farLeaves: 0, farCards: 0, inM: radii2[0], outM: radii2[1] };
+        rec = { group: nearGroups++, center: center.clone(), hR, vR, stem: bough, stemRadii: stemRadii ?? taper(bough, boughRadius, 0.02), secondaries: [], twigs: [], farLeaves: 0, farCards: 0, inM: radii2[0], outM: radii2[1], floorY: lobeFloorY ?? undefined };
         leaves.leafSwapGroup = rec.group;
         cards.leafSwapGroup = rec.group;
       }
@@ -1326,6 +1344,8 @@ export function createGiantTree(def: GiantTreeDef, rng: Rng, o: GiantOptions): G
         const twigReach = hR * (k === 2 ? bt(0.16, 0.36) : bt(0.57, 1.04));
         const twigTarget = center.clone().add(new Vector3(Math.cos(twigAngle) * twigReach, twigElevation * vR, Math.sin(twigAngle) * twigReach));
         twigTarget.y -= bt(0.1, 0.6) * reach;
+        // a floored lobe's twigs level off above the floor instead of drooping through it
+        if (lobeFloorY !== null) twigTarget.y = Math.max(twigTarget.y, lobeFloorY + 0.35);
         const twig = growthPath(twigOrigin, twigTarget, tangent(secondary, twigT), r, 4, 0.64);
         const twigRadius = Math.max(0.012, secondaryRadius * (1 - twigT) * 0.4);
         tube(wood, twig, taper(twig, twigRadius, 0.004), 3, r, { color: barkColor, roughness: 0.02 });
@@ -1707,7 +1727,9 @@ export function createGiantTree(def: GiantTreeDef, rng: Rng, o: GiantOptions): G
     const lift = spec.lift ?? 1;
     if (lf > 0) {
       const hR = (1.9 + 0.6 * lf) * Math.min(1.15, length / 8);
+      lobeFloorY = spec.floor ?? null;
       limbLobes(path, r0, [0.48, 0.74, 0.98], hR, hR * 0.52, (1.2 + 0.6 * lf) * lift, 0.4 * lf * ld, lf * ld);
+      lobeFloorY = null;
     }
   }
 
@@ -1821,6 +1843,7 @@ export function createGiantTree(def: GiantTreeDef, rng: Rng, o: GiantOptions): G
       lobeTone = lobeSpec.tone ?? 1;
       leaves.leafShade = cards.leafShade = lobeSpec.shade ?? 1;
       corridorExempt = lobeSpec.corridors === false;
+      lobeFloorY = lobeSpec.floor ?? null;
       // a curtain's arms leave the last ~30 % of its long drop (foliateLobe attaches them at
       // 0.4–0.88 of the path it is given: here 0.83–0.97 of the stem, within 0.7 m of the centre),
       // so the leaves gather around the authored centre instead of trailing up towards the bough;
@@ -1846,6 +1869,7 @@ export function createGiantTree(def: GiantTreeDef, rng: Rng, o: GiantOptions): G
       leaves.leafFlat = cards.leafFlat = false;
       lobeFlat = false;
       corridorExempt = false;
+      lobeFloorY = null;
       leaves = treeLeaves;
       cards = treeCards;
     }
