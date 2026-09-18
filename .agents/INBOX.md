@@ -23,7 +23,7 @@ except lanternBranch, and `hardscape/stairs.ts` house-west risers (structures-29
 2. Rocks (`src/world/rocks/**`): #32 boulder polka-dot lichen + black hole on top (`sn-boulder-shotd`),
    shard skirts low-poly (`sn-boulder-stairfoot`), `survey2-2x-*` rock items in the report.
 3. Props (`src/world/props/**`): the two props items in the report (pose + crop listed).
-4. Whitebark bases (`src/world/trees/whiteBark*.ts` only, not giant/column): #31 painted tiling,
+4. Whitebark bases (`src/world/trees/whitebark.ts` + `bark-texture.ts` only, not giant/column): #31 painted tiling,
    ~1 m repeat, no flare (`sn-whitebark-base`).
 
 Rules that bite: seeded PRNG only; six fixed views within −0.003 SSIM each (`capture.mjs` +
