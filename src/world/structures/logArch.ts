@@ -30,8 +30,8 @@ export interface LogArchBuild {
   /** world centres of the pods (audit: project into D — the frame's arch lanterns sit at (0.60–0.65, 0.33) and (0.46, 0.44)) */
   podPositions: [number, number, number][];
   /** round 44 (structures-28): each pod's lowest point over the ground under it, and whether that ground is the path */
-  podClearance: { pod: [number, number, number]; bottom: number; ground: number; clearance: number; onPath: boolean; spineDist: number }[];
-  /** the least clearance (m) of any pod hanging over the path (Infinity when none does) */
+  podClearance: { pod: [number, number, number]; bottom: number; ground: number; clearance: number; onPath: boolean; onStrip: boolean; spineDist: number }[];
+  /** the least clearance (m) of any pod hanging over the walkable strip (± layout.pathHalfWidth of the spine; Infinity when none does) */
   minPathClearance: number;
   lights: PointLight[];
   leaves: number;
@@ -1612,6 +1612,10 @@ export function buildLogArch(ctx: WorldContext, mats: StructureMaterials, rng: R
     if (!geo.boundingBox) geo.computeBoundingBox();
     const bottom = l.pivot.position.y + geo.boundingBox!.min.y;
     const ground = terrain.height(l.pod.x, l.pod.z);
+    const spineDist = spineDistance(l.pod.x, l.pod.z);
+    // `onPath`: the paving mask reaches the pod's footprint at all (its feathered verge included);
+    // `onStrip`: inside the walkable strip proper, ± pathHalfWidth of the spine — the clearance
+    // requirement applies to the strip
     const onPath = terrain.mask(l.pod.x, l.pod.z).path > 0.01;
     return {
       pod: [+l.pod.x.toFixed(2), +l.pod.y.toFixed(2), +l.pod.z.toFixed(2)] as [number, number, number],
@@ -1619,7 +1623,8 @@ export function buildLogArch(ctx: WorldContext, mats: StructureMaterials, rng: R
       ground: +ground.toFixed(2),
       clearance: +(bottom - ground).toFixed(2),
       onPath,
-      spineDist: +spineDistance(l.pod.x, l.pod.z).toFixed(2),
+      onStrip: spineDist <= ctx.layout.pathHalfWidth,
+      spineDist: +spineDist.toFixed(2),
     };
   });
 
@@ -1629,7 +1634,7 @@ export function buildLogArch(ctx: WorldContext, mats: StructureMaterials, rng: R
     lanterns,
     podPositions: lanterns.map((l) => [+l.pod.x.toFixed(2), +l.pod.y.toFixed(2), +l.pod.z.toFixed(2)] as [number, number, number]),
     podClearance,
-    minPathClearance: +Math.min(Infinity, ...podClearance.filter((p) => p.onPath).map((p) => p.clearance)).toFixed(2),
+    minPathClearance: +Math.min(Infinity, ...podClearance.filter((p) => p.onStrip).map((p) => p.clearance)).toFixed(2),
     lights,
     leaves: foliage.leafCount + foliage21.leafCount + foliage41.leafCount,
     tufts: foliage.tuftCount + foliage21.tuftCount + foliage41.tuftCount,
