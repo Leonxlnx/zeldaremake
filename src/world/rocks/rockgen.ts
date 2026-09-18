@@ -364,7 +364,11 @@ export function buildRock(rng: Rng, seed: string, o: RockOptions): BufferGeometr
           _t.copy(_p).addScaledVector(_n, off);
           const pl = plateAt(_t.x * freq + ox, _t.y * freq + oy, _t.z * freq + oz);
           const upness = smoothstep(-0.3, 0.55, _t.y / (r * squashY));
-          off -= plates * r * 0.7 * (1 - 0.85 * upness) * (pl.level - 0.5) * 2;
+          // eased in over the first 0.1 r behind the arris: a plate step landing ON the rim was
+          // a ledge with a moss lip — the survey's saw-blade fringe — so the rim itself stays the
+          // fillet's roll and the plates begin behind it
+          const behind = smoothstep(0, 0.1 * r, d - dist);
+          off -= plates * r * 0.7 * behind * (1 - 0.85 * upness) * (pl.level - 0.5) * 2;
           plateStep[i] = pl.step;
           plateId[i] = pl.id;
         }
