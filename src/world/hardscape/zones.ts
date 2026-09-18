@@ -180,6 +180,60 @@ export function troddenStrip(x: number, z: number) {
 }
 
 /**
+ * Round 44 (survey-1 #8): the hollow path — the spine from the mouth of the mist hollow down
+ * its floor and up the 30 % climb toward the arch (z −15.5 … −33). At player height (survey
+ * frames w11–w15) its slabs read as 10 cm tiles standing on flat dirt: the half-tilt seating
+ * left the downhill edge of every slab on the grade as a clean vertical wall with a hard
+ * shadow. Here the slabs are seated INTO the ground (flagstones.ts: tilted with the grade, rim
+ * sunk 2–4 cm under the fill, domed so the top emerges from a soil lip), their edges rolled
+ * wider, and the joints carry grit (index.ts). 1 along the stretch, fading over 2 m at each
+ * end (camera D reads z −13 … −15 as the plain path) and beyond 3.2 m of the spine's centreline.
+ */
+export function hollowPath(x: number, z: number) {
+  const along = smoothstep(-13.5, -15.5, z) * smoothstep(-35, -33, z);
+  if (along <= 0) return 0;
+  const spine = LAYOUT.pathSpine;
+  let d2 = Infinity;
+  for (let i = 0; i + 1 < spine.length; i++) {
+    if (spine[i][2] > -8 && spine[i + 1][2] > -8) continue;
+    d2 = Math.min(d2, segDist2(x, z, spine[i], spine[i + 1]));
+  }
+  return along * smoothstep(4.2, 3.2, Math.sqrt(d2));
+}
+
+/**
+ * Round 44 (survey-1 #8): the arch seam — the ground where the north path passes under the log
+ * arch. The arch's structure mask (heightfield.ts `surfaceMask`) is a hard 0/1 band 0.9 R either
+ * side of the bent axis, and the paving stops dead at it, so the gravel floor under the log met
+ * the slabs along a dead-straight line (survey frame w20-spine-d). `archSeam` is 1 on the band's
+ * two edges (within 0.9 m of |lvc| = 0.9 R along the log's width), fading over 0.6 m — the
+ * paving is let through it in tongues (flagstones.ts `pavedLevel`) and its joints take the
+ * gravel's grit (index.ts). `archInside` is the signed distance (m) from the band's edge, positive
+ * inside the band (under the log), computed from `LAYOUT.logArch` exactly as the heightfield does.
+ */
+const ARCH = (() => {
+  const la = LAYOUT.logArch;
+  const yaw = (la.yawDeg * Math.PI) / 180;
+  return { cx: la.position[0], cz: la.position[2], ax: Math.cos(yaw), az: -Math.sin(yaw), L: la.length, R: la.radius };
+})();
+export function archInside(x: number, z: number): number {
+  const dx = x - ARCH.cx;
+  const dz = z - ARCH.cz;
+  const lu = dx * ARCH.ax + dz * ARCH.az;
+  const lv = -dx * ARCH.az + dz * ARCH.ax;
+  const k = Math.min(1, Math.max(0, (-ARCH.L * 0.15 - lu) / (ARCH.L * 0.35)));
+  const lvc = lv - 1.8 * k * k;
+  // inside along the axis (the mask's end cap) and across it: the smaller signed margin
+  const alongIn = ARCH.L / 2 + 0.3 * k - Math.abs(lu);
+  const acrossIn = Math.min(lvc + ARCH.R * 0.9, ARCH.R * 0.9 + 0.6 * k - lvc);
+  return Math.min(alongIn, acrossIn);
+}
+export function archSeam(x: number, z: number) {
+  const d = archInside(x, z);
+  return smoothstep(-1.5, -0.9, d) * smoothstep(1.5, 0.9, d);
+}
+
+/**
  * How much of the joint fill is bare soil (0 = turf / moss, 1 = packed dirt): the dry plaza core
  * south of the spawn (camera A's foreground — reference A's plaza joints are dark green-brown,
  * board 02's seams dark dirt with moss; round 12 makes the soil itself that damp dark seam soil

@@ -140,6 +140,7 @@ export function buildStairway(def: StairDef, terrain: Terrain, rng: Rng, seed: s
   const tmpM = new Matrix4();
   const uvScale = 1 / 1.7;
   const isMain = def.id === 'main';
+  const isHouseWest = def.id === 'house-west';
 
   // moss field in stair-local coords: stronger toward both flanks and slightly up the run
   const mossAt = (ax: number, al: number) => {
@@ -374,6 +375,14 @@ export function buildStairway(def: StairDef, terrain: Terrain, rng: Rng, seed: s
         bevel: 0.012,
         color: riserColor,
         sideColor: [riserColor[0] * 0.92, riserColor[1] * 0.9, riserColor[2] * 0.9],
+        // round 44 (crop 36): the house-west risers' faces take a tenth of the top's shading
+        // normal and the shader's grime / lichen mottling, so in the giant's shade they read as
+        // weathered stone under the lip rather than flat black; the main run's are the control's.
+        // (0.3 with the cheeks at 0.5 / × 0.88 lit the flight's south flank in camera D's
+        // bottom-right corner, where frame 56 s is shadow — SSIM −0.0037 there, over the budget;
+        // 0.2 with the cheeks at 0.3 / × 0.78 still −0.0032)
+        sideNormalUp: isHouseWest ? 0.1 : 0,
+        sideWear: isHouseWest ? 0.7 : 0,
         // across: the horizontal distance from the leaning line x = fissA + lean · y; along: the
         // height over the fissure's half-length (the shader fades it out toward its top). Affine
         // over every wall, so it is exact on the front face; the back face is under the tread
@@ -453,12 +462,36 @@ export function buildStairway(def: StairDef, terrain: Terrain, rng: Rng, seed: s
         top = terrain.height(wx, wz) - def.base[1] + 0.02 + 0.06 * hash2(Math.round(uc * 100), 23, 11);
       }
       if (keep) {
+        // round 44 (survey-1, crop 36 — the house-west flight's step blocks): these cheeks stand
+        // 15–25 cm proud on both flanks of the short flight (round 32 keeps them proud for camera
+        // B), and at player height from the path (w29-house-d, 1.6 m) their faces rendered as flat
+        // near-black planes with a hard top/side break — the flat side colour (× 0.7, grime × 0.75)
+        // under the true outward normal in the giant's shade. The house-west blocks take the
+        // kerb treatment: the face a touch up from the control's (× 0.72 against × 0.7), its
+        // shading normal 15 % of the way to +y (sideNormalUp — it takes a little of the top's
+        // sky light, the shadow map still shades it), the shader's grime / lichen mottling on the
+        // face (sideWear), a soil band at the foot (sideStain), and a 5–8 cm two-band roll
+        // (bevelRings 2, softBevel) instead of a one-crease chamfer. Draw-free: only the slab
+        // options change. The main run's cheeks are the control's (cameras A / F). The first cut
+        // (× 0.88, sideNormalUp 0.5) lit the flight's south flank in camera D's bottom-right
+        // corner where frame 56 s is shadow — D's SSIM fell 0.0037, over the 0.003 budget; the
+        // second (× 0.78, 0.3) still −0.0032 with −0.0019 of it in that one corner cell (the
+        // reference there is smooth shadow, so every lit gradient on the flank costs) — so the
+        // face keeps its texture and roll but stays in the shade's key.
+        const block = isHouseWest;
         placeSlab(outline, ac, top - th, uc, yawJ, tiltXJ * (southEast ? 2 : 1), tiltZJ, {
           thickness: th,
-          bevel: bevelJ,
+          bevel: block ? bevelJ * 1.4 : bevelJ,
+          bevelRings: block ? 2 : 1,
+          softBevel: block,
           dip: -0.01,
           color: [tint, tint, tint * 0.97],
-          sideColor: [tint * 0.7, tint * 0.7, tint * 0.72],
+          sideColor: block ? [tint * 0.72, tint * 0.72, tint * 0.74] : [tint * 0.7, tint * 0.7, tint * 0.72],
+          sideNormalUp: block ? 0.15 : 0,
+          sideGrime: block ? 0.9 : 0.75,
+          sideStain: block ? 0.8 : 0,
+          sideWear: block ? 0.9 : 0,
+          wear: block ? 0.3 : 0,
           mossEdge: 1.0,
           mossInner: southEast ? 0.85 : 0.6,
           mossFn: (x, z) => 0.55 + 0.45 * (noise.fbm((x + ac) * 2.3, (z + uc) * 2.3 + 5, 2) * 0.5 + 0.5),
@@ -603,7 +636,12 @@ export function buildStairway(def: StairDef, terrain: Terrain, rng: Rng, seed: s
         mossFn: (x, z) => 0.4 + 0.6 * (noise.fbm((x + ac) * 2.1 + 17, (z + uc) * 2.1 + 3, 2) * 0.5 + 0.5),
         uvScale,
         uvOffset: [arng() * 3, arng() * 3],
-        rings: 2,
+        // round 44 (crop 36's "diagonal crease on the transition slab"): the 8-point outline's
+        // dished top fanned in two rings showed its triangulation under the grazing light; three
+        // rings and the validated fan centre smooth it
+        rings: 3,
+        notchedTop: true,
+        sideWear: 0.6,
       });
     }
   }

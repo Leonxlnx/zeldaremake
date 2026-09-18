@@ -16,6 +16,7 @@
  */
 import { BufferGeometry, Color, Float32BufferAttribute, Matrix3, Matrix4, Vector3, type BufferAttribute } from 'three';
 import type { Rng } from '../util/prng';
+import { Noise3 } from './rockgen';
 
 const ATTRS: { name: string; size: number }[] = [
   { name: 'position', size: 3 },
@@ -140,18 +141,28 @@ function cushion(w: Writer, rng: Rng, centre: Vector3, up: Vector3, R: number, d
 }
 
 /**
- * One lichen plate: an irregular disc of radius R lying 2 mm off the surface — a pale centre fan
- * to an inner ring, a darker rim band to the outer ring (8 segments, 24 triangles).
+ * One lichen plate: an irregular, lobed crust of mean radius R lying 2 mm off the surface — a
+ * pale centre fan to an inner ring, a darker rim band to the outer ring (10 segments, 30
+ * triangles). Round 44 (survey-1 crop 32): the outline is two harmonics of lobing (2 and 3
+ * lobes, ± 22 / 16 %) plus per-vertex jitter, radius 0.5–1.45 R, and the inner ring follows the
+ * lobes — the 8-segment ± 22 % disc read as a polka dot on the D boulder at 1 m.
  */
 function lichenPlate(w: Writer, rng: Rng, centre: Vector3, n: Vector3, R: number, pale: Color, rim: Color) {
   frame(n, _t, _u);
-  const segs = 8;
-  const outer = Array.from({ length: segs }, () => rng.range(0.78, 1.22));
+  const segs = 10;
   const phase = rng.range(0, Math.PI * 2);
+  const ph2 = rng.range(0, Math.PI * 2);
+  const ph3 = rng.range(0, Math.PI * 2);
+  const lobe2 = rng.range(0.1, 0.22);
+  const lobe3 = rng.range(0.06, 0.16);
+  const outer = Array.from({ length: segs }, (_, s) => {
+    const a = (s / segs) * Math.PI * 2;
+    return Math.min(1.45, Math.max(0.5, 1 + lobe2 * Math.sin(2 * a + ph2) + lobe3 * Math.sin(3 * a + ph3) + rng.range(-0.12, 0.12)));
+  });
   const lift = 0.002;
   const ring = (k: number, s: number, out: Vector3) => {
     const a = phase + (s / segs) * Math.PI * 2;
-    const rad = R * (k === 1 ? 0.66 : outer[s % segs]);
+    const rad = R * outer[s % segs] * (k === 1 ? 0.6 : 1);
     const h = lift + (k === 1 ? 0.0015 : 0);
     out.copy(centre).addScaledVector(_t, Math.cos(a) * rad).addScaledVector(_u, Math.sin(a) * rad).addScaledVector(n, h);
   };
@@ -257,18 +268,30 @@ export function dressRock(rock: BufferGeometry, rng: Rng, o: DressingOptions, pa
     stats.cushions++;
     if (s.crack) stats.creviceCushions++;
   }
-  // lichen: clustered plates 2–4.5 cm across on the bare faces, a satellite or two beside each
-  // seed. A muted grey-green, not far above the stone's own value — at (0.66, 0.69, 0.56) the
-  // plates rendered as white polka dots on the shaded faces
+  // lichen: clustered plates 2–5 cm across on the bare faces, satellites beside each seed. A
+  // muted grey-green, not far above the stone's own value — at (0.66, 0.69, 0.56) the plates
+  // rendered as white polka dots on the shaded faces.
+  // Round 44 (survey-1 crop 32): the sites are gated by a clump noise (≈ 0.45 r blobs, a third of
+  // the bare faces) so the plates come in colonies, and neighbours may overlap to 55 % of their
+  // summed radii so a colony fuses into one irregular crust — evenly spread discs at 0.85 read
+  // as polka dots. Each colony has its own tone (greyer / greener / paler).
   const lRng = rng.fork('lichen');
+  const clumpN = new Noise3(`lichen-clump/${lRng.int(0, 1e9)}`);
+  const ck = 2.2 / Math.max(0.3, r);
+  const clumpAt = (p: Vector3) => clumpN.fbm(p.x * ck + 3.1, p.y * ck - 1.7, p.z * ck + 5.3, 2) * 0.5 + 0.5;
+  const toneAt = (p: Vector3) => clumpN.fbm(p.x * ck * 0.7 - 9.1, p.y * ck * 0.7 + 4.4, p.z * ck * 0.7 - 2.2, 1) * 0.5 + 0.5;
   const pale = new Color(0.5, 0.54, 0.43);
+  const paleGrey = new Color(0.52, 0.52, 0.47);
+  const paleGreen = new Color(0.47, 0.56, 0.4);
   const rim = new Color(0.32, 0.34, 0.28);
   const placedL: { p: Vector3; R: number }[] = [];
-  const shuffled = lichenSites.map((s, i) => ({ s, k: lRng(), i })).sort((p, q) => p.k - q.k || p.i - q.i);
+  const clumped = lichenSites.filter((s) => clumpAt(s.p) > 0.58);
+  const shuffled = clumped.map((s, i) => ({ s, k: lRng(), i })).sort((p, q) => p.k - q.k || p.i - q.i);
   const tryPlate = (site: Site, R: number): boolean => {
-    if (placedL.some((q) => q.p.distanceTo(site.p) < 0.85 * (q.R + R))) return false;
+    if (placedL.some((q) => q.p.distanceTo(site.p) < 0.55 * (q.R + R))) return false;
     if (placedC.some((q) => q.p.distanceTo(site.p) < q.R + R)) return false;
-    _col.copy(pale).multiplyScalar(lRng.range(0.9, 1.1));
+    const t = toneAt(site.p);
+    _col.copy(t < 0.4 ? paleGrey : t < 0.65 ? pale : paleGreen).multiplyScalar(lRng.range(0.88, 1.12));
     lichenPlate(w, lRng, site.p, site.n, R, _col.clone(), rim);
     placedL.push({ p: site.p.clone(), R });
     stats.lichen++;
@@ -276,16 +299,16 @@ export function dressRock(rock: BufferGeometry, rng: Rng, o: DressingOptions, pa
   };
   for (const { s } of shuffled) {
     if (placedL.length >= o.lichen) break;
-    const R = lRng.range(0.02, 0.045) * sizeK;
+    const R = lRng.range(0.02, 0.05) * sizeK;
     if (!tryPlate(s, R)) continue;
-    // satellites: the nearest other sites within 3 R
-    const sats = lRng.int(1, 3);
+    // satellites: other clumped sites within 2.6 R, fusing onto the seed
+    const sats = lRng.int(2, 4);
     let n = 0;
-    for (const t of lichenSites) {
+    for (const t of clumped) {
       if (n >= sats || placedL.length >= o.lichen) break;
       const d = t.p.distanceTo(s.p);
-      if (d < 1.2 * R || d > 3.2 * R) continue;
-      if (tryPlate(t, R * lRng.range(0.55, 0.9))) n++;
+      if (d < 0.7 * R || d > 2.6 * R) continue;
+      if (tryPlate(t, R * lRng.range(0.5, 1.0))) n++;
     }
   }
   stats.vertices = w.vertices;

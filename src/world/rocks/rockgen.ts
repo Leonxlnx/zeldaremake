@@ -141,6 +141,24 @@ export interface RockOptions {
    * fracture edges read broken and sharp instead of a clean line
    */
   chip?: number;
+  /**
+   * Round 44 (survey-1 crop 25): the rim chips as ROUNDED spalls. With it set the chip pass
+   * scallops the rim — a low-frequency (~r/4) smooth bite instead of the ~r/8 noise peaks whose
+   * teeth, 2–3 cm deep every 5–10 cm along the stair-foot boulder's cleave rim, read as a
+   * saw-blade of thin triangular shards — and first fillets the arris itself over this fraction
+   * of the radius (a quarter-round taken off the edge between the facet and the body).
+   */
+  rimRound?: number;
+  /**
+   * Round 44 (survey-1 crop 25): plate structure of the bare skin (fraction of the radius,
+   * default 0 — the far meshes are byte-identical with it off): a three-ledge quantised noise at
+   * ~r/2.5 wavelength steps the surface in and out by ± this, the step softened over 40 % of a
+   * level so the crease normals catch it as a ledge, and the colour pass darkens the joint
+   * between plates and shades each ledge its own value. Off on the moss cap (`crown`-style
+   * upness) so the cushion stays a soft mass; the stair-foot boulder's flank read as one flat
+   * photo texture without it.
+   */
+  plates?: number;
 }
 
 const _t = new Vector3();
@@ -194,9 +212,24 @@ export function buildRock(rng: Rng, seed: string, o: RockOptions): BufferGeometr
   const fineCracks = o.fineCracks ?? 0;
   const fineCrackDepth = o.fineCrackDepth ?? crackDepth * 0.3;
   const chip = o.chip ?? 0;
+  const rimRound = o.rimRound ?? 0;
+  const plates = o.plates ?? 0;
   // the near relief is an absolute scale (pits ~15 cm, hairlines ~9 cm apart on every rock): its
   // noise frequencies, expressed in the rock-relative domain above, scale with the radius
   const nk = Math.max(1, r / 0.75);
+  /**
+   * the plate field at a noise-domain point: { level 0..1 (three ledges, the step between them
+   * softened over 40 % of a level), step 0..1 (1 on the joint between two plates), id (the ledge) }
+   */
+  const plateAt = (x: number, y: number, z: number) => {
+    const f = 2.6 * nk;
+    const pn = N.fbm(x * f + 4.4, y * f - 6.2, z * f + 2.9, 2) * 0.5 + 0.5;
+    const q = clamp(pn, 0, 0.999) * 3;
+    const id = Math.floor(q);
+    const fr = q - id;
+    const step = 1 - smoothstep(0, 0.2, Math.abs(fr - 0.5));
+    return { level: (id + smoothstep(0.3, 0.7, fr)) / 3, step, id };
+  };
   /** main crack line strength 0..1 at a (final-shape) point; the bedding partings count as cracks */
   const mainCrackAt = (p: Vector3) => {
     const x = p.x * freq + ox;
@@ -227,10 +260,19 @@ export function buildRock(rng: Rng, seed: string, o: RockOptions): BufferGeometr
 
   // 1. displacement (do it per unique direction so shared vertices stay welded)
   const disp = new Map<string, number>();
+  // the plate field per vertex (joint weight, ledge id) for the colour pass, from the same
+  // pre-displacement point the geometry used, so the dark joints sit on the geometric steps
+  const plateStep = plates > 0 ? new Float32Array(count) : null;
+  const plateId = plates > 0 ? new Uint8Array(count) : null;
   for (let i = 0; i < count; i++) {
     _p.fromBufferAttribute(pos, i);
     const key = `${_p.x.toFixed(4)},${_p.y.toFixed(4)},${_p.z.toFixed(4)}`;
     let d = disp.get(key);
+    if (plateStep && plateId) {
+      const pl = plateAt(_p.x * freq + ox, _p.y * freq + oy, _p.z * freq + oz);
+      plateStep[i] = pl.step;
+      plateId[i] = pl.id;
+    }
     if (d === undefined) {
       const x = _p.x * freq + ox;
       const y = _p.y * freq + oy;
@@ -257,6 +299,11 @@ export function buildRock(rng: Rng, seed: string, o: RockOptions): BufferGeometr
         const mr = N.ridged(x * f1 + 3.1, y * f1 - 2.7, z * f1 + 1.9, 2) / 0.825;
         const mf = N.fbm(x * f2 - 8.2, y * f2 + 6.4, z * f2 - 1.7, 2);
         d *= 1 + micro * (1 - 0.6 * upness) * ((mr - 0.55) + 0.45 * mf);
+      }
+      if (plates > 0) {
+        // the bare skin in plates: three ledges stepping the surface ± `plates`, off under the cap
+        const pl = plateAt(x, y, z);
+        d *= 1 + plates * (1 - 0.85 * upness) * (pl.level - 0.5) * 2;
       }
       if (strata > 0) {
         // beds step in/out (mostly on the sides — the flat cap stays whole) and sink at the
@@ -307,13 +354,31 @@ export function buildRock(rng: Rng, seed: string, o: RockOptions): BufferGeometr
       const d = _p.dot(_n);
       if (rimGap) rimGap[i] = Math.min(rimGap[i], Math.abs(d - dist));
       if (d > dist) {
-        _p.addScaledVector(_n, dist - d);
+        let off = dist - d;
+        if (plateStep && plateId) {
+          // round 44: the cleave face in plates too — the projection flattens the skin's steps, so
+          // the same field is re-applied along the plane normal (0.7 ×, evaluated on the projected
+          // point: co-located vertices share it), and the colour pass takes this plate field for
+          // the facet's vertices so the dark joints sit on these steps. The far mesh (plates 0)
+          // keeps its flat facet.
+          _t.copy(_p).addScaledVector(_n, off);
+          const pl = plateAt(_t.x * freq + ox, _t.y * freq + oy, _t.z * freq + oz);
+          const upness = smoothstep(-0.3, 0.55, _t.y / (r * squashY));
+          // eased in over the first 0.1 r behind the arris: a plate step landing ON the rim was
+          // a ledge with a moss lip — the survey's saw-blade fringe — so the rim itself stays the
+          // fillet's roll and the plates begin behind it
+          const behind = smoothstep(0, 0.1 * r, d - dist);
+          off -= plates * r * 0.7 * behind * (1 - 0.85 * upness) * (pl.level - 0.5) * 2;
+          plateStep[i] = pl.step;
+          plateId[i] = pl.id;
+        }
+        _p.addScaledVector(_n, off);
         pos.setXYZ(i, _p.x, _p.y, _p.z);
         facet[i] = Math.max(facet[i], smoothstep(0.0, 0.04 * r, d - dist));
       }
     }
   }
-  if (rimGap) {
+  if (rimGap && rimRound <= 0) {
     // chipped edges: within ~0.1 r of a cleave plane (on the facet and on the body beside it)
     // the vertex is notched toward the rock's centre where a high-frequency noise peaks, so the
     // fracture rim is a broken line of small spalls (frame-05's sharp, chipped ledges). Purely
@@ -331,6 +396,36 @@ export function buildRock(rng: Rng, seed: string, o: RockOptions): BufferGeometr
       if (notch <= 0) continue;
       const l = _p.length() || 1;
       _p.multiplyScalar(Math.max(0, l - notch) / l);
+      pos.setXYZ(i, _p.x, _p.y, _p.z);
+    }
+  } else if (rimGap) {
+    // round 44: rounded rims. The arris between a facet and the body is filleted — within
+    // `rimRound` r of the plane the vertex moves toward the centre by a quarter-round's sagitta,
+    // so the edge is a roll, not a knife — and the chips are smooth scallops ~r/4 across (a
+    // 2-octave fbm's positive lobes, eased in over their full width) to `chip` r deep: bites
+    // taken out of a rounded edge, each one continuous with the surface on both sides.
+    const rr = rimRound * r;
+    for (let i = 0; i < count; i++) {
+      const g = rimGap[i];
+      const w = 1 - smoothstep(0, 0.16 * r, g);
+      if (w <= 0 && g >= rr) continue;
+      _p.fromBufferAttribute(pos, i);
+      let inward = 0;
+      if (g < rr) {
+        const t = 1 - g / rr;
+        inward += rr * (1 - Math.sqrt(Math.max(0, 1 - t * t))) * 0.6;
+      }
+      if (w > 0) {
+        const x = _p.x * freq + ox;
+        const y = _p.y * freq + oy;
+        const z = _p.z * freq + oz;
+        const f = 4.2 * nk;
+        const hf = N.fbm(x * f + 2.2, y * f + 4.6, z * f - 6.1, 2); // -1..1
+        inward += chip * r * w * smoothstep(-0.05, 0.7, hf);
+      }
+      if (inward <= 0) continue;
+      const l = _p.length() || 1;
+      _p.multiplyScalar(Math.max(0, l - inward) / l);
       pos.setXYZ(i, _p.x, _p.y, _p.z);
     }
   }
@@ -458,6 +553,14 @@ export function buildRock(rng: Rng, seed: string, o: RockOptions): BufferGeometr
     tmp.lerp(dark, crack * 0.92);
     // fresh cleave facets: darker, a shade cooler (damp fracture face, no weathered skin)
     if (cutDark > 0 && facet[i] > 0) tmp.lerp(dark, cutDark * facet[i] * (0.55 + 0.25 * v));
+    if (plateStep && plateId) {
+      // round 44: each plate its own value (±6 %), the joint between plates a dark line — off
+      // under the cap like the steps themselves
+      const upness = smoothstep(-0.3, 0.55, _p.y / (r * squashY));
+      const pw = 1 - 0.85 * upness;
+      tmp.multiplyScalar(1 + 0.06 * (plateId[i] - 1) * pw);
+      tmp.lerp(dark, 0.55 * plateStep[i] * pw);
+    }
     // contact dirt at the base (darker, higher than before: the reference boulders sit in a
     // shadowed collar of soil and moss)
     const h01 = clamp((_p.y + r * squashY) / (2 * r * squashY), 0, 1);
