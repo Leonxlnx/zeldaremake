@@ -2289,6 +2289,24 @@ Also: lantern bough still a thick plain beam across the top of B (trees pass pen
 
 ### 21:18 UTC — tick 164: heartbeat; survey-2 inspecting its frames
 
+### 21:35 UTC — tick 165: survey-2 verdict on take-0115 — 6 FIXED, 16 IMPROVED, 13 UNCHANGED, 1 WORSE
+- Re-rendered survey-1's 181 poses on `2e00415`. Landed: NE giant bole + roots, hollow paving, fence
+  posts, the stair block's black face, the cards at the plateau lens, the arch underside.
+  **Unchanged where it matters most**: the NW-near / lantern-tree boles at 4 m (camo decal, no
+  relief), the lantern limb at 2 m (smooth stucco tube), the columns (smooth cones — a base flare
+  now, bark still unreadable), near-canopy flat discs, distant cardboard trees, whitebark bases,
+  column crown cut-outs. **Worse**: at touching distance a flat 9-gon moss cushion cuts across the
+  frame; new buttress flares read as faceted low-poly cones. trees-27's claims for these surfaces
+  did not materialise at the survey poses — the next trees pass is evidence-gated: reproduce each
+  pose first, instrument which LOD/material is active, and accept only visible before/after crops.
+- Fresh top-12: columns (18 frames), giant bole decals at 4 m (10), faceted buttress cones (9),
+  lantern limb stucco (7), flower spheres (10), hollow floor/north plain still thin (9), near-canopy
+  flat discs (9), root arcs (9), overhead limbs as tubes/planks (9), distant cardboard (8), stair-bank/
+  east boles orange-smooth at 8–15 m (5), arch sawtooth lips (5); below the cut: house-west flight as
+  slab boxes with black voids behind risers, house interior black. Astra: far-pod bloom orbs
+  (unchanged), crushed-black shade, flat saturated pod glow. Report + 78 crops committed at
+  `art/environment/survey2/`.
+
 ## Pending corrections from reference/ANALYSIS.md (apply at integration, one commit)
 - `config.ts` palette → olive/khaki low-key (reference hero frames: hue 47–51°, sat 0.16–0.19,
   lum 0.35–0.39, 0 % blue sky): grass 0x8a8c55/0x5c6233/0x3a4420, moss 0x8b8948/0x5a523b,
@@ -2327,4 +2345,4 @@ Pick anything NOT claimed in `gauntlet/claims.json`. Good self-contained candida
   my own (GAUNTLET.md D7).
 
 ## Last updated
-2026-09-18T21:18:00Z
+2026-09-18T21:35:00Z
