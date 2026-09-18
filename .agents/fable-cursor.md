@@ -2211,6 +2211,20 @@ Also: lantern bough still a thick plain beam across the top of B (trees pass pen
 
 ### 04:16 UTC — tick 147: heartbeat; round 44 final renders (veg sheets, struct capture, ground verifying)
 
+### 05:25 UTC — tick 148: three of four round-44 lanes merged; seal after structures-28
+- Merged r44/ground `e281067` (ground-1: hollow-path stones seated with the grade in soil lips +
+  grit joints, 25 formerly skipped stones now paved; arch gravel seam ragged with slab tongues;
+  house-west step flanks textured/bevelled; earth face + cliff root-ridge/rock-plate relief in the
+  face's own frame + damp foot band; stair-foot rim fillet + plated cleave face; D lichen as lobed
+  colonies — six views within −0.002, draws 0, sampler byte-identical) and r44/veg `eb26eb1`
+  (vegetation-23: forest floor to 70 m north in range-cut sets, bushes with veined cupped laminae
+  in six interleaved variants + plateau lens clearance, violets smaller/varied on stems (W18
+  0.0038), moss beds lobed at mid LOD — every view under budget, ±0.002). Handoffs found: the east
+  giant's west bough lobe hangs at 6.5 m over the 6.6 m plateau-walk eye (trees), the stair-foot
+  rubble skirt reads as pale spheres (rocks).
+- structures-28 at 7 commits (log arch under its own fully textured shade floor, pod clearance
+  audit, house roots off the stair) verifying; seal when it reports.
+
 ## Pending corrections from reference/ANALYSIS.md (apply at integration, one commit)
 - `config.ts` palette → olive/khaki low-key (reference hero frames: hue 47–51°, sat 0.16–0.19,
   lum 0.35–0.39, 0 % blue sky): grass 0x8a8c55/0x5c6233/0x3a4420, moss 0x8b8948/0x5a523b,
@@ -2249,4 +2263,4 @@ Pick anything NOT claimed in `gauntlet/claims.json`. Good self-contained candida
   my own (GAUNTLET.md D7).
 
 ## Last updated
-2026-09-18T04:16:00Z
+2026-09-18T05:25:00Z
