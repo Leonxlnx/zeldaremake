@@ -187,8 +187,13 @@ export const TRUNK_BARK_FLOOR: ShadeFloor = { ...HOUSE_BARK_FLOOR, lift: 4.75, t
  * lift 11 on that albedo moved the shaft only 0.060 → 0.074. The albedo is raised ×3 (tint
  * 0xc8bba8, fence.ts `postShade` 0.6–0.9 → ≈ 0.015) and the lift to 11: the shaded shaft lands
  * near 0.15 with the grain at ≈ 0.09–0.22; at F's 25 m the veil is ≈ 0.9 of the pixel.
+ * Round 45 (details-1): at chroma 1 the floor carried the planks map's orange and the
+ * HOUSE_BARK_TINT filter in full — the shaded shaft read hue 28° at sat 0.46 (sn-fence-post), a
+ * fresh-cut post where the owner's props sheet (06-props-signs-and-lanterns) and the fence frames
+ * have silvered, weathered wood (sat ≈ 0.2–0.3). `chroma` 0.6 keeps the grain (texture 1) and
+ * takes 40 % of the floor's colour to its luminance; the sunlit faces are the material's own.
  */
-export const FENCE_WOOD_FLOOR: ShadeFloor = { ...HOUSE_BARK_FLOOR, lift: 11, texture: 1.0, albedo: 0.1 };
+export const FENCE_WOOD_FLOOR: ShadeFloor = { ...HOUSE_BARK_FLOOR, lift: 11, texture: 1.0, albedo: 0.1, chroma: 0.6 };
 /**
  * Round 44 (structures-28): the threshold slab's stone stands in the eave's shade at the door
  * (survey-1 crop 26 / w31-house-d). Textured, at the stone's own mean albedo (0.28), the leaf
@@ -202,6 +207,20 @@ export const FENCE_WOOD_FLOOR: ShadeFloor = { ...HOUSE_BARK_FLOOR, lift: 11, tex
  * read the hidden doormat film; they said nothing about the stone.)
  */
 export const STONE_FLOOR: ShadeFloor = { ...HOUSE_BARK_FLOOR, lift: 3, texture: 1.0, albedo: 0.28, canopy: 0.15, chroma: 0.5 };
+/**
+ * Round 45 (details-1): the distant huts' boarded undersides (`soffitWood` — distantHouse.ts, the
+ * platform's and the deck's bottoms). Round 44 built them on the unlit glow material at a fixed
+ * board-striped brown (≈ 0.05 linear) because a plank facing the ground gets nothing from the
+ * sun and ≈ 0.001 from the hemisphere's ground half; now they are lit planks under a floor —
+ * fully textured (the boards' grain and the per-board tones show), the light leaf-filtered
+ * through the bark tint like the fences', and the lift set so a board at the soffit's vertex
+ * tint (lum ≈ 0.45 × the planks map 0.06 × the wood tint 0.7 ≈ 0.019 albedo) lands at the
+ * round-44 level: by the fence floor's measure (lift 11 × albedo 0.015 → ≈ 0.019 linear) lift
+ * 20 puts it at ≈ 0.044 linear, sRGB ≈ 0.23, under the haze at the huts' 25–40 m. `wood` itself
+ * keeps no floor: Saria's planks, the signpost and the huts' decks and joists would all lift with
+ * it, and their shaded faces are dark on purpose (the joist frame under this soffit included).
+ */
+export const SOFFIT_WOOD_FLOOR: ShadeFloor = { ...HOUSE_BARK_FLOOR, lift: 20, texture: 1.0, albedo: 0.1, chroma: 0.8 };
 /**
  * Round 44 (structures-28): the log arch's own floor. Under HOUSE_BARK_FLOOR the flat 40 % of the
  * floor (0.4 × 0.08 at lift 7.2 ≈ 0.032) outweighed the belly's own textured term (0.6 × ≈ 0.02),
@@ -334,6 +353,8 @@ export interface StructureMaterials {
   wood: MeshStandardMaterial;
   /** fence posts + rails: dark, silvered weathered wood that silhouettes against the haze */
   fenceWood: MeshStandardMaterial;
+  /** round 45 (details-1): `wood` under SOFFIT_WOOD_FLOOR — the distant huts' boarded undersides, lit by the floor since nothing else reaches a plank facing the ground */
+  soffitWood: MeshStandardMaterial;
   /** round 44 (structures-28): worn stone for the houses' threshold slabs (worn_rock_natural_01; vertex tints carry wear and damp) */
   stone: MeshStandardMaterial;
   /** darker wood for door frames / lantern hooks */
@@ -1456,6 +1477,10 @@ export async function loadMaterials(ctx: WorldContext, rng: () => number): Promi
   // posts F sees at 25 m stay the frame's dark posts while the grain reads at 2 m.
   applyShadeFloor(fenceWood, FENCE_WOOD_FLOOR, new Color(HOUSE_BARK_TINT));
   applyShadeFloor(stone, STONE_FLOOR);
+  // round 45 (details-1): the distant huts' soffit boards — `wood`'s maps and tint under their own floor
+  const soffitWood = wood.clone();
+  soffitWood.name = 'structures:soffit-wood';
+  applyShadeFloor(soffitWood, SOFFIT_WOOD_FLOOR, new Color(HOUSE_BARK_TINT));
   const texturedSets = T.loaded().filter((s) => ['bark_brown_02', 'bark_willow_02', 'thatch_roof_angled', 'weathered_planks', 'worn_rock_natural_01'].includes(s));
-  return { bark, barkPale, logBark, sleeveBark, recessBark, archBark, interior, logInterior, roof, wood, woodDark, fenceWood, stone, hearth, ember, windowGlow, distantGlow, lantern, lanternLime, lanternFar, lanternLimeFar, lanternHalo, leaf, vine, tuft, moss, capMoss, flower, runes, endGrain, texturedSets, ownedTextures };
+  return { bark, barkPale, logBark, sleeveBark, recessBark, archBark, interior, logInterior, roof, wood, woodDark, fenceWood, soffitWood, stone, hearth, ember, windowGlow, distantGlow, lantern, lanternLime, lanternFar, lanternLimeFar, lanternHalo, leaf, vine, tuft, moss, capMoss, flower, runes, endGrain, texturedSets, ownedTextures };
 }
