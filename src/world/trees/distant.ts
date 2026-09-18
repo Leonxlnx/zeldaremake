@@ -177,9 +177,10 @@ export function createDistantVariants(rng: Rng, palette: Palette): DistantVarian
     // from a walker were straight pale cylinders): a basal flare on the near LOD — the radius
     // × (1 + DISTANT_FLARE e^(−d / DISTANT_FLARE_FALL)) along the bole, 1.27 R at the ground line
     // (the path starts 0.6 m under it), 1.1 R at 2 m — through the tube's bump hook (no draws),
-    // so every draw after it is what it was. Near LOD only: the far LOD's crossed quads stand in
-    // beyond 44 m, and no near-LOD distant tree is inside a fixed frame (depth rows 52 m+ from D,
-    // the radial pool 51 m+ from A).
+    // so every draw after it is what it was. Near LOD only (drawn to 120 m, index.ts
+    // distantNear): the nearest near-LOD distant tree to a fixed camera is 51 m off (the radial
+    // pool from A; the depth rows 52 m+ from D), where 0.4 R on a 1 m bole is under a pixel at
+    // the gauntlet's 256 × 144 — measured cap-5 → cap-11: D −0.0001, A −0.0001.
     const flare = (_angle: number, distance: number) => 1 + DISTANT_FLARE * Math.exp(-distance / DISTANT_FLARE_FALL);
     tube(near, trunk, taper(trunk, R, R * (spec.taperTop ?? 0.25), 0.9), sides, r, { color: bark, roughness: 0.1, flatBase: true, structural: true, stiffness: () => 1, draws: trunkDraws, bump: flare });
     const limbs = slender ? 1 : r.int(2, 4);
