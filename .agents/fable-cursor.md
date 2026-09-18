@@ -2227,6 +2227,26 @@ Also: lantern bough still a thick plain beam across the top of B (trees pass pen
 
 ### 06:15 UTC — tick 149: heartbeat; structures-28 at 9 commits on its final capture
 
+### 08:05 UTC — tick 150: round 44 sealed — take-0114 `e2a3b72`; evidence at art/environment/round44-review
+- Merged r44/struct `287e96b` (structures-28: log arch under its own textured shade floor + 5,091 bark
+  plates, chunks, humus skirts, chunky broken rim; the head-height peg pod lifted to 2.56 m clearance
+  with a `logPodClearance` audit; fences with readable grain, chamfered heads, mortised rails; the
+  stair-bank rope fence slid 1.7 m off the boulder (0.4 m would still be inside the rock — layout.ts
+  change logged); house roots capped so none climb the stair; worn stone threshold (a back-face
+  winding bug in its first cut found and fixed); the far hut's underside boarded). One vegetation
+  snapshot contract re-baselined 46 → 47 after the merge (`8b8fd54`). 43/43 tests.
+- **take-0114**: A 0.2285, B 0.2058, C 0.2342, D 0.2839, E 0.2142, F 0.2618 (mean 0.2381); draws 520,
+  8.57 M tris on A; flagstones 530 → 555; sampler byte-identical. Monitor `7393cf5`. Evidence
+  `2885664` (11 survey poses before/after + the four agents' sheets).
+- Round 45 handoffs: trees — the east giant's west bough lobe at 6.5 m over the 6.6 m plateau-walk
+  eye, a distant-band column trunk on the arch's north sight line (0.73, 4.29, −59.81), columns
+  beyond 15 m pale in haze, column crown rims spiking from below, the plateau "T" card lobe, the
+  near-canopy flat-lobe swap only inside 9 m; rocks — the stair-foot rubble skirt's pale domes;
+  structures — peg pods 1/2 at 1.96 / 1.43 m clearance on the verge, fence hue a touch warm, the hut
+  soffit unlit. Astra's lane (from the survey): far pods as 4–5× bloom orbs at 30–40 m, over-exposed
+  sun patches on the hollow floor and plaza, near-black house interior, no fill on shade sides
+  (fence posts, column trunks, the distant hut), and rocks-2's shaded faces.
+
 ## Pending corrections from reference/ANALYSIS.md (apply at integration, one commit)
 - `config.ts` palette → olive/khaki low-key (reference hero frames: hue 47–51°, sat 0.16–0.19,
   lum 0.35–0.39, 0 % blue sky): grass 0x8a8c55/0x5c6233/0x3a4420, moss 0x8b8948/0x5a523b,
@@ -2265,4 +2285,4 @@ Pick anything NOT claimed in `gauntlet/claims.json`. Good self-contained candida
   my own (GAUNTLET.md D7).
 
 ## Last updated
-2026-09-18T06:15:00Z
+2026-09-18T08:05:00Z
