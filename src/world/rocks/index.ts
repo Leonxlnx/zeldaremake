@@ -63,6 +63,14 @@ interface NearRock {
   /** crevice plants rooted in this rock's near skin (ferns, moss pads) */
   creviceFerns: number;
   crevicePads: number;
+  /**
+   * round 45 (details-1): the rock's skirt and spill stones — indices into the shared `rubble`
+   * list; their far instances are collapsed (zero-scale matrices) while the near kit, which
+   * carries each stone rebuilt at its own radius with the near relief, is in
+   */
+  skirt: number[];
+  /** near skirt stones folded into the kit */
+  skirtStones: number;
 }
 
 interface Instance {
@@ -75,20 +83,33 @@ interface Instance {
   variant: number;
 }
 
-function buildInstanced(list: Instance[], geos: BufferGeometry[], material: InstancedMesh['material'], name: string, castShadow: boolean): InstancedMesh[] {
-  const per: Instance[][] = geos.map(() => []);
-  for (const it of list) per[it.variant % geos.length].push(it);
+/** where an `Instance` landed: its InstancedMesh and slot, and the matrix it was given */
+interface InstanceSlot {
+  mesh: InstancedMesh;
+  index: number;
+  matrix: Matrix4;
+}
+
+/** the instance's world matrix (tilt to the ground normal, then yaw, uniform scale) */
+function instanceMatrix(it: Instance, out: Matrix4): Matrix4 {
+  _p.set(it.x, it.y, it.z);
+  if (it.tiltTo) _q.setFromUnitVectors(_up, it.tiltTo);
+  else _q.identity();
+  _q.multiply(new Quaternion().setFromAxisAngle(_up, it.yaw));
+  _s.setScalar(it.scale);
+  return out.compose(_p, _q, _s);
+}
+
+function buildInstanced(list: Instance[], geos: BufferGeometry[], material: InstancedMesh['material'], name: string, castShadow: boolean, slots?: InstanceSlot[]): InstancedMesh[] {
+  const per: { it: Instance; k: number }[][] = geos.map(() => []);
+  list.forEach((it, k) => per[it.variant % geos.length].push({ it, k }));
   const out: InstancedMesh[] = [];
   per.forEach((items, v) => {
     if (!items.length) return;
     const im = new InstancedMesh(geos[v], material, items.length);
-    items.forEach((it, i) => {
-      _p.set(it.x, it.y, it.z);
-      if (it.tiltTo) _q.setFromUnitVectors(_up, it.tiltTo);
-      else _q.identity();
-      _q.multiply(new Quaternion().setFromAxisAngle(_up, it.yaw));
-      _s.setScalar(it.scale);
-      im.setMatrixAt(i, _m.compose(_p, _q, _s));
+    items.forEach(({ it, k }, i) => {
+      im.setMatrixAt(i, instanceMatrix(it, _m));
+      if (slots) slots[k] = { mesh: im, index: i, matrix: _m.clone() };
     });
     im.instanceMatrix.needsUpdate = true;
     im.castShadow = castShadow;
@@ -186,6 +207,9 @@ export async function create(ctx: WorldContext): Promise<WorldSystem> {
   for (const b of ctx.layout.heroBoulders) {
     const r = b.radius;
     const collar = new Color(0.13, 0.135, 0.09);
+    // round 45 (details-1): this rock's spill and skirt stones are rubble[ownStart …] — the near
+    // kit rebuilds them (below, after the skirt loop) and hides their far instances while it is in
+    const ownStart = rubble.length;
     // the mesh yaw is drawn first (same bRng draw as before — the geometry stream is a fork) so
     // the sun-shade and path directions can be baked into the geometry in its local frame
     const yaw = bRng.range(0, Math.PI * 2);
@@ -508,9 +532,34 @@ export async function create(ctx: WorldContext): Promise<WorldSystem> {
       }
     }
 
+    // rubble skirt + pebbles at the base
+    const nRub = Math.round(rng.range(9, 16) * (0.6 + 0.4 * r) * density);
+    for (let k = 0; k < nRub; k++) {
+      const a = bRng.range(0, Math.PI * 2);
+      const d = r * bRng.range(0.85, 1.55);
+      const x = b.position[0] + Math.cos(a) * d;
+      const z = b.position[2] + Math.sin(a) * d;
+      if (!notPaved(x, z)) continue;
+      const sc = bRng.range(0.09, 0.3) * (0.7 + 0.3 * r);
+      T.normal(x, z, _n);
+      rubble.push({ x, y: T.height(x, z) - sc * 0.3, z, scale: sc, yaw: bRng.range(0, Math.PI * 2), tiltTo: _n.clone().lerp(_up, 0.5).normalize(), variant: bRng.int(0, 4) });
+    }
+    const nPeb = Math.round(bRng.range(35, 60) * density);
+    for (let k = 0; k < nPeb; k++) {
+      const a = bRng.range(0, Math.PI * 2);
+      const d = r * bRng.range(0.9, 1.9);
+      const x = b.position[0] + Math.cos(a) * d;
+      const z = b.position[2] + Math.sin(a) * d;
+      if (!notPaved(x, z)) continue;
+      const sc = bRng.range(0.03, 0.1);
+      pebbles.push({ x, y: T.height(x, z) - sc * 0.35, z, scale: sc, yaw: bRng.range(0, Math.PI * 2), variant: bRng.int(0, 4) });
+    }
+
     // near LOD (see NEAR_ROCK_IN_M): the same rock from the same stream, rebuilt denser with the
     // near relief, dressed, with loose fragments at its foot — swapped in for the far mesh while
-    // the live camera stands within the in-radius. Own streams only; nothing below moves.
+    // the live camera stands within the in-radius. Own streams only; nothing above or below moves
+    // (round 45: the block sits after the skirt loop so the kit can carry the skirt stones; it
+    // draws from forks only, so the skirt's and pebbles' draws are what they were).
     if (nearLod) {
       const centre = new Vector3(b.position[0], cy, b.position[2]);
       const hero = heroDistance(centre, r * 1.4 + 0.3);
@@ -576,6 +625,54 @@ export async function create(ctx: WorldContext): Promise<WorldSystem> {
           _p.set(x, T.height(x, z) - fr * 0.15, z);
           parts.push({ geometry: frag, matrix: inv.clone().multiply(new Matrix4().compose(_p, _q, _s.setScalar(1))) });
         }
+        // round 45 (details-1): the SKIRT and spill stones at near range. The far skirt is four
+        // radius-1 variants at detail 3 (80 triangles' worth of icosphere per stone) instanced at
+        // 0.1–0.4 m under the shared material's 1.4 m triplanar tile — at 2 m (survey-1 crop 28,
+        // sn-boulder-stairfoot) they read as pale smooth spheres in a uniform moss coat. Here every
+        // stone is rebuilt AT ITS OWN RADIUS (so the relief is the stone's, not a scaled-down
+        // metre rock's) with the rockgen fracture at small scale: four to five cleaves with
+        // chipped, filleted rims, ridging and micro pits, crack furrows, a lumpy moss CAP that
+        // stops at the shoulders (`facetBare` keeps the fracture faces bare), and a deep contact
+        // collar + `aWet` band the near material darkens — dark undersides seated in the litter.
+        // Same seat and pose as the far instance (its matrix), folded into the kit like the
+        // fragments: +0 draws; the far instances collapse while the kit is in (nearUpdate).
+        const skirt: number[] = [];
+        const kRng = nRng.fork('skirt');
+        const nearStone = new Matrix4();
+        for (let k = ownStart; k < rubble.length; k++) {
+          const it = rubble[k];
+          const sc = it.scale;
+          const stone = buildRock(kRng.fork(`stone-${k - ownStart}`), `${seed}/skirt-${b.id}-${k - ownStart}`, {
+            radius: sc,
+            detail: sc > 0.25 ? 7 : sc > 0.15 ? 6 : 5,
+            ridge: 0.26,
+            lump: 0.3,
+            cuts: 4 + ((k - ownStart) % 2),
+            cutUp: [-0.2, 0.9],
+            squashY: 0.72,
+            creaseDeg: 30,
+            cracks: 0.35,
+            crackDepth: 0.03,
+            fineCracks: 0.4,
+            fineCrackDepth: 0.01,
+            micro: 0.05,
+            chip: 0.04,
+            rimRound: 0.06,
+            moss: 0.6,
+            mossThickness: 0.09,
+            mossLumpy: 0.7,
+            facetBare: 0.55,
+            dirt: 0.65,
+            collarBand: [0.05, 0.5],
+            tint: new Color(0.6, 0.59, 0.56),
+            freq: 1,
+          });
+          // the far instance's pose at unit scale (the stone is already its size), 5 % deeper in
+          // the litter than the far sphere so the fractured base sits in the ground, not on it
+          instanceMatrix({ ...it, scale: 1, y: it.y - sc * 0.05 }, nearStone);
+          parts.push({ geometry: stone, matrix: inv.clone().multiply(nearStone) });
+          skirt.push(k);
+        }
         const kit = mergeRockParts(dressed.geometry, parts);
         dressed.geometry.dispose();
         for (const p of parts) p.geometry.dispose();
@@ -588,31 +685,8 @@ export async function create(ctx: WorldContext): Promise<WorldSystem> {
         nearMesh.name = `boulder-${b.id}-near`;
         nearMesh.updateMatrixWorld(true);
         group.add(nearMesh);
-        nearRocks.push({ id: b.id, centre, far: mesh, near: nearMesh, inM, outM, hero, active: false, dist: Infinity, triangles: kit.attributes.position.count / 3, cushions: dressed.stats.cushions, creviceCushions: dressed.stats.creviceCushions, lichen: dressed.stats.lichen, fragments: parts.length, creviceFerns: crevice.ferns, crevicePads: crevice.pads });
+        nearRocks.push({ id: b.id, centre, far: mesh, near: nearMesh, inM, outM, hero, active: false, dist: Infinity, triangles: kit.attributes.position.count / 3, cushions: dressed.stats.cushions, creviceCushions: dressed.stats.creviceCushions, lichen: dressed.stats.lichen, fragments: parts.length - skirt.length, creviceFerns: crevice.ferns, crevicePads: crevice.pads, skirt, skirtStones: skirt.length });
       }
-    }
-
-    // rubble skirt + pebbles at the base
-    const nRub = Math.round(rng.range(9, 16) * (0.6 + 0.4 * r) * density);
-    for (let k = 0; k < nRub; k++) {
-      const a = bRng.range(0, Math.PI * 2);
-      const d = r * bRng.range(0.85, 1.55);
-      const x = b.position[0] + Math.cos(a) * d;
-      const z = b.position[2] + Math.sin(a) * d;
-      if (!notPaved(x, z)) continue;
-      const sc = bRng.range(0.09, 0.3) * (0.7 + 0.3 * r);
-      T.normal(x, z, _n);
-      rubble.push({ x, y: T.height(x, z) - sc * 0.3, z, scale: sc, yaw: bRng.range(0, Math.PI * 2), tiltTo: _n.clone().lerp(_up, 0.5).normalize(), variant: bRng.int(0, 4) });
-    }
-    const nPeb = Math.round(bRng.range(35, 60) * density);
-    for (let k = 0; k < nPeb; k++) {
-      const a = bRng.range(0, Math.PI * 2);
-      const d = r * bRng.range(0.9, 1.9);
-      const x = b.position[0] + Math.cos(a) * d;
-      const z = b.position[2] + Math.sin(a) * d;
-      if (!notPaved(x, z)) continue;
-      const sc = bRng.range(0.03, 0.1);
-      pebbles.push({ x, y: T.height(x, z) - sc * 0.35, z, scale: sc, yaw: bRng.range(0, Math.PI * 2), variant: bRng.int(0, 4) });
     }
   }
   ctx.progress('rocks', 0.4);
@@ -697,7 +771,8 @@ export async function create(ctx: WorldContext): Promise<WorldSystem> {
   }
   ctx.progress('rocks', 0.8);
 
-  const rubbleMeshes = buildInstanced(rubble, rubbleGeos, material, 'rubble', true);
+  const rubbleSlots: InstanceSlot[] = [];
+  const rubbleMeshes = buildInstanced(rubble, rubbleGeos, material, 'rubble', true, rubbleSlots);
   const strataMeshes = buildInstanced(strata, strataGeos, material, 'strata', true);
   const pebbleMeshes = buildInstanced(pebbles, pebbleGeos, pebbleMaterial, 'pebbles', false);
   for (const m of [...rubbleMeshes, ...strataMeshes, ...pebbleMeshes]) group.add(m);
@@ -717,15 +792,28 @@ export async function create(ctx: WorldContext): Promise<WorldSystem> {
    * frame never depends on where the camera was before; per frame the hysteresis holds a rock's
    * near version in until its out-radius.
    */
+  const collapsed = new Matrix4().makeScale(0, 0, 0);
   const nearUpdate = (camera: Camera, reset: boolean) => {
     camera.getWorldPosition(_cam);
     for (const nr of nearRocks) {
       nr.dist = nr.centre.distanceTo(_cam);
+      const was = nr.active;
       if (reset) nr.active = nr.dist < nr.inM;
       else if (nr.active) nr.active = nr.dist <= nr.outM;
       else nr.active = nr.dist < nr.inM;
       nr.far.visible = !nr.active;
       nr.near.visible = nr.active;
+      // round 45: the far skirt stones collapse to nothing while the kit carries them (a
+      // zero-scale instance rasterises no fragment and casts no shadow), and come back with the
+      // matrices they were built with; only on a change of state, and only those instances
+      if (nr.active !== was || reset) {
+        for (const k of nr.skirt) {
+          const slot = rubbleSlots[k];
+          if (!slot) continue;
+          slot.mesh.setMatrixAt(slot.index, nr.active ? collapsed : slot.matrix);
+          slot.mesh.instanceMatrix.needsUpdate = true;
+        }
+      }
     }
   };
 
@@ -737,7 +825,7 @@ export async function create(ctx: WorldContext): Promise<WorldSystem> {
     /** the highest any hero boulder's underside stands above the terrain (m); 0 = fully seated */
     maxBaseGap: Math.max(0, ...boulderInfo.map((b) => b.baseGap)),
     geometry: 'procedural-v4-near-lod',
-    features: ['ridged-displacement', 'crown-lumps', 'bedding-strata', 'cleave-cuts', 'crack-furrows', 'moss-cushion', 'moss-shade-blanket', 'crease-normals', 'crack-vertex-colour', 'moss-upward-faces', 'contact-dirt', 'rubble-skirt', 'spill-stones', 'triplanar-texture', 'lichen-flecks', 'sun-side-moss', 'cap-plants', 'base-plants', 'crevice-plants', 'near-lod', 'near-tile', 'micro-relief', 'fine-cracks', 'chipped-rims', 'wet-band', 'crack-grime', 'moss-pads', 'lichen-plates', 'foot-fragments'],
+    features: ['ridged-displacement', 'crown-lumps', 'bedding-strata', 'cleave-cuts', 'crack-furrows', 'moss-cushion', 'moss-shade-blanket', 'crease-normals', 'crack-vertex-colour', 'moss-upward-faces', 'contact-dirt', 'rubble-skirt', 'spill-stones', 'triplanar-texture', 'lichen-flecks', 'sun-side-moss', 'cap-plants', 'base-plants', 'crevice-plants', 'near-lod', 'near-tile', 'micro-relief', 'fine-cracks', 'chipped-rims', 'wet-band', 'crack-grime', 'moss-pads', 'lichen-plates', 'foot-fragments', 'near-skirt-stones'],
     mossCoverage: true,
     boulderPlants: plants.count,
     boulderFerns: plants.ferns,
@@ -754,7 +842,7 @@ export async function create(ctx: WorldContext): Promise<WorldSystem> {
       tileM: NEAR_TILE_M,
       fadeM: NEAR_FADE_M,
       dropped: nearDropped,
-      rocks: nearRocks.map((nr) => ({ id: nr.id, inM: rnd(nr.inM), outM: rnd(nr.outM), hero: Number.isFinite(nr.hero) ? rnd(nr.hero) : null, triangles: nr.triangles, cushions: nr.cushions, creviceCushions: nr.creviceCushions, lichen: nr.lichen, fragments: nr.fragments, creviceFerns: nr.creviceFerns, crevicePads: nr.crevicePads, active: nr.active, dist: Number.isFinite(nr.dist) ? rnd(nr.dist) : null })),
+      rocks: nearRocks.map((nr) => ({ id: nr.id, inM: rnd(nr.inM), outM: rnd(nr.outM), hero: Number.isFinite(nr.hero) ? rnd(nr.hero) : null, triangles: nr.triangles, cushions: nr.cushions, creviceCushions: nr.creviceCushions, lichen: nr.lichen, fragments: nr.fragments, skirtStones: nr.skirtStones, creviceFerns: nr.creviceFerns, crevicePads: nr.crevicePads, active: nr.active, dist: Number.isFinite(nr.dist) ? rnd(nr.dist) : null })),
       active: nearRocks.filter((nr) => nr.active).map((nr) => nr.id),
     },
     boulderPlantDrawCalls: plants.meshes.length,
