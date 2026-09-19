@@ -360,6 +360,8 @@ const JUMP_LAND_GATHER_S = 0.12;
  * the knee keeps its bend).
  */
 const STAIR_CLEAR_M = 0.05;
+/** the swing phases over which the STAIR_CLEAR_M cap fades out (the nosing is crossed by ~0.5; the clip's descent lands the foot) */
+const STAIR_CAP_OUT: [number, number] = [0.6, 0.85];
 const HIP_FLEX_MAX = MathUtils.degToRad(95);
 /** play mode: the fraction of a climbing swing by which the root has risen the riser (1 = at heel-strike, the capture rule) */
 const ROOT_RISE_END = 0.7;
@@ -2119,7 +2121,13 @@ export async function loadGlbLink(url: string, opts: GlbLinkOptions = {}): Promi
         // envelope) with STAIR_CLEAR_M under the boot's lowest point and no more — the clip's own
         // 0.15 m march arc stacked on the riser is what folded the leg into the torso. Exact at
         // toe-off and heel-strike (the clip's lift is ~0 there, so the cap never binds).
-        if (loco && leg.swingRise > STEP_MIN) target = Math.min(target, leg.g + hold + STAIR_CLEAR_M);
+        // The cap fades out over STAIR_CAP_OUT of the swing: past the nosing the clip's own
+        // descent lands the foot — held at the tread's height while still travelling forward it
+        // skidded 10–13 cm along the tread before its heel-strike spot.
+        if (loco && leg.swingRise > STEP_MIN) {
+          const cap = leg.g + hold + STAIR_CLEAR_M;
+          if (target > cap) target = cap + (target - cap) * MathUtils.smoothstep(leg.phase, STAIR_CAP_OUT[0], STAIR_CAP_OUT[1]);
+        }
         leg.delta = MathUtils.clamp(target - leg.soleP.y, -MAX_CORRECTION, MAX_CORRECTION);
         leg.tiltAngle = groundTilt(ground, leg.soleP.x, leg.soleP.z, leg.contact, leg.qTilt);
         if (Math.abs(leg.pitch) > 1e-5) {
