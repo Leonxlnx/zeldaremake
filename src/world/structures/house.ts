@@ -2408,6 +2408,13 @@ export function buildHouse(def: HouseDef, ctx: WorldContext, mats: StructureMate
     materials.push(roomLeaf, roomVine);
     for (const m of roomFoliage.build({ ...mats, leaf: roomLeaf, vine: roomVine }, 'room47')) {
       m.castShadow = false;
+      // indoors: the leaf map's daylight albedo is pulled down to the room's level (× 0.4) so the
+      // plants sit in the lamp-lit gloom with the shelves, not as sunlit cut-outs in the door
+      const col = m.geometry.attributes.color;
+      if (col) {
+        for (let i = 0; i < col.count; i++) col.setXYZ(i, col.getX(i) * 0.4, col.getY(i) * 0.42, col.getZ(i) * 0.38);
+        col.needsUpdate = true;
+      }
       group.add(m);
     }
     furnish47.plantLeaves = roomFoliage.leafCount;

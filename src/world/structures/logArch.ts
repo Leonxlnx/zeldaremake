@@ -765,11 +765,50 @@ export function buildLogArch(ctx: WorldContext, mats: StructureMaterials, rng: R
     }
     return (2 - cx) / A.x;
   })();
+  /** horizontal distance (m) from a point to the path spine polyline (the walkable strip is ± layout.pathHalfWidth of it) */
+  const spineDistance = (x: number, z: number) => {
+    const spine = ctx.layout.pathSpine;
+    let best = Infinity;
+    for (let i = 0; i + 1 < spine.length; i++) {
+      const [ax, , az] = spine[i];
+      const [bx, , bz] = spine[i + 1];
+      const dx = bx - ax;
+      const dz = bz - az;
+      const t = clamp(((x - ax) * dx + (z - az) * dz) / (dx * dx + dz * dz), 0, 1);
+      best = Math.min(best, Math.hypot(x - ax - dx * t, z - az - dz * t));
+    }
+    return best;
+  };
+  /**
+   * Round 47 (structures-30): the player walks THROUGH the arch (expansion-1 opens the floor), so
+   * nothing hung from the belly may reach below WALK_CLEAR_M over the walkable strip (± pathHalfWidth
+   * of the spine); over the verges within 1.5 m of the strip the floor eases to 1.3 m, beyond it
+   * to 0.6 m. `walkFloorAt` is the lowest y a hanging thing at (x, z) may reach. Applied to the
+   * belly vines of rounds 1 and 41 (they hung to 1.1–1.3 m over the crossing) and to everything
+   * this round hangs.
+   */
+  const WALK_CLEAR_M = 2.4;
+  const walkFloorAt = (x: number, z: number) => {
+    const g = terrain.height(x, z);
+    const sd = spineDistance(x, z);
+    const strip = ctx.layout.pathHalfWidth;
+    if (sd <= strip) return g + WALK_CLEAR_M;
+    if (sd <= strip + 1.5) return g + lerp(WALK_CLEAR_M, 1.3, (sd - strip) / 1.5);
+    return g + 0.6;
+  };
+  /** a hanging strand's length from `hook`, clamped so its tip stays over the walk floor (never shorter than 0.2 m: the hook sits inside the bark) */
+  /** the tips of everything hung under the belly (audit: the least clearance over the strip) */
+  const hungTips: Vector3[] = [];
+  const hangLength = (hook: Vector3, want: number) => {
+    const len = Math.min(want, Math.max(0.2, hook.y - walkFloorAt(hook.x, hook.z)));
+    hungTips.push(new Vector3(hook.x, hook.y - len, hook.z));
+    return len;
+  };
   for (let i = 0; i < 7; i++) {
     const s = pathS + (vegRng() - 0.5) * 7;
     const psi = -Math.PI / 2 + (vegRng() - 0.5) * 1.4;
     const hook = surfacePoint(psi, s, rBase(psi, s) - 0.1);
-    foliage.addHangingVine(hook, 0.7 + vegRng() * 1.3, { amount: 0.1, thickness: 0.018 });
+    foliage.addHangingVine(hook, hangLength(hook, 0.7 + vegRng() * 1.3), { amount: 0.1, thickness: 0.018 });
   }
   for (let i = 0; i < 5; i++) {
     const psi = Math.PI / 2 + (vegRng() - 0.5) * 2.2;
@@ -1529,7 +1568,7 @@ export function buildLogArch(ctx: WorldContext, mats: StructureMaterials, rng: R
     const s = pathS + (beardRng41() - 0.5) * 6;
     const psi = -Math.PI / 2 + (beardRng41() - 0.5) * 1.6;
     const hook = surfacePoint(psi, s, rBase(psi, s) - 0.12);
-    foliage41.addHangingVine(hook, 1.1 + beardRng41() * 1.4, { amount: 0.1, thickness: 0.016 });
+    foliage41.addHangingVine(hook, hangLength(hook, 1.1 + beardRng41() * 1.4), { amount: 0.1, thickness: 0.016 });
   }
   for (const m of foliage41.build(mats, 'log41')) group.add(m);
   const detail41 = {
@@ -1721,20 +1760,6 @@ export function buildLogArch(ctx: WorldContext, mats: StructureMaterials, rng: R
   // round 44: every pod's lowest point (its merged geometry's bounding box under the hook) over
   // the ground beneath it, and whether that ground is the walkable path — a pod over the path
   // must clear POD_PATH_CLEARANCE_M
-  /** horizontal distance (m) from a point to the path spine polyline (the walkable strip is ± layout.pathHalfWidth of it) */
-  const spineDistance = (x: number, z: number) => {
-    const spine = ctx.layout.pathSpine;
-    let best = Infinity;
-    for (let i = 0; i + 1 < spine.length; i++) {
-      const [ax, , az] = spine[i];
-      const [bx, , bz] = spine[i + 1];
-      const dx = bx - ax;
-      const dz = bz - az;
-      const t = clamp(((x - ax) * dx + (z - az) * dz) / (dx * dx + dz * dz), 0, 1);
-      best = Math.min(best, Math.hypot(x - ax - dx * t, z - az - dz * t));
-    }
-    return best;
-  };
   const podClearance = lanterns.map((l) => {
     const mesh = l.pivot.children[0] as Mesh;
     const geo = mesh.geometry;
@@ -1777,20 +1802,12 @@ export function buildLogArch(ctx: WorldContext, mats: StructureMaterials, rng: R
   // NEAR_LOD_M = 40 m: the six hero cameras stand 48–64 m off and never draw them — +2 draws
   // within 40 m, the fungi and the slivers; the roots join the bark plates' draw); the vines and
   // beards fold into the arch's leaf / vine buckets.
-  const WALK_CLEAR_M = 2.4;
   const detail47 = { roots: 0, rootlets: 0, rimVines: 0, rimBeards: 0, fungusTiers: 0, fungi: 0, lightSlivers: 0, litter: 0, minStripClearance: Infinity };
   {
     const strip = ctx.layout.pathHalfWidth;
-    /** the lowest a thing hung at (x, z) may reach: WALK_CLEAR_M over the strip, 1.3 m over the verges within 1.5 m of it, free beyond */
-    const floorAt = (x: number, z: number) => {
-      const g = terrain.height(x, z);
-      const sd = spineDistance(x, z);
-      if (sd <= strip) return g + WALK_CLEAR_M;
-      if (sd <= strip + 1.5) return g + lerp(WALK_CLEAR_M, 1.3, (sd - strip) / 1.5);
-      return g + 0.6;
-    };
+    const floorAt = walkFloorAt;
     const noteClearance = (x: number, yBottom: number, z: number) => {
-      if (spineDistance(x, z) <= strip) detail47.minStripClearance = Math.min(detail47.minStripClearance, yBottom - terrain.height(x, z));
+      hungTips.push(new Vector3(x, yBottom, z));
     };
     // ---- root curtains ----
     const rootRng = rng.fork('roots47');
@@ -1933,7 +1950,7 @@ export function buildLogArch(ctx: WorldContext, mats: StructureMaterials, rng: R
       const hook = surfacePoint(psi, s, rBase(psi, s) + detail(psi, s, upness(psi)) - 0.05);
       const allowed = hook.y - floorAt(hook.x, hook.z);
       if (allowed < 0.35) continue;
-      const len = Math.min(0.6 + vineRng47() * 1.2, allowed);
+      const len = hangLength(hook, 0.6 + vineRng47() * 1.2);
       if (i % 3 === 2) {
         foliage47.addHangingVine(hook, len * 0.5, { amount: 0.1, thickness: 0.006, leafSize: 0.03, leafEvery: 0.026 });
         detail47.rimBeards++;
@@ -1941,7 +1958,6 @@ export function buildLogArch(ctx: WorldContext, mats: StructureMaterials, rng: R
         foliage47.addHangingVine(hook, len, { amount: 0.1, thickness: 0.016 });
         detail47.rimVines++;
       }
-      noteClearance(hook.x, hook.y - len, hook.z);
     }
     for (const m of foliage47.build(mats, 'log47')) group.add(m);
     // ---- fungus tiers on the belly's flanks ----
@@ -2045,7 +2061,7 @@ export function buildLogArch(ctx: WorldContext, mats: StructureMaterials, rng: R
       if (sB - sA < 0.5) continue;
       taken.push([psi0, s0]);
       const width = 0.035 + slRng() * 0.03;
-      const glow = 0.8 + slRng() * 0.5;
+      const glow = 0.55 + slRng() * 0.3;
       const sliver = gridSurface(
         (u, v, out) => {
           const s = lerp(sA, sB, v);
@@ -2055,7 +2071,8 @@ export function buildLogArch(ctx: WorldContext, mats: StructureMaterials, rng: R
           surfacePoint(psi, s, rr, out.position);
           out.uv = [u, v];
           const end = Math.sin(v * Math.PI);
-          const k = glow * (0.35 + 0.65 * end) * (0.7 + 0.3 * Math.sin(u * Math.PI));
+          // soft across the channel (0 at the walls) and along it (0 at the ends): a glow, not a plate
+          const k = glow * (0.15 + 0.85 * end) * Math.pow(Math.sin(u * Math.PI), 0.7);
           out.color = [k, k, k];
         },
         { cols: 3, rows: 8 },
@@ -2071,6 +2088,9 @@ export function buildLogArch(ctx: WorldContext, mats: StructureMaterials, rng: R
       slMesh.name = 'log-light-slivers';
       slMesh.castShadow = slMesh.receiveShadow = false;
       nearGroup.add(slMesh);
+    }
+    for (const t of hungTips) {
+      if (spineDistance(t.x, t.z) <= strip) detail47.minStripClearance = Math.min(detail47.minStripClearance, t.y - terrain.height(t.x, t.z));
     }
   }
 
