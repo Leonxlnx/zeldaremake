@@ -33,7 +33,7 @@ import { NEAR_CANOPY_HERO_MARGIN, NEAR_CANOPY_IN_M, NEAR_CANOPY_MAX_Y, NEAR_CANO
 import { LodPool, type PoolBuilt, type PoolItem } from './lodPool';
 import type { GiantTreeDef } from '../layout';
 import type { RootKitFit } from './rootkit';
-import { createDistantVariants, DISTANT_CORDS, DISTANT_FLARE, DISTANT_FLARE_FALL, DISTANT_FOOT_GRIME, DISTANT_FURROW_SHADE, DISTANT_NEAR_GAIN, DISTANT_ROOT_ARC, DISTANT_SIDES, distantClearanceTally, LIMB_REACH, LIMB_TINT_FROM, LIMB_TINT_TO, LIMB_TIP_TINT, placeDistantTrees, type DepthBand, type DistantClearance, type DistantPlacement, type DistantVariant } from './distant';
+import { createDistantCrownMaterial, createDistantVariants, CROWN_ALPHA_TEST, CROWN_CORE_DARK, CROWN_JITTER, CROWN_RIM, CROWN_SPHERE_MIX, DISTANT_BOLE_BANDS, DISTANT_CORDS, DISTANT_CROWN_TOP, DISTANT_DEPTH_COOL, DISTANT_FLARE, DISTANT_FLARE_FALL, DISTANT_FOOT_GRIME, DISTANT_FURROW_SHADE, DISTANT_NEAR_GAIN, DISTANT_ROOT_ARC, DISTANT_SIDES, distantClearanceTally, FAR_CROWN_CARD_HALF, FAR_CROWN_CARDS, FAR_CROWN_LOBES, LIMB_REACH, LIMB_TINT_FROM, LIMB_TINT_TO, LIMB_TIP_TINT, placeDistantTrees, type DepthBand, type DistantClearance, type DistantPlacement, type DistantVariant } from './distant';
 import { TAU, isCushionRoot, mergeParts, type Detail } from './writer';
 import type { ViewGap } from './placement';
 
@@ -2420,11 +2420,13 @@ export async function create(ctx: WorldContext): Promise<WorldSystem> {
   };
   const distantPlacements = placeDistantTrees(rng, terrain, distantVariants, distantTarget, 60, 215, DEPTH_BANDS, distantClearance);
   const distantCleared = distantClearanceTally();
+  // round 47: the crown cards (the geometry's second group) draw with their own material (distant.ts createDistantCrownMaterial: far-crown atlas, spherical shading, soft alpha, wind)
+  const distantCrown = createDistantCrownMaterial(ctx.wind, rng, palette, sunDir);
   const distantSets: DistantSet[] = distantVariants.map((variant, i) => {
     const placements = distantPlacements.filter((p) => p.variant === i);
     const n = Math.max(1, placements.length);
     const make = (geometry: DistantVariant['near'], label: string, lodLevel: number) => {
-      const mesh = new InstancedMesh(geometry, mats.distant, n);
+      const mesh = new InstancedMesh(geometry, [mats.distant, distantCrown], n);
       mesh.name = `distant-${i}-${label}`;
       mesh.instanceColor = new InstancedBufferAttribute(new Float32Array(n * 3), 3);
       mesh.castShadow = false;
@@ -2945,6 +2947,8 @@ export async function create(ctx: WorldContext): Promise<WorldSystem> {
       distantNearBark: { flare: [DISTANT_FLARE, DISTANT_FLARE_FALL], tone: DISTANT_NEAR_TONE, withinM: DISTANT_BARK_M, limbReach: LIMB_REACH, limbTint: [LIMB_TIP_TINT, LIMB_TINT_FROM, LIMB_TINT_TO] },
       /** round 46: the near LOD bole's geometric cords [furrows around a broad / a slender, depth share], sides [broad, slender], the furrow floor's vertex shade, the root buttresses' arc sides (distant.ts) */
       distantNearRelief: { cords: DISTANT_CORDS, sides: DISTANT_SIDES, furrowShade: DISTANT_FURROW_SHADE, footGrime: DISTANT_FOOT_GRIME, rootArc: DISTANT_ROOT_ARC, nearGain: DISTANT_NEAR_GAIN, floor: [DISTANT_NEAR_FLOOR.lift, DISTANT_NEAR_FLOOR.texture] },
+      /** round 47: the crown cards [near, far] and lobe pairs per tree, card half-size (crown radii), the crown material's sphere mix / core dark / rim / alpha test / jitter, the bole's crown-top darkening and tone bands, the depth cool (distant.ts) */
+      distantCrown: { cards: FAR_CROWN_CARDS, lobes: FAR_CROWN_LOBES, cardHalf: FAR_CROWN_CARD_HALF, sphereMix: CROWN_SPHERE_MIX, coreDark: CROWN_CORE_DARK, rim: CROWN_RIM, alphaTest: CROWN_ALPHA_TEST, jitter: CROWN_JITTER, crownTop: DISTANT_CROWN_TOP, boleBands: DISTANT_BOLE_BANDS, depthCool: DISTANT_DEPTH_COOL, material: distantCrown.name || 'distant-crown' },
       /** round 45: a giant lobe's fine wood reach [secondaries, twigs] as shares of hR and its outer tint toward the leaf tone (giant.ts LOBE_*) */
       lobeWood: { secondaryReach: LOBE_SECONDARY_REACH, twigReach: LOBE_TWIG_REACH, tint: LOBE_TWIG_TINT },
       lodLevels: 3,
@@ -3139,6 +3143,7 @@ export async function create(ctx: WorldContext): Promise<WorldSystem> {
       nearBasePool.dispose();
       for (const g of sectorGeometries) g.dispose();
       for (const s of distantSets) (s.variant.near.dispose(), s.variant.far.dispose());
+      (distantCrown.map?.dispose(), distantCrown.dispose());
     },
   };
 }
