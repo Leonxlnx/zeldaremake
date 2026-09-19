@@ -243,7 +243,7 @@ for(const [v,lods] of weeds.opts.variants.entries()){const g=lods[0],b=g.boundin
   const sorted=[...lum].sort((p,q)=>p-q);assert.ok(sorted[sorted.length-1]/sorted[Math.floor(sorted.length*0.5)]>=1.12,`variant ${v} has a visibly lighter midrib`);}
 const weedMat=a.plants.materials.find(m=>m.name==='veg-weeds');assert.ok(weedMat,'weed material');
 {const sh={uniforms:{},vertexShader:THREE.ShaderLib.standard.vertexShader,fragmentShader:THREE.ShaderLib.standard.fragmentShader};weedMat.onBeforeCompile(sh,{});
-  assert.equal(sh.uniforms.uTopRoughness.value,0.55,'waxy top face roughness 0.55');assert.match(sh.fragmentShader,/roughnessFactor = gl_FrontFacing \? uTopRoughness : roughnessFactor;/);assert.ok(weedMat.roughness>=0.85,'matte underside');}
+  assert.equal(sh.uniforms.uTopRoughness.value,0.55,'waxy top face roughness 0.55');assert.match(sh.fragmentShader,/roughnessFactor = gl_FrontFacing && \(vLeafUv\.x < 1\.5 \|\| \(vLeafUv\.x >= 6\.0 && vLeafUv\.x < 7\.0\)\) \? uTopRoughness : roughnessFactor;/,'round 47: the sheen is the laminae\'s only — cores, stems and twigs stay matte');assert.ok(weedMat.roughness>=0.85,'matte underside');}
 // Path-edge softening (sheet 02): dense short moss in the 0.25 m band outside the flagstone rim
 // of the spine / stair branch / plaza, nothing on the slabs (every root passed `allowed` above).
 // Since aff169d / e17f310 the stair branch ends at (6.6, −0.5) inside the plaza's east lobe, so its
@@ -263,7 +263,9 @@ const rimStats=a.field.pavedRimStats();
 assert.ok(rimStats.metres>=20&&rimStats.bankMetres>=6,`mask-derived paved rim: ${rimStats.metres.toFixed(1)} m, ${rimStats.bankMetres.toFixed(1)} m of it the bank toe`);
 assert.ok(rimMoss.filter(it=>a.field.pavedRimDistance(it.x,it.z)<=0.25).length>=15,`rim moss along the plaza discs' own rim: ${rimMoss.filter(it=>a.field.pavedRimDistance(it.x,it.z)<=0.25).length}`);
 // round 31: the grass tufts (plantgeo.ts tuftGeometry) ARE frame 1's lit tufts on that face — the one plant set the face grows
-{const bs=newSample();for(const set of a.plants.all)for(const it of set.items){if(set===a.plants.tufts||a.field.bankFace(it.x,it.z)<=0.3)continue;a.field.sample(it.x,it.z,bs);
+// round 47: `bankFace` is every paved rim flagged `bank` — since expansion-1 it includes the north
+// clearing's banks (z ≈ −74), which are not frame 1's face; the contract is the shot-A face (`aFace`).
+{const bs=newSample();for(const set of a.plants.all)for(const it of set.items){if(set===a.plants.tufts||a.field.aFace(it.x,it.z)<=0.3)continue;a.field.sample(it.x,it.z,bs);
   assert.ok(bs.slope<=0.2,`${set.opts.name} on the shot-A bank face at (${it.x.toFixed(2)},${it.z.toFixed(2)}), slope ${bs.slope.toFixed(2)}`);}}
 // Round 13 — foreground framing (owner boards 01 / 02 / 06 / 08; frames 1 s / 14 s / 46 s / 56 s).
 const scaleOf=it=>Math.hypot(it.matrix[0],it.matrix[1],it.matrix[2]),kidSpots=[...LAYOUT.npcSpots.map(n=>[n.position[0],n.position[2]]),[4.96,5.29],[6.21,3.2]];
@@ -506,7 +508,9 @@ assert.ok(lawnToward/lawnBlades<0.6,`lawn blades beyond the band keep a random y
   assert.ok(band.perM2>=110,`lawn band turf density ${band.perM2.toFixed(0)} / m²`);
   // round 40: the tufts' 0.6–1.4 × height multiplier is damped to 1 in the band (its p50 / p95 are frame 14 s' authored cut) while the
   // verge north of the boulder takes it, whose p50 (102 blades in the box) slips ≈ 2 % under the skewed product — the band stays the shorter turf (ratio 0.821)
-  assert.ok(band.p95<=0.27&&band.p50<=0.83*north.p50,`lawn band turf p50 ${band.p50.toFixed(3)} / p95 ${band.p95.toFixed(3)} against the north verge's p50 ${north.p50.toFixed(3)}`);}
+  // round 47: the coverage fill (grass.ts INFILL_*) tufts the verge's gaps north of the boulder with turf-height blades (102 → ≈ 134 in the
+  // box), which pulls its p50 down a little; the band stays the shorter turf (ratio ≤ 0.9, was 0.83 at round 40's 0.821)
+  assert.ok(band.p95<=0.27&&band.p50<=0.9*north.p50,`lawn band turf p50 ${band.p50.toFixed(3)} / p95 ${band.p95.toFixed(3)} against the north verge's p50 ${north.p50.toFixed(3)}`);}
 // Round 39: the rubric's W15 floor (≥ 400 000 grass instances) rests on the blade tiles, the weeds and the
 // tufts alone — the always-in-the-scene-graph sets (index.ts grassInstances; the culled clump cards are not
 // counted) — with a margin over the reduced base density; the blade LODs end at 16 m under the carpet
@@ -522,7 +526,10 @@ assert.deepEqual(grass.lodDistances,[6,16,16],'blade LOD ranges (round 39)');
     const grid=new Map(),key=(x,z)=>`${Math.floor(x/r)},${Math.floor(z/r)}`;for(const p of pts){const k=key(p[0],p[1]);(grid.get(k)??grid.set(k,[]).get(k)).push(p);}
     let nb=0;for(const p of pts){const cx=Math.floor(p[0]/r),cz=Math.floor(p[1]/r);for(let dx=-1;dx<=1;dx++)for(let dz=-1;dz<=1;dz++)for(const q of grid.get(`${cx+dx},${cz+dz}`)??[]){if(q!==p&&Math.hypot(q[0]-p[0],q[1]-p[1])<=r)nb++;}}
     const dens=pts.length/((box[2]-box[0])*(box[3]-box[1]));return{n:pts.length,ratio:nb/pts.length/(dens*Math.PI*r*r)};};
-  for(const [name,box,floor] of [['open lawn',[-8,-8,-4,-4],2.2],['east flank',[10,-3,14,1],1.6],['north verge',[-2.2,-13.5,-1.6,-11.0],1.4]]){const r=pc(box,0.075);
+  // round 47: the coverage fill (grass.ts INFILL_*) tufts the gaps with 5–9-blade clusters like the passes' — more blades over a box
+  // (open lawn 1 993 → ≈ 2 100, the 1.5 m² verge box 102 → ≈ 166) at the same neighbour counts, so the ratio's uniform baseline
+  // rises: the open lawn's floor 2.2 → 2.0, the north verge's 1.4 → 1.25 (measured 1.31); the tufts are the same rooted clusters
+  for(const [name,box,floor] of [['open lawn',[-8,-8,-4,-4],2.0],['east flank',[10,-3,14,1],1.6],['north verge',[-2.2,-13.5,-1.6,-11.0],1.25]]){const r=pc(box,0.075);
     assert.ok(r.n>=100&&r.ratio>=floor,`${name}: ${r.n} blades, ${r.ratio.toFixed(2)} × the uniform neighbour count inside 0.075 m (≥ ${floor})`);}
   // round 40 (Astra's "tall dark spikes" at the west ledge): the lawn's spike cap (grass.ts LAWN_SPIKE_CAP) takes the
   // 0.5–0.9 m tail off the flat lawns — the CV settles at ≈ 0.45 (0.574 uncapped) — while the tuft factor still

@@ -14,9 +14,12 @@ import type { WorldContext } from '../system';
 import { smoothstep, clamp } from '../util/noise';
 import type { Rng } from '../util/prng';
 import { A_FACE_HEIGHT, VegField, composeMatrix, newSample } from './field';
+import { BLADE_MIN, COVERAGE_CELL } from './coverage';
 import { perfFlags, perfRuntime } from '../../perfFlags';
 
-export const GRASS_TYPE_NAMES = ['turf', 'meadow', 'sedge'] as const;
+export const GRASS_TYPE_NAMES = ['turf', 'meadow', 'sedge', 'seed'] as const;
+/** the blade type id of the round-47 seed stalk (materials.ts GRASS_SHAPE_VERTEX: a slender stalk under a straw seed head) */
+export const SEED_TYPE = 3;
 
 export interface GrassTile {
   mesh: InstancedMesh;
@@ -288,6 +291,34 @@ const BANK_FLAT = 0.7;
  * NORTH_FLOOR_HEIGHT, in the deep palette (−NORTH_FLOOR_TINT) with more straw.
  */
 const NORTH_FLOOR_KEEP = 0.45;
+/**
+ * Round 47 — the coverage fill (the owner's review of 2026-09-19, item 12: "patches in the grass
+ * where it's not full"; coverage.ts is the audit). After a tile's candidate passes, its ground is
+ * swept on the audit's COVERAGE_CELL grid and every cell inside INFILL_REACH of the origin (the
+ * ground a walker stands on or sees within a few metres) that holds fewer than BLADE_MIN roots and
+ * that the masks call turf takes a tuft of INFILL_BLADES short blades at the cell — its own stream
+ * (`grass/infill/<tile>`), after every other pass, so no candidate anywhere moves. The frames'
+ * bare-by-design grounds (the trodden strip's dirt, C's foot, D's shoulders and hollow, the north
+ * forest floor) take none: their cuts are the frames'. Past INFILL_REACH the mats close the ground
+ * (carpet.ts, its own infill sweep) and the fixed cameras' far lawns keep their blade counts.
+ */
+const INFILL_REACH = 30;
+/** an infill tuft is a rooted cluster like the passes' (CLUSTER_MIN..CLUSTER_MAX blades inside CLUSTER_RADIUS of the cell centre) */
+const INFILL_BLADES = CLUSTER_MAX;
+const INFILL_SPREAD = CLUSTER_RADIUS;
+/**
+ * Round 47 — blade-level detail inside the walk (owner review item 12: "even more high quality").
+ * SEED_SHARE of the lawn's turf candidates grow as SEED_TYPE stalks — slender, SEED_HEIGHT m tall,
+ * a straw seed head on the top quarter (materials.ts) — and BROAD_SHARE of the turf blades stand
+ * BROAD_WIDTH × their width, both picked by a position hash after the type draw so no stream moves.
+ * Neither grows on the frames' fixed grounds (the flats: the trodden strip, the lawn band, D's
+ * hollow, C's foot; camera C's sightline; the north floor) nor in the flank passes.
+ */
+const SEED_SHARE = 0.03;
+const SEED_HEIGHT: readonly [number, number] = [0.3, 0.44];
+const SEED_WIDTH: readonly [number, number] = [0.011, 0.017];
+const BROAD_SHARE = 0.08;
+const BROAD_WIDTH = 1.7;
 const NORTH_FLOOR_HEIGHT = 0.75;
 const NORTH_FLOOR_TINT = 0.5;
 const NORTH_FLOOR_DRY = 0.3;
@@ -325,7 +356,7 @@ export async function buildGrass(ctx: WorldContext, field: VegField, material: M
   const bases = [bladeGeometry(4, 1, 1), bladeGeometry(2, 1.3, 1), bladeGeometry(1, 1.9, 0)];
   const s = newSample();
   const tiles: GrassTile[] = [];
-  const typeCounts = [0, 0, 0];
+  const typeCounts = [0, 0, 0, 0];
   let total = 0;
   let hSum = 0;
   let hSq = 0;
@@ -339,15 +370,15 @@ export async function buildGrass(ctx: WorldContext, field: VegField, material: M
   const tileCoords: [number, number][] = [];
   for (let cz = -northHalf; cz < half; cz++) {
     for (let cx = -half; cx < half; cx++) {
-      const mx = cx * TILE + TILE / 2;
-      const mz = cz * TILE + TILE / 2;
-      if (field.reach(mx, mz) > R + TILE * 0.71) continue;
+      // round 47: a tile is in while any of its ground is (field.ts tileReach; the centre alone
+      // culled the corridor's last tiles, whose south edges hold turf inside the radius)
+      if (field.tileReach(cx * TILE, cz * TILE, TILE) > R + 1.5) continue;
       tileCoords.push([cx, cz]);
     }
   }
 
   // capacity for the base pass plus the three extra passes (each ≤ its share of the tile's candidates)
-  const maxPerTile = Math.ceil(TILE * TILE * (BASE_PER_M2 + CANDIDATES_PER_M2 * (LAWN_BAND_EXTRA + FLANK_EXTRA + HOUSE_FLANK_EXTRA + A_FACE_EXTRA)) * Math.max(q.density, 0.1));
+  const maxPerTile = Math.ceil(TILE * TILE * (BASE_PER_M2 + CANDIDATES_PER_M2 * (LAWN_BAND_EXTRA + FLANK_EXTRA + HOUSE_FLANK_EXTRA + A_FACE_EXTRA)) * Math.max(q.density, 0.1)) + (TILE / COVERAGE_CELL) ** 2 * INFILL_BLADES;
   const matrices = new Float32Array(maxPerTile * 16);
   const data = new Float32Array(maxPerTile * 4);
 
@@ -373,7 +404,7 @@ export async function buildGrass(ctx: WorldContext, field: VegField, material: M
     // pavings, the mask-side rim, the flight taken out of the trodden strip). `tuft` is the rooted
     // cluster the blade belongs to (round 40): its height multiplier, palette shift and tip tone;
     // `facePass` blades (frame 1's circled bank face, round 40) are accepted at the face weight.
-    const blade = (x: number, z: number, rng: Rng, tuft: Cluster, bandPass: boolean, flankPass = false, housePass = false, facePass = false) => {
+    const blade = (x: number, z: number, rng: Rng, tuft: Cluster, bandPass: boolean, flankPass = false, housePass = false, facePass = false, infill = false) => {
       if (field.reach(x, z) > R + 1.5) return;
       field.sample(x, z, s);
       if (!field.allowed(x, z, s, true)) return;
@@ -422,7 +453,11 @@ export async function buildGrass(ctx: WorldContext, field: VegField, material: M
       const clusterK = flankPass ? FLANK_CLUSTER_FLOOR + (1 - FLANK_CLUSTER_FLOOR) * cluster : housePass ? HOUSE_FLANK_CLUSTER_FLOOR + (1 - HOUSE_FLANK_CLUSTER_FLOOR) * cluster : cluster;
       // frame 1's circled right foreground (round 40): the south bank's face fills in
       const density = clusterK * verge * slopeBoost * cliffCut * (1 - 0.75 * giant) * (1 - 0.5 * clr.npc) * (1 - 0.35 * low) * (facePass ? face : 1 + A_FACE_DENSITY * face) * (1 + 0.6 * shade) * (1 - 0.35 * trod - 0.5 * bare) * (bandPass ? band : 1) * (flankPass ? flank : 1) * (housePass ? house : 1);
-      if (rng() * DNORM > density) return;
+      // round 47: an infill blade skips the density draw (it stands where the passes left a gap)
+      // but never on the frames' bare-by-design grounds
+      if (infill) {
+        if (density <= 0 || trod > 0.5 || foot > 0.5 || hollow > 0.5 || nfloor > 0.5 || field.dShoulder(x, z) > 0.5 || clr.npc > 0.5) return;
+      } else if (rng() * DNORM > density) return;
 
       // type: tall meadow blades are rare in the low verges, the tidy foreground and the lawn band
       const meadow = field.meadow(x, z);
@@ -430,7 +465,13 @@ export async function buildGrass(ctx: WorldContext, field: VegField, material: M
       const meadowP = 0.78 * meadow * (edge < 3 ? 1.15 : 1) * (1 - clr.npc) * (1 - clr.boulder) * (1 - 0.85 * low) * (1 - 0.9 * sight) * (1 - 0.7 * trim) * (1 - 0.9 * trod) * (1 - 0.85 * band) * (1 - hollow) * (1 - foot) * (1 - nfloor) * (housePass ? 0.3 : 1);
       const sedgeP = 0.42 * sedge * (0.6 + 0.6 * s.plateau) * (1 - clr.npc) * (1 - A_FACE_SEDGE_CUT * face);
       const tr = rng();
-      const type = tr < meadowP ? 1 : tr < meadowP + sedgeP ? 2 : 0;
+      let type = tr < meadowP ? 1 : tr < meadowP + sedgeP ? 2 : 0;
+      // the tuft's height (round 40) is damped to 1 where a frame fixed the turf's height — the
+      // trodden strip, the lawn band, D's hollow, C's foreground
+      const flat = Math.max(trod, band, hollow, foot);
+      // round 47: seed stalks (a position hash — no draw) on the free lawn only
+      const freeLawn = !flankPass && !housePass && !infill && flat < 0.5 && nfloor < 0.5 && sight <= 0 && low < 0.5;
+      if (type === 0 && freeLawn && hash01(x + 0.125, z + 0.375) < SEED_SHARE) type = SEED_TYPE;
 
       // size (reference: 0.15–0.35 m tufts, ≈ 0.5 m in the verges — see ANALYSIS §5)
       const clusterVar = 0.82 + 0.32 * cluster;
@@ -442,18 +483,24 @@ export async function buildGrass(ctx: WorldContext, field: VegField, material: M
       } else if (type === 2) {
         h = (0.2 + 0.3 * rng()) * clusterVar;
         w = 0.024 + 0.016 * rng();
+      } else if (type === SEED_TYPE) {
+        // round 47: the seed stalk — the turf branch's two draws, so the stream never moves
+        h = (SEED_HEIGHT[0] + (SEED_HEIGHT[1] - SEED_HEIGHT[0]) * Math.pow(rng(), 1.4)) * clusterVar;
+        w = SEED_WIDTH[0] + (SEED_WIDTH[1] - SEED_WIDTH[0]) * rng();
       } else {
         h = (0.11 + 0.2 * Math.pow(rng(), 1.4)) * clusterVar * (edge < 2.5 ? 1.15 : 1);
         w = 0.012 + 0.012 * rng();
+        // round 47: a few broad blades on the free lawn (a position hash — no draw)
+        if (freeLawn && hash01(x + 0.375, z + 0.125) < BROAD_SHARE) w *= BROAD_WIDTH;
       }
-      // the tuft's height (round 40): 0.6–1.4 × shared by its blades, damped to 1 where a frame
-      // fixed the turf's height — the trodden strip, the lawn band, D's hollow, C's foreground
-      const flat = Math.max(trod, band, hollow, foot);
+      // the tuft's height (round 40): 0.6–1.4 × shared by its blades, damped to 1 on the flats
       const tuftK = 1 + (tuft.height - 1) * (1 - flat);
       h *= tuftK;
       // the lawn's spike cap (round 40): the excess over LAWN_SPIKE_CAP × the tuft's factor comes
       // off in full on the flat lawn, fading out across the carpet's slope band
       if (!flankPass && !housePass) {
+        // (the round-47 seed stalks take the cap too — the owner's "no tall dark spikes" holds; a
+        // head at the cap still stands over the turf, whose blades run 0.11–0.31 m before the tuft factor)
         const cap = LAWN_SPIKE_CAP * tuftK;
         if (h > cap) h -= (h - cap) * (1 - smoothstep(LAWN_SLOPE[0], LAWN_SLOPE[1], s.slope));
       }
@@ -615,6 +662,35 @@ export async function buildGrass(ctx: WorldContext, field: VegField, material: M
         blade(x, z, faceRng, tuft, false, false, false, true);
         return count < maxPerTile;
       });
+    }
+    // round 47: the coverage fill (INFILL_*) — the tile swept on the audit grid after every pass
+    if (field.reach(mx, mz) <= INFILL_REACH + TILE * 0.71) {
+      const cells = Math.round(TILE / COVERAGE_CELL);
+      const occupancy = new Uint16Array(cells * cells);
+      for (let i = 0; i < count; i++) {
+        const ix = Math.floor((matrices[i * 16 + 12] - x0) / COVERAGE_CELL);
+        const iz = Math.floor((matrices[i * 16 + 14] - z0) / COVERAGE_CELL);
+        if (ix >= 0 && ix < cells && iz >= 0 && iz < cells) occupancy[iz * cells + ix]++;
+      }
+      const infillRng = ctx.rng.fork(`grass/infill/${cx}/${cz}`);
+      const tuft: Cluster = { height: 1, tint: 0, tip: 0.5 };
+      for (let iz = 0; iz < cells && count < maxPerTile; iz++) {
+        for (let ix = 0; ix < cells && count < maxPerTile; ix++) {
+          if (occupancy[iz * cells + ix] >= BLADE_MIN) continue;
+          const gx = x0 + (ix + 0.5) * COVERAGE_CELL;
+          const gz = z0 + (iz + 0.5) * COVERAGE_CELL;
+          if (field.reach(gx, gz) > INFILL_REACH) continue;
+          const size = infillRng.int(CLUSTER_MIN, CLUSTER_MAX + 1);
+          tuft.height = CLUSTER_HEIGHT[0] + (CLUSTER_HEIGHT[1] - CLUSTER_HEIGHT[0]) * infillRng();
+          tuft.tint = infillRng.gauss() * CLUSTER_TINT_SD;
+          tuft.tip = infillRng();
+          for (let b = 0; b < size; b++) {
+            const a = infillRng() * Math.PI * 2;
+            const rad = INFILL_SPREAD * Math.sqrt(infillRng());
+            blade(Math.round((gx + Math.cos(a) * rad) * 1000) / 1000, Math.round((gz + Math.sin(a) * rad) * 1000) / 1000, infillRng, tuft, false, false, false, false, true);
+          }
+        }
+      }
     }
     if (count === 0) continue;
 

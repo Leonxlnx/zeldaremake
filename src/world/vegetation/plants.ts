@@ -14,7 +14,7 @@ import { VegField, composeMatrix, newSample, type FieldSample } from './field';
 import { rgb } from './geometry';
 import { LodInstancedSet, type PackLayout } from './lodset';
 import { createVegMaterial, createVegShadowMaterials, type VegMaterialOptions } from './materials';
-import { BROADLEAF_DETAILS, BROADLEAF_ULTRA_M, BUSH_DETAILS, BUSH_ULTRA_M, FIDDLEHEAD_DETAILS, FIDDLEHEAD_ULTRA_M, FLOWER_DETAILS, FLOWER_ULTRA_M, HERO_FERN_DETAILS, HERO_FERN_ULTRA_M, MOSS_DETAILS, MOSS_MID_M, MOSS_ULTRA_M, WHITE_FLOWER_DETAILS, bushGeometry, withMirrors, cloverGeometry, fernGeometry, fiddleheadGeometry, flowerGeometry, flowerSpikeGeometry, hedgeGeometry, heroFernGeometry, makePalette, maxHeight, mossGeometry, saplingGeometry, seedheadGeometry, tuftGeometry, variants, weedGeometry, whiteFlowerGeometry } from './plantgeo';
+import { BIG_LEAF_VARIANTS, BROADLEAF_DETAILS, BROADLEAF_ULTRA_M, BUSH_DETAILS, BUSH_ULTRA_M, HEDGE_DETAILS, HEDGE_ULTRA_M, SHRUB_TOP_ROUGHNESS, FIDDLEHEAD_DETAILS, FIDDLEHEAD_ULTRA_M, FLOWER_DETAILS, FLOWER_ULTRA_M, HERO_FERN_DETAILS, HERO_FERN_ULTRA_M, MOSS_DETAILS, MOSS_MID_M, MOSS_ULTRA_M, WHITE_FLOWER_DETAILS, bushGeometry, withMirrors, cloverGeometry, fernGeometry, fiddleheadGeometry, flowerGeometry, flowerSpikeGeometry, hedgeGeometry, heroFernGeometry, makePalette, maxHeight, mossGeometry, saplingGeometry, seedheadGeometry, tuftGeometry, variants, weedGeometry, whiteFlowerGeometry } from './plantgeo';
 
 export interface PlantSets {
   ferns: LodInstancedSet;
@@ -92,6 +92,36 @@ const PLATEAU_WALK: readonly (readonly [number, number])[] = [
   [18.3, -8.5],
 ];
 const BUSH_LENS_CLEAR_M = 0.5;
+/** round 47: bushes within this distance of a house trunk (m past its radius) are the big-leaf shrub of ref-01 */
+const HOUSE_BIG_LEAF_M = 3.4;
+/** round 47: the authored house shrubs — angles off the door's facing (°) and their offset past the trunk (m) */
+const HOUSE_SHRUB_ANGLES: readonly number[] = [-58, -98, 62, 104, 150];
+const HOUSE_SHRUB_OFF: readonly [number, number] = [0.55, 1.1];
+/**
+ * Round 47 — the north path's verge (owner review 2026-09-19, ref-04: "dense dark ferns and shrubs
+ * with layered leaf silhouettes and lit rims at the path edges, fine litter everywhere, no bare
+ * ground"). The vertical layer over the round-46 north carpet: a dense band of dark ferns
+ * (`fernsNorth`, NORTH_VERGE_FERN_EDGE m off the paving) with leafy shrub crowns (`bushes`) on its
+ * outer edge (NORTH_VERGE_BUSH_EDGE), from NORTH_VERGE_Z0 north to the corridor's end. Camera D
+ * looks straight up this path: inside NORTH_VERGE_D_Z (its frame's banks, 12–40 m off) the band
+ * grows at NORTH_VERGE_D_KEEP of its weight and the ferns end at NORTH_PLANT_MAX_M anyway; the
+ * frames' D shoulders and hollow take none (their cuts are the frames'). The hollow is the whole
+ * west bank from z −20 to −50 (frame 56 s' open ground), so the band is the east bank's: its
+ * candidate density (NORTH_VERGE_FERN_PER_M2 over the corridor box, ≈ 3 % of which is the band)
+ * is set for ≈ 4–5 fronds per metre of bank at the 0.5 m spacing.
+ */
+const NORTH_VERGE_Z0 = -15;
+const NORTH_VERGE_D_Z = -34;
+const NORTH_VERGE_D_KEEP = 0.6;
+const NORTH_VERGE_FERN_PER_M2 = 6.5;
+const NORTH_VERGE_BUSH_PER_M2 = 1.6;
+const NORTH_VERGE_FERN_EDGE: readonly [number, number, number, number] = [0.5, 0.85, 2.1, 3.2];
+const NORTH_VERGE_BUSH_EDGE: readonly [number, number, number, number] = [1.15, 1.7, 2.7, 3.6];
+/** the verge's tint: ref-04's ferns and shrubs are dark (× the sets' palette) */
+const NORTH_VERGE_FERN_TINT = 0.82;
+const NORTH_VERGE_BUSH_TINT = 0.6;
+/** the verge's disc-falloff floor (the corridor's ground past the fade keeps this share; carpet.ts NORTH_CARPET.reachFloor) */
+const NORTH_CARPET_REACH_FLOOR_PLANTS = 0.8;
 /** round 44 (survey-1 #10): a violet clump's pigment spread (× 1 ± this) and hue lean (red up / blue down or the reverse, this fraction) */
 export const FLOWER_CLUMP_SPREAD = 0.12;
 export const FLOWER_CLUMP_LEAN = 0.08;
@@ -193,8 +223,11 @@ const PACKS: Record<string, PackLayout> = {
   moss: [ALL(2), SINGLE(2), SINGLE(2)],
   // the north corridor's fern / broad-leaf sets: the fixed cameras frame a handful of their far LODs
   // 20–30 m off (camera D: 3 fronds, 11 rosettes) — packed there, one draw a LOD instead of 2–3; the
-  // near fronds, which only the walk sees, stay one variant a draw like the disc ferns'
-  'ferns-north': [SINGLE(4), ALL(4), ALL(4)],
+  // near fronds, which only the walk sees, stay one variant a draw like the disc ferns'.
+  // Round 47: the north verge (vegetation-25) puts hundreds of mid-LOD fronds 20–35 m from camera A;
+  // packed, each submitted all four variants (ferns-north-lod1 0 → 89 K on A, W38 9.02 M > 9.0 M) —
+  // the mid LOD draws one variant a draw again (+3 draws, ≈ −66 K); the far LOD stays packed.
+  'ferns-north': [SINGLE(4), SINGLE(4), ALL(4)],
   'weeds-north': [ALL(3), ALL(3), ALL(3)],
   seedheads: [ALL(3), SINGLE(3)],
   // 428–856-triangle coils: per variant at both LODs (round 39: the one packed far draw submitted
@@ -210,7 +243,9 @@ const PACKS: Record<string, PackLayout> = {
   'hero-ferns': [SINGLE(3), SINGLE(3), ALL(3), ALL(3)],
   // 12 hero hedges, all high-LOD from every camera: packing ALL(3) near submitted 3x the placed
   // geometry (300 K vs 97 K triangles); per variant near, +4 draws (Astra, docs/proposals/astra-hedge-packs)
-  hedge: [SINGLE(3), ALL(3), ALL(3)],
+  // round 47: the ultra LOD (≈ 5.6 K triangles a variant, inside HEDGE_ULTRA_M on the walk only) draws
+  // one variant a draw like the high LOD it hands over to
+  hedge: [SINGLE(3), SINGLE(3), ALL(3), ALL(3)],
   // round 31: 6 tuft variants (two per height class, `variant % 3` the class). Thousands of
   // instances: one draw per variant near (130 triangles each), the far LOD (30 triangles) pairs
   // the two variants of a class — 9 draws (round 40: the near tufts no longer cast, see `mk`)
@@ -256,13 +291,19 @@ export function buildPlants(ctx: WorldContext, field: VegField, parent: Group): 
   // LOD it hands over to; the high / mid LODs' leaves are ovate blades now, the same triangles
   // round 44: the three variants and their mirror images, interleaved (plantgeo.ts withMirrors) —
   // every bush keeps its round-9 variant, half of them flip (survey-1 #7: identical bushes repeated)
-  const bushes = mk('bushes', withMirrors(variants(3, `${seed}/bush`, pal, bushGeometry, [...BUSH_DETAILS])), 'bush', [BUSH_ULTRA_M, 14, 34], 2, {}, undefined, 1);
+  // round 47 (owner review 2026-09-19 item 10): the crowns are shrub.ts' layered leaf clusters —
+  // variant BIG_LEAF_VARIANT is ref-01's big-leaf house shrub (retargetBushVariants below puts it
+  // at the houses and nowhere else); the laminae's upper faces take the glossy shrub roughness
+  const bushes = mk('bushes', withMirrors(variants(3, `${seed}/bush`, pal, bushGeometry, [...BUSH_DETAILS])), 'bush', [BUSH_ULTRA_M, 14, 34], 2, { topRoughness: SHRUB_TOP_ROUGHNESS }, undefined, 1);
   // hero hedge: read from 6 m (the bank crowns) and 15 m (the door row) in shot A so it keeps
   // the high LOD much further out than the scattered bushes. Round 14: the clipped-crown geometry
   // (plantgeo.ts hedgeGeometry — an opaque core under two shells of small leaves) replaces the
   // open bush variants, so the rows read as the frame's solid dark mass; same three variant
   // seeds, same proportions, so every crown keeps its place, scale and top.
-  const hedge = mk('hedge', variants(3, `${seed}/hedge`, pal, hedgeGeometry), 'bush', [26, 48], 1, { sway: 0.9, flutter: 0.014, stiffness: 0.7 });
+  // round 47: the same layered-cluster builder (shrub.ts HEDGE_STYLE: tight lobes, small ovate
+  // leaves in four depth layers over dark cores) with an ultra LOD inside HEDGE_ULTRA_M for the walk
+  // past the door row and the shelf tier; every fixed camera stands outside the ring (plants.test)
+  const hedge = mk('hedge', variants(3, `${seed}/hedge`, pal, hedgeGeometry, [...HEDGE_DETAILS]), 'bush', [HEDGE_ULTRA_M, 26, 48], 1, { sway: 0.9, flutter: 0.014, stiffness: 0.7, topRoughness: SHRUB_TOP_ROUGHNESS }, undefined, 1);
   // matte petals: no specular sheen so the violet stays saturated under the bright sun/haze
   // round 43: an ultra LOD inside FLOWER_ULTRA_M (plantgeo.ts: heads as clusters of bells with dark
   // throats, spikes of hanging bells under a teardrop bud, 5-sided graded stems — the same layout
@@ -3127,6 +3168,81 @@ export function buildPlants(ctx: WorldContext, field: VegField, parent: Group): 
     // and stalks that landed in it go too
     fernsNorth.prune((it) => field.dHollow(it.x, it.y, it.z) > 0.5);
     seedheads.prune((it) => field.dHollow(it.x, it.y, it.z) > 0.5);
+
+    // ---- Round 47 — the north path's verge (NORTH_VERGE_*): the band's weight at (x, z), 0 off it
+    const vergeBox: [number, number, number, number] = [Math.min(box[0], -8), Math.min(box[1], -80), Math.max(box[2], 14), NORTH_VERGE_Z0];
+    const vergeArea = (vergeBox[2] - vergeBox[0]) * (vergeBox[3] - vergeBox[1]);
+    const verge = (x: number, z: number, s: FieldSample, band: readonly [number, number, number, number]) => {
+      if (z > NORTH_VERGE_Z0 || field.reach(x, z) > R) return 0;
+      const edge = field.edgeDistance(x, z);
+      const w = smoothstep(band[0], band[1], edge) * (1 - smoothstep(band[2], band[3], edge));
+      if (w <= 0) return 0;
+      if (s.cliff > 0.5 || field.dShoulder(x, z) > 0 || field.dHollow(x, s.h, z) > 0) return 0;
+      const clr = field.clearing(x, z);
+      if (clr.insideBoulder || clr.npc > 0.2 || clr.boulder > 0.3 || field.giantDistance(x, z) < 0.6 || field.logDistance(x, z) < 1.0) return 0;
+      // the path's own bank only: the plain beyond the corridor's fade is the forest floor's
+      const dz = 1 - smoothstep(NORTH_VERGE_Z0 - 3, NORTH_VERGE_Z0, z);
+      const dKeep = z > NORTH_VERGE_D_Z ? NORTH_VERGE_D_KEEP : 1;
+      return w * dz * dKeep * Math.max(field.falloffReach(x, z), NORTH_CARPET_REACH_FLOOR_PLANTS);
+    };
+    scatter(
+      ctx,
+      field,
+      {
+        label: 'ferns-north-verge-r47',
+        candidates: Math.round(vergeArea * NORTH_VERGE_FERN_PER_M2 * q.density),
+        box: vergeBox,
+        minSpacing: 0.42,
+        r32: true,
+        accept(x, z, s) {
+          const w = verge(x, z, s, NORTH_VERGE_FERN_EDGE);
+          return w <= 0 ? 0 : 0.9 * w * (0.55 + 0.9 * field.cluster(x, z)) * (1 + 1.2 * smoothstep(0.12, 0.4, s.slope));
+        },
+      },
+      (x, z, s, rng) => placeInstance(fernsNorth, x, z, s, rng, 0.6 + rng() * 0.4, 0.6, 0.02, greenVar(rng, 0.18).multiplyScalar(NORTH_VERGE_FERN_TINT)),
+    );
+    scatter(
+      ctx,
+      field,
+      {
+        label: 'bushes-north-verge-r47',
+        candidates: Math.round(vergeArea * NORTH_VERGE_BUSH_PER_M2 * q.density),
+        box: vergeBox,
+        minSpacing: 2.4,
+        r32: true,
+        accept(x, z, s) {
+          const w = verge(x, z, s, NORTH_VERGE_BUSH_EDGE);
+          if (w <= 0) return 0;
+          if (bushes.items.some((p) => Math.hypot(p.x - x, p.z - z) < 2.0)) return 0;
+          return 0.6 * w * (0.4 + field.cluster(x, z));
+        },
+      },
+      (x, z, s, rng) => placeInstance(bushes, x, z, s, rng, 0.6 + rng() * 0.3, 0.3, 0.04, tint.setRGB(NORTH_VERGE_BUSH_TINT + rng() * 0.1, NORTH_VERGE_BUSH_TINT + 0.05 + rng() * 0.1, NORTH_VERGE_BUSH_TINT - 0.08 + rng() * 0.1)),
+    );
+  }
+
+  // ---- Round 47 — ref-01's house shrubs: big glossy laminae in a low mound at the house's foot,
+  // flanking the door (HOUSE_SHRUB_ANGLES off the facing, HOUSE_SHRUB_OFF m past the trunk). The
+  // scatters left Saria's foot bare (its clearance rings), so these are authored per house; the
+  // retarget below (HOUSE_BIG_LEAF_M) makes every one the big-leaf variant.
+  {
+    const rng = ctx.rng.fork('plants/house-shrubs-r47');
+    const s = newSample();
+    for (const h of ctx.layout.houses) {
+      const facing = Math.atan2(h.facing[0], h.facing[1]);
+      for (const a of HOUSE_SHRUB_ANGLES) {
+        const ang = facing + (a * Math.PI) / 180 + (rng() - 0.5) * 0.12;
+        const off = h.trunkRadius + HOUSE_SHRUB_OFF[0] + rng() * (HOUSE_SHRUB_OFF[1] - HOUSE_SHRUB_OFF[0]);
+        const x = Math.round((h.position[0] + Math.sin(ang) * off) * 1000) / 1000;
+        const z = Math.round((h.position[2] + Math.cos(ang) * off) * 1000) / 1000;
+        const scale = 0.85 + rng() * 0.25;
+        const c = greenVar(rng, 0.12).clone();
+        field.sample(x, z, s);
+        if (!field.allowed(x, z, s, true) || s.structure > 0.5 || s.stairs > 0.3 || field.pathEdgeDistance(x, z) < 0.35 || field.reach(x, z) > ctx.config.detailRadius) continue;
+        if (bushes.items.some((p) => Math.hypot(p.x - x, p.z - z) < 1.1)) continue;
+        placeInstance(bushes, x, z, s, rng, scale, 0.25, 0.05, c);
+      }
+    }
   }
 
   // ---- Round 44 (survey-1 #7): nothing sits on the lens. A bush whose crown reaches within
@@ -3182,6 +3298,16 @@ export function buildPlants(ctx: WorldContext, field: VegField, parent: Group): 
     }
   }
 
+  // round 47 (owner review item 10, ref-01): the big-leaf shrub variant (shrub.ts BIG_LEAF_STYLE — a
+  // low mound of round glossy laminae) grows at the house feet only; everywhere else a bush that
+  // drew it takes one of the two leafy crowns by a position hash, its mirror parity kept, so no
+  // scatter's stream moves and the mirrored share holds
+  for (const it of bushes.items) {
+    const big = it.variant === BIG_LEAF_VARIANTS[0] || it.variant === BIG_LEAF_VARIANTS[1];
+    const atHouse = field.houseInfo(it.x, it.z).dist < HOUSE_BIG_LEAF_M;
+    if (atHouse) it.variant = BIG_LEAF_VARIANTS[0] + (it.variant & 1);
+    else if (big) it.variant = (Math.abs(Math.floor(it.x * 7.31 + it.z * 3.17)) % 2) * 2 + (it.variant & 1);
+  }
   const all = [ferns, tufts, heroFerns, fiddleheads, bushes, hedge, flowers, yellowFlowers, whiteFlowers, weeds, seedheads, clover, moss, saplings, fernsNorth, weedsNorth];
   for (const set of all) parent.add(set.build());
   return { ferns, tufts, heroFerns, fiddleheads, bushes, hedge, flowers, yellowFlowers, whiteFlowers, weeds, seedheads, clover, moss, saplings, fernsNorth, weedsNorth, all, materials };

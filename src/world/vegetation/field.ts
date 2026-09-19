@@ -1285,6 +1285,17 @@ export class VegField {
     return Math.min(plain, this.corridorDistance(x, z) + NORTH_REACH_BASE + 2 * Math.max(0, NORTH_FADE_Z - z));
   }
 
+  /**
+   * The smallest `reach` over a square tile (its centre and four corners; round 47). The tile passes
+   * (grass.ts, carpet.ts) admit a tile by this, not by its centre alone: `reach` grows with the
+   * corridor's fade north of NORTH_FADE_Z, so a tile at the corridor's end held ground the masks
+   * call turf inside the detail radius (its south edge) while its centre stood past the cull —
+   * the audit's bare cells at z < −80 (coverage.ts).
+   */
+  tileReach(x0: number, z0: number, size: number): number {
+    return Math.min(this.reach(x0 + size / 2, z0 + size / 2), this.reach(x0, z0), this.reach(x0 + size, z0), this.reach(x0, z0 + size), this.reach(x0 + size, z0 + size));
+  }
+
   /** distance (m) of (x, z) to the north corridor's polyline (the north path's spine), for the forest-floor rules */
   private corridorDistance(x: number, z: number): number {
     let d = Infinity;

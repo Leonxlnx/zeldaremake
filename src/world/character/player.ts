@@ -10,6 +10,8 @@ export interface PlayerInput {
   moveX: number;
   moveZ: number;
   run: boolean;
+  /** jump button held (Space / gamepad A); a jump starts on the press, never repeats while held */
+  jump?: boolean;
 }
 
 export interface PlayerHandle {
@@ -17,6 +19,8 @@ export interface PlayerHandle {
   readonly position: Vector3;
   /** facing yaw (rad); forward = (sin yaw, 0, cos yaw) */
   heading(): number;
+  /** height of the posed root above the ground it stands on (m): the jump arc, for a camera that wants to know without following it */
+  airHeight(): number;
   /** switch between the capture/free-camera placement and player control */
   setPlayMode(on: boolean): void;
   playMode(): boolean;

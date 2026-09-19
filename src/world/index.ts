@@ -35,8 +35,10 @@ const SYSTEMS: { name: string; create: SystemFactory }[] = [
   // trees before structures: the lantern bough wraps the giant's BUILT limb (ctx.shared.lanternLimb)
   { name: 'trees', create: trees.create },
   { name: 'structures', create: structures.create },
-  { name: 'vegetation', create: vegetation.create },
+  // props before vegetation: props publish their footprints (ctx.shared.propFootprints) so the
+  // scatter can keep ferns out of the pots; forks are label-keyed, so the order moves no stream
   { name: 'props', create: props.create },
+  { name: 'vegetation', create: vegetation.create },
   { name: 'character', create: character.create },
 ];
 

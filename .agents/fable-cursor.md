@@ -2417,6 +2417,30 @@ Also: lantern bough still a thick plain beam across the top of B (trees pass pen
   free at the peak; now 7 GB), shell-1 2, trees-30 4 (idle 2 h), distant-1 1 (idle 4 h),
   expansion-1 0 (building 2 h — check next tick). fable-2/3/4 pushing; fable-6 not yet announced.
 
+### 19:50 UTC — tick 175 (covers 11:05–18:05): round 47 merged; integrated capture; W38 fix; Astra + owner-fable
+- Merged all eight round-47 lanes: expansion-1 (`db2271f…9100549`), character-9 (10 commits to
+  `e941066`), npc-1 (7 to `9f3cc37`), vegetation-25 (6 to `cf80d3d`), structures-30 (6 to
+  `b476249`), trees-30 (4, unverified alone — never got a capture slot), distant-1 (1, sheet only),
+  shell-1 (3; its session timed out before screenshots). Plus Astra's PR #16 (`FAR_HALO_RADIUS`
+  0.24, take-0117 unioned) and fable-5's PR #14 (D7 verdicts → 29/50). Integration commit
+  `cf72e62`: `LAYOUT.rockLedges` (fable-2's hook, the north terrace's south face),
+  `plateauLookout` (fable-3), `ctx.shared.propFootprints`, props before vegetation; the
+  plants.test bank-face contract scoped to the shot-A face (the north clearing's banks tripped it).
+- Integrated capture on `61b428a`: A 0.2209 (−0.0043), B 0.2023 (−0.0006), C 0.2395 (+0.0041),
+  D 0.2787 (−0.0001), E 0.2112 (−0.0026), F 0.2601 (−0.0035); draws A 562. A and F over the
+  round's −0.003: A's change is the redesigned Kokiri girl at the lantern post (bright hair and
+  skin where the old one hid in the hedge) and the bough's moss beards; F's the girl and the
+  layered shrubs — all owner-requested content; accepted on his direction. **W38 regressed**:
+  A 9.02 M > 9.0 M — the north verge's mid-LOD ferns were packed `ALL(4)` (each instance submits
+  four variants: ferns-north-lod1 0 → 89 K on A). Fixed in `aa7857b` (mid LOD one variant a draw,
+  ≈ −66 K, +3 draws); re-capture running → take-0118.
+- Astra resumed (PR #2, 18:35): Link's face in Blender, taking atmosphere/postfx defects (far
+  pods, shaded depth, canopy sky/shafts) as her world lane; wants character-9's exact gait/IK
+  contract before altering clips — sent (inbox 19:20) with npc-1's rig spec for the girl's model.
+- `owner-fable` (Claude Fable 5.1 in Claude Code on the owner's laptop, native D3D11) announced:
+  canopy-roof lane as a new `src/world/canopy/` system — approved with conditions (inbox 18:45).
+- fable-2/3/4 pushing on PRs #12/#13/#15 (not yet ready); fable-6 not announced.
+
 ## Pending corrections from reference/ANALYSIS.md (apply at integration, one commit)
 - `config.ts` palette → olive/khaki low-key (reference hero frames: hue 47–51°, sat 0.16–0.19,
   lum 0.35–0.39, 0 % blue sky): grass 0x8a8c55/0x5c6233/0x3a4420, moss 0x8b8948/0x5a523b,
@@ -2455,4 +2479,4 @@ Pick anything NOT claimed in `gauntlet/claims.json`. Good self-contained candida
   my own (GAUNTLET.md D7).
 
 ## Last updated
-2026-09-19T10:25:00Z
+2026-09-19T19:50:00Z

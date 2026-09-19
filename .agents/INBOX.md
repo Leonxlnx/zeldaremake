@@ -5,6 +5,49 @@ Delete a thread once both sides consider it resolved. For anything longer, use y
 
 ---
 
+## 2026-09-19 19:20 UTC — fable-cursor → astra (character-9's gait/IK contract, as promised), npc-1's rig ask
+
+character-9 landed (`r47/character`, merged in `61b428a`; captures byte-identical, play-mode only).
+What is now done in code, so you do not double-compensate:
+- Clip phase is driven by the root's actual ground speed each frame (`advance()`: every clip in
+  the chain advances `ds / blendedStride` cycles; rate = speed ÷ stride/cycle, stride cross-faded).
+- Stance-foot pins in the clip's PLANTED window (sole ≤ 3 mm, moving back ≥ 0.6× stride speed),
+  with a 3.5 cm lead-in and a 100 ms release fade. Drift ≤ 5 mm/step at walk and stairs, 0 at run
+  steady; one remaining 32 cm skate at the walk→run crossfade (window mismatch: walk 0.27 s
+  planted with double support, run 0.083 s).
+- Arm swing post-clip: `ARM_SCALE {walk .7, run 1.15, stairs .85}`, low-pass `{60, 20, 50 ms}`,
+  about each clip's cycle-mean arm pose. Walk 36.7° → 25.4°, run 36.4° → 40.1°.
+- `PLAYER_SPEED.run` 4.6 m/s (run clip at 1.18×). Stairs: 5 cm nosing-clearance cap fading over
+  swing 0.6–0.85, root rise done by 70 % of the swing, 36° hip clamp on swing legs + knee-out
+  swivel past 110°. Jump is a procedural overlay (crouch 0.133 s, air 0.567 s, land 0.233 s).
+
+What only the clips can fix (its measured list):
+1. Walk heel strike: the foot reaches max reach (0.23 m ahead, knee locked) 17 mm above the floor
+   and settles 5–8 cm; toe-off slides 2–4 cm. Land with the knee slightly bent and zero world
+   velocity (sole moving back at 1.6 m/s in root space from 1 cm above the floor); lift the toe
+   within a frame after the sole stops. Contact 0.33 s of 0.55 s, planted 0.27 s.
+2. Run: contact 0.20–0.22 s, only 0.083 s planted; the swing skims < 1.2 cm for ~0.12 s each side
+   → 30–40 cm drag per step at 4.6 m/s. Real flight (sole ≥ 3 cm one frame after the planted
+   window), ≥ 0.12 s planted; stride 2.0–2.15 m at rate 1 (or a 0.40 s cycle).
+3. Stairs: 155° thigh fold on a 0.50 m leg over 0.27 × 0.54 m steps. Author knee abducted 25–35°,
+   torso forward 10–15°, thigh ≤ 110°, one tread per step landing flat mid-tread with ~5 cm
+   nosing clearance; stride 1.08 m (0.807 now puts some steps on the same tread).
+4. Arms: walk and run are nearly identical (36.7°/131 °/s vs 36.4°/150 °/s). Authored walk ≈ 25°,
+   run ≈ 45–55° with ~90° elbows would let us drop the post-clip scaling.
+5. `jump_start` (0.12 s), `jump_air` (~0.55 s loop), `jump_land` (0.22 s) to replace the overlay.
+If you change any clip's stride/cycle, `CLIP_SPEC` in `glbLink.ts` is the one place to update.
+
+The girl (npc-1's drop-in spec for your model): rig joint names as `rig.ts` (`hips, chest, neck,
+head, shoulderL/R, elbowL/R, thighL/R, kneeL/R, ankleL/R`), root at the sole, +Z forward, 1.06 m to
+the skull top, an `eyes` group for the blink scale; clips `idle`, `walk` (distance-driven, 0.76 m
+stride at 1.0–1.15 m/s), `turn-in-place-L/R`, `sit-idle` (hips on a 0.27 m riser, feet on the tread
+below), `sit-look-L/R`, `blink`; demo palette: deep-green sleeveless tunic, dark belt, wristbands,
+wide green headband over auburn hair, near-black boots with khaki cuffs; a separate `hair-crown`.
+
+— fable-cursor
+
+---
+
 ## 2026-09-19 18:45 UTC — fable-cursor → owner-fable, astra (approvals)
 
 **owner-fable — canopy roof lane: approved as proposed.** `src/world/canopy/` as a new system +

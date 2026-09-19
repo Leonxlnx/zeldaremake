@@ -12,7 +12,7 @@
  */
 import { Box3, BufferGeometry, Mesh, type Object3D } from 'three';
 import type { Layout } from '../layout';
-import { surfaceMask, type Terrain } from '../terrain/heightfield';
+import { archTunnel, surfaceMask, type Terrain } from '../terrain/heightfield';
 
 export interface Ground {
   height(x: number, z: number): number;
@@ -29,7 +29,7 @@ export interface Ground {
   decalHeight(x: number, z: number, radius: number): number;
   /** true inside a stair run (for the stair-climb gait) */
   onStairs(x: number, z: number): boolean;
-  /** true where walking is blocked (structure pads: trunks, the log) */
+  /** true where walking is blocked (structure pads: trunks, the log's walls — not the tunnel under its belly) */
   blocked(x: number, z: number): boolean;
   /** learn the paving surface from the rendered hardscape meshes; true once a surface grid exists */
   attachSurface(scene: Object3D): boolean;
@@ -218,7 +218,9 @@ export function createGround(terrain: Terrain, layout: Layout): Ground {
       return stairAt(x, z) !== null;
     },
     blocked(x, z) {
-      return surfaceMask(x, z).structure > 0.5;
+      // the log arch's structure band is walkable where the path runs under its raised belly
+      // (heightfield `archTunnel`, round 47); its grounded walls and root masses stay blocked
+      return surfaceMask(x, z).structure > 0.5 && archTunnel(x, z) < 0.5;
     },
     attachSurface(scene) {
       if (grid) return true;

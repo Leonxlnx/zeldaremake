@@ -264,7 +264,110 @@ export const LAYOUT = {
     // first riser (frame 56 s: the pale slab under the flight); the south flank above that is
     // the grassy rise B / E look at.
     { id: 'house-west', base: [3.8, 0.27, -8.0], dir: [0.9397, 0.342], steps: 5, rise: 0.27, tread: 0.4, width: 2.4 },
+    // Round 47 (expansion-1, owner review 2026-09-19 items 13–16 / ref-03 right mark, ref-04): the
+    // raised-ledge flight beyond the arch. Six 0.27 m risers (1.62 m) climbing due NORTH off the
+    // north clearing's paved rim (`northClearing`; foot at r 4.34 of its 4.6 m disc, on the
+    // paving, 4.3 m from the path's centreline so its flank banks stay off the paving's edge)
+    // onto the `ledgeTerrace`, 0.42 m treads, 1.8 m wide (a Kokiri flight, narrower than the hero
+    // run). Top tread at (1.2, −75.7), two landing rows to (1.2, −77.5) where the terrace pad takes
+    // over. Placed in camera D's blind wedge behind the log's grounded west root mass (D x 0.37–
+    // 0.47, y 0.27–0.46 — absolute bearings −5.3° … +3.6° from D, which at 70–77 m is x −6.7 …
+    // 4.9): the flight's top at 5.62 m, 73 m from D, is at elevation 3.3° — on the ground line of
+    // the arch approach (D y 0.47) — and everything of it below is behind that ridge. No other
+    // fixed camera reaches z < −60 (A's ray is hidden by the north rise at 45–58 m, B/E's likewise).
+    { id: 'ledge', base: [1.2, 4.0, -73.2], dir: [0, -1], steps: 6, rise: 0.27, tread: 0.42, width: 1.8 },
   ] as StairDef[],
+
+  /**
+   * Round 47 (expansion-1): the path BEYOND the log arch. The spine ends at the arch's north lip
+   * (5.8, 4.5, −58); this polyline carries the paving on — the same slabs, `northPathHalfWidth`
+   * wide — north through the tunnel's mouth and then west-north-west, falling 0.5 m over 12 m into
+   * a second, lower clearing tucked behind the log's grounded west root mass (see `northClearing`).
+   * The bend keeps every point of the paving ≥ 3.2 m from the far-forest placement's candidate
+   * points at (0.62, −63.67), (−0.29, −63.74), (6.48, −67.48) and (0.73, −59.81) (trees/distant.ts
+   * rejects a candidate on `mask.path > 0.4`, and a flipped candidate re-rolls the whole far
+   * forest), so the distant trees are byte-identical (gauntlet/tmp probe: distant-candidates).
+   * Trees / vegetation / rocks read the terrain masks this polyline paints; nothing here is inside
+   * any fixed camera's view (D: below the arch approach's ground line at 40–50 m).
+   */
+  northPath: [
+    [5.8, 4.5, -58],
+    [5.4, 4.45, -61.5],
+    [3.6, 4.3, -65.2],
+    [1.0, 4.03, -68.0],
+    [-1.5, 4.0, -69.8],
+  ] as [number, number, number][],
+  northPathHalfWidth: 2.2,
+
+  /**
+   * The second clearing (owner: "when I walk up the steps I want there to be more to do
+   * afterwards"; ref-03's deep misty world beyond the arch): a paved disc 4.6 m in radius,
+   * flattened to 4.0 m — half a metre BELOW the arch's floor, so the natural ground (4.4–4.7 m at
+   * the rim, 5.4 m ten metres west) reads as banks rising on every side, and the `ledgeTerrace`
+   * closes the north. Hardscape lays a stone circle on it (`stoneCircle`: a round centre slab and
+   * seven low standing stones on the ring); the terrain paves the disc and flattens a soft skirt
+   * around it (heightfield NORTH_DISCS). Its centre is 67 m from camera D at absolute bearing
+   * −1.5°, inside the root mass's blind wedge; its floor (elev 2.2°) is under the arch approach's
+   * ground line (3.3°) from D and under the north rise from A / B / E.
+   */
+  northClearing: { x: -1.5, z: -69.8, y: 4.0, radius: 4.6 },
+  /** the stone circle on the clearing: ring radius of the standing stones, their count and height range (m) */
+  stoneCircle: { ringRadius: 3.3, stones: 7, height: [0.55, 0.85] as [number, number], centreSlabRadius: 1.05 },
+
+  /**
+   * The raised ledge (ref-03's red mark: a stone stair climbing the bank to a ledge; ref-04: the
+   * path runs under a tall rock/root ledge with a Kokiri on it). A flat terrace 4.8 × 3.0 m at
+   * 5.62 m (the clearing floor + the `ledge` flight's 1.62 m), its south face a steep 1.6 m
+   * earth-and-rock bank over the clearing (the terrain's cliff splat paints it rock; the rocks
+   * lane may dress it), reached only by the flight, whose landing enters at its east end. North
+   * of it the natural ground (5.8–6.4 m) is cut down to the pad, so the ledge sits in a shallow
+   * bay with banks behind. The terrace, the flight and the Kokiri spot on it
+   * (`npcSpots.kokiri-ledge`) all sit inside camera D's blind wedge behind the log's west root
+   * mass (x −6.7 … 4.9 at this depth); the terrace top (elev 3.1° from D) is under the arch
+   * approach's ground line (3.3°).
+   */
+  ledgeTerrace: { x: -0.7, z: -78.3, y: 5.62, halfLength: 2.4, halfDepth: 1.5, yawDeg: 0 },
+
+  /**
+   * Round 47 (expansion-1, item 4): a lookout dais on the east plateau's south-west lip, 1.7 m
+   * south-west of the last post of the `plateau-west` fence (the fence simply ends; no post moves;
+   * the post clears the slab by 0.7 m), its long side along the lip (yaw 124°): a 2.2 × 1.6 m
+   * stone platform whose top stands 0.35 m over the highest turf under it (the lip falls 0.55 m
+   * across the footprint, so the plaza-side edge stands ~0.9 m proud — a platform on the edge;
+   * the player steps up from the fence side). Tall enough that the plateau grass does not pierce
+   * it — no mask changes on the plateau, whose ≤ 45 m ground feeds the vegetation, rock and
+   * white-bark streams every fixed frame sees (a mask disc here would flip the white-bark
+   * candidate at (22.19, 3.84) and re-roll every white-bark). Hardscape merges it into the
+   * `flagstones` mesh so the character ground stands on it. Clearances (take-0116 audit bases):
+   * the white-bark at (22.19, 3.84) 0.5 m off the slab's east end, the one at (24.09, 0.08)
+   * 1.9 m, the bush at (23.95, 2.29) 1.0 m, the `east-giant`'s axis 4.6 m (trunk 1.4 m, roots to
+   * 3.2 m; the first placement at (24.6, 4.3) put a corner inside the trunk, the second at
+   * (22.8, 3.3) a white-bark through the slab). From it the player looks west over the plaza and
+   * the stair. Camera F is the only fixed camera whose frustum holds it (F x 0.56–0.65, y 0.21–
+   * 0.23, 23 m), where the stair-bank giant's crown fills the frame in front of it (the crown's
+   * west edge is at F x 0.545).
+   */
+  lookout: { x: 21.6, z: 2.2, halfLength: 1.1, halfDepth: 0.8, yawDeg: 124, height: 0.35 },
+
+  /**
+   * Rock faces that dress terrain steps (read by the rocks system's ledge builder — fable-2's
+   * hook, shape agreed in the inbox 2026-09-19 09:10 UTC). `foot` is the polyline at ground level
+   * on the PATH side, ordered along the path; `height` only when the top is not a terrain step;
+   * `inset` metres the face sits back at the top; `lean` radians, positive over the path.
+   * Round 47: the `ledgeTerrace`'s south face over the north clearing (ref-04's damp near-black
+   * stone with root ridges): the terrace's south lip runs x −3.1 … 1.7 at z −76.8, 1.62 m over
+   * the clearing floor; the `ledge` flight climbs its east end (x 1.2), so the face stops short of it.
+   */
+  rockLedges: [
+    { id: 'north-terrace', foot: [[-3.1, -76.6], [-2.2, -76.7], [-1.2, -76.75], [-0.2, -76.75], [0.6, -76.7]] as [number, number][], height: 1.62, inset: 0.35, lean: 0.06 },
+  ],
+
+  /**
+   * The props system's platform spot (fable-3's hook): a low wooden platform with a rope railing
+   * on the plateau lip, sharing the `lookout` dais' footprint and yaw so the two read as one
+   * built thing; `width` is the platform's long side (m).
+   */
+  plateauLookout: { x: 21.6, z: 2.2, yaw: (124 * Math.PI) / 180, width: 2.2 },
 
   /** Terraces / plateaus that the heightfield honours (soft-edged). */
   terraces: {
@@ -440,6 +543,11 @@ export const LAYOUT = {
     { id: 'kokiri-a', position: [9.0, 0, 3.6] as [number, number, number] },
     // west lawn, out of A/C/D/F; the character system marches B/E's left-edge spot itself
     { id: 'kokiri-b', position: [-6.5, 0, -2] as [number, number, number] },
+    // Round 47 (expansion-1; ref-04's Kokiri on the raised ledge): on the `ledgeTerrace`, 0.6 m
+    // back from its south lip over the north clearing, west of the flight's landing. 75 m from
+    // camera D at absolute bearing −0.6° (D x 0.42), head at 6.8 m → D y 0.46: behind the log's
+    // west root mass. npc-1 (character/placement.ts) reads this spot.
+    { id: 'kokiri-ledge', position: [-0.6, 5.62, -78.4] as [number, number, number] },
   ],
 
   viewpoints: [

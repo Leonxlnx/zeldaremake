@@ -70,6 +70,13 @@ export interface LogArchBuild {
     /** the near-detail LOD: its centre and the camera distance beyond which it is dropped (m) */
     nearLod: { centre: [number, number, number]; dropBeyondM: number };
   };
+  /**
+   * round 47 (structures-30): the passage under the arch at walking height — root curtains and
+   * their rootlets, rim vines / moss beards, fungus tiers (and the brackets on them), daylight
+   * slivers in the open fissures, bark litter on the verges; `minStripClearance` is the lowest any
+   * of it reaches over the walkable strip (m over the ground; ≥ WALK_CLEAR_M by construction)
+   */
+  detail47: { roots: number; rootlets: number; rimVines: number; rimBeards: number; fungusTiers: number; fungi: number; lightSlivers: number; litter: number; minStripClearance: number };
 }
 
 export function buildLogArch(ctx: WorldContext, mats: StructureMaterials, rng: Rng): LogArchBuild {
@@ -758,11 +765,63 @@ export function buildLogArch(ctx: WorldContext, mats: StructureMaterials, rng: R
     }
     return (2 - cx) / A.x;
   })();
+  /** horizontal distance (m) from a point to the path spine polyline (the walkable strip is ± layout.pathHalfWidth of it) */
+  const spineDistance = (x: number, z: number) => {
+    const spine = ctx.layout.pathSpine;
+    let best = Infinity;
+    for (let i = 0; i + 1 < spine.length; i++) {
+      const [ax, , az] = spine[i];
+      const [bx, , bz] = spine[i + 1];
+      const dx = bx - ax;
+      const dz = bz - az;
+      const t = clamp(((x - ax) * dx + (z - az) * dz) / (dx * dx + dz * dz), 0, 1);
+      best = Math.min(best, Math.hypot(x - ax - dx * t, z - az - dz * t));
+    }
+    return best;
+  };
+  /**
+   * Round 47 (structures-30): the player walks THROUGH the arch (expansion-1 opens the floor), so
+   * nothing hung from the belly may reach below WALK_CLEAR_M over the walkable strip (± pathHalfWidth
+   * of the spine); over the verges within 1.5 m of the strip the floor eases to 1.3 m, beyond it
+   * to 0.6 m. `walkFloorAt` is the lowest y a hanging thing at (x, z) may reach. Applied to the
+   * belly vines of rounds 1 and 41 (they hung to 1.1–1.3 m over the crossing) and to everything
+   * this round hangs.
+   */
+  const WALK_CLEAR_M = 2.4;
+  const walkFloorAt = (x: number, z: number) => {
+    const g = terrain.height(x, z);
+    const sd = spineDistance(x, z);
+    const strip = ctx.layout.pathHalfWidth;
+    if (sd <= strip) return g + WALK_CLEAR_M;
+    if (sd <= strip + 1.5) return g + lerp(WALK_CLEAR_M, 1.3, (sd - strip) / 1.5);
+    return g + 0.6;
+  };
+  /** a hanging strand's length from `hook`, clamped so its tip stays over the walk floor (never shorter than 0.2 m: the hook sits inside the bark) */
+  /** the walk floor's highest value within `r` m of (x, z) — a strand's tip drifts that far from its hook */
+  const walkFloorAround = (x: number, z: number, r: number) => {
+    let f = walkFloorAt(x, z);
+    for (let i = 0; i < 4; i++) f = Math.max(f, walkFloorAt(x + r * Math.cos((i * Math.PI) / 2), z + r * Math.sin((i * Math.PI) / 2)));
+    return f;
+  };
+  /** the tips of everything hung under the belly (audit: the least clearance over the strip) */
+  const hungTips: Vector3[] = [];
+  /**
+   * A vine's length from `hook` (foliage.ts hangs it with up to ± 0.25 m of drift), clamped so its
+   * tip stays over the walk floor; 0 when less than 0.25 m can hang there (the belly itself dips
+   * to ≈ 2.2 m over the strip west of the crossing) — the caller hangs nothing.
+   */
+  const hangLength = (hook: Vector3, want: number) => {
+    const len = Math.min(want, hook.y - walkFloorAround(hook.x, hook.z, 0.35));
+    if (len < 0.25) return 0;
+    hungTips.push(new Vector3(hook.x, hook.y - len, hook.z));
+    return len;
+  };
   for (let i = 0; i < 7; i++) {
     const s = pathS + (vegRng() - 0.5) * 7;
     const psi = -Math.PI / 2 + (vegRng() - 0.5) * 1.4;
     const hook = surfacePoint(psi, s, rBase(psi, s) - 0.1);
-    foliage.addHangingVine(hook, 0.7 + vegRng() * 1.3, { amount: 0.1, thickness: 0.018 });
+    const len = hangLength(hook, 0.7 + vegRng() * 1.3);
+    if (len > 0) foliage.addHangingVine(hook, len, { amount: 0.1, thickness: 0.018 });
   }
   for (let i = 0; i < 5; i++) {
     const psi = Math.PI / 2 + (vegRng() - 0.5) * 2.2;
@@ -1522,7 +1581,8 @@ export function buildLogArch(ctx: WorldContext, mats: StructureMaterials, rng: R
     const s = pathS + (beardRng41() - 0.5) * 6;
     const psi = -Math.PI / 2 + (beardRng41() - 0.5) * 1.6;
     const hook = surfacePoint(psi, s, rBase(psi, s) - 0.12);
-    foliage41.addHangingVine(hook, 1.1 + beardRng41() * 1.4, { amount: 0.1, thickness: 0.016 });
+    const len = hangLength(hook, 1.1 + beardRng41() * 1.4);
+    if (len > 0) foliage41.addHangingVine(hook, len, { amount: 0.1, thickness: 0.016 });
   }
   for (const m of foliage41.build(mats, 'log41')) group.add(m);
   const detail41 = {
@@ -1714,20 +1774,6 @@ export function buildLogArch(ctx: WorldContext, mats: StructureMaterials, rng: R
   // round 44: every pod's lowest point (its merged geometry's bounding box under the hook) over
   // the ground beneath it, and whether that ground is the walkable path — a pod over the path
   // must clear POD_PATH_CLEARANCE_M
-  /** horizontal distance (m) from a point to the path spine polyline (the walkable strip is ± layout.pathHalfWidth of it) */
-  const spineDistance = (x: number, z: number) => {
-    const spine = ctx.layout.pathSpine;
-    let best = Infinity;
-    for (let i = 0; i + 1 < spine.length; i++) {
-      const [ax, , az] = spine[i];
-      const [bx, , bz] = spine[i + 1];
-      const dx = bx - ax;
-      const dz = bz - az;
-      const t = clamp(((x - ax) * dx + (z - az) * dz) / (dx * dx + dz * dz), 0, 1);
-      best = Math.min(best, Math.hypot(x - ax - dx * t, z - az - dz * t));
-    }
-    return best;
-  };
   const podClearance = lanterns.map((l) => {
     const mesh = l.pivot.children[0] as Mesh;
     const geo = mesh.geometry;
@@ -1750,6 +1796,337 @@ export function buildLogArch(ctx: WorldContext, mats: StructureMaterials, rng: R
     };
   });
 
+  // ---- Round 47 (structures-30, owner review 2026-09-19 #13 / #18: "when I walk past the tree
+  // arch it needs to look even better … underneath the thing there's this deep world"): the
+  // PASSAGE UNDER THE ARCH at walking height, both mouths of it (the south rim the player
+  // approaches under and the north rim that frames the beyond), everything hung so the walk
+  // line stays open (nothing over the strip lower than WALK_CLEAR_M; the verges may hang lower):
+  //  - ROOT CURTAINS: woody aerial roots hanging from the belly's lower flanks along both rims,
+  //    tapered, kinked, with rootlets, pale dead tips — in the log bark material (the bark draw);
+  //  - more heart-leaf VINES on the rims (the crown's own, hanging past the moss edge) and moss
+  //    BEARDS under them — the foliage buckets;
+  //  - FUNGUS TIERS on the belly's flanks at 2.5–4 m, brackets in threes and fours — end grain;
+  //  - LIGHT THROUGH THE SPLITS: the deepest longitudinal fissures over the path are open — a
+  //    pale sliver of daylight lies in each channel, seen only from under the arch (one unlit
+  //    material, fogged like any surface);
+  //  - BARK LITTER on the verges under the belly's drip line: flakes and twigs on the ground,
+  //    never on the paving (the mask is sampled live, so the floor expansion-1 opens keeps them
+  //    off its path) — the bark draw.
+  // Own forks. The roots, litter, fungi and slivers live in the near-detail LOD (dropped past
+  // NEAR_LOD_M = 40 m: the six hero cameras stand 48–64 m off and never draw them — +2 draws
+  // within 40 m, the fungi and the slivers; the roots join the bark plates' draw); the vines and
+  // beards fold into the arch's leaf / vine buckets.
+  const detail47 = { roots: 0, rootlets: 0, rimVines: 0, rimBeards: 0, fungusTiers: 0, fungi: 0, lightSlivers: 0, litter: 0, minStripClearance: Infinity };
+  {
+    const strip = ctx.layout.pathHalfWidth;
+    const floorAt = walkFloorAt;
+    const noteClearance = (x: number, yBottom: number, z: number) => {
+      hungTips.push(new Vector3(x, yBottom, z));
+    };
+    // ---- root curtains ----
+    const rootRng = rng.fork('roots47');
+    const rootParts: BufferGeometry[] = [];
+    const ROOT_TINT: [number, number, number] = [0.42, 0.33, 0.24];
+    const _rp = new Vector3();
+    const hangRoot = (hook: Vector3, len: number, r0: number, seedI: number, depth: number) => {
+      const n = 7;
+      let pts: Vector3[] = [];
+      const drift = new Vector3((rootRng() - 0.5) * 0.35, 0, (rootRng() - 0.5) * 0.35);
+      const kinkAt = 0.3 + rootRng() * 0.5;
+      const kink = new Vector3((rootRng() - 0.5) * 0.3, 0, (rootRng() - 0.5) * 0.3);
+      const strand = (length: number) => {
+        const out: Vector3[] = [];
+        for (let j = 0; j <= n; j++) {
+          const t = j / n;
+          const p = hook.clone();
+          p.y -= length * t;
+          p.addScaledVector(drift, t * t);
+          p.addScaledVector(kink, Math.exp(-Math.pow((t - kinkAt) / 0.18, 2)));
+          p.x += noise.noise(seedI * 1.7 + t * 3.1, 0.5) * 0.06 * t;
+          p.z += noise.noise(seedI * 2.3 + 9, t * 3.1) * 0.06 * t;
+          out.push(p);
+        }
+        return out;
+      };
+      pts = strand(len);
+      // the drift and kink carry the tip sideways — where that is toward the strip, the floor
+      // under the tip is higher than under the hook: shorten until the tip clears it (two passes)
+      for (let pass = 0; pass < 2; pass++) {
+        const tip = pts[n];
+        const floor = floorAt(tip.x, tip.z);
+        if (tip.y >= floor) break;
+        len = Math.max(0.12, len * ((hook.y - floor) / Math.max(1e-3, hook.y - tip.y)) * 0.98);
+        pts = strand(len);
+      }
+      const curve = new CatmullRomCurve3(pts, false, 'catmullrom', 0.5);
+      const pale = 0.75 + rootRng() * 0.5;
+      rootParts.push(
+        sweepTube(curve, {
+          radius: (t) => r0 * (1 - 0.8 * t) * (1 + 0.12 * Math.sin(t * 17 + seedI)),
+          tubularSegments: n,
+          radialSegments: 5,
+          uvMetres: 0.4,
+          capEnd: true,
+          color: (t, ang) => {
+            // dark and damp at the bark, pale dead fibre toward the tip, a lit side
+            const tip = smoothstep(0.6, 1, t);
+            const side = 0.85 + 0.25 * Math.max(0, Math.cos(ang + 0.8));
+            return [lerp(ROOT_TINT[0], 0.7 * pale, tip) * side, lerp(ROOT_TINT[1], 0.6 * pale, tip) * side, lerp(ROOT_TINT[2], 0.45 * pale, tip) * side];
+          },
+        }),
+      );
+      detail47.roots++;
+      const tipP = pts[n];
+      noteClearance(tipP.x, tipP.y, tipP.z);
+      // rootlets off the strand (one or two), shorter, thinner
+      if (depth < 1) {
+        const m = 1 + Math.floor(rootRng() * 2);
+        for (let q = 0; q < m; q++) {
+          const t = 0.25 + rootRng() * 0.5;
+          curve.getPointAt(t, _rp);
+          const sub = len * (0.25 + rootRng() * 0.3);
+          const sHook = _rp.clone();
+          const bottom = floorAt(sHook.x, sHook.z);
+          const allowed = Math.max(0, sHook.y - bottom);
+          if (allowed < 0.12) continue;
+          hangRoot(sHook, Math.min(sub, allowed), r0 * 0.45, seedI + 31 + q, depth + 1);
+          detail47.rootlets++;
+        }
+      }
+    };
+    for (let i = 0; i < 44; i++) {
+      // both rims of the passage: 0.55–1.05 rad up from the bottom on the south and north
+      // flanks, along ± 4.5 m of the crossing (denser near it), plus a few under the belly's
+      // middle at the verges only
+      const south = i % 2 === 0;
+      const s = pathS + (rootRng() - 0.5) * 9 * (0.55 + 0.45 * rootRng());
+      const off = 0.55 + rootRng() * 0.5;
+      const psi = -Math.PI / 2 + (south ? off : -off);
+      if (s < sEndW(psi) + 0.6 || s > sEndE(psi) - 0.6) continue;
+      const hook = surfacePoint(psi, s, rBase(psi, s) + detail(psi, s, upness(psi)) - 0.06);
+      const want = 0.45 + rootRng() * 1.1;
+      const allowed = hook.y - floorAt(hook.x, hook.z);
+      if (allowed < 0.3) continue;
+      hangRoot(hook, Math.min(want, allowed), 0.011 + rootRng() * 0.009, i, 0);
+    }
+    // ---- bark litter on the verges under the belly's drip lines ----
+    const litRng = rng.fork('litter47');
+    const _ln = new Vector3();
+    for (let i = 0; i < 90; i++) {
+      const s = pathS + (litRng() - 0.5) * 11;
+      // under the rims (where the drip falls) more than under the middle
+      const side = litRng() < 0.5 ? -1 : 1;
+      const lat = side * (1.2 + litRng() * 2.6);
+      const c = axisAt(s);
+      const f = frameAt(s);
+      const x = c.x + f.r.x * lat;
+      const z = c.z + f.r.z * lat;
+      if (terrain.mask(x, z).path > 0.01) continue;
+      const g = terrain.height(x, z);
+      terrain.normal(x, z, _ln);
+      const twig = litRng() < 0.3;
+      const yaw = litRng() * TAU;
+      const T = new Vector3(Math.cos(yaw), 0, Math.sin(yaw));
+      T.addScaledVector(_ln, -T.dot(_ln)).normalize();
+      const B = new Vector3().crossVectors(_ln, T);
+      const centre = new Vector3(x, g + 0.012, z);
+      if (twig) {
+        const len = 0.15 + litRng() * 0.3;
+        const a = centre.clone().addScaledVector(T, -len / 2);
+        const b = centre.clone().addScaledVector(T, len / 2).addScaledVector(_ln, 0.01);
+        rootParts.push(sweepTube(new CatmullRomCurve3([a, centre.clone().addScaledVector(B, (litRng() - 0.5) * 0.04), b]), { radius: (t) => 0.012 * (1 - 0.4 * t), tubularSegments: 4, radialSegments: 5, uvMetres: 0.3, capEnd: true, color: () => [0.4, 0.32, 0.22] }));
+      } else {
+        const w = 0.07 + litRng() * 0.12;
+        const l = w * (1.3 + litRng() * 1.2);
+        const curl = 0.02 + litRng() * 0.03;
+        const tone = 0.75 + litRng() * 0.5;
+        const flake = gridSurface(
+          (u, v, out) => {
+            const du = (u - 0.5) * w * (1 + 0.15 * noise.noise(u * 4 + i, v * 4));
+            const dv = (v - 0.5) * l;
+            const lift = curl * Math.pow(Math.abs(u - 0.5) * 2, 2) + 0.004;
+            out.position.copy(centre).addScaledVector(T, dv).addScaledVector(B, du).addScaledVector(_ln, lift);
+            out.uv = [du / 0.5, dv / 0.5];
+            const k = tone * (0.7 + 0.5 * v);
+            out.color = [0.55 * k, 0.45 * k, 0.34 * k];
+          },
+          { cols: 3, rows: 4 },
+        );
+        faceTowards(flake, (p, o) => o.copy(p).addScaledVector(_ln, 2));
+        rootParts.push(flake);
+      }
+      detail47.litter++;
+    }
+    if (rootParts.length) {
+      // into the near LOD's bark-plate draw (same material and flags; dropped past NEAR_LOD_M with
+      // the plates, so the six hero cameras at 48–64 m never draw it): no new draw
+      const rootGeo = merge(rootParts);
+      rootGeo.translate(-tuftCentre.x, -tuftCentre.y, -tuftCentre.z);
+      const joined = merge([plateMesh.geometry as BufferGeometry, rootGeo]);
+      plateMesh.geometry.dispose();
+      plateMesh.geometry = joined;
+    }
+    // ---- rim vines and moss beards ----
+    const foliage47 = new FoliageBuilder(rng.fork('foliage47'), `${ctx.config.seed}/log47`);
+    const vineRng47 = rng.fork('vines47');
+    for (let i = 0; i < 26; i++) {
+      const south = i % 2 === 0;
+      const s = pathS + (vineRng47() - 0.5) * 10;
+      const off = 0.5 + vineRng47() * 0.55;
+      const psi = -Math.PI / 2 + (south ? off : -off);
+      if (s < sEndW(psi) + 0.6 || s > sEndE(psi) - 0.6) continue;
+      const hook = surfacePoint(psi, s, rBase(psi, s) + detail(psi, s, upness(psi)) - 0.05);
+      const allowed = hook.y - floorAt(hook.x, hook.z);
+      if (allowed < 0.35) continue;
+      const len = hangLength(hook, 0.6 + vineRng47() * 1.2);
+      if (len <= 0) continue;
+      if (i % 3 === 2) {
+        foliage47.addHangingVine(hook, len * 0.5, { amount: 0.1, thickness: 0.006, leafSize: 0.03, leafEvery: 0.026 });
+        detail47.rimBeards++;
+      } else {
+        foliage47.addHangingVine(hook, len, { amount: 0.1, thickness: 0.016 });
+        detail47.rimVines++;
+      }
+    }
+    for (const m of foliage47.build(mats, 'log47')) group.add(m);
+    // ---- fungus tiers on the belly's flanks ----
+    const funRng = rng.fork('fungi47');
+    const funParts: BufferGeometry[] = [];
+    for (let t = 0; t < 9; t++) {
+      const south = t % 2 === 0;
+      const s0 = pathS + (funRng() - 0.5) * 9;
+      const off0 = 0.45 + funRng() * 0.6;
+      const psi0 = -Math.PI / 2 + (south ? off0 : -off0);
+      if (s0 < sEndW(psi0) + 0.8 || s0 > sEndE(psi0) - 0.8) continue;
+      const tier = 2 + Math.floor(funRng() * 3);
+      const size0 = 0.14 + funRng() * 0.16;
+      const pale = 0.7 + funRng() * 0.35;
+      const tone: [number, number, number] = [0.95 * pale, 0.8 * pale, 0.6 * pale];
+      for (let j = 0; j < tier; j++) {
+        const psi = psi0 + (south ? 1 : -1) * j * 0.05 + (funRng() - 0.5) * 0.02;
+        const s = s0 + (funRng() - 0.5) * 0.12;
+        const size = size0 * (1 - 0.12 * j) * (0.9 + funRng() * 0.2);
+        const thick = size * (0.16 + funRng() * 0.1);
+        const droop = 0.12 + funRng() * 0.2;
+        const c = surfacePoint(psi, s, rBase(psi, s) + detail(psi, s, upness(psi)) - 0.02);
+        const outward = radialDir(psi, s);
+        // the bracket grows out horizontally from the flank: its plane is level, its root in the bark
+        const along = frameAt(s).t.clone();
+        const level = new Vector3(outward.x, 0, outward.z).normalize();
+        for (const side of [1, -1] as const) {
+          const shelf = gridSurface(
+            (u, v, out) => {
+              const a = (u - 0.5) * Math.PI;
+              const rr = size * lerp(0.05, 1, v) * (1 + 0.1 * noise.noise(a * 2 + t + j, v * 3));
+              const px = Math.cos(a) * rr;
+              const py = Math.sin(a) * rr * 0.85;
+              const dome = side > 0 ? thick * (1 - v * v) - droop * size * Math.pow(v, 3) : -thick * 0.3 * (1 - Math.pow(v, 6)) - droop * size * Math.pow(v, 3);
+              out.position.copy(c).addScaledVector(level, px).addScaledVector(along, py).addScaledVector(UP, dome);
+              out.uv = side > 0 ? [u * 0.8 + t * 0.3, 0.15 + 0.75 * v] : [u * 0.4 + 0.5, 0.05 + 0.1 * v];
+              // zoned bands on the cap (darker rings toward the root), a pale underside
+              const band = side > 0 ? (0.62 + 0.38 * (1 - v)) * (1 - 0.3 * smoothstep(0.85, 1, v)) * (0.9 + 0.1 * Math.sin(v * 22)) : 1.2;
+              out.color = [tone[0] * band, tone[1] * band * (side > 0 ? 1 : 1.05), tone[2] * band * (side > 0 ? 1 : 1.12)];
+            },
+            { cols: 12, rows: 5 },
+          );
+          faceTowards(shelf, (p, o) => o.copy(p).addScaledVector(UP, side));
+          funParts.push(shelf);
+        }
+        detail47.fungi++;
+      }
+      detail47.fungusTiers++;
+    }
+    if (funParts.length) {
+      const funGeo = merge(funParts);
+      funGeo.translate(-tuftCentre.x, -tuftCentre.y, -tuftCentre.z);
+      const funMesh = new Mesh(funGeo, mats.endGrain);
+      funMesh.name = 'log-belly-fungi';
+      funMesh.castShadow = false;
+      funMesh.receiveShadow = true;
+      nearGroup.add(funMesh);
+    }
+    // ---- light through the splits: the deepest fissure channels over the path ----
+    const slRng = rng.fork('slivers47');
+    const slParts: BufferGeometry[] = [];
+    const fissureDeep = (psi: number, s: number) => {
+      const arc = psi * R;
+      const twist = noise.noise(s * 0.1, arc * 0.05) * 1.6 + s * 0.06;
+      return Math.pow(1 - Math.abs(noise.noise(arc * 0.8 + 31 + twist * 0.5, s * 0.07)), 9);
+    };
+    // scan the belly (± 0.75 rad of the bottom) along ± 6 m of the crossing for runs of deep fissure
+    const taken: [number, number][] = [];
+    for (let attempt = 0; attempt < 400 && slParts.length < 6; attempt++) {
+      const psi0 = -Math.PI / 2 + (slRng() - 0.5) * 1.5;
+      const s0 = pathS + (slRng() - 0.5) * 12;
+      if (fissureDeep(psi0, s0) < 0.55) continue;
+      if (taken.some(([p, q]) => Math.abs(p - psi0) < 0.2 && Math.abs(q - s0) < 1.6)) continue;
+      // follow the channel both ways along s while it stays deep (the fissures run along the trunk)
+      let sA = s0;
+      let sB = s0;
+      let psiA = psi0;
+      let psiB = psi0;
+      const step = 0.1;
+      const walk = (s: number, psi: number, dir: number): [number, number] => {
+        for (let n = 0; n < 12; n++) {
+          const ns = s + dir * step;
+          // re-centre on the deepest of three ψ samples so the sliver stays in the channel
+          let best = psi;
+          let bestV = -1;
+          for (const dp of [-0.03, 0, 0.03]) {
+            const v = fissureDeep(psi + dp, ns);
+            if (v > bestV) {
+              bestV = v;
+              best = psi + dp;
+            }
+          }
+          if (bestV < 0.4 || ns < sEndW(best) + 1 || ns > sEndE(best) - 1) break;
+          s = ns;
+          psi = best;
+        }
+        return [s, psi];
+      };
+      [sA, psiA] = walk(s0, psi0, -1);
+      [sB, psiB] = walk(s0, psi0, 1);
+      if (sB - sA < 0.5) continue;
+      taken.push([psi0, s0]);
+      const width = 0.035 + slRng() * 0.03;
+      const glow = 0.5 + slRng() * 0.25;
+      const sliver = gridSurface(
+        (u, v, out) => {
+          const s = lerp(sA, sB, v);
+          const psi = lerp(psiA, psiB, v) + (u - 0.5) * (width / R);
+          // on the channel's floor: the relief's fissure is 0.6 m deep and the plates of round 44
+          // leave it open, so the sliver lies 3 cm under the analytic floor (the 8–14 cm shell
+          // grid wanders that much) and reads as the bottom of the crack glowing, hidden by the
+          // channel's walls from oblique angles (a first cut sat 10 cm below the floor — under the
+          // plates too — and read as a white plate floating under the belly, sn-arch-inside)
+          const rr = rBase(psi, s) + barkCoarse(psi, s) + barkFine(psi, s) + 0.03;
+          surfacePoint(psi, s, rr, out.position);
+          out.uv = [u, v];
+          const end = Math.sin(v * Math.PI);
+          // soft across the channel (0 at the walls) and along it (0 at the ends): a glow, not a plate
+          const k = glow * (0.15 + 0.85 * end) * Math.pow(Math.sin(u * Math.PI), 0.7);
+          out.color = [k, k, k];
+        },
+        { cols: 3, rows: 8 },
+      );
+      faceTowards(sliver, (p, o) => o.set(p.x, p.y - 5, p.z));
+      slParts.push(sliver);
+      detail47.lightSlivers++;
+    }
+    if (slParts.length) {
+      const slGeo = merge(slParts);
+      slGeo.translate(-tuftCentre.x, -tuftCentre.y, -tuftCentre.z);
+      const slMesh = new Mesh(slGeo, mats.daylightSliver);
+      slMesh.name = 'log-light-slivers';
+      slMesh.castShadow = slMesh.receiveShadow = false;
+      nearGroup.add(slMesh);
+    }
+    for (const t of hungTips) {
+      if (spineDistance(t.x, t.z) <= strip) detail47.minStripClearance = Math.min(detail47.minStripClearance, t.y - terrain.height(t.x, t.z));
+    }
+  }
+
   return {
     group,
     bases,
@@ -1762,5 +2139,6 @@ export function buildLogArch(ctx: WorldContext, mats: StructureMaterials, rng: R
     tufts: foliage.tuftCount + foliage21.tuftCount + foliage41.tuftCount,
     detail41,
     detail44,
+    detail47: { ...detail47, minStripClearance: detail47.minStripClearance === Infinity ? Infinity : +detail47.minStripClearance.toFixed(2) },
   };
 }

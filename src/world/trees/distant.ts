@@ -1,19 +1,24 @@
 /**
  * Distant trees for the 60–220 m band: hundreds of cheap trees that form layered silhouettes in
  * the haze beyond the detail radius. Two LOD levels, both real geometry:
- *   near/mid — low-poly bent trunk + limbs and a crown of leaf-card clusters over dark lobe cores;
- *   far      — impostor-like geometry: three fixed vertical silhouette fans + crossed trunk quads
- *              (not camera-facing, no photographs). Fog does the atmospheric tinting.
+ *   near/mid — low-poly bent trunk (geometric cords, basal flare, root buttresses) + limbs;
+ *   far      — crossed tapering trunk strips (not camera-facing, no photographs).
+ * Both carry the same crown: 2–3 crossed vertical cards of the far-crown atlas
+ * (leaf-cluster-texture.ts createFarCrownAtlas) in their own material (createDistantCrownMaterial:
+ * a spherical normal so the lit rim follows the sun, a darker core, soft alpha, per-instance
+ * hue/value jitter, the far layer's slow wind). The geometry is one buffer with two groups —
+ * wood (the distant material) and crown (the crown material). Fog does the atmospheric tinting.
  * Placement is seeded, clumped by noise, spaced by a hash grid, and seated on the terrain.
  */
-import { BufferGeometry, Color, IcosahedronGeometry, Vector3 } from 'three';
+import { BufferGeometry, Color, DoubleSide, MeshStandardMaterial, Vector3, type Texture } from 'three';
 import type { Rng } from '../util/prng';
 import { Noise2D, smoothstep } from '../util/noise';
 import type { Terrain } from '../terrain/heightfield';
-import { GeometryWriter, TAU, UP, growthPath, rootButtress, taper, tube, type RandomFn } from './writer';
+import { WIND_GLSL, type Wind } from '../wind/wind';
+import { GeometryWriter, TAU, UP, growthPath, rootButtress, taper, tube } from './writer';
 import { consumeTubeDraws } from './bole';
 import type { Palette } from './whitebark';
-import { CARD_UV0, SOLID_UV } from './leaf-cluster-texture';
+import { createFarCrownAtlas, FAR_CROWN_CELLS, farCrownCellUv, SOLID_UV } from './leaf-cluster-texture';
 
 export type DistantKind = 'broad' | 'slender';
 
@@ -38,7 +43,62 @@ export interface DistantPlacement {
   tint: Color;
 }
 
-const ICO0 = new IcosahedronGeometry(1, 0);
+/**
+ * Round 47 (survey-2 #10 / #27, poses w25-stairs-f / w26-stairs-f / w28-plateau-f: the trees
+ * beyond the plateau fences and in the ring read as flat pale cardboard — one-tone silhouettes,
+ * a disc crown on a pole, hard cut-out edges, no depth between rows, pale bole tops poking
+ * through the crowns). The crown of every distant tree, both LODs, is now FAR_CROWN_CARDS crossed
+ * vertical cards of one far-crown atlas cell (leaf-cluster-texture.ts: four silhouettes painted
+ * as soft leaf clumps), the near LOD adding FAR_CROWN_LOBES smaller crossed pairs off the axis
+ * so the outline is not one shape; the lobe cores and the card clusters of rounds 40–46 are gone
+ * (the disc crown with them). The cards are drawn by createDistantCrownMaterial below.
+ * [near LOD cards, far LOD cards]
+ */
+export const FAR_CROWN_CARDS: [number, number] = [3, 3];
+/** near LOD only: crossed pairs of smaller cards off the axis (a second silhouette layer) */
+export const FAR_CROWN_LOBES: [number, number] = [2, 1];
+/**
+ * a main card's half-width as a share of the crown radius: the silhouette fills FAR_CROWN_FILL
+ * of the card (0.76 wide), so 1.4 gives a drawn crown ≈ 2.1 R across — what the round-46 lobes
+ * plus their rim cards spanned, so the rows' skyline in D holds
+ */
+export const FAR_CROWN_CARD_HALF = 1.4;
+/**
+ * The crown material (createDistantCrownMaterial): the normal is a blend of the card's plane
+ * and the direction from the crown's centre (the sphere the cards stand in) — at this share of
+ * the sphere — so the side toward the sun lights and the far side falls into shade whatever the
+ * card's yaw: the reference's far crowns are lit rims with darker cores.
+ */
+export const CROWN_SPHERE_MIX = 0.85;
+/** albedo multiplier at the crown's core (1 at its shell): the leaf mass in its own shade */
+export const CROWN_CORE_DARK = 0.6;
+/** share of the sun's direct term added at the lit rim as transmission through the thin shell */
+export const CROWN_RIM = 0.6;
+/** per-instance jitter of the crown alone: [hue mix cool ↔ warm (0–1), value ±] */
+export const CROWN_JITTER: [number, number] = [0.55, 0.14];
+/** the cards' alpha test — below it the fringe is blended, so the outline is soft, not a cut-out */
+export const CROWN_ALPHA_TEST = 0.3;
+export const CROWN_MIP_BIAS = -0.5;
+/** the whole-crown sway's stiffness (WIND_GLSL windBranch): the far layer barely moves */
+export const CROWN_STIFFNESS = 0.78;
+/**
+ * Round 47 (item 3, depth between rows): a placement's tint cools toward this colour by
+ * DISTANT_DEPTH_COOL[2] × smoothstep(DISTANT_DEPTH_COOL[0], [1], its distance from the clearing's
+ * centre, m) — a small blue-grey lift on the rows further back, so they sit behind the nearer row
+ * instead of on the same plane. The shared haze does most of it; this is the remainder.
+ */
+export const DISTANT_DEPTH_COOL: [number, number, number] = [55, 100, 0.25];
+export const DISTANT_DEPTH_COOL_COLOR: [number, number, number] = [0.9, 0.96, 1.08];
+/**
+ * Round 47 (item 2): the bole darkens into the crown — from DISTANT_CROWN_TOP[0] crown radii
+ * under the crown's centre to DISTANT_CROWN_TOP[1] above it the bark tone goes to this share of
+ * the crown's dark, so no pale stub pokes through the cards (the slender kind's bark is
+ * barkWhite × 0.7). Both LODs.
+ */
+export const DISTANT_CROWN_TOP: [number, number, number] = [0.55, 0.05, 0.85];
+/** round 47: ± tone bands along the near LOD bole (a ring's vertex colour; 1.9 rad/m) — bark tiling at 60 m */
+export const DISTANT_BOLE_BANDS = 0.09;
+
 /** round 45: the near LOD bole's basal flare — extra radius share at the path's foot … */
 export const DISTANT_FLARE = 0.4;
 /** … falling off with this e-folding distance (m) along the bole */
@@ -113,66 +173,170 @@ export const LIMB_TIP_TINT = 0.8;
 export const LIMB_TINT_FROM = 0.08;
 export const LIMB_TINT_TO = 0.5;
 
-/** dark shadow core of a crown lobe (a small noise-displaced polyhedron) */
-function lumpyBlob(writer: GeometryWriter, center: Vector3, radius: number, squash: number, color: Color, top: Color, noise: Noise2D, seed: number) {
-  const src = ICO0.getAttribute('position');
-  const v = new Vector3();
-  const idx: number[] = [];
-  for (let i = 0; i < src.count; i++) {
-    v.fromBufferAttribute(src, i);
-    const n = noise.fbm(v.x * 1.6 + seed, v.z * 1.6 + v.y * 0.9 - seed, 3);
-    const rr = radius * (1 + 0.42 * n);
-    const p = new Vector3(center.x + v.x * rr, center.y + v.y * rr * squash, center.z + v.z * rr);
-    const shade = 0.55 + 0.45 * smoothstep(-1, 1, v.y) + 0.08 * n;
-    const c = color.clone().lerp(top, smoothstep(0.1, 1, v.y)).multiplyScalar(shade);
-    idx.push(writer.vertex(p, c, 0, 0, 1, 0, 0));
-  }
-  for (let i = 0; i < idx.length; i += 3) writer.triangle(idx[i], idx[i + 1], idx[i + 2]);
+/**
+ * One vertical crown card: a quad in the plane of `dir` × UP centred at `c`, mapped onto atlas
+ * cell `cell` (mirrored in u when `mirror`). aRoot carries the crown's centre (local) and radius
+ * for the crown material's spherical shading — its w is the radius (> 0.5 on every crown, so the
+ * distant material's solid-uv pass and every wood decode leave these vertices alone).
+ */
+function crownCard(writer: GeometryWriter, c: Vector3, dir: Vector3, half: number, cell: number, mirror: boolean, bottom: Color, top: Color, sphereC: Vector3, sphereR: number, stiffness: number, phase: number) {
+  const uv = farCrownCellUv(cell);
+  const n = new Vector3(-dir.z, 0, dir.x);
+  const V = (du: number, dv: number) => {
+    const p = c.clone().addScaledVector(dir, du * half).addScaledVector(UP, dv * half);
+    const u = (mirror ? -du : du) > 0 ? uv.u1 : uv.u0;
+    const v = dv > 0 ? uv.v1 : uv.v0;
+    const i = writer.vertexN(p, n, dv > 0 ? top : bottom, u, v, stiffness, phase, 0, 1);
+    writer.roots[i * 4] = sphereC.x;
+    writer.roots[i * 4 + 1] = sphereC.y;
+    writer.roots[i * 4 + 2] = sphereC.z;
+    writer.roots[i * 4 + 3] = sphereR;
+    return i;
+  };
+  const a = V(-1, -1);
+  const b = V(1, -1);
+  const cc = V(1, 1);
+  const d = V(-1, 1);
+  writer.triangle(a, b, cc);
+  writer.triangle(a, cc, d);
 }
 
 /**
- * Leaf-card cluster: randomly oriented quads carrying the procedural leaf-cluster alpha texture,
- * filling a lobe volume with normals pointing out of the lobe (so it shades as one volume).
- * Reads as a broken, leafy crown from 60 m+ where laminae would be sub-pixel; a dark blob core
- * underneath hides the interior. The vertex colour is a tint — the texture carries the green.
+ * The crown of a distant tree (round 47): `count` main cards crossed at equal yaw steps (each a
+ * different cell of `cells`, so one crown shows two or three silhouettes as it is walked round)
+ * and `lobes` crossed pairs of smaller cards off the axis. Every card shades in the one sphere
+ * (centre, R) so the crown lights as a single volume. Own stream: nothing before or after it
+ * re-rolls.
  */
-function leafCardLobe(writer: GeometryWriter, center: Vector3, radius: number, squash: number, count: number, cardSize: number, tint: Color, topTint: Color, r: RandomFn, shell?: [number, number]) {
-  const n = new Vector3();
-  const u = new Vector3();
-  const w = new Vector3();
-  for (let i = 0; i < count; i++) {
-    // biased to the shell of the lobe so the silhouette is ragged and the core stays dark;
-    // `shell` confines the cards to a band of the radius (the round-40 rim layer)
-    const rr = radius * (shell ? shell[0] + r() * (shell[1] - shell[0]) : Math.pow(r(), 0.4));
-    const th = r() * TAU;
-    const ph = Math.acos(2 * r() - 1);
-    const p = new Vector3(center.x + Math.sin(ph) * Math.cos(th) * rr, center.y + Math.cos(ph) * rr * squash, center.z + Math.sin(ph) * Math.sin(th) * rr);
-    n.set((p.x - center.x) / radius, (p.y - center.y) / (radius * squash) + 0.7, (p.z - center.z) / radius).normalize();
-    n.x += (r() - 0.5) * 0.7;
-    n.z += (r() - 0.5) * 0.7;
-    n.normalize();
-    const ref = Math.abs(n.y) < 0.9 ? UP : new Vector3(1, 0, 0);
-    u.crossVectors(n, ref).normalize();
-    w.crossVectors(n, u).normalize();
-    const spin = r() * TAU;
-    const su = u.clone().multiplyScalar(Math.cos(spin)).addScaledVector(w, Math.sin(spin));
-    const sw = w.clone().multiplyScalar(Math.cos(spin)).addScaledVector(u, -Math.sin(spin));
-    const s = cardSize * (0.75 + r() * 0.6);
-    const heightF = smoothstep(-1, 1, (p.y - center.y) / (radius * squash));
-    const interior = 1 - rr / radius;
-    const c = tint
-      .clone()
-      .lerp(topTint, heightF * 0.8 + r() * 0.2)
-      .multiplyScalar((0.85 + r() * 0.3) * (1 - interior * 0.35));
-    const V = (du: number, dw: number, tu: number, tv: number) =>
-      writer.vertexN(p.clone().addScaledVector(su, du * s).addScaledVector(sw, dw * s), n, c, CARD_UV0 + (1 - CARD_UV0) * tu, CARD_UV0 + (1 - CARD_UV0) * tv, 1, 0, 0, 1);
-    const a = V(-1, -1, 0, 0);
-    const b = V(1, -1, 1, 0);
-    const cc = V(1, 1, 1, 1);
-    const d = V(-1, 1, 0, 1);
-    writer.triangle(a, b, cc);
-    writer.triangle(a, cc, d);
+function crownCards(writer: GeometryWriter, r: Rng, centre: Vector3, R: number, cells: number[], count: number, lobes: number, tint: Color, topTint: Color) {
+  const half = R * FAR_CROWN_CARD_HALF;
+  const yaw0 = r.range(0, TAU);
+  for (let k = 0; k < count; k++) {
+    const a = yaw0 + (k / count) * Math.PI + r.range(-0.12, 0.12);
+    const dir = new Vector3(Math.cos(a), 0, Math.sin(a));
+    const s = r.range(0.92, 1.08);
+    const c = centre.clone().add(new Vector3(r.range(-0.06, 0.06) * R, r.range(-0.05, 0.05) * R, r.range(-0.06, 0.06) * R));
+    const shade = r.range(0.9, 1.06);
+    crownCard(writer, c, dir, half * s, cells[k % cells.length], r.chance(0.5), tint.clone().multiplyScalar(shade * 0.82), topTint.clone().multiplyScalar(shade), centre, R * 1.05, 0.9, r());
   }
+  for (let l = 0; l < lobes; l++) {
+    const a = yaw0 + (l / Math.max(1, lobes)) * TAU + r.range(0.4, 1.2);
+    const off = R * r.range(0.4, 0.55);
+    const c = centre.clone().add(new Vector3(Math.cos(a) * off, R * r.range(-0.2, 0.15), Math.sin(a) * off));
+    const lr = R * r.range(0.5, 0.62);
+    const cell = cells[r.int(0, cells.length)];
+    const shade = r.range(0.88, 1.04);
+    const yaw = r.range(0, TAU);
+    for (let k = 0; k < 2; k++) {
+      const b = yaw + k * Math.PI * 0.5;
+      const dir = new Vector3(Math.cos(b), 0, Math.sin(b));
+      crownCard(writer, c, dir, lr * FAR_CROWN_CARD_HALF, cell, r.chance(0.5), tint.clone().multiplyScalar(shade * 0.82), topTint.clone().multiplyScalar(shade), centre, R * 1.05, 0.85, r());
+    }
+  }
+}
+
+/**
+ * The crown cards' material (round 47). A standard material over the far-crown atlas with:
+ *   • a spherical normal — the card's plane blended toward the direction from the crown's centre
+ *     (aRoot.xyz, radius aRoot.w) at CROWN_SPHERE_MIX, so the sun lights the side that faces it
+ *     and the far side shades, whatever the instance's yaw or the card's plane;
+ *   • a darker core (CROWN_CORE_DARK at the centre, the map's tone at the shell) and the sun
+ *     through the thin shell at the lit rim (CROWN_RIM of the direct term);
+ *   • soft alpha: the test at CROWN_ALPHA_TEST, the fringe under it blended (depth still written
+ *     by the core), so the outline is never a cut-out at any mip;
+ *   • per-instance hue / value jitter from the instance's position (CROWN_JITTER);
+ *   • the far layer's wind: one slow whole-crown sway from the crown's centre (WIND_GLSL
+ *     windBranch at CROWN_STIFFNESS) plus a lighter per-card flex — the six fixed captures are at
+ *     one simulation time, so identical run to run.
+ * The instance colour (the placement's tint) multiplies as it does for the wood.
+ */
+export function createDistantCrownMaterial(wind: Wind, rng: Rng, palette: Palette, sunDir: Vector3): MeshStandardMaterial {
+  const atlas: Texture = createFarCrownAtlas(rng, palette);
+  const material = new MeshStandardMaterial({ map: atlas, alphaTest: CROWN_ALPHA_TEST, transparent: true, depthWrite: true, vertexColors: true, roughness: 1, metalness: 0, side: DoubleSide });
+  material.name = 'distant-crown';
+  const f = (x: number) => x.toFixed(3);
+  material.onBeforeCompile = (s) => {
+    s.uniforms.uCrownSun = { value: sunDir.clone().normalize() };
+    s.vertexShader =
+      WIND_GLSL +
+      'attribute vec3 aWind;\nattribute vec4 aRoot;\nvarying vec3 vCrownOff;\nvarying vec2 vCrownJit;\n' +
+      s.vertexShader.replace(
+        '#include <begin_vertex>',
+        /* glsl */ `#include <begin_vertex>
+    {
+      vec4 crownC = vec4(aRoot.xyz, 1.0);
+      vec4 crownP = vec4(transformed, 1.0);
+      float crownS = 1.0;
+      #ifdef USE_INSTANCING
+        crownC = instanceMatrix * crownC;
+        crownP = instanceMatrix * crownP;
+        crownS = length(instanceMatrix[0].xyz);
+      #endif
+      crownC = modelMatrix * crownC;
+      crownP = modelMatrix * crownP;
+      vec3 disp = windBranch(crownC.xyz, aRoot.y * crownS, ${f(CROWN_STIFFNESS)});
+      disp += windBranch(crownP.xyz + vec3(aWind.y * 41.0, aWind.y * 7.0, aWind.y * 23.0), aRoot.y * crownS * 0.35, aWind.x);
+      #ifdef USE_INSTANCING
+        mat3 im = mat3(instanceMatrix);
+        transformed += (transpose(im) * disp) / dot(im[0], im[0]);
+      #else
+        transformed += disp;
+      #endif
+      vCrownOff = (crownP.xyz - crownC.xyz) / max(0.1, aRoot.w * crownS);
+      vec2 seed = crownC.xz;
+      vCrownJit = vec2(fract(sin(dot(seed, vec2(12.9898, 78.233))) * 43758.5453), fract(sin(dot(seed, vec2(39.3468, 11.135))) * 24634.6345));
+    }
+    `,
+      );
+    s.fragmentShader =
+      'uniform vec3 uCrownSun;\nvarying vec3 vCrownOff;\nvarying vec2 vCrownJit;\nfloat crownSunLit = 0.0;\n' +
+      s.fragmentShader
+        .replace(
+          '#include <map_fragment>',
+          /* glsl */ `
+    #ifdef USE_MAP
+      diffuseColor *= texture2D(map, vMapUv, ${f(CROWN_MIP_BIAS)});
+    #endif
+    `,
+        )
+        .replace(
+          '#include <color_fragment>',
+          /* glsl */ `#include <color_fragment>
+    {
+      float rr = clamp(length(vCrownOff), 0.0, 1.5);
+      vec3 hue = mix(vec3(1.08, 1.0, 0.86), vec3(0.9, 1.0, 1.14), vCrownJit.x);
+      diffuseColor.rgb *= mix(vec3(1.0), hue, ${f(CROWN_JITTER[0])}) * (1.0 + (vCrownJit.y - 0.5) * ${f(2 * CROWN_JITTER[1])});
+      diffuseColor.rgb *= mix(${f(CROWN_CORE_DARK)}, 1.0, smoothstep(0.1, 0.95, rr));
+    }
+    `,
+        )
+        .replace(
+          '#include <normal_fragment_begin>',
+          /* glsl */ `#include <normal_fragment_begin>
+    {
+      vec3 sphereW = normalize(vCrownOff * vec3(1.0, 0.8, 1.0) + vec3(0.0, 0.32, 0.0));
+      vec3 sphereV = normalize(mat3(viewMatrix) * sphereW);
+      normal = normalize(mix(normal, sphereV, ${f(CROWN_SPHERE_MIX)}));
+      crownSunLit = max(0.0, dot(sphereW, uCrownSun));
+    }
+    `,
+        )
+        .replace(
+          '#include <emissivemap_fragment>',
+          /* glsl */ `#include <emissivemap_fragment>
+    #if NUM_DIR_LIGHTS > 0
+    {
+      float rr = clamp(length(vCrownOff), 0.0, 1.5);
+      float rim = smoothstep(0.5, 1.05, rr) * crownSunLit;
+      totalEmissiveRadiance += directionalLights[0].color * diffuseColor.rgb * rim * ${f(CROWN_RIM)};
+    }
+    #endif
+    `,
+        );
+  };
+  material.customProgramCacheKey = () => 'trees-distant-crown-v1';
+  wind.bind(material);
+  return material;
 }
 
 /** solid (non-card) vertices of a geometry sharing the cluster-card material sample the opaque patch */
@@ -205,13 +369,18 @@ export function createDistantVariants(rng: Rng, palette: Palette): DistantVarian
   ];
   // darker than the near trees: the far layer is silhouette against haze, the fog lightens it
   const canopy = new Color(palette.leafCanopy).multiplyScalar(0.48);
-  const sunny = new Color(palette.leafSun).multiplyScalar(0.55);
-  // card vertex colours are tints over the cluster texture's own greens
+  // card vertex colours are tints over the far-crown atlas's own greens
   const cardTint = new Color(0.62, 0.66, 0.6);
   const cardTopTint = new Color(0.9, 0.95, 0.72);
+  // each broad variant leads with its own silhouette and crosses it with the other two; the
+  // slender kinds take the columnar cell
+  const broadCells = [
+    [0, 2, 1],
+    [1, 0, 2],
+    [2, 1, 0],
+  ];
   specs.forEach((spec, index) => {
     const r = rng.fork(`distant-${index}`);
-    const noise = new Noise2D(`distant-noise-${index}`);
     const H = spec.height;
     const slender = spec.kind === 'slender';
     const R = spec.radius ?? (slender ? H * 0.014 : H * 0.05);
@@ -257,8 +426,19 @@ export function createDistantVariants(rng: Rng, palette: Palette): DistantVarian
     const gain = slender ? 1 : DISTANT_NEAR_GAIN;
     const nearBark = bark.clone().multiplyScalar(gain);
     const footGrime = nearBark.clone().multiplyScalar(DISTANT_FOOT_GRIME);
+    // the crown's dark the limbs run to and the bole darkens into (round 47 DISTANT_CROWN_TOP)
+    const limbTip = canopy.clone().multiplyScalar(0.6 * gain);
+    // round 47: the bole's rings darken into the crown (no pale stub through the cards) and carry
+    // ± DISTANT_BOLE_BANDS tone bands below it (the tree's own phase, own stream: no draw moves)
+    const bandPhase = rng.fork(`distant-bands-${index}`)() * TAU;
+    const boleColor = (pt: Vector3, t: number, base: Color, top: Color, foot: Color) => {
+      if (t === 0) return foot;
+      const into = smoothstep(crownY - crownR * DISTANT_CROWN_TOP[0], crownY + crownR * DISTANT_CROWN_TOP[1], pt.y);
+      const band = 1 + DISTANT_BOLE_BANDS * Math.sin(pt.y * 1.9 + bandPhase) * (1 - into);
+      return base.clone().multiplyScalar(band).lerp(top, into * DISTANT_CROWN_TOP[2]);
+    };
     near.woodMoss = slender ? 0 : 1;
-    tube(near, trunk, taper(trunk, R, R * (spec.taperTop ?? 0.25), 0.9), sides, r, { color: (_pt, t) => (t === 0 ? footGrime : nearBark), roughness: 0.1, flatBase: true, structural: true, stiffness: () => 1, draws: trunkDraws, bump: flare });
+    tube(near, trunk, taper(trunk, R, R * (spec.taperTop ?? 0.25), 0.9), sides, r, { color: (pt, t) => boleColor(pt, t, nearBark, limbTip, footGrime), roughness: 0.1, flatBase: true, structural: true, stiffness: () => 1, draws: trunkDraws, bump: flare });
     const limbs = slender ? 1 : r.int(2, 4);
     // round 45 (trees-28 item 4, survey pose w19-spine-u: the "pale twig tips spiking the crown
     // rim" straight overhead on the north spine are a depth-row tree's limbs — 4-sided bark-
@@ -267,7 +447,6 @@ export function createDistantVariants(rng: Rng, palette: Palette): DistantVarian
     // 6-sided with their draws taken as the 4-sided ones took them (the grain resampled, like the
     // trunk above, so the lobes and the far LOD after them draw exactly what they did), and run
     // from the bark at the bole to the crown's own dark from halfway out (LIMB_TIP_TINT).
-    const limbTip = canopy.clone().multiplyScalar(0.6 * gain);
     for (let i = 0; i < limbs; i++) {
       const t = r.range(0.45, 0.75);
       const o = trunk[Math.round(t * (trunk.length - 1))].clone();
@@ -281,30 +460,8 @@ export function createDistantVariants(rng: Rng, palette: Palette): DistantVarian
       tube(near, path, taper(path, R * 0.45, 0.05, 0.9), 6, r, { color: (pt) => nearBark.clone().lerp(limbTip, smoothstep(LIMB_TINT_FROM, LIMB_TINT_TO, pt.distanceTo(o) / limbLength) * LIMB_TIP_TINT), roughness: 0.05, structural: true, stiffness: () => 1, draws: limbDraws });
     }
     near.woodMoss = 0;
-    const lobes = slender ? 3 : 5;
-    const cardsPerLobe = slender ? 18 : 24;
-    const rim = rng.fork(`distant-rim-${index}`);
-    for (let i = 0; i < lobes; i++) {
-      const a = r.range(0, TAU);
-      const rad = crownR * r.range(0, 0.6);
-      const lift = r.range(-0.1, 0.4);
-      // round 44 (survey crop 27, the "T" tree with a disc crown): a slender's three lobes sat at
-      // one height, squashed to 0.6–0.85 — a flat plate on a pole. They now stack up the leader
-      // (0, 0.55, 1.1 crown radii) and stay rounder; same draws, so the radial pool's placements
-      // and every broad variant (the depth rows in D) are untouched.
-      const c = new Vector3(Math.cos(a) * rad, crownY + (slender ? lift * 0.4 + i * 0.55 : lift) * crownR + (i === 0 ? crownR * 0.3 : 0), Math.sin(a) * rad);
-      const br = crownR * r.range(0.36, 0.6);
-      const shade = r.range(0.75, 1.05);
-      const squashDraw = r.range(0.6, 0.85);
-      const squash = slender ? 0.78 + (squashDraw - 0.6) * 0.8 : squashDraw;
-      // dark core + ragged leaf-card shell
-      lumpyBlob(near, c, br * 0.66, squash, canopy.clone().multiplyScalar(shade * 0.6), canopy.clone().multiplyScalar(shade * 0.85), noise, i * 3.7);
-      leafCardLobe(near, c, br, squash, cardsPerLobe, br * 0.42, cardTint.clone().multiplyScalar(shade), cardTopTint.clone().multiplyScalar(shade), r);
-      // round 40: a finer rim layer of small cards just outside the shell so the outline breaks
-      // into leaf clumps at 60–120 m instead of a few large cards over a blob (the stair-landing
-      // and plaza looking-up views); own stream, so the lobes above keep their draws
-      leafCardLobe(near, c, br, squash, slender ? 6 : 8, br * 0.24, cardTint.clone().multiplyScalar(shade * 0.9), cardTopTint.clone().multiplyScalar(shade * 0.9), rim, [0.96, 1.12]);
-    }
+    // (round 47: the lobe cores and card clusters that stood here are replaced by the crown cards
+    // written after the roots — see crownCards; the disc crown of survey crop 27 went with them)
     // round 44 (survey #2: "no base flare, a hard base seam"): a root flare — 4–6 short buttress
     // roots (writer.ts rootButtress) diving under the ground from the foot of the bole, from
     // their own stream so nothing above re-rolls; the depth rows' feet are at the ground line of
@@ -320,78 +477,55 @@ export function createDistantVariants(rng: Rng, palette: Palette): DistantVarian
     }
     near.woodMoss = 0;
     solidUv(near);
+    // ---- the crown (round 47): crossed atlas cards over the wood, in the geometry's second group
+    const nearWood = near.indices.length;
+    const crownCentre = new Vector3(0, crownY + crownR * 0.1, 0);
+    const cells = slender ? [3] : broadCells[index % broadCells.length];
+    crownCards(near, rng.fork(`distant-crown-${index}`), crownCentre, crownR, cells, FAR_CROWN_CARDS[0], slender ? FAR_CROWN_LOBES[1] : FAR_CROWN_LOBES[0], cardTint, cardTopTint);
 
-    // ---- far LOD: three fixed vertical silhouette planes, each a solid core fan with a rim of
-    // leaf-cluster cards, + crossed trunk quads ----
-    // (round 40: one solid 12-point fan per plane read as a flat paddle from the stair landing —
-    // the owner's "far crowns must read as trees". Now each plane is layered: an 8-point solid
-    // fan at 0.74 of the radius is the dark mass, and seven alpha cluster cards ride its outline
-    // at 0.86–1.0 of the radius, in the plane, so the silhouette breaks into leaf clumps. 70
-    // triangles a tree against 40; the radial pool's 500 far trees cost 15 k more.)
+    // ---- far LOD: two crossed tapering trunk strips (foot grime, tone bands, darkening into the
+    // crown — round 47; the round-40 silhouette fans and their rim cards are replaced by the same
+    // crown cards the near LOD carries, so the two LODs never swap silhouettes) ----
     const far = new GeometryWriter('high');
-    const dark = canopy.clone().multiplyScalar(0.8);
-    const light = canopy.clone().lerp(sunny, 0.5);
-    const rimTint = cardTint.clone().multiplyScalar(0.8);
-    const rimTop = cardTopTint.clone().multiplyScalar(0.8);
-    for (let plane = 0; plane < 3; plane++) {
-      const a = (plane / 3) * Math.PI;
-      const dir = new Vector3(Math.cos(a), 0, Math.sin(a));
-      const planeN = new Vector3(-Math.sin(a), 0, Math.cos(a));
-      const centre = new Vector3(0, crownY + crownR * 0.15, 0);
-      const ci = far.vertex(centre, canopy.clone().multiplyScalar(0.9), 0.5, 0.5, 1, 0, 0);
-      const outline: number[] = [];
-      const points = 8;
-      const radiusAt = (th: number) => {
-        const n = noise.noise(Math.cos(th) * 1.7 + plane * 5, Math.sin(th) * 1.7);
-        return crownR * (0.8 + 0.3 * n) * (Math.sin(th) < -0.3 ? 0.75 : 1);
-      };
-      for (let k = 0; k < points; k++) {
-        const th = (k / points) * TAU;
-        const rr = radiusAt(th) * 0.74;
-        const p = centre.clone().addScaledVector(dir, Math.cos(th) * rr).addScaledVector(UP, Math.sin(th) * rr * 0.8);
-        const c = dark.clone().lerp(light, smoothstep(-0.5, 1, Math.sin(th)));
-        outline.push(far.vertex(p, c, 0.5 + Math.cos(th) * 0.5, 0.5 + Math.sin(th) * 0.5, 1, 0, 0));
-      }
-      for (let k = 0; k < points; k++) far.triangle(ci, outline[k], outline[(k + 1) % points]);
-      // the rim: cards in the plane along the outline (the underside sparser: two of the seven
-      // sit below the centre, where the mass reads as one dark base against the ground haze)
-      const rimCards = 7;
-      for (let k = 0; k < rimCards; k++) {
-        const th = ((k + 0.5) / rimCards) * TAU + r.range(-0.15, 0.15);
-        const rr = radiusAt(th) * r.range(0.86, 1.0);
-        const p = centre.clone().addScaledVector(dir, Math.cos(th) * rr).addScaledVector(UP, Math.sin(th) * rr * 0.8);
-        const s = crownR * r.range(0.3, 0.42);
-        const spin = r.range(0, TAU);
-        const su = dir.clone().multiplyScalar(Math.cos(spin)).addScaledVector(UP, Math.sin(spin));
-        const sw = UP.clone().multiplyScalar(Math.cos(spin)).addScaledVector(dir, -Math.sin(spin));
-        const c = rimTint.clone().lerp(rimTop, smoothstep(-0.5, 1, Math.sin(th)) * 0.8 + r() * 0.2).multiplyScalar(0.85 + r() * 0.3);
-        const V = (du: number, dw: number, tu: number, tv: number) =>
-          far.vertexN(p.clone().addScaledVector(su, du * s).addScaledVector(sw, dw * s), planeN, c, CARD_UV0 + (1 - CARD_UV0) * tu, CARD_UV0 + (1 - CARD_UV0) * tv, 1, 0, 0, 1);
-        const q0 = V(-1, -1, 0, 0);
-        const q1 = V(1, -1, 1, 0);
-        const q2 = V(1, 1, 1, 1);
-        const q3 = V(-1, 1, 0, 1);
-        far.triangle(q0, q1, q2);
-        far.triangle(q0, q2, q3);
-      }
-    }
+    const farTop = canopy.clone().multiplyScalar(0.6);
+    const farFoot = bark.clone().multiplyScalar(DISTANT_FOOT_GRIME);
+    const farRings: [number, number][] = [
+      [-0.6, 1.1],
+      [H * 0.28, 0.96],
+      [H * 0.52, 0.8],
+      [crownY - crownR * 0.35, 0.62],
+      [crownY + crownR * 0.15, 0.42],
+    ];
     for (let plane = 0; plane < 2; plane++) {
       const a = (plane / 2) * Math.PI;
       const dir = new Vector3(Math.cos(a), 0, Math.sin(a));
-      const w = R * 1.1;
-      const a0 = far.vertex(new Vector3().addScaledVector(dir, -w).setY(-0.6), bark, 0, 0, 1, 0, 0);
-      const a1 = far.vertex(new Vector3().addScaledVector(dir, w).setY(-0.6), bark, 1, 0, 1, 0, 0);
-      const b0 = far.vertex(new Vector3().addScaledVector(dir, -w * 0.6).setY(crownY + crownR * 0.2), bark, 0, 1, 1, 0, 0);
-      const b1 = far.vertex(new Vector3().addScaledVector(dir, w * 0.6).setY(crownY + crownR * 0.2), bark, 1, 1, 1, 0, 0);
-      far.triangle(a0, a1, b1);
-      far.triangle(a0, b1, b0);
+      let prev: [number, number] | null = null;
+      farRings.forEach(([y, w], k) => {
+        const c = boleColor(new Vector3(0, y, 0), k / (farRings.length - 1), bark, farTop, farFoot);
+        const l = far.vertex(new Vector3().addScaledVector(dir, -R * w).setY(y), c, 0, k, 1, 0, 0);
+        const rr = far.vertex(new Vector3().addScaledVector(dir, R * w).setY(y), c, 1, k, 1, 0, 0);
+        if (prev) {
+          far.triangle(prev[0], prev[1], rr);
+          far.triangle(prev[0], rr, l);
+        }
+        prev = [l, rr];
+      });
     }
     solidUv(far);
+    const farWood = far.indices.length;
+    // the same stream as the near LOD's main cards: the far LOD's crown is the near one's without its lobes, so the switch at 120 m never turns a crown
+    crownCards(far, rng.fork(`distant-crown-${index}`), crownCentre, crownR, cells, FAR_CROWN_CARDS[1], 0, cardTint, cardTopTint);
 
+    const nearGeometry = near.finish(`distant-near-${index}`);
+    nearGeometry.addGroup(0, nearWood, 0);
+    nearGeometry.addGroup(nearWood, near.indices.length - nearWood, 1);
+    const farGeometry = far.finish(`distant-far-${index}`);
+    farGeometry.addGroup(0, farWood, 0);
+    farGeometry.addGroup(farWood, far.indices.length - farWood, 1);
     variants.push({
       kind: spec.kind,
-      near: near.finish(`distant-near-${index}`),
-      far: far.finish(`distant-far-${index}`),
+      near: nearGeometry,
+      far: farGeometry,
       height: H,
       nearTriangles: near.triangles,
       farTriangles: far.triangles,
@@ -468,6 +602,14 @@ function spineOffset(spine: [number, number][], x: number, z: number): { d: numb
   return best;
 }
 
+const DEPTH_COOL_COLOR = new Color(...DISTANT_DEPTH_COOL_COLOR);
+/** round 47 (DISTANT_DEPTH_COOL): a placement's tint, cooled by its distance from the clearing's centre — no draw */
+function depthCool(tint: Color, x: number, z: number): Color {
+  const cool = smoothstep(DISTANT_DEPTH_COOL[0], DISTANT_DEPTH_COOL[1], Math.hypot(x, z)) * DISTANT_DEPTH_COOL[2];
+  // toward a blue-grey of the tint's own value lifted a little: cooler and nearer the haze
+  return cool > 0 ? tint.lerp(DEPTH_COOL_COLOR.clone().multiplyScalar(((tint.r + tint.g + tint.b) / 3) * 1.08), cool) : tint;
+}
+
 function inFootprint(f: DistantClearance['footprints'][number], x: number, z: number): boolean {
   const rx = x - f.x;
   const rz = z - f.z;
@@ -531,7 +673,7 @@ export function placeDistantTrees(rng: Rng, terrain: Terrain, variants: DistantV
         if (m.structure > 0.4 || m.path > 0.4 || terrain.slope(x, z) > 0.72) continue;
         if (tooCloseIn(grid, cell, x, z, band.spacing * 0.6)) continue;
         const tintShift = rb.range(-0.05, 0.05);
-        const tint = new Color(1 + tintShift * 0.5, 1 + tintShift, 1 - tintShift * 0.6).multiplyScalar(band.shade * rb.range(0.9, 1.05));
+        const tint = depthCool(new Color(1 + tintShift * 0.5, 1 + tintShift, 1 - tintShift * 0.6).multiplyScalar(band.shade * rb.range(0.9, 1.05)), x, z);
         const p = cleared({ variant: bandPool[rb.int(0, bandPool.length)], x, y: terrain.height(x, z), z, yaw: rb() * TAU, scale: rb.range(band.scale[0], band.scale[1]), tint }, band.spacing * 0.6);
         if (p) push(p);
       }
@@ -561,7 +703,7 @@ export function placeDistantTrees(rng: Rng, terrain: Terrain, variants: DistantV
     if (tooClose(x, z, minD)) continue;
     const variant = slender ? slenderIdx[r.int(0, slenderIdx.length)] : broadIdx[r.int(0, broadIdx.length)];
     const tintShift = r.range(-0.06, 0.06);
-    const tint = new Color(1 + tintShift * 0.5, 1 + tintShift, 1 - tintShift * 0.6).multiplyScalar(r.range(0.82, 1.08));
+    const tint = depthCool(new Color(1 + tintShift * 0.5, 1 + tintShift, 1 - tintShift * 0.6).multiplyScalar(r.range(0.82, 1.08)), x, z);
     const p = cleared({ variant, x, y: terrain.height(x, z), z, yaw: r() * TAU, scale: r.range(0.8, 1.28), tint }, minD);
     placed++;
     if (p) push(p);

@@ -19,7 +19,7 @@
  * crack line on one slab in eight) → a single draw call.
  */
 import { Matrix4, Mesh, Quaternion, Vector3, type Material } from 'three';
-import { surfaceMask, type Terrain } from '../terrain/heightfield';
+import { legacyPathMask, standingStoneMask, surfaceMask, type Terrain } from '../terrain/heightfield';
 import type { Rng } from '../util/prng';
 import { Noise2D, clamp, smoothstep } from '../util/noise';
 import { MeshBuilder, buildSlab, centroid, distToPolygon, pointInPolygon, polygonArea, type P2 } from './geometry';
@@ -573,7 +573,20 @@ export interface PavingContext {
   density: number;
   /** the house branch's stepping-stone discs (the terrain paves exactly these) */
   steppingStones: SteppingStone[];
+  /**
+   * Round 47: which paving this pass lays. `legacy` — the round-46 paving, reading the mask as it
+   * was before the north extension (heightfield `legacyPathMask`), so every seed, cell, shared
+   * draw and stone is byte-identical to before; `north` — the extension beyond the arch, on the
+   * ground the legacy pass leaves unpaved (its level is 0 wherever the legacy mask is ≥ 0.36, so
+   * its cells stop at the legacy cells' pulled edges with a joint between). Unset / `live`: the
+   * live mask.
+   */
+  region?: PavingRegion;
+  /** round 47 (the north pass): round slabs laid like the stepping stones — the stone circle's centre slab and the plinths under its standing stones */
+  extraDiscs?: IsolatedDisc[];
 }
+
+export type PavingRegion = 'legacy' | 'north' | 'live';
 
 /** a stepping stone that sits in grass (not inside the plaza paving): gets its own round slab */
 export interface IsolatedDisc {
@@ -637,10 +650,17 @@ function archTongueDepth(x: number, z: number): number {
  * neighbouring cells growing into them (`cellFor` pulls the cell vertices to the non-strict
  * mask), and every seed and every shared-stream draw stays where it was.
  */
-export function pavedLevel(pc: PavingContext, x: number, z: number, strict = false): number {
+export function pavedLevel(pc: PavingContext, x: number, z: number, strict = false, region: PavingRegion = pc.region ?? 'live'): number {
   const m = surfaceMask(x, z);
   if (m.stairs >= 0.5) return 0;
-  if (m.structure >= 0.5) {
+  // round 47: the pass's own view of the path mask (PavingContext.region)
+  let path = m.path;
+  if (region === 'legacy') path = legacyPathMask(x, z, m.path);
+  else if (region === 'north' && legacyPathMask(x, z, m.path) >= 0.36) path = 0;
+  // the standing stones' footprints are `structure` for the grass and the character, not for the
+  // north paving: their plinth slabs run under them
+  const structure = region === 'north' && standingStoneMask(x, z) >= 0.5 ? 0 : m.structure;
+  if (structure >= 0.5) {
     if (strict) return 0;
     // the arch band (a house pad reads d ≪ 0 here): paved on a tongue, else the gravel floor
     const d = archInside(x, z);
@@ -648,14 +668,14 @@ export function pavedLevel(pc: PavingContext, x: number, z: number, strict = fal
     const reach = archTongueDepth(x, z);
     if (d >= reach) return 0;
     // the tongue's own soft edge, so the marching fill and the cell pulls see a ramp, not a step
-    return m.path * smoothstep(reach, reach - 0.12, d);
+    return path * smoothstep(reach, reach - 0.12, d);
   }
   for (const f of pc.frames) if (inStairFootprint(f, x, z)) return 0;
-  return m.path;
+  return path;
 }
 
-export function isPaved(pc: PavingContext, x: number, z: number, threshold = PAVED_ISO, strict = false): boolean {
-  return pavedLevel(pc, x, z, strict) >= threshold;
+export function isPaved(pc: PavingContext, x: number, z: number, threshold = PAVED_ISO, strict = false, region: PavingRegion = pc.region ?? 'live'): boolean {
+  return pavedLevel(pc, x, z, strict, region) >= threshold;
 }
 
 /**
@@ -665,13 +685,17 @@ export function isPaved(pc: PavingContext, x: number, z: number, threshold = PAV
 const RIM_STEPS = [0.3, 0.6, 0.9, 1.2, 1.5, 1.8];
 export function rimDistance(pc: PavingContext, x: number, z: number): number {
   let best = 2.1;
+  // (round 47: the north pass measures its rims on the live mask, so its seam with the legacy
+  // paving is not a rim — the cells there grow full-size up to the legacy cells' edges — while
+  // its grass edges are)
+  const region: PavingRegion = pc.region === 'north' ? 'live' : (pc.region ?? 'live');
   for (let k = 0; k < 8; k++) {
     const a = (k / 8) * Math.PI * 2;
     const dx = Math.cos(a);
     const dz = Math.sin(a);
     for (const s of RIM_STEPS) {
       if (s >= best) break;
-      if (!isPaved(pc, x + dx * s, z + dz * s, 0.5, true)) {
+      if (!isPaved(pc, x + dx * s, z + dz * s, 0.5, true, region)) {
         best = s;
         break;
       }
@@ -774,7 +798,7 @@ export function placeFlagstones(pc: PavingContext, material: Material): PavingRe
   // the house branch's stepping stones in the grass: each gets one round slab of its own (below),
   // so the lattices stay off their discs (a lattice seed landing on one made a fragment, none left
   // the disc as bare grass) and the plaza's rim cells are clipped back from them
-  const discs = isolatedDiscs(pc);
+  const discs = [...isolatedDiscs(pc), ...(pc.extraDiscs ?? [])];
   /** the authored B-foreground seeds: every lattice keeps a metre clear of them so their cells stay whole */
   const authored: { x: number; z: number }[] = [];
   const nearAuthored = (x: number, z: number, r: number) => {

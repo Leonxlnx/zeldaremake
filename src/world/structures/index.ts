@@ -221,6 +221,8 @@ export async function create(ctx: WorldContext): Promise<WorldSystem> {
     logMinPathClearance: log.minPathClearance,
     /** round 44: the player-height bark plates, humus foot skirts and bark chunks under the arch's near LOD */
     logNearDetail: log.detail44,
+    /** round 47 (structures-30): the passage under the arch at walking height — roots, rim vines / beards, fungus tiers, daylight slivers, litter; the lowest any of it hangs over the strip */
+    logPassageDetail: log.detail47,
     signposts: signposts.length,
     fences: fences.length,
     fencePosts,
@@ -258,6 +260,10 @@ export async function create(ctx: WorldContext): Promise<WorldSystem> {
     houseMossDetail: Object.fromEntries(ctx.layout.houses.map((h, i) => [h.id, houses[i]?.mossDetail])),
     /** round 41: the trunks' furrow moss tufts, root / arch moss caps, lichen plates and root-foot trefoils, per house */
     houseTrunkDetail: Object.fromEntries(ctx.layout.houses.map((h, i) => [h.id, houses[i]?.trunkDetail])),
+    /** round 47 (structures-30): Saria's furnished room (bed, rug, plants, table / hearth pieces) and the doorway's callus roll */
+    houseFurnishing: houses[Math.max(0, ctx.layout.houses.findIndex((h) => h.id === 'saria'))]?.furnishing,
+    /** round 47: the signposts' carved lettering — strokes on the board, front-face vertices sunk */
+    signGlyphs: signposts.map((s) => s.glyphs),
     /** flower heads on the caps / pots and bottles on the shelves, all houses */
     houseFlowers: houses.reduce((n, h) => n + h.flowers, 0),
     houseProps: houses.reduce((n, h) => n + h.props, 0),
