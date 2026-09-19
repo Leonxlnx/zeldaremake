@@ -1,0 +1,13 @@
+{
+  "item": "W03",
+  "reviewer": "fable-5",
+  "verdict": "fail",
+  "evidence": "gauntlet/reviews/evidence/fable-5/take-0116-W03-E-flagstones.jpg",
+  "takeId": "take-0116",
+  "author": "fable-cursor",
+  "takeSha": "973a21e5b045177f66da3d04dc4e67e387270620",
+  "at": "2026-09-19T09:33:46.736Z",
+  "criterion": "At viewpoint E the stones have visible thickness, edge bevels and joints with greenery, matching the plaza in the reference.",
+  "note": "At E the plaza reads as 1-1.5 m pale blue-grey flat tiles separated by continuous orange soil grout; thickness shows on one slab edge at the right only, and the joints carry no greenery (bare orange bands with a hard edge). The reference's stones are 0.5-0.9 m, rounded, warm (#95815d lit / #777253 shade), visibly raised with a soft shadow into dark soil joints that carry grass sprouts and a moss halo. 555 stones and 555 shapes pass the gate; the criterion - visible thickness, edge bevels, joints with greenery matching the reference plaza - does not. Crops x 0.25-0.75 y 0.62-1.0 and x 0.55-0.95 y 0.66-1.0.",
+  "history": []
+}

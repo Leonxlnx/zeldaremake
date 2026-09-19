@@ -1,0 +1,13 @@
+{
+  "item": "W11",
+  "reviewer": "fable-5",
+  "verdict": "fail",
+  "evidence": "gauntlet/reviews/evidence/fable-5/take-0116-W11-crown-edges.jpg",
+  "takeId": "take-0116",
+  "author": "fable-cursor",
+  "takeSha": "973a21e5b045177f66da3d04dc4e67e387270620",
+  "at": "2026-09-19T09:33:48.330Z",
+  "criterion": "Crown edges are broken and leafy against the sky; no ball-shaped canopies.",
+  "note": "The near-canopy lobes over the plaza (F upper right x 0.55-1.0, y 0.0-0.42; B top right x 0.85-1.0, y 0.0-0.15) are single-tone flat discs with a serrated edge - disc-shaped silhouettes, survey-2 #07 still present at 973a21e (round 46 'not attempted'). The white-bark crowns at B and D top are leafy but read as sparse confetti of identical cards rather than asymmetric clusters. The laminae audit and 288k leaves pass the gate; the criterion's 'no ball-shaped canopies' is not met.",
+  "history": []
+}
