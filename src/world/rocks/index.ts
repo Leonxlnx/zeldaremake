@@ -14,8 +14,23 @@ import { Noise2D, clamp, smoothstep } from '../util/noise';
 import { buildRock, type RockOptions } from './rockgen';
 import { createRockMaterial, NEAR_FADE_M, NEAR_TILE_M } from './material';
 import { dressRock, mergeRockParts } from './dressing';
+import { buildRockLedge, type RockLedgeDef } from './ledge';
 import { CUSHION, FERN, TUFT_A, TUFT_B, buildSproutMeshes, createSproutMaterial, type SproutSpot } from '../materials/sprouts';
 import type { Rng } from '../util/prng';
+
+/**
+ * Rock ledge faces (ledge.ts; owner review 2026-09-19 ref-04). WHERE they stand is the layout's:
+ * `layout.rockLedges` (optional — fable-cursor's expansion-1 lane authors it with the raised
+ * right bank). Until it exists the face can be previewed with `?rockLedgePreview=1`, which
+ * builds `LEDGE_PREVIEW` — the ref-04 spot on the north path's east bank (the existing terrain
+ * step from the ~1 m verge at x ≈ 6.4 up to the 5.4 m plateau at x ≈ 8.6, z −15…−27). The
+ * preview is off in every capture and take.
+ */
+export const LEDGE_PREVIEW: RockLedgeDef[] = [
+  { id: 'north-right-bank', foot: [[6.2, -14.5], [6.35, -18], [6.5, -22], [6.4, -25.5], [6.0, -28]], inset: 2.4, lean: 0.4 },
+];
+/** the ledge material's near fade (m): its damp/moss terms stay legible from the path */
+export const LEDGE_FADE_M: [number, number] = [7, 14];
 
 /**
  * Near-LOD swap radii (m, 3D to the boulder's centre) for the hero boulders (round 42): within
@@ -59,7 +74,11 @@ interface NearRock {
   cushions: number;
   creviceCushions: number;
   lichen: number;
+  /** share of the near skin's vertices under lichen crust (`aLichen` > 0.5) */
+  lichenShare: number;
   fragments: number;
+  /** near-only small shards half-buried around the rim (fable-2) */
+  shards: number;
   /** crevice plants rooted in this rock's near skin (ferns, moss pads) */
   creviceFerns: number;
   crevicePads: number;
@@ -595,16 +614,26 @@ export async function create(ctx: WorldContext): Promise<WorldSystem> {
           // (the six fixed views).
           rimRound: Math.min(0.12, (stairFoot ? 0.09 : 0.05) / r),
           plates: Math.min(0.025, 0.015 / r),
+          // fable-2 (survey-2 #32): lichen as crust colonies that follow the plates (`aLichen`,
+          // painted by the near material in place of the flecks); the D boulder's pale face
+          // carries the most, the moss-hatted A / terrace rocks less
+          lichen: b.id === 'shot-d-boulder' ? 0.6 : 0.42,
           // bedding ledges: D's deeper (frame 56 s: layered). None on the A / terrace rocks, as
           // on their far mesh — a faint 0.035 layering made their moss blanket (mossAt halves
           // the coverage on every parting) step ~10 cm at each ~20 cm bed: the stair-foot rock's
           // flank read as a stack of pancakes
           strata: b.id === 'shot-d-boulder' ? 0.1 : 0,
+          // fable-2 (survey-2 #32): no parting pit on the crown — the "black hole on top"
+          strataCrown: 0.1,
         });
         // the crevice plants root in the near skin's furrows (the far mesh's cracks are only lines)
         const crevice = pickCrevicePlants(nearGeo);
         const nRng = bRng.fork(`near-${b.id}`);
-        const dressed = dressRock(nearGeo, nRng.fork('dressing'), { radius: r, minY: -0.35 * r * squash, cushions: r > 1.5 ? 40 : r > 0.8 ? 24 : 14, lichen: r > 1.5 ? 36 : r > 0.8 ? 24 : 16, shade: toLocal(shadeDir, yaw), tint: tintC }, mossPalette);
+        // (fable-2: the lichen disc plates are gone — 2–5 cm discs read as polka dots at 1 m; the
+        // crust is the `aLichen` field the near material paints. `lichen: 0` keeps the cushion
+        // stream where it was.)
+        const dressed = dressRock(nearGeo, nRng.fork('dressing'), { radius: r, minY: -0.35 * r * squash, cushions: r > 1.5 ? 40 : r > 0.8 ? 24 : 14, lichen: 0, shade: toLocal(shadeDir, yaw), tint: tintC }, mossPalette);
+        const nearStats = (nearGeo.userData.rockStats ?? {}) as { lichenShare?: number };
         nearGeo.dispose();
         // loose fragments: fist-sized angular spalls (five cleaves, no moss cap) lying at the foot
         // on the un-paved ground, seated on the terrain, folded into the near mesh's local frame
@@ -625,6 +654,7 @@ export async function create(ctx: WorldContext): Promise<WorldSystem> {
           _p.set(x, T.height(x, z) - fr * 0.15, z);
           parts.push({ geometry: frag, matrix: inv.clone().multiply(new Matrix4().compose(_p, _q, _s.setScalar(1))) });
         }
+        const fragmentCount = parts.length;
         // round 45 (details-1): the SKIRT and spill stones at near range. The far skirt is four
         // radius-1 variants at detail 3 (80 triangles' worth of icosphere per stone) instanced at
         // 0.1–0.4 m under the shared material's 1.4 m triplanar tile — at 2 m (survey-1 crop 28,
@@ -636,42 +666,82 @@ export async function create(ctx: WorldContext): Promise<WorldSystem> {
         // collar + `aWet` band the near material darkens — dark undersides seated in the litter.
         // Same seat and pose as the far instance (its matrix), folded into the kit like the
         // fragments: +0 draws; the far instances collapse while the kit is in (nearUpdate).
+        // fable-2 (survey-2 #17 / #25, `sn-boulder-stairfoot`): the round-45 stones were cut by
+        // four or five cleaves at the DEFAULT depth (42–62 % of the radius — a facet the size of
+        // the stone) with 30° crease normals: angular low-poly shards. Now each is a weathered
+        // cobble: two or three shallow spalls (80–94 %), rounded arrises, 62° crease normals so
+        // only the spall edges stay hard, lumpier low-frequency shape, a moss cap on the
+        // shaded side, sunk a third of its radius into the litter. Same forks and poses.
         const skirt: number[] = [];
         const kRng = nRng.fork('skirt');
         const nearStone = new Matrix4();
-        for (let k = ownStart; k < rubble.length; k++) {
-          const it = rubble[k];
-          const sc = it.scale;
-          const stone = buildRock(kRng.fork(`stone-${k - ownStart}`), `${seed}/skirt-${b.id}-${k - ownStart}`, {
+        const cobble = (stoneRng: Rng, stoneSeed: string, sc: number, cuts: number, shade: [number, number]): BufferGeometry =>
+          buildRock(stoneRng, stoneSeed, {
             radius: sc,
-            detail: sc > 0.25 ? 7 : sc > 0.15 ? 6 : 5,
-            ridge: 0.26,
-            lump: 0.3,
-            cuts: 4 + ((k - ownStart) % 2),
+            detail: sc > 0.22 ? 9 : sc > 0.12 ? 8 : 6,
+            ridge: 0.2,
+            lump: 0.38,
+            cuts,
             cutUp: [-0.2, 0.9],
-            squashY: 0.72,
-            creaseDeg: 30,
-            cracks: 0.35,
-            crackDepth: 0.03,
-            fineCracks: 0.4,
-            fineCrackDepth: 0.01,
+            cutDepth: [0.8, 0.94],
+            squashY: 0.7,
+            creaseDeg: 62,
+            cracks: 0.28,
+            crackDepth: 0.02,
+            fineCracks: 0.3,
+            fineCrackDepth: 0.008,
             micro: 0.05,
-            chip: 0.04,
-            rimRound: 0.06,
-            moss: 0.6,
-            mossThickness: 0.09,
-            mossLumpy: 0.7,
-            facetBare: 0.55,
-            dirt: 0.65,
+            chip: 0.02,
+            rimRound: 0.14,
+            moss: 0.72,
+            mossThickness: 0.11,
+            mossLumpy: 0.8,
+            mossSide: 0.5,
+            mossShade: shade,
+            facetBare: 0.45,
+            dirt: 0.7,
             collarBand: [0.05, 0.5],
             tint: new Color(0.6, 0.59, 0.56),
             freq: 1,
           });
+        for (let k = ownStart; k < rubble.length; k++) {
+          const it = rubble[k];
+          const sc = it.scale;
+          const stone = cobble(kRng.fork(`stone-${k - ownStart}`), `${seed}/skirt-${b.id}-${k - ownStart}`, sc, 2 + ((k - ownStart) % 2), toLocal(shadeDir, it.yaw));
           // the far instance's pose at unit scale (the stone is already its size), 5 % deeper in
           // the litter than the far sphere so the fractured base sits in the ground, not on it
           instanceMatrix({ ...it, scale: 1, y: it.y - sc * 0.05 }, nearStone);
           parts.push({ geometry: stone, matrix: inv.clone().multiply(nearStone) });
           skirt.push(k);
+        }
+        // fable-2: MORE and SMALLER shards, near-only (the six views never see them): 3.5–11 cm
+        // cobbles half-buried in the litter around the rim, denser on the shaded and path sides
+        // like the base plants, each seated on the heightfield with the terrain normal. Own fork;
+        // folded into the kit (+0 draws).
+        const xRng = nRng.fork('shards');
+        const nShard = Math.round((r > 1.5 ? 18 : 14) * (0.7 + 0.3 * Math.min(2, r)));
+        const toPath = towardPath(b.position[0], b.position[2]);
+        let shards = 0;
+        for (let k = 0; k < nShard * 4 && shards < nShard; k++) {
+          const a = xRng.range(0, Math.PI * 2);
+          const ca = Math.cos(a);
+          const sa = Math.sin(a);
+          const favour = Math.max(ca * shadeDir[0] + sa * shadeDir[1], ca * toPath[0] + sa * toPath[1]);
+          if (!xRng.chance(0.4 + 0.6 * smoothstep(0.0, 0.8, favour))) continue;
+          const d = rimAt(a) * xRng.range(1.0, 1.55) + 0.03;
+          const x = b.position[0] + ca * d;
+          const z = b.position[2] + sa * d;
+          if (!notPaved(x, z)) continue;
+          const sc = xRng.range(0.035, 0.11);
+          const yaw2 = xRng.range(0, Math.PI * 2);
+          const shard = cobble(xRng.fork(`shard-${k}`), `${seed}/shard-${b.id}-${k}`, sc, 2, toLocal(shadeDir, yaw2));
+          T.normal(x, z, _n);
+          _q.setFromUnitVectors(_up, _n.clone().lerp(_up, 0.5).normalize()).multiply(new Quaternion().setFromAxisAngle(_up, yaw2));
+          // half-buried: the flat-ish underside (−0.62 r·squash) well under the litter, the cap
+          // 0.3–0.35 r proud
+          _p.set(x, T.height(x, z) - sc * 0.38, z);
+          parts.push({ geometry: shard, matrix: inv.clone().multiply(new Matrix4().compose(_p, _q, _s.setScalar(1))) });
+          shards++;
         }
         const kit = mergeRockParts(dressed.geometry, parts);
         dressed.geometry.dispose();
@@ -685,7 +755,7 @@ export async function create(ctx: WorldContext): Promise<WorldSystem> {
         nearMesh.name = `boulder-${b.id}-near`;
         nearMesh.updateMatrixWorld(true);
         group.add(nearMesh);
-        nearRocks.push({ id: b.id, centre, far: mesh, near: nearMesh, inM, outM, hero, active: false, dist: Infinity, triangles: kit.attributes.position.count / 3, cushions: dressed.stats.cushions, creviceCushions: dressed.stats.creviceCushions, lichen: dressed.stats.lichen, fragments: parts.length - skirt.length, creviceFerns: crevice.ferns, crevicePads: crevice.pads, skirt, skirtStones: skirt.length });
+        nearRocks.push({ id: b.id, centre, far: mesh, near: nearMesh, inM, outM, hero, active: false, dist: Infinity, triangles: kit.attributes.position.count / 3, cushions: dressed.stats.cushions, creviceCushions: dressed.stats.creviceCushions, lichen: dressed.stats.lichen, lichenShare: Math.round((nearStats.lichenShare ?? 0) * 1000) / 1000, fragments: fragmentCount, shards, creviceFerns: crevice.ferns, crevicePads: crevice.pads, skirt, skirtStones: skirt.length });
       }
     }
   }
@@ -771,6 +841,32 @@ export async function create(ctx: WorldContext): Promise<WorldSystem> {
   }
   ctx.progress('rocks', 0.8);
 
+  // --- rock ledge faces (ledge.ts) — positions from the layout hook, or the dev preview -------
+  const ledgeDefs: RockLedgeDef[] = (() => {
+    const fromLayout = (ctx.layout as unknown as { rockLedges?: RockLedgeDef[] }).rockLedges;
+    if (fromLayout?.length) return fromLayout;
+    const preview = typeof window !== 'undefined' && new URLSearchParams(window.location.search).get('rockLedgePreview') === '1';
+    return preview ? LEDGE_PREVIEW : [];
+  })();
+  const ledgeInfo: { id: string; height: number; length: number; triangles: number; mossShare: number; wetShare: number; contacts: number; maxFootGap: number }[] = [];
+  const ledgeContacts: [number, number, number][] = [];
+  if (ledgeDefs.length) {
+    const ledgeMaterial = await createRockMaterial(ctx.textures, ctx.config, anisotropy, 1.4, 0.9, { near: true, fade: LEDGE_FADE_M });
+    const lRng = rng.fork('ledges');
+    for (const def of ledgeDefs) {
+      const built = buildRockLedge(def, T, lRng.fork(def.id), `${seed}/ledge`);
+      const mesh = new Mesh(built.geometry, ledgeMaterial);
+      mesh.castShadow = true;
+      mesh.receiveShadow = true;
+      mesh.name = `ledge-${def.id}`;
+      group.add(mesh);
+      let maxFootGap = 0;
+      for (const c of built.contacts) maxFootGap = Math.max(maxFootGap, Math.abs(c[1] - T.height(c[0], c[2])));
+      ledgeContacts.push(...built.contacts);
+      ledgeInfo.push({ id: def.id, ...built.stats, contacts: built.contacts.length, maxFootGap: Math.round(maxFootGap * 1000) / 1000 });
+    }
+  }
+
   const rubbleSlots: InstanceSlot[] = [];
   const rubbleMeshes = buildInstanced(rubble, rubbleGeos, material, 'rubble', true, rubbleSlots);
   const strataMeshes = buildInstanced(strata, strataGeos, material, 'strata', true);
@@ -842,10 +938,13 @@ export async function create(ctx: WorldContext): Promise<WorldSystem> {
       tileM: NEAR_TILE_M,
       fadeM: NEAR_FADE_M,
       dropped: nearDropped,
-      rocks: nearRocks.map((nr) => ({ id: nr.id, inM: rnd(nr.inM), outM: rnd(nr.outM), hero: Number.isFinite(nr.hero) ? rnd(nr.hero) : null, triangles: nr.triangles, cushions: nr.cushions, creviceCushions: nr.creviceCushions, lichen: nr.lichen, fragments: nr.fragments, skirtStones: nr.skirtStones, creviceFerns: nr.creviceFerns, crevicePads: nr.crevicePads, active: nr.active, dist: Number.isFinite(nr.dist) ? rnd(nr.dist) : null })),
+      rocks: nearRocks.map((nr) => ({ id: nr.id, inM: rnd(nr.inM), outM: rnd(nr.outM), hero: Number.isFinite(nr.hero) ? rnd(nr.hero) : null, triangles: nr.triangles, cushions: nr.cushions, creviceCushions: nr.creviceCushions, lichen: nr.lichen, lichenShare: nr.lichenShare, fragments: nr.fragments, shards: nr.shards, skirtStones: nr.skirtStones, creviceFerns: nr.creviceFerns, crevicePads: nr.crevicePads, active: nr.active, dist: Number.isFinite(nr.dist) ? rnd(nr.dist) : null })),
       active: nearRocks.filter((nr) => nr.active).map((nr) => nr.id),
     },
     boulderPlantDrawCalls: plants.meshes.length,
+    /** rock ledge faces (ledge.ts): from `layout.rockLedges`, or the `?rockLedgePreview=1` preview (never in a take) */
+    ledges: ledgeInfo,
+    ledgeSource: ledgeInfo.length ? ((ctx.layout as unknown as { rockLedges?: unknown[] }).rockLedges?.length ? 'layout' : 'preview') : 'none',
     rubble: rubble.length,
     strata: strata.length,
     scree: rubble.length + strata.length,
@@ -855,6 +954,7 @@ export async function create(ctx: WorldContext): Promise<WorldSystem> {
       boulders: contact.map((p) => p.map(rnd)),
       pebbles: samplePebbles.map((p) => [rnd(p.x), rnd(p.y), rnd(p.z)]),
       crevicePlants: crevicePlants.map((p) => [rnd(p.x), rnd(p.y), rnd(p.z), p.kind ?? 'tuft']),
+      ledgeFeet: ledgeContacts.map((p) => p.map(rnd)),
     },
     palette: { moss: [P.mossDeep, P.mossBright] },
   }));
