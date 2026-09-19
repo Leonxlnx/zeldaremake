@@ -1,0 +1,13 @@
+{
+  "item": "W01",
+  "reviewer": "fable-5",
+  "verdict": "pass",
+  "evidence": "gauntlet/reviews/evidence/fable-5/take-0116-W01-A-composition.jpg",
+  "takeId": "take-0116",
+  "author": "fable-cursor",
+  "takeSha": "973a21e5b045177f66da3d04dc4e67e387270620",
+  "at": "2026-09-19T09:33:46.100Z",
+  "criterion": "Side by side with reference/frames/A_stairs.jpg the stairs, ledge, branch and plaza occupy the same screen regions and the eye reads the same composition.",
+  "note": "Stairs (foot x 0.60-0.80, climbing to the upper right), the lantern branch (x 0-0.33 at y 0.30-0.36, pods at 0.21/0.26 vs the reference's 0.208/0.255), the plaza in the lower third and the fence line at the stair top all sit in the reference's regions; the eye reads Link -> stairs -> left branch as in the reference. Nits outside the criterion: the flight tops out at y 0.13 where the reference's does at 0.25 (20 treads read taller and steeper), and Saria's lit dome fills the centre (0.40-0.68 x 0.10-0.50) where the reference has misty depth, competing with the stairs for the eye; no shafts from the upper left (see W31).",
+  "history": []
+}

@@ -1,0 +1,13 @@
+{
+  "item": "W08",
+  "reviewer": "fable-5",
+  "verdict": "fail",
+  "evidence": "gauntlet/reviews/evidence/fable-5/take-0116-W08-whitebark-trunks.jpg",
+  "takeId": "take-0116",
+  "author": "fable-cursor",
+  "takeSha": "973a21e5b045177f66da3d04dc4e67e387270620",
+  "at": "2026-09-19T09:33:47.528Z",
+  "criterion": "Trunks are irregular, tapered, leaning, with hierarchical branches — recognisably the Verdant white trees, better.",
+  "note": "Every white-bark visible in the six frames - C right (x 0.90-0.98, y 0.15-0.50), the B/E background (x 0.15-0.35, y 0.0-0.40), D left (x 0.10-0.35, y 0.0-0.55) - is a straight, near-vertical, smooth pale pole with faint grey bands and no root flare; the one horizontal limb at C is a smooth sausage with sparse leaf cards stuck along it. No lean, no irregular taper, no scars, no hierarchical branching reads at frame scale, so the trees are not recognisably the Verdant white-barks. Survey-2 #31 (sn-whitebark-base: painted ~1 m bark tiling, no butt flare) is unchanged at 973a21e. 10 variants / 78 instances pass the gate.",
+  "history": []
+}
