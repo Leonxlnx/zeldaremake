@@ -51,6 +51,8 @@ export function createFootsteps(ctx: BaseAudioContext, out: AudioNode, reverbSen
     const end = t + 0.3;
     // disconnect the gates once silent so the graph does not grow
     setTimeoutCtx(ctx, end, () => {
+      src.disconnect(bp);
+      src.disconnect(hp);
       g1.disconnect();
       g2.disconnect();
       g3.disconnect();
@@ -77,6 +79,8 @@ export function createFootsteps(ctx: BaseAudioContext, out: AudioNode, reverbSen
     adEnvelope(g2.gain, t + 0.05, 0.06 * k, 0.02, 0.09);
     const end = t + 0.35;
     setTimeoutCtx(ctx, end, () => {
+      src.disconnect(bp);
+      src.disconnect(hp);
       g1.disconnect();
       g2.disconnect();
       bp.disconnect();

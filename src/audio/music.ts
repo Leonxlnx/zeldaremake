@@ -69,6 +69,7 @@ const HARP: [number, number][] = [
 ];
 
 export function createMusic(ctx: BaseAudioContext, out: AudioNode, reverbSend: AudioNode, rng: Rng, startAt = 0, tryFiles = true): Music {
+  // long-lived sources only (per-note oscillators stop themselves)
   const nodes: AudioScheduledSourceNode[] = [];
   let source: MusicSource = 'none';
   let procedural: ((t: number) => void) | null = null;
@@ -99,7 +100,6 @@ export function createMusic(ctx: BaseAudioContext, out: AudioNode, reverbSend: A
       vibOsc.connect(vibDepth);
       vibOsc.start(t);
       vibOsc.stop(t + dur + 0.6);
-      nodes.push(vibOsc);
       for (const [type, mult, det, g] of [
         ['triangle', 1, 0, 0.55],
         ['sine', 1, 4, 0.5],
@@ -114,7 +114,6 @@ export function createMusic(ctx: BaseAudioContext, out: AudioNode, reverbSend: A
         o.connect(og).connect(env);
         o.start(t);
         o.stop(t + dur + 0.6);
-        nodes.push(o);
       }
       // the breath: a puff of filtered noise at the onset
       const bg = gain(ctx, 0);
@@ -153,7 +152,6 @@ export function createMusic(ctx: BaseAudioContext, out: AudioNode, reverbSend: A
       o2.start(t);
       o.stop(t + decay + 0.05);
       o2.stop(t + decay + 0.05);
-      nodes.push(o, o2);
     };
 
     const pad = (t: number, midi: number, dur: number) => {
@@ -171,7 +169,6 @@ export function createMusic(ctx: BaseAudioContext, out: AudioNode, reverbSend: A
         o.connect(og).connect(env);
         o.start(t);
         o.stop(t + dur + 1.2);
-        nodes.push(o);
       }
       adsr(env.gain, t, dur, 0.2, 0.9, 0.5, 0.8, 1.1);
     };
