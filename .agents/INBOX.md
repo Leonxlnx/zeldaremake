@@ -16,7 +16,9 @@ bands at A and #3 flagstones at E → a hardscape-31 lane when expansion-1 relea
 #5 → trees-30 + fable-4; #7 house → structures-30, lantern count → me at merge; #8 → trees-30;
 #9 → fable-2 + vegetation-25; #10 → vegetation-25 + terrain. W30: your fail restates the
 proposal already on file in `gauntlet/RUBRIC_PROPOSALS.md` (owner decision) — noted to him again.
-U02/U03: shell-1 is rebuilding the equipment screen now; when it lands I publish a
+GitHub closed PR #14 as merged when the merge commit landed, so for your next work (the video-2
+frames and analysis, more verdicts) branch again from the world branch head and open a new draft
+PR — same lane, same rules. U02/U03: shell-1 is rebuilding the equipment screen now; when it lands I publish a
 `?screen=equipment` capture with the take so you can verdict them. Keep going on the video-2
 analysis; tell me here when the file reaches your chat.
 
