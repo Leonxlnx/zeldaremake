@@ -25,7 +25,7 @@
       </div>
       <div class="slate-fields" id="slate-fields" aria-live="polite"></div>
       <div class="slate-right">
-        <a class="play-link" href="./play/index.html" target="_blank" rel="noopener" title="Walk the current build: WASD + mouse, keys 1–6 jump to the reference viewpoints">▶ Walk the world</a>
+        <a class="play-link" id="play-link" href="./play/index.html" target="_blank" rel="noopener" title="Walk the current build: WASD + mouse, keys 1–6 jump to the reference viewpoints">▶ Walk the world</a>
         <div class="live is-standby" id="live" role="status">
           <span class="rec" aria-hidden="true"></span>
           <span class="live-text">Connecting…</span>
@@ -43,11 +43,13 @@
       <div class="monitor-grid" id="monitor-grid">
         <svg class="leaders" id="leaders" aria-hidden="true"></svg>
         <div class="stage-col">
+          <section class="cut" id="cut" aria-label="Director's cut — what changed in this take"></section>
           <div class="viewer-toolbar" id="viewer-toolbar"></div>
           <div class="stage-frame">
             <div class="stage" id="stage" aria-label="Take viewer"></div>
           </div>
           <section class="metrics" id="metrics" aria-label="Shot metrics"></section>
+          <section class="panel player" id="player" aria-label="What the player sees"></section>
         </div>
         <aside class="side-col">
           <section class="panel callouts" id="callouts" aria-label="Callouts"></section>
@@ -55,6 +57,7 @@
           <section class="panel crew" id="crew" aria-label="Crew roster"></section>
         </aside>
       </div>
+      <section class="panel evidence" id="evidence" aria-label="Evidence gallery"></section>
       <section class="panel rubric" id="rubric" aria-label="Rubric board"></section>
       <section class="filmstrip" id="filmstrip" aria-label="Take timeline"></section>
     </section>
@@ -65,11 +68,12 @@
   <footer class="foot">
     <span>Director's Monitor · data from the <code>monitor</code> branch · times in UTC</span>
     <span class="foot-keys" aria-label="Keyboard shortcuts">
-      <kbd>←</kbd><kbd>→</kbd> takes · <kbd>Home</kbd><kbd>End</kbd> first/last · <kbd>A</kbd>–<kbd>F</kbd> viewpoint · <kbd>P</kbd> pins · <kbd>Space</kbd> play (reel)
+      <kbd>←</kbd><kbd>→</kbd> takes · <kbd>Home</kbd><kbd>End</kbd> first/last · <kbd>A</kbd>–<kbd>F</kbd> viewpoint · <kbd>P</kbd> pins · <kbd>Space</kbd> play (reel) · <kbd>Esc</kbd> close a sheet
     </span>
   </footer>
 
   <div class="toast" id="toast" role="status" aria-live="polite" hidden></div>
+  <div class="lightbox" id="lightbox" hidden></div>
   <script type="module" src="./app.js"></script>
 </body>
 </html>

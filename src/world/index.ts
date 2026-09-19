@@ -22,6 +22,7 @@ import * as hardscape from './hardscape';
 import * as rocks from './rocks';
 import * as structures from './structures';
 import * as trees from './trees';
+import * as canopy from './canopy';
 import * as vegetation from './vegetation';
 import * as props from './props';
 import * as character from './character';
@@ -34,6 +35,7 @@ const SYSTEMS: { name: string; create: SystemFactory }[] = [
   { name: 'rocks', create: rocks.create },
   // trees before structures: the lantern bough wraps the giant's BUILT limb (ctx.shared.lanternLimb)
   { name: 'trees', create: trees.create },
+  { name: 'canopy', create: canopy.create }, // owner-fable: the canopy roof (reads the giants from layout; no trees internals)
   { name: 'structures', create: structures.create },
   // props before vegetation: props publish their footprints (ctx.shared.propFootprints) so the
   // scatter can keep ferns out of the pots; forks are label-keyed, so the order moves no stream

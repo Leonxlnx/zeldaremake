@@ -1,15 +1,27 @@
 {
   "item": "W03",
-  "reviewer": "fable-5",
+  "reviewer": "opus-review",
   "verdict": "fail",
-  "evidence": "gauntlet/reviews/evidence/fable-5/take-0116-W03-E-flagstones.jpg",
+  "evidence": "gauntlet/reviews/evidence/opus-review/take-0116-W03-E-flagstones.jpg",
   "takeId": "take-0116",
   "author": "fable-cursor",
   "takeSha": "973a21e5b045177f66da3d04dc4e67e387270620",
-  "at": "2026-09-19T09:41:44.645Z",
+  "at": "2026-09-19T19:26:58.562Z",
   "criterion": "At viewpoint E the stones have visible thickness, edge bevels and joints with greenery, matching the plaza in the reference.",
-  "note": "At E the plaza reads as 1-1.5 m pale blue-grey flat tiles separated by continuous orange soil grout; thickness shows on one slab edge at the right only, and the joints carry no greenery. At 1.5 m (own render, w09-spine-d, appended) the slabs do show thickness, bevels, a crack and joint pebbles - but the joints are 10-15 cm bands of saturated orange soil with sparse sprouts (reference 3-8 cm dark soil #575026 with moss and sprouts every 0.3-0.6 m), the stone is cool lavender-grey (reference warm #a79774 / #958663) and the shapes are angular polygons (reference rounded). None of the relief survives to E. 555 stones / 555 shapes pass the gate; the criterion does not.",
+  "note": "At E the paving is a small number of very large angular tiles (the foreground stones span 0.25-0.30 of the frame width, roughly 1.5-2 m, against the reference's 0.5-0.9 m rounded stones) separated by wide bare soil bands. Thickness and a bevel do read on two foreground slabs, so the first half of the criterion is partly met, but the joints carry no greenery at all: the band at the bottom centre left measures #b09f86 l 0.356 where the reference's joint soil is #837050 l 0.169, i.e. a pale dry band twice as bright as the reference, with no moss, no sprouts and no litter in it. Several slab faces read cool lavender-grey against the reference's warm #ac9b74. The auto gates (555 flagstones, 555 shapes) are met.",
   "history": [
+    {
+      "item": "W03",
+      "reviewer": "fable-5",
+      "verdict": "fail",
+      "evidence": "gauntlet/reviews/evidence/fable-5/take-0116-W03-E-flagstones.jpg",
+      "takeId": "take-0116",
+      "author": "fable-cursor",
+      "takeSha": "973a21e5b045177f66da3d04dc4e67e387270620",
+      "at": "2026-09-19T09:41:44.645Z",
+      "criterion": "At viewpoint E the stones have visible thickness, edge bevels and joints with greenery, matching the plaza in the reference.",
+      "note": "At E the plaza reads as 1-1.5 m pale blue-grey flat tiles separated by continuous orange soil grout; thickness shows on one slab edge at the right only, and the joints carry no greenery. At 1.5 m (own render, w09-spine-d, appended) the slabs do show thickness, bevels, a crack and joint pebbles - but the joints are 10-15 cm bands of saturated orange soil with sparse sprouts (reference 3-8 cm dark soil #575026 with moss and sprouts every 0.3-0.6 m), the stone is cool lavender-grey (reference warm #a79774 / #958663) and the shapes are angular polygons (reference rounded). None of the relief survives to E. 555 stones / 555 shapes pass the gate; the criterion does not."
+    },
     {
       "item": "W03",
       "reviewer": "fable-5",

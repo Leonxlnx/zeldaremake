@@ -2457,6 +2457,21 @@ Also: lantern bough still a thick plain beam across the top of B (trees pass pen
   audio are unverified visually (shell-1 timed out) — capture `?screen=equipment` next tick for
   fable-5's U02/U03 and the owner.
 
+### 22:10 UTC — tick 177: external PRs merged (#17 #18 #19 #20); round 48 launched (7 lanes)
+- Merges: owner-fable's canopy roof (`src/world/canopy/`, six views pixel-identical natively),
+  Astra's shaft fade (her take → take-0119 via `mergeLedgers`, chain ok), opus-review's second D7
+  verdict set (adds U02 fail / U03 pass; fable-5's kept in history; `\` paths normalised), fable-6's
+  director's-cut monitor + perf profile. PR #21 (Astra's run-contact runtime fix) held at her
+  request; `glbLink.ts` root/contact block reserved for her.
+- opus-review's player-height walk of round 47 is the round-48 brief: "fixed the things you can
+  touch, left the things you can see" — #01 the far forest through the arch, #07/#08 two cheap
+  bugs (opaque blue far-crown quads; an unlit polygon on the arch), #02 bollard standing stones,
+  #03 the ledge as a mound (fable-2), #04 joints/tints, #11 unlit hollow, #15 stairs at 6 m, #17
+  mannequin faces. Bag screen verified working by a non-author (two legibility defects → shell-2).
+- Launched trees-31, lod-1, hardscape-31, structures-31, vegetation-26, npc-2, shell-2 (inbox
+  22:05 has the split). Owner decision cards pending: flat hero lobes (F −0.0133), near shade
+  floors (C −0.0117 / F −0.0091), W30 sun direction.
+
 ## Pending corrections from reference/ANALYSIS.md (apply at integration, one commit)
 - `config.ts` palette → olive/khaki low-key (reference hero frames: hue 47–51°, sat 0.16–0.19,
   lum 0.35–0.39, 0 % blue sky): grass 0x8a8c55/0x5c6233/0x3a4420, moss 0x8b8948/0x5a523b,
@@ -2495,4 +2510,4 @@ Pick anything NOT claimed in `gauntlet/claims.json`. Good self-contained candida
   my own (GAUNTLET.md D7).
 
 ## Last updated
-2026-09-19T22:05:00Z
+2026-09-19T22:10:00Z

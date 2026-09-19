@@ -1,13 +1,26 @@
 {
   "item": "W31",
-  "reviewer": "fable-5",
+  "reviewer": "opus-review",
   "verdict": "fail",
-  "evidence": "gauntlet/reviews/evidence/fable-5/take-0116-W31-god-rays.jpg",
+  "evidence": "gauntlet/reviews/evidence/opus-review/take-0116-W31-A-god-rays.jpg",
   "takeId": "take-0116",
   "author": "fable-cursor",
   "takeSha": "973a21e5b045177f66da3d04dc4e67e387270620",
-  "at": "2026-09-19T09:33:50.677Z",
+  "at": "2026-09-19T19:31:10.105Z",
   "criterion": "Shafts are visible, soft, and directional as in the reference; they do not wash the whole frame.",
-  "note": "No shafts read at A: the upper left (x 0.0-0.35, y 0.0-0.40) is dark trunks and canopy and the centre is uniform haze with no directional structure; at F the top is flat grey sky. The reference's A has 3-4 broad soft beams entering from the upper left and leaning down-right, lighting the mist over the stair foot; F has four. The godRays audit is truthy, but the effect is not visible in either frame at 1280 px.",
-  "history": []
+  "note": "No shaft reads at A. The upper left, where the reference has three or four broad soft beams leaning down to the right and lighting the mist over the stair foot, is an even cool blue-grey field with trunks and a hut in it, measuring #7f8589 l 0.231 against the reference's warm #7d7b69 l 0.197, with no directional structure and no local luminance lift anywhere along a beam axis. The same is true of F, where the reference has four. The atmosphere audit reports godRays true, so the pass exists and is not visible in the frames the criterion names.",
+  "history": [
+    {
+      "item": "W31",
+      "reviewer": "fable-5",
+      "verdict": "fail",
+      "evidence": "gauntlet/reviews/evidence/fable-5/take-0116-W31-god-rays.jpg",
+      "takeId": "take-0116",
+      "author": "fable-cursor",
+      "takeSha": "973a21e5b045177f66da3d04dc4e67e387270620",
+      "at": "2026-09-19T09:33:50.677Z",
+      "criterion": "Shafts are visible, soft, and directional as in the reference; they do not wash the whole frame.",
+      "note": "No shafts read at A: the upper left (x 0.0-0.35, y 0.0-0.40) is dark trunks and canopy and the centre is uniform haze with no directional structure; at F the top is flat grey sky. The reference's A has 3-4 broad soft beams entering from the upper left and leaning down-right, lighting the mist over the stair foot; F has four. The godRays audit is truthy, but the effect is not visible in either frame at 1280 px."
+    }
+  ]
 }

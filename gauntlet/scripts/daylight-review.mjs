@@ -8,6 +8,9 @@ import puppeteer from 'puppeteer-core';
 import {ROOT,serveStatic,findChrome} from './lib/browser.mjs';
 
 const settings=process.argv[2]?JSON.parse(await fs.readFile(process.argv[2],'utf8')):{};
+for(const probe of [settings,...(settings.variants??[])])for(const [key,value] of Object.entries(probe.postfx??{})){
+ assert(typeof value==='boolean'||(typeof value==='number'&&Number.isFinite(value)),`Postfx override ${key} must be numeric or boolean; the renderer ignores other types`);
+}
 const out=path.join(ROOT,'art/environment',new Date().toISOString().replace(/[:.]/g,'-')+'-daylight');
 await fs.mkdir(out,{recursive:true});
 const report={sha:execFileSync('git',['rev-parse','HEAD'],{cwd:ROOT,encoding:'utf8'}).trim(),settings,images:{},errors:[]};

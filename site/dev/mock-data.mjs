@@ -376,10 +376,68 @@ async function main() {
     process.stdout.write(`  ${id}  ${at.toISOString()}  ${agent.padEnd(16)} phase ${String(phasePassed).padStart(2)}/${w1.length}${take.invalid ? '  STRUCK' : ''}\n`);
   }
 
+  // --- the director's cut extras (site/SCHEMA.md): a player strip on the last two takes (so the
+  // this-take ↔ previous toggle exists), one evidence set with before/after pairs, the play pointer
+  const POSES = [
+    ['w00-spine-f', 'Plaza, up the spine', 'A_stairs'],
+    ['w04-spine-l', 'Under the lantern limb', 'B_house'],
+    ['w13-spine-f', 'Toward the log arch', 'D_log'],
+    ['w22-stairs-u', 'Up from the stair foot', 'F_canopy'],
+    ['w23-stairs-f', 'Stair treads', 'A_stairs'],
+    ['sn-house-door', "Saria's door", 'B_house'],
+  ];
+  const playerCrop = async (src, dst) => {
+    const meta = await sharp(src).metadata();
+    await sharp(src).extract({ left: Math.round(meta.width * 0.2), top: Math.round(meta.height * 0.25), width: Math.round(meta.width * 0.6), height: Math.round(meta.height * 0.6) }).resize(1280, 720).jpeg({ quality: 82 }).toFile(dst);
+  };
+  for (const t of takes.slice(-2)) {
+    const pdir = path.join(OUT, 'takes', t.id, 'player');
+    fs.mkdirSync(pdir, { recursive: true });
+    const poses = [];
+    for (const [name, label, vp] of POSES) {
+      await playerCrop(path.join(OUT, t.shots.find((s) => s.viewpoint === vp).image), path.join(pdir, `${name}.jpg`));
+      poses.push({ name, label, file: `takes/${t.id}/player/${name}.jpg`, p: [0.94, 1.46, 15.5], t: [-0.3, 1.31, 5.58], fov: 46 });
+    }
+    t.player = { index: `takes/${t.id}/player/index.json`, count: poses.length, renderer: 'SwiftShader', capturedAt: t.at, sha: t.sha, width: 1280, height: 720, posesFile: 'site/tools/player-poses.json', poses };
+    fs.writeFileSync(path.join(pdir, 'index.json'), JSON.stringify(t.player, null, 2));
+  }
+  const lastT = takes[takes.length - 1];
+  const prevT = takes[takes.length - 2];
+  lastT.round = 1;
+  const evDir = path.join(OUT, 'evidence', 'round01-review');
+  fs.mkdirSync(evDir, { recursive: true });
+  const sheets = [];
+  const sheet = async (file, buildBuf, extra) => {
+    const info = await sharp(await buildBuf()).jpeg({ quality: 78 }).toFile(path.join(evDir, file));
+    sheets.push({ file: `evidence/round01-review/${file}`, source: file, hash: sha256(file).slice(0, 16), srcBytes: info.size, name: file.replace(/\.jpg$/, ''), w: info.width, h: info.height, bytes: info.size, pairKey: null, pairRole: null, pose: null, ...extra });
+  };
+  const sideBySide = async (a, b) => {
+    const w = 640, h = 360;
+    const [ta, tb] = await Promise.all([sharp(a).resize(w, h).toBuffer(), sharp(b).resize(w, h).toBuffer()]);
+    return sharp({ create: { width: w * 2 + 4, height: h, channels: 3, background: '#000' } }).composite([{ input: ta, left: 0, top: 0 }, { input: tb, left: w + 4, top: 0 }]).jpeg().toBuffer();
+  };
+  for (const vp of VIEWPOINTS.slice(0, 4)) {
+    const before = path.join(OUT, prevT.shots.find((s) => s.viewpoint === vp.id).image);
+    const after = path.join(OUT, lastT.shots.find((s) => s.viewpoint === vp.id).image);
+    await sheet(`lane1-${vp.id.toLowerCase()}.jpg`, () => sideBySide(before, after), { lane: 'lane', laneRaw: 'lane1' });
+  }
+  for (const role of ['before', 'after']) {
+    const t = role === 'before' ? prevT : lastT;
+    await sheet(`lane2-w00-spine-f-${role}.jpg`, () => sharp(path.join(OUT, `takes/${t.id}/player/w00-spine-f.jpg`)).toBuffer(), { lane: 'lane', laneRaw: 'lane2', pose: 'w00-spine-f', pairKey: 'lane2-w00-spine-f', pairRole: role });
+  }
+  fs.writeFileSync(path.join(evDir, 'README.md'), `# Round 1 review — mock evidence (${prevT.id} → ${lastT.id})\n\nBefore = \`${prevT.shortSha}\` (${prevT.id}), after = \`${lastT.shortSha}\` (${lastT.id}). Comparison evidence only.\n\n| pose | item | verdict | what changed |\n| --- | --- | --- | --- |\n| \`w00-spine-f\` | W02 | **PASS** | the stair slabs read as separate worn stones at player height |\n| \`sn-house-door\` | W25 | PASS (modest) | the doorway keeps its lit interior; the eave still reads clean |\n\nSix views: A +0.0004, B −0.0002, C 0, D −0.0011, E +0.0001, F +0.0003.\n`);
+  fs.mkdirSync(path.join(OUT, 'evidence'), { recursive: true });
+  fs.writeFileSync(path.join(OUT, 'evidence', 'index.json'), JSON.stringify({
+    generatedAt: lastT.at,
+    source: { sha: lastT.sha, shortSha: lastT.shortSha, branch: lastT.branch },
+    sets: [{ id: 'round01-review', kind: 'round', round: 1, title: `Round 1 review — mock evidence (${prevT.id} → ${lastT.id})`, text: 'evidence/round01-review/README.md', takes: [prevT.id, lastT.id], updatedAt: lastT.at, sheets }],
+  }, null, 2));
+
   const takesJson = {
     project: 'zeldaremake',
     updatedAt: takes[takes.length - 1].at,
     monitorCadenceMinutes: 60,
+    play: { takeId: lastT.id, sha: lastT.sha, shortSha: lastT.shortSha, branch: lastT.branch, at: lastT.at, path: 'play/index.html' },
     takes,
   };
   fs.writeFileSync(path.join(OUT, 'takes.json'), JSON.stringify(takesJson, null, 2));

@@ -1,0 +1,146 @@
+{
+  "baseline": {
+    "sheet": "sheets\\views-baseline.jpg",
+    "diffs": []
+  },
+  "lod18": {
+    "sheet": "sheets\\views-lod18.jpg",
+    "diffs": [
+      {
+        "view": "A_stairs",
+        "fraction": 0,
+        "file": "sheets\\diff-lod18-A_stairs.jpg"
+      },
+      {
+        "view": "B_house",
+        "fraction": 0.0008170572916666667,
+        "file": "sheets\\diff-lod18-B_house.jpg"
+      },
+      {
+        "view": "C_lookback",
+        "fraction": 0.00020182291666666667,
+        "file": "sheets\\diff-lod18-C_lookback.jpg"
+      },
+      {
+        "view": "D_log",
+        "fraction": 0.004361979166666667,
+        "file": "sheets\\diff-lod18-D_log.jpg"
+      },
+      {
+        "view": "E_ground",
+        "fraction": 0.0008170572916666667,
+        "file": "sheets\\diff-lod18-E_ground.jpg"
+      },
+      {
+        "view": "F_canopy",
+        "fraction": 0.04516818576388889,
+        "file": "sheets\\diff-lod18-F_canopy.jpg"
+      }
+    ]
+  },
+  "lod25": {
+    "sheet": "sheets\\views-lod25.jpg",
+    "diffs": [
+      {
+        "view": "A_stairs",
+        "fraction": 0,
+        "file": "sheets\\diff-lod25-A_stairs.jpg"
+      },
+      {
+        "view": "B_house",
+        "fraction": 0.0008170572916666667,
+        "file": "sheets\\diff-lod25-B_house.jpg"
+      },
+      {
+        "view": "C_lookback",
+        "fraction": 0.008862847222222222,
+        "file": "sheets\\diff-lod25-C_lookback.jpg"
+      },
+      {
+        "view": "D_log",
+        "fraction": 0.011912977430555555,
+        "file": "sheets\\diff-lod25-D_log.jpg"
+      },
+      {
+        "view": "E_ground",
+        "fraction": 0.0008170572916666667,
+        "file": "sheets\\diff-lod25-E_ground.jpg"
+      },
+      {
+        "view": "F_canopy",
+        "fraction": 0.04516818576388889,
+        "file": "sheets\\diff-lod25-F_canopy.jpg"
+      }
+    ]
+  },
+  "prewarm": {
+    "sheet": "sheets\\views-prewarm.jpg",
+    "diffs": [
+      {
+        "view": "A_stairs",
+        "fraction": 0,
+        "file": "sheets\\diff-prewarm-A_stairs.jpg"
+      },
+      {
+        "view": "B_house",
+        "fraction": 0,
+        "file": "sheets\\diff-prewarm-B_house.jpg"
+      },
+      {
+        "view": "C_lookback",
+        "fraction": 0,
+        "file": "sheets\\diff-prewarm-C_lookback.jpg"
+      },
+      {
+        "view": "D_log",
+        "fraction": 0,
+        "file": "sheets\\diff-prewarm-D_log.jpg"
+      },
+      {
+        "view": "E_ground",
+        "fraction": 0,
+        "file": "sheets\\diff-prewarm-E_ground.jpg"
+      },
+      {
+        "view": "F_canopy",
+        "fraction": 0,
+        "file": "sheets\\diff-prewarm-F_canopy.jpg"
+      }
+    ]
+  },
+  "lod18prewarm": {
+    "sheet": "sheets\\views-lod18prewarm.jpg",
+    "diffs": [
+      {
+        "view": "A_stairs",
+        "fraction": 0,
+        "file": "sheets\\diff-lod18prewarm-A_stairs.jpg"
+      },
+      {
+        "view": "B_house",
+        "fraction": 0.0008170572916666667,
+        "file": "sheets\\diff-lod18prewarm-B_house.jpg"
+      },
+      {
+        "view": "C_lookback",
+        "fraction": 0.00020182291666666667,
+        "file": "sheets\\diff-lod18prewarm-C_lookback.jpg"
+      },
+      {
+        "view": "D_log",
+        "fraction": 0.004361979166666667,
+        "file": "sheets\\diff-lod18prewarm-D_log.jpg"
+      },
+      {
+        "view": "E_ground",
+        "fraction": 0.0008170572916666667,
+        "file": "sheets\\diff-lod18prewarm-E_ground.jpg"
+      },
+      {
+        "view": "F_canopy",
+        "fraction": 0.04516818576388889,
+        "file": "sheets\\diff-lod18prewarm-F_canopy.jpg"
+      }
+    ]
+  }
+}

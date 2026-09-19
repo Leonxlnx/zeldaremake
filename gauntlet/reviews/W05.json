@@ -1,13 +1,26 @@
 {
   "item": "W05",
-  "reviewer": "fable-5",
+  "reviewer": "opus-review",
   "verdict": "fail",
-  "evidence": "gauntlet/reviews/evidence/fable-5/take-0116-W05-C-embankments.jpg",
+  "evidence": "gauntlet/reviews/evidence/opus-review/take-0116-W05-C-embankments.jpg",
   "takeId": "take-0116",
   "author": "fable-cursor",
   "takeSha": "973a21e5b045177f66da3d04dc4e67e387270620",
-  "at": "2026-09-19T09:33:47.014Z",
+  "at": "2026-09-19T19:27:04.127Z",
   "criterion": "Embankments beside the stairs and the ledge edges show natural terracing and erosion, not smooth noise blobs.",
-  "note": "At C the embankment between the stair foot and Link is a smooth lawn-textured mound with one boulder and a dome bush: no terracing, no erosion channels, no exposed soil or root steps; the ledge edge behind it is a smooth curve into haze. The reference's bank is a stepped, dark, mossy terrace with shrubs and a stone fragment above the stair flank. 318k vertices / 6 detail passes pass the gate, but the forms read as smooth noise blobs under a grass texture. Crop x 0.0-0.55, y 0.15-0.75.",
-  "history": []
+  "note": "The embankment beside the stairs at C is a single smooth grass mound with a smooth pale dome boulder set into it and a smooth dark dome bush behind; no terrace steps, no erosion channels, no exposed strata or root ridges anywhere in the bank, and the ledge edge above it is a plain rounded lip. The reference bank in the same region is a dark stepped mossy face with shrub tiers. Small stones scattered at its foot read as a surface scatter rather than as material eroded out of the bank. The auto gates are met (terrain vertices 318528, detailPasses 6) so the four authored scales exist in the heightfield, but at the criterion's viewpoint the medium scale does not read.",
+  "history": [
+    {
+      "item": "W05",
+      "reviewer": "fable-5",
+      "verdict": "fail",
+      "evidence": "gauntlet/reviews/evidence/fable-5/take-0116-W05-C-embankments.jpg",
+      "takeId": "take-0116",
+      "author": "fable-cursor",
+      "takeSha": "973a21e5b045177f66da3d04dc4e67e387270620",
+      "at": "2026-09-19T09:33:47.014Z",
+      "criterion": "Embankments beside the stairs and the ledge edges show natural terracing and erosion, not smooth noise blobs.",
+      "note": "At C the embankment between the stair foot and Link is a smooth lawn-textured mound with one boulder and a dome bush: no terracing, no erosion channels, no exposed soil or root steps; the ledge edge behind it is a smooth curve into haze. The reference's bank is a stepped, dark, mossy terrace with shrubs and a stone fragment above the stair flank. 318k vertices / 6 detail passes pass the gate, but the forms read as smooth noise blobs under a grass texture. Crop x 0.0-0.55, y 0.15-0.75."
+    }
+  ]
 }

@@ -1,13 +1,26 @@
 {
   "item": "W06",
-  "reviewer": "fable-5",
+  "reviewer": "opus-review",
   "verdict": "fail",
-  "evidence": "gauntlet/reviews/evidence/fable-5/take-0116-W06-E-ground-transitions.jpg",
+  "evidence": "gauntlet/reviews/evidence/opus-review/take-0116-W06-E-ground-layers.jpg",
   "takeId": "take-0116",
   "author": "fable-cursor",
   "takeSha": "973a21e5b045177f66da3d04dc4e67e387270620",
-  "at": "2026-09-19T09:33:47.235Z",
+  "at": "2026-09-19T19:27:27.167Z",
   "criterion": "Ground at viewpoint E shows soil/moss/grass transitions with fine roughness like the reference plaza edges.",
-  "note": "At E the ground transition is grass -> a flat orange soil band -> slab, a two-tone hard edge along the whole left verge (x 0.0-0.55, y 0.58-1.0): no moss halo, no soil roughness, no shade, the verge itself a uniform pale hay carpet. At the house base the ground is a green mound with a pile of identical grey pebbles. The reference shows dark shaded soil, grass tufts, broadleaf weeds and moss grading into the stone edges with fine roughness. Layers/detailNormal pass the gate; the visual transition does not.",
-  "history": []
+  "note": "The ground transition at E is two hard steps, not a blend: dense green grass, then a uniform pale soil band, then stone, with a sharp mask edge at each boundary and no moss halo, no litter and no roughness modulation across the band. The band measures #b09f86 l 0.356 against the reference's #837050 l 0.169 at the same region, so it reads as a dry pale strip rather than damp joint soil. The reference at the same place grades stone into a 10-30 cm moss and soil halo and then into grass, with fine grain visible on every part of it. The six-layer splat and the detail normal are present in the audit; what is missing is the transition between them at frame scale.",
+  "history": [
+    {
+      "item": "W06",
+      "reviewer": "fable-5",
+      "verdict": "fail",
+      "evidence": "gauntlet/reviews/evidence/fable-5/take-0116-W06-E-ground-transitions.jpg",
+      "takeId": "take-0116",
+      "author": "fable-cursor",
+      "takeSha": "973a21e5b045177f66da3d04dc4e67e387270620",
+      "at": "2026-09-19T09:33:47.235Z",
+      "criterion": "Ground at viewpoint E shows soil/moss/grass transitions with fine roughness like the reference plaza edges.",
+      "note": "At E the ground transition is grass -> a flat orange soil band -> slab, a two-tone hard edge along the whole left verge (x 0.0-0.55, y 0.58-1.0): no moss halo, no soil roughness, no shade, the verge itself a uniform pale hay carpet. At the house base the ground is a green mound with a pile of identical grey pebbles. The reference shows dark shaded soil, grass tufts, broadleaf weeds and moss grading into the stone edges with fine roughness. Layers/detailNormal pass the gate; the visual transition does not."
+    }
+  ]
 }

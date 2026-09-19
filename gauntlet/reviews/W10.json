@@ -1,13 +1,26 @@
 {
   "item": "W10",
-  "reviewer": "fable-5",
+  "reviewer": "opus-review",
   "verdict": "fail",
-  "evidence": "gauntlet/reviews/evidence/fable-5/take-0116-W10-F-canopy.jpg",
+  "evidence": "gauntlet/reviews/evidence/opus-review/take-0116-W10-F-canopy-roof.jpg",
   "takeId": "take-0116",
   "author": "fable-cursor",
   "takeSha": "973a21e5b045177f66da3d04dc4e67e387270620",
-  "at": "2026-09-19T09:33:48.081Z",
+  "at": "2026-09-19T19:28:18.237Z",
   "criterion": "Overhead reads as a dense, layered canopy with light breaking through like the top of the reference frames.",
-  "note": "From F the upper half is a flat pale-grey sky with a few single-tone dark-green lobes (the near-canopy discs, survey-2 #07), Saria's eave with pods at the top left and a bare orange trunk at the right. There are no layered leaf masses and no light breaking through - the 1.6 % sky fraction is met because flat disc silhouettes cover the sky, not a canopy. The reference F has dense dark leaf masses at both top corners with four shafts leaning down-right through a bright gap. Crops x 0.0-0.5 and 0.5-1.0, y 0.0-0.42.",
-  "history": []
+  "note": "The top half of F is an open pale grey field with a dozen flat dark-green lobes floating in it. The lobes are single-tone cards with hard scalloped edges, they do not overlap into layers, and no light breaks through anywhere: the upper centre measures #646967 l 0.139 with sigma 45.9 against the reference's #85857a l 0.231 with sigma 18.9, i.e. ours is darker overall and carries two and a half times the local contrast because it alternates between cut-out lobe and empty sky. The reference's top half is a continuous luminous canopy mass with beams coming through it. The auto gate passes easily (skyFraction 0.0156 <= 0.45) because the empty field is grey rather than blue, so the metric does not see the hole the criterion is about.",
+  "history": [
+    {
+      "item": "W10",
+      "reviewer": "fable-5",
+      "verdict": "fail",
+      "evidence": "gauntlet/reviews/evidence/fable-5/take-0116-W10-F-canopy.jpg",
+      "takeId": "take-0116",
+      "author": "fable-cursor",
+      "takeSha": "973a21e5b045177f66da3d04dc4e67e387270620",
+      "at": "2026-09-19T09:33:48.081Z",
+      "criterion": "Overhead reads as a dense, layered canopy with light breaking through like the top of the reference frames.",
+      "note": "From F the upper half is a flat pale-grey sky with a few single-tone dark-green lobes (the near-canopy discs, survey-2 #07), Saria's eave with pods at the top left and a bare orange trunk at the right. There are no layered leaf masses and no light breaking through - the 1.6 % sky fraction is met because flat disc silhouettes cover the sky, not a canopy. The reference F has dense dark leaf masses at both top corners with four shafts leaning down-right through a bright gap. Crops x 0.0-0.5 and 0.5-1.0, y 0.0-0.42."
+    }
+  ]
 }

@@ -1,0 +1,1335 @@
+{
+  "sha": "36fbeff48d6e8f4d0ee3b51fce8c330d43873b28",
+  "settings": {
+    "views": [
+      "A_stairs",
+      "B_house",
+      "C_lookback",
+      "D_log",
+      "E_ground",
+      "F_canopy",
+      "sky-opening"
+    ],
+    "walkFrames": 45,
+    "walkPath": "stairs"
+  },
+  "images": {
+    "A_stairs": {
+      "variant": {
+        "name": "default"
+      },
+      "sha256": "79f6304cf74ec78e206c90416fbf3ef128dcd18335e23462d8b2ccfdb3e5f254",
+      "stats": {
+        "simTime": 12.6,
+        "drawCalls": 521,
+        "triangles": 8796924,
+        "geometries": 359,
+        "textures": 82,
+        "programs": 91,
+        "width": 1280,
+        "height": 720,
+        "pixelRatio": 1
+      },
+      "camera": {
+        "position": [
+          0.4,
+          1.8,
+          8.6
+        ],
+        "direction": [
+          0.4001487551488514,
+          -0.05779926463261199,
+          -0.9146257260545179
+        ],
+        "fov": 46
+      },
+      "lighting": {
+        "sunAzimuthDeg": -128,
+        "sunElevationDeg": 38,
+        "sunIntensity": 4.4,
+        "sunColor": "#ffe7bf",
+        "shadows": true,
+        "shadowMapSize": 4096,
+        "shadowType": "pcss-vogel+canopy-transmission",
+        "shadowFilterTaps": 12,
+        "shadowSearchTaps": 8,
+        "shadowFilterDynamic": false,
+        "shadowWindowRadiusM": 46,
+        "shadowSnapSpace": "light-camera-texel",
+        "shadowSnapMetres": 0.0224609375,
+        "shadowTexelCm": 2.2,
+        "shadowBias": -0.00012,
+        "shadowNormalBias": 0.028,
+        "shadowRadiusTexels": 1.5,
+        "shadowPenumbraPerM": 0.0093,
+        "shadowPenumbraRangeM": [
+          0.04,
+          0.45
+        ],
+        "shadowCanopyLeak": 0.1,
+        "shadowCanopyLeakRangeM": [
+          5,
+          11
+        ],
+        "cascades": 1,
+        "hemiIntensity": 0.55,
+        "hemiSkyLinear": [
+          0.479,
+          0.638,
+          0.745
+        ],
+        "hemiGroundLinear": [
+          0.407,
+          0.381,
+          0.242
+        ],
+        "environmentMap": true,
+        "environmentIntensity": 0.22,
+        "environmentTint": [
+          1.049,
+          1,
+          1.0025
+        ]
+      }
+    },
+    "B_house": {
+      "variant": {
+        "name": "default"
+      },
+      "sha256": "15ff2508dd4ce421905b9ddfe6f852d0352ad2910af98751713b2cbff4733d3e",
+      "stats": {
+        "simTime": 12.6,
+        "drawCalls": 479,
+        "triangles": 7943574,
+        "geometries": 385,
+        "textures": 82,
+        "programs": 91,
+        "width": 1280,
+        "height": 720,
+        "pixelRatio": 1
+      },
+      "camera": {
+        "position": [
+          0,
+          1.5,
+          2
+        ],
+        "direction": [
+          0.33630596344635905,
+          0.013452238537854384,
+          -0.9416566976498055
+        ],
+        "fov": 46
+      },
+      "lighting": {
+        "sunAzimuthDeg": -128,
+        "sunElevationDeg": 38,
+        "sunIntensity": 4.4,
+        "sunColor": "#ffe7bf",
+        "shadows": true,
+        "shadowMapSize": 4096,
+        "shadowType": "pcss-vogel+canopy-transmission",
+        "shadowFilterTaps": 12,
+        "shadowSearchTaps": 8,
+        "shadowFilterDynamic": false,
+        "shadowWindowRadiusM": 46,
+        "shadowSnapSpace": "light-camera-texel",
+        "shadowSnapMetres": 0.0224609375,
+        "shadowTexelCm": 2.2,
+        "shadowBias": -0.00012,
+        "shadowNormalBias": 0.028,
+        "shadowRadiusTexels": 1.5,
+        "shadowPenumbraPerM": 0.0093,
+        "shadowPenumbraRangeM": [
+          0.04,
+          0.45
+        ],
+        "shadowCanopyLeak": 0.1,
+        "shadowCanopyLeakRangeM": [
+          5,
+          11
+        ],
+        "cascades": 1,
+        "hemiIntensity": 0.55,
+        "hemiSkyLinear": [
+          0.479,
+          0.638,
+          0.745
+        ],
+        "hemiGroundLinear": [
+          0.407,
+          0.381,
+          0.242
+        ],
+        "environmentMap": true,
+        "environmentIntensity": 0.22,
+        "environmentTint": [
+          1.049,
+          1,
+          1.0025
+        ]
+      }
+    },
+    "C_lookback": {
+      "variant": {
+        "name": "default"
+      },
+      "sha256": "8aa0c9316ea4304477f094504224c9073ba99bd4b46e94604b579de017721d8d",
+      "stats": {
+        "simTime": 12.6,
+        "drawCalls": 363,
+        "triangles": 7372192,
+        "geometries": 418,
+        "textures": 82,
+        "programs": 91,
+        "width": 1280,
+        "height": 720,
+        "pixelRatio": 1
+      },
+      "camera": {
+        "position": [
+          2.33,
+          1.45,
+          -7.67
+        ],
+        "direction": [
+          0.13040706314611447,
+          -0.06136802971581855,
+          0.9895594791675757
+        ],
+        "fov": 46
+      },
+      "lighting": {
+        "sunAzimuthDeg": -128,
+        "sunElevationDeg": 38,
+        "sunIntensity": 4.4,
+        "sunColor": "#ffe7bf",
+        "shadows": true,
+        "shadowMapSize": 4096,
+        "shadowType": "pcss-vogel+canopy-transmission",
+        "shadowFilterTaps": 12,
+        "shadowSearchTaps": 8,
+        "shadowFilterDynamic": false,
+        "shadowWindowRadiusM": 46,
+        "shadowSnapSpace": "light-camera-texel",
+        "shadowSnapMetres": 0.0224609375,
+        "shadowTexelCm": 2.2,
+        "shadowBias": -0.00012,
+        "shadowNormalBias": 0.028,
+        "shadowRadiusTexels": 1.5,
+        "shadowPenumbraPerM": 0.0093,
+        "shadowPenumbraRangeM": [
+          0.04,
+          0.45
+        ],
+        "shadowCanopyLeak": 0.1,
+        "shadowCanopyLeakRangeM": [
+          5,
+          11
+        ],
+        "cascades": 1,
+        "hemiIntensity": 0.55,
+        "hemiSkyLinear": [
+          0.479,
+          0.638,
+          0.745
+        ],
+        "hemiGroundLinear": [
+          0.407,
+          0.381,
+          0.242
+        ],
+        "environmentMap": true,
+        "environmentIntensity": 0.22,
+        "environmentTint": [
+          1.049,
+          1,
+          1.0025
+        ]
+      }
+    },
+    "D_log": {
+      "variant": {
+        "name": "default"
+      },
+      "sha256": "85d543d792028ab030880be5af53068cf6d5439bcbcd1ad1153a77531d286655",
+      "stats": {
+        "simTime": 12.6,
+        "drawCalls": 354,
+        "triangles": 8123365,
+        "geometries": 430,
+        "textures": 82,
+        "programs": 91,
+        "width": 1280,
+        "height": 720,
+        "pixelRatio": 1
+      },
+      "camera": {
+        "position": [
+          0.2,
+          1.45,
+          -3
+        ],
+        "direction": [
+          0.10953219056304957,
+          0.03311438319348014,
+          -0.9934314958044038
+        ],
+        "fov": 48
+      },
+      "lighting": {
+        "sunAzimuthDeg": -128,
+        "sunElevationDeg": 38,
+        "sunIntensity": 4.4,
+        "sunColor": "#ffe7bf",
+        "shadows": true,
+        "shadowMapSize": 4096,
+        "shadowType": "pcss-vogel+canopy-transmission",
+        "shadowFilterTaps": 12,
+        "shadowSearchTaps": 8,
+        "shadowFilterDynamic": false,
+        "shadowWindowRadiusM": 46,
+        "shadowSnapSpace": "light-camera-texel",
+        "shadowSnapMetres": 0.0224609375,
+        "shadowTexelCm": 2.2,
+        "shadowBias": -0.00012,
+        "shadowNormalBias": 0.028,
+        "shadowRadiusTexels": 1.5,
+        "shadowPenumbraPerM": 0.0093,
+        "shadowPenumbraRangeM": [
+          0.04,
+          0.45
+        ],
+        "shadowCanopyLeak": 0.1,
+        "shadowCanopyLeakRangeM": [
+          5,
+          11
+        ],
+        "cascades": 1,
+        "hemiIntensity": 0.55,
+        "hemiSkyLinear": [
+          0.479,
+          0.638,
+          0.745
+        ],
+        "hemiGroundLinear": [
+          0.407,
+          0.381,
+          0.242
+        ],
+        "environmentMap": true,
+        "environmentIntensity": 0.22,
+        "environmentTint": [
+          1.049,
+          1,
+          1.0025
+        ]
+      }
+    },
+    "E_ground": {
+      "variant": {
+        "name": "default"
+      },
+      "sha256": "15ff2508dd4ce421905b9ddfe6f852d0352ad2910af98751713b2cbff4733d3e",
+      "stats": {
+        "simTime": 12.6,
+        "drawCalls": 479,
+        "triangles": 7943574,
+        "geometries": 430,
+        "textures": 82,
+        "programs": 91,
+        "width": 1280,
+        "height": 720,
+        "pixelRatio": 1
+      },
+      "camera": {
+        "position": [
+          0,
+          1.5,
+          2
+        ],
+        "direction": [
+          0.33630596344635905,
+          0.013452238537854384,
+          -0.9416566976498055
+        ],
+        "fov": 46
+      },
+      "lighting": {
+        "sunAzimuthDeg": -128,
+        "sunElevationDeg": 38,
+        "sunIntensity": 4.4,
+        "sunColor": "#ffe7bf",
+        "shadows": true,
+        "shadowMapSize": 4096,
+        "shadowType": "pcss-vogel+canopy-transmission",
+        "shadowFilterTaps": 12,
+        "shadowSearchTaps": 8,
+        "shadowFilterDynamic": false,
+        "shadowWindowRadiusM": 46,
+        "shadowSnapSpace": "light-camera-texel",
+        "shadowSnapMetres": 0.0224609375,
+        "shadowTexelCm": 2.2,
+        "shadowBias": -0.00012,
+        "shadowNormalBias": 0.028,
+        "shadowRadiusTexels": 1.5,
+        "shadowPenumbraPerM": 0.0093,
+        "shadowPenumbraRangeM": [
+          0.04,
+          0.45
+        ],
+        "shadowCanopyLeak": 0.1,
+        "shadowCanopyLeakRangeM": [
+          5,
+          11
+        ],
+        "cascades": 1,
+        "hemiIntensity": 0.55,
+        "hemiSkyLinear": [
+          0.479,
+          0.638,
+          0.745
+        ],
+        "hemiGroundLinear": [
+          0.407,
+          0.381,
+          0.242
+        ],
+        "environmentMap": true,
+        "environmentIntensity": 0.22,
+        "environmentTint": [
+          1.049,
+          1,
+          1.0025
+        ]
+      }
+    },
+    "F_canopy": {
+      "variant": {
+        "name": "default"
+      },
+      "sha256": "ad4267ab9bc8a79c6b979ba542d6099cad327440d0e7846cc0207e4530a8f0f4",
+      "stats": {
+        "simTime": 12.6,
+        "drawCalls": 468,
+        "triangles": 8258703,
+        "geometries": 433,
+        "textures": 82,
+        "programs": 91,
+        "width": 1280,
+        "height": 720,
+        "pixelRatio": 1
+      },
+      "camera": {
+        "position": [
+          -1.96,
+          1.8,
+          4
+        ],
+        "direction": [
+          0.9721254966661625,
+          -0.06836560096623101,
+          -0.22427252024288002
+        ],
+        "fov": 46
+      },
+      "lighting": {
+        "sunAzimuthDeg": -128,
+        "sunElevationDeg": 38,
+        "sunIntensity": 4.4,
+        "sunColor": "#ffe7bf",
+        "shadows": true,
+        "shadowMapSize": 4096,
+        "shadowType": "pcss-vogel+canopy-transmission",
+        "shadowFilterTaps": 12,
+        "shadowSearchTaps": 8,
+        "shadowFilterDynamic": false,
+        "shadowWindowRadiusM": 46,
+        "shadowSnapSpace": "light-camera-texel",
+        "shadowSnapMetres": 0.0224609375,
+        "shadowTexelCm": 2.2,
+        "shadowBias": -0.00012,
+        "shadowNormalBias": 0.028,
+        "shadowRadiusTexels": 1.5,
+        "shadowPenumbraPerM": 0.0093,
+        "shadowPenumbraRangeM": [
+          0.04,
+          0.45
+        ],
+        "shadowCanopyLeak": 0.1,
+        "shadowCanopyLeakRangeM": [
+          5,
+          11
+        ],
+        "cascades": 1,
+        "hemiIntensity": 0.55,
+        "hemiSkyLinear": [
+          0.479,
+          0.638,
+          0.745
+        ],
+        "hemiGroundLinear": [
+          0.407,
+          0.381,
+          0.242
+        ],
+        "environmentMap": true,
+        "environmentIntensity": 0.22,
+        "environmentTint": [
+          1.049,
+          1,
+          1.0025
+        ]
+      }
+    },
+    "sky-opening": {
+      "variant": {
+        "name": "default"
+      },
+      "sha256": "1c3606622946e92c8f79aa3fb4ab024764b69efdb6806ed3f9ad53551936fea0",
+      "stats": {
+        "simTime": 12.6,
+        "drawCalls": 350,
+        "triangles": 6997751,
+        "geometries": 453,
+        "textures": 82,
+        "programs": 92,
+        "width": 1280,
+        "height": 720,
+        "pixelRatio": 1
+      },
+      "camera": {
+        "position": [
+          0,
+          1.8,
+          0.5
+        ],
+        "direction": [
+          8.466276089701586e-17,
+          0.7225449858931141,
+          -0.6913239062557577
+        ],
+        "fov": 72
+      },
+      "lighting": {
+        "sunAzimuthDeg": -128,
+        "sunElevationDeg": 38,
+        "sunIntensity": 4.4,
+        "sunColor": "#ffe7bf",
+        "shadows": true,
+        "shadowMapSize": 4096,
+        "shadowType": "pcss-vogel+canopy-transmission",
+        "shadowFilterTaps": 12,
+        "shadowSearchTaps": 8,
+        "shadowFilterDynamic": false,
+        "shadowWindowRadiusM": 46,
+        "shadowSnapSpace": "light-camera-texel",
+        "shadowSnapMetres": 0.0224609375,
+        "shadowTexelCm": 2.2,
+        "shadowBias": -0.00012,
+        "shadowNormalBias": 0.028,
+        "shadowRadiusTexels": 1.5,
+        "shadowPenumbraPerM": 0.0093,
+        "shadowPenumbraRangeM": [
+          0.04,
+          0.45
+        ],
+        "shadowCanopyLeak": 0.1,
+        "shadowCanopyLeakRangeM": [
+          5,
+          11
+        ],
+        "cascades": 1,
+        "hemiIntensity": 0.55,
+        "hemiSkyLinear": [
+          0.479,
+          0.638,
+          0.745
+        ],
+        "hemiGroundLinear": [
+          0.407,
+          0.381,
+          0.242
+        ],
+        "environmentMap": true,
+        "environmentIntensity": 0.22,
+        "environmentTint": [
+          1.049,
+          1,
+          1.0025
+        ]
+      }
+    }
+  },
+  "errors": [],
+  "captureScriptSha256": "84d63c96b5f6c65dd6a018f31c757fa8d620ff973f2affaf04515b541d00c211",
+  "sourceDiffSha256": "7886e97e60dc787024d30cc6c5aa8cab2db070b8194361836fe2dccf3b8efe30",
+  "walk": [
+    {
+      "file": "walk-000.png",
+      "camera": {
+        "position": [
+          6.874208754750392,
+          1.8,
+          0.2321171712946937
+        ],
+        "direction": [
+          0.6892750280440635,
+          0.48564293117863233,
+          -0.5376345218743696
+        ],
+        "fov": 72
+      },
+      "sha256": "758d5fa58af9e5dfdcd84a0a74d616ae89dd11522384db9bd706d4f55f537928"
+    },
+    {
+      "file": "walk-001.png",
+      "camera": {
+        "position": [
+          7.087104377375196,
+          1.8,
+          0.06605858564734685
+        ],
+        "direction": [
+          0.6892750280440634,
+          0.4856429311786321,
+          -0.5376345218743697
+        ],
+        "fov": 72
+      },
+      "sha256": "a2e9f2543a9e09c6a699128752aaa73690cb0293874a0d4c5f7a8fc2992898a0"
+    },
+    {
+      "file": "walk-002.png",
+      "camera": {
+        "position": [
+          7.3,
+          1.8,
+          -0.1
+        ],
+        "direction": [
+          0.6892750280440635,
+          0.48564293117863233,
+          -0.5376345218743696
+        ],
+        "fov": 72
+      },
+      "sha256": "ac23b78367a65bcfa681105626164210482b0946c7588080b86d52ef7edd732d"
+    },
+    {
+      "file": "walk-003.png",
+      "camera": {
+        "position": [
+          7.512895622624804,
+          1.935,
+          -0.2660585856473468
+        ],
+        "direction": [
+          0.6892750280440634,
+          0.4856429311786319,
+          -0.5376345218743699
+        ],
+        "fov": 72
+      },
+      "sha256": "7eef210af9b1f6a82fea7fc30fac6ddcbfc9583296d3d9e5ddd8ce8fd53c8d99"
+    },
+    {
+      "file": "walk-004.png",
+      "camera": {
+        "position": [
+          7.725791245249607,
+          2.0700000000000003,
+          -0.43211717129469374
+        ],
+        "direction": [
+          0.689275028044064,
+          0.4856429311786318,
+          -0.5376345218743692
+        ],
+        "fov": 72
+      },
+      "sha256": "18000a9d51eb51f30267bf4c9da925d2acf8814faef0be4e7ffa3d55fc9012e6"
+    },
+    {
+      "file": "walk-005.png",
+      "camera": {
+        "position": [
+          7.93868686787441,
+          2.205,
+          -0.5981757569420405
+        ],
+        "direction": [
+          0.689275028044064,
+          0.4856429311786318,
+          -0.5376345218743692
+        ],
+        "fov": 72
+      },
+      "sha256": "ffd9395e992f56a85ec1eaaff7eba6fea617a95b9f30f98eb4d35fa40dc2541c"
+    },
+    {
+      "file": "walk-006.png",
+      "camera": {
+        "position": [
+          8.151582490499214,
+          2.34,
+          -0.7642343425893873
+        ],
+        "direction": [
+          0.6892750280440635,
+          0.485642931178632,
+          -0.5376345218743698
+        ],
+        "fov": 72
+      },
+      "sha256": "ffb3066774c818d8a4299ce753b9eba8435ce334083ecac632184f670038880d"
+    },
+    {
+      "file": "walk-007.png",
+      "camera": {
+        "position": [
+          8.364478113124019,
+          2.475,
+          -0.9302929282367342
+        ],
+        "direction": [
+          0.6892750280440635,
+          0.485642931178632,
+          -0.5376345218743698
+        ],
+        "fov": 72
+      },
+      "sha256": "c0a997261feaf49c515758ff567b6e2d023fe374e2f5de86cb2f599b51cf7ab6"
+    },
+    {
+      "file": "walk-008.png",
+      "camera": {
+        "position": [
+          8.577373735748822,
+          2.6100000000000003,
+          -1.0963515138840811
+        ],
+        "direction": [
+          0.6892750280440634,
+          0.48564293117863216,
+          -0.5376345218743697
+        ],
+        "fov": 72
+      },
+      "sha256": "84dcf873eadc10542a3993f78f7a99ee521bc5323b61c94074f8d8222ecddac5"
+    },
+    {
+      "file": "walk-009.png",
+      "camera": {
+        "position": [
+          8.790269358373624,
+          2.745,
+          -1.2624100995314282
+        ],
+        "direction": [
+          0.6892750280440634,
+          0.48564293117863216,
+          -0.5376345218743697
+        ],
+        "fov": 72
+      },
+      "sha256": "35ae70c7023dd57436d061c23dea35bf534c99fa06b48638098788500b30a444"
+    },
+    {
+      "file": "walk-010.png",
+      "camera": {
+        "position": [
+          9.003164980998429,
+          2.88,
+          -1.428468685178775
+        ],
+        "direction": [
+          0.6892750280440634,
+          0.48564293117863216,
+          -0.5376345218743697
+        ],
+        "fov": 72
+      },
+      "sha256": "289e911a17d84a239d5a0f658bec579fa076e289e82e7a878873e17e99aaac72"
+    },
+    {
+      "file": "walk-011.png",
+      "camera": {
+        "position": [
+          9.216060603623232,
+          3.0150000000000006,
+          -1.5945272708261218
+        ],
+        "direction": [
+          0.6892750280440635,
+          0.485642931178632,
+          -0.5376345218743698
+        ],
+        "fov": 72
+      },
+      "sha256": "b2b19682469bd21f5ba22291d164026d19af48e9d99cac6e6a52653afa6acd31"
+    },
+    {
+      "file": "walk-012.png",
+      "camera": {
+        "position": [
+          9.428956226248037,
+          3.1500000000000004,
+          -1.7605858564734684
+        ],
+        "direction": [
+          0.6892750280440633,
+          0.4856429311786323,
+          -0.5376345218743697
+        ],
+        "fov": 72
+      },
+      "sha256": "3c11f8e0833988aaec5b3ddf1de38703726730af0ed606e6b267914969163074"
+    },
+    {
+      "file": "walk-013.png",
+      "camera": {
+        "position": [
+          9.64185184887284,
+          3.2850000000000006,
+          -1.9266444421208158
+        ],
+        "direction": [
+          0.6892750280440634,
+          0.4856429311786319,
+          -0.5376345218743699
+        ],
+        "fov": 72
+      },
+      "sha256": "867db01ce4a2b27b84e19bc966b0a1f2c8607b39798f0b24376256a3e4888b2a"
+    },
+    {
+      "file": "walk-014.png",
+      "camera": {
+        "position": [
+          9.854747471497642,
+          3.4200000000000004,
+          -2.092703027768162
+        ],
+        "direction": [
+          0.6892750280440635,
+          0.485642931178632,
+          -0.5376345218743698
+        ],
+        "fov": 72
+      },
+      "sha256": "4a60d182561613e461b0c1b544ab406e5ce89f4bf2898bed5d8647856a3c08d0"
+    },
+    {
+      "file": "walk-015.png",
+      "camera": {
+        "position": [
+          10.067643094122447,
+          3.555,
+          -2.258761613415509
+        ],
+        "direction": [
+          0.6892750280440635,
+          0.485642931178632,
+          -0.5376345218743698
+        ],
+        "fov": 72
+      },
+      "sha256": "4168103dc25c872046aa619aa3218f4a3abcd92f853c2fef53a764f53da645bd"
+    },
+    {
+      "file": "walk-016.png",
+      "camera": {
+        "position": [
+          10.28053871674725,
+          3.6900000000000004,
+          -2.424820199062856
+        ],
+        "direction": [
+          0.6892750280440633,
+          0.4856429311786323,
+          -0.5376345218743697
+        ],
+        "fov": 72
+      },
+      "sha256": "a84dff5bb57862e954de791ba142835f85fd7d6ee72bf203d8c8e772f206cc64"
+    },
+    {
+      "file": "walk-017.png",
+      "camera": {
+        "position": [
+          10.493434339372055,
+          3.825,
+          -2.590878784710203
+        ],
+        "direction": [
+          0.6892750280440633,
+          0.4856429311786323,
+          -0.5376345218743697
+        ],
+        "fov": 72
+      },
+      "sha256": "650c3f66b7f223eac620b5245cca867c730c77be4ccfb030234e60765deee2c3"
+    },
+    {
+      "file": "walk-018.png",
+      "camera": {
+        "position": [
+          10.706329961996857,
+          3.960000000000001,
+          -2.75693737035755
+        ],
+        "direction": [
+          0.6892750280440633,
+          0.4856429311786323,
+          -0.5376345218743697
+        ],
+        "fov": 72
+      },
+      "sha256": "14f6b145689aba02b946384edb4a888e246bd630f50474c30a36f4938f9a3170"
+    },
+    {
+      "file": "walk-019.png",
+      "camera": {
+        "position": [
+          10.91922558462166,
+          4.095000000000001,
+          -2.9229959560048964
+        ],
+        "direction": [
+          0.6892750280440633,
+          0.4856429311786323,
+          -0.5376345218743697
+        ],
+        "fov": 72
+      },
+      "sha256": "acce4f9dbe2971368476f1be1f4a0264e6f9bafd4bce134c2a7b96d52921eacf"
+    },
+    {
+      "file": "walk-020.png",
+      "camera": {
+        "position": [
+          11.132121207246465,
+          4.23,
+          -3.089054541652243
+        ],
+        "direction": [
+          0.6892750280440633,
+          0.4856429311786323,
+          -0.5376345218743697
+        ],
+        "fov": 72
+      },
+      "sha256": "3802d42a79dc36453f79689e67b6e74ed889a317e03514b8deadc3f23e2db067"
+    },
+    {
+      "file": "walk-021.png",
+      "camera": {
+        "position": [
+          11.34501682987127,
+          4.365,
+          -3.25511312729959
+        ],
+        "direction": [
+          0.6892750280440633,
+          0.4856429311786323,
+          -0.5376345218743697
+        ],
+        "fov": 72
+      },
+      "sha256": "8a5f27bafde4d2ba6c2fbdda9ad1acc418396cb1136f9a6ec64677a61f85f74d"
+    },
+    {
+      "file": "walk-022.png",
+      "camera": {
+        "position": [
+          11.557912452496073,
+          4.5,
+          -3.421171712946937
+        ],
+        "direction": [
+          0.6892750280440633,
+          0.4856429311786323,
+          -0.5376345218743697
+        ],
+        "fov": 72
+      },
+      "sha256": "336d66f43b18948d7bc9cfb7f853a5ad1f1276ab30a373a7b3188a66626998b2"
+    },
+    {
+      "file": "walk-023.png",
+      "camera": {
+        "position": [
+          11.770808075120875,
+          4.635000000000001,
+          -3.587230298594284
+        ],
+        "direction": [
+          0.6892750280440633,
+          0.4856429311786323,
+          -0.5376345218743697
+        ],
+        "fov": 72
+      },
+      "sha256": "506aa0a463867617258e4b59b895172fb4ef2aaddc02be14ba129cb84c8adb1f"
+    },
+    {
+      "file": "walk-024.png",
+      "camera": {
+        "position": [
+          11.983703697745678,
+          4.77,
+          -3.75328888424163
+        ],
+        "direction": [
+          0.6892750280440633,
+          0.4856429311786323,
+          -0.5376345218743697
+        ],
+        "fov": 72
+      },
+      "sha256": "4b64a2bf6b7ca504789a22f8805245e56a62f56d03b96d0aa149d8a9e7a59082"
+    },
+    {
+      "file": "walk-025.png",
+      "camera": {
+        "position": [
+          12.196599320370483,
+          4.905,
+          -3.9193474698889776
+        ],
+        "direction": [
+          0.6892750280440632,
+          0.4856429311786322,
+          -0.5376345218743699
+        ],
+        "fov": 72
+      },
+      "sha256": "da49f23d210af700d619d013d35c2023cfc01e2fc364ba1bdd590ef042c359b8"
+    },
+    {
+      "file": "walk-026.png",
+      "camera": {
+        "position": [
+          12.409494942995288,
+          5.040000000000001,
+          -4.085406055536325
+        ],
+        "direction": [
+          0.6892750280440632,
+          0.4856429311786322,
+          -0.5376345218743699
+        ],
+        "fov": 72
+      },
+      "sha256": "28da9a431eadbd952963e040ca4ecee8457fb6fe80650f1216103e31e0f2b159"
+    },
+    {
+      "file": "walk-027.png",
+      "camera": {
+        "position": [
+          12.62239056562009,
+          5.175,
+          -4.25146464118367
+        ],
+        "direction": [
+          0.6892750280440632,
+          0.4856429311786322,
+          -0.5376345218743699
+        ],
+        "fov": 72
+      },
+      "sha256": "b0dfbc225e1ee4398f09780192d31d8568435826a158be778ed12e5f99e2b69a"
+    },
+    {
+      "file": "walk-028.png",
+      "camera": {
+        "position": [
+          12.835286188244893,
+          5.3100000000000005,
+          -4.417523226831017
+        ],
+        "direction": [
+          0.6892750280440632,
+          0.4856429311786322,
+          -0.5376345218743699
+        ],
+        "fov": 72
+      },
+      "sha256": "a93740004fab73d299f8c65d0bea2ca21b700b9d825b9c5a96f02574cd70fd4d"
+    },
+    {
+      "file": "walk-029.png",
+      "camera": {
+        "position": [
+          13.048181810869696,
+          5.445,
+          -4.583581812478363
+        ],
+        "direction": [
+          0.6892750280440632,
+          0.4856429311786322,
+          -0.5376345218743699
+        ],
+        "fov": 72
+      },
+      "sha256": "6122bccc521535c7e5bc3fd13c5b9c65aa97425db9bd4656bdf773a1e7bbd9f4"
+    },
+    {
+      "file": "walk-030.png",
+      "camera": {
+        "position": [
+          13.2610774334945,
+          5.58,
+          -4.7496403981257105
+        ],
+        "direction": [
+          0.6892750280440632,
+          0.4856429311786322,
+          -0.5376345218743699
+        ],
+        "fov": 72
+      },
+      "sha256": "339455ea52fdcd5d24b405d149436e4a9c2f5d3167c09463a3cd29d9c187c01e"
+    },
+    {
+      "file": "walk-031.png",
+      "camera": {
+        "position": [
+          13.473973056119306,
+          5.715000000000001,
+          -4.9156989837730585
+        ],
+        "direction": [
+          0.6892750280440632,
+          0.4856429311786322,
+          -0.5376345218743699
+        ],
+        "fov": 72
+      },
+      "sha256": "92a43f4fc43e0e8f305886f06d0831d0fbe68542d99c3495ab80b9f1757e8e7b"
+    },
+    {
+      "file": "walk-032.png",
+      "camera": {
+        "position": [
+          13.686868678744109,
+          5.8500000000000005,
+          -5.081757569420405
+        ],
+        "direction": [
+          0.6892750280440632,
+          0.4856429311786322,
+          -0.5376345218743699
+        ],
+        "fov": 72
+      },
+      "sha256": "c7d8451305d5a8606f1c8dafe425ddfed053b4bcd0f41830e5fd187e09a32056"
+    },
+    {
+      "file": "walk-033.png",
+      "camera": {
+        "position": [
+          13.899764301368911,
+          5.985,
+          -5.247816155067752
+        ],
+        "direction": [
+          0.6892750280440632,
+          0.4856429311786322,
+          -0.5376345218743699
+        ],
+        "fov": 72
+      },
+      "sha256": "015e1134597dd9887333d349249cdde11fdcbeaaa4e33373c2563790d4cd1e62"
+    },
+    {
+      "file": "walk-034.png",
+      "camera": {
+        "position": [
+          14.112659923993714,
+          6.12,
+          -5.413874740715099
+        ],
+        "direction": [
+          0.6892750280440632,
+          0.4856429311786322,
+          -0.5376345218743699
+        ],
+        "fov": 72
+      },
+      "sha256": "61f1c13a612a25b477b19cec5b9a984cf91e3745f286da449a49630c5f7f3039"
+    },
+    {
+      "file": "walk-035.png",
+      "camera": {
+        "position": [
+          14.325555546618517,
+          6.255,
+          -5.579933326362445
+        ],
+        "direction": [
+          0.6892750280440635,
+          0.48564293117863244,
+          -0.5376345218743692
+        ],
+        "fov": 72
+      },
+      "sha256": "e29817ee35525b48397ebdc0ba576432dea7e25ee33cf6396f510cfb90070223"
+    },
+    {
+      "file": "walk-036.png",
+      "camera": {
+        "position": [
+          14.538451169243324,
+          6.390000000000001,
+          -5.745991912009792
+        ],
+        "direction": [
+          0.6892750280440638,
+          0.4856429311786318,
+          -0.5376345218743693
+        ],
+        "fov": 72
+      },
+      "sha256": "9b36bceb3b4b2722013e84c5ab6e8365f45fcd13882b03ded0e458b862eef5b1"
+    },
+    {
+      "file": "walk-037.png",
+      "camera": {
+        "position": [
+          14.751346791868126,
+          6.525,
+          -5.912050497657139
+        ],
+        "direction": [
+          0.6892750280440638,
+          0.4856429311786318,
+          -0.5376345218743693
+        ],
+        "fov": 72
+      },
+      "sha256": "d5cf876057c85445cebc9043574c0d1d0bcb8e39e976e01de99e2f0c309e2675"
+    },
+    {
+      "file": "walk-038.png",
+      "camera": {
+        "position": [
+          14.96424241449293,
+          6.66,
+          -6.0781090833044855
+        ],
+        "direction": [
+          0.6892750280440638,
+          0.4856429311786318,
+          -0.5376345218743693
+        ],
+        "fov": 72
+      },
+      "sha256": "f84338c263f4dee5fd8a3d1d8f8ddf38265497b7209d27aa5071f23f47b01617"
+    },
+    {
+      "file": "walk-039.png",
+      "camera": {
+        "position": [
+          15.177138037117732,
+          6.795000000000001,
+          -6.244167668951833
+        ],
+        "direction": [
+          0.6892750280440635,
+          0.48564293117863244,
+          -0.5376345218743692
+        ],
+        "fov": 72
+      },
+      "sha256": "cbd4efc732ca3b1cd3a9d36e348c6898b68f690658278f523b76200f3b8408d1"
+    },
+    {
+      "file": "walk-040.png",
+      "camera": {
+        "position": [
+          15.390033659742535,
+          6.93,
+          -6.410226254599179
+        ],
+        "direction": [
+          0.6892750280440646,
+          0.48564293117863117,
+          -0.5376345218743691
+        ],
+        "fov": 72
+      },
+      "sha256": "41762d507d161c86214887943d441d15fdec28cba9a38b9c8e00bbe0e7e5426e"
+    },
+    {
+      "file": "walk-041.png",
+      "camera": {
+        "position": [
+          15.602929282367342,
+          7.065,
+          -6.576284840246527
+        ],
+        "direction": [
+          0.6892750280440644,
+          0.4856429311786318,
+          -0.5376345218743688
+        ],
+        "fov": 72
+      },
+      "sha256": "b5467030c7ed915ea01b24f5362f24964c80e6d83509f40b253817eaad81fb6f"
+    },
+    {
+      "file": "walk-042.png",
+      "camera": {
+        "position": [
+          15.815824904992144,
+          7.2,
+          -6.742343425893873
+        ],
+        "direction": [
+          0.6892750280440644,
+          0.4856429311786318,
+          -0.5376345218743688
+        ],
+        "fov": 72
+      },
+      "sha256": "e00b49daba1fe332199983e29ffcb9dbf730e9232905c2fe68a4708cd5b07b9c"
+    },
+    {
+      "file": "walk-043.png",
+      "camera": {
+        "position": [
+          16.028720527616947,
+          7.2,
+          -6.908402011541221
+        ],
+        "direction": [
+          0.6892750280440644,
+          0.4856429311786318,
+          -0.5376345218743688
+        ],
+        "fov": 72
+      },
+      "sha256": "b268739be34c54a7615a2ebe4956f49ed1fc1e621feb3b613ee73052f023e724"
+    },
+    {
+      "file": "walk-044.png",
+      "camera": {
+        "position": [
+          16.24161615024175,
+          7.2,
+          -7.074460597188567
+        ],
+        "direction": [
+          0.6892750280440644,
+          0.4856429311786318,
+          -0.5376345218743688
+        ],
+        "fov": 72
+      },
+      "sha256": "e196c11946ee5050eac9ab73c626a6d69c025347ea495823ba26da41efca2232"
+    }
+  ],
+  "complete": true
+}

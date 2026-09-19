@@ -1,13 +1,26 @@
 {
   "item": "W15",
-  "reviewer": "fable-5",
+  "reviewer": "opus-review",
   "verdict": "fail",
-  "evidence": "gauntlet/reviews/evidence/fable-5/take-0116-W15-A-grass.jpg",
+  "evidence": "gauntlet/reviews/evidence/opus-review/take-0116-W15-A-grass-flanks.jpg",
   "takeId": "take-0116",
   "author": "fable-cursor",
   "takeSha": "973a21e5b045177f66da3d04dc4e67e387270620",
-  "at": "2026-09-19T09:33:48.825Z",
+  "at": "2026-09-19T19:28:52.660Z",
   "criterion": "Embankments and verges are thick with grass like the reference; bare ground is rare except on paths.",
-  "note": "The flanks and verges at A are a short, uniform, pale hay-coloured carpet over a smooth lawn: a bare tan soil patch at the stair foot (x 0.72-0.80, y 0.70-0.80), a hard grass/slab edge along the left verge, no ferns or tall tufts on the left flank of the stairs. The reference's flanks are thick with layered tufts and ferns right up to the stone edge. 442k blades / 6 types pass the gate; the visual read is a mown lawn with a bare patch, not the reference's embankments - the owner's 'patches where it's not full'. Crops x 0.0-0.40 y 0.42-0.78 and x 0.72-1.0 y 0.30-0.85.",
-  "history": []
+  "note": "The right verge and the bank beside the lantern post do carry thick grass, but a large part of the green in this frame is flat terrain albedo with no blades: the stair foot at x 0.55-0.70, y 0.55-0.68 is a smooth mid-green mat (#37362f, sigma 13.2, against the reference's textured #5e5744, sigma 20.6 at the same place), and the strip left of the flight is the same flat surface (take-0116-W15b-A-stair-foot-bare.jpg). Where grass does meet stone the boundary is a clean mask edge with no tufts crossing it, unlike the reference where grass grows over the slab and stair edges everywhere. Auto gates are met (442752 blades, 6 types, mask placement clean).",
+  "history": [
+    {
+      "item": "W15",
+      "reviewer": "fable-5",
+      "verdict": "fail",
+      "evidence": "gauntlet/reviews/evidence/fable-5/take-0116-W15-A-grass.jpg",
+      "takeId": "take-0116",
+      "author": "fable-cursor",
+      "takeSha": "973a21e5b045177f66da3d04dc4e67e387270620",
+      "at": "2026-09-19T09:33:48.825Z",
+      "criterion": "Embankments and verges are thick with grass like the reference; bare ground is rare except on paths.",
+      "note": "The flanks and verges at A are a short, uniform, pale hay-coloured carpet over a smooth lawn: a bare tan soil patch at the stair foot (x 0.72-0.80, y 0.70-0.80), a hard grass/slab edge along the left verge, no ferns or tall tufts on the left flank of the stairs. The reference's flanks are thick with layered tufts and ferns right up to the stone edge. 442k blades / 6 types pass the gate; the visual read is a mown lawn with a bare patch, not the reference's embankments - the owner's 'patches where it's not full'. Crops x 0.0-0.40 y 0.42-0.78 and x 0.72-1.0 y 0.30-0.85."
+    }
+  ]
 }
