@@ -99,10 +99,68 @@ export const DISTANT_CROWN_TOP: [number, number, number] = [0.55, 0.05, 0.85];
 /** round 47: ± tone bands along the near LOD bole (a ring's vertex colour; 1.9 rad/m) — bark tiling at 60 m */
 export const DISTANT_BOLE_BANDS = 0.09;
 
-/** round 45: the near LOD bole's basal flare — extra radius share at the path's foot … */
-export const DISTANT_FLARE = 0.4;
+/**
+ * round 45: the near LOD bole's basal flare — extra radius share at the path's foot …
+ * Round 48 (opus-review #01 / #12, poses x-arch-approach / x-arch-tunnel-n / w19–w21: the
+ * depth-row boles 10–30 m from a walker "smooth pale truncated cones with a hard base seam, no
+ * root flare"): 0.4 → 0.7 at the ground line, falling over 2.0 m (1.42 R at 1 m, 1.26 R at 2 m,
+ * 1.09 R at 4 m — a butt, not a cone), sampled on DISTANT_BASE_RINGS extra rings inserted into
+ * the lowest sweep segment (no draw: `tube` takes its draws up front) so the flare curves instead
+ * of running straight from the skirt ring to the 2.5 m ring. The far LOD's strips are untouched.
+ */
+export const DISTANT_FLARE = 0.7;
 /** … falling off with this e-folding distance (m) along the bole */
-export const DISTANT_FLARE_FALL = 1.6;
+export const DISTANT_FLARE_FALL = 2.0;
+/** round 48: extra rings written into the near LOD sweep's lowest segment (the butt's curve) */
+export const DISTANT_BASE_RINGS = 5;
+/**
+ * Round 48: the near LOD's root toes (writer.ts rootButtress off their own stream) — [count min,
+ * max], length / collar width / collar height as shares of R. Round 47's 5–7 toes at 1.4–2.1 R
+ * long and 0.45–0.7 R tall were lost in the grass at 15 m; these run 2.2–3.4 R out of the butt,
+ * 0.55–0.85 R tall at the collar, and the sweep's own skirt (−0.6 m) plus the north seat rule
+ * (placeDistantTrees DISTANT_NORTH_SEAT) keep them on the ground.
+ */
+export const DISTANT_TOES: [number, number] = [4, 6];
+export const DISTANT_TOE_LENGTH: [number, number] = [2.2, 3.4];
+export const DISTANT_TOE_WIDTH: [number, number] = [0.35, 0.55];
+export const DISTANT_TOE_HEIGHT: [number, number] = [0.55, 0.85];
+/**
+ * round 48: the broad near LOD bole's radius at the crown as a share of R (0.25 through round
+ * 47: a 1 m bole thinned to 25 cm under its crown — the "truncated cone"). 0.36 is a column;
+ * the far LOD's strips already run 0.42–0.62 at the crown, so the 120 m swap matches better.
+ */
+export const DISTANT_TAPER_TOP = 0.36;
+/**
+ * Round 48 (#01: "no canopy over them" — the reference's far forest is a dark leaf roof in
+ * blue-grey air; ours showed lit pale cards hazed toward the sky): the near LOD carries
+ * FAR_CROWN_FLOOR near-horizontal cards under the crown's centre (at DISTANT_CROWN_FLOOR_Y crown
+ * radii below it, DISTANT_CROWN_FLOOR_HALF × R across, tilted ≤ 18°) in a dark tint — a walker
+ * under the depth rows sees a leaf roof, not a gap between vertical cards. The fixed cameras are
+ * pitched down 3–4° and see the far crowns from 51 m+, where a horizontal card is edge-on and in
+ * the 86 % veil. Far LOD: none.
+ */
+export const FAR_CROWN_FLOOR = 2;
+export const DISTANT_CROWN_FLOOR_Y = 0.42;
+export const DISTANT_CROWN_FLOOR_HALF = 1.15;
+export const DISTANT_CROWN_FLOOR_TINT = 0.42;
+/**
+ * Round 48: inside this view distance (m; full at the first, none at the second) the crown
+ * material darkens the crown's underside — the lower part of the crown sphere, CROWN_UNDER_DARK at
+ * its bottom — and the whole crown by CROWN_NEAR_DARK: the leaf roof seen from below is its own
+ * shade, and the lit tone the round-47 cards showed a walker was the top of the crown. Zero at
+ * 48 m+: the nearest distant crown to a fixed camera is 51 m off, so the six frames are untouched.
+ */
+export const CROWN_UNDER_M: [number, number] = [36, 48];
+export const CROWN_UNDER_DARK = 0.38;
+export const CROWN_NEAR_DARK = 0.72;
+/**
+ * Round 48: a distant tree standing north of this z is seated on the LOWEST ground under its
+ * root spread (samples at DISTANT_NORTH_SEAT[1] × scale m around the axis) rather than on the
+ * axis alone, so its toes sit on a bank instead of floating off the downhill side — the sweep's
+ * 0.6 m skirt takes the uphill burial. Applied after every draw (no re-roll); south of it every
+ * placement is byte-identical to round 47. [zMax, sample radius m]
+ */
+export const DISTANT_NORTH_SEAT: [number, number] = [-50, 1.8];
 /**
  * Round 46 (survey-2 check 04, poses w19-spine-r / sn-arch-outside: the depth rows' boles
  * 8–14 m from a walker were still smooth grey cones — round 45's tone bands and cords are albedo
@@ -179,11 +237,11 @@ export const LIMB_TINT_TO = 0.5;
  * for the crown material's spherical shading — its w is the radius (> 0.5 on every crown, so the
  * distant material's solid-uv pass and every wood decode leave these vertices alone).
  */
-function crownCard(writer: GeometryWriter, c: Vector3, dir: Vector3, half: number, cell: number, mirror: boolean, bottom: Color, top: Color, sphereC: Vector3, sphereR: number, stiffness: number, phase: number) {
+function crownCard(writer: GeometryWriter, c: Vector3, dir: Vector3, half: number, cell: number, mirror: boolean, bottom: Color, top: Color, sphereC: Vector3, sphereR: number, stiffness: number, phase: number, vAxis: Vector3 = UP) {
   const uv = farCrownCellUv(cell);
-  const n = new Vector3(-dir.z, 0, dir.x);
+  const n = new Vector3().crossVectors(dir, vAxis).normalize();
   const V = (du: number, dv: number) => {
-    const p = c.clone().addScaledVector(dir, du * half).addScaledVector(UP, dv * half);
+    const p = c.clone().addScaledVector(dir, du * half).addScaledVector(vAxis, dv * half);
     const u = (mirror ? -du : du) > 0 ? uv.u1 : uv.u0;
     const v = dv > 0 ? uv.v1 : uv.v0;
     const i = writer.vertexN(p, n, dv > 0 ? top : bottom, u, v, stiffness, phase, 0, 1);
@@ -208,7 +266,7 @@ function crownCard(writer: GeometryWriter, c: Vector3, dir: Vector3, half: numbe
  * (centre, R) so the crown lights as a single volume. Own stream: nothing before or after it
  * re-rolls.
  */
-function crownCards(writer: GeometryWriter, r: Rng, centre: Vector3, R: number, cells: number[], count: number, lobes: number, tint: Color, topTint: Color) {
+function crownCards(writer: GeometryWriter, r: Rng, centre: Vector3, R: number, cells: number[], count: number, lobes: number, tint: Color, topTint: Color, floor = 0) {
   const half = R * FAR_CROWN_CARD_HALF;
   const yaw0 = r.range(0, TAU);
   for (let k = 0; k < count; k++) {
@@ -231,6 +289,22 @@ function crownCards(writer: GeometryWriter, r: Rng, centre: Vector3, R: number, 
       const b = yaw + k * Math.PI * 0.5;
       const dir = new Vector3(Math.cos(b), 0, Math.sin(b));
       crownCard(writer, c, dir, lr * FAR_CROWN_CARD_HALF, cell, r.chance(0.5), tint.clone().multiplyScalar(shade * 0.82), topTint.clone().multiplyScalar(shade), centre, R * 1.05, 0.85, r());
+    }
+  }
+  // round 48 (FAR_CROWN_FLOOR): the leaf roof's underside — near-horizontal cards under the
+  // crown's centre in a dark tint, from their own fork so the cards above draw what they did
+  if (floor > 0) {
+    const rf = r.fork('crown-floor');
+    for (let f = 0; f < floor; f++) {
+      const a = rf.range(0, TAU);
+      const tilt = rf.range(0.12, 0.32);
+      const dir = new Vector3(Math.cos(a), 0, Math.sin(a));
+      const side = new Vector3(-dir.z, 0, dir.x);
+      // the card's second axis leans off the horizontal about `dir`, so the two floors are not one plane
+      const vAxis = side.clone().multiplyScalar(Math.cos(tilt)).addScaledVector(UP, Math.sin(tilt) * (rf.chance(0.5) ? 1 : -1)).normalize();
+      const c = centre.clone().add(new Vector3(rf.range(-0.15, 0.15) * R, -R * DISTANT_CROWN_FLOOR_Y * rf.range(0.85, 1.15), rf.range(-0.15, 0.15) * R));
+      const dark = tint.clone().multiplyScalar(DISTANT_CROWN_FLOOR_TINT * rf.range(0.9, 1.1));
+      crownCard(writer, c, dir, R * DISTANT_CROWN_FLOOR_HALF * rf.range(0.9, 1.1), cells[f % cells.length], rf.chance(0.5), dark, dark.clone().multiplyScalar(1.15), centre, R * 1.05, 0.9, rf(), vAxis);
     }
   }
 }
@@ -307,6 +381,14 @@ export function createDistantCrownMaterial(wind: Wind, rng: Rng, palette: Palett
       vec3 hue = mix(vec3(1.08, 1.0, 0.86), vec3(0.9, 1.0, 1.14), vCrownJit.x);
       diffuseColor.rgb *= mix(vec3(1.0), hue, ${f(CROWN_JITTER[0])}) * (1.0 + (vCrownJit.y - 0.5) * ${f(2 * CROWN_JITTER[1])});
       diffuseColor.rgb *= mix(${f(CROWN_CORE_DARK)}, 1.0, smoothstep(0.1, 0.95, rr));
+      // round 48 (CROWN_UNDER_M): within the near gate the crown is a leaf roof seen from below —
+      // its lower half in its own shade, the whole mass a step darker; zero at 48 m+
+      float roofNear = 1.0 - smoothstep(${f(CROWN_UNDER_M[0])}, ${f(CROWN_UNDER_M[1])}, length(vViewPosition));
+      if (roofNear > 0.0) {
+        vec3 sw = normalize(vCrownOff * vec3(1.0, 0.8, 1.0) + vec3(0.0, 0.32, 0.0));
+        float underside = smoothstep(0.3, -0.45, sw.y);
+        diffuseColor.rgb *= mix(1.0, ${f(CROWN_NEAR_DARK)} * mix(1.0, ${f(CROWN_UNDER_DARK)}, underside), roofNear);
+      }
     }
     `,
         )
@@ -334,7 +416,7 @@ export function createDistantCrownMaterial(wind: Wind, rng: Rng, palette: Palett
     `,
         );
   };
-  material.customProgramCacheKey = () => 'trees-distant-crown-v1';
+  material.customProgramCacheKey = () => 'trees-distant-crown-v2';
   wind.bind(material);
   return material;
 }
@@ -435,10 +517,24 @@ export function createDistantVariants(rng: Rng, palette: Palette): DistantVarian
       if (t === 0) return foot;
       const into = smoothstep(crownY - crownR * DISTANT_CROWN_TOP[0], crownY + crownR * DISTANT_CROWN_TOP[1], pt.y);
       const band = 1 + DISTANT_BOLE_BANDS * Math.sin(pt.y * 1.9 + bandPhase) * (1 - into);
-      return base.clone().multiplyScalar(band).lerp(top, into * DISTANT_CROWN_TOP[2]);
+      // round 48: the foot grime runs up the butt by height (the near LOD's inserted base rings
+      // sample it); every ring at 2.5 m+ — the far LOD's second ring included — is `base` as before
+      return foot.clone().lerp(base, smoothstep(-0.6, 2.5, pt.y)).multiplyScalar(band).lerp(top, into * DISTANT_CROWN_TOP[2]);
     };
     near.woodMoss = slender ? 0 : 1;
-    tube(near, trunk, taper(trunk, R, R * (spec.taperTop ?? 0.25), 0.9), sides, r, { color: (pt, t) => boleColor(pt, t, nearBark, limbTip, footGrime), roughness: 0.1, flatBase: true, structural: true, stiffness: () => 1, draws: trunkDraws, bump: flare });
+    // round 48: the sweep runs on `trunk` with DISTANT_BASE_RINGS rings interpolated into its
+    // lowest segment (the butt's curve; no draw — the limbs below still attach to `trunk`'s own
+    // points), its radii by arc-length share so the inserted rings sit on the same taper curve;
+    // the broad kind thins to DISTANT_TAPER_TOP R under the crown (a column, not a cone)
+    const topR = R * (spec.taperTop ?? (slender ? 0.25 : DISTANT_TAPER_TOP));
+    const sweep: Vector3[] = [trunk[0].clone()];
+    for (let k = 1; k <= DISTANT_BASE_RINGS; k++) sweep.push(trunk[0].clone().lerp(trunk[1], k / (DISTANT_BASE_RINGS + 1)));
+    for (let k = 1; k < trunk.length; k++) sweep.push(trunk[k].clone());
+    const arc: number[] = [0];
+    for (let k = 1; k < sweep.length; k++) arc.push(arc[k - 1] + sweep[k].distanceTo(sweep[k - 1]));
+    const sweepRadii = arc.map((s) => topR + (R - topR) * Math.pow(1 - s / arc[arc.length - 1], 0.9));
+    // the ring colour by height (boleColor reads pt.y; the skirt ring alone takes the foot grime)
+    tube(near, sweep, sweepRadii, sides, r, { color: (pt, t) => boleColor(pt, t, nearBark, limbTip, footGrime), roughness: 0.1, flatBase: true, structural: true, stiffness: () => 1, draws: trunkDraws, bump: flare });
     const limbs = slender ? 1 : r.int(2, 4);
     // round 45 (trees-28 item 4, survey pose w19-spine-u: the "pale twig tips spiking the crown
     // rim" straight overhead on the north spine are a depth-row tree's limbs — 4-sided bark-
@@ -467,13 +563,17 @@ export function createDistantVariants(rng: Rng, palette: Palette): DistantVarian
     // their own stream so nothing above re-rolls; the depth rows' feet are at the ground line of
     // D at 47 m+ where a 0.5 m root is 5 px in the haze
     const rootRng = rng.fork(`distant-roots-${index}`);
-    const rootColor = nearBark.clone().multiplyScalar(0.86);
-    const rootCount = slender ? 4 : rootRng.int(5, 7);
+    // round 48: the toes carry the foot grime (they meet the soil) — the bark × 0.86 through round 47
+    const rootColor = nearBark.clone().multiplyScalar(0.72);
+    // round 48 (DISTANT_TOES): 4–6 toes, 2.2–3.4 R long, 0.55–0.85 R tall at the collar; 8 segments
+    // along so the fillet into the ground curves. The slender kind keeps its four short roots.
+    const rootCount = slender ? 4 : rootRng.int(DISTANT_TOES[0], DISTANT_TOES[1] + 1);
     near.woodMoss = slender ? 0 : 1;
     for (let i = 0; i < rootCount; i++) {
       const a = (i / rootCount) * TAU + rootRng.range(-0.3, 0.3);
       // round 46: DISTANT_ROOT_ARC arc sides and a fillet into the ground (writer.ts RootButtressShape)
-      rootButtress(near, a, R * rootRng.range(1.4, 2.1), R * rootRng.range(0.3, 0.45), R * rootRng.range(0.45, 0.7), rootColor, rootRng, () => 0, new Vector3(0, 0, 0), 6, { arcSides: DISTANT_ROOT_ARC, fillet: 0.6 });
+      if (slender) rootButtress(near, a, R * rootRng.range(1.4, 2.1), R * rootRng.range(0.3, 0.45), R * rootRng.range(0.45, 0.7), rootColor, rootRng, () => 0, new Vector3(0, 0, 0), 6, { arcSides: DISTANT_ROOT_ARC, fillet: 0.6 });
+      else rootButtress(near, a, R * rootRng.range(DISTANT_TOE_LENGTH[0], DISTANT_TOE_LENGTH[1]), R * rootRng.range(DISTANT_TOE_WIDTH[0], DISTANT_TOE_WIDTH[1]), R * rootRng.range(DISTANT_TOE_HEIGHT[0], DISTANT_TOE_HEIGHT[1]), rootColor, rootRng, () => 0, new Vector3(0, 0, 0), 8, { arcSides: DISTANT_ROOT_ARC, fillet: 0.7 });
     }
     near.woodMoss = 0;
     solidUv(near);
@@ -481,7 +581,8 @@ export function createDistantVariants(rng: Rng, palette: Palette): DistantVarian
     const nearWood = near.indices.length;
     const crownCentre = new Vector3(0, crownY + crownR * 0.1, 0);
     const cells = slender ? [3] : broadCells[index % broadCells.length];
-    crownCards(near, rng.fork(`distant-crown-${index}`), crownCentre, crownR, cells, FAR_CROWN_CARDS[0], slender ? FAR_CROWN_LOBES[1] : FAR_CROWN_LOBES[0], cardTint, cardTopTint);
+    // round 48: + FAR_CROWN_FLOOR dark near-horizontal cards under the broad crowns (their own fork inside crownCards)
+    crownCards(near, rng.fork(`distant-crown-${index}`), crownCentre, crownR, cells, FAR_CROWN_CARDS[0], slender ? FAR_CROWN_LOBES[1] : FAR_CROWN_LOBES[0], cardTint, cardTopTint, slender ? 0 : FAR_CROWN_FLOOR);
 
     // ---- far LOD: two crossed tapering trunk strips (foot grime, tone bands, darkening into the
     // crown — round 47; the round-40 silhouette fans and their rim cards are replaced by the same
@@ -626,6 +727,15 @@ export function placeDistantTrees(rng: Rng, terrain: Terrain, variants: DistantV
   const grid = new Map<string, DistantPlacement[]>();
   const key = (x: number, z: number) => `${Math.floor(x / cell)},${Math.floor(z / cell)}`;
   const push = (p: DistantPlacement) => {
+    // round 48 (DISTANT_NORTH_SEAT): north of the arch a tree stands on the lowest ground under
+    // its root spread (six samples round the axis + the axis), never more than the sweep's 0.6 m
+    // skirt below the axis ground — the toes downhill touch, the uphill ones bury. No draw.
+    if (p.z < DISTANT_NORTH_SEAT[0]) {
+      const rad = DISTANT_NORTH_SEAT[1] * p.scale;
+      let low = p.y;
+      for (let i = 0; i < 6; i++) low = Math.min(low, terrain.height(p.x + Math.cos((i / 6) * TAU) * rad, p.z + Math.sin((i / 6) * TAU) * rad));
+      p = { ...p, y: Math.max(low, p.y - 0.55) };
+    }
     out.push(p);
     const k = key(p.x, p.z);
     if (!grid.has(k)) grid.set(k, []);
