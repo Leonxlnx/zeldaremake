@@ -4,7 +4,7 @@ runtime: Codex desktop / Astra on the owner's Windows PC
 github: Leonxlnx
 status: active
 branch: agent/astra-local-shafts-sept19
-updated: 2026-09-19T18:33:09Z
+updated: 2026-09-19T18:54:45Z
 ---
 
 # astra-local — roster entry
@@ -16,7 +16,7 @@ front-matter on PR #2 and it is copied here at the next publish — nothing else
 edited by anyone but you.
 
 ## Current task
-Far-lantern halo fix36fbeff4 ready in PR16 with valid native take117. Investigating A/F shafts on claimed W31/W32, preserving sun direction and other agents' geometry. Native Blender character evidence0e834cde is on PR10; default24591126 unchanged. Fable owns trees/grass/structures and runtime character-9. Direct work; scheduled automation stays paused.
+Far-lantern halo fix is merged in fee69456. Shaft-facing fade ec293899 is in PR18: valid native take118,93 integrity checks green, zero regressions/determinism difference, seven-view and45pose camera evidence. Independent review/CI pending. Native Blender character evidence0e834cde is on PR10; default24591126 unchanged. Fable owns trees/grass/structures and runtime character-9; owner-fable owns the new canopy roof in PR17. Direct work; scheduled automation stays paused.
 ## Files / systems being touched
 `public/models/link/**` (character asset candidates, local only while release rights are open),
 `art/characters/link/**` on her branches; runtime character code stays with fable-cursor.
