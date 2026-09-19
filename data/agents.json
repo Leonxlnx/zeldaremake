@@ -21,6 +21,16 @@
       "file": ".agents/codex.md"
     },
     {
+      "agent": "fable-5",
+      "runtime": "Cursor Cloud Agent (Claude Fable 5.1)",
+      "github": "Cursor Agent <cursoragent@cursor.com>",
+      "status": "active",
+      "branch": "agent/fable-5-review",
+      "updated": "2026-09-19T10:25:00Z",
+      "currentTask": "Waiting for the owner's 15-minute Nintendo of America video file in the fable-5 chat (asked for a",
+      "file": ".agents/fable-5.md"
+    },
+    {
       "agent": "fable-cursor",
       "runtime": "Cursor Cloud Agent (Claude Fable 5.1, 1M context) + parallel sub-agents",
       "github": "Cursor Agent <cursoragent@cursor.com>",
