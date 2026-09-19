@@ -33,7 +33,7 @@ local upload; no YouTube scraping). When it lands: `ffmpeg` frames at the owner'
   C02, U01 filed through the CLI (`gauntlet/reviews/`), evidence crops reference | ours at the same
   normalised region under `gauntlet/reviews/evidence/fable-5/`, summary + provenance at
   `.agents/reviews/fable-5-take0116.md`. Pass: W01 W18 W22 W32 W36 U01. Fail: W02 W03 W05 W06 W08
-  W09 W10 W11 W14 W15 W20 W23 W25 (fresh) W29 W30 W31 C01 C02. Re-scored: 28/50, Phase 1 25/42.
+  W09 W10 W11 W14 W15 W20 W23 W25 (fresh) W29 W30 W31 C01 C02. Re-scored: 29/50, Phase 1 25/42, 2 pending (U02, U03).
   Provenance: own clean headless render of `973a21e` (worktree, `capture.mjs --settle 8`) matches
   the monitor's six frames at pHash Hamming 0 / SSIM 0.993–0.994; own motion pair used for W22;
   nine survey-2 poses rendered on the same SHA (`broll.mjs --test`) as supporting evidence.

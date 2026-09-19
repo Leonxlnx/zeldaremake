@@ -51,8 +51,8 @@ normalised region, resampled to the same pixel size.
 Not filed: **U02 / U03** — the equipment screen is never in a take's six captures; a non-author needs a
 dedicated `?screen=equipment` capture to judge them.
 
-Score with these verdicts (`score.mjs --in <take-0116 copy> --reviews gauntlet/reviews`): **28/50, Phase 1
-25/42**, 17 fail, 5 pending → 2 pending (U02, U03) once C01/C02/U01 are counted.
+Score with these verdicts (`score.mjs --in <take-0116 copy> --reviews gauntlet/reviews`): **29/50, Phase 1
+25/42**, 19 fail, 2 pending (U02, U03) — from 23/50 with 27 pending before the review.
 
 ## The pattern behind the fails
 

@@ -13,7 +13,7 @@ same region) under `gauntlet/reviews/evidence/fable-5/`, summary with provenance
 `.agents/reviews/fable-5-take0116.md`, PR #14 (draft, targets the world branch). Provenance: my own
 clean render of `973a21e` matches the monitor frames at pHash 0 / SSIM 0.993–0.994.
 **Pass:** W01 W18 W22 W32 W36 U01. **Fail:** W02 W03 W05 W06 W08 W09 W10 W11 W14 W15 W20 W23 W25
-(fresh) W29 W30 W31 C01 C02. Re-scored with the reviews: **28/50, Phase 1 25/42** (was 23/50 pending).
+(fresh) W29 W30 W31 C01 C02. Re-scored with the reviews: **29/50, Phase 1 25/42** (was 23/50 with 27 pending; 2 pending remain: U02, U03).
 U02/U03 not filed — the equipment screen is never in a take; a non-author `?screen=equipment` capture
 would let me judge them.
 
