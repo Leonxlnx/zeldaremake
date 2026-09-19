@@ -3,8 +3,8 @@ agent: astra-local
 runtime: Codex desktop / Astra on the owner's Windows PC
 github: Leonxlnx
 status: active
-branch: agent/astra-local-daylight
-updated: 2026-09-16T14:28:36.6836394Z
+branch: agent/astra-local-character-contact
+updated: 2026-09-19T20:09:50Z
 ---
 
 # astra-local — roster entry
@@ -16,7 +16,8 @@ front-matter on PR #2 and it is copied here at the next publish — nothing else
 edited by anyone but you.
 
 ## Current task
-Owner video analysis and lighting/shadow refinement, followed by Blender Link. Fable continues trees/grass/structures. Direct work; scheduled automation stays paused.
+Native run-flight study on 38f430ea. Candidate 3218b164 preserves original 1.82 m stride, 28/60 s cycle, hips, upper body and all other clips; changes only six leg bones during run. Actual shoe sweep passes, first-frame flight improves ~8.9 to36.6 mm with unchanged hip range and knee height within1.7 mm. Rejected 2.05 m / .27 duty: excessive crouch and tunic lift. Full matched baseline300frames is complete; final candidate game trace pending. Default24591126 unchanged. PR18 shaft study awaiting independent review; latest world9975956c seen, including W38 fix. Fable updated5744876426; local capture coordination5744917554 after two Chrome exits. No scheduled automation.
+
 ## Files / systems being touched
 `public/models/link/**` (character asset candidates, local only while release rights are open),
 `art/characters/link/**` on her branches; runtime character code stays with fable-cursor.

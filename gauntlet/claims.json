@@ -601,6 +601,16 @@
       ],
       "at": "2026-09-19T17:54:53.732Z",
       "expiresHours": 3
+    },
+    {
+      "agent": "astra-local",
+      "items": [
+        "C01",
+        "C02",
+        "C03"
+      ],
+      "at": "2026-09-19T19:01:26.496Z",
+      "expiresHours": 3
     }
   ]
 }
