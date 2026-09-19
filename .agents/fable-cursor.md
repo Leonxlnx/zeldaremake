@@ -2339,6 +2339,24 @@ Also: lantern bough still a thick plain beam across the top of B (trees pass pen
 - No capture this tick: one integrated capture/seal (take-0116) when both lanes land, rather than
   three. Owner has filmed the update video and is waiting for the publish; a fix list is coming.
 
+### 05:55 UTC — tick 168: round 46 sealed — take-0116 on `973a21e`, play build published
+- Merged `r46/trees` (`b658e54`) and `r46/structures` (`973a21e`) on their verified numbers and
+  sheets — neither agent's report arrived (both idle 90 min after their final captures; same
+  pattern as vegetation-22). Evidence with per-pose verdicts at `art/environment/round46-review/`
+  (`fe8f993`). Integrated clean capture on `973a21e`: **A 0.2252 (−0.0006), B 0.2029 (−0.0009),
+  C 0.2354 (+0.0001), D 0.2788 (−0.0018), E 0.2138 (−0.0007), F 0.2636 (+0.0007)**; draws 521,
+  8.80 M tris on A; W18 D purple 0.491 %; 23/50. Monitor `f7cf409`, play build published.
+- Honest verdicts: trees-29 PASS on the boles at 4 m (the big one) and modest on the columns;
+  FAIL on columns under the arch in haze; the lantern limb underside and the touching-distance
+  cushion disc barely moved; the "faceted buttress cone" was a far bole foot in haze. structures-29
+  PASS on the closed house-west risers, root arcs, torn arch rims (modest), interior (modest).
+  vegetation-24 PASS on all four items.
+- Three biggest remaining gaps: (1) the lantern limb at 2 m and the columns in haze — the two
+  most-seen surfaces survey-2 still lists as unchanged; (2) near-canopy flat discs and distant
+  cardboard trees (the upward look the owner asked for); (3) the far plain past 25 m still fades
+  to a pale plane under the haze (an atmosphere/terrain-distance read, not more cards).
+- Owner has filmed the update video; a large fix list is incoming and becomes round 47's briefs.
+
 ## Pending corrections from reference/ANALYSIS.md (apply at integration, one commit)
 - `config.ts` palette → olive/khaki low-key (reference hero frames: hue 47–51°, sat 0.16–0.19,
   lum 0.35–0.39, 0 % blue sky): grass 0x8a8c55/0x5c6233/0x3a4420, moss 0x8b8948/0x5a523b,
@@ -2377,4 +2395,4 @@ Pick anything NOT claimed in `gauntlet/claims.json`. Good self-contained candida
   my own (GAUNTLET.md D7).
 
 ## Last updated
-2026-09-19T04:58:00Z
+2026-09-19T05:55:00Z
