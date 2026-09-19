@@ -9,6 +9,10 @@ import { renderToolbar, bindToolbar, renderStage, bindStage, renderCallouts, bin
 import { renderNotes, renderMetrics, renderRubric, bindRubric, renderCrew } from './js/panels.js';
 import { renderFilmstrip, bindFilmstrip, stepTake, gotoTake } from './js/filmstrip.js';
 import { renderReel, updateReel, bindReel, setReelData, stopTimer, currentIndex } from './js/reel.js';
+import { renderCut, bindCut } from './js/cut.js';
+import { renderPlayer, bindPlayer } from './js/player.js';
+import { renderEvidence, bindEvidence, bindEvidenceImages } from './js/evidence.js';
+import { isLightboxOpen } from './js/lightbox.js';
 
 const REFRESH_MS = 5 * 60 * 1000;
 const LIVE_TICK_MS = 30 * 1000;
@@ -17,24 +21,28 @@ let data = null;
 const R = {
   slate: () => renderSlate(data),
   live: () => renderLive(data),
+  cut: () => renderCut($('#cut'), data),
   toolbar: () => renderToolbar($('#viewer-toolbar'), data),
   stage: () => renderStage($('#stage'), data),
   callouts: () => renderCallouts($('#callouts'), data),
   notes: () => renderNotes($('#notes'), data),
   metrics: () => renderMetrics($('#metrics'), data),
+  player: () => renderPlayer($('#player'), data),
+  evidence: () => renderEvidence($('#evidence'), data),
   rubric: () => renderRubric($('#rubric'), data),
   crew: () => renderCrew($('#crew'), data),
   filmstrip: () => renderFilmstrip($('#filmstrip'), data),
   reel: () => { if (state.view === 'reel') renderReel($('#view-reel'), data); },
   view: applyView,
 };
-const ORDER = ['view', 'slate', 'live', 'toolbar', 'stage', 'callouts', 'notes', 'metrics', 'rubric', 'crew', 'filmstrip', 'reel'];
+const ORDER = ['view', 'slate', 'live', 'cut', 'toolbar', 'stage', 'callouts', 'notes', 'metrics', 'player', 'evidence', 'rubric', 'crew', 'filmstrip', 'reel'];
 const DEPS = {
-  takeId: ['slate', 'toolbar', 'stage', 'callouts', 'notes', 'metrics', 'rubric', 'crew', 'filmstrip', 'reel'],
-  viewpoint: ['slate', 'toolbar', 'stage', 'callouts', 'metrics', 'filmstrip', 'reel'],
+  takeId: ['slate', 'cut', 'toolbar', 'stage', 'callouts', 'notes', 'metrics', 'player', 'evidence', 'rubric', 'crew', 'filmstrip', 'reel'],
+  viewpoint: ['slate', 'cut', 'toolbar', 'stage', 'callouts', 'metrics', 'filmstrip', 'reel'],
   mode: ['toolbar', 'stage', 'callouts'],
   pins: ['toolbar', 'stage', 'callouts'],
   rubricFilter: ['rubric'],
+  evidenceSet: ['evidence'],
   view: ['view', 'reel'],
 };
 
@@ -88,7 +96,7 @@ function fitStage() {
   const mainPad = parseFloat(getComputedStyle($('main')).paddingTop || '0');
   const frame = $('.stage-frame');
   const framePad = frame ? parseFloat(getComputedStyle(frame).paddingTop || '0') * 2 : 14;
-  const reserve = Math.round(slateBox + mainPad + h('#viewer-toolbar') + 10 + framePad + 10 + h('#metrics') + h('#filmstrip') + 8);
+  const reserve = Math.round(slateBox + mainPad + h('#cut') + 10 + h('#viewer-toolbar') + 10 + framePad + 10 + h('#metrics') + h('#filmstrip') + 8);
   if (Math.abs(reserve - lastReserve) > 1) {
     lastReserve = reserve;
     document.documentElement.style.setProperty('--stage-reserve', `${reserve}px`);
@@ -121,6 +129,7 @@ function openInMonitor() {
 function bindKeyboard() {
   document.addEventListener('keydown', (e) => {
     if (e.defaultPrevented || e.metaKey || e.ctrlKey || e.altKey) return;
+    if (isLightboxOpen()) return; // the lightbox owns the keys while a sheet is open
     const t = e.target;
     if (t.closest?.('input, textarea, select, [contenteditable]')) return;
     // a focused wipe handle owns the arrow/Home/End keys (see viewer.js); letters still work
@@ -175,6 +184,11 @@ async function boot() {
   bindToolbar($('#viewer-toolbar'));
   bindStage($('#stage'));
   bindCallouts($('#callouts'));
+  bindCut($('#cut'));
+  bindPlayer($('#player'));
+  bindEvidence($('#evidence'));
+  bindEvidenceImages($('#evidence'));
+  bindEvidenceImages($('#player'));
   bindRubric($('#rubric'));
   bindFilmstrip($('#filmstrip'));
   bindReel($('#view-reel'), data, openInMonitor);
@@ -192,6 +206,7 @@ async function boot() {
   const ro = new ResizeObserver(() => scheduleLeaders());
   ro.observe($('#monitor-grid'));
   ro.observe($('#callouts'));
+  ro.observe($('#cut'));
   window.addEventListener('resize', () => { R.stage(); scheduleLeaders(); });
 
   setInterval(refresh, REFRESH_MS);

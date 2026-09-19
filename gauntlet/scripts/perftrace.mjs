@@ -13,8 +13,12 @@
  *
  *   node gauntlet/scripts/perftrace.mjs --dist <dist> --out <json> [--frames 2400] [--width 160 --height 90]
  *        [--quality high] [--norender] [--render-every N] [--label name] [--phase2 N] [--warmup]
- *        [--params "fx=noao&shadow=1024"] [--finish] [--auto]
+ *        [--params "fx=noao&shadow=1024"] [--finish] [--auto] [--note "box load, provenance"]
  *        [--profile trace.cpuprofile] [--profile-load load.cpuprofile] [--alloc trace.heapprofile]
+ *
+ * Every pass also carries `poolSeries` — one `WorldSystem.perf()` snapshot per 30-frame chunk (the
+ * trees' near-LOD pools: live bytes, builds, evictions, synchronous builds, build-time percentiles)
+ * — and `poolFinal`, the last of them; `--note` is stored verbatim under `config.note`.
  *
  * --norender     : the render call is stubbed (pure world.update JS; no first-use events happen)
  * --render-every : render only every Nth step (the others advance the simulation without a frame)
@@ -77,6 +81,8 @@ const allocOut = args.alloc ? path.resolve(args.alloc) : null;
 const extraParams = typeof args.params === 'string' ? args.params.replace(/^[?&]+/, '') : '';
 /** --finish: GPU completion sync inside the timed step (the frame's completion counts in `ms`) */
 const finishInside = !!args.finish;
+/** --note "…": free text carried in the output's `config.note` (the box's load, who else was capturing, the build's provenance) */
+const note = typeof args.note === 'string' ? args.note : null;
 /** --auto: quality=auto with the governor enabled under the harness */
 const auto = !!args.auto;
 let allocDone = false;
@@ -375,7 +381,12 @@ function pageRun({ k0, n, dt, renderEvery }) {
       vegRebucket,
     });
   }
-  return rows;
+  // the systems' runtime state after this chunk (the trees' near-LOD pools: live bytes, builds,
+  // evictions, synchronous builds, build-time percentiles — `WorldSystem.perf()`), so a trace
+  // shows how the pools filled along the walk, not only where they ended
+  const perfNow = window.__ZR__.perf();
+  const pool = perfNow.systemPerf ?? null;
+  return { rows, pool };
 }
 
 function percentile(sorted, q) {
@@ -550,11 +561,14 @@ async function main() {
         await heap.send('HeapProfiler.enable');
         await heap.send('HeapProfiler.startSampling', { samplingInterval: 4096, includeObjectsCollectedByMajorGC: true, includeObjectsCollectedByMinorGC: true });
       }
+      /** one `WorldSystem.perf()` snapshot per chunk (the trees' LOD pools along the walk) */
+      const poolSeries = [];
       for (let k = 0; k < frames; k += CHUNK) {
         const n = Math.min(CHUNK, frames - k);
-        const part = await page.evaluate(pageRun, { k0: k, n, dt, renderEvery });
+        const { rows: part, pool } = await page.evaluate(pageRun, { k0: k, n, dt, renderEvery });
         rows.push(...part);
         const last = part[part.length - 1];
+        if (pool) poolSeries.push({ k: last.k, t: last.t, tag: last.tag, pos: last.pos, systemPerf: pool });
         if ((k / CHUNK) % 4 === 0)
           log(
             `[${tag}] frame ${last.k} t=${last.t.toFixed(2)} ${last.tag} pos=${last.pos} gait=${last.gait} ms=${last.ms} upd=${last.update} rend=${last.render}${last.finish !== undefined ? ` fin=${last.finish}` : ''}${last.tier ? ` tier=${last.tier}` : ''} calls=${last.calls} tris=${last.tris} prog=${last.programs} (${((Date.now() - t0) / 1000).toFixed(0)} s)`,
@@ -582,7 +596,8 @@ async function main() {
       }
       const summary = summarise(rows);
       const summaryRendered = renderEvery > 1 ? summarise(rows, { renderedOnly: true }) : null;
-      return { setup, summary, summaryRendered, profileTop, rows, norender, renderEvery, frames };
+      const poolFinal = poolSeries.length ? poolSeries[poolSeries.length - 1].systemPerf : null;
+      return { setup, summary, summaryRendered, profileTop, rows, poolSeries, poolFinal, norender, renderEvery, frames };
     };
     const pass1 = await runPass({ norender, renderEvery, frames, profileOut, tag: norender ? 'norender' : 'render' });
     let pass2 = null;
@@ -594,7 +609,7 @@ async function main() {
     }
     // the governor's own record (rungs, changes with frame indices and the median that triggered each)
     const governor = auto ? await page.evaluate(() => window.__ZR__.perf().governor ?? null) : null;
-    const config = { params: extraParams, finish: finishInside, auto, flags: pass1.setup.flags, perf: pass1.setup.perf, drawingBuffer: pass1.setup.drawingBuffer };
+    const config = { params: extraParams, finish: finishInside, auto, warmup, note, flags: pass1.setup.flags, perf: pass1.setup.perf, drawingBuffer: pass1.setup.drawingBuffer };
     const result = { label, dist, width, height, quality: auto ? 'auto' : quality, config, readyMs, loadProfileTop: loadProfileTop ?? null, pass1, pass2, governor };
     if (out) {
       fs.mkdirSync(path.dirname(out), { recursive: true });
@@ -603,7 +618,7 @@ async function main() {
     }
     const brief = (p) => {
       if (!p) return null;
-      const { rows: _r, summary, ...rest } = p;
+      const { rows: _r, poolSeries: _ps, summary, ...rest } = p;
       const { spikeList, ...s } = summary;
       return { ...rest, summary: s, spikeList: spikeList.slice(0, 40) };
     };

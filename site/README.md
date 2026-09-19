@@ -55,7 +55,10 @@ node site/build.mjs --data .monitor --out dist-site
 
 | Area | What it shows |
 | --- | --- |
-| Slate | production · SCENE / TAKE · DIR · CAM · ROLL · date · commit link; LIVE pill (green ≤ cadence, amber ≤ 2×, red STALE) with a blinking rec dot; auto-refresh every 5 min |
+| Slate | production · SCENE / TAKE · DIR · CAM · ROLL · date · commit link; LIVE pill (green ≤ cadence, amber ≤ 2×, red STALE) with a blinking rec dot; auto-refresh every 5 min; the **Walk the world** link pinned to the published build's SHA (dashed when the take on screen is not the build's take) |
+| Director's cut | above the viewer: the take's **headline** (the ledger note's first sentence — `site/js/headline.js`, shared with `monitor.mjs`), its round, who shot it and when, and one chip per viewpoint with the SSIM delta against the previous take (click → that viewpoint); links to the full note, the evidence and the player strip |
+| What the player sees | under the metrics: the take's player-height strip (`data/takes/<id>/player/`, rendered by `site/tools/player-strip.mjs`); borrowed from the nearest earlier take when this one has none; click → lightbox with a this-take ↔ previous toggle |
+| Evidence gallery | above the rubric: every round's before/after sheets and the survey reports (`data/evidence/`, exported from `art/environment/` by `monitor.mjs syncEvidence`); one set open at a time (the current take's round by default), its README rendered beside the sheets grouped by lane; before/after pairs are one card (hover = before); click → lightbox with prev/next and A/B |
 | Viewer | 16:9 stage; **Before/After** and **Reference** wipes (drag, click, ← → nudge on the handle), **Onion skin** (opacity slider), **Side by side**; viewpoint tabs A–F; director's-frame corners, `TC` timecode from `refSeconds`, vignette |
 | Callouts | numbered pins from `shots[].callouts` (colour by kind), in-image label chips, leader lines to the legend; `refCallouts` on the reference in Reference / Side-by-side modes; hover/click highlights; `P` toggles pins |
 | Take notes | agent, branch, commit subject, targeted items (click → rubric card), the comparison note, CI ✓ / local attestation, STRUCK stamp + reason for invalid takes |
@@ -67,7 +70,25 @@ node site/build.mjs --data .monitor --out dist-site
 
 Deep links: `#take-0007/A_stairs/reference` (take / viewpoint / mode), `#…/reel` for the reel view.
 
-Keys: `←` `→` takes · `Home`/`End` · `A`–`F` viewpoint · `1`–`4` mode · `P` pins · `Space` play (reel).
+Keys: `←` `→` takes · `Home`/`End` · `A`–`F` viewpoint · `1`–`4` mode · `P` pins · `Space` play (reel) ·
+in the lightbox `←` `→` sheets, `Space`/`B` before ↔ after, `Esc` close.
+
+## Publishing the director's-cut data
+
+Everything new is written by `gauntlet/scripts/lib/monitor.mjs` at publish time, so nothing changes
+on the `monitor` branch until a take is published with this code, and the site degrades gracefully
+(the headline and round are derived client-side for older takes; the strip and the gallery show a
+note until their data exists):
+
+```bash
+# 1. (optional, per take) the player strip — 14 player-height poses, ~1 min natively, longer on SwiftShader
+node site/tools/player-strip.mjs --dist dist --out gauntlet/out/last/player     # ZR_NATIVE_GPU=1 on the owner's machine
+# 2. the take as usual: takes[].headline / round, takes.play, data/takes/<id>/player/, data/evidence/ all land in one publish
+npm run take -- --agent <id> --items … --note "…" --publish
+```
+
+`site/tools/player-poses.json` is the pose list (name / label / p / t / fov, copied from
+`art/environment/survey2/manifest.json`); edit it there.
 
 ## QA screenshots
 
@@ -75,7 +96,9 @@ Keys: `←` `→` takes · `Home`/`End` · `A`–`F` viewpoint · `1`–`4` mode
 node site/dev/mock-data.mjs
 node site/serve.mjs --data /tmp/monitor-mock --port 8787 &      # or in tmux
 node site/build.mjs --data /nonexistent --out /tmp/site-dist-empty
-node site/dev/screenshot.mjs --url http://127.0.0.1:8787 --out /tmp/site-shots
+node site/dev/screenshot.mjs --url http://127.0.0.1:8787 --out /tmp/site-shots [--take take-0013] [--prev take-0012]
 ```
 
-The screenshot script fails if the page logs any console error or page error.
+The screenshot script fails if the page logs any console error or page error. Against the real
+`monitor` data pass the newest take (`--take take-0116 --prev take-0115`); the director's cut,
+player strip, evidence gallery and lightbox get their own shots (13–17).

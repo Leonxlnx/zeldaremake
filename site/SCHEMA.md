@@ -18,6 +18,12 @@ copied under `data/`.
   data/takes/<take-id>/<viewpoint>.compare.jpg  (reference | ours | previous strip)
   data/takes/<take-id>/score.json
   data/takes/<take-id>/audit.json
+  data/takes/<take-id>/player/<pose>.jpg     ("what the player sees": player-height poses, JPEG q82 ≤ 1280 px)
+  data/takes/<take-id>/player/index.json     (the strip's poses; the same record is embedded as takes[].player)
+  data/evidence/index.json                   (the evidence gallery: every round's sheets + the survey reports)
+  data/evidence/<set>/<sheet>.jpg            (art/environment/round<N>-review/*.jpg, survey<N>/*.jpg, ≤ 1280 px JPEG q78)
+  data/evidence/<set>/README.md              (the round's README / the survey's REPORT, copied verbatim)
+  play/index.html …                          (the walkable build of the take named in takes.json `play`)
 ```
 
 ## takes.json
@@ -28,6 +34,10 @@ copied under `data/`.
   "updatedAt": "2026-09-09T12:00:04Z",
   "monitorCadenceMinutes": 60,           // site turns the banner red when updatedAt is older than 2×
   "heartbeat": { "at": "…", "reason": "…" },   // optional: last no-new-take refresh of updatedAt (CI same-sha run)
+  "play": {                              // optional: which take's build sits under play/ (set when the captured dist was published)
+    "takeId": "take-0116", "sha": "973a21e…", "shortSha": "973a21e", "branch": "cursor/kokiri-world-phase1-f65e",
+    "at": "2026-09-19T05:38:11Z", "path": "play/index.html"
+  },
   "takes": [                             // chronological, oldest first
     {
       "id": "take-0007",                 // zero-padded, monotonic
@@ -41,6 +51,18 @@ copied under `data/`.
       "phase": 1,
       "items": ["W02", "W15"],           // rubric items this take targeted (claimed)
       "note": "Reference frame 1 shows … ours still …",  // ≥ 200 chars, the agent's comparison note
+      // the director's cut (site/js/headline.js, shared with monitor.mjs): the note's first sentence
+      // without its "Round N on <sha> —" prefix, ≤ 200 chars (the commit subject for the CI auto-note),
+      // and the round the note / subject names; the site derives both when a take lacks them
+      "headline": "The survey-2 re-rank, evidence-gated: every lane had to change the exact pose it was briefed on…",
+      "round": 46,                        // null when the note names no round
+      "player": {                         // optional: the take's "what the player sees" strip (null when none was published)
+        "index": "takes/take-0116/player/index.json",
+        "count": 14, "renderer": "native GPU (D3D11)", "capturedAt": "2026-09-19T21:40:00Z", "sha": "973a21e…",
+        "width": 1280, "height": 720, "posesFile": "site/tools/player-poses.json",
+        "poses": [ { "name": "w00-spine-f", "label": "Plaza, up the spine", "file": "takes/take-0116/player/w00-spine-f.jpg",
+                     "p": [0.94, 1.46, 15.5], "t": [-0.3, 1.31, 5.58], "fov": 46 } ]
+      },
       "slate": {                          // film-slate labels for the UI
         "scene": "A",                     // hero viewpoint letter the take focused on
         "sceneTitle": "The Stairs",
@@ -101,3 +123,45 @@ copied under `data/`.
 ```json
 { "agents": [ { "agent": "fable-cursor", "runtime": "…", "github": "…", "status": "active", "branch": "…", "updated": "…", "currentTask": "first paragraph of ## Current task", "file": ".agents/fable-cursor.md" } ] }
 ```
+
+## evidence/index.json
+
+Written by `monitor.mjs syncEvidence` on every publish from the code checkout's
+`art/environment/round<N>-review/` and `art/environment/survey<N>/` directories (the lanes'
+before/after sheets and the survey reports — comparison evidence, never runtime content). Images
+are downscaled once to ≤ 1280 px JPEG (idempotent by source content hash); the README / REPORT is
+copied verbatim and rendered by the site (`site/js/markdown.js`). Sets are append-only.
+
+```jsonc
+{
+  "generatedAt": "2026-09-19T21:00:00Z",
+  "source": { "sha": "38f430ea…", "shortSha": "38f430e", "branch": "cursor/kokiri-world-phase1-f65e" },
+  "sets": [
+    {
+      "id": "round46-review", "kind": "round",   // "round" | "survey"
+      "round": 46,                               // the N of the directory name
+      "title": "Round 46 — evidence-gated on the survey-2 poses",   // first `# heading` of the README
+      "text": "evidence/round46-review/README.md",                  // null when the set has no markdown
+      "takes": ["take-0115", "take-0116"],       // every take-NNNN the README names (the site links them)
+      "updatedAt": "2026-09-19T05:40:00Z",       // newest source image mtime
+      "sheets": [
+        { "file": "evidence/round46-review/trees29-w07-spine-l.jpg", "source": "trees29-w07-spine-l.jpg",
+          "hash": "0f3a…", "srcBytes": 182334, "w": 976, "h": 541, "bytes": 96412,
+          "name": "trees29-w07-spine-l", "lane": "trees", "laneRaw": "trees29",   // from the file name
+          "pose": "w07-spine-l",                   // the survey pose when the name carries one, else null
+          "pairKey": null, "pairRole": null }      // "…-before" / "…-after" sheets share a pairKey (the site folds them into one card)
+      ]
+    }
+  ]
+}
+```
+
+## takes/<id>/player/index.json
+
+The "what the player sees" strip of a take: player-height poses (eye height 1.45 m, a curated
+subset of the survey manifest in `site/tools/player-poses.json`) rendered by
+`node site/tools/player-strip.mjs --dist <dist> --out <captureDir>/player` before the publish;
+`take.mjs --publish` (via `monitor.mjs syncPlayerStrip`) converts the PNGs to JPEG under
+`data/takes/<id>/player/` and embeds the same record as `takes[].player`. A take without a strip
+borrows the nearest earlier one on the site (labelled as borrowed); a pose that also exists in the
+previous strip gets a this-take ↔ previous toggle in the lightbox.
