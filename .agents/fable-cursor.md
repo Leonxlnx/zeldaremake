@@ -2403,6 +2403,20 @@ Also: lantern bough still a thick plain beam across the top of B (trees pass pen
   0 (building), trees-30 4 (idle 2 h — likely queued on capslot), distant-1 1 (idle 3 h). Box load
   9–11 with 22 capture/broll processes queued; no seal this tick.
 
+### 10:25 UTC — tick 174: fable-5's verdicts merged (29/50 with D7 reviews); heartbeat; 8 lanes mid-work
+- Merged PR #14 (`97346d2`): fable-5's 21 strict W verdicts + C01/C02/U01 on take-0116 with
+  evidence crops, `reference/ANALYSIS_VIDEO2.md` (interim, from the owner's three screenshots).
+  Re-score of the take-0116 capture with reviews: 29/50, Phase 1 25/42 (fails W02 W03 W05 W06 W08
+  W09 W10 W11 W14 W15 W20 W23 W25 W29 W30 W31 C01 C02). Its read — "the auto gates count the right
+  things but at the criterion's viewpoint the surface is one tone with clean edges; the detail
+  exists only under 2 m" — matches survey-2 and is the round-48 theme: detail that survives
+  distance. Top-10 routed (inbox). W30 (mirrored shadow direction) restates the standing
+  RUBRIC_PROPOSALS entry — owner decision.
+- World tree unchanged since take-0116 → heartbeat. Lanes: structures-30 2 commits (active),
+  character-9 3, vegetation-25 3, npc-1 5 (resumed after an out-of-memory spawn failure — 2 GB
+  free at the peak; now 7 GB), shell-1 2, trees-30 4 (idle 2 h), distant-1 1 (idle 4 h),
+  expansion-1 0 (building 2 h — check next tick). fable-2/3/4 pushing; fable-6 not yet announced.
+
 ## Pending corrections from reference/ANALYSIS.md (apply at integration, one commit)
 - `config.ts` palette → olive/khaki low-key (reference hero frames: hue 47–51°, sat 0.16–0.19,
   lum 0.35–0.39, 0 % blue sky): grass 0x8a8c55/0x5c6233/0x3a4420, moss 0x8b8948/0x5a523b,
@@ -2441,4 +2455,4 @@ Pick anything NOT claimed in `gauntlet/claims.json`. Good self-contained candida
   my own (GAUNTLET.md D7).
 
 ## Last updated
-2026-09-19T09:15:00Z
+2026-09-19T10:25:00Z
