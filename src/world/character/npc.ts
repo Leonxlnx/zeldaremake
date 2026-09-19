@@ -323,13 +323,18 @@ interface SeatPose {
   ankleR: Vector3;
 }
 
-/** planar two-bone solve: bones l1, l2 from the origin to (reach, drop) in a vertical plane; returns the first bone's angle from straight down (toward +reach) and the joint flex */
-function twoBone(l1: number, l2: number, reach: number, drop: number): { a: number; flex: number } {
+/**
+ * Planar two-bone solve: bones l1, l2 from the origin to (reach, drop) in a vertical plane; returns
+ * the first bone's angle from straight down (toward +reach) and the joint flex. The middle joint
+ * sits ahead of the origin→target line for a knee (the shin folds back) and behind it for an elbow
+ * (`midBehind`: the upper arm hangs, the forearm folds forward onto the target).
+ */
+function twoBone(l1: number, l2: number, reach: number, drop: number, midBehind = false): { a: number; flex: number } {
   const d = Math.max(Math.abs(l1 - l2) + 1e-3, Math.min(l1 + l2 - 1e-3, Math.hypot(reach, drop)));
   const alpha = Math.atan2(reach, drop);
   const beta = Math.acos(MathUtils.clamp((l1 * l1 + d * d - l2 * l2) / (2 * l1 * d), -1, 1));
   const kappa = Math.acos(MathUtils.clamp((l1 * l1 + l2 * l2 - d * d) / (2 * l1 * l2), -1, 1));
-  return { a: alpha + beta, flex: Math.PI - kappa };
+  return { a: midBehind ? alpha - beta : alpha + beta, flex: Math.PI - kappa };
 }
 
 const _tmp = new Vector3();
@@ -380,20 +385,20 @@ function poseSeated(rig: Rig, seat: SeatPose, t: number, phase: number, headYaw:
     // foot flat on its tread
     ankle.rotation.set(-(thigh.rotation.x + knee.rotation.x), 0, -thigh.rotation.z);
   }
-  // arms: hands on the thighs (a planar solve in the chest frame toward a point 60 % down each thigh, a hand above it)
+  // arms: hands in the lap (a planar solve in the chest frame toward a point 65 % down each thigh, a
+  // hand above it; the elbow hangs behind the shoulder→hand line so the forearm folds forward onto the thigh)
   r.root.updateMatrixWorld(true);
   for (const side of [1, -1] as const) {
     const shoulder = side > 0 ? r.shoulderL : r.shoulderR;
     const elbow = side > 0 ? r.elbowL : r.elbowR;
     const thigh = side > 0 ? r.thighL : r.thighR;
-    // thigh point in the hips frame: hip joint + 0.6 · l1 along the thigh, lifted by the thigh radius + a hand
     const th = -thigh.rotation.x;
-    _tmp.set(side * (p.hipHalfWidth + 0.02), -0.6 * l1 * Math.cos(th) + 0.1, 0.6 * l1 * Math.sin(th));
+    _tmp.set(side * (p.hipHalfWidth + 0.02), -0.65 * l1 * Math.cos(th) + 0.09, 0.65 * l1 * Math.sin(th));
     r.hips.localToWorld(_tmp);
     r.chest.worldToLocal(_tmp);
     _tmp.x -= side * p.shoulderHalfWidth;
     _tmp.y -= p.shoulderY - p.chestY;
-    const { a, flex } = twoBone(p.upperArm, p.forearm + 0.02, _tmp.z, -_tmp.y);
+    const { a, flex } = twoBone(p.upperArm, p.forearm + 0.02, _tmp.z, -_tmp.y, true);
     shoulder.rotation.set(-a, 0, side * 0.12);
     elbow.rotation.x = -flex;
   }
