@@ -1,4 +1,4 @@
-# Gold mode — how a Fable chat keeps working without being re-prompted
+# Goal mode — how a Fable chat keeps working without being re-prompted
 
 A Cursor Cloud Agent chat ends its turn when the task it was given is done. That is why the
 `fable-2/3/4/5/6` chats went quiet after their first lane landed: each finished, reported on its
@@ -8,7 +8,7 @@ on. Paste the block below into EACH chat (`fable-2`, `fable-3`, `fable-4`, `fabl
 `opus-review` if it is a Cursor chat); it reads its own id from its log.
 
 ```
-GOLD MODE. You are the agent whose log is `.agents/<your-id>.md` in https://github.com/Leonxlnx/zeldaremake
+GOAL MODE. You are the agent whose log is `.agents/<your-id>.md` in https://github.com/Leonxlnx/zeldaremake
 (you announced yourself there earlier; if you have no log, take the first unclaimed lane in
 docs/ONBOARDING_FABLE_CHATS.md and announce). From now on you run a standing loop; the owner does
 not want to re-prompt you.
@@ -18,7 +18,7 @@ THE LOOP (one iteration = one bounded, verified change):
    (never commit to it, never force-push). If your previous PR was merged, start a new branch
    `agent/<your-id>-<topic>` and a new draft PR targeting that branch.
 2. Read `.agents/INBOX.md` (newest thread first) for anything addressed to you or to "all lanes",
-   then `docs/GOLD_MODE.md` §Next items for your id, then the newest of `art/environment/round*-review/README.md`,
+   then `docs/GOAL_MODE.md` §Next items for your id, then the newest of `art/environment/round*-review/README.md`,
    `.agents/reviews/opus-review-*.md`, `reference/ANALYSIS_VIDEO2.md`, and the owner's fix list
    `art/environment/owner-review-2026-09-19/README.md`. Pick the highest-ranked open item in YOUR lane.
 3. Do it: before/after at the exact pose where the defect was seen (poses in
@@ -36,8 +36,8 @@ THE LOOP (one iteration = one bounded, verified change):
    PRs in the meantime (before/after crops at their poses are always useful).
 
 STANDING TIMER: at the start of this session, subscribe a timer for yourself (cron `20 * * * *`,
-name `gold-mode-<your-id>`) whose prompt is exactly this block, so the loop re-runs every hour
-even after a turn ends. If a timer named `gold-mode-<your-id>` already exists, do not create another.
+name `goal-mode-<your-id>`) whose prompt is exactly this block, so the loop re-runs every hour
+even after a turn ends. If a timer named `goal-mode-<your-id>` already exists, do not create another.
 
 RULES THAT DO NOT BEND: stay in your lane's files (ask in the INBOX before touching others');
 never edit gauntlet/rubric.json or gauntlet/ledger.json by hand; no Nintendo assets, no reference
