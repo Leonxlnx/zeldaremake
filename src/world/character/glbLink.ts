@@ -323,6 +323,19 @@ const PLANT_SPEED_FRAC = 0.6;
 const PLANT_LIFT = 0.003;
 const PIN_FADE_S = 0.1;
 /**
+ * The pin's LEAD-IN. The delivered clips bring a heel down still moving: the walk's sole is within
+ * 8 mm of the floor for three frames while it skids 8.5 cm forward through the world before it
+ * plants (the "moonwalk" that is left at a steady 1.6 m/s, where the pins hold 0.0 mm). Over the
+ * samples just before a planted window in which the sole is within LEAD_LIFT of the floor and not
+ * yet planted (tableLead: at most LEAD_MAX_S of clip time, at most LEAD_MAX_M of that skid), the
+ * foot is carried to the spot it will plant on instead — arriving with no ground velocity, as a
+ * heel does — and the pin then takes over exactly there. A lead past the straight leg is trimmed
+ * by the reach rule below like any pin.
+ */
+const LEAD_LIFT = 0.035;
+const LEAD_MAX_S = 0.1;
+const LEAD_MAX_M = 0.15;
+/**
  * Arm swing per gait (the owner: "his arms should move slow, and when you run, a little bit
  * faster"): the shoulder / elbow rotation about the clip's own cycle-mean arm pose is scaled by
  * ARM_SCALE and low-passed with the time constant ARM_TAU (s), both blended by the gait weights.
@@ -603,6 +616,8 @@ export interface LinkClipInfo {
   swings: { L: [number, number][]; R: [number, number][] };
   /** seconds per cycle each foot is PLANTED (tablePlants: sole on the floor and moving back at the stride speed) */
   plantedS: { L: number; R: number };
+  /** seconds per cycle each foot is in a pin lead-in window (tableLead: on the floor before its plant, skidding) */
+  leadS: { L: number; R: number };
   /** the gait phase a play-mode crossfade from idle enters this clip at (tableStartPhase: the feet together) */
   startPhase: number;
 }
@@ -979,6 +994,40 @@ function tablePlants(path: FootPath, duration: number, speed: number): Uint8Arra
 function plantedAt(plants: Uint8Array, tau: number, duration: number): boolean {
   const n = plants.length;
   return plants[mod(Math.round((tau / duration) * n), n)] === 1;
+}
+/**
+ * Per clip sample, the pin lead-in window the sample lies in (see LEAD_LIFT): [2k] the clip time
+ * the window opens at, [2k+1] the clip time the foot plants at; NaN outside a window. Walking back
+ * from each planted window's start over the unplanted samples with the sole within LEAD_LIFT of
+ * the floor, while the window is under LEAD_MAX_S and the foot's world skid across it — the
+ * stride speed times the clip time, less what the sole moved back through root space — is under
+ * LEAD_MAX_M.
+ */
+function tableLead(path: FootPath, plants: Uint8Array, duration: number, speed: number): Float64Array {
+  const n = plants.length;
+  const out = new Float64Array(2 * n).fill(NaN);
+  if (speed <= 0) return out;
+  let floor = Infinity;
+  for (let i = 0; i < n; i++) if (path.soleY[i] < floor) floor = path.soleY[i];
+  const dt = duration / n;
+  for (let p = 0; p < n; p++) {
+    if (plants[p] !== 1 || plants[mod(p - 1, n)] === 1) continue;
+    let j0 = p;
+    for (let k = 1; k < n; k++) {
+      const j = mod(p - k, n);
+      if (plants[j] === 1 || path.soleY[j] - floor > LEAD_LIFT || k * dt > LEAD_MAX_S) break;
+      if (speed * k * dt + (path.soleZ[p] - path.soleZ[j]) > LEAD_MAX_M) break;
+      j0 = j;
+    }
+    if (j0 === p) continue;
+    const open = j0 * dt;
+    const plant = p * dt;
+    for (let j = j0; j !== p; j = (j + 1) % n) {
+      out[2 * j] = open;
+      out[2 * j + 1] = plant;
+    }
+  }
+  return out;
 }
 /**
  * The gait phase (gaitPhase) a play-mode crossfade from a gait without one (idle) enters a clip at
@@ -1495,6 +1544,8 @@ export async function loadGlbLink(url: string, opts: GlbLinkOptions = {}): Promi
   const pathTable = {} as PathTable;
   /** per gait, per foot: the planted samples (tablePlants) the play-mode stance pins key on */
   const plantTable = {} as Record<Gait, [Uint8Array, Uint8Array]>;
+  /** per gait, per foot: the pin lead-in windows before each planted window (tableLead) */
+  const leadTable = {} as Record<Gait, [Float64Array, Float64Array]>;
   /** per gait: the phase a play-mode crossfade from idle enters the clip at (tableStartPhase) */
   const startPhase = {} as Record<Gait, number>;
   {
@@ -1531,6 +1582,7 @@ export async function loadGlbLink(url: string, opts: GlbLinkOptions = {}): Promi
       tables[gait] = [tableSwings(paths[0], paths[1], a.duration), tableSwings(paths[1], paths[0], a.duration)];
       pathTable[gait] = [paths[0], paths[1]];
       plantTable[gait] = [tablePlants(paths[0], a.duration, GAIT_SPEED[gait]), tablePlants(paths[1], a.duration, GAIT_SPEED[gait])];
+      leadTable[gait] = [tableLead(paths[0], plantTable[gait][0], a.duration, GAIT_SPEED[gait]), tableLead(paths[1], plantTable[gait][1], a.duration, GAIT_SPEED[gait])];
       startPhase[gait] = tableStartPhase(paths[0], tables[gait][0], a.duration);
       armMean[gait] = armSum.map((s) => (s.lengthSq() > 1e-12 ? s.normalize() : s.identity()));
     }
@@ -1552,7 +1604,13 @@ export async function loadGlbLink(url: string, opts: GlbLinkOptions = {}): Promi
       const sw = (i: 0 | 1) => tables[g][i].map((s) => [Number(s.tOff.toFixed(4)), Number(s.tLand.toFixed(4))] as [number, number]);
       /** seconds per cycle the foot is planted (tablePlants) — the sole on the floor AND moving back at the stride speed */
       const pl = (i: 0 | 1) => Number(((plantTable[g][i].reduce((s, v) => s + v, 0) / TABLE_N) * a.duration).toFixed(4));
-      return { name: g, durationS: Number(a.duration.toFixed(6)), strideM: CLIP_SPEC[g].strideM, rate: a.rate, swings: { L: sw(0), R: sw(1) }, plantedS: { L: pl(0), R: pl(1) }, startPhase: Number(startPhase[g].toFixed(4)) };
+      const ld = (i: 0 | 1) => {
+        const lead = leadTable[g][i];
+        let k = 0;
+        for (let j = 0; j < TABLE_N; j++) if (Number.isFinite(lead[2 * j])) k++;
+        return Number(((k / TABLE_N) * a.duration).toFixed(4));
+      };
+      return { name: g, durationS: Number(a.duration.toFixed(6)), strideM: CLIP_SPEC[g].strideM, rate: a.rate, swings: { L: sw(0), R: sw(1) }, plantedS: { L: pl(0), R: pl(1) }, leadS: { L: ld(0), R: ld(1) }, startPhase: Number(startPhase[g].toFixed(4)) };
     }),
     loadMs: Math.round(performance.now() - t0),
     headTopOffsetM: Number(headTopOffset.toFixed(4)),
@@ -2009,10 +2067,16 @@ export async function loadGlbLink(url: string, opts: GlbLinkOptions = {}): Promi
           }
           const sx = leg.soleP.x + fx * predShift;
           const sz = leg.soleP.z + fz * predShift;
+          // where the previous step's lead-in carried this foot (NaN: none) — a pin engaging now starts there
+          const leadX = loco.leadX[i];
+          const leadZ = loco.leadZ[i];
+          loco.leadX[i] = NaN;
+          loco.leadZ[i] = NaN;
           if (strideW > 0 && plantW >= 0.5 * strideW) {
             if (!pinned) {
-              loco.pinX[i] = sx;
-              loco.pinZ[i] = sz;
+              const led = Number.isFinite(leadX) && Number.isFinite(leadZ);
+              loco.pinX[i] = led ? leadX : sx;
+              loco.pinZ[i] = led ? leadZ : sz;
             }
             leg.pinX = loco.pinX[i] - sx;
             leg.pinZ = loco.pinZ[i] - sz;
@@ -2032,11 +2096,50 @@ export async function loadGlbLink(url: string, opts: GlbLinkOptions = {}): Promi
                 leg.pinZ = loco.pinFadeZ[i] * w;
               } else loco.pinFadeT[i] = NaN;
             }
+            // the pin LEAD-IN (tableLead): each clip that has this foot skidding toward its plant
+            // carries it toward the world spot it will plant on — the clip's sole at the plant time,
+            // in root space, carried along the facing by the ground the root covers until then —
+            // eased in over the window, weighted by the clip in the blend; the foot reaches the
+            // spot with no ground velocity and the pin engages there
+            if (strideW > 0) {
+              let lx = 0;
+              let lz = 0;
+              let lw = 0;
+              for (const c of chain) {
+                if (c.weight <= 0 || CLIP_SPEC[c.gait].strideM <= 0) continue;
+                const a = actions.get(c.gait)!;
+                const tau = a.action.time;
+                const lead = leadTable[c.gait][i];
+                const k = mod(Math.round((tau / a.duration) * TABLE_N), TABLE_N);
+                const open = lead[2 * k];
+                if (!Number.isFinite(open)) continue;
+                const plant = lead[2 * k + 1];
+                const span = mod(plant - open, a.duration);
+                const into = Math.min(span, mod(tau - open, a.duration));
+                if (span <= 1e-6) continue;
+                const w = MathUtils.smoothstep(into / span, 0, 1);
+                pathAt(pathTable[c.gait][i], plant, a.duration, spotNow);
+                const ahead = (GAIT_SPEED[c.gait] * (span - into)) / a.rate;
+                const wx = x + spotNow.x * fz + spotNow.z * fx + fx * ahead;
+                const wz = z - spotNow.x * fx + spotNow.z * fz + fz * ahead;
+                lx += c.weight * w * (wx - leg.soleP.x);
+                lz += c.weight * w * (wz - leg.soleP.z);
+                lw += c.weight;
+              }
+              if (lw > 0) {
+                leg.pinX += lx / strideW;
+                leg.pinZ += lz / strideW;
+                loco.leadX[i] = sx + leg.pinX;
+                loco.leadZ[i] = sz + leg.pinZ;
+              }
+            }
           }
         } else if (loco) {
           loco.pinX[i] = NaN;
           loco.pinZ[i] = NaN;
           loco.pinFadeT[i] = NaN;
+          loco.leadX[i] = NaN;
+          loco.leadZ[i] = NaN;
         }
         // the geometric lifts on the shifted footprint at the foot's current yaw: the CLEAR arc
         // over a riser ahead (blended by phase) and the LIP lift (exact at both ends of a swing),

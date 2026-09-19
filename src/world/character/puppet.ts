@@ -83,12 +83,15 @@ export interface Locomotion {
   pinFadeX: [number, number];
   pinFadeZ: [number, number];
   pinFadeT: [number, number];
+  /** the world (x, z) a foot in its pin LEAD-IN (glbLink.ts tableLead) was carried to this step — the spot its pin engages at next step; NaN = no lead-in */
+  leadX: [number, number];
+  leadZ: [number, number];
   /** the jump in progress, or null on the ground */
   jump: JumpState | null;
 }
 
 export function createLocomotion(): Locomotion {
-  return { speed: 0, dt: 0, pinX: [NaN, NaN], pinZ: [NaN, NaN], pinFadeX: [NaN, NaN], pinFadeZ: [NaN, NaN], pinFadeT: [NaN, NaN], jump: null };
+  return { speed: 0, dt: 0, pinX: [NaN, NaN], pinZ: [NaN, NaN], pinFadeX: [NaN, NaN], pinFadeZ: [NaN, NaN], pinFadeT: [NaN, NaN], leadX: [NaN, NaN], leadZ: [NaN, NaN], jump: null };
 }
 
 /**
