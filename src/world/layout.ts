@@ -349,6 +349,26 @@ export const LAYOUT = {
    */
   lookout: { x: 21.6, z: 2.2, halfLength: 1.1, halfDepth: 0.8, yawDeg: 124, height: 0.35 },
 
+  /**
+   * Rock faces that dress terrain steps (read by the rocks system's ledge builder — fable-2's
+   * hook, shape agreed in the inbox 2026-09-19 09:10 UTC). `foot` is the polyline at ground level
+   * on the PATH side, ordered along the path; `height` only when the top is not a terrain step;
+   * `inset` metres the face sits back at the top; `lean` radians, positive over the path.
+   * Round 47: the `ledgeTerrace`'s south face over the north clearing (ref-04's damp near-black
+   * stone with root ridges): the terrace's south lip runs x −3.1 … 1.7 at z −76.8, 1.62 m over
+   * the clearing floor; the `ledge` flight climbs its east end (x 1.2), so the face stops short of it.
+   */
+  rockLedges: [
+    { id: 'north-terrace', foot: [[-3.1, -76.6], [-2.2, -76.7], [-1.2, -76.75], [-0.2, -76.75], [0.6, -76.7]] as [number, number][], height: 1.62, inset: 0.35, lean: 0.06 },
+  ],
+
+  /**
+   * The props system's platform spot (fable-3's hook): a low wooden platform with a rope railing
+   * on the plateau lip, sharing the `lookout` dais' footprint and yaw so the two read as one
+   * built thing; `width` is the platform's long side (m).
+   */
+  plateauLookout: { x: 21.6, z: 2.2, yaw: (124 * Math.PI) / 180, width: 2.2 },
+
   /** Terraces / plateaus that the heightfield honours (soft-edged). */
   terraces: {
     eastPlateau: { height: 5.4 },
