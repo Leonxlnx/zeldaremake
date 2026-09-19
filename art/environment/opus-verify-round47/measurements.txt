@@ -1,0 +1,247 @@
+########## PR12 (base d06e2753 -> 9e20eadf) ##########
+BEFORE d06e2753   AFTER 9e20eadf
+view         ssimBefore  ssimAfter     delta  drawsB  drawsA  trisB(M)  trisA(M)  png
+A_stairs         0.2206     0.2206   +0.0000     521     521     8.797     8.797  differs
+B_house          0.2064     0.2064   +0.0000     479     479     7.944     7.944  differs
+C_lookback       0.2416     0.2416   +0.0000     363     363     7.372     7.392  differs
+D_log            0.2768     0.2768   +0.0000     354     354     8.123     8.123  differs
+E_ground         0.2113     0.2113   +0.0000     479     479     7.944     7.944  differs
+F_canopy         0.2701     0.2701   +0.0000     468     468     8.259     8.259  differs
+determinism re-capture diff (A_stairs, % pixels): undefined
+view          meanAbs   %>2/255   %>8/255  maxCh
+A_stairs       0.0021    0.0158    0.0069     64
+B_house        0.0011    0.0116    0.0034     36
+C_lookback     0.0034    0.0250    0.0118     57
+D_log          0.0019    0.0232    0.0046     56
+E_ground       0.0011    0.0116    0.0034     36
+F_canopy       0.0029    0.0201    0.0091     65
+
+########## PR13 (base d06e2753 -> c70e7f92) ##########
+BEFORE d06e2753   AFTER c70e7f92
+view         ssimBefore  ssimAfter     delta  drawsB  drawsA  trisB(M)  trisA(M)  png
+A_stairs         0.2206     0.2203   -0.0003     521     519     8.797     8.838  differs
+B_house          0.2064     0.2069   +0.0005     479     477     7.944     7.977  differs
+C_lookback       0.2416     0.2402   -0.0014     363     365     7.372     7.381  differs
+D_log            0.2768     0.2768   +0.0000     354     354     8.123     8.133  differs
+E_ground         0.2113     0.2108   -0.0005     479     477     7.944     7.977  differs
+F_canopy         0.2701     0.2689   -0.0012     468     473     8.259     8.315  differs
+determinism re-capture diff (A_stairs, % pixels): undefined
+view          meanAbs   %>2/255   %>8/255  maxCh
+A_stairs       0.1034    0.5234    0.3643    140
+B_house        0.0575    0.3765    0.2225     76
+C_lookback     0.1368    0.6155    0.4504    144
+D_log          0.0007    0.0093    0.0013     40
+E_ground       0.0575    0.3765    0.2225     76
+F_canopy       0.1196    0.6545    0.3976    118
+
+########## PR15 (base d06e2753 -> bb1fd3cb) ##########
+BEFORE d06e2753   AFTER bb1fd3cb
+view         ssimBefore  ssimAfter     delta  drawsB  drawsA  trisB(M)  trisA(M)  png
+A_stairs         0.2206     0.2206   +0.0000     521     523     8.797     8.918  differs
+B_house          0.2064     0.2064   +0.0000     479     481     7.944     8.064  IDENTICAL
+C_lookback       0.2416     0.2418   +0.0002     363     365     7.372     7.495  differs
+D_log            0.2768     0.2769   +0.0001     354     356     8.123     8.244  differs
+E_ground         0.2113     0.2113   +0.0000     479     481     7.944     8.064  IDENTICAL
+F_canopy         0.2701     0.2701   +0.0000     468     470     8.259     8.380  differs
+determinism re-capture diff (A_stairs, % pixels): undefined
+view          meanAbs   %>2/255   %>8/255  maxCh
+A_stairs       0.0002    0.0002    0.0000      7
+B_house        0.0000    0.0000    0.0000      0
+C_lookback     0.0580    0.6822    0.1557     76
+D_log          0.0012    0.0094    0.0002     14
+E_ground       0.0000    0.0000    0.0000      0
+F_canopy       0.0002    0.0004    0.0001     20
+
+########## PR16 (50aac29e -> 36fbeff4) ##########
+BEFORE 50aac29e   AFTER 36fbeff4
+view         ssimBefore  ssimAfter     delta  drawsB  drawsA  trisB(M)  trisA(M)  png
+A_stairs         0.2206     0.2206   +0.0000     521     521     8.797     8.797  IDENTICAL
+B_house          0.2064     0.2068   +0.0004     479     479     7.944     7.944  differs
+C_lookback       0.2416     0.2416   +0.0000     363     363     7.372     7.372  IDENTICAL
+D_log            0.2768     0.2785   +0.0017     354     354     8.123     8.123  differs
+E_ground         0.2113      0.212   +0.0007     479     479     7.944     7.944  differs
+F_canopy         0.2701     0.2701   +0.0000     468     468     8.259     8.259  IDENTICAL
+determinism re-capture diff (A_stairs, % pixels): undefined
+view          meanAbs   %>2/255   %>8/255  maxCh
+A_stairs       0.0000    0.0000    0.0000      0
+B_house        0.0083    0.0469    0.0243    119
+C_lookback     0.0000    0.0000    0.0000      0
+D_log          0.0585    0.1586    0.0993    142
+E_ground       0.0083    0.0469    0.0243    119
+F_canopy       0.0000    0.0000    0.0000      0
+
+########## PR17 (50aac29e -> 7dfab7ca) ##########
+BEFORE 50aac29e   AFTER 7dfab7ca
+view         ssimBefore  ssimAfter     delta  drawsB  drawsA  trisB(M)  trisA(M)  png
+A_stairs         0.2206     0.2206   +0.0000     521     521     8.797     8.797  differs
+B_house          0.2064     0.2064   +0.0000     479     479     7.944     7.944  IDENTICAL
+C_lookback       0.2416     0.2416   +0.0000     363     363     7.372     7.372  IDENTICAL
+D_log            0.2768     0.2768   +0.0000     354     354     8.123     8.123  IDENTICAL
+E_ground         0.2113     0.2113   +0.0000     479     479     7.944     7.944  IDENTICAL
+F_canopy         0.2701     0.2701   +0.0000     468     468     8.259     8.259  IDENTICAL
+determinism re-capture diff (A_stairs, % pixels): undefined
+view          meanAbs   %>2/255   %>8/255  maxCh
+A_stairs       0.0000    0.0000    0.0000      1
+B_house        0.0000    0.0000    0.0000      0
+C_lookback     0.0000    0.0000    0.0000      0
+D_log          0.0000    0.0000    0.0000      0
+E_ground       0.0000    0.0000    0.0000      0
+F_canopy       0.0000    0.0000    0.0000      0
+
+########## PR12 MERGED onto base head 38f430ea ##########
+BEFORE 38f430ea   AFTER 02284553
+view         ssimBefore  ssimAfter     delta  drawsB  drawsA  trisB(M)  trisA(M)  png
+A_stairs         0.2163     0.2163   +0.0000     562     563     9.025     9.026  differs
+B_house          0.2064     0.2064   +0.0000     519     521     8.263     8.265  differs
+C_lookback       0.2456     0.2456   +0.0000     386     386     7.534     7.554  differs
+D_log            0.2772     0.2772   +0.0000     382     384     8.543     8.545  differs
+E_ground         0.2095     0.2095   +0.0000     519     521     8.263     8.265  differs
+F_canopy         0.2666     0.2666   +0.0000     499     499     8.448     8.448  differs
+determinism re-capture diff (A_stairs, % pixels): undefined
+
+########## 12+13+15 MERGED onto base head 38f430ea ##########
+BEFORE 38f430ea   AFTER 7e377058
+view         ssimBefore  ssimAfter     delta  drawsB  drawsA  trisB(M)  trisA(M)  png
+A_stairs         0.2163     0.2161   -0.0002     562     563     9.025     9.188  differs
+B_house          0.2064     0.2068   +0.0004     519     521     8.263     8.420  differs
+C_lookback       0.2456     0.2443   -0.0013     386     390     7.534     7.685  differs
+D_log            0.2772     0.2773   +0.0001     382     386     8.543     8.676  differs
+E_ground         0.2095     0.2091   -0.0004     519     521     8.263     8.420  differs
+F_canopy         0.2666     0.2655   -0.0011     499     506     8.448     8.626  differs
+determinism re-capture diff (A_stairs, % pixels): undefined
+
+########## POSE DIFFS ##########
+--- pr12 ---
+node:internal/modules/cjs/loader:1386
+  throw err;
+  ^
+
+Error: Cannot find module '/e/zr-verify-build/evidence/pr12/posediff.json'
+Require stack:
+- E:\zr-verify-build\[eval]
+    at Function._resolveFilename (node:internal/modules/cjs/loader:1383:15)
+    at defaultResolveImpl (node:internal/modules/cjs/loader:1025:19)
+    at resolveForCJSWithHooks (node:internal/modules/cjs/loader:1030:22)
+    at Function._load (node:internal/modules/cjs/loader:1192:37)
+    at TracingChannel.traceSync (node:diagnostics_channel:328:14)
+    at wrapModuleLoad (node:internal/modules/cjs/loader:237:24)
+    at Module.require (node:internal/modules/cjs/loader:1463:12)
+    at require (node:internal/modules/helpers:147:16)
+    at [eval]:1:9
+    at runScriptInThisContext (node:internal/vm:209:10) {
+  code: 'MODULE_NOT_FOUND',
+  requireStack: [ 'E:\\zr-verify-build\\[eval]' ]
+}
+
+Node.js v22.22.2
+--- pr13 ---
+node:internal/modules/cjs/loader:1386
+  throw err;
+  ^
+
+Error: Cannot find module '/e/zr-verify-build/evidence/pr13/posediff.json'
+Require stack:
+- E:\zr-verify-build\[eval]
+    at Function._resolveFilename (node:internal/modules/cjs/loader:1383:15)
+    at defaultResolveImpl (node:internal/modules/cjs/loader:1025:19)
+    at resolveForCJSWithHooks (node:internal/modules/cjs/loader:1030:22)
+    at Function._load (node:internal/modules/cjs/loader:1192:37)
+    at TracingChannel.traceSync (node:diagnostics_channel:328:14)
+    at wrapModuleLoad (node:internal/modules/cjs/loader:237:24)
+    at Module.require (node:internal/modules/cjs/loader:1463:12)
+    at require (node:internal/modules/helpers:147:16)
+    at [eval]:1:9
+    at runScriptInThisContext (node:internal/vm:209:10) {
+  code: 'MODULE_NOT_FOUND',
+  requireStack: [ 'E:\\zr-verify-build\\[eval]' ]
+}
+
+Node.js v22.22.2
+--- pr15 ---
+
+########## POSE BEFORE/AFTER DIFFS ##########
+--- pr12 ---
+sn-boulder-shotd       mean   1.184   %>2  11.08   %>8   4.93   maxCh 83.33333333333333
+sn-boulder-stairfoot   mean   7.464   %>2  40.86   %>8  25.58   maxCh 157.33333333333334
+sn-boulder-terrace     mean   3.081   %>2  23.22   %>8  11.46   maxCh 143
+--- pr13 ---
+w28-plateau-d          mean  12.561   %>2  62.49   %>8  39.04   maxCh 120.66666666666667
+w26-stairs-d           mean   5.697   %>2  45.51   %>8  19.69   maxCh 107
+--- pr15 ---
+sn-whitebark-base      mean   2.427   %>2  23.58   %>8   8.92   maxCh 122.33333333333333
+f4-base-4m             mean   0.970   %>2  10.91   %>8   3.27   maxCh 111.66666666666667
+f4-base-low            mean   1.430   %>2  14.63   %>8   5.10   maxCh 111
+f4-trunk-2m            mean   3.193   %>2  26.42   %>8  12.90   maxCh 127.66666666666667
+f4-crown-up            mean   1.730   %>2  23.17   %>8   6.42   maxCh 131.66666666666666
+w18-spine-r            mean   0.091   %>2   1.27   %>8   0.18   maxCh 52.333333333333336
+f4-young-3m            mean   0.711   %>2   7.02   %>8   2.19   maxCh 104.33333333333333
+f4-sapling-relief      mean   0.164   %>2   1.47   %>8   0.62   maxCh 72.33333333333333
+f4-mature-relief       mean   1.976   %>2  13.11   %>8   6.29   maxCh 135
+--- pr16 ---
+w11-spine-f            mean   0.126   %>2   0.34   %>8   0.24   maxCh 85
+w13-spine-f            mean   0.193   %>2   0.47   %>8   0.35   maxCh 93.66666666666667
+--- pr17 ---
+w22-stairs-u           mean   7.224   %>2  28.87   %>8  13.47   maxCh 163
+w27-plateau-u          mean   8.240   %>2  32.38   %>8  18.23   maxCh 139
+w19-spine-u            mean   2.148   %>2   7.90   %>8   5.09   maxCh 113.33333333333333
+w07-spine-u            mean   4.073   %>2  22.55   %>8   9.40   maxCh 145.33333333333334
+w02-spine-r            mean   1.879   %>2  21.39   %>8   5.38   maxCh 140.33333333333334
+
+########## PR17 REAL (canopy, 941ea75b -> 5cfb4b61) ##########
+BEFORE 941ea75b   AFTER 5cfb4b61
+view         ssimBefore  ssimAfter     delta  drawsB  drawsA  trisB(M)  trisA(M)  png
+A_stairs         0.2163     0.2163   +0.0000     561     567     8.919     8.922  IDENTICAL
+B_house          0.2064     0.2064   +0.0000     518     524     8.154     8.158  IDENTICAL
+C_lookback       0.2456     0.2456   +0.0000     386     389     7.434     7.436  IDENTICAL
+D_log            0.2772     0.2772   +0.0000     384     390     8.371     8.374  IDENTICAL
+E_ground         0.2095     0.2095   +0.0000     518     524     8.154     8.158  IDENTICAL
+F_canopy         0.2666     0.2666   +0.0000     499     504     8.347     8.351  IDENTICAL
+determinism re-capture diff (A_stairs, % pixels): undefined
+view          meanAbs   %>2/255   %>8/255  maxCh
+A_stairs       0.0000    0.0000    0.0000      0
+B_house        0.0000    0.0000    0.0000      0
+C_lookback     0.0000    0.0000    0.0000      0
+D_log          0.0000    0.0000    0.0000      0
+E_ground       0.0000    0.0000    0.0000      0
+F_canopy       0.0000    0.0000    0.0000      0
+-- up poses --
+w22-stairs-u         mean   29.665 %>2  29.39 %>8  27.35 maxCh 152
+w27-plateau-u        mean   43.974 %>2  42.96 %>8  40.55 maxCh 154
+w19-spine-u          mean   11.174 %>2  12.45 %>8  11.94 maxCh 130
+w07-spine-u          mean   25.037 %>2  30.03 %>8  27.99 maxCh 154
+w02-spine-r          mean    0.000 %>2   0.00 %>8   0.00 maxCh 2
+-- canopyRoof audit --
+{
+ "clumps": 426,
+ "cards": 1673,
+ "triangles": 3346,
+ "meshes": 6,
+ "castsShadow": false,
+ "dropped": {
+  "field": 261,
+  "heroFrame": 81,
+  "shaft": 30,
+  "opening": 12,
+  "lowGround": 0
+ },
+ "cells": 810,
+ "minAboveGroundM": 20,
+ "heightsM": [
+  19.7,
+  30.7
+ ],
+ "atlas": {
+  "tiles": 2,
+  "size": 1024
+ },
+ "material": {
+  "alphaTest": 0.4,
+  "mipBias": -0.6,
+  "sunThrough": 0.42,
+  "underLift": 0.16,
+  "wind": [
+   0.35,
+   0.86
+  ]
+ }
+}
