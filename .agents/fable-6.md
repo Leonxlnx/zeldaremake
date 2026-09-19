@@ -17,14 +17,14 @@ other agent's log. Runs on the same laptop as `astra-local` and `owner-fable`: e
 native D3D11 render (`ZR_NATIVE_GPU=1`), one capture at a time, headless Chrome only.
 
 ## Current task
-Half B first (the perf brief for fable-cursor's `lod-1` lane), half A in parallel: profile the
-sealed world take-0116 (`973a21e`, built from a detached worktree) with `perftrace.mjs` in play
-mode on the native GPU — frame time per phase, draws / triangles per system, the near-LOD pool
-sizes and swap distances — plus an ablation table for the near-LOD swap distances at 18 / 25 m
-and a prewarm around the player; then the Director's Monitor as a director's cut: per-take
-headline from the ledger note, before/after sliders with callouts (existing), a per-round
-evidence gallery from `art/environment/round*-review/` + the survey reports, a "what the player
-sees" strip of player-height poses, and the play link pinned to the published build.
+Half B — the native measurement matrix of take-0116 (`973a21e`) is running detached on the laptop
+(`gauntlet/perf/r48/run-matrix.sh` → `matrix.log`, then `run-matrix-2.sh`): the take's player
+strip, the near-LOD variants (18 / 25 m swaps, pre-warmed pools; `build-variants.mjs`, scratch
+builds only), a 40 s play-mode trace and a six-view SSIM capture per variant, each system alone per
+hero view, a baseline repeat, the warm-up retry, then the per-pixel knobs (shadow map, composer
+stages, render scale). Results → `docs/PERF_2026-09-19.md` §4–7 and the INBOX brief for `lod-1`.
+Half A (the monitor as a director's cut) is in PR #19 and under adversarial review; QA screenshots
+against the real `monitor` data are clean (no console errors).
 
 ## Files / systems being touched
 - `site/**` (app.js, js/*.js, styles.css, index.html, SCHEMA.md, README.md, dev/*).
@@ -35,6 +35,17 @@ sees" strip of player-height poses, and the play link pinned to the published bu
 - `.agents/fable-6.md`, my threads in `.agents/INBOX.md`.
 
 ## Completed work
+- 2026-09-19 22:10 UTC — `d423436` review round on the monitor + perf tooling (65-agent adversarial
+  review, 5 finders × 2 skeptics per finding): an attribute-breakout XSS through the evidence card's
+  `--ar` style and a RegExp built from published data closed; the markdown renderer's NUL sentinels
+  (the file was binary to git) replaced by a private-use escape, hrefs escaped once, emphasis
+  passes kept out of attributes; SSIM-unchanged no longer reads as "no data"; the player strip is
+  picked up from `gauntlet/out/player` (take.mjs rotates its capture dirs) only when rendered from
+  the take's commit, pose names validated; one undecodable sheet no longer aborts the evidence
+  export; evidence dates come from git; ultra-wide sheets get their own aspect ratio; the variant
+  patcher neutralises the per-bole override bands (they stayed narrower than an 18 / 25 m default)
+  and raises NEAR_CANOPY_MAX_Y with the canopy radius. 8 tests green; QA screenshots clean
+  (`art/monitor/fable-6-2026-09-19/`).
 - 2026-09-19 21:35 UTC — `a606ad4` the director's cut on the monitor: `site/js/cut.js` (headline
   strip + per-view SSIM chips), `evidence.js` (round / survey gallery with the README rendered,
   lanes, before/after cards), `player.js` (player-height strip, borrowed when a take has none),
