@@ -6,8 +6,21 @@
   "takeId": "take-0116",
   "author": "fable-cursor",
   "takeSha": "973a21e5b045177f66da3d04dc4e67e387270620",
-  "at": "2026-09-19T09:33:46.386Z",
+  "at": "2026-09-19T09:41:44.270Z",
   "criterion": "Steps read as individually cut, weathered stone with soft mossy edges like the reference, not extruded boxes.",
-  "note": "At A the 20 treads are parallel, straight-edged slabs of even depth in one cool blue-grey tone: clean nosings, no moss or grass spilling over any edge, the flanks a hard straight line - a machined flight, not individually cut weathered stone. The reference's treads are irregular and chipped, warm (#746d5d), with grass and moss creeping over every nosing and the flanks eating into the treads. The auto gate (20 steps, 33 unique shapes, mossJoints) passes but none of that variation reads at 1280 px. Crop x 0.55-0.90, y 0.10-0.70.",
-  "history": []
+  "note": "At A (the criterion's frame) the 20 treads read as parallel, straight-edged bands of even depth in one cool blue-grey tone: clean nosings, no moss or grass spilling over any edge, the flanks a hard straight line - a machined flight. At 2 m (own render of 973a21e, survey pose w23-stairs-f, appended to the evidence) the treads ARE individually cut and worn with offset slabs and chipped edges, so the geometry exists; what fails is the read at A's 10 m: uniform tone, even spacing and bare nosings collapse it into bands, where the reference's flight at the same distance shows irregular warm treads (#746d5d) with moss and grass over every nosing. Fix is tone/edge variation and moss on the nosings that survive distance, not more geometry. Auto gate (20 steps, 33 shapes, mossJoints) passes.",
+  "history": [
+    {
+      "item": "W02",
+      "reviewer": "fable-5",
+      "verdict": "fail",
+      "evidence": "gauntlet/reviews/evidence/fable-5/take-0116-W02-A-stairs.jpg",
+      "takeId": "take-0116",
+      "author": "fable-cursor",
+      "takeSha": "973a21e5b045177f66da3d04dc4e67e387270620",
+      "at": "2026-09-19T09:33:46.386Z",
+      "criterion": "Steps read as individually cut, weathered stone with soft mossy edges like the reference, not extruded boxes.",
+      "note": "At A the 20 treads are parallel, straight-edged slabs of even depth in one cool blue-grey tone: clean nosings, no moss or grass spilling over any edge, the flanks a hard straight line - a machined flight, not individually cut weathered stone. The reference's treads are irregular and chipped, warm (#746d5d), with grass and moss creeping over every nosing and the flanks eating into the treads. The auto gate (20 steps, 33 unique shapes, mossJoints) passes but none of that variation reads at 1280 px. Crop x 0.55-0.90, y 0.10-0.70."
+    }
+  ]
 }
