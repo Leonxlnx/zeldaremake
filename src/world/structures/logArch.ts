@@ -2090,13 +2090,17 @@ export function buildLogArch(ctx: WorldContext, mats: StructureMaterials, rng: R
       if (sB - sA < 0.5) continue;
       taken.push([psi0, s0]);
       const width = 0.035 + slRng() * 0.03;
-      const glow = 0.55 + slRng() * 0.3;
+      const glow = 0.5 + slRng() * 0.25;
       const sliver = gridSurface(
         (u, v, out) => {
           const s = lerp(sA, sB, v);
           const psi = lerp(psiA, psiB, v) + (u - 0.5) * (width / R);
-          // inside the channel: the relief's fissure is 0.6 m deep, the sliver lies 0.1 m below the crest line
-          const rr = rBase(psi, s) + barkCoarse(psi, s) + 0.1;
+          // on the channel's floor: the relief's fissure is 0.6 m deep and the plates of round 44
+          // leave it open, so the sliver lies 3 cm under the analytic floor (the 8–14 cm shell
+          // grid wanders that much) and reads as the bottom of the crack glowing, hidden by the
+          // channel's walls from oblique angles (a first cut sat 10 cm below the floor — under the
+          // plates too — and read as a white plate floating under the belly, sn-arch-inside)
+          const rr = rBase(psi, s) + barkCoarse(psi, s) + barkFine(psi, s) + 0.03;
           surfacePoint(psi, s, rr, out.position);
           out.uv = [u, v];
           const end = Math.sin(v * Math.PI);

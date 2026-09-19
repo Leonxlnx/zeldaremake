@@ -1360,9 +1360,9 @@ export async function loadMaterials(ctx: WorldContext, rng: () => number): Promi
   // 1.58 — below the height fog's 2.0 far-shade exemption, and orange rather than lime.
   const distantGlow = new MeshBasicMaterial({ color: new Color(1, 1, 1).multiplyScalar(2.2), vertexColors: true, side: DoubleSide, toneMapped: true });
   // round 47 (structures-30): daylight lying in the log arch's open fissures, seen from under the
-  // belly — sky-tinted, at 1.15 linear peak (under the height fog's 2.0 far-shade exemption: it fogs
+  // belly — sky-tinted, ≈ 0.7 linear at the peak (under the height fog's 2.0 far-shade exemption: it fogs
   // like any surface, so from D at 50 m it is the haze). Vertex tints carry the fall-off.
-  const daylightSliver = new MeshBasicMaterial({ color: new Color(0.86, 0.94, 1.0).multiplyScalar(1.15), vertexColors: true, toneMapped: true });
+  const daylightSliver = new MeshBasicMaterial({ color: new Color(0.86, 0.94, 1.0).multiplyScalar(0.9), vertexColors: true, toneMapped: true });
 
   // round 43 (structures-27): the pods' skin — albedo / normal atlas shared by every pod, the
   // emissive gradient modulated by its glow field (podSkin.ts). Own seed, no draw from `rng`.
