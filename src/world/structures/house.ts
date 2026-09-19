@@ -4710,7 +4710,7 @@ export function buildHouse(def: HouseDef, ctx: WorldContext, mats: StructureMate
     // arc bough resting on the cap, its sub-limbs, the stub, the draped pale limbs and the right
     // limb — standing on the `mossOnTop` tint (which, alone, was the survey's "painted" moss
     // stripe). Own fork; larger than the trunk's (a 4 m camera on the plateau sees these).
-    onParts([...supportParts, ...branchParts], 0.55, 0.35, 'boughTufts', 0, rng.fork('bough-tufts46'), 1.5);
+    onParts([...supportParts, ...branchParts], 0.32, 0.35, 'boughTufts', 0, rng.fork('bough-tufts46'), 1.5);
   }
   // ---- round 43 (structures-27): the MOSS DOORMAT — trodden moss on the threshold slab and the
   // packed earth in front of the sill: dense, squat cushions along the slab's edges and against

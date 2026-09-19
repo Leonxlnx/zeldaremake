@@ -279,11 +279,11 @@ export function buildStairway(def: StairDef, terrain: Terrain, rng: Rng, seed: s
         // riser. (Round 31: the roll is shaded from the TOP colour (bevelColor), not this — as the
         // side colour × 1.2–1.36 the "lit lip" was 0.6–0.68 of the tread top's albedo, darker
         // than the tread it was meant to crown; the frame's lips are its palest stone.)
-        // (round 46: the house-west treads' own faces at 0.66 with a quarter of the top's normal
-        // — in the giant's shade the × 0.5 band under each nose rendered at lum 0.09, one black
-        // line with the riser below it; the main flight keeps the control's)
-        sideColor: isHouseWest ? [color[0] * 0.66, color[1] * 0.66, color[2] * 0.72] : [color[0] * 0.5, color[1] * 0.5, color[2] * 0.56],
-        sideNormalUp: isHouseWest ? 0.25 : undefined,
+        // (round 46 tried the house-west treads' own faces at × 0.66 with a quarter of the top's
+        // normal — in the giant's shade the × 0.5 band under each nose renders at lum 0.09 — and
+        // D lost 0.002 on it: its bottom-right corner sees exactly these five bands, where frame
+        // 56 s is shadow. The bands stay the control's; the riser faces below them carry w29.)
+        sideColor: [color[0] * 0.5, color[1] * 0.5, color[2] * 0.56],
         // a touch cooler than the tread top: the frame's lit lips are its palest and coolest
         // stone (A lit-20 % B/G 0.84, F 0.87; ours read 0.80 / 0.75 with the lip at the top colour)
         bevelColor: [color[0] * 0.95, color[1], color[2] * 1.15],
@@ -376,7 +376,7 @@ export function buildStairway(def: StairDef, terrain: Terrain, rng: Rng, seed: s
         sideColor: [mortar[0] * 0.95, mortar[1] * 0.95, mortar[2] * 0.95],
         // (second cut: 0.35 rendered the ends at lum 0.11–0.13 in w29's shade — brown, but still
         // a dark hole beside the 0.43 tread tops; half the top's normal now)
-        sideNormalUp: 0.5,
+        sideNormalUp: 0.45,
         sideStain: 0.4,
         sideWear: 0.6,
         sideGrime: 1,
@@ -469,7 +469,7 @@ export function buildStairway(def: StairDef, terrain: Terrain, rng: Rng, seed: s
         // 0.2 with the cheeks at 0.3 / × 0.78 still −0.0032)
         // round 46: 0.1 → 0.2 with the backing behind (the face stones are 14 cm deep now and
         // the joints show the backing's soil, so the flank D sees is the backing's, not theirs)
-        sideNormalUp: isHouseWest ? 0.45 : 0,
+        sideNormalUp: isHouseWest ? 0.4 : 0,
         sideWear: isHouseWest ? 0.7 : 0,
         sideGrime: isHouseWest ? 1 : undefined,
         // across: the horizontal distance from the leaning line x = fissA + lean · y; along: the
