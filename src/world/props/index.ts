@@ -1,250 +1,356 @@
-/** Original village props. Leaf module: no imports from other rendering systems. */
-import { BoxGeometry, BufferGeometry, Color, CylinderGeometry, Float32BufferAttribute, Group,
-  LatheGeometry, Matrix4, Mesh, MeshStandardMaterial, Quaternion, TorusGeometry, TubeGeometry,
-  CatmullRomCurve3, Vector2, Vector3 } from 'three';
+/**
+ * Village props — Kokiri pots, crates, a barrel, buckets, a rope ladder and platforms. Leaf
+ * module: no imports from other rendering systems; the terrain is sampled through
+ * `ctx.terrain`, textures come through `ctx.textures`, randomness through the seeded PRNG.
+ *
+ * Every prop is seated on the sampled heightfield (its underside conformed to the ground, its
+ * upright limited to a few degrees off the terrain normal — a pot is set level, not tipped down
+ * a bank), weathered at the base, and merged per `cluster` and material into one mesh each.
+ */
+import { BufferGeometry, Color, Group, Mesh, Quaternion, Vector3 } from 'three';
 import { mergeGeometries } from 'three/addons/utils/BufferGeometryUtils.js';
 import type { WorldContext, WorldSystem } from '../system';
 import { createRng } from '../util/prng';
-import { PROP_LAYOUT } from './layout';
+import { barrelGeometry, bucketGeometry, crateGeometry, ladderGeometry, type Part, platformGeometry, potGeometry } from './geometry';
+import { PROP_LAYOUT, type PropDef } from './layout';
+import { createPropMaterials, type MaterialKey } from './materials';
 
-type MaterialKey = 'wood' | 'clay' | 'iron' | 'rope';
 const UP = new Vector3(0, 1, 0);
+const MATERIAL_KEYS: MaterialKey[] = ['wood', 'clay', 'iron', 'rope'];
+/** a small prop follows the terrain normal only this far (rad); beyond it, it is set level into the slope */
+const MAX_TILT = (9 * Math.PI) / 180;
+/** vertices below this local height are pulled onto the sampled ground (m) */
+const CONTACT_BAND = 0.08;
+export const EMBED = 0.008;
 
-/** Radius probes keep the whole footprint out of paths and architecture, not only its origin. */
-export function placementAllowed(ctx: Pick<WorldContext, 'terrain' | 'layout'>, x: number, z: number, radius: number) {
+export interface PlacementOptions {
+  paving?: boolean;
+  pad?: boolean;
+}
+
+type PlacementCtx = Pick<WorldContext, 'terrain' | 'layout'>;
+
+/**
+ * Footprint probes (centre + 8 around at `radius`) keep the whole prop out of paths, stairs,
+ * structures and cliff faces, and off the layout's obstacles: giant trunks, hero boulders, the
+ * npc spots (≥ 0.8 m), lantern posts and signposts. `paving` admits the flagstone mask (pots
+ * beside a stair foot); `pad` admits a house pad while the trunk keeps `1.05 R + radius`.
+ */
+export function placementAllowed(ctx: PlacementCtx, x: number, z: number, radius: number, opts: PlacementOptions = {}): boolean {
+  const L = ctx.layout;
   for (let i = 0; i < 9; i++) {
-    const a = i * Math.PI / 4, r = i === 8 ? 0 : radius;
-    const px = x + Math.cos(a) * r, pz = z + Math.sin(a) * r;
+    const a = (i * Math.PI) / 4;
+    const r = i === 8 ? 0 : radius;
+    const px = x + Math.cos(a) * r;
+    const pz = z + Math.sin(a) * r;
     const m = ctx.terrain.mask(px, pz);
-    if (m.path > 0.18 || m.stairs > 0.01 || m.structure > 0.12 || m.cliff > 0.1) return false;
-    if (ctx.layout.giantTrees.some(t => Math.hypot(px - t.position[0], pz - t.position[2]) < t.trunkRadius + 0.45)) return false;
+    if (!opts.paving && m.path > 0.18) return false;
+    if (m.stairs > 0.01 || m.cliff > 0.1) return false;
+    if (!opts.pad && m.structure > 0.12) return false;
+    if (L.giantTrees.some((t) => Math.hypot(px - t.position[0], pz - t.position[2]) < t.trunkRadius + 0.45)) return false;
+    for (const h of L.houses) {
+      const dx = px - h.position[0];
+      const dz = pz - h.position[2];
+      const d = Math.hypot(dx, dz);
+      // the porch is a recess cut into the front of the trunk (back wall at 0.75 R, ±40° around
+      // the door): a pot may stand on its floor beside the doorway, clear of the back wall
+      const fx = h.facing[0];
+      const fz = h.facing[1];
+      const fl = Math.hypot(fx, fz) || 1;
+      const cosA = (dx * fx + dz * fz) / (fl * (d || 1));
+      const inPorchSector = cosA > Math.cos(0.7);
+      if (d < h.trunkRadius * (inPorchSector ? 0.82 : 1.05)) return false;
+    }
   }
+  if (L.heroBoulders.some((b) => Math.hypot(x - b.position[0], z - b.position[2]) < b.radius + radius + 0.05)) return false;
+  if (L.npcSpots.some((s) => Math.hypot(x - s.position[0], z - s.position[2]) < 0.8 + radius)) return false;
+  if (L.signposts.some((s) => Math.hypot(x - s.position[0], z - s.position[2]) < 0.45 + radius)) return false;
   return true;
 }
 
-export function create(ctx: WorldContext): WorldSystem {
-  const root = new Group(); root.name = 'props';
-  const materials: Record<MaterialKey, MeshStandardMaterial> = {
-    wood: new MeshStandardMaterial({ color: 0xffffff, vertexColors: true, roughness: 0.93 }),
-    clay: new MeshStandardMaterial({ color: 0xffffff, vertexColors: true, roughness: 0.94 }),
-    iron: new MeshStandardMaterial({ color: 0x403d32, roughness: 0.72, metalness: 0.55 }),
-    rope: new MeshStandardMaterial({ color: 0x948462, roughness: 1 }),
+/** the horizontal radius a prop's footprint probes with */
+export function footprintRadius(def: PropDef): number {
+  switch (def.kind) {
+    case 'pot':
+      return def.size * (def.variant === 2 ? 0.52 : 0.47);
+    case 'crate':
+      return def.size * 0.72;
+    case 'barrel':
+      return def.size * 0.4;
+    case 'bucket':
+      return def.size * 0.36;
+    case 'platform':
+      return Math.hypot(def.platform?.width ?? 1.8, def.platform?.depth ?? 1.4) / 2 + 0.1;
+    default:
+      return 0.3;
+  }
+}
+
+/** nudge search around the authored point: the point itself, a 0.55 m ring, a 1.05 m ring */
+function findSpot(ctx: PlacementCtx, def: PropDef, radius: number, taken: number[][]): [number, number] | null {
+  for (let attempt = 0; attempt < 17; attempt++) {
+    const a = ((attempt - 1) * Math.PI) / 4;
+    const r = attempt === 0 ? 0 : attempt < 9 ? 0.55 : 1.05;
+    const x = def.x + Math.cos(a) * r;
+    const z = def.z + Math.sin(a) * r;
+    if (!placementAllowed(ctx, x, z, radius, def)) continue;
+    if (taken.some(([tx, , tz, tr]) => Math.hypot(tx - x, tz - z) < tr + radius)) continue;
+    return [x, z];
+  }
+  return null;
+}
+
+/** grime and moss where a prop meets the ground; continuous in space so shared edges stay seamless */
+function weather(geometry: BufferGeometry, material: MaterialKey, size: number): void {
+  if (material === 'iron') return;
+  const p = geometry.attributes.position;
+  const colors = geometry.attributes.color;
+  const soil = new Color(0x4f4436);
+  const moss = new Color(0x55573a);
+  const c = new Color();
+  const falloff = (h: number, extent: number) => {
+    const t = Math.min(1, Math.max(0, h / extent));
+    return 1 - t * t * (3 - 2 * t);
   };
+  for (let i = 0; i < p.count; i++) {
+    const px = p.getX(i);
+    const py = p.getY(i);
+    const pz = p.getZ(i);
+    const patch = 0.5 + 0.5 * Math.sin(px * 9 + pz * 13) * Math.cos(pz * 7 - px * 5);
+    const damp = falloff(py, size * 0.3);
+    const contact = falloff(py, size * (0.07 + patch * 0.06));
+    c.fromBufferAttribute(colors, i);
+    if (material === 'clay') c.lerp(soil, damp * 0.38);
+    else c.multiplyScalar(1 - damp * 0.3);
+    c.lerp(moss, contact * (0.1 + patch * 0.18));
+    colors.setXYZ(i, c.r, c.g, c.b);
+  }
+}
+
+export async function create(ctx: WorldContext): Promise<WorldSystem> {
+  const root = new Group();
+  root.name = 'props';
+  const materials = await createPropMaterials(ctx);
+  const terrain = ctx.terrain;
   const ownedGeometry: BufferGeometry[] = [];
   const bases: number[][] = [];
-  const counts = { pots: 0, crates: 0, buckets: 0, platforms: 0, ladders: 0, ropeRailings: 0 };
+  const counts = { pots: 0, crates: 0, barrels: 0, buckets: 0, platforms: 0, ladders: 0, ropeRailings: 0 };
   const skipped: string[] = [];
+  const placed: { id: string; kind: string; cluster: string; x: number; y: number; z: number; tiltDeg: number }[] = [];
+  /** world-space geometry per cluster and material, merged at the end */
+  const clusters = new Map<string, Record<MaterialKey, BufferGeometry[]>>();
+  const batchesFor = (cluster: string) => {
+    let b = clusters.get(cluster);
+    if (!b) {
+      b = { wood: [], clay: [], iron: [], rope: [] };
+      clusters.set(cluster, b);
+    }
+    return b;
+  };
+  /** props that reserve ground (x, y, z, radius) so later ones keep clear */
+  const taken: number[][] = [];
+  const tmp = new Vector3();
 
   for (const def of PROP_LAYOUT) {
-    const footprint = def.kind === 'platform' ? 1.65 : def.size * 0.73;
-    let x = def.x as number, z = def.z as number, found = false;
-    // Small local adjustment only; never relocate a detail across the village to meet a count.
-    for (let attempt = 0; attempt < 17; attempt++) {
-      const a = (attempt - 1) * Math.PI / 4, r = attempt === 0 ? 0 : attempt < 9 ? 0.55 : 1.05;
-      x = def.x + Math.cos(a) * r; z = def.z + Math.sin(a) * r;
-      if (placementAllowed(ctx, x, z, footprint) && !bases.some(b => Math.hypot(b[0] - x, b[2] - z) < def.size * 0.7)) { found = true; break; }
-    }
-    if (!found) { skipped.push(def.id); continue; }
     const rng = createRng(`${ctx.config.seed}/props/${def.id}`);
-    const pigment = rng.range(0.94, 1.06);
-    const group = new Group(); group.name = def.id;
-    const groundY = ctx.terrain.height(x, z);
-    group.position.set(x, groundY, z);
-    if (def.kind !== 'platform') group.quaternion.setFromUnitVectors(UP, ctx.terrain.normal(x, z, new Vector3()));
-    group.rotateY(def.yaw);
-    root.add(group); bases.push([x, groundY, z]);
-    const batches: Record<MaterialKey, BufferGeometry[]> = { wood: [], clay: [], iron: [], rope: [] };
+    let x = def.x;
+    let z = def.z;
+    let yaw = def.yaw;
+    let parts: Part[];
+    let groundY: number;
+    let orientation: Quaternion;
+    let contactBand = CONTACT_BAND;
+    let tiltUsed = 0;
 
-    function add(geometry: BufferGeometry, key: MaterialKey, position = new Vector3(), rotation = new Quaternion(), tint?: number) {
-      // Strip UVs: all surfaces use original geometry/vertex pigments, no texture dependencies.
-      geometry.deleteAttribute('uv');
-      const g = geometry.index ? geometry.toNonIndexed() : geometry;
-      if (g !== geometry) geometry.dispose();
-      if (key === 'wood' || key === 'clay') {
-        const color = new Color(tint ?? (key === 'wood' ? 0x766044 : 0x8d6a55));
-        const data: number[] = [];
-        for (let i = 0; i < g.attributes.position.count; i++) {
-          const p = g.attributes.position;
-          const grain = key === 'wood' ? Math.sin(p.getX(i) * 170 + p.getY(i) * 2) * 0.035 : Math.sin(p.getY(i) * 115) * 0.025;
-          // Spatial, continuous pigment avoids seams between duplicate triangle vertices.
-          const shade = pigment + grain + Math.sin(p.getX(i)*13+p.getY(i)*9+p.getZ(i)*17)*0.025;
-          data.push(color.r * shade, color.g * shade, color.b * shade);
-        }
-        g.setAttribute('color', new Float32BufferAttribute(data, 3));
+    if (def.kind === 'ladder') {
+      const house = ctx.layout.houses.find((h) => h.id === def.lean?.house);
+      if (!house || !def.lean) {
+        skipped.push(def.id);
+        continue;
       }
-      g.applyMatrix4(new Matrix4().compose(position, rotation, new Vector3(1, 1, 1)));
-      batches[key].push(g);
-    }
-    function beam(a: Vector3, b: Vector3, width: number, depth = width, key: MaterialKey = 'wood') {
-      const d = b.clone().sub(a);
-      add(new BoxGeometry(width, d.length(), depth), key, a.clone().add(b).multiplyScalar(0.5), new Quaternion().setFromUnitVectors(UP, d.normalize()));
-    }
-    function groundedBeam(a: Vector3, b: Vector3, width: number) {
-      beam(a,b,width);
-      const geometry=batches.wood[batches.wood.length-1], p=geometry.attributes.position;
-      const contacts:number[]=[];
-      for(let i=0;i<p.count;i++) {
-        const v=new Vector3().fromBufferAttribute(p,i);
-        if(v.distanceTo(a)<width*1.5) {
-          v.applyQuaternion(group.quaternion).add(group.position);
-          v.y=ctx.terrain.height(v.x,v.z)-.008;
-          v.sub(group.position).applyQuaternion(group.quaternion.clone().invert());
-          p.setXYZ(i,v.x,v.y,v.z);contacts.push(i);
-        }
-      }
-      geometry.computeVertexNormals();geometry.userData.contactIndices=contacts;
-    }
-    function ring(radius: number, tube: number, y: number, key: MaterialKey) {
-      add(new TorusGeometry(radius, tube, 6, 36), key, new Vector3(0, y, 0), new Quaternion().setFromAxisAngle(new Vector3(1, 0, 0), Math.PI / 2));
-    }
-    function cord(points: Vector3[], radius = 0.022) {
-      add(new TubeGeometry(new CatmullRomCurve3(points), 22, radius, 5, false), 'rope');
-    }
-    const s = def.size;
-    if (def.kind === 'pot') {
-      // Closed cross-section follows the outside, rolled lip, inside wall and solid floor.
-      const profile = [[0,0],[.20,0],[.27,.035],[.35,.18],[.39,.39],[.34,.62],[.24,.78],[.245,.84],[.27,.855],[.27,.89],[.225,.90],[.21,.855],[.205,.79],[.30,.61],[.345,.38],[.305,.19],[.22,.07],[0,.07]];
-      add(new LatheGeometry(profile.map(([r,y]) => new Vector2(r*s,y*s)), 40), 'clay');
-      ring(.258*s,.015*s,.864*s,'clay');
-      // Two small ceramic loop handles; actual open holes, no painted silhouettes.
-      for (const side of [-1,1]) add(new TorusGeometry(.105*s,.026*s,8,20), 'clay', new Vector3(side*.335*s,.61*s,0));
-      counts.pots++;
-    } else if (def.kind === 'crate') {
-      const w=s, h=s*.82, plank=s/5;
-      const plankRng = createRng(`${ctx.config.seed}/props/${def.id}/planks`);
-      function cratePlank(width: number, height: number, depth: number, position: Vector3, grainAxis: 'x' | 'y', tint?: number) {
-        add(new BoxGeometry(width, height, depth), 'wood', position, undefined, tint);
-        const geometry = batches.wood[batches.wood.length - 1];
-        const colors = geometry.attributes.color, normals = geometry.attributes.normal;
-        // One stable value per board; exposed cuts absorb more stain than long grain.
-        // Face normals identify the true ends before any prop rotation or ground fitting.
-        const value = plankRng.range(.92, 1.08);
-        for (let i = 0; i < colors.count; i++) {
-          const alongGrain = Math.abs(grainAxis === 'x' ? normals.getX(i) : normals.getY(i));
-          const shade = value * (alongGrain > .9 ? .76 : 1);
-          colors.setXYZ(i, colors.getX(i) * shade, colors.getY(i) * shade, colors.getZ(i) * shade);
-        }
-      }
-      for (let i=0;i<5;i++) {
-        const p=-w/2+plank*(i+.5);
-        for (const side of [-1,1]) {
-          cratePlank(plank*.94,h,.055,new Vector3(p,h/2,side*w/2),'y');
-          cratePlank(.055,h,plank*.94,new Vector3(side*w/2,h/2,p),'y');
-        }
-        cratePlank(w,.055,plank*.94,new Vector3(0,h,p),'x');
-        cratePlank(w,.055,plank*.94,new Vector3(0,.0275,p),'x');
-      }
-      for (const side of [-1,1]) {
-        for (const y of [.11*h,.86*h]) cratePlank(w+.07,.075,.047,new Vector3(0,y,side*(w/2+.046)),'x',0x514530);
-        beam(new Vector3(-w*.4,h*.18,side*(w/2+.077)),new Vector3(w*.4,h*.8,side*(w/2+.077)),.065,.035);
-        for (const px of [-w*.39,w*.39]) for (const y of [.11*h,.86*h]) add(new CylinderGeometry(.012,.012,.014,6),'iron',new Vector3(px,y,side*(w/2+.075)),new Quaternion().setFromAxisAngle(new Vector3(1,0,0),Math.PI/2));
-      }
-      counts.crates++;
-    } else if (def.kind === 'bucket') {
-      const h=.66*s;
-      for (let i=0;i<14;i++) {
-        const a=i/14*Math.PI*2;
-        // Wedge staves preserve the visible hollow interior and slight seams.
-        const profile=[new Vector2(.26*s,0),new Vector2(.34*s,h),new Vector2(.305*s,h),new Vector2(.225*s,.035),new Vector2(.26*s,0)];
-        add(new LatheGeometry(profile,2,a+.016,Math.PI*2/14-.032),'wood');
-      }
-      add(new CylinderGeometry(.255*s,.255*s,.035,24),'wood',new Vector3(0,.0175,0));
-      ring(.281*s,.018,.15*h,'iron'); ring(.326*s,.018,.81*h,'iron');
-      ring(.322*s,.018,h,'wood');
-      cord([new Vector3(-.33*s,.58*s,0),new Vector3(-.32*s,.91*s,0),new Vector3(0,1.05*s,0),new Vector3(.32*s,.91*s,0),new Vector3(.33*s,.58*s,0)],.018);
-      counts.buckets++;
+      // frame of the house: F out of the door, Rt the viewer's right when facing the door
+      const F = new Vector3(house.facing[0], 0, house.facing[1]).normalize();
+      const Rt = new Vector3(F.z, 0, -F.x);
+      const dir = F.clone().multiplyScalar(Math.cos(def.lean.angle)).addScaledVector(Rt, Math.sin(def.lean.angle));
+      const lean = 0.95;
+      const R = house.trunkRadius;
+      // feet on the ground `lean` out from the bark; the crossbar rests on the trunk `top` up
+      const foot = new Vector3(house.position[0], 0, house.position[2]).addScaledVector(dir, R + lean);
+      x = foot.x;
+      z = foot.z;
+      const tangent = new Vector3(-dir.z, 0, dir.x);
+      const hw = def.size / 2;
+      const footY = [-1, 1].map((s) => terrain.height(x + tangent.x * s * hw, z + tangent.z * s * hw)) as [number, number];
+      groundY = Math.min(footY[0], footY[1]);
+      const contactY = terrain.height(house.position[0] + dir.x * R * 1.2, house.position[2] + dir.z * R * 1.2);
+      const top = Math.max(2.2, contactY - groundY + def.lean.top);
+      parts = ladderGeometry(rng, { width: def.size, height: top, lean, footY: [footY[0] - groundY, footY[1] - groundY], pegDepth: 0.35 });
+      // local +z points at the trunk
+      yaw = Math.atan2(dir.x, dir.z);
+      orientation = new Quaternion();
+      contactBand = 0;
+      counts.ladders++;
     } else {
-      const deckY=1.28;
-      // Individual supports terminate at the sampled ground, even on the west embankment.
-      for (const px of [-.76,.76]) for (const pz of [-.55,.55]) {
-        const footY=ctx.terrain.height(x+px,z+pz)-groundY;
-        groundedBeam(new Vector3(px,footY-.025,pz),new Vector3(px,deckY,pz),.115);
+      const radius = footprintRadius(def);
+      const spot = findSpot(ctx, def, radius, taken);
+      if (!spot) {
+        skipped.push(def.id);
+        continue;
       }
-      for (let i=0;i<8;i++) add(new BoxGeometry(.203,.095,1.34),'wood',new Vector3(-.75+i*.214,deckY,0));
-      for (const pz of [-.5,.5]) beam(new Vector3(-.88,deckY-.15,pz),new Vector3(.88,deckY-.15,pz),.13,.13);
-      beam(new Vector3(-.76,.18,-.55),new Vector3(.76,deckY-.2,-.55),.09);
-      for (const px of [-.77,.77]) {
-        beam(new Vector3(px,deckY,-.55),new Vector3(px,deckY+.72,-.55),.085);
-        beam(new Vector3(px,deckY,.55),new Vector3(px,deckY+.72,.55),.085);
-        for (const h of [.34,.66]) cord([new Vector3(px,deckY+h,-.55),new Vector3(px,deckY+h-.08,0),new Vector3(px,deckY+h,.55)]);
-        for (const pz of [-.55,.55]) for (const h of [.34,.66]) {
-          // Visible lashings bind ropes to posts.
-          for(let wrap=0;wrap<3;wrap++) add(new TorusGeometry(.061,.012,5,12),'rope',new Vector3(px,deckY+h+wrap*.02,pz),new Quaternion().setFromAxisAngle(new Vector3(1,0,0),Math.PI/2));
-        }
-      }
-      cord([new Vector3(-.77,deckY+.66,-.55),new Vector3(0,deckY+.55,-.55),new Vector3(.77,deckY+.66,-.55)]);
-      const bottomZ=1.28, topZ=.57;
-      const rails=[-.29,.29].map(px=>({bottom:new Vector3(px,ctx.terrain.height(x+px,z+bottomZ)-groundY,bottomZ),top:new Vector3(px,deckY+.15,topZ)}));
-      for(const rail of rails) groundedBeam(rail.bottom,rail.top,.073);
-      for(let i=1;i<=5;i++) {
-        const t=i/6;
-        beam(rails[0].bottom.clone().lerp(rails[0].top,t),rails[1].bottom.clone().lerp(rails[1].top,t),.065);
-      }
-      counts.platforms++; counts.ladders++; counts.ropeRailings+=3;
-    }
-    for (const key of Object.keys(batches) as MaterialKey[]) if (batches[key].length) {
-      let vertexOffset=0;const platformContacts:number[]=[];
-      for(const g of batches[key]) {
-        platformContacts.push(...(g.userData.contactIndices??[]).map((i:number)=>i+vertexOffset));
-        vertexOffset+=g.attributes.position.count;
-      }
-      const merged=mergeGeometries(batches[key],false);
-      batches[key].forEach(g=>g.dispose());
-      if(!merged) throw new Error(`Cannot merge props material ${key}`);
-      if(def.kind!=='platform') {
-        // Conform just the underside to the actual heightfield. A tangent-plane orientation
-        // alone leaves gaps on curved ground; preserve the rigid silhouette above 8 cm.
-        const p=merged.attributes.position, v=new Vector3(), inverse=group.quaternion.clone().invert();
-        const contactIndices: number[]=[];
-        const editedFaces=new Set<number>();
-        for(let i=0;i<p.count;i++) if(p.getY(i)<.08) {
-          editedFaces.add(Math.floor(i/3)*3);
-          const weight=Math.min(1,Math.max(0,(.08-p.getY(i))/.06));
-          if(weight>=.99999) contactIndices.push(i);
-          v.fromBufferAttribute(p,i).applyQuaternion(group.quaternion).add(group.position);
-          const seated=ctx.terrain.height(v.x,v.z)-.008;
-          v.y+=(seated-v.y)*weight;
-          v.sub(group.position).applyQuaternion(inverse);
-          p.setXYZ(i,v.x,v.y,v.z);
-        }
-        merged.userData.contactIndices=contactIndices;
-        // Only edited faces need new normals; preserve the pottery's smooth upper shading.
-        const normals=merged.attributes.normal, a=new Vector3(),b=new Vector3(),c=new Vector3();
-        for(const i of editedFaces) {
-          a.fromBufferAttribute(p,i);b.fromBufferAttribute(p,i+1);c.fromBufferAttribute(p,i+2);
-          b.sub(a);c.sub(a);b.cross(c).normalize();
-          for(let j=0;j<3;j++) normals.setXYZ(i+j,b.x,b.y,b.z);
-        }
-        merged.userData.recomputedFaces=[...editedFaces];
-      } else {
-        merged.userData.contactIndices=platformContacts;
-      }
-      if (key === 'clay' || key === 'wood') {
-        // Weather the assembled prop, so lip, handles, staves and braces share one height
-        // gradient. Continuous spatial pigments keep duplicate triangle vertices seamless.
-        const p = merged.attributes.position, colors = merged.attributes.color;
-        const soil = new Color(0x514638), moss = new Color(0x55543b), shaded = new Color();
-        const smoothFalloff = (height: number, extent: number) => {
-          const t = Math.min(1, Math.max(0, height / extent));
-          return 1 - t * t * (3 - 2 * t);
+      [x, z] = spot;
+      groundY = terrain.height(x, z);
+      if (def.kind === 'platform') {
+        const spec = def.platform ?? { deck: 1.2, width: 1.8, depth: 1.4, rail: true, ladder: true };
+        const q = new Quaternion().setFromAxisAngle(UP, yaw);
+        const groundAt = (lx: number, lz: number) => {
+          tmp.set(lx, 0, lz).applyQuaternion(q);
+          return terrain.height(x + tmp.x, z + tmp.z) - groundY;
         };
-        for (let i = 0; i < p.count; i++) {
-          const px = p.getX(i), py = p.getY(i), pz = p.getZ(i);
-          const patch = .5 + .5 * Math.sin(px * 9 + pz * 13) * Math.cos(pz * 7 - px * 5);
-          const damp = smoothFalloff(py, def.size * .30);
-          const contact = smoothFalloff(py, def.size * (.085 + patch * .055));
-          shaded.fromBufferAttribute(colors, i);
-          if (key === 'clay') shaded.lerp(soil, damp * .42);
-          else shaded.multiplyScalar(1 - damp * .34);
-          shaded.lerp(moss, contact * (.12 + patch * .15));
-          colors.setXYZ(i, shaded.r, shaded.g, shaded.b);
+        parts = platformGeometry(rng, { ...spec, groundAt });
+        orientation = new Quaternion();
+        contactBand = 0;
+        counts.platforms++;
+        if (spec.ladder) counts.ladders++;
+        if (spec.rail) counts.ropeRailings += 3;
+      } else {
+        // small prop: follow the terrain normal, but only so far — beyond MAX_TILT the prop is
+        // set level into the slope and the underside conform below closes the gap
+        const n = terrain.normal(x, z, new Vector3());
+        const tilt = Math.acos(Math.min(1, n.y));
+        tiltUsed = Math.min(tilt, MAX_TILT);
+        if (tilt > MAX_TILT) {
+          const axis = new Vector3().crossVectors(UP, n).normalize();
+          orientation = new Quaternion().setFromAxisAngle(axis, MAX_TILT);
+        } else orientation = new Quaternion().setFromUnitVectors(UP, n);
+        const size = def.size * rng.range(0.96, 1.04);
+        if (def.kind === 'pot') {
+          parts = potGeometry(rng, size, def.variant ?? 0);
+          counts.pots++;
+        } else if (def.kind === 'crate') {
+          parts = crateGeometry(rng, size);
+          counts.crates++;
+        } else if (def.kind === 'barrel') {
+          parts = barrelGeometry(rng, size);
+          counts.barrels++;
+        } else {
+          parts = bucketGeometry(rng, size);
+          counts.buckets++;
         }
       }
-      merged.computeBoundingBox(); merged.computeBoundingSphere(); ownedGeometry.push(merged);
-      const mesh=new Mesh(merged,materials[key]); mesh.name=`${def.id}-${key}`;
-      mesh.castShadow=ctx.quality.shadows; mesh.receiveShadow=true; group.add(mesh);
+      taken.push([x, groundY, z, radius]);
+    }
+
+    // prop frame → world
+    const world = new Quaternion().setFromAxisAngle(UP, yaw).premultiply(orientation);
+    const position = new Vector3(x, groundY, z);
+    bases.push([x, terrain.height(x, z), z]);
+    placed.push({ id: def.id, kind: def.kind, cluster: def.cluster, x: +x.toFixed(3), y: +groundY.toFixed(3), z: +z.toFixed(3), tiltDeg: +((tiltUsed * 180) / Math.PI).toFixed(2) });
+    const batches = batchesFor(def.cluster);
+    for (const part of parts) {
+      const g = part.geometry;
+      weather(g, part.material, def.kind === 'platform' || def.kind === 'ladder' ? 0.9 : def.size);
+      const p = g.attributes.position;
+      const contact: number[] = [];
+      const feet = new Set<number>((g.userData.contactIndices as number[] | undefined) ?? []);
+      const v = new Vector3();
+      for (let i = 0; i < p.count; i++) {
+        v.fromBufferAttribute(p, i);
+        const localY = v.y;
+        v.applyQuaternion(world).add(position);
+        if (contactBand > 0 && localY < contactBand) {
+          // conform the underside to the sampled heightfield: a rigid tangent-plane seat leaves
+          // gaps on curved ground; above the band the silhouette stays rigid
+          const w = Math.min(1, Math.max(0, (contactBand - localY) / (contactBand * 0.75)));
+          const seated = terrain.height(v.x, v.z) - EMBED;
+          v.y += (seated - v.y) * w;
+          if (w >= 0.99999) contact.push(i);
+        } else if (feet.has(i)) {
+          // platform posts / ladder rails: the builder's foot vertices, re-seated on the world heightfield
+          v.y = terrain.height(v.x, v.z) - EMBED;
+          contact.push(i);
+        }
+        p.setXYZ(i, v.x, v.y, v.z);
+      }
+      // normals: rotate rigidly, then recompute the edited contact faces
+      const nrm = g.attributes.normal;
+      for (let i = 0; i < nrm.count; i++) {
+        v.fromBufferAttribute(nrm, i).applyQuaternion(world);
+        nrm.setXYZ(i, v.x, v.y, v.z);
+      }
+      if (contact.length) {
+        const a = new Vector3();
+        const b = new Vector3();
+        const c = new Vector3();
+        const faces = new Set(contact.map((i) => Math.floor(i / 3) * 3));
+        for (const i of faces) {
+          a.fromBufferAttribute(p, i);
+          b.fromBufferAttribute(p, i + 1);
+          c.fromBufferAttribute(p, i + 2);
+          b.sub(a);
+          c.sub(a);
+          b.cross(c);
+          if (b.lengthSq() > 1e-18) {
+            b.normalize();
+            for (let j = 0; j < 3; j++) nrm.setXYZ(i + j, b.x, b.y, b.z);
+          }
+        }
+      }
+      g.userData.contactIndices = contact;
+      batches[part.material].push(g);
     }
   }
-  ctx.audit('props',()=>({ ...counts, geometry:'original-lathed-pottery-planked-joinery-rope', samplePositions:{bases}, skipped, meshes:ownedGeometry.length }));
-  return {name:'props',group:root,dispose(){ownedGeometry.forEach(g=>g.dispose());Object.values(materials).forEach(m=>m.dispose());root.clear();}};
+
+  // merge per cluster and material
+  let meshes = 0;
+  for (const [cluster, batches] of clusters) {
+    const group = new Group();
+    group.name = cluster;
+    for (const key of MATERIAL_KEYS) {
+      const list = batches[key];
+      if (!list.length) continue;
+      const contactIndices: number[] = [];
+      let offset = 0;
+      for (const g of list) {
+        for (const i of g.userData.contactIndices ?? []) contactIndices.push(i + offset);
+        offset += g.attributes.position.count;
+      }
+      const merged = mergeGeometries(list, false);
+      list.forEach((g) => g.dispose());
+      if (!merged) throw new Error(`props: cannot merge ${cluster}/${key}`);
+      merged.userData.contactIndices = contactIndices;
+      merged.computeBoundingBox();
+      merged.computeBoundingSphere();
+      ownedGeometry.push(merged);
+      const mesh = new Mesh(merged, materials[key]);
+      mesh.name = `${cluster}-${key}`;
+      mesh.castShadow = ctx.quality.shadows;
+      mesh.receiveShadow = true;
+      group.add(mesh);
+      meshes++;
+    }
+    root.add(group);
+  }
+
+  let triangles = 0;
+  for (const g of ownedGeometry) triangles += g.attributes.position.count / 3;
+  ctx.audit('props', () => ({
+    ...counts,
+    geometry: 'original-lathed-pottery-chamfered-boards-coopered-staves-laid-rope',
+    textured: { wood: materials.sets, clay: 'procedural-wheel-marks', rope: 'procedural-laid-strands' },
+    clusters: clusters.size,
+    meshes,
+    triangles,
+    placed,
+    skipped,
+    samplePositions: { bases },
+  }));
+  return {
+    name: 'props',
+    group: root,
+    dispose() {
+      ownedGeometry.forEach((g) => g.dispose());
+      materials.dispose();
+      root.clear();
+    },
+  };
 }

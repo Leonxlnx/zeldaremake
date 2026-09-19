@@ -1,28 +1,83 @@
-/** Small domestic details, deliberately outside doors, stairs and the central sightlines. */
-export const PROP_LAYOUT = [
-  // Round 32 (structures-22): at (8.0, −12.8) the big pot stood inside camera D's frustum — D
-  // (0.90, 0.55), on the dark bank under Saria's trunk where frame 56 s has moss and roots only.
-  // Now on the terrace's south-west corner above the house-west flight: bearing 48.1° from
-  // camera D (its frustum ends at 44.6°; the pot's 0.28 m radius at 12 m is 1.3°), camera B sees
-  // it at (0.67, 0.55) beside the small pot; ground 0.83 m, off the flight, the walk and the roots.
-  { id: 'saria-ochre-pot', kind: 'pot', x: 8.0, z: -10.0, size: 0.72, yaw: 0.3 },
-  // Bring the small domestic cluster toward the house approach for shots B/D. Footprint
-  // masks still reject stairs, paths and house roots, even if an authored point is blocked.
-  // Round 31: the house-west flight (layout stairs 'house-west', landing to x ≈ 7.5 at z ≈ −11.4)
-  // took the old pot / crate spots ((6.75, −11.6), (7.7, −11.7): stairs mask 1, skipped) and
-  // frame 56 s has no props at D's right edge, so both move to the terrace's south lip below the
-  // door — the pot by the signpost's foot, the crate left of the threshold — where camera D's
-  // frustum ends (bearing from D > 44.6°) and camera B sees them at (0.66, 0.56) / (0.76, 0.55).
-  { id: 'saria-small-pot', kind: 'pot', x: 7.5, z: -9.5, size: 0.49, yaw: -0.5 },
-  // Round 32: the re-planned walk to the door (`pathToHouse`: landing (6.59, −7.40) → (8.4, −7.7)
-  // → door) runs through the bucket's old spot (7.6, −7.2), and the flight's south bank now
-  // falls through (7.3, −6.75); it stands on the lawn between the walk and the signpost, 0.5 m
-  // north of the walk 0.6 m past the landing's end (ground 1.39, slope 12°): camera B sees it at
-  // (0.69, 0.50) at the landing's edge left of the door, camera D not at all (bearing 47°).
-  { id: 'saria-water-bucket', kind: 'bucket', x: 7.25, z: -8.0, size: 0.58, yaw: 0.5 },
-  { id: 'saria-crate', kind: 'crate', x: 8.75, z: -8.0, size: 0.77, yaw: 0.13 },
-  { id: 'saria-storage-pot', kind: 'pot', x: 16.4, z: -8.45, size: 0.58, yaw: 0.8 },
-  { id: 'upper-crate', kind: 'crate', x: 19.4, z: -9.7, size: 0.72, yaw: -0.12 },
-  { id: 'upper-bucket', kind: 'bucket', x: 19.3, z: -10.7, size: 0.51, yaw: -0.4 },
-  { id: 'west-tree-platform', kind: 'platform', x: -8.7, z: -10.0, size: 1, yaw: 0 },
-] as const;
+/**
+ * Village props — WHERE the domestic details stand. Own authored positions (the shared
+ * `src/world/layout.ts` is read, never written, for the houses / stairs / boulders / npc spots
+ * the placement rules keep clear of). Every prop names a `cluster`: props of one cluster merge
+ * into one mesh per material, so the whole dressing costs a handful of draw calls.
+ *
+ * Placement (index.ts) seats each prop on `ctx.terrain.height`, probes its footprint against the
+ * terrain masks and the layout's obstacles, and skips a prop rather than relocating it across the
+ * village. Projections quoted below are pinhole into the six fixed cameras (1280×720).
+ */
+export type PropKind = 'pot' | 'crate' | 'barrel' | 'bucket' | 'ladder' | 'platform';
+
+export interface PropDef {
+  id: string;
+  kind: PropKind;
+  /** authored foot position (y is sampled from the terrain) */
+  x: number;
+  z: number;
+  /** pots / barrel / bucket: height (m); crate: width (m); platform: unused (see `deck`) */
+  size: number;
+  yaw: number;
+  cluster: string;
+  /** pot profile: 0 classic belly, 1 tall neck, 2 squat wide mouth */
+  variant?: number;
+  /** may stand on the flagstone paving (`path` mask) — Kokiri pots beside a stair foot */
+  paving?: boolean;
+  /** may stand on a house pad (`structure` mask); the trunk itself still keeps its clearance */
+  pad?: boolean;
+  /** ladder: the house it leans on, the angle around the trunk (rad, 0 = the door, + = viewer's right) and the peg height */
+  lean?: { house: string; angle: number; top: number };
+  /** platform: deck height above the ground (m), footprint, railing, ladder */
+  platform?: { deck: number; width: number; depth: number; rail: boolean; ladder: boolean };
+}
+
+export const PROP_LAYOUT: readonly PropDef[] = [
+  // ---- Saria's door: two pots on the pad, viewer's left of the porch mouth (the right side is a
+  // 60° bank). Door space w ≈ −1.6 / −1.45, d ≈ 3.15 / 3.7 from the trunk centre: between the
+  // left root lip (w ≈ −2.0) and the doorway (w ≥ −1.15), off the threshold slabs and 0.8 m
+  // from the walk's last stone (9.6, −9.3). B/E (0.69, 0.53) at 15 m, A (0.51, 0.46) at 21 m.
+  { id: 'door-pot-large', kind: 'pot', x: 9.15, z: -10.3, size: 0.8, yaw: 0.4, cluster: 'saria-door', variant: 0, pad: true },
+  { id: 'door-pot-tall', kind: 'pot', x: 8.7, z: -9.75, size: 0.5, yaw: -1.1, cluster: 'saria-door', variant: 1, pad: true },
+
+  // ---- the signpost (7.0, −9.3, facing (−0.6, 0.8)): a pot behind its post and a squat one on
+  // its west side; the bucket and the crate stay by the walk to the door (B (0.69, 0.50) /
+  // (0.76, 0.55)). The pots replace the round-31 pair at (8.0, −10.0) / (7.5, −9.5).
+  { id: 'sign-pot', kind: 'pot', x: 7.65, z: -10.25, size: 0.62, yaw: 2.1, cluster: 'signpost', variant: 0 },
+  { id: 'sign-pot-squat', kind: 'pot', x: 6.3, z: -9.85, size: 0.46, yaw: 0.7, cluster: 'signpost', variant: 2 },
+  { id: 'saria-water-bucket', kind: 'bucket', x: 7.25, z: -8.0, size: 0.58, yaw: 0.5, cluster: 'signpost' },
+  // round 31's (8.75, −8.0) is on the walk's stepping-stone mask and was being nudged onto the
+  // 55° bank at (9.5, −7.25); now a smaller crate in the flat pocket right of the walk's end,
+  // under the door's right root lip (the mirror of the pots on the left; B (0.76, 0.55))
+  { id: 'saria-crate', kind: 'crate', x: 9.7, z: -7.95, size: 0.58, yaw: 0.6, cluster: 'signpost', pad: true },
+
+  // ---- the hero stair's foot: two pots on the paved apron at the bottom riser's SOUTH corner
+  // (0.45 m south of the tread ends, 0.5–1.1 m in front of the riser), between the stair, the
+  // stair-foot boulder (9.1, 2.5) r 1.0 and the lantern post (9.3, 1.6). A (0.78–0.80, 0.61–0.62)
+  // at the riser's right end, C (0.20–0.25, 0.56) just above the protected stair-foot box
+  // (0.10–0.20 × 0.60–0.66), F (0.48, 0.59) behind Link.
+  { id: 'stair-pot', kind: 'pot', x: 7.95, z: 1.8, size: 0.56, yaw: -0.3, cluster: 'stair-foot', variant: 0, paving: true },
+  { id: 'stair-pot-squat', kind: 'pot', x: 7.55, z: 2.1, size: 0.42, yaw: 1.9, cluster: 'stair-foot', variant: 2, paving: true },
+
+  // ---- the plateau's storage corner by the plateau-north fence (survey-2 w28-plateau-d looks
+  // straight at it): crate (#32), bucket, a barrel and two pots. The storage pot that stood at
+  // (16.4, −8.45) — on the stair bank, where the fern scatter is dense (#37) — joins this corner.
+  { id: 'upper-crate', kind: 'crate', x: 19.4, z: -9.7, size: 0.72, yaw: -0.12, cluster: 'plateau' },
+  { id: 'upper-barrel', kind: 'barrel', x: 18.55, z: -9.15, size: 0.8, yaw: 0.9, cluster: 'plateau' },
+  { id: 'upper-bucket', kind: 'bucket', x: 19.3, z: -10.7, size: 0.51, yaw: -0.4, cluster: 'plateau' },
+  { id: 'upper-storage-pot', kind: 'pot', x: 20.15, z: -10.35, size: 0.66, yaw: 0.8, cluster: 'plateau', variant: 1 },
+  { id: 'upper-pot-squat', kind: 'pot', x: 20.05, z: -9.2, size: 0.44, yaw: -2.0, cluster: 'plateau', variant: 2 },
+
+  // ---- a rope-and-plank ladder against the upper house's trunk, viewer's right of its door
+  // (between the roots at a ≈ 0.8 and 1.97 rad), the crossbar pegged 3.4 m up
+  { id: 'upper-ladder', kind: 'ladder', x: 0, z: 0, size: 0.44, yaw: 0, cluster: 'upper-house', lean: { house: 'upper', angle: 1.35, top: 3.4 } },
+
+  // ---- the plateau lip: a low deck with a rope railing where the plateau-west fence ends
+  // (23.3, 1.9), looking south-west over the stair bank and the plaza. Only camera F sees it —
+  // (0.62, 0.23) at 26 m, among the reference's fence posts on the wall top; A/B/C/D/E: outside.
+  // Local x runs along the lip (0.57, 0.82); the railing is the −z side, toward the plaza.
+  { id: 'lip-platform', kind: 'platform', x: 23.6, z: 2.8, size: 1, yaw: 2.18, cluster: 'plateau-lip', platform: { deck: 0.4, width: 2.2, depth: 1.5, rail: true, ladder: false } },
+
+  // ---- the west platform under the lantern tree (round 31): tall deck with its ladder, kept
+  { id: 'west-tree-platform', kind: 'platform', x: -8.7, z: -10.0, size: 1, yaw: 0, cluster: 'west', platform: { deck: 1.28, width: 1.8, depth: 1.4, rail: true, ladder: true } },
+];
