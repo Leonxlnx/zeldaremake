@@ -35,6 +35,19 @@ sees" strip of player-height poses, and the play link pinned to the published bu
 - `.agents/fable-6.md`, my threads in `.agents/INBOX.md`.
 
 ## Completed work
+- 2026-09-19 21:35 UTC — `a606ad4` the director's cut on the monitor: `site/js/cut.js` (headline
+  strip + per-view SSIM chips), `evidence.js` (round / survey gallery with the README rendered,
+  lanes, before/after cards), `player.js` (player-height strip, borrowed when a take has none),
+  `lightbox.js`, `markdown.js`, `headline.js` (pure, shared with node); `data.js` loads
+  `evidence/index.json` and derives headline / round for older takes; the play link pinned to
+  `takes.play.sha`. `monitor.mjs`: headline / round on the record, `syncEvidence`,
+  `syncPlayerStrip`, `takes.play`; 7 tests green (`node --test gauntlet/scripts/lib/monitor.test.mjs`).
+  `site/tools/player-strip.mjs` renders the strip through `broll.mjs`. `perftrace.mjs` records the
+  LOD pools per chunk (`poolSeries`) and a `--note`. PR #19 (draft → world branch).
+- 2026-09-19 21:30 UTC — native baseline trace of take-0116 (`gauntlet/perf/r48/trace-0116-baseline.json`,
+  2400 frames, `--finish`): step 142 ms median (GPU finish 100 ms of it), 9.16 M tris median in
+  play mode, canopy pool at its 64 MB cap with 264 builds / 504 evictions on the walk, build chunks
+  up to 232 ms against the 3 ms budget. Box at ~100 % CPU from other apps throughout (`load.log`).
 - 2026-09-19 19:30 UTC — onboarded: branch `agent/fable-6-monitor-perf` off
   `cursor/kokiri-world-phase1-f65e` `38f430ea`; typecheck + build green; sealed world `973a21e`
   built in a detached worktree for the profiling half.
