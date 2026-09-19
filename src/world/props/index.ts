@@ -13,7 +13,7 @@ import type { WorldContext, WorldSystem } from '../system';
 import { createRng } from '../util/prng';
 import { barrelGeometry, bucketGeometry, crateGeometry, ladderGeometry, type Part, platformGeometry, potGeometry } from './geometry';
 import { PROP_LAYOUT, type PropDef } from './layout';
-import { createPropMaterials, type MaterialKey } from './materials';
+import { createPropMaterials, type MaterialKey, PLANK_MEAN } from './materials';
 
 const UP = new Vector3(0, 1, 0);
 const MATERIAL_KEYS: MaterialKey[] = ['wood', 'clay', 'iron', 'rope'];
@@ -100,13 +100,28 @@ function findSpot(ctx: PlacementCtx, def: PropDef, radius: number, taken: number
   return null;
 }
 
+/**
+ * The vertex colour of each material lives in its own domain — wood rides a ×4 lift over a dark
+ * map, rope over a tinted material — so a grime / moss target (linear albedo) is divided by what
+ * the map and the material colour will multiply back in.
+ */
+const COLOUR_DOMAIN: Record<MaterialKey, [number, number, number]> = {
+  wood: PLANK_MEAN,
+  clay: [0.93, 0.92, 0.9],
+  rope: [0.28 * 0.9, 0.2 * 0.9, 0.085 * 0.9],
+  iron: [1, 1, 1],
+};
+
 /** grime and moss where a prop meets the ground; continuous in space so shared edges stay seamless */
 function weather(geometry: BufferGeometry, material: MaterialKey, size: number): void {
   if (material === 'iron') return;
   const p = geometry.attributes.position;
   const colors = geometry.attributes.color;
+  const [dr, dg, db] = COLOUR_DOMAIN[material];
   const soil = new Color(0x4f4436);
   const moss = new Color(0x55573a);
+  soil.setRGB(soil.r / dr, soil.g / dg, soil.b / db);
+  moss.setRGB(moss.r / dr, moss.g / dg, moss.b / db);
   const c = new Color();
   const falloff = (h: number, extent: number) => {
     const t = Math.min(1, Math.max(0, h / extent));

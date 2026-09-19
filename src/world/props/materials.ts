@@ -13,6 +13,7 @@ import { Color, DataTexture, LinearFilter, LinearMipmapLinearFilter, MeshStandar
 import type { WorldContext } from '../system';
 import { Noise2D } from '../util/noise';
 import { createRng } from '../util/prng';
+import { applyShadeFloor, type ShadeFloor } from '../materials/shadeFloor';
 
 export type MaterialKey = 'wood' | 'clay' | 'iron' | 'rope';
 
@@ -34,6 +35,27 @@ export const PLANK_BOARDS = 12;
 /** metres of pot height per repeat of the clay map (32 wheel rings → a ring every ~1.4 cm) */
 export const CLAY_REPEAT_METRES = 0.45;
 export const ROPE_REPEAT_METRES = 0.06;
+
+/**
+ * The plank map is dark: linear mean (0.082, 0.058, 0.044). The boards' vertex colour carries
+ * the lift — the lever the signpost's board (×4.5, a sun-bleached tan) and the fences (×0.58, dark
+ * weathered posts) both use on this map. Crates and barrels sit between the two: a warm medium
+ * brown of ≈ (0.16, 0.09, 0.05) linear (sRGB ≈ #6e573f) before the per-board stain (0.88–1.1)
+ * and the edge wear (+22 %). Measured: ×4.2 read as bleached driftwood in the plateau sun.
+ */
+export const WOOD_TINT: [number, number, number] = [1.9, 1.6, 1.15];
+/** linear mean of the plank colour map (measured with sharp over the 1K file) */
+export const PLANK_MEAN: [number, number, number] = [0.082, 0.058, 0.044];
+
+/**
+ * Shade floors (materials/shadeFloor.ts): what a face gets under the closed roof when the sun
+ * does not reach it. The fences' wood runs lift 11 fully textured; the props stand lower and
+ * closer to the ground bounce, so a little less. The clay keeps its own colour (texture 1) and a
+ * warmer, less leaf-filtered light — a pot in the porch's shade should still read terracotta.
+ */
+export const WOOD_FLOOR: ShadeFloor = { lift: 9, texture: 1.0, canopy: 1, albedo: 0.1, chroma: 0.5 };
+export const CLAY_FLOOR: ShadeFloor = { lift: 8, texture: 1.0, canopy: 0.7, albedo: 0.12, chroma: 0.6 };
+export const ROPE_FLOOR: ShadeFloor = { lift: 6, texture: 1.0, canopy: 1, albedo: 0.1, chroma: 0.5 };
 
 const clamp01 = (v: number) => (v < 0 ? 0 : v > 1 ? 1 : v);
 
@@ -178,13 +200,17 @@ export async function createPropMaterials(ctx: Pick<WorldContext, 'textures' | '
   const rope = buildRopeMaps(`${ctx.config.seed}/props`);
   const owned: Texture[] = [clay.color, clay.normal, rope.color, rope.normal];
   const materials: Record<MaterialKey, MeshStandardMaterial> = {
-    // the plank map is a dark grey-brown (~0.35 linear); the tint lifts it toward the
-    // reference's warm tan and the per-board vertex colour carries the rest
-    wood: new MeshStandardMaterial({ map: plankC, normalMap: plankN, normalScale: new Vector2(1.1, 1.1), roughnessMap: plankR, roughness: 1, color: new Color(0xd8b48c), vertexColors: true }),
+    // the plank map's lift rides in the vertex colour (WOOD_TINT, per board); the material stays white
+    wood: new MeshStandardMaterial({ map: plankC, normalMap: plankN, normalScale: new Vector2(1.1, 1.1), roughnessMap: plankR, roughness: 1, color: new Color(0xffffff), vertexColors: true }),
     clay: new MeshStandardMaterial({ map: clay.color, normalMap: clay.normal, normalScale: new Vector2(0.9, 0.9), roughness: 0.88, color: new Color(0xffffff), vertexColors: true }),
-    iron: new MeshStandardMaterial({ color: 0x3a352c, roughness: 0.68, metalness: 0.6, vertexColors: true }),
-    rope: new MeshStandardMaterial({ map: rope.color, normalMap: rope.normal, normalScale: new Vector2(0.8, 0.8), roughness: 1, color: new Color(0xa89468), vertexColors: true }),
+    // barely metallic: under the closed roof there is no bright environment for a metal to
+    // reflect, and a hoop at metalness 0.55 rendered as a flat black band
+    iron: new MeshStandardMaterial({ color: 0x6e6357, roughness: 0.62, metalness: 0.3, vertexColors: true }),
+    rope: new MeshStandardMaterial({ map: rope.color, normalMap: rope.normal, normalScale: new Vector2(0.8, 0.8), roughness: 1, color: new Color(0x8f7a52), vertexColors: true }),
   };
+  applyShadeFloor(materials.wood, WOOD_FLOOR, ctx.config.palette.leafSun);
+  applyShadeFloor(materials.clay, CLAY_FLOOR, ctx.config.palette.leafSun);
+  applyShadeFloor(materials.rope, ROPE_FLOOR, ctx.config.palette.leafSun);
   return {
     ...materials,
     sets: T.loaded().filter((s) => s === PLANK_SET),

@@ -28,8 +28,8 @@ export interface PropDef {
   pad?: boolean;
   /** ladder: the house it leans on, the angle around the trunk (rad, 0 = the door, + = viewer's right) and the peg height */
   lean?: { house: string; angle: number; top: number };
-  /** platform: deck height above the ground (m), footprint, railing, ladder */
-  platform?: { deck: number; width: number; depth: number; rail: boolean; ladder: boolean };
+  /** platform: deck height above the ground (m), footprint, railing, ladder, block steps */
+  platform?: { deck: number; width: number; depth: number; rail: boolean; ladder: boolean; steps?: number };
 }
 
 export const PROP_LAYOUT: readonly PropDef[] = [
@@ -75,8 +75,9 @@ export const PROP_LAYOUT: readonly PropDef[] = [
   // ---- the plateau lip: a low deck with a rope railing where the plateau-west fence ends
   // (23.3, 1.9), looking south-west over the stair bank and the plaza. Only camera F sees it —
   // (0.62, 0.23) at 26 m, among the reference's fence posts on the wall top; A/B/C/D/E: outside.
-  // Local x runs along the lip (0.57, 0.82); the railing is the −z side, toward the plaza.
-  { id: 'lip-platform', kind: 'platform', x: 23.6, z: 2.8, size: 1, yaw: 2.18, cluster: 'plateau-lip', platform: { deck: 0.4, width: 2.2, depth: 1.5, rail: true, ladder: false } },
+  // Local x runs along the lip (0.57, 0.82); the railing is the −z side, toward the plaza. Deck
+  // 0.62 m: the lawn's ferns stand 0.4–0.8 m and poked through a 0.4 m deck; two block steps.
+  { id: 'lip-platform', kind: 'platform', x: 23.5, z: 2.65, size: 1, yaw: 2.18, cluster: 'plateau-lip', platform: { deck: 0.62, width: 2.2, depth: 1.5, rail: true, ladder: false, steps: 2 } },
 
   // ---- the west platform under the lantern tree (round 31): tall deck with its ladder, kept
   { id: 'west-tree-platform', kind: 'platform', x: -8.7, z: -10.0, size: 1, yaw: 0, cluster: 'west', platform: { deck: 1.28, width: 1.8, depth: 1.4, rail: true, ladder: true } },

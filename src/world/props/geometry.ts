@@ -9,7 +9,7 @@
  */
 import { BufferGeometry, CatmullRomCurve3, Color, CylinderGeometry, Float32BufferAttribute, LatheGeometry, Matrix4, Quaternion, TorusGeometry, TubeGeometry, Vector2, Vector3 } from 'three';
 import type { Rng } from '../util/prng';
-import { CLAY_REPEAT_METRES, type MaterialKey, PLANK_BOARDS, PLANK_METRES, ROPE_REPEAT_METRES } from './materials';
+import { CLAY_REPEAT_METRES, type MaterialKey, PLANK_BOARDS, PLANK_METRES, ROPE_REPEAT_METRES, WOOD_TINT } from './materials';
 
 export interface Part {
   geometry: BufferGeometry;
@@ -186,7 +186,7 @@ export function board(w: number, h: number, d: number, opts: { grain: 'x' | 'y' 
   const g = chamferedBox(w, h, d, opts.chamfer ?? Math.min(w, h, d) * 0.18);
   plankUV(g, { grain: opts.grain, column: opts.rng.int(0, PLANK_BOARDS), along: opts.rng.range(0, PLANK_METRES) });
   const stain = (opts.shade ?? 1) * opts.rng.range(0.88, 1.1);
-  const tint = opts.tint ?? new Color(0.62, 0.5, 0.36);
+  const tint = opts.tint ?? new Color(WOOD_TINT[0], WOOD_TINT[1], WOOD_TINT[2]);
   const warm = opts.rng.range(-0.03, 0.03);
   paint(g, (p, n) => {
     const bevel = bevelness(n);
@@ -260,7 +260,7 @@ export interface PotStyle {
 }
 
 export const POT_BODY = 0xa96a3c;
-export const POT_BAND = 0x3a2a22;
+export const POT_BAND = 0x4a332a;
 
 export function potGeometry(rng: Rng, size: number, variant: number, style?: Partial<PotStyle>): Part[] {
   const prof = POT_PROFILES[((variant % POT_PROFILES.length) + POT_PROFILES.length) % POT_PROFILES.length];
@@ -409,7 +409,7 @@ function staveGeometry(rng: Rng, radiusAt: (y: number) => number, h: number, cou
       const inner = r < radiusAt(p.y) - thickness * 0.5 ? 0.8 : 1;
       const edge = Math.abs(n.y) > 0.9 ? 0.75 : 1;
       const k = stain * inner * edge;
-      return [0.62 * k, 0.5 * k, 0.36 * k];
+      return [WOOD_TINT[0] * k, WOOD_TINT[1] * k, WOOD_TINT[2] * k];
     });
     out.push(g);
   }
@@ -441,7 +441,7 @@ export function barrelGeometry(rng: Rng, size: number): Part[] {
     const boardIdx = Math.floor((p.z + lidR) / (lidR * 2) * 4.999);
     const seam = Math.abs(((p.z + lidR) / (lidR * 2) * 5) % 1 - 0.5) > 0.47 ? 0.7 : 1;
     const k = shade * (0.9 + 0.05 * (boardIdx % 3)) * seam * (Math.abs(n.y) > 0.9 ? 1 : 0.85);
-    return [0.62 * k, 0.5 * k, 0.36 * k];
+    return [WOOD_TINT[0] * k, WOOD_TINT[1] * k, WOOD_TINT[2] * k];
   });
   place(lid, new Vector3(0, h - size * 0.015, 0));
   wood.push(lid);
@@ -456,7 +456,7 @@ export function bucketGeometry(rng: Rng, size: number): Part[] {
   const wood = staveGeometry(rng, radiusAt, h, 14, size * 0.035, shade, rng.int(0, PLANK_BOARDS));
   const floor = flat(new CylinderGeometry(radiusAt(0.03) - size * 0.03, radiusAt(0.03) - size * 0.03, 0.03, 20));
   plankUV(floor, { grain: 'x', column: rng.int(0, PLANK_BOARDS), along: rng.range(0, PLANK_METRES) });
-  paint(floor, () => [0.5 * shade, 0.4 * shade, 0.29 * shade]);
+  paint(floor, () => [WOOD_TINT[0] * 0.8 * shade, WOOD_TINT[1] * 0.8 * shade, WOOD_TINT[2] * 0.8 * shade]);
   place(floor, new Vector3(0, 0.035, 0));
   wood.push(floor);
   const iron = [0.16, 0.82].map((f) => hoop(radiusAt(f * h), f * h, size * 0.03));
@@ -501,14 +501,14 @@ export function ladderGeometry(rng: Rng, spec: LadderSpec): Part[] {
     pts.push(new Vector3(side * hw, top.y + 0.04, top.z + 0.06));
     return pts;
   };
-  for (const side of [-1, 1]) parts.push({ geometry: rope(railPts(side), 0.018, 6), material: 'rope' });
+  for (const side of [-1, 1]) parts.push({ geometry: rope(railPts(side), 0.013, 6), material: 'rope' });
   // crossbar the rails hang from, held against the bark by two pegs driven into the trunk
   const barY = top.y + 0.04;
   const barZ = top.z + 0.02;
   const woodPaint = (g: BufferGeometry) =>
     paint(g, (_p, n) => {
       const k = Math.abs(n.y) > 0.9 ? 0.68 : 0.95;
-      return [0.6 * k, 0.48 * k, 0.34 * k];
+      return [WOOD_TINT[0] * 0.95 * k, WOOD_TINT[1] * 0.95 * k, WOOD_TINT[2] * 0.95 * k];
     });
   const bar = flat(new CylinderGeometry(0.03, 0.033, spec.width + 0.26, 10));
   plankUV(bar, { grain: 'y', column: rng.int(0, PLANK_BOARDS), along: rng.range(0, PLANK_METRES) });
@@ -553,6 +553,8 @@ export interface PlatformSpec {
   rail: boolean;
   /** ladder from the +z side down to the ground (tall decks) */
   ladder: boolean;
+  /** stacked block steps up the +z side (low decks) */
+  steps?: number;
 }
 
 /**
@@ -622,6 +624,22 @@ export function platformGeometry(rng: Rng, spec: PlatformSpec): Part[] {
       // sides
       for (const sx of [-1, 1]) push(rope([new Vector3(sx * (hx - 0.09), y, -hz + 0.08), new Vector3(sx * (hx - 0.09), y - sag * 0.8, 0), new Vector3(sx * (hx - 0.09), y, hz - 0.08)], 0.02), 'rope');
       for (const [px, pz] of feet) for (const g of lashing(new Vector3(px, y, pz), new Vector3(0, 1, 0), 0.075, 3)) push(g, 'rope');
+    }
+  }
+  if (spec.steps) {
+    // stacked block steps against the back edge, each a short tread on its own grounded riser
+    const n = spec.steps;
+    for (let i = 0; i < n; i++) {
+      const top = (deckY * (n - i)) / (n + 1);
+      const z0 = hz + 0.02 + i * 0.32;
+      const gy = spec.groundAt(0, z0 + 0.15);
+      const riser = board(0.72, top - gy + 0.02, 0.3, { grain: 'x', rng, chamfer: 0.01, shade: 0.9 });
+      place(riser, new Vector3(0, (top + gy - 0.02) / 2, z0 + 0.15));
+      groundFoot(riser, gy + 0.06, spec.groundAt);
+      push(riser, 'wood');
+      const tread = board(0.78, 0.04, 0.34, { grain: 'x', rng, chamfer: 0.008, shade: 1.05 });
+      place(tread, new Vector3(0, top + 0.02, z0 + 0.15));
+      push(tread, 'wood');
     }
   }
   if (spec.ladder) {
