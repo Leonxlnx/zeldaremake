@@ -595,12 +595,22 @@ export function createDistantVariants(rng: Rng, palette: Palette): DistantVarian
     const far = new GeometryWriter('high');
     const farTop = canopy.clone().multiplyScalar(0.6);
     const farFoot = bark.clone().multiplyScalar(DISTANT_FOOT_GRIME);
+    // Round 48 (opus-review #07, x-clearing-stones / w21-spine-l: "opaque sky-blue rectangles with
+    // hard edges among the far crowns"): the rectangles are these strips. Past 120 m every surface
+    // wears the veil at its cap (heightfog maxFog 0.86) in the far haze's blue-grey, and the strips
+    // ran to crownY + 0.15 crownR at 0.42–0.62 R wide — a flat-topped plank 1.2–1.7 m across and
+    // 3–5 m tall standing in the crown's ragged lower rim, where the near LOD's bole is 0.36 R
+    // (DISTANT_TAPER_TOP: 2.5× narrower) at the LOD swap. The strips now end at the crown's
+    // centre height, inside the dense part of the painted silhouette, at the near bole's own top
+    // radius, and their upper ring sits ABOVE the 0.52 H ring (the broad kinds' crownY − 0.35 crownR
+    // was under it, so the strip folded back on itself).
+    const farTopW = spec.taperTop ?? (slender ? 0.25 : DISTANT_TAPER_TOP);
     const farRings: [number, number][] = [
       [-0.6, 1.1],
       [H * 0.28, 0.96],
       [H * 0.52, 0.8],
-      [crownY - crownR * 0.35, 0.62],
-      [crownY + crownR * 0.15, 0.42],
+      [Math.max(H * 0.52 + 0.5, crownY - crownR * 0.35), 0.5 + 0.35 * farTopW],
+      [crownY, farTopW],
     ];
     for (let plane = 0; plane < 2; plane++) {
       const a = (plane / 2) * Math.PI;
