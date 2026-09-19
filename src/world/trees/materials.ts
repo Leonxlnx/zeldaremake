@@ -218,8 +218,14 @@ function biasedMap(shader: WebGLProgramParametersWithUniforms, flatAware = false
  * full size at the second, gone at the first — so a cushion is never a polygon across the frame
  * and never pops (a fragment cull left a ring). The fixed cameras stand ≥ 5 m from every near
  * base; the shader's own moss field carries the cushion look inside a metre.
+ *
+ * Round 47 (the round-46 review, sn-bole-lantern-tree: "the disc still reads at touching
+ * distance"): gone at 0.35 m and full only from 1.3 m — the round-46 band (0.5–0.9) left a
+ * cushion at 0.7 m at half its size, which on a 12 cm dome 0.7 m from the lens is still a
+ * 150 px polygon; over the wider band a cushion at 0.7 m is a 2 cm bump and the bole's own moss
+ * bulge and the shader's moss field carry the look. The band is a smoothstep, so it never pops.
  */
-export const CUSHION_FADE_M: [number, number] = [0.5, 0.9];
+export const CUSHION_FADE_M: [number, number] = [0.35, 1.3];
 
 const WIND_VERTEX_PARS = /* glsl */ `
 #define BARK_AO_LIFT ${BARK_AO_LIFT.toFixed(2)}
