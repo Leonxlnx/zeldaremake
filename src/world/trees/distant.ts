@@ -111,8 +111,13 @@ export const DISTANT_BOLE_BANDS = 0.09;
 export const DISTANT_FLARE = 0.7;
 /** … falling off with this e-folding distance (m) along the bole */
 export const DISTANT_FLARE_FALL = 2.0;
-/** round 48: extra rings written into the near LOD sweep's lowest segment (the butt's curve) */
-export const DISTANT_BASE_RINGS = 5;
+/**
+ * round 48: extra rings written into the near LOD sweep's lowest segment (the butt's curve). Two:
+ * a ring is 72 triangles on the 36-sided broad bole, and camera A holds ≈ 80 near-LOD distant
+ * trees 30 K triangles under W38's 9.0 M ceiling — five rings (+360 a bole) put A at 8.95 M,
+ * two (+144, the whole round +248 a broad bole with the toes) at ≈ 8.935 M.
+ */
+export const DISTANT_BASE_RINGS = 2;
 /**
  * Round 48: the near LOD's root toes (writer.ts rootButtress off their own stream) — [count min,
  * max], length / collar width / collar height as shares of R. Round 47's 5–7 toes at 1.4–2.1 R
