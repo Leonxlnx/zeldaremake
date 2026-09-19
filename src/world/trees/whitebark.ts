@@ -8,21 +8,22 @@
  * trunk via vertex colour, palette-driven leaf colours with per-leaf variation, and per-vertex
  * wind attributes (trunk / branch / leaf layers). Geometry-only: metres, +Y up, base at y = 0.
  */
-import { BufferGeometry, Color, Vector3 } from 'three';
+import { BufferGeometry, Color, Mesh, Vector3, type Material } from 'three';
 import { createRng, type Rng } from '../util/prng';
-import { smoothstep } from '../util/noise';
+import { Noise2D, smoothstep } from '../util/noise';
 import { consumeTubeDraws } from './bole';
+import { WHITE_BARK_TILE_M } from './bark-texture';
 import {
   GeometryWriter,
   TAU,
   UP,
   addLeaf,
   between,
+  clamp01,
   divergingLeaderPath,
   frame,
   growthPath,
   mergeParts,
-  rootButtress,
   sample,
   stiffnessFor,
   tangent,
@@ -104,6 +105,51 @@ export function whiteBarkParams(rng: Rng, index: number, total: number): WhiteBa
   };
 }
 
+/** a root toe of a variant: azimuth (tree space), reach from the axis and section at the axis (m, unscaled) */
+export interface ToeSpec {
+  angle: number;
+  length: number;
+  width: number;
+  height: number;
+  bend: number;
+}
+
+/**
+ * The fork every round-47 base feature of a variant draws from — never the variant's own stream
+ * (`createRng('whitebark/<seed>')`), which feeds the crown after the trunk: the crowns, and with
+ * them the LOD-0 height and radius `placeWhiteBark` and the LOD bucketing read, stay the
+ * round-46 geometry, so the 80 placements do not move.
+ */
+const baseRngFor = (p: WhiteBarkParams) => createRng(`whitebark/${p.seed}`).fork('base-47');
+
+/**
+ * The variant's root toes — 3–6 long, low surface roots leaving the fluted foot. A pure function
+ * of the params, read by the instanced trunk (its fluting ridges sit over the toes) and by the
+ * terrain-seated root mesh (`createWhiteBarkRoots`), so the two agree.
+ */
+export function whiteBarkToeSpecs(p: WhiteBarkParams): ToeSpec[] {
+  const r = baseRngFor(p).fork('toes');
+  const R = p.trunkRadius;
+  const toes: ToeSpec[] = [];
+  for (let i = 0; i < p.roots; i++) {
+    // low and broad: a surface root is about twice as wide as it is tall
+    toes.push({
+      angle: (i / p.roots) * TAU + r.range(-0.3, 0.3),
+      length: R * r.range(4.4, 6.2),
+      width: R * r.range(0.5, 0.78),
+      height: R * r.range(0.42, 0.66),
+      bend: (r() - 0.5) * 0.38,
+    });
+  }
+  return toes;
+}
+
+/** the variant's bark-tile mapping: along-stem stretch and offset, around-stem offset and spiral shear */
+export function whiteBarkTileMapping(p: WhiteBarkParams) {
+  const r = baseRngFor(p).fork('uv');
+  return { vStretch: r.range(0.92, 1.08), vOffset: r.range(0, 1), uOffset: r.range(0, 1), uShear: r.range(0.1, 0.17) };
+}
+
 export function createWhiteBarkTree(p: WhiteBarkParams, palette: Palette, detail: Detail): TreeAsset {
   const rng = createRng(`whitebark/${p.seed}`);
   const bt = (a: number, b: number) => between(rng, a, b);
@@ -136,15 +182,49 @@ export function createWhiteBarkTree(p: WhiteBarkParams, palette: Palette, detail
   const skirt = 0.5;
   const trunk = growthPath(new Vector3(0, -skirt, 0), stemTarget, UP, rng, 26, 0.22);
   const tipRadius = 0.02;
-  const trunkRadii = trunk.map((pt, i) => {
-    const t = i / (trunk.length - 1);
-    const above = Math.max(0, pt.y) / stemHeight;
-    const radius = tipRadius + (R - tipRadius) * Math.pow(1 - t, p.taperPower);
-    // the root flare: the sharp foot swell as before plus a longer butt swell (round 44, survey
-    // crop 31 "white-bark base without flare": +20 % at the ground fading over ≈ 2 m of a mature
-    // stem), the same at every LOD so the three meshes keep one silhouette
-    return radius * (1 + 0.5 * Math.exp(-above * 22) + 0.2 * Math.exp(-above * 6));
-  });
+  /**
+   * Round 47 (survey-2 #31, `sn-whitebark-base`: "no root flare, painted tiling"). Every base
+   * feature below draws from `baseRng`, never from `rng` (see baseRngFor); the trunk sweep takes
+   * its draws up front, and the five draws a root the round-46 buttresses took are still taken
+   * (and dropped) below, so the crown's stream is untouched.
+   */
+  const baseRng = baseRngFor(p);
+  /** the stem's size class: the flare's heights scale with the girth (a sapling's foot is a hand tall) */
+  const girth = Math.min(1.2, Math.max(0.35, R / 0.3));
+  /**
+   * The butt flare as a radius multiplier at height `h` above the ground: a sharp foot swell
+   * (e-fold 14 cm on a mature stem) over a longer butt swell, +88 % at the ground line, +16 % at
+   * 0.6 m, +4 % at 2 m — the same at every LOD so the three meshes keep one silhouette. The
+   * old profile (+70 % at the ground fading over 2 m) was too gradual to read as a flare at 2 m.
+   */
+  const flareAt = (h: number) => {
+    const a = Math.max(0, h);
+    return 1 + 0.5 * Math.exp(-a / (0.14 * girth)) + 0.28 * Math.exp(-a / (0.5 * girth)) + 0.1 * Math.exp(-a / (1.8 * girth));
+  };
+  const taperAt = (t: number) => tipRadius + (R - tipRadius) * Math.pow(1 - t, p.taperPower);
+  // the coarse radii (27 rings) keep feeding the epicormic shoots below, as before
+  const trunkRadii = trunk.map((pt, i) => taperAt(i / (trunk.length - 1)) * flareAt(pt.y));
+  /**
+   * The sweep itself runs on a densified copy of the same polyline — points ON the coarse
+   * segments, so the surface is the same shape and `sample(trunk, t)` for every branch is
+   * untouched — with a ring every 18 cm below 3 m, 35 cm to 6 m, 60 cm above: the coarse 0.5 m
+   * rings could not hold the flare's 14 cm foot swell, the toe fluting or a 10 cm dark band.
+   */
+  const trunkDense: Vector3[] = [];
+  const trunkDenseT: number[] = [];
+  for (let i = 0; i < trunk.length - 1; i++) {
+    const a = trunk[i];
+    const b = trunk[i + 1];
+    const spacing = a.y < 3 ? 0.18 : a.y < 6 ? 0.35 : 0.6;
+    const n = Math.max(1, Math.ceil(a.distanceTo(b) / spacing));
+    for (let k = 0; k < n; k++) {
+      trunkDense.push(a.clone().lerp(b, k / n));
+      trunkDenseT.push((i + k / n) / (trunk.length - 1));
+    }
+  }
+  trunkDense.push(trunk[trunk.length - 1].clone());
+  trunkDenseT.push(1);
+  const trunkDenseRadii = trunkDense.map((pt, i) => taperAt(trunkDenseT[i]) * flareAt(pt.y));
   // the trunk's draws are taken for 12 sides at every LOD (the stream after them never moves);
   // the high mesh — the one drawn at 1–3 m — rounds the stem with 18 sides on the same grain and
   // peels the bark in shallow papery ledges (1.8 % of the radius, tilted a little around the
@@ -154,7 +234,33 @@ export function createWhiteBarkTree(p: WhiteBarkParams, palette: Palette, detail
   const trunkDraws = consumeTubeDraws(rng, trunkSides);
   if (highSides !== trunkSides) trunkDraws.grain = Array.from({ length: highSides }, (_, j) => trunkDraws.grain[Math.floor((j / highSides) * trunkSides)]);
   const plateBump = detail === 'high' ? (angle: number, distance: number, t: number) => 1 + 0.018 * (1 - t) * Math.sin(distance * 6.5 + 1.4 * Math.sin(angle * 2 + trunkDraws.phase)) : undefined;
-  tube(wood, trunk, trunkRadii, highSides, rng, {
+
+  // the five draws a root the round-46 buttresses took (jitter, length, width, height, bend),
+  // still taken so everything after them in the stream — the crown — is where it was; the toes
+  // themselves are `whiteBarkToeSpecs` and are built per instance on the terrain
+  // (createWhiteBarkRoots), not in this instanced geometry
+  for (let i = 0; i < p.roots * 5; i++) rng();
+  const toes = whiteBarkToeSpecs(p);
+  /**
+   * Fluting: each toe continues up the foot as a ridge (the ring angle of a world azimuth φ is
+   * −φ in the sweep's base frame, u = +X, v = −Z), +21 % of the radius at its crest on the
+   * ground line, the hollows between the toes −10 % (shaded by `creviceShade`), fading out by
+   * ≈ 0.9 m on a mature stem.
+   */
+  const toeTheta = toes.map((t) => -t.angle);
+  const fluteBump = (angle: number, distance: number) => {
+    const h = distance - skirt;
+    const A = 0.34 * Math.exp(-Math.max(0, h) / (0.3 * girth));
+    if (A < 0.004) return 1;
+    let lobes = 0;
+    for (const th of toeTheta) {
+      const c = Math.cos(angle - th);
+      if (c > 0) lobes += Math.pow(c, 7);
+    }
+    return 1 + A * (Math.min(1.2, lobes) - 0.3);
+  };
+  const trunkBump = plateBump ? (angle: number, distance: number, t: number) => plateBump(angle, distance, t) * fluteBump(angle, distance) : (angle: number, distance: number) => fluteBump(angle, distance);
+  const trunkRows = tube(wood, trunkDense, trunkDenseRadii, highSides, rng, {
     color: trunkColor,
     roughness: p.ridge,
     barkTile: 1.0,
@@ -163,14 +269,86 @@ export function createWhiteBarkTree(p: WhiteBarkParams, palette: Palette, detail
     structural: true,
     stiffness: () => 1,
     draws: trunkDraws,
-    bump: plateBump,
-    creviceShade: plateBump ? 1.6 : undefined,
+    bump: trunkBump,
+    creviceShade: 1.6,
   });
 
-  // root flare
-  const rootColor = grey.clone().lerp(dark, 0.35);
-  for (let i = 0; i < p.roots; i++) {
-    rootButtress(wood, (i / p.roots) * TAU + bt(-0.3, 0.3), R * bt(2.6, 4.2), R * bt(0.4, 0.62), R * bt(0.9, 1.4), rootColor, rng);
+  // ---------- bark: break the tiling ----------
+  // The sweep wrote v in metres along the stem (barkTile 1.0) — the survey's "~1 m vertical
+  // repeat" was the bark tile itself. The trunk's v is rescaled to the taller tile
+  // (WHITE_BARK_TILE_M) with a per-variant stretch and offset so no two variants show the same
+  // scar at the same height, and the u is sheared into a slow spiral (0.1–0.17 wraps per metre)
+  // so a mark never stacks above itself.
+  const { vStretch, vOffset, uOffset, uShear } = whiteBarkTileMapping(p);
+  const rescaleRows = (rows: number[][], stretch: number, offset: number, shear: number, uShift: number) => {
+    for (const row of rows) {
+      for (const idx of row) {
+        const along = wood.uvs[idx * 2 + 1] * stretch;
+        wood.uvs[idx * 2 + 1] = along / WHITE_BARK_TILE_M + offset;
+        wood.uvs[idx * 2] += uShift + shear * along;
+      }
+    }
+  };
+  rescaleRows(trunkRows, vStretch, vOffset, uShear, uOffset);
+
+  // ---------- bark: sooty foot and dark lenticel bands (per variant, per vertex) ----------
+  // The ring colour the sweep wrote is one value a ring; the foot and the bands want a ragged
+  // margin around the stem, so the trunk vertices are re-tinted here from their own height and
+  // azimuth: a dark, rough foot (birch stems are near-black and fissured for the first
+  // 0.5–0.9 m), and 2–4 dark bands between 0.5 and 4.2 m, each 6–14 cm tall, wandering ± 6 cm
+  // around the stem — the vertex-colour octave under the tile's own bands.
+  const bandRng = baseRng.fork('bands');
+  const footNoise = new Noise2D(`${p.seed}/foot`);
+  const footTop = (0.35 + bandRng() * 0.3) * girth;
+  const bands = Array.from({ length: p.age === 'sapling' ? 1 : 2 + bandRng.int(0, 3) }, () => ({
+    y: bandRng.range(0.5, Math.min(4.2, H * 0.5)),
+    sigma: bandRng.range(0.06, 0.14),
+    strength: bandRng.range(0.2, 0.45),
+    wobble: bandRng.range(0.03, 0.07),
+    phase: bandRng.range(0, 100),
+  }));
+  const tinted = new Color();
+  for (let k = 0; k < trunkRows.length; k++) {
+    const centre = trunkDense[Math.min(k, trunkDense.length - 1)];
+    for (const idx of trunkRows[k]) {
+      const x = wood.positions[idx * 3] - centre.x;
+      const y = wood.positions[idx * 3 + 1];
+      const z = wood.positions[idx * 3 + 2] - centre.z;
+      const phi = Math.atan2(z, x);
+      const cx = Math.cos(phi) * 1.5;
+      const cz = Math.sin(phi) * 1.5;
+      const rag = footNoise.noise(cx + y * 2.1, cz + 7) * 0.18 * girth;
+      const foot = 1 - smoothstep(footTop * 0.3, footTop, y + rag);
+      let soot = 0.5 * foot;
+      for (const b of bands) {
+        const wob = footNoise.noise(cx * 1.3 + b.phase, cz * 1.3) * b.wobble;
+        const d = (y - b.y - wob) / b.sigma;
+        soot += b.strength * Math.exp(-d * d * 0.5);
+      }
+      soot = Math.min(0.72, soot);
+      if (soot < 0.01) continue;
+      tinted.setRGB(wood.colors[idx * 3], wood.colors[idx * 3 + 1], wood.colors[idx * 3 + 2]);
+      tinted.lerp(dark, soot * 0.75).multiplyScalar(1 - soot * 0.3);
+      wood.colors[idx * 3] = tinted.r;
+      wood.colors[idx * 3 + 1] = tinted.g;
+      wood.colors[idx * 3 + 2] = tinted.b;
+    }
+  }
+
+  // ---------- peeling paper curls (the near LOD, drawn within 20 m) ----------
+  // Strips of the outer paper that have come loose along a seam and scrolled outward, 6–22 cm
+  // along the stem's girth, at 0.9–4.2 m (most between 1 and 3 m, where a walker looks): the
+  // pale outer face turning to the warm inner bark as the strip curls over, the free edge
+  // quivering a little in the wind. Read off the finished rings so they sit on the bark exactly.
+  if (detail === 'high') {
+    const curlRng = baseRng.fork('curls');
+    const curls = p.age === 'sapling' ? curlRng.int(1, 4) : p.age === 'young' ? curlRng.int(5, 10) : curlRng.int(10, 17);
+    const innerBark = new Color(0xc9a070).lerp(dark, 0.12);
+    for (let i = 0; i < curls; i++) {
+      const y = 0.9 + Math.pow(curlRng(), 1.6) * 3.3;
+      if (y > H * 0.45) continue;
+      paperCurl(wood, trunkRows, trunkDense, y, curlRng() * TAU, innerBark, curlRng, trunkDraws.windPhase);
+    }
   }
 
   // ---------- leaf sprays ----------
@@ -187,7 +365,13 @@ export function createWhiteBarkTree(p: WhiteBarkParams, palette: Palette, detail
   });
 
   /** lobe context for interior shading: leaves deep inside a lobe are darker (self-shadowed) */
-  let lobe: { center: Vector3; hR: number } | null = null;
+  let lobe: { center: Vector3; hR: number; vR: number } | null = null;
+  /**
+   * Round 47 (the onboarding block's crown item, pose `f4-crown-up`: a lobe seen from 3–10 m
+   * below was one flat pale mass of same-toned laminae). Per-leaf tone variance beyond the
+   * sun-share draw, from its own fork so the main stream — every leaf's position — is untouched.
+   */
+  const toneRng = baseRng.fork('leaf-tone');
   function leafSpray(path: Vector3[], pathRadius: number, count: number, vigor = 1, startT = 0.15) {
     count = Math.max(1, Math.round(count * p.leafDensity * 1.75));
     const phase = rng() * TAU;
@@ -209,8 +393,17 @@ export function createWhiteBarkTree(p: WhiteBarkParams, palette: Palette, detail
       const heightF = base.y / H;
       const outF = Math.hypot(base.x, base.z) / Math.max(0.5, crownRadius);
       const sun = Math.min(1, Math.max(0, (heightF - 0.5) * 1.2 + outF * 0.35)) * bt(0.35, 1);
-      const interior = lobe ? 0.7 + 0.3 * smoothstep(0.25, 0.85, base.distanceTo(lobe.center) / Math.max(0.3, lobe.hR)) : 1;
-      const color = canopy.clone().lerp(sunny, sun).multiplyScalar(vigor * interior);
+      // layering: a lobe is lit from above and shaded inside and underneath — leaves at its top
+      // and rim keep the tone, leaves deep inside or on its underside fall to ≈ 0.55 of it, so
+      // from below the lit rim laminae read as leaf silhouettes over a dark core rather than one
+      // pale card mass. Scaled (× 1.14) so a lobe's mean tone is the round-46 value (0.88).
+      let layer = 1;
+      if (lobe) {
+        const shell = smoothstep(0.2, 0.9, base.distanceTo(lobe.center) / Math.max(0.3, lobe.hR));
+        const top = 0.5 + 0.5 * Math.max(-1, Math.min(1, (base.y - lobe.center.y) / Math.max(0.2, lobe.vR)));
+        layer = (0.58 + 0.42 * shell) * (0.82 + 0.18 * top) * 1.14;
+      }
+      const color = canopy.clone().lerp(sunny, sun).multiplyScalar(vigor * layer * toneRng.range(0.9, 1.1));
       const leafLength = bt(p.leafSize[0], p.leafSize[1]) * bt(0.91, 1.12);
       addLeaf(leaves, base, direction, leafLength, color, rng, opts);
     }
@@ -218,7 +411,7 @@ export function createWhiteBarkTree(p: WhiteBarkParams, palette: Palette, detail
 
   /** Volumetric leaf lobe: forks reach to its sides, back and interior; every leaf sits on a twig. */
   function foliateLobe(bough: Vector3[], center: Vector3, hR: number, vR: number, boughRadius: number, subCount = 3, twigCount = 5, sprigCount = 6) {
-    lobe = { center, hR };
+    lobe = { center, hR, vR };
     leafSpray(bough, boughRadius * 0.4, 10, 0.94, 0.78);
     const phase = rng() * TAU;
     for (let j = 0; j < subCount; j++) {
@@ -291,7 +484,9 @@ export function createWhiteBarkTree(p: WhiteBarkParams, palette: Palette, detail
     const target = new Vector3(Math.cos(angle) * reach, H * bt(0.8, 0.88), Math.sin(angle) * reach);
     const path = divergingLeaderPath(origin, target, rng, 16);
     const radius = R * Math.pow(1 - t, 0.8) * bt(0.53, 0.64);
-    tube(wood, path, taper(path, radius, 0.014), 8, rng, { color: trunkColor, roughness: p.ridge * 0.7, barkTile: 1.0 });
+    const leaderRows = tube(wood, path, taper(path, radius, 0.014), 8, rng, { color: trunkColor, roughness: p.ridge * 0.7, barkTile: 1.0 });
+    // the leaders wear the same tile at the trunk's scale, each starting on a different scar
+    rescaleRows(leaderRows, vStretch, vOffset + 0.37 + i * 0.29, 0, 0);
     scaffolds.push({ path, radius, angle, attachMin: 0.35, attachSpan: 0.55, boughs: Math.max(3, p.boughs - 1) });
   }
 
@@ -363,4 +558,226 @@ export function createWhiteBarkTree(p: WhiteBarkParams, palette: Palette, detail
     height,
     radius,
   };
+}
+
+/** where a placed tree stands: world origin of its base, yaw and uniform scale (the instance matrix) */
+export interface TreeFrame {
+  origin: Vector3;
+  yaw: number;
+  scale: number;
+  /** world terrain height */
+  groundAt: (x: number, z: number) => number;
+}
+
+/**
+ * One surface root, in WORLD space: a half-elliptic ridge from the trunk axis outward (hidden
+ * inside the flare until it leaves it as a knuckle), its bed on the terrain under every section
+ * — settling 4 cm into the soil at the flare, 10 cm a metre out, diving at the very end — the
+ * crest tapering to nothing, the flanks 3 cm under the ground so the join never opens on any
+ * slope. It wanders and knuckles along its length. Vertex colour darkens toward the tip
+ * (soil-stained). aRoot.xyz is the tree's origin (the merged-mesh convention, writer.ts), so the
+ * tree shader's sway anchor and base moss ring read it.
+ */
+function rootToe(writer: GeometryWriter, toe: ToeSpec, frame: TreeFrame, color: Color, rng: Rng) {
+  const segments = 12;
+  const arc = 8;
+  // the instance matrix rotates about +Y by `yaw`: (cos φ, sin φ) → (cos(φ − yaw), sin(φ − yaw))
+  const angle = toe.angle - frame.yaw;
+  const s = frame.scale;
+  const forward = new Vector3(Math.cos(angle), 0, Math.sin(angle));
+  const side = new Vector3(-Math.sin(angle), 0, Math.cos(angle));
+  const knee = rng.range(0.38, 0.5);
+  const kneeLift = rng.range(0.1, 0.28);
+  const settle = rng.range(0.05, 0.1);
+  const twist = rng.range(-0.25, 0.25);
+  // the wander: a slow bend and a quicker wiggle, both growing from the trunk out; the knuckles:
+  // the root rises and settles along its length
+  const wanderPhase = rng() * TAU;
+  const wiggle = rng.range(0.03, 0.07);
+  const knucklePhase = rng() * TAU;
+  const knuckles = rng.range(4.5, 7);
+  const gnarl = rng.range(0.05, 0.1);
+  const gnarlPhase = rng() * TAU;
+  // the bark tile is magnified ten-fold across the toe (a near-uniform patch): the lenticel
+  // dashes at the trunk's scale read as planking on a root; the vertex colour carries it
+  const uSlice = rng.range(0, 0.9);
+  const vSlice = rng.range(0, 0.9);
+  const rows: number[][] = [];
+  const p = new Vector3();
+  const length = toe.length * s;
+  for (let k = 0; k < segments; k++) {
+    const t = k / (segments - 1);
+    const d = length * t;
+    const kneeBump = Math.exp(-Math.pow((t - knee) / 0.11, 2));
+    const out = smoothstep(0.25, 0.8, t);
+    const wander = Math.sin(t * 2.5) * toe.bend * 0.4 + twist * t * t * 0.15 + out * (0.11 * Math.sin(t * 3.1 + wanderPhase) * Math.sign(toe.bend + 0.01) + wiggle * Math.sin(t * 7.3 + wanderPhase * 1.7));
+    const centre = frame.origin.clone().addScaledVector(forward, d).addScaledVector(side, wander * length);
+    const knuckle = 1 + 0.22 * Math.pow(Math.sin(t * knuckles + knucklePhase), 2) * (1 - t) * out;
+    const w = (toe.width * Math.pow(1 - t, 1.15) * (1 + 0.22 * kneeBump) + 0.012) * s;
+    const h = (toe.height * (0.25 + 0.75 * Math.pow(1 - t, 1.4)) * (1 + kneeLift * kneeBump) * knuckle * (1 - Math.pow(t, 6)) + 0.004) * s;
+    const plunge = (-0.04 - settle * t - 0.32 * Math.pow(t, 5) + 0.015 * Math.sin(t * knuckles * 0.7 + knucklePhase)) * s;
+    const row: number[] = [];
+    for (let j = 0; j <= arc; j++) {
+      const theta = (j / arc) * Math.PI;
+      // a rounder dome than the buttress ridge, with a gnarl of ± 5–10 % on its surface
+      const bulge = 1 + gnarl * Math.sin(theta * 3.3 + t * 9.1 + gnarlPhase) * Math.sin(t * 5.7 + theta + gnarlPhase);
+      p.copy(centre).addScaledVector(side, Math.cos(theta) * w * bulge);
+      const bed = frame.groundAt(p.x, p.z) + plunge;
+      p.y = j === 0 || j === arc ? bed - 0.03 : bed + Math.pow(Math.sin(theta), 1.15) * h * bulge;
+      // darker flanks, darker (soil-stained) toward the tip, a little mottle along the root
+      const shade = (0.74 + 0.24 * Math.sin(theta)) * (1 - 0.3 * t) * (0.94 + 0.06 * Math.sin(t * 13 + theta * 2 + gnarlPhase));
+      const idx = writer.vertex(p, color.clone().multiplyScalar(shade), uSlice + 0.06 * (j / arc), vSlice + (0.02 * d) / WHITE_BARK_TILE_M, 1, 0, 0);
+      writer.roots[idx * 4] = frame.origin.x;
+      writer.roots[idx * 4 + 1] = frame.origin.y;
+      writer.roots[idx * 4 + 2] = frame.origin.z;
+      row.push(idx);
+    }
+    if (k) {
+      for (let j = 0; j < arc; j++) {
+        writer.triangle(rows[k - 1][j], row[j], rows[k - 1][j + 1]);
+        writer.triangle(rows[k - 1][j + 1], row[j], row[j + 1]);
+      }
+    }
+    rows.push(row);
+  }
+}
+
+export interface RootPlacement {
+  variant: number;
+  x: number;
+  y: number;
+  z: number;
+  yaw: number;
+  scale: number;
+}
+
+/**
+ * The white-barks' root toes, seated on the terrain: one merged mesh for every placed tree (the
+ * variants are InstancedMeshes, so their geometry cannot know the ground under each instance —
+ * the round-46 buttresses were flat and floated wherever the ground fell away: the terrain drops
+ * more than 15 cm within a 1.6 m toe reach under 39 of the 80 trees). Each tree's toes are the
+ * variant's `whiteBarkToeSpecs`, rotated and scaled by its instance, every section's bed read
+ * from `terrain.height` under it. One draw (+ its shadow), ≈ 55 k triangles for 78 trees; the
+ * tree material's wind anchor and base moss ring work per tree through aRoot.xyz.
+ */
+export function createWhiteBarkRoots(
+  variants: WhiteBarkParams[],
+  placements: RootPlacement[],
+  terrain: { height(x: number, z: number): number },
+  palette: Palette,
+  material: Material,
+  depthMaterial: Material,
+  castShadow: boolean,
+): Mesh {
+  const wood = new GeometryWriter('high');
+  const grey = new Color(palette.barkGrey);
+  const dark = new Color(palette.barkDark);
+  const rootColor = grey.clone().lerp(dark, 0.5);
+  const groundAt = (x: number, z: number) => terrain.height(x, z);
+  placements.forEach((pl, i) => {
+    const p = variants[pl.variant];
+    if (!p) return;
+    const toes = whiteBarkToeSpecs(p);
+    const rng = baseRngFor(p).fork(`toe-shape-${i}`);
+    const frame: TreeFrame = { origin: new Vector3(pl.x, pl.y, pl.z), yaw: pl.yaw, scale: pl.scale, groundAt };
+    for (const toe of toes) rootToe(wood, toe, frame, rootColor, rng);
+  });
+  const geometry = wood.positions.length ? wood.finish('whitebark-roots') : new BufferGeometry();
+  const mesh = new Mesh(geometry, material);
+  mesh.name = 'whitebark-roots';
+  mesh.customDepthMaterial = depthMaterial;
+  mesh.castShadow = castShadow;
+  mesh.receiveShadow = true;
+  mesh.frustumCulled = true;
+  mesh.userData.kind = 'whitebark-roots';
+  return mesh;
+}
+
+/**
+ * A loose strip of the outer paper scrolled away from the bark: read off the finished trunk
+ * rings (`rows` from `tube`, their centres) at height `y` and azimuth `phi`, so the strip's
+ * attached edge lies on the actual bark surface and carries the bark's own UVs (the strip shows
+ * the lenticels it peeled from). The scroll turns about an axis along the girth: outward by
+ * r(1 − cos ψ), along the stem by r sin ψ, ψ running 1.6–4 rad to the free edge, which is
+ * ragged and quivers in the wind (a small flutter amount on the wood vertex). The outer face is
+ * paper-pale; past a quarter turn the strip shows its warm inner bark.
+ */
+function paperCurl(writer: GeometryWriter, rows: number[][], centres: Vector3[], y: number, phi: number, inner: Color, rng: Rng, windPhase: number) {
+  let k = 0;
+  while (k < rows.length - 2 && centres[k + 1].y < y) k++;
+  const c0 = centres[k];
+  const c1 = centres[k + 1];
+  if (!c1 || c1.y <= c0.y) return;
+  const f = clamp01((y - c0.y) / (c1.y - c0.y));
+  const sides = rows[k].length - 1;
+  const pos = (idx: number) => new Vector3(writer.positions[idx * 3], writer.positions[idx * 3 + 1], writer.positions[idx * 3 + 2]);
+  // the ring side nearest the wanted azimuth, from the ring's real vertices
+  let best = 0;
+  let bestErr = Infinity;
+  for (let j = 0; j < sides; j++) {
+    const q = pos(rows[k][j]);
+    const a = Math.atan2(q.z - c0.z, q.x - c0.x);
+    const e = Math.abs(Math.atan2(Math.sin(a - phi), Math.cos(a - phi)));
+    if (e < bestErr) {
+      bestErr = e;
+      best = j;
+    }
+  }
+  const ringRadius = pos(rows[k][best]).distanceTo(c0);
+  const sideLen = (TAU * ringRadius) / sides;
+  const arcLen = rng.range(0.06, 0.2);
+  const span = Math.max(1, Math.min(Math.floor(sides / 3), Math.round(arcLen / sideLen)));
+  const steps = span * 2;
+  const curlR = rng.range(0.012, 0.035);
+  const psiMax = Math.min(4.0, Math.max(1.6, rng.range(0.04, 0.12) / curlR));
+  const dir = rng() < 0.65 ? -1 : 1; // −1: the free edge hangs down
+  const flutter = rng.range(0.003, 0.007);
+  const nq = 5;
+  const axis = c1.clone().sub(c0).normalize();
+  const centre = c0.clone().lerp(c1, f);
+  const grid: number[][] = [];
+  const b = new Vector3();
+  const n = new Vector3();
+  const pt = new Vector3();
+  const col = new Color();
+  for (let i = 0; i <= steps; i++) {
+    const js = best + (i / steps) * span;
+    const j0 = Math.floor(js) % sides;
+    const j1 = (j0 + 1) % sides;
+    const fj = js - Math.floor(js);
+    // the attached edge: between rings k and k+1, between sides j0 and j1
+    const p00 = pos(rows[k][j0]);
+    const p01 = pos(rows[k][j1]);
+    const p10 = pos(rows[k + 1][j0]);
+    const p11 = pos(rows[k + 1][j1]);
+    b.copy(p00.lerp(p01, fj)).lerp(p10.lerp(p11, fj), f);
+    n.copy(b).sub(centre);
+    n.addScaledVector(axis, -n.dot(axis)).normalize();
+    const u = (writer.uvs[rows[k][j0] * 2] * (1 - fj) + writer.uvs[rows[k][j1] * 2] * fj) * (1 - f) + (writer.uvs[rows[k + 1][j0] * 2] * (1 - fj) + writer.uvs[rows[k + 1][j1] * 2] * fj) * f;
+    const v = writer.uvs[rows[k][j0] * 2 + 1] * (1 - f) + writer.uvs[rows[k + 1][j0] * 2 + 1] * f;
+    // the free edge is ragged: each section scrolls a little more or less
+    const psiHere = psiMax * (0.85 + 0.3 * rng());
+    // the strip's outer face is the bark it came off — the ring's own (tinted) vertex colour, a
+    // hair lighter — not a fixed paper white: at 1–3 m the stem is still in its grey lower bark
+    const ringIdx = rows[k][j0];
+    const barkHere = new Color(writer.colors[ringIdx * 3], writer.colors[ringIdx * 3 + 1], writer.colors[ringIdx * 3 + 2]).multiplyScalar(1.06);
+    const innerHere = inner.clone().lerp(barkHere, 0.3);
+    const column: number[] = [];
+    for (let q = 0; q < nq; q++) {
+      const s = q / (nq - 1);
+      const psi = s * psiHere;
+      pt.copy(b)
+        .addScaledVector(n, 0.003 + curlR * (1 - Math.cos(psi)) + 0.004 * s)
+        .addScaledVector(axis, dir * curlR * Math.sin(psi));
+      col.copy(barkHere).lerp(innerHere, smoothstep(0.9, 2.2, psi));
+      column.push(writer.vertex(pt, col, u, v + (dir * curlR * Math.sin(psi)) / WHITE_BARK_TILE_M, 1, windPhase, flutter * s * s, 0));
+    }
+    if (i) {
+      for (let q = 0; q < nq - 1; q++) {
+        writer.triangle(grid[i - 1][q], column[q], grid[i - 1][q + 1]);
+        writer.triangle(grid[i - 1][q + 1], column[q], column[q + 1]);
+      }
+    }
+    grid.push(column);
+  }
 }
