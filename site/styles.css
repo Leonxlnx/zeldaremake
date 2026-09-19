@@ -889,7 +889,7 @@ main { padding: var(--gap) 16px 0; }
 .ev-lane-h { display: flex; align-items: baseline; gap: 10px; margin-bottom: 6px; }
 .ev-lane-h h4 { font-size: 12px; letter-spacing: 0.06em; text-transform: uppercase; color: var(--text-2); }
 .ev-lane-h h4::before { content: "▸ "; color: var(--tungsten); }
-.ev-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: 8px; }
+.ev-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: 8px; align-items: start; }
 /* a card = the sheet at its own aspect ratio (many are 3.5:1 before|after composites) + a caption
    row below it, never over it */
 .ev-card {
