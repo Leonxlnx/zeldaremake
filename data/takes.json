@@ -1,6 +1,6 @@
 {
   "project": "zeldaremake",
-  "updatedAt": "2026-09-18T22:17:48.677Z",
+  "updatedAt": "2026-09-19T05:38:16.157Z",
   "monitorCadenceMinutes": 60,
   "takes": [
     {
@@ -78786,6 +78786,680 @@
       "imported": {
         "from": "gauntlet/out/take116-cap",
         "importedAt": "2026-09-18T14:18:29.081Z",
+        "by": "fable-cursor"
+      }
+    },
+    {
+      "id": "take-0116",
+      "number": 116,
+      "at": "2026-09-19T05:36:40.826Z",
+      "capturedAt": "2026-09-19T05:36:40.826Z",
+      "resequenced": false,
+      "agent": "fable-cursor",
+      "sha": "973a21e5b045177f66da3d04dc4e67e387270620",
+      "shortSha": "973a21e",
+      "branch": "cursor/kokiri-world-phase1-f65e",
+      "subject": "Merge r46/structures (structures-29): log-arch rims as torn bark plates, house-west risers closed with mortared faces (no black voids), lamp-lit house interior, root arcs seated on the heightfield with bark cords, fence-rail grain, signpost/fence tone calibration",
+      "phase": 1,
+      "items": [
+        "W09",
+        "W12",
+        "W14",
+        "W18",
+        "W20",
+        "W25",
+        "W29"
+      ],
+      "note": "Round 46 on 973a21e - the survey-2 re-rank, evidence-gated: every lane had to change the exact player-height pose it was briefed on, and an after that looked like its before was recorded as a fail. trees-29: the emergent column boles at 4 m (w07-spine-l, w29-house-l) were a flat green camo decal in the frames where the reference shows deep fissured bark with moss in the furrows - they now carry relief bark with 3-D moss cushions (crop mean diff 26/255); the depth-row columns under the canopy get bark banding at their near LOD instead of a smooth grey cone; the lantern bough's sleeve gets bark cords, AO and moss beards (the underside at 2 m still barely moves); the \"faceted buttress cone\" of survey-2 turned out to be a depth-row bole foot at 55-71 m in haze. structures-29: the house-west flight's separate slab boxes with black voids behind each riser (w29-house-d) are backed and faced with mortared stone; the log arch's equal-triangle sawtooth rims are torn bark plates of irregular width with fibrous tips, and its 16 m belly gets bark-coloured plate cells with a ground bounce; the house interior reads boards, lamp pools and turned furniture while staying dark from outside; the root arcs on the upper house and lawn face are seated on the heightfield with bark cords instead of floating painted tubes; fence rails get grain and chamfer, the signpost board is lifted toward B's measured tone. vegetation-24: flower heads are petal rosettes (5-6 obovate cards, inner whorl, eye disc) instead of identical spheres - D purple share 0.374 to 0.491 %; the north corridor's forest floor carpet runs to 25 m with litter seated flat on the terrain and a litter/humus albedo mask under the whitebarks, so the hollow reads as forest floor rather than a pale lawn plane; moss cushions are lobed with blades to 6 m; big leaves are folded two-tone leaflets. Six views: A -0.0006, B -0.0009, C +0.0001, D -0.0018, E -0.0007, F +0.0007 (D pays for the closed riser backs and the petal heads, within the round's -0.003 budget - player-height reads over the fixed frames, per the owner). Draws 521, 8.80 M tris on A. Score 24/50.",
+      "slate": {
+        "scene": "B",
+        "sceneTitle": "Saria's House",
+        "take": 116,
+        "director": "fable-cursor",
+        "camera": "SwiftShader · 1280×720",
+        "roll": "phase-1"
+      },
+      "shots": [
+        {
+          "viewpoint": "A_stairs",
+          "label": "The Stairs",
+          "refSeconds": 1,
+          "image": "takes/take-0116/A_stairs.jpg",
+          "compare": "takes/take-0116/A_stairs.compare.jpg",
+          "reference": "reference/frames/A_stairs.jpg",
+          "previous": "takes/take-0115/A_stairs.jpg",
+          "sha256": "sha256:8f8677eeb00b1b406535729b11ce17809514a05364c40faff5cf2d1cc0d10d7f",
+          "metrics": {
+            "ssim": 0.2252,
+            "phashDistance": 24,
+            "hueDiffDeg": 5.97,
+            "satDiff": 0.0136,
+            "lumDiff": 0.0461,
+            "sharpnessRatio": 1.462,
+            "skyFraction": 0.0247,
+            "overexposedFraction": 0,
+            "purpleFraction": 0.00008,
+            "determinismDiff": 0,
+            "motionRegionsMoving": 11
+          },
+          "deltas": {
+            "ssim": -0.0006,
+            "phashDistance": -2,
+            "hueDiffDeg": 0.04,
+            "sharpnessRatio": 0.004,
+            "skyFraction": 0.0009
+          },
+          "callouts": [],
+          "refCallouts": [],
+          "depth": {
+            "skyFraction": 0.0015,
+            "farLayerCount": 4,
+            "maxBucketBeyond20m": 0.0331
+          },
+          "captureMs": 107897
+        },
+        {
+          "viewpoint": "B_house",
+          "label": "Saria's House",
+          "refSeconds": 14,
+          "image": "takes/take-0116/B_house.jpg",
+          "compare": "takes/take-0116/B_house.compare.jpg",
+          "reference": "reference/frames/B_house.jpg",
+          "previous": "takes/take-0115/B_house.jpg",
+          "sha256": "sha256:8f7bf56fb82a009a45ee59045de6010673ab0b2ff6e00f7c55b32c495508e285",
+          "metrics": {
+            "ssim": 0.2029,
+            "phashDistance": 28,
+            "hueDiffDeg": 6.62,
+            "satDiff": 0.0482,
+            "lumDiff": 0.0218,
+            "sharpnessRatio": 1.241,
+            "skyFraction": 0.0189,
+            "overexposedFraction": 0,
+            "purpleFraction": 0.00127
+          },
+          "deltas": {
+            "ssim": -0.0009,
+            "hueDiffDeg": 0.01,
+            "lumDiff": -0.0003,
+            "sharpnessRatio": 0.022,
+            "skyFraction": 0.0006,
+            "purpleFraction": 0.0003
+          },
+          "callouts": [],
+          "refCallouts": [],
+          "depth": {
+            "skyFraction": 0.004,
+            "farLayerCount": 4,
+            "maxBucketBeyond20m": 0.0374
+          },
+          "captureMs": 110424
+        },
+        {
+          "viewpoint": "C_lookback",
+          "label": "Look Back",
+          "refSeconds": 46,
+          "image": "takes/take-0116/C_lookback.jpg",
+          "compare": "takes/take-0116/C_lookback.compare.jpg",
+          "reference": "reference/frames/C_lookback.jpg",
+          "previous": "takes/take-0115/C_lookback.jpg",
+          "sha256": "sha256:28822527085b720e359ca380f354eb302fb4f2b76ce725da8791f634ea6199e1",
+          "metrics": {
+            "ssim": 0.2354,
+            "phashDistance": 22,
+            "hueDiffDeg": 7.64,
+            "satDiff": 0.0248,
+            "lumDiff": 0.0222,
+            "sharpnessRatio": 1.631,
+            "skyFraction": 0.0007,
+            "overexposedFraction": 0,
+            "purpleFraction": 0.00195
+          },
+          "deltas": {
+            "ssim": 0.0001,
+            "lumDiff": 0.0002,
+            "sharpnessRatio": -0.003
+          },
+          "callouts": [],
+          "refCallouts": [],
+          "depth": {
+            "skyFraction": 0.0027,
+            "farLayerCount": 2,
+            "maxBucketBeyond20m": 0.0736
+          },
+          "captureMs": 83401
+        },
+        {
+          "viewpoint": "D_log",
+          "label": "The Log Arch",
+          "refSeconds": 56,
+          "image": "takes/take-0116/D_log.jpg",
+          "compare": "takes/take-0116/D_log.compare.jpg",
+          "reference": "reference/frames/D_log.jpg",
+          "previous": "takes/take-0115/D_log.jpg",
+          "sha256": "sha256:b70fc9d741cde9ac6b1d44064930f9f4674d7742a1ee9311a13f5076142e191f",
+          "metrics": {
+            "ssim": 0.2788,
+            "phashDistance": 26,
+            "hueDiffDeg": 8.33,
+            "satDiff": 0.0281,
+            "lumDiff": 0.0434,
+            "sharpnessRatio": 1.368,
+            "skyFraction": 0.0208,
+            "overexposedFraction": 0,
+            "purpleFraction": 0.00491
+          },
+          "deltas": {
+            "ssim": -0.0018,
+            "hueDiffDeg": 0.02,
+            "satDiff": -0.0003,
+            "lumDiff": -0.0005,
+            "sharpnessRatio": 0.003,
+            "skyFraction": 0.0002,
+            "purpleFraction": 0.0012
+          },
+          "callouts": [],
+          "refCallouts": [],
+          "depth": {
+            "skyFraction": 0.0065,
+            "farLayerCount": 3,
+            "maxBucketBeyond20m": 0.0384
+          },
+          "captureMs": 114167
+        },
+        {
+          "viewpoint": "E_ground",
+          "label": "Saria's House (hold)",
+          "refSeconds": 24,
+          "image": "takes/take-0116/E_ground.jpg",
+          "compare": "takes/take-0116/E_ground.compare.jpg",
+          "reference": "reference/frames/E_ground.jpg",
+          "previous": "takes/take-0115/E_ground.jpg",
+          "sha256": "sha256:8f7bf56fb82a009a45ee59045de6010673ab0b2ff6e00f7c55b32c495508e285",
+          "metrics": {
+            "ssim": 0.2138,
+            "phashDistance": 28,
+            "hueDiffDeg": 4.12,
+            "satDiff": 0.0386,
+            "lumDiff": 0.0167,
+            "sharpnessRatio": 1.161,
+            "skyFraction": 0.0189,
+            "overexposedFraction": 0,
+            "purpleFraction": 0.00127
+          },
+          "deltas": {
+            "ssim": -0.0007,
+            "hueDiffDeg": 0.01,
+            "satDiff": 0.0001,
+            "lumDiff": -0.0003,
+            "sharpnessRatio": 0.02,
+            "skyFraction": 0.0006,
+            "purpleFraction": 0.0003
+          },
+          "callouts": [],
+          "refCallouts": [],
+          "depth": null,
+          "captureMs": 109343
+        },
+        {
+          "viewpoint": "F_canopy",
+          "label": "Up the Stairs",
+          "refSeconds": 8,
+          "image": "takes/take-0116/F_canopy.jpg",
+          "compare": "takes/take-0116/F_canopy.compare.jpg",
+          "reference": "reference/frames/F_canopy.jpg",
+          "previous": "takes/take-0115/F_canopy.jpg",
+          "sha256": "sha256:334fe559816f39caa375cca95559a3043a457f23dca91f54ede7bc92d4227af2",
+          "metrics": {
+            "ssim": 0.2636,
+            "phashDistance": 26,
+            "hueDiffDeg": 4.88,
+            "satDiff": 0.0177,
+            "lumDiff": 0.068,
+            "sharpnessRatio": 1.636,
+            "skyFraction": 0.0156,
+            "overexposedFraction": 0,
+            "purpleFraction": 0.00024
+          },
+          "deltas": {
+            "ssim": 0.0007,
+            "hueDiffDeg": 0.02,
+            "satDiff": 0.0001,
+            "lumDiff": 0.0001,
+            "sharpnessRatio": 0.001,
+            "skyFraction": 0.0009
+          },
+          "callouts": [],
+          "refCallouts": [],
+          "depth": null,
+          "captureMs": 93316
+        }
+      ],
+      "score": {
+        "passed": 23,
+        "total": 50,
+        "phaseRequired": 42,
+        "phasePassed": 20,
+        "items": {
+          "W01": {
+            "status": "pending",
+            "value": 1,
+            "threshold": "≥ 80 % inside",
+            "delta": null,
+            "verify": "both",
+            "autoStatus": "pass"
+          },
+          "W02": {
+            "status": "pending",
+            "value": 20,
+            "threshold": "16..20",
+            "delta": null,
+            "verify": "both",
+            "autoStatus": "pass"
+          },
+          "W03": {
+            "status": "pending",
+            "value": 555,
+            "threshold": "≥ 300",
+            "delta": null,
+            "verify": "both",
+            "autoStatus": "pass"
+          },
+          "W04": {
+            "status": "pass",
+            "value": 5.126,
+            "threshold": "5.4 ± 0.45",
+            "delta": null,
+            "verify": "auto",
+            "autoStatus": "pass"
+          },
+          "W05": {
+            "status": "pending",
+            "value": 318528,
+            "threshold": "≥ 250000",
+            "delta": null,
+            "verify": "both",
+            "autoStatus": "pass"
+          },
+          "W06": {
+            "status": "pending",
+            "value": true,
+            "threshold": "truthy",
+            "delta": null,
+            "verify": "both",
+            "autoStatus": "pass"
+          },
+          "W07": {
+            "status": "pass",
+            "value": 18589,
+            "threshold": "≥ 5000",
+            "delta": "+3,917",
+            "verify": "auto",
+            "autoStatus": "pass"
+          },
+          "W08": {
+            "status": "pending",
+            "value": 10,
+            "threshold": "≥ 8",
+            "delta": null,
+            "verify": "both",
+            "autoStatus": "pass"
+          },
+          "W09": {
+            "status": "pending",
+            "value": 12,
+            "threshold": "≥ 6",
+            "delta": null,
+            "verify": "both",
+            "autoStatus": "pass"
+          },
+          "W10": {
+            "status": "pending",
+            "value": 0.0156,
+            "threshold": "≤ 0.45",
+            "delta": "+0.0009",
+            "verify": "both",
+            "autoStatus": "pass"
+          },
+          "W11": {
+            "status": "pending",
+            "value": "laminae",
+            "threshold": "includes \"laminae\"",
+            "delta": null,
+            "verify": "both",
+            "autoStatus": "pass"
+          },
+          "W12": {
+            "status": "pass",
+            "value": 0,
+            "threshold": "≤ 0.03",
+            "delta": null,
+            "verify": "auto",
+            "autoStatus": "pass"
+          },
+          "W13": {
+            "status": "pass",
+            "value": 729,
+            "threshold": "≥ 400",
+            "delta": null,
+            "verify": "auto",
+            "autoStatus": "pass"
+          },
+          "W14": {
+            "status": "pending",
+            "value": true,
+            "threshold": "truthy",
+            "delta": null,
+            "verify": "both",
+            "autoStatus": "pass"
+          },
+          "W15": {
+            "status": "pending",
+            "value": 442752,
+            "threshold": "≥ 400000",
+            "delta": "-11,387",
+            "verify": "both",
+            "autoStatus": "pass"
+          },
+          "W16": {
+            "status": "pass",
+            "value": 0.476,
+            "threshold": "≥ 0.2",
+            "delta": "+0.003",
+            "verify": "auto",
+            "autoStatus": "pass"
+          },
+          "W17": {
+            "status": "pass",
+            "value": 1692,
+            "threshold": "≥ 300",
+            "delta": "+49",
+            "verify": "auto",
+            "autoStatus": "pass"
+          },
+          "W18": {
+            "status": "pending",
+            "value": 287,
+            "threshold": "≥ 150",
+            "delta": null,
+            "verify": "both",
+            "autoStatus": "pass"
+          },
+          "W19": {
+            "status": "pass",
+            "value": 110,
+            "threshold": "≥ 80",
+            "delta": null,
+            "verify": "auto",
+            "autoStatus": "pass"
+          },
+          "W20": {
+            "status": "pending",
+            "value": true,
+            "threshold": "truthy",
+            "delta": null,
+            "verify": "both",
+            "autoStatus": "pass"
+          },
+          "W21": {
+            "status": "pass",
+            "value": 4492,
+            "threshold": "≥ 500",
+            "delta": null,
+            "verify": "auto",
+            "autoStatus": "pass"
+          },
+          "W22": {
+            "status": "pending",
+            "value": 3,
+            "threshold": "≥ 3",
+            "delta": null,
+            "verify": "both",
+            "autoStatus": "pass"
+          },
+          "W23": {
+            "status": "pending",
+            "value": 3,
+            "threshold": "≥ 3",
+            "delta": null,
+            "verify": "both",
+            "autoStatus": "pass"
+          },
+          "W24": {
+            "status": "pass",
+            "value": 2734,
+            "threshold": "≥ 2000",
+            "delta": null,
+            "verify": "auto",
+            "autoStatus": "pass"
+          },
+          "W25": {
+            "status": "fail",
+            "value": 2,
+            "threshold": "≥ 2",
+            "delta": null,
+            "verify": "both",
+            "autoStatus": "pass"
+          },
+          "W26": {
+            "status": "pass",
+            "value": 22,
+            "threshold": "≥ 6",
+            "delta": null,
+            "verify": "both",
+            "autoStatus": "pass"
+          },
+          "W27": {
+            "status": "pass",
+            "value": 1,
+            "threshold": "≥ 1",
+            "delta": null,
+            "verify": "auto",
+            "autoStatus": "pass"
+          },
+          "W28": {
+            "status": "pass",
+            "value": 4,
+            "threshold": "≥ 2",
+            "delta": null,
+            "verify": "auto",
+            "autoStatus": "pass"
+          },
+          "W29": {
+            "status": "pending",
+            "value": true,
+            "threshold": "truthy",
+            "delta": null,
+            "verify": "both",
+            "autoStatus": "pass"
+          },
+          "W30": {
+            "status": "pending",
+            "value": -128,
+            "threshold": "-155..-105",
+            "delta": null,
+            "verify": "both",
+            "autoStatus": "pass"
+          },
+          "W31": {
+            "status": "pending",
+            "value": true,
+            "threshold": "truthy",
+            "delta": null,
+            "verify": "both",
+            "autoStatus": "pass"
+          },
+          "W32": {
+            "status": "pending",
+            "value": 190,
+            "threshold": "≥ 150",
+            "delta": null,
+            "verify": "both",
+            "autoStatus": "pass"
+          },
+          "W33": {
+            "status": "pass",
+            "value": 96,
+            "threshold": "≥ 60",
+            "delta": null,
+            "verify": "auto",
+            "autoStatus": "pass"
+          },
+          "W34": {
+            "status": "pass",
+            "value": 8.33,
+            "threshold": "≤ 14",
+            "delta": "+0.02",
+            "verify": "auto",
+            "autoStatus": "pass"
+          },
+          "W35": {
+            "status": "pass",
+            "value": 1.241,
+            "threshold": "≥ 0.8",
+            "delta": "+0.022",
+            "verify": "auto",
+            "autoStatus": "pass"
+          },
+          "W36": {
+            "status": "pending",
+            "value": true,
+            "threshold": "truthy",
+            "delta": null,
+            "verify": "both",
+            "autoStatus": "pass"
+          },
+          "W37": {
+            "status": "fail",
+            "value": 0.2029,
+            "threshold": "≥ 0.42",
+            "delta": "-0.0009",
+            "verify": "auto",
+            "autoStatus": "fail"
+          },
+          "W38": {
+            "status": "pass",
+            "value": 521,
+            "threshold": "≤ 700",
+            "delta": "-1",
+            "verify": "auto",
+            "autoStatus": "pass"
+          },
+          "W39": {
+            "status": "pass",
+            "value": 370,
+            "threshold": "≥ 20",
+            "delta": "+2",
+            "verify": "auto",
+            "autoStatus": "pass"
+          },
+          "W40": {
+            "status": "pass",
+            "value": 3,
+            "threshold": "≥ 2",
+            "delta": null,
+            "verify": "auto",
+            "autoStatus": "pass"
+          },
+          "W41": {
+            "status": "pass",
+            "value": 0,
+            "threshold": "≤ 0.005",
+            "delta": null,
+            "verify": "auto",
+            "autoStatus": "pass"
+          },
+          "W42": {
+            "status": "pass",
+            "value": 6,
+            "threshold": "≥ 6",
+            "delta": null,
+            "verify": "auto",
+            "autoStatus": "pass"
+          },
+          "C01": {
+            "status": "pending",
+            "value": true,
+            "threshold": "truthy",
+            "delta": null,
+            "verify": "both",
+            "autoStatus": "pass"
+          },
+          "C02": {
+            "status": "pending",
+            "value": null,
+            "threshold": "reviewer verdict",
+            "delta": null,
+            "verify": "visual",
+            "autoStatus": null
+          },
+          "C03": {
+            "status": "pass",
+            "value": 4,
+            "threshold": "≥ 3",
+            "delta": null,
+            "verify": "auto",
+            "autoStatus": "pass"
+          },
+          "C04": {
+            "status": "pass",
+            "value": true,
+            "threshold": "truthy",
+            "delta": null,
+            "verify": "auto",
+            "autoStatus": "pass"
+          },
+          "C05": {
+            "status": "pass",
+            "value": 3,
+            "threshold": "≥ 2",
+            "delta": null,
+            "verify": "auto",
+            "autoStatus": "pass"
+          },
+          "U01": {
+            "status": "pending",
+            "value": null,
+            "threshold": "reviewer verdict",
+            "delta": null,
+            "verify": "visual",
+            "autoStatus": null
+          },
+          "U02": {
+            "status": "pending",
+            "value": null,
+            "threshold": "reviewer verdict",
+            "delta": null,
+            "verify": "visual",
+            "autoStatus": null
+          },
+          "U03": {
+            "status": "pending",
+            "value": null,
+            "threshold": "reviewer verdict",
+            "delta": null,
+            "verify": "visual",
+            "autoStatus": null
+          }
+        }
+      },
+      "stats": {
+        "drawCalls": 521,
+        "triangles": 8796924,
+        "captureMs": 1002243,
+        "renderer": "SwiftShader"
+      },
+      "attestation": {
+        "source": "local"
+      },
+      "valid": true,
+      "invalid": null,
+      "regressed": [],
+      "flags": [],
+      "unclaimed": true,
+      "imported": {
+        "from": "/tmp/cap-r46",
+        "importedAt": "2026-09-19T05:38:11.473Z",
         "by": "fable-cursor"
       }
     }
