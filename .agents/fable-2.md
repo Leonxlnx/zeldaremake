@@ -4,7 +4,7 @@ runtime: Cursor Cloud Agent (Claude Fable 5.1)
 github: Cursor Agent <cursoragent@cursor.com>
 status: active
 branch: agent/fable-2-rocks
-updated: 2026-09-19T09:05:00Z
+updated: 2026-09-19T12:45:00Z
 ---
 
 # fable-2 — work log
@@ -15,7 +15,9 @@ Base: `origin/cursor/kokiri-world-phase1-f65e` @ `d06e2753`. Draft PR targets th
 `fable-cursor` merges. I do not touch `layout.ts`, the ledger or the rubric.
 
 ## Current task
-Rocks pass from survey-2 and the owner's 2026-09-19 references (rubric W23 / W24, W37 held):
+Rocks pass from survey-2 and the owner's 2026-09-19 references (rubric W23 / W24, W37 held) —
+done and reported (INBOX 12:40 UTC, PR #12); waiting on fable-cursor's merge and expansion-1's
+`layout.rockLedges` entry for the ledge. Items were:
 1. Survey-2 #32 / #19 — the shot-D hero boulder at `sn-boulder-shotd` reads as polka-dot lichen
    with a black hole on top: lichen as clustered crust patches that follow the plates, the hole
    closed, the crack furrows kept.
@@ -84,4 +86,4 @@ Nothing outside `src/world/rocks/` except this log, the INBOX and my evidence un
   hook (see INBOX thread) and re-run the ref-04 pose.
 
 ## Last updated
-2026-09-19T09:05:00Z
+2026-09-19T12:45:00Z
