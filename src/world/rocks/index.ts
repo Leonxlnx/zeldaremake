@@ -599,13 +599,17 @@ export async function create(ctx: WorldContext): Promise<WorldSystem> {
         const nearGeo = buildRock(bRng.fork(b.id), `${seed}/boulder-${b.id}`, {
           ...rockOpts,
           detail: r > 1.5 ? 44 : stairFoot ? 52 : 40,
-          creaseDeg: 18,
+          // fable-2 (survey-2 #17 / #25): the stair-foot rock is the weathered, rounded boulder
+          // of frame 1 s — its near skin is smooth-shaded (facets within 34° share normals, so
+          // the micro relief and plate steps read as worn relief, not a fringe of shards) and
+          // only the cleave arrises stay hard; the D and terrace rocks keep the fractured 18°
+          creaseDeg: stairFoot ? 34 : 18,
           crackDepth: Math.min(0.045, 0.03 / r),
           fineCracks: 0.6,
           fineCrackDepth: Math.min(0.015, 0.012 / r),
           micro: Math.min(0.03, 0.025 / r),
-          // (the stair-foot boulder's chips at half depth: 1.5 cm scallops in a 9 cm roll)
-          chip: Math.min(0.035, 0.03 / r) * (stairFoot ? 0.5 : 1),
+          // (the stair-foot boulder's chips at a quarter depth: 0.75 cm scallops in a 9 cm roll)
+          chip: Math.min(0.035, 0.03 / r) * (stairFoot ? 0.25 : 1),
           // round 44 (survey-1 crop 25): the cleave rims filleted over ≈ 5 cm (9 cm on the
           // stair-foot boulder) and their chips scalloped (rockgen.ts `rimRound`) — the stair-foot
           // boulder's east rim was a saw-blade of 2–3 cm teeth every 5–10 cm — and the bare skin
@@ -613,11 +617,12 @@ export async function create(ctx: WorldContext): Promise<WorldSystem> {
           // as fractured stone at 1–4 m, not one flat photo texture. Both are off on the far mesh
           // (the six fixed views).
           rimRound: Math.min(0.12, (stairFoot ? 0.09 : 0.05) / r),
-          plates: Math.min(0.025, 0.015 / r),
+          // (the stair-foot rock's plates step half as far: worn slabs, not stacked shards)
+          plates: Math.min(0.025, 0.015 / r) * (stairFoot ? 0.5 : 1),
           // fable-2 (survey-2 #32): lichen as crust colonies that follow the plates (`aLichen`,
           // painted by the near material in place of the flecks); the D boulder's pale face
           // carries the most, the moss-hatted A / terrace rocks less
-          lichen: b.id === 'shot-d-boulder' ? 0.6 : 0.42,
+          lichen: b.id === 'shot-d-boulder' ? 0.6 : 0.35,
           // bedding ledges: D's deeper (frame 56 s: layered). None on the A / terrace rocks, as
           // on their far mesh — a faint 0.035 layering made their moss blanket (mossAt halves
           // the coverage on every parting) step ~10 cm at each ~20 cm bed: the stair-foot rock's
@@ -851,7 +856,7 @@ export async function create(ctx: WorldContext): Promise<WorldSystem> {
   const ledgeInfo: { id: string; height: number; length: number; triangles: number; mossShare: number; wetShare: number; contacts: number; maxFootGap: number }[] = [];
   const ledgeContacts: [number, number, number][] = [];
   if (ledgeDefs.length) {
-    const ledgeMaterial = await createRockMaterial(ctx.textures, ctx.config, anisotropy, 1.4, 0.9, { near: true, fade: LEDGE_FADE_M });
+    const ledgeMaterial = await createRockMaterial(ctx.textures, ctx.config, anisotropy, 1.4, 0.85, { near: true, fade: LEDGE_FADE_M });
     const lRng = rng.fork('ledges');
     for (const def of ledgeDefs) {
       const built = buildRockLedge(def, T, lRng.fork(def.id), `${seed}/ledge`);

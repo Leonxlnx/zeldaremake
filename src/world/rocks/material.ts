@@ -170,14 +170,15 @@ export async function createRockMaterial(textures: TextureLibrary, config: World
             float fleckRim = smoothstep(thr - 0.1, thr - 0.03, fl) * (1.0 - fleck) * cluster * (1.0 - mossCov) * smoothstep(-0.5, 0.1, vWNrmR.y) * (1.0 - plate) * (1.0 - nearW);
             diffuseColor.rgb *= 1.0 - 0.22 * fleckRim;
             float cn = rockVNoise(lp * 26.0 + 1.0) * 0.6 + rockVNoise(lp * 55.0 + 7.0) * 0.4;
-            float cv = clamp(vLichenR, 0.0, 1.0) + 0.28 * (cn - 0.5);
-            float crust = smoothstep(0.34, 0.5, cv) * nearW;
-            float crustRim = smoothstep(0.16, 0.34, cv) * (1.0 - smoothstep(0.34, 0.5, cv)) * nearW * (1.0 - mossCov) * (1.0 - plate);
-            diffuseColor.rgb *= 1.0 - 0.3 * crustRim;
-            // the crust's own tone: per-colony grey / green / pale, granular inside
-            float colonyTone = rockVNoise(lp * 1.7 + 4.0);
-            vec3 crustCol = mix(mix(vec3(0.6, 0.62, 0.55), vec3(0.58, 0.66, 0.47), smoothstep(0.3, 0.6, colonyTone)), vec3(0.72, 0.72, 0.65), smoothstep(0.65, 0.9, colonyTone));
-            crustCol *= 0.88 + 0.24 * rockVNoise(lp * 44.0 + 2.0);`
+            float cv = clamp(vLichenR, 0.0, 1.0) + 0.34 * (cn - 0.5);
+            float crust = smoothstep(0.36, 0.52, cv) * nearW;
+            float crustRim = smoothstep(0.18, 0.36, cv) * (1.0 - smoothstep(0.36, 0.52, cv)) * nearW * (1.0 - mossCov) * (1.0 - plate);
+            diffuseColor.rgb *= 1.0 - 0.22 * crustRim;
+            // the crust's own tone: per-colony pale grey / grey-green / whitish, granular inside
+            // (crustose lichen is a chalky skin a shade paler than the stone, not a green paint)
+            float colonyTone = rockVNoise(lp * 2.3 + 4.0);
+            vec3 crustCol = mix(mix(vec3(0.66, 0.66, 0.59), vec3(0.62, 0.66, 0.52), smoothstep(0.3, 0.6, colonyTone)), vec3(0.75, 0.74, 0.68), smoothstep(0.65, 0.9, colonyTone));
+            crustCol *= 0.86 + 0.28 * rockVNoise(lp * 44.0 + 2.0);`
       : /* glsl */ `
             float fleck = smoothstep(0.56, 0.68, rockVNoise(lp * 19.0) * 0.7 + rockVNoise(lp * 43.0 + 3.0) * 0.3);`;
     // the crust replaces the fleck colour where it is present
@@ -242,7 +243,7 @@ export async function createRockMaterial(textures: TextureLibrary, config: World
             float cluster = smoothstep(0.46, 0.7, rockVNoise(lp * 3.1 + 11.0));${fleckExpr}
             float lichen = ${lichenAmount} * (1.0 - mossCov) * smoothstep(-0.5, 0.1, vWNrmR.y)${nearLichenMask};
             vec3 lichenCol = ${lichenColExpr};
-            diffuseColor.rgb = mix(diffuseColor.rgb, lichenCol * (0.85 + 0.3 * l), ${near ? 'mix(0.75, 0.86, crust)' : '0.75'} * lichen);
+            diffuseColor.rgb = mix(diffuseColor.rgb, lichenCol * (0.85 + 0.3 * l), ${near ? 'mix(0.75, 0.7, crust)' : '0.75'} * lichen);
           }
           // moss: the texture luminance (mean ≈ 0.3) picks between deep and bright green so the
           // moss keeps the rock's pitting; blend is near-opaque where the coverage is full. The

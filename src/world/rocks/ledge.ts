@@ -74,7 +74,7 @@ export function buildRockLedge(def: RockLedgeDef, T: Terrain, rng: Rng, seed: st
   const inset = def.inset ?? 2.2;
   const lean = def.lean ?? 0.35;
   const taper = def.taper ?? 1.4;
-  const foot = resample(def.foot, 0.24);
+  const foot = resample(def.foot, 0.14);
   const J = foot.length;
   // walk direction and the "into the bank" normal per column
   const tan: Vector2[] = [];
@@ -120,7 +120,7 @@ export function buildRockLedge(def: RockLedgeDef, T: Terrain, rng: Rng, seed: st
     maxH = Math.max(maxH, h);
   }
   // rows: the buried skirt (v < 0), the face (0..1), the lip shoulder (> 1)
-  const faceRows = Math.max(6, Math.round(maxH / 0.16));
+  const faceRows = Math.max(8, Math.round(maxH / 0.1));
   const skirtRows = 2;
   const capRows = 4;
   const I = skirtRows + faceRows + capRows;
@@ -158,7 +158,9 @@ export function buildRockLedge(def: RockLedgeDef, T: Terrain, rng: Rng, seed: st
   const gMoss = new Float32Array(I * J);
   const gWet = new Float32Array(I * J);
   const gCol = new Float32Array(I * J * 3);
-  const stone = new Color(0.47, 0.48, 0.47); // damp dark stone (the wet band and shade take it darker)
+  // damp dark stone: the face stands in the sun at ref-04's hour, so the tint itself carries the
+  // dark (the hero boulders' 0.72 rendered this wall pale tan); the wet band takes the foot darker
+  const stone = new Color(0.33, 0.34, 0.33);
   const dark = new Color(0.1, 0.095, 0.085);
   const soil = new Color(0.16, 0.14, 0.09);
   const at = (i: number, j: number) => i * J + j;
@@ -201,30 +203,32 @@ export function buildRockLedge(def: RockLedgeDef, T: Terrain, rng: Rng, seed: st
         // beds are continuous in world height, so they run level along a rising foot
         const bed = bedding(uu, y0);
         const jn = joints(uu, y0, bed.k);
-        // relief: beds step ± 0.1 m, blocks ± 0.05 m, a ridged skin ± 0.05 m, micro ± 0.015 m
+        // relief: beds step ± 0.16 m, blocks ± 0.09 m, a ridged skin ± 0.06 m, micro ± 0.02 m —
+        // all of it tapered to nothing at the foot row, which must sit exactly on the terrain
         const rd = N.ridged(uu * 1.7 + seedOff, y0 * 1.7, 2.2, 3);
         const mic = N.fbm(uu * 6.5 - seedOff, y0 * 6.5, 5.5, 2);
         const blockOff = N.fbm(jn.block * 3.7 + 0.5, bed.k * 2.9 + seedOff, 1.0, 1);
-        out = hs * (0.1 * bed.step + 0.05 * blockOff + 0.05 * (rd - 0.5) * 2 + 0.015 * mic);
+        const footTaper = smoothstep(0, 0.22, vf);
+        out = hs * footTaper * (0.16 * bed.step + 0.09 * blockOff + 0.06 * (rd - 0.5) * 2 + 0.02 * mic);
         // the parting grooves and joints sink
-        out -= hs * (0.07 * bed.groove + 0.04 * jn.joint);
-        // colour: bed tone ± 8 %, block tone ± 6 %, partings and joints dark, ridges a shade paler
-        let tone = 1 + 0.08 * bed.step + 0.06 * blockOff + 0.12 * (rd - 0.5);
+        out -= hs * footTaper * (0.09 * bed.groove + 0.05 * jn.joint);
+        // colour: bed tone ± 10 %, block tone ± 8 %, partings and joints dark, ridges a shade paler
+        let tone = 1 + 0.1 * bed.step + 0.08 * blockOff + 0.14 * (rd - 0.5);
         _tmp.copy(stone).multiplyScalar(tone);
         _tmp.lerp(dark, 0.85 * Math.max(bed.groove, jn.joint * 0.9));
-        // drip streaks below the lip: dark vertical streaks fading down 1.6 m
+        // drip streaks below the lip: dark vertical streaks fading down ~2 m
         const streakN = N.fbm(uu * 4.1 + seedOff * 0.5, 2.0, 0.7, 2) * 0.5 + 0.5;
-        const streak = smoothstep(0.58, 0.72, streakN) * smoothstep(0.55, 0.92, vf) * (1 - smoothstep(0.92, 1.0, vf));
-        _tmp.lerp(dark, 0.45 * streak);
+        const streak = smoothstep(0.54, 0.7, streakN) * smoothstep(0.45, 0.9, vf) * (1 - smoothstep(0.92, 1.0, vf));
+        _tmp.lerp(dark, 0.55 * streak);
         // wet: the foot band (1.1 m, wobbled) and the streaks
         const yAbove = y0 - footY[j];
         wet = clamp(1 - smoothstep(0.25, 1.1, yAbove + 0.15 * (N.fbm(uu * 2.3, 1.1, 3.3, 2))) + 0.6 * streak, 0, 1);
         // moss sheets: damp patches under the lip and in the parting ledges (their up-facing
         // steps), big soft-edged patches ~0.6–1.4 m; none in the wet foot band
         const sheetN = N.fbm(uu * 0.9 + seedOff, y0 * 1.3, 9.9, 3) * 0.5 + 0.5;
-        const ledgeMoss = smoothstep(0.35, 0.9, bed.groove) * (bed.step > 0 ? 0.6 : 0.25);
-        const underLip = smoothstep(0.5, 0.85, vf);
-        moss = clamp((smoothstep(0.5, 0.72, sheetN) * (0.55 + 0.45 * underLip) + ledgeMoss) * (1 - smoothstep(0.1, 0.4, wet)) * (1 - 0.7 * jn.joint), 0, 1) * hs;
+        const ledgeMoss = smoothstep(0.35, 0.9, bed.groove) * (bed.step > 0 ? 0.8 : 0.35);
+        const underLip = smoothstep(0.45, 0.85, vf);
+        moss = clamp((smoothstep(0.42, 0.62, sheetN) * (0.6 + 0.4 * underLip) + ledgeMoss) * (1 - smoothstep(0.1, 0.4, wet)) * (1 - 0.7 * jn.joint), 0, 1) * hs;
         // the collar just above the ground: soil-dark
         _tmp.lerp(soil, 0.7 * (1 - smoothstep(0.02, 0.28, yAbove)));
       } else {
@@ -291,7 +295,7 @@ export function buildRockLedge(def: RockLedgeDef, T: Terrain, rng: Rng, seed: st
   g.setAttribute('color', new Float32BufferAttribute(col, 3));
   g.setAttribute('aMoss', new Float32BufferAttribute(mossA, 1));
   g.setAttribute('aWet', new Float32BufferAttribute(wetA, 1));
-  computeCreaseNormals(g, 42);
+  computeCreaseNormals(g, 32);
   // orientation check: the mean face normal must point toward the path (−nIn); flip if not
   {
     const nrm = g.attributes.normal;
@@ -315,7 +319,7 @@ export function buildRockLedge(def: RockLedgeDef, T: Terrain, rng: Rng, seed: st
           }
         }
       }
-      computeCreaseNormals(g, 42);
+      computeCreaseNormals(g, 32);
     }
   }
   // the moss sheets and the lip are soft: blend toward smooth normals where aMoss is high

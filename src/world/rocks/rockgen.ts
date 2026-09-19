@@ -565,14 +565,16 @@ export function buildRock(rng: Rng, seed: string, o: RockOptions): BufferGeometr
    * the fresh cleave facets or the undersides
    */
   const lichenAt = (i: number, x: number, y: number, z: number, ny: number, h01: number, m: number, fct: number) => {
-    const ck = 2.1 * nk;
+    // colonies ~0.3 r across (3.4 cycles per r): on the 1 m stair-foot rock 15–30 cm patches, on
+    // the 0.6 m D rock 10–20 cm — one colony per plate or two, never one skin over the face
+    const ck = 3.4 * nk;
     const colony = N.fbm(x * ck + 13.1, y * ck - 7.7, z * ck + 3.3, 2) * 0.5 + 0.5;
     const level = plateId ? plateId[i] : 1;
     const joint = plateStep ? plateStep[i] : 0;
     // a second, finer field tears the colony's edge and leaves gaps inside it
     const tear = N.fbm(x * ck * 2.7 - 5.5, y * ck * 2.7 + 9.1, z * ck * 2.7 - 2.2, 2) * 0.5 + 0.5;
-    const thr = 0.58 - 0.24 * lichen + 0.06 * (level - 1);
-    const cov = smoothstep(thr - 0.06, thr + 0.1, colony + 0.22 * (tear - 0.5));
+    const thr = 0.61 - 0.2 * lichen + 0.06 * (level - 1);
+    const cov = smoothstep(thr - 0.06, thr + 0.1, colony + 0.3 * (tear - 0.5));
     // bare skin: no moss, above the collar, not a fresh cleave facet, not the underside — the
     // exposed sides down to the collar carry the crust (frame 56 s: the D rock's path face)
     // (the cleave faces ARE most of the D rock's bare skin — `facetBare` keeps the moss off them —
