@@ -393,19 +393,31 @@ export function createWhiteBarkTree(p: WhiteBarkParams, palette: Palette, detail
       const heightF = base.y / H;
       const outF = Math.hypot(base.x, base.z) / Math.max(0.5, crownRadius);
       const sun = Math.min(1, Math.max(0, (heightF - 0.5) * 1.2 + outF * 0.35)) * bt(0.35, 1);
-      // layering: a lobe is lit from above and shaded inside and underneath — leaves at its top
-      // and rim keep the tone, leaves deep inside or on its underside fall to ≈ 0.55 of it, so
-      // from below the lit rim laminae read as leaf silhouettes over a dark core rather than one
-      // pale card mass. Scaled (× 1.14) so a lobe's mean tone is the round-46 value (0.88).
+      // layering (measured at `f4-crown-up`, the lobe seen from 7 m below). The vertex tone alone
+      // cannot carry it — the leaf shade floor (materials.ts) keeps only 0.4 of the albedo's
+      // variation on a shaded lamina (a 0.55–1.14 tone range moved the lobe's sd 21.2 → 21.5) —
+      // so the share of the shade fill itself (transmission, ambient, floor) is written per leaf
+      // through `leafShade` (writer.ts aRoot.w). A structured term alone (core and underside
+      // darker) only lowered the level: from below one sees the lobe's bottom shell, whose leaves
+      // all share it (sd unchanged at 21.2). What reads as layers is tone variation between
+      // NEIGHBOURING visible leaves — a backlit thin lamina beside a stacked opaque one — so each
+      // leaf's fill share is the structured term × a 0.75–1.25 per-leaf draw: the visible
+      // underside spans 0.55–1.0 of the fill instead of one value. The lit rim/top leaves' tone
+      // rises (× 1.12) against the shaded ones' fall so the crown's level holds where it is lit.
       let layer = 1;
+      let shade = 1;
       if (lobe) {
         const shell = smoothstep(0.2, 0.9, base.distanceTo(lobe.center) / Math.max(0.3, lobe.hR));
         const top = 0.5 + 0.5 * Math.max(-1, Math.min(1, (base.y - lobe.center.y) / Math.max(0.2, lobe.vR)));
-        layer = (0.58 + 0.42 * shell) * (0.82 + 0.18 * top) * 1.14;
+        layer = (0.85 + 0.15 * shell) * (0.92 + 0.08 * top) * 1.12;
+        const structured = 0.5 + 0.5 * (0.35 + 0.65 * shell) * (0.55 + 0.45 * top);
+        shade = Math.min(1, Math.max(0.3, structured * toneRng.range(0.75, 1.25)));
       }
-      const color = canopy.clone().lerp(sunny, sun).multiplyScalar(vigor * layer * toneRng.range(0.9, 1.1));
+      const color = canopy.clone().lerp(sunny, sun).multiplyScalar(vigor * layer * toneRng.range(0.92, 1.08));
       const leafLength = bt(p.leafSize[0], p.leafSize[1]) * bt(0.91, 1.12);
+      leaves.leafShade = shade;
       addLeaf(leaves, base, direction, leafLength, color, rng, opts);
+      leaves.leafShade = 1;
     }
   }
 
@@ -598,9 +610,9 @@ function rootToe(writer: GeometryWriter, toe: ToeSpec, frame: TreeFrame, color: 
   const knuckles = rng.range(4.5, 7);
   const gnarl = rng.range(0.05, 0.1);
   const gnarlPhase = rng() * TAU;
-  // the bark tile is magnified ten-fold across the toe (a near-uniform patch): the lenticel
-  // dashes at the trunk's scale read as planking on a root; the vertex colour carries it
-  const uSlice = rng.range(0, 0.9);
+  // the bark tile is magnified four-fold across the toe: the lenticel dashes at the trunk's
+  // scale read as planking on a root, a soft smudge of them reads as root bark
+  const uSlice = rng.range(0, 0.85);
   const vSlice = rng.range(0, 0.9);
   const rows: number[][] = [];
   const p = new Vector3();
@@ -613,9 +625,12 @@ function rootToe(writer: GeometryWriter, toe: ToeSpec, frame: TreeFrame, color: 
     const wander = Math.sin(t * 2.5) * toe.bend * 0.4 + twist * t * t * 0.15 + out * (0.11 * Math.sin(t * 3.1 + wanderPhase) * Math.sign(toe.bend + 0.01) + wiggle * Math.sin(t * 7.3 + wanderPhase * 1.7));
     const centre = frame.origin.clone().addScaledVector(forward, d).addScaledVector(side, wander * length);
     const knuckle = 1 + 0.22 * Math.pow(Math.sin(t * knuckles + knucklePhase), 2) * (1 - t) * out;
-    const w = (toe.width * Math.pow(1 - t, 1.15) * (1 + 0.22 * kneeBump) + 0.012) * s;
-    const h = (toe.height * (0.25 + 0.75 * Math.pow(1 - t, 1.4)) * (1 + kneeLift * kneeBump) * knuckle * (1 - Math.pow(t, 6)) + 0.004) * s;
-    const plunge = (-0.04 - settle * t - 0.32 * Math.pow(t, 5) + 0.015 * Math.sin(t * knuckles * 0.7 + knucklePhase)) * s;
+    // the section tapers slowly and the bed dives early (−10 cm at half length, −25 cm at three
+    // quarters), so the root goes under the soil while it is still fat — a visible pointed tip
+    // read as a spike
+    const w = (toe.width * Math.pow(1 - t, 0.9) * (1 + 0.22 * kneeBump) + 0.012) * s;
+    const h = (toe.height * (0.3 + 0.7 * Math.pow(1 - t, 0.9)) * (1 + kneeLift * kneeBump) * knuckle * (1 - Math.pow(t, 4)) + 0.004) * s;
+    const plunge = (-0.04 - settle * t - 0.34 * Math.pow(t, 3.2) + 0.015 * Math.sin(t * knuckles * 0.7 + knucklePhase)) * s;
     const row: number[] = [];
     for (let j = 0; j <= arc; j++) {
       const theta = (j / arc) * Math.PI;
@@ -626,7 +641,7 @@ function rootToe(writer: GeometryWriter, toe: ToeSpec, frame: TreeFrame, color: 
       p.y = j === 0 || j === arc ? bed - 0.03 : bed + Math.pow(Math.sin(theta), 1.15) * h * bulge;
       // darker flanks, darker (soil-stained) toward the tip, a little mottle along the root
       const shade = (0.74 + 0.24 * Math.sin(theta)) * (1 - 0.3 * t) * (0.94 + 0.06 * Math.sin(t * 13 + theta * 2 + gnarlPhase));
-      const idx = writer.vertex(p, color.clone().multiplyScalar(shade), uSlice + 0.06 * (j / arc), vSlice + (0.02 * d) / WHITE_BARK_TILE_M, 1, 0, 0);
+      const idx = writer.vertex(p, color.clone().multiplyScalar(shade), uSlice + 0.15 * (j / arc), vSlice + (0.06 * d) / WHITE_BARK_TILE_M, 1, 0, 0);
       writer.roots[idx * 4] = frame.origin.x;
       writer.roots[idx * 4 + 1] = frame.origin.y;
       writer.roots[idx * 4 + 2] = frame.origin.z;
