@@ -1,6 +1,6 @@
 {
   "project": "zeldaremake",
-  "updatedAt": "2026-09-19T08:15:54.320Z",
+  "updatedAt": "2026-09-19T09:09:21.308Z",
   "monitorCadenceMinutes": 60,
   "takes": [
     {
@@ -79465,7 +79465,7 @@
     }
   ],
   "heartbeat": {
-    "at": "2026-09-19T08:15:54.320Z",
-    "reason": "round 47 running (8 lanes)"
+    "at": "2026-09-19T09:09:21.308Z",
+    "reason": "round 47 running (8 lanes + fable-2..5 live)"
   }
 }
