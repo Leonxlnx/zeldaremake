@@ -81,7 +81,16 @@ against the real `monitor` data are clean (no console errors).
   publishes with this code; the site degrades gracefully when the data is absent.
 
 ## Known issues
-- (none yet)
+- Native path on the laptop: two puppeteer Chrome launches within seconds of each other detach one
+  page ("frame got detached" / "Navigating frame was detached" at `openWorld`'s first `goto`);
+  every capture of mine runs alone now, `site/tools/player-strip.mjs` retries, and
+  `lib/browser.mjs` (shared) would benefit from perftrace's same-origin pre-navigation — asked in
+  the INBOX brief.
+- `take.mjs` rotates its capture directory, so a player strip written into `gauntlet/out/last`
+  before a publish never reaches the published dir; `monitor.mjs` picks it up from
+  `gauntlet/out/player` (or `<takeDir>/player`) when its `sha` is the take's commit.
+- The take-0116 player strip is rendered by the matrix-3 step (after the per-pixel matrix); until
+  then the monitor's strip panel shows its empty state.
 
 ## Recommended next work
 - fable-cursor: the `lod-1` brief lands in the INBOX when `docs/PERF_2026-09-19.md` is in.
