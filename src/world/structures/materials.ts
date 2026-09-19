@@ -23,7 +23,9 @@ import {
 import type { WorldContext } from '../system';
 import { type ShadeFloor, applyShadeFloor } from '../materials/shadeFloor';
 import { WIND_GLSL } from '../wind/wind';
+import { createRng } from '../util/prng';
 import { rasteriseEndGrain } from './endGrain';
+import { type GlyphStroke, glyphDistance, makeGlyphs } from './glyphs';
 import { POD_BODY_V, type PodSkinRaster, rasterisePodSkin } from './podSkin';
 import { applySleeveBarkResponse } from './sleeveBark';
 
@@ -386,6 +388,8 @@ export interface StructureMaterials {
    * radiance under the veil like the pod lanterns do (the rims are tinted 0.8 → 1.76, lit not lamps).
    */
   distantGlow: MeshBasicMaterial;
+  /** round 47 (structures-30): pale daylight lying in the log arch's open fissures (vertex tints carry the fall-off) */
+  daylightSliver: MeshBasicMaterial;
   /**
    * Pod lantern (body + cap + stem + cord in one draw): emissive gradient texture, brighter at
    * the bottom; UV v ≥ LANTERN_DARK_V is black so caps and cords do not glow. Vertex colours tint.
@@ -424,6 +428,8 @@ export interface StructureMaterials {
   flower: MeshStandardMaterial;
   /** carved rune decal for the signpost plank */
   runes: MeshStandardMaterial;
+  /** round 47 (structures-30): the lettering's strokes in decal space — signpost.ts carves the board along them */
+  runeGlyphs: GlyphStroke[];
   /** dark splintered end-grain */
   endGrain: MeshStandardMaterial;
   /** number of materials that ended up with real texture files */
@@ -1050,54 +1056,117 @@ function glowTexture(): Texture {
   return tex;
 }
 
-/** Carved rune-like marks, dark strokes on transparent; two rows. Deterministic (no Math.random). */
-export function runeTexture(seedRng: () => number): Texture {
-  const W = 512;
-  const H = 192;
-  const { c, g } = canvas(W, H);
-  g.clearRect(0, 0, W, H);
-  g.lineCap = 'round';
-  g.lineJoin = 'round';
-  const rows = 2;
-  const cols = 11;
-  const cellW = (W * 0.86) / cols;
-  const cellH = (H * 0.72) / rows;
-  const x0 = W * 0.07;
-  const y0 = H * 0.14;
-  for (let r = 0; r < rows; r++) {
-    const n = r === 0 ? cols : cols - 3;
+/**
+ * The draws the round-1 rune canvas took from the shared canvas stream (two rows of 11 / 8 cells
+ * of 2–4 random strokes). Round 47 (structures-30) paints the lettering from its own fork
+ * (`runeTextures`), but the moss canvases built after it (`mossTextures`) draw from this same
+ * stream, so the old sequence is replayed — the same calls in the same order, nothing painted —
+ * to keep every later canvas, and B's cap, exactly as built.
+ */
+function legacyRuneDraws(seedRng: () => number): void {
+  for (let r = 0; r < 2; r++) {
+    const n = r === 0 ? 11 : 8;
     for (let k = 0; k < n; k++) {
-      const cx = x0 + (k + 0.5) * cellW + (r === 1 ? cellW * 1.5 : 0);
-      const cy = y0 + (r + 0.5) * cellH;
       const strokes = 2 + Math.floor(seedRng() * 3);
       for (let s = 0; s < strokes; s++) {
         const kind = seedRng();
-        // deep carved marks: near-black brown, thick, fully opaque so they read from 10 m
-        g.strokeStyle = `rgba(${28 + Math.floor(seedRng() * 14)}, ${18 + Math.floor(seedRng() * 8)}, 10, ${0.92 + seedRng() * 0.08})`;
-        g.lineWidth = 8 + seedRng() * 4;
-        g.beginPath();
-        const hw = cellW * 0.32;
-        const hh = cellH * 0.36;
+        seedRng();
+        seedRng();
+        seedRng();
+        seedRng();
         if (kind < 0.35) {
-          const ox = (seedRng() - 0.5) * hw;
-          g.moveTo(cx + ox, cy - hh);
-          g.lineTo(cx + ox + (seedRng() - 0.5) * hw * 0.4, cy + hh);
+          seedRng();
+          seedRng();
         } else if (kind < 0.6) {
-          const oy = (seedRng() - 0.5) * hh * 1.2;
-          g.moveTo(cx - hw, cy + oy);
-          g.lineTo(cx + hw, cy + oy + (seedRng() - 0.5) * hh * 0.3);
+          seedRng();
+          seedRng();
         } else if (kind < 0.85) {
-          const dir = seedRng() < 0.5 ? 1 : -1;
-          g.moveTo(cx - hw * 0.8, cy - hh * dir);
-          g.lineTo(cx + hw * 0.8, cy + hh * dir);
+          seedRng();
         } else {
-          g.arc(cx + (seedRng() - 0.5) * hw, cy + (seedRng() - 0.5) * hh, hh * 0.45, 0, Math.PI * (1 + seedRng()));
+          seedRng();
+          seedRng();
+          seedRng();
         }
-        g.stroke();
       }
     }
   }
-  return finishTexture(new CanvasTexture(c), true, 'structures:runes');
+}
+
+/** the rune decal's aspect (width / height) — the signpost's decal is plankW × 0.9 by plankH × 0.8 */
+export const RUNE_ASPECT = (0.98 * 0.9) / (0.44 * 0.8);
+/** the rune decal's texel width (m) — signpost.ts sizes the carving's ramps from it */
+export const RUNE_W = 1024;
+
+/**
+ * Round 47 (structures-30, owner ref-01): CARVED LETTERING. Two rows of angular glyphs
+ * (glyphs.ts) cut into the board: a near-black fill in the groove, a pale LIT LIP along each
+ * stroke's lower edge and a dark shadow lip along its upper edge (the sun and the sky are
+ * above the board), and a tangent-space NORMAL MAP of the groove (V-walls into a flat bottom)
+ * so the cut shades with the light at 1–2 m. Everything outside the strokes and their lips is
+ * transparent (alphaTest). Deterministic: the glyphs come from `strokes`, the paint takes no
+ * random draw.
+ */
+export function runeTextures(strokes: GlyphStroke[]): { map: Texture; normal: Texture } {
+  const W = RUNE_W;
+  const H = Math.round(W / RUNE_ASPECT);
+  const { c, g } = canvas(W, H);
+  g.clearRect(0, 0, W, H);
+  g.lineCap = 'square';
+  g.lineJoin = 'miter';
+  const line = (s: GlyphStroke, dx: number, dy: number, extra: number, style: string) => {
+    g.strokeStyle = style;
+    g.lineWidth = s.hw * 2 * W + extra;
+    g.beginPath();
+    g.moveTo(s.a[0] * W + dx, (1 - s.a[1]) * H + dy);
+    g.lineTo(s.b[0] * W + dx, (1 - s.b[1]) * H + dy);
+    g.stroke();
+  };
+  // the lit lower lip (the plank's own tan, a shade paler where the chisel left a clean edge)
+  for (const s of strokes) line(s, 0, 3.5, 7, 'rgba(226,194,140,1)');
+  // the shadowed upper lip
+  for (const s of strokes) line(s, 0, -2.5, 5, 'rgba(38,26,15,1)');
+  // the groove: dark fill, a slightly paler floor streak along the centre so the bottom is not a void
+  for (const s of strokes) line(s, 0, 0, 0, 'rgba(34,23,13,1)');
+  for (const s of strokes) line(s, 0, 0.5, -Math.max(0, s.hw * 2 * W - 5), 'rgba(58,40,24,1)');
+  const map = finishTexture(new CanvasTexture(c), true, 'structures:runes');
+  map.wrapS = map.wrapT = ClampToEdgeWrapping;
+
+  // normal map from the groove's height: 1 on the board, V-walls down to a flat bottom at half
+  // the stroke's width, a small rounded lip outside the cut. Sampled through the strokes' SDF.
+  const { c: cn, g: gn } = canvas(W, H);
+  const img = gn.createImageData(W, H);
+  const height = new Float32Array(W * H);
+  const hwPx = strokes.length ? strokes[0].hw * W : 10;
+  for (let y = 0; y < H; y++) {
+    const v = 1 - (y + 0.5) / H;
+    for (let x = 0; x < W; x++) {
+      const u = (x + 0.5) / W;
+      const dPx = glyphDistance(strokes, u, v, RUNE_ASPECT) * W;
+      // depth: full inside half the width, ramping out to the edge; a 2-px rounded lip outside
+      const depth = dPx <= -hwPx * 0.5 ? 1 : dPx <= 0 ? -dPx / (hwPx * 0.5) : 0;
+      const lip = dPx > 0 && dPx < 3 ? -0.08 * Math.sin((dPx / 3) * Math.PI) : 0;
+      height[y * W + x] = 1 - depth + lip;
+    }
+  }
+  const K = 2.2;
+  const at = (x: number, y: number) => height[Math.min(H - 1, Math.max(0, y)) * W + Math.min(W - 1, Math.max(0, x))];
+  for (let y = 0; y < H; y++) {
+    for (let x = 0; x < W; x++) {
+      const dx = (at(x + 1, y) - at(x - 1, y)) * K;
+      // canvas rows run downward and the CanvasTexture is flipped on upload, so canvas −y is +v
+      const dy = (at(x, y - 1) - at(x, y + 1)) * K;
+      const inv = 1 / Math.sqrt(dx * dx + dy * dy + 1);
+      const i = (y * W + x) * 4;
+      img.data[i] = Math.round((0.5 - 0.5 * dx * inv) * 255);
+      img.data[i + 1] = Math.round((0.5 - 0.5 * dy * inv) * 255);
+      img.data[i + 2] = Math.round((0.5 + 0.5 * inv) * 255);
+      img.data[i + 3] = 255;
+    }
+  }
+  gn.putImageData(img, 0, 0);
+  const normal = finishTexture(new CanvasTexture(cn), false, 'structures:runes-normal');
+  normal.wrapS = normal.wrapT = ClampToEdgeWrapping;
+  return { map, normal };
 }
 
 /** Inject the shared wind model into a MeshStandardMaterial; uses aPhase/aAmount vertex attributes. */
@@ -1290,6 +1359,10 @@ export async function loadMaterials(ctx: WorldContext, rng: () => number): Promi
   // the orange in the material and the lime pods' [0.72, 1, 0.36] tint on top of it peaked at
   // 1.58 — below the height fog's 2.0 far-shade exemption, and orange rather than lime.
   const distantGlow = new MeshBasicMaterial({ color: new Color(1, 1, 1).multiplyScalar(2.2), vertexColors: true, side: DoubleSide, toneMapped: true });
+  // round 47 (structures-30): daylight lying in the log arch's open fissures, seen from under the
+  // belly — sky-tinted, at 1.6 linear (under the height fog's 2.0 far-shade exemption: it fogs
+  // like any surface, so from D at 50 m it is the haze). Vertex tints carry the fall-off.
+  const daylightSliver = new MeshBasicMaterial({ color: new Color(0.86, 0.94, 1.0).multiplyScalar(1.6), vertexColors: true, toneMapped: true });
 
   // round 43 (structures-27): the pods' skin — albedo / normal atlas shared by every pod, the
   // emissive gradient modulated by its glow field (podSkin.ts). Own seed, no draw from `rng`.
@@ -1416,7 +1489,12 @@ export async function loadMaterials(ctx: WorldContext, rng: () => number): Promi
     'structures-tuft',
   );
   const moss = new MeshStandardMaterial({ color: new Color(0xffffff), vertexColors: true, roughness: 1, normalMap: thatchN, normalScale: new Vector2(0.5, 0.5) });
-  const runes = new MeshStandardMaterial({ map: own(runeTexture(rng)), alphaTest: 0.4, transparent: false, roughness: 0.9, polygonOffset: true, polygonOffsetFactor: -2, polygonOffsetUnits: -2 });
+  // round 47 (structures-30): the sign's lettering — glyphs from their own fork, the shared
+  // stream's old draws replayed first (`legacyRuneDraws`) so the moss canvases below hold
+  legacyRuneDraws(rng);
+  const runeGlyphs = makeGlyphs(createRng(`${ctx.config.seed}/structures/glyphs47`));
+  const runeMaps = runeTextures(runeGlyphs);
+  const runes = new MeshStandardMaterial({ map: own(runeMaps.map), normalMap: own(runeMaps.normal), normalScale: new Vector2(1, 1), alphaTest: 0.4, transparent: false, roughness: 0.85, polygonOffset: true, polygonOffsetFactor: -2, polygonOffsetUnits: -2 });
   // round 43 (structures-27): annual rings for the hollow log's broken rims, splinters and the
   // fungus shelves (endGrain.ts; the map integrates to the willow map's mean it replaces, so the
   // rim's level in D holds). Own seed, no draw from `rng`.
@@ -1490,7 +1568,11 @@ export async function loadMaterials(ctx: WorldContext, rng: () => number): Promi
   // 1: the grain's ×0.48–1.28 swing is what shows) at a lift below the bark's, so the plateau
   // posts F sees at 25 m stay the frame's dark posts while the grain reads at 2 m.
   applyShadeFloor(fenceWood, FENCE_WOOD_FLOOR, new Color(HOUSE_BARK_TINT));
+  // round 47 (structures-30): the lettering decal lies on the fence-wood board, so it takes the
+  // board's floor — its pale bevel lips lift with the plank in the canopy's shade instead of
+  // rendering as a black outline round a black fill
+  applyShadeFloor(runes, FENCE_WOOD_FLOOR, new Color(HOUSE_BARK_TINT));
   applyShadeFloor(stone, STONE_FLOOR);
   const texturedSets = T.loaded().filter((s) => ['bark_brown_02', 'bark_willow_02', 'thatch_roof_angled', 'weathered_planks', 'worn_rock_natural_01'].includes(s));
-  return { bark, barkPale, logBark, sleeveBark, recessBark, archBark, interior, logInterior, roof, wood, woodDark, fenceWood, stone, hearth, ember, windowGlow, distantGlow, lantern, lanternLime, lanternFar, lanternLimeFar, lanternHalo, leaf, vine, tuft, moss, capMoss, flower, runes, endGrain, texturedSets, ownedTextures };
+  return { bark, barkPale, logBark, sleeveBark, recessBark, archBark, interior, logInterior, roof, wood, woodDark, fenceWood, stone, hearth, ember, windowGlow, distantGlow, daylightSliver, lantern, lanternLime, lanternFar, lanternLimeFar, lanternHalo, leaf, vine, tuft, moss, capMoss, flower, runes, runeGlyphs, endGrain, texturedSets, ownedTextures };
 }
