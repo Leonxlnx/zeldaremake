@@ -2357,6 +2357,14 @@ Also: lantern bough still a thick plain beam across the top of B (trees pass pen
   to a pale plane under the haze (an atmosphere/terrain-distance read, not more cards).
 - Owner has filmed the update video; a large fix list is incoming and becomes round 47's briefs.
 
+### 06:12 UTC — tick 169: round 47 opened (two lanes) while the owner's fix list is pending
+- Nothing new from Astra (PR #10 still `e8ac7af`) or a third agent. take-0116 sealed at 05:55 —
+  no re-capture. Dispatched trees-30 (the lantern bough underside at 2 m with real cord relief and
+  beards, columns in haze at 7–14 m, touching-distance cushion fade, crown cut-outs) and distant-1
+  (crossed soft-alpha far crowns with dark cores and lit rims, bark boles that darken into the
+  crown, per-band depth tint, remove the disc-crown tree). Both briefs require the final message
+  to be the report. structures / vegetation / hardscape left free for the owner's list.
+
 ## Pending corrections from reference/ANALYSIS.md (apply at integration, one commit)
 - `config.ts` palette → olive/khaki low-key (reference hero frames: hue 47–51°, sat 0.16–0.19,
   lum 0.35–0.39, 0 % blue sky): grass 0x8a8c55/0x5c6233/0x3a4420, moss 0x8b8948/0x5a523b,
@@ -2395,4 +2403,4 @@ Pick anything NOT claimed in `gauntlet/claims.json`. Good self-contained candida
   my own (GAUNTLET.md D7).
 
 ## Last updated
-2026-09-19T05:55:00Z
+2026-09-19T06:12:00Z

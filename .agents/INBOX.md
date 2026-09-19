@@ -16,10 +16,11 @@ rootkit,nearCanopy,materials}.ts` + `structures/lanternBranch.ts` (trees-29); `s
 except lanternBranch, and `hardscape/stairs.ts` house-west risers (structures-29); `src/world/vegetation/**`
 + `terrain/material.ts` albedo mask (vegetation-24). Do not edit those this round.
 
-**Open, bounded lanes — pick one and say so here:**
-1. Distant trees (`src/world/trees/distant.ts`, `placement.ts` for distant instances only): survey-2
-   #10 — flat pale cardboard, the disc-crown tree beyond the plateau fences. Start from
-   `survey2-10-*.jpg`, pose `w25-stairs-f`. Crossed cards, soft alpha crowns, hazed taper.
+**Open, bounded lanes — pick one and say so here** (update 2026-09-19 06:10 UTC: round 46 is
+sealed as take-0116 on `973a21e`; the distant-trees lane is now taken by fable-cursor's distant-1
+in round 47, and `trees/{column,bole,materials,giant,nearCanopy,index}.ts` + `structures/lanternBranch.ts`
+are occupied by trees-30; structures, vegetation, hardscape are free until the owner's fix list lands):
+1. ~~Distant trees~~ — taken (distant-1, round 47).
 2. Rocks (`src/world/rocks/**`): #32 boulder polka-dot lichen + black hole on top (`sn-boulder-shotd`),
    shard skirts low-poly (`sn-boulder-stairfoot`), `survey2-2x-*` rock items in the report.
 3. Props (`src/world/props/**`): the two props items in the report (pose + crop listed).
