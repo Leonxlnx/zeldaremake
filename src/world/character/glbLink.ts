@@ -342,6 +342,8 @@ const JUMP_HIP_LEAN = 0.12;
 /** the jump's phase lengths (s) — the character system's timers; the overlay eases over them */
 export const JUMP_CROUCH_S = 0.12;
 export const JUMP_LAND_S = 0.22;
+/** the first part of the landing over which the planted feet spread from under the hips (the airborne reach) back into the stride */
+const JUMP_LAND_GATHER_S = 0.12;
 /**
  * Stairs (the owner: "his legs look like they're going into his body"): a swing foot's arc over
  * the tread it climbs is capped so its lowest footprint point clears the nosing by STAIR_CLEAR_M
@@ -2107,6 +2109,20 @@ export async function loadGlbLink(url: string, opts: GlbLinkOptions = {}): Promi
           leg.ankleP.y -= down;
           leg.soleP.y -= down;
           leg.active = true;
+        }
+      }
+      if (jump && jump.phase === 'land') {
+        // touchdown (round 47): the feet came down under the hips (the airborne reach) and spread
+        // back into the stride over JUMP_LAND_GATHER_S — their targets slide on the ground from
+        // beneath the hips to where the clips (and the stance pins) have them, so the legs never
+        // pop from the reach pose into a mid-stride one in the landing frame
+        const w = 1 - MathUtils.smoothstep((p.t - jump.t0) / JUMP_LAND_GATHER_S, 0, 1);
+        if (w > 1e-4) {
+          for (const leg of legs) {
+            leg.target.x += (leg.hip.x + fx * 0.06 - leg.target.x) * w;
+            leg.target.z += (leg.hip.z + fz * 0.06 - leg.target.z) * w;
+            leg.active = true;
+          }
         }
       }
       if (airborne && jump) {
