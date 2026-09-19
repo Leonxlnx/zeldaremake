@@ -12,8 +12,13 @@ export ZR_NATIVE_GPU=1
 T0=$(date +%s)
 say() { echo "[$(date +%H:%M:%S) +$((($(date +%s) - T0) / 60)) min] $*"; }
 
-say "trace lod18 (clean repeat)"; L=$(probe)
-node gauntlet/scripts/perftrace.mjs --dist .wt/w0116/dist-lod18 --frames 2400 --width 1280 --height 720 --finish --label "0116-lod18" --note "take-0116 (973a21e) variant lod18 (gauntlet/perf/r48/variants.json), clean repeat; start load: $L" --out "$R/trace-0116-lod18.json" 2>&1 | grep -E "wrote|Error|error:" | head -3
+# lod18's first run overlapped a diagnostic world load; lod25's first run died at its first
+# waitForFunction ("frame got detached") the second another headless Chrome was launched beside it
+# — two puppeteer launches within seconds of each other on this laptop kill one of the pages
+for v in lod18 lod25; do
+  say "trace $v (clean repeat)"; L=$(probe)
+  node gauntlet/scripts/perftrace.mjs --dist ".wt/w0116/dist-$v" --frames 2400 --width 1280 --height 720 --finish --label "0116-$v" --note "take-0116 (973a21e) variant $v (gauntlet/perf/r48/variants.json), clean repeat, no other Chrome launched; start load: $L" --out "$R/trace-0116-$v.json" 2>&1 | grep -E "wrote|Error|error:" | head -3
+done
 
 say "player strip (retry on detached frame)"; probe
 node site/tools/player-strip.mjs --dist .wt/w0116/dist --out "$R/player-0116" --settle 12 --attempts 5 2>&1 | grep -E "player-strip:" | tail -6
