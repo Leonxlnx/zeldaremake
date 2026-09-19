@@ -131,7 +131,9 @@ export function jointFillTones(palette: WorldConfig['palette']): { soil: Color; 
   // (round 33: the mossy earth × 1.3 and browner — lerp 0.56 → 0.42 to the deep green, × 1.15:
   // frame 14 s's gaps behind Link are sRGB 86,74,43 – 98,84,56 (hue 43°, B/R 0.5) where the old
   // turf rendered 59,56,36 – 67,67,40 (hue 52°, B/R 0.61): too dark and too grey-green)
-  const turf = new Color(TURF_BASE).lerp(new Color(palette.grassDeep), 0.42).multiplyScalar(1.15);
+  // (round 48: 0.42 / × 1.15 → 0.52 / × 0.7 — Y 0.123 → 0.062, G/R 0.58 → 0.66: the reference's
+  // sunlit joints are dark olive at 0.55 of the slab tops; ours rendered pale orange strips)
+  const turf = new Color(TURF_BASE).lerp(new Color(palette.grassDeep), 0.52).multiplyScalar(0.7);
   const turfMid = new Color(TURF_BASE_MID).lerp(new Color(palette.grassMid), 0.55);
   // the lawn pocket's ground: dark mossy earth under the lawn's tufts (round 13 — the damp seam
   // soil pulled 85 % to the deep grass green and dimmed to 0.6, sRGB ≈ 54,58,32), the shadowed
@@ -236,9 +238,15 @@ function buildGapField(bbox: { x0: number; x1: number; z0: number; z1: number },
 // (round 33: × 1.8 / × 1.65 linear — 0x523d25 / 0x6c5336 (lum 0.053 / 0.096) rendered the lit
 // plaza seams at sRGB 51,45,29 under the crevice tint where frame 1 s's lit seams are 110,94,61;
 // see CREVICE_TINT. The dry open dirt keeps its absolute colour: OPEN_TINT is the ratio.)
+// (round 48, opus-review #04 / fable-5's video-2 measurements: the joints at player height read
+// as bare orange mortar in the sun — the E foreground's joint band rendered l 0.356 against the
+// frame's 0.169, and the frames' joints are #575026 / #625332, a dark olive-brown at 0.55 of the
+// slab tops. The seam soil keeps its dark tone; the damp lift and the dry open dirt come down
+// (mid 0x8a6a45 → 0x7a5e3d, dry 0x9e7c4e → 0x836740) so a wide junction no longer dries out to
+// pale orange, and the mossy earth / field earth below are darker and greener.)
 export const JOINT_SOIL = 0x6e5232;
-export const JOINT_SOIL_MID = 0x8a6a45;
-export const JOINT_SOIL_DRY = 0x9e7c4e;
+export const JOINT_SOIL_MID = 0x7a5e3d;
+export const JOINT_SOIL_DRY = 0x836740;
 const TURF_BASE = 0x8a603f;
 const TURF_BASE_MID = 0xab8356;
 /** the open-soil lift of the width tint: the dry dirt over the seam soil, per (linear) channel */
@@ -299,12 +307,16 @@ export async function buildJointMesh(
   // (46 % in the 50° bin) — the unlifted earth was a fifth too dark in C's shade and its 50°
   // albedo renders 10° browner; nine tenths to the green, × 1.6 (albedo hue ≈ 62°, Y 0.11))
   const trodden = new Color(TURF_BASE).lerp(new Color(P.grassDeep), 0.9).multiplyScalar(1.6);
-  const fieldEarth = new Color(TURF_BASE).lerp(new Color(P.grassDeep), 0.22).multiplyScalar(1.12);
+  // (round 48: 0.22 / × 1.12 → 0.42 / × 0.66 — the field's 9–22 cm gaps were the "bare orange
+  // mortar" of opus-review #04 at w05 / w09 / w13; with the gaps at 4.5–11 cm the earth between the
+  // stones is the dark olive-brown of the frames' joints, and the field's tufts carry the green)
+  const fieldEarth = new Color(TURF_BASE).lerp(new Color(P.grassDeep), 0.42).multiplyScalar(0.66);
   // (the moss patches keep round 10's soil in their blend so the B/E fill does not shift)
   const mossD = new Color(P.mossDeep).lerp(new Color(TURF_BASE), 0.25);
   // round 48: the bark litter under the log's north lip — a red-brown a shade darker than the
   // seam soil (linear ≈ 0.115 / 0.062 / 0.036, hue 20°), the tone of the log's shed bark plates
   const barkLitter = new Color(0x5e3c22);
+  const deepGreen = new Color(P.grassDeep);
   const mossB = new Color(P.mossBright);
   const tmp = new Color();
   const tmp2 = new Color();
@@ -372,7 +384,9 @@ export async function buildJointMesh(
     const hollowW = hollowPath(x, z);
     if (hollowW > 0.001) {
       const litterN = noise.fbm(x * 2.1 + 23, z * 2.1 - 41, 2) * 0.5 + 0.5;
-      tmp2.copy(soil).lerp(soilMid, 0.35).multiplyScalar(0.8 + 0.45 * litterN);
+      // (round 48: × 0.8–1.25 → × 0.55–0.85 and a fifth toward the deep green — w13 / w16 read the
+      // hollow's earth as the brightest orange on the spine)
+      tmp2.copy(soil).lerp(soilMid, 0.35).lerp(deepGreen, 0.2).multiplyScalar(0.55 + 0.3 * litterN);
       tmp2.g *= 0.94 + 0.08 * litterN;
       tmp.lerp(tmp2, 0.7 * hollowW);
     }
