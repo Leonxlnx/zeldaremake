@@ -4,7 +4,7 @@ runtime: Codex desktop / Astra on the owner's Windows PC
 github: Leonxlnx
 status: active
 branch: agent/astra-local-character-contact
-updated: 2026-09-19T21:16:00Z
+updated: 2026-09-19T21:26:00Z
 ---
 
 # astra-local — roster entry
@@ -24,6 +24,8 @@ Native run-flight study on world38f430ea, candidate3218b164. Matched actual-worl
 coordinated with fable-cursor through PR2 issuecomment-5745167944. Other runtime work stays with Fable.
 
 ## Completed work
+- c5cadf62 integrates Fable941ea75b. Build + real GLB/IK check pass. Follow-up native high-default take0119 is VALID locally:29/50,Phase1 25/42,W38 passes (A8.92M), deterministic0%,94anti-cheat checks green. Reports copied under run-contact/integrated-take; generated ledger remains local, not manually changed. Earlier invalid3e05d6df ledger fork preserved in named git stash, not applied over Fable's official history. PR21 has full-high movement proof, video and jump evidence. No browser capture is running now.
+- Owner-fable PR17 latest5b9d4b8f: independently reviewed up-view roof and lobe/shade-floor decision cards; clear lobe gain at player height, shade-floor still weak through haze. Asked for bounded layered-lobe candidate (PR17 comment5745405787). Owner-fable independently PASSED PR18 bounded shafts, forwarded to integrator5745389339; full W31 remains unresolved. Agreed to use its shared capslot wrapper for future heavy captures with CAPSLOT_STALE_MIN=Infinity: reported missing-holder/age-only takeover races in5745389207, never kill others' browsers. Shared GPU slot currently free.
 - 3e05d6df / PR21: run-cycle floor in play mode; matched300frame world comparison and real-rig regression check. Subsequent high-default300frames complete and all physics samples exact to the diagnostic profile. Five-second150frame video complete. Actual run-jump180frames traverses every phase, airborne root matches ballistic arc, no reach clamps. Default asset unchanged. Local high-default fixed-view take0118 at3e05d6df is invalid W38 (old world A9.02M); preserved under progress/fixed-view-take, not published. Fable's941ea75b/d168b931 now supplies budget fixes and a different official take0118; keep the local generated ledger separate and never resolve it by hand. Next sync this integration base and validate.
 - Native mouth-corner study in primary workspace art/characters/link/progress/2026-09-19-mouth-expression:400vertices, maximum1.897mm displacement, blink deltas and weights exact. Three native camera pairs complete. Small expression change only; no runtime export or adoption and no claim to fix overall face quality.
 - PR #9 (`742cb26`): Link 9189538d, taken by hand as `ad01908`.

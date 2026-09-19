@@ -82,6 +82,8 @@ The subsequent [run-jump trace](game-jump/manifest.json) completes180frames thro
 
 The high-default fixed-view gauntlet also completed on3e05d6df with the default asset: six hero views, repeat and motion, determinism0%,93anti-cheat checks green. It is **invalid**, because this older world exceeds W38 at view A (9.02M triangles; budget9M). The score is28/50, Phase1 24/42. Fable's subsequent fern/north-paving fixes are not part of this matched source base. [Take and reports](fixed-view-take/take.json). Its local ledger id0118 is not a published/global sequence claim; the existing local ledger was appended by the gauntlet and is not manually edited or included in this PR.
 
+After merging Fable's world through941ea75b, build and the real-rig run check pass. The follow-up [integrated local take0119](integrated-take/take.json) atc5cadf62 is **valid**,29/50 (Phase1 25/42), no new regressions, W38 passes (A561draws /8.92M triangles), determinism0%,94anti-cheat checks green. The six image metrics match the preceding local capture to the displayed precision; the removed distant geometry was outside those views. This is a local attestation, not CI completion or a final-quality verdict. The existing default model is still24591126.
+
 ## Reproduce the candidate
 
 `export_candidate.py` combines the committed native animation carrier with the pinned baseline. It asserts the baseline hash, finite samples, unchanged rest transforms, constant STEP channels, preserved original binary prefix, untouched clips and non-leg run channels. Hips also stay byte-exact for the retained-hip candidate.
