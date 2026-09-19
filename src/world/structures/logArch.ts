@@ -797,10 +797,17 @@ export function buildLogArch(ctx: WorldContext, mats: StructureMaterials, rng: R
     return g + 0.6;
   };
   /** a hanging strand's length from `hook`, clamped so its tip stays over the walk floor (never shorter than 0.2 m: the hook sits inside the bark) */
+  /** the walk floor's highest value within `r` m of (x, z) — a strand's tip drifts that far from its hook */
+  const walkFloorAround = (x: number, z: number, r: number) => {
+    let f = walkFloorAt(x, z);
+    for (let i = 0; i < 4; i++) f = Math.max(f, walkFloorAt(x + r * Math.cos((i * Math.PI) / 2), z + r * Math.sin((i * Math.PI) / 2)));
+    return f;
+  };
   /** the tips of everything hung under the belly (audit: the least clearance over the strip) */
   const hungTips: Vector3[] = [];
+  /** a vine's length from `hook` (foliage.ts hangs it with up to ± 0.25 m of drift), clamped so its tip stays over the walk floor; never under 0.2 m (the hook sits inside the bark) */
   const hangLength = (hook: Vector3, want: number) => {
-    const len = Math.min(want, Math.max(0.2, hook.y - walkFloorAt(hook.x, hook.z)));
+    const len = Math.min(want, Math.max(0.2, hook.y - walkFloorAround(hook.x, hook.z, 0.35)));
     hungTips.push(new Vector3(hook.x, hook.y - len, hook.z));
     return len;
   };
@@ -1816,19 +1823,33 @@ export function buildLogArch(ctx: WorldContext, mats: StructureMaterials, rng: R
     const _rp = new Vector3();
     const hangRoot = (hook: Vector3, len: number, r0: number, seedI: number, depth: number) => {
       const n = 7;
-      const pts: Vector3[] = [];
+      let pts: Vector3[] = [];
       const drift = new Vector3((rootRng() - 0.5) * 0.35, 0, (rootRng() - 0.5) * 0.35);
       const kinkAt = 0.3 + rootRng() * 0.5;
       const kink = new Vector3((rootRng() - 0.5) * 0.3, 0, (rootRng() - 0.5) * 0.3);
-      for (let j = 0; j <= n; j++) {
-        const t = j / n;
-        const p = hook.clone();
-        p.y -= len * t;
-        p.addScaledVector(drift, t * t);
-        p.addScaledVector(kink, Math.exp(-Math.pow((t - kinkAt) / 0.18, 2)));
-        p.x += noise.noise(seedI * 1.7 + t * 3.1, 0.5) * 0.06 * t;
-        p.z += noise.noise(seedI * 2.3 + 9, t * 3.1) * 0.06 * t;
-        pts.push(p);
+      const strand = (length: number) => {
+        const out: Vector3[] = [];
+        for (let j = 0; j <= n; j++) {
+          const t = j / n;
+          const p = hook.clone();
+          p.y -= length * t;
+          p.addScaledVector(drift, t * t);
+          p.addScaledVector(kink, Math.exp(-Math.pow((t - kinkAt) / 0.18, 2)));
+          p.x += noise.noise(seedI * 1.7 + t * 3.1, 0.5) * 0.06 * t;
+          p.z += noise.noise(seedI * 2.3 + 9, t * 3.1) * 0.06 * t;
+          out.push(p);
+        }
+        return out;
+      };
+      pts = strand(len);
+      // the drift and kink carry the tip sideways — where that is toward the strip, the floor
+      // under the tip is higher than under the hook: shorten until the tip clears it (two passes)
+      for (let pass = 0; pass < 2; pass++) {
+        const tip = pts[n];
+        const floor = floorAt(tip.x, tip.z);
+        if (tip.y >= floor) break;
+        len = Math.max(0.12, len * ((hook.y - floor) / Math.max(1e-3, hook.y - tip.y)) * 0.98);
+        pts = strand(len);
       }
       const curve = new CatmullRomCurve3(pts, false, 'catmullrom', 0.5);
       const pale = 0.75 + rootRng() * 0.5;
