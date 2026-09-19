@@ -31,7 +31,21 @@ function taperedPath(centre: [number, number][], halfWidths: number[]): string {
   return pts.map(([x, y], i) => `${i ? 'L' : 'M'}${fmt(x)} ${fmt(y)}`).join(' ') + ' Z';
 }
 
-export function createItemSlot(count = 4): SVGSVGElement {
+/** The dark square inside the slot (design px, HUD space) — the 3-D thumbnail of a non-stick item is laid over it. */
+export const SLOT_SQUARE = { x: ITEM_BOX.x + 6, y: ITEM_BOX.y + 35, s: 84 };
+
+export interface ItemSlot {
+  svg: SVGSVGElement;
+  /**
+   * Show the stick (the hand-drawn default, `thumb` ignored) or another item's thumbnail canvas
+   * with an optional stack count. The default state draws exactly the pixels the HUD shipped with.
+   */
+  set(kind: 'stick' | 'thumb', count: number | undefined, thumb?: HTMLCanvasElement | null): void;
+  /** the absolutely positioned thumbnail host (a child of the HUD root, not of the svg) */
+  thumbHost: HTMLElement;
+}
+
+export function createItemSlot(count = 4): ItemSlot {
   const root = svgRoot([0, 0, ITEM_BOX.w, ITEM_BOX.h], { class: 'zr-hud-el zr-hud-item', 'aria-hidden': 'true' });
   root.appendChild(
     svgEl('defs', {}, [
@@ -132,10 +146,38 @@ export function createItemSlot(count = 4): SVGSVGElement {
   root.appendChild(stick);
 
   // --- count at the lower-right ----------------------------------------------------------------
-  root.appendChild(strokeText(69, 96, String(count), { size: 20, color: '#f3f0e8', weight: 2.7, outline: '#15120e', outlineWidth: 5.4 }).node);
+  const countOf = (n: number) => strokeText(69, 96, String(n), { size: 20, color: '#f3f0e8', weight: 2.7, outline: '#15120e', outlineWidth: 5.4 }).node;
+  let countNode: SVGGElement | null = countOf(count);
+  root.appendChild(countNode);
 
   // --- ZR tag below the square -----------------------------------------------------------------
   root.appendChild(buttonTag(46, 133.5, 'ZR', { w: 24, h: 15, glyph: 8, radius: 3 }));
 
-  return root;
+  // --- thumbnail host for the other items (hidden until one is equipped) ----------------------
+  const thumbHost = document.createElement('div');
+  thumbHost.className = 'zr-hud-slot-thumb';
+
+  return {
+    svg: root,
+    thumbHost,
+    set(kind, n, thumb) {
+      stick.style.display = kind === 'stick' ? '' : 'none';
+      if (countNode) {
+        countNode.remove();
+        countNode = null;
+      }
+      if (n !== undefined) {
+        countNode = countOf(n);
+        root.appendChild(countNode);
+      }
+      thumbHost.replaceChildren();
+      if (kind === 'thumb' && thumb) {
+        thumb.style.width = '100%';
+        thumb.style.height = '100%';
+        thumb.style.display = 'block';
+        thumbHost.appendChild(thumb);
+        thumbHost.dataset.on = '1';
+      } else delete thumbHost.dataset.on;
+    },
+  };
 }
