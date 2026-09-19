@@ -40,10 +40,10 @@ export const ROPE_REPEAT_METRES = 0.06;
  * The plank map is dark: linear mean (0.082, 0.058, 0.044). The boards' vertex colour carries
  * the lift — the lever the signpost's board (×4.5, a sun-bleached tan) and the fences (×0.58, dark
  * weathered posts) both use on this map. Crates and barrels sit between the two: a warm medium
- * brown of ≈ (0.16, 0.09, 0.05) linear (sRGB ≈ #6e573f) before the per-board stain (0.88–1.1)
+ * brown of ≈ (0.15, 0.08, 0.04) linear (sRGB ≈ #6b5238) before the per-board stain (0.88–1.1)
  * and the edge wear (+22 %). Measured: ×4.2 read as bleached driftwood in the plateau sun.
  */
-export const WOOD_TINT: [number, number, number] = [1.9, 1.6, 1.15];
+export const WOOD_TINT: [number, number, number] = [1.85, 1.42, 0.92];
 /** linear mean of the plank colour map (measured with sharp over the 1K file) */
 export const PLANK_MEAN: [number, number, number] = [0.082, 0.058, 0.044];
 
@@ -54,7 +54,7 @@ export const PLANK_MEAN: [number, number, number] = [0.082, 0.058, 0.044];
  * warmer, less leaf-filtered light — a pot in the porch's shade should still read terracotta.
  */
 export const WOOD_FLOOR: ShadeFloor = { lift: 9, texture: 1.0, canopy: 1, albedo: 0.1, chroma: 0.5 };
-export const CLAY_FLOOR: ShadeFloor = { lift: 8, texture: 1.0, canopy: 0.7, albedo: 0.12, chroma: 0.6 };
+export const CLAY_FLOOR: ShadeFloor = { lift: 4, texture: 1.0, canopy: 0.6, albedo: 0.12, chroma: 0.8 };
 export const ROPE_FLOOR: ShadeFloor = { lift: 6, texture: 1.0, canopy: 1, albedo: 0.1, chroma: 0.5 };
 
 const clamp01 = (v: number) => (v < 0 ? 0 : v > 1 ? 1 : v);

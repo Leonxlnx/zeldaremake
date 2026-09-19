@@ -66,7 +66,7 @@ export const PROP_LAYOUT: readonly PropDef[] = [
   { id: 'upper-barrel', kind: 'barrel', x: 18.55, z: -9.15, size: 0.8, yaw: 0.9, cluster: 'plateau' },
   { id: 'upper-bucket', kind: 'bucket', x: 19.3, z: -10.7, size: 0.51, yaw: -0.4, cluster: 'plateau' },
   { id: 'upper-storage-pot', kind: 'pot', x: 20.15, z: -10.35, size: 0.66, yaw: 0.8, cluster: 'plateau', variant: 1 },
-  { id: 'upper-pot-squat', kind: 'pot', x: 20.05, z: -9.2, size: 0.44, yaw: -2.0, cluster: 'plateau', variant: 2 },
+  { id: 'upper-pot-squat', kind: 'pot', x: 19.85, z: -8.85, size: 0.44, yaw: -2.0, cluster: 'plateau', variant: 2 },
 
   // ---- a rope-and-plank ladder against the upper house's trunk, viewer's right of its door
   // (between the roots at a ≈ 0.8 and 1.97 rad), the crossbar pegged 3.4 m up
