@@ -1592,6 +1592,7 @@ export async function loadGlbLink(url: string, opts: GlbLinkOptions = {}): Promi
     }
     mixer.update(0);
   }
+  const runFloor = Math.min(...pathTable.run[0].soleY, ...pathTable.run[1].soleY);
 
   const asset: LinkAssetInfo = {
     file,
@@ -1842,9 +1843,14 @@ export async function loadGlbLink(url: string, opts: GlbLinkOptions = {}): Promi
       }
       const lower = legs[0].soleP.y <= legs[1].soleP.y ? 0 : 1;
       const soleMin = legs[lower].soleP.y;
+      // Running has flight: grounding the lowest sole every frame converts its lift into a
+      // downward body bob. Fade to the authored cycle floor with the run action in play mode;
+      // never raise the floor through a sole. Walk, stairs and fixed captures retain their rule.
+      const runWeight = loco ? actions.get('run')!.action.weight : 0;
+      const soleFloor = soleMin - runWeight * Math.max(0, soleMin - placed - runFloor);
       for (let i = 0; i < 2; i++) {
         const leg = legs[i];
-        leg.contact = 1 - MathUtils.smoothstep(leg.soleP.y - soleMin, CONTACT_LIFT0, CONTACT_LIFT1);
+        leg.contact = 1 - MathUtils.smoothstep(leg.soleP.y - soleFloor, CONTACT_LIFT0, CONTACT_LIFT1);
 
         // 2. each foot, per active clip, from the clip's swing table — never from which sole
         // happens to be lower (at double support that flips between frames, and the two feet may
@@ -2182,7 +2188,7 @@ export async function loadGlbLink(url: string, opts: GlbLinkOptions = {}): Promi
         leg.rootAtLand = r1;
       }
       const gMin = Math.min(legs[0].gRoot, legs[1].gRoot);
-      const shift = gMin - soleMin;
+      const shift = gMin - soleFloor;
       root.position.y += shift;
       for (const leg of legs) {
         leg.hip.y += shift;

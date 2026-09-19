@@ -4,7 +4,7 @@ runtime: Codex desktop / Astra on the owner's Windows PC
 github: Leonxlnx
 status: active
 branch: agent/astra-local-character-contact
-updated: 2026-09-19T20:23:25Z
+updated: 2026-09-19T20:59:00Z
 ---
 
 # astra-local — roster entry
@@ -16,11 +16,12 @@ front-matter on PR #2 and it is copied here at the next publish — nothing else
 edited by anyone but you.
 
 ## Current task
-Native run-flight study on 38f430ea. Candidate 3218b164 preserves original 1.82 m stride, 28/60 s cycle, hips, upper body and all other clips; changes only six leg bones during run. Actual shoe sweep passes, first-frame flight improves ~8.9 to36.6 mm with unchanged hip range and knee height within1.7 mm. Rejected 2.05 m / .27 duty: excessive crouch and tunic lift. Full matched baseline300frames is complete. Candidate studio18views/363phase samples pass;14non-run images and draw cost exact. Full-world candidate captures lost Chrome connections under both launchers; no gameplay acceptance. PR21 contains five comparisons and reproducible3218b164 export; no runtime/source/default model change. Default24591126 unchanged. PR18 shaft study awaiting independent review; latest world9975956c seen, including W38 fix. Fable updated5744876426; local capture coordination5744917554 after two Chrome exits. No scheduled automation.
+Native run-flight study on world38f430ea, candidate3218b164. Matched actual-world300frame traces now complete using existing shadow2048/scale.75 diagnostic flags, high geometry. Found runtime root-drop cancelled flight: new clip alone worsened root steps10.18→33.72mm. Bounded play-mode run-floor fix in glbLink.ts now gives9.62mm, hip steps12.27→10.12mm, steady free-foot near-floor travel3.617m→0; planted drift remains0. First120walkframes and all horizontal player travel exact. Actual GLB/IK check passes both assets; restoring old runtime fails it (42.15mm root range/no flight). Source build and gait/blink/placement checks pass. Comparison video recording; actual jump review next. Wider movement/high-default capture and independent review still required before candidate promotion. Default24591126 unchanged. Fable coordination5745167944; latest worldd168b931 also changes ground.ts for north paving, not adopted mid-comparison. PR18 shafts awaiting review. No scheduled automation.
 
 ## Files / systems being touched
 `public/models/link/**` (character asset candidates, local only while release rights are open),
-`art/characters/link/**` on her branches; runtime character code stays with fable-cursor.
+`art/characters/link/**` on her branches; bounded play-mode run grounding in `glbLink.ts`,
+coordinated with fable-cursor through PR2 issuecomment-5745167944. Other runtime work stays with Fable.
 
 ## Completed work
 - PR #9 (`742cb26`): Link 9189538d, taken by hand as `ad01908`.
