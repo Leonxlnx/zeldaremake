@@ -15,6 +15,7 @@ export const state = {
   reelIndex: -1,
   reelPlaying: false,
   refFrame: null, // reference-only frame shown on the empty stage (viewpoint id)
+  evidenceSet: null, // evidence gallery: the open set's id (null = the current take's round, else the newest)
 };
 
 const HASH_KEYS = ['takeId', 'viewpoint', 'mode', 'view'];

@@ -3,10 +3,14 @@
  * Headless-Chrome screenshots of the Director's Monitor for visual QA.
  *
  *   node site/dev/screenshot.mjs [--url http://127.0.0.1:8787] [--out /tmp/site-shots] [--empty-dist /tmp/site-dist-empty]
+ *        [--take take-0013] [--prev take-0012] [--struck take-0008]
  *
  * Captures 1440×900 shots of every main state, logs console errors / page errors, and exits
  * non-zero if any JS error occurred. The empty state is served from a `site/build.mjs` output
  * built with a nonexistent data dir (pass --empty-dist to point at it, or it is built here).
+ * `--take` / `--prev` name the take the shots open and the one ArrowLeft must reach (the mock
+ * data's take-0013 / take-0012 by default; the real monitor data's newest pair otherwise);
+ * `--struck` a struck take (skipped when absent from the data).
  */
 import fs from 'node:fs';
 import path from 'node:path';
@@ -20,6 +24,9 @@ const args = parseArgs(process.argv.slice(2));
 const URL_BASE = (args.url || 'http://127.0.0.1:8787').replace(/\/$/, '');
 const OUT = path.resolve(args.out || '/tmp/site-shots');
 const EMPTY_DIST = path.resolve(args['empty-dist'] || '/tmp/site-dist-empty');
+const TAKE = args.take || 'take-0013';
+const PREV = args.prev || 'take-0012';
+const STRUCK = args.struck || 'take-0008';
 const W = 1440, H = 900;
 
 function parseArgs(argv) {
@@ -40,8 +47,10 @@ const errors = [];
 async function openPage(browser, url, { width = W, height = H } = {}) {
   const page = await browser.newPage();
   await page.setViewport({ width, height, deviceScaleFactor: 1 });
-  // Probing reference/frames/timeline/ without an index.json legitimately ends in one 404.
-  const EXPECTED_404 = /\/data\/reference\/frames\/timeline\/(t_\d+\.jpg|index\.json)(\?|$)/;
+  // Probing reference/frames/timeline/ without an index.json legitimately ends in one 404, and a
+  // data dir published before the evidence export existed has no evidence/index.json (the site
+  // shows its "no rounds" note; site/build.mjs writes an empty index for Pages builds).
+  const EXPECTED_404 = /\/data\/(reference\/frames\/timeline\/(t_\d+\.jpg|index\.json)|evidence\/index\.json)(\?|$)/;
   page.on('console', (m) => {
     const loc = m.location()?.url || '';
     if (m.type() === 'error') {
@@ -52,7 +61,7 @@ async function openPage(browser, url, { width = W, height = H } = {}) {
   });
   page.on('pageerror', (e) => { errors.push(`[pageerror] ${url} :: ${e.message}`); console.error(`  [pageerror] ${e.message}`); });
   page.on('requestfailed', (r) => { const f = r.failure()?.errorText || ''; if (!/ERR_ABORTED/.test(f)) console.warn(`  [requestfailed] ${r.url()} ${f}`); });
-  page.on('response', (r) => { if (r.status() >= 400 && !/timeline\/(t_\d+\.jpg|index\.json)/.test(r.url())) console.warn(`  [http ${r.status()}] ${r.url()}`); });
+  page.on('response', (r) => { if (r.status() >= 400 && !/timeline\/(t_\d+\.jpg|index\.json)|evidence\/index\.json/.test(r.url())) console.warn(`  [http ${r.status()}] ${r.url()}`); });
   await page.goto(url, { waitUntil: 'networkidle0', timeout: 60_000 });
   await page.waitForSelector('#slate-fields .sf', { timeout: 20_000 });
   await settle(page);
@@ -80,8 +89,8 @@ async function main() {
   const browser = await launchBrowser({ width: W, height: H });
   try {
     // --- populated site -------------------------------------------------------------------
-    console.log(`monitor @ ${URL_BASE}`);
-    let page = await openPage(browser, `${URL_BASE}/#take-0013/A_stairs/before`);
+    console.log(`monitor @ ${URL_BASE} (take ${TAKE}, previous ${PREV})`);
+    let page = await openPage(browser, `${URL_BASE}/#${TAKE}/A_stairs/before`);
     // move the wipe a bit so both halves are visible in the still
     await page.evaluate(() => {
       const st = document.querySelector('#stage .pane.is-wipe');
@@ -92,25 +101,28 @@ async function main() {
     await settle(page, 400);
     await shot(page, '01_monitor_before_after');
 
-    await page.evaluate(() => { location.hash = '#take-0013/A_stairs/reference'; });
+    await page.evaluate((t) => { location.hash = `#${t}/A_stairs/reference`; }, TAKE);
     await settle(page, 500);
     await shot(page, '02_monitor_reference');
 
-    await page.evaluate(() => { location.hash = '#take-0013/D_log/onion'; });
+    await page.evaluate((t) => { location.hash = `#${t}/D_log/onion`; }, TAKE);
     await settle(page, 500);
     await shot(page, '03_monitor_onion');
 
-    await page.evaluate(() => { location.hash = '#take-0013/B_house/side'; });
+    await page.evaluate((t) => { location.hash = `#${t}/B_house/side`; }, TAKE);
     await settle(page, 500);
     await shot(page, '04_monitor_side_by_side');
 
-    // struck take
-    await page.evaluate(() => { location.hash = '#take-0008/B_house/before'; });
-    await settle(page, 500);
-    await shot(page, '05_monitor_struck_take');
+    // struck take (when the data has one)
+    const hasStruck = await page.evaluate((id) => !!document.querySelector(`.thumb[data-take="${id}"]`), STRUCK);
+    if (hasStruck) {
+      await page.evaluate((s) => { location.hash = `#${s}/B_house/before`; }, STRUCK);
+      await settle(page, 500);
+      await shot(page, '05_monitor_struck_take');
+    } else console.log(`  (no struck take ${STRUCK} in this data — shot 05 skipped)`);
 
     // rubric board (scroll into view)
-    await page.evaluate(() => { location.hash = '#take-0013/A_stairs/before'; });
+    await page.evaluate((t) => { location.hash = `#${t}/A_stairs/before`; }, TAKE);
     await settle(page, 400);
     await page.evaluate(() => document.querySelector('#rubric').scrollIntoView({ block: 'start' }));
     await settle(page, 400);
@@ -121,7 +133,7 @@ async function main() {
 
     // reel view
     await page.evaluate(() => { document.querySelector('[data-filter="all"]').click(); window.scrollTo(0, 0); });
-    await page.evaluate(() => { location.hash = '#take-0013/A_stairs/before/reel'; });
+    await page.evaluate((t) => { location.hash = `#${t}/A_stairs/before/reel`; }, TAKE);
     await settle(page, 900);
     await shot(page, '08_reel_view');
     await page.evaluate(() => document.querySelector('[data-reel-play]').click());
@@ -134,17 +146,65 @@ async function main() {
     await shot(page, '09_reel_reference_reel');
 
     // keyboard: ArrowLeft steps takes in the monitor
-    await page.evaluate(() => { location.hash = '#take-0013/A_stairs/before'; });
+    await page.evaluate((t) => { location.hash = `#${t}/A_stairs/before`; }, TAKE);
     await settle(page, 300);
     await page.keyboard.press('ArrowLeft');
     await settle(page, 200);
     const hashAfterKey = await page.evaluate(() => location.hash);
     console.log(`  ArrowLeft → ${hashAfterKey}`);
-    if (!hashAfterKey.startsWith('#take-0012/')) errors.push(`keyboard step failed: ${hashAfterKey}`);
+    if (!hashAfterKey.startsWith(`#${PREV}/`)) errors.push(`keyboard step failed: ${hashAfterKey}`);
+
+    // --- the director's cut -------------------------------------------------------------------
+    await page.evaluate((t) => { location.hash = `#${t}/A_stairs/before`; window.scrollTo(0, 0); }, TAKE);
+    await settle(page, 400);
+    const cutTake = await page.evaluate(() => document.querySelector('#cut .cut-take')?.textContent || '');
+    const wantTake = `T${String(Number(TAKE.replace(/^take-/, ''))).padStart(2, '0')}`; // cut.js pads to two digits
+    if (cutTake !== wantTake) errors.push(`director's cut shows ${cutTake}, expected ${wantTake} (${TAKE})`);
+    const cut = await page.evaluate(() => ({ headline: document.querySelector('#cut .cut-h')?.textContent || '', chips: document.querySelectorAll('#cut .cut-delta').length, play: document.querySelector('#play-link')?.textContent?.trim() || '' }));
+    console.log(`  cut → "${cut.headline.slice(0, 80)}…" · ${cut.chips} delta chips · play link "${cut.play}"`);
+    if (!cut.headline) errors.push('director\'s cut has no headline');
+    await shot(page, '13_directors_cut', { clip: { x: 0, y: 0, width: W, height: 300 } });
+
+    // the player strip (a note when no take carries one)
+    await page.evaluate(() => document.querySelector('#player').scrollIntoView({ block: 'start' }));
+    await settle(page, 500);
+    const poses = await page.evaluate(() => document.querySelectorAll('#player .pose').length);
+    console.log(`  player strip → ${poses} pose(s)`);
+    await shot(page, '14_player_strip');
+    if (poses) {
+      await page.evaluate(() => document.querySelector('#player .pose').click());
+      await settle(page, 500);
+      await shot(page, '15_lightbox_pose');
+      await page.keyboard.press('Escape');
+      await settle(page, 200);
+    }
+
+    // the evidence gallery (a note when no set is published)
+    await page.evaluate(() => document.querySelector('#evidence').scrollIntoView({ block: 'start' }));
+    await settle(page, 900);
+    const ev = await page.evaluate(() => ({ sets: document.querySelectorAll('#evidence .ev-chip').length, cards: document.querySelectorAll('#evidence .ev-card').length, md: (document.querySelector('#evidence .ev-md')?.textContent || '').length }));
+    console.log(`  evidence → ${ev.sets} set(s), ${ev.cards} card(s), review text ${ev.md} chars`);
+    await shot(page, '16_evidence_gallery');
+    if (ev.cards) {
+      const pair = await page.evaluate(() => { const c = document.querySelector('#evidence .ev-card.has-before') || document.querySelector('#evidence .ev-card'); c.click(); return c.classList.contains('has-before'); });
+      await settle(page, 500);
+      await shot(page, '17_lightbox_sheet');
+      if (pair) {
+        await page.keyboard.press('Space');
+        await settle(page, 300);
+        const tag = await page.evaluate(() => document.querySelector('#lightbox .lb-tag')?.textContent || '');
+        console.log(`  lightbox A/B → "${tag}"`);
+        if (!/before/i.test(tag)) errors.push(`lightbox A/B toggle did not switch to before: "${tag}"`);
+      }
+      await page.keyboard.press('Escape');
+      await settle(page, 200);
+      const open = await page.evaluate(() => !document.querySelector('#lightbox').hidden);
+      if (open) errors.push('lightbox did not close on Escape');
+    }
 
     // mobile width
     await page.setViewport({ width: 390, height: 844, deviceScaleFactor: 1 });
-    await page.evaluate(() => { location.hash = '#take-0013/A_stairs/before'; window.scrollTo(0, 0); });
+    await page.evaluate((t) => { location.hash = `#${t}/A_stairs/before`; window.scrollTo(0, 0); }, TAKE);
     await settle(page, 500);
     await shot(page, '10_mobile_390', { fullPage: false });
     await page.close();

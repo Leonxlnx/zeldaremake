@@ -1,0 +1,10 @@
+# local artefacts of the round-48 matrix: full-size capture PNGs, the player-strip frames, logs, session launchers
+cap-*/*.png
+cap-*/*.log
+cap-*/audit.json
+cap-*/checks.json
+player-0116/
+views-0116/*.png
+ablate-A/*.png
+*.log
+launch-*.sh

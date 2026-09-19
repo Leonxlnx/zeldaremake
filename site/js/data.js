@@ -2,6 +2,7 @@
 // https://<user>.github.io/zeldaremake/) and derives the cross-take relations the UI needs.
 
 import { toDate, agentColor } from './util.js';
+import { headlineOf, roundOf } from './headline.js';
 
 // Data base: relative on GitHub Pages / local. On raw CDN mirrors (githack/jsdelivr/statically) read
 // straight from the monitor branch on raw.githubusercontent.com so hourly takes appear within ~5 min.
@@ -44,20 +45,74 @@ async function fetchJson(url, fallback) {
 }
 
 export async function loadAll() {
-  const [takes, rubric, agents] = await Promise.all([
+  const [takes, rubric, agents, evidence] = await Promise.all([
     fetchJson(`${DATA_BASE}takes.json`, EMPTY_TAKES),
     fetchJson(`${DATA_BASE}rubric.json`, null),
     fetchJson(`${DATA_BASE}agents.json`, { agents: [] }),
+    fetchJson(`${DATA_BASE}evidence/index.json`, null),
   ]);
   return normalise({
     takes: takes.value || EMPTY_TAKES,
     rubric: rubric.value,
     agents: agents.value || { agents: [] },
-    missing: { takes: takes.missing, rubric: takes.missing && rubric.missing ? true : rubric.missing, agents: agents.missing },
+    evidence: evidence.value,
+    missing: { takes: takes.missing, rubric: takes.missing && rubric.missing ? true : rubric.missing, agents: agents.missing, evidence: evidence.missing },
   });
 }
 
-export function normalise({ takes, rubric, agents, missing = {} }) {
+/**
+ * The evidence index (data/evidence/index.json, written by monitor.mjs syncEvidence): sets sorted
+ * newest round first, surveys after the rounds; before/after pairs indexed per set.
+ */
+export function normaliseEvidence(ev) {
+  const num = (v) => (Number.isFinite(Number(v)) && Number(v) > 0 ? Number(v) : null);
+  const sets = Array.isArray(ev?.sets)
+    ? ev.sets.filter((s) => s && typeof s.id === 'string').map((s) => ({
+        ...s,
+        round: Number.isFinite(Number(s.round)) ? Number(s.round) : null,
+        takes: Array.isArray(s.takes) ? s.takes.filter((x) => typeof x === 'string') : [],
+        sheets: Array.isArray(s.sheets) ? s.sheets.filter((x) => x && typeof x.file === 'string').map((x) => ({ ...x, w: num(x.w), h: num(x.h), bytes: num(x.bytes) })) : [],
+      }))
+    : [];
+  if (!sets.length) return null;
+  const rank = (s) => (s.kind === 'survey' ? 0 : 1) * 10_000 + (Number(s.round) || 0);
+  sets.sort((a, b) => rank(b) - rank(a));
+  for (const s of sets) {
+    s.pairs = {};
+    for (const sh of s.sheets) if (sh.pairKey && sh.pairRole) (s.pairs[sh.pairKey] ??= {})[sh.pairRole] = sh;
+  }
+  const source = ev.source || null;
+  if (source && !source.shortSha && source.sha) source.shortSha = String(source.sha).slice(0, 7);
+  return { generatedAt: ev.generatedAt || null, source, sets, byId: Object.fromEntries(sets.map((s) => [s.id, s])) };
+}
+
+/** The evidence set that belongs to a take: same round, or a set whose README names the take. */
+export function evidenceSetFor(data, take) {
+  const ev = data.evidence;
+  if (!ev || !take) return null;
+  if (take.round != null) {
+    const byRound = ev.sets.find((s) => s.kind !== 'survey' && s.round === take.round);
+    if (byRound) return byRound;
+  }
+  return ev.sets.find((s) => Array.isArray(s.takes) && s.takes.includes(take.id)) || null;
+}
+
+/**
+ * The player strip to show for a take: its own (data/takes/<id>/player/), else the nearest earlier
+ * take's (`borrowed`), plus the strip before that one for before/after comparison.
+ */
+export function playerStripFor(data, take) {
+  if (!take) return null;
+  const has = (t) => Array.isArray(t?.player?.poses) && t.player.poses.length > 0;
+  let owner = null;
+  for (let i = take.index; i >= 0; i--) if (has(data.takes[i])) { owner = data.takes[i]; break; }
+  if (!owner) return null;
+  let previous = null;
+  for (let i = owner.index - 1; i >= 0; i--) if (has(data.takes[i])) { previous = data.takes[i]; break; }
+  return { owner, borrowed: owner !== take, previous, poses: owner.player.poses };
+}
+
+export function normalise({ takes, rubric, agents, evidence = null, missing = {} }) {
   const list = Array.isArray(takes?.takes) ? takes.takes.slice() : [];
   list.sort((a, b) => (toDate(a.at)?.getTime() ?? 0) - (toDate(b.at)?.getTime() ?? 0));
 
@@ -100,6 +155,14 @@ export function normalise({ takes, rubric, agents, missing = {} }) {
     t.shots = Array.isArray(t.shots) ? t.shots : [];
     t.shotBy = Object.fromEntries(t.shots.map((s) => [s.viewpoint, s]));
     t.valid = t.valid !== false;
+    // the director's cut: takes published before monitor.mjs stored these derive them here
+    if (!t.headline) t.headline = headlineOf(t.note, t.subject);
+    if (t.round == null) t.round = roundOf(t.note, t.subject);
+    // only well-formed poses survive (name + file strings); an empty strip is no strip
+    if (t.player && Array.isArray(t.player.poses)) {
+      const poses = t.player.poses.filter((p) => p && typeof p.name === 'string' && typeof p.file === 'string');
+      t.player = poses.length ? { ...t.player, poses } : null;
+    } else t.player = null;
     byId[t.id] = t;
   });
   for (const t of list) {
@@ -140,6 +203,9 @@ export function normalise({ takes, rubric, agents, missing = {} }) {
     agents: (agents?.agents || []).map((a) => ({ ...a, color: colorOf(a.agent) })),
     agentIds,
     colorOf,
+    evidence: normaliseEvidence(evidence),
+    // the walkable build under play/ (monitor.mjs syncPlayBuild): which take's build it is
+    play: takes?.play && takes.play.sha ? { ...takes.play, shortSha: takes.play.shortSha || String(takes.play.sha).slice(0, 7) } : null,
     missing,
   };
 }

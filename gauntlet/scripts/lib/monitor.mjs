@@ -5,10 +5,13 @@
  */
 import fs from 'node:fs';
 import path from 'node:path';
+import crypto from 'node:crypto';
 import { execFileSync } from 'node:child_process';
 import sharp from 'sharp';
-import { ROOT, MONITOR_DIR, DIST_DIR, AGENTS_DIR, RUBRIC_PATH, REFERENCE_FRAMES, readJson, writeJson, rel } from './paths.mjs';
+import { ROOT, MONITOR_DIR, DIST_DIR, AGENTS_DIR, RUBRIC_PATH, REFERENCE_FRAMES, OUT_DIR, readJson, writeJson, rel } from './paths.mjs';
 import { loadLedger, saveLedger, mergeLedgers, entryIdentity } from './ledger.mjs';
+// the director's-cut fields are derived by the same code the site uses for takes published before them
+import { headlineOf, roundOf } from '../../../site/js/headline.js';
 
 /**
  * Layout of the monitor branch: it is the DEPLOYED Director's Monitor — the static site files from
@@ -17,6 +20,10 @@ import { loadLedger, saveLedger, mergeLedgers, entryIdentity } from './ledger.mj
  */
 export const MONITOR_DATA_SUBDIR = 'data';
 export const monitorDataDir = (monitorDir = MONITOR_DIR) => path.join(monitorDir, MONITOR_DATA_SUBDIR);
+/** data/evidence/<set>/ — the per-round sheets and survey reports exported from art/environment/ (site/SCHEMA.md) */
+export const EVIDENCE_SUBDIR = 'evidence';
+/** data/takes/<id>/player/ — the "what the player sees" strip of a take (site/tools/player-strip.mjs) */
+export const PLAYER_SUBDIR = 'player';
 
 const SITE_DIR = path.join(ROOT, 'site');
 const SITE_STATIC = ['index.html', 'app.js', 'styles.css', 'js', 'assets'];
@@ -289,6 +296,11 @@ export function buildTakeRecord({ entry, takeDir, rubric, previous = null, callo
     phase,
     items: entry.items,
     note: entry.note,
+    // the director's cut: the note's first sentence as the take's headline, the round it belongs to,
+    // and the player-height strip (filled by applyToMonitor when the capture directory carries one)
+    headline: headlineOf(entry.note, entry.subject),
+    round: roundOf(entry.note, entry.subject),
+    player: null,
     slate: { scene: sceneVp.charAt(0), sceneTitle: sceneMeta?.label ?? sceneVp, take: entry.number, director: entry.agent, camera: `${rendererShort(stats.renderer)} · ${stats.width ?? 1280}×${stats.height ?? 720}`, roll: `phase-${phase}` },
     shots,
     score: { passed: score.passed, total: score.total, phaseRequired: score.phaseRequired, phasePassed: score.phasePassed, items },
@@ -340,11 +352,34 @@ export async function applyToMonitor({ monitorDir = MONITOR_DIR, localLedgerPath
     const src = path.join(takeDir, f);
     if (fs.existsSync(src)) fs.copyFileSync(src, path.join(dest, f));
   }
+  // the "what the player sees" strip: player-height frames rendered by site/tools/player-strip.mjs
+  // from the SAME commit, staged where take.mjs's capture-directory rotation cannot move them
+  // (gauntlet/out/player — take.mjs captures into a fresh dir and rotates it into out/last, so a
+  // strip written into out/last beforehand never reaches the published dir) or inside the capture
+  // dir itself; a strip rendered from another commit (index.json `sha`) is refused
+  for (const playerSrc of [path.join(takeDir, PLAYER_SUBDIR), path.join(OUT_DIR, PLAYER_SUBDIR)]) {
+    if (!fs.existsSync(path.join(playerSrc, 'index.json'))) continue;
+    try {
+      record.player = await syncPlayerStrip({ monitorDir, takeId, framesDir: playerSrc, expectSha: sealed.sha ?? null, log });
+      if (record.player) {
+        log(`monitor: player strip — ${record.player.count} pose(s) from ${rel(playerSrc)} under data/takes/${takeId}/${PLAYER_SUBDIR}/`);
+        break;
+      }
+    } catch (e) {
+      log(`monitor: player strip skipped — ${e.message}`);
+      fs.rmSync(path.join(dataDir, 'takes', takeId, PLAYER_SUBDIR), { recursive: true, force: true });
+      record.player = null;
+    }
+  }
   takes.takes.push(record);
   takes.takes.sort((a, b) => (a.at < b.at ? -1 : a.at > b.at ? 1 : 0));
   takes.updatedAt = new Date().toISOString();
   takes.monitorCadenceMinutes ??= 60;
   takes.project ??= 'zeldaremake';
+  // the walkable build under play/ must be the build that was captured: callers pass the dist
+  // they captured from (take.mjs verifies its hash against stats.distHash first); takes.json
+  // records which take's build it is so the site can pin its play link to that SHA
+  if (syncPlayBuild(monitorDir, distDir)) takes.play = { takeId, sha: sealed.sha ?? null, shortSha: sealed.shortSha ?? (sealed.sha ? String(sealed.sha).slice(0, 7) : null), branch: sealed.branch ?? null, at: takes.updatedAt, path: 'play/index.html' };
   writeJson(path.join(dataDir, 'takes.json'), takes);
   writeJson(path.join(dataDir, 'agents.json'), buildAgentsJson());
   fs.copyFileSync(RUBRIC_PATH, path.join(dataDir, 'rubric.json'));
@@ -365,10 +400,164 @@ export async function applyToMonitor({ monitorDir = MONITOR_DIR, localLedgerPath
   }
   fs.writeFileSync(path.join(monitorDir, 'README.txt'), `Director's Monitor — deployed site (root) + data (data/). Written only by gauntlet/scripts/take.mjs --publish and CI. See site/SCHEMA.md on the code branch. Do not edit by hand.\n`);
   syncSiteFiles(monitorDir);
-  // the walkable build under play/ must be the build that was captured: callers pass the dist
-  // they captured from (take.mjs verifies its hash against stats.distHash first)
-  syncPlayBuild(monitorDir, distDir);
+  // the evidence gallery: the rounds' before/after sheets and the survey reports from the code
+  // branch, downscaled once (idempotent by content hash); never a reason for a publish to fail
+  try {
+    const ev = await syncEvidence(monitorDir, { log });
+    if (ev.index) log(`monitor: evidence — ${ev.index.sets.length} set(s), ${ev.converted} sheet(s) converted`);
+  } catch (e) {
+    log(`monitor: evidence export skipped — ${e.message}`);
+  }
   return { takeId, record, takes };
+}
+
+/* ------------------------------------------------------------------ the director's cut extras */
+
+const EVIDENCE_DIR_RE = /^(?:round(\d+)-review|survey(\d+))$/;
+const SURVEY_POSE_RE = /\b(w\d\d-(?:spine|house|stairs|plateau)-[flrdu]|x\d\dd-[a-z0-9]+|sn-[a-z]+(?:-(?!before\b|after\b|crop\b)[a-z]+)*)/;
+
+/**
+ * What an evidence sheet's file name says: `<lane><round>-<pose|topic>[-before|-after].jpg` —
+ * `trees29-w07-spine-l.jpg`, `character9-stairs-peak-after.jpg`, `r45-sn-boulder-stairfoot.jpg`,
+ * `survey2-01-column-trees.jpg`. The lane keeps its digits in `laneRaw`; before/after pairs share a
+ * `pairKey`.
+ */
+export function parseSheetName(file) {
+  const name = path.basename(String(file)).replace(/\.[^.]+$/, '');
+  const pair = /^(.*?)[-_](before|after)$/i.exec(name);
+  const pairKey = pair ? pair[1] : null;
+  const pairRole = pair ? pair[2].toLowerCase() : null;
+  const laneRaw = (/^([a-z]+\d*)(?=[-_]|$)/i.exec(name)?.[1] ?? '').toLowerCase() || null;
+  let lane = laneRaw ? laneRaw.replace(/\d+$/, '') : null;
+  if (laneRaw && /^r\d+$/.test(laneRaw)) lane = 'round';
+  const pose = SURVEY_POSE_RE.exec(name)?.[1] ?? null;
+  return { name, lane, laneRaw, pose, pairKey, pairRole };
+}
+
+function sha16(file) {
+  return crypto.createHash('sha256').update(fs.readFileSync(file)).digest('hex').slice(0, 16);
+}
+
+function gitHead(cwd) {
+  const sha = tryGit(['rev-parse', 'HEAD'], { cwd, quiet: true });
+  const branch = tryGit(['rev-parse', '--abbrev-ref', 'HEAD'], { cwd, quiet: true });
+  return { sha: typeof sha === 'string' ? sha.trim() : null, shortSha: typeof sha === 'string' ? sha.trim().slice(0, 7) : null, branch: typeof branch === 'string' ? branch.trim() : null };
+}
+
+/** when a path was last committed (git does not keep mtimes; a checkout's are the checkout time), or null */
+function gitDate(cwd, relPath) {
+  const d = tryGit(['log', '-1', '--format=%cI', '--', relPath], { cwd, quiet: true });
+  return typeof d === 'string' && d.trim() ? new Date(d.trim()).toISOString() : null;
+}
+
+/** a pose / sheet file name that can only ever name a file inside its directory */
+const SAFE_NAME = /^[A-Za-z0-9][A-Za-z0-9._-]*$/;
+
+/**
+ * Export the evidence gallery: every `art/environment/round<N>-review/` and `survey<N>/` directory
+ * of the code checkout → `data/evidence/<dir>/` (images downscaled to `maxWidth` JPEG, the README /
+ * report copied) + `data/evidence/index.json` (site/SCHEMA.md). Idempotent: a sheet whose source
+ * content hash is unchanged is not converted again, so the hourly publish costs nothing once a
+ * round is in. Sets are never removed (the monitor is append-only). Returns { index, converted }.
+ */
+export async function syncEvidence(monitorDir = MONITOR_DIR, { root = ROOT, log = console.error, maxWidth = 1280, quality = 78 } = {}) {
+  const srcRoot = path.join(root, 'art', 'environment');
+  const outRoot = path.join(monitorDataDir(monitorDir), EVIDENCE_SUBDIR);
+  const indexPath = path.join(outRoot, 'index.json');
+  const prev = readJson(indexPath, null);
+  const prevSets = new Map((prev?.sets ?? []).map((s) => [s.id, s]));
+  if (!fs.existsSync(srcRoot)) return { index: prev, converted: 0, skipped: 'no art/environment in this checkout' };
+  let converted = 0;
+  const sets = [];
+  for (const dir of fs.readdirSync(srcRoot).sort()) {
+    const m = EVIDENCE_DIR_RE.exec(dir);
+    if (!m) continue;
+    const src = path.join(srcRoot, dir);
+    if (!fs.statSync(src).isDirectory()) continue;
+    const kind = m[1] ? 'round' : 'survey';
+    const round = Number(m[1] ?? m[2]);
+    const files = fs.readdirSync(src).sort();
+    const outDir = path.join(outRoot, dir);
+    fs.mkdirSync(outDir, { recursive: true });
+    const textFile = files.find((f) => /^readme\.md$/i.test(f)) ?? files.find(/report\.md$/i.test.bind(/report\.md$/i)) ?? files.find((f) => /\.md$/i.test(f)) ?? null;
+    let title = null;
+    let takes = [];
+    let text = null;
+    if (textFile) {
+      const md = fs.readFileSync(path.join(src, textFile), 'utf8');
+      title = /^#\s+(.+?)\s*$/m.exec(md)?.[1]?.replace(/`/g, '').trim() ?? null;
+      takes = [...new Set(md.match(/\btake-\d{4}\b/g) ?? [])].sort();
+      fs.copyFileSync(path.join(src, textFile), path.join(outDir, textFile));
+      text = `${EVIDENCE_SUBDIR}/${dir}/${textFile}`;
+    }
+    const prevSheets = new Map((prevSets.get(dir)?.sheets ?? []).map((s) => [s.source, s]));
+    const sheets = [];
+    for (const f of files) {
+      if (!/\.(jpe?g|png|webp)$/i.test(f) || !SAFE_NAME.test(f)) continue;
+      const srcFile = path.join(src, f);
+      const st = fs.statSync(srcFile);
+      const hash = sha16(srcFile);
+      const outName = f.replace(/\.[^.]+$/, '.jpg');
+      const dest = path.join(outDir, outName);
+      const old = prevSheets.get(f);
+      let meta;
+      if (old && old.hash === hash && fs.existsSync(dest) && Number.isFinite(old.w) && Number.isFinite(old.h)) meta = { w: old.w, h: old.h, bytes: old.bytes };
+      else {
+        // one undecodable sheet (a truncated drop, an unsupported format) must never take the set
+        // — or the publish — down: it is logged, its half-written output removed, and skipped
+        try {
+          const info = await sharp(srcFile).resize({ width: maxWidth, withoutEnlargement: true }).jpeg({ quality, mozjpeg: true }).toFile(dest);
+          meta = { w: info.width, h: info.height, bytes: info.size };
+          converted++;
+        } catch (e) {
+          log(`evidence: ${dir}/${f} skipped — ${String(e.message ?? e).split('\n')[0]}`);
+          fs.rmSync(dest, { force: true });
+          continue;
+        }
+      }
+      sheets.push({ file: `${EVIDENCE_SUBDIR}/${dir}/${outName}`, source: f, hash, srcBytes: st.size, ...parseSheetName(f), ...meta });
+    }
+    sets.push({ id: dir, kind, round, title: title ?? dir, text, takes, updatedAt: gitDate(root, path.posix.join('art', 'environment', dir)), sheets });
+  }
+  // sets that left the source stay published (append-only), after the live ones
+  for (const [id, s] of prevSets) if (!sets.some((x) => x.id === id)) sets.push(s);
+  const index = { generatedAt: new Date().toISOString(), source: gitHead(root), sets };
+  writeJson(indexPath, index);
+  return { index, converted };
+}
+
+/**
+ * Publish a take's "what the player sees" strip: `framesDir/index.json` ({ poses: [{ name, label, p,
+ * t, fov, file }], renderer, capturedAt, … } from site/tools/player-strip.mjs) + PNGs →
+ * `data/takes/<takeId>/player/<pose>.jpg` + index.json. Returns the takes.json `player` record.
+ */
+export async function syncPlayerStrip({ monitorDir = MONITOR_DIR, takeId, framesDir, expectSha = null, log = console.error, width = 1280, quality = 82 } = {}) {
+  const idx = readJson(path.join(framesDir, 'index.json'), null);
+  if (!idx || !Array.isArray(idx.poses) || !idx.poses.length) return null;
+  if (expectSha && idx.sha && idx.sha !== expectSha) {
+    log(`monitor: player strip in ${rel(framesDir)} was rendered from ${String(idx.sha).slice(0, 7)}, the take is ${String(expectSha).slice(0, 7)} — not published`);
+    return null;
+  }
+  const dest = path.join(monitorDataDir(monitorDir), 'takes', takeId, PLAYER_SUBDIR);
+  fs.mkdirSync(dest, { recursive: true });
+  const poses = [];
+  for (const p of idx.poses) {
+    if (!p?.name || !SAFE_NAME.test(String(p.name))) {
+      if (p?.name) log(`monitor: player strip — pose name "${p.name}" refused (letters, digits, . _ - only)`);
+      continue;
+    }
+    const srcFile = path.join(framesDir, path.basename(String(p.file ?? `${p.name}.png`)));
+    if (!fs.existsSync(srcFile)) {
+      log(`monitor: player strip — no frame for ${p.name}`);
+      continue;
+    }
+    await toJpeg(srcFile, path.join(dest, `${p.name}.jpg`), { width, quality });
+    poses.push({ name: p.name, label: p.label ?? p.name, file: `takes/${takeId}/${PLAYER_SUBDIR}/${p.name}.jpg`, p: p.p ?? null, t: p.t ?? null, fov: p.fov ?? null });
+  }
+  if (!poses.length) return null;
+  const record = { index: `takes/${takeId}/${PLAYER_SUBDIR}/index.json`, count: poses.length, renderer: idx.renderer ?? null, capturedAt: idx.capturedAt ?? null, sha: idx.sha ?? null, width: idx.width ?? null, height: idx.height ?? null, posesFile: idx.posesFile ?? null, poses };
+  writeJson(path.join(dest, 'index.json'), record);
+  return record;
 }
 
 /** Touch takes.json.updatedAt (heartbeat) without a new take. */
