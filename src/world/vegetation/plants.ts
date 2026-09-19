@@ -223,8 +223,11 @@ const PACKS: Record<string, PackLayout> = {
   moss: [ALL(2), SINGLE(2), SINGLE(2)],
   // the north corridor's fern / broad-leaf sets: the fixed cameras frame a handful of their far LODs
   // 20–30 m off (camera D: 3 fronds, 11 rosettes) — packed there, one draw a LOD instead of 2–3; the
-  // near fronds, which only the walk sees, stay one variant a draw like the disc ferns'
-  'ferns-north': [SINGLE(4), ALL(4), ALL(4)],
+  // near fronds, which only the walk sees, stay one variant a draw like the disc ferns'.
+  // Round 47: the north verge (vegetation-25) puts hundreds of mid-LOD fronds 20–35 m from camera A;
+  // packed, each submitted all four variants (ferns-north-lod1 0 → 89 K on A, W38 9.02 M > 9.0 M) —
+  // the mid LOD draws one variant a draw again (+3 draws, ≈ −66 K); the far LOD stays packed.
+  'ferns-north': [SINGLE(4), SINGLE(4), ALL(4)],
   'weeds-north': [ALL(3), ALL(3), ALL(3)],
   seedheads: [ALL(3), SINGLE(3)],
   // 428–856-triangle coils: per variant at both LODs (round 39: the one packed far draw submitted
