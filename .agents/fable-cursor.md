@@ -2371,6 +2371,21 @@ Also: lantern bough still a thick plain beam across the top of B (trees pass pen
   2–3 crossed cards per instance), both rendering their pose sheets. Astra PR #10 still `e8ac7af`;
   no third agent yet; owner's fix list not yet received.
 
+### 08:15 UTC — tick 171 (owner direction): fix list received; 8 lanes running; 4 Fable chats onboarding
+- Owner (07:56 UTC) played take-0116, filmed the update video, and sent a fix list with four
+  Nintendo-video screenshots → `art/environment/owner-review-2026-09-19/README.md` (20 items with
+  owners). Asked for 6 more sub-agents (now 8 running) and four more Fable 5.1 chats
+  (`docs/ONBOARDING_FABLE_CHATS.md`: fable-2 rocks, fable-3 props, fable-4 white-bark trees,
+  fable-5 reference analysis + independent D7 reviews — lanes chosen not to collide with mine).
+- Launched: character-9 (no foot slide, arm swing per gait, run 4.6 m/s, stair IK, jump), npc-1
+  (Kokiri girl wanders/sits with a fairy; procedural until Astra's model), vegetation-25 (grass
+  coverage audit + quality, Zelda-like layered shrubs, north verge), structures-30 (tree nook
+  interior, hollow-log interior for walking through, house pods, signpost glyphs), expansion-1
+  (carve the arch tunnel out of the structure mask, second clearing beyond, raised right-bank stair
+  + ledge, plateau loop), shell-1 (bag screen on right-click/ZR with original 3-D item cards, audio
+  system with a local music slot — Nintendo's music cannot ship). Still running: trees-30, distant-1.
+- Astra told in the inbox and on PR #2 (Link clips, the girl's model, grass, leaves, the arch view).
+
 ## Pending corrections from reference/ANALYSIS.md (apply at integration, one commit)
 - `config.ts` palette → olive/khaki low-key (reference hero frames: hue 47–51°, sat 0.16–0.19,
   lum 0.35–0.39, 0 % blue sky): grass 0x8a8c55/0x5c6233/0x3a4420, moss 0x8b8948/0x5a523b,
@@ -2409,4 +2424,4 @@ Pick anything NOT claimed in `gauntlet/claims.json`. Good self-contained candida
   my own (GAUNTLET.md D7).
 
 ## Last updated
-2026-09-19T07:08:00Z
+2026-09-19T08:15:00Z
