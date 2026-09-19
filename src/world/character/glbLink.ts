@@ -363,6 +363,18 @@ const STAIR_CLEAR_M = 0.05;
 const HIP_FLEX_MAX = MathUtils.degToRad(95);
 /** play mode: the fraction of a climbing swing by which the root has risen the riser (1 = at heel-strike, the capture rule) */
 const ROOT_RISE_END = 0.7;
+/**
+ * The knee turned out (round 47, play mode). The hero flight's riser (0.27 m) is 54 % of Link's
+ * leg (0.50 m): with the trailing foot on the lower tread the pelvis cannot be higher than that
+ * leg, so the leading leg, its foot a riser up, folds to ~155° at heel-strike whatever the root
+ * rise does — the geometry of a toddler on adult stairs, and the thigh runs into the tunic. A
+ * thigh folded past KNEE_OUT_FLEX swivels about its own hip → ankle line, the knee out to the
+ * side by KNEE_OUT_RATE of the excess (36° at 155°): the ankle — planted or not — does not move,
+ * the foot keeps its orientation (the ankle pivot undoes the swivel with the rest of the IK),
+ * and the thigh leaves the belly the way a child turns the knee out on a step too tall.
+ */
+const KNEE_OUT_FLEX = MathUtils.degToRad(110);
+const KNEE_OUT_RATE = 0.8;
 
 /**
  * Riser envelopes — a support under a point p that is a CONTINUOUS function of p although the
@@ -496,6 +508,8 @@ interface Leg {
   /** the rise (m) the active clips' swing of this foot climbs (take-off support → landing support; > 0 climbing), and the hip flexion clamped away (rad) */
   swingRise: number;
   hipClamp: number;
+  /** the knee-out swivel applied to this leg (rad; play mode, KNEE_OUT_*) */
+  kneeOut: number;
   /**
    * root-ease inputs (blended over the active clips): the supports at take-off / landing (both the
    * stance support for a foot in stance), the swing phase and its weight (0 in stance)
@@ -654,6 +668,7 @@ const _aim = new Vector3();
 const _normal = new Vector3();
 const _qIk = new Quaternion();
 const _qParent = new Quaternion();
+const _swivel = new Quaternion();
 const _qInv = new Quaternion();
 const _qPitch = new Quaternion();
 const _qLandTilt = new Quaternion();
@@ -1078,7 +1093,7 @@ function groundTilt(ground: GroundSampler, x: number, z: number, weight: number,
  * rotation the shin received. Returns how far (m) the target lay beyond the leg's reach (0 when
  * it was reachable).
  */
-function solveLeg(leg: Leg, target: Vector3, qIk: Quaternion): number {
+function solveLeg(leg: Leg, target: Vector3, qIk: Quaternion, swivel?: Quaternion): number {
   const H = leg.hip;
   const K = leg.kneeP;
   const A = leg.ankleP;
@@ -1113,6 +1128,8 @@ function solveLeg(leg: Leg, target: Vector3, qIk: Quaternion): number {
   _aim.normalize();
   _v.normalize();
   _q2.setFromUnitVectors(_v, _aim);
+  // an extra world rotation about the hip → ankle line (the knee turned out): the ankle stays put
+  if (swivel) _q2.premultiply(swivel);
   qIk.multiplyQuaternions(_q2, _q);
   // pivot locals: a world rotation R about a joint expressed in the joint's parent frame P is P⁻¹ R P
   leg.thighPivot.parent!.getWorldQuaternion(_qParent);
@@ -1397,6 +1414,7 @@ export async function loadGlbLink(url: string, opts: GlbLinkOptions = {}): Promi
       stance: true,
       swingRise: 0,
       hipClamp: 0,
+      kneeOut: 0,
       rootOff: 0,
       rootLand: 0,
       phase: 0,
@@ -1436,7 +1454,7 @@ export async function loadGlbLink(url: string, opts: GlbLinkOptions = {}): Promi
     { foot: 'L', soleY: 0, groundY: 0, gapM: 0, supportY: 0, minShoeGapM: 0, shiftM: 0, pitchRad: 0, correctionM: 0, pinM: 0, holdM: 0, soleX: 0, soleZ: 0, stance: true, pinLatM: 0 },
     { foot: 'R', soleY: 0, groundY: 0, gapM: 0, supportY: 0, minShoeGapM: 0, shiftM: 0, pitchRad: 0, correctionM: 0, pinM: 0, holdM: 0, soleX: 0, soleZ: 0, stance: true, pinLatM: 0 },
   ];
-  const plant: PlantInfo = { mode: 'two-bone', maxCorrectionM: 0, rootShiftM: 0, planted: 'L', reachClamped: false, reachClampedLeg: null, reachExcessM: 0, maxShiftM: 0, extraDropM: 0, attackDropM: 0, maxPinM: 0, maxHoldM: 0, blendClips: 1, hipClampRad: 0 };
+  const plant: PlantInfo = { mode: 'two-bone', maxCorrectionM: 0, rootShiftM: 0, planted: 'L', reachClamped: false, reachClampedLeg: null, reachExcessM: 0, maxShiftM: 0, extraDropM: 0, attackDropM: 0, maxPinM: 0, maxHoldM: 0, blendClips: 1, hipClampRad: 0, kneeOutRad: 0 };
   const cfgOff: FootConfig = { shift: 0, support: 0, pitch: 0, back: 0, ahead: 0 };
   const cfgLand: FootConfig = { shift: 0, support: 0, pitch: 0, back: 0, ahead: 0 };
   const spotNow = { x: 0, z: 0, yaw: 0 };
@@ -1969,6 +1987,7 @@ export async function loadGlbLink(url: string, opts: GlbLinkOptions = {}): Promi
         leg.stance = swingW < PIN_RELEASE;
         leg.swingRise = wsum > 0 ? swingRise / wsum : 0;
         leg.hipClamp = 0;
+        leg.kneeOut = 0;
         // round 47, play mode: the stance pin. A foot the blended clips have PLANTED (plantTable:
         // on the floor and moving back at the stride speed) is held where it planted — set on the
         // first planted frame at the foot's spot, the clip's sole plus its nosing shift — and
@@ -2284,8 +2303,8 @@ export async function loadGlbLink(url: string, opts: GlbLinkOptions = {}): Promi
       // shin's IK rotation on the foot and adds the slope tilt / nosing pitch (both in the knee frame)
       let reachExcess = 0;
       let reachLeg: 'L' | 'R' | null = null;
-      const solve = (leg: Leg) => {
-        const excess = solveLeg(leg, leg.target, _qIk);
+      const solve = (leg: Leg, swivel?: Quaternion) => {
+        const excess = solveLeg(leg, leg.target, _qIk, swivel);
         if (excess > reachExcess) {
           reachExcess = excess;
           reachLeg = leg.side;
@@ -2302,6 +2321,7 @@ export async function loadGlbLink(url: string, opts: GlbLinkOptions = {}): Promi
       }
       root.updateMatrixWorld(true);
       let hipClamp = 0;
+      let kneeOut = 0;
       if (loco) {
         // round 47, play mode: no SWING thigh past HIP_FLEX_MAX from the torso's down axis. The
         // solved thigh is measured (hip → knee, world); a swing leg past the limit has its whole
@@ -2351,6 +2371,29 @@ export async function loadGlbLink(url: string, opts: GlbLinkOptions = {}): Promi
             solve(leg);
           }
           if (hipClamp > 0) root.updateMatrixWorld(true);
+          // the knee turned out (KNEE_OUT_*): either leg, planted or swinging — the swivel about
+          // the hip → ankle line leaves the ankle where it is. The sign is the one that takes
+          // the knee away from the other leg (outward along the facing's side axis).
+          for (const leg of legs) {
+            leg.knee.getWorldPosition(_u).sub(leg.hip);
+            const kl = _u.length();
+            if (kl < 1e-6) continue;
+            const flex = Math.acos(MathUtils.clamp(_u.dot(_down) / kl, -1, 1));
+            if (flex <= KNEE_OUT_FLEX) continue;
+            const theta = (flex - KNEE_OUT_FLEX) * KNEE_OUT_RATE;
+            _aim.subVectors(leg.target, leg.hip);
+            if (_aim.lengthSq() < 1e-8) continue;
+            _aim.normalize();
+            const side = leg.side === 'L' ? 1 : -1;
+            _w.set(fz * side, 0, -fx * side);
+            _swivel.setFromAxisAngle(_aim, theta);
+            _v.copy(_u).applyQuaternion(_swivel).sub(_u);
+            if (_v.dot(_w) < 0) _swivel.setFromAxisAngle(_aim, -theta);
+            leg.kneeOut = theta;
+            if (theta > kneeOut) kneeOut = theta;
+            solve(leg, _swivel);
+          }
+          if (kneeOut > 0) root.updateMatrixWorld(true);
         }
       }
 
@@ -2411,6 +2454,7 @@ export async function loadGlbLink(url: string, opts: GlbLinkOptions = {}): Promi
       plant.maxHoldM = maxHold;
       plant.blendClips = blendClips;
       plant.hipClampRad = hipClamp;
+      plant.kneeOutRad = kneeOut;
       contact.set(reported.soleP.x + fx * reported.contactOff, reported.soleP.y, reported.soleP.z + fz * reported.contactOff);
     },
     advance(c: GaitChain, t, ds, dt) {

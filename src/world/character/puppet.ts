@@ -157,6 +157,8 @@ export interface PlantInfo {
   blendClips: number;
   /** the hip flexion clamped away on the most-clamped leg (rad; play mode only, glbLink.ts HIP_FLEX_MAX) */
   hipClampRad: number;
+  /** the knee-out swivel on the most-turned leg (rad; play mode only, glbLink.ts KNEE_OUT_*) */
+  kneeOutRad: number;
 }
 
 /**
@@ -236,7 +238,7 @@ export function proceduralPuppet(char: Character, animations: readonly string[])
     { foot: 'L', soleY: 0, groundY: 0, gapM: 0, supportY: 0, minShoeGapM: 0, shiftM: 0, pitchRad: 0, correctionM: 0, pinM: 0, holdM: 0, soleX: 0, soleZ: 0, stance: true, pinLatM: 0 },
     { foot: 'R', soleY: 0, groundY: 0, gapM: 0, supportY: 0, minShoeGapM: 0, shiftM: 0, pitchRad: 0, correctionM: 0, pinM: 0, holdM: 0, soleX: 0, soleZ: 0, stance: true, pinLatM: 0 },
   ];
-  const info: PlantInfo = { mode: 'root-drop', maxCorrectionM: 0, rootShiftM: 0, planted: 'L', reachClamped: false, reachClampedLeg: null, reachExcessM: 0, maxShiftM: 0, extraDropM: 0, attackDropM: 0, maxPinM: 0, maxHoldM: 0, blendClips: 1, hipClampRad: 0 };
+  const info: PlantInfo = { mode: 'root-drop', maxCorrectionM: 0, rootShiftM: 0, planted: 'L', reachClamped: false, reachClampedLeg: null, reachExcessM: 0, maxShiftM: 0, extraDropM: 0, attackDropM: 0, maxPinM: 0, maxHoldM: 0, blendClips: 1, hipClampRad: 0, kneeOutRad: 0 };
   return {
     kind: 'procedural',
     group: char.group,
