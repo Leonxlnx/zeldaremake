@@ -1,6 +1,6 @@
 # Run contact and flight — Blender study
 
-Default remains **24591126**. The current candidate is **3218b164**: a swing-only change that preserves the original run stride, cycle, hips and upper body. Game acceptance is pending. This is native animation evidence, not a gauntlet take or a final character-quality claim.
+Default remains **24591126**. The current candidate is **3218b164**: a swing-only change that preserves the original run stride, cycle, hips and upper body. Blender and Three.js studio checks pass; full-world game acceptance is unresolved. This is animation evidence, not a gauntlet take or a final character-quality claim.
 
 ## What changed
 
@@ -27,22 +27,33 @@ The first clearance script used .25 as its baseline duty. The delivered reports 
 
 ## Visual evidence
 
-All images are direct Blender or game renders. The initial high-flight poses are included to explain the rejection; they are not the final candidate.
+Five matched comparisons of the **current** candidate. First row: Blender. Remaining rows: the actual exported GLB rendered in Three.js, identical studio lights and camera. This is not the gameplay world.
 
 | Pose | Baseline | Tested variant |
 | --- | --- | --- |
-| Flight phase .40, rejected high arc | ![](phase40-before.png) | ![](phase40-after.png) |
-| Peak knee phase .78, rejected high arc | ![](phase78-before.png) | ![](phase78-after.png) |
-| Peak knee phase .78, rejected lower arc | ![](phase78-low-before.png) | ![](phase78-low-after.png) |
 | Peak knee phase .78, current retained-hip flight | ![](phase78-retained-before.png) | ![](phase78-retained-after.png) |
+| Exported run phase 0 | ![](studio-before/run-0.png) | ![](studio-after/run-0.png) |
+| Exported run phase .25 | ![](studio-before/run-0.25.png) | ![](studio-after/run-0.25.png) |
+| Exported run phase .50 | ![](studio-before/run-0.5.png) | ![](studio-after/run-0.5.png) |
+| Exported run phase .75 | ![](studio-before/run-0.75.png) | ![](studio-after/run-0.75.png) |
 
-Final native and game comparisons follow after their captures finish.
+The 18-view studio check passes. All **14 non-run images are byte-identical**, walk/stairs clearance is unchanged, and draw cost remains 11 calls / 140,886 submitted triangles. A 121-phase sweep per moving gait finds no sole below the studio floor. [Comparison report](studio-comparison.json); rerun with `python art/characters/link/progress/2026-09-19-run-contact/verify_studio.py`.
+
+<details><summary>Rejected longer-contact variants</summary>
+
+| Pose | Baseline | Rejected variant |
+| --- | --- | --- |
+| Flight phase .40, high arc | ![](phase40-before.png) | ![](phase40-after.png) |
+| Peak knee phase .78, high arc | ![](phase78-before.png) | ![](phase78-after.png) |
+| Peak knee phase .78, lower arc | ![](phase78-low-before.png) | ![](phase78-low-after.png) |
+
+</details>
 
 ## Game validation
 
 Matched baseline: world **38f430ea**, bundle `index-DOK19L-P.js`, 300 fixed 60 Hz frames covering walk → run → idle; complete, no page errors, no reach-clamped frames. Evidence: [baseline manifest](game-before/manifest.json), [baseline video](game-before/walk-run-idle.mp4).
 
-Startup needed longer than the old hardcoded three-minute harness limit under local load. The harness now uses the existing gauntlet readiness timeout, polls independently of animation frames, and records console, requests, browser exits and startup failures. Two runs of the rejected longer-contact candidate lost their Chrome process after a few unchanged walk frames. Their cause is unresolved; neither run is valid evidence. The reduced-screenshot mode retains the same 300 simulation frames and selected image timestamps.
+Startup needed longer than the old hardcoded three-minute harness limit under local load. The harness now reuses the gauntlet browser launcher/readiness timeout, polls independently of animation frames, and records console, requests, browser exits and startup failures. Two longer-contact runs and two retained-hip runs lost their Chrome connection before completing. This reproduced with both pipe and common WebSocket launchers. A separate installed Edge attempt failed to launch (exit0). Cause unresolved; none is acceptance evidence. The reduced-screenshot mode retains the same 300 simulation frames and selected image timestamps. Fable has the candidate and an independent gameplay-review request on PR2; default stays unchanged pending that check.
 
 ## Reproduce the candidate
 

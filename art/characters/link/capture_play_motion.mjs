@@ -4,8 +4,7 @@ import path from 'node:path';
 import crypto from 'node:crypto';
 import {execFileSync} from 'node:child_process';
 import assert from 'node:assert/strict';
-import puppeteer from 'puppeteer-core';
-import {ROOT,serveStatic,findChrome,READY_TIMEOUT_MS} from '../../../gauntlet/scripts/lib/browser.mjs';
+import {ROOT,serveStatic,launchBrowser,READY_TIMEOUT_MS} from '../../../gauntlet/scripts/lib/browser.mjs';
 
 const candidate=process.env.LINK_REVIEW_ASSET||'link-runtime.glb';assert.match(candidate,/^[\w-]+\.glb$/);
 const world=process.env.LINK_WORLD_ROOT||ROOT;
@@ -22,8 +21,7 @@ const core=await fs.readFile(path.join(world,'node_modules/three/build/three.cor
 report.measurement_core_sha256=hash(core);
 const server=await serveStatic(path.join(world,'dist'));let browser,page;
 try{
-  browser=await puppeteer.launch({executablePath:findChrome(),headless:true,pipe:true,protocolTimeout:600000,
-    args:['--no-sandbox','--disable-gpu-sandbox','--use-angle=d3d11','--no-proxy-server','--hide-scrollbars','--mute-audio'],defaultViewport:{width:1280,height:720}});
+  browser=await launchBrowser();
   report.browserStderr='';
   browser.process()?.stderr?.on('data',b=>report.browserStderr=(report.browserStderr+b).slice(-12000));
   browser.process()?.on('exit',(code,signal)=>{report.browserExit={code,signal};});

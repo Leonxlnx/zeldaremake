@@ -4,7 +4,7 @@ runtime: Codex desktop / Astra on the owner's Windows PC
 github: Leonxlnx
 status: active
 branch: agent/astra-local-character-contact
-updated: 2026-09-19T20:09:50Z
+updated: 2026-09-19T20:23:25Z
 ---
 
 # astra-local — roster entry
@@ -16,7 +16,7 @@ front-matter on PR #2 and it is copied here at the next publish — nothing else
 edited by anyone but you.
 
 ## Current task
-Native run-flight study on 38f430ea. Candidate 3218b164 preserves original 1.82 m stride, 28/60 s cycle, hips, upper body and all other clips; changes only six leg bones during run. Actual shoe sweep passes, first-frame flight improves ~8.9 to36.6 mm with unchanged hip range and knee height within1.7 mm. Rejected 2.05 m / .27 duty: excessive crouch and tunic lift. Full matched baseline300frames is complete; final candidate game trace pending. Default24591126 unchanged. PR18 shaft study awaiting independent review; latest world9975956c seen, including W38 fix. Fable updated5744876426; local capture coordination5744917554 after two Chrome exits. No scheduled automation.
+Native run-flight study on 38f430ea. Candidate 3218b164 preserves original 1.82 m stride, 28/60 s cycle, hips, upper body and all other clips; changes only six leg bones during run. Actual shoe sweep passes, first-frame flight improves ~8.9 to36.6 mm with unchanged hip range and knee height within1.7 mm. Rejected 2.05 m / .27 duty: excessive crouch and tunic lift. Full matched baseline300frames is complete. Candidate studio18views/363phase samples pass;14non-run images and draw cost exact. Full-world candidate captures lost Chrome connections under both launchers; no gameplay acceptance. PR21 contains five comparisons and reproducible3218b164 export; no runtime/source/default model change. Default24591126 unchanged. PR18 shaft study awaiting independent review; latest world9975956c seen, including W38 fix. Fable updated5744876426; local capture coordination5744917554 after two Chrome exits. No scheduled automation.
 
 ## Files / systems being touched
 `public/models/link/**` (character asset candidates, local only while release rights are open),
@@ -62,3 +62,5 @@ Native run-flight study on 38f430ea. Candidate 3218b164 preserves original 1.82 
 2026-09-19 — Resumed owner request; coordinated face with character-9 and tree detail with Fable lanes via PR2 comments5744026281/5744066270. Isolated branch from50aac29e. Far-pod actual-render ablation proves unfogged0.7m halo discs dominate the orb defect even with bloom disabled. Reduced radius0.24m; six hero pairs plus two survey pairs show unchanged draw/triangle counts, no page errors, no reference-SSIM regression. Build/typecheck pass. Native face proportion trial rejected for stronger cheek ridges; upper lid margin study underway in local Blender. Character-9 retains gait/IK files. No additional cloud agent launched.
 
 2026-09-19 18:06 UTC — Halo follow-up full local take0117 completed valid on5e468708,93 anti-cheat checks green,29/50 with inherited Fable-5 verdicts, not proof of completion. PR16 opened, exact evidence posted to PR2. Local ledger appended by take tool only; integration must union with Fable's ledger if they also append117.
+
+2026-09-19T20:23:25Z — PR21 1de60fd0: native contact/flight study published; final studio evidence follow-up. Candidate3218b164 solves delayed lift while preserving hips/stride. Shared launcher now reused in capture_play_motion.mjs; four failed candidate Chrome runs and one Edge launch failure documented. Fable requested independent gameplay check5744986101; local capture coordination5744917554. Default24591126 remains. All local capture processes terminal; Blender hidden and active with retained-flight scene. Goal remains active; face, uphill and transition quality unfinished.

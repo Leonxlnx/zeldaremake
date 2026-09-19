@@ -1,0 +1,52 @@
+[
+  {
+    "directory": "2026-09-19T19-53-36-051Z-play-motion",
+    "glb_sha256": "a8010329662c77819ca2629945e356175c32a13fd8ffa829326c1c33577d7e4a",
+    "complete": false,
+    "frames": 10,
+    "failure": "TargetCloseError: Protocol error (Page.captureScreenshot): Target closed\n    at CallbackRegistry.clear (file:///E:/zeldaremake/node_modules/puppeteer-core/lib/puppeteer/common/CallbackRegistry.js:88:36)\n    at CdpCDPSession.onClosed (file:///E:/zeldaremake/node_modules/puppeteer-core/lib/puppeteer/cdp/CdpSession.js:121:25)\n    at #onClose (file:///E:/zeldaremake/node_modules/puppeteer-core/lib/puppeteer/cdp/Connection.js:217:21)\n    at Socket.<anonymous> (file:///E:/zeldaremake/node_modules/puppeteer-core/lib/puppeteer/node/PipeTransport.js:28:30)\n    at Socket.emit (node:events:531:35)\n    at Pipe.<anonymous> (node:net:346:12)",
+    "errors": [],
+    "browserExit": null,
+    "browserStderr": null
+  },
+  {
+    "directory": "2026-09-19T19-58-42-286Z-play-motion",
+    "glb_sha256": "a8010329662c77819ca2629945e356175c32a13fd8ffa829326c1c33577d7e4a",
+    "complete": false,
+    "frames": 112,
+    "failure": "TargetCloseError: Protocol error (Runtime.callFunctionOn): Target closed\n    at CallbackRegistry.clear (file:///E:/zeldaremake/node_modules/puppeteer-core/lib/puppeteer/common/CallbackRegistry.js:88:36)\n    at CdpCDPSession.onClosed (file:///E:/zeldaremake/node_modules/puppeteer-core/lib/puppeteer/cdp/CdpSession.js:121:25)\n    at #onClose (file:///E:/zeldaremake/node_modules/puppeteer-core/lib/puppeteer/cdp/Connection.js:217:21)\n    at Socket.<anonymous> (file:///E:/zeldaremake/node_modules/puppeteer-core/lib/puppeteer/node/PipeTransport.js:28:30)\n    at Socket.emit (node:events:531:35)\n    at Pipe.<anonymous> (node:net:346:12)",
+    "errors": [],
+    "browserExit": null,
+    "browserStderr": null
+  },
+  {
+    "directory": "2026-09-19T20-08-13-646Z-play-motion",
+    "glb_sha256": "3218b16423aa2c1f8cf4e03f8bb63c25c719f21a3bcef30bbf70800e0ff81c41",
+    "complete": false,
+    "frames": 0,
+    "failure": "TargetCloseError: Protocol error (Runtime.callFunctionOn): Target closed\n    at CallbackRegistry.clear (file:///E:/zeldaremake/node_modules/puppeteer-core/lib/puppeteer/common/CallbackRegistry.js:88:36)\n    at CdpCDPSession.onClosed (file:///E:/zeldaremake/node_modules/puppeteer-core/lib/puppeteer/cdp/CdpSession.js:121:25)\n    at #onClose (file:///E:/zeldaremake/node_modules/puppeteer-core/lib/puppeteer/cdp/Connection.js:217:21)\n    at Socket.<anonymous> (file:///E:/zeldaremake/node_modules/puppeteer-core/lib/puppeteer/node/PipeTransport.js:28:30)\n    at Socket.emit (node:events:531:35)\n    at Pipe.<anonymous> (node:net:346:12)",
+    "errors": [],
+    "browserExit": null,
+    "browserStderr": "[29192:14572:0919/220833.118:ERROR:chrome\\updater\\ipc\\update_service_dialer_win.cc:75] Failed to open named pipe server process 25948: Zugriff verweigert (0x5)\r\n[29192:18668:0919/220833.236:ERROR:chrome\\updater\\ipc\\update_service_dialer_win.cc:75] Failed to open named pipe server process 11728: Zugriff verweigert (0x5)\r\n[29192:14572:0919/220833.371:ERROR:chrome\\updater\\ipc\\update_service_dialer_win.cc:75] Failed to open named pipe server process 30972: Zugriff verweigert (0x5)\r\n[29192:18668:0919/220833.531:ERROR:chrome\\updater\\ipc\\update_service_dialer_win.cc:75] Failed to open named pipe server process 10588: Zugriff verweigert (0x5)\r\n[29192:14572:0919/220833.532:ERROR:chrome\\updater\\ipc\\update_service_dialer_win.cc:75] Failed to open named pipe server process 10588: Zugriff verweigert (0x5)\r\n[29192:18668:0919/220835.644:ERROR:chrome\\updater\\ipc\\update_service_dialer_win.cc:75] Failed to open named pipe server process 8784: Zugriff verweigert (0x5)\r\n[29192:48656:0919/220940.340:ERROR:google_apis\\gcm\\engine\\registration_request.cc:291] Registration response error message: PHONE_REGISTRATION_ERROR\r\n[29192:48656:0919/221006.133:ERROR:google_apis\\gcm\\engine\\registration_request.cc:291] Registration response error message: DEPRECATED_ENDPOINT\r\n[29192:48656:0919/221101.255:ERROR:google_apis\\gcm\\engine\\registration_request.cc:291] Registration response error message: DEPRECATED_ENDPOINT\r\n"
+  },
+  {
+    "directory": "2026-09-19T20-13-47-250Z-play-motion",
+    "glb_sha256": "3218b16423aa2c1f8cf4e03f8bb63c25c719f21a3bcef30bbf70800e0ff81c41",
+    "complete": false,
+    "frames": 0,
+    "failure": "Error: waitForFunction failed: frame got detached.\n    at IsolatedWorld.dispose (file:///E:/zeldaremake/node_modules/puppeteer-core/lib/puppeteer/api/Realm.js:65:39)\n    at [nodejs.dispose] (file:///E:/zeldaremake/node_modules/puppeteer-core/lib/puppeteer/api/Realm.js:68:14)\n    at [nodejs.dispose] (file:///E:/zeldaremake/node_modules/puppeteer-core/lib/puppeteer/cdp/IsolatedWorld.js:161:29)\n    at [nodejs.dispose] (file:///E:/zeldaremake/node_modules/puppeteer-core/lib/puppeteer/cdp/Frame.js:350:51)\n    at #removeFramesRecursively (file:///E:/zeldaremake/node_modules/puppeteer-core/lib/puppeteer/cdp/FrameManager.js:589:29)\n    at #onClientDisconnect (file:///E:/zeldaremake/node_modules/puppeteer-core/lib/puppeteer/cdp/FrameManager.js:145:46)\n    at file:///E:/zeldaremake/node_modules/puppeteer-core/lib/puppeteer/cdp/FrameManager.js:120:42\n    at onceHandler (file:///E:/zeldaremake/node_modules/puppeteer-core/lib/puppeteer/common/EventEmitter.js:91:13)\n    at file:///E:/zeldaremake/node_modules/puppeteer-core/lib/third_party/mitt/mitt.js:36:7\n    at Array.map (<anonymous>)",
+    "errors": [],
+    "browserExit": null,
+    "browserStderr": "[2016:16500:0919/221406.877:ERROR:chrome\\updater\\ipc\\update_service_dialer_win.cc:75] Failed to open named pipe server process 22776: Zugriff verweigert (0x5)\r\n[2016:24932:0919/221409.059:ERROR:chrome\\updater\\ipc\\update_service_dialer_win.cc:75] Failed to open named pipe server process 32032: Zugriff verweigert (0x5)\r\n[2016:16500:0919/221411.273:ERROR:chrome\\updater\\ipc\\update_service_dialer_win.cc:75] Failed to open named pipe server process 49856: Zugriff verweigert (0x5)\r\n[2016:24932:0919/221411.275:ERROR:chrome\\updater\\ipc\\update_service_dialer_win.cc:75] Failed to open named pipe server process 49856: Zugriff verweigert (0x5)\r\n[2016:16500:0919/221413.410:ERROR:chrome\\updater\\ipc\\update_service_dialer_win.cc:75] Failed to open named pipe server process 45200: Zugriff verweigert (0x5)\r\n[2016:6924:0919/221518.907:ERROR:google_apis\\gcm\\engine\\registration_request.cc:291] Registration response error message: DEPRECATED_ENDPOINT\r\n[2016:6924:0919/221543.748:ERROR:google_apis\\gcm\\engine\\registration_request.cc:291] Registration response error message: DEPRECATED_ENDPOINT\r\n[2016:24932:0919/221613.573:ERROR:chrome\\updater\\ipc\\update_service_dialer_win.cc:75] Failed to open named pipe server process 44020: Zugriff verweigert (0x5)\r\n[2016:6924:0919/221630.573:ERROR:google_apis\\gcm\\engine\\registration_request.cc:291] Registration response error message: DEPRECATED_ENDPOINT\r\n"
+  },
+  {
+    "directory": "2026-09-19T20-18-39-244Z-play-motion",
+    "glb_sha256": "3218b16423aa2c1f8cf4e03f8bb63c25c719f21a3bcef30bbf70800e0ff81c41",
+    "complete": false,
+    "frames": 0,
+    "failure": "Error: Failed to launch the browser process:  Code: 0\n\nstderr:\n\n\nTROUBLESHOOTING: https://pptr.dev/troubleshooting\n\n    at ChildProcess.onClose (file:///E:/zeldaremake/node_modules/@puppeteer/browsers/lib/launch.js:347:24)\n    at ChildProcess.emit (node:events:531:35)\n    at ChildProcess._handle.onexit (node:internal/child_process:293:12)",
+    "errors": [],
+    "browserExit": null,
+    "browserStderr": null
+  }
+]
