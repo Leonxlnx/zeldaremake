@@ -24,15 +24,17 @@ const ATTRS: { name: string; size: number }[] = [
   { name: 'color', size: 3 },
   { name: 'aMoss', size: 1 },
   { name: 'aWet', size: 1 },
+  { name: 'aLichen', size: 1 },
 ];
 
-/** growable attribute arrays for the dressing */
+/** growable attribute arrays for the dressing (the dressing itself carries no lichen crust) */
 class Writer {
   position: number[] = [];
   normal: number[] = [];
   color: number[] = [];
   aMoss: number[] = [];
   aWet: number[] = [];
+  aLichen: number[] = [];
   vertices = 0;
   push(p: Vector3, n: Vector3, c: Color, moss: number, wet = 0) {
     this.position.push(p.x, p.y, p.z);
@@ -40,6 +42,7 @@ class Writer {
     this.color.push(c.r, c.g, c.b);
     this.aMoss.push(moss);
     this.aWet.push(wet);
+    this.aLichen.push(0);
     this.vertices++;
   }
 }
@@ -326,6 +329,7 @@ function appendGeometry(target: Writer, part: BufferGeometry, matrix: Matrix4) {
   const col = part.attributes.color as BufferAttribute;
   const moss = part.attributes.aMoss as BufferAttribute | undefined;
   const wet = part.attributes.aWet as BufferAttribute | undefined;
+  const lichen = part.attributes.aLichen as BufferAttribute | undefined;
   for (let i = 0; i < pos.count; i++) {
     _p.fromBufferAttribute(pos, i).applyMatrix4(matrix);
     _n.fromBufferAttribute(nrm, i).applyMatrix3(nm).normalize();
@@ -334,6 +338,7 @@ function appendGeometry(target: Writer, part: BufferGeometry, matrix: Matrix4) {
     target.color.push(col.getX(i), col.getY(i), col.getZ(i));
     target.aMoss.push(moss ? moss.getX(i) : 0);
     target.aWet.push(wet ? wet.getX(i) : 0);
+    target.aLichen.push(lichen ? lichen.getX(i) : 0);
     target.vertices++;
   }
 }

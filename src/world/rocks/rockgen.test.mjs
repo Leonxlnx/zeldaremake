@@ -86,6 +86,72 @@ test('the near options default off: explicit zeros build the far rock byte-ident
   for (const k of ['position', 'normal', 'color', 'aMoss']) assert.ok(same(arr(plain, k), arr(zeros, k)), `${k} moved with the near options at 0`);
 });
 
+test('strataCrown (fable-2): the near build has no parting pit on the crown; the far build is byte-identical at the default', () => {
+  const far = buildRock(createRng('t/d'), 'seed/d', farOpts());
+  const farExplicit = buildRock(createRng('t/d'), 'seed/d', { ...farOpts(), strataCrown: 1 });
+  for (const k of ['position', 'normal', 'color', 'aMoss']) assert.ok(same(arr(far, k), arr(farExplicit, k)), `${k} moved with strataCrown 1`);
+  // same topology, so the two near builds compare per vertex: over the crown (local y above
+  // 0.35 r·squash, i.e. the moss cap) the damped build must only ever LIFT vertices (the parting
+  // groove fills in — by ≈ 3.5 cm where it crossed the cap), and below the shoulders (y < 0) it
+  // must not move them at all (the bedding lines on the sides are kept)
+  const undamped = buildRock(createRng('t/d'), 'seed/d', { ...nearOpts(), moss: 0, mossThickness: 0 });
+  const damped = buildRock(createRng('t/d'), 'seed/d', { ...nearOpts(), moss: 0, mossThickness: 0, strataCrown: 0.1 });
+  const U = undamped.attributes.position;
+  const D = damped.attributes.position;
+  assert.equal(U.count, D.count);
+  let lifted = 0;
+  let maxLift = 0;
+  let sunk = 0;
+  let sideMoved = 0;
+  for (let i = 0; i < U.count; i++) {
+    const ru = Math.hypot(U.getX(i), U.getY(i) / 0.64, U.getZ(i));
+    const rd = Math.hypot(D.getX(i), D.getY(i) / 0.64, D.getZ(i));
+    const dy = U.getY(i);
+    if (dy > 0.35 * 0.6 * 0.64) {
+      if (rd > ru + 0.005) lifted++;
+      if (rd < ru - 0.002) sunk++;
+      maxLift = Math.max(maxLift, rd - ru);
+    } else if (dy < -0.1 * 0.6) {
+      // (the damping ramps in from −0.1 r; below it nothing may move)
+      if (Math.abs(rd - ru) > 1e-6) sideMoved++;
+    }
+  }
+  assert.ok(lifted > 50, `only ${lifted} crown vertices lifted — the parting groove no longer crosses the cap`);
+  assert.ok(maxLift > 0.02 && maxLift < 0.06, `max crown lift ${maxLift} m (expected ≈ 3–4 cm)`);
+  // (a handful may sink: a lifted vertex can newly cross a cleave plane and be projected onto it)
+  assert.ok(sunk < 20, `${sunk} crown vertices sank with the groove damped`);
+  assert.equal(sideMoved, 0, `${sideMoved} vertices below the shoulders moved`);
+});
+
+test('aLichen (fable-2): off by default; with `lichen` + `plates` a 0..1 crust field on the bare upper skin only', () => {
+  const plain = buildRock(createRng('t/d'), 'seed/d', nearOpts());
+  assert.equal(plain.attributes.aLichen, undefined, 'lichen 0 must not add the attribute');
+  const g = buildRock(createRng('t/d'), 'seed/d', { ...nearOpts(), plates: 0.025, rimRound: 0.08, lichen: 0.6 });
+  // the crust is colour/attribute only: the shape is the same rock
+  for (const k of ['position', 'normal']) assert.ok(same(arr(g, k), arr(buildRock(createRng('t/d'), 'seed/d', { ...nearOpts(), plates: 0.025, rimRound: 0.08 }), k)), `${k} moved with lichen on`);
+  const li = g.attributes.aLichen;
+  const moss = g.attributes.aMoss;
+  const pos = g.attributes.position;
+  assert.ok(li, 'aLichen missing');
+  let crust = 0;
+  let onMoss = 0;
+  let inCollar = 0;
+  for (let i = 0; i < li.count; i++) {
+    const v = li.getX(i);
+    assert.ok(v >= 0 && v <= 1, `aLichen ${v} out of range`);
+    if (v > 0.5) {
+      crust++;
+      if (moss.getX(i) > 0.5) onMoss++;
+      if (pos.getY(i) < -0.6 * 0.64 * 0.7) inCollar++;
+    }
+  }
+  const share = crust / li.count;
+  assert.ok(share > 0.04 && share < 0.5, `crust share ${share}`);
+  assert.equal(onMoss, 0, `${onMoss} crust vertices under the moss cap`);
+  assert.equal(inCollar, 0, `${inCollar} crust vertices in the collar`);
+  assert.ok(Math.abs(g.userData.rockStats.lichenShare - share) < 1e-9);
+});
+
 test('aWet: a 0..1 band above the ground, wetter low down, dry on the crown', () => {
   const g = buildRock(createRng('t/d'), 'seed/d', farOpts());
   const wet = g.attributes.aWet;
