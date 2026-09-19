@@ -1,25 +1,26 @@
 /**
- * Kokiri kids (~1.16 m with the cap) — an original procedural low-poly child on the shared rig,
- * reworked for the owner review of 2026-09-19 (items 7–8, until Astra's model lands): child
- * proportions (head ≈ ¼ of the height), a green tunic with puffed short sleeves, a leather belt
- * with a buckle and a four-flap skirt, brown boots with a fold-over cuff, an auburn bob with a
- * bang fringe under a soft pointed cap that flops back, and a drawn face — the eyes (blinkable,
+ * Kokiri kids (~1.09 m) — an original procedural low-poly child on the shared rig, reworked for
+ * the owner review of 2026-09-19 (items 7–8, until Astra's model lands) after the demo frames
+ * d_023–d_036 and ref-01: child proportions (head ≈ ¼ of the height), a sleeveless deep-green
+ * tunic with a leather belt, buckle and a four-flap scalloped skirt, bare arms with dark
+ * wristbands, near-black boots with a khaki fold-over cuff, an auburn bob with a bang fringe under
+ * a wide green headband (the crown shows above it), and a drawn face — the eyes (blinkable,
  * squashed in Y like every rig's `eyes`) and the mouth are canvas decals on the skull instead of
  * stacked spheres, which reads as a face at 2 m and costs 2 meshes where the sphere eyes cost 8.
  *
  * `variant` 0 = the girl who wanders the plaza (kokiri-a), 1 = the girl who sits on the steps
- * (kokiri-b, darker tunic, lighter hair), 2 = the boy at Saria's door (headband, sleeveless,
+ * (kokiri-b, darker tunic and hair), 2 = the boy at Saria's door (headband, sleeveless,
  * Deku Stick — the round-1 look). Every material is cached per variant so the per-joint merge
  * (consolidate.ts) keeps a kid at ~21 meshes.
  */
-import { BoxGeometry, CanvasTexture, Color, ConeGeometry, CylinderGeometry, Group, MathUtils, MeshStandardMaterial, SphereGeometry, SRGBColorSpace, TorusGeometry, Vector3 } from 'three';
+import { BoxGeometry, CanvasTexture, Color, ConeGeometry, CylinderGeometry, Group, MeshStandardMaterial, SphereGeometry, SRGBColorSpace, TorusGeometry, Vector3 } from 'three';
 import { merge, ovalLathe, place, sweep } from './geometry';
 import { CHAR_COLORS, matte } from './palette';
 import { beginTally, buildArms, buildFace, buildHair, buildLegs, buildNeck, endTally, part, type Character } from './link';
 import { buildRig, type Proportions, type Rig } from './rig';
 
 /**
- * A Kokiri child: 1.06 m to the skull top (1.16 with the cap), head 0.26 m across — a quarter of
+ * A Kokiri child: 1.06 m to the skull top (1.09 with the hair), head 0.26 m across — a quarter of
  * the height — short legs, arms reaching the hips. Same rig conventions as rig.ts (root at the
  * sole, +Z forward).
  */
@@ -40,14 +41,19 @@ export const KOKIRI_CHILD_PROPORTIONS: Proportions = {
   sole: [0, -0.06, 0.025],
 };
 
-/** kid palette (albedo, ≈ 1.3× the hazed display values like palette.ts): the girls' moss-green tunic, leather, brown boots */
+/**
+ * kid palette (albedo, ≈ 1.3× the hazed display values like palette.ts), read off demo d_024/d_033
+ * and ref-01: the girls' deep forest-green tunic (display ≈ #2b4a2a), a brighter green headband,
+ * near-black boots with khaki cuffs, red-auburn hair, dark leather belt and wristbands
+ */
 const KID = {
-  tunic: [0x44602f, 0x3a5230, 0x2f3a1e],
-  cap: [0x51703a, 0x466238],
-  belt: 0x5a4028,
+  tunic: [0x375f35, 0x2f522f, 0x2f3a1e],
+  band: [0x4d7a3c, 0x44703a],
+  belt: 0x4a3322,
   buckle: 0xb8963f,
-  boot: 0x5e4229,
-  hair: [0x8a5a36, 0x6b4a30, 0x9a6a3a],
+  boot: 0x352721,
+  cuff: 0x8f7f5a,
+  hair: [0x9c4f2e, 0x87462e, 0x9a6a3a],
   skin: [0xb8845c, 0xb07e58, 0xb28058],
   mouth: '#6b3a30',
   iris: ['#5a3a22', '#4a3320', '#3b5a2c'],
@@ -218,7 +224,7 @@ function buildGirlFace(rig: Rig, skin: MeshStandardMaterial, iris: string): void
   part(head, patch(Math.PI / 2 - 0.3, 0.6, Math.PI / 2 + 0.26, 0.3, 12, 6), decals.mouth, 'face-mouth', false);
 }
 
-/** auburn bob with a straight bang fringe under the cap brim, two front locks framing the face and a nape */
+/** auburn bob with a straight bang fringe under the headband, two front locks framing the face and a nape */
 function buildGirlHair(rig: Rig, hair: MeshStandardMaterial): void {
   const r = rig.props.headRadius;
   const k = r / 0.125;
@@ -227,7 +233,9 @@ function buildGirlHair(rig: Rig, hair: MeshStandardMaterial): void {
   const parts = [
     // the bob: back and sides down to the jaw, open at the face
     place(new SphereGeometry(r * 1.09, 20, 12, Math.PI * 0.7, Math.PI * 1.6, 0, Math.PI * 0.72), 0, -0.002, -0.014),
-    // bangs: five clumps hanging from under the brim across the forehead to the brows
+    // the crown: a full dome down to the headband, so the auburn top shows above the band (no cap now)
+    place(new SphereGeometry(r * 1.095, 20, 8, 0, Math.PI * 2, 0, Math.PI * 0.34), 0, 0.0, -0.006),
+    // bangs: five clumps hanging from under the band across the forehead to the brows
     clump([-0.078, 0.07, 0.085], [-0.086, 0.045, 0.112], [-0.09, 0.02, 0.108], 0.024, 0.022, 0.01),
     clump([-0.04, 0.074, 0.092], [-0.044, 0.048, 0.12], [-0.05, 0.026, 0.118], 0.025, 0.024, 0.011),
     clump([0.0, 0.075, 0.094], [0.0, 0.048, 0.122], [0.004, 0.028, 0.12], 0.025, 0.024, 0.011),
@@ -241,56 +249,31 @@ function buildGirlHair(rig: Rig, hair: MeshStandardMaterial): void {
 }
 
 /**
- * A soft pointed cap: a stretched dome just outside the hair, a rolled brim, and a tail that
- * rises from the crown and flops back and down behind the head to a point. Pivoted on `rig.cap`
- * so the animation can nudge it.
+ * The wide green headband of the demo girl (d_024, ref-01): an open, slightly flared ring around
+ * the head just above the brows — the bangs hang from under it, the auburn crown shows above it,
+ * and it dips a little at the back. Rigid on the head (no `rig.cap` nudge — a band does not flop).
  */
-function buildGirlCap(rig: Rig, capMat: MeshStandardMaterial): void {
-  const head = rig.head;
+function buildGirlHeadband(rig: Rig, bandMat: MeshStandardMaterial): void {
   const r = rig.props.headRadius;
   const k = r / 0.125;
-  const cap = new Group();
-  cap.name = 'cap';
-  const hairR = r * 1.09;
-  const tilt = 0.3;
-  const d = 0.05 * k;
-  const n = new Vector3(0, Math.cos(tilt), -Math.sin(tilt));
-  const centre = n.clone().multiplyScalar(d);
-  cap.position.copy(centre);
-  head.add(cap);
-  rig.cap = cap;
-  const R = hairR + 0.007;
-  const stretch = 1.22;
-  const thetaMax = Math.acos(d / (stretch * R));
-  const sinMax = Math.sin(thetaMax);
-  const taper = (theta: number) => 1 - 0.32 * Math.pow(Math.max(0, 1 - Math.sin(theta) / sinMax), 1.5);
-  const dome = new SphereGeometry(R, 22, 12, 0, Math.PI * 2, 0, thetaMax);
-  const pos = dome.attributes.position;
-  for (let i = 0; i < pos.count; i++) {
-    const theta = Math.acos(MathUtils.clamp(pos.getY(i) / R, -1, 1));
-    const f = taper(theta);
-    pos.setXYZ(i, pos.getX(i) * f, pos.getY(i) * stretch, pos.getZ(i) * f);
-  }
-  dome.computeVertexNormals();
-  const b = new Vector3(0, -Math.sin(tilt), -Math.cos(tilt));
-  const domeAt = (theta: number, scale: number) => n.clone().multiplyScalar(-d + scale * R * stretch * Math.cos(theta)).addScaledVector(b, scale * R * Math.sin(theta) * taper(theta));
-  const tail = [
-    domeAt(0.2, 0.7),
-    domeAt(0.45, 1.0),
-    new Vector3(0.008, 0.1, -0.135).multiplyScalar(k),
-    new Vector3(0.02, 0.04, -0.185).multiplyScalar(k),
-    new Vector3(0.03, -0.05, -0.205).multiplyScalar(k),
-    new Vector3(0.024, -0.14, -0.2).multiplyScalar(k),
-  ];
+  const R = r * 1.09 + 0.006;
+  const band = new CylinderGeometry(R * 1.01, R * 1.03, 0.046 * k, 28, 1, true);
+  // a thin rolled edge top and bottom so the band reads as cloth, not a painted stripe
   const geo = merge([
-    place(dome, -centre.x, -centre.y, -centre.z, [-tilt, 0, 0]),
-    sweep(tail, [0.056 * k, 0.052 * k, 0.045 * k, 0.034 * k, 0.02 * k, 0.004], { segments: 22, radial: 10, closeTip: true, closeStart: true, flatten: 0.7, crease: 0.25 }),
-    place(new TorusGeometry(R * sinMax, 0.016, 8, 26), 0, 0, 0, [Math.PI / 2 - tilt, 0, 0]),
+    band,
+    place(new TorusGeometry(R * 1.01, 0.006, 6, 28), 0, 0.023 * k, 0, [Math.PI / 2, 0, 0]),
+    place(new TorusGeometry(R * 1.03, 0.006, 6, 28), 0, -0.023 * k, 0, [Math.PI / 2, 0, 0]),
   ]);
-  part(cap, geo, capMat, 'cap');
+  part(rig.head, place(geo, 0, 0.048 * k, -0.004, [-0.1, 0, 0], [1, 1, 0.97]), bandMat, 'kid-headband');
 }
 
-/** green tunic with puffed short sleeves (buildArms), a soft collar, a leather belt with a buckle and a four-flap skirt */
+/** dark leather wristbands on the bare forearms (both wrists, like the demo girl) */
+function buildWristbands(rig: Rig, leather: MeshStandardMaterial): void {
+  const p = rig.props;
+  for (const elbow of [rig.elbowL, rig.elbowR]) part(elbow, place(new CylinderGeometry(0.037, 0.036, 0.024, 10), 0, -p.forearm + 0.016, 0), leather, 'wristband', false);
+}
+
+/** sleeveless deep-green tunic (bare arms from buildArms), a soft collar, a leather belt with a buckle and a four-flap skirt */
 function buildGirlTunic(rig: Rig, tunic: MeshStandardMaterial): void {
   const p = rig.props;
   const hl = (y: number) => y - p.hipY;
@@ -401,18 +384,19 @@ export function createKokiri(variant: number): Character {
   const girl = variant !== 2;
   const skin = kidMat(`skin-${variant}`, KID.skin[variant % 3]);
   const boot = kidMat('boot', girl ? KID.boot : CHAR_COLORS.kidBoot);
-  // boots to just under the knee; the girls' fold-over cuff is the boot's own leather (one mesh per ankle)
-  buildLegs(rig, { skin, boot, cuff: girl ? boot : null, shaftTop: p.kneeY - p.ankleY - 0.03 });
+  // boots to just under the knee; the girls' near-black boots have a khaki fold-over cuff
+  buildLegs(rig, { skin, boot, cuff: girl ? kidMat('cuff', KID.cuff) : null, shaftTop: p.kneeY - p.ankleY - 0.03 });
   buildNeck(rig, skin);
   if (girl) {
     const v = variant % 2;
     const tunic = kidMat(`tunic-${v}`, KID.tunic[v]);
-    buildArms(rig, { skin, sleeve: tunic });
+    buildArms(rig, { skin, sleeve: null });
+    buildWristbands(rig, kidMat('belt', KID.belt));
     buildGirlTunic(rig, tunic);
     buildGirlFace(rig, skin, KID.iris[v]);
     buildGirlHair(rig, kidMat(`hair-${v}`, KID.hair[v]));
-    buildGirlCap(rig, kidMat(`cap-${v}`, KID.cap[v]));
+    buildGirlHeadband(rig, kidMat(`band-${v}`, KID.band[v]));
   } else buildBoy(rig, variant, skin);
   rig.root.userData.character = 'kokiri';
-  return { kind: 'kokiri', rig, group: rig.root, triangles: endTally(), height: girl ? 1.16 : 1.1 };
+  return { kind: 'kokiri', rig, group: rig.root, triangles: endTally(), height: girl ? 1.09 : 1.1 };
 }
