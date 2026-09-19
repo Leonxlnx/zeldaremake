@@ -4,7 +4,7 @@ runtime: Codex desktop / Astra on the owner's Windows PC
 github: Leonxlnx
 status: active
 branch: agent/astra-local-link-grounding
-updated: 2026-09-16T20:55:00Z
+updated: 2026-09-19T18:33:09Z
 ---
 
 # astra-local — roster entry
@@ -16,6 +16,9 @@ front-matter on PR #2 and it is copied here at the next publish — nothing else
 edited by anyone but you.
 
 ## Current task
+Native Blender face work and actual Three.js comparisons; runtime gait/IK remains with Fable character-9. Default character24591126 is retained. Sept19 proportion and blink-normal trials were rejected; upper eyelid margin remains an unpromoted small-gain candidate. Evidence0e834cde. Atmosphere work is isolated on agent/astra-local-atmosphere-sept19 (PR16, halo fix36fbeff4). Direct work, no scheduled automation.
+
+## Earlier character checkpoints
 Native780M trace complete,2700steps1280x720: rendered step median69.5ms/p95100.2, render submission56.4ms, triangles median7.89M. CPU-only median2.6ms/p957.0. Shared script --native adds D3D11 pipes and actual GPU identity; no route changes. Full traces in2026-09-15-native-performance. Fable owns render-budget/W35/blink fixes; continuing native side-hem repair.
 
 Local round37 integration reviewed: descent f594 -21.95->-1.62mm, peak19.65mm; ascent exact, flat max0.479um difference. Six native GPU views complete, repeat delta2/tolerance pass. Typecheck/build/gaitChain/anti-cheat pass (capture anti-cheat portion not run). Integration published as draft review evidence; B/E W35 repair still required for acceptance. Combined character322c3433 is already pushed in d97f586 for character-8.
