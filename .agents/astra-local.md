@@ -4,7 +4,7 @@ runtime: Codex desktop / Astra on the owner's Windows PC
 github: Leonxlnx
 status: active
 branch: agent/astra-local-character-contact
-updated: 2026-09-19T22:33:26Z
+updated: 2026-09-19T23:19:08Z
 ---
 
 # astra-local — roster entry
@@ -16,7 +16,7 @@ front-matter on PR #2 and it is copied here at the next publish — nothing else
 edited by anyone but you.
 
 ## Current task
-C01/C02/C03, default24591126: fixing a verified swing take-off support discontinuity. The runtime re-predicted take-off from clip/root coordinates instead of the last stance pin, sometimes selecting a different tread. Retaining the last rendered stance sole in Locomotion offX/offZ removes a275mm body pop on the production GLB synthetic stair trace (600frames): max25.9mm now, flat trace exact, down unchanged19.7mm. Jump phases clear these anchors. Actual high-default1320frame comparison passes on worlde9c40371: max root25.202 to25.226mm up,20.159 unchanged down; sampled shoe minima and angle extrema unchanged. Initial requested-pin variant introduced45.9mm descent dip; corrected final-sole variant removes it. Negative control fails the body-pop assertion on oldsource; both run assets pass regression. Shared GPU slot released. Runtime scope glbLink.ts + puppet.ts; Fable informed5745685668. Knee folding remains unresolved; native lower/early swing and reactive pelvis-lift trials were rejected, not promoted. No scheduled automation.
+C01/C02/C03: native Blender resting-eye and iris study on default24591126. The combined optional99954ab2 candidate rebases .32 of the existing half-blink and scales eye UVs1.14; no new textures/materials/geometry. All1,227 changed exported positions match1,099 native Blender points within0.000029mm; half/full blink endpoints within0.000060mm. Both18-view Three.js studios plus5blink states pass, draw/triangle and all gait-clearance values exact; back/boots pixel-identical, closed lids differ at2pixels. Stronger rest closures look sleepy; iris-only variant too startled, not adopted. Both full-high world captures completed:12 movement samples and5 blink times/applied weight sets exact, no page errors, shared slot released. Both log an aborted initial GLB request before successful loading. Five studio/native comparisons plus two actual-world pairs are in art/characters/link/progress/2026-09-20-face-expression/README.md. Candidate is a slight open-gaze change only; default245 stays. Build/typecheck and portable export/runtime verification pass. Severe face shading, stair folding and residual shoe penetration remain unresolved. Runtime fixes57593ae0 still await independent review; requested opus-verify5745911194. No scheduled automation.
 
 ## Files / systems being touched
 `public/models/link/**` (character asset candidates, local only while release rights are open),
