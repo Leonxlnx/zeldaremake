@@ -17,8 +17,11 @@
  *        [--profile trace.cpuprofile] [--profile-load load.cpuprofile] [--alloc trace.heapprofile]
  *
  * Every pass also carries `poolSeries` — one `WorldSystem.perf()` snapshot per 30-frame chunk (the
- * trees' near-LOD pools: live bytes, builds, evictions, synchronous builds, build-time percentiles)
- * — and `poolFinal`, the last of them; `--note` is stored verbatim under `config.note`.
+ * trees' near-LOD pools: live bytes, builds, evictions, synchronous builds, build-time percentiles;
+ * the vegetation refresh: plants listed per frame against its budget, per-set update / cull ms)
+ * — and `poolFinal`, the last of them; `--note` is stored verbatim under `config.note`. `headline`
+ * (round 48) is the before/after table of the first pass in one block: JS medians / p95 per system,
+ * spikes, the `[warmup]` split, the near-LOD tier, both pools at load and at the end of the walk.
  *
  * --norender     : the render call is stubbed (pure world.update JS; no first-use events happen)
  * --render-every : render only every Nth step (the others advance the simulation without a frame)
@@ -487,6 +490,68 @@ export function summarise(rows, { renderedOnly = false } = {}) {
   };
 }
 
+/**
+ * The before/after table of a pass in one block (round 48, lod-1): the JS medians / p95 of the
+ * step, the update and the trees / vegetation systems, the spike count, the `[warmup]` split, the
+ * near-LOD tier the page chose (`navigator.deviceMemory`), both pools' caps / bytes / builds /
+ * evictions / synchronous builds / build- and chunk-time percentiles at load and at the end of the
+ * walk, and the vegetation refresh's listing against its budget. Everything here is
+ * GPU-independent except `stepMs` on the rendered frames and the warm-up's ms.
+ */
+export function headline(pass, setup) {
+  const s = pass.summary;
+  const sys = (name) => (s.systems[name] ? { median: s.systems[name].median, p95: s.systems[name].p95, max: s.systems[name].max } : null);
+  const poolPick = (p) =>
+    p
+      ? {
+          capMB: +(p.capBytes / 1048576).toFixed(1),
+          poolMB: +(p.poolBytes / 1048576).toFixed(1),
+          pinnedMB: +(p.pinnedBytes / 1048576).toFixed(1),
+          wantedMB: +(p.wantedBytes / 1048576).toFixed(1),
+          items: p.items,
+          resident: p.resident,
+          built: p.built,
+          evicted: p.evicted,
+          syncBuilds: p.syncBuilds,
+          buildMs: { p50: p.buildMsP50, p95: p.buildMsP95, max: p.buildMsMax },
+          stepMs: { p50: p.stepMsP50 ?? null, p95: p.stepMsP95 ?? null, max: p.stepMsMax, steps: p.steps ?? null, long: p.longSteps ?? null },
+          workMs: { p95: p.workMsP95 ?? null, max: p.workMsMax, overBudget: p.workOverBudget ?? null },
+        }
+      : null;
+  const first = pass.poolSeries[0]?.systemPerf ?? null;
+  const last = pass.poolFinal ?? null;
+  const trees = last?.trees ?? null;
+  const veg = last?.vegetation ?? null;
+  const vegSets = veg?.sets ? Object.entries(veg.sets) : [];
+  const worstSet = vegSets.sort((a, b) => b[1].updateMsMax - a[1].updateMsMax)[0] ?? null;
+  return {
+    frames: s.frames,
+    stepMs: { median: s.step.median, p95: s.step.p95, max: s.step.max },
+    updateMs: { median: s.update.median, p95: s.update.p95, max: s.update.max },
+    treesUpdateMs: sys('trees'),
+    vegetationUpdateMs: sys('vegetation'),
+    framesOver2xMedian: s.spikes,
+    spikeCauses: s.spikeCauses,
+    rebucketFrames: s.rebucketFrames,
+    vegRebucketMs: s.vegRebucketMs,
+    treesRebucketMs: s.treesRebucketMs,
+    events: s.events,
+    warmup: setup?.warmup ?? null,
+    nearLod: trees ? { tier: trees.tier ?? null, deviceMemoryGB: trees.deviceMemoryGB ?? null, poolBytesCap: trees.poolBytesCap ?? null, swapM: trees.swapM ?? null, prefetchM: trees.prefetchM ?? null, buildBudgetMs: trees.buildBudgetMs ?? null } : null,
+    poolsAtLoad: first?.trees ? { nearCanopy: poolPick(first.trees.nearCanopyPool), nearBase: poolPick(first.trees.nearBasePool) } : null,
+    poolsAtEnd: trees ? { nearCanopy: poolPick(trees.nearCanopyPool), nearBase: poolPick(trees.nearBasePool) } : null,
+    vegetationRefresh: veg
+      ? {
+          rebucketBudget: veg.rebucketBudget ?? null,
+          listedMax: veg.frame?.listedMax ?? null,
+          refreshMsMax: veg.frame?.refreshMsMax ?? null,
+          swapsTotal: vegSets.reduce((n, [, r]) => n + (r.swaps ?? 0), 0),
+          worstSet: worstSet ? { name: worstSet[0], count: worstSet[1].count, updateMsMax: +worstSet[1].updateMsMax.toFixed(2), cullMsMax: +worstSet[1].cullMsMax.toFixed(2) } : null,
+        }
+      : null,
+  };
+}
+
 /** like browser.mjs openWorld, with a V8 CPU profile running from before the navigation until ready */
 async function openWorldProfiled(browser, baseUrl, { width, height, quality, log, profileOut, warmup, params = '', auto = false }) {
   const page = await browser.newPage();
@@ -612,7 +677,8 @@ async function main() {
     // the governor's own record (rungs, changes with frame indices and the median that triggered each)
     const governor = auto ? await page.evaluate(() => window.__ZR__.perf().governor ?? null) : null;
     const config = { params: extraParams, finish: finishInside, auto, warmup, note, flags: pass1.setup.flags, perf: pass1.setup.perf, drawingBuffer: pass1.setup.drawingBuffer };
-    const result = { label, dist, width, height, quality: auto ? 'auto' : quality, config, readyMs, loadProfileTop: loadProfileTop ?? null, pass1, pass2, governor };
+    const head = headline(pass1, pass1.setup);
+    const result = { label, dist, width, height, quality: auto ? 'auto' : quality, config, readyMs, headline: head, loadProfileTop: loadProfileTop ?? null, pass1, pass2, governor };
     if (out) {
       fs.mkdirSync(path.dirname(out), { recursive: true });
       fs.writeFileSync(out, JSON.stringify(result));
@@ -624,7 +690,7 @@ async function main() {
       const { spikeList, ...s } = summary;
       return { ...rest, summary: s, spikeList: spikeList.slice(0, 40) };
     };
-    console.log(JSON.stringify({ label, dist, width, height, quality: result.quality, config, readyMs, pass1: brief(pass1), pass2: brief(pass2), governor }, null, 1));
+    console.log(JSON.stringify({ label, dist, width, height, quality: result.quality, config, readyMs, headline: head, pass1: brief(pass1), pass2: brief(pass2), governor }, null, 1));
   } finally {
     await browser.close();
     await server.close();
