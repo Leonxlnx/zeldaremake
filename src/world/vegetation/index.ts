@@ -186,7 +186,8 @@ export async function create(ctx: WorldContext): Promise<WorldSystem> {
   const tufts = plants.tufts.count;
   // round 46: the clump cards of both sets (the disc's and the north corridor's — carpet.ts NORTH_CARPET)
   const clumps = carpet.clumps.count + carpet.northClumps.count;
-  const turfMats = carpet.mats.count;
+  // round 48: the mats of both sets (the disc's and the tiles north of carpet.ts NORTH_MAT_Z)
+  const turfMats = carpet.mats.count + carpet.northMats.count;
   ctx.audit('vegetation', () => ({
     /**
      * the blade tiles, the weeds and the tufts — not the carpet's clump cards: the anti-cheat's B3
@@ -220,6 +221,9 @@ export async function create(ctx: WorldContext): Promise<WorldSystem> {
       /** round 46: the north corridor's own set, running to NORTH_CARPET.maxDistance (the disc's stops at 16 m) */
       northClumps: carpet.northClumps.count,
       northClumpMaxDistanceM: carpet.northClumps.opts.maxDistance ?? null,
+      /** round 48: the mats north of carpet.ts NORTH_MAT_Z, their own set ending at NORTH_MAT_MAX_DISTANCE (the disc's mats have no cut) */
+      northMats: carpet.northMats.count,
+      northMatMaxDistanceM: carpet.northMats.opts.maxDistance ?? null,
       alphaTested: true,
       castsShadows: false,
     },
@@ -238,6 +242,10 @@ export async function create(ctx: WorldContext): Promise<WorldSystem> {
     /** round 44: the north corridor's forest-floor sets (plants.ts) */
     fernsNorth: plants.fernsNorth.count,
     weedsNorth: plants.weedsNorth.count,
+    /** round 48 (vegetation-26): the ground north of the log arch — the clearing banks' shrubs and the terrace pad's tufts (their own sets), what each north pass seated, and the props' footprints honoured (plants.ts NORTH_BUSH_MAX_M …) */
+    bushesNorth: plants.bushesNorth.count,
+    tuftsNorth: plants.tuftsNorth.count,
+    north: { ...plants.north, propFootprints: field.propFootprintCount() },
     fiddleheads: plants.fiddleheads.count,
     flowers: plants.flowers.count + plants.yellowFlowers.count,
     yellowFlowers: plants.yellowFlowers.count,

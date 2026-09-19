@@ -54,10 +54,12 @@ const {matPalettePosition}=read('vegetation/carpet');
 assert.deepEqual([-1,-0.48,-0.28,-0.08,0.12,0.3,0.48,0.66,1].map(t=>Math.round(matPalettePosition(t)*1000)/1000),[0,0,0.5,1,1.526,2,2.5,3,3],'palette position: piecewise linear, the blades\' bin midpoints land near the half entries');
 // round 46: the north corridor's fans are their own set (carpet.ts NORTH_CARPET) — a clump set in every check below
 const isClumps=set=>set===a.carpet.clumps||set===a.carpet.northClumps;
+// round 48: the mats north of NORTH_MAT_Z are their own set too (carpet.ts `northMats`) — a mat set in every check below
+const isMats=set=>set===a.carpet.mats||set===a.carpet.northMats;
 for(const set of a.carpet.all){assert.deepEqual(set.opts.instanceData,{attribute:'aData',size:4});
   const tiles=isClumps(set)?CLUMP_TILES:MAT_TILES;
   for(const it of set.items){assert.equal(it.data.length,4);
-    if(set===a.carpet.mats){assert.ok(it.data[0]>=0&&it.data[0]<=3&&it.data[1]===1,'mats: palette position 0..3, full stiffness');assert.equal(Math.floor(it.data[2]*4),0,'mats leave the integer palette index unused');}
+    if(isMats(set)){assert.ok(it.data[0]>=0&&it.data[0]<=3&&it.data[1]===1,'mats: palette position 0..3, full stiffness');assert.equal(Math.floor(it.data[2]*4),0,'mats leave the integer palette index unused');}
     else assert.ok(it.data[0]>=0&&it.data[0]<1&&it.data[1]>=0.05&&it.data[1]<=1,'phase / stiffness in range');
     const slot=it.data[2]*4,idx=Math.floor(slot);assert.ok(idx>=0&&idx<=3,'palette index 0..3');assert.ok(slot-idx>=0&&slot-idx<=0.75+1e-6,'slot fraction is a shade lift or a bank darkening');
     const tile=Math.floor(it.data[3]+1e-3);assert.ok(tile>=0&&tile<tiles,`atlas tile ${tile} of ${tiles}`);
@@ -73,7 +75,7 @@ for(const set of a.carpet.all){assert.deepEqual(set.opts.instanceData,{attribute
   assert.ok(qa(0.9)/qa(0.1)>=1.6,`card aspect spread p90 / p10 = ${(qa(0.9)/qa(0.1)).toFixed(2)} (≥ 1.6)`);
   let cool=0,warm=0,plain=0;for(const it of cl){const [r,g,b]=it.color;if(Math.abs(r-1)<1e-6&&Math.abs(g-1)<1e-6&&Math.abs(b-1)<1e-6)plain++;if(b>r)cool++;else warm++;assert.ok(r>0.8&&r<1.2&&g>0.85&&g<1.15&&b>0.8&&b<1.2,`card colour jitter in range: ${r.toFixed(3)} ${g.toFixed(3)} ${b.toFixed(3)}`);}
   assert.equal(plain,0,'no card is plain white');assert.ok(cool/cl.length>0.4&&warm/cl.length>0.4,`hue jitter both ways: ${(cool/cl.length*100).toFixed(0)} % cool, ${(warm/cl.length*100).toFixed(0)} % warm`);
-  for(const it of a.carpet.mats.items)assert.deepEqual(it.color,[1,1,1],'mats stay white');}
+  for(const set of[a.carpet.mats,a.carpet.northMats])for(const it of set.items)assert.deepEqual(it.color,[1,1,1],'mats stay white');}
 // neighbouring mats never step hard in tone (the blades' drift at half strength, continuous): of every pair of
 // mats within 0.8 m, the median differs by < 0.35 entries, the 99th percentile by < 0.75, the steepest (the
 // giants' litter-floor offset meeting the tint mottle) by < 1.25
@@ -84,7 +86,7 @@ for(const set of a.carpet.all){assert.deepEqual(set.opts.instanceData,{attribute
   steps.sort((p,r)=>p-r);const q=f=>steps[Math.min(steps.length-1,Math.floor(f*steps.length))];
   assert.ok(steps.length>=5000&&q(1)<1.25&&q(0.99)<0.75&&q(0.5)<0.35,`${steps.length} mat pairs within 0.8 m, median palette step ${q(0.5).toFixed(3)}, p99 ${q(0.99).toFixed(3)}, largest ${q(1).toFixed(3)}`);}
 // determinism: a fresh seed and terrain reproduce every card
-for(const k of['clumps','northClumps','mats']){const first=a.carpet[k],second=b.carpet[k];assert.equal(first.count,second.count,`${k} count`);
+for(const k of['clumps','northClumps','mats','northMats']){const first=a.carpet[k],second=b.carpet[k];assert.equal(first.count,second.count,`${k} count`);
   for(let i=0;i<first.count;i++)assert.deepEqual(first.items[i],second.items[i],`${k} ${i} reproduced`);}
 // counts and density: a closed carpet over the lawns (≈ 4 clumps / m², ≈ 4 mats / m²)
 assert.ok(a.carpet.clumps.count>=12000&&a.carpet.clumps.count<=30000,`clumps: ${a.carpet.clumps.count}`);
@@ -101,6 +103,17 @@ assert.ok(a.carpet.infillMats>=3000&&a.carpet.infillMats<=12000,`round 47 infill
   // the hollow floor and the plain (survey-2 #06 boxes) carry a closed carpet: ≥ 2 fans / m² of allowed ground
   for(const [name,b] of [['hollow floor west',[-12,-45,-5,-34]],['north plain',[-5,-60,12,-50]]]){const w=(b[2]-b[0])*(b[3]-b[1]);let allowed=0;for(let x=b[0]+0.25;x<b[2];x+=0.5)for(let z=b[1]+0.25;z<b[3];z+=0.5){a.field.sample(x,z,s);if(a.field.allowed(x,z,s,true)&&!a.field.insideGiantTrunk(x,z))allowed+=0.25;}
     const n=a.carpet.northClumps.items.filter(it=>inBox(it,b)).length;assert.ok(n/Math.max(1,allowed)>=2,`${name}: ${(n/Math.max(1,allowed)).toFixed(2)} north fans / m² over ${allowed.toFixed(0)} m² allowed (${(100*allowed/w).toFixed(0)} % of the box)`);}}
+// round 48 (vegetation-26): the mats of every tile wholly north of NORTH_MAT_Z seat in `northMats` (the same quad, the
+// same material, cut at NORTH_MAT_MAX_DISTANCE — camera A looks north and the disc's mats have no cut), the disc's set
+// holds none north of the line; the second clearing's banks (field.ts clearingLawn) and the ledge terrace's pad carry
+// a closed mat carpet again (the round-47 head left them forest floor: ≈ 0.5 mats / m²)
+{const {NORTH_MAT_Z,NORTH_MAT_MAX_DISTANCE}=read('vegetation/carpet');assert.ok(NORTH_MAT_Z<=-55&&NORTH_MAT_MAX_DISTANCE>=30&&NORTH_MAT_MAX_DISTANCE<=45,'the north mats gate at the arch\'s north lip and run 30–45 m');
+  assert.strictEqual(a.carpet.northMats.opts.variants,a.carpet.mats.opts.variants,'the same quad');assert.strictEqual(a.carpet.northMats.opts.material,a.carpet.mats.opts.material,'the same material');
+  assert.equal(a.carpet.northMats.opts.maxDistance,NORTH_MAT_MAX_DISTANCE);assert.equal(a.carpet.mats.opts.maxDistance,undefined,'the disc\'s mats keep no cut');
+  assert.ok(a.carpet.northMats.count>=800,`north mats: ${a.carpet.northMats.count}`);
+  for(const it of a.carpet.northMats.items)assert.ok(it.z<NORTH_MAT_Z,`north mat at z ${it.z}`);for(const it of a.carpet.mats.items)assert.ok(it.z>=NORTH_MAT_Z-8,`disc mat at z ${it.z}`);
+  for(const [name,b,min] of [['clearing east bank',[4,-76,8,-66],1.5],['clearing west bank',[-8,-76,-5,-66],1.5],['terrace pad',[-3.1,-79.8,1.7,-76.8],1.5]]){const w=(b[2]-b[0])*(b[3]-b[1]);let allowed=0;for(let x=b[0]+0.25;x<b[2];x+=0.5)for(let z=b[1]+0.25;z<b[3];z+=0.5){a.field.sample(x,z,s);if(a.field.allowed(x,z,s,true)&&!a.field.insideGiantTrunk(x,z))allowed+=0.25;}
+    const n=a.carpet.northMats.items.filter(it=>inBox(it,b)).length;assert.ok(n/Math.max(1,allowed)>=min,`${name}: ${(n/Math.max(1,allowed)).toFixed(2)} north mats / m² over ${allowed.toFixed(0)} m² allowed (${(100*allowed/w).toFixed(0)} % of the box)`);}}
 assert.ok(CLUMP_CELL<=0.45&&MAT_CELL<=0.6);
 const perM2=(set,b)=>set.items.filter(it=>inBox(it,b)).length/((b[2]-b[0])*(b[3]-b[1]));
 // (the north verge lies in shot D's soil shoulder — frame 56 s' ragged earth edge — where the mats thin like the blades)
@@ -180,6 +193,8 @@ for(const set of a.carpet.all){set.update(new THREE.Vector3(0,1.5,0),true);
   // round 46: the north corridor's fans run to 25 m (NORTH_CARPET) — from the plaza's eye only the line's first metre is in range
   if(set===a.carpet.clumps){assert.equal(set.opts.maxDistance,16);assert.ok(inRange<set.count*0.5&&inRange>1500,`${inRange} of ${set.count} fans inside 16 m`);}
   else if(set===a.carpet.northClumps){assert.equal(set.opts.maxDistance,25);assert.ok(inRange<set.count*0.02,`${inRange} of ${set.count} north fans inside 25 m of the plaza`);}
+  // round 48: the mats north of NORTH_MAT_Z end at NORTH_MAT_MAX_DISTANCE — none is inside it from the plaza's eye
+  else if(set===a.carpet.northMats){assert.equal(set.opts.maxDistance,40);assert.equal(inRange,0,`${inRange} of ${set.count} north mats inside 40 m of the plaza`);}
   else assert.equal(set.opts.maxDistance,undefined);
   assert.equal(set.group.children.reduce((n,m)=>n+m.count,0),inRange,'every card in range bucketed');
   const cam=new THREE.PerspectiveCamera(50,16/9,0.1,200);cam.position.set(0,1.5,0);cam.lookAt(0,1,-10);cam.updateMatrixWorld();

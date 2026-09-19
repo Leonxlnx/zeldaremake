@@ -13,7 +13,7 @@ import { BufferGeometry, Float32BufferAttribute, Group, InstancedBufferAttribute
 import type { WorldContext } from '../system';
 import { smoothstep, clamp } from '../util/noise';
 import type { Rng } from '../util/prng';
-import { A_FACE_HEIGHT, VegField, composeMatrix, newSample } from './field';
+import { A_FACE_HEIGHT, BANK_FLOOR_SHARE, VegField, composeMatrix, newSample } from './field';
 import { BLADE_MIN, COVERAGE_CELL } from './coverage';
 import { perfFlags, perfRuntime } from '../../perfFlags';
 
@@ -442,7 +442,10 @@ export async function buildGrass(ctx: WorldContext, field: VegField, material: M
       // frame 46 s' trodden foreground before camera C (round 35): short dusty turf
       const foot = field.cFoot(x, z);
       // the north corridor's forest floor (round 44): sparse, short, deep-tinted turf
-      const nfloor = field.northFloor(x, z);
+      // round 48: the second clearing's banks and the ledge terrace's pad are lawn again (field.ts
+      // clearingLawn) — the pad in full, the banks keeping BANK_FLOOR_SHARE of the floor's cut
+      const lawn = field.clearingLawn(x, z);
+      const nfloor = field.northFloor(x, z) * (1 - Math.max(lawn.pad, lawn.bank * (1 - BANK_FLOOR_SHARE)));
       // the reference's slopes are not thicker than its flats; the boost stays for banks outside
       // the low verges so the embankments still read dense
       const slopeBoost = 1 + 0.6 * smoothstep(0.15, 0.5, s.slope) * (1 - s.cliff) * (1 - low);
