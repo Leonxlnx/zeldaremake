@@ -1,0 +1,15 @@
+diff --git a/src/world/atmosphere/shafts.ts b/src/world/atmosphere/shafts.ts
+index 18936319..a1fdc008 100644
+--- a/src/world/atmosphere/shafts.ts
++++ b/src/world/atmosphere/shafts.ts
+@@ -109,8 +109,8 @@ export const SCREEN_FAN = {
+   floor: 0.75,
+   /** in-scatter added on the hero beam's axis (≥ 10 m of air, fully sun-facing view) — see ComposerSettings.fanAmp */
+   amp: 0.23,
+-  /** view-axis angle from the sun (degrees) where the fan starts to appear / is fully on — see ComposerSettings.fanFacingDeg (round 37: 85 → 81 trims B to the frame's beam contrast, A to none) */
+-  facingDeg: [81, 61] as [number, number],
++  /** Broad angular fade keeps faint shafts in side/back views; Sept19 matched A/F/D review. */
++  facingDeg: [170, 75] as [number, number],
+   /** frame y (0 = top) where the fan starts fading out / where it has no effect */
+   fadeY: [0.35, 0.6] as [number, number],
+   beams: [

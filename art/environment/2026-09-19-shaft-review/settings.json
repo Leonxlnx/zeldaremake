@@ -1,0 +1,8 @@
+{
+  "views": ["A_stairs", "F_canopy", "D_log"],
+  "variants": [
+    {"name": "baseline"},
+    {"name": "columns", "postfx": {"beamColumnGain": 2.0}},
+    {"name": "facing", "postfx": {"fanFacingDeg": [170, 75]}}
+  ]
+}

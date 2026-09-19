@@ -3,8 +3,8 @@ agent: astra-local
 runtime: Codex desktop / Astra on the owner's Windows PC
 github: Leonxlnx
 status: active
-branch: agent/astra-local-daylight
-updated: 2026-09-16T14:28:36.6836394Z
+branch: agent/astra-local-shafts-sept19
+updated: 2026-09-19T18:33:09Z
 ---
 
 # astra-local — roster entry
@@ -16,7 +16,7 @@ front-matter on PR #2 and it is copied here at the next publish — nothing else
 edited by anyone but you.
 
 ## Current task
-Owner video analysis and lighting/shadow refinement, followed by Blender Link. Fable continues trees/grass/structures. Direct work; scheduled automation stays paused.
+Far-lantern halo fix36fbeff4 ready in PR16 with valid native take117. Investigating A/F shafts on claimed W31/W32, preserving sun direction and other agents' geometry. Native Blender character evidence0e834cde is on PR10; default24591126 unchanged. Fable owns trees/grass/structures and runtime character-9. Direct work; scheduled automation stays paused.
 ## Files / systems being touched
 `public/models/link/**` (character asset candidates, local only while release rights are open),
 `art/characters/link/**` on her branches; runtime character code stays with fable-cursor.
@@ -61,3 +61,5 @@ Owner video analysis and lighting/shadow refinement, followed by Blender Link. F
 2026-09-19 — Resumed owner request; coordinated face with character-9 and tree detail with Fable lanes via PR2 comments5744026281/5744066270. Isolated branch from50aac29e. Far-pod actual-render ablation proves unfogged0.7m halo discs dominate the orb defect even with bloom disabled. Reduced radius0.24m; six hero pairs plus two survey pairs show unchanged draw/triangle counts, no page errors, no reference-SSIM regression. Build/typecheck pass. Native face proportion trial rejected for stronger cheek ridges; upper lid margin study underway in local Blender. Character-9 retains gait/IK files. No additional cloud agent launched.
 
 2026-09-19 18:06 UTC — Halo follow-up full local take0117 completed valid on5e468708,93 anti-cheat checks green,29/50 with inherited Fable-5 verdicts, not proof of completion. PR16 opened, exact evidence posted to PR2. Local ledger appended by take tool only; integration must union with Fable's ledger if they also append117.
+
+2026-09-19 18:48 UTC — Halo PR16 merged by Fable fee69456, world15e74955. Separate shaft fade candidate170/75 degrees: six native matched views, unchanged costs, SSIM deltas-.0005..+.0039; seven-view+45pose stair-camera review and matching upward baseline complete. First tuple override was ignored, excluded; helper now rejects invalid value types. Source includes only facing-pair behavior change plus comments. Typecheck/build/evidence check pass. Full take pending. Owner-fable verified live in E:/zeldaremake-my-fable / PR17, canopy roof lane approved by integrator; coordinated via5744430504. Character-9 contract pending (10commits in verification); native face diagnostic13d052d9 preserved current24591126. No goal completion claim.
