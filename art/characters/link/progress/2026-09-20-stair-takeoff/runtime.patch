@@ -2,20 +2,11 @@ diff --git a/src/world/character/glbLink.ts b/src/world/character/glbLink.ts
 index 9e85298d..e47b3931 100644
 --- a/src/world/character/glbLink.ts
 +++ b/src/world/character/glbLink.ts
-@@ -1882,6 +1882,9 @@ export async function loadGlbLink(url: string, opts: GlbLinkOptions = {}): Promi
-         const pinnedX = loco && !airborne ? loco.pinX[i] : NaN;
-         const pinnedZ = loco && !airborne ? loco.pinZ[i] : NaN;
-         const pinned = Number.isFinite(pinnedX) && Number.isFinite(pinnedZ);
+@@ -1884,0 +1885,3 @@ export async function loadGlbLink(url: string, opts: GlbLinkOptions = {}): Promi
 +        if (loco && jump) {
 +          loco.offX[i] = loco.offZ[i] = NaN;
 +        }
-         leg.relA.set(0, 0, 0);
-         leg.relH.set(0, 0, 0);
-         leg.attA.set(0, 0, 0);
-@@ -1904,8 +1907,11 @@ export async function loadGlbLink(url: string, opts: GlbLinkOptions = {}): Promi
-             const len = (s.tLand - s.tOff) / a.rate;
-             const back = speed * sw.phase * len;
-             const ahead = speed * (1 - sw.phase) * len;
+@@ -1907,2 +1910,5 @@ export async function loadGlbLink(url: string, opts: GlbLinkOptions = {}): Promi
 -            const ox = x + s.offX * fz + s.offZ * fx - fx * back;
 -            const oz = z - s.offX * fx + s.offZ * fz - fz * back;
 +            // A pinned foot may have shifted off the clip's predicted tread. Its swing
@@ -23,40 +14,21 @@ index 9e85298d..e47b3931 100644
 +            const heldOff = loco && !jump && Number.isFinite(loco.offX[i]);
 +            const ox = heldOff ? loco.offX[i] : x + s.offX * fz + s.offZ * fx - fx * back;
 +            const oz = heldOff ? loco.offZ[i] : z - s.offX * fx + s.offZ * fz - fz * back;
-             const lx = x + s.landX * fz + s.landZ * fx + fx * ahead;
-             const lz = z - s.landX * fx + s.landZ * fz + fz * ahead;
-             footConfig(surface, base, ox, oz, fx, fz, s.offYaw, leg.fp, cfgOff);
-@@ -2524,6 +2530,12 @@ export async function loadGlbLink(url: string, opts: GlbLinkOptions = {}): Promi
-       for (let i = 0; i < 2; i++) {
-         const leg = legs[i];
-         leg.soleP.copy(leg.sole).applyMatrix4(leg.ankle.matrixWorld);
+@@ -2526,0 +2533,6 @@ export async function loadGlbLink(url: string, opts: GlbLinkOptions = {}): Promi
 +        if (loco && !jump && leg.stance) {
 +          // Reach limiting can shorten a requested pin. Remember the rendered sole,
 +          // otherwise releasing that unreachable pin would pull the body down again.
 +          loco.offX[i] = leg.soleP.x;
 +          loco.offZ[i] = leg.soleP.z;
 +        }
-         leg.contactOff = 0;
-         leg.contactGround = surface(leg.soleP.x, leg.soleP.z);
-         if (Math.abs(leg.soleP.y - leg.contactGround) > CONTACT_OFF) {
 diff --git a/src/world/character/puppet.ts b/src/world/character/puppet.ts
 index 59058e28..6cf54687 100644
 --- a/src/world/character/puppet.ts
 +++ b/src/world/character/puppet.ts
-@@ -86,12 +86,15 @@ export interface Locomotion {
-   /** the world (x, z) a foot in its pin LEAD-IN (glbLink.ts tableLead) was carried to this step — the spot its pin engages at next step; NaN = no lead-in */
-   leadX: [number, number];
-   leadZ: [number, number];
+@@ -88,0 +89,3 @@ export interface Locomotion {
 +  /** Last planted world position, retained through swing for the take-off support. */
 +  offX: [number, number];
 +  offZ: [number, number];
-   /** the jump in progress, or null on the ground */
-   jump: JumpState | null;
- }
- 
- export function createLocomotion(): Locomotion {
+@@ -94 +97 @@ export function createLocomotion(): Locomotion {
 -  return { speed: 0, dt: 0, pinX: [NaN, NaN], pinZ: [NaN, NaN], pinFadeX: [NaN, NaN], pinFadeZ: [NaN, NaN], pinFadeT: [NaN, NaN], leadX: [NaN, NaN], leadZ: [NaN, NaN], jump: null };
 +  return { speed: 0, dt: 0, pinX: [NaN, NaN], pinZ: [NaN, NaN], pinFadeX: [NaN, NaN], pinFadeZ: [NaN, NaN], pinFadeT: [NaN, NaN], leadX: [NaN, NaN], leadZ: [NaN, NaN], offX: [NaN, NaN], offZ: [NaN, NaN], jump: null };
- }
- 
- /**

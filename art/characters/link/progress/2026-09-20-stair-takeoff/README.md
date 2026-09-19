@@ -44,3 +44,7 @@ No reach clamps; sampled shoe clearances and worst knee/thigh angles match basel
 | Initial descent after the turn | ![](../2026-09-19-stair-contact/game-before/stairs-down-30.png) | ![](game-after/stairs-down-30.png) |
 | Middle descent | ![](../2026-09-19-stair-contact/game-before/stairs-down-360.png) | ![](game-after/stairs-down-360.png) |
 | Middle ascent | ![](../2026-09-19-stair-contact/game-before/stairs-up-360.png) | ![](game-after/stairs-up-360.png) |
+
+## Integrated scene take
+
+Generated local take0120 at57593ae0 is valid:30/50, Phase1 25/42, no regressions,94anti-cheat checks green, deterministic0%. A uses567draws/8,922,084triangles, within W38. [Generated report](fixed-view-take/take.json). The working tree was marked dirty because local candidate/evidence files remain; this is a local attestation, not CI acceptance or completed character quality. U03's score increase comes from the integrated world/audio state, not this movement fix. The CLI-generated ledger append is preserved without manual edits.
