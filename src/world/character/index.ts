@@ -446,9 +446,10 @@ export async function create(ctx: WorldContext): Promise<WorldSystem> {
        * both soles of the current pose: world height, the exact ground under its contact point, signed gap (m), the support the IK
        * planted it on (differs from groundY only within a few cm of a tread nosing), and the smallest gap over the boot's real
        * footprint (heel / toe corners, measured on the mesh at load) to the rendered surface — negative = a shoe point inside the stone;
-       * `pinM` the along-facing pin holding a fading idle clip's foot where it stood, `holdM` the raise keeping the sole's lowest point on its support
+       * `pinM` the along-facing pin holding a fading idle clip's foot where it stood, `holdM` the raise keeping the sole's lowest point on its support;
+       * round 47: `soleX/Z` the sole's world x/z, `stance` whether the clips' contact windows call the foot a stance foot, `pinLatM` the lateral part of a stance pin
        */
-      linkFeetContact: link.puppet.feetContact().map((f) => ({ foot: f.foot, soleY: Number(f.soleY.toFixed(4)), groundY: Number(f.groundY.toFixed(4)), gapM: Number(f.gapM.toFixed(4)), supportY: Number(f.supportY.toFixed(4)), minShoeGapM: Number(f.minShoeGapM.toFixed(4)), shiftM: Number(f.shiftM.toFixed(4)), pitchRad: Number(f.pitchRad.toFixed(4)), correctionM: Number(f.correctionM.toFixed(4)), pinM: Number(f.pinM.toFixed(4)), holdM: Number(f.holdM.toFixed(4)) })),
+      linkFeetContact: link.puppet.feetContact().map((f) => ({ foot: f.foot, soleY: Number(f.soleY.toFixed(4)), groundY: Number(f.groundY.toFixed(4)), gapM: Number(f.gapM.toFixed(4)), supportY: Number(f.supportY.toFixed(4)), minShoeGapM: Number(f.minShoeGapM.toFixed(4)), shiftM: Number(f.shiftM.toFixed(4)), pitchRad: Number(f.pitchRad.toFixed(4)), correctionM: Number(f.correctionM.toFixed(4)), pinM: Number(f.pinM.toFixed(4)), holdM: Number(f.holdM.toFixed(4)), soleX: Number(f.soleX.toFixed(4)), soleZ: Number(f.soleZ.toFixed(4)), stance: f.stance, pinLatM: Number(f.pinLatM.toFixed(4)) })),
       /** how the feet were planted: 'two-bone' leg IK (GLB) or the whole-rig 'root-drop' (procedural); the along-facing shift given a foot to clear a nosing lip; a leg clamped at its reach and by how much; the clips with weight in the gait blend */
       linkIk: (() => {
         const i = link.puppet.plantInfo();

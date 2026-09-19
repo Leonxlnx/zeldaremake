@@ -324,14 +324,14 @@ const ARM_TAU: Record<Gait, number> = { idle: 0, walk: 0.06, run: 0.02, stairs: 
 /**
  * Jump overlay (JumpState phases). Crouch: the root sinks JUMP_CROUCH_M over the crouch (the leg
  * IK keeps the feet planted, so the knees bend) while the arms swing back; air: the legs blend
- * from the frozen stride toward a tuck (ankles JUMP_TUCK_UP higher and JUMP_TUCK_FWD further
- * forward of the hips) that peaks at the apex, the toes point down, the arms come up; land: a
- * compression of JUMP_LAND_M per m/s of touchdown speed (clamped) that dips and recovers over
- * the landing phase.
+ * from the frozen stride toward a tuck (ankles JUMP_TUCK_UP of the leg's length higher and
+ * JUMP_TUCK_FWD of it further forward of the hips — fractions, so the knee's fold is the same on
+ * any rig) that peaks at the apex, the toes point down, the arms come up; land: a compression of
+ * JUMP_LAND_M per m/s of touchdown speed (clamped) that dips and recovers over the landing phase.
  */
 const JUMP_CROUCH_M = 0.11;
-const JUMP_TUCK_UP = 0.3;
-const JUMP_TUCK_FWD = 0.14;
+const JUMP_TUCK_UP = 0.42;
+const JUMP_TUCK_FWD = 0.3;
 const JUMP_TUCK_BLEND = 0.85;
 const JUMP_TOE_DOWN = 0.35;
 const JUMP_LAND_M_PER_MPS = 0.02;
@@ -633,6 +633,7 @@ const _u = new Vector3();
 const _v = new Vector3();
 const _n = new Vector3();
 const _w = new Vector3();
+const _down = new Vector3();
 const _aim = new Vector3();
 const _normal = new Vector3();
 const _qIk = new Quaternion();
@@ -2111,8 +2112,8 @@ export async function loadGlbLink(url: string, opts: GlbLinkOptions = {}): Promi
       if (airborne && jump) {
         // the airborne pose (round 47): the root on the arc the character system integrated, the
         // gait frozen (nothing advanced it), and the legs blended from the frozen stride toward
-        // the tuck — the ankles JUMP_TUCK_UP higher and JUMP_TUCK_FWD ahead of the hips — peaking
-        // at the apex, extended along the stride at the push-off and reaching down for the
+        // the tuck — the ankles JUMP_TUCK_UP of the leg higher and JUMP_TUCK_FWD of it ahead of the
+        // hips — peaking at the apex, extended along the stride at the push-off and reaching down for the
         // ground before touchdown; the toes point down with the tuck. No ground, no pins, no
         // drops: the IK aims the legs at these targets.
         const dy = jump.y - root.position.y;
@@ -2136,7 +2137,7 @@ export async function loadGlbLink(url: string, opts: GlbLinkOptions = {}): Promi
           const cur = _v.length();
           if (cur > 1e-6 && extend > 0) _v.multiplyScalar(MathUtils.lerp(1, (len * 0.97) / cur, extend));
           // the tuck and the landing reach, in the facing frame
-          _u.set(fx * JUMP_TUCK_FWD, -(len - JUMP_TUCK_UP), fz * JUMP_TUCK_FWD);
+          _u.set(fx * JUMP_TUCK_FWD * len, -(1 - JUMP_TUCK_UP) * len, fz * JUMP_TUCK_FWD * len);
           _v.lerp(_u, tuck);
           _u.set(fx * 0.06, -len * 0.92, fz * 0.06);
           _v.lerp(_u, reachDown);
@@ -2195,18 +2196,18 @@ export async function loadGlbLink(url: string, opts: GlbLinkOptions = {}): Promi
         // The foot gives up the little height that asked for it (a stair swing's arc, never a
         // stance foot on the ground within reach).
         hips.getWorldPosition(_p);
-        chest.getWorldPosition(_w);
-        _w.subVectors(_p, _w);
-        if (_w.lengthSq() > 1e-8) {
-          _w.normalize();
+        chest.getWorldPosition(_down);
+        _down.subVectors(_p, _down);
+        if (_down.lengthSq() > 1e-8) {
+          _down.normalize();
           for (const leg of legs) {
             leg.knee.getWorldPosition(_u).sub(leg.hip);
             if (_u.lengthSq() < 1e-8) continue;
             _u.normalize();
-            const flex = Math.acos(MathUtils.clamp(_u.dot(_w), -1, 1));
+            const flex = Math.acos(MathUtils.clamp(_u.dot(_down), -1, 1));
             if (flex <= HIP_FLEX_MAX) continue;
             const eps = flex - HIP_FLEX_MAX;
-            _n.crossVectors(_u, _w);
+            _n.crossVectors(_u, _down);
             if (_n.lengthSq() < 1e-10) continue;
             _n.normalize();
             _q.setFromAxisAngle(_n, eps);
