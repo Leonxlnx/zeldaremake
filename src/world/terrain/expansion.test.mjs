@@ -160,10 +160,37 @@ assert.ok(spot, 'kokiri-ledge spot');
 near(terrain.height(spot.position[0], spot.position[2]), T.y, 0.15, 'kokiri-ledge on the terrace');
 assert.equal(ground.blocked(spot.position[0], spot.position[2]), false, 'kokiri-ledge walkable');
 
-// 5. the lookout dais stands on the east plateau's turf (no mask change there)
+// 4b. the stone circle: seven standing stones on the ring, each blocked for the character (the
+// `structure` mask under it), the paving between them open
+assert.equal(hf.STONE_CIRCLE_STONES.length, LAYOUT.stoneCircle.stones, 'standing stone count');
+for (const s of hf.STONE_CIRCLE_STONES) {
+  near(Math.hypot(s.x - NC.x, s.z - NC.z), LAYOUT.stoneCircle.ringRadius, 0.13, 'standing stone on the ring');
+  assert.equal(ground.blocked(s.x, s.z), true, `standing stone blocks at (${s.x.toFixed(2)}, ${s.z.toFixed(2)})`);
+  assert.equal(ground.blocked(s.x + 0.5 * Math.cos(s.ang), s.z + 0.5 * Math.sin(s.ang)), false, 'the paving outside the stone is open');
+}
+assert.equal(ground.blocked(NC.x, NC.z), false, 'the centre slab is open');
+// the ring's gap faces the path's arrival: no stone within 1.4 m of the path's last node
+const arrive = LAYOUT.northPath[LAYOUT.northPath.length - 2];
+for (const s of hf.STONE_CIRCLE_STONES) assert.ok(Math.hypot(s.x - arrive[0], s.z - arrive[2]) > 1.4, 'the arrival sector is open');
+
+// 5. the lookout dais stands on the east plateau's turf (no mask change there), clear of the
+// `plateau-west` fence's last post and of the east giant's trunk and buttress roots (≤ 3.2 m)
 const LK = LAYOUT.lookout;
 near(terrain.height(LK.x, LK.z), LAYOUT.terraces.eastPlateau.height, 0.5, 'lookout on the plateau');
 assert.equal(hf.surfaceMask(LK.x, LK.z).path, 0, 'lookout leaves the plateau mask alone');
+{
+  const a = (LK.yawDeg * Math.PI) / 180;
+  const c = Math.cos(a);
+  const s = Math.sin(a);
+  const corners = [[-1, -1], [1, -1], [1, 1], [-1, 1]].map(([u, v]) => [LK.x + u * LK.halfLength * c + v * LK.halfDepth * s, LK.z - u * LK.halfLength * s + v * LK.halfDepth * c]);
+  const giant = LAYOUT.giantTrees.find((g) => g.id === 'east-giant');
+  for (const [x, z] of corners) assert.ok(Math.hypot(x - giant.position[0], z - giant.position[2]) >= 3.4, `dais corner (${x.toFixed(2)}, ${z.toFixed(2)}) clears the east giant's roots`);
+  const fence = LAYOUT.fences.find((f) => f.id === 'plateau-west');
+  const post = fence.points[fence.points.length - 1];
+  const lu = (post[0] - LK.x) * c - (post[2] - LK.z) * s;
+  const lv = (post[0] - LK.x) * s + (post[2] - LK.z) * c;
+  assert.ok(Math.abs(lu) > LK.halfLength + 0.15 || Math.abs(lv) > LK.halfDepth + 0.15, 'the last fence post is outside the dais');
+}
 
 // 6. south of the extension nothing changed for the masks the fixed frames depend on: the mask's
 // legacy view equals the live mask there

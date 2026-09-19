@@ -4,7 +4,9 @@
  * grass sprouting from the joints. Everything is cut-stone geometry seated on the heightfield.
  */
 import { Group, InstancedMesh, Matrix4, Mesh } from 'three';
+import { mergeGeometries } from 'three/examples/jsm/utils/BufferGeometryUtils.js';
 import type { WorldContext, WorldSystem } from '../system';
+import { STONE_CIRCLE_STONES } from '../terrain/heightfield';
 import { STONE_NEAR, createStoneMaterial } from './material';
 import { buildStairway, stairFrame, stairToWorld, type StairFrame } from './stairs';
 import { isPaved, nearIsolatedDisc, pavedLevel, placeFlagstones, rimDistance, type PavingContext } from './flagstones';
@@ -103,21 +105,13 @@ export async function create(ctx: WorldContext): Promise<WorldSystem> {
     nbbox.z0 = Math.min(nbbox.z0, p[2] - 3.2);
   }
   const circleRng = rng.fork('stone-circle');
-  /** the standing stones' places on the ring (world xz), evenly spaced with a little slip, the ring's gap facing the path's arrival from the east-south-east */
-  const ringStones: { x: number; z: number; ang: number }[] = [];
-  const gapAng = Math.atan2(ctx.layout.northPath[ctx.layout.northPath.length - 2][2] - NC.z, ctx.layout.northPath[ctx.layout.northPath.length - 2][0] - NC.x);
-  for (let i = 0; i < SC.stones; i++) {
-    // the ring leaves the arrival sector (± 1/(stones+1) of the circle around `gapAng`) open
-    const t = (i + 1) / (SC.stones + 1);
-    const ang = gapAng + Math.PI * 2 * t + circleRng.range(-0.06, 0.06);
-    const r = SC.ringRadius + circleRng.range(-0.12, 0.12);
-    ringStones.push({ x: NC.x + Math.cos(ang) * r, z: NC.z + Math.sin(ang) * r, ang });
-  }
+  /** the standing stones' places on the ring (world xz): terrain/heightfield.ts `STONE_CIRCLE_STONES`, shared with the `structure` mask that blocks the character at them */
+  const ringStones = STONE_CIRCLE_STONES;
   const northDiscs = [{ x: NC.x, z: NC.z, r: SC.centreSlabRadius, atRim: true }, ...ringStones.map((s) => ({ x: s.x, z: s.z, r: 0.34, atRim: true }))];
   const pcN: PavingContext = { terrain: T, frames, rng: rng.fork('paving-north'), seed: ctx.config.seed, bbox: nbbox, density: ctx.quality.density, steppingStones: [], region: 'north', extraDiscs: northDiscs };
+  // its geometry is merged into the `flagstones` mesh below (with the lookout dais): the character
+  // ground learns the slab tops it stands on from that one mesh (character/ground.ts attachSurface)
   const pavingN = placeFlagstones(pcN, stoneMat);
-  pavingN.mesh.name = 'flagstones-north';
-  group.add(pavingN.mesh);
   ctx.progress('hardscape', 0.7);
 
   // --- joint fill --------------------------------------------------------------------------
@@ -648,14 +642,14 @@ export async function create(ctx: WorldContext): Promise<WorldSystem> {
   const monoliths = new MeshBuilder();
   const standingStones: { x: number; y: number; z: number; height: number }[] = [];
   const monoM = new Matrix4();
-  const placeBlock = (outline: { x: number; z: number }[], cx: number, cz: number, top: number, yaw: number, tiltX: number, tiltZ: number, opts: Parameters<typeof buildSlab>[2]) => {
+  const placeBlock = (outline: { x: number; z: number }[], cx: number, cz: number, top: number, yaw: number, tiltX: number, tiltZ: number, opts: Parameters<typeof buildSlab>[2], into: MeshBuilder = monoliths) => {
     const mb = new MeshBuilder();
     buildSlab(mb, outline, opts);
     monoM.makeRotationY(yaw);
     if (tiltX || tiltZ) monoM.multiply(new Matrix4().makeRotationX(tiltX).multiply(new Matrix4().makeRotationZ(tiltZ)));
     monoM.setPosition(cx, top - opts.thickness, cz);
     mb.transform(monoM);
-    monoliths.append(mb);
+    into.append(mb);
   };
   const monoUv = 1 / 1.7;
   const blockN = new Noise2D(`${ctx.config.seed}/monolith-moss`);
@@ -709,6 +703,8 @@ export async function create(ctx: WorldContext): Promise<WorldSystem> {
   }
   const lkTop = lkGroundMax + LK.height;
   const lkThickness = lkTop - lkGroundMin + 0.05;
+  // the dais goes into the `flagstones` mesh (below) so the character stands on its top
+  const dais = new MeshBuilder();
   placeBlock(lkOutline, LK.x, LK.z, lkTop, lkYaw, 0, 0, {
     thickness: lkThickness,
     bevel: 0.04,
@@ -724,7 +720,18 @@ export async function create(ctx: WorldContext): Promise<WorldSystem> {
     wear: 0.5,
     sideWear: 0.5,
     sideStain: 1.2,
-  });
+  }, dais);
+  // one `flagstones` mesh: the legacy paving (byte-identical), the north paving and the lookout
+  // dais. character/ground.ts learns the tops the feet stand on from this mesh alone.
+  {
+    const parts = [paving.mesh.geometry, pavingN.mesh.geometry, dais.build()];
+    const merged = mergeGeometries(parts, false);
+    if (merged) {
+      paving.mesh.geometry = merged;
+      for (const g of parts) g.dispose();
+    }
+  }
+  const daisTriangles = dais.vertexCount / 3;
   const monolithMesh = new Mesh(monoliths.build(), stoneMat);
   monolithMesh.castShadow = true;
   monolithMesh.receiveShadow = true;
@@ -846,9 +853,9 @@ export async function create(ctx: WorldContext): Promise<WorldSystem> {
     steppingStones: paving.stats.steppingStones,
     steppingStoneDiscs: paving.steppingStones.map((d) => [round(d.x), round(d.z), round(d.r)]),
     flagstoneMaxAspect: round(Math.max(...paving.stones.map((s) => s.aspect))),
-    flagstoneTriangles: paving.triangles,
-    // (round 47: the legacy paving and the north extension are two merged meshes — `flagstones`, `flagstones-north`)
-    flagstoneDrawCalls: 2,
+    // (round 47: the legacy paving, the north extension and the lookout dais are one merged `flagstones` mesh)
+    flagstoneTriangles: paving.triangles + pavingN.triangles + daisTriangles,
+    flagstoneDrawCalls: 1,
     jointFillVertices: joints.vertices,
     jointSprouts: sprouts.count,
     jointSproutsOnFlagstones: flagstoneSprouts + lawnTufts + pocketTufts + lawnPocketTufts + lawnEdgeTufts + lawnEdgeBand + edgeGrass + discTufts - discPads,
@@ -906,7 +913,7 @@ export async function create(ctx: WorldContext): Promise<WorldSystem> {
       heightM: quantiles(standingStones.map((s) => s.height)),
       centreSlabRadius: SC.centreSlabRadius,
     },
-    lookout: { x: LK.x, z: LK.z, topY: round(lkTop), proudM: LK.height, yawDeg: LK.yawDeg },
+    lookout: { x: LK.x, z: LK.z, topY: round(lkTop), proudM: LK.height, yawDeg: LK.yawDeg, triangles: daisTriangles },
     blockTriangles: monolithMesh.geometry.getAttribute('position').count / 3,
     jointSproutVariants: sprouts.variants,
     // tufts, clover, moss cushions and seam grit packed into these InstancedMeshes (one draw each)
@@ -953,7 +960,7 @@ export async function create(ctx: WorldContext): Promise<WorldSystem> {
     jointFillRimLengthM: round(joints.rimLength),
     // joint-width field (5 cm texels) the fill shader reads: tight soil seams dark, wide soil junctions pale
     jointGapField: joints.gapField,
-    hardscapeTriangles: stairTriangles + paving.triangles + pavingN.triangles + joints.triangles + jointsN.triangles + sprouts.triangles + flowers.triangles + monolithMesh.geometry.getAttribute('position').count / 3,
+    hardscapeTriangles: stairTriangles + paving.triangles + pavingN.triangles + daisTriangles + joints.triangles + jointsN.triangles + sprouts.triangles + flowers.triangles + monolithMesh.geometry.getAttribute('position').count / 3,
     plazaRadius: 6,
     samplePositions: {
       // top-centre of each slab: 2–5 cm above the ground by design (the slab is seated in it)

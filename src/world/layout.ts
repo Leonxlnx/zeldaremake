@@ -329,15 +329,20 @@ export const LAYOUT = {
   ledgeTerrace: { x: -0.7, z: -78.3, y: 5.62, halfLength: 2.4, halfDepth: 1.5, yawDeg: 0 },
 
   /**
-   * Round 47 (expansion-1, item 4): a lookout dais on the east plateau's south-west lip, 1.3 m
-   * past the last post of the `plateau-west` fence (the fence simply ends; no post moves), a
-   * 2.4 × 1.8 m stone platform standing 0.35 m proud of the plateau turf (tall enough that the
-   * plateau grass does not pierce it — no mask changes on the plateau, whose ≤ 45 m ground feeds
-   * the vegetation and rock streams every fixed frame sees). From it the player looks west over
-   * the plaza and the stair. Camera F is the only fixed camera whose frustum holds it (F (0.66,
-   * 0.26), 26.6 m), where the stair-bank giant's crown fills the frame in front of it.
+   * Round 47 (expansion-1, item 4): a lookout dais on the east plateau's south-west lip, 1.5 m
+   * past the last post of the `plateau-west` fence (the fence simply ends; no post moves; the post
+   * clears the slab by 0.24 m), a 2.4 × 1.8 m stone platform whose top stands 0.35 m over the
+   * highest turf under it (the lip falls 0.7 m across the footprint, so the plaza-side corner
+   * stands ~1 m proud — a platform on the edge; the player steps up from the fence side). Tall
+   * enough that the plateau grass does not pierce it — no mask changes on the plateau, whose
+   * ≤ 45 m ground feeds the vegetation and rock streams every fixed frame sees. Hardscape merges
+   * it into the `flagstones` mesh so the character ground stands on it. Its nearest corner is
+   * 3.5 m from the `east-giant`'s axis (trunk 1.4 m, buttress roots reach 2.3–3.2 m; the first
+   * placement at (24.6, 4.3) put a corner inside the trunk). From it the player looks west over
+   * the plaza and the stair. Camera F is the only fixed camera whose frustum holds it (F (0.635,
+   * 0.22), 24 m), where the stair-bank giant's crown fills the frame in front of it.
    */
-  lookout: { x: 24.6, z: 4.3, halfLength: 1.2, halfDepth: 0.9, yawDeg: 52, height: 0.35 },
+  lookout: { x: 22.8, z: 3.3, halfLength: 1.2, halfDepth: 0.9, yawDeg: 56, height: 0.35 },
 
   /** Terraces / plateaus that the heightfield honours (soft-edged). */
   terraces: {

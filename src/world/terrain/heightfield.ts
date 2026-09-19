@@ -427,6 +427,40 @@ export const PLAZA_DISCS = [PLAZA, { x: 5.0, z: 2.4, radius: 4.0 }, { x: 3.25, z
 export const NORTH_DISCS = [{ x: LAYOUT.northClearing.x, z: LAYOUT.northClearing.z, y: LAYOUT.northClearing.y, radius: LAYOUT.northClearing.radius }];
 
 /**
+ * The stone circle's standing stones (`layout.stoneCircle`) on the clearing's ring: evenly spaced
+ * with a little deterministic slip (a fixed-seed noise, no stream), the ring's gap facing the
+ * path's arrival. Shared here so the hardscape that lays the blocks, the `structure` mask that
+ * keeps grass out from under them and the character ground's `blocked()` all see the same stones.
+ */
+const STONE_SLIP_N = new Noise2D('stone-circle-slip');
+export const STONE_CIRCLE_STONES: readonly { x: number; z: number; ang: number }[] = (() => {
+  const NC = LAYOUT.northClearing;
+  const SC = LAYOUT.stoneCircle;
+  const arrive = LAYOUT.northPath[LAYOUT.northPath.length - 2];
+  const gapAng = Math.atan2(arrive[2] - NC.z, arrive[0] - NC.x);
+  const out: { x: number; z: number; ang: number }[] = [];
+  for (let i = 0; i < SC.stones; i++) {
+    // the ring leaves the arrival sector (± 1/(stones+1) of the circle around `gapAng`) open
+    const t = (i + 1) / (SC.stones + 1);
+    const ang = gapAng + Math.PI * 2 * t + 0.06 * STONE_SLIP_N.fbm(i * 3.1 + 0.5, 1.7, 1);
+    const r = SC.ringRadius + 0.12 * STONE_SLIP_N.fbm(i * 3.1 + 0.5, 9.3, 1);
+    out.push({ x: NC.x + Math.cos(ang) * r, z: NC.z + Math.sin(ang) * r, ang });
+  }
+  return out;
+})();
+/** the standing stones' footprints: 1 within 0.26 m of a stone's axis (the blocks are 0.30–0.42 m across), 0 beyond 0.34 m */
+export function standingStoneMask(x: number, z: number): number {
+  const NC = LAYOUT.northClearing;
+  if (Math.abs(x - NC.x) > NC.radius || Math.abs(z - NC.z) > NC.radius) return 0;
+  let m = 0;
+  for (const s of STONE_CIRCLE_STONES) {
+    const d = Math.hypot(x - s.x, z - s.z);
+    if (d < 0.34) m = Math.max(m, 1 - smoothstep(0.26, 0.34, d));
+  }
+  return m;
+}
+
+/**
  * The ledge terrace north of the clearing (`layout.ledgeTerrace`): an oriented box, full over its
  * half extents, its north / east / west skirts easing out over `skirt` m and its SOUTH face — the
  * rock face over the clearing that ref-04 shows — falling over `face` m (1.62 m over 0.5 m ≈ 73°,
@@ -913,6 +947,10 @@ export function surfaceMask(x: number, z: number): { path: number; stairs: numbe
   // south (the oblique cut's lip) so no grass grows up the mouth
   const lg = logLocal(x, z);
   if (Math.abs(lg.lu) < LOG.L / 2 + 0.3 * lg.k && lg.lvc > -LOG.R * 0.9 && lg.lvc < LOG.R * 0.9 + 0.6 * lg.k) structure = 1;
+  // round 47: the stone circle's standing stones (the north paving lays its slabs under them —
+  // hardscape/flagstones.ts `pavedLevel` ignores this in its north pass; the character cannot walk
+  // through them and no grass grows under them)
+  structure = Math.max(structure, standingStoneMask(x, z));
   return { path: p.surface, stairs, structure };
 }
 
