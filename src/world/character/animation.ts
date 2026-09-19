@@ -43,8 +43,24 @@ const GAIT: Record<Exclude<Gait, 'idle'>, GaitParams> = {
   stairs: { cycleHz: 0.8, thigh: 0.55, thighBias: 0.3, knee: 1.5, arm: 0.25, elbow: 0.6, lean: 0.15, hipSway: 0.08 },
 };
 
-/** Ground speed (m/s) at which the feet of each gait roughly plant without sliding. */
+/**
+ * Ground speed (m/s) at which the feet of each gait plant without sliding when its clip plays at
+ * rate 1 — the clip's own stride / cycle (glbLink.ts CLIP_SPEC), the procedural gait's tuning.
+ * Also what a clip's clock-driven rate is computed from (the fixed captures), so it is NOT the
+ * speed the player moves at: that is PLAYER_SPEED, and in play mode the clips are advanced by the
+ * ground actually covered (Puppet.advance), whatever the speed.
+ */
 export const GAIT_SPEED: Record<Gait, number> = { idle: 0, walk: 1.6, run: 3.9, stairs: 1.1 };
+
+/**
+ * Target ground speed (m/s) of the player controller per gait (round 47: the owner's "the run
+ * should be a little bit faster" — 3.9 → 4.6, Zelda's brisk run; the walk stays 1.6). The root
+ * accelerates toward it at PLAYER_ACCEL and brakes at PLAYER_DECEL (m/s²), and the clips follow
+ * the actual speed (no foot slide), so the run clip plays at ≈ 1.18× its cycle at full speed.
+ */
+export const PLAYER_SPEED: Record<Gait, number> = { idle: 0, walk: 1.6, run: 4.6, stairs: 1.1 };
+export const PLAYER_ACCEL = 9;
+export const PLAYER_DECEL = 16;
 
 /**
  * Phase offsets for the hero under capture. The harness samples t = 12.5 + settle/60 s (settle 6

@@ -334,7 +334,7 @@ async function boot() {
             `${fps.toFixed(0)} fps · ${info.calls} draws · ${(info.triangles / 1e6).toFixed(2)}M tris\n` +
             `cam ${p.x.toFixed(1)}, ${p.y.toFixed(1)}, ${p.z.toFixed(1)} · quality ${tierHint}${flagHint}\n` +
             (follow?.enabled
-              ? `PLAY: WASD / arrows walk · Shift run · drag to look · Tab equipment · P free camera · H hide`
+              ? `PLAY: WASD / arrows walk · Shift run · Space jump · drag to look · Tab equipment · P free camera · H hide`
               : `FREE CAM: WASD move · drag/dbl-click look · 1-6 viewpoints · R reset · P play as Link · H hide`);
         }
       }
