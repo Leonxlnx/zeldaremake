@@ -117,8 +117,8 @@ export const DISTANT_BASE_RINGS = 5;
  * Round 48: the near LOD's root toes (writer.ts rootButtress off their own stream) — [count min,
  * max], length / collar width / collar height as shares of R. Round 47's 5–7 toes at 1.4–2.1 R
  * long and 0.45–0.7 R tall were lost in the grass at 15 m; these run 2.2–3.4 R out of the butt,
- * 0.55–0.85 R tall at the collar, and the sweep's own skirt (−0.6 m) plus the north seat rule
- * (placeDistantTrees DISTANT_NORTH_SEAT) keep them on the ground.
+ * 0.55–0.85 R tall at the collar, and dive under (DISTANT_TOE_DIVE) so their tips are buried on
+ * flat ground and their downhill halves still touch on a bank.
  */
 export const DISTANT_TOES: [number, number] = [4, 6];
 export const DISTANT_TOE_LENGTH: [number, number] = [2.2, 3.4];
@@ -154,13 +154,13 @@ export const CROWN_UNDER_M: [number, number] = [36, 48];
 export const CROWN_UNDER_DARK = 0.38;
 export const CROWN_NEAR_DARK = 0.72;
 /**
- * Round 48: a distant tree standing north of this z is seated on the LOWEST ground under its
- * root spread (samples at DISTANT_NORTH_SEAT[1] × scale m around the axis) rather than on the
- * axis alone, so its toes sit on a bank instead of floating off the downhill side — the sweep's
- * 0.6 m skirt takes the uphill burial. Applied after every draw (no re-roll); south of it every
- * placement is byte-identical to round 47. [zMax, sample radius m]
+ * Round 48: the near LOD's toes DIVE — their local ground falls this much per metre out from the
+ * axis, so a toe's tip is buried 0.3–0.45 m on flat ground and the toe reads as a root going
+ * under, and on a bank of slope ≤ 0.1 the downhill toe still touches instead of floating (the
+ * instance stands on the axis ground: the rubric's base-gap check, systems.trees.maxBaseGap
+ * ≤ 0.03, reads the placement's y against the terrain there). The uphill toes bury, as before.
  */
-export const DISTANT_NORTH_SEAT: [number, number] = [-50, 1.8];
+export const DISTANT_TOE_DIVE = 0.1;
 /**
  * Round 46 (survey-2 check 04, poses w19-spine-r / sn-arch-outside: the depth rows' boles
  * 8–14 m from a walker were still smooth grey cones — round 45's tone bands and cords are albedo
@@ -573,7 +573,7 @@ export function createDistantVariants(rng: Rng, palette: Palette): DistantVarian
       const a = (i / rootCount) * TAU + rootRng.range(-0.3, 0.3);
       // round 46: DISTANT_ROOT_ARC arc sides and a fillet into the ground (writer.ts RootButtressShape)
       if (slender) rootButtress(near, a, R * rootRng.range(1.4, 2.1), R * rootRng.range(0.3, 0.45), R * rootRng.range(0.45, 0.7), rootColor, rootRng, () => 0, new Vector3(0, 0, 0), 6, { arcSides: DISTANT_ROOT_ARC, fillet: 0.6 });
-      else rootButtress(near, a, R * rootRng.range(DISTANT_TOE_LENGTH[0], DISTANT_TOE_LENGTH[1]), R * rootRng.range(DISTANT_TOE_WIDTH[0], DISTANT_TOE_WIDTH[1]), R * rootRng.range(DISTANT_TOE_HEIGHT[0], DISTANT_TOE_HEIGHT[1]), rootColor, rootRng, () => 0, new Vector3(0, 0, 0), 8, { arcSides: DISTANT_ROOT_ARC, fillet: 0.7 });
+      else rootButtress(near, a, R * rootRng.range(DISTANT_TOE_LENGTH[0], DISTANT_TOE_LENGTH[1]), R * rootRng.range(DISTANT_TOE_WIDTH[0], DISTANT_TOE_WIDTH[1]), R * rootRng.range(DISTANT_TOE_HEIGHT[0], DISTANT_TOE_HEIGHT[1]), rootColor, rootRng, (x, z) => -DISTANT_TOE_DIVE * Math.hypot(x, z), new Vector3(0, 0, 0), 8, { arcSides: DISTANT_ROOT_ARC, fillet: 0.7 });
     }
     near.woodMoss = 0;
     solidUv(near);
@@ -727,15 +727,6 @@ export function placeDistantTrees(rng: Rng, terrain: Terrain, variants: DistantV
   const grid = new Map<string, DistantPlacement[]>();
   const key = (x: number, z: number) => `${Math.floor(x / cell)},${Math.floor(z / cell)}`;
   const push = (p: DistantPlacement) => {
-    // round 48 (DISTANT_NORTH_SEAT): north of the arch a tree stands on the lowest ground under
-    // its root spread (six samples round the axis + the axis), never more than the sweep's 0.6 m
-    // skirt below the axis ground — the toes downhill touch, the uphill ones bury. No draw.
-    if (p.z < DISTANT_NORTH_SEAT[0]) {
-      const rad = DISTANT_NORTH_SEAT[1] * p.scale;
-      let low = p.y;
-      for (let i = 0; i < 6; i++) low = Math.min(low, terrain.height(p.x + Math.cos((i / 6) * TAU) * rad, p.z + Math.sin((i / 6) * TAU) * rad));
-      p = { ...p, y: Math.max(low, p.y - 0.55) };
-    }
     out.push(p);
     const k = key(p.x, p.z);
     if (!grid.has(k)) grid.set(k, []);
