@@ -641,6 +641,15 @@ const TOP_ROUGHNESS_FRAGMENT = /* glsl */ `
 #include <roughnessmap_fragment>
 roughnessFactor = gl_FrontFacing ? uTopRoughness : roughnessFactor;
 `;
+/**
+ * Round 47: with the lamina uv bands in the shader (leafDetail), only a lamina's upper face takes
+ * the sheen — the shrub cores, stems and twigs (geometry.ts NOT_LAMINA strips) keep the matte base
+ * roughness, so a crown's dark heart never reads as a lit ball between its leaves.
+ */
+const TOP_ROUGHNESS_LAMINA_FRAGMENT = /* glsl */ `
+#include <roughnessmap_fragment>
+roughnessFactor = gl_FrontFacing && (vLeafUv.x < 1.5 || (vLeafUv.x >= ${BROADLEAF_U.toFixed(1)} && vLeafUv.x < ${(BROADLEAF_U + 1).toFixed(1)})) ? uTopRoughness : roughnessFactor;
+`;
 
 export interface VegMaterialOptions {
   roughness?: number;
@@ -804,13 +813,13 @@ export function createVegMaterial(ctx: WorldContext, kind: VegKind, opts: VegMat
     fs = `uniform float uAmbientBoost;\nuniform float uTransmission;\n${LIFT_FRAGMENT_PARS}${grassLike ? GRASS_FRAGMENT_PARS : ''}${kind === 'grass' ? GRASS_NORMAL_FRAGMENT_PARS : ''}${card ? CARD_FRAGMENT_PARS : ''}${glossyTop ? TOP_ROUGHNESS_PARS : ''}${leafDetail ? LEAF_DETAIL_FRAGMENT_PARS : ''}${grain ? MOSS_GRAIN_FRAGMENT_PARS : ''}${fs}`.replace('#include <lights_fragment_end>', lights);
     if (kind === 'grass') fs = fs.replace('#include <normal_fragment_begin>', GRASS_NORMAL_FRAGMENT_BEGIN);
     if (card) fs = fs.replace('#include <map_fragment>', CARD_MAP_FRAGMENT).replace('#include <normal_fragment_begin>', CARD_NORMAL_FRAGMENT_BEGIN);
-    if (glossyTop) fs = fs.replace('#include <roughnessmap_fragment>', TOP_ROUGHNESS_FRAGMENT);
+    if (glossyTop) fs = fs.replace('#include <roughnessmap_fragment>', leafMode === 'leaf' ? TOP_ROUGHNESS_LAMINA_FRAGMENT : TOP_ROUGHNESS_FRAGMENT);
     if (leafMode) fs = fs.replace('#include <color_fragment>', `#include <color_fragment>\n${leafMode === 'petal' ? PETAL_DETAIL_FRAGMENT : leafMode === 'litter' ? LITTER_DETAIL_FRAGMENT : LEAF_DETAIL_FRAGMENT}`);
     if (grain) fs = fs.replace('#include <color_fragment>', `#include <color_fragment>\n${MOSS_GRAIN_FRAGMENT}`);
     shader.vertexShader = vs;
     shader.fragmentShader = fs;
   };
-  mat.customProgramCacheKey = () => `veg-${kind}-v19${glossyTop ? '-glossy' : ''}${leafMode ? `-${leafMode}` : ''}${grain ? '-grain' : ''}`;
+  mat.customProgramCacheKey = () => `veg-${kind}-v20${glossyTop ? '-glossy' : ''}${leafMode ? `-${leafMode}` : ''}${grain ? '-grain' : ''}`;
   if (kind === 'litter' || kind === 'moss') return mat;
   return ctx.wind.bind(mat);
 }

@@ -9,6 +9,8 @@
  *  - an irregular crown: 3–5 overlapping ellipsoid LOBES of different centres and sizes, so the
  *    silhouette is a ragged mass, never a dome or a fan;
  *  - an opaque dark CORE per lobe (no light through the crown — ref-04's edges are dark masses);
+ *    it is a NOT_LAMINA strip, so the material's glossy top roughness passes it by (materials.ts)
+ *    and it stays a matte shadow between the leaves rather than a lit ball;
  *  - 3–4 DEPTH LAYERS of leaves on each lobe's surface, the outer layer lit (two-tone lamina:
  *    a deep rib grading to the lit margin, the tip lightest) and every layer inward sunk toward
  *    the core tone, so the crown reads as lit leaf clusters over a dark heart; the outer leaves
@@ -103,13 +105,13 @@ export const HEDGE_STYLE: ShrubStyle = {
   leafLen: [0.075, 0.125],
   leafAspect: 0.66,
   shape: 'ovate',
-  leaves: { ultra: 560, high: 460, mid: 210, low: 96 },
+  leaves: { ultra: 560, high: 520, mid: 250, low: 96 },
   bunches: 26,
   stems: [4, 6],
   stemGirth: 0.016,
   sprays: [5, 8],
   sprayReach: 0.16,
-  coreTone: 0.42,
+  coreTone: 0.34,
   sun: 0.6,
   spread: 0.14,
   fringe: 0.45,
@@ -131,13 +133,13 @@ export const BUSH_STYLE: ShrubStyle = {
   leafLen: [0.13, 0.21],
   leafAspect: 0.6,
   shape: 'ovate',
-  leaves: { ultra: 420, high: 330, mid: 150, low: 70 },
+  leaves: { ultra: 420, high: 420, mid: 200, low: 70 },
   bunches: 18,
   stems: [5, 7],
   stemGirth: 0.02,
   sprays: [6, 9],
   sprayReach: 0.24,
-  coreTone: 0.45,
+  coreTone: 0.34,
   sun: 0.7,
   spread: 0.16,
   fringe: 0.4,
@@ -165,7 +167,7 @@ export const BIG_LEAF_STYLE: ShrubStyle = {
   stemGirth: 0.012,
   sprays: [0, 0],
   sprayReach: 0,
-  coreTone: 0.4,
+  coreTone: 0.34,
   sun: 0.75,
   spread: 0.14,
   fringe: 0,

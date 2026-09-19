@@ -243,7 +243,7 @@ for(const [v,lods] of weeds.opts.variants.entries()){const g=lods[0],b=g.boundin
   const sorted=[...lum].sort((p,q)=>p-q);assert.ok(sorted[sorted.length-1]/sorted[Math.floor(sorted.length*0.5)]>=1.12,`variant ${v} has a visibly lighter midrib`);}
 const weedMat=a.plants.materials.find(m=>m.name==='veg-weeds');assert.ok(weedMat,'weed material');
 {const sh={uniforms:{},vertexShader:THREE.ShaderLib.standard.vertexShader,fragmentShader:THREE.ShaderLib.standard.fragmentShader};weedMat.onBeforeCompile(sh,{});
-  assert.equal(sh.uniforms.uTopRoughness.value,0.55,'waxy top face roughness 0.55');assert.match(sh.fragmentShader,/roughnessFactor = gl_FrontFacing \? uTopRoughness : roughnessFactor;/);assert.ok(weedMat.roughness>=0.85,'matte underside');}
+  assert.equal(sh.uniforms.uTopRoughness.value,0.55,'waxy top face roughness 0.55');assert.match(sh.fragmentShader,/roughnessFactor = gl_FrontFacing && \(vLeafUv\.x < 1\.5 \|\| \(vLeafUv\.x >= 6\.0 && vLeafUv\.x < 7\.0\)\) \? uTopRoughness : roughnessFactor;/,'round 47: the sheen is the laminae\'s only — cores, stems and twigs stay matte');assert.ok(weedMat.roughness>=0.85,'matte underside');}
 // Path-edge softening (sheet 02): dense short moss in the 0.25 m band outside the flagstone rim
 // of the spine / stair branch / plaza, nothing on the slabs (every root passed `allowed` above).
 // Since aff169d / e17f310 the stair branch ends at (6.6, −0.5) inside the plaza's east lobe, so its

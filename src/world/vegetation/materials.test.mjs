@@ -154,8 +154,13 @@ for (const kind of ['grass', 'moss', 'litter']) {
   const ms = prepare(matte, 'standard');
   assert.equal(gs.uniforms.uTopRoughness.value, 0.55);
   assert.equal(glossy.roughness, 0.9, 'base roughness stays the matte underside');
-  assert.match(gs.fragmentShader, /#include <roughnessmap_fragment>\s*roughnessFactor = gl_FrontFacing \? uTopRoughness : roughnessFactor;/);
+  // round 47: with the lamina bands in the shader (leafDetail 'leaf', the default here) only a lamina's
+  // upper face takes the sheen — the shrub cores, stems and twigs (NOT_LAMINA strips) stay matte
+  assert.match(gs.fragmentShader, /#include <roughnessmap_fragment>\s*roughnessFactor = gl_FrontFacing && \(vLeafUv\.x < 1\.5 \|\| \(vLeafUv\.x >= 6\.0 && vLeafUv\.x < 7\.0\)\) \? uTopRoughness : roughnessFactor;/);
   assert.equal((gs.fragmentShader.match(/uniform float uTopRoughness;/g) || []).length, 1);
+  const glossyPetal = createVegMaterial(ctx, 'plant', { roughness: 0.9, topRoughness: 0.55, leafDetail: 'petal' });
+  owned.push(glossyPetal);
+  assert.match(prepare(glossyPetal, 'standard').fragmentShader, /roughnessFactor = gl_FrontFacing \? uTopRoughness : roughnessFactor;/, 'without the leaf bands the whole front face keeps the sheen');
   assert.doesNotMatch(ms.fragmentShader, /uTopRoughness/);
   assert.equal(ms.uniforms.uTopRoughness, undefined);
   assert.notEqual(glossy.customProgramCacheKey(), matte.customProgramCacheKey(), 'glossy and matte plants compile separate programs');
