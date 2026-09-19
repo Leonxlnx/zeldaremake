@@ -402,7 +402,7 @@ function poseSeated(rig: Rig, seat: SeatPose, t: number, phase: number, headYaw:
     const drop = -_tmp2.y;
     const { a, flex } = twoBone(l1, l2, reach, drop);
     // knees a little apart, the right one more (an asymmetric, relaxed sit)
-    thigh.rotation.set(-a - pelvis, 0, side * (side > 0 ? 0.1 : 0.16));
+    thigh.rotation.set(-a - pelvis, 0, side * (side > 0 ? 0.07 : 0.11));
     knee.rotation.x = flex;
     // foot flat on its tread
     ankle.rotation.set(-(thigh.rotation.x + knee.rotation.x), 0, -thigh.rotation.z);

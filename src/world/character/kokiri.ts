@@ -125,8 +125,8 @@ function applySkinRamp(m: MeshStandardMaterial): MeshStandardMaterial {
   const prev = m.onBeforeCompile;
   m.onBeforeCompile = (shader: WebGLProgramParametersWithUniforms, renderer) => {
     prev?.call(m, shader, renderer);
-    shader.uniforms.uSkinWarm = { value: new Color(0.42, 0.1, 0.03) };
-    shader.uniforms.uSkinShade = { value: new Color(0.16, 0.05, 0.03) };
+    shader.uniforms.uSkinWarm = { value: new Color(0.26, 0.06, 0.02) };
+    shader.uniforms.uSkinShade = { value: new Color(0.1, 0.03, 0.02) };
     shader.fragmentShader = `uniform vec3 uSkinWarm;\nuniform vec3 uSkinShade;\n${shader.fragmentShader}`.replace(
       '#include <lights_fragment_end>',
       /* glsl */ `#include <lights_fragment_end>
