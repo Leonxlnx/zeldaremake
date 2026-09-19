@@ -90,6 +90,10 @@ interface NearRock {
   skirt: number[];
   /** near skirt stones folded into the kit */
   skirtStones: number;
+  /** fable-2: embankment strata slabs within reach — indices into `strata`; collapsed like the skirt while the kit is in */
+  strataSkirt: number[];
+  /** smaller companion shards the kit adds beside the adopted slabs */
+  strataCompanions: number;
 }
 
 interface Instance {
@@ -191,6 +195,31 @@ export async function create(ctx: WorldContext): Promise<WorldSystem> {
     const m = T.mask(x, z);
     return m.path < 0.02 && m.stairs < 0.5 && m.structure < 0.5;
   };
+
+  // --- embankment strata on steep faces ----------------------------------------------------
+  // (fable-2: built before the hero boulders so a near kit can adopt the slabs standing against
+  // its rock — own fork `strata`, so the scatter is what it was)
+  const strata: Instance[] = [];
+  {
+    const sRng = rng.fork('strata');
+    const sNoise = new Noise2D(`${seed}/strata-density`);
+    const step = 0.9;
+    for (let z = -detailR; z <= detailR; z += step) {
+      for (let x = -detailR; x <= detailR; x += step) {
+        if (x * x + z * z > detailR * detailR) continue;
+        const px = x + sRng.range(-0.4, 0.4);
+        const pz = z + sRng.range(-0.4, 0.4);
+        const m = T.mask(px, pz);
+        if (m.path > 0.02 || m.stairs > 0.5 || m.structure > 0.5) continue;
+        const slope = T.slope(px, pz);
+        const want = smoothstep(0.17, 0.42, slope) * (0.45 + 0.55 * (sNoise.fbm(px * 0.35, pz * 0.35, 2) * 0.5 + 0.5)) + m.cliff * 0.6;
+        if (sRng() > want * 0.75 * density) continue;
+        const sc = sRng.range(0.22, 0.62) * (0.7 + 0.6 * slope);
+        T.normal(px, pz, _n);
+        strata.push({ x: px, y: T.height(px, pz) - sc * 0.32, z: pz, scale: sc, yaw: sRng.range(0, Math.PI * 2), tiltTo: _n.clone().lerp(_up, 0.25).normalize(), variant: sRng.int(0, 4) });
+      }
+    }
+  }
 
   // --- hero boulders -----------------------------------------------------------------------
   const contact: [number, number, number][] = [];
@@ -630,6 +659,9 @@ export async function create(ctx: WorldContext): Promise<WorldSystem> {
           strata: b.id === 'shot-d-boulder' ? 0.1 : 0,
           // fable-2 (survey-2 #32): no parting pit on the crown — the "black hole on top"
           strataCrown: 0.1,
+          // fable-2 (survey-2 #17 / #25): the moss blanket swells as one lumpy sheet — its
+          // crack-line and facet steps were the "shard skirt" along the stair-foot rock's flank
+          mossSwellSmooth: true,
         });
         // the crevice plants root in the near skin's furrows (the far mesh's cracks are only lines)
         const crevice = pickCrevicePlants(nearGeo);
@@ -748,6 +780,69 @@ export async function create(ctx: WorldContext): Promise<WorldSystem> {
           parts.push({ geometry: shard, matrix: inv.clone().multiply(new Matrix4().compose(_p, _q, _s.setScalar(1))) });
           shards++;
         }
+        // fable-2 (survey-2 #17 / #25 — the actual "shard skirt"): the embankment STRATA slabs
+        // that the bank scatter drops against the rock — radius-1 variants at detail 3 with four
+        // cleaves, instanced at 0.2–0.6 m — are the stacked angular low-poly shards along the
+        // stair-foot boulder's flank at 2 m. While the kit is in, every slab within reach of the
+        // rock collapses (like the skirt) and comes back here rebuilt at 0.7× its size as a
+        // smooth-shaded, moss-capped slab seated half-buried on the heightfield, with two smaller
+        // companions beside it — more, smaller, smooth-shaded shards. The six fixed views keep
+        // the far slabs.
+        const strataSkirt: number[] = [];
+        let strataCompanions = 0;
+        const stRng = nRng.fork('strata-kit');
+        const reach = r * 2.1 + 0.5;
+        for (let k = 0; k < strata.length; k++) {
+          const it = strata[k];
+          if (Math.hypot(it.x - b.position[0], it.z - b.position[2]) > reach) continue;
+          strataSkirt.push(k);
+          const sc = it.scale * 0.7;
+          const slab = buildRock(stRng.fork(`slab-${k}`), `${seed}/slab-${b.id}-${k}`, {
+            radius: sc,
+            detail: sc > 0.3 ? 9 : 8,
+            ridge: 0.18,
+            lump: 0.3,
+            cuts: 3,
+            cutUp: [-0.2, 0.9],
+            cutDepth: [0.78, 0.92],
+            squashY: 0.55,
+            creaseDeg: 60,
+            cracks: 0.25,
+            crackDepth: 0.02,
+            micro: 0.04,
+            chip: 0.015,
+            rimRound: 0.16,
+            strata: 0.06,
+            moss: 0.7,
+            mossThickness: 0.1,
+            mossLumpy: 0.8,
+            mossSide: 0.4,
+            mossShade: toLocal(shadeDir, it.yaw),
+            facetBare: 0.4,
+            dirt: 0.6,
+            tint: new Color(0.6, 0.59, 0.56),
+            freq: 1,
+          });
+          // the far slab's pose (tilt + yaw) at unit scale, its centre 12 % of the radius under
+          // the ground: half-buried, the moss cap 0.4 r proud
+          instanceMatrix({ ...it, scale: 1, y: T.height(it.x, it.z) - sc * 0.12 }, nearStone);
+          parts.push({ geometry: slab, matrix: inv.clone().multiply(nearStone) });
+          for (let c = 0; c < 2; c++) {
+            const a = stRng.range(0, Math.PI * 2);
+            const dd = sc * stRng.range(0.9, 1.6);
+            const x = it.x + Math.cos(a) * dd;
+            const z = it.z + Math.sin(a) * dd;
+            const s2 = sc * stRng.range(0.3, 0.55);
+            const yaw2 = stRng.range(0, Math.PI * 2);
+            if (!notPaved(x, z) || Math.hypot(x - b.position[0], z - b.position[2]) < rimAt(Math.atan2(z - b.position[2], x - b.position[0])) * 0.95) continue;
+            const companion = cobble(stRng.fork(`companion-${k}-${c}`), `${seed}/companion-${b.id}-${k}-${c}`, s2, 2, toLocal(shadeDir, yaw2));
+            T.normal(x, z, _n);
+            _q.setFromUnitVectors(_up, _n.clone().lerp(_up, 0.5).normalize()).multiply(new Quaternion().setFromAxisAngle(_up, yaw2));
+            _p.set(x, T.height(x, z) - s2 * 0.35, z);
+            parts.push({ geometry: companion, matrix: inv.clone().multiply(new Matrix4().compose(_p, _q, _s.setScalar(1))) });
+            strataCompanions++;
+          }
+        }
         const kit = mergeRockParts(dressed.geometry, parts);
         dressed.geometry.dispose();
         for (const p of parts) p.geometry.dispose();
@@ -760,7 +855,7 @@ export async function create(ctx: WorldContext): Promise<WorldSystem> {
         nearMesh.name = `boulder-${b.id}-near`;
         nearMesh.updateMatrixWorld(true);
         group.add(nearMesh);
-        nearRocks.push({ id: b.id, centre, far: mesh, near: nearMesh, inM, outM, hero, active: false, dist: Infinity, triangles: kit.attributes.position.count / 3, cushions: dressed.stats.cushions, creviceCushions: dressed.stats.creviceCushions, lichen: dressed.stats.lichen, lichenShare: Math.round((nearStats.lichenShare ?? 0) * 1000) / 1000, fragments: fragmentCount, shards, creviceFerns: crevice.ferns, crevicePads: crevice.pads, skirt, skirtStones: skirt.length });
+        nearRocks.push({ id: b.id, centre, far: mesh, near: nearMesh, inM, outM, hero, active: false, dist: Infinity, triangles: kit.attributes.position.count / 3, cushions: dressed.stats.cushions, creviceCushions: dressed.stats.creviceCushions, lichen: dressed.stats.lichen, lichenShare: Math.round((nearStats.lichenShare ?? 0) * 1000) / 1000, fragments: fragmentCount, shards, creviceFerns: crevice.ferns, crevicePads: crevice.pads, skirt, skirtStones: skirt.length, strataSkirt, strataCompanions });
       }
     }
   }
@@ -784,26 +879,6 @@ export async function create(ctx: WorldContext): Promise<WorldSystem> {
     buildRock(vRng.fork(`pebble-${i}`), `${seed}/pebble-${i}`, { radius: 1, detail: 1, ridge: 0.12, lump: 0.25, cuts: 1, squashY: 0.7, creaseDeg: 50, cracks: 0, moss: 0.25, dirt: 0.3, tint: new Color(0.7, 0.69, 0.66), freq: 1 }),
   );
 
-  // --- embankment strata on steep faces ----------------------------------------------------
-  const strata: Instance[] = [];
-  const sRng = rng.fork('strata');
-  const sNoise = new Noise2D(`${seed}/strata-density`);
-  const step = 0.9;
-  for (let z = -detailR; z <= detailR; z += step) {
-    for (let x = -detailR; x <= detailR; x += step) {
-      if (x * x + z * z > detailR * detailR) continue;
-      const px = x + sRng.range(-0.4, 0.4);
-      const pz = z + sRng.range(-0.4, 0.4);
-      const m = T.mask(px, pz);
-      if (m.path > 0.02 || m.stairs > 0.5 || m.structure > 0.5) continue;
-      const slope = T.slope(px, pz);
-      const want = smoothstep(0.17, 0.42, slope) * (0.45 + 0.55 * (sNoise.fbm(px * 0.35, pz * 0.35, 2) * 0.5 + 0.5)) + m.cliff * 0.6;
-      if (sRng() > want * 0.75 * density) continue;
-      const sc = sRng.range(0.22, 0.62) * (0.7 + 0.6 * slope);
-      T.normal(px, pz, _n);
-      strata.push({ x: px, y: T.height(px, pz) - sc * 0.32, z: pz, scale: sc, yaw: sRng.range(0, Math.PI * 2), tiltTo: _n.clone().lerp(_up, 0.25).normalize(), variant: sRng.int(0, 4) });
-    }
-  }
   ctx.progress('rocks', 0.6);
 
   // --- pebbles: path edges, stair feet, scatter ---------------------------------------------
@@ -874,7 +949,8 @@ export async function create(ctx: WorldContext): Promise<WorldSystem> {
 
   const rubbleSlots: InstanceSlot[] = [];
   const rubbleMeshes = buildInstanced(rubble, rubbleGeos, material, 'rubble', true, rubbleSlots);
-  const strataMeshes = buildInstanced(strata, strataGeos, material, 'strata', true);
+  const strataSlots: InstanceSlot[] = [];
+  const strataMeshes = buildInstanced(strata, strataGeos, material, 'strata', true, strataSlots);
   const pebbleMeshes = buildInstanced(pebbles, pebbleGeos, pebbleMaterial, 'pebbles', false);
   for (const m of [...rubbleMeshes, ...strataMeshes, ...pebbleMeshes]) group.add(m);
   // the boulder-cap plants share the hardscape joint-sprout geometry and wind material; the
@@ -914,6 +990,13 @@ export async function create(ctx: WorldContext): Promise<WorldSystem> {
           slot.mesh.setMatrixAt(slot.index, nr.active ? collapsed : slot.matrix);
           slot.mesh.instanceMatrix.needsUpdate = true;
         }
+        // (fable-2) the embankment slabs the kit adopted, the same way
+        for (const k of nr.strataSkirt) {
+          const slot = strataSlots[k];
+          if (!slot) continue;
+          slot.mesh.setMatrixAt(slot.index, nr.active ? collapsed : slot.matrix);
+          slot.mesh.instanceMatrix.needsUpdate = true;
+        }
       }
     }
   };
@@ -943,7 +1026,7 @@ export async function create(ctx: WorldContext): Promise<WorldSystem> {
       tileM: NEAR_TILE_M,
       fadeM: NEAR_FADE_M,
       dropped: nearDropped,
-      rocks: nearRocks.map((nr) => ({ id: nr.id, inM: rnd(nr.inM), outM: rnd(nr.outM), hero: Number.isFinite(nr.hero) ? rnd(nr.hero) : null, triangles: nr.triangles, cushions: nr.cushions, creviceCushions: nr.creviceCushions, lichen: nr.lichen, lichenShare: nr.lichenShare, fragments: nr.fragments, shards: nr.shards, skirtStones: nr.skirtStones, creviceFerns: nr.creviceFerns, crevicePads: nr.crevicePads, active: nr.active, dist: Number.isFinite(nr.dist) ? rnd(nr.dist) : null })),
+      rocks: nearRocks.map((nr) => ({ id: nr.id, inM: rnd(nr.inM), outM: rnd(nr.outM), hero: Number.isFinite(nr.hero) ? rnd(nr.hero) : null, triangles: nr.triangles, cushions: nr.cushions, creviceCushions: nr.creviceCushions, lichen: nr.lichen, lichenShare: nr.lichenShare, fragments: nr.fragments, shards: nr.shards, skirtStones: nr.skirtStones, strataSlabs: nr.strataSkirt.length, strataCompanions: nr.strataCompanions, creviceFerns: nr.creviceFerns, crevicePads: nr.crevicePads, active: nr.active, dist: Number.isFinite(nr.dist) ? rnd(nr.dist) : null })),
       active: nearRocks.filter((nr) => nr.active).map((nr) => nr.id),
     },
     boulderPlantDrawCalls: plants.meshes.length,

@@ -124,6 +124,16 @@ export interface RockOptions {
   mossShade?: [number, number];
   /** lumpiness of the moss cushion 0..1: its thickness varies ±50 % at 1 so the edge reads soft */
   mossLumpy?: number;
+  /**
+   * fable-2 (survey-2 #17 / #25, `sn-boulder-stairfoot`): the cushion SWELL follows the smooth
+   * coverage only (default false — unchanged far meshes). The swell used to dip wherever the
+   * colour coverage does — at every crack line (`1 − crack·0.5`) and along the bare cleave
+   * facets — so the shaded side's 12 cm blanket was cut into hard-edged steps that read as a
+   * stack of angular shards along the stair-foot rock's flank. With it on, the swell ignores the
+   * crack lines (the fracture faces still keep it off): the blanket is one lumpy sheet and the
+   * colour still draws the crack lines through it.
+   */
+  mossSwellSmooth?: boolean;
   /** colour of the contact collar (default: brown soil) */
   collar?: Color;
   /** the collar's fade band in normalised rock height 0..1 (default [0.05, 0.45]) */
@@ -518,7 +528,8 @@ export function buildRock(rng: Rng, seed: string, o: RockOptions): BufferGeometr
       if (!s) {
         _n.fromBufferAttribute(nrm0, i);
         // vertex-averaged direction (independent of which face we came from) → welded offset
-        const m = mossAt(_p, _n, crackAt(_p), facet[i]);
+        // (mossSwellSmooth: no crack term — the facets still keep the swell off the fracture faces)
+        const m = o.mossSwellSmooth ? mossAt(_p, _n, 0, facet[i]) : mossAt(_p, _n, crackAt(_p), facet[i]);
         let k = mossThick * r * smoothstep(0.1, 0.75, m);
         if (mossLumpy > 0) {
           // the cushion is a pad of pillows, not a uniform shell: its thickness varies ±50 % at

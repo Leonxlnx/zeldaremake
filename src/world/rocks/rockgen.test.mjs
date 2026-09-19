@@ -123,6 +123,37 @@ test('strataCrown (fable-2): the near build has no parting pit on the crown; the
   assert.equal(sideMoved, 0, `${sideMoved} vertices below the shoulders moved`);
 });
 
+test('mossSwellSmooth (fable-2): default off is byte-identical; on, the moss blanket has no crack-line steps', () => {
+  /** the stair-foot rock's options (index.ts): a 0.9 shaded-side blanket, 12 cm thick */
+  const stairFoot = () => ({ ...farOpts(), radius: 1, cutDepth: [0.82, 0.94], cutToward: undefined, cutDark: 0.3, facetBare: 0.5, squashY: 0.74, moss: 1.0, strata: 0, mossThickness: 0.12, mossSide: 0.9, tint: new THREE.Color(0.72, 0.72, 0.71) });
+  const plain = buildRock(createRng('t/s'), 'seed/s', stairFoot());
+  const explicit = buildRock(createRng('t/s'), 'seed/s', { ...stairFoot(), mossSwellSmooth: false });
+  for (const k of ['position', 'normal', 'color', 'aMoss']) assert.ok(same(arr(plain, k), arr(explicit, k)), `${k} moved with mossSwellSmooth false`);
+  // same topology: per vertex, the smooth swell differs from the stepped one exactly where a
+  // crack line crossed the blanket (the step vertices). Those must exist in numbers (the
+  // regression), only ever move OUTWARD (the dip is filled, never dug), by up to the blanket's
+  // thickness
+  const stepped = buildRock(createRng('t/s'), 'seed/s', { ...stairFoot(), detail: 40, crackDepth: 0.03, fineCracks: 0.6, fineCrackDepth: 0.012 });
+  const smooth = buildRock(createRng('t/s'), 'seed/s', { ...stairFoot(), detail: 40, crackDepth: 0.03, fineCracks: 0.6, fineCrackDepth: 0.012, mossSwellSmooth: true });
+  const S = stepped.attributes.position;
+  const Q = smooth.attributes.position;
+  assert.equal(S.count, Q.count);
+  let filled = 0;
+  let dug = 0;
+  let maxFill = 0;
+  for (let i = 0; i < S.count; i++) {
+    const rs = Math.hypot(S.getX(i), S.getY(i) / 0.74, S.getZ(i));
+    const rq = Math.hypot(Q.getX(i), Q.getY(i) / 0.74, Q.getZ(i));
+    const d = rq - rs;
+    if (d > 0.01) filled++;
+    if (d < -0.004) dug++;
+    maxFill = Math.max(maxFill, d);
+  }
+  assert.ok(filled > 300, `only ${filled} blanket vertices filled in — the crack/facet steps no longer reproduce`);
+  assert.ok(maxFill > 0.03 && maxFill < 0.16, `max fill ${maxFill} m (the blanket is 0.12 m thick)`);
+  assert.equal(dug, 0, `${dug} vertices moved inward`);
+});
+
 test('aLichen (fable-2): off by default; with `lichen` + `plates` a 0..1 crust field on the bare upper skin only', () => {
   const plain = buildRock(createRng('t/d'), 'seed/d', nearOpts());
   assert.equal(plain.attributes.aLichen, undefined, 'lichen 0 must not add the attribute');

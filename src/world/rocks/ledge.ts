@@ -136,7 +136,9 @@ export function buildRockLedge(def: RockLedgeDef, T: Terrain, rng: Rng, seed: st
 
   /** bedding at wall coordinates (run u, height y): { groove 0..1, step -1..1 } */
   const bedding = (uu: number, y: number) => {
-    const h = (y + uu * bedTilt) / bedThick + bedPhase + 0.16 * N.fbm(uu * 0.7 + seedOff, y * 0.7, 3.3, 2);
+    // beds undulate along the run (slow) and pinch/swell (faster), so the ledges are not
+    // evenly ruled lines
+    const h = (y + uu * bedTilt) / bedThick + bedPhase + 0.3 * N.fbm(uu * 0.22 + seedOff, y * 0.3, 3.3, 2) + 0.16 * N.fbm(uu * 0.7 + seedOff, y * 0.7, 6.1, 2);
     const k = Math.floor(h);
     const f = h - k;
     const groove = 1 - smoothstep(0, 0.13, Math.min(f, 1 - f));
