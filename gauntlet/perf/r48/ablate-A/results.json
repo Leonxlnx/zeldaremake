@@ -1,0 +1,1016 @@
+{
+  "git": {
+    "sha": "27b132e8",
+    "branch": "agent/fable-6-monitor-perf"
+  },
+  "startedAt": "2026-09-19T21:30:43.665Z",
+  "dist": "E:\\zeldaremake-fable-6\\.wt\\w0116\\dist",
+  "width": 1280,
+  "height": 720,
+  "settle": 8,
+  "timed": 20,
+  "simTime": 12.5,
+  "configs": [
+    "baseline",
+    "shadow=2048,8",
+    "shadow=1024,4",
+    "shadow=0",
+    "scale=0.75",
+    "scale=0.5",
+    "fx=off",
+    "veg=0.5,0.5"
+  ],
+  "ref": "baseline",
+  "views": [
+    "A_stairs"
+  ],
+  "results": [
+    {
+      "viewpoint": "A_stairs",
+      "params": "",
+      "width": 1280,
+      "height": 720,
+      "settle": 8,
+      "simTime": 12.5,
+      "readyMs": 175237,
+      "renderMs": 1379,
+      "timing": {
+        "frames": 20,
+        "medianMs": 284.9,
+        "minMs": 100.9,
+        "maxMs": 444.1,
+        "issueMedianMs": 58.2,
+        "perFrame": [
+          156.7,
+          100.9,
+          235.9,
+          264.9,
+          321.6,
+          284.9,
+          315.6,
+          260,
+          242.6,
+          329.6,
+          326.9,
+          330.3,
+          265.7,
+          253,
+          324.3,
+          261.5,
+          252,
+          444.1,
+          315.3,
+          328.2
+        ]
+      },
+      "ab": null,
+      "png": {
+        "file": "E:\\zeldaremake-fable-6\\gauntlet\\perf\\r48\\ablate-A\\A_stairs.baseline.png",
+        "bytes": 1360780
+      },
+      "stats": {
+        "simTime": 12.63333333333334,
+        "drawCalls": 521,
+        "triangles": 8796924,
+        "geometries": 359,
+        "textures": 82,
+        "programs": 91,
+        "width": 1280,
+        "height": 720,
+        "pixelRatio": 1
+      },
+      "flags": {},
+      "tier": "high",
+      "perfState": {
+        "flags": {},
+        "tier": "high",
+        "version": 0,
+        "fx": {
+          "ao": true,
+          "rays": true,
+          "bloom": true,
+          "soft": true
+        },
+        "shadowMapSize": 4096,
+        "shadowTaps": 12,
+        "vegLodScale": 1,
+        "grassDensity": 1,
+        "renderScale": 1
+      },
+      "stepMs": {
+        "step": 69.59999996423721,
+        "update": 9.199999988079071,
+        "render": 60.39999997615814
+      },
+      "lighting": {
+        "shadows": true,
+        "shadowMapSize": 4096,
+        "filterTaps": 12,
+        "searchTaps": 8,
+        "dynamic": false
+      },
+      "postfx": {
+        "resolution": [
+          1280,
+          720
+        ],
+        "stagesEnabled": {
+          "ao": true,
+          "rays": true,
+          "bloom": true,
+          "soft": false
+        },
+        "aoResolution": [
+          640,
+          360
+        ],
+        "godRayResolution": [
+          320,
+          180
+        ],
+        "softeningGrid": [
+          640,
+          360
+        ],
+        "shadowCasterCull": true,
+        "shadowCastersTested": 178,
+        "shadowCastersCulled": 4
+      },
+      "vegetation": {
+        "drawCalls": 108,
+        "triangles": 2112359
+      },
+      "sceneTriangles": 8467925,
+      "config": "baseline",
+      "wallMs": 185530
+    },
+    {
+      "viewpoint": "A_stairs",
+      "params": "shadow=2048,8",
+      "width": 1280,
+      "height": 720,
+      "settle": 8,
+      "simTime": 12.5,
+      "readyMs": 164819,
+      "renderMs": 458,
+      "timing": {
+        "frames": 20,
+        "medianMs": 72.1,
+        "minMs": 69.9,
+        "maxMs": 85.7,
+        "issueMedianMs": 19.1,
+        "perFrame": [
+          85.7,
+          81.9,
+          75.2,
+          71.7,
+          74.3,
+          70.5,
+          72.3,
+          73.7,
+          69.9,
+          71.6,
+          70.3,
+          74.8,
+          72.1,
+          70.8,
+          71.4,
+          76,
+          77.3,
+          71.9,
+          70,
+          72
+        ]
+      },
+      "ab": null,
+      "png": {
+        "file": "E:\\zeldaremake-fable-6\\gauntlet\\perf\\r48\\ablate-A\\A_stairs.shadow_2048_8.png",
+        "bytes": 1367076
+      },
+      "stats": {
+        "simTime": 12.63333333333334,
+        "drawCalls": 521,
+        "triangles": 8796924,
+        "geometries": 359,
+        "textures": 82,
+        "programs": 91,
+        "width": 1280,
+        "height": 720,
+        "pixelRatio": 1
+      },
+      "flags": {
+        "shadow": "2048,8"
+      },
+      "tier": "high",
+      "perfState": {
+        "flags": {
+          "shadow": "2048,8"
+        },
+        "tier": "high",
+        "version": 0,
+        "fx": {
+          "ao": true,
+          "rays": true,
+          "bloom": true,
+          "soft": true
+        },
+        "shadowMapSize": 2048,
+        "shadowTaps": 8,
+        "vegLodScale": 1,
+        "grassDensity": 1,
+        "renderScale": 1
+      },
+      "stepMs": {
+        "step": 28.200000047683716,
+        "update": 1.5,
+        "render": 26.700000047683716
+      },
+      "lighting": {
+        "shadows": true,
+        "shadowMapSize": 2048,
+        "filterTaps": 8,
+        "searchTaps": 5,
+        "dynamic": false
+      },
+      "postfx": {
+        "resolution": [
+          1280,
+          720
+        ],
+        "stagesEnabled": {
+          "ao": true,
+          "rays": true,
+          "bloom": true,
+          "soft": false
+        },
+        "aoResolution": [
+          640,
+          360
+        ],
+        "godRayResolution": [
+          320,
+          180
+        ],
+        "softeningGrid": [
+          640,
+          360
+        ],
+        "shadowCasterCull": true,
+        "shadowCastersTested": 178,
+        "shadowCastersCulled": 4
+      },
+      "vegetation": {
+        "drawCalls": 108,
+        "triangles": 2112359
+      },
+      "sceneTriangles": 8467925,
+      "config": "shadow=2048,8",
+      "wallMs": 168582,
+      "pngIdentical": false
+    },
+    {
+      "viewpoint": "A_stairs",
+      "params": "shadow=1024,4",
+      "width": 1280,
+      "height": 720,
+      "settle": 8,
+      "simTime": 12.5,
+      "readyMs": 112824,
+      "renderMs": 346,
+      "timing": {
+        "frames": 20,
+        "medianMs": 68.4,
+        "minMs": 63.1,
+        "maxMs": 76.1,
+        "issueMedianMs": 17,
+        "perFrame": [
+          76.1,
+          63.7,
+          68.4,
+          68.1,
+          65.8,
+          68,
+          63.1,
+          66.8,
+          67.8,
+          68.9,
+          70.7,
+          66.2,
+          69.7,
+          69.4,
+          67.7,
+          69,
+          68.8,
+          65.3,
+          68.5,
+          68.8
+        ]
+      },
+      "ab": null,
+      "png": {
+        "file": "E:\\zeldaremake-fable-6\\gauntlet\\perf\\r48\\ablate-A\\A_stairs.shadow_1024_4.png",
+        "bytes": 1381428
+      },
+      "stats": {
+        "simTime": 12.63333333333334,
+        "drawCalls": 521,
+        "triangles": 8796924,
+        "geometries": 359,
+        "textures": 82,
+        "programs": 91,
+        "width": 1280,
+        "height": 720,
+        "pixelRatio": 1
+      },
+      "flags": {
+        "shadow": "1024,4"
+      },
+      "tier": "high",
+      "perfState": {
+        "flags": {
+          "shadow": "1024,4"
+        },
+        "tier": "high",
+        "version": 0,
+        "fx": {
+          "ao": true,
+          "rays": true,
+          "bloom": true,
+          "soft": true
+        },
+        "shadowMapSize": 1024,
+        "shadowTaps": 4,
+        "vegLodScale": 1,
+        "grassDensity": 1,
+        "renderScale": 1
+      },
+      "stepMs": {
+        "step": 26.400000035762787,
+        "update": 3.399999976158142,
+        "render": 22.900000035762787
+      },
+      "lighting": {
+        "shadows": true,
+        "shadowMapSize": 1024,
+        "filterTaps": 4,
+        "searchTaps": 4,
+        "dynamic": false
+      },
+      "postfx": {
+        "resolution": [
+          1280,
+          720
+        ],
+        "stagesEnabled": {
+          "ao": true,
+          "rays": true,
+          "bloom": true,
+          "soft": false
+        },
+        "aoResolution": [
+          640,
+          360
+        ],
+        "godRayResolution": [
+          320,
+          180
+        ],
+        "softeningGrid": [
+          640,
+          360
+        ],
+        "shadowCasterCull": true,
+        "shadowCastersTested": 178,
+        "shadowCastersCulled": 4
+      },
+      "vegetation": {
+        "drawCalls": 108,
+        "triangles": 2112359
+      },
+      "sceneTriangles": 8467925,
+      "config": "shadow=1024,4",
+      "wallMs": 116122,
+      "pngIdentical": false
+    },
+    {
+      "viewpoint": "A_stairs",
+      "params": "shadow=0",
+      "width": 1280,
+      "height": 720,
+      "settle": 8,
+      "simTime": 12.5,
+      "readyMs": 109884,
+      "renderMs": 366,
+      "timing": {
+        "frames": 20,
+        "medianMs": 59.2,
+        "minMs": 55.8,
+        "maxMs": 70.3,
+        "issueMedianMs": 8.7,
+        "perFrame": [
+          70.3,
+          64.1,
+          59,
+          59,
+          57.6,
+          57.7,
+          57.9,
+          55.8,
+          57.7,
+          59,
+          59.2,
+          59.3,
+          59.6,
+          61.1,
+          60.2,
+          58.9,
+          58.1,
+          59.4,
+          59.9,
+          60.7
+        ]
+      },
+      "ab": null,
+      "png": {
+        "file": "E:\\zeldaremake-fable-6\\gauntlet\\perf\\r48\\ablate-A\\A_stairs.shadow_0.png",
+        "bytes": 1419720
+      },
+      "stats": {
+        "simTime": 12.63333333333334,
+        "drawCalls": 342,
+        "triangles": 5826596,
+        "geometries": 329,
+        "textures": 79,
+        "programs": 65,
+        "width": 1280,
+        "height": 720,
+        "pixelRatio": 1
+      },
+      "flags": {
+        "shadow": "0"
+      },
+      "tier": "high",
+      "perfState": {
+        "flags": {
+          "shadow": "0"
+        },
+        "tier": "high",
+        "version": 0,
+        "fx": {
+          "ao": true,
+          "rays": true,
+          "bloom": true,
+          "soft": true
+        },
+        "shadowMapSize": 0,
+        "shadowTaps": 12,
+        "vegLodScale": 1,
+        "grassDensity": 1,
+        "renderScale": 1
+      },
+      "stepMs": {
+        "step": 41.10000002384186,
+        "update": 5.899999976158142,
+        "render": 35.200000047683716
+      },
+      "lighting": {
+        "shadows": false,
+        "shadowMapSize": 4096,
+        "filterTaps": 12,
+        "searchTaps": 8,
+        "dynamic": false
+      },
+      "postfx": {
+        "resolution": [
+          1280,
+          720
+        ],
+        "stagesEnabled": {
+          "ao": true,
+          "rays": true,
+          "bloom": true,
+          "soft": false
+        },
+        "aoResolution": [
+          640,
+          360
+        ],
+        "godRayResolution": [
+          320,
+          180
+        ],
+        "softeningGrid": [
+          640,
+          360
+        ],
+        "shadowCasterCull": true,
+        "shadowCastersTested": 178,
+        "shadowCastersCulled": 4
+      },
+      "vegetation": {
+        "drawCalls": 94,
+        "triangles": 1789701
+      },
+      "sceneTriangles": 8467925,
+      "config": "shadow=0",
+      "wallMs": 113108,
+      "pngIdentical": false
+    },
+    {
+      "viewpoint": "A_stairs",
+      "params": "scale=0.75",
+      "width": 1280,
+      "height": 720,
+      "settle": 8,
+      "simTime": 12.5,
+      "readyMs": 99720,
+      "renderMs": 414,
+      "timing": {
+        "frames": 20,
+        "medianMs": 65.1,
+        "minMs": 60.9,
+        "maxMs": 73.7,
+        "issueMedianMs": 18.4,
+        "perFrame": [
+          73.7,
+          65.1,
+          64,
+          60.9,
+          61.6,
+          61.5,
+          63.3,
+          66.4,
+          62.8,
+          65.4,
+          61.8,
+          62.5,
+          62.6,
+          66.3,
+          65.3,
+          64.6,
+          67,
+          68.9,
+          68,
+          65.9
+        ]
+      },
+      "ab": null,
+      "png": {
+        "file": "E:\\zeldaremake-fable-6\\gauntlet\\perf\\r48\\ablate-A\\A_stairs.scale_0.75.png",
+        "bytes": 1140232
+      },
+      "stats": {
+        "simTime": 12.63333333333334,
+        "drawCalls": 521,
+        "triangles": 8796924,
+        "geometries": 359,
+        "textures": 82,
+        "programs": 91,
+        "width": 960,
+        "height": 540,
+        "pixelRatio": 0.75
+      },
+      "flags": {
+        "scale": "0.75"
+      },
+      "tier": "high",
+      "perfState": {
+        "flags": {
+          "scale": "0.75"
+        },
+        "tier": "high",
+        "version": 0,
+        "fx": {
+          "ao": true,
+          "rays": true,
+          "bloom": true,
+          "soft": true
+        },
+        "shadowMapSize": 4096,
+        "shadowTaps": 12,
+        "vegLodScale": 1,
+        "grassDensity": 1,
+        "renderScale": 0.75
+      },
+      "stepMs": {
+        "step": 38.69999998807907,
+        "update": 2.899999976158142,
+        "render": 35.80000001192093
+      },
+      "lighting": {
+        "shadows": true,
+        "shadowMapSize": 4096,
+        "filterTaps": 12,
+        "searchTaps": 8,
+        "dynamic": false
+      },
+      "postfx": {
+        "resolution": [
+          960,
+          540
+        ],
+        "stagesEnabled": {
+          "ao": true,
+          "rays": true,
+          "bloom": true,
+          "soft": false
+        },
+        "aoResolution": [
+          480,
+          270
+        ],
+        "godRayResolution": [
+          240,
+          135
+        ],
+        "softeningGrid": [
+          640,
+          360
+        ],
+        "shadowCasterCull": true,
+        "shadowCastersTested": 178,
+        "shadowCastersCulled": 4
+      },
+      "vegetation": {
+        "drawCalls": 108,
+        "triangles": 2112359
+      },
+      "sceneTriangles": 8467925,
+      "config": "scale=0.75",
+      "wallMs": 103155,
+      "pngIdentical": false
+    },
+    {
+      "viewpoint": "A_stairs",
+      "params": "scale=0.5",
+      "width": 1280,
+      "height": 720,
+      "settle": 8,
+      "simTime": 12.5,
+      "readyMs": 69367,
+      "renderMs": 329,
+      "timing": {
+        "frames": 20,
+        "medianMs": 58,
+        "minMs": 52.7,
+        "maxMs": 77.6,
+        "issueMedianMs": 23.9,
+        "perFrame": [
+          64.6,
+          61.8,
+          55.6,
+          56.2,
+          56,
+          52.7,
+          53.7,
+          57.2,
+          61,
+          56.8,
+          57.6,
+          58,
+          55,
+          58.2,
+          59,
+          61.2,
+          64.4,
+          58.1,
+          77.6,
+          54.7
+        ]
+      },
+      "ab": null,
+      "png": {
+        "file": "E:\\zeldaremake-fable-6\\gauntlet\\perf\\r48\\ablate-A\\A_stairs.scale_0.5.png",
+        "bytes": 973438
+      },
+      "stats": {
+        "simTime": 12.63333333333334,
+        "drawCalls": 521,
+        "triangles": 8796924,
+        "geometries": 359,
+        "textures": 82,
+        "programs": 91,
+        "width": 640,
+        "height": 360,
+        "pixelRatio": 0.5
+      },
+      "flags": {
+        "scale": "0.5"
+      },
+      "tier": "high",
+      "perfState": {
+        "flags": {
+          "scale": "0.5"
+        },
+        "tier": "high",
+        "version": 0,
+        "fx": {
+          "ao": true,
+          "rays": true,
+          "bloom": true,
+          "soft": true
+        },
+        "shadowMapSize": 4096,
+        "shadowTaps": 12,
+        "vegLodScale": 1,
+        "grassDensity": 1,
+        "renderScale": 0.5
+      },
+      "stepMs": {
+        "step": 25.900000035762787,
+        "update": 4.699999988079071,
+        "render": 21.200000047683716
+      },
+      "lighting": {
+        "shadows": true,
+        "shadowMapSize": 4096,
+        "filterTaps": 12,
+        "searchTaps": 8,
+        "dynamic": false
+      },
+      "postfx": {
+        "resolution": [
+          640,
+          360
+        ],
+        "stagesEnabled": {
+          "ao": true,
+          "rays": true,
+          "bloom": true,
+          "soft": false
+        },
+        "aoResolution": [
+          320,
+          180
+        ],
+        "godRayResolution": [
+          160,
+          90
+        ],
+        "softeningGrid": [
+          640,
+          360
+        ],
+        "shadowCasterCull": true,
+        "shadowCastersTested": 178,
+        "shadowCastersCulled": 4
+      },
+      "vegetation": {
+        "drawCalls": 108,
+        "triangles": 2112359
+      },
+      "sceneTriangles": 8467925,
+      "config": "scale=0.5",
+      "wallMs": 72618,
+      "pngIdentical": false
+    },
+    {
+      "viewpoint": "A_stairs",
+      "params": "fx=off",
+      "width": 1280,
+      "height": 720,
+      "settle": 8,
+      "simTime": 12.5,
+      "readyMs": 67747,
+      "renderMs": 403,
+      "timing": {
+        "frames": 20,
+        "medianMs": 82.3,
+        "minMs": 77.1,
+        "maxMs": 87.9,
+        "issueMedianMs": 25.6,
+        "perFrame": [
+          87.9,
+          78,
+          78,
+          77.1,
+          79.3,
+          83.2,
+          82.3,
+          80.7,
+          82.8,
+          87,
+          83.4,
+          81.1,
+          83.6,
+          85.2,
+          83.5,
+          81.7,
+          79.3,
+          82.3,
+          78.1,
+          82.5
+        ]
+      },
+      "ab": null,
+      "png": {
+        "file": "E:\\zeldaremake-fable-6\\gauntlet\\perf\\r48\\ablate-A\\A_stairs.fx_off.png",
+        "bytes": 1355989
+      },
+      "stats": {
+        "simTime": 12.63333333333334,
+        "drawCalls": 513,
+        "triangles": 8796908,
+        "geometries": 359,
+        "textures": 77,
+        "programs": 85,
+        "width": 1280,
+        "height": 720,
+        "pixelRatio": 1
+      },
+      "flags": {
+        "fx": "off"
+      },
+      "tier": "high",
+      "perfState": {
+        "flags": {
+          "fx": "off"
+        },
+        "tier": "high",
+        "version": 0,
+        "fx": {
+          "ao": false,
+          "rays": false,
+          "bloom": false,
+          "soft": false
+        },
+        "shadowMapSize": 4096,
+        "shadowTaps": 12,
+        "vegLodScale": 1,
+        "grassDensity": 1,
+        "renderScale": 1
+      },
+      "stepMs": {
+        "step": 31.299999952316284,
+        "update": 3,
+        "render": 28.299999952316284
+      },
+      "lighting": {
+        "shadows": true,
+        "shadowMapSize": 4096,
+        "filterTaps": 12,
+        "searchTaps": 8,
+        "dynamic": false
+      },
+      "postfx": {
+        "resolution": [
+          1280,
+          720
+        ],
+        "stagesEnabled": {
+          "ao": false,
+          "rays": false,
+          "bloom": false,
+          "soft": false
+        },
+        "aoResolution": [
+          640,
+          360
+        ],
+        "godRayResolution": [
+          320,
+          180
+        ],
+        "softeningGrid": [
+          640,
+          360
+        ],
+        "shadowCasterCull": true,
+        "shadowCastersTested": 178,
+        "shadowCastersCulled": 4
+      },
+      "vegetation": {
+        "drawCalls": 108,
+        "triangles": 2112359
+      },
+      "sceneTriangles": 8467925,
+      "config": "fx=off",
+      "wallMs": 71588,
+      "pngIdentical": false
+    },
+    {
+      "viewpoint": "A_stairs",
+      "params": "veg=0.5,0.5",
+      "width": 1280,
+      "height": 720,
+      "settle": 8,
+      "simTime": 12.5,
+      "readyMs": 68915,
+      "renderMs": 375,
+      "timing": {
+        "frames": 20,
+        "medianMs": 76.5,
+        "minMs": 73.9,
+        "maxMs": 86.4,
+        "issueMedianMs": 20.3,
+        "perFrame": [
+          86.4,
+          74.2,
+          75.1,
+          78.9,
+          73.9,
+          76.5,
+          76.9,
+          76.8,
+          75.5,
+          74,
+          75,
+          75.1,
+          77,
+          75.3,
+          75.5,
+          76.9,
+          75.5,
+          76.5,
+          77.1,
+          78
+        ]
+      },
+      "ab": null,
+      "png": {
+        "file": "E:\\zeldaremake-fable-6\\gauntlet\\perf\\r48\\ablate-A\\A_stairs.veg_0.5_0.5.png",
+        "bytes": 1345941
+      },
+      "stats": {
+        "simTime": 12.63333333333334,
+        "drawCalls": 493,
+        "triangles": 7586919,
+        "geometries": 337,
+        "textures": 82,
+        "programs": 91,
+        "width": 1280,
+        "height": 720,
+        "pixelRatio": 1
+      },
+      "flags": {
+        "veg": "0.5,0.5"
+      },
+      "tier": "high",
+      "perfState": {
+        "flags": {
+          "veg": "0.5,0.5"
+        },
+        "tier": "high",
+        "version": 0,
+        "fx": {
+          "ao": true,
+          "rays": true,
+          "bloom": true,
+          "soft": true
+        },
+        "shadowMapSize": 4096,
+        "shadowTaps": 12,
+        "vegLodScale": 0.5,
+        "grassDensity": 0.5,
+        "renderScale": 1
+      },
+      "stepMs": {
+        "step": 23.600000023841858,
+        "update": 4.5,
+        "render": 19.100000023841858
+      },
+      "lighting": {
+        "shadows": true,
+        "shadowMapSize": 4096,
+        "filterTaps": 12,
+        "searchTaps": 8,
+        "dynamic": false
+      },
+      "postfx": {
+        "resolution": [
+          1280,
+          720
+        ],
+        "stagesEnabled": {
+          "ao": true,
+          "rays": true,
+          "bloom": true,
+          "soft": false
+        },
+        "aoResolution": [
+          640,
+          360
+        ],
+        "godRayResolution": [
+          320,
+          180
+        ],
+        "softeningGrid": [
+          640,
+          360
+        ],
+        "shadowCasterCull": true,
+        "shadowCastersTested": 172,
+        "shadowCastersCulled": 4
+      },
+      "vegetation": {
+        "drawCalls": 80,
+        "triangles": 902354
+      },
+      "sceneTriangles": 7262867,
+      "config": "veg=0.5,0.5",
+      "wallMs": 72447,
+      "pngIdentical": false
+    }
+  ]
+}
