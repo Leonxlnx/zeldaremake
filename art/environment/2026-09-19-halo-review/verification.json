@@ -1,0 +1,53 @@
+{
+  "capture": "art/environment/2026-09-19T17-55-28-259Z-daylight",
+  "results": [
+    {
+      "id": "A_stairs",
+      "before": 0.2094,
+      "after": 0.2094,
+      "delta": 0,
+      "drawCalls": 521,
+      "triangles": 8796924
+    },
+    {
+      "id": "B_house",
+      "before": 0.1912,
+      "after": 0.1916,
+      "delta": 0.0004,
+      "drawCalls": 479,
+      "triangles": 7943574
+    },
+    {
+      "id": "C_lookback",
+      "before": 0.2272,
+      "after": 0.2272,
+      "delta": 0,
+      "drawCalls": 363,
+      "triangles": 7372192
+    },
+    {
+      "id": "D_log",
+      "before": 0.263,
+      "after": 0.2647,
+      "delta": 0.0017,
+      "drawCalls": 354,
+      "triangles": 8123365
+    },
+    {
+      "id": "E_ground",
+      "before": 0.2007,
+      "after": 0.2014,
+      "delta": 0.0007,
+      "drawCalls": 479,
+      "triangles": 7943574
+    },
+    {
+      "id": "F_canopy",
+      "before": 0.2536,
+      "after": 0.2536,
+      "delta": 0,
+      "drawCalls": 468,
+      "triangles": 8258703
+    }
+  ]
+}

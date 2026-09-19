@@ -593,6 +593,14 @@
       ],
       "at": "2026-09-16T14:25:37.408Z",
       "expiresHours": 3
+    },
+    {
+      "agent": "astra-local",
+      "items": [
+        "W36"
+      ],
+      "at": "2026-09-19T17:54:53.732Z",
+      "expiresHours": 3
     }
   ]
 }

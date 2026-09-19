@@ -993,7 +993,8 @@ function rasterToTextures(W: number, H: number, albedoLinear: Float32Array, norm
  * passes it at intensity ≥ 1.0, so the bloom adds a faint skirt and no more; W38's draws: +1).
  */
 export const FAR_LANTERN_INTENSITY = 4.5;
-export const FAR_HALO_RADIUS = 0.7;
+// Native player-height ablation: the old 0.7 m disc obscured the husk even with bloom off.
+export const FAR_HALO_RADIUS = 0.24;
 export const FAR_HALO_INTENSITY = 2.5;
 /** linear tint of the halo disc (see above: graded to the frame's 36–38° amber) */
 export const FAR_HALO_TINT: [number, number, number] = [1.0, 0.28, 0.05];

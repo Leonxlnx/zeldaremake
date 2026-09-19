@@ -1,0 +1,58 @@
+{
+  "views": [
+    "w11-spine-f",
+    "w13-spine-f",
+    "D_log"
+  ],
+  "poses": {
+    "w13-spine-f": {
+      "p": [
+        1.82,
+        1.32,
+        -23.32
+      ],
+      "t": [
+        1.49,
+        1.17,
+        -33.31
+      ],
+      "fov": 46
+    },
+    "w11-spine-f": {
+      "p": [
+        1.94,
+        1.35,
+        -17.32
+      ],
+      "t": [
+        2.77,
+        1.2,
+        -27.29
+      ],
+      "fov": 46
+    }
+  },
+  "variants": [
+    {
+      "name": "baseline"
+    },
+    {
+      "name": "no-bloom",
+      "postfx": {
+        "bloomIntensity": 0
+      }
+    },
+    {
+      "hide": [
+        "log-lantern-halos"
+      ],
+      "name": "no-halo"
+    },
+    {
+      "uniforms": {
+        "uHaloRadius": 0.24
+      },
+      "name": "compact-halo"
+    }
+  ]
+}

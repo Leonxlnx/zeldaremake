@@ -25,11 +25,18 @@ try {
  await page.waitForFunction(()=>{const el=document.getElementById('loading');return !el||getComputedStyle(el).opacity==='0';},{timeout:180000});
  const views=await page.evaluate(()=>__ZR__.viewpoints().filter(v=>!v.diagnostic).map(v=>v.id));
  for(const id of settings.views??[...views,'sky-opening']) {
-  await page.evaluate(async id=>{if(id==='sky-opening')__ZR__.setPose([0,1.8,.5],[0,18,-15],72);else if(id==='shadow-contact'){const h=__ZR__.probe(0,.5).height;__ZR__.setPose([1.8,h+1.1,3.4],[0,h+.15,.5],48);}else if(!__ZR__.setViewpoint(id))throw Error('Unknown viewpoint');__ZR__.setTime(12.6);await __ZR__.render(2,0);},id);
-  const png=await page.screenshot({path:path.join(out,id+'.png')});
-  report.images[id]={sha256:crypto.createHash('sha256').update(png).digest('hex'),...await page.evaluate(()=>({stats:__ZR__.stats(),camera:__ZR__.cameraPose(),lighting:__ZR__.audit().systems.lighting}))};
-  console.log('Captured',id);
+  const pose=settings.poses?.[id];
+  await page.evaluate(async({id,pose})=>{if(pose)__ZR__.setPose(pose.p,pose.t,pose.fov);else if(id==='sky-opening')__ZR__.setPose([0,1.8,.5],[0,18,-15],72);else if(id==='shadow-contact'){const h=__ZR__.probe(0,.5).height;__ZR__.setPose([1.8,h+1.1,3.4],[0,h+.15,.5],48);}else if(!__ZR__.setViewpoint(id))throw Error('Unknown viewpoint');__ZR__.setTime(12.6);await __ZR__.render(12,0);},{id,pose});
+  for(const variant of settings.variants??[{name:'default'}]) {
+   assert(/^[\w-]+$/.test(id)&&/^[\w-]+$/.test(variant.name));
+   await page.evaluate(async({variant,base})=>{window.__ATMO_HIDE__=variant.hide??[];window.__ATMO_UNIFORMS__=variant.uniforms??{};window.__ATMO_SETTINGS__={...base,...variant.postfx};__ZR__.setTime(12.6);await __ZR__.render(2,0);},{variant,base:settings.postfx??{}});
+   const name=variant.name==='default'?id:id+'-'+variant.name;
+   const png=await page.screenshot({path:path.join(out,name+'.png')});
+   report.images[name]={variant,sha256:crypto.createHash('sha256').update(png).digest('hex'),...await page.evaluate(()=>({stats:__ZR__.stats(),camera:__ZR__.cameraPose(),lighting:__ZR__.audit().systems.lighting}))};
+   console.log('Captured',name);
+  }
  }
+ await page.evaluate(base=>{window.__ATMO_HIDE__=[];window.__ATMO_UNIFORMS__={};window.__ATMO_SETTINGS__=base;},settings.postfx??{});
  if(settings.walkFrames) {
   assert(Number.isInteger(settings.walkFrames)&&settings.walkFrames>=2&&settings.walkFrames<=180);
   assert(['plaza','stairs'].includes(settings.walkPath??'plaza'));
