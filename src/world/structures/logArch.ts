@@ -805,9 +805,14 @@ export function buildLogArch(ctx: WorldContext, mats: StructureMaterials, rng: R
   };
   /** the tips of everything hung under the belly (audit: the least clearance over the strip) */
   const hungTips: Vector3[] = [];
-  /** a vine's length from `hook` (foliage.ts hangs it with up to ± 0.25 m of drift), clamped so its tip stays over the walk floor; never under 0.2 m (the hook sits inside the bark) */
+  /**
+   * A vine's length from `hook` (foliage.ts hangs it with up to ± 0.25 m of drift), clamped so its
+   * tip stays over the walk floor; 0 when less than 0.25 m can hang there (the belly itself dips
+   * to ≈ 2.2 m over the strip west of the crossing) — the caller hangs nothing.
+   */
   const hangLength = (hook: Vector3, want: number) => {
-    const len = Math.min(want, Math.max(0.2, hook.y - walkFloorAround(hook.x, hook.z, 0.35)));
+    const len = Math.min(want, hook.y - walkFloorAround(hook.x, hook.z, 0.35));
+    if (len < 0.25) return 0;
     hungTips.push(new Vector3(hook.x, hook.y - len, hook.z));
     return len;
   };
@@ -815,7 +820,8 @@ export function buildLogArch(ctx: WorldContext, mats: StructureMaterials, rng: R
     const s = pathS + (vegRng() - 0.5) * 7;
     const psi = -Math.PI / 2 + (vegRng() - 0.5) * 1.4;
     const hook = surfacePoint(psi, s, rBase(psi, s) - 0.1);
-    foliage.addHangingVine(hook, hangLength(hook, 0.7 + vegRng() * 1.3), { amount: 0.1, thickness: 0.018 });
+    const len = hangLength(hook, 0.7 + vegRng() * 1.3);
+    if (len > 0) foliage.addHangingVine(hook, len, { amount: 0.1, thickness: 0.018 });
   }
   for (let i = 0; i < 5; i++) {
     const psi = Math.PI / 2 + (vegRng() - 0.5) * 2.2;
@@ -1575,7 +1581,8 @@ export function buildLogArch(ctx: WorldContext, mats: StructureMaterials, rng: R
     const s = pathS + (beardRng41() - 0.5) * 6;
     const psi = -Math.PI / 2 + (beardRng41() - 0.5) * 1.6;
     const hook = surfacePoint(psi, s, rBase(psi, s) - 0.12);
-    foliage41.addHangingVine(hook, hangLength(hook, 1.1 + beardRng41() * 1.4), { amount: 0.1, thickness: 0.016 });
+    const len = hangLength(hook, 1.1 + beardRng41() * 1.4);
+    if (len > 0) foliage41.addHangingVine(hook, len, { amount: 0.1, thickness: 0.016 });
   }
   for (const m of foliage41.build(mats, 'log41')) group.add(m);
   const detail41 = {
@@ -1972,6 +1979,7 @@ export function buildLogArch(ctx: WorldContext, mats: StructureMaterials, rng: R
       const allowed = hook.y - floorAt(hook.x, hook.z);
       if (allowed < 0.35) continue;
       const len = hangLength(hook, 0.6 + vineRng47() * 1.2);
+      if (len <= 0) continue;
       if (i % 3 === 2) {
         foliage47.addHangingVine(hook, len * 0.5, { amount: 0.1, thickness: 0.006, leafSize: 0.03, leafEvery: 0.026 });
         detail47.rimBeards++;
