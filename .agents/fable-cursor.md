@@ -2472,6 +2472,20 @@ Also: lantern bough still a thick plain beam across the top of B (trees pass pen
   22:05 has the split). Owner decision cards pending: flat hero lobes (F −0.0133), near shade
   floors (C −0.0117 / F −0.0091), W30 sun direction.
 
+### 00:00 UTC (Sep 20) — tick 178 (covers the 22:05 / 23:05 timers): external lanes merged; take-0120 capture queued
+- Merged fable-2 rocks (PR #12, `f092a09`), fable-3 props (PR #13, `4b86846`), fable-4 white-barks
+  (PR #15, `084d007`) — finished ~11:30 UTC, unmerged twelve hours: my miss (reports lived in the
+  PR bodies). Plus fable-6's follow-up (`a0e06cf`). World tree vs take-0118: 23 files / +4074 lines
+  (canopy roof, shaft fade, rocks, props, white-barks) → clean build at `eec1ce0`, six-view capture
+  queued behind round 48's captures; seal as take-0120 when it lands.
+- Owner (23:35): the other Fables stopped because a chat ends with its task → `docs/GOAL_MODE.md`
+  (owner's name): a standing loop + self-renewing hourly timer per chat, next items per id. Owner
+  reprioritised Astra to natural running legs/arms and smaller boots; Link animation/mesh +
+  `glbLink.ts` arm/contact blocks reserved for her (inbox 23:55).
+- Owner's read: "the game still looks similar" — agreed with the reviewers' "fixed what you can
+  touch, left what you can see"; round 48 gates on player-height poses; the layered-lobe swap and
+  near shade floors go ahead as owner-direction look changes (owner-fable's PRs).
+
 ## Pending corrections from reference/ANALYSIS.md (apply at integration, one commit)
 - `config.ts` palette → olive/khaki low-key (reference hero frames: hue 47–51°, sat 0.16–0.19,
   lum 0.35–0.39, 0 % blue sky): grass 0x8a8c55/0x5c6233/0x3a4420, moss 0x8b8948/0x5a523b,
@@ -2510,4 +2524,4 @@ Pick anything NOT claimed in `gauntlet/claims.json`. Good self-contained candida
   my own (GAUNTLET.md D7).
 
 ## Last updated
-2026-09-19T22:10:00Z
+2026-09-20T00:00:00Z
