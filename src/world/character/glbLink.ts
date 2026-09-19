@@ -585,6 +585,10 @@ export interface LinkClipInfo {
   rate: number;
   /** each foot's swings as [toe-off, heel-strike] clip times (s) */
   swings: { L: [number, number][]; R: [number, number][] };
+  /** seconds per cycle each foot is PLANTED (tablePlants: sole on the floor and moving back at the stride speed) */
+  plantedS: { L: number; R: number };
+  /** the gait phase a play-mode crossfade from idle enters this clip at (tableStartPhase: the feet together) */
+  startPhase: number;
 }
 
 export interface LinkAssetInfo {
@@ -958,6 +962,27 @@ function tablePlants(path: FootPath, duration: number, speed: number): Uint8Arra
 function plantedAt(plants: Uint8Array, tau: number, duration: number): boolean {
   const n = plants.length;
   return plants[mod(Math.round((tau / duration) * n), n)] === 1;
+}
+/**
+ * The gait phase (gaitPhase) a play-mode crossfade from a gait without one (idle) enters a clip at
+ * (round 47): the point of the L foot's swing where its sole passes the root — the feet together
+ * under the body, where an idle stance has them — so the fade lifts one foot into its swing and
+ * pins the other where it stands, instead of pulling both feet 0.2 m apart along the floor to a
+ * heel-strike pose (the first step used to skate 18–29 cm). 0.5 for a swing that never crosses.
+ */
+function tableStartPhase(path: FootPath, swings: Swing[], duration: number): number {
+  if (!swings.length) return 0.5;
+  const s = swings[0];
+  const len = s.tLand - s.tOff;
+  const n = 64;
+  const spot = { x: 0, z: 0, yaw: 0 };
+  let z0 = NaN;
+  for (let k = 0; k <= n; k++) {
+    pathAt(path, s.tOff + (k / n) * len, duration, spot);
+    if (k > 0 && z0 < 0 && spot.z >= 0) return (k - spot.z / (spot.z - z0)) / n;
+    z0 = spot.z;
+  }
+  return 0.5;
 }
 
 /** the swing of `foot` containing clip time τ, and the phase 0..1 through it (null in stance) */
@@ -1450,6 +1475,8 @@ export async function loadGlbLink(url: string, opts: GlbLinkOptions = {}): Promi
   const pathTable = {} as PathTable;
   /** per gait, per foot: the planted samples (tablePlants) the play-mode stance pins key on */
   const plantTable = {} as Record<Gait, [Uint8Array, Uint8Array]>;
+  /** per gait: the phase a play-mode crossfade from idle enters the clip at (tableStartPhase) */
+  const startPhase = {} as Record<Gait, number>;
   {
     const _pt = new Vector3();
     const _f = new Vector3();
@@ -1484,6 +1511,7 @@ export async function loadGlbLink(url: string, opts: GlbLinkOptions = {}): Promi
       tables[gait] = [tableSwings(paths[0], paths[1], a.duration), tableSwings(paths[1], paths[0], a.duration)];
       pathTable[gait] = [paths[0], paths[1]];
       plantTable[gait] = [tablePlants(paths[0], a.duration, GAIT_SPEED[gait]), tablePlants(paths[1], a.duration, GAIT_SPEED[gait])];
+      startPhase[gait] = tableStartPhase(paths[0], tables[gait][0], a.duration);
       armMean[gait] = armSum.map((s) => (s.lengthSq() > 1e-12 ? s.normalize() : s.identity()));
     }
     for (const [gait, a] of actions) {
@@ -1504,7 +1532,7 @@ export async function loadGlbLink(url: string, opts: GlbLinkOptions = {}): Promi
       const sw = (i: 0 | 1) => tables[g][i].map((s) => [Number(s.tOff.toFixed(4)), Number(s.tLand.toFixed(4))] as [number, number]);
       /** seconds per cycle the foot is planted (tablePlants) — the sole on the floor AND moving back at the stride speed */
       const pl = (i: 0 | 1) => Number(((plantTable[g][i].reduce((s, v) => s + v, 0) / TABLE_N) * a.duration).toFixed(4));
-      return { name: g, durationS: Number(a.duration.toFixed(6)), strideM: CLIP_SPEC[g].strideM, rate: a.rate, swings: { L: sw(0), R: sw(1) }, plantedS: { L: pl(0), R: pl(1) } };
+      return { name: g, durationS: Number(a.duration.toFixed(6)), strideM: CLIP_SPEC[g].strideM, rate: a.rate, swings: { L: sw(0), R: sw(1) }, plantedS: { L: pl(0), R: pl(1) }, startPhase: Number(startPhase[g].toFixed(4)) };
     }),
     loadMs: Math.round(performance.now() - t0),
     headTopOffsetM: Number(headTopOffset.toFixed(4)),
@@ -2441,8 +2469,10 @@ export async function loadGlbLink(url: string, opts: GlbLinkOptions = {}): Promi
       const a = actions.get(to);
       if (!a || !tables[to][0].length) return 0;
       const phase = actions.has(from) ? gaitPhase(tables[from][0], clipTimeOf(from, t, fromShift), actions.get(from)!.duration) : NaN;
-      // from a clip without phases (idle) start at the left heel-strike: both feet down
-      const target = gaitPhaseTime(tables[to][0], Number.isNaN(phase) ? 1 : phase, a.duration);
+      // from a clip without phases (idle) start with the feet together under the body — where the
+      // idle stance has them — so one foot lifts into its swing and the other is pinned where it
+      // stands (tableStartPhase; the left heel-strike used here before slid both feet apart)
+      const target = gaitPhaseTime(tables[to][0], Number.isNaN(phase) ? startPhase[to] : phase, a.duration);
       return mod(target - clipTimeOf(to, t), a.duration);
     },
   };
