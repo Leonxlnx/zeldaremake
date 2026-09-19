@@ -234,6 +234,14 @@ test('dressing: cushions flagged aMoss > 1, lichen plates aMoss < 0, counts with
   // (round 44: 10 lobed segments, was 8)
   assert.equal(pads, a.stats.cushions * 50 * 3);
   assert.equal(plates, a.stats.lichen * 30 * 3);
+  // fable-2 (the "black holes"): cushion vertex colours must be pale — three multiplies vColor
+  // into the moss-coloured diffuse, and the palette greens (linear ≈ 0.05) made every pad black
+  const col = a.geometry.attributes.color;
+  for (let i = base; i < moss.count; i++) {
+    if (moss.getX(i) <= 1) continue;
+    const lum = 0.299 * col.getX(i) + 0.587 * col.getY(i) + 0.114 * col.getZ(i);
+    assert.ok(lum > 0.75, `cushion vertex ${i} colour luminance ${lum} — pads render black under the moss path`);
+  }
   for (const k of ['position', 'normal', 'color', 'aMoss', 'aWet']) assert.ok(a.geometry.attributes[k], `merged geometry lacks ${k}`);
   // front-facing: every dressing triangle's winding normal agrees with its stored vertex normals
   const P = a.geometry.attributes.position;

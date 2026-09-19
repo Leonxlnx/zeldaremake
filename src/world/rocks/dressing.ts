@@ -99,7 +99,7 @@ function frame(n: Vector3, t: Vector3, u: Vector3) {
  * One moss cushion: a lumpy dome of radius R and height 0.5·R about `centre` with its axis on
  * `up`, sunk 0.3·R into the surface. 10 segments × 3 rings (54 triangles).
  */
-function cushion(w: Writer, rng: Rng, centre: Vector3, up: Vector3, R: number, deep: Color, bright: Color) {
+function cushion(w: Writer, rng: Rng, centre: Vector3, up: Vector3, R: number) {
   frame(up, _t, _u);
   const segs = 10;
   const rings = 3;
@@ -117,17 +117,24 @@ function cushion(w: Writer, rng: Rng, centre: Vector3, up: Vector3, R: number, d
     return t;
   };
   const crownP = new Vector3().copy(centre).addScaledVector(up, R * squash - 0.3 * R);
+  // fable-2 (survey-2 #32 / #19, the "black holes"): the vertex colour is NOT a fallback — three
+  // multiplies `vColor` into the diffuse AFTER the material's moss path has coloured the pad
+  // (color_fragment follows map_fragment), and the palette greens passed here are sRGB hexes
+  // converted to linear (≈ 0.02–0.06), so every cushion rendered as a black dome. The pads carry
+  // a neutral pale vertex colour like the rock's own vertices (crown 0.95 → rim 0.82) and take
+  // their green from the moss path, lifted on the crown by aMoss − 1.
   const emit = (r: number, s: number) => {
     const t = pt(r, s, _p, _pn);
     // aMoss 1.05..1.9 (always > 1: a cushion vertex): the crown is lifted, the rim is the plain
-    // deep moss; the colour is a fallback the moss path overrides
-    _col.copy(bright).lerp(deep, 0.3 + 0.6 * t);
+    // deep moss
+    const v = 0.95 - 0.13 * t;
+    _col.setRGB(v, v, v * 0.97);
     w.push(_p, _pn, _col, 1.05 + 0.85 * (1 - t));
   };
   for (let r = 0; r < rings; r++) {
     for (let s = 0; s < segs; s++) {
       if (r === 0) {
-        _col.copy(bright);
+        _col.setRGB(0.95, 0.95, 0.92);
         w.push(crownP, up, _col, 1.9);
         emit(1, s + 1);
         emit(1, s);
@@ -266,7 +273,7 @@ export function dressRock(rock: BufferGeometry, rng: Rng, o: DressingOptions, pa
     cCentre.copy(s.p).addScaledVector(s.n, s.crack ? -0.35 * R : -0.12 * R);
     // the up axis leans from the surface normal toward world up so the pads read as growing up
     cUp.copy(s.n).lerp(worldUp, 0.35).normalize();
-    cushion(w, cRng, cCentre, cUp, R, palette.mossDeep, palette.mossBright);
+    cushion(w, cRng, cCentre, cUp, R);
     placedC.push({ p: s.p.clone(), R });
     stats.cushions++;
     if (s.crack) stats.creviceCushions++;
