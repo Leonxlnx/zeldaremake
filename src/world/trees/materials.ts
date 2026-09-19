@@ -29,6 +29,8 @@ import type { WorldContext } from '../system';
 import { createWhiteBarkTextures } from './bark-texture';
 import { createLeafClusterDetail, createLeafClusterTexture } from './leaf-cluster-texture';
 import { BARK_AO_LIFT } from './bole';
+import { CUSHION_ROOT_W, CUSHION_ROOT_W_PER_M } from './writer';
+import { DISTANT_NEAR_GAIN } from './distant';
 
 export interface TreeMaterials {
   whiteTree: MeshStandardMaterial;
@@ -211,7 +213,7 @@ function biasedMap(shader: WebGLProgramParametersWithUniforms, flatAware = false
 /**
  * Round 46 (survey-2 check 03, pose sn-bole-lantern-tree: a flat 9-gon moss cushion 190 px
  * across cut the frame at touching distance — the lens 45 cm from a 12 cm dome): the tree
- * shader shrinks a 3-D cushion (writer.ts woodCushion: aRoot.w = −0.49, its anchor on the bark
+ * shader shrinks a 3-D cushion (writer.ts woodCushion: aRoot.w in CUSHION_ROOT_W, its anchor on the bark
  * in aRoot.xyz) onto its anchor as the lens comes within these distances of the ANCHOR (m) —
  * full size at the second, gone at the first — so a cushion is never a polygon across the frame
  * and never pops (a fragment cull left a ring). The fixed cameras stand ≥ 5 m from every near
@@ -223,6 +225,9 @@ const WIND_VERTEX_PARS = /* glsl */ `
 #define BARK_AO_LIFT ${BARK_AO_LIFT.toFixed(2)}
 #define CUSHION_FADE_NEAR ${CUSHION_FADE_M[0].toFixed(3)}
 #define CUSHION_FADE_FAR ${CUSHION_FADE_M[1].toFixed(3)}
+#define CUSHION_ROOT_LO ${CUSHION_ROOT_W[0].toFixed(3)}
+#define CUSHION_ROOT_HI ${CUSHION_ROOT_W[1].toFixed(3)}
+#define CUSHION_ROOT_PER_M ${CUSHION_ROOT_W_PER_M.toFixed(4)}
 #define NEAR_BOLE_SLOTS ${NEAR_BOLE_SLOTS}
 #define NEAR_CANOPY_SLOTS ${NEAR_CANOPY_SLOTS}
 attribute vec3 aWind;
@@ -260,12 +265,16 @@ const WIND_VERTEX_BODY = /* glsl */ `
         if (abs(slotCut) > 0.5 && (slotCut > 0.0 || aRoot.w < -1.5) && distance(uNearBole[i].xyz, treeRoot.xyz) < 0.05) transformed = aRoot.xyz + vec3(0.0, abs(slotCut), 0.0);
       }
     }
-    // a 3-D moss cushion (writer.ts woodCushion: w = −0.49, aRoot.xyz = its anchor on the bark,
-    // so treeRoot here is the anchor in world space) shrinks onto its anchor as the lens comes
-    // within CUSHION_FADE_M of it — a 12 cm dome 45 cm from the lens was a polygon across the
-    // frame (round 46, survey-2 check 03). Only the near bases carry cushions.
-    if (aRoot.w < -0.47 && aRoot.w > -0.5) {
+    // a 3-D moss cushion (writer.ts woodCushion: w in the cushion window, aRoot.xyz = its anchor
+    // on the bark, so treeRoot here is the anchor in world space) shrinks onto its anchor as the
+    // lens comes within CUSHION_FADE_M of it — a 12 cm dome 45 cm from the lens was a polygon
+    // across the frame (round 46, survey-2 check 03). Only the near bases carry cushions. Its w
+    // encodes the anchor's height above the tree's origin (writer.ts cushionRootW), read below so
+    // the whole-tree sway is the bark's at that height, not a root's.
+    float cushionH = 0.0;
+    if (aRoot.w < CUSHION_ROOT_HI && aRoot.w > CUSHION_ROOT_LO) {
       transformed = mix(aRoot.xyz, transformed, smoothstep(CUSHION_FADE_NEAR, CUSHION_FADE_FAR, distance(cameraPosition, treeRoot.xyz)));
+      cushionH = (aRoot.w - CUSHION_ROOT_LO) / CUSHION_ROOT_PER_M;
     }
     // near-canopy LOD (giant.ts NEAR_CANOPY_IN_M): the far laminae and cards of a lobe (aRoot.w =
     // 3 + the lobe's group) fold to the tree's root while a slot names that root and group (the
@@ -288,7 +297,7 @@ const WIND_VERTEX_BODY = /* glsl */ `
       treeP = instanceMatrix * treeP;
     #endif
     treeP = modelMatrix * treeP;
-    float hAbove = max(0.0, treeP.y - treeRoot.y);
+    float hAbove = max(0.0, treeP.y - treeRoot.y + cushionH);
     // layer 1: whole tree sways coherently from its root (evaluated at the root so the trunk bends as one)
     vec3 disp = windBranch(treeRoot.xyz, hAbove, uTreeStiff);
     // layer 2: branches flex by their own stiffness with a per-branch phase offset
@@ -344,7 +353,7 @@ function injectWind(material: Material, wind: Wind, o: WindOpts, slots: LodSlots
     shader.vertexShader = shader.vertexShader.replace('#include <begin_vertex>', WIND_VERTEX_BODY);
     extra?.(shader);
   };
-  material.customProgramCacheKey = () => `trees-${key}-v7`;
+  material.customProgramCacheKey = () => `trees-${key}-v8`;
   wind.bind(material);
 }
 
@@ -1292,11 +1301,14 @@ export async function createTreeMaterials(ctx: WorldContext): Promise<TreeMateri
     s.uniforms.uDistantBarkM = { value: new Vector2(DISTANT_BARK_M[0], DISTANT_BARK_M[1]) };
     s.uniforms.uDistantTone = { value: new Vector3(DISTANT_NEAR_TONE[0], DISTANT_NEAR_TONE[1], DISTANT_NEAR_TONE[2]) };
     s.vertexShader =
-      'attribute vec4 aRoot;\nvarying float vDistSolid;\nvarying vec3 vDistLocal;\nvarying float vDistPhase;\n' +
+      'attribute vec4 aRoot;\nvarying float vDistSolid;\nvarying float vDistBark;\nvarying vec3 vDistLocal;\nvarying float vDistPhase;\n' +
       s.vertexShader.replace(
         '#include <begin_vertex>',
         /* glsl */ `#include <begin_vertex>
     vDistSolid = aRoot.w < 0.5 ? 1.0 : 0.0;
+    // the near LOD's bark parts (distant.ts DISTANT_NEAR_GAIN: bole, limbs, roots, tagged
+    // aRoot.w = −0.45) against its lobe cores (w = 0) and the far LOD's quads
+    vDistBark = aRoot.w < -0.2 ? 1.0 : 0.0;
     vDistLocal = position;
     // the tree's own phase for its tone bands (round 45): from where it stands
     vDistPhase = 0.0;
@@ -1306,12 +1318,17 @@ export async function createTreeMaterials(ctx: WorldContext): Promise<TreeMateri
     `,
       );
     s.fragmentShader =
-      'uniform sampler2D uDistantBark;\nuniform vec2 uDistantBarkM;\nuniform vec3 uDistantTone;\nvarying float vDistSolid;\nvarying vec3 vDistLocal;\nvarying float vDistPhase;\n' +
+      'uniform sampler2D uDistantBark;\nuniform vec2 uDistantBarkM;\nuniform vec3 uDistantTone;\nvarying float vDistSolid;\nvarying float vDistBark;\nvarying vec3 vDistLocal;\nvarying float vDistPhase;\n' +
       s.fragmentShader.replace(
         '#include <color_fragment>',
         /* glsl */ `#include <color_fragment>
     {
       float near = (1.0 - smoothstep(uDistantBarkM.x, uDistantBarkM.y, length(vViewPosition))) * vDistSolid;
+      // round 46 (distant.ts DISTANT_NEAR_GAIN): the near LOD's bark is written at the gain over
+      // the far tint — divided back out here where the near blend is zero (38 m+: exactly the far
+      // tint, the hero frames untouched), kept in full where it is one (a 2 % albedo showed no
+      // cord, band or map at 10 m; the cone a walker saw was the veil and the sky's specular)
+      if (vDistBark > 0.5) diffuseColor.rgb *= mix(1.0 / ${DISTANT_NEAR_GAIN.toFixed(1)}, 1.0, near);
       if (near > 0.0) {
         // whole 1.6 m tiles around the bole (the fragment's own radius about the axis: 1 around a
         // slender's 0.2 m stem, 4–5 around a broad's 1.3 m) and 1.6 m up it — a fixed 4 around
@@ -1346,7 +1363,7 @@ export async function createTreeMaterials(ctx: WorldContext): Promise<TreeMateri
     `,
       );
   };
-  distant.customProgramCacheKey = () => 'trees-distant-biased-v6';
+  distant.customProgramCacheKey = () => 'trees-distant-biased-v7';
 
   return {
     whiteTree,

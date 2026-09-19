@@ -33,8 +33,8 @@ import { NEAR_CANOPY_HERO_MARGIN, NEAR_CANOPY_IN_M, NEAR_CANOPY_MAX_Y, NEAR_CANO
 import { LodPool, type PoolBuilt, type PoolItem } from './lodPool';
 import type { GiantTreeDef } from '../layout';
 import type { RootKitFit } from './rootkit';
-import { createDistantVariants, DISTANT_CORDS, DISTANT_FLARE, DISTANT_FLARE_FALL, DISTANT_FOOT_GRIME, DISTANT_FURROW_SHADE, DISTANT_ROOT_ARC, DISTANT_SIDES, distantClearanceTally, LIMB_REACH, LIMB_TINT_FROM, LIMB_TINT_TO, LIMB_TIP_TINT, placeDistantTrees, type DepthBand, type DistantClearance, type DistantPlacement, type DistantVariant } from './distant';
-import { TAU, mergeParts, type Detail } from './writer';
+import { createDistantVariants, DISTANT_CORDS, DISTANT_FLARE, DISTANT_FLARE_FALL, DISTANT_FOOT_GRIME, DISTANT_FURROW_SHADE, DISTANT_NEAR_GAIN, DISTANT_ROOT_ARC, DISTANT_SIDES, distantClearanceTally, LIMB_REACH, LIMB_TINT_FROM, LIMB_TINT_TO, LIMB_TIP_TINT, placeDistantTrees, type DepthBand, type DistantClearance, type DistantPlacement, type DistantVariant } from './distant';
+import { TAU, isCushionRoot, mergeParts, type Detail } from './writer';
 import type { ViewGap } from './placement';
 
 /**
@@ -1417,6 +1417,19 @@ interface GeometryBuilt extends PoolBuilt {
 }
 /** what the audit's residentBytes counted from the start: every attribute array plus the index */
 const geometryBytes = (g: BufferGeometry) => Object.values(g.attributes).reduce((b, a) => b + a.array.byteLength, 0) + (g.index ? g.index.array.byteLength : 0);
+/**
+ * A translated-to-world part's roots: aRoot.xyz becomes the tree's world origin (the merged
+ * shader's per-tree context) — except a 3-D moss cushion's vertices (writer.ts woodCushion,
+ * isCushionRoot), whose xyz is the cushion's anchor on the bark and is translated with the
+ * geometry instead, so the shader's touching-distance shrink (materials.ts CUSHION_FADE_M) keeps
+ * its target. Round 46: overwriting every root was why the shrink never fired on a giant's base.
+ */
+const rootsToWorld = (root: BufferAttribute, ox: number, oy: number, oz: number) => {
+  for (let i = 0; i < root.count; i++) {
+    if (isCushionRoot(root.getW(i))) root.setXYZ(i, root.getX(i) + ox, root.getY(i) + oy, root.getZ(i) + oz);
+    else root.setXYZ(i, ox, oy, oz);
+  }
+};
 /** an empty geometry that keeps a built part's cull sphere while its buffers are out of the pool */
 const placeholderFor = (g: BufferGeometry) => {
   const p = new BufferGeometry();
@@ -1995,8 +2008,7 @@ export async function create(ctx: WorldContext): Promise<WorldSystem> {
   /** a giant's near part to world space (translated, aRoot.xyz = the origin), as the sectors are */
   const giantPartToWorld = (g: BufferGeometry, origin: Vector3) => {
     g.translate(origin.x, origin.y, origin.z);
-    const root = g.getAttribute('aRoot') as BufferAttribute;
-    for (let i = 0; i < root.count; i++) root.setXYZ(i, origin.x, origin.y, origin.z);
+    rootsToWorld(g.getAttribute('aRoot') as BufferAttribute, origin.x, origin.y, origin.z);
   };
   /**
    * A giant's near parts, right after its build (so the pools can prune the far ones before the
@@ -2196,8 +2208,7 @@ export async function create(ctx: WorldContext): Promise<WorldSystem> {
     // (the near base and the near-canopy parts get the same below, where their pooled rebuilds do)
     for (const g of [asset.geometry, asset.authoredLeaves, asset.cards, asset.authoredCards]) {
       g.translate(px, gy, pz);
-      const root = g.getAttribute('aRoot') as BufferAttribute;
-      for (let i = 0; i < root.count; i++) root.setXYZ(i, px, gy, pz);
+      rootsToWorld(g.getAttribute('aRoot') as BufferAttribute, px, gy, pz);
     }
     // the lantern tree publishes its built limb — the sweep's own ring centres and nominal radii,
     // wiggle included, in world space (the tree is only translated) — so structures can wrap the
@@ -2933,7 +2944,7 @@ export async function create(ctx: WorldContext): Promise<WorldSystem> {
       /** round 45: the near LOD bole's basal flare [share at the foot, e-folding m] and the near-bark tone [overall, band amplitude, grime at the foot] (distant.ts, materials.ts DISTANT_NEAR_TONE) */
       distantNearBark: { flare: [DISTANT_FLARE, DISTANT_FLARE_FALL], tone: DISTANT_NEAR_TONE, withinM: DISTANT_BARK_M, limbReach: LIMB_REACH, limbTint: [LIMB_TIP_TINT, LIMB_TINT_FROM, LIMB_TINT_TO] },
       /** round 46: the near LOD bole's geometric cords [furrows around a broad / a slender, depth share], sides [broad, slender], the furrow floor's vertex shade, the root buttresses' arc sides (distant.ts) */
-      distantNearRelief: { cords: DISTANT_CORDS, sides: DISTANT_SIDES, furrowShade: DISTANT_FURROW_SHADE, footGrime: DISTANT_FOOT_GRIME, rootArc: DISTANT_ROOT_ARC },
+      distantNearRelief: { cords: DISTANT_CORDS, sides: DISTANT_SIDES, furrowShade: DISTANT_FURROW_SHADE, footGrime: DISTANT_FOOT_GRIME, rootArc: DISTANT_ROOT_ARC, nearGain: DISTANT_NEAR_GAIN },
       /** round 45: a giant lobe's fine wood reach [secondaries, twigs] as shares of hR and its outer tint toward the leaf tone (giant.ts LOBE_*) */
       lobeWood: { secondaryReach: LOBE_SECONDARY_REACH, twigReach: LOBE_TWIG_REACH, tint: LOBE_TWIG_TINT },
       lodLevels: 3,

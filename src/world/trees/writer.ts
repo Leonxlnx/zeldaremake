@@ -33,6 +33,21 @@ export const UP = new Vector3(0, 1, 0);
 export type Detail = 'high' | 'medium' | 'low';
 export type RandomFn = () => number;
 
+/**
+ * A 3-D moss cushion's aRoot.w window (`woodCushion`): (−0.5, −0.47) — under every wood code's
+ * −0.45 × cover ≥ −0.45 and over the collapsible codes' ≤ −1, read as wood (< 0.5) everywhere.
+ * Within it the anchor's height above the tree's origin (m) is encoded at CUSHION_ROOT_W_PER_M
+ * per metre from CUSHION_ROOT_W[0] + a hair (float32 keeps ≈ 3 × 10⁻⁸ here: a 10⁻⁵ m height).
+ * The shader (materials.ts CUSHION_ROOT_*) decodes the height for the whole-tree sway, so a
+ * cushion whose root is its anchor still moves with the bark ring it sits on.
+ */
+export const CUSHION_ROOT_W: readonly [number, number] = [-0.5, -0.47];
+export const CUSHION_ROOT_W_PER_M = 0.0035;
+/** the max height (m) the window encodes: 0.028 / 0.0035 = 8 m (the near bases end at 5) */
+export const CUSHION_ROOT_MAX_H = (CUSHION_ROOT_W[1] - CUSHION_ROOT_W[0] - 0.002) / CUSHION_ROOT_W_PER_M;
+export const cushionRootW = (heightAboveOrigin: number) => CUSHION_ROOT_W[0] + 0.001 + CUSHION_ROOT_W_PER_M * Math.min(CUSHION_ROOT_MAX_H, Math.max(0, heightAboveOrigin));
+export const isCushionRoot = (w: number) => w > CUSHION_ROOT_W[0] && w < CUSHION_ROOT_W[1];
+
 export class GeometryWriter {
   positions: number[] = [];
   colors: number[] = [];
@@ -90,13 +105,14 @@ export class GeometryWriter {
    */
   woodMoss = 0;
   /**
-   * while set, wood vertices are a 3-D moss cushion's (bole.ts mossCushion): aRoot.w = −0.49 (a
-   * full moss cover every decode still reads as wood) and aRoot.xyz = this, the cushion's anchor
-   * on the bark in local space instead of the tree's root — the tree shader shrinks the cushion
-   * onto its anchor as the lens comes within CUSHION_FADE_M of it (materials.ts), so no cushion
-   * is ever a polygon across the frame. A cushion's wood never sways (its bole's stiffness is 1)
-   * and is never collapsible, so nothing else reads the root. Never combined with
-   * `woodCollapsible`.
+   * while set, wood vertices are a 3-D moss cushion's (bole.ts mossCushion): aRoot.w in the
+   * cushion window (CUSHION_ROOT_W, encoding the anchor's height above the tree's origin — a full
+   * moss cover every decode still reads as wood) and aRoot.xyz = this, the cushion's anchor on the
+   * bark in local space instead of the tree's root — the tree shader shrinks the cushion onto its
+   * anchor as the lens comes within CUSHION_FADE_M of it (materials.ts), so no cushion is ever a
+   * polygon across the frame, and sways it by the encoded height so it stays on the bark it sits
+   * on. Never collapsible, so nothing else reads the root. Never combined with `woodCollapsible`.
+   * Parts translated to world space keep the anchor (index.ts rootsToWorld).
    */
   woodCushion: Vector3 | null = null;
 
@@ -124,7 +140,7 @@ export class GeometryWriter {
             ? -2
             : -1 - 0.45 * Math.min(1, Math.max(0, this.woodMoss))
           : this.woodCushion
-            ? -0.49
+            ? cushionRootW(this.woodCushion.y)
             : -0.45 * Math.min(1, Math.max(0, this.woodMoss)),
     );
     this.normals.push(NaN, NaN, NaN);

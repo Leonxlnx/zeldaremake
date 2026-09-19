@@ -485,7 +485,7 @@ const CUSHION_LIT = new Color(0.56, 0.74, 0.34);
  * the rim tucked 1 cm into the bark so it sits IN the bark; the outline breathes with the noise
  * so no two read as the same hemisphere. Full moss cover on every vertex (the tree shader lays
  * the cushion texture and its rim shading over it), the rim occluded, the crown lit. 14 sides ×
- * 2 rings + apex = 42 triangles; every vertex carries the writer's cushion code (aRoot.w = −0.49)
+ * 2 rings + apex = 42 triangles; every vertex carries the writer's cushion code (aRoot.w in CUSHION_ROOT_W)
  * and the anchor `base` in aRoot.xyz, so the tree shader shrinks the cushion onto its anchor as
  * the lens comes within CUSHION_FADE_M of it (materials.ts). Returns 1.
  */
