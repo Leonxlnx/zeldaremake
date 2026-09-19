@@ -847,7 +847,8 @@ export async function create(ctx: WorldContext): Promise<WorldSystem> {
     steppingStoneDiscs: paving.steppingStones.map((d) => [round(d.x), round(d.z), round(d.r)]),
     flagstoneMaxAspect: round(Math.max(...paving.stones.map((s) => s.aspect))),
     flagstoneTriangles: paving.triangles,
-    flagstoneDrawCalls: 1,
+    // (round 47: the legacy paving and the north extension are two merged meshes — `flagstones`, `flagstones-north`)
+    flagstoneDrawCalls: 2,
     jointFillVertices: joints.vertices,
     jointSprouts: sprouts.count,
     jointSproutsOnFlagstones: flagstoneSprouts + lawnTufts + pocketTufts + lawnPocketTufts + lawnEdgeTufts + lawnEdgeBand + edgeGrass + discTufts - discPads,
