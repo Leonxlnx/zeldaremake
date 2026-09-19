@@ -4,7 +4,7 @@ runtime: Cursor Cloud Agent (Claude Fable 5.1)
 github: Cursor Agent <cursoragent@cursor.com>
 status: active
 branch: agent/fable-4-whitebark
-updated: 2026-09-19T11:30:00Z
+updated: 2026-09-19T11:40:00Z
 ---
 
 # fable-4 — work log
@@ -16,10 +16,16 @@ the owner merge and seal — I do not merge, do not touch `gauntlet/ledger.json`
 `gauntlet/rubric.json`.
 
 ## Current task
-Survey-2 #31 (`sn-whitebark-base`): the white-bark bases were a painted birch tiling with a ~1 m
-vertical repeat and no root flare; the onboarding block's crown item (leaf clusters must read as
-layered leaf silhouettes at 3–10 m). Targets W08 (≥ 8 real variants, better than Verdant's), W11
-(laminae), W12 (bases within 3 cm), W37/W38 budgets.
+Delivered (PR #15, `80fab20`) and waiting for fable-cursor's merge / review: survey-2 #31
+(`sn-whitebark-base`: painted birch tiling, ~1 m repeat, no root flare) and the onboarding
+block's crown item (layered leaf silhouettes at 3–10 m). Targets W08 (≥ 8 real variants, better
+than Verdant's), W11 (laminae), W12 (bases within 3 cm), W37/W38 budgets. Evidence with per-pose
+verdicts: `art/environment/round47-whitebark/README.md`.
+
+Verdicts (round-46 rule): #31 **PASS** at the survey pose; toes seated on the terrain **PASS**
+(`f4-mature-relief`, where the round-46 buttresses hung in the air); crown item **marginal** —
+more per-leaf tone variation, sd of the lobe region unchanged (21.2 → 21.0); the from-below level
+is the material's (see Known issues).
 
 ## Files / systems being touched
 `src/world/trees/whitebark.ts`, `src/world/trees/bark-texture.ts` (the lane). One line + one
@@ -55,17 +61,25 @@ nearCanopy, materials, index otherwise) is edited.
     magnified ten-fold so the vertex colour carries the root; aRoot.xyz = the tree's origin so
     the tree material's sway anchor and moss ring work per tree. +2 draws (+ shadow), ≈ +0.09 M
     tris on A;
-  - crown layering: each lobe's laminae are toned by shell (core 0.58 → rim 1.0) × top-lit
-    (underside 0.82 → top 1.0) × 1.14, mean-preserving (0.88), plus a ± 10 % per-leaf variance
-    from a fork.
-- Verification so far: `variants.mjs` fingerprint (scratch) — LOD-0 `radius` identical on all 10
+  - crown layering (`80fab20`): per leaf, the share of the shade fill is written through
+    `leafShade` (writer.ts aRoot.w) = a structured shell × top-lit term × a 0.75–1.25 per-leaf
+    draw (fork), clamped 0.3–1; the lit rim/top tone × 1.12. Measured at `f4-crown-up`: the
+    vertex-tone route alone moved the lobe's sd 21.2 → 21.5; a structured leafShade alone only
+    lowered the level (107 → 99.5, sd unchanged — from below one sees the bottom shell); the
+    per-leaf draw gives neighbouring laminae 0.55–1.0 of the fill (mean 107 → 103, sd 21.0).
+- Verification: `variants.mjs` fingerprint (scratch, /tmp) — LOD-0 `radius` identical on all 10
   variants, `height` identical except ± 4 µm on the two saplings (the trunk-top ring's azimuth
   after the denser frame transport), leaf vertex hashes identical on 7 of 10 (the 3 mature
   variants with epicormic shoots: the shoot shoulder reads the trunk radius, ~6 shoot leaves each
   moved ≤ 1 cm); the exact `placeWhiteBark` replica (real terrain + layout + seed chain) gives
   the SAME 80 placements (variant, x, y, z, yaw, scale; 9 reseated) before and after.
-- Baseline capture of `d06e275` at settle 6: A 0.2249 / B 0.2029 / C 0.2359 / D 0.2779 /
-  E 0.2135 / F 0.2634 (take-0116 within ± 0.001); 521 draws, 8.80 M tris on A.
+- Six views at settle 6, baseline `d06e275` (take-0116 within ± 0.001) → `80fab20`:
+  A 0.2249 → 0.2249, B 0.2029 → 0.2029, C 0.2359 → 0.2362, D 0.2779 → 0.2780, E 0.2135 → 0.2135,
+  F 0.2634 → 0.2634; draws +2 on every view (max 523); +0.12 M tris; leafCount 288,607
+  unchanged; W12 161/161 (maxGap 0); determinism 0; console clean. Tests 9/9 (trees) + 32/32;
+  anti-cheat green (86 checks).
+- Evidence: `art/environment/round47-whitebark/` — nine BEFORE | AFTER sheets (`poses.json`)
+  and the README with per-pose verdicts.
 
 ## Important decisions
 - **Placement must not reshuffle.** `placeWhiteBark` and the LOD bucketing read each variant's
@@ -81,13 +95,22 @@ nearCanopy, materials, index otherwise) is edited.
   before is reported as a FAIL.
 
 ## Known issues
+- **Crown from below is still pale and flat-ish** (`f4-crown-up`): the level of a lamina's
+  underside is set by the standard hemisphere/environment indirect (not scaled by `vLeafShade`)
+  and the leaf shade floor in `materials.ts` — trees-30's lane. Suggestion: scale that indirect
+  by `vLeafShade` too, or darken laminae whose geometric normal faces down. The geometry side
+  (smaller leaves in greater numbers, more vertical blades) would move the crown envelope and
+  therefore the placements — not done for that reason.
 - Per-INSTANCE bark UV offsets need the vertex shader (materials.ts, trees-30's lane): the
   per-variant offset + spiral + the shader's world-position tone noise break the repeat, but two
   instances of one variant still share the scar layout. Suggested one-liner for trees-30, in
   `WIND_VERTEX_BODY` after `vTreeUv = uv;`: `#ifdef USE_INSTANCING vMapUv.y += fract(instanceMatrix[3].x * 0.37 + instanceMatrix[3].z * 0.61) * step(leafW, 0.5); #endif`
   (and the same for `vNormalMapUv` / `vRoughnessMapUv`).
 - The whitebark near the survey pose stands in ferns; the toes are best judged at
-  `f4-mature-relief` (−57.7, 11.7) and `f4-base-low`.
+  `f4-mature-relief` (−57.7, 11.7) and `f4-base-low`. A sapling's toes (R 0.06 → 0.26–0.37 m
+  long) are under the grass.
+- The root mesh is one draw over the whole 12–60 m ring (always submitted; ≈ 55 k triangles,
+  no LOD). If it ever matters for W38, split it into quadrant meshes for frustum culling.
 
 ## Recommended next work
 - vegetation: survey-2 #10 — the forest floor right under the whitebarks is still bare olive.
@@ -96,4 +119,4 @@ nearCanopy, materials, index otherwise) is edited.
   soft at 0.5 m).
 
 ## Last updated
-2026-09-19T11:30:00Z
+2026-09-19T11:40:00Z
