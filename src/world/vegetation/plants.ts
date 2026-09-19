@@ -94,6 +94,26 @@ const PLATEAU_WALK: readonly (readonly [number, number])[] = [
 const BUSH_LENS_CLEAR_M = 0.5;
 /** round 47: bushes within this distance of a house trunk (m past its radius) are the big-leaf shrub of ref-01 */
 const HOUSE_BIG_LEAF_M = 3.4;
+/**
+ * Round 47 — the north path's verge (owner review 2026-09-19, ref-04: "dense dark ferns and shrubs
+ * with layered leaf silhouettes and lit rims at the path edges, fine litter everywhere, no bare
+ * ground"). The vertical layer over the round-46 north carpet: a dense band of dark ferns
+ * (`fernsNorth`, NORTH_VERGE_FERN_EDGE m off the paving) with leafy shrub crowns (`bushes`) on its
+ * outer edge (NORTH_VERGE_BUSH_EDGE), from NORTH_VERGE_Z0 north to the corridor's end. Camera D
+ * looks straight up this path: inside NORTH_VERGE_D_Z (its frame's banks, 12–40 m off) the band
+ * grows at NORTH_VERGE_D_KEEP of its weight and the ferns end at NORTH_PLANT_MAX_M anyway; the
+ * frames' D shoulders and hollow take none (their cuts are the frames').
+ */
+const NORTH_VERGE_Z0 = -15;
+const NORTH_VERGE_D_Z = -34;
+const NORTH_VERGE_D_KEEP = 0.45;
+const NORTH_VERGE_FERN_EDGE: readonly [number, number, number, number] = [0.5, 0.85, 2.1, 3.2];
+const NORTH_VERGE_BUSH_EDGE: readonly [number, number, number, number] = [1.15, 1.7, 2.7, 3.6];
+/** the verge's tint: ref-04's ferns and shrubs are dark (× the sets' palette) */
+const NORTH_VERGE_FERN_TINT = 0.82;
+const NORTH_VERGE_BUSH_TINT = 0.6;
+/** the verge's disc-falloff floor (the corridor's ground past the fade keeps this share; carpet.ts NORTH_CARPET.reachFloor) */
+const NORTH_CARPET_REACH_FLOOR_PLANTS = 0.8;
 /** round 44 (survey-1 #10): a violet clump's pigment spread (× 1 ± this) and hue lean (red up / blue down or the reverse, this fraction) */
 export const FLOWER_CLUMP_SPREAD = 0.12;
 export const FLOWER_CLUMP_LEAN = 0.08;
@@ -3137,6 +3157,57 @@ export function buildPlants(ctx: WorldContext, field: VegField, parent: Group): 
     // and stalks that landed in it go too
     fernsNorth.prune((it) => field.dHollow(it.x, it.y, it.z) > 0.5);
     seedheads.prune((it) => field.dHollow(it.x, it.y, it.z) > 0.5);
+
+    // ---- Round 47 — the north path's verge (NORTH_VERGE_*): the band's weight at (x, z), 0 off it
+    const vergeBox: [number, number, number, number] = [Math.min(box[0], -8), Math.min(box[1], -80), Math.max(box[2], 14), NORTH_VERGE_Z0];
+    const vergeArea = (vergeBox[2] - vergeBox[0]) * (vergeBox[3] - vergeBox[1]);
+    const verge = (x: number, z: number, s: FieldSample, band: readonly [number, number, number, number]) => {
+      if (z > NORTH_VERGE_Z0 || field.reach(x, z) > R) return 0;
+      const edge = field.edgeDistance(x, z);
+      const w = smoothstep(band[0], band[1], edge) * (1 - smoothstep(band[2], band[3], edge));
+      if (w <= 0) return 0;
+      if (s.cliff > 0.5 || field.dShoulder(x, z) > 0 || field.dHollow(x, s.h, z) > 0) return 0;
+      const clr = field.clearing(x, z);
+      if (clr.insideBoulder || clr.npc > 0.2 || clr.boulder > 0.3 || field.giantDistance(x, z) < 0.6 || field.logDistance(x, z) < 1.0) return 0;
+      // the path's own bank only: the plain beyond the corridor's fade is the forest floor's
+      const dz = 1 - smoothstep(NORTH_VERGE_Z0 - 3, NORTH_VERGE_Z0, z);
+      const dKeep = z > NORTH_VERGE_D_Z ? NORTH_VERGE_D_KEEP : 1;
+      return w * dz * dKeep * Math.max(field.falloffReach(x, z), NORTH_CARPET_REACH_FLOOR_PLANTS);
+    };
+    scatter(
+      ctx,
+      field,
+      {
+        label: 'ferns-north-verge-r47',
+        candidates: Math.round(vergeArea * 2.6 * q.density),
+        box: vergeBox,
+        minSpacing: 0.42,
+        r32: true,
+        accept(x, z, s) {
+          const w = verge(x, z, s, NORTH_VERGE_FERN_EDGE);
+          return w <= 0 ? 0 : 0.75 * w * (0.55 + 0.9 * field.cluster(x, z)) * (1 + 1.2 * smoothstep(0.12, 0.4, s.slope));
+        },
+      },
+      (x, z, s, rng) => placeInstance(fernsNorth, x, z, s, rng, 0.6 + rng() * 0.4, 0.6, 0.02, greenVar(rng, 0.18).multiplyScalar(NORTH_VERGE_FERN_TINT)),
+    );
+    scatter(
+      ctx,
+      field,
+      {
+        label: 'bushes-north-verge-r47',
+        candidates: Math.round(vergeArea * 0.9 * q.density),
+        box: vergeBox,
+        minSpacing: 2.4,
+        r32: true,
+        accept(x, z, s) {
+          const w = verge(x, z, s, NORTH_VERGE_BUSH_EDGE);
+          if (w <= 0) return 0;
+          if (bushes.items.some((p) => Math.hypot(p.x - x, p.z - z) < 2.0)) return 0;
+          return 0.5 * w * (0.4 + field.cluster(x, z));
+        },
+      },
+      (x, z, s, rng) => placeInstance(bushes, x, z, s, rng, 0.6 + rng() * 0.3, 0.3, 0.04, tint.setRGB(NORTH_VERGE_BUSH_TINT + rng() * 0.1, NORTH_VERGE_BUSH_TINT + 0.05 + rng() * 0.1, NORTH_VERGE_BUSH_TINT - 0.08 + rng() * 0.1)),
+    );
   }
 
   // ---- Round 44 (survey-1 #7): nothing sits on the lens. A bush whose crown reaches within
