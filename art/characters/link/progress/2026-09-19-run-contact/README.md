@@ -1,6 +1,6 @@
 # Run contact and flight — Blender study
 
-Default asset remains **24591126**. The current candidate is **3218b164**: a swing-only change that preserves the original run stride, cycle, hips and upper body. Blender, Three.js studio and a matched 300-frame actual-player comparison pass with the play-mode grounding fix below. High-default rendering and wider movement review remain outstanding. This is animation evidence, not a gauntlet take or a final character-quality claim.
+Default asset remains **24591126**. The current candidate is **3218b164**: a swing-only change that preserves the original run stride, cycle, hips and upper body. Blender, Three.js studio and a matched 300-frame actual-player comparison pass with the play-mode grounding fix below, including a completed high-default render run. Wider movement and independent review remain outstanding. This is animation evidence, not a final character-quality claim.
 
 ## What changed
 
@@ -73,6 +73,14 @@ Steady run means frames165–234; near-floor means both adjacent audited footpri
 | Actual world | ![](game-balanced-before/flat-transitions-152.png) | ![](game-balanced-after/flat-transitions-152.png) |
 
 The small production-rig check runs two cycles with the actual GLB, mixer, pins and IK: `node art/characters/link/check_run_grounding.mjs run-flight-retained-candidate.glb`. Corrected candidate root range is0.956 mm with34.88 mm maximum shared foot clearance; default asset also passes (0.014 mm /13.41 mm). Restoring the old runtime makes the same check fail:42.15 mm root range, zero shared flight and14 mm penetration. The check's flight threshold is1 mm; the old asset does not meet a15 mm clearance target. Gait-chain, blink and placement checks pass. Candidate adoption still needs wider movement and independent review.
+
+[Actual-player video, 5 seconds / 150 frames](game-balanced-after/walk-run-idle.mp4) reproduces the corrected 300-frame trace. Its [manifest](game-balanced-after/video-manifest.json) also pins the production source and bundle hashes. High geometry, diagnostic shadow2048/scale.75 profile as above.
+
+The subsequent **high-default** run also completed all300frames without page errors or reach clamps. All300root, body-point, feet and IK samples are exactly equal to the diagnostic-profile result: [check](high-profile-check.json), [manifest](game-high-after/manifest.json). The earlier browser failures remain unexplained; this later successful run supersedes the incomplete high-default movement check, without erasing those failures.
+
+The subsequent [run-jump trace](game-jump/manifest.json) completes180frames through ground → crouch → air → land → ground, with zero reach clamps. Every airborne root sample matches the actual player ballistic arc within the audit's0.1mm rounding. The largest vertical step is118.86mm during the ballistic flight, not the flat-run metric above. This is an execution/physics check, not a declaration of natural jump posing or collision-free landing. Reproduce with `ZR_NATIVE_GPU=1 LINK_REVIEW_ASSET=run-flight-retained-candidate.glb node art/characters/link/capture_play_motion.mjs --jump-only --balanced-render` (set environment variables using the syntax of your shell).
+
+The high-default fixed-view gauntlet also completed on3e05d6df with the default asset: six hero views, repeat and motion, determinism0%,93anti-cheat checks green. It is **invalid**, because this older world exceeds W38 at view A (9.02M triangles; budget9M). The score is28/50, Phase1 24/42. Fable's subsequent fern/north-paving fixes are not part of this matched source base. [Take and reports](fixed-view-take/take.json). Its local ledger id0118 is not a published/global sequence claim; the existing local ledger was appended by the gauntlet and is not manually edited or included in this PR.
 
 ## Reproduce the candidate
 

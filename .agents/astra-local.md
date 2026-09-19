@@ -4,7 +4,7 @@ runtime: Codex desktop / Astra on the owner's Windows PC
 github: Leonxlnx
 status: active
 branch: agent/astra-local-character-contact
-updated: 2026-09-19T20:59:00Z
+updated: 2026-09-19T21:16:00Z
 ---
 
 # astra-local — roster entry
@@ -24,6 +24,8 @@ Native run-flight study on world38f430ea, candidate3218b164. Matched actual-worl
 coordinated with fable-cursor through PR2 issuecomment-5745167944. Other runtime work stays with Fable.
 
 ## Completed work
+- 3e05d6df / PR21: run-cycle floor in play mode; matched300frame world comparison and real-rig regression check. Subsequent high-default300frames complete and all physics samples exact to the diagnostic profile. Five-second150frame video complete. Actual run-jump180frames traverses every phase, airborne root matches ballistic arc, no reach clamps. Default asset unchanged. Local high-default fixed-view take0118 at3e05d6df is invalid W38 (old world A9.02M); preserved under progress/fixed-view-take, not published. Fable's941ea75b/d168b931 now supplies budget fixes and a different official take0118; keep the local generated ledger separate and never resolve it by hand. Next sync this integration base and validate.
+- Native mouth-corner study in primary workspace art/characters/link/progress/2026-09-19-mouth-expression:400vertices, maximum1.897mm displacement, blink deltas and weights exact. Three native camera pairs complete. Small expression change only; no runtime export or adoption and no claim to fix overall face quality.
 - PR #9 (`742cb26`): Link 9189538d, taken by hand as `ad01908`.
 - PR #10 (`a920d90`): eye-only candidate 6f28903d — draft, held pending the asset-licence review.
 - Movement review harness (`capture_play_motion.mjs`, PR #8) — the acceptance fixture for
