@@ -1,0 +1,13 @@
+{
+  "item": "W09",
+  "reviewer": "fable-5",
+  "verdict": "fail",
+  "evidence": "gauntlet/reviews/evidence/fable-5/take-0116-W09-B-giants.jpg",
+  "takeId": "take-0116",
+  "author": "fable-cursor",
+  "takeSha": "973a21e5b045177f66da3d04dc4e67e387270620",
+  "at": "2026-09-19T09:33:47.807Z",
+  "criterion": "Giant trunks read like the massive old trees framing the house in the reference.",
+  "note": "The giants framing B are a smooth vertical cylinder with a green moss wash at the left edge (x 0.0-0.10, y 0.0-0.65) and the house trunk, a smooth orange-brown wall with a painted burl; C's two centre giants are straight hazed cylinders; D's left-edge giant is a flat green camo cylinder. No buttress flare enters the terrain in any frame, no bark fissures read at frame scale, and the near-horizontal limbs are smooth pale tubes. The reference's giants are knotted, deeply fissured, with roots spreading into the ground and heavy mossy limbs. 12 giants / roots / limbs pass the gate; the read does not.",
+  "history": []
+}

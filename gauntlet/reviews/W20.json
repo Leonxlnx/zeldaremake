@@ -1,0 +1,13 @@
+{
+  "item": "W20",
+  "reviewer": "fable-5",
+  "verdict": "fail",
+  "evidence": "gauntlet/reviews/evidence/fable-5/take-0116-W20-moss-edges.jpg",
+  "takeId": "take-0116",
+  "author": "fable-cursor",
+  "takeSha": "973a21e5b045177f66da3d04dc4e67e387270620",
+  "at": "2026-09-19T09:33:49.263Z",
+  "criterion": "Mossy greens soften every hard edge as in the reference house roof and boulders.",
+  "note": "Moss does not soften every hard edge: the A stair treads show clean straight nosings with no moss (x 0.55-0.90, y 0.10-0.70); the house cap's eave at B is a clean arc over the bark with a shadow band rather than an irregular tufted fringe, and the cap reads as smooth mottled green paint with a specular sheen. Boulder moss at C is present. The reference's moss is tufted, overhangs the eave and creeps over every stair nosing. mossCoverage / mossJoints / mossRoof pass the gate; the read does not.",
+  "history": []
+}

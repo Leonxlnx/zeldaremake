@@ -1,0 +1,140 @@
+# The Gauntlet — CI gate for every push / pull request (GAUNTLET.md §3, §4).
+#
+#   typecheck → build → anti-cheat (source-only) → headless capture → compare → score → anti-cheat (take)
+#
+# The capture runs in the runner's Chrome with SwiftShader WebGL2 (same as local `npm run capture`).
+# Artifacts: gauntlet/out/ci (PNGs, *.compare.png strips, audit/stats/checks/compare/score JSON).
+# On pull requests a sticky comment shows the score table + per-viewpoint metrics.
+#
+# This workflow never writes to the ledger or the monitor branch — only monitor.yml does
+# (rule B2: a take only counts toward the exit criteria when it is CI-attested by monitor.yml).
+
+name: gauntlet
+
+on:
+  push:
+    branches: ['**']
+  pull_request:
+
+concurrency:
+  group: gauntlet-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: false
+
+permissions:
+  contents: read
+  pull-requests: write
+
+jobs:
+  gauntlet:
+    name: capture · compare · score · anti-cheat
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    env:
+      OUT: gauntlet/out/ci
+      # Settle frames per viewpoint. SwiftShader on a 2-vCPU runner renders a multi-million-triangle
+      # frame in seconds; 30 keeps the whole capture (6 viewpoints + determinism + motion) well
+      # inside the job timeout. Local `npm run capture` defaults to 90.
+      SETTLE: 8
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0 # anti-cheat A3 walks the history of gauntlet/rubric.json
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+
+      - run: npm ci
+
+      - name: Locate the runner's Chrome
+        id: chrome
+        shell: bash
+        run: |
+          CHROME="$(command -v google-chrome || command -v google-chrome-stable || command -v chromium-browser || command -v chromium || true)"
+          echo "path=$CHROME" >> "$GITHUB_OUTPUT"
+          echo "runner chrome: ${CHROME:-<none>}"
+
+      - name: Install Chrome (fallback)
+        if: steps.chrome.outputs.path == ''
+        id: setup-chrome
+        uses: browser-actions/setup-chrome@v1
+        with:
+          chrome-version: stable
+
+      - name: Export CHROME_PATH
+        shell: bash
+        run: |
+          CHROME="${{ steps.chrome.outputs.path }}"
+          if [ -z "$CHROME" ]; then CHROME="${{ steps.setup-chrome.outputs.chrome-path }}"; fi
+          echo "CHROME_PATH=$CHROME" >> "$GITHUB_ENV"
+          "$CHROME" --version
+
+      - run: npm run typecheck
+      - run: npm run build
+
+      - name: Anti-cheat (source-only)
+        run: node gauntlet/scripts/anti-cheat.mjs --skip-capture-checks
+
+      - name: Capture the six hero viewpoints
+        run: npm run capture -- --out "$OUT" --settle "$SETTLE"
+
+      - name: Compare against the reference frames
+        run: node gauntlet/scripts/compare.mjs --in "$OUT"
+
+      - name: Score
+        run: node gauntlet/scripts/score.mjs --in "$OUT"
+
+      - name: Anti-cheat (take)
+        id: anticheat
+        shell: bash
+        run: |
+          set -o pipefail
+          node gauntlet/scripts/anti-cheat.mjs --take "$OUT" | tee "$OUT/anti-cheat.txt"
+
+      - name: Upload capture
+        if: always()
+        id: upload
+        uses: actions/upload-artifact@v4
+        with:
+          name: gauntlet-${{ github.run_number }}-${{ github.sha }}
+          path: gauntlet/out/ci
+          if-no-files-found: warn
+          retention-days: 30
+
+      - name: Markdown summary
+        if: always()
+        shell: bash
+        run: |
+          if [ -f "$OUT/score.json" ]; then
+            node gauntlet/scripts/score.mjs --in "$OUT" --md "$OUT/summary.md" \
+              --artifact-url "${{ steps.upload.outputs.artifact-url }}" \
+              --title "Gauntlet score for \`${GITHUB_SHA::7}\`" > /dev/null
+          else
+            printf '### Gauntlet\n\nCapture failed before a score could be produced — see the job log.\n' > "$OUT/summary.md"
+          fi
+          if [ -f "$OUT/anti-cheat.txt" ]; then
+            {
+              printf '\n<details><summary>anti-cheat</summary>\n\n```\n'
+              cat "$OUT/anti-cheat.txt"
+              printf '\n```\n\n</details>\n'
+            } >> "$OUT/summary.md"
+          fi
+          cat "$OUT/summary.md" >> "$GITHUB_STEP_SUMMARY"
+
+      # Sticky PR comment (created once, then edited in place). Skipped for forks: their token is read-only.
+      - name: PR comment
+        if: always() && !cancelled() && github.event_name == 'pull_request' && github.event.pull_request.head.repo.full_name == github.repository
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const fs = require('fs');
+            const marker = '<!-- gauntlet-score -->';
+            const file = `${process.env.OUT}/summary.md`;
+            const body = `${marker}\n${fs.existsSync(file) ? fs.readFileSync(file, 'utf8') : '### Gauntlet\n\nno summary produced'}\n\n_run: ${context.serverUrl}/${context.repo.owner}/${context.repo.repo}/actions/runs/${context.runId}_`;
+            const { owner, repo } = context.repo;
+            const issue_number = context.issue.number;
+            const comments = await github.paginate(github.rest.issues.listComments, { owner, repo, issue_number, per_page: 100 });
+            const mine = comments.find((c) => c.user?.type === 'Bot' && c.body?.startsWith(marker));
+            if (mine) await github.rest.issues.updateComment({ owner, repo, comment_id: mine.id, body });
+            else await github.rest.issues.createComment({ owner, repo, issue_number, body });

@@ -1,0 +1,13 @@
+{
+  "item": "W22",
+  "reviewer": "fable-5",
+  "verdict": "pass",
+  "evidence": "gauntlet/reviews/evidence/fable-5/take-0116-W22-A-motion-pair.jpg",
+  "takeId": "take-0116",
+  "author": "fable-cursor",
+  "takeSha": "973a21e5b045177f66da3d04dc4e67e387270620",
+  "at": "2026-09-19T09:33:49.461Z",
+  "criterion": "Grass ripples independently of the canopy sway; no lock-step motion.",
+  "note": "Own clean render of 973a21e (pHash distance 0 to the monitor frames), A_stairs t 12.5 s vs 13.0 s: grass on the right flank mean |diff| 6.6/255 (16.5 % of pixels > 12), branch leaves 4.5, left verge 2.5, far canopy 0.5-0.7, static stone 2-4 (Link's idle sway and falling leaves). Grass, branch leaves and particles move at different amplitudes and phases; nothing moves in lock-step; 11/16 regions moving. Nit: the far canopy barely registers over 0.5 s, so crowns read static in play.",
+  "history": []
+}

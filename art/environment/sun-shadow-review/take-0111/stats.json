@@ -1,0 +1,255 @@
+{
+  "capturedAt": "2026-09-16T12:57:09.118Z",
+  "durationMs": 76185,
+  "width": 1280,
+  "height": 720,
+  "quality": "high",
+  "settleFrames": 6,
+  "simTime": 12.5,
+  "git": {
+    "source": "workspace",
+    "sha": "8341d8cdfcef591442c9f6e33e969f3724a729ec",
+    "shortSha": "8341d8cd",
+    "branch": "agent/astra-local-daylight",
+    "subject": "Refine daylight air depth and reduce shaft wash",
+    "author": "Leonxlnx",
+    "committedAt": "2026-09-16T14:36:06+02:00",
+    "dirty": true
+  },
+  "distHash": "sha256:8fd8ef9d45291d4f876f63e41429fcc5fa125db251cc5029f2f7e7c4489373b2",
+  "viewpoints": [
+    {
+      "id": "A_stairs",
+      "label": "The Stairs",
+      "refSeconds": 1,
+      "file": "A_stairs.png",
+      "sha256": "sha256:8231c9477ab99a9540a619bd2a46296758be95aca2380c2a3e20a3b1005f529d",
+      "bytes": 1304493,
+      "stdev": 32.67,
+      "worldMean": 0.377,
+      "retries": 0,
+      "stats": {
+        "simTime": 12.600000000000005,
+        "drawCalls": 539,
+        "triangles": 8637165,
+        "geometries": 364,
+        "textures": 82,
+        "programs": 88,
+        "width": 1280,
+        "height": 720,
+        "pixelRatio": 1
+      },
+      "pose": {
+        "position": [
+          0.4,
+          1.8,
+          8.6
+        ],
+        "direction": [
+          0.4001487551488514,
+          -0.05779926463261199,
+          -0.9146257260545179
+        ],
+        "fov": 46
+      },
+      "renderer": "ANGLE (AMD, AMD Radeon 780M Graphics (0x00001900) Direct3D11 vs_5_0 ps_5_0, D3D11)",
+      "captureMs": 843,
+      "ms": 843
+    },
+    {
+      "id": "B_house",
+      "label": "Saria's House",
+      "refSeconds": 14,
+      "file": "B_house.png",
+      "sha256": "sha256:f32976ef3015eb85e88c47429d0650745003f165bbb69d3a236a5e5aa117111e",
+      "bytes": 1287857,
+      "stdev": 32.35,
+      "worldMean": 0.37,
+      "retries": 0,
+      "stats": {
+        "simTime": 12.600000000000005,
+        "drawCalls": 497,
+        "triangles": 7576778,
+        "geometries": 390,
+        "textures": 82,
+        "programs": 88,
+        "width": 1280,
+        "height": 720,
+        "pixelRatio": 1
+      },
+      "pose": {
+        "position": [
+          0,
+          1.5,
+          2
+        ],
+        "direction": [
+          0.33630596344635905,
+          0.013452238537854384,
+          -0.9416566976498055
+        ],
+        "fov": 46
+      },
+      "renderer": "ANGLE (AMD, AMD Radeon 780M Graphics (0x00001900) Direct3D11 vs_5_0 ps_5_0, D3D11)",
+      "captureMs": 756,
+      "ms": 756
+    },
+    {
+      "id": "C_lookback",
+      "label": "Look Back",
+      "refSeconds": 46,
+      "file": "C_lookback.png",
+      "sha256": "sha256:0adee8afe2ccf6e570df5c0a27da133b9e4f55ddec58f21152ec86d4c718aa7e",
+      "bytes": 1202253,
+      "stdev": 32.79,
+      "worldMean": 0.352,
+      "retries": 0,
+      "stats": {
+        "simTime": 12.600000000000005,
+        "drawCalls": 383,
+        "triangles": 7446057,
+        "geometries": 451,
+        "textures": 82,
+        "programs": 88,
+        "width": 1280,
+        "height": 720,
+        "pixelRatio": 1
+      },
+      "pose": {
+        "position": [
+          2.33,
+          1.45,
+          -7.67
+        ],
+        "direction": [
+          0.13040706314611447,
+          -0.06136802971581855,
+          0.9895594791675757
+        ],
+        "fov": 46
+      },
+      "renderer": "ANGLE (AMD, AMD Radeon 780M Graphics (0x00001900) Direct3D11 vs_5_0 ps_5_0, D3D11)",
+      "captureMs": 685,
+      "ms": 685
+    },
+    {
+      "id": "D_log",
+      "label": "The Log Arch",
+      "refSeconds": 56,
+      "file": "D_log.png",
+      "sha256": "sha256:e3d1dc1e8b0ad29e87e530ee8f100fd8dab466dbe78a57445efe1ac427424f0e",
+      "bytes": 1257689,
+      "stdev": 32.38,
+      "worldMean": 0.397,
+      "retries": 0,
+      "stats": {
+        "simTime": 12.600000000000005,
+        "drawCalls": 358,
+        "triangles": 7223297,
+        "geometries": 461,
+        "textures": 82,
+        "programs": 88,
+        "width": 1280,
+        "height": 720,
+        "pixelRatio": 1
+      },
+      "pose": {
+        "position": [
+          0.2,
+          1.45,
+          -3
+        ],
+        "direction": [
+          0.10953219056304957,
+          0.03311438319348014,
+          -0.9934314958044038
+        ],
+        "fov": 48
+      },
+      "renderer": "ANGLE (AMD, AMD Radeon 780M Graphics (0x00001900) Direct3D11 vs_5_0 ps_5_0, D3D11)",
+      "captureMs": 692,
+      "ms": 692
+    },
+    {
+      "id": "E_ground",
+      "label": "Saria's House (hold)",
+      "refSeconds": 24,
+      "file": "E_ground.png",
+      "sha256": "sha256:0af6289a6cf3aa9c68145b94ba5c26336798f387823f323f6eb27b533586af00",
+      "bytes": 1287853,
+      "stdev": 32.35,
+      "worldMean": 0.37,
+      "retries": 0,
+      "stats": {
+        "simTime": 12.600000000000005,
+        "drawCalls": 497,
+        "triangles": 7576778,
+        "geometries": 461,
+        "textures": 82,
+        "programs": 88,
+        "width": 1280,
+        "height": 720,
+        "pixelRatio": 1
+      },
+      "pose": {
+        "position": [
+          0,
+          1.5,
+          2
+        ],
+        "direction": [
+          0.33630596344635905,
+          0.013452238537854384,
+          -0.9416566976498055
+        ],
+        "fov": 46
+      },
+      "renderer": "ANGLE (AMD, AMD Radeon 780M Graphics (0x00001900) Direct3D11 vs_5_0 ps_5_0, D3D11)",
+      "captureMs": 701,
+      "ms": 701
+    },
+    {
+      "id": "F_canopy",
+      "label": "Up the Stairs",
+      "refSeconds": 8,
+      "file": "F_canopy.png",
+      "sha256": "sha256:eac16cf126d547fa71e90e5001792537d80207bb749e30dff169fe333ca8f96d",
+      "bytes": 1351323,
+      "stdev": 32.79,
+      "worldMean": 0.305,
+      "retries": 0,
+      "stats": {
+        "simTime": 12.600000000000005,
+        "drawCalls": 484,
+        "triangles": 8220462,
+        "geometries": 471,
+        "textures": 82,
+        "programs": 88,
+        "width": 1280,
+        "height": 720,
+        "pixelRatio": 1
+      },
+      "pose": {
+        "position": [
+          -1.96,
+          1.8,
+          4
+        ],
+        "direction": [
+          0.9721254966661625,
+          -0.06836560096623101,
+          -0.22427252024288002
+        ],
+        "fov": 46
+      },
+      "renderer": "ANGLE (AMD, AMD Radeon 780M Graphics (0x00001900) Direct3D11 vs_5_0 ps_5_0, D3D11)",
+      "captureMs": 682,
+      "ms": 682
+    }
+  ],
+  "renderer": "ANGLE (AMD, AMD Radeon 780M Graphics (0x00001900) Direct3D11 vs_5_0 ps_5_0, D3D11)",
+  "extra": {
+    "determinism": "A_stairs.det.png",
+    "motion": "A_stairs.motion.png"
+  }
+}

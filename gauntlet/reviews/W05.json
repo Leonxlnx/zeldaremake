@@ -1,0 +1,13 @@
+{
+  "item": "W05",
+  "reviewer": "fable-5",
+  "verdict": "fail",
+  "evidence": "gauntlet/reviews/evidence/fable-5/take-0116-W05-C-embankments.jpg",
+  "takeId": "take-0116",
+  "author": "fable-cursor",
+  "takeSha": "973a21e5b045177f66da3d04dc4e67e387270620",
+  "at": "2026-09-19T09:33:47.014Z",
+  "criterion": "Embankments beside the stairs and the ledge edges show natural terracing and erosion, not smooth noise blobs.",
+  "note": "At C the embankment between the stair foot and Link is a smooth lawn-textured mound with one boulder and a dome bush: no terracing, no erosion channels, no exposed soil or root steps; the ledge edge behind it is a smooth curve into haze. The reference's bank is a stepped, dark, mossy terrace with shrubs and a stone fragment above the stair flank. 318k vertices / 6 detail passes pass the gate, but the forms read as smooth noise blobs under a grass texture. Crop x 0.0-0.55, y 0.15-0.75.",
+  "history": []
+}

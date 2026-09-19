@@ -1,0 +1,1496 @@
+/**
+ * Materials for the structures system. PBR sets come from Poly Haven (CC0) via the shared
+ * texture library; small detail textures (heart leaves, grass tufts, carved runes, lantern
+ * glow gradient) are generated on a canvas so nothing external is needed for them.
+ */
+import {
+  BackSide,
+  CanvasTexture,
+  ClampToEdgeWrapping,
+  Color,
+  DoubleSide,
+  LinearFilter,
+  LinearMipmapLinearFilter,
+  MeshBasicMaterial,
+  MeshStandardMaterial,
+  NoColorSpace,
+  RepeatWrapping,
+  SRGBColorSpace,
+  Texture,
+  Vector2,
+  type WebGLProgramParametersWithUniforms,
+} from 'three';
+import type { WorldContext } from '../system';
+import { type ShadeFloor, applyShadeFloor } from '../materials/shadeFloor';
+import { WIND_GLSL } from '../wind/wind';
+import { rasteriseEndGrain } from './endGrain';
+import { POD_BODY_V, type PodSkinRaster, rasterisePodSkin } from './podSkin';
+import { applySleeveBarkResponse } from './sleeveBark';
+
+const GRAD3: [number, number, number][] = [
+  [1, 1, 0], [-1, 1, 0], [1, -1, 0], [-1, -1, 0],
+  [1, 0, 1], [-1, 0, 1], [1, 0, -1], [-1, 0, -1],
+  [0, 1, 1], [0, -1, 1], [0, 1, -1], [0, -1, -1],
+];
+const fade = (t: number) => t * t * t * (t * (t * 6 - 15) + 10);
+const mix = (a: number, b: number, t: number) => a + (b - a) * t;
+
+/**
+ * Seeded 3D gradient noise in about [-1, 1] (round 15). The house cap's colour and relief
+ * terms had been 2D fields in (x, z): on the dome's near-vertical front face such a field is
+ * constant along y, so every term drew VERTICAL STREAKS (B: the detrended column-mean /
+ * row-mean luminance profile sd ratio was 2.8 against the reference's 0.96). Sampling a 3D
+ * field at the vertex's object-space position is isotropic on any face. Deterministic through
+ * the permutation drawn from `rng`.
+ */
+export class Noise3D {
+  private perm = new Uint8Array(512);
+
+  constructor(rng: () => number) {
+    const p = new Uint8Array(256);
+    for (let i = 0; i < 256; i++) p[i] = i;
+    for (let i = 255; i > 0; i--) {
+      const j = Math.floor(rng() * (i + 1));
+      const t = p[i];
+      p[i] = p[j];
+      p[j] = t;
+    }
+    for (let i = 0; i < 512; i++) this.perm[i] = p[i & 255];
+  }
+
+  noise(x: number, y: number, z: number): number {
+    const X = Math.floor(x), Y = Math.floor(y), Z = Math.floor(z);
+    const xf = x - X, yf = y - Y, zf = z - Z;
+    const u = fade(xf), v = fade(yf), w = fade(zf);
+    const p = this.perm;
+    const xi = X & 255, yi = Y & 255, zi = Z & 255;
+    const A = p[xi] + yi, AA = p[A] + zi, AB = p[A + 1] + zi;
+    const B = p[xi + 1] + yi, BA = p[B] + zi, BB = p[B + 1] + zi;
+    const g = (h: number, dx: number, dy: number, dz: number) => {
+      const gr = GRAD3[h % 12];
+      return gr[0] * dx + gr[1] * dy + gr[2] * dz;
+    };
+    const n = mix(
+      mix(mix(g(p[AA], xf, yf, zf), g(p[BA], xf - 1, yf, zf), u), mix(g(p[AB], xf, yf - 1, zf), g(p[BB], xf - 1, yf - 1, zf), u), v),
+      mix(mix(g(p[AA + 1], xf, yf, zf - 1), g(p[BA + 1], xf - 1, yf, zf - 1), u), mix(g(p[AB + 1], xf, yf - 1, zf - 1), g(p[BB + 1], xf - 1, yf - 1, zf - 1), u), v),
+      w,
+    );
+    // the gradient set's extreme is ≈ ±0.87; scaled so the range matches the 2D simplex's
+    return n * 1.15;
+  }
+
+  /** fractal sum, same conventions as `Noise2D.fbm` */
+  fbm(x: number, y: number, z: number, octaves = 4, lacunarity = 2, gain = 0.5): number {
+    let amp = 1;
+    let freq = 1;
+    let sum = 0;
+    let norm = 0;
+    for (let i = 0; i < octaves; i++) {
+      sum += amp * this.noise(x * freq, y * freq, z * freq);
+      norm += amp;
+      amp *= gain;
+      freq *= lacunarity;
+    }
+    return sum / norm;
+  }
+}
+
+/**
+ * Shade floors for the structures' bark (round 11). The giants' preset (lift 7, flat, leaf-
+ * filtered, half desaturated) is calibrated for trunks 10–30 m away, seen through the haze as
+ * smooth grey-green columns. Saria's house stands 5–8 m from camera B and its bark is the
+ * reference's warm dark brown: the door-frame lips measure rgb(109,94,74) / rgb(112,88,67) —
+ * lum 0.36–0.38, hue 27–34°, sat 0.32–0.40 — and the shadow band under the moss overhang
+ * rgb(87,73,54), lum 0.29, hue 35°. Under the giants' floor those read lum 0.34–0.38 but hue
+ * 47–57° at sat 0.26 (pale grey-green concrete), because the floor's light is leaf-filtered and
+ * 75 % of its albedo is a flat grey. So the house keeps a luminance floor but takes its hue from
+ * the bark: `texture` 0.4 lets the bark map and the vertex shading (dark bough, dark soffit)
+ * through, `canopy` 1 with `HOUSE_BARK_TINT` as the "leaf" colour tints the floor's light
+ * toward the measured lip bark instead of the leaf sun, `chroma` 1 keeps that tint, and the
+ * lift (6.3) is set so the door-frame lips land on the reference luminance (probes: lift 4 /
+ * texture 0.6 hit the hue, 35°, but read 0.09 too dark; 5.2 / 0.5 read 0.31 on the left lip,
+ * 0.065 under; 6 / 0.4 read 0.33 / 33° there; 7 / 0.3 read 0.35 / 31° but lifted the shadow
+ * band under the moss to 0.36 against the reference's 0.31 — the darker `texture` share is what
+ * keeps the bough and roll dark under the floor. The shaded right pillar is lit by the ambient,
+ * not the floor, so its warmth comes from its vertex tint in house.ts).
+ *
+ * Round 21: `texture` 0.6 at lift 7.2. The reference trunk band in B (x 0.60–0.72 × y 0.30–0.50)
+ * runs p10 0.275 / p50 0.387 / p90 0.528 where ours ran 0.286 / 0.381 / 0.441 — the same level,
+ * a third of the range: under the 60 % flat term only a fifth of the vertex relief (cord crests,
+ * furrows, the round-21 fissures and grime) reached the pixel. At 0.6 textured the surface
+ * carries 36 % of the floor; the lift is raised by the ratio that kept the lips' level (the
+ * round-11 probe at 4 / 0.6 read 0.09 too dark, i.e. ×1.8 linear → 7.2).
+ */
+export const HOUSE_BARK_FLOOR: ShadeFloor = { lift: 7.2, texture: 0.6, canopy: 1, albedo: 0.08, chroma: 1 };
+/**
+ * Round 22: the house trunk's own floor (`bark` — the trunk shell, roots, support boughs, pegs,
+ * the lantern and rope-fence posts; the pale limbs and the log keep HOUSE_BARK_FLOOR). Reference
+ * B's trunk band (x 0.66–0.98 × y 0.10–0.50) puts a quarter of its pixels under 0.25 and its
+ * median at 0.314; ours ran 4.6 % / 0.363, because the floor's flat 40 % (0.4 × 0.08 at lift
+ * 7.2) pinned every shaded trunk face — the right wall, the band under the eave, the furrows — at
+ * ≈ 0.33 whatever its vertex tint: a probe with the arch's tints at ×0.03 still rendered 0.31,
+ * the veil (≈ 0.27 at the house) plus the flat term. `texture` 1 removes the flat term: the floor
+ * is the surface's own albedo (the bark map, the tint, the vertex shading — the round-22 moss
+ * skin on the shaded faces, the crests' ao, the fissures) and a shaded face can fall to the veil;
+ * the shaded faces (the right wall's ×0.35 tint and the moss skin, house.ts `shellVertex`) then
+ * carry their own darkness — at lift 13 the strip right of the door (x 0.88–0.92 × y 0.30–0.50)
+ * read p10 0.262 / p50 0.327 against the control's 0.315 / 0.369 (reference 0.200 / 0.304).
+ * Lift 15 would put a typical floor-lit trunk face (albedo ≈ 0.02 linear) at the level the old
+ * floor gave it (7.2 × (0.4 × 0.08 + 0.6 × 0.02) ≈ 15 × 0.02); probes at lift 13 / 15 / 18 / 30
+ * rendered the wall left of the door (x 0.60–0.72 × y 0.30–0.50) at p50 0.369 / 0.371 / 0.384 /
+ * 0.424 against the reference's 0.388 — the shortfall is the lit trunk flank in that box's left
+ * column (reference 0.43–0.51, ours 0.38–0.44: sunlit, not the floor's) — while B's SSIM fell
+ * with every step of lift (0.2456 at 13, 0.2443 at 18, 0.2395 at 30: the textured floor's
+ * relief is detail the smooth reference column does not have) and D's trunk cells lost with it
+ * (lift 15 −0.012 in D). Lift 5 — a third of the old level on a typical shaded face — keeps the
+ * relief low: the strip right of the door then reads p10 0.258 / p50 0.315 (control 0.315 /
+ * 0.369, reference 0.200 / 0.304) and D's loss is the arch's, not the trunk's.
+ *
+ * Round 32 (structures-22, limb / trunk floor sweep at the hero poses, the frames' boxes at 320×180):
+ *   floors 9 / 5 (control): D bank (0.80–1.0 × 0.30–0.55) p50 0.319, B house (0.68–0.88 × 0.25–0.6)
+ *     p50 0.302, B left (0.05–0.35 × 0.08–0.6) p10 0.314, B top p10 0.304, SSIM D 0.333 / B 0.248
+ *   8 / 4.5: D bank 0.317, B house 0.302, B left 0.304, B top 0.289, SSIM 0.333 / 0.247
+ *   7 / 4:   D bank 0.316, B house 0.302, B left 0.297, B top 0.272, SSIM 0.333 / 0.246
+ *   (frames: D bank 0.236, B house 0.290, B left 0.277, B top 0.295)
+ * The D bank barely moves because what camera D sees of the house there is SUNLIT bark (D stands
+ * 10° off the house's facing, like B) and the box is 28 % trunk / roots, 7 % entrance arch, 64 %
+ * terrain and vegetation (material masks) — the floor lifts shaded faces only. B's top and left
+ * bands are where the floors show (the sleeve limb and the trunk's shaded flank): 8 / 4.5 lands
+ * B top p10 on the frame (0.289 vs 0.295) and takes B left a third of the way (0.304 vs 0.277)
+ * at −0.001 B SSIM and no change to the house box; 7 / 4 overshoots B top (0.272) at −0.002.
+ * Structures-23 (the A repair, single-toggle renders of e328ad7): 8 / 4.5 against 9 / 5 cost
+ * A 0.0012, B 0.0010 and E 0.0007 of SSIM — the shaded flank's contrast, not its level — so
+ * the floors stop at the midpoint 8.5 / 4.75: B top p10 0.297 on the frame's 0.295 (8 / 4.5
+ * 0.289 under it, 9 / 5 0.304 over), B left 0.307, and half the SSIM back (with the halo fade:
+ * A 0.2657 → 0.2665, B 0.2481 → 0.2486; 9 / 5 would give 0.2671 / 0.2491 at B top 0.304).
+ *
+ * Round 34 (structures-23): the trunk shell, roots and boughs carry 0.45 of their round-11 lit
+ * albedo (house.ts TRUNK_LIT_ALBEDO — camera D's sunlit bank); the floor is fully textured, so
+ * their shaded faces fall with it. The lift stays at 4.75: a 6 probe (×1.26, meant to hold B's
+ * top band) moved B top p10 0.305 → 0.305 (the band is the sleeve's — 16.5 k px against the
+ * boughs' 485 at 640×360) and instead lifted the other `bark` users whose tints are not scaled
+ * (fence and lantern posts, the huts' walls: hutbark +0.002 in B). Measured at the house the
+ * albedo change is small either way: the probe (bark's base colour ×0.05 → ×1.6, live) moves B's
+ * trunk-bark pixels only 0.353 → 0.362 → 0.37 and D's bank bark 0.292 → 0.326 → 0.344 — the veil
+ * at 9–17 m is ≈ 0.9 of the pixel, and the frames' bark (D bank 0.239, B right pillar 0.247)
+ * sits UNDER that floor.
+ */
+export const TRUNK_BARK_FLOOR: ShadeFloor = { ...HOUSE_BARK_FLOOR, lift: 4.75, texture: 1.0 };
+/**
+ * Round 44 (structures-28): the rail fences' weathered wood (`fenceWood`), which had no floor.
+ * Fully textured (the grain swing is the point), albedo 0.1 (the silvered planks' shaded mean).
+ * Lift 3.6 (the first pass, below the trunk's 4.75 to keep reference F's dark plateau posts,
+ * y ≈ 0.19) did not reach the pixel: the sn-fence-post survey pose (2 m, canopy shade, no veil)
+ * rendered the shaft p10 / p50 / p90 at 0.055 / 0.060 / 0.068 — a black box, the ×0.48–1.28
+ * grain swing inside three grey levels — because the wood's shaded albedo was ≈ 0.005 linear
+ * (planks map 0.06 × tint 0.23 × shade 0.5) and at 2 m the pixel is the floor alone: a probe at
+ * lift 11 on that albedo moved the shaft only 0.060 → 0.074. The albedo is raised ×3 (tint
+ * 0xc8bba8, fence.ts `postShade` 0.6–0.9 → ≈ 0.015) and the lift to 11: the shaded shaft lands
+ * near 0.15 with the grain at ≈ 0.09–0.22; at F's 25 m the veil is ≈ 0.9 of the pixel.
+ * Round 45 (details-1): at chroma 1 the floor carried the planks map's orange and the
+ * HOUSE_BARK_TINT filter in full — the shaded shaft read hue 28° at sat 0.46 (sn-fence-post), a
+ * fresh-cut post where the owner's props sheet (06-props-signs-and-lanterns) and the fence frames
+ * have silvered, weathered wood (sat ≈ 0.2–0.3). `chroma` 0.6 keeps the grain (texture 1) and
+ * takes 40 % of the floor's colour to its luminance; the sunlit faces are the material's own.
+ * Round 46 (structures-29): the residual warmth (the plateau rails at sat 0.40 in round 45's
+ * handoff) — chroma 0.5 with the rails' and posts' own tints a step greyer (fence.ts).
+ */
+export const FENCE_WOOD_FLOOR: ShadeFloor = { ...HOUSE_BARK_FLOOR, lift: 11, texture: 1.0, albedo: 0.1, chroma: 0.5 };
+/**
+ * Round 44 (structures-28): the threshold slab's stone stands in the eave's shade at the door
+ * (survey-1 crop 26 / w31-house-d). Textured, at the stone's own mean albedo (0.28), the leaf
+ * filter nearly off (canopy 0.15: a grey stone under the sill, not a second moss). The lift is
+ * LOW against the bark floors' (4.75–13): those top up albedos of ≈ 0.02, this one an albedo of
+ * ≈ 0.26, and the floor is lift × ambient × Lambert(albedo). Round-8's flat plank rendered the
+ * walked band (w31-house-d, 520–780 × 420–510) at p50 0.286 (p10 0.273 / p90 0.302 — a flat
+ * grey; the reference's threshold ≈ 0.3): lift 8 rendered the worn top at 0.488 (≈ 0.2 linear),
+ * lift 3 lands it at ≈ 0.3 with the wear and the vertex tints (0.78–1.0, house.ts) as its range.
+ * (The lift-8 probes were measured on a slab whose top was back-face culled — house.ts — and
+ * read the hidden doormat film; they said nothing about the stone.)
+ */
+export const STONE_FLOOR: ShadeFloor = { ...HOUSE_BARK_FLOOR, lift: 3, texture: 1.0, albedo: 0.28, canopy: 0.15, chroma: 0.5 };
+/**
+ * Round 45 (details-1): `fenceWood` is also the material of the SIGNPOST's wood and the distant
+ * huts' SOFFIT boards — small wooden faces that stand in the canopy's shade and read as black
+ * boxes on `wood`, which has no floor: a plank facing the ground gets nothing from the sun and
+ * ≈ 0.001 from the hemisphere's ground half, and in the canopy's shade the hemisphere alone
+ * lights a vertical face at ≈ 0.08 × albedo (the signpost at 2 m, sn-signpost, rendered its post
+ * p10 / p50 / p90 at 0.056 / 0.070 / 0.088 and its board at 0.044 / 0.078 / 0.090 — the fence's
+ * round-44 reading, the ×0.66–1.12 grain inside four grey levels). A plank material of their own
+ * under a lift-8 floor (`propWood`, the first cut) lit them, but cost the fixed views a colour
+ * draw and a shadow draw each (the huts are consolidated apart from the hero structures, so the
+ * two never folded together, and the signpost left the `wood` bucket); on the fences' material
+ * all three fold into the fences' static bucket (consolidateStaticMeshes: same flags, same
+ * vertex layout), whose sphere now covers cameras C and D as well (+1 colour, +1 shadow draw
+ * there, none elsewhere). Their vertex tints were set against `wood`'s tint (0xf0d6a8) and
+ * calibrated under lift 8 — the signpost's board (albedo ≈ 0.08: signpost.ts tints the planks map
+ * ×2.3 to a sunlit tan) at ≈ 0.055 linear, sRGB ≈ 0.26, its post at ≈ 0.15, the soffit boards at
+ * the round-44 level, ≈ 0.045 linear — so both rescale them by WOOD_ON_FENCE_WOOD and land at
+ * the same level and colour; only the light's hue is 10 % greyer (chroma 0.6 against 0.7) and
+ * their rare sunlit faces come out 27 % darker than on `wood`. `wood` itself keeps no floor:
+ * Saria's planks and the huts' decks and joists would all lift with it, and their shaded faces are
+ * dark on purpose (the joist frame under the soffit included).
+ */
+/**
+ * Per-channel factor that takes a vertex tint set for `wood` (linear tint (0.871, 0.672, 0.391)
+ * from 0xf0d6a8) under a lift-8 floor onto `fenceWood` (linear (0.578, 0.496, 0.391) from
+ * 0xc8bba8) under FENCE_WOOD_FLOOR's lift 11 at the same shaded level: (wood / fence) × 8 / 11.
+ */
+export const WOOD_ON_FENCE_WOOD: [number, number, number] = [1.096, 0.985, 0.727];
+/**
+ * Round 44 (structures-28): the log arch's own floor. Under HOUSE_BARK_FLOOR the flat 40 % of the
+ * floor (0.4 × 0.08 at lift 7.2 ≈ 0.032) outweighed the belly's own textured term (0.6 × ≈ 0.02),
+ * so the baked occlusion `outerColor` puts in the fissures and on the crests (×0.12–1.4) reached
+ * the shaded body at a third of its swing and the belly and the north flank read as smooth clay
+ * from the path (survey-1 item 3, crops 06/07/08). Fully textured — the floor is the bark map ×
+ * the vertex shading, as the house trunk's has been since round 22 — at lift 10: a typical
+ * shaded log face (albedo ≈ 0.02) lands at ≈ 0.2 against the old 0.32 (darker under the crown,
+ * as the frame's log mass is) while the crests keep their full 1.4 and the fissures fall to the
+ * veil. D sees the log at 51 m through the haze (veil ≈ 0.9 of the pixel), so the level there
+ * hardly moves; the fixed-view SSIMs are the check.
+ */
+export const LOG_BARK_FLOOR: ShadeFloor = { ...HOUSE_BARK_FLOOR, lift: 10, texture: 1.0 };
+/** warmer than the reference B lip bark rgb(109,94,74) (hue 34°; the right lip rgb(112,88,67),
+ *  27°): the pillars in the eave's shade pick up the bark map's yellow, so the floor leans past
+ *  the target (hue 27°) to land between the two lips */
+export const HOUSE_BARK_TINT = 0x70553f;
+/**
+ * The lantern limb's sleeve: the reference bough (A top-left, 0.04–0.20 × 0.335–0.385) is hazed
+ * grey-olive bark, rgb(90,88,75) — lum 0.34, hue 52°, sat 0.17 — darker and browner than the
+ * giants' floor made ours (lum 0.43, hue 62°), and in B's top band the reference limb is hazed
+ * grey-olive, rgb(109,110,96) — hue 62°, sat 0.13. So: mostly flat albedo (`texture` 0.3, the
+ * sleeve's own vertex shading is dark), a grey-olive tint and half chroma, with the lift set so
+ * the dark sleeve bark lands near the giants' limb brightness (probes: lift 3 / texture 0.55 /
+ * tint 40° read lum 0.16, hue 35°; lift 6.5 / 0.5 / 54° read 0.23, 42° — the warm bark map
+ * pulls the hue ~10° below the tint).
+ *
+ * Round 32 (structures-22): lift 9 → 8 with the trunk's 5 → 4.5 — the sweep table under
+ * TRUNK_BARK_FLOOR; the sleeve is what moves B's top band (p10 0.304 → 0.289, frame 0.295).
+ * Structures-23: 8 → 8.5 with the trunk's 4.5 → 4.75 (B top p10 0.297; see TRUNK_BARK_FLOOR).
+ */
+export const LIMB_BARK_FLOOR: ShadeFloor = { lift: 8.5, texture: 0.3, canopy: 1, albedo: 0.08, chroma: 0.6 };
+/** grey-olive, hue ≈ 63°: the sleeve's bark map and moss pull the result down toward the
+ *  reference bough's 52° */
+export const LIMB_BARK_TINT = 0x6c6e48;
+/**
+ * The house's recess (round 12): the porch cut into the trunk, its soffit and the wall band under
+ * the cap's overhang. Reference B's cavity between the moss edge and the door arch sits at the
+ * haze floor — rgb(92,80,52), p50 0.26; the shadow band under the moss rgb(87,73,54), 0.29 —
+ * while under HOUSE_BARK_FLOOR (set so the door-frame lips land at 0.36–0.38) every shaded face
+ * is pinned to the floor's flat term: the round-12 probe halved the porch's vertex tints and the
+ * band did not move (p50 0.38 → 0.38). Light inside a cavity under an overhang is a fraction of
+ * the leaf-filtered light under the open roof, so the recess takes the same warm, textured floor
+ * at a fifth of the lift.
+ *
+ * Round 22: fully textured at lift 2. Even at lift 1.2 the flat 60 % (0.6 × 0.08 × 1.2) was ten
+ * times the porch's own albedo (tints 0.08–0.22 × the dark map), so the porch wall over the door
+ * and the reveal's cut faces could not fall below ≈ 0.30 in B (x 0.70–0.80 × y 0.35–0.40: p50
+ * 0.324 with the pods' light moved off it; reference 0.266) whatever their tint. With the floor
+ * proportional to the surface those faces sit on the veil (the box reads p50 0.311), while the
+ * eave band (the trunk shell's tints, ≈ 0.5–0.9, in the same material) keeps most of its level:
+ * lift 2 × its own albedo is near the floor it had from the flat term.
+ */
+export const RECESS_BARK_FLOOR: ShadeFloor = { ...HOUSE_BARK_FLOOR, lift: 2, texture: 1.0 };
+/**
+ * The entrance arch and its root-buttresses (round 19): one knotted bark mass standing a metre
+ * in front of the wall under the cap's front rim. Reference B's arch face (x 0.72–0.86 ×
+ * y 0.24–0.31) is mid-toned but high-contrast — p10 0.24, p50 0.35, p90 0.54: lit crests and
+ * moss over dark furrows. The sun (azimuth −128°) grazes the door's front at 84°, so in B the
+ * face is lit by the floor, and neither existing floor can carry that contrast: under
+ * HOUSE_BARK_FLOOR (lift 6.3, `texture` 0.4) the face rendered p10 0.30 / p90 0.38 — the flat
+ * 60 % of the floor's albedo pins every shaded face to one level — and under RECESS_BARK_FLOOR
+ * it rendered p10 0.29 / p90 0.35, uniformly dark. The bark's diffuse albedo is tiny (map
+ * ≈ 0.12 × the material's tint × the vertex tint ≈ 0.02 linear), so the floor's flat 0.08 term
+ * sets one level at any `texture` up to 0.7, and at `texture` 1 the floor barely lifts at all
+ * (runtime probes on the B frame, arch face x 0.72–0.86 × y 0.24–0.31: lift 7 / texture 1.0
+ * mean 0.320, p90 0.354; lift 0 mean 0.315; lift 30 / 1.0 mean 0.343, p90 0.397; lift 7 / 0.4
+ * mean 0.345, p90 0.384). The haze sets the band's p10 (≈ 0.295 in every variant, the
+ * reference's 0.24 is out of reach without sun on the face), so the floor's job is the mid tone
+ * and whatever tint contrast the textured share can carry: mostly textured (0.85) at a lift that
+ * lands the ×1.8 vertex tints on the wall's level — the arch's mean 0.348 / p90 0.404 against
+ * the reference's 0.367 / 0.537 and the wall floor's 0.345 / 0.384.
+ *
+ * Round 22: `texture` 1 at lift 13 — no flat term. The floor's flat 15 % was the level the arch
+ * could not fall below whatever its tint: a probe with the whole arch's vertex colours at ×0.03
+ * still rendered its legs at p50 0.313 (right leg, B x 0.84–0.92 × y 0.28–0.50) and 0.309 (left
+ * leg's inner face) — the veil plus that flat term — where the reference's right leg is 0.249
+ * and its underside over the door 0.266. With the albedo carried entirely by the surface a
+ * shaded face (house.ts `shadeArch`: the right leg, the underside, the crown's lower front, the
+ * legs under the crown) falls to the veil (fully textured at lift 13 the right-leg box read p1
+ * 0.243 / p10 0.270 / p50 0.324 against the control's 0.262 / 0.289 / 0.364), and the flat term
+ * turns out to have been two thirds of the crown's floor: the arch face (x 0.72–0.86 × y
+ * 0.24–0.31) rendered p50 0.375 at lift 13 and 0.462 at lift 30 against the control's 0.400
+ * (reference 0.377) with the crown's tint at ×1.1. The lift also sets the arch's tonal range
+ * on every face (range ∝ lift × textured share, the control's 10.2): at lift 17 the left flank
+ * that A and D look at rendered p10–p90 0.152 in D (x 0.80–0.86 × y 0.20–0.36) against the
+ * control's 0.094 and the reference's 0.019 — a smooth hazed shape — and cost those views
+ * −0.003 / −0.004 SSIM in the arch's cells. So the lift stays at 13 (range ×1.27 over the
+ * control) and the crown's lit band holds its level through its own tint (×1.35 in `shadeArch`,
+ * 13 × 1.35 ≈ 17 × 1.1) while the shaded faces (the right leg, the underside, the crown's lower
+ * front, the left flank under the crown) fall with the lift.
+ */
+export const ARCH_BARK_FLOOR: ShadeFloor = { ...HOUSE_BARK_FLOOR, lift: 13, texture: 1.0 };
+/**
+ * The hollow log's interior (round 43, structures-27). The tunnel's material is near-black
+ * (0x2a221a × the bark map × vertex tints ≈ 0.01 linear) so that in D its 4 m mouth 46 m out reads
+ * as the reference's dark opening; at player height inside it, that leaves the fissures, drip
+ * stains, moss and litter the interior now carries invisible. A low floor with a flat share: the
+ * flat 40 % (0.4 × 0.08 × 2) is what lets a face of that albedo show at all (RECESS_BARK_FLOOR's
+ * round-12 reasoning), the textured 60 % carries the vertex shading (the walls darken toward the
+ * middle, the moss and the pale checks stay apart). In D the mouth sits on the haze veil at that
+ * distance, so the floor's level is hidden there (measured: the opening's box in D read 0.4621 →
+ * 0.4622 at lift 2.5, D's SSIM +0.0001 — the haze owns that mouth); the light leans to the
+ * bark's warm tint (canopy 1 on HOUSE_BARK_TINT), because the hemisphere mean alone turned the
+ * lower walls blue-grey. Lift 4.5: at 2.5 the walls three metres in still read as one dark mass
+ * from the west mouth at player height.
+ */
+export const LOG_INTERIOR_FLOOR: ShadeFloor = { lift: 4.5, texture: 0.6, canopy: 1, albedo: 0.08, chroma: 1 };
+
+export interface StructureMaterials {
+  /** house trunk + roots (bark_brown_02, warm tint) */
+  bark: MeshStandardMaterial;
+  /** pale living branches over the roofs (bark_willow_02) */
+  barkPale: MeshStandardMaterial;
+  /** log arch outer bark (bark_brown_02, dark weathered grey-brown; vertex tint carries ridge/furrow shading + moss) */
+  logBark: MeshStandardMaterial;
+  /** the lantern limb's bark sleeve: `bark` with its own (olive-brown, lower) shade floor */
+  sleeveBark: MeshStandardMaterial;
+  /** the house's porch recess, soffit and the wall band under the overhang: `bark` with RECESS_BARK_FLOOR */
+  recessBark: MeshStandardMaterial;
+  /** the house's entrance arch and root-buttresses (round 19): `bark` with ARCH_BARK_FLOOR */
+  archBark: MeshStandardMaterial;
+  /** house interiors seen through the door: near-black warm wood so the opening reads dark */
+  interior: MeshStandardMaterial;
+  /** the log arch's hollow: near-black damp wood so the opening reads dark through the haze */
+  logInterior: MeshStandardMaterial;
+  /** thatch + moss dome (vertex colours drive the moss gradient) */
+  roof: MeshStandardMaterial;
+  /** weathered planks: signpost, door frames, thresholds */
+  wood: MeshStandardMaterial;
+  /** fence posts + rails: dark, silvered weathered wood that silhouettes against the haze */
+  fenceWood: MeshStandardMaterial;
+  /** round 44 (structures-28): worn stone for the houses' threshold slabs (worn_rock_natural_01; vertex tints carry wear and damp) */
+  stone: MeshStandardMaterial;
+  /** darker wood for door frames / lantern hooks */
+  woodDark: MeshStandardMaterial;
+  /** the small warm lamp glint just inside the doorway */
+  hearth: MeshBasicMaterial;
+  /** dim embers on the back wall, a faint far glow that gives the interior depth */
+  ember: MeshBasicMaterial;
+  /** warm window glow disc */
+  windowGlow: MeshBasicMaterial;
+  /**
+   * Round 16 / 18: the distant houses' window and door lamps, the openings' rims and the pods (one
+   * mesh; white × 2.2, the vertex tints carry the hue at peak 1.0). Peak 2.2 linear: above the
+   * height fog's far-shade exemption (heightfog.ts, 2.0) so the lit points 30–47 m out keep their
+   * radiance under the veil like the pod lanterns do (the rims are tinted 0.8 → 1.76, lit not lamps).
+   */
+  distantGlow: MeshBasicMaterial;
+  /**
+   * Pod lantern (body + cap + stem + cord in one draw): emissive gradient texture, brighter at
+   * the bottom; UV v ≥ LANTERN_DARK_V is black so caps and cords do not glow. Vertex colours tint.
+   */
+  lantern: MeshStandardMaterial;
+  /** the same pod with a lime-yellow glow (reference B: two of Saria's three pods are lime) */
+  lanternLime: MeshStandardMaterial;
+  /**
+   * Round 32: the log arch's pods, 50–53 m from camera D under 86 % veil (heightfog.ts maxFog):
+   * the near pods' 2.0 mixes to 0.14 × 2 + 0.86 × haze ≈ the haze itself, so the arch's five
+   * pods registered zero warm blobs in D's arch box in every capture (the reference has three,
+   * peak 0.65–0.76). Same gradient at FAR_LANTERN_INTENSITY, so the body clears the veil.
+   */
+  lanternFar: MeshStandardMaterial;
+  lanternLimeFar: MeshStandardMaterial;
+  /**
+   * Round 32: the far pods' glow halo — a camera-facing soft disc (radial alpha) per pod on one
+   * mesh, `FAR_HALO_RADIUS` m about the pod, at `FAR_HALO_INTENSITY` linear (fog-exempt, veiled
+   * like any surface at its depth). A 0.33 m pod is 5 px at 52 m in D; the reference's arch
+   * lanterns are 7–19 px soft discs at that distance — the glow round a lamp in hazy air, which
+   * the pod's own body cannot carry and the haze blur (postfx, σ 6 px there) would smear to
+   * nothing. Vertex tints carry the hue (orange / lime); billboarded in the vertex shader.
+   */
+  lanternHalo: MeshBasicMaterial;
+  /** heart-shaped leaf cards, wind-animated (aPhase/aAmount attributes) */
+  leaf: MeshStandardMaterial;
+  /** vine stems, wind-animated */
+  vine: MeshStandardMaterial;
+  /** grass tufts + fern fronds on roofs and the log, wind-animated */
+  tuft: MeshStandardMaterial;
+  /** moss cushions (vertex colours) */
+  moss: MeshStandardMaterial;
+  /** the house cap's moss: vertex-colour albedo under a procedural mossy normal map (no stalks) */
+  capMoss: MeshStandardMaterial;
+  /** small white flower cards on the cap, wind-animated */
+  flower: MeshStandardMaterial;
+  /** carved rune decal for the signpost plank */
+  runes: MeshStandardMaterial;
+  /** dark splintered end-grain */
+  endGrain: MeshStandardMaterial;
+  /** number of materials that ended up with real texture files */
+  texturedSets: string[];
+  /**
+   * Round 17: the canvas textures this system generated itself (moss albedo / normal, straw,
+   * ember glow, the two lantern gradients, leaf / tuft / flower cards, the rune decal) — the
+   * TextureLibrary's bark / plank / thatch maps are borrowed and NOT in here. `structures.dispose()`
+   * releases each of these exactly once; `material.dispose()` never disposes a material's maps.
+   */
+  ownedTextures: Texture[];
+}
+
+function canvas(w: number, h: number) {
+  const c = document.createElement('canvas');
+  c.width = w;
+  c.height = h;
+  return { c, g: c.getContext('2d')! };
+}
+
+function finishTexture(tex: Texture, srgb: boolean, name: string): Texture {
+  tex.wrapS = tex.wrapT = RepeatWrapping;
+  tex.colorSpace = srgb ? SRGBColorSpace : NoColorSpace;
+  tex.minFilter = LinearMipmapLinearFilter;
+  tex.magFilter = LinearFilter;
+  tex.generateMipmaps = true;
+  tex.anisotropy = 4;
+  tex.name = name;
+  tex.needsUpdate = true;
+  return tex;
+}
+
+/** Heart-shaped leaf with a pale central vein; stem notch at the top (v = 1), tip at the bottom. */
+export function heartLeafTexture(): Texture {
+  const S = 256;
+  const { c, g } = canvas(S, S);
+  g.clearRect(0, 0, S, S);
+  const cx = S / 2;
+  // heart outline: two lobes at the top, point at the bottom
+  g.beginPath();
+  g.moveTo(cx, S * 0.16);
+  g.bezierCurveTo(cx + S * 0.05, S * 0.02, cx + S * 0.5, S * 0.02, cx + S * 0.47, S * 0.34);
+  g.bezierCurveTo(cx + S * 0.45, S * 0.62, cx + S * 0.12, S * 0.82, cx, S * 0.985);
+  g.bezierCurveTo(cx - S * 0.12, S * 0.82, cx - S * 0.45, S * 0.62, cx - S * 0.47, S * 0.34);
+  g.bezierCurveTo(cx - S * 0.5, S * 0.02, cx - S * 0.05, S * 0.02, cx, S * 0.16);
+  g.closePath();
+  const grad = g.createRadialGradient(cx, S * 0.4, S * 0.05, cx, S * 0.45, S * 0.55);
+  grad.addColorStop(0, '#b4e06c');
+  grad.addColorStop(0.55, '#86bb4a');
+  grad.addColorStop(1, '#5c9236');
+  g.fillStyle = grad;
+  g.fill();
+  g.save();
+  g.clip();
+  // veins
+  g.strokeStyle = 'rgba(214, 236, 160, 0.75)';
+  g.lineWidth = S * 0.02;
+  g.beginPath();
+  g.moveTo(cx, S * 0.16);
+  g.lineTo(cx, S * 0.97);
+  g.stroke();
+  g.lineWidth = S * 0.011;
+  g.strokeStyle = 'rgba(214, 236, 160, 0.5)';
+  for (let i = 0; i < 5; i++) {
+    const y = S * (0.28 + i * 0.13);
+    g.beginPath();
+    g.moveTo(cx, y);
+    g.quadraticCurveTo(cx + S * 0.2, y + S * 0.06, cx + S * 0.4, y + S * 0.16 - i * S * 0.03);
+    g.moveTo(cx, y);
+    g.quadraticCurveTo(cx - S * 0.2, y + S * 0.06, cx - S * 0.4, y + S * 0.16 - i * S * 0.03);
+    g.stroke();
+  }
+  // slight darker edge
+  g.restore();
+  g.lineWidth = S * 0.012;
+  g.strokeStyle = 'rgba(40, 70, 25, 0.6)';
+  g.stroke();
+  return finishTexture(new CanvasTexture(c), true, 'structures:heart-leaf');
+}
+
+/** Atlas: left half grass tuft, right half fern frond. Alpha in the shape. */
+export function tuftTexture(): Texture {
+  const W = 512;
+  const H = 256;
+  const { c, g } = canvas(W, H);
+  g.clearRect(0, 0, W, H);
+  // grass tuft
+  const bx = W * 0.25;
+  const by = H * 0.98;
+  for (let i = 0; i < 15; i++) {
+    const a = ((i / 14 - 0.5) * 1.5 + (Math.sin(i * 12.9) * 0.08)) as number;
+    const len = H * (0.62 + 0.3 * Math.abs(Math.sin(i * 3.3)));
+    const tipx = bx + Math.sin(a) * len;
+    const tipy = by - Math.cos(a) * len;
+    const w = W * 0.014;
+    const shade = 0.75 + 0.25 * Math.sin(i * 1.7);
+    g.fillStyle = `rgb(${Math.round(120 * shade)}, ${Math.round(165 * shade)}, ${Math.round(70 * shade)})`;
+    g.beginPath();
+    g.moveTo(bx - w, by);
+    g.quadraticCurveTo(bx + Math.sin(a) * len * 0.5 - w * 0.5, by - Math.cos(a) * len * 0.5 - H * 0.05, tipx, tipy);
+    g.quadraticCurveTo(bx + Math.sin(a) * len * 0.5 + w * 0.5, by - Math.cos(a) * len * 0.5 - H * 0.02, bx + w, by);
+    g.closePath();
+    g.fill();
+  }
+  // fern frond: central stem + paired leaflets, base at the bottom centre of the right half
+  const fx = W * 0.75;
+  const fy = H * 0.98;
+  const fl = H * 0.9;
+  g.strokeStyle = '#5a7a34';
+  g.lineWidth = W * 0.008;
+  g.beginPath();
+  g.moveTo(fx, fy);
+  g.quadraticCurveTo(fx + W * 0.03, fy - fl * 0.5, fx + W * 0.06, fy - fl);
+  g.stroke();
+  const pairs = 13;
+  for (let i = 0; i < pairs; i++) {
+    const t = 0.08 + (i / pairs) * 0.9;
+    const sx = fx + W * 0.03 * 2 * t * (1 - t) + W * 0.06 * t * t;
+    const sy = fy - fl * t;
+    const len = W * 0.11 * Math.sin(Math.PI * Math.min(1, t * 1.1)) + W * 0.02;
+    for (const side of [-1, 1]) {
+      const shade = 0.8 + 0.2 * Math.sin(i * 2.1 + side);
+      g.fillStyle = `rgb(${Math.round(92 * shade)}, ${Math.round(150 * shade)}, ${Math.round(66 * shade)})`;
+      g.beginPath();
+      g.moveTo(sx, sy);
+      g.quadraticCurveTo(sx + side * len * 0.5, sy - len * 0.35, sx + side * len, sy - len * 0.25);
+      g.quadraticCurveTo(sx + side * len * 0.5, sy + len * 0.05, sx, sy + len * 0.06);
+      g.closePath();
+      g.fill();
+      // serration
+      g.strokeStyle = 'rgba(30, 60, 20, 0.35)';
+      g.lineWidth = 1;
+      g.stroke();
+    }
+  }
+  return finishTexture(new CanvasTexture(c), true, 'structures:tuft-fern');
+}
+
+/**
+ * Straw colour map for the moss/thatch roofs: fine slightly-curved stalks with brightness
+ * variation around a light neutral mean, so the vertex colours (moss ↔ straw gradient) set the
+ * hue while the Poly Haven thatch normal map supplies the fibre relief. Deterministic.
+ */
+export function strawTexture(seedRng: () => number): Texture {
+  const S = 512;
+  const { c, g } = canvas(S, S);
+  g.fillStyle = '#b9ae94';
+  g.fillRect(0, 0, S, S);
+  g.lineCap = 'round';
+  // long stalks
+  for (let i = 0; i < 1400; i++) {
+    const x = seedRng() * S;
+    const y = seedRng() * S;
+    const len = S * (0.08 + seedRng() * 0.22);
+    const lean = (seedRng() - 0.5) * 0.5;
+    const shade = 0.62 + seedRng() * 0.55;
+    const v = Math.round(190 * shade);
+    g.strokeStyle = `rgba(${Math.min(255, v + 12)}, ${Math.min(255, v + 4)}, ${Math.round(v * 0.82)}, ${0.35 + seedRng() * 0.4})`;
+    g.lineWidth = 1 + seedRng() * 2.2;
+    g.beginPath();
+    g.moveTo(x, y);
+    g.quadraticCurveTo(x + lean * len * 0.5 + (seedRng() - 0.5) * 6, y + len * 0.5, x + lean * len, y + len);
+    g.stroke();
+    // wrap vertically so the tile repeats cleanly
+    if (y + len > S) {
+      g.beginPath();
+      g.moveTo(x, y - S);
+      g.quadraticCurveTo(x + lean * len * 0.5, y - S + len * 0.5, x + lean * len, y - S + len);
+      g.stroke();
+    }
+  }
+  // dark gaps + small bright flecks
+  for (let i = 0; i < 900; i++) {
+    const x = seedRng() * S;
+    const y = seedRng() * S;
+    const dark = seedRng() < 0.6;
+    g.fillStyle = dark ? `rgba(60, 50, 30, ${0.15 + seedRng() * 0.25})` : `rgba(255, 245, 210, ${0.15 + seedRng() * 0.25})`;
+    g.beginPath();
+    g.ellipse(x, y, 1 + seedRng() * 2.5, 3 + seedRng() * 9, (seedRng() - 0.5) * 0.5, 0, Math.PI * 2);
+    g.fill();
+  }
+  return finishTexture(new CanvasTexture(c), true, 'structures:straw');
+}
+
+/**
+ * Round 40 (structures-25, owner video review "roof moss needs distinct close-scale tufts"):
+ * 512 → 1024 texels over the same 1.6 m tile (1.56 mm per texel, was 3.1), so the field can
+ * hold a second, finer cushion scale that the owner's 4 m close-ups resolve (a pixel there is
+ * ≈ 2.7 mm on the cap).
+ */
+const MOSS_S = 1024;
+/** texels per metre of cap surface (one tile is 1.6 m on the cap; see house.ts `meridian`) */
+const MOSS_TPM = MOSS_S / 1.6;
+/**
+ * The moss albedo map's peak (linear): the map is stored divided by it — an 8-bit colour map
+ * clips at 1.0, so a map whose mid tone is 1.0 can only darken (probes 3–4: the lit crests
+ * never appeared) — and the cap's vertex tint is multiplied by it in house.ts, so the mid tone
+ * renders the same and the crests carry the light.
+ */
+export const MOSS_ALBEDO_PEAK = 2.0;
+/**
+ * The cap moss's translucent lift (round 40): the share of the (shadowed) sun that comes back
+ * through a tuft's thin tips as a warm yellow-green glow, strongest where the sun grazes the
+ * tuft (the terminator wraps past N·L = 0 by ≈ 35°) and fading on the fully lit crests, which
+ * the Lambert term already carries. Small: frame B's cap tertiles were calibrated on the
+ * Lambert response alone (house.ts `domeVertex`, round 36).
+ */
+export const MOSS_TRANSLUCENCY = 0.22;
+
+/**
+ * The house cap's moss maps. The tangent-space normal map (round 13): the cap had been sharing
+ * the plain moss material, whose relief is the thatch_roof_angled normal map at half strength —
+ * so the "moss" carried straw-stalk relief (the reviewer's source read). This is a moss surface:
+ * soft cushions (10–25 cm), a dense layer of clumps 3–6 cm across, and a fine grain at the
+ * texel pitch — one tile is 1.6 m on the cap (the cap's UV scale), so 3.1 mm per texel. The
+ * height field (`mossField`) is periodic (bumps wrap, the grain lattice repeats) and is
+ * differenced into normals here, so nothing is loaded. Deterministic through `seedRng`.
+ *
+ * Round 15 adds an albedo map from the SAME height field, so the darkening sits in the relief's
+ * hollows and the crests carry the light ("lit edges"). The reference mound is a fine
+ * dark-speckled moss: dark points 3–5 cm across over a
+ * lighter ground (B, 2× crop: dots of 3–4 px at 1280 wide = 3.5–4.5 cm), which no vertex colour
+ * can carry at the cap's 9 cm vertex pitch. The map: crests up to +100 % / hollows −30 % of the
+ * cushion field (the coarse component, which survives the mip level B sees), a sparse layer of
+ * small dark specks (radius 2–3.5 cm, ≈ 27 % coverage, ×0.4, near-neutral), and the full
+ * field as a ±6 % grain — all stored over `MOSS_ALBEDO_PEAK`. Mean ≈ 0.9 of the mid
+ * tone: the vertex albedo is the mid tone, the map spreads the surface to the reference's
+ * tertiles (luminance 0.37 / 0.49 / 0.62 against take-0065's 0.38 / 0.57 / 0.62: the same
+ * range, ours skewed to the light; probe 3 with a ±12 % relief and ×0.45 specks landed
+ * 0.38 / 0.48 / 0.53 — the darks and mids right, the lit crests missing, clipped in the
+ * texture). Same rng draws as the normal map alone (the specks draw after the field), so the
+ * relief is unchanged.
+ */
+export function mossTextures(seedRng: () => number): { normal: Texture; albedo: Texture } {
+  const S = MOSS_S;
+  const { h, coarse, mid } = mossField(seedRng);
+  const wrap = (i: number) => ((i % S) + S) % S;
+  // central differences → tangent-space normal (+u right, +v up: canvas rows run downward and
+  // the CanvasTexture is flipped on upload, so canvas −y is +v)
+  const { c, g } = canvas(S, S);
+  const img = g.createImageData(S, S);
+  // (round 40: the slope gain scales with the texel density — the same cushion spans twice the
+  // texels at 1024, so each texel's height step halves; 2.6 at 512 → 5.2 keeps the cushions'
+  // slopes, and the new 1–2.5 cm tufts, steeper per texel, carry the fine relief)
+  const K = 2.6 * (S / 512);
+  for (let y = 0; y < S; y++) {
+    for (let x = 0; x < S; x++) {
+      const dx = (h[y * S + wrap(x + 1)] - h[y * S + wrap(x - 1)]) * K;
+      const dy = (h[wrap(y + 1) * S + x] - h[wrap(y - 1) * S + x]) * K;
+      const inv = 1 / Math.sqrt(dx * dx + dy * dy + 1);
+      const i = (y * S + x) * 4;
+      img.data[i] = Math.round((0.5 - 0.5 * dx * inv) * 255);
+      img.data[i + 1] = Math.round((0.5 + 0.5 * dy * inv) * 255);
+      // tangent-space RGB: z is encoded 0.5 + 0.5·nz like x and y (encoding nz directly decoded as
+      // nz < 0 wherever the slope passed 45°; Astra, 12:58)
+      img.data[i + 2] = Math.round((0.5 + 0.5 * inv) * 255);
+      img.data[i + 3] = 255;
+    }
+  }
+  g.putImageData(img, 0, 0);
+  const normal = finishTexture(new CanvasTexture(c), false, 'structures:moss-normal');
+
+  // albedo: the fields normalised (mean 0, sd 1). The lit crests come from the COARSE field
+  // (the 10–25 cm cushions alone): B sees the cap at ≈ 3.6 texels per pixel, mip level ~2,
+  // where the full field's variance — mostly the 3–6 cm clumps — averages away (probes 4–5:
+  // the crest term on the full field moved the light tertile by nothing); the full field only
+  // adds a fine grain.
+  const normalise = (f: Float32Array) => {
+    let mean = 0;
+    for (let i = 0; i < f.length; i++) mean += f[i];
+    mean /= f.length;
+    let varSum = 0;
+    for (let i = 0; i < f.length; i++) varSum += (f[i] - mean) ** 2;
+    const inv = 1 / Math.sqrt(varSum / f.length);
+    return (i: number) => Math.max(-2, Math.min(2, (f[i] - mean) * inv));
+  };
+  const tCoarse = normalise(coarse);
+  const tMid = normalise(mid);
+  const tFine = normalise(h);
+  // dark specks: sparse, small and crisp (the reference's dots are 3–4 px wide at 1280 = 4 cm;
+  // 200 per 512² of radius 2–3.5 cm cover ≈ 27 % of the tile), overlaps saturate through the
+  // exp below (round 40: the count and radii follow the texel density, so the coverage holds)
+  const speck = new Float32Array(S * S);
+  const texelScale = S / 512;
+  for (let n = 0; n < 200 * texelScale * texelScale; n++) {
+    const cx = Math.floor(seedRng() * S);
+    const cy = Math.floor(seedRng() * S);
+    const r = (6 + seedRng() * 5) * texelScale;
+    const amp = 0.8 + seedRng() * 0.5;
+    const ri = Math.ceil(r * 1.4);
+    const invR = 1 / (r * r);
+    for (let dy = -ri; dy <= ri; dy++) {
+      const row = wrap(cy + dy) * S;
+      for (let dx = -ri; dx <= ri; dx++) {
+        const d2 = (dx * dx + dy * dy) * invR;
+        if (d2 > 1.96) continue;
+        speck[row + wrap(cx + dx)] += amp * Math.exp(-d2 * 2.2);
+      }
+    }
+  }
+  const toSRGB = (v: number) => {
+    const c = Math.min(1, Math.max(0, v));
+    return Math.round((c <= 0.0031308 ? c * 12.92 : 1.055 * Math.pow(c, 1 / 2.4) - 0.055) * 255);
+  };
+  const { c: ca, g: ga } = canvas(S, S);
+  const imgA = ga.createImageData(S, S);
+  for (let i = 0; i < h.length; i++) {
+    const tc = tCoarse(i);
+    // crests carry the light (up to ×2), hollows fall (×0.7): the reference mound's light
+    // tertile is 1.6× its mid in linear light, ours (vertex grain alone) 1.25×; at ×1.64
+    // (probe 7) the light tertile stopped at 0.53 on the reference's 0.61 with the mid matched.
+    // Round 40: the 2.5–5 cm clumps add their own lit-top / dark-rim term (±12 %) — at B's mip
+    // level it averages out like the fine grain, at 4 m it draws each clump as a cushion.
+    const relief = (tc > 0 ? 1 + 0.5 * tc : 1 + 0.15 * tc) * (1 + 0.12 * tMid(i)) * (1 + 0.06 * tFine(i));
+    // speck darkening saturates at ×0.4, near-neutral (the reference's dark tertile keeps the
+    // mound's own hue: rgb(104,97,59) under (166,160,99)); a touch less blue so the dots read
+    // as moss shadow, not soil
+    const s = 1 - Math.exp(-speck[i] * 1.6);
+    const dark = 1 - 0.6 * s;
+    const base = (relief * dark) / MOSS_ALBEDO_PEAK;
+    const r = base * (1 - 0.02 * s);
+    const gr = base;
+    const b = base * (1 - 0.08 * s);
+    const j = i * 4;
+    imgA.data[j] = toSRGB(r);
+    imgA.data[j + 1] = toSRGB(gr);
+    imgA.data[j + 2] = toSRGB(b);
+    imgA.data[j + 3] = 255;
+  }
+  ga.putImageData(imgA, 0, 0);
+  const albedo = finishTexture(new CanvasTexture(ca), true, 'structures:moss-albedo');
+  return { normal, albedo };
+}
+
+/**
+ * The moss relief as a periodic height field (see `mossTextures`): `h` the full field, `coarse`
+ * its cushion component alone (the albedo map's lit crests), `mid` the 2.5–5 cm clumps.
+ *
+ * Round 40: a TWO-SCALE cushion pattern. Real moss (the owner's frame-03 bough, board 05 "Moss
+ * Texture") is cushions of cushions — 10–25 cm pillows made of 2–5 cm clumps, each clump a
+ * brush of 1–2.5 cm tufts. Sizes are given in metres and converted at the tile's texel density
+ * (`MOSS_TPM`), so the same field builds at 512 or 1024 with the same physical relief; the
+ * counts scale with the tile area they tile.
+ */
+function mossField(seedRng: () => number): { h: Float32Array; coarse: Float32Array; mid: Float32Array } {
+  const S = MOSS_S;
+  const h = new Float32Array(S * S);
+  const coarse = new Float32Array(S * S);
+  const mid = new Float32Array(S * S);
+  const wrap = (i: number) => ((i % S) + S) % S;
+  const bump = (cx: number, cy: number, r: number, amp: number, into: Float32Array[]) => {
+    const ri = Math.ceil(r * 1.6);
+    const inv = 1 / (r * r);
+    for (let dy = -ri; dy <= ri; dy++) {
+      const row = wrap(cy + dy) * S;
+      for (let dx = -ri; dx <= ri; dx++) {
+        const d2 = (dx * dx + dy * dy) * inv;
+        if (d2 > 2.56) continue;
+        const v = amp * Math.exp(-d2 * 1.7);
+        for (const f of into) f[row + wrap(cx + dx)] += v;
+      }
+    }
+  };
+  /** a radius in metres → texels */
+  const tx = (m: number) => m * MOSS_TPM;
+  // cushions: 10–25 cm across, gentle (the pillows; the albedo crests follow these alone)
+  for (let i = 0; i < 140; i++) bump(Math.floor(seedRng() * S), Math.floor(seedRng() * S), tx(0.05 + seedRng() * 0.075), 0.5 + seedRng() * 0.5, [h, coarse]);
+  // clumps: 2.5–5 cm across, dense enough to tile the surface (was 3–6 cm at 3400)
+  for (let i = 0; i < 4200; i++) bump(Math.floor(seedRng() * S), Math.floor(seedRng() * S), tx(0.0125 + seedRng() * 0.0125), 0.5 + seedRng() * 0.4, [h, mid]);
+  // tufts: 1–2.5 cm across, the brush over the clumps (new; below the 512 tile's resolution)
+  for (let i = 0; i < 11000; i++) bump(Math.floor(seedRng() * S), Math.floor(seedRng() * S), tx(0.005 + seedRng() * 0.0075), 0.3 + seedRng() * 0.3, [h]);
+  // fine grain: two octaves of periodic value noise (2.5 cm and 1.2 cm lattices; a third at
+  // 0.6 cm for the 1024 tile)
+  const lattice = (cells: number, amp: number) => {
+    const g = new Float32Array(cells * cells);
+    for (let i = 0; i < g.length; i++) g[i] = seedRng();
+    const step = S / cells;
+    for (let y = 0; y < S; y++) {
+      const fy = y / step;
+      const y0 = Math.floor(fy);
+      const ty = fy - y0;
+      const sy = ty * ty * (3 - 2 * ty);
+      const ya = (y0 % cells) * cells;
+      const yb = ((y0 + 1) % cells) * cells;
+      for (let x = 0; x < S; x++) {
+        const fx = x / step;
+        const x0 = Math.floor(fx);
+        const tx = fx - x0;
+        const sx = tx * tx * (3 - 2 * tx);
+        const xa = x0 % cells;
+        const xb = (x0 + 1) % cells;
+        const top = g[ya + xa] + (g[ya + xb] - g[ya + xa]) * sx;
+        const bot = g[yb + xa] + (g[yb + xb] - g[yb + xa]) * sx;
+        h[y * S + x] += amp * (top + (bot - top) * sy);
+      }
+    }
+  };
+  lattice(64, 0.45);
+  lattice(128, 0.25);
+  if (S >= 1024) lattice(256, 0.12);
+  return { h, coarse, mid };
+}
+
+/**
+ * Small five-petal white flower on transparent (round 13, board 03 "moss-covered roof with
+ * plants": white flowers scattered over the cap's moss). Petals shade to a faint grey-green at
+ * the centre round a yellow eye; alpha carries the shape.
+ */
+export function flowerTexture(): Texture {
+  const S = 128;
+  const { c, g } = canvas(S, S);
+  g.clearRect(0, 0, S, S);
+  const cx = S / 2;
+  const cy = S / 2;
+  for (let i = 0; i < 5; i++) {
+    const ang = (i / 5) * Math.PI * 2 - Math.PI / 2;
+    const px = cx + Math.cos(ang) * S * 0.24;
+    const py = cy + Math.sin(ang) * S * 0.24;
+    const grad = g.createRadialGradient(px, py, S * 0.02, px, py, S * 0.24);
+    grad.addColorStop(0, '#fffdf6');
+    grad.addColorStop(0.7, '#f4f1e6');
+    grad.addColorStop(1, '#cfd2c0');
+    g.fillStyle = grad;
+    g.beginPath();
+    g.ellipse(px, py, S * 0.23, S * 0.16, ang, 0, Math.PI * 2);
+    g.fill();
+  }
+  const eye = g.createRadialGradient(cx, cy, 0, cx, cy, S * 0.11);
+  eye.addColorStop(0, '#ffd25a');
+  eye.addColorStop(0.6, '#e8b53a');
+  eye.addColorStop(1, '#b08a2a');
+  g.fillStyle = eye;
+  g.beginPath();
+  g.arc(cx, cy, S * 0.11, 0, Math.PI * 2);
+  g.fill();
+  const tex = finishTexture(new CanvasTexture(c), true, 'structures:flower');
+  tex.wrapS = tex.wrapT = ClampToEdgeWrapping;
+  return tex;
+}
+
+/** UV v above this row of the lantern gradient is black (caps, stems, cords). */
+export const LANTERN_DARK_V = 0.86;
+/** the lime pods' glow (sRGB; the gradient's bottom multipliers turn it greener — see `lanternLime`) */
+export const LIME_POD_GLOW = 0xf0d24a;
+
+/**
+ * Emissive map for pod lanterns: the round-11 gradient — bright at the bottom (v = 0), deeper
+ * toward the cap, black from POD_BODY_V up (caps, sepals, stems, cords) — MODULATED by the pod
+ * skin's glow field (round 43, podSkin.ts): the husk's seams and veins pass less of the core,
+ * the thin skin mid-segment more, a hotter core low in the body. The field has mean 1 over the
+ * body rows and the old 9-rib factor (mean 0.95) is kept as a constant, so the map's body rows
+ * integrate to the round-11 radiance and Astra's bloom / veil calibration on the pods holds
+ * (measured: the pods' mean luminance in A / B). `topMul` scales the base colour near the cap.
+ */
+export function podEmissiveTexture(skin: PodSkinRaster, glow: number, topMul: [number, number, number] = [0.86, 0.5, 0.35]): Texture {
+  const W = skin.width;
+  const H = skin.height;
+  const { c, g } = canvas(W, H);
+  // the palette value is treated as the sRGB hue of the pod: bottom = brighter, yellower;
+  // toward the cap = deeper
+  const base = new Color(glow);
+  const bottom = [Math.min(1, base.r * 1.02), Math.min(1, base.g * 1.12), Math.min(1, base.b * 1.3)];
+  const top = [base.r * topMul[0], base.g * topMul[1], base.b * topMul[2]];
+  const img = g.createImageData(W, H);
+  for (let y = 0; y < H; y++) {
+    const v = 1 - (y + 0.5) / H; // canvas y grows downward; texture v = 0 is the bottom row
+    const i0 = y * W * 4;
+    if (v >= POD_BODY_V) {
+      for (let x = 0; x < W; x++) img.data[i0 + x * 4 + 3] = 255;
+      continue;
+    }
+    const body = v / (LANTERN_DARK_V - 0.01);
+    const heat = Math.pow(1 - body, 1.4);
+    for (let x = 0; x < W; x++) {
+      const k = 0.95 * skin.glow[y * W + x];
+      const r = (top[0] + (bottom[0] - top[0]) * heat) * k;
+      const gg = (top[1] + (bottom[1] - top[1]) * heat) * k;
+      const b = (top[2] + (bottom[2] - top[2]) * heat) * k;
+      const i = i0 + x * 4;
+      img.data[i] = Math.min(255, r * 255);
+      img.data[i + 1] = Math.min(255, gg * 255);
+      img.data[i + 2] = Math.min(255, b * 255);
+      img.data[i + 3] = 255;
+    }
+  }
+  g.putImageData(img, 0, 0);
+  const tex = finishTexture(new CanvasTexture(c), true, 'structures:lantern-gradient');
+  tex.wrapT = ClampToEdgeWrapping;
+  return tex;
+}
+
+/**
+ * The pod skin's albedo and normal maps (round 43, podSkin.ts): one atlas shared by every pod —
+ * the husk's segment seams, midribs and slanted side veins with a leaf's reticulation between
+ * them, the calyx / sepal / collar band's leathery leaf tiles, the cord's laid fibres. The
+ * albedo is a modulation round POD_MAP_MEAN (lantern.ts divides its tints by it).
+ */
+export function podSkinTextures(skin: PodSkinRaster): { albedo: Texture; normal: Texture } {
+  const maps = rasterToTextures(skin.width, skin.height, skin.albedo, skin.normal, 'structures:pod');
+  // the atlas' bands do not wrap in v
+  maps.albedo.wrapT = ClampToEdgeWrapping;
+  maps.normal.wrapT = ClampToEdgeWrapping;
+  return maps;
+}
+
+/** linear-rgb albedo + tangent-space normal arrays (row 0 = v 1) → sRGB colour map + normal map */
+function rasterToTextures(W: number, H: number, albedoLinear: Float32Array, normalXyz: Float32Array, name: string): { albedo: Texture; normal: Texture } {
+  const toSRGB = (v: number) => {
+    const c = Math.min(1, Math.max(0, v));
+    return Math.round((c <= 0.0031308 ? c * 12.92 : 1.055 * Math.pow(c, 1 / 2.4) - 0.055) * 255);
+  };
+  const { c: ca, g: ga } = canvas(W, H);
+  const imgA = ga.createImageData(W, H);
+  const { c: cn, g: gn } = canvas(W, H);
+  const imgN = gn.createImageData(W, H);
+  for (let i = 0; i < W * H; i++) {
+    const j = i * 4;
+    imgA.data[j] = toSRGB(albedoLinear[i * 3]);
+    imgA.data[j + 1] = toSRGB(albedoLinear[i * 3 + 1]);
+    imgA.data[j + 2] = toSRGB(albedoLinear[i * 3 + 2]);
+    imgA.data[j + 3] = 255;
+    imgN.data[j] = Math.round((0.5 + 0.5 * normalXyz[i * 3]) * 255);
+    imgN.data[j + 1] = Math.round((0.5 + 0.5 * normalXyz[i * 3 + 1]) * 255);
+    imgN.data[j + 2] = Math.round((0.5 + 0.5 * normalXyz[i * 3 + 2]) * 255);
+    imgN.data[j + 3] = 255;
+  }
+  ga.putImageData(imgA, 0, 0);
+  gn.putImageData(imgN, 0, 0);
+  const albedo = finishTexture(new CanvasTexture(ca), true, `${name}-albedo`);
+  const normal = finishTexture(new CanvasTexture(cn), false, `${name}-normal`);
+  return { albedo, normal };
+}
+
+/**
+ * The log arch's far pods (round 32). The pods hang 48–53 m from camera D where the veil is at
+ * its cap (heightfog.ts maxFog 0.86): a surface at radiance E lands at 0.14 E + 0.86 × haze
+ * (haze ≈ 0.17 linear there), so the near pods' 2.0 rendered ≈ 0.43 linear / 0.55 display against
+ * the veil's 0.48 — invisible (zero warm blobs in D's arch box; reference: three at peak
+ * 0.65–0.76, hue 36–38°, sat 0.39–0.47, 9–74 px at 1280). Two parts:
+ * - the body at FAR_LANTERN_INTENSITY: the same gradient at 4.5 reads 0.55–0.57 display, hue
+ *   32–35°, sat 0.27–0.31 through the veil (measured: 0.14 × 4.5 + haze), a warm dot but not
+ *   a lamp — the veil mixes 86 % of its own colour into anything at that depth, and at 8–12 the
+ *   mix goes pale (hue 44–48°, sat 0.2), not warmer;
+ * - the halo disc drawn UNFOGGED (fog: false): the glow a lantern throws into the haze around
+ *   it is in-scattered light on the camera's side of the veil, like the bloom the frame's
+ *   renderer lays over its lamps after its fog — so the disc keeps its own colour and fades into
+ *   the veiled background by alpha only. Its colour is FAR_HALO_TINT × FAR_HALO_INTENSITY
+ *   linear: the composite grade (postfx warmMix + ACES + saturation 1.12 + the 0.4 chroma knee)
+ *   turns a linear 20° orange into the frame's 37–39° display amber — the lantern gradient's own
+ *   (1, 0.66, 0.24) lands at 42–43° / sat 0.2–0.3 at any intensity, and ACES bleaches every hue
+ *   above ≈ 1.5 linear, so the disc is dim-linear and saturated rather than hot and white. The
+ *   postfx haze blur (σ 1.6 texels on the 320 grid ≈ 6 px, 70–80 % mixed at 50 m) then mixes
+ *   the disc's core about half-and-half with the veil, which is what sets the intensity and the
+ *   radius (a 0.5 m disc is 16 px at 50 m in D's 48°; the blur keeps ≈ 55 % of a 16 px disc's
+ *   core and ≈ 75 % of a 22 px one). Measured in D's arch box (0.40–0.68 × 0.28–0.46) with the
+ *   round-31 classifier (warm px: hue 15–65°, sat ≥ 0.35, lum ≥ 0.45; lamp: peak ≥ 0.6, hue
+ *   25–48°): frame 56 s — 3 lamps, 74 / 9 / 14 px, peak 0.76 / 0.65 / 0.74, hue 36–38°, sat
+ *   0.39–0.47; control 8a2dc9c — 0 warm blobs; the fogged disc at any intensity (4–6 white ×
+ *   the gradient's amber) — 0 (hue 44–48°, sat 0.19–0.22); unfogged (1, 0.36, 0.08) × 1.4 at
+ *   0.5 m — 0–1 (peak 0.57–0.61, sat 0.28–0.34); at 0.7 m — 4 lamps, peak 0.62–0.65, hue 35–37°,
+ *   sat 0.35–0.40; (1, 0.30, 0.06) × 1.4 at 0.7 m — 5 lamps, hue 33–35°, sat 0.36–0.42;
+ *   (1, 0.28, 0.05) × 2.0 / 2.5 at 0.7 m — peak 0.64–0.67 / 0.65–0.69 at sat 0.36–0.39 (0.6 m:
+ *   the two crossing pods' discs fall under 0.6). So 2.5 × (1, 0.28, 0.05), 0.7 m: every arch
+ *   pod is a lamp at peak 0.65–0.69, hue 34–37°, sat 0.36–0.39 (the frame's peaks are 0.07
+ *   higher — the blur's share, not the disc's), 44–186 px against the frame's 9–74.
+ * Nothing else in D is at these levels (the bloom threshold is 1.0 linear; the disc's red channel
+ * passes it at intensity ≥ 1.0, so the bloom adds a faint skirt and no more; W38's draws: +1).
+ */
+export const FAR_LANTERN_INTENSITY = 4.5;
+export const FAR_HALO_RADIUS = 0.7;
+export const FAR_HALO_INTENSITY = 2.5;
+/** linear tint of the halo disc (see above: graded to the frame's 36–38° amber) */
+export const FAR_HALO_TINT: [number, number, number] = [1.0, 0.28, 0.05];
+/**
+ * the east peg pods' halo radius as a share of FAR_HALO_RADIUS (the frame's east pair are 9–14 px
+ * blobs against the west one's 74). Round 32 integration: 0.85 gave the east pair 15–16 px cores
+ * in D (2× the frame's 7–8 px) and those same two discs are what A sees through the haze from
+ * the stair top (A −0.0046), so the east halos take 0.55 (≈ 0.39 m → ≈ 9 px at 50 m); the west /
+ * crossing pods keep the full radius.
+ */
+export const FAR_HALO_EAST_SCALE = 0.55;
+/**
+ * The halo's alpha fades to nothing between these two camera distances (m, smoothstep). Structures-23:
+ * the unfogged discs were what cost A — take-0091 → 0092 lost 0.0059 of A's SSIM and a window-level
+ * map puts 0.0052 of it in the six cells x 0.19–0.375 × y 0.22–0.44, where A's stair top sees the
+ * west-flank and crossing pods' discs (272 / 150 px, peak 0.60–0.62) floating in the haze beside
+ * the lantern branch's two pods; frame 1 s has haze there and nothing else. Single-toggle A renders
+ * of e328ad7: halos hidden +0.0042, the floors back to 9 / 5 +0.0012, the huts' darkening off
+ * +0.0002, the pot back 0, the round-31 arch +0.0043 (= the halos). The frames set the rule:
+ * lamps at 48–53 m read (frame 56 s = D, whose pods sit at 48.6–53.4 m), lamps farther off do
+ * not (frame 1 s = A, whose pods sit at 59.5–64.8 m; frame 4 s = B / E, 53.4–58.3 m, where the
+ * west-flank and crossing discs at 55.3–58.3 m floated in open haze over the frame's dark
+ * mossy bank). So the disc holds to 53.5 m and is gone at 55.5 m: every D pod 1.0, every A pod
+ * 0, B / E keep the two east pegs (53.4–53.6 m, the small 0.55 discs) and lose the other three.
+ * Measured with [54, 58]: A 0.2615 → 0.2657 (= halos hidden), D 0.3357 → 0.3357 with the same
+ * four arch lamps; the pod's own emissive core (4 px) is untouched.
+ */
+export const FAR_HALO_FADE: [number, number] = [53.5, 55.5];
+/**
+ * Round 43 (structures-27): the halo also fades OUT toward the camera between these distances
+ * (m, smoothstep) — a lamp's glow in the haze is what the veil makes of it at 50 m; walked up to
+ * under the arch (the path passes 2–6 m from its pods) the 0.7 m unfogged disc covered the pod
+ * itself as an orange blob. Nothing in A–F stands under 40 m of an arch pod (D 48–53 m), so the
+ * calibration above is untouched. The far pods' emissive intensity relaxes to the near pods' over
+ * the same range (`FAR_LANTERN_NEAR`), so the pod at 2 m reads its husk and core, not a white dot.
+ */
+export const FAR_HALO_NEAR: [number, number] = [14, 24];
+/** the halo quad sits this far toward the camera from the pod's centre, so the pod's body (r 0.17 m) does not cut a darker core out of it */
+export const FAR_HALO_TOWARD_CAMERA = 0.3;
+
+/** Soft radial glow (opaque centre → transparent edge) for small emissive patches. */
+function glowTexture(): Texture {
+  const S = 64;
+  const { c, g } = canvas(S, S);
+  g.clearRect(0, 0, S, S);
+  const grad = g.createRadialGradient(S / 2, S / 2, 0, S / 2, S / 2, S / 2);
+  grad.addColorStop(0, 'rgba(255,255,255,1)');
+  grad.addColorStop(0.4, 'rgba(255,255,255,0.6)');
+  grad.addColorStop(1, 'rgba(255,255,255,0)');
+  g.fillStyle = grad;
+  g.fillRect(0, 0, S, S);
+  const tex = finishTexture(new CanvasTexture(c), true, 'structures:glow');
+  tex.wrapS = tex.wrapT = ClampToEdgeWrapping;
+  return tex;
+}
+
+/** Carved rune-like marks, dark strokes on transparent; two rows. Deterministic (no Math.random). */
+export function runeTexture(seedRng: () => number): Texture {
+  const W = 512;
+  const H = 192;
+  const { c, g } = canvas(W, H);
+  g.clearRect(0, 0, W, H);
+  g.lineCap = 'round';
+  g.lineJoin = 'round';
+  const rows = 2;
+  const cols = 11;
+  const cellW = (W * 0.86) / cols;
+  const cellH = (H * 0.72) / rows;
+  const x0 = W * 0.07;
+  const y0 = H * 0.14;
+  for (let r = 0; r < rows; r++) {
+    const n = r === 0 ? cols : cols - 3;
+    for (let k = 0; k < n; k++) {
+      const cx = x0 + (k + 0.5) * cellW + (r === 1 ? cellW * 1.5 : 0);
+      const cy = y0 + (r + 0.5) * cellH;
+      const strokes = 2 + Math.floor(seedRng() * 3);
+      for (let s = 0; s < strokes; s++) {
+        const kind = seedRng();
+        // deep carved marks: near-black brown, thick, fully opaque so they read from 10 m
+        g.strokeStyle = `rgba(${28 + Math.floor(seedRng() * 14)}, ${18 + Math.floor(seedRng() * 8)}, 10, ${0.92 + seedRng() * 0.08})`;
+        g.lineWidth = 8 + seedRng() * 4;
+        g.beginPath();
+        const hw = cellW * 0.32;
+        const hh = cellH * 0.36;
+        if (kind < 0.35) {
+          const ox = (seedRng() - 0.5) * hw;
+          g.moveTo(cx + ox, cy - hh);
+          g.lineTo(cx + ox + (seedRng() - 0.5) * hw * 0.4, cy + hh);
+        } else if (kind < 0.6) {
+          const oy = (seedRng() - 0.5) * hh * 1.2;
+          g.moveTo(cx - hw, cy + oy);
+          g.lineTo(cx + hw, cy + oy + (seedRng() - 0.5) * hh * 0.3);
+        } else if (kind < 0.85) {
+          const dir = seedRng() < 0.5 ? 1 : -1;
+          g.moveTo(cx - hw * 0.8, cy - hh * dir);
+          g.lineTo(cx + hw * 0.8, cy + hh * dir);
+        } else {
+          g.arc(cx + (seedRng() - 0.5) * hw, cy + (seedRng() - 0.5) * hh, hh * 0.45, 0, Math.PI * (1 + seedRng()));
+        }
+        g.stroke();
+      }
+    }
+  }
+  return finishTexture(new CanvasTexture(c), true, 'structures:runes');
+}
+
+/** Inject the shared wind model into a MeshStandardMaterial; uses aPhase/aAmount vertex attributes. */
+/**
+ * The cap moss's translucent lift (round 40, see `MOSS_TRANSLUCENCY`). Injected after
+ * `lights_fragment_end`, where `directLight` still holds the last directional light — the sun,
+ * shadow applied — and `directionalLights[0].direction` its view-space direction: a wrap term
+ * that peaks where the sun grazes a tuft (N·L ≈ 0, the thin lit tips seen edge-on) and fades on
+ * the crests it already lights, added to the direct diffuse as the moss's own albedo warmed
+ * toward the sunlit tone (more green, a third of the blue). Compiles to nothing without a
+ * directional light. Own cache key so the program is never shared with a plain moss material.
+ */
+export function mossTranslucency<T extends MeshStandardMaterial>(mat: T): T {
+  mat.onBeforeCompile = (shader: WebGLProgramParametersWithUniforms) => {
+    shader.uniforms.uMossTranslucency = { value: MOSS_TRANSLUCENCY };
+    shader.fragmentShader = shader.fragmentShader
+      .replace('#include <common>', '#include <common>\nuniform float uMossTranslucency;')
+      .replace(
+        '#include <lights_fragment_end>',
+        `#include <lights_fragment_end>
+        #if NUM_DIR_LIGHTS > 0
+        {
+          float mossNdl = dot( geometryNormal, directionalLights[ 0 ].direction );
+          float mossWrap = smoothstep( -0.6, 0.15, mossNdl ) * ( 1.0 - 0.7 * smoothstep( 0.15, 0.9, mossNdl ) );
+          reflectedLight.directDiffuse += directLight.color * uMossTranslucency * mossWrap * BRDF_Lambert( diffuseColor.rgb ) * vec3( 1.0, 1.08, 0.35 );
+        }
+        #endif`,
+      );
+  };
+  mat.customProgramCacheKey = () => 'structures-cap-moss';
+  return mat;
+}
+
+export function windLeafMaterial<T extends MeshStandardMaterial>(mat: T, ctx: WorldContext, key: string): T {
+  mat.onBeforeCompile = (shader: WebGLProgramParametersWithUniforms) => {
+    shader.vertexShader = shader.vertexShader
+      .replace('#include <common>', `#include <common>\n${WIND_GLSL}\nattribute float aPhase;\nattribute float aAmount;`)
+      .replace(
+        '#include <begin_vertex>',
+        `#include <begin_vertex>
+        {
+          vec3 wp = (modelMatrix * vec4(position, 1.0)).xyz;
+          transformed += windLeaf(wp, aPhase, aAmount);
+          transformed += windBranch(wp, 1.0, 0.75) * aAmount * 6.0;
+        }`,
+      );
+  };
+  mat.customProgramCacheKey = () => key;
+  ctx.wind.bind(mat);
+  return mat;
+}
+
+export async function loadMaterials(ctx: WorldContext, rng: () => number): Promise<StructureMaterials> {
+  const T = ctx.textures;
+  const [barkC, barkN, barkR, willowC, willowN, willowR, thatchN, thatchR, plankC, plankN, plankR, stoneC, stoneN, stoneR] = await Promise.all([
+    T.load('bark_brown_02', 'color'),
+    T.load('bark_brown_02', 'normal'),
+    T.load('bark_brown_02', 'roughness'),
+    T.load('bark_willow_02', 'color'),
+    T.load('bark_willow_02', 'normal'),
+    T.load('bark_willow_02', 'roughness'),
+    T.load('thatch_roof_angled', 'normal'),
+    T.load('thatch_roof_angled', 'roughness'),
+    T.load('weathered_planks', 'color'),
+    T.load('weathered_planks', 'normal'),
+    T.load('weathered_planks', 'roughness'),
+    // round 44 (structures-28): the threshold slabs' stone (the hardscape's set, so the slab
+    // matches the flagstones it sits among)
+    T.load('worn_rock_natural_01', 'color'),
+    T.load('worn_rock_natural_01', 'normal'),
+    T.load('worn_rock_natural_01', 'roughness'),
+  ]);
+  const P = ctx.config.palette;
+  /** every canvas texture built below goes through here (round 17: the owned-textures list) */
+  const ownedTextures: Texture[] = [];
+  const own = <T extends Texture>(tex: T): T => {
+    ownedTextures.push(tex);
+    return tex;
+  };
+
+  const bark = new MeshStandardMaterial({
+    map: barkC,
+    normalMap: barkN,
+    normalScale: new Vector2(1.5, 1.5),
+    roughnessMap: barkR,
+    roughness: 1,
+    color: new Color(0xdcb086),
+    vertexColors: true,
+  });
+  const barkPale = new MeshStandardMaterial({
+    map: willowC,
+    normalMap: willowN,
+    normalScale: new Vector2(1.1, 1.1),
+    roughnessMap: willowR,
+    roughness: 1,
+    color: new Color(0xc4ae8e),
+    vertexColors: true,
+  });
+  // the fallen trunk is old, damp and weathered: the dark brown bark set, cooled toward grey,
+  // with a strong normal map so the fissures read at 30 m through the haze
+  const logBark = new MeshStandardMaterial({
+    map: barkC,
+    normalMap: barkN,
+    normalScale: new Vector2(2.2, 2.2),
+    roughnessMap: barkR,
+    roughness: 1,
+    color: new Color(0x7e7268),
+    vertexColors: true,
+  });
+  // near-black so neither sun through the doorway nor the sky fill can turn the opening into a
+  // lit pocket; the door lamp alone shapes what little is seen inside
+  const interior = new MeshStandardMaterial({
+    map: barkC,
+    normalMap: barkN,
+    normalScale: new Vector2(0.8, 0.8),
+    roughness: 1,
+    color: new Color(0x54402e),
+    side: BackSide,
+  });
+  // (round 43: vertex colours — logArch.ts shades the hollow's fissures, drip stains, moss near the
+  // mouths and the worn floor, and darkens the tunnel toward its middle)
+  const logInterior = new MeshStandardMaterial({
+    map: barkC,
+    normalMap: barkN,
+    normalScale: new Vector2(1.5, 1.5),
+    roughness: 1,
+    color: new Color(0x2a221a),
+    side: BackSide,
+    vertexColors: true,
+  });
+  const roof = new MeshStandardMaterial({
+    map: own(strawTexture(rng)),
+    normalMap: thatchN,
+    normalScale: new Vector2(0.9, 0.9),
+    roughnessMap: thatchR,
+    roughness: 1,
+    color: new Color(0xffffff),
+    vertexColors: true,
+  });
+  const wood = new MeshStandardMaterial({
+    map: plankC,
+    normalMap: plankN,
+    roughnessMap: plankR,
+    roughness: 1,
+    color: new Color(0xf0d6a8),
+    vertexColors: true,
+  });
+  const woodDark = new MeshStandardMaterial({
+    map: plankC,
+    normalMap: plankN,
+    roughnessMap: plankR,
+    roughness: 1,
+    color: new Color(0x9a7650),
+  });
+  // round 44 (structures-28): tint 0x8e8272 → 0xc8bba8 — see fence.ts `postShade`: the planks map
+  // is dark (mean 0.06 linear) and the old tint left the rail wood's albedo at ≈ 0.005, black at 2 m
+  const fenceWood = new MeshStandardMaterial({
+    map: plankC,
+    normalMap: plankN,
+    normalScale: new Vector2(1.2, 1.2),
+    roughnessMap: plankR,
+    roughness: 1,
+    color: new Color(0xc8bba8),
+    vertexColors: true,
+  });
+  // round 44 (structures-28): the threshold slab — grey worn stone, the flagstones' set; the
+  // vertex tints carry the worn pale top / damp dark sides (house.ts). Replaces the houses' shared
+  // flat-grey `stone` (moss normals at 0.25), which read as a white plank (survey-1 crop 26).
+  // The set leans orange (linear mean (0.395, 0.275, 0.144): R/G 1.44, B/G 0.52 — hardscape/
+  // material.ts desaturates it in-shader); the tint pulls it to the flagstones' simulated albedo
+  // hue (R/G ≈ 1.2, B/G ≈ 0.75 — a warm grey, the round-8 plank's B/G 0.85 in sRGB) at the same
+  // mean albedo (≈ 0.28: STONE_FLOOR.albedo). The first cut's (0.95, 1.1, 0.75) rendered a cream
+  // stone (B/G 0.67 in sRGB) once the top drew.
+  const stone = new MeshStandardMaterial({
+    map: stoneC,
+    normalMap: stoneN,
+    normalScale: new Vector2(0.9, 0.9),
+    roughnessMap: stoneR,
+    roughness: 1,
+    color: new Color(0.83, 1.0, 1.44),
+    vertexColors: true,
+  });
+  // kept below the tone-mapper's shoulder so the glow stays orange instead of clipping to cream
+  const hearth = new MeshBasicMaterial({ color: new Color(0xffa040).multiplyScalar(1.4), toneMapped: true });
+  const ember = new MeshBasicMaterial({ color: new Color(0x8a4014), map: own(glowTexture()), transparent: true, depthWrite: false, toneMapped: true });
+  const windowGlow = new MeshBasicMaterial({ color: new Color(0xffb04a).multiplyScalar(1.3), toneMapped: true });
+  // white × 2.2 — the hue lives in the vertex tints (distantHouse.ts: deep orange 0xff9a2a for the
+  // lamps, the near lanterns' lime for the lime pods, 0.8 × orange for the openings' rims), each
+  // scaled so its peak channel is 1.0, so every lamp / pod peaks at 2.2 linear. Round 16 carried
+  // the orange in the material and the lime pods' [0.72, 1, 0.36] tint on top of it peaked at
+  // 1.58 — below the height fog's 2.0 far-shade exemption, and orange rather than lime.
+  const distantGlow = new MeshBasicMaterial({ color: new Color(1, 1, 1).multiplyScalar(2.2), vertexColors: true, side: DoubleSide, toneMapped: true });
+
+  // round 43 (structures-27): the pods' skin — albedo / normal atlas shared by every pod, the
+  // emissive gradient modulated by its glow field (podSkin.ts). Own seed, no draw from `rng`.
+  const podSkin = rasterisePodSkin(`${ctx.config.seed}/structures/pod-skin`);
+  const podMaps = podSkinTextures(podSkin);
+  own(podMaps.albedo);
+  own(podMaps.normal);
+  const lanternBase = {
+    color: new Color(0xffffff),
+    vertexColors: true,
+    map: podMaps.albedo,
+    normalMap: podMaps.normal,
+    normalScale: new Vector2(0.8, 0.8),
+    emissive: new Color(0xffffff),
+    emissiveIntensity: 2.0,
+    roughness: 0.6,
+    metalness: 0,
+    // (round 43: the sepals and the collar's bracts are open surfaces seen from under the pod)
+    side: DoubleSide,
+  };
+  const lantern = new MeshStandardMaterial({ ...lanternBase, emissiveMap: own(podEmissiveTexture(podSkin, P.lanternGlow)) });
+  // lime pod: yellow-green bottom, deeper green toward the cap
+  // (round 36 / structures-24: 0xd2ee48 → 0xf0d24a. Frame B's two lime pods at the eave read hue
+  // 50° / 51° at peak 0.73 (lit blobs ≥ 0.5 lum, 1280 px); ours read 64° / 66° at 0.85–0.86 — a
+  // yellow-green where the frame's are a yellow. The gradient's bottom multipliers (g ×1.12,
+  // b ×1.3) turn the source toward green at the pod's brightest end — 0xd2ee48 renders 66° there
+  // and 0xe6e04a still 60° / 61° — so the source is amber (0xf0d24a: 56° at the bottom). The cap
+  // end keeps its green (topMul).)
+  const lanternLime = new MeshStandardMaterial({ ...lanternBase, emissiveMap: own(podEmissiveTexture(podSkin, LIME_POD_GLOW, [0.5, 0.78, 0.3])) });
+  // round 32: the arch's pods under the far veil — the same gradients (shared maps, no new
+  // canvas) at FAR_LANTERN_INTENSITY
+  const lanternFar = new MeshStandardMaterial({ ...lanternBase, emissiveIntensity: FAR_LANTERN_INTENSITY, emissiveMap: lantern.emissiveMap });
+  lanternFar.name = 'structures:lantern-far';
+  const lanternLimeFar = new MeshStandardMaterial({ ...lanternBase, emissiveIntensity: FAR_LANTERN_INTENSITY, emissiveMap: lanternLime.emissiveMap });
+  lanternLimeFar.name = 'structures:lantern-lime-far';
+  // round 43: the pods' leaf collars flutter on the shared wind (aPhase / aAmount; 0 on the rest
+  // of the pod, so the husk, cord and knot only swing with the pivot). One program for the near
+  // pair; the far pair chain the near-distance intensity relax onto it (see FAR_HALO_NEAR).
+  for (const m of [lantern, lanternLime, lanternFar, lanternLimeFar]) windLeafMaterial(m, ctx, 'structures-pod');
+  for (const m of [lanternFar, lanternLimeFar]) {
+    const prev = m.onBeforeCompile;
+    const prevKey = m.customProgramCacheKey;
+    m.onBeforeCompile = (shader, renderer) => {
+      prev.call(m, shader, renderer);
+      shader.uniforms.uFarNear = { value: new Vector2(FAR_HALO_NEAR[0], FAR_HALO_NEAR[1]) };
+      shader.uniforms.uFarNearScale = { value: lanternBase.emissiveIntensity / FAR_LANTERN_INTENSITY };
+      shader.vertexShader = shader.vertexShader.replace('#include <common>', '#include <common>\nvarying float vPodDistance;').replace('#include <begin_vertex>', '#include <begin_vertex>\n  vPodDistance = length( ( modelViewMatrix * vec4( position, 1.0 ) ).xyz );');
+      shader.fragmentShader = shader.fragmentShader
+        .replace('#include <common>', '#include <common>\nvarying float vPodDistance;\nuniform vec2 uFarNear;\nuniform float uFarNearScale;')
+        .replace('#include <emissivemap_fragment>', '#include <emissivemap_fragment>\n  totalEmissiveRadiance *= mix( uFarNearScale, 1.0, smoothstep( uFarNear.x, uFarNear.y, vPodDistance ) );');
+    };
+    m.customProgramCacheKey = () => `${prevKey.call(m)}|far-near`;
+  }
+  // the far pods' halo discs: the radial glow canvas (shared with the embers) under the
+  // FAR_HALO_TINT × FAR_HALO_INTENSITY colour, a per-pod scale in the vertex colour; each quad is
+  // turned to face the camera in the vertex shader (aCorner: the quad's corner in camera right /
+  // up units, its length the pod's radius scale) and pushed FAR_HALO_TOWARD_CAMERA toward it, so
+  // the pod's body behind it does not cut a darker core out of the disc. Unfogged (see
+  // FAR_HALO_TINT above) with normal blending: the alpha fades the disc's own colour into the
+  // veiled background (additive would add the veil's luminance a second time).
+  const lanternHalo = new MeshBasicMaterial({
+    map: ember.map,
+    color: new Color(...FAR_HALO_TINT).multiplyScalar(FAR_HALO_INTENSITY),
+    vertexColors: true,
+    transparent: true,
+    depthWrite: false,
+    side: DoubleSide,
+    toneMapped: true,
+    fog: false,
+  });
+  lanternHalo.name = 'structures:lantern-halo';
+  lanternHalo.onBeforeCompile = (shader: WebGLProgramParametersWithUniforms) => {
+    shader.uniforms.uHaloRadius = { value: FAR_HALO_RADIUS };
+    shader.uniforms.uHaloToward = { value: FAR_HALO_TOWARD_CAMERA };
+    shader.uniforms.uHaloFade = { value: new Vector2(FAR_HALO_FADE[0], FAR_HALO_FADE[1]) };
+    shader.uniforms.uHaloNear = { value: new Vector2(FAR_HALO_NEAR[0], FAR_HALO_NEAR[1]) };
+    lanternHalo.userData.uniforms = shader.uniforms;
+    shader.vertexShader = shader.vertexShader
+      .replace('#include <common>', '#include <common>\nattribute vec2 aCorner;\nuniform float uHaloRadius;\nuniform float uHaloToward;\nuniform vec2 uHaloFade;\nuniform vec2 uHaloNear;\nvarying float vHaloFade;')
+      .replace(
+        '#include <begin_vertex>',
+        `#include <begin_vertex>
+        {
+          // the quad's four vertices all sit at the pod's centre: its camera distance sets the fade
+          float podDistance = length( ( modelViewMatrix * vec4( position, 1.0 ) ).xyz );
+          vHaloFade = ( 1.0 - smoothstep( uHaloFade.x, uHaloFade.y, podDistance ) ) * smoothstep( uHaloNear.x, uHaloNear.y, podDistance );
+          // viewMatrix = inverse(camera world): its rows are the camera's axes in world space
+          vec3 camRight = vec3( viewMatrix[0][0], viewMatrix[1][0], viewMatrix[2][0] );
+          vec3 camUp = vec3( viewMatrix[0][1], viewMatrix[1][1], viewMatrix[2][1] );
+          vec3 camBack = vec3( viewMatrix[0][2], viewMatrix[1][2], viewMatrix[2][2] );
+          transformed += ( camRight * aCorner.x + camUp * aCorner.y ) * uHaloRadius + camBack * uHaloToward;
+        }`,
+      );
+    // normal blending: fading the alpha (not the colour) dissolves the disc into the veil behind it
+    shader.fragmentShader = shader.fragmentShader
+      .replace('#include <common>', '#include <common>\nvarying float vHaloFade;')
+      .replace('#include <color_fragment>', '#include <color_fragment>\n  diffuseColor.a *= vHaloFade;');
+  };
+  lanternHalo.customProgramCacheKey = () => 'structures-lantern-halo';
+
+  const leaf = windLeafMaterial(
+    new MeshStandardMaterial({
+      map: own(heartLeafTexture()),
+      alphaTest: 0.45,
+      side: DoubleSide,
+      roughness: 0.75,
+      vertexColors: true,
+      color: new Color(0xffffff),
+    }),
+    ctx,
+    'structures-leaf',
+  );
+  const vine = windLeafMaterial(new MeshStandardMaterial({ color: new Color(0x4c5a2c), roughness: 1 }), ctx, 'structures-vine');
+  const tuft = windLeafMaterial(
+    new MeshStandardMaterial({
+      map: own(tuftTexture()),
+      alphaTest: 0.4,
+      side: DoubleSide,
+      roughness: 0.85,
+      vertexColors: true,
+      color: new Color(0xffffff),
+    }),
+    ctx,
+    'structures-tuft',
+  );
+  const moss = new MeshStandardMaterial({ color: new Color(0xffffff), vertexColors: true, roughness: 1, normalMap: thatchN, normalScale: new Vector2(0.5, 0.5) });
+  const runes = new MeshStandardMaterial({ map: own(runeTexture(rng)), alphaTest: 0.4, transparent: false, roughness: 0.9, polygonOffset: true, polygonOffsetFactor: -2, polygonOffsetUnits: -2 });
+  // round 43 (structures-27): annual rings for the hollow log's broken rims, splinters and the
+  // fungus shelves (endGrain.ts; the map integrates to the willow map's mean it replaces, so the
+  // rim's level in D holds). Own seed, no draw from `rng`.
+  const grain = rasteriseEndGrain(`${ctx.config.seed}/structures/end-grain`);
+  const grainMaps = rasterToTextures(grain.width, grain.height, grain.albedo, grain.normal, 'structures:end-grain');
+  own(grainMaps.albedo);
+  own(grainMaps.normal);
+  const endGrain = new MeshStandardMaterial({ color: new Color(0x5a4636), roughness: 1, map: grainMaps.albedo, normalMap: grainMaps.normal, normalScale: new Vector2(0.7, 0.7), vertexColors: true });
+  // the cap's moss (round 13): the shared `moss` binds the thatch normal map at 0.5, which put
+  // straw-stalk relief on the cap's majority moss; this one takes the procedural mossy normals
+  // (clumps + grain) and a slightly lower roughness so the lit tufts keep a soft sheen. Built
+  // after the straw and rune canvases so their draws from the shared canvas rng are unchanged.
+  // Round 14: normal scale 0.85 → 0.55 — under the low sun the full-strength clump normals
+  // streaked the lit front face; the reference dome is a soft, near-uniform mossy olive.
+  // Round 15: the moss albedo map (`mossTextures`) under the vertex tint — the reference's
+  // fine dark-speckled texture at a scale the vertex grid cannot carry.
+  // Round 40 (structures-25): the field is 1024² with a second cushion scale, the normal scale
+  // 0.55 → 0.7 (the finer clumps carry less slope per texel after mipping, so B's front face
+  // keeps its round-14 softness while the 4 m close-ups resolve the tufts), roughness 0.9 → 1
+  // (moss is matte; the round-13 sheen read as a smooth skin) and a translucent lift on the
+  // sun-grazed tufts (`mossTranslucency`). The cushion tufts house.ts stands on the cap use
+  // this same material, so they fold into the roof's draw.
+  const mossMaps = mossTextures(rng);
+  const capMoss = mossTranslucency(new MeshStandardMaterial({ color: new Color(0xffffff), vertexColors: true, roughness: 1, map: own(mossMaps.albedo), normalMap: own(mossMaps.normal), normalScale: new Vector2(0.7, 0.7) }));
+  const flower = windLeafMaterial(
+    new MeshStandardMaterial({
+      map: own(flowerTexture()),
+      alphaTest: 0.5,
+      side: DoubleSide,
+      roughness: 0.8,
+      vertexColors: true,
+      color: new Color(0xffffff),
+    }),
+    ctx,
+    'structures-flower',
+  );
+
+  // Shade floors (materials/shadeFloor.ts) on every bark that stands in the roof's shade, where
+  // a Lambert response to the hemisphere alone leaves it near-black orange-brown: the house
+  // trunk / roots / porch / eave roll / support boughs, the lantern posts and rope-fence posts
+  // (all `bark`), the pale draped limbs and the log arch take the house preset (warm, textured,
+  // lift 4 — see HOUSE_BARK_FLOOR); the lantern limb's sleeve is a clone of `bark` with its own
+  // olive-brown, lower floor (a clone does not carry compile hooks, so it gets its own call).
+  // The floors only lift faces below them, so the sunlit rims are untouched. Applied last: these
+  // materials have no other compile hooks, and `applyShadeFloor` chains onto whatever hook a
+  // material already carries.
+  const sleeveBark = bark.clone();
+  sleeveBark.name = 'structures:sleeve-bark';
+  // the house's recess: the same bark under a much lower floor (same program — the floor's
+  // values are uniforms — one more draw per house)
+  const recessBark = bark.clone();
+  recessBark.name = 'structures:recess-bark';
+  // the entrance arch (round 19): the same bark under the intermediate, mostly textured floor
+  const archBark = bark.clone();
+  archBark.name = 'structures:arch-bark';
+  // (round 22: the trunk bark's floor is fully textured — TRUNK_BARK_FLOOR; the limbs and the log stay)
+  applyShadeFloor(bark, TRUNK_BARK_FLOOR, new Color(HOUSE_BARK_TINT));
+  applyShadeFloor(barkPale, HOUSE_BARK_FLOOR, new Color(HOUSE_BARK_TINT));
+  // round 44 (structures-28): the log's floor is fully textured so its baked relief shows in the shade
+  applyShadeFloor(logBark, LOG_BARK_FLOOR, new Color(HOUSE_BARK_TINT));
+  applyShadeFloor(sleeveBark, LIMB_BARK_FLOOR, new Color(LIMB_BARK_TINT));
+  // Astra's c5d8c83 (adopted as-is): a 0.20 share of the hemisphere's angular response on the
+  // sleeve's shade floor, so the mapped bark relief reads on the shaded bough
+  applySleeveBarkResponse(sleeveBark);
+  applyShadeFloor(recessBark, RECESS_BARK_FLOOR, new Color(HOUSE_BARK_TINT));
+  applyShadeFloor(archBark, ARCH_BARK_FLOOR, new Color(HOUSE_BARK_TINT));
+  applyShadeFloor(logInterior, LOG_INTERIOR_FLOOR, new Color(HOUSE_BARK_TINT));
+  // round 44 (structures-28): the rail fences stood on the plateau lip with no floor at all —
+  // in the canopy's shade their Lambert response is ≈ 0.02 and the posts read as black boxes at
+  // 2 m (survey-1 crops 19/20). FENCE_WOOD_FLOOR keeps the wood's own textured albedo (texture
+  // 1: the grain's ×0.48–1.28 swing is what shows) at a lift below the bark's, so the plateau
+  // posts F sees at 25 m stay the frame's dark posts while the grain reads at 2 m.
+  applyShadeFloor(fenceWood, FENCE_WOOD_FLOOR, new Color(HOUSE_BARK_TINT));
+  applyShadeFloor(stone, STONE_FLOOR);
+  const texturedSets = T.loaded().filter((s) => ['bark_brown_02', 'bark_willow_02', 'thatch_roof_angled', 'weathered_planks', 'worn_rock_natural_01'].includes(s));
+  return { bark, barkPale, logBark, sleeveBark, recessBark, archBark, interior, logInterior, roof, wood, woodDark, fenceWood, stone, hearth, ember, windowGlow, distantGlow, lantern, lanternLime, lanternFar, lanternLimeFar, lanternHalo, leaf, vine, tuft, moss, capMoss, flower, runes, endGrain, texturedSets, ownedTextures };
+}

@@ -1,0 +1,13 @@
+{
+  "item": "W14",
+  "reviewer": "fable-5",
+  "verdict": "fail",
+  "evidence": "gauntlet/reviews/evidence/fable-5/take-0116-W14-A-lantern-branch.jpg",
+  "takeId": "take-0116",
+  "author": "fable-cursor",
+  "takeSha": "973a21e5b045177f66da3d04dc4e67e387270620",
+  "at": "2026-09-19T09:33:48.550Z",
+  "criterion": "Matches the branch + lanterns at the left of the reference stairs shot.",
+  "note": "Position and pods match the reference: limb from x 0 to 0.33 at y 0.30-0.36, orange pods at 0.21 and 0.26 (reference 0.208 / 0.255). The limb itself does not: a pale smooth tapered tube about half the reference's thickness, with sparse upright leaf sprigs and dangling vines, no moss cap, no bark relief. The reference's is a dark, heavy, mossy bough (1.2-1.5 m) hazed into the mist. Survey-2 #04 (w04-spine-l: stucco-noise pale tube) still describes it at frame scale. Crop x 0.0-0.45, y 0.18-0.52.",
+  "history": []
+}

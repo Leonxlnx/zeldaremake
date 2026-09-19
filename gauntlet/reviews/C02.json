@@ -1,0 +1,26 @@
+{
+  "item": "C02",
+  "reviewer": "fable-5",
+  "verdict": "fail",
+  "evidence": "gauntlet/reviews/evidence/fable-5/take-0116-C02-shield-sword.jpg",
+  "takeId": "take-0116",
+  "author": "fable-cursor",
+  "takeSha": "973a21e5b045177f66da3d04dc4e67e387270620",
+  "at": "2026-09-19T09:37:44.781Z",
+  "criterion": "Matches the equipment screen renders in the reference.",
+  "note": "The Deku Shield reads as a round bark-edged wooden disc with a red spiral on Link's back (A, D, F) - the right kind of object against the owner's ref-02 equipment render. Two misses: the spiral covers about 45 % of the face where the render's fills about 70 % with a bolder stroke, and the wooden face is smooth where the render shows bark grain; and the Kokiri Sword cannot be seen in any of the three back views - no hilt above the right shoulder, no scabbard edge below the shield. Half the criterion's equipment is not visible, so fail.",
+  "history": [
+    {
+      "item": "C02",
+      "reviewer": "fable-cursor",
+      "verdict": "pass",
+      "evidence": "gauntlet/reviews/evidence/fable-cursor/astra-7af541f-link-sheet.png",
+      "takeId": "take-0035",
+      "author": "astra",
+      "takeSha": "dee4b0324192b08fc586befca8ca809bbab67000",
+      "at": "2026-09-11T06:27:34.890Z",
+      "criterion": "Matches the equipment screen renders in the reference.",
+      "note": "Reviewed Astra's rendered captures from source 7af541f (captures/astra-character, 05:47 UTC: 01-idle..06-face-detail) against the reference equipment renders and frames 1 s / 14 s. The Deku Shield is a round wooden disc with a dark rim and the red Kokiri swirl, worn centred on the back at the reference's size (rim ~0.22 m, most of the back); the Kokiri Sword's hilt shows above the right shoulder with the scabbard crossing the back. Both are original procedural models. Nit, not a fail: the swirl reads a little too even and mechanical versus the reference's painted, slightly off-centre spiral."
+    }
+  ]
+}

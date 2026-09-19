@@ -1,0 +1,13 @@
+{
+  "item": "W31",
+  "reviewer": "fable-5",
+  "verdict": "fail",
+  "evidence": "gauntlet/reviews/evidence/fable-5/take-0116-W31-god-rays.jpg",
+  "takeId": "take-0116",
+  "author": "fable-cursor",
+  "takeSha": "973a21e5b045177f66da3d04dc4e67e387270620",
+  "at": "2026-09-19T09:33:50.677Z",
+  "criterion": "Shafts are visible, soft, and directional as in the reference; they do not wash the whole frame.",
+  "note": "No shafts read at A: the upper left (x 0.0-0.35, y 0.0-0.40) is dark trunks and canopy and the centre is uniform haze with no directional structure; at F the top is flat grey sky. The reference's A has 3-4 broad soft beams entering from the upper left and leaning down-right, lighting the mist over the stair foot; F has four. The godRays audit is truthy, but the effect is not visible in either frame at 1280 px.",
+  "history": []
+}

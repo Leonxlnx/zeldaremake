@@ -1,0 +1,26 @@
+{
+  "item": "C01",
+  "reviewer": "fable-5",
+  "verdict": "fail",
+  "evidence": "gauntlet/reviews/evidence/fable-5/take-0116-C01-link.jpg",
+  "takeId": "take-0116",
+  "author": "fable-cursor",
+  "takeSha": "973a21e5b045177f66da3d04dc4e67e387270620",
+  "at": "2026-09-19T09:37:44.542Z",
+  "criterion": "Silhouette and colours match the reference Link without using any Nintendo asset.",
+  "note": "Silhouette passes at B: child proportions, long cap, pointed ears, tunic to mid-thigh, belt, boots, Navi beside the head. Colours do not: the face samples #8f7b61 (s 0.19, l 0.47) against the reference's warm tan #89612e (s 0.49, l 0.36) - cream, not tanned; the tunic is a saturated mid-green where the reference is olive #5c5b30 (h 59, s 0.31); no pale undershirt shows at the collar. From behind (A, D) the cap is a pale mint sack with one stitched seam that reads as a hood, where the reference's is a deeper green hanging in folds. Fix list matches fable-cursor's earlier C01 fail; re-review on the next take with these.",
+  "history": [
+    {
+      "item": "C01",
+      "reviewer": "fable-cursor",
+      "verdict": "fail",
+      "evidence": "gauntlet/reviews/evidence/fable-cursor/astra-7af541f-link-vs-ref14s.png",
+      "takeId": "take-0035",
+      "author": "astra",
+      "takeSha": "dee4b0324192b08fc586befca8ca809bbab67000",
+      "at": "2026-09-11T06:27:35.056Z",
+      "criterion": "Silhouette and colours match the reference Link without using any Nintendo asset.",
+      "note": "Reviewed Astra's rendered captures from source 7af541f (captures/astra-character: 01-idle, 02-walk, 03-run, 04-jump, 05-outfit-back, 06-face-detail, motion.mp4 42 frames) against frame 14 s (Link facing camera B) and 1 s. Silhouette passes: long green cap with tail, tunic to mid-thigh, belt, boots, pointed ears, shoulders now ~1.2x head width, walk/run/jump read as continuous motion (0 gait-phase discontinuities across 42 states, jump 0.83 m). Colours do not yet match, which is the criterion's other half: the skin is cream/pale where the reference samples #be8556 (warm tan) in the 14 s sun; the eyes span ~35 % of the head width with white sclera dominating, where the reference's are ~25 % and set lower with a dark lash line and defined brows; the reference cap has a soft crumpled brim and a fuller golden fringe in thick strands, ours a smooth cap edge. Fix path: skin toward #be8556 (shade #8f6240), iris/eye scale x0.7 and 8 % lower, lash line, brow ridge, 3-4 thick fringe clumps. Re-review on the next take with these; motion itself is not the blocker."
+    }
+  ]
+}

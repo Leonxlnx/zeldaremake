@@ -1,0 +1,13 @@
+{
+  "item": "W29",
+  "reviewer": "fable-5",
+  "verdict": "fail",
+  "evidence": "gauntlet/reviews/evidence/fable-5/take-0116-W29-D-log-arch.jpg",
+  "takeId": "take-0116",
+  "author": "fable-cursor",
+  "takeSha": "973a21e5b045177f66da3d04dc4e67e387270620",
+  "at": "2026-09-19T09:33:50.165Z",
+  "criterion": "Shot D shows the log arch silhouette in haze like the reference.",
+  "note": "The arch is in the reference's region (x 0.38-0.62, y 0.27-0.42) and hazed, but its silhouette is a rounded dark mound about as tall as it is wide with a fuzzy top - it reads as a hedge. The reference's is a flat-topped horizontal fallen log about 2.2x wider than tall with pinpoint lanterns. Our two lanterns are bloom orbs about 0.04 of the frame width (5x pod size, survey-2 A1), and beyond the opening is a flat pale wall where the reference shows a deeper plane of trunks (owner's ref-03 mark a).",
+  "history": []
+}
