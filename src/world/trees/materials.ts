@@ -378,6 +378,9 @@ float barkMossCover = 0.0;
 float barkNearDetail = 0.0;
 // the third octave's weight within BARK_TOUCH_M (round 46), bare bark only; zero everywhere else
 float barkTouch = 0.0;
+// round 47: the near bases' touching-distance share (1 at BARK_TOUCH_M[0], 0 at [1]) on every
+// surface, moss included — set in the near-base colour block, read by its normal and light blocks
+float barkTouchNear = 0.0;
 uniform vec3 uLeafSun;
 uniform float uLeafRough;
 uniform float uLeafTransmit;
@@ -446,6 +449,23 @@ export const DISTANT_NEAR_CORD_STRIPE = 0.25;
  * 0.5 / 255 to the cone), and it is the cords, the furrow shade and the map that must show there.
  */
 export const DISTANT_NEAR_FLOOR: ShadeFloor = { ...SHARED_BARK_FLOOR, lift: 6.2, texture: 0.8 };
+/**
+ * Round 47 (survey-2 / round-46 review, w20-spine-r and sn-arch-outside: the depth-row boles
+ * 8–16 m off still "pale smooth cylinders" after round 46's floor and gain — measured at
+ * w20-spine-r: crop sd 20 on a mean of 96, the two boles' interiors flat to ± 3 sRGB levels).
+ * Three terms, all inside the near blend (zero at 38 m+, the fixed frames):
+ * - the floored light on the shaded side takes the sun's side (materials.ts distant
+ *   lights_fragment_end): the face turned from the sun keeps DISTANT_SHADE_SIDE of the floor,
+ *   the terminator side all of it — round shading a flat floor erased;
+ * - inside DISTANT_NEAR_BAND_M (m; full at the first, the round-46 arithmetic from the second)
+ *   the bark map's contrast about its mean is DISTANT_NEAR_MAP_GAIN (2.0 outside) and the
+ *   analytic cord stripe is a bark cord: a narrow furrow DISTANT_NEAR_FURROW_DARK darker than
+ *   the plates.
+ */
+export const DISTANT_SHADE_SIDE = 0.55;
+export const DISTANT_NEAR_BAND_M: [number, number] = [12, 20];
+export const DISTANT_NEAR_MAP_GAIN = 2.6;
+export const DISTANT_NEAR_FURROW_DARK = 0.45;
 
 /**
  * Near-camera leaf detail (round 39, the owner's "huge single-colour flat polygons"): a lamina
@@ -649,6 +669,18 @@ const GIANT_BARK_COLOR = /* glsl */ `
     diffuseColor.rgb = mix(diffuseColor.rgb, mossCushion, barkMossCover * 0.92);
   }
   #ifdef BARK_NEAR_DETAIL
+  // the touching-distance share (round 46 BARK_TOUCH_M; zero past 2 m) on bark and moss alike
+  barkTouchNear = 1.0 - smoothstep(${BARK_TOUCH_M[0].toFixed(2)}, ${BARK_TOUCH_M[1].toFixed(2)}, length(vViewPosition));
+  #ifdef NEAR_BASE_DETAIL
+  // round 47 (survey-2 / round-46 review, sn-bole-lantern-tree: the moss at 0.4 m "one smooth
+  // green"): at arm's length the moss field is a relief in the albedo too — the gaps between
+  // cushions (mossField low) hold soil-dark shade, the crowns their own lit green — about the
+  // field's mean so the moss level does not move; the normal block bends the normal harder there
+  if (barkMossCover > 0.0 && barkTouchNear > 0.0) {
+    float mossGap = mossField(vTreeWorld);
+    diffuseColor.rgb *= mix(1.0, clamp(0.55 + 0.9 * mossGap, 0.5, 1.35), barkTouchNear * barkMossCover);
+  }
+  #endif
   // touching-distance bark (BARK_DETAIL_M): the bark set's colour again at BARK_DETAIL_TILES × the
   // frequency, as a factor about its own mean so the level does not move — plates and fissures
   // 3 mm a texel where the 1.6 m tile was a blur; under the moss the cushions carry their own
@@ -660,7 +692,7 @@ const GIANT_BARK_COLOR = /* glsl */ `
     // round 46 (survey-2 check 03, the bole at 0.5 m "a blurred smear"): a third octave within
     // BARK_TOUCH_M — the same map at BARK_TOUCH_TILES × the tile, a factor about its mean at half
     // weight — so the plates break into grain at arm's length; zero past 2 m
-    barkTouch = (1.0 - smoothstep(${BARK_TOUCH_M[0].toFixed(2)}, ${BARK_TOUCH_M[1].toFixed(2)}, length(vViewPosition))) * (1.0 - barkMossCover);
+    barkTouch = barkTouchNear * (1.0 - barkMossCover);
     if (barkTouch > 0.0) {
       vec3 touch = texture2D(map, vMapUv * ${BARK_TOUCH_TILES.toFixed(2)} + vec2(0.13, 0.29)).rgb;
       float touchLum = dot(touch, vec3(0.2126, 0.7152, 0.0722));
@@ -1067,8 +1099,11 @@ function treeFragment(shader: WebGLProgramParametersWithUniforms, sun: Color, le
         float h0 = mossField(vTreeWorld);
         float hx = mossField(vTreeWorld + tW * e);
         float hy = mossField(vTreeWorld + bW * e);
-        // the field spans 0..1 over ~2.4 cm; 1.1 puts a cushion's flank at ~25° off the bark
-        vec3 mossN = normalize(tbn * normalize(vec3(-(hx - h0) * 1.1, -(hy - h0) * 1.1, 1.0)));
+        // the field spans 0..1 over ~2.4 cm; 1.1 puts a cushion's flank at ~25° off the bark —
+        // round 47: 2.6 (≈ 45°) at touching distance (barkTouchNear), where a 25° flank under the
+        // flat floor read as one smooth green
+        float mossSlope = 1.1 * (1.0 + 1.4 * barkTouchNear);
+        vec3 mossN = normalize(tbn * normalize(vec3(-(hx - h0) * mossSlope, -(hy - h0) * mossSlope, 1.0)));
         normal = normalize(mix(normal, mossN, barkMossCover * 0.85));
       }
     } else {
@@ -1113,6 +1148,21 @@ ${sunThrough}
       // 1.0 on every vertex the plain sweeps write, so nothing else moves.
       reflectedLight.indirectDiffuse *= vBarkAO;
       reflectedLight.directDiffuse *= mix(1.0, vBarkAO, 0.5);
+      #ifdef NEAR_BASE_DETAIL
+      // round 47 (sn-bole-lantern-tree / sn-bole-stair-bank: the bark and moss at 0.4–0.6 m "one
+      // smooth surface"): the floor is the only light on a shaded near base and it is flat by
+      // construction — a face below it is lifted TO it whatever its normal — so the moss field's
+      // slopes and the fine bark normals reached the pixel only through the hemisphere share.
+      // Within BARK_TOUCH_M the floored light takes a facing term from the perturbed normal:
+      // crowns and plates turned to the viewer keep it, flanks and fissures turning away lose up
+      // to 0.4 of it (the cavity cue a flat-lit relief shows from any side), normalised so the
+      // mean over a face-on surface is ≈ 1. Zero at 2 m+ (mix(…, 0.0) is exactly the floor).
+      if (barkTouchNear > 0.0) {
+        float touchFace = max(dot(normal, normalize(vViewPosition)), 0.0);
+        float touchRelief = (0.6 + 0.4 * pow(touchFace, 1.6)) * 1.12;
+        reflectedLight.indirectDiffuse *= mix(1.0, touchRelief, barkTouchNear);
+      }
+      #endif
     }
     `,
   );
@@ -1355,6 +1405,21 @@ export async function createTreeMaterials(ctx: WorldContext): Promise<TreeMateri
         floorLight = mix(vec3(dot(floorLight, lumW)), floorLight, uDistantFloorChroma);
         float have = dot(reflectedLight.directDiffuse + reflectedLight.indirectDiffuse, lumW);
         reflectedLight.indirectDiffuse += max(0.0, 1.0 - have / (dot(floorLight, lumW) + 1e-4)) * floorLight;
+        // round 47 (survey-2 / round-46 review, w20-spine-r, sn-arch-outside: the depth-row boles
+        // 8–16 m off "pale smooth cylinders"): the floor is one level all round the shaded side,
+        // so a bole is a flat strip from its lit rim to its far edge. The floored light takes the
+        // sun's side: faces turned from the sun (the far side of the bole, its furrows' far walls)
+        // keep DISTANT_SHADE_SIDE of it, the terminator side all of it — the round-shading cue a
+        // cylinder under a roof still shows — plus the cords' own occlusion (uDistantTone.z is
+        // the ground-line grime; the cords are in the vertex colour and the analytic stripe).
+        // Scaled by the same near blend: zero at 38 m+ (the fixed frames).
+        #if NUM_DIR_LIGHTS > 0
+        {
+          float sunFace = dot(normal, directionalLights[0].direction);
+          float shadeSide = 1.0 - smoothstep(-0.5, 0.3, sunFace);
+          reflectedLight.indirectDiffuse *= mix(1.0, ${DISTANT_SHADE_SIDE.toFixed(2)}, shadeSide * floorNear);
+        }
+        #endif
       }
     }
     #endif
@@ -1378,11 +1443,13 @@ export async function createTreeMaterials(ctx: WorldContext): Promise<TreeMateri
         vec2 barkUv = vec2(atan(vDistLocal.z, vDistLocal.x) / 6.2832 * around, vDistLocal.y / 1.6);
         vec3 bark = texture2D(uDistantBark, barkUv).rgb;
         // the fissures 2× their contrast about the mean (1.5 through round 44): the haze at
-        // 12–20 m halves it again
-        bark = clamp((bark - vec3(${BARK_DETAIL_MEAN.toFixed(4)})) * 2.0 + vec3(${BARK_DETAIL_MEAN.toFixed(4)}), 0.0, 1.0);
+        // 12–20 m halves it again — round 47: 2.6× inside DISTANT_NEAR_BAND_M (DISTANT_NEAR_MAP_GAIN), where the
+        // 2× map under the flat floor still read as one grey (w20-spine-r)
+        float mapGain = mix(2.0, ${DISTANT_NEAR_MAP_GAIN.toFixed(2)}, 1.0 - smoothstep(${DISTANT_NEAR_BAND_M[0].toFixed(1)}, ${DISTANT_NEAR_BAND_M[1].toFixed(1)}, length(vViewPosition)));
+        bark = clamp((bark - vec3(${BARK_DETAIL_MEAN.toFixed(4)})) * mapGain + vec3(${BARK_DETAIL_MEAN.toFixed(4)}), 0.0, 1.0);
         float barkLum = dot(bark, vec3(0.2126, 0.7152, 0.0722));
         // a factor about the map's mean, so the row's silhouette luminance (matched at 47 m) holds
-        float factor = clamp(barkLum / ${BARK_DETAIL_MEAN.toFixed(4)}, 0.4, 1.9);
+        float factor = clamp(barkLum / ${BARK_DETAIL_MEAN.toFixed(4)}, 0.3, 2.0);
         // the map's own hue takes over from the flat tint as the walker gets close
         vec3 tinted = mix(diffuseColor.rgb * factor, bark * (diffuseColor.rgb / vec3(${BARK_DETAIL_MEAN.toFixed(4)})), 0.85);
         // round 45 (trees-27's leftover: the boles 15–30 m from a walker still read as pale
@@ -1398,13 +1465,21 @@ export async function createTreeMaterials(ctx: WorldContext): Promise<TreeMateri
         float cord = sin(theta * around * 4.0 + vDistLocal.y * 0.35 + vDistPhase * 3.0);
         float grime = mix(uDistantTone.z, 1.0, smoothstep(0.0, 4.0, vDistLocal.y));
         tinted *= uDistantTone.x * (1.0 + uDistantTone.y * band) * (1.0 + ${DISTANT_NEAR_CORD_STRIPE.toFixed(2)} * uDistantTone.y * cord) * grime;
+        // round 47 (w20-spine-r, sn-arch-outside): inside DISTANT_NEAR_BAND_M (full to 12 m, gone at 20) the cords are bark
+        // cords, not a sine — a narrow furrow (the trough of the same stripe, raised to a power)
+        // DISTANT_NEAR_FURROW_DARK darker than the plates either side, the plates a tenth lighter
+        // so the mean holds; the 2–2.6× map above breaks the plates. Zero past 20 m (the
+        // round-45/46 arithmetic from there), and the fixed frames stand 38 m+ off.
+        float bandNear = 1.0 - smoothstep(${DISTANT_NEAR_BAND_M[0].toFixed(1)}, ${DISTANT_NEAR_BAND_M[1].toFixed(1)}, length(vViewPosition));
+        float furrow = pow(0.5 - 0.5 * cord, 4.0);
+        tinted *= mix(1.0, (1.0 - ${DISTANT_NEAR_FURROW_DARK.toFixed(2)} * furrow) * (1.0 + 0.1 * (1.0 - furrow)), bandNear);
         diffuseColor.rgb = mix(diffuseColor.rgb, tinted, near);
       }
     }
     `,
       );
   };
-  distant.customProgramCacheKey = () => 'trees-distant-biased-v8';
+  distant.customProgramCacheKey = () => 'trees-distant-biased-v9';
 
   return {
     whiteTree,
