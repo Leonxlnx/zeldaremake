@@ -207,13 +207,15 @@ function buildGirlFace(rig: Rig, skin: MeshStandardMaterial, iris: string): void
   ]);
   part(head, skull, skin, 'skull');
   const decals = faceDecals(iris);
-  // the eye patch: ±36° around the front, from the brow line to the cheek, centred on the eye line
+  // the decal patches follow the skull's [1, 1.02, 0.98] scale 1.2 % out (≈ 1.6 mm), so they hug it everywhere
+  const patch = (phi0: number, phiLen: number, theta0: number, thetaLen: number, w: number, h: number) => place(new SphereGeometry(r * 1.012, w, h, phi0, phiLen, theta0, thetaLen), 0, 0, 0, undefined, [1, 1.02, 0.98]);
+  // the eye patch: ±38° around the front, from the brow line to the cheek, its eye line at the head centre
   const eyes = new Group();
   eyes.name = 'eye';
   head.add(eyes);
-  part(eyes, new SphereGeometry(r * 1.012, 18, 10, Math.PI / 2 - 0.66, 1.32, Math.PI / 2 - 0.36, 0.5), decals.eyes, 'face-eyes', false);
+  part(eyes, patch(Math.PI / 2 - 0.66, 1.32, Math.PI / 2 - 0.28, 0.5, 18, 10), decals.eyes, 'face-eyes', false);
   rig.eyes.push(eyes);
-  part(head, new SphereGeometry(r * 1.012, 12, 6, Math.PI / 2 - 0.3, 0.6, Math.PI / 2 + 0.26, 0.3), decals.mouth, 'face-mouth', false);
+  part(head, patch(Math.PI / 2 - 0.3, 0.6, Math.PI / 2 + 0.26, 0.3, 12, 6), decals.mouth, 'face-mouth', false);
 }
 
 /** auburn bob with a straight bang fringe under the cap brim, two front locks framing the face and a nape */
