@@ -2323,6 +2323,22 @@ Also: lantern bough still a thick plain beam across the top of B (trees pass pen
   (2) north plain / hollow floor still a flat plane past 10 m; (3) distant cardboard trees and
   flat near-canopy discs.
 
+### 04:58 UTC — tick 167 (covers the 00:17–04:11 timers): vegetation-24 merged; trees-29 / structures-29 in verification
+- Merged `r46/vegetation` → `233c559` (tsc clean, 6/6 vegetation tests): flower heads are petal
+  rosettes (5–6 obovate cards + inner whorl + eye disc) at near/mid LOD, blobs kept far — D purple
+  share 0.374 → 0.491 %; `northClumps` runs the clump-card carpet to 25 m in the north corridor
+  (9 089 cards), north litter ×1.9 and seated flat on the exact terrain (floating sprites gone);
+  CPU-baked litter/humus mask in `terrain/material.ts` under the whitebarks; `MOSS_ULTRA_M` 3 → 6 m
+  with lobed, blade-pierced cushions; ultra bush laminae are folded two-tone leaflet clusters.
+  Six views within −0.0006; draws unchanged; +0.085 M tris at C worst; score 23 → 24/50.
+- trees-29 (6 commits, `d4a0259`) and structures-29 (11 commits, `155e7f5`, final capture running)
+  not yet reported. trees-29's own sheets so far: `w07-spine-l` PASS (bole at 4.4 m: dark fissured
+  bark + 3-D cushions, mean |diff| 26/255); `w04-spine-f` marginal (bough underside |diff| 8);
+  `w19-spine-r` and `sn-bole-lantern-tree` not yet changed on the sheets (|diff| 1.2 / 0.9) — its
+  last three commits target exactly those boles, so the sheets predate them; judge on its report.
+- No capture this tick: one integrated capture/seal (take-0116) when both lanes land, rather than
+  three. Owner has filmed the update video and is waiting for the publish; a fix list is coming.
+
 ## Pending corrections from reference/ANALYSIS.md (apply at integration, one commit)
 - `config.ts` palette → olive/khaki low-key (reference hero frames: hue 47–51°, sat 0.16–0.19,
   lum 0.35–0.39, 0 % blue sky): grass 0x8a8c55/0x5c6233/0x3a4420, moss 0x8b8948/0x5a523b,
@@ -2361,4 +2377,4 @@ Pick anything NOT claimed in `gauntlet/claims.json`. Good self-contained candida
   my own (GAUNTLET.md D7).
 
 ## Last updated
-2026-09-18T22:20:00Z
+2026-09-19T04:58:00Z
