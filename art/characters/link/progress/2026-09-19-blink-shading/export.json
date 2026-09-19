@@ -1,0 +1,18 @@
+{
+  "sha256": "b9fd4302d738f26d7a6a57dfb54f1638140879c55efffc5233c0ac5eee1ab14d",
+  "targets": [
+    {
+      "changed_vertices": 1227,
+      "mean_rotation_degrees": 21.36045114794591,
+      "max_rotation_degrees": 128.021650708134
+    },
+    {
+      "changed_vertices": 1227,
+      "mean_rotation_degrees": 17.769694262305272,
+      "max_rotation_degrees": 168.51101210796958
+    }
+  ],
+  "only_morph_normal_accessors_changed": true,
+  "original_binary_preserved": true,
+  "status": "Geometric normal transport candidate; runtime review pending"
+}

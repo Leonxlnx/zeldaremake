@@ -96,6 +96,32 @@ try{
     const name=motion?`blink-frame-${String(frame).padStart(4,'0')}`:`blink-${weight}`;
     const png=await page.screenshot({path:path.join(output,name+'.png')});
     (report.blink_views??={})[name]={weight,meshes,sha256:crypto.createHash('sha256').update(png).digest('hex')};
+    if(process.argv.includes('--blink-diagnostic') && weight===1){
+      await page.evaluate(()=>{
+        window.__blinkMaterials=[];
+        REVIEW.model.traverse(o=>{if(o.isMesh){window.__blinkMaterials.push([o,o.material,o.receiveShadow]);o.material=o.material.clone();}});
+      });
+      try {
+        // Cumulative ablation: remove normal maps, then colour maps, then received shadows.
+        for(const mode of ['no-normal','plain','no-shadow']){
+          await page.evaluate(mode=>{
+            for(const [o] of window.__blinkMaterials){
+              const m=o.material;
+              if(mode==='no-normal')m.normalMap=null;
+              if(mode==='plain'){m.map=null;m.aoMap=null;m.roughnessMap=null;m.color.set('#bfa88d');m.roughness=.8;}
+              if(mode==='no-shadow')o.receiveShadow=false;
+              m.needsUpdate=true;
+            }
+            REVIEW.stats();
+          },mode);
+          const diagnostic=await page.screenshot({path:path.join(output,'blink-diagnostic-'+mode+'.png')});
+          (report.blink_diagnostics??={})[mode]=crypto.createHash('sha256').update(diagnostic).digest('hex');
+        }
+      } finally {
+        await page.evaluate(()=>{for(const [o,m,shadow] of window.__blinkMaterials){o.material.dispose();o.material=m;o.receiveShadow=shadow;}delete window.__blinkMaterials;REVIEW.stats();});
+      }
+      assert.equal(crypto.createHash('sha256').update(await page.screenshot()).digest('hex'),report.blink_views[name].sha256,'Diagnostic must restore the exact retained appearance');
+    }
     }
     if(motion){
       const file=path.join(output,'blink-motion.mp4');
