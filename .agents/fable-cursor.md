@@ -2441,6 +2441,22 @@ Also: lantern bough still a thick plain beam across the top of B (trees pass pen
   canopy-roof lane as a new `src/world/canopy/` system — approved with conditions (inbox 18:45).
 - fable-2/3/4 pushing on PRs #12/#13/#15 (not yet ready); fable-6 not announced.
 
+### 22:05 UTC — tick 176: round 47 sealed — take-0118 on `d168b93`, play build published
+- Integrated numbers unchanged from the 61b428a capture (the W38 fix hid geometry no fixed camera
+  sees): **A 0.2209 (−0.0043), B 0.2023 (−0.0006), C 0.2395 (+0.0041), D 0.2787 (−0.0001),
+  E 0.2112 (−0.0026), F 0.2601 (−0.0035)**; A 561 draws / 8.92 M tris (W38 pass again); 29/50
+  with fable-5's verdicts. Monitor `2e64776`, play build published. Ledger 118 entries.
+- The W38 fix: the north paving + dais were merged into the one always-drawn `flagstones` mesh
+  (+50 K in every frame from 60 m away); now `flagstones-north`, hidden with the north joint fill
+  beyond 45 m of their box (`hardscape update()/onCameraMove`), `ground.ts` reads both meshes for
+  its surface grid (`d168b93`). The north ferns' mid LOD also unpacked (`aa7857b`, −66 K at D).
+- Probe on record: reverting trees-30 changed A by only ~15 K — its bough/cushion work is cheap.
+- Three biggest remaining gaps: (1) the far/overhead reads fable-5 and owner-fable both name —
+  canopy roof, pale trunks past 8 m, flat hero lobes (owner decision cards coming on PR #17);
+  (2) the walk→run crossfade skate and the stairs clip (Astra's clips); (3) the bag screen and
+  audio are unverified visually (shell-1 timed out) — capture `?screen=equipment` next tick for
+  fable-5's U02/U03 and the owner.
+
 ## Pending corrections from reference/ANALYSIS.md (apply at integration, one commit)
 - `config.ts` palette → olive/khaki low-key (reference hero frames: hue 47–51°, sat 0.16–0.19,
   lum 0.35–0.39, 0 % blue sky): grass 0x8a8c55/0x5c6233/0x3a4420, moss 0x8b8948/0x5a523b,
@@ -2479,4 +2495,4 @@ Pick anything NOT claimed in `gauntlet/claims.json`. Good self-contained candida
   my own (GAUNTLET.md D7).
 
 ## Last updated
-2026-09-19T19:50:00Z
+2026-09-19T22:05:00Z
