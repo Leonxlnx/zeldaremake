@@ -76,10 +76,14 @@ const RAMP = 0.35;
 /** turn-in-place rate (rad/s) */
 const TURN_RATE = 2.4;
 
-/** smoothed triangle wave, amplitude 1, period 2π, in phase with sin (a 3:1 blend of the triangle and the sine) */
+/**
+ * Smoothed triangle wave, amplitude 1, period 2π, in phase with sin: 85 % triangle (a stance foot
+ * at a near-constant ground speed — mean residual slide 9 % of the walking speed, checked
+ * offline against a rigid leg) and 15 % sine (rounds the swing reversal).
+ */
 function tri(phi: number): number {
   const s = Math.sin(phi);
-  return 0.25 * s + 0.75 * ((2 / Math.PI) * Math.asin(Math.max(-1, Math.min(1, s))));
+  return 0.15 * s + 0.85 * ((2 / Math.PI) * Math.asin(Math.max(-1, Math.min(1, s))));
 }
 
 const smooth = (u: number) => {
@@ -330,6 +334,12 @@ function twoBone(l1: number, l2: number, reach: number, drop: number): { a: numb
 
 const _tmp = new Vector3();
 const _tmp2 = new Vector3();
+const _fwd = new Vector3();
+const _up = new Vector3(0, 1, 0);
+/** seated pelvis roll (rad): how far the hips joint rolls back on the seat */
+const PELVIS_ROLL = 0.45;
+/** hips joint above the seat surface (m): the thighs' underside rests on the stone */
+const HIP_LIFT = 0.08;
 
 /**
  * Seated: root under the hips so the hips joint sits `HIP_LIFT` above the seat; each leg solved
@@ -343,25 +353,29 @@ function poseSeated(rig: Rig, seat: SeatPose, t: number, phase: number, headYaw:
   r.root.position.set(seat.hips.x, seat.hips.y - p.hipY, seat.hips.z);
   r.root.rotation.y = seat.yaw;
   const breath = Math.sin(t * Math.PI * 2 * 0.26 + phase);
-  r.hips.rotation.x = 0.06;
-  r.chest.rotation.x = 0.16 + 0.012 * breath;
+  // the pelvis rolls back (the skirt's hem swings forward onto the thighs instead of hanging
+  // through the tread) and the torso slouches forward past it; the thighs are solved in world
+  // terms below, so the pelvis roll is taken back out of their local angles
+  const pelvis = -PELVIS_ROLL;
+  r.hips.rotation.x = pelvis;
+  r.chest.rotation.x = PELVIS_ROLL + 0.14 + 0.012 * breath;
   r.chest.position.y += 0.004 * breath;
   r.chest.rotation.y = 0.02 * Math.sin(t * 0.23 + phase);
   const l1 = p.hipY - p.kneeY;
   const l2 = p.kneeY - p.ankleY;
-  const fwd = new Vector3(Math.sin(seat.yaw), 0, Math.cos(seat.yaw));
+  _fwd.set(Math.sin(seat.yaw), 0, Math.cos(seat.yaw));
   for (const side of [1, -1] as const) {
     const thigh = side > 0 ? r.thighL : r.thighR;
     const knee = side > 0 ? r.kneeL : r.kneeR;
     const ankle = side > 0 ? r.ankleL : r.ankleR;
     const target = side > 0 ? seat.ankleL : seat.ankleR;
-    // the hip joint's world position (hips joint ± half width, pelvis tilt ignored at 3°)
-    _tmp.set(side * p.hipHalfWidth, 0, 0).applyAxisAngle(new Vector3(0, 1, 0), seat.yaw).add(seat.hips);
+    // the hip joint's world position (hips joint ± half width; the roll is about that axis)
+    _tmp.set(side * p.hipHalfWidth, 0, 0).applyAxisAngle(_up, seat.yaw).add(seat.hips);
     _tmp2.subVectors(target, _tmp);
-    const reach = _tmp2.dot(fwd);
+    const reach = _tmp2.dot(_fwd);
     const drop = -_tmp2.y;
     const { a, flex } = twoBone(l1, l2, reach, drop);
-    thigh.rotation.set(-a, 0, side * 0.09);
+    thigh.rotation.set(-a - pelvis, 0, side * 0.09);
     knee.rotation.x = flex;
     // foot flat on its tread
     ankle.rotation.set(-(thigh.rotation.x + knee.rotation.x), 0, -thigh.rotation.z);
@@ -457,7 +471,6 @@ export function createNpcs(opts: NpcOptions): Npcs {
   const vz = dx;
   const nosingU = seatDef.tread * stair.tread;
   const seatYaw = Math.atan2(-dx, -dz) + MathUtils.degToRad(seatDef.yawDeg);
-  const HIP_LIFT = 0.075;
   const at = (u: number, v: number, out: Vector3) => out.set(stair.base[0] + dx * u + vx * v, 0, stair.base[2] + dz * u + vz * v);
   const seat: SeatPose = { hips: new Vector3(), yaw: seatYaw, ankleL: new Vector3(), ankleR: new Vector3() };
   at(nosingU + 0.13, seatDef.v, seat.hips);
