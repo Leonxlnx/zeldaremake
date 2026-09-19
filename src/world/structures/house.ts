@@ -204,8 +204,8 @@ export interface HouseBuild {
   bases: [number, number, number][];
   lanterns: LanternRig[];
   lights: PointLight[];
-  /** materials created for this house (disposed by the system) */
-  materials: Material[];
+  /** materials (and round 48: the rug's canvas texture) created for this house, disposed by the system */
+  materials: { dispose(): void }[];
   roots: number;
   branches: number;
   leaves: number;
@@ -306,6 +306,13 @@ interface LanternSpec {
   tint?: LanternKind;
   /** pod scale (default 1; round 47's cluster pods are a little smaller) */
   scale?: number;
+  /**
+   * Round 48: metres the pod hangs BEHIND the bough line, back along the door axis (−F) into the
+   * porch recess under the soffit — camera B is face-on to the door, so a pod set straight back
+   * behind a front-rank pod sits on B's ray through it and is covered by it, while the walk poses
+   * that come at the door from the west (w29–w31, 15–19° off B's bearing) see it beside it.
+   */
+  back?: number;
 }
 
 // Reference B: three pods in a loose row under the eave just left of / over the door (frame
@@ -339,6 +346,14 @@ const LANTERNS: Record<string, LanternSpec[]> = {
     // row — and cost B 0.0031 SSIM against frame 14 s, which shows three; two cost half that.)
     { a: -0.11, cord: 0.3, hook: 'bough', tint: 'orange', scale: 0.88 },
     { a: 0.02, cord: 0.34, hook: 'bough', tint: 'lime', scale: 0.86 },
+    // Round 48 (structures-31, fable-5 #7: the demo's house bough carries 7–8 pods clustered):
+    // a sixth and seventh, hung 0.5 m BEHIND the front rank's orange and left lime pods (`back`)
+    // on B's rays through them — B looks up 4.5° at the cluster, so a pod half a metre further
+    // along the ray sits ≈ 4 cm higher (cords 0.10 / 0.0 against the front's 0.14 / 0.03) and is
+    // covered by the pod in front; from the west-side walk poses the second rank shows beside
+    // the first. Smaller (0.84) so the front pods cover them; one orange, one lime. Appended.
+    { a: -0.04, cord: 0.1, hook: 'bough', tint: 'orange', scale: 0.84, back: 0.5 },
+    { a: -0.18, cord: 0.0, hook: 'bough', tint: 'lime', scale: 0.84, back: 0.5 },
   ],
   // the upper house's pods hang on its plateau-side flanks: with Saria's cap lowered its front
   // shows above her roof in B, where the reference has only dark canopy (no lit pods there)
@@ -1434,8 +1449,20 @@ export function buildHouse(def: HouseDef, ctx: WorldContext, mats: StructureMate
 
   // ---- doorway through the back wall + room behind it ----
   const doorPlanePoint = frame.door((doorW0 + doorW1) / 2, doorTop * 0.5, dBack);
-  const roomMat = indoorFog(roomMaterial(mats, 0x3c3b3e, true), doorPlanePoint, F);
-  const materials: Material[] = [roomMat];
+  // Round 48 (structures-31, opus-review walk #11 "Saria's hollow is furnished but unlit and
+  // untextured", poses sn-house-door / sn-room-inside / sn-room-bed): the room's diffuse albedo
+  // was ≈ 0.01 linear (0x3c3b3e ≈ 0.047 × the 0.12–0.38 vertex shade), so no light — the lamps'
+  // pools are emissive — could show the boards, and the furniture read as flat forms in the
+  // dark. The reference doorway (d_030–d_036, ref-01) is a LIT room: back wall and floor
+  // visible, warm lamp, cool fill from the door, l ≈ 0.32. Now the walls / floor carry a real
+  // wood albedo (0x6e6a66, ≈ 0.155 linear, under 0.32–0.78 vertex shades — weathered planks
+  // in lamplight), the lamps are real point lights (below), and the emissive pools are what
+  // they were (B's tuned levels). From the plaza (B / E at 18 m) the doorway box keeps its
+  // dark, hazed read: ours measured p50 0.173 against the reference's 0.291 before this pass,
+  // so the lift moves it toward the frame, not past it (measured after, see the round log).
+  // (the hero house only; the upper house's doorway is a few hazed pixels in A / F and keeps round 46's levels)
+  const roomMat = indoorFog(roomMaterial(mats, hero ? 0x6e6a66 : 0x3c3b3e, true), doorPlanePoint, F);
+  const materials: { dispose(): void }[] = [roomMat];
   // the room's light sources: two pod lamps under the ceiling (reference B: a lamp glint at
   // frame (0.78, 0.44) ≈ 1.3 m up left of centre; sheet 04: pod lanterns inside), a bed of
   // embers glowing pink-amber low on the right, and an amber fill under the ceiling
@@ -1595,8 +1622,13 @@ export function buildHouse(def: HouseDef, ctx: WorldContext, mats: StructureMate
       const lat = 1 - 0.25 * smoothstep(0.45, 1, Math.abs(w - roomWc) / roomHw);
       // round 46: a fifth lighter than round 22's 0.1–0.32 and the recess's fall-off eased
       // (× 0.4 → × 0.5) — the boards' grain and joints need a level to show on; the doorway's
-      // level from B is set by the pools and the veil, and its p50 is measured below
-      const s = lerp(0.12, 0.38, Math.pow(smoothstep(roomFloorY, roomCeilY, y), 1.4)) * lerp(1, 0.5, depthOf(p)) * lat;
+      // level from B is set by the pools and the veil, and its p50 is measured below.
+      // Round 48: 0.12–0.38 → 0.32–0.78 with the material's albedo (see `roomMat`): these are
+      // now a wall's shade under its own lamps (a little darker low down and deep in), not the
+      // room's whole darkness; the recess fall-off eases to × 0.65 so the back wall reads
+      const s = hero
+        ? lerp(0.32, 0.78, Math.pow(smoothstep(roomFloorY, roomCeilY, y), 1.1)) * lerp(1, 0.65, depthOf(p)) * lat
+        : lerp(0.12, 0.38, Math.pow(smoothstep(roomFloorY, roomCeilY, y), 1.4)) * lerp(1, 0.5, depthOf(p)) * lat;
       const g = glowAt(p);
       // cool grey (see `roomMaterial`); the embers' pool is the only warm diffuse tint
       return [s * 0.92 + g[0], s * 0.96 + g[1], s * 1.05 + g[2]];
@@ -1689,14 +1721,17 @@ export function buildHouse(def: HouseDef, ctx: WorldContext, mats: StructureMate
           (u, v, out) => {
             const w = lerp(roomW0 - 0.02, roomW1 + 0.02, u);
             const d = lerp(roomBackD(w) - 0.02, roomFront + 0.06, v);
-            const b = isFloor ? boards(w, d, 4) : { relief: 0, shade: 1 };
+            // round 48: the ceiling is boarded too (shade only — no relief on the underside), the
+            // boards running across the room like the floor's run into it
+            const b = isFloor ? boards(w, d, 4) : { relief: 0, shade: boards(d, w, 6).shade };
             // round 47: the walked lines are worn smooth and pale (the joints' relief and the
             // grain's contrast flattened, the tone lifted), the floor under the furniture shaded
             const wear = isFloor && hero ? floorWear47(w, d) : 0;
             const ao = isFloor && hero ? floorAO47(w, d) : 0;
             frame.door(w, y - (isFloor ? b.relief * (1 - 0.55 * wear) : 0), d, out.position);
             const deep = depthOf(out.position);
-            const s = 0.3 * lerp(1, isFloor ? 0.55 : 0.4, deep);
+            // (round 48: 0.3 → 0.62 floor / 0.5 ceiling — a lamp-lit floor's own shade, see `roomMat`)
+            const s = (isFloor ? 0.62 : 0.5) * lerp(1, isFloor ? 0.6 : 0.45, deep);
             out.uv = [w / BOARD_TILE, d / BOARD_TILE];
             const g = glowAt(_p.copy(out.position));
             if (isFloor) {
@@ -1708,10 +1743,10 @@ export function buildHouse(def: HouseDef, ctx: WorldContext, mats: StructureMate
               const worn = lerp(b.shade, 0.5 + 0.5 * b.shade, wear) * (1 + 0.28 * wear) * (1 - 0.6 * ao);
               out.color = [(s * tintR + g[0] * 0.5) * worn, (s * tintG + g[1] * 0.5) * worn, (s * tintB + g[2] * 0.5) * worn];
             } else {
-              out.color = [s * 0.92 + g[0] * 0.5, s * 0.96 + g[1] * 0.5, s * 1.05 + g[2] * 0.5];
+              out.color = [(s * 0.92 + g[0] * 0.5) * b.shade, (s * 0.96 + g[1] * 0.5) * b.shade, (s * 1.05 + g[2] * 0.5) * b.shade];
             }
           },
-          { cols: isFloor ? (hero ? 72 : 36) : 16, rows: isFloor ? (hero ? 48 : 24) : 16 },
+          { cols: isFloor ? (hero ? 72 : 36) : hero ? 40 : 16, rows: isFloor ? (hero ? 48 : 24) : hero ? 24 : 16 },
         ),
       );
     }
@@ -2425,22 +2460,47 @@ export function buildHouse(def: HouseDef, ctx: WorldContext, mats: StructureMate
   // upper pod, the short-range fill under the ceiling lights the arch and the near walls; neither
   // reaches the deep back wall, which stays a dark recess (reference: p50 0.30, centre 0.12–0.18).
   // (round 22: 0.28 → 0.2 and the fill 0.15 → 0.1 with the pools — the opening's p90)
-  const doorLight = new PointLight(0xffd8a0, 0.2 * k, 1.7 * k, 2);
+  // Round 48 (structures-31, opus-review #11): the lamps are REAL lights now. Until this round
+  // the three room lights were 0.2 / 0.1 / 0.08 cd over 1–1.7 m — a hand's breadth of lit wood
+  // each — and everything else the room showed was the emissive pools (`glowOf`). The left lamp
+  // lights the back wall, the shelves and the bed (1.8 cd, 3.4 m); the right lamp gets a light
+  // of its own over the right shelf and the hearth corner (1.2 cd, 3 m); the fill just inside
+  // the door is the COOL daylight the doorway lets in (0xc4d6ea, 0.45 cd, 2 m — it lights the
+  // floor's front and the jambs' insides, grey-blue against the lamps' amber); the embers and
+  // the candle carry small warm pools of their own. Ranges end inside the room's depth (the
+  // left lamp hangs 2.3 m behind the outer wall face): at the threshold the left lamp's
+  // irradiance is ≈ 0.2 W/m² against the sun's 4.4, a trace of warm spill on the sill the
+  // reference has too (its threshold band reads 0.301 against ours 0.285, round 22), and
+  // nothing reaches the plaza. (Only the hero house — the upper house's room is 25 m off.)
+  const doorLight = new PointLight(0xffd8a0, (hero ? 1.8 : 0.2) * k, (hero ? 3.4 : 1.7) * k, 2);
   doorLight.position.copy(lampPos).addScaledVector(F, 0.1);
   doorLight.name = 'door-light';
   group.add(doorLight);
   lights.push(doorLight);
+  if (hero) {
+    const lamp2Light = new PointLight(0xffd0a0, 1.2 * k, 3.0 * k, 2);
+    lamp2Light.position.copy(lamp2Pos).addScaledVector(F, 0.1);
+    lamp2Light.name = 'room-lamp-2';
+    group.add(lamp2Light);
+    lights.push(lamp2Light);
+    const candleLight = new PointLight(0xffb870, 0.3 * k, 1.4 * k, 2);
+    candleLight.position.copy(candlePos47).add(new Vector3(0, 0.06 * k, 0));
+    candleLight.name = 'candle-light';
+    group.add(candleLight);
+    lights.push(candleLight);
+  }
   // the "fill" sits just inside the arch, a little below it: it lights the jambs and the
   // threshold (the reference spills warm light there), not the recess. (At `archPos` itself, a
   // few centimetres under the arch's inner edge, the inverse-square falloff blew that edge out
   // to a pale band in the first round-12 probe.)
-  const fillLight = new PointLight(0xffd8a8, 0.1 * k, 1.6 * k, 2);
-  fillLight.position.copy(frame.door((doorW0 + doorW1) / 2, doorTop - 0.55 * k, roomFront - 0.5 * k));
+  // (round 48: cool — the door's daylight — and set 0.75 m inside the inner wall face)
+  const fillLight = new PointLight(hero ? 0xc4d6ea : 0xffd8a8, (hero ? 0.45 : 0.1) * k, (hero ? 2.0 : 1.6) * k, 2);
+  fillLight.position.copy(frame.door((doorW0 + doorW1) / 2, doorTop - 0.55 * k, roomFront - (hero ? 0.75 : 0.5) * k));
   fillLight.name = 'room-fill';
   group.add(fillLight);
   lights.push(fillLight);
   // pink-amber ember glow low right (reference doorway crop): short range, low on the floor
-  const emberLight = new PointLight(0xf5cfc0, 0.08 * k, 1.0 * k, 2);
+  const emberLight = new PointLight(0xf5cfc0, (hero ? 0.45 : 0.08) * k, (hero ? 1.5 : 1.0) * k, 2);
   emberLight.position.copy(hearthPos);
   emberLight.name = 'ember-light';
   group.add(emberLight);
@@ -4608,9 +4668,12 @@ export function buildHouse(def: HouseDef, ctx: WorldContext, mats: StructureMate
       line.y -= boughR11(spec.a) * 0.9;
       line.addScaledVector(frame.dir(spec.a), -0.04 * k);
       const knotY11 = boughHookYRound10(spec.a);
-      const r = Math.hypot(line.x - frame.C.x, line.z - frame.C.z);
       hook = line.clone();
-      hook.y = Math.max(line.y, Math.min(yFloor + soffitY(spec.a, r), archUnderY(lateralOf(line))) - 0.03);
+      // round 48: a second-rank pod hangs from the soffit in the porch recess, `back` m behind the line
+      if (spec.back) hook.addScaledVector(F, -spec.back * k);
+      const r = Math.hypot(hook.x - frame.C.x, hook.z - frame.C.z);
+      // (a second-rank pod is behind the arch body: its cord is tied to the soffit alone)
+      hook.y = Math.max(line.y, (spec.back ? yFloor + soffitY(spec.a, r) : Math.min(yFloor + soffitY(spec.a, r), archUnderY(lateralOf(hook)))) - 0.03);
       cord += hook.y - knotY11;
     } else if (spec.hook === 'eave') {
       // hooked to the soffit a little in from the ×1.0 lip; the cord is a vine. The soffit sits
