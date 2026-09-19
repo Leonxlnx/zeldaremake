@@ -67,10 +67,21 @@ if (args.character) brollArgs.push('--character');
 if (args.hud) brollArgs.push('--hud');
 const t0 = Date.now();
 console.error(`player-strip: ${poses.length} poses from ${path.relative(ROOT, posesFile)} → ${path.relative(ROOT, out)} (${process.platform === 'win32' && process.env.ZR_NATIVE_GPU === '1' ? 'native GPU' : 'SwiftShader'})`);
-const r = spawnSync(process.execPath, brollArgs, { stdio: 'inherit', env: process.env });
-if (r.status !== 0) {
-  console.error(`player-strip: broll.mjs exited with ${r.status ?? r.signal}`);
-  process.exit(1);
+// The first navigation of a fresh page to the served build intermittently throws "Navigating
+// frame was detached" on the native Windows GPU path (puppeteer's initial about:blank frame is
+// swapped for the new renderer process mid-goto; perftrace.mjs sidesteps it with a same-origin
+// pre-navigation). It fails before the world loads, so a retry is cheap: up to `--attempts` tries.
+const attempts = Math.max(1, Number(args.attempts ?? 4));
+let r = null;
+for (let attempt = 1; attempt <= attempts; attempt++) {
+  fs.rmSync(framesDir, { recursive: true, force: true });
+  r = spawnSync(process.execPath, brollArgs, { stdio: ['ignore', 'inherit', 'pipe'], env: process.env, maxBuffer: 64 << 20 });
+  const err = r.stderr ? r.stderr.toString() : '';
+  process.stderr.write(err.split('\n').filter((l) => !/^\[page:warning\]/.test(l)).join('\n'));
+  if (r.status === 0) break;
+  const transient = /frame was detached|frame got detached|Target closed|Session closed/i.test(err);
+  console.error(`player-strip: broll.mjs exited with ${r.status ?? r.signal} on attempt ${attempt}/${attempts}${transient ? ' (page lost before the world loaded — retrying)' : ''}`);
+  if (!transient || attempt === attempts) process.exit(1);
 }
 
 const shots = JSON.parse(fs.readFileSync(path.join(framesDir, 'shots.json'), 'utf8'));
