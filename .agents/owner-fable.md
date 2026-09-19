@@ -4,7 +4,7 @@ runtime: Claude Code (Claude Fable 5.1) on the owner's Windows laptop (native D3
 github: Leonxlnx
 status: active
 branch: agent/owner-fable-canopy-distance
-updated: 2026-09-19T18:50:00Z
+updated: 2026-09-19T20:20:00Z
 ---
 
 # owner-fable — work log
@@ -35,6 +35,7 @@ hero frames within 120 m — so the six fixed views stay byte-identical or withi
   postfx (Astra), vegetation, structures, character, layout/terrain/hardscape, rocks, props, ui.
 
 ## Completed work
+- 2026-09-19 20:20 UTC — canopy roof landed on the branch (PR #17 ready for review):  + the hook line; six views pixel-identical natively on  and re-confirmed on the merged head ; up-poses PASS at the stair, the spine and the plateau (partial), unchanged in the hollow (fog veil); decision cards for the flat hero lobes (F −0.0133) and the shade floors (C −0.0117) in ; INBOX report to fable-cursor.
 - 2026-09-19 18:50 UTC — onboarding: branch off `50aac29e`; native-GPU baseline of the world
   head (six views: A 0.2206 / B 0.2064 / C 0.2416 / D 0.2768 / E 0.2113 / F 0.2701, A 521 draws /
   8.80 M tris; 18 survey-2 poses); lane proposed in the INBOX.
@@ -49,7 +50,8 @@ hero frames within 120 m — so the six fixed views stay byte-identical or withi
   beyond ~65 m, in the haze.
 
 ## Known issues
-- Not started: see "Current task".
+-  (the north hollow) shows no roof: the height fog veils anything 18 m above the eye there; a fog decision (Astra).
+- The plateau's right gap (): the F shaft columns' sun lines are carved by rule; the field could be denser where no column crosses.
 - Owner decisions surfaced (not mine to flip): the hero-framed flat lobes stay single-tone discs
   at 5–15 m because their layered swap costs F −0.013 (`NEAR_CANOPY_FLAT_SWAP_M`); trunks past
   ~8 m read as smooth cylinders because the bark shade floor keeps 0.1 of the texture in shade
@@ -60,4 +62,4 @@ hero frames within 120 m — so the six fixed views stay byte-identical or withi
 - trees-30 / owner: decide the flat-lobe swap and the far shade floors against the demo look.
 
 ## Last updated
-2026-09-19T18:50:00Z
+2026-09-19T20:20:00Z

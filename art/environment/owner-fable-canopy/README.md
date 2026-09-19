@@ -92,6 +92,27 @@ Sheets `card-shadefloors-C.jpg` (reference | ours | ours-with-detail), `card-sha
 B −0.0032, E −0.0030. Gain: bark cords and tone bands read on every trunk past 8 m; the frames
 darken toward the reference's shaded trunks but lose the veil the SSIM rewards.
 
+## Re-confirmation on the merged world head `38f430ea` (round 47: trees-30, distant-1, shell-1, …)
+
+After merging the world head the same test was run again: a fresh BEFORE capture of `38f430ea`
+in the worktree vs this branch (`23f9aba9` = `38f430ea` + the roof), `capture.mjs --settle 90`
+natively (the machine was shared with several other agents' captures, so the six views were
+captured in two runs: A–E, then F alone after Chrome's target closed under load).
+
+| view | pixels changed | draws before → after | triangles before → after |
+| --- | --- | --- | --- |
+| A | 0.000 % | 562 → 568 | 9.025 → 9.03 M (the head's own W38 overrun — fable-cursor's `aa7857b` fixes it; merged since) |
+| B | 0.000 % | 519 → 525 | 8.263 → 8.27 M |
+| C | 0.000 % | 386 → 389 | 7.534 → 7.54 M |
+| D | 0.000 % | 382 → 388 | 8.543 → 8.55 M |
+| E | 0.000 % | 519 → 525 | 8.263 → 8.27 M |
+| F | 0.000 % | 499 → 504 | 8.448 → 8.451 M |
+
+Console 0 errors on every run. Up-poses on the merged head (`w22-stairs-u`, `w07-spine-u`): the
+roof reads as on `15e7495`; `w25-stairs-f` (the stair top looking north) shows distant-1's new
+soft far crowns in the haze with no roof card doubling them — the roof's bounds end at the
+arch, where the depth rows begin.
+
 ## Provenance
 
 - BEFORE: `E:/zeldaremake-wt-base` detached at `15e7495`, `npm run build`, captures above.
