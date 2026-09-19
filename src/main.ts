@@ -109,26 +109,41 @@ async function warmUp(renderer: WebGLRenderer, scene: Scene, camera: Camera, sun
       // WebGLShadowMap.getDepthMaterial copies, so the program's cache key is the shadow pass's.
       // Compiled against an empty target scene (no fog, no environment — the shadow pass binds its
       // programs with three's empty scene; the lights come from `scene`).
-      const standIns = new Map<Material, MeshDepthMaterial>();
+      type DepthLike = Material & { wireframe?: boolean; wireframeLinewidth?: number; map?: Texture | null; alphaMap?: Texture | null; displacementMap?: Texture | null; displacementScale?: number; displacementBias?: number };
+      // what WebGLShadowMap.getDepthMaterial copies from the colour material onto the depth one at
+      // every shadow draw — a custom depth material included, so its program's key comes from this
+      // state, not from the state it was constructed in
+      const mirror = (d: DepthLike, source: Material) => {
+        const s = source as DepthLike;
+        d.wireframe = s.wireframe === true;
+        d.wireframeLinewidth = s.wireframeLinewidth ?? 1;
+        d.side = source.shadowSide !== null ? source.shadowSide : source.side === FrontSide ? BackSide : source.side === BackSide ? FrontSide : DoubleSide;
+        d.alphaMap = s.alphaMap ?? null;
+        d.alphaTest = source.alphaToCoverage ? 0.5 : source.alphaTest;
+        d.map = s.map ?? null;
+        d.clipShadows = source.clipShadows;
+        d.clippingPlanes = source.clippingPlanes;
+        d.clipIntersection = source.clipIntersection;
+        d.displacementMap = s.displacementMap ?? null;
+        d.displacementScale = s.displacementScale ?? 1;
+        d.displacementBias = s.displacementBias ?? 0;
+      };
+      // one stand-in per distinct mirrored state (three shares one depth material across the
+      // plain casters and forks a variant only for map + alphaTest / displacement / coverage; a
+      // stand-in per state covers whichever of those programs the shadow pass ends up building)
+      const standIns = new Map<string, MeshDepthMaterial>();
       const depthFor = (m: Mesh, source: Material): Material => {
-        if (m.customDepthMaterial) return m.customDepthMaterial;
-        let d = standIns.get(source);
+        if (m.customDepthMaterial) {
+          mirror(m.customDepthMaterial as DepthLike, source);
+          return m.customDepthMaterial;
+        }
+        const s = source as DepthLike;
+        const key = [source.shadowSide ?? source.side, s.map?.uuid ?? '', s.alphaMap?.uuid ?? '', source.alphaToCoverage ? 0.5 : source.alphaTest, s.displacementMap?.uuid ?? '', s.wireframe === true, source.clipShadows].join('|');
+        let d = standIns.get(key);
         if (!d) {
-          const s = source as Material & { wireframe?: boolean; wireframeLinewidth?: number; map?: Texture | null; alphaMap?: Texture | null; displacementMap?: Texture | null; displacementScale?: number; displacementBias?: number };
           d = new MeshDepthMaterial();
-          d.wireframe = s.wireframe === true;
-          d.wireframeLinewidth = s.wireframeLinewidth ?? 1;
-          d.side = source.shadowSide !== null ? source.shadowSide : source.side === FrontSide ? BackSide : source.side === BackSide ? FrontSide : DoubleSide;
-          d.alphaMap = s.alphaMap ?? null;
-          d.alphaTest = source.alphaToCoverage ? 0.5 : source.alphaTest;
-          d.map = s.map ?? null;
-          d.clipShadows = source.clipShadows;
-          d.clippingPlanes = source.clippingPlanes;
-          d.clipIntersection = source.clipIntersection;
-          d.displacementMap = s.displacementMap ?? null;
-          d.displacementScale = s.displacementScale ?? 1;
-          d.displacementBias = s.displacementBias ?? 0;
-          standIns.set(source, d);
+          mirror(d, source);
+          standIns.set(key, d);
         }
         return d;
       };
