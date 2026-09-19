@@ -94,6 +94,9 @@ const PLATEAU_WALK: readonly (readonly [number, number])[] = [
 const BUSH_LENS_CLEAR_M = 0.5;
 /** round 47: bushes within this distance of a house trunk (m past its radius) are the big-leaf shrub of ref-01 */
 const HOUSE_BIG_LEAF_M = 3.4;
+/** round 47: the authored house shrubs — angles off the door's facing (°) and their offset past the trunk (m) */
+const HOUSE_SHRUB_ANGLES: readonly number[] = [-58, -98, 62, 104, 150];
+const HOUSE_SHRUB_OFF: readonly [number, number] = [0.55, 1.1];
 /**
  * Round 47 — the north path's verge (owner review 2026-09-19, ref-04: "dense dark ferns and shrubs
  * with layered leaf silhouettes and lit rims at the path edges, fine litter everywhere, no bare
@@ -3213,6 +3216,30 @@ export function buildPlants(ctx: WorldContext, field: VegField, parent: Group): 
       },
       (x, z, s, rng) => placeInstance(bushes, x, z, s, rng, 0.6 + rng() * 0.3, 0.3, 0.04, tint.setRGB(NORTH_VERGE_BUSH_TINT + rng() * 0.1, NORTH_VERGE_BUSH_TINT + 0.05 + rng() * 0.1, NORTH_VERGE_BUSH_TINT - 0.08 + rng() * 0.1)),
     );
+  }
+
+  // ---- Round 47 — ref-01's house shrubs: big glossy laminae in a low mound at the house's foot,
+  // flanking the door (HOUSE_SHRUB_ANGLES off the facing, HOUSE_SHRUB_OFF m past the trunk). The
+  // scatters left Saria's foot bare (its clearance rings), so these are authored per house; the
+  // retarget below (HOUSE_BIG_LEAF_M) makes every one the big-leaf variant.
+  {
+    const rng = ctx.rng.fork('plants/house-shrubs-r47');
+    const s = newSample();
+    for (const h of ctx.layout.houses) {
+      const facing = Math.atan2(h.facing[0], h.facing[1]);
+      for (const a of HOUSE_SHRUB_ANGLES) {
+        const ang = facing + (a * Math.PI) / 180 + (rng() - 0.5) * 0.12;
+        const off = h.trunkRadius + HOUSE_SHRUB_OFF[0] + rng() * (HOUSE_SHRUB_OFF[1] - HOUSE_SHRUB_OFF[0]);
+        const x = Math.round((h.position[0] + Math.sin(ang) * off) * 1000) / 1000;
+        const z = Math.round((h.position[2] + Math.cos(ang) * off) * 1000) / 1000;
+        const scale = 0.85 + rng() * 0.25;
+        const c = greenVar(rng, 0.12).clone();
+        field.sample(x, z, s);
+        if (!field.allowed(x, z, s, true) || s.structure > 0.5 || s.stairs > 0.3 || field.pathEdgeDistance(x, z) < 0.35 || field.reach(x, z) > ctx.config.detailRadius) continue;
+        if (bushes.items.some((p) => Math.hypot(p.x - x, p.z - z) < 1.1)) continue;
+        placeInstance(bushes, x, z, s, rng, scale, 0.25, 0.05, c);
+      }
+    }
   }
 
   // ---- Round 44 (survey-1 #7): nothing sits on the lens. A bush whose crown reaches within
