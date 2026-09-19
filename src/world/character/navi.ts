@@ -8,6 +8,7 @@
 import {
   AdditiveBlending,
   BufferGeometry,
+  CanvasTexture,
   Color,
   DynamicDrawUsage,
   Float32BufferAttribute,
@@ -205,6 +206,153 @@ export function createNavi(): Navi {
       trailAttr.needsUpdate = true;
       trailMat.uniforms.uTime.value = t;
       trailMat.uniforms.uPixelRatio.value = pixelRatio;
+    },
+  };
+}
+
+// ---- generic fairy (the Kokiri kids' companions, round 47) ----
+
+export interface FairyOptions {
+  /** scene-graph name prefix */
+  name: string;
+  /** tint of the bloom and the wings (linear RGB; Navi is blue-white, the Kokiri's are green-white) */
+  tint: Color;
+  /** point-light colour */
+  lightColor: number;
+  /** seed for the hover's phases (util/prng hashString) */
+  seed: string;
+  /** overall size factor (1 = Navi) */
+  scale?: number;
+}
+
+export interface Fairy {
+  group: Group;
+  light: PointLight;
+  /** the hover centre (world) — set by the owner every frame */
+  anchor: Vector3;
+  /** the hover's world offset from `anchor` at time t (closed-form Lissajous, seeded phases) */
+  offset(t: number, out: Vector3): Vector3;
+  /** pose for time t: `anchor` + offset, wings fluttering, light breathing; `heading` (rad) turns the body */
+  update(t: number, heading: number): void;
+  /** how many draw submissions the fairy costs (meshes + sprites) */
+  draws: number;
+}
+
+/** upright wing PAIR for one billboard sprite: two petals in a V from the bottom-centre root, blown-out white cores */
+let wingPairTex: CanvasTexture | null = null;
+function wingPairTexture(): CanvasTexture {
+  if (wingPairTex) return wingPairTex;
+  const w = 128;
+  const h = 128;
+  const c = document.createElement('canvas');
+  c.width = w;
+  c.height = h;
+  const g = c.getContext('2d')!;
+  const img = g.createImageData(w, h);
+  for (let y = 0; y < h; y++) {
+    for (let x = 0; x < w; x++) {
+      const px = (x / (w - 1) - 0.5) * 2;
+      const py = 1 - y / (h - 1);
+      let a = 0;
+      let core = 0;
+      for (const side of [-1, 1]) {
+        // petal axis leaning `side` at 0.42 rad from the vertical, root at the bottom centre
+        const ax = Math.sin(0.42) * side;
+        const ay = Math.cos(0.42);
+        const along = px * ax + py * ay;
+        const across = Math.abs(px * ay - py * ax);
+        if (along <= 0 || along > 1) continue;
+        const halfWidth = 0.34 * Math.pow(Math.sin(Math.PI * Math.pow(along, 0.8)), 0.85);
+        const inside = Math.min(1, Math.max(0, (halfWidth - across) / 0.07));
+        const k = Math.min(1, Math.max(0, (halfWidth * 0.5 - across) / 0.14));
+        a = Math.max(a, inside * (0.5 + 0.5 * k));
+        core = Math.max(core, k);
+      }
+      const i = (y * w + x) * 4;
+      img.data[i] = Math.round(228 + 27 * core);
+      img.data[i + 1] = 255;
+      img.data[i + 2] = Math.round(232 + 23 * core);
+      img.data[i + 3] = Math.round(255 * a);
+    }
+  }
+  g.putImageData(img, 0, 0);
+  wingPairTex = new CanvasTexture(c);
+  wingPairTex.name = 'character-fairy-wing-pair';
+  return wingPairTex;
+}
+
+/**
+ * A small fairy in the Navi idiom at a third of the draw cost (3 submissions: core ball, bloom
+ * sprite, one wing-pair sprite) — no sparkle streaks, no trail. The hover is a Lissajous of
+ * three incommensurate frequencies around `anchor` with phases hashed from `seed`, so two
+ * fairies never bob in step and a capture at a fixed t is reproducible.
+ */
+export function createFairy(opts: FairyOptions): Fairy {
+  const s = opts.scale ?? 0.8;
+  const anchor = new Vector3(0, 1.2, 0);
+  const root = new Group();
+  root.name = opts.name;
+  const body = new Group();
+  body.name = `${opts.name}-body`;
+  root.add(body);
+  const tint = opts.tint;
+
+  const core = new Mesh(new SphereGeometry(0.034 * s, 14, 10), new MeshBasicMaterial({ color: new Color(1, 1, 1).lerp(tint, 0.25).multiplyScalar(2.2), fog: false, toneMapped: false }));
+  core.name = `${opts.name}-core`;
+  body.add(core);
+
+  const halo = new Sprite(new SpriteMaterial({ map: glowTexture(), color: tint.clone().multiplyScalar(0.75), blending: AdditiveBlending, depthWrite: false, fog: false, transparent: true }));
+  halo.name = `${opts.name}-halo`;
+  halo.scale.setScalar(0.26 * s);
+  halo.userData.depthAudit = false;
+  body.add(halo);
+
+  const wings = new Sprite(new SpriteMaterial({ map: wingPairTexture(), color: new Color(1, 1, 1).lerp(tint, 0.3).multiplyScalar(1.3), depthWrite: false, fog: false, transparent: true, toneMapped: false }));
+  wings.name = `${opts.name}-wings`;
+  wings.center.set(0.5, 0.08);
+  wings.position.set(0, 0.008 * s, 0);
+  const wingW = 0.13 * s;
+  const wingH = 0.13 * s;
+  wings.scale.set(wingW, wingH, 1);
+  wings.userData.depthAudit = false;
+  body.add(wings);
+
+  const light = new PointLight(opts.lightColor, 1.1, 2.6, 2);
+  light.name = `${opts.name}-light`;
+  light.castShadow = false;
+  body.add(light);
+
+  // seeded phases (deterministic; util/prng hashString)
+  let h = 2166136261;
+  for (let i = 0; i < opts.seed.length; i++) h = Math.imul(h ^ opts.seed.charCodeAt(i), 16777619);
+  const ph = (k: number) => ((((h >>> 0) * (k + 1) * 0.618033) % 1) + 1) % 1 * Math.PI * 2;
+  const p1 = ph(1);
+  const p2 = ph(2);
+  const p3 = ph(3);
+  const offset = (t: number, out: Vector3) => {
+    out.set(
+      0.05 * Math.sin(t * Math.PI * 2 * 0.31 + p1) + 0.02 * Math.sin(t * 2.7 + p3),
+      0.055 * Math.sin(t * Math.PI * 2 * 0.95 + p2) + 0.02 * Math.sin(t * 0.8 + p1),
+      0.05 * Math.cos(t * Math.PI * 2 * 0.27 + p1) + 0.02 * Math.cos(t * 2.1 + p2),
+    );
+    return out;
+  };
+  const off = new Vector3();
+  return {
+    group: root,
+    light,
+    anchor,
+    offset,
+    draws: 3,
+    update(t, heading) {
+      offset(t, off);
+      body.position.copy(anchor).add(off);
+      body.rotation.y = heading;
+      // ≈ 11 Hz flutter: the pair fans open and closed and foreshortens as it beats
+      const flap = Math.sin(t * Math.PI * 2 * 11 + p2);
+      wings.scale.set(wingW * (0.72 + 0.28 * Math.abs(flap)), wingH * (0.96 + 0.04 * flap), 1);
+      light.intensity = 1.0 + 0.2 * Math.sin(t * 4.3 + p3);
+      halo.scale.setScalar(0.26 * s * (1 + 0.08 * Math.sin(t * 6.1 + p1)));
     },
   };
 }
