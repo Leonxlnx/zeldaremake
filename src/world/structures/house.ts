@@ -3526,21 +3526,29 @@ export function buildHouse(def: HouseDef, ctx: WorldContext, mats: StructureMate
    * put the ridges across the bough, which read as a painted stripe pattern at 4 m
    * (w26-stairs-l). Colour: the crests a shade paler, grime in the fissures.
    */
-  const boughCords = (seed: number, len: number, r0: number) => {
+  const boughCords = (seed: number, len: number, r0: number, deep = false) => {
     const ring = clamp(r0 / 0.16, 1.15, 3.2);
     const cord = (t: number, ang: number) => noise.ridged(Math.cos(ang) * ring + seed * 3.1, Math.sin(ang) * ring + t * len * 0.32 + seed * 0.7, 2);
     const fissure = (t: number, ang: number) => Math.pow(1 - Math.abs(noise.noise(Math.cos(ang) * ring * 1.4 + seed * 5.3 + 20, Math.sin(ang) * ring * 1.4 + t * len * 0.22)), 7);
+    // `deep` (round 46, second cut): the pale limbs' material (`barkPale`, HOUSE_BARK_FLOOR
+    // texture 0.6) lies in the canopy's shade, where the floor's light is flat — the cords'
+    // relief casts no shading there and only the vertex tint carries them, compressed to 0.6
+    // by the floor's flat share; w26-stairs-l at 4 m still read the draped limb as a smooth
+    // tube (hide-test: `roof-branches`). The pale limbs take a wider crest/fissure swing.
+    const lo = deep ? 0.55 : 0.74;
+    const hi = deep ? 1.22 : 1.12;
+    const fk = deep ? 0.68 : 0.5;
     return {
       segs: Math.max(12, Math.round(ring * 13)),
       displace: (t: number, ang: number, r: number) => ((cord(t, ang) - 0.5) * 0.09 - fissure(t, ang) * 0.06) * r + (noise.noise(ang * 3.4 + seed * 7.3, t * len * 0.5 + 40) - 0.5) * 0.04 * r,
       /** [crest/fissure shade multiplier, fissure weight] */
       shade: (t: number, ang: number): [number, number] => {
         const f = fissure(t, ang);
-        return [lerp(0.74, 1.12, cord(t, ang)) * (1 - 0.5 * f), f];
+        return [lerp(lo, hi, cord(t, ang)) * (1 - fk * f), f];
       },
       tint: (base: [number, number, number], t: number, ang: number): [number, number, number] => {
         const f = fissure(t, ang);
-        const s = lerp(0.74, 1.12, cord(t, ang)) * (1 - 0.5 * f);
+        const s = lerp(lo, hi, cord(t, ang)) * (1 - fk * f);
         return [base[0] * s, base[1] * s * (1 - 0.04 * f), base[2] * s * (1 - 0.08 * f)];
       },
     };
@@ -3608,18 +3616,37 @@ export function buildHouse(def: HouseDef, ctx: WorldContext, mats: StructureMate
       const lift = r * 0.3 + (branchRng() - 0.5) * 0.08 + (idx % 2 ? 0.05 : 0) * k;
       return surfacePoint(a + (branchRng() - 0.5) * 0.16, clamp(v + (branchRng() - 0.5) * 0.03, 0.02, 0.98), lift);
     });
-    const curve = new CatmullRomCurve3(pts, false, 'catmullrom', 0.5);
+    const curve0 = new CatmullRomCurve3(pts, false, 'catmullrom', 0.5);
+    // Round 46 (structures-29, survey-2 #08, w26-stairs-l — the hide-test named `roof-branches`
+    // under the survey's "root arc"): the limb's centre line is RESAMPLED ONTO THE CAP. The
+    // spline through five or six waypoints half-sunk in the moss bulged clear of the dome between
+    // them (a Catmull-Rom through points on a convex surface overshoots outward), and from the
+    // plateau, level with the limb at 4 m, that showed as a shadow gap under a floating tube. 24
+    // samples along the first spline are each dropped to the moss surface under them (same house
+    // angle and horizontal radius) at 0.2 × the local radius, the underside 0.8 r in the moss.
+    // No new rng draws; the waypoints' jitter is kept in the samples.
+    const seated: Vector3[] = [];
+    for (let si = 0; si <= 24; si++) {
+      const f = si / 24;
+      const q = curve0.getPointAt(f);
+      const dx = q.x - frame.C.x;
+      const dz = q.z - frame.C.z;
+      const aQ = Math.atan2(dx * frame.Rt.x + dz * frame.Rt.z, dx * frame.F.x + dz * frame.F.z);
+      seated.push(capSurfaceAt(aQ, Math.hypot(dx, dz), 0.2 * lerp(b.r0, b.r1, f) * k));
+    }
+    const curve = new CatmullRomCurve3(seated, false, 'catmullrom', 0.5);
     const twist = branchRng() * 10;
     const drapedR = (t: number) => lerp(b.r0, b.r1, t) * k * (1 + 0.14 * Math.sin(t * 9 + twist) + 0.08 * Math.sin(t * 23 + twist * 2));
-    const drapedCords = boughCords(10 + bi, curve.getLength(), b.r0 * k);
+    const drapedCords = boughCords(10 + bi, curve.getLength(), b.r0 * k, true);
     const geo = sweepTube(curve, {
       radius: drapedR,
       tubularSegments: 48,
       radialSegments: drapedCords.segs,
       uvMetres: 1.2,
       displace: (t, ang) => drapedCords.displace(t, ang, drapedR(t)),
-      // (round 46: a little of the cap's moss on the limbs' tops — they lie half-sunk in it)
-      color: (t, ang, up) => mossAlong(drapedCords.tint(limbColor(t, ang), t, ang), up, t, ang, curve.getLength(), 10 + bi, 0.4),
+      // (round 46: the cap's moss on the limbs' tops, creeping a little down the flanks — they
+      // lie sunk in it; second cut 0.4 → 0.75 / spread 0.2, a level camera sees the flanks)
+      color: (t, ang, up) => mossAlong(drapedCords.tint(limbColor(t, ang), t, ang), up, t, ang, curve.getLength(), 10 + bi, 0.75, 0.2),
       capEnd: true,
     });
     branchParts.push(geo);
