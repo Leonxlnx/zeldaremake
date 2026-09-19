@@ -9,6 +9,10 @@
  *
  * Screen coordinates are normalised (0..1, y down). The pinhole matches three's PerspectiveCamera
  * (vertical fov, lookAt with world +Y up) and `gauntlet/tmp/proj.mjs`.
+ *
+ * The NPC behaviour's authored spots live here too (`NPC_LOOP`, `NPC_SEAT`; npc.ts drives them
+ * in free / play mode — under capture the per-view table below stands the kids where the frames
+ * have them, so the six harness views never see the loop).
  */
 
 export type V3 = [number, number, number];
@@ -183,3 +187,50 @@ export const VIEW_TABLE: Record<string, ViewPlacement> = {
   // (0.585, 0.68) → ≈ (6.2, 0, 3.2), 8.2 m out, the dark bank hedge behind and right of him.
   F_canopy: { feet: [0.5, 0.93], facing: 'away', yawDeg: 0, gait: 'walk', navi: [0.472, 0.545], look: 0.5, kids: [{ slot: 0, screen: [0.585, 0.68], yawDeg: 160 }] },
 };
+
+// ---- NPC behaviour spots (npc.ts; free / play mode only) ----
+
+export interface NpcWaypoint {
+  /** world x, z (the ground height is sampled) */
+  x: number;
+  z: number;
+  /** dwell (s) at this waypoint before turning to the next; the seeded jitter adds ±35 % */
+  dwell: number;
+  /** where she looks while dwelling (world x, z), or undefined = ahead */
+  lookAt?: [number, number];
+}
+
+/**
+ * The girl's (kokiri-a) plaza loop: from her verge spot in front of the stair-foot rock west
+ * along the turf between the stair-branch paving and the south bank, onto the plaza's east lobe,
+ * across the south plaza, and back along the bank's toe. Every leg stays on lawn or flagstone —
+ * off the stair footprint (`ground.onStairs`) and the structure pads (`ground.blocked`); npc.ts
+ * asserts that at build time and the audit (`npc.loop.offLimits`) reports any violation. Walked
+ * counter-clockwise seen from above.
+ */
+export const NPC_LOOP: NpcWaypoint[] = [
+  { x: 8.6, z: 3.9, dwell: 2.6, lookAt: [2, 0] },
+  { x: 6.4, z: 2.4, dwell: 1.4, lookAt: [7.3, -0.1] },
+  { x: 4.4, z: 0.9, dwell: 2.2, lookAt: [0, -6] },
+  { x: 2.2, z: 2.3, dwell: 1.2 },
+  { x: 3.6, z: 3.8, dwell: 2.4, lookAt: [12.5, -11.5] },
+  { x: 6.2, z: 4.6, dwell: 1.0 },
+];
+
+export interface NpcSeat {
+  /** layout stair id */
+  stair: string;
+  /** 0-based tread index she sits on (her feet rest on tread − 1) */
+  tread: number;
+  /** across-run offset (m) from the stair's centre line; + is the right-hand side climbing */
+  v: number;
+  /** yaw offset (deg) from facing straight down the flight (+ turns toward the flight's left side) */
+  yawDeg: number;
+}
+
+/**
+ * The second Kokiri (kokiri-b) sits on the main flight's second tread at its south edge, facing
+ * down the steps toward the plaza with her feet on the first tread — 0.5 m inside the tread end
+ * so the turf lap and the kerb stones stay clear, 1.4 m from the stair-foot lantern post.
+ */
+export const NPC_SEAT: NpcSeat = { stair: 'main', tread: 1, v: 1.0, yawDeg: 12 };

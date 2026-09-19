@@ -22,6 +22,7 @@ import type { WorldContext, WorldSystem } from '../system';
 import { GAIT_SPEED, GAITS, HERO_PHASE, type Gait } from './animation';
 import { createGround } from './ground';
 import { createKokiri } from './kokiri';
+import { createNpcs } from './npc';
 import { createLink } from './link';
 import { createNavi, TRAIL_COUNT } from './navi';
 import { headingOf, marchToGround, matchViewpoint, pointAtDepth, projectPoint, VIEW_TABLE, type CamPose, type V3 } from './placement';
@@ -103,12 +104,19 @@ export async function create(ctx: WorldContext): Promise<WorldSystem> {
   const doorKid: V3 = [house.position[0] + fx * (house.trunkRadius + 1.0) + fz * 1.3, 0, house.position[2] + fz * (house.trunkRadius + 1.0) - fx * 1.3];
   const kidSpots: V3[] = [spot('kokiri-a'), spot('kokiri-b'), doorKid];
   const kids: Actor[] = [];
+  const kidChars: ReturnType<typeof createKokiri>[] = [];
   for (let i = 0; i < KID_COUNT; i++) {
-    const puppet = proceduralPuppet(createKokiri(i), GAITS);
+    const char = createKokiri(i);
+    kidChars.push(char);
+    const puppet = proceduralPuppet(char, GAITS);
     const shadow = createContactShadow(0.3, 0.6);
     group.add(puppet.group, shadow);
     kids.push({ ...hardChain('idle'), puppet, pos: new Vector3(kidSpots[i][0], 0, kidSpots[i][2]), yaw: 0, phase: 1.3 + i * 2.1, idleTurn: 0.28, look: 0, contact: new Vector3(), shadow, shadowRadius: 0.32 });
   }
+  // NPC behaviour (npc.ts): in free / play mode kokiri-a wanders the plaza loop and kokiri-b sits on the stairs, each with a
+  // fairy; under capture (view mode) the per-view placement above stands, only the fairies are added
+  const npcs = createNpcs({ chars: kidChars, ground, layout: ctx.layout, seed: `${ctx.config.seed}/npc` });
+  group.add(npcs.group);
 
   // draw-call budget (W38): the parts riding on one joint merge into one mesh per material — the
   // procedural rigs otherwise cost 269–311 calls with the shadow pass (consolidate.ts). Skinned
@@ -326,6 +334,7 @@ export async function create(ctx: WorldContext): Promise<WorldSystem> {
       fairy: true,
       fairyTrail: TRAIL_COUNT,
       npcs: kids.length,
+      ...npcs.audit(),
       geometry: linkLoad.source === 'glb' ? 'glb-link+procedural-npcs-v1' : 'procedural-v1',
       triangles: countTriangles(),
       linkTriangles: link.puppet.triangles,
@@ -414,7 +423,8 @@ export async function create(ctx: WorldContext): Promise<WorldSystem> {
       navi.velocity.copy(mode === 'play' ? velocity : tmpD.set(0, 0, 0));
       navi.position(t, naviPos);
       poseActor(link, t, naviPos);
-      for (const k of kids) poseActor(k, t, null);
+      for (let i = 0; i < kids.length; i++) if (mode === 'view' || !npcs.drive(i, kids[i], t)) poseActor(kids[i], t, null);
+      npcs.updateFairies(t);
       navi.update(t, c.renderer.getPixelRatio());
     },
   };
