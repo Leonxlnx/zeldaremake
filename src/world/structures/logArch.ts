@@ -15,7 +15,7 @@
  */
 import { BoxGeometry, type BufferGeometry, CatmullRomCurve3, CylinderGeometry, Float32BufferAttribute, Group, LOD, Matrix4, Mesh, PlaneGeometry, PointLight, Quaternion, Vector3 } from 'three';
 import type { WorldContext } from '../system';
-import type { Rng } from '../util/prng';
+import { hash2, type Rng } from '../util/prng';
 import { Noise2D, clamp, lerp, smoothstep } from '../util/noise';
 import { TAU, basisMatrix, faceTowards, gridSurface, merge, setColorAttribute, sweepTube } from './geometry';
 import { FoliageBuilder } from './foliage';
@@ -261,7 +261,36 @@ export function buildLogArch(ctx: WorldContext, mats: StructureMaterials, rng: R
     const n2 = noise.noise(arc * 1.7 + 83, s * 0.8);
     const face = 0.65 * smoothstep(0.08, 0.28, n1) + 0.35 * smoothstep(0.2, 0.4, n2);
     const seam = smoothstep(0.3, 0.1, n1) * smoothstep(-0.14, -0.02, n1);
-    return lerp(0.45, 1.6, face) * (1 - 0.45 * seam);
+    return lerp(0.6, 1.4, face) * (1 - 0.45 * seam) * plateCells(psi, s);
+  };
+  /**
+   * The PLATE CELLS (round 46, second cut — the first, the two metre-scale noise fields above,
+   * moved w18-spine-f's belly from mottled clay to mottled clay: smooth blobs at 1–2 m are what
+   * clay looks like). What reads as bark at 16 m (94 px / m in the survey's frame) is the plate
+   * pattern itself: bands 30–40 cm wide round the trunk following the ridges' twist, broken into
+   * 0.8–1.1 m plates staggered like brickwork, EACH PLATE ITS OWN TONE (± 18 %) and a dark
+   * fissure seam between the bands (× 0.45, ≈ 10 cm — one vertex of the 8–14 cm shell grid, so
+   * the seam is a soft dark line a cell wide, which is what a fissure is at that range), a
+   * lighter cross-crack at the plate ends. Colour only — the relief keeps its silhouette in D.
+   * Mean-preserving (× 1.22 against the seams' share) so the body's level under D's veil holds.
+   */
+  const PLATE_W = 0.36;
+  const PLATE_L = 0.95;
+  const plateCells = (psi: number, s: number) => {
+    const arc = psi * R;
+    const twist = noise.noise(s * 0.1, arc * 0.05) * 1.6 + s * 0.06;
+    // the bands follow the ridges' twist and wander a little along the trunk
+    const u = arc + twist / 1.1 + 0.09 * noise.noise(arc * 0.7 + 5, s * 0.22 + 11);
+    const band = Math.floor(u / PLATE_W);
+    const fu = u / PLATE_W - band;
+    const off = hash2(band, 7, 46) * PLATE_L;
+    const seg = Math.floor((s + off) / PLATE_L);
+    const fs = (s + off) / PLATE_L - seg;
+    const tone = 0.82 + 0.36 * hash2(band, seg, 47);
+    const edge = Math.abs(fu - 0.5) * PLATE_W;
+    const fissure = smoothstep(PLATE_W / 2 - 0.08, PLATE_W / 2 - 0.02, edge);
+    const cross = smoothstep(PLATE_L / 2 - 0.07, PLATE_L / 2 - 0.02, Math.abs(fs - 0.5) * PLATE_L);
+    return tone * (1 - 0.55 * fissure) * (1 - 0.3 * cross) * 1.22;
   };
   /**
    * Round 41 (structures-26): the CLOSE-SCALE bark — what the player sees from the path 2–6 m
