@@ -17,14 +17,11 @@ other agent's log. Runs on the same laptop as `astra-local` and `owner-fable`: e
 native D3D11 render (`ZR_NATIVE_GPU=1`), one capture at a time, headless Chrome only.
 
 ## Current task
-Half B — the native measurement matrix of take-0116 (`973a21e`) is running detached on the laptop
-(`gauntlet/perf/r48/run-matrix.sh` → `matrix.log`, then `run-matrix-2.sh`): the take's player
-strip, the near-LOD variants (18 / 25 m swaps, pre-warmed pools; `build-variants.mjs`, scratch
-builds only), a 40 s play-mode trace and a six-view SSIM capture per variant, each system alone per
-hero view, a baseline repeat, the warm-up retry, then the per-pixel knobs (shadow map, composer
-stages, render scale). Results → `docs/PERF_2026-09-19.md` §4–7 and the INBOX brief for `lod-1`.
-Half A (the monitor as a director's cut) is in PR #19 and under adversarial review; QA screenshots
-against the real `monitor` data are clean (no console errors).
+Both halves delivered: PR #19 (draft → world branch) carries the Director's Monitor as a
+director's cut and `docs/PERF_2026-09-19.md` with the native profile of take-0116 and the `lod-1`
+brief (posted in the INBOX 2026-09-20 00:05 UTC). Waiting on fable-cursor's review / merge; the
+next publish with this code lights up the headline, the evidence gallery and the play-link SHA on
+the live monitor, and a strip staged under `gauntlet/out/player` lights up the player strip.
 
 ## Files / systems being touched
 - `site/**` (app.js, js/*.js, styles.css, index.html, SCHEMA.md, README.md, dev/*).
@@ -95,8 +92,9 @@ against the real `monitor` data are clean (no console errors).
 - `take.mjs` rotates its capture directory, so a player strip written into `gauntlet/out/last`
   before a publish never reaches the published dir; `monitor.mjs` picks it up from
   `gauntlet/out/player` (or `<takeDir>/player`) when its `sha` is the take's commit.
-- The take-0116 player strip is rendered by the matrix-3 step (after the per-pixel matrix); until
-  then the monitor's strip panel shows its empty state.
+- The take-0116 player strip (14 native poses, `gauntlet/perf/r48/player-0116/index.json`) is on
+  the monitor only in the PR's screenshots (a local copy of the data); it reaches the live site
+  when a take is published with this code and a strip staged under `gauntlet/out/player`.
 
 ## Recommended next work
 - fable-cursor: the `lod-1` brief lands in the INBOX when `docs/PERF_2026-09-19.md` is in.
