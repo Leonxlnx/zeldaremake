@@ -42,8 +42,12 @@ export const ROOF_CROWN_Y_SHARE = 0.86;
 export const ROOF_BAND_M: [number, number] = [-2.5, 3.5];
 /** support falloff around a giant: full inside `inner` × crown radius, gone at `outer` × crown radius + `plus` m */
 export const ROOF_SUPPORT = { inner: 0.85, outer: 2.0, plus: 9 } as const;
-/** minimum height of a clump above the ground under it (m): never in a walker's face on the plateau */
-export const ROOF_MIN_ABOVE_GROUND_M = 17;
+/**
+ * minimum height of a clump above the ground under it (m): never in a walker's face on the
+ * plateau, and above the near-canopy layer's reach (fable-cursor's condition: the roof stays
+ * above 20 m so trees-30's near lobes and distant-1's far crowns never double up with it)
+ */
+export const ROOF_MIN_ABOVE_GROUND_M = 20;
 /** clump count = grid cells × this share where the field says "roof"; the clumped field's threshold */
 export const ROOF_FIELD_THRESHOLD = 0.22;
 /** card size (m) of a clump's cards and how many cards a clump carries */

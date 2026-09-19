@@ -50,6 +50,10 @@ const ROOF_VERTEX_BODY = /* glsl */ `
     vec3 sway = windBranch(rootWorld, aRoot.y * ROOF_WIND_HEIGHT, ROOF_WIND_STIFF);
     // a card's corners sway with their clump; the far corner a touch more (the layer flexes)
     transformed += sway * (0.8 + 0.2 * uv.y);
+    // the card's own world position and plane normal for the edge-on fade (three's
+    // vWorldPosition exists only with an env map / shadows on the material — this one has neither)
+    vRoofWorld = (modelMatrix * vec4(transformed, 1.0)).xyz;
+    vRoofNormal = normalize(mat3(modelMatrix) * normal);
   }
 `;
 const ROOF_FRAGMENT_PARS = /* glsl */ `
@@ -60,10 +64,7 @@ uniform float uRoofThrough;
 uniform float uRoofUnderLift;
 uniform vec2 uRoofEdgeFade;
 varying vec3 vRoofNormal;
-`;
-const ROOF_VERTEX_NORMAL = /* glsl */ `
-  #include <worldpos_vertex>
-  vRoofNormal = normalize(mat3(modelMatrix) * normal);
+varying vec3 vRoofWorld;
 `;
 /** after lights_fragment_end: `normal` is the face-corrected shading normal (toward the viewer) */
 const ROOF_FRAGMENT_BODY = /* glsl */ `
@@ -96,9 +97,7 @@ function createRoofMaterial(ctx: WorldContext, atlas: RoofAtlas, sunDir: Vector3
     shader.uniforms.uRoofThrough = { value: ROOF_SUN_THROUGH };
     shader.uniforms.uRoofUnderLift = { value: ROOF_UNDER_LIFT };
     shader.uniforms.uRoofEdgeFade = { value: new Vector2(ROOF_EDGE_FADE[0], ROOF_EDGE_FADE[1]) };
-    shader.vertexShader = `#define ROOF_WIND_HEIGHT ${ROOF_WIND[0].toFixed(3)}\n#define ROOF_WIND_STIFF ${ROOF_WIND[1].toFixed(3)}\n${WIND_GLSL}\n${ROOF_VERTEX_PARS}\nvarying vec3 vRoofNormal;\n${shader.vertexShader}`
-      .replace('#include <begin_vertex>', ROOF_VERTEX_BODY)
-      .replace('#include <worldpos_vertex>', ROOF_VERTEX_NORMAL);
+    shader.vertexShader = `#define ROOF_WIND_HEIGHT ${ROOF_WIND[0].toFixed(3)}\n#define ROOF_WIND_STIFF ${ROOF_WIND[1].toFixed(3)}\n${WIND_GLSL}\n${ROOF_VERTEX_PARS}\nvarying vec3 vRoofNormal;\nvarying vec3 vRoofWorld;\n${shader.vertexShader}`.replace('#include <begin_vertex>', ROOF_VERTEX_BODY);
     shader.fragmentShader = `${ROOF_FRAGMENT_PARS}\n${shader.fragmentShader}`
       .replace(
         '#include <map_fragment>',
@@ -110,7 +109,7 @@ function createRoofMaterial(ctx: WorldContext, atlas: RoofAtlas, sunDir: Vector3
       #endif
       // edge-on fade: the view ray against the card's plane normal (world space, before the
       // face flip — the fade is symmetric)
-      float roofFacing = abs(dot(normalize(vRoofNormal), normalize(cameraPosition - vWorldPosition)));
+      float roofFacing = abs(dot(normalize(vRoofNormal), normalize(cameraPosition - vRoofWorld)));
       sampledDiffuseColor.a *= smoothstep(uRoofEdgeFade.x, uRoofEdgeFade.y, roofFacing);
       diffuseColor *= sampledDiffuseColor;
     #endif
