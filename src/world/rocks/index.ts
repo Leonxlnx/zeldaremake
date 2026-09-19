@@ -632,11 +632,11 @@ export async function create(ctx: WorldContext): Promise<WorldSystem> {
           // of frame 1 s — its near skin is smooth-shaded (facets within 34° share normals, so
           // the micro relief and plate steps read as worn relief, not a fringe of shards) and
           // only the cleave arrises stay hard; the D and terrace rocks keep the fractured 18°
-          creaseDeg: stairFoot ? 34 : 18,
+          creaseDeg: stairFoot ? 40 : 18,
           crackDepth: Math.min(0.045, 0.03 / r),
           fineCracks: 0.6,
           fineCrackDepth: Math.min(0.015, 0.012 / r),
-          micro: Math.min(0.03, 0.025 / r),
+          micro: Math.min(0.03, 0.025 / r) * (stairFoot ? 0.6 : 1),
           // (the stair-foot boulder's chips at a quarter depth: 0.75 cm scallops in a 9 cm roll)
           chip: Math.min(0.035, 0.03 / r) * (stairFoot ? 0.25 : 1),
           // round 44 (survey-1 crop 25): the cleave rims filleted over ≈ 5 cm (9 cm on the

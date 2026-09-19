@@ -129,9 +129,11 @@ export interface RockOptions {
    * coverage only (default false — unchanged far meshes). The swell used to dip wherever the
    * colour coverage does — at every crack line (`1 − crack·0.5`) and along the bare cleave
    * facets — so the shaded side's 12 cm blanket was cut into hard-edged steps that read as a
-   * stack of angular shards along the stair-foot rock's flank. With it on, the swell ignores the
-   * crack lines (the fracture faces still keep it off): the blanket is one lumpy sheet and the
-   * colour still draws the crack lines through it.
+   * stack of angular shards along the stair-foot rock's flank — and, worse, on the near skin the
+   * micro relief swings the normal's y across the cap gate at every ridge, so the swell switched
+   * on and off at the ridge pitch. With it on, the swell mask is evaluated on a low-frequency
+   * normal and without the crack term (the fracture faces still keep it off): the blanket is
+   * one lumpy sheet and the colour still draws the crack lines and the relief through it.
    */
   mossSwellSmooth?: boolean;
   /** colour of the contact collar (default: brown soil) */
@@ -528,8 +530,16 @@ export function buildRock(rng: Rng, seed: string, o: RockOptions): BufferGeometr
       if (!s) {
         _n.fromBufferAttribute(nrm0, i);
         // vertex-averaged direction (independent of which face we came from) → welded offset
-        // (mossSwellSmooth: no crack term — the facets still keep the swell off the fracture faces)
-        const m = o.mossSwellSmooth ? mossAt(_p, _n, 0, facet[i]) : mossAt(_p, _n, crackAt(_p), facet[i]);
+        let m: number;
+        if (o.mossSwellSmooth) {
+          // the swell mask on a LOW-FREQUENCY normal (70 % the ellipsoid's radial direction, 30 %
+          // the smooth normal) and without the crack term: on the near skin the micro relief
+          // swings n.y across the cap's `up` gate at every ridge, and a 12 cm swell switching on
+          // and off at that pitch is a stack of slabs (sn-boulder-stairfoot). The facets still
+          // keep the swell off the fracture faces; the colour coverage keeps the real normal.
+          _t.set(_p.x, _p.y * 1.4, _p.z).normalize().multiplyScalar(0.7).addScaledVector(_n, 0.3).normalize();
+          m = mossAt(_p, _t, 0, facet[i]);
+        } else m = mossAt(_p, _n, crackAt(_p), facet[i]);
         let k = mossThick * r * smoothstep(0.1, 0.75, m);
         if (mossLumpy > 0) {
           // the cushion is a pad of pillows, not a uniform shell: its thickness varies ±50 % at

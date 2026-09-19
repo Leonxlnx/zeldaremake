@@ -129,29 +129,33 @@ test('mossSwellSmooth (fable-2): default off is byte-identical; on, the moss bla
   const plain = buildRock(createRng('t/s'), 'seed/s', stairFoot());
   const explicit = buildRock(createRng('t/s'), 'seed/s', { ...stairFoot(), mossSwellSmooth: false });
   for (const k of ['position', 'normal', 'color', 'aMoss']) assert.ok(same(arr(plain, k), arr(explicit, k)), `${k} moved with mossSwellSmooth false`);
-  // same topology: per vertex, the smooth swell differs from the stepped one exactly where a
-  // crack line crossed the blanket (the step vertices). Those must exist in numbers (the
-  // regression), only ever move OUTWARD (the dip is filled, never dug), by up to the blanket's
-  // thickness
-  const stepped = buildRock(createRng('t/s'), 'seed/s', { ...stairFoot(), detail: 40, crackDepth: 0.03, fineCracks: 0.6, fineCrackDepth: 0.012 });
-  const smooth = buildRock(createRng('t/s'), 'seed/s', { ...stairFoot(), detail: 40, crackDepth: 0.03, fineCracks: 0.6, fineCrackDepth: 0.012, mossSwellSmooth: true });
-  const S = stepped.attributes.position;
-  const Q = smooth.attributes.position;
-  assert.equal(S.count, Q.count);
-  let filled = 0;
-  let dug = 0;
-  let maxFill = 0;
-  for (let i = 0; i < S.count; i++) {
-    const rs = Math.hypot(S.getX(i), S.getY(i) / 0.74, S.getZ(i));
-    const rq = Math.hypot(Q.getX(i), Q.getY(i) / 0.74, Q.getZ(i));
-    const d = rq - rs;
-    if (d > 0.01) filled++;
-    if (d < -0.004) dug++;
-    maxFill = Math.max(maxFill, d);
-  }
-  assert.ok(filled > 300, `only ${filled} blanket vertices filled in — the crack/facet steps no longer reproduce`);
-  assert.ok(maxFill > 0.03 && maxFill < 0.16, `max fill ${maxFill} m (the blanket is 0.12 m thick)`);
-  assert.equal(dug, 0, `${dug} vertices moved inward`);
+  // step metric: over the blanket (both ends aMoss > 0.4) a triangle edge that is a radial CLIFF
+  // — its two vertices differ by ≥ 3 cm in radius and that difference is ≥ 70 % of the edge's
+  // length — is a slab edge. The stepped near skin has hundreds; the smooth swell must cut them
+  // by more than half.
+  const cliffs = (g) => {
+    const P = g.attributes.position;
+    const M = g.attributes.aMoss;
+    let n = 0;
+    for (let i = 0; i < P.count; i += 3) {
+      for (let e = 0; e < 3; e++) {
+        const a = i + e;
+        const b = i + ((e + 1) % 3);
+        if (M.getX(a) < 0.4 || M.getX(b) < 0.4) continue;
+        const dr = Math.abs(Math.hypot(P.getX(a), P.getY(a) / 0.74, P.getZ(a)) - Math.hypot(P.getX(b), P.getY(b) / 0.74, P.getZ(b)));
+        if (dr < 0.03) continue;
+        const len = Math.hypot(P.getX(a) - P.getX(b), P.getY(a) - P.getY(b), P.getZ(a) - P.getZ(b));
+        if (dr > 0.7 * len) n++;
+      }
+    }
+    return n;
+  };
+  const stepped = buildRock(createRng('t/s'), 'seed/s', { ...stairFoot(), detail: 40, crackDepth: 0.03, fineCracks: 0.6, fineCrackDepth: 0.012, micro: 0.025, plates: 0.0075, rimRound: 0.09 });
+  const smooth = buildRock(createRng('t/s'), 'seed/s', { ...stairFoot(), detail: 40, crackDepth: 0.03, fineCracks: 0.6, fineCrackDepth: 0.012, micro: 0.025, plates: 0.0075, rimRound: 0.09, mossSwellSmooth: true });
+  const before = cliffs(stepped);
+  const after = cliffs(smooth);
+  assert.ok(before > 200, `stepped blanket has ${before} slab-edge vertices — the regression no longer reproduces`);
+  assert.ok(after < before * 0.5, `smooth blanket still has ${after} slab-edge vertices (stepped ${before})`);
 });
 
 test('aLichen (fable-2): off by default; with `lichen` + `plates` a 0..1 crust field on the bare upper skin only', () => {
