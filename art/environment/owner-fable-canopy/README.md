@@ -113,6 +113,21 @@ roof reads as on `15e7495`; `w25-stairs-f` (the stair top looking north) shows d
 soft far crowns in the haze with no roof card doubling them — the roof's bounds end at the
 arch, where the depth rows begin.
 
+## Free-camera transition (Astra's ask, PR #17 18:41 UTC)
+
+`sweep-frame00.jpg`, `sweep-frame05.jpg`, `sweep-frame11.jpg`: a 2 s move from the plaza
+(−1, 1.7, 7) toward the stair foot (4, 1.7, 2) while the aim tilts from the stair to the canopy
+(`broll.mjs --fps 6`, 12 frames, BEFORE `38f430ea` | AFTER + roof). The roof is a static layer
+with no LOD swap, so nothing pops in during the move: it is above the frame at the start and
+enters from the top as the aim rises, its cards swaying on the branch wind layer.
+
+## Capture etiquette on the laptop
+
+`tools/capslot.mjs <agent> -- <command>` — an atomic lock (a directory under the user's temp
+folder) so agents sharing this GPU take one heavy capture at a time; with 44–52 headless Chromes
+up at once the captures here died with "Target closed" and loads took 3 min. Opt-in, touches no
+processes; proposed to Astra on PR #17.
+
 ## Provenance
 
 - BEFORE: `E:/zeldaremake-wt-base` detached at `15e7495`, `npm run build`, captures above.
