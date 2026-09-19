@@ -35,6 +35,12 @@ against the real `monitor` data are clean (no console errors).
 - `.agents/fable-6.md`, my threads in `.agents/INBOX.md`.
 
 ## Completed work
+- 2026-09-19 22:50 UTC — perf §3 / §5.1 / §5.2 in `docs/PERF_2026-09-19.md`: the 780M frame is
+  per-pixel bound (GPU finish 100 ms of a 142 ms step, flat from 8.1 to 10.7 M tris); the
+  near-canopy pool cap (64 MB vs 125 MB demand) is the hitch story — pools at 192 / 32 MB give
+  0 builds / 0 evictions and trees.update 3.9 → 0.6 ms with byte-identical frames; 18 m swaps cost
+  +1–2 % tris and are affordable only with the pool change (`lod18prewarm`: p95 159 ms vs 243, no
+  synchronous build). Traces in `gauntlet/perf/r48/`.
 - 2026-09-19 22:10 UTC — `d423436` review round on the monitor + perf tooling (65-agent adversarial
   review, 5 finders × 2 skeptics per finding): an attribute-breakout XSS through the evidence card's
   `--ar` style and a RegExp built from published data closed; the markdown renderer's NUL sentinels
