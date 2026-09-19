@@ -8,6 +8,7 @@ import { installCaptureApi, isHeadlessCapture } from './capture/api';
 import { WORLD } from './world/config';
 import type { Quality } from './world/system';
 import { mountHud } from './ui/hud';
+import { mountShell } from './ui/shell'; // shell-1: bag input (RMB / ZR) + audio
 import { perfFlags, perfReport, perfRuntime, QualityGovernor } from './perfFlags';
 
 /**
@@ -138,7 +139,7 @@ async function boot() {
   renderer.shadowMap.enabled = quality.shadows;
   renderer.shadowMap.type = BasicShadowMap;
   host.appendChild(renderer.domElement);
-  if (params.get('hud') !== '0') mountHud(host, { headless });
+  const hud = params.get('hud') !== '0' ? mountHud(host, { headless }) : null; // shell-1: handle kept for the bag
 
   const scene = new Scene();
   const terrain = getTerrain();
@@ -189,6 +190,9 @@ async function boot() {
     player.setPlayMode(on);
     if (on) follow?.snap();
   };
+
+  // shell-1: bag (right mouse / gamepad ZR / Tab; pauses the world step while open) + audio (first gesture, M mutes)
+  const shell = mountShell({ host, hud, scene, headless, wind: world.ctx.wind });
 
   let simTime = 0;
   // CPU ms of the last step's phases (camera / world.update / render issue), read by __ZR__.perf()
@@ -317,8 +321,8 @@ async function boot() {
       const dt = Math.min(rawDt, 0.1);
       // the frame interval is the GPU-side proxy the governor steps on (the JS step alone never
       // sees a GPU-bound frame: the driver throttles the next requestAnimationFrame instead)
-      if (governor) governor.observe(rawDt * 1000, lastNow);
-      step(dt);
+      if (governor && !shell.paused) governor.observe(rawDt * 1000, lastNow);
+      if (!shell.paused) step(dt); // shell-1: the bag holds the world (the last frame stays on the canvas)
       frames++;
       fpsAcc += dt;
       if (fpsAcc >= 0.5) {
@@ -334,7 +338,7 @@ async function boot() {
             `${fps.toFixed(0)} fps · ${info.calls} draws · ${(info.triangles / 1e6).toFixed(2)}M tris\n` +
             `cam ${p.x.toFixed(1)}, ${p.y.toFixed(1)}, ${p.z.toFixed(1)} · quality ${tierHint}${flagHint}\n` +
             (follow?.enabled
-              ? `PLAY: WASD / arrows walk · Shift run · drag to look · Tab equipment · P free camera · H hide`
+              ? `PLAY: WASD / arrows walk · Shift run · Space jump · drag to look · Tab equipment · P free camera · H hide`
               : `FREE CAM: WASD move · drag/dbl-click look · 1-6 viewpoints · R reset · P play as Link · H hide`);
         }
       }

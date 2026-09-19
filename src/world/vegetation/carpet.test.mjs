@@ -89,7 +89,9 @@ for(const k of['clumps','northClumps','mats']){const first=a.carpet[k],second=b.
 // counts and density: a closed carpet over the lawns (≈ 4 clumps / m², ≈ 4 mats / m²)
 assert.ok(a.carpet.clumps.count>=12000&&a.carpet.clumps.count<=30000,`clumps: ${a.carpet.clumps.count}`);
 // round 46: the north tiles' mats take NORTH_CARPET.matKeep and the falloff floor (≈ +500 two-triangle mats: was ≤ 28 000)
-assert.ok(a.carpet.mats.count>=12000&&a.carpet.mats.count<=32000,`mats: ${a.carpet.mats.count}`);
+// round 47: the closing sweep (carpet.ts MAT_INFILL_WIDTH) seats ≈ 6 800 infill mats where the grid left the lawn open (was ≤ 32 000)
+assert.ok(a.carpet.mats.count>=12000&&a.carpet.mats.count<=40000,`mats: ${a.carpet.mats.count}`);
+assert.ok(a.carpet.infillMats>=3000&&a.carpet.infillMats<=12000,`round 47 infill mats: ${a.carpet.infillMats}`);
 // round 46: the north corridor's own fans — north of NORTH_CARPET.z only, running to 25 m, shorter, and the disc's set
 // holds none north of the line; both sets seat inside the reach
 {const {NORTH_CARPET}=read('vegetation/carpet');assert.ok(NORTH_CARPET.maxDistance>=25&&NORTH_CARPET.z<=-20&&NORTH_CARPET.keep>=0.85&&NORTH_CARPET.reachFloor>=0.75,'the north carpet runs to 25 m, dense');

@@ -85,6 +85,8 @@ export interface SharedGeometry {
   lanternLimb?: TubePath;
   /** the column trees' seats as actually placed and built, for structures that hang on them */
   trunkSeats?: TrunkSeat[];
+  /** village props' ground footprints (centre + radius, m), published by props before vegetation scatters */
+  propFootprints?: { x: number; z: number; r: number }[];
 }
 
 export interface WorldSystem {

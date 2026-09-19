@@ -14,6 +14,7 @@ import type { WorldContext } from '../system';
 import type { Rng } from '../util/prng';
 import { Noise2D, clamp, lerp, smoothstep } from '../util/noise';
 import { basisMatrix, merge, setColorAttribute, sweepTube } from './geometry';
+import { type GlyphStroke, glyphDistance } from './glyphs';
 import { Noise3D, WOOD_ON_FENCE_WOOD, type StructureMaterials } from './materials';
 import { buildMossTufts } from './mossTufts';
 import { checkedCap, endFrame, footMoss, woodFibre, woodGrain } from './woodGrain';
@@ -23,6 +24,8 @@ export interface SignpostBuild {
   base: [number, number, number];
   /** round 41 audit: the detail added at 2 m */
   detail41: { postTriangles: number; plankTriangles: number; footTufts: number; checks: number };
+  /** round 47 (structures-30): the carved lettering — strokes on the board, front-face vertices sunk */
+  glyphs: { strokes: number; carvedVertices: number };
 }
 
 /**
@@ -85,6 +88,41 @@ function grainPlank(geo: BufferGeometry, W: number, H: number, T: number, rng: R
   geo.computeVertexNormals();
 }
 const TAU = Math.PI * 2;
+
+/**
+ * Round 47 (structures-30): sink the plank's front face (+z) along the lettering's strokes. The
+ * decal is centred on the plank; a front-face vertex at local (x, y) sits at decal coordinates
+ * (x / decalW + 0.5, y / decalH + 0.5). Depth is `depth` inside the stroke (a V from the edge
+ * to half the width), the groove's floor is darkened in the vertex tint. Returns the vertices
+ * moved (audit).
+ */
+function carveGlyphs(geo: BufferGeometry, T: number, decalW: number, decalH: number, strokes: GlyphStroke[], depth: number): number {
+  const pos = geo.attributes.position as Float32BufferAttribute;
+  const col = geo.attributes.color as Float32BufferAttribute | undefined;
+  const aspect = decalW / decalH;
+  const hw = strokes.length ? strokes[0].hw * decalW : 0.01;
+  let moved = 0;
+  for (let i = 0; i < pos.count; i++) {
+    const z = pos.getZ(i);
+    if (z < T * 0.45) continue;
+    const u = pos.getX(i) / decalW + 0.5;
+    const v = pos.getY(i) / decalH + 0.5;
+    if (u < -0.02 || u > 1.02 || v < -0.02 || v > 1.02) continue;
+    const d = glyphDistance(strokes, u, v, aspect) * decalW;
+    if (d >= 0.002) continue;
+    const cut = d <= -hw * 0.5 ? 1 : clamp((0.002 - d) / (hw * 0.5 + 0.002), 0, 1);
+    pos.setZ(i, z - depth * cut);
+    if (col) {
+      const k = 1 - 0.55 * cut;
+      col.setXYZ(i, col.getX(i) * k, col.getY(i) * k, col.getZ(i) * k);
+    }
+    moved++;
+  }
+  pos.needsUpdate = true;
+  if (col) col.needsUpdate = true;
+  geo.computeVertexNormals();
+  return moved;
+}
 
 /** round 45 (details-1): the signpost's wood draws in the fences' material — see the mesh below */
 function scaleColors(geo: BufferGeometry, k: [number, number, number]): void {
@@ -197,7 +235,9 @@ export function buildSignpost(def: { id: string; position: readonly [number, num
   const plankW = 0.98;
   const plankH = 0.44;
   const plankT = 0.055;
-  const plank = new BoxGeometry(plankW, plankH, plankT, 30, 14, 1);
+  // round 47 (structures-30): 96 × 42 face segments (9 mm cells) so the lettering can be CARVED
+  // into the front face (`carveGlyphs` below); 30 × 14 before
+  const plank = new BoxGeometry(plankW, plankH, plankT, 96, 42, 1);
   plankUV(plank, 0.42, 0.24, true, 0.1, 0.2);
   // the weathered_planks map is grey (~0.35 linear); lift it to the reference's sunlit tan;
   // round 41: grain relief, bowed edges and checked ends in place of the corner jitter
@@ -212,6 +252,14 @@ export function buildSignpost(def: { id: string; position: readonly [number, num
   // light, which ours does not put there. The post, brace, pegs and cap go ×1.4. The runes decal
   // stays.
   grainPlank(plank, plankW, plankH, plankT, detailRng.fork('plank'), grainNoise, [2.3 * BOARD_LIFT, 1.95 * BOARD_LIFT, 1.35 * BOARD_LIFT]);
+  // Round 47 (structures-30, owner ref-01 "carved lettering"): the glyphs are CUT into the
+  // board — the front face is sunk 6 mm along the decal's strokes (glyphs.ts: the same strokes
+  // the decal paints), the groove's floor darkened in the tint, so the lettering has real
+  // relief under a grazing light and a dark fill even where the decal's texel is between
+  // strokes. The decal (fill, bevel lips, normal map) lies 1.5 mm over the carved face.
+  const decalW = plankW * 0.9;
+  const decalH = plankH * 0.8;
+  const carved = carveGlyphs(plank, plankT, decalW, decalH, mats.runeGlyphs, 0.006);
   const plankY = 1.08;
   const plankCentre = axisAt(plankY + plankH / 2).addScaledVector(F, 0.085);
   const tiltM = new Matrix4().makeRotationZ((rng() - 0.5) * 0.06);
@@ -252,9 +300,9 @@ export function buildSignpost(def: { id: string; position: readonly [number, num
   woodMesh.castShadow = woodMesh.receiveShadow = true;
   group.add(woodMesh);
 
-  // carved marks decal on the front face
-  const decal = new PlaneGeometry(plankW * 0.9, plankH * 0.8);
-  decal.applyMatrix4(basisMatrix(plankCentre.clone().addScaledVector(F, plankT / 2 + 0.004), F).multiply(tiltM));
+  // carved marks decal on the front face (round 47: 1.5 mm off the carved face, was 4 mm)
+  const decal = new PlaneGeometry(decalW, decalH);
+  decal.applyMatrix4(basisMatrix(plankCentre.clone().addScaledVector(F, plankT / 2 + 0.0015), F).multiply(tiltM));
   const decalMesh = new Mesh(decal, mats.runes);
   decalMesh.name = 'signpost-runes';
   group.add(decalMesh);
@@ -285,5 +333,6 @@ export function buildSignpost(def: { id: string; position: readonly [number, num
     group,
     base: [x, gy, z],
     detail41: { postTriangles: tri(post) + tri(postCap), plankTriangles: tri(plank), footTufts: tufts.count, checks: 3 },
+    glyphs: { strokes: mats.runeGlyphs.length, carvedVertices: carved },
   };
 }

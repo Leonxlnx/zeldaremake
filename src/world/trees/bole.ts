@@ -484,33 +484,38 @@ const CUSHION_LIT = new Color(0.56, 0.74, 0.34);
  * surface normal `n`, radius from `size` scaled by the cover, height 0.45–0.65 of the radius,
  * the rim tucked 1 cm into the bark so it sits IN the bark; the outline breathes with the noise
  * so no two read as the same hemisphere. Full moss cover on every vertex (the tree shader lays
- * the cushion texture and its rim shading over it), the rim occluded, the crown lit. 14 sides ×
- * 2 rings + apex = 42 triangles; every vertex carries the writer's cushion code (aRoot.w in CUSHION_ROOT_W)
+ * the cushion texture and its rim shading over it), the rim occluded, the crown lit. 16 sides ×
+ * 3 rings + apex = 80 triangles; every vertex carries the writer's cushion code (aRoot.w in CUSHION_ROOT_W)
  * and the anchor `base` in aRoot.xyz, so the tree shader shrinks the cushion onto its anchor as
  * the lens comes within CUSHION_FADE_M of it (materials.ts). Returns 1.
  */
 export function mossCushion(writer: GeometryWriter, p: Vector3, n: Vector3, rng: RandomFn, size: [number, number], cover: number, noise: Noise2D, stiffness: number, windPhase: number): number {
-  // 14 around (round 46, survey-2 check 03): a 9-gon read as a cut polygon 190 px across where a
-  // stand-next pose put the lens 45 cm from one — and the shader shrinks a cushion away inside
-  // CUSHION_FADE_M (materials.ts), which is what the writer's cushion anchor is for
-  const sides = 14;
+  // 16 around (round 47; 14 in round 46, 9 before — survey-2 check 03: a 9-gon read as a cut
+  // polygon 190 px across where a stand-next pose put the lens 45 cm from one), three rings and
+  // an apex for a rounded profile, and a LOBED outline: a 3- and a 5-lobe wobble over the
+  // noise, so the rim is never a disc's. The shader shrinks a cushion away inside
+  // CUSHION_FADE_M (materials.ts), which is what the writer's cushion anchor is for.
+  const sides = 16;
   const radius = (size[0] + rng() * (size[1] - size[0])) * (0.7 + 0.5 * Math.min(1, cover));
   const height = radius * (0.45 + rng() * 0.2);
   const phase = rng() * TAU;
   const squash = 0.8 + rng() * 0.4;
+  const lobe3 = rng() * TAU;
+  const lobe5 = rng() * TAU;
   const [u, v] = frame(n);
   const base = p.clone().addScaledVector(n, -0.01);
   const q = new Vector3();
   const rings = [
     { t: 1.0, lift: 0.0, ao: 0.62 },
-    { t: 0.62, lift: 0.72, ao: 0.86 },
+    { t: 0.84, lift: 0.42, ao: 0.78 },
+    { t: 0.52, lift: 0.82, ao: 0.9 },
   ];
   const rows: number[][] = [];
   for (const ring of rings) {
     const row: number[] = [];
     for (let j = 0; j <= sides; j++) {
       const a = ((j % sides) / sides) * TAU + phase;
-      const wobble = 1 + 0.22 * noise.noise(Math.cos(a) * 2.3 + p.x * 7, Math.sin(a) * 2.3 + p.z * 7 + p.y * 3);
+      const wobble = 1 + 0.16 * noise.noise(Math.cos(a) * 2.3 + p.x * 7, Math.sin(a) * 2.3 + p.z * 7 + p.y * 3) + 0.14 * Math.cos(3 * a + lobe3) + 0.08 * Math.cos(5 * a + lobe5);
       const rr = radius * ring.t * wobble;
       q.copy(base).addScaledVector(u, Math.cos(a) * rr * squash).addScaledVector(v, Math.sin(a) * rr).addScaledVector(n, height * ring.lift);
       const mossN = 0.5 + 0.5 * noise.noise(q.x * 9 + 1.1, q.z * 9 + q.y * 5);
@@ -522,16 +527,19 @@ export function mossCushion(writer: GeometryWriter, p: Vector3, n: Vector3, rng:
     writer.seams.push([row[0], row[sides]]);
     rows.push(row);
   }
-  for (let j = 0; j < sides; j++) {
-    writer.triangle(rows[0][j], rows[0][j + 1], rows[1][j]);
-    writer.triangle(rows[0][j + 1], rows[1][j + 1], rows[1][j]);
+  for (let r = 0; r < rings.length - 1; r++) {
+    for (let j = 0; j < sides; j++) {
+      writer.triangle(rows[r][j], rows[r][j + 1], rows[r + 1][j]);
+      writer.triangle(rows[r][j + 1], rows[r + 1][j + 1], rows[r + 1][j]);
+    }
   }
+  const last = rows[rows.length - 1];
   const apexP = base.clone().addScaledVector(n, height).addScaledVector(u, (rng() - 0.5) * radius * 0.3).addScaledVector(v, (rng() - 0.5) * radius * 0.3);
   _c.copy(CUSHION_LIT).multiplyScalar(0.92 + 0.16 * rng());
   writer.woodCushion = base;
   const apex = writer.vertex(apexP, _c, 0.5, 0, stiffness, windPhase, packOcclusion(1), 0);
   writer.woodCushion = null;
-  for (let j = 0; j < sides; j++) writer.triangle(rows[1][j], rows[1][j + 1], apex);
+  for (let j = 0; j < sides; j++) writer.triangle(last[j], last[j + 1], apex);
   return 1;
 }
 
@@ -718,7 +726,9 @@ const ROOT_SOIL = new Color(0.55, 0.5, 0.42);
 export function buttressRoot(writer: GeometryWriter, path: Vector3[], radii: number[], o: ButtressRootOptions): ButtressRootResult {
   const trisBefore = writer.triangles;
   const rr = o.rng;
-  const sides = 22;
+  // 30 around (round 47; 22 through round 46): a stand-next pose (sn-bole-lantern-tree) puts the
+  // lens 0.4 m from a fin's crest, where the tall thin section's 16° facets read as cut planes
+  const sides = 30;
   const split = 0.58 + rr() * 0.14;
   const toeCount = rr() < 0.45 ? 3 : 2;
   const toeSpread = 0.32 + rr() * 0.28;

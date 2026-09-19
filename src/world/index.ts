@@ -37,8 +37,10 @@ const SYSTEMS: { name: string; create: SystemFactory }[] = [
   { name: 'trees', create: trees.create },
   { name: 'canopy', create: canopy.create }, // owner-fable: the canopy roof (reads the giants from layout; no trees internals)
   { name: 'structures', create: structures.create },
-  { name: 'vegetation', create: vegetation.create },
+  // props before vegetation: props publish their footprints (ctx.shared.propFootprints) so the
+  // scatter can keep ferns out of the pots; forks are label-keyed, so the order moves no stream
   { name: 'props', create: props.create },
+  { name: 'vegetation', create: vegetation.create },
   { name: 'character', create: character.create },
 ];
 

@@ -135,8 +135,8 @@ import { AnimationAction, AnimationMixer, Bone, Box3, Group, LoopRepeat, Materia
 import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
 import { GAIT_SPEED, GAITS, type Gait, type GroundSampler } from './animation';
 import { BLINK_HALF_MORPH, BLINK_MORPH, blinkPhase, blinkWeights, createBlinkSchedule, nextBlinkStart, type BlinkSchedule, type BlinkWeights } from './blink';
-import { chainWeights, type FootAnchor } from './gaitChain';
-import type { BlinkInfo, FootContact, PlantInfo, Puppet, PuppetPose } from './puppet';
+import { chainWeights, type FootAnchor, type GaitChain } from './gaitChain';
+import type { BlinkInfo, FootContact, JumpState, Locomotion, PlantInfo, Puppet, PuppetPose } from './puppet';
 
 /** served by Vite from public/ */
 export const LINK_GLB_FILE = 'models/link/link-runtime.glb';
@@ -305,6 +305,93 @@ const SCAN_STEP = 0.02;
 const SCAN_PAD = 0.02;
 
 /**
+ * Round 47 — play-mode overlays (PuppetPose.loco; none of this runs for a fixed capture).
+ *
+ * Stance: a foot whose blended swing weight is under PIN_RELEASE is a stance foot (FootContact.stance).
+ * The stance PIN keys on the narrower planted window below.
+ */
+const PIN_RELEASE = 0.5;
+/**
+ * A stance pin holds a foot only while the clip has it PLANTED — its sole on the floor AND moving
+ * backward through root space at PLANT_SPEED_FRAC of the clip's stride speed or more. The delivered
+ * clips keep a sole on the floor a few frames before it starts moving back (heel-strike easing)
+ * and after it stops (toe-off roll); the run's floor contact is 0.23 s per step of which only
+ * 0.08 s is planted. Pinning through those frames at 4.6 m/s would ask the leg for a metre; the
+ * planted window is what a pin can hold. The offset a releasing pin leaves fades over PIN_FADE_S.
+ */
+const PLANT_SPEED_FRAC = 0.6;
+const PLANT_LIFT = 0.003;
+const PIN_FADE_S = 0.1;
+/**
+ * The pin's LEAD-IN. The delivered clips bring a heel down still moving: the walk's sole is within
+ * 8 mm of the floor for three frames while it skids 8.5 cm forward through the world before it
+ * plants (the "moonwalk" that is left at a steady 1.6 m/s, where the pins hold 0.0 mm). Over the
+ * samples just before a planted window in which the sole is within LEAD_LIFT of the floor and not
+ * yet planted (tableLead: at most LEAD_MAX_S of clip time, at most LEAD_MAX_M of that skid), the
+ * foot is carried to the spot it will plant on instead — arriving with no ground velocity, as a
+ * heel does — and the pin then takes over exactly there. A lead past the straight leg is trimmed
+ * by the reach rule below like any pin.
+ */
+const LEAD_LIFT = 0.035;
+const LEAD_MAX_S = 0.1;
+const LEAD_MAX_M = 0.15;
+/**
+ * Arm swing per gait (the owner: "his arms should move slow, and when you run, a little bit
+ * faster"): the shoulder / elbow rotation about the clip's own cycle-mean arm pose is scaled by
+ * ARM_SCALE and low-passed with the time constant ARM_TAU (s), both blended by the gait weights.
+ */
+const ARM_SCALE: Record<Gait, number> = { idle: 1, walk: 0.7, run: 1.15, stairs: 0.85 };
+const ARM_TAU: Record<Gait, number> = { idle: 0, walk: 0.06, run: 0.02, stairs: 0.05 };
+/**
+ * Jump overlay (JumpState phases). Crouch: the root sinks JUMP_CROUCH_M over the crouch (the leg
+ * IK keeps the feet planted, so the knees bend) while the arms swing back; air: the legs blend
+ * from the frozen stride toward a tuck (ankles JUMP_TUCK_UP of the leg's length higher and
+ * JUMP_TUCK_FWD of it further forward of the hips — fractions, so the knee's fold is the same on
+ * any rig) that peaks at the apex, the toes point down, the arms come up; land: a compression of
+ * JUMP_LAND_M per m/s of touchdown speed (clamped) that dips and recovers over the landing phase.
+ */
+const JUMP_CROUCH_M = 0.11;
+const JUMP_TUCK_UP = 0.42;
+const JUMP_TUCK_FWD = 0.3;
+const JUMP_TUCK_BLEND = 0.85;
+const JUMP_TOE_DOWN = 0.35;
+const JUMP_LAND_M_PER_MPS = 0.02;
+const JUMP_LAND_MAX_M = 0.14;
+const JUMP_ARM_UP = 1.1;
+const JUMP_ARM_BACK = 0.55;
+const JUMP_HIP_LEAN = 0.12;
+/** the jump's phase lengths (s) — the character system's timers; the overlay eases over them */
+export const JUMP_CROUCH_S = 0.12;
+export const JUMP_LAND_S = 0.22;
+/** the first part of the landing over which the planted feet spread from under the hips (the airborne reach) back into the stride */
+const JUMP_LAND_GATHER_S = 0.12;
+/**
+ * Stairs (the owner: "his legs look like they're going into his body"): a swing foot's arc over
+ * the tread it climbs is capped so its lowest footprint point clears the nosing by STAIR_CLEAR_M
+ * and no more, and the hip is never flexed past HIP_FLEX_MAX (rad) — a thigh that would enter the
+ * torso pulls its ankle target down the thigh's arc instead (the foot gives up a little height;
+ * the knee keeps its bend).
+ */
+const STAIR_CLEAR_M = 0.05;
+/** the swing phases over which the STAIR_CLEAR_M cap fades out (the nosing is crossed by ~0.5; the clip's descent lands the foot) */
+const STAIR_CAP_OUT: [number, number] = [0.6, 0.85];
+const HIP_FLEX_MAX = MathUtils.degToRad(95);
+/** play mode: the fraction of a climbing swing by which the root has risen the riser (1 = at heel-strike, the capture rule) */
+const ROOT_RISE_END = 0.7;
+/**
+ * The knee turned out (round 47, play mode). The hero flight's riser (0.27 m) is 54 % of Link's
+ * leg (0.50 m): with the trailing foot on the lower tread the pelvis cannot be higher than that
+ * leg, so the leading leg, its foot a riser up, folds to ~155° at heel-strike whatever the root
+ * rise does — the geometry of a toddler on adult stairs, and the thigh runs into the tunic. A
+ * thigh folded past KNEE_OUT_FLEX swivels about its own hip → ankle line, the knee out to the
+ * side by KNEE_OUT_RATE of the excess (36° at 155°): the ankle — planted or not — does not move,
+ * the foot keeps its orientation (the ankle pivot undoes the swivel with the rest of the IK),
+ * and the thigh leaves the belly the way a child turns the knee out on a step too tall.
+ */
+const KNEE_OUT_FLEX = MathUtils.degToRad(110);
+const KNEE_OUT_RATE = 0.8;
+
+/**
  * Riser envelopes — a support under a point p that is a CONTINUOUS function of p although the
  * ground itself pops by a riser at a nosing. Along rays from p, a step is a level change
  * ≥ STEP_MIN between two consecutive samples (a slope never is; slab rims of the paving, ≤ 5 cm,
@@ -429,6 +516,15 @@ interface Leg {
   /** the idle-foot pin (along the facing, weighted) folded into the applied shift, and the sole hold raising the marker (both m, see the header) */
   pin: number;
   hold: number;
+  /** the play-mode stance pin's world offset applied to the foot (m; round 47), and whether the blended clips have the foot in stance */
+  pinX: number;
+  pinZ: number;
+  stance: boolean;
+  /** the rise (m) the active clips' swing of this foot climbs (take-off support → landing support; > 0 climbing), and the hip flexion clamped away (rad) */
+  swingRise: number;
+  hipClamp: number;
+  /** the knee-out swivel applied to this leg (rad; play mode, KNEE_OUT_*) */
+  kneeOut: number;
   /**
    * root-ease inputs (blended over the active clips): the supports at take-off / landing (both the
    * stance support for a foot in stance), the swing phase and its weight (0 in stance)
@@ -518,6 +614,12 @@ export interface LinkClipInfo {
   rate: number;
   /** each foot's swings as [toe-off, heel-strike] clip times (s) */
   swings: { L: [number, number][]; R: [number, number][] };
+  /** seconds per cycle each foot is PLANTED (tablePlants: sole on the floor and moving back at the stride speed) */
+  plantedS: { L: number; R: number };
+  /** seconds per cycle each foot is in a pin lead-in window (tableLead: on the floor before its plant, skidding) */
+  leadS: { L: number; R: number };
+  /** the gait phase a play-mode crossfade from idle enters this clip at (tableStartPhase: the feet together) */
+  startPhase: number;
 }
 
 export interface LinkAssetInfo {
@@ -578,10 +680,12 @@ const _u = new Vector3();
 const _v = new Vector3();
 const _n = new Vector3();
 const _w = new Vector3();
+const _down = new Vector3();
 const _aim = new Vector3();
 const _normal = new Vector3();
 const _qIk = new Quaternion();
 const _qParent = new Quaternion();
+const _swivel = new Quaternion();
 const _qInv = new Quaternion();
 const _qPitch = new Quaternion();
 const _qLandTilt = new Quaternion();
@@ -867,6 +971,86 @@ function tableSwings(path: FootPath, other: FootPath, duration: number): Swing[]
   return swings;
 }
 
+/**
+ * Per clip sample: 1 where the foot is PLANTED (see PLANT_SPEED_FRAC) — the sole within PLANT_LIFT
+ * of the cycle's floor and moving backward along the clip's forward (+Z of root space) at
+ * PLANT_SPEED_FRAC of `speed` (m/s at rate 1) or more (central difference over the cyclic path).
+ */
+function tablePlants(path: FootPath, duration: number, speed: number): Uint8Array {
+  const n = path.soleY.length;
+  const out = new Uint8Array(n);
+  if (speed <= 0) return out;
+  let floor = Infinity;
+  for (let i = 0; i < n; i++) if (path.soleY[i] < floor) floor = path.soleY[i];
+  const dt = (2 * duration) / n;
+  for (let i = 0; i < n; i++) {
+    if (path.soleY[i] - floor > PLANT_LIFT) continue;
+    const back = (path.soleZ[mod(i - 1, n)] - path.soleZ[mod(i + 1, n)]) / dt;
+    if (back >= PLANT_SPEED_FRAC * speed) out[i] = 1;
+  }
+  return out;
+}
+/** whether the clip has the foot planted at clip time τ (nearest table sample) */
+function plantedAt(plants: Uint8Array, tau: number, duration: number): boolean {
+  const n = plants.length;
+  return plants[mod(Math.round((tau / duration) * n), n)] === 1;
+}
+/**
+ * Per clip sample, the pin lead-in window the sample lies in (see LEAD_LIFT): [2k] the clip time
+ * the window opens at, [2k+1] the clip time the foot plants at; NaN outside a window. Walking back
+ * from each planted window's start over the unplanted samples with the sole within LEAD_LIFT of
+ * the floor, while the window is under LEAD_MAX_S and the foot's world skid across it — the
+ * stride speed times the clip time, less what the sole moved back through root space — is under
+ * LEAD_MAX_M.
+ */
+function tableLead(path: FootPath, plants: Uint8Array, duration: number, speed: number): Float64Array {
+  const n = plants.length;
+  const out = new Float64Array(2 * n).fill(NaN);
+  if (speed <= 0) return out;
+  let floor = Infinity;
+  for (let i = 0; i < n; i++) if (path.soleY[i] < floor) floor = path.soleY[i];
+  const dt = duration / n;
+  for (let p = 0; p < n; p++) {
+    if (plants[p] !== 1 || plants[mod(p - 1, n)] === 1) continue;
+    let j0 = p;
+    for (let k = 1; k < n; k++) {
+      const j = mod(p - k, n);
+      if (plants[j] === 1 || path.soleY[j] - floor > LEAD_LIFT || k * dt > LEAD_MAX_S) break;
+      if (speed * k * dt + (path.soleZ[p] - path.soleZ[j]) > LEAD_MAX_M) break;
+      j0 = j;
+    }
+    if (j0 === p) continue;
+    const open = j0 * dt;
+    const plant = p * dt;
+    for (let j = j0; j !== p; j = (j + 1) % n) {
+      out[2 * j] = open;
+      out[2 * j + 1] = plant;
+    }
+  }
+  return out;
+}
+/**
+ * The gait phase (gaitPhase) a play-mode crossfade from a gait without one (idle) enters a clip at
+ * (round 47): the point of the L foot's swing where its sole passes the root — the feet together
+ * under the body, where an idle stance has them — so the fade lifts one foot into its swing and
+ * pins the other where it stands, instead of pulling both feet 0.2 m apart along the floor to a
+ * heel-strike pose (the first step used to skate 18–29 cm). 0.5 for a swing that never crosses.
+ */
+function tableStartPhase(path: FootPath, swings: Swing[], duration: number): number {
+  if (!swings.length) return 0.5;
+  const s = swings[0];
+  const len = s.tLand - s.tOff;
+  const n = 64;
+  const spot = { x: 0, z: 0, yaw: 0 };
+  let z0 = NaN;
+  for (let k = 0; k <= n; k++) {
+    pathAt(path, s.tOff + (k / n) * len, duration, spot);
+    if (k > 0 && z0 < 0 && spot.z >= 0) return (k - spot.z / (spot.z - z0)) / n;
+    z0 = spot.z;
+  }
+  return 0.5;
+}
+
 /** the swing of `foot` containing clip time τ, and the phase 0..1 through it (null in stance) */
 function swingAt(swings: Swing[], tau: number, duration: number): { swing: Swing; phase: number } | null {
   for (const s of swings) {
@@ -960,7 +1144,7 @@ function groundTilt(ground: GroundSampler, x: number, z: number, weight: number,
  * rotation the shin received. Returns how far (m) the target lay beyond the leg's reach (0 when
  * it was reachable).
  */
-function solveLeg(leg: Leg, target: Vector3, qIk: Quaternion): number {
+function solveLeg(leg: Leg, target: Vector3, qIk: Quaternion, swivel?: Quaternion): number {
   const H = leg.hip;
   const K = leg.kneeP;
   const A = leg.ankleP;
@@ -995,6 +1179,8 @@ function solveLeg(leg: Leg, target: Vector3, qIk: Quaternion): number {
   _aim.normalize();
   _v.normalize();
   _q2.setFromUnitVectors(_v, _aim);
+  // an extra world rotation about the hip → ankle line (the knee turned out): the ankle stays put
+  if (swivel) _q2.premultiply(swivel);
   qIk.multiplyQuaternions(_q2, _q);
   // pivot locals: a world rotation R about a joint expressed in the joint's parent frame P is P⁻¹ R P
   leg.thighPivot.parent!.getWorldQuaternion(_qParent);
@@ -1024,6 +1210,59 @@ function insertPivot(bone: Object3D, name: string): Object3D {
   pivot.add(inner);
   inner.add(bone);
   return pivot;
+}
+
+/** `out` = the rotation `q` with its angle scaled by `k` about its own axis (k may exceed 1); identity for a null rotation */
+function scaleRotation(q: Quaternion, k: number, out: Quaternion): Quaternion {
+  let x = q.x;
+  let y = q.y;
+  let z = q.z;
+  let w = q.w;
+  if (w < 0) {
+    x = -x;
+    y = -y;
+    z = -z;
+    w = -w;
+  }
+  const s = Math.sqrt(x * x + y * y + z * z);
+  if (s < 1e-9) return out.identity();
+  const half = Math.atan2(s, w) * k;
+  const f = Math.sin(half) / s;
+  return out.set(x * f, y * f, z * f, Math.cos(half));
+}
+
+/**
+ * The jump overlay's envelopes as functions of the jump state and the simulation time (see the
+ * JUMP_* constants). `jumpDrop`: how far the root is lowered below its planted height in the
+ * crouch and the landing (0 in the air). `jumpArm`: the shoulders' swing about the lateral axis
+ * (+ = forward / up). `jumpTuck`: 0..1 how far the airborne legs are toward the tuck; `jumpExtend`:
+ * 0..1 the push-off extension right after take-off; `jumpLandReach`: 0..1 the legs reaching down
+ * for the ground before touchdown. All continuous across the phase changes.
+ */
+function jumpDrop(j: JumpState, t: number): number {
+  if (j.phase === 'crouch') return JUMP_CROUCH_M * MathUtils.smoothstep((t - j.t0) / JUMP_CROUCH_S, 0, 1);
+  if (j.phase === 'land') {
+    const depth = Math.min(JUMP_LAND_MAX_M, JUMP_LAND_M_PER_MPS * Math.max(0, j.vLand));
+    const u = MathUtils.clamp((t - j.t0) / JUMP_LAND_S, 0, 1);
+    return depth * Math.sin(Math.PI * Math.pow(u, 0.6));
+  }
+  return 0;
+}
+function jumpArm(j: JumpState, t: number): number {
+  if (j.phase === 'crouch') return -JUMP_ARM_BACK * MathUtils.smoothstep((t - j.t0) / JUMP_CROUCH_S, 0, 1);
+  if (j.phase === 'air') {
+    const a = j.air;
+    return MathUtils.lerp(-JUMP_ARM_BACK, JUMP_ARM_UP, MathUtils.smoothstep(a, 0, 0.35)) - (JUMP_ARM_UP - 0.4) * MathUtils.smoothstep(a, 0.6, 1);
+  }
+  return 0.4 * (1 - MathUtils.smoothstep((t - j.t0) / JUMP_LAND_S, 0, 1));
+}
+const jumpTuck = (a: number) => MathUtils.smoothstep(a, 0.05, 0.4) * (1 - MathUtils.smoothstep(a, 0.6, 0.95));
+const jumpExtend = (a: number) => 1 - MathUtils.smoothstep(a, 0, 0.2);
+const jumpLandReach = (a: number) => MathUtils.smoothstep(a, 0.75, 1);
+function jumpHipLean(j: JumpState, t: number): number {
+  if (j.phase === 'crouch') return JUMP_HIP_LEAN * MathUtils.smoothstep((t - j.t0) / JUMP_CROUCH_S, 0, 1);
+  if (j.phase === 'air') return JUMP_HIP_LEAN * (1 - 0.5 * MathUtils.smoothstep(j.air, 0.5, 1));
+  return JUMP_HIP_LEAN * 0.5 * (1 - MathUtils.smoothstep((t - j.t0) / JUMP_LAND_S, 0, 1));
 }
 
 /**
@@ -1221,6 +1460,12 @@ export async function loadGlbLink(url: string, opts: GlbLinkOptions = {}): Promi
       delta: 0,
       pin: 0,
       hold: 0,
+      pinX: 0,
+      pinZ: 0,
+      stance: true,
+      swingRise: 0,
+      hipClamp: 0,
+      kneeOut: 0,
       rootOff: 0,
       rootLand: 0,
       phase: 0,
@@ -1238,11 +1483,29 @@ export async function loadGlbLink(url: string, opts: GlbLinkOptions = {}): Promi
     };
   };
   const legs: [Leg, Leg] = [makeLeg('L'), makeLeg('R')];
+  /**
+   * The arm chain the play-mode swing modifier works on (round 47): shoulders and elbows, their
+   * cycle-mean local rotation per clip (sampled below with the tables — the pose the swing is
+   * scaled about; the bind pose would be the wrong centre, a T-pose arm scaled toward it rises),
+   * the mixer's own output of the last pose (restored before the next mixer update, since the
+   * mixer only rewrites a bone whose blended value changed — the same reason the look and the
+   * leg IK use pivots) and the low-pass filter's state.
+   */
+  const armBones: Object3D[] = ['shoulderL', 'shoulderR', 'elbowL', 'elbowR'].map((n) => bone(n));
+  const armMean: Record<Gait, Quaternion[]> = { idle: [], walk: [], run: [], stairs: [] };
+  const armMix = armBones.map(() => new Quaternion());
+  const armFilt = armBones.map(() => new Quaternion());
+  let armsDirty = false;
+  let armsLoco: Locomotion | null = null;
+  const hips = bone('hips');
+  const chest = bone('chest');
+  const hipsMix = new Quaternion();
+  let hipsDirty = false;
   const feet: FootContact[] = [
-    { foot: 'L', soleY: 0, groundY: 0, gapM: 0, supportY: 0, minShoeGapM: 0, shiftM: 0, pitchRad: 0, correctionM: 0, pinM: 0, holdM: 0 },
-    { foot: 'R', soleY: 0, groundY: 0, gapM: 0, supportY: 0, minShoeGapM: 0, shiftM: 0, pitchRad: 0, correctionM: 0, pinM: 0, holdM: 0 },
+    { foot: 'L', soleY: 0, groundY: 0, gapM: 0, supportY: 0, minShoeGapM: 0, shiftM: 0, pitchRad: 0, correctionM: 0, pinM: 0, holdM: 0, soleX: 0, soleZ: 0, stance: true, pinLatM: 0 },
+    { foot: 'R', soleY: 0, groundY: 0, gapM: 0, supportY: 0, minShoeGapM: 0, shiftM: 0, pitchRad: 0, correctionM: 0, pinM: 0, holdM: 0, soleX: 0, soleZ: 0, stance: true, pinLatM: 0 },
   ];
-  const plant: PlantInfo = { mode: 'two-bone', maxCorrectionM: 0, rootShiftM: 0, planted: 'L', reachClamped: false, reachClampedLeg: null, reachExcessM: 0, maxShiftM: 0, extraDropM: 0, attackDropM: 0, maxPinM: 0, maxHoldM: 0, blendClips: 1 };
+  const plant: PlantInfo = { mode: 'two-bone', maxCorrectionM: 0, rootShiftM: 0, planted: 'L', reachClamped: false, reachClampedLeg: null, reachExcessM: 0, maxShiftM: 0, extraDropM: 0, attackDropM: 0, maxPinM: 0, maxHoldM: 0, blendClips: 1, hipClampRad: 0, kneeOutRad: 0 };
   const cfgOff: FootConfig = { shift: 0, support: 0, pitch: 0, back: 0, ahead: 0 };
   const cfgLand: FootConfig = { shift: 0, support: 0, pitch: 0, back: 0, ahead: 0 };
   const spotNow = { x: 0, z: 0, yaw: 0 };
@@ -1279,6 +1542,12 @@ export async function loadGlbLink(url: string, opts: GlbLinkOptions = {}): Promi
   // Sampled once here through the same mixer, so the runtime never guesses a stance.
   const tables = {} as SwingTable;
   const pathTable = {} as PathTable;
+  /** per gait, per foot: the planted samples (tablePlants) the play-mode stance pins key on */
+  const plantTable = {} as Record<Gait, [Uint8Array, Uint8Array]>;
+  /** per gait, per foot: the pin lead-in windows before each planted window (tableLead) */
+  const leadTable = {} as Record<Gait, [Float64Array, Float64Array]>;
+  /** per gait: the phase a play-mode crossfade from idle enters the clip at (tableStartPhase) */
+  const startPhase = {} as Record<Gait, number>;
   {
     const _pt = new Vector3();
     const _f = new Vector3();
@@ -1286,10 +1555,18 @@ export async function loadGlbLink(url: string, opts: GlbLinkOptions = {}): Promi
     for (const [gait, a] of actions) {
       for (const b of actions.values()) b.action.weight = b === a ? 1 : 0;
       const paths: FootPath[] = legs.map(() => ({ soleX: new Float64Array(TABLE_N), soleY: new Float64Array(TABLE_N), soleZ: new Float64Array(TABLE_N), yaw: new Float64Array(TABLE_N), hip: [], q: [] }));
+      // the arm bones' cycle-mean local rotations: the sign-aligned quaternion sum, normalised
+      const armSum = armBones.map(() => new Quaternion(0, 0, 0, 0));
       for (let i = 0; i < TABLE_N; i++) {
         a.action.time = (i / TABLE_N) * a.duration;
         mixer.update(0);
         model.updateMatrixWorld(true);
+        for (let k = 0; k < armBones.length; k++) {
+          const q = armBones[k].quaternion;
+          const s = armSum[k];
+          const sign = i > 0 && s.dot(q) < 0 ? -1 : 1;
+          s.set(s.x + sign * q.x, s.y + sign * q.y, s.z + sign * q.z, s.w + sign * q.w);
+        }
         for (let f = 0; f < 2; f++) {
           _pt.copy(legs[f].sole).applyMatrix4(legs[f].ankle.matrixWorld);
           paths[f].soleX[i] = _pt.x;
@@ -1304,6 +1581,10 @@ export async function loadGlbLink(url: string, opts: GlbLinkOptions = {}): Promi
       }
       tables[gait] = [tableSwings(paths[0], paths[1], a.duration), tableSwings(paths[1], paths[0], a.duration)];
       pathTable[gait] = [paths[0], paths[1]];
+      plantTable[gait] = [tablePlants(paths[0], a.duration, GAIT_SPEED[gait]), tablePlants(paths[1], a.duration, GAIT_SPEED[gait])];
+      leadTable[gait] = [tableLead(paths[0], plantTable[gait][0], a.duration, GAIT_SPEED[gait]), tableLead(paths[1], plantTable[gait][1], a.duration, GAIT_SPEED[gait])];
+      startPhase[gait] = tableStartPhase(paths[0], tables[gait][0], a.duration);
+      armMean[gait] = armSum.map((s) => (s.lengthSq() > 1e-12 ? s.normalize() : s.identity()));
     }
     for (const [gait, a] of actions) {
       a.action.weight = gait === 'idle' ? 1 : 0;
@@ -1321,7 +1602,15 @@ export async function loadGlbLink(url: string, opts: GlbLinkOptions = {}): Promi
     clips: GAITS.map((g) => {
       const a = actions.get(g)!;
       const sw = (i: 0 | 1) => tables[g][i].map((s) => [Number(s.tOff.toFixed(4)), Number(s.tLand.toFixed(4))] as [number, number]);
-      return { name: g, durationS: Number(a.duration.toFixed(6)), strideM: CLIP_SPEC[g].strideM, rate: a.rate, swings: { L: sw(0), R: sw(1) } };
+      /** seconds per cycle the foot is planted (tablePlants) — the sole on the floor AND moving back at the stride speed */
+      const pl = (i: 0 | 1) => Number(((plantTable[g][i].reduce((s, v) => s + v, 0) / TABLE_N) * a.duration).toFixed(4));
+      const ld = (i: 0 | 1) => {
+        const lead = leadTable[g][i];
+        let k = 0;
+        for (let j = 0; j < TABLE_N; j++) if (Number.isFinite(lead[2 * j])) k++;
+        return Number(((k / TABLE_N) * a.duration).toFixed(4));
+      };
+      return { name: g, durationS: Number(a.duration.toFixed(6)), strideM: CLIP_SPEC[g].strideM, rate: a.rate, swings: { L: sw(0), R: sw(1) }, plantedS: { L: pl(0), R: pl(1) }, leadS: { L: ld(0), R: ld(1) }, startPhase: Number(startPhase[g].toFixed(4)) };
     }),
     loadMs: Math.round(performance.now() - t0),
     headTopOffsetM: Number(headTopOffset.toFixed(4)),
@@ -1408,6 +1697,86 @@ export async function loadGlbLink(url: string, opts: GlbLinkOptions = {}): Promi
     apply(headPivot, 0.65);
   };
 
+  /** rotate `bone` in place by the WORLD rotation `q` (its parent's world matrix must be current) */
+  const rotateWorld = (b: Object3D, q: Quaternion) => {
+    b.parent!.getWorldQuaternion(_qParent);
+    _qInv.copy(_qParent).invert();
+    b.quaternion.premultiply(_qParent).premultiply(q).premultiply(_qInv);
+  };
+  const _mean = new Quaternion();
+  const _delta = new Quaternion();
+  const _right = new Vector3();
+  /**
+   * Round 47, play mode only: the arm swing per gait and the jump's arm / hip overlay. The
+   * mixer's output on the shoulders, elbows and hips is saved (restored before the next mixer
+   * update — see `armMix`), each arm bone's rotation about the blended clips' cycle-mean pose is
+   * scaled by the blended ARM_SCALE and low-passed with the blended ARM_TAU (the filter runs on
+   * the step's dt: a zero-dt re-render leaves it), and a jump swings the shoulders about the
+   * lateral axis and leans the hips. World matrices are current on return.
+   */
+  const applyArms = (p: PuppetPose, loco: Locomotion, fx: number, fz: number) => {
+    let k = 0;
+    let tau = 0;
+    for (const c of chain) {
+      if (c.weight <= 0) continue;
+      k += c.weight * ARM_SCALE[c.gait];
+      tau += c.weight * ARM_TAU[c.gait];
+    }
+    // a new play session (or a clock jump: index.ts recreates the state) starts the filter at its target
+    const fresh = armsLoco !== loco;
+    armsLoco = loco;
+    const alpha = tau > 1e-4 && loco.dt > 0 ? 1 - Math.exp(-loco.dt / tau) : 1;
+    for (let i = 0; i < armBones.length; i++) {
+      const b = armBones[i];
+      armMix[i].copy(b.quaternion);
+      _mean.set(0, 0, 0, 0);
+      for (const c of chain) {
+        if (c.weight <= 0) continue;
+        const m = armMean[c.gait][i];
+        const sign = _mean.dot(m) < 0 ? -c.weight : c.weight;
+        _mean.set(_mean.x + sign * m.x, _mean.y + sign * m.y, _mean.z + sign * m.z, _mean.w + sign * m.w);
+      }
+      if (_mean.lengthSq() < 1e-12) _mean.identity();
+      else _mean.normalize();
+      _delta.copy(_mean).invert().multiply(armMix[i]);
+      scaleRotation(_delta, k, _delta);
+      if (fresh || alpha >= 1) armFilt[i].copy(_delta);
+      else armFilt[i].slerp(_delta, alpha);
+      b.quaternion.copy(_mean).multiply(armFilt[i]);
+    }
+    armsDirty = true;
+    hipsMix.copy(hips.quaternion);
+    const j = loco.jump;
+    if (j) {
+      // the right-hand lateral axis of the facing: a positive turn about it swings a hanging arm forward and up
+      _right.set(-fz, 0, fx);
+      root.updateMatrixWorld(true);
+      const arm = jumpArm(j, p.t);
+      if (Math.abs(arm) > 1e-5) {
+        _q.setFromAxisAngle(_right, arm);
+        rotateWorld(armBones[0], _q);
+        rotateWorld(armBones[1], _q);
+      }
+      const lean = jumpHipLean(j, p.t);
+      if (Math.abs(lean) > 1e-5) {
+        _q.setFromAxisAngle(_right, lean);
+        rotateWorld(hips, _q);
+        hipsDirty = true;
+      }
+    }
+  };
+  /** put the mixer's own last output back on every bone the overlays rewrote, so the mixer's change detection sees its own values */
+  const restoreOverlays = () => {
+    if (armsDirty) {
+      for (let i = 0; i < armBones.length; i++) armBones[i].quaternion.copy(armMix[i]);
+      armsDirty = false;
+    }
+    if (hipsDirty) {
+      hips.quaternion.copy(hipsMix);
+      hipsDirty = false;
+    }
+  };
+
   const puppet: GlbLink = {
     kind: 'glb',
     group: root,
@@ -1421,6 +1790,13 @@ export async function loadGlbLink(url: string, opts: GlbLinkOptions = {}): Promi
       const placed = ground(x, z);
       root.position.set(x, placed, z);
       root.rotation.y = yaw;
+      const fx = Math.sin(yaw);
+      const fz = Math.cos(yaw);
+      // play mode (round 47): the locomotion state the overlays read; the jump's phase
+      const loco = p.loco;
+      const jump = loco?.jump ?? null;
+      const airborne = jump?.phase === 'air';
+      restoreOverlays();
       const blendClips = blendChain(p);
       for (const [gait, a] of actions) {
         // a clip in the chain more than once has one shift (index.ts reuses it), so one time
@@ -1443,14 +1819,14 @@ export async function loadGlbLink(url: string, opts: GlbLinkOptions = {}): Promi
         leg.kneePivot.quaternion.identity();
         leg.anklePivot.quaternion.identity();
       }
+      if (loco) applyArms(p, loco, fx, fz);
+      else armsLoco = null;
       if (p.look && p.lookWeight > 0) lookAt(p.look, p.lookWeight);
       root.updateMatrixWorld(true);
 
       // 1. the posed legs: joints, soles and foot yaws (world) with the root at the placement
       // height. The lower clip sole is the one the root drop puts on the ground (on flat ground
       // the round-3 rule); a foot's contact weight (its slope tilt) fades with its lift above it.
-      const fx = Math.sin(yaw);
-      const fz = Math.cos(yaw);
       _qYaw.setFromAxisAngle(_axisY, yaw);
       for (const leg of legs) {
         leg.thigh.getWorldPosition(leg.hip);
@@ -1494,6 +1870,12 @@ export async function loadGlbLink(url: string, opts: GlbLinkOptions = {}): Promi
         let relW = 0;
         let attW = 0;
         let predPin = 0;
+        /** the swing rise the active clips predict for this foot (m; > 0 climbing), for the stair clearance cap */
+        let swingRise = 0;
+        /** the play-mode stance pin this foot arrived with (world; NaN = free) */
+        const pinnedX = loco && !airborne ? loco.pinX[i] : NaN;
+        const pinnedZ = loco && !airborne ? loco.pinZ[i] : NaN;
+        const pinned = Number.isFinite(pinnedX) && Number.isFinite(pinnedZ);
         leg.relA.set(0, 0, 0);
         leg.relH.set(0, 0, 0);
         leg.attA.set(0, 0, 0);
@@ -1542,6 +1924,7 @@ export async function loadGlbLink(url: string, opts: GlbLinkOptions = {}): Promi
             rootLand += weight * gLand;
             phase += weight * sw.phase;
             swingW += weight;
+            swingRise += weight * (gLand - gOff);
             const rw = weight * (1 - MathUtils.smoothstep(sw.phase, 0, RELEASE));
             if (rw > 0) {
               // the foot frozen in its take-off configuration (the shifted spot at its support,
@@ -1589,7 +1972,12 @@ export async function loadGlbLink(url: string, opts: GlbLinkOptions = {}): Promi
           } else {
             const st = stanceAt(swings, a.action.time, a.duration);
             let pin = 0;
-            if (st) {
+            if (pinned) {
+              // round 47, play mode: a stance foot stands on the world spot it touched down on
+              // (its pin, applied below), so its configuration is read there — constant for the
+              // whole stance whatever the root does (a turn, an acceleration, a gait blend)
+              footConfig(surface, base, pinnedX, pinnedZ, fx, fz, st ? st.swing.landYaw : leg.yawRel, leg.fp, cfgOff);
+            } else if (st) {
               const s = st.swing;
               const back = (speed * st.since) / a.rate;
               footConfig(surface, base, x + s.landX * fz + s.landZ * fx - fx * back, z - s.landX * fx + s.landZ * fz - fz * back, fx, fz, s.landYaw, leg.fp, cfgOff);
@@ -1656,6 +2044,103 @@ export async function loadGlbLink(url: string, opts: GlbLinkOptions = {}): Promi
         leg.swingW = swingW;
         leg.relW = relW;
         leg.attW = attW;
+        leg.stance = swingW < PIN_RELEASE;
+        leg.swingRise = wsum > 0 ? swingRise / wsum : 0;
+        leg.hipClamp = 0;
+        leg.kneeOut = 0;
+        // round 47, play mode: the stance pin. A foot the blended clips have PLANTED (plantTable:
+        // on the floor and moving back at the stride speed) is held where it planted — set on the
+        // first planted frame at the foot's spot, the clip's sole plus its nosing shift — and
+        // released when the clips stop moving it back (toe-off), never held through the air. The
+        // offset a releasing pin was holding (a blend's, a turn's, a heel-strike easing's) fades
+        // out over PIN_FADE_S instead of snapping the foot to the clip.
+        leg.pinX = 0;
+        leg.pinZ = 0;
+        if (loco && !airborne) {
+          let strideW = 0;
+          let plantW = 0;
+          for (const c of chain) {
+            if (c.weight <= 0 || CLIP_SPEC[c.gait].strideM <= 0) continue;
+            strideW += c.weight;
+            const a = actions.get(c.gait)!;
+            if (plantedAt(plantTable[c.gait][i], a.action.time, a.duration)) plantW += c.weight;
+          }
+          const sx = leg.soleP.x + fx * predShift;
+          const sz = leg.soleP.z + fz * predShift;
+          // where the previous step's lead-in carried this foot (NaN: none) — a pin engaging now starts there
+          const leadX = loco.leadX[i];
+          const leadZ = loco.leadZ[i];
+          loco.leadX[i] = NaN;
+          loco.leadZ[i] = NaN;
+          if (strideW > 0 && plantW >= 0.5 * strideW) {
+            if (!pinned) {
+              const led = Number.isFinite(leadX) && Number.isFinite(leadZ);
+              loco.pinX[i] = led ? leadX : sx;
+              loco.pinZ[i] = led ? leadZ : sz;
+            }
+            leg.pinX = loco.pinX[i] - sx;
+            leg.pinZ = loco.pinZ[i] - sz;
+            loco.pinFadeT[i] = NaN;
+          } else {
+            if (pinned) {
+              loco.pinFadeX[i] = loco.pinX[i] - sx;
+              loco.pinFadeZ[i] = loco.pinZ[i] - sz;
+              loco.pinFadeT[i] = p.t;
+              loco.pinX[i] = NaN;
+              loco.pinZ[i] = NaN;
+            }
+            if (Number.isFinite(loco.pinFadeT[i])) {
+              const w = 1 - MathUtils.smoothstep((p.t - loco.pinFadeT[i]) / PIN_FADE_S, 0, 1);
+              if (w > 1e-4) {
+                leg.pinX = loco.pinFadeX[i] * w;
+                leg.pinZ = loco.pinFadeZ[i] * w;
+              } else loco.pinFadeT[i] = NaN;
+            }
+            // the pin LEAD-IN (tableLead): each clip that has this foot skidding toward its plant
+            // carries it toward the world spot it will plant on — the clip's sole at the plant time,
+            // in root space, carried along the facing by the ground the root covers until then —
+            // eased in over the window, weighted by the clip in the blend; the foot reaches the
+            // spot with no ground velocity and the pin engages there
+            if (strideW > 0) {
+              let lx = 0;
+              let lz = 0;
+              let lw = 0;
+              for (const c of chain) {
+                if (c.weight <= 0 || CLIP_SPEC[c.gait].strideM <= 0) continue;
+                const a = actions.get(c.gait)!;
+                const tau = a.action.time;
+                const lead = leadTable[c.gait][i];
+                const k = mod(Math.round((tau / a.duration) * TABLE_N), TABLE_N);
+                const open = lead[2 * k];
+                if (!Number.isFinite(open)) continue;
+                const plant = lead[2 * k + 1];
+                const span = mod(plant - open, a.duration);
+                const into = Math.min(span, mod(tau - open, a.duration));
+                if (span <= 1e-6) continue;
+                const w = MathUtils.smoothstep(into / span, 0, 1);
+                pathAt(pathTable[c.gait][i], plant, a.duration, spotNow);
+                const ahead = (GAIT_SPEED[c.gait] * (span - into)) / a.rate;
+                const wx = x + spotNow.x * fz + spotNow.z * fx + fx * ahead;
+                const wz = z - spotNow.x * fx + spotNow.z * fz + fz * ahead;
+                lx += c.weight * w * (wx - leg.soleP.x);
+                lz += c.weight * w * (wz - leg.soleP.z);
+                lw += c.weight;
+              }
+              if (lw > 0) {
+                leg.pinX += lx / strideW;
+                leg.pinZ += lz / strideW;
+                loco.leadX[i] = sx + leg.pinX;
+                loco.leadZ[i] = sz + leg.pinZ;
+              }
+            }
+          }
+        } else if (loco) {
+          loco.pinX[i] = NaN;
+          loco.pinZ[i] = NaN;
+          loco.pinFadeT[i] = NaN;
+          loco.leadX[i] = NaN;
+          loco.leadZ[i] = NaN;
+        }
         // the geometric lifts on the shifted footprint at the foot's current yaw: the CLEAR arc
         // over a riser ahead (blended by phase) and the LIP lift (exact at both ends of a swing),
         // both seeing only the edges within this swing's travel
@@ -1688,7 +2173,10 @@ export async function loadGlbLink(url: string, opts: GlbLinkOptions = {}): Promi
         const level = other.rootOff + (other.rootLand - other.rootOff) * MathUtils.smoothstep(other.phase, 0, 1);
         const r0 = Math.min(leg.rootOff, level);
         const r1 = Math.min(leg.rootLand, level);
-        const ease = MathUtils.smoothstep(leg.phase, 0, r1 < r0 ? DESC_END : 1);
+        // round 47, play mode: a climbing swing's root rise is done by ROOT_RISE_END of the swing —
+        // the foot is over the upper tread by then, and a pelvis still a third of a riser low
+        // folds the landing leg into the torso (the stance leg's reach bounds the rise below)
+        const ease = MathUtils.smoothstep(leg.phase, 0, r1 < r0 ? DESC_END : loco ? ROOT_RISE_END : 1);
         leg.gRoot = leg.swingW > 0 ? r0 + (r1 - r0) * ease : leg.rootOff;
         leg.rootAtOff = r0;
         leg.rootAtLand = r1;
@@ -1728,9 +2216,21 @@ export async function loadGlbLink(url: string, opts: GlbLinkOptions = {}): Promi
           if (-_p.y > hold) hold = -_p.y;
         }
         const floor = Math.max(leg.g, gMin + FOLD_MAX);
-        const target = Math.min(leg.g + lift, Math.max(leg.g + hold, gMin + FOLD_MAX));
+        let target = Math.min(leg.g + lift, Math.max(leg.g + hold, gMin + FOLD_MAX));
         leg.hold = Math.max(0, target - Math.min(leg.g + lift, floor));
         if (leg.hold > maxHold) maxHold = leg.hold;
+        // round 47, play mode: a swing that climbs a riser follows its support's ramp (the eased
+        // take-off → landing support, lifted onto the upper tread over the nosing by the CLEAR
+        // envelope) with STAIR_CLEAR_M under the boot's lowest point and no more — the clip's own
+        // 0.15 m march arc stacked on the riser is what folded the leg into the torso. Exact at
+        // toe-off and heel-strike (the clip's lift is ~0 there, so the cap never binds).
+        // The cap fades out over STAIR_CAP_OUT of the swing: past the nosing the clip's own
+        // descent lands the foot — held at the tread's height while still travelling forward it
+        // skidded 10–13 cm along the tread before its heel-strike spot.
+        if (loco && leg.swingRise > STEP_MIN) {
+          const cap = leg.g + hold + STAIR_CLEAR_M;
+          if (target > cap) target = cap + (target - cap) * MathUtils.smoothstep(leg.phase, STAIR_CAP_OUT[0], STAIR_CAP_OUT[1]);
+        }
         leg.delta = MathUtils.clamp(target - leg.soleP.y, -MAX_CORRECTION, MAX_CORRECTION);
         leg.tiltAngle = groundTilt(ground, leg.soleP.x, leg.soleP.z, leg.contact, leg.qTilt);
         if (Math.abs(leg.pitch) > 1e-5) {
@@ -1746,7 +2246,7 @@ export async function loadGlbLink(url: string, opts: GlbLinkOptions = {}): Promi
             leg.tiltAngle += Math.abs(leg.pitch);
           }
         }
-        leg.active = Math.abs(leg.delta) > 1e-6 || leg.tiltAngle > 1e-5 || Math.abs(leg.shift) > 1e-6;
+        leg.active = Math.abs(leg.delta) > 1e-6 || leg.tiltAngle > 1e-5 || Math.abs(leg.shift) > 1e-6 || leg.pinX !== 0 || leg.pinZ !== 0;
         if (Math.abs(leg.shift - leg.pin) > maxShift) maxShift = Math.abs(leg.shift - leg.pin);
         const reach = (leg.kneeP.distanceTo(leg.hip) + leg.ankleP.distanceTo(leg.kneeP)) * MAX_REACH;
         if (leg.relW > 1e-4) {
@@ -1781,19 +2281,20 @@ export async function loadGlbLink(url: string, opts: GlbLinkOptions = {}): Promi
         }
         _q.multiplyQuaternions(leg.qTilt, leg.qAnkle);
         leg.target.copy(leg.sole).applyQuaternion(_q);
-        leg.target.set(leg.soleP.x + fx * leg.shift - leg.target.x, leg.soleP.y + leg.delta - leg.target.y, leg.soleP.z + fz * leg.shift - leg.target.z);
+        leg.target.set(leg.soleP.x + fx * leg.shift + leg.pinX - leg.target.x, leg.soleP.y + leg.delta - leg.target.y, leg.soleP.z + fz * leg.shift + leg.pinZ - leg.target.z);
         _v.subVectors(leg.target, leg.hip);
-        if (Math.abs(leg.pin) > 1e-6 && _v.lengthSq() > reach * reach) {
-          // the idle pin may not hold a foot past the straight leg — the trailing foot of the
-          // first step is at full reach in the walk's own toe-off pose, and pinning it further
-          // back would drop the root by the shortfall and pop it back when the foot lifts (11 mm
-          // on flat ground): the pin is shortened along the facing to where the target meets
-          // the reach sphere (the foot slides that little instead). Closed form — |v − s·p|² =
-          // reach² in the pin fraction s given up — and continuous in every input: with no
-          // crossing, the nearest point of the segment; what is still short falls to the extra
-          // drop below like any shifted stance.
-          const px = fx * leg.pin;
-          const pz = fz * leg.pin;
+        // the pins on this foot as one world vector: the idle anchor's along the facing, the play-mode stance pin's
+        const px = fx * leg.pin + leg.pinX;
+        const pz = fz * leg.pin + leg.pinZ;
+        if (px * px + pz * pz > 1e-12 && _v.lengthSq() > reach * reach) {
+          // a pin may not hold a foot past the straight leg — the trailing foot of the first
+          // step is at full reach in the walk's own toe-off pose, and pinning it further back
+          // would drop the root by the shortfall and pop it back when the foot lifts (11 mm on
+          // flat ground): the pin is shortened along its own direction to where the target
+          // meets the reach sphere (the foot slides that little instead). Closed form —
+          // |v − s·p|² = reach² in the pin fraction s given up — and continuous in every input:
+          // with no crossing, the nearest point of the segment; what is still short falls to
+          // the extra drop below like any shifted stance.
           const a = px * px + pz * pz;
           const b = -2 * (_v.x * px + _v.z * pz);
           const c = _v.lengthSq() - reach * reach;
@@ -1803,9 +2304,12 @@ export async function loadGlbLink(url: string, opts: GlbLinkOptions = {}): Promi
           leg.target.z -= s * pz;
           leg.shift -= s * leg.pin;
           leg.pin -= s * leg.pin;
+          leg.pinX -= s * leg.pinX;
+          leg.pinZ -= s * leg.pinZ;
           _v.subVectors(leg.target, leg.hip);
         }
-        if (Math.abs(leg.pin) > maxPin) maxPin = Math.abs(leg.pin);
+        const pinAll = Math.hypot(fx * leg.pin + leg.pinX, fz * leg.pin + leg.pinZ);
+        if (pinAll > maxPin) maxPin = pinAll;
         // a target beyond the straight leg (a tilted foot moves the ankle sideways): the root
         // comes down by the shortfall instead of the leg stretching
         const flat2 = reach * reach - _v.x * _v.x - _v.z * _v.z;
@@ -1814,15 +2318,95 @@ export async function loadGlbLink(url: string, opts: GlbLinkOptions = {}): Promi
           if (drop > extraDrop) extraDrop = drop;
         }
       }
-      if (extraDrop > 0) {
+      // the jump's crouch / landing compression (round 47): the root is lowered like an extra
+      // drop — the feet keep their targets, so the knees bend — by the overlay's envelope
+      const overlayDrop = jump && !airborne ? jumpDrop(jump, p.t) : 0;
+      if (extraDrop > 0 || overlayDrop > 0) {
         extraDrop = Math.min(extraDrop, MAX_CORRECTION);
-        root.position.y -= extraDrop;
+        const down = extraDrop + overlayDrop;
+        root.position.y -= down;
         for (const leg of legs) {
-          leg.hip.y -= extraDrop;
-          leg.kneeP.y -= extraDrop;
-          leg.ankleP.y -= extraDrop;
-          leg.soleP.y -= extraDrop;
+          leg.hip.y -= down;
+          leg.kneeP.y -= down;
+          leg.ankleP.y -= down;
+          leg.soleP.y -= down;
           leg.active = true;
+        }
+      }
+      if (jump && jump.phase === 'land') {
+        // touchdown (round 47): the feet came down under the hips (the airborne reach) and spread
+        // back into the stride over JUMP_LAND_GATHER_S — their targets slide on the ground from
+        // beneath the hips to where the clips (and the stance pins) have them, so the legs never
+        // pop from the reach pose into a mid-stride one in the landing frame
+        const w = 1 - MathUtils.smoothstep((p.t - jump.t0) / JUMP_LAND_GATHER_S, 0, 1);
+        if (w > 1e-4) {
+          for (const leg of legs) {
+            leg.target.x += (leg.hip.x + fx * 0.06 - leg.target.x) * w;
+            leg.target.z += (leg.hip.z + fz * 0.06 - leg.target.z) * w;
+            leg.active = true;
+          }
+        }
+      }
+      if (airborne && jump) {
+        // the airborne pose (round 47): the root on the arc the character system integrated, the
+        // gait frozen (nothing advanced it), and the legs blended from the frozen stride toward
+        // the tuck — the ankles JUMP_TUCK_UP of the leg higher and JUMP_TUCK_FWD of it ahead of the
+        // hips — peaking at the apex, extended along the stride at the push-off and reaching down for the
+        // ground before touchdown; the toes point down with the tuck. No ground, no pins, no
+        // drops: the IK aims the legs at these targets.
+        const dy = jump.y - root.position.y;
+        root.position.y = jump.y;
+        const a = jump.air;
+        const tuck = jumpTuck(a) * JUMP_TUCK_BLEND;
+        const extend = jumpExtend(a);
+        const reachDown = jumpLandReach(a);
+        extraDrop = 0;
+        attackDrop = 0;
+        for (const leg of legs) {
+          leg.hip.y += dy;
+          leg.kneeP.y += dy;
+          leg.ankleP.y += dy;
+          leg.soleP.y += dy;
+          const l1 = leg.kneeP.distanceTo(leg.hip);
+          const l2 = leg.ankleP.distanceTo(leg.kneeP);
+          const len = l1 + l2;
+          // the frozen stride's ankle relative to the hip, its push-off extension along itself
+          _v.subVectors(leg.ankleP, leg.hip);
+          const cur = _v.length();
+          if (cur > 1e-6 && extend > 0) _v.multiplyScalar(MathUtils.lerp(1, (len * 0.97) / cur, extend));
+          // the tuck and the landing reach, in the facing frame
+          _u.set(fx * JUMP_TUCK_FWD * len, -(1 - JUMP_TUCK_UP) * len, fz * JUMP_TUCK_FWD * len);
+          _v.lerp(_u, tuck);
+          _u.set(fx * 0.06, -len * 0.92, fz * 0.06);
+          _v.lerp(_u, reachDown);
+          leg.target.copy(leg.hip).add(_v);
+          // the push-off may not reach through the floor: the legs extend from the crouched root
+          // before it has risen, so the sole (the ankle less its height above the sole in this
+          // pose) stays on the ground until the rising root lifts it — as a real take-off does —
+          // and the landing reach stops at the ground the same way
+          const floor = surface(leg.target.x, leg.target.z) + (leg.ankleP.y - leg.soleP.y);
+          if (leg.target.y < floor) leg.target.y = floor;
+          leg.delta = 0;
+          leg.shift = 0;
+          leg.pin = 0;
+          leg.pinX = 0;
+          leg.pinZ = 0;
+          leg.hold = 0;
+          leg.active = true;
+          // the foot keeps the clip's orientation, toes down with the tuck (about its lateral axis)
+          leg.qTilt.identity();
+          leg.tiltAngle = 0;
+          const toe = JUMP_TOE_DOWN * jumpTuck(a);
+          if (toe > 1e-5) {
+            _w.copy(leg.fwdLocal).applyQuaternion(leg.qAnkle);
+            _w.y = 0;
+            if (_w.lengthSq() > 1e-8) {
+              _w.normalize();
+              _n.crossVectors(_axisY, _w);
+              leg.qTilt.setFromAxisAngle(_n, toe);
+              leg.tiltAngle = toe;
+            }
+          }
         }
       }
 
@@ -1830,9 +2414,8 @@ export async function loadGlbLink(url: string, opts: GlbLinkOptions = {}): Promi
       // shin's IK rotation on the foot and adds the slope tilt / nosing pitch (both in the knee frame)
       let reachExcess = 0;
       let reachLeg: 'L' | 'R' | null = null;
-      for (const leg of legs) {
-        if (!leg.active) continue;
-        const excess = solveLeg(leg, leg.target, _qIk);
+      const solve = (leg: Leg, swivel?: Quaternion) => {
+        const excess = solveLeg(leg, leg.target, _qIk, swivel);
         if (excess > reachExcess) {
           reachExcess = excess;
           reachLeg = leg.side;
@@ -1840,10 +2423,90 @@ export async function loadGlbLink(url: string, opts: GlbLinkOptions = {}): Promi
         _qInv.copy(_qIk).invert();
         _q2.copy(leg.qKnee).invert().multiply(_qInv).multiply(leg.qTilt).multiply(leg.qKnee);
         leg.anklePivot.quaternion.copy(_q2);
+      };
+      for (const leg of legs) {
+        if (!leg.active) continue;
+        solve(leg);
         const raised = Math.abs(leg.delta) + extraDrop;
         if (raised > maxCorrection) maxCorrection = raised;
       }
       root.updateMatrixWorld(true);
+      let hipClamp = 0;
+      let kneeOut = 0;
+      if (loco) {
+        // round 47, play mode: no SWING thigh past HIP_FLEX_MAX from the torso's down axis. The
+        // solved thigh is measured (hip → knee, world); a swing leg past the limit has its whole
+        // hip → ankle line turned toward that axis by the excess — the triangle is rigid for a
+        // fixed reach, so the thigh turns by exactly that and the knee keeps its bend — and is
+        // solved again. The foot gives up height, but never below the swing envelope the ground
+        // rules asked for (its sole stays over the tread it is crossing): the turn is bisected to
+        // what that slack allows. A stance foot is left alone (turning it would push it into its
+        // tread; the earlier root rise above is what relieves it).
+        hips.getWorldPosition(_p);
+        chest.getWorldPosition(_down);
+        _down.subVectors(_p, _down);
+        if (_down.lengthSq() > 1e-8 && !airborne) {
+          _down.normalize();
+          for (const leg of legs) {
+            if (leg.swingW <= 0.5) continue;
+            leg.knee.getWorldPosition(_u).sub(leg.hip);
+            if (_u.lengthSq() < 1e-8) continue;
+            _u.normalize();
+            const flex = Math.acos(MathUtils.clamp(_u.dot(_down), -1, 1));
+            if (flex <= HIP_FLEX_MAX) continue;
+            _n.crossVectors(_u, _down);
+            if (_n.lengthSq() < 1e-10) continue;
+            _n.normalize();
+            const slack = Math.max(0, leg.soleP.y + leg.delta - (leg.g + leg.hold));
+            let eps = flex - HIP_FLEX_MAX;
+            _v.subVectors(leg.target, leg.hip);
+            _aim.copy(_v).applyQuaternion(_q.setFromAxisAngle(_n, eps));
+            if (_v.y - _aim.y > slack + 1e-6) {
+              // the full turn would take the sole under its envelope: the largest turn that does not
+              let lo = 0;
+              let hi = eps;
+              for (let k = 0; k < 8; k++) {
+                const mid = 0.5 * (lo + hi);
+                _aim.copy(_v).applyQuaternion(_q.setFromAxisAngle(_n, mid));
+                if (_v.y - _aim.y > slack) hi = mid;
+                else lo = mid;
+              }
+              eps = lo;
+              if (eps < 1e-4) continue;
+              _aim.copy(_v).applyQuaternion(_q.setFromAxisAngle(_n, eps));
+            }
+            leg.target.copy(leg.hip).add(_aim);
+            leg.active = true;
+            leg.hipClamp = eps;
+            if (eps > hipClamp) hipClamp = eps;
+            solve(leg);
+          }
+          if (hipClamp > 0) root.updateMatrixWorld(true);
+          // the knee turned out (KNEE_OUT_*): either leg, planted or swinging — the swivel about
+          // the hip → ankle line leaves the ankle where it is. The sign is the one that takes
+          // the knee away from the other leg (outward along the facing's side axis).
+          for (const leg of legs) {
+            leg.knee.getWorldPosition(_u).sub(leg.hip);
+            const kl = _u.length();
+            if (kl < 1e-6) continue;
+            const flex = Math.acos(MathUtils.clamp(_u.dot(_down) / kl, -1, 1));
+            if (flex <= KNEE_OUT_FLEX) continue;
+            const theta = (flex - KNEE_OUT_FLEX) * KNEE_OUT_RATE;
+            _aim.subVectors(leg.target, leg.hip);
+            if (_aim.lengthSq() < 1e-8) continue;
+            _aim.normalize();
+            const side = leg.side === 'L' ? 1 : -1;
+            _w.set(fz * side, 0, -fx * side);
+            _swivel.setFromAxisAngle(_aim, theta);
+            _v.copy(_u).applyQuaternion(_swivel).sub(_u);
+            if (_v.dot(_w) < 0) _swivel.setFromAxisAngle(_aim, -theta);
+            leg.kneeOut = theta;
+            if (theta > kneeOut) kneeOut = theta;
+            solve(leg, _swivel);
+          }
+          if (kneeOut > 0) root.updateMatrixWorld(true);
+        }
+      }
 
       // 6. report: both soles as posed against the exact surface under their contact point — the
       // marker, or when that is off its ground by more than CONTACT_OFF (a toe on a tread edge, a
@@ -1873,6 +2536,8 @@ export async function loadGlbLink(url: string, opts: GlbLinkOptions = {}): Promi
           if (gap < minShoe) minShoe = gap;
         }
         feet[i].soleY = leg.soleP.y;
+        feet[i].soleX = leg.soleP.x;
+        feet[i].soleZ = leg.soleP.z;
         feet[i].groundY = leg.contactGround;
         feet[i].gapM = leg.soleP.y - leg.contactGround;
         feet[i].supportY = leg.g;
@@ -1880,8 +2545,11 @@ export async function loadGlbLink(url: string, opts: GlbLinkOptions = {}): Promi
         feet[i].shiftM = leg.shift - leg.pin;
         feet[i].pitchRad = leg.pitch;
         feet[i].correctionM = leg.delta;
-        feet[i].pinM = leg.pin;
+        // the pins along the facing (the idle anchor's and the stance pin's) and sideways
+        feet[i].pinM = leg.pin + leg.pinX * fx + leg.pinZ * fz;
+        feet[i].pinLatM = leg.pinX * -fz + leg.pinZ * fx;
         feet[i].holdM = leg.hold;
+        feet[i].stance = airborne ? false : leg.stance;
       }
       const reported = Math.abs(feet[1 - lower].gapM) < Math.abs(feet[lower].gapM) - REPORT_TIE ? legs[1 - lower] : legs[lower];
       plant.maxCorrectionM = maxCorrection;
@@ -1896,7 +2564,36 @@ export async function loadGlbLink(url: string, opts: GlbLinkOptions = {}): Promi
       plant.maxPinM = maxPin;
       plant.maxHoldM = maxHold;
       plant.blendClips = blendClips;
+      plant.hipClampRad = hipClamp;
+      plant.kneeOutRad = kneeOut;
       contact.set(reported.soleP.x + fx * reported.contactOff, reported.soleP.y, reported.soleP.z + fz * reported.contactOff);
+    },
+    advance(c: GaitChain, t, ds, dt) {
+      // the blended stride over the clips that have one (idle has none and keeps the clock)
+      chainWeights(c, t, hasClip, weights);
+      const gaits: Gait[] = [c.gait, c.gaitFrom, c.gaitFrom2];
+      let sw = 0;
+      let ws = 0;
+      for (let k = 0; k < 3; k++) {
+        const s = CLIP_SPEC[gaits[k]].strideM;
+        if (weights[k] > 0 && s > 0) {
+          sw += weights[k] * s;
+          ws += weights[k];
+        }
+      }
+      if (ws <= 0) return;
+      const cycles = ds / (sw / ws);
+      // every clip with a stride advances by `cycles` of its own duration instead of by the clock
+      // (rate · dt), whether or not it has weight right now — a gait in the chain twice keeps one
+      // shift; a gait re-entered later is re-aligned by alignClip anyway
+      const shiftOf = (g: Gait, shift: number) => {
+        const a = actions.get(g);
+        if (!a || CLIP_SPEC[g].strideM <= 0) return shift;
+        return mod(shift + cycles * a.duration - a.rate * dt, a.duration);
+      };
+      c.clipShift = shiftOf(c.gait, c.clipShift);
+      c.clipShiftFrom = shiftOf(c.gaitFrom, c.clipShiftFrom);
+      c.clipShiftFrom2 = shiftOf(c.gaitFrom2, c.clipShiftFrom2);
     },
     headTop(out) {
       return head.localToWorld(out.set(0, headTopOffset, 0));
@@ -1933,8 +2630,10 @@ export async function loadGlbLink(url: string, opts: GlbLinkOptions = {}): Promi
       const a = actions.get(to);
       if (!a || !tables[to][0].length) return 0;
       const phase = actions.has(from) ? gaitPhase(tables[from][0], clipTimeOf(from, t, fromShift), actions.get(from)!.duration) : NaN;
-      // from a clip without phases (idle) start at the left heel-strike: both feet down
-      const target = gaitPhaseTime(tables[to][0], Number.isNaN(phase) ? 1 : phase, a.duration);
+      // from a clip without phases (idle) start with the feet together under the body — where the
+      // idle stance has them — so one foot lifts into its swing and the other is pinned where it
+      // stands (tableStartPhase; the left heel-strike used here before slid both feet apart)
+      const target = gaitPhaseTime(tables[to][0], Number.isNaN(phase) ? startPhase[to] : phase, a.duration);
       return mod(target - clipTimeOf(to, t), a.duration);
     },
   };

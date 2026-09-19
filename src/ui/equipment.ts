@@ -200,72 +200,37 @@ function leftPanel(): SVGGElement {
   return grp;
 }
 
-/** Placeholder character silhouette; the real render will be attached in `#zr-equip-render-slot`. */
-function characterPlaceholder(): SVGGElement {
-  const fill = '#3a4030';
-  const grp = g({ id: 'zr-equip-render-slot', 'data-slot': 'character', transform: 'translate(612 0)' }, [
-    // cap
-    path('M-40 226 C -38 196, -14 178, 6 180 C 40 184, 70 196, 100 214 C 110 220, 108 232, 96 228 C 74 222, 52 216, 34 222 C 22 226, 10 224, 0 226 Z', { fill: '#33402b' }),
-    // head
-    circle(0, 236, 33, { fill }),
-    // ears
-    path('M-30 232 L -52 226 L -30 244 Z M30 232 L 52 226 L 30 244 Z', { fill }),
-    // neck + tunic
-    path('M-12 266 H12 V280 L 44 292 L 52 334 L 40 336 L 34 320 L 36 436 H-36 L -34 320 L -40 336 L -52 334 L -44 292 L -12 280 Z', { fill: '#38452f' }),
-    // belt
-    rect(-36, 378, 72, 10, { fill: '#2a2318' }),
-    circle(0, 383, 5, { fill: '#5a4a2a' }),
-    // legs + boots
-    path('M-30 436 L -34 520 L -46 526 L -44 538 L -10 538 L -8 436 Z M30 436 L 34 520 L 46 526 L 44 538 L 10 538 L 8 436 Z', { fill }),
-    // shield on the back and sword hilt
-    path('M-70 300 C -70 280, -50 272, -40 278 L -38 360 C -50 372, -68 368, -74 350 Z', { fill: '#2f2a20' }),
-    path('M-44 262 L -58 240 L -52 236 L -40 258 Z', { fill: '#5a4a2a' }),
-  ]);
-  return grp;
-}
+/**
+ * Centre oval — the ref-02 card: a dark radial vignette with the 3-D item rendered over it by
+ * `itemCard.ts` (a transparent canvas the stage lays over `CARD_BOX`) and the item's name and
+ * two-line description underneath. The text nodes are returned so the screen can retarget them.
+ */
+export const CARD_BOX = { x: 615 - 240, y: 110, w: 480, h: 430 };
 
-function centreOval(): SVGGElement {
+function centreOval(): { grp: SVGGElement; name: SVGTextElement; desc: [SVGTextElement, SVGTextElement] } {
   const grp = g({ class: 'zr-equip-centre' });
   grp.appendChild(ellipse(615, 396, 265, 325, { fill: '#0a0805', opacity: 0.7, filter: 'url(#zr-eq-blur6)' }));
   grp.appendChild(ellipse(615, 396, 262, 322, { fill: 'url(#zr-eq-oval)', stroke: '#3d3320', 'stroke-width': 2.2 }));
   grp.appendChild(ellipse(615, 396, 258, 318, { fill: 'none', stroke: '#0f0c07', 'stroke-width': 3, opacity: 0.8 }));
-  // floor shadow under the character
-  grp.appendChild(ellipse(612, 545, 70, 12, { fill: '#000', opacity: 0.4, filter: 'url(#zr-eq-blur6)' }));
-  grp.appendChild(characterPlaceholder());
+  // the card's own vignette: a soft pool of light behind the item
+  grp.appendChild(ellipse(615, 330, 190, 200, { fill: 'url(#zr-eq-card-glow)' }));
+  // floor shadow under the item
+  grp.appendChild(ellipse(612, 520, 96, 14, { fill: '#000', opacity: 0.45, filter: 'url(#zr-eq-blur6)' }));
   // item name + divider + description
-  grp.appendChild(text(610, 549, 'Kokiri Sword', { 'text-anchor': 'middle', 'font-size': 36, 'font-weight': 600, 'letter-spacing': 0.6, fill: TEXT_BRIGHT }));
-  grp.appendChild(line(412, 569, 808, 569, { stroke: '#c8b890', 'stroke-width': 1.2, opacity: 0.55 }));
-  const curl = 'M412 569 C 404 569, 399 563, 404 561 C 409 559, 411 565, 406 566';
+  const name = text(610, 583, 'Deku Stick', { 'text-anchor': 'middle', 'font-size': 36, 'font-weight': 600, 'letter-spacing': 0.6, fill: TEXT_BRIGHT, class: 'zr-equip-name' });
+  grp.appendChild(name);
+  grp.appendChild(line(412, 603, 808, 603, { stroke: '#c8b890', 'stroke-width': 1.2, opacity: 0.55 }));
+  const curl = 'M412 603 C 404 603, 399 597, 404 595 C 409 593, 411 599, 406 600';
   grp.appendChild(path(curl, { fill: 'none', stroke: '#c8b890', 'stroke-width': 1.2, opacity: 0.7, 'stroke-linecap': 'round' }));
   grp.appendChild(path(curl, { fill: 'none', stroke: '#c8b890', 'stroke-width': 1.2, opacity: 0.7, 'stroke-linecap': 'round', transform: 'translate(1220 0) scale(-1 1)' }));
-  grp.appendChild(text(610, 601, 'This small, child-sized sword is', { 'text-anchor': 'middle', 'font-size': 21, 'font-weight': 400, fill: TEXT }));
-  grp.appendChild(text(610, 631, 'a treasure of Kokiri Forest.', { 'text-anchor': 'middle', 'font-size': 21, 'font-weight': 400, fill: TEXT }));
-  return grp;
-}
-
-function swordIcon(cx: number, cy: number): SVGGElement {
-  return g({ transform: `translate(${cx} ${cy}) rotate(-36)` }, [
-    circle(0, 44, 5.5, { fill: '#6a5030', stroke: '#2a1a0c', 'stroke-width': 1 }),
-    rect(-4, 0, 8, 42, { fill: '#3a2416', stroke: '#1c1008', 'stroke-width': 1 }),
-    path('M-4 6 L4 10 M-4 14 L4 18 M-4 22 L4 26 M-4 30 L4 34', { stroke: '#8a5a30', 'stroke-width': 1.2, opacity: 0.8 }),
-    rect(-21, -10, 42, 9, { rx: 2.5, fill: '#8a5a28', stroke: '#3a2410', 'stroke-width': 1.2 }),
-    rect(-4.5, -10, 9, 7, { fill: '#b03030', stroke: '#5a1010', 'stroke-width': 0.8 }),
-    polygon([[0, -76], [9.5, -60], [8, -10], [-8, -10], [-9.5, -60]], { fill: 'url(#zr-eq-steel)', stroke: '#4a5058', 'stroke-width': 1.2, 'stroke-linejoin': 'round' }),
-    path('M0 -72 L0 -12', { stroke: '#f7f9fc', 'stroke-width': 1.2, opacity: 0.8 }),
-    path('M-3 -58 C 3 -50, -3 -40, 3 -30', { fill: 'none', stroke: '#6e767e', 'stroke-width': 1, opacity: 0.7 }),
-  ]);
-}
-
-function shieldIcon(cx: number, cy: number): SVGGElement {
-  const outline = 'M0 -42 C 20 -42, 34 -34, 34 -20 L 31 8 C 28 28, 14 40, 0 46 C -14 40, -28 28, -31 8 L -34 -20 C -34 -34, -20 -42, 0 -42 Z';
-  return g({ transform: `translate(${cx} ${cy})` }, [
-    path(outline, { fill: '#000', opacity: 0.35, transform: 'translate(2 3)' }),
-    path(outline, { fill: 'url(#zr-eq-wood)', stroke: '#4a3218', 'stroke-width': 2, 'stroke-linejoin': 'round' }),
-    path('M-24 -30 C -26 -10, -22 10, -14 30 M24 -30 C 26 -10, 22 10, 14 30 M-10 -38 C -12 -10, -10 20, -4 40 M10 -38 C 12 -10, 10 20, 4 40', { fill: 'none', stroke: '#6b4a24', 'stroke-width': 1.1, opacity: 0.7 }),
-    path(outline, { fill: 'none', stroke: '#c9a468', 'stroke-width': 1, opacity: 0.45, transform: 'scale(0.9)' }),
-    path(spiral(0, 2, 1, 15, 2.1, 1, -Math.PI / 2), { fill: 'none', stroke: '#c43a2a', 'stroke-width': 3.2, 'stroke-linecap': 'round' }),
-    path('M-14 -2 C -18 -8, -12 -14, -6 -14', { fill: 'none', stroke: '#c43a2a', 'stroke-width': 3.2, 'stroke-linecap': 'round' }),
-  ]);
+  const d1 = text(610, 635, '', { 'text-anchor': 'middle', 'font-size': 21, 'font-weight': 400, fill: TEXT });
+  const d2 = text(610, 665, '', { 'text-anchor': 'middle', 'font-size': 21, 'font-weight': 400, fill: TEXT });
+  grp.appendChild(d1);
+  grp.appendChild(d2);
+  // left / right cycle arrows inside the oval
+  grp.appendChild(path('M392 396 L372 414 L392 432', { fill: 'none', stroke: '#c9b48a', 'stroke-width': 3.4, 'stroke-linecap': 'round', 'stroke-linejoin': 'round', opacity: 0.85 }));
+  grp.appendChild(path('M838 396 L858 414 L838 432', { fill: 'none', stroke: '#c9b48a', 'stroke-width': 3.4, 'stroke-linecap': 'round', 'stroke-linejoin': 'round', opacity: 0.85 }));
+  return { grp, name, desc: [d1, d2] };
 }
 
 function tunicIcon(cx: number, cy: number): SVGGElement {
@@ -280,40 +245,71 @@ function tunicIcon(cx: number, cy: number): SVGGElement {
   ]);
 }
 
-function rightGrid(): SVGGElement {
+/** Equipment grid geometry (design px): column centres and the row centres / slot boxes. */
+export const GRID_COLS = [947, 1066, 1184];
+export const GRID_ROWS: { cy: number; w: number; h: number }[] = [
+  { cy: 245, w: 86, h: 176 },
+  { cy: 430, w: 104, h: 148 },
+  { cy: 590, w: 92, h: 128 },
+];
+
+function rowShape(row: number, cx: number, inset = 0): string {
+  const r = GRID_ROWS[row];
+  if (row === 1) return hexPath(cx, r.cy, r.w - inset * 2, r.h - inset * 2.6);
+  const w = r.w - inset * 2;
+  const h = r.h - inset * 2;
+  return rectPath(cx - w / 2, r.cy - h / 2, w, h, row === 0 ? 4 : 5);
+}
+
+/**
+ * Right panel: the 3 × 3 grid. Rows 0–1 hold the six bag items (their 3-D thumbnails are laid
+ * over the cells by the stage), row 2 is the tunic row (one tunic icon, two empty sockets). The
+ * gold plate marks the equipped item's cell and the pale frame the browsed one; both move.
+ */
+function rightGrid(): { grp: SVGGElement; setEquipped(row: number, col: number): void; setBrowsed(row: number, col: number): void } {
   const grp = g({ class: 'zr-equip-right' });
-  const cols = [947, 1066, 1184];
-  const rowShape = (row: number, cx: number, inset = 0): string => {
-    if (row === 0) {
-      const w = 86 - inset * 2;
-      const h = 176 - inset * 2;
-      return rectPath(cx - w / 2, 245 - h / 2, w, h, 4);
-    }
-    if (row === 1) return hexPath(cx, 430, 104 - inset * 2, 148 - inset * 2.6);
-    const w = 92 - inset * 2;
-    const h = 128 - inset * 2;
-    return rectPath(cx - w / 2, 590 - h / 2, w, h, 5);
-  };
+  const plates: SVGGElement[][] = [];
   for (let row = 0; row < 3; row++) {
+    plates.push([]);
     for (let c = 0; c < 3; c++) {
-      const cx = cols[c];
+      const cx = GRID_COLS[c];
       const d = rowShape(row, cx);
-      if (c === 0) {
-        grp.appendChild(path(d, { fill: 'url(#zr-eq-gold)', stroke: '#3a2a0c', 'stroke-width': 1.5, 'stroke-linejoin': 'round' }));
-        grp.appendChild(path(rowShape(row, cx, 3), { fill: 'none', stroke: '#c9a24a', 'stroke-width': 1, opacity: 0.4 }));
-      } else {
-        grp.appendChild(socket(d, rowShape(row, cx, 4)));
-      }
+      const filled = row < 2 || c === 0;
+      const gold = g({ style: 'display:none' }, [
+        path(d, { fill: 'url(#zr-eq-gold)', stroke: '#3a2a0c', 'stroke-width': 1.5, 'stroke-linejoin': 'round' }),
+        path(rowShape(row, cx, 3), { fill: 'none', stroke: '#c9a24a', 'stroke-width': 1, opacity: 0.4 }),
+      ]);
+      const plain = filled
+        ? g({}, [path(d, { fill: 'url(#zr-eq-plate)', stroke: '#3a2a0c', 'stroke-width': 1.5, 'stroke-linejoin': 'round' }), path(rowShape(row, cx, 3), { fill: 'none', stroke: '#8a7448', 'stroke-width': 1, opacity: 0.35 })])
+        : socket(d, rowShape(row, cx, 4));
+      grp.appendChild(plain);
+      grp.appendChild(gold);
+      plates[row].push(gold);
     }
   }
-  // selection frame on the sword slot
-  grp.appendChild(rect(947 - 48, 245 - 93, 96, 186, { rx: 6, fill: 'none', stroke: '#fff0c0', 'stroke-width': 7, opacity: 0.55, filter: 'url(#zr-eq-blur4)' }));
-  grp.appendChild(rect(947 - 45, 245 - 90, 90, 180, { rx: 4, fill: 'none', stroke: '#f8f0d8', 'stroke-width': 2.6 }));
-  grp.appendChild(rect(947 - 45, 245 - 90, 90, 180, { rx: 4, fill: 'none', stroke: GOLD, 'stroke-width': 1, opacity: 0.8, transform: 'translate(0 0)' }));
-  grp.appendChild(swordIcon(947, 245));
-  grp.appendChild(shieldIcon(947, 430));
   grp.appendChild(tunicIcon(947, 590));
-  return grp;
+  // browse frame (pale, glowing) — follows the highlighted cell
+  const glow = path(rowShape(0, 947, -3), { fill: 'none', stroke: '#fff0c0', 'stroke-width': 7, opacity: 0.55, filter: 'url(#zr-eq-blur4)', 'stroke-linejoin': 'round' });
+  const frame = path(rowShape(0, 947, -0.5), { fill: 'none', stroke: '#f8f0d8', 'stroke-width': 2.6, 'stroke-linejoin': 'round' });
+  const frameGold = path(rowShape(0, 947, -0.5), { fill: 'none', stroke: GOLD, 'stroke-width': 1, opacity: 0.8, 'stroke-linejoin': 'round' });
+  grp.appendChild(glow);
+  grp.appendChild(frame);
+  grp.appendChild(frameGold);
+  let equipped: [number, number] = [-1, -1];
+  return {
+    grp,
+    setEquipped(row, col) {
+      if (equipped[0] >= 0) plates[equipped[0]][equipped[1]].style.display = 'none';
+      equipped = [row, col];
+      plates[row][col].style.display = '';
+    },
+    setBrowsed(row, col) {
+      const cx = GRID_COLS[col];
+      glow.setAttribute('d', rowShape(row, cx, -3));
+      frame.setAttribute('d', rowShape(row, cx, -0.5));
+      frameGold.setAttribute('d', rowShape(row, cx, -0.5));
+    },
+  };
 }
 
 function rectPath(x: number, y: number, w: number, h: number, r: number): string {
@@ -388,6 +384,23 @@ function defs(): SVGDefsElement {
       { x1: '0', y1: '0', x2: '0', y2: '1' },
     ),
     linearGradient(
+      'zr-eq-plate',
+      [
+        { offset: 0, color: '#3a2d18' },
+        { offset: 1, color: '#221a0e' },
+      ],
+      { x1: '0', y1: '0', x2: '0', y2: '1' },
+    ),
+    radialGradient(
+      'zr-eq-card-glow',
+      [
+        { offset: 0, color: '#6b5a3a', opacity: 0.55 },
+        { offset: 0.55, color: '#3a2f1c', opacity: 0.25 },
+        { offset: 1, color: '#000', opacity: 0 },
+      ],
+      { cx: '50%', cy: '50%', r: '50%' },
+    ),
+    linearGradient(
       'zr-eq-steel',
       [
         { offset: 0, color: '#eef1f5' },
@@ -418,7 +431,17 @@ function defs(): SVGDefsElement {
   ]);
 }
 
-export function createEquipmentScreen(): SVGSVGElement {
+export interface EquipmentScreen {
+  svg: SVGSVGElement;
+  /** name + description under the card */
+  setText(name: string, description: [string, string]): void;
+  /** gold plate = the item in the HUD slot */
+  setEquipped(row: number, col: number): void;
+  /** pale frame = the item being browsed */
+  setBrowsed(row: number, col: number): void;
+}
+
+export function createEquipmentScreen(): EquipmentScreen {
   const root = svgRoot([0, 0, 1280, 720], {
     class: 'zr-equip-svg',
     preserveAspectRatio: 'xMidYMid slice',
@@ -428,9 +451,20 @@ export function createEquipmentScreen(): SVGSVGElement {
   root.appendChild(defs());
   root.appendChild(woodBackground());
   root.appendChild(leftPanel());
-  root.appendChild(centreOval());
-  root.appendChild(rightGrid());
+  const centre = centreOval();
+  root.appendChild(centre.grp);
+  const grid = rightGrid();
+  root.appendChild(grid.grp);
   root.appendChild(topBar());
   root.appendChild(hints());
-  return root;
+  return {
+    svg: root,
+    setText(name, description) {
+      centre.name.textContent = name;
+      centre.desc[0].textContent = description[0];
+      centre.desc[1].textContent = description[1];
+    },
+    setEquipped: grid.setEquipped,
+    setBrowsed: grid.setBrowsed,
+  };
 }

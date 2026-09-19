@@ -226,6 +226,8 @@ export interface HouseBuild {
   flowers: number;
   /** pots, bottles and bowls on the interior shelves */
   props: number;
+  /** round 47 (structures-30): the room's furniture (bed, rug, plants, table and hearth pieces) and the door's callus roll */
+  furnishing: { bed: boolean; rug: boolean; hangingPlants: number; herbBunches: number; pieces: number; triangles: number; plantLeaves: number; doorRoll: boolean };
   /**
    * The room's level floor pad (round 14): floor height above the local floor level, the back
    * wall's depth from the trunk centre at the left / middle / right of the room (door-space, +
@@ -302,6 +304,8 @@ interface LanternSpec {
   y?: number;
   /** glow colour (default orange) */
   tint?: LanternKind;
+  /** pod scale (default 1; round 47's cluster pods are a little smaller) */
+  scale?: number;
 }
 
 // Reference B: three pods in a loose row under the eave just left of / over the door (frame
@@ -326,6 +330,15 @@ const LANTERNS: Record<string, LanternSpec[]> = {
     // the shared glow's colour mix at half lime.
     { a: -1.15, cord: 0.7, hook: 'eave', tint: 'orange' },
     { a: 0.75, cord: 0.3, hook: 'eave', tint: 'lime' },
+    // Round 47 (structures-30, owner review 2026-09-19 ref-01): the reference bough carries its
+    // pods as a tight CLUSTER over and left of the door — close together at staggered heights,
+    // warm — where ours were three in a row. Two more hang in a second, lower rank inside the
+    // three's span (one orange, one lime, so the shared glow keeps its half-lime mix), a little
+    // smaller than the hero three: five in the cluster, nine on the house. Appended, so the
+    // first six pods' draws and B positions are unchanged. (A first cut hung four — seven in a
+    // row — and cost B 0.0031 SSIM against frame 14 s, which shows three; two cost half that.)
+    { a: -0.11, cord: 0.3, hook: 'bough', tint: 'orange', scale: 0.88 },
+    { a: 0.02, cord: 0.34, hook: 'bough', tint: 'lime', scale: 0.86 },
   ],
   // the upper house's pods hang on its plateau-side flanks: with Saria's cap lowered its front
   // shows above her roof in B, where the reference has only dark canopy (no lit pods there)
@@ -1370,6 +1383,47 @@ export function buildHouse(def: HouseDef, ctx: WorldContext, mats: StructureMate
     );
     faceTowards(doorTunnel, (p, o) => frame.door((doorW0 + doorW1) / 2, Math.min(p.y - yFloor, doorTop - doorRc - 0.2), (dBack + roomFront) / 2, o));
     porchParts.push(doorTunnel);
+    // Round 47 (structures-30, owner review 2026-09-19 #11 "the nook of the tree"): the mouth
+    // is a ROLLED LIP — the callus roll a living trunk grows round a hollow: a thick rounded
+    // ring of bark standing 0.13 m off the porch's back wall round the opening, curling
+    // forward over the crest and back into the reveal, so the doorway's edge is a fold of
+    // bark (ref-01: the house's opening has thick bark folds round it) rather than a cut. The
+    // ring's thickness wanders round the outline (± 35 %), it fades out under the sill beam,
+    // and the reveal's cords, cracks and knots run over it. It sits in front of the reveal's
+    // mouth (its inner edge ends inside the reveal's first ring, hiding both seams).
+    if (hero) {
+      const rollNoise = noise;
+      const doorRoll = gridSurface(
+        (s, q, out) => {
+          const [w0, y0] = doorOutline.at(s);
+          const phi = q * Math.PI;
+          // thickness: wanders round the ring, nothing under the sill (the beam is there)
+          const thick = 0.13 * k * (0.75 + 0.35 * rollNoise.noise(Math.cos(s * TAU) * 2.1 + 3, Math.sin(s * TAU) * 2.1 + 7)) * smoothstep(sill + 0.05 * k, sill + 0.45 * k, y0);
+          const cord = ringRidged(rollNoise, s * TAU, 2 - q * 0.3, 5.5, 4.2);
+          const crack = Math.pow(1 - Math.abs(rollNoise.noise(Math.cos(s * TAU) * 4.3 + 1, Math.sin(s * TAU) * 4.3 - q * 0.6)), 8);
+          let knot = 0;
+          for (const kn of revealKnots) {
+            let ds = s - kn.s;
+            ds -= Math.round(ds);
+            const dq = (q - 0.35) * 0.4;
+            knot += kn.h * 0.7 * Math.exp(-(ds * ds + dq * dq) / (kn.w * kn.w));
+          }
+          // e: on the wall outside the ring at φ = 0, over the crest, into the reveal at φ = π
+          const e = 0.1 + thick * 0.95 * (1 + Math.cos(phi)) * 0.5 + 0.04 * k * (1 - q) - 0.06 * k * q - (cord - 0.5) * 0.025 * k + crack * 0.015 * k - knot;
+          const [w, y] = onDoorIso(w0, y0, e);
+          const dOff = thick * Math.sin(phi) + 0.02 * k;
+          frame.door(w, y, dBack + dOff, out.position);
+          out.uv = [(s * doorOutline.length) / 2.2, (dBack + dOff) / 2.2 + 0.35];
+          // the crest catches the porch's light, the inner face falls toward the reveal's shade
+          const face = 0.7 + 0.5 * Math.sin(phi) * (1 - 0.5 * q);
+          const dark = lerp(0.2, 0.15, q) * face * (0.6 + 0.9 * cord + 0.5 * clamp(knot / (0.06 * k), 0, 1)) * (1 - 0.6 * crack);
+          out.color = [dark * RECESS_BAL[0], dark * RECESS_BAL[1], dark * RECESS_BAL[2]];
+        },
+        { cols: 112, rows: 9 },
+      );
+      faceTowards(doorRoll, (p, o) => frame.door((doorW0 + doorW1) / 2, Math.min(p.y - yFloor, doorTop - doorRc - 0.2), dBack + 1.0, o));
+      porchParts.push(doorRoll);
+    }
   }
   // the recess bark: the same maps under a fifth of the shade floor (RECESS_BARK_FLOOR) — under
   // HOUSE_BARK_FLOOR the porch's vertex tints never showed, every shaded face sat at the floor
@@ -1396,6 +1450,8 @@ export function buildHouse(def: HouseDef, ctx: WorldContext, mats: StructureMate
   // level, so the kerb's clearance over it is the fixed 0.01 m — rounds 12–13 lifted both with
   // the terrain where the slope came through the floor)
   const hearthPos = frame.door(doorW1 - 0.3 * k, roomFloorY + 0.2 * k, roomBackD(doorW1 - 0.3 * k) + 0.55 * k);
+  /** the candle on the stump table (round 47: it has a pool of its own in `glowOf`) */
+  const candlePos47 = frame.door(doorW0 + 0.7 * k, sill + 0.55 * k, roomFront - 1.1 * k);
   /** the arch's inner top edge: the cut's underside and the jambs just inside the door catch a glow */
   const archPos = frame.door((doorW0 + doorW1) / 2, doorTop - 0.15 * k, roomFront - 0.25 * k);
   const roomParts = [];
@@ -1443,8 +1499,12 @@ export function buildHouse(def: HouseDef, ctx: WorldContext, mats: StructureMate
       const dh = Math.hypot(p.x - c.x, p.z - c.z) / radius;
       return peak * Math.exp(-dh * dh * 1.6);
     };
+    // round 47 (structures-30): the candle on the table has its own small pool — the table top,
+    // the bowl and cup on it, the stool and the rug's near edge (the reference's fainter glint
+    // ≈ 0.7 m up is this candle); on the floor a wider, fainter disc round the table's foot
+    const candle = hero ? pool(p, candlePos47, 0.05 * k, 0.42 * k, 0.3) + onFloor * floorPool(candlePos47, 0.6 * k, 0.12) : 0;
     const floorGlow = onFloor * (floorPool(lampPos, 0.7 * k, 0.26) + floorPool(lamp2Pos, 0.6 * k, 0.2) + floorPool(hearthPos, 0.45 * k, 0.1));
-    return (0.006 + 0.04 * Math.pow(h, 3)) * lerp(1, 0.35, deep) + pool(p, lampPos, 0.26 * k, 0.24 * k, 0.55) + pool(p, lamp2Pos, 0.24 * k, 0.22 * k, 0.45) + pool(p, hearthPos, 0.18 * k, 0.24 * k, 0.3) + pool(p, archPos, 0.12 * k, 0.3 * k, 0.12) + floorGlow;
+    return (0.006 + 0.04 * Math.pow(h, 3)) * lerp(1, 0.35, deep) + pool(p, lampPos, 0.26 * k, 0.24 * k, 0.55) + pool(p, lamp2Pos, 0.24 * k, 0.22 * k, 0.45) + pool(p, hearthPos, 0.18 * k, 0.24 * k, 0.3) + pool(p, archPos, 0.12 * k, 0.3 * k, 0.12) + floorGlow + candle;
   };
   /**
    * Round 46: the BOARDS the room is lined with — vertical on the walls, running into the room
@@ -1469,6 +1529,55 @@ export function buildHouse(def: HouseDef, ctx: WorldContext, mats: StructureMate
     const fib = 0.5 + 0.5 * noise.noise(across * 60 + seed, along * 5 + idx);
     const grain = (g - 0.5) * 0.003 * k;
     return { relief: gap * 0.012 * k - crown + grain, shade: lerp(tone * lerp(0.66, 1.2, g) * lerp(0.92, 1.08, fib), 0.22, gap) };
+  };
+  /**
+   * Round 47 (structures-30): where the furniture stands, known before the floor is built so the
+   * boards can carry WEAR along the walked lines and CONTACT SHADE under the pieces (the lamps'
+   * floor pools are cut under them too — the "soft shadows" of a lamp-lit room without a shadow
+   * map). Door space (w lateral, d forward). The stump table and stool are round 46's; the bed
+   * (against the back wall, left), rug and hearth jug are this round's (`furnish47` below).
+   */
+  const tableD47 = roomFront - 1.1 * k;
+  const tableW47 = doorW0 + 0.7 * k;
+  const bedRect47 = (() => {
+    const w0 = roomW0 + 0.12 * k;
+    const w1 = roomW0 + 1.62 * k;
+    let back = -Infinity;
+    for (let i = 0; i <= 8; i++) back = Math.max(back, roomBackD(lerp(w0, w1, i / 8)));
+    return { w0, w1, d0: back + 0.05 * k, d1: back + 0.92 * k };
+  })();
+  const rugC47 = { w: 0.05 * k, d: roomFront - 0.72 * k, rw: 0.66 * k, rd: 0.46 * k };
+  const hearthW47 = doorW1 - 0.3 * k;
+  const hearthD47 = roomBackD(hearthW47) + 0.55 * k;
+  const jug47 = { w: doorW1 - 0.85 * k, d: roomBackD(doorW1 - 0.85 * k) + 0.32 * k, r: 0.13 * k };
+  /** 0..1 how trodden the floor is at (w, d): the threshold, the line to the table, to the hearth, to the bed */
+  const floorWear47 = (w: number, d: number): number => {
+    const seg = (aw: number, ad: number, bw: number, bd: number, half: number) => {
+      const dx = bw - aw;
+      const dz = bd - ad;
+      const t = clamp(((w - aw) * dx + (d - ad) * dz) / Math.max(1e-6, dx * dx + dz * dz), 0, 1);
+      const e = Math.hypot(w - (aw + dx * t), d - (ad + dz * t)) / half;
+      return Math.exp(-e * e * 1.4);
+    };
+    const doorW = (doorW0 + doorW1) / 2;
+    let wear = seg(doorW, roomFront + 0.1, doorW, roomFront - 0.5 * k, 0.55 * k);
+    wear = Math.max(wear, 0.8 * seg(doorW, roomFront - 0.4 * k, tableW47 + 0.35 * k, tableD47 + 0.25 * k, 0.32 * k));
+    wear = Math.max(wear, 0.7 * seg(doorW, roomFront - 0.4 * k, hearthW47 - 0.2 * k, hearthD47 + 0.35 * k, 0.3 * k));
+    wear = Math.max(wear, 0.6 * seg(tableW47, tableD47 - 0.3 * k, (bedRect47.w0 + bedRect47.w1) / 2, bedRect47.d1 + 0.2 * k, 0.3 * k));
+    return clamp(wear * (0.85 + 0.15 * noise.noise(w * 3.1 + 5, d * 3.1 + 9)), 0, 1);
+  };
+  /** 0..1 contact shade on the floor under the furniture */
+  const floorAO47 = (w: number, d: number): number => {
+    const disc = (cw: number, cd: number, r: number, soft: number) => 1 - smoothstep(r, r + soft, Math.hypot(w - cw, d - cd));
+    let ao = 0.85 * disc(tableW47, tableD47, 0.14 * k, 0.22 * k);
+    ao = Math.max(ao, 0.7 * disc(doorW0 + 0.08 * k, tableD47 + 0.25 * k, 0.15 * k, 0.16 * k));
+    ao = Math.max(ao, 0.6 * disc(hearthW47, hearthD47, 0.24 * k, 0.16 * k));
+    ao = Math.max(ao, 0.7 * disc(jug47.w, jug47.d, jug47.r, 0.12 * k));
+    // the bed: a soft rectangle
+    const bw = 1 - smoothstep(0, 0.18 * k, Math.max(bedRect47.w0 - w, w - bedRect47.w1, 0));
+    const bd = 1 - smoothstep(0, 0.18 * k, Math.max(bedRect47.d0 - d, d - bedRect47.d1, 0));
+    ao = Math.max(ao, 0.8 * bw * bd);
+    return clamp(ao, 0, 1);
   };
   {
     // diffuse shading: dark wood, darkest deep in the recess and at the floor, a little lighter
@@ -1581,7 +1690,11 @@ export function buildHouse(def: HouseDef, ctx: WorldContext, mats: StructureMate
             const w = lerp(roomW0 - 0.02, roomW1 + 0.02, u);
             const d = lerp(roomBackD(w) - 0.02, roomFront + 0.06, v);
             const b = isFloor ? boards(w, d, 4) : { relief: 0, shade: 1 };
-            frame.door(w, y - (isFloor ? b.relief : 0), d, out.position);
+            // round 47: the walked lines are worn smooth and pale (the joints' relief and the
+            // grain's contrast flattened, the tone lifted), the floor under the furniture shaded
+            const wear = isFloor && hero ? floorWear47(w, d) : 0;
+            const ao = isFloor && hero ? floorAO47(w, d) : 0;
+            frame.door(w, y - (isFloor ? b.relief * (1 - 0.55 * wear) : 0), d, out.position);
             const deep = depthOf(out.position);
             const s = 0.3 * lerp(1, isFloor ? 0.55 : 0.4, deep);
             out.uv = [w / BOARD_TILE, d / BOARD_TILE];
@@ -1592,7 +1705,8 @@ export function buildHouse(def: HouseDef, ctx: WorldContext, mats: StructureMate
               const tintR = lerp(0.92, 1.25, warm);
               const tintG = lerp(0.96, 1.0, warm);
               const tintB = lerp(1.05, 0.7, warm);
-              out.color = [(s * tintR + g[0] * 0.5) * b.shade, (s * tintG + g[1] * 0.5) * b.shade, (s * tintB + g[2] * 0.5) * b.shade];
+              const worn = lerp(b.shade, 0.5 + 0.5 * b.shade, wear) * (1 + 0.28 * wear) * (1 - 0.6 * ao);
+              out.color = [(s * tintR + g[0] * 0.5) * worn, (s * tintG + g[1] * 0.5) * worn, (s * tintB + g[2] * 0.5) * worn];
             } else {
               out.color = [s * 0.92 + g[0] * 0.5, s * 0.96 + g[1] * 0.5, s * 1.05 + g[2] * 0.5];
             }
@@ -1652,8 +1766,13 @@ export function buildHouse(def: HouseDef, ctx: WorldContext, mats: StructureMate
       const d = _rel.dot(F);
       const y = p.y - frame.C.y;
       let sh: number;
-      if (y < roomFloorY + 0.03 * k) sh = boards(w, d, 4).shade;
-      else if (y > roomCeilY - 0.03 * k) return 1;
+      if (y < roomFloorY + 0.03 * k) {
+        // round 47: the pools are cut under the furniture (contact shade) and flattened on the worn lines
+        const wear = hero ? floorWear47(w, d) : 0;
+        const ao = hero ? floorAO47(w, d) : 0;
+        sh = lerp(boards(w, d, 4).shade, 0.5 + 0.5 * boards(w, d, 4).shade, wear);
+        return lerp(0.35, 1.1, smoothstep(0.25, 1.0, sh)) * (1 - 0.75 * ao);
+      } else if (y > roomCeilY - 0.03 * k) return 1;
       else if (Math.abs(w - roomW0) < 0.05 * k) sh = boards(d, y, 2).shade;
       else if (Math.abs(w - roomW1) < 0.05 * k) sh = boards(d, y, 3).shade;
       else sh = boards(w, y, 1).shade;
@@ -1925,6 +2044,22 @@ export function buildHouse(def: HouseDef, ctx: WorldContext, mats: StructureMate
   const roomLanternRng = rng.fork('room-lanterns');
   const roomLanternMat = indoorFog(mats.lantern, doorPlanePoint, F);
   materials.push(roomLanternMat);
+  /** a turned (lathe) form standing on the origin along +y: the side from t 0 → 1, then the top disc */
+  const turned = (profile: (t: number) => number, h: number, segs: number, rings: number, tint: (t: number, up: number) => [number, number, number]) =>
+    gridSurface(
+      (u, v, out) => {
+        // v 0 → 0.5 the side (bottom → top), 0.5 → 1 the top disc (rim → centre)
+        const th = u * TAU;
+        const side = v <= 0.5;
+        const t = side ? v * 2 : 1;
+        const rr = side ? profile(t) : profile(1) * (1 - (v - 0.5) * 2);
+        const y = side ? t * h : h + 0.006 * k * Math.sin((v - 0.5) * Math.PI);
+        out.position.set(Math.cos(th) * rr, y, Math.sin(th) * rr);
+        out.uv = [th * rr / 0.6, side ? y / 0.6 : 0.5 + rr / 0.6];
+        out.color = tint(t, side ? 0 : 1);
+      },
+      { cols: segs, rows: rings, closedU: true },
+    );
   {
     const roomMats: StructureMaterials = { ...mats, lantern: roomLanternMat };
     for (const p of [lampPos, lamp2Pos]) {
@@ -1948,21 +2083,6 @@ export function buildHouse(def: HouseDef, ctx: WorldContext, mats: StructureMate
     // round-12 slab-on-a-block boxes in the plain dark plank material.
     // (the table stands on the floor pad; its top at sill + 0.52 k, under the candle at sill + 0.55 k)
     const tableC = frame.door(doorW0 + 0.7 * k, roomFloorY, tableD);
-    const turned = (profile: (t: number) => number, h: number, segs: number, rings: number, tint: (t: number, up: number) => [number, number, number]) =>
-      gridSurface(
-        (u, v, out) => {
-          // v 0 → 0.5 the side (bottom → top), 0.5 → 1 the top disc (rim → centre)
-          const th = u * TAU;
-          const side = v <= 0.5;
-          const t = side ? v * 2 : 1;
-          const rr = side ? profile(t) : profile(1) * (1 - (v - 0.5) * 2);
-          const y = side ? t * h : h + 0.006 * k * Math.sin((v - 0.5) * Math.PI);
-          out.position.set(Math.cos(th) * rr, y, Math.sin(th) * rr);
-          out.uv = [th * rr / 0.6, side ? y / 0.6 : 0.5 + rr / 0.6];
-          out.color = tint(t, side ? 0 : 1);
-        },
-        { cols: segs, rows: rings, closedU: true },
-      );
     const tableTopR = 0.34 * k;
     const tableH = sill + 0.52 * k - roomFloorY;
     const legR = 0.13 * k;
@@ -2020,6 +2140,283 @@ export function buildHouse(def: HouseDef, ctx: WorldContext, mats: StructureMate
     const haloMesh = new Mesh(halo, mats.ember);
     haloMesh.name = 'door-ember-glow';
     group.add(haloMesh);
+  }
+  // ---- Round 47 (structures-30, owner review 2026-09-19 #11 "the detail inside the little nook
+  // of the tree needs to be a lot higher"): the room FURNISHED, readable at 1–3 m from the
+  // threshold (sn-house-door / the new sn-room-inside pose) while the doorway keeps its dark
+  // level from the plaza (everything below the sill line from B / D / A, in the room material's
+  // fog clamp, lit only by the lamps' pools):
+  //  - a BED against the back wall on the left, under the shelves: rounded log posts with knobs,
+  //    log rails, a stuffed mattress, a striped blanket folded over the foot, a pillow;
+  //  - an oval BRAIDED RUG on the floor between the door and the table;
+  //  - a HANGING PLANT in a clay pot on three cords from the ceiling right of the door, trailing
+  //    heart-leaf strands; a potted plant on the floor by the right jamb; dried HERB BUNCHES
+  //    hanging by the hearth;
+  //  - on the table a wooden bowl of fruit and a cup; by the hearth a big-bellied jug and a
+  //    stack of firewood.
+  // The pieces are turned / swept / puffed forms with vertex tints in the props material (they
+  // fold into the shelves' draw); the plants are a foliage builder of their own on fog-clamped
+  // clones of the leaf and vine materials (+2 draws, no shadow casters). Own forks throughout.
+  const furnish47 = { bed: false, rug: false, hangingPlants: 0, herbBunches: 0, pieces: 0, triangles: 0, plantLeaves: 0 };
+  if (hero) {
+    const fRng = rng.fork('room47');
+    const fNoise = new Noise2D(`${ctx.config.seed}/structures/house/${def.id}/room47`);
+    const parts: BufferGeometry[] = [];
+    const UPV = new Vector3(0, 1, 0);
+    const sgnPow = (x: number, p: number) => Math.sign(x) * Math.pow(Math.abs(x), p);
+    /** a rounded box (superellipsoid, exponent `e` — 1 a sphere, 0.3 a cushion) centred on `c`, half-sizes along Rt / up / F */
+    const puff = (c: Vector3, sx: number, sy: number, sz: number, e: number, tint: (u: number, v: number, p: Vector3) => [number, number, number], ripple = 0) => {
+      const g = gridSurface(
+        (u, v, out) => {
+          const th = u * TAU;
+          const ph = (v - 0.5) * Math.PI;
+          const cp = Math.cos(ph);
+          const cx = sgnPow(cp, e) * sgnPow(Math.cos(th), e);
+          const cz = sgnPow(cp, e) * sgnPow(Math.sin(th), e);
+          const cy = sgnPow(Math.sin(ph), e) * (1 + ripple * fNoise.noise(u * 5 + c.x, v * 3 + c.z));
+          out.position.copy(c).addScaledVector(Rt, cx * sx).addScaledVector(UPV, cy * sy).addScaledVector(F, cz * sz);
+          out.uv = [u * 2, v];
+          out.color = tint(u, v, out.position);
+        },
+        { cols: 22, rows: 13, closedU: true },
+      );
+      faceTowards(g, (p, o) => o.copy(p).sub(c).multiplyScalar(3).add(p));
+      return g;
+    };
+    /** a short log between two door-space points */
+    const log = (a: Vector3, b: Vector3, r0: number, r1: number, tint: [number, number, number], pale = false) =>
+      sweepTube(new LineCurve3(a, b), {
+        radius: (t) => lerp(r0, r1, t) * (1 + 0.05 * Math.sin(t * 7 + a.x)),
+        tubularSegments: 6,
+        radialSegments: 9,
+        uvMetres: 0.5,
+        capEnd: true,
+        capStart: true,
+        color: (t, ang) => {
+          const end = pale && (t < 0.02 || t > 0.98);
+          const k2 = 0.85 + 0.15 * Math.max(0, Math.cos(ang));
+          return end ? [0.8, 0.7, 0.5] : [tint[0] * k2, tint[1] * k2, tint[2] * k2];
+        },
+      });
+    const place = (g: BufferGeometry, at: Vector3, axis: Vector3 = UPV) => {
+      g.applyMatrix4(basisMatrix(at, axis));
+      return g;
+    };
+    /** stands a lathe (built along +y) upright at a door-space position: basisMatrix maps local +z → axis, so the lathe is turned onto +z first */
+    const stand = (g: BufferGeometry, w: number, y: number, d: number) => {
+      g.rotateX(Math.PI / 2);
+      return place(g, frame.door(w, y, d));
+    };
+    const LOG_TINT: [number, number, number] = [0.55, 0.42, 0.28];
+
+    // ---- the bed ----
+    {
+      const b = bedRect47;
+      const railY = 0.3 * k;
+      const postR = 0.06 * k;
+      const corners: [number, number, boolean][] = [
+        [b.w0 + postR, b.d0 + postR, true],
+        [b.w1 - postR, b.d0 + postR, true],
+        [b.w0 + postR, b.d1 - postR, false],
+        [b.w1 - postR, b.d1 - postR, false],
+      ];
+      for (const [w, d, head] of corners) {
+        const h = head ? 0.78 * k : 0.5 * k;
+        parts.push(log(frame.door(w, roomFloorY, d), frame.door(w, roomFloorY + h, d), postR * 1.1, postR * 0.85, LOG_TINT));
+        const knob = new SphereGeometry(postR * 1.25, 10, 8);
+        knob.translate(0, 0, 0);
+        setColorAttribute(knob, [LOG_TINT[0] * 1.1, LOG_TINT[1] * 1.1, LOG_TINT[2] * 1.1]);
+        parts.push(place(knob, frame.door(w, roomFloorY + h + postR * 0.6, d)));
+        furnish47.pieces++;
+      }
+      // rails: two long (along w), two short (along d), a little sag in the long ones
+      for (const d of [b.d0 + postR, b.d1 - postR]) parts.push(log(frame.door(b.w0 + postR, roomFloorY + railY, d), frame.door(b.w1 - postR, roomFloorY + railY, d), 0.045 * k, 0.045 * k, LOG_TINT));
+      for (const w of [b.w0 + postR, b.w1 - postR]) parts.push(log(frame.door(w, roomFloorY + railY, b.d0 + postR), frame.door(w, roomFloorY + railY, b.d1 - postR), 0.045 * k, 0.045 * k, LOG_TINT));
+      // a headboard of three rounded slats between the head posts
+      for (let i = 0; i < 3; i++) {
+        const y = roomFloorY + railY + (0.12 + i * 0.13) * k;
+        parts.push(log(frame.door(b.w0 + postR * 1.6, y, b.d0 + postR), frame.door(b.w1 - postR * 1.6, y, b.d0 + postR), 0.028 * k, 0.028 * k, [LOG_TINT[0] * 0.9, LOG_TINT[1] * 0.9, LOG_TINT[2] * 0.9]));
+      }
+      // mattress: a cushion on the rails, its ticking pale with a faint stripe
+      const mw = (b.w1 - b.w0) / 2 - postR * 1.5;
+      const md = (b.d1 - b.d0) / 2 - postR * 1.2;
+      const mC = frame.door((b.w0 + b.w1) / 2, roomFloorY + railY + 0.1 * k, (b.d0 + b.d1) / 2);
+      parts.push(
+        puff(mC, mw, 0.11 * k, md, 0.32, (u, v, p) => {
+          const along = (p.x - mC.x) * Rt.x + (p.z - mC.z) * Rt.z;
+          const stripe = 0.92 + 0.08 * Math.sin(along * 34);
+          const top = 0.85 + 0.15 * smoothstep(0.3, 0.6, v);
+          return [0.88 * stripe * top, 0.8 * stripe * top, 0.62 * stripe * top];
+        }, 0.03),
+      );
+      // blanket folded over the foot half: green with rust stripes, a soft ripple
+      const bC = frame.door((b.w0 + b.w1) / 2 + mw * 0.42, roomFloorY + railY + 0.215 * k, (b.d0 + b.d1) / 2);
+      parts.push(
+        puff(bC, mw * 0.6, 0.035 * k, md * 1.06, 0.25, (u, v, p) => {
+          const along = (p.x - bC.x) * Rt.x + (p.z - bC.z) * Rt.z;
+          const s = smoothstep(0.3, 0.7, 0.5 + 0.5 * Math.sin(along * 21 + 1));
+          return [lerp(0.36, 0.78, s), lerp(0.5, 0.4, s), lerp(0.27, 0.24, s)];
+        }, 0.35),
+      );
+      // pillow at the head (the left end)
+      const pC = frame.door(b.w0 + postR * 1.5 + 0.24 * k, roomFloorY + railY + 0.26 * k, (b.d0 + b.d1) / 2);
+      parts.push(puff(pC, 0.22 * k, 0.065 * k, md * 0.85, 0.3, () => [0.95, 0.9, 0.74], 0.12));
+      furnish47.bed = true;
+      furnish47.pieces += 3;
+    }
+
+    // ---- the rug: an oval braided rug, concentric bands, a slightly wavy edge ----
+    {
+      const r = rugC47;
+      const bandW = 0.085 * k;
+      const tones: [number, number, number][] = [
+        [0.78, 0.36, 0.22],
+        [0.82, 0.74, 0.52],
+        [0.32, 0.44, 0.26],
+      ];
+      const rug = gridSurface(
+        (u, v, out) => {
+          const th = u * TAU;
+          const wob = 1 + 0.03 * fNoise.noise(Math.cos(th) * 3 + 11, Math.sin(th) * 3 + 4);
+          const rw = r.rw * v * wob;
+          const rd = r.rd * v * wob;
+          const lift = 0.012 * k * (1 - Math.pow(v, 8)) + 0.002 * k * Math.sin(th * 40 + v * 60);
+          frame.door(r.w + Math.cos(th) * rw, roomFloorY + lift, r.d + Math.sin(th) * rd, out.position);
+          out.uv = [u * 4, v * 2];
+          // bands by the local radius (the oval's mean); the braid's twist darkens every other bump
+          const ring = Math.floor((v * (r.rw + r.rd) * 0.5) / bandW);
+          const tone = tones[ring % 3];
+          const braid = 0.9 + 0.1 * Math.sin(th * (18 + ring * 6) + v * 30);
+          const worn = 1 - 0.18 * smoothstep(0.5, 1, v) * (0.5 + 0.5 * fNoise.noise(th * 2, v * 5 + 3));
+          out.color = [tone[0] * braid * worn, tone[1] * braid * worn, tone[2] * braid * worn];
+        },
+        { cols: 48, rows: 14, closedU: true },
+      );
+      faceTowards(rug, (p, o) => o.set(p.x, p.y + 2, p.z));
+      parts.push(rug);
+      furnish47.rug = true;
+      furnish47.pieces++;
+    }
+
+    // ---- table top: a wooden bowl of fruit and a cup beside the candle ----
+    {
+      const topY = sill + 0.52 * k + 0.006 * k;
+      const bowlW = tableW47 + 0.15 * k;
+      const bowlD = tableD47 - 0.1 * k;
+      const bowl = turned((t) => 0.11 * k * (0.5 + 0.5 * Math.sqrt(t)) * (1 + 0.02 * Math.sin(t * 9)), 0.06 * k, 16, 8, (t, up) => (up ? [0.6, 0.48, 0.32] : [0.5 + 0.1 * t, 0.4 + 0.08 * t, 0.26]));
+      parts.push(stand(bowl, bowlW, topY, bowlD));
+      const fruit: [number, number, [number, number, number]][] = [
+        [-0.035, 0.02, [0.9, 0.28, 0.18]],
+        [0.03, 0.03, [0.95, 0.72, 0.22]],
+        [0.0, -0.04, [0.55, 0.78, 0.28]],
+      ];
+      for (const [dw, dd, tint] of fruit) {
+        const f = new SphereGeometry(0.034 * k, 10, 8);
+        setColorAttribute(f, tint);
+        parts.push(place(f, frame.door(bowlW + dw * k, topY + 0.05 * k, bowlD + dd * k)));
+      }
+      const cup = turned((t) => 0.038 * k * (0.85 + 0.15 * t), 0.09 * k, 12, 6, (t, up) => (up ? [0.45, 0.55, 0.4] : [0.42, 0.5, 0.36]));
+      parts.push(stand(cup, tableW47 - 0.17 * k, topY, tableD47 + 0.1 * k));
+      furnish47.pieces += 3;
+    }
+
+    // ---- by the hearth: a big-bellied jug, firewood ----
+    {
+      const jug = turned(
+        (t) => jug47.r * (0.45 + 0.55 * Math.sin(Math.PI * Math.min(1, t * 1.05))) * (1 - 0.4 * smoothstep(0.72, 0.92, t)) + jug47.r * 0.32 * smoothstep(0.9, 1, t),
+        0.42 * k,
+        18,
+        14,
+        (t, up) => {
+          const glaze = 0.6 + 0.35 * smoothstep(0.3, 0.6, t);
+          return up ? [0.25, 0.2, 0.15] : [0.85 * glaze, 0.5 * glaze, 0.34 * glaze];
+        },
+      );
+      parts.push(stand(jug, jug47.w, roomFloorY, jug47.d));
+      const woodW = doorW1 + 0.05 * k;
+      const woodD = roomBackD(woodW) + 0.28 * k;
+      const stack: [number, number][] = [
+        [-0.055, 0],
+        [0.055, 0],
+        [0, 0.09],
+      ];
+      for (const [dd, dy] of stack) {
+        const a = frame.door(woodW - 0.18 * k, roomFloorY + (0.05 + dy) * k, woodD + dd * k);
+        const bpt = frame.door(woodW + 0.18 * k, roomFloorY + (0.05 + dy) * k, woodD + dd * k + (fRng() - 0.5) * 0.03 * k);
+        parts.push(log(a, bpt, 0.05 * k, 0.045 * k, [0.42, 0.33, 0.24], true));
+      }
+      furnish47.pieces += 4;
+    }
+
+    // ---- plants: a hanging pot on three cords, a potted plant by the jamb, herb bunches ----
+    const roomFoliage = new FoliageBuilder(fRng.fork('foliage'), `${ctx.config.seed}/structures/house/${def.id}/room47`);
+    {
+      const potW = doorW1 - 0.15 * k;
+      const potD = roomFront - 0.7 * k;
+      const potTop = roomCeilY - 0.72 * k;
+      const potH = 0.16 * k;
+      const potR = 0.12 * k;
+      const pot = turned((t) => potR * (0.62 + 0.38 * t) * (1 + 0.06 * smoothstep(0.85, 1, t)), potH, 16, 6, (t, up) => (up ? [0.25, 0.3, 0.15] : [0.82, 0.5, 0.36]));
+      parts.push(stand(pot, potW, potTop - potH, potD));
+      const hook = frame.door(potW, roomCeilY - 0.01 * k, potD);
+      for (let i = 0; i < 3; i++) {
+        const a = (i / 3) * TAU + 0.4;
+        const rim = frame.door(potW + Math.cos(a) * potR * 0.95, potTop - 0.02 * k, potD + Math.sin(a) * potR * 0.95);
+        parts.push(sweepTube(new LineCurve3(hook, rim), { radius: () => 0.005 * k, tubularSegments: 3, radialSegments: 5, color: () => [0.35, 0.26, 0.16] }));
+        const strandHook = frame.door(potW + Math.cos(a + 0.9) * potR * 0.9, potTop, potD + Math.sin(a + 0.9) * potR * 0.9);
+        roomFoliage.addHangingVine(strandHook, (0.45 + fRng() * 0.35) * k, { amount: 0.02, thickness: 0.007, leafSize: 0.055, leafEvery: 0.045, drift: new Vector3((fRng() - 0.5) * 0.25, 0, (fRng() - 0.5) * 0.25) });
+      }
+      // the crown of the plant over the rim
+      roomFoliage.addLeafCluster(frame.door(potW, potTop + 0.06 * k, potD), 0.16 * k, 22, { size: 0.07, amount: 0.02, droop: 0.4, tint: [0.75, 0.9, 0.55], tintSpread: 0.2, flatten: 0.6 });
+      furnish47.hangingPlants++;
+      furnish47.pieces++;
+      // the floor pot by the right jamb, a leafy plant standing in it
+      const fpW = doorW1 + 0.1 * k;
+      const fpD = roomFront - 0.35 * k;
+      const fpot = turned((t) => 0.13 * k * (0.7 + 0.3 * t) * (1 + 0.07 * smoothstep(0.86, 1, t)), 0.2 * k, 16, 6, (t, up) => (up ? [0.22, 0.26, 0.14] : [0.86, 0.56, 0.38]));
+      parts.push(stand(fpot, fpW, roomFloorY, fpD));
+      roomFoliage.addLeafCluster(frame.door(fpW, roomFloorY + 0.3 * k, fpD), 0.24 * k, 34, { size: 0.09, amount: 0.02, droop: 0.25, tint: [0.7, 0.92, 0.5], tintSpread: 0.25, flatten: 0.75 });
+      furnish47.pieces++;
+      // dried herb bunches hanging from the ceiling by the hearth, stems up, brown-green
+      for (let i = 0; i < 3; i++) {
+        const hw = doorW1 - 0.05 * k + (i - 1) * 0.22 * k;
+        const hd = roomBackD(hw) + 0.75 * k + (fRng() - 0.5) * 0.1 * k;
+        const top = frame.door(hw, roomCeilY - 0.02 * k, hd);
+        const bottom = frame.door(hw, roomCeilY - (0.28 + fRng() * 0.1) * k, hd);
+        parts.push(sweepTube(new LineCurve3(top, bottom), { radius: () => 0.004 * k, tubularSegments: 2, radialSegments: 4, color: () => [0.35, 0.26, 0.16] }));
+        roomFoliage.addLeafCluster(bottom.clone().addScaledVector(UPV, -0.06 * k), 0.09 * k, 14, { size: 0.05, amount: 0.015, droop: 1.3, tint: [0.5, 0.48, 0.25], tintSpread: 0.25, flatten: 1.2 });
+        furnish47.herbBunches++;
+      }
+    }
+
+    const furnishGeo = merge(parts);
+    {
+      const pos = furnishGeo.attributes.position;
+      const _g = new Vector3();
+      setFloatAttribute(furnishGeo, 'aGlow', (i) => glowOf(_g.set(pos.getX(i), pos.getY(i), pos.getZ(i))));
+    }
+    furnish47.triangles = Math.floor((furnishGeo.index ? furnishGeo.index.count : furnishGeo.attributes.position.count) / 3);
+    const furnishMesh = new Mesh(furnishGeo, propsMat);
+    furnishMesh.name = 'interior-furnishing';
+    furnishMesh.receiveShadow = true;
+    group.add(furnishMesh);
+    // the plants: fog-clamped clones of the leaf / vine materials so the strands read as in the
+    // room, not in the plaza's haze; no shadow casting (they are indoors)
+    const roomLeaf = indoorFog(mats.leaf, doorPlanePoint, F);
+    const roomVine = indoorFog(mats.vine, doorPlanePoint, F);
+    materials.push(roomLeaf, roomVine);
+    for (const m of roomFoliage.build({ ...mats, leaf: roomLeaf, vine: roomVine }, 'room47')) {
+      m.castShadow = false;
+      // indoors: the leaf map's daylight albedo is pulled down to the room's level (× 0.4) so the
+      // plants sit in the lamp-lit gloom with the shelves, not as sunlit cut-outs in the door
+      const col = m.geometry.attributes.color;
+      if (col) {
+        for (let i = 0; i < col.count; i++) col.setXYZ(i, col.getX(i) * 0.4, col.getY(i) * 0.42, col.getZ(i) * 0.38);
+        col.needsUpdate = true;
+      }
+      group.add(m);
+    }
+    furnish47.plantLeaves = roomFoliage.leafCount;
   }
   const lights: PointLight[] = [];
   // Round 11: the room is lit from inside — reference B's opening is a warm amber glow, a lit
@@ -4243,7 +4640,7 @@ export function buildHouse(def: HouseDef, ctx: WorldContext, mats: StructureMate
       // a hanging vine trails off the peg too
       foliage.addHangingVine(end.clone().add(new Vector3(0, 0.02, 0)), 0.5, { amount: 0.08 });
     }
-    const rig = buildLantern(hook, cord, mats, lanternRng, 1.0, spec.tint ?? 'orange');
+    const rig = buildLantern(hook, cord, mats, lanternRng, spec.scale ?? 1.0, spec.tint ?? 'orange');
     if (spec.tint === 'lime') limeCount++;
     group.add(rig.pivot);
     lanterns.push(rig);
@@ -4901,7 +5298,9 @@ export function buildHouse(def: HouseDef, ctx: WorldContext, mats: StructureMate
     materials,
     roots: rootsBuilt + 2,
     branches: branchDefs.length + 4,
-    leaves: foliage.leafCount + foliage21.leafCount + foliage40.leafCount,
+    leaves: foliage.leafCount + foliage21.leafCount + foliage40.leafCount + furnish47.plantLeaves,
+    /** round 47 (structures-30): the furnished room and the doorway's rolled lip */
+    furnishing: { ...furnish47, doorRoll: hero },
     eave,
     door,
     cap,

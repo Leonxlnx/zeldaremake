@@ -420,6 +420,111 @@ export const PLAZA = { x: 0, z: 0, radius: 6.0 };
 export const PLAZA_DISCS = [PLAZA, { x: 5.0, z: 2.4, radius: 4.0 }, { x: 3.25, z: 5.45, radius: 1.1 }];
 
 /**
+ * Round 47 (expansion-1): the paved discs beyond the log arch — the north clearing at the end of
+ * `layout.northPath`. Paved to `radius`, flattened to `y` a little beyond it (like the plaza's
+ * discs, but to the clearing's own floor height rather than 0).
+ */
+export const NORTH_DISCS = [{ x: LAYOUT.northClearing.x, z: LAYOUT.northClearing.z, y: LAYOUT.northClearing.y, radius: LAYOUT.northClearing.radius }];
+
+/**
+ * The stone circle's standing stones (`layout.stoneCircle`) on the clearing's ring: evenly spaced
+ * with a little deterministic slip (a fixed-seed noise, no stream), the ring's gap facing the
+ * path's arrival. Shared here so the hardscape that lays the blocks, the `structure` mask that
+ * keeps grass out from under them and the character ground's `blocked()` all see the same stones.
+ */
+const STONE_SLIP_N = new Noise2D('stone-circle-slip');
+export const STONE_CIRCLE_STONES: readonly { x: number; z: number; ang: number }[] = (() => {
+  const NC = LAYOUT.northClearing;
+  const SC = LAYOUT.stoneCircle;
+  const arrive = LAYOUT.northPath[LAYOUT.northPath.length - 2];
+  const gapAng = Math.atan2(arrive[2] - NC.z, arrive[0] - NC.x);
+  const out: { x: number; z: number; ang: number }[] = [];
+  for (let i = 0; i < SC.stones; i++) {
+    // the ring leaves the arrival sector (± 1/(stones+1) of the circle around `gapAng`) open
+    const t = (i + 1) / (SC.stones + 1);
+    const ang = gapAng + Math.PI * 2 * t + 0.06 * STONE_SLIP_N.fbm(i * 3.1 + 0.5, 1.7, 1);
+    const r = SC.ringRadius + 0.12 * STONE_SLIP_N.fbm(i * 3.1 + 0.5, 9.3, 1);
+    out.push({ x: NC.x + Math.cos(ang) * r, z: NC.z + Math.sin(ang) * r, ang });
+  }
+  return out;
+})();
+/** the standing stones' footprints: 1 within 0.26 m of a stone's axis (the blocks are 0.30–0.42 m across), 0 beyond 0.34 m */
+export function standingStoneMask(x: number, z: number): number {
+  const NC = LAYOUT.northClearing;
+  if (Math.abs(x - NC.x) > NC.radius || Math.abs(z - NC.z) > NC.radius) return 0;
+  let m = 0;
+  for (const s of STONE_CIRCLE_STONES) {
+    const d = Math.hypot(x - s.x, z - s.z);
+    if (d < 0.34) m = Math.max(m, 1 - smoothstep(0.26, 0.34, d));
+  }
+  return m;
+}
+
+/**
+ * The ledge terrace north of the clearing (`layout.ledgeTerrace`): an oriented box, full over its
+ * half extents, its north / east / west skirts easing out over `skirt` m and its SOUTH face — the
+ * rock face over the clearing that ref-04 shows — falling over `face` m (1.62 m over 0.5 m ≈ 73°,
+ * slope ≈ 0.7: the mask's `cliff` reaches 0.9 there, so the splat paints it rock and no grass grows on it).
+ * Applied in macroHeight before the stair ramps, so the `ledge` flight's trench / banks / landing
+ * rule wherever they overlap it.
+ */
+const TERRACE = (() => {
+  const t = LAYOUT.ledgeTerrace;
+  const yaw = (t.yawDeg * Math.PI) / 180;
+  return { cx: t.x, cz: t.z, y: t.y, ax: Math.cos(yaw), az: -Math.sin(yaw), hl: t.halfLength, hd: t.halfDepth, skirt: 1.1, face: 0.5 };
+})();
+
+/** terrace pad weight 0..1 at a point (1 = the flat top) */
+function terraceWeight(x: number, z: number): number {
+  const dx = x - TERRACE.cx;
+  const dz = z - TERRACE.cz;
+  // u along the terrace's length (east), v across it (positive = south, toward the clearing)
+  const u = dx * TERRACE.ax + dz * TERRACE.az;
+  const v = -dx * TERRACE.az + dz * TERRACE.ax;
+  const along = 1 - smoothstep(TERRACE.hl, TERRACE.hl + TERRACE.skirt, Math.abs(u));
+  const south = 1 - smoothstep(TERRACE.hd, TERRACE.hd + TERRACE.face, v);
+  const north = 1 - smoothstep(TERRACE.hd, TERRACE.hd + TERRACE.skirt, -v);
+  return along * south * north;
+}
+
+/**
+ * Round 47 (expansion-1, owner item 13: "I also need to be able to walk past it"): the walkable
+ * tunnel under the log arch — 1 within `TUNNEL.halfWidth` of the north spine's last two segments
+ * and the first segment of `layout.northPath` (the log's belly clears the paving by ≥ 1.68 m over
+ * that width; layout.ts `logArch`), fading to 0 over 0.4 m. The arch's `structure` mask is left
+ * as it is (it keeps the paving's gravel floor, the tongues and every vegetation rule under the
+ * log); the character ground's `blocked()` subtracts this from it, so the log's grounded walls
+ * and root masses on either side stay blocked and the passage between them opens.
+ */
+const TUNNEL = (() => {
+  const s = LAYOUT.pathSpine;
+  const n = LAYOUT.northPath;
+  return { line: [s[s.length - 3], s[s.length - 2], s[s.length - 1], n[1]] as readonly P3[], halfWidth: 2.0 };
+})();
+
+export function archTunnel(x: number, z: number): number {
+  const d = closestOnPolyline(TUNNEL.line, x, z).dist;
+  return 1 - smoothstep(TUNNEL.halfWidth - 0.1, TUNNEL.halfWidth + 0.3, d);
+}
+
+/**
+ * Round 47: the paving mask north of this line as it was BEFORE the extension — the spine's own
+ * end (`pathHalfWidth`, the same smoothstep `pathInfluence` gives it) and nothing else, since
+ * `layout.northPath` and `northClearing` did not exist. The hardscape's original pass (its
+ * lattices, joint fill and sprout scatters) reads the mask through this, so every stone, fill
+ * quad and sprout it lays — south of the arch and at the paving's old north end behind it — is
+ * byte-identical to round 46: its shared streams never see the new ground. The extension is a
+ * second pass that starts where this leaves off. South of `NORTH_EXTENSION_Z` nothing changed
+ * and `current` (the live mask) is returned.
+ */
+export const NORTH_EXTENSION_Z = -54;
+export function legacyPathMask(x: number, z: number, current: number): number {
+  if (z >= NORTH_EXTENSION_Z) return current;
+  const hw = LAYOUT.pathHalfWidth;
+  return 1 - smoothstep(hw * 0.85, hw * 1.05, closestOnPolyline(LAYOUT.pathSpine, x, z).dist);
+}
+
+/**
  * Log-arch frame. Mirrors `structures/logArch.ts`: the axis runs east (slightly north) through
  * `layout.logArch.position`; its west third bends south by up to 1.8 m (quadratic for
  * s < −0.15·L) so the broken hollow end faces the path. `lu` is the along-axis coordinate,
@@ -470,7 +575,7 @@ function pathInfluence(x: number, z: number) {
   const c = closestOnPolyline(LAYOUT.pathToHouse, x, z);
   // pick the branch that dominates
   let best = a;
-  let bhw = hw;
+  let bhw: number = hw;
   let paved = true;
   if (b.dist - hw * 0.8 < best.dist - bhw) {
     best = b;
@@ -482,6 +587,17 @@ function pathInfluence(x: number, z: number) {
     best = c;
     bhw = hw * 0.4;
     paved = false;
+  }
+  // round 47: the paving beyond the arch (`layout.northPath`, its own half width). Only ever the
+  // nearest branch north of the spine's end — south of z −56 the spine wins by its wider margin
+  if (z < -54) {
+    const hwN = LAYOUT.northPathHalfWidth;
+    const n = closestOnPolyline(LAYOUT.northPath, x, z);
+    if (n.dist - hwN < best.dist - bhw) {
+      best = n;
+      bhw = hwN;
+      paved = true;
+    }
   }
   let weight = 1 - smoothstep(bhw * 0.8, bhw * 1.9, best.dist);
   let surface = paved ? 1 - smoothstep(bhw * 0.85, bhw * 1.05, best.dist) : steppingStoneMask(x, z);
@@ -499,6 +615,19 @@ function pathInfluence(x: number, z: number) {
     weight = plazaWeight;
   }
   surface = Math.max(surface, plazaSurface);
+  // round 47: the north clearing's disc — paved to its radius, flattened to its own floor beyond
+  if (z < -60) {
+    for (const d of NORTH_DISCS) {
+      const dp = Math.hypot(x - d.x, z - d.z);
+      const ds = 1 - smoothstep(d.radius * 0.85, d.radius * 1.05, dp);
+      const dw = 1 - smoothstep(d.radius * 0.9, d.radius * 1.45, dp);
+      if (dw > weight) {
+        y = lerp(y, d.y, (dw - weight) / Math.max(dw, 1e-6));
+        weight = dw;
+      }
+      surface = Math.max(surface, ds);
+    }
+  }
   // paved apron at the foot of the house-west flight: the strip in front of its first riser (the
   // flight's width plus a little) and the strip south of its lower tread ends are paved and
   // flattened to the path's level (0 here), so the north path's flagstones run up to the riser
@@ -563,6 +692,18 @@ function macroHeight(x: number, z: number) {
       const floor = hs.position[1] - 0.05;
       h = lerp(h, Math.max(floor, h - 0.35), w);
       padW = Math.max(padW, w);
+    }
+  }
+
+  // Round 47: the ledge terrace beyond the arch (`layout.ledgeTerrace`) — a flat pad at its height,
+  // its south face the steep bank over the north clearing. Before the stair ramps, like the house
+  // pads, so the `ledge` flight's trench, banks and landing rule where they cross it.
+  let terraceW = 0;
+  if (z < -60) {
+    terraceW = terraceWeight(x, z);
+    if (terraceW > 0) {
+      h = lerp(h, TERRACE.y, terraceW);
+      padW = Math.max(padW, terraceW);
     }
   }
 
@@ -806,6 +947,10 @@ export function surfaceMask(x: number, z: number): { path: number; stairs: numbe
   // south (the oblique cut's lip) so no grass grows up the mouth
   const lg = logLocal(x, z);
   if (Math.abs(lg.lu) < LOG.L / 2 + 0.3 * lg.k && lg.lvc > -LOG.R * 0.9 && lg.lvc < LOG.R * 0.9 + 0.6 * lg.k) structure = 1;
+  // round 47: the stone circle's standing stones (the north paving lays its slabs under them —
+  // hardscape/flagstones.ts `pavedLevel` ignores this in its north pass; the character cannot walk
+  // through them and no grass grows under them)
+  structure = Math.max(structure, standingStoneMask(x, z));
   return { path: p.surface, stairs, structure };
 }
 
