@@ -1,9 +1,10 @@
-"""Append reviewed run leg channels to 24591126; preserve every other asset byte."""
+"""Append reviewed leg channels to 24591126; preserve unedited clips and binary data."""
 import copy,hashlib,json,math,struct,sys
 from pathlib import Path
-out=Path(__file__).resolve().parent
+out=Path(sys.argv[3]) if len(sys.argv)>3 else Path(__file__).resolve().parent
 stem=sys.argv[2] if len(sys.argv)>2 else 'run-contact-low'
 study=json.loads((out/(stem+'-study.json')).read_text())
+gait=study.get('gait','run');period=study['cycle_s']
 def load(path):
  raw=path.read_bytes();length=struct.unpack_from('<I',raw,12)[0]
  assert struct.unpack_from('<4sII',raw)==(b'glTF',2,len(raw))
@@ -27,7 +28,7 @@ def append(rows,kind):
  a={'bufferView':view,'componentType':5126,'count':len(rows),'type':kind}
  if kind=='SCALAR':a.update(min=[min(x[0] for x in rows)],max=[max(x[0] for x in rows)])
  index=len(doc['accessors']);doc['accessors'].append(a);return index
-run=next(a for a in doc['animations'] if a['name']=='run');source=next(a for a in native[1]['animations'] if a['name']=='run')
+run=next(a for a in doc['animations'] if a['name']==gait);source=next(a for a in native[1]['animations'] if a['name']==gait)
 def key(model,c):return model[1]['nodes'][c['target']['node']]['name'],c['target']['path']
 lookup={key(native,c):source['samplers'][c['sampler']] for c in source['channels']}
 edited={'hips'}|{j+s for j in ['thigh','knee','ankle'] for s in ['L','R']};changed=[]
@@ -46,7 +47,7 @@ for c in run['channels']:
  before=run['samplers'][c['sampler']];src=lookup[(bone,path)]
  times=values(native,src['input']);rows=values(native,src['output'])
  interpolation=src.get('interpolation','LINEAR')
- assert interpolation in ('LINEAR','STEP') and abs(times[-1][0]-28/60)<1e-6
+ assert interpolation in ('LINEAR','STEP') and abs(times[-1][0]-period)<1e-6
  if interpolation=='STEP':assert all(row==rows[0] for row in rows)
  assert all(a[0]<b[0] for a,b in zip(times,times[1:]))
  sampler={'input':append(times,'SCALAR'),'output':append(rows,original['accessors'][before['output']]['type']),'interpolation':interpolation}
@@ -55,7 +56,7 @@ assert changed and bytes(binary[:len(prefix)])==prefix
 for k in original:
  if k not in ['accessors','bufferViews','buffers','animations']:assert doc[k]==original[k],k
 for a,b in zip(doc['animations'],original['animations']):
- if a['name']!='run':assert a==b
+ if a['name']!=gait:assert a==b
  else:
   for c,d in zip(a['channels'],b['channels']):
    if list(key(old,d)) not in changed:assert c==d and a['samplers'][c['sampler']]==b['samplers'][d['sampler']]
@@ -63,5 +64,5 @@ doc['buffers'][0]['byteLength']=len(binary)
 js=json.dumps(doc,separators=(',',':')).encode();js+=b' '*((-len(js))%4);binary+=b'\0'*((-len(binary))%4)
 result=struct.pack('<4sII',b'glTF',2,28+len(js)+len(binary))+struct.pack('<I4s',len(js),b'JSON')+js+struct.pack('<I4s',len(binary),b'BIN\0')+binary
 (out/(stem+'-candidate.glb')).write_bytes(result)
-report={'sha256':hashlib.sha256(result).hexdigest(),'source_sha256':hashlib.sha256(old[0]).hexdigest(),'original_binary_preserved':True,'rest_nodes_and_assets_exact':True,'other_clips_and_nonleg_run_channels_exact':True,'hips_preserved':study.get('preserve_hips',False),'changed':changed,'cycle_s':28/60,'stride_m':study['stride_m'],'status':'Export checked; game and visual acceptance pending'}
+report={'sha256':hashlib.sha256(result).hexdigest(),'source_sha256':hashlib.sha256(old[0]).hexdigest(),'original_binary_preserved':True,'rest_nodes_and_assets_exact':True,'other_clips_and_nonleg_channels_exact':True,'gait':gait,'hips_preserved':study.get('preserve_hips',False),'changed':changed,'cycle_s':period,'stride_m':study['stride_m'],'status':'Export checked; game and visual acceptance pending'}
 (out/(stem+'-export.json')).write_text(json.dumps(report,indent=2));print(json.dumps(report))

@@ -88,7 +88,7 @@ try{
   const jumpOnly=process.argv.includes('--jump-only');
   const framesDir=path.join(out,'video-frames');let videoFrames=0;
   if(flatVideo)await fs.mkdir(framesDir);
-  for(const scenario of jumpOnly?['run-jump']:(flatVideo||flatStills||process.argv.includes('--flat-only'))?['flat-transitions']:descentDetail?['stairs-down']:['flat-transitions','stairs-up','stairs-down']){
+  for(const scenario of jumpOnly?['run-jump']:process.argv.includes('--stairs-only')?['stairs-up','stairs-down']:(flatVideo||flatStills||process.argv.includes('--flat-only'))?['flat-transitions']:descentDetail?['stairs-down']:['flat-transitions','stairs-up','stairs-down']){
     const frames=smoke?12:jumpOnly?180:descentDetail?90:(scenario==='flat-transitions'?300:660);
     await page.evaluate(scenario=>{
       const {player}=__playReview;player.setPlayMode(true);player.setInput({moveX:0,moveZ:0,run:false});
@@ -123,9 +123,16 @@ try{
           if(Math.abs(root[1]-placement[1]-c.linkIk.rootShiftM)>(separatePlacement?.00011:.00006))throw Error('Actual root does not match placement plus IK shift');
           const row={scenario,frame:i,gait:c.linkGait,root,placement,feet:c.linkFeetContact,ik:c.linkIk,locomotion:c.linkLocomotion,
             rootStepY:__playReview.previousRoot===null?null:root[1]-__playReview.previousRoot[1]};
-          row.bodyPoints=Object.fromEntries(['hips','chest','head','handL','handR'].map(name=>{
+          row.bodyPoints=Object.fromEntries(['hips','chest','head','handL','handR','thighL','kneeL','ankleL','thighR','kneeR','ankleR'].map(name=>{
             const bone=body.skeleton.bones.find(b=>b.name===name);if(!bone)throw Error('Missing body motion marker '+name);
             return [name,bone.getWorldPosition(point).toArray()];
+          }));
+          const delta=(a,b)=>a.map((v,k)=>v-b[k]);
+          const angle=(a,b)=>Math.acos(Math.max(-1,Math.min(1,a.reduce((s,v,k)=>s+v*b[k],0)/(Math.hypot(...a)*Math.hypot(...b)))))*180/Math.PI;
+          const points=row.bodyPoints,downAxis=delta(points.hips,points.chest);
+          row.legAngles=Object.fromEntries(['L','R'].map(s=>{
+            const thigh=delta(points['knee'+s],points['thigh'+s]),shin=delta(points['ankle'+s],points['knee'+s]);
+            return [s,{hipFlexDeg:angle(thigh,downAxis),kneeFlexDeg:angle(thigh,shin)}];
           }));
           if(c.blinkWeights){
             row.blink={phase:c.blinkPhase,weights:c.blinkWeights,applied:[]};
@@ -244,6 +251,8 @@ try{
       distanceXZ:Math.hypot(rows.at(-1).root[0]-rows[0].root[0],rows.at(-1).root[2]-rows[0].root[2]),
       maxRootStepM:Math.max(...rows.map(r=>Math.abs(r.rootStepY??0))),
       reachClampedFrames:rows.filter(r=>r.ik.reachClamped).length,measuredShoePoints:surface.length,
+      maxHipFlexDeg:Math.max(...rows.flatMap(r=>Object.values(r.legAngles).map(a=>a.hipFlexDeg))),
+      maxKneeFlexDeg:Math.max(...rows.flatMap(r=>Object.values(r.legAngles).map(a=>a.kneeFlexDeg))),
       minRenderedStairGapM:surface.length?Math.min(...surface.map(p=>p.gapM)):null,
       shoeSamplesBelowMinus2cm:surface.filter(p=>p.gapM<-.02).length}];
   }));

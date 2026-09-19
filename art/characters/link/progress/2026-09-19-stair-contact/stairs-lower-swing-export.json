@@ -1,10 +1,10 @@
 {
-  "sha256": "3218b16423aa2c1f8cf4e03f8bb63c25c719f21a3bcef30bbf70800e0ff81c41",
+  "sha256": "6c62b70f193bb22a83f5130bdb56e0e8be41aeef964a484fdb4b3d64a55e466a",
   "source_sha256": "2459112603a935a038dd06a67de85d5c5e28c72188f50ebd4d6e304af236bfa4",
   "original_binary_preserved": true,
   "rest_nodes_and_assets_exact": true,
   "other_clips_and_nonleg_channels_exact": true,
-  "gait": "run",
+  "gait": "stairs",
   "hips_preserved": true,
   "changed": [
     [
@@ -80,7 +80,7 @@
       "scale"
     ]
   ],
-  "cycle_s": 0.4666666666666667,
-  "stride_m": 1.82,
+  "cycle_s": 0.7333333333333333,
+  "stride_m": 0.8066667,
   "status": "Export checked; game and visual acceptance pending"
 }

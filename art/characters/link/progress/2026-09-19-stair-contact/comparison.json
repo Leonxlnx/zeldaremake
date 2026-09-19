@@ -1,0 +1,92 @@
+{
+  "scope": "1320 matched actual-player frames at 60 Hz. Raycasts sample four skinned sole vertices per foot every ten frames, not complete mesh collision. Near-floor movement uses adjacent unplanted audit markers below12mm and is summed over the whole trace, not per step.",
+  "player_horizontal_travel_exact": true,
+  "baseline_asset": "2459112603a935a038dd06a67de85d5c5e28c72188f50ebd4d6e304af236bfa4",
+  "candidate_asset": "6c62b70f193bb22a83f5130bdb56e0e8be41aeef964a484fdb4b3d64a55e466a",
+  "scenarios": {
+    "stairs-up": {
+      "baseline": {
+        "frames": 660,
+        "gaits": [
+          "walk",
+          "stairs"
+        ],
+        "distanceXZ": 12.11388888888864,
+        "maxRootStepM": 0.025201970600221557,
+        "reachClampedFrames": 0,
+        "measuredShoePoints": 509,
+        "maxHipFlexDeg": 144.20925034615232,
+        "maxKneeFlexDeg": 163.41388520697893,
+        "minRenderedStairGapM": 0.001006209869519381,
+        "shoeSamplesBelowMinus2cm": 0,
+        "max_hip_step_m": 0.02344824730313544,
+        "max_planted_drift_m_per_frame": 0.04766424236259248,
+        "near_floor_unplanted_travel_m": 1.934034514422578,
+        "near_floor_unplanted_intervals": 98,
+        "min_audited_shoe_gap_m": -0.117
+      },
+      "candidate": {
+        "frames": 660,
+        "gaits": [
+          "walk",
+          "stairs"
+        ],
+        "distanceXZ": 12.11388888888864,
+        "maxRootStepM": 0.025202001889332415,
+        "reachClampedFrames": 0,
+        "measuredShoePoints": 511,
+        "maxHipFlexDeg": 143.3000088044612,
+        "maxKneeFlexDeg": 162.2970927085883,
+        "minRenderedStairGapM": 0.0010061386582727039,
+        "shoeSamplesBelowMinus2cm": 0,
+        "max_hip_step_m": 0.02344827859650178,
+        "max_planted_drift_m_per_frame": 0.04766424236259248,
+        "near_floor_unplanted_travel_m": 3.1868289116812902,
+        "near_floor_unplanted_intervals": 146,
+        "min_audited_shoe_gap_m": -0.117
+      }
+    },
+    "stairs-down": {
+      "baseline": {
+        "frames": 660,
+        "gaits": [
+          "stairs",
+          "walk"
+        ],
+        "distanceXZ": 12.495833333333042,
+        "maxRootStepM": 0.020158776124154176,
+        "reachClampedFrames": 0,
+        "measuredShoePoints": 488,
+        "maxHipFlexDeg": 133.78476432710463,
+        "maxKneeFlexDeg": 157.5508267568809,
+        "minRenderedStairGapM": -0.07308099013741609,
+        "shoeSamplesBelowMinus2cm": 1,
+        "max_hip_step_m": 0.021292140892587685,
+        "max_planted_drift_m_per_frame": 0.034372227160893463,
+        "near_floor_unplanted_travel_m": 3.2965770806630044,
+        "near_floor_unplanted_intervals": 125,
+        "min_audited_shoe_gap_m": -0.1075
+      },
+      "candidate": {
+        "frames": 660,
+        "gaits": [
+          "stairs",
+          "walk"
+        ],
+        "distanceXZ": 12.495833333333042,
+        "maxRootStepM": 0.02007335314700942,
+        "reachClampedFrames": 0,
+        "measuredShoePoints": 487,
+        "maxHipFlexDeg": 133.17305087305078,
+        "maxKneeFlexDeg": 154.52347215535448,
+        "minRenderedStairGapM": -0.005193904227445145,
+        "shoeSamplesBelowMinus2cm": 0,
+        "max_hip_step_m": 0.021206759825105337,
+        "max_planted_drift_m_per_frame": 0.034372227160893463,
+        "near_floor_unplanted_travel_m": 4.913639272400785,
+        "near_floor_unplanted_intervals": 179,
+        "min_audited_shoe_gap_m": -0.0535
+      }
+    }
+  }
+}
