@@ -32,6 +32,59 @@ export interface PuppetPose extends GaitChain {
   lookWeight: number;
   /** amplitude (rad) of the slow idle body turn (kids look around) */
   idleTurn: number;
+  /**
+   * Play-mode locomotion state (round 47; null outside play mode, so a fixed capture never sees
+   * it and its pose stays the closed-form function of `t` it was). Owned by the character system,
+   * integrated from the simulation steps like the player's position, read and updated by the
+   * puppet: the stance pins, the jump overlay and the step the pose is for.
+   */
+  loco: Locomotion | null;
+}
+
+/** the jump's phases: the take-off crouch (feet planted, root sinking), the airborne arc, the landing compression */
+export type JumpPhase = 'crouch' | 'air' | 'land';
+
+/**
+ * One jump (round 47, the owner's "run faster and even jump"): the character system runs the
+ * physics in `stepPlayer` (crouch timer → ballistic arc against the ground → landing timer); the
+ * puppet reads the phase and the times for its procedural pose overlay.
+ */
+export interface JumpState {
+  phase: JumpPhase;
+  /** simulation time the current phase began */
+  t0: number;
+  /** root height at take-off (world) and the airborne root height the arc has reached (world) */
+  y0: number;
+  y: number;
+  /** take-off vertical speed (m/s) and the horizontal velocity carried through the air (m/s) */
+  v0: number;
+  vx: number;
+  vz: number;
+  /** vertical speed at touchdown (m/s, positive = falling) — scales the landing compression */
+  vLand: number;
+  /** the flight time (s) the arc was expected to take back to the take-off ground level */
+  flightS: number;
+  /** 0..1 how far through that flight the arc is (saturates when the landing ground is lower); the overlay's clock */
+  air: number;
+}
+
+export interface Locomotion {
+  /** ground speed of the last step (m/s) */
+  speed: number;
+  /** length of the step this pose is for (s); 0 for a zero-dt re-render of the same moment, which must not advance any filter */
+  dt: number;
+  /**
+   * The stance pins (glbLink.ts): the world (x, z) each foot is held at while the blended clips
+   * have it in stance — set where it touched down, released at toe-off. NaN = free. Index 0 = L.
+   */
+  pinX: [number, number];
+  pinZ: [number, number];
+  /** the jump in progress, or null on the ground */
+  jump: JumpState | null;
+}
+
+export function createLocomotion(): Locomotion {
+  return { speed: 0, dt: 0, pinX: [NaN, NaN], pinZ: [NaN, NaN], jump: null };
 }
 
 /**
@@ -64,6 +117,13 @@ export interface FootContact {
   correctionM: number;
   pinM: number;
   holdM: number;
+  /** world x / z of the sole marker after planting (round 47: the stance-foot drift is measured on these) */
+  soleX: number;
+  soleZ: number;
+  /** true while the blended clips have this foot in stance (its swing weight below ½); the procedural rig reports the lower sole */
+  stance: boolean;
+  /** the play-mode stance pin's offset applied to the foot (m): along the facing (folded into `pinM` with the idle pin) and sideways */
+  pinLatM: number;
 }
 
 /** how the last pose was planted (audit `linkIk`) */
@@ -91,6 +151,8 @@ export interface PlantInfo {
   maxPinM: number;
   maxHoldM: number;
   blendClips: number;
+  /** the hip flexion clamped away on the most-clamped leg (rad; play mode only, glbLink.ts HIP_FLEX_MAX) */
+  hipClampRad: number;
 }
 
 /**
@@ -148,6 +210,15 @@ export interface Puppet {
   anchor?(x: number, z: number, yaw: number, gait: Gait, clipShift: number, t: number): FootAnchor;
   /** the blink of the last pose (puppets with a morph-target face; see BlinkInfo) */
   blink?(): BlinkInfo;
+  /**
+   * Play mode (round 47): advance the chain's clips by the ground distance `ds` (m) the root
+   * actually travelled over a step of `dt` (s) ending at `t`, instead of by the clock — the
+   * clip shifts are moved so every clip with a stride plays at rate = speed / (stride / cycle)
+   * of the BLENDED gait (the strides cross-fade with the weights), so the feet cover exactly the
+   * ground the root does whatever the speed (a turn, an acceleration, a gait blend) and a
+   * standing root (ds 0, a jump) freezes the gait. Clips without a stride (idle) keep the clock.
+   */
+  advance?(chain: GaitChain, t: number, ds: number, dt: number): void;
 }
 
 const _head = new Vector3();
@@ -158,10 +229,10 @@ const _soleR = new Vector3();
 export function proceduralPuppet(char: Character, animations: readonly string[]): Puppet {
   const rig = char.rig;
   const feet: FootContact[] = [
-    { foot: 'L', soleY: 0, groundY: 0, gapM: 0, supportY: 0, minShoeGapM: 0, shiftM: 0, pitchRad: 0, correctionM: 0, pinM: 0, holdM: 0 },
-    { foot: 'R', soleY: 0, groundY: 0, gapM: 0, supportY: 0, minShoeGapM: 0, shiftM: 0, pitchRad: 0, correctionM: 0, pinM: 0, holdM: 0 },
+    { foot: 'L', soleY: 0, groundY: 0, gapM: 0, supportY: 0, minShoeGapM: 0, shiftM: 0, pitchRad: 0, correctionM: 0, pinM: 0, holdM: 0, soleX: 0, soleZ: 0, stance: true, pinLatM: 0 },
+    { foot: 'R', soleY: 0, groundY: 0, gapM: 0, supportY: 0, minShoeGapM: 0, shiftM: 0, pitchRad: 0, correctionM: 0, pinM: 0, holdM: 0, soleX: 0, soleZ: 0, stance: true, pinLatM: 0 },
   ];
-  const info: PlantInfo = { mode: 'root-drop', maxCorrectionM: 0, rootShiftM: 0, planted: 'L', reachClamped: false, reachClampedLeg: null, reachExcessM: 0, maxShiftM: 0, extraDropM: 0, attackDropM: 0, maxPinM: 0, maxHoldM: 0, blendClips: 1 };
+  const info: PlantInfo = { mode: 'root-drop', maxCorrectionM: 0, rootShiftM: 0, planted: 'L', reachClamped: false, reachClampedLeg: null, reachExcessM: 0, maxShiftM: 0, extraDropM: 0, attackDropM: 0, maxPinM: 0, maxHoldM: 0, blendClips: 1, hipClampRad: 0 };
   return {
     kind: 'procedural',
     group: char.group,
@@ -179,6 +250,8 @@ export function proceduralPuppet(char: Character, animations: readonly string[])
       rig.ankleR.localToWorld(_soleR.copy(rig.sole));
       for (const [f, s] of [[feet[0], _soleL], [feet[1], _soleR]] as const) {
         f.soleY = s.y;
+        f.soleX = s.x;
+        f.soleZ = s.z;
         f.groundY = ground(s.x, s.z);
         f.gapM = s.y - f.groundY;
         f.supportY = f.groundY;
@@ -186,6 +259,8 @@ export function proceduralPuppet(char: Character, animations: readonly string[])
       }
       info.rootShiftM = rig.root.position.y - placed;
       info.planted = Math.abs(feet[0].gapM) <= Math.abs(feet[1].gapM) ? 'L' : 'R';
+      feet[0].stance = info.planted === 'L';
+      feet[1].stance = info.planted === 'R';
     },
     headTop(out) {
       rig.head.getWorldPosition(_head);

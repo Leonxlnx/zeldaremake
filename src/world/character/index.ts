@@ -19,7 +19,7 @@
  */
 import { Group, MathUtils, Mesh, Object3D, PerspectiveCamera, Vector3, type Camera } from 'three';
 import type { WorldContext, WorldSystem } from '../system';
-import { GAIT_SPEED, GAITS, HERO_PHASE, type Gait } from './animation';
+import { GAIT_SPEED, GAITS, HERO_PHASE, PLAYER_ACCEL, PLAYER_DECEL, PLAYER_SPEED, type Gait } from './animation';
 import { createGround } from './ground';
 import { createKokiri } from './kokiri';
 import { createLink } from './link';
@@ -28,9 +28,21 @@ import { headingOf, marchToGround, matchViewpoint, pointAtDepth, projectPoint, V
 import { PLAYER_KEY, type PlayerHandle, type PlayerInput } from './player';
 import { createContactShadow } from './shadow';
 import { consolidateRigParts } from './consolidate';
-import { proceduralPuppet, type Puppet } from './puppet';
+import { createLocomotion, proceduralPuppet, type Locomotion, type Puppet } from './puppet';
 import { hardChain, switchGait, type GaitChain, type SwitchHooks } from './gaitChain';
-import { LINK_GLB_FILE, loadGlbLink, type LinkAssetInfo } from './glbLink';
+import { JUMP_CROUCH_S, JUMP_LAND_S, LINK_GLB_FILE, loadGlbLink, type LinkAssetInfo } from './glbLink';
+
+/**
+ * The jump (round 47, the owner's "run faster and even jump, like Zelda"): a take-off crouch of
+ * JUMP_CROUCH_S with the feet planted, then a ballistic arc under JUMP_G that peaks JUMP_APEX_WALK_M
+ * above the ground from a walk and JUMP_APEX_RUN_M from a full run (≈ 0.55 s airborne; the apex
+ * follows the take-off speed between them), carrying the take-off velocity — no steering in the
+ * air, no crossing a `blocked()` pad, no landing on ground above the arc — and a landing
+ * compression of JUMP_LAND_S. Touchdown is where the arc meets the walkable ground under the root.
+ */
+const JUMP_G = 26;
+const JUMP_APEX_WALK_M = 0.6;
+const JUMP_APEX_RUN_M = 1.0;
 import { BLINK_S, isTimeJump } from './blink';
 
 type Mode = 'view' | 'free' | 'play';
@@ -219,11 +231,30 @@ export async function create(ctx: WorldContext): Promise<WorldSystem> {
   };
 
   // ---- play mode (walkable build) ----
-  const input: PlayerInput = { moveX: 0, moveZ: 0, run: false };
+  const input: PlayerInput = { moveX: 0, moveZ: 0, run: false, jump: false };
   const velocity = new Vector3();
+  /**
+   * Round 47 — the player's locomotion state (puppet.ts Locomotion): the ground speed the root
+   * accelerates / brakes with (PLAYER_ACCEL / PLAYER_DECEL toward PLAYER_SPEED of the gait), the
+   * direction it last moved in (a release brakes along it), the stance pins and the jump. The
+   * clips are advanced by the ground actually covered each step (Puppet.advance), so the feet
+   * never slide whatever the speed; the pose reads the pins and the jump through PuppetPose.loco.
+   * Recreated when play mode is entered and on a simulation-clock jump.
+   */
+  let loco: Locomotion = createLocomotion();
+  let speed = 0;
+  const moveDir = new Vector3(0, 0, -1);
+  let jumpHeld = false;
+  const resetLocomotion = () => {
+    loco = createLocomotion();
+    speed = 0;
+    jumpHeld = false;
+    velocity.set(0, 0, 0);
+  };
   const player: PlayerHandle = {
     position: link.pos,
     heading: () => link.yaw,
+    airHeight: () => (loco.jump?.phase === 'air' ? Math.max(0, loco.jump.y - ground.height(link.pos.x, link.pos.z)) : 0),
     setPlayMode(on) {
       if (on) {
         // start the walk at the spawn with the kids on their layout spots
@@ -231,7 +262,7 @@ export async function create(ctx: WorldContext): Promise<WorldSystem> {
         mode = 'play';
         view = null;
         camPose = null;
-        velocity.set(0, 0, 0);
+        resetLocomotion();
       } else {
         mode = 'free';
         lastCamPos.set(NaN, NaN, NaN);
@@ -243,32 +274,104 @@ export async function create(ctx: WorldContext): Promise<WorldSystem> {
       input.moveX = i.moveX;
       input.moveZ = i.moveZ;
       input.run = i.run;
+      input.jump = !!i.jump;
     },
   };
   ctx.scene.userData[PLAYER_KEY] = player;
 
+  /** move the root by (dx, dz) if the step is walkable (no structure pad, no riser above the 0.55 m step guard); returns the distance moved */
+  const moveRoot = (dx: number, dz: number, dt: number): number => {
+    const nx = link.pos.x + dx;
+    const nz = link.pos.z + dz;
+    const h0 = ground.height(link.pos.x, link.pos.z);
+    const h1 = ground.height(nx, nz);
+    if (h1 - h0 < 0.55 && !ground.blocked(nx, nz)) {
+      velocity.set(dx / Math.max(dt, 1e-4), 0, dz / Math.max(dt, 1e-4));
+      link.pos.set(nx, 0, nz);
+      return Math.hypot(dx, dz);
+    }
+    velocity.set(0, 0, 0);
+    return 0;
+  };
+
   const stepPlayer = (dt: number, t: number) => {
     const mag = Math.min(1, Math.hypot(input.moveX, input.moveZ));
     const onStairs = ground.onStairs(link.pos.x, link.pos.z);
-    if (mag > 0.05) {
-      const target = Math.atan2(input.moveX, input.moveZ);
-      let d = target - link.yaw;
-      d = Math.atan2(Math.sin(d), Math.cos(d));
-      link.yaw += MathUtils.clamp(d, -dt * 9, dt * 9);
-      setGait(link, onStairs ? 'stairs' : input.run ? 'run' : 'walk', t);
-      const speed = GAIT_SPEED[link.gait] * mag;
-      const nx = link.pos.x + (input.moveX / mag) * speed * dt;
-      const nz = link.pos.z + (input.moveZ / mag) * speed * dt;
-      const h0 = ground.height(link.pos.x, link.pos.z);
-      const h1 = ground.height(nx, nz);
-      if (h1 - h0 < 0.55 && !ground.blocked(nx, nz)) {
-        velocity.set((nx - link.pos.x) / Math.max(dt, 1e-4), 0, (nz - link.pos.z) / Math.max(dt, 1e-4));
-        link.pos.set(nx, 0, nz);
-      } else velocity.set(0, 0, 0);
+    const j = loco.jump;
+    // a jump starts on the press (never repeats while held) from the ground, crouch first
+    if (input.jump && !jumpHeld && !j) loco.jump = { phase: 'crouch', t0: t, y0: 0, y: 0, v0: 0, vx: 0, vz: 0, vLand: 0, flightS: 0, air: 0 };
+    jumpHeld = !!input.jump;
+    let ds = 0;
+    if (j && j.phase === 'air') {
+      // ballistic: the take-off velocity carried, gravity on the root; the arc meets the ground.
+      // A pad, or ground above the arc, stops the horizontal motion; the arc goes on.
+      j.v0 -= JUMP_G * dt;
+      j.y += j.v0 * dt;
+      if (j.vx !== 0 || j.vz !== 0) {
+        const nx = link.pos.x + j.vx * dt;
+        const nz = link.pos.z + j.vz * dt;
+        if (!ground.blocked(nx, nz) && ground.height(nx, nz) <= j.y + 0.05) {
+          link.pos.set(nx, 0, nz);
+          velocity.set(j.vx, 0, j.vz);
+        } else {
+          j.vx = 0;
+          j.vz = 0;
+          velocity.set(0, 0, 0);
+        }
+      }
+      const g = ground.height(link.pos.x, link.pos.z);
+      j.air = MathUtils.clamp((t - j.t0) / Math.max(1e-3, j.flightS), 0, 1);
+      if (j.y <= g && j.v0 < 0) {
+        j.y = g;
+        j.phase = 'land';
+        j.t0 = t;
+        j.vLand = -j.v0;
+        j.air = 1;
+      }
+      // the gait is frozen in the air: nothing advances it (ds 0 cancels the clock)
     } else {
-      setGait(link, 'idle', t);
-      velocity.set(0, 0, 0);
+      if (j && j.phase === 'land' && t - j.t0 >= JUMP_LAND_S) loco.jump = null;
+      if (mag > 0.05) {
+        const target = Math.atan2(input.moveX, input.moveZ);
+        let d = target - link.yaw;
+        d = Math.atan2(Math.sin(d), Math.cos(d));
+        link.yaw += MathUtils.clamp(d, -dt * 9, dt * 9);
+        setGait(link, onStairs ? 'stairs' : input.run ? 'run' : 'walk', t);
+        moveDir.set(input.moveX / mag, 0, input.moveZ / mag);
+        const want = PLAYER_SPEED[link.gait] * mag;
+        speed += MathUtils.clamp(want - speed, -PLAYER_DECEL * dt, PLAYER_ACCEL * dt);
+      } else {
+        setGait(link, 'idle', t);
+        // a release brakes along the last direction; the stance pins hold the feet meanwhile
+        speed = Math.max(0, speed - PLAYER_DECEL * dt);
+      }
+      if (speed > 1e-4) {
+        ds = moveRoot(moveDir.x * speed * dt, moveDir.z * speed * dt, dt);
+        if (ds === 0) speed = 0;
+      } else velocity.set(0, 0, 0);
+      if (j && j.phase === 'crouch' && t - j.t0 >= JUMP_CROUCH_S) {
+        // take-off: from the crouched root, to an apex that follows the take-off speed
+        const g = ground.height(link.pos.x, link.pos.z);
+        const rootY = link.puppet.group.position.y;
+        const apex = MathUtils.lerp(JUMP_APEX_WALK_M, JUMP_APEX_RUN_M, MathUtils.clamp((speed - PLAYER_SPEED.walk) / (PLAYER_SPEED.run - PLAYER_SPEED.walk), 0, 1));
+        const rise = Math.max(0.05, g + apex - rootY);
+        j.phase = 'air';
+        j.t0 = t;
+        j.y0 = rootY;
+        j.y = rootY;
+        j.v0 = Math.sqrt(2 * JUMP_G * rise);
+        j.vx = velocity.x;
+        j.vz = velocity.z;
+        // the expected flight time back to the take-off ground level, for the overlay's arc fraction
+        j.flightS = (j.v0 + Math.sqrt(Math.max(0, j.v0 * j.v0 - 2 * JUMP_G * (g - rootY)))) / JUMP_G;
+        j.air = 0;
+        loco.pinX[0] = loco.pinX[1] = NaN;
+        loco.pinZ[0] = loco.pinZ[1] = NaN;
+      }
     }
+    // the clips follow the ground covered (Puppet.advance), the pose reads the step
+    link.puppet.advance?.(link, t, ds, dt);
+    loco.speed = ds / Math.max(dt, 1e-4);
     // Navi orbits the head, leading when Link moves
     const lead = velocity.length() > 0.2 ? 0.7 : 0;
     naviAnchor.set(
@@ -279,7 +382,9 @@ export async function create(ctx: WorldContext): Promise<WorldSystem> {
   };
 
   const poseActor = (a: Actor, t: number, look: Vector3 | null) => {
-    a.puppet.pose(a.pos.x, a.pos.z, a.yaw, { t, phase: a.phase, look, lookWeight: a.look, idleTurn: a.idleTurn, gait: a.gait, gaitFrom: a.gaitFrom, gaitSwitchT: a.gaitSwitchT, clipShift: a.clipShift, clipShiftFrom: a.clipShiftFrom, gaitFrom2: a.gaitFrom2, gaitSwitchT2: a.gaitSwitchT2, clipShiftFrom2: a.clipShiftFrom2, anchorFrom: a.anchorFrom, anchorFrom2: a.anchorFrom2, runBlinkT: a.runBlinkT }, ground.height, a.contact, ground.surface);
+    // the player's locomotion state reaches the puppet in play mode only (round 47) — never a capture's pose
+    const l = a === link && mode === 'play' ? loco : null;
+    a.puppet.pose(a.pos.x, a.pos.z, a.yaw, { t, phase: a.phase, look, lookWeight: a.look, idleTurn: a.idleTurn, gait: a.gait, gaitFrom: a.gaitFrom, gaitSwitchT: a.gaitSwitchT, clipShift: a.clipShift, clipShiftFrom: a.clipShiftFrom, gaitFrom2: a.gaitFrom2, gaitSwitchT2: a.gaitSwitchT2, clipShiftFrom2: a.clipShiftFrom2, anchorFrom: a.anchorFrom, anchorFrom2: a.anchorFrom2, runBlinkT: a.runBlinkT, loco: l }, ground.height, a.contact, ground.surface);
     // contact shadow just above the ground under the body centre
     a.shadow.position.set(a.pos.x, ground.decalHeight(a.pos.x, a.pos.z, a.shadowRadius), a.pos.z);
   };
@@ -347,10 +452,26 @@ export async function create(ctx: WorldContext): Promise<WorldSystem> {
       /** how the feet were planted: 'two-bone' leg IK (GLB) or the whole-rig 'root-drop' (procedural); the along-facing shift given a foot to clear a nosing lip; a leg clamped at its reach and by how much; the clips with weight in the gait blend */
       linkIk: (() => {
         const i = link.puppet.plantInfo();
-        return { mode: i.mode, maxCorrectionM: Number(i.maxCorrectionM.toFixed(4)), rootShiftM: Number(i.rootShiftM.toFixed(4)), maxShiftM: Number(i.maxShiftM.toFixed(4)), planted: i.planted, reachClamped: i.reachClamped, reachClampedLeg: i.reachClampedLeg, reachExcessM: Number(i.reachExcessM.toFixed(4)), extraDropM: Number(i.extraDropM.toFixed(4)), attackDropM: Number(i.attackDropM.toFixed(4)), maxPinM: Number(i.maxPinM.toFixed(4)), maxHoldM: Number(i.maxHoldM.toFixed(4)), blendClips: i.blendClips };
+        return { mode: i.mode, maxCorrectionM: Number(i.maxCorrectionM.toFixed(4)), rootShiftM: Number(i.rootShiftM.toFixed(4)), maxShiftM: Number(i.maxShiftM.toFixed(4)), planted: i.planted, reachClamped: i.reachClamped, reachClampedLeg: i.reachClampedLeg, reachExcessM: Number(i.reachExcessM.toFixed(4)), extraDropM: Number(i.extraDropM.toFixed(4)), attackDropM: Number(i.attackDropM.toFixed(4)), maxPinM: Number(i.maxPinM.toFixed(4)), maxHoldM: Number(i.maxHoldM.toFixed(4)), blendClips: i.blendClips, hipClampRad: Number(i.hipClampRad.toFixed(4)) };
       })(),
       /** the play-mode gait chain: the gait, the one it is fading from and the one before that (puppet.ts PuppetPose) */
       linkGaitChain: [link.gait, link.gaitFrom, link.gaitFrom2],
+      /**
+       * the play-mode locomotion (round 47; null outside play): the ground speed of the last step, the clip shifts the ground
+       * distance drove, the stance pins (world x/z per foot, null = free) and the jump (phase, arc fraction, root height)
+       */
+      linkLocomotion:
+        mode === 'play'
+          ? {
+              speed: Number(loco.speed.toFixed(3)),
+              clipShift: [Number(link.clipShift.toFixed(4)), Number(link.clipShiftFrom.toFixed(4)), Number(link.clipShiftFrom2.toFixed(4))],
+              pins: [0, 1].map((i) => (Number.isFinite(loco.pinX[i]) ? [Number(loco.pinX[i].toFixed(4)), Number(loco.pinZ[i].toFixed(4))] : null)),
+              jump: loco.jump ? loco.jump.phase : 'ground',
+              jumpAir: loco.jump ? Number(loco.jump.air.toFixed(3)) : 0,
+              jumpY: loco.jump ? Number(loco.jump.y.toFixed(4)) : null,
+              airHeight: Number(player.airHeight().toFixed(4)),
+            }
+          : null,
       /**
        * the blink (blink.ts, Astra's morph contract): meshes carrying the `blink` / `blinkHalf` morphs (0 = inert drive),
        * the closure phase p of this pose and the weights set from it, the weights read back from the first morph mesh,
@@ -400,9 +521,14 @@ export async function create(ctx: WorldContext): Promise<WorldSystem> {
       // run-start blink event: its envelope is anchored at a switch time and a rewound clock
       // must not replay it (blink.ts `isTimeJump`; the chain's other times are left alone — a
       // finished crossfade reads as finished at any later t, and the placement hard-switches).
-      if (isTimeJump(lastT, t)) for (const a of [link, ...kids]) a.runBlinkT = -Infinity;
+      if (isTimeJump(lastT, t)) {
+        for (const a of [link, ...kids]) a.runBlinkT = -Infinity;
+        // the jump's timers and the arm filter are anchored in simulation time too
+        if (mode === 'play') resetLocomotion();
+      }
       lastT = t;
       if (mode === 'play') {
+        loco.dt = dt;
         if (dt > 0) stepPlayer(dt, t);
       } else {
         // the free camera's viewpoint keys bypass onCameraMove: re-place when the camera jumps
