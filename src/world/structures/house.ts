@@ -3545,6 +3545,18 @@ export function buildHouse(def: HouseDef, ctx: WorldContext, mats: StructureMate
       },
     };
   };
+  /**
+   * Moss along a corded bough's top, in the sweep's colour callback: the same gate and patch
+   * field as `mossOnTop` but on the UNDISPLACED tube normal's y (`up`, sweepTube's third colour
+   * argument) — the cords' recomputed normals swing ± 60° round each cord, and through
+   * `mossOnTop`'s normal gate the moss came out as broken flecks on the cord flanks (w26-stairs-l,
+   * the first corded cut: the arc's mossy top read bare). `spread` as in `mossOnTop`.
+   */
+  const mossAlong = (base: [number, number, number], up: number, t: number, ang: number, len: number, seed: number, amount: number, spread = 0): [number, number, number] => {
+    const patch = 0.45 + 0.55 * noise.fbm(t * len * 1.7 + 3 + seed * 11, ang * 1.2 + seed, 2);
+    const w = clamp(smoothstep(0.25 - spread, 0.85 - spread, up) * patch * amount, 0, 1);
+    return [lerp(base[0], 0.36, w), lerp(base[1], 0.8, w), lerp(base[2], 0.25, w)];
+  };
   /** the cap's moss surface under (angle a, horizontal radius r) — the arc bough rests on it */
   const _cs = new Vector3();
   const capSurfaceAt = (a: number, r: number, lift: number) => {
@@ -3606,11 +3618,11 @@ export function buildHouse(def: HouseDef, ctx: WorldContext, mats: StructureMate
       radialSegments: drapedCords.segs,
       uvMetres: 1.2,
       displace: (t, ang) => drapedCords.displace(t, ang, drapedR(t)),
-      color: (t, ang) => drapedCords.tint(limbColor(t, ang), t, ang),
+      // (round 46: a little of the cap's moss on the limbs' tops — they lie half-sunk in it)
+      color: (t, ang, up) => mossAlong(drapedCords.tint(limbColor(t, ang), t, ang), up, t, ang, curve.getLength(), 10 + bi, 0.4),
       capEnd: true,
     });
-    // (round 46: a little of the cap's moss on the limbs' tops — they lie half-sunk in it)
-    branchParts.push(mossOnTop(geo, [0.36, 0.8, 0.25], 0.4, noise));
+    branchParts.push(geo);
     for (const at of b.leavesAt) {
       const p = curve.getPointAt(at);
       // round 15: the tip clusters lie on the moss, so they take the moss-lit leaf tint (at
@@ -3729,12 +3741,13 @@ export function buildHouse(def: HouseDef, ctx: WorldContext, mats: StructureMate
       radialSegments: arcCords.segs,
       uvMetres: 1.4,
       displace: (t, ang) => arcCords.displace(t, ang, arcR(t)),
-      color: (t, ang) => arcCords.tint(shadedColor(t, ang, arcShade(t)), t, ang),
+      // (round 34: spread 0.3 — the sheets wrap down the flank D sees; round 46: laid in the
+      // colour callback on the undisplaced normal, see `mossAlong`)
+      color: (t, ang, up) => mossAlong(arcCords.tint(shadedColor(t, ang, arcShade(t)), t, ang), up, t, ang, arcCurve.getLength(), 1, 0.85, 0.3),
       capEnd: true,
     });
-    // (round 34: spread 0.3 — the sheets wrap down the flank D sees; round 36: the lower run, which
-    // D sees rising out of its bank, takes the D-side sheet in the bank's dark green)
-    mossOnTop(arc, mossTint, 0.85, noise, 0.3);
+    // (round 36: the lower run, which D sees rising out of its bank, takes the D-side sheet in
+    // the bank's dark green)
     if (dSide) mossBySide(arc, frame, D_MOSS_TINT, noise, dSide);
     supportParts.push(arc);
     // the leafy tip beyond the rim, in the canopy above frame B
@@ -3805,10 +3818,10 @@ export function buildHouse(def: HouseDef, ctx: WorldContext, mats: StructureMate
         radialSegments: limbCords.segs,
         uvMetres: 1.4,
         displace: (s, ang) => limbCords.displace(s, ang, limbR(s)),
-        color: (s, ang) => limbCords.tint(shadedColor(s, ang, 0.8), s, ang),
+        color: (s, ang, up) => mossAlong(limbCords.tint(shadedColor(s, ang, 0.8), s, ang), up, s, ang, limbCurve.getLength(), 2 + t, 0.7),
         capEnd: true,
       });
-      supportParts.push(mossOnTop(limb, mossTint, 0.7, noise));
+      supportParts.push(limb);
       // (the cluster sits on the moss: the moss-lit leaf tint, not the canopy's `leafTint`)
       lateFoliage.push(() => foliage.addLeafCluster(onMoss, 0.4 * k, 24, { size: 0.12, amount: 0.06, droop: 0.4, tint: MOSS_LIT_LEAF, tintSpread: 0.28, flatten: 0.4 }));
       return limb;
@@ -3831,10 +3844,10 @@ export function buildHouse(def: HouseDef, ctx: WorldContext, mats: StructureMate
         radialSegments: upCords.segs,
         uvMetres: 1.4,
         displace: (s, ang) => upCords.displace(s, ang, upR(s)),
-        color: (s, ang) => upCords.tint(shadedColor(s, ang, 0.8), s, ang),
+        color: (s, ang, up) => mossAlong(upCords.tint(shadedColor(s, ang, 0.8), s, ang), up, s, ang, upCurve.getLength(), 4, 0.5),
         capEnd: true,
       });
-      supportParts.push(mossOnTop(upLimb, mossTint, 0.5, noise));
+      supportParts.push(upLimb);
       lateFoliage.push(() => {
         foliage.addLeafCluster(tip, 0.55 * k, 40, { size: 0.13, amount: 0.06, droop: 0.5, tint: leafTint, tintSpread: 0.28 });
         foliage.addLeafCluster(upCurve.getPointAt(0.6), 0.35 * k, 18, { size: 0.12, amount: 0.05, droop: 0.5, tint: leafTint, tintSpread: 0.28 });
@@ -3945,10 +3958,10 @@ export function buildHouse(def: HouseDef, ctx: WorldContext, mats: StructureMate
       uvMetres: 1.2,
       // bark cords along the limb (round 46); the broken end flares a little and is jagged
       displace: (t, ang) => stubCords.displace(t, ang, stubR(t)) + smoothstep(0.85, 1, t) * (0.05 + 0.08 * Math.abs(Math.sin(ang * 5 + 1))) * k,
-      color: (t, ang) => (t > 0.985 ? [0.2, 0.16, 0.12] : stubCords.tint(supportColor(t, ang), t, ang)),
+      color: (t, ang, up) => (t > 0.985 ? [0.2, 0.16, 0.12] : mossAlong(stubCords.tint(supportColor(t, ang), t, ang), up, t, ang, stubCurve.getLength(), 5, 0.6)),
       capEnd: true,
     });
-    supportParts.push(mossOnTop(stub, mossTint, 0.6, noise));
+    supportParts.push(stub);
     for (let i = 0; i < 2; i++) {
       const t = 0.35 + i * 0.35;
       const p = stubCurve.getPointAt(t);
@@ -3972,20 +3985,15 @@ export function buildHouse(def: HouseDef, ctx: WorldContext, mats: StructureMate
     const rightR = (t: number) => (0.42 - 0.2 * t) * k * (1 + 0.08 * Math.sin(t * 8 + 1) + 0.05 * Math.sin(t * 21));
     const rightCords = boughCords(6, rightCurve.getLength(), 0.42 * k);
     branchParts.push(
-      mossOnTop(
-        sweepTube(rightCurve, {
-          radius: rightR,
-          tubularSegments: 28,
-          radialSegments: rightCords.segs,
-          uvMetres: 1.2,
-          displace: (t, ang) => rightCords.displace(t, ang, rightR(t)),
-          color: (t, ang) => rightCords.tint(limbColor(t, ang), t, ang),
-          capEnd: true,
-        }),
-        mossTint,
-        0.4,
-        noise,
-      ),
+      sweepTube(rightCurve, {
+        radius: rightR,
+        tubularSegments: 28,
+        radialSegments: rightCords.segs,
+        uvMetres: 1.2,
+        displace: (t, ang) => rightCords.displace(t, ang, rightR(t)),
+        color: (t, ang, up) => mossAlong(rightCords.tint(limbColor(t, ang), t, ang), up, t, ang, rightCurve.getLength(), 6, 0.4),
+        capEnd: true,
+      }),
     );
   }
   {

@@ -138,7 +138,12 @@ export interface SweepOptions {
   capEnd?: boolean;
   capStart?: boolean;
   /** per-vertex colour */
-  color?: (t: number, angle: number) => [number, number, number];
+  /**
+   * vertex colour, (t, angle 0..2π, up): `up` is the y of the UNDISPLACED tube normal at the
+   * vertex (1 on the tube's crown, 0 on its flanks, −1 underneath) — a displaced tube's stored
+   * normals are recomputed from the relief, so callers laying moss along the top read this
+   */
+  color?: (t: number, angle: number, up: number) => [number, number, number];
 }
 
 /** Tapered tube swept along a curve (roots, branches, cords, frames). */
@@ -171,7 +176,7 @@ export function sweepTube(curve: Curve<Vector3>, opts: SweepOptions): BufferGeom
       positions.push(pos.x, pos.y, pos.z);
       normals.push(nrm.x, nrm.y, nrm.z);
       uvs.push((a / (Math.PI * 2)) * ((2 * Math.PI * Math.max(r, 0.02)) / uvMetres), (t * length) / uvMetres);
-      if (opts.color) colors.push(...opts.color(t, a));
+      if (opts.color) colors.push(...opts.color(t, a, nrm.y));
     }
   }
   // winding matches the outward normal (N cos a + B sin a): (a+1 - a) × (b - a) = B × T = N
@@ -193,12 +198,12 @@ export function sweepTube(curve: Curve<Vector3>, opts: SweepOptions): BufferGeom
     const caps: BufferGeometry[] = [geo];
     if (opts.capEnd) {
       const c = capFan(curve, 1, radius(1), rs, frames.tangents[ts], false);
-      if (opts.color) setColorAttribute(c, opts.color(1, 0));
+      if (opts.color) setColorAttribute(c, opts.color(1, 0, 0));
       caps.push(c);
     }
     if (opts.capStart) {
       const c = capFan(curve, 0, radius(0), rs, frames.tangents[0], true);
-      if (opts.color) setColorAttribute(c, opts.color(0, 0));
+      if (opts.color) setColorAttribute(c, opts.color(0, 0, 0));
       caps.push(c);
     }
     return merge(caps);
