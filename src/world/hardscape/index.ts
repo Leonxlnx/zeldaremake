@@ -689,7 +689,7 @@ export async function create(ctx: WorldContext): Promise<WorldSystem> {
   const sunDir = ctx.sun ? Math.atan2(ctx.sun.position.z, ctx.sun.position.x) : Math.atan2(Math.cos(sunAz), Math.sin(sunAz));
   const shadeDir = sunDir + Math.PI;
   const stoneStats: { bands: number; chips: number; split: boolean; fallen: boolean; tiltDeg: number; acrossM: number }[] = [];
-  const FALLEN_INDEX = 3;
+  const FALLEN_INDEX = 0;
   ringStones.forEach((s, i) => {
     const fallen = i === FALLEN_INDEX;
     const split = i === 1 || i === 5;
