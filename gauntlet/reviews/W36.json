@@ -1,13 +1,26 @@
 {
   "item": "W36",
-  "reviewer": "fable-5",
+  "reviewer": "opus-review",
   "verdict": "pass",
-  "evidence": "gauntlet/reviews/evidence/fable-5/take-0116-W36-E-contact.jpg",
+  "evidence": "gauntlet\\reviews\\evidence\\opus-review\\take-0116-W36-E-contact.jpg",
   "takeId": "take-0116",
   "author": "fable-cursor",
   "takeSha": "973a21e5b045177f66da3d04dc4e67e387270620",
-  "at": "2026-09-19T09:33:51.304Z",
+  "at": "2026-09-19T19:32:50.926Z",
   "criterion": "Every asset in viewpoint E looks physically seated with a soft contact shadow.",
-  "note": "Nothing floats at E: Link has a contact shadow, the slabs show side faces with a soft shadow into the joints, the signpost and the Kokiri girl stand on the ground, the pebbles rest on the mound; placement probes 100 %. Nit: the pebble field at the house base is a uniform scatter of identical ellipsoids lying on the slope with no bedding into the soil.",
-  "history": []
+  "note": "Nothing floats at E. Link carries a contact shadow under both boots, the slabs show a side face and a soft dark line into each joint, the stone steps, the signpost and the Kokiri girl all stand on the ground, and the placement probes report 100 % for boulders and structure bases with ambientOcclusion true. Nit, not a contact failure: the pebble field on the bank at the house base is a heap of identically sized and shaped ellipsoids lying on the slope with no bedding into the soil and a hard boundary where the heap stops (take-0116-W36b-E-pebble-pile.jpg); it has no counterpart in the reference frame.",
+  "history": [
+    {
+      "item": "W36",
+      "reviewer": "fable-5",
+      "verdict": "pass",
+      "evidence": "gauntlet/reviews/evidence/fable-5/take-0116-W36-E-contact.jpg",
+      "takeId": "take-0116",
+      "author": "fable-cursor",
+      "takeSha": "973a21e5b045177f66da3d04dc4e67e387270620",
+      "at": "2026-09-19T09:33:51.304Z",
+      "criterion": "Every asset in viewpoint E looks physically seated with a soft contact shadow.",
+      "note": "Nothing floats at E: Link has a contact shadow, the slabs show side faces with a soft shadow into the joints, the signpost and the Kokiri girl stand on the ground, the pebbles rest on the mound; placement probes 100 %. Nit: the pebble field at the house base is a uniform scatter of identical ellipsoids lying on the slope with no bedding into the soil."
+    }
+  ]
 }

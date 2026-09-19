@@ -1,15 +1,27 @@
 {
   "item": "C02",
-  "reviewer": "fable-5",
+  "reviewer": "opus-review",
   "verdict": "fail",
-  "evidence": "gauntlet/reviews/evidence/fable-5/take-0116-C02-shield-sword.jpg",
+  "evidence": "gauntlet\\reviews\\evidence\\opus-review\\take-0116-C02b-equipment-item-slots.jpg",
   "takeId": "take-0116",
   "author": "fable-cursor",
   "takeSha": "973a21e5b045177f66da3d04dc4e67e387270620",
-  "at": "2026-09-19T09:37:44.781Z",
+  "at": "2026-09-19T19:34:14.678Z",
   "criterion": "Matches the equipment screen renders in the reference.",
-  "note": "The Deku Shield reads as a round bark-edged wooden disc with a red spiral on Link's back (A, D, F) - the right kind of object against the owner's ref-02 equipment render. Two misses: the spiral covers about 45 % of the face where the render's fills about 70 % with a bolder stroke, and the wooden face is smooth where the render shows bark grain; and the Kokiri Sword cannot be seen in any of the three back views - no hilt above the right shoulder, no scabbard edge below the shield. Half the criterion's equipment is not visible, so fail.",
+  "note": "Judged against the criterion's own reference, the equipment renders in frame 34 s, using a non-author render of the same commit (973a21e, ?screen=equipment, my own worktree) because no take captures that screen. In the slots our Deku Shield is a flat vector icon of a shield with a small red spiral and our Kokiri Sword a flat vector sword; the reference's slots carry rendered 3-D items. In world the shield is worse: at A it hangs low on the back and reads as a brown satchel, with a dark red spiral covering about 40 % of the face against the reference's roughly 70 % (take-0116-C02-A-shield-back.jpg). No scabbard and no sword hilt is visible above the shoulder in any of the take's six frames.",
   "history": [
+    {
+      "item": "C02",
+      "reviewer": "fable-5",
+      "verdict": "fail",
+      "evidence": "gauntlet/reviews/evidence/fable-5/take-0116-C02-shield-sword.jpg",
+      "takeId": "take-0116",
+      "author": "fable-cursor",
+      "takeSha": "973a21e5b045177f66da3d04dc4e67e387270620",
+      "at": "2026-09-19T09:37:44.781Z",
+      "criterion": "Matches the equipment screen renders in the reference.",
+      "note": "The Deku Shield reads as a round bark-edged wooden disc with a red spiral on Link's back (A, D, F) - the right kind of object against the owner's ref-02 equipment render. Two misses: the spiral covers about 45 % of the face where the render's fills about 70 % with a bolder stroke, and the wooden face is smooth where the render shows bark grain; and the Kokiri Sword cannot be seen in any of the three back views - no hilt above the right shoulder, no scabbard edge below the shield. Half the criterion's equipment is not visible, so fail."
+    },
     {
       "item": "C02",
       "reviewer": "fable-cursor",

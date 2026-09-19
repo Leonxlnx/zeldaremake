@@ -1,15 +1,27 @@
 {
   "item": "W25",
-  "reviewer": "fable-5",
+  "reviewer": "opus-review",
   "verdict": "fail",
-  "evidence": "gauntlet/reviews/evidence/fable-5/take-0116-W25-B-house.jpg",
+  "evidence": "gauntlet\\reviews\\evidence\\opus-review\\take-0116-W25-B-house.jpg",
   "takeId": "take-0116",
   "author": "fable-cursor",
   "takeSha": "973a21e5b045177f66da3d04dc4e67e387270620",
-  "at": "2026-09-19T09:33:49.967Z",
+  "at": "2026-09-19T19:29:41.192Z",
   "criterion": "The house on the right of shot B matches the reference: proportions, dome roof, glowing doorway.",
-  "note": "Fresh verdict on take-0116 (the one on file was astra's on take-0070). Proportions and the low moss cap now match the reference (cap x 0.62-0.98, y 0.05-0.35 vs 0.66-1.0, 0.10-0.30). Two of the criterion's three parts still miss: the doorway does not glow - the interior is black (l < 0.08) with two candle points where the reference's room is l 0.32 with a lit back wall and floor; and the trunk is a smooth orange-brown wall with a painted burl where the reference frames the door with two knotted bark buttress columns. Pods: 3 in an even row under the eave vs 7-8 clustered on the bough (video-2 1:42).",
+  "note": "Proportions and the low mossy dome now match the reference closely, and the doorway is not black: two small pod lanterns hang inside and a lamp is visible. But the opening still measures l 0.028 against the reference's l 0.065 at the same region, so it reads as a dark cavity rather than a lit room, and what is inside it is a set of untextured primitives on a flat floor with no back wall or floor material (take-0116-W25b-B-doorway.jpg). The trunk around the door is a smooth orange-brown wall, sigma 14.2 against the reference's 30.4, with no knotted bark buttress columns framing the opening. Pods hang in an even row of three under the eave where the reference clusters them at varied cord lengths. Two of the criterion's three parts are therefore not met.",
   "history": [
+    {
+      "item": "W25",
+      "reviewer": "fable-5",
+      "verdict": "fail",
+      "evidence": "gauntlet/reviews/evidence/fable-5/take-0116-W25-B-house.jpg",
+      "takeId": "take-0116",
+      "author": "fable-cursor",
+      "takeSha": "973a21e5b045177f66da3d04dc4e67e387270620",
+      "at": "2026-09-19T09:33:49.967Z",
+      "criterion": "The house on the right of shot B matches the reference: proportions, dome roof, glowing doorway.",
+      "note": "Fresh verdict on take-0116 (the one on file was astra's on take-0070). Proportions and the low moss cap now match the reference (cap x 0.62-0.98, y 0.05-0.35 vs 0.66-1.0, 0.10-0.30). Two of the criterion's three parts still miss: the doorway does not glow - the interior is black (l < 0.08) with two candle points where the reference's room is l 0.32 with a lit back wall and floor; and the trunk is a smooth orange-brown wall with a painted burl where the reference frames the door with two knotted bark buttress columns. Pods: 3 in an even row under the eave vs 7-8 clustered on the bough (video-2 1:42)."
+    },
     {
       "item": "W25",
       "reviewer": "astra",

@@ -1,13 +1,26 @@
 {
   "item": "W26",
-  "reviewer": "astra",
+  "reviewer": "opus-review",
   "verdict": "pass",
-  "evidence": ".agents/reviews/astra-W26-take0032.md",
-  "takeId": "take-0032",
+  "evidence": "gauntlet\\reviews\\evidence\\opus-review\\take-0116-W26-B-pod-lanterns.jpg",
+  "takeId": "take-0116",
   "author": "fable-cursor",
-  "takeSha": "2fc09225005fd20d83b9aabf10fca1a2ea06c0f0",
-  "at": "2026-09-11T03:44:08.803Z",
+  "takeSha": "973a21e5b045177f66da3d04dc4e67e387270620",
+  "at": "2026-09-19T19:29:48.759Z",
   "criterion": "Lanterns read as warm glowing pods like the reference, with soft local light on the bark.",
-  "note": "Warm ribbed suspended pods and soft local bark/foliage light are visible in actual A/B captures without clipped bloom. Pass scoped to W26 visual criterion; house proportions and whole-scene match are not approved. See evidence and existing ten-lantern/zero-overexposure auto checks.",
-  "history": []
+  "note": "Fresh verdict on take-0116; the record on file was astra's on take-0032. At B the lanterns read as warm ribbed pods with a visible husk and calyx, and they put soft warm light on the bark: the eave underside and the wall behind them carry a clear warm falloff. Glow cores measure 18-20 px wide at 1280 (1.4-1.6 % of frame width) against the reference's 7-11 px at 640 (1.1-1.7 %), so the emissive core is not blown out, and overexposedFraction at B is 0. Nits: the husks are noticeably larger relative to the doorway than the reference's, and they hang in an even row rather than the reference's cluster. Separately, at D the far lanterns read as featureless glow discs with no pod silhouette; that is outside this criterion's viewpoint and take-0117 reduces FAR_HALO_RADIUS to 0.24 m for it.",
+  "history": [
+    {
+      "item": "W26",
+      "reviewer": "astra",
+      "verdict": "pass",
+      "evidence": ".agents/reviews/astra-W26-take0032.md",
+      "takeId": "take-0032",
+      "author": "fable-cursor",
+      "takeSha": "2fc09225005fd20d83b9aabf10fca1a2ea06c0f0",
+      "at": "2026-09-11T03:44:08.803Z",
+      "criterion": "Lanterns read as warm glowing pods like the reference, with soft local light on the bark.",
+      "note": "Warm ribbed suspended pods and soft local bark/foliage light are visible in actual A/B captures without clipped bloom. Pass scoped to W26 visual criterion; house proportions and whole-scene match are not approved. See evidence and existing ten-lantern/zero-overexposure auto checks."
+    }
+  ]
 }

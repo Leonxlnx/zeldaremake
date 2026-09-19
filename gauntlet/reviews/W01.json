@@ -1,13 +1,26 @@
 {
   "item": "W01",
-  "reviewer": "fable-5",
+  "reviewer": "opus-review",
   "verdict": "pass",
-  "evidence": "gauntlet/reviews/evidence/fable-5/take-0116-W01-A-composition.jpg",
+  "evidence": "gauntlet\\reviews\\evidence\\opus-review\\take-0116-W01-A-composition.jpg",
   "takeId": "take-0116",
   "author": "fable-cursor",
   "takeSha": "973a21e5b045177f66da3d04dc4e67e387270620",
-  "at": "2026-09-19T09:33:46.100Z",
+  "at": "2026-09-19T19:26:42.895Z",
   "criterion": "Side by side with reference/frames/A_stairs.jpg the stairs, ledge, branch and plaza occupy the same screen regions and the eye reads the same composition.",
-  "note": "Stairs (foot x 0.60-0.80, climbing to the upper right), the lantern branch (x 0-0.33 at y 0.30-0.36, pods at 0.21/0.26 vs the reference's 0.208/0.255), the plaza in the lower third and the fence line at the stair top all sit in the reference's regions; the eye reads Link -> stairs -> left branch as in the reference. Nits outside the criterion: the flight tops out at y 0.13 where the reference's does at 0.25 (20 treads read taller and steeper), and Saria's lit dome fills the centre (0.40-0.68 x 0.10-0.50) where the reference has misty depth, competing with the stairs for the eye; no shafts from the upper left (see W31).",
-  "history": []
+  "note": "The four named elements are in their reference regions: the flight rises from (0.62, 0.58) to (0.78, 0.22) against the reference's (0.69, 0.62) to (0.76, 0.25); the fenced ledge closes the top right; the lantern limb crosses the left at y 0.33-0.40 with pods at x 0.22/0.26 (reference y 0.31-0.36, pods 0.208/0.255); the flagstone plaza fills from y 0.57 down. Side by side the two frames read as the same shot. Nits outside the criterion: the centre-left, which is an open misty recession with one dark mass in the reference, is filled by Saria's lit moss dome plus three glowing pods, so the eye is pulled to the middle instead of up the stair; the upper left is a cool blue-grey sky field (#7f8589, l 0.23) where the reference has warm canopy haze (#7d7b69, l 0.20); two elevated huts sit in the upper left and upper centre with no counterpart in the frame.",
+  "history": [
+    {
+      "item": "W01",
+      "reviewer": "fable-5",
+      "verdict": "pass",
+      "evidence": "gauntlet/reviews/evidence/fable-5/take-0116-W01-A-composition.jpg",
+      "takeId": "take-0116",
+      "author": "fable-cursor",
+      "takeSha": "973a21e5b045177f66da3d04dc4e67e387270620",
+      "at": "2026-09-19T09:33:46.100Z",
+      "criterion": "Side by side with reference/frames/A_stairs.jpg the stairs, ledge, branch and plaza occupy the same screen regions and the eye reads the same composition.",
+      "note": "Stairs (foot x 0.60-0.80, climbing to the upper right), the lantern branch (x 0-0.33 at y 0.30-0.36, pods at 0.21/0.26 vs the reference's 0.208/0.255), the plaza in the lower third and the fence line at the stair top all sit in the reference's regions; the eye reads Link -> stairs -> left branch as in the reference. Nits outside the criterion: the flight tops out at y 0.13 where the reference's does at 0.25 (20 treads read taller and steeper), and Saria's lit dome fills the centre (0.40-0.68 x 0.10-0.50) where the reference has misty depth, competing with the stairs for the eye; no shafts from the upper left (see W31)."
+    }
+  ]
 }
