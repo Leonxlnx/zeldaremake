@@ -342,7 +342,15 @@ export function buildLogArch(ctx: WorldContext, mats: StructureMaterials, rng: R
     // the underside and the shaded lower flanks get no sky: bake the occlusion so the belly of
     // the arch stays dark in the flat ambient light of the hollow (reference: the mass under
     // the crown reads ≈ 0.63 of the haze luminance)
-    const belly = lerp(0.48, 1, smoothstep(-0.95, 0.35, up));
+    // Round 46 (structures-29, survey-2 #14, w18-spine-f at 9–16 m): measured by rendering the
+    // pose with the log-bark material's colour × 3 — the belly box moved 0.313 → 0.323 sRGB, so
+    // the underside's own light is ≈ 3 % of the pixel and the rest is the veil: with the belly
+    // factor 0.48 under ao ≈ 0.55 and × 0.78 the vertex colour is ≈ 0.19, the albedo ≈ 0.012
+    // linear, and no plate contrast on that can show through. Undersides over a lit path get
+    // GROUND BOUNCE: the underside (up < 0.1) comes up ≈ × 3 to an albedo of ≈ 0.035 — still a
+    // dark mass, and in D (50 m, ~90 % veil) ≈ +1 % of the pixel, but at 9–16 m the plate cells
+    // ride on a surface term of 10–15 % of the pixel and read.
+    const belly = lerp(0.48, 1, smoothstep(-0.95, 0.35, up)) * (1 + 2.2 * smoothstep(0.1, -0.5, up));
     // round 46: the plates' area contrast over the whole bark body (`plateAt`), fading out only
     // where the moss cap begins (the same edge as the moss mask). The first pass faded it out
     // from up −0.1 to 0.45 and w18-spine-f did not move (p50 0.256 → 0.257): from the path the
