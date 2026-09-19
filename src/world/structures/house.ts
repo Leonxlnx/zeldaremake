@@ -330,16 +330,15 @@ const LANTERNS: Record<string, LanternSpec[]> = {
     // the shared glow's colour mix at half lime.
     { a: -1.15, cord: 0.7, hook: 'eave', tint: 'orange' },
     { a: 0.75, cord: 0.3, hook: 'eave', tint: 'lime' },
-    // Round 47 (structures-30, owner review 2026-09-19 ref-01): the reference bough carries a
-    // CLUSTER of 8+ pods over and left of the door, close together at staggered heights, where
-    // ours had three in a row. Four more on the bough's line between and outside the tuned
-    // three — two lime, two orange, so the shared glow keeps its half-lime mix — on longer cords
-    // so the cluster hangs in two ranks; a little smaller than the hero three. Appended, so the
-    // first six pods' draws and B positions are unchanged.
-    { a: -0.31, cord: 0.12, hook: 'bough', tint: 'orange', scale: 0.88 },
-    { a: -0.11, cord: 0.3, hook: 'bough', tint: 'lime', scale: 0.86 },
-    { a: 0.02, cord: 0.34, hook: 'bough', tint: 'orange', scale: 0.9 },
-    { a: 0.19, cord: 0.2, hook: 'bough', tint: 'lime', scale: 0.86 },
+    // Round 47 (structures-30, owner review 2026-09-19 ref-01): the reference bough carries its
+    // pods as a tight CLUSTER over and left of the door — close together at staggered heights,
+    // warm — where ours were three in a row. Two more hang in a second, lower rank inside the
+    // three's span (one orange, one lime, so the shared glow keeps its half-lime mix), a little
+    // smaller than the hero three: five in the cluster, nine on the house. Appended, so the
+    // first six pods' draws and B positions are unchanged. (A first cut hung four — seven in a
+    // row — and cost B 0.0031 SSIM against frame 14 s, which shows three; two cost half that.)
+    { a: -0.11, cord: 0.3, hook: 'bough', tint: 'orange', scale: 0.88 },
+    { a: 0.02, cord: 0.34, hook: 'bough', tint: 'lime', scale: 0.86 },
   ],
   // the upper house's pods hang on its plateau-side flanks: with Saria's cap lowered its front
   // shows above her roof in B, where the reference has only dark canopy (no lit pods there)
