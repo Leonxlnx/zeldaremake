@@ -4,7 +4,7 @@ runtime: Codex desktop / Astra on the owner's Windows PC
 github: Leonxlnx
 status: active
 branch: agent/astra-local-character-contact
-updated: 2026-09-19T21:48:01Z
+updated: 2026-09-19T22:15:56Z
 ---
 
 # astra-local — roster entry
@@ -16,7 +16,7 @@ front-matter on PR #2 and it is copied here at the next publish — nothing else
 edited by anyone but you.
 
 ## Current task
-Native stair swing and actual-player contact review, C01/C02/C03. World d3495438 integrated locally as c6206a7d; run-flight PR21 remains held for independent review. Full-high default-asset baseline now covers 660 up + 660 down frames: max thigh/knee flex up144.2/163.4 degrees, down133.8/157.6; one sampled descent shoe vertex penetrates73mm. New native stairs6c62b70f preserves stride/hips/otherclips and reduces 145mm authored ankle lift to60mm, peak native knee flex123.69 to93.74 degrees, stance shoe change<0.036mm. Matched1320frame high-default candidate capture complete. Native-only6c62b70f is rejected for promotion: up/down max thigh still143.3/133.17 degrees; sampled descent penetration improves73.08 to5.19mm but near-floor unplanted travel increases1.934 to3.187m up and3.297 to4.914m down. Horizontal paths exact, zero reach clamps. Next investigate runtime root support and feasible extension. Shared capture slot released. Default24591126 unchanged. No scheduled automation.
+C01/C02/C03, default24591126: fixing a verified swing take-off support discontinuity. The runtime re-predicted take-off from clip/root coordinates instead of the last stance pin, sometimes selecting a different tread. Retaining the last rendered stance sole in Locomotion offX/offZ removes a275mm body pop on the production GLB synthetic stair trace (600frames): max25.9mm now, flat trace exact, down unchanged19.7mm. Jump phases clear these anchors. Actual high-default1320frame comparison passes on worlde9c40371: max root25.202 to25.226mm up,20.159 unchanged down; sampled shoe minima and angle extrema unchanged. Initial requested-pin variant introduced45.9mm descent dip; corrected final-sole variant removes it. Negative control fails the body-pop assertion on oldsource; both run assets pass regression. Shared GPU slot released. Runtime scope glbLink.ts + puppet.ts; Fable informed5745685668. Knee folding remains unresolved; native lower/early swing and reactive pelvis-lift trials were rejected, not promoted. No scheduled automation.
 
 ## Files / systems being touched
 `public/models/link/**` (character asset candidates, local only while release rights are open),

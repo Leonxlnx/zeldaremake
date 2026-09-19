@@ -1882,6 +1882,9 @@ export async function loadGlbLink(url: string, opts: GlbLinkOptions = {}): Promi
         const pinnedX = loco && !airborne ? loco.pinX[i] : NaN;
         const pinnedZ = loco && !airborne ? loco.pinZ[i] : NaN;
         const pinned = Number.isFinite(pinnedX) && Number.isFinite(pinnedZ);
+        if (loco && jump) {
+          loco.offX[i] = loco.offZ[i] = NaN;
+        }
         leg.relA.set(0, 0, 0);
         leg.relH.set(0, 0, 0);
         leg.attA.set(0, 0, 0);
@@ -1904,8 +1907,11 @@ export async function loadGlbLink(url: string, opts: GlbLinkOptions = {}): Promi
             const len = (s.tLand - s.tOff) / a.rate;
             const back = speed * sw.phase * len;
             const ahead = speed * (1 - sw.phase) * len;
-            const ox = x + s.offX * fz + s.offZ * fx - fx * back;
-            const oz = z - s.offX * fx + s.offZ * fz - fz * back;
+            // A pinned foot may have shifted off the clip's predicted tread. Its swing
+            // starts on that actual support, not a newly selected neighbouring tread.
+            const heldOff = loco && !jump && Number.isFinite(loco.offX[i]);
+            const ox = heldOff ? loco.offX[i] : x + s.offX * fz + s.offZ * fx - fx * back;
+            const oz = heldOff ? loco.offZ[i] : z - s.offX * fx + s.offZ * fz - fz * back;
             const lx = x + s.landX * fz + s.landZ * fx + fx * ahead;
             const lz = z - s.landX * fx + s.landZ * fz + fz * ahead;
             footConfig(surface, base, ox, oz, fx, fz, s.offYaw, leg.fp, cfgOff);
@@ -2524,6 +2530,12 @@ export async function loadGlbLink(url: string, opts: GlbLinkOptions = {}): Promi
       for (let i = 0; i < 2; i++) {
         const leg = legs[i];
         leg.soleP.copy(leg.sole).applyMatrix4(leg.ankle.matrixWorld);
+        if (loco && !jump && leg.stance) {
+          // Reach limiting can shorten a requested pin. Remember the rendered sole,
+          // otherwise releasing that unreachable pin would pull the body down again.
+          loco.offX[i] = leg.soleP.x;
+          loco.offZ[i] = leg.soleP.z;
+        }
         leg.contactOff = 0;
         leg.contactGround = surface(leg.soleP.x, leg.soleP.z);
         if (Math.abs(leg.soleP.y - leg.contactGround) > CONTACT_OFF) {
