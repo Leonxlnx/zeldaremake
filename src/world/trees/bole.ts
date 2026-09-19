@@ -726,7 +726,9 @@ const ROOT_SOIL = new Color(0.55, 0.5, 0.42);
 export function buttressRoot(writer: GeometryWriter, path: Vector3[], radii: number[], o: ButtressRootOptions): ButtressRootResult {
   const trisBefore = writer.triangles;
   const rr = o.rng;
-  const sides = 22;
+  // 30 around (round 47; 22 through round 46): a stand-next pose (sn-bole-lantern-tree) puts the
+  // lens 0.4 m from a fin's crest, where the tall thin section's 16° facets read as cut planes
+  const sides = 30;
   const split = 0.58 + rr() * 0.14;
   const toeCount = rr() < 0.45 ? 3 : 2;
   const toeSpread = 0.32 + rr() * 0.28;
