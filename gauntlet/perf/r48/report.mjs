@@ -14,8 +14,13 @@
 import fs from 'node:fs';
 import path from 'node:path';
 
-const files = process.argv.slice(2).filter((a) => !a.startsWith('--'));
-const jsonOut = (() => { const i = process.argv.indexOf('--json'); return i > 0 ? process.argv[i + 1] : null; })();
+const files = [];
+let jsonOut = null;
+for (let i = 2; i < process.argv.length; i++) {
+  const a = process.argv[i];
+  if (a === '--json') jsonOut = process.argv[++i] ?? null;
+  else if (!a.startsWith('--')) files.push(a);
+}
 const fmt = (v, d = 1) => (v == null || !Number.isFinite(v) ? '—' : Number(v).toFixed(d));
 const mb = (b) => (b == null ? '—' : (b / 1048576).toFixed(1));
 const pct = (sorted, q) => (sorted.length ? sorted[Math.min(sorted.length - 1, Math.round((sorted.length - 1) * q))] : NaN);
@@ -25,11 +30,15 @@ export function summariseTrace(file) {
   const p = r.pass1;
   const rows = p.rows;
   const s = p.summary;
-  // steady state = the walk after the idle frames, excluding the first frame after the spawn
-  const walk = rows.filter((x) => x.tag !== 'idle');
-  const idle = rows.filter((x) => x.tag === 'idle').slice(1);
-  const med = (arr, k) => pct(arr.map((x) => x[k] ?? 0).sort((a, b) => a - b), 0.5);
-  const p95 = (arr, k) => pct(arr.map((x) => x[k] ?? 0).sort((a, b) => a - b), 0.95);
+  // split by position, not by tag: the spawn idle is the run-up before the first walk frame (minus
+  // frame 0, the first-frame compiles); a waypoint-arrival frame mid-walk is tagged 'idle' by the
+  // follower and belongs to the walk
+  const firstWalk = Math.max(1, rows.findIndex((x) => x.tag !== 'idle'));
+  const idle = rows.slice(1, firstWalk);
+  const walk = rows.slice(firstWalk);
+  const val = (x, k) => (k === 'sysTrees' ? x.sys?.trees ?? 0 : x[k] ?? 0);
+  const med = (arr, k) => pct(arr.map((x) => val(x, k)).filter(Number.isFinite).sort((a, b) => a - b), 0.5);
+  const p95 = (arr, k) => pct(arr.map((x) => val(x, k)).filter(Number.isFinite).sort((a, b) => a - b), 0.95);
   const series = p.poolSeries ?? [];
   const trees = (x) => x?.systemPerf?.trees ?? null;
   const canopy = series.map((x) => trees(x)?.nearCanopyPool).filter(Boolean);
@@ -63,7 +72,7 @@ export function summariseTrace(file) {
     spikes: s.spikes,
     spikeThresholdMs: s.spikeThresholdMs,
     spikeCauses: s.spikeCauses,
-    rebucket: { frames: s.rebucketFrames, treesMs: s.treesRebucketMs, vegMs: s.vegRebucketMs, treesSteadyMs: s.treesSteadyMs },
+    rebucket: { frames: s.rebucketFrames, treesMs: s.treesRebucketMs, vegMs: s.vegRebucketMs, treesSteadyMedianMs: med(rows.filter((x) => !x.treesRebucket), 'sysTrees') },
     pools: fin
       ? {
           prefetchM: fin.prefetchM,

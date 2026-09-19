@@ -106,12 +106,36 @@ test('syncEvidence: exports a round with pairs, idempotently; syncPlayerStrip wr
   const frames = path.join(tmp, 'frames');
   fs.mkdirSync(frames, { recursive: true });
   fs.writeFileSync(path.join(frames, 'w00-spine-f.png'), png);
-  fs.writeFileSync(path.join(frames, 'index.json'), JSON.stringify({ renderer: 'test', capturedAt: '2026-09-19T00:00:00Z', width: 1600, height: 900, poses: [{ name: 'w00-spine-f', label: 'Plaza', p: [0, 1.45, 0], t: [0, 1.3, -5], fov: 46, file: 'w00-spine-f.png' }, { name: 'missing', file: 'missing.png' }] }));
+  fs.writeFileSync(path.join(frames, 'index.json'), JSON.stringify({ sha: 'abc123', renderer: 'test', capturedAt: '2026-09-19T00:00:00Z', width: 1600, height: 900, poses: [{ name: 'w00-spine-f', label: 'Plaza', p: [0, 1.45, 0], t: [0, 1.3, -5], fov: 46, file: 'w00-spine-f.png' }, { name: 'missing', file: 'missing.png' }, { name: '../../../reference/frames/A_stairs', file: 'w00-spine-f.png' }] }));
   const rec = await syncPlayerStrip({ monitorDir, takeId: 'take-0123', framesDir: frames, log: () => {}, width: 640 });
-  assert.equal(rec.count, 1);
+  assert.equal(rec.count, 1, 'the missing frame and the traversal name are refused');
   assert.equal(rec.poses[0].file, 'takes/take-0123/player/w00-spine-f.jpg');
   assert.equal(rec.poses[0].label, 'Plaza');
   assert.ok(fs.existsSync(path.join(monitorDataDir(monitorDir), rec.poses[0].file)));
   assert.ok(fs.existsSync(path.join(monitorDataDir(monitorDir), rec.index)));
+  assert.ok(!fs.existsSync(path.join(monitorDataDir(monitorDir), 'reference', 'frames', 'A_stairs.jpg')));
+  // a strip rendered from another commit is refused
+  assert.equal(await syncPlayerStrip({ monitorDir, takeId: 'take-0124', framesDir: frames, expectSha: 'def456', log: () => {}, width: 640 }), null);
+  assert.ok(!fs.existsSync(path.join(monitorDataDir(monitorDir), 'takes', 'take-0124')));
+  assert.ok((await syncPlayerStrip({ monitorDir, takeId: 'take-0124', framesDir: frames, expectSha: 'abc123', log: () => {}, width: 640 }))?.count === 1);
+  fs.rmSync(tmp, { recursive: true, force: true });
+});
+
+test('syncEvidence: an undecodable sheet is skipped, the set and the index are still written', async () => {
+  const tmp = fs.mkdtempSync(path.join(os.tmpdir(), 'monitor-ev2-'));
+  const root = path.join(tmp, 'repo');
+  const monitorDir = path.join(tmp, 'monitor');
+  const round = path.join(root, 'art', 'environment', 'round98-review');
+  fs.mkdirSync(round, { recursive: true });
+  const png = await sharp({ create: { width: 64, height: 32, channels: 3, background: { r: 1, g: 2, b: 3 } } }).png().toBuffer();
+  fs.writeFileSync(path.join(round, 'good-w00-spine-f.png'), png);
+  fs.writeFileSync(path.join(round, 'bad-truncated.jpg'), Buffer.from('not an image'));
+  const logs = [];
+  const r = await syncEvidence(monitorDir, { root, log: (m) => logs.push(m), maxWidth: 64 });
+  assert.equal(r.index.sets.length, 1);
+  assert.deepEqual(r.index.sets[0].sheets.map((s) => s.source), ['good-w00-spine-f.png']);
+  assert.ok(logs.some((l) => /bad-truncated\.jpg skipped/.test(l)), logs.join('\n'));
+  assert.ok(!fs.existsSync(path.join(monitorDataDir(monitorDir), 'evidence', 'round98-review', 'bad-truncated.jpg')));
+  assert.equal(r.index.sets[0].updatedAt, null, 'no git checkout → no date');
   fs.rmSync(tmp, { recursive: true, force: true });
 });

@@ -11,7 +11,7 @@
 set -u
 cd "$(dirname "$0")/../../.." || exit 1
 R=gauntlet/perf/r48
-LOAD="C:/Users/User/AppData/Local/Temp/claude/E--zeldaremake-fable-6/dae27cf1-036b-4b0c-b397-ea8ae0827677/scratchpad/load.ps1"
+LOAD="$R/load.ps1"; [ -f "$LOAD" ] || { echo "missing $LOAD"; exit 1; }
 probe() { powershell -NoProfile -File "$LOAD" | tee -a "$R/load.log"; }
 export ZR_NATIVE_GPU=1
 T0=$(date +%s)

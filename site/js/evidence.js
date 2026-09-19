@@ -74,9 +74,9 @@ export function renderEvidence(root, data) {
           <section class="ev-lane">
             <div class="ev-lane-h"><h4>${esc(lane)}</h4><span class="k">${cards.length} sheet${cards.length === 1 ? '' : 's'}</span></div>
             <div class="ev-grid">${cards.map(({ sheet, before, idx }) => `
-              <button type="button" class="ev-card${before ? ' has-before' : ''}" data-ev-item="${idx}" title="${esc(prettyName(sheet))}${before ? ' · before/after — hover for before' : ''}" style="--ar:${sheet.w && sheet.h ? `${sheet.w}/${sheet.h}` : '16/9'}">
-                <img src="${esc(dataUrl(sheet.file))}" alt="${esc(prettyName(sheet))}" loading="lazy" decoding="async">
-                ${before ? `<img class="ev-before" src="${esc(dataUrl(before.file))}" alt="" loading="lazy" decoding="async"><span class="pose-ab">before ↔ after</span>` : ''}
+              <button type="button" class="ev-card${before ? ' has-before' : ''}" data-ev-item="${idx}" title="${esc(prettyName(sheet))}${before ? ' · before/after — hover for before' : ''}" style="--ar:${aspectOf(sheet)}">
+                <span class="ev-pic"><img src="${esc(dataUrl(sheet.file))}" alt="${esc(prettyName(sheet))}" loading="lazy" decoding="async">
+                ${before ? `<img class="ev-before" src="${esc(dataUrl(before.file))}" alt="" loading="lazy" decoding="async"><span class="pose-ab">before ↔ after</span>` : ''}</span>
                 <span class="ev-cap"><b>${esc(prettyName(sheet))}</b>${sheet.pose ? `<span>${esc(sheet.pose)}</span>` : ''}</span>
               </button>`).join('')}</div>
           </section>`).join('')}
@@ -85,28 +85,39 @@ export function renderEvidence(root, data) {
   loadText(root, chosen);
 }
 
+/** the card's CSS aspect ratio from the sheet's pixel size — numbers only (the values come from published JSON) */
+function aspectOf(sheet) {
+  const w = Number(sheet.w);
+  const h = Number(sheet.h);
+  return Number.isFinite(w) && Number.isFinite(h) && w > 0 && h > 0 ? `${Math.round(w)}/${Math.round(h)}` : '16/9';
+}
+
 function prettyName(sheet) {
-  let n = sheet.name || sheet.file.split('/').pop().replace(/\.[a-z]+$/i, '');
-  if (sheet.lane) n = n.replace(new RegExp(`^${sheet.lane}[-_]?`, 'i'), '');
+  let n = String(sheet.name || String(sheet.file || '').split('/').pop().replace(/\.[a-z]+$/i, ''));
+  const lane = sheet.laneRaw || sheet.lane;
+  // plain prefix test, never a RegExp built from data
+  if (lane && n.toLowerCase().startsWith(String(lane).toLowerCase())) n = n.slice(String(lane).length).replace(/^[-_]/, '');
   n = n.replace(/[-_](before|after)$/i, '').replace(/[-_]+/g, ' ').trim();
-  return n || sheet.name;
+  return n || String(sheet.name || '');
 }
 
 async function loadText(root, setData) {
-  const box = $('[data-ev-md]', root);
-  if (!box || !setData.text) return;
+  if (!setData.text || !$('[data-ev-md]', root)) return;
   const url = dataUrl(setData.text);
-  let md = textCache.get(url);
-  if (md == null) {
-    try {
-      const r = await fetch(`${url}?t=${Date.now()}`, { cache: 'no-store' });
-      md = r.ok ? await r.text() : '';
-    } catch { md = ''; }
-    textCache.set(url, md);
+  // the in-flight promise is cached (one request per set); a failure is not, so the next render retries
+  let p = textCache.get(url);
+  if (!p) {
+    p = fetch(`${url}?t=${Date.now()}`, { cache: 'no-store' }).then((r) => (r.ok ? r.text() : Promise.reject(new Error(`HTTP ${r.status}`))));
+    textCache.set(url, p);
+    p.catch(() => textCache.delete(url));
   }
-  if (!$('[data-ev-md]', root) || $('[data-ev-md]', root).dataset.evMd !== setData.text) return; // re-rendered meanwhile
-  box.innerHTML = md ? renderMarkdown(md, { base: box.dataset.evBase }) : '<p class="empty-note">The review text could not be loaded.</p>';
-  box.classList.toggle('is-long', box.scrollHeight > box.clientHeight + 8);
+  let md = null;
+  try { md = await p; } catch { md = null; }
+  // write into the node that is live NOW (the panel may have been re-rendered while the fetch ran)
+  const live = $('[data-ev-md]', root);
+  if (!live || live.dataset.evMd !== setData.text) return;
+  live.innerHTML = md ? renderMarkdown(md, { base: live.dataset.evBase }) : '<p class="empty-note">The review text could not be loaded.</p>';
+  live.classList.toggle('is-long', live.scrollHeight > live.clientHeight + 8);
 }
 
 export function bindEvidence(root) {

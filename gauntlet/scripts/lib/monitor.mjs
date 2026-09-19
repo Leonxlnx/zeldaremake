@@ -8,7 +8,7 @@ import path from 'node:path';
 import crypto from 'node:crypto';
 import { execFileSync } from 'node:child_process';
 import sharp from 'sharp';
-import { ROOT, MONITOR_DIR, DIST_DIR, AGENTS_DIR, RUBRIC_PATH, REFERENCE_FRAMES, readJson, writeJson, rel } from './paths.mjs';
+import { ROOT, MONITOR_DIR, DIST_DIR, AGENTS_DIR, RUBRIC_PATH, REFERENCE_FRAMES, OUT_DIR, readJson, writeJson, rel } from './paths.mjs';
 import { loadLedger, saveLedger, mergeLedgers, entryIdentity } from './ledger.mjs';
 // the director's-cut fields are derived by the same code the site uses for takes published before them
 import { headlineOf, roundOf } from '../../../site/js/headline.js';
@@ -352,15 +352,23 @@ export async function applyToMonitor({ monitorDir = MONITOR_DIR, localLedgerPath
     const src = path.join(takeDir, f);
     if (fs.existsSync(src)) fs.copyFileSync(src, path.join(dest, f));
   }
-  // the "what the player sees" strip: player-height frames rendered into <takeDir>/player/ by
-  // site/tools/player-strip.mjs before the publish travel with the take
-  const playerSrc = path.join(takeDir, PLAYER_SUBDIR);
-  if (fs.existsSync(path.join(playerSrc, 'index.json'))) {
+  // the "what the player sees" strip: player-height frames rendered by site/tools/player-strip.mjs
+  // from the SAME commit, staged where take.mjs's capture-directory rotation cannot move them
+  // (gauntlet/out/player — take.mjs captures into a fresh dir and rotates it into out/last, so a
+  // strip written into out/last beforehand never reaches the published dir) or inside the capture
+  // dir itself; a strip rendered from another commit (index.json `sha`) is refused
+  for (const playerSrc of [path.join(takeDir, PLAYER_SUBDIR), path.join(OUT_DIR, PLAYER_SUBDIR)]) {
+    if (!fs.existsSync(path.join(playerSrc, 'index.json'))) continue;
     try {
-      record.player = await syncPlayerStrip({ monitorDir, takeId, framesDir: playerSrc, log });
-      if (record.player) log(`monitor: player strip — ${record.player.count} pose(s) under data/takes/${takeId}/${PLAYER_SUBDIR}/`);
+      record.player = await syncPlayerStrip({ monitorDir, takeId, framesDir: playerSrc, expectSha: sealed.sha ?? null, log });
+      if (record.player) {
+        log(`monitor: player strip — ${record.player.count} pose(s) from ${rel(playerSrc)} under data/takes/${takeId}/${PLAYER_SUBDIR}/`);
+        break;
+      }
     } catch (e) {
       log(`monitor: player strip skipped — ${e.message}`);
+      fs.rmSync(path.join(dataDir, 'takes', takeId, PLAYER_SUBDIR), { recursive: true, force: true });
+      record.player = null;
     }
   }
   takes.takes.push(record);
@@ -436,6 +444,15 @@ function gitHead(cwd) {
   return { sha: typeof sha === 'string' ? sha.trim() : null, shortSha: typeof sha === 'string' ? sha.trim().slice(0, 7) : null, branch: typeof branch === 'string' ? branch.trim() : null };
 }
 
+/** when a path was last committed (git does not keep mtimes; a checkout's are the checkout time), or null */
+function gitDate(cwd, relPath) {
+  const d = tryGit(['log', '-1', '--format=%cI', '--', relPath], { cwd, quiet: true });
+  return typeof d === 'string' && d.trim() ? new Date(d.trim()).toISOString() : null;
+}
+
+/** a pose / sheet file name that can only ever name a file inside its directory */
+const SAFE_NAME = /^[A-Za-z0-9][A-Za-z0-9._-]*$/;
+
 /**
  * Export the evidence gallery: every `art/environment/round<N>-review/` and `survey<N>/` directory
  * of the code checkout → `data/evidence/<dir>/` (images downscaled to `maxWidth` JPEG, the README /
@@ -475,26 +492,32 @@ export async function syncEvidence(monitorDir = MONITOR_DIR, { root = ROOT, log 
     }
     const prevSheets = new Map((prevSets.get(dir)?.sheets ?? []).map((s) => [s.source, s]));
     const sheets = [];
-    let newest = 0;
     for (const f of files) {
-      if (!/\.(jpe?g|png|webp)$/i.test(f)) continue;
+      if (!/\.(jpe?g|png|webp)$/i.test(f) || !SAFE_NAME.test(f)) continue;
       const srcFile = path.join(src, f);
       const st = fs.statSync(srcFile);
-      newest = Math.max(newest, st.mtimeMs);
       const hash = sha16(srcFile);
       const outName = f.replace(/\.[^.]+$/, '.jpg');
       const dest = path.join(outDir, outName);
       const old = prevSheets.get(f);
       let meta;
-      if (old && old.hash === hash && fs.existsSync(dest)) meta = { w: old.w, h: old.h, bytes: old.bytes };
+      if (old && old.hash === hash && fs.existsSync(dest) && Number.isFinite(old.w) && Number.isFinite(old.h)) meta = { w: old.w, h: old.h, bytes: old.bytes };
       else {
-        const info = await sharp(srcFile).resize({ width: maxWidth, withoutEnlargement: true }).jpeg({ quality, mozjpeg: true }).toFile(dest);
-        meta = { w: info.width, h: info.height, bytes: info.size };
-        converted++;
+        // one undecodable sheet (a truncated drop, an unsupported format) must never take the set
+        // — or the publish — down: it is logged, its half-written output removed, and skipped
+        try {
+          const info = await sharp(srcFile).resize({ width: maxWidth, withoutEnlargement: true }).jpeg({ quality, mozjpeg: true }).toFile(dest);
+          meta = { w: info.width, h: info.height, bytes: info.size };
+          converted++;
+        } catch (e) {
+          log(`evidence: ${dir}/${f} skipped — ${String(e.message ?? e).split('\n')[0]}`);
+          fs.rmSync(dest, { force: true });
+          continue;
+        }
       }
       sheets.push({ file: `${EVIDENCE_SUBDIR}/${dir}/${outName}`, source: f, hash, srcBytes: st.size, ...parseSheetName(f), ...meta });
     }
-    sets.push({ id: dir, kind, round, title: title ?? dir, text, takes, updatedAt: newest ? new Date(newest).toISOString() : null, sheets });
+    sets.push({ id: dir, kind, round, title: title ?? dir, text, takes, updatedAt: gitDate(root, path.posix.join('art', 'environment', dir)), sheets });
   }
   // sets that left the source stay published (append-only), after the live ones
   for (const [id, s] of prevSets) if (!sets.some((x) => x.id === id)) sets.push(s);
@@ -508,15 +531,22 @@ export async function syncEvidence(monitorDir = MONITOR_DIR, { root = ROOT, log 
  * t, fov, file }], renderer, capturedAt, … } from site/tools/player-strip.mjs) + PNGs →
  * `data/takes/<takeId>/player/<pose>.jpg` + index.json. Returns the takes.json `player` record.
  */
-export async function syncPlayerStrip({ monitorDir = MONITOR_DIR, takeId, framesDir, log = console.error, width = 1280, quality = 82 } = {}) {
+export async function syncPlayerStrip({ monitorDir = MONITOR_DIR, takeId, framesDir, expectSha = null, log = console.error, width = 1280, quality = 82 } = {}) {
   const idx = readJson(path.join(framesDir, 'index.json'), null);
   if (!idx || !Array.isArray(idx.poses) || !idx.poses.length) return null;
+  if (expectSha && idx.sha && idx.sha !== expectSha) {
+    log(`monitor: player strip in ${rel(framesDir)} was rendered from ${String(idx.sha).slice(0, 7)}, the take is ${String(expectSha).slice(0, 7)} — not published`);
+    return null;
+  }
   const dest = path.join(monitorDataDir(monitorDir), 'takes', takeId, PLAYER_SUBDIR);
   fs.mkdirSync(dest, { recursive: true });
   const poses = [];
   for (const p of idx.poses) {
-    if (!p?.name) continue;
-    const srcFile = path.join(framesDir, p.file ?? `${p.name}.png`);
+    if (!p?.name || !SAFE_NAME.test(String(p.name))) {
+      if (p?.name) log(`monitor: player strip — pose name "${p.name}" refused (letters, digits, . _ - only)`);
+      continue;
+    }
+    const srcFile = path.join(framesDir, path.basename(String(p.file ?? `${p.name}.png`)));
     if (!fs.existsSync(srcFile)) {
       log(`monitor: player strip — no frame for ${p.name}`);
       continue;

@@ -50,8 +50,10 @@ if (!Number.isFinite(width) || !Number.isFinite(height)) throw new Error(`bad --
 if (!fs.existsSync(path.join(dist, 'index.html'))) throw new Error(`no build at ${dist} (run \`npm run build\` first)`);
 
 const spec = JSON.parse(fs.readFileSync(posesFile, 'utf8'));
-const poses = (Array.isArray(spec) ? spec : spec.poses).filter((p) => p && p.name && Array.isArray(p.p) && Array.isArray(p.t));
-if (!poses.length) throw new Error(`no poses in ${posesFile}`);
+// a pose name becomes a file name here and on the monitor branch: letters, digits, . _ - only
+const SAFE_NAME = /^[A-Za-z0-9][A-Za-z0-9._-]*$/;
+const poses = (Array.isArray(spec) ? spec : spec.poses).filter((p) => p && typeof p.name === 'string' && SAFE_NAME.test(p.name) && Array.isArray(p.p) && Array.isArray(p.t));
+if (!poses.length) throw new Error(`no (valid) poses in ${posesFile}`);
 
 fs.mkdirSync(out, { recursive: true });
 const framesDir = path.join(out, 'frames');

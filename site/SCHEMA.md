@@ -160,8 +160,11 @@ copied verbatim and rendered by the site (`site/js/markdown.js`). Sets are appen
 
 The "what the player sees" strip of a take: player-height poses (eye height 1.45 m, a curated
 subset of the survey manifest in `site/tools/player-poses.json`) rendered by
-`node site/tools/player-strip.mjs --dist <dist> --out <captureDir>/player` before the publish;
-`take.mjs --publish` (via `monitor.mjs syncPlayerStrip`) converts the PNGs to JPEG under
-`data/takes/<id>/player/` and embeds the same record as `takes[].player`. A take without a strip
-borrows the nearest earlier one on the site (labelled as borrowed); a pose that also exists in the
-previous strip gets a this-take ↔ previous toggle in the lightbox.
+`node site/tools/player-strip.mjs --dist <dist> --out gauntlet/out/player` from the same commit
+before the publish; `take.mjs --publish` (via `monitor.mjs syncPlayerStrip`) picks the strip up
+from `gauntlet/out/player/` (or `<captureDir>/player/`), refuses one whose `index.json` `sha` is
+not the take's commit, converts the PNGs to JPEG under `data/takes/<id>/player/` and embeds the
+same record as `takes[].player`. Pose names are file names (`[A-Za-z0-9][A-Za-z0-9._-]*`). A take
+without a strip borrows the nearest earlier one on the site (labelled as borrowed); a pose that
+also exists in the previous strip gets a this-take ↔ previous toggle in the lightbox. Evidence
+sets carry `updatedAt` = the directory's last commit date (null outside a git checkout).

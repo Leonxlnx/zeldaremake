@@ -65,7 +65,15 @@ export async function loadAll() {
  * newest round first, surveys after the rounds; before/after pairs indexed per set.
  */
 export function normaliseEvidence(ev) {
-  const sets = Array.isArray(ev?.sets) ? ev.sets.filter((s) => s && s.id).map((s) => ({ ...s, sheets: Array.isArray(s.sheets) ? s.sheets.filter((x) => x?.file) : [] })) : [];
+  const num = (v) => (Number.isFinite(Number(v)) && Number(v) > 0 ? Number(v) : null);
+  const sets = Array.isArray(ev?.sets)
+    ? ev.sets.filter((s) => s && typeof s.id === 'string').map((s) => ({
+        ...s,
+        round: Number.isFinite(Number(s.round)) ? Number(s.round) : null,
+        takes: Array.isArray(s.takes) ? s.takes.filter((x) => typeof x === 'string') : [],
+        sheets: Array.isArray(s.sheets) ? s.sheets.filter((x) => x && typeof x.file === 'string').map((x) => ({ ...x, w: num(x.w), h: num(x.h), bytes: num(x.bytes) })) : [],
+      }))
+    : [];
   if (!sets.length) return null;
   const rank = (s) => (s.kind === 'survey' ? 0 : 1) * 10_000 + (Number(s.round) || 0);
   sets.sort((a, b) => rank(b) - rank(a));
@@ -150,7 +158,11 @@ export function normalise({ takes, rubric, agents, evidence = null, missing = {}
     // the director's cut: takes published before monitor.mjs stored these derive them here
     if (!t.headline) t.headline = headlineOf(t.note, t.subject);
     if (t.round == null) t.round = roundOf(t.note, t.subject);
-    t.player = t.player && Array.isArray(t.player.poses) ? t.player : null;
+    // only well-formed poses survive (name + file strings); an empty strip is no strip
+    if (t.player && Array.isArray(t.player.poses)) {
+      const poses = t.player.poses.filter((p) => p && typeof p.name === 'string' && typeof p.file === 'string');
+      t.player = poses.length ? { ...t.player, poses } : null;
+    } else t.player = null;
     byId[t.id] = t;
   });
   for (const t of list) {

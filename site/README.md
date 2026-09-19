@@ -81,11 +81,16 @@ on the `monitor` branch until a take is published with this code, and the site d
 note until their data exists):
 
 ```bash
-# 1. (optional, per take) the player strip — 14 player-height poses, ~1 min natively, longer on SwiftShader
-node site/tools/player-strip.mjs --dist dist --out gauntlet/out/last/player     # ZR_NATIVE_GPU=1 on the owner's machine
+# 1. (optional, per take) the player strip — 14 player-height poses from the SAME build/commit the
+#    take will capture; staged under gauntlet/out/player because take.mjs rotates its capture dirs
+node site/tools/player-strip.mjs --dist dist --out gauntlet/out/player     # ZR_NATIVE_GPU=1 on the owner's machine
 # 2. the take as usual: takes[].headline / round, takes.play, data/takes/<id>/player/, data/evidence/ all land in one publish
 npm run take -- --agent <id> --items … --note "…" --publish
 ```
+
+`monitor.mjs` publishes a staged strip only when its `index.json` `sha` equals the take's commit
+(a strip left over from another build is logged and ignored); it also accepts a `player/`
+directory inside the capture directory itself.
 
 `site/tools/player-poses.json` is the pose list (name / label / p / t / fov, copied from
 `art/environment/survey2/manifest.json`); edit it there.

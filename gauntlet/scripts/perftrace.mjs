@@ -398,8 +398,10 @@ function percentile(sorted, q) {
 export function summarise(rows, { renderedOnly = false } = {}) {
   const use = renderedOnly ? rows.filter((r) => r.rendered) : rows;
   const stat = (key) => {
-    const v = use.map((r) => (typeof key === 'function' ? key(r) : r[key])).sort((a, b) => a - b);
-    return { median: +percentile(v, 0.5).toFixed(2), p95: +percentile(v, 0.95).toFixed(2), p99: +percentile(v, 0.99).toFixed(2), max: +percentile(v, 1).toFixed(2), mean: +(v.reduce((a, b) => a + b, 0) / Math.max(1, v.length)).toFixed(2) };
+    // non-finite samples (a selector returning NaN for "not this frame") are dropped, never sorted
+    const v = use.map((r) => (typeof key === 'function' ? key(r) : r[key])).filter((x) => Number.isFinite(x)).sort((a, b) => a - b);
+    if (!v.length) return { median: 0, p95: 0, p99: 0, max: 0, mean: 0 };
+    return { median: +percentile(v, 0.5).toFixed(2), p95: +percentile(v, 0.95).toFixed(2), p99: +percentile(v, 0.99).toFixed(2), max: +percentile(v, 1).toFixed(2), mean: +(v.reduce((a, b) => a + b, 0) / v.length).toFixed(2) };
   };
   const sysNames = [...new Set(use.flatMap((r) => Object.keys(r.sys)))];
   const systems = Object.fromEntries(sysNames.map((n) => [n, stat((r) => r.sys[n] ?? 0)]));

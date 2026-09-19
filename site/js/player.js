@@ -27,7 +27,7 @@ export function renderPlayer(root, data) {
     return {
       src: dataUrl(p.file),
       caption: p.label || p.name,
-      sub: `${p.name} · ${owner.id} · ${fmtDateTime(owner.capturedAt ?? owner.at)}${p.p ? ` · cam ${p.p.map((v) => Number(v).toFixed(1)).join(', ')}` : ''}${p.fov ? ` · fov ${p.fov}°` : ''}`,
+      sub: `${p.name} · ${owner.id} · ${fmtDateTime(owner.capturedAt ?? owner.at)}${Array.isArray(p.p) && p.p.length ? ` · cam ${p.p.map((v) => Number(v).toFixed(1)).join(', ')}` : ''}${Number.isFinite(Number(p.fov)) ? ` · fov ${Number(p.fov)}°` : ''}`,
       label: `T${pad(owner.number ?? owner.index + 1)}`,
       alt: before ? { src: dataUrl(before.file), label: `T${pad(prev.number ?? prev.index + 1)} (before)` } : null,
     };

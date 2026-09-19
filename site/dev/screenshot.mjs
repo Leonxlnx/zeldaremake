@@ -158,7 +158,8 @@ async function main() {
     await page.evaluate((t) => { location.hash = `#${t}/A_stairs/before`; window.scrollTo(0, 0); }, TAKE);
     await settle(page, 400);
     const cutTake = await page.evaluate(() => document.querySelector('#cut .cut-take')?.textContent || '');
-    if (cutTake !== `T${TAKE.replace(/^take-0*/, '')}`) errors.push(`director's cut shows ${cutTake}, expected ${TAKE}`);
+    const wantTake = `T${String(Number(TAKE.replace(/^take-/, ''))).padStart(2, '0')}`; // cut.js pads to two digits
+    if (cutTake !== wantTake) errors.push(`director's cut shows ${cutTake}, expected ${wantTake} (${TAKE})`);
     const cut = await page.evaluate(() => ({ headline: document.querySelector('#cut .cut-h')?.textContent || '', chips: document.querySelectorAll('#cut .cut-delta').length, play: document.querySelector('#play-link')?.textContent?.trim() || '' }));
     console.log(`  cut → "${cut.headline.slice(0, 80)}…" · ${cut.chips} delta chips · play link "${cut.play}"`);
     if (!cut.headline) errors.push('director\'s cut has no headline');

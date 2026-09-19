@@ -55,10 +55,20 @@ export function roundOf(note, subject) {
   return null;
 }
 
-/** [{ viewpoint, letter, delta }] of one metric across the take's shots (the headline's chips). */
+/**
+ * [{ viewpoint, letter, delta, value }] of one metric across the take's shots (the headline's
+ * chips). `deltas` on the record omit an unchanged metric (monitor.mjs writes a key only when the
+ * value moved), so an absent delta falls back to the difference against the previous take's shot
+ * (`previousShot`, set by the site's normalise) — 0 when nothing changed, null only on a first take.
+ */
 export function viewDeltas(take, key = 'ssim') {
   const shots = Array.isArray(take?.shots) ? take.shots : [];
   return shots
     .filter((s) => s?.viewpoint)
-    .map((s) => ({ viewpoint: s.viewpoint, letter: s.viewpoint.charAt(0).toUpperCase(), delta: typeof s.deltas?.[key] === 'number' ? s.deltas[key] : null, value: typeof s.metrics?.[key] === 'number' ? s.metrics[key] : null }));
+    .map((s) => {
+      const value = typeof s.metrics?.[key] === 'number' ? s.metrics[key] : null;
+      const prev = typeof s.previousShot?.metrics?.[key] === 'number' ? s.previousShot.metrics[key] : null;
+      const delta = typeof s.deltas?.[key] === 'number' ? s.deltas[key] : value != null && prev != null ? Number((value - prev).toFixed(4)) : null;
+      return { viewpoint: s.viewpoint, letter: s.viewpoint.charAt(0).toUpperCase(), delta, value };
+    });
 }

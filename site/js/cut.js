@@ -23,7 +23,7 @@ export function renderCut(root, data) {
   const best = deltas.filter((d) => typeof d.delta === 'number').sort((a, b) => b.delta - a.delta)[0];
   const summary = worst && best
     ? `SSIM vs the previous take: best ${best.letter} ${best.delta >= 0 ? '+' : '−'}${Math.abs(best.delta).toFixed(4)}, worst ${worst.letter} ${worst.delta >= 0 ? '+' : '−'}${Math.abs(worst.delta).toFixed(4)}${worst.delta < -0.003 ? ' — outside the −0.003 budget' : ''}`
-    : 'first take — no previous frames to compare';
+    : take.prev ? 'no SSIM to compare against the previous take' : 'first take — no previous frames to compare';
   root.innerHTML = `
     <div class="cut-in${take.valid ? '' : ' is-struck'}">
       <div class="cut-tags">

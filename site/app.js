@@ -96,7 +96,8 @@ function fitStage() {
   const mainPad = parseFloat(getComputedStyle($('main')).paddingTop || '0');
   const frame = $('.stage-frame');
   const framePad = frame ? parseFloat(getComputedStyle(frame).paddingTop || '0') * 2 : 14;
-  const reserve = Math.round(slateBox + mainPad + h('#cut') + 10 + h('#viewer-toolbar') + 10 + framePad + 10 + h('#metrics') + h('#filmstrip') + 8);
+  // the director's-cut header is charged up to 140 px (its clamp: tags + three headline lines + one row); a taller one scrolls off with the slate
+  const reserve = Math.round(slateBox + mainPad + Math.min(140, h('#cut')) + 10 + h('#viewer-toolbar') + 10 + framePad + 10 + h('#metrics') + h('#filmstrip') + 8);
   if (Math.abs(reserve - lastReserve) > 1) {
     lastReserve = reserve;
     document.documentElement.style.setProperty('--stage-reserve', `${reserve}px`);

@@ -797,9 +797,12 @@ main { padding: var(--gap) 16px 0; }
   color: var(--text);
   letter-spacing: 0.005em;
   text-wrap: balance;
+  /* three lines at most: the header is charged to the stage's reserve (app.js fitStage) */
+  display: -webkit-box; -webkit-box-orient: vertical; -webkit-line-clamp: 3; overflow: hidden;
 }
 .cut-in.is-standby .cut-h { color: var(--muted); }
-.cut-row { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 6px 14px; }
+.cut-row { display: flex; flex-wrap: nowrap; align-items: center; justify-content: space-between; gap: 6px 14px; min-width: 0; }
+.cut-row .cut-sub { flex: 1 1 0; min-width: 0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; text-align: right; }
 .cut-deltas { display: inline-flex; flex-wrap: wrap; gap: 4px; }
 .cut-delta {
   display: inline-flex; align-items: baseline; gap: 5px; padding: 3px 8px 3px 7px; border-radius: 6px; cursor: pointer;
@@ -851,7 +854,7 @@ main { padding: var(--gap) 16px 0; }
 .ev-chip.mine::before { content: "●"; color: var(--green); margin-right: 5px; font-size: 8px; vertical-align: 2px; }
 .ev-chip.cur { border-color: var(--tungsten); color: var(--tungsten-2); background: var(--tungsten-dim); }
 .ev-body { display: grid; grid-template-columns: minmax(280px, 380px) minmax(0, 1fr); gap: 16px; align-items: start; }
-.ev-text { position: sticky; top: 12px; display: flex; flex-direction: column; gap: 8px; min-width: 0; }
+.ev-text { position: sticky; top: 12px; display: flex; flex-direction: column; gap: 8px; min-width: 0; max-height: calc(100vh - var(--filmstrip-h) - 24px); overflow: auto; scrollbar-width: thin; }
 .ev-set-h .k { margin-bottom: 4px; }
 .ev-set-h h3 { font-size: 14px; line-height: 1.3; color: var(--text); }
 .ev-meta { font-family: var(--mono); font-size: 10.5px; color: var(--muted); margin-top: 4px; }
@@ -887,18 +890,21 @@ main { padding: var(--gap) 16px 0; }
 .ev-lane-h h4 { font-size: 12px; letter-spacing: 0.06em; text-transform: uppercase; color: var(--text-2); }
 .ev-lane-h h4::before { content: "▸ "; color: var(--tungsten); }
 .ev-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: 8px; }
+/* a card = the sheet at its own aspect ratio (many are 3.5:1 before|after composites) + a caption
+   row below it, never over it */
 .ev-card {
-  position: relative; padding: 0; border: 2px solid var(--line); border-radius: 6px; overflow: hidden; background: #000; cursor: zoom-in; text-align: left; color: var(--text);
-  aspect-ratio: var(--ar, 16 / 9); max-height: 340px;
+  position: relative; display: flex; flex-direction: column; padding: 0; border: 2px solid var(--line); border-radius: 6px; overflow: hidden; background: #000; cursor: zoom-in; text-align: left; color: var(--text); min-width: 0;
 }
-.ev-card img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; opacity: 0.92; transition: opacity 0.15s; }
-.ev-card .ev-before { opacity: 0; }
+.ev-card.has-before, .ev-card[style*="--ar:2"], .ev-card[style*="--ar:1920/"], .ev-card[style*="--ar:25"] { grid-column: span 2; }
+.ev-pic { position: relative; display: block; width: 100%; aspect-ratio: var(--ar, 16 / 9); max-height: 320px; background: #050506; }
+.ev-pic img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: contain; opacity: 0.92; transition: opacity 0.15s; }
+.ev-pic .ev-before { opacity: 0; }
 .ev-card.has-before:hover .ev-before, .ev-card.has-before:focus-visible .ev-before { opacity: 1; }
 .ev-card.has-before:hover .pose-ab, .ev-card.has-before:focus-visible .pose-ab { background: var(--blue); }
 .ev-card:hover, .ev-card:focus-visible { border-color: var(--tungsten); }
-.ev-card:hover img:not(.ev-before) { opacity: 1; }
-.ev-cap { position: absolute; left: 0; right: 0; bottom: 0; padding: 18px 8px 6px; background: linear-gradient(180deg, transparent, rgba(5, 5, 6, 0.88)); display: flex; flex-direction: column; gap: 1px; pointer-events: none; }
-.ev-cap b { font-size: 12px; color: var(--text); text-shadow: 0 1px 2px #000; line-height: 1.25; }
+.ev-card:hover .ev-pic img:not(.ev-before) { opacity: 1; }
+.ev-cap { display: flex; flex-direction: column; gap: 1px; padding: 5px 8px 6px; background: var(--bg-2); border-top: 1px solid var(--line); }
+.ev-cap b { font-size: 12px; color: var(--text); line-height: 1.25; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 .ev-cap span { font-family: var(--mono); font-size: 9.5px; color: var(--muted); letter-spacing: 0.06em; }
 
 /* ------------------------------------------------------------------ lightbox */
@@ -935,8 +941,11 @@ body.lb-open { overflow: hidden; }
 @media (max-width: 640px) {
   .cut { padding: 10px 12px; }
   .cut-h { font-size: 16px; }
+  .cut-row { flex-wrap: wrap; }
+  .cut-row .cut-sub { white-space: normal; text-align: left; }
   .pose { width: 180px; }
   .ev-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .ev-card.has-before, .ev-card[style*="--ar:2"], .ev-card[style*="--ar:1920/"], .ev-card[style*="--ar:25"] { grid-column: span 2; }
   .lb-nav { width: 34px; height: 48px; font-size: 22px; }
   .lb-nav.prev { left: 0; } .lb-nav.next { right: 0; }
 }
