@@ -145,10 +145,12 @@ A new area: after the plaza the path enters a shaded corridor. Link runs away fr
 | Canopy | y 0.0–0.10 `#262724` | Closed. Sky fraction 0. |
 
 **What ours has:** nothing at this location yet — the arch footprint is blocked and the north
-spine past 25 m is a flat pale plain (survey-2 #06, `w19-spine-l`/`w21-spine-f`); the only wall-like
-terrain is the house-lawn earth face (`w08-spine-r`), which reads as soft clay. `expansion-1`
-(fable-cursor) is opening the arch, the clearing beyond and the raised right-bank stair + ledge;
-`fable-2` owns the ledge's rock material.
+spine past 25 m is a flat pale plain (survey-2 #06, `w19-spine-l`/`w21-spine-f`; confirmed on
+`973a21e` at `w18-spine-f` and `sn-arch-outside`: through the arch a flat pale plain with smooth
+column cones and a flat haze horizon — see `gauntlet/reviews/evidence/fable-5/take-0116-W29-D-log-arch.jpg`).
+The only wall-like terrain is the house-lawn earth face (`w08-spine-r`), which reads as soft clay.
+`expansion-1` (fable-cursor) is opening the arch, the clearing beyond and the raised right-bank
+stair + ledge; `fable-2` owns the ledge's rock material.
 
 **Brief this frame gives those lanes:**
 - The ledge is **3–3.5 m** high with a flat walkable top wide enough for a Kokiri to stand on, its
