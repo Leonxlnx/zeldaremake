@@ -435,11 +435,11 @@ export const DISTANT_NEAR_CORD_STRIPE = 0.25;
 /**
  * Round 46: the bark floor of a broad depth-row bole inside the distant material's near blend
  * (DISTANT_BARK_M; zero at 38 m+, so no fixed frame sees it). The columns' preset with more of
- * the bole's own albedo kept (0.6 against 0.45): at 8–20 m the shaded side of a bole is the veil
+ * the bole's own albedo kept (0.8 against 0.45): at 8–20 m the shaded side of a bole is the veil
  * over black without it (trees-29 probe at w19-spine-r: the hemisphere light contributed
  * 0.5 / 255 to the cone), and it is the cords, the furrow shade and the map that must show there.
  */
-export const DISTANT_NEAR_FLOOR: ShadeFloor = { ...SHARED_BARK_FLOOR, lift: 6.2, texture: 0.6 };
+export const DISTANT_NEAR_FLOOR: ShadeFloor = { ...SHARED_BARK_FLOOR, lift: 6.2, texture: 0.8 };
 
 /**
  * Near-camera leaf detail (round 39, the owner's "huge single-colour flat polygons"): a lamina
