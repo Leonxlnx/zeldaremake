@@ -180,8 +180,9 @@ export function buildFence(def: FenceDef, ctx: WorldContext, mats: StructureMate
               const damp = smoothstep(0.3, 0.0, above(t));
               const mossy = smoothstep(0.12, 0.0, above(t)) * (0.3 + 0.4 * (1 - g));
               const r0 = (shade + grey * 0.3) * up * line * (1 - 0.3 * damp);
-              const g0 = (shade * 0.95 + grey * 0.35) * up * line * (1 - 0.26 * damp);
-              const b0 = (shade * 0.86 + grey * 0.5) * up * line * (1 - 0.28 * damp + 0.08 * g);
+              // round 46: a step greyer with the rails (G 0.95 → 0.97, B 0.86 → 0.92)
+              const g0 = (shade * 0.97 + grey * 0.35) * up * line * (1 - 0.26 * damp);
+              const b0 = (shade * 0.92 + grey * 0.5) * up * line * (1 - 0.28 * damp + 0.08 * g);
               return [lerp(r0, 0.2, mossy), lerp(g0, 0.25, mossy), lerp(b0, 0.06, mossy)];
             },
           });
@@ -312,18 +313,51 @@ export function buildFence(def: FenceDef, ctx: WorldContext, mats: StructureMate
           const inB = smoothstep(rB + 0.06, rB + 0.005, railLen - along);
           return 1 - 0.2 * Math.max(inA, inB);
         };
-        // round 41: the rail's grain runs along it (± 3 mm, lines darker); its ends sit inside the posts
-        const rail = sweepTube(new CatmullRomCurve3([p0, p1, p2]), {
-          radius: (t) => 0.056 * (1 + 0.15 * Math.sin(t * Math.PI * 1.7 + i)) * tenon(t),
+        // round 41: the rail's grain runs along it (± 3 mm, lines darker); its ends sit inside the posts.
+        // Round 46 (structures-29, survey-2 check-20 "rails still flat planks"): a HEWN rail —
+        // a squared section (half-width 5 cm) with 45° CHAMFERS taking the corners off (the
+        // profile is the min of the square's and the chamfer's radial extents, oriented to the
+        // world's up so a flat face lies on top and the chamfers catch the light as four lines
+        // along the rail), the ends relaxing to the tenon's round inside the posts; the grain
+        // relief doubles (± 6 mm) with a fine fibre octave and the lines' tint swing widens
+        // (× 0.5–1.3) so the grain shows on the shaded plateau rail at 2–4 m. 16 radial segments
+        // so the chamfers resolve. The rng draws are the round-44 four per rail, in order.
+        const railCurve = new CatmullRomCurve3([p0, p1, p2]);
+        const _rc = new Vector3();
+        const _ro = new Vector3();
+        const railHalf = 0.05;
+        const chamferL1 = railHalf * 1.62;
+        const rail = sweepTube(railCurve, {
+          radius: (t) => railHalf * (1 + 0.08 * Math.sin(t * Math.PI * 1.7 + i)) * tenon(t),
           tubularSegments: Math.max(10, Math.round(len * 7)),
-          radialSegments: 12,
+          radialSegments: 16,
           uvMetres: 0.8,
-          displace: (t, ang) => (woodGrain(noise, t * len, ang, 10, 0.5, i * 1.7 + rh) - 0.5) * 0.006,
+          displace: (t, ang, pos) => {
+            // the point's direction off the axis in the (side, up) frame
+            railCurve.getPointAt(t, _rc);
+            _ro.copy(pos).sub(_rc);
+            const hs = _ro.dot(side);
+            const hy = _ro.y;
+            const rr = Math.hypot(hs, hy) || 1;
+            const cs = Math.abs(hs / rr);
+            const cy = Math.abs(hy / rr);
+            const square = 1 / Math.max(cs, cy, 1e-3);
+            const chamfer = (chamferL1 / railHalf) / Math.max(cs + cy, 1e-3);
+            const shape = Math.min(square, chamfer);
+            // round inside the posts (the tenons), hewn between
+            const inPost = Math.max(smoothstep(rA + 0.1, rA + 0.02, t * railLen), smoothstep(rB + 0.1, rB + 0.02, railLen - t * railLen));
+            const base = railHalf * (1 + 0.08 * Math.sin(t * Math.PI * 1.7 + i)) * tenon(t);
+            const g = woodGrain(noise, t * len, ang, 10, 0.5, i * 1.7 + rh);
+            const fib = woodFibre(noise, t * len, ang, 10, i * 1.7 + rh);
+            return base * (lerp(shape, 1, inPost) - 1) + (g - 0.5) * 0.012 + (fib - 0.5) * 0.003;
+          },
           color: (t, ang) => {
             const g = woodGrain(noise, t * len, ang, 10, 0.5, i * 1.7 + rh);
             const fib = woodFibre(noise, t * len, ang, 10, i * 1.7 + rh);
-            const line = lerp(0.6, 1.22, g) * lerp(0.92, 1.08, fib);
-            return [shade * line, shade * 0.94 * line, shade * 0.84 * line * (1 + 0.08 * g)];
+            const line = lerp(0.5, 1.3, g) * lerp(0.9, 1.1, fib);
+            // round 46: silvered a step further (B 0.84 → 0.9, G 0.94 → 0.96) — the plateau
+            // rails measured sat 0.40 in round 45 against the frames' weathered wood at ≈ 0.2–0.3
+            return [shade * line, shade * 0.96 * line, shade * 0.9 * line * (1 + 0.08 * g)];
           },
           capEnd: true,
           capStart: true,

@@ -279,6 +279,10 @@ export function buildStairway(def: StairDef, terrain: Terrain, rng: Rng, seed: s
         // riser. (Round 31: the roll is shaded from the TOP colour (bevelColor), not this — as the
         // side colour × 1.2–1.36 the "lit lip" was 0.6–0.68 of the tread top's albedo, darker
         // than the tread it was meant to crown; the frame's lips are its palest stone.)
+        // (round 46 tried the house-west treads' own faces at × 0.66 with a quarter of the top's
+        // normal — in the giant's shade the × 0.5 band under each nose renders at lum 0.09 — and
+        // D lost 0.002 on it: its bottom-right corner sees exactly these five bands, where frame
+        // 56 s is shadow. The bands stay the control's; the riser faces below them carry w29.)
         sideColor: [color[0] * 0.5, color[1] * 0.5, color[2] * 0.56],
         // a touch cooler than the tread top: the frame's lit lips are its palest and coolest
         // stone (A lit-20 % B/G 0.84, F 0.87; ours read 0.80 / 0.75 with the lip at the top colour)
@@ -336,6 +340,55 @@ export function buildStairway(def: StairDef, terrain: Terrain, rng: Rng, seed: s
     // band under each lip is one dark recess, not stacked pieces)
     const nR = rng.chance(0.75) ? 1 : 2;
     let a = -hw + 0.02;
+    /**
+     * Round 46 (structures-29, survey-2 #15 — the house-west flight from the path, w29-house-d):
+     * the riser stones are 0.9 × tread deep and stop 6 cm short of the next riser, and the ground
+     * under the treads is the heightfield's trench (ramp − 0.18), so behind every riser a cavity
+     * 0.3 m tall ran the flight's width and showed BLACK at both flank ends between the tread
+     * ends and the cheeks ("stacked slab boxes with black voids behind the risers"). On the
+     * house-west flight each riser now has a BACKING — one slab of dark mortar-soil the full
+     * width and the full depth to the next riser, from the riser's foot to the tread's underside
+     * (mossy on its edges) — so the back is closed, and the FACE is laid as 2–4 stones (the
+     * stream's stones split by a hash fork) 14 cm deep standing 1.5 cm proud of the backing with
+     * 2 cm joints between, staggered ± 6 mm, each its own tone: the joints show the mortar behind
+     * them, so the face reads as mortared stone in the giant's shade. The main flight is the
+     * control's. Every draw of the flight's stream below happens as before (the stream stones'
+     * outline, tone and uv draws are taken and then re-cut per sub-stone from the fork), so the
+     * treads, landing and cheeks are byte-identical.
+     */
+    if (isHouseWest) {
+      const brng = rng.fork(`hw-backing46/${i}`);
+      const backDepth = def.tread + 0.005;
+      const backFront = i * def.tread + 0.025;
+      const backOutline = jitteredRect(brng, w - 0.05, backDepth, { jitter: 0.008, segs: 3, chip: 0.03, chipChance: 0.3 });
+      // the bank's own soil tone (w29-house-d reads the earth face beside the flight at
+      // ≈ rgb(120, 90, 60)): the first cut at 0.3 / stain 1.2 rendered the ends under the tread
+      // noses as black as the void they replaced (w29 before ≡ after) — in the giant's shade a
+      // dark albedo IS black. The backing takes the soil's albedo, a third of the top's shading
+      // normal on its ends (they face the sky over the south fall), a light stain, and moss on
+      // its top edge (the fillet under the tread) and its ends; `sideGrime` 1 keeps the foot
+      // half from a second darkening.
+      const mortar: [number, number, number] = [0.5, 0.42, 0.32];
+      placeSlab(backOutline, 0, rBottom, backFront + backDepth / 2, yaw * 0.5, 0, 0, {
+        thickness: rh,
+        bevel: 0.008,
+        color: mortar,
+        sideColor: [mortar[0] * 0.95, mortar[1] * 0.95, mortar[2] * 0.95],
+        // (second cut: 0.35 rendered the ends at lum 0.11–0.13 in w29's shade — brown, but still
+        // a dark hole beside the 0.43 tread tops; half the top's normal now)
+        sideNormalUp: 0.45,
+        sideStain: 0.4,
+        sideWear: 0.6,
+        sideGrime: 1,
+        mossEdge: 0.9,
+        mossInner: 0.5,
+        mossFn: (x, z) => 0.6 + 0.7 * mossAt(x, z + backFront + backDepth / 2),
+        mossAdd: (x, _z, edge) => 0.5 * edge * smoothstep(0.3, 0.9, noise.fbm(x * 2.6 + i * 9.1, 3.3, 2) * 0.5 + 0.5),
+        uvScale,
+        uvOffset: [brng() * 3, brng() * 3],
+        rings: 1,
+      });
+    }
     for (let r = 0; r < nR; r++) {
       const remaining = hw - 0.02 - a;
       const len = r === nR - 1 ? remaining : clamp(remaining / (nR - r) + rng.range(-0.25, 0.25), 0.3, remaining - 0.3 * (nR - r - 1));
@@ -370,51 +423,88 @@ export function buildStairway(def: StairDef, terrain: Terrain, rng: Rng, seed: s
       // the tread/riser corner (sheet 04, frame 03): moss sits thicker at the very foot of the
       // riser where it meets the tread below — a hash-forked weight per riser, 0.6–1.4
       const cornerMoss = 0.6 + 0.8 * frng();
-      placeSlab(riserOutline, ac, rBottom, uc, yaw * 0.5, 0, 0, {
+      // round 46: on the house-west flight the stream stone is re-cut into 1–3 FACE stones
+      // (hash fork) 14 cm deep in front of the backing, each its own outline, tone and ± 6 mm
+      // stagger, with 2 cm mortar joints between; the main flight lays the stream stone as is
+      type Piece = { outline: P2[]; ax: number; au: number; tone: number };
+      const pieces: Piece[] = [];
+      if (isHouseWest) {
+        const prng = rng.fork(`hw-face46/${i}/${r}`);
+        const faceDepth = 0.14;
+        const nP = len > 1.3 ? (prng.chance(0.5) ? 3 : 2) : len > 0.7 ? (prng.chance(0.65) ? 2 : 1) : 1;
+        let pa = a + 0.01;
+        for (let p = 0; p < nP; p++) {
+          const left = a + len - 0.01 - pa;
+          const pl = p === nP - 1 ? left : clamp(left / (nP - p) + prng.range(-0.12, 0.12), 0.25, left - 0.25 * (nP - p - 1));
+          pieces.push({
+            outline: jitteredRect(prng, pl - 0.02, faceDepth, { jitter: 0.01, segs: 4, chip: 0.04, chipChance: 0.35 }),
+            ax: pa + pl / 2,
+            au: i * def.tread + 0.01 + faceDepth / 2 + prng.range(-0.006, 0.006),
+            tone: prng.range(0.93, 1.07),
+          });
+          pa += pl;
+        }
+      } else {
+        pieces.push({ outline: riserOutline, ax: ac, au: uc, tone: 1 });
+      }
+      const riserUv: [number, number] = [rng() * 3, rng() * 3];
+      for (const piece of pieces) {
+      // house-west: the face stones a fifth paler than the stream's riser tone — they stand in
+      // the giant's shade where the main flight's 0.38–0.46 renders black (w29-house-d)
+      // (second cut: at × 1.2 / normal 0.2 / the stream's stain and moss film the faces rendered
+      // at lum 0.08–0.10 under the 0.43 tread tops — black. × 1.35, the normal near half up,
+      // the foot stain and the moss film halved: the face is a stone in shade, not a hole.)
+      const hwLift = isHouseWest ? 1.35 : 1;
+      const pc: [number, number, number] = [riserColor[0] * piece.tone * hwLift, riserColor[1] * piece.tone * hwLift, riserColor[2] * piece.tone * hwLift];
+      placeSlab(piece.outline, piece.ax, rBottom, piece.au, yaw * 0.5, 0, 0, {
         thickness: rh,
-        bevel: 0.012,
-        color: riserColor,
-        sideColor: [riserColor[0] * 0.92, riserColor[1] * 0.9, riserColor[2] * 0.9],
+        bevel: isHouseWest ? 0.014 : 0.012,
+        color: pc,
+        sideColor: [pc[0] * 0.92, pc[1] * 0.9, pc[2] * 0.9],
         // round 44 (crop 36): the house-west risers' faces take a tenth of the top's shading
         // normal and the shader's grime / lichen mottling, so in the giant's shade they read as
         // weathered stone under the lip rather than flat black; the main run's are the control's.
         // (0.3 with the cheeks at 0.5 / × 0.88 lit the flight's south flank in camera D's
         // bottom-right corner, where frame 56 s is shadow — SSIM −0.0037 there, over the budget;
         // 0.2 with the cheeks at 0.3 / × 0.78 still −0.0032)
-        sideNormalUp: isHouseWest ? 0.1 : 0,
+        // round 46: 0.1 → 0.2 with the backing behind (the face stones are 14 cm deep now and
+        // the joints show the backing's soil, so the flank D sees is the backing's, not theirs)
+        sideNormalUp: isHouseWest ? 0.4 : 0,
         sideWear: isHouseWest ? 0.7 : 0,
+        sideGrime: isHouseWest ? 1 : undefined,
         // across: the horizontal distance from the leaning line x = fissA + lean · y; along: the
         // height over the fissure's half-length (the shader fades it out toward its top). Affine
         // over every wall, so it is exact on the front face; the back face is under the tread
         // and the ends are inside the flight, so nowhere else shows it
-        sideCrackFn: fissured ? (x, y) => [x - fissA - fissLean * y, (y - fissTop * 0.5) / (fissTop * 0.5)] : undefined,
+        sideCrackFn: fissured ? (x, y) => [x + piece.ax - ac - fissA - fissLean * y, (y - fissTop * 0.5) / (fissTop * 0.5)] : undefined,
         // soil stain at the foot fading to none under the nosing: the face is not one flat band
         // but darker and browner where it meets the tread below, lighter under the overhang
-        sideStain: footStain,
+        sideStain: isHouseWest ? footStain * 0.5 : footStain,
         // mossy risers (sheet 01 / 04): a moss skin creeps up the face from the tread below —
         // strongest toward the flanks — broken into patches by the noise so it reads as
         // cushions of moss between bare dark stone, not a green wash. Round 23: the general
         // film is thinner (a thin film renders as dark grime, which made the risers a black
         // band) and the patches are fuller and flank-heavy, so where there is moss it is green
         // and the centre third stays bare stone
-        mossEdge: 0.4 * cornerMoss,
-        mossInner: 0.15,
-        mossFn: (x, z) => 0.3 + 0.8 * mossAt(x + ac, z + uc),
+        mossEdge: (isHouseWest ? 0.22 : 0.4) * cornerMoss,
+        mossInner: isHouseWest ? 0.08 : 0.15,
+        mossFn: (x, z) => (isHouseWest ? 0.15 : 0.3) + (isHouseWest ? 0.5 : 0.8) * mossAt(x + piece.ax, z + piece.au),
         mossAdd: (x) => {
-          const patch = smoothstep(0.36, 0.64, noise.fbm((x + ac) * 3.1 + 5.5, i * 11.7 + r * 3.3, 2) * 0.5 + 0.5);
-          const flankBias = 0.3 + 1.0 * (1 - feet(x + ac));
-          return 1.6 * flankBias * patch * (0.55 + 0.45 * mossAt(x + ac, uc));
+          const patch = smoothstep(0.36, 0.64, noise.fbm((x + piece.ax) * 3.1 + 5.5, i * 11.7 + r * 3.3, 2) * 0.5 + 0.5);
+          const flankBias = 0.3 + 1.0 * (1 - feet(x + piece.ax));
+          return 1.6 * flankBias * patch * (0.55 + 0.45 * mossAt(x + piece.ax, piece.au));
         },
         // riser shadow: darker toward the flanks; damp patches along the face a shade darker
         colorFn: (x) => {
-          const k = 1 - 0.2 * smoothstep(hw - 0.9, hw + 0.05, Math.abs(x + ac));
-          const damp = smoothstep(0.1, 0.6, noise.fbm((x + ac) * 2.2 + 9.1, i * 7.3 + r, 2));
+          const k = 1 - 0.2 * smoothstep(hw - 0.9, hw + 0.05, Math.abs(x + piece.ax));
+          const damp = smoothstep(0.1, 0.6, noise.fbm((x + piece.ax) * 2.2 + 9.1, i * 7.3 + r, 2));
           return [k * (1 - 0.06 * damp), k * (1 - 0.05 * damp), k * (1 - 0.02 * damp)];
         },
         uvScale,
-        uvOffset: [rng() * 3, rng() * 3],
+        uvOffset: riserUv,
         rings: 1,
       });
+      }
       a += len;
     }
   }

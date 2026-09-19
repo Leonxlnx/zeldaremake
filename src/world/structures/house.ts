@@ -108,7 +108,7 @@ import {
 } from 'three';
 import type { HouseDef } from '../layout';
 import type { WorldContext } from '../system';
-import type { Rng } from '../util/prng';
+import { hash2, type Rng } from '../util/prng';
 import { Noise2D, clamp, lerp, smoothstep } from '../util/noise';
 import {
   TAU,
@@ -253,7 +253,7 @@ export interface HouseBuild {
    * Round 41 (structures-26): the trunk's player-height detail — furrow moss tufts on the shell,
    * moss caps on the root flares and the doorway arch, lichen plates, trefoils at the root feet.
    */
-  trunkDetail: { trunkTufts: number; rootTufts: number; archTufts: number; lichen: number; trefoils: number; doormatTufts: number };
+  trunkDetail: { trunkTufts: number; rootTufts: number; archTufts: number; boughTufts: number; lichen: number; trefoils: number; doormatTufts: number };
 }
 
 /**
@@ -724,10 +724,18 @@ function indoorFog<M extends MeshStandardMaterial | MeshBasicMaterial>(base: M, 
  * the doorway plane (`indoorFog`) so the haze does not also fill the room. Double-sided so the
  * flat room planes need no winding.
  */
-function roomMaterial(mats: StructureMaterials, color = 0x3c3b3e): MeshStandardMaterial {
+function roomMaterial(mats: StructureMaterials, color = 0x3c3b3e, planked = false): MeshStandardMaterial {
+  // Round 46 (structures-29, survey-2 #16): the room's surfaces are PLANKED — the weathered
+  // planks' colour and normal maps (the fences' / Saria's boards) under the same mean albedo as
+  // the old flat tint (the map's linear mean is (0.081, 0.058, 0.044); the tint is divided by
+  // it), so the lamp pools now show grain and board lines on the walls and the floor instead of
+  // a smooth dark plane. The shelf props keep the flat material.
+  const tint = new Color(color);
+  if (planked) tint.multiply(new Color(1 / 0.081, 1 / 0.058, 1 / 0.044));
   const m = new MeshStandardMaterial({
-    normalMap: mats.interior.normalMap,
-    normalScale: new Vector2(0.3, 0.3),
+    map: planked ? mats.wood.map : null,
+    normalMap: planked ? mats.wood.normalMap : mats.interior.normalMap,
+    normalScale: planked ? new Vector2(0.7, 0.7) : new Vector2(0.3, 0.3),
     roughness: 1,
     // Round 12: a dark COOL recess with warm pools. The reference doorway is near-neutral grey
     // (box rgb(80,77,72), sat 0.12, hue 40°) with the amber local to the lamps; at B's 18 m the
@@ -736,7 +744,7 @@ function roomMaterial(mats: StructureMaterials, color = 0x3c3b3e): MeshStandardM
     // 0xffd08a @ 0.17 filled the whole opening with amber, sat 0.34) and only the emissive is
     // amber. The vertex colours carry the shading, the `aGlow` attribute the pools. (Round 13's
     // shelf props take the same material with a paler base so the lamps' light shows their colours.)
-    color: new Color(color),
+    color: tint,
     // a deeper amber than round 11's 0xffe0b8: at pool strength the pale tint read as beige
     emissive: new Color(0xffc478),
     emissiveIntensity: 0.2,
@@ -1372,7 +1380,7 @@ export function buildHouse(def: HouseDef, ctx: WorldContext, mats: StructureMate
 
   // ---- doorway through the back wall + room behind it ----
   const doorPlanePoint = frame.door((doorW0 + doorW1) / 2, doorTop * 0.5, dBack);
-  const roomMat = indoorFog(roomMaterial(mats), doorPlanePoint, F);
+  const roomMat = indoorFog(roomMaterial(mats, 0x3c3b3e, true), doorPlanePoint, F);
   const materials: Material[] = [roomMat];
   // the room's light sources: two pod lamps under the ceiling (reference B: a lamp glint at
   // frame (0.78, 0.44) ≈ 1.3 m up left of centre; sheet 04: pod lanterns inside), a bed of
@@ -1423,7 +1431,44 @@ export function buildHouse(def: HouseDef, ctx: WorldContext, mats: StructureMate
     // with two warm points — p90 0.354 against ours 0.374 with the shelves' pots showing in the
     // lamps' pools: the pools' peaks come down a third and the ceiling ramp by a third, so the
     // lamps read as points over dark wood (the pods themselves are emissive and unchanged).
-    return (0.006 + 0.04 * Math.pow(h, 3)) * lerp(1, 0.35, deep) + pool(p, lampPos, 0.26 * k, 0.24 * k, 0.55) + pool(p, lamp2Pos, 0.24 * k, 0.22 * k, 0.45) + pool(p, hearthPos, 0.18 * k, 0.24 * k, 0.3) + pool(p, archPos, 0.12 * k, 0.3 * k, 0.12);
+    // Round 46 (structures-29, survey-2 #16): the lamps' light POOLS ON THE FLOOR — a wide soft
+    // disc of the amber emissive on the floor pad under each lamp (and the table top under the
+    // candle), so from the threshold the room has a lit floor with the furniture's silhouettes
+    // standing in it. The floor is below the sill line from every hero camera (B / D / A look UP
+    // at the door from the plaza), so the doorway they see — back wall, ceiling, the two lamp
+    // points — keeps its round-22 pools.
+    const floorLevel = yFloor + roomFloorY;
+    const onFloor = smoothstep(0.14 * k, 0.02 * k, Math.abs(p.y - floorLevel));
+    const floorPool = (c: Vector3, radius: number, peak: number) => {
+      const dh = Math.hypot(p.x - c.x, p.z - c.z) / radius;
+      return peak * Math.exp(-dh * dh * 1.6);
+    };
+    const floorGlow = onFloor * (floorPool(lampPos, 0.7 * k, 0.26) + floorPool(lamp2Pos, 0.6 * k, 0.2) + floorPool(hearthPos, 0.45 * k, 0.1));
+    return (0.006 + 0.04 * Math.pow(h, 3)) * lerp(1, 0.35, deep) + pool(p, lampPos, 0.26 * k, 0.24 * k, 0.55) + pool(p, lamp2Pos, 0.24 * k, 0.22 * k, 0.45) + pool(p, hearthPos, 0.18 * k, 0.24 * k, 0.3) + pool(p, archPos, 0.12 * k, 0.3 * k, 0.12) + floorGlow;
+  };
+  /**
+   * Round 46: the BOARDS the room is lined with — vertical on the walls, running into the room
+   * on the floor. `across` is the coordinate across the boards (m), `along` the one along their
+   * grain. Returns the relief into the surface (m, ≥ 0 at the gaps between boards, a slight crown
+   * on each board, the grain's ± 3 mm) and the shade (board-to-board tone, dark gap lines, grain
+   * lines darker). Continuous in both coordinates (gridSurface's normals difference it).
+   */
+  const BOARD_W = 0.21 * k;
+  const boards = (across: number, along: number, seed: number): { relief: number; shade: number } => {
+    const bx = (across + seed * 0.37) / BOARD_W;
+    const idx = Math.floor(bx);
+    const f = bx - idx;
+    // gap: 12 mm dark joint between boards; the board's face crowns 4 mm at its middle
+    const edge = Math.min(f, 1 - f) * BOARD_W;
+    const gap = 1 - smoothstep(0.004, 0.012, edge);
+    const crown = 0.004 * k * Math.sin(f * Math.PI);
+    // (second cut: a wider board-to-board tone spread and deeper grain / joints — at the first
+    // cut's 0.84–1.16 / 0.72–1.14 the planking read only in the lamp pools from the threshold)
+    const tone = 0.78 + 0.44 * hash2(idx, Math.round(seed * 100), 5);
+    const g = noise.ridged(across * 26 + idx * 3.7 + seed, along * 0.8 + idx * 0.9 + seed * 0.5, 2);
+    const fib = 0.5 + 0.5 * noise.noise(across * 60 + seed, along * 5 + idx);
+    const grain = (g - 0.5) * 0.003 * k;
+    return { relief: gap * 0.012 * k - crown + grain, shade: lerp(tone * lerp(0.66, 1.2, g) * lerp(0.92, 1.08, fib), 0.22, gap) };
   };
   {
     // diffuse shading: dark wood, darkest deep in the recess and at the floor, a little lighter
@@ -1439,7 +1484,10 @@ export function buildHouse(def: HouseDef, ctx: WorldContext, mats: StructureMate
     };
     const wallShade = (w: number, y: number, p: Vector3): [number, number, number] => {
       const lat = 1 - 0.25 * smoothstep(0.45, 1, Math.abs(w - roomWc) / roomHw);
-      const s = lerp(0.1, 0.32, Math.pow(smoothstep(roomFloorY, roomCeilY, y), 1.4)) * lerp(1, 0.4, depthOf(p)) * lat;
+      // round 46: a fifth lighter than round 22's 0.1–0.32 and the recess's fall-off eased
+      // (× 0.4 → × 0.5) — the boards' grain and joints need a level to show on; the doorway's
+      // level from B is set by the pools and the veil, and its p50 is measured below
+      const s = lerp(0.12, 0.38, Math.pow(smoothstep(roomFloorY, roomCeilY, y), 1.4)) * lerp(1, 0.5, depthOf(p)) * lat;
       const g = glowAt(p);
       // cool grey (see `roomMaterial`); the embers' pool is the only warm diffuse tint
       return [s * 0.92 + g[0], s * 0.96 + g[1], s * 1.05 + g[2]];
@@ -1484,48 +1532,72 @@ export function buildHouse(def: HouseDef, ctx: WorldContext, mats: StructureMate
         },
       ),
     );
-    // back wall (the deep recess), side walls, floor, ceiling
+    // back wall (the deep recess), side walls, floor, ceiling.
+    // Round 46 (structures-29): the back and side walls are lined with VERTICAL BOARDS (`boards`:
+    // 21 cm wide, 12 mm dark joints, a 4 mm crown, ± 3 mm grain, board-to-board tone) standing
+    // proud of the recess, the floor with boards running into the room; finer grids so the
+    // joints resolve (the back wall 96 × 24, the sides 40 × 16, the floor 72 × 48).
+    const BOARD_TILE = 1.1;
     roomParts.push(
       gridSurface(
         (u, v, out) => {
           const w = lerp(roomW0, roomW1, u);
           const y = lerp(roomFloorY - 0.06, roomCeilY + 0.06, v);
-          frame.door(w, y, roomBackD(w), out.position);
-          out.uv = [w / 2.2, y / 2.2];
-          out.color = wallShade(w, y, out.position);
+          const b = boards(w, y, 1);
+          frame.door(w, y, roomBackD(w) + 0.02 * k - b.relief, out.position);
+          out.uv = [w / BOARD_TILE, y / BOARD_TILE];
+          const c = wallShade(w, y, out.position);
+          out.color = [c[0] * b.shade, c[1] * b.shade, c[2] * b.shade];
         },
-        { cols: 24, rows: 12 },
+        { cols: hero ? 96 : 48, rows: hero ? 24 : 12 },
       ),
     );
     for (const w of [roomW0, roomW1]) {
+      const into = w === roomW0 ? 1 : -1;
       roomParts.push(
         gridSurface(
           (u, v, out) => {
             const d = lerp(roomBackD(w) - 0.02, roomFront + 0.06, u);
             const y = lerp(roomFloorY - 0.06, roomCeilY + 0.06, v);
-            frame.door(w, y, d, out.position);
-            out.uv = [d / 2.2, y / 2.2];
-            out.color = wallShade(w, y, out.position);
+            const b = boards(d, y, w === roomW0 ? 2 : 3);
+            frame.door(w + into * (0.015 * k - b.relief), y, d, out.position);
+            out.uv = [d / BOARD_TILE, y / BOARD_TILE];
+            const c = wallShade(w, y, out.position);
+            out.color = [c[0] * b.shade, c[1] * b.shade, c[2] * b.shade];
           },
-          { cols: 12, rows: 8 },
+          { cols: hero ? 40 : 20, rows: hero ? 16 : 8 },
         ),
       );
     }
     // floor: the level pad (round 14 — no terrain lift; the back wall stops where the slope
-    // reaches it, see `roomBackD`), ceiling
+    // reaches it, see `roomBackD`), ceiling. Round 46: the floor is boarded (the boards run into
+    // the room), a warm brown under the lamps' pools — the floor's bounce — grading to the cool
+    // recess grey at the back; the ceiling keeps its plain shade.
     for (const y of [roomFloorY, roomCeilY]) {
+      const isFloor = y === roomFloorY;
       roomParts.push(
         gridSurface(
           (u, v, out) => {
             const w = lerp(roomW0 - 0.02, roomW1 + 0.02, u);
             const d = lerp(roomBackD(w) - 0.02, roomFront + 0.06, v);
-            frame.door(w, y, d, out.position);
-            const s = (y === roomFloorY ? 0.2 : 0.3) * lerp(1, 0.4, depthOf(out.position));
-            out.uv = [w / 2.2, d / 2.2];
+            const b = isFloor ? boards(w, d, 4) : { relief: 0, shade: 1 };
+            frame.door(w, y - (isFloor ? b.relief : 0), d, out.position);
+            const deep = depthOf(out.position);
+            const s = 0.3 * lerp(1, isFloor ? 0.55 : 0.4, deep);
+            out.uv = [w / BOARD_TILE, d / BOARD_TILE];
             const g = glowAt(_p.copy(out.position));
-            out.color = [s * 0.92 + g[0] * 0.5, s * 0.96 + g[1] * 0.5, s * 1.05 + g[2] * 0.5];
+            if (isFloor) {
+              // the bounce: warm where the lamps' pools fall, cool grey deep in the recess
+              const warm = clamp(Math.exp(-Math.pow(Math.hypot(out.position.x - lampPos.x, out.position.z - lampPos.z) / (0.9 * k), 2)) + 0.7 * Math.exp(-Math.pow(Math.hypot(out.position.x - lamp2Pos.x, out.position.z - lamp2Pos.z) / (0.8 * k), 2)), 0, 1);
+              const tintR = lerp(0.92, 1.25, warm);
+              const tintG = lerp(0.96, 1.0, warm);
+              const tintB = lerp(1.05, 0.7, warm);
+              out.color = [(s * tintR + g[0] * 0.5) * b.shade, (s * tintG + g[1] * 0.5) * b.shade, (s * tintB + g[2] * 0.5) * b.shade];
+            } else {
+              out.color = [s * 0.92 + g[0] * 0.5, s * 0.96 + g[1] * 0.5, s * 1.05 + g[2] * 0.5];
+            }
           },
-          { cols: 16, rows: 16 },
+          { cols: isFloor ? (hero ? 72 : 36) : 16, rows: isFloor ? (hero ? 48 : 24) : 16 },
         ),
       );
     }
@@ -1564,7 +1636,30 @@ export function buildHouse(def: HouseDef, ctx: WorldContext, mats: StructureMate
   {
     const pos = roomGeo.attributes.position;
     const _g = new Vector3();
-    setFloatAttribute(roomGeo, 'aGlow', (i) => glowOf(_g.set(pos.getX(i), pos.getY(i), pos.getZ(i))));
+    const _rel = new Vector3();
+    /**
+     * Round 46 (structures-29): the lamps' pools are the emissive, flat across a board's face and
+     * its joint alike, so the boards' relief and shade (`boards`, in the diffuse) vanished inside
+     * the very halos where the wall is bright enough to see (sn-house-door, first pass). The
+     * pool is modulated by the board field at the vertex — the joints cut the halo to a third,
+     * the boards' own tone rides on it — so the lamplight shows planks. The vertex is classed by
+     * its door-space position (the floor pad by height, the side walls by their lateral, the
+     * rest is the back wall / ceiling), the same seeds as the surfaces took.
+     */
+    const boardMod = (p: Vector3) => {
+      _rel.copy(p).sub(frame.C);
+      const w = _rel.dot(Rt);
+      const d = _rel.dot(F);
+      const y = p.y - frame.C.y;
+      let sh: number;
+      if (y < roomFloorY + 0.03 * k) sh = boards(w, d, 4).shade;
+      else if (y > roomCeilY - 0.03 * k) return 1;
+      else if (Math.abs(w - roomW0) < 0.05 * k) sh = boards(d, y, 2).shade;
+      else if (Math.abs(w - roomW1) < 0.05 * k) sh = boards(d, y, 3).shade;
+      else sh = boards(w, y, 1).shade;
+      return lerp(0.35, 1.1, smoothstep(0.25, 1.0, sh));
+    };
+    setFloatAttribute(roomGeo, 'aGlow', (i) => glowOf(_g.set(pos.getX(i), pos.getY(i), pos.getZ(i))) * boardMod(_g));
   }
   const roomMesh = new Mesh(roomGeo, roomMat);
   roomMesh.name = 'interior';
@@ -1846,22 +1941,71 @@ export function buildHouse(def: HouseDef, ctx: WorldContext, mats: StructureMate
     const lampMesh = new Mesh(candle, mats.hearth);
     lampMesh.name = 'door-lamp';
     group.add(lampMesh);
-    // low table under the candle: a slab on a block, dark silhouettes that give the room depth
-    const slab = new BoxGeometry(0.7 * k, 0.05 * k, 0.45 * k);
-    slab.applyMatrix4(basisMatrix(frame.door(doorW0 + 0.7 * k, sill + 0.5 * k, tableD), F));
-    setColorAttribute(slab, [0.22, 0.21, 0.2]);
-    const block = new BoxGeometry(0.22 * k, 0.5 * k, 0.22 * k);
-    block.applyMatrix4(basisMatrix(frame.door(doorW0 + 0.7 * k, sill + 0.25 * k, tableD), F));
-    setColorAttribute(block, [0.16, 0.15, 0.14]);
+    // low table under the candle. Round 46 (structures-29, survey-2 #16 "untextured primitive
+    // props"): a STUMP TABLE — a thick round top with a rolled edge on a waisted trunk leg, and a
+    // low round STOOL beside it — rounded turned forms in the room material (the lamps' pools and
+    // the candle light them; the doorway fog clamp keeps them in the room), in place of the
+    // round-12 slab-on-a-block boxes in the plain dark plank material.
+    // (the table stands on the floor pad; its top at sill + 0.52 k, under the candle at sill + 0.55 k)
+    const tableC = frame.door(doorW0 + 0.7 * k, roomFloorY, tableD);
+    const turned = (profile: (t: number) => number, h: number, segs: number, rings: number, tint: (t: number, up: number) => [number, number, number]) =>
+      gridSurface(
+        (u, v, out) => {
+          // v 0 → 0.5 the side (bottom → top), 0.5 → 1 the top disc (rim → centre)
+          const th = u * TAU;
+          const side = v <= 0.5;
+          const t = side ? v * 2 : 1;
+          const rr = side ? profile(t) : profile(1) * (1 - (v - 0.5) * 2);
+          const y = side ? t * h : h + 0.006 * k * Math.sin((v - 0.5) * Math.PI);
+          out.position.set(Math.cos(th) * rr, y, Math.sin(th) * rr);
+          out.uv = [th * rr / 0.6, side ? y / 0.6 : 0.5 + rr / 0.6];
+          out.color = tint(t, side ? 0 : 1);
+        },
+        { cols: segs, rows: rings, closedU: true },
+      );
+    const tableTopR = 0.34 * k;
+    const tableH = sill + 0.52 * k - roomFloorY;
+    const legR = 0.13 * k;
+    const table = turned(
+      (t) => {
+        // the leg waists then flares into the top's rolled edge
+        const leg = legR * (1 + 0.35 * Math.pow(1 - t, 2) * smoothstep(0.3, 0, t)) * (1 - 0.12 * Math.sin(t * Math.PI));
+        const top = tableTopR * Math.sqrt(Math.max(0, 1 - Math.pow((1 - t) / 0.16, 2)));
+        return Math.max(leg, top) * (1 + 0.02 * noise.noise(t * 9, 3));
+      },
+      tableH,
+      20,
+      18,
+      (t, up) => {
+        const s = up ? 0.62 : lerp(0.3, 0.5, t);
+        return [s * 1.05, s * 0.86, s * 0.66];
+      },
+    );
+    table.translate(tableC.x, tableC.y, tableC.z);
+    faceTowards(table, (p, o) => o.copy(p).sub(tableC).multiplyScalar(3).add(p).setY(p.y + 0.4));
+    const stoolC = frame.door(doorW0 + 0.08 * k, roomFloorY, tableD + 0.25 * k);
+    const stool = turned((t) => 0.16 * k * (1 - 0.18 * Math.sin(t * Math.PI)) * (1 + 0.08 * smoothstep(0.85, 1, t)), 0.3 * k, 14, 10, (t, up) => {
+      const s = up ? 0.55 : lerp(0.28, 0.45, t);
+      return [s * 1.0, s * 0.84, s * 0.64];
+    });
+    stool.translate(stoolC.x, stoolC.y, stoolC.z);
+    faceTowards(stool, (p, o) => o.copy(p).sub(stoolC).multiplyScalar(3).add(p).setY(p.y + 0.3));
     // (round 12's single dark shelf up by the lamp is replaced by round 13's stocked shelves in
     // the room material, see `interior-props`)
     // ember ring: a low stone kerb round the glow
     const kerb = new TorusGeometry(0.2 * k, 0.05 * k, 6, 12);
     kerb.rotateX(Math.PI / 2);
     kerb.translate(hearthPos.x, hearthPos.y - 0.14 * k, hearthPos.z);
-    setColorAttribute(kerb, [0.18, 0.18, 0.18]);
-    const furnitureMesh = new Mesh(merge([slab, block, kerb]), mats.woodDark);
+    setColorAttribute(kerb, [0.32, 0.31, 0.3]);
+    const furnitureGeo = merge([table, stool, kerb]);
+    {
+      const pos = furnitureGeo.attributes.position;
+      const _g = new Vector3();
+      setFloatAttribute(furnitureGeo, 'aGlow', (i) => glowOf(_g.set(pos.getX(i), pos.getY(i), pos.getZ(i))));
+    }
+    const furnitureMesh = new Mesh(furnitureGeo, propsMat);
     furnitureMesh.name = 'door-lamp-cord';
+    furnitureMesh.receiveShadow = true;
     group.add(furnitureMesh);
     // the embers themselves (dim orange) and a small soft pink-amber halo facing the door — kept
     // small so the doorway as a whole stays neutral (reference box saturation ≈ 0.1)
@@ -2177,22 +2321,73 @@ export function buildHouse(def: HouseDef, ctx: WorldContext, mats: StructureMate
     }
     rootsBuilt++;
     const [p2, p2b, p3, p4] = ground;
-    const curve = new CatmullRomCurve3([p0, p1, p2, p2b, p3, p4], false, 'catmullrom', 0.5);
+    void p2;
+    void p2b;
     const rootN = 4.5 + rootRng() * 3;
+    /**
+     * Round 46 (structures-29, survey-2 #08 / check-13): the root SEATED on the ground. Rounds
+     * 19–45 swept the root through five waypoints — the bark exit at y0 · 0.66, then the ground
+     * at 45 % / 72 % / 100 % of the reach — and the spline between the exit and the first ground
+     * point ARCHED over the lawn with a shadow gap under it (w26-stairs-l, w09-spine-r: "a
+     * smooth tube with a floating gap"), and between the ground points the 0.9–1.1 knuckle
+     * modulation lifted the underside clear of any dip in the terrain. Now the root leaves the
+     * bark, drops to the ground within a fifth of its reach and from there follows the
+     * heightfield: the centre line is sampled every ≈ 12 cm along the reach at
+     * terrain + 0.5 × the local radius (the lower third of the root buried, the knuckles' 0.9
+     * minimum included), so the underside is in the ground everywhere and the crown rides the
+     * terrain's bumps. The same ground points decide the keep-out / climb / drop tests above, so
+     * which roots are built is unchanged, and the rng draws are the same in the same order.
+     */
+    const rootLenEst = 0.5 * k + reach + 0.6;
+    const rAlong = (f: number) => {
+      const t = clamp((0.5 * k + f * reach) / rootLenEst, 0, 1);
+      return r0 * (1 - 0.72 * t) * 0.9;
+    };
+    const seatPts: Vector3[] = [p0, p1];
+    {
+      const nS = Math.max(6, Math.round((reach + 0.6) / 0.12));
+      const yExit = p1.y;
+      for (let sI = 1; sI <= nS; sI++) {
+        const f = (sI / nS) * (1 + 0.6 / reach);
+        const q = frame.at(a, rs0 + f * reach, 0).addScaledVector(side, clamp(f, 0, 1.3));
+        const g = terrain.height(q.x, q.z);
+        const seated = g + 0.5 * rAlong(Math.min(1, f));
+        // the drop from the bark exit: over the first fifth of the reach the centre line falls
+        // from the exit height to the seated height (never below it)
+        const drop = smoothstep(0, 0.2, f);
+        q.y = f <= 1 ? Math.max(seated, lerp(yExit, seated, drop)) : g - 0.4 * (f - 1) / 0.6 * k;
+        seatPts.push(q);
+      }
+    }
+    const curve = new CatmullRomCurve3(seatPts, false, 'catmullrom', 0.5);
+    const rootLen = curve.getLength();
     const root = sweepTube(curve, {
       radius: (t) => r0 * (1 - 0.72 * t) * (0.9 + 0.2 * Math.abs(Math.sin(t * rootN))),
-      tubularSegments: 26,
-      radialSegments: 12,
+      tubularSegments: Math.max(26, Math.round(rootLen / 0.09)),
+      radialSegments: 16,
       uvMetres: 1.4,
-      // ridged plates as before plus long fibre furrows running the root's length (survey-1 item 6:
-      // the roots were smooth uniform tubes)
-      displace: (t, ang) =>
-        (noise.ridged(ang * 1.2 + i * 3.1, t * 6, 2) - 0.5) * 0.05 * k * (1 - 0.5 * t) +
-        (noise.noise(ang * 3.4 + i * 7.3, t * 1.6 + 40) - 0.5) * 0.035 * k * (1 - 0.4 * t),
-      color: (t) => {
-        // round 34: the trunk's lit-albedo share, damp toward the tip on the ground
-        const d = lerp(0.72, 0.5, t) * TRUNK_LIT_ALBEDO;
-        return [d, d * 0.97, d * 0.88];
+      // Round 46: BARK CORDS running the root's LENGTH (a ridged field periodic round the root,
+      // drifting slowly along it — ± 4.5 % of k, ≈ 7 cords round a 0.35 m root), narrow dark
+      // fissures between them, and the round-19 knuckle rings kept at a third of their old
+      // depth under the cords. Round 34's `ridged(ang, t · 6)` ran its ridges ACROSS the root
+      // (six rings along it), which read as a painted grain stripe at 3–6 m (survey-2 #08).
+      displace: (t, ang) => {
+        const along = t * rootLen;
+        const cord = noise.ridged(Math.cos(ang) * 1.15 + i * 3.1, Math.sin(ang) * 1.15 + along * 0.32 + i * 0.7, 2) - 0.5;
+        const fissure = Math.pow(1 - Math.abs(noise.noise(Math.cos(ang) * 1.6 + i * 5.3 + 20, Math.sin(ang) * 1.6 + along * 0.22)), 7);
+        const knuckle = (noise.ridged(ang * 1.2 + i * 3.1, t * 6, 2) - 0.5) * 0.016 * k;
+        const lumps = (noise.noise(ang * 3.4 + i * 7.3, t * 1.6 + 40) - 0.5) * 0.02 * k;
+        return (cord * 0.045 * k - fissure * 0.03 * k) * (1 - 0.45 * t) + knuckle * (1 - 0.5 * t) + lumps * (1 - 0.4 * t);
+      },
+      color: (t, ang) => {
+        // round 34: the trunk's lit-albedo share, damp toward the tip on the ground;
+        // round 46: grime in the fissures, the cord crests a shade paler
+        const along = t * rootLen;
+        const cord = noise.ridged(Math.cos(ang) * 1.15 + i * 3.1, Math.sin(ang) * 1.15 + along * 0.32 + i * 0.7, 2);
+        const fissure = Math.pow(1 - Math.abs(noise.noise(Math.cos(ang) * 1.6 + i * 5.3 + 20, Math.sin(ang) * 1.6 + along * 0.22)), 7);
+        const shade = lerp(0.72, 1.12, cord) * (1 - 0.5 * fissure);
+        const d = lerp(0.72, 0.5, t) * TRUNK_LIT_ALBEDO * shade;
+        return [d, d * (0.97 - 0.04 * fissure), d * (0.88 - 0.08 * fissure)];
       },
       capEnd: true,
     });
@@ -3321,6 +3516,71 @@ export function buildHouse(def: HouseDef, ctx: WorldContext, mats: StructureMate
     const n = domeNormal(a, v);
     return p.addScaledVector(n, domeDisp(p, v) * 0.6 + lift);
   };
+  /**
+   * Round 46 (structures-29, survey-2 #08 "root arcs = smooth tubes with painted grain"): BARK
+   * CORDS on every bough and limb — a ridged field periodic ROUND the tube (the angle mapped onto
+   * a circle in noise space, so there is no seam) that drifts slowly ALONG it, ± 9 % of the local
+   * radius, with narrow dark fissures between the cords and small lumps. The number of cords
+   * round the tube grows with its radius (≈ 7 on a 0.15 m limb, ≈ 19 on the 0.5 m arc), and the
+   * radial resolution follows (`cordSegs`). Rounds 8–45's `ridged(ang · 1.5 + t · 6, pos.y)`
+   * put the ridges across the bough, which read as a painted stripe pattern at 4 m
+   * (w26-stairs-l). Colour: the crests a shade paler, grime in the fissures.
+   */
+  const boughCords = (seed: number, len: number, r0: number, deep = false) => {
+    const ring = clamp(r0 / 0.16, 1.15, 3.2);
+    const cord = (t: number, ang: number) => noise.ridged(Math.cos(ang) * ring + seed * 3.1, Math.sin(ang) * ring + t * len * 0.32 + seed * 0.7, 2);
+    const fissure = (t: number, ang: number) => Math.pow(1 - Math.abs(noise.noise(Math.cos(ang) * ring * 1.4 + seed * 5.3 + 20, Math.sin(ang) * ring * 1.4 + t * len * 0.22)), 7);
+    // `deep` (round 46, second cut): the pale limbs' material (`barkPale`, HOUSE_BARK_FLOOR
+    // texture 0.6) lies in the canopy's shade, where the floor's light is flat — the cords'
+    // relief casts no shading there and only the vertex tint carries them, compressed to 0.6
+    // by the floor's flat share; w26-stairs-l at 4 m still read the draped limb as a smooth
+    // tube (hide-test: `roof-branches`). The pale limbs take a wider crest/fissure swing.
+    const lo = deep ? 0.55 : 0.74;
+    const hi = deep ? 1.22 : 1.12;
+    const fk = deep ? 0.68 : 0.5;
+    return {
+      segs: Math.max(12, Math.round(ring * 13)),
+      displace: (t: number, ang: number, r: number) => ((cord(t, ang) - 0.5) * 0.09 - fissure(t, ang) * 0.06) * r + (noise.noise(ang * 3.4 + seed * 7.3, t * len * 0.5 + 40) - 0.5) * 0.04 * r,
+      /** [crest/fissure shade multiplier, fissure weight] */
+      shade: (t: number, ang: number): [number, number] => {
+        const f = fissure(t, ang);
+        return [lerp(lo, hi, cord(t, ang)) * (1 - fk * f), f];
+      },
+      tint: (base: [number, number, number], t: number, ang: number): [number, number, number] => {
+        const f = fissure(t, ang);
+        const s = lerp(lo, hi, cord(t, ang)) * (1 - fk * f);
+        return [base[0] * s, base[1] * s * (1 - 0.04 * f), base[2] * s * (1 - 0.08 * f)];
+      },
+    };
+  };
+  /**
+   * Moss along a corded bough's top, in the sweep's colour callback: the same gate and patch
+   * field as `mossOnTop` but on the UNDISPLACED tube normal's y (`up`, sweepTube's third colour
+   * argument) — the cords' recomputed normals swing ± 60° round each cord, and through
+   * `mossOnTop`'s normal gate the moss came out as broken flecks on the cord flanks (w26-stairs-l,
+   * the first corded cut: the arc's mossy top read bare). `spread` as in `mossOnTop`.
+   */
+  const mossAlong = (base: [number, number, number], up: number, t: number, ang: number, len: number, seed: number, amount: number, spread = 0): [number, number, number] => {
+    const patch = 0.45 + 0.55 * noise.fbm(t * len * 1.7 + 3 + seed * 11, ang * 1.2 + seed, 2);
+    const w = clamp(smoothstep(0.25 - spread, 0.85 - spread, up) * patch * amount, 0, 1);
+    return [lerp(base[0], 0.36, w), lerp(base[1], 0.8, w), lerp(base[2], 0.25, w)];
+  };
+  /** the cap's moss surface under (angle a, horizontal radius r) — the arc bough rests on it */
+  const _cs = new Vector3();
+  const capSurfaceAt = (a: number, r: number, lift: number) => {
+    let best = 0;
+    let bestD = Infinity;
+    for (let i = 0; i <= 60; i++) {
+      const v = (i / 60) * V_CAP;
+      domeBase(a, v, _cs);
+      const d = Math.abs(Math.hypot(_cs.x - frame.C.x, _cs.z - frame.C.z) - r);
+      if (d < bestD) {
+        bestD = d;
+        best = v;
+      }
+    }
+    return surfacePoint(a, best, lift);
+  };
   type BranchDef = { path: [number, number][]; r0: number; r1: number; leavesAt: number[] };
   // (angle around the house, cap parameter v) waypoints for the pale draped limbs: one comes over
   // the right shoulder and stops on the crown; two shorter side branches curl up into leafy tips.
@@ -3356,15 +3616,37 @@ export function buildHouse(def: HouseDef, ctx: WorldContext, mats: StructureMate
       const lift = r * 0.3 + (branchRng() - 0.5) * 0.08 + (idx % 2 ? 0.05 : 0) * k;
       return surfacePoint(a + (branchRng() - 0.5) * 0.16, clamp(v + (branchRng() - 0.5) * 0.03, 0.02, 0.98), lift);
     });
-    const curve = new CatmullRomCurve3(pts, false, 'catmullrom', 0.5);
+    const curve0 = new CatmullRomCurve3(pts, false, 'catmullrom', 0.5);
+    // Round 46 (structures-29, survey-2 #08, w26-stairs-l — the hide-test named `roof-branches`
+    // under the survey's "root arc"): the limb's centre line is RESAMPLED ONTO THE CAP. The
+    // spline through five or six waypoints half-sunk in the moss bulged clear of the dome between
+    // them (a Catmull-Rom through points on a convex surface overshoots outward), and from the
+    // plateau, level with the limb at 4 m, that showed as a shadow gap under a floating tube. 24
+    // samples along the first spline are each dropped to the moss surface under them (same house
+    // angle and horizontal radius) at 0.2 × the local radius, the underside 0.8 r in the moss.
+    // No new rng draws; the waypoints' jitter is kept in the samples.
+    const seated: Vector3[] = [];
+    for (let si = 0; si <= 24; si++) {
+      const f = si / 24;
+      const q = curve0.getPointAt(f);
+      const dx = q.x - frame.C.x;
+      const dz = q.z - frame.C.z;
+      const aQ = Math.atan2(dx * frame.Rt.x + dz * frame.Rt.z, dx * frame.F.x + dz * frame.F.z);
+      seated.push(capSurfaceAt(aQ, Math.hypot(dx, dz), 0.2 * lerp(b.r0, b.r1, f) * k));
+    }
+    const curve = new CatmullRomCurve3(seated, false, 'catmullrom', 0.5);
     const twist = branchRng() * 10;
+    const drapedR = (t: number) => lerp(b.r0, b.r1, t) * k * (1 + 0.14 * Math.sin(t * 9 + twist) + 0.08 * Math.sin(t * 23 + twist * 2));
+    const drapedCords = boughCords(10 + bi, curve.getLength(), b.r0 * k, true);
     const geo = sweepTube(curve, {
-      radius: (t) => lerp(b.r0, b.r1, t) * k * (1 + 0.14 * Math.sin(t * 9 + twist) + 0.08 * Math.sin(t * 23 + twist * 2)),
+      radius: drapedR,
       tubularSegments: 48,
-      radialSegments: 12,
+      radialSegments: drapedCords.segs,
       uvMetres: 1.2,
-      displace: (t, ang, pos) => (noise.ridged(ang * 1.4 + t * 4 + bi, pos.y * 1.5, 2) - 0.5) * 0.08 * k,
-      color: limbColor,
+      displace: (t, ang) => drapedCords.displace(t, ang, drapedR(t)),
+      // (round 46: the cap's moss on the limbs' tops, creeping a little down the flanks — they
+      // lie sunk in it; second cut 0.4 → 0.75 / spread 0.2, a level camera sees the flanks)
+      color: (t, ang, up) => mossAlong(drapedCords.tint(limbColor(t, ang), t, ang), up, t, ang, curve.getLength(), 10 + bi, 0.75, 0.2),
       capEnd: true,
     });
     branchParts.push(geo);
@@ -3445,9 +3727,15 @@ export function buildHouse(def: HouseDef, ctx: WorldContext, mats: StructureMate
       frame.at(aE - 0.07, rSmooth(aE - 0.07, eaveY - 0.6 * k) + 0.05 * k, eaveY - 0.6 * k),
       arcEavePoint.clone(),
       frame.at(-1.6, capR(-1.6) + 0.1 * k, lipTop + 1.0 * k).add(jit(0.1)),
-      frame.at(-2.2, 0.85 * capR(-2.2), crownY - 0.7 * k).add(jit(0.1)),
-      frame.at(-2.9, 0.62 * capR(-2.9), crownY - 0.1 * k).add(jit(0.1)),
-      frame.at(2.6, 0.62 * capR(2.6), crownY + 0.45 * k).add(jit(0.08)),
+      // Round 46 (structures-29, survey-2 #08 "floating gap"): the run BEHIND the crown RESTS ON
+      // THE MOSS — rounds 15–45 held it clear of the cap by about its own diameter (crownY − 0.7 /
+      // − 0.1 / + 0.45), and from the plateau (w26-stairs-l) that showed as a dark shadow gap
+      // between the bough and the dome under it. The three waypoints over the cap now sit on the
+      // cap's own moss surface at 0.4 × the local radius (the underside 0.6 r into the moss);
+      // the two that B can see the rise from (2.1, 1.75 …) are unchanged. Same jit draws.
+      capSurfaceAt(-2.2, 0.85 * capR(-2.2), 0.4 * 0.37 * k).add(jit(0.1)),
+      capSurfaceAt(-2.9, 0.62 * capR(-2.9), 0.4 * 0.33 * k).add(jit(0.1)),
+      capSurfaceAt(2.6, 0.62 * capR(2.6), 0.4 * 0.3 * k).add(jit(0.08)),
       frame.at(2.1, 0.88 * capR(2.1), crownY + 1.4 * k).add(jit(0.08)),
       frame.at(1.75, capR(1.75) + 0.3 * k, crownY + 2.4 * k),
       frame.at(1.55, capR(1.55) + 1.0 * k, crownY + 3.1 * k),
@@ -3473,18 +3761,20 @@ export function buildHouse(def: HouseDef, ctx: WorldContext, mats: StructureMate
     const arcR = (t: number) => (0.5 - 0.3 * t) * k * (1 + 0.1 * Math.sin(t * 17 + 1) + 0.06 * Math.sin(t * 41)) + 0.14 * k * Math.exp(-(((t - tEave) / 0.06) ** 2));
     // in the eave's shadow at the trunk, then in the canopy's shade over the cap
     const arcShade = (t: number) => 0.8 * smoothstep(0.05, 0.2, t);
+    const arcCords = boughCords(1, arcCurve.getLength(), 0.5 * k);
     const arc = sweepTube(arcCurve, {
       radius: arcR,
-      tubularSegments: 96,
-      radialSegments: 13,
+      tubularSegments: 120,
+      radialSegments: arcCords.segs,
       uvMetres: 1.4,
-      displace: (t, ang, pos) => (noise.ridged(ang * 1.5 + t * 6, pos.y * 1.3 + 2, 2) - 0.5) * 0.09 * k,
-      color: (t, ang) => shadedColor(t, ang, arcShade(t)),
+      displace: (t, ang) => arcCords.displace(t, ang, arcR(t)),
+      // (round 34: spread 0.3 — the sheets wrap down the flank D sees; round 46: laid in the
+      // colour callback on the undisplaced normal, see `mossAlong`)
+      color: (t, ang, up) => mossAlong(arcCords.tint(shadedColor(t, ang, arcShade(t)), t, ang), up, t, ang, arcCurve.getLength(), 1, 0.85, 0.3),
       capEnd: true,
     });
-    // (round 34: spread 0.3 — the sheets wrap down the flank D sees; round 36: the lower run, which
-    // D sees rising out of its bank, takes the D-side sheet in the bank's dark green)
-    mossOnTop(arc, mossTint, 0.85, noise, 0.3);
+    // (round 36: the lower run, which D sees rising out of its bank, takes the D-side sheet in
+    // the bank's dark green)
     if (dSide) mossBySide(arc, frame, D_MOSS_TINT, noise, dSide);
     supportParts.push(arc);
     // the leafy tip beyond the rim, in the canopy above frame B
@@ -3546,16 +3836,19 @@ export function buildHouse(def: HouseDef, ctx: WorldContext, mats: StructureMate
       const into = surfacePoint(a1, v1, -0.25 * k);
       const onMoss = surfacePoint(a1, v1, 0.12 * k);
       const mid = from.clone().lerp(into, 0.5).add(sjit(0.25)).addScaledVector(frame.dir(a1), 0.15 * k);
-      const limb = sweepTube(new CatmullRomCurve3([from, mid, into], false, 'catmullrom', 0.5), {
-        radius: (s) => r0 * k * (1 - 0.45 * s) * (1 + 0.1 * Math.sin(s * 13 + t * 20)),
+      const limbCurve = new CatmullRomCurve3([from, mid, into], false, 'catmullrom', 0.5);
+      const limbR = (s: number) => r0 * k * (1 - 0.45 * s) * (1 + 0.1 * Math.sin(s * 13 + t * 20));
+      const limbCords = boughCords(2 + t, limbCurve.getLength(), r0 * k);
+      const limb = sweepTube(limbCurve, {
+        radius: limbR,
         tubularSegments: 16,
-        radialSegments: 10,
+        radialSegments: limbCords.segs,
         uvMetres: 1.4,
-        displace: (s, ang, pos) => (noise.ridged(ang * 1.5 + s * 5 + t * 7, pos.y * 1.3 + 4, 2) - 0.5) * 0.05 * k,
-        color: (s, ang) => shadedColor(s, ang, 0.8),
+        displace: (s, ang) => limbCords.displace(s, ang, limbR(s)),
+        color: (s, ang, up) => mossAlong(limbCords.tint(shadedColor(s, ang, 0.8), s, ang), up, s, ang, limbCurve.getLength(), 2 + t, 0.7),
         capEnd: true,
       });
-      supportParts.push(mossOnTop(limb, mossTint, 0.7, noise));
+      supportParts.push(limb);
       // (the cluster sits on the moss: the moss-lit leaf tint, not the canopy's `leafTint`)
       lateFoliage.push(() => foliage.addLeafCluster(onMoss, 0.4 * k, 24, { size: 0.12, amount: 0.06, droop: 0.4, tint: MOSS_LIT_LEAF, tintSpread: 0.28, flatten: 0.4 }));
       return limb;
@@ -3570,16 +3863,18 @@ export function buildHouse(def: HouseDef, ctx: WorldContext, mats: StructureMate
       const tip = from.clone().add(new Vector3(0, 1.35 * k, 0)).addScaledVector(F, -0.7 * k).add(sjit(0.2));
       const mid = from.clone().lerp(tip, 0.5).addScaledVector(Rt, -0.25 * k).add(sjit(0.15));
       const upCurve = new CatmullRomCurve3([from, mid, tip], false, 'catmullrom', 0.5);
+      const upR = (s: number) => (0.17 - 0.1 * s) * k * (1 + 0.1 * Math.sin(s * 11 + 2));
+      const upCords = boughCords(4, upCurve.getLength(), 0.17 * k);
       const upLimb = sweepTube(upCurve, {
-        radius: (s) => (0.17 - 0.1 * s) * k * (1 + 0.1 * Math.sin(s * 11 + 2)),
+        radius: upR,
         tubularSegments: 14,
-        radialSegments: 9,
+        radialSegments: upCords.segs,
         uvMetres: 1.4,
-        displace: (s, ang, pos) => (noise.ridged(ang * 1.5 + s * 5, pos.y * 1.3 + 6, 2) - 0.5) * 0.04 * k,
-        color: (s, ang) => shadedColor(s, ang, 0.8),
+        displace: (s, ang) => upCords.displace(s, ang, upR(s)),
+        color: (s, ang, up) => mossAlong(upCords.tint(shadedColor(s, ang, 0.8), s, ang), up, s, ang, upCurve.getLength(), 4, 0.5),
         capEnd: true,
       });
-      supportParts.push(mossOnTop(upLimb, mossTint, 0.5, noise));
+      supportParts.push(upLimb);
       lateFoliage.push(() => {
         foliage.addLeafCluster(tip, 0.55 * k, 40, { size: 0.13, amount: 0.06, droop: 0.5, tint: leafTint, tintSpread: 0.28 });
         foliage.addLeafCluster(upCurve.getPointAt(0.6), 0.35 * k, 18, { size: 0.12, amount: 0.05, droop: 0.5, tint: leafTint, tintSpread: 0.28 });
@@ -3682,17 +3977,18 @@ export function buildHouse(def: HouseDef, ctx: WorldContext, mats: StructureMate
     ];
     const stubCurve = new CatmullRomCurve3(stubPts, false, 'catmullrom', 0.5);
     const stubR = (t: number) => (0.34 - 0.12 * t) * k * (1 + 0.08 * Math.sin(t * 9 + 2));
+    const stubCords = boughCords(5, stubCurve.getLength(), 0.34 * k);
     const stub = sweepTube(stubCurve, {
       radius: stubR,
-      tubularSegments: 14,
-      radialSegments: 11,
+      tubularSegments: 18,
+      radialSegments: stubCords.segs,
       uvMetres: 1.2,
-      // deep longitudinal ridges; the broken end flares a little and is jagged
-      displace: (t, ang, pos) => (noise.ridged(ang * 1.6 + 7, pos.y * 1.5 + t * 2, 2) - 0.5) * 0.09 * k + smoothstep(0.85, 1, t) * (0.05 + 0.08 * Math.abs(Math.sin(ang * 5 + 1))) * k,
-      color: (t, ang) => (t > 0.985 ? [0.2, 0.16, 0.12] : supportColor(t, ang)),
+      // bark cords along the limb (round 46); the broken end flares a little and is jagged
+      displace: (t, ang) => stubCords.displace(t, ang, stubR(t)) + smoothstep(0.85, 1, t) * (0.05 + 0.08 * Math.abs(Math.sin(ang * 5 + 1))) * k,
+      color: (t, ang, up) => (t > 0.985 ? [0.2, 0.16, 0.12] : mossAlong(stubCords.tint(supportColor(t, ang), t, ang), up, t, ang, stubCurve.getLength(), 5, 0.6)),
       capEnd: true,
     });
-    supportParts.push(mossOnTop(stub, mossTint, 0.6, noise));
+    supportParts.push(stub);
     for (let i = 0; i < 2; i++) {
       const t = 0.35 + i * 0.35;
       const p = stubCurve.getPointAt(t);
@@ -3712,17 +4008,21 @@ export function buildHouse(def: HouseDef, ctx: WorldContext, mats: StructureMate
   ];
   for (let i = 1; i < rightPts.length; i++) rightPts[i].add(new Vector3((branchRng() - 0.5) * 0.16, (branchRng() - 0.5) * 0.1, (branchRng() - 0.5) * 0.16));
   const rightCurve = new CatmullRomCurve3(rightPts, false, 'catmullrom', 0.5);
-  branchParts.push(
-    sweepTube(rightCurve, {
-      radius: (t) => (0.42 - 0.2 * t) * k * (1 + 0.08 * Math.sin(t * 8 + 1) + 0.05 * Math.sin(t * 21)),
-      tubularSegments: 28,
-      radialSegments: 12,
-      uvMetres: 1.2,
-      displace: (t, ang, pos) => (noise.ridged(ang * 1.6 + 3, pos.y * 1.5 + t * 2, 2) - 0.5) * 0.1 * k,
-      color: limbColor,
-      capEnd: true,
-    }),
-  );
+  {
+    const rightR = (t: number) => (0.42 - 0.2 * t) * k * (1 + 0.08 * Math.sin(t * 8 + 1) + 0.05 * Math.sin(t * 21));
+    const rightCords = boughCords(6, rightCurve.getLength(), 0.42 * k);
+    branchParts.push(
+      sweepTube(rightCurve, {
+        radius: rightR,
+        tubularSegments: 28,
+        radialSegments: rightCords.segs,
+        uvMetres: 1.2,
+        displace: (t, ang) => rightCords.displace(t, ang, rightR(t)),
+        color: (t, ang, up) => mossAlong(rightCords.tint(limbColor(t, ang), t, ang), up, t, ang, rightCurve.getLength(), 6, 0.4),
+        capEnd: true,
+      }),
+    );
+  }
   {
     const tip = rightCurve.getPointAt(1);
     foliage.addLeafCluster(tip, 0.5 * k, 40, { size: 0.13, amount: 0.06, droop: 0.5, tint: leafTint, tintSpread: 0.28 });
@@ -3742,13 +4042,16 @@ export function buildHouse(def: HouseDef, ctx: WorldContext, mats: StructureMate
     const up = domeNormal(a, v).add(new Vector3(0, 1.2, 0)).normalize();
     const tilt = frame.dir(a + 1.2).multiplyScalar(0.18);
     const pts = [base, base.clone().addScaledVector(up, 0.45 * k).add(tilt), base.clone().addScaledVector(up, 0.95 * k).addScaledVector(tilt, 2.2)];
-    const chimney = sweepTube(new CatmullRomCurve3(pts), {
-      radius: (t) => (0.26 - 0.06 * t) * k,
+    const chimCurve = new CatmullRomCurve3(pts);
+    const chimR = (t: number) => (0.26 - 0.06 * t) * k;
+    const chimCords = boughCords(7, chimCurve.getLength(), 0.26 * k);
+    const chimney = sweepTube(chimCurve, {
+      radius: chimR,
       tubularSegments: 10,
-      radialSegments: 12,
+      radialSegments: chimCords.segs,
       uvMetres: 1.0,
-      displace: (t, ang) => (noise.ridged(ang * 1.6 + 2, t * 5, 2) - 0.5) * 0.05 * k,
-      color: (t, ang) => (t > 0.985 ? [0.12, 0.1, 0.08] : limbColor(t, ang)),
+      displace: (t, ang) => chimCords.displace(t, ang, chimR(t)),
+      color: (t, ang) => (t > 0.985 ? [0.12, 0.1, 0.08] : chimCords.tint(limbColor(t, ang), t, ang)),
       capEnd: true,
     });
     branchParts.push(chimney);
@@ -4289,7 +4592,7 @@ export function buildHouse(def: HouseDef, ctx: WorldContext, mats: StructureMate
   const trunk41 = rng.fork('trunk41');
   const tuft41: MossTuftSpec[] = [];
   const lichenParts: BufferGeometry[] = [];
-  const detail41 = { trunkTufts: 0, rootTufts: 0, archTufts: 0, lichen: 0, trefoils: 0 };
+  const detail41 = { trunkTufts: 0, rootTufts: 0, archTufts: 0, boughTufts: 0, lichen: 0, trefoils: 0 };
   {
     const _sv = { position: new Vector3() } as SurfaceSample;
     const _su = { position: new Vector3() } as SurfaceSample;
@@ -4394,7 +4697,7 @@ export function buildHouse(def: HouseDef, ctx: WorldContext, mats: StructureMate
       detail41.lichen++;
     }
     // moss caps on the roots' crowns and the arch's mossy upper faces, lichen on the arch's lit crests
-    const onParts = (parts: BufferGeometry[], share: number, upMin: number, count: 'rootTufts' | 'archTufts', lichenShare: number) => {
+    const onParts = (parts: BufferGeometry[], share: number, upMin: number, count: 'rootTufts' | 'archTufts' | 'boughTufts', lichenShare: number, draws: Rng = trunk41, sizeK = 1) => {
       for (const g of parts) {
         const pos = g.attributes.position;
         const nrm = g.attributes.normal;
@@ -4406,34 +4709,43 @@ export function buildHouse(def: HouseDef, ctx: WorldContext, mats: StructureMate
           if (ny < upMin) continue;
           const c: [number, number, number] = [col.getX(vi), col.getY(vi), col.getZ(vi)];
           const m = mossiness(c);
-          const draw = trunk41();
+          const draw = draws();
           _pp.set(pos.getX(vi), pos.getY(vi), pos.getZ(vi));
           if (draw < m * share * lerp(0.2, 1, colony41(_pp))) {
-            const r = (0.02 + trunk41() * 0.035) * sk;
+            const r = (0.02 + draws() * 0.035) * sk * sizeK;
             const sh = shadeOf(c);
             tuft41.push({
               position: _pp.clone(),
               normal: new Vector3(nrm.getX(vi), ny, nrm.getZ(vi)),
-              rx: r * (0.8 + trunk41() * 0.4),
-              rz: r * (0.8 + trunk41() * 0.4),
-              h: r * (0.5 + trunk41() * 0.4),
-              yaw: trunk41() * TAU,
+              rx: r * (0.8 + draws() * 0.4),
+              rz: r * (0.8 + draws() * 0.4),
+              h: r * (0.5 + draws() * 0.4),
+              yaw: draws() * TAU,
               color: [MOSS41[0] * sh, MOSS41[1] * sh, MOSS41[2] * sh],
               uv: [uv.getX(vi), uv.getY(vi)],
               sink: r * 0.5,
-              seed: 1 + Math.floor(trunk41() * 1e6),
+              seed: 1 + Math.floor(draws() * 1e6),
             });
             detail41[count]++;
           } else if (lichenShare > 0 && m < 0.2 && draw > 1 - lichenShare * clamp((c[0] + c[1] + c[2]) / 1.5, 0, 1)) {
             const sh = shadeOf(c);
-            lichenParts.push(lichenPlate(_pp, new Vector3(nrm.getX(vi), ny, nrm.getZ(vi)), (0.02 + 0.035 * trunk41()) * sk, trunk41() * 100, n3, [LICHEN41[0] * sh, LICHEN41[1] * sh, LICHEN41[2] * sh]));
+            lichenParts.push(lichenPlate(_pp, new Vector3(nrm.getX(vi), ny, nrm.getZ(vi)), (0.02 + 0.035 * draws()) * sk, draws() * 100, n3, [LICHEN41[0] * sh, LICHEN41[1] * sh, LICHEN41[2] * sh]));
             detail41.lichen++;
           }
         }
       }
     };
-    onParts(rootParts, 0.35, 0.45, 'rootTufts', 0);
+    // Round 46 (structures-29): the roots' crowns carry a denser, larger moss cover (share 0.35
+    // → 0.6, cushions × 1.3) — with the roots' new cord relief and seated run this is what the
+    // survey's "painted grain stripe" becomes at 3–6 m. Own fork: the roots' vertex count
+    // changed with the seated sweep, and on `trunk41` that would have re-drawn the arch's tufts.
+    onParts(rootParts, 0.6, 0.45, 'rootTufts', 0, rng.fork('root-tufts46'), 1.3);
     onParts(archParts, 0.22, 0.3, 'archTufts', 0.012);
+    // Round 46 (structures-29, survey-2 #08): moss CUSHIONS on the boughs' and limbs' tops — the
+    // arc bough resting on the cap, its sub-limbs, the stub, the draped pale limbs and the right
+    // limb — standing on the `mossOnTop` tint (which, alone, was the survey's "painted" moss
+    // stripe). Own fork; larger than the trunk's (a 4 m camera on the plateau sees these).
+    onParts([...supportParts, ...branchParts], 0.32, 0.35, 'boughTufts', 0, rng.fork('bough-tufts46'), 1.5);
   }
   // ---- round 43 (structures-27): the MOSS DOORMAT — trodden moss on the threshold slab and the
   // packed earth in front of the sill: dense, squat cushions along the slab's edges and against

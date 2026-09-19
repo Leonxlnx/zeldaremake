@@ -121,6 +121,10 @@ function roughen(geo: BufferGeometry, rng: Rng, amount: number) {
   geo.computeVertexNormals();
 }
 
+/** round 46 (structures-29): the board's and the post's tint scales — see the plank note in `buildSignpost` */
+const BOARD_LIFT = 4.5;
+const POST_LIFT = 1.4;
+
 export function buildSignpost(def: { id: string; position: readonly [number, number, number]; facing: readonly [number, number] }, ctx: WorldContext, mats: StructureMaterials, rng: Rng): SignpostBuild {
   const group = new Group();
   group.name = `signpost-${def.id}`;
@@ -168,9 +172,9 @@ export function buildSignpost(def: { id: string; position: readonly [number, num
       const hAbove = along - 0.35;
       const damp = smoothstep(0.35, 0.02, hAbove);
       const mossy = smoothstep(0.14, 0.0, hAbove) * (0.35 + 0.35 * (1 - g));
-      const r0 = 0.78 * line * (1 - 0.35 * damp);
-      const g0 = 0.7 * line * (1 - 0.3 * damp);
-      const b0 = 0.58 * line * (1 - 0.32 * damp);
+      const r0 = 0.78 * POST_LIFT * line * (1 - 0.35 * damp);
+      const g0 = 0.7 * POST_LIFT * line * (1 - 0.3 * damp);
+      const b0 = 0.58 * POST_LIFT * line * (1 - 0.32 * damp);
       return [lerp(r0, 0.3, mossy), lerp(g0, 0.36, mossy), lerp(b0, 0.1, mossy)];
     },
   });
@@ -180,7 +184,7 @@ export function buildSignpost(def: { id: string; position: readonly [number, num
   const postCap = checkedCap(topFrame, detailRng.fork('cap'), grainNoise, {
     radius: postR(1),
     segments: postSegs.radial,
-    color: [0.66, 0.58, 0.47],
+    color: [0.66 * POST_LIFT, 0.58 * POST_LIFT, 0.47 * POST_LIFT],
     checks: 3,
     depth: [0.006, 0.014],
     dome: 0.004,
@@ -197,7 +201,17 @@ export function buildSignpost(def: { id: string; position: readonly [number, num
   plankUV(plank, 0.42, 0.24, true, 0.1, 0.2);
   // the weathered_planks map is grey (~0.35 linear); lift it to the reference's sunlit tan;
   // round 41: grain relief, bowed edges and checked ends in place of the corner jitter
-  grainPlank(plank, plankW, plankH, plankT, detailRng.fork('plank'), grainNoise, [2.3, 1.95, 1.35]);
+  // Round 46 (structures-29): the board measured in B against the frame — ours rgb(70,57,42),
+  // lum p50 0.253 at (0.62–0.655, 0.455–0.48); the frame's board rgb(186,145,85), 0.587, hue 35°
+  // at (0.552–0.598, 0.445–0.5) — a pale tan plank lit by the pods, 2.3× ours in sRGB. The
+  // round-45 rescale had held the board at the round-44 SHADED level (sRGB ≈ 0.26) and left its
+  // lit faces 27 % darker still. Measured at ×3 in B: p50 0.253 → 0.333, p90 0.288 → 0.471 — the
+  // veil at 12 m is ≈ 0.63 of the pixel there (0.052 = 0.63 H + 0.37 S; H ≈ S ≈ 0.05 linear), so
+  // the board's own albedo has to carry the whole move: ×4.5 (albedo ≈ 0.5 linear — a pale
+  // plank, which is what the sign is) lands the pixel near 0.39; the frame's 0.587 is its pods'
+  // light, which ours does not put there. The post, brace, pegs and cap go ×1.4. The runes decal
+  // stays.
+  grainPlank(plank, plankW, plankH, plankT, detailRng.fork('plank'), grainNoise, [2.3 * BOARD_LIFT, 1.95 * BOARD_LIFT, 1.35 * BOARD_LIFT]);
   const plankY = 1.08;
   const plankCentre = axisAt(plankY + plankH / 2).addScaledVector(F, 0.085);
   const tiltM = new Matrix4().makeRotationZ((rng() - 0.5) * 0.06);
@@ -209,14 +223,14 @@ export function buildSignpost(def: { id: string; position: readonly [number, num
   const braceH = plankH * 0.85;
   const brace = new BoxGeometry(0.09, braceH, 0.05, 2, 8, 1);
   plankUV(brace, 0.08, 0.3, false);
-  grainPlank(brace, 0.09, braceH, 0.05, detailRng.fork('brace'), grainNoise, [0.75, 0.68, 0.55], 0.0015);
+  grainPlank(brace, 0.09, braceH, 0.05, detailRng.fork('brace'), grainNoise, [0.75 * POST_LIFT, 0.68 * POST_LIFT, 0.55 * POST_LIFT], 0.0015);
   roughen(brace, detailRng.fork('brace-rough'), 0.008);
   brace.applyMatrix4(basisMatrix(axisAt(plankY + plankH / 2).addScaledVector(F, 0.035), F));
   parts.push(brace);
   for (const side of [-1, 1]) {
     const peg = new CylinderGeometry(0.02, 0.023, 0.09, 12);
     peg.rotateX(Math.PI / 2);
-    setColorAttribute(peg, [0.5, 0.42, 0.32]);
+    setColorAttribute(peg, [0.5 * POST_LIFT, 0.42 * POST_LIFT, 0.32 * POST_LIFT]);
     peg.applyMatrix4(basisMatrix(plankCentre.clone().addScaledVector(Rt, side * plankW * 0.36).addScaledVector(F, 0.02), F));
     parts.push(peg);
   }
