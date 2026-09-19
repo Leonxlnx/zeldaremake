@@ -15,7 +15,7 @@ import type { Terrain } from '../terrain/heightfield';
 import type { TextureLibrary } from '../materials/textures';
 import type { WorldConfig } from '../config';
 import { Noise2D, clamp, smoothstep } from '../util/noise';
-import { archSeam, discField, earthPatch, hollowPath, jointSoil, lawnPocket, lawnZone } from './zones';
+import { archNorthLip, archSeam, discField, earthPatch, hollowPath, jointSoil, lawnPocket, lawnZone } from './zones';
 
 /** what the joint fill needs to know about the slabs around it */
 export interface JointPaving {
@@ -302,6 +302,9 @@ export async function buildJointMesh(
   const fieldEarth = new Color(TURF_BASE).lerp(new Color(P.grassDeep), 0.22).multiplyScalar(1.12);
   // (the moss patches keep round 10's soil in their blend so the B/E fill does not shift)
   const mossD = new Color(P.mossDeep).lerp(new Color(TURF_BASE), 0.25);
+  // round 48: the bark litter under the log's north lip — a red-brown a shade darker than the
+  // seam soil (linear ≈ 0.115 / 0.062 / 0.036, hue 20°), the tone of the log's shed bark plates
+  const barkLitter = new Color(0x5e3c22);
   const mossB = new Color(P.mossBright);
   const tmp = new Color();
   const tmp2 = new Color();
@@ -333,8 +336,13 @@ export async function buildJointMesh(
   let rimLength = 0;
   const cellKey = (i: number, j: number) => j * (nx + 1) + i;
   const emitVertex = (x: number, z: number) => {
-    // 0.8 cm above the ground: the slabs stand 1.2–2 cm proud, so the seams read as sunken soil
-    const y = terrain.height(x, z) + 0.008;
+    // 0.8 cm above the ground: the slabs stand 1.2–2 cm proud, so the seams read as sunken soil.
+    // Round 48: under the log's north lip the fill is a soil / bark-litter TONGUE washed out over
+    // the first slabs (zones.ts `archNorthLip`): it rises 3 cm there, over the lower slabs' rims
+    // and up the higher ones' flanks, so the litter reads as ground that has crept onto the
+    // paving, not a joint between stones
+    const lipW = archNorthLip(x, z);
+    const y = terrain.height(x, z) + 0.008 + 0.03 * lipW;
     pos.push(x, y, z);
     uv.push(x / 1.1, z / 1.1);
     const m = noise.fbm(x * 0.9 + 4, z * 0.9 - 2, 3) * 0.5 + 0.5;
@@ -376,15 +384,25 @@ export async function buildJointMesh(
       tmp2.copy(soilMid).multiplyScalar(1.45 * (0.88 + 0.24 * gritN));
       tmp.lerp(tmp2, 0.85 * seamW);
     }
+    if (lipW > 0.001) {
+      // round 48: the north lip's tongue over the pale seam dust — damp dark soil (the seam soil
+      // at 0.7) with bark litter in it: a 7 cm mottle pulls half the surface to a red-brown
+      // bark shade (hue ≈ 20°) and a 2.5 cm one flecks it with pale bark fragments
+      const barkN = noise.fbm(x * 14 + 7, z * 14 - 3, 2) * 0.5 + 0.5;
+      const fleckN = noise.noise(x * 41 - 5, z * 41 + 11) * 0.5 + 0.5;
+      tmp2.copy(soil).multiplyScalar(0.7).lerp(barkLitter, 0.35 + 0.55 * smoothstep(0.42, 0.72, barkN));
+      tmp2.multiplyScalar(1 + 0.45 * smoothstep(0.78, 0.92, fleckN));
+      tmp.lerp(tmp2, 0.92 * lipW);
+    }
     // moss proper takes over in patches where the noise peaks (thinner in the plaza centre,
     // a little heavier on the lawn paving where the slabs sit in it, a third lighter in the disc
     // field's soil gaps; camera C's trodden patch takes the moss-green from its earth tone, its
     // moss patches — the deep moss renders 10° browner than the frame's ground — are the plaza's)
     const lawn = lawnZone(x, z);
     // (the arch seam's joints are the gravel floor's dry dust — no moss patches on them)
-    const mossAmt = smoothstep(0.42, 0.8, m) * (0.7 + 0.3 * dampN) * (1 - 0.35 * smoothstep(3.5, 0, Math.hypot(x, z))) * (1 + 0.3 * lawn) * (1 - 0.35 * field) * (1 - 0.85 * seamW);
+    const mossAmt = smoothstep(0.42, 0.8, m) * (0.7 + 0.3 * dampN) * (1 - 0.35 * smoothstep(3.5, 0, Math.hypot(x, z))) * (1 + 0.3 * lawn) * (1 - 0.35 * field) * (1 - 0.85 * seamW) * (1 - 0.8 * lipW);
     tmp.lerp(mossD, clamp(mossAmt, 0, 1) * 0.55);
-    tmp.lerp(mossB, clamp(smoothstep(0.72, 0.96, m), 0, 1) * 0.3 * (1 - 0.5 * lawn) * (1 - 0.85 * seamW));
+    tmp.lerp(mossB, clamp(smoothstep(0.72, 0.96, m), 0, 1) * 0.3 * (1 - 0.5 * lawn) * (1 - 0.85 * seamW) * (1 - lipW));
     col.push(tmp.r, tmp.g, tmp.b);
     soilW.push(sw);
     rimW.push(0);
