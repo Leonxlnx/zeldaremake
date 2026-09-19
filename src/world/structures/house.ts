@@ -253,7 +253,7 @@ export interface HouseBuild {
    * Round 41 (structures-26): the trunk's player-height detail — furrow moss tufts on the shell,
    * moss caps on the root flares and the doorway arch, lichen plates, trefoils at the root feet.
    */
-  trunkDetail: { trunkTufts: number; rootTufts: number; archTufts: number; lichen: number; trefoils: number; doormatTufts: number };
+  trunkDetail: { trunkTufts: number; rootTufts: number; archTufts: number; boughTufts: number; lichen: number; trefoils: number; doormatTufts: number };
 }
 
 /**
@@ -3514,6 +3514,51 @@ export function buildHouse(def: HouseDef, ctx: WorldContext, mats: StructureMate
     const n = domeNormal(a, v);
     return p.addScaledVector(n, domeDisp(p, v) * 0.6 + lift);
   };
+  /**
+   * Round 46 (structures-29, survey-2 #08 "root arcs = smooth tubes with painted grain"): BARK
+   * CORDS on every bough and limb — a ridged field periodic ROUND the tube (the angle mapped onto
+   * a circle in noise space, so there is no seam) that drifts slowly ALONG it, ± 9 % of the local
+   * radius, with narrow dark fissures between the cords and small lumps. The number of cords
+   * round the tube grows with its radius (≈ 7 on a 0.15 m limb, ≈ 19 on the 0.5 m arc), and the
+   * radial resolution follows (`cordSegs`). Rounds 8–45's `ridged(ang · 1.5 + t · 6, pos.y)`
+   * put the ridges across the bough, which read as a painted stripe pattern at 4 m
+   * (w26-stairs-l). Colour: the crests a shade paler, grime in the fissures.
+   */
+  const boughCords = (seed: number, len: number, r0: number) => {
+    const ring = clamp(r0 / 0.16, 1.15, 3.2);
+    const cord = (t: number, ang: number) => noise.ridged(Math.cos(ang) * ring + seed * 3.1, Math.sin(ang) * ring + t * len * 0.32 + seed * 0.7, 2);
+    const fissure = (t: number, ang: number) => Math.pow(1 - Math.abs(noise.noise(Math.cos(ang) * ring * 1.4 + seed * 5.3 + 20, Math.sin(ang) * ring * 1.4 + t * len * 0.22)), 7);
+    return {
+      segs: Math.max(12, Math.round(ring * 13)),
+      displace: (t: number, ang: number, r: number) => ((cord(t, ang) - 0.5) * 0.09 - fissure(t, ang) * 0.06) * r + (noise.noise(ang * 3.4 + seed * 7.3, t * len * 0.5 + 40) - 0.5) * 0.04 * r,
+      /** [crest/fissure shade multiplier, fissure weight] */
+      shade: (t: number, ang: number): [number, number] => {
+        const f = fissure(t, ang);
+        return [lerp(0.74, 1.12, cord(t, ang)) * (1 - 0.5 * f), f];
+      },
+      tint: (base: [number, number, number], t: number, ang: number): [number, number, number] => {
+        const f = fissure(t, ang);
+        const s = lerp(0.74, 1.12, cord(t, ang)) * (1 - 0.5 * f);
+        return [base[0] * s, base[1] * s * (1 - 0.04 * f), base[2] * s * (1 - 0.08 * f)];
+      },
+    };
+  };
+  /** the cap's moss surface under (angle a, horizontal radius r) — the arc bough rests on it */
+  const _cs = new Vector3();
+  const capSurfaceAt = (a: number, r: number, lift: number) => {
+    let best = 0;
+    let bestD = Infinity;
+    for (let i = 0; i <= 60; i++) {
+      const v = (i / 60) * V_CAP;
+      domeBase(a, v, _cs);
+      const d = Math.abs(Math.hypot(_cs.x - frame.C.x, _cs.z - frame.C.z) - r);
+      if (d < bestD) {
+        bestD = d;
+        best = v;
+      }
+    }
+    return surfacePoint(a, best, lift);
+  };
   type BranchDef = { path: [number, number][]; r0: number; r1: number; leavesAt: number[] };
   // (angle around the house, cap parameter v) waypoints for the pale draped limbs: one comes over
   // the right shoulder and stops on the crown; two shorter side branches curl up into leafy tips.
@@ -3551,16 +3596,19 @@ export function buildHouse(def: HouseDef, ctx: WorldContext, mats: StructureMate
     });
     const curve = new CatmullRomCurve3(pts, false, 'catmullrom', 0.5);
     const twist = branchRng() * 10;
+    const drapedR = (t: number) => lerp(b.r0, b.r1, t) * k * (1 + 0.14 * Math.sin(t * 9 + twist) + 0.08 * Math.sin(t * 23 + twist * 2));
+    const drapedCords = boughCords(10 + bi, curve.getLength(), b.r0 * k);
     const geo = sweepTube(curve, {
-      radius: (t) => lerp(b.r0, b.r1, t) * k * (1 + 0.14 * Math.sin(t * 9 + twist) + 0.08 * Math.sin(t * 23 + twist * 2)),
+      radius: drapedR,
       tubularSegments: 48,
-      radialSegments: 12,
+      radialSegments: drapedCords.segs,
       uvMetres: 1.2,
-      displace: (t, ang, pos) => (noise.ridged(ang * 1.4 + t * 4 + bi, pos.y * 1.5, 2) - 0.5) * 0.08 * k,
-      color: limbColor,
+      displace: (t, ang) => drapedCords.displace(t, ang, drapedR(t)),
+      color: (t, ang) => drapedCords.tint(limbColor(t, ang), t, ang),
       capEnd: true,
     });
-    branchParts.push(geo);
+    // (round 46: a little of the cap's moss on the limbs' tops — they lie half-sunk in it)
+    branchParts.push(mossOnTop(geo, [0.36, 0.8, 0.25], 0.4, noise));
     for (const at of b.leavesAt) {
       const p = curve.getPointAt(at);
       // round 15: the tip clusters lie on the moss, so they take the moss-lit leaf tint (at
@@ -3638,9 +3686,15 @@ export function buildHouse(def: HouseDef, ctx: WorldContext, mats: StructureMate
       frame.at(aE - 0.07, rSmooth(aE - 0.07, eaveY - 0.6 * k) + 0.05 * k, eaveY - 0.6 * k),
       arcEavePoint.clone(),
       frame.at(-1.6, capR(-1.6) + 0.1 * k, lipTop + 1.0 * k).add(jit(0.1)),
-      frame.at(-2.2, 0.85 * capR(-2.2), crownY - 0.7 * k).add(jit(0.1)),
-      frame.at(-2.9, 0.62 * capR(-2.9), crownY - 0.1 * k).add(jit(0.1)),
-      frame.at(2.6, 0.62 * capR(2.6), crownY + 0.45 * k).add(jit(0.08)),
+      // Round 46 (structures-29, survey-2 #08 "floating gap"): the run BEHIND the crown RESTS ON
+      // THE MOSS — rounds 15–45 held it clear of the cap by about its own diameter (crownY − 0.7 /
+      // − 0.1 / + 0.45), and from the plateau (w26-stairs-l) that showed as a dark shadow gap
+      // between the bough and the dome under it. The three waypoints over the cap now sit on the
+      // cap's own moss surface at 0.4 × the local radius (the underside 0.6 r into the moss);
+      // the two that B can see the rise from (2.1, 1.75 …) are unchanged. Same jit draws.
+      capSurfaceAt(-2.2, 0.85 * capR(-2.2), 0.4 * 0.37 * k).add(jit(0.1)),
+      capSurfaceAt(-2.9, 0.62 * capR(-2.9), 0.4 * 0.33 * k).add(jit(0.1)),
+      capSurfaceAt(2.6, 0.62 * capR(2.6), 0.4 * 0.3 * k).add(jit(0.08)),
       frame.at(2.1, 0.88 * capR(2.1), crownY + 1.4 * k).add(jit(0.08)),
       frame.at(1.75, capR(1.75) + 0.3 * k, crownY + 2.4 * k),
       frame.at(1.55, capR(1.55) + 1.0 * k, crownY + 3.1 * k),
@@ -3666,13 +3720,14 @@ export function buildHouse(def: HouseDef, ctx: WorldContext, mats: StructureMate
     const arcR = (t: number) => (0.5 - 0.3 * t) * k * (1 + 0.1 * Math.sin(t * 17 + 1) + 0.06 * Math.sin(t * 41)) + 0.14 * k * Math.exp(-(((t - tEave) / 0.06) ** 2));
     // in the eave's shadow at the trunk, then in the canopy's shade over the cap
     const arcShade = (t: number) => 0.8 * smoothstep(0.05, 0.2, t);
+    const arcCords = boughCords(1, arcCurve.getLength(), 0.5 * k);
     const arc = sweepTube(arcCurve, {
       radius: arcR,
-      tubularSegments: 96,
-      radialSegments: 13,
+      tubularSegments: 120,
+      radialSegments: arcCords.segs,
       uvMetres: 1.4,
-      displace: (t, ang, pos) => (noise.ridged(ang * 1.5 + t * 6, pos.y * 1.3 + 2, 2) - 0.5) * 0.09 * k,
-      color: (t, ang) => shadedColor(t, ang, arcShade(t)),
+      displace: (t, ang) => arcCords.displace(t, ang, arcR(t)),
+      color: (t, ang) => arcCords.tint(shadedColor(t, ang, arcShade(t)), t, ang),
       capEnd: true,
     });
     // (round 34: spread 0.3 — the sheets wrap down the flank D sees; round 36: the lower run, which
@@ -3739,13 +3794,16 @@ export function buildHouse(def: HouseDef, ctx: WorldContext, mats: StructureMate
       const into = surfacePoint(a1, v1, -0.25 * k);
       const onMoss = surfacePoint(a1, v1, 0.12 * k);
       const mid = from.clone().lerp(into, 0.5).add(sjit(0.25)).addScaledVector(frame.dir(a1), 0.15 * k);
-      const limb = sweepTube(new CatmullRomCurve3([from, mid, into], false, 'catmullrom', 0.5), {
-        radius: (s) => r0 * k * (1 - 0.45 * s) * (1 + 0.1 * Math.sin(s * 13 + t * 20)),
+      const limbCurve = new CatmullRomCurve3([from, mid, into], false, 'catmullrom', 0.5);
+      const limbR = (s: number) => r0 * k * (1 - 0.45 * s) * (1 + 0.1 * Math.sin(s * 13 + t * 20));
+      const limbCords = boughCords(2 + t, limbCurve.getLength(), r0 * k);
+      const limb = sweepTube(limbCurve, {
+        radius: limbR,
         tubularSegments: 16,
-        radialSegments: 10,
+        radialSegments: limbCords.segs,
         uvMetres: 1.4,
-        displace: (s, ang, pos) => (noise.ridged(ang * 1.5 + s * 5 + t * 7, pos.y * 1.3 + 4, 2) - 0.5) * 0.05 * k,
-        color: (s, ang) => shadedColor(s, ang, 0.8),
+        displace: (s, ang) => limbCords.displace(s, ang, limbR(s)),
+        color: (s, ang) => limbCords.tint(shadedColor(s, ang, 0.8), s, ang),
         capEnd: true,
       });
       supportParts.push(mossOnTop(limb, mossTint, 0.7, noise));
@@ -3763,13 +3821,15 @@ export function buildHouse(def: HouseDef, ctx: WorldContext, mats: StructureMate
       const tip = from.clone().add(new Vector3(0, 1.35 * k, 0)).addScaledVector(F, -0.7 * k).add(sjit(0.2));
       const mid = from.clone().lerp(tip, 0.5).addScaledVector(Rt, -0.25 * k).add(sjit(0.15));
       const upCurve = new CatmullRomCurve3([from, mid, tip], false, 'catmullrom', 0.5);
+      const upR = (s: number) => (0.17 - 0.1 * s) * k * (1 + 0.1 * Math.sin(s * 11 + 2));
+      const upCords = boughCords(4, upCurve.getLength(), 0.17 * k);
       const upLimb = sweepTube(upCurve, {
-        radius: (s) => (0.17 - 0.1 * s) * k * (1 + 0.1 * Math.sin(s * 11 + 2)),
+        radius: upR,
         tubularSegments: 14,
-        radialSegments: 9,
+        radialSegments: upCords.segs,
         uvMetres: 1.4,
-        displace: (s, ang, pos) => (noise.ridged(ang * 1.5 + s * 5, pos.y * 1.3 + 6, 2) - 0.5) * 0.04 * k,
-        color: (s, ang) => shadedColor(s, ang, 0.8),
+        displace: (s, ang) => upCords.displace(s, ang, upR(s)),
+        color: (s, ang) => upCords.tint(shadedColor(s, ang, 0.8), s, ang),
         capEnd: true,
       });
       supportParts.push(mossOnTop(upLimb, mossTint, 0.5, noise));
@@ -3875,14 +3935,15 @@ export function buildHouse(def: HouseDef, ctx: WorldContext, mats: StructureMate
     ];
     const stubCurve = new CatmullRomCurve3(stubPts, false, 'catmullrom', 0.5);
     const stubR = (t: number) => (0.34 - 0.12 * t) * k * (1 + 0.08 * Math.sin(t * 9 + 2));
+    const stubCords = boughCords(5, stubCurve.getLength(), 0.34 * k);
     const stub = sweepTube(stubCurve, {
       radius: stubR,
-      tubularSegments: 14,
-      radialSegments: 11,
+      tubularSegments: 18,
+      radialSegments: stubCords.segs,
       uvMetres: 1.2,
-      // deep longitudinal ridges; the broken end flares a little and is jagged
-      displace: (t, ang, pos) => (noise.ridged(ang * 1.6 + 7, pos.y * 1.5 + t * 2, 2) - 0.5) * 0.09 * k + smoothstep(0.85, 1, t) * (0.05 + 0.08 * Math.abs(Math.sin(ang * 5 + 1))) * k,
-      color: (t, ang) => (t > 0.985 ? [0.2, 0.16, 0.12] : supportColor(t, ang)),
+      // bark cords along the limb (round 46); the broken end flares a little and is jagged
+      displace: (t, ang) => stubCords.displace(t, ang, stubR(t)) + smoothstep(0.85, 1, t) * (0.05 + 0.08 * Math.abs(Math.sin(ang * 5 + 1))) * k,
+      color: (t, ang) => (t > 0.985 ? [0.2, 0.16, 0.12] : stubCords.tint(supportColor(t, ang), t, ang)),
       capEnd: true,
     });
     supportParts.push(mossOnTop(stub, mossTint, 0.6, noise));
@@ -3905,17 +3966,26 @@ export function buildHouse(def: HouseDef, ctx: WorldContext, mats: StructureMate
   ];
   for (let i = 1; i < rightPts.length; i++) rightPts[i].add(new Vector3((branchRng() - 0.5) * 0.16, (branchRng() - 0.5) * 0.1, (branchRng() - 0.5) * 0.16));
   const rightCurve = new CatmullRomCurve3(rightPts, false, 'catmullrom', 0.5);
-  branchParts.push(
-    sweepTube(rightCurve, {
-      radius: (t) => (0.42 - 0.2 * t) * k * (1 + 0.08 * Math.sin(t * 8 + 1) + 0.05 * Math.sin(t * 21)),
-      tubularSegments: 28,
-      radialSegments: 12,
-      uvMetres: 1.2,
-      displace: (t, ang, pos) => (noise.ridged(ang * 1.6 + 3, pos.y * 1.5 + t * 2, 2) - 0.5) * 0.1 * k,
-      color: limbColor,
-      capEnd: true,
-    }),
-  );
+  {
+    const rightR = (t: number) => (0.42 - 0.2 * t) * k * (1 + 0.08 * Math.sin(t * 8 + 1) + 0.05 * Math.sin(t * 21));
+    const rightCords = boughCords(6, rightCurve.getLength(), 0.42 * k);
+    branchParts.push(
+      mossOnTop(
+        sweepTube(rightCurve, {
+          radius: rightR,
+          tubularSegments: 28,
+          radialSegments: rightCords.segs,
+          uvMetres: 1.2,
+          displace: (t, ang) => rightCords.displace(t, ang, rightR(t)),
+          color: (t, ang) => rightCords.tint(limbColor(t, ang), t, ang),
+          capEnd: true,
+        }),
+        mossTint,
+        0.4,
+        noise,
+      ),
+    );
+  }
   {
     const tip = rightCurve.getPointAt(1);
     foliage.addLeafCluster(tip, 0.5 * k, 40, { size: 0.13, amount: 0.06, droop: 0.5, tint: leafTint, tintSpread: 0.28 });
@@ -3935,13 +4005,16 @@ export function buildHouse(def: HouseDef, ctx: WorldContext, mats: StructureMate
     const up = domeNormal(a, v).add(new Vector3(0, 1.2, 0)).normalize();
     const tilt = frame.dir(a + 1.2).multiplyScalar(0.18);
     const pts = [base, base.clone().addScaledVector(up, 0.45 * k).add(tilt), base.clone().addScaledVector(up, 0.95 * k).addScaledVector(tilt, 2.2)];
-    const chimney = sweepTube(new CatmullRomCurve3(pts), {
-      radius: (t) => (0.26 - 0.06 * t) * k,
+    const chimCurve = new CatmullRomCurve3(pts);
+    const chimR = (t: number) => (0.26 - 0.06 * t) * k;
+    const chimCords = boughCords(7, chimCurve.getLength(), 0.26 * k);
+    const chimney = sweepTube(chimCurve, {
+      radius: chimR,
       tubularSegments: 10,
-      radialSegments: 12,
+      radialSegments: chimCords.segs,
       uvMetres: 1.0,
-      displace: (t, ang) => (noise.ridged(ang * 1.6 + 2, t * 5, 2) - 0.5) * 0.05 * k,
-      color: (t, ang) => (t > 0.985 ? [0.12, 0.1, 0.08] : limbColor(t, ang)),
+      displace: (t, ang) => chimCords.displace(t, ang, chimR(t)),
+      color: (t, ang) => (t > 0.985 ? [0.12, 0.1, 0.08] : chimCords.tint(limbColor(t, ang), t, ang)),
       capEnd: true,
     });
     branchParts.push(chimney);
@@ -4482,7 +4555,7 @@ export function buildHouse(def: HouseDef, ctx: WorldContext, mats: StructureMate
   const trunk41 = rng.fork('trunk41');
   const tuft41: MossTuftSpec[] = [];
   const lichenParts: BufferGeometry[] = [];
-  const detail41 = { trunkTufts: 0, rootTufts: 0, archTufts: 0, lichen: 0, trefoils: 0 };
+  const detail41 = { trunkTufts: 0, rootTufts: 0, archTufts: 0, boughTufts: 0, lichen: 0, trefoils: 0 };
   {
     const _sv = { position: new Vector3() } as SurfaceSample;
     const _su = { position: new Vector3() } as SurfaceSample;
@@ -4587,7 +4660,7 @@ export function buildHouse(def: HouseDef, ctx: WorldContext, mats: StructureMate
       detail41.lichen++;
     }
     // moss caps on the roots' crowns and the arch's mossy upper faces, lichen on the arch's lit crests
-    const onParts = (parts: BufferGeometry[], share: number, upMin: number, count: 'rootTufts' | 'archTufts', lichenShare: number, draws: Rng = trunk41, sizeK = 1) => {
+    const onParts = (parts: BufferGeometry[], share: number, upMin: number, count: 'rootTufts' | 'archTufts' | 'boughTufts', lichenShare: number, draws: Rng = trunk41, sizeK = 1) => {
       for (const g of parts) {
         const pos = g.attributes.position;
         const nrm = g.attributes.normal;
@@ -4631,6 +4704,11 @@ export function buildHouse(def: HouseDef, ctx: WorldContext, mats: StructureMate
     // changed with the seated sweep, and on `trunk41` that would have re-drawn the arch's tufts.
     onParts(rootParts, 0.6, 0.45, 'rootTufts', 0, rng.fork('root-tufts46'), 1.3);
     onParts(archParts, 0.22, 0.3, 'archTufts', 0.012);
+    // Round 46 (structures-29, survey-2 #08): moss CUSHIONS on the boughs' and limbs' tops — the
+    // arc bough resting on the cap, its sub-limbs, the stub, the draped pale limbs and the right
+    // limb — standing on the `mossOnTop` tint (which, alone, was the survey's "painted" moss
+    // stripe). Own fork; larger than the trunk's (a 4 m camera on the plateau sees these).
+    onParts([...supportParts, ...branchParts], 0.55, 0.35, 'boughTufts', 0, rng.fork('bough-tufts46'), 1.5);
   }
   // ---- round 43 (structures-27): the MOSS DOORMAT — trodden moss on the threshold slab and the
   // packed earth in front of the sill: dense, squat cushions along the slab's edges and against
