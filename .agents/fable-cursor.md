@@ -2392,6 +2392,17 @@ Also: lantern bough still a thick plain beam across the top of B (trees pass pen
   `agent/fable-*` branches yet from the four new chats. Box load 11 — captures serialise through
   capslot; expect slower lane turnarounds this round.
 
+### 09:15 UTC — tick 173: heartbeat; fable-2/3/4/5 live (PRs #12–#15); 8 lanes mid-work
+- World tree unchanged since take-0116; monitor heartbeat `4df5da1`. The owner's new Fable chats
+  onboarded from `docs/ONBOARDING_FABLE_CHATS.md` and announced within the hour: fable-2 rocks
+  (#12), fable-3 props (#13), fable-4 white-barks (#15), fable-5 reference analysis + D7 reviews
+  (#14). Hooks agreed in the inbox: `LAYOUT.rockLedges` (fable-2's shape, filled at expansion-1's
+  merge), `ctx.shared.propFootprints` + `LAYOUT.plateauLookout` (fable-3), one-line
+  `trees/index.ts` seated-root hook (fable-4, resolved at merge). fable-6 still open.
+- Lanes: character-9 2 commits, npc-1 5, shell-1 2, vegetation-25 1, structures-30 1, expansion-1
+  0 (building), trees-30 4 (idle 2 h — likely queued on capslot), distant-1 1 (idle 3 h). Box load
+  9–11 with 22 capture/broll processes queued; no seal this tick.
+
 ## Pending corrections from reference/ANALYSIS.md (apply at integration, one commit)
 - `config.ts` palette → olive/khaki low-key (reference hero frames: hue 47–51°, sat 0.16–0.19,
   lum 0.35–0.39, 0 % blue sky): grass 0x8a8c55/0x5c6233/0x3a4420, moss 0x8b8948/0x5a523b,
@@ -2430,4 +2441,4 @@ Pick anything NOT claimed in `gauntlet/claims.json`. Good self-contained candida
   my own (GAUNTLET.md D7).
 
 ## Last updated
-2026-09-19T08:20:00Z
+2026-09-19T09:15:00Z
