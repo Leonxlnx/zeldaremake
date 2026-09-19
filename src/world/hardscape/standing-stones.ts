@@ -2,18 +2,21 @@
  * Standing stones for the clearing's stone circle (round 48, opus-review #02: "seven smooth
  * cylinders … bollards, not standing stones").
  *
- * Each stone is a lofted, tapered block: an irregular 7-sided base outline carried up through a
- * stack of rings whose radius tapers to 45–70 % at the top, bows a few centimetres to one side
- * and is roughened by a two-octave noise in the ring's own (x, y, z) — faceted like a cleaved
- * block, not a turned post. The rings are grouped into 3–5 strata bands: every band is its own
- * smoothing group with its own radius offset (±1–2 cm) and luminance (±6 %), so the bedding
- * planes read as small ledges and tone steps up the flank, tilted with the stone. The top is a
- * cleavage plane sloping 8–22°, with one or two chips (3–8 cm drops over a hand's width of rim)
- * and, on the split stones, a whole sector dropped 10–16 cm. The block continues 0.2–0.35 m
- * below the ground (half-buried); a soil / moss bedding skirt heaps against the foot over the
- * paving's plinth and the shader's stain / moss attributes carry a damp band up the lowest
- * 20 cm. One stone lies fallen on its side, sunk a third into the ground. Everything is drawn
- * from the caller's seeded stream; nothing here reads another system.
+ * Each stone is a lofted, tapered block: an irregular 7-sided slab-like base outline (1.3–1.8 : 1)
+ * carried up through a stack of rings whose radius tapers to 68–88 % at the top, bows a few
+ * centimetres to one side and is roughened by a two-octave noise in the ring's own (x, y, z);
+ * every ring quad is a flat-shaded facet, so the flank reads as a cleaved block, not a turned
+ * post. The rings are grouped into 3–5 strata bands, each with its own radius offset (±2.5 cm),
+ * luminance (±5–11 %) and a 0.4 m mottle, so the bedding planes read as small ledges and tone
+ * steps up the flank, tilted with the stone. The top is a cleavage plane sloping 8–22°,
+ * roughened ± 1.5 cm, with two to four chips (4–10 cm drops over a hand's width of rim) and, on
+ * the split stones, a whole sector dropped 10–16 cm. The stone is a cooler, darker grey than the
+ * paving's slabs, darker and greener over the damp band up its lowest 22 cm. The block continues
+ * 0.16–0.35 m below the ground (half-buried); a soil / moss bedding skirt heaps against the foot
+ * over the paving's plinth and the shader's stain / moss attributes carry the damp band. One
+ * stone lies fallen on its side, sunk a third of its thickness into the ground, with the skirt
+ * heaped along its contact hull. Everything is drawn from the caller's seeded stream; nothing
+ * here reads another system.
  */
 import { Matrix4, Vector2, Vector3 } from 'three';
 import type { Rng } from '../util/prng';
@@ -89,6 +92,16 @@ interface Ring {
   band: number;
 }
 
+function signedArea(poly: P2[]): number {
+  let a = 0;
+  for (let i = 0; i < poly.length; i++) {
+    const p = poly[i];
+    const q = poly[(i + 1) % poly.length];
+    a += p.x * q.z - q.x * p.z;
+  }
+  return a / 2;
+}
+
 /**
  * Build one standing stone into `mb` (world coordinates). The stone is authored upright in a
  * local frame (origin at the ground under its centre, y up), then tilted and yawed; the fallen
@@ -103,33 +116,38 @@ export function buildStandingStone(mb: MeshBuilder, rng: Rng, s: StandingStoneSp
   const bury = fallen ? 0 : Math.max(BURY_MIN, H * BURY_K);
   const L = H + bury;
   const baseR = s.across / 2;
-  // base outline: 7 sides, subdivided to 21 points, a little oblong
-  const outline = irregularPolygon(rng, 7, { radiusJitter: 0.24, angleJitter: 0.3, subdivide: 3, edgeJitter: 0.035, aspect: rng.range(1.15, 1.5) });
+  // base outline: 7 sides, subdivided to 14 points, slab-like (1.3–1.8 : 1) — the first cut's
+  // 21-point, 1.15–1.5 outline under smoothed normals and a 45–70 % taper read as a turned peg /
+  // tree stump at x-stone-close, not a cleaved block
+  const outline = irregularPolygon(rng, 7, { radiusJitter: 0.28, angleJitter: 0.35, subdivide: 2, edgeJitter: 0.03, aspect: rng.range(1.3, 1.8) });
   const n = outline.length;
-  // taper: top at 45–70 % of the base; the belly bulges a few % a third of the way up
-  const taperK = rng.range(0.3, 0.55);
-  const bellyK = rng.range(0.02, 0.07);
+  // taper: top at 68–88 % of the base; the belly bulges a few % a third of the way up
+  const taperK = rng.range(0.12, 0.32);
+  const bellyK = rng.range(0.02, 0.06);
   const bellyAt = rng.range(0.25, 0.45);
   // bow: the ring centres drift with height (m at the top)
   const bowX = rng.range(-0.045, 0.045);
   const bowZ = rng.range(-0.045, 0.045);
-  // displacement amplitudes (share of the local radius)
-  const dispA = rng.range(0.07, 0.12);
-  const dispB = rng.range(0.025, 0.045);
+  // displacement amplitudes (share of the local radius): a coarse octave that tilts whole facets
+  // and a fine one that breaks their edges
+  const dispA = rng.range(0.11, 0.18);
+  const dispB = rng.range(0.04, 0.07);
   const nOff = rng.range(0, 100);
   // strata: 3–5 bands with jittered boundaries, each its own radius offset and tone
   const bands = rng.int(3, 6);
   const bounds: number[] = [0];
   for (let b = 1; b < bands; b++) bounds.push((b / bands) * L + rng.range(-0.07, 0.07) * (L / bands));
   bounds.push(L);
-  const bandDr = Array.from({ length: bands }, () => rng.range(-0.02, 0.02));
-  const bandLum = Array.from({ length: bands }, (_, b) => 1 + (b % 2 === 0 ? 1 : -1) * rng.range(0.03, 0.07));
-  const bandWarm = Array.from({ length: bands }, () => rng.range(-0.02, 0.02));
-  // top: a cleavage plane sloping 8–22° toward a random direction, plus chips / a split sector
+  const bandDr = Array.from({ length: bands }, () => rng.range(-0.025, 0.025));
+  const bandLum = Array.from({ length: bands }, (_, b) => 1 + (b % 2 === 0 ? 1 : -1) * rng.range(0.05, 0.11));
+  const bandWarm = Array.from({ length: bands }, () => rng.range(-0.025, 0.025));
+  // top: a cleavage plane sloping 8–22° toward a random direction, roughened ± 1.5 cm, plus
+  // chips (2–4, 4–10 cm) / a split sector
   const topSlope = Math.tan(rng.range(0.14, 0.38));
   const topDir = rng.range(0, Math.PI * 2);
-  const chips = rng.int(1, 3);
-  const chipAt = Array.from({ length: chips }, () => ({ i: rng.int(0, n), drop: rng.range(0.03, 0.08), w: rng.int(1, 3) }));
+  const topRough = rng.range(0.008, 0.016);
+  const chips = rng.int(2, 5);
+  const chipAt = Array.from({ length: chips }, () => ({ i: rng.int(0, n), drop: rng.range(0.04, 0.1), w: rng.int(1, 3) }));
   const split = !!s.split;
   const splitDir = rng.range(0, Math.PI * 2);
   const splitHalf = rng.range(0.9, 1.25);
@@ -147,8 +165,8 @@ export function buildStandingStone(mb: MeshBuilder, rng: Rng, s: StandingStoneSp
       const px = p.x * baseR * sc;
       const pz = p.z * baseR * sc;
       const r0 = Math.hypot(px, pz) || 1e-6;
-      const n1 = N.fbm(px * 3.1 + y * 2.3 + nOff, pz * 3.1 - y * 1.7 - nOff, 2);
-      const n2 = N.noise(px * 9 - y * 6 + nOff * 0.7, pz * 9 + y * 5 + nOff * 1.3);
+      const n1 = N.fbm(px * 2.4 + y * 1.9 + nOff, pz * 2.4 - y * 1.4 - nOff, 2);
+      const n2 = N.noise(px * 7 - y * 5 + nOff * 0.7, pz * 7 + y * 4 + nOff * 1.3);
       // the buried part keeps its full radius (the foot is not eroded)
       const erode = 0.35 + 0.65 * smoothstep(-bury, 0.1, y);
       const r = r0 * (1 + (dispA * n1 + dispB * n2) * erode) + bandDr[band] * sc;
@@ -185,13 +203,15 @@ export function buildStandingStone(mb: MeshBuilder, rng: Rng, s: StandingStoneSp
   const topGap = topRing.y - prevRing.y;
   const topYAt = (p: P2, i: number) => {
     const plane = topSlope * (p.x * Math.cos(topDir) + p.z * Math.sin(topDir));
-    return topRing.y + plane - Math.min(topDrop[i], 0.85 * topGap + Math.min(0, plane));
+    const rough = topRough * N.noise(p.x * 11 + nOff * 1.7, p.z * 11 - nOff * 0.9);
+    return topRing.y + plane + rough - Math.min(topDrop[i], 0.85 * topGap + Math.min(0, plane));
   };
   const topYs = topRing.pts.map((p, i) => topYAt(p, i));
 
-  // --- colours ---
+  // --- colours: a cooler, darker stone than the slabs (the material colour is the paving's
+  // warm grey-beige; the standing stones are a weathered grey, greener and darker at the foot) ---
   const tint = s.tint;
-  const base: Rgb = [tint * 1.0, tint * 0.985, tint * 0.955];
+  const base: Rgb = [tint * 0.97, tint * 0.975, tint * 1.0];
   const shadeX = Math.cos(s.shadeDir - s.yaw);
   const shadeZ = Math.sin(s.shadeDir - s.yaw);
   /** how much a flank point faces the shaded side (0..1) */
@@ -201,11 +221,13 @@ export function buildStandingStone(mb: MeshBuilder, rng: Rng, s: StandingStoneSp
   };
   const dampAt = (y: number) => 1 - smoothstep(0, DAMP_H, y);
   const sideCol = (y: number, band: number, p: P2, fresh = 0): Rgb => {
-    const lum = bandLum[band] * (1 - 0.3 * dampAt(y)) * (1 + 0.14 * fresh);
+    // a 0.4 m mottle per band so no band is one flat tone
+    const mot = 0.92 + 0.16 * (N.fbm(p.x * 2.6 + y * 1.2 + nOff * 0.3, p.z * 2.6 - y * 0.8 + nOff, 2) * 0.5 + 0.5);
+    const lum = bandLum[band] * mot * (1 - 0.42 * dampAt(y)) * (1 + 0.18 * fresh);
     const warm = bandWarm[band];
     // the damp foot leans brown-green
     const d = dampAt(y);
-    return [base[0] * lum * (1 + warm) * (1 - 0.06 * d), base[1] * lum * (1 - 0.02 * d), base[2] * lum * (1 - warm) * (1 - 0.1 * d)];
+    return [base[0] * lum * (1 + warm) * (1 - 0.08 * d), base[1] * lum * (1 - 0.01 * d), base[2] * lum * (1 - warm) * (1 - 0.14 * d)];
   };
   const mossAt = (y: number, p: P2) => {
     const d = 1 - smoothstep(0.02, 0.38, y);
@@ -267,14 +289,14 @@ export function buildStandingStone(mb: MeshBuilder, rng: Rng, s: StandingStoneSp
       triangles += 2;
     }
   };
+  // (flat-shaded: every ring quad is a facet of its own, tilted by the displacement — a cleaved
+  // block; the first cut smoothed each band and the stones read as turned posts)
   for (let b = 0; b < bands; b++) {
     local.beginGroup();
     for (let k = 0; k < rings.length - 1; k++) if (rings[k].band === b && rings[k + 1].band === b) emitPair(k);
-    local.smoothGroup();
   }
   local.beginGroup();
   for (let k = 0; k < rings.length - 1; k++) if (rings[k].band !== rings[k + 1].band) emitPair(k);
-  local.smoothGroup();
 
   // --- top cap: a fan to the centre of the plane (the chips and the split fall away from it) ---
   {
@@ -306,7 +328,6 @@ export function buildStandingStone(mb: MeshBuilder, rng: Rng, s: StandingStoneSp
       local.tri(_a, _b, _c, _ua, _ub, _uc, col, [mTop, mTop, mTop * 0.5], undefined, undefined, 0.75 * (1 - 0.6 * fresh), undefined, mot);
       triangles++;
     }
-    local.smoothGroup();
   }
 
   // --- pose: yaw, then lean, then seat on the ground ---
@@ -317,15 +338,27 @@ export function buildStandingStone(mb: MeshBuilder, rng: Rng, s: StandingStoneSp
     const over = rng.range(1.36, 1.5);
     const axis = new Vector3(-Math.sin(s.tiltDir), 0, Math.cos(s.tiltDir)).normalize();
     m.premultiply(new Matrix4().makeRotationAxis(axis, over));
-    // seat: the lowest transformed vertex goes 0.34 of the base radius under the ground line
-    const sink = baseR * 0.55;
+    // seat: the lowest transformed vertex goes 0.36 of the base radius under the ground line
+    // (0.55 in the first cut left a 0.3 m stone showing 12 cm at x-stone-fallen)
+    const sink = baseR * 0.36;
+    // centred on its spot: the block was authored standing on the origin, so laid over it would
+    // reach L from the spot to one side and off its plinth (the first cut's fallen stone lay
+    // across the neighbouring slabs at x-stone-fallen)
     let minY = Infinity;
+    let minX = Infinity;
+    let maxX = -Infinity;
+    let minZ = Infinity;
+    let maxZ = -Infinity;
     const v = new Vector3();
     for (let i = 0; i < local.pos.length; i += 3) {
       v.set(local.pos[i], local.pos[i + 1], local.pos[i + 2]).applyMatrix4(m);
       minY = Math.min(minY, v.y);
+      minX = Math.min(minX, v.x);
+      maxX = Math.max(maxX, v.x);
+      minZ = Math.min(minZ, v.z);
+      maxZ = Math.max(maxZ, v.z);
     }
-    m.premultiply(new Matrix4().makeTranslation(s.x, groundY - sink - minY, s.z));
+    m.premultiply(new Matrix4().makeTranslation(s.x - (minX + maxX) / 2, groundY - sink - minY, s.z - (minZ + maxZ) / 2));
   } else {
     const axis = new Vector3(-Math.sin(s.tiltDir), 0, Math.cos(s.tiltDir)).normalize();
     m.premultiply(new Matrix4().makeRotationAxis(axis, s.tiltRad));
@@ -333,16 +366,55 @@ export function buildStandingStone(mb: MeshBuilder, rng: Rng, s: StandingStoneSp
   }
   local.transform(m);
 
-  // --- bedding skirt: soil / moss heaped against the foot, over the paving's plinth ---
-  if (!fallen) {
+  // --- bedding skirt: soil / moss heaped against the foot, over the paving's plinth. The
+  // standing stones' foot is the ring nearest the ground line; the fallen stone's is the hull of
+  // its vertices within 6 cm of the ground (its side lies in the soil), taken as the farthest
+  // vertex in each of 14 angular bins around their centroid ---
+  {
     local.beginGroup();
-    // the flank at ground level in world space: the ring nearest y = 0, transformed
-    const footRing = rings.reduce((best, r) => (Math.abs(r.y) < Math.abs(best.y) ? r : best), rings[0]);
     const vv = new Vector3();
-    const foot = footRing.pts.map((p) => {
-      vv.set(p.x, footRing.y, p.z).applyMatrix4(m);
-      return { x: vv.x, z: vv.z };
-    });
+    let foot: P2[];
+    if (!fallen) {
+      const footRing = rings.reduce((best, r) => (Math.abs(r.y) < Math.abs(best.y) ? r : best), rings[0]);
+      foot = footRing.pts.map((p) => {
+        vv.set(p.x, footRing.y, p.z).applyMatrix4(m);
+        return { x: vv.x, z: vv.z };
+      });
+    } else {
+      const low: P2[] = [];
+      let cx = 0;
+      let cz = 0;
+      for (let i = 0; i < local.pos.length; i += 3) {
+        if (local.pos[i + 1] < groundY + 0.06) {
+          low.push({ x: local.pos[i], z: local.pos[i + 2] });
+          cx += local.pos[i];
+          cz += local.pos[i + 2];
+        }
+      }
+      cx /= Math.max(1, low.length);
+      cz /= Math.max(1, low.length);
+      const bins: (P2 | null)[] = Array.from({ length: n }, () => null);
+      const binR = new Float64Array(n);
+      for (const p of low) {
+        const a = Math.atan2(p.z - cz, p.x - cx);
+        const k = ((Math.floor(((a + Math.PI) / (Math.PI * 2)) * n) % n) + n) % n;
+        const r = Math.hypot(p.x - cx, p.z - cz);
+        if (!bins[k] || r > binR[k]) {
+          bins[k] = p;
+          binR[k] = r;
+        }
+      }
+      // empty bins take the mean radius on their bin's angle so the hull stays closed
+      const meanR = low.length ? low.reduce((a, p) => a + Math.hypot(p.x - cx, p.z - cz), 0) / low.length : baseR;
+      foot = bins.map((p, k) => {
+        if (p) return p;
+        const a = ((k + 0.5) / n) * Math.PI * 2 - Math.PI;
+        return { x: cx + Math.cos(a) * meanR, z: cz + Math.sin(a) * meanR };
+      });
+      // the skirt's winding below assumes the base outline's orientation; the hull is walked by
+      // increasing angle, so match its signed area to the outline's
+      if (Math.sign(signedArea(foot)) !== Math.sign(signedArea(outline))) foot.reverse();
+    }
     const fc = { x: foot.reduce((a, p) => a + p.x, 0) / n, z: foot.reduce((a, p) => a + p.z, 0) / n };
     const reach = rng.range(SKIRT_REACH[0], SKIRT_REACH[1]);
     const rise = rng.range(SKIRT_RISE[0], SKIRT_RISE[1]);
@@ -364,9 +436,10 @@ export function buildStandingStone(mb: MeshBuilder, rng: Rng, s: StandingStoneSp
     const r0 = skirt(0);
     const r1 = skirt(1);
     const r2 = skirt(2);
-    // soil at the outer edge, moss over the crown, damp moss against the stone
-    const soil: Rgb = [0.34 * tint, 0.3 * tint, 0.22 * tint];
-    const mossy: Rgb = [0.36 * tint, 0.36 * tint, 0.26 * tint];
+    // soil at the outer edge, moss over the crown, damp moss against the stone (the joint fill's
+    // mossy-earth family, independent of the stone's tint)
+    const soil: Rgb = [0.3, 0.255, 0.175];
+    const mossy: Rgb = [0.29, 0.31, 0.2];
     const mossK = (k: number, i: number) => {
       const m2 = N.fbm(r1[i].x * 5 + skirtOff, r1[i].z * 5 - skirtOff, 2) * 0.5 + 0.5;
       return k === 0 ? 0.55 + 0.45 * m2 : k === 1 ? 0.35 + 0.65 * m2 : 0.12 + 0.3 * m2;
