@@ -1485,6 +1485,18 @@ export const MOSS_LOBE_HEIGHT: readonly [number, number] = [0.45, 1.25];
 export const MOSS_LOBE_RUFFLE = 0.34;
 export const MOSS_BLADES: readonly [number, number] = [4, 8];
 export const MOSS_BLADE_RISE = 0.55;
+/**
+ * The velvet (round 46, survey-2 check 28 after the first pass: the lobes were irregular but still
+ * read as smooth pale caps at 2.5 m). Every ultra lobe — and the crown — carries MOSS_FUZZ_PER_LOBE
+ * one-triangle hairs standing off its surface along the surface normal, MOSS_FUZZ_LENGTH × the
+ * lobe's radius long (≈ 1–2 cm at the placed scales: 5–10 px at 2.5 m, a pixel wide), their tips
+ * lit MOSS_FUZZ_TIP over the lobe's tone; laid before the envelope fit, so the cushion keeps the
+ * dome's height with its hairs on. From the cushion's own forked stream (`/fuzz`): the lobe draws
+ * the mid tier shares are untouched.
+ */
+export const MOSS_FUZZ_PER_LOBE = 14;
+export const MOSS_FUZZ_LENGTH: readonly [number, number] = [0.35, 0.7];
+export const MOSS_FUZZ_TIP = 1.08;
 
 export function mossGeometry(seed: string, pal: PlantPalette, detail: Detail = 'high'): BufferGeometry {
   const rng = createRng(seed);
@@ -1593,7 +1605,10 @@ export function mossGeometry(seed: string, pal: PlantPalette, detail: Detail = '
   const leanA = fine() * TAU;
   const lean = 0.1 * fine();
   const crownR = 0.42 + 0.1 * fine();
-  cushion(V(Math.cos(leanA) * lean, bodyH * 0.9, Math.sin(leanA) * lean), V(0, 1, 0), crownR, height - bodyH * 0.9, ultra ? 9 : 6, ultra ? 3 : 2, 0.16, 3.2, 0.05, 11);
+  const crownC = V(Math.cos(leanA) * lean, bodyH * 0.9, Math.sin(leanA) * lean);
+  cushion(crownC, V(0, 1, 0), crownR, height - bodyH * 0.9, ultra ? 9 : 6, ultra ? 3 : 2, 0.16, 3.2, 0.05, 11);
+  /** the ultra lobes (and the crown) for the velvet pass — MOSS_FUZZ_* */
+  const pads: { c: Vector3; n: Vector3; r: number; h: number; stretch: { a: number; k: number } | null; toneMul: number }[] = [{ c: crownC, n: V(0, 1, 0), r: crownR, h: height - bodyH * 0.9, stretch: null, toneMul: 1 }];
   for (let i = 0; i < lobes; i++) {
     // a golden-angle spiral spreads the lobes round the body, the meridian fraction runs rim → shoulder;
     // 4–8 cm across at the placed scales (the structures' roof tufts' 4–12 cm), rounder than the body
@@ -1609,8 +1624,10 @@ export function mossGeometry(seed: string, pal: PlantPalette, detail: Detail = '
     const toneMul = 0.9 + 0.2 * fine();
     // every draw above is taken at both tiers (the stream stays the ultra's); the mid tier builds
     // every MOSS_MID_LOBE_STEP-th lobe, grown to stand in for the ones between
-    if (ultra) cushion(p, n, rl, hl, 8, 3, MOSS_LOBE_RUFFLE, 6, rl * 0.15, 20 + i * 7, toneMul, stretch);
-    else if (i % MOSS_MID_LOBE_STEP === 0) cushion(p, n, rl * MOSS_MID_LOBE_GROW, hl * MOSS_MID_LOBE_GROW, 5, 2, MOSS_LOBE_RUFFLE, 6, rl * 0.15, 20 + i * 7, toneMul, stretch);
+    if (ultra) {
+      cushion(p, n, rl, hl, 8, 3, MOSS_LOBE_RUFFLE, 6, rl * 0.15, 20 + i * 7, toneMul, stretch);
+      pads.push({ c: p, n, r: rl, h: hl, stretch, toneMul });
+    } else if (i % MOSS_MID_LOBE_STEP === 0) cushion(p, n, rl * MOSS_MID_LOBE_GROW, hl * MOSS_MID_LOBE_GROW, 5, 2, MOSS_LOBE_RUFFLE, 6, rl * 0.15, 20 + i * 7, toneMul, stretch);
   }
   // seat the base ring on y = 0 and hold the high dome's envelope: its height exactly (the lobes
   // that rise past it are pulled down with the whole), its footprint or less
@@ -1654,6 +1671,56 @@ export function mossGeometry(seed: string, pal: PlantPalette, detail: Detail = '
       const pts = [foot, foot.clone().addScaledVector(dir, len * 0.55), foot.clone().addScaledVector(dir, len).add(bow).setY(tipY - 0.08 * len)];
       const facing = V(-dir.z, 0, dir.x);
       bladeStrip(m, pts, 0.025 + 0.015 * fine(), facing, tone(bladeColor, 0.9 + 0.2 * fine()), bladeTip, 0.3);
+    }
+    // the velvet (MOSS_FUZZ_*): one-triangle hairs off every pad's upper half along its surface
+    // normal, in the fitted frame like the blades; from the cushion's own forked stream
+    const fuzz = createRng(`${seed}/fuzz`);
+    for (const pad of pads) {
+      const up = pad.n.clone().normalize();
+      const ref = Math.abs(up.y) > 0.92 ? V(1, 0, 0) : V(0, 1, 0);
+      const a = new Vector3().crossVectors(ref, up).normalize();
+      const b = new Vector3().crossVectors(up, a).normalize();
+      for (let k = 0; k < MOSS_FUZZ_PER_LOBE; k++) {
+        const ang = fuzz() * TAU;
+        const t = 0.45 + 0.5 * fuzz();
+        const { r: pr, y: py } = profile(t);
+        const ell = pad.stretch ? 1 + pad.stretch.k * Math.cos(ang - pad.stretch.a) ** 2 : 1;
+        const radial = a.clone().multiplyScalar(Math.cos(ang)).addScaledVector(b, Math.sin(ang));
+        // the foot a hair under the ruffled skin; the surface normal from the meridian slope
+        const foot = pad.c.clone().addScaledVector(radial, pad.r * pr * ell * 0.96).addScaledVector(up, pad.h * py * 0.96);
+        const p1 = profile(t + 1e-3);
+        const dr = ((p1.r - pr) / 1e-3) * pad.r;
+        const dy = ((p1.y - py) / 1e-3) * pad.h;
+        const nl = Math.hypot(dy, dr) || 1;
+        const dir = radial.clone().multiplyScalar(dy / nl).addScaledVector(up, -dr / nl).addScaledVector(a, (fuzz() - 0.5) * 0.6).addScaledVector(b, (fuzz() - 0.5) * 0.6).normalize();
+        // a lobe's radius scales the hair (the crown is twice a lobe: its hairs are a lobe's)
+        const hr = Math.min(pad.r, 0.22);
+        const len = hr * (MOSS_FUZZ_LENGTH[0] + (MOSS_FUZZ_LENGTH[1] - MOSS_FUZZ_LENGTH[0]) * fuzz());
+        const w = hr * (0.07 + 0.06 * fuzz());
+        let side = new Vector3().crossVectors(dir, V(0, 1, 0));
+        if (side.lengthSq() < 1e-6) side = a.clone();
+        side.normalize();
+        const fit = (p: Vector3) => V(p.x * sxz, Math.max(0, p.y) * sy, p.z * sxz);
+        const f = fit(foot);
+        const tipP = fit(foot.clone().addScaledVector(dir, len));
+        // a rim lobe's hair leans out: its tip stays inside the high dome's footprint (the envelope contract)
+        const tipR = Math.hypot(tipP.x, tipP.z);
+        if (tipR > highSpan) {
+          const fR = Math.hypot(f.x, f.z);
+          const k = fR < highSpan ? (highSpan - fR) / (tipR - fR) : 0;
+          tipP.x = f.x + (tipP.x - f.x) * k;
+          tipP.z = f.z + (tipP.z - f.z) * k;
+        }
+        const gt = clamp01(f.y / height);
+        // the root in the pile's shade, the tip at the lobe's lit tone × MOSS_FUZZ_TIP: the ultra's mean
+        // luminance stays the far dome's (the no-pop contract at MOSS_MID_M)
+        const base = tone(colorAt(gt, t, 0), pad.toneMul * 0.7);
+        const tip = tone(colorAt(gt, 1, 0.4), pad.toneMul * MOSS_FUZZ_TIP);
+        const v0 = m.vertex(f.clone().addScaledVector(side, -w / 2), NOT_LAMINA + 0.5, gt, base);
+        const v1 = m.vertex(f.clone().addScaledVector(side, w / 2), NOT_LAMINA + 0.5, gt, base);
+        const v2 = m.vertex(tipP, NOT_LAMINA + 0.5, clamp01(tipP.y / height), tip);
+        m.tri(v0, v1, v2);
+      }
     }
   }
   return m.finish();

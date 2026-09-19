@@ -367,10 +367,12 @@ assert.deepEqual(a.plants.weeds.packLayout[0],[[0,1,2]],'weed ultra LOD in one d
     assert.ok(near<=40,`${set.opts.name}: ${near} ultra instances inside ${ring} m of ${vp.id} (round 43 rings: at most 28 flowers at F, ≤ 10 of any other set)`);}
   // round 46: the moss ring runs to MOSS_ULTRA_M = 6 m and camera C stands in a bed of cushions (≈ 280 inside it, 10 inside
   // the round-43 3 m ring), so the moss is bounded by its triangle cost instead: the ultra − mid delta over every cushion
-  // inside the ring ≤ 0.25 M at each fixed camera (before the frustum cull; the ring itself is checked above)
+  // inside the ring ≤ 0.25 M at each fixed camera (before the frustum cull; the ring itself is checked above);
+  // the velvet pass (MOSS_FUZZ_*: ≈ 15 pads × 14 one-triangle hairs a cushion) takes it to ≤ 0.32 M — C's whole-scene
+  // delta against take-0115 stays under the +0.3 M view budget (cap-2 of round 46 measured +0.06 M before the hairs)
   {const pal0=makePalette(a.ctx.config.palette),s0=a.ctx.config.seed;const delta=Math.max(...[0,1].map(v=>(mossGeometry(`${s0}/moss/${v}`,pal0,'ultra').index.count-mossGeometry(`${s0}/moss/${v}`,pal0,'high').index.count)/3));
     for(const vp of LAYOUT.viewpoints){const near=a.plants.moss.items.filter(it=>Math.hypot(it.x-vp.position[0],it.z-vp.position[2])<MOSS_ULTRA_M).length;
-      assert.ok(near*delta<=250e3,`moss: ${near} ultra cushions inside ${MOSS_ULTRA_M} m of ${vp.id} × ${delta} extra triangles = ${(near*delta/1e3).toFixed(0)} K`);}}
+      assert.ok(near*delta<=320e3,`moss: ${near} ultra cushions inside ${MOSS_ULTRA_M} m of ${vp.id} × ${delta} extra triangles = ${(near*delta/1e3).toFixed(0)} K`);}}
   // the ultra tier keeps the high LOD's envelope: height within 5 mm (unit scale), footprint within 10 %, more triangles
   const pal=makePalette(a.ctx.config.palette),seed=a.ctx.config.seed;
   for(let v=0;v<2;v++){const u=mossGeometry(`${seed}/moss/${v}`,pal,'ultra'),h=mossGeometry(`${seed}/moss/${v}`,pal,'high'),l=mossGeometry(`${seed}/moss/${v}`,pal,'low');
@@ -378,11 +380,12 @@ assert.deepEqual(a.plants.weeds.packLayout[0],[[0,1,2]],'weed ultra LOD in one d
     const L=g=>{const c=g.attributes.color.array;let s=0;for(let i=0;i<c.length;i+=3)s+=0.2126*c[i]+0.7152*c[i+1]+0.0722*c[i+2];return s/(c.length/3);};
     assert.ok(Math.abs(L(l)-L(u))<=0.12*L(u),`moss ${v}: far dome luminance ${L(l).toFixed(3)} vs ultra ${L(u).toFixed(3)} (no pop at MOSS_MID_M)`);
     // round 46: the ultra BODY keeps the dome's height; only its MOSS_BLADES grass blades (≤ MOSS_BLADES[1] strips, few
-    // vertices) stand over the crown, by MOSS_BLADE_RISE × the height at most — so the ultra's vertices above the dome are few
-    {const {MOSS_BLADES,MOSS_BLADE_RISE}=read('vegetation/plantgeo');const H=h.boundingBox.max.y,p=u.attributes.position.array;let over=0;for(let i=1;i<p.length;i+=3)if(p[i]>H+0.005)over++;
+    // vertices) and the velvet's hair tips (one vertex a hair, MOSS_FUZZ_PER_LOBE a pad) stand over the crown, by
+    // MOSS_BLADE_RISE × the height at most — so the ultra's vertices above the dome are few
+    {const {MOSS_BLADES,MOSS_BLADE_RISE,MOSS_FUZZ_PER_LOBE,MOSS_ULTRA_LOBES}=read('vegetation/plantgeo');const H=h.boundingBox.max.y,p=u.attributes.position.array;let over=0;for(let i=1;i<p.length;i+=3)if(p[i]>H+0.005)over++;
       assert.ok(Math.abs(l.boundingBox.max.y-H)<=0.005,`moss ${v}: the far dome keeps the mid's height`);
       assert.ok(u.boundingBox.max.y>H+0.01&&u.boundingBox.max.y<=H*(1+MOSS_BLADE_RISE)+0.005,`moss ${v}: blades stand ${(u.boundingBox.max.y-H).toFixed(3)} over the ${H.toFixed(3)} crown`);
-      assert.ok(over>=4&&over<=MOSS_BLADES[1]*12,`moss ${v}: ${over} ultra vertices over the crown — the blades alone`);}
+      assert.ok(over>=4&&over<=MOSS_BLADES[1]*12+MOSS_FUZZ_PER_LOBE*(MOSS_ULTRA_LOBES[1]+1),`moss ${v}: ${over} ultra vertices over the crown — the blades and the hair tips alone`);}
     // every tier is lit from the crown down to a dark rim (the dome's own top-heavy blend read as a pale ball)
     for(const [name,g] of [['mid',h],['far',l]]){const p=g.attributes.position.array,c=g.attributes.color.array,H=g.boundingBox.max.y;const rim=[],crown=[];
       for(let i=0;i<p.length/3;i++){const y=p[i*3+1],lum=0.2126*c[i*3]+0.7152*c[i*3+1]+0.0722*c[i*3+2];if(y<0.12*H)rim.push(lum);else if(y>0.75*H)crown.push(lum);}
