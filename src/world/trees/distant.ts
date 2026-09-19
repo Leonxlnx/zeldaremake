@@ -43,6 +43,64 @@ const ICO0 = new IcosahedronGeometry(1, 0);
 export const DISTANT_FLARE = 0.4;
 /** … falling off with this e-folding distance (m) along the bole */
 export const DISTANT_FLARE_FALL = 1.6;
+/**
+ * Round 46 (survey-2 check 04, poses w19-spine-r / sn-arch-outside: the depth rows' boles
+ * 8–14 m from a walker were still smooth grey cones — round 45's tone bands and cords are albedo
+ * alone on a bole whose base tone is 0.04 linear, so under the veil a ±40 % band is 7 sRGB levels,
+ * and a 10-sided prism has no flank to catch the sun). The near LOD bole now carries GEOMETRIC
+ * longitudinal cords: [furrows around a broad bole, around a slender, furrow depth as a share
+ * of the radius] — straight furrows (no lean, so the per-side grain the sweep already writes
+ * carries the same field as a crevice shade, aligned with the geometry exactly), narrow troughs
+ * between flat plates, a second set at N + 3 for irregularity. Near LOD only: the far LOD's
+ * crossed quads are untouched and every fixed camera is ≥ 38 m from a depth row.
+ */
+export const DISTANT_CORDS: [number, number, number] = [9, 5, 0.09];
+/**
+ * Round 46, measured (trees-29 probe at w19-spine-r, dist-1: the cords above in the geometry,
+ * ring radii 1.10–1.46 m on a 1.26 m bole, the furrow shade in the vertex colours — and the frame
+ * unchanged, |Δ| 1.2 / 255): the near LOD's wood vertex colours are 0.01–0.03 LINEAR (the far
+ * tint: a depth row is a dark column against the haze at 40 m+). A 2 % albedo reflects nothing a
+ * walker can see at 10 m — the visible cone is the veil plus the sky's specular on a black
+ * surface, uniform whatever the geometry or the vertex shade does. So the broad kind's near LOD
+ * bark (the bole, its limbs and roots — not the lobe cores, which stay the canopy's dark; the
+ * slender kind is barkWhite × 0.7 ≈ 0.48 linear already and takes no gain) is written at
+ * this gain over the far tint, and the distant material divides it back out where its near
+ * blend (materials.ts DISTANT_BARK_M) is zero: at 38 m+ every vertex is the colour it was, the
+ * hero frames exactly (the nearest near-LOD tree to a fixed camera is 51 m off); inside 22 m the
+ * bole is real bark at 4 × 0.02–0.06 = 0.08–0.24 linear, the giants' shaded bark range, and the
+ * geometric cords, the furrow shade, the foot grime and the tone bands finally have light to show
+ * in. Tagged in aRoot.w (writer.ts woodMoss = 1 → −0.45; the distant material reads nothing else
+ * from the moss code).
+ */
+export const DISTANT_NEAR_GAIN = 4;
+/**
+ * round 46: the near LOD bole's sides [broad, slender] (10 / 7 through round 45) — 4 / 3 per
+ * furrow. Survey-2 crop 03 (pose w09-spine-l, "buttress flares as faceted low-poly cones with a
+ * hard straight base"): the probe put a depth row's near-LOD bole foot under that wedge (depth
+ * 55–71 m, distant-tree candidates only) — a 10-gon's flared foot, 36° a facet, pale in the haze.
+ */
+export const DISTANT_SIDES: [number, number] = [36, 15];
+/**
+ * round 46: the near LOD bole's foot grime in the vertex colour — × this at the ground line,
+ * the bark's own tone by the second ring (≈ 4 m) — a soil-dark root fillet at every range the
+ * near LOD is drawn (round 45's shader grime is zero past 38 m, and w09-spine-l's wedge stands
+ * at 55–71 m). The far LOD's quads are untouched.
+ */
+export const DISTANT_FOOT_GRIME = 0.6;
+/** round 46: vertex-colour multiplier at a furrow's floor (1 at the plates' crests) */
+export const DISTANT_FURROW_SHADE = 0.42;
+/** round 46: the near LOD root buttresses' arc sides (6 through round 45: 30° facets read as a low-poly cone from a walker) */
+export const DISTANT_ROOT_ARC = 10;
+
+/**
+ * the cord field of a near LOD bole: the radius multiplier at `angle` — 1 on the plates, 1 − depth
+ * at a furrow's floor. Angle-only (see DISTANT_CORDS).
+ */
+export function distantCord(angle: number, count: number, depth: number, phase: number): number {
+  const primary = Math.pow(0.5 - 0.5 * Math.cos(angle * count + phase), 1.7);
+  const secondary = Math.pow(0.5 - 0.5 * Math.cos(angle * (count + 3) + phase * 2.3 + 1.1), 2.4);
+  return 1 - depth * Math.min(1, primary + 0.45 * secondary);
+}
 /** round 45 (item 4): a near-LOD limb's length as a share of the crown radius (0.6–1.0 through round 44: past the lobe shells) */
 export const LIMB_REACH: [number, number] = [0.45, 0.75];
 /**
@@ -120,7 +178,8 @@ function leafCardLobe(writer: GeometryWriter, center: Vector3, radius: number, s
 /** solid (non-card) vertices of a geometry sharing the cluster-card material sample the opaque patch */
 function solidUv(writer: GeometryWriter) {
   for (let i = 0; i < writer.roots.length / 4; i++) {
-    if (writer.roots[i * 4 + 3] === 0) {
+    // every wood vertex (w ≤ 0): the lobe cores at 0 and the near LOD's tagged bark at −0.45
+    if (writer.roots[i * 4 + 3] <= 0) {
       writer.uvs[i * 2] = SOLID_UV;
       writer.uvs[i * 2 + 1] = SOLID_UV;
     }
@@ -170,9 +229,17 @@ export function createDistantVariants(rng: Rng, palette: Palette): DistantVarian
     // wind phase, one grain per old side) and the grain resampled over the new sides, so the
     // limbs and lobes after it draw exactly what they did — the rows' silhouettes in D hold.
     const oldSides = slender ? 5 : 7;
-    const sides = slender ? 7 : 10;
+    const sides = slender ? DISTANT_SIDES[1] : DISTANT_SIDES[0];
     const trunkDraws = consumeTubeDraws(r, oldSides);
-    trunkDraws.grain = Array.from({ length: sides }, (_, j) => trunkDraws.grain[Math.floor((j / sides) * oldSides)]);
+    // round 46 (DISTANT_CORDS): the resampled per-side grain also carries the furrow shade —
+    // the cord field is angle-only, so this is exactly the crevice under each vertex
+    const cordCount = slender ? DISTANT_CORDS[1] : DISTANT_CORDS[0];
+    const cordPhase = rng.fork(`distant-cords-${index}`)() * TAU;
+    trunkDraws.grain = Array.from({ length: sides }, (_, j) => {
+      const angle = (j / sides) * TAU;
+      const furrow = (1 - distantCord(angle, cordCount, DISTANT_CORDS[2], cordPhase)) / DISTANT_CORDS[2];
+      return trunkDraws.grain[Math.floor((j / sides) * oldSides)] * (1 - (1 - DISTANT_FURROW_SHADE) * furrow);
+    });
     // round 45 (trees-27's leftover, w19-spine-r / sn-arch-outside: the depth rows' boles 15–30 m
     // from a walker were straight pale cylinders): a basal flare on the near LOD — the radius
     // × (1 + DISTANT_FLARE e^(−d / DISTANT_FLARE_FALL)) along the bole, 1.27 R at the ground line
@@ -181,8 +248,17 @@ export function createDistantVariants(rng: Rng, palette: Palette): DistantVarian
     // distantNear): the nearest near-LOD distant tree to a fixed camera is 51 m off (the radial
     // pool from A; the depth rows 52 m+ from D), where 0.4 R on a 1 m bole is under a pixel at
     // the gauntlet's 256 × 144 — measured cap-5 → cap-11: D −0.0001, A −0.0001.
-    const flare = (_angle: number, distance: number) => 1 + DISTANT_FLARE * Math.exp(-distance / DISTANT_FLARE_FALL);
-    tube(near, trunk, taper(trunk, R, R * (spec.taperTop ?? 0.25), 0.9), sides, r, { color: bark, roughness: 0.1, flatBase: true, structural: true, stiffness: () => 1, draws: trunkDraws, bump: flare });
+    // round 46: × the cord field (DISTANT_CORDS) — the furrows are real relief now, 36 / 15 sides
+    // (DISTANT_SIDES) so each has a floor and two flanks the sun can tell apart
+    const flare = (angle: number, distance: number) => (1 + DISTANT_FLARE * Math.exp(-distance / DISTANT_FLARE_FALL)) * distantCord(angle, cordCount, DISTANT_CORDS[2], cordPhase);
+    // the bark parts at DISTANT_NEAR_GAIN over the far tint, tagged for the material to divide out
+    // at range (see the constant); the lobe cores below are written untagged at the far tint
+    // the slender kind is pale already (barkWhite × 0.7 ≈ 0.48 linear): no gain, untagged
+    const gain = slender ? 1 : DISTANT_NEAR_GAIN;
+    const nearBark = bark.clone().multiplyScalar(gain);
+    const footGrime = nearBark.clone().multiplyScalar(DISTANT_FOOT_GRIME);
+    near.woodMoss = slender ? 0 : 1;
+    tube(near, trunk, taper(trunk, R, R * (spec.taperTop ?? 0.25), 0.9), sides, r, { color: (_pt, t) => (t === 0 ? footGrime : nearBark), roughness: 0.1, flatBase: true, structural: true, stiffness: () => 1, draws: trunkDraws, bump: flare });
     const limbs = slender ? 1 : r.int(2, 4);
     // round 45 (trees-28 item 4, survey pose w19-spine-u: the "pale twig tips spiking the crown
     // rim" straight overhead on the north spine are a depth-row tree's limbs — 4-sided bark-
@@ -191,7 +267,7 @@ export function createDistantVariants(rng: Rng, palette: Palette): DistantVarian
     // 6-sided with their draws taken as the 4-sided ones took them (the grain resampled, like the
     // trunk above, so the lobes and the far LOD after them draw exactly what they did), and run
     // from the bark at the bole to the crown's own dark from halfway out (LIMB_TIP_TINT).
-    const limbTip = canopy.clone().multiplyScalar(0.6);
+    const limbTip = canopy.clone().multiplyScalar(0.6 * gain);
     for (let i = 0; i < limbs; i++) {
       const t = r.range(0.45, 0.75);
       const o = trunk[Math.round(t * (trunk.length - 1))].clone();
@@ -202,8 +278,9 @@ export function createDistantVariants(rng: Rng, palette: Palette): DistantVarian
       const limbDraws = consumeTubeDraws(r, 4);
       limbDraws.grain = Array.from({ length: 6 }, (_, j) => limbDraws.grain[Math.floor((j / 6) * 4)]);
       const limbLength = Math.max(0.5, o.distanceTo(target));
-      tube(near, path, taper(path, R * 0.45, 0.05, 0.9), 6, r, { color: (pt) => bark.clone().lerp(limbTip, smoothstep(LIMB_TINT_FROM, LIMB_TINT_TO, pt.distanceTo(o) / limbLength) * LIMB_TIP_TINT), roughness: 0.05, structural: true, stiffness: () => 1, draws: limbDraws });
+      tube(near, path, taper(path, R * 0.45, 0.05, 0.9), 6, r, { color: (pt) => nearBark.clone().lerp(limbTip, smoothstep(LIMB_TINT_FROM, LIMB_TINT_TO, pt.distanceTo(o) / limbLength) * LIMB_TIP_TINT), roughness: 0.05, structural: true, stiffness: () => 1, draws: limbDraws });
     }
+    near.woodMoss = 0;
     const lobes = slender ? 3 : 5;
     const cardsPerLobe = slender ? 18 : 24;
     const rim = rng.fork(`distant-rim-${index}`);
@@ -233,12 +310,15 @@ export function createDistantVariants(rng: Rng, palette: Palette): DistantVarian
     // their own stream so nothing above re-rolls; the depth rows' feet are at the ground line of
     // D at 47 m+ where a 0.5 m root is 5 px in the haze
     const rootRng = rng.fork(`distant-roots-${index}`);
-    const rootColor = bark.clone().multiplyScalar(0.86);
+    const rootColor = nearBark.clone().multiplyScalar(0.86);
     const rootCount = slender ? 4 : rootRng.int(5, 7);
+    near.woodMoss = slender ? 0 : 1;
     for (let i = 0; i < rootCount; i++) {
       const a = (i / rootCount) * TAU + rootRng.range(-0.3, 0.3);
-      rootButtress(near, a, R * rootRng.range(1.4, 2.1), R * rootRng.range(0.3, 0.45), R * rootRng.range(0.45, 0.7), rootColor, rootRng, () => 0, new Vector3(0, 0, 0), 6);
+      // round 46: DISTANT_ROOT_ARC arc sides and a fillet into the ground (writer.ts RootButtressShape)
+      rootButtress(near, a, R * rootRng.range(1.4, 2.1), R * rootRng.range(0.3, 0.45), R * rootRng.range(0.45, 0.7), rootColor, rootRng, () => 0, new Vector3(0, 0, 0), 6, { arcSides: DISTANT_ROOT_ARC, fillet: 0.6 });
     }
+    near.woodMoss = 0;
     solidUv(near);
 
     // ---- far LOD: three fixed vertical silhouette planes, each a solid core fan with a rim of

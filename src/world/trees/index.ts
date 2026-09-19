@@ -23,7 +23,7 @@
  */
 import { BufferGeometry, Color, Frustum, Group, InstancedBufferAttribute, InstancedMesh, Matrix4, Mesh, PerspectiveCamera, Quaternion, Sphere, Vector3, type BufferAttribute, type Camera, type Material } from 'three';
 import type { TrunkSeat, WorldContext, WorldSystem } from '../system';
-import { CARD_EDGE_FADE, CARD_FLAT_EDGE_FADE, COLUMN_BARK_FLOOR, COLUMN_BARK_FLOOR_FAR, COLUMN_FLOOR_FADE_M, createTreeMaterials, DISTANT_BARK_M, DISTANT_NEAR_TONE, NEAR_BASE_FLOOR, NEAR_BOLE_FLOOR, NEAR_BOLE_FLOOR_FADE, NEAR_BOLE_FLOOR_TOP, NEAR_BOLE_SLOTS, NEAR_CANOPY_LEAF_FLOOR, NEAR_CANOPY_LEAF_NEAR_M, NEAR_CANOPY_SLOTS, NEAR_CANOPY_SUN_THROUGH, TREE_BARK_FLOOR, TREE_BARK_FLOOR_NEAR, TREE_FLOOR_FADE_M, TREE_LEAF_FLOOR, TREE_LEAF_FLOOR_NEAR, TREE_NEAR_BOLE_FLOOR } from './materials';
+import { BARK_DETAIL_M, BARK_DETAIL_TILES, BARK_TOUCH_M, BARK_TOUCH_TILES, CARD_EDGE_FADE, CARD_FLAT_EDGE_FADE, COLUMN_BARK_FLOOR, COLUMN_BARK_FLOOR_FAR, COLUMN_FLOOR_FADE_M, createTreeMaterials, CUSHION_FADE_M, DISTANT_BARK_M, DISTANT_NEAR_FLOOR, DISTANT_NEAR_TONE, NEAR_BASE_FLOOR, NEAR_BOLE_FLOOR, NEAR_BOLE_FLOOR_FADE, NEAR_BOLE_FLOOR_TOP, NEAR_BOLE_SLOTS, NEAR_CANOPY_LEAF_FLOOR, NEAR_CANOPY_LEAF_NEAR_M, NEAR_CANOPY_SLOTS, NEAR_CANOPY_SUN_THROUGH, TREE_BARK_FLOOR, TREE_BARK_FLOOR_NEAR, TREE_FLOOR_FADE_M, TREE_LEAF_FLOOR, TREE_LEAF_FLOOR_NEAR, TREE_NEAR_BOLE_FLOOR } from './materials';
 import type { ShadeFloor } from '../materials/shadeFloor';
 import { createWhiteBarkTree, whiteBarkParams, type TreeAsset, type WhiteBarkParams } from './whitebark';
 import { placeWhiteBark, viewProjector, type WhiteBarkPlacement } from './placement';
@@ -33,8 +33,8 @@ import { NEAR_CANOPY_HERO_MARGIN, NEAR_CANOPY_IN_M, NEAR_CANOPY_MAX_Y, NEAR_CANO
 import { LodPool, type PoolBuilt, type PoolItem } from './lodPool';
 import type { GiantTreeDef } from '../layout';
 import type { RootKitFit } from './rootkit';
-import { createDistantVariants, DISTANT_FLARE, DISTANT_FLARE_FALL, distantClearanceTally, LIMB_REACH, LIMB_TINT_FROM, LIMB_TINT_TO, LIMB_TIP_TINT, placeDistantTrees, type DepthBand, type DistantClearance, type DistantPlacement, type DistantVariant } from './distant';
-import { TAU, mergeParts, type Detail } from './writer';
+import { createDistantVariants, DISTANT_CORDS, DISTANT_FLARE, DISTANT_FLARE_FALL, DISTANT_FOOT_GRIME, DISTANT_FURROW_SHADE, DISTANT_NEAR_GAIN, DISTANT_ROOT_ARC, DISTANT_SIDES, distantClearanceTally, LIMB_REACH, LIMB_TINT_FROM, LIMB_TINT_TO, LIMB_TIP_TINT, placeDistantTrees, type DepthBand, type DistantClearance, type DistantPlacement, type DistantVariant } from './distant';
+import { TAU, isCushionRoot, mergeParts, type Detail } from './writer';
 import type { ViewGap } from './placement';
 
 /**
@@ -1417,6 +1417,19 @@ interface GeometryBuilt extends PoolBuilt {
 }
 /** what the audit's residentBytes counted from the start: every attribute array plus the index */
 const geometryBytes = (g: BufferGeometry) => Object.values(g.attributes).reduce((b, a) => b + a.array.byteLength, 0) + (g.index ? g.index.array.byteLength : 0);
+/**
+ * A translated-to-world part's roots: aRoot.xyz becomes the tree's world origin (the merged
+ * shader's per-tree context) — except a 3-D moss cushion's vertices (writer.ts woodCushion,
+ * isCushionRoot), whose xyz is the cushion's anchor on the bark and is translated with the
+ * geometry instead, so the shader's touching-distance shrink (materials.ts CUSHION_FADE_M) keeps
+ * its target. Round 46: overwriting every root was why the shrink never fired on a giant's base.
+ */
+const rootsToWorld = (root: BufferAttribute, ox: number, oy: number, oz: number) => {
+  for (let i = 0; i < root.count; i++) {
+    if (isCushionRoot(root.getW(i))) root.setXYZ(i, root.getX(i) + ox, root.getY(i) + oy, root.getZ(i) + oz);
+    else root.setXYZ(i, ox, oy, oz);
+  }
+};
 /** an empty geometry that keeps a built part's cull sphere while its buffers are out of the pool */
 const placeholderFor = (g: BufferGeometry) => {
   const p = new BufferGeometry();
@@ -1995,8 +2008,7 @@ export async function create(ctx: WorldContext): Promise<WorldSystem> {
   /** a giant's near part to world space (translated, aRoot.xyz = the origin), as the sectors are */
   const giantPartToWorld = (g: BufferGeometry, origin: Vector3) => {
     g.translate(origin.x, origin.y, origin.z);
-    const root = g.getAttribute('aRoot') as BufferAttribute;
-    for (let i = 0; i < root.count; i++) root.setXYZ(i, origin.x, origin.y, origin.z);
+    rootsToWorld(g.getAttribute('aRoot') as BufferAttribute, origin.x, origin.y, origin.z);
   };
   /**
    * A giant's near parts, right after its build (so the pools can prune the far ones before the
@@ -2196,8 +2208,7 @@ export async function create(ctx: WorldContext): Promise<WorldSystem> {
     // (the near base and the near-canopy parts get the same below, where their pooled rebuilds do)
     for (const g of [asset.geometry, asset.authoredLeaves, asset.cards, asset.authoredCards]) {
       g.translate(px, gy, pz);
-      const root = g.getAttribute('aRoot') as BufferAttribute;
-      for (let i = 0; i < root.count; i++) root.setXYZ(i, px, gy, pz);
+      rootsToWorld(g.getAttribute('aRoot') as BufferAttribute, px, gy, pz);
     }
     // the lantern tree publishes its built limb — the sweep's own ring centres and nominal radii,
     // wiggle included, in world space (the tree is only translated) — so structures can wrap the
@@ -2932,6 +2943,8 @@ export async function create(ctx: WorldContext): Promise<WorldSystem> {
       distantLod: [distantNearCount, distantFarCount],
       /** round 45: the near LOD bole's basal flare [share at the foot, e-folding m] and the near-bark tone [overall, band amplitude, grime at the foot] (distant.ts, materials.ts DISTANT_NEAR_TONE) */
       distantNearBark: { flare: [DISTANT_FLARE, DISTANT_FLARE_FALL], tone: DISTANT_NEAR_TONE, withinM: DISTANT_BARK_M, limbReach: LIMB_REACH, limbTint: [LIMB_TIP_TINT, LIMB_TINT_FROM, LIMB_TINT_TO] },
+      /** round 46: the near LOD bole's geometric cords [furrows around a broad / a slender, depth share], sides [broad, slender], the furrow floor's vertex shade, the root buttresses' arc sides (distant.ts) */
+      distantNearRelief: { cords: DISTANT_CORDS, sides: DISTANT_SIDES, furrowShade: DISTANT_FURROW_SHADE, footGrime: DISTANT_FOOT_GRIME, rootArc: DISTANT_ROOT_ARC, nearGain: DISTANT_NEAR_GAIN, floor: [DISTANT_NEAR_FLOOR.lift, DISTANT_NEAR_FLOOR.texture] },
       /** round 45: a giant lobe's fine wood reach [secondaries, twigs] as shares of hR and its outer tint toward the leaf tone (giant.ts LOBE_*) */
       lobeWood: { secondaryReach: LOBE_SECONDARY_REACH, twigReach: LOBE_TWIG_REACH, tint: LOBE_TWIG_TINT },
       lodLevels: 3,
@@ -2991,13 +3004,16 @@ export async function create(ctx: WorldContext): Promise<WorldSystem> {
             const a = g.asset.nearBaseAudit!;
             return [g.def.id, Math.round(a.relief * 1e3) / 1e3, a.rings, a.sides, Math.round(a.mossShare * 1e3) / 1e3, a.fins, a.bigFins, a.toes, a.woodTriangles, a.plants.ferns, a.plants.tufts, a.plants.litter, a.plants.triangles];
           }),
-        /** per seated column: [seat id, relief (m), rings, sides, moss share, fins, toes, wood triangles, plant triangles] */
+        /** per seated column: [seat id, relief (m), rings, sides, moss share, fins, toes, wood triangles, plant triangles, 3-D cushions, roots-only] */
         columns: seatedColumns
           .filter((c) => c.lods[0].nearBaseAudit)
           .map((c) => {
             const a = c.lods[0].nearBaseAudit!;
-            return [c.placements[0].id, Math.round(a.relief * 1e3) / 1e3, a.rings, a.sides, Math.round(a.mossShare * 1e3) / 1e3, a.fins, a.toes, a.woodTriangles, a.plants.triangles];
+            return [c.placements[0].id, Math.round(a.relief * 1e3) / 1e3, a.rings, a.sides, Math.round(a.mossShare * 1e3) / 1e3, a.fins, a.toes, a.woodTriangles, a.plants.triangles, a.cushions, a.rootsOnly];
           }),
+        /** round 46: a 3-D moss cushion shrinks onto its anchor as the lens comes within [gone, full] m of it (materials.ts CUSHION_FADE_M); the near programs' bark octaves [m from, m to, tiles] for the fine (BARK_DETAIL_M) and touch (BARK_TOUCH_M) terms */
+        cushionFadeM: CUSHION_FADE_M,
+        barkOctaves: { fine: [BARK_DETAIL_M[0], BARK_DETAIL_M[1], BARK_DETAIL_TILES], touch: [BARK_TOUCH_M[0], BARK_TOUCH_M[1], BARK_TOUCH_TILES] },
       },
       /**
        * near-canopy LOD (giant.ts NEAR_CANOPY_IN_M, round 41): radii (m), the lobe-height cap,

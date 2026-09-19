@@ -169,7 +169,7 @@ export interface LanternBranchBuild {
   lights: PointLight[];
   leaves: number;
   /** round 40 dressing: twig forks (tubes) and their laminae, hanging vines, moss sheets */
-  dressing: { twigs: number; twigTriangles: number; laminae: number; laminaTriangles: number; vines: number; sheets: number };
+  dressing: { twigs: number; twigTriangles: number; laminae: number; laminaTriangles: number; vines: number; sheets: number; runBeards: number; cords: number; sides: number };
   /** which centreline the sleeve was swept along */
   wrapSource: 'shared' | 'layout';
   /** containment of the giant's limb surface inside the sleeve (see `checkContainment`) */
@@ -201,6 +201,12 @@ export interface ContainmentReport {
 const UP = new Vector3(0, 1, 0);
 /** bark relief the sleeve stands off the limb's nominal surface (m); its ridges rise outward from there */
 const RELIEF = 0.015;
+/** round 46: longitudinal cords around the sleeve (12 on the 0.15 m run ≈ 8 cm apart) … */
+const SLEEVE_CORDS = 12;
+/** … at ± this share of the radius (≈ ± 1.2 cm on the run: 4–5 px from 2 m) */
+const SLEEVE_CORD_RELIEF = 0.08;
+/** vertices around the sleeve: 4–5 across each cord (24 through round 45: two per cord, aliased) */
+const SLEEVE_SIDES = 56;
 /** finite-difference half-step (in s) for the sleeve's local tangent: ~0.12 m, a third of a limb
  *  ring spacing, so the frame is a running average over the published polyline's kinks */
 const TANGENT_H = 0.02;
@@ -260,7 +266,9 @@ function applySleeveNearBark(material: MeshStandardMaterial): void {
   material.onBeforeCompile = function (shader, renderer) {
     previousCompile.call(this, shader, renderer);
     shader.uniforms.uSleeveNear = { value: new Vector2(SLEEVE_NEAR_M[0], SLEEVE_NEAR_M[1]) };
-    shader.fragmentShader = 'uniform vec2 uSleeveNear;\nfloat sleeveNear = 0.0;\n' + shader.fragmentShader;
+    // round 46: the cords' occlusion rides a vertex attribute (aSleeveAO, 1 on the twigs)
+    shader.vertexShader = 'attribute float aSleeveAO;\nvarying float vSleeveAO;\n' + shader.vertexShader.replace('#include <begin_vertex>', '#include <begin_vertex>\n  vSleeveAO = aSleeveAO;\n');
+    shader.fragmentShader = 'uniform vec2 uSleeveNear;\nvarying float vSleeveAO;\nfloat sleeveNear = 0.0;\nfloat sleeveFine = 1.0;\n' + shader.fragmentShader;
     shader.fragmentShader = shader.fragmentShader.replace(
       '#include <map_fragment>',
       /* glsl */ `#include <map_fragment>
@@ -269,9 +277,28 @@ function applySleeveNearBark(material: MeshStandardMaterial): void {
       if (sleeveNear > 0.0) {
         vec3 fine = texture2D(map, vMapUv * ${SLEEVE_NEAR_TILES.toFixed(2)} + vec2(0.37, 0.61)).rgb;
         float fineLum = dot(fine, vec3(0.2126, 0.7152, 0.0722));
-        diffuseColor.rgb *= mix(1.0, clamp(fineLum / ${SLEEVE_BARK_MEAN.toFixed(3)}, 0.5, 1.8), 0.85 * sleeveNear);
+        sleeveFine = clamp(fineLum / ${SLEEVE_BARK_MEAN.toFixed(3)}, 0.5, 1.8);
+        diffuseColor.rgb *= mix(1.0, sleeveFine, 0.85 * sleeveNear);
       }
       #endif
+      `,
+    );
+    // Round 46 (survey-2 check 11: the bough at 2 m was still a smooth tube after round 44's fine
+    // bark): SLEEVE_FLOOR keeps 0.3 of the albedo and the floor is the only light on the
+    // underside, so a pre-floor factor reaches the pixel at a third of itself and the fine
+    // normal's Lambert not at all. After the floor (three's `aomap_fragment` follows
+    // `lights_fragment_end`, where the floor lands) the cords' occlusion and half the fine
+    // factor scale the shaded light itself — within SLEEVE_NEAR_M, so camera A at 5.8 m+ renders
+    // exactly what it did. Mean-preserving over the cords (× 1.15 on an AO of mean ≈ 0.85).
+    shader.fragmentShader = shader.fragmentShader.replace(
+      '#include <aomap_fragment>',
+      /* glsl */ `
+      if (sleeveNear > 0.0) {
+        float sleeveMul = mix(1.0, clamp(vSleeveAO * 1.15, 0.6, 1.2) * mix(1.0, sleeveFine, 0.5), sleeveNear);
+        reflectedLight.indirectDiffuse *= sleeveMul;
+        reflectedLight.directDiffuse *= mix(1.0, sleeveMul, 0.5);
+      }
+      #include <aomap_fragment>
       `,
     );
     shader.fragmentShader = shader.fragmentShader.replace(
@@ -289,7 +316,7 @@ function applySleeveNearBark(material: MeshStandardMaterial): void {
   };
   const previousKey = material.customProgramCacheKey;
   material.customProgramCacheKey = function () {
-    return `${previousKey.call(this)}|sleeve-near-bark-v2`;
+    return `${previousKey.call(this)}|sleeve-near-bark-v3`;
   };
 }
 
@@ -364,14 +391,31 @@ export function buildLanternBranch(ctx: WorldContext, mats: StructureMaterials, 
   /** mean sleeve radius (UV scale) */
   const sleeveBase = (s: number) => envelope(s);
   const knee = (s: number) => KNEES.reduce((a, k) => a + k.sag * envelope(k.s) * Math.exp(-(((s - k.s) / k.w) ** 2)), 0);
+  /**
+   * Longitudinal bark cords (round 46, survey-2 check 11: the bough at 2 m "the same smooth
+   * stucco tube" — the round-44 `ridged` field runs mostly ALONG the limb, 1.3 cycles around, so
+   * the 24-sided sleeve had nothing a walker under it could read as bark). SLEEVE_CORDS cords
+   * run the sleeve's length, wandering and pinching with a slow field, breaking into plates with
+   * a second one: 0 at a furrow bottom, 1 on a crest. Their relief is about the envelope
+   * (± SLEEVE_CORD_RELIEF × the radius, mean-preserving, so the silhouette camera A frames at
+   * 5.8 m holds) and their occlusion goes to the shader as `aSleeveAO` (applied after the shade
+   * floor within SLEEVE_NEAR_M — the floor's flat share swallowed every pre-floor term).
+   */
+  const cordAt = (s: number, psi: number) => {
+    const wander = 1.6 * noise.noise(s * 3.1 + 11.3, psi * 0.6) + 0.7 * noise.noise(s * 7.7 + 4.1, psi * 1.3 + 9.2);
+    const cord = Math.pow(0.5 + 0.5 * Math.cos(SLEEVE_CORDS * psi + wander), 0.7);
+    const plate = smoothstep(0.2, 0.7, 0.5 + 0.5 * noise.noise(s * 9.5 + 27.9, psi * 1.1 + 3.3));
+    return cord * (0.6 + 0.4 * plate);
+  };
   /** sleeve surface radius: bark ridges (fluting along the limb) and metre-scale gnarl, both
-   *  raised OUTWARD from the envelope (0–16 %) so the texture never dips inside it, plus the
-   *  knees' bellies hanging from the lower half */
+   *  raised OUTWARD from the envelope (0–16 %) so the texture never dips inside it, the cords
+   *  about it, plus the knees' bellies hanging from the lower half */
   const sleeveR = (s: number, psi: number) => {
     const ridge = noise.ridged(psi * 1.3 + s * 2, s * 11 + 2, 2);
     const gnarl = noise.noise(s * 4 + 7, psi * 0.7) + 1;
     const belly = Math.pow(smoothstep(0.15, 1, 0.5 - 0.5 * Math.cos(psi)), 1.4);
-    return envelope(s) * (1 + 0.09 * ridge + 0.035 * gnarl) + knee(s) * belly * emerge(s);
+    const cord = (cordAt(s, psi) - 0.5) * 2 * SLEEVE_CORD_RELIEF * emerge(s);
+    return envelope(s) * (1 + 0.09 * ridge + 0.035 * gnarl + cord) + knee(s) * belly * emerge(s);
   };
   const _rad = new Vector3();
   const surface = (s: number, psi: number, lift: number, out = new Vector3()) => {
@@ -398,10 +442,18 @@ export function buildLanternBranch(ctx: WorldContext, mats: StructureMaterials, 
     // cover it (round 11: the lime (0.3, 0.72, 0.34) of round 10 read as a green tube under the
     // shade floor — the reference bough's moss line is hazed grey-olive, hue 53°, sat 0.16)
     const moss = 0.8 * smoothstep(0.15, 0.7, mossFringe(s, psi));
+    // round 46: the furrows between the cords carry grime (a darker, cooler bark), the crests a
+    // little lighter than the bark's tone — the pre-floor share of the cord contrast (the rest
+    // is aSleeveAO), about the field's mean furrow share (≈ 0.5) so the bough's mean tone from
+    // camera A's 5.8 m is what it was
+    const cordH = cordAt(s, psi);
+    const furrow = (1 - cordH) * emerge(s);
+    const crevice = 1 - 0.28 * (furrow - 0.5 * emerge(s));
     // round 37: darker bark and a duller moss cap (the frame's bough is a dark band, 0.27–0.33,
     // with a lighter moss line only along its top edge)
-    return [lerp(d * 0.24, 0.22, moss), lerp(d * 0.23, 0.34, moss), lerp(d * 0.2, 0.15, moss)];
+    return [lerp(d * 0.24 * crevice, 0.22, moss), lerp(d * 0.23 * crevice, 0.34, moss), lerp(d * 0.2 * (crevice + 0.04 * furrow), 0.15, moss)];
   };
+  const sleeveRows = Math.round(60 * (sMax - sMin));
   const sleeve = gridSurface(
     (u, v, out) => {
       const psi = u * TAU;
@@ -410,11 +462,24 @@ export function buildLanternBranch(ctx: WorldContext, mats: StructureMaterials, 
       out.uv = [(psi * sleeveBase(s)) / 1.4, (s * len) / 1.4];
       out.color = barkColor(s, psi);
     },
-    // ~60 rings per unit of s (a ring every 0.1 m of limb); round 44 (survey #5, the bough at
-    // 2 m "a smooth pale tube"): 24 around, not 16 — the fluting resolves and the 2 m silhouette
-    // is round (at A's 7 m the change is under a pixel)
-    { cols: 24, rows: Math.round(60 * (sMax - sMin)), closedU: true },
+    // ~60 rings per unit of s (a ring every 0.1 m of limb); round 46: SLEEVE_SIDES around so the
+    // cords resolve (24 through round 45: two vertices per cord)
+    { cols: SLEEVE_SIDES, rows: sleeveRows, closedU: true },
   );
+  // the cords' occlusion per vertex (gridSurface's vertex order: rows of SLEEVE_SIDES + 1, the
+  // seam vertex repeated), 0.7 at a furrow bottom, 1 on a crest — mean ≈ 0.85 over the cords
+  {
+    const count = sleeve.getAttribute('position').count;
+    const ao = new Float32Array(count);
+    for (let j = 0; j < sleeveRows; j++) {
+      const s = lerp(sMin, sMax, j / (sleeveRows - 1));
+      for (let i = 0; i <= SLEEVE_SIDES; i++) {
+        const psi = ((i % SLEEVE_SIDES) / SLEEVE_SIDES) * TAU;
+        ao[j * (SLEEVE_SIDES + 1) + i] = 1 - 0.3 * (1 - cordAt(s, psi)) * emerge(s);
+      }
+    }
+    sleeve.setAttribute('aSleeveAO', new Float32BufferAttribute(ao, 1));
+  }
   faceTowards(sleeve, (p, o) => {
     const s = clamp(p.clone().sub(from).dot(dir) / len, sMin, sMax);
     return o.copy(p).addScaledVector(p.clone().sub(spine(s)), 4);
@@ -579,6 +644,8 @@ export function buildLanternBranch(ctx: WorldContext, mats: StructureMaterials, 
     }
   }
   const twigTriangles = barkParts.slice(1).reduce((a, g) => a + (g.index ? g.index.count : g.attributes.position.count) / 3, 0);
+  // the twigs carry no cord occlusion (`merge` keeps only the attributes every part has)
+  for (const g of barkParts) if (!g.getAttribute('aSleeveAO')) g.setAttribute('aSleeveAO', new Float32BufferAttribute(new Float32Array(g.getAttribute('position').count).fill(1), 1));
 
   // the sleeve's own copy of the bark material under SLEEVE_FLOOR (a clone carries the maps but
   // no compile hooks, so it gets its floor and the sleeve's hemisphere response afresh)
@@ -652,33 +719,54 @@ export function buildLanternBranch(ctx: WorldContext, mats: StructureMaterials, 
   }
   // round 44 (survey #5, the owner's frame-03 "hanging moss"): beards of moss from the underside
   // of the trunk-side reach — ribbons 4–7 cm wide at the root, a centimetre at the tip, 0.15–0.4 m
-  // long, swaying a little. The reach only (s ≤ −0.7: off camera C's right edge, behind B and F,
-  // off A's left edge, like the vines there); under the run a strand would hang into B's top edge.
+  // long, swaying a little. The reach (s ≤ −0.7: off camera C's right edge, behind B and F, off
+  // A's left edge, like the vines there) as before; round 46 (survey-2 check 11, w04-spine-f:
+  // "hanging moss" under the bough at 2 m) adds short ones under the run (RUN_BEARDS), clear of
+  // the pods' hang points — a 0.10–0.18 m strand 0.5 m ahead of camera B is 28°+ above its axis
+  // (B's half-height is 23°), and from A it is a 1–2 px thread under a bough the frame has dark.
+  /** one beard at (s, ψ): draws the azimuth, the bend, the root width (× `widthScale`) and the wobble, in round 44's order */
+  const addBeard = (beardRng: () => number, s: number, psi: number, length: number, widthScale = 1) => {
+    const root = surface(s, psi, -0.01);
+    const az = beardRng() * TAU;
+    const sway = new Vector3(Math.cos(az), 0, Math.sin(az));
+    const across = new Vector3(-sway.z, 0, sway.x);
+    const bend = (0.1 + beardRng() * 0.15) * length;
+    const w0 = (0.04 + beardRng() * 0.03) * widthScale;
+    const wobble = beardRng() * TAU;
+    const beard = gridSurface(
+      (u, v, out) => {
+        const half = 0.5 * (w0 * (1 - v) + 0.01 * v) * (1 + 0.25 * Math.sin(v * 13 + wobble));
+        out.position.copy(root).addScaledVector(UP, -length * v).addScaledVector(sway, bend * v * v + 0.015 * Math.sin(v * 9 + wobble) * v).addScaledVector(across, (u - 0.5) * 2 * half);
+        out.uv = [u * 0.2, (v * length) / 0.3];
+        const lit = 0.4 + 0.45 * v + 0.15 * Math.sin(v * 7 + wobble);
+        out.color = [0.23 * lit * 0.5, 0.31 * lit * 0.5, 0.11 * lit * 0.5];
+      },
+      { cols: 2, rows: 5 },
+    );
+    sheetParts.push(beard);
+  };
   if (sMin < -1.2) {
     const beardRng = rng.fork('branch-beards');
     const beards = Math.min(14, Math.round(((-0.7 - Math.max(sMin + 0.3, -3.2)) * len) / 0.55));
     for (let i = 0; i < beards; i++) {
       const s = lerp(Math.max(sMin + 0.3, -3.2), -0.7, (i + 0.5 + (beardRng() - 0.5) * 0.6) / beards);
       const psi = Math.PI + (beardRng() - 0.5) * 1.6;
-      const root = surface(s, psi, -0.01);
-      const length = 0.15 + beardRng() * 0.25;
-      const az = beardRng() * TAU;
-      const sway = new Vector3(Math.cos(az), 0, Math.sin(az));
-      const across = new Vector3(-sway.z, 0, sway.x);
-      const bend = (0.1 + beardRng() * 0.15) * length;
-      const w0 = 0.04 + beardRng() * 0.03;
-      const wobble = beardRng() * TAU;
-      const beard = gridSurface(
-        (u, v, out) => {
-          const half = 0.5 * (w0 * (1 - v) + 0.01 * v) * (1 + 0.25 * Math.sin(v * 13 + wobble));
-          out.position.copy(root).addScaledVector(UP, -length * v).addScaledVector(sway, bend * v * v + 0.015 * Math.sin(v * 9 + wobble) * v).addScaledVector(across, (u - 0.5) * 2 * half);
-          out.uv = [u * 0.2, (v * length) / 0.3];
-          const lit = 0.4 + 0.45 * v + 0.15 * Math.sin(v * 7 + wobble);
-          out.color = [0.23 * lit * 0.5, 0.31 * lit * 0.5, 0.11 * lit * 0.5];
-        },
-        { cols: 2, rows: 5 },
-      );
-      sheetParts.push(beard);
+      addBeard(beardRng, s, psi, 0.15 + beardRng() * 0.25);
+    }
+  }
+  let runBeards = 0;
+  {
+    // under the run: its own stream (the reach beards and everything after them draw what they did)
+    const runRng = rng.fork('run-beards');
+    const RUN_BEARDS = 6;
+    for (let i = 0; i < RUN_BEARDS; i++) {
+      const s = lerp(0.08, 0.94, (i + 0.5 + (runRng() - 0.5) * 0.5) / RUN_BEARDS);
+      const psi = Math.PI + (runRng() - 0.5) * 1.4;
+      const length = (0.1 + runRng() * 0.08) * (0.6 + 0.4 * fk);
+      // never within 0.08 s (18 cm) of a pod's hang point
+      if (LANTERN_T.some((t) => t > 0 && Math.abs(s - t) < 0.08)) continue;
+      addBeard(runRng, s, psi, length, 0.7);
+      runBeards++;
     }
   }
   const sheetMesh = new Mesh(merge(sheetParts), mats.moss);
@@ -946,7 +1034,7 @@ export function buildLanternBranch(ctx: WorldContext, mats: StructureMaterials, 
     lanterns,
     lights,
     leaves: foliage.leafCount + laminae.count,
-    dressing: { twigs: twigCount, twigTriangles: Math.round(twigTriangles), laminae: laminae.count, laminaTriangles: laminae.triangles, vines: foliage.vineCount, sheets: sheetParts.length },
+    dressing: { twigs: twigCount, twigTriangles: Math.round(twigTriangles), laminae: laminae.count, laminaTriangles: laminae.triangles, vines: foliage.vineCount, sheets: sheetParts.length, runBeards, cords: SLEEVE_CORDS, sides: SLEEVE_SIDES },
     wrapSource,
     containment: checkContainment(),
     podPositions: lanterns.map((r) => r.pod.toArray() as [number, number, number]),
