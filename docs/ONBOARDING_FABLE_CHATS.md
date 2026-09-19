@@ -1,10 +1,17 @@
-# Onboarding — four additional Fable 5.1 cloud chats (2026-09-19)
+# Onboarding — five additional Fable 5.1 cloud chats (2026-09-19)
 
-The owner is opening four more Cursor Cloud Agent chats (Claude Fable 5.1) to work beside
+The owner is opening five more Cursor Cloud Agent chats (Claude Fable 5.1) to work beside
 `fable-cursor` (the integrator) and `astra-local` (character, lighting). Each chat gets ONE lane
-below. Paste the matching block as the chat's first message, verbatim. The lanes are chosen so
-they do not touch the directories `fable-cursor`'s eight running sub-agents occupy (trees/giant,
-column, distant, character, vegetation, structures, layout/terrain/hardscape, ui/audio).
+below. The lanes are chosen so they do not touch the directories `fable-cursor`'s eight running
+sub-agents occupy (trees/giant, column, distant, character, vegetation, structures,
+layout/terrain/hardscape, ui/audio).
+
+> **If your first message from the owner only says "You are fable-N" (or gives you a number) with
+> a link to this file:** your instructions are the block titled with your id below. Read this whole
+> file, then execute your block as if it were your first message. Confirm you have started by
+> announcing yourself in `.agents/INBOX.md` (that announcement is how `fable-cursor` knows you are
+> live). If your number has no block here, take the first lane whose id has not been announced in
+> the INBOX and say so there.
 
 ## Common protocol (already inside every block)
 
@@ -176,4 +183,41 @@ Tasks:
    fable-cursor; they become the next round's briefs.
 Do not edit src/, gauntlet/rubric.json or gauntlet/ledger.json. Open a draft PR targeting
 cursor/kokiri-world-phase1-f65e for reference/ and reviews; keep it current. Work until done.
+```
+
+## Chat 5 — `fable-6` — Director's Monitor + performance profiling
+
+```
+You are agent `fable-6` joining a multi-agent Three.js remake of Ocarina of Time's Kokiri Forest.
+Repo: https://github.com/Leonxlnx/zeldaremake — clone it, `git fetch --all --prune`, and branch
+`agent/fable-6-monitor-perf` from `origin/cursor/kokiri-world-phase1-f65e` (never commit to that
+branch, never force-push anything). Read, in order: AGENTS.md, PROJECT_STATE.md, GAUNTLET.md,
+docs/PROMPT_PHASE1.md, every .agents/*.md, docs/ONBOARDING_FABLE_CHATS.md, site/SCHEMA.md,
+gauntlet/scripts/lib/monitor.mjs, gauntlet/scripts/perftrace.mjs, docs/ABLATIONS.md (if present),
+art/environment/owner-review-2026-09-19/README.md. Create .agents/fable-6.md from
+.agents/TEMPLATE.md and announce yourself in .agents/INBOX.md (newest thread on top,
+"fable-6 → fable-cursor", dated). `npm ci && npm run typecheck && npm run build` must stay green.
+
+Your lane has two halves and NO world code (src/world, src/character, src/ui are occupied):
+A. The Director's Monitor (site/**, gauntlet/scripts/lib/monitor.mjs, site/SCHEMA.md). It is the
+   owner's hourly before/after site (published on the `monitor` branch; data/takes/<id>/ per take,
+   takes.json index). The owner wants it to read like a director's cut: per take, a headline of
+   what changed (from the ledger note), before/after sliders per viewpoint with annotated callouts
+   (the `parseCallouts` hook exists), a per-round evidence gallery pulling
+   art/environment/round*-review/*.jpg and the survey reports from the world branch, a "what the
+   player sees" strip (player-height poses), and a play link to the latest published build. Keep
+   `npm run site:dev` (port 8787) working; test against the real `monitor` branch data
+   (`git fetch origin monitor` and read it, do not push to it — fable-cursor publishes).
+B. Performance profiling (gauntlet/scripts/perftrace.mjs, a new docs/PERF_2026-09-19.md): the
+   owner wants "trees to spawn high quality immediately around me" and the game to "run more
+   efficiently". Build the sealed world (take-0116, source 973a21e) and measure with perftrace in
+   play mode: frame-time per phase, draw calls and triangles per system (from `__ZR__.audit()` and
+   `__ZR__.perf()`), the near-LOD pool sizes and swap distances (src/world/trees/index.ts
+   NEAR_BASE_IN_M etc. — read only). Produce an ablation table: what it costs to move the near-LOD
+   swap distances out to 18 / 25 m and to prewarm around the player, what the largest triangle and
+   draw consumers are, and a ranked list of savings that would pay for it. This becomes the brief
+   for fable-cursor's `lod-1` lane — post it in the INBOX.
+Do not edit src/world/**, src/ui/**, gauntlet/rubric.json or gauntlet/ledger.json. Open a draft PR
+targeting cursor/kokiri-world-phase1-f65e early; report SHAs + screenshots of the site there and in
+the INBOX. Work until both halves are done.
 ```
