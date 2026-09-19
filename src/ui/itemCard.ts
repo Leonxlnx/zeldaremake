@@ -5,7 +5,8 @@
  * the HUD slot (drawn into plain 2-D canvases). Interactive mode turns the item slowly and lets
  * a drag spin it; under headless capture the pose is fixed so `?screen=equipment` is reproducible.
  */
-import { ACESFilmicToneMapping, AmbientLight, Box3, DirectionalLight, Group, HemisphereLight, PerspectiveCamera, Scene, SRGBColorSpace, Sphere, Vector3, WebGLRenderer, type Object3D } from 'three';
+import { ACESFilmicToneMapping, AmbientLight, Box3, DirectionalLight, Group, HemisphereLight, PMREMGenerator, PerspectiveCamera, Scene, SRGBColorSpace, Sphere, Vector3, WebGLRenderer, type Object3D } from 'three';
+import { RoomEnvironment } from 'three/examples/jsm/environments/RoomEnvironment.js';
 import { ITEMS, itemById, type ItemDef, type ItemId } from './items';
 
 export interface ItemCard {
@@ -50,6 +51,16 @@ export function createItemCard(opts: { headless: boolean }): ItemCard | null {
   canvas.className = 'zr-bag-card';
 
   const scene = new Scene();
+  // a neutral room for the metals to reflect (the steel blade is black without one); procedural,
+  // so the card stays deterministic, and built once
+  try {
+    const pmrem = new PMREMGenerator(renderer);
+    scene.environment = pmrem.fromScene(new RoomEnvironment(), 0.04).texture;
+    scene.environmentIntensity = 0.55;
+    pmrem.dispose();
+  } catch (e) {
+    console.warn('[bag] item card environment unavailable:', e);
+  }
   const camera = new PerspectiveCamera(28, 1, 0.05, 20);
   camera.position.set(0, 0.35, 4.2);
   camera.lookAt(0, 0, 0);
