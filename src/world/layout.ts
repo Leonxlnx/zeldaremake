@@ -329,20 +329,25 @@ export const LAYOUT = {
   ledgeTerrace: { x: -0.7, z: -78.3, y: 5.62, halfLength: 2.4, halfDepth: 1.5, yawDeg: 0 },
 
   /**
-   * Round 47 (expansion-1, item 4): a lookout dais on the east plateau's south-west lip, 1.5 m
-   * past the last post of the `plateau-west` fence (the fence simply ends; no post moves; the post
-   * clears the slab by 0.24 m), a 2.4 × 1.8 m stone platform whose top stands 0.35 m over the
-   * highest turf under it (the lip falls 0.7 m across the footprint, so the plaza-side corner
-   * stands ~1 m proud — a platform on the edge; the player steps up from the fence side). Tall
-   * enough that the plateau grass does not pierce it — no mask changes on the plateau, whose
-   * ≤ 45 m ground feeds the vegetation and rock streams every fixed frame sees. Hardscape merges
-   * it into the `flagstones` mesh so the character ground stands on it. Its nearest corner is
-   * 3.5 m from the `east-giant`'s axis (trunk 1.4 m, buttress roots reach 2.3–3.2 m; the first
-   * placement at (24.6, 4.3) put a corner inside the trunk). From it the player looks west over
-   * the plaza and the stair. Camera F is the only fixed camera whose frustum holds it (F (0.635,
-   * 0.22), 24 m), where the stair-bank giant's crown fills the frame in front of it.
+   * Round 47 (expansion-1, item 4): a lookout dais on the east plateau's south-west lip, 1.7 m
+   * south-west of the last post of the `plateau-west` fence (the fence simply ends; no post moves;
+   * the post clears the slab by 0.7 m), its long side along the lip (yaw 124°): a 2.2 × 1.6 m
+   * stone platform whose top stands 0.35 m over the highest turf under it (the lip falls 0.55 m
+   * across the footprint, so the plaza-side edge stands ~0.9 m proud — a platform on the edge;
+   * the player steps up from the fence side). Tall enough that the plateau grass does not pierce
+   * it — no mask changes on the plateau, whose ≤ 45 m ground feeds the vegetation, rock and
+   * white-bark streams every fixed frame sees (a mask disc here would flip the white-bark
+   * candidate at (22.19, 3.84) and re-roll every white-bark). Hardscape merges it into the
+   * `flagstones` mesh so the character ground stands on it. Clearances (take-0116 audit bases):
+   * the white-bark at (22.19, 3.84) 0.5 m off the slab's east end, the one at (24.09, 0.08)
+   * 1.9 m, the bush at (23.95, 2.29) 1.0 m, the `east-giant`'s axis 4.6 m (trunk 1.4 m, roots to
+   * 3.2 m; the first placement at (24.6, 4.3) put a corner inside the trunk, the second at
+   * (22.8, 3.3) a white-bark through the slab). From it the player looks west over the plaza and
+   * the stair. Camera F is the only fixed camera whose frustum holds it (F x 0.56–0.65, y 0.21–
+   * 0.23, 23 m), where the stair-bank giant's crown fills the frame in front of it (the crown's
+   * west edge is at F x 0.545).
    */
-  lookout: { x: 22.8, z: 3.3, halfLength: 1.2, halfDepth: 0.9, yawDeg: 56, height: 0.35 },
+  lookout: { x: 21.6, z: 2.2, halfLength: 1.1, halfDepth: 0.8, yawDeg: 124, height: 0.35 },
 
   /** Terraces / plateaus that the heightfield honours (soft-edged). */
   terraces: {

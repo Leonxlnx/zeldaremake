@@ -183,6 +183,12 @@ assert.equal(hf.surfaceMask(LK.x, LK.z).path, 0, 'lookout leaves the plateau mas
   const c = Math.cos(a);
   const s = Math.sin(a);
   const corners = [[-1, -1], [1, -1], [1, 1], [-1, 1]].map(([u, v]) => [LK.x + u * LK.halfLength * c + v * LK.halfDepth * s, LK.z - u * LK.halfLength * s + v * LK.halfDepth * c]);
+  // the white-bark trunks the take-0116 audit lists on the lip (trees read no mask here) stay off the slab
+  for (const [tx, tz] of [[22.19, 3.84], [24.09, 0.08], [22.6, 8.56]]) {
+    const lu = (tx - LK.x) * c - (tz - LK.z) * s;
+    const lv = (tx - LK.x) * s + (tz - LK.z) * c;
+    assert.ok(Math.abs(lu) > LK.halfLength + 0.3 || Math.abs(lv) > LK.halfDepth + 0.3, `white-bark at (${tx}, ${tz}) is off the dais`);
+  }
   const giant = LAYOUT.giantTrees.find((g) => g.id === 'east-giant');
   for (const [x, z] of corners) assert.ok(Math.hypot(x - giant.position[0], z - giant.position[2]) >= 3.4, `dais corner (${x.toFixed(2)}, ${z.toFixed(2)}) clears the east giant's roots`);
   const fence = LAYOUT.fences.find((f) => f.id === 'plateau-west');
