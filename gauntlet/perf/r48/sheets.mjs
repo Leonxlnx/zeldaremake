@@ -72,10 +72,11 @@ async function diffStrips(variant) {
     const a = path.join(base, `${id}.png`);
     const b = path.join(cap, `${id}.png`);
     const { fraction, image } = await diffOf(a, b);
+    // explicit PNG output: a raw-input pipeline would otherwise hand composite() raw bytes
     const tiles = await Promise.all([
-      sharp(a).resize(w, h).composite([{ input: label(`baseline · ${id}`, w), top: h - 22, left: 0 }]).toBuffer(),
-      sharp(b).resize(w, h).composite([{ input: label(`${variant} · ${id}`, w), top: h - 22, left: 0 }]).toBuffer(),
-      image.resize(w, h).composite([{ input: label(`difference ×4 · ${(fraction * 100).toFixed(2)} % of pixels changed`, w), top: h - 22, left: 0 }]).toBuffer(),
+      sharp(a).resize(w, h).composite([{ input: label(`baseline · ${id}`, w), top: h - 22, left: 0 }]).png().toBuffer(),
+      sharp(b).resize(w, h).composite([{ input: label(`${variant} · ${id}`, w), top: h - 22, left: 0 }]).png().toBuffer(),
+      image.resize(w, h).composite([{ input: label(`difference ×4 · ${(fraction * 100).toFixed(2)} % of pixels changed`, w), top: h - 22, left: 0 }]).png().toBuffer(),
     ]);
     const file = path.join(out, `diff-${variant}-${id}.jpg`);
     await sharp({ create: { width: w * 3 + 4, height: h, channels: 3, background: '#000' } }).composite(tiles.map((input, i) => ({ input, left: i * (w + 2), top: 0 }))).jpeg({ quality: 80, mozjpeg: true }).toFile(file);
