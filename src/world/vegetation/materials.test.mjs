@@ -123,7 +123,10 @@ for (const kind of ['grass', 'moss', 'litter']) {
     // round 40 (the owner's video review): the broad sedge is halved on the near-tile geometries (grass.ts aNear)
     // and keeps its width on the far tile; the tuft's tip tone rides in the type slot below the dryness step
     assert.equal((shader.vertexShader.match(/attribute float aNear;/g) || []).length, 1, 'near flag declared once');
-    assert.match(shader.vertexShader, /if \(vegType > 1\.5\) w \*= 1\.0 - 0\.5 \* aNear;/, 'sedge halved on the near tiles only');
+    // round 47: the seed stalk is type 3 (grass.ts SEED_TYPE), so the sedge test bounds the type from both sides
+    assert.match(shader.vertexShader, /if \(vegType > 1\.5 && vegType < 2\.5\) w \*= 1\.0 - 0\.5 \* aNear;/, 'sedge halved on the near tiles only');
+    assert.match(shader.vertexShader, /float wSeed = /, 'round 47: the seed stalk\'s width profile');
+    assert.match(shader.vertexShader, /if \(vegType > 2\.5\) bladeColor = mix\(bladeColor, uDryTip/, 'round 47: the straw seed head');
     assert.match(shader.vertexShader, /float vegTip = clamp\(\(fract\(vegSlot\) - 0\.02\) \/ 0\.96, 0\.0, 1\.0\);/, 'tip tone decoded from the type slot');
     assert.match(shader.vertexShader, /bladeColor \*= mix\(vec3\(1\.0\), tipTone, smoothstep\(0\.3, 1\.0, bladeT\)\);/, 'tip tone applied toward the tip');
     assert.doesNotMatch(shader.vertexShader, /vLeafUv/, 'the lamina detail is the plants\', not the blades\'');
@@ -151,8 +154,13 @@ for (const kind of ['grass', 'moss', 'litter']) {
   const ms = prepare(matte, 'standard');
   assert.equal(gs.uniforms.uTopRoughness.value, 0.55);
   assert.equal(glossy.roughness, 0.9, 'base roughness stays the matte underside');
-  assert.match(gs.fragmentShader, /#include <roughnessmap_fragment>\s*roughnessFactor = gl_FrontFacing \? uTopRoughness : roughnessFactor;/);
+  // round 47: with the lamina bands in the shader (leafDetail 'leaf', the default here) only a lamina's
+  // upper face takes the sheen — the shrub cores, stems and twigs (NOT_LAMINA strips) stay matte
+  assert.match(gs.fragmentShader, /#include <roughnessmap_fragment>\s*roughnessFactor = gl_FrontFacing && \(vLeafUv\.x < 1\.5 \|\| \(vLeafUv\.x >= 6\.0 && vLeafUv\.x < 7\.0\)\) \? uTopRoughness : roughnessFactor;/);
   assert.equal((gs.fragmentShader.match(/uniform float uTopRoughness;/g) || []).length, 1);
+  const glossyPetal = createVegMaterial(ctx, 'plant', { roughness: 0.9, topRoughness: 0.55, leafDetail: 'petal' });
+  owned.push(glossyPetal);
+  assert.match(prepare(glossyPetal, 'standard').fragmentShader, /roughnessFactor = gl_FrontFacing \? uTopRoughness : roughnessFactor;/, 'without the leaf bands the whole front face keeps the sheen');
   assert.doesNotMatch(ms.fragmentShader, /uTopRoughness/);
   assert.equal(ms.uniforms.uTopRoughness, undefined);
   assert.notEqual(glossy.customProgramCacheKey(), matte.customProgramCacheKey(), 'glossy and matte plants compile separate programs');
