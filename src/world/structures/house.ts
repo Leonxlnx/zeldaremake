@@ -1462,11 +1462,13 @@ export function buildHouse(def: HouseDef, ctx: WorldContext, mats: StructureMate
     const edge = Math.min(f, 1 - f) * BOARD_W;
     const gap = 1 - smoothstep(0.004, 0.012, edge);
     const crown = 0.004 * k * Math.sin(f * Math.PI);
-    const tone = 0.84 + 0.32 * hash2(idx, Math.round(seed * 100), 5);
+    // (second cut: a wider board-to-board tone spread and deeper grain / joints — at the first
+    // cut's 0.84–1.16 / 0.72–1.14 the planking read only in the lamp pools from the threshold)
+    const tone = 0.78 + 0.44 * hash2(idx, Math.round(seed * 100), 5);
     const g = noise.ridged(across * 26 + idx * 3.7 + seed, along * 0.8 + idx * 0.9 + seed * 0.5, 2);
     const fib = 0.5 + 0.5 * noise.noise(across * 60 + seed, along * 5 + idx);
     const grain = (g - 0.5) * 0.003 * k;
-    return { relief: gap * 0.012 * k - crown + grain, shade: lerp(tone * lerp(0.72, 1.14, g) * lerp(0.94, 1.06, fib), 0.28, gap) };
+    return { relief: gap * 0.012 * k - crown + grain, shade: lerp(tone * lerp(0.66, 1.2, g) * lerp(0.92, 1.08, fib), 0.22, gap) };
   };
   {
     // diffuse shading: dark wood, darkest deep in the recess and at the floor, a little lighter
