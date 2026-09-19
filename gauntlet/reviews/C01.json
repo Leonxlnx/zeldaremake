@@ -1,15 +1,27 @@
 {
   "item": "C01",
-  "reviewer": "fable-5",
+  "reviewer": "opus-review",
   "verdict": "fail",
-  "evidence": "gauntlet/reviews/evidence/fable-5/take-0116-C01-link.jpg",
+  "evidence": "gauntlet/reviews/evidence/opus-review/take-0116-C01-B-link.jpg",
   "takeId": "take-0116",
   "author": "fable-cursor",
   "takeSha": "973a21e5b045177f66da3d04dc4e67e387270620",
-  "at": "2026-09-19T09:37:44.542Z",
+  "at": "2026-09-19T19:33:29.522Z",
   "criterion": "Silhouette and colours match the reference Link without using any Nintendo asset.",
-  "note": "Silhouette passes at B: child proportions, long cap, pointed ears, tunic to mid-thigh, belt, boots, Navi beside the head. Colours do not: the face samples #8f7b61 (s 0.19, l 0.47) against the reference's warm tan #89612e (s 0.49, l 0.36) - cream, not tanned; the tunic is a saturated mid-green where the reference is olive #5c5b30 (h 59, s 0.31); no pale undershirt shows at the collar. From behind (A, D) the cap is a pale mint sack with one stitched seam that reads as a hood, where the reference's is a deeper green hanging in folds. Fix list matches fable-cursor's earlier C01 fail; re-review on the next take with these.",
+  "note": "The child proportions, the pointed ears, the tunic, the bare legs and the boots are all right, so the silhouette is close, but the criterion also names colours and they are not. Skin is cool cream where the reference samples a warm tan; the tunic is a darker, more saturated green than the reference's low-saturation olive; there is no pale undershirt at the collar. Two silhouette differences also read at frame scale: the cap is a tight hood pulled over the skull with a heavy fringe hanging across the brow and over the ear roots, where the reference has a soft cap with a rolled brim above the brows and a swept fringe, and ours wears a chest harness with pouches that the reference Link does not have.",
   "history": [
+    {
+      "item": "C01",
+      "reviewer": "fable-5",
+      "verdict": "fail",
+      "evidence": "gauntlet/reviews/evidence/fable-5/take-0116-C01-link.jpg",
+      "takeId": "take-0116",
+      "author": "fable-cursor",
+      "takeSha": "973a21e5b045177f66da3d04dc4e67e387270620",
+      "at": "2026-09-19T09:37:44.542Z",
+      "criterion": "Silhouette and colours match the reference Link without using any Nintendo asset.",
+      "note": "Silhouette passes at B: child proportions, long cap, pointed ears, tunic to mid-thigh, belt, boots, Navi beside the head. Colours do not: the face samples #8f7b61 (s 0.19, l 0.47) against the reference's warm tan #89612e (s 0.49, l 0.36) - cream, not tanned; the tunic is a saturated mid-green where the reference is olive #5c5b30 (h 59, s 0.31); no pale undershirt shows at the collar. From behind (A, D) the cap is a pale mint sack with one stitched seam that reads as a hood, where the reference's is a deeper green hanging in folds. Fix list matches fable-cursor's earlier C01 fail; re-review on the next take with these."
+    },
     {
       "item": "C01",
       "reviewer": "fable-cursor",

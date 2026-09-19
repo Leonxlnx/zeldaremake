@@ -1,13 +1,26 @@
 {
   "item": "W18",
-  "reviewer": "fable-5",
+  "reviewer": "opus-review",
   "verdict": "pass",
-  "evidence": "gauntlet/reviews/evidence/fable-5/take-0116-W18-D-purple.jpg",
+  "evidence": "gauntlet/reviews/evidence/opus-review/take-0116-W18-D-purple-foreground.jpg",
   "takeId": "take-0116",
   "author": "fable-cursor",
   "takeSha": "973a21e5b045177f66da3d04dc4e67e387270620",
-  "at": "2026-09-19T09:33:49.083Z",
+  "at": "2026-09-19T19:29:09.609Z",
   "criterion": "Purple blooms sit in the left foreground of shot D similar to the reference.",
-  "note": "Purple blooms sit in the left foreground of D (x 0.12-0.35, y 0.48-0.65), in the reference's zone, saturated enough to read after haze; D purple share 0.491 %. Nit outside the criterion: they are sprinkled uniformly over the bank and again on the right verge (x 0.72-0.80, y 0.53-0.62) where the reference has one compact low clump beside the boulder (0.17-0.27 x 0.60-0.67).",
-  "history": []
+  "note": "Purple blooms sit in the left foreground of D where the reference has them, among ferns and moss on the bank, and they read as purple after fog (D purpleFraction 0.0049 against the 0.003 threshold; 287 flower clusters). Nits, not a fail against this criterion: ours are five-petal stars roughly 20 cm across scattered in two broad bands across the whole bank and up the right verge as well, where the reference has one compact clump of 5-15 cm blooms beside a lit boulder; the saturation is well above the reference's hazed #4f3558, which ANALYSIS.md section 13 records as a deliberate consequence of the rubric's own purple threshold being stricter than the reference frame.",
+  "history": [
+    {
+      "item": "W18",
+      "reviewer": "fable-5",
+      "verdict": "pass",
+      "evidence": "gauntlet/reviews/evidence/fable-5/take-0116-W18-D-purple.jpg",
+      "takeId": "take-0116",
+      "author": "fable-cursor",
+      "takeSha": "973a21e5b045177f66da3d04dc4e67e387270620",
+      "at": "2026-09-19T09:33:49.083Z",
+      "criterion": "Purple blooms sit in the left foreground of shot D similar to the reference.",
+      "note": "Purple blooms sit in the left foreground of D (x 0.12-0.35, y 0.48-0.65), in the reference's zone, saturated enough to read after haze; D purple share 0.491 %. Nit outside the criterion: they are sprinkled uniformly over the bank and again on the right verge (x 0.72-0.80, y 0.53-0.62) where the reference has one compact low clump beside the boulder (0.17-0.27 x 0.60-0.67)."
+    }
+  ]
 }
