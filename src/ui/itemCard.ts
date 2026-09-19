@@ -143,6 +143,9 @@ export function createItemCard(opts: { headless: boolean }): ItemCard | null {
    * converges the estimate.
    */
   const fitProjected = (root: Object3D, fill: number) => {
+    // `project` reads matrixWorldInverse, which only a render refreshes — frameFor just moved the camera
+    camera.updateMatrixWorld(true);
+    camera.matrixWorldInverse.copy(camera.matrixWorld).invert();
     for (let pass = 0; pass < 3; pass++) {
       stage.updateMatrixWorld(true);
       box.setFromObject(root, true);
