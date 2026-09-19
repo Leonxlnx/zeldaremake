@@ -2045,8 +2045,8 @@ export function buildHouse(def: HouseDef, ctx: WorldContext, mats: StructureMate
         const foot = 0.55 + 0.45 * smoothstep(0, 0.1, t);
         const belly = Math.exp(-Math.pow((t - bellyT) / lerp(0.34, 0.3, squat), 2));
         const body = waist + (1 - waist) * belly;
-        const neck = 1 - lerp(0.3, 0.4, squat) * smoothstep(bellyT + 0.2, 0.86, t);
-        const lip = 1 + 0.18 * smoothstep(0.9, 1, t);
+        const neck = 1 - lerp(0.3, 0.32, squat) * smoothstep(bellyT + 0.2, 0.86, t);
+        const lip = 1 + 0.3 * smoothstep(0.88, 1, t);
         return r * Math.min(foot * 1.05, body) * neck * lip;
       };
       const g = turned(
