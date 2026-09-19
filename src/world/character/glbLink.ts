@@ -2250,6 +2250,12 @@ export async function loadGlbLink(url: string, opts: GlbLinkOptions = {}): Promi
           _u.set(fx * 0.06, -len * 0.92, fz * 0.06);
           _v.lerp(_u, reachDown);
           leg.target.copy(leg.hip).add(_v);
+          // the push-off may not reach through the floor: the legs extend from the crouched root
+          // before it has risen, so the sole (the ankle less its height above the sole in this
+          // pose) stays on the ground until the rising root lifts it — as a real take-off does —
+          // and the landing reach stops at the ground the same way
+          const floor = surface(leg.target.x, leg.target.z) + (leg.ankleP.y - leg.soleP.y);
+          if (leg.target.y < floor) leg.target.y = floor;
           leg.delta = 0;
           leg.shift = 0;
           leg.pin = 0;
