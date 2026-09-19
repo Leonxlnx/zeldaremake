@@ -307,13 +307,21 @@ const SCAN_PAD = 0.02;
 /**
  * Round 47 — play-mode overlays (PuppetPose.loco; none of this runs for a fixed capture).
  *
- * Stance pin: a foot whose blended swing weight is under PIN_RELEASE is in stance and is held at
- * the world spot it touched down on; the hold fades in as the swing weight falls from PIN_FADE to
- * PIN_RELEASE (a gait blend moves a foot between two clips' stance spots continuously, so the pin
- * must not snap), and the foot is free above it.
+ * Stance: a foot whose blended swing weight is under PIN_RELEASE is a stance foot (FootContact.stance).
+ * The stance PIN keys on the narrower planted window below.
  */
 const PIN_RELEASE = 0.5;
-const PIN_FADE = 0.25;
+/**
+ * A stance pin holds a foot only while the clip has it PLANTED — its sole on the floor AND moving
+ * backward through root space at PLANT_SPEED_FRAC of the clip's stride speed or more. The delivered
+ * clips keep a sole on the floor a few frames before it starts moving back (heel-strike easing)
+ * and after it stops (toe-off roll); the run's floor contact is 0.23 s per step of which only
+ * 0.08 s is planted. Pinning through those frames at 4.6 m/s would ask the leg for a metre; the
+ * planted window is what a pin can hold. The offset a releasing pin leaves fades over PIN_FADE_S.
+ */
+const PLANT_SPEED_FRAC = 0.6;
+const PLANT_LIFT = 0.003;
+const PIN_FADE_S = 0.1;
 /**
  * Arm swing per gait (the owner: "his arms should move slow, and when you run, a little bit
  * faster"): the shoulder / elbow rotation about the clip's own cycle-mean arm pose is scaled by
@@ -925,6 +933,31 @@ function tableSwings(path: FootPath, other: FootPath, duration: number): Swing[]
   return swings;
 }
 
+/**
+ * Per clip sample: 1 where the foot is PLANTED (see PLANT_SPEED_FRAC) — the sole within PLANT_LIFT
+ * of the cycle's floor and moving backward along the clip's forward (+Z of root space) at
+ * PLANT_SPEED_FRAC of `speed` (m/s at rate 1) or more (central difference over the cyclic path).
+ */
+function tablePlants(path: FootPath, duration: number, speed: number): Uint8Array {
+  const n = path.soleY.length;
+  const out = new Uint8Array(n);
+  if (speed <= 0) return out;
+  let floor = Infinity;
+  for (let i = 0; i < n; i++) if (path.soleY[i] < floor) floor = path.soleY[i];
+  const dt = (2 * duration) / n;
+  for (let i = 0; i < n; i++) {
+    if (path.soleY[i] - floor > PLANT_LIFT) continue;
+    const back = (path.soleZ[mod(i - 1, n)] - path.soleZ[mod(i + 1, n)]) / dt;
+    if (back >= PLANT_SPEED_FRAC * speed) out[i] = 1;
+  }
+  return out;
+}
+/** whether the clip has the foot planted at clip time τ (nearest table sample) */
+function plantedAt(plants: Uint8Array, tau: number, duration: number): boolean {
+  const n = plants.length;
+  return plants[mod(Math.round((tau / duration) * n), n)] === 1;
+}
+
 /** the swing of `foot` containing clip time τ, and the phase 0..1 through it (null in stance) */
 function swingAt(swings: Swing[], tau: number, duration: number): { swing: Swing; phase: number } | null {
   for (const s of swings) {
@@ -1413,6 +1446,8 @@ export async function loadGlbLink(url: string, opts: GlbLinkOptions = {}): Promi
   // Sampled once here through the same mixer, so the runtime never guesses a stance.
   const tables = {} as SwingTable;
   const pathTable = {} as PathTable;
+  /** per gait, per foot: the planted samples (tablePlants) the play-mode stance pins key on */
+  const plantTable = {} as Record<Gait, [Uint8Array, Uint8Array]>;
   {
     const _pt = new Vector3();
     const _f = new Vector3();
@@ -1446,6 +1481,7 @@ export async function loadGlbLink(url: string, opts: GlbLinkOptions = {}): Promi
       }
       tables[gait] = [tableSwings(paths[0], paths[1], a.duration), tableSwings(paths[1], paths[0], a.duration)];
       pathTable[gait] = [paths[0], paths[1]];
+      plantTable[gait] = [tablePlants(paths[0], a.duration, GAIT_SPEED[gait]), tablePlants(paths[1], a.duration, GAIT_SPEED[gait])];
       armMean[gait] = armSum.map((s) => (s.lengthSq() > 1e-12 ? s.normalize() : s.identity()));
     }
     for (const [gait, a] of actions) {
@@ -1464,7 +1500,9 @@ export async function loadGlbLink(url: string, opts: GlbLinkOptions = {}): Promi
     clips: GAITS.map((g) => {
       const a = actions.get(g)!;
       const sw = (i: 0 | 1) => tables[g][i].map((s) => [Number(s.tOff.toFixed(4)), Number(s.tLand.toFixed(4))] as [number, number]);
-      return { name: g, durationS: Number(a.duration.toFixed(6)), strideM: CLIP_SPEC[g].strideM, rate: a.rate, swings: { L: sw(0), R: sw(1) } };
+      /** seconds per cycle the foot is planted (tablePlants) — the sole on the floor AND moving back at the stride speed */
+      const pl = (i: 0 | 1) => Number(((plantTable[g][i].reduce((s, v) => s + v, 0) / TABLE_N) * a.duration).toFixed(4));
+      return { name: g, durationS: Number(a.duration.toFixed(6)), strideM: CLIP_SPEC[g].strideM, rate: a.rate, swings: { L: sw(0), R: sw(1) }, plantedS: { L: pl(0), R: pl(1) } };
     }),
     loadMs: Math.round(performance.now() - t0),
     headTopOffsetM: Number(headTopOffset.toFixed(4)),
@@ -1901,32 +1939,53 @@ export async function loadGlbLink(url: string, opts: GlbLinkOptions = {}): Promi
         leg.stance = swingW < PIN_RELEASE;
         leg.swingRise = wsum > 0 ? swingRise / wsum : 0;
         leg.hipClamp = 0;
-        // round 47, play mode: the stance pin. A foot the blended clips have in stance is held
-        // where it touched down (set on the first stance frame at the foot's planted spot — the
-        // clip's sole plus its nosing shift — released at toe-off, never held through the air);
-        // the hold fades with the swing weight so a gait blend never snaps it.
+        // round 47, play mode: the stance pin. A foot the blended clips have PLANTED (plantTable:
+        // on the floor and moving back at the stride speed) is held where it planted — set on the
+        // first planted frame at the foot's spot, the clip's sole plus its nosing shift — and
+        // released when the clips stop moving it back (toe-off), never held through the air. The
+        // offset a releasing pin was holding (a blend's, a turn's, a heel-strike easing's) fades
+        // out over PIN_FADE_S instead of snapping the foot to the clip.
         leg.pinX = 0;
         leg.pinZ = 0;
         if (loco && !airborne) {
           let strideW = 0;
-          for (const c of chain) if (c.weight > 0 && CLIP_SPEC[c.gait].strideM > 0) strideW += c.weight;
-          if (leg.stance && strideW > 0) {
-            const sx = leg.soleP.x + fx * predShift;
-            const sz = leg.soleP.z + fz * predShift;
+          let plantW = 0;
+          for (const c of chain) {
+            if (c.weight <= 0 || CLIP_SPEC[c.gait].strideM <= 0) continue;
+            strideW += c.weight;
+            const a = actions.get(c.gait)!;
+            if (plantedAt(plantTable[c.gait][i], a.action.time, a.duration)) plantW += c.weight;
+          }
+          const sx = leg.soleP.x + fx * predShift;
+          const sz = leg.soleP.z + fz * predShift;
+          if (strideW > 0 && plantW >= 0.5 * strideW) {
             if (!pinned) {
               loco.pinX[i] = sx;
               loco.pinZ[i] = sz;
             }
-            const w = 1 - MathUtils.smoothstep(swingW, PIN_FADE, PIN_RELEASE);
-            leg.pinX = (loco.pinX[i] - sx) * w;
-            leg.pinZ = (loco.pinZ[i] - sz) * w;
+            leg.pinX = loco.pinX[i] - sx;
+            leg.pinZ = loco.pinZ[i] - sz;
+            loco.pinFadeT[i] = NaN;
           } else {
-            loco.pinX[i] = NaN;
-            loco.pinZ[i] = NaN;
+            if (pinned) {
+              loco.pinFadeX[i] = loco.pinX[i] - sx;
+              loco.pinFadeZ[i] = loco.pinZ[i] - sz;
+              loco.pinFadeT[i] = p.t;
+              loco.pinX[i] = NaN;
+              loco.pinZ[i] = NaN;
+            }
+            if (Number.isFinite(loco.pinFadeT[i])) {
+              const w = 1 - MathUtils.smoothstep((p.t - loco.pinFadeT[i]) / PIN_FADE_S, 0, 1);
+              if (w > 1e-4) {
+                leg.pinX = loco.pinFadeX[i] * w;
+                leg.pinZ = loco.pinFadeZ[i] * w;
+              } else loco.pinFadeT[i] = NaN;
+            }
           }
         } else if (loco) {
           loco.pinX[i] = NaN;
           loco.pinZ[i] = NaN;
+          loco.pinFadeT[i] = NaN;
         }
         // the geometric lifts on the shifted footprint at the foot's current yaw: the CLEAR arc
         // over a riser ahead (blended by phase) and the LIP lift (exact at both ends of a swing),

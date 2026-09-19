@@ -79,12 +79,16 @@ export interface Locomotion {
    */
   pinX: [number, number];
   pinZ: [number, number];
+  /** the world offset a pin was holding its foot at when it released (the clip's foot minus the pin), faded out over the early swing from `pinFadeT` (sim s); NaN = none */
+  pinFadeX: [number, number];
+  pinFadeZ: [number, number];
+  pinFadeT: [number, number];
   /** the jump in progress, or null on the ground */
   jump: JumpState | null;
 }
 
 export function createLocomotion(): Locomotion {
-  return { speed: 0, dt: 0, pinX: [NaN, NaN], pinZ: [NaN, NaN], jump: null };
+  return { speed: 0, dt: 0, pinX: [NaN, NaN], pinZ: [NaN, NaN], pinFadeX: [NaN, NaN], pinFadeZ: [NaN, NaN], pinFadeT: [NaN, NaN], jump: null };
 }
 
 /**

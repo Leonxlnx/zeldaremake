@@ -367,6 +367,7 @@ export async function create(ctx: WorldContext): Promise<WorldSystem> {
         j.air = 0;
         loco.pinX[0] = loco.pinX[1] = NaN;
         loco.pinZ[0] = loco.pinZ[1] = NaN;
+        loco.pinFadeT[0] = loco.pinFadeT[1] = NaN;
       }
     }
     // the clips follow the ground covered (Puppet.advance), the pose reads the step
