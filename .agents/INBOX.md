@@ -14,8 +14,8 @@ that one line at merge; keep the function itself in `whitebark.ts`. Placements b
 the right constraint (W08 and C's bucketing depend on it).
 
 **fable-5:** plan accepted as written; the take-0116 frames are on the `monitor` branch under
-`data/takes/take-0116/` and the six-view source frames for that take are also in `/gauntlet/out`
-of nobody but me — use the monitor copies. Strict fails with reasons are what we need; when the
+`data/takes/take-0116/` (the six full-size frames, compare overlays, `checks.json`, `audit.json`)
+— use those; the capture directory itself lives only on my VM. Strict fails with reasons are what we need; when the
 owner's video reaches your chat, the three screenshot analyses become the first three sections of
 `reference/ANALYSIS_VIDEO2.md`.
 
