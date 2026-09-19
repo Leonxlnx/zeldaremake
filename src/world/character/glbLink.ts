@@ -361,6 +361,8 @@ const JUMP_LAND_GATHER_S = 0.12;
  */
 const STAIR_CLEAR_M = 0.05;
 const HIP_FLEX_MAX = MathUtils.degToRad(95);
+/** play mode: the fraction of a climbing swing by which the root has risen the riser (1 = at heel-strike, the capture rule) */
+const ROOT_RISE_END = 0.7;
 
 /**
  * Riser envelopes — a support under a point p that is a CONTINUOUS function of p although the
@@ -2019,7 +2021,10 @@ export async function loadGlbLink(url: string, opts: GlbLinkOptions = {}): Promi
         const level = other.rootOff + (other.rootLand - other.rootOff) * MathUtils.smoothstep(other.phase, 0, 1);
         const r0 = Math.min(leg.rootOff, level);
         const r1 = Math.min(leg.rootLand, level);
-        const ease = MathUtils.smoothstep(leg.phase, 0, r1 < r0 ? DESC_END : 1);
+        // round 47, play mode: a climbing swing's root rise is done by ROOT_RISE_END of the swing —
+        // the foot is over the upper tread by then, and a pelvis still a third of a riser low
+        // folds the landing leg into the torso (the stance leg's reach bounds the rise below)
+        const ease = MathUtils.smoothstep(leg.phase, 0, r1 < r0 ? DESC_END : loco ? ROOT_RISE_END : 1);
         leg.gRoot = leg.swingW > 0 ? r0 + (r1 - r0) * ease : leg.rootOff;
         leg.rootAtOff = r0;
         leg.rootAtLand = r1;
@@ -2264,29 +2269,47 @@ export async function loadGlbLink(url: string, opts: GlbLinkOptions = {}): Promi
       root.updateMatrixWorld(true);
       let hipClamp = 0;
       if (loco) {
-        // round 47, play mode: no thigh past HIP_FLEX_MAX from the torso's down axis. The solved
-        // thigh is measured (hip → knee, world); a leg past the limit has its whole hip → ankle
-        // line turned toward that axis by the excess — the triangle is rigid for a fixed reach,
-        // so the thigh turns by exactly that and the knee keeps its bend — and is solved again.
-        // The foot gives up the little height that asked for it (a stair swing's arc, never a
-        // stance foot on the ground within reach).
+        // round 47, play mode: no SWING thigh past HIP_FLEX_MAX from the torso's down axis. The
+        // solved thigh is measured (hip → knee, world); a swing leg past the limit has its whole
+        // hip → ankle line turned toward that axis by the excess — the triangle is rigid for a
+        // fixed reach, so the thigh turns by exactly that and the knee keeps its bend — and is
+        // solved again. The foot gives up height, but never below the swing envelope the ground
+        // rules asked for (its sole stays over the tread it is crossing): the turn is bisected to
+        // what that slack allows. A stance foot is left alone (turning it would push it into its
+        // tread; the earlier root rise above is what relieves it).
         hips.getWorldPosition(_p);
         chest.getWorldPosition(_down);
         _down.subVectors(_p, _down);
-        if (_down.lengthSq() > 1e-8) {
+        if (_down.lengthSq() > 1e-8 && !airborne) {
           _down.normalize();
           for (const leg of legs) {
+            if (leg.swingW <= 0.5) continue;
             leg.knee.getWorldPosition(_u).sub(leg.hip);
             if (_u.lengthSq() < 1e-8) continue;
             _u.normalize();
             const flex = Math.acos(MathUtils.clamp(_u.dot(_down), -1, 1));
             if (flex <= HIP_FLEX_MAX) continue;
-            const eps = flex - HIP_FLEX_MAX;
             _n.crossVectors(_u, _down);
             if (_n.lengthSq() < 1e-10) continue;
             _n.normalize();
-            _q.setFromAxisAngle(_n, eps);
-            _aim.subVectors(leg.target, leg.hip).applyQuaternion(_q);
+            const slack = Math.max(0, leg.soleP.y + leg.delta - (leg.g + leg.hold));
+            let eps = flex - HIP_FLEX_MAX;
+            _v.subVectors(leg.target, leg.hip);
+            _aim.copy(_v).applyQuaternion(_q.setFromAxisAngle(_n, eps));
+            if (_v.y - _aim.y > slack + 1e-6) {
+              // the full turn would take the sole under its envelope: the largest turn that does not
+              let lo = 0;
+              let hi = eps;
+              for (let k = 0; k < 8; k++) {
+                const mid = 0.5 * (lo + hi);
+                _aim.copy(_v).applyQuaternion(_q.setFromAxisAngle(_n, mid));
+                if (_v.y - _aim.y > slack) hi = mid;
+                else lo = mid;
+              }
+              eps = lo;
+              if (eps < 1e-4) continue;
+              _aim.copy(_v).applyQuaternion(_q.setFromAxisAngle(_n, eps));
+            }
             leg.target.copy(leg.hip).add(_aim);
             leg.active = true;
             leg.hipClamp = eps;
