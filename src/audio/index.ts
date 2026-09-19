@@ -32,9 +32,14 @@ export interface AudioHandle {
   toggleMute(): void;
   setMuted(muted: boolean): void;
   music(): MusicSource;
-  /** render `seconds` of the mix offline and return 16-bit stereo WAV bytes */
-  renderOffline(seconds: number, sampleRate?: number): Promise<Uint8Array>;
+  /** render `seconds` of the mix offline: 16-bit stereo WAV bytes + the music source it used */
+  renderOffline(seconds: number, sampleRate?: number): Promise<OfflineRender>;
   dispose(): void;
+}
+
+export interface OfflineRender {
+  wav: Uint8Array;
+  music: MusicSource;
 }
 
 export interface AudioOptions {
@@ -201,7 +206,7 @@ export function mountAudio(o: AudioOptions): AudioHandle {
  * `window.__ZR_AUDIO__.renderOffline(seconds)` by the shell so a headless page (no gesture, no
  * output device) can still produce the WAV.
  */
-export async function renderOffline(o: AudioOptions, seed: string, seconds: number, sampleRate: number): Promise<Uint8Array> {
+export async function renderOffline(o: AudioOptions, seed: string, seconds: number, sampleRate: number): Promise<OfflineRender> {
   const Ctor = window.OfflineAudioContext ?? (window as unknown as { webkitOfflineAudioContext?: typeof OfflineAudioContext }).webkitOfflineAudioContext;
   if (!Ctor) throw new Error('OfflineAudioContext unavailable');
   const ctx = new Ctor(2, Math.ceil(seconds * sampleRate), sampleRate);
@@ -210,7 +215,7 @@ export async function renderOffline(o: AudioOptions, seed: string, seconds: numb
   const ambience = createAmbience(ctx, buses.ambience, buses.reverb, rng.fork('ambience'), 0);
   const footsteps = createFootsteps(ctx, buses.sfx, buses.reverb, rng.fork('footsteps'), 0);
   const music = createMusic(ctx, buses.music, buses.reverb, rng.fork('music'), 0.5);
-  await music.ready;
+  const musicSource = await music.ready;
   const pods = gatherPods(o.scene);
   // listener path: starts under the lantern bough (the plaza) and walks north-east
   const gust = (t: number) => {
@@ -240,7 +245,7 @@ export async function renderOffline(o: AudioOptions, seed: string, seconds: numb
   ambience.scheduleUntil(seconds);
   music.scheduleUntil(seconds);
   const buffer = await ctx.startRendering();
-  return encodeWav(buffer);
+  return { wav: encodeWav(buffer), music: musicSource };
 }
 
 /** 16-bit PCM WAV. */
