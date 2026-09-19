@@ -41,5 +41,11 @@ node gauntlet/perf/ablate.mjs --dist .wt/w0116/dist --out "$R/views-0116" --view
 # 5. the baseline again — how far the box drifted during the matrix
 say "baseline repeat"; L=$(probe)
 node gauntlet/scripts/perftrace.mjs --dist .wt/w0116/dist --frames 2400 --width 1280 --height 720 --finish --label "0116-baseline-repeat" --note "take-0116 (973a21e) baseline repeated after the matrix; start load: $L" --out "$R/trace-0116-baseline-repeat.json" 2>&1 | grep -E "wrote|Error|error:" | head -3
+
+# 6. the warm-up variant again (the first run lost its page — "Target closed" — right after a
+#    106 s warm-up whose warm pass took 83 s: a D3D11 timeout is the suspect); shorter, so the
+#    first seconds of play are what is compared
+say "warmup retry"; L=$(probe)
+node gauntlet/scripts/perftrace.mjs --dist .wt/w0116/dist --frames 600 --width 1280 --height 720 --finish --warmup --label "0116-warmup" --note "take-0116 (973a21e) with ?warmup=1 (main.ts warm-up before the first frame), retry after the first run's page crash; start load: $L" --out "$R/trace-0116-warmup.json" 2>&1 | grep -E "wrote|Error|error:|setup" | cut -c1-400 | head -4
 probe
 say "MATRIX-DONE"

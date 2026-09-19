@@ -114,6 +114,14 @@ if (!fs.existsSync(agentsOut)) {
   fs.writeFileSync(agentsOut, `${JSON.stringify({ agents }, null, 2)}\n`);
   console.log(`data   agents.json ← .agents/*.md front-matter (${agents.length} agents, fallback)`);
 }
+// the evidence gallery reads data/evidence/index.json; a data dir published before the export
+// existed gets an empty index so the page never 404s on it (the site shows its "no rounds" note)
+const evidenceOut = path.join(outData, 'evidence', 'index.json');
+if (!fs.existsSync(evidenceOut)) {
+  fs.mkdirSync(path.dirname(evidenceOut), { recursive: true });
+  fs.writeFileSync(evidenceOut, `${JSON.stringify({ generatedAt: null, source: null, sets: [] }, null, 2)}\n`);
+  console.log('data   wrote empty evidence/index.json');
+}
 
 // 4. Pages housekeeping
 fs.writeFileSync(path.join(OUT_DIR, '.nojekyll'), '');

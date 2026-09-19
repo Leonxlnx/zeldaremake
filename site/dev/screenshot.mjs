@@ -47,8 +47,10 @@ const errors = [];
 async function openPage(browser, url, { width = W, height = H } = {}) {
   const page = await browser.newPage();
   await page.setViewport({ width, height, deviceScaleFactor: 1 });
-  // Probing reference/frames/timeline/ without an index.json legitimately ends in one 404.
-  const EXPECTED_404 = /\/data\/reference\/frames\/timeline\/(t_\d+\.jpg|index\.json)(\?|$)/;
+  // Probing reference/frames/timeline/ without an index.json legitimately ends in one 404, and a
+  // data dir published before the evidence export existed has no evidence/index.json (the site
+  // shows its "no rounds" note; site/build.mjs writes an empty index for Pages builds).
+  const EXPECTED_404 = /\/data\/(reference\/frames\/timeline\/(t_\d+\.jpg|index\.json)|evidence\/index\.json)(\?|$)/;
   page.on('console', (m) => {
     const loc = m.location()?.url || '';
     if (m.type() === 'error') {
@@ -59,7 +61,7 @@ async function openPage(browser, url, { width = W, height = H } = {}) {
   });
   page.on('pageerror', (e) => { errors.push(`[pageerror] ${url} :: ${e.message}`); console.error(`  [pageerror] ${e.message}`); });
   page.on('requestfailed', (r) => { const f = r.failure()?.errorText || ''; if (!/ERR_ABORTED/.test(f)) console.warn(`  [requestfailed] ${r.url()} ${f}`); });
-  page.on('response', (r) => { if (r.status() >= 400 && !/timeline\/(t_\d+\.jpg|index\.json)/.test(r.url())) console.warn(`  [http ${r.status()}] ${r.url()}`); });
+  page.on('response', (r) => { if (r.status() >= 400 && !/timeline\/(t_\d+\.jpg|index\.json)|evidence\/index\.json/.test(r.url())) console.warn(`  [http ${r.status()}] ${r.url()}`); });
   await page.goto(url, { waitUntil: 'networkidle0', timeout: 60_000 });
   await page.waitForSelector('#slate-fields .sf', { timeout: 20_000 });
   await settle(page);
@@ -153,8 +155,10 @@ async function main() {
     if (!hashAfterKey.startsWith(`#${PREV}/`)) errors.push(`keyboard step failed: ${hashAfterKey}`);
 
     // --- the director's cut -------------------------------------------------------------------
-    await page.evaluate((t) => { location.hash = `#${t}/A_stairs/before`; window.scrollTo(0, 0); });
+    await page.evaluate((t) => { location.hash = `#${t}/A_stairs/before`; window.scrollTo(0, 0); }, TAKE);
     await settle(page, 400);
+    const cutTake = await page.evaluate(() => document.querySelector('#cut .cut-take')?.textContent || '');
+    if (cutTake !== `T${TAKE.replace(/^take-0*/, '')}`) errors.push(`director's cut shows ${cutTake}, expected ${TAKE}`);
     const cut = await page.evaluate(() => ({ headline: document.querySelector('#cut .cut-h')?.textContent || '', chips: document.querySelectorAll('#cut .cut-delta').length, play: document.querySelector('#play-link')?.textContent?.trim() || '' }));
     console.log(`  cut → "${cut.headline.slice(0, 80)}…" · ${cut.chips} delta chips · play link "${cut.play}"`);
     if (!cut.headline) errors.push('director\'s cut has no headline');
