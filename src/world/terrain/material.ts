@@ -124,27 +124,29 @@ const f = (v: number) => v.toFixed(4);
  * (w1.x) and the rock (w1.y) take none of it, nor does the ground closer than FF_PATH_CLEAR to the
  * spine; the vertex weights and the heightfield are untouched (the probe is byte-identical).
  *
- * The zone mirrors vegetation/field.ts `northFloor` (kept in step by hand — the systems do not
- * import each other's internals): everything north of the arch's south face (FF_NORTH_Z) and, north
- * of the hollow's mouth (FF_OFF_Z), the ground FF_OFF_PATH m or more off the path. The white-barks
- * themselves are seeded by the trees system and not published, so the patch covers the floor they
- * stand in rather than their exact feet.
+ * The zone follows vegetation/field.ts `northFloor` (the systems do not import each other's
+ * internals), drawn wider: everything north of the arch's south face (FF_NORTH_Z) and, north of the
+ * hollow's mouth (FF_OFF_Z), the ground FF_OFF_PATH m or more off the path — the survey's hollow
+ * floor box (x −12…−2, z −20…−45) and the white-barks' floor east of the path (x 8…18, z −30…−45)
+ * lie inside it (the first pass's 7–13 m / −26…−34 m ramps left them a third covered and the ground
+ * read unchanged in the w19 / w21 / w18 poses). The white-barks themselves are seeded by the trees
+ * system and not published, so the patch covers the floor they stand in rather than their exact feet.
  */
 const FOREST_FLOOR_BOX: readonly [number, number, number, number] = [-48, -90, 96, 100];
 const FOREST_FLOOR_RES = 192;
-const FF_NORTH_Z: readonly [number, number] = [-44, -54];
-const FF_OFF_Z: readonly [number, number] = [-26, -34];
-const FF_OFF_PATH: readonly [number, number] = [7, 13];
+const FF_NORTH_Z: readonly [number, number] = [-40, -50];
+const FF_OFF_Z: readonly [number, number] = [-20, -27];
+const FF_OFF_PATH: readonly [number, number] = [4.5, 8.5];
 /** the spine keeps this much (m, beyond pathHalfWidth) of untouched verge, feathered over the second value */
 const FF_PATH_CLEAR: readonly [number, number] = [1.0, 3.5];
 /** litter drifts: noise period (m), threshold band, and the floor's base litter share under the drifts */
 const FF_LITTER_PERIOD = 5.5;
-const FF_LITTER_BAND: readonly [number, number] = [0.42, 0.66];
-const FF_LITTER_BASE = 0.22;
+const FF_LITTER_BAND: readonly [number, number] = [0.36, 0.6];
+const FF_LITTER_BASE = 0.34;
 /** humus patches: noise period (m) and threshold band; the share of the grass they take and their darkening */
 const FF_HUMUS_PERIOD = 3.8;
-const FF_HUMUS_BAND: readonly [number, number] = [0.5, 0.74];
-export const FF_HUMUS_DARKEN = 0.42;
+const FF_HUMUS_BAND: readonly [number, number] = [0.42, 0.68];
+export const FF_HUMUS_DARKEN = 0.52;
 
 /** the terrain audit's record of the patch */
 export const FOREST_FLOOR = { box: FOREST_FLOOR_BOX, res: FOREST_FLOOR_RES, northZ: FF_NORTH_Z, offZ: FF_OFF_Z, offPath: FF_OFF_PATH, litterBase: FF_LITTER_BASE, humusDarken: FF_HUMUS_DARKEN };

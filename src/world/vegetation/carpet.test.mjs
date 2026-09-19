@@ -159,7 +159,8 @@ for(const it of a.carpet.clumps.items){if(inBox(it,[1.5,-16,7,-4]))assert.ok(sca
   assert.ok(shadeClumps>=0.35*lawnClumps&&shadeClumps<=0.65*lawnClumps,`shade clumps ${shadeClumps.toFixed(2)} / cell vs lawn ${lawnClumps.toFixed(2)}`);
   assert.ok(shadeMats>=0.85*lawnMats,`shade mats ${shadeMats.toFixed(2)} / cell vs lawn ${lawnMats.toFixed(2)}: the bank stays closed`);
   assert.ok(inBox({x:(C_FOOT[0]+C_FOOT[2])/2,z:(C_FOOT[1]+C_FOOT[3])/2},C_FOOT));
-  let shaded=0;for(const it of a.carpet.mats.items){if(a.field.bankDark(it.x,it.z)>0.01)continue;assert.ok(Math.abs(it.data[2]*4-0.25)<1e-6,`mat slot fraction ${(it.data[2]*4).toFixed(3)}: no shade lift`);if(a.field.shadeZone(it.x,it.z)>0.9)shaded++;}
+  // round 46: the forest floor's mats take the darkening slot too (carpet.ts NORTH_FLOOR_DARKEN) — skipped here like the banks'
+  let shaded=0;for(const it of a.carpet.mats.items){if(a.field.bankDark(it.x,it.z)>0.01||a.field.northFloor(it.x,it.z)>0.02)continue;assert.ok(Math.abs(it.data[2]*4-0.25)<1e-6,`mat slot fraction ${(it.data[2]*4).toFixed(3)}: no shade lift`);if(a.field.shadeZone(it.x,it.z)>0.9)shaded++;}
   assert.ok(shaded>=100,`${shaded} mats in the shade zone core`);}
 // steep faces: no clump where the slope exceeds the thin band's end (≈ 70°); the mats, which lie on the face, hold
 // to the cliffs (0.5–0.75 ≈ 60–75°) so the stair flanks' blade turf sits on turf, and shrink across the band

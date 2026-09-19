@@ -120,6 +120,14 @@ const NORTH_FLOOR_TINT = 0.5;
 const NORTH_FLOOR_DRY = 0.3;
 const NORTH_FLOOR_HEIGHT = 0.75;
 /**
+ * Round 46 (survey-2 #06 after the first pass: the corridor's carpet ran to 25 m but the floor still
+ * read as a pale-olive lawn — the cards themselves are most of what the eye sees there): the forest
+ * floor's fans and mats take the bank darkening slot (materials.ts bankDark: −50 % lightness and
+ * −30 % saturation at 1) at NORTH_FLOOR_DARKEN × the zone — shaded, dead-grass turf under the
+ * white-barks, not the plaza's lit lawn.
+ */
+const NORTH_FLOOR_DARKEN = 0.45;
+/**
  * Round 46 (survey-2 #06, checks 09 / 10 — poses w19-spine-l / w21-spine-f / w18-spine-r: "the
  * round-44 carpet reaches ≈ 10 m; beyond it a flat pale-olive plane with sparse tufts") — the
  * north corridor's OWN clump set. The disc's fans stop at CLUMP_MAX_DISTANCE (16 m) for the fixed
@@ -336,7 +344,7 @@ export function buildCarpet(ctx: WorldContext, field: VegField, parent: Group): 
     if (s.slope > 0.35) tn -= 0.15 * (1 - shade) * (1 - foot);
     if (houseNorth > 0) tn -= 0.6 * houseNorth;
     const dryP = (field.dry(x, z) * (0.35 + 0.65 * s.plateau) + 0.35 * trod + 0.55 * foot + NORTH_FLOOR_DRY * nfloor) * (1 - 0.5 * shade) * (1 - BANK_FLAT * bank);
-    const darken = clamp(BANK_DARKEN * bank, 0, 0.96);
+    const darken = clamp(Math.max(BANK_DARKEN * bank, NORTH_FLOOR_DARKEN * nfloor), 0, 0.96);
     return { edge, low, trim, shade, band, trod, bare, houseNorth, houseSouth, sight, hollow, foot, shoulder, giant, cluster, bank, stone, nfloor, npc: clr.npc, hk, tn, dryP, darken };
   };
 
