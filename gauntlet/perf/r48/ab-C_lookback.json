@@ -1,0 +1,365 @@
+{
+  "dist": "E:\\zeldaremake-fable-6\\.wt\\w0116\\dist",
+  "viewpoint": "C_lookback",
+  "params": "",
+  "width": 1280,
+  "height": 720,
+  "settle": 8,
+  "simTime": 12.5,
+  "readyMs": 133305,
+  "renderMs": 442,
+  "timing": {
+    "frames": 10,
+    "medianMs": 77.1,
+    "minMs": 68.3,
+    "maxMs": 87.8,
+    "issueMedianMs": 16.2,
+    "perFrame": [
+      80.3,
+      72.9,
+      74.7,
+      87.8,
+      81.8,
+      77.1,
+      79.7,
+      70.7,
+      68.3,
+      72.2
+    ]
+  },
+  "ab": {
+    "cull": {
+      "pairs": 12,
+      "onMedianMs": 76,
+      "offMedianMs": 76.4,
+      "pairDeltaMedianMs": 2.2,
+      "on": [
+        78,
+        76,
+        76,
+        71,
+        70,
+        67,
+        75,
+        78,
+        76,
+        74,
+        76,
+        77
+      ],
+      "off": [
+        75,
+        70,
+        75,
+        75,
+        69,
+        73,
+        77,
+        83,
+        77,
+        76,
+        83,
+        78
+      ],
+      "offDrawCalls": 422,
+      "offTriangles": 7907067,
+      "deltaPct": 0.5
+    },
+    "ao": {
+      "pairs": 12,
+      "onMedianMs": 81.9,
+      "offMedianMs": 84.6,
+      "pairDeltaMedianMs": 1.1,
+      "on": [
+        81,
+        82,
+        72,
+        76,
+        77,
+        81,
+        84,
+        87,
+        92,
+        82,
+        82,
+        90
+      ],
+      "off": [
+        86,
+        80,
+        72,
+        79,
+        84,
+        76,
+        85,
+        89,
+        85,
+        82,
+        91,
+        90
+      ],
+      "offDrawCalls": 361,
+      "offTriangles": 7372188,
+      "deltaPct": 3.3
+    },
+    "rays": {
+      "pairs": 12,
+      "onMedianMs": 79.2,
+      "offMedianMs": 77.7,
+      "pairDeltaMedianMs": 0.5,
+      "on": [
+        81,
+        84,
+        81,
+        75,
+        74,
+        79,
+        78,
+        85,
+        87,
+        79,
+        75,
+        76
+      ],
+      "off": [
+        76,
+        78,
+        80,
+        77,
+        77,
+        77,
+        76,
+        82,
+        89,
+        80,
+        80,
+        77
+      ],
+      "offDrawCalls": 360,
+      "offTriangles": 7372186,
+      "deltaPct": -1.9
+    },
+    "bloom": {
+      "pairs": 12,
+      "onMedianMs": 78.6,
+      "offMedianMs": 79.6,
+      "pairDeltaMedianMs": 1,
+      "on": [
+        83,
+        83,
+        78,
+        74,
+        79,
+        110,
+        93,
+        77,
+        81,
+        70,
+        69,
+        71
+      ],
+      "off": [
+        79,
+        80,
+        82,
+        78,
+        80,
+        95,
+        86,
+        97,
+        77,
+        75,
+        73,
+        70
+      ],
+      "offDrawCalls": 360,
+      "offTriangles": 7372186,
+      "deltaPct": 1.3
+    },
+    "soft": {
+      "pairs": 12,
+      "onMedianMs": 76.8,
+      "offMedianMs": 76.7,
+      "pairDeltaMedianMs": 1.5,
+      "on": [
+        66,
+        69,
+        71,
+        82,
+        77,
+        83,
+        73,
+        82,
+        83,
+        74,
+        80,
+        76
+      ],
+      "off": [
+        75,
+        70,
+        71,
+        77,
+        80,
+        77,
+        75,
+        79,
+        87,
+        78,
+        75,
+        74
+      ],
+      "offDrawCalls": 363,
+      "offTriangles": 7372192,
+      "deltaPct": -0.1
+    },
+    "all": {
+      "pairs": 12,
+      "onMedianMs": 73.4,
+      "offMedianMs": 71.4,
+      "pairDeltaMedianMs": -0.4,
+      "on": [
+        78,
+        71,
+        73,
+        76,
+        76,
+        70,
+        74,
+        67,
+        67,
+        73,
+        76,
+        73
+      ],
+      "off": [
+        69,
+        74,
+        72,
+        77,
+        69,
+        69,
+        68,
+        64,
+        69,
+        71,
+        78,
+        81
+      ],
+      "offDrawCalls": 355,
+      "offTriangles": 7372176,
+      "deltaPct": -2.7
+    },
+    "veg0.5": {
+      "pairs": 12,
+      "onMedianMs": 69.9,
+      "offMedianMs": 73,
+      "pairDeltaMedianMs": 2.2,
+      "on": [
+        73,
+        69,
+        70,
+        69,
+        74,
+        72,
+        69,
+        65,
+        74,
+        70,
+        68,
+        70
+      ],
+      "off": [
+        77,
+        74,
+        67,
+        63,
+        78,
+        73,
+        70,
+        66,
+        73,
+        74,
+        70,
+        75
+      ],
+      "offDrawCalls": 343,
+      "offTriangles": 6330800,
+      "deltaPct": 4.4
+    }
+  },
+  "png": null,
+  "stats": {
+    "simTime": 12.63333333333334,
+    "drawCalls": 363,
+    "triangles": 7372192,
+    "geometries": 399,
+    "textures": 82,
+    "programs": 91,
+    "width": 1280,
+    "height": 720,
+    "pixelRatio": 1
+  },
+  "flags": {},
+  "tier": "high",
+  "perfState": {
+    "flags": {},
+    "tier": "high",
+    "version": 0,
+    "fx": {
+      "ao": true,
+      "rays": true,
+      "bloom": true,
+      "soft": true
+    },
+    "shadowMapSize": 4096,
+    "shadowTaps": 12,
+    "vegLodScale": 1,
+    "grassDensity": 1,
+    "renderScale": 1
+  },
+  "stepMs": {
+    "step": 42.60000002384186,
+    "update": 20.30000001192093,
+    "render": 22.30000001192093
+  },
+  "lighting": {
+    "shadows": true,
+    "shadowMapSize": 4096,
+    "filterTaps": 12,
+    "searchTaps": 8,
+    "dynamic": false
+  },
+  "postfx": {
+    "resolution": [
+      1280,
+      720
+    ],
+    "stagesEnabled": {
+      "ao": true,
+      "rays": true,
+      "bloom": true,
+      "soft": false
+    },
+    "aoResolution": [
+      640,
+      360
+    ],
+    "godRayResolution": [
+      320,
+      180
+    ],
+    "softeningGrid": [
+      640,
+      360
+    ],
+    "shadowCasterCull": true,
+    "shadowCastersTested": 179,
+    "shadowCastersCulled": 64
+  },
+  "vegetation": {
+    "drawCalls": 106,
+    "triangles": 2151380
+  },
+  "sceneTriangles": 8463547
+}
