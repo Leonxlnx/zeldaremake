@@ -270,8 +270,9 @@ function eyeMaterial(iris: string): MeshStandardMaterial {
   g.fillRect(0, 0, W, H);
   const cx = W * 0.25;
   const cy = H * 0.5;
-  // iris: angular radius ≈ 40° → 28 px in u and v alike at the equator
-  const ir = 29;
+  // iris: angular radius ≈ 46° → 33 px in u and v alike at the equator (the big dark eyes of d_024: the
+  // iris fills the lid opening top to bottom, sclera only at the corners)
+  const ir = 33;
   const grad = g.createRadialGradient(cx, cy, ir * 0.2, cx, cy, ir);
   grad.addColorStop(0, iris);
   grad.addColorStop(0.7, iris);
@@ -417,7 +418,7 @@ function buildGirlFace(rig: Rig, look: number): void {
         d = Math.max(d, 0.0045 * u * u * (3 - 2 * u));
       }
       // a faint brow ridge just above the sockets
-      const browY = 0.05;
+      const browY = 0.036;
       const ridge = Math.max(0, 1 - Math.abs(n.y * r - browY) / 0.03) * Math.max(0, n.z) * (Math.abs(n.x) < 0.6 ? 1 : 0);
       const k = 1 - d / r + 0.0015 * ridge / r;
       pos.setXYZ(i, _v.x * k, _v.y * k, _v.z * k);
@@ -426,8 +427,9 @@ function buildGirlFace(rig: Rig, look: number): void {
     skull.computeVertexNormals();
   }
   const parts: BufferGeometry[] = [place(skull, 0, 0, 0, undefined, SKULL_SCALE)];
-  // jaw / chin: a soft rounded lower face that drops a little below the sphere and pushes the chin forward
-  parts.push(flatUv(place(new SphereGeometry(1, 18, 12), 0, -0.078, 0.022, undefined, [0.084, 0.066, 0.084]), UV_SKIN));
+  // chin: a small rounded boss under the mouth, 4 mm proud at its middle and carrying the lower face a
+  // little below the sphere; kept narrow and clear of the lips so its seam is a short U under the lower lip
+  parts.push(flatUv(place(new SphereGeometry(1, 16, 12), 0, -0.1, 0.026, undefined, [0.05, 0.032, 0.062]), UV_SKIN));
   // nose: a small bump with a soft bridge
   parts.push(flatUv(place(new SphereGeometry(0.0095, 10, 8), 0, -0.031, skullZ(r, 0, -0.031, -0.0025), undefined, [1, 1.15, 0.85]), UV_SKIN));
   parts.push(flatUv(place(new SphereGeometry(0.0055, 8, 6), 0, -0.016, skullZ(r, 0, -0.016, -0.001), undefined, [0.9, 1.6, 0.8]), UV_SKIN));
@@ -558,7 +560,8 @@ function buildGirlHair(rig: Rig, hair: MeshStandardMaterial): void {
       fringeR,
       0.88,
       () => Math.PI * 0.29,
-      (psi) => Math.PI * (0.435 + 0.028 * (0.5 - 0.5 * Math.cos((psi / 0.88) * Math.PI * points + 0.6))),
+      // hem 3.7–4.8 cm above the eye line: the points reach the brows, the brows show between them
+      (psi) => Math.PI * (0.415 + 0.028 * (0.5 - 0.5 * Math.cos((psi / 0.88) * Math.PI * points + 0.6))),
       24,
       8,
       [0.5, 0.5],
@@ -569,12 +572,13 @@ function buildGirlHair(rig: Rig, hair: MeshStandardMaterial): void {
   parts.push(clump([-0.098, 0.064, 0.06], [-0.114, -0.03, 0.062], [-0.108, -0.105, 0.05], 0.024, 0.02));
   parts.push(clump([0.045, -0.06, -0.1], [0.05, -0.1, -0.095], [0.04, -0.13, -0.08], 0.022, 0.016));
   parts.push(clump([-0.045, -0.06, -0.1], [-0.05, -0.1, -0.095], [-0.04, -0.13, -0.08], 0.022, 0.016));
-  // brows: arched tubes just proud of the skull, thicker at the inner end
+  // brows: arched tubes just proud of the skull, thicker at the inner end, 2–3 cm over the lid line
+  // (under the fringe's points, visible between them)
   for (const s of [1, -1] as const) {
     const pts = [
-      new Vector3(s * 0.017, 0.03, skullZ(r, 0.017, 0.03, 0.0022)),
-      new Vector3(s * 0.04, 0.042, skullZ(r, 0.04, 0.042, 0.0024)),
-      new Vector3(s * 0.064, 0.037, skullZ(r, 0.064, 0.037, 0.0022)),
+      new Vector3(s * 0.017, 0.021, skullZ(r, 0.017, 0.021, 0.0022)),
+      new Vector3(s * 0.04, 0.03, skullZ(r, 0.04, 0.03, 0.0024)),
+      new Vector3(s * 0.064, 0.026, skullZ(r, 0.064, 0.026, 0.0022)),
     ];
     parts.push(sweep(pts, [0.0032, 0.0034, 0.0018], { segments: 8, radial: 6, closeTip: true, closeStart: true }));
   }

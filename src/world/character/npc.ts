@@ -539,7 +539,13 @@ export function createNpcs(opts: NpcOptions): Npcs {
   ] as const) {
     // the feet a little wider than the hips (the knees fall apart), the right one further out
     target.copy(seat.hips).addScaledVector(seatFwd, reach).addScaledVector(seatRight, -side * (hw + (side > 0 ? 0.035 : 0.05)));
-    target.y = ground.surface(target.x, target.z) + soleUp;
+    // the tread below: `surface` is a max-height grid of the rendered stones, so under the heel — a
+    // hand's width in front of the riser — it reads the nosing lip of the seat tread (0.40 m for
+    // the left foot, not 0.27). Read it clear of the lip too, under the ball of the foot, and take
+    // the lower: both soles flat on the lower tread.
+    const heelY = ground.surface(target.x, target.z);
+    const ballY = ground.surface(target.x + seatFwd.x * 0.09, target.z + seatFwd.z * 0.09);
+    target.y = Math.min(heelY, ballY) + soleUp;
   }
   const seatKeys: [number, number, number][] = [
     [0, 0, 0],
@@ -673,8 +679,8 @@ export function createNpcs(opts: NpcOptions): Npcs {
     },
     audit() {
       wanderStateAt(sched, phase0, lastT, _st);
-      // the seated knee angle (interior, deg) and hip height over the tread, read off the posed rig
-      const kneeDeg = Number(((Math.PI - sitter.rig.kneeL.rotation.x) * (180 / Math.PI)).toFixed(1));
+      // the seated knee angles (interior, deg, L / R) and hip height over the tread, read off the posed rig
+      const kneeDeg = [sitter.rig.kneeL, sitter.rig.kneeR].map((k) => Number(((Math.PI - k.rotation.x) * (180 / Math.PI)).toFixed(1)));
       return {
         npcCount: chars.length,
         npcGirls: chars.filter((c) => c.rig.root.name !== 'kokiri-2').length,
