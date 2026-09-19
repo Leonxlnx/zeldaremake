@@ -12,7 +12,18 @@ import { VegField, composeMatrix, newSample } from './field';
 import { MeshBuilder, TAU, V, blend, foldedLeaf, lanceLeaf, lathe, rgb, sampleCurve, shapedLeaf, skeletonLeaf, tone, tube, type RGB } from './geometry';
 import { LodInstancedSet } from './lodset';
 
-type LeafDetail = 'ultra' | 'high' | 'far';
+type LeafDetail = 'ultra' | 'high' | 'far' | 'flat';
+/**
+ * Round 46 (survey-2 #06: "floating litter sprites" on the hollow floor and the plain at 10–25 m):
+ * the far fold's side vertices sink below the seat (width × 0.34 under the base) and the terrain
+ * clips them, so past LEAF_FAR_M a leaf drew as a lit sliver along its midline standing ≈ 2 cm off
+ * the ground with the floor showing round it — a raised chip, not a leaf lying there. The north
+ * corridor's far LOD is the `flat` lamina: the same diamond outline from the same stream, lying in
+ * the ground plane (FLAT_LEAF_LIFT over the seat, no fold, the tip's curl FLAT_LEAF_CURL), so at
+ * 7–40 m it reads as a leaf on the floor. The disc's leaves keep the fold (their six frames hold).
+ */
+const FLAT_LEAF_LIFT = 0.002;
+const FLAT_LEAF_CURL = 0.06;
 
 /**
  * Round 43 — the litter's near LOD: inside these camera distances (m, XZ) the leaves and twigs
@@ -50,6 +61,7 @@ function leafGeometry(seed: string, shape: 'oval' | 'lance' | 'broad', detail: L
   const rng = createRng(seed);
   const m = new MeshBuilder();
   const far = detail === 'far';
+  const flat = detail === 'flat';
   const len = 0.09 + rng() * 0.04;
   const width = shape === 'oval' ? 0.62 : shape === 'lance' ? 0.34 : 0.85;
   const base: RGB = [0.92, 0.92, 0.92];
@@ -59,10 +71,11 @@ function leafGeometry(seed: string, shape: 'oval' | 'lance' | 'broad', detail: L
   const fine = detail === 'ultra' ? createRng(`${seed}/ultra`) : null;
   const petiole = [V(-dir.x * len * 0.18, 0.004, -dir.z * len * 0.18), V(0, 0.004, 0)];
   if (fine) tube(m, petiole, 0.0025, 0.0018, tone(base, 0.75), 4, false, (t, up) => tone(blend(LEAF_ROOT_TINT, base, 0.4 + 0.4 * t), 0.8 + 0.12 * up));
-  else if (!far) tube(m, petiole, 0.0025, 0.0018, tone(base, 0.75), 3);
+  else if (!far && !flat) tube(m, petiole, 0.0025, 0.0018, tone(base, 0.75), 3);
   const curl = 0.28 + rng() * 0.3;
   const twist = (rng() - 0.5) * 0.8;
   if (far) foldedLeaf(m, V(0, 0.004, 0), dir, len, len * width, base, { curl, twist, ridge: 0.22, tipColor: tone(base, 0.8) });
+  else if (flat) foldedLeaf(m, V(0, FLAT_LEAF_LIFT, 0), dir, len, len * width, base, { curl: FLAT_LEAF_CURL, twist: twist * 0.5, ridge: -0.12, tipColor: tone(base, 0.8) });
   else if (fine) {
     const serration = shape === 'broad' ? 0.08 : 0.03;
     if (fine() < SKELETON_SHARE) {
@@ -251,6 +264,9 @@ const VERGE_BANK_PER_M2 = 3.0;
 const NORTH_LEAF_CANDIDATES_PER_M2 = 9.9;
 const NORTH_FLOOR_LITTER = 2.5;
 const NORTH_TWIG_SHARE = 0.1;
+/** round 46: the north pass' disc-falloff floor and its leaves' lift over the exact terrain height (m) */
+export const NORTH_LITTER_REACH_FLOOR = 0.8;
+export const NORTH_LITTER_LIFT = 0.001;
 /**
  * The north sets end at these camera distances (m, XZ; the disc's leaves and twigs are never cut).
  * A twig is 14–60 cm long and 1.4 cm across: 0.4 px wide at 30 m from the fixed cameras, and the
@@ -273,6 +289,8 @@ export function buildLitter(ctx: WorldContext, field: VegField, material: Materi
   const leafGeos = leafShapes.map((shape, i) => leafGeometry(`${seed}/leaf/${i}`, shape));
   const leafGeosFar = leafShapes.map((shape, i) => leafGeometry(`${seed}/leaf/${i}`, shape, 'far'));
   const leafGeosUltra = leafShapes.map((shape, i) => leafGeometry(`${seed}/leaf/${i}`, shape, 'ultra'));
+  // round 46: the north corridor's far LOD lies flat on the floor (see FLAT_LEAF_*)
+  const leafGeosFlat = leafShapes.map((shape, i) => leafGeometry(`${seed}/leaf/${i}`, shape, 'flat'));
   // Variant packs (lodset.ts): twigs share one draw. The 8 700 leaves keep one draw per variant
   // (packing them would submit +0.37 M collapsed triangles for 3 draws), and the roots must: they
   // cast shadows through three's own depth material, which does not know the pack collapse.
@@ -291,7 +309,7 @@ export function buildLitter(ctx: WorldContext, field: VegField, material: Materi
   // round 44: the north corridor's leaves — the same laminae and LODs, culled to the frame and cut
   // at NORTH_LEAF_MAX_M; the far fold (two triangles) packs in pairs, two draws for ≈ 4 K leaves
   // in the fixed frames instead of four
-  const northLeaves = new LodInstancedSet({ name: 'litter-leaves-north', variants: leafGeos.map((g, i) => [leafGeosUltra[i], g, leafGeosFar[i]]), material, lodDistances: [LITTER_ULTRA_M * q.distance, LEAF_FAR_M * q.distance], maxDistance: NORTH_LEAF_MAX_M * q.distance, nearLods: 1, receiveShadow: true, packs: [[[0, 1, 2, 3]], [[0], [1], [2], [3]], [[0, 1], [2, 3]]] });
+  const northLeaves = new LodInstancedSet({ name: 'litter-leaves-north', variants: leafGeos.map((g, i) => [leafGeosUltra[i], g, leafGeosFlat[i]]), material, lodDistances: [LITTER_ULTRA_M * q.distance, LEAF_FAR_M * q.distance], maxDistance: NORTH_LEAF_MAX_M * q.distance, nearLods: 1, receiveShadow: true, packs: [[[0, 1, 2, 3]], [[0], [1], [2], [3]], [[0, 1], [2, 3]]] });
   const twigKinds = [false, true, false];
   const twigVariants = twigKinds.map((long, i) => [twigGeometry(`${seed}/twig/${i}`, long, 'ultra'), twigGeometry(`${seed}/twig/${i}`, long)]);
   const twigs = new LodInstancedSet({ name: 'litter-twigs', variants: twigVariants, material, lodDistances: [TWIG_ULTRA_M * q.distance], nearLods: 1, receiveShadow: true });
@@ -301,6 +319,7 @@ export function buildLitter(ctx: WorldContext, field: VegField, material: Materi
 
   const s = newSample();
   const tint = new Color();
+  const seatNormal = V(0, 1, 0);
   const samples: number[][] = [];
   let count = 0;
 
@@ -468,21 +487,30 @@ export function buildLitter(ctx: WorldContext, field: VegField, material: Materi
       if (field.insideGiantTrunk(x, z)) continue;
       const onPath = s.path > 0.5;
       const gd = field.giantDistance(x, z);
-      // the disc pass' weight where the corridor grows new ground, the forest floor's extra everywhere
-      let p = 0.11 * field.falloffReach(x, z) * ((beyond ? 1 : 0) + NORTH_FLOOR_LITTER * nf);
+      // the disc pass' weight where the corridor grows new ground, the forest floor's extra everywhere;
+      // round 46: the disc falloff floored at NORTH_LITTER_REACH_FLOOR (the hollow floor and the plain
+      // lie at reach 27–38 m, where it had thinned the litter to half) — the floor is strewn to 25 m
+      let p = 0.11 * Math.max(field.falloffReach(x, z), NORTH_LITTER_REACH_FLOOR) * ((beyond ? 1 : 0) + NORTH_FLOOR_LITTER * nf);
       p *= 1 + 2.8 * (1 - smoothstep(0, 11, gd));
       p *= 0.55 + 0.9 * field.cluster(x, z);
       if (onPath) p *= 0.12;
       if (rng() > p) continue;
-      const y = T.height(x, z) + (onPath ? 0.035 : 0.004);
+      // round 46: seated on the exact terrain height with the exact terrain normal (the field's
+      // bilinear 0.5 m normal and the ± 0.08 tilt jitter stood a leaf's far edge 1–2 cm off a slope:
+      // survey-2 #06 "floating litter sprites"); the paving keeps its lift over the slabs' relief
+      const y = T.height(x, z) + (onPath ? 0.035 : NORTH_LITTER_LIFT);
+      T.normal(x, z, seatNormal);
       // twigs never lie on the paving (the disc pass' rule): a candidate there falls as a leaf
       if (rng() < NORTH_TWIG_SHARE && !onPath && field.allowed(x, z, s)) {
         const scale = 0.8 + rng() * 0.6;
-        composeMatrix(M, 0, x, y, z, s.nx, s.ny, s.nz, 1, rng() * TAU, scale, scale, scale);
+        composeMatrix(M, 0, x, y, z, seatNormal.x, seatNormal.y, seatNormal.z, 1, rng() * TAU, scale, scale, scale);
         northTwigs.add(M, rng.int(0, 3), tint.setRGB(0.85 + rng() * 0.3, 0.85 + rng() * 0.3, 0.85 + rng() * 0.3));
       } else {
         const scale = 0.7 + rng() * 0.7;
-        composeMatrix(M, 0, x, y, z, s.nx + rng.gauss() * 0.08, s.ny, s.nz + rng.gauss() * 0.08, 1, rng() * TAU, scale, scale, scale);
+        // (the two tilt draws stay in the stream so every leaf keeps its round-44 seat and heading)
+        rng.gauss();
+        rng.gauss();
+        composeMatrix(M, 0, x, y, z, seatNormal.x, seatNormal.y, seatNormal.z, 1, rng() * TAU, scale, scale, scale);
         // the forest floor's leaves lie longer: the browner half of the palette, a little darker
         const c = LEAF_TINTS[nf > 0.5 ? 2 + rng.int(0, LEAF_TINTS.length - 2) : rng.int(0, LEAF_TINTS.length)];
         tint.copy(c).multiplyScalar((0.8 + rng() * 0.4) * (1 - 0.12 * nf));

@@ -35,7 +35,8 @@ kit.tube = (mesh, points, rootRadius, tipRadius, color, sides = 4, caps = false)
   trace.stems.push({start, end: start + (points.length - 1) * sides, sides,
     root: points[0].clone(), head: points.at(-1).clone()});
 };
-for (const name of ['curvedLeaf', 'foldedLeaf']) {
+// round 46 (W18): the cluster head's petals are petalCards at high / mid and the ultra's inner whorl
+for (const name of ['curvedLeaf', 'foldedLeaf', 'petalCard']) {
   const original = kit[name];
   kit[name] = (mesh, base, direction, length, width, color, options = {}) => {
     const start = mesh.p.length / 3;
@@ -44,6 +45,16 @@ for (const name of ['curvedLeaf', 'foldedLeaf']) {
     if (trace.species === 'flowerSpikeGeometry' && (options.curl === .3 || options.curl === .2)) {
       trace.bells.push({vertex: start, base: base.clone()});
     }
+    // round 46: the cluster head's petals (petalHead) are the only laminae pinned to a bloom axis
+    if (trace.species === 'flowerGeometry' && options.planeNormal) trace.petals.push({vertex: start, base: base.clone()});
+  };
+}
+{
+  const original = kit.shapedLeaf;
+  kit.shapedLeaf = (mesh, base, direction, length, width, color, options) => {
+    const start = mesh.p.length / 3;
+    original(mesh, base, direction, length, width, color, options);
+    if (trace.species === 'flowerGeometry' && options.uOffset === kit.PETAL_U) trace.petals.push({vertex: start, base: base.clone()});
   };
 }
 
@@ -60,7 +71,7 @@ function close(actual, expected, label) {
   assert.ok(actual.distanceTo(expected) < 1e-7, `${label}: ${actual.toArray()} != ${expected.toArray()}`);
 }
 function build(species, seed, detail) {
-  trace = {species, stems: [], bells: []};
+  trace = {species, stems: [], bells: [], petals: []};
   const geometry = plants[species](seed, palette, detail);
   const result = {...trace, geometry};
   const index = geometry.getIndex();
@@ -80,9 +91,9 @@ function build(species, seed, detail) {
       close(ringCenter(geometry, start, stem.sides), expected.clone().add(offset), 'Actual stem ring center');
     }
   }
-  for (const bell of result.bells) {
-    assert.ok(referenced.has(bell.vertex), 'Bell attachment belongs to rendered triangle');
-    close(position(geometry, bell.vertex), bell.base.clone().add(offset), 'Actual bell attachment');
+  for (const bell of [...result.bells, ...result.petals]) {
+    assert.ok(referenced.has(bell.vertex), 'Bell / petal attachment belongs to rendered triangle');
+    close(position(geometry, bell.vertex), bell.base.clone().add(offset), 'Actual bell / petal attachment');
   }
   return result;
 }
@@ -98,6 +109,13 @@ for (const species of ['flowerGeometry', 'flowerSpikeGeometry']) {
     assert.equal(high.stems.length, mid.stems.length, 'Retain every high/mid stem and terminal bloom');
     assert.equal(high.bells.length, mid.bells.length, 'Retain every high/mid spike bell petal');
     if (species === 'flowerSpikeGeometry') assert.ok(high.bells.length >= high.stems.length * 7 * 4);
+    // round 46 (survey-2 #05): the cluster head is an open bloom of PETAL_HEAD_PETALS petals round an
+    // eye at every LOD but the far blob — the same petals, on the same roots, at high and mid
+    if (species === 'flowerGeometry') {
+      assert.ok(high.petals.length >= high.stems.length * plants.PETAL_HEAD_PETALS[0], 'At least five petals a head at high');
+      assert.equal(high.petals.length, mid.petals.length, 'Retain every high/mid petal');
+      for (let i = 0; i < high.petals.length; i++) close(high.petals[i].base, mid.petals[i].base, 'High/mid petal root');
+    }
     for (let i = 0; i < high.stems.length; i++) {
       for (const part of ['start', 'end']) {
         close(ringCenter(high.geometry, high.stems[i][part], high.stems[i].sides),
@@ -121,7 +139,12 @@ for (const species of ['flowerGeometry', 'flowerSpikeGeometry']) {
       close(ultraStems[i].head, high.stems[i].head, 'Ultra/high stem head');
     }
     if (species === 'flowerSpikeGeometry') assert.ok(ultra.stems.filter(s => s.sides === 4).length >= high.stems.length * 7 * 2, 'Two bells a station');
-    else assert.ok(ultra.stems.filter(s => s.sides === 4).length >= high.stems.length * 8, 'At least eight bells a head');
+    else {
+      // round 46: the ultra head's petals are the high LOD's (same roots, from the head's own stream), as
+      // 4 × 5 laminae in the petal band; the round-43 floret ball (≥ 8 bells a head) is gone
+      assert.equal(ultra.petals.length, high.petals.length, 'Ultra keeps every petal');
+      for (let i = 0; i < high.petals.length; i++) close(ultra.petals[i].base, high.petals[i].base, 'Ultra/high petal root (recorded before grounding, like the stems)');
+    }
     assert.ok(triangles(ultra) >= triangles(high) * 2, 'Ultra carries at least twice the high triangles');
     for (const [detail, result] of Object.entries({ultra, high, mid, low})) {
       totals[species][detail] += triangles(result);

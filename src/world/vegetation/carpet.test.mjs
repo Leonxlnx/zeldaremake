@@ -52,15 +52,17 @@ assert.equal(a.carpet.atlas.texture,null,'no DOM canvas under node: the atlas is
 // a mat's first float is its continuous palette position instead (materials.ts blends the entries)
 const {matPalettePosition}=read('vegetation/carpet');
 assert.deepEqual([-1,-0.48,-0.28,-0.08,0.12,0.3,0.48,0.66,1].map(t=>Math.round(matPalettePosition(t)*1000)/1000),[0,0,0.5,1,1.526,2,2.5,3,3],'palette position: piecewise linear, the blades\' bin midpoints land near the half entries');
+// round 46: the north corridor's fans are their own set (carpet.ts NORTH_CARPET) — a clump set in every check below
+const isClumps=set=>set===a.carpet.clumps||set===a.carpet.northClumps;
 for(const set of a.carpet.all){assert.deepEqual(set.opts.instanceData,{attribute:'aData',size:4});
-  const tiles=set===a.carpet.clumps?CLUMP_TILES:MAT_TILES;
+  const tiles=isClumps(set)?CLUMP_TILES:MAT_TILES;
   for(const it of set.items){assert.equal(it.data.length,4);
     if(set===a.carpet.mats){assert.ok(it.data[0]>=0&&it.data[0]<=3&&it.data[1]===1,'mats: palette position 0..3, full stiffness');assert.equal(Math.floor(it.data[2]*4),0,'mats leave the integer palette index unused');}
     else assert.ok(it.data[0]>=0&&it.data[0]<1&&it.data[1]>=0.05&&it.data[1]<=1,'phase / stiffness in range');
     const slot=it.data[2]*4,idx=Math.floor(slot);assert.ok(idx>=0&&idx<=3,'palette index 0..3');assert.ok(slot-idx>=0&&slot-idx<=0.75+1e-6,'slot fraction is a shade lift or a bank darkening');
     const tile=Math.floor(it.data[3]+1e-3);assert.ok(tile>=0&&tile<tiles,`atlas tile ${tile} of ${tiles}`);
     // round 40: a clump's fraction is (dryness step 0..15 + mirror flag 0.25 / 0.75) / 16 (materials.ts CARD_COLOR_VERTEX); a mat keeps its continuous dryness ≤ 0.95
-    if(set===a.carpet.clumps){const slot=(it.data[3]-tile)*16,step=Math.floor(slot),sub=slot-step;assert.ok(step>=0&&step<=15,`dryness step ${step}`);assert.ok(Math.abs(sub-0.25)<1e-4||Math.abs(sub-0.75)<1e-4,`mirror flag in the sub-step: ${sub.toFixed(4)}`);}
+    if(isClumps(set)){const slot=(it.data[3]-tile)*16,step=Math.floor(slot),sub=slot-step;assert.ok(step>=0&&step<=15,`dryness step ${step}`);assert.ok(Math.abs(sub-0.25)<1e-4||Math.abs(sub-0.75)<1e-4,`mirror flag in the sub-step: ${sub.toFixed(4)}`);}
     else assert.ok(it.data[3]-tile<=0.95+1e-6,'dryness ≤ 0.95');}}
 // round 40 (Astra's "repeated fans"): per-card variation without a stream draw — all six tiles in use, ≈ half the cards
 // mirrored, the width / height jitter (0.8–1.25 × / 0.7–1.3 ×) shows as a spread of aspect ratios, and the instance
@@ -82,11 +84,21 @@ for(const set of a.carpet.all){assert.deepEqual(set.opts.instanceData,{attribute
   steps.sort((p,r)=>p-r);const q=f=>steps[Math.min(steps.length-1,Math.floor(f*steps.length))];
   assert.ok(steps.length>=5000&&q(1)<1.25&&q(0.99)<0.75&&q(0.5)<0.35,`${steps.length} mat pairs within 0.8 m, median palette step ${q(0.5).toFixed(3)}, p99 ${q(0.99).toFixed(3)}, largest ${q(1).toFixed(3)}`);}
 // determinism: a fresh seed and terrain reproduce every card
-for(const k of['clumps','mats']){const first=a.carpet[k],second=b.carpet[k];assert.equal(first.count,second.count,`${k} count`);
+for(const k of['clumps','northClumps','mats']){const first=a.carpet[k],second=b.carpet[k];assert.equal(first.count,second.count,`${k} count`);
   for(let i=0;i<first.count;i++)assert.deepEqual(first.items[i],second.items[i],`${k} ${i} reproduced`);}
 // counts and density: a closed carpet over the lawns (≈ 4 clumps / m², ≈ 4 mats / m²)
 assert.ok(a.carpet.clumps.count>=12000&&a.carpet.clumps.count<=30000,`clumps: ${a.carpet.clumps.count}`);
-assert.ok(a.carpet.mats.count>=12000&&a.carpet.mats.count<=28000,`mats: ${a.carpet.mats.count}`);
+// round 46: the north tiles' mats take NORTH_CARPET.matKeep and the falloff floor (≈ +500 two-triangle mats: was ≤ 28 000)
+assert.ok(a.carpet.mats.count>=12000&&a.carpet.mats.count<=32000,`mats: ${a.carpet.mats.count}`);
+// round 46: the north corridor's own fans — north of NORTH_CARPET.z only, running to 25 m, shorter, and the disc's set
+// holds none north of the line; both sets seat inside the reach
+{const {NORTH_CARPET}=read('vegetation/carpet');assert.ok(NORTH_CARPET.maxDistance>=25&&NORTH_CARPET.z<=-20&&NORTH_CARPET.keep>=0.85&&NORTH_CARPET.reachFloor>=0.75,'the north carpet runs to 25 m, dense');
+  assert.deepEqual(a.carpet.northClumps.opts.lodDistances,a.carpet.clumps.opts.lodDistances);assert.equal(a.carpet.northClumps.opts.maxDistance,NORTH_CARPET.maxDistance);assert.strictEqual(a.carpet.northClumps.opts.variants,a.carpet.clumps.opts.variants,'the same cards');
+  assert.ok(a.carpet.northClumps.count>=1500,`north clumps: ${a.carpet.northClumps.count}`);
+  for(const it of a.carpet.northClumps.items)assert.ok(it.z<NORTH_CARPET.z,`north clump at z ${it.z}`);for(const it of a.carpet.clumps.items)assert.ok(it.z>=NORTH_CARPET.z-8,`disc clump at z ${it.z}`);
+  // the hollow floor and the plain (survey-2 #06 boxes) carry a closed carpet: ≥ 2 fans / m² of allowed ground
+  for(const [name,b] of [['hollow floor west',[-12,-45,-5,-34]],['north plain',[-5,-60,12,-50]]]){const w=(b[2]-b[0])*(b[3]-b[1]);let allowed=0;for(let x=b[0]+0.25;x<b[2];x+=0.5)for(let z=b[1]+0.25;z<b[3];z+=0.5){a.field.sample(x,z,s);if(a.field.allowed(x,z,s,true)&&!a.field.insideGiantTrunk(x,z))allowed+=0.25;}
+    const n=a.carpet.northClumps.items.filter(it=>inBox(it,b)).length;assert.ok(n/Math.max(1,allowed)>=2,`${name}: ${(n/Math.max(1,allowed)).toFixed(2)} north fans / m² over ${allowed.toFixed(0)} m² allowed (${(100*allowed/w).toFixed(0)} % of the box)`);}}
 assert.ok(CLUMP_CELL<=0.45&&MAT_CELL<=0.6);
 const perM2=(set,b)=>set.items.filter(it=>inBox(it,b)).length/((b[2]-b[0])*(b[3]-b[1]));
 // (the north verge lies in shot D's soil shoulder — frame 56 s' ragged earth edge — where the mats thin like the blades)
@@ -98,7 +110,7 @@ for(const set of a.carpet.all)for(const it of set.items){
   a.field.sample(it.x,it.z,s);assert.ok(a.field.allowed(it.x,it.z,s,true),`${set.opts.name} root on turf at (${it.x},${it.z})`);
   assert.ok(!a.field.insideGiantTrunk(it.x,it.z));
   const gap=a.ctx.terrain.height(it.x,it.z)-it.y;
-  if(set===a.carpet.clumps)assert.ok(gap>=-1e-4&&gap<=0.0301,`clump sunk ${gap.toFixed(4)} m`);else assert.ok(Math.abs(gap+0.018)<1e-4,`mat lifted ${(-gap).toFixed(4)} m`);
+  if(isClumps(set))assert.ok(gap>=-1e-4&&gap<=0.0301,`clump sunk ${gap.toFixed(4)} m`);else assert.ok(Math.abs(gap+0.018)<1e-4,`mat lifted ${(-gap).toFixed(4)} m`);
   const clr=a.field.clearing(it.x,it.z);assert.ok(!clr.insideBoulder,'no card inside a boulder');}
 // heights: the reference's 0.15–0.35 m tufts, never over camera C's 0.35 m stair-foot rule
 const hs=a.carpet.clumps.items.map(scaleY);const q=(arr,f)=>{const t=[...arr].sort((p,r)=>p-r);return t[Math.min(t.length-1,Math.floor(f*t.length))];};
@@ -147,7 +159,8 @@ for(const it of a.carpet.clumps.items){if(inBox(it,[1.5,-16,7,-4]))assert.ok(sca
   assert.ok(shadeClumps>=0.35*lawnClumps&&shadeClumps<=0.65*lawnClumps,`shade clumps ${shadeClumps.toFixed(2)} / cell vs lawn ${lawnClumps.toFixed(2)}`);
   assert.ok(shadeMats>=0.85*lawnMats,`shade mats ${shadeMats.toFixed(2)} / cell vs lawn ${lawnMats.toFixed(2)}: the bank stays closed`);
   assert.ok(inBox({x:(C_FOOT[0]+C_FOOT[2])/2,z:(C_FOOT[1]+C_FOOT[3])/2},C_FOOT));
-  let shaded=0;for(const it of a.carpet.mats.items){if(a.field.bankDark(it.x,it.z)>0.01)continue;assert.ok(Math.abs(it.data[2]*4-0.25)<1e-6,`mat slot fraction ${(it.data[2]*4).toFixed(3)}: no shade lift`);if(a.field.shadeZone(it.x,it.z)>0.9)shaded++;}
+  // round 46: the forest floor's mats take the darkening slot too (carpet.ts NORTH_FLOOR_DARKEN) — skipped here like the banks'
+  let shaded=0;for(const it of a.carpet.mats.items){if(a.field.bankDark(it.x,it.z)>0.01||a.field.northFloor(it.x,it.z)>0.02)continue;assert.ok(Math.abs(it.data[2]*4-0.25)<1e-6,`mat slot fraction ${(it.data[2]*4).toFixed(3)}: no shade lift`);if(a.field.shadeZone(it.x,it.z)>0.9)shaded++;}
   assert.ok(shaded>=100,`${shaded} mats in the shade zone core`);}
 // steep faces: no clump where the slope exceeds the thin band's end (≈ 70°); the mats, which lie on the face, hold
 // to the cliffs (0.5–0.75 ≈ 60–75°) so the stair flanks' blade turf sits on turf, and shrink across the band
@@ -162,13 +175,16 @@ for(const set of a.carpet.all){set.update(new THREE.Vector3(0,1.5,0),true);
   assert.equal(set.group.children.length,set.lodCount,'one draw per LOD');
   // v11: the fans end at 16 m with the blade tiles' last LOD (the mats alone carry the far turf); a mat is never left out
   const eye=new THREE.Vector3(0,1.5,0),inRange=set.items.filter(it=>set.opts.maxDistance===undefined||Math.hypot(it.x-eye.x,it.z-eye.z)<set.opts.maxDistance).length;
-  if(set===a.carpet.clumps){assert.equal(set.opts.maxDistance,16);assert.ok(inRange<set.count*0.5&&inRange>1500,`${inRange} of ${set.count} fans inside 16 m`);}else assert.equal(set.opts.maxDistance,undefined);
+  // round 46: the north corridor's fans run to 25 m (NORTH_CARPET) — from the plaza's eye only the line's first metre is in range
+  if(set===a.carpet.clumps){assert.equal(set.opts.maxDistance,16);assert.ok(inRange<set.count*0.5&&inRange>1500,`${inRange} of ${set.count} fans inside 16 m`);}
+  else if(set===a.carpet.northClumps){assert.equal(set.opts.maxDistance,25);assert.ok(inRange<set.count*0.02,`${inRange} of ${set.count} north fans inside 25 m of the plaza`);}
+  else assert.equal(set.opts.maxDistance,undefined);
   assert.equal(set.group.children.reduce((n,m)=>n+m.count,0),inRange,'every card in range bucketed');
   const cam=new THREE.PerspectiveCamera(50,16/9,0.1,200);cam.position.set(0,1.5,0);cam.lookAt(0,1,-10);cam.updateMatrixWorld();
   set.cull(cam,new THREE.Vector3(0.5,0.6,0.5).normalize(),true);
   const submitted=set.group.children.reduce((n,m)=>n+m.count,0);assert.ok(submitted<set.count*0.6,`${set.opts.name}: ${submitted} of ${set.count} submitted to a 50° frame`);
   // the data attribute follows the submission
-  for(const m of set.group.children){const d=m.geometry.attributes.aData.array;for(let k=0;k<m.count;k++){const tile=Math.floor(d[k*4+3]+1e-3);assert.ok(tile>=0&&tile<(set===a.carpet.clumps?CLUMP_TILES:MAT_TILES));}}}
+  for(const m of set.group.children){const d=m.geometry.attributes.aData.array;for(let k=0;k<m.count;k++){const tile=Math.floor(d[k*4+3]+1e-3);assert.ok(tile>=0&&tile<(isClumps(set)?CLUMP_TILES:MAT_TILES));}}}
 // the materials: the card kind, alpha-tested, the clumps double sided with wind, the mats single sided and static
 const [clumpMat,matMat]=a.carpet.materials;
 assert.equal(clumpMat.name,'veg-grass-clumps');assert.equal(matMat.name,'veg-turf-mats');

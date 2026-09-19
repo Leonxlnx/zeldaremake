@@ -34,9 +34,12 @@
  * within the same `RELIEF_MAX_M` cap, faded over `FACE_FADE`; the moss share of a face in 14 cm
  * cushions with soil creases. The damp dark band at a face's foot is aW2.x (chunks.ts `foot`).
  */
-import { Color, MeshStandardMaterial, Texture, Vector2, Vector3, type WebGLProgramParametersWithUniforms } from 'three';
+import { ClampToEdgeWrapping, Color, DataTexture, LinearFilter, MeshStandardMaterial, RGFormat, Texture, UnsignedByteType, Vector2, Vector3, Vector4, type WebGLProgramParametersWithUniforms } from 'three';
 import type { TextureLibrary } from '../materials/textures';
 import type { WorldConfig } from '../config';
+import { LAYOUT } from '../layout';
+import { hash2 } from '../util/prng';
+import { clamp, smoothstep } from '../util/noise';
 
 export const TERRAIN_LAYERS = ['grass', 'soil', 'moss', 'leaf-litter', 'path-gravel', 'cliff-rock'] as const;
 
@@ -108,6 +111,130 @@ export const GROUND_NEAR = {
 };
 
 const f = (v: number) => v.toFixed(4);
+
+/**
+ * Round 46 (survey-2 #06, checks 09 / 10: the hollow floor, the plain beyond the log arch and the
+ * ground under the white-barks east of the north path read as a "flat pale-olive plane" — mown
+ * lawn — under sparse tufts) — the north forest floor's ALBEDO PATCH. A small world-space mask
+ * (`FOREST_FLOOR_BOX`, `FOREST_FLOOR_RES` texels, R = leaf-litter drifts, G = dark humus), built
+ * once on the CPU from `LAYOUT.pathSpine` and a seeded value noise, re-weights the six-layer
+ * splat in the fragment: on the forest floor the grass weight hands over to the litter layer in
+ * drifts of a few metres and to the soil layer, darkened, in damp humus patches between them, so
+ * the ground under the white-barks reads as forest floor, not lawn. The paving, its gravel verge
+ * (w1.x) and the rock (w1.y) take none of it, nor does the ground closer than FF_PATH_CLEAR to the
+ * spine; the vertex weights and the heightfield are untouched (the probe is byte-identical).
+ *
+ * The zone follows vegetation/field.ts `northFloor` (the systems do not import each other's
+ * internals), drawn wider: everything north of the arch's south face (FF_NORTH_Z) and, north of the
+ * hollow's mouth (FF_OFF_Z), the ground FF_OFF_PATH m or more off the path — the survey's hollow
+ * floor box (x −12…−2, z −20…−45) and the white-barks' floor east of the path (x 8…18, z −30…−45)
+ * lie inside it (the first pass's 7–13 m / −26…−34 m ramps left them a third covered and the ground
+ * read unchanged in the w19 / w21 / w18 poses). The white-barks themselves are seeded by the trees
+ * system and not published, so the patch covers the floor they stand in rather than their exact feet.
+ */
+const FOREST_FLOOR_BOX: readonly [number, number, number, number] = [-48, -90, 96, 100];
+const FOREST_FLOOR_RES = 192;
+const FF_NORTH_Z: readonly [number, number] = [-40, -50];
+const FF_OFF_Z: readonly [number, number] = [-20, -27];
+const FF_OFF_PATH: readonly [number, number] = [4.5, 8.5];
+/** the spine keeps this much (m, beyond pathHalfWidth) of untouched verge, feathered over the second value */
+const FF_PATH_CLEAR: readonly [number, number] = [1.0, 3.5];
+/** litter drifts: noise period (m), threshold band, and the floor's base litter share under the drifts */
+const FF_LITTER_PERIOD = 5.5;
+const FF_LITTER_BAND: readonly [number, number] = [0.36, 0.6];
+const FF_LITTER_BASE = 0.34;
+/** humus patches: noise period (m) and threshold band; the share of the grass they take and their darkening */
+const FF_HUMUS_PERIOD = 3.8;
+const FF_HUMUS_BAND: readonly [number, number] = [0.42, 0.68];
+export const FF_HUMUS_DARKEN = 0.52;
+
+/** the terrain audit's record of the patch */
+export const FOREST_FLOOR = { box: FOREST_FLOOR_BOX, res: FOREST_FLOOR_RES, northZ: FF_NORTH_Z, offZ: FF_OFF_Z, offPath: FF_OFF_PATH, litterBase: FF_LITTER_BASE, humusDarken: FF_HUMUS_DARKEN };
+
+/** seeded value noise on a metre lattice (smoothstep-interpolated hash2), 0..1 */
+function ffNoise(x: number, z: number, seed: number): number {
+  const ix = Math.floor(x);
+  const iz = Math.floor(z);
+  let tx = x - ix;
+  let tz = z - iz;
+  tx = tx * tx * (3 - 2 * tx);
+  tz = tz * tz * (3 - 2 * tz);
+  const a = hash2(ix, iz, seed);
+  const b = hash2(ix + 1, iz, seed);
+  const c = hash2(ix, iz + 1, seed);
+  const d = hash2(ix + 1, iz + 1, seed);
+  return (a + (b - a) * tx) * (1 - tz) + (c + (d - c) * tx) * tz;
+}
+/** two-octave fbm of ffNoise at `period` m */
+function ffFbm(x: number, z: number, period: number, seed: number): number {
+  return 0.68 * ffNoise(x / period, z / period, seed) + 0.32 * ffNoise((x / period) * 2.3 + 11.7, (z / period) * 2.3 - 4.2, seed + 1);
+}
+
+/** distance (m) from (x, z) to the north part of the path spine (the points north of the plaza) */
+function spineDistance(x: number, z: number): number {
+  const pts = LAYOUT.pathSpine.filter((p) => p[2] <= -12);
+  let d = Infinity;
+  for (let i = 0; i < pts.length - 1; i++) {
+    const [ax, , az] = pts[i];
+    const [bx, , bz] = pts[i + 1];
+    const dx = bx - ax;
+    const dz = bz - az;
+    const t = clamp(((x - ax) * dx + (z - az) * dz) / (dx * dx + dz * dz), 0, 1);
+    d = Math.min(d, Math.hypot(x - ax - dx * t, z - az - dz * t));
+  }
+  // the spine ends at the arch; north of its last point the corridor runs on along its heading
+  const [lx, , lz] = pts[pts.length - 1];
+  if (z < lz) d = Math.min(d, Math.abs(x - lx - (lz - z) * 0.05));
+  return d;
+}
+
+/** 0..1 forest-floor zone at (x, z) (vegetation/field.ts `northFloor`) */
+export function forestFloorZone(x: number, z: number): number {
+  if (z > FF_OFF_Z[0]) return 0;
+  const north = 1 - smoothstep(FF_NORTH_Z[1], FF_NORTH_Z[0], z);
+  const off = (1 - smoothstep(FF_OFF_Z[1], FF_OFF_Z[0], z)) * smoothstep(FF_OFF_PATH[0], FF_OFF_PATH[1], spineDistance(x, z));
+  return Math.max(north, off);
+}
+
+/** the patch's two shares at (x, z): [litter drift 0..1, humus 0..1] */
+export function forestFloorAt(x: number, z: number): [number, number] {
+  const zone = forestFloorZone(x, z);
+  if (zone <= 0) return [0, 0];
+  const clear = smoothstep(LAYOUT.pathHalfWidth + FF_PATH_CLEAR[0], LAYOUT.pathHalfWidth + FF_PATH_CLEAR[1], spineDistance(x, z));
+  const k = zone * clear;
+  if (k <= 0) return [0, 0];
+  const drift = smoothstep(FF_LITTER_BAND[0], FF_LITTER_BAND[1], ffFbm(x, z, FF_LITTER_PERIOD, 461));
+  const humus = smoothstep(FF_HUMUS_BAND[0], FF_HUMUS_BAND[1], ffFbm(x + 31, z - 17, FF_HUMUS_PERIOD, 977));
+  const litter = k * (FF_LITTER_BASE + (1 - FF_LITTER_BASE) * drift);
+  // humus lies between the drifts, not under them
+  return [litter, k * humus * (1 - 0.7 * drift)];
+}
+
+/** the mask texture: R litter, G humus, over FOREST_FLOOR_BOX (x0, z0, width, depth) */
+export function buildForestFloorMask(): DataTexture {
+  const n = FOREST_FLOOR_RES;
+  const data = new Uint8Array(n * n * 2);
+  const [x0, z0, w, d] = FOREST_FLOOR_BOX;
+  for (let j = 0; j < n; j++) {
+    for (let i = 0; i < n; i++) {
+      const x = x0 + ((i + 0.5) / n) * w;
+      const z = z0 + ((j + 0.5) / n) * d;
+      const [litter, humus] = forestFloorAt(x, z);
+      const o = (j * n + i) * 2;
+      data[o] = Math.round(clamp(litter, 0, 1) * 255);
+      data[o + 1] = Math.round(clamp(humus, 0, 1) * 255);
+    }
+  }
+  const tex = new DataTexture(data, n, n, RGFormat, UnsignedByteType);
+  tex.minFilter = LinearFilter;
+  tex.magFilter = LinearFilter;
+  tex.wrapS = ClampToEdgeWrapping;
+  tex.wrapT = ClampToEdgeWrapping;
+  tex.generateMipmaps = false;
+  tex.name = 'terrain-forest-floor-mask';
+  tex.needsUpdate = true;
+  return tex;
+}
 
 const HASH_GLSL = /* glsl */ `
 float tHash(vec2 p) { return fract(sin(dot(p, vec2(127.1, 311.7))) * 43758.5453); }
@@ -183,9 +310,33 @@ uniform vec3 uTiles0; // grass, soil, moss   (1/tile)
 uniform vec3 uTiles1; // litter, gravel, rock (1/tile)
 uniform vec3 uGrassDeep; uniform vec3 uGrassLight; uniform vec3 uMossDeep; uniform vec3 uMossBright;
 uniform vec3 uSoilTint; uniform vec3 uSoilDark; uniform vec3 uStoneTint; uniform vec3 uWetTint;
+uniform sampler2D tForestFloor; uniform vec4 uForestFloorBox;
 varying vec4 vW0; varying vec4 vW1; varying vec4 vW2; varying vec3 vWPos; varying vec3 vWNrm; varying vec3 vFaceFr;
 ${HASH_GLSL}
 ${FACE_GLSL}
+
+// round 46: the north forest floor's albedo patch (FOREST_FLOOR_*, the CPU mask tForestFloor: R litter
+// drifts, G humus). Re-weights the splat: the grass hands over to the litter layer under the drifts
+// and, where the humus lies, to the soil layer (the moss keeps half its ground); nothing on the
+// gravel verge or the rock. Returns the humus share for the albedo darkening.
+float forestFloor(vec2 uvw, inout vec4 w0, vec4 w1) {
+  vec2 fuv = (uvw - uForestFloorBox.xy) / uForestFloorBox.zw;
+  if (fuv.x <= 0.0 || fuv.y <= 0.0 || fuv.x >= 1.0 || fuv.y >= 1.0) return 0.0;
+  vec2 ff = texture2D(tForestFloor, fuv).rg;
+  float open = clamp(1.0 - w1.x - w1.y, 0.0, 1.0);
+  float lit = ff.r * open;
+  float hum = ff.g * open;
+  if (lit + hum <= 0.002) return 0.0;
+  float g = w0.x;
+  float toLitter = g * lit;
+  float left = g - toLitter;
+  float mossToSoil = w0.z * 0.5 * hum;
+  w0.x = left * (1.0 - hum);
+  w0.z -= mossToSoil;
+  w0.w += toLitter;
+  w0.y += left * hum + mossToSoil;
+  return hum;
+}
 
 // rotate uv by a fixed angle so the second scale never lines up with the first
 vec2 rot2(vec2 p) { const float c = 0.83867; const float s = 0.54464; return vec2(c * p.x - s * p.y, s * p.x + c * p.y); }
@@ -507,6 +658,8 @@ const MAP_FRAG = /* glsl */ `
   float k = vW1.w;                    // macro noise 0..1 (per vertex, low frequency)
   float mixK = smoothstep(0.25, 0.75, k);
   vec4 w0 = vW0; vec4 w1 = vW1;
+  // round 46: the north forest floor's patch re-weights the splat (litter drifts, humus soil)
+  float ffHum = forestFloor(uvw, w0, w1);
   float nw = groundNearW();
   float dw = groundDetailW();
   vec3 c = vec3(0.0);
@@ -594,6 +747,8 @@ const MAP_FRAG = /* glsl */ `
   // macro variation + damp darkening (the dry litter on top takes less of the damp)
   c *= mix(0.86, 1.14, k);
   c = mix(c, c * uSoilDark * 2.2, vW1.z * 0.55 * (1.0 - 0.6 * litCov));
+  // round 46: the humus patches lie dark and damp under the litter drifts (the leaves on top keep their tone)
+  if (ffHum > 0.002) c = mix(c, c * uSoilDark * 1.9, ffHum * ${f(FF_HUMUS_DARKEN)} * (1.0 - 0.6 * litCov));
   // round 43: the wet band — dish floors, depression bottoms, the giants' drip ring (aW2.x),
   // broken into patches by a 30 cm noise; dark and a touch cool
   {
@@ -609,15 +764,18 @@ const NORMAL_FRAG = /* glsl */ `
 {
   vec2 uvw = vWPos.xz;
   float mixK = smoothstep(0.25, 0.75, vW1.w);
+  // round 46: the forest floor's patch re-weights the layer normals like the albedo
+  vec4 w0 = vW0;
+  forestFloor(uvw, w0, vW1);
   float nw = groundNearW();
   float dw = groundDetailW();
   vec3 mapN = vec3(0.0, 0.0, 0.0);
   vec3 faceTiltW = vec3(0.0);
   float tot = 0.0;
-  if (vW0.x > 0.002) { mapN += nrm2(tGrassN, uvw, uTiles0.x, mixK) * vW0.x; tot += vW0.x; }
-  if (vW0.y > 0.002) { mapN += nrmNear(tSoilN, uvw, uTiles0.y, ${f(LAYER_SETS.soil.tile)}, mixK, nw) * vW0.y; tot += vW0.y; }
-  if (vW0.z > 0.002) { mapN += nrm2(tMossN, uvw, uTiles0.z, mixK) * vW0.z; tot += vW0.z; }
-  if (vW0.w > 0.002) { mapN += nrmNear(tLitterN, uvw, uTiles1.x, ${f(LAYER_SETS['leaf-litter'].tile)}, mixK, nw) * vW0.w; tot += vW0.w; }
+  if (w0.x > 0.002) { mapN += nrm2(tGrassN, uvw, uTiles0.x, mixK) * w0.x; tot += w0.x; }
+  if (w0.y > 0.002) { mapN += nrmNear(tSoilN, uvw, uTiles0.y, ${f(LAYER_SETS.soil.tile)}, mixK, nw) * w0.y; tot += w0.y; }
+  if (w0.z > 0.002) { mapN += nrm2(tMossN, uvw, uTiles0.z, mixK) * w0.z; tot += w0.z; }
+  if (w0.w > 0.002) { mapN += nrmNear(tLitterN, uvw, uTiles1.x, ${f(LAYER_SETS['leaf-litter'].tile)}, mixK, nw) * w0.w; tot += w0.w; }
   if (vW1.x > 0.002) { mapN += nrm2(tGravelN, uvw, uTiles1.y, mixK) * vW1.x; tot += vW1.x; }
   if (tot > 0.0) mapN /= tot; else mapN = vec3(0.0, 0.0, 1.0);
   // round 43: the layer normals read NEAR_NORMAL_K × normalScale at the feet
@@ -626,30 +784,30 @@ const NORMAL_FRAG = /* glsl */ `
   {
     vec2 nxy = vec2(0.0);
     vec3 cUnused = vec3(1.0);
-    float soft = clamp(vW0.y + vW0.w + vW0.z * 0.5 + vW0.x * 0.35, 0.0, 1.0);
+    float soft = clamp(w0.y + w0.w + w0.z * 0.5 + w0.x * 0.35, 0.0, 1.0);
     if (dw > 0.001 && soft > 0.002) {
       vec3 detN = texture2D(tLitterN, detailUv(uvw)).xyz * 2.0 - 1.0;
       // the detail uv is rotated 90° (x' = y, y' = −x): rotate the tangent-space tilt back
       nxy += vec2(-detN.y, detN.x) * (${f(DETAIL_NORMAL_K)} * dw * soft);
     }
-    if (vW0.z > 0.002 && dw > 0.001) {
+    if (w0.z > 0.002 && dw > 0.001) {
       vec2 cxy = vec2(0.0);
       cushionLayer(uvw, 0.09, 3.7, 0.4, cxy);
       cushionLayer(uvw, 0.045, 11.9, 0.15, cxy);
-      nxy += cxy * vW0.z * dw;
+      nxy += cxy * w0.z * dw;
     }
     vec3 nn = normalize(vWNrm);
     {
       float steep = 1.0 - nn.y;
-      float bankW = vW0.y * smoothstep(0.25, 0.45, steep) * groundBankW();
+      float bankW = w0.y * smoothstep(0.25, 0.45, steep) * groundBankW();
       if (bankW > 0.002) bankDetail(uvw, nn, bankW, cUnused, nxy);
       float faceW = vW2.w * groundFaceW();
-      if (faceW > 0.002) faceDetail(vWPos, vFaceFr, clamp(vW1.y, 0.0, 1.0), clamp(vW0.z, 0.0, 1.0), faceW, steep, cUnused, nxy, faceTiltW);
+      if (faceW > 0.002) faceDetail(vWPos, vFaceFr, clamp(vW1.y, 0.0, 1.0), clamp(w0.z, 0.0, 1.0), faceW, steep, cUnused, nxy, faceTiltW);
     }
     if (dw > 0.001) {
       float vergeW = vW1.x * dw;
       if (vergeW > 0.002) vergeDetail(uvw, slopeFrame(nn), vergeW, cUnused, nxy);
-      float dens = litterDensity(vW0) * dw;
+      float dens = litterDensity(w0) * dw;
       if (dens > 0.002) litterDetail(uvw, dens, slopeFrame(nn), cUnused, nxy);
     }
     mapN.xy += nxy;
@@ -719,11 +877,16 @@ export async function createTerrainMaterial(textures: TextureLibrary, config: Wo
   const P = config.palette;
   const tiles0 = new Vector3(1 / LAYER_SETS.grass.tile, 1 / LAYER_SETS.soil.tile, 1 / LAYER_SETS.moss.tile);
   const tiles1 = new Vector3(1 / LAYER_SETS['leaf-litter'].tile, 1 / LAYER_SETS['path-gravel'].tile, 1 / LAYER_SETS['cliff-rock'].tile);
+  // round 46: the north forest floor's albedo patch mask (see FOREST_FLOOR_*)
+  const forestFloor = buildForestFloorMask();
+  const forestFloorBox = new Vector4(...FOREST_FLOOR_BOX);
 
   material.onBeforeCompile = (shader: WebGLProgramParametersWithUniforms) => {
     for (const [k, v] of Object.entries(texs)) shader.uniforms[k] = { value: v };
     shader.uniforms.uTiles0 = { value: tiles0 };
     shader.uniforms.uTiles1 = { value: tiles1 };
+    shader.uniforms.tForestFloor = { value: forestFloor };
+    shader.uniforms.uForestFloorBox = { value: forestFloorBox };
     shader.uniforms.uGrassDeep = { value: new Color(P.grassDeep) };
     shader.uniforms.uGrassLight = { value: new Color(P.grassLight) };
     shader.uniforms.uMossDeep = { value: new Color(P.mossDeep) };
@@ -744,7 +907,7 @@ export async function createTerrainMaterial(textures: TextureLibrary, config: Wo
       .replace('#include <normal_fragment_maps>', NORMAL_FRAG)
       .replace('#include <roughnessmap_fragment>', ROUGH_FRAG);
   };
-  material.customProgramCacheKey = () => 'terrain-layered-v5-face-frame';
+  material.customProgramCacheKey = () => 'terrain-layered-v6-forest-floor';
 
   return { material, layers: [...TERRAIN_LAYERS], textured, detailNormal: true, sets: names };
 }

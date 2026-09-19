@@ -184,7 +184,8 @@ export async function create(ctx: WorldContext): Promise<WorldSystem> {
 
   const weeds = plants.weeds.count;
   const tufts = plants.tufts.count;
-  const clumps = carpet.clumps.count;
+  // round 46: the clump cards of both sets (the disc's and the north corridor's — carpet.ts NORTH_CARPET)
+  const clumps = carpet.clumps.count + carpet.northClumps.count;
   const turfMats = carpet.mats.count;
   ctx.audit('vegetation', () => ({
     /**
@@ -216,6 +217,9 @@ export async function create(ctx: WorldContext): Promise<WorldSystem> {
       atlasTiles: { clumps: carpet.atlas.clumpTiles, mats: carpet.atlas.matTiles },
       atlasCoverage: carpet.atlas.coverage,
       clumpLodDistances: carpet.clumps.opts.lodDistances.map((d) => Math.round(d * 10) / 10),
+      /** round 46: the north corridor's own set, running to NORTH_CARPET.maxDistance (the disc's stops at 16 m) */
+      northClumps: carpet.northClumps.count,
+      northClumpMaxDistanceM: carpet.northClumps.opts.maxDistance ?? null,
       alphaTested: true,
       castsShadows: false,
     },

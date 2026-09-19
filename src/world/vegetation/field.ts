@@ -260,11 +260,16 @@ const NORTH_CORRIDOR: readonly (readonly [number, number])[] = [
 ];
 const NORTH_REACH_BASE = 22;
 const NORTH_FADE_Z = -80;
-/** the forest-floor blend runs from the log arch's south face (z) north over this band … */
-const NORTH_FLOOR_Z: readonly [number, number] = [-44, -54];
+/**
+ * the forest-floor blend runs from the log arch's south face (z) north over this band …
+ * round 46 (survey-2 #06): drawn 4 m further south and 1.5–3 m nearer the path — the survey's
+ * hollow floor box (x −12…−2, z −20…−45) and the white-barks' floor east of the path (x 8…18,
+ * z −30…−45) were a third inside the round-44 zone; terrain/material.ts FOREST_FLOOR_* follows
+ */
+const NORTH_FLOOR_Z: readonly [number, number] = [-40, -50];
 /** … and, north of the hollow's mouth (z band), across this distance band off the path (m) */
-const NORTH_FLOOR_OFF_Z: readonly [number, number] = [-26, -34];
-const NORTH_FLOOR_OFF_PATH: readonly [number, number] = [7, 13];
+const NORTH_FLOOR_OFF_Z: readonly [number, number] = [-22, -29];
+const NORTH_FLOOR_OFF_PATH: readonly [number, number] = [5.5, 10];
 
 /**
  * The paved rim the layout polylines do not describe (`buildPavedRim`): the plaza discs of the
