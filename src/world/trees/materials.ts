@@ -219,7 +219,7 @@ function biasedMap(shader: WebGLProgramParametersWithUniforms, flatAware = false
  * and never pops (a fragment cull left a ring). The fixed cameras stand ≥ 5 m from every near
  * base; the shader's own moss field carries the cushion look inside a metre.
  */
-export const CUSHION_FADE_M: [number, number] = [0.4, 0.7];
+export const CUSHION_FADE_M: [number, number] = [0.5, 0.9];
 
 const WIND_VERTEX_PARS = /* glsl */ `
 #define BARK_AO_LIFT ${BARK_AO_LIFT.toFixed(2)}

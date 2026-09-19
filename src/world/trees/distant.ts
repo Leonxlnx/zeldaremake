@@ -178,7 +178,8 @@ function leafCardLobe(writer: GeometryWriter, center: Vector3, radius: number, s
 /** solid (non-card) vertices of a geometry sharing the cluster-card material sample the opaque patch */
 function solidUv(writer: GeometryWriter) {
   for (let i = 0; i < writer.roots.length / 4; i++) {
-    if (writer.roots[i * 4 + 3] === 0) {
+    // every wood vertex (w ≤ 0): the lobe cores at 0 and the near LOD's tagged bark at −0.45
+    if (writer.roots[i * 4 + 3] <= 0) {
       writer.uvs[i * 2] = SOLID_UV;
       writer.uvs[i * 2 + 1] = SOLID_UV;
     }
