@@ -432,6 +432,14 @@ export const DISTANT_BARK_M: [number, number] = [22, 38];
  */
 export const DISTANT_NEAR_TONE: [number, number, number] = [1.0, 0.45, 0.5];
 export const DISTANT_NEAR_CORD_STRIPE = 0.25;
+/**
+ * Round 46: the bark floor of a broad depth-row bole inside the distant material's near blend
+ * (DISTANT_BARK_M; zero at 38 m+, so no fixed frame sees it). The columns' preset with more of
+ * the bole's own albedo kept (0.6 against 0.45): at 8–20 m the shaded side of a bole is the veil
+ * over black without it (trees-29 probe at w19-spine-r: the hemisphere light contributed
+ * 0.5 / 255 to the cone), and it is the cords, the furrow shade and the map that must show there.
+ */
+export const DISTANT_NEAR_FLOOR: ShadeFloor = { ...SHARED_BARK_FLOOR, lift: 6.2, texture: 0.6 };
 
 /**
  * Near-camera leaf detail (round 39, the owner's "huge single-colour flat polygons"): a lamina
@@ -1300,6 +1308,7 @@ export async function createTreeMaterials(ctx: WorldContext): Promise<TreeMateri
     s.uniforms.uDistantBark = { value: gColor };
     s.uniforms.uDistantBarkM = { value: new Vector2(DISTANT_BARK_M[0], DISTANT_BARK_M[1]) };
     s.uniforms.uDistantTone = { value: new Vector3(DISTANT_NEAR_TONE[0], DISTANT_NEAR_TONE[1], DISTANT_NEAR_TONE[2]) };
+    bindShadeFloor(s, 'uDistantFloor', DISTANT_NEAR_FLOOR, leafSun);
     s.vertexShader =
       'attribute vec4 aRoot;\nvarying float vDistSolid;\nvarying float vDistBark;\nvarying vec3 vDistLocal;\nvarying float vDistPhase;\n' +
       s.vertexShader.replace(
@@ -1319,7 +1328,33 @@ export async function createTreeMaterials(ctx: WorldContext): Promise<TreeMateri
       );
     s.fragmentShader =
       'uniform sampler2D uDistantBark;\nuniform vec2 uDistantBarkM;\nuniform vec3 uDistantTone;\nvarying float vDistSolid;\nvarying float vDistBark;\nvarying vec3 vDistLocal;\nvarying float vDistPhase;\n' +
-      s.fragmentShader.replace(
+      shadeFloorPars('uDistantFloor') +
+      s.fragmentShader
+        .replace(
+          '#include <lights_fragment_end>',
+          /* glsl */ `#include <lights_fragment_end>
+    // round 46 (DISTANT_NEAR_FLOOR): the shaded side of a near-LOD bole inside the near blend gets
+    // a bark floor like the columns' — without one the side away from the sun is the veil over a
+    // black surface at any albedo (w19-spine-r, sn-arch-outside). Scaled by the same blend, so it
+    // is zero at 38 m+ (the hero frames) and only the tagged bark takes it (never a card or core).
+    #if NUM_HEMI_LIGHTS > 0
+    if (vDistBark > 0.5) {
+      float floorNear = 1.0 - smoothstep(uDistantBarkM.x, uDistantBarkM.y, length(vViewPosition));
+      if (floorNear > 0.0) {
+        vec3 lumW = vec3(0.2126, 0.7152, 0.0722);
+        vec3 ambientMean = (hemisphereLights[0].skyColor + hemisphereLights[0].groundColor) * 0.5;
+        vec3 canopyFilter = mix(vec3(1.0), uDistantFloorLeafSun / max(dot(uDistantFloorLeafSun, lumW), 1e-3), uDistantFloorCanopy);
+        vec3 floorAlbedo = mix(vec3(uDistantFloorAlbedo), diffuseColor.rgb, uDistantFloorTexture);
+        vec3 floorLight = uDistantFloorLift * floorNear * ambientMean * canopyFilter * BRDF_Lambert(floorAlbedo);
+        floorLight = mix(vec3(dot(floorLight, lumW)), floorLight, uDistantFloorChroma);
+        float have = dot(reflectedLight.directDiffuse + reflectedLight.indirectDiffuse, lumW);
+        reflectedLight.indirectDiffuse += max(0.0, 1.0 - have / (dot(floorLight, lumW) + 1e-4)) * floorLight;
+      }
+    }
+    #endif
+`,
+        )
+        .replace(
         '#include <color_fragment>',
         /* glsl */ `#include <color_fragment>
     {
@@ -1363,7 +1398,7 @@ export async function createTreeMaterials(ctx: WorldContext): Promise<TreeMateri
     `,
       );
   };
-  distant.customProgramCacheKey = () => 'trees-distant-biased-v7';
+  distant.customProgramCacheKey = () => 'trees-distant-biased-v8';
 
   return {
     whiteTree,
