@@ -721,16 +721,25 @@ export async function create(ctx: WorldContext): Promise<WorldSystem> {
     sideWear: 0.5,
     sideStain: 1.2,
   }, dais);
-  // one `flagstones` mesh: the legacy paving (byte-identical), the north paving and the lookout
-  // dais. character/ground.ts learns the tops the feet stand on from this mesh alone.
-  {
-    const parts = [paving.mesh.geometry, pavingN.mesh.geometry, dais.build()];
-    const merged = mergeGeometries(parts, false);
-    if (merged) {
-      paving.mesh.geometry = merged;
-      for (const g of parts) g.dispose();
-    }
-  }
+  // Two flagstone meshes: `flagstones` is the legacy paving (byte-identical), `flagstones-north`
+  // the north paving and the lookout dais. character/ground.ts learns the tops the feet stand on
+  // from both (attachSurface merges their geometries for its grid). They are separate so the north
+  // one can be HIDDEN by distance (onCameraMove below): merged into one always-drawn mesh, the 176
+  // north stones and the dais rode into every fixed frame (camera A: +50 K of the 9.02 M that
+  // tripped W38's 9.0 M) although the nearest of them is 60 m off and lost in the haze.
+  const northMesh = new Mesh(mergeGeometries([pavingN.mesh.geometry, dais.build()], false) ?? pavingN.mesh.geometry, stoneMat);
+  northMesh.name = 'flagstones-north';
+  northMesh.castShadow = paving.mesh.castShadow;
+  northMesh.receiveShadow = paving.mesh.receiveShadow;
+  northMesh.frustumCulled = paving.mesh.frustumCulled;
+  group.add(northMesh);
+  /** the north paving and its joint fill draw only within this distance of their bounding box */
+  const NORTH_PAVING_VISIBLE_M = 45;
+  const northPavingVisible = (cx: number, cz: number) => {
+    const dx = Math.max(nbbox.x0 - cx, 0, cx - nbbox.x1);
+    const dz = Math.max(nbbox.z0 - cz, 0, cz - nbbox.z1);
+    return Math.hypot(dx, dz) < NORTH_PAVING_VISIBLE_M;
+  };
   const daisTriangles = dais.vertexCount / 3;
   const monolithMesh = new Mesh(monoliths.build(), stoneMat);
   monolithMesh.castShadow = true;
@@ -983,6 +992,17 @@ export async function create(ctx: WorldContext): Promise<WorldSystem> {
   return {
     name: 'hardscape',
     group,
+    // the walk moves the camera every frame; pose jumps (captures) come through onCameraMove
+    update(_dt, _t, c) {
+      const show = northPavingVisible(c.camera.position.x, c.camera.position.z);
+      northMesh.visible = show;
+      jointsN.mesh.visible = show;
+    },
+    onCameraMove(camera) {
+      const show = northPavingVisible(camera.position.x, camera.position.z);
+      northMesh.visible = show;
+      jointsN.mesh.visible = show;
+    },
     dispose() {
       if (disposed) return;
       disposed = true;

@@ -10,7 +10,7 @@
  * `surface` is the same idea for the stair stones at 1 cm (the `stairs-*` meshes): the rendered
  * tread tops with their nosing overhangs, for the character's footprint planting (glbLink.ts).
  */
-import { Box3, BufferGeometry, Mesh, type Object3D } from 'three';
+import { Box3, BufferAttribute, BufferGeometry, Mesh, type Object3D } from 'three';
 import type { Layout } from '../layout';
 import { archTunnel, surfaceMask, type Terrain } from '../terrain/heightfield';
 
@@ -64,6 +64,31 @@ interface SurfaceGrid {
 const CELL = 0.1;
 /** the stair stones are rasterised finer: a nosing overhang is 2–5.7 cm */
 const STAIR_CELL = 0.01;
+
+/** positions + index of two triangle geometries as one (the surface grid reads nothing else) */
+function concatPositions(a: BufferGeometry, b: BufferGeometry): BufferGeometry {
+  const tri = (g: BufferGeometry): Float32Array => {
+    const pos = g.attributes.position;
+    const idx = g.index;
+    const n = idx ? idx.count : pos.count;
+    const out = new Float32Array(n * 3);
+    for (let i = 0; i < n; i++) {
+      const v = idx ? idx.getX(i) : i;
+      out[i * 3] = pos.getX(v);
+      out[i * 3 + 1] = pos.getY(v);
+      out[i * 3 + 2] = pos.getZ(v);
+    }
+    return out;
+  };
+  const pa = tri(a);
+  const pb = tri(b);
+  const all = new Float32Array(pa.length + pb.length);
+  all.set(pa, 0);
+  all.set(pb, pa.length);
+  const g = new BufferGeometry();
+  g.setAttribute('position', new BufferAttribute(all, 3));
+  return g;
+}
 
 /** rasterise the up-facing triangles of a world-space mesh into a max-height grid of `CELL`-sized cells */
 function buildSurfaceGrid(geometry: BufferGeometry, CELL: number): SurfaceGrid | null {
@@ -243,7 +268,12 @@ export function createGround(terrain: Terrain, layout: Layout): Ground {
       }
       const slabs = hardscape?.getObjectByName('flagstones') as Mesh | undefined;
       if (!worldSpace(slabs)) return false;
-      grid = buildSurfaceGrid(slabs.geometry, CELL);
+      // the north paving + lookout dais are a second mesh (hidden by distance for rendering);
+      // the feet stand on both, so the grid reads their geometries together
+      const north = hardscape?.getObjectByName('flagstones-north') as Mesh | undefined;
+      const merged = worldSpace(north) ? concatPositions(slabs.geometry, north.geometry) : null;
+      grid = buildSurfaceGrid(merged ?? slabs.geometry, CELL);
+      merged?.dispose();
       return grid !== null;
     },
     surfaceInfo() {
