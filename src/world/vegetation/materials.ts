@@ -82,8 +82,9 @@ vec3 rootTone = mix(vec3(0.36, 0.38, 0.40), vec3(0.66, 0.72, 0.64), shadeLift);
 // deep root buried in the tuft
 if (vegType > 0.5) rootTone = mix(rootTone, vec3(1.0, 1.0, 0.92), 0.22);
 vec3 bladeColor = mix(tint * rootTone, tint * vec3(1.0, 1.0, 0.92), pow(bladeT, 0.8));
-// sedge blades are a touch cooler/deeper, meadow blades a touch warmer
-bladeColor *= vegType > 1.5 ? vec3(0.9, 1.0, 1.02) : vegType > 0.5 ? vec3(1.06, 1.02, 0.9) : vec3(1.0);
+// sedge blades are a touch cooler/deeper, meadow blades a touch warmer; a seed stalk (round 47,
+// type 3) is a warm stalk under a straw head
+bladeColor *= vegType > 2.5 ? vec3(1.04, 1.0, 0.9) : vegType > 1.5 ? vec3(0.9, 1.0, 1.02) : vegType > 0.5 ? vec3(1.06, 1.02, 0.9) : vec3(1.0);
 // the tuft's tip tone (round 40, the owner's "tip colour variation"): each rooted cluster leans
 // its upper blade toward one of three tones — sun-bleached yellow-green below 0.5, a fresh
 // cooler green above it, a faint russet at the top of the range — neutral at 0.5 (grass.ts
@@ -93,6 +94,9 @@ tipTone = mix(tipTone, vec3(1.06, 0.92, 0.74), smoothstep(0.88, 1.0, vegTip));
 bladeColor *= mix(vec3(1.0), tipTone, smoothstep(0.3, 1.0, bladeT));
 // straw-coloured dry tips
 bladeColor = mix(bladeColor, uDryTip, vegDry * smoothstep(0.45, 1.0, bladeT));
+// round 47: the seed head — the stalk's top quarter in the straw tone with a faint russet
+// blush, the head's tip a shade darker (a ripe timothy head over the turf)
+if (vegType > 2.5) bladeColor = mix(bladeColor, uDryTip * vec3(1.08, 0.98, 0.9) * (1.0 - 0.18 * smoothstep(0.86, 1.0, bladeT)), smoothstep(0.6, 0.76, bladeT));
 // the dark masses: deeper and a little less saturated (the frames' masses measure sat 0.22–0.32
 // against our lit turf's 0.32–0.39), the tip gradient flattened toward the core
 bladeColor = mix(bladeColor, vec3(dot(bladeColor, vec3(0.30, 0.59, 0.11))), 0.3 * bankDark) * (1.0 - 0.5 * bankDark);
@@ -110,13 +114,16 @@ vec3 transformed = vec3(position);
   float wTurf = 1.0 - t * 0.88;
   float wMeadow = 1.0 - t * 0.72;
   float wSedge = (1.0 - smoothstep(0.55, 1.0, t)) * (0.8 + 0.2 * sin(t * 3.1416));
-  float w = vegType < 0.5 ? wTurf : vegType < 1.5 ? wMeadow : wSedge;
+  // round 47: the seed stalk — a slender stalk to 0.6, then the head: the 0.75 row wide, the tip narrow
+  float wSeed = t < 0.6 ? 0.42 : mix(1.8, 0.22, smoothstep(0.75, 1.0, t));
+  float w = vegType < 0.5 ? wTurf : vegType < 1.5 ? wMeadow : vegType < 2.5 ? wSedge : wSeed;
   // round 40 (the owner's video review: frame A's right-foreground turf read as sparse wide
   // blades): the broad sedge is halved on the near-tile geometries (aNear, grass.ts) — a 6–10 px
   // blade at 8 m becomes 3–5 — and keeps its width on the far one, where it closes the turf
-  if (vegType > 1.5) w *= 1.0 - 0.5 * aNear;
-  // forward bend (in the blade's own facing direction), stronger for turf; meadow tips droop
-  float bend = (vegType < 0.5 ? 0.5 : vegType < 1.5 ? 0.18 : 0.32) * (0.7 + 0.6 * v);
+  if (vegType > 1.5 && vegType < 2.5) w *= 1.0 - 0.5 * aNear;
+  // forward bend (in the blade's own facing direction), stronger for turf; meadow tips droop;
+  // a seed stalk leans a little under its head
+  float bend = (vegType < 0.5 ? 0.5 : vegType < 1.5 ? 0.18 : vegType < 2.5 ? 0.32 : 0.24) * (0.7 + 0.6 * v);
   transformed.x = position.x * w;
   transformed.z = bend * t * t;
   transformed.y = position.y - (vegType > 0.5 && vegType < 1.5 ? 0.16 * t * t * t : 0.05 * t * t) * bend;

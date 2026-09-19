@@ -28,6 +28,7 @@ import type { WorldContext } from '../system';
 import { clamp, smoothstep } from '../util/noise';
 import { hash2, type Rng } from '../util/prng';
 import { CLUMP_GRID, MAT_GRID, createClumpAtlas, type ClumpAtlas } from './clump-atlas';
+import { COVERAGE_CELL, MAT_FOOT } from './coverage';
 import { A_FACE_HEIGHT, VegField, composeMatrix, newSample } from './field';
 import { LodInstancedSet } from './lodset';
 import { createVegMaterial } from './materials';
@@ -150,6 +151,20 @@ const NORTH_CARPET_REACH_FLOOR = 0.8;
 const NORTH_CARPET_HEIGHT = 0.85;
 /** the north carpet's constants, for the audit and the tests */
 export const NORTH_CARPET = { z: NORTH_CARPET_Z, maxDistance: NORTH_CLUMP_MAX_DISTANCE, keep: NORTH_CARPET_KEEP, matKeep: NORTH_MAT_KEEP, reachFloor: NORTH_CARPET_REACH_FLOOR, height: NORTH_CARPET_HEIGHT };
+/**
+ * Round 47 — the mats' closing sweep (the owner's review of 2026-09-19, item 12: "patches in the
+ * grass where it's not full"; coverage.ts is the audit). Once every tile has seated its grid, the
+ * lawn is swept on the audit's COVERAGE_CELL grid and every cell the masks call turf that no mat's
+ * footprint (MAT_FOOT × its width) reaches takes an INFILL mat — MAT_INFILL_WIDTH m, the zone's
+ * palette, its own stream per tile (`carpet/infill/<tile>`) after every grid pass, so nothing
+ * already seated moves. The frames' bare-by-design grounds keep their earth: camera C's foot, D's
+ * shoulders, the trodden strip's dirt patches, the dark bank masses (their blades hold them), the
+ * litter under the giants and the NPC clearings take no infill (the same cuts the grid's mats take
+ * in full). The result: the ground under the blades is closed from the plaza to the corridor's
+ * end, where before the disc's falloff (field.ts falloffReach) left the far lawns' grid at a third.
+ */
+export const MAT_INFILL_WIDTH: readonly [number, number] = [0.62, 0.86];
+const MAT_INFILL_MAX_SLOPE = 0.62;
 
 export interface CarpetResult {
   clumps: LodInstancedSet;
@@ -161,6 +176,8 @@ export interface CarpetResult {
   atlas: ClumpAtlas;
   /** metres² of ground the clump cells were offered over (inside the detail disc), for the audit's density */
   lawnCellsM2: number;
+  /** round 47: mats the closing sweep added where the grid left the lawn open (MAT_INFILL_WIDTH) */
+  infillMats: number;
   samples: { clumps: number[][]; mats: number[][] };
 }
 
@@ -460,6 +477,10 @@ export function buildCarpet(ctx: WorldContext, field: VegField, parent: Group): 
     // canopy; a mat faces the sky already, and with all three it rendered the embankment
     // lighter and flatter than the frame's dark mass (F's right-middle cell +0.008 luminance,
     // −0.0026 SSIM in v8): a mat takes half the palette bias and no lift
+    placeMat(x, z, t, w, rng);
+  };
+  /** the mat itself: palette, tile, yaw and the seat (the grid's mats and the round-47 infill share it) */
+  const placeMat = (x: number, z: number, t: NonNullable<ReturnType<typeof turfAt>>, w: number, rng: Rng) => {
     const tint = 0.5 * (t.tn - MAT_SHADE_BIAS_CUT * t.shade) + rng.gauss() * 0.04 * (1 - BANK_FLAT * t.bank);
     const dry = clamp(t.dryP * 0.65, 0, 0.95) * 0.6;
     const tile = rng.int(0, atlas.matTiles);
@@ -473,6 +494,19 @@ export function buildCarpet(ctx: WorldContext, field: VegField, parent: Group): 
     mats.add(M, 0, white, data);
     if (mats.count % 53 === 0) matSamples.push([Math.round(x * 1000) / 1000, Math.round(y * 10000) / 10000, Math.round(z * 1000) / 1000]);
   };
+  /** round 47: an infill mat where the grid left the lawn open — the grid's cuts that mean bare earth stay cuts */
+  const seatInfillMat = (x: number, z: number, rng: Rng) => {
+    const t = turfAt(x, z, MAT_RIM_CLEAR);
+    if (!t) return false;
+    if (t.stone < 0.12 || s.slope > MAT_INFILL_MAX_SLOPE || s.cliff > 0.5) return false;
+    if (t.foot > 0.5 || t.shoulder > 0.5 || t.bare > 0.5 || t.bank > 0.5 || t.giant > 0.6 || t.npc > 0.5) return false;
+    let w = MAT_INFILL_WIDTH[0] + (MAT_INFILL_WIDTH[1] - MAT_INFILL_WIDTH[0]) * rng();
+    if (t.houseNorth > 0 && t.houseNorth < 1) w *= 1 - 0.45 * (1 - Math.abs(2 * t.houseNorth - 1));
+    w = Math.min(w, (t.edge - 0.02) * 2, (t.stone + 0.04) * 2);
+    if (w < 0.25) return false;
+    placeMat(x, z, t, w, rng);
+    return true;
+  };
 
   // jittered grids per 8 m tile, each tile its own stream (the blade tiles' pattern), so a rule
   // change in one zone re-seats nothing elsewhere; the disc's tiles and (round 44) the north
@@ -482,7 +516,7 @@ export function buildCarpet(ctx: WorldContext, field: VegField, parent: Group): 
     for (let cx = -half; cx < half; cx++) {
       const x0 = cx * 8;
       const z0 = cz * 8;
-      if (field.reach(x0 + 4, z0 + 4) > R + 8 * 0.71) continue;
+      if (field.tileReach(x0, z0, 8) > R + 1) continue;
       // round 46: a tile wholly north of NORTH_CARPET_Z seats the north carpet (its own set and rules)
       const north = z0 + 8 <= NORTH_CARPET_Z;
       const cRng = ctx.rng.fork(`carpet/clumps/${cx}/${cz}`);
@@ -507,6 +541,58 @@ export function buildCarpet(ctx: WorldContext, field: VegField, parent: Group): 
     }
   }
 
+  // round 47: the mats' closing sweep (MAT_INFILL_WIDTH) over the same tiles, against every mat
+  // seated so far — the grid's and the sweep's own, bucketed by footprint
+  let infillMats = 0;
+  {
+    const bucket = 0.5;
+    const footprints = new Map<number, number[]>();
+    const bkey = (gx: number, gz: number) => gx * 65536 + gz;
+    const index = (i: number) => {
+      const it = mats.items[i];
+      const r = Math.hypot(it.matrix[0], it.matrix[1], it.matrix[2]) * MAT_FOOT;
+      for (let gz = Math.floor((it.z - r) / bucket); gz <= Math.floor((it.z + r) / bucket); gz++) {
+        for (let gx = Math.floor((it.x - r) / bucket); gx <= Math.floor((it.x + r) / bucket); gx++) {
+          const k = bkey(gx, gz);
+          let arr = footprints.get(k);
+          if (!arr) footprints.set(k, (arr = []));
+          arr.push(i);
+        }
+      }
+    };
+    for (let i = 0; i < mats.count; i++) index(i);
+    const closed = (x: number, z: number) => {
+      const arr = footprints.get(bkey(Math.floor(x / bucket), Math.floor(z / bucket)));
+      if (!arr) return false;
+      for (const i of arr) {
+        const it = mats.items[i];
+        const r = Math.hypot(it.matrix[0], it.matrix[1], it.matrix[2]) * MAT_FOOT;
+        if ((x - it.x) ** 2 + (z - it.z) ** 2 <= r * r) return true;
+      }
+      return false;
+    };
+    const cells = Math.round(8 / COVERAGE_CELL);
+    for (let cz = -northHalf; cz < half; cz++) {
+      for (let cx = -half; cx < half; cx++) {
+        const x0 = cx * 8;
+        const z0 = cz * 8;
+        if (field.tileReach(x0, z0, 8) > R + 1) continue;
+        const iRng = ctx.rng.fork(`carpet/infill/${cx}/${cz}`);
+        for (let j = 0; j < cells; j++) {
+          for (let i = 0; i < cells; i++) {
+            const x = Math.round((x0 + (i + 0.5) * COVERAGE_CELL) * 1000) / 1000;
+            const z = Math.round((z0 + (j + 0.5) * COVERAGE_CELL) * 1000) / 1000;
+            if (closed(x, z)) continue;
+            if (seatInfillMat(x, z, iRng)) {
+              index(mats.count - 1);
+              infillMats++;
+            }
+          }
+        }
+      }
+    }
+  }
+
   // mats under the clumps: three draws the mats before the cards inside the shared render list
   // by material / depth order; the cards' alpha test needs no ordering
   parent.add(mats.build());
@@ -521,6 +607,7 @@ export function buildCarpet(ctx: WorldContext, field: VegField, parent: Group): 
     materials,
     atlas,
     lawnCellsM2,
+    infillMats,
     samples: { clumps: clumpSamples, mats: matSamples },
   };
 }
