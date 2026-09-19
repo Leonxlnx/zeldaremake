@@ -84,29 +84,80 @@ export async function create(ctx: WorldContext): Promise<WorldSystem> {
    * buckets), then trim every set's buckets to the frame (lodset.ts `cull`).
    */
   /**
-   * Re-bucket budget of an unforced refresh, in plants: the sets share the camera, so every set
-   * past its hysteresis used to re-bucket on the same frame — 31k plants re-listed and every
-   * bucket refilled at once, measured as 7–17 ms frames on the walk (round 37). Now the sets past
-   * their gate re-bucket in order until this many plants have been re-listed (always at least one
-   * set), the rest on the following frames; a set kept waiting keeps its previous buckets, culled
-   * for the new frame as usual, and re-buckets at most a few frames (≈ 0.2 m of walking) late.
-   * Forced refreshes (onCameraMove: the captures, an explicit re-pose) re-bucket everything at once.
+   * Re-bucket budget of an unforced refresh, in plants listed per frame: the sets share the
+   * camera, so every set past its hysteresis used to re-bucket on the same frame — 31k plants
+   * re-listed and every bucket refilled at once, measured as 7–17 ms frames on the walk (round
+   * 37). Round 37 spread the SETS over frames (in order, until this many plants had been
+   * re-listed, always at least one whole set), which still let a single 35 k-plant set (the turf
+   * mats) or the 15 k clump cards land whole on one frame: fable-6's native trace of take-0116
+   * has vegetation.update at 105–211 ms on those frames (docs/PERF_2026-09-19.md §3). Round 48
+   * (lod-1): the re-bucket itself is incremental (lodset.ts `update` with `maxItems`) — a set
+   * lists at most what is left of this budget per frame and swaps its buckets when it has listed
+   * every plant, so no frame lists more than REBUCKET_BUDGET plants whatever the set sizes; a set
+   * mid-job is advanced first (its buckets are the staler), then the sets past their gate in
+   * order. A set kept waiting keeps its previous buckets, culled for the new frame as usual, and
+   * swaps a few frames (≈ 0.1–0.2 m of walking) late. Forced refreshes (onCameraMove: the
+   * captures, an explicit re-pose) re-bucket everything at once, so a capture never depends on
+   * the path taken.
    */
   const REBUCKET_BUDGET = 8000;
+  /**
+   * Runtime cost of the refreshes for the trace harness (`WorldSystem.perf`): per set the last
+   * refresh's re-bucket ms (0 when it did not list) and cull ms, running maxima, the plants listed
+   * this frame, and how many frames swapped a set's buckets.
+   */
+  const perfRows = new Map<string, { updateMs: number; cullMs: number; updateMsMax: number; cullMsMax: number; swaps: number; count: number }>();
+  for (const s of sets) perfRows.set(s.opts.name, { updateMs: 0, cullMs: 0, updateMsMax: 0, cullMsMax: 0, swaps: 0, count: s.count });
+  const perfFrame = { listed: 0, listedMax: 0, swaps: 0, refreshMs: 0, refreshMsMax: 0, frames: 0, jobsOpen: 0 };
   const refresh = (force = false, camera = ctx.camera) => {
     if (disposed) return;
+    const t0 = performance.now();
     camera.getWorldPosition(camPos);
     grass.update(camPos);
     const sun = currentSun();
     let budget = REBUCKET_BUDGET;
-    for (const s of sets) {
+    let listed = 0;
+    let swaps = 0;
+    const step = (s: (typeof sets)[number], work: boolean) => {
+      const row = perfRows.get(s.opts.name)!;
       let rebucketed = false;
-      if (force || (budget > 0 && s.wantsRebucket(camPos))) {
-        rebucketed = s.update(camPos, force);
-        if (rebucketed) budget -= s.count;
+      row.updateMs = 0;
+      if (work) {
+        const tu = performance.now();
+        rebucketed = s.update(camPos, force, force ? Infinity : budget);
+        row.updateMs = performance.now() - tu;
+        row.updateMsMax = Math.max(row.updateMsMax, row.updateMs);
+        budget -= s.listedLast;
+        listed += s.listedLast;
+        if (rebucketed) {
+          row.swaps++;
+          swaps++;
+        }
       }
+      const tc = performance.now();
       s.cull(camera, sun, force || rebucketed);
+      row.cullMs = performance.now() - tc;
+      row.cullMsMax = Math.max(row.cullMsMax, row.cullMs);
+    };
+    if (force) {
+      for (const s of sets) step(s, true);
+    } else {
+      // the sets mid-job first (their buckets are the staler), then the sets past their gate
+      const open = sets.filter((s) => s.rebucketing);
+      for (const s of open) step(s, budget > 0);
+      for (const s of sets) {
+        if (s.rebucketing || open.includes(s)) continue;
+        step(s, budget > 0 && s.wantsRebucket(camPos));
+      }
     }
+    const ms = performance.now() - t0;
+    perfFrame.frames++;
+    perfFrame.listed = listed;
+    perfFrame.listedMax = Math.max(perfFrame.listedMax, listed);
+    perfFrame.swaps = swaps;
+    perfFrame.refreshMs = ms;
+    perfFrame.refreshMsMax = Math.max(perfFrame.refreshMsMax, ms);
+    perfFrame.jobsOpen = sets.reduce((n, s) => n + (s.rebucketing ? 1 : 0), 0);
   };
   refresh(true);
 
@@ -284,6 +335,15 @@ export async function create(ctx: WorldContext): Promise<WorldSystem> {
     },
     onCameraMove(camera) {
       refresh(true, camera);
+    },
+    perf() {
+      // round 48 (lod-1): the refresh cost for the trace harness — the frame's re-bucket listing
+      // against its budget, the open incremental jobs, and per set the last re-bucket / cull ms
+      return {
+        rebucketBudget: REBUCKET_BUDGET,
+        frame: { ...perfFrame },
+        sets: Object.fromEntries([...perfRows].map(([name, r]) => [name, { ...r }])),
+      };
     },
     dispose() {
       if (disposed) return;

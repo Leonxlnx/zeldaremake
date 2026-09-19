@@ -204,9 +204,24 @@ interface PackMesh {
   /** item indices bucketed into this mesh by camera distance (before culling): the first `n` of `list` */
   list: number[];
   n: number;
+  /** the next buckets an incremental re-bucket (see `update`) is listing: the first `nNext` of `next`; swapped with `list` when the job completes */
+  next: number[];
+  nNext: number;
   /** item indices actually submitted (`list` minus the culled instances): the first `nSubmitted` */
   submitted: number[];
   nSubmitted: number;
+}
+
+/**
+ * An incremental re-bucket in progress (round 48): the camera it is bucketing for, the item
+ * index it has reached, and the LOD rule resolved when it started (the LOD scale and the far
+ * limit are read once, so the buckets it produces are the ones a full re-bucket at `cam` would).
+ */
+interface RebucketJob {
+  cam: Vector3;
+  i: number;
+  lodFor: (it: Item) => number;
+  scale: number;
 }
 
 /** one mesh's share of the submission, for the audit */
@@ -454,7 +469,7 @@ export class LodInstancedSet {
         mesh.name = `${this.opts.name}-lod${l}-p${pi}-v${pack.join('')}`;
         mesh.visible = false;
         this.group.add(mesh);
-        row.push({ mesh, slots, data, triangles: geometry.index!.count / 3, list: [], n: 0, submitted: [], nSubmitted: 0 });
+        row.push({ mesh, slots, data, triangles: geometry.index!.count / 3, list: [], n: 0, next: [], nNext: 0, submitted: [], nSubmitted: 0 });
       });
       this.meshes.push(row);
     }
@@ -527,6 +542,10 @@ export class LodInstancedSet {
 
   /** the LOD distance scale the buckets were last built with (a change re-buckets at the next update) */
   private lastLodScale = 1;
+  /** an incremental re-bucket in progress (see `update`) */
+  private job: RebucketJob | null = null;
+  /** plants the last `update()` listed (the whole set for a forced one, ≤ `maxItems` otherwise, 0 when it did not re-bucket) */
+  listedLast = 0;
 
   /** true when an unforced `update()` would re-bucket for this camera position (moved past the hysteresis, or the LOD scale changed) */
   wantsRebucket(camPos: Vector3): boolean {
@@ -536,33 +555,93 @@ export class LodInstancedSet {
     return camPos.distanceToSquared(this.lastCam) >= hyst * hyst;
   }
 
-  /**
-   * Re-bucket instances by LOD for the current camera position (when it moved further than the
-   * hysteresis, or when forced). Returns true when the buckets were rebuilt.
-   */
-  update(camPos: Vector3, force = false): boolean {
-    if (!this.built) this.build();
-    if (!force && !this.wantsRebucket(camPos)) return false;
-    this.lastCam.copy(camPos);
+  /** true while an incremental re-bucket is under way (its remaining items are what the next `update` lists first) */
+  get rebucketing(): boolean {
+    return this.job !== null;
+  }
+
+  /** the LOD rule for a camera position, with the live LOD scale and the far limit resolved once */
+  private lodRule(camPos: Vector3, scale: number): (it: Item) => number {
     const { lodDistances } = this.opts;
     const lodCount = this.lodCount;
-    const scale = lodDistanceScale();
-    this.lastLodScale = scale;
     const far = this.opts.maxDistance === undefined ? Infinity : this.opts.maxDistance * scale;
     if (scale === 1 && far === Infinity) {
-      this.bucket((it) => {
+      return (it) => {
         const d = hypot2(camPos.x - it.x, camPos.z - it.z);
         for (let l = 0; l < lodCount - 1; l++) if (d < lodDistances[l]) return l;
         return lodCount - 1;
-      });
-    } else {
-      this.bucket((it) => {
-        const d = hypot2(camPos.x - it.x, camPos.z - it.z);
-        if (d >= far) return -1;
-        for (let l = 0; l < lodCount - 1; l++) if (d < lodDistances[l] * scale) return l;
-        return lodCount - 1;
-      });
+      };
     }
+    return (it) => {
+      const d = hypot2(camPos.x - it.x, camPos.z - it.z);
+      if (d >= far) return -1;
+      for (let l = 0; l < lodCount - 1; l++) if (d < lodDistances[l] * scale) return l;
+      return lodCount - 1;
+    };
+  }
+
+  /**
+   * Re-bucket instances by LOD for the current camera position (when it moved further than the
+   * hysteresis, or when forced). Returns true when the buckets were rebuilt.
+   *
+   * Round 48 (lod-1): an unforced re-bucket is INCREMENTAL — `maxItems` plants are listed per
+   * call into staging lists (`PackMesh.next`) for the camera position the job started at, and the
+   * buckets swap in one piece when the last plant is listed; until then the previous buckets
+   * stand, culled for every frame as usual. The result is exactly what one full re-bucket at the
+   * job's camera would have produced (same rule, same item order, same lists), a few frames late
+   * — a 35 k-plant set at 8 k a frame swaps 5 frames (≈ 13 cm of walking) after its gate, where
+   * the shipped loop listed it whole on the gate's frame. A forced update (an explicit re-pose:
+   * the captures, a viewpoint key) drops any job and re-buckets everything at once, so a capture's
+   * frame never depends on the path taken; `maxItems` = Infinity is the shipped one-shot.
+   */
+  update(camPos: Vector3, force = false, maxItems = Infinity): boolean {
+    if (!this.built) this.build();
+    this.listedLast = 0;
+    if (force) {
+      this.job = null;
+      this.lastCam.copy(camPos);
+      const scale = lodDistanceScale();
+      this.lastLodScale = scale;
+      this.bucket(this.lodRule(camPos, scale));
+      this.listedLast = this.items.length;
+      return true;
+    }
+    if (!this.job) {
+      if (!this.wantsRebucket(camPos)) return false;
+      const scale = lodDistanceScale();
+      this.job = { cam: camPos.clone(), i: 0, lodFor: this.lodRule(camPos.clone(), scale), scale };
+      for (const row of this.meshes) for (const pm of row) pm.nNext = 0;
+    }
+    const job = this.job;
+    const items = this.items;
+    const end = Math.min(items.length, job.i + Math.max(1, maxItems));
+    const packOf = this.packOf;
+    const meshes = this.meshes;
+    for (let i = job.i; i < end; i++) {
+      const it = items[i];
+      const lod = job.lodFor(it);
+      if (lod < 0) continue;
+      const pm = meshes[lod][packOf[lod][it.variant]];
+      pm.next[pm.nNext++] = i;
+    }
+    this.listedLast = end - job.i;
+    job.i = end;
+    if (end < items.length) return false;
+    // the job is complete: the staged lists become the buckets (the old lists are the next job's staging)
+    for (const row of this.meshes) {
+      for (const pm of row) {
+        const list = pm.list;
+        pm.list = pm.next;
+        pm.n = pm.nNext;
+        pm.next = list;
+        pm.nNext = 0;
+      }
+    }
+    this.lastCam.copy(job.cam);
+    this.lastLodScale = job.scale;
+    this.job = null;
+    if (this.culling) this.bucketsDirty = true;
+    else this.meshes.forEach((row, l) => row.forEach((pm) => this.fill(pm, l, pm.list, pm.n)));
     return true;
   }
 
