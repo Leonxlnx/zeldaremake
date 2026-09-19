@@ -102,11 +102,16 @@ const HOUSE_BIG_LEAF_M = 3.4;
  * outer edge (NORTH_VERGE_BUSH_EDGE), from NORTH_VERGE_Z0 north to the corridor's end. Camera D
  * looks straight up this path: inside NORTH_VERGE_D_Z (its frame's banks, 12–40 m off) the band
  * grows at NORTH_VERGE_D_KEEP of its weight and the ferns end at NORTH_PLANT_MAX_M anyway; the
- * frames' D shoulders and hollow take none (their cuts are the frames').
+ * frames' D shoulders and hollow take none (their cuts are the frames'). The hollow is the whole
+ * west bank from z −20 to −50 (frame 56 s' open ground), so the band is the east bank's: its
+ * candidate density (NORTH_VERGE_FERN_PER_M2 over the corridor box, ≈ 3 % of which is the band)
+ * is set for ≈ 4–5 fronds per metre of bank at the 0.5 m spacing.
  */
 const NORTH_VERGE_Z0 = -15;
 const NORTH_VERGE_D_Z = -34;
-const NORTH_VERGE_D_KEEP = 0.45;
+const NORTH_VERGE_D_KEEP = 0.6;
+const NORTH_VERGE_FERN_PER_M2 = 6.5;
+const NORTH_VERGE_BUSH_PER_M2 = 1.6;
 const NORTH_VERGE_FERN_EDGE: readonly [number, number, number, number] = [0.5, 0.85, 2.1, 3.2];
 const NORTH_VERGE_BUSH_EDGE: readonly [number, number, number, number] = [1.15, 1.7, 2.7, 3.6];
 /** the verge's tint: ref-04's ferns and shrubs are dark (× the sets' palette) */
@@ -3179,13 +3184,13 @@ export function buildPlants(ctx: WorldContext, field: VegField, parent: Group): 
       field,
       {
         label: 'ferns-north-verge-r47',
-        candidates: Math.round(vergeArea * 2.6 * q.density),
+        candidates: Math.round(vergeArea * NORTH_VERGE_FERN_PER_M2 * q.density),
         box: vergeBox,
         minSpacing: 0.42,
         r32: true,
         accept(x, z, s) {
           const w = verge(x, z, s, NORTH_VERGE_FERN_EDGE);
-          return w <= 0 ? 0 : 0.75 * w * (0.55 + 0.9 * field.cluster(x, z)) * (1 + 1.2 * smoothstep(0.12, 0.4, s.slope));
+          return w <= 0 ? 0 : 0.9 * w * (0.55 + 0.9 * field.cluster(x, z)) * (1 + 1.2 * smoothstep(0.12, 0.4, s.slope));
         },
       },
       (x, z, s, rng) => placeInstance(fernsNorth, x, z, s, rng, 0.6 + rng() * 0.4, 0.6, 0.02, greenVar(rng, 0.18).multiplyScalar(NORTH_VERGE_FERN_TINT)),
@@ -3195,7 +3200,7 @@ export function buildPlants(ctx: WorldContext, field: VegField, parent: Group): 
       field,
       {
         label: 'bushes-north-verge-r47',
-        candidates: Math.round(vergeArea * 0.9 * q.density),
+        candidates: Math.round(vergeArea * NORTH_VERGE_BUSH_PER_M2 * q.density),
         box: vergeBox,
         minSpacing: 2.4,
         r32: true,
@@ -3203,7 +3208,7 @@ export function buildPlants(ctx: WorldContext, field: VegField, parent: Group): 
           const w = verge(x, z, s, NORTH_VERGE_BUSH_EDGE);
           if (w <= 0) return 0;
           if (bushes.items.some((p) => Math.hypot(p.x - x, p.z - z) < 2.0)) return 0;
-          return 0.5 * w * (0.4 + field.cluster(x, z));
+          return 0.6 * w * (0.4 + field.cluster(x, z));
         },
       },
       (x, z, s, rng) => placeInstance(bushes, x, z, s, rng, 0.6 + rng() * 0.3, 0.3, 0.04, tint.setRGB(NORTH_VERGE_BUSH_TINT + rng() * 0.1, NORTH_VERGE_BUSH_TINT + 0.05 + rng() * 0.1, NORTH_VERGE_BUSH_TINT - 0.08 + rng() * 0.1)),
