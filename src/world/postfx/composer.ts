@@ -213,11 +213,9 @@ export interface ComposerSettings {
   fanAmp: number;
   /**
    * the fan fades in as the angle between the view axis and the sun closes from the first to the
-   * second value (degrees). The frames' beams are a sun-facing effect far steeper than the march's
-   * Henyey–Greenstein phase: D (view axis 64° from the sun) carries +0.10 of beam over its haze
-   * where A (81°) has only the +0.04 bump the marched columns already give it and C/F (> 125°) show
-   * none — the HG term (g 0.6) would give A 61 % of D's fan. 85 → 60° gives D 0.94, B (75°) 0.36,
-   * A 0.08, C/F 0; round 37's 81 → 61° gives D 0.946, B 0.234, A 0 (see shafts.ts SCREEN_FAN)
+   * second value (degrees), using smoothstep on their cosines. SCREEN_FAN carries the defaults;
+   * the broad September19 range preserves faint shafts in side/back views. Earlier 81 → 61°
+   * tuning fully suppressed A/C/F's fan (historical measurements in shafts.ts).
    */
   fanFacingDeg: [number, number];
   /** lean of the fan's beams from vertical (degrees, down-right, measured on screen) */

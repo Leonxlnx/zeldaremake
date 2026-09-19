@@ -1,0 +1,79 @@
+{
+  "before": "art/environment/2026-09-19T17-55-28-259Z-daylight",
+  "after": "art/environment/2026-09-19T18-36-17-597Z-daylight",
+  "results": [
+    {
+      "id": "A_stairs",
+      "beforeSSIM": 0.2094,
+      "afterSSIM": 0.2089,
+      "delta": -0.0005,
+      "meanLuminanceChange": 0.0069154752310391305,
+      "drawCalls": 521,
+      "triangles": 8796924
+    },
+    {
+      "id": "B_house",
+      "beforeSSIM": 0.1916,
+      "afterSSIM": 0.1932,
+      "delta": 0.0016,
+      "meanLuminanceChange": 0.004478128646377526,
+      "drawCalls": 479,
+      "triangles": 7943574
+    },
+    {
+      "id": "C_lookback",
+      "beforeSSIM": 0.2272,
+      "afterSSIM": 0.2282,
+      "delta": 0.001,
+      "meanLuminanceChange": 0.0023325843371437968,
+      "drawCalls": 363,
+      "triangles": 7372192
+    },
+    {
+      "id": "D_log",
+      "beforeSSIM": 0.2647,
+      "afterSSIM": 0.2648,
+      "delta": 0.0001,
+      "meanLuminanceChange": 0.0003552560185522048,
+      "drawCalls": 354,
+      "triangles": 8123365
+    },
+    {
+      "id": "E_ground",
+      "beforeSSIM": 0.2014,
+      "afterSSIM": 0.2053,
+      "delta": 0.0039,
+      "meanLuminanceChange": 0.004478128646377526,
+      "drawCalls": 479,
+      "triangles": 7943574
+    },
+    {
+      "id": "F_canopy",
+      "beforeSSIM": 0.2536,
+      "afterSSIM": 0.2557,
+      "delta": 0.0021,
+      "meanLuminanceChange": 0.002468188379457893,
+      "drawCalls": 468,
+      "triangles": 8258703
+    }
+  ],
+  "upwardBaseline": "art/environment/2026-09-19T18-42-30-998Z-daylight",
+  "upwardSamples": [
+    {
+      "file": "sky-opening.png",
+      "meanLuminanceChange": 0
+    },
+    {
+      "file": "walk-000.png",
+      "meanLuminanceChange": 0.0063944376860874605
+    },
+    {
+      "file": "walk-022.png",
+      "meanLuminanceChange": 0.0053057770456588415
+    },
+    {
+      "file": "walk-044.png",
+      "meanLuminanceChange": 0.007274016020512338
+    }
+  ]
+}
