@@ -86,6 +86,107 @@ test('the near options default off: explicit zeros build the far rock byte-ident
   for (const k of ['position', 'normal', 'color', 'aMoss']) assert.ok(same(arr(plain, k), arr(zeros, k)), `${k} moved with the near options at 0`);
 });
 
+test('strataCrown (fable-2): the near build has no parting pit on the crown; the far build is byte-identical at the default', () => {
+  const far = buildRock(createRng('t/d'), 'seed/d', farOpts());
+  const farExplicit = buildRock(createRng('t/d'), 'seed/d', { ...farOpts(), strataCrown: 1 });
+  for (const k of ['position', 'normal', 'color', 'aMoss']) assert.ok(same(arr(far, k), arr(farExplicit, k)), `${k} moved with strataCrown 1`);
+  // same topology, so the two near builds compare per vertex: over the crown (local y above
+  // 0.35 r·squash, i.e. the moss cap) the damped build must only ever LIFT vertices (the parting
+  // groove fills in — by ≈ 3.5 cm where it crossed the cap), and below the shoulders (y < 0) it
+  // must not move them at all (the bedding lines on the sides are kept)
+  const undamped = buildRock(createRng('t/d'), 'seed/d', { ...nearOpts(), moss: 0, mossThickness: 0 });
+  const damped = buildRock(createRng('t/d'), 'seed/d', { ...nearOpts(), moss: 0, mossThickness: 0, strataCrown: 0.1 });
+  const U = undamped.attributes.position;
+  const D = damped.attributes.position;
+  assert.equal(U.count, D.count);
+  let lifted = 0;
+  let maxLift = 0;
+  let sunk = 0;
+  let sideMoved = 0;
+  for (let i = 0; i < U.count; i++) {
+    const ru = Math.hypot(U.getX(i), U.getY(i) / 0.64, U.getZ(i));
+    const rd = Math.hypot(D.getX(i), D.getY(i) / 0.64, D.getZ(i));
+    const dy = U.getY(i);
+    if (dy > 0.35 * 0.6 * 0.64) {
+      if (rd > ru + 0.005) lifted++;
+      if (rd < ru - 0.002) sunk++;
+      maxLift = Math.max(maxLift, rd - ru);
+    } else if (dy < -0.1 * 0.6) {
+      // (the damping ramps in from −0.1 r; below it nothing may move)
+      if (Math.abs(rd - ru) > 1e-6) sideMoved++;
+    }
+  }
+  assert.ok(lifted > 50, `only ${lifted} crown vertices lifted — the parting groove no longer crosses the cap`);
+  assert.ok(maxLift > 0.02 && maxLift < 0.06, `max crown lift ${maxLift} m (expected ≈ 3–4 cm)`);
+  // (a handful may sink: a lifted vertex can newly cross a cleave plane and be projected onto it)
+  assert.ok(sunk < 20, `${sunk} crown vertices sank with the groove damped`);
+  assert.equal(sideMoved, 0, `${sideMoved} vertices below the shoulders moved`);
+});
+
+test('mossSwellSmooth (fable-2): default off is byte-identical; on, the moss blanket has no crack-line steps', () => {
+  /** the stair-foot rock's options (index.ts): a 0.9 shaded-side blanket, 12 cm thick */
+  const stairFoot = () => ({ ...farOpts(), radius: 1, cutDepth: [0.82, 0.94], cutToward: undefined, cutDark: 0.3, facetBare: 0.5, squashY: 0.74, moss: 1.0, strata: 0, mossThickness: 0.12, mossSide: 0.9, tint: new THREE.Color(0.72, 0.72, 0.71) });
+  const plain = buildRock(createRng('t/s'), 'seed/s', stairFoot());
+  const explicit = buildRock(createRng('t/s'), 'seed/s', { ...stairFoot(), mossSwellSmooth: false });
+  for (const k of ['position', 'normal', 'color', 'aMoss']) assert.ok(same(arr(plain, k), arr(explicit, k)), `${k} moved with mossSwellSmooth false`);
+  // step metric: over the blanket (both ends aMoss > 0.4) a triangle edge that is a radial CLIFF
+  // — its two vertices differ by ≥ 3 cm in radius and that difference is ≥ 70 % of the edge's
+  // length — is a slab edge. The stepped near skin has hundreds; the smooth swell must cut them
+  // by more than half.
+  const cliffs = (g) => {
+    const P = g.attributes.position;
+    const M = g.attributes.aMoss;
+    let n = 0;
+    for (let i = 0; i < P.count; i += 3) {
+      for (let e = 0; e < 3; e++) {
+        const a = i + e;
+        const b = i + ((e + 1) % 3);
+        if (M.getX(a) < 0.4 || M.getX(b) < 0.4) continue;
+        const dr = Math.abs(Math.hypot(P.getX(a), P.getY(a) / 0.74, P.getZ(a)) - Math.hypot(P.getX(b), P.getY(b) / 0.74, P.getZ(b)));
+        if (dr < 0.03) continue;
+        const len = Math.hypot(P.getX(a) - P.getX(b), P.getY(a) - P.getY(b), P.getZ(a) - P.getZ(b));
+        if (dr > 0.7 * len) n++;
+      }
+    }
+    return n;
+  };
+  const stepped = buildRock(createRng('t/s'), 'seed/s', { ...stairFoot(), detail: 40, crackDepth: 0.03, fineCracks: 0.6, fineCrackDepth: 0.012, micro: 0.025, plates: 0.0075, rimRound: 0.09 });
+  const smooth = buildRock(createRng('t/s'), 'seed/s', { ...stairFoot(), detail: 40, crackDepth: 0.03, fineCracks: 0.6, fineCrackDepth: 0.012, micro: 0.025, plates: 0.0075, rimRound: 0.09, mossSwellSmooth: true });
+  const before = cliffs(stepped);
+  const after = cliffs(smooth);
+  assert.ok(before > 200, `stepped blanket has ${before} slab-edge vertices — the regression no longer reproduces`);
+  assert.ok(after < before * 0.5, `smooth blanket still has ${after} slab-edge vertices (stepped ${before})`);
+});
+
+test('aLichen (fable-2): off by default; with `lichen` + `plates` a 0..1 crust field on the bare upper skin only', () => {
+  const plain = buildRock(createRng('t/d'), 'seed/d', nearOpts());
+  assert.equal(plain.attributes.aLichen, undefined, 'lichen 0 must not add the attribute');
+  const g = buildRock(createRng('t/d'), 'seed/d', { ...nearOpts(), plates: 0.025, rimRound: 0.08, lichen: 0.6 });
+  // the crust is colour/attribute only: the shape is the same rock
+  for (const k of ['position', 'normal']) assert.ok(same(arr(g, k), arr(buildRock(createRng('t/d'), 'seed/d', { ...nearOpts(), plates: 0.025, rimRound: 0.08 }), k)), `${k} moved with lichen on`);
+  const li = g.attributes.aLichen;
+  const moss = g.attributes.aMoss;
+  const pos = g.attributes.position;
+  assert.ok(li, 'aLichen missing');
+  let crust = 0;
+  let onMoss = 0;
+  let inCollar = 0;
+  for (let i = 0; i < li.count; i++) {
+    const v = li.getX(i);
+    assert.ok(v >= 0 && v <= 1, `aLichen ${v} out of range`);
+    if (v > 0.5) {
+      crust++;
+      if (moss.getX(i) > 0.5) onMoss++;
+      if (pos.getY(i) < -0.6 * 0.64 * 0.7) inCollar++;
+    }
+  }
+  const share = crust / li.count;
+  assert.ok(share > 0.04 && share < 0.5, `crust share ${share}`);
+  assert.equal(onMoss, 0, `${onMoss} crust vertices under the moss cap`);
+  assert.equal(inCollar, 0, `${inCollar} crust vertices in the collar`);
+  assert.ok(Math.abs(g.userData.rockStats.lichenShare - share) < 1e-9);
+});
+
 test('aWet: a 0..1 band above the ground, wetter low down, dry on the crown', () => {
   const g = buildRock(createRng('t/d'), 'seed/d', farOpts());
   const wet = g.attributes.aWet;
@@ -168,6 +269,14 @@ test('dressing: cushions flagged aMoss > 1, lichen plates aMoss < 0, counts with
   // (round 44: 10 lobed segments, was 8)
   assert.equal(pads, a.stats.cushions * 50 * 3);
   assert.equal(plates, a.stats.lichen * 30 * 3);
+  // fable-2 (the "black holes"): cushion vertex colours must be pale — three multiplies vColor
+  // into the moss-coloured diffuse, and the palette greens (linear ≈ 0.05) made every pad black
+  const col = a.geometry.attributes.color;
+  for (let i = base; i < moss.count; i++) {
+    if (moss.getX(i) <= 1) continue;
+    const lum = 0.299 * col.getX(i) + 0.587 * col.getY(i) + 0.114 * col.getZ(i);
+    assert.ok(lum > 0.75, `cushion vertex ${i} colour luminance ${lum} — pads render black under the moss path`);
+  }
   for (const k of ['position', 'normal', 'color', 'aMoss', 'aWet']) assert.ok(a.geometry.attributes[k], `merged geometry lacks ${k}`);
   // front-facing: every dressing triangle's winding normal agrees with its stored vertex normals
   const P = a.geometry.attributes.position;
