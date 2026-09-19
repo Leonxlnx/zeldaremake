@@ -1,0 +1,51 @@
+{
+  "views": [
+    "A_stairs",
+    "B_house",
+    "C_lookback",
+    "D_log",
+    "E_ground",
+    "F_canopy",
+    "w11-spine-f",
+    "w13-spine-f"
+  ],
+  "poses": {
+    "w13-spine-f": {
+      "p": [
+        1.82,
+        1.32,
+        -23.32
+      ],
+      "t": [
+        1.49,
+        1.17,
+        -33.31
+      ],
+      "fov": 46
+    },
+    "w11-spine-f": {
+      "p": [
+        1.94,
+        1.35,
+        -17.32
+      ],
+      "t": [
+        2.77,
+        1.2,
+        -27.29
+      ],
+      "fov": 46
+    }
+  },
+  "variants": [
+    {
+      "uniforms": {
+        "uHaloRadius": 0.7
+      },
+      "name": "before"
+    },
+    {
+      "name": "after"
+    }
+  ]
+}
