@@ -14,7 +14,7 @@ import { VegField, composeMatrix, newSample, type FieldSample } from './field';
 import { rgb } from './geometry';
 import { LodInstancedSet, type PackLayout } from './lodset';
 import { createVegMaterial, createVegShadowMaterials, type VegMaterialOptions } from './materials';
-import { BROADLEAF_DETAILS, BROADLEAF_ULTRA_M, BUSH_DETAILS, BUSH_ULTRA_M, FIDDLEHEAD_DETAILS, FIDDLEHEAD_ULTRA_M, FLOWER_DETAILS, FLOWER_ULTRA_M, HERO_FERN_DETAILS, HERO_FERN_ULTRA_M, MOSS_DETAILS, MOSS_MID_M, MOSS_ULTRA_M, WHITE_FLOWER_DETAILS, bushGeometry, withMirrors, cloverGeometry, fernGeometry, fiddleheadGeometry, flowerGeometry, flowerSpikeGeometry, hedgeGeometry, heroFernGeometry, makePalette, maxHeight, mossGeometry, saplingGeometry, seedheadGeometry, tuftGeometry, variants, weedGeometry, whiteFlowerGeometry } from './plantgeo';
+import { BIG_LEAF_VARIANTS, BROADLEAF_DETAILS, BROADLEAF_ULTRA_M, BUSH_DETAILS, BUSH_ULTRA_M, HEDGE_DETAILS, HEDGE_ULTRA_M, SHRUB_TOP_ROUGHNESS, FIDDLEHEAD_DETAILS, FIDDLEHEAD_ULTRA_M, FLOWER_DETAILS, FLOWER_ULTRA_M, HERO_FERN_DETAILS, HERO_FERN_ULTRA_M, MOSS_DETAILS, MOSS_MID_M, MOSS_ULTRA_M, WHITE_FLOWER_DETAILS, bushGeometry, withMirrors, cloverGeometry, fernGeometry, fiddleheadGeometry, flowerGeometry, flowerSpikeGeometry, hedgeGeometry, heroFernGeometry, makePalette, maxHeight, mossGeometry, saplingGeometry, seedheadGeometry, tuftGeometry, variants, weedGeometry, whiteFlowerGeometry } from './plantgeo';
 
 export interface PlantSets {
   ferns: LodInstancedSet;
@@ -92,6 +92,8 @@ const PLATEAU_WALK: readonly (readonly [number, number])[] = [
   [18.3, -8.5],
 ];
 const BUSH_LENS_CLEAR_M = 0.5;
+/** round 47: bushes within this distance of a house trunk (m past its radius) are the big-leaf shrub of ref-01 */
+const HOUSE_BIG_LEAF_M = 3.4;
 /** round 44 (survey-1 #10): a violet clump's pigment spread (× 1 ± this) and hue lean (red up / blue down or the reverse, this fraction) */
 export const FLOWER_CLUMP_SPREAD = 0.12;
 export const FLOWER_CLUMP_LEAN = 0.08;
@@ -210,7 +212,9 @@ const PACKS: Record<string, PackLayout> = {
   'hero-ferns': [SINGLE(3), SINGLE(3), ALL(3), ALL(3)],
   // 12 hero hedges, all high-LOD from every camera: packing ALL(3) near submitted 3x the placed
   // geometry (300 K vs 97 K triangles); per variant near, +4 draws (Astra, docs/proposals/astra-hedge-packs)
-  hedge: [SINGLE(3), ALL(3), ALL(3)],
+  // round 47: the ultra LOD (≈ 5.6 K triangles a variant, inside HEDGE_ULTRA_M on the walk only) draws
+  // one variant a draw like the high LOD it hands over to
+  hedge: [SINGLE(3), SINGLE(3), ALL(3), ALL(3)],
   // round 31: 6 tuft variants (two per height class, `variant % 3` the class). Thousands of
   // instances: one draw per variant near (130 triangles each), the far LOD (30 triangles) pairs
   // the two variants of a class — 9 draws (round 40: the near tufts no longer cast, see `mk`)
@@ -256,13 +260,19 @@ export function buildPlants(ctx: WorldContext, field: VegField, parent: Group): 
   // LOD it hands over to; the high / mid LODs' leaves are ovate blades now, the same triangles
   // round 44: the three variants and their mirror images, interleaved (plantgeo.ts withMirrors) —
   // every bush keeps its round-9 variant, half of them flip (survey-1 #7: identical bushes repeated)
-  const bushes = mk('bushes', withMirrors(variants(3, `${seed}/bush`, pal, bushGeometry, [...BUSH_DETAILS])), 'bush', [BUSH_ULTRA_M, 14, 34], 2, {}, undefined, 1);
+  // round 47 (owner review 2026-09-19 item 10): the crowns are shrub.ts' layered leaf clusters —
+  // variant BIG_LEAF_VARIANT is ref-01's big-leaf house shrub (retargetBushVariants below puts it
+  // at the houses and nowhere else); the laminae's upper faces take the glossy shrub roughness
+  const bushes = mk('bushes', withMirrors(variants(3, `${seed}/bush`, pal, bushGeometry, [...BUSH_DETAILS])), 'bush', [BUSH_ULTRA_M, 14, 34], 2, { topRoughness: SHRUB_TOP_ROUGHNESS }, undefined, 1);
   // hero hedge: read from 6 m (the bank crowns) and 15 m (the door row) in shot A so it keeps
   // the high LOD much further out than the scattered bushes. Round 14: the clipped-crown geometry
   // (plantgeo.ts hedgeGeometry — an opaque core under two shells of small leaves) replaces the
   // open bush variants, so the rows read as the frame's solid dark mass; same three variant
   // seeds, same proportions, so every crown keeps its place, scale and top.
-  const hedge = mk('hedge', variants(3, `${seed}/hedge`, pal, hedgeGeometry), 'bush', [26, 48], 1, { sway: 0.9, flutter: 0.014, stiffness: 0.7 });
+  // round 47: the same layered-cluster builder (shrub.ts HEDGE_STYLE: tight lobes, small ovate
+  // leaves in four depth layers over dark cores) with an ultra LOD inside HEDGE_ULTRA_M for the walk
+  // past the door row and the shelf tier; every fixed camera stands outside the ring (plants.test)
+  const hedge = mk('hedge', variants(3, `${seed}/hedge`, pal, hedgeGeometry, [...HEDGE_DETAILS]), 'bush', [HEDGE_ULTRA_M, 26, 48], 1, { sway: 0.9, flutter: 0.014, stiffness: 0.7, topRoughness: SHRUB_TOP_ROUGHNESS }, undefined, 1);
   // matte petals: no specular sheen so the violet stays saturated under the bright sun/haze
   // round 43: an ultra LOD inside FLOWER_ULTRA_M (plantgeo.ts: heads as clusters of bells with dark
   // throats, spikes of hanging bells under a teardrop bud, 5-sided graded stems — the same layout
@@ -3182,6 +3192,16 @@ export function buildPlants(ctx: WorldContext, field: VegField, parent: Group): 
     }
   }
 
+  // round 47 (owner review item 10, ref-01): the big-leaf shrub variant (shrub.ts BIG_LEAF_STYLE — a
+  // low mound of round glossy laminae) grows at the house feet only; everywhere else a bush that
+  // drew it takes one of the two leafy crowns by a position hash, its mirror parity kept, so no
+  // scatter's stream moves and the mirrored share holds
+  for (const it of bushes.items) {
+    const big = it.variant === BIG_LEAF_VARIANTS[0] || it.variant === BIG_LEAF_VARIANTS[1];
+    const atHouse = field.houseInfo(it.x, it.z).dist < HOUSE_BIG_LEAF_M;
+    if (atHouse) it.variant = BIG_LEAF_VARIANTS[0] + (it.variant & 1);
+    else if (big) it.variant = (Math.abs(Math.floor(it.x * 7.31 + it.z * 3.17)) % 2) * 2 + (it.variant & 1);
+  }
   const all = [ferns, tufts, heroFerns, fiddleheads, bushes, hedge, flowers, yellowFlowers, whiteFlowers, weeds, seedheads, clover, moss, saplings, fernsNorth, weedsNorth];
   for (const set of all) parent.add(set.build());
   return { ferns, tufts, heroFerns, fiddleheads, bushes, hedge, flowers, yellowFlowers, whiteFlowers, weeds, seedheads, clover, moss, saplings, fernsNorth, weedsNorth, all, materials };
