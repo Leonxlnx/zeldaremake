@@ -1634,7 +1634,30 @@ export function buildHouse(def: HouseDef, ctx: WorldContext, mats: StructureMate
   {
     const pos = roomGeo.attributes.position;
     const _g = new Vector3();
-    setFloatAttribute(roomGeo, 'aGlow', (i) => glowOf(_g.set(pos.getX(i), pos.getY(i), pos.getZ(i))));
+    const _rel = new Vector3();
+    /**
+     * Round 46 (structures-29): the lamps' pools are the emissive, flat across a board's face and
+     * its joint alike, so the boards' relief and shade (`boards`, in the diffuse) vanished inside
+     * the very halos where the wall is bright enough to see (sn-house-door, first pass). The
+     * pool is modulated by the board field at the vertex — the joints cut the halo to a third,
+     * the boards' own tone rides on it — so the lamplight shows planks. The vertex is classed by
+     * its door-space position (the floor pad by height, the side walls by their lateral, the
+     * rest is the back wall / ceiling), the same seeds as the surfaces took.
+     */
+    const boardMod = (p: Vector3) => {
+      _rel.copy(p).sub(frame.C);
+      const w = _rel.dot(Rt);
+      const d = _rel.dot(F);
+      const y = p.y - frame.C.y;
+      let sh: number;
+      if (y < roomFloorY + 0.03 * k) sh = boards(w, d, 4).shade;
+      else if (y > roomCeilY - 0.03 * k) return 1;
+      else if (Math.abs(w - roomW0) < 0.05 * k) sh = boards(d, y, 2).shade;
+      else if (Math.abs(w - roomW1) < 0.05 * k) sh = boards(d, y, 3).shade;
+      else sh = boards(w, y, 1).shade;
+      return lerp(0.35, 1.1, smoothstep(0.25, 1.0, sh));
+    };
+    setFloatAttribute(roomGeo, 'aGlow', (i) => glowOf(_g.set(pos.getX(i), pos.getY(i), pos.getZ(i))) * boardMod(_g));
   }
   const roomMesh = new Mesh(roomGeo, roomMat);
   roomMesh.name = 'interior';

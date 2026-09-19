@@ -184,8 +184,13 @@ export function buildLogArch(ctx: WorldContext, mats: StructureMaterials, rng: R
       const edge = smoothstep(0, e, x) * smoothstep(1, 1 - e, x);
       const top = p.len * (1 + p.tilt * (x - 0.5) * 2);
       let a = top * (0.15 + 0.85 * edge);
-      a += p.fray * (0.06 + 0.1 * smoothstep(0.3, 1.2, p.len)) * (noise.ridged(arc * 6 + end * 11, 0.5 + end, 2) - 0.5) * 2;
-      a += 0.04 * noise.noise(arc * 13 + end * 5, 3.3);
+      // the fray is coarser than the shell's 8 cm column pitch (≈ 1.8 / m, a 55 cm period, and
+      // a 3 cm tremble at 3.5 / m): round 44's 3.2 / m ridged term and 7.5 / m noise — and this
+      // pass's first cut at 6 / m and 13 / m — were sampled once per column, and a per-column
+      // jitter IS the sawtooth (one triangle per column, w20-spine-r). Finger-width fibres are
+      // the end mesh's splinter shards, not the rim profile.
+      a += p.fray * (0.08 + 0.12 * smoothstep(0.3, 1.2, p.len)) * (noise.ridged(arc * 1.8 + end * 11, 0.5 + end, 2) - 0.5) * 2;
+      a += 0.03 * noise.noise(arc * 3.5 + end * 5, 3.3);
       return Math.max(0, a);
     }
     return 0;
@@ -256,7 +261,7 @@ export function buildLogArch(ctx: WorldContext, mats: StructureMaterials, rng: R
     const n2 = noise.noise(arc * 1.7 + 83, s * 0.8);
     const face = 0.65 * smoothstep(0.08, 0.28, n1) + 0.35 * smoothstep(0.2, 0.4, n2);
     const seam = smoothstep(0.3, 0.1, n1) * smoothstep(-0.14, -0.02, n1);
-    return lerp(0.55, 1.45, face) * (1 - 0.4 * seam);
+    return lerp(0.45, 1.6, face) * (1 - 0.45 * seam);
   };
   /**
    * Round 41 (structures-26): the CLOSE-SCALE bark — what the player sees from the path 2–6 m
@@ -309,8 +314,12 @@ export function buildLogArch(ctx: WorldContext, mats: StructureMaterials, rng: R
     // the arch stays dark in the flat ambient light of the hollow (reference: the mass under
     // the crown reads ≈ 0.63 of the haze luminance)
     const belly = lerp(0.48, 1, smoothstep(-0.95, 0.35, up));
-    // round 46: the plates' area contrast on the shaded body (`plateAt`), fading out over the crown
-    const plated = lerp(plateAt(psi, s), 1, smoothstep(-0.1, 0.45, up));
+    // round 46: the plates' area contrast over the whole bark body (`plateAt`), fading out only
+    // where the moss cap begins (the same edge as the moss mask). The first pass faded it out
+    // from up −0.1 to 0.45 and w18-spine-f did not move (p50 0.256 → 0.257): from the path the
+    // 'belly' the survey names is the SOUTH FLANK 6–12 m up (up 0…0.6) seen at 17 m, not the
+    // underside, so the flank carries the plates too.
+    const plated = lerp(plateAt(psi, s), 1, smoothstep(0.3, 0.7, up + mossEdge(psi, s)));
     const shade = ao * vari * belly * plated;
     // damp, weathered grey-brown bark (the material tint + dark bark map carry the rest).
     // Round 21: ×0.78 — D's arch mass rendered p50 0.481 against the reference's 0.404 with the
@@ -440,7 +449,9 @@ export function buildLogArch(ctx: WorldContext, mats: StructureMaterials, rng: R
         const d = lerp(0.62, 0.34, v) * (0.85 + 0.3 * noise.noise(psi * 6, v * 3 + end * 5)) * fresh * streak;
         out.color = [d, d * 0.8, d * 0.62];
       },
-      { cols: 168, rows: 5, closedU: true },
+      // round 46: the ring's columns are the shell's (272, was 168), so the two rims are one
+      // polyline — a coarser ring cut its own zig-zag across the shell's rim
+      { cols, rows: 5, closedU: true },
     );
     const outward = end === 0 ? A.clone().negate() : A.clone();
     faceTowards(ring, (p, o) => o.copy(p).addScaledVector(outward, 5));

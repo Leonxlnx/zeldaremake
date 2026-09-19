@@ -357,18 +357,27 @@ export function buildStairway(def: StairDef, terrain: Terrain, rng: Rng, seed: s
       const backDepth = def.tread + 0.005;
       const backFront = i * def.tread + 0.025;
       const backOutline = jitteredRect(brng, w - 0.05, backDepth, { jitter: 0.008, segs: 3, chip: 0.03, chipChance: 0.3 });
-      const mortar: [number, number, number] = [0.3, 0.27, 0.22];
+      // the bank's own soil tone (w29-house-d reads the earth face beside the flight at
+      // ≈ rgb(120, 90, 60)): the first cut at 0.3 / stain 1.2 rendered the ends under the tread
+      // noses as black as the void they replaced (w29 before ≡ after) — in the giant's shade a
+      // dark albedo IS black. The backing takes the soil's albedo, a third of the top's shading
+      // normal on its ends (they face the sky over the south fall), a light stain, and moss on
+      // its top edge (the fillet under the tread) and its ends; `sideGrime` 1 keeps the foot
+      // half from a second darkening.
+      const mortar: [number, number, number] = [0.5, 0.42, 0.32];
       placeSlab(backOutline, 0, rBottom, backFront + backDepth / 2, yaw * 0.5, 0, 0, {
         thickness: rh,
         bevel: 0.008,
         color: mortar,
-        sideColor: [mortar[0] * 0.9, mortar[1] * 0.9, mortar[2] * 0.9],
-        sideNormalUp: 0.1,
-        sideStain: 1.2,
-        sideWear: 0.5,
-        mossEdge: 0.7,
+        sideColor: [mortar[0] * 0.95, mortar[1] * 0.95, mortar[2] * 0.95],
+        sideNormalUp: 0.35,
+        sideStain: 0.5,
+        sideWear: 0.6,
+        sideGrime: 1,
+        mossEdge: 0.9,
         mossInner: 0.5,
-        mossFn: (x, z) => 0.5 + 0.7 * mossAt(x, z + backFront + backDepth / 2),
+        mossFn: (x, z) => 0.6 + 0.7 * mossAt(x, z + backFront + backDepth / 2),
+        mossAdd: (x, _z, edge) => 0.5 * edge * smoothstep(0.3, 0.9, noise.fbm(x * 2.6 + i * 9.1, 3.3, 2) * 0.5 + 0.5),
         uvScale,
         uvOffset: [brng() * 3, brng() * 3],
         rings: 1,
@@ -434,7 +443,10 @@ export function buildStairway(def: StairDef, terrain: Terrain, rng: Rng, seed: s
       }
       const riserUv: [number, number] = [rng() * 3, rng() * 3];
       for (const piece of pieces) {
-      const pc: [number, number, number] = [riserColor[0] * piece.tone, riserColor[1] * piece.tone, riserColor[2] * piece.tone];
+      // house-west: the face stones a fifth paler than the stream's riser tone — they stand in
+      // the giant's shade where the main flight's 0.38–0.46 renders black (w29-house-d)
+      const hwLift = isHouseWest ? 1.2 : 1;
+      const pc: [number, number, number] = [riserColor[0] * piece.tone * hwLift, riserColor[1] * piece.tone * hwLift, riserColor[2] * piece.tone * hwLift];
       placeSlab(piece.outline, piece.ax, rBottom, piece.au, yaw * 0.5, 0, 0, {
         thickness: rh,
         bevel: isHouseWest ? 0.014 : 0.012,
@@ -446,7 +458,9 @@ export function buildStairway(def: StairDef, terrain: Terrain, rng: Rng, seed: s
         // (0.3 with the cheeks at 0.5 / × 0.88 lit the flight's south flank in camera D's
         // bottom-right corner, where frame 56 s is shadow — SSIM −0.0037 there, over the budget;
         // 0.2 with the cheeks at 0.3 / × 0.78 still −0.0032)
-        sideNormalUp: isHouseWest ? 0.1 : 0,
+        // round 46: 0.1 → 0.2 with the backing behind (the face stones are 14 cm deep now and
+        // the joints show the backing's soil, so the flank D sees is the backing's, not theirs)
+        sideNormalUp: isHouseWest ? 0.2 : 0,
         sideWear: isHouseWest ? 0.7 : 0,
         // across: the horizontal distance from the leaning line x = fissA + lean · y; along: the
         // height over the fissure's half-length (the shader fades it out toward its top). Affine
