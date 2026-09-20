@@ -280,6 +280,22 @@ export async function create(ctx: WorldContext): Promise<WorldSystem> {
     const l = Math.hypot(dx, dz) || 1;
     return [dx / l, dz / l] as [number, number];
   })();
+  /** the D boulder's form planes toward the hero frame's camera (`u`: unit local xz toward it) — see `planes` */
+  const dPlanes = (u: [number, number]): NonNullable<RockOptions['planes']> => [
+    // the top keeps its moss cap whole (the frame's greenery is on the crown)
+    { n: [u[0] * 0.2, 1, u[1] * 0.2], depth: 0.7, lift: 0.08, dark: 0, bare: 0 },
+    // the pale plane: a bare chamfer at 30° between the top and the shoulder, to the sky and the
+    // camera — a dry, lichen-bleached crest over the damper body. (Measured: the boulder stands
+    // under the giant's canopy shadow at D, where plane angles grade little under the sky alone —
+    // the stone pixels at D sat at l 0.26 / σ 0.044–0.048 whatever the angles or a +70 % crest
+    // albedo, against the frame's lit face at 0.33 / 0.117; at 2 m the planes lift the stone's σ
+    // 0.059 → 0.066. The frame's contrast is sunlight on planes; the light is not this lane's.)
+    { n: [u[0] * 0.6, 1, u[1] * 0.6], depth: 0.77, lift: 0.3, dark: 0, bare: 1 },
+    // the shoulder at 37° is the mid plane — bare, a little darker, a touch of the cleave's dark
+    { n: [u[0], 0.75, u[1]], depth: 0.72, lift: -0.1, dark: 0.16, bare: 0.9 },
+    // the undercut leans in 40° below the belly — the dark plane, bare, in its own shade
+    { n: [u[0], -0.85, u[1]], depth: 0.72, lift: -0.3, dark: 0.35, bare: 1 },
+  ];
   /** a world xz direction expressed in the local frame of a mesh yawed by `yaw` about +Y */
   const toLocal = (d: [number, number], yaw: number): [number, number] => [d[0] * Math.cos(yaw) - d[1] * Math.sin(yaw), d[0] * Math.sin(yaw) + d[1] * Math.cos(yaw)];
   for (const b of ctx.layout.heroBoulders) {
@@ -306,7 +322,8 @@ export async function create(ctx: WorldContext): Promise<WorldSystem> {
     // at 0.64 / 0.15 the 0.5 m loaf was > 99 % hidden behind the fronds (fable-5's D box read fern
     // green). A D composition change, made on its own branch for fable-cursor's call; the layout
     // radius (0.6) and the vegetation's clearRadius are untouched.
-    const squash = b.id === 'shot-d-boulder' ? 0.72 : 0.74;
+    // (form planes: 0.78 so the flat top sits within 2 cm of the 0.72 loaf's crown, not 7 cm lower)
+    const squash = b.id === 'shot-d-boulder' ? 0.78 : 0.74;
     const sinkFrac = b.id === 'shot-d-boulder' ? 0 : 0.15;
     const rockOpts: RockOptions = {
       radius: r,
@@ -368,6 +385,14 @@ export async function create(ctx: WorldContext): Promise<WorldSystem> {
       // moss — the frame's greenery is on the crown) and is paled up to 30 % toward the lit read
       bareToward: b.id === 'shot-d-boulder' && towardD ? toLocal(towardD, yaw) : undefined,
       faceLift: b.id === 'shot-d-boulder' && towardD ? { dir: toLocal(towardD, yaw), amount: 0.3 } : undefined,
+      // fable-2 (round-50 #1, ANALYSIS_VIDEO2 §7.2: "the D boulder face has 63 % of the frame's macro
+      // contrast — one shaded loaf where the frame's rock has lit planes, a shadowed undercut and a
+      // bright top"): the loaf's FORM toward frame D's camera as four planes with sharp arrises — a
+      // flat top tilted 11° to the camera (the one plane the WNW sun still lights from D's ESE
+      // side; it keeps most of its moss cap), a shoulder plane at 48° to the sky, the vertical face
+      // between, and an undercut leaning in 40° to the ground below the belly (bare, in its own
+      // shade and the rock's shadow). Target macro σ 0.11–0.14 on the face (ours was 0.074).
+      planes: b.id === 'shot-d-boulder' && towardD ? dPlanes(toLocal(towardD, yaw)) : undefined,
       // the lower band is a dark, damp green-brown (not bare soil), reaching ~0.35 m up the
       // visible face of the small boulders
       // (W23: the D rock's collar reaches 45 % of its height, not 60 — frame D reads pale stone
@@ -381,7 +406,7 @@ export async function create(ctx: WorldContext): Promise<WorldSystem> {
       // rocks are cool grey under their moss, so it gets a tan tint of its own
       // (W23: frame D's boulder is olive-tan — rgb 91/83/45 at l 0.32, hue 47°, sat 0.34 — where
       // ours rendered grey-tan at 0.30 behind the ferns; the tint goes a step paler and yellower)
-      tint: b.id === 'shot-d-boulder' ? new Color(0.9, 0.85, 0.64) : new Color(0.72, 0.72, 0.71),
+      tint: b.id === 'shot-d-boulder' ? new Color(0.94, 0.85, 0.58) : new Color(0.72, 0.72, 0.71),
       freq: 0.9,
     };
     const geo = buildRock(bRng.fork(b.id), `${seed}/boulder-${b.id}`, rockOpts);
