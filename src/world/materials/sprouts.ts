@@ -14,14 +14,18 @@ import {
   BufferGeometry,
   Color,
   DoubleSide,
+  DynamicDrawUsage,
   Float32BufferAttribute,
+  Frustum,
   InstancedBufferAttribute,
   InstancedMesh,
   Matrix4,
   MeshStandardMaterial,
   Quaternion,
+  Sphere,
   Uint8BufferAttribute,
   Vector3,
+  type Camera,
   type WebGLProgramParametersWithUniforms,
 } from 'three';
 import type { Rng } from '../util/prng';
@@ -488,9 +492,32 @@ export interface SproutBuild {
   triangles: number;
   /** the grit's share of `triangles` */
   gritTriangles: number;
-  /** triangles submitted to the GPU per frame, including the collapsed other-variant triangles */
+  /** triangles submitted to the GPU per frame, including the collapsed other-variant triangles (every instance; before `cull`) */
   submittedTriangles: number;
+  /**
+   * Submission culling (round 49, perf-3; the trees' / vegetation's pattern): trim every mesh to
+   * the instances that can reach the frame — those whose base is nearer than SPROUT_LOD_FAR (the
+   * vertex shader collapses every vertex of a farther instance onto its base point: zero-area
+   * triangles, no fill, so dropping them changes no pixel) AND whose padded sphere meets the view
+   * frustum (conservative plane separation). The kept instances keep their order, so the frame is
+   * identical to the untrimmed one; only the triangle count changes. Skipped while the camera's
+   * view-projection is unchanged unless `force`. Nothing casts a shadow here, so no sweep test.
+   */
+  cull(camera: Camera, force?: boolean): void;
+  /** instances submitted per mesh after the last `cull` (every instance before the first) */
+  submitted: number[];
+  /** triangles submitted per frame after the last `cull` */
+  submittedNow(): number;
 }
+
+/**
+ * Culling pad (m) on every instance sphere: a sprout's blades bend ≤ 0.35 × the wind strength
+ * (wind.ts windGrass at stiffness 0.3) and the largest pad is a 2.6 × cushion; 1.5 m matches the
+ * vegetation's CULL_PAD_M and leaves the rest as slack.
+ */
+export const SPROUT_CULL_PAD_M = 1.5;
+/** slack (m) on the shader's SPROUT_LOD_FAR collapse distance, so float rounding between CPU and GPU cannot drop a live instance */
+const SPROUT_LOD_SLACK_M = 0.05;
 
 /** concatenate non-indexed variant geometries (same attribute set) and tag each vertex with its variant slot */
 function packGeometries(geos: BufferGeometry[], variantIds: number[]): BufferGeometry {
@@ -553,6 +580,8 @@ export function buildSproutMeshes(spots: SproutSpot[], rng: Rng, material: MeshS
   for (let v = 0; v < variants.length; v++) if (lists[v].length && !packOf.has(v)) throw new Error(`sprout variant ${v} has instances but no pack`);
 
   const meshes: InstancedMesh[] = [];
+  /** per mesh: the full instance streams and each instance's cull sphere (base xyz + radius), for `cull` */
+  const sources: { im: InstancedMesh; n: number; tris: number; matrices: Float32Array; colors: Float32Array; slots: Float32Array; tints: Float32Array; sphere: Float32Array; kept: number[] }[] = [];
   const m = new Matrix4();
   const p = new Vector3();
   const q = new Quaternion();
@@ -582,6 +611,9 @@ export function buildSproutMeshes(spots: SproutSpot[], rng: Rng, material: MeshS
     const slotOf = new Float32Array(n);
     const jointTint = new Float32Array(n);
     const im = new InstancedMesh(geo, material, n);
+    // the packed geometry's sphere about the instance origin, whatever the instance's yaw / tumble
+    const geoReach = geo.boundingSphere!.center.length() + geo.boundingSphere!.radius;
+    const cullSphere = new Float32Array(n * 4);
     let i = 0;
     for (const v of pack) {
       const slot = packOf.get(v)![1];
@@ -621,22 +653,100 @@ export function buildSproutMeshes(spots: SproutSpot[], rng: Rng, material: MeshS
         im.setColorAt(i, c);
         slotOf[i] = slot;
         jointTint[i] = s.jointTint ?? 0;
+        cullSphere[i * 4] = p.x;
+        cullSphere[i * 4 + 1] = p.y;
+        cullSphere[i * 4 + 2] = p.z;
+        cullSphere[i * 4 + 3] = geoReach * Math.max(sc.x, sc.y, sc.z) + SPROUT_CULL_PAD_M;
         i++;
       }
       triangles += triCount * lists[v].length;
       if (v === GRIT) gritTriangles += triCount * lists[v].length;
       else count += lists[v].length;
     }
-    geo.setAttribute('aSproutVariant', new InstancedBufferAttribute(slotOf, 1));
-    geo.setAttribute('aJointTint', new InstancedBufferAttribute(jointTint, 1));
-    submittedTriangles += (geo.attributes.position.count / 3) * n;
+    // the GPU streams are compacted by `cull`; the full streams are kept aside (a copy each)
+    geo.setAttribute('aSproutVariant', new InstancedBufferAttribute(slotOf.slice(), 1));
+    geo.setAttribute('aJointTint', new InstancedBufferAttribute(jointTint.slice(), 1));
+    const packTris = geo.attributes.position.count / 3;
+    submittedTriangles += packTris * n;
     im.instanceMatrix.needsUpdate = true;
     if (im.instanceColor) im.instanceColor.needsUpdate = true;
+    // the streams are rewritten whenever the culled set changes (a walking camera: most frames)
+    im.instanceMatrix.setUsage(DynamicDrawUsage);
+    im.instanceColor?.setUsage(DynamicDrawUsage);
     im.castShadow = false;
     im.receiveShadow = true;
     im.name = `joint-sprouts-p${pi}-v${pack.join('')}`;
     im.computeBoundingSphere();
     meshes.push(im);
+    sources.push({
+      im,
+      n,
+      tris: packTris,
+      matrices: (im.instanceMatrix.array as Float32Array).slice(),
+      colors: (im.instanceColor!.array as Float32Array).slice(),
+      slots: slotOf,
+      tints: jointTint,
+      sphere: cullSphere,
+      kept: Array.from({ length: n }, (_, k) => k),
+    });
   });
-  return { meshes, count, variants: variants.length, cushions: lists[CUSHION].length, ferns: lists[FERN].length, grit: lists[GRIT].length, triangles, gritTriangles, submittedTriangles };
+
+  // ---- submission culling (see SproutBuild.cull) ----
+  const frustum = new Frustum();
+  const viewProj = new Matrix4();
+  const lastViewProj = new Matrix4().makeScale(0, 0, 0);
+  const camPos = new Vector3();
+  const sphere = new Sphere();
+  const lodFar = SPROUT_LOD_FAR + SPROUT_LOD_SLACK_M;
+  const submitted = sources.map((s) => s.n);
+  const sameList = (a: number[], b: number[]) => a.length === b.length && a.every((v, i) => v === b[i]);
+  const compact = (s: (typeof sources)[number], kept: number[]) => {
+    const im = s.im;
+    const mat = im.instanceMatrix.array as Float32Array;
+    const col = im.instanceColor!.array as Float32Array;
+    const slot = im.geometry.getAttribute('aSproutVariant').array as Float32Array;
+    const tint = im.geometry.getAttribute('aJointTint').array as Float32Array;
+    for (let j = 0; j < kept.length; j++) {
+      const i = kept[j];
+      mat.set(s.matrices.subarray(i * 16, i * 16 + 16), j * 16);
+      col[j * 3] = s.colors[i * 3];
+      col[j * 3 + 1] = s.colors[i * 3 + 1];
+      col[j * 3 + 2] = s.colors[i * 3 + 2];
+      slot[j] = s.slots[i];
+      tint[j] = s.tints[i];
+    }
+    im.count = kept.length;
+    im.instanceMatrix.needsUpdate = true;
+    im.instanceColor!.needsUpdate = true;
+    im.geometry.getAttribute('aSproutVariant').needsUpdate = true;
+    im.geometry.getAttribute('aJointTint').needsUpdate = true;
+    s.kept = kept;
+  };
+  const cull = (camera: Camera, force = false) => {
+    camera.updateMatrixWorld();
+    viewProj.multiplyMatrices(camera.projectionMatrix, camera.matrixWorldInverse);
+    if (!force && viewProj.equals(lastViewProj)) return;
+    lastViewProj.copy(viewProj);
+    frustum.setFromProjectionMatrix(viewProj);
+    camPos.setFromMatrixPosition(camera.matrixWorld);
+    for (let k = 0; k < sources.length; k++) {
+      const s = sources[k];
+      // the shader measures the collapse from the instance base in WORLD space (modelMatrix × instanceMatrix × origin)
+      const world = s.im.matrixWorld;
+      const identity = world.elements[0] === 1 && world.elements[5] === 1 && world.elements[10] === 1 && world.elements[12] === 0 && world.elements[13] === 0 && world.elements[14] === 0;
+      const kept: number[] = [];
+      const sp = s.sphere;
+      for (let i = 0; i < s.n; i++) {
+        sphere.center.set(sp[i * 4], sp[i * 4 + 1], sp[i * 4 + 2]);
+        if (!identity) sphere.center.applyMatrix4(world);
+        if (sphere.center.distanceTo(camPos) >= lodFar) continue;
+        sphere.radius = sp[i * 4 + 3];
+        if (frustum.intersectsSphere(sphere)) kept.push(i);
+      }
+      if (!sameList(kept, s.kept)) compact(s, kept);
+      submitted[k] = kept.length;
+    }
+  };
+  const submittedNow = () => sources.reduce((t, s, k) => t + s.tris * submitted[k], 0);
+  return { meshes, count, variants: variants.length, cushions: lists[CUSHION].length, ferns: lists[FERN].length, grit: lists[GRIT].length, triangles, gritTriangles, submittedTriangles, cull, submitted, submittedNow };
 }
