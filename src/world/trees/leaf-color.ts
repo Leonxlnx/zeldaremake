@@ -1,7 +1,7 @@
 import type { WebGLProgramParametersWithUniforms } from 'three';
 
-/** Candidate strength; __ATMO_UNIFORMS__.uTreeLeafWarmth probes 0 / 0.35 / 0.65. */
-export const TREE_LEAF_WARMTH = 0.35;
+/** Midpoint selected between the native 0.35 and 0.65 crown-colour studies. */
+export const TREE_LEAF_WARMTH = 0.5;
 
 /**
  * Warm completed leaf radiance before fog, without changing its linear luminance. In the

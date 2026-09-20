@@ -89,7 +89,7 @@ test('only crown colour programs change; vertex, depth, normals, alpha and exist
       assert.deepEqual(material[key], baseline[name][key], `${name}: ${key}`);
     }
     if (affected.includes(name)) {
-      assert.equal(uTreeLeafWarmth.value, 0.35, `${name}: candidate default`);
+      assert.equal(uTreeLeafWarmth.value, 0.5, `${name}: selected default`);
       separateValues.add(uTreeLeafWarmth);
       const block = shader.fragmentShader.match(blockPattern)?.[0];
       assert.ok(block, `${name}: pre-opacity insertion`);
@@ -130,7 +130,7 @@ const hsvSaturation = (c) => 1 - Math.min(c.r, c.g, c.b) / Math.max(c.r, c.g, c.
 
 test('black, tiny values, neutrals, non-green colours, bark and the zero control stay exact', () => {
   for (const rgb of [{ r: 0, g: 0, b: 0 }, { r: 1e-12, g: 3e-12, b: 0 }, { r: 0.4, g: 0.4, b: 0.4 }, { r: 0.7, g: 0.4, b: 0.2 }, { r: 0.1, g: 0.2, b: 0.6 }]) {
-    for (const k of [0, 0.35, 0.65]) assert.deepEqual(evaluate(rgb, k), rgb);
+    for (const k of [0, 0.35, 0.5, 0.65]) assert.deepEqual(evaluate(rgb, k), rgb);
   }
   const olive = { r: 0.13, g: 0.2, b: 0.05 };
   assert.deepEqual(evaluate(olive, 0), olive);
@@ -146,7 +146,7 @@ test('olive colours keep linear luminance and HSV saturation while warming monot
       for (const red of [blue, (blue + 1) * 0.5, 0.95, 1].filter((r) => r >= blue)) {
         const rgb = { r: red * scale, g: scale, b: blue * scale };
         let previousRatio = rgb.r / rgb.g;
-        for (const k of [0, 0.35, 0.65, 1]) {
+        for (const k of [0, 0.35, 0.5, 0.65, 1]) {
           const result = evaluate(rgb, k);
           assert.ok(Object.values(result).every((v) => Number.isFinite(v) && v >= 0));
           assert.ok(Math.abs(luma(result) - luma(rgb)) <= 1e-12 * Math.max(1, scale), 'linear luminance');
