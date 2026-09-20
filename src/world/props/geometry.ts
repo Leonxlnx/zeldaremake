@@ -466,6 +466,66 @@ export function bucketGeometry(rng: Rng, size: number): Part[] {
 }
 
 // ---------------------------------------------------------------------------------------------
+// wooden waymarker
+
+/**
+ * A Kokiri waymarker at a path's mouth, `size` tall: a squared post with a diamond cap, two
+ * crossboards lashed to it at different heights and angles (the long one points along +z, the
+ * way the path goes), nail studs, and a small wooden tag hanging on a rope from the long board's
+ * end. Same wood, rope and iron as the fences, the ladder and the crates. Stands vertical; the
+ * foot (lowest 10 cm) is conformed to the ground by index.ts.
+ */
+export function markerGeometry(rng: Rng, size: number): Part[] {
+  const parts: Part[] = [];
+  const push = (geometry: BufferGeometry, material: MaterialKey) => parts.push({ geometry, material });
+  const w = 0.15 * (size / 1.7);
+  const post = board(w, size, w, { grain: 'y', rng, chamfer: w * 0.12, shade: 0.94 });
+  place(post, new Vector3(0, size / 2, 0));
+  push(post, 'wood');
+  // the cap: a shallow block turned 45° on the post's head
+  const cap = board(w * 1.55, w * 0.55, w * 1.55, { grain: 'x', rng, chamfer: w * 0.2, shade: 0.9 });
+  place(cap, new Vector3(0, size + w * 0.27, 0), new Quaternion().setFromAxisAngle(new Vector3(0, 1, 0), Math.PI / 4));
+  push(cap, 'wood');
+  // crossboards: long one at 0.72 of the height pointing along +z, a short one above, turned away
+  const boards: { y: number; len: number; yaw: number; dir: number }[] = [
+    { y: size * 0.72, len: 0.66 * (size / 1.7), yaw: rng.range(-0.12, 0.12), dir: 1 },
+    { y: size * 0.86, len: 0.44 * (size / 1.7), yaw: 0.9 + rng.range(-0.15, 0.15), dir: -1 },
+  ];
+  const up = new Vector3(0, 1, 0);
+  for (const b of boards) {
+    const q = new Quaternion().setFromAxisAngle(up, b.yaw);
+    const thick = w * 0.3;
+    const g = board(w * 0.85, w * 0.9, b.len, { grain: 'z', rng, chamfer: thick * 0.35, shade: 1.04 });
+    // the board sits against the post's face and runs out along dir·z, tapering slightly upward at the tip
+    const centre = new Vector3(0, b.y, b.dir * (w / 2 + b.len / 2 - w * 0.2)).applyQuaternion(q);
+    const tip = new Quaternion().setFromAxisAngle(new Vector3(1, 0, 0), -b.dir * 0.04);
+    place(g, centre, q.clone().multiply(tip));
+    push(g, 'wood');
+    // lashing around the post at the board's height, and a nail through the board's root
+    for (const t of lashing(new Vector3(0, b.y, 0), up, w * 0.78, 3, 0.011)) push(t, 'rope');
+    const nAt = new Vector3(w * 0.43, b.y + w * 0.1, b.dir * (w / 2 + w * 0.25)).applyQuaternion(q);
+    push(nail(nAt, new Vector3(1, 0, 0).applyQuaternion(q), 0.007), 'iron');
+  }
+  // the tag: a small board hanging from the long crossboard's tip on a rope loop
+  const long = boards[0];
+  const q0 = new Quaternion().setFromAxisAngle(up, long.yaw);
+  const tipZ = w / 2 + long.len - w * 0.3;
+  const hang = 0.11 * (size / 1.7);
+  const tagH = 0.17 * (size / 1.7);
+  const tagSway = rng.range(-0.25, 0.25);
+  const tag = board(w * 0.95, tagH, w * 0.16, { grain: 'y', rng, chamfer: w * 0.03, shade: 1.08 });
+  const tagCentre = new Vector3(0, long.y - w * 0.45 - hang - tagH / 2, tipZ).applyQuaternion(q0);
+  place(tag, tagCentre, q0.clone().multiply(new Quaternion().setFromAxisAngle(up, tagSway)));
+  push(tag, 'wood');
+  const loopTop = new Vector3(0, long.y + w * 0.45 + 0.012, tipZ).applyQuaternion(q0);
+  const loopBottom = new Vector3(0, long.y - w * 0.45 - hang + 0.01, tipZ).applyQuaternion(q0);
+  const side = new Vector3(w * 0.5, 0, 0).applyQuaternion(q0);
+  // one strand up each side of the board and over its top edge (an inverted U the tag hangs from)
+  push(rope([loopBottom.clone().sub(side), loopTop.clone().sub(side), loopTop.clone().add(side), loopBottom.clone().add(side)], 0.008, 5), 'rope');
+  return parts;
+}
+
+// ---------------------------------------------------------------------------------------------
 // rope-and-plank ladder
 
 export interface LadderSpec {

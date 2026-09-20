@@ -118,13 +118,14 @@ const two = await create({ ...ctx, terrain: createTerrain() });
 const audit = audits[0]();
 assert.deepEqual(audit.skipped, [], `every authored prop finds a legal spot (skipped: ${audit.skipped})`);
 assert.ok(textureLoads.includes('weathered_planks/color') && textureLoads.includes('weathered_planks/normal'), 'wood loads the plank maps');
-const want = { pots: 0, crates: 0, barrels: 0, buckets: 0, platforms: 0, ladders: 0 };
+const want = { pots: 0, crates: 0, barrels: 0, buckets: 0, platforms: 0, ladders: 0, markers: 0 };
 for (const d of PROP_LAYOUT) {
   if (d.kind === 'pot') want.pots++;
   else if (d.kind === 'crate') want.crates++;
   else if (d.kind === 'barrel') want.barrels++;
   else if (d.kind === 'bucket') want.buckets++;
   else if (d.kind === 'ladder') want.ladders++;
+  else if (d.kind === 'marker') want.markers++;
   else if (d.kind === 'platform') { want.platforms++; if (d.platform?.ladder) want.ladders++; }
 }
 for (const k of Object.keys(want)) assert.equal(audit[k], want[k], `${k} placed = authored`);
@@ -132,8 +133,51 @@ assert.ok(audit.pots >= 8, 'three sizes of pot in four clusters');
 assert.ok(audit.meshes <= 24, `bounded draw calls (${audit.meshes} meshes)`);
 assert.equal(audit.meshes, one.group.children.reduce((n, g) => n + g.children.length, 0));
 assert.equal(audit.clusters, new Set(PROP_LAYOUT.map((d) => d.cluster)).size, 'one group per cluster');
-// small props never tip more than 9° off level
+// small props never tip more than 9° off level; the marker post stands vertical
 for (const p of audit.placed) if (['pot', 'crate', 'barrel', 'bucket'].includes(p.kind)) assert.ok(p.tiltDeg <= 9.01, `${p.id} tilt ${p.tiltDeg}°`);
+for (const p of audit.placed) if (p.kind === 'marker') assert.equal(p.tiltDeg, 0, `${p.id} vertical`);
+
+// the north clearing's dressing: at the entrance corners, off the paving, and outside every fixed frame
+{
+  const north = audit.placed.filter((p) => p.cluster === 'north-clearing');
+  assert.ok(north.length >= 5 && north.some((p) => p.kind === 'marker'), 'marker + pots at the clearing entrance');
+  for (const p of north) {
+    assert.ok(p.z < -60 && p.y > 3.9 && p.y < 4.6, `${p.id} on the clearing's rim (${p.x}, ${p.y}, ${p.z})`);
+    const m = ctx.terrain.mask(p.x, p.z);
+    assert.ok(m.path <= 0.18 && m.stairs === 0, `${p.id} off the north paving (path ${m.path.toFixed(2)})`);
+    // outside the disc and its stone ring, and a walker's width off the path's centreline
+    assert.ok(Math.hypot(p.x - LAYOUT.northClearing.x, p.z - LAYOUT.northClearing.z) > LAYOUT.northClearing.radius + 0.4, `${p.id} outside the paved disc`);
+    // pinhole: C and F do not hold the direction at all; A/B/D/E do, and there the log's west
+    // root mass and the north rise are the occluders (D: inside x 0.39–0.47 for the tall post) —
+    // the six-view capture is the proof of that, not this test
+    for (const id of ['C_lookback', 'F_canopy']) {
+      const v = LAYOUT.viewpoints.find((q) => q.id === id);
+      const cam = new THREE.PerspectiveCamera(v.fov, 1280 / 720, 0.1, 1000);
+      cam.position.fromArray(v.position);
+      cam.lookAt(new Vector3().fromArray(v.target));
+      cam.updateMatrixWorld(true);
+      const c = new Vector3(p.x, p.y + 1, p.z).project(cam);
+      assert.ok(!(Math.abs(c.x) < 1 && Math.abs(c.y) < 1 && c.z > -1 && c.z < 1), `${p.id} outside ${id}`);
+    }
+    if (p.kind === 'marker') {
+      const v = LAYOUT.viewpoints.find((q) => q.id === 'D_log');
+      const cam = new THREE.PerspectiveCamera(v.fov, 1280 / 720, 0.1, 1000);
+      cam.position.fromArray(v.position);
+      cam.lookAt(new Vector3().fromArray(v.target));
+      cam.updateMatrixWorld(true);
+      const c = new Vector3(p.x, p.y + 1.9, p.z).project(cam);
+      const sx = (c.x + 1) / 2;
+      assert.ok(sx > 0.39 && sx < 0.465, `the marker's top projects into D's west root mass band (x ${sx.toFixed(3)})`);
+    }
+  }
+  const marker = north.find((p) => p.kind === 'marker');
+  const dir = Math.atan2(LAYOUT.northClearing.x - marker.x, LAYOUT.northClearing.z - marker.z);
+  const def = PROP_LAYOUT.find((d) => d.id === marker.id);
+  assert.ok(Math.abs(((def.yaw - dir + Math.PI) % (2 * Math.PI)) - Math.PI) < 0.15, `the marker's long board points into the circle (yaw ${def.yaw} vs ${dir.toFixed(2)})`);
+  const g = one.group.children.find((c) => c.name === 'north-clearing');
+  assert.ok(g && g.children.length <= 4, 'the clearing cluster is ≤ 4 meshes');
+  for (const m of g.children) { m.geometry.computeBoundingSphere(); assert.ok(m.geometry.boundingSphere.radius < 4, `${m.name} compact (${m.geometry.boundingSphere.radius.toFixed(2)})`); }
+}
 
 // projection: the door / signpost dressing shows in B_house (composition, not occlusion)
 const vp = LAYOUT.viewpoints.find((v) => v.id === 'B_house');

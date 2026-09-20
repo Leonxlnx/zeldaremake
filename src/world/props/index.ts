@@ -11,7 +11,7 @@ import { BufferGeometry, Color, Group, Mesh, Quaternion, Vector3 } from 'three';
 import { mergeGeometries } from 'three/addons/utils/BufferGeometryUtils.js';
 import type { WorldContext, WorldSystem } from '../system';
 import { createRng } from '../util/prng';
-import { barrelGeometry, bucketGeometry, crateGeometry, ladderGeometry, type Part, platformGeometry, potGeometry } from './geometry';
+import { barrelGeometry, bucketGeometry, crateGeometry, ladderGeometry, markerGeometry, type Part, platformGeometry, potGeometry } from './geometry';
 import { PROP_LAYOUT, type PropDef } from './layout';
 import { createPropMaterials, type MaterialKey, PLANK_MEAN } from './materials';
 
@@ -79,6 +79,8 @@ export function footprintRadius(def: PropDef): number {
       return def.size * 0.4;
     case 'bucket':
       return def.size * 0.36;
+    case 'marker':
+      return 0.3;
     case 'platform':
       return Math.hypot(def.platform?.width ?? 1.8, def.platform?.depth ?? 1.4) / 2 + 0.1;
     default:
@@ -149,7 +151,7 @@ export async function create(ctx: WorldContext): Promise<WorldSystem> {
   const terrain = ctx.terrain;
   const ownedGeometry: BufferGeometry[] = [];
   const bases: number[][] = [];
-  const counts = { pots: 0, crates: 0, barrels: 0, buckets: 0, platforms: 0, ladders: 0, ropeRailings: 0 };
+  const counts = { pots: 0, crates: 0, barrels: 0, buckets: 0, platforms: 0, ladders: 0, markers: 0, ropeRailings: 0 };
   const skipped: string[] = [];
   const placed: { id: string; kind: string; cluster: string; x: number; y: number; z: number; tiltDeg: number }[] = [];
   /** world-space geometry per cluster and material, merged at the end */
@@ -272,6 +274,12 @@ export async function create(ctx: WorldContext): Promise<WorldSystem> {
         counts.platforms++;
         if (spec.ladder) counts.ladders++;
         if (spec.rail) counts.ropeRailings += 3;
+      } else if (def.kind === 'marker') {
+        // a post stands vertical whatever the bank; its foot (the lowest 10 cm) is conformed below
+        orientation = new Quaternion();
+        contactBand = 0.1;
+        parts = markerGeometry(rng, def.size * rng.range(0.97, 1.03));
+        counts.markers++;
       } else {
         // small prop: follow the terrain normal, but only so far — beyond MAX_TILT the prop is
         // set level into the slope and the underside conform below closes the gap
