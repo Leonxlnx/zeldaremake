@@ -411,10 +411,12 @@ export function createWhiteBarkTree(p: WhiteBarkParams, palette: Palette, detail
     wideSecond: 0.54,
     stiffness: stiffnessFor(radius),
     flutter: 0.016,
-    mediumEvery: 5,
-    mediumScale: 2.0,
-    lowEvery: 10,
-    lowScale: 2.9,
+    // round 49 (W38): the distance meshes keep one leaf in 6 / 12 (was 5 / 10) at the size that
+    // holds the same covered area (scale² / every ≈ 0.8) — 4–10 px laminae at 20–44 m either way
+    mediumEvery: 6,
+    mediumScale: 2.19,
+    lowEvery: 12,
+    lowScale: 3.18,
   });
 
   /** lobe context for interior shading: leaves deep inside a lobe are darker (self-shadowed) */
@@ -525,7 +527,11 @@ export function createWhiteBarkTree(p: WhiteBarkParams, palette: Palette, detail
         twigTarget.y -= p.droop * bt(0.1, 0.6);
         const twig = growthPath(twigOrigin, twigTarget, tangent(secondary, twigT), rng, 4, 0.64);
         const twigRadius = Math.max(0.005, secondaryRadius * (1 - twigT) * 0.39);
-        tube(wood, twig, taper(twig, twigRadius, 0.0016), 3, rng, { color: branchColor(twigRadius), roughness: 0.015 });
+        // Round 49 (W38): a 5–20 mm twig is under a pixel beyond the 20 m swap — the medium mesh
+        // takes the tube's draws (so every leaf stays where the high mesh puts it) and builds no
+        // wood for it; the low mesh already skips it (writer.ts, < 12 mm). Its leaves are kept.
+        if (detail === 'medium' && twigRadius < 0.012) consumeTubeDraws(rng, 3);
+        else tube(wood, twig, taper(twig, twigRadius, 0.0016), 3, rng, { color: branchColor(twigRadius), roughness: 0.015 });
         leafSpray(twig, twigRadius * 0.6, 14, bt(0.9, 1.04), 0.3);
 
         const sprigPhase = rng() * TAU;
