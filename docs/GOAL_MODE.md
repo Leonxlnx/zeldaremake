@@ -1,5 +1,13 @@
 # Goal mode — how a Fable chat keeps working without being re-prompted
 
+> **The owner's standing priority (2026-09-20 00:02 UTC), verbatim:** "make the game look like the
+> screenshots I sent you, work with the other agents, make all the trees load in ASAP so it doesn't
+> look bad, and make everything look much higher quality." The screenshots are
+> `art/environment/owner-review-2026-09-19/ref-0[1-4]*.png` and the demo frames in
+> `reference/frames-dense/demo61/`; "trees load in ASAP" is lane lod-1's pool/LOD work (fable-6's
+> `docs/PERF_2026-09-19.md`); "higher quality" is judged at player height and at 5–20 m, not at
+> touching distance. Every lane's next item is read against this sentence.
+
 A Cursor Cloud Agent chat ends its turn when the task it was given is done. That is why the
 `fable-2/3/4/5/6` chats went quiet after their first lane landed: each finished, reported on its
 PR, and stopped. To keep working they need (a) a standing loop instead of a single task and (b) a

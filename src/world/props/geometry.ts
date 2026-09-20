@@ -466,6 +466,66 @@ export function bucketGeometry(rng: Rng, size: number): Part[] {
 }
 
 // ---------------------------------------------------------------------------------------------
+// wooden waymarker
+
+/**
+ * A Kokiri waymarker at a path's mouth, `size` tall: a squared post with a diamond cap, two
+ * crossboards lashed to it at different heights and angles (the long one points along +z, the
+ * way the path goes), nail studs, and a small wooden tag hanging on a rope from the long board's
+ * end. Same wood, rope and iron as the fences, the ladder and the crates. Stands vertical; the
+ * foot (lowest 10 cm) is conformed to the ground by index.ts.
+ */
+export function markerGeometry(rng: Rng, size: number): Part[] {
+  const parts: Part[] = [];
+  const push = (geometry: BufferGeometry, material: MaterialKey) => parts.push({ geometry, material });
+  const w = 0.15 * (size / 1.7);
+  const post = board(w, size, w, { grain: 'y', rng, chamfer: w * 0.12, shade: 0.94 });
+  place(post, new Vector3(0, size / 2, 0));
+  push(post, 'wood');
+  // the cap: a shallow block turned 45° on the post's head
+  const cap = board(w * 1.55, w * 0.55, w * 1.55, { grain: 'x', rng, chamfer: w * 0.2, shade: 0.9 });
+  place(cap, new Vector3(0, size + w * 0.27, 0), new Quaternion().setFromAxisAngle(new Vector3(0, 1, 0), Math.PI / 4));
+  push(cap, 'wood');
+  // crossboards: long one at 0.72 of the height pointing along +z, a short one above, turned away
+  const boards: { y: number; len: number; yaw: number; dir: number }[] = [
+    { y: size * 0.72, len: 0.66 * (size / 1.7), yaw: rng.range(-0.12, 0.12), dir: 1 },
+    { y: size * 0.86, len: 0.44 * (size / 1.7), yaw: 0.9 + rng.range(-0.15, 0.15), dir: -1 },
+  ];
+  const up = new Vector3(0, 1, 0);
+  for (const b of boards) {
+    const q = new Quaternion().setFromAxisAngle(up, b.yaw);
+    const thick = w * 0.3;
+    const g = board(w * 0.85, w * 0.9, b.len, { grain: 'z', rng, chamfer: thick * 0.35, shade: 1.04 });
+    // the board sits against the post's face and runs out along dir·z, tapering slightly upward at the tip
+    const centre = new Vector3(0, b.y, b.dir * (w / 2 + b.len / 2 - w * 0.2)).applyQuaternion(q);
+    const tip = new Quaternion().setFromAxisAngle(new Vector3(1, 0, 0), -b.dir * 0.04);
+    place(g, centre, q.clone().multiply(tip));
+    push(g, 'wood');
+    // lashing around the post at the board's height, and a nail through the board's root
+    for (const t of lashing(new Vector3(0, b.y, 0), up, w * 0.78, 3, 0.011)) push(t, 'rope');
+    const nAt = new Vector3(w * 0.43, b.y + w * 0.1, b.dir * (w / 2 + w * 0.25)).applyQuaternion(q);
+    push(nail(nAt, new Vector3(1, 0, 0).applyQuaternion(q), 0.007), 'iron');
+  }
+  // the tag: a small board hanging from the long crossboard's tip on a rope loop
+  const long = boards[0];
+  const q0 = new Quaternion().setFromAxisAngle(up, long.yaw);
+  const tipZ = w / 2 + long.len - w * 0.3;
+  const hang = 0.11 * (size / 1.7);
+  const tagH = 0.17 * (size / 1.7);
+  const tagSway = rng.range(-0.25, 0.25);
+  const tag = board(w * 0.95, tagH, w * 0.16, { grain: 'y', rng, chamfer: w * 0.03, shade: 1.08 });
+  const tagCentre = new Vector3(0, long.y - w * 0.45 - hang - tagH / 2, tipZ).applyQuaternion(q0);
+  place(tag, tagCentre, q0.clone().multiply(new Quaternion().setFromAxisAngle(up, tagSway)));
+  push(tag, 'wood');
+  const loopTop = new Vector3(0, long.y + w * 0.45 + 0.012, tipZ).applyQuaternion(q0);
+  const loopBottom = new Vector3(0, long.y - w * 0.45 - hang + 0.01, tipZ).applyQuaternion(q0);
+  const side = new Vector3(w * 0.5, 0, 0).applyQuaternion(q0);
+  // one strand up each side of the board and over its top edge (an inverted U the tag hangs from)
+  push(rope([loopBottom.clone().sub(side), loopTop.clone().sub(side), loopTop.clone().add(side), loopBottom.clone().add(side)], 0.008, 5), 'rope');
+  return parts;
+}
+
+// ---------------------------------------------------------------------------------------------
 // rope-and-plank ladder
 
 export interface LadderSpec {
@@ -555,6 +615,12 @@ export interface PlatformSpec {
   ladder: boolean;
   /** stacked block steps up the +z side (low decks) */
   steps?: number;
+  /**
+   * the deck is somebody else's stone slab whose top is at `deck`: no joists or boards, the
+   * railing posts rise from the turf through the stone (inset from its bevelled edge), the
+   * steps on the ground beside it
+   */
+  slab?: boolean;
 }
 
 /**
@@ -579,60 +645,83 @@ export function platformGeometry(rng: Rng, spec: PlatformSpec): Part[] {
   const hz = spec.depth / 2;
   const deckY = spec.deck;
   const postW = 0.11;
+  const slab = spec.slab === true;
+  // post insets from the deck edge; on a stone slab the posts stay clear of its bevel and chips
+  const ix = slab ? 0.2 : 0.09;
+  const iz = slab ? 0.18 : 0.08;
   const push = (geometry: BufferGeometry, material: MaterialKey) => parts.push({ geometry, material });
-  // posts, each to its own ground
-  const feet: [number, number][] = [[-hx + 0.09, -hz + 0.08], [hx - 0.09, -hz + 0.08], [-hx + 0.09, hz - 0.08], [hx - 0.09, hz - 0.08]];
-  for (const [px, pz] of feet) {
-    const gy = spec.groundAt(px, pz) - 0.06;
-    const postTop = spec.rail && pz < 0 ? deckY + 0.86 : deckY + 0.05;
-    const post = board(postW, postTop - gy, postW, { grain: 'y', rng, chamfer: 0.012 });
-    place(post, new Vector3(px, (postTop + gy) / 2, pz));
-    groundFoot(post, gy + 0.08, spec.groundAt);
-    push(post, 'wood');
-  }
-  // joists (two, along x under the deck edges) and bearers (across, under the boards)
-  for (const pz of [-hz + 0.08, hz - 0.08]) {
-    const j = board(spec.width - 0.02, 0.1, 0.09, { grain: 'x', rng });
-    place(j, new Vector3(0, deckY - 0.075, pz));
-    push(j, 'wood');
-  }
-  // deck boards across (grain along z), irregular widths and gaps
-  let x = -hx;
-  let n = 0;
-  while (x < hx - 0.02) {
-    const bw = Math.min(hx - x, rng.range(0.15, 0.21));
-    const b = board(bw - 0.006, 0.035, spec.depth + rng.range(-0.02, 0.05), { grain: 'z', rng, shade: 1 + 0.04 * (n % 3) });
-    place(b, new Vector3(x + bw / 2, deckY + 0.0175, rng.range(-0.01, 0.01)));
-    push(b, 'wood');
-    x += bw;
-    n++;
+  const feet: [number, number][] = [[-hx + ix, -hz + iz], [hx - ix, -hz + iz], [-hx + ix, hz - iz], [hx - ix, hz - iz]];
+  if (slab) {
+    // the railing's four posts, all one height over the slab, run from the turf up THROUGH the
+    // stone: set into the slab where it is drawn, standing on the ground where the slab is hidden
+    // by distance (hardscape draws its north flagstones, dais included, only near the clearing)
+    if (spec.rail) {
+      for (const [px, pz] of feet) {
+        const gy = spec.groundAt(px, pz) - 0.06;
+        const top = deckY + 0.88 + rng.range(-0.02, 0.02);
+        const post = board(0.1, top - gy, 0.1, { grain: 'y', rng, chamfer: 0.012 });
+        place(post, new Vector3(px, (top + gy) / 2, pz));
+        groundFoot(post, gy + 0.08, spec.groundAt);
+        push(post, 'wood');
+      }
+    }
+  } else {
+    // posts, each to its own ground
+    for (const [px, pz] of feet) {
+      const gy = spec.groundAt(px, pz) - 0.06;
+      const postTop = spec.rail && pz < 0 ? deckY + 0.86 : deckY + 0.05;
+      const post = board(postW, postTop - gy, postW, { grain: 'y', rng, chamfer: 0.012 });
+      place(post, new Vector3(px, (postTop + gy) / 2, pz));
+      groundFoot(post, gy + 0.08, spec.groundAt);
+      push(post, 'wood');
+    }
+    // joists (two, along x under the deck edges) and bearers (across, under the boards)
+    for (const pz of [-hz + 0.08, hz - 0.08]) {
+      const j = board(spec.width - 0.02, 0.1, 0.09, { grain: 'x', rng });
+      place(j, new Vector3(0, deckY - 0.075, pz));
+      push(j, 'wood');
+    }
+    // deck boards across (grain along z), irregular widths and gaps
+    let x = -hx;
+    let n = 0;
+    while (x < hx - 0.02) {
+      const bw = Math.min(hx - x, rng.range(0.15, 0.21));
+      const b = board(bw - 0.006, 0.035, spec.depth + rng.range(-0.02, 0.05), { grain: 'z', rng, shade: 1 + 0.04 * (n % 3) });
+      place(b, new Vector3(x + bw / 2, deckY + 0.0175, rng.range(-0.01, 0.01)));
+      push(b, 'wood');
+      x += bw;
+      n++;
+    }
   }
   if (spec.rail) {
     // rail posts at the front corners already rise; two rope courses between them and along the
-    // short sides down to short posts at the back corners
-    const backTop = deckY + 0.05;
-    for (const px of [-hx + 0.09, hx - 0.09]) {
-      const p = board(0.085, 0.82, 0.085, { grain: 'y', rng, chamfer: 0.01 });
-      place(p, new Vector3(px, backTop + 0.41 - 0.05, hz - 0.08));
-      push(p, 'wood');
+    // short sides down to the posts at the back corners (short ones on a deck of our own)
+    if (!slab) {
+      const backTop = deckY + 0.05;
+      for (const px of [-hx + ix, hx - ix]) {
+        const p = board(0.085, 0.82, 0.085, { grain: 'y', rng, chamfer: 0.01 });
+        place(p, new Vector3(px, backTop + 0.41 - 0.05, hz - iz));
+        push(p, 'wood');
+      }
     }
     for (const h of [0.42, 0.78]) {
       const y = deckY + h;
       const sag = 0.05 + 0.03 * h;
       // front course
-      push(rope([new Vector3(-hx + 0.09, y, -hz + 0.08), new Vector3(0, y - sag, -hz + 0.08), new Vector3(hx - 0.09, y, -hz + 0.08)], 0.02), 'rope');
+      push(rope([new Vector3(-hx + ix, y, -hz + iz), new Vector3(0, y - sag, -hz + iz), new Vector3(hx - ix, y, -hz + iz)], 0.02), 'rope');
       // sides
-      for (const sx of [-1, 1]) push(rope([new Vector3(sx * (hx - 0.09), y, -hz + 0.08), new Vector3(sx * (hx - 0.09), y - sag * 0.8, 0), new Vector3(sx * (hx - 0.09), y, hz - 0.08)], 0.02), 'rope');
+      for (const sx of [-1, 1]) push(rope([new Vector3(sx * (hx - ix), y, -hz + iz), new Vector3(sx * (hx - ix), y - sag * 0.8, 0), new Vector3(sx * (hx - ix), y, hz - iz)], 0.02), 'rope');
       for (const [px, pz] of feet) for (const g of lashing(new Vector3(px, y, pz), new Vector3(0, 1, 0), 0.075, 3)) push(g, 'rope');
     }
   }
   if (spec.steps) {
-    // stacked block steps against the back edge, each a short tread on its own grounded riser
+    // stacked block steps against the back edge, each a short tread on its own grounded riser;
+    // the rise is measured from the turf at the step, not at the origin (the lip falls away)
     const n = spec.steps;
     for (let i = 0; i < n; i++) {
-      const top = (deckY * (n - i)) / (n + 1);
-      const z0 = hz + 0.02 + i * 0.32;
+      const z0 = hz + (slab ? 0.07 : 0.02) + i * 0.32;
       const gy = spec.groundAt(0, z0 + 0.15);
+      const top = gy + ((deckY - gy) * (n - i)) / (n + 1);
       const riser = board(0.72, top - gy + 0.02, 0.3, { grain: 'x', rng, chamfer: 0.01, shade: 0.9 });
       place(riser, new Vector3(0, (top + gy - 0.02) / 2, z0 + 0.15));
       groundFoot(riser, gy + 0.06, spec.groundAt);

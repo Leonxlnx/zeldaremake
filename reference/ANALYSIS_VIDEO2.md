@@ -11,10 +11,15 @@ their pHashes are registered in `reference/phash.json` so anti-cheat C1 fails an
 > captured from the YouTube player at 0:56, 1:42 and 2:22). They carry player chrome (play/pause
 > button, progress bar, title) and are cropped top and bottom, so positions are given in **crop
 > coordinates** with a per-frame mapping to the full 16:9 frame (±0.03). Clean `ffmpeg` frames at the
-> owner's marked moments replace them when the file lands (§5).
+> owner's marked moments replace them when the file lands (§5). **2026-09-20:** §6 extends the
+> analysis with the dense 2 fps frames of the 61-second demo (`reference/frames-dense/demo61/`,
+> fable-cursor's extraction) — the six segments the hero frames do not cover, each measured and
+> compared with the world head `3d50f6c8` (fable-2/3/4 merged) at the equivalent pose.
 
 Screen positions are normalised (x, y) in 0..1 from the top-left of the image named. "Link = 1.25 m"
-is the scale anchor. "Ours" = take-0116 (`973a21e`, `data/takes/take-0116/` on the `monitor` branch).
+is the scale anchor. "Ours" = take-0116 (`973a21e`, `data/takes/take-0116/` on the `monitor` branch)
+in §2–§4; in §6 "ours" = the world head `3d50f6c8` rendered by `fable-5` (non-author) through
+`broll.mjs --size 1280x720 --settle 8`, poses listed per segment.
 
 ---
 
@@ -242,3 +247,185 @@ then `node` the hashes into `reference/phash.json` (same shape as `ref-extract.m
 7. Also: 8→13 s orbit equivalents, any top-down moments (layout), any close bark/stone/grass.
 
 Each gets a §2 table (elements, crop positions, palette) and adds to §3.
+
+---
+
+## 6. The dense demo frames (`reference/frames-dense/demo61/`) — the six segments the hero frames miss
+
+`d_NNN` is at (NNN − 1) × 0.5 s of the 61-second demo, 960 px wide. The A/F/C/B/E/D families are
+already covered by `ANALYSIS.md` §2; the segments below are the ones no fixed view looks at. Each
+is measured on the frame and compared with the world head `3d50f6c8` rendered at the equivalent
+pose (`broll.mjs`, 1280×720, settle 8, character on for the demo poses). Poses are given as
+`p → t` in world metres; survey-2 / opus-walk pose names where one exists. Evidence sheets
+(REFERENCE | OURS at the same normalised region) are in `.agents/reviews/fable-5-walk/`.
+
+Correction to `frames-dense/README.md`'s timing table, from the frames themselves: `d_087–d_090`
+(43–44.5 s) is the **walk to Saria's door**, not the north path; `d_095–d_103` (47–51 s) is the
+**top-down** over the path junction; `d_105–d_109` (52–54 s) is the **stair foot looking up the
+flight**; `d_111–d_119` (55–59 s) is the run toward the arch (D family); `d_120–d_121` (59.5–60 s)
+is **under the arch**, and only `d_122` is the title card.
+
+### 6.1 The orbit, 9–11 s (`d_019`, `d_021`, `d_023`) — what closes the plaza at the other headings
+
+Camera swings clockwise round a standing Link from heading W (9 s) to N (11 s), 4–5 m from him,
+eye ≈ 1.7 m. Between shot F (8 s) and the B hold (13 s) it shows the two quadrants no fixed frame
+covers.
+
+| t | heading | what the frame holds (reference positions) |
+| --- | --- | --- |
+| 9 s `d_019` | W | hero stair block at the **left edge** (0.0–0.25 × 0.05–0.65) climbing from a raised bank with a **wooden fence along its top**; a Kokiri boy on the bank at (0.40–0.43 × 0.42–0.60) with a lime pod (0.29, 0.33) and a fairy (0.36, 0.37) above him; a **rounded moss-capped boulder at his feet** (0.33–0.38 × 0.50–0.57); a **spreading giant with horizontal limbs** filling the top right (0.55–0.85 × 0.0–0.30); the right third is a mossy bank in haze — no ground plane visible beyond it |
+| 10 s `d_021` | NW | the same bank continues; the boy now left of centre; the far hut with lanterns appears in the haze at centre |
+| 11 s `d_023` | N–NNW | **a second hollow-tree house at the right** (0.70–1.0 × 0.10–0.55) with its signpost (0.65–0.72 × 0.40–0.55) and two orange lanterns (0.85, 0.30), (0.75, 0.42); **a far hut with warm lanterns in the haze at centre** (0.35–0.55 × 0.28–0.40, l 0.47, s 0.08); a Kokiri boy on the raised bank at the left edge (0.09–0.15 × 0.40–0.68); giant limbs top-left; no sky — the top band (0.30–0.55 × 0.05–0.15) is grey-olive `#717162` (l 0.42) |
+
+Measured: frame means l 0.333 / 0.339, hue 47–48°, sat 0.16–0.19 — the plaza's key is the same in
+every direction. Plaza slabs l 0.45 (`#897a5b`, `#8c7a59`); stair flank in shade l 0.30; the haze
+at the right of 9 s l 0.38, s 0.10 — a **grey-olive veil, never a pale plane**.
+
+**Ours** (`demo-09s-orbit-W` p (−2.5, 1.75, 4.08) → (2.3, 1.0, 4.2); `demo-11s-orbit-NW`
+p (−1.01, 1.75, 0.72); `demo-13s-orbit-N` p (2.42, 1.75, −0.6); all fov 46, orbiting Link's
+A spot (2.3, 0, 4.2) at 4.8 m by the same Δheading as the footage):
+
+- 9 s: **holds** — stair block at the left edge with the fence on top, a Kokiri at the stair foot,
+  a moss boulder and fable-3's two pots (0.33–0.38 × 0.45–0.52), the lantern post. **Lacks** the
+  spreading giant (ours is a bare bark column, 0.68–0.80 × 0.0–0.40) and the mossy bank on the
+  right: from x 0.75 the frame is a **flat pale plain with a hard tree line** (`#4c4e47`, l 0.29,
+  s 0.05 — cooler and flatter than the reference haze). Slabs l 0.44 match; joints are orange.
+- 11 s and 13 s: **nothing closes the plaza.** Where the footage has the second house, its
+  signpost, the far hut and the bank with the boy, ours shows giant trunks, a moss bank with a hard
+  edge, the far plain (`#50564e`, hue 103°, s 0.05) and two vine leaf-cards at the lens. The house
+  is behind the camera: from Link's spot our stairs are at bearing 49° and the house at 33°
+  (16° apart), the footage has them ~160° apart (`ANALYSIS.md` §0.4). Not a bug to fix in a lane —
+  the layout choice is pinned by W04 — but it means **the plaza's W, S and N sides need their own
+  closure**: a second hollow house or hut silhouette in the haze, a raised bank with a fence, the
+  spreading giant. Owner's "backside" question answered: in the footage the far side is *houses
+  and banks in haze*, never a plain.
+
+### 6.2 The walk to the door, 43–44 s (`d_087`, `d_089`) — the ground to the right of the house
+
+`d_087` (43 s): the house fills the **left** half (0.0–0.48), door at (0.25–0.40 × 0.42–0.60),
+signpost (0.12–0.20 × 0.48–0.62), Link at centre walking left toward it. The **right half is the
+area beside the house** the owner asked about: a raised mossy bank (0.55–1.0 × 0.25–0.55,
+`#5a5c53`, l 0.35, s 0.05 — almost neutral in the haze at ~12 m), a Kokiri girl standing on it
+(0.72–0.78 × 0.55–0.65) among ferns and purple flowers, **pale rounded boulders** (0.85–0.95 ×
+0.60–0.70, `#6c6e64`, l 0.41), a **low stone ledge/step** running along the bank's foot (0.60–0.95
+× 0.62–0.70, `#6d6e5c`), a **string of small yellow lights** along the bank (0.55–0.62, 0.55) and
+tall trunks behind. `d_089` (44 s): one step later the camera has turned to face the door
+(0.45–0.95), the stepping stones to it at (0.55–0.72 × 0.55–0.75), purple flowers bottom right.
+
+**Ours** (`demo-44s-walk-to-house` p (0, 1.5, 2) → (13.6, 1.5, −6.5), the B camera turned 15°
+right of the house): house at left (0.15–0.40 × 0.12–0.55) with pods, signpost at (0.15–0.20 ×
+0.42–0.50) — the house **holds** (bark l 0.22 vs the reference's 0.33: ours is darker). Right of
+it stands **the hero stair** (0.50–0.75 × 0.25–0.75) with a Kokiri at its foot, the lantern post
+(0.82–0.88), fable-3's pots (0.85–0.95 × 0.60–0.75) and the stair-foot boulder. The ground the
+footage shows to the right of the house — bank, girl, pale boulders, the low ledge, the light
+string — has no equivalent because the stair occupies that bearing. What can still be taken from
+the frame: the **pale boulder pair** and the **low stone step at a bank's foot** as a dressing
+pattern for the plaza's edges (fable-2), and the **light string** as a prop (fable-3 / lanterns).
+
+### 6.3 Top-down, 47–49 s (`d_095`–`d_099`) — slab and joint metrics from above
+
+The camera rises to ≈ 6.5–7 m and looks nearly straight down (≈ 75–80°) at a **three-way
+junction** of the flagstone path: one arm runs up-left, one right, one down; the boy stands at
+a boulder on the left bank (0.10–0.20 × 0.50–0.62), pale boulders at the right (0.85–0.95 ×
+0.25–0.35), purple flowers (0.75–0.85 × 0.50–0.55), ferns in the corners, canopy shadows across
+the whole ground.
+
+Measured (Link's foreshortened extent ≈ 0.6 m ↔ 58 px → 10.3 mm/px, frame ≈ 9.9 m wide):
+
+| | reference `d_097` | ours `demo-49s-topdown` (p (3, 6.5, 5) → (4.5, 0, 2), ≈ 8.4 mm/px) |
+| --- | --- | --- |
+| path width | ≈ 3 slabs, 3.0–3.5 m | plaza, not a path — no junction exists at the A spot |
+| slab size | **0.8–1.1 m**, rounded polygons with irregular edges, two tints (pale grey / warm tan) mixed | **1.7–2.5 m** angular Voronoi cells |
+| joints | **6–10 cm** dark soil lines with moss tufts and small green leaves; darker than the slab | **17–21 cm** orange-tan grout, *brighter and more saturated than the slab* (joint l 0.39 s 0.26 vs slab l 0.35 s 0.13) |
+| paving luminance p5 / p50 / p95 | 0.27 / 0.49 / 0.66 | 0.20 / 0.42 / 0.63 |
+| moss | patches on slab edges, tufts in joints | disc-shaped patches on slabs, none in joints |
+| verges | grass and ferns to the slab edge, no soil band | grass to the slab edge (holds) |
+
+The luminance spread is the same; the difference is **cell size ×2 and joint polarity** (dark,
+narrow, green vs bright, wide, orange). This is the measured form of V8 / opus #04 for
+`hardscape-31`.
+
+### 6.4 The stair foot looking up, 52–54 s (`d_105`–`d_109`)
+
+`d_107` (53 s): Link at the bottom riser, the flight head-on at (0.50–0.66 × 0.30–0.65),
+**15–16 treads visible**, each a pale slab with an irregular wavy nosing and a dark shadow line
+under it; a **single-pole wooden rail on posts along the right side** of the flight (0.58–0.66 ×
+0.35–0.60, ≈ 0.6 m high, `#686051`); the flight narrows into a **bright haze gap at the top**
+(0.52–0.62 × 0.22–0.32, `#b8b5a9`, l 0.69) with a lantern post and a top-landing fence in
+silhouette; the left flank is the dark green bank (l 0.39, s 0.08), the right flank ferns with a
+Kokiri boy (0.72–0.78 × 0.40–0.68), a lime pod (0.73, 0.38) and his fairy. Treads `#756f5e`
+l 0.42 s 0.11 at the foot fading to l ≈ 0.65 at the top — **aerial perspective inside 8 m**.
+
+**Ours** (`w23-stairs-f` p (6.4, 1.45, −0.3) → (14.29, 1.3, −6.45), survey-2; sheet
+`fable-5-walk-w23-stairs-f.jpg`): ≈ 15 treads, even bands with straight nosings and dark risers
+(opus #15 holds on the head); ferns on both flanks, no rail of any kind on the right; the pods of
+the house at the top left. **The luminance gradient runs the wrong way**: treads foot l 0.35 →
+mid 0.20 → top 0.17 (`#675c4c` → `#38322c` → `#2b2b2b`), top gap l 0.29, against the reference's
+0.37 → 0.40 → 0.65 with the gap at 0.69. The flight darkens into shade where the footage brightens
+into haze; frame mean l 0.222 vs 0.375.
+
+### 6.5 The run to the arch, 55–58 s (`d_111`–`d_117`) — the D family at player height
+
+`d_115` (57 s): Link running away along the spine; the arch belly a huge dark leaning trunk
+across (0.38–0.90 × 0.20–0.40, `#646359`, l 0.37 hazed); **the house's wooden stair at the right
+edge** (0.85–1.0 × 0.55–0.75, `#3e3728`, l 0.20); a pale boulder (0.05–0.12, 0.60, l 0.40) with
+purple flowers and ferns at the left; the mist across the middle ground l 0.57. `d_117` (58 s):
+5 m on — the arch's near leg fills the top right (0.55–1.0 × 0.05–0.35, `#3f4038`, l 0.24); the
+**leaning pod post with 3 lime pods** in front of it (0.33–0.42 × 0.30–0.55); purple flowers at
+(0.30, 0.55); the left third is haze (l 0.51, s 0.04) with trunks; slabs `#74684f` with **green
+moss in the joints**.
+
+**Ours** (`w18-spine-f` p (3.86, 4.94, −38.16) → (5.5, 4.79, −48.03)): the belly fills the top
+(0.0–1.0 × 0.0–0.45) as deep torn bark plates (`#5a5750`, l 0.34) with three pinpoint pods —
+**holds** (the FAR_HALO fix is visible at player height). Beyond the arch: a flat pale haze band
+(`#71726b`, l 0.44, s 0.03) with smooth grey cones on a plane — opus #01. Slabs are pale blue-grey
+with **orange joints** (`#908067`, l 0.49) where the reference's are moss-green. No pod post, no
+boulder-and-flowers group at the left, no house stair at the right (different bearing).
+
+### 6.6 Under the arch, 59.5–60 s (`d_120`, `d_121`) — the view through
+
+`d_121` (60 s): the darkest frame of the demo — **frame mean l 0.131**. The belly spans the top
+(0.0–1.0 × 0.0–0.20, `#1a1a0f`, l 0.08) with **three pods hanging from it** at (0.42, 0.24),
+(0.58, 0.17), (0.68, 0.08) — orange and yellow, each ≈ 0.03 of the frame width — and a fourth lime
+pod further on (0.29, 0.50). The side walls are near-black (`#14170b` / `#0e0f0a`, l 0.05–0.07)
+with fern outlines just readable at the left edge. Through the opening, a **bright window**
+(0.28–0.62 × 0.20–0.60, `#626560`, l 0.39, s 0.02): a dense grey-green stand of tall vertical
+trunks with hanging vines, a scatter of glowing dots (spores / fireflies) and warm lantern points,
+and **no visible ground plane** — the path dissolves into light. Contrast window : walls ≈ 6–8 : 1.
+Link (0.45–0.53 × 0.55–0.85) is a silhouette against the window. The floor is dark cracked slab
+(`#282924`, l 0.15).
+
+**Ours** (`x-arch-tunnel-n` p (6.3, 5.7, −54.5) → (5.5, 6.4, −62), opus-walk pose seated at eye
+1.45 m above the tunnel floor; sheet `fable-5-walk-x-arch-tunnel-n.jpg`): **frame mean l 0.430
+against 0.131** — three times too bright. Belly l 0.15 (ref 0.08) with one large pod; the left
+leg l 0.17 (ref 0.05–0.07); **there is no right wall at all** — the arch is open on that side, so
+the "window" is the whole frame; window region l 0.52 (ref 0.39), window : wall contrast ≈ 3 : 1
+(ref 6–8 : 1); floor l 0.46 (ref 0.15). Through the opening: the north path's slabs with orange
+joints to the ledge flight, the flat pale plain (l 0.51) and smooth grey cones with hard base seams
+in the haze. The structural gap is the one opus #01 names — the reference's window is *trunks and
+lights with no floor*; ours is a plane with cones on it — plus the tonal one: the tunnel is not a
+tunnel.
+
+### 6.7 Measured summary and additions to the defect list
+
+| frame | frame mean l | key ratio | ours (head `3d50f6c8`) |
+| --- | --- | --- | --- |
+| `d_019` 9 s | 0.333 | haze right l 0.38 / slabs l 0.45 | plain l 0.29 / slabs l 0.44 — the far side is darker and flatter than the reference haze |
+| `d_023` 11 s | 0.339 | far hut l 0.47 in haze | nothing there |
+| `d_087` 43 s | 0.361 | bank l 0.35 / boulder l 0.41 | stair in that bearing |
+| `d_097` 48 s | 0.349 | slab 0.8–1.1 m / joint 6–10 cm dark | slab 1.7–2.5 m / joint 17–21 cm bright |
+| `d_107` 53 s | 0.375 | treads foot l 0.37 → mid 0.40 → top 0.65, gap 0.69 | foot 0.35 → mid 0.20 → top 0.17, gap 0.29 — inverted; frame l 0.222 |
+| `d_115` 57 s | 0.380 | belly l 0.37 / mist l 0.57 | belly l 0.34 / haze l 0.44 |
+| `d_121` 60 s | **0.131** | window l 0.39 / walls l 0.05–0.07 / floor 0.15 | **0.430**; window 0.52 / left wall 0.17, no right wall / floor 0.46 |
+
+New defects (numbering continues §3; systems as in `docs/GOAL_MODE.md`):
+
+| # | defect | frame → pose | system | sev |
+| --- | --- | --- | --- | --- |
+| V15 | **The plaza has no closure to the W, S and N**: a flat pale plain with a hard tree line where the footage has a second house, a far hut in haze, a fence-topped bank and a spreading giant | `d_019`/`d_023` → `demo-09s/11s/13s-orbit` | layout + structures (second hollow / hut silhouette), terrain (bank), trees (a spreading giant on the plaza's W) | 3 |
+| V16 | **Slabs twice the reference size with bright orange joints twice the reference width**, measured from above: 1.7–2.5 m / 17–21 cm vs 0.8–1.1 m / 6–10 cm; joint brighter than the slab where the reference's is darker and green | `d_097` → `demo-49s-topdown`, `E_ground` | hardscape/flagstones + joint material (hardscape-31) | 3 |
+| V17 | **The hero flight's luminance gradient is inverted**: the reference's treads brighten from l 0.37 at the foot to 0.65 at the top 8 m away and end in a haze gap (0.69); ours darken 0.35 → 0.17 into a shaded top (gap 0.29) | `d_107` → `w23-stairs-f` | atmosphere (near haze / mist floor + the light behind the plateau — Astra), hardscape/stairs | 2 |
+| V18 | **No rail on the flight**; the reference has a single wooden pole on short posts along the right side, ≈ 0.6 m high | `d_107` → `w23-stairs-f` | hardscape/stairs or props (fable-3) | 1 |
+| V19 | **Under the arch the tunnel is not a tunnel**: frame mean l 0.43 vs 0.13, no right wall, floor l 0.46 vs 0.15, window : wall 3 : 1 vs 6–8 : 1, and the window shows a plane with cones where the reference shows trunks and lights with no ground | `d_121` → `x-arch-tunnel-n` | structures/logArch (the closed side), atmosphere (shade floor under the arch — Astra), trees/distant + terrain north plain (trees-31), lanterns (three pods under the belly) | 3 |
+| V20 | **Pale boulder pairs and a low stone step at the foot of the banks** are a recurring dressing motif (right of the house, the top-down's right bank, left of the D path) that we do not use | `d_087`, `d_097`, `d_115` → plaza edges | rocks (fable-2) | 1 |
+| V21 | **The moss-capped boulder at the Kokiri boy's feet on the stair bank** (9 s and 46 s) — the C-frame anchor the owner sees twice | `d_019`, `d_093` → `C_lookback` (0.25–0.32 × 0.47–0.55) | rocks (fable-2) + npc placement | 1 |

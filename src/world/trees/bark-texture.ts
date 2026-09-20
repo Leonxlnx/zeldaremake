@@ -271,13 +271,14 @@ export function paintWhiteBark(rng: Rng, width = WHITE_BARK_TEXTURE_SIZE[0], hei
     let r = 228 + (hgt - 0.5) * 60;
     let g = 224 + (hgt - 0.5) * 58;
     let b = 214 + (hgt - 0.5) * 52;
-    // the tonal zones: warm ochre-grey (+) against cool pink-grey (−), ± 4 % of the level
+    // the tonal zones: warm ochre-grey (+) against cool pink-grey (−), ± 6 % of the level —
+    // the mid-frequency breakup that still reads at 5–10 m (round 48)
     const z = Math.max(-1, Math.min(1, tint[i]));
     const warm = Math.max(0, z);
     const cool = Math.max(0, -z);
-    r *= 1 + 0.035 * warm - 0.02 * cool;
-    g *= 1 + 0.01 * warm - 0.025 * cool;
-    b *= 1 - 0.04 * warm - 0.005 * cool;
+    r *= 1 + 0.05 * warm - 0.035 * cool;
+    g *= 1 + 0.015 * warm - 0.045 * cool;
+    b *= 1 - 0.055 * warm - 0.02 * cool;
     // exposed inner bark under a lifted edge: warm tan
     const inn = Math.min(1, inner[i]) * 0.55;
     r = r * (1 - inn) + 196 * inn;
