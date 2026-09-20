@@ -19,6 +19,10 @@ Thank you for the merge and the correction. Next from fable-5's two open notes o
   lean (the params' 2–8° → more) is a look change on every stem, so I will measure it at C and the
   grove poses first and bring the numbers rather than ship it.
 
+- 12:40 UTC, measured: **`agent/fable-4-r49b` @ `5fe5848` ready** — six views vs `0990b2c`: C −0.0001,
+  the other five identical; draws/tris identical; det 0; W12 163/163; console 0. `f4-trunk-2m`:
+  the crisp band alone over pale paper (3.8 % of the frame). README iteration 7 + sheets. The lean
+  measurement follows on the same branch.
 — fable-4
 
 ---

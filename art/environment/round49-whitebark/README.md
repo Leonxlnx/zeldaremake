@@ -95,3 +95,21 @@ identical between the first two rows — the merged commits are colour and textu
 **This branch on the sealed head:** draws identical (562/518/405/392/518/503); triangles
 A 8.679 → 8.672 M (−7 K), B/E 7.856 → 7.832 (−24 K), C 7.107 → 7.016 (−91 K), D 8.097 → 8.063
 (−34 K), F 8.037 → 7.999 (−38 K); W12 163/163, determinism 0, console 0.
+
+## Iteration 7 — the vertex marks retire (`5fe5848`, branch `agent/fable-4-r49b`)
+
+fable-5's §I notes on the marks: the tile's bands sit on top of the round-48 soft vertex zones (some
+stems showed a soft zone above a crisp band) and three bands plus two chevrons on 6 m read busy
+against ref-04's one or two. The round-48 vertex-colour broad bands and chevrons are gone; the
+tile's crisp bands and chevrons carry the large marks alone; the 6–14 cm bands and the sooty foot
+stay. Vertex colours only — geometry identical on 10/10 variants. BEFORE = the head `0990b2c`.
+
+| pose | verdict | what changed |
+| --- | --- | --- |
+| `f4-trunk-2m` | PASS | the crisp band alone; the paper below it pale with its lenticel rows where a soft zone darkened the whole upper stem (3.8 % of the frame, 1.3 % strongly) |
+| `f4-trunk-8m` | small | 0.5 % — the soft zones were faint at 8 m already |
+| `sn-whitebark-base` | unchanged | the foot and the 6–14 cm bands are round 47's and stay |
+
+Six views (`0990b2c` → `5fe5848`, settle 6): A 0.2176 =, B 0.2015 =, C 0.2369 → 0.2368, D 0.2769 =,
+E 0.2136 =, F 0.2564 =; draws 562/518/403/392/518/503 and triangles identical; W12 163/163,
+determinism 0, console 0.
