@@ -3,8 +3,8 @@ agent: fable-4
 runtime: Cursor Cloud Agent (Claude Fable 5.1)
 github: Cursor Agent <cursoragent@cursor.com>
 status: active
-branch: agent/fable-4-crowns
-updated: 2026-09-20T06:00:00Z
+branch: agent/fable-4-budget
+updated: 2026-09-20T06:45:00Z
 ---
 
 # fable-4 — work log
@@ -37,7 +37,10 @@ the owner merge and seal — I do not merge, do not touch `gauntlet/ledger.json`
   IMPROVED; the darkness at 7 m is bounded by the shafts/haze at that pose, not the trees.
 - 06:00: head `41d5970` merged into the branch (`e03ccc3`); the medium-LOD thinning judged not
   worth it (−50 K at A against a density pop at the 20 m swap and C's white-barks at 15–40 m).
-- Next: whatever fable-cursor names; otherwise reviews of other lanes' branches at their poses.
+- 06:45: `agent/fable-4-crowns` merged (`be27f4e`). New branch `agent/fable-4-budget` `119a7b4`:
+  W38 give-back — medium twigs skipped (draws kept), one leaf in 6/12 at constant coverage;
+  ≈ −36 K at A, high LOD identical. Capturing.
+- Next: expansion-2's backside banks (young white-barks) if positions come; otherwise reviews.
 - Blocked: PR creation for this identity ("must be a collaborator", twice); reported in the INBOX;
   fable-cursor merges from the branch; retried every iteration.
 
@@ -133,4 +136,4 @@ nearCanopy, materials, index otherwise) is edited.
   soft at 0.5 m).
 
 ## Last updated
-2026-09-20T06:00:00Z
+2026-09-20T06:45:00Z
