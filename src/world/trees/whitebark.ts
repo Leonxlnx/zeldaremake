@@ -307,38 +307,10 @@ export function createWhiteBarkTree(p: WhiteBarkParams, palette: Palette, detail
     wobble: bandRng.range(0.03, 0.07),
     phase: bandRng.range(0, 100),
   }));
-  /**
-   * Round 48 (GOAL_MODE fable-4 #3, the owner's "detail at longer range"): what a stem shows at
-   * 5–20 m through 20–60 % haze is its LARGE dark marks — the 6–14 cm bands above are 4–9 px at
-   * 15 m and go under the veil. Per variant, from their own fork so the bands above do not move:
-   * one or two broad dark bands (0.25–0.45 m, near-black) and one to three branch scars — the
-   * black downward-pointing chevrons a birch keeps under a shed limb, 0.25–0.45 m tall, widest
-   * at the top, tapering to a point below — at 1.2–4.5 m, where a walker's eye meets the stem.
-   */
-  const rangeRng = baseRng.fork('range-48');
-  const broadBands = p.age === 'sapling' ? [] : Array.from({ length: 1 + rangeRng.int(0, 2) }, () => ({
-    y: rangeRng.range(0.8, Math.min(3.6, H * 0.4)),
-    sigma: rangeRng.range(0.1, 0.2),
-    strength: rangeRng.range(0.45, 0.6),
-    wobble: rangeRng.range(0.04, 0.09),
-    phase: rangeRng.range(0, 100),
-  }));
-  const scars = p.age === 'sapling' ? [] : Array.from({ length: 1 + rangeRng.int(0, 3) }, () => ({
-    y: rangeRng.range(1.2, Math.min(4.5, H * 0.45)),
-    phi: rangeRng.range(-Math.PI, Math.PI),
-    halfWidth: R * rangeRng.range(0.45, 0.75),
-    height: rangeRng.range(0.25, 0.45) * girth,
-    strength: rangeRng.range(0.55, 0.75),
-  }));
-  /**
-   * The large marks are pushed to near-black separately from the soot: measured at
-   * `f4-trunk-2m`, a 42 % linear drop on the pale upper bark rendered as ~20 sRGB levels (the
-   * shaded face is dark in linear terms, so gamma compresses it) — the round-47 foot reads
-   * darker only because it compounds with the grey lower bark. A birch's bands and scars are
-   * near-black (linear ≈ 0.05): the mark's own weight takes the vertex the rest of the way.
-   */
-  let mark = 0;
-  const markBlack = dark.clone().multiplyScalar(0.2);
+  // Round 48's vertex-colour broad bands and chevrons (the range-48 fork) retired in round 49: the
+  // tile carries the large marks at texel resolution now (bark-texture.ts), and fable-5's review
+  // found stems showing both — a soft zone above a crisp band — and three bands plus two chevrons
+  // on 6 m of stem busy against ref-04's one or two. The 6–14 cm bands and the foot stay.
   const tinted = new Color();
   for (let k = 0; k < trunkRows.length; k++) {
     const centre = trunkDense[Math.min(k, trunkDense.length - 1)];
@@ -357,31 +329,10 @@ export function createWhiteBarkTree(p: WhiteBarkParams, palette: Palette, detail
         const d = (y - b.y - wob) / b.sigma;
         soot += b.strength * Math.exp(-d * d * 0.5);
       }
-      mark = 0;
-      for (const b of broadBands) {
-        const wob = footNoise.noise(cx * 0.9 + b.phase, cz * 0.9) * b.wobble;
-        const d = (y - b.y - wob) / b.sigma;
-        // flat-topped: a band, not a line
-        mark += b.strength * Math.exp(-Math.pow(d * d, 1.6) * 0.5) * (0.85 + 0.15 * footNoise.noise(cx * 3 + b.phase, y * 6));
-      }
-      const ringR = Math.hypot(x, z);
-      for (const s of scars) {
-        // v runs −1 at the chevron's point to +0.5 at its top edge; the width shrinks to the point
-        const v = (y - s.y) / s.height;
-        if (v < -1.05 || v > 0.55) continue;
-        const dphi = Math.atan2(Math.sin(phi - s.phi), Math.cos(phi - s.phi));
-        const w = s.halfWidth * (0.12 + 0.88 * Math.min(1, (v + 1) / 1.5));
-        const across = 1 - Math.min(1, Math.abs(dphi * ringR) / Math.max(0.01, w));
-        const along = smoothstep(-1.05, -0.85, v) * (1 - smoothstep(0.35, 0.55, v));
-        mark += s.strength * Math.pow(across, 0.7) * along;
-      }
-      soot = Math.min(0.78, soot + mark);
-      mark = Math.min(1, mark / 0.6);
+      soot = Math.min(0.72, soot);
       if (soot < 0.01) continue;
       tinted.setRGB(wood.colors[idx * 3], wood.colors[idx * 3 + 1], wood.colors[idx * 3 + 2]);
       tinted.lerp(dark, soot * 0.75).multiplyScalar(1 - soot * 0.3);
-      // the large marks go on to near-black: a further lerp to the dark bark at a fifth of its level
-      if (mark > 0.01) tinted.lerp(markBlack, mark * 0.85);
       wood.colors[idx * 3] = tinted.r;
       wood.colors[idx * 3 + 1] = tinted.g;
       wood.colors[idx * 3 + 2] = tinted.b;
