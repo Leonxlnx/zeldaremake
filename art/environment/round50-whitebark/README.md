@@ -132,3 +132,12 @@ A quarter of the turn survives to the frame: the rendered hue is set by the ligh
 through `leafSun`, the leaf floor's canopy tint, the hemisphere) more than by the laminae's albedo. The
 −10° still owed to the 62–65° target therefore belongs to the material (Astra's term at a higher
 calibration or per species) or to the palette's `leafSun` — not to `whitebark.ts`. Branch dropped.
+
+### Epicormic shoots on the bent axis (same branch, polish)
+
+The shoots (mature stems, 2–3 per tree at 0.2–0.5 of the height) started on the unbent path and stepped out
+1.14 × the radius; a shoot pointing into the bow was swallowed by the moved surface. Their origins now add
+`swayAt(t)` in the bow's direction. Placement replica 80/80, infos identical (six leaves per shoot, all within
+the crown's radius). Subtle at the survey poses: `sn-whitebark-base` 0.6 % of pixels, `f4-trunk-8m` 1.5 %
+(the sprays move to the surface); no six-view capture — the shoots are ≤ 0.5 m features on stems 20 m+ from
+the fixed cameras.

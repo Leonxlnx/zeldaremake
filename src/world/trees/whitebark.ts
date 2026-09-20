@@ -701,7 +701,9 @@ export function createWhiteBarkTree(p: WhiteBarkParams, palette: Palette, detail
     const shoots = rng.int(0, 3);
     for (let i = 0; i < shoots; i++) {
       const t = 0.2 + (i / Math.max(1, shoots - 1)) * 0.3 + bt(-0.04, 0.04);
-      const origin = sample(trunk, t);
+      // on the BENT axis (the sweep's, `swayAt`): a shoot seated on the unbent path and pointing into
+      // the bow was swallowed by the moved surface (`sn-whitebark-base`, the stub at 1.6 m)
+      const origin = sample(trunk, t).add(_sway.set(Math.cos(swayAz) * swayAt(t), 0, Math.sin(swayAz) * swayAt(t)));
       const angle = rng() * TAU;
       const outward = new Vector3(Math.cos(angle), 0, Math.sin(angle));
       const ri = t * (trunkRadii.length - 1);
