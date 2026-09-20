@@ -26,14 +26,27 @@ const NORTH_GATE_Z=-59;
 const stoneDistance=(x,z)=>Math.min(...STONE_CIRCLE_STONES.map(st=>Math.hypot(x-st.x,z-st.z)));
 const a=make(),b=make();
 const hash=array=>createHash('sha256').update(Buffer.from(array.buffer,array.byteOffset,array.byteLength)).digest('hex');
-let checkedVertices=0,checkedBases=0,shadowMeshes=0;
+// round 50 (vegetation-27, W06 / W05): two edges.ts passes seat on the paving's gravel verge, where the field's `allowed`
+// is false by design — the rim band's lip tufts and moss cushions (inside the band over a paved rim, edges.ts rimCells),
+// and the C bank's foot moss (its foot IS the plaza's verge; ≥ 4 cm off the slabs, inside a C_TERRACES box). Never on
+// the slabs themselves (lawnEdgeDistance ≥ RIM_INNER), never in a trunk or a prop footprint (checked below like every root).
+const edges=read('vegetation/edges');
+const onVergeByDesign=(set,x,z)=>{
+  if(set!==a.plants.tufts&&set!==a.plants.moss)return false;
+  const d=a.field.lawnEdgeDistance(x,z,true);
+  if(edges.inRimRegion(x,z)&&d>=edges.RIM_INNER-1e-6&&d<=edges.RIM_BAND+1e-6)return true;
+  return set===a.plants.moss&&d>=0.04&&edges.C_TERRACES.some(f=>x>=f.box[0]&&x<=f.box[2]&&z>=f.box[1]&&z<=f.box[3]);
+};
+let checkedVertices=0,checkedBases=0,shadowMeshes=0,vergeSeats=0;
 for(let j=0;j<a.plants.all.length;j++){
   const first=a.plants.all[j],second=b.plants.all[j];assert.equal(first.count,second.count);
   assert.ok(first.count>0,`${first.opts.name} must be present`);
   for(let i=0;i<first.count;i++){
     const item=first.items[i];assert.deepEqual(item,second.items[i],'Fresh seed/terrain reproduces transforms, variant and pigment');
     const sample=a.field.sample(item.x,item.z,newSample());
-    if(item.z>=NORTH_GATE_Z)assert.ok(a.field.allowed(item.x,item.z,sample),'Placed root obeys original field exclusions');
+    if(item.z>=NORTH_GATE_Z){
+      if(!a.field.allowed(item.x,item.z,sample)){assert.ok(onVergeByDesign(first,item.x,item.z),`Placed root obeys original field exclusions (${first.opts.name} at ${item.x}, ${item.z})`);vergeSeats++;}
+    }
     else{const m=a.ctx.terrain.mask(item.x,item.z);
       if(first===a.plants.moss&&stoneDistance(item.x,item.z)<0.7)assert.ok(m.structure<0.5&&stoneDistance(item.x,item.z)>=0.3,`stone-foot moss off the stone's footprint (${first.opts.name})`);
       else assert.ok(a.ctx.terrain.vegetationAllowed(item.x,item.z),`round-48 north root obeys the exact terrain mask (${first.opts.name} at ${item.x}, ${item.z})`);}

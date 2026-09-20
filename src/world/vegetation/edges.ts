@@ -34,6 +34,7 @@ import { clamp, smoothstep } from '../util/noise';
 import type { Rng } from '../util/prng';
 import { VegField, composeMatrix, newSample } from './field';
 import type { LodInstancedSet } from './lodset';
+import { MOSS_ULTRA_M } from './plantgeo';
 
 // ---------------------------------------------------------------------------------------------
 // W06 — the rim band
@@ -61,6 +62,13 @@ export const SOIL_MAT_LIFT = 0.012;
 /** moss cushions per metre of rim (in patches), tufts per metre, leaves per metre, and their seat ranges in d */
 export const RIM_MOSS_PER_M = 2.4;
 export const RIM_MOSS_D: readonly [number, number] = [-0.1, 0.3];
+/**
+ * Inside a fixed camera's ultra ring (plantgeo.ts MOSS_ULTRA_M) every cushion carries the ultra
+ * LOD, ≈ 1.1 K triangles over the mid one; plants.test caps a ring at 0.32 M — camera C's plaza
+ * ring stood at 280 of 289 before the band. The rim's cushions seat at this share of RIM_MOSS_PER_M
+ * inside a ring.
+ */
+export const RIM_MOSS_ULTRA_SHARE = 0.3;
 /** the rim cushions' radius range (m) — the lawn's cushions are 0.05–0.26 (plants.ts) */
 export const RIM_MOSS_RADIUS: readonly [number, number] = [0.06, 0.2];
 export const RIM_TUFTS_PER_M = 1.6;
@@ -244,7 +252,9 @@ export function rimBandPlants(ctx: WorldContext, field: VegField, sets: RimPlant
   {
     const rng = ctx.rng.fork('edges/rim/moss');
     // patches: a 1.1 m noise gates the cushions, denser toward the turf's line
-    const seats = rimSeats(field, rng, RIM_MOSS_PER_M * 2.2, RIM_MOSS_D, (p) => vnoise(p.x, p.z, 1.1, 11) * (0.35 + 0.65 * smoothstep(-0.1, 0.25, p.d)));
+    const rings = ctx.layout.viewpoints.map((v) => [v.position[0], v.position[2]] as const);
+    const inRing = (x: number, z: number) => rings.some(([rx, rz]) => Math.hypot(x - rx, z - rz) < MOSS_ULTRA_M);
+    const seats = rimSeats(field, rng, RIM_MOSS_PER_M * 2.2, RIM_MOSS_D, (p) => vnoise(p.x, p.z, 1.1, 11) * (0.35 + 0.65 * smoothstep(-0.1, 0.25, p.d)) * (inRing(p.x, p.z) ? RIM_MOSS_ULTRA_SHARE : 1));
     for (const p of seats) {
       // a cushion of RIM_MOSS_RADIUS m (plants.ts placeMossWith: the unit dome 0.45 tall, flattened, a little longer one way)
       const radius = RIM_MOSS_RADIUS[0] + rng() * (RIM_MOSS_RADIUS[1] - RIM_MOSS_RADIUS[0]);
@@ -258,8 +268,13 @@ export function rimBandPlants(ctx: WorldContext, field: VegField, sets: RimPlant
   {
     const rng = ctx.rng.fork('edges/rim/tufts');
     const seats = rimSeats(field, rng, RIM_TUFTS_PER_M, RIM_TUFTS_D, (p) => 1.4 - 3 * p.d);
+    const tuftLod = sets.tufts.opts.nearLods ?? 0;
     for (const p of seats) {
-      const scale = 0.32 + rng() * 0.26;
+      const variant = rng.int(0, sets.tufts.variantCount);
+      let scale = 0.32 + rng() * 0.26;
+      // camera C's trodden foreground (field.ts C_FOOT, plants.test: the round-35 population only over
+      // 0.12 m) — the lip tufts there are the trodden kind, kept under 0.12 m by the variant's height
+      if (field.cFoot(p.x, p.z) > 0.001) scale = Math.min(scale, 0.11 / Math.max(sets.tufts.opts.variants[variant][tuftLod].boundingBox?.max.y ?? 0.4, 0.05));
       // the blades lean over the lip: the up vector pushed toward the paving, more the nearer the edge
       const lean = (1 - smoothstep(-0.05, 0.15, p.d)) * 0.55;
       T.normal(p.x, p.z, n);
@@ -267,7 +282,7 @@ export function rimBandPlants(ctx: WorldContext, field: VegField, sets: RimPlant
       n.z -= p.nz * lean;
       n.normalize();
       composeMatrix(M, 0, p.x, T.height(p.x, p.z) - 0.012, p.z, n.x, n.y, n.z, 0.85, rng() * Math.PI * 2, scale, scale, scale);
-      sets.tufts.add(M, rng.int(0, sets.tufts.variantCount), [1 + (rng() - 0.5) * 0.14, 1 + (rng() - 0.5) * 0.1, 1 + (rng() - 0.5) * 0.16]);
+      sets.tufts.add(M, variant, [1 + (rng() - 0.5) * 0.14, 1 + (rng() - 0.5) * 0.1, 1 + (rng() - 0.5) * 0.16]);
       rimTufts++;
     }
   }
@@ -333,6 +348,8 @@ export const C_TERRACES: readonly TerraceFace[] = [
 export const TERRACE_TUFTS_PER_M = 6;
 export const TERRACE_FOOT_MOSS_PER_M = 1.6;
 export const TERRACE_TOE_FERNS = { 'c-mound': 9, 'c-plateau': 12 } as Record<string, number>;
+/** the terrace plants' height cap (m): frame 46's stair foot stands over short grass (camera C's box carries nothing over 0.35 m), frame 1's face nothing but tufts over 0.3 m */
+export const TERRACE_TOE_FERN_TOP = 0.29;
 export const TERRACE_RISER_LEAVES_PER_M2 = 1.6;
 /** the row tufts' scale range (the C frames see the faces from 11–19 m: bigger than the rim's lip tufts) */
 export const TERRACE_TUFT_SCALE: readonly [number, number] = [0.6, 0.95];
@@ -423,12 +440,18 @@ export function terracePlants(ctx: WorldContext, field: VegField, sets: TerraceS
   const out: Record<string, number> = {};
   // `verge`: the seat may stand on the paving's gravel verge (the mask disallows it) as long as it
   // is off the slabs — the mound's foot IS the plaza's verge
-  const ok = (x: number, z: number, verge = false) => {
+  // `broadleaf`: a non-tuft (moss / fern / broad leaf) — frame 1's face before camera A (field.ts
+  // aFace, x 3–8.4 / z 1.8–7 — the mound's west half) grows lit tufts only on its slope (plants.test:
+  // nothing else on it over slope 0.2), so those seats stay on its flat foot
+  const ok = (x: number, z: number, verge = false, broadleaf = false) => {
     field.sample(x, z, s);
     if (!field.allowed(x, z, s, true) && !(verge && field.lawnEdgeDistance(x, z, true) >= 0.04)) return false;
     if (s.stairs > 0.05 || s.structure > 0.05) return false;
+    if (broadleaf && s.slope > 0.2 && field.aFace(x, z) > 0.3) return false;
     // the mound's full box (x to 11) reaches the plaza trunk at (11.2, 9) — no root inside it
     if (field.insideGiantTrunk(x, z) || field.insidePropFootprint(x, z, 0.08) || field.clearing(x, z).insideBoulder) return false;
+    // frames 1 / 8: the Kokiri's spots (kokiri-a stands on the mound's foot) stay clear to 0.6 m
+    for (const spot of ctx.layout.npcSpots) if (Math.hypot(x - spot.position[0], z - spot.position[2]) < 0.6) return false;
     return true;
   };
   /** the toe: inside the box, below the first tread's upper half, on the face or the flat ground just under it */
@@ -440,6 +463,12 @@ export function terracePlants(ctx: WorldContext, field: VegField, sets: TerraceS
     // on the face it must face downhill; the flat ground under it needs no facing
     if (1 - n.y >= f.minSlope && n.x * f.downhill[0] + n.z * f.downhill[1] < f.facing * 0.5) return NaN;
     return h;
+  };
+  // frame 46 (plants.test): camera C's stair-foot box carries nothing over 0.35 m up to the rock —
+  // every terrace plant's scale is capped by its own variant's height so the bank reads as short turf
+  const capped = (set: LodInstancedSet, variant: number, scale: number): number => {
+    const top = set.opts.variants[variant][set.opts.nearLods ?? 0].boundingBox?.max.y ?? 0.6;
+    return Math.min(scale, TERRACE_TOE_FERN_TOP / Math.max(top, 0.05));
   };
   for (const f of C_TERRACES) {
     const rng = ctx.rng.fork(`edges/terrace/${f.id}`);
@@ -466,7 +495,8 @@ export function terracePlants(ctx: WorldContext, field: VegField, sets: TerraceS
         taken.add(key);
         const px = mm(x + (rng() - 0.5) * g);
         const pz = mm(z + (rng() - 0.5) * g);
-        const scale = TERRACE_TUFT_SCALE[0] + rng() * (TERRACE_TUFT_SCALE[1] - TERRACE_TUFT_SCALE[0]);
+        const variant = rng.int(0, sets.tufts.variantCount);
+        const scale = capped(sets.tufts, variant, TERRACE_TUFT_SCALE[0] + rng() * (TERRACE_TUFT_SCALE[1] - TERRACE_TUFT_SCALE[0]));
         const c: [number, number, number] = [1 + (rng() - 0.5) * 0.16, 1 + (rng() - 0.5) * 0.1, 1 + (rng() - 0.5) * 0.18];
         if (!ok(px, pz)) continue;
         // the blades lean downhill a little (the face's drift)
@@ -475,7 +505,7 @@ export function terracePlants(ctx: WorldContext, field: VegField, sets: TerraceS
         n.z += f.downhill[1] * 0.25;
         n.normalize();
         composeMatrix(M, 0, px, T.height(px, pz) - 0.012, pz, n.x, n.y, n.z, 0.8, rng() * Math.PI * 2, scale, scale, scale);
-        sets.tufts.add(M, rng.int(0, sets.tufts.variantCount), c);
+        sets.tufts.add(M, variant, c);
         rowTufts++;
       }
     }
@@ -501,40 +531,57 @@ export function terracePlants(ctx: WorldContext, field: VegField, sets: TerraceS
       const radius = 0.08 + rng() * 0.18;
       const h = radius * (0.22 + rng() * 0.2);
       const c: [number, number, number] = [0.95 + rng() * 0.1, 1, 0.9 + rng() * 0.1];
-      if (!ok(px, pz, true)) continue;
+      if (!ok(px, pz, true, true)) continue;
       T.normal(px, pz, n);
       composeMatrix(M, 0, px, T.height(px, pz) - 0.012, pz, n.x, n.y, n.z, 0.95, rng() * Math.PI * 2, radius, h / 0.45, radius * (0.75 + rng() * 0.5));
       sets.moss.add(M, rng.int(0, sets.moss.variantCount), c);
       footMoss++;
     }
     // the toe: ferns and broad leaves on the lowest step and the foot (footage 46 s: the Kokiri's
-    // feet stand among ferns and broad leaves), never inside the paving's clearance
+    // feet stand among ferns and broad leaves), never inside the paving's clearance. The mound's
+    // flat toe is a strip a few decimetres wide between the slabs and the face, so the seats are
+    // drawn from the scanned eligible cells (like the rows and the foot), not from the whole box.
     const want = TERRACE_TOE_FERNS[f.id] ?? 8;
-    for (let i = 0; i < 400 && toeFerns < want; i++) {
-      const px = mm(f.box[0] + rng() * (f.box[2] - f.box[0]));
-      const pz = mm(f.box[1] + rng() * (f.box[3] - f.box[1]));
-      const scale = 0.5 + rng() * 0.3;
+    const toeCells = (top: number, clearance: number): [number, number][] => {
+      const cells: [number, number][] = [];
+      for (let z = f.box[1] + g / 2; z < f.box[3]; z += g) {
+        for (let x = f.box[0] + g / 2; x < f.box[2]; x += g) {
+          if (Number.isNaN(toe(f, x, z, top))) continue;
+          if (!ok(x, z, false, true) || field.lawnEdgeDistance(x, z, true) < clearance) continue;
+          cells.push([x, z]);
+        }
+      }
+      return cells;
+    };
+    // the toe's ferns are the low, spreading kind; from 0.1 m off the slabs (their fronds overhang the lip)
+    const fernCells = toeCells(f.treads[0] + f.step * 0.6, 0.1);
+    for (let i = 0; i < 200 && toeFerns < want && fernCells.length; i++) {
+      const [x0, z0] = fernCells[rng.int(0, fernCells.length)];
+      const px = mm(x0 + (rng() - 0.5) * g);
+      const pz = mm(z0 + (rng() - 0.5) * g);
+      const variant = rng.int(0, sets.ferns.variantCount);
+      const scale = capped(sets.ferns, variant, 0.5 + rng() * 0.3);
       const c: [number, number, number] = [1 + (rng() - 0.5) * 0.2, 1 + (rng() - 0.5) * 0.14, 1 + (rng() - 0.5) * 0.24];
-      const h = toe(f, px, pz, f.treads[0] + f.step * 0.6);
-      if (Number.isNaN(h)) continue;
-      if (!ok(px, pz) || field.lawnEdgeDistance(px, pz, true) < 0.18) continue;
-      if (sets.ferns.items.some((it) => Math.hypot(it.x - px, it.z - pz) < 0.5)) continue;
+      if (!ok(px, pz, false, true) || field.lawnEdgeDistance(px, pz, true) < 0.1) continue;
+      if (sets.ferns.items.some((it) => Math.hypot(it.x - px, it.z - pz) < 0.35)) continue;
       T.normal(px, pz, n);
       composeMatrix(M, 0, px, T.height(px, pz) - 0.02, pz, n.x, n.y, n.z, 0.7, rng() * Math.PI * 2, scale, scale, scale);
-      sets.ferns.add(M, rng.int(0, sets.ferns.variantCount), c);
+      sets.ferns.add(M, variant, c);
       toeFerns++;
     }
-    for (let i = 0; i < 300 && toeWeeds < want; i++) {
-      const px = mm(f.box[0] + rng() * (f.box[2] - f.box[0]));
-      const pz = mm(f.box[1] + rng() * (f.box[3] - f.box[1]));
-      const scale = 0.55 + rng() * 0.4;
+    const weedCells = toeCells(f.treads[0] + f.step * 0.9, 0.12);
+    for (let i = 0; i < 200 && toeWeeds < want && weedCells.length; i++) {
+      const [x0, z0] = weedCells[rng.int(0, weedCells.length)];
+      const px = mm(x0 + (rng() - 0.5) * g);
+      const pz = mm(z0 + (rng() - 0.5) * g);
+      const variant = rng.int(0, sets.weeds.variantCount);
+      const scale = capped(sets.weeds, variant, 0.55 + rng() * 0.4);
       const c: [number, number, number] = [1 + (rng() - 0.5) * 0.16, 1 + (rng() - 0.5) * 0.1, 1 + (rng() - 0.5) * 0.2];
-      const h = toe(f, px, pz, f.treads[0] + f.step * 0.9);
-      if (Number.isNaN(h)) continue;
-      if (!ok(px, pz) || field.lawnEdgeDistance(px, pz, true) < 0.12) continue;
+      if (!ok(px, pz, false, true) || field.lawnEdgeDistance(px, pz, true) < 0.12) continue;
+      if (sets.weeds.items.some((it) => Math.hypot(it.x - px, it.z - pz) < 0.25)) continue;
       T.normal(px, pz, n);
       composeMatrix(M, 0, px, T.height(px, pz) - 0.01, pz, n.x, n.y, n.z, 0.7, rng() * Math.PI * 2, scale, scale, scale);
-      sets.weeds.add(M, rng.int(0, sets.weeds.variantCount), c);
+      sets.weeds.add(M, variant, c);
       toeWeeds++;
     }
     out[`${f.id}-row-tufts`] = rowTufts;
