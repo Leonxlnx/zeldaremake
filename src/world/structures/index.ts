@@ -19,6 +19,7 @@ import { buildLanternBranch } from './lanternBranch';
 import { buildLanternPost } from './lanternPost';
 import { buildLogArch } from './logArch';
 import { loadMaterials } from './materials';
+import { NORTH_LANTERN_POSTS, NORTH_ROPE_FENCES, NORTH_SIGNPOSTS, NORTH_VISIBLE_M } from './north';
 import { buildSignpost } from './signpost';
 
 export async function create(ctx: WorldContext): Promise<WorldSystem> {
@@ -111,6 +112,42 @@ export async function create(ctx: WorldContext): Promise<WorldSystem> {
   bases.push(...log.bases);
   leaves += log.leaves;
 
+  // ---- round 48 (structures-31): beyond the arch — two pod posts, a signpost at the north mouth
+  // and the terrace lip's rope rail (north.ts). Its own group: consolidated apart from the hero
+  // buckets and hidden beyond NORTH_VISIBLE_M of the clearing (update / onCameraMove below), so
+  // the six fixed frames (67 m+ away) never draw a triangle or a light of it. Own forks, appended
+  // after the arch so every stream before it is unchanged. ----
+  const north = new Group();
+  north.name = 'structures-north';
+  const northLanterns: LanternRig[] = [];
+  const northLights: PointLight[] = [];
+  let northLeaves = 0;
+  const northSigns = NORTH_SIGNPOSTS.map((s) => buildSignpost(s, ctx, mats, rng.fork(`north/sign/${s.id}`)));
+  for (const sb of northSigns) {
+    north.add(sb.group);
+    bases.push(sb.base);
+  }
+  const northFences = NORTH_ROPE_FENCES.map((f) => buildFence(f, ctx, mats, rng.fork(`north/fence/${f.id}`), rope));
+  let northFencePosts = 0;
+  for (const fb of northFences) {
+    for (const m of fb.meshes) north.add(m);
+    bases.push(...fb.bases);
+    northFencePosts += fb.posts;
+  }
+  const northPosts = NORTH_LANTERN_POSTS.map((p) => buildLanternPost(p, ctx, mats, rng.fork(`north/lantern-post/${p.id}`), rope));
+  for (const pb of northPosts) {
+    north.add(pb.group);
+    northLanterns.push(...pb.lanterns);
+    northLights.push(...pb.lights);
+    bases.push(pb.base);
+    northLeaves += pb.leaves;
+  }
+  lanterns.push(...northLanterns);
+  lights.push(...northLights);
+  leaves += northLeaves;
+  const northCentre = ctx.layout.northClearing;
+  const northVisible = (cx: number, cz: number) => Math.hypot(cx - northCentre.x, cz - northCentre.z) < NORTH_VISIBLE_M;
+
   // ---- draw-call budget: fold the static parts into one mesh per material (+ shadow flags) ----
   // The pods stay separate (their pivots swing), as do the transparent glow cards and the log's
   // unique-material parts; everything else — bark, roof, boughs, fence posts and ropes, lantern
@@ -135,6 +172,14 @@ export async function create(ctx: WorldContext): Promise<WorldSystem> {
   draws.before += distantDraws.before;
   draws.after += distantDraws.after;
   draws.merged += distantDraws.merged;
+  // the north group is merged on its own (one draw per material within 45 m of the clearing,
+  // nothing beyond) and attached last; its pods stay separate like every other pod
+  const northDraws = consolidateStaticMeshes(north, (m) => m.name === 'pod-lantern');
+  group.add(north);
+  north.visible = northVisible(ctx.camera.position.x, ctx.camera.position.z);
+  draws.before += northDraws.before;
+  draws.after += northDraws.after;
+  draws.merged += northDraws.merged;
   /**
    * The merged buckets' culling bounds (audit, round 20): what three.js frustum-tests each static
    * draw against — geometry bounding sphere at the identity transform — with its triangle count and
@@ -142,12 +187,12 @@ export async function create(ctx: WorldContext): Promise<WorldSystem> {
    * the village again would show here as a radius ≥ 15 m.
    */
   const mergedBuckets = () => {
-    const out: { name: string; group: 'hero' | 'distant'; centre: [number, number, number]; radius: number; triangles: number }[] = [];
-    const visit = (root: Object3D, which: 'hero' | 'distant') => {
+    const out: { name: string; group: 'hero' | 'distant' | 'north'; centre: [number, number, number]; radius: number; triangles: number }[] = [];
+    const visit = (root: Object3D, which: 'hero' | 'distant' | 'north') => {
       root.traverse((o) => {
         const m = o as Mesh;
         if (!m.isMesh) return;
-        if (which === 'hero' && (!m.name.startsWith('merged:') || distant.group.getObjectById(m.id))) return;
+        if (which === 'hero' && (!m.name.startsWith('merged:') || distant.group.getObjectById(m.id) || north.getObjectById(m.id))) return;
         const g = m.geometry;
         if (!g.boundingSphere) g.computeBoundingSphere();
         const s = g.boundingSphere!;
@@ -162,6 +207,7 @@ export async function create(ctx: WorldContext): Promise<WorldSystem> {
     };
     visit(group, 'hero');
     visit(distant.group, 'distant');
+    visit(north, 'north');
     return out;
   };
   ctx.progress('structures', 1);
@@ -229,6 +275,19 @@ export async function create(ctx: WorldContext): Promise<WorldSystem> {
     ropeFences: ROPE_FENCES.length,
     lanternPosts: posts.length,
     postLanterns: posts.reduce((n, p) => n + p.lanterns.length, 0),
+    /** round 48 (structures-31): beyond the arch — pod posts, the north-mouth signpost, the terrace rail; drawn only within `visibleWithinM` of the clearing */
+    north: {
+      lanternPosts: northPosts.length,
+      postLanterns: northLanterns.length,
+      signposts: northSigns.length,
+      ropeFences: northFences.length,
+      fencePosts: northFencePosts,
+      pointLights: northLights.length,
+      draws: northDraws.after,
+      visibleWithinM: NORTH_VISIBLE_M,
+      visible: north.visible,
+      bases: [...northPosts.map((p) => p.base), ...northSigns.map((s) => s.base), ...northFences.flatMap((f) => f.bases)],
+    },
     logArch: true,
     /** round 41 (structures-26): the arch's close-scale detail — grid, cushion tufts, rim splinters, skirt, plants */
     logDetail: log.detail41,
@@ -300,8 +359,13 @@ export async function create(ctx: WorldContext): Promise<WorldSystem> {
   return {
     name: 'structures',
     group,
-    update(_dt, t) {
+    // the walk moves the camera every frame; pose jumps (captures) come through onCameraMove
+    update(_dt, t, c) {
       swingLanterns(lanterns, t, windDir.x, windDir.y);
+      north.visible = northVisible(c.camera.position.x, c.camera.position.z);
+    },
+    onCameraMove(camera) {
+      north.visible = northVisible(camera.position.x, camera.position.z);
     },
     dispose() {
       // one-shot: every geometry, material and owned texture is released exactly once, however

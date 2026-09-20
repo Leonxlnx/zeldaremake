@@ -348,9 +348,10 @@ narrow, green vs bright, wide, orange). This is the measured form of V8 / opus #
 ### 6.4 The stair foot looking up, 52–54 s (`d_105`–`d_109`)
 
 `d_107` (53 s): Link at the bottom riser, the flight head-on at (0.50–0.66 × 0.30–0.65),
-**15–16 treads visible**, each a pale slab with an irregular wavy nosing and a dark shadow line
-under it; a **single-pole wooden rail on posts along the right side** of the flight (0.58–0.66 ×
-0.35–0.60, ≈ 0.6 m high, `#686051`); the flight narrows into a **bright haze gap at the top**
+**15–16 treads visible**, each a rounded **log nosing** (not a slab — see §6.6b) with a dark shadow
+line under it; what first read as a single-pole rail along the right side (0.58–0.66 × 0.35–0.60,
+`#686051`) is the line of **stake tops at the log ends** in perspective — there is no rail; the
+flight narrows into a **bright haze gap at the top**
 (0.52–0.62 × 0.22–0.32, `#b8b5a9`, l 0.69) with a lantern post and a top-landing fence in
 silhouette; the left flank is the dark green bank (l 0.39, s 0.08), the right flank ferns with a
 Kokiri boy (0.72–0.78 × 0.40–0.68), a lime pod (0.73, 0.38) and his fairy. Treads `#756f5e`
@@ -358,7 +359,7 @@ l 0.42 s 0.11 at the foot fading to l ≈ 0.65 at the top — **aerial perspecti
 
 **Ours** (`w23-stairs-f` p (6.4, 1.45, −0.3) → (14.29, 1.3, −6.45), survey-2; sheet
 `fable-5-walk-w23-stairs-f.jpg`): ≈ 15 treads, even bands with straight nosings and dark risers
-(opus #15 holds on the head); ferns on both flanks, no rail of any kind on the right; the pods of
+(opus #15 holds on the head); ferns on both flanks, no stakes at the tread ends; the pods of
 the house at the top left. **The luminance gradient runs the wrong way**: treads foot l 0.35 →
 mid 0.20 → top 0.17 (`#675c4c` → `#38322c` → `#2b2b2b`), top gap l 0.29, against the reference's
 0.37 → 0.40 → 0.65 with the gap at 0.69. The flight darkens into shade where the footage brightens
@@ -406,6 +407,28 @@ in the haze. The structural gap is the one opus #01 names — the reference's wi
 lights with no floor*; ours is a plane with cones on it — plus the tonal one: the tunnel is not a
 tunnel.
 
+### 6.6b The hero flight is a log-risered stair, not cut stone (`d_013`, `d_105`, `d_107`, `A_stairs`)
+
+Found while re-filing V18 on fable-3's objection (2026-09-20 04:35 UTC). Three frames at three
+ranges agree, and the A frame's nosings read the same way once you know what to look for:
+
+| frame | range | what the flight is made of |
+| --- | --- | --- |
+| `d_105` (52 s, ≈ 6 m above the foot, looking down the flight) | 3–8 m | **every riser is a round log** — a bark-textured roll ≈ 0.15–0.20 m thick spanning the 2.7 m width — **pegged at both ends with short vertical stakes** (≈ 0.10 m Ø, 0.15–0.25 m proud, on roughly every second log, stake tops in a line up each flank); the tread behind each log is packed earth / flat stone, darker than the log; grass to the log ends |
+| `d_013` (6 s, 6–8 m, from the plaza) | 6–12 m | rounded roll nosings with dark risers under them, treads darker than the rolls; the **light string** climbs the left flank diagonally (0.35–0.50 × 0.65–0.75 of the flight crop); no rail |
+| `d_107` (53 s, from the foot, head-on) | 2–10 m | the "single wooden pole on posts along the right side" I filed as V18 is the **line of stake tops** at the log ends in perspective (x 0.58–0.66 × 0.35–0.60); there is no rail on either flank |
+| `A_stairs` (1 s) | 10–18 m | the same rolls: wavy rounded nosings, bark tone `#746d5d` lit, treads/risers in shadow `#453e32`, stakes just resolvable at the lower right ends |
+
+What this changes: the reference flight's read — irregular, "individually cut", mossy edges, no
+two nosings alike — comes from **logs**, not from worked stone. Our flight is cut blue-grey slabs
+with square nosings (`w23-stairs-f`; opus #15, W02 fail on every take). The rubric's W02 text
+("18 worn stone steps… each tread a distinct slab") reads the 1 s frame as stone; the dense frames
+say timber risers with earth-and-stone treads. Proposal (fable-cursor's `RUBRIC_PROPOSALS.md`):
+keep the counts and the audit checks, change the visual criterion to "log-risered: round timber
+nosings with bark and moss, packed treads, end stakes, no two logs alike". For hardscape-31 this is
+the single largest available change at frame A after the giants. **V18 is withdrawn** (re-filed
+below as V18′) — the stakes belong to the stair, not to a rail prop; fable-3 was right.
+
 ### 6.7 Measured summary and additions to the defect list
 
 | frame | frame mean l | key ratio | ours (head `3d50f6c8`) |
@@ -425,7 +448,8 @@ New defects (numbering continues §3; systems as in `docs/GOAL_MODE.md`):
 | V15 | **The plaza has no closure to the W, S and N**: a flat pale plain with a hard tree line where the footage has a second house, a far hut in haze, a fence-topped bank and a spreading giant | `d_019`/`d_023` → `demo-09s/11s/13s-orbit` | layout + structures (second hollow / hut silhouette), terrain (bank), trees (a spreading giant on the plaza's W) | 3 |
 | V16 | **Slabs twice the reference size with bright orange joints twice the reference width**, measured from above: 1.7–2.5 m / 17–21 cm vs 0.8–1.1 m / 6–10 cm; joint brighter than the slab where the reference's is darker and green | `d_097` → `demo-49s-topdown`, `E_ground` | hardscape/flagstones + joint material (hardscape-31) | 3 |
 | V17 | **The hero flight's luminance gradient is inverted**: the reference's treads brighten from l 0.37 at the foot to 0.65 at the top 8 m away and end in a haze gap (0.69); ours darken 0.35 → 0.17 into a shaded top (gap 0.29) | `d_107` → `w23-stairs-f` | atmosphere (near haze / mist floor + the light behind the plateau — Astra), hardscape/stairs | 2 |
-| V18 | **No rail on the flight**; the reference has a single wooden pole on short posts along the right side, ≈ 0.6 m high | `d_107` → `w23-stairs-f` | hardscape/stairs or props (fable-3) | 1 |
+| ~~V18~~ | *withdrawn 2026-09-20 04:35 UTC — the "pole rail" is the line of stake tops at the log ends (§6.6b)* | | | |
+| V18′ | **The hero flight is cut stone where the reference's is log-risered**: round bark-and-moss timber nosings ≈ 0.15–0.20 m thick, packed earth/stone treads, short end stakes on every second log, no two alike (`d_105`, `d_013`, `d_107`; the A frame's wavy nosings are these logs) | `d_105` → `w23-stairs-f`, `A_stairs` (0.58–0.80 × 0.25–0.62) | hardscape/stairs (hardscape-31); rubric W02 wording (fable-cursor) | 3 |
 | V19 | **Under the arch the tunnel is not a tunnel**: frame mean l 0.43 vs 0.13, no right wall, floor l 0.46 vs 0.15, window : wall 3 : 1 vs 6–8 : 1, and the window shows a plane with cones where the reference shows trunks and lights with no ground | `d_121` → `x-arch-tunnel-n` | structures/logArch (the closed side), atmosphere (shade floor under the arch — Astra), trees/distant + terrain north plain (trees-31), lanterns (three pods under the belly) | 3 |
 | V20 | **Pale boulder pairs and a low stone step at the foot of the banks** are a recurring dressing motif (right of the house, the top-down's right bank, left of the D path) that we do not use | `d_087`, `d_097`, `d_115` → plaza edges | rocks (fable-2) | 1 |
 | V21 | **The moss-capped boulder at the Kokiri boy's feet on the stair bank** (9 s and 46 s) — the C-frame anchor the owner sees twice | `d_019`, `d_093` → `C_lookback` (0.25–0.32 × 0.47–0.55) | rocks (fable-2) + npc placement | 1 |

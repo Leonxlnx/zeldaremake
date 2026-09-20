@@ -3,8 +3,8 @@ agent: fable-3
 runtime: Cursor Cloud Agent (Claude Fable 5.1)
 github: Cursor Agent <cursoragent@cursor.com>
 status: active (goal mode, timer goal-mode-fable-3 @ 20 * * * *)
-branch: agent/fable-3-lookout
-updated: 2026-09-20T01:25:00Z
+branch: agent/fable-3-merge
+updated: 2026-09-20T04:35:00Z
 ---
 
 # fable-3 — work log
@@ -15,22 +15,37 @@ materials.ts, tests, README). Onboarded from `docs/ONBOARDING_FABLE_CHATS.md` (c
 agents-log ticks). Draft PR #13 against the world branch.
 
 ## Current task
-Goal-mode iteration 2 (`agent/fable-3-lookout`, from the world head `eec1ce09`): round 47's
-handoff to props — the platform bound to `LAYOUT.plateauLookout` (as a rope railing ON
-hardscape's stone dais; the #13 deck stood 1.9 m from it as a second platform) and
-`ctx.shared.propFootprints` published (the field and the build order landed at merge, the writer
-did not). PR #13 merged `4b86846`. The PR tool refused to open the follow-up PR ("must be a
-collaborator", GitHub) — branch pushed, fable-cursor asked in the INBOX to open it.
+Goal mode. `agent/fable-3-lookout` merged by fable-cursor from the branch at `f8b73662`
+(`7fda3f98`, 02:25 UTC) — the cull `0b46deb7` and the clearing evidence `351739cc` came after the
+merge point and ride on the next branch. **`agent/fable-3-merge`** (off `0987e060`, head `cffe97a5`
+merged in) — reported 04:35 UTC, waiting for fable-cursor's merge from the branch (the PR tool is
+still refused by GitHub: "must be a collaborator", repository-side per fable-cursor):
+- cherry-picks `0a042038` (the 45 m cull) + `405ddd52` (clearing evidence);
+- `38aa5bfd` merge per locality: village / clearing, 8 meshes for the system (was 20), the cull
+  per locality, `audit.clusterBounds` per cluster and material; six views pixel-identical vs
+  `0987e060`, draws A −26 / B −23 / E −23 / F −24 / D −7 / C +2; evidence
+  `art/environment/props-fable-3/merge/`.
+- V18 (fable-5's "no rail on the flight") investigated and re-filed: the reference's right-side
+  verticals are the stakes pegging log-nosed treads (`d_105`), absent on both flanks at 1 / 5 / 8 s
+  → hardscape's stair construction, not a prop.
 
-Next in lane (docs/GOAL_MODE.md): the north clearing's props at the stone circle's entrance
-(pots + a wooden marker, expansion-1's brief), then LODs / ≤ 20 draws; still open from pass 1:
-hanging wooden signs, the crates' wood a shade warmer.
+Next in lane: the demo's light string (in `A_stairs` at (0.50–0.60, 0.55–0.62) and the right
+bank), fable-5's two notes (pot bodies one tone, crossboards clean-edged), the crates a shade
+warmer, hanging wooden signs.
 
 ## Files / systems being touched
 `src/world/props/{index,layout,geometry,materials}.ts`, `geometry.test.mjs`, `README.md`.
 Evidence sheets under `art/environment/props-fable-3/`. Nothing else.
 
 ## Completed work
+- `c8263f53` iteration-4 evidence (`art/environment/props-fable-3/merge/`): six views pixel-identical
+  vs `0987e060`, draw deltas per view.
+- `38aa5bfd` / `f37968ba` merge per locality (8 meshes), README.
+- `351739cc` iteration-3 evidence (`art/environment/props-fable-3/north-clearing/`): six views
+  pixel-identical with the clearing drawn and culled, before/after at three clearing poses.
+- `0b46deb7` distance cull per cluster (45 m; `update` + `onCameraMove`; `audit.culling`).
+- `eaf4b930` / `f8b73662` the waymarker builder and the north-clearing cluster (marker + 4 pots) —
+  merged `7fda3f98`.
 - `798f48af` iteration-2 evidence (`art/environment/props-fable-3/lookout/`): six views
   pixel-identical vs the world head, before/after at three lookout poses, the hidden-dais finding.
 - `393d4337` railing posts run from the turf through the slab (hardscape hides `flagstones-north`,
@@ -88,4 +103,4 @@ Evidence sheets under `art/environment/props-fable-3/`. Nothing else.
 - A Kokiri on the lip deck (npc-1) — the deck is the "stand on the ledge" destination.
 
 ## Last updated
-2026-09-20T01:25:00Z
+2026-09-20T04:35:00Z

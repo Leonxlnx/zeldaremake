@@ -276,6 +276,9 @@ export const NORTH_LITTER_LIFT = 0.001;
  */
 export const NORTH_TWIG_MAX_M = 30;
 export const NORTH_LEAF_MAX_M = 40;
+/** round 48: the far-floor pass' seam with the round-44 pass (m of `reach` under the detail radius it feathers in over) and the pad's litter share dropped */
+const FAR_LITTER_SEAM = 4;
+const PAD_LITTER_DROP = 0.75;
 /** mm-quantise so the audited sample position queries the terrain at exactly the seated point */
 const mm = (v: number) => Math.round(v * 1000) / 1000;
 const rec = (samples: number[][], x: number, y: number, z: number) => samples.push([x, Math.round(y * 10000) / 10000, z]);
@@ -544,6 +547,61 @@ export function buildLitter(ctx: WorldContext, field: VegField, material: Materi
         if (samples.length < 400 && i % 3 === 0) rec(samples, x, y, z);
       }
     }
+  }
+
+  // Round 48 (vegetation-26) — the forest floor beyond the tunnel (field.ts `farFloor`): the round-44
+  // pass stops where `reach` runs past the detail radius (z ≈ −83 on the clearing's meridian, the
+  // corridor's fade), and the reviews read the plain under the far trees as bare. This pass strews
+  // the far floor from there to its end at the round-44 pass' forest-floor density (its formula with
+  // the floor's extra, a seam feathered over FAR_LITTER_SEAM m of reach), on the exact terrain —
+  // the ground runs past the field grid. Own stream after every pass above; the audit's sample
+  // list only takes what is left of its 400 rows, so the earlier rows are the round-47 ones.
+  {
+    const rng = ctx.rng.fork('litter/far-floor-r48');
+    const box: readonly [number, number, number, number] = [-26, -96, 32, -59];
+    const w = box[2] - box[0];
+    const d = box[3] - box[1];
+    const candidates = Math.round(w * d * NORTH_LEAF_CANDIDATES_PER_M2 * q.density);
+    for (let i = 0; i < candidates; i++) {
+      const x = mm(box[0] + rng() * w);
+      const z = mm(box[1] + rng() * d);
+      const ff = field.farFloor(x, z);
+      if (ff <= 0.02) continue;
+      const seam = smoothstep(R - FAR_LITTER_SEAM, R, field.reach(x, z));
+      if (seam <= 0) continue;
+      const exact = ctx.terrain.mask(x, z);
+      if (exact.stairs >= 0.5 || exact.structure >= 0.5 || exact.cliff > 0.6 || exact.path > 0.5) continue;
+      if (field.insideGiantTrunk(x, z) || field.insidePropFootprint(x, z)) continue;
+      let p = 0.11 * NORTH_LITTER_REACH_FLOOR * (1 + NORTH_FLOOR_LITTER) * ff * seam;
+      p *= 0.55 + 0.9 * field.cluster(x, z);
+      if (rng() > p) continue;
+      const y = T.height(x, z) + NORTH_LITTER_LIFT;
+      T.normal(x, z, seatNormal);
+      if (rng() < NORTH_TWIG_SHARE) {
+        const scale = 0.8 + rng() * 0.6;
+        composeMatrix(M, 0, x, y, z, seatNormal.x, seatNormal.y, seatNormal.z, 1, rng() * TAU, scale, scale, scale);
+        northTwigs.add(M, rng.int(0, 3), tint.setRGB(0.85 + rng() * 0.3, 0.85 + rng() * 0.3, 0.85 + rng() * 0.3));
+      } else {
+        const scale = 0.7 + rng() * 0.7;
+        composeMatrix(M, 0, x, y, z, seatNormal.x, seatNormal.y, seatNormal.z, 1, rng() * TAU, scale, scale, scale);
+        const c = LEAF_TINTS[2 + rng.int(0, LEAF_TINTS.length - 2)];
+        tint.copy(c).multiplyScalar((0.8 + rng() * 0.4) * 0.88);
+        northLeaves.add(M, rng.int(0, leafGeos.length), tint);
+      }
+      count++;
+      if (count % 41 === 0 && samples.length < 400) rec(samples, x, y, z);
+    }
+    // the terrace pad is turf a Kokiri stands on (field.ts clearingLawn.pad): most of the round-44
+    // forest-floor litter that fell on it goes, by a stateless hash of its seat (the banks keep
+    // theirs under the new fronds — ref-04's "fine leaf litter everywhere")
+    const hash01 = (x: number, z: number) => {
+      let h = (Math.imul(Math.round(x * 1000), 374761393) + Math.imul(Math.round(z * 1000), 668265263)) | 0;
+      h = Math.imul(h ^ (h >>> 13), 1274126177);
+      return ((h ^ (h >>> 16)) >>> 0) / 4294967296;
+    };
+    const before = northLeaves.count + northTwigs.count;
+    for (const set of [northLeaves, northTwigs]) set.prune((it) => hash01(it.x, it.z) < PAD_LITTER_DROP * field.clearingLawn(it.x, it.z).pad);
+    count -= before - (northLeaves.count + northTwigs.count);
   }
 
   const all = [leaves, northLeaves, twigs, northTwigs, roots];
