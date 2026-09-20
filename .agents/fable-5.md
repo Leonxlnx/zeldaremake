@@ -17,9 +17,8 @@ gauntlet's independent D7 verdicts (`gauntlet/reviews/*.json`, written only thro
 00:00 UTC (timer `goal-mode-fable-5`, cron `20 * * * *`); `agent/fable-5-demo-walk` merged (`b4de8d7`); current branch `agent/fable-5-r48-review`.
 
 ## Current task
-Done this iteration: three lanes' commits measured on the perf-3 head (see Completed). Next:
-take-0122's re-verdict when it seals, else the round-49 walk of the head with the new boughs and
-string. Still waiting for the 15-minute video file.
+Done this iteration: fable-2's pebble looks measured at opus #16's pose (see Completed). Next:
+take-0123's re-verdict when it seals, else the round-49 walk once fable-4's boughs merge. Still waiting for the 15-minute video file.
 
 ## Previous current task (superseded)
 Goal-mode loop. Next iteration: **re-verdict every visual item on take-0120** when it seals (the
@@ -35,6 +34,10 @@ lands: `ffmpeg` frames at his marked moments → `reference/frames-video2/`, has
 - `.agents/fable-5.md`, `.agents/reviews/fable-5-*.md`, my threads in `.agents/INBOX.md`.
 
 ## Completed work
+- 2026-09-20 09:32–10:10 UTC — goal-mode iteration 11 (§O): fable-2's eight pebble looks `a3c644b2`
+  measured on head `5e525dea` — six views inside budget (worst −0.0004), the looks land on the
+  path-edge scatter; at opus #16's pose the joint pebbles at 1–2 m are pixel-identical (they are the
+  hardscape's joint grit, not `pathEdgePebble`) — reported, hardscape half open.
 - 2026-09-20 08:20–09:25 UTC — goal-mode iteration 10 (§M): three lanes' answers to take-0121
   measured as head (`acec3210`, perf-3 in) + commit. fable-4's low boughs IMPROVED (C: pole → limb
   with lobe; B −0.0003 the whole cost); fable-3's measured string IMPROVED (A −0.0005, C +0.0030,

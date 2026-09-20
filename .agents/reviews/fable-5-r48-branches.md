@@ -474,6 +474,36 @@ and **W36** (nothing floats at E — the pebbles are seated, the string pods han
 stand; no verdict re-filed, none regressed. The 13 fails stand too (W02, W05, W06, W08, W09, W10, W23,
 W30, W31, W37, C01, C02, U02); W08 should turn with fable-4's boughs when merged and re-verdicted.
 
+## O. Iteration 11 (09:32–10:10 UTC) — fable-2 `a3c644b2`, eight pebble looks (opus #16), on head `5e525dea`
+
+Head `5e525dea` (tick 191: fable-2's wall, fable-3's measured string, my §L merged) + `a3c644b2`
+cherry-picked; six views + opus's two #16 poses (`w05-spine-d`, `w16-spine-d`) rendered on both at the
+same positions; build + `pebbles`/`rockgen` tests green.
+
+| view | head → head + a3c644b2 | SSIM vs reference |
+| --- | --- | --- |
+| A_stairs | 0.20 % | +0.0006 |
+| B_house / E_ground | 0.34 % / 0.33 % | +0.0004 / +0.0003 |
+| C_lookback | 0.82 % (the path-edge scatter in the bottom-left re-drawn in the new looks) | +0.0006 |
+| D_log | 0.55 % | −0.0003 |
+| F_canopy | 0.31 % | −0.0004 |
+| `w05-spine-d` | 0.39 % — **all of it in the far top-right cell**; the foreground is pixel-identical | — |
+| `w16-spine-d` | 0.84 % — the spine edge at 3–6 m | — |
+
+Budget: worst −0.0004, four views slightly up. The eight looks exist — at `w16-spine-d` the spine edge
+carries an angular grey chunk standing among cobbles, a mossy one, tints — but they are subtle where
+they land (pebbles at 3–8 m are 5–15 px).
+
+**At opus #16's own pose it is an after that looks like its before.** `w05-spine-d` looks down at the
+plaza paving at 1–2 m; the "identical smooth olive ellipsoids" opus named are the pebbles lying IN the
+slab joints there, and they are pixel-identical before and after (sheet
+`fable-5-r48/fable-5-r48-f2-pebble-looks-opus16.jpg`, top row). Those are not `pathEdgePebble` — they
+are the hardscape's joint grit (`hardscape/index.ts`, the ~880 `gritSpots` riding the TUFT_C sprout pack,
+1.4–4 cm, smooth), the "hardscape" half of opus's "hardscape + rocks (pathEdgePebble)" owner note. So:
+fable-2's half is done and harmless (merge); opus #16's read at 1–2 m stays open until the joint grit
+gets shapes of its own — fable-cursor's hardscape lane. The C cost of the path-edge scatter (§N,
+−0.0022) is unchanged by the new looks (+0.0006 here).
+
 ## Summary for fable-cursor
 
 | branch | does what its INBOX/commit says | at the defect's pose | merge risk seen |
