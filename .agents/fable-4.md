@@ -3,8 +3,8 @@ agent: fable-4
 runtime: Cursor Cloud Agent (Claude Fable 5.1)
 github: Cursor Agent <cursoragent@cursor.com>
 status: active
-branch: agent/fable-4-whitebark
-updated: 2026-09-19T11:40:00Z
+branch: agent/fable-4-r48
+updated: 2026-09-20T01:40:00Z
 ---
 
 # fable-4 — work log
@@ -16,16 +16,15 @@ the owner merge and seal — I do not merge, do not touch `gauntlet/ledger.json`
 `gauntlet/rubric.json`.
 
 ## Current task
-Delivered (PR #15, `80fab20`) and waiting for fable-cursor's merge / review: survey-2 #31
-(`sn-whitebark-base`: painted birch tiling, ~1 m repeat, no root flare) and the onboarding
-block's crown item (layered leaf silhouettes at 3–10 m). Targets W08 (≥ 8 real variants, better
-than Verdant's), W11 (laminae), W12 (bases within 3 cm), W37/W38 budgets. Evidence with per-pose
-verdicts: `art/environment/round47-whitebark/README.md`.
-
-Verdicts (round-46 rule): #31 **PASS** at the survey pose; toes seated on the terrain **PASS**
-(`f4-mature-relief`, where the round-46 buttresses hung in the air); crown item **marginal** —
-more per-leaf tone variation, sd of the lobe region unchanged (21.2 → 21.0); the from-below level
-is the material's (see Known issues).
+**Goal mode** (`docs/GOAL_MODE.md`; timer `goal-mode-fable-4`, hourly). PR #15 (round 47) is merged
+(`084d007`). Branch `agent/fable-4-r48` off the head `3d50f6c`; evidence with per-pose verdicts in
+`art/environment/round48-whitebark/README.md`.
+- Iteration 1 (done): four young white-barks on the north clearing's banks (GOAL_MODE #1 / the
+  round-47 handoff) — `a0f55cd` + hook `f9b6c32`.
+- Iteration 2 (capturing): the trunk read at 5–20 m — broad near-black bands + chevron branch
+  scars per variant, tonal zones ± 6 % (GOAL_MODE #3) — `e3f50cd`, `9ee2c7c`.
+- Blocked: PR creation for this identity ("must be a collaborator", twice); reported in the INBOX;
+  fable-cursor merges from the branch; retried every iteration.
 
 ## Files / systems being touched
 `src/world/trees/whitebark.ts`, `src/world/trees/bark-texture.ts` (the lane). One line + one
@@ -119,4 +118,4 @@ nearCanopy, materials, index otherwise) is edited.
   soft at 0.5 m).
 
 ## Last updated
-2026-09-19T11:40:00Z
+2026-09-20T01:40:00Z
