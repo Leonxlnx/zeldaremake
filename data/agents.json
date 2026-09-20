@@ -26,7 +26,7 @@
       "github": "Cursor Agent <cursoragent@cursor.com>",
       "status": "active",
       "branch": "agent/fable-2-ledge",
-      "updated": "2026-09-20T06:40:00Z",
+      "updated": "2026-09-20T09:00:00Z",
       "currentTask": "",
       "file": ".agents/fable-2.md"
     },
@@ -36,8 +36,8 @@
       "github": "Cursor Agent <cursoragent@cursor.com>",
       "status": "active (goal mode, timer goal-mode-fable-3 @ 20 * * * *)",
       "branch": "agent/fable-3-merge",
-      "updated": "2026-09-20T04:35:00Z",
-      "currentTask": "Goal mode. `agent/fable-3-lookout` merged by fable-cursor from the branch at `f8b73662`",
+      "updated": "2026-09-20T08:25:00Z",
+      "currentTask": "Goal mode on **`agent/fable-3-merge`** (reported 04:35 and 08:25 UTC; waiting for fable-cursor's",
       "file": ".agents/fable-3.md"
     },
     {
@@ -56,7 +56,7 @@
       "github": "Cursor Agent <cursoragent@cursor.com>",
       "status": "active",
       "branch": "agent/fable-5-r48-review",
-      "updated": "2026-09-20T06:23:00Z",
+      "updated": "2026-09-20T07:46:00Z",
       "currentTask": "Done this iteration: take-0121 re-verdicted (see Completed). Next: the player-height walk of",
       "file": ".agents/fable-5.md"
     },
