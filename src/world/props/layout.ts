@@ -86,16 +86,16 @@ export const PROP_LAYOUT: readonly PropDef[] = [
   { id: 'stair-pot', kind: 'pot', x: 7.95, z: 1.8, size: 0.56, yaw: -0.3, cluster: 'stair-foot', variant: 0, paving: true },
   { id: 'stair-pot-squat', kind: 'pot', x: 7.55, z: 2.1, size: 0.42, yaw: 1.9, cluster: 'stair-foot', variant: 2, paving: true },
 
-  // ---- the demo's strings of small lights along the banks at the hero flight (frame A itself:
-  // a string from (0.50, 0.62) to (0.60, 0.55) — the paving's edge at (4.9, −1.7) up to the
-  // flight's left foot — and one on the right bank behind the Kokiri boy at (0.90–0.95,
-  // 0.35–0.40); `d_011` and `d_087` show the same motif). LEFT: from the plaza paving's edge along
-  // the north rim of the lawn pocket left of the flight and up its bank beside the first treads:
-  // A (0.50, 0.58) → (0.58, 0.50), F (0.14, 0.63) → (0.19, 0.50), B's right edge (0.88–0.96).
-  // RIGHT: along the plateau bank right of the flight (tilt 24–39°, no masks), A (0.90–0.94,
-  // 0.36–0.40), 1.6 → 3.0 m up. Pegs 0.45 m, cord sag 0.08, a pod every 0.4 m on the left (A's reference shows ~8), 0.3 m on the right; pod r 2.4 cm.
-  { id: 'stair-left-lights', kind: 'lightString', x: 5.35, z: -2.4, size: 1, yaw: 0, cluster: 'stair-foot', string: { points: [[5.35, -2.4], [5.95, -2.6], [6.5, -2.8], [7.05, -3.1], [7.45, -3.4], [7.8, -3.75]], lift: 0.45, sag: 0.08, spacing: 0.4 } },
-  { id: 'stair-right-lights', kind: 'lightString', x: 12.4, z: 0.9, size: 1, yaw: 0, cluster: 'stair-foot', string: { points: [[12.4, 0.9], [12.95, 0.3], [13.45, -0.35], [13.9, -1.0], [14.25, -1.7]], lift: 0.45, sag: 0.08, spacing: 0.3 } },
+  // ---- the demo's string of small lights along the bank left of the hero flight. Reference
+  // frame A has two: a near-horizontal one at (0.49–0.54, 0.47) — measured on the frame's own
+  // pixels; fable-5's (0.50–0.60, 0.55–0.62) was approximate — which unprojects onto the house
+  // terrace's steep south bank above the lawn pocket left of the flight (the ray meets the face
+  // at (6.5–8.2, 1.2, −6.0…−6.6), 16–17 m), and one at (0.28–0.31, 0.57–0.62) on a bank at the
+  // plaza's left that our plaza does not have (flat paving there — V15's closure), so it is not
+  // built. The pegs sit on the face just under its brow (h 1.13–1.24, tilt 52–63°), the cord
+  // hangs in front of the bank, a pod every 0.3 m. C does not hold the bank (59° off its axis);
+  // B/E see it at the right at 11 m, F at its top-left edge.
+  { id: 'terrace-bank-lights', kind: 'lightString', x: 6.3, z: -5.95, size: 1, yaw: 0, cluster: 'stair-foot', string: { points: [[6.3, -5.95], [6.9, -6.1], [7.45, -6.25], [8.0, -6.5], [8.6, -6.8]], lift: 0.3, sag: 0.08, spacing: 0.3 } },
 
   // ---- the plateau's storage corner by the plateau-north fence (survey-2 w28-plateau-d looks
   // straight at it): crate (#32), bucket, a barrel and two pots. The storage pot that stood at

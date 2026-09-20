@@ -253,8 +253,8 @@ for (const id of ['door-pot-large', 'sign-pot', 'saria-crate', 'saria-water-buck
 // the light strings: pegs on the ground, pods glowing above it, the left one where frame A shows it
 {
   const strings = audit.placed.filter((p) => p.kind === 'lightString');
-  assert.equal(strings.length, 2, 'two light strings');
-  assert.ok(audit.lightPods >= 14 && audit.lightPods <= 30, `a pod every 0.3 m (${audit.lightPods})`);
+  assert.equal(strings.length, 1, 'one light string (the second of frame A has no bank to stand on here)');
+  assert.ok(audit.lightPods >= 7 && audit.lightPods <= 12, `a pod every 0.3 m (${audit.lightPods})`);
   const sf = audit.clusterBounds['stair-foot'];
   assert.ok(sf.glow && sf.wood && sf.rope, 'the stair-foot cluster has glow, wood and rope');
   // every pod hangs 0.15–0.45 m over the ground under it
@@ -267,11 +267,16 @@ for (const id of ['door-pot-large', 'sign-pot', 'saria-crate', 'saria-water-buck
   const v = LAYOUT.viewpoints.find((q) => q.id === 'A_stairs');
   const cam = new THREE.PerspectiveCamera(v.fov, 1280 / 720, 0.1, 1000);
   cam.position.fromArray(v.position); cam.lookAt(new Vector3().fromArray(v.target)); cam.updateMatrixWorld(true);
-  const left = PROP_LAYOUT.find((d) => d.id === 'stair-left-lights').string.points;
+  const left = PROP_LAYOUT.find((d) => d.id === 'terrace-bank-lights').string.points;
   const p0 = new Vector3(left[0][0], ctx.terrain.height(left[0][0], left[0][1]) + 0.3, left[0][1]).project(cam);
   const p1 = new Vector3(left.at(-1)[0], ctx.terrain.height(left.at(-1)[0], left.at(-1)[1]) + 0.3, left.at(-1)[1]).project(cam);
   const u0 = (p0.x + 1) / 2, v0 = (1 - p0.y) / 2, u1 = (p1.x + 1) / 2, v1 = (1 - p1.y) / 2;
-  assert.ok(Math.abs(u0 - 0.50) < 0.03 && Math.abs(v0 - 0.60) < 0.04 && Math.abs(u1 - 0.59) < 0.03 && Math.abs(v1 - 0.52) < 0.04, `left string spans A (0.50, 0.62) → (0.60, 0.55) like the reference (got (${u0.toFixed(2)}, ${v0.toFixed(2)}) → (${u1.toFixed(2)}, ${v1.toFixed(2)}))`);
+  assert.ok(Math.abs(u0 - 0.48) < 0.03 && Math.abs(v0 - 0.465) < 0.03 && Math.abs(u1 - 0.555) < 0.03 && Math.abs(v1 - 0.465) < 0.03, `the string spans A (0.49–0.54, 0.47) like the reference (got (${u0.toFixed(2)}, ${v0.toFixed(2)}) → (${u1.toFixed(2)}, ${v1.toFixed(2)}))`);
+  // and stays out of C, whose reference shows that bank bare
+  const vc = LAYOUT.viewpoints.find((q) => q.id === 'C_lookback');
+  const camC = new THREE.PerspectiveCamera(vc.fov, 1280 / 720, 0.1, 1000);
+  camC.position.fromArray(vc.position); camC.lookAt(new Vector3().fromArray(vc.target)); camC.updateMatrixWorld(true);
+  for (const [px, pz] of left) { const c = new Vector3(px, ctx.terrain.height(px, pz) + 0.3, pz).project(camC); assert.ok(!(Math.abs(c.x) < 1 && Math.abs(c.y) < 1 && c.z > -1 && c.z < 1), `string peg (${px}, ${pz}) outside C`); }
   assert.equal(audit.skipped.length, 0);
 }
 
