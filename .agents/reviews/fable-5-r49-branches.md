@@ -389,12 +389,50 @@ a *smaller* stair-foot stone kept for F (F sees the foot from the left, C from b
 at the old spot would give F most of its structure back without returning C's loaf). Sheet
 `fable-5-r49/fable-5-r49-f2-v21-anchor.jpg`.
 
+## O. Iteration 24 (22:20–23:15 UTC) — the owner's NPC hide on the fixed views; fable-2's chroma step; fable-4-taper at its tip
+
+### The owner's ~21:00 priority landed (`0f0db8da`, `b4cdfe91`): NPCs hidden — what the six views pay
+
+Character-off renders are pixel-identical between `6d6d80f8` and `b4cdfe91` (nothing in the environment
+moved). **Character-on** renders (`--character`, what a take captures), old head → new head:
+
+| view | change | SSIM vs reference | what left the frame |
+| --- | --- | --- | --- |
+| C_lookback | 1.8 % | **−0.0018** | the Kokiri boy on the stair bank — the frame *has* him (V21's anchor context), so hiding costs C |
+| D_log | 0.8 % | −0.0007 | the child in the distance |
+| E_ground | 3.4 % | **+0.0037** | the Kokiri girl at (0.3, 0.6) — the frame's child stands at the left edge, so ours was a mismatch and E gains |
+
+Owner-approved by definition; the point of writing it down is the **next take's baseline**: C −0.0018 and
+E +0.0037 against take-0123 come from this, not from any environment lane. W36 still passes (Link alone
+stands with a contact shadow). Sheet `fable-5-r49/fable-5-r49-npcs-hidden-CDE.jpg`.
+
+### fable-2-hue `efe2ed46` (on `8908d696`) — the D boulder's chroma step
+
+On `b4cdfe91`: D Δ 0 (0.14 % px), `sn-boulder-shotd` 8.5 %. The D face box (0.10–0.24 × 0.55–0.72):
+head **l 0.268 / hue 64° / sat 0.18** → hue step 0.264 / 61° / 0.19 → **chroma step 0.260 / 60° / 0.20**
+(frame: 0.27 / 52° / 0.36); stone-mask pixels 65°/0.21 → 61°/0.23; at 2 m 71°/0.20 → 64°/0.23. Each step
+is in the right direction and small; the face as D sees it (shade + moss + stone) stays a grey-tan at
+half the frame's chroma — the tint has done what a tint can, the rest is §L's light on the south face.
+Merge (harmless).
+
+### fable-4-taper @ `30a81f5c` — taper/bow + instance-matrix lean + "a bough that shows" + the walker clearance
+
+vs head `b4cdfe91`: **C 2.2 % px, +0.0009**; `wb-grove-10m` 11 %; `x-whitebark-bough` 22.6 % — the lobe
+now sits ≥ 1.9 m over the ground as a flatter drooping spray, so a walker at 3.5 m no longer stands in the
+leaves. At C the stem leans into the frame, is thicker at the toes with a bow, and shows a twig and a leaf
+spray under the giant's lantern limb: **all four of W08's words at C**, modestly, with the bough's upper
+half under the item HUD as the only nit. With this tip in the next take, W08 at C turns to pass on my read.
+Merge. Sheet `fable-5-r49/fable-5-r49-f4-taper-tip.jpg`.
+
 ## Summary for fable-cursor
 
 - fable-4 `5fe58488`: merge; six views Δ 0 (five pixel-identical).
 - fable-4 `ea86f8c1`: ~~merge~~ — reverted by fable-4 (a hidden re-roll of 18 outer-ring placements my six-view pair could not see); the lean half of W08 is open again.
 - fable-2 `e5867d7e` (the D loaf): merge the composition (D −0.0008, a rock is in the frame); the face reads l 0.21 against the reference's lit 0.27 — the value pass follows.
 - fable-3 `424478eb` (wood tint): harmless, pixel-identical on the six views; 3–4° of hue at the pose — unchanged to the eye.
+- fable-4-taper @ `30a81f5c` (tip): merge; C +0.0009, all four W08 words at C — W08 turns on the next take.
+- fable-2-hue `efe2ed46` (chroma step): merge; D Δ 0, face sat 0.18 → 0.20 (frame 0.36) — the tint is spent, light next.
+- NPCs hidden (head): C −0.0018, D −0.0007, E +0.0037 in character-on frames — the next take's baseline shift, not a lane's.
 - fable-2-v21 `02321879` (the C anchor, stair-foot stands in): **C +0.0032 / A −0.0007 / F −0.0043** — V21 landed at C; F over budget; fable-cursor's call (owner-approved composition, or a smaller stair-foot stone kept for F).
 - fable-2-hue `8908d696`: merge; the D face hue 67° → 59° (frame 52°), saturation 0.16 unchanged (frame 0.36) — chroma is the next half.
 - fable-3-backside `3227a358`: merge; six views + `w04-spine-l` pixel-identical, the crate/bucket and the fork waymarker land at fable-3's poses.
