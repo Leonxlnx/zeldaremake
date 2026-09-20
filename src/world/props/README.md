@@ -31,8 +31,11 @@ stair-foot pots), `pad` admits a house pad (the doorway pots and the crate besid
 prop that finds no legal spot within 1.05 m is skipped and reported (`audit.skipped`), never
 relocated across the village.
 
-Draw calls: props of one `cluster` merge into one mesh per material (8 clusters → 20 meshes; each
-cluster's meshes are compact, so the fixed cameras frustum-cull the ones they do not hold).
+Draw calls: a `cluster` is a place (placement, audit, `audit.clusterBounds`); clusters belong to a
+merge locality (`localityOf` in `layout.ts`: the seven village clusters → `village`, the north
+clearing → `clearing`), and each locality is ONE mesh per material — 8 meshes for the whole system
+(≤ 8 draws per pass in a frame). Each locality is distance-culled as one (`CLUSTER_VISIBLE_M`,
+45 m, through `update` / `onCameraMove`): the clearing never rides into the six frames' passes.
 
 ## Clusters
 
