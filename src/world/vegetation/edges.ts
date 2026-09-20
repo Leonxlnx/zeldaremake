@@ -48,7 +48,7 @@ export const RIM_CLEAR: readonly [number, number] = [0.13, 0.25];
 export const SOIL_MAT_PITCH = 0.2;
 export const SOIL_MAT_WIDTH: readonly [number, number] = [0.32, 0.5];
 export const SOIL_MAT_LIGHT: readonly [number, number] = [0.28, 0.42];
-const SOIL_MAT_LIFT = 0.012;
+export const SOIL_MAT_LIFT = 0.012;
 /** moss cushions per metre of rim (in patches), tufts per metre, leaves per metre */
 export const RIM_MOSS_PER_M = 1.6;
 export const RIM_TUFTS_PER_M = 1.4;
