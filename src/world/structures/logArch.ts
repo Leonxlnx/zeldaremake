@@ -520,10 +520,10 @@ export function buildLogArch(ctx: WorldContext, mats: StructureMaterials, rng: R
    * mass a little — a rounded hump, not a fin.
    */
   const WEST_MASS_TO = -4.5;
-  const TOP_LINE = axisAt(0).y + CROWN_FLAT * rBase(Math.PI / 2, 0);
+  const TOP_LINE = axisAt(0).y + rBase(Math.PI / 2, 0);
   const westMass = (psi: number, s: number, up: number) => {
     if (s > WEST_MASS_TO || up < 0.2) return 0;
-    const deficit = Math.max(0, TOP_LINE - (yc(s) + CROWN_FLAT * rBase(Math.PI / 2, s)));
+    const deficit = Math.max(0, TOP_LINE - (yc(s) + rBase(Math.PI / 2, s)));
     if (deficit <= 0) return 0;
     const along = smoothstep(WEST_MASS_TO, WEST_MASS_TO - 2.5, s);
     const rim = sEndW(psi);
