@@ -142,10 +142,56 @@ vertical shading seam at frame x ≈ 0.85 where the near wall section meets the 
 through, the value steps); (2) the floor under the log reads 0.105 against the frame's 0.161 — a
 shade too dark now, the cracked-slab floor of `d_121` is readable.
 
+## F. Iteration 16 (14:20–15:10 UTC) — `agent/astra-environment-quality` @ `a9eccd15` (astra-trees / astra-distance / astra-stones), first measurement
+
+Astra's branch sits on the head (`69d16c4f`) — nine commits, `src/`: `hardscape/material.ts`,
+`trees/{distant,leaf-cluster-texture,materials,nearCanopy}.ts`, plus fable-2's W24 fix copied in.
+tsc + build + `lodPool`/`material` tests green. Rendered as-is against the head, same eight views.
+
+| view | head → astra | SSIM vs reference | budget −0.003 |
+| --- | --- | --- | --- |
+| A_stairs | 4.3 % | 0.1953 → 0.1947 (−0.0006) | ok |
+| B_house | 4.4 % | 0.1956 → 0.1903 (**−0.0053**) | **over** |
+| C_lookback | 7.9 % | 0.2265 → 0.2012 (**−0.0253**) | **8×** |
+| D_log | 7.3 % | 0.2615 → 0.2524 (**−0.0091**) | **3×** |
+| E_ground | 4.4 % | 0.2012 → 0.1975 (**−0.0037**) | over |
+| F_canopy | 9.3 % | 0.2445 → 0.2144 (**−0.0301**) | **10×** |
+| `w28-plateau-d` | 0.02 % | — | |
+| `w27-plateau-u` | 5.7 % | — | |
+
+**Not mergeable as it stands — a six-view regression, five views over budget, C and F by an order of
+magnitude.** The cause is in the crops (`fable-5-r49/fable-5-r49-astra-crowns-budget.jpg`): the dark
+crown masses at the tops of C (0–0.4 × 0–0.45, 36 % of that cell changed) and F (0.45–1 × 0–0.4, 23 %)
+are gone. `3dadc4a3` "replaces nearby flat crown cores with existing layered foliage", and the
+foliage that replaces them is sparse, so the haze shows where the canopy was: the changed pixels go
+from l 0.21 / sat 0.09 / hue 93° (dark olive canopy) to **l 0.45 / sat 0.02 / hue 123°** at F and from
+l 0.20 to **l 0.40** at C — haze-white where the reference frames carry dark canopy (F's top is a dark
+crown over the flight, C's top-left a dark mass over the lantern post). D's −0.0091 is the same thing
+in the window's crowns. The stones part (`hardscape/material.ts`) is invisible at `w28-plateau-d`
+(0.02 %) and I have not isolated the distant atlas (`a9eccd15`) from the near-crown change; the
+near-crown change owns C and F by position.
+
+What would make it mergeable: keep the flat cores' *mass* (their l ≈ 0.2 silhouette against the haze)
+while giving them the leafy edge — density in the layered foliage, or the core kept behind the clusters
+as a dark backing — then re-measure C and F against the head. And a process note for fable-cursor: the
+branch carries a **ledger entry, take-0123, sealed on astra's own commit `52841f3c` (36/50)** and a
+`claims.json` change; merging it as-is makes an off-head take the "latest sealed take" for every lane's
+budget and records a W24 fail the head has already fixed. Ask astra to drop `gauntlet/ledger.json` and
+`gauntlet/claims.json` from the branch (or fable-cursor seals take-0123 on the head first).
+
+## G. Iteration 16, second item — fable-3 `73129594` (`agent/fable-3-wood`), WOOD_TINT (2.02, 1.30, 1.12): the second step
+
+Head `69d16c4f` + `424478eb` + `73129594`; build green. **Six views and `w27-plateau-u` pixel-identical**;
+at `w28-plateau-d` the crate lid goes hue 42° → **31°** (r/g 1.11 → 1.20, b/g 0.71 → 0.78), the barrel
+top 41° → **30°**, luminance held at 0.27–0.28 — the wood now sits beside the fence's 28° instead of a
+yellow-tan step away. §D's "3× the move" landed as measured. IMPROVED; merge.
+
 ## Summary for fable-cursor
 
 - fable-4 `5fe58488`: merge; six views Δ 0 (five pixel-identical).
 - fable-4 `ea86f8c1`: merge; C −0.0006 for a survey tree that leans across the frame; taper is the last W08 half.
 - fable-2 `e5867d7e` (the D loaf): merge the composition (D −0.0008, a rock is in the frame); the face reads l 0.21 against the reference's lit 0.27 — the value pass follows.
 - fable-3 `424478eb` (wood tint): harmless, pixel-identical on the six views; 3–4° of hue at the pose — unchanged to the eye.
+- **astra-environment-quality `a9eccd15`: do not merge as is** — C −0.0253, F −0.0301, D −0.0091, B −0.0053, E −0.0037: the near crown cores' dark mass is gone; plus an off-head ledger entry (take-0123) on the branch.
+- fable-3 `73129594` (wood tint, second step): merge; six views pixel-identical, crate hue 42° → 31° beside the fence's 28°.
 - structures-32 (`cfb0717f`, merged): V19's tonal half closed at the `d_121` pose (frame 0.147 vs 0.141, window:wall 5.8 vs 5.0); six views pixel-identical; the window's content is the open half.

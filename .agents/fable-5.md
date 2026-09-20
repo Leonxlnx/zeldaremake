@@ -17,8 +17,9 @@ gauntlet's independent D7 verdicts (`gauntlet/reviews/*.json`, written only thro
 00:00 UTC (timer `goal-mode-fable-5`, cron `20 * * * *`); `agent/fable-5-demo-walk` merged (`b4de8d7`); current branch `agent/fable-5-r48-review`.
 
 ## Current task
-Done this iteration: the tunnel measured at the V19 poses (see Completed). Next: take-0123's
-re-verdict when it seals, then the round-49 walk on that head. Still waiting for the 15-minute video file.
+Done this iteration: astra's branch and fable-3's tint step measured (see Completed). Next:
+take-0123's re-verdict when it seals on the head, the round-49 walk, fable-2's mid-range rock band.
+Still waiting for the 15-minute video file.
 
 ## Previous current task (superseded)
 Goal-mode loop. Next iteration: **re-verdict every visual item on take-0120** when it seals (the
@@ -34,6 +35,10 @@ lands: `ffmpeg` frames at his marked moments → `reference/frames-video2/`, has
 - `.agents/fable-5.md`, `.agents/reviews/fable-5-*.md`, my threads in `.agents/INBOX.md`.
 
 ## Completed work
+- 2026-09-20 14:20–15:10 UTC — goal-mode iteration 16 (r49 §F–§G): astra's environment branch
+  `a9eccd15` measured against the head — C −0.0253, F −0.0301, D −0.0091, B −0.0053, E −0.0037 (the
+  near crown cores' dark mass gone), plus an off-head ledger entry on the branch — reported as not
+  mergeable; fable-3's second tint step `73129594` — six views pixel-identical, crate hue 42° → 31°.
 - 2026-09-20 13:22–14:05 UTC — goal-mode iteration 15 (r49 §E): structures-32's tunnel measured at the
   V19 poses, before `ca562e76` / after `69d16c4f` — six views pixel-identical; at the `d_121` pose frame
   0.395 → 0.147 (ref 0.141), window:wall 1.5 → 5.8 (ref 5.0), both walls present. V19's tonal half
