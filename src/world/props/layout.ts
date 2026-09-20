@@ -32,9 +32,10 @@ export interface PropDef {
    * platform: deck height above the ground (m), footprint, railing, ladder, block steps.
    * `dais: true` binds the platform to `LAYOUT.plateauLookout` (fable-cursor's hook): position,
    * yaw and width come from the hook, the depth from the `lookout` slab, and the wooden part
-   * stands ON hardscape's stone dais — a rope railing on its lip and short sides and a step
-   * block on the fence side — instead of building a deck of its own (the character ground
-   * learns the slab top, so wood over the stone would swallow the player's feet).
+   * is a rope railing set into hardscape's stone dais — posts from the turf up through the
+   * slab, ropes on its lip and short sides, a step block on the fence side — instead of a deck
+   * of its own (the character ground learns the slab top, so wood over the stone would swallow
+   * the player's feet).
    */
   platform?: { deck: number; width: number; depth: number; rail: boolean; ladder: boolean; steps?: number; dais?: boolean };
 }

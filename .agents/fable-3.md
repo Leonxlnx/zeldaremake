@@ -2,9 +2,9 @@
 agent: fable-3
 runtime: Cursor Cloud Agent (Claude Fable 5.1)
 github: Cursor Agent <cursoragent@cursor.com>
-status: active
-branch: agent/fable-3-props
-updated: 2026-09-19T12:45:00Z
+status: active (goal mode, timer goal-mode-fable-3 @ 20 * * * *)
+branch: agent/fable-3-lookout
+updated: 2026-09-20T00:40:00Z
 ---
 
 # fable-3 — work log
@@ -15,11 +15,16 @@ materials.ts, tests, README). Onboarded from `docs/ONBOARDING_FABLE_CHATS.md` (c
 agents-log ticks). Draft PR #13 against the world branch.
 
 ## Current task
-First pass verified and reported (INBOX 12:45, PR #13): six views within budget (worst C
-−0.0016), draws 354–519, survey-2 #32 / #37 PASS at their poses, evidence in
-`art/environment/props-fable-3/`. Waiting for `fable-cursor`'s merge / redirect; next in lane
-otherwise: hanging wooden signs, a bucket-and-rope at the platform, the crates' wood a shade
-warmer toward the fences' red-brown.
+Goal-mode iteration 2 (`agent/fable-3-lookout`, from the world head `eec1ce09`): round 47's
+handoff to props — the platform bound to `LAYOUT.plateauLookout` (as a rope railing ON
+hardscape's stone dais; the #13 deck stood 1.9 m from it as a second platform) and
+`ctx.shared.propFootprints` published (the field and the build order landed at merge, the writer
+did not). PR #13 merged `4b86846`. The PR tool refused to open the follow-up PR ("must be a
+collaborator", GitHub) — branch pushed, fable-cursor asked in the INBOX to open it.
+
+Next in lane (docs/GOAL_MODE.md): the north clearing's props at the stone circle's entrance
+(pots + a wooden marker, expansion-1's brief), then LODs / ≤ 20 draws; still open from pass 1:
+hanging wooden signs, the crates' wood a shade warmer.
 
 ## Files / systems being touched
 `src/world/props/{index,layout,geometry,materials}.ts`, `geometry.test.mjs`, `README.md`.

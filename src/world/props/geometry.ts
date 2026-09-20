@@ -557,7 +557,7 @@ export interface PlatformSpec {
   steps?: number;
   /**
    * the deck is somebody else's stone slab whose top is at `deck`: no joists or boards, the
-   * railing posts stand on the stone (feet 3 cm into it, inset from its bevelled edge), the
+   * railing posts rise from the turf through the stone (inset from its bevelled edge), the
    * steps on the ground beside it
    */
   slab?: boolean;
@@ -592,13 +592,16 @@ export function platformGeometry(rng: Rng, spec: PlatformSpec): Part[] {
   const push = (geometry: BufferGeometry, material: MaterialKey) => parts.push({ geometry, material });
   const feet: [number, number][] = [[-hx + ix, -hz + iz], [hx - ix, -hz + iz], [-hx + ix, hz - iz], [hx - ix, hz - iz]];
   if (slab) {
-    // the railing's four posts stand on the stone, all one height, lashed at the rope courses
+    // the railing's four posts, all one height over the slab, run from the turf up THROUGH the
+    // stone: set into the slab where it is drawn, standing on the ground where the slab is hidden
+    // by distance (hardscape draws its north flagstones, dais included, only near the clearing)
     if (spec.rail) {
       for (const [px, pz] of feet) {
-        const foot = deckY - 0.03;
+        const gy = spec.groundAt(px, pz) - 0.06;
         const top = deckY + 0.88 + rng.range(-0.02, 0.02);
-        const post = board(0.1, top - foot, 0.1, { grain: 'y', rng, chamfer: 0.012 });
-        place(post, new Vector3(px, (top + foot) / 2, pz));
+        const post = board(0.1, top - gy, 0.1, { grain: 'y', rng, chamfer: 0.012 });
+        place(post, new Vector3(px, (top + gy) / 2, pz));
+        groundFoot(post, gy + 0.08, spec.groundAt);
         push(post, 'wood');
       }
     }

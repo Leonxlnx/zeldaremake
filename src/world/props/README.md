@@ -15,6 +15,11 @@ Owned leaf module: `src/world/props/**` (lane `fable-3`, 2026-09-19; first pass 
 | bucket | 14 staves, floor, 2 hoops, rope handle | wood + iron + rope |
 | ladder | two laid ropes from a pegged crossbar on a house trunk to the ground, boards lashed between them | rope (procedural three-strand map) + wood |
 | platform | posts to their own ground, joists, deck boards, rope railing on three sides with lashings, ladder when the deck is high | wood + rope |
+| platform, `dais: true` | the lookout railing: bound to `LAYOUT.plateauLookout` (position, yaw, width) and hardscape's `lookout` slab (depth, proud height) — four posts rising from the turf through the stone dais to 0.88 m over its top (inset from the bevel; they stand on the ground wherever hardscape hides the slab by distance), two rope courses on the plaza side and both short sides, one step block on the turf at the fence side; no deck of its own (the character ground learns the slab top) | wood + rope |
+
+Hooks: after placement the system publishes `ctx.shared.propFootprints` (`{ x, z, r }` per placed
+prop, `r` the prop's own ground footprint) — vegetation builds after props and keeps its ferns out
+of those discs. The hook-bound lookout railing is placed exactly (no footprint probe or nudge).
 
 Placement (`layout.ts` → `index.ts`): every prop is seated on `ctx.terrain.height`; small props
 follow the terrain normal up to 9° and are otherwise set level into the slope, and their
@@ -32,15 +37,16 @@ Draw calls: props of one `cluster` merge into one mesh per material (7 clusters 
 `saria-door` (2 pots on the porch floor, viewer's left of the door), `signpost` (2 pots, bucket,
 crate), `stair-foot` (2 pots on the apron at the bottom riser's south corner), `plateau` (crate,
 barrel, bucket, 2 pots by the plateau-north fence), `upper-house` (the rope ladder),
-`plateau-lip` (the low deck where the plateau-west fence ends), `west` (the tall platform under
-the lantern tree).
+`plateau-lip` (the rope railing on the lookout dais past the end of the plateau-west fence), `west`
+(the tall platform under the lantern tree).
 
 ## Verification
 
 `node src/world/props/geometry.test.mjs` (Node 20+): builders (chamfered box winding, pot
 proportions and bands, crate board columns, barrel parts), procedural map determinism, every
-authored prop placed, counts, tilt limit, B_house projections of the door dressing, the lip
-platform outside A–D, geometry determinism / finiteness / attributes, contact gaps of the seated
+authored prop placed, counts, tilt limit, B_house projections of the door dressing, the lookout
+railing at its hook with the ropes above the slab top and outside A–D, one published footprint
+per placed prop, geometry determinism / finiteness / attributes, contact gaps of the seated
 vertices, compact cluster bounds, placement rules, disposal. Then `npm run typecheck && npm run build`.
 
 Visual acceptance is before/after at the survey poses (`art/environment/survey2/manifest.json`)
