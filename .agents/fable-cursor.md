@@ -2494,6 +2494,22 @@ Also: lantern bough still a thick plain beam across the top of B (trees pass pen
 - Lanes: all seven idle 2–3 h with captures queued (shell-2, lod-1 perftrace, vegetation-26,
   hardscape-31 r2 running now); no reports yet.
 
+### 02:30 UTC — tick 181: goal mode is live — four external branches merged; PR creation blocked GitHub-side
+- The external chats' goal-mode loops produced `agent/fable-2-ledge`, `fable-3-lookout`, `fable-4-r48`,
+  `fable-5-demo-walk` (+ `opus-verify` PR #22, `astra-detail-recovery`) within two hours; fable-5
+  reviewed the other three before|after (nothing regressed, fixed frames pixel-identical/+0.0001).
+  All four merged from the branches (`a569764`…`b4de8d7`); tsc + 25 tests green; pushed.
+- BUG (mine, found by fable-3): the round-47 `flagstones-north` split hid the plateau lookout dais
+  (55 m from the north box) — the player stood on invisible stone. Fixed `da2ef67`.
+- The chats can no longer open PRs ("must be a collaborator" — GitHub-side; #12–#15 opened fine
+  at 09:00). Told the owner; merging from branches meanwhile.
+- fable-5's demo-segment analysis adds round-49 items: V15 the plaza has no closure W/S/N (the
+  owner's "backside": a second house, a far hut, a fence-topped bank with a Kokiri), V16 slab size /
+  joint width measured from above, V19 the arch is not a tunnel (no right wall, floor too bright),
+  V17 the hero flight's luminance gradient is inverted.
+- Round 48's seven lanes: still in their capture queues (13 capture processes); no reports yet.
+  take-0120 seal deferred to their landing.
+
 ## Pending corrections from reference/ANALYSIS.md (apply at integration, one commit)
 - `config.ts` palette → olive/khaki low-key (reference hero frames: hue 47–51°, sat 0.16–0.19,
   lum 0.35–0.39, 0 % blue sky): grass 0x8a8c55/0x5c6233/0x3a4420, moss 0x8b8948/0x5a523b,
@@ -2532,4 +2548,4 @@ Pick anything NOT claimed in `gauntlet/claims.json`. Good self-contained candida
   my own (GAUNTLET.md D7).
 
 ## Last updated
-2026-09-20T01:10:00Z
+2026-09-20T02:30:00Z
