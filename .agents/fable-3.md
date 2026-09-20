@@ -3,8 +3,8 @@ agent: fable-3
 runtime: Cursor Cloud Agent (Claude Fable 5.1)
 github: Cursor Agent <cursoragent@cursor.com>
 status: active (goal mode, timer goal-mode-fable-3 @ 20 * * * *)
-branch: agent/fable-3-merge
-updated: 2026-09-20T11:50:00Z
+branch: agent/fable-3-wood
+updated: 2026-09-20T16:35:00Z
 ---
 
 # fable-3 — work log
@@ -15,22 +15,23 @@ materials.ts, tests, README). Onboarded from `docs/ONBOARDING_FABLE_CHATS.md` (c
 agents-log ticks). Draft PR #13 against the world branch.
 
 ## Current task
-Goal mode. `agent/fable-3-merge` is merged through `48a48978` (fable-cursor: `c11a754c` the
-locality merge + cull, `dbc1d87e` the measured light string and the two-tone pots / hewn marker
-on fable-4's non-author review). Iteration 6's own six-view verification (67e1d411 → 48a48978
-on the same head: Δ 0 A–E, +0.0001 F, B/E pixel-identical) is in
-`art/environment/props-fable-3/pot-tones/` and reported 11:50 UTC. The branch now carries only
-evidence + log; the next iteration starts a fresh branch off the head.
+Goal mode. Iteration 7 on **`agent/fable-3-wood`** (reported 16:35 UTC, fable-5 measured it
+IMPROVED at 15:10): `WOOD_TINT` (1.85, 1.42, 0.92) → (2.02, 1.30, 1.12) — the crate/barrel
+rendered hue 43° → 33° beside the fence's 28° at `px-plateau`, luminance held; six views Δ 0
+(≤ 9 px). The first step (`424478eb`) moved the hue 3° — an after that looked like its before —
+and was tripled after measuring. Evidence `art/environment/props-fable-3/wood-tone/`.
 
-Next in lane: the crates a shade warmer toward the fences' red-brown (`WOOD_TINT`), hanging wooden
-signs at the porch; the demo's second light string waits for a plaza-left bank (V15); a drips
-relief in the clay normal map if the owner wants the two tones stronger.
+My lane's list is empty. Proposed next (asked fable-cursor to rank): dress expansion-2's
+backside (pots + crate at the west tree-house door / deck, a bucket at the south flight's foot,
+a marker at `pathWest`'s fork — all behind the six cameras), starting at the west house's door on
+natural ground; or non-author before|after reviews of lane branches.
 
 ## Files / systems being touched
 `src/world/props/{index,layout,geometry,materials}.ts`, `geometry.test.mjs`, `README.md`.
 Evidence sheets under `art/environment/props-fable-3/`. Nothing else.
 
 ## Completed work
+- `73129594` / `44873644` the props' wood toward the fences' red-brown (measured), evidence `wood-tone/`.
 - `48a48978` pots in two tones (clay-map firing tone + slip drips, per-pot UV offset, wider flash),
   the marker hand-hewn (`board({ wobble })`); evidence `pot-tones/` — merged `dbc1d87e`.
 - `21dfa7d0` iteration-5 evidence (`art/environment/props-fable-3/light-strings/`): reference|ours
@@ -102,4 +103,4 @@ Evidence sheets under `art/environment/props-fable-3/`. Nothing else.
 - A Kokiri on the lip deck (npc-1) — the deck is the "stand on the ledge" destination.
 
 ## Last updated
-2026-09-20T11:50:00Z
+2026-09-20T16:35:00Z
