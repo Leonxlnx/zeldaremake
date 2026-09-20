@@ -94,19 +94,19 @@ export const PROP_LAYOUT: readonly PropDef[] = [
 
   // ---- the north clearing's entrance (GOAL_MODE fable-3 #2): where the north path's band (half
   // width 2.2, from the arch at (5.8, −58) south-west) meets the paved disc at (−1.5, −69.8) r 4.6.
-  // The mask's skirt is wide, so the two flank corners are (0.4, −64.4) — the walker's RIGHT
-  // entering, the disc's north-east rim — and (4.3, −67.7) on the left toward the ledge flight.
-  // The waymarker stands on the right corner, its long board pointing into the circle (yaw so
-  // +z → the centre), a pot pair at its foot; a second, low pair on the left corner. Ground
-  // 4.16–4.34 m, tilt ≤ 11° (pots set level, the post vertical). Fixed frames: C/F do not hold
-  // the direction; in D the right corner projects at x 0.43, inside the log's west root mass
-  // (x 0.39–0.47, y 0.27–0.46) with the ground line at 0.47; A/B/E's rays to it pass the log's
-  // west end at z −54 inside the bark (x ≈ 0.4, y ≈ 5.5). The tall post therefore stands on the
-  // right corner; the left corner (D x 0.47, A's ray under the belly at x ≈ 3.8) takes only pots
-  // below the far ground line — verified by the six-view capture, not the pinhole.
+  // The mask's skirt is wide, so the two flank corners are (0.4, −64.4) — the walker's LEFT
+  // entering from the arch, the disc's north-east rim — and (4.3, −67.7) on the right toward the
+  // ledge flight. The waymarker stands on the left corner, its long board pointing into the
+  // circle (yaw so +z → the centre), a pot pair at its foot; a second, low pair on the right
+  // corner. Ground 4.16–4.34 m, tilt ≤ 11° (pots set level, the post vertical). Fixed frames: C/F
+  // do not hold the direction; in D the left corner projects at x 0.43, inside the log's west
+  // root mass (x 0.39–0.47, y 0.27–0.46) with the ground line at 0.47; A/B/E's rays to it pass
+  // the log's west end at z −54 inside the bark (x ≈ 0.4, y ≈ 5.5). The tall post therefore
+  // stands on that corner; the flight-side corner (D x 0.47, A's ray under the belly at x ≈ 3.8)
+  // takes only pots below the far ground line — verified by the six-view capture, not the pinhole.
   { id: 'circle-marker', kind: 'marker', x: 0.4, z: -64.4, size: 1.75, yaw: -2.8, cluster: 'north-clearing' },
-  { id: 'circle-pot-right', kind: 'pot', x: -0.2, z: -64.9, size: 0.58, yaw: 2.4, cluster: 'north-clearing', variant: 1 },
-  { id: 'circle-pot-right-squat', kind: 'pot', x: 0.9, z: -64.15, size: 0.46, yaw: 0.3, cluster: 'north-clearing', variant: 2 },
-  { id: 'circle-pot-left', kind: 'pot', x: 4.75, z: -68.45, size: 0.66, yaw: 0.6, cluster: 'north-clearing', variant: 0 },
-  { id: 'circle-pot-left-squat', kind: 'pot', x: 4.15, z: -68.7, size: 0.44, yaw: -1.4, cluster: 'north-clearing', variant: 2 },
+  { id: 'circle-pot-marker', kind: 'pot', x: -0.2, z: -64.9, size: 0.58, yaw: 2.4, cluster: 'north-clearing', variant: 1 },
+  { id: 'circle-pot-marker-squat', kind: 'pot', x: 0.9, z: -64.15, size: 0.46, yaw: 0.3, cluster: 'north-clearing', variant: 2 },
+  { id: 'circle-pot-flight', kind: 'pot', x: 4.75, z: -68.45, size: 0.66, yaw: 0.6, cluster: 'north-clearing', variant: 0 },
+  { id: 'circle-pot-flight-squat', kind: 'pot', x: 4.15, z: -68.7, size: 0.44, yaw: -1.4, cluster: 'north-clearing', variant: 2 },
 ];
