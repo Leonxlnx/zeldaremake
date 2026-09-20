@@ -87,6 +87,22 @@ export interface SharedGeometry {
   trunkSeats?: TrunkSeat[];
   /** village props' ground footprints (centre + radius, m), published by props before vegetation scatters */
   propFootprints?: { x: number; z: number; r: number }[];
+  /**
+   * Round 49 (expansion-2): walkable built surfaces above the ground — the west house's platform
+   * disc and walkway deck, with its wall ring (the door is the gap) — published by structures for
+   * the character ground (character/ground.ts reads them; nothing else does).
+   */
+  walkSurfaces?: WalkSurface[];
+}
+
+export interface WalkSurface {
+  id: string;
+  /** a flat disc: centre, radius, top height */
+  disc: { x: number; z: number; r: number; y: number };
+  /** a deck: from `a` to `b` (world, heights = its top), half width */
+  deck: { a: [number, number, number]; b: [number, number, number]; hw: number };
+  /** the wall ring about the disc's centre: radius, half thickness; the door's angular gap [from, to] (rad, from +x toward +z) */
+  wall: { r: number; half: number; gap: [number, number] };
 }
 
 export interface WorldSystem {

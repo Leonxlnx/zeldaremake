@@ -1,0 +1,14 @@
+{
+  "source_sha256": "996d041760815919bab9f22e71f8c7a901cd89a3490cba1526900c2d7d314fd8",
+  "sha256": "382ec9ecab9f77062b61c77192ada4df860abc33666284d8971abe1e577492eb",
+  "changed_vertices": 11244,
+  "native_error_m": 0,
+  "width_scale": 0.9,
+  "length_scale": 0.88,
+  "fade_height_m": [
+    0.1,
+    0.2
+  ],
+  "rest_height_preserved": true,
+  "rig_clips_weights_uvs_textures_morphs_unchanged": true
+}
