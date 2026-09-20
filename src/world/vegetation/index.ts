@@ -114,6 +114,8 @@ export async function create(ctx: WorldContext): Promise<WorldSystem> {
     const t0 = performance.now();
     camera.getWorldPosition(camPos);
     grass.update(camPos);
+    // round 49 (perf-3): the blade tiles trim to the 2 m cells that can reach the frame (grass.ts `cull`)
+    grass.cull(camera, force);
     const sun = currentSun();
     let budget = REBUCKET_BUDGET;
     let listed = 0;
@@ -246,8 +248,13 @@ export async function create(ctx: WorldContext): Promise<WorldSystem> {
      * cards are culled per instance (a fifth of them submit from camera A), where the blade tiles
      * only hide (litter.ts explains how the always-submitted leaves back the culled weeds / tufts)
      */
-    grassInstances: grass.count + weeds + tufts,
+    // round 49 (perf-3): the blade tiles trim to the frustum's cells too (grass.ts `cull`), so the
+    // graph-backed claim is the built count less the blades the tiles' counts are missing right
+    // now (`culled.trimmed`, every tile); the built blade count stays `grassBlades`
+    grassInstances: grass.count - grass.culled.trimmed + weeds + tufts,
     grassBlades: grass.count,
+    /** round 49: the blade tiles' submission cull — blades drawn by the visible tiles, tiles trimmed, blades trimmed over all tiles, stream rewrites so far */
+    grassCull: { ...grass.culled, cellM: 2 },
     grassTypes: GRASS_TYPE_NAMES.length + 3,
     grassTypeNames: [...GRASS_TYPE_NAMES, 'broadleaf-weed', 'grass-tuft', 'clump-card'],
     grassTypeCounts: [...grass.typeCounts, weeds, tufts, clumps],

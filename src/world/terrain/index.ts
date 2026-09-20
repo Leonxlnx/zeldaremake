@@ -4,7 +4,7 @@
  * PBR ground material blended by slope, authored masks and noise. Geometry detail comes from
  * heightfield.ts (macro landform + erosion/terracing/depressions/roots/micro passes).
  */
-import { Group, Mesh, Raycaster, Vector3 } from 'three';
+import { Frustum, Group, Matrix4, Mesh, Raycaster, Sphere, Vector3, type Camera } from 'three';
 import type { WorldContext, WorldSystem } from '../system';
 import { DETAIL_PASSES, LATTICE } from './heightfield';
 import { NEAR_GROUND, buildChunkGeometry, createWeightContext, layoutChunks } from './chunks';
@@ -99,11 +99,65 @@ export async function create(ctx: WorldContext): Promise<WorldSystem> {
     return meshError;
   };
 
+  /**
+   * Shadow-caster submission (round 49, perf-3; the trees' / vegetation's capsule test). The
+   * detail ring's sixteen 24 m chunks all cast, and the sun's depth pass drew every one of them
+   * whatever the camera saw — four chunks south of camera A (28.8 K triangles each, 115 K of its
+   * 9.11 M) whose shadows fall further south, into ground no pixel of the frame shows. A chunk
+   * keeps casting while the volume its padded sphere sweeps along the sun direction, from the
+   * sphere down to SHADOW_FLOOR_Y, meets the view frustum (a capsule is outside a plane iff both
+   * end spheres are); the test is conservative (plane separation), so the frame is identical.
+   * Re-run when the view-projection changes; `castShadow` is a render flag, the geometry and the
+   * sampler are untouched. Without a sun every chunk casts as before.
+   */
+  const SHADOW_CULL_PAD_M = 4;
+  const SHADOW_FLOOR_Y = -20;
+  const casters = group.children.filter((m): m is Mesh => (m as Mesh).isMesh && m.castShadow);
+  const casterSpheres = casters.map((m) => {
+    if (!m.geometry.boundingSphere) m.geometry.computeBoundingSphere();
+    const s = m.geometry.boundingSphere!.clone().applyMatrix4(m.matrixWorld);
+    s.radius += SHADOW_CULL_PAD_M;
+    return s;
+  });
+  const frustum = new Frustum();
+  const viewProj = new Matrix4();
+  const lastViewProj = new Matrix4().makeScale(0, 0, 0);
+  const sunNow = new Vector3();
+  const sweptEnd = new Vector3();
+  const shadowReaches = (s: Sphere) => {
+    const span = Math.max(0, (s.center.y + s.radius - SHADOW_FLOOR_Y) / Math.max(0.05, sunNow.y));
+    sweptEnd.copy(s.center).addScaledVector(sunNow, -span);
+    for (const plane of frustum.planes) {
+      if (plane.distanceToPoint(s.center) < -s.radius && plane.distanceToPoint(sweptEnd) < -s.radius) return false;
+    }
+    return true;
+  };
+  let castersOn = casters.length;
+  const cullCasters = (camera: Camera, force: boolean) => {
+    if (!ctx.sun || !ctx.quality.shadows) return;
+    camera.updateMatrixWorld();
+    viewProj.multiplyMatrices(camera.projectionMatrix, camera.matrixWorldInverse);
+    if (!force && viewProj.equals(lastViewProj)) return;
+    lastViewProj.copy(viewProj);
+    frustum.setFromProjectionMatrix(viewProj);
+    sunNow.subVectors(ctx.sun.position, ctx.sun.target.position);
+    if (sunNow.lengthSq() < 1e-6) sunNow.set(0, 1, 0);
+    else sunNow.normalize();
+    castersOn = 0;
+    for (let i = 0; i < casters.length; i++) {
+      const on = shadowReaches(casterSpheres[i]);
+      casters[i].castShadow = on;
+      if (on) castersOn++;
+    }
+  };
+
   ctx.audit('terrain', () => ({
     chunks: group.children.length,
     vertices,
     triangles,
     rings: 3,
+    /** round 49: detail-ring chunks casting for the current camera / built casters (shadow-sweep submission cull) */
+    shadowCasters: [castersOn, casters.length],
     innerSpacing: LATTICE.detail.spacing,
     lattice: { detail: LATTICE.detail, mid: LATTICE.mid, outer: LATTICE.outer },
     ...samplerMeshError(),
@@ -125,5 +179,15 @@ export async function create(ctx: WorldContext): Promise<WorldSystem> {
     buildMs: Math.round(buildMs),
   }));
 
-  return { name: 'terrain', group };
+  return {
+    name: 'terrain',
+    group,
+    // the walk moves the camera every frame; pose jumps (captures) come through onCameraMove
+    update(_dt, _t, c) {
+      cullCasters(c.camera, false);
+    },
+    onCameraMove(camera) {
+      cullCasters(camera, true);
+    },
+  };
 }

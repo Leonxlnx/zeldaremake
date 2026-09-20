@@ -1043,6 +1043,8 @@ export async function create(ctx: WorldContext): Promise<WorldSystem> {
       active: nearRocks.filter((nr) => nr.active).map((nr) => nr.id),
     },
     boulderPlantDrawCalls: plants.meshes.length,
+    /** round 49 (perf-3): plant instances submitted per pack mesh after the cull, and their triangles, for the current camera */
+    boulderPlantSubmission: { instances: [...plants.submitted], triangles: plants.submittedNow() },
     /** rock ledge faces (ledge.ts): from `layout.rockLedges`, or the `?rockLedgePreview=1` preview (never in a take) */
     ledges: ledgeInfo,
     /** the north clearing's dressing (clearing.ts): boulder pair / scree / slabs, one mesh */
@@ -1072,11 +1074,14 @@ export async function create(ctx: WorldContext): Promise<WorldSystem> {
       nearUpdate(c.camera, false);
       const show = northVisible(nBox, c.camera.position.x, c.camera.position.z);
       for (const m of ledgeMeshes) m.visible = show;
+      // round 49 (perf-3): the cap / crevice plants submit only the instances that can reach the frame (materials/sprouts.ts `cull`)
+      plants.cull(c.camera);
     },
     onCameraMove(camera) {
       nearUpdate(camera, true);
       const show = northVisible(nBox, camera.position.x, camera.position.z);
       for (const m of ledgeMeshes) m.visible = show;
+      plants.cull(camera, true);
     },
     dispose() {
       for (const nr of nearRocks) nr.near.geometry.dispose();
