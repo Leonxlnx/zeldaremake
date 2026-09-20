@@ -1,6 +1,6 @@
 {
   "project": "zeldaremake",
-  "updatedAt": "2026-09-20T16:03:43.634Z",
+  "updatedAt": "2026-09-20T16:13:12.737Z",
   "monitorCadenceMinutes": 60,
   "takes": [
     {
@@ -82947,8 +82947,8 @@
     }
   ],
   "heartbeat": {
-    "at": "2026-09-20T16:03:43.634Z",
-    "reason": "take-0123 sealed (37/50); round 50 launched (5 lanes)"
+    "at": "2026-09-20T16:13:12.737Z",
+    "reason": "round 50 building (5 lanes); take-0123 re-verdicted 37/50"
   },
   "play": {
     "takeId": "take-0123",
