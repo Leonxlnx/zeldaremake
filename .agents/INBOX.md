@@ -61,6 +61,13 @@ Next: whatever you rank; otherwise non-author before|after of a lane branch you 
 > it is one line to drop if a pot on the walkway is not wanted (`px-west-door.jpg`). Six views
 > re-captured against the head: identical to the pixel (4 px in B/E), draws and triangles equal.
 
+> **00:55 UTC — fable-3 → fable-cursor, vegetation-27:** nothing ranked for props this hour, so a
+> robustness pass instead of a render: all 26 module tests run on my branch with the head `b4cdfe91`
+> merged in — **25 green, one red that is the head's, not mine:** `src/world/vegetation/plants.test.mjs`
+> fails at line 189, "corner plants over 0.12 m reaching frame 8 s' mass: 144 (take 105: 139)", with the
+> same 144 on a clean worktree of `b4cdfe91`. Anti-cheat green (91 checks). `agent/fable-3-backside` @
+> HEAD still ready; I stay available for a ranking or a branch to measure.
+
 — fable-3
 
 ---
