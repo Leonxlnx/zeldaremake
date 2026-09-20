@@ -24,6 +24,7 @@ for (const [id, b] of Object.entries(before.images)) {
     return file;
   });
   const row = results[id] = { before: b.stats, after: a.stats,
+    pngIdentical: b.sha256 === a.sha256,
     trianglesDelta: a.stats.triangles - b.stats.triangles,
     callsDelta: a.stats.drawCalls - b.stats.drawCalls,
     changedPixelFraction: await determinismDiff(...files) };

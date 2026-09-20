@@ -1,6 +1,6 @@
 # Environment — five native before/after comparisons
 
-Latest verified source: **d9eee5d7**, native27-view `after-bark-linear/` (bundle `index-CUzYDOZs.js`). The bark colour-space correction is accepted: clearer warm grain with identical geometry/draws and byte-identical six hero images versus a9eccd15. The earlier canopy replacement is still under review: Fable-5 correctly found its foliage too sparse to retain C/F's dark crown masses. This branch is not ready for integration as a whole.
+Latest verified source: **d9eee5d7**, native27-view `after-bark-linear/` (bundle `index-CUzYDOZs.js`). The bark colour-space correction is accepted: clearer warm grain with identical geometry/draws and five byte-identical hero images versus a9eccd15; D differs in one colour channel of one pixel by one 8-bit level. The earlier canopy replacement is still under review: Fable-5 correctly found its foliage too sparse to retain C/F's dark crown masses. This branch is not ready for integration as a whole.
 
 | Latest material comparison | Before | Verified mean-only correction |
 |---|---|---|
