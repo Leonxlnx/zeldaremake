@@ -1,19 +1,22 @@
 # Young Link runtime candidate — Blender source and validation
 
-Character art by Astra (`astra-local`). This is the exact reviewed Blender export from
-[`b1f2008`](https://github.com/Leonxlnx/zeldaremake/commit/b1f2008) (PR #10, her retained
-local default at that commit), delivered through the existing GLB loader and procedural
-fallback. It remains an incremental art candidate: eyelids, cheeks and hair are still open on
-her side.
+Character art by Astra (`astra-local`). The current file is her `382ec9ec` candidate from
+PR #21 (`agent/astra-local-character-contact` @
+[`0dfd3601`](https://github.com/Leonxlnx/zeldaremake/commit/0dfd3601)): the reviewed Blender
+export from [`b1f2008`](https://github.com/Leonxlnx/zeldaremake/commit/b1f2008) (PR #10,
+`24591126`) with its run clip's shoulder / leg-swing channels and its boot vertices patched by
+her two reproducible Python scripts (see Source below), delivered through the existing GLB
+loader and procedural fallback. It remains an incremental art candidate: eyelids, cheeks, hair
+and the stair knee fold are still open on her side.
 
 | Property | Value |
 | --- | --- |
-| Source | `public/models/link/link-runtime.glb` at `b1f2008` (`agent/astra-local-link-grounding`) |
-| SHA256 | `2459112603a935a038dd06a67de85d5c5e28c72188f50ebd4d6e304af236bfa4` |
-| Size | 41,177,288 bytes |
-| Geometry | 70,442 triangles, three skinned meshes (five primitives), four opaque double-sided materials; the body mesh carries the `blink` / `blinkHalf` morph targets (zero default weight) |
+| Source | Regenerated from the `24591126` export (`b1f2008`, `agent/astra-local-link-grounding`) by Astra's two Python patch scripts on `agent/astra-local-character-contact` @ `0dfd3601` (PR #21): `art/characters/link/progress/2026-09-19-run-contact/export_candidate.py … relaxed-run` (run-clip channels from `2026-09-20-run-arms/relaxed-run-native.glb`, intermediate `996d0417…`) then `2026-09-20-run-arms/boots.py` (boot vertices). Not a committed binary on her branch; the two commands in `2026-09-20-run-arms/README.md` §Reproduce rebuild it byte-exactly (verified 2026-09-20 by fable-cursor/character-10) |
+| SHA256 | `382ec9ecab9f77062b61c77192ada4df860abc33666284d8971abe1e577492eb` |
+| Size | 44,488,324 bytes (the patch scripts append the replaced run samplers and boot position / normal / tangent buffers after the untouched original binary; 3,946,200 bytes of the file are unreferenced buffer views, 660,880 of them inherited from `24591126`) |
+| Geometry | 70,442 triangles, three skinned meshes (five primitives), four opaque double-sided materials; the body mesh carries the `blink` / `blinkHalf` morph targets (zero default weight). 11,244 boot vertices below 0.20 m are repositioned (10 % narrower, 12 % shorter under 0.10 m, smooth fade to the unchanged cuff at 0.20 m; rest-pose sole height unchanged, normals / tangents follow the same deformation field) |
 | Maps | Five embedded PNGs: body colour, body normal atlas (nose shading baked, zero padding), packed metallic/roughness, face/orbital colour, corneal colour |
-| Exporter | Khronos glTF Blender I/O v4.5.51, glTF 2.0, `KHR_materials_clearcoat` |
+| Exporter | Khronos glTF Blender I/O v4.5.51, glTF 2.0, `KHR_materials_clearcoat`; run clip and boots patched by the Python scripts above, which assert the source digest, the preserved original binary prefix, unchanged rest nodes / other clips / skin weights / UVs / morphs and zero position error against the native Blender record |
 | Rig | Existing 409b603 nineteen-bone rig, in metres, +Y up and +Z forward |
 | Sole markers | Existing ankle-local L/R markers `[∓0.000000016, 0.05900068, 0.08564404]` |
 
@@ -58,6 +61,7 @@ credited in the study archive; they should not be assumed to be inputs to this e
 | 2026-09-16 | `3f6cb6f3…eadf` | `9c66fa8` (PR #10) | Alert eyelid opening: 774 orbital vertices, aperture 19.93 → 23.23 mm, closed and half-blink positions rebased; clips, textures, UVs, weights, binds preserved (0c28cb62 is its parent) |
 | 2026-09-16 | `4741cf3e…1768` | `73ccdc0` (PR #10) | Via 17d18d15 (animated orbital normals smoothed — closed-lid ridges reduced): 17-vertex inner-corner separation (≤ 0.096 mm) so all 41 sampled blink phases clear self/eye contacts; rest geometry, textures, rig, clips unchanged (3f6cb6f3 is its parent) |
 | 2026-09-16 | `24591126…bfa4` | `b1f2008` (PR #10) | Via 55cc8ef3 (shoulder weights), 1c08dec3 (lower-tunic weights), ace15add (run stride 2.21 → 1.82 m, cycle 34 → 28 frames at 60 fps, same 3.9 m/s), 611c4425 (stance 0.25 → 0.20, flight bounce 45 → 12 mm, 120 fps bake): run arms retimed from Quaternius Universal Animation Library Standard `Jog_Fwd_Loop` (CC0), phase-aligned in Blender. Paired loader change: `CLIP_SPEC.run` = stride 1.82 m, cycle 28/60 s, heroClipTime (15/60)·(28/34). Geometry, textures, blink, idle/walk/stairs unchanged (4741cf3e is its parent) |
+| 2026-09-20 | `382ec9ec…92eb` | `0dfd3601` (PR #21), regenerated from `24591126` by her `export_candidate.py relaxed-run` + `boots.py` | Owner's "natural running legs, arms, smaller boots" pass. Run clip only: shoulder carriage rotated 0.10 rad inward (elbow, wrist and torso channels — the CC0 Quaternius `Jog_Fwd_Loop` retime — untouched, same timing); leg swing from her 3218b164 study (faster shoe clearance after toe-off — 8.9 → 36.6 mm near the first 60 Hz frame after toe-off — continuous endpoint velocity, ≤ 7 mm fore/aft overshoot; hips byte-exact); stride 1.82 m, cycle 28/60 s, duty 0.20 unchanged, so `CLIP_SPEC` is unchanged. Boots 10 % narrower and 12 % shorter below 0.10 m fading to the unchanged cuff at 0.20 m (11,244 vertices; rest sole height, sole markers, rig, skin weights, UVs, textures, blink morphs, idle/walk/stairs clips unchanged; 24591126 is its parent). Paired runtime change (same PR, adoptable separately): the play-mode run grounding fades to the run cycle's sampled floor by the run action's weight instead of grounding the lowest sole every frame, and a swing's take-off anchor is the foot's last rendered stance sole (`Locomotion.offX/offZ`) for both the sole and the hip of its frozen clip pose |
 
 Astra's per-build records (`Retained …` entries and their evidence folders) are in the
 SOURCE.md on `agent/astra-local-link-grounding`; only the adopted build is copied here.
