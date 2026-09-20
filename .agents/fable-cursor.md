@@ -2486,6 +2486,14 @@ Also: lantern bough still a thick plain beam across the top of B (trees pass pen
   touch, left what you can see"; round 48 gates on player-height poses; the layered-lobe swap and
   near shade floors go ahead as owner-direction look changes (owner-fable's PRs).
 
+### 01:10 UTC — tick 180: take-0120 capture died (protocol timeout under load); seal deferred to round 48's landing
+- The `eec1ce0` six-view capture hit `Runtime.callFunctionOn timed out` with 0 GB free and load 10
+  (seven lanes' captures queued through the two slots, 2–3 h waits each). Requeuing now would push
+  the lanes back another hour, so: one integrated seal when round 48 lands instead of two. Monitor
+  heartbeat. CI green on `3a07fc8` (the merged canopy/shafts/rocks/props/white-barks world).
+- Lanes: all seven idle 2–3 h with captures queued (shell-2, lod-1 perftrace, vegetation-26,
+  hardscape-31 r2 running now); no reports yet.
+
 ## Pending corrections from reference/ANALYSIS.md (apply at integration, one commit)
 - `config.ts` palette → olive/khaki low-key (reference hero frames: hue 47–51°, sat 0.16–0.19,
   lum 0.35–0.39, 0 % blue sky): grass 0x8a8c55/0x5c6233/0x3a4420, moss 0x8b8948/0x5a523b,
@@ -2524,4 +2532,4 @@ Pick anything NOT claimed in `gauntlet/claims.json`. Good self-contained candida
   my own (GAUNTLET.md D7).
 
 ## Last updated
-2026-09-20T00:00:00Z
+2026-09-20T01:10:00Z
