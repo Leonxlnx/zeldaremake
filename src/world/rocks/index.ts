@@ -909,7 +909,9 @@ export async function create(ctx: WorldContext): Promise<WorldSystem> {
   // paving edit moves only the pebbles whose cell it touched (the old sequential stream re-rolled
   // them world-wide — round 47's whole camera-D delta). The lattice reaches the north paving too;
   // its pebbles (z < NORTH_Z1) are a separate instanced set under the north-locality toggle
-  const pebbleSets = scatterPathPebbles(T, seed, { ...PEBBLE_DEFAULTS, radius: Math.max(detailR, 84), northZ: NORTH_Z1, density });
+  // (the envelope: the old scatter's reach — ±4.2 m squares around the path polylines' points —
+  // as a soft disc, full to 3.5 m and gone by 5.5 m; the north paving is its own set and ignores it)
+  const pebbleSets = scatterPathPebbles(T, seed, { ...PEBBLE_DEFAULTS, radius: Math.max(detailR, 84), northZ: NORTH_Z1, density, envelope: { pts: pathPtsAll.map((q) => [q[0], q[2]] as [number, number]), full: 3.5, far: 5.5 } });
   pebbles.push(...pebbleSets.main);
   const northPebbles: Instance[] = [...pebbleSets.north];
   for (const s of ctx.layout.stairs) {

@@ -63,6 +63,14 @@ export interface PebbleScatterOptions {
   scatter: number;
   /** overall density multiplier (the world config's) */
   density: number;
+  /**
+   * the path polylines' points (world x, z): acceptance is full within `full` m of the nearest point
+   * and gone by `far` m — the old scatter only sampled ±4.2 m squares around these points, and the
+   * uniform fringe put pebbles on paving edges it never reached (take-0122: −0.0022 at C from the
+   * plaza rim in the frame's bottom-left, where the reference has bare slab edges and grass).
+   * Cells at z < northZ ignore the envelope (the north paving is its own, toggled set).
+   */
+  envelope?: { pts: [number, number][]; full: number; far: number };
 }
 
 /** calibrated on the round-48 world at density 1 to the old ≈ 2 600 (the browser world lands ≈ 2 700 at 0.38 / 0.39 — hashes vary ± 4 % with the seed — so a notch under, to keep camera A at the head's 9.00 M) */
@@ -98,6 +106,23 @@ export function scatterPathPebbles(T: Terrain, seed: string, o: PebbleScatterOpt
     }
     return false;
   };
+  const env = o.envelope;
+  /** 1 inside the envelope, 0 beyond it (north cells: 1) */
+  const envelopeW = (x: number, z: number) => {
+    if (!env || z < o.northZ) return 1;
+    let d2 = Infinity;
+    for (const q of env.pts) {
+      const dx = q[0] - x;
+      const dz = q[1] - z;
+      const dd = dx * dx + dz * dz;
+      if (dd < d2) d2 = dd;
+    }
+    const d = Math.sqrt(d2);
+    if (d <= env.full) return 1;
+    if (d >= env.far) return 0;
+    const t = (d - env.full) / (env.far - env.full);
+    return 1 - t * t * (3 - 2 * t);
+  };
   const emit = (x: number, z: number, hx: number, hz: number, hk: number) => {
     const sc = 0.025 + 0.085 * hash2(hx, hz, hk + 3);
     const it: PebbleInstance = { x, y: T.height(x, z) - sc * 0.35, z, scale: sc, yaw: hash2(hx, hz, hk + 4) * Math.PI * 2, variant: Math.floor(hash2(hx, hz, hk + 5) * PEBBLE_VARIANTS) };
@@ -122,7 +147,7 @@ export function scatterPathPebbles(T: Terrain, seed: string, o: PebbleScatterOpt
             const z = z0 + (fz + hash2(gx, gz, k + 1)) * FINE_M;
             const m = T.mask(x, z);
             if (m.path < 0.01 || m.path > 0.55 || m.stairs > 0.5 || m.structure > 0.5) continue;
-            if (hash2(gx, gz, k + 2) >= o.fringe * o.density) continue;
+            if (hash2(gx, gz, k + 2) >= o.fringe * o.density * envelopeW(x, z)) continue;
             emit(x, z, gx, gz, k);
           }
         }
@@ -132,7 +157,7 @@ export function scatterPathPebbles(T: Terrain, seed: string, o: PebbleScatterOpt
       const z = z0 + hash2(cx, cz, k + 8) * COARSE_M;
       const m = T.mask(x, z);
       if (m.path >= 0.01 || m.stairs > 0.5 || m.structure > 0.5) continue;
-      if (hash2(cx, cz, k + 9) >= o.scatter * o.density) continue;
+      if (hash2(cx, cz, k + 9) >= o.scatter * o.density * envelopeW(x, z)) continue;
       emit(x, z, cx, cz, k + 10);
     }
   }
