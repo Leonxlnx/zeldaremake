@@ -25,7 +25,7 @@ import { BufferGeometry, Color, Frustum, Group, InstancedBufferAttribute, Instan
 import type { TrunkSeat, WorldContext, WorldSystem } from '../system';
 import { BARK_DETAIL_M, BARK_DETAIL_TILES, BARK_TOUCH_M, BARK_TOUCH_TILES, CARD_EDGE_FADE, CARD_FLAT_EDGE_FADE, COLUMN_BARK_FLOOR, COLUMN_BARK_FLOOR_FAR, COLUMN_FLOOR_FADE_M, createTreeMaterials, CUSHION_FADE_M, DISTANT_BARK_M, DISTANT_NEAR_FLOOR, DISTANT_NEAR_TONE, NEAR_BASE_FLOOR, NEAR_BOLE_FLOOR, NEAR_BOLE_FLOOR_FADE, NEAR_BOLE_FLOOR_TOP, NEAR_BOLE_SLOTS, NEAR_CANOPY_LEAF_FLOOR, NEAR_CANOPY_LEAF_NEAR_M, NEAR_CANOPY_SLOTS, NEAR_CANOPY_SUN_THROUGH, TREE_BARK_FLOOR, TREE_BARK_FLOOR_NEAR, TREE_FLOOR_FADE_M, TREE_LEAF_FLOOR, TREE_LEAF_FLOOR_NEAR, TREE_NEAR_BOLE_FLOOR } from './materials';
 import type { ShadeFloor } from '../materials/shadeFloor';
-import { authoredWhiteBarks, createWhiteBarkRoots, createWhiteBarkTree, whiteBarkParams, type TreeAsset, type WhiteBarkParams } from './whitebark';
+import { authoredWhiteBarks, createWhiteBarkRoots, createWhiteBarkTree, whiteBarkParams, whiteBarkTilt, type TreeAsset, type WhiteBarkParams } from './whitebark';
 import { placeWhiteBark, viewProjector, type WhiteBarkPlacement } from './placement';
 import { columnParams, createColumnTree, emergentParams, type ColumnAsset, type ColumnParams } from './column';
 import { createGiantTree, LOBE_SECONDARY_REACH, LOBE_TWIG_REACH, LOBE_TWIG_TINT, NEAR_BASE_CUT_Y, NEAR_BASE_RADIUS_OVERRIDE, type CanopyBough, type GiantAsset, type GiantProfile } from './giant';
@@ -1871,15 +1871,17 @@ export async function create(ctx: WorldContext): Promise<WorldSystem> {
   const swappedWhites = whitePlaced.placements.filter((p) => whites[p.variant].params.age === 'mature' && inFarWall(p.x, p.y, p.z));
   const whitePlacements = whitePlaced.placements.filter((p) => !swappedWhites.includes(p));
   whitePlacements.push(...authoredWhiteBarks(whites.map((w) => w.params), terrain));
-  const seatFamily = <P, T extends { x: number; y: number; z: number; yaw: number; scale: number }>(variants: FamilyVariant<P, T>[], p: T, variant: number) => {
+  const seatFamily = <P, T extends { x: number; y: number; z: number; yaw: number; scale: number }>(variants: FamilyVariant<P, T>[], p: T, variant: number, tilt: Quaternion | null = null) => {
     const w = variants[variant];
     w.placements.push(p);
     _q.setFromAxisAngle(_v.set(0, 1, 0), p.yaw);
+    if (tilt) _q.premultiply(tilt);
     _s.setScalar(p.scale);
     _p.set(p.x, p.y, p.z);
     w.matrices.push(new Matrix4().compose(_p, _q, _s));
   };
-  for (const p of whitePlacements) seatFamily(whites, p, p.variant);
+  // fable-4 (round 50, W08 at C): the hero stem's instance tilt — whitebark.ts HERO_WHITE_BARK_TILTS
+  for (const p of whitePlacements) seatFamily(whites, p, p.variant, whiteBarkTilt(p.x, p.z));
   const familyMeshes = <P, T extends { x: number; z: number; scale: number }>(variants: FamilyVariant<P, T>[], label: string, material: Material, depth: Material, parent: Group) => {
     for (const w of variants) {
       const n = Math.max(1, w.placements.length);

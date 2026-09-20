@@ -8,7 +8,7 @@
  * trunk via vertex colour, palette-driven leaf colours with per-leaf variation, and per-vertex
  * wind attributes (trunk / branch / leaf layers). Geometry-only: metres, +Y up, base at y = 0.
  */
-import { BufferGeometry, Color, Mesh, Vector3, type Material } from 'three';
+import { BufferGeometry, Color, Mesh, Quaternion, Vector3, type Material } from 'three';
 import { createRng, type Rng } from '../util/prng';
 import { Noise2D, smoothstep } from '../util/noise';
 import { consumeTubeDraws } from './bole';
@@ -783,6 +783,32 @@ function rootToe(writer: GeometryWriter, toe: ToeSpec, frame: TreeFrame, color: 
     }
     rows.push(row);
   }
+}
+
+/**
+ * Round 50 (W08 at C — fable-5 on take-0123: "the C stem is plumb"). The rubric judges the white-barks
+ * at frame C, where one stem stands at the right edge: the mature variant 7 at (−7.39, 12.87), whose
+ * own 2–8° lean happens to point at the camera and foreshortens to plumb. A lean in the geometry moves
+ * every crown's bounds (`TreeAsset.radius` feeds the placement sampler: 18 seats re-rolled, reverted
+ * on r49b), so the hero stem leans by its INSTANCE matrix instead — a world-space tilt about the ground
+ * point, applied after the yaw; position, yaw, scale, the asset and every other tree are untouched.
+ * `toward` is the horizontal direction the top moves (into C's frame: camera-left at that spot).
+ * Matched by position (0.6 m), so a re-roll upstream leaves the table inert rather than wrong.
+ */
+export const HERO_WHITE_BARK_TILTS: { x: number; z: number; tiltDeg: number; toward: [number, number] }[] = [
+  { x: -7.39, z: 12.87, tiltDeg: 5.5, toward: [0.9, 0.43] },
+];
+const _tiltAxis = new Vector3();
+/** the instance tilt for a seated white-bark, or null — see HERO_WHITE_BARK_TILTS */
+export function whiteBarkTilt(x: number, z: number): Quaternion | null {
+  for (const t of HERO_WHITE_BARK_TILTS) {
+    if (Math.hypot(x - t.x, z - t.z) > 0.6) continue;
+    const l = Math.hypot(t.toward[0], t.toward[1]) || 1;
+    // up × toward: rotating +y about this axis moves the top along `toward`
+    _tiltAxis.set(t.toward[1] / l, 0, -t.toward[0] / l);
+    return new Quaternion().setFromAxisAngle(_tiltAxis, (t.tiltDeg * Math.PI) / 180);
+  }
+  return null;
 }
 
 export interface RootPlacement {

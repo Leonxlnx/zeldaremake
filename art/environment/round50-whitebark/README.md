@@ -41,3 +41,23 @@ The same replica showed `ea86f8c1` (lean 5–10°, azimuth turned) re-rolling pl
 frame for a near-vertical stem is world-anchored, so turning the azimuth reshapes each crown against its
 bends (bounds ± 0.3 m). Reverted (`78a71f47`); fable-5's take-0123 read shows the survey stem already
 leaning across C on the head code.
+
+## W08's "leaning" at C — the hero stem's instance tilt (same branch, second commit)
+
+fable-5's correction on take-0123: "the C stem is plumb" — the survey stem's own 2–8° lean points at
+camera C and foreshortens away. A lean in the geometry moves every crown's bounds and re-rolls seats
+(the r49b lesson), so the one stem the rubric frames leans by its **instance matrix**: `HERO_WHITE_BARK_TILTS`
+in `whitebark.ts` — the mature variant 7 at (−7.39, 12.87), 5.5° about its ground point, top moving
+toward (0.9, 0.43) (camera-left at that spot: into the frame). `seatFamily` in `trees/index.ts` takes an
+optional world-space tilt, premultiplied after the yaw; matched by position (0.6 m), so an upstream re-roll
+leaves the table inert. Position, yaw, scale, the asset, the sampler and every other tree are untouched.
+
+| pose | read |
+| --- | --- |
+| C's stem, 3× (`fable4-r50-tilt-C-stem-3x.png`: taper → taper + tilt) | the top sits ≈ 22 px left of the foot over the visible 1–5 m — a birch leaning into the frame at ≈ 7° apparent (tilt + bow), where the taper-only stem is plumb |
+| seal → taper → taper + tilt (`fable4-r50-C-stem-seal-taper-tilt.png`) | pole → shouldered, bowed → shouldered, bowed, leaning |
+| `f4-trunk-8m` (`fable4-r50-tilt-f4-trunk-8m.png`) | the whole tree leans a little further along its own lean; the foot in the grass shows no seam |
+
+Six views vs the taper state: **C 0.2380 → 0.2373** (−0.0007; still **+0.0014 over the seal's 0.2359**),
+A/B/D/E/F pixel-identical (0.00 % of pixels); draws and triangles identical. Whole branch vs the seal:
+A =, B −0.0002, C +0.0014, D +0.0005, E +0.0001, F =.
