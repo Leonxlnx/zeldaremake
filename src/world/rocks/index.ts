@@ -31,6 +31,8 @@ export const LEDGE_PREVIEW: RockLedgeDef[] = [
 ];
 /** the ledge material's near fade (m): its damp/moss terms stay legible from the path */
 export const LEDGE_FADE_M: [number, number] = [7, 14];
+/** the ledge material's damp band: the hero boulders' sheen raised to this power (ref-04's near-black foot) */
+export const LEDGE_DAMP = 1.6;
 
 /**
  * Near-LOD swap radii (m, 3D to the boulder's centre) for the hero boulders (round 42): within
@@ -936,7 +938,7 @@ export async function create(ctx: WorldContext): Promise<WorldSystem> {
   const ledgeInfo: { id: string; height: number; length: number; triangles: number; mossShare: number; wetShare: number; contacts: number; maxFootGap: number }[] = [];
   const ledgeContacts: [number, number, number][] = [];
   if (ledgeDefs.length) {
-    const ledgeMaterial = await createRockMaterial(ctx.textures, ctx.config, anisotropy, 1.4, 0.85, { near: true, fade: LEDGE_FADE_M });
+    const ledgeMaterial = await createRockMaterial(ctx.textures, ctx.config, anisotropy, 1.4, 0.85, { near: true, fade: LEDGE_FADE_M, damp: LEDGE_DAMP });
     const lRng = rng.fork('ledges');
     for (const def of ledgeDefs) {
       const built = buildRockLedge(def, T, lRng.fork(def.id), `${seed}/ledge`);
