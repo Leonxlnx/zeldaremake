@@ -318,7 +318,7 @@ export async function create(ctx: WorldContext): Promise<WorldSystem> {
     },
     /** round 49 (expansion-2): the west house, the far hut + column and the south bank's fences (expansion.ts); the near group draws only within `visibleWithinM` of the expansion's box */
     expansion: {
-      houses: [...expansion.houses.audit, ...expansion.farHouse.audit].map((a) => ({ id: a.id, hostSource: a.hostSource, seatId: a.seatId, centre: a.centre, floorY: a.floorY, radius: a.radius, window: a.window, door: a.door, lamps: a.lamps, pods: a.pods })),
+      houses: [...expansion.houses.audit, ...expansion.farHouse.audit].map((a) => ({ id: a.id, hostSource: a.hostSource, seatId: a.seatId, centre: a.centre, floorY: a.floorY, radius: a.radius, window: a.window, door: a.door, lamps: a.lamps, pods: a.pods, dressing: a.dressing })),
       houseTriangles: expansion.houses.triangles + expansion.farHouse.triangles,
       column: expansion.column,
       ropeFences: expansion.fences.length,
