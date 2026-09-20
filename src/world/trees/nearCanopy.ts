@@ -55,8 +55,8 @@ export const NEAR_CANOPY_MIN_IN_M = 7;
  * Flat lobes use the existing layered-leaf replacement throughout the normal near range.
  * Their closed, sunless cores read as solid discs over the stairs at 13–16 m; keeping them
  * in the fixed hero views preserved a low-resolution match at the expense of leaf structure.
- * Five stair-bank parts add at most ~36 k colour-pass triangles and 2.62 MiB to the pool;
- * they cast no shadows. The two east-giant flat lobes only swap on the closer plateau walk.
+ * Their inner leaves retain the authored dark mass; the same five stair-bank parts carry
+ * both layers and cast no shadows. The two east-giant lobes swap on the closer plateau walk.
  * null restores the hero cut. Ordinary lobes retain their existing camera/tier limits.
  */
 export const NEAR_CANOPY_FLAT_SWAP_M: [number, number] | null = [NEAR_CANOPY_IN_M, NEAR_CANOPY_OUT_M];
@@ -136,6 +136,8 @@ export interface NearLobeRecord {
   fixedSwap?: boolean;
   /** the lobe's walk-clearance floor (giant.ts CanopyLobe.floor, local y): no near lamina or twiglet below it */
   floorY?: number;
+  /** Authored deep-shade colour of a flat far lobe, retained by its inner near leaves. */
+  flat?: { tone: number; shade: number };
 }
 
 export interface NearLimbRecord {
@@ -387,6 +389,43 @@ export function createNearCanopyKit(o: NearCanopyKitOptions) {
     triangles: number;
   }
   /**
+   * A flat lobe needs a dark interior as well as its outer twig sprays. Small, overlapping
+   * clusters of the same cupped laminae fill its inner volume; the silhouette remains separate
+   * leaves, with no opaque shell. A private stream leaves every existing spray unchanged.
+   * The per-lobe cap is 3,600 eight-triangle leaves, including the larger plateau lobes.
+   */
+  function* innerFlatLeaves(w: GeometryWriter, g: Rng, rec: NearLobeRecord): Generator<void, number> {
+    const flat = rec.flat!;
+    const count = Math.ceil(Math.min(3600, 850 * rec.hR * rec.vR) / 12);
+    const phase = g() * TAU;
+    const color = o.canopy.clone().multiplyScalar(0.9 * flat.tone);
+    const opts = { ...nearLeafOpts(0.015), tipColor: color };
+    w.leafFlat = true;
+    w.leafShade = flat.shade;
+    let leaves = 0;
+    for (let i = 0; i < count; i++) {
+      const y = 1 - 2 * (i + 0.5) / count;
+      const a = phase + i * 2.399963 + between(g, -0.18, 0.18);
+      const radius = between(g, 0.55, 0.89);
+      const radial = Math.sqrt(1 - y * y) * radius;
+      const center = rec.center.clone().add(new Vector3(Math.cos(a) * rec.hR * radial, y * rec.vR * radius, Math.sin(a) * rec.hR * radial));
+      const clusterColor = color.clone().multiplyScalar(between(g, 0.88, 1.05));
+      for (let j = 0; j < 12; j++) {
+        const angle = a + j * 2.399963 + between(g, -0.25, 0.25);
+        const direction = new Vector3(Math.cos(angle), between(g, -0.65, 0.65), Math.sin(angle)).normalize();
+        const base = center.clone().addScaledVector(direction, between(g, -0.12, 0.12));
+        const size = between(g, 0.28, 0.4);
+        // Conservative cupping/roll allowance: even a downward leaf clears the walk floor.
+        const clearsFloor = rec.floorY === undefined || base.y + Math.min(0, direction.y * size) - size * 0.75 >= rec.floorY;
+        if (addLeaf(w, base, direction, size, clusterColor, g, opts, clearsFloor)) leaves++;
+      }
+      yield;
+    }
+    w.leafFlat = false;
+    w.leafShade = 1;
+    return leaves;
+  }
+  /**
    * One build of a lobe's near version, chunked: yields after the secondaries' sprays, after
    * every twig's spray and every twiglet, after the moss strip and between the steps of `finish`
    * (a chunk is ≈ 0.3–1.5 ms). Every draw comes from the stream forked off `rng` by the part's
@@ -414,6 +453,7 @@ export function createNearCanopyKit(o: NearCanopyKitOptions) {
     const stemR = rec.stemRadii[0];
     if (stemR >= 0.09) mossStrip(w, rec.stem, rec.stemRadii, Math.min(1, 0.55 + stemR));
     yield;
+    if (rec.flat) leaves += yield* innerFlatLeaves(w, g.fork('inner-flat-leaves'), rec);
     return { geometry: yield* w.finishSteps(`near-canopy-${o.id}-lobe-${idx}`), leaves, triangles: w.triangles };
   }
 

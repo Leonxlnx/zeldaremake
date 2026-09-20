@@ -1327,16 +1327,15 @@ export function createGiantTree(def: GiantTreeDef, rng: Rng, o: GiantOptions): G
     let rec: NearLobeRecord | null = null;
     // Round 44 (survey #12: "near-canopy lobes at 5–8 m = huge single-tone flat shapes"): a FLAT
     // lobe (the bank canopy's cored lobes, 3.4 m over the plaza's east edge) is eligible too. Its
-    // far foliage stays the flat, even mass the hero frames measure at 10–15 m (writer.ts writes
-    // a flat tagged leaf as 1000 + group + share, decoded as flat), and under the swap radius —
-    // 9–12 m for these, cut under A by swapRadii — a player sees the same lit, layered near
-    // version every other lobe gets, on the wood the core hid.
+    // far foliage keeps its flat colour (writer.ts encodes 1000 + group + share). The near
+    // version retains that authored tone/shade on its inner leaves behind the ordinary lit
+    // sprays, so removing the smooth core does not also remove the crown's dark mass.
     const flatEligible = lobeFlat && !compact && !ghost;
     if (near && !ghost && (flatEligible || (!lobeFlat && !compact && lobeTone === 1 && leaves.leafShade === 1 && eyeOverride !== 1)) && center.y <= NEAR_CANOPY_MAX_Y) {
       const fixedSwap = flatEligible && NEAR_CANOPY_FLAT_SWAP_M !== null;
       const radii2 = fixedSwap ? NEAR_CANOPY_FLAT_SWAP_M : swapRadii(center, hR + 1.4);
       if (radii2) {
-        rec = { group: nearGroups++, center: center.clone(), hR, vR, stem: bough, stemRadii: stemRadii ?? taper(bough, boughRadius, 0.02), secondaries: [], twigs: [], farLeaves: 0, farCards: 0, inM: radii2[0], outM: radii2[1], fixedSwap, floorY: lobeFloorY ?? undefined };
+        rec = { group: nearGroups++, center: center.clone(), hR, vR, stem: bough, stemRadii: stemRadii ?? taper(bough, boughRadius, 0.02), secondaries: [], twigs: [], farLeaves: 0, farCards: 0, inM: radii2[0], outM: radii2[1], fixedSwap, floorY: lobeFloorY ?? undefined, flat: lobeFlat ? { tone: lobeTone, shade: leaves.leafShade } : undefined };
         leaves.leafSwapGroup = rec.group;
         cards.leafSwapGroup = rec.group;
       }
