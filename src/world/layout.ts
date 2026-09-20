@@ -730,11 +730,15 @@ export const EXPANSION_STAIRS: StairDef[] = [
 
 /**
  * Rope fences on the south bank's lip, 0.15 m behind it, either side of the flight (its cheeks
- * and kerbs span lip coordinates −0.75 … 1.35): three posts west, three east.
+ * and kerbs span lip coordinates −0.75 … 1.35): three posts west, two east. The east run stops
+ * at u 1.8: the sun (azimuth −128°, elevation 38°) throws a 1.2 m post's shadow 1.6 m ESE, and
+ * the last post's shadow tip is what comes nearest camera C's frame edge (1.6° outside at u 1.8;
+ * 0.3° at the bank's end, u 2.7 — the terrain there is clipped by `cClip`, a cast shadow is not;
+ * util/expansionLocality.ts tests the same tip with a 0.65 m sphere).
  */
 export const EXPANSION_ROPE_FENCES: FenceDef[] = [
   { id: 'south-bank-west', style: 'rope', points: [-2.6, -1.75, -0.9].map((u) => bankP3(u, -0.15, 0)) },
-  { id: 'south-bank-east', style: 'rope', points: [1.5, 2.1, 2.7].map((u) => bankP3(u, -0.15, 0)) },
+  { id: 'south-bank-east', style: 'rope', points: [1.3, 1.8].map((u) => bankP3(u, -0.15, 0)) },
 ];
 
 /**

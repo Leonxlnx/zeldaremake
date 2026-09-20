@@ -3,11 +3,12 @@
  * The hero stairway (and the two short stairs), flagstone paths + plaza, joint fill and the
  * grass sprouting from the joints. Everything is cut-stone geometry seated on the heightfield.
  */
-import { Group, InstancedMesh, Matrix4, Mesh } from 'three';
+import { Group, InstancedMesh, Matrix4, Mesh, type Camera } from 'three';
 import { mergeGeometries } from 'three/examples/jsm/utils/BufferGeometryUtils.js';
 import type { WorldContext, WorldSystem } from '../system';
 import { STONE_CIRCLE_STONES } from '../terrain/heightfield';
 import { northVisible } from '../util/northLocality';
+import { EXPANSION_VISIBLE_M, casterSpheres, expansionCasters, expansionVisible as expansionLocalityVisible, sunVector } from '../util/expansionLocality';
 import { STONE_NEAR, createStoneMaterial } from './material';
 import { buildStairway, stairFrame, stairToWorld, type StairFrame } from './stairs';
 import { isPaved, nearIsolatedDisc, pavedLevel, placeFlagstones, rimDistance, type PavingContext } from './flagstones';
@@ -21,7 +22,7 @@ import { archNorthLip, archSeam, discField, hollowPath, jointSoil, lawnPocket, l
 import { buildFlowerHeads, type FlowerHead } from './flowers';
 import { STANDING_STONE_SKIRT, buildStandingStone } from './standing-stones';
 import { Noise2D, smoothstep } from '../util/noise';
-import { EXPANSION, EXPANSION_BOX, EXPANSION_STAIRS, expansionSteppingStones, houseSteppingStones } from '../layout';
+import { EXPANSION, EXPANSION_STAIRS, expansionSteppingStones, houseSteppingStones } from '../layout';
 
 /** joint-grass tint (materials/sprouts.ts `SproutSpot.jointTint`) per sprout scatter; scatters not listed keep their greens */
 const JOINT_TUFT_TINT: Record<string, number> = {
@@ -855,13 +856,13 @@ export async function create(ctx: WorldContext): Promise<WorldSystem> {
   expansionMesh.receiveShadow = paving.mesh.receiveShadow;
   expansionMesh.frustumCulled = paving.mesh.frustumCulled;
   expansionGroup.add(expansionMesh);
-  const EXPANSION_VISIBLE_M = 60;
-  const expansionVisible = (cx: number, cz: number) => {
-    const dx = Math.max(EXPANSION_BOX.x0 - cx, 0, cx - EXPANSION_BOX.x1);
-    const dz = Math.max(EXPANSION_BOX.z0 - cz, 0, cz - EXPANSION_BOX.z1);
-    return Math.hypot(dx, dz) < EXPANSION_VISIBLE_M;
-  };
-  expansionGroup.visible = expansionVisible(ctx.camera.position.x, ctx.camera.position.z);
+  // util/expansionLocality.ts: hidden beyond 60 m of the box, or when neither the locality's
+  // casters nor their shadow footprints meet the camera's frustum (the same rule the structures'
+  // near group follows, so the flights and discs appear with the house and the fences)
+  const sunToward = ctx.sun ? ctx.sun.position.clone().sub(ctx.sun.target.position).normalize() : sunVector(ctx.config.sun.azimuthDeg, ctx.config.sun.elevationDeg);
+  const casterSpheresE = expansionCasters().flatMap((c) => casterSpheres(c, sunToward));
+  const expansionVisible = (camera: Camera) => expansionLocalityVisible(camera, casterSpheresE);
+  expansionGroup.visible = expansionVisible(ctx.camera);
   const daisTriangles = dais.vertexCount / 3;
   const monolithMesh = new Mesh(monoliths.build(), stoneMat);
   monolithMesh.castShadow = true;
@@ -1037,6 +1038,7 @@ export async function create(ctx: WorldContext): Promise<WorldSystem> {
       stairs: expansionStairInfo,
       stairTriangles: expansionStairTriangles,
       visibleWithinM: EXPANSION_VISIBLE_M,
+      casterSpheres: casterSpheresE.length,
       visible: expansionGroup.visible,
       discTops: pavingE.stones.map((s) => [round(s.x), round(s.topY), round(s.z)]),
     },
@@ -1148,14 +1150,14 @@ export async function create(ctx: WorldContext): Promise<WorldSystem> {
       northMesh.visible = show;
       jointsN.mesh.visible = show;
       monolithMesh.visible = show;
-      expansionGroup.visible = expansionVisible(c.camera.position.x, c.camera.position.z);
+      expansionGroup.visible = expansionVisible(c.camera);
     },
     onCameraMove(camera) {
       const show = northPavingVisible(camera.position.x, camera.position.z);
       northMesh.visible = show;
       jointsN.mesh.visible = show;
       monolithMesh.visible = show;
-      expansionGroup.visible = expansionVisible(camera.position.x, camera.position.z);
+      expansionGroup.visible = expansionVisible(camera);
     },
     dispose() {
       if (disposed) return;

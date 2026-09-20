@@ -4,22 +4,24 @@
  * on its bark column, and the rope fences on the south bank's lip. Everything here is behind or
  * outside every fixed camera's frustum (layout.ts `EXPANSION` header); `structures/index.ts`
  * consolidates the group apart from the hero buckets (no hero culling sphere stretches to it) and
- * hides it beyond `EXPANSION_VISIBLE_M` of the expansion's box, like the north group.
+ * hides the near group (`util/expansionLocality.ts`: beyond 60 m of the box, or when neither the
+ * content nor its shadow footprint meets the camera's frustum — the shadow pass would otherwise
+ * draw it in every fixed frame).
  *
  * Own rng forks, appended after every existing stream: nothing built before round 49 moves.
  */
-import { Group, Mesh, Vector3, type Material } from 'three';
-import { EXPANSION, EXPANSION_BOX, EXPANSION_ROPE_FENCES } from '../layout';
+import { Group, Mesh, Vector3, type Camera, type Material, type Sphere } from 'three';
+import { EXPANSION, EXPANSION_ROPE_FENCES } from '../layout';
 import type { WorldContext } from '../system';
 import type { Rng } from '../util/prng';
 import { Noise2D } from '../util/noise';
+import { EXPANSION_VISIBLE_M, casterSpheres, expansionCasters, expansionVisible, sunVector } from '../util/expansionLocality';
 import { buildDistantHouses, type DistantHouseBuild, type DistantHouseDef } from './distantHouse';
 import { buildFence, type FenceBuild } from './fence';
 import { gridSurface, merge, TAU } from './geometry';
 import type { StructureMaterials } from './materials';
 
-/** the group draws only within this distance (m) of `EXPANSION_BOX` (the far hut is always drawn: it is the haze's far lamp) */
-export const EXPANSION_VISIBLE_M = 60;
+export { EXPANSION_VISIBLE_M };
 
 /** the two huts as `distantHouse` defs (the walkway `end` is the west-house flight's head) */
 export const EXPANSION_HOUSES: DistantHouseDef[] = [
@@ -55,17 +57,17 @@ export const EXPANSION_HOUSES: DistantHouseDef[] = [
 
 export interface ExpansionBuild {
   group: Group;
-  /** the west house and the bank's fences: hidden beyond EXPANSION_VISIBLE_M of the box, consolidated on its own */
+  /** the west house and the bank's fences: hidden by `visible()`, consolidated on its own */
   near: Group;
-  /** the far hut and its column: always drawn (the haze's far lamp), consolidated on its own */
+  /** the far hut, its column, and both huts' glow + soffit meshes: always drawn (the haze's far lamp), consolidated on its own */
   far: Group;
   houses: DistantHouseBuild;
   fences: FenceBuild[];
   bases: [number, number, number][];
   /** the far hut's column: foot (world) and top */
   column: { foot: [number, number, number]; top: [number, number, number]; triangles: number };
-  /** true when a camera at (cx, cz) is within EXPANSION_VISIBLE_M of the box (`near`'s visibility) */
-  visible(cx: number, cz: number): boolean;
+  /** `near`'s visibility for this camera (util/expansionLocality.ts: distance + frustum against the casters' shadow boxes) */
+  visible(camera: Camera): boolean;
 }
 
 /**
@@ -153,11 +155,12 @@ export function buildExpansion(ctx: WorldContext, mats: StructureMaterials, rng:
   // — its meshes are named `distant-house-<part>:<id>`, so the far hut's go to `far`
   const houses = buildDistantHouses(ctx, mats, rng.fork('houses'), EXPANSION_HOUSES);
   for (const m of [...houses.group.children]) (m.name.endsWith(':far-hut') ? far : near).add(m);
-  // the shared glow mesh (both huts' lamps and pods) and the soffit boards stay with the near group
-  // (the far hut's lamp is in it too: the glow is one mesh — it draws whenever the near group does,
-  // and the plaza is inside the near group's visibility radius)
-  near.add(houses.glow);
-  if (houses.soffit) near.add(houses.soffit);
+  // the shared glow mesh (both huts' lamps and pods) and the soffit boards go with the FAR group:
+  // the glow is one mesh and the far hut's lamp is in it — it must draw whenever the far hut does,
+  // and the near group can be frustum-hidden while the far hut is in frame (a few hundred triangles;
+  // the west house's part of it is out of frame whenever the house is)
+  far.add(houses.glow);
+  if (houses.soffit) far.add(houses.soffit);
 
   // the bank's rope fences
   const fences = EXPANSION_ROPE_FENCES.map((f) => buildFence(f, ctx, mats, rng.fork(`fence/${f.id}`), rope));
@@ -166,12 +169,12 @@ export function buildExpansion(ctx: WorldContext, mats: StructureMaterials, rng:
     bases.push(...fb.bases);
   }
 
-  const box = EXPANSION_BOX;
-  const visible = (cx: number, cz: number) => {
-    const dx = Math.max(box.x0 - cx, 0, cx - box.x1);
-    const dz = Math.max(box.z0 - cz, 0, cz - box.z1);
-    return Math.hypot(dx, dz) < EXPANSION_VISIBLE_M;
-  };
+  // the casters' spheres plus their shadow footprints for this scene's sun (ctx.sun points at
+  // its target from the sun's position: the direction toward the sun is position − target)
+  // (no sun in the context — a bare harness — falls back to the config's azimuth / elevation)
+  const sunToward = ctx.sun ? ctx.sun.position.clone().sub(ctx.sun.target.position).normalize() : sunVector(ctx.config.sun.azimuthDeg, ctx.config.sun.elevationDeg);
+  const spheres: Sphere[] = expansionCasters().flatMap((c) => casterSpheres(c, sunToward));
+  const visible = (camera: Camera) => expansionVisible(camera, spheres);
   return {
     group,
     near,

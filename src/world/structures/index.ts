@@ -196,7 +196,7 @@ export async function create(ctx: WorldContext): Promise<WorldSystem> {
   const expansionNearDraws = consolidateStaticMeshes(expansion.near);
   const expansionFarDraws = consolidateStaticMeshes(expansion.far);
   group.add(expansion.group);
-  expansion.near.visible = expansion.visible(ctx.camera.position.x, ctx.camera.position.z);
+  expansion.near.visible = expansion.visible(ctx.camera);
   for (const d of [expansionNearDraws, expansionFarDraws]) {
     draws.before += d.before;
     draws.after += d.after;
@@ -399,11 +399,11 @@ export async function create(ctx: WorldContext): Promise<WorldSystem> {
     update(_dt, t, c) {
       swingLanterns(lanterns, t, windDir.x, windDir.y);
       north.visible = northVisible(c.camera.position.x, c.camera.position.z);
-      expansion.near.visible = expansion.visible(c.camera.position.x, c.camera.position.z);
+      expansion.near.visible = expansion.visible(c.camera);
     },
     onCameraMove(camera) {
       north.visible = northVisible(camera.position.x, camera.position.z);
-      expansion.near.visible = expansion.visible(camera.position.x, camera.position.z);
+      expansion.near.visible = expansion.visible(camera);
     },
     dispose() {
       // one-shot: every geometry, material and owned texture is released exactly once, however
