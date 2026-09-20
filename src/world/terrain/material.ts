@@ -209,8 +209,8 @@ export const TERRACE_WOBBLE = 0.025;
 /** the darkening: the share of the band's albedo that goes to soil */
 export const TERRACE_SOIL_SHARE = 0.62;
 export const C_TERRACES: readonly TerraceFace[] = [
-  { id: 'c-mound', box: [6.3, 1.0, 9.5, 4.2], treads: [0.22, 0.7], step: 0.24, downhill: [-0.38, -0.92], facing: 0.15, minSlope: 0.3 },
-  { id: 'c-plateau', box: [11.0, 5.0, 18.0, 11.5], treads: [0.3, 1.74], step: 0.36, downhill: [-0.5, 0.87], facing: 0.1, minSlope: 0.25 },
+  { id: 'c-mound', box: [6.3, 1.0, 9.5, 4.2], treads: [0.22, 0.7], step: 0.24, downhill: [-0.8, -0.6], facing: 0.1, minSlope: 0.06 },
+  { id: 'c-plateau', box: [11.0, 5.0, 18.0, 11.5], treads: [0.3, 1.74], step: 0.36, downhill: [-0.75, 0.66], facing: 0.1, minSlope: 0.06 },
 ];
 
 /** the GLSL of the faces: `terraceRiser(p, h, nn)` → 0..1, the riser band's weight at a point */
@@ -221,7 +221,7 @@ function terraceGlsl(): string {
     float inBox = smoothstep(bx.x - 0.3, bx.x + 0.2, p.x) * (1.0 - smoothstep(bx.z - 0.2, bx.z + 0.3, p.x))
                 * smoothstep(bx.y - 0.3, bx.y + 0.2, p.y) * (1.0 - smoothstep(bx.w - 0.2, bx.w + 0.3, p.y));
     if (inBox > 0.001) {
-      float slopeW = smoothstep(${f(t.minSlope)}, ${f(t.minSlope + 0.08)}, 1.0 - nn.y);
+      float slopeW = smoothstep(${f(t.minSlope)}, ${f(t.minSlope + 0.05)}, 1.0 - nn.y);
       float faceW = smoothstep(${f(t.facing)}, ${f(t.facing + 0.1)}, dot(nn.xz, vec2(${f(t.downhill[0])}, ${f(t.downhill[1])})));
       float hw = h + (tVNoise(p * 1.9 + vec2(${f(17 + i * 7)}, ${f(5 - i * 3)})) - 0.5) * ${f(2 * TERRACE_WOBBLE)};
       float kf = clamp(floor((hw - ${f(t.treads[0])}) / ${f(t.step)} + 0.5), 0.0, ${f(Math.round((t.treads[1] - t.treads[0]) / t.step))});

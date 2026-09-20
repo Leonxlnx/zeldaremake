@@ -300,18 +300,22 @@ export interface TerraceFace {
 export const TERRACE_RISER = 0.14;
 
 export const C_TERRACES: readonly TerraceFace[] = [
-  // the stair's south bank's north face off the plaza's rim (the 0.7 m rise camera C looks at;
-  // A's right foreground is the face's west part, x < 6.3, left alone)
-  { id: 'c-mound', box: [6.3, 1.0, 9.5, 4.2], treads: [0.22, 0.7], step: 0.24, downhill: [-0.38, -0.92], facing: 0.15, minSlope: 0.3 },
-  // the plateau's south-west slope left of it in C (the 2 m fall to the south lawn)
-  { id: 'c-plateau', box: [11.0, 5.0, 18.0, 11.5], treads: [0.3, 1.74], step: 0.36, downhill: [-0.5, 0.87], facing: 0.1, minSlope: 0.25 },
+  // the stair's south bank's north face off the plaza's rim (the 0.75 m rise camera C looks at,
+  // 20–35° — 1 − n.y 0.06–0.18 — running diagonally from (8, 1) to (6.3, 3.5), downhill to the
+  // north-west; A's right foreground is the face's west part, x < 6.3, left alone)
+  { id: 'c-mound', box: [6.3, 1.0, 9.5, 4.2], treads: [0.22, 0.7], step: 0.24, downhill: [-0.8, -0.6], facing: 0.1, minSlope: 0.06 },
+  // the plateau's south-west slope left of it in C (the fall from 2.9 m at (17.5, 5) to the
+  // south lawn at (12, 7) / (14, 10); C's frame holds it to x ≈ 15.5, h ≤ 1.7)
+  { id: 'c-plateau', box: [11.0, 5.0, 18.0, 11.5], treads: [0.3, 1.74], step: 0.36, downhill: [-0.75, 0.66], facing: 0.1, minSlope: 0.06 },
 ];
 
 /** tufts along a tread (per m of contour), moss cushions at a foot (per m), ferns at a toe (total), leaves on the risers (per m²) */
-export const TERRACE_TUFTS_PER_M = 4.2;
-export const TERRACE_FOOT_MOSS_PER_M = 1.2;
-export const TERRACE_TOE_FERNS = { 'c-mound': 9, 'c-plateau': 10 } as Record<string, number>;
+export const TERRACE_TUFTS_PER_M = 6;
+export const TERRACE_FOOT_MOSS_PER_M = 1.6;
+export const TERRACE_TOE_FERNS = { 'c-mound': 9, 'c-plateau': 12 } as Record<string, number>;
 export const TERRACE_RISER_LEAVES_PER_M2 = 1.6;
+/** the row tufts' scale range (the C frames see the faces from 11–19 m: bigger than the rim's lip tufts) */
+export const TERRACE_TUFT_SCALE: readonly [number, number] = [0.6, 0.95];
 
 export interface TerraceSets {
   tufts: LodInstancedSet;
@@ -340,12 +344,24 @@ export function terracePlants(ctx: WorldContext, field: VegField, sets: TerraceS
   const M = new Float32Array(16);
   const n = new Vector3();
   const out: Record<string, number> = {};
-  const ok = (x: number, z: number) => {
+  // `verge`: the seat may stand on the paving's gravel verge (the mask disallows it) as long as it
+  // is off the slabs — the mound's foot IS the plaza's verge
+  const ok = (x: number, z: number, verge = false) => {
     field.sample(x, z, s);
-    if (!field.allowed(x, z, s, true)) return false;
+    if (!field.allowed(x, z, s, true) && !(verge && field.lawnEdgeDistance(x, z, true) >= 0.04)) return false;
     if (s.stairs > 0.05 || s.structure > 0.05) return false;
     if (field.insidePropFootprint(x, z, 0.08) || field.clearing(x, z).insideBoulder) return false;
     return true;
+  };
+  /** the toe: inside the box, below the first tread's upper half, on the face or the flat ground just under it */
+  const toe = (f: TerraceFace, x: number, z: number, top: number): number => {
+    if (x < f.box[0] || x > f.box[2] || z < f.box[1] || z > f.box[3]) return NaN;
+    const h = T.height(x, z);
+    if (h > top || h < f.treads[0] - TERRACE_RISER - 0.2) return NaN;
+    T.normal(x, z, n);
+    // on the face it must face downhill; the flat ground under it needs no facing
+    if (1 - n.y >= f.minSlope && n.x * f.downhill[0] + n.z * f.downhill[1] < f.facing * 0.5) return NaN;
+    return h;
   };
   for (const f of C_TERRACES) {
     const rng = ctx.rng.fork(`edges/terrace/${f.id}`);
@@ -372,7 +388,7 @@ export function terracePlants(ctx: WorldContext, field: VegField, sets: TerraceS
         taken.add(key);
         const px = mm(x + (rng() - 0.5) * g);
         const pz = mm(z + (rng() - 0.5) * g);
-        const scale = 0.42 + rng() * 0.3;
+        const scale = TERRACE_TUFT_SCALE[0] + rng() * (TERRACE_TUFT_SCALE[1] - TERRACE_TUFT_SCALE[0]);
         const c: [number, number, number] = [1 + (rng() - 0.5) * 0.16, 1 + (rng() - 0.5) * 0.1, 1 + (rng() - 0.5) * 0.18];
         if (!ok(px, pz)) continue;
         // the blades lean downhill a little (the face's drift)
@@ -406,7 +422,7 @@ export function terracePlants(ctx: WorldContext, field: VegField, sets: TerraceS
       const pz = mm(z0 + (rng() - 0.5) * 0.12);
       const scale = 0.5 + rng() * 0.4;
       const c: [number, number, number] = [0.95 + rng() * 0.1, 1, 0.9 + rng() * 0.1];
-      if (!ok(px, pz) || field.lawnEdgeDistance(px, pz, true) < 0.04) continue;
+      if (!ok(px, pz, true)) continue;
       T.normal(px, pz, n);
       composeMatrix(M, 0, px, T.height(px, pz) - 0.01, pz, n.x, n.y, n.z, 0.9, rng() * Math.PI * 2, scale * (0.8 + 0.4 * rng()), scale * 0.8, scale * (0.8 + 0.4 * rng()));
       sets.moss.add(M, rng.int(0, sets.moss.variantCount), c);
@@ -420,9 +436,9 @@ export function terracePlants(ctx: WorldContext, field: VegField, sets: TerraceS
       const pz = mm(f.box[1] + rng() * (f.box[3] - f.box[1]));
       const scale = 0.5 + rng() * 0.3;
       const c: [number, number, number] = [1 + (rng() - 0.5) * 0.2, 1 + (rng() - 0.5) * 0.14, 1 + (rng() - 0.5) * 0.24];
-      const h = onFace(T, f, px, pz, n);
-      if (Number.isNaN(h) || h > f.treads[0] + f.step * 0.6) continue;
-      if (!ok(px, pz) || field.lawnEdgeDistance(px, pz, true) < 0.3) continue;
+      const h = toe(f, px, pz, f.treads[0] + f.step * 0.6);
+      if (Number.isNaN(h)) continue;
+      if (!ok(px, pz) || field.lawnEdgeDistance(px, pz, true) < 0.18) continue;
       if (sets.ferns.items.some((it) => Math.hypot(it.x - px, it.z - pz) < 0.5)) continue;
       T.normal(px, pz, n);
       composeMatrix(M, 0, px, T.height(px, pz) - 0.02, pz, n.x, n.y, n.z, 0.7, rng() * Math.PI * 2, scale, scale, scale);
@@ -434,8 +450,8 @@ export function terracePlants(ctx: WorldContext, field: VegField, sets: TerraceS
       const pz = mm(f.box[1] + rng() * (f.box[3] - f.box[1]));
       const scale = 0.55 + rng() * 0.4;
       const c: [number, number, number] = [1 + (rng() - 0.5) * 0.16, 1 + (rng() - 0.5) * 0.1, 1 + (rng() - 0.5) * 0.2];
-      const h = onFace(T, f, px, pz, n);
-      if (Number.isNaN(h) || h > f.treads[0] + f.step * 0.9) continue;
+      const h = toe(f, px, pz, f.treads[0] + f.step * 0.9);
+      if (Number.isNaN(h)) continue;
       if (!ok(px, pz) || field.lawnEdgeDistance(px, pz, true) < 0.12) continue;
       T.normal(px, pz, n);
       composeMatrix(M, 0, px, T.height(px, pz) - 0.01, pz, n.x, n.y, n.z, 0.7, rng() * Math.PI * 2, scale, scale, scale);
