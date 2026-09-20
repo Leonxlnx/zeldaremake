@@ -2524,6 +2524,62 @@ Also: lantern bough still a thick plain beam across the top of B (trees pass pen
 - Owner (03:41): everything ready by tomorrow — deadline at the top of `docs/GOAL_MODE.md` and on
   PR #2 with per-lane priorities.
 
+### 06:25 UTC — tick 184–185: take-0120 sealed (30/50); round 48 merged from branches; W38 fought again
+- Take-0120 on `f68da42`: A 0.2201 (−0.0008) B 0.2044 (+0.0021) C 0.2391 (−0.0004) D 0.2791 (+0.0004)
+  E 0.2150 (+0.0038) F 0.2609 (+0.0008); A 567 draws / 8.997 M; **30/50** (U03 pass, U02 fail by
+  opus-review). Monitor `33d05b7`, play build published. Contents: canopy roof, shaft fade, white-bark
+  bases + clearing white-barks, boulders + ledge wall, village props + lookout railing.
+- W38 again: the external merges put A at 9.08 M. Probes (A-only): −20 K hiding the north locality
+  (new shared `util/northLocality.ts`: rocks' ledge faces, props' north cluster, hardscape's north
+  paving), −80 K without white-bark root flares, −70 K without props. Landed: root flares only
+  within 24 m of the walkable network (`f68da42`) → 8.997 M. Proposal filed: W38 ceiling 9 → 11 M
+  or measured at the governor's tier (`gauntlet/RUBRIC_PROPOSALS.md`) — the frame is per-pixel
+  bound on the 780M (fable-6 §3, correlation 0.04).
+- Round 48: all seven lanes silent 6–7 h after substantial commits (captures died under load);
+  merged from the branches (`12e1b58`…`cf8083b`), tsc + 37 tests green; integrated capture running
+  on `cf8083b` → take-0121 if within budget (A watch: hardscape stairs + npc faces + structures room).
+
+### 07:35 UTC — tick 186: take-0121 sealed (round 48) but flagged D2 on W38; round 49 launched
+- Take-0121 on `cf8083b`: A 0.2176 (−0.0025) B 0.2001 (−0.0043) C 0.2372 (−0.0019) D 0.2781
+  (−0.0010) E 0.2116 (−0.0034) F 0.2564 (−0.0045) — the lit doorway, per-tread stair tone + nosing
+  moss, narrower joints, modelled faces: owner-requested look over the frames. **W38: A 9.11 M >
+  9.0 M → the take is INVALID (D2 regression)**; monitor `0db3dc9`, build published anyway (the
+  owner plays the look). Probe: the LOD tier is not it (`?pool=small` byte-identical) — the stairs'
+  tufts/chips, the faces and the room furnishings sit in A. Proposal to raise the ceiling on file.
+- Round 49 launched: perf-3 (recover ≥ 250 K on A with no visible change — interior/tuft/face LODs,
+  far packs), expansion-2 (fable-5 V15: the plaza's backside — a second tree-house west, a fenced
+  bank with a Kokiri south, a far hut north-west, paths), structures-32 (V19: the arch as a real
+  tunnel — right wall, l 0.43 → 0.13, floor darkened, ragged window). Goal-mode chats continue.
+- `ZR_URL_EXTRA` probe hook added to `browser.mjs`.
+
+### 07:55 UTC — tick 187: goal-mode iterations 3–7 merged (fable-2/3/4/5); round 49 building
+- Merged from the branches: fable-2 (`b204778`: the ledge wall at 3 m — strata, damp band, foot
+  ferns; the clearing's scree + boulder pair), fable-3 (`c11a754`: per-locality prop culling — its
+  `cull()` replaces my north toggle in props; the two commits the 02:25 merge missed), fable-4
+  (`be27f4e`: trunks at 10–17 m, crown tone, texel-resolution marks), fable-5 (`4b871e1`:
+  re-reviews of each iteration; hero flight + joints measured on the merged head). tsc + 32 tests
+  green. The world tree has moved past take-0121 → the next seal waits for perf-3 (W38 margin).
+- Round 49 lanes building: perf-3, expansion-2 (the backside), structures-32 (the tunnel).
+
+### 08:10 UTC — tick 188: take-0121 re-verdicted 36/50 (Phase 1 31/42); fable-2's pebble fix merged
+- fable-5's non-author re-verdict of take-0121: **36/50, 15 visual passes**, seven newly passing since
+  take-0116 (W03 joints/slabs, W11 crown edges, W14 the limb's bark + moss, W15 grass at the stair
+  foot, W20 moss, W25 the lit room + pods, W29 the arch as a flat-topped log). Remaining fails with
+  the one thing each needs: W02 log-risered flight (timber), W23 the D boulder hidden by ferns
+  (fable-2's 2 m exclusion pending), W05/W06 C mound + grass/slab edge, W08/W09 pole/cylinder trunks
+  at frame scale (fable-4's branch — merged now), W10/W31 flat lobes + no shafts (owner-fable's
+  layered lobes + Astra), W30 owner, C01 skin/hair colour only, C02 no Kokiri Sword, U02 the oval
+  should hold Link's turntable. W38 still the gate (perf-3 running, 5 commits).
+- Merged fable-2 iteration 6 (`d5ff554`: per-cell pebble draws) and fable-5 (`0f4b69c`).
+
+### 08:45 UTC — tick 189: take-0122 sealed — VALID, 37/50 (Phase 1 32/42), A 8.68 M
+- perf-3 recovered A's budget with every frame byte-identical (A 9.11 → 8.68 M: joint-sprout
+  submission culling, grass blade-tile culling, terrain shadow-caster sweep, unpacked hardscape
+  packs); merged `acec321`. Take-0122: A 0.2179 (+0.0003) B 0.2013 (+0.0012) C 0.2326 (−0.0046,
+  fable-4's white-bark trunks C frames) D 0.2778 E 0.2111 F 0.2563; 562 draws; **37/50**, W38 pass.
+  Monitor `97edfa9`, play build published.
+- Running: expansion-2 (the backside), structures-32 (the tunnel); goal-mode chats iterating.
+
 ## Pending corrections from reference/ANALYSIS.md (apply at integration, one commit)
 - `config.ts` palette → olive/khaki low-key (reference hero frames: hue 47–51°, sat 0.16–0.19,
   lum 0.35–0.39, 0 % blue sky): grass 0x8a8c55/0x5c6233/0x3a4420, moss 0x8b8948/0x5a523b,
@@ -2562,4 +2618,4 @@ Pick anything NOT claimed in `gauntlet/claims.json`. Good self-contained candida
   my own (GAUNTLET.md D7).
 
 ## Last updated
-2026-09-20T04:10:00Z
+2026-09-20T08:45:00Z

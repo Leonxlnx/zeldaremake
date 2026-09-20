@@ -4,7 +4,7 @@ runtime: Cursor Cloud Agent (Claude Fable 5.1)
 github: Cursor Agent <cursoragent@cursor.com>
 status: active
 branch: agent/fable-5-r48-review
-updated: 2026-09-20T03:10:00Z
+updated: 2026-09-20T06:23:00Z
 ---
 
 # fable-5 — work log
@@ -17,6 +17,11 @@ gauntlet's independent D7 verdicts (`gauntlet/reviews/*.json`, written only thro
 00:00 UTC (timer `goal-mode-fable-5`, cron `20 * * * *`); `agent/fable-5-demo-walk` merged (`b4de8d7`); current branch `agent/fable-5-r48-review`.
 
 ## Current task
+Done this iteration: take-0121 re-verdicted (see Completed). Next: the player-height walk of
+`cf8083b` (GOAL_MODE #3) with the ranked list; then the next sealed take. Still waiting for the
+15-minute video file.
+
+## Previous current task (superseded)
 Goal-mode loop. Next iteration: **re-verdict every visual item on take-0120** when it seals (the
 monitor's last take is 0118 at `d168b93`; 0120 was queued at tick 178) — strict, reference | ours
 crops, U02/U03 on the shipped bag screen with a non-author `?screen=equipment` render. Still waiting
@@ -30,6 +35,35 @@ lands: `ffmpeg` frames at his marked moments → `reference/frames-video2/`, has
 - `.agents/fable-5.md`, `.agents/reviews/fable-5-*.md`, my threads in `.agents/INBOX.md`.
 
 ## Completed work
+- 2026-09-20 06:00–06:23 UTC — **take-0121 (`cf8083b`, round 48) re-verdicted**: 27 visual items
+  filed (15 pass / 12 fail), U02/U03 from an own `?screen=equipment` render, W22 from an own motion
+  pair, 26 sheets; re-scored **36/50, Phase 1 31/42** (take-0120: 30). Newly passing since
+  take-0116: W03 W11 W14 W15 W20 W25 W29. Summary + ranked round-49 list in
+  `.agents/reviews/fable-5-take0121.md`; INBOX note to fable-cursor + all lanes.
+- 2026-09-20 05:20–05:54 UTC — goal-mode iteration 7 (§J): **the hero flight is log-risered**
+  (`d_105`/`d_013`/`d_107` + the A frame) — V18 withdrawn, V18′ filed at sev 3, W02 wording
+  proposal for fable-cursor, evidence sheet; fable-3's light strings verified at A's reference
+  positions and value (A +0.0001, F −0.0009); fable-2's clearing cull harmless. `ANALYSIS_VIDEO2.md`
+  §6.6b. INBOX note to fable-cursor + hardscape-31.
+- 2026-09-20 04:20–04:55 UTC — goal-mode iteration 6 (§I): fable-2's wall at 3 m IMPROVED
+  (crest, beds, damp gradient, foot slabs; C/D identical) + flight-flank scree landed; fable-4's
+  texture-octave bands PASS at 5 m (near-black torn bands + chevrons; saplings now marked; C +0.0003).
+  Five sheets; INBOX note.
+- 2026-09-20 04:20 UTC — U02/U03 pipeline ready for take-0120: `.agents/reviews/fable-5-tools/equip-screen.mjs`
+  renders `?screen=equipment` headlessly (full-page shot, 84 s on this VM; verified on the head —
+  Deku Stick card in the oval, grid, tabs). Also filed there: `before-after-sheet.py`, `ssim-pair.mjs`
+  (the gauntlet's 256×144 SSIM + pixDiff for two frames, optional reference) — the tools behind every
+  number in `fable-5-r48-branches.md`.
+- 2026-09-20 03:35–04:30 UTC — goal-mode iteration 5 (§H): `agent/fable-3-merge` (props per
+  locality) pixel-identical at B/C/E and five props poses; `agent/fable-4-crowns` (crown albedo)
+  IMPROVED — leaves −16…−29 %, under the haze, B/E identical, C +0.0001; shape still flat cards.
+  Three sheets; INBOX note.
+- 2026-09-20 03:00–04:00 UTC — goal-mode iteration 4 (§G): fable-2's shot-D value commit
+  `20513c24` verified as head + commit (cherry-pick worktree): face l 0.156 → 0.201 at 2 m with the
+  ferns unchanged, D pixel-identical at the compare size — IMPROVED, safe to merge; fable-3's 45 m
+  cluster cull `0b46deb7` — props still draw at 5.6/11 m, A pixDiff 0.01 %. Method note: the lane
+  branches still sit on `3d50f6c8`, so branch-vs-head renders differ by the other lanes' merges —
+  cherry-pick the commit onto the head for a clean read.
 - 2026-09-20 01:45–03:10 UTC — goal-mode iteration 3 (`agent/fable-5-r48-review` off `0987e060`
   after fable-cursor merged the previous branch): the lane branches' new commits re-checked
   (§E of `fable-5-r48-branches.md`): **fable-4's trunk-read commits on `b61e0ff8` = an after that
@@ -108,4 +142,4 @@ lands: `ffmpeg` frames at his marked moments → `reference/frames-video2/`, has
   lists the regions; the evidence images are reproducible with the same crops.
 
 ## Last updated
-2026-09-20T03:10:00Z
+2026-09-20T06:23:00Z

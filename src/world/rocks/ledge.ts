@@ -183,23 +183,27 @@ export function buildRockLedge(def: RockLedgeDef, T: Terrain, rng: Rng, seed: st
   const length = u[J - 1];
   // the end taper is the extension run (never more than a quarter of the whole run each side)
   const taper = Math.min(Math.max(ext, 0.4), 0.25 * length);
-  // per-column inset (the def's, plus the slope walked), foot ground, top ground and face height
-  // (tapered at the ends)
+  // per-column inset (the def's, plus the slope walked), foot ground, top ground and face height.
+  // The ends do not drop: the column SINKS into the bank along n (fable-5's review of the first
+  // build: a height taper left the terrace's pale cut showing above the crest), so the lip stays
+  // on the terrace top and the face runs back into the slope, its foot re-seated on the higher
+  // ground it now stands on, until the face is nothing but the shoulder.
   const insetJ: number[] = [];
   const footY: number[] = [];
   const topY: number[] = [];
   const faceH: number[] = [];
   let maxH = 0;
   for (let j = 0; j < J; j++) {
-    const f = foot[j];
     const n = nIn[j];
-    const inset = insetDef + walkedS[j];
-    const fy = T.height(f.x, f.y);
-    const ty = def.height !== undefined && !isLip ? fy + def.height : T.height(f.x + n.x * inset, f.y + n.y * inset);
+    const insetFull = insetDef + walkedS[j];
     const endW = smoothstep(0, taper, u[j]) * smoothstep(0, taper, length - u[j]);
-    // the wall rides the bank: its own height is the ground rise, tapered to nothing at the ends
-    // (the ends sink back into the slope, so the face never ends in a cut wall)
-    const h = Math.max(0, ty - fy) * (0.25 + 0.75 * endW);
+    const topPt = foot[j].clone().addScaledVector(n, insetFull);
+    const sink = (1 - endW) * 0.85 * insetFull;
+    foot[j].addScaledVector(n, sink);
+    const inset = Math.max(0.12, insetFull - sink);
+    const fy = T.height(foot[j].x, foot[j].y);
+    const ty = def.height !== undefined && !isLip ? fy + def.height * (0.25 + 0.75 * endW) : T.height(topPt.x, topPt.y);
+    const h = Math.max(0, ty - fy);
     insetJ.push(inset);
     footY.push(fy);
     topY.push(ty);
@@ -207,29 +211,38 @@ export function buildRockLedge(def: RockLedgeDef, T: Terrain, rng: Rng, seed: st
     maxH = Math.max(maxH, h);
   }
   // root ridges (see RockLedgeDef.roots): each has a run position at the lip, a wander, a radius
-  const rootsPer3m = def.roots ?? 0.7;
+  const rootsPer3m = def.roots ?? 1.1;
   const nRoots = Math.round((length / 3) * rootsPer3m);
   const roots: { u0: number; wander: number; R: number; phase: number }[] = [];
   for (let k = 0; k < nRoots; k++) {
-    roots.push({ u0: length * ((k + 0.5 + rng.range(-0.3, 0.3)) / nRoots), wander: rng.range(-0.45, 0.45), R: rng.range(0.09, 0.15), phase: rng.range(0, 10) });
+    roots.push({ u0: length * ((k + 0.5 + rng.range(-0.3, 0.3)) / nRoots), wander: rng.range(-0.45, 0.45), R: rng.range(0.1, 0.16), phase: rng.range(0, 10) });
   }
-  /** root ridge bump (m) and bark weight 0..1 at wall coordinates (run uu, face fraction vf 0 foot … 1 lip, > 1 shoulder) */
+  /**
+   * root ridge at wall coordinates (run uu, face fraction vf 0 foot … 1 lip, > 1 shoulder):
+   * bump (m), bark weight 0..1, and the longitudinal rib tone (bark is ribbed along the root)
+   */
   const rootAt = (uu: number, vf: number) => {
     let bump = 0;
     let bark = 0;
+    let rib = 0.5;
     for (const rt of roots) {
       // the ridge wanders across the run as it descends and thins toward the foot; over the
       // shoulder (vf > 1) it thickens back toward the tree it came from
       const centre = rt.u0 + rt.wander * (1 - Math.min(1, vf)) + 0.12 * N.fbm(vf * 2.1 + rt.phase, rt.u0 * 0.7, 2.2, 2);
-      const taperR = vf >= 1 ? 1 + 0.4 * Math.min(1, vf - 1) : 0.45 + 0.55 * vf;
+      const taperR = vf >= 1 ? 1 + 0.15 * Math.min(1, vf - 1) : 0.45 + 0.55 * vf;
       const R = rt.R * taperR;
       const d = Math.abs(uu - centre);
       if (d >= 2 * R) continue;
       const w = 1 - (d / (2 * R)) * (d / (2 * R));
-      bump = Math.max(bump, R * w * w);
-      bark = Math.max(bark, smoothstep(0.15, 0.6, w));
+      const b = R * w * w;
+      if (b > bump) {
+        bump = b;
+        // ribs: fast across the root (the d/R phase), slow along it
+        rib = N.ridged((d / R) * 4.5 + rt.phase, vf * 1.3, 3.1, 2);
+      }
+      bark = Math.max(bark, smoothstep(0.12, 0.55, w));
     }
-    return { bump, bark };
+    return { bump, bark, rib };
   };
   // rows: the buried skirt (v < 0), the face (0..1), the lip shoulder (> 1)
   const faceRows = Math.max(8, Math.round(maxH / 0.1));
@@ -237,7 +250,9 @@ export function buildRockLedge(def: RockLedgeDef, T: Terrain, rng: Rng, seed: st
   const capRows = 4;
   const I = skirtRows + faceRows + capRows;
   // bedding: bed thickness and the tilt of the beds along the run
-  const bedThick = rng.range(0.42, 0.6);
+  // (fable-5's review at 3 m: "one smooth boulder, faint layering" — beds 0.3–0.45 m, so a 1.7 m
+  // face carries four or five, stepped and parted hard enough to read from the clearing)
+  const bedThick = rng.range(0.3, 0.45);
   const bedTilt = rng.range(-0.08, 0.08);
   const bedPhase = rng.range(0, 1);
   const bedOff = Array.from({ length: 12 }, () => rng.range(-1, 1));
@@ -246,11 +261,17 @@ export function buildRockLedge(def: RockLedgeDef, T: Terrain, rng: Rng, seed: st
   const blockPhase = rng.range(0, 1);
   const seedOff = rng.range(-40, 40);
 
-  /** bedding at wall coordinates (run u, height y): { groove 0..1, step -1..1 } */
-  const bedding = (uu: number, y: number) => {
+  /**
+   * bedding at wall coordinates (run u, height y, face fraction vf): { groove 0..1, step -1..1 }.
+   * The beds thin toward the top of the face (a full bed at the foot, 55 % of it under the lip —
+   * fable-5 at 3 m: "chunky angular facets more than thin strata"), so the upper face reads as
+   * layered stone while the base keeps its heavy blocks.
+   */
+  const bedding = (uu: number, y: number, vf = 0.5) => {
     // beds undulate along the run (slow) and pinch/swell (faster), so the ledges are not
     // evenly ruled lines
-    const h = (y + uu * bedTilt) / bedThick + bedPhase + 0.3 * N.fbm(uu * 0.22 + seedOff, y * 0.3, 3.3, 2) + 0.16 * N.fbm(uu * 0.7 + seedOff, y * 0.7, 6.1, 2);
+    const thick = bedThick * (1 - 0.45 * vf);
+    const h = (y + uu * bedTilt) / thick + bedPhase + 0.3 * N.fbm(uu * 0.22 + seedOff, y * 0.3, 3.3, 2) + 0.16 * N.fbm(uu * 0.7 + seedOff, y * 0.7, 6.1, 2);
     const k = Math.floor(h);
     const f = h - k;
     const groove = 1 - smoothstep(0, 0.13, Math.min(f, 1 - f));
@@ -278,7 +299,9 @@ export function buildRockLedge(def: RockLedgeDef, T: Terrain, rng: Rng, seed: st
   const dark = new Color(0.1, 0.095, 0.085);
   const soil = new Color(0.16, 0.14, 0.09);
   const at = (i: number, j: number) => i * J + j;
-  const bark = new Color(0.2, 0.15, 0.1);
+  // bark: a warm mid brown — against the near-black damp stone a dark bark read as more stone
+  // (fable-5 at 3–7 m); it separates in value and hue, and stays matte where the stone is wet
+  const bark = new Color(0.36, 0.25, 0.14);
   for (let j = 0; j < J; j++) {
     const f = foot[j];
     const n = nIn[j];
@@ -321,7 +344,7 @@ export function buildRockLedge(def: RockLedgeDef, T: Terrain, rng: Rng, seed: st
         wet = 1;
       } else if (phase === 'face') {
         // beds are continuous in world height, so they run level along a rising foot
-        const bed = bedding(uu, y0);
+        const bed = bedding(uu, y0, vf);
         const jn = joints(uu, y0, bed.k);
         // relief: beds step ± 0.16 m, blocks ± 0.09 m, a ridged skin ± 0.06 m, micro ± 0.02 m —
         // all of it tapered to nothing at the foot row, which must sit exactly on the terrain
@@ -329,13 +352,15 @@ export function buildRockLedge(def: RockLedgeDef, T: Terrain, rng: Rng, seed: st
         const mic = N.fbm(uu * 6.5 - seedOff, y0 * 6.5, 5.5, 2);
         const blockOff = N.fbm(jn.block * 3.7 + 0.5, bed.k * 2.9 + seedOff, 1.0, 1);
         const footTaper = smoothstep(0, 0.22, vf);
-        out = hs * footTaper * (0.16 * bed.step + 0.09 * blockOff + 0.06 * (rd - 0.5) * 2 + 0.02 * mic);
+        // (block offsets and the ridged skin shrink up the face with the beds: thin strata, not chunks)
+        const thin = 1 - 0.4 * vf;
+        out = hs * footTaper * (0.2 * bed.step * (0.7 + 0.3 * thin) + 0.06 * blockOff * thin + 0.05 * (rd - 0.5) * 2 * thin + 0.02 * mic);
         // the parting grooves and joints sink
-        out -= hs * footTaper * (0.09 * bed.groove + 0.05 * jn.joint);
-        // colour: bed tone ± 10 %, block tone ± 8 %, partings and joints dark, ridges a shade paler
-        let tone = 1 + 0.1 * bed.step + 0.08 * blockOff + 0.14 * (rd - 0.5);
+        out -= hs * footTaper * (0.12 * bed.groove + 0.06 * jn.joint);
+        // colour: bed tone ± 14 %, block tone ± 8 %, partings and joints dark, ridges a shade paler
+        let tone = 1 + 0.14 * bed.step + 0.08 * blockOff + 0.14 * (rd - 0.5);
         _tmp.copy(stone).multiplyScalar(tone);
-        _tmp.lerp(dark, 0.85 * Math.max(bed.groove, jn.joint * 0.9));
+        _tmp.lerp(dark, 0.9 * Math.max(bed.groove, jn.joint * 0.9));
         // drip streaks below the lip: dark vertical streaks fading down ~2 m
         const streakN = N.fbm(uu * 4.1 + seedOff * 0.5, 2.0, 0.7, 2) * 0.5 + 0.5;
         const streak = smoothstep(0.54, 0.7, streakN) * smoothstep(0.45, 0.9, vf) * (1 - smoothstep(0.92, 1.0, vf));
@@ -351,15 +376,19 @@ export function buildRockLedge(def: RockLedgeDef, T: Terrain, rng: Rng, seed: st
         moss = clamp((smoothstep(0.42, 0.62, sheetN) * (0.6 + 0.4 * underLip) + ledgeMoss) * (1 - smoothstep(0.1, 0.4, wet)) * (1 - 0.7 * jn.joint), 0, 1) * hs;
         // the collar just above the ground: soil-dark
         _tmp.lerp(soil, 0.7 * (1 - smoothstep(0.02, 0.28, yAbove)));
-        // root ridges: a rounded bark ridge bulging out of the stone, moss along its crest near
-        // the lip, thinning to the foot (tapered with the relief at the foot row)
+        // the damp band is in the stone's own colour too (a third darker, cooler), so it reads
+        // from the clearing and not only inside the material's near fade
+        _tmp.lerp(_tmp2.set(0.09, 0.1, 0.12), 0.35 * wet);
+        // root ridges: a rounded bark ridge bulging out of the stone — bark, not stone: warmer and
+        // darker, ribbed along its length, moss along its crest near the lip, thinning to the foot
+        // (tapered with the relief at the foot row)
         const rt = rootAt(uu, vf);
         if (rt.bump > 0) {
-          out += hs * footTaper * rt.bump;
-          const barkTone = 0.85 + 0.3 * (N.fbm(uu * 9.1 + seedOff, y0 * 9.1, 1.3, 2) * 0.5 + 0.5);
+          out += hs * footTaper * rt.bump * 1.2;
+          const barkTone = (0.7 + 0.6 * rt.rib) * (0.9 + 0.2 * (N.fbm(uu * 9.1 + seedOff, y0 * 9.1, 1.3, 2) * 0.5 + 0.5));
           _tmp.lerp(_tmp2.copy(bark).multiplyScalar(barkTone), rt.bark);
-          moss = Math.max(moss * (1 - 0.6 * rt.bark), rt.bark * 0.55 * smoothstep(0.5, 0.95, vf));
-          wet *= 1 - 0.5 * rt.bark;
+          moss = Math.max(moss * (1 - 0.7 * rt.bark), rt.bark * 0.5 * smoothstep(0.55, 0.95, vf) * smoothstep(0.2, 0.8, rt.rib));
+          wet *= 1 - 0.9 * rt.bark;
         }
       } else {
         // the lip shoulder: a quarter-round from the face's top edge back and down onto the top
@@ -370,22 +399,31 @@ export function buildRockLedge(def: RockLedgeDef, T: Terrain, rng: Rng, seed: st
         const ang = (c * Math.PI) / 2;
         const lipBack = retreat - leanHere;
         const groundTop = topY[j] - 0.06;
-        const lipY = footY[j] + h + 0.12 * hs;
+        // the lip stands 0.2 m proud of the terrace turf (was 0.12): it carries the top and hides
+        // the terrain's cut behind it
+        const lipY = footY[j] + h + 0.2 * hs;
         back = lipBack + (inset - lipBack) * Math.sin(ang);
         y = lipY + (groundTop - lipY) * (1 - Math.cos(ang));
         const lump = N.fbm(uu * 2.4 + seedOff, c * 3.1, 4.4, 2);
         out = hs * (0.06 * lump) * (1 - c);
         y += hs * 0.05 * lump * (1 - c);
-        moss = 1 - 0.15 * (lump * 0.5 + 0.5);
-        _tmp.copy(stone).multiplyScalar(0.9);
+        // the shoulder is the top bed broken into slabs: the vertical joints run on over it as
+        // moss-filled grooves, the slab middles stand a little proud under a thinner moss skin,
+        // so at 3 m the crest is a broken slab top, not one smooth hump
+        const jn = joints(uu, lipY, 0);
+        const slabW = (1 - smoothstep(0.999, 1.0, c)) * hs;
+        y -= 0.05 * jn.joint * slabW;
+        moss = clamp(0.72 + 0.28 * jn.joint - 0.12 * (lump * 0.5 + 0.5) * (1 - jn.joint), 0, 1);
+        _tmp.copy(stone).multiplyScalar(0.9 + 0.08 * N.fbm(jn.block * 3.7 + 0.5, seedOff, 1.0, 1));
+        _tmp.lerp(dark, 0.7 * jn.joint);
         wet = 0;
         // the roots run on over the shoulder toward the trees they came from, thickening
         const rt = rootAt(uu, 1 + c);
         if (rt.bump > 0 && c < 0.999) {
-          y += hs * rt.bump * (1 - c);
-          const barkTone = 0.85 + 0.3 * (N.fbm(uu * 9.1 + seedOff, c * 9.1, 1.3, 2) * 0.5 + 0.5);
+          y += hs * 0.6 * rt.bump * (1 - c);
+          const barkTone = (0.7 + 0.6 * rt.rib) * (0.9 + 0.2 * (N.fbm(uu * 9.1 + seedOff, c * 9.1, 1.3, 2) * 0.5 + 0.5));
           _tmp.lerp(_tmp2.copy(bark).multiplyScalar(barkTone), rt.bark * (1 - c));
-          moss = Math.max(0.35, moss - 0.5 * rt.bark * (1 - c));
+          moss = Math.max(0.3 * (1 - rt.bark) + 0.45 * smoothstep(0.3, 0.8, rt.rib) * rt.bark, moss - 0.6 * rt.bark * (1 - c));
         }
       }
       const px = f.x + n.x * back - n.x * out;
@@ -482,8 +520,12 @@ export function buildRockLedge(def: RockLedgeDef, T: Terrain, rng: Rng, seed: st
   g.computeBoundingBox();
 
   // foot contacts: the row-0 face vertices sit on the terrain by construction; report every ~1 m
+  // foot contacts (audit): the standing part of the face only — the end columns sink into the
+  // bank and their feet are up the slope by design
   const contacts: [number, number, number][] = [];
   for (let j = 0; j < J; j += Math.max(1, Math.round(1 / 0.24))) {
+    const endW = smoothstep(0, taper, u[j]) * smoothstep(0, taper, length - u[j]);
+    if (endW < 0.6) continue;
     const k = at(skirtRows, j);
     contacts.push([gx[k], gy[k], gz[k]]);
   }

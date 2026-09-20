@@ -4,7 +4,7 @@ runtime: Cursor Cloud Agent (Claude Fable 5.1)
 github: Cursor Agent <cursoragent@cursor.com>
 status: active
 branch: agent/fable-2-ledge
-updated: 2026-09-20T01:25:00Z
+updated: 2026-09-20T06:40:00Z
 ---
 
 # fable-2 — work log
@@ -15,13 +15,38 @@ plus new rock modules under the same directory). Onboarded from `docs/ONBOARDING
 cron `20 * * * *`). Each iteration branches afresh from `origin/cursor/kokiri-world-phase1-f65e`
 as `agent/fable-2-<topic>`; `fable-cursor` merges. I do not touch `layout.ts`, the ledger or the rubric.
 
-## Current task (goal mode, iteration 2)
-opus-review #03 / GOAL_MODE fable-2 #1 — the north-terrace ledge (`LAYOUT.rockLedges.north-terrace`)
-as ref-04's damp rock-and-root wall: DONE on `agent/fable-2-ledge` (`ccd9a22a`), evidence in
-`art/environment/fable-2-rocks/README.md` §Iteration 2. PR creation from this chat was refused by
-GitHub ("must be a collaborator" for the agent account) — the branch is pushed; fable-cursor can
-open / merge it from the branch. Next: GOAL_MODE fable-2 #2 (opus #10, the shot-D boulder as an
-unreadable dark mass at 2 m — the cavities are gone on the head, the tonal read is not).
+## Current task (goal mode, iterations 2–3 on `agent/fable-2-ledge`)
+- Iteration 2 — opus #03 / GOAL_MODE fable-2 #1, the north-terrace ledge as ref-04's damp
+  rock-and-root wall: DONE (`ccd9a22a`), evidence `art/environment/fable-2-rocks/README.md`
+  §Iteration 2.
+- Iteration 3 — opus #10 / GOAL_MODE fable-2 #2, the shot-D boulder's value at 2 m: DONE
+  (`20513c24`), §Iteration 3. Probes put the whole gap in the stone's value (the normal map,
+  roughness and the near colour terms each changed nothing measurable; a white rock renders 0.47
+  there). Near path only: stone ×1.35 and warmer, wet band / grime lighter, the D skin's cleave
+  darkening 0.4 → 0.12, shaded moss rim +25 %. Face 0.166 → 0.205 at fern parity (0.213), as
+  the reference's frame D has it. The spot's absolute level (ferns 0.21 vs the reference's 0.32)
+  is the lighting's (opus #13).
+- Iteration 4 — fable-5's non-author review of the wall at 3 m (`x-ledge-wall`: "one smooth
+  boulder, no strata, no damp band, roots the rock's own tone, the cut above the crest"): DONE
+  (`2f741068`), §Iteration 4. Ends sink into the bank (lip stays on the terrace top), beds
+  0.3–0.45 m stepped hard, damp band in the vertex colour + `LEDGE_DAMP` 1.6 on the material,
+  bark roots, slab crest.
+- Iteration 5 — GOAL_MODE fable-2 #3, the north clearing's rock dressing (`clearing.ts`): DONE
+  (`e070771d` + `7bf69c21`), §Iteration 5. The pale boulder pair on the west bank (V20's motif),
+  scree at the flight's flanks 0.6–1.4 m off the treads (the first band sat inside the
+  hardscape's edging cheeks and was invisible — a real FAIL caught at the pose), slabs on the east
+  bank and at the wall's foot; one mesh, drawn within 45 m (the first build cost the fixed
+  cameras +2 draws / +0.14 M tris for stones behind the north rise).
+- Iteration 6 — GOAL_MODE fable-2 #4, the pebble scatter per cell (`pebbles.ts`): DONE
+  (`113f59b6` + `4d363760`), §Iteration 6. Stateless per-cell draws (0.1 m lattice on the paving's
+  fringe, 0.5 m for the scatter within 4 m); a paving edit moves only the pebbles within ~6 m
+  (tested); the north paving's ≈ 1 000 pebbles as `pebbles-north` under the north toggle. The
+  one-time re-roll: six views within −0.0019 of the head, A 8.99 M.
+PR creation from this chat is refused by GitHub ("must be a collaborator" for the agent account);
+fable-cursor merges from the branch. My GOAL_MODE list is now empty: next I take the highest
+open rocks defect no one has claimed (fable-5's V20 / V21 at the plaza and stair bank are
+six-view-exposed and need fable-cursor's word on the budget; opus #16's joint pebbles likewise)
+or a review of another lane's branch at its poses.
 
 ## Iteration 1 (PR #12, merged `f092a094`)
 Rocks pass from survey-2 and the owner's 2026-09-19 references (rubric W23 / W24, W37 held). Items were:
@@ -45,6 +70,33 @@ Nothing outside `src/world/rocks/` except this log, the INBOX and my evidence un
 
 ## Completed work
 (newest first)
+- `113f59b6` + `4d363760` (`agent/fable-2-ledge`): `rocks/pebbles.ts` — per-cell pebble scatter
+  (hash2 of the cell for jitter / acceptance / size / yaw / variant; fine 0.1 m lattice on the
+  fringe inside coarse 0.5 m cells touching paving; coarse cells for the scatter within 4 m of
+  paving via a dilated 1 m paving grid); stair-foot pebbles hashed per (flight, index); the north
+  set toggled with the north locality. Calibrated 0.36 / 0.37 → the old ≈ 2 600. Tests 4/4.
+- `6946ad17`…: merged the head (fable-cursor's north-locality util); the clearing dressing joined
+  `ledgeMeshes` under `northVisible`, `CLEARING_DRAW_M` dropped.
+- `e070771d` + `7bf69c21` (`agent/fable-2-ledge`): `rocks/clearing.ts` — the north clearing's
+  dressing from the layout's `northClearing` / `stairs.ledge` / `ledgeTerrace`: the pale boulder
+  pair (r 0.52 + 0.33, half-buried at the west bank's foot), 11–14 scree blocks per flight flank
+  in a 0.6–1.4 m band off the treads, 6–7 bedded slabs on the east bank + 3 at the wall's foot;
+  one merged mesh, hero material, ~49 k tris, `CLEARING_DRAW_M` 45 m toggle in `nearUpdate`.
+  Tests `clearing.test.mjs` 3/3. Six views: the head's numbers exactly.
+- `2f741068` (`agent/fable-2-ledge`): the north-terrace wall at 3 m per fable-5's review. The
+  end taper is a SINK into the bank (columns move along n, re-seated on the higher ground; the
+  lip stays on the terrace top — the height taper had left the terrace's pale cut visible over
+  the crest); beds 0.3–0.45 m, ±0.2 m steps, 0.12 m partings 90 % dark; damp band baked into the
+  vertex colour + `createRockMaterial(opts.damp)` (ledge 1.6); roots as bark with a rib tone,
+  slimmer over the shoulder; the shoulder as joint-broken slabs under a moss sheet, lip 0.2 m
+  proud. `contacts` report the standing part only.
+- `20513c24` (`agent/fable-2-ledge`): the shot-D boulder's value at 2 m (opus #10). Probe method
+  (kept in `/tmp`): at the pose, swap the near mesh's material for (a) a white lit rock without
+  maps, (b) the real material writing `diffuseColor` / `vColor` to `gl_FragColor` after
+  dithering, (c) the real material with the normal map / roughness / near path each disabled.
+  (a) 0.47, ours 0.17, (c) all 0.17 → the value, not the shading. Fix in the near path (nearW):
+  stone ×1.35 + warm, wet 0.7/0.72/0.78, grime 0.55, D near skin `cutDark` 0.12, shaded moss
+  rim ×1.25. Six views Δ ≤ 0.0001, draws unchanged.
 - `ccd9a22a` (`agent/fable-2-ledge`, off `3d50f6c8`): the north-terrace ledge. Root cause: the
   layout authors the line at the terrace LIP (ground 5.5–5.7 m; the clearing floor is 4.0 m and
   the step is a ~40° slope z −74 … −76), the builder read it as the foot and, with `height:
@@ -109,4 +161,4 @@ Nothing outside `src/world/rocks/` except this log, the INBOX and my evidence un
 - #4: `pathEdgePebble` per-candidate draws.
 
 ## Last updated
-2026-09-20T01:25:00Z
+2026-09-20T06:40:00Z

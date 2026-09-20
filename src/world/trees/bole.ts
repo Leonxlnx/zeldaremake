@@ -714,8 +714,22 @@ export interface ButtressRootResult {
   cushions: number;
 }
 
-const ROOT_MOSS = new Color(0.5, 0.7, 0.32);
+/**
+ * Round 48 (opus-review #06, x-arch-tunnel-u / sn-bole-lantern-tree / w07-spine-l: "giant root
+ * flares are smooth pale yellow-green tapered tubes on the moss, a colour that does not match the
+ * warm brown trunk above"): the toes' and fins' vertex colour was lerped 0.75–0.85 of the way to a
+ * lit yellow-green (0.5, 0.7, 0.32) over their whole upper half, and the material's real moss
+ * (materials.ts vBarkMoss cushions) covers only where its fine field is high — so between the
+ * cushions the smooth pale tint showed as the surface. The vertex tint is now the shaded wet moss
+ * the cushions themselves are painted in (a tint under them, not a surface), taken at a lower
+ * weight and only on the true top faces, so bark shows between; the ground contact darkens into
+ * soil (ROOT_SOIL_DARK) instead of a lighter tan, so the root beds into the litter.
+ */
+const ROOT_MOSS = new Color(0.24, 0.36, 0.13);
 const ROOT_SOIL = new Color(0.55, 0.5, 0.42);
+const ROOT_SOIL_DARK = new Color(0.27, 0.23, 0.17);
+/** how far the fins' / toes' vertex colour goes toward ROOT_MOSS at full cover (was 0.85 / 0.75) */
+const ROOT_MOSS_TINT: [number, number] = [0.55, 0.45];
 
 /**
  * A buttress root along `path` (collar → tip, the plain root's centreline, already riding the
@@ -797,7 +811,14 @@ export function buttressRoot(writer: GeometryWriter, path: Vector3[], radii: num
         }
       }
       const soil = smoothstep(-0.2, -0.75, sa);
-      _c.copy(ringColor).multiplyScalar(0.9 + 0.1 * sa).lerp(ROOT_MOSS, moss * 0.85).lerp(ROOT_SOIL, soil * 0.5);
+      // round 48 (#06): the contact band — the fin's lower flank within ~25 cm of the ground —
+      // darkens into soil, so the flare beds into the litter instead of meeting it on a seam
+      const contact = 1 - smoothstep(0.05, 0.3, q.y - g);
+      _c.copy(ringColor)
+        .multiplyScalar(0.9 + 0.1 * sa)
+        .lerp(ROOT_MOSS, moss * ROOT_MOSS_TINT[0])
+        .lerp(ROOT_SOIL, soil * 0.3)
+        .lerp(ROOT_SOIL_DARK, Math.max(soil * 0.35, contact * 0.55));
       // the fin's flanks are occluded toward the ground, its cord grooves a little more; its top
       // stays under the crests' lift
       const ao = (0.55 + 0.35 * smoothstep(-0.6, 0.5, sa)) * (0.82 + 0.18 * cordH);
@@ -859,8 +880,16 @@ export function buttressRoot(writer: GeometryWriter, path: Vector3[], radii: num
         q.copy(pt).addScaledVector(su, Math.cos(th) * rad).addScaledVector(sv, Math.sin(th) * rad);
         const upness = Math.max(0, (q.y - pt.y) / Math.max(1e-3, rad));
         const mossN = 0.5 + 0.5 * o.noise.noise(q.x * 2.3 - 5.5, q.z * 2.3 + 2.2);
-        const moss = smoothstep(0.58, 0.92, upness * 0.6 + mossN * 0.5) * (1 - smoothstep(0.6, 1, t)) * mossStrength;
-        _c.copy(ringColor).multiplyScalar(0.88 + 0.12 * upness).lerp(ROOT_MOSS, moss * 0.75);
+        // round 48 (#06): moss only on the toe's back (upness ≥ 0.7) and where the noise favours
+        // it (patches, not a sleeve), thinning toward the tip — the flanks and the underside are
+        // bark; the ground contact darkens into soil
+        const moss = smoothstep(0.55, 0.95, smoothstep(0.45, 0.9, upness) * 0.6 + mossN * 0.55) * (1 - smoothstep(0.5, 0.95, t)) * mossStrength;
+        const g2 = o.groundAt(q.x, q.z);
+        const contact = 1 - smoothstep(0.03, 0.22, q.y - g2);
+        _c.copy(ringColor)
+          .multiplyScalar(0.86 + 0.14 * upness)
+          .lerp(ROOT_MOSS, moss * ROOT_MOSS_TINT[1])
+          .lerp(ROOT_SOIL_DARK, contact * 0.6 * (1 - 0.5 * upness));
         const ao = 0.6 + 0.3 * upness;
         writer.woodMoss = moss * 0.85;
         row.push(writer.vertex(q, _c, j / toeSides, t * 2, stiffness, o.draws.windPhase, packOcclusion(ao), 0));

@@ -132,8 +132,18 @@ const f = (v: number) => v.toFixed(4);
  * read unchanged in the w19 / w21 / w18 poses). The white-barks themselves are seeded by the trees
  * system and not published, so the patch covers the floor they stand in rather than their exact feet.
  */
-const FOREST_FLOOR_BOX: readonly [number, number, number, number] = [-48, -90, 96, 100];
+/**
+ * Round 48 (vegetation-26): the mask runs FF_FAR_ROWS texels further north than round 46's box
+ * (z −90 … 10; ClampToEdge repeated its last row under the far forest). The box's z0 and depth
+ * grow by whole texels of the round-46 lattice, so every texel south of −90 samples the exact
+ * point it did and the six fixed frames' ground is byte-identical; the texture is 192 × 212.
+ */
+const FF_R46_BOX: readonly [number, number, number, number] = [-48, -90, 96, 100];
 const FOREST_FLOOR_RES = 192;
+const FF_FAR_ROWS = 20;
+const FF_TEXEL_Z = FF_R46_BOX[3] / FOREST_FLOOR_RES;
+const FOREST_FLOOR_RES_Z = FOREST_FLOOR_RES + FF_FAR_ROWS;
+const FOREST_FLOOR_BOX: readonly [number, number, number, number] = [FF_R46_BOX[0], FF_R46_BOX[1] - FF_FAR_ROWS * FF_TEXEL_Z, FF_R46_BOX[2], FF_R46_BOX[3] + FF_FAR_ROWS * FF_TEXEL_Z];
 const FF_NORTH_Z: readonly [number, number] = [-40, -50];
 const FF_OFF_Z: readonly [number, number] = [-20, -27];
 const FF_OFF_PATH: readonly [number, number] = [4.5, 8.5];
@@ -147,9 +157,29 @@ const FF_LITTER_BASE = 0.34;
 const FF_HUMUS_PERIOD = 3.8;
 const FF_HUMUS_BAND: readonly [number, number] = [0.42, 0.68];
 export const FF_HUMUS_DARKEN = 0.52;
+/**
+ * Round 48 (vegetation-26; the round-47 reviews read the plain beyond the tunnel as "a flat
+ * pale-tan plane") — the far floor, north of the arch's north lip (FF_FAR_Z, 0 → 1; vegetation's
+ * field.ts NORTH_ZONE_Z): the litter drifts lie thicker (FF_FAR_LITTER_BASE under them) and the
+ * humus patches wider and closer (FF_FAR_HUMUS_BAND), so the ground under the far trees reads as
+ * dark forest floor through the haze. The verge the patch keeps clear follows the path that is
+ * there — `LAYOUT.northPath` and the `northClearing` disc's rim (FF_FAR_PATH_CLEAR m past the
+ * paving) — instead of the spine's phantom heading, and the second clearing's lawn takes less of
+ * it: none on the `ledgeTerrace` pad, FF_BANK_KEEP of it on the banks (FF_CLEARING_BOX around the
+ * clearing, feathered) — the same shares vegetation's turf grows back there (field.ts
+ * `clearingLawn`, BANK_FLOOR_SHARE). Nothing south of FF_FAR_Z[0] changes.
+ */
+const FF_FAR_Z: readonly [number, number] = [-59, -62];
+const FF_FAR_LITTER_BASE = 0.58;
+const FF_FAR_HUMUS_BAND: readonly [number, number] = [0.3, 0.58];
+const FF_FAR_PATH_CLEAR: readonly [number, number] = [0.5, 2.0];
+const FF_CLEARING_BOX: readonly [number, number, number, number] = [-9, -82, 9, -62];
+const FF_CLEARING_FEATHER = 2.0;
+const FF_BANK_KEEP = 0.35;
+const FF_PAD_FEATHER: readonly [number, number] = [0.15, 0.6];
 
 /** the terrain audit's record of the patch */
-export const FOREST_FLOOR = { box: FOREST_FLOOR_BOX, res: FOREST_FLOOR_RES, northZ: FF_NORTH_Z, offZ: FF_OFF_Z, offPath: FF_OFF_PATH, litterBase: FF_LITTER_BASE, humusDarken: FF_HUMUS_DARKEN };
+export const FOREST_FLOOR = { box: FOREST_FLOOR_BOX, res: [FOREST_FLOOR_RES, FOREST_FLOOR_RES_Z], northZ: FF_NORTH_Z, offZ: FF_OFF_Z, offPath: FF_OFF_PATH, litterBase: FF_LITTER_BASE, humusDarken: FF_HUMUS_DARKEN, far: { z: FF_FAR_Z, litterBase: FF_FAR_LITTER_BASE, humusBand: FF_FAR_HUMUS_BAND, pathClear: FF_FAR_PATH_CLEAR, bankKeep: FF_BANK_KEEP } };
 
 /** seeded value noise on a metre lattice (smoothstep-interpolated hash2), 0..1 */
 function ffNoise(x: number, z: number, seed: number): number {
@@ -196,16 +226,65 @@ export function forestFloorZone(x: number, z: number): number {
   return Math.max(north, off);
 }
 
+/** distance (m) from (x, z) to a layout polyline (segments, round caps) */
+function polyDist(pts: readonly (readonly [number, number, number])[], x: number, z: number): number {
+  let d = Infinity;
+  for (let i = 0; i < pts.length - 1; i++) {
+    const [ax, , az] = pts[i];
+    const [bx, , bz] = pts[i + 1];
+    const dx = bx - ax;
+    const dz = bz - az;
+    const t = clamp(((x - ax) * dx + (z - az) * dz) / (dx * dx + dz * dz), 0, 1);
+    d = Math.min(d, Math.hypot(x - ax - dx * t, z - az - dz * t));
+  }
+  return d;
+}
+
+/** 0..1 the far floor north of the arch's north lip (round 48, FF_FAR_Z) */
+export function forestFloorFar(z: number): number {
+  return 1 - smoothstep(FF_FAR_Z[1], FF_FAR_Z[0], z);
+}
+
+/** the second clearing's lawn shares at (x, z) (round 48): [terrace pad 0..1, banks 0..1] */
+function clearingLawnShares(x: number, z: number): [number, number] {
+  const t = LAYOUT.ledgeTerrace;
+  const yaw = (t.yawDeg * Math.PI) / 180;
+  const dx = x - t.x;
+  const dz = z - t.z;
+  const u = dx * Math.cos(yaw) - dz * Math.sin(yaw);
+  const v = dx * Math.sin(yaw) + dz * Math.cos(yaw);
+  const out = Math.max(Math.abs(u) - t.halfLength, Math.abs(v) - t.halfDepth);
+  const pad = 1 - smoothstep(FF_PAD_FEATHER[0], FF_PAD_FEATHER[1], out);
+  const [bx0, bz0, bx1, bz1] = FF_CLEARING_BOX;
+  const inset = Math.min(x - bx0, bx1 - x, z - bz0, bz1 - z);
+  const bank = smoothstep(-FF_CLEARING_FEATHER, 0, inset) * (1 - pad);
+  return [pad, bank];
+}
+
 /** the patch's two shares at (x, z): [litter drift 0..1, humus 0..1] */
 export function forestFloorAt(x: number, z: number): [number, number] {
   const zone = forestFloorZone(x, z);
   if (zone <= 0) return [0, 0];
-  const clear = smoothstep(LAYOUT.pathHalfWidth + FF_PATH_CLEAR[0], LAYOUT.pathHalfWidth + FF_PATH_CLEAR[1], spineDistance(x, z));
-  const k = zone * clear;
+  let clear = smoothstep(LAYOUT.pathHalfWidth + FF_PATH_CLEAR[0], LAYOUT.pathHalfWidth + FF_PATH_CLEAR[1], spineDistance(x, z));
+  const far = forestFloorFar(z);
+  let lawn = 0;
+  if (far > 0) {
+    // round 48: the verge follows the north path and the clearing's disc, the lawn takes less
+    const nc = LAYOUT.northClearing;
+    const paving = Math.min(polyDist(LAYOUT.northPath, x, z) - LAYOUT.northPathHalfWidth, Math.hypot(x - nc.x, z - nc.z) - nc.radius);
+    const clearFar = smoothstep(FF_FAR_PATH_CLEAR[0], FF_FAR_PATH_CLEAR[1], paving);
+    clear = clear + (clearFar - clear) * far;
+    const [pad, bank] = clearingLawnShares(x, z);
+    lawn = Math.max(pad, bank * (1 - FF_BANK_KEEP)) * far;
+  }
+  const k = zone * clear * (1 - lawn);
   if (k <= 0) return [0, 0];
   const drift = smoothstep(FF_LITTER_BAND[0], FF_LITTER_BAND[1], ffFbm(x, z, FF_LITTER_PERIOD, 461));
-  const humus = smoothstep(FF_HUMUS_BAND[0], FF_HUMUS_BAND[1], ffFbm(x + 31, z - 17, FF_HUMUS_PERIOD, 977));
-  const litter = k * (FF_LITTER_BASE + (1 - FF_LITTER_BASE) * drift);
+  const hb0 = FF_HUMUS_BAND[0] + (FF_FAR_HUMUS_BAND[0] - FF_HUMUS_BAND[0]) * far;
+  const hb1 = FF_HUMUS_BAND[1] + (FF_FAR_HUMUS_BAND[1] - FF_HUMUS_BAND[1]) * far;
+  const humus = smoothstep(hb0, hb1, ffFbm(x + 31, z - 17, FF_HUMUS_PERIOD, 977));
+  const base = FF_LITTER_BASE + (FF_FAR_LITTER_BASE - FF_LITTER_BASE) * far;
+  const litter = k * (base + (1 - base) * drift);
   // humus lies between the drifts, not under them
   return [litter, k * humus * (1 - 0.7 * drift)];
 }
@@ -213,19 +292,21 @@ export function forestFloorAt(x: number, z: number): [number, number] {
 /** the mask texture: R litter, G humus, over FOREST_FLOOR_BOX (x0, z0, width, depth) */
 export function buildForestFloorMask(): DataTexture {
   const n = FOREST_FLOOR_RES;
-  const data = new Uint8Array(n * n * 2);
-  const [x0, z0, w, d] = FOREST_FLOOR_BOX;
-  for (let j = 0; j < n; j++) {
+  const nz = FOREST_FLOOR_RES_Z;
+  const data = new Uint8Array(n * nz * 2);
+  const [x0, , w] = FOREST_FLOOR_BOX;
+  for (let j = 0; j < nz; j++) {
     for (let i = 0; i < n; i++) {
       const x = x0 + ((i + 0.5) / n) * w;
-      const z = z0 + ((j + 0.5) / n) * d;
+      // the round-46 lattice's own arithmetic, so its texels are bit-identical (the box's z0 / d are the same lattice)
+      const z = FF_R46_BOX[1] + ((j - FF_FAR_ROWS + 0.5) / FOREST_FLOOR_RES) * FF_R46_BOX[3];
       const [litter, humus] = forestFloorAt(x, z);
       const o = (j * n + i) * 2;
       data[o] = Math.round(clamp(litter, 0, 1) * 255);
       data[o + 1] = Math.round(clamp(humus, 0, 1) * 255);
     }
   }
-  const tex = new DataTexture(data, n, n, RGFormat, UnsignedByteType);
+  const tex = new DataTexture(data, n, nz, RGFormat, UnsignedByteType);
   tex.minFilter = LinearFilter;
   tex.magFilter = LinearFilter;
   tex.wrapS = ClampToEdgeWrapping;

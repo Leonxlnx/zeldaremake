@@ -2046,6 +2046,21 @@ export function buildLogArch(ctx: WorldContext, mats: StructureMaterials, rng: R
       nearGroup.add(funMesh);
     }
     // ---- light through the splits: the deepest fissure channels over the path ----
+    // Round 48 (structures-31, opus-review walk #08 — crop opus-walk-09, pose x-arch-approach):
+    // a "flat unlit blue-grey zigzag polygon over the arch bark beside a pod" was one of these
+    // slivers. Round 47 walked the channel step by step (re-centring ψ on the deepest sample) but
+    // then built the strip as a STRAIGHT lerp from the walk's first point to its last, and seated
+    // it 3 cm outside the ANALYTIC relief. Where the channel bends, the lerped line leaves it: the
+    // analytic floor there is the un-fissured bark 0.6 m out, so the strip's vertices jump between
+    // the crack's bottom and the ridge tops — a zigzag ribbon of the unlit sky-tinted material
+    // lying on the bark, in full view from the south approach (the scan reached 0.75 rad up the
+    // flanks). Now: (1) the strip follows the walked channel line itself, sample by sample;
+    // (2) every vertex sits on the SHELL MESH's own relief (`meshDisp`, what the 272 × 208 grid
+    // actually has, not the analytic field it under-samples), 1.5 cm proud of the channel floor;
+    // (3) a sliver is only laid where the mesh really opens a channel — its floor ≥ 0.2 m below the
+    // ridges 10–16 cm of arc to either side — so it is seen only through the gap, from under the
+    // arch; (4) the scan is confined to the belly (± 0.45 rad of the bottom). Same forks and draw
+    // order as round 47 (the roots / litter / fungi streams before it are untouched).
     const slRng = rng.fork('slivers47');
     const slParts: BufferGeometry[] = [];
     const fissureDeep = (psi: number, s: number) => {
@@ -2053,23 +2068,27 @@ export function buildLogArch(ctx: WorldContext, mats: StructureMaterials, rng: R
       const twist = noise.noise(s * 0.1, arc * 0.05) * 1.6 + s * 0.06;
       return Math.pow(1 - Math.abs(noise.noise(arc * 0.8 + 31 + twist * 0.5, s * 0.07)), 9);
     };
-    // scan the belly (± 0.75 rad of the bottom) along ± 6 m of the crossing for runs of deep fissure
+    /** how far the shell mesh's surface at (ψ, s) lies below the ridges 10–16 cm of arc either side of it (m) */
+    const channelDepth = (psi: number, s: number) => {
+      const here = meshDisp(psi, s);
+      let ridge = -Infinity;
+      for (const da of [-0.16, -0.1, 0.1, 0.16]) ridge = Math.max(ridge, meshDisp(psi + da / R, s));
+      return ridge - here;
+    };
+    const MIN_CHANNEL_M = 0.2;
     const taken: [number, number][] = [];
     for (let attempt = 0; attempt < 400 && slParts.length < 6; attempt++) {
-      const psi0 = -Math.PI / 2 + (slRng() - 0.5) * 1.5;
+      const psi0 = -Math.PI / 2 + (slRng() - 0.5) * 0.9;
       const s0 = pathS + (slRng() - 0.5) * 12;
       if (fissureDeep(psi0, s0) < 0.55) continue;
       if (taken.some(([p, q]) => Math.abs(p - psi0) < 0.2 && Math.abs(q - s0) < 1.6)) continue;
-      // follow the channel both ways along s while it stays deep (the fissures run along the trunk)
-      let sA = s0;
-      let sB = s0;
-      let psiA = psi0;
-      let psiB = psi0;
+      if (channelDepth(psi0, s0) < MIN_CHANNEL_M) continue;
+      // follow the channel both ways along s while it stays deep in the field AND open in the mesh
       const step = 0.1;
-      const walk = (s: number, psi: number, dir: number): [number, number] => {
+      const walk = (s: number, psi: number, dir: number): [number, number][] => {
+        const line: [number, number][] = [];
         for (let n = 0; n < 12; n++) {
           const ns = s + dir * step;
-          // re-centre on the deepest of three ψ samples so the sliver stays in the channel
           let best = psi;
           let bestV = -1;
           for (const dp of [-0.03, 0, 0.03]) {
@@ -2079,28 +2098,30 @@ export function buildLogArch(ctx: WorldContext, mats: StructureMaterials, rng: R
               best = psi + dp;
             }
           }
-          if (bestV < 0.4 || ns < sEndW(best) + 1 || ns > sEndE(best) - 1) break;
+          if (bestV < 0.4 || ns < sEndW(best) + 1 || ns > sEndE(best) - 1 || channelDepth(best, ns) < MIN_CHANNEL_M) break;
           s = ns;
           psi = best;
+          line.push([s, psi]);
         }
-        return [s, psi];
+        return line;
       };
-      [sA, psiA] = walk(s0, psi0, -1);
-      [sB, psiB] = walk(s0, psi0, 1);
-      if (sB - sA < 0.5) continue;
+      const line: [number, number][] = [...walk(s0, psi0, -1).reverse(), [s0, psi0], ...walk(s0, psi0, 1)];
+      if (line.length < 6 || line[line.length - 1][0] - line[0][0] < 0.5) continue;
       taken.push([psi0, s0]);
-      const width = 0.035 + slRng() * 0.03;
+      const width = 0.03 + slRng() * 0.025;
       const glow = 0.5 + slRng() * 0.25;
+      const lineAt = (v: number): [number, number] => {
+        const x = v * (line.length - 1);
+        const i = Math.min(line.length - 2, Math.floor(x));
+        const f = x - i;
+        return [lerp(line[i][0], line[i + 1][0], f), lerp(line[i][1], line[i + 1][1], f)];
+      };
       const sliver = gridSurface(
         (u, v, out) => {
-          const s = lerp(sA, sB, v);
-          const psi = lerp(psiA, psiB, v) + (u - 0.5) * (width / R);
-          // on the channel's floor: the relief's fissure is 0.6 m deep and the plates of round 44
-          // leave it open, so the sliver lies 3 cm under the analytic floor (the 8–14 cm shell
-          // grid wanders that much) and reads as the bottom of the crack glowing, hidden by the
-          // channel's walls from oblique angles (a first cut sat 10 cm below the floor — under the
-          // plates too — and read as a white plate floating under the belly, sn-arch-inside)
-          const rr = rBase(psi, s) + barkCoarse(psi, s) + barkFine(psi, s) + 0.03;
+          const [s, psiC] = lineAt(v);
+          const psi = psiC + (u - 0.5) * (width / R);
+          // on the mesh's channel floor, 1.5 cm proud of it (toward a viewer under the arch)
+          const rr = rBase(psiC, s) + meshDisp(psiC, s) + 0.015;
           surfacePoint(psi, s, rr, out.position);
           out.uv = [u, v];
           const end = Math.sin(v * Math.PI);
@@ -2108,7 +2129,7 @@ export function buildLogArch(ctx: WorldContext, mats: StructureMaterials, rng: R
           const k = glow * (0.15 + 0.85 * end) * Math.pow(Math.sin(u * Math.PI), 0.7);
           out.color = [k, k, k];
         },
-        { cols: 3, rows: 8 },
+        { cols: 3, rows: line.length - 1 },
       );
       faceTowards(sliver, (p, o) => o.set(p.x, p.y - 5, p.z));
       slParts.push(sliver);

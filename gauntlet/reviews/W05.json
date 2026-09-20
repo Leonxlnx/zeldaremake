@@ -1,15 +1,27 @@
 {
   "item": "W05",
-  "reviewer": "opus-review",
+  "reviewer": "fable-5",
   "verdict": "fail",
-  "evidence": "gauntlet/reviews/evidence/opus-review/take-0116-W05-C-embankments.jpg",
-  "takeId": "take-0116",
+  "evidence": "gauntlet/reviews/evidence/fable-5/take-0121-W05-C-embankments.jpg",
+  "takeId": "take-0121",
   "author": "fable-cursor",
-  "takeSha": "973a21e5b045177f66da3d04dc4e67e387270620",
-  "at": "2026-09-19T19:27:04.127Z",
+  "takeSha": "cf8083ba21018a37478c2b1f5b2af4be97cbf710",
+  "at": "2026-09-20T06:20:30.806Z",
   "criterion": "Embankments beside the stairs and the ledge edges show natural terracing and erosion, not smooth noise blobs.",
-  "note": "The embankment beside the stairs at C is a single smooth grass mound with a smooth pale dome boulder set into it and a smooth dark dome bush behind; no terrace steps, no erosion channels, no exposed strata or root ridges anywhere in the bank, and the ledge edge above it is a plain rounded lip. The reference bank in the same region is a dark stepped mossy face with shrub tiers. Small stones scattered at its foot read as a surface scatter rather than as material eroded out of the bank. The auto gates are met (terrain vertices 318528, detailPasses 6) so the four authored scales exist in the heightfield, but at the criterion's viewpoint the medium scale does not read.",
+  "note": "At C the embankment beside the stair foot is still a smooth lawn mound with a dome bush and the boulder in front of it; no terracing, no erosion channels, no tiers. The reference's bank is a stepped mossy terrace with the boy standing on its lip. Unchanged from take-0116.",
   "history": [
+    {
+      "item": "W05",
+      "reviewer": "opus-review",
+      "verdict": "fail",
+      "evidence": "gauntlet/reviews/evidence/opus-review/take-0116-W05-C-embankments.jpg",
+      "takeId": "take-0116",
+      "author": "fable-cursor",
+      "takeSha": "973a21e5b045177f66da3d04dc4e67e387270620",
+      "at": "2026-09-19T19:27:04.127Z",
+      "criterion": "Embankments beside the stairs and the ledge edges show natural terracing and erosion, not smooth noise blobs.",
+      "note": "The embankment beside the stairs at C is a single smooth grass mound with a smooth pale dome boulder set into it and a smooth dark dome bush behind; no terrace steps, no erosion channels, no exposed strata or root ridges anywhere in the bank, and the ledge edge above it is a plain rounded lip. The reference bank in the same region is a dark stepped mossy face with shrub tiers. Small stones scattered at its foot read as a surface scatter rather than as material eroded out of the bank. The auto gates are met (terrain vertices 318528, detailPasses 6) so the four authored scales exist in the heightfield, but at the criterion's viewpoint the medium scale does not read."
+    },
     {
       "item": "W05",
       "reviewer": "fable-5",

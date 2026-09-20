@@ -11,10 +11,14 @@
 import { Color, Frustum, Group, InstancedMesh, Matrix4, Mesh, PerspectiveCamera, Quaternion, Sphere, Vector3, type BufferGeometry, type Camera } from 'three';
 import type { WorldContext, WorldSystem } from '../system';
 import { Noise2D, clamp, smoothstep } from '../util/noise';
+import { northBox, northVisible } from '../util/northLocality';
 import { buildRock, type RockOptions } from './rockgen';
 import { createRockMaterial, NEAR_FADE_M, NEAR_TILE_M } from './material';
 import { dressRock, mergeRockParts } from './dressing';
 import { buildRockLedge, type RockLedgeDef } from './ledge';
+import { buildClearingRocks, type ClearingLayout } from './clearing';
+import { PEBBLE_DEFAULTS, scatterPathPebbles, stairFootPebbles } from './pebbles';
+import { NORTH_Z1 } from '../util/northLocality';
 import { CUSHION, FERN, TUFT_A, TUFT_B, buildSproutMeshes, createSproutMaterial, type SproutSpot } from '../materials/sprouts';
 import type { Rng } from '../util/prng';
 
@@ -31,6 +35,8 @@ export const LEDGE_PREVIEW: RockLedgeDef[] = [
 ];
 /** the ledge material's near fade (m): its damp/moss terms stay legible from the path */
 export const LEDGE_FADE_M: [number, number] = [7, 14];
+/** the ledge material's damp band: the hero boulders' sheen raised to this power (ref-04's near-black foot) */
+export const LEDGE_DAMP = 1.6;
 
 /**
  * Near-LOD swap radii (m, 3D to the boulder's centre) for the hero boulders (round 42): within
@@ -652,6 +658,11 @@ export async function create(ctx: WorldContext): Promise<WorldSystem> {
           // painted by the near material in place of the flecks); the D boulder's pale face
           // carries the most, the moss-hatted A / terrace rocks less
           lichen: b.id === 'shot-d-boulder' ? 0.6 : 0.35,
+          // fable-2 (opus #10): the D boulder's cleave faces are most of what the player sees at
+          // 2 m, and the far mesh's 40 % darkening (a silhouette term for camera D at 7 m) made
+          // the whole face a dark mass; the reference's face in frame D is the pale, weathered
+          // read (lum 0.32), so the near skin keeps only a hint of the fresh-fracture darkening
+          cutDark: b.id === 'shot-d-boulder' ? 0.12 : rockOpts.cutDark,
           // bedding ledges: D's deeper (frame 56 s: layered). None on the A / terrace rocks, as
           // on their far mesh — a faint 0.035 layering made their moss blanket (mossAt halves
           // the coverage on every parting) step ~10 cm at each ~20 cm bed: the stair-foot rock's
@@ -881,43 +892,17 @@ export async function create(ctx: WorldContext): Promise<WorldSystem> {
 
   ctx.progress('rocks', 0.6);
 
-  // --- pebbles: path edges, stair feet, scatter ---------------------------------------------
-  const pRng = rng.fork('pebbles');
-  const pathEdgePebble = (x: number, z: number, r: Rng) => {
-    const m = T.mask(x, z);
-    if (m.stairs > 0.5 || m.structure > 0.5) return false;
-    // fringe of the paved surface: dense right at the edge, thinning outward
-    if (m.path > 0.55 || m.path < 0.01) return r() < 0.04 && m.path < 0.01;
-    return r() < 0.9;
-  };
-  const pathPts = pathPtsAll;
-  const target = Math.round(2600 * density);
-  let tries = 0;
-  while (pebbles.length < target && tries < target * 30) {
-    tries++;
-    const seg = pathPts[pRng.int(0, pathPts.length)];
-    const x = seg[0] + pRng.range(-4.2, 4.2);
-    const z = seg[2] + pRng.range(-4.2, 4.2);
-    if (!pathEdgePebble(x, z, pRng)) continue;
-    const sc = pRng.range(0.025, 0.11);
-    pebbles.push({ x, y: T.height(x, z) - sc * 0.35, z, scale: sc, yaw: pRng.range(0, Math.PI * 2), variant: pRng.int(0, 4) });
-  }
-  // stair feet
+  // --- pebbles: path edges, stair feet, scatter (pebbles.ts) ----------------------------------
+  // fable-2 (GOAL_MODE #4): every candidate is a lattice cell with stateless per-cell draws, so a
+  // paving edit moves only the pebbles whose cell it touched (the old sequential stream re-rolled
+  // them world-wide — round 47's whole camera-D delta). The lattice reaches the north paving too;
+  // its pebbles (z < NORTH_Z1) are a separate instanced set under the north-locality toggle
+  const pebbleSets = scatterPathPebbles(T, seed, { ...PEBBLE_DEFAULTS, radius: Math.max(detailR, 84), northZ: NORTH_Z1, density });
+  pebbles.push(...pebbleSets.main);
+  const northPebbles: Instance[] = [...pebbleSets.north];
   for (const s of ctx.layout.stairs) {
-    const l = Math.hypot(s.dir[0], s.dir[1]);
-    const dx = s.dir[0] / l;
-    const dz = s.dir[1] / l;
-    const n = Math.round(70 * density);
-    for (let k = 0; k < n; k++) {
-      const u = pRng.range(-1.6, -0.1);
-      const v = pRng.range(-s.width / 2 - 1.0, s.width / 2 + 1.0);
-      const x = s.base[0] + u * dx - v * dz;
-      const z = s.base[2] + u * dz + v * dx;
-      const m = T.mask(x, z);
-      if (m.stairs > 0.5 || m.structure > 0.5) continue;
-      const sc = pRng.range(0.03, 0.12);
-      pebbles.push({ x, y: T.height(x, z) - sc * 0.35, z, scale: sc, yaw: pRng.range(0, Math.PI * 2), variant: pRng.int(0, 4) });
-    }
+    const at = stairFootPebbles(T, seed, s, density);
+    (s.base[2] < NORTH_Z1 ? northPebbles : pebbles).push(...at);
   }
   ctx.progress('rocks', 0.8);
 
@@ -930,8 +915,12 @@ export async function create(ctx: WorldContext): Promise<WorldSystem> {
   })();
   const ledgeInfo: { id: string; height: number; length: number; triangles: number; mossShare: number; wetShare: number; contacts: number; maxFootGap: number }[] = [];
   const ledgeContacts: [number, number, number][] = [];
+  // the ledge faces (and the clearing's rock dressing, below) stand in the north locality
+  // (z < −55): drawn only within its visibility radius
+  const ledgeMeshes: Mesh[] = [];
+  const nBox = northBox(ctx.layout);
   if (ledgeDefs.length) {
-    const ledgeMaterial = await createRockMaterial(ctx.textures, ctx.config, anisotropy, 1.4, 0.85, { near: true, fade: LEDGE_FADE_M });
+    const ledgeMaterial = await createRockMaterial(ctx.textures, ctx.config, anisotropy, 1.4, 0.85, { near: true, fade: LEDGE_FADE_M, damp: LEDGE_DAMP });
     const lRng = rng.fork('ledges');
     for (const def of ledgeDefs) {
       const built = buildRockLedge(def, T, lRng.fork(def.id), `${seed}/ledge`);
@@ -940,6 +929,7 @@ export async function create(ctx: WorldContext): Promise<WorldSystem> {
       mesh.receiveShadow = true;
       mesh.name = `ledge-${def.id}`;
       group.add(mesh);
+      ledgeMeshes.push(mesh);
       let maxFootGap = 0;
       for (const c of built.contacts) maxFootGap = Math.max(maxFootGap, Math.abs(c[1] - T.height(c[0], c[2])));
       ledgeContacts.push(...built.contacts);
@@ -947,12 +937,35 @@ export async function create(ctx: WorldContext): Promise<WorldSystem> {
     }
   }
 
+  // --- the north clearing's rock dressing (clearing.ts): the west-bank boulder pair, scree at the
+  // ledge flight's flanks, half-buried strata along the terrace face east of the flight — one
+  // merged mesh under the hero (near) material; positions from the layout's northClearing /
+  // stairs.ledge / ledgeTerrace, own fork
+  const clearing = buildClearingRocks(ctx.layout as unknown as ClearingLayout, T, rng.fork('north-clearing'), seed, shadeDir);
+  if (clearing) {
+    const clearingMesh = new Mesh(clearing.geometry, heroMaterial);
+    clearingMesh.castShadow = true;
+    clearingMesh.receiveShadow = true;
+    clearingMesh.name = 'north-clearing-rocks';
+    // north locality: drawn within NORTH_VISIBLE_M of the north box like the ledge faces — the six
+    // fixed cameras stand 60–70 m off behind the north rise, and a mesh inside their frusta is a
+    // mesh they pay for (+2 draws, +0.14 M tris at A / B / D / E for stones nobody sees)
+    clearingMesh.visible = false;
+    group.add(clearingMesh);
+    ledgeMeshes.push(clearingMesh);
+  }
+
   const rubbleSlots: InstanceSlot[] = [];
   const rubbleMeshes = buildInstanced(rubble, rubbleGeos, material, 'rubble', true, rubbleSlots);
   const strataSlots: InstanceSlot[] = [];
   const strataMeshes = buildInstanced(strata, strataGeos, material, 'strata', true, strataSlots);
   const pebbleMeshes = buildInstanced(pebbles, pebbleGeos, pebbleMaterial, 'pebbles', false);
-  for (const m of [...rubbleMeshes, ...strataMeshes, ...pebbleMeshes]) group.add(m);
+  const northPebbleMeshes = buildInstanced(northPebbles, pebbleGeos, pebbleMaterial, 'pebbles-north', false);
+  for (const m of [...rubbleMeshes, ...strataMeshes, ...pebbleMeshes, ...northPebbleMeshes]) group.add(m);
+  for (const m of northPebbleMeshes) {
+    m.visible = false;
+    ledgeMeshes.push(m);
+  }
   // the boulder-cap plants share the hardscape joint-sprout geometry and wind material; the
   // tufts, ferns and moss pads are packed into one InstancedMesh (one draw for all the cap and
   // crevice plants). The crevice spots go last so the cap / base plants keep their jitter draws.
@@ -1030,19 +1043,26 @@ export async function create(ctx: WorldContext): Promise<WorldSystem> {
       active: nearRocks.filter((nr) => nr.active).map((nr) => nr.id),
     },
     boulderPlantDrawCalls: plants.meshes.length,
+    /** round 49 (perf-3): plant instances submitted per pack mesh after the cull, and their triangles, for the current camera */
+    boulderPlantSubmission: { instances: [...plants.submitted], triangles: plants.submittedNow() },
     /** rock ledge faces (ledge.ts): from `layout.rockLedges`, or the `?rockLedgePreview=1` preview (never in a take) */
     ledges: ledgeInfo,
+    /** the north clearing's dressing (clearing.ts): boulder pair / scree / slabs, one mesh */
+    northClearing: clearing ? clearing.stats : null,
     ledgeSource: ledgeInfo.length ? ((ctx.layout as unknown as { rockLedges?: unknown[] }).rockLedges?.length ? 'layout' : 'preview') : 'none',
     rubble: rubble.length,
     strata: strata.length,
     scree: rubble.length + strata.length,
     pebbles: pebbles.length,
+    /** the north paving's pebbles (pebbles-north, under the north-locality toggle) */
+    northPebbles: northPebbles.length,
     instancedMeshes: rubbleMeshes.length + strataMeshes.length + pebbleMeshes.length,
     samplePositions: {
       boulders: contact.map((p) => p.map(rnd)),
       pebbles: samplePebbles.map((p) => [rnd(p.x), rnd(p.y), rnd(p.z)]),
       crevicePlants: crevicePlants.map((p) => [rnd(p.x), rnd(p.y), rnd(p.z), p.kind ?? 'tuft']),
       ledgeFeet: ledgeContacts.map((p) => p.map(rnd)),
+      northClearingSeats: clearing ? clearing.contacts.map((p) => p.map(rnd)) : [],
     },
     palette: { moss: [P.mossDeep, P.mossBright] },
   }));
@@ -1052,9 +1072,16 @@ export async function create(ctx: WorldContext): Promise<WorldSystem> {
     group,
     update(_dt, _t, c) {
       nearUpdate(c.camera, false);
+      const show = northVisible(nBox, c.camera.position.x, c.camera.position.z);
+      for (const m of ledgeMeshes) m.visible = show;
+      // round 49 (perf-3): the cap / crevice plants submit only the instances that can reach the frame (materials/sprouts.ts `cull`)
+      plants.cull(c.camera);
     },
     onCameraMove(camera) {
       nearUpdate(camera, true);
+      const show = northVisible(nBox, camera.position.x, camera.position.z);
+      for (const m of ledgeMeshes) m.visible = show;
+      plants.cull(camera, true);
     },
     dispose() {
       for (const nr of nearRocks) nr.near.geometry.dispose();

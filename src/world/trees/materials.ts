@@ -439,7 +439,7 @@ export const DISTANT_BARK_M: [number, number] = [22, 38];
  * plate to contrast with; the patch bands ±45 %; the analytic 20-around cord stripe drops to a
  * quarter of the band (DISTANT_NEAR_CORD_STRIPE) — the geometry carries the cords now.
  */
-export const DISTANT_NEAR_TONE: [number, number, number] = [1.0, 0.45, 0.5];
+export const DISTANT_NEAR_TONE: [number, number, number] = [1.0, 0.55, 0.45];
 export const DISTANT_NEAR_CORD_STRIPE = 0.25;
 /**
  * Round 46: the bark floor of a broad depth-row bole inside the distant material's near blend
@@ -462,9 +462,16 @@ export const DISTANT_NEAR_FLOOR: ShadeFloor = { ...SHARED_BARK_FLOOR, lift: 6.2,
  *   analytic cord stripe is a bark cord: a narrow furrow DISTANT_NEAR_FURROW_DARK darker than
  *   the plates.
  */
-export const DISTANT_SHADE_SIDE = 0.55;
-export const DISTANT_NEAR_BAND_M: [number, number] = [12, 20];
-export const DISTANT_NEAR_MAP_GAIN = 2.6;
+/**
+ * Round 48 (opus-review #12 / #01, w19–w21 / x-arch-approach: the depth-row boles 10–25 m off
+ * still "smooth cones, a flat brown, no bark" — round 47's terms stopped at 20 m and the shade
+ * side kept 0.55 of the floor): the face turned from the sun keeps 0.38 of the floor; the near
+ * band's furrows and map gain run to 26 m (full at 14) — the poses' range; the tone bands ± 0.55
+ * (DISTANT_NEAR_TONE) and the grime 0.45 at the ground line. Zero at 38 m+ still (DISTANT_BARK_M).
+ */
+export const DISTANT_SHADE_SIDE = 0.38;
+export const DISTANT_NEAR_BAND_M: [number, number] = [14, 26];
+export const DISTANT_NEAR_MAP_GAIN = 3.0;
 export const DISTANT_NEAR_FURROW_DARK = 0.45;
 
 /**
@@ -1479,7 +1486,7 @@ export async function createTreeMaterials(ctx: WorldContext): Promise<TreeMateri
     `,
       );
   };
-  distant.customProgramCacheKey = () => 'trees-distant-biased-v9';
+  distant.customProgramCacheKey = () => 'trees-distant-biased-v10';
 
   return {
     whiteTree,

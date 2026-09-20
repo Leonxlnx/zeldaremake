@@ -17,7 +17,6 @@ const TEXT = '#e8e1cc';
 const TEXT_BRIGHT = '#f6f1e6';
 const WOOD_BG = '#171108';
 const WOOD_FRAME = '#755b33';
-const GOLD = '#c9a24a';
 
 function spiral(cx: number, cy: number, r0: number, r1: number, turns: number, dir = 1, phase = 0): string {
   const n = Math.max(14, Math.round(turns * 18));
@@ -169,23 +168,28 @@ function socket(d: string, inner: string): SVGGElement {
   ]);
 }
 
+/**
+ * The left panel's sockets, as in the reference (d_057–d_088 at 1280 px): the top pair are
+ * pentagons with a flat top and a pointed bottom, the bottom pair the same turned over, and the
+ * odd one under them a flat-top hexagon. The vertical sides run 72 % of the height.
+ */
 function shieldSocket(cx: number, y0: number, w: number, h: number, pointedTop: boolean, inset = 0): string {
   const hw = w / 2 - inset;
   const top = y0 + inset;
   const bot = y0 + h - inset;
-  const side = h * 0.57;
+  const side = (h - inset * 2) * 0.72;
   if (!pointedTop) return `M${fmt(cx - hw)} ${fmt(top)} H${fmt(cx + hw)} V${fmt(top + side)} L${fmt(cx)} ${fmt(bot)} L${fmt(cx - hw)} ${fmt(top + side)} Z`;
   return `M${fmt(cx)} ${fmt(top)} L${fmt(cx + hw)} ${fmt(bot - side)} V${fmt(bot)} H${fmt(cx - hw)} V${fmt(bot - side)} Z`;
 }
 
 function leftPanel(): SVGGElement {
   const grp = g({ class: 'zr-equip-left' });
-  const cols = [118, 264];
+  const cols = [116, 266];
   for (const cx of cols) {
-    grp.appendChild(socket(shieldSocket(cx, 249, 110, 122, false), shieldSocket(cx, 249, 110, 122, false, 4)));
-    grp.appendChild(socket(shieldSocket(cx, 438, 110, 122, true), shieldSocket(cx, 438, 110, 122, true, 4)));
+    grp.appendChild(socket(shieldSocket(cx, 253, 112, 118, false), shieldSocket(cx, 253, 112, 118, false, 4)));
+    grp.appendChild(socket(shieldSocket(cx, 436, 112, 120, true), shieldSocket(cx, 436, 112, 120, true, 4)));
   }
-  grp.appendChild(socket(flatHexPath(190, 641, 97, 79), flatHexPath(190, 641, 89, 71)));
+  grp.appendChild(socket(flatHexPath(190, 637, 100, 82), flatHexPath(190, 637, 92, 74)));
   // carved ornament between the sockets
   const orn = g({ transform: 'translate(191 404)' }, [
     path('M-22 -14 C -10 -22, 10 -22, 22 -14 M-22 14 C -10 22, 10 22, 22 14', { fill: 'none', stroke: '#6a5230', 'stroke-width': 2.4, 'stroke-linecap': 'round' }),
@@ -245,20 +249,36 @@ function tunicIcon(cx: number, cy: number): SVGGElement {
   ]);
 }
 
-/** Equipment grid geometry (design px): column centres and the row centres / slot boxes. */
-export const GRID_COLS = [947, 1066, 1184];
+/**
+ * Equipment grid geometry (design px), measured on the 1280 px reference frame at 34.5 s: three
+ * columns 120 px apart; row 0 tall rectangles (sword row), row 1 pointy hexagons with vertical
+ * sides over 55 % of the height (shield row), row 2 rounded rectangles (tunic row).
+ */
+export const GRID_COLS = [947, 1067, 1187];
 export const GRID_ROWS: { cy: number; w: number; h: number }[] = [
-  { cy: 245, w: 86, h: 176 },
-  { cy: 430, w: 104, h: 148 },
-  { cy: 590, w: 92, h: 128 },
+  { cy: 244, w: 86, h: 174 },
+  { cy: 429, w: 100, h: 146 },
+  { cy: 590, w: 98, h: 124 },
 ];
 
 function rowShape(row: number, cx: number, inset = 0): string {
   const r = GRID_ROWS[row];
-  if (row === 1) return hexPath(cx, r.cy, r.w - inset * 2, r.h - inset * 2.6);
+  if (row === 1) return hexPath(cx, r.cy, r.w - inset * 2, r.h - inset * 2.6, 0.55);
   const w = r.w - inset * 2;
   const h = r.h - inset * 2;
   return rectPath(cx - w / 2, r.cy - h / 2, w, h, row === 0 ? 4 : 5);
+}
+
+/**
+ * The box a cell's thumbnail canvas occupies (design px): the cell inset by its bevel, so the
+ * item's silhouette stays inside the plate. Hexagons get a little more side inset for their
+ * corners.
+ */
+export function cellBox(row: number, col: number): { x: number; y: number; w: number; h: number } {
+  const r = GRID_ROWS[row];
+  const ix = row === 1 ? 10 : 6;
+  const iy = row === 1 ? 8 : 6;
+  return { x: GRID_COLS[col] - r.w / 2 + ix, y: r.cy - r.h / 2 + iy, w: r.w - ix * 2, h: r.h - iy * 2 };
 }
 
 /**
@@ -276,8 +296,9 @@ function rightGrid(): { grp: SVGGElement; setEquipped(row: number, col: number):
       const d = rowShape(row, cx);
       const filled = row < 2 || c === 0;
       const gold = g({ style: 'display:none' }, [
-        path(d, { fill: 'url(#zr-eq-gold)', stroke: '#3a2a0c', 'stroke-width': 1.5, 'stroke-linejoin': 'round' }),
-        path(rowShape(row, cx, 3), { fill: 'none', stroke: '#c9a24a', 'stroke-width': 1, opacity: 0.4 }),
+        path(d, { fill: 'url(#zr-eq-gold)', stroke: '#2e2008', 'stroke-width': 1.5, 'stroke-linejoin': 'round' }),
+        path(rowShape(row, cx, 2.5), { fill: 'none', stroke: '#4a3408', 'stroke-width': 1.6, opacity: 0.8, 'stroke-linejoin': 'round' }),
+        path(rowShape(row, cx, 4.5), { fill: 'none', stroke: '#b8933a', 'stroke-width': 0.9, opacity: 0.35, 'stroke-linejoin': 'round' }),
       ]);
       const plain = filled
         ? g({}, [path(d, { fill: 'url(#zr-eq-plate)', stroke: '#3a2a0c', 'stroke-width': 1.5, 'stroke-linejoin': 'round' }), path(rowShape(row, cx, 3), { fill: 'none', stroke: '#8a7448', 'stroke-width': 1, opacity: 0.35 })])
@@ -288,10 +309,10 @@ function rightGrid(): { grp: SVGGElement; setEquipped(row: number, col: number):
     }
   }
   grp.appendChild(tunicIcon(947, 590));
-  // browse frame (pale, glowing) — follows the highlighted cell
-  const glow = path(rowShape(0, 947, -3), { fill: 'none', stroke: '#fff0c0', 'stroke-width': 7, opacity: 0.55, filter: 'url(#zr-eq-blur4)', 'stroke-linejoin': 'round' });
-  const frame = path(rowShape(0, 947, -0.5), { fill: 'none', stroke: '#f8f0d8', 'stroke-width': 2.6, 'stroke-linejoin': 'round' });
-  const frameGold = path(rowShape(0, 947, -0.5), { fill: 'none', stroke: GOLD, 'stroke-width': 1, opacity: 0.8, 'stroke-linejoin': 'round' });
+  // browse frame — the reference's cool pale line with a soft blue-grey halo — follows the highlighted cell
+  const glow = path(rowShape(0, 947, -3), { fill: 'none', stroke: '#c9d0e6', 'stroke-width': 8, opacity: 0.5, filter: 'url(#zr-eq-blur4)', 'stroke-linejoin': 'round' });
+  const frame = path(rowShape(0, 947, -1), { fill: 'none', stroke: '#eef1f8', 'stroke-width': 3, 'stroke-linejoin': 'round' });
+  const frameGold = path(rowShape(0, 947, -1), { fill: 'none', stroke: '#9aa3bf', 'stroke-width': 0.8, opacity: 0.6, 'stroke-linejoin': 'round' });
   grp.appendChild(glow);
   grp.appendChild(frame);
   grp.appendChild(frameGold);
@@ -306,8 +327,8 @@ function rightGrid(): { grp: SVGGElement; setEquipped(row: number, col: number):
     setBrowsed(row, col) {
       const cx = GRID_COLS[col];
       glow.setAttribute('d', rowShape(row, cx, -3));
-      frame.setAttribute('d', rowShape(row, cx, -0.5));
-      frameGold.setAttribute('d', rowShape(row, cx, -0.5));
+      frame.setAttribute('d', rowShape(row, cx, -1));
+      frameGold.setAttribute('d', rowShape(row, cx, -1));
     },
   };
 }
@@ -375,11 +396,13 @@ function defs(): SVGDefsElement {
       ],
       { x1: '0', y1: '0', x2: '1', y2: '1' },
     ),
+    // the reference plate: rgb(102,71,11) at the top lightening to rgb(125,96,20) at the bottom
     linearGradient(
       'zr-eq-gold',
       [
-        { offset: 0, color: '#8d6d20' },
-        { offset: 1, color: '#5a4010' },
+        { offset: 0, color: '#68480d' },
+        { offset: 0.5, color: '#75541a' },
+        { offset: 1, color: '#836318' },
       ],
       { x1: '0', y1: '0', x2: '0', y2: '1' },
     ),

@@ -1303,13 +1303,22 @@ export function placeFlagstones(pc: PavingContext, material: Material): PavingRe
     // widening comes with the shoulder moss below so the joints read green-brown, not black)
     const seamJoint = disc ? (0.035 + 0.03 * jointN + 0.01 * uJoint) * (1 - 0.35 * open) + 0.015 * damp0 : (0.045 + 0.035 * jointN + 0.012 * uJoint) * (0.42 + 0.28 * damp0 + 0.42 * south) + 0.005 * damp0;
     // the disc field's gaps (no new draw: `uJoint` jitters them): 9–22 cm, frame 14 s's 0.08–0.2 m
-    const fieldJoint = 0.09 + 0.09 * jointN + 0.04 * uJoint;
+    // (round 48, opus-review #04 / fable-5's video-2 measurements: the spine's stones sit in 3–8 cm
+    // dark joints with grass in them, not 15–25 cm of bare earth — the field's gaps come down to
+    // 4.5–11 cm and camera D's thinned stretch to 6–12.5 cm; the earth between them is darker and
+    // greener (joints.ts) and carries green tufts (index.ts `spine-grass`))
+    const fieldJoint = 0.045 + 0.045 * jointN + 0.02 * uJoint;
     // (no draw for the stones outside the lawn, so their streams stay exactly as before)
     // (12–28 cm on the bottom row: the reference's bottom-row seams are 15–25 cm, its 40 cm gaps
     // are dirt patches; round 23: camera B's mid-ground slabs, z < −2.6, sit closer - frame 14 s
     // reads 3–8 cm seams between the slabs behind Link - so the turf joint narrows to a quarter)
     const lawnMid = smoothstep(-2.6, -4.0, s.z);
-    const lawnJoint = (0.12 + 0.12 * jointN + (lawn > 0 ? srng.range(0, 0.04) : 0)) * (1 - 0.75 * lawnMid);
+    // (round 48, opus-review #04: the lawn slabs' 12–28 cm turf joints were the "15–25 cm of bare
+    // mortar" at E / w05 — measured as runs between the slab outlines, the E foreground's gaps sat
+    // at p50 14 cm, the w05 plaza's at 27 cm. 8–20 cm now (× 0.67); the fill under them is the
+    // dark olive turf (joints.ts) and carries green tufts (index.ts), so what is left of the gap
+    // reads as grass between stones, as in frame E, not as a mortar band)
+    const lawnJoint = (0.08 + 0.08 * jointN + (lawn > 0 ? srng.range(0, 0.04) : 0)) * (1 - 0.75 * lawnMid);
     // where the disc field takes over the seam: everywhere in it except camera B's bottom row
     // (lawn slabs at z > −2.6, which keep their 12–28 cm turf joints); the round-23 mid-ground
     // narrowing (lawnMid) is what it replaces — frame 14 s at 3× shows the stones behind Link in
@@ -1323,7 +1332,7 @@ export function placeFlagstones(pc: PavingContext, material: Material): PavingRe
     // quarter against our 0.16 m, 0.10 m once the slabs merged at 9–20 cm seams): 13–26 cm
     // geometric seams there, on `uJoint` (no new draw); 0 elsewhere leaves the seam as is
     const dThinW = disc ? 0 : dThin(s.z);
-    const dJoint = 0.13 + 0.08 * jointN + 0.05 * uJoint;
+    const dJoint = 0.06 + 0.04 * jointN + 0.025 * uJoint;
     // corners: 14 % of the slab (5–16 cm; round 23 - frame 1 s's plaza slabs are irregular with
     // rounded corners; 12 % read as chamfered hexagons and a quarter of the slab as cobbles set
     // in mortar, with 8–15 cm junction triangles); the lawn slabs' 18 % (7–24 cm); round 33: the
@@ -1534,8 +1543,14 @@ export function placeFlagstones(pc: PavingContext, material: Material): PavingRe
     // (round 44, the hollow path: the rim is SUNK 2–3.5 cm below where it would stand, so the
     // shoulder roll sits at the fill line or under it and the fill / terrain lap onto the stone —
     // the soil lip of a set stone; the dome below lifts the top back out)
-    const sink = hrng ? hollow * (0.02 + 0.015 * hrng()) : 0;
-    const exposed = srng.range(0.011, 0.017) * (1 - 0.15 * open) * (1 + 0.6 * fieldW) - sink;
+    // (round 48: the hollow's sink 2–3.5 cm → 0.8–1.6 cm — sunk to the shoulder, the set stones
+    // showed only their crowns and the soil between them read as 15–25 cm of bare mortar at
+    // w13 / w16; the fill still laps the rolled edge. Every open / field slab stands 0.6 cm more
+    // proud (1.7–2.3 cm), with the flank a shade darker and lit less like the top (below), so a
+    // slab has a readable edge and thickness at 1–2 m — opus-review #16's "stickers in flat
+    // orange soil" — while a metre of grazing view still projects the wall under the crevice line)
+    const sink = hrng ? hollow * (0.008 + 0.008 * hrng()) : 0;
+    const exposed = (srng.range(0.011, 0.017) + 0.006 * (1 - lawn) * (disc ? 0 : 1)) * (1 - 0.15 * open) * (1 + 0.6 * fieldW) - sink;
     if (hMaxS - hMinS > 0.28) {
       // a slab cannot sit across a step this high (terrace lips, bank feet): leave soil here
       if (!dryRun) stats.skippedSteep++;
@@ -1594,7 +1609,10 @@ export function placeFlagstones(pc: PavingContext, material: Material): PavingRe
     // 0.942 of the 28 they replaced — the two 2 m slabs nearest camera D at 0.84 / 0.81 — and
     // frame 56 s's stone class rendered p50 0.532 against the frame's 0.557 / the control's 0.584)
     let lum = 0.89 + 0.08 * tn + srng.range(-0.08, 0.08) * (1 + 0.7 * dThinW) + (seed.big ? 0.02 : 0) + 0.04 * dThinW;
-    if (grey) lum *= 0.91;
+    // (round 48, opus-review #04: the "grey" fifth rendered as cool lavender beside cream — two
+    // populations laid at random. The grey stone keeps its step down in luminance but not its blue
+    // lift (satK below), so the family is one warm grey-beige with per-stone variance)
+    if (grey) lum *= 0.93;
     if (darkWarm) lum *= 0.87;
     // (round 9: the stone albedo came down 28 % as a whole (material.ts STONE_ALBEDO_SCALE) to
     // put the sunlit A/D paving on the reference; the band's own darkening shrank with it so the
@@ -1627,7 +1645,9 @@ export function placeFlagstones(pc: PavingContext, material: Material): PavingRe
     // (round 34: the thinned stretch leans grey-green like the damp band — with its slabs darker
     // and the cushions on them, frame 56 s's stone class rendered hue 36° / sat 0.36 against the
     // frame's 40° / 0.32 that the control matched)
-    const hueK = srng.range(-0.05, 0.05) * 1.6 + (darkWarm ? 0.035 : 0) - 0.04 * damp - 0.06 * dThinW;
+    // (round 48: +0.02 warm bias — the E / D / A stone class rendered sRGB R/G 1.08–1.11 against
+    // the frames' 1.11–1.12; fable-5's video-2 slab mean is #95815d, R/G 1.15)
+    const hueK = srng.range(-0.05, 0.05) * 1.6 + (darkWarm ? 0.035 : 0) - 0.04 * damp - 0.06 * dThinW + 0.02;
     // the shaded band renders redder and more saturated than the sunlit plaza under the warm
     // fill light (B lit tops sRGB B/R 0.61, R/G 1.20 against the reference's 0.69 / 1.12, where
     // the A plaza matches at 0.71 / 1.10) and the post chain passes only ~1/4 of an albedo
@@ -1646,7 +1666,11 @@ export function placeFlagstones(pc: PavingContext, material: Material): PavingRe
     // (round 33: the damp band's blue 0.06 → 0.10 (B's stone class rendered sat 0.360 against the
     // frame's 0.336) and camera D's foreground path a third less of the open paving's blue (D's
     // 0.313 against 0.342); A's plaza, which matched at 0.315 / 0.315, is untouched)
-    const satK = srng.range(-0.04, 0.04) + (grey ? 0.075 : 0) - (darkWarm ? 0.04 : 0) + 0.1 * damp + 0.045 + 0.18 * open * (1 - 0.35 * dFore);
+    // (round 48: the blue lifts come down — measured on take-0118's six views the stone class
+    // rendered sRGB B/R 0.75 / 0.72 / 0.77 in E / D / A against the frames' 0.67 / 0.69 / 0.69,
+    // the cool cast of #04; the grey stones' +0.075 → +0.02, the open paving's +0.18 → +0.07,
+    // the base +0.045 → +0.02, the damp band's 0.1 → 0.06)
+    const satK = srng.range(-0.04, 0.04) + (grey ? 0.02 : 0) - (darkWarm ? 0.04 : 0) + 0.06 * damp + 0.02 + 0.07 * open * (1 - 0.35 * dFore);
     const tint: [number, number, number] = [lum * (1 + hueK) * (1 - 0.03 * open), lum * (1 - hueK * 0.3), lum * (1 - hueK * 0.5 + satK)];
     // moss lives in the joints and creeps onto the shoulders; a green film covers the shaded
     // north/west side of ~30 % of the stones (damp side, reference B/E), more on the damp path
@@ -1719,7 +1743,9 @@ export function placeFlagstones(pc: PavingContext, material: Material): PavingRe
     // (joints.ts CREVICE_TINT) in the gap; the wall is the same stone, dust-stained at its foot)
     const flankW = disc ? 0 : 1 - 0.6 * lawn;
     const footStain = (FLANK_STAIN_AT_FILL * (1 + 0.2 * flankW) * wallH) / (wallH - fillH);
-    const flankK: [number, number, number] = [1 - 0.15 * flankW, 1 - 0.17 * flankW, 1 - 0.22 * flankW];
+    // (round 48: a further 0.1 off the flank — reference E at 2× shows the slabs' edges as a dark
+    // band 3–5 cm tall under every top; ours were lit like the top and read as stickers)
+    const flankK: [number, number, number] = [1 - 0.24 * flankW, 1 - 0.26 * flankW, 1 - 0.31 * flankW];
 
     // 5. build the stone into the shared geometry and place it
     const from = all.vertexCount;
@@ -1820,7 +1846,9 @@ export function placeFlagstones(pc: PavingContext, material: Material): PavingRe
       wear: disc ? 0.75 : 1,
       // the wall shaded like the top (geometry.ts): a 1–2 cm wall facing away from the sun was a
       // dark band 2–3× the seam's height from cameras A and D
-      sideNormalUp: 0.75,
+      // (round 48: 0.75 → 0.55 on the path stones — the edge keeps a little of its own shading so
+      // the slab reads as a block with a rim at 1–2 m; the discs and lawn slabs keep 0.75)
+      sideNormalUp: disc || lawn > 0.5 ? 0.75 : 0.55,
       crackFn: cracked ? (x, z) => [crackAcross(x, z), ((x - cpx) * -cnz + (z - cpz) * cnx) / Math.max(0.1, crackHalf * radius)] : undefined,
       // the cushions' weight: full on the shaded rim, a third on the lit rim, fading to a fifth
       // at the centre (the shader grows lobed patches where the weight is high); the lichen's
