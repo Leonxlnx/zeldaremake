@@ -1,0 +1,212 @@
+{
+  "mode": "baseline",
+  "method": "Actual giant builder, WORLD seed, authored profiles/boughs, terrain and hero frusta. Sun/view corridors omitted: flat authored lobes exempt. Submitted added cost is an upper bound before frustum/slot selection; collapsed far geometry remains submitted.",
+  "parts": [
+    {
+      "tree": "stair-bank-giant",
+      "center": [
+        13.6,
+        3.5,
+        4.6
+      ],
+      "group": 22,
+      "fixedSwap": false,
+      "inM": 12.397122004213678,
+      "outM": 13.397122004213678,
+      "triangles": 7308,
+      "leaves": 819,
+      "bytes": 557928,
+      "geometrySha256": "74d24102820b7357d29d597fb1a2eec3249698dc20f87ba5a951362be0fabb51",
+      "distances": {
+        "A_stairs": 13.897,
+        "B_house": 13.99,
+        "C_lookback": 16.786,
+        "D_log": 15.541,
+        "E_ground": 13.99,
+        "F_canopy": 15.664
+      }
+    },
+    {
+      "tree": "stair-bank-giant",
+      "center": [
+        12,
+        3.5,
+        5.6
+      ],
+      "group": 23,
+      "fixedSwap": false,
+      "inM": 10.601652779682617,
+      "outM": 11.601652779682617,
+      "triangles": 8370,
+      "leaves": 939,
+      "bytes": 638964,
+      "geometrySha256": "2c9c2c5e62c739e697a7d5c738c22adb9e3f7cf379d99ffb2bfdb56025843f75",
+      "distances": {
+        "A_stairs": 12.102,
+        "B_house": 12.687,
+        "C_lookback": 16.547,
+        "D_log": 14.745,
+        "E_ground": 12.687,
+        "F_canopy": 14.154
+      }
+    },
+    {
+      "tree": "stair-bank-giant",
+      "center": [
+        11.2,
+        3.4,
+        3.7
+      ],
+      "group": 24,
+      "fixedSwap": false,
+      "inM": 10.467038062946068,
+      "outM": 11.467038062946068,
+      "triangles": 7416,
+      "leaves": 819,
+      "bytes": 563616,
+      "geometrySha256": "8f71d99bdc1d94665aecd8612cbda43b972077fd22a85568c2ed8b1c763525e8",
+      "distances": {
+        "A_stairs": 11.967,
+        "B_house": 11.487,
+        "C_lookback": 14.552,
+        "D_log": 13.027,
+        "E_ground": 11.487,
+        "F_canopy": 13.26
+      }
+    },
+    {
+      "tree": "stair-bank-giant",
+      "center": [
+        10.4,
+        3.4,
+        5.9
+      ],
+      "group": 25,
+      "fixedSwap": false,
+      "inM": 8.980935072788114,
+      "outM": 9.980935072788114,
+      "triangles": 5658,
+      "leaves": 606,
+      "bytes": 428364,
+      "geometrySha256": "09fc76df1828a725845c40dc766aeec3fd6d4ffa425d5460048f62d1911f0276",
+      "distances": {
+        "A_stairs": 10.481,
+        "B_house": 11.269,
+        "C_lookback": 15.908,
+        "D_log": 13.677,
+        "E_ground": 11.269,
+        "F_canopy": 12.607
+      }
+    },
+    {
+      "tree": "stair-bank-giant",
+      "center": [
+        11.6,
+        5.5,
+        1.5999999999999996
+      ],
+      "group": 26,
+      "fixedSwap": false,
+      "inM": 12.216048993788261,
+      "outM": 13.216048993788261,
+      "triangles": 7336,
+      "leaves": 809,
+      "bytes": 558384,
+      "geometrySha256": "cdec2e7fe363c87f1954093cc79b51665cd1c69c627ffe71d4a59c642188f6e4",
+      "distances": {
+        "A_stairs": 13.716,
+        "B_house": 12.277,
+        "C_lookback": 13.721,
+        "D_log": 12.943,
+        "E_ground": 12.277,
+        "F_canopy": 14.259
+      }
+    },
+    {
+      "tree": "east-giant",
+      "center": [
+        27.66,
+        10.2,
+        -3.2799999999999994
+      ],
+      "group": 24,
+      "fixedSwap": false,
+      "inM": 26,
+      "outM": 30,
+      "triangles": 8475,
+      "leaves": 957,
+      "bytes": 647946,
+      "geometrySha256": "84e527ae7fc2be5a574cd7e019d065c7cfd347b4a44b0baa29ec3ccd485575c1",
+      "distances": {
+        "A_stairs": 30.9,
+        "B_house": 29.473,
+        "C_lookback": 27.156,
+        "D_log": 28.822,
+        "E_ground": 29.473,
+        "F_canopy": 31.637
+      }
+    },
+    {
+      "tree": "east-giant",
+      "center": [
+        27.83,
+        10.05,
+        -5.75
+      ],
+      "group": 25,
+      "fixedSwap": false,
+      "inM": 26,
+      "outM": 30,
+      "triangles": 8439,
+      "leaves": 957,
+      "bytes": 645714,
+      "geometrySha256": "6565f3a85706ef7a58d693bf9bbcca72fc7fe619af3d221388d1d086c100be34",
+      "distances": {
+        "A_stairs": 32.037,
+        "B_house": 30.128,
+        "C_lookback": 26.98,
+        "D_log": 29.068,
+        "E_ground": 30.128,
+        "F_canopy": 32.412
+      }
+    }
+  ],
+  "total": {
+    "triangles": 53002,
+    "bytes": 4040916,
+    "leaves": 5906,
+    "calls": 7
+  },
+  "heroUpperBounds": {
+    "A_stairs": {
+      "calls": 0,
+      "triangles": 0,
+      "bytes": 0
+    },
+    "B_house": {
+      "calls": 0,
+      "triangles": 0,
+      "bytes": 0
+    },
+    "C_lookback": {
+      "calls": 0,
+      "triangles": 0,
+      "bytes": 0
+    },
+    "D_log": {
+      "calls": 0,
+      "triangles": 0,
+      "bytes": 0
+    },
+    "E_ground": {
+      "calls": 0,
+      "triangles": 0,
+      "bytes": 0
+    },
+    "F_canopy": {
+      "calls": 0,
+      "triangles": 0,
+      "bytes": 0
+    }
+  }
+}
