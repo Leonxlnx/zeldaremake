@@ -101,13 +101,74 @@ four trees are the only change in any fixed frame: 0.08 % of D's pixels inside t
 not see any of the three by geometry. All three branches are inside the −0.003 budget with nothing
 to spend.
 
+## E. Iteration 3 (01:45–02:45 UTC) — the branches moved; the new commits checked the same way
+
+`agent/fable-3-lookout` → `7b88f85d` (+ the north clearing's entrance props, GOAL_MODE fable-3 #2)
+and `agent/fable-4-r48` → `b61e0ff8` (+ iteration 2, "the trunk read at 5–20 m": `e3f50cd4`
+`9ee2c7c8`). `agent/fable-2-ledge` only added evidence and its INBOX note (its six-view claim —
+byte-identical — matches §D). Builds and tests green again on both (props geometry test pass,
+lodPool 9/9). A renderer note first, because it changes how the numbers below were taken:
+
+> **Frames only compare across builds at the same batch position.** `broll.mjs --test` advances
+> the world clock across the shots of one run, so the same pose rendered 4th in one batch and 5th
+> in another differs by the wind phase alone (E_ground head vs head: 2.9 % of pixels, SSIM 0.985).
+> Every before | after pair below was rendered with identical shot lists, same order.
+
+### fable-3 — the north clearing's entrance (`eaf4b930`, `7b88f85d`)
+
+`circle-marker` (0.4, −64.4) with `circle-pot-right` / `-squat` at its foot on the disc's north-east
+rim, `circle-pot-left` / `-squat` on the flight-side corner (4.75, −68.45) / (4.15, −68.7).
+
+| pose | after | verdict |
+| --- | --- | --- |
+| `x-northpath-n` (5.6 m) | a vertical post with a diamond cap, two crossboards and a hanging tag, a pot at its foot at the left of the entrance; the low pot pair at the right | **landed** — reads as a Kokiri waymarker, seated, off the paving |
+| `x-clearing-back` (5.7 m) | marker + two pots on the verge beside the slabs | landed |
+| `x-clearing-stones` (8–9 m) | marker at the right, pots either side of the entrance | landed |
+| `x-clearing-n` | identical (looks north) | — |
+| `D_log` | pixel-identical head → branch (pixDiff 0) | nothing in the fixed frames |
+
+Notes for fable-3: the pot bodies are still one smooth tone (iteration-1 note stands); the marker's
+crossboards are clean-edged planks — a chamfer or a split end would age them; at 5 m the hanging
+tag is the only small-scale detail and it reads. Also confirmed from fable-3's INBOX: the stone
+dais is never drawn where a camera can see it (`flagstones-north` culled beyond 45 m of the north
+box) — that is the hardscape bug behind my "could not see the dais" in §fable-3 above.
+
+### fable-4 — iteration 2, the trunk read at 5–20 m (`e3f50cd4`, `9ee2c7c8`) — **FAIL as an after that looks like its before**
+
+Six fixed views, same-order batches, head `3d50f6c8` → `b61e0ff8` (this is *both* fable-4
+iterations together, since the head has neither):
+
+| view | pixDiff | SSIM vs reference head → branch |
+| --- | --- | --- |
+| A_stairs | 0.0001 | 0.1979 → 0.1979 |
+| B_house | 0.0003 | 0.1974 → 0.1974 |
+| C_lookback | 0.0005 | 0.2314 → 0.2314 |
+| D_log | 0.0008 | 0.2637 → 0.2638 (+0.0001) |
+| E_ground | 0.0003 | 0.2016 → 0.2018 (+0.0002) |
+| F_canopy | 0 | 0.2484 → 0.2484 |
+
+Inside the budget with nothing spent — which is also the finding: B, C and E hold mature
+white-barks at 5–15 m and the trunk-read change moves 0.03–0.05 % of their pixels.
+
+| pose | before → after | measured |
+| --- | --- | --- |
+| `wb-grove-5m` p (−2.6, 1.45, 13.5) → (−7.4, 2.0, 12.9), a mature white-bark at 5 m | the two broad bands are present in the data (`fable-5-r48-f4-it2-trunk-5m-diff.jpg`, diff panel) but invisible in the frame | band zones l 0.339 → 0.312 (−8 %) and 0.327 → 0.301 (−8 %); "near-black" in this light would be l ≤ 0.12 — the bands are at a quarter of the strength they need |
+| `wb-grove-10m` p (1.5, 1.45, 15.5) → (−7.4, 2.2, 12.9) | pixDiff 0.5 %; nothing readable | — |
+| `x-arch-tunnel-n`, the two young clearing white-barks at 10–17 m (iteration 1 → 2) | **identical** (`fable-5-r48-f4-it2-tunnel-young-stems.jpg`) | by design: `whitebark.ts` gives `p.age === 'sapling'` no broad bands and no scars — and these are the trunks the owner sees through the arch |
+
+What would make it pass: bands and chevrons dark enough to survive the material's lighting and
+haze (−60…−70 % in the frame at 5 m, not −8 %: a vertex-colour multiplier is being washed out by
+the lit albedo), and at least the chevrons on the young stems. The rule the round set applies
+here: this is a FAIL to report, not a claim — the geometry/placement work of iteration 1 stands.
+
 ## Summary for fable-cursor
 
 | branch | does what its INBOX/commit says | at the defect's pose | merge risk seen |
 | --- | --- | --- | --- |
-| `agent/fable-2-ledge` | yes — and fixes a real bug (the wall faced away) | opus #03 IMPROVED, not closed (smooth boulder, bare foot, cut visible above the crest) | none seen; `rocks/ledge.ts` + its test only |
-| `agent/fable-4-r48` | yes | four trees present at the authored spots, seated, crowned | none seen; one-line `trees/index.ts` hook |
-| `agent/fable-3-lookout` | yes | the deck is gone, the railing is on the hook | none seen; `props/**` only |
+| `agent/fable-2-ledge` `19224e04` | yes — and fixes a real bug (the wall faced away) | opus #03 IMPROVED, not closed (smooth boulder, bare foot, cut visible above the crest) | none seen; `rocks/ledge.ts` + its test only |
+| `agent/fable-4-r48` `b61e0ff8` | iteration 1 yes; iteration 2 **no** — the marks are in the data at −8 %, invisible in the frame, absent on saplings | four trees present, seated, crowned; the 5–20 m trunk read unchanged | none for the six views (Δ ≤ +0.0002); merging `e3f50cd`/`9ee2c7c` ships no visible change |
+| `agent/fable-3-lookout` `7b88f85d` | yes, both items | the deck is gone, the railing is on the hook; the waymarker and pots stand at the clearing's entrance | none seen; `props/**` only |
 
-All three are safe to merge from the branch on this evidence; the open notes above are their next
-items, not conditions.
+All three are safe to merge from the branch on this evidence; fable-4's iteration 2 should be
+re-done at strength rather than reverted (it is harmless as shipped). The open notes above are
+their next items, not conditions.
