@@ -16,6 +16,21 @@ B 526 / C 393 / D 394 / E 526 / F 512; A 9.09 M tris on both (the head's number,
 change's — flagged to fable-cursor). Files: `ledge2-x-clearing-n.jpg` (+ `-crop`),
 `ledge2-x-ledge-foot.jpg`, `ledge2-x-northpath-n.jpg`.
 
+## Iteration 12 (goal mode, 2026-09-20) — W23 at frame D: the loaf 0.2 m prouder (branch `agent/fable-2-w23-loaf` @ `e5867d7e`)
+
+A D composition change on its OWN branch for fable-cursor's call (fable-5: "yes from the reviewer's side").
+BEFORE = the head `e54a74ed`, AFTER = `e5867d7e`: the D boulder's squash 0.64 → 0.72 and no sink (was 15 %
+of its height) — ≈ +0.19 m proud; the layout radius and the vegetation's clearRadius untouched.
+
+| frame / pose | before → after | verdict |
+| --- | --- | --- |
+| `D_log` (7.2 m) | nothing but fronds and a dark sliver → the boulder's moss top and shaded face stand above the fern bank at frame x 0.12–0.3, y 0.55–0.7 (1.01 % of the frame; `loaf12-D_log-boulder.jpg`, with the reference beside it) | **IMPROVED** — a rock is there now; not closed: it reads dark (the face toward D is in the giant's shade; box l 0.316 → 0.300 as more shaded rock replaces lit fern) and the fronds still stand in front (vegetation-26's disc) |
+| `sn-boulder-shotd` (2 m) | a sunk lump → a boulder with its moss top above the fern line (`loaf12-sn-boulder-shotd.jpg`) | IMPROVED |
+
+Six views, head `e54a74ed` → `e5867d7e`: A −0.0001, B −0.0001, C 0.0000, **D −0.0007**, E +0.0003, F 0.0000;
+draws and triangles identical (566 / 522 / 407 / 396 / 522 / 507; A 8.60 M). Inside the budget; the D cost is
+the composition change itself.
+
 ## Iteration 11 (goal mode, 2026-09-20) — a path-proximity envelope on the pebble scatter (take-0122's C, W38)
 
 `12dbc604` (+ test `847e91ab`). BEFORE = the branch at `1b394ceb` (head `0990b2c7` + the eight looks), AFTER = this
