@@ -453,3 +453,68 @@ New defects (numbering continues §3; systems as in `docs/GOAL_MODE.md`):
 | V19 | **Under the arch the tunnel is not a tunnel**: frame mean l 0.43 vs 0.13, no right wall, floor l 0.46 vs 0.15, window : wall 3 : 1 vs 6–8 : 1, and the window shows a plane with cones where the reference shows trunks and lights with no ground | `d_121` → `x-arch-tunnel-n` | structures/logArch (the closed side), atmosphere (shade floor under the arch — Astra), trees/distant + terrain north plain (trees-31), lanterns (three pods under the belly) | 3 |
 | V20 | **Pale boulder pairs and a low stone step at the foot of the banks** are a recurring dressing motif (right of the house, the top-down's right bank, left of the D path) that we do not use | `d_087`, `d_097`, `d_115` → plaza edges | rocks (fable-2) | 1 |
 | V21 | **The moss-capped boulder at the Kokiri boy's feet on the stair bank** (9 s and 46 s) — the C-frame anchor the owner sees twice | `d_019`, `d_093` → `C_lookback` (0.25–0.32 × 0.47–0.55) | rocks (fable-2) + npc placement | 1 |
+
+## 7. The owner's 13:00 UTC re-priority, measured (2026-09-20 15:30 UTC; head `69d16c4f`/`94b701a0`)
+
+The owner's four notes (via Astra): *stones under-detailed, trees too green, weak distant detail,
+wider render distance*. Two of them are measurable against the six reference frames at the same
+positions, so the lanes have numbers to aim at instead of taste. Method: both frames resized to
+320×180; **foliage** = pixels with hue 55–170°, sat > 0.12, l 0.06–0.85 (HSL); medians over that
+mask; the **canopy band** is the top 35 % of the frame. **Stone detail** on the paving regions that
+are slabs in both frames: *macro σ* = std of luminance at 160 px wide (the light/shade structure),
+*micro σ* = std of (l − 4 px Gaussian blur) at 640 px wide (fine relief).
+
+### 7.1 "Trees too green" — it is a hue error of 8–15° in the canopy, not saturation
+
+| frame | reference: foliage % / hue / sat / l | ours: foliage % / hue / sat / l | canopy band hue ref → ours |
+| --- | --- | --- | --- |
+| A_stairs | 13.7 / **61.6°** / 0.225 / 0.271 | 20.9 / 67.7° / 0.240 / 0.247 | 63.8° → **76.6°** |
+| B_house | 17.3 / **61.9°** / 0.275 / 0.259 | 26.8 / 69.1° / 0.219 / 0.243 | 61.4° → **69.1°** |
+| C_lookback | 14.0 / **60.0°** / 0.231 / 0.278 | 15.7 / 64.6° / 0.259 / 0.224 | 68.6° → **83.6°** |
+| D_log | 13.8 / **63.2°** / 0.224 / 0.235 | 27.6 / 71.5° / 0.176 / 0.265 | 63.8° → **72.0°** |
+| E_ground | 21.3 / **63.2°** / 0.244 / 0.280 | 27.2 / 69.2° / 0.220 / 0.243 | 64.8° → **69.1°** |
+| F_canopy | 18.8 / **63.8°** / 0.182 / 0.237 | 27.1 / 68.0° / 0.241 / 0.220 | 60.0° → **77.8°** |
+| mean | **62.3°** / 0.230 / 0.260 | 68.3° / 0.226 / 0.240 | 63.7° → **74.7°** |
+
+The reference's foliage sits at **60–64° in every frame** — yellow-olive, the same hue near and far,
+in sun and in haze. Ours is 65–72° over the whole frame and **69–84° in the canopy band**: the
+crowns are the green part, 8–15° further from yellow than the frame's, worst where the far crowns
+sit in the haze (C-top 84°, F-top 78°, A-top 77°). Saturation is *not* the problem (0.23 vs 0.23
+overall; canopy band 0.14–0.20 vs the frame's 0.14–0.23) and luminance is close (ours 0.02 darker).
+Ours also shows 1.5–2× the foliage area (D 27.6 % vs 13.8 %) — more crown in view, so the hue error
+weighs more. **Target for astra-trees / trees-31 / distant:** crown hue **62–65°** (shift the canopy
+layer −10 to −15°, the far crowns most), sat held, l held; check with this mask at C-top and F-top.
+
+### 7.2 "Stones under-detailed" — the paving matches; the boulders and walls are flat in the large
+
+| stone region (slabs in both) | ref: mean l / macro σ / micro σ | ours | read |
+| --- | --- | --- | --- |
+| A (0.25–0.75 × 0.80–1.0) | 0.524 / 0.110 / 0.066 | 0.497 / 0.096 / 0.063 | equal |
+| B (0.30–0.70 × 0.75–1.0) | 0.510 / 0.101 / 0.051 | 0.472 / 0.137 / 0.057 | ours more |
+| C (0.45–1.0 × 0.62–1.0) | 0.418 / 0.129 / 0.051 | 0.390 / 0.145 / 0.053 | equal |
+| D (0.35–0.70 × 0.72–1.0) | 0.466 / 0.116 / 0.059 | 0.464 / 0.130 / 0.065 | equal |
+| E (0.30–0.70 × 0.75–1.0) | 0.480 / 0.110 / 0.061 | 0.471 / 0.136 / 0.057 | equal |
+| **D boulder face** — ref (0.04–0.18 × 0.66–0.84) vs our loaf (0.10–0.30 × 0.58–0.85, branch `e5867d7e`) | 0.326 / **0.117** / 0.055 | 0.264 / **0.074** / 0.050 | ours 63 % in the large |
+| **rock/root mass** — ref-04 left (0.18–0.40 × 0.20–0.60) vs our `x-ledge-wall` (0.2–0.8 × 0.2–0.8, `89473888`) | 0.252 / 0.136 / **0.052** | 0.198 / 0.124 / **0.034** | ours 65 % in the fine |
+
+The flagstones at 2–8 m carry the reference's detail at both scales — the owner's "stones" is not
+the paving. The **boulders and walls** are where we fall short: the D boulder face has 63 % of the
+frame's macro contrast (one shaded loaf where the frame's rock has lit planes, a shadowed
+undercut and a bright top), and the ledge wall has 65 % of the reference rock mass's fine relief.
+fable-2's mid-range texture band (`d4bfed58`, +12 % contrast at 9–30 m) was invisible because the
+loss is in the *form* — facets and shadow steps 0.2–0.5 m across — and, at 2–4 m, in fine relief,
+not in texture contrast. **Target for rocks:** macro σ ≈ 0.11–0.14 on a lit boulder face (a
+second light plane and an undercut shadow per boulder), micro σ ≈ 0.05 on walls at 3 m.
+
+### 7.3 "Weak distant detail" and "wider render distance" — what the frames say
+
+*Distant detail* is §6.6's structural half: through the tunnel window the reference shows **tall
+vertical trunks with vines, glowing dots and lantern points and no ground plane** (`d_121`, window
+l 0.33); ours shows the north path, the ledge flight, a signpost and smooth cones in haze. The
+reference's far layer is *vertical structure in haze*, never a plane — trunks first, crowns
+second. *Render distance* meets W38 at camera A (8.68 M after perf-3, ceiling 9.0 M; proposal to
+11 M filed): whatever the far layer gains must be spent outside A's frustum or behind a LOD, and
+the distant-crown change in `a9eccd15` shows the risk the other way — removing the flat crown
+cores cost F −0.030 and C −0.025 against the reference because the canopy's *mass* went with them
+(§F of `.agents/reviews/fable-5-r49-branches.md`). Detail in the distance has to keep the dark
+silhouette the frames have.

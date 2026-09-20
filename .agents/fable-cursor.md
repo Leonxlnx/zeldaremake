@@ -2626,6 +2626,37 @@ Also: lantern bough still a thick plain beam across the top of B (trees pass pen
 - Lanes: expansion-2 (9 commits, capturing), character-10 (PR #21 review). Next: take-0123 on the
   head once expansion-2 lands (W24 restored, tunnel, Astra's material parts if split in time).
 
+### 15:45 UTC — tick 196: take-0123 sealed (valid, 37/50) — the tunnel, the backside, Link's run + 382ec9ec
+- Merged expansion-2 (`bd2595d`: west tree-house, SW fenced bank + flight + Kokiri spot, far hut on
+  a knoll; live/legacy terrain views pin the six frames — a design debt to unify later) and
+  character-10 (`2017772`: Astra's runtime fix + candidate 382ec9ec adopted, SHA pinned). A fix of
+  mine on top: placement.ts had gained a layout import that broke its dependency-free test — spot
+  inlined, equality asserted in expansion2.test (`97c8322`).
+- Take-0123: A 0.2177 (−0.0002) B 0.2013 (0) C 0.2371 (+0.0045) D 0.2770 (−0.0008) E 0.2143
+  (+0.0032) F 0.2567 (+0.0004); A 566 draws / 8.62 M; 37/50, W24 restored. Monitor `263aafc`.
+  Evidence `art/environment/round49-review/`.
+- Running: character-10b (Astra's combined stairs candidate 1e81bb6c). Astra's PR #23 awaits her
+  split (material parts mergeable; lobe swap needs a dark backing).
+
+### 16:20 UTC — tick 197 (covers the 13:05–15:05 timers): round 50 launched (5 lanes)
+- Merged fable-3 #7 (props' wood to the fences' red-brown) and fable-5's re-priority measurement:
+  "trees too green" is HUE (ours 65–84° vs the reference's 60–64°; target 62–65°, sat/l held — for
+  Astra's shading lanes), "stones under-detailed" is boulder/wall FORM (macro σ 0.074 vs 0.117), not
+  paving texture (fable-2's target), "weak distant detail" is the window's structure + crown mass.
+- Round 50: hardscape-32 (V16 demo-scale flagstones 0.8–1.1 m, dark 6–10 cm joints; V17 tread tone),
+  structures-33 (arch outer 2.2:1 silhouette with D's cost, `SLEEVE_BARK_MEAN` linear fix, west
+  house/far hut to the main house's standard), vegetation-27 (buried instances filtered via
+  `expansionCull`, the backside's ground, W06 grass→slab soil/moss band, W05 the C mound),
+  trees-32 (far-hut column seat, knoll white-bark placements, the spreading bough, path blocking),
+  npc-3 (south-bank Kokiri, fairies above-left per the demo, C01 Link colour grade at load).
+  character-10b (Astra's 1e81bb6c stairs candidate) still running. Astra: PR #23 crown-mass redo
+  + bark-mean fix in native review; her chips held for hardscape.
+
+### 16:35 UTC — tick 198: heartbeat; fable-5's take-0123 read merged; round 50 building
+- fable-5 re-verdicted take-0123: 37/50 confirmed; W08 fail updated (lean + bough landed, taper/
+  irregularity missing), W36/W03 pass re-checked. Merged `17d73b2`. Round 50's five lanes just
+  started (0 commits, building); character-10b evaluating 1e81bb6c. Heartbeat.
+
 ## Pending corrections from reference/ANALYSIS.md (apply at integration, one commit)
 - `config.ts` palette → olive/khaki low-key (reference hero frames: hue 47–51°, sat 0.16–0.19,
   lum 0.35–0.39, 0 % blue sky): grass 0x8a8c55/0x5c6233/0x3a4420, moss 0x8b8948/0x5a523b,
@@ -2664,4 +2695,4 @@ Pick anything NOT claimed in `gauntlet/claims.json`. Good self-contained candida
   my own (GAUNTLET.md D7).
 
 ## Last updated
-2026-09-20T15:30:00Z
+2026-09-20T16:35:00Z
