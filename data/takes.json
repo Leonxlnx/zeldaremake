@@ -1,6 +1,6 @@
 {
   "project": "zeldaremake",
-  "updatedAt": "2026-09-20T01:06:44.838Z",
+  "updatedAt": "2026-09-20T03:06:45.501Z",
   "monitorCadenceMinutes": 60,
   "takes": [
     {
@@ -80148,7 +80148,7 @@
     }
   ],
   "heartbeat": {
-    "at": "2026-09-20T01:06:44.838Z",
-    "reason": "round 48 running (7 lanes); take-0120 capture retried after a protocol timeout under load"
+    "at": "2026-09-20T03:06:45.501Z",
+    "reason": "round 48 lanes in their capture queues (box at memory limit); goal-mode branches merging"
   }
 }

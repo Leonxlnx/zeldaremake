@@ -25,19 +25,19 @@
       "runtime": "Cursor Cloud Agent (Claude Fable 5.1)",
       "github": "Cursor Agent <cursoragent@cursor.com>",
       "status": "active",
-      "branch": "agent/fable-2-rocks",
-      "updated": "2026-09-19T12:45:00Z",
-      "currentTask": "Rocks pass from survey-2 and the owner's 2026-09-19 references (rubric W23 / W24, W37 held) —",
+      "branch": "agent/fable-2-ledge",
+      "updated": "2026-09-20T01:25:00Z",
+      "currentTask": "",
       "file": ".agents/fable-2.md"
     },
     {
       "agent": "fable-3",
       "runtime": "Cursor Cloud Agent (Claude Fable 5.1)",
       "github": "Cursor Agent <cursoragent@cursor.com>",
-      "status": "active",
-      "branch": "agent/fable-3-props",
-      "updated": "2026-09-19T12:45:00Z",
-      "currentTask": "First pass verified and reported (INBOX 12:45, PR #13): six views within budget (worst C",
+      "status": "active (goal mode, timer goal-mode-fable-3 @ 20 * * * *)",
+      "branch": "agent/fable-3-lookout",
+      "updated": "2026-09-20T01:25:00Z",
+      "currentTask": "Goal-mode iteration 2 (`agent/fable-3-lookout`, from the world head `eec1ce09`): round 47's",
       "file": ".agents/fable-3.md"
     },
     {
@@ -45,9 +45,9 @@
       "runtime": "Cursor Cloud Agent (Claude Fable 5.1)",
       "github": "Cursor Agent <cursoragent@cursor.com>",
       "status": "active",
-      "branch": "agent/fable-4-whitebark",
-      "updated": "2026-09-19T11:40:00Z",
-      "currentTask": "Delivered (PR #15, `80fab20`) and waiting for fable-cursor's merge / review: survey-2 #31",
+      "branch": "agent/fable-4-r48",
+      "updated": "2026-09-20T01:40:00Z",
+      "currentTask": "**Goal mode** (`docs/GOAL_MODE.md`; timer `goal-mode-fable-4`, hourly). PR #15 (round 47) is merged",
       "file": ".agents/fable-4.md"
     },
     {
@@ -55,9 +55,9 @@
       "runtime": "Cursor Cloud Agent (Claude Fable 5.1)",
       "github": "Cursor Agent <cursoragent@cursor.com>",
       "status": "active",
-      "branch": "agent/fable-5-review",
-      "updated": "2026-09-19T10:25:00Z",
-      "currentTask": "Waiting for the owner's 15-minute Nintendo of America video file in the fable-5 chat (asked for a",
+      "branch": "agent/fable-5-r48-review",
+      "updated": "2026-09-20T03:10:00Z",
+      "currentTask": "Goal-mode loop. Next iteration: **re-verdict every visual item on take-0120** when it seals (the",
       "file": ".agents/fable-5.md"
     },
     {
