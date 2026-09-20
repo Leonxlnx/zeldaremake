@@ -4,7 +4,7 @@ runtime: Cursor Cloud Agent (Claude Fable 5.1)
 github: Cursor Agent <cursoragent@cursor.com>
 status: active (goal mode, timer goal-mode-fable-3 @ 20 * * * *)
 branch: agent/fable-3-merge
-updated: 2026-09-20T04:35:00Z
+updated: 2026-09-20T08:25:00Z
 ---
 
 # fable-3 — work log
@@ -15,29 +15,31 @@ materials.ts, tests, README). Onboarded from `docs/ONBOARDING_FABLE_CHATS.md` (c
 agents-log ticks). Draft PR #13 against the world branch.
 
 ## Current task
-Goal mode. `agent/fable-3-lookout` merged by fable-cursor from the branch at `f8b73662`
-(`7fda3f98`, 02:25 UTC) — the cull `0b46deb7` and the clearing evidence `351739cc` came after the
-merge point and ride on the next branch. **`agent/fable-3-merge`** (off `0987e060`, head `cffe97a5`
-merged in) — reported 04:35 UTC, waiting for fable-cursor's merge from the branch (the PR tool is
-still refused by GitHub: "must be a collaborator", repository-side per fable-cursor):
-- cherry-picks `0a042038` (the 45 m cull) + `405ddd52` (clearing evidence);
-- `38aa5bfd` merge per locality: village / clearing, 8 meshes for the system (was 20), the cull
-  per locality, `audit.clusterBounds` per cluster and material; six views pixel-identical vs
-  `0987e060`, draws A −26 / B −23 / E −23 / F −24 / D −7 / C +2; evidence
-  `art/environment/props-fable-3/merge/`.
-- V18 (fable-5's "no rail on the flight") investigated and re-filed: the reference's right-side
-  verticals are the stakes pegging log-nosed treads (`d_105`), absent on both flanks at 1 / 5 / 8 s
-  → hardscape's stair construction, not a prop.
+Goal mode on **`agent/fable-3-merge`** (reported 04:35 and 08:25 UTC; waiting for fable-cursor's
+merge from the branch — the PR tool is still refused by GitHub, repository-side). The branch carries:
+- the two commits the 02:25 merge missed (the 45 m cull, the clearing evidence);
+- iteration 4: merge per locality (village / clearing), 8 → now 9 meshes for the system, six views
+  pixel-identical, draws A −26 / B −23 / E −23 / F −24 / D −7 / C +2;
+- iteration 5: the demo's **light string**, placed by measuring reference A's pixels (a string at
+  (0.49–0.54, 0.47) → the house terrace's south bank above the pocket left of the flight; A's
+  second string sits on a bank our plaza lacks — V15). Six views: A 0, B −0.0009, C 0, D 0,
+  E −0.0002, F −0.0005. Verdict IMPROVED not closed: our pods are hard 2 px points at 16 m, the
+  reference's are soft blobs (bloom — the lantern glow's owner).
+- V18 (fable-5's "no rail on the flight") re-filed after reading `d_105`: log-risered treads with
+  end stakes → hardscape-31 (fable-5 confirmed and filed V18′).
 
-Next in lane: the demo's light string (in `A_stairs` at (0.50–0.60, 0.55–0.62) and the right
-bank), fable-5's two notes (pot bodies one tone, crossboards clean-edged), the crates a shade
-warmer, hanging wooden signs.
+Next in lane: fable-5's two clearing notes (pot bodies one tone, crossboards clean-edged), the
+crates a shade warmer, hanging wooden signs.
 
 ## Files / systems being touched
 `src/world/props/{index,layout,geometry,materials}.ts`, `geometry.test.mjs`, `README.md`.
 Evidence sheets under `art/environment/props-fable-3/`. Nothing else.
 
 ## Completed work
+- `21dfa7d0` iteration-5 evidence (`art/environment/props-fable-3/light-strings/`): reference|ours
+  crops at the same band of A, before/after at the bank pose, six views.
+- `b8034a7c` … `4b1edb0b` the `lightString` kind + `glow` material; four placements measured
+  against the six views (the first three, on approximate coordinates, cost C up to −0.0029).
 - `c8263f53` iteration-4 evidence (`art/environment/props-fable-3/merge/`): six views pixel-identical
   vs `0987e060`, draw deltas per view.
 - `38aa5bfd` / `f37968ba` merge per locality (8 meshes), README.
@@ -103,4 +105,4 @@ Evidence sheets under `art/environment/props-fable-3/`. Nothing else.
 - A Kokiri on the lip deck (npc-1) — the deck is the "stand on the ledge" destination.
 
 ## Last updated
-2026-09-20T04:35:00Z
+2026-09-20T08:25:00Z

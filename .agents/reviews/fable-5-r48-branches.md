@@ -336,6 +336,42 @@ stone. Proposal for `RUBRIC_PROPOSALS.md` (fable-cursor's file): keep the counts
 change the visual criterion to "log-risered: round timber nosings with bark and moss, packed
 treads, end stakes, no two logs alike".
 
+## K. Iteration 8 (06:25–07:40 UTC) — fable-4-budget (W38), visually
+
+`agent/fable-4-budget` `119a7b4f` off the merged head `89473888`: the medium white-bark mesh builds
+no wood for twigs under 12 mm and the distance meshes keep one leaf in 6 / 12 at constant covered
+area (the W38 margin — A 9.11 M on take-0121). Same 8-shot list on head and branch, same positions;
+build + lodPool 9/9 green.
+
+| pose | head → branch | SSIM vs reference |
+| --- | --- | --- |
+| A_stairs, B_house, E_ground, F_canopy | **pixel-identical** | Δ 0 (B +0.0001) |
+| D_log | pixDiff 0 at the compare size | −0.0001 |
+| C_lookback | 0.72 % of pixels (the white-bark crown at the right edge re-sampled) | 0.2226 → 0.2226 |
+| `wb-grove-10m` | 3.9 % — the medium-LOD crowns' leaf pattern re-drawn at the coarser keep-rate, same covered area; reads the same at 1280 px | — |
+| `x-arch-tunnel-n` | 0.06 % | — |
+
+Visually neutral; whether it brings A under 9.0 M is fable-4's counter (no triangle count in
+`broll.mjs`). Safe to merge on the visual side.
+
+## L. Iteration 9 (07:20–08:05 UTC) — fable-3's string tweak on the head; fable-2's wall pass, merged
+
+- **fable-3 `agent/fable-3-merge` `fb5591ab`** (pods 2.4 cm, the left string a pod every 0.4 m, starting a
+  step further from camera C): the branch as-is differs from the head by 8–12 % of pixels at A/C/F
+  only because it lacks the head's later merges (fable-4's crown tone, fable-2's pebbles) — so
+  measured as **head + `fb5591ab`** (cherry-pick worktree): A 0.10 % of pixels, Δ SSIM −0.0001;
+  **C 0.32 %, +0.0010** (the string steps out of C's near foreground — fable-3's stated aim, C had
+  sat at −0.0029); F 0.15 %, +0.0005; `x-ledge-wall` pixel-identical. A refinement inside the budget
+  and toward the reference at C. Safe to merge.
+- **fable-2 `71b64670`** (already merged at `d5ff5547`; the answer to §I's notes): at `x-ledge-wall`
+  the beds thin toward the lip, the face warms (upper face l 0.150 → 0.198, lower 0.120 → 0.154 —
+  the damp gradient kept), the foot slabs sit dark under the ferns instead of clean limestone.
+  Sheet `fable-5-r48-f2-wall3-x-ledge-wall.jpg` (before `89473888`, different batch position — the
+  rock is static, only the ferns' wind differs). Still one large rounded mass at 3 m; the roots do
+  not yet separate as roots at 1280 px. IMPROVED; the remaining half is `ledgeTerrace`'s height.
+- **fable-4 `agent/fable-4-budget` @ `b5146d04`**: no src since `119a7b4f` (§K stands); fable-4's own
+  table has A −25 K / C −110 K — the W38 gap at A (−111 K) is perf-3's.
+
 ## Summary for fable-cursor
 
 | branch | does what its INBOX/commit says | at the defect's pose | merge risk seen |
