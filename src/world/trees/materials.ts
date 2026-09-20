@@ -469,6 +469,8 @@ export const DISTANT_NEAR_FURROW_DARK = 0.45;
  * outside it every far term is the same expression it was.
  */
 export const LEAF_NEAR_M: [number, number] = [2.5, 6];
+/** White-bark leaves keep their existing margin, vein and cupping detail along the paths. */
+export const WHITE_BARK_LEAF_NEAR_M: [number, number] = [5, 16];
 
 /**
  * A tangent frame from screen-space derivatives (three's getTangentFrame, which the leaf and
@@ -1182,7 +1184,7 @@ export async function createTreeMaterials(ctx: WorldContext): Promise<TreeMateri
     side: DoubleSide,
   });
   const whiteWind = { treeStiffness: 0.8, flex: 0.35 };
-  injectWind(whiteTree, wind, whiteWind, colourSlots, (s) => treeFragment(s, leafSun, 0.72, WHITE_BARK_COLOR, WHITE_BARK_FLOOR, 'uWhiteBarkFloor'), 'white');
+  injectWind(whiteTree, wind, whiteWind, colourSlots, (s) => treeFragment(s, leafSun, 0.72, WHITE_BARK_COLOR, WHITE_BARK_FLOOR, 'uWhiteBarkFloor', undefined, false, { leafNear: WHITE_BARK_LEAF_NEAR_M }), 'white');
   const whiteTreeDepth = new MeshDepthMaterial({ depthPacking: RGBADepthPacking, side: DoubleSide });
   injectWind(whiteTreeDepth, wind, whiteWind, depthSlots, undefined, 'white-depth');
 
