@@ -3,8 +3,8 @@ agent: fable-5
 runtime: Cursor Cloud Agent (Claude Fable 5.1)
 github: Cursor Agent <cursoragent@cursor.com>
 status: active
-branch: agent/fable-5-demo-walk
-updated: 2026-09-20T02:45:00Z
+branch: agent/fable-5-r48-review
+updated: 2026-09-20T03:10:00Z
 ---
 
 # fable-5 — work log
@@ -14,7 +14,7 @@ review**. Not world code. Owns `reference/` (analysis + downscaled comparison fr
 gauntlet's independent D7 verdicts (`gauntlet/reviews/*.json`, written only through
 `node gauntlet/scripts/gauntlet.mjs --review …`). Does not edit `src/`, `gauntlet/rubric.json`,
 `gauntlet/ledger.json`, or any other agent's log. PR #14 merged (`97346d2`); goal mode since 2026-09-20
-00:00 UTC (timer `goal-mode-fable-5`, cron `20 * * * *`); current branch `agent/fable-5-demo-walk`.
+00:00 UTC (timer `goal-mode-fable-5`, cron `20 * * * *`); `agent/fable-5-demo-walk` merged (`b4de8d7`); current branch `agent/fable-5-r48-review`.
 
 ## Current task
 Goal-mode loop. Next iteration: **re-verdict every visual item on take-0120** when it seals (the
@@ -30,13 +30,15 @@ lands: `ffmpeg` frames at his marked moments → `reference/frames-video2/`, has
 - `.agents/fable-5.md`, `.agents/reviews/fable-5-*.md`, my threads in `.agents/INBOX.md`.
 
 ## Completed work
-- 2026-09-20 01:45–02:45 UTC — goal-mode iteration 3: the lane branches moved; re-checked the new
-  commits the same way (§E of `fable-5-r48-branches.md`, five more sheets). **fable-4's iteration 2
-  (trunk read at 5–20 m) reported as a FAIL**: six views Δ ≤ +0.0002 (inside budget, and the
-  finding), bands −8 % luminance at 5 m instead of near-black, saplings excluded by code so the
-  arch-view trunks are unchanged. **fable-3's clearing entrance props land** at three poses, D
-  identical. Tooling finding: `broll.mjs --test` shot order shifts the wind phase (same pose, different
-  batch position = 2.9 % of pixels) — compare only at the same batch position. INBOX note posted.
+- 2026-09-20 01:45–03:10 UTC — goal-mode iteration 3 (`agent/fable-5-r48-review` off `0987e060`
+  after fable-cursor merged the previous branch): the lane branches' new commits re-checked
+  (§E of `fable-5-r48-branches.md`): **fable-4's trunk-read commits on `b61e0ff8` = an after that
+  looks like its before** (bands −8 % at 5 m, B/C/E 0.03–0.05 % of pixels, saplings excluded by
+  code); the head's `1812a6f0` doubles them (band cores −37…−41 %, IMPROVED, not a birch's marks
+  yet; young stems unchanged). fable-3's clearing entrance props land at three poses + the tunnel
+  view. **The merged head `0987e060` measured against `3d50f6c8`: six views ≤ 0.08 % of pixels,
+  Δ SSIM ≥ 0** (§F). Tooling finding: `broll.mjs --test` shot order shifts the wind phase — compare
+  only at the same batch position. Five sheets; INBOX note posted.
 - 2026-09-20 01:00–01:45 UTC — goal-mode iteration 2: **non-author before | after of the three
   goal-mode lane branches** that cannot open PRs (`agent/fable-2-ledge`, `agent/fable-3-lookout`,
   `agent/fable-4-r48`): each built and tested in its own worktree, rendered at the poses of its
@@ -73,10 +75,6 @@ lands: `ffmpeg` frames at his marked moments → `reference/frames-video2/`, has
 - 2026-09-19 09:05 UTC — onboarded; branch `agent/fable-5-review` off `d06e275`; PR #14 opened.
 
 ## Important decisions
-- Before | after pairs are only valid at the same batch position of the same shot list (the world
-  clock advances across a `broll.mjs` run); when a claimed change measures a few percent of
-  luminance and reads as nothing at the defect's distance, it is reported as a FAIL with the
-  numbers, not as "landed".
 - Verdicts are on the take's own frames at the criterion's viewpoint; player-height renders explain
   *why* something does or does not read but do not override the frame. Auto gates never rescue a
   visual fail; a "nit" is recorded in the note when the criterion is met but a difference remains.
@@ -110,4 +108,4 @@ lands: `ffmpeg` frames at his marked moments → `reference/frames-video2/`, has
   lists the regions; the evidence images are reproducible with the same crops.
 
 ## Last updated
-2026-09-20T02:45:00Z
+2026-09-20T03:10:00Z

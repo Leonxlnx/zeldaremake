@@ -3,21 +3,28 @@ agent: fable-2
 runtime: Cursor Cloud Agent (Claude Fable 5.1)
 github: Cursor Agent <cursoragent@cursor.com>
 status: active
-branch: agent/fable-2-rocks
-updated: 2026-09-19T12:45:00Z
+branch: agent/fable-2-ledge
+updated: 2026-09-20T01:25:00Z
 ---
 
 # fable-2 — work log
 
-Lane: `src/world/rocks/**` ONLY (rockgen.ts, dressing.ts, material.ts, index.ts, tests, plus new
-rock modules under the same directory). Onboarded from `docs/ONBOARDING_FABLE_CHATS.md` (Chat 1).
-Base: `origin/cursor/kokiri-world-phase1-f65e` @ `d06e2753`. Draft PR targets that branch;
-`fable-cursor` merges. I do not touch `layout.ts`, the ledger or the rubric.
+Lane: `src/world/rocks/**` ONLY (rockgen.ts, dressing.ts, material.ts, index.ts, ledge.ts, tests,
+plus new rock modules under the same directory). Onboarded from `docs/ONBOARDING_FABLE_CHATS.md`
+(Chat 1). Goal mode since 2026-09-20 00:00 UTC (`docs/GOAL_MODE.md`; timer `goal-mode-fable-2`,
+cron `20 * * * *`). Each iteration branches afresh from `origin/cursor/kokiri-world-phase1-f65e`
+as `agent/fable-2-<topic>`; `fable-cursor` merges. I do not touch `layout.ts`, the ledger or the rubric.
 
-## Current task
-Rocks pass from survey-2 and the owner's 2026-09-19 references (rubric W23 / W24, W37 held) —
-done and reported (INBOX 12:40 UTC, PR #12); waiting on fable-cursor's merge and expansion-1's
-`layout.rockLedges` entry for the ledge. Items were:
+## Current task (goal mode, iteration 2)
+opus-review #03 / GOAL_MODE fable-2 #1 — the north-terrace ledge (`LAYOUT.rockLedges.north-terrace`)
+as ref-04's damp rock-and-root wall: DONE on `agent/fable-2-ledge` (`ccd9a22a`), evidence in
+`art/environment/fable-2-rocks/README.md` §Iteration 2. PR creation from this chat was refused by
+GitHub ("must be a collaborator" for the agent account) — the branch is pushed; fable-cursor can
+open / merge it from the branch. Next: GOAL_MODE fable-2 #2 (opus #10, the shot-D boulder as an
+unreadable dark mass at 2 m — the cavities are gone on the head, the tonal read is not).
+
+## Iteration 1 (PR #12, merged `f092a094`)
+Rocks pass from survey-2 and the owner's 2026-09-19 references (rubric W23 / W24, W37 held). Items were:
 1. Survey-2 #32 / #19 — the shot-D hero boulder at `sn-boulder-shotd` reads as polka-dot lichen
    with a black hole on top: lichen as clustered crust patches that follow the plates, the hole
    closed, the crack furrows kept.
@@ -37,7 +44,18 @@ Nothing outside `src/world/rocks/` except this log, the INBOX and my evidence un
 `art/environment/fable-2-rocks/`.
 
 ## Completed work
-(newest first; PR #12 `agent/fable-2-rocks` → `cursor/kokiri-world-phase1-f65e`)
+(newest first)
+- `ccd9a22a` (`agent/fable-2-ledge`, off `3d50f6c8`): the north-terrace ledge. Root cause: the
+  layout authors the line at the terrace LIP (ground 5.5–5.7 m; the clearing floor is 4.0 m and
+  the step is a ~40° slope z −74 … −76), the builder read it as the foot and, with `height:
+  1.62`, stood a wall on top of the lip facing the bank. `ledge.ts` now: a line point above a
+  drop on the path side walks down the slope to the base (0.1 m steps, a 1.2 m flat crest
+  tolerated, stops off the paving) — that is the foot, the point is the top's ground point and
+  the step's rise is the height; the bank side is read 1–3 m out; the face climbs steeply over
+  a slope (top edge at 30 % of the inset); the authored line is extended by the taper at both
+  ends so the authored span stands at full height; stair / structure columns dropped; root ridges
+  (`RockLedgeDef.roots`, default 0.7 per 3 m). Six views byte-identical; test added (14/14).
+- PR #12 (`agent/fable-2-rocks`, merged `f092a094`):
 - `73708d4` + follow-up: the stair-foot "shard skirt" root-caused by draw-range probes (rock
   body only / kit only / far geometry swapped in at `sn-boulder-stairfoot`): it is the rock's own
   moss blanket — the 12 cm `mossSide` swell switched on/off at every micro-relief ridge (the
@@ -75,15 +93,20 @@ Nothing outside `src/world/rocks/` except this log, the INBOX and my evidence un
   the near mesh. Two of my first three hypotheses were wrong; the probes were not.
 
 ## Known issues
-- The ledge stands at a preview position only (`LEDGE_PREVIEW`); the real entry is
-  expansion-1's (`layout.rockLedges`). Its beds/joints are procedural stone — the "root" part
-  of ref-04's "rock/root ledge" is trees' business (INBOX ask if wanted).
+- The north-terrace face runs x −4.2 … −0.5 (the authored line plus the west extension; the east
+  extension lands on the `ledge` flight's stairs mask and is dropped). The terrace lip east of the
+  flight (x 2.1 … 3.5) is still the terrain's mound — a second `rockLedges` entry there is the
+  layout's call (asked in the INBOX). Ferns at the foot: vegetation-26's.
+- Camera A renders 9.09 M triangles on the world head `3d50f6c8` (before this change; the loop's
+  ceiling is 9.0 M) — not mine to fix, flagged to fable-cursor.
 - Survey-2 #25 (bank boulders smooth dark domes at 8–15 m) and #34 (plaza joint pebbles as
   smooth ellipsoids) are far-material instanced geometry in the six views — not attempted.
 
 ## Recommended next work
-- Once expansion-1 lands the ledge position in `layout.ts`, wire it to the ledge builder's
-  hook (see INBOX thread) and re-run the ref-04 pose.
+- GOAL_MODE fable-2 #2: opus #10, the shot-D boulder's tonal read at 2 m (`sn-boulder-shotd`).
+- #3: scree at the ledge flight's flanks, a boulder pair on the clearing's west bank, half-buried
+  strata along the terrace face (positions: `art/environment/round47-review/README.md`).
+- #4: `pathEdgePebble` per-candidate draws.
 
 ## Last updated
-2026-09-19T12:45:00Z
+2026-09-20T01:25:00Z

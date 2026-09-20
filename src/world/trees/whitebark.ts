@@ -307,6 +307,38 @@ export function createWhiteBarkTree(p: WhiteBarkParams, palette: Palette, detail
     wobble: bandRng.range(0.03, 0.07),
     phase: bandRng.range(0, 100),
   }));
+  /**
+   * Round 48 (GOAL_MODE fable-4 #3, the owner's "detail at longer range"): what a stem shows at
+   * 5–20 m through 20–60 % haze is its LARGE dark marks — the 6–14 cm bands above are 4–9 px at
+   * 15 m and go under the veil. Per variant, from their own fork so the bands above do not move:
+   * one or two broad dark bands (0.25–0.45 m, near-black) and one to three branch scars — the
+   * black downward-pointing chevrons a birch keeps under a shed limb, 0.25–0.45 m tall, widest
+   * at the top, tapering to a point below — at 1.2–4.5 m, where a walker's eye meets the stem.
+   */
+  const rangeRng = baseRng.fork('range-48');
+  const broadBands = p.age === 'sapling' ? [] : Array.from({ length: 1 + rangeRng.int(0, 2) }, () => ({
+    y: rangeRng.range(0.8, Math.min(3.6, H * 0.4)),
+    sigma: rangeRng.range(0.1, 0.2),
+    strength: rangeRng.range(0.45, 0.6),
+    wobble: rangeRng.range(0.04, 0.09),
+    phase: rangeRng.range(0, 100),
+  }));
+  const scars = p.age === 'sapling' ? [] : Array.from({ length: 1 + rangeRng.int(0, 3) }, () => ({
+    y: rangeRng.range(1.2, Math.min(4.5, H * 0.45)),
+    phi: rangeRng.range(-Math.PI, Math.PI),
+    halfWidth: R * rangeRng.range(0.45, 0.75),
+    height: rangeRng.range(0.25, 0.45) * girth,
+    strength: rangeRng.range(0.55, 0.75),
+  }));
+  /**
+   * The large marks are pushed to near-black separately from the soot: measured at
+   * `f4-trunk-2m`, a 42 % linear drop on the pale upper bark rendered as ~20 sRGB levels (the
+   * shaded face is dark in linear terms, so gamma compresses it) — the round-47 foot reads
+   * darker only because it compounds with the grey lower bark. A birch's bands and scars are
+   * near-black (linear ≈ 0.05): the mark's own weight takes the vertex the rest of the way.
+   */
+  let mark = 0;
+  const markBlack = dark.clone().multiplyScalar(0.2);
   const tinted = new Color();
   for (let k = 0; k < trunkRows.length; k++) {
     const centre = trunkDense[Math.min(k, trunkDense.length - 1)];
@@ -325,10 +357,31 @@ export function createWhiteBarkTree(p: WhiteBarkParams, palette: Palette, detail
         const d = (y - b.y - wob) / b.sigma;
         soot += b.strength * Math.exp(-d * d * 0.5);
       }
-      soot = Math.min(0.72, soot);
+      mark = 0;
+      for (const b of broadBands) {
+        const wob = footNoise.noise(cx * 0.9 + b.phase, cz * 0.9) * b.wobble;
+        const d = (y - b.y - wob) / b.sigma;
+        // flat-topped: a band, not a line
+        mark += b.strength * Math.exp(-Math.pow(d * d, 1.6) * 0.5) * (0.85 + 0.15 * footNoise.noise(cx * 3 + b.phase, y * 6));
+      }
+      const ringR = Math.hypot(x, z);
+      for (const s of scars) {
+        // v runs −1 at the chevron's point to +0.5 at its top edge; the width shrinks to the point
+        const v = (y - s.y) / s.height;
+        if (v < -1.05 || v > 0.55) continue;
+        const dphi = Math.atan2(Math.sin(phi - s.phi), Math.cos(phi - s.phi));
+        const w = s.halfWidth * (0.12 + 0.88 * Math.min(1, (v + 1) / 1.5));
+        const across = 1 - Math.min(1, Math.abs(dphi * ringR) / Math.max(0.01, w));
+        const along = smoothstep(-1.05, -0.85, v) * (1 - smoothstep(0.35, 0.55, v));
+        mark += s.strength * Math.pow(across, 0.7) * along;
+      }
+      soot = Math.min(0.78, soot + mark);
+      mark = Math.min(1, mark / 0.6);
       if (soot < 0.01) continue;
       tinted.setRGB(wood.colors[idx * 3], wood.colors[idx * 3 + 1], wood.colors[idx * 3 + 2]);
       tinted.lerp(dark, soot * 0.75).multiplyScalar(1 - soot * 0.3);
+      // the large marks go on to near-black: a further lerp to the dark bark at a fifth of its level
+      if (mark > 0.01) tinted.lerp(markBlack, mark * 0.85);
       wood.colors[idx * 3] = tinted.r;
       wood.colors[idx * 3 + 1] = tinted.g;
       wood.colors[idx * 3 + 2] = tinted.b;
@@ -590,8 +643,7 @@ export interface TreeFrame {
  * (soil-stained). aRoot.xyz is the tree's origin (the merged-mesh convention, writer.ts), so the
  * tree shader's sway anchor and base moss ring read it.
  */
-function rootToe(writer: GeometryWriter, toe: ToeSpec, frame: TreeFrame, color: Color, rng: Rng) {
-  const segments = 12;
+function rootToe(writer: GeometryWriter, toe: ToeSpec, frame: TreeFrame, color: Color, rng: Rng, segments = 12) {
   const arc = 8;
   // the instance matrix rotates about +Y by `yaw`: (cos φ, sin φ) → (cos(φ − yaw), sin(φ − yaw))
   const angle = toe.angle - frame.yaw;
@@ -667,12 +719,45 @@ export interface RootPlacement {
 }
 
 /**
+ * Authored white-barks beyond `placeWhiteBark`'s 12–60 m ring (round 47 handoff → GOAL_MODE
+ * fable-4 #1): young stems on the north clearing's banks, either side of `LAYOUT.northPath` and
+ * west of the `ledgeTerrace` — ref-04's leaning trunk beside the ledge. Positions from
+ * expansion-1; the east one is moved 0.6 m off the paving (8.0 m from the spine's axis, 1.6 m
+ * from the flagstone edge) so no toe can lie across the slabs. Probed: all four on
+ * vegetation-allowed bank ground, no path / structure mask, tilt 2–14°; the eye-level sight line
+ * from the clearing toward (−8, −88) passes 2.3 m from the west-bank trunk and under its crown.
+ */
+export const CLEARING_WHITE_BARKS: { x: number; z: number; age: Age }[] = [
+  { x: -7.6, z: -66.0, age: 'young' },
+  { x: 6.2, z: -71.5, age: 'young' },
+  { x: -6.0, z: -75.5, age: 'young' },
+  { x: 8.0, z: -64.8, age: 'young' },
+];
+
+/**
+ * The authored trees as placements, seated on `terrain.height`, cycling the variants of the
+ * wanted age (the young ones: three of the ten), yaw and scale from their own seeded stream.
+ * Appended to `whitePlacements` in trees/index.ts before the columns are seated (so
+ * `seatBlocked` keeps column seats 2.5 m clear of them) and before the root mesh is built.
+ */
+export function authoredWhiteBarks(variants: WhiteBarkParams[], terrain: { height(x: number, z: number): number }): RootPlacement[] {
+  const rng = createRng('whitebark/authored-clearing');
+  const byAge = new Map<Age, number[]>();
+  variants.forEach((v, i) => byAge.set(v.age, [...(byAge.get(v.age) ?? []), i]));
+  return CLEARING_WHITE_BARKS.map((spot, k) => {
+    const pool = byAge.get(spot.age) ?? [];
+    const variant = pool.length ? pool[k % pool.length] : 0;
+    return { variant, x: spot.x, y: terrain.height(spot.x, spot.z), z: spot.z, yaw: rng() * TAU, scale: rng.range(0.92, 1.08) };
+  });
+}
+
+/**
  * The white-barks' root toes, seated on the terrain: one merged mesh for every placed tree (the
  * variants are InstancedMeshes, so their geometry cannot know the ground under each instance —
  * the round-46 buttresses were flat and floated wherever the ground fell away: the terrain drops
  * more than 15 cm within a 1.6 m toe reach under 39 of the 80 trees). Each tree's toes are the
  * variant's `whiteBarkToeSpecs`, rotated and scaled by its instance, every section's bed read
- * from `terrain.height` under it. One draw (+ its shadow), ≈ 55 k triangles for 78 trees; the
+ * from `terrain.height` under it. One draw (+ its shadow), ≈ 45 k triangles for 82 trees (saplings skipped); the
  * tree material's wind anchor and base moss ring work per tree through aRoot.xyz.
  */
 export function createWhiteBarkRoots(
@@ -692,10 +777,15 @@ export function createWhiteBarkRoots(
   placements.forEach((pl, i) => {
     const p = variants[pl.variant];
     if (!p) return;
+    // a sapling's toes (R 0.06–0.1: 0.3–0.6 m long, 2–5 cm tall) lie under the grass — not
+    // built; a young stem's 0.6–1.2 m toes take 8 sections, a mature stem's 12 (round 48: the
+    // mesh is always submitted, so it pays for its triangles on every view)
+    if (p.age === 'sapling') return;
+    const segments = p.age === 'young' ? 8 : 12;
     const toes = whiteBarkToeSpecs(p);
     const rng = baseRngFor(p).fork(`toe-shape-${i}`);
     const frame: TreeFrame = { origin: new Vector3(pl.x, pl.y, pl.z), yaw: pl.yaw, scale: pl.scale, groundAt };
-    for (const toe of toes) rootToe(wood, toe, frame, rootColor, rng);
+    for (const toe of toes) rootToe(wood, toe, frame, rootColor, rng, segments);
   });
   const geometry = wood.positions.length ? wood.finish('whitebark-roots') : new BufferGeometry();
   const mesh = new Mesh(geometry, material);
