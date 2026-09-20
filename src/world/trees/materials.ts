@@ -344,7 +344,7 @@ function injectWind(material: Material, wind: Wind, o: WindOpts, slots: LodSlots
     shader.vertexShader = shader.vertexShader.replace('#include <begin_vertex>', WIND_VERTEX_BODY);
     extra?.(shader);
   };
-  material.customProgramCacheKey = () => `trees-${key}-v8`;
+  material.customProgramCacheKey = () => `trees-${key}-v9`;
   wind.bind(material);
 }
 
@@ -475,15 +475,11 @@ export const WHITE_BARK_LEAF_NEAR_M: [number, number] = [5, 16];
 /**
  * A tangent frame from screen-space derivatives (three's getTangentFrame, which the leaf and
  * canopy programs do not compile — no normalMap): T runs with +u (across a lamina, across a
- * card), B with +v. The derivatives are taken unconditionally so they are defined; only the
- * frame's use is gated.
+ * card), B with +v. Derivatives come from the start of main, before alpha discard or any
+ * per-fragment detail branch; only the frame construction and use are gated.
  */
 const LEAF_FRAME_GLSL = /* glsl */ `
-mat3 leafTangentFrame(vec3 eyePos, vec3 surfNorm, vec2 uv) {
-  vec3 q0 = dFdx(eyePos);
-  vec3 q1 = dFdy(eyePos);
-  vec2 st0 = dFdx(uv);
-  vec2 st1 = dFdy(uv);
+mat3 leafTangentFrame(vec3 q0, vec3 q1, vec3 surfNorm, vec2 st0, vec2 st1) {
   vec3 q1perp = cross(q1, surfNorm);
   vec3 q0perp = cross(surfNorm, q0);
   vec3 T = q1perp * st0.x + q0perp * st1.x;
@@ -492,6 +488,12 @@ mat3 leafTangentFrame(vec3 eyePos, vec3 surfNorm, vec2 uv) {
   float scale = (det == 0.0) ? 0.0 : inversesqrt(det);
   return mat3(T * scale, B * scale, surfNorm);
 }
+`;
+const LEAF_FRAME_DERIVATIVES = /* glsl */ `
+  vec3 leafQ0 = dFdx(-vViewPosition);
+  vec3 leafQ1 = dFdy(-vViewPosition);
+  vec2 leafSt0 = dFdx(vTreeUv);
+  vec2 leafSt1 = dFdy(vTreeUv);
 `;
 
 /**
@@ -503,7 +505,8 @@ mat3 leafTangentFrame(vec3 eyePos, vec3 surfNorm, vec2 uv) {
  * the normal cupping and the thickness (translucency) below.
  */
 const LEAF_COLOR = /* glsl */ `
-  float midrib = exp(-pow((vTreeUv.x - 0.5) * 70.0, 2.0));
+  float midribX = (vTreeUv.x - 0.5) * 70.0;
+  float midrib = exp(-midribX * midribX);
   float vein = pow(0.5 + 0.5 * cos((vTreeUv.y * 11.0 - abs(vTreeUv.x - 0.5) * 4.0) * 6.28318), 14.0);
   float speck = sin(vTreeUv.x * 143.0 + sin(vTreeUv.y * 91.0) * 2.0) * sin(vTreeUv.y * 177.0);
   diffuseColor.rgb *= (0.92 + speck * 0.03 + midrib * 0.16 + vein * 0.05);
@@ -512,7 +515,8 @@ const LEAF_COLOR = /* glsl */ `
     float ux = vTreeUv.x - 0.5;
     float halfW = vTreeUv.y < 0.43 ? vTreeUv.y / 0.86 : (1.0 - vTreeUv.y) / 1.14;
     leafEdge = clamp(abs(ux) / max(halfW, 1e-3), 0.0, 1.0);
-    leafMidrib = exp(-pow(ux * 44.0, 2.0)) * (1.0 - smoothstep(0.85, 1.0, vTreeUv.y));
+    float nearMidribX = ux * 44.0;
+    leafMidrib = exp(-nearMidribX * nearMidribX) * (1.0 - smoothstep(0.85, 1.0, vTreeUv.y));
     leafVein = pow(0.5 + 0.5 * cos((vTreeUv.y * 9.0 - abs(ux) * 3.2) * 6.28318), 9.0) * (1.0 - leafMidrib) * (1.0 - smoothstep(0.8, 1.0, leafEdge));
     float margin = smoothstep(0.7, 1.0, leafEdge);
     float rim = smoothstep(0.9, 0.985, leafEdge) - smoothstep(0.985, 1.0, leafEdge);
@@ -551,7 +555,7 @@ const LEAF_NEAR_MUL = /* glsl */ `
  */
 const LEAF_NEAR_NORMAL = /* glsl */ `
     if (vIsLeaf > 0.5 && leafNear > 0.0) {
-      mat3 leafTbn = leafTangentFrame(-vViewPosition, normal, vTreeUv);
+      mat3 leafTbn = leafTangentFrame(leafQ0, leafQ1, normal, leafSt0, leafSt1);
       float ux = vTreeUv.x - 0.5;
       vec3 bent = normal + leafTbn[0] * (ux * 0.9 - sign(ux) * leafMidrib * 0.45) + leafTbn[1] * (leafVein * 0.18 - leafMidrib * 0.12);
       normal = normalize(mix(normal, normalize(bent), leafNear));
@@ -1065,6 +1069,7 @@ function treeFragment(shader: WebGLProgramParametersWithUniforms, sun: Color, le
     treeFloorNearPars('uLeafFloor') +
     sunThroughPars +
     shader.fragmentShader;
+  shader.fragmentShader = shader.fragmentShader.replace('void main() {', `void main() {${LEAF_FRAME_DERIVATIVES}`);
   // bark texture only on wood; leaves keep their vertex colour
   shader.fragmentShader = shader.fragmentShader.replace(
     '#include <map_fragment>',
@@ -1292,6 +1297,7 @@ export async function createTreeMaterials(ctx: WorldContext): Promise<TreeMateri
         TREE_FLOOR_FADE_PARS +
         treeFloorNearPars('uLeafFloor') +
         s.fragmentShader;
+      s.fragmentShader = s.fragmentShader.replace('void main() {', `void main() {${LEAF_FRAME_DERIVATIVES.replaceAll('vTreeUv', 'vMapUv')}`);
       // the 512 map as before; within LEAF_NEAR_M the near pair takes over: its coverage blends
       // into the alpha (a card's leaves grow their margins as the camera comes in) and its
       // colour becomes a factor on the card's light after the shade floor (LEAF_NEAR_MUL) —
@@ -1331,7 +1337,7 @@ export async function createTreeMaterials(ctx: WorldContext): Promise<TreeMateri
         '#include <normal_fragment_maps>',
         /* glsl */ `#include <normal_fragment_maps>
         if (leafNear > 0.0) {
-          mat3 cardTbn = leafTangentFrame(-vViewPosition, normal, vMapUv);
+          mat3 cardTbn = leafTangentFrame(leafQ0, leafQ1, normal, leafSt0, leafSt1);
           vec3 mapN = vec3(cardNearN.xy * 2.0 - 1.0, 0.0);
           mapN.z = sqrt(max(0.0, 1.0 - dot(mapN.xy, mapN.xy)));
           normal = normalize(mix(normal, normalize(cardTbn * mapN), leafNear * (1.0 - vLeafFlat)));
