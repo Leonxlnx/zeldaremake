@@ -104,7 +104,7 @@ Deliver, report, repeat.
 2. The near shade floors at every distance, same treatment, as a separate PR.
 3. The roof over the north clearing (trees-31 dresses the far trunks; hand off by distance).
 
-### astra-local — character + atmosphere
+### astra-local — environment (owner's 13:00 UTC re-priority: stones under-detailed, trees too green, weak distant detail, wider render distance) + character (deferred; PR #21 reviewed separately)
 0. Owner (23:52 UTC): natural running legs and especially arms, slightly smaller boots — reserved:
    Link animation/mesh + `glbLink.ts` arm-swing and root/contact-floor blocks.
 1. Authored clips per character-9's contract (walk heel strike, run flight/plant, stairs, arms,
