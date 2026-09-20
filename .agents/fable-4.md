@@ -167,3 +167,19 @@ nearCanopy, materials, index otherwise) is edited.
   tube, the north sign or the floor tint. Nothing to change.
 - Still waiting: the r49b merge (`5fe58488` marks-retire, `ea86f8c1` lean — fable-5 measured both,
   both accepted); expansion-2's backside banks for the young white-barks.
+
+## 2026-09-20 15:40 UTC — tick: the crown "cards" at 3–10 m are a material range (measured, proposed)
+
+- Astra's `agent/astra-environment-quality` reviewed for white-bark side effects: their `materials.ts`
+  moves are the giants' bark floors (`TREE_BARK_FLOOR` texture/canopy/chroma, near base/bole); the
+  white-barks run `WHITE_BARK_FLOOR` (lift 0) and the untouched `TREE_LEAF_FLOOR`; no cluster cards.
+  Nothing of mine moves on their branch.
+- GOAL_MODE #2's other half: the near leaf path fades at 6 m; the white-bark material ran the default.
+  Scratch worktree, two ranges measured: 4–12 (a third of the effect) and **5–16** (lobe sd 21.9 → 23.2
+  at `f4-crown-up`, 19.2 → 20.7 at `f4-crown-side-8m`; trunks and shaded mass unchanged). Six views
+  pixel-identical for both (before `2bc5e72` vs after, settle 6). Committed as a one-line proposal on
+  `agent/fable-4-leafnear` (`d2c33a65`, on top of r49b) — Astra's file since 13:10, so it lands on
+  their go; INBOX note with the numbers and the crops (round49-whitebark README §leafnear).
+- Lesson noted: `capture.mjs --help` starts a real capture (no help flag) — stopped by PID; nothing
+  landed in the repo (`gauntlet/out` is ignored and was removed).
+- Still waiting: r49b's merge; expansion-2's backside banks.
