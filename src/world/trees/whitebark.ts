@@ -616,12 +616,15 @@ export function createWhiteBarkTree(p: WhiteBarkParams, palette: Palette, detail
   // its height — a limb thick enough to read, a lobe 1.7 m across and 1.8 m tall — the foliage in
   // a walker's eye line at 2–7 m. Built after the crown, so the crown's stream is untouched.
   for (let i = 0; i < p.lowerLimbs; i++) {
-    const t = bt(0.3, 0.42);
+    const main = i === 0;
+    // the main bough leaves the stem at 22–34 % of the height (2.8–4.4 m on a mature stem, so its
+    // lobe sits at 3.5–6 m — inside camera C's frame under the HUD, and at eye level plus a little
+    // for a walker); the second, where drawn, at 30–42 %
+    const t = main ? bt(0.22, 0.34) : bt(0.3, 0.42);
     const origin = sample(trunk, t);
     const angle = p.leanAzimuth + 1.9 + i * 2.5 + bt(-0.55, 0.55);
-    const main = i === 0;
     const reach = crownRadius * (main ? bt(0.45, 0.7) : bt(0.35, 0.58));
-    const center = origin.clone().add(new Vector3(Math.cos(angle) * reach, H * (main ? bt(0.075, 0.13) : bt(0.065, 0.12)), Math.sin(angle) * reach));
+    const center = origin.clone().add(new Vector3(Math.cos(angle) * reach, H * (main ? bt(0.06, 0.11) : bt(0.065, 0.12)), Math.sin(angle) * reach));
     const path = growthPath(origin, center, tangent(trunk, t).lerp(new Vector3(Math.cos(angle), 0.2, Math.sin(angle)), 0.62), rng, 8, 1.1);
     const radius = R * (main ? bt(0.15, 0.21) : bt(0.12, 0.18));
     tube(wood, path, taper(path, radius, 0.004), 6, rng, { color: branchColor(radius), roughness: p.ridge * 0.5 });
