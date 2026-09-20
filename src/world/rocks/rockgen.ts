@@ -106,6 +106,17 @@ export interface RockOptions {
   cutToward?: [number, number];
   /** darkening of the cleaved facets 0..1 (fresh fracture, damp: reads as a dark face) */
   cutDark?: number;
+  /**
+   * fable-2 (round-50 #1, ANALYSIS_VIDEO2 §7.2 "boulders are one plane each"): explicit cleave planes
+   * after the seeded ones — the rock's FORM as the frame reads it: a flat top that takes the sun, a
+   * shoulder plane to the sky, an undercut leaning in to the ground. Each is a plane normal in the
+   * mesh's local frame (need not be unit) at `depth` × radius × the squash factor like the seeded
+   * cuts; `lift` scales the facet's vertex colour (+ = paler, − = darker: the undercut's shade),
+   * `dark` overrides `cutDark` on that facet (the sun-lit top keeps its full value), `bare` overrides
+   * `facetBare` (the top keeps its moss cap; the undercut is bare). They consume no seed draws, so
+   * the other rocks of a stream are untouched.
+   */
+  planes?: { n: [number, number, number]; depth: number; lift?: number; dark?: number; bare?: number }[];
   /** how bare the cleaved facets stay of moss 0..1 (default 0: the small stones' flat tops moss over) */
   facetBare?: number;
   /**
@@ -425,6 +436,47 @@ export function buildRock(rng: Rng, seed: string, o: RockOptions): BufferGeometr
       }
     }
   }
+  // explicit form planes (see `planes`): the same projection, no seed draws; the facet flag marks them
+  // like a seeded cleave (bare of moss under `facetBare`), with their own lift and darkening
+  const planeLift = o.planes?.length ? new Float32Array(count) : null;
+  const planeDark = o.planes?.length ? new Float32Array(count).fill(-1) : null;
+  const planeBare = o.planes?.length ? new Float32Array(count).fill(-1) : null;
+  if (o.planes && planeLift && planeDark && planeBare) {
+    for (const pl of o.planes) {
+      _n.set(pl.n[0], pl.n[1], pl.n[2]).normalize();
+      const dist = r * pl.depth * (0.6 + 0.4 * squashY);
+      for (let i = 0; i < count; i++) {
+        _p.fromBufferAttribute(pos, i);
+        const d = _p.dot(_n);
+        if (rimGap) rimGap[i] = Math.min(rimGap[i], Math.abs(d - dist));
+        if (d > dist) {
+          let off = dist - d;
+          if (strata > 0 || crackDepth > 0) {
+            // the projection flattens the skin's bedding and furrows; re-carved along the plane
+            // normal on the projected point (co-located vertices share it) so the beds' steps, the
+            // dark partings and the cracks run across the plane — a lit plane WITH its relief, eased
+            // in over 0.05 r behind the arris so the edge stays a clean line
+            _t.copy(_p).addScaledVector(_n, off);
+            const behind = smoothstep(0, 0.05 * r, d - dist);
+            if (strata > 0) {
+              const b = bedding(_t.x, _t.y, _t.z, _t.x * freq + ox, _t.y * freq + oy, _t.z * freq + oz);
+              const side = 1 - Math.abs(_t.y / (r * squashY)) * 0.6;
+              off += r * strata * side * behind * (0.55 * b.step - 1.1 * b.groove);
+            }
+            if (crackDepth > 0) off -= r * crackDepth * behind * mainCrackAt(_t);
+          }
+          _p.addScaledVector(_n, off);
+          pos.setXYZ(i, _p.x, _p.y, _p.z);
+          const f = smoothstep(0.0, 0.04 * r, d - dist);
+          facet[i] = Math.max(facet[i], f);
+          // the plane's own lift / darkening, eased in over the same 0.04 r as the facet flag
+          planeLift[i] = planeLift[i] * (1 - f) + (pl.lift ?? 0) * f;
+          if (pl.dark !== undefined) planeDark[i] = pl.dark;
+          if (pl.bare !== undefined) planeBare[i] = pl.bare;
+        }
+      }
+    }
+  }
   if (rimGap && rimRound <= 0) {
     // chipped edges: within ~0.1 r of a cleave plane (on the facet and on the body beside it)
     // the vertex is notched toward the rock's centre where a high-frequency noise peaks, so the
@@ -500,7 +552,7 @@ export function buildRock(rng: Rng, seed: string, o: RockOptions): BufferGeometr
    * moss coverage 0..1 for a vertex at p with normal n: the cap (upward faces), patches, the
    * shaded side when `mossSide` is set, never the buried collar or the fresh cleave facets
    */
-  const mossAt = (p: Vector3, n: Vector3, crack: number, fct = 0) => {
+  const mossAt = (p: Vector3, n: Vector3, crack: number, fct = 0, fctBare = facetBare) => {
     const x = p.x * freq + ox;
     const y = p.y * freq + oy;
     const z = p.z * freq + oz;
@@ -525,8 +577,10 @@ export function buildRock(rng: Rng, seed: string, o: RockOptions): BufferGeometr
       side *= 1.5;
     }
     const bare = bareSideAt(n);
-    return clamp(mossAmt * (cov + side) * (1 - bare) * smoothstep(0.02, 0.2, h01) * (1 - crack * 0.5) * (1 - facetBare * fct), 0, 1);
+    return clamp(mossAmt * (cov + side) * (1 - bare) * smoothstep(0.02, 0.2, h01) * (1 - crack * 0.5) * (1 - fctBare * fct), 0, 1);
   };
+  /** the facet's bareness for vertex i: a form plane's own `bare` when it set one, else `facetBare` */
+  const facetBareAt = (i: number) => (planeBare && planeBare[i] >= 0 ? planeBare[i] : facetBare);
 
   // 3. moss cushion: upward faces swell by the moss thickness (welded per position), so the cap
   // reads as a thick pad sitting on the rock rather than a green tint. The mask is evaluated on
@@ -551,8 +605,8 @@ export function buildRock(rng: Rng, seed: string, o: RockOptions): BufferGeometr
           // and off at that pitch is a stack of slabs (sn-boulder-stairfoot). The facets still
           // keep the swell off the fracture faces; the colour coverage keeps the real normal.
           _t.set(_p.x, _p.y * 1.4, _p.z).normalize().multiplyScalar(0.7).addScaledVector(_n, 0.3).normalize();
-          m = mossAt(_p, _t, 0, facet[i]);
-        } else m = mossAt(_p, _n, crackAt(_p), facet[i]);
+          m = mossAt(_p, _t, 0, facet[i], facetBareAt(i));
+        } else m = mossAt(_p, _n, crackAt(_p), facet[i], facetBareAt(i));
         let k = mossThick * r * smoothstep(0.1, 0.75, m);
         if (mossLumpy > 0) {
           // the cushion is a pad of pillows, not a uniform shell: its thickness varies ±50 % at
@@ -640,7 +694,9 @@ export function buildRock(rng: Rng, seed: string, o: RockOptions): BufferGeometr
     const crack = crackAt(_p);
     tmp.lerp(dark, crack * 0.92);
     // fresh cleave facets: darker, a shade cooler (damp fracture face, no weathered skin)
-    if (cutDark > 0 && facet[i] > 0) tmp.lerp(dark, cutDark * facet[i] * (0.55 + 0.25 * v));
+    if (planeLift && planeLift[i] !== 0) tmp.multiplyScalar(clamp(1 + planeLift[i], 0.2, 2));
+    const facetDark = planeDark && planeDark[i] >= 0 ? planeDark[i] : cutDark;
+    if (facetDark > 0 && facet[i] > 0) tmp.lerp(dark, facetDark * facet[i] * (0.55 + 0.25 * v));
     if (plateStep && plateId) {
       // round 44: each plate its own value (±6 %), the joint between plates a dark line — off
       // under the cap like the steps themselves
@@ -656,7 +712,7 @@ export function buildRock(rng: Rng, seed: string, o: RockOptions): BufferGeometr
     col[i * 3] = tmp.r;
     col[i * 3 + 1] = tmp.g;
     col[i * 3 + 2] = tmp.b;
-    moss[i] = mossAt(_p, _n, crack, facet[i]);
+    moss[i] = mossAt(_p, _n, crack, facet[i], facetBareAt(i));
     // the band's upper edge is a wavy tide line (low-frequency wobble ± 0.07 of the height), not
     // a level line following the fine tone noise
     const tide = N.fbm(x * 0.8 + 2.1, y * 0.8 - 6.3, z * 0.8 + 4.7, 2);
