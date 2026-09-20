@@ -442,6 +442,38 @@ string (C +0.0030, E +0.0022, A −0.0005) are mergeable improvements; fable-2's
 but does not reach frame D — the D boulder is > 99 % hidden behind the fern bank and needs to stand
 proud of it before any material work counts.
 
+## N. take-0122 (`acec3210`, sealed 08:23, 37/50, Phase 1 32/42) — C's −0.0048 apportioned, my passes re-checked
+
+The monitor's frames, take-0121 → take-0122: A +0.0004, B +0.0013, **C −0.0048**, D −0.0003, E −0.0004,
+F −0.0001 (SSIM vs reference; C changes 3.35 % of its pixels, almost all in the bottom-left quadrant:
+12.5 % of that cell). fable-2 flagged the same drop at 08:25 ("C −0.0044 before any rocks change").
+No lane breached its own budget; two lanes' costs stacked. Bisected on the first-parent chain with C
+rendered alone at each merge (same position, same settle; `cf8083b` → `cf8083b` pixel-identical):
+
+| merge | C SSIM vs reference (my render) | what changed |
+| --- | --- | --- |
+| `cf8083b` (take-0121) | 0.2293 | — |
+| `b204778d` fable-2 rocks (goal mode 3–5: wall, clearing rocks, **path-edge pebbles**) | 0.2271 (**−0.0022**, 2.75 % px) | the new pebble scatter along the path's left edge in C's bottom-left; changed pixels go from rgb 124/113/87 to 103/94/63 |
+| `c11a754c` fable-3 props (LODs, per-locality merges, **the first light strings**) | 0.2242 (**−0.0029**, 0.25 % px) | the pocket string's pods across C's bottom-left — bright points on a dark bank, few pixels, large SSIM cost |
+| `be27f4ec` fable-4 crowns | 0.2244 (+0.0002) | crown re-sample at the right edge |
+| `d5ff5547` fable-2 pebbles per cell | 0.2244 (0, 0.01 % px) | — |
+| sum `cf8083b` → `d5ff5547` | **−0.0049** ≈ the monitor's −0.0048, so perf-3 (`acec3210`) is ≈ 0 at C, as claimed | |
+
+Where it stands: fable-3's measured string (`dbc1d87e`, now on the head) removes the pocket string —
+§M measured **+0.0030 at C** for it — so the next take should read ≈ −0.002 at C against take-0121,
+inside the budget, with the pebble scatter as the remaining cost. The pebbles at C's path edge are
+fable-2's to weigh (the reference's C has bare slab edges and grass there). Systemic note for
+fable-cursor: the per-lane "−0.003 vs the latest sealed take" cannot see stacking; only the integrator
+can, with a six-view check of the head against the last seal before each take.
+
+**My standing passes on take-0122.** The frame changes sit on the ground and the strings (A 0.7 % px,
+B/E 2.0 % on the right ground, C 3.4 %, D 1.5 % on the path, F 0.9 %); the crowns, house, lantern branch,
+arch and stair foot the passes rely on are untouched. Re-looked at the two passes whose regions moved:
+**W03** (joints/slabs at C and D — the pebbles re-rolled, the joints and slab thickness read as before)
+and **W36** (nothing floats at E — the pebbles are seated, the string pods hang on their cord). Both
+stand; no verdict re-filed, none regressed. The 13 fails stand too (W02, W05, W06, W08, W09, W10, W23,
+W30, W31, W37, C01, C02, U02); W08 should turn with fable-4's boughs when merged and re-verdicted.
+
 ## Summary for fable-cursor
 
 | branch | does what its INBOX/commit says | at the defect's pose | merge risk seen |

@@ -40,7 +40,9 @@ lands: `ffmpeg` frames at his marked moments → `reference/frames-video2/`, has
   with lobe; B −0.0003 the whole cost); fable-3's measured string IMPROVED (A −0.0005, C +0.0030,
   E +0.0022; my §J string position corrected); fable-2's W23 far look does not reach frame D — the
   D boulder is > 99 % hidden behind the fern bank (372 px visible; reference 5.4 % of the frame),
-  reported as a FAIL with the occlusion sheet.
+  reported as a FAIL with the occlusion sheet. take-0122 (37/50) sealed meanwhile: its C −0.0048
+  bisected across the five merges (fable-2 pebbles −0.0022 + fable-3's first strings −0.0029, the rest
+  ≈ 0); my 13 standing passes re-checked on its frames, all stand (§N).
 - 2026-09-20 07:20–07:46 UTC — goal-mode iteration 9 (§L): fable-3's light-string tweak measured
   as head + commit (A −0.0001, C +0.0010, F +0.0005 — inside the budget); fable-2's merged wall
   second pass checked at 3 m (IMPROVED). Small iteration; no new take.
