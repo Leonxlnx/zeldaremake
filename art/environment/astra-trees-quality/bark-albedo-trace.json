@@ -1,0 +1,521 @@
+{
+  "method": "117 target-tree rays per native 1280x720 camera; partial-moss wood mask (0.35,0.96), under 3m. Barycentric real vertex RGB/AO and 2K LOD0 linear bilinear map samples.",
+  "limitations": "No wind, other-object occlusion, normal-map lighting, mip/anisotropic filtering or postfx. CPU procedural noise differs from GPU float hash. End-member albedos and floor targets are not predicted native pixels; stair-bank has only two qualifying rays.",
+  "texture": {
+    "width": 2048,
+    "height": 2048
+  },
+  "tint": [
+    0.3277780980458375,
+    0.20863687013464577,
+    0.12213877222015301
+  ],
+  "materialLum": 0.22772113251913875,
+  "ambient": [
+    0.2438041086202896,
+    0.2802037934874467,
+    0.27161346629719885
+  ],
+  "canopyFilter": [
+    0.9752426574055492,
+    1.0188059243861753,
+    0.8866123810884718
+  ],
+  "mean": 0.2554942,
+  "acceptedFloor": {
+    "lift": 2.5,
+    "texture": 0.75,
+    "canopy": 0.18,
+    "albedo": 0.08,
+    "chroma": 0.8
+  },
+  "proposedFloor": {
+    "lift": 2.5,
+    "texture": 0.65,
+    "canopy": 0.18,
+    "albedo": 0.08,
+    "chroma": 0.8
+  },
+  "reports": [
+    {
+      "id": "lantern-tree",
+      "poseId": "sn-bole-lantern-tree",
+      "origin": [
+        -11.5,
+        2.9846290349960327,
+        -7.2
+      ],
+      "rays": 117,
+      "hits": 117,
+      "cushionHits": 17,
+      "woodSamples": 100,
+      "affected": 85,
+      "profileTint": [
+        1,
+        1,
+        1
+      ],
+      "distance": 0.510499257883357,
+      "mask": 0.7518364419265673,
+      "ao": 0.705301222880655,
+      "vertexLum": 0.3014585699724639,
+      "mapLum": 0.20590453509515966,
+      "tintedMapLum": 0.047933305973752574,
+      "bareLum": 0.014497253684283326,
+      "withoutMaterialLum": 0.062336649078419334,
+      "fineFactor": 1.0988300326811704,
+      "touchFactor": 1.0080000797575623,
+      "bareDetailedLum": 0.016000036454146178,
+      "mossLum": 0.19392277268705996,
+      "currentBareFloorAlbedo": 0.03200002734060963,
+      "proposedBareFloorAlbedo": 0.03840002369519502,
+      "currentMossFloorAlbedo": 0.165442079515295,
+      "proposedMossFloorAlbedo": 0.15404980224658898,
+      "currentBareFloorLight": 0.006915573237315607,
+      "proposedBareFloorLight": 0.008303212000664976,
+      "currentMossFloorLight": 0.03640099176393846,
+      "proposedMossFloorLight": 0.033857241390404816,
+      "meanVertexRGB": [
+        0.2900060459670114,
+        0.3181572230748359,
+        0.1697678484315054
+      ],
+      "aoRange": [
+        0.5096244676666671,
+        1.2669326969564834
+      ],
+      "examples": [
+        {
+          "pixel": [
+            790,
+            420
+          ],
+          "distance": 0.6200547216141066,
+          "world": [
+            -8.70884720269947,
+            3.676016148938465,
+            -7.138765459434989
+          ],
+          "ids": [
+            1812,
+            1813,
+            2013
+          ],
+          "bary": [
+            0.10742454320284928,
+            0.12706621472526508,
+            0.7655092420718856
+          ],
+          "color": [
+            0.3082727745049809,
+            0.32257250489790124,
+            0.18696260646276702
+          ],
+          "uv": [
+            0.1876239784455886,
+            0.8279940325828115
+          ],
+          "map": [
+            0.11673855333674082,
+            0.11400978532055366,
+            0.04195448611777915
+          ],
+          "mask": 0.668735850640346,
+          "ao": 0.7976861612761181,
+          "vertexLum": 0.3097413475493496,
+          "mapLum": 0.10938752879835473,
+          "tintedMapLum": 0.025517179487380384,
+          "bareLum": 0.00806464031469314,
+          "withoutMaterialLum": 0.03451973181725195,
+          "fineFactor": 0.685,
+          "touchFactor": 0.8001219441775762,
+          "bareDetailedLum": 0.004420096546064316,
+          "mossLum": 0.16611658734707035,
+          "currentBareFloorAlbedo": 0.023315072409548238,
+          "proposedBareFloorAlbedo": 0.030873062754941807,
+          "currentMossFloorAlbedo": 0.14458744051030276,
+          "proposedMossFloorAlbedo": 0.13597578177559572,
+          "currentBareFloorLight": 0.005043664426761573,
+          "proposedBareFloorLight": 0.0066808910315181436,
+          "currentMossFloorLight": 0.03180008628461396,
+          "proposedMossFloorLight": 0.029869789974990218
+        },
+        {
+          "pixel": [
+            940,
+            370
+          ],
+          "distance": 0.9788745775208147,
+          "world": [
+            -8.92886458600084,
+            3.8877465509636515,
+            -7.371187958744723
+          ],
+          "ids": [
+            2217,
+            2218,
+            2418
+          ],
+          "bary": [
+            0.5758570157486922,
+            0.3486261782569603,
+            0.0755168059943475
+          ],
+          "color": [
+            0.2681295142968076,
+            0.2723114960815624,
+            0.16728916489359663
+          ],
+          "uv": [
+            0.3809175754418522,
+            0.9389989024404632
+          ],
+          "map": [
+            0.33426034386071707,
+            0.31121140055116586,
+            0.19256137751292077
+          ],
+          "mask": 0.43192081681814,
+          "ao": 0.5525566130539566,
+          "vertexLum": 0.2638397944423524,
+          "mapLum": 0.30754507423541516,
+          "tintedMapLum": 0.07142928691570465,
+          "bareLum": 0.019175267441657533,
+          "withoutMaterialLum": 0.08199075370134738,
+          "fineFactor": 1.3330200318995338,
+          "touchFactor": 0.9655465368686861,
+          "bareDetailedLum": 0.02468035010760942,
+          "mossLum": 0.19772009096000323,
+          "currentBareFloorAlbedo": 0.03851026258070707,
+          "proposedBareFloorAlbedo": 0.04404222756994612,
+          "currentMossFloorAlbedo": 0.16829006822000242,
+          "proposedMossFloorAlbedo": 0.1565180591240021,
+          "currentBareFloorLight": 0.008297116853097634,
+          "proposedBareFloorLight": 0.009500549801009396,
+          "currentMossFloorLight": 0.03703025321858876,
+          "proposedMossFloorLight": 0.03440260131776837
+        }
+      ]
+    },
+    {
+      "id": "north-west-near",
+      "poseId": "sn-bole-nw-near",
+      "origin": [
+        -6,
+        0.5662257671356201,
+        -12.8
+      ],
+      "rays": 117,
+      "hits": 115,
+      "cushionHits": 0,
+      "woodSamples": 115,
+      "affected": 35,
+      "profileTint": [
+        1,
+        1,
+        1
+      ],
+      "distance": 1.1684101967151288,
+      "mask": 0.5953835846871002,
+      "ao": 0.9860572504352192,
+      "vertexLum": 0.37722750937031685,
+      "mapLum": 0.26896314191475046,
+      "tintedMapLum": 0.06257001224200555,
+      "bareLum": 0.023986070698707142,
+      "withoutMaterialLum": 0.10282105864039814,
+      "fineFactor": 1.1060007691541582,
+      "touchFactor": 1.0163242885717771,
+      "bareDetailedLum": 0.026535043332744736,
+      "mossLum": 0.1753252173242417,
+      "currentBareFloorAlbedo": 0.039901282499558564,
+      "proposedBareFloorAlbedo": 0.04524777816628408,
+      "currentMossFloorAlbedo": 0.15149391299318135,
+      "proposedMossFloorAlbedo": 0.14196139126075713,
+      "currentBareFloorLight": 0.008602961038765476,
+      "proposedBareFloorLight": 0.009765614761921532,
+      "currentMossFloorLight": 0.0333270352634326,
+      "proposedMossFloorLight": 0.031193145756633043,
+      "meanVertexRGB": [
+        0.37599831002899586,
+        0.3906236863597438,
+        0.24814692761306786
+      ],
+      "aoRange": [
+        0.9086046162395933,
+        1.17400506613436
+      ],
+      "examples": [
+        {
+          "pixel": [
+            790,
+            320
+          ],
+          "distance": 1.4609894109688695,
+          "world": [
+            -5.25757942157888,
+            2.6963238796116187,
+            -12.973247127899322
+          ],
+          "ids": [
+            2445,
+            2446,
+            2556
+          ],
+          "bary": [
+            0.015137783959560447,
+            0.7662182065674561,
+            0.21864400947298346
+          ],
+          "color": [
+            0.39022676617761287,
+            0.3966660293196234,
+            0.2658657265106842
+          ],
+          "uv": [
+            0.1369533858640061,
+            2.080070692121861
+          ],
+          "map": [
+            0.16432996606392242,
+            0.18681919615838252,
+            0.023194243605022112
+          ],
+          "mask": 0.4928311902073438,
+          "ao": 0.9412504483577155,
+          "vertexLum": 0.38585326011282656,
+          "mapLum": 0.17022426426594767,
+          "tintedMapLum": 0.03953258945264172,
+          "bareLum": 0.015580743031196541,
+          "withoutMaterialLum": 0.06707817597936906,
+          "fineFactor": 1.3951150935118632,
+          "touchFactor": 1.0538872472463807,
+          "bareDetailedLum": 0.022908273079896586,
+          "mossLum": 0.17661400200330002,
+          "currentBareFloorAlbedo": 0.03718120480992244,
+          "proposedBareFloorAlbedo": 0.04289037750193277,
+          "currentMossFloorAlbedo": 0.152460501502475,
+          "proposedMossFloorAlbedo": 0.14279910130214502,
+          "currentBareFloorLight": 0.008044613736372578,
+          "proposedBareFloorLight": 0.009281713766514349,
+          "currentMossFloorLight": 0.0335477710052646,
+          "proposedMossFloorLight": 0.031384450066220766
+        },
+        {
+          "pixel": [
+            640,
+            270
+          ],
+          "distance": 1.4069480964567966,
+          "world": [
+            -5.206565804746777,
+            2.7366370344043656,
+            -12.711840644971865
+          ],
+          "ids": [
+            2550,
+            2551,
+            2661
+          ],
+          "bary": [
+            0.3934543692261493,
+            0.359591361669073,
+            0.24695426910477766
+          ],
+          "color": [
+            0.4318965663563854,
+            0.4467332803453614,
+            0.29224618201382724
+          ],
+          "uv": [
+            3.9403488336758055,
+            2.082756529512923
+          ],
+          "map": [
+            0.3474068018291927,
+            0.30123292157151593,
+            0.19958228418747917
+          ],
+          "mask": 0.5461547540018642,
+          "ao": 0.9267029974964817,
+          "vertexLum": 0.43242502645176834,
+          "mapLum": 0.30371031249517055,
+          "tintedMapLum": 0.07091835974607545,
+          "bareLum": 0.031050508288899083,
+          "withoutMaterialLum": 0.13235554946398398,
+          "fineFactor": 1.212137468556883,
+          "touchFactor": 1.0433040150728232,
+          "bareDetailedLum": 0.03926733871143883,
+          "mossLum": 0.16718449893834092,
+          "currentBareFloorAlbedo": 0.049450504033579125,
+          "proposedBareFloorAlbedo": 0.05352377016243523,
+          "currentMossFloorAlbedo": 0.1453883742037557,
+          "proposedMossFloorAlbedo": 0.13666992430992161,
+          "currentBareFloorLight": 0.010627242822040086,
+          "proposedBareFloorLight": 0.011519992307426188,
+          "currentMossFloorLight": 0.03198463540938134,
+          "proposedMossFloorLight": 0.030029732549788607
+        }
+      ]
+    },
+    {
+      "id": "stair-bank-giant",
+      "poseId": "sn-bole-stair-bank",
+      "origin": [
+        10.6,
+        0.01935743459034739,
+        9.15
+      ],
+      "rays": 117,
+      "hits": 117,
+      "cushionHits": 0,
+      "woodSamples": 117,
+      "affected": 2,
+      "profileTint": [
+        3.2,
+        3.6,
+        4.2
+      ],
+      "distance": 0.23761112982707272,
+      "mask": 0.3815385831951523,
+      "ao": 0.9896785920611098,
+      "vertexLum": 1.462055533049103,
+      "mapLum": 0.3717569149950254,
+      "tintedMapLum": 0.0862376528433336,
+      "bareLum": 0.12592767168405233,
+      "withoutMaterialLum": 0.5450669095754328,
+      "fineFactor": 1.1047544108611,
+      "touchFactor": 1.25,
+      "bareDetailedLum": 0.17095977660696354,
+      "mossLum": 0.23037434714738259,
+      "currentBareFloorAlbedo": 0.14821983245522263,
+      "proposedBareFloorAlbedo": 0.13912385479452627,
+      "currentMossFloorAlbedo": 0.19278076036053693,
+      "proposedMossFloorAlbedo": 0.1777433256457987,
+      "currentBareFloorLight": 0.0318449218934999,
+      "proposedBareFloorLight": 0.029908647502691357,
+      "currentMossFloorLight": 0.04241338436365402,
+      "proposedMossFloorLight": 0.03906798164349161,
+      "meanVertexRGB": [
+        1.3773957596192727,
+        1.5114959477506846,
+        1.2215968521157357
+      ],
+      "aoRange": [
+        0.9815395127141592,
+        0.9978176714080602
+      ],
+      "examples": [
+        {
+          "pixel": [
+            340,
+            220
+          ],
+          "distance": 0.2444836393336329,
+          "world": [
+            9.060550802848672,
+            1.4218888906890692,
+            8.93329243772895
+          ],
+          "ids": [
+            3414,
+            3415,
+            3573
+          ],
+          "bary": [
+            0.0712811199785095,
+            0.707498253194415,
+            0.2212206268270755
+          ],
+          "color": [
+            1.3613810678577958,
+            1.5048574107184116,
+            1.2025140791052318
+          ],
+          "uv": [
+            3.3541296596296655,
+            1.7768632666295923
+          ],
+          "map": [
+            0.3922202935596236,
+            0.35214482975242584,
+            0.25870443395195525
+          ],
+          "mask": 0.40425336993396355,
+          "ao": 0.9815395127141592,
+          "vertexLum": 1.452525151683773,
+          "mapLum": 0.3539184767810421,
+          "tintedMapLum": 0.08215950653543083,
+          "bareLum": 0.11902707500948596,
+          "withoutMaterialLum": 0.5149856114457051,
+          "fineFactor": 1.4454973303133825,
+          "touchFactor": 1.25,
+          "bareDetailedLum": 0.21506664895152838,
+          "mossLum": 0.21578611446100174,
+          "currentBareFloorAlbedo": 0.18129998671364628,
+          "proposedBareFloorAlbedo": 0.16779332181849343,
+          "currentMossFloorAlbedo": 0.18183958584575133,
+          "proposedMossFloorAlbedo": 0.16826097439965115,
+          "currentBareFloorLight": 0.03892726700253219,
+          "proposedBareFloorLight": 0.03604667993051935,
+          "currentMossFloorLight": 0.03999896501433796,
+          "proposedMossFloorLight": 0.03697548487408434
+        },
+        {
+          "pixel": [
+            340,
+            270
+          ],
+          "distance": 0.23073862032051254,
+          "world": [
+            9.060544165307924,
+            1.4034113410573172,
+            8.93730357005386
+          ],
+          "ids": [
+            3414,
+            3415,
+            3573
+          ],
+          "bary": [
+            0.14017158735355473,
+            0.7843805288607525,
+            0.0754478837856928
+          ],
+          "color": [
+            1.3934104513807495,
+            1.5181344847829579,
+            1.2406796251262397
+          ],
+          "uv": [
+            3.3575358254944065,
+            1.7646581171055198
+          ],
+          "map": [
+            0.4201851520252867,
+            0.3937876695119502,
+            0.2579923636216889
+          ],
+          "mask": 0.3588237964563411,
+          "ao": 0.9978176714080602,
+          "vertexLum": 1.4715859144144332,
+          "mapLum": 0.3895953532090086,
+          "tintedMapLum": 0.09031579915123636,
+          "bareLum": 0.13282826835861872,
+          "withoutMaterialLum": 0.5751482077051606,
+          "fineFactor": 0.7640114914088176,
+          "touchFactor": 1.25,
+          "bareDetailedLum": 0.12685290426239867,
+          "mossLum": 0.2449625798337634,
+          "currentBareFloorAlbedo": 0.115139678196799,
+          "proposedBareFloorAlbedo": 0.11045438777055913,
+          "currentMossFloorAlbedo": 0.20372193487532253,
+          "proposedMossFloorAlbedo": 0.18722567689194625,
+          "currentBareFloorLight": 0.024762576784467596,
+          "proposedBareFloorLight": 0.023770615074863367,
+          "currentMossFloorLight": 0.04482780371297009,
+          "proposedMossFloorLight": 0.04116047841289887
+        }
+      ]
+    }
+  ]
+}

@@ -1,0 +1,503 @@
+{
+  "source": "fedffe49aa9fb367a8c85c1cdc8b5c1bd4feac1c",
+  "complete": true,
+  "errors": [],
+  "note": "Encoded PNG ROI statistics. Brown/green buckets classify baseline RGB only; they are not material-ID masks. Counts and camera equality come from the native manifest.",
+  "output": [
+    {
+      "view": "sn-bole-lantern-tree",
+      "region": {
+        "left": 280,
+        "top": 160,
+        "width": 720,
+        "height": 510
+      },
+      "byteIdentical": false,
+      "RGB_MAD": 1.0249146695715323,
+      "changedPixelShare": 0.8608877995642702,
+      "mean": [
+        31.107708583315063,
+        30.18804616665485
+      ],
+      "sd": [
+        12.289166304460602,
+        11.560836990352788
+      ],
+      "below20": [
+        0.17377178649237474,
+        0.17127450980392156
+      ],
+      "RGB": [
+        [
+          27.944547930283225,
+          33.045615468409586,
+          21.225394880174292
+        ],
+        [
+          27.111367102396514,
+          32.049218409586054,
+          20.81119825708061
+        ]
+      ],
+      "baselineBrownBucket": {
+        "count": 43872,
+        "before": 20.950210384752513,
+        "after": 21.649822164475097
+      },
+      "baselineGreenBucket": {
+        "count": 277349,
+        "before": 32.66362476445967,
+        "after": 31.36669287359267
+      },
+      "sameCamera": true,
+      "sameStats": true,
+      "variant": {
+        "name": "texture065",
+        "uniforms": {
+          "uNearBaseFloorTexture": 0.65,
+          "uNearBaseFloorNearTexture": 0.65
+        }
+      }
+    },
+    {
+      "view": "sn-bole-nw-near",
+      "region": {
+        "left": 330,
+        "top": 245,
+        "width": 600,
+        "height": 420
+      },
+      "byteIdentical": false,
+      "RGB_MAD": 1.029621693121693,
+      "changedPixelShare": 0.9215476190476191,
+      "mean": [
+        30.736663371425955,
+        30.810487682538728
+      ],
+      "sd": [
+        12.938952146444464,
+        11.9800983606744
+      ],
+      "below20": [
+        0.16311111111111112,
+        0.10428968253968254
+      ],
+      "RGB": [
+        [
+          30.312849206349206,
+          31.631519841269842,
+          23.12034126984127
+        ],
+        [
+          30.328257936507935,
+          31.697734126984127,
+          23.441559523809524
+        ]
+      ],
+      "baselineBrownBucket": {
+        "count": 128736,
+        "before": 24.590357222534102,
+        "after": 25.51381463460333
+      },
+      "baselineGreenBucket": {
+        "count": 78016,
+        "before": 37.20186624025645,
+        "after": 36.047086815525
+      },
+      "sameCamera": true,
+      "sameStats": true,
+      "variant": {
+        "name": "texture065",
+        "uniforms": {
+          "uNearBaseFloorTexture": 0.65,
+          "uNearBaseFloorNearTexture": 0.65
+        }
+      }
+    },
+    {
+      "view": "sn-bole-stair-bank",
+      "region": {
+        "left": 280,
+        "top": 160,
+        "width": 720,
+        "height": 510
+      },
+      "byteIdentical": false,
+      "RGB_MAD": 0.5041140159767611,
+      "changedPixelShare": 0.48398692810457516,
+      "mean": [
+        38.1006410348702,
+        37.63615603705053
+      ],
+      "sd": [
+        9.24293220677944,
+        9.093979045886424
+      ],
+      "below20": [
+        0.00712962962962963,
+        0.004158496732026144
+      ],
+      "RGB": [
+        [
+          45.06540577342048,
+          37.459330065359474,
+          23.944915577342048
+        ],
+        [
+          44.504700435729845,
+          36.99744553376906,
+          23.73800108932462
+        ]
+      ],
+      "baselineBrownBucket": {
+        "count": 346991,
+        "before": 37.56080901811352,
+        "after": 37.11345936812372
+      },
+      "baselineGreenBucket": {
+        "count": 11553,
+        "before": 46.826222176058366,
+        "after": 45.794756998182535
+      },
+      "sameCamera": true,
+      "sameStats": true,
+      "variant": {
+        "name": "texture065",
+        "uniforms": {
+          "uNearBaseFloorTexture": 0.65,
+          "uNearBaseFloorNearTexture": 0.65
+        }
+      }
+    },
+    {
+      "view": "bole-reset-lantern-ese-in-11p85m",
+      "region": {
+        "left": 470,
+        "top": 130,
+        "width": 420,
+        "height": 510
+      },
+      "byteIdentical": false,
+      "RGB_MAD": 0.5069452225334579,
+      "changedPixelShare": 0.5593183940242764,
+      "mean": [
+        72.9530824006049,
+        73.21725653039447
+      ],
+      "sd": [
+        39.23572371488669,
+        39.095679181011214
+      ],
+      "below20": [
+        0,
+        0
+      ],
+      "RGB": [
+        [
+          72.19445845004668,
+          74.023081232493,
+          64.58771241830065
+        ],
+        [
+          72.41036414565826,
+          74.29124183006536,
+          64.9545284780579
+        ]
+      ],
+      "baselineBrownBucket": {
+        "count": 52107,
+        "before": 44.74630555204546,
+        "after": 45.775946210689646
+      },
+      "baselineGreenBucket": {
+        "count": 27007,
+        "before": 45.6734721886922,
+        "after": 45.353422957011695
+      },
+      "sameCamera": true,
+      "sameStats": true,
+      "variant": {
+        "name": "texture065",
+        "uniforms": {
+          "uNearBaseFloorTexture": 0.65,
+          "uNearBaseFloorNearTexture": 0.65
+        }
+      }
+    },
+    {
+      "view": "bole-reset-lantern-ese-out-12p15m",
+      "region": {
+        "left": 0,
+        "top": 0,
+        "width": 1280,
+        "height": 720
+      },
+      "byteIdentical": true,
+      "RGB_MAD": 0,
+      "changedPixelShare": 0,
+      "mean": [
+        92.75812837690299,
+        92.75812837690299
+      ],
+      "sd": [
+        45.561585885674134,
+        45.561585885674134
+      ],
+      "below20": [
+        0.00013780381944444444,
+        0.00013780381944444444
+      ],
+      "RGB": [
+        [
+          90.744619140625,
+          94.30414496527777,
+          83.3725466579861
+        ],
+        [
+          90.744619140625,
+          94.30414496527777,
+          83.3725466579861
+        ]
+      ],
+      "baselineBrownBucket": {
+        "count": 47132,
+        "before": 43.74600989136488,
+        "after": 43.74600989136488
+      },
+      "baselineGreenBucket": {
+        "count": 170788,
+        "before": 44.09954849285344,
+        "after": 44.09954849285344
+      },
+      "sameCamera": true,
+      "sameStats": true,
+      "variant": {
+        "name": "texture065",
+        "uniforms": {
+          "uNearBaseFloorTexture": 0.65,
+          "uNearBaseFloorNearTexture": 0.65
+        }
+      }
+    },
+    {
+      "view": "bole-reset-nw-east-in-9p85m",
+      "region": {
+        "left": 550,
+        "top": 110,
+        "width": 300,
+        "height": 415
+      },
+      "byteIdentical": false,
+      "RGB_MAD": 0.4954404283801874,
+      "changedPixelShare": 0.5363855421686747,
+      "mean": [
+        79.12333280322243,
+        79.46491605141482
+      ],
+      "sd": [
+        41.27355499218886,
+        40.972353140958234
+      ],
+      "below20": [
+        0,
+        0
+      ],
+      "RGB": [
+        [
+          79.12087550200803,
+          79.98842570281124,
+          70.56111646586345
+        ],
+        [
+          79.3986827309237,
+          80.34146184738955,
+          70.97704417670683
+        ]
+      ],
+      "baselineBrownBucket": {
+        "count": 56937,
+        "before": 46.36970497216247,
+        "after": 47.25479439380371
+      },
+      "baselineGreenBucket": {
+        "count": 4679,
+        "before": 57.52962778371459,
+        "after": 56.362576148749795
+      },
+      "sameCamera": true,
+      "sameStats": true,
+      "variant": {
+        "name": "texture065",
+        "uniforms": {
+          "uNearBaseFloorTexture": 0.65,
+          "uNearBaseFloorNearTexture": 0.65
+        }
+      }
+    },
+    {
+      "view": "bole-reset-nw-east-out-10p15m",
+      "region": {
+        "left": 0,
+        "top": 0,
+        "width": 1280,
+        "height": 720
+      },
+      "byteIdentical": true,
+      "RGB_MAD": 0,
+      "changedPixelShare": 0,
+      "mean": [
+        90.13194329469181,
+        90.13194329469181
+      ],
+      "sd": [
+        39.000161084130696,
+        39.000161084130696
+      ],
+      "below20": [
+        0,
+        0
+      ],
+      "RGB": [
+        [
+          88.60463541666667,
+          91.93670572916666,
+          76.75160481770833
+        ],
+        [
+          88.60463541666667,
+          91.93670572916666,
+          76.75160481770833
+        ]
+      ],
+      "baselineBrownBucket": {
+        "count": 128687,
+        "before": 54.58892315929479,
+        "after": 54.58892315929479
+      },
+      "baselineGreenBucket": {
+        "count": 87188,
+        "before": 54.775358090563024,
+        "after": 54.775358090563024
+      },
+      "sameCamera": true,
+      "sameStats": true,
+      "variant": {
+        "name": "texture065",
+        "uniforms": {
+          "uNearBaseFloorTexture": 0.65,
+          "uNearBaseFloorNearTexture": 0.65
+        }
+      }
+    },
+    {
+      "view": "bole-reset-stairbank-west-in-11p85m",
+      "region": {
+        "left": 525,
+        "top": 125,
+        "width": 245,
+        "height": 435
+      },
+      "byteIdentical": false,
+      "RGB_MAD": 0.13783094847134256,
+      "changedPixelShare": 0.19393854093361482,
+      "mean": [
+        60.078315158342164,
+        59.98273637532609
+      ],
+      "sd": [
+        28.85492741934234,
+        28.891491073221935
+      ],
+      "below20": [
+        0.000028149190710767065,
+        0.000028149190710767065
+      ],
+      "RGB": [
+        [
+          65.93894440534835,
+          59.80197044334975,
+          45.55853624208304
+        ],
+        [
+          65.81667370396434,
+          59.708177339901475,
+          45.52386582219094
+        ]
+      ],
+      "baselineBrownBucket": {
+        "count": 57378,
+        "before": 47.190745327476975,
+        "after": 47.03433074000445
+      },
+      "baselineGreenBucket": {
+        "count": 11373,
+        "before": 36.80313150444055,
+        "after": 36.750401090301736
+      },
+      "sameCamera": true,
+      "sameStats": true,
+      "variant": {
+        "name": "texture065",
+        "uniforms": {
+          "uNearBaseFloorTexture": 0.65,
+          "uNearBaseFloorNearTexture": 0.65
+        }
+      }
+    },
+    {
+      "view": "bole-reset-stairbank-west-out-12p15m",
+      "region": {
+        "left": 0,
+        "top": 0,
+        "width": 1280,
+        "height": 720
+      },
+      "byteIdentical": false,
+      "RGB_MAD": 0.002533637152777778,
+      "changedPixelShare": 0.003347439236111111,
+      "mean": [
+        74.45470631625432,
+        74.45709706061166
+      ],
+      "sd": [
+        36.13329468274389,
+        36.13053554547306
+      ],
+      "below20": [
+        0.004014756944444444,
+        0.004014756944444444
+      ],
+      "RGB": [
+        [
+          73.48214084201389,
+          75.90853407118055,
+          62.91716905381944
+        ],
+        [
+          73.48437934027778,
+          75.91098741319445,
+          62.91938802083333
+        ]
+      ],
+      "baselineBrownBucket": {
+        "count": 76918,
+        "before": 46.971906183202876,
+        "after": 46.99929236069061
+      },
+      "baselineGreenBucket": {
+        "count": 211884,
+        "before": 42.26970615052999,
+        "after": 42.269891116832305
+      },
+      "sameCamera": true,
+      "sameStats": true,
+      "variant": {
+        "name": "texture065",
+        "uniforms": {
+          "uNearBaseFloorTexture": 0.65,
+          "uNearBaseFloorNearTexture": 0.65
+        }
+      }
+    }
+  ]
+}
