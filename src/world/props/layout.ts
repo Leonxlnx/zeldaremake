@@ -93,8 +93,8 @@ export const PROP_LAYOUT: readonly PropDef[] = [
   // the north rim of the lawn pocket left of the flight and up its bank beside the first treads:
   // A (0.50, 0.58) → (0.58, 0.50), F (0.14, 0.63) → (0.19, 0.50), B's right edge (0.88–0.96).
   // RIGHT: along the plateau bank right of the flight (tilt 24–39°, no masks), A (0.90–0.94,
-  // 0.36–0.40), 1.6 → 3.0 m up. Pegs 0.45 m, cord sag 0.08, a pod every 0.3 m.
-  { id: 'stair-left-lights', kind: 'lightString', x: 5.05, z: -2.3, size: 1, yaw: 0, cluster: 'stair-foot', string: { points: [[5.05, -2.3], [5.8, -2.55], [6.5, -2.8], [7.05, -3.1], [7.45, -3.4], [7.8, -3.75]], lift: 0.45, sag: 0.08, spacing: 0.3 } },
+  // 0.36–0.40), 1.6 → 3.0 m up. Pegs 0.45 m, cord sag 0.08, a pod every 0.4 m on the left (A's reference shows ~8), 0.3 m on the right; pod r 2.4 cm.
+  { id: 'stair-left-lights', kind: 'lightString', x: 5.35, z: -2.4, size: 1, yaw: 0, cluster: 'stair-foot', string: { points: [[5.35, -2.4], [5.95, -2.6], [6.5, -2.8], [7.05, -3.1], [7.45, -3.4], [7.8, -3.75]], lift: 0.45, sag: 0.08, spacing: 0.4 } },
   { id: 'stair-right-lights', kind: 'lightString', x: 12.4, z: 0.9, size: 1, yaw: 0, cluster: 'stair-foot', string: { points: [[12.4, 0.9], [12.95, 0.3], [13.45, -0.35], [13.9, -1.0], [14.25, -1.7]], lift: 0.45, sag: 0.08, spacing: 0.3 } },
 
   // ---- the plateau's storage corner by the plateau-north fence (survey-2 w28-plateau-d looks

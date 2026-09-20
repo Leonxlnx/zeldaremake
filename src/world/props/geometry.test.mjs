@@ -254,7 +254,7 @@ for (const id of ['door-pot-large', 'sign-pot', 'saria-crate', 'saria-water-buck
 {
   const strings = audit.placed.filter((p) => p.kind === 'lightString');
   assert.equal(strings.length, 2, 'two light strings');
-  assert.ok(audit.lightPods >= 16 && audit.lightPods <= 30, `a pod every 0.3 m (${audit.lightPods})`);
+  assert.ok(audit.lightPods >= 14 && audit.lightPods <= 30, `a pod every 0.3 m (${audit.lightPods})`);
   const sf = audit.clusterBounds['stair-foot'];
   assert.ok(sf.glow && sf.wood && sf.rope, 'the stair-foot cluster has glow, wood and rope');
   // every pod hangs 0.15–0.45 m over the ground under it

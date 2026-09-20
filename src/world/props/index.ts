@@ -240,7 +240,7 @@ export async function create(ctx: WorldContext): Promise<WorldSystem> {
       z = line.points[0][1];
       groundY = terrain.height(x, z);
       const pegs = line.points.map(([px, pz]) => new Vector3(px - x, terrain.height(px, pz) - groundY, pz - z));
-      parts = lightStringGeometry(rng, { pegs, lift: line.lift, sag: line.sag, spacing: line.spacing, podRadius: 0.03 });
+      parts = lightStringGeometry(rng, { pegs, lift: line.lift, sag: line.sag, spacing: line.spacing, podRadius: 0.024 });
       yaw = 0;
       orientation = new Quaternion();
       contactBand = 0;
