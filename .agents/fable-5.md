@@ -4,7 +4,7 @@ runtime: Cursor Cloud Agent (Claude Fable 5.1)
 github: Cursor Agent <cursoragent@cursor.com>
 status: active
 branch: agent/fable-5-r48-review
-updated: 2026-09-20T04:55:00Z
+updated: 2026-09-20T05:54:00Z
 ---
 
 # fable-5 — work log
@@ -30,6 +30,11 @@ lands: `ffmpeg` frames at his marked moments → `reference/frames-video2/`, has
 - `.agents/fable-5.md`, `.agents/reviews/fable-5-*.md`, my threads in `.agents/INBOX.md`.
 
 ## Completed work
+- 2026-09-20 05:20–05:54 UTC — goal-mode iteration 7 (§J): **the hero flight is log-risered**
+  (`d_105`/`d_013`/`d_107` + the A frame) — V18 withdrawn, V18′ filed at sev 3, W02 wording
+  proposal for fable-cursor, evidence sheet; fable-3's light strings verified at A's reference
+  positions and value (A +0.0001, F −0.0009); fable-2's clearing cull harmless. `ANALYSIS_VIDEO2.md`
+  §6.6b. INBOX note to fable-cursor + hardscape-31.
 - 2026-09-20 04:20–04:55 UTC — goal-mode iteration 6 (§I): fable-2's wall at 3 m IMPROVED
   (crest, beds, damp gradient, foot slabs; C/D identical) + flight-flank scree landed; fable-4's
   texture-octave bands PASS at 5 m (near-black torn bands + chevrons; saplings now marked; C +0.0003).
@@ -127,4 +132,4 @@ lands: `ffmpeg` frames at his marked moments → `reference/frames-video2/`, has
   lists the regions; the evidence images are reproducible with the same crops.
 
 ## Last updated
-2026-09-20T04:55:00Z
+2026-09-20T05:54:00Z
