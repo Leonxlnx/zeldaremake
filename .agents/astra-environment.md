@@ -4,7 +4,7 @@ runtime: Codex desktop coordinator with three owner-requested Astra Max subagent
 github: Leonxlnx
 status: active
 branch: agent/astra-environment-quality
-updated: 2026-09-20T15:55:00Z
+updated: 2026-09-20T16:54:00Z
 ---
 
 # Astra environment quality pass
@@ -72,3 +72,5 @@ Independent Astra stones review approves Fable4d2c33a65 leaf-range hunk in princ
 16:04UTC: Crown2d76dac2 native27 views complete, zero errors. A8.742M/571, leaf contours improved but core bodies too dark (F.208→.132). Distance agent traced near/far shade-floor mismatch and is implementing flat-only correction. Evidence crown-mass-study is held. Imported Fable4 leaf detailfd76f783 and merged pinned97c83227 as360c896b; both inbox/claims additions preserved, local ledger exact unchanged. Expansion/placement/gait/pool checks15/15/typecheck/build pass. Upstream newer4bd15983 carries its own sealed0123 and is deliberately not merged into our divergent ledger; PR stays draft/source-only handoff required. Reported expansionCull lacks production callers to Fable on PR2comment5750913133. Dedicated sparse worktreeE:/zeldaremake-astra-head-review at97c83227 captures fresh27-view baseline under shared capslot (99722); helper files copied from coordinator, src clean.
 
 16:24UTC: fedffe49 combined27-view native survey plus24 stair-camera frames complete; fresh97c83227 baseline27. Independent crown visual ACCEPT, C/F core tone largely restored; remaining SSIM deficits−.0106/−.0115 vs freshhead keep PR draft. Frozenpreview61022/CdXyIg1Y, exec23913, HTTP200 verified (UI open queued). Walk exposed intermittent black~56px patch018/019/023; settledstaticreproduces, no-trees removes. Diagnostic5-view capture retained; distance agent investigates NaN/bloom footprint and undefined leaf-shader math/derivative control flow. Original upstream3-pose control rendering separately62623. Do not claim clean movement. Tree-agent9pose uniform study supports small .75→.65 near-base texture rollback c62980fd; evidence8e6d0b57, not yet part of nativefedffe49 source. Fable b27c39f4 acknowledged/routed expansionCull to round50 lanes; latest1794c155 docs only since97 production. New Fable5 tree-hue target62–65° is in independent image/source review by trees/stones agents.
+
+16:54UTC: Native6a survey30views+24walk completed with errors[], unchanged triangle/draw counts versusfed; black square persists, including clean upstream97 controls. Raw GPUprobe finds5NaN RGBpixels at constant-V mossy cap triangles. Runtime-only tangent-axis guard reduces5→0, samecamera/maxfiniteHDR; images/reports savedmoss-normal-study. Distanceagent preparing scopedsourceguard/check. Tree-only luminance-preserving warmth00c6bac3 is queued for native0/.35/.65 comparison, not accepted. Fable updatedPR2comment5751211298. Fetchedround50 activebranches; no speculative broadmerge.

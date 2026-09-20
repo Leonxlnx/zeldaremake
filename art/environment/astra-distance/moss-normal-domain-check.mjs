@@ -1,5 +1,5 @@
 /**
- * CPU only: node art/environment/astra-distance/moss-normal-domain-check.mjs [baseline-ref]
+ * CPU only: node art/environment/astra-distance/moss-normal-domain-check.mjs [baseline-ref] [candidate-ref]
  * Reproduces the constant-V branch-cap frame from the native HDR probe, evaluates the actual
  * shader guard, and checks that valid frames retain their old normalization. No GPU required.
  */
@@ -11,7 +11,9 @@ import { ShaderChunk } from 'three';
 
 const baseline = process.argv[2] ?? '6a694b66';
 const file = 'src/world/trees/materials.ts';
-const source = readFileSync(file, 'utf8');
+const source = process.argv[3]
+  ? execFileSync('git', ['show', `${process.argv[3]}:${file}`], { encoding: 'utf8' })
+  : readFileSync(file, 'utf8');
 const original = execFileSync('git', ['show', `${baseline}:${file}`], { encoding: 'utf8' });
 const fragmentFunction = (text) => {
   const ast = ts.createSourceFile(file, text, ts.ScriptTarget.Latest, true);
