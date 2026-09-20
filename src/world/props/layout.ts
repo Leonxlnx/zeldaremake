@@ -137,11 +137,13 @@ export const PROP_LAYOUT: readonly PropDef[] = [
   { id: 'west-landing-bucket', kind: 'bucket', x: -16.55, z: 5.25, size: 0.54, yaw: 0.9, cluster: 'west-house' },
   { id: 'west-landing-pot', kind: 'pot', x: -17.15, z: 5.55, size: 0.62, yaw: 1.7, cluster: 'west-house', variant: 0 },
   { id: 'west-landing-pot-squat', kind: 'pot', x: -16.8, z: 4.9, size: 0.44, yaw: -2.2, cluster: 'west-house', variant: 2 },
-  // a waymarker on the outer (north) side of the west path's fork at (−8.6, 9.4), where the south
-  // branch leaves for the bank: 0.9 m off both disc lines, 1.0 m west of `cClip`'s margin
-  // (x < −8.18 at z 8.6), on the ledge face's slope (tilt 32°: the post stands vertical, its foot
-  // conformed). The long board points along the west line to the house, the short one back.
-  { id: 'west-fork-marker', kind: 'marker', x: -9.2, z: 8.6, size: 1.65, yaw: -0.63, cluster: 'west-house' },
+  // a waymarker on the outer (north) side of the west path just past its fork at (−8.6, 9.4),
+  // where the south branch leaves for the bank: 0.8 m off the west line's discs, 2.2 m west of
+  // `cClip`'s margin (x < −8.24 at z 8.7), 1.6 m from the bush the vegetation scatter put at
+  // (−8.83, 8.38) (a first spot at (−9.2, 8.6) stood inside its crown), on the ledge face's slope
+  // (the post stands vertical, its foot conformed). The long board points along the west line to
+  // the house, the short one back to the plaza.
+  { id: 'west-fork-marker', kind: 'marker', x: -10.4, z: 8.7, size: 1.65, yaw: -1.39, cluster: 'west-house' },
 
   // ---- the north clearing's entrance (GOAL_MODE fable-3 #2): where the north path's band (half
   // width 2.2, from the arch at (5.8, −58) south-west) meets the paved disc at (−1.5, −69.8) r 4.6.
