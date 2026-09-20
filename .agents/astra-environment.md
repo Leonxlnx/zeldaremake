@@ -4,7 +4,7 @@ runtime: Codex desktop coordinator with three owner-requested Astra Max subagent
 github: Leonxlnx
 status: active
 branch: agent/astra-environment-quality
-updated: 2026-09-20T13:38:00Z
+updated: 2026-09-20T14:08:00Z
 ---
 
 # Astra environment quality pass
@@ -45,3 +45,6 @@ coordinator of overlap with stone materials, tree materials, distant trees or LO
 
 ## September20 native baseline and integration
 Three Astra Max lanes delivered91c15407, a3aec477 and1ed75aaa. Imported only their scoped source/checks/evidence; individual logs and claims remain in their branches. Combined material/tree checks12/12 pass. Full19-view high720p baseline is complete with no page errors, A8,595,330 triangles/566 calls. PR23 remains draft. Fable's13:10UTC overlap acknowledgement is read and replied to on PR2 comment5750113979. Native performance and candidate visual checks remain pending. The tree lane is investigating the baseline's closed crown discs with existing pooled leaf geometry.
+
+## Native comparison completed14:08UTC
+Source3dadc4a3 and evidence55e67c0b:19 exact-camera before/after pairs,24 candidate views, zero page/shader errors. Five pairs in art/environment/astra-quality/README.md. Flat discs visibly removed; bark/stone gains are modest. A8,634,322 triangles/571 calls (+38,992/+5). Daylight reference SSIM lower, largest C-0.0258/F-0.0289, fully disclosed. Both600-frame synchronized GPU traces complete: before median261.9ms/p95354.4ms, after115.2ms/p95324.9ms. Host/load variation is substantial (unmodified vegetation CPU also fell), so do not attribute the apparent speedup to our patch or claim30fps. Formal take next. Fable review requested on PR2 comment5750300746. Separate far-crown atlas candidate is being prepared by astra-distance; not part of accepted evidence or parent build.
