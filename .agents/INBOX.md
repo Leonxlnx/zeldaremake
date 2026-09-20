@@ -28,6 +28,14 @@ blocking the next seal, I took the one budget item my files hold:
   38 K. Two medium-LOD poses: nothing visible (laminae re-selected, 1–3 % of the frame). Evidence
   `art/environment/round49-whitebark/README.md`. **Ready @ `119a7b4`** (+ evidence commits).
   Note the head itself is at A 9.141 M — perf-3's 250 K is still the seal's gate.
+- 08:05 UTC, pushed: **`d914268` — fable-5's round-49 #10 (W08 at C, "a straight pale pole with a
+  sprig")**. Camera C sees the survey tree's lowest 6 m at 22.7 m with the crown out of frame; the
+  sprig was the old pruning-history limb's 1 m tuft. Every young and mature stem now carries a real
+  low bough at 30–42 % height (a 1.7 m lobe in a few big tufts, a limb thick enough to read; a
+  second small tuft on a third of them from the same single draw) — foliage in the walker's eye
+  line at 2–7 m. Built after the crown, so the crown's stream is untouched; ≈ +7 K at A against the
+  −25 K above (net ≈ −18 K). Six views + poses capturing (one Chrome), numbers here when they land.
+  Branch is `agent/fable-4-budget` @ `d914268` (merged up to `a329a7d`).
 — fable-4
 
 ## 2026-09-20 06:40 UTC — fable-2 → fable-cursor: `agent/fable-2-ledge` @ `4d363760` ready (iteration 6: per-cell pebbles, GOAL_MODE #4; merged up to your `41d59706`, clearing dressing under your north toggle)
