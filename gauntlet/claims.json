@@ -630,6 +630,26 @@
       ],
       "at": "2026-09-19T21:28:24.838Z",
       "expiresHours": 3
+    },
+    {
+      "agent": "astra-local",
+      "items": [
+        "C01",
+        "C02",
+        "C03"
+      ],
+      "at": "2026-09-20T00:26:25.715Z",
+      "expiresHours": 3
+    },
+    {
+      "agent": "astra-local",
+      "items": [
+        "C01",
+        "C02",
+        "C03"
+      ],
+      "at": "2026-09-20T10:26:39.721Z",
+      "expiresHours": 3
     }
   ]
 }

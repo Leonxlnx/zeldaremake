@@ -1,4 +1,4 @@
-"""Append reviewed leg channels to 24591126; preserve unedited clips and binary data."""
+"""Append selected native channels to 24591126; preserve unedited clips and binary data."""
 import copy,hashlib,json,math,struct,sys
 from pathlib import Path
 out=Path(sys.argv[3]) if len(sys.argv)>3 else Path(__file__).resolve().parent
@@ -31,8 +31,8 @@ def append(rows,kind):
 run=next(a for a in doc['animations'] if a['name']==gait);source=next(a for a in native[1]['animations'] if a['name']==gait)
 def key(model,c):return model[1]['nodes'][c['target']['node']]['name'],c['target']['path']
 lookup={key(native,c):source['samplers'][c['sampler']] for c in source['channels']}
-edited={'hips'}|{j+s for j in ['thigh','knee','ankle'] for s in ['L','R']};changed=[]
-if study.get('preserve_hips'):edited.remove('hips')
+edited=set(study.get('edited_bones', ['hips']+[j+s for j in ['thigh','knee','ankle'] for s in ['L','R']]));changed=[]
+if study.get('preserve_hips'):edited.discard('hips')
 native_nodes={n.get('name'):n for n in native[1]['nodes']}
 for node in original['nodes']:
  if node.get('name') not in edited:continue
@@ -44,6 +44,7 @@ for node in original['nodes']:
 for c in run['channels']:
  bone,path=key(old,c)
  if bone not in edited or (bone=='hips' and path!='translation'):continue
+ if bone in study.get('rotation_only_bones',[]) and path!='rotation':continue
  before=run['samplers'][c['sampler']];src=lookup[(bone,path)]
  times=values(native,src['input']);rows=values(native,src['output'])
  interpolation=src.get('interpolation','LINEAR')
@@ -64,5 +65,5 @@ doc['buffers'][0]['byteLength']=len(binary)
 js=json.dumps(doc,separators=(',',':')).encode();js+=b' '*((-len(js))%4);binary+=b'\0'*((-len(binary))%4)
 result=struct.pack('<4sII',b'glTF',2,28+len(js)+len(binary))+struct.pack('<I4s',len(js),b'JSON')+js+struct.pack('<I4s',len(binary),b'BIN\0')+binary
 (out/(stem+'-candidate.glb')).write_bytes(result)
-report={'sha256':hashlib.sha256(result).hexdigest(),'source_sha256':hashlib.sha256(old[0]).hexdigest(),'original_binary_preserved':True,'rest_nodes_and_assets_exact':True,'other_clips_and_nonleg_channels_exact':True,'gait':gait,'hips_preserved':study.get('preserve_hips',False),'changed':changed,'cycle_s':period,'stride_m':study['stride_m'],'status':'Export checked; game and visual acceptance pending'}
+report={'sha256':hashlib.sha256(result).hexdigest(),'source_sha256':hashlib.sha256(old[0]).hexdigest(),'original_binary_preserved':True,'rest_nodes_and_assets_exact':True,'other_clips_and_unselected_channels_exact':True,'gait':gait,'hips_preserved':study.get('preserve_hips',False),'changed':changed,'cycle_s':period,'stride_m':study['stride_m'],'status':'Export checked; game and visual acceptance pending'}
 (out/(stem+'-export.json')).write_text(json.dumps(report,indent=2));print(json.dumps(report))

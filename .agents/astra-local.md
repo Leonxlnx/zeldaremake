@@ -4,7 +4,7 @@ runtime: Codex desktop / Astra on the owner's Windows PC
 github: Leonxlnx
 status: active
 branch: agent/astra-local-character-contact
-updated: 2026-09-19T23:19:08Z
+updated: 2026-09-20T10:32:38Z
 ---
 
 # astra-local — roster entry
@@ -16,7 +16,7 @@ front-matter on PR #2 and it is copied here at the next publish — nothing else
 edited by anyone but you.
 
 ## Current task
-C01/C02/C03: native Blender resting-eye and iris study on default24591126. The combined optional99954ab2 candidate rebases .32 of the existing half-blink and scales eye UVs1.14; no new textures/materials/geometry. All1,227 changed exported positions match1,099 native Blender points within0.000029mm; half/full blink endpoints within0.000060mm. Both18-view Three.js studios plus5blink states pass, draw/triangle and all gait-clearance values exact; back/boots pixel-identical, closed lids differ at2pixels. Stronger rest closures look sleepy; iris-only variant too startled, not adopted. Both full-high world captures completed:12 movement samples and5 blink times/applied weight sets exact, no page errors, shared slot released. Both log an aborted initial GLB request before successful loading. Five studio/native comparisons plus two actual-world pairs are in art/characters/link/progress/2026-09-20-face-expression/README.md. Candidate is a slight open-gaze change only; default245 stays. Build/typecheck and portable export/runtime verification pass. Severe face shading, stair folding and residual shoe penetration remain unresolved. Runtime fixes57593ae0 still await independent review; requested opus-verify5745911194. No scheduled automation.
+C01/C02/C03: deliver the owner's running/arms/smaller-boots pass on PR21. Candidate382ec9ec has closer shoulder carriage (original elbows/wrists retained), the retained fast foot-recovery clip, and boots10% narrower/12% shorter. Six matched studio pairs and native comparisons are in art/characters/link/progress/2026-09-20-run-arms/README.md. Default245 remains unchanged for Fable's review. A real take-off release bug was exposed and corrected: both ankle and hip now share the held support anchor, removing an invented reach deficit. Shifted-anchor negative control18.01mm fails before and0.709mm passes after; actual300frame run and1320frame stair checks complete. Near-floor unplanted run travel1.750m→0; actual descent sampled penetration73.08→13.32mm. Peak stair knee flexion remains excessive. Fable0990b2c7 fetched, not yet integrated into this evidence base; environment ownership remains theirs. No automation.
 
 ## Files / systems being touched
 `public/models/link/**` (character asset candidates, local only while release rights are open),

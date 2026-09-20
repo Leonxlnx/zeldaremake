@@ -1947,9 +1947,11 @@ export async function loadGlbLink(url: string, opts: GlbLinkOptions = {}): Promi
               leg.relA.x += rw * (ox + fx * cfgOff.shift - _p.x);
               leg.relA.y += rw * (gOff + s.offLift - _p.y);
               leg.relA.z += rw * (oz + fz * cfgOff.shift - _p.z);
-              leg.relH.x += rw * (x + s.offHip.x * fz + s.offHip.z * fx - fx * back);
+              // Anchor both ends of the frozen clip pose to the same take-off spot. Mixing
+              // a held sole with the predicted hip invents a reach deficit after a stance pin.
+              leg.relH.x += rw * (ox + (s.offHip.x - s.offX) * fz + (s.offHip.z - s.offZ) * fx);
               leg.relH.y += rw * s.offHip.y;
-              leg.relH.z += rw * (z - s.offHip.x * fx + s.offHip.z * fz - fz * back);
+              leg.relH.z += rw * (oz - (s.offHip.x - s.offX) * fx + (s.offHip.z - s.offZ) * fz);
               relW += rw;
             }
             const aw = weight * MathUtils.smoothstep(sw.phase, 1 - ATTACK, 1);
