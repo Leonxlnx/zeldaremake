@@ -667,6 +667,39 @@ export interface RootPlacement {
 }
 
 /**
+ * Authored white-barks beyond `placeWhiteBark`'s 12–60 m ring (round 47 handoff → GOAL_MODE
+ * fable-4 #1): young stems on the north clearing's banks, either side of `LAYOUT.northPath` and
+ * west of the `ledgeTerrace` — ref-04's leaning trunk beside the ledge. Positions from
+ * expansion-1; the east one is moved 0.6 m off the paving (8.0 m from the spine's axis, 1.6 m
+ * from the flagstone edge) so no toe can lie across the slabs. Probed: all four on
+ * vegetation-allowed bank ground, no path / structure mask, tilt 2–14°; the eye-level sight line
+ * from the clearing toward (−8, −88) passes 2.3 m from the west-bank trunk and under its crown.
+ */
+export const CLEARING_WHITE_BARKS: { x: number; z: number; age: Age }[] = [
+  { x: -7.6, z: -66.0, age: 'young' },
+  { x: 6.2, z: -71.5, age: 'young' },
+  { x: -6.0, z: -75.5, age: 'young' },
+  { x: 8.0, z: -64.8, age: 'young' },
+];
+
+/**
+ * The authored trees as placements, seated on `terrain.height`, cycling the variants of the
+ * wanted age (the young ones: three of the ten), yaw and scale from their own seeded stream.
+ * Appended to `whitePlacements` in trees/index.ts before the columns are seated (so
+ * `seatBlocked` keeps column seats 2.5 m clear of them) and before the root mesh is built.
+ */
+export function authoredWhiteBarks(variants: WhiteBarkParams[], terrain: { height(x: number, z: number): number }): RootPlacement[] {
+  const rng = createRng('whitebark/authored-clearing');
+  const byAge = new Map<Age, number[]>();
+  variants.forEach((v, i) => byAge.set(v.age, [...(byAge.get(v.age) ?? []), i]));
+  return CLEARING_WHITE_BARKS.map((spot, k) => {
+    const pool = byAge.get(spot.age) ?? [];
+    const variant = pool.length ? pool[k % pool.length] : 0;
+    return { variant, x: spot.x, y: terrain.height(spot.x, spot.z), z: spot.z, yaw: rng() * TAU, scale: rng.range(0.92, 1.08) };
+  });
+}
+
+/**
  * The white-barks' root toes, seated on the terrain: one merged mesh for every placed tree (the
  * variants are InstancedMeshes, so their geometry cannot know the ground under each instance —
  * the round-46 buttresses were flat and floated wherever the ground fell away: the terrain drops
