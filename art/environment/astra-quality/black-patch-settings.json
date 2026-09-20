@@ -1,0 +1,54 @@
+{
+  "views": [
+    "stair-top-black-patch"
+  ],
+  "poses": {
+    "stair-top-black-patch": {
+      "p": [
+        16.24161615024175,
+        7.2,
+        -7.074460597188567
+      ],
+      "t": [
+        23.134366430682395,
+        12.056429311786317,
+        -12.450805815932256
+      ],
+      "fov": 72
+    }
+  },
+  "variants": [
+    {
+      "name": "default"
+    },
+    {
+      "name": "no-trees",
+      "hide": [
+        "trees"
+      ]
+    },
+    {
+      "name": "no-atmosphere",
+      "hide": [
+        "atmosphere",
+        "mist-volume"
+      ]
+    },
+    {
+      "name": "no-structures",
+      "hide": [
+        "structures"
+      ]
+    },
+    {
+      "name": "no-post-effects",
+      "postfx": {
+        "softening": false,
+        "aoStrength": 0,
+        "aoNearStrength": 0,
+        "rayIntensity": 0,
+        "bloomIntensity": 0
+      }
+    }
+  ]
+}

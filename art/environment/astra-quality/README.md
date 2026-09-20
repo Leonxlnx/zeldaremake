@@ -1,4 +1,24 @@
-# Environment — five native before/after comparisons
+# Environment — native before/after comparisons
+
+Latest combined native source **fedffe49**, preview **http://127.0.0.1:61022/?mode=play&dev=0&hud=0**, frozen bundle **index-CdXyIg1Y.js**. Fresh Fable production baseline97c83227 and candidate each have27 matched native views. The candidate also has24 fixed-time stair camera frames. Source includes Fable's backside expansion/wood tint/previously accepted Link changes, our stone and distant-tree work, corrected bark texture mean, Fable4's leaf detail range, and dense near crown leaves with the original flat-core shade floor restored.
+
+Independent visual review accepts the crown improvement: F shared-core luminance0.208→0.189, C0.220→0.203; edges and interiors now contain leaves instead of smooth cores. A8,741,626 triangles/571 calls versus baseline8,615,890/566. No frame-rate improvement is claimed. Full-frame reference SSIM deltas are A−0.0021, B−0.0051, C−0.0106, D−0.0091, E−0.0044, F−0.0115. This is still outside Fable's comparison budget in five views; visual progress is not reference parity or permission to merge the entire branch.
+
+| Current matched comparison | Fable baseline97c83227 | Combined candidatefedffe49 |
+|---|---|---|
+| Stair-side crown: leaf edges and a layered body replace the smooth closed core | ![Baseline crown](before-round49/F_canopy.png) | ![Layered crown](after-round49/F_canopy.png) |
+| Looking back: dark canopy mass retained while foliage gains structure | ![Baseline lookback](before-round49/C_lookback.png) | ![Layered lookback](after-round49/C_lookback.png) |
+| Close stair-bank bark: corrected linear texture mean retains warm fissures | ![Baseline bark](before-round49/sn-bole-stair-bank.png) | ![Corrected bark](after-round49/sn-bole-stair-bank.png) |
+| Approached distant-tree type at3m: mapped bark plates recover | ![Baseline stem](before-round49/distant-stem-v2-3m.png) | ![Corrected stem](after-round49/distant-stem-v2-3m.png) |
+| Distant crown at121m: leaf-shaped margins with retained crown/underside geometry | ![Baseline distant](before-round49/distance-crown-121m.png) | ![Detailed distant](after-round49/distance-crown-121m.png) |
+
+Reproduce all27 pairs with `node art/environment/astra-quality/check.mjs before-round49 after-round49 round49-comparison.json`. Both manifests have no recorded page/shader errors and exact camera/time/viewport matches. Geometry/pool/terrain/placement/gait tests15/15, the flat-floor280-case check, typecheck/build passed at this source. The last formal local take remains0124/a9eccd15; these are surveys, not a new formal score.
+
+**Open rendering defect:** walk frames018/019/023 show a black rectangular patch near the stair landing. It persists at the settled static pose; hiding trees removes it. The5-view black-patch-isolation captures preserve that evidence. Shader/domain and derivative handling are being diagnosed; no clean-temporal-walk claim is made. Visible bough tips, higher crown cards, broad moss and the distant scene remain unfinished. Fable has routed the expansion placement-filter gap to its five round50 lanes (b27c39f4).
+
+The9-pose paired near-floor uniform study is separate: restoring NEAR_BASE_FLOOR.texture .75→.65 modestly separates dark wood from moss without new geometry. Sourcec62980fd implements that rollback after this combined capture; it is not retroactively included in fedffe49 images. See astra-trees-quality/bark-albedo-trace.md for the actual material×vertex×map trace. No moss-gap experiment is retained.
+
+## Earlier studies and checkpoints
 
 Latest verified source: **d9eee5d7**, native27-view `after-bark-linear/` (bundle `index-CUzYDOZs.js`). The bark colour-space correction is accepted: clearer warm grain with identical geometry/draws and five byte-identical hero images versus a9eccd15; D differs in one colour channel of one pixel by one 8-bit level. The earlier canopy replacement is still under review: Fable-5 correctly found its foliage too sparse to retain C/F's dark crown masses. This branch is not ready for integration as a whole.
 
