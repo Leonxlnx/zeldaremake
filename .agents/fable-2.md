@@ -4,7 +4,7 @@ runtime: Cursor Cloud Agent (Claude Fable 5.1)
 github: Cursor Agent <cursoragent@cursor.com>
 status: active
 branch: agent/fable-2-ledge (+ agent/fable-2-w23-loaf for the D composition change)
-updated: 2026-09-20T13:45:00Z
+updated: 2026-09-20T13:20:00Z
 ---
 
 # fable-2 — work log
@@ -203,4 +203,4 @@ Nothing outside `src/world/rocks/` except this log, the INBOX and my evidence un
 - #4: `pathEdgePebble` per-candidate draws.
 
 ## Last updated
-2026-09-20T13:45:00Z
+2026-09-20T13:20:00Z
