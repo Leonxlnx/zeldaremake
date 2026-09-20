@@ -16,6 +16,32 @@ B 526 / C 393 / D 394 / E 526 / F 512; A 9.09 M tris on both (the head's number,
 change's — flagged to fable-cursor). Files: `ledge2-x-clearing-n.jpg` (+ `-crop`),
 `ledge2-x-ledge-foot.jpg`, `ledge2-x-northpath-n.jpg`.
 
+## Iteration 17 (goal mode, 2026-09-20) — GOAL_MODE fable-2 item 0: `expansionCull` on the rock streams + expansion-2's listed positions
+
+`3ac0a8a1` (the cull) + `9d1fc102` (the positions). BEFORE = the head `1794c155`, AFTER = this build.
+
+**The cull:** `heightfield.expansionCull(x, z)` AFTER placement on every sampled rock stream — the strata right after
+their scatter (before the hero loop adopts slabs), the rubble and both pebble lists after — with the handoff's rule:
+every stream keeps its candidate count and its draws; the pebble lists are filtered, rubble / strata collapse to a
+zero scale in place because the near kits reference them by index. Audit on the round-49 head: culled
+{ strata 3, rubble 0, pebbles 0 } — three slabs sat inside the bank / knoll; the pebble envelope already kept the
+pebbles at the path polylines. `systems.rocks.expansionCulled` reports it.
+
+**The positions (added to `backside.ts`):** the boulder at the bank's west skirt (−18.93, 13.92), three or four kerb
+stones at the flight foot (−14.13, 15.75) along the lip, a scree fan under the west house's braces (−21.5, 12.5),
+and hashed pebble rings (3–5 stones, 0.12–0.37 m off the rim) beside the west / south stepping discs — discs within
+1.6 m of camera C's frustum edge get none (their rings crossed it; caught by the offline `expansionVisible`
+check and fixed). Audit: backside { boulders 3, stepStones 3, scree 22, kerbStones 4, discPebbles 39 }, ~50 k tris.
+
+| pose | what changed | verdict |
+| --- | --- | --- |
+| `x-southbank-west-skirt` p (−15, 1.5, 10) → t (−19, 0.9, 14) | a moss-topped pale loaf half-buried at the bank's NW end beside the white-bark (`back18-x-southbank-west-skirt.jpg`) | landed |
+| `x-southbank-toe` | the toe pair, the kerb stones and the flank scree as in iteration 16 | consistent |
+| `x-west-discs`, `x-westhouse-braces` | the disc pebbles and the brace scree are under the west bank's flowers / behind the bole at these poses — placed (audit) but not readable there | not claimed visually |
+
+Fixed views A and C, head → final build: A byte-identical, C 5 pixels at 1/255; draws and triangles the head's
+(A 566 / 8.62 M, C 407 / 6.96 M). Offline, none of the six cameras meets a backside sphere.
+
 ## Iteration 16 (goal mode, 2026-09-20) — the plaza's backside: rocks at the fence-topped south bank (expansion-2, V20)
 
 `06f2a781` + `294bc94c` (`src/world/rocks/backside.ts`). BEFORE = the head `97c83227` (expansion-2 in), AFTER = this

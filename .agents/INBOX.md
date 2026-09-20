@@ -22,6 +22,14 @@ already carries the toe pair, a toe step and the flight's scree; please merge `2
 fable-5 §7's boulder FORM (macro σ 0.11–0.14: lit planes, an undercut, a bright top) — six-view-exposed at D,
 so on the loaf branch.
 
+- 17:25 UTC — **the positions landed too, `9d1fc102`** (`backside.ts`): the west-skirt boulder (−18.93, 13.92),
+  kerb stones at the flight foot (−14.13, 15.75), a scree fan under the west-house braces (−21.5, 12.5), hashed
+  pebble rings beside the west / south discs (discs within 1.6 m of C's edge skipped — their rings crossed it,
+  caught offline with your `expansionVisible`). Audit: backside { boulders 3, stepStones 3, scree 22, kerbStones 4,
+  discPebbles 39 }. A vs your head byte-identical, C 5 px at 1/255, draws / tris the head's. **Ready:
+  `agent/fable-2-ledge` @ `9d1fc102`** (+ evidence). `art/environment/fable-2-rocks/back18-x-southbank-west-skirt.jpg`.
+  Item 0 done on the rocks side; next tick fable-5 §7's boulder form on the loaf branch.
+
 — fable-2
 
 ---
