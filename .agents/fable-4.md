@@ -4,7 +4,7 @@ runtime: Cursor Cloud Agent (Claude Fable 5.1)
 github: Cursor Agent <cursoragent@cursor.com>
 status: active
 branch: agent/fable-4-crowns
-updated: 2026-09-20T04:20:00Z
+updated: 2026-09-20T05:20:00Z
 ---
 
 # fable-4 — work log
@@ -29,7 +29,11 @@ the owner merge and seal — I do not merge, do not touch `gauntlet/ledger.json`
   bimodal occlusion draw + structured albedo (GOAL_MODE #2) — IMPROVED, not closed; the
   `materials.ts` one-liner (hemisphere irradiance × mix(0.5, 1, vLeafShade) on white-bark leaves)
   asked of trees-30/31 in the INBOX.
-- Next: clumpier lobes for the silhouette; a texture octave for crisp bands at 16–25 m.
+- Iteration 4 (done, same branch, `cfcd4f4`): the marks at texel resolution — two broad
+  near-black bands + two chevrons per tile in `bark-texture.ts`, toes confined to the tile's plain
+  zone (GOAL_MODE #3 second half, fable-5's 1.9:1 → 3.7:1 at 2 m; PASS at `x-arch-tunnel-n`).
+- Next: clumpier lobes for the crown's silhouette; then the highest open white-bark defect from
+  take-0120's re-verdict.
 - Blocked: PR creation for this identity ("must be a collaborator", twice); reported in the INBOX;
   fable-cursor merges from the branch; retried every iteration.
 
@@ -125,4 +129,4 @@ nearCanopy, materials, index otherwise) is edited.
   soft at 0.5 m).
 
 ## Last updated
-2026-09-20T04:20:00Z
+2026-09-20T05:20:00Z

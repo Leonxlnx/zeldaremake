@@ -117,6 +117,41 @@ gated on the white-bark material, `if (vIsLeaf > 0.5) reflectedLight.indirectDif
 the INBOX. In-lane next: clumpier lobes (leaves on the outer twig thirds, gaps between sprigs) for
 the silhouette itself.
 
+## Iteration 4 — the marks at texel resolution (`cfcd4f4`, on `agent/fable-4-crowns`)
+
+fable-5's independent measure of iteration 2 (INBOX 03:10): band cores −37…−41 % (IMPROVED) but
+1.9 : 1 against the reference's 3–6 : 1, soft edges that "read as shade or dirt", and the young
+stems through the arch unchanged. Checked here first: the young variants do carry the vertex
+marks (variant 2: 0.50 → 0.17 at 1.1 m) — but a vertex band is interpolated over rings 0.18 m
+apart, so its core never reaches the dark and its edge is a gradient; at 10 m in 30 % haze that is
+0.2 % of the frame at `x-arch-tunnel-n`. The observation stands, the cause was the ring pitch,
+not the age gate.
+
+The fix is the texture octave (`bark-texture.ts`): two broad near-black bands a tile (0.22–0.34 m,
+torn-paper edges, fine horizontal fissures, a few pale flecks, recessed and rough) and two chevron
+branch scars (70–120 px wide, 0.22–0.34 m tall, point down, a raised warm callus rim), drawn after
+every older feature so those stay put, and kept clear of v 0.34–0.60 — the plain zone the root
+toes now sample (`rootToe` vSlice, same draw count). Every LOD, every variant and the saplings wear
+it; the per-variant tile offsets put the bands at different heights per variant. BEFORE = the head
+`3813fa6`. Sheets `fable4-r48d-*.jpg`; crops `fable4-r48d-x-arch-tunnel-n-stems-crop.png`,
+`fable4-r48d-tile-band-crop.png`.
+
+| pose | verdict | what changed |
+| --- | --- | --- |
+| `x-arch-tunnel-n` (fable-5's pose; young stems at 10.5 / 17 m) | PASS | both stems carry black torn-edged bands through the haze — two on the near stem, two on the far — where before there were soft grey zones (stems crop) |
+| `f4-trunk-2m` | PASS | the broad band with torn edges and a chevron on the survey trunk; band-core contrast on the stem column, linear median/p10: **1.94 : 1 → 3.72 : 1** (the reference's 3–6 : 1) |
+| `f4-trunk-8m`, `f4-pair-12-20m`, `w18-spine-r` | PASS | the bands stay black lines at 8–25 m instead of shade |
+| `f4-clearing-east-tree` | PASS | the young stem by the path: two bands and a chevron on a stem that had none readable |
+| `sn-whitebark-base` | PASS, toes clean | a band at 1.2 m and a chevron above; the toes and flare stay pale (the plain zone) |
+
+Six fixed views (settle 6, `3813fa6` → this commit alone): A 0.2199 =, B 0.2044 =, C 0.2398 =,
+D 0.2784 =, E 0.2147 → 0.2148, F 0.2606 = — draws 577/535/393/402/535/516 and triangles
+identical, W12 163/163, determinism 0, console 0, anti-cheat green, typecheck + build green.
+**Whole branch (`c46081f` crowns + `cfcd4f4` marks) vs the head `3813fa6`, settle 6:**
+A 0.2199 → 0.2199, B 0.2044 → 0.2045, C 0.2398 → 0.2400, D 0.2784 → 0.2785, E 0.2147 → 0.2148,
+F 0.2606 → 0.2606 — every moved view toward the reference; draws 577/535/393/402/535/516 and
+triangles identical; W12 163/163, determinism 0, console 0, anti-cheat 87 green.
+
 ## Known limits / handoffs
 - The bands are soft at 16–25 m: the vertex colour is interpolated over 18 sides × 0.18–0.35 m
   rings, so a band's edge is a gradient, not a cut. Crisp edges at that range need a texture
