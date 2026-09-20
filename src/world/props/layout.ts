@@ -1,14 +1,27 @@
 /**
  * Village props — WHERE the domestic details stand. Own authored positions (the shared
  * `src/world/layout.ts` is read, never written, for the houses / stairs / boulders / npc spots
- * the placement rules keep clear of). Every prop names a `cluster`: props of one cluster merge
- * into one mesh per material, so the whole dressing costs a handful of draw calls.
+ * the placement rules keep clear of). Every prop names a `cluster` (a place); clusters belong to
+ * a merge locality (`localityOf`), and each locality is one mesh per material, so the whole
+ * dressing costs a handful of draw calls.
  *
  * Placement (index.ts) seats each prop on `ctx.terrain.height`, probes its footprint against the
  * terrain masks and the layout's obstacles, and skips a prop rather than relocating it across the
  * village. Projections quoted below are pinhole into the six fixed cameras (1280×720).
  */
-export type PropKind = 'pot' | 'crate' | 'barrel' | 'bucket' | 'ladder' | 'platform' | 'marker';
+export type PropKind = 'pot' | 'crate' | 'barrel' | 'bucket' | 'ladder' | 'platform' | 'marker' | 'lightString';
+
+/**
+ * Merge localities: a cluster is a place (its props are placed and audited together); a locality
+ * is what draws together — every cluster of one locality merges into ONE mesh per material and
+ * is distance-culled as one. The village's seven clusters span ~30 m and every fixed camera holds
+ * most of them, so per-cluster meshes bought no culling there, only draw calls (up to 16 meshes,
+ * 32 draws with the shadow pass); the north clearing is 60–75 m away and draws on its own.
+ */
+const CLUSTER_LOCALITY: Record<string, string> = { 'north-clearing': 'clearing' };
+export function localityOf(cluster: string): string {
+  return CLUSTER_LOCALITY[cluster] ?? 'village';
+}
 
 export interface PropDef {
   id: string;
@@ -38,6 +51,12 @@ export interface PropDef {
    * the player's feet).
    */
   platform?: { deck: number; width: number; depth: number; rail: boolean; ladder: boolean; steps?: number; dais?: boolean };
+  /**
+   * lightString: the peg line (x, z) in order — each peg seated on the terrain, the cord `lift` m
+   * over the pegs' feet drooping `sag` mid-span, a glowing pod every `spacing` m. Authored lines
+   * are placed as drawn (no footprint probe); `x`/`z` of the def are the first peg.
+   */
+  string?: { points: [number, number][]; lift: number; sag: number; spacing: number };
 }
 
 export const PROP_LAYOUT: readonly PropDef[] = [
@@ -66,6 +85,17 @@ export const PROP_LAYOUT: readonly PropDef[] = [
   // (0.10–0.20 × 0.60–0.66), F (0.48, 0.59) behind Link.
   { id: 'stair-pot', kind: 'pot', x: 7.95, z: 1.8, size: 0.56, yaw: -0.3, cluster: 'stair-foot', variant: 0, paving: true },
   { id: 'stair-pot-squat', kind: 'pot', x: 7.55, z: 2.1, size: 0.42, yaw: 1.9, cluster: 'stair-foot', variant: 2, paving: true },
+
+  // ---- the demo's strings of small lights along the banks at the hero flight (frame A itself:
+  // a string from (0.50, 0.62) to (0.60, 0.55) — the paving's edge at (4.9, −1.7) up to the
+  // flight's left foot — and one on the right bank behind the Kokiri boy at (0.90–0.95,
+  // 0.35–0.40); `d_011` and `d_087` show the same motif). LEFT: from the plaza paving's edge along
+  // the north rim of the lawn pocket left of the flight and up its bank beside the first treads:
+  // A (0.50, 0.58) → (0.58, 0.50), F (0.14, 0.63) → (0.19, 0.50), B's right edge (0.88–0.96).
+  // RIGHT: along the plateau bank right of the flight (tilt 24–39°, no masks), A (0.90–0.94,
+  // 0.36–0.40), 1.6 → 3.0 m up. Pegs 0.45 m, cord sag 0.08, a pod every 0.3 m.
+  { id: 'stair-left-lights', kind: 'lightString', x: 5.05, z: -2.3, size: 1, yaw: 0, cluster: 'stair-foot', string: { points: [[5.05, -2.3], [5.8, -2.55], [6.5, -2.8], [7.05, -3.1], [7.45, -3.4], [7.8, -3.75]], lift: 0.45, sag: 0.08, spacing: 0.3 } },
+  { id: 'stair-right-lights', kind: 'lightString', x: 12.4, z: 0.9, size: 1, yaw: 0, cluster: 'stair-foot', string: { points: [[12.4, 0.9], [12.95, 0.3], [13.45, -0.35], [13.9, -1.0], [14.25, -1.7]], lift: 0.45, sag: 0.08, spacing: 0.3 } },
 
   // ---- the plateau's storage corner by the plateau-north fence (survey-2 w28-plateau-d looks
   // straight at it): crate (#32), bucket, a barrel and two pots. The storage pot that stood at

@@ -5,24 +5,31 @@
  *
  * Every prop is seated on the sampled heightfield (its underside conformed to the ground, its
  * upright limited to a few degrees off the terrain normal — a pot is set level, not tipped down
- * a bank), weathered at the base, and merged per `cluster` and material into one mesh each.
+ * a bank), weathered at the base, and merged per locality (`localityOf(cluster)`) and material
+ * into one mesh each; each locality is distance-culled as one.
  */
-import { BufferGeometry, Color, Group, Mesh, Quaternion, Vector3 } from 'three';
+import { Box3, BufferGeometry, type Camera, Color, Group, Mesh, Quaternion, Sphere, Vector3 } from 'three';
 import { mergeGeometries } from 'three/addons/utils/BufferGeometryUtils.js';
 import type { WorldContext, WorldSystem } from '../system';
-import { inNorth, northBox, northVisible } from '../util/northLocality';
 import { createRng } from '../util/prng';
-import { barrelGeometry, bucketGeometry, crateGeometry, ladderGeometry, markerGeometry, type Part, platformGeometry, potGeometry } from './geometry';
-import { PROP_LAYOUT, type PropDef } from './layout';
+import { barrelGeometry, bucketGeometry, crateGeometry, ladderGeometry, lightStringGeometry, markerGeometry, type Part, platformGeometry, potGeometry } from './geometry';
+import { localityOf, PROP_LAYOUT, type PropDef } from './layout';
 import { createPropMaterials, type MaterialKey, PLANK_MEAN } from './materials';
 
 const UP = new Vector3(0, 1, 0);
-const MATERIAL_KEYS: MaterialKey[] = ['wood', 'clay', 'iron', 'rope'];
+const MATERIAL_KEYS: MaterialKey[] = ['wood', 'clay', 'iron', 'rope', 'glow'];
 /** a small prop follows the terrain normal only this far (rad); beyond it, it is set level into the slope */
 const MAX_TILT = (9 * Math.PI) / 180;
 /** vertices below this local height are pulled onto the sampled ground (m) */
 const CONTACT_BAND = 0.08;
 export const EMBED = 0.008;
+/**
+ * A cluster draws only while the camera is within this distance of its bounding sphere (m). A
+ * 0.6 m pot is a dozen pixels lost in the haze at 45 m; the north clearing's dressing (60–75 m
+ * from every fixed camera, occluded by the log's root mass) would otherwise ride into the shadow
+ * and colour passes of frames it cannot appear in.
+ */
+export const CLUSTER_VISIBLE_M = 45;
 
 export interface PlacementOptions {
   paving?: boolean;
@@ -113,11 +120,12 @@ const COLOUR_DOMAIN: Record<MaterialKey, [number, number, number]> = {
   clay: [0.93, 0.92, 0.9],
   rope: [0.28 * 0.9, 0.2 * 0.9, 0.085 * 0.9],
   iron: [1, 1, 1],
+  glow: [1, 1, 1],
 };
 
 /** grime and moss where a prop meets the ground; continuous in space so shared edges stay seamless */
 function weather(geometry: BufferGeometry, material: MaterialKey, size: number): void {
-  if (material === 'iron') return;
+  if (material === 'iron' || material === 'glow') return;
   const p = geometry.attributes.position;
   const colors = geometry.attributes.color;
   const [dr, dg, db] = COLOUR_DOMAIN[material];
@@ -152,19 +160,22 @@ export async function create(ctx: WorldContext): Promise<WorldSystem> {
   const terrain = ctx.terrain;
   const ownedGeometry: BufferGeometry[] = [];
   const bases: number[][] = [];
-  const counts = { pots: 0, crates: 0, barrels: 0, buckets: 0, platforms: 0, ladders: 0, markers: 0, ropeRailings: 0 };
+  const counts = { pots: 0, crates: 0, barrels: 0, buckets: 0, platforms: 0, ladders: 0, markers: 0, lightStrings: 0, lightPods: 0, ropeRailings: 0 };
   const skipped: string[] = [];
   const placed: { id: string; kind: string; cluster: string; x: number; y: number; z: number; tiltDeg: number }[] = [];
-  /** world-space geometry per cluster and material, merged at the end */
-  const clusters = new Map<string, Record<MaterialKey, BufferGeometry[]>>();
-  const batchesFor = (cluster: string) => {
-    let b = clusters.get(cluster);
+  /** world-space geometry per merge locality and material, merged at the end */
+  const localities = new Map<string, Record<MaterialKey, BufferGeometry[]>>();
+  const batchesFor = (locality: string) => {
+    let b = localities.get(locality);
     if (!b) {
-      b = { wood: [], clay: [], iron: [], rope: [] };
-      clusters.set(cluster, b);
+      b = { wood: [], clay: [], iron: [], rope: [], glow: [] };
+      localities.set(locality, b);
     }
     return b;
   };
+  /** world-space extent of each cluster per material (audit + tests; the meshes merge past cluster level) */
+  const clusterBounds = new Map<string, Partial<Record<MaterialKey, Box3>>>();
+  const clusterNames = new Set<string>();
   /** props that reserve ground (x, y, z, radius) so later ones keep clear */
   const taken: number[][] = [];
   /**
@@ -217,6 +228,27 @@ export async function create(ctx: WorldContext): Promise<WorldSystem> {
       contactBand = 0;
       counts.ladders++;
       footR = def.size / 2 + 0.2;
+    } else if (def.kind === 'lightString') {
+      // an authored line along a bank: every peg seated on the sampled ground, the string placed
+      // as drawn (no footprint probe — it hugs paving edges and banks the probe would refuse)
+      const line = def.string;
+      if (!line || line.points.length < 2) {
+        skipped.push(def.id);
+        continue;
+      }
+      x = line.points[0][0];
+      z = line.points[0][1];
+      groundY = terrain.height(x, z);
+      const pegs = line.points.map(([px, pz]) => new Vector3(px - x, terrain.height(px, pz) - groundY, pz - z));
+      parts = lightStringGeometry(rng, { pegs, lift: line.lift, sag: line.sag, spacing: line.spacing, podRadius: 0.03 });
+      yaw = 0;
+      orientation = new Quaternion();
+      contactBand = 0;
+      counts.lightStrings++;
+      counts.lightPods += parts.filter((p) => p.material === 'glow').length;
+      footR = 0.12;
+      // every peg reserves a little ground for the vegetation scatter (the first one through footR)
+      for (let i = 1; i < line.points.length; i++) footprints.push({ x: line.points[i][0], z: line.points[i][1], r: 0.12 });
     } else if (def.kind === 'platform' && def.platform?.dais) {
       // the lookout railing: bound to LAYOUT.plateauLookout, whose author verified the
       // clearances — no footprint probe, no nudge. The stone dais (hardscape) is the deck: its top
@@ -315,7 +347,13 @@ export async function create(ctx: WorldContext): Promise<WorldSystem> {
     bases.push([x, terrain.height(x, z), z]);
     placed.push({ id: def.id, kind: def.kind, cluster: def.cluster, x: +x.toFixed(3), y: +groundY.toFixed(3), z: +z.toFixed(3), tiltDeg: +((tiltUsed * 180) / Math.PI).toFixed(2) });
     footprints.push({ x: +x.toFixed(3), z: +z.toFixed(3), r: +footR.toFixed(3) });
-    const batches = batchesFor(def.cluster);
+    clusterNames.add(def.cluster);
+    const batches = batchesFor(localityOf(def.cluster));
+    let bounds = clusterBounds.get(def.cluster);
+    if (!bounds) {
+      bounds = {};
+      clusterBounds.set(def.cluster, bounds);
+    }
     for (const part of parts) {
       const g = part.geometry;
       weather(g, part.material, def.kind === 'platform' || def.kind === 'ladder' ? 0.9 : def.size);
@@ -366,21 +404,27 @@ export async function create(ctx: WorldContext): Promise<WorldSystem> {
         }
       }
       g.userData.contactIndices = contact;
+      g.computeBoundingBox();
+      if (g.boundingBox) {
+        const box = bounds[part.material];
+        if (box) box.union(g.boundingBox);
+        else bounds[part.material] = g.boundingBox.clone();
+      }
       batches[part.material].push(g);
     }
   }
 
   ctx.shared.propFootprints = footprints;
 
-  // merge per cluster and material
+  // merge per locality and material: one mesh per material for the whole village, one set for
+  // the clearing (the seven village clusters were 16 meshes, up to 32 draws with the shadow pass)
   let meshes = 0;
-  const nBox = northBox(ctx.layout);
-  const northGroups: Group[] = [];
-  for (const [cluster, batches] of clusters) {
+  const localityBounds: { group: Group; sphere: Sphere }[] = [];
+  for (const [locality, batches] of localities) {
     const group = new Group();
-    group.name = cluster;
-    // a cluster whose props stand in the north locality draws only within its visibility radius
-    if (PROP_LAYOUT.some((d) => d.cluster === cluster && inNorth(nBox, d.x, d.z))) northGroups.push(group);
+    group.name = locality;
+    const sphere = new Sphere();
+    let first = true;
     for (const key of MATERIAL_KEYS) {
       const list = batches[key];
       if (!list.length) continue;
@@ -392,19 +436,39 @@ export async function create(ctx: WorldContext): Promise<WorldSystem> {
       }
       const merged = mergeGeometries(list, false);
       list.forEach((g) => g.dispose());
-      if (!merged) throw new Error(`props: cannot merge ${cluster}/${key}`);
+      if (!merged) throw new Error(`props: cannot merge ${locality}/${key}`);
       merged.userData.contactIndices = contactIndices;
       merged.computeBoundingBox();
       merged.computeBoundingSphere();
+      if (merged.boundingSphere) {
+        if (first) sphere.copy(merged.boundingSphere);
+        else sphere.union(merged.boundingSphere);
+        first = false;
+      }
       ownedGeometry.push(merged);
       const mesh = new Mesh(merged, materials[key]);
-      mesh.name = `${cluster}-${key}`;
+      mesh.name = `${locality}-${key}`;
       mesh.castShadow = ctx.quality.shadows;
       mesh.receiveShadow = true;
       group.add(mesh);
       meshes++;
     }
     root.add(group);
+    if (!first) localityBounds.push({ group, sphere });
+  }
+  /** distance cull per locality: pose jumps come through onCameraMove, the walk through update */
+  const cull = (camera: Camera) => {
+    for (const b of localityBounds) b.group.visible = camera.position.distanceTo(b.sphere.center) - b.sphere.radius < CLUSTER_VISIBLE_M;
+  };
+  const round3 = (v: number) => +v.toFixed(3);
+  const boundsAudit: Record<string, Partial<Record<MaterialKey, { min: number[]; max: number[] }>>> = {};
+  for (const [cluster, bounds] of clusterBounds) {
+    const entry: Partial<Record<MaterialKey, { min: number[]; max: number[] }>> = {};
+    for (const key of MATERIAL_KEYS) {
+      const box = bounds[key];
+      if (box) entry[key] = { min: box.min.toArray().map(round3), max: box.max.toArray().map(round3) };
+    }
+    boundsAudit[cluster] = entry;
   }
 
   let triangles = 0;
@@ -413,24 +477,25 @@ export async function create(ctx: WorldContext): Promise<WorldSystem> {
     ...counts,
     geometry: 'original-lathed-pottery-chamfered-boards-coopered-staves-laid-rope',
     textured: { wood: materials.sets, clay: 'procedural-wheel-marks', rope: 'procedural-laid-strands' },
-    clusters: clusters.size,
+    clusters: clusterNames.size,
+    localities: localities.size,
     meshes,
     triangles,
     placed,
     skipped,
     footprints,
+    clusterBounds: boundsAudit,
+    culling: { visibleWithinM: CLUSTER_VISIBLE_M, localities: localityBounds.map((b) => ({ locality: b.group.name, centre: b.sphere.center.toArray().map((v) => +v.toFixed(2)), radius: +b.sphere.radius.toFixed(2) })) },
     samplePositions: { bases },
   }));
   return {
     name: 'props',
     group: root,
     update(_dt, _t, c) {
-      const show = northVisible(nBox, c.camera.position.x, c.camera.position.z);
-      for (const g of northGroups) g.visible = show;
+      cull(c.camera);
     },
     onCameraMove(camera) {
-      const show = northVisible(nBox, camera.position.x, camera.position.z);
-      for (const g of northGroups) g.visible = show;
+      cull(camera);
     },
     dispose() {
       ownedGeometry.forEach((g) => g.dispose());

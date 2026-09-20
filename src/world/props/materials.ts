@@ -15,13 +15,23 @@ import { Noise2D } from '../util/noise';
 import { createRng } from '../util/prng';
 import { applyShadeFloor, type ShadeFloor } from '../materials/shadeFloor';
 
-export type MaterialKey = 'wood' | 'clay' | 'iron' | 'rope';
+export type MaterialKey = 'wood' | 'clay' | 'iron' | 'rope' | 'glow';
+
+/**
+ * The light strings' pods: the demo's small yellow-green lights along the banks (frame A at
+ * (0.50–0.60, 0.55–0.62) and (0.90–0.95, 0.35–0.40), `d_011`, `d_087`). Emissive peak ≥ 2.0
+ * linear, like the lantern pods, so the height fog's far-shade exemption keeps them lit; no halo
+ * geometry (the lantern glow language stays with structures / atmosphere).
+ */
+export const GLOW_EMISSIVE = 0xb8e84a;
+export const GLOW_INTENSITY = 2.3;
 
 export interface PropMaterials {
   wood: MeshStandardMaterial;
   clay: MeshStandardMaterial;
   iron: MeshStandardMaterial;
   rope: MeshStandardMaterial;
+  glow: MeshStandardMaterial;
   /** which texture sets came from disk (for the audit) */
   sets: string[];
   dispose(): void;
@@ -207,6 +217,7 @@ export async function createPropMaterials(ctx: Pick<WorldContext, 'textures' | '
     // reflect, and a hoop at metalness 0.55 rendered as a flat black band
     iron: new MeshStandardMaterial({ color: 0x6e6357, roughness: 0.62, metalness: 0.3, vertexColors: true }),
     rope: new MeshStandardMaterial({ map: rope.color, normalMap: rope.normal, normalScale: new Vector2(0.8, 0.8), roughness: 1, color: new Color(0x8f7a52), vertexColors: true }),
+    glow: new MeshStandardMaterial({ color: new Color(0x3a3a1e), emissive: new Color(GLOW_EMISSIVE), emissiveIntensity: GLOW_INTENSITY, roughness: 0.5, metalness: 0, vertexColors: true }),
   };
   applyShadeFloor(materials.wood, WOOD_FLOOR, ctx.config.palette.leafSun);
   applyShadeFloor(materials.clay, CLAY_FLOOR, ctx.config.palette.leafSun);

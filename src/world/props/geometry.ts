@@ -7,7 +7,7 @@
  * plank UVs put every board on its own column of the `weathered_planks` map at true scale
  * (`PLANK_METRES` per repeat, `PLANK_BOARDS` boards across), so no two boards share a grain.
  */
-import { BufferGeometry, CatmullRomCurve3, Color, CylinderGeometry, Float32BufferAttribute, LatheGeometry, Matrix4, Quaternion, TorusGeometry, TubeGeometry, Vector2, Vector3 } from 'three';
+import { BufferGeometry, CatmullRomCurve3, Color, CylinderGeometry, Float32BufferAttribute, LatheGeometry, Matrix4, Quaternion, SphereGeometry, TorusGeometry, TubeGeometry, Vector2, Vector3 } from 'three';
 import type { Rng } from '../util/prng';
 import { CLAY_REPEAT_METRES, type MaterialKey, PLANK_BOARDS, PLANK_METRES, ROPE_REPEAT_METRES, WOOD_TINT } from './materials';
 
@@ -522,6 +522,80 @@ export function markerGeometry(rng: Rng, size: number): Part[] {
   const side = new Vector3(w * 0.5, 0, 0).applyQuaternion(q0);
   // one strand up each side of the board and over its top edge (an inverted U the tag hangs from)
   push(rope([loopBottom.clone().sub(side), loopTop.clone().sub(side), loopTop.clone().add(side), loopBottom.clone().add(side)], 0.008, 5), 'rope');
+  return parts;
+}
+
+// ---------------------------------------------------------------------------------------------
+// light string
+
+export interface LightStringSpec {
+  /** peg feet in the prop's frame (x, groundY, z), in order along the string */
+  pegs: Vector3[];
+  /** cord height above each peg's foot (m) */
+  lift: number;
+  /** mid-span droop of the cord (m) */
+  sag: number;
+  /** pod spacing along each span (m) */
+  spacing: number;
+  /** pod radius (m) */
+  podRadius: number;
+}
+
+/**
+ * The demo's string of small lights along a bank: short stakes, a thin cord drooping between
+ * them, and glowing pods hung under the cord every `spacing`. Built in the prop's frame with
+ * the pegs' feet already on the sampled ground (index.ts passes them); each peg's foot
+ * vertices are recorded as `contactIndices` so the world pass re-seats them exactly.
+ */
+export function lightStringGeometry(rng: Rng, spec: LightStringSpec): Part[] {
+  const parts: Part[] = [];
+  const push = (geometry: BufferGeometry, material: MaterialKey) => parts.push({ geometry, material });
+  const tops: Vector3[] = [];
+  const last = spec.pegs.length - 1;
+  spec.pegs.forEach((foot, k) => {
+    const h = spec.lift + rng.range(-0.02, 0.02);
+    // the demo's strings hover along the bank with no visible support: one slim stake at each end
+    // carries the cord, the points between only shape it (a stake at every node read as a row
+    // of dark sticks in the foreground of frames whose reference shows none)
+    if (k === 0 || k === last) {
+      const peg = board(0.028, h + 0.08, 0.028, { grain: 'y', rng, chamfer: 0.004, shade: 0.8 });
+      const q = new Quaternion().setFromAxisAngle(new Vector3(rng.range(-1, 1), 0, rng.range(-1, 1)).normalize(), rng.range(0, 0.07));
+      place(peg, new Vector3(foot.x, foot.y + h / 2 - 0.03, foot.z), q);
+      const pos = peg.attributes.position;
+      const contact: number[] = [];
+      for (let i = 0; i < pos.count; i++) if (pos.getY(i) < foot.y + 0.04) contact.push(i);
+      peg.userData.contactIndices = contact;
+      push(peg, 'wood');
+    }
+    tops.push(new Vector3(foot.x, foot.y + h, foot.z));
+  });
+  const podColour: [number, number, number] = [1, 1, 1];
+  for (let s = 0; s + 1 < tops.length; s++) {
+    const a = tops[s];
+    const b = tops[s + 1];
+    const mid = a.clone().add(b).multiplyScalar(0.5);
+    mid.y -= spec.sag * (0.85 + rng.range(0, 0.3));
+    const curve = new CatmullRomCurve3([a, mid, b]);
+    const cord = rope([a, mid, b], 0.005, 4);
+    tintBy(cord, () => [0.42, 0.4, 0.3]);
+    push(cord, 'rope');
+    const len = curve.getLength();
+    const n = Math.max(1, Math.round(len / spec.spacing));
+    for (let i = 1; i <= n; i++) {
+      const t = (i - 0.5) / n;
+      const p = curve.getPointAt(t);
+      const r = spec.podRadius * rng.range(0.9, 1.1);
+      const pod = flat(new SphereGeometry(r, 7, 5));
+      pod.scale(1, 1.25, 1);
+      paint(pod, () => podColour);
+      place(pod, new Vector3(p.x, p.y - r * 1.25 - 0.012, p.z));
+      push(pod, 'glow');
+      // the short stem from the cord to the pod
+      const stem = rope([new Vector3(p.x, p.y + 0.002, p.z), new Vector3(p.x, p.y - 0.014, p.z)], 0.003, 3, 1);
+      tintBy(stem, () => [0.42, 0.4, 0.3]);
+      push(stem, 'rope');
+    }
+  }
   return parts;
 }
 
