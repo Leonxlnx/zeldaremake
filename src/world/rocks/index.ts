@@ -17,7 +17,7 @@ import { createRockMaterial, NEAR_FADE_M, NEAR_TILE_M } from './material';
 import { dressRock, mergeRockParts } from './dressing';
 import { buildRockLedge, type RockLedgeDef } from './ledge';
 import { buildClearingRocks, type ClearingLayout } from './clearing';
-import { PEBBLE_DEFAULTS, scatterPathPebbles, stairFootPebbles } from './pebbles';
+import { PEBBLE_DEFAULTS, PEBBLE_LOOKS, scatterPathPebbles, stairFootPebbles } from './pebbles';
 import { NORTH_Z1 } from '../util/northLocality';
 import { CUSHION, FERN, TUFT_A, TUFT_B, buildSproutMeshes, createSproutMaterial, type SproutSpot } from '../materials/sprouts';
 import type { Rng } from '../util/prng';
@@ -893,8 +893,13 @@ export async function create(ctx: WorldContext): Promise<WorldSystem> {
   const strataGeos = [0, 1, 2, 3].map((i) =>
     buildRock(vRng.fork(`strata-${i}`), `${seed}/strata-${i}`, { radius: 1, detail: 3, ridge: 0.14, lump: 0.15, cuts: 4, squashY: 0.55, creaseDeg: 30, cracks: 0, moss: 0.65, dirt: 0.5, tint: new Color(0.62, 0.6, 0.56), freq: 1, strata: 0.1 }),
   );
-  const pebbleGeos = [0, 1, 2, 3].map((i) =>
-    buildRock(vRng.fork(`pebble-${i}`), `${seed}/pebble-${i}`, { radius: 1, detail: 1, ridge: 0.12, lump: 0.25, cuts: 1, squashY: 0.7, creaseDeg: 50, cracks: 0, moss: 0.25, dirt: 0.3, tint: new Color(0.7, 0.69, 0.66), freq: 1 }),
+  // fable-2 (opus #16, the plaza at 1–2 m: "the joint pebbles are identical smooth olive
+  // ellipsoids"): eight variants at the same 80 triangles each — half of them angular chunks (two
+  // to four cleaves, 30° crease normals), half worn cobbles (one or two shallow spalls), flat to
+  // tall, bare grey / warm tan / dark / pale, moss on some and not others — one InstancedMesh per
+  // variant (+4 draws, +0 triangles). The scatter picks the variant per cell (pebbles.ts).
+  const pebbleGeos = PEBBLE_LOOKS.map((look, i) =>
+    buildRock(vRng.fork(`pebble-${i}`), `${seed}/pebble-${i}`, { radius: 1, detail: 1, ridge: 0.15, lump: look.lump, cuts: look.cuts, cutDepth: look.cutDepth, squashY: look.squash, creaseDeg: look.crease, cracks: 0, moss: look.moss, dirt: 0.3, tint: look.tint, freq: 1 }),
   );
 
   ctx.progress('rocks', 0.6);

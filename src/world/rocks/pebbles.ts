@@ -16,8 +16,26 @@
  * second clearing get their fringe too; cells beyond `northZ` are returned separately so the rocks
  * system can draw them as a north-locality mesh (hidden from the plaza's cameras).
  */
+import { Color } from 'three';
 import type { Terrain } from '../terrain/heightfield';
 import { hash2, hashString } from '../util/prng';
+
+/**
+ * The pebble variants (opus #16: not "identical smooth olive ellipsoids"): angular chunks and worn
+ * cobbles, flat to tall, four tints, moss on some. Each is one 80-triangle rock and one instanced
+ * draw; the scatter picks per cell.
+ */
+export const PEBBLE_LOOKS: { cuts: number; cutDepth: [number, number]; squash: number; lump: number; crease: number; moss: number; tint: Color }[] = [
+  { cuts: 3, cutDepth: [0.55, 0.78], squash: 0.62, lump: 0.35, crease: 30, moss: 0.1, tint: new Color(0.68, 0.67, 0.64) }, // grey chunk
+  { cuts: 1, cutDepth: [0.8, 0.94], squash: 0.75, lump: 0.3, crease: 50, moss: 0.3, tint: new Color(0.7, 0.69, 0.66) }, // the old cobble
+  { cuts: 4, cutDepth: [0.5, 0.75], squash: 0.5, lump: 0.45, crease: 30, moss: 0.05, tint: new Color(0.74, 0.7, 0.6) }, // flat tan shard
+  { cuts: 2, cutDepth: [0.6, 0.85], squash: 0.85, lump: 0.4, crease: 34, moss: 0.35, tint: new Color(0.52, 0.5, 0.46) }, // dark tall chunk
+  { cuts: 2, cutDepth: [0.7, 0.9], squash: 0.55, lump: 0.35, crease: 45, moss: 0.4, tint: new Color(0.66, 0.66, 0.6) }, // mossy flat cobble
+  { cuts: 3, cutDepth: [0.55, 0.8], squash: 0.7, lump: 0.5, crease: 30, moss: 0.0, tint: new Color(0.78, 0.76, 0.7) }, // pale chunk, bare
+  { cuts: 4, cutDepth: [0.6, 0.82], squash: 0.45, lump: 0.3, crease: 32, moss: 0.15, tint: new Color(0.6, 0.6, 0.58) }, // grey flake
+  { cuts: 1, cutDepth: [0.78, 0.92], squash: 0.65, lump: 0.28, crease: 55, moss: 0.25, tint: new Color(0.72, 0.68, 0.6) }, // warm worn cobble
+];
+export const PEBBLE_VARIANTS = PEBBLE_LOOKS.length;
 
 export interface PebbleInstance {
   x: number;
@@ -82,7 +100,7 @@ export function scatterPathPebbles(T: Terrain, seed: string, o: PebbleScatterOpt
   };
   const emit = (x: number, z: number, hx: number, hz: number, hk: number) => {
     const sc = 0.025 + 0.085 * hash2(hx, hz, hk + 3);
-    const it: PebbleInstance = { x, y: T.height(x, z) - sc * 0.35, z, scale: sc, yaw: hash2(hx, hz, hk + 4) * Math.PI * 2, variant: Math.floor(hash2(hx, hz, hk + 5) * 4) };
+    const it: PebbleInstance = { x, y: T.height(x, z) - sc * 0.35, z, scale: sc, yaw: hash2(hx, hz, hk + 4) * Math.PI * 2, variant: Math.floor(hash2(hx, hz, hk + 5) * PEBBLE_VARIANTS) };
     (z < o.northZ ? north : main).push(it);
   };
   const n = Math.ceil(R / COARSE_M);
@@ -147,7 +165,7 @@ export function stairFootPebbles(T: Terrain, seed: string, s: StairLike, density
     const m = T.mask(x, z);
     if (m.stairs > 0.5 || m.structure > 0.5) continue;
     const sc = 0.03 + 0.09 * hash2(i, 2, k);
-    out.push({ x, y: T.height(x, z) - sc * 0.35, z, scale: sc, yaw: hash2(i, 3, k) * Math.PI * 2, variant: Math.floor(hash2(i, 4, k) * 4) });
+    out.push({ x, y: T.height(x, z) - sc * 0.35, z, scale: sc, yaw: hash2(i, 3, k) * Math.PI * 2, variant: Math.floor(hash2(i, 4, k) * PEBBLE_VARIANTS) });
   }
   return out;
 }
