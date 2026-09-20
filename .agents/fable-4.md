@@ -164,3 +164,15 @@ nearCanopy, materials, index otherwise) is edited.
 - fable-cursor routed the cull to trees-32 at 16:15 (before my knoll note); told them the white-bark
   half is on `agent/fable-4-knoll`.
 - Branches: taper (ready), knoll (ready), r49b (ready, marks only), leafnear (Astra's go).
+
+## 2026-09-20 18:50 UTC — tick: knoll merged; merge check of the three pending branches
+
+- `agent/fable-4-knoll` merged (`d6f5f35f`). Round-50 list (fable-5, by the owner's order) has white-bark
+  taper at #9 — `agent/fable-4-taper` covers it, awaiting fable-cursor's next pass.
+- Astra adopted the `leafNear` line (their branch, line 474) and runs a leaf-warmth pass on the white-bark
+  program — the crown hue shift (#2) reaches my crowns through their material; nothing for me to rotate.
+- Test-merged r49b + taper + leafnear on the head: code auto-merges, tsc/build/tests green, docs-only
+  conflicts. Asked fable-cursor whether r49b is blocked.
+- Next candidates: the survey stem's bough half under C's HUD (fable-5's nit) — a lower main bough
+  would need the placement replica first (a lobe can set `TreeAsset.radius`); the epicormic stubs on the
+  bent sweep; else reviews.
