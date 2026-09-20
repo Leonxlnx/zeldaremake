@@ -121,6 +121,8 @@ export interface ToeSpec {
  * round-46 geometry, so the 80 placements do not move.
  */
 const _sway = new Vector3();
+/** a low bough's lobe keeps its underside this high over the tree's ground (a walker's eye is 1.45 m) */
+const WALKER_CLEARANCE_M = 1.9;
 const baseRngFor = (p: WhiteBarkParams) => createRng(`whitebark/${p.seed}`).fork('base-47');
 
 /**
@@ -671,15 +673,26 @@ export function createWhiteBarkTree(p: WhiteBarkParams, palette: Palette, detail
     const origin = sample(trunk, t);
     const angle = p.leanAzimuth + 1.9 + i * 2.5 + bt(-0.55, 0.55);
     const reach = crownRadius * (main ? bt(0.45, 0.7) : bt(0.35, 0.58));
-    const center = origin.clone().add(new Vector3(Math.cos(angle) * reach, H * (main ? bt(0.06, 0.11) : bt(0.065, 0.12)), Math.sin(angle) * reach));
+    const rise = H * (main ? bt(0.06, 0.11) : bt(0.065, 0.12));
+    // the main lobe flatter than round 49's (0.05 H, was 0.075): a drooping birch bough's spray, and at
+    // camera C it keeps most of its laminae under the giant's lantern limb (which covers ≈ 3–4 m on
+    // the survey stem) while the underside clears a walker
+    const lobeVR = main ? H * 0.05 : H * 0.04;
+    // the lobe's underside stays over a walker's head (WALKER_CLEARANCE_M): the main bough leaves a
+    // mature stem at 1.55–2.2 m and rises to its lobe, and with a low rise the lobe's bottom laminae
+    // reached 1.4 m — measured standing 3.5 m off the survey stem along the bough. The clamp lifts
+    // the lobe's centre only where the draw would put it lower; the reach and the horizontal extent
+    // (the asset's bounds) do not move.
+    const centerY = main ? Math.max(origin.y + rise, WALKER_CLEARANCE_M + lobeVR + 0.1) : origin.y + rise;
+    const center = new Vector3(origin.x + Math.cos(angle) * reach, centerY, origin.z + Math.sin(angle) * reach);
     const path = growthPath(origin, center, tangent(trunk, t).lerp(new Vector3(Math.cos(angle), 0.2, Math.sin(angle)), 0.62), rng, 8, 1.1);
     const radius = R * (main ? bt(0.15, 0.21) : bt(0.12, 0.18));
     tube(wood, path, taper(path, radius, 0.004), 6, rng, { color: branchColor(radius), roughness: p.ridge * 0.5 });
     // the main bough: a 1.7 m lobe in a few big tufts (W38: ≈ +2 K high-LOD triangles a stem);
     // the second, where drawn, the old small tuft
     boughSpray = true;
-    if (main) foliateLobe(path, center, crownRadius * 0.3, H * 0.075, radius, 2, 3, 4);
-    else foliateLobe(path, center, crownRadius * 0.17, H * 0.04, radius, 2, 3, 4);
+    if (main) foliateLobe(path, center, crownRadius * 0.34, lobeVR, radius, 2, 3, 4);
+    else foliateLobe(path, center, crownRadius * 0.17, lobeVR, radius, 2, 3, 4);
     boughSpray = false;
   }
 

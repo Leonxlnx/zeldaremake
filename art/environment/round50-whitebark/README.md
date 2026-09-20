@@ -101,3 +101,18 @@ fable-5 §7.1 mask (hue 55–170°, sat > 0.12), circular mean over the lobe win
 The term reaches the white-bark program (`'white-leaf-warmth'`) and does what it says — hue only, sat and
 luminance held. Against the 62–65° target the white-bark crowns are still 8–13° yellow-green-ward at 7–10 m.
 Crop `fable4-review-astra-warmth-f4-crown-up.png` (head | Astra).
+
+### The bough over a walker's head (same branch, fourth commit)
+
+Standing 3.5 m off the survey stem along its bough at eye height (`f4-under-bough`), the 12–17 % attach with
+a low rise draw put the lobe's underside at ≈ 1.4 m — a walker in the leaves
+(`fable4-r50-bough-walker-clearance.png`, left). Fix: the main lobe's centre is clamped so its underside stays
+≥ `WALKER_CLEARANCE_M` 1.9 m over the tree's ground, and the main lobe is flatter and a little wider
+(vR 0.05 H, was 0.075; hR 0.34 crownRadius, was 0.30) — a drooping birch spray. The reach and the horizontal
+extent do not move: placement replica 80/80, infos identical. Right panel: the lobe overhead, the view beneath
+clear. At C (`fable4-r50-bough-C-lobe-final-2x.png`) the bough shows its twig and a leaf spray under the
+giant's lantern limb, which covers ≈ 3–4 m on the survey stem — the rest of the lobe sits behind the limb;
+a lobe low enough to clear the limb entirely is a lobe at head height.
+
+Six views vs the previous bough state: C 0.2374 → 0.2376, A/B/D/E/F identical; draws / triangles identical
+(A 8.62 M). **Whole branch vs the seal: A =, B −0.0002, C +0.0017, D +0.0005, E 0, F =.**
