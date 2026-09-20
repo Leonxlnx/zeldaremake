@@ -1,15 +1,27 @@
 {
   "item": "W32",
-  "reviewer": "opus-review",
+  "reviewer": "fable-5",
   "verdict": "pass",
-  "evidence": "gauntlet/reviews/evidence/opus-review/take-0116-W32-D-depth-planes.jpg",
-  "takeId": "take-0116",
+  "evidence": "gauntlet/reviews/evidence/fable-5/take-0121-W32-D-depth-planes.jpg",
+  "takeId": "take-0121",
   "author": "fable-cursor",
-  "takeSha": "973a21e5b045177f66da3d04dc4e67e387270620",
-  "at": "2026-09-19T19:31:55.825Z",
+  "takeSha": "cf8083ba21018a37478c2b1f5b2af4be97cbf710",
+  "at": "2026-09-20T06:20:33.775Z",
   "criterion": "Shot D depth reads in 3+ planes (foreground stones, mid boulders/trees, far log in mist) like the reference.",
-  "note": "D reads in at least four planes: crisp foreground slabs and flower banks, then the mid banks and trunks either side of the path with some contrast lost, then the arch mass well hazed, then a pale far field behind it; the capture's own depth histogram reports farLayerCount 3 and no bucket beyond 20 m holding more than 3.8 % of pixels. Nits outside the criterion: the far plane beyond the arch is a flat wall with no trunks silhouetting through it, where the reference's fourth plane still shows pale trunks; the near and mid air is clearer than the reference, which has already lost about a third of its contrast by 16 m; and two elevated huts in the upper corners sit across the depth read.",
+  "note": "D reads in four planes: foreground slabs and Link, the flowered banks and near trunks, the arch in haze with ground mist pooling under it (new this take), the far haze. Nit: the far plane beyond the arch is a flat field.",
   "history": [
+    {
+      "item": "W32",
+      "reviewer": "opus-review",
+      "verdict": "pass",
+      "evidence": "gauntlet/reviews/evidence/opus-review/take-0116-W32-D-depth-planes.jpg",
+      "takeId": "take-0116",
+      "author": "fable-cursor",
+      "takeSha": "973a21e5b045177f66da3d04dc4e67e387270620",
+      "at": "2026-09-19T19:31:55.825Z",
+      "criterion": "Shot D depth reads in 3+ planes (foreground stones, mid boulders/trees, far log in mist) like the reference.",
+      "note": "D reads in at least four planes: crisp foreground slabs and flower banks, then the mid banks and trunks either side of the path with some contrast lost, then the arch mass well hazed, then a pale far field behind it; the capture's own depth histogram reports farLayerCount 3 and no bucket beyond 20 m holding more than 3.8 % of pixels. Nits outside the criterion: the far plane beyond the arch is a flat wall with no trunks silhouetting through it, where the reference's fourth plane still shows pale trunks; the near and mid air is clearer than the reference, which has already lost about a third of its contrast by 16 m; and two elevated huts in the upper corners sit across the depth read."
+    },
     {
       "item": "W32",
       "reviewer": "fable-5",

@@ -1,15 +1,27 @@
 {
   "item": "W36",
-  "reviewer": "opus-review",
+  "reviewer": "fable-5",
   "verdict": "pass",
-  "evidence": "gauntlet/reviews/evidence/opus-review/take-0116-W36-E-contact.jpg",
-  "takeId": "take-0116",
+  "evidence": "gauntlet/reviews/evidence/fable-5/take-0121-W36-E-contact.jpg",
+  "takeId": "take-0121",
   "author": "fable-cursor",
-  "takeSha": "973a21e5b045177f66da3d04dc4e67e387270620",
-  "at": "2026-09-19T19:32:50.926Z",
+  "takeSha": "cf8083ba21018a37478c2b1f5b2af4be97cbf710",
+  "at": "2026-09-20T06:20:33.947Z",
   "criterion": "Every asset in viewpoint E looks physically seated with a soft contact shadow.",
-  "note": "Nothing floats at E. Link carries a contact shadow under both boots, the slabs show a side face and a soft dark line into each joint, the stone steps, the signpost and the Kokiri girl all stand on the ground, and the placement probes report 100 % for boulders and structure bases with ambientOcclusion true. Nit, not a contact failure: the pebble field on the bank at the house base is a heap of identically sized and shaped ellipsoids lying on the slope with no bedding into the soil and a hard boundary where the heap stops (take-0116-W36b-E-pebble-pile.jpg); it has no counterpart in the reference frame.",
+  "note": "Nothing floats at E: Link and the Kokiri girl stand with contact shadows, the slabs sit in grass, the rock at the right is seated. The identical-ellipsoid pebble scatter noted on take-0116 is gone from this frame.",
   "history": [
+    {
+      "item": "W36",
+      "reviewer": "opus-review",
+      "verdict": "pass",
+      "evidence": "gauntlet/reviews/evidence/opus-review/take-0116-W36-E-contact.jpg",
+      "takeId": "take-0116",
+      "author": "fable-cursor",
+      "takeSha": "973a21e5b045177f66da3d04dc4e67e387270620",
+      "at": "2026-09-19T19:32:50.926Z",
+      "criterion": "Every asset in viewpoint E looks physically seated with a soft contact shadow.",
+      "note": "Nothing floats at E. Link carries a contact shadow under both boots, the slabs show a side face and a soft dark line into each joint, the stone steps, the signpost and the Kokiri girl all stand on the ground, and the placement probes report 100 % for boulders and structure bases with ambientOcclusion true. Nit, not a contact failure: the pebble field on the bank at the house base is a heap of identically sized and shaped ellipsoids lying on the slope with no bedding into the soil and a hard boundary where the heap stops (take-0116-W36b-E-pebble-pile.jpg); it has no counterpart in the reference frame."
+    },
     {
       "item": "W36",
       "reviewer": "fable-5",
