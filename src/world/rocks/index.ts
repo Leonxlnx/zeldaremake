@@ -270,6 +270,16 @@ export async function create(ctx: WorldContext): Promise<WorldSystem> {
     const l = Math.max(1e-6, bd);
     return [(best[0] - x) / l, (best[2] - z) / l];
   };
+  /** unit xz direction from the D boulder to the hero frame D's camera (the face that frame reads) */
+  const towardD = (() => {
+    const d = ctx.layout.viewpoints.find((v) => v.id === 'D_log');
+    const b = ctx.layout.heroBoulders.find((h) => h.id === 'shot-d-boulder');
+    if (!d || !b) return null;
+    const dx = d.position[0] - b.position[0];
+    const dz = d.position[2] - b.position[2];
+    const l = Math.hypot(dx, dz) || 1;
+    return [dx / l, dz / l] as [number, number];
+  })();
   /** a world xz direction expressed in the local frame of a mesh yawed by `yaw` about +Y */
   const toLocal = (d: [number, number], yaw: number): [number, number] => [d[0] * Math.cos(yaw) - d[1] * Math.sin(yaw), d[0] * Math.sin(yaw) + d[1] * Math.cos(yaw)];
   for (const b of ctx.layout.heroBoulders) {
@@ -290,8 +300,14 @@ export async function create(ctx: WorldContext): Promise<WorldSystem> {
     // Layout round 6: the layout radius is 0.6 (the vegetation's exclusions read the boulder's
     // layout `clearRadius`, still 0.9, so its scatter streams do not move) and the loaf is a
     // rounded 0.64 dome again on the shared 0.15 seat: ≈ 1.2 m wide, ≈ 0.5 m proud)
-    const squash = b.id === 'shot-d-boulder' ? 0.64 : 0.74;
-    const sinkFrac = 0.15;
+    // fable-2 (W23 at frame D, round 49; fable-5's review 09:35 UTC "yes from the reviewer's side"):
+    // the loaf stands 0.2 m prouder — squash 0.72 and no sink — so its moss top clears the fern bank
+    // in front of it the way the frame's boulder top sits at y 0.55 with its fern hat ON the rock;
+    // at 0.64 / 0.15 the 0.5 m loaf was > 99 % hidden behind the fronds (fable-5's D box read fern
+    // green). A D composition change, made on its own branch for fable-cursor's call; the layout
+    // radius (0.6) and the vegetation's clearRadius are untouched.
+    const squash = b.id === 'shot-d-boulder' ? 0.72 : 0.74;
+    const sinkFrac = b.id === 'shot-d-boulder' ? 0 : 0.15;
     const rockOpts: RockOptions = {
       radius: r,
       // 20·(detail+1)² triangles: ≈ 16.8k for the 2.2 m terrace boulder, ≈ 14.6k for the small
@@ -346,6 +362,12 @@ export async function create(ctx: WorldContext): Promise<WorldSystem> {
       // blanket is thinner; the A rock's face toward frame 1 s is moss from shoulder to collar
       mossSide: b.id === 'shot-d-boulder' ? 0.45 : 0.9,
       mossShade: toLocal(shadeDir, yaw),
+      // fable-2 (W23 at frame D, fable-5's 13:25 review of the loaf: "value inverted — moss + shade on
+      // the face D sees, l 0.21 / hue 63° / sat 0.15 against the reference's bare lit face l 0.27 /
+      // 52° / 0.36"): the face toward the hero frame's camera stays bare stone (the cap keeps its
+      // moss — the frame's greenery is on the crown) and is paled up to 30 % toward the lit read
+      bareToward: b.id === 'shot-d-boulder' && towardD ? toLocal(towardD, yaw) : undefined,
+      faceLift: b.id === 'shot-d-boulder' && towardD ? { dir: toLocal(towardD, yaw), amount: 0.3 } : undefined,
       // the lower band is a dark, damp green-brown (not bare soil), reaching ~0.35 m up the
       // visible face of the small boulders
       // (W23: the D rock's collar reaches 45 % of its height, not 60 — frame D reads pale stone
