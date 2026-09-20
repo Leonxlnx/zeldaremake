@@ -152,6 +152,18 @@ A 0.2199 → 0.2199, B 0.2044 → 0.2045, C 0.2398 → 0.2400, D 0.2784 → 0.27
 F 0.2606 → 0.2606 — every moved view toward the reference; draws 577/535/393/402/535/516 and
 triangles identical; W12 163/163, determinism 0, console 0, anti-cheat 87 green.
 
+## Rounds 47–48 together — the owner's sheet (`fable4-cumulative-*.jpg`)
+
+BEFORE = `d06e275` (19 Sep morning, the world before any fable-4 lane) | NOW = `96aaa6c` (this
+branch: rounds 47 + 48). Four poses at player height: `sn-whitebark-base`, `f4-trunk-2m`,
+`f4-crown-up`, `w18-spine-r`. Honest caption: NOW also carries every other lane merged since
+(owner-fable's canopy roof closes the sky at `f4-crown-up`; the shrubs at the base are
+vegetation's) and the two sides were rendered in different batches (wind phase differs). The
+white-bark differences are: the fluted flared foot with toes into the grass and a sooty base
+instead of a straight cut; the black torn bands, chevron scars and lenticel rows instead of a
+1 m painted tiling; crowns under the haze as a mottled mass instead of pale lime; and the stems
+beyond the arch carrying their marks through the haze.
+
 ## Known limits / handoffs
 - The bands are soft at 16–25 m: the vertex colour is interpolated over 18 sides × 0.18–0.35 m
   rings, so a band's edge is a gradient, not a cut. Crisp edges at that range need a texture
