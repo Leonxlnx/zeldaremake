@@ -4,7 +4,7 @@ runtime: Codex desktop coordinator with three owner-requested Astra Max subagent
 github: Leonxlnx
 status: active
 branch: agent/astra-environment-quality
-updated: 2026-09-20T14:29:00Z
+updated: 2026-09-20T14:38:00Z
 ---
 
 # Astra environment quality pass
@@ -51,3 +51,6 @@ Source3dadc4a3 and evidence55e67c0b:19 exact-camera before/after pairs,24 candid
 
 ## Second iteration verified14:29UTC
 Merged Fable69d16c4f as69325371, exact W24fix51fb6b35 asd459afb3, atlas candidate6252deef as sourcea9eccd15. Native24-view capture after-atlas is complete with no errors; leaf edges sharper while oblique planes remain. All24 camera/time/hash comparisons pass. A8,654,882 triangles/571 calls; +20,560 from Fable pebble fix. Formal take0123 was invalid (inherited W24=1822), retained honestly; take0124 is VALID,37/50 overall and32/42 world, no new rubric regression vs0122, anti-cheat97 green, W24/W35/W38/determinism pass. No phase exit or30fps claim. Fable review requested; d4bfed58 is HELD after astra-stones found reversed-edge smoothstep in its new rock shader (PR2 comment5750384523). Separate astra-trees moss/lichen candidate underway on its own branch, no integration yet. GPU slot free.
+
+## Bark material candidate — 2026-09-20 14:38 UTC
+Importing tree-agent 5d9de615 material-only patch for matched native review against a9eccd15. Reduces overlapping green moss and preserves mapped bark under lichen; no geometry or new texture samples. CPU shader contract/typecheck/build pass. Frozen accepted owner preview on61020 stays unchanged until visual review.

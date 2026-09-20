@@ -1,0 +1,35 @@
+{
+  "method": "Actual generated giant near-base geometry; front-facing triangle centroids inside each camera frustum, weighted by projected area. Shader coverage model in CPU double precision. Primary barkSurface numbers exclude 3-D cushion meshes. Does not rasterize, resolve occlusion, wind, texture filtering or lighting; not a measured screen-pixel fraction.",
+  "sourceBaseline": "56eb6ba5",
+  "maskBefore": "smoothstep(0.34, 0.82, vBarkMoss * (0.5 + 0.95 * mossFine))",
+  "maskAfter": "mix(smoothstep(0.40, 0.84, vBarkMoss) * smoothstep(0.24, 0.58, mossFine), previousCover, smoothstep(0.96, 1.0, vBarkMoss))",
+  "views": [
+    {
+      "id": "stair-bank-giant",
+      "poseId": "sn-bole-stair-bank",
+      "sampledTriangles": 361,
+      "oldMeanCover": 0.06953342942411199,
+      "newMeanCover": 0.04774379346076083,
+      "oldBarkInAffected": 0.6361262155389615,
+      "newBarkInAffected": 0.7501530565229261
+    },
+    {
+      "id": "lantern-tree",
+      "poseId": "sn-bole-lantern-tree",
+      "sampledTriangles": 4019,
+      "oldMeanCover": 0.31989553451970937,
+      "newMeanCover": 0.24545955100848668,
+      "oldBarkInAffected": 0.3459896869687005,
+      "newBarkInAffected": 0.49773108909768643
+    },
+    {
+      "id": "north-west-near",
+      "poseId": "sn-bole-nw-near",
+      "sampledTriangles": 2403,
+      "oldMeanCover": 0.15706639983242637,
+      "newMeanCover": 0.1033604614350838,
+      "oldBarkInAffected": 0.5284559298995145,
+      "newBarkInAffected": 0.6893567738722874
+    }
+  ]
+}
