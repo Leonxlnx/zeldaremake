@@ -17,7 +17,8 @@
  * or its shadow. Own stream (`backside`).
  */
 import { BufferGeometry, Color, Float32BufferAttribute, Matrix4, Quaternion, Vector3 } from 'three';
-import { EXPANSION, EXPANSION_STAIRS, southBankFrameVectors, southBankPoint } from '../layout';
+import { EXPANSION, EXPANSION_STAIRS, expansionSteppingStones, southBankFrameVectors, southBankPoint } from '../layout';
+import { hash2, hashString } from '../util/prng';
 import { getTerrain, type Terrain } from '../terrain/heightfield';
 import type { Rng } from '../util/prng';
 import type { Caster } from '../util/expansionLocality';
@@ -26,7 +27,7 @@ import { mergeRockParts } from './dressing';
 
 export interface BacksideBuild {
   geometry: BufferGeometry;
-  stats: { boulders: number; stepStones: number; scree: number; triangles: number };
+  stats: { boulders: number; stepStones: number; scree: number; kerbStones: number; discPebbles: number; triangles: number };
   /** seat points (x, y, z) */
   contacts: [number, number, number][];
   /** casters for the locality's visibility test — one tight caster per piece (a group sphere reached across camera C's edge: +1 draw / +31 K tris in C for nothing) */
@@ -64,7 +65,7 @@ export function buildBacksideRocks(rng: Rng, seed: string, shadeDir: [number, nu
   const parts: { geometry: BufferGeometry; matrix: Matrix4 }[] = [];
   const contacts: [number, number, number][] = [];
   const casters: Caster[] = [];
-  const stats = { boulders: 0, stepStones: 0, scree: 0, triangles: 0 };
+  const stats = { boulders: 0, stepStones: 0, scree: 0, kerbStones: 0, discPebbles: 0, triangles: 0 };
   const toLocal = (yaw: number): [number, number] => [shadeDir[0] * Math.cos(yaw) - shadeDir[1] * Math.sin(yaw), shadeDir[0] * Math.sin(yaw) + shadeDir[1] * Math.cos(yaw)];
   // the flight's span along the lip (its centre u 0.3, width 1.6, plus the hardscape's kerbs)
   const flightU = 0.3;
@@ -231,6 +232,112 @@ export function buildBacksideRocks(rng: Rng, seed: string, shadeDir: [number, nu
         stats.scree++;
         if (stats.scree >= target) break;
       }
+    }
+  }
+
+  // --- expansion-2's listed positions (docs/GOAL_MODE.md fable-2 item 0) ----------------------------
+  // the boulder at the bank's west skirt, kerb stones at the flight's foot, scree under the west
+  // house's braces, pebbles beside the west / south stepping discs
+  {
+    const eRng = rng.fork('listed');
+    const small = (id: string, r: number, x: number, z: number, yaw: number, o: { cuts: number; squash: number; tint: Color; moss: number; sink: number; detail: number; crease: number; dirt: number }) => {
+      const g = buildRock(eRng.fork(id), `${seed}/backside-${id}`, {
+        radius: r,
+        detail: o.detail,
+        ridge: 0.18,
+        lump: 0.3,
+        cuts: o.cuts,
+        cutUp: [-0.3, 0.9],
+        cutDepth: [0.7, 0.9],
+        squashY: o.squash,
+        creaseDeg: o.crease,
+        cracks: 0.3,
+        crackDepth: 0.015,
+        micro: 0.03,
+        chip: 0.015,
+        rimRound: 0.1,
+        moss: o.moss,
+        mossThickness: Math.min(0.08, 0.06 / Math.max(r, 0.2)),
+        mossLumpy: 0.8,
+        mossSide: 0.4,
+        mossShade: toLocal(yaw),
+        facetBare: 0.5,
+        dirt: o.dirt,
+        collarBand: [0.06, 0.6],
+        tint: o.tint,
+        freq: 1,
+      });
+      const ground = T.height(x, z);
+      const cy = ground + r * o.squash * 0.62 - o.sink * 2 * r * o.squash;
+      parts.push({ geometry: g, matrix: pose(T, x, cy, z, yaw, 0.5) });
+      contacts.push([x, ground, z]);
+      casters.push({ x, z, r: r * o.squash + 0.12, y0: ground - 0.05, y1: cy + r * o.squash + 0.05, shadow: true });
+    };
+    // the west-skirt boulder: a half-buried loaf on the bank's NW skirt
+    {
+      const [x, z] = [-18.93, 13.92];
+      if (free(T, x, z, 0.8)) {
+        small('west-skirt', 0.45, x, z, eRng.range(0, Math.PI * 2), { cuts: 2, squash: 0.7, tint: new Color(0.74, 0.73, 0.66), moss: 0.85, sink: 0.32, detail: 16, crease: 32, dirt: 0.75 });
+        stats.boulders++;
+      }
+    }
+    // kerb stones at the flight's foot: three or four flat stones lining the foot, along the lip
+    {
+      const [fx, fz] = [-14.13, 15.75];
+      const n = 3 + eRng.int(0, 2);
+      for (let k = 0; k < n; k++) {
+        const t = (k - (n - 1) / 2) * 0.55;
+        const x = fx + lip[0] * t + eRng.range(-0.08, 0.08);
+        const z = fz + lip[1] * t + eRng.range(-0.08, 0.08);
+        if (!free(T, x, z, 0.8)) continue;
+        small(`kerb-${k}`, eRng.range(0.2, 0.28), x, z, lipYaw + eRng.range(-0.25, 0.25), { cuts: 3, squash: 0.45, tint: new Color(0.68, 0.68, 0.62), moss: 0.4, sink: 0.35, detail: 8, crease: 50, dirt: 0.8 });
+        stats.kerbStones++;
+      }
+    }
+    // scree under the west house's braces: a fan of angular shards spilled downhill of the bole
+    {
+      const [cx, cz] = [-21.5, 12.5];
+      const n = 7 + eRng.int(0, 3);
+      for (let k = 0; k < n * 3 && stats.scree < 40; k++) {
+        const a = eRng.range(0, Math.PI * 2);
+        const d = Math.sqrt(eRng()) * 1.3;
+        const x = cx + Math.cos(a) * d;
+        const z = cz + Math.sin(a) * d;
+        if (!free(T, x, z, 0.95)) continue;
+        small(`brace-${k}`, eRng.range(0.08, 0.2), x, z, eRng.range(0, Math.PI * 2), { cuts: 3 + eRng.int(0, 2), squash: eRng.range(0.55, 0.8), tint: new Color(0.62, 0.61, 0.56), moss: 0.3, sink: 0.28, detail: 5, crease: 34, dirt: 0.85 });
+        stats.scree++;
+        if (stats.scree >= n + 15) break; // (the flights' scree above counts toward stats.scree too)
+      }
+    }
+    // pebbles beside the discs: three to five small stones on the ring 0.45–0.7 m out from each disc's
+    // centre (off the stone itself), each from its own hash — no sequential draws, so a disc added
+    // or moved changes only its own ring
+    {
+      const k0 = hashString(`${seed}/backside/disc-pebbles`);
+      const discs = expansionSteppingStones();
+      // camera C's right frustum edge on the ground (layout `cClip`): the first west discs lie 1.2 m
+      // west of it — their rings would cross it, so discs within 1.6 m of the edge get no pebbles
+      const C = EXPANSION.cClip;
+      discs.forEach((d, i) => {
+        const edgeX = C.x0 + C.dxdz * (d.z - C.z0);
+        if (edgeX - d.x < 1.6) return;
+        const n = 3 + Math.floor(hash2(i, 0, k0) * 3);
+        for (let j = 0; j < n; j++) {
+          const a = hash2(i, 10 + j, k0) * Math.PI * 2;
+          const rr = d.r + 0.12 + hash2(i, 20 + j, k0) * 0.25;
+          const x = d.x + Math.cos(a) * rr;
+          const z = d.z + Math.sin(a) * rr;
+          const m = T.mask(x, z);
+          if (m.stairs > 0.2 || m.structure > 0.3 || T.slope(x, z) > 0.95) continue;
+          const sc = 0.03 + 0.06 * hash2(i, 30 + j, k0);
+          const g = buildRock(eRng.fork(`disc-${i}-${j}`), `${seed}/backside-disc-${i}-${j}`, { radius: sc, detail: 1, ridge: 0.15, lump: 0.3, cuts: 2, cutDepth: [0.6, 0.85], squashY: 0.6, creaseDeg: 40, cracks: 0, moss: 0.2, dirt: 0.4, tint: new Color(0.7, 0.69, 0.64), freq: 1 });
+          const ground = T.height(x, z);
+          parts.push({ geometry: g, matrix: pose(T, x, ground - sc * 0.35, z, hash2(i, 40 + j, k0) * Math.PI * 2, 0.6) });
+          stats.discPebbles++;
+        }
+        // one caster per disc ring (5 cm stones: no shadow worth following)
+        casters.push({ x: d.x, z: d.z, r: d.r + 0.42, y0: T.height(d.x, d.z) - 0.05, y1: T.height(d.x, d.z) + 0.1, shadow: false });
+      });
     }
   }
 
