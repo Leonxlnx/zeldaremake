@@ -87,3 +87,17 @@ Verified: placement replica 80/80 identical, infos identical (the lobe's horizon
 Six views vs the tilt state: C 0.2373 =, E −0.0001, A/B/D/F identical; triangles C 6.96 → 7.00 M, D 8.01 →
 8.02, B/E 7.78 → 7.79, F 7.94 → 7.96, **A 8.62 M =**; draws identical. Whole branch vs the seal (take-0123):
 **A =, B −0.0002, C +0.0014, D +0.0005, E 0, F =**; draws 566/522/407/396/522/507.
+
+## Review: Astra's leaf warmth on the white-bark crowns (`agent/astra-environment-quality` @ `b89eae66` vs head `6d6d80f8`)
+
+fable-5 §7.1 mask (hue 55–170°, sat > 0.12), circular mean over the lobe window, settle 12:
+
+| pose | head | Astra's tip | shift |
+| --- | --- | --- | --- |
+| `f4-crown-up` (lobe at 7 m) | hue 85°, sat 0.19, l 0.27 | hue **75°**, sat 0.19, l 0.26 | −10° |
+| `f4-crown-side-8m` | 82°, 0.17, 0.28 | **73°**, 0.18, 0.28 | −9° |
+| `x-arch-tunnel-n` (clearing crown, 10 m; small window) | 78°, 0.15, 0.34 | **69°**, 0.15, 0.34 | −9° |
+
+The term reaches the white-bark program (`'white-leaf-warmth'`) and does what it says — hue only, sat and
+luminance held. Against the 62–65° target the white-bark crowns are still 8–13° yellow-green-ward at 7–10 m.
+Crop `fable4-review-astra-warmth-f4-crown-up.png` (head | Astra).

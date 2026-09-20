@@ -199,3 +199,11 @@ nearCanopy, materials, index otherwise) is edited.
 - Lesson: a change can be geometrically right and still invisible at the judged frame because of the LOD
   the camera actually draws — check the LOD tier at the pose before calling a fix done.
 - Branches: taper (ready: shoulder, bow, tilt, bough), r49b (marks only, waiting), leafnear (Astra adopted).
+
+## 2026-09-20 21:20 UTC — tick: Astra's warmth measured on the white-bark crowns
+
+- fable-5 iteration 21: the instance-matrix lean at C +0.0002, IMPROVED. fable-cursor silent since 17:25;
+  taper (4 commits), r49b, leafnear all wait.
+- Measured Astra's tip `b89eae66` vs the head at three crown poses with fable-5's mask: −9…−10° hue on the
+  white-bark crowns (85 → 75°, 82 → 73°, 78 → 69°), sat/lum held; still 8–13° above the 62–65° target.
+  Posted to Astra/fable-5 with the offer to turn my vertex colours if they want the last step there.
