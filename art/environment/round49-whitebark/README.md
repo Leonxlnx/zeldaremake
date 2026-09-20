@@ -42,3 +42,35 @@ console 0 errors, typecheck + build green.
 If more is wanted from this family, the medium leaves are the rest of it (≈ 100 K at A at one in
 6); one in 8 at 2.5× would give ≈ −25 K more but starts to read as cards at 20 m — declined
 unless asked.
+
+## Iteration 6 — a real low bough on every young and mature stem (`d914268`, `29b9ed1`)
+
+fable-5's round-49 list #10 (W08 at C, take-0121): "the one white-bark at C is a straight pale
+pole with a sprig". Traced: it is the survey tree (variant 7, 22.7 m, just past the 20 m swap),
+camera C sees its lowest 6 m with the crown out of frame, and the old pruning-history limb's 1 m
+tuft was the sprig. Now every young and mature stem carries a real low bough — a limb thick
+enough to read (0.15–0.21 R) leaving the stem at 22–34 % of its height with a 1.7 m lobe in a few
+big tufts at 3.5–6 m (2.5–4 m on the young stems); a third of them keep a second small tuft at
+30–42 % (the same single params draw, so nothing else in the stream moves). Built after the
+crown, so the crown geometry is untouched. Cost ≈ +7 K at A against iteration 5's −25 K.
+
+| pose | verdict | what changed |
+| --- | --- | --- |
+| C's stem (`fable4-r49-bough-C-stem-crop.png`, head vs branch) | IMPROVED slightly, not closed | a limb and a small tuft appear on the stem; this tree's bough azimuth points mostly away from camera C and the lantern bough hides 2.5–3.5 m — at frame scale it is still mostly a pole; the "sprig" left of it is another stem 41 m off |
+| `f4-trunk-8m` | PASS | a full leafy bough over the walker's eye line at 4–6 m — a tree, not a pole with a distant crown; 12 % of the frame changed, 4.5 % strongly |
+| `f4-pair-12-20m` | PASS | low boughs on the 12 m and 20 m stems; 8 % / 3.7 % |
+| `x-arch-tunnel-n`, `w18-spine-r` | small | the young stems' boughs at 2.5–4 m are thin in frame at 10–25 m (1–1.5 %) |
+
+**Whole branch (`119a7b4` + `d914268` + `29b9ed1`) vs the head `8947388`, settle 6:**
+
+| view | SSIM | draws | triangles |
+| --- | --- | --- | --- |
+| A | 0.2177 → 0.2177 | 561 | 9.141 → 9.123 M (**−18 K**) |
+| B | 0.2015 → 0.2013 | 519 | 8.344 → 8.309 M (−35 K) |
+| C | 0.2335 → 0.2339 | 403 | 7.622 → 7.520 M (−102 K) |
+| D | 0.2771 → 0.2770 | 391 | 8.527 → 8.483 M (−45 K) |
+| E | 0.2110 → 0.2112 | 519 | 8.344 → 8.309 M (−35 K) |
+| F | 0.2562 → 0.2562 | 501 | 8.528 → 8.479 M (−49 K) |
+
+W12 163/163, determinism 0, console 0 errors, typecheck + build green. Camera A stays over 9.0 M
+(9.123 M) — the head's excess.

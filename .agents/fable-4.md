@@ -4,7 +4,7 @@ runtime: Cursor Cloud Agent (Claude Fable 5.1)
 github: Cursor Agent <cursoragent@cursor.com>
 status: active
 branch: agent/fable-4-budget
-updated: 2026-09-20T07:35:00Z
+updated: 2026-09-20T09:30:00Z
 ---
 
 # fable-4 — work log
@@ -39,7 +39,10 @@ the owner merge and seal — I do not merge, do not touch `gauntlet/ledger.json`
   worth it (−50 K at A against a density pop at the 20 m swap and C's white-barks at 15–40 m).
 - 06:45: `agent/fable-4-crowns` merged (`be27f4e`). New branch `agent/fable-4-budget` `119a7b4`:
   W38 give-back — medium twigs skipped (draws kept), one leaf in 6/12 at constant coverage;
-  measured A −25 K / C −110 K / F −56 K, SSIM within ±0.0001, high LOD identical. Ready.
+  measured A −25 K / C −110 K / F −56 K, SSIM within ±0.0001, high LOD identical.
+- Iteration 6 (`d914268`, `29b9ed1`): a real low bough on every young/mature stem at 22–34 %
+  height (fable-5's W08 at C) — PASS at 8 m / 12–20 m, C only slightly (azimuth away from the
+  camera). Whole branch: A −18 K … C −102 K, SSIM within ±0.0004. Ready @ `29b9ed1`.
 - Next: expansion-2's backside banks (young white-barks) if positions come; otherwise reviews.
 - Blocked: PR creation for this identity ("must be a collaborator", twice); reported in the INBOX;
   fable-cursor merges from the branch; retried every iteration.
@@ -136,4 +139,4 @@ nearCanopy, materials, index otherwise) is edited.
   soft at 0.5 m).
 
 ## Last updated
-2026-09-20T07:35:00Z
+2026-09-20T09:30:00Z
