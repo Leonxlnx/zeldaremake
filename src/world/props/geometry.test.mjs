@@ -56,7 +56,7 @@ const textures = {
   report: () => ({}),
 };
 const audits = [];
-const ctx = { terrain: createTerrain(), layout: LAYOUT, config: WORLD, quality: { shadows: true }, textures, audit: (_, fn) => audits.push(fn) };
+const ctx = { terrain: createTerrain(), layout: LAYOUT, config: WORLD, quality: { shadows: true }, textures, shared: {}, audit: (_, fn) => audits.push(fn) };
 
 // ---- builders
 {
@@ -149,9 +149,33 @@ for (const id of ['door-pot-large', 'sign-pot', 'saria-crate', 'saria-water-buck
   assert.ok(Math.abs(c.x) < 0.95 && Math.abs(c.y) < 0.95 && c.z > -1 && c.z < 1, `${id} projects inside B_house; actual ${c.toArray()}`);
   heroProjection[id] = [+((c.x + 1) / 2).toFixed(3), +((1 - c.y) / 2).toFixed(3)];
 }
-// the platform stays out of A–E (only F sees the plateau lip)
+// the lookout railing is bound to LAYOUT.plateauLookout (no nudge) and stands ON the stone dais:
+// its ropes hang above the slab top (the highest turf under the slab + its proud height)
 {
-  const p = audit.placed.find((q) => q.id === 'lip-platform');
+  const p = audit.placed.find((q) => q.id === 'lookout-railing');
+  const hook = LAYOUT.plateauLookout;
+  assert.ok(p && Math.abs(p.x - hook.x) < 1e-9 && Math.abs(p.z - hook.z) < 1e-9, `lookout railing at the hook (${p?.x}, ${p?.z})`);
+  const LK = LAYOUT.lookout;
+  let turfMax = -Infinity;
+  for (let i = 0; i <= 24; i++) {
+    const t = -1 + i / 12;
+    for (const [lx, lz] of [[t * LK.halfLength, -LK.halfDepth], [t * LK.halfLength, LK.halfDepth], [-LK.halfLength, t * LK.halfDepth], [LK.halfLength, t * LK.halfDepth]]) {
+      const wx = LK.x + lx * Math.cos(hook.yaw) + lz * Math.sin(hook.yaw);
+      const wz = LK.z - lx * Math.sin(hook.yaw) + lz * Math.cos(hook.yaw);
+      turfMax = Math.max(turfMax, ctx.terrain.height(wx, wz));
+    }
+  }
+  const slabTop = turfMax + LK.height;
+  const lip = one.group.children.find((g) => g.name === 'plateau-lip');
+  const ropes = lip.children.find((m) => m.name === 'plateau-lip-rope');
+  const wood = lip.children.find((m) => m.name === 'plateau-lip-wood');
+  ropes.geometry.computeBoundingBox();
+  wood.geometry.computeBoundingBox();
+  assert.ok(ropes.geometry.boundingBox.min.y > slabTop + 0.3, `rope courses above the slab top (${ropes.geometry.boundingBox.min.y.toFixed(3)} vs slab ${slabTop.toFixed(3)})`);
+  assert.ok(wood.geometry.boundingBox.max.y > slabTop + 0.8 && wood.geometry.boundingBox.max.y < slabTop + 0.95, `posts ≈ 0.88 m over the slab (${(wood.geometry.boundingBox.max.y - slabTop).toFixed(3)})`);
+  // the step block stands on the turf beside the slab, below its top
+  assert.ok(wood.geometry.boundingBox.min.y < slabTop - 0.1, 'step block on the turf');
+  // only F sees the plateau lip
   for (const id of ['A_stairs', 'B_house', 'C_lookback', 'D_log']) {
     const v = LAYOUT.viewpoints.find((q) => q.id === id);
     const cam = new THREE.PerspectiveCamera(v.fov, 1280 / 720, 0.1, 1000);
@@ -159,8 +183,21 @@ for (const id of ['door-pot-large', 'sign-pot', 'saria-crate', 'saria-water-buck
     cam.lookAt(new Vector3().fromArray(v.target));
     cam.updateMatrixWorld(true);
     const c = new Vector3(p.x, p.y + 0.6, p.z).project(cam);
-    assert.ok(!(Math.abs(c.x) < 1 && Math.abs(c.y) < 1 && c.z > -1 && c.z < 1), `lip platform outside ${id} (${c.x.toFixed(2)}, ${c.y.toFixed(2)})`);
+    assert.ok(!(Math.abs(c.x) < 1 && Math.abs(c.y) < 1 && c.z > -1 && c.z < 1), `lookout railing outside ${id} (${c.x.toFixed(2)}, ${c.y.toFixed(2)})`);
   }
+}
+
+// the footprints hook: every placed prop publishes its ground disc for the vegetation scatter
+{
+  const fp = ctx.shared.propFootprints;
+  assert.ok(Array.isArray(fp) && fp.length === audit.placed.length, `one footprint per placed prop (${fp?.length} vs ${audit.placed.length})`);
+  assert.deepEqual(fp, audit.footprints, 'the audit lists the same footprints');
+  for (const f of fp) assert.ok(Number.isFinite(f.x) && Number.isFinite(f.z) && f.r > 0.1 && f.r < 2, `footprint ${JSON.stringify(f)}`);
+  const lookout = fp.find((f) => Math.abs(f.x - LAYOUT.plateauLookout.x) < 1e-9 && Math.abs(f.z - LAYOUT.plateauLookout.z) < 1e-9);
+  assert.ok(lookout && lookout.r > 1.3, 'the lookout railing reserves the dais');
+  const pot = audit.placed.find((q) => q.id === 'door-pot-large');
+  const potFp = fp.find((f) => Math.abs(f.x - pot.x) < 1e-9 && Math.abs(f.z - pot.z) < 1e-9);
+  assert.ok(potFp && Math.abs(potFp.r - 0.8 * 0.47) < 1e-3, `pot footprint = 0.47 × size (${potFp?.r})`);
 }
 
 // geometry: determinism, finiteness, attributes, budget
@@ -214,7 +251,10 @@ assert.equal(placementAllowed(withMask({ structure: 1 }), 30, 30, 0.3, { pad: tr
 assert.equal(placementAllowed(withMask({ stairs: 1 }), 30, 30, 0.3, { paving: true, pad: true }), false, 'stairs never');
 const blocked = withMask({ path: 1, stairs: 1, structure: 1, cliff: 1 });
 const empty = await create(blocked);
-assert.equal(empty.group.children.filter((g) => g.children.length).length <= 1, true, 'no fallback placements on forbidden ground (only the ladder, which leans on a house, may build)');
+assert.equal(empty.group.children.filter((g) => g.children.length).length <= 2, true, 'no fallback placements on forbidden ground (only the ladder, which leans on a house, and the lookout railing, bound to its hook, may build)');
+assert.deepEqual(empty.group.children.filter((g) => g.children.length).map((g) => g.name).sort(), ['plateau-lip', 'upper-house'], 'the probed props all skip');
+// the blocked run overwrote the shared list; restore the real one for the checks below
+ctx.shared.propFootprints = audit.footprints;
 
 // dispose releases everything
 let disposedGeometry = 0;

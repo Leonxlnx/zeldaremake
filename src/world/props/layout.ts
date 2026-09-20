@@ -28,8 +28,15 @@ export interface PropDef {
   pad?: boolean;
   /** ladder: the house it leans on, the angle around the trunk (rad, 0 = the door, + = viewer's right) and the peg height */
   lean?: { house: string; angle: number; top: number };
-  /** platform: deck height above the ground (m), footprint, railing, ladder, block steps */
-  platform?: { deck: number; width: number; depth: number; rail: boolean; ladder: boolean; steps?: number };
+  /**
+   * platform: deck height above the ground (m), footprint, railing, ladder, block steps.
+   * `dais: true` binds the platform to `LAYOUT.plateauLookout` (fable-cursor's hook): position,
+   * yaw and width come from the hook, the depth from the `lookout` slab, and the wooden part
+   * stands ON hardscape's stone dais — a rope railing on its lip and short sides and a step
+   * block on the fence side — instead of building a deck of its own (the character ground
+   * learns the slab top, so wood over the stone would swallow the player's feet).
+   */
+  platform?: { deck: number; width: number; depth: number; rail: boolean; ladder: boolean; steps?: number; dais?: boolean };
 }
 
 export const PROP_LAYOUT: readonly PropDef[] = [
@@ -72,12 +79,14 @@ export const PROP_LAYOUT: readonly PropDef[] = [
   // (between the roots at a ≈ 0.8 and 1.97 rad), the crossbar pegged 3.4 m up
   { id: 'upper-ladder', kind: 'ladder', x: 0, z: 0, size: 0.44, yaw: 0, cluster: 'upper-house', lean: { house: 'upper', angle: 1.35, top: 3.4 } },
 
-  // ---- the plateau lip: a low deck with a rope railing where the plateau-west fence ends
-  // (23.3, 1.9), looking south-west over the stair bank and the plaza. Only camera F sees it —
-  // (0.62, 0.23) at 26 m, among the reference's fence posts on the wall top; A/B/C/D/E: outside.
-  // Local x runs along the lip (0.57, 0.82); the railing is the −z side, toward the plaza. Deck
-  // 0.62 m: the lawn's ferns stand 0.4–0.8 m and poked through a 0.4 m deck; two block steps.
-  { id: 'lip-platform', kind: 'platform', x: 23.5, z: 2.65, size: 1, yaw: 2.18, cluster: 'plateau-lip', platform: { deck: 0.62, width: 2.2, depth: 1.5, rail: true, ladder: false, steps: 2 } },
+  // ---- the plateau lookout: the rope railing on hardscape's stone dais at LAYOUT.plateauLookout
+  // (21.6, 2.2, yaw 124°, 2.2 × 1.6 m, top 0.35 m over the highest turf), 1.7 m past the last
+  // post of the plateau-west fence, looking south-west over the stair bank and the plaza. x, z,
+  // yaw, width, depth and the deck height are all taken from the hook at build time (the values
+  // here are the fallback); the railing is the −z side (the plaza) and both short sides, open on
+  // +z where one step block stands on the turf. Only camera F sees it — (0.58–0.63, 0.22) at
+  // 23 m among the reference's fence posts on the wall top; A/B/C/D/E: outside.
+  { id: 'lookout-railing', kind: 'platform', x: 21.6, z: 2.2, size: 1, yaw: (124 * Math.PI) / 180, cluster: 'plateau-lip', platform: { deck: 0.35, width: 2.2, depth: 1.6, rail: true, ladder: false, steps: 1, dais: true } },
 
   // ---- the west platform under the lantern tree (round 31): tall deck with its ladder, kept
   { id: 'west-tree-platform', kind: 'platform', x: -8.7, z: -10.0, size: 1, yaw: 0, cluster: 'west', platform: { deck: 1.28, width: 1.8, depth: 1.4, rail: true, ladder: true } },

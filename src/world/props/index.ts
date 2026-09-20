@@ -164,6 +164,12 @@ export async function create(ctx: WorldContext): Promise<WorldSystem> {
   };
   /** props that reserve ground (x, y, z, radius) so later ones keep clear */
   const taken: number[][] = [];
+  /**
+   * every placed prop's ground footprint — published as `ctx.shared.propFootprints` (agreed in the
+   * inbox 2026-09-19 09:10 UTC) for the vegetation scatter, which builds after props and keeps
+   * its ferns out of these discs; `r` is the prop's own footprint, the plant adds its reach
+   */
+  const footprints: { x: number; z: number; r: number }[] = [];
   const tmp = new Vector3();
 
   for (const def of PROP_LAYOUT) {
@@ -176,6 +182,8 @@ export async function create(ctx: WorldContext): Promise<WorldSystem> {
     let orientation: Quaternion;
     let contactBand = CONTACT_BAND;
     let tiltUsed = 0;
+    /** ground footprint radius published for the vegetation scatter (m) */
+    let footR = footprintRadius(def);
 
     if (def.kind === 'ladder') {
       const house = ctx.layout.houses.find((h) => h.id === def.lean?.house);
@@ -205,6 +213,43 @@ export async function create(ctx: WorldContext): Promise<WorldSystem> {
       orientation = new Quaternion();
       contactBand = 0;
       counts.ladders++;
+      footR = def.size / 2 + 0.2;
+    } else if (def.kind === 'platform' && def.platform?.dais) {
+      // the lookout railing: bound to LAYOUT.plateauLookout, whose author verified the
+      // clearances — no footprint probe, no nudge. The stone dais (hardscape) is the deck: its top
+      // is the highest turf under its outline plus its proud height (hardscape's rule, sampled
+      // here on the same rectangle), and the railing posts stand on it.
+      const hook = ctx.layout.plateauLookout;
+      const slab = ctx.layout.lookout;
+      x = hook.x;
+      z = hook.z;
+      yaw = hook.yaw;
+      const width = hook.width;
+      const depth = slab.halfDepth * 2;
+      const q = new Quaternion().setFromAxisAngle(UP, yaw);
+      const worldAt = (lx: number, lz: number) => tmp.set(lx, 0, lz).applyQuaternion(q).add(new Vector3(x, 0, z));
+      let turfMax = -Infinity;
+      const N = 12;
+      for (let i = 0; i <= N; i++) {
+        const t = -1 + (2 * i) / N;
+        for (const [lx, lz] of [[t * (width / 2), -depth / 2], [t * (width / 2), depth / 2], [-width / 2, t * (depth / 2)], [width / 2, t * (depth / 2)]]) {
+          const w = worldAt(lx, lz);
+          turfMax = Math.max(turfMax, terrain.height(w.x, w.z));
+        }
+      }
+      groundY = terrain.height(x, z);
+      const deck = turfMax + slab.height - groundY;
+      const groundAt = (lx: number, lz: number) => {
+        const w = worldAt(lx, lz);
+        return terrain.height(w.x, w.z) - groundY;
+      };
+      parts = platformGeometry(rng, { ...def.platform, width, depth, deck, slab: true, groundAt });
+      orientation = new Quaternion();
+      contactBand = 0;
+      counts.platforms++;
+      if (def.platform.rail) counts.ropeRailings += 3;
+      footR = Math.hypot(width, depth) / 2 + 0.1;
+      taken.push([x, groundY, z, footR]);
     } else {
       const radius = footprintRadius(def);
       const spot = findSpot(ctx, def, radius, taken);
@@ -260,6 +305,7 @@ export async function create(ctx: WorldContext): Promise<WorldSystem> {
     const position = new Vector3(x, groundY, z);
     bases.push([x, terrain.height(x, z), z]);
     placed.push({ id: def.id, kind: def.kind, cluster: def.cluster, x: +x.toFixed(3), y: +groundY.toFixed(3), z: +z.toFixed(3), tiltDeg: +((tiltUsed * 180) / Math.PI).toFixed(2) });
+    footprints.push({ x: +x.toFixed(3), z: +z.toFixed(3), r: +footR.toFixed(3) });
     const batches = batchesFor(def.cluster);
     for (const part of parts) {
       const g = part.geometry;
@@ -315,6 +361,8 @@ export async function create(ctx: WorldContext): Promise<WorldSystem> {
     }
   }
 
+  ctx.shared.propFootprints = footprints;
+
   // merge per cluster and material
   let meshes = 0;
   for (const [cluster, batches] of clusters) {
@@ -357,6 +405,7 @@ export async function create(ctx: WorldContext): Promise<WorldSystem> {
     triangles,
     placed,
     skipped,
+    footprints,
     samplePositions: { bases },
   }));
   return {
