@@ -13,7 +13,7 @@ import { buildStairway, stairFrame, stairToWorld, type StairFrame } from './stai
 import { isPaved, nearIsolatedDisc, pavedLevel, placeFlagstones, rimDistance, type PavingContext } from './flagstones';
 import { MeshBuilder, buildSlab, jitteredRect } from './geometry';
 import { buildJointMesh, jointFillLift, jointFillTones } from './joints';
-import { HARDSCAPE_PACKS, JOINT_TUFT_DEEP, JOINT_TUFT_TIP, SPROUT_LOD_FAR, buildSproutMeshes, createSproutMaterial, type SproutSpot } from '../materials/sprouts';
+import { HARDSCAPE_PACKS, JOINT_TUFT_DEEP, JOINT_TUFT_TIP, SPROUT_CULL_PAD_M, SPROUT_LOD_FAR, buildSproutMeshes, createSproutMaterial, type SproutSpot } from '../materials/sprouts';
 import { seamGritTone } from '../materials/grit';
 import { SPROUT_JITTER_SCHEME, createSproutJitterStreams } from './sprout-jitter';
 import { JOINT_SOIL, JOINT_SOIL_DRY, JOINT_SOIL_MID } from './joints';
@@ -1018,6 +1018,8 @@ export async function create(ctx: WorldContext): Promise<WorldSystem> {
     // triangles shown / submitted (a packed instance collapses its other variants to zero area)
     jointSproutTriangles: sprouts.triangles - sprouts.gritTriangles,
     jointSproutSubmittedTriangles: sprouts.submittedTriangles,
+    /** round 49 (perf-3): per-frame submission after the cull (instances per pack mesh, their triangles) for the current camera */
+    jointSproutSubmission: { instances: [...sprouts.submitted], triangles: sprouts.submittedNow(), cullPadM: SPROUT_CULL_PAD_M },
     // low moss pads in wide seam junctions and the stair tread/riser corners (part of jointSprouts)
     mossCushions: sprouts.cushions,
     mossCushionsInSeams: cushions,
@@ -1080,12 +1082,18 @@ export async function create(ctx: WorldContext): Promise<WorldSystem> {
       northMesh.visible = show;
       jointsN.mesh.visible = show;
       monolithMesh.visible = show;
+      // round 49 (perf-3): the sprouts submit only the instances that can reach the frame
+      // (materials/sprouts.ts `cull`: inside SPROUT_LOD_FAR and the padded view frustum) — the
+      // north joints' 670 and the plaza's far / behind-the-camera tufts were 447 K of camera A's
+      // 9.11 M, all collapsed to zero area by the shader or off-frame
+      sprouts.cull(c.camera);
     },
     onCameraMove(camera) {
       const show = northPavingVisible(camera.position.x, camera.position.z);
       northMesh.visible = show;
       jointsN.mesh.visible = show;
       monolithMesh.visible = show;
+      sprouts.cull(camera, true);
     },
     dispose() {
       if (disposed) return;
