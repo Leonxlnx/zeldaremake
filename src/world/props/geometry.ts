@@ -182,8 +182,20 @@ export function bevelness(n: Vector3): number {
  * A finished board: chamfered box, plank UVs, and the wood pigment — a per-board stain, paler
  * worn arrises, darker end grain, a faint grain stripe.
  */
-export function board(w: number, h: number, d: number, opts: { grain: 'x' | 'y' | 'z'; rng: Rng; chamfer?: number; shade?: number; tint?: Color }): BufferGeometry {
+export function board(w: number, h: number, d: number, opts: { grain: 'x' | 'y' | 'z'; rng: Rng; chamfer?: number; shade?: number; tint?: Color; wobble?: number }): BufferGeometry {
   const g = chamferedBox(w, h, d, opts.chamfer ?? Math.min(w, h, d) * 0.18);
+  if (opts.wobble) {
+    // hand-hewn: each corner of the box moves by its own offset (all the vertices of the corner's
+    // chamfer cluster together), so no two arrises stay parallel and the ends are not square
+    const pos = g.attributes.position;
+    const offsets: Vector3[] = [];
+    for (let c = 0; c < 8; c++) offsets.push(new Vector3(opts.rng.range(-1, 1), opts.rng.range(-1, 1), opts.rng.range(-1, 1)).multiplyScalar(opts.wobble));
+    for (let i = 0; i < pos.count; i++) {
+      const c = (pos.getX(i) > 0 ? 1 : 0) + (pos.getY(i) > 0 ? 2 : 0) + (pos.getZ(i) > 0 ? 4 : 0);
+      pos.setXYZ(i, pos.getX(i) + offsets[c].x, pos.getY(i) + offsets[c].y, pos.getZ(i) + offsets[c].z);
+    }
+    g.computeVertexNormals();
+  }
   plankUV(g, { grain: opts.grain, column: opts.rng.int(0, PLANK_BOARDS), along: opts.rng.range(0, PLANK_METRES) });
   const stain = (opts.shade ?? 1) * opts.rng.range(0.88, 1.1);
   const tint = opts.tint ?? new Color(WOOD_TINT[0], WOOD_TINT[1], WOOD_TINT[2]);
@@ -285,13 +297,17 @@ export function potGeometry(rng: Rng, size: number, variant: number, style?: Par
   const pos = lathe.attributes.position;
   const uv = lathe.attributes.uv;
   const v = new Vector3();
+  // each pot samples the clay map from its own offset, so the firing patches and slip drips
+  // (periodic in the map) fall differently on every pot
+  const uOff = rng.range(0, 1);
+  const vOff = rng.range(0, 1);
   for (let i = 0; i < pos.count; i++) {
     v.fromBufferAttribute(pos, i);
     const a = Math.atan2(v.z, v.x);
     const k = 1 + wobble * Math.sin(a * 2 + phase) * Math.sin((v.y / size) * 3.1 + phase) + wobble * 0.5 * Math.sin(a * 3 - phase);
     pos.setXYZ(i, v.x * k, v.y, v.z * k);
     // clay map: rings horizontal (v = height), the mottle twice around
-    uv.setXY(i, uv.getX(i) * 2, v.y / CLAY_REPEAT_METRES);
+    uv.setXY(i, uv.getX(i) * 2 + uOff, v.y / CLAY_REPEAT_METRES + vOff);
   }
   lathe.computeVertexNormals();
   const g = flat(lathe);
@@ -301,8 +317,8 @@ export function potGeometry(rng: Rng, size: number, variant: number, style?: Par
   paint(g, (p, n) => {
     const h = p.y / size;
     const a = Math.atan2(p.z, p.x);
-    // firing flash: one side a touch paler / warmer
-    const fl = flash * (1 + 0.06 * Math.cos(a - flashAngle));
+    // firing flash: one side paler / warmer, the other a shade cooler (the kiln's draught side)
+    const fl = flash * (1 + 0.11 * Math.cos(a - flashAngle));
     const c = new Color(body.r * fl, body.g * fl * (2 - fl) ** 0.3, body.b * fl * 0.97);
     const rim = smooth(prof.neck - 0.012, prof.neck + 0.012, h);
     let bandK = rim;
@@ -479,7 +495,7 @@ export function markerGeometry(rng: Rng, size: number): Part[] {
   const parts: Part[] = [];
   const push = (geometry: BufferGeometry, material: MaterialKey) => parts.push({ geometry, material });
   const w = 0.15 * (size / 1.7);
-  const post = board(w, size, w, { grain: 'y', rng, chamfer: w * 0.12, shade: 0.94 });
+  const post = board(w, size, w, { grain: 'y', rng, chamfer: w * 0.12, shade: 0.94, wobble: w * 0.035 });
   place(post, new Vector3(0, size / 2, 0));
   push(post, 'wood');
   // the cap: a shallow block turned 45° on the post's head
@@ -495,7 +511,8 @@ export function markerGeometry(rng: Rng, size: number): Part[] {
   for (const b of boards) {
     const q = new Quaternion().setFromAxisAngle(up, b.yaw);
     const thick = w * 0.3;
-    const g = board(w * 0.85, w * 0.9, b.len, { grain: 'z', rng, chamfer: thick * 0.35, shade: 1.04 });
+    // hewn, not milled: the arrises wander and the ends are not square (fable-5: "crossboards clean-edged")
+    const g = board(w * 0.85, w * 0.9, b.len, { grain: 'z', rng, chamfer: thick * 0.45, shade: 1.04, wobble: w * 0.05 });
     // the board sits against the post's face and runs out along dir·z, tapering slightly upward at the tip
     const centre = new Vector3(0, b.y, b.dir * (w / 2 + b.len / 2 - w * 0.2)).applyQuaternion(q);
     const tip = new Quaternion().setFromAxisAngle(new Vector3(1, 0, 0), -b.dir * 0.04);
@@ -513,7 +530,7 @@ export function markerGeometry(rng: Rng, size: number): Part[] {
   const hang = 0.11 * (size / 1.7);
   const tagH = 0.17 * (size / 1.7);
   const tagSway = rng.range(-0.25, 0.25);
-  const tag = board(w * 0.95, tagH, w * 0.16, { grain: 'y', rng, chamfer: w * 0.03, shade: 1.08 });
+  const tag = board(w * 0.95, tagH, w * 0.16, { grain: 'y', rng, chamfer: w * 0.03, shade: 1.08, wobble: w * 0.02 });
   const tagCentre = new Vector3(0, long.y - w * 0.45 - hang - tagH / 2, tipZ).applyQuaternion(q0);
   place(tag, tagCentre, q0.clone().multiply(new Quaternion().setFromAxisAngle(up, tagSway)));
   push(tag, 'wood');

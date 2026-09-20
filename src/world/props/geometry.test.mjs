@@ -109,6 +109,21 @@ const ctx = { terrain: createTerrain(), layout: LAYOUT, config: WORLD, quality: 
   let slopes = 0;
   for (let i = 0; i < nd.length; i += 4) if (Math.abs(nd[i] - 128) > 12 || Math.abs(nd[i + 1] - 128) > 12) slopes++;
   assert.ok(slopes > nd.length / 4 / 20, 'clay normal map has relief');
+  // two-tone firing + slip drips: the colour map is no longer one tone (fable-5) — a real spread
+  // of luminance, and the darkest runs (drips) well below the body
+  {
+    const cd = a.color.image.data; const lum = [];
+    for (let i = 0; i < cd.length; i += 4 * 7) lum.push((0.2126 * cd[i] + 0.7152 * cd[i + 1] + 0.0722 * cd[i + 2]) / 255);
+    const mean = lum.reduce((x, y) => x + y, 0) / lum.length;
+    const sd = Math.sqrt(lum.reduce((x, y) => x + (y - mean) ** 2, 0) / lum.length);
+    lum.sort((x, y) => x - y);
+    assert.ok(sd > 0.05, `clay colour map has tonal spread (sd ${sd.toFixed(3)})`);
+    assert.ok(lum[Math.floor(lum.length * 0.01)] < mean - 0.12, `slip drips run dark (p1 ${lum[Math.floor(lum.length * 0.01)].toFixed(2)} vs mean ${mean.toFixed(2)})`);
+    // the two tones lean different ways: paler patches warmer (r/b up), darker patches browner
+    let warm = 0, n = 0;
+    for (let i = 0; i < cd.length; i += 4 * 13) { const l = (0.2126 * cd[i] + 0.7152 * cd[i + 1] + 0.0722 * cd[i + 2]) / 255; if (l > mean + 0.04) { warm += cd[i] / Math.max(1, cd[i + 2]); n++; } }
+    assert.ok(n > 50 && warm / n > 1.03, `the paler firing patches lean warm (r/b ${(warm / n).toFixed(3)})`);
+  }
   [a, b, r].forEach((m) => { m.color.dispose(); m.normal.dispose(); });
 }
 
@@ -253,8 +268,8 @@ for (const id of ['door-pot-large', 'sign-pot', 'saria-crate', 'saria-water-buck
 // the light strings: pegs on the ground, pods glowing above it, the left one where frame A shows it
 {
   const strings = audit.placed.filter((p) => p.kind === 'lightString');
-  assert.equal(strings.length, 2, 'two light strings');
-  assert.ok(audit.lightPods >= 16 && audit.lightPods <= 30, `a pod every 0.3 m (${audit.lightPods})`);
+  assert.equal(strings.length, 1, 'one light string (the second of frame A has no bank to stand on here)');
+  assert.ok(audit.lightPods >= 7 && audit.lightPods <= 12, `a pod every 0.3 m (${audit.lightPods})`);
   const sf = audit.clusterBounds['stair-foot'];
   assert.ok(sf.glow && sf.wood && sf.rope, 'the stair-foot cluster has glow, wood and rope');
   // every pod hangs 0.15–0.45 m over the ground under it
@@ -267,11 +282,16 @@ for (const id of ['door-pot-large', 'sign-pot', 'saria-crate', 'saria-water-buck
   const v = LAYOUT.viewpoints.find((q) => q.id === 'A_stairs');
   const cam = new THREE.PerspectiveCamera(v.fov, 1280 / 720, 0.1, 1000);
   cam.position.fromArray(v.position); cam.lookAt(new Vector3().fromArray(v.target)); cam.updateMatrixWorld(true);
-  const left = PROP_LAYOUT.find((d) => d.id === 'stair-left-lights').string.points;
+  const left = PROP_LAYOUT.find((d) => d.id === 'terrace-bank-lights').string.points;
   const p0 = new Vector3(left[0][0], ctx.terrain.height(left[0][0], left[0][1]) + 0.3, left[0][1]).project(cam);
   const p1 = new Vector3(left.at(-1)[0], ctx.terrain.height(left.at(-1)[0], left.at(-1)[1]) + 0.3, left.at(-1)[1]).project(cam);
   const u0 = (p0.x + 1) / 2, v0 = (1 - p0.y) / 2, u1 = (p1.x + 1) / 2, v1 = (1 - p1.y) / 2;
-  assert.ok(Math.abs(u0 - 0.50) < 0.03 && Math.abs(v0 - 0.60) < 0.04 && Math.abs(u1 - 0.59) < 0.03 && Math.abs(v1 - 0.52) < 0.04, `left string spans A (0.50, 0.62) → (0.60, 0.55) like the reference (got (${u0.toFixed(2)}, ${v0.toFixed(2)}) → (${u1.toFixed(2)}, ${v1.toFixed(2)}))`);
+  assert.ok(Math.abs(u0 - 0.48) < 0.03 && Math.abs(v0 - 0.465) < 0.03 && Math.abs(u1 - 0.555) < 0.03 && Math.abs(v1 - 0.465) < 0.03, `the string spans A (0.49–0.54, 0.47) like the reference (got (${u0.toFixed(2)}, ${v0.toFixed(2)}) → (${u1.toFixed(2)}, ${v1.toFixed(2)}))`);
+  // and stays out of C, whose reference shows that bank bare
+  const vc = LAYOUT.viewpoints.find((q) => q.id === 'C_lookback');
+  const camC = new THREE.PerspectiveCamera(vc.fov, 1280 / 720, 0.1, 1000);
+  camC.position.fromArray(vc.position); camC.lookAt(new Vector3().fromArray(vc.target)); camC.updateMatrixWorld(true);
+  for (const [px, pz] of left) { const c = new Vector3(px, ctx.terrain.height(px, pz) + 0.3, pz).project(camC); assert.ok(!(Math.abs(c.x) < 1 && Math.abs(c.y) < 1 && c.z > -1 && c.z < 1), `string peg (${px}, ${pz}) outside C`); }
   assert.equal(audit.skipped.length, 0);
 }
 
