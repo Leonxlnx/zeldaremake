@@ -3,7 +3,7 @@
  * with Poly Haven micro detail (worn_rock_natural_01, desaturated), vertex colours for
  * per-stone tint / grime, and an `aMoss` attribute that blends toward moss in the joints.
  */
-import { Color, MeshStandardMaterial, Vector2, type WebGLProgramParametersWithUniforms } from 'three';
+import { Color, MeshStandardMaterial, ShaderChunk, Vector2, type WebGLProgramParametersWithUniforms } from 'three';
 import type { TextureLibrary } from '../materials/textures';
 import type { WorldConfig } from '../config';
 
@@ -82,10 +82,12 @@ const STONE_ALBEDO_SCALE = 0.72;
 const NEAR_TILE_K = 0.55;
 const NEAR_FADE: [number, number] = [4.0, 7.0];
 const NEAR_NORMAL_K = 2.0;
-const DETAIL_NORMAL_K = 0.42;
+const DETAIL_NORMAL_K = 0.24;
 const DETAIL_ALBEDO_K = 0.24;
+// The authored fissure has a 3.5 mm recessed bed; it does not move the collision surface.
+const CLEAVE_DEPTH_M = 0.0035;
 /** the near-camera stone treatment, for the hardscape audit */
-export const STONE_NEAR = { tileK: NEAR_TILE_K, fadeM: NEAR_FADE, normalK: NEAR_NORMAL_K, detailNormalK: DETAIL_NORMAL_K, detailAlbedoK: DETAIL_ALBEDO_K };
+export const STONE_NEAR = { tileK: NEAR_TILE_K, fadeM: NEAR_FADE, normalK: NEAR_NORMAL_K, detailNormalK: DETAIL_NORMAL_K, detailAlbedoK: DETAIL_ALBEDO_K, cleaveDepthM: CLEAVE_DEPTH_M };
 
 export async function createStoneMaterial(textures: TextureLibrary, config: WorldConfig, anisotropy = 8, opts: { instanced?: boolean } = {}) {
   const [color, normal, rough, ao] = await Promise.all([
@@ -169,6 +171,15 @@ export async function createStoneMaterial(textures: TextureLibrary, config: Worl
       .replace(
         '#include <map_fragment>',
         /* glsl */ `
+        float stoneNear = 1.0 - stoneFarW();
+        float stoneAO = 1.0;
+        float stoneCleave = 0.0;
+        float stoneRelief = 0.0;
+        #ifdef USE_AOMAP
+          // Keep cavities aligned with the enlarged near colour/normal/roughness tile.
+          stoneAO = mix(texture2D(aoMap, stoneNearUv(vAoMapUv)).r, texture2D(aoMap, vAoMapUv).r, 1.0 - stoneNear);
+        #endif
+        float stoneWorn = smoothstep(0.94, 0.985, stoneAO) * clamp(vWear, 0.0, 1.0) * stoneNear;
         #ifdef USE_MAP
         {
           // round 42: the mesh tile beyond NEAR_FADE, the ≈ 3 m tile within it (both the same
@@ -272,8 +283,12 @@ export async function createStoneMaterial(textures: TextureLibrary, config: Worl
             float ends = 1.0 - smoothstep(0.75, 1.0, abs(vCrack.y));
             float line = (1.0 - smoothstep(hw * 0.6, hw * 1.6, d)) * ends;
             float lip = smoothstep(hw * 1.2, hw * 2.2, d) * (1.0 - smoothstep(hw * 2.5, hw * 5.0, d)) * ends;
+            stoneCleave = (1.0 - smoothstep(hw * 0.8, hw * 3.5, d)) * ends;
+            // A shallow chipped shoulder around the dirt-filled fissure. Resolve it only while
+            // its width spans pixels; derivatives are evaluated unconditionally below.
+            stoneRelief = -${CLEAVE_DEPTH_M.toFixed(4)} * stoneCleave * stoneNear;
             diffuseColor.rgb = mix(diffuseColor.rgb, uMossSoil * 0.55, 0.8 * line);
-            diffuseColor.rgb *= 1.0 + 0.05 * lip;
+            diffuseColor.rgb *= 1.0 + 0.05 * lip * (1.0 - stoneNear);
           }
           // moss: bright to deep green with the stone's luminance as detail, pulled toward damp
           // soil where the coverage is thin (rim grime) and green only where it is full
@@ -287,7 +302,12 @@ export async function createStoneMaterial(textures: TextureLibrary, config: Worl
           // thin coverage is damp soil grime on the shoulder; real green needs a solid film
           moss = mix(uMossSoil * (0.8 + 0.4 * ln), moss, smoothstep(0.28, 0.72, m));
           diffuseColor.rgb = mix(diffuseColor.rgb, moss, smoothstep(0.07, 0.72, m));
+          stoneRelief *= 1.0 - m;
         }`,
+      )
+      .replace(
+        '#include <aomap_fragment>',
+        ShaderChunk.aomap_fragment.replace('texture2D( aoMap, vAoMapUv ).r', 'stoneAO'),
       )
       .replace(
         '#include <color_fragment>',
@@ -325,6 +345,8 @@ export async function createStoneMaterial(textures: TextureLibrary, config: Worl
         // round 42: per-stone micro-roughness (aRough, ± a few hundredths) — neighbouring slabs
         // catch the sun differently at player height, as frame 03's do
         roughnessFactor = clamp(roughnessFactor + vRough, 0.5, 1.0);
+        // Foot-worn plate centres catch a broad highlight; fractured beds remain matte.
+        roughnessFactor = mix(roughnessFactor - 0.09 * stoneWorn, 0.96, stoneCleave * stoneNear);
         roughnessFactor = mix(roughnessFactor, 0.97, clamp(vMoss, 0.0, 1.0));`,
       )
       .replace(
@@ -338,15 +360,30 @@ export async function createStoneMaterial(textures: TextureLibrary, config: Worl
           float farW = stoneFarW();
           vec3 mapN = mix(texture2D(normalMap, stoneNearUv(vNormalMapUv)).xyz, texture2D(normalMap, vNormalMapUv).xyz, farW) * 2.0 - 1.0;
           vec3 detN = texture2D(normalMap, stoneDetailUv(vNormalMapUv)).xyz * 2.0 - 1.0;
-          mapN.xy = mapN.xy * normalScale * mix(${NEAR_NORMAL_K.toFixed(2)}, 1.0, farW) + detN.xy * (${DETAIL_NORMAL_K.toFixed(2)} * (1.0 - farW));
+          // stoneDetailUv rotates the texture clockwise: rotate its slope back into this TBN.
+          detN.xy = vec2(-detN.y, detN.x);
+          // Preserve the map's cleaved edges while quieting sand-fine pits on worn plate tops.
+          float plate = 1.0 - 0.5 * stoneWorn * (1.0 - smoothstep(0.12, 0.32, length(mapN.xy)));
+          mapN.xy = mapN.xy * normalScale * mix(${NEAR_NORMAL_K.toFixed(2)}, 1.0, farW) * plate + detN.xy * (${DETAIL_NORMAL_K.toFixed(2)} * (1.0 - farW) * (1.0 - 0.6 * stoneWorn));
           normal = normalize(tbn * mapN);
         }
         #else
         #include <normal_fragment_maps>
-        #endif`,
+        #endif
+        {
+          // Surface gradient in metres, so the cleave does not deepen as the camera approaches.
+          vec3 dx = dFdx(-vViewPosition);
+          vec3 dy = dFdy(-vViewPosition);
+          vec3 rx = cross(dy, nonPerturbedNormal);
+          vec3 ry = cross(nonPerturbedNormal, dx);
+          float det = dot(dx, rx);
+          vec2 dh = vec2(dFdx(stoneRelief), dFdy(stoneRelief));
+          float resolved = 1.0 - smoothstep(0.012, 0.03, max(length(dx), length(dy)));
+          normal = normalize(normal - resolved * sign(det) * (dh.x * rx + dh.y * ry) / max(abs(det), 1e-10));
+        }`,
       );
   };
-  mat.customProgramCacheKey = () => `stone-moss-v24-near-tile-rough-${opts.instanced ? 'i' : 's'}`;
+  mat.customProgramCacheKey = () => `stone-moss-v25-worn-cleave-${opts.instanced ? 'i' : 's'}`;
   // the ao clone is ours (the library keeps the original); release it with the material, once
   mat.addEventListener('dispose', function onDispose() {
     mat.removeEventListener('dispose', onDispose);

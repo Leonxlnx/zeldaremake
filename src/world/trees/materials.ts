@@ -95,48 +95,33 @@ export const NEAR_BOLE_SLOTS = 6;
 export const NEAR_CANOPY_SLOTS = 40;
 
 /**
- * The trees' shade floors under the round-41 daylight (task 2 of round 41). The shared presets
- * (materials/shadeFloor.ts GIANT_BARK_FLOOR lift 7 / texture 0.1, LEAF_FLOOR lift 6 / texture
- * 0.4) were calibrated against the frames under the old warm hazy grade, where a shaded bole
- * was a hazed grey-green column and a shaded leaf mass a veil; under the integrated daylight the
- * same floors flatten the bark's cords and the leaves' laminae in shade (Astra's review). The
- * trees' own presets keep the shared ones for the structures and lower the lift / raise the
- * texture share here: the floor still catches the darkest faces (nothing goes to black) but
- * keeps more of the surface's own albedo variation. Measured in the report (shaded-bark region
- * std / p10 at the plaza-column and limb-below poses; per-view SSIM against cap-0).
- *
- * By distance. Applied flat, the full step (bark 5.5 / 0.3, leaf 4.5 / 0.6) cost the six fixed
- * frames −0.004 to −0.009 SSIM and the half-step −0.002 to −0.007: what those cameras frame of
- * the giants stands 10–35 m off, where the frames' shaded boles and crowns ARE hazed flat, and
- * the review's flattened cords and laminae are what the owner sees at 3–8 m. So the far programs
- * fade the floor by view distance: the NEAR preset within TREE_FLOOR_FADE_M[0], the shared one
- * from TREE_FLOOR_FADE_M[1] (`mix(near, far, 1.0)` is exactly `far`: the fixed frames render the
- * shared arithmetic). The near-bole and near-base materials keep their own floors.
+ * Owner sheet 05: exposed wood stays warm grey/umber beside moss, including in shade. The
+ * old leaf-filtered, 90%-grey bark floor turned both into the same olive surface. Keep more
+ * of the existing bark/moss albedo at walking and middle distance, with only a small green
+ * bounce. Floor levels and distance fades stay as calibrated; leaf floors stay independent.
  */
-export const TREE_BARK_FLOOR: ShadeFloor = { ...SHARED_BARK_FLOOR };
+export const TREE_BARK_FLOOR: ShadeFloor = { ...SHARED_BARK_FLOOR, texture: 0.55, canopy: 0.18, chroma: 0.8 };
 export const TREE_LEAF_FLOOR: ShadeFloor = { ...SHARED_LEAF_FLOOR };
-export const TREE_BARK_FLOOR_NEAR: ShadeFloor = { ...SHARED_BARK_FLOOR, lift: 5.5, texture: 0.3 };
+export const TREE_BARK_FLOOR_NEAR: ShadeFloor = { ...TREE_BARK_FLOOR, lift: 5.5, texture: 0.7 };
 /**
  * The column trees' bark floor (TreeMaterials.columnTree) within COLUMN_FLOOR_FADE_M[0]: a little
- * under the shared lift so a shaded column sits under the haze rather than in it, and 0.45 of its
+ * under the shared lift so a shaded column sits under the haze rather than in it, and 0.7 of its
  * own albedo kept — the columns are coloured for distance (column.ts: tone bands around and along
  * the bole, grime at the foot), and the shared tenth flattened all of it beyond 10 m. The survey
  * poses that found them pale (w19-spine-r, sn-arch-outside) stand 10–21 m from the north cluster.
  */
-export const COLUMN_BARK_FLOOR: ShadeFloor = { ...SHARED_BARK_FLOOR, lift: 6.2, texture: 0.45 };
+export const COLUMN_BARK_FLOOR: ShadeFloor = { ...TREE_BARK_FLOOR, lift: 6.2, texture: 0.7 };
 /**
- * … and from COLUMN_FLOOR_FADE_M[1] out: a fifth kept (twice the shared floor's). The hero
- * frames see the columns at 22–40 m (D's top band, B's upper left), where the reference's
- * veiled trunks are near-smooth (window sd 0.005–0.02): with 0.45 at every distance the round-45
- * take measured D −0.0013 / B −0.0022, the shaded columns' window sd up 0.005–0.008 across the
- * cells (SSIM's structure term; shadeFloor.ts round 32 found the same for texture 0.25 → 0.1).
+ * … and from COLUMN_FLOOR_FADE_M[1] out: keep 0.55 of the same albedo so the moss and bare
+ * plates remain distinct through the haze. The older 0.2 preserved the soft video frames
+ * but flattened the material separation requested in the owner's foliage/bark reference.
  * The bark block alone fades (LeafVariant.barkFade); the columns' leaf floor is the shared one.
  */
-export const COLUMN_BARK_FLOOR_FAR: ShadeFloor = { ...SHARED_BARK_FLOOR, lift: 6.6, texture: 0.2 };
+export const COLUMN_BARK_FLOOR_FAR: ShadeFloor = { ...TREE_BARK_FLOOR, lift: 6.6, texture: 0.55 };
 /** view distance (m) over which the column bark floor goes from COLUMN_BARK_FLOOR to COLUMN_BARK_FLOOR_FAR */
 export const COLUMN_FLOOR_FADE_M: [number, number] = [20, 32];
 export const TREE_LEAF_FLOOR_NEAR: ShadeFloor = { ...SHARED_LEAF_FLOOR, lift: 4.5, texture: 0.6 };
-/** view distance (m) over which a far program's floor goes from the NEAR preset to the shared one */
+/** view distance (m) over which a far program's floor goes from its NEAR preset to its far preset */
 export const TREE_FLOOR_FADE_M: [number, number] = [5, 10];
 /**
  * The near canopy's leaf floor (giant.ts NEAR_CANOPY_IN_M): the laminae the owner looks up at
@@ -160,10 +145,10 @@ export const NEAR_CANOPY_SUN_THROUGH = 0.3;
  * at 10–20 m the frames' flat hazed grey-green; at 2–12 m the same floor is what the owner sees
  * as "soft grey / soft green": every furrow lifted to its crest's level, the bark texture at a
  * tenth. The near base's furrows carry their own occlusion (bole.ts packOcclusion, applied after
- * the floor), so the floor drops to a third and keeps two thirds of the bark's own colour and
+ * the floor), so the floor drops to a third and keeps three quarters of the bark's own colour and
  * fissures: the cords read as bark, the furrows dark, the moss its own green.
  */
-export const NEAR_BASE_FLOOR: ShadeFloor = { lift: 2.5, texture: 0.65, canopy: 1, albedo: 0.08, chroma: 0.6 };
+export const NEAR_BASE_FLOOR: ShadeFloor = { lift: 2.5, texture: 0.75, canopy: 0.18, albedo: 0.08, chroma: 0.8 };
 
 interface WindOpts {
   /** stiffness of the whole-tree sway layer (1 = does not move) */
@@ -896,15 +881,11 @@ export const NEAR_BOLE_FLOOR: ShadeFloor = { lift: 13, texture: 0.25, canopy: 1,
 export const NEAR_BOLE_FLOOR_TOP = 5;
 export const NEAR_BOLE_FLOOR_FADE: [number, number] = [1.8, 3.2];
 /**
- * Round 41 (task 2): the same level profile (the lift and its fade are the D / B calibration
- * above), texture share unchanged. Measured (round 41, task 2): the floor binds only through the
- * two strips cameras D and B frame (lift 13 at 0.8–4.7 m; above the fade NEAR_BOLE_FLOOR_TOP
- * leaves the lit bole unfloored, so a higher share up there changes nothing), and a share of
- * 0.35 through those strips cost D −0.0035 and B −0.0014 SSIM for +6 % std on the owner's
- * plaza-column bole (0.064 → 0.068, p10 0.292 → 0.283); 0.5 about twice that. Left at the
- * calibrated 0.25 — the dial is this constant.
+ * The emergent column keeps its calibrated height/level profile, with the same bark/moss
+ * colour separation as the other giants. This deliberately retains surface variation where
+ * the older 0.25 texture share matched the video's hazed strip but read as a green pole.
  */
-export const TREE_NEAR_BOLE_FLOOR: ShadeFloor = { ...NEAR_BOLE_FLOOR };
+export const TREE_NEAR_BOLE_FLOOR: ShadeFloor = { ...NEAR_BOLE_FLOOR, texture: 0.65, canopy: 0.18, chroma: 0.8 };
 
 /**
  * `barkPrefix` names the bark floor's uniforms: the giants' `uBarkFloor` (GIANT_BARK_FLOOR), the

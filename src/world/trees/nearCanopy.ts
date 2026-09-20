@@ -3,10 +3,10 @@
  *
  * From the plaza and the landing the giants' and columns' lower crowns read as hazy leaf-cluster
  * cards / sparse laminae with soft edges and no branch structure. Every eligible lower lobe of a
- * giant or a seated column (local centre ≤ NEAR_CANOPY_MAX_Y, an ordinary lobe — not flat, not a
- * toned / shaded clump, not a compact plug or an eye-detail curtain; a lobe a hero camera frames
- * within the swap distance swaps only closer than that camera stands, see `swapRadiiFor`) is
- * built twice: its far foliage as before, tagged with the lobe's index in its tree (writer.ts
+ * giant or a seated column (local centre ≤ NEAR_CANOPY_MAX_Y, ordinary or flat foliage, excluding
+ * toned / shaded clumps, compact plugs and eye-detail curtains) is built twice. Ordinary lobes
+ * retain the hero-camera cut (`swapRadiiFor`); flat lobes use NEAR_CANOPY_FLAT_SWAP_M. Each has
+ * its far foliage as before, tagged with the lobe's index in its tree (writer.ts
  * leafSwapGroup), and a NEAR version from its own forked stream — a third fork level of
  * twiglets (3-sided tapering wood off the recorded twigs, verdant-forest trees.js foliateLobe)
  * each carrying an overlapping spray of cupped laminae and a tip rosette, denser sprays on the
@@ -52,17 +52,14 @@ export const NEAR_CANOPY_OUT_M = 30;
 export const NEAR_CANOPY_HERO_MARGIN = 1.5;
 export const NEAR_CANOPY_MIN_IN_M = 7;
 /**
- * Round 45 (trees-28, item 6): the FLAT lobes' swap radii [in, out] when set — in place of the
- * hero cut, which holds the four bank-canopy flat lobes (10.5–14 m from A, 11–14 from B / E,
- * 12.6–15.7 from F) at 9–12.4 m in. Set to [14, 17] the hero cameras stand inside the swap and
- * render the lit, layered near versions in place of the even masses their frames are matched
- * to — measured (cap-6t on 44fe9b1): F −0.0131 and A −0.0025 against the same build with the
- * hero cut, for +3 pinned parts / +1.55 MB pinned in a pool that stays at its 64 MiB cap. The
- * walker pose that sees the far version at 11 m (w02-spine-r, (0.19, 1.45, 9.55)) stands where
- * camera A stands ((0.4, 1.8, 8.6)): no distance radius shows one the near version without the
- * other. null = the hero cut.
+ * Flat lobes use the existing layered-leaf replacement throughout the normal near range.
+ * Their closed, sunless cores read as solid discs over the stairs at 13–16 m; keeping them
+ * in the fixed hero views preserved a low-resolution match at the expense of leaf structure.
+ * Five stair-bank parts add at most ~36 k colour-pass triangles and 2.62 MiB to the pool;
+ * they cast no shadows. The two east-giant flat lobes only swap on the closer plateau walk.
+ * null restores the hero cut. Ordinary lobes retain their existing camera/tier limits.
  */
-export const NEAR_CANOPY_FLAT_SWAP_M: [number, number] | null = null;
+export const NEAR_CANOPY_FLAT_SWAP_M: [number, number] | null = [NEAR_CANOPY_IN_M, NEAR_CANOPY_OUT_M];
 /**
  * local height (m) of the lobe centre above which a lobe keeps its far foliage at every distance
  * (round 48: a 25 m lobe is 23.5 m over a standing eye — the top of what the 26 m NEAR_CANOPY_IN_M

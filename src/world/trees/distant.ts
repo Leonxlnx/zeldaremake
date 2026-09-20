@@ -3,10 +3,11 @@
  * the haze beyond the detail radius. Two LOD levels, both real geometry:
  *   near/mid — low-poly bent trunk (geometric cords, basal flare, root buttresses) + limbs;
  *   far      — crossed tapering trunk strips (not camera-facing, no photographs).
- * Both carry the same crown: 2–3 crossed vertical cards of the far-crown atlas
+ * Both carry the same crown: crossed vertical, side-lobe and underside cards of the far-crown atlas
  * (leaf-cluster-texture.ts createFarCrownAtlas) in their own material (createDistantCrownMaterial:
  * a spherical normal so the lit rim follows the sun, a darker core, soft alpha, per-instance
- * hue/value jitter, the far layer's slow wind). The geometry is one buffer with two groups —
+ * hue/value jitter, the far layer's slow wind). Far trunk strips follow the near trunk's bend
+ * and taper. The geometry is one buffer with two groups —
  * wood (the distant material) and crown (the crown material). Fog does the atmospheric tinting.
  * Placement is seeded, clumped by noise, spaced by a hash grid, and seated on the terrain.
  */
@@ -49,13 +50,13 @@ export interface DistantPlacement {
  * a disc crown on a pole, hard cut-out edges, no depth between rows, pale bole tops poking
  * through the crowns). The crown of every distant tree, both LODs, is now FAR_CROWN_CARDS crossed
  * vertical cards of one far-crown atlas cell (leaf-cluster-texture.ts: four silhouettes painted
- * as soft leaf clumps), the near LOD adding FAR_CROWN_LOBES smaller crossed pairs off the axis
+ * as soft leaf clumps), both LODs adding FAR_CROWN_LOBES smaller crossed pairs off the axis
  * so the outline is not one shape; the lobe cores and the card clusters of rounds 40–46 are gone
  * (the disc crown with them). The cards are drawn by createDistantCrownMaterial below.
  * [near LOD cards, far LOD cards]
  */
 export const FAR_CROWN_CARDS: [number, number] = [3, 3];
-/** near LOD only: crossed pairs of smaller cards off the axis (a second silhouette layer) */
+/** Crossed pairs of smaller cards off the axis, [broad, slender]; retained at both LODs. */
 export const FAR_CROWN_LOBES: [number, number] = [2, 1];
 /**
  * a main card's half-width as a share of the crown radius: the silhouette fills FAR_CROWN_FILL
@@ -142,7 +143,7 @@ export const DISTANT_TAPER_TOP = 0.36;
  * radii below it, DISTANT_CROWN_FLOOR_HALF × R across, tilted ≤ 18°) in a dark tint — a walker
  * under the depth rows sees a leaf roof, not a gap between vertical cards. The fixed cameras are
  * pitched down 3–4° and see the far crowns from 51 m+, where a horizontal card is edge-on and in
- * the 86 % veil. Far LOD: none.
+ * the 86 % veil. Both LODs retain these cards so higher views do not lose the crown at range.
  */
 export const FAR_CROWN_FLOOR = 2;
 export const DISTANT_CROWN_FLOOR_Y = 0.42;
@@ -586,8 +587,9 @@ export function createDistantVariants(rng: Rng, palette: Palette): DistantVarian
     const nearWood = near.indices.length;
     const crownCentre = new Vector3(0, crownY + crownR * 0.1, 0);
     const cells = slender ? [3] : broadCells[index % broadCells.length];
-    // round 48: + FAR_CROWN_FLOOR dark near-horizontal cards under the broad crowns (their own fork inside crownCards)
-    crownCards(near, rng.fork(`distant-crown-${index}`), crownCentre, crownR, cells, FAR_CROWN_CARDS[0], slender ? FAR_CROWN_LOBES[1] : FAR_CROWN_LOBES[0], cardTint, cardTopTint, slender ? 0 : FAR_CROWN_FLOOR);
+    const crownLobes = FAR_CROWN_LOBES[slender ? 1 : 0];
+    const crownFloor = slender ? 0 : FAR_CROWN_FLOOR;
+    crownCards(near, rng.fork(`distant-crown-${index}`), crownCentre, crownR, cells, FAR_CROWN_CARDS[0], crownLobes, cardTint, cardTopTint, crownFloor);
 
     // ---- far LOD: two crossed tapering trunk strips (foot grime, tone bands, darkening into the
     // crown — round 47; the round-40 silhouette fans and their rim cards are replaced by the same
@@ -604,22 +606,24 @@ export function createDistantVariants(rng: Rng, palette: Palette): DistantVarian
     // centre height, inside the dense part of the painted silhouette, at the near bole's own top
     // radius, and their upper ring sits ABOVE the 0.52 H ring (the broad kinds' crownY − 0.35 crownR
     // was under it, so the strip folded back on itself).
-    const farTopW = spec.taperTop ?? (slender ? 0.25 : DISTANT_TAPER_TOP);
-    const farRings: [number, number][] = [
-      [-0.6, 1.1],
-      [H * 0.28, 0.96],
-      [H * 0.52, 0.8],
-      [Math.max(H * 0.52 + 0.5, crownY - crownR * 0.35), 0.5 + 0.35 * farTopW],
-      [crownY, farTopW],
-    ];
+    // Same five ring heights, sampled on the near bole: its lean and taper must not snap
+    // back to a straight, wider pole when the camera crosses the LOD boundary.
+    const farRings = [-0.6, H * 0.28, H * 0.52, Math.max(H * 0.52 + 0.5, crownY - crownR * 0.35), crownY].map((y) => {
+      const j = Math.max(1, sweep.findIndex((p) => p.y >= y));
+      const t = (y - sweep[j - 1].y) / (sweep[j].y - sweep[j - 1].y);
+      const centre = sweep[j - 1].clone().lerp(sweep[j], t);
+      const distance = arc[j - 1] + (arc[j] - arc[j - 1]) * t;
+      const radius = (sweepRadii[j - 1] + (sweepRadii[j] - sweepRadii[j - 1]) * t) * (1 + DISTANT_FLARE * Math.exp(-distance / DISTANT_FLARE_FALL));
+      return { centre, radius };
+    });
     for (let plane = 0; plane < 2; plane++) {
       const a = (plane / 2) * Math.PI;
       const dir = new Vector3(Math.cos(a), 0, Math.sin(a));
       let prev: [number, number] | null = null;
-      farRings.forEach(([y, w], k) => {
-        const c = boleColor(new Vector3(0, y, 0), k / (farRings.length - 1), bark, farTop, farFoot);
-        const l = far.vertex(new Vector3().addScaledVector(dir, -R * w).setY(y), c, 0, k, 1, 0, 0);
-        const rr = far.vertex(new Vector3().addScaledVector(dir, R * w).setY(y), c, 1, k, 1, 0, 0);
+      farRings.forEach(({ centre, radius }, k) => {
+        const c = boleColor(centre, k / (farRings.length - 1), bark, farTop, farFoot);
+        const l = far.vertex(centre.clone().addScaledVector(dir, -radius), c, 0, k, 1, trunkDraws.windPhase, 0);
+        const rr = far.vertex(centre.clone().addScaledVector(dir, radius), c, 1, k, 1, trunkDraws.windPhase, 0);
         if (prev) {
           far.triangle(prev[0], prev[1], rr);
           far.triangle(prev[0], rr, l);
@@ -629,8 +633,9 @@ export function createDistantVariants(rng: Rng, palette: Palette): DistantVarian
     }
     solidUv(far);
     const farWood = far.indices.length;
-    // the same stream as the near LOD's main cards: the far LOD's crown is the near one's without its lobes, so the switch at 120 m never turns a crown
-    crownCards(far, rng.fork(`distant-crown-${index}`), crownCentre, crownR, cells, FAR_CROWN_CARDS[1], 0, cardTint, cardTopTint);
+    // Keep the complete crown: dropping lobes and underside at 120 m loses visible coverage
+    // and turns a high-angle view into edge-on cards. At most 12 extra triangles, no extra draw.
+    crownCards(far, rng.fork(`distant-crown-${index}`), crownCentre, crownR, cells, FAR_CROWN_CARDS[1], crownLobes, cardTint, cardTopTint, crownFloor);
 
     const nearGeometry = near.finish(`distant-near-${index}`);
     nearGeometry.addGroup(0, nearWood, 0);

@@ -49,6 +49,45 @@ const { createNearCanopyKit, runSteps } = loadTs(path.join(here, 'nearCanopy.ts'
 const { createRng } = loadTs(path.join(here, '..', 'util', 'prng.ts'));
 const { growthPath, taper } = loadTs(path.join(here, 'writer.ts'));
 
+test('distant LODs retain the crown, underside and bent trunk within the far budget', () => {
+  const { createDistantVariants } = loadTs(path.join(here, 'distant.ts'));
+  const { WORLD } = loadTs(path.join(here, '../config.ts'));
+  const variants = createDistantVariants(createRng(WORLD.seed).fork('trees'), WORLD.palette);
+  const wood = new THREE.MeshBasicMaterial({ side: THREE.DoubleSide });
+  const ray = new THREE.Raycaster();
+  const point = new THREE.Vector3();
+  const end = new THREE.Vector3();
+  const directions = [new THREE.Vector3(1, 0, 0), new THREE.Vector3(-1, 0, 0), new THREE.Vector3(0, 0, 1), new THREE.Vector3(0, 0, -1)];
+  for (const [i, variant] of variants.entries()) {
+    const { near, far } = variant;
+    const crownStart = (g) => g.index.getX(g.groups[1].start);
+    for (const name of Object.keys(near.attributes)) {
+      const a = near.getAttribute(name);
+      const b = far.getAttribute(name);
+      assert.deepEqual(b.array.slice(crownStart(far) * b.itemSize), a.array.slice(crownStart(near) * a.itemSize), `variant ${i}: crown ${name} changes at the LOD switch`);
+    }
+    assert.ok(variant.farTriangles <= 34, `variant ${i}: far geometry exceeds 34 triangles`);
+    if (variant.kind === 'broad') {
+      const normals = far.getAttribute('normal');
+      assert.ok(Array.from({ length: normals.count - crownStart(far) }, (_, j) => Math.abs(normals.getY(crownStart(far) + j))).some((y) => y > 0.9), `variant ${i}: no canopy underside from above/below`);
+    }
+    // A far-strip centre must still lie inside the near bole, rather than snapping back to
+    // the origin. Four horizontal rays from it must hit wood on both sides before the crown.
+    const mesh = new THREE.Mesh(near, wood);
+    const positions = far.getAttribute('position');
+    for (let v = 2; v < crownStart(far) / 2; v += 2) {
+      point.fromBufferAttribute(positions, v).add(end.fromBufferAttribute(positions, v + 1)).multiplyScalar(0.5);
+      for (const direction of directions) {
+        ray.set(point, direction);
+        assert.ok(ray.intersectObject(mesh).some((hit) => hit.faceIndex * 3 < near.groups[0].count && hit.distance < 2), `variant ${i}: far bole centre leaves the near trunk at y=${point.y}`);
+      }
+    }
+    near.dispose();
+    far.dispose();
+  }
+  wood.dispose();
+});
+
 /** a fake clock the budgets read */
 const clock = () => {
   let t = 0;
