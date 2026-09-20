@@ -15,7 +15,6 @@
  * have them, so the six harness views never see the loop).
  */
 
-import { EXPANSION_NPC_SPOTS } from '../layout';
 
 export type V3 = [number, number, number];
 
@@ -255,7 +254,6 @@ export interface NpcStand {
  * stand: idle, the look-around keys, the fairy), NOT in this round — the six fixed frames' kid
  * slots are pinned and a new slot re-rolls the kokiri look streams.
  */
-export const NPC_SOUTH_BANK: NpcStand = (() => {
-  const p = EXPANSION_NPC_SPOTS[0].position;
-  return { id: EXPANSION_NPC_SPOTS[0].id, x: p[0], z: p[2], lookAt: [0, 2] };
-})();
+// placement.ts stays dependency-free (placement.test.mjs loads it standalone); the spot mirrors
+// layout.ts EXPANSION_NPC_SPOTS[0] and terrain/expansion2.test.mjs asserts the two agree.
+export const NPC_SOUTH_BANK: NpcStand = { id: 'kokiri-south-bank', x: -18.721, z: 17.097, lookAt: [0, 2] };
