@@ -1,0 +1,183 @@
+{
+  "source": "382ec9ecab9f77062b61c77192ada4df860abc33666284d8971abe1e577492eb",
+  "previousCandidate": "22a46be0abb21fa570c8a391fcab8ab3b7a884a51bb9b4263caa59ac8ca0ac94",
+  "candidate": "ea93932d8afe02ec4bbcf3487fb20ce3f55272fb60f20998dc728cb637ae575f",
+  "scenarios": {
+    "idle_capture": {
+      "traceExactToOriginal": true,
+      "legsAndChestExactToPrior": true,
+      "changedMetrics": {}
+    },
+    "idle_play": {
+      "traceExactToOriginal": true,
+      "legsAndChestExactToPrior": true,
+      "changedMetrics": {}
+    },
+    "walk_capture": {
+      "traceExactToOriginal": true,
+      "legsAndChestExactToPrior": true,
+      "changedMetrics": {}
+    },
+    "walk_play": {
+      "traceExactToOriginal": true,
+      "legsAndChestExactToPrior": true,
+      "changedMetrics": {}
+    },
+    "run_capture": {
+      "traceExactToOriginal": false,
+      "legsAndChestExactToPrior": true,
+      "changedMetrics": {
+        "upperArmPitchL": {
+          "before": {
+            "min": -32.59986999445387,
+            "max": 25.846533266251278,
+            "mean": -6.997216042637864
+          },
+          "after": {
+            "min": -39.15983257566282,
+            "max": 20.569250081490402,
+            "mean": -13.09567573883039
+          }
+        },
+        "elbowFlexL": {
+          "before": {
+            "min": 79.4716073634559,
+            "max": 93.9005214967186,
+            "mean": 88.21478274983703
+          },
+          "after": {
+            "min": 71.9200086589707,
+            "max": 87.1272838495112,
+            "mean": 80.99106252767581
+          }
+        },
+        "handForwardML": {
+          "before": {
+            "min": -0.004036852542594005,
+            "max": 0.15503440997116513,
+            "mean": 0.08397004765937473
+          },
+          "after": {
+            "min": -0.037534691022727884,
+            "max": 0.1517460797259247,
+            "mean": 0.06390966634383938
+          }
+        },
+        "upperArmPitchR": {
+          "before": {
+            "min": -36.150968851115806,
+            "max": 22.836258626746183,
+            "mean": -7.7073635748111
+          },
+          "after": {
+            "min": -42.69857386513129,
+            "max": 17.53658563077503,
+            "mean": -13.821578642540745
+          }
+        },
+        "elbowFlexR": {
+          "before": {
+            "min": 78.93936351763863,
+            "max": 93.90049524879963,
+            "mean": 87.90702200866303
+          },
+          "after": {
+            "min": 71.41416735217138,
+            "max": 87.35053696841743,
+            "mean": 80.82433927344174
+          }
+        },
+        "handForwardMR": {
+          "before": {
+            "min": -0.018346870447572883,
+            "max": 0.14614259360815396,
+            "mean": 0.07956187594952792
+          },
+          "after": {
+            "min": -0.05250610178916304,
+            "max": 0.14088712700601036,
+            "mean": 0.060044692280135585
+          }
+        }
+      }
+    },
+    "run_play": {
+      "traceExactToOriginal": false,
+      "legsAndChestExactToPrior": true,
+      "changedMetrics": {
+        "upperArmPitchL": {
+          "before": {
+            "min": -31.936245321753464,
+            "max": 24.75247266105249,
+            "mean": -6.955203068485372
+          },
+          "after": {
+            "min": -38.53927586880992,
+            "max": 19.502038387065966,
+            "mean": -13.043787057515503
+          }
+        },
+        "elbowFlexL": {
+          "before": {
+            "min": 79.19089783773435,
+            "max": 94.7843613686391,
+            "mean": 88.33463194915731
+          },
+          "after": {
+            "min": 71.6732376149933,
+            "max": 88.03943299069454,
+            "mean": 81.12329559333962
+          }
+        },
+        "handForwardML": {
+          "before": {
+            "min": -0.0018379818065241693,
+            "max": 0.14969725076603524,
+            "mean": 0.08280812378369609
+          },
+          "after": {
+            "min": -0.03526127175022964,
+            "max": 0.14777013793926486,
+            "mean": 0.06290231481599196
+          }
+        },
+        "upperArmPitchR": {
+          "before": {
+            "min": -34.811145010242306,
+            "max": 22.117437336682123,
+            "mean": -7.6905716868483704
+          },
+          "after": {
+            "min": -41.40595058290236,
+            "max": 16.84590775355676,
+            "mean": -13.794622720205819
+          }
+        },
+        "elbowFlexR": {
+          "before": {
+            "min": 78.56356803111703,
+            "max": 94.84068722932037,
+            "mean": 87.99550943804745
+          },
+          "after": {
+            "min": 70.9661863295779,
+            "max": 88.30870542541881,
+            "mean": 80.92354181391927
+          }
+        },
+        "handForwardMR": {
+          "before": {
+            "min": -0.01348915400368611,
+            "max": 0.14109469097475724,
+            "mean": 0.07834398776014827
+          },
+          "after": {
+            "min": -0.04747940981839349,
+            "max": 0.13857911180938487,
+            "mean": 0.058931112214626324
+          }
+        }
+      }
+    }
+  }
+}
