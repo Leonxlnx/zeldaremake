@@ -15,6 +15,7 @@ import { buildRock, type RockOptions } from './rockgen';
 import { createRockMaterial, NEAR_FADE_M, NEAR_TILE_M } from './material';
 import { dressRock, mergeRockParts } from './dressing';
 import { buildRockLedge, type RockLedgeDef } from './ledge';
+import { buildClearingRocks, type ClearingLayout } from './clearing';
 import { CUSHION, FERN, TUFT_A, TUFT_B, buildSproutMeshes, createSproutMaterial, type SproutSpot } from '../materials/sprouts';
 import type { Rng } from '../util/prng';
 
@@ -954,6 +955,19 @@ export async function create(ctx: WorldContext): Promise<WorldSystem> {
     }
   }
 
+  // --- the north clearing's rock dressing (clearing.ts): the west-bank boulder pair, scree at the
+  // ledge flight's flanks, half-buried strata along the terrace face east of the flight — one
+  // merged mesh under the hero (near) material; positions from the layout's northClearing /
+  // stairs.ledge / ledgeTerrace, own fork
+  const clearing = buildClearingRocks(ctx.layout as unknown as ClearingLayout, T, rng.fork('north-clearing'), seed, shadeDir);
+  if (clearing) {
+    const mesh = new Mesh(clearing.geometry, heroMaterial);
+    mesh.castShadow = true;
+    mesh.receiveShadow = true;
+    mesh.name = 'north-clearing-rocks';
+    group.add(mesh);
+  }
+
   const rubbleSlots: InstanceSlot[] = [];
   const rubbleMeshes = buildInstanced(rubble, rubbleGeos, material, 'rubble', true, rubbleSlots);
   const strataSlots: InstanceSlot[] = [];
@@ -1039,6 +1053,8 @@ export async function create(ctx: WorldContext): Promise<WorldSystem> {
     boulderPlantDrawCalls: plants.meshes.length,
     /** rock ledge faces (ledge.ts): from `layout.rockLedges`, or the `?rockLedgePreview=1` preview (never in a take) */
     ledges: ledgeInfo,
+    /** the north clearing's dressing (clearing.ts): boulder pair / scree / slabs, one mesh */
+    northClearing: clearing ? clearing.stats : null,
     ledgeSource: ledgeInfo.length ? ((ctx.layout as unknown as { rockLedges?: unknown[] }).rockLedges?.length ? 'layout' : 'preview') : 'none',
     rubble: rubble.length,
     strata: strata.length,
@@ -1050,6 +1066,7 @@ export async function create(ctx: WorldContext): Promise<WorldSystem> {
       pebbles: samplePebbles.map((p) => [rnd(p.x), rnd(p.y), rnd(p.z)]),
       crevicePlants: crevicePlants.map((p) => [rnd(p.x), rnd(p.y), rnd(p.z), p.kind ?? 'tuft']),
       ledgeFeet: ledgeContacts.map((p) => p.map(rnd)),
+      northClearingSeats: clearing ? clearing.contacts.map((p) => p.map(rnd)) : [],
     },
     palette: { moss: [P.mossDeep, P.mossBright] },
   }));
