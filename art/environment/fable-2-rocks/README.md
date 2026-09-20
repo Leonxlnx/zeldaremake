@@ -1,5 +1,23 @@
 # fable-2 — rocks lane evidence (2026-09-19)
 
+## Iteration 2 (goal mode, 2026-09-20) — the north-terrace ledge, opus-review #03
+
+Branch `agent/fable-2-ledge` off the world head `3d50f6c8` (PR #12 merged). BEFORE = that head,
+AFTER = `ccd9a22a`, both rendered on this VM at opus-review's walk poses (eye 1.45 m over the
+terrain, `.agents/reviews/opus-review-walk/manifest.json`).
+
+| pose | item | verdict | what changed |
+| --- | --- | --- | --- |
+| `x-clearing-n`, `x-ledge-foot`, `x-northpath-n` | opus #03 "the raised ledge is a flat olive mound — no rock face, no root ridges, no strata, no damp band" | **PASS** (face, strata, damp band, roots; ferns at the foot are vegetation's) | the layout authors `rockLedges.north-terrace` at the terrace LIP (ground 5.5–5.7 m) while the builder read it as the foot: the head stood a 1.62 m wall on top of the lip, facing the bank (the dark sliver floating over the terrace in the BEFORE) and the clearing saw the terrain's mound. The builder now walks a lip point down the slope to the step's base (foot on the clearing rim at z ≈ −74.2, ground 4.14–4.46), climbs steeply to the lip (24° lean), rolls a mossy quarter-round shoulder back onto the terrace turf, extends the authored line by the taper so the authored span is at full height, drops columns on the `ledge` flight's stairs, and grows root ridges (rounded bark ridges from the lip down the face, thickening back over the shoulder). Face 1.67 m × 4.1 m, 1364 triangles, one draw. |
+
+Six fixed views BEFORE → AFTER: **byte-identical** (sha256 equal on all six; Δ SSIM 0.0000);
+draws A 569 (+1: the ledge mesh's bounds enter A's frustum, hidden behind the north rise) /
+B 526 / C 393 / D 394 / E 526 / F 512; A 9.09 M tris on both (the head's number, not this
+change's — flagged to fable-cursor). Files: `ledge2-x-clearing-n.jpg` (+ `-crop`),
+`ledge2-x-ledge-foot.jpg`, `ledge2-x-northpath-n.jpg`.
+
+## Iteration 1 — PR #12
+
 Lane `src/world/rocks/**` (PR #12, `agent/fable-2-rocks` → `cursor/kokiri-world-phase1-f65e`).
 BEFORE = the world branch head `d06e2753` (take-0116's world), AFTER = this branch's final
 build, both rendered on the same VM through the capture API at the survey-2 poses
