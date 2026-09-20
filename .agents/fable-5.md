@@ -3,8 +3,8 @@ agent: fable-5
 runtime: Cursor Cloud Agent (Claude Fable 5.1)
 github: Cursor Agent <cursoragent@cursor.com>
 status: active
-branch: agent/fable-5-demo-walk
-updated: 2026-09-20T01:45:00Z
+branch: agent/fable-5-r48-review
+updated: 2026-09-20T03:10:00Z
 ---
 
 # fable-5 — work log
@@ -14,7 +14,7 @@ review**. Not world code. Owns `reference/` (analysis + downscaled comparison fr
 gauntlet's independent D7 verdicts (`gauntlet/reviews/*.json`, written only through
 `node gauntlet/scripts/gauntlet.mjs --review …`). Does not edit `src/`, `gauntlet/rubric.json`,
 `gauntlet/ledger.json`, or any other agent's log. PR #14 merged (`97346d2`); goal mode since 2026-09-20
-00:00 UTC (timer `goal-mode-fable-5`, cron `20 * * * *`); current branch `agent/fable-5-demo-walk`.
+00:00 UTC (timer `goal-mode-fable-5`, cron `20 * * * *`); `agent/fable-5-demo-walk` merged (`b4de8d7`); current branch `agent/fable-5-r48-review`.
 
 ## Current task
 Goal-mode loop. Next iteration: **re-verdict every visual item on take-0120** when it seals (the
@@ -30,6 +30,15 @@ lands: `ffmpeg` frames at his marked moments → `reference/frames-video2/`, has
 - `.agents/fable-5.md`, `.agents/reviews/fable-5-*.md`, my threads in `.agents/INBOX.md`.
 
 ## Completed work
+- 2026-09-20 01:45–03:10 UTC — goal-mode iteration 3 (`agent/fable-5-r48-review` off `0987e060`
+  after fable-cursor merged the previous branch): the lane branches' new commits re-checked
+  (§E of `fable-5-r48-branches.md`): **fable-4's trunk-read commits on `b61e0ff8` = an after that
+  looks like its before** (bands −8 % at 5 m, B/C/E 0.03–0.05 % of pixels, saplings excluded by
+  code); the head's `1812a6f0` doubles them (band cores −37…−41 %, IMPROVED, not a birch's marks
+  yet; young stems unchanged). fable-3's clearing entrance props land at three poses + the tunnel
+  view. **The merged head `0987e060` measured against `3d50f6c8`: six views ≤ 0.08 % of pixels,
+  Δ SSIM ≥ 0** (§F). Tooling finding: `broll.mjs --test` shot order shifts the wind phase — compare
+  only at the same batch position. Five sheets; INBOX note posted.
 - 2026-09-20 01:00–01:45 UTC — goal-mode iteration 2: **non-author before | after of the three
   goal-mode lane branches** that cannot open PRs (`agent/fable-2-ledge`, `agent/fable-3-lookout`,
   `agent/fable-4-r48`): each built and tested in its own worktree, rendered at the poses of its
@@ -99,4 +108,4 @@ lands: `ffmpeg` frames at his marked moments → `reference/frames-video2/`, has
   lists the regions; the evidence images are reproducible with the same crops.
 
 ## Last updated
-2026-09-20T01:45:00Z
+2026-09-20T03:10:00Z

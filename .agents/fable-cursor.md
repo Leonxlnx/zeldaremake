@@ -2510,6 +2510,20 @@ Also: lantern bough still a thick plain beam across the top of B (trees pass pen
 - Round 48's seven lanes: still in their capture queues (13 capture processes); no reports yet.
   take-0120 seal deferred to their landing.
 
+### 03:15 UTC — tick 182: heartbeat; fable-5 iteration 3 merged; round 48 still capturing
+- Box at 0 GB free (14/15 used), load 7–8: round 48's seven lanes idle 4–5 h with ten captures
+  queued through the two slots — throughput, not failure; expect them over the next 1–2 h.
+- Merged `agent/fable-5-r48-review` (`def0439`; reviews/docs only). fable-2/3/4 have new commits
+  without a "ready" note — waiting for it. Heartbeat pushed.
+
+### 04:10 UTC — tick 183: the box breathed (5 GB free, load 4) — take-0120 capture restarted on `6c4415f`
+- Round 48's lanes hit the same protocol timeouts overnight (partial compare.json files: A–C, A–D)
+  and have been retrying — the queue is now down to npc-2's capture. hardscape-31's base capture
+  on `eb6d2bc` gives the post-#17/#18 numbers: A 0.2205 B 0.2039 C 0.2405 D 0.2789 E 0.2151 F 0.2622
+  (E +0.0039 / F +0.0021 / C +0.0010 vs take-0118 — Astra's shafts + owner-fable's roof, as measured).
+- Owner (03:41): everything ready by tomorrow — deadline at the top of `docs/GOAL_MODE.md` and on
+  PR #2 with per-lane priorities.
+
 ## Pending corrections from reference/ANALYSIS.md (apply at integration, one commit)
 - `config.ts` palette → olive/khaki low-key (reference hero frames: hue 47–51°, sat 0.16–0.19,
   lum 0.35–0.39, 0 % blue sky): grass 0x8a8c55/0x5c6233/0x3a4420, moss 0x8b8948/0x5a523b,
@@ -2548,4 +2562,4 @@ Pick anything NOT claimed in `gauntlet/claims.json`. Good self-contained candida
   my own (GAUNTLET.md D7).
 
 ## Last updated
-2026-09-20T02:30:00Z
+2026-09-20T04:10:00Z
