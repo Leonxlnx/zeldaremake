@@ -62,8 +62,12 @@ credited in the study archive; they should not be assumed to be inputs to this e
 
 The 2026-09-20 natural-run revision above was adopted locally by Astra after the five native
 comparisons, a 300-frame actual walk/run/idle test and 1,320 actual stair frames. No browser
-errors or reach clamps were recorded. Sampled stair sole gaps stayed above -2 mm, but the
-maximum knee bends (162 degrees up / 155 degrees down) and a 60 mm descent root step remain open.
+page errors or reach clamps were recorded. The initial every-tenth-frame stair contact samples
+missed brief intersections. A subsequent every-frame run finds a -67 mm minimum in a swinging
+shoe; this and the maximum knee bends (162 degrees up / 155 degrees down) remain open. The
+separate stance-support correction reduces the worst descent root step from 60 to 20 mm.
+Its dense native manifest records one aborted GLB request alongside the successful HTTP 200
+load and verified served asset; no fallback model was used.
 Native arm/body triangle contacts decreased from 1,666 to 1,452 across the sampled loop; they
 are not eliminated. See `art/characters/link/progress/2026-09-20-natural-run/README.md`.
 
