@@ -269,6 +269,8 @@ export async function create(ctx: WorldContext): Promise<WorldSystem> {
     logNearDetail: log.detail44,
     /** round 47 (structures-30): the passage under the arch at walking height — roots, rim vines / beards, fungus tiers, daylight slivers, litter; the lowest any of it hangs over the strip */
     logPassageDetail: log.detail47,
+    /** round 49 (structures-32): the passage tube under the arch — frame, cross-section, cheeks, north portal, floor decal; the tube's least height over the strip */
+    logTunnel: log.detail49,
     signposts: signposts.length,
     fences: fences.length,
     fencePosts,
