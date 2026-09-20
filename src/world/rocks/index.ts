@@ -381,7 +381,9 @@ export async function create(ctx: WorldContext): Promise<WorldSystem> {
       // rocks are cool grey under their moss, so it gets a tan tint of its own
       // (W23: frame D's boulder is olive-tan — rgb 91/83/45 at l 0.32, hue 47°, sat 0.34 — where
       // ours rendered grey-tan at 0.30 behind the ferns; the tint goes a step paler and yellower)
-      tint: b.id === 'shot-d-boulder' ? new Color(0.9, 0.85, 0.64) : new Color(0.72, 0.72, 0.71),
+      // fable-2 (fable-5 round-50 #8, the hue half of W23 at D: the face 62° / 0.13 against the frame's 52° / 0.36):
+      // the tan a step warmer and more saturated — the grey triplanar stone under it desaturates by a third
+      tint: b.id === 'shot-d-boulder' ? new Color(0.95, 0.82, 0.55) : new Color(0.72, 0.72, 0.71),
       freq: 0.9,
     };
     const geo = buildRock(bRng.fork(b.id), `${seed}/boulder-${b.id}`, rockOpts);
