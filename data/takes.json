@@ -1,6 +1,6 @@
 {
   "project": "zeldaremake",
-  "updatedAt": "2026-09-20T08:23:51.555Z",
+  "updatedAt": "2026-09-20T08:37:22.998Z",
   "monitorCadenceMinutes": 60,
   "takes": [
     {
@@ -82276,8 +82276,8 @@
     }
   ],
   "heartbeat": {
-    "at": "2026-09-20T07:06:57.281Z",
-    "reason": "take-0121 re-verdicted 36/50 by fable-5; round 49 building"
+    "at": "2026-09-20T08:37:22.998Z",
+    "reason": "take-0122 sealed (37/50); round 49 expansion-2 + structures-32 in progress"
   },
   "play": {
     "takeId": "take-0122",
