@@ -24,7 +24,7 @@ import { createGround } from './ground';
 import { createKokiri } from './kokiri';
 import { createNpcs } from './npc';
 import { createLink } from './link';
-import { createNavi, TRAIL_COUNT } from './navi';
+import { createNavi, naviHoverAnchor, TRAIL_COUNT } from './navi';
 import { headingOf, marchToGround, matchViewpoint, NPC_SOUTH_BANK, pointAtDepth, projectPoint, VIEW_TABLE, type CamPose, type V3 } from './placement';
 import { PLAYER_KEY, type PlayerHandle, type PlayerInput } from './player';
 import { createContactShadow } from './shadow';
@@ -198,7 +198,8 @@ export async function create(ctx: WorldContext): Promise<WorldSystem> {
       kids[i].pos.set(kidSpots[i][0], 0, kidSpots[i][2]);
       faceToward(kids[i], spawn[0], spawn[2]);
     }
-    naviAnchor.set(link.pos.x + 0.35 * Math.sin(link.yaw + 1.2), 1.35, link.pos.z + 0.35 * Math.cos(link.yaw + 1.2));
+    // round 50: above and to his left like the girls' fairies (navi.ts NAVI_HOVER); the head centre ≈ 1.05 m over the ground
+    naviHoverAnchor(link.pos.x, ground.height(link.pos.x, link.pos.z) + 1.05, link.pos.z, link.yaw, naviAnchor);
   };
 
   /** Reference composition for a recognised viewpoint. */

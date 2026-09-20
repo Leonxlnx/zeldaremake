@@ -482,10 +482,20 @@ function seatedLook(t: number, phase: number, keys: [number, number, number][], 
 
 // ---- the system ----
 
-/** where the fairy hovers relative to the face: ahead of the eyes, a little to her left and above the eye line */
-const FAIRY_AHEAD = 0.4;
-const FAIRY_SIDE = 0.12;
-const FAIRY_UP = 0.08;
+/**
+ * Where a girl's fairy hovers relative to her head centre (round 50; demo d_011 / d_024 and
+ * ref-01 read ≈ 0.4–0.5 m above the crown and ≈ 0.4 m to the side, never over the face): up
+ * FAIRY_UP, out to her LEFT by FAIRY_LEFT (her left is (cos yaw, 0, −sin yaw) for +Z forward) and
+ * a hair ahead of the ear line — the fixed frames' kids face Link, so the fairy sits above and
+ * beside the head from the camera too.
+ */
+const FAIRY_UP = 0.42;
+const FAIRY_LEFT = 0.3;
+const FAIRY_AHEAD = 0.02;
+/** the girls' fairies (round 50): a warm-white bloom and wings around a soft green core, like the demo's; Navi stays blue-white */
+const KID_FAIRY_TINT = new Color(1.0, 0.95, 0.78);
+const KID_FAIRY_CORE = new Color(0.78, 1.0, 0.68);
+const KID_FAIRY_LIGHT = 0xe6ffd6;
 /** the walker's fairy: delayed-average taps (s) and weights — a spring-like lag that is still a function of t */
 const LAG_TAPS: [number, number][] = [
   [0.0, 0.34],
@@ -625,7 +635,7 @@ export function createNpcs(opts: NpcOptions): Npcs {
   const fairies: { fairy: Fairy; slot: number }[] = [];
   for (const slot of [0, 1, LEDGE_SLOT, BANK_SLOT]) {
     if (!chars[slot]) continue;
-    const fairy = createFairy({ name: `kokiri-fairy-${slot}`, tint: new Color(0.72, 1.0, 0.62), lightColor: 0xbfffc4, seed: `${opts.seed}/fairy/${slot}`, scale: 0.75 });
+    const fairy = createFairy({ name: `kokiri-fairy-${slot}`, tint: KID_FAIRY_TINT, coreTint: KID_FAIRY_CORE, lightColor: KID_FAIRY_LIGHT, seed: `${opts.seed}/fairy/${slot}`, scale: 0.75 });
     fairies.push({ fairy, slot });
     group.add(fairy.group);
   }
@@ -634,20 +644,23 @@ export function createNpcs(opts: NpcOptions): Npcs {
   const face = new Vector3();
   const acc = new Vector3();
   const _st: WanderState = { ...wander };
-  /** the walker's face point at time τ from the closed-form state (no rig needed) */
+  /** the fairy's hover point for a head centre at (hx, hy, hz) facing `yaw`: above and to the left of the head */
+  const hoverAt = (hx: number, hy: number, hz: number, yaw: number, out: Vector3) => {
+    const fx = Math.sin(yaw);
+    const fz = Math.cos(yaw);
+    return out.set(hx + fx * FAIRY_AHEAD + fz * FAIRY_LEFT, hy + FAIRY_UP, hz + fz * FAIRY_AHEAD - fx * FAIRY_LEFT);
+  };
+  /** the walker's hover point at time τ from the closed-form state (no rig needed) */
   const walkerFaceAt = (tau: number, out: Vector3) => {
     wanderStateAt(sched, phase0, tau, _st);
-    const fx = Math.sin(_st.yaw);
-    const fz = Math.cos(_st.yaw);
     const h = ground.height(_st.x, _st.z);
-    return out.set(_st.x + fx * FAIRY_AHEAD - fz * FAIRY_SIDE, h + walker.rig.props.headCentreY + FAIRY_UP, _st.z + fz * FAIRY_AHEAD + fx * FAIRY_SIDE);
+    return hoverAt(_st.x, h + walker.rig.props.headCentreY, _st.z, _st.yaw, out);
   };
-  /** a posed kid's face point from its rig */
+  /** a posed kid's hover point from its rig */
   const rigFace = (c: Character, out: Vector3) => {
     c.rig.root.updateMatrixWorld(true);
-    c.rig.head.getWorldPosition(out);
-    const yaw = c.rig.root.rotation.y;
-    return out.add(_tmp.set(Math.sin(yaw) * FAIRY_AHEAD - Math.cos(yaw) * FAIRY_SIDE, FAIRY_UP, Math.cos(yaw) * FAIRY_AHEAD + Math.sin(yaw) * FAIRY_SIDE));
+    c.rig.head.getWorldPosition(_tmp);
+    return hoverAt(_tmp.x, _tmp.y, _tmp.z, c.rig.root.rotation.y, out);
   };
 
   let lastT = 0;
