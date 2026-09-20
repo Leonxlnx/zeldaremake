@@ -87,7 +87,7 @@ export function buildClearingRocks(layout: ClearingLayout, T: Terrain, rng: Rng,
       const loaf = (id: string, r: number, squash: number, sinkFrac: number, x: number, z: number, yaw: number, cuts: number) => {
         const g = buildRock(bRng.fork(id), `${seed}/clearing-${id}`, {
           radius: r,
-          detail: r > 0.4 ? 22 : 18,
+          detail: r > 0.4 ? 18 : 14,
           ridge: 0.12,
           lump: 0.3,
           crown: 0.18,
@@ -168,7 +168,7 @@ export function buildClearingRocks(layout: ClearingLayout, T: Terrain, rng: Rng,
         const yaw = sRng.range(0, Math.PI * 2);
         const shard = buildRock(sRng.fork(`shard-${sign}-${k}`), `${seed}/clearing-shard-${sign}-${k}`, {
           radius: sc,
-          detail: sc > 0.14 ? 7 : 6,
+          detail: sc > 0.2 ? 6 : 5,
           ridge: 0.25,
           lump: 0.3,
           cuts: 3 + sRng.int(0, 2),
@@ -225,7 +225,7 @@ export function buildClearingRocks(layout: ClearingLayout, T: Terrain, rng: Rng,
       const yaw = Math.atan2(-1, 0) + tRng.range(-0.45, 0.45);
       const slab = buildRock(tRng.fork(`slab-${k}`), `${seed}/clearing-slab-${k}`, {
         radius: sc,
-        detail: sc > 0.36 ? 10 : 9,
+        detail: sc > 0.4 ? 9 : 8,
         ridge: 0.18,
         lump: 0.28,
         cuts: 3,

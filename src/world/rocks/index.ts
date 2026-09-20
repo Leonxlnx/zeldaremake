@@ -34,6 +34,8 @@ export const LEDGE_PREVIEW: RockLedgeDef[] = [
 export const LEDGE_FADE_M: [number, number] = [7, 14];
 /** the ledge material's damp band: the hero boulders' sheen raised to this power (ref-04's near-black foot) */
 export const LEDGE_DAMP = 1.6;
+/** the north clearing's rock dressing is drawn within this camera distance (m); the fixed cameras are 60–70 m off */
+export const CLEARING_DRAW_M = 45;
 
 /**
  * Near-LOD swap radii (m, 3D to the boulder's centre) for the hero boulders (round 42): within
@@ -960,12 +962,19 @@ export async function create(ctx: WorldContext): Promise<WorldSystem> {
   // merged mesh under the hero (near) material; positions from the layout's northClearing /
   // stairs.ledge / ledgeTerrace, own fork
   const clearing = buildClearingRocks(ctx.layout as unknown as ClearingLayout, T, rng.fork('north-clearing'), seed, shadeDir);
+  let clearingMesh: Mesh | null = null;
+  const clearingCentre = new Vector3();
   if (clearing) {
-    const mesh = new Mesh(clearing.geometry, heroMaterial);
-    mesh.castShadow = true;
-    mesh.receiveShadow = true;
-    mesh.name = 'north-clearing-rocks';
-    group.add(mesh);
+    clearingMesh = new Mesh(clearing.geometry, heroMaterial);
+    clearingMesh.castShadow = true;
+    clearingMesh.receiveShadow = true;
+    clearingMesh.name = 'north-clearing-rocks';
+    clearingCentre.copy(clearingMesh.geometry.boundingSphere!.center);
+    // drawn only within CLEARING_DRAW_M of it: the six fixed cameras stand 60–70 m off behind the
+    // north rise, and a mesh inside their frusta is a mesh they pay for (+2 draws, +0.14 M tris at
+    // A / B / D / E for stones nobody sees)
+    clearingMesh.visible = false;
+    group.add(clearingMesh);
   }
 
   const rubbleSlots: InstanceSlot[] = [];
@@ -993,6 +1002,7 @@ export async function create(ctx: WorldContext): Promise<WorldSystem> {
   const collapsed = new Matrix4().makeScale(0, 0, 0);
   const nearUpdate = (camera: Camera, reset: boolean) => {
     camera.getWorldPosition(_cam);
+    if (clearingMesh) clearingMesh.visible = clearingCentre.distanceTo(_cam) < CLEARING_DRAW_M;
     for (const nr of nearRocks) {
       nr.dist = nr.centre.distanceTo(_cam);
       const was = nr.active;
