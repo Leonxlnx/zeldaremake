@@ -41,9 +41,13 @@ export const NEAR_NORMAL_BOOST = 0.8;
  * @param opts.fade the near variant's fade band (m) when it is not the hero boulders' NEAR_FADE_M —
  *   the ledge faces (ledge.ts) are read from the path, 3–9 m off, so theirs reaches further
  */
-export async function createRockMaterial(textures: TextureLibrary, config: WorldConfig, anisotropy = 8, tile = 1.4, shade = 1, opts: { near?: boolean; fade?: [number, number] } = {}) {
+export async function createRockMaterial(textures: TextureLibrary, config: WorldConfig, anisotropy = 8, tile = 1.4, shade = 1, opts: { near?: boolean; fade?: [number, number]; damp?: number } = {}) {
   const near = !!opts.near;
   const fade = opts.fade ?? NEAR_FADE_M;
+  // the wet band's darkening: the hero boulders' (0.7 / 0.72 / 0.78, a damp sheen) raised to
+  // `damp` — the ledge passes 1.6 so its foot band is the near-black damp stone of ref-04
+  const damp = opts.damp ?? 1;
+  const wetTint = [0.7, 0.72, 0.78].map((v) => Math.pow(v, damp).toFixed(3)).join(', ');
   const [color, normal, rough] = await Promise.all([
     textures.load(ROCK_SET, 'color', { anisotropy }),
     textures.load(ROCK_SET, 'normal', { anisotropy }),
@@ -61,7 +65,7 @@ export async function createRockMaterial(textures: TextureLibrary, config: World
     vertexColors: true,
     color: new Color(shade, shade, shade),
   });
-  mat.name = `${shade === 1 ? 'rock-triplanar' : `rock-triplanar-shade${shade}`}${near ? '-near' : ''}${opts.fade ? `-fade${opts.fade[1]}` : ''}`;
+  mat.name = `${shade === 1 ? 'rock-triplanar' : `rock-triplanar-shade${shade}`}${near ? '-near' : ''}${opts.fade ? `-fade${opts.fade[1]}` : ''}${damp !== 1 ? `-damp${damp}` : ''}`;
   // the boulder caps in the reference are an olive-brown moss (#70683b, R > G), not the yellow-green
   // of the ground moss: pull both palette greens toward it. Round 4 (frames 1 s / 56 s, measured
   // in the rock boxes): the sunlit cushion reads lum 0.45–0.47 at HSL sat 0.27–0.30 where ours
@@ -119,7 +123,13 @@ export async function createRockMaterial(textures: TextureLibrary, config: World
             vec3 cn = nx * bw.x + ny * bw.y + nz * bw.z;
             float lnr = dot(cn, vec3(0.299, 0.587, 0.114));
             cn = mix(cn, vec3(lnr) * vec3(0.985, 0.99, 0.99), 0.78);
-            cn = mix(vec3(0.3), cn, 0.86);
+            // fable-2 (opus #10: the D boulder "an unreadable dark mass" at 2 m): in frame D the
+            // reference's boulder face renders at parity with the ferns beside it (lum 0.32 both);
+            // ours rendered 0.17 against ferns at 0.21 — probes at the pose (white lit rock 0.47,
+            // normal map / roughness / near colour terms each changing nothing measurable) put the
+            // whole gap in the stone's value, so the near stone is lifted ×1.35 and warmed toward
+            // the reference's olive-tan (rgb 91/83/45), with a little less of the source's crazing
+            cn = mix(vec3(0.37), cn, 0.8) * vec3(1.43, 1.35, 1.22);
             // plate tone: neighbouring 25–40 cm plates differ ±10 % in value (frame-05's faces are
             // a patchwork of lighter and darker slabs), so a face in flat shade still reads as
             // fractured stone rather than one even grey
@@ -145,9 +155,11 @@ export async function createRockMaterial(textures: TextureLibrary, config: World
             // collar (fable-2: the soil collar is dark already; grimed as well it went black and
             // swallowed the wet band, survey-2 #19 / #32)
             float grime = smoothstep(0.42, 0.16, vl) * nearW * (1.0 - plate) * (1.0 - 0.85 * wet);
-            diffuseColor.rgb = mix(diffuseColor.rgb, vec3(0.12, 0.1, 0.075) * (0.7 + 0.8 * l), 0.7 * grime);
-            // the wet band above the ground: darker, cooler, a little bluer (damp stone, not mud)
-            diffuseColor.rgb *= mix(vec3(1.0), vec3(0.56, 0.6, 0.68), wet);
+            diffuseColor.rgb = mix(diffuseColor.rgb, vec3(0.12, 0.1, 0.075) * (0.7 + 0.8 * l), 0.55 * grime);
+            // the wet band above the ground: a shade darker, cooler, a little bluer (damp stone,
+            // not mud); the gloss (roughness below) carries most of the read — at 0.56–0.68 the
+            // band was the darkest thing on the D boulder's face (opus #10)
+            diffuseColor.rgb *= mix(vec3(1.0), vec3(${wetTint}), wet);
           }`
       : /* glsl */ `
           diffuseColor.rgb *= c * 1.08;`;
@@ -185,7 +197,9 @@ export async function createRockMaterial(textures: TextureLibrary, config: World
     const lichenColExpr = near ? 'mix(mix(vec3(0.62, 0.66, 0.5), vec3(0.7, 0.7, 0.64), rockVNoise(lp * 7.0)), crustCol, crust) * diffuse' : 'mix(vec3(0.62, 0.66, 0.5), vec3(0.7, 0.7, 0.64), rockVNoise(lp * 7.0)) * diffuse';
     const lichenAmount = near ? 'max(cluster * fleck, crust)' : 'cluster * fleck';
     // cushions (aMoss > 1): the crown lifted toward the lit bright green, the rim the plain moss
-    const nearMossLift = near ? '\n          moss *= 1.0 + 0.35 * max(0.0, vMossR - 1.0);' : '';
+    // (opus #10: at near range the blanket's shaded rim — the damp dark green turned from the sun —
+    // is what made the D boulder's cap a black-edged mass; lifted a quarter, sunlit moss untouched)
+    const nearMossLift = near ? '\n          moss *= 1.0 + 0.35 * max(0.0, vMossR - 1.0);\n          moss *= 1.0 + 0.25 * nearW * (1.0 - sunSide);' : '';
     const nearNormal = near
       ? /* glsl */ `
           if (nearW > 0.0005) {
@@ -290,6 +304,6 @@ export async function createRockMaterial(textures: TextureLibrary, config: World
         }`,
       );
   };
-  mat.customProgramCacheKey = () => (near ? 'rock-triplanar-v11-lichen-crust-field' : 'rock-triplanar-v8-sunside-moss');
+  mat.customProgramCacheKey = () => (near ? `rock-triplanar-v12-pale-near-stone-damp${damp}` : 'rock-triplanar-v8-sunside-moss');
   return mat;
 }
