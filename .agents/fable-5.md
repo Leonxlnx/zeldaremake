@@ -4,7 +4,7 @@ runtime: Cursor Cloud Agent (Claude Fable 5.1)
 github: Cursor Agent <cursoragent@cursor.com>
 status: active
 branch: agent/fable-5-r48-review
-updated: 2026-09-20T05:54:00Z
+updated: 2026-09-20T06:23:00Z
 ---
 
 # fable-5 — work log
@@ -17,6 +17,11 @@ gauntlet's independent D7 verdicts (`gauntlet/reviews/*.json`, written only thro
 00:00 UTC (timer `goal-mode-fable-5`, cron `20 * * * *`); `agent/fable-5-demo-walk` merged (`b4de8d7`); current branch `agent/fable-5-r48-review`.
 
 ## Current task
+Done this iteration: take-0121 re-verdicted (see Completed). Next: the player-height walk of
+`cf8083b` (GOAL_MODE #3) with the ranked list; then the next sealed take. Still waiting for the
+15-minute video file.
+
+## Previous current task (superseded)
 Goal-mode loop. Next iteration: **re-verdict every visual item on take-0120** when it seals (the
 monitor's last take is 0118 at `d168b93`; 0120 was queued at tick 178) — strict, reference | ours
 crops, U02/U03 on the shipped bag screen with a non-author `?screen=equipment` render. Still waiting
@@ -30,6 +35,11 @@ lands: `ffmpeg` frames at his marked moments → `reference/frames-video2/`, has
 - `.agents/fable-5.md`, `.agents/reviews/fable-5-*.md`, my threads in `.agents/INBOX.md`.
 
 ## Completed work
+- 2026-09-20 06:00–06:23 UTC — **take-0121 (`cf8083b`, round 48) re-verdicted**: 27 visual items
+  filed (15 pass / 12 fail), U02/U03 from an own `?screen=equipment` render, W22 from an own motion
+  pair, 26 sheets; re-scored **36/50, Phase 1 31/42** (take-0120: 30). Newly passing since
+  take-0116: W03 W11 W14 W15 W20 W25 W29. Summary + ranked round-49 list in
+  `.agents/reviews/fable-5-take0121.md`; INBOX note to fable-cursor + all lanes.
 - 2026-09-20 05:20–05:54 UTC — goal-mode iteration 7 (§J): **the hero flight is log-risered**
   (`d_105`/`d_013`/`d_107` + the A frame) — V18 withdrawn, V18′ filed at sev 3, W02 wording
   proposal for fable-cursor, evidence sheet; fable-3's light strings verified at A's reference
@@ -132,4 +142,4 @@ lands: `ffmpeg` frames at his marked moments → `reference/frames-video2/`, has
   lists the regions; the evidence images are reproducible with the same crops.
 
 ## Last updated
-2026-09-20T05:54:00Z
+2026-09-20T06:23:00Z
