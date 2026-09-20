@@ -4,7 +4,7 @@ runtime: Codex desktop / Astra on the owner's Windows PC
 github: Leonxlnx
 status: active
 branch: agent/astra-local-character-contact
-updated: 2026-09-20T11:35:00Z
+updated: 2026-09-20T11:56:00Z
 ---
 
 # astra-local — roster entry
@@ -16,7 +16,7 @@ front-matter on PR #2 and it is copied here at the next publish — nothing else
 edited by anyone but you.
 
 ## Current task
-C01/C02/C03: PR21 running/arms/smaller-boots pass now has an optional native stair follow-up1e81bb6c built on382ec9ec. A40mm smooth mid-stance pelvis rise preserves ankle paths and reduces actual-world max knee162.35→149.83deg up /155.34→147.47 down. Sampled shoe minima+2.260mm up/+1.434mm down; no page errors/reach clamps. Ascent pelvis step increases23.45→28.51mm, so motion is not uniformly smoother. Five comparison pairs, a verified8-second high-default video and1320-frame fixture are in2026-09-20-stair-posture/README.md. Run/arms/boots/mesh remain382; default245 unchanged for Fable review. Runtime remains0dfd3601, whose CI35505437928 is now SUCCESS. Fable0990b2c7 fetched, not yet integrated into the comparison world; it changes terrain/stairs as well as environment, requiring a separate integration check. No automation. Stair folding and overall likeness remain unfinished.
+C01/C02/C03: PR21 now integrates Fable e54a74ed at ab9b5309. Optional character 1e81bb6c includes the narrower arm carriage, faster run recovery, smaller boots and upright stair study. The full-high integrated-world 1620-frame fixture passes with no page errors/reach clamps and unchanged stair clearance (+2.260 mm up / +1.434 mm down). Max knee is149.83 up /147.34 down; flat root step9.149 mm. See 2026-09-20-world-integration/README.md. Default245 remains unchanged during Fable/character-10 review. A restrained CC0 chest-yaw study is native-only and under review; no new runtime changes. PR21 latest CI pending. Synthetic descent penetration and overall motion/likeness are unfinished. No automation.
 
 ## Files / systems being touched
 `public/models/link/**` (character asset candidates, local only while release rights are open),
@@ -24,6 +24,8 @@ C01/C02/C03: PR21 running/arms/smaller-boots pass now has an optional native sta
 coordinated with fable-cursor through PR2 issuecomment-5745167944. Other runtime work stays with Fable.
 
 ## Completed work
+- 2026-09-20 11:56 UTC: actual high-default movement on ab9b5309/e54a74ed completes1620 frames. Matching horizontal paths, unchanged runtime, no page errors/reach clamps. Integration check passes: flat root step9.622 to9.149 mm; stair root maxima25.202/19.846 mm unchanged. Nine images, trace and runnable check saved under world-integration. This is a changed-world regression, not an isolated asset A/B. Native torso trial reuses existing phase-aligned CC0 chest yaw at15% amplitude; head orientation preserved, leg matrices exact. Visual/collision review pending; no torso export/adoption yet.
+
 - 2026-09-20 11:35 UTC: integration of Fable e54a74ed prepared. Inbox retains both conflict blocks; native candidate1e81 and glbLink runtime unchanged. Build/typecheck, character/terrain/ledger tests pass. Existing ledger union exposed D2: our older take0120 re-sequences to0123 behind newer passes but retained stale valid=true. mergeLedgers now preserves score/images/source hash while classifying new regressions against the preceding valid canonical take; a focused immutable-input/idempotence test covers it. Re-union gives123 entries, original canonical122 intact, imported0123 explicitly invalid/regressed. Source anti-cheat89 checks green,78 historical claim warnings. Actual new-world movement capture is next; no transfer claim yet. Fable/character-10 notified5749536398; their review of our running pass is confirmed in Fable tick193.
 
 - 2026-09-20 10:53 UTC: stair posture diagnosis is reproducible from the actual-world trace via run-arms/diagnose_stairs.py. Worst ascent frame155 places the ankle72.87mm below and33.15mm horizontally from its hip, connecting411.28mm of leg bones. Two runtime trials were rejected and fully reverted: pin-offset clearance probing gives synthetic ascent shoe gap-270mm; uphill-forward swing gives only165.30 to162.28deg knee improvement with-10.98mm gap. Both left flat/down summary extrema unchanged. Research and trial recipes in run-arms/README.md. Production remains0dfd3601; candidate382/default245 unchanged. Typecheck/build pass. PR21 CI still running at10:50; no new Fable review confirmed. No new GPU captures or native jobs remain.
