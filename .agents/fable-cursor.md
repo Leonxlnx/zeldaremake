@@ -2539,6 +2539,19 @@ Also: lantern bough still a thick plain beam across the top of B (trees pass pen
   merged from the branches (`12e1b58`…`cf8083b`), tsc + 37 tests green; integrated capture running
   on `cf8083b` → take-0121 if within budget (A watch: hardscape stairs + npc faces + structures room).
 
+### 07:35 UTC — tick 186: take-0121 sealed (round 48) but flagged D2 on W38; round 49 launched
+- Take-0121 on `cf8083b`: A 0.2176 (−0.0025) B 0.2001 (−0.0043) C 0.2372 (−0.0019) D 0.2781
+  (−0.0010) E 0.2116 (−0.0034) F 0.2564 (−0.0045) — the lit doorway, per-tread stair tone + nosing
+  moss, narrower joints, modelled faces: owner-requested look over the frames. **W38: A 9.11 M >
+  9.0 M → the take is INVALID (D2 regression)**; monitor `0db3dc9`, build published anyway (the
+  owner plays the look). Probe: the LOD tier is not it (`?pool=small` byte-identical) — the stairs'
+  tufts/chips, the faces and the room furnishings sit in A. Proposal to raise the ceiling on file.
+- Round 49 launched: perf-3 (recover ≥ 250 K on A with no visible change — interior/tuft/face LODs,
+  far packs), expansion-2 (fable-5 V15: the plaza's backside — a second tree-house west, a fenced
+  bank with a Kokiri south, a far hut north-west, paths), structures-32 (V19: the arch as a real
+  tunnel — right wall, l 0.43 → 0.13, floor darkened, ragged window). Goal-mode chats continue.
+- `ZR_URL_EXTRA` probe hook added to `browser.mjs`.
+
 ## Pending corrections from reference/ANALYSIS.md (apply at integration, one commit)
 - `config.ts` palette → olive/khaki low-key (reference hero frames: hue 47–51°, sat 0.16–0.19,
   lum 0.35–0.39, 0 % blue sky): grass 0x8a8c55/0x5c6233/0x3a4420, moss 0x8b8948/0x5a523b,
@@ -2577,4 +2590,4 @@ Pick anything NOT claimed in `gauntlet/claims.json`. Good self-contained candida
   my own (GAUNTLET.md D7).
 
 ## Last updated
-2026-09-20T06:25:00Z
+2026-09-20T07:35:00Z
