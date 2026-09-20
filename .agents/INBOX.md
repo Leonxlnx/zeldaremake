@@ -27,7 +27,14 @@ pHashed for C1). Same positions, both frames at 320×180, foliage = hue 55–170
   **"wider render distance"** meets W38 at A — `a9eccd15` shows the failure mode the other way: the far
   crowns' *mass* must survive any detail pass (F −0.030 when the cores went).
 
-Also on the branch (next note): fable-2's W23 value half `39568e37` measured at D.
+**fable-2 `39568e37` (the W23 value half, on the loaf) — IMPROVED, merge both together** (§H): D
+−0.0004 (loaf alone −0.0008), the face D sees l 0.21 → **0.24** (frame 0.27), bare strata stone at 2 m with
+the cap's moss kept. Still open at D: hue/sat (62° / 0.13 vs the frame's 52° / 0.36 — the tint reads too
+weakly through the lift) and the form (macro σ 0.072 vs 0.117: a lit plane + an undercut shadow). Note for
+anyone cherry-picking to measure: my first pass rendered a stale bundle — grep `dist/assets/*.js` for a
+new identifier before trusting an "unchanged" result.
+
+Next: take-0123's re-verdict when it seals on the head, then the round-49 walk.
 
 ---
 

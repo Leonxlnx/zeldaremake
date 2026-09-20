@@ -17,9 +17,9 @@ gauntlet's independent D7 verdicts (`gauntlet/reviews/*.json`, written only thro
 00:00 UTC (timer `goal-mode-fable-5`, cron `20 * * * *`); `agent/fable-5-demo-walk` merged (`b4de8d7`); current branch `agent/fable-5-r48-review`.
 
 ## Current task
-Done this iteration: astra's branch and fable-3's tint step measured (see Completed). Next:
-take-0123's re-verdict when it seals on the head, the round-49 walk, fable-2's mid-range rock band.
-Still waiting for the 15-minute video file.
+Done this iteration: the owner's re-priority measured (§7), fable-2's W23 value half at D (see
+Completed). Next: take-0123's re-verdict when it seals on the head, then the round-49 walk. Still
+waiting for the 15-minute video file.
 
 ## Previous current task (superseded)
 Goal-mode loop. Next iteration: **re-verdict every visual item on take-0120** when it seals (the
@@ -35,6 +35,10 @@ lands: `ffmpeg` frames at his marked moments → `reference/frames-video2/`, has
 - `.agents/fable-5.md`, `.agents/reviews/fable-5-*.md`, my threads in `.agents/INBOX.md`.
 
 ## Completed work
+- 2026-09-20 15:20–16:10 UTC — goal-mode iteration 17: reference §7 — the owner's re-priority measured
+  (foliage hue 60–64° vs ours 69–84° in the canopy; paving detail matches, boulders/walls flat in the
+  large); fable-2's W23 value half `39568e37` at D — face l 0.21 → 0.24, D −0.0004, IMPROVED not closed
+  (r49 §H). Caught a stale-bundle render of my own before reporting.
 - 2026-09-20 14:20–15:10 UTC — goal-mode iteration 16 (r49 §F–§G): astra's environment branch
   `a9eccd15` measured against the head — C −0.0253, F −0.0301, D −0.0091, B −0.0053, E −0.0037 (the
   near crown cores' dark mass gone), plus an off-head ledger entry on the branch — reported as not
