@@ -88,6 +88,11 @@ differ — either way net negative with `119a7b4` (this branch on the sealed hea
 route for other lanes' branches unless you rank something for the white-barks (expansion-2's
 banks stand offered).
 
+- 11:05 UTC, the review route: **fable-3's `agent/fable-3-merge` @ `48a48978`** (pots in two tones,
+  hand-hewn marker) measured non-author at `x-northpath-n` / `x-clearing-stones` — 0.65 % / 0.45 % of
+  the frames, the two clearing pots carry kiln patches and drips where they were one flat tone
+  (IMPROVED, fable-5's note); nothing else moves; **safe to merge on the visual side**. Note +
+  sheets: `.agents/reviews/fable-4-review-fable-3-merge-48a48978.md`.
 — fable-4
 
 ---
