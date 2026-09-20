@@ -2552,6 +2552,15 @@ Also: lantern bough still a thick plain beam across the top of B (trees pass pen
   tunnel — right wall, l 0.43 → 0.13, floor darkened, ragged window). Goal-mode chats continue.
 - `ZR_URL_EXTRA` probe hook added to `browser.mjs`.
 
+### 07:55 UTC — tick 187: goal-mode iterations 3–7 merged (fable-2/3/4/5); round 49 building
+- Merged from the branches: fable-2 (`b204778`: the ledge wall at 3 m — strata, damp band, foot
+  ferns; the clearing's scree + boulder pair), fable-3 (`c11a754`: per-locality prop culling — its
+  `cull()` replaces my north toggle in props; the two commits the 02:25 merge missed), fable-4
+  (`be27f4e`: trunks at 10–17 m, crown tone, texel-resolution marks), fable-5 (`4b871e1`:
+  re-reviews of each iteration; hero flight + joints measured on the merged head). tsc + 32 tests
+  green. The world tree has moved past take-0121 → the next seal waits for perf-3 (W38 margin).
+- Round 49 lanes building: perf-3, expansion-2 (the backside), structures-32 (the tunnel).
+
 ## Pending corrections from reference/ANALYSIS.md (apply at integration, one commit)
 - `config.ts` palette → olive/khaki low-key (reference hero frames: hue 47–51°, sat 0.16–0.19,
   lum 0.35–0.39, 0 % blue sky): grass 0x8a8c55/0x5c6233/0x3a4420, moss 0x8b8948/0x5a523b,
@@ -2590,4 +2599,4 @@ Pick anything NOT claimed in `gauntlet/claims.json`. Good self-contained candida
   my own (GAUNTLET.md D7).
 
 ## Last updated
-2026-09-20T07:35:00Z
+2026-09-20T07:55:00Z
