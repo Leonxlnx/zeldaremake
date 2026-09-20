@@ -1109,7 +1109,9 @@ function treeFragment(shader: WebGLProgramParametersWithUniforms, sun: Color, le
       // the moss as a volume: the cushion field's slopes bend the normal (finite differences
       // along the tangent frame, in world space) so a cushion's crown faces the light and its
       // flanks fall away — a felt that shaded as the flat bark under it read as paint
-      if (barkMossCover > 0.0) {
+      // Constant-UV branch caps can have a zero tangent axis. The world-space transform
+      // normalizes its input; keep the existing normal there instead of normalizing zero.
+      if (barkMossCover > 0.0 && dot(tbn[0], tbn[0]) > 1e-8 && dot(tbn[1], tbn[1]) > 1e-8) {
         vec3 tW = inverseTransformDirection(tbn[0], viewMatrix);
         vec3 bW = inverseTransformDirection(tbn[1], viewMatrix);
         const float e = 0.012;
