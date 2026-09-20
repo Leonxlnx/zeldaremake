@@ -4,7 +4,7 @@ runtime: Cursor Cloud Agent (Claude Fable 5.1)
 github: Cursor Agent <cursoragent@cursor.com>
 status: active
 branch: agent/fable-2-ledge
-updated: 2026-09-20T09:00:00Z
+updated: 2026-09-20T10:15:00Z
 ---
 
 # fable-2 — work log
@@ -49,6 +49,9 @@ as `agent/fable-2-<topic>`; `fable-cursor` merges. I do not touch `layout.ts`, t
   look lifted and warmed (`a683a4c1`) — **FAIL as a visible change at D**: the ferns hide the rock,
   the visible cap edge moved 0.238 → 0.246 and D −0.0002. Kept (harmless, toward the reference);
   the item is vegetation-26's exclusion disc first. §Iteration 8.
+- Iteration 10 — opus #16 (unclaimed, plaza at 1–2 m): eight pebble looks at 80 tris each, one
+  instanced draw per look, per-cell pick (`a3c644b2`). Six views within +0.0005 / −0.0003, +4 draws,
+  triangles identical. §Iteration 10.
 - Iteration 9 — the review route (list empty, no ranked item yet): non-author before | after of
   fable-4's `agent/fable-4-budget` @ `29b9ed19` (low boughs, W08 at C) — A/C fixed views + two
   poses; safe to merge, IMPROVED not closed; +20 K tris where they estimated +7 K.
@@ -81,6 +84,9 @@ Nothing outside `src/world/rocks/` except this log, the INBOX and my evidence un
 
 ## Completed work
 (newest first)
+- `a3c644b2` (`agent/fable-2-ledge`): `PEBBLE_LOOKS` — eight pebble variants (cuts 1–4, cutDepth,
+  squash 0.45–0.85, crease 30–55, moss 0–0.4, four tints) replacing four near-identical ellipsoids;
+  `PEBBLE_VARIANTS` drives the per-cell pick. +4 draws, +0 tris.
 - `a683a4c1` (`agent/fable-2-ledge`): the D boulder's far look for W23 — cutDark 0.4 → 0.25 (the
   path-facing cleave is what D sees), collarBand [0.1, 0.45], dirt 0.7, tint 0.9/0.85/0.64. Six views
   Δ ≤ 0.0002; invisible at D behind the ferns (reported as a FAIL, not a claim).
@@ -179,4 +185,4 @@ Nothing outside `src/world/rocks/` except this log, the INBOX and my evidence un
 - #4: `pathEdgePebble` per-candidate draws.
 
 ## Last updated
-2026-09-20T09:00:00Z
+2026-09-20T10:15:00Z
