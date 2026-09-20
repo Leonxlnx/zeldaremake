@@ -687,9 +687,10 @@ function rootToe(writer: GeometryWriter, toe: ToeSpec, frame: TreeFrame, color: 
   const gnarl = rng.range(0.05, 0.1);
   const gnarlPhase = rng() * TAU;
   // the bark tile is magnified four-fold across the toe: the lenticel dashes at the trunk's
-  // scale read as planking on a root, a soft smudge of them reads as root bark
+  // scale read as planking on a root, a soft smudge of them reads as root bark. The slice stays
+  // inside v 0.34–0.60, the zone the tile keeps clear of its broad bands and chevrons (round 48)
   const uSlice = rng.range(0, 0.85);
-  const vSlice = rng.range(0, 0.9);
+  const vSlice = rng.range(0.34, 0.54);
   const rows: number[][] = [];
   const p = new Vector3();
   const length = toe.length * s;
