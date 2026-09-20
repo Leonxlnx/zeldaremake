@@ -40,8 +40,9 @@ export const EXPANSION_HOUSES: DistantHouseDef[] = [
     walkway: { deg: 0, length: 2, end: [...EXPANSION.westHouse.deckEnd] as [number, number, number] },
     pods: EXPANSION.westHouse.pods,
     // round 50 (structures-33): the main house's standard — the eave bough with the pod cluster
-    // over the door, knotted buttresses framing it, the lit room glimpse, the cap's moss fringe
-    dressing: { doorBough: { length: 2.2, pods: 3 }, buttresses: true, interior: true, fringe: true },
+    // by the door (2.6 m: three pods clear of the 0.7 m opening), knotted buttresses framing it,
+    // the lit room glimpse (shallow: the giant's bole is 0.4 m behind the door), the cap's fringe
+    dressing: { doorBough: { length: 2.6, pods: 3 }, buttresses: true, interior: true, fringe: true },
   },
   {
     id: 'far-hut',
@@ -55,8 +56,9 @@ export const EXPANSION_HOUSES: DistantHouseDef[] = [
     doorDeg: EXPANSION.farHut.doorDeg,
     walkway: { deg: EXPANSION.farHut.walkwayDeg, length: 2.4 },
     pods: EXPANSION.farHut.pods,
-    // round 50: the far hut's lamps as pods on a short bough over its door, the lit room, the fringe
-    dressing: { doorBough: { length: 1.4, pods: 2 }, interior: true, fringe: true },
+    // round 50: the far hut's lamps as pods on a short bough over its door (2.0 m on the 1.9 m
+    // hut: one pod each side of the opening), the lit room, the fringe
+    dressing: { doorBough: { length: 2.0, pods: 2 }, interior: true, fringe: true },
   },
 ];
 

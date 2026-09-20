@@ -345,7 +345,7 @@ export interface DistantHouseBuild {
     revealMouthPeak: number;
     revealMouthLitShare: number;
     /** round 50: the dressing as built (null on the undressed village huts) */
-    dressing: { bough: [number, number, number][] | null; boughPods: [number, number, number][]; buttresses: number; fringe: number; room: { depth: number; lamp: [number, number, number] } | null } | null;
+    dressing: { bough: [number, number, number][] | null; boughPods: [number, number, number][]; buttresses: number; fringe: number; room: { depth: number; shallow: boolean; lamp: [number, number, number] } | null } | null;
   }[];
 }
 
@@ -1023,8 +1023,32 @@ export function buildDistantHouses(ctx: WorldContext, mats: StructureMaterials, 
      */
     const roomParts: BufferGeometry[] = [];
     let roomLamp: Vector3 | null = null;
+    /**
+     * How deep a room fits behind the door before the HOST BOLE. The wall clears the bole by
+     * BOLE_CLEARANCE at its tightest, so a hut wrapping a bole has the bole ≈ 0.4 m behind its
+     * door (the west house round the southwest giant: the door's 3 m view showed the giant's
+     * mossy root flare filling the doorway through a 1.3 m room, and the flare — beyond the
+     * seat's nominal `radiusAt` — already showed at the sill through take-0123's 0.35 m reveal).
+     * The nominal gap over the door's height less 0.12 m, floored at the reveal's depth; a hut on
+     * a plain column (no seat) takes the column as 0.55 R, as the ladder does. Below
+     * DOOR_DEPTH + 0.08 the room is SHALLOW: the lit back wall and the lamp only, a hand behind
+     * the reveal, no box.
+     */
+    let roomDepth = Math.min(1.3, Math.max(0.7, R - 1.1));
+    {
+      let gap = Infinity;
+      for (let h = floorH; h <= floorH + doorH + 1e-6; h += 0.15) {
+        const bole = host.seat ? host.seat.radiusAt(h) : R * 0.55;
+        host.axisAt(h, _axis);
+        const toward = (_axis.x - c.x) * Math.cos(aDoor) + (_axis.z - c.z) * Math.sin(aDoor);
+        const taper = lerp(1, WALL_TAPER, clamp(h - floorH, 0, def.wall) / def.wall);
+        gap = Math.min(gap, wallR(aDoor) * taper - bole - toward);
+      }
+      roomDepth = clamp(gap - 0.12, DOOR_DEPTH + 0.02, roomDepth);
+    }
+    const shallowRoom = roomDepth < DOOR_DEPTH + 0.08;
     if (def.dressing?.interior) {
-      const ROOM_DEPTH = Math.min(1.3, Math.max(0.7, R - 1.1));
+      const ROOM_DEPTH = roomDepth;
       // the room is the reveal's back opening continued (+2 cm each way, so the reveal's back
       // edge overlaps it): wider and the wall's unlit inner face would show past the jambs
       const roomW = doorBackW + 0.04;
@@ -1034,7 +1058,7 @@ export function buildDistantHouses(ctx: WorldContext, mats: StructureMaterials, 
       const right = new Vector3(doorDir.z, 0, -doorDir.x).normalize();
       roomLamp = doorBase
         .clone()
-        .addScaledVector(doorDir, -ROOM_DEPTH * lampT)
+        .addScaledVector(doorDir, shallowRoom ? -(ROOM_DEPTH - 0.06) : -ROOM_DEPTH * lampT)
         .addScaledVector(right, roomRng.range(-0.18, 0.18))
         .setY(floorY + roomH - 0.28);
       const roomLit = (p: Vector3, n: Vector3, grain: number): RGB => {
@@ -1055,6 +1079,7 @@ export function buildDistantHouses(ctx: WorldContext, mats: StructureMaterials, 
         { cols: 6, rows: 6 },
       );
       roomParts.push(faceToward(back, doorBase.clone().setY(floorY + roomH / 2)));
+      if (!shallowRoom) {
       // the side walls (inward normals), from the reveal's back to the room's back
       for (const side of [-1, 1] as const) {
         const nIn = right.clone().multiplyScalar(-side);
@@ -1101,6 +1126,7 @@ export function buildDistantHouses(ctx: WorldContext, mats: StructureMaterials, 
         const at = roomP(px + roomRng.range(-0.04, 0.04), shelfY + 0.025, ROOM_DEPTH - 0.06, new Vector3());
         pot.translate(at.x, at.y, at.z);
         roomParts.push(setColorAttribute(pot, [0.045, 0.03, 0.02]));
+      }
       }
       roomParts.push(facingDisc(roomLamp, doorDir, 0.06, GLOW_AMBER, 10));
     }
@@ -1331,7 +1357,7 @@ export function buildDistantHouses(ctx: WorldContext, mats: StructureMaterials, 
     // built exactly as before: every stream below is a fresh fork, every mesh a new one) ----
     const dressParts: BufferGeometry[] = [];
     let dressFoliage: FoliageBuilder | null = null;
-    const dressAudit: { bough: [number, number, number][] | null; boughPods: [number, number, number][]; buttresses: number; fringe: number; room: { depth: number; lamp: [number, number, number] } | null } = { bough: null, boughPods: [], buttresses: 0, fringe: 0, room: null };
+    const dressAudit: { bough: [number, number, number][] | null; boughPods: [number, number, number][]; buttresses: number; fringe: number; room: { depth: number; shallow: boolean; lamp: [number, number, number] } | null } = { bough: null, boughPods: [], buttresses: 0, fringe: 0, room: null };
     if (def.dressing) {
       const dr = r.fork('dressing50');
       /** the wall's outward direction at angle a */
@@ -1348,14 +1374,17 @@ export function buildDistantHouses(ctx: WorldContext, mats: StructureMaterials, 
         // its root; knots along it; the pod cluster hangs from its underside over the door ----
         const B = def.dressing.doorBough;
         const yRoot = floorY + doorH + 0.5;
-        const aRoot = aDoor + (aHalfDoor + 0.45 / R);
+        const aRoot = aDoor + (aHalfDoor + 0.6 / R);
         const reach = B.length / R;
+        // the limb climbs, but stays a hand under the soffit (eaveY) to its tip — the pods hang
+        // from it, and a hook inside the cap would put a cord through the soffit
+        const rise = clamp(eaveY - 0.16 - yRoot, 0.1, 0.55) / 0.55;
         const ctrl: Vector3[] = [
           wallSurface(aRoot, yRoot - 0.05, new Vector3(), -0.3),
-          wallSurface(aRoot - 0.04 / R, yRoot + 0.02, new Vector3(), 0.32),
-          wallSurface(aRoot - reach * 0.3, yRoot + 0.14, new Vector3(), 0.58),
-          wallSurface(aRoot - reach * 0.62, yRoot + 0.3, new Vector3(), 0.5),
-          wallSurface(aRoot - reach, yRoot + 0.55, new Vector3(), 0.28),
+          wallSurface(aRoot - 0.04 / R, yRoot + 0.02 * rise, new Vector3(), 0.32),
+          wallSurface(aRoot - reach * 0.3, yRoot + 0.14 * rise, new Vector3(), 0.58),
+          wallSurface(aRoot - reach * 0.62, yRoot + 0.3 * rise, new Vector3(), 0.5),
+          wallSurface(aRoot - reach, yRoot + 0.55 * rise, new Vector3(), 0.28),
         ];
         const curve = new CatmullRomCurve3(ctrl, false, 'catmullrom', 0.5);
         const knotPhase = dr.range(0, TAU);
@@ -1371,15 +1400,27 @@ export function buildDistantHouses(ctx: WorldContext, mats: StructureMaterials, 
         });
         dressParts.push(bough);
         dressAudit.bough = [ctrl[0], ctrl[2], ctrl[4]].map((p) => [+p.x.toFixed(2), +p.y.toFixed(2), +p.z.toFixed(2)] as [number, number, number]);
-        // the pod cluster: `B.pods` pods on short cords from the bough's underside over the door
-        // (the demo's second house: pods over the door), the main house's scale (0.36 m bodies)
-        const podS = 1.25;
-        const cluster: [number, number, RGB][] = [
-          [0.36, 0.14, GLOW_AMBER],
-          [0.5, 0.32, GLOW_LIME],
-          [0.62, 0.2, GLOW_AMBER],
-          [0.78, 0.26, GLOW_AMBER],
+        // the pod cluster: `B.pods` pods on short cords from the bough's underside BESIDE the
+        // door opening (the demo's second house: pods by the door). The door head is 0.85 m under
+        // the eave and a 0.6 m pod on a cord cannot clear it, so the pods hang past the jambs —
+        // their inner edge ≥ 0.12 m outside the opening, 0.1 m apart along the wall, the first
+        // two on the far (left) side, the third by the root, more further left; a spot the limb
+        // does not reach (t outside 0.1–0.94) is skipped and the audit shows the count
+        const podS = R > 2.5 ? 1.25 : 1.0;
+        const podRad = 0.148 * podS;
+        const aClear = aHalfDoor + (podRad + 0.12) / R;
+        const aStep = (2 * podRad + 0.1) / R;
+        const spots: [number, number, RGB][] = [
+          [aDoor - aClear, 0.1, GLOW_AMBER],
+          [aDoor - aClear - aStep, 0.2, GLOW_LIME],
+          [aDoor + aClear, 0.14, GLOW_AMBER],
+          [aDoor - aClear - 2 * aStep, 0.12, GLOW_AMBER],
         ];
+        const cluster: [number, number, RGB][] = [];
+        for (const [a, drop, col] of spots) {
+          const t = (aRoot - a) / reach;
+          if (t >= 0.1 && t <= 0.94) cluster.push([t, drop, col]);
+        }
         const _bp = new Vector3();
         for (let i = 0; i < Math.min(B.pods, cluster.length); i++) {
           const [t, drop, col] = cluster[i];
@@ -1452,7 +1493,7 @@ export function buildDistantHouses(ctx: WorldContext, mats: StructureMaterials, 
           dressAudit.fringe++;
         }
       }
-      if (roomLamp) dressAudit.room = { depth: +Math.min(1.3, Math.max(0.7, R - 1.1)).toFixed(2), lamp: [+roomLamp.x.toFixed(2), +roomLamp.y.toFixed(2), +roomLamp.z.toFixed(2)] };
+      if (roomLamp) dressAudit.room = { depth: +roomDepth.toFixed(2), shallow: shallowRoom, lamp: [+roomLamp.x.toFixed(2), +roomLamp.y.toFixed(2), +roomLamp.z.toFixed(2)] };
       if (dressParts.length) {
         const dressGeo = merge(dressParts);
         const dressMesh = new Mesh(dressGeo, mats.bark);
