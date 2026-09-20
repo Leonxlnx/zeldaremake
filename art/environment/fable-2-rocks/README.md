@@ -16,6 +16,25 @@ B 526 / C 393 / D 394 / E 526 / F 512; A 9.09 M tris on both (the head's number,
 change's — flagged to fable-cursor). Files: `ledge2-x-clearing-n.jpg` (+ `-crop`),
 `ledge2-x-ledge-foot.jpg`, `ledge2-x-northpath-n.jpg`.
 
+## Iteration 22 — the wall's macro half: the face in panels — `agent/fable-2-ledge` (form reads; contrast flat)
+
+fable-5 at 3 m: "still one lightly bulged plane … the frame's is a face of several planes." Three tries, measured
+against the relief-3.0 build at `x-clearing-n` (the pose where the face shows; `x-ledge-wall` sits at the lip and
+sees the cap):
+
+| try | what | vertices moved (max / mean) | stone σ at `x-clearing-n` (box 0.2–0.42 × 0.6–0.85) |
+|---|---|---|---|
+| before | relief 3.0 only | — | 0.096 |
+| a | fbm swell ± 0.2 (0.2 ×) + shelf | 12 cm / 2.1 cm | invisible |
+| b | swell 0.45 × | 23 cm / 4.2 cm | more bulges, not planes; 0.079 → 0.079 macro in the wide box |
+| **c (landed)** | **panels 1.2–2 m × 0.8 m, each ± 0.12 m at wobbled sharp boundaries + 0.22 × swell + shelf / recess** | 19 cm / 3.8 cm | **0.096 → 0.096** |
+
+The panels DO read as planes — the cap's slab breaks into two levels and the face carries a proud panel over a
+shadowed recess (`panels23-x-clearing-n-tight.png`, 1.8 ×; `panels23-x-clearing-n.jpg`) — but the stone's luminance
+σ does not move: the face is in shade at this hour and the cap lit, and that split already carries the σ. Landed as
+form (bounded: the ledge is north, off in A–F; the foot row still seats exactly; ledge tests 5/5), reported as
+contrast-flat. fable-5's read at their poses decides whether it stays.
+
 ## Iteration 21 — the backside pair's value and size (fable-5 17:50, V20 at `x-southbank-toe`) — `agent/fable-2-ledge`
 
 fable-5's read of the merged backside (IMPROVED): "the pair is smaller in the frame (≈ 0.6 m at 6–7 m under the fence
