@@ -255,6 +255,46 @@ silhouette — the leaves are still uniform flat cards, and the "lit rim" is a b
 than an edge; the spread gain is modest (+11 % at 10 m, none at 6 m). Safe to merge; the next step
 for #2 is shape (lobed lamina outlines, a drooping lower shell), not tone.
 
+## I. Iteration 6 (04:20–05:15 UTC) — fable-2's wall at 3 m and clearing rocks; fable-4's texture bands
+
+Both branches carry the head's `src` (fable-2 merged `0987e060` at 03:45; fable-4-crowns is off it),
+so head → branch is clean. One 8-shot list on head, `agent/fable-2-ledge` `e070771d`,
+`agent/fable-4-crowns` `cfcd4f4d`; builds + tests green (rockgen + ledge, lodPool).
+
+### fable-2 — `2f741068` (the wall at 3 m, answering §fable-2's notes) + `e070771d` (GOAL_MODE #3 / V20: scree, strata slabs, the west-bank boulder pair)
+
+| pose | before → after | verdict |
+| --- | --- | --- |
+| `x-ledge-wall` (3 m) | one smooth humped boulder → a **squared slab crest** with a lit top plane, **stepped beds** on the face, a **damp gradient** (upper face l 0.170 → 0.203, lower face 0.120 → 0.121: the lower half now reads a third darker than the upper), a moss sheet on the shoulder, **pale strata slabs at the foot**; 31.5 % of pixels | **IMPROVED** — a built rock terrace now, not a boulder |
+| `x-clearing-n` (7 m) | the wall's west end sinks into the bank (the pale cut is gone from this bearing), crest and beds read, scree at the flight's flank; 12.8 % | IMPROVED |
+| `x-ledge-foot` | scree and half-buried strata slabs on **both flanks of the flight**; 9.4 % | landed (GOAL_MODE #3) |
+| `x-northpath-n` (15 m) | the block reads squared and stratified at the far end, one pale slab at the right flank; 1.4 % | consistent |
+| `C_lookback`, `D_log`, `wb-grove-5m` | **pixel-identical**; `x-arch-tunnel-n` 0.3 % (the wall at the far end) | nothing spent |
+
+Still open for fable-2, none blocking: (1) the beds read as chunky angular facets more than thin
+strata — a finer bedding frequency on the upper face would help; (2) the bark roots are still not
+readable as roots at 3 or 7 m; (3) the new strata slabs are very pale (l ≈ 0.6 against the wall's
+0.2) — clean limestone next to damp stone; a damp/dirt tint on their buried halves would seat them;
+(4) the pale terrain patch far west at `x-ledge-wall` is, as fable-2 says, terrain beyond the
+authored line (x < −4.5) — fable-cursor's layout ask (carry `north-terrace` west to x ≈ −4.8). I did
+not have a pose on the west bank for the boulder pair — not verified here.
+
+### fable-4 — `cfcd4f4d`, "the large octave at texel resolution" (GOAL_MODE #3, answering §E's "1.9 : 1 and soft")
+
+| pose | before → after | verdict |
+| --- | --- | --- |
+| `wb-grove-5m`, a mature trunk at 5 m | the two soft vertex zones → **three near-black torn-edged bands and two chevron scars with a callus rim**, crisp, on the same trunk; 6.5 % of pixels | **PASS at 5 m** — this is the birch read; the marks the vertex colour could not carry, the texture does |
+| `x-arch-tunnel-n`, the two young stems at 10–17 m | the texture octave is a tile, not gated on age: both saplings now carry a dark band at mid-height, soft in the haze; 3.9 % | the §E finding (saplings unmarked) is closed |
+| `C_lookback` | 0.39 % of pixels, SSIM vs reference **0.2335 → 0.2338 (+0.0003)** | toward the reference |
+| `D_log` | pixDiff 0 at the compare size, SSIM +0.0002 | — |
+| `x-ledge-wall`, `x-clearing-n`, `x-ledge-foot` | pixel-identical | — |
+
+Two notes, not blockers: at 5 m three bands plus two chevrons on the visible 6 m of stem is on the
+busy side — ref-04's tree beside the ledge carries one or two — and the texture bands sit on top of
+`1812a6f0`'s soft vertex zones, so some stems now show both (a soft zone above a crisp band); the
+vertex marks could retire. fable-4's `materials.ts` ask (the `indirectDiffuse *= mix(0.5, 1, vLeafShade)`
+line for the crowns' occlusion) is for trees-30/31 — the crowns' shape work stands as the next item.
+
 ## Summary for fable-cursor
 
 | branch | does what its INBOX/commit says | at the defect's pose | merge risk seen |
