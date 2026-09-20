@@ -96,7 +96,7 @@ async function createLinkPuppet(blinkSeed: string): Promise<{ puppet: Puppet; so
 export async function create(ctx: WorldContext): Promise<WorldSystem> {
   const group = new Group();
   group.name = 'character';
-  const ground = createGround(ctx.terrain, ctx.layout);
+  const ground = createGround(ctx.terrain, ctx.layout, ctx.shared);
   // the hardscape is built before this system, so the rendered slab tops are available now
   ground.attachSurface(ctx.scene);
   const spot = (id: string): V3 => {
@@ -108,6 +108,12 @@ export async function create(ctx: WorldContext): Promise<WorldSystem> {
   const linkLoad = await createLinkPuppet(`${ctx.config.seed}/link-blink`);
   const link: Actor = { ...hardChain('idle'), puppet: linkLoad.puppet, pos: new Vector3(spawn[0], 0, spawn[2]), yaw: Math.PI, phase: 0, idleTurn: 0, look: 0.5, contact: new Vector3(), shadow: createContactShadow(0.36, 0.6), shadowRadius: 0.36 };
   group.add(link.puppet.group, link.shadow);
+
+  // Owner review: keep the background cast hidden while Link's movement is refined.
+  const backgroundCast = new Group();
+  backgroundCast.name = 'background-characters';
+  backgroundCast.visible = false;
+  group.add(backgroundCast);
 
   // kid default spots: kokiri-a (stair-foot verge), kokiri-b (plaza west), kokiri-c beside the house door, kokiri-ledge on the raised ledge
   const house = ctx.layout.houses[0];
@@ -123,14 +129,14 @@ export async function create(ctx: WorldContext): Promise<WorldSystem> {
     kidChars.push(char);
     const puppet = proceduralPuppet(char, GAITS);
     const shadow = createContactShadow(0.3, 0.6);
-    group.add(puppet.group, shadow);
+    backgroundCast.add(puppet.group, shadow);
     kids.push({ ...hardChain('idle'), puppet, pos: new Vector3(kidSpots[i][0], 0, kidSpots[i][2]), yaw: 0, phase: 1.3 + i * 2.1, idleTurn: 0.28, look: 0, contact: new Vector3(), shadow, shadowRadius: 0.32 });
   }
   // NPC behaviour (npc.ts): in free / play mode kokiri-a wanders the plaza loop, kokiri-b sits on the stairs and kokiri-ledge
   // idles on the raised ledge, each with a fairy; under capture (view mode) the per-view placement above stands for the
   // first two (only their fairies are added) and the ledge girl is posed but hidden (round 48)
   const npcs = createNpcs({ chars: kidChars, ground, layout: ctx.layout, seed: `${ctx.config.seed}/npc` });
-  group.add(npcs.group);
+  backgroundCast.add(npcs.group);
 
   // draw-call budget (W38): the parts riding on one joint merge into one mesh per material — the
   // procedural rigs otherwise cost 269–311 calls with the shadow pass (consolidate.ts). Skinned
@@ -442,6 +448,7 @@ export async function create(ctx: WorldContext): Promise<WorldSystem> {
       fairy: true,
       fairyTrail: TRAIL_COUNT,
       npcs: kids.length,
+      npcsVisible: backgroundCast.visible ? kids.length : 0,
       ...npcs.audit(),
       geometry: linkLoad.source === 'glb' ? 'glb-link+procedural-npcs-v1' : 'procedural-v1',
       triangles: countTriangles(),
@@ -504,7 +511,7 @@ export async function create(ctx: WorldContext): Promise<WorldSystem> {
         };
       })(),
       samplePositions: { feet: [feetOf(link), ...kids.map(feetOf)] },
-      contactShadows: 1 + kids.length,
+      contactShadows: 1 + (backgroundCast.visible ? kids.length : 0),
       pavingSurface: ground.surfaceInfo(),
       /** `linkRoot` is the POSED root (placement + the planting's root shift, i.e. the rendered rig's origin); `linkPlacementY` the ground height it was placed at */
       world: { link: feetOf(link), linkRoot: rootOf(link), linkPlacementY: Number(placementYOf(link).toFixed(4)), navi: [naviAnchor.x, naviAnchor.y, naviAnchor.z], kids: kids.map(feetOf) },

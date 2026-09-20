@@ -17,8 +17,11 @@ import { createRockMaterial, NEAR_FADE_M, NEAR_TILE_M } from './material';
 import { dressRock, mergeRockParts } from './dressing';
 import { buildRockLedge, type RockLedgeDef } from './ledge';
 import { buildClearingRocks, type ClearingLayout } from './clearing';
+import { buildBacksideRocks } from './backside';
+import { casterSpheres, expansionVisible, sunVector } from '../util/expansionLocality';
 import { PEBBLE_DEFAULTS, PEBBLE_LOOKS, scatterPathPebbles, stairFootPebbles } from './pebbles';
 import { NORTH_Z1 } from '../util/northLocality';
+import { expansionCull } from '../terrain/heightfield';
 import { CUSHION, FERN, TUFT_A, TUFT_B, buildSproutMeshes, createSproutMaterial, type SproutSpot } from '../materials/sprouts';
 import type { Rng } from '../util/prng';
 
@@ -227,6 +230,17 @@ export async function create(ctx: WorldContext): Promise<WorldSystem> {
     }
   }
 
+  // round-49 handoff (expansion-2 / fable-cursor 16:15 UTC): this system builds against the LEGACY
+  // terrain view; the west / south bank and the far hut's knoll exist only in the live one, so a
+  // sampled stone can sit inside (or float over) them. `expansionCull` AFTER placement — every
+  // stream keeps its candidate count and its draws, only the instances change: the pebble lists are
+  // filtered; rubble and strata are referenced by index from the near kits, so theirs collapse to a
+  // zero scale in place (a zero-scale instance rasterises nothing and casts nothing). The strata go
+  // first, before the hero loop adopts slabs; the rubble after it (no hero boulder stands within the
+  // expansion's box, so no kit rebuilds a culled skirt stone — guarded in the loops all the same).
+  const culled = { pebbles: 0, rubble: 0, strata: 0 };
+  for (const it of strata) if (it.scale > 0 && expansionCull(it.x, it.z)) (it.scale = 0), culled.strata++;
+
   // --- hero boulders -----------------------------------------------------------------------
   const contact: [number, number, number][] = [];
   const boulderInfo: { id: string; radius: number; triangles: number; sink: number; contacts: number; baseGap: number; crackShare: number; mossShare: number; facetShare: number; topAboveGround: number }[] = [];
@@ -256,6 +270,16 @@ export async function create(ctx: WorldContext): Promise<WorldSystem> {
     const l = Math.max(1e-6, bd);
     return [(best[0] - x) / l, (best[2] - z) / l];
   };
+  /** unit xz direction from the D boulder to the hero frame D's camera (the face that frame reads) */
+  const towardD = (() => {
+    const d = ctx.layout.viewpoints.find((v) => v.id === 'D_log');
+    const b = ctx.layout.heroBoulders.find((h) => h.id === 'shot-d-boulder');
+    if (!d || !b) return null;
+    const dx = d.position[0] - b.position[0];
+    const dz = d.position[2] - b.position[2];
+    const l = Math.hypot(dx, dz) || 1;
+    return [dx / l, dz / l] as [number, number];
+  })();
   /** a world xz direction expressed in the local frame of a mesh yawed by `yaw` about +Y */
   const toLocal = (d: [number, number], yaw: number): [number, number] => [d[0] * Math.cos(yaw) - d[1] * Math.sin(yaw), d[0] * Math.sin(yaw) + d[1] * Math.cos(yaw)];
   for (const b of ctx.layout.heroBoulders) {
@@ -276,8 +300,14 @@ export async function create(ctx: WorldContext): Promise<WorldSystem> {
     // Layout round 6: the layout radius is 0.6 (the vegetation's exclusions read the boulder's
     // layout `clearRadius`, still 0.9, so its scatter streams do not move) and the loaf is a
     // rounded 0.64 dome again on the shared 0.15 seat: ≈ 1.2 m wide, ≈ 0.5 m proud)
-    const squash = b.id === 'shot-d-boulder' ? 0.64 : 0.74;
-    const sinkFrac = 0.15;
+    // fable-2 (W23 at frame D, round 49; fable-5's review 09:35 UTC "yes from the reviewer's side"):
+    // the loaf stands 0.2 m prouder — squash 0.72 and no sink — so its moss top clears the fern bank
+    // in front of it the way the frame's boulder top sits at y 0.55 with its fern hat ON the rock;
+    // at 0.64 / 0.15 the 0.5 m loaf was > 99 % hidden behind the fronds (fable-5's D box read fern
+    // green). A D composition change, made on its own branch for fable-cursor's call; the layout
+    // radius (0.6) and the vegetation's clearRadius are untouched.
+    const squash = b.id === 'shot-d-boulder' ? 0.72 : 0.74;
+    const sinkFrac = b.id === 'shot-d-boulder' ? 0 : 0.15;
     const rockOpts: RockOptions = {
       radius: r,
       // 20·(detail+1)² triangles: ≈ 16.8k for the 2.2 m terrace boulder, ≈ 14.6k for the small
@@ -332,6 +362,12 @@ export async function create(ctx: WorldContext): Promise<WorldSystem> {
       // blanket is thinner; the A rock's face toward frame 1 s is moss from shoulder to collar
       mossSide: b.id === 'shot-d-boulder' ? 0.45 : 0.9,
       mossShade: toLocal(shadeDir, yaw),
+      // fable-2 (W23 at frame D, fable-5's 13:25 review of the loaf: "value inverted — moss + shade on
+      // the face D sees, l 0.21 / hue 63° / sat 0.15 against the reference's bare lit face l 0.27 /
+      // 52° / 0.36"): the face toward the hero frame's camera stays bare stone (the cap keeps its
+      // moss — the frame's greenery is on the crown) and is paled up to 30 % toward the lit read
+      bareToward: b.id === 'shot-d-boulder' && towardD ? toLocal(towardD, yaw) : undefined,
+      faceLift: b.id === 'shot-d-boulder' && towardD ? { dir: toLocal(towardD, yaw), amount: 0.3 } : undefined,
       // the lower band is a dark, damp green-brown (not bare soil), reaching ~0.35 m up the
       // visible face of the small boulders
       // (W23: the D rock's collar reaches 45 % of its height, not 60 — frame D reads pale stone
@@ -761,6 +797,7 @@ export async function create(ctx: WorldContext): Promise<WorldSystem> {
           });
         for (let k = ownStart; k < rubble.length; k++) {
           const it = rubble[k];
+          if (it.scale <= 0) continue; // culled by the expansion (see below)
           const sc = it.scale;
           const stone = cobble(kRng.fork(`stone-${k - ownStart}`), `${seed}/skirt-${b.id}-${k - ownStart}`, sc, 2 + ((k - ownStart) % 2), toLocal(shadeDir, it.yaw));
           // the far instance's pose at unit scale (the stone is already its size), 5 % deeper in
@@ -812,6 +849,7 @@ export async function create(ctx: WorldContext): Promise<WorldSystem> {
         const reach = r * 2.1 + 0.5;
         for (let k = 0; k < strata.length; k++) {
           const it = strata[k];
+          if (it.scale <= 0) continue; // culled by the expansion (see below)
           if (Math.hypot(it.x - b.position[0], it.z - b.position[2]) > reach) continue;
           strataSkirt.push(k);
           const sc = it.scale * 0.7;
@@ -918,6 +956,9 @@ export async function create(ctx: WorldContext): Promise<WorldSystem> {
     const at = stairFootPebbles(T, seed, s, density);
     (s.base[2] < NORTH_Z1 ? northPebbles : pebbles).push(...at);
   }
+  // (the expansion cull, see above: the pebble lists and the rubble)
+  for (let i = pebbles.length - 1; i >= 0; i--) if (expansionCull(pebbles[i].x, pebbles[i].z)) (pebbles.splice(i, 1), culled.pebbles++);
+  for (const it of rubble) if (it.scale > 0 && expansionCull(it.x, it.z)) (it.scale = 0), culled.rubble++;
   ctx.progress('rocks', 0.8);
 
   // --- rock ledge faces (ledge.ts) — positions from the layout hook, or the dev preview -------
@@ -967,6 +1008,24 @@ export async function create(ctx: WorldContext): Promise<WorldSystem> {
     clearingMesh.visible = false;
     group.add(clearingMesh);
     ledgeMeshes.push(clearingMesh);
+  }
+
+  // --- the plaza's backside (backside.ts, round 49 / V20): the pale boulder pair, the low stone step
+  // and the flight's scree at the fence-topped south bank — seated on the LIVE terrain (the bank is
+  // not in this system's legacy view), one mesh under the hero material, toggled with expansion-2's
+  // frustum + shadow-sweep spheres so camera C never draws it; own fork
+  const backside = buildBacksideRocks(rng.fork('backside'), seed, shadeDir);
+  let backsideMesh: Mesh | null = null;
+  let backsideSpheres: Sphere[] = [];
+  if (backside) {
+    backsideMesh = new Mesh(backside.geometry, heroMaterial);
+    backsideMesh.castShadow = true;
+    backsideMesh.receiveShadow = true;
+    backsideMesh.name = 'backside-rocks';
+    backsideMesh.visible = false;
+    group.add(backsideMesh);
+    const sunDir = sunVector(ctx.config.sun.azimuthDeg, ctx.config.sun.elevationDeg);
+    backsideSpheres = backside.casters.flatMap((c) => casterSpheres(c, sunDir));
   }
 
   const rubbleSlots: InstanceSlot[] = [];
@@ -1063,11 +1122,21 @@ export async function create(ctx: WorldContext): Promise<WorldSystem> {
     ledges: ledgeInfo,
     /** the north clearing's dressing (clearing.ts): boulder pair / scree / slabs, one mesh */
     northClearing: clearing ? clearing.stats : null,
+    /** the plaza's backside (backside.ts): the south bank's pair / toe step / flight scree, one mesh */
+    backside: backside ? backside.stats : null,
     ledgeSource: ledgeInfo.length ? ((ctx.layout as unknown as { rockLedges?: unknown[] }).rockLedges?.length ? 'layout' : 'preview') : 'none',
     rubble: rubble.length,
     strata: strata.length,
     scree: rubble.length + strata.length,
-    pebbles: pebbles.length,
+    /**
+     * every instanced small stone near path edges, stair feet and boulder bases (W24): the plaza-side
+     * set plus the north paving's set (`pebbles-north`, drawn within the north locality like every
+     * other north mesh). Breakdown below.
+     */
+    pebbles: pebbles.length + northPebbles.length,
+    pebblesMain: pebbles.length,
+    /** sampled stones dropped after placement because they sat inside the round-49 expansion's live-only ground (streams and draws unchanged) */
+    expansionCulled: culled,
     /** the north paving's pebbles (pebbles-north, under the north-locality toggle) */
     northPebbles: northPebbles.length,
     instancedMeshes: rubbleMeshes.length + strataMeshes.length + pebbleMeshes.length,
@@ -1077,6 +1146,7 @@ export async function create(ctx: WorldContext): Promise<WorldSystem> {
       crevicePlants: crevicePlants.map((p) => [rnd(p.x), rnd(p.y), rnd(p.z), p.kind ?? 'tuft']),
       ledgeFeet: ledgeContacts.map((p) => p.map(rnd)),
       northClearingSeats: clearing ? clearing.contacts.map((p) => p.map(rnd)) : [],
+      backsideSeats: backside ? backside.contacts.map((p) => p.map(rnd)) : [],
     },
     palette: { moss: [P.mossDeep, P.mossBright] },
   }));
@@ -1088,6 +1158,7 @@ export async function create(ctx: WorldContext): Promise<WorldSystem> {
       nearUpdate(c.camera, false);
       const show = northVisible(nBox, c.camera.position.x, c.camera.position.z);
       for (const m of ledgeMeshes) m.visible = show;
+      if (backsideMesh) backsideMesh.visible = expansionVisible(c.camera, backsideSpheres);
       // round 49 (perf-3): the cap / crevice plants submit only the instances that can reach the frame (materials/sprouts.ts `cull`)
       plants.cull(c.camera);
     },
@@ -1095,6 +1166,7 @@ export async function create(ctx: WorldContext): Promise<WorldSystem> {
       nearUpdate(camera, true);
       const show = northVisible(nBox, camera.position.x, camera.position.z);
       for (const m of ledgeMeshes) m.visible = show;
+      if (backsideMesh) backsideMesh.visible = expansionVisible(camera, backsideSpheres);
       plants.cull(camera, true);
     },
     dispose() {

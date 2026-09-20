@@ -154,3 +154,44 @@ direction. Kept the into-frame lean (`ea86f8c`: the stem shows its lean along it
 length; leaning out, its top leaves under the HUD). Crop `fable4-r49-lean-C-none-in-out.png`
 (no lean | in | out). Whole branch on the tick-193 head: A 0.2178 =, B +0.0001, C −0.0019, D −0.0003,
 E −0.0001, F =; draws 396 → 394 at D; W12 163/163; determinism 0; console 0.
+
+## The far hut's knoll: the buried white-bark leaves (`agent/fable-4-knoll`, after expansion-2)
+
+expansion-2's backside (`bd2595d8`) raises a live-only knoll under the far hut (`farHutRise` 1.4 m,
+radius 8) while the trees stream builds against the LEGACY view. Their audit read "the nearest tree
+base is 11 m off" — from `samplePositions.bases`, a strided sample of the tree bases (1 in 3–4), which
+missed a scatter white-bark: **variant 7 (mature, H 12.9 m × 1.105, crown radius 4.7 m) at
+(−39.72, 31.12), 4.8 m from the hut's column.** On the rendered ground it stood 0.70 m buried (live −
+legacy at its seat), and from Link's spot (0, 1.5, 2) the lamp's sight line to (−41, 8.4, 35.7) passed
+2.7 m from its axis at 7.9 m height — inside the crown. The hut expansion-2 layered behind the bank
+and the Kokiri was behind a birch.
+
+Fix: `heightfield.expansionCull` — the filter expansion-2 wrote for the legacy-built streams and
+that nothing consumed yet — applied to the white-bark placements in `trees/index.ts` (one line, after
+lod-1's column swap, before my authored clearing spots). A filter re-rolls nothing: 82 → 81
+white-barks, every other seat identical (replica: only that one placement is inside the expansion's
+box on moved ground; the three grove trees at the bank's toe/skirts and the clearing four sit on
+unchanged ground, |live − legacy| = 0.000 m).
+
+| pose | what changed |
+| --- | --- |
+| `f4-sw-pan-hut` (Link's spot → the lamp, fov 46) | 0.48 % of the frame: the knoll tree's crown at the centre goes, the hut's dark silhouette and walkway show through the haze behind the grove — crop `fable4-r49-knoll-sw-pan-hut-crop.png` |
+| `f4-knoll-20m` ((−24, 1.7, 20) → the hut) | 10 % of the frame: the 14 m birch that stood on the knoll through the hut's level is gone; the hut stands clear on its column — `fable4-r49-knoll-20m.png` |
+
+Six views (same head `97c83227`, settle 6, one Chrome): SSIM identical to four decimals at A–F
+(A 0.2177, B 0.2016, C 0.2359, D 0.2757, E 0.2141, F 0.2565); A and F pixel-identical, B/C/D/E
+2–3 pixels at ≤ 5 levels (capture flicker); draws 566/522/407/395/522/507 and triangles (A 8.61 M)
+identical; determinism 0. The knoll is behind every fixed camera (bearing −47° from C, 18° outside
+its west edge) and the tree's shadow tip ((−25, 42), bearing −28.7°) turned out not to touch C's
+ground either.
+
+### Young white-barks on the backside's banks — the constraint (not placed)
+
+The item I offered expansion-2 (young stems on the new bank) runs into the same wall expansion-2
+hit with the bank's own corner: the sun (azimuth −128°, elevation 38°) throws 1.28 m of shadow per
+metre of height toward bearing 52° (+x, +z), and camera C's west frustum edge on the ground is
+x = 2.33 − 0.5663 (z + 7.67). A 6–8 m stem anywhere on the bank's top (1.95 m) lands its crown's
+shadow **3.4–8.7 m inside C's frame**; the three existing grove white-barks at the toe already do
+(4–8 m, baseline since the seal). Shadow-safe seats start at x ≲ −26 (z ≈ 20) to −32 (z ≈ 18) —
+behind the bank on the SW plain, in the far hut's sight-line zone and the SW pan's mid-ground. So
+this is a composition call for expansion-2 / fable-cursor, not a lane task; nothing placed.

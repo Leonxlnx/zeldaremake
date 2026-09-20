@@ -1,21 +1,21 @@
 # Young Link runtime candidate — Blender source and validation
 
-Character art by Astra (`astra-local`). This is the exact reviewed Blender export from
-[`b1f2008`](https://github.com/Leonxlnx/zeldaremake/commit/b1f2008) (PR #10, her retained
-local default at that commit), delivered through the existing GLB loader and procedural
-fallback. It remains an incremental art candidate: eyelids, cheeks and hair are still open on
-her side.
+Character art by Astra. The current asset is the reviewed native leg-alignment and run-arm
+candidate `ea93932d`, derived from the previously adopted `382ec9ec` asset. The lower calves
+and boots sit closer to their joints; the running arms have less forward carriage, more open
+elbows and modest clearance from the side pouches. This is an incremental art improvement;
+face detail, hand shape and stair posture remain unfinished.
 
 | Property | Value |
 | --- | --- |
-| Source | `public/models/link/link-runtime.glb` at `b1f2008` (`agent/astra-local-link-grounding`) |
-| SHA256 | `2459112603a935a038dd06a67de85d5c5e28c72188f50ebd4d6e304af236bfa4` |
-| Size | 41,177,288 bytes |
-| Geometry | 70,442 triangles, three skinned meshes (five primitives), four opaque double-sided materials; the body mesh carries the `blink` / `blinkHalf` morph targets (zero default weight) |
-| Maps | Five embedded PNGs: body colour, body normal atlas (nose shading baked, zero padding), packed metallic/roughness, face/orbital colour, corneal colour |
-| Exporter | Khronos glTF Blender I/O v4.5.51, glTF 2.0, `KHR_materials_clearcoat` |
-| Rig | Existing 409b603 nineteen-bone rig, in metres, +Y up and +Z forward |
-| Sole markers | Existing ankle-local L/R markers `[∓0.000000016, 0.05900068, 0.08564404]` |
+| Source | `382ec9ec` at `d679e7ee`, patched by `art/characters/link/progress/2026-09-20-natural-run/export_candidate.py` using its native vertex record and `run-arms-native.glb`. The study README includes five matched comparisons and exact reproduction commands. |
+| SHA256 | `ea93932d8afe02ec4bbcf3487fb20ce3f55272fb60f20998dc728cb637ae575f` |
+| Size | 47,784,756 bytes; selected buffers are appended after the preserved original binary prefix. |
+| Geometry | Existing 70,442 triangles, three skinned meshes/five primitives, four materials. 13,492 lower-leg vertices move inward below 0.40 m, by at most 45 mm at the sole. Height/depth, topology, skin weights, UVs, maps and blink position deltas are preserved. Normals/tangents follow the deformation shear; translations preserve their frames exactly. |
+| Animation | Only run rotations of shoulderL/R and elbowL/R change: backward carriage, slightly open elbows and pouch clearance. Native 240 fps carrier, 113 samples, same 28/60-second cycle and 1.82 m stride. All unselected channels and clips are preserved. |
+| Maps | Existing embedded body colour, normal, metallic/roughness, face/orbital and corneal textures, unchanged. |
+| Exporter | Blender 4.5 glTF native animation carrier plus the checked standard-library Python patcher. Original binary prefix and every unselected JSON value are retained. |
+| Rig and contact markers | Existing skeleton, rest transforms and ankle-local sole markers, unchanged. |
 
 ## Clip compatibility
 
@@ -58,6 +58,18 @@ credited in the study archive; they should not be assumed to be inputs to this e
 | 2026-09-16 | `3f6cb6f3…eadf` | `9c66fa8` (PR #10) | Alert eyelid opening: 774 orbital vertices, aperture 19.93 → 23.23 mm, closed and half-blink positions rebased; clips, textures, UVs, weights, binds preserved (0c28cb62 is its parent) |
 | 2026-09-16 | `4741cf3e…1768` | `73ccdc0` (PR #10) | Via 17d18d15 (animated orbital normals smoothed — closed-lid ridges reduced): 17-vertex inner-corner separation (≤ 0.096 mm) so all 41 sampled blink phases clear self/eye contacts; rest geometry, textures, rig, clips unchanged (3f6cb6f3 is its parent) |
 | 2026-09-16 | `24591126…bfa4` | `b1f2008` (PR #10) | Via 55cc8ef3 (shoulder weights), 1c08dec3 (lower-tunic weights), ace15add (run stride 2.21 → 1.82 m, cycle 34 → 28 frames at 60 fps, same 3.9 m/s), 611c4425 (stance 0.25 → 0.20, flight bounce 45 → 12 mm, 120 fps bake): run arms retimed from Quaternius Universal Animation Library Standard `Jog_Fwd_Loop` (CC0), phase-aligned in Blender. Paired loader change: `CLIP_SPEC.run` = stride 1.82 m, cycle 28/60 s, heroClipTime (15/60)·(28/34). Geometry, textures, blink, idle/walk/stairs unchanged (4741cf3e is its parent) |
+| 2026-09-20 | `382ec9ec…92eb` | `0dfd3601` (PR #21), regenerated from `24591126` by her `export_candidate.py relaxed-run` + `boots.py` | Owner's "natural running legs, arms, smaller boots" pass. Run clip only: shoulder carriage rotated 0.10 rad inward (elbow, wrist and torso channels — the CC0 Quaternius `Jog_Fwd_Loop` retime — untouched, same timing); leg swing from her 3218b164 study (faster shoe clearance after toe-off — 8.9 → 36.6 mm near the first 60 Hz frame after toe-off — continuous endpoint velocity, ≤ 7 mm fore/aft overshoot; hips byte-exact); stride 1.82 m, cycle 28/60 s, duty 0.20 unchanged, so `CLIP_SPEC` is unchanged. Boots 10 % narrower and 12 % shorter below 0.10 m fading to the unchanged cuff at 0.20 m (11,244 vertices; rest sole height, sole markers, rig, skin weights, UVs, textures, blink morphs, idle/walk/stairs clips unchanged; 24591126 is its parent). Paired runtime change (same PR, adoptable separately): the play-mode run grounding fades to the run cycle's sampled floor by the run action's weight instead of grounding the lowest sole every frame, and a swing's take-off anchor is the foot's last rendered stance sole (`Locomotion.offX/offZ`) for both the sole and the hip of its frozen clip pose |
+
+The 2026-09-20 natural-run revision above was adopted locally by Astra after the five native
+comparisons, a 300-frame actual walk/run/idle test and 1,320 actual stair frames. No browser
+page errors or reach clamps were recorded. The initial every-tenth-frame stair contact samples
+missed brief intersections. A subsequent every-frame run finds a -67 mm minimum in a swinging
+shoe; this and the maximum knee bends (162 degrees up / 155 degrees down) remain open. The
+separate stance-support correction reduces the worst descent root step from 60 to 20 mm.
+Its dense native manifest records one aborted GLB request alongside the successful HTTP 200
+load and verified served asset; no fallback model was used.
+Native arm/body triangle contacts decreased from 1,666 to 1,452 across the sampled loop; they
+are not eliminated. See `art/characters/link/progress/2026-09-20-natural-run/README.md`.
 
 Astra's per-build records (`Retained …` entries and their evidence folders) are in the
 SOURCE.md on `agent/astra-local-link-grounding`; only the adopted build is copied here.

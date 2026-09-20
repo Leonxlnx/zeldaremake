@@ -141,7 +141,7 @@ import type { BlinkInfo, FootContact, JumpState, Locomotion, PlantInfo, Puppet, 
 /** served by Vite from public/ */
 export const LINK_GLB_FILE = 'models/link/link-runtime.glb';
 /** the delivered file's hash, recorded in public/models/link/SOURCE.md — reported, never recomputed at runtime */
-export const LINK_GLB_SHA256 = '2459112603a935a038dd06a67de85d5c5e28c72188f50ebd4d6e304af236bfa4';
+export const LINK_GLB_SHA256 = 'ea93932d8afe02ec4bbcf3487fb20ce3f55272fb60f20998dc728cb637ae575f';
 /** skull top above the `head` bone (m) on Astra's rig, measured on the 409b603 asset's skin mesh (cap excluded) */
 export const HEAD_TOP_ANATOMICAL_M = 0.276;
 
@@ -799,10 +799,11 @@ function footReach(fp: Footprint, yawRel: number, out: { back: number; ahead: nu
  * facing through the marker for the nearest step edge (≥ STEP_MIN), bisected to a fraction of a
  * millimetre. Returns the shift, the support of the shifted marker (the PLANT rule at the shifted
  * footprint, plus the pitch lift) and the pitch. `base` is the analytic walking ground under the
- * rendered `ground` (null where the two are one sampler): the PLANT rule extends to the boot's
- * four corners wherever a rendered stone stands proud of it.
+ * rendered `ground` (null where the two are one sampler): the PLANT rule includes the boot's
+ * four corners on that rendered surface. `placed` marks an actual pinned position,
+ * which must not be shifted to another tread when its support is sampled again.
  */
-function footConfig(ground: GroundSampler, base: GroundSampler | null, x: number, z: number, fx: number, fz: number, yawRel: number, fp: Footprint, out: FootConfig): FootConfig {
+function footConfig(ground: GroundSampler, base: GroundSampler | null, x: number, z: number, fx: number, fz: number, yawRel: number, fp: Footprint, out: FootConfig, placed = false): FootConfig {
   // footprint reach along the facing: corners (lat, along) rotated by the foot yaw
   footReach(fp, yawRel, out);
   const back = out.back;
@@ -877,6 +878,7 @@ function footConfig(ground: GroundSampler, base: GroundSampler | null, x: number
       // back with the toe clear of the riser
       shift = choose(e - EDGE_HANG, ahead + TOE_MARGIN - e, false);
     }
+    if (placed) shift = 0;
     if (rise < 0) {
       const eShifted = e - shift;
       const overhang = ahead - eShifted;
@@ -887,18 +889,14 @@ function footConfig(ground: GroundSampler, base: GroundSampler | null, x: number
   const sz = z + fz * shift;
   let support = sinkFootprint(ground, sx, sz, fx, fz, back, ahead, PLANT_LAMBDAS);
   if (base) {
-    // round 6: the boot's four corners join the PLANT max wherever the rendered stone under one
-    // stands proud of the analytic ground (the last tread's top 2.8 cm above the landing it
-    // meets, a stone's jitter): the centre line read the landing while the boot's outer heel
-    // sat in the stone. Where the rendered surface IS the analytic ground (the terrain, the
-    // paving, a tread top dished under its nominal) nothing is added — round 5's pose exactly.
+    // A lateral heel can still stand on the upper tread while the centre line overhangs it.
+    // Include that support even when the rendered stone matches the analytic tread height.
     for (const lat of [fp.latMin, fp.latMax]) {
       for (const along of [-fp.heel, fp.toe]) {
         const proj = along * cy - lat * sy;
         const l = along * sy + lat * cy;
         const px = sx + fx * proj + fz * l;
         const pz = sz + fz * proj - fx * l;
-        if (ground(px, pz) <= base(px, pz) + 1e-6) continue;
         const v = envelope(ground, px, pz, fx, fz, -1, PLANT_STEP, PLANT_LAMBDAS, false, NO_REACH);
         if (v > support) support = v;
       }
@@ -1592,6 +1590,7 @@ export async function loadGlbLink(url: string, opts: GlbLinkOptions = {}): Promi
     }
     mixer.update(0);
   }
+  const runFloor = Math.min(...pathTable.run[0].soleY, ...pathTable.run[1].soleY);
 
   const asset: LinkAssetInfo = {
     file,
@@ -1725,7 +1724,7 @@ export async function loadGlbLink(url: string, opts: GlbLinkOptions = {}): Promi
     // a new play session (or a clock jump: index.ts recreates the state) starts the filter at its target
     const fresh = armsLoco !== loco;
     armsLoco = loco;
-    const alpha = tau > 1e-4 && loco.dt > 0 ? 1 - Math.exp(-loco.dt / tau) : 1;
+    const alpha = tau > 1e-4 ? 1 - Math.exp(-Math.max(0, loco.dt) / tau) : 1;
     for (let i = 0; i < armBones.length; i++) {
       const b = armBones[i];
       armMix[i].copy(b.quaternion);
@@ -1842,9 +1841,14 @@ export async function loadGlbLink(url: string, opts: GlbLinkOptions = {}): Promi
       }
       const lower = legs[0].soleP.y <= legs[1].soleP.y ? 0 : 1;
       const soleMin = legs[lower].soleP.y;
+      // Running has flight: grounding the lowest sole every frame converts its lift into a
+      // downward body bob. Fade to the authored cycle floor with the run action in play mode;
+      // never raise the floor through a sole. Walk, stairs and fixed captures retain their rule.
+      const runWeight = loco ? actions.get('run')!.action.weight : 0;
+      const soleFloor = soleMin - runWeight * Math.max(0, soleMin - placed - runFloor);
       for (let i = 0; i < 2; i++) {
         const leg = legs[i];
-        leg.contact = 1 - MathUtils.smoothstep(leg.soleP.y - soleMin, CONTACT_LIFT0, CONTACT_LIFT1);
+        leg.contact = 1 - MathUtils.smoothstep(leg.soleP.y - soleFloor, CONTACT_LIFT0, CONTACT_LIFT1);
 
         // 2. each foot, per active clip, from the clip's swing table — never from which sole
         // happens to be lower (at double support that flips between frames, and the two feet may
@@ -1876,6 +1880,9 @@ export async function loadGlbLink(url: string, opts: GlbLinkOptions = {}): Promi
         const pinnedX = loco && !airborne ? loco.pinX[i] : NaN;
         const pinnedZ = loco && !airborne ? loco.pinZ[i] : NaN;
         const pinned = Number.isFinite(pinnedX) && Number.isFinite(pinnedZ);
+        if (loco && jump) {
+          loco.offX[i] = loco.offZ[i] = NaN;
+        }
         leg.relA.set(0, 0, 0);
         leg.relH.set(0, 0, 0);
         leg.attA.set(0, 0, 0);
@@ -1898,8 +1905,11 @@ export async function loadGlbLink(url: string, opts: GlbLinkOptions = {}): Promi
             const len = (s.tLand - s.tOff) / a.rate;
             const back = speed * sw.phase * len;
             const ahead = speed * (1 - sw.phase) * len;
-            const ox = x + s.offX * fz + s.offZ * fx - fx * back;
-            const oz = z - s.offX * fx + s.offZ * fz - fz * back;
+            // A pinned foot may have shifted off the clip's predicted tread. Its swing
+            // starts on that actual support, not a newly selected neighbouring tread.
+            const heldOff = loco && !jump && Number.isFinite(loco.offX[i]);
+            const ox = heldOff ? loco.offX[i] : x + s.offX * fz + s.offZ * fx - fx * back;
+            const oz = heldOff ? loco.offZ[i] : z - s.offX * fx + s.offZ * fz - fz * back;
             const lx = x + s.landX * fz + s.landZ * fx + fx * ahead;
             const lz = z - s.landX * fx + s.landZ * fz + fz * ahead;
             footConfig(surface, base, ox, oz, fx, fz, s.offYaw, leg.fp, cfgOff);
@@ -1935,9 +1945,11 @@ export async function loadGlbLink(url: string, opts: GlbLinkOptions = {}): Promi
               leg.relA.x += rw * (ox + fx * cfgOff.shift - _p.x);
               leg.relA.y += rw * (gOff + s.offLift - _p.y);
               leg.relA.z += rw * (oz + fz * cfgOff.shift - _p.z);
-              leg.relH.x += rw * (x + s.offHip.x * fz + s.offHip.z * fx - fx * back);
+              // Anchor both ends of the frozen clip pose to the same take-off spot. Mixing
+              // a held sole with the predicted hip invents a reach deficit after a stance pin.
+              leg.relH.x += rw * (ox + (s.offHip.x - s.offX) * fz + (s.offHip.z - s.offZ) * fx);
               leg.relH.y += rw * s.offHip.y;
-              leg.relH.z += rw * (z - s.offHip.x * fx + s.offHip.z * fz - fz * back);
+              leg.relH.z += rw * (oz - (s.offHip.x - s.offX) * fx + (s.offHip.z - s.offZ) * fz);
               relW += rw;
             }
             const aw = weight * MathUtils.smoothstep(sw.phase, 1 - ATTACK, 1);
@@ -1976,7 +1988,7 @@ export async function loadGlbLink(url: string, opts: GlbLinkOptions = {}): Promi
               // round 47, play mode: a stance foot stands on the world spot it touched down on
               // (its pin, applied below), so its configuration is read there — constant for the
               // whole stance whatever the root does (a turn, an acceleration, a gait blend)
-              footConfig(surface, base, pinnedX, pinnedZ, fx, fz, st ? st.swing.landYaw : leg.yawRel, leg.fp, cfgOff);
+              footConfig(surface, base, pinnedX, pinnedZ, fx, fz, st ? st.swing.landYaw : leg.yawRel, leg.fp, cfgOff, true);
             } else if (st) {
               const s = st.swing;
               const back = (speed * st.since) / a.rate;
@@ -2182,7 +2194,7 @@ export async function loadGlbLink(url: string, opts: GlbLinkOptions = {}): Promi
         leg.rootAtLand = r1;
       }
       const gMin = Math.min(legs[0].gRoot, legs[1].gRoot);
-      const shift = gMin - soleMin;
+      const shift = gMin - soleFloor;
       root.position.y += shift;
       for (const leg of legs) {
         leg.hip.y += shift;
@@ -2518,6 +2530,12 @@ export async function loadGlbLink(url: string, opts: GlbLinkOptions = {}): Promi
       for (let i = 0; i < 2; i++) {
         const leg = legs[i];
         leg.soleP.copy(leg.sole).applyMatrix4(leg.ankle.matrixWorld);
+        if (loco && !jump && leg.stance) {
+          // Reach limiting can shorten a requested pin. Remember the rendered sole,
+          // otherwise releasing that unreachable pin would pull the body down again.
+          loco.offX[i] = leg.soleP.x;
+          loco.offZ[i] = leg.soleP.z;
+        }
         leg.contactOff = 0;
         leg.contactGround = surface(leg.soleP.x, leg.soleP.z);
         if (Math.abs(leg.soleP.y - leg.contactGround) > CONTACT_OFF) {

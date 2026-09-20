@@ -16,6 +16,94 @@ B 526 / C 393 / D 394 / E 526 / F 512; A 9.09 M tris on both (the head's number,
 change's — flagged to fable-cursor). Files: `ledge2-x-clearing-n.jpg` (+ `-crop`),
 `ledge2-x-ledge-foot.jpg`, `ledge2-x-northpath-n.jpg`.
 
+## Iteration 16 (goal mode, 2026-09-20) — the plaza's backside: rocks at the fence-topped south bank (expansion-2, V20)
+
+`06f2a781` + `294bc94c` (`src/world/rocks/backside.ts`). BEFORE = the head `97c83227` (expansion-2 in), AFTER = this
+build. Expansion-2 raised the plaza's backside outside the six frames — a fence-topped south bank with a stone
+flight; the footage's motif at every bank foot (V20, `d_087`) is pale rounded boulders and a low stone step. Placed
+from the layout's `EXPANSION.southBank` lip frame and `EXPANSION_STAIRS` 'south-bank', seated on the LIVE terrain
+(the rocks system otherwise builds against the legacy view, where the bank does not exist), off the treads / discs /
+pads, one merged mesh (~30 k tris) toggled with expansion-2's own `expansionVisible()` frustum + shadow-sweep
+spheres — one tight caster per piece (a first cut with group spheres reached across camera C's frustum edge and
+cost C +1 draw / +31 K tris for no pixel).
+
+| pose | what changed | verdict |
+| --- | --- | --- |
+| `x-southbank-toe` p (−10.5, 1.5, 11.5) → t (−16.2, 1.0, 15.2) | a pale moss-capped loaf with a companion at the bank's foot east of the flight; small stones at the flank (`back16-x-southbank-toe.jpg`) | **landed** — the reference's pale pair at a bank's foot |
+| `x-southbank-flight` p (−11.5, 1.45, 17.5) → t (−15.5, 1.4, 17.4) | angular scree on the bank's face at the flight's west flank, a pale boulder at the foot to the right (`back16-x-southbank-flight.jpg`) | landed |
+| `x-sw-pan` (Link's spot → the bank, 24 m) | the pair a pale mark at the bank's foot (`back16-x-sw-pan.jpg`) | consistent |
+
+Fixed views A and C (the two that could see or pay): draws and triangles the head's (A 566 / 8.62 M, C 407 / 6.96 M);
+pixels differ only at run-to-run noise (A 30 px ≤ 4/255, C 66 px ≤ 1/255, all in the canopy rows). Offline, with
+the runtime's own `expansionVisible`, none of the six cameras meets a backside sphere. Audit: `backside`
+{ boulders 2, stepStones 3, scree 18 }.
+
+## Iteration 15 (goal mode, 2026-09-20) — W23's value half on the loaf branch (`agent/fable-2-w23-loaf` @ `39568e37`)
+
+fable-5's 13:25 review of the loaf: "composition fixed, value inverted — merge the composition; fable-2, the value
+half: moss kept off the camera side of shot-d-boulder, the shaded face lifted toward l 0.27". Camera D looks north,
+so it reads the boulder's south side, where the shade blanket hung (l 0.21 / hue 63° / sat 0.15 against the
+reference's bare lit face 0.27 / 52° / 0.36). `39568e37` (rockgen `bareToward` + `faceLift`, the frame's camera
+read from `layout.viewpoints`): the face toward D stays bare stone (the cap keeps its moss — the frame's greenery is
+on the crown) and is paled up to 30 %.
+
+| frame / pose | before (loaf) → after | verdict |
+| --- | --- | --- |
+| `D_log` | a dark grey-green mass with a moss cap → pale bare stone under the moss cap, still in the giant's shade and partly behind the fronds (`val15-D_log-boulder.jpg`, reference beside it); the boulder box l 0.263 → 0.276 | **IMPROVED** — the value half moves as asked; the fronds in front stay vegetation-26's |
+| `sn-boulder-shotd` (2 m) | the camera-side blanket gone, the face pale tan stone with a moss hat (`val15-sn-boulder-shotd.jpg`) | IMPROVED |
+
+Six views, loaf `566d5a1a` → `39568e37`: A +0.0003, B +0.0001, C 0, **D +0.0005**, E +0.0002, F 0 — all up or flat;
+draws / triangles identical. The whole branch against the head: D −0.0002 (the composition's −0.0007 less this
++0.0005), the rest within ±0.0003.
+
+## Iteration 14 (goal mode, 2026-09-20) — a mid-range detail band for the boulders (owner's "stones under-detailed") — FAIL, reverted
+
+`d4bfed58` → reverted by `f433b104`. The owner's 13:00 UTC re-priority (via fable-cursor's overlap map): "stones
+under-detailed", judged at 5–20 m. For rocks that is the far look — the shared material pulls the texture 78 % to
+grey and compresses its contrast to 70 %, so boulders past 6 m read as smooth domes. Tried: a 9–30 m band with 12 %
+more contrast, the near path's ± 10 % plate patchwork and +40 % normal relief.
+
+| where | result | verdict |
+| --- | --- | --- |
+| six views, branch `952eb035` → band | Δ SSIM 0.0000 ×5, E −0.0001; **≤ 0.02 % of pixels** per view | an after that looks like its before |
+| `x-shotd-8m`, `x-stairfoot-9m`, `x-terrace-13m`, `x-terrace-20m` (new 8–20 m poses) | the hero boulders are behind ferns / bushes / trunks at every one; nothing to judge (`mid14-x-shotd-8m.jpg`) | — |
+| `sn-boulder-terrace` (4 m) | the far side of the big rock a touch more mottled (`mid14-sn-boulder-terrace.jpg`) | too little to claim |
+
+**FAIL, reverted.** At 1280 × 720 a ± 10 % plate value on 0.3 m plates at 9 m and 12 % of the texture's contrast are
+below the frame's noise; a band strong enough to read would be the "crazed" look the compression exists to avoid.
+The honest next step for "stones under-detailed" on rocks is a change in what the far mesh IS (plate geometry at
+mid range), which is six-view-exposed and a look change — asked in the INBOX whether the owner's "stones" means the
+boulders at all before spending it (the hardscape's stones are Astra's lane now).
+
+## Iteration 13 (goal mode, 2026-09-20) — W24's count, a regression of mine caught and fixed
+
+`51fb6b35`. BEFORE = the head `ca562e76` (the envelope in), AFTER = this build. W24's auto check is
+`systems.rocks.pebbles ≥ 2000`; the envelope had left the plaza-side set at **1 822** in the browser (audited) —
+the next take would have failed W24. Fix: the audit's `pebbles` is every instanced small stone near path edges /
+stair feet / boulder bases (plaza-side + the north paving's set — real stones, distance-toggled like every north
+mesh), with `pebblesMain` / `northPebbles` as the breakdown; and the fringe acceptance 0.36 → 0.42 so the plaza-side
+set alone clears 2 000 with margin. Browser audit after: total **3 188**, main **2 079**, north 1 109. Per-cell: the
+raise adds stones and moves none.
+
+Six views, head `ca562e76` → `51fb6b35`: A +0.0002, B −0.0002, C +0.0006, D −0.0002, E +0.0002, F −0.0001; draws
+identical (566 / 522 / 407 / 396 / 522 / 507), triangles +20 K per frame (A 8.60 → 8.62 M); ≤ 0.14 % of pixels per
+view. All six within −0.0008 of take-0122.
+
+## Iteration 12 (goal mode, 2026-09-20) — W23 at frame D: the loaf 0.2 m prouder (branch `agent/fable-2-w23-loaf` @ `e5867d7e`)
+
+A D composition change on its OWN branch for fable-cursor's call (fable-5: "yes from the reviewer's side").
+BEFORE = the head `e54a74ed`, AFTER = `e5867d7e`: the D boulder's squash 0.64 → 0.72 and no sink (was 15 %
+of its height) — ≈ +0.19 m proud; the layout radius and the vegetation's clearRadius untouched.
+
+| frame / pose | before → after | verdict |
+| --- | --- | --- |
+| `D_log` (7.2 m) | nothing but fronds and a dark sliver → the boulder's moss top and shaded face stand above the fern bank at frame x 0.12–0.3, y 0.55–0.7 (1.01 % of the frame; `loaf12-D_log-boulder.jpg`, with the reference beside it) | **IMPROVED** — a rock is there now; not closed: it reads dark (the face toward D is in the giant's shade; box l 0.316 → 0.300 as more shaded rock replaces lit fern) and the fronds still stand in front (vegetation-26's disc) |
+| `sn-boulder-shotd` (2 m) | a sunk lump → a boulder with its moss top above the fern line (`loaf12-sn-boulder-shotd.jpg`) | IMPROVED |
+
+Six views, head `e54a74ed` → `e5867d7e`: A −0.0001, B −0.0001, C 0.0000, **D −0.0007**, E +0.0003, F 0.0000;
+draws and triangles identical (566 / 522 / 407 / 396 / 522 / 507; A 8.60 M). Inside the budget; the D cost is
+the composition change itself.
+
 ## Iteration 11 (goal mode, 2026-09-20) — a path-proximity envelope on the pebble scatter (take-0122's C, W38)
 
 `12dbc604` (+ test `847e91ab`). BEFORE = the branch at `1b394ceb` (head `0990b2c7` + the eight looks), AFTER = this

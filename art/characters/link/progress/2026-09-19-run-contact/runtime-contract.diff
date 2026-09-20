@@ -1,0 +1,13 @@
+diff --git a/src/world/character/glbLink.ts b/src/world/character/glbLink.ts
+index 6f3d97b4..633a7165 100644
+--- a/src/world/character/glbLink.ts
++++ b/src/world/character/glbLink.ts
+@@ -161,7 +161,7 @@ interface ClipSpec {
+ export const CLIP_SPEC: Record<Gait, ClipSpec> = {
+   idle: { strideM: 0, cycleS: 3.0, heroClipTime: 0 },
+   walk: { strideM: 0.88, cycleS: 0.55, heroClipTime: 16 / 60 },
+-  run: { strideM: 1.82, cycleS: 28 / 60, heroClipTime: (15 / 60) * (28 / 34) },
++  run: { strideM: 2.05, cycleS: 28 / 60, heroClipTime: (15 / 60) * (28 / 34) },
+   stairs: { strideM: 0.8066667, cycleS: 0.7333333, heroClipTime: 22 / 60 },
+ };
+ /** simulation time of the hero captures (capture.mjs DEFAULT_SIM_TIME 12.5 + 6 settle frames) */
