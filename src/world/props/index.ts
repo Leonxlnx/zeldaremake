@@ -7,7 +7,7 @@
  * upright limited to a few degrees off the terrain normal — a pot is set level, not tipped down
  * a bank), weathered at the base, and merged per `cluster` and material into one mesh each.
  */
-import { BufferGeometry, Color, Group, Mesh, Quaternion, Vector3 } from 'three';
+import { BufferGeometry, type Camera, Color, Group, Mesh, Quaternion, Sphere, Vector3 } from 'three';
 import { mergeGeometries } from 'three/addons/utils/BufferGeometryUtils.js';
 import type { WorldContext, WorldSystem } from '../system';
 import { createRng } from '../util/prng';
@@ -22,6 +22,13 @@ const MAX_TILT = (9 * Math.PI) / 180;
 /** vertices below this local height are pulled onto the sampled ground (m) */
 const CONTACT_BAND = 0.08;
 export const EMBED = 0.008;
+/**
+ * A cluster draws only while the camera is within this distance of its bounding sphere (m). A
+ * 0.6 m pot is a dozen pixels lost in the haze at 45 m; the north clearing's dressing (60–75 m
+ * from every fixed camera, occluded by the log's root mass) would otherwise ride into the shadow
+ * and colour passes of frames it cannot appear in.
+ */
+export const CLUSTER_VISIBLE_M = 45;
 
 export interface PlacementOptions {
   paving?: boolean;
@@ -373,9 +380,12 @@ export async function create(ctx: WorldContext): Promise<WorldSystem> {
 
   // merge per cluster and material
   let meshes = 0;
+  const clusterBounds: { group: Group; sphere: Sphere }[] = [];
   for (const [cluster, batches] of clusters) {
     const group = new Group();
     group.name = cluster;
+    const sphere = new Sphere();
+    let first = true;
     for (const key of MATERIAL_KEYS) {
       const list = batches[key];
       if (!list.length) continue;
@@ -391,6 +401,11 @@ export async function create(ctx: WorldContext): Promise<WorldSystem> {
       merged.userData.contactIndices = contactIndices;
       merged.computeBoundingBox();
       merged.computeBoundingSphere();
+      if (merged.boundingSphere) {
+        if (first) sphere.copy(merged.boundingSphere);
+        else sphere.union(merged.boundingSphere);
+        first = false;
+      }
       ownedGeometry.push(merged);
       const mesh = new Mesh(merged, materials[key]);
       mesh.name = `${cluster}-${key}`;
@@ -400,7 +415,12 @@ export async function create(ctx: WorldContext): Promise<WorldSystem> {
       meshes++;
     }
     root.add(group);
+    if (!first) clusterBounds.push({ group, sphere });
   }
+  /** distance cull per cluster: pose jumps come through onCameraMove, the walk through update */
+  const cull = (camera: Camera) => {
+    for (const b of clusterBounds) b.group.visible = camera.position.distanceTo(b.sphere.center) - b.sphere.radius < CLUSTER_VISIBLE_M;
+  };
 
   let triangles = 0;
   for (const g of ownedGeometry) triangles += g.attributes.position.count / 3;
@@ -414,11 +434,18 @@ export async function create(ctx: WorldContext): Promise<WorldSystem> {
     placed,
     skipped,
     footprints,
+    culling: { visibleWithinM: CLUSTER_VISIBLE_M, clusters: clusterBounds.map((b) => ({ cluster: b.group.name, centre: b.sphere.center.toArray().map((v) => +v.toFixed(2)), radius: +b.sphere.radius.toFixed(2) })) },
     samplePositions: { bases },
   }));
   return {
     name: 'props',
     group: root,
+    update(_dt, _t, c) {
+      cull(c.camera);
+    },
+    onCameraMove(camera) {
+      cull(camera);
+    },
     dispose() {
       ownedGeometry.forEach((g) => g.dispose());
       materials.dispose();

@@ -179,6 +179,22 @@ for (const p of audit.placed) if (p.kind === 'marker') assert.equal(p.tiltDeg, 0
   for (const m of g.children) { m.geometry.computeBoundingSphere(); assert.ok(m.geometry.boundingSphere.radius < 4, `${m.name} compact (${m.geometry.boundingSphere.radius.toFixed(2)})`); }
 }
 
+// distance cull: from every fixed camera the clearing cluster is hidden and every village cluster
+// drawn; from the clearing the clearing draws; the walk (update) applies the same rule
+{
+  const groups = () => Object.fromEntries(one.group.children.map((c) => [c.name, c.visible]));
+  for (const v of LAYOUT.viewpoints) {
+    one.onCameraMove({ position: new Vector3().fromArray(v.position) }, ctx);
+    const vis = groups();
+    assert.equal(vis['north-clearing'], false, `${v.id}: the clearing cluster is culled`);
+    for (const [name, on] of Object.entries(vis)) if (name !== 'north-clearing') assert.equal(on, true, `${v.id}: ${name} drawn`);
+  }
+  one.update(0.016, 1, { ...ctx, camera: { position: new Vector3(2.4, 5.8, -62.6) } });
+  assert.equal(groups()['north-clearing'], true, 'at the clearing the cluster draws');
+  assert.equal(groups()['saria-door'], false, 'from the clearing the village dressing is culled (55+ m)');
+  one.onCameraMove({ position: new Vector3().fromArray(LAYOUT.viewpoints[0].position) }, ctx);
+}
+
 // projection: the door / signpost dressing shows in B_house (composition, not occlusion)
 const vp = LAYOUT.viewpoints.find((v) => v.id === 'B_house');
 const camera = new THREE.PerspectiveCamera(vp.fov, 1280 / 720, 0.1, 1000);
