@@ -1,0 +1,83 @@
+{
+  "scope": "Same build base, actual player and IK at fixed 60 Hz. Foot audit markers, not full skinned-mesh collision proof. Steady run frames165\u2013234; near-floor means both adjacent minShoeGapM <12mm and not planted.",
+  "baseline": {
+    "run_contract": {
+      "name": "run",
+      "durationS": 0.466667,
+      "strideM": 1.82,
+      "rate": 1,
+      "swings": {
+        "L": [
+          [
+            0.0875,
+            0.4715
+          ]
+        ],
+        "R": [
+          [
+            0.3208,
+            0.7049
+          ]
+        ]
+      },
+      "plantedS": {
+        "L": 0.0875,
+        "R": 0.0875
+      },
+      "leadS": {
+        "L": 0.0438,
+        "R": 0.0438
+      },
+      "startPhase": 0.5013
+    },
+    "steady_planted_max_drift_m_per_frame": 0.0,
+    "steady_planted_samples": 19,
+    "steady_near_floor_unplanted_travel_m": 3.616699999999997,
+    "steady_near_floor_unplanted_frames": 44,
+    "max_root_step_m": 0.010184574807517291,
+    "max_hip_step_m": 0.012270627499789466,
+    "minimum_audited_shoe_gap_m": -0.0126,
+    "reach_clamped_frames": 0
+  },
+  "candidate": {
+    "run_contract": {
+      "name": "run",
+      "durationS": 0.466667,
+      "strideM": 1.82,
+      "rate": 1,
+      "swings": {
+        "L": [
+          [
+            0.0924,
+            0.4667
+          ]
+        ],
+        "R": [
+          [
+            0.3257,
+            0.7
+          ]
+        ]
+      },
+      "plantedS": {
+        "L": 0.0972,
+        "R": 0.0972
+      },
+      "leadS": {
+        "L": 0.0389,
+        "R": 0.0389
+      },
+      "startPhase": 0.5013
+    },
+    "steady_planted_max_drift_m_per_frame": 0.0,
+    "steady_planted_samples": 22,
+    "steady_near_floor_unplanted_travel_m": 5.1689000000000025,
+    "steady_near_floor_unplanted_frames": 59,
+    "max_root_step_m": 0.033721257579509764,
+    "max_hip_step_m": 0.03276463587666251,
+    "minimum_audited_shoe_gap_m": -0.0187,
+    "reach_clamped_frames": 0
+  },
+  "walk_before_transition_exact": true,
+  "player_horizontal_travel_exact": true
+}

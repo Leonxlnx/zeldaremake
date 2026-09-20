@@ -1,0 +1,40 @@
+{
+  "remote_head": "e54a74edfde3791ae2b9a8f3d46413efa14c5311",
+  "local_head": "7bb9a97596b4813d060cd0adc00b2b732a4e42a4",
+  "local_entries": 120,
+  "remote_entries": 122,
+  "merged_entries": 123,
+  "appended": [
+    "take-0123"
+  ],
+  "rebased": [
+    "take-0120→take-0123"
+  ],
+  "chain": {
+    "ok": true,
+    "problems": [],
+    "length": 123,
+    "head": "sha256:cffcaf4109e0030003a29e7f6942f07174e08fb35ecae41f33649eed11c4a497"
+  },
+  "imported": [
+    {
+      "id": "take-0123",
+      "sha": "57593ae0f2431e67f8de2aa45e17d3975f024d40",
+      "valid": false,
+      "regressed": [
+        "W03",
+        "W11",
+        "W14",
+        "W15",
+        "W20",
+        "W25",
+        "W29"
+      ],
+      "mergeRegression": {
+        "baseline": "take-0122",
+        "sourceHash": "sha256:f5cef9419e1b2ee7d3b5fcb6cd71fe97ceaaf1d4c8b3dc22d6807013288654e3",
+        "sourceValid": true
+      }
+    }
+  ]
+}

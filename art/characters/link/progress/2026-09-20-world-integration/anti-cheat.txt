@@ -1,0 +1,90 @@
+✓ A1 rubric.json hash-locked (96467cfa0ee4…, 50 items)
+✓ A2 no threshold is easier than rubric.baseline.json
+✓ A4 item id set equals the baseline
+✓ A3 0 rubric edit(s) after introduction, all human-approved
+✓ C1 136 raster(s) under public/, src/, dist/, site/ — none within Hamming 12 of a reference frame
+✓ C2 182 source file(s) free of video/iframe/reference imports
+✓ C4 68 texture file(s) credited
+✓ C5 154 asset file(s) — no nintendo|zelda|oot|kokiri asset names or metadata
+✓ D1 ledger chain intact (123 entries, gauntlet\ledger.json)
+✓ D2 regression tags consistent (7 regressed take(s))
+⚠ D3 take-0001 (fable-cursor) targeted unclaimed item(s) W01, W04, W42
+⚠ D3 take-0002 (fable-cursor) targeted unclaimed item(s) W15
+⚠ D3 take-0006 (fable-cursor) targeted unclaimed item(s) W19
+⚠ D3 take-0007 (fable-cursor) targeted unclaimed item(s) W19
+⚠ D3 take-0010 (fable-cursor) targeted unclaimed item(s) W15, W16
+⚠ D3 take-0011 (fable-cursor) targeted unclaimed item(s) W18
+⚠ D3 take-0012 (fable-cursor) targeted unclaimed item(s) W13, W15, W16
+⚠ D3 take-0013 (fable-cursor) targeted unclaimed item(s) W09, W10, W11
+⚠ D3 take-0014 (fable-cursor) targeted unclaimed item(s) W30, W31, W34, W35
+⚠ D3 take-0015 (fable-cursor) targeted unclaimed item(s) W03, W06, W21, W34, W35
+⚠ D3 take-0018 (fable-cursor) targeted unclaimed item(s) W15, W16
+⚠ D3 take-0019 (fable-cursor) targeted unclaimed item(s) W01, W04, W29, W32, W37
+⚠ D3 take-0020 (fable-cursor) targeted unclaimed item(s) W10, W12
+⚠ D3 take-0021 (fable-cursor) targeted unclaimed item(s) W15, W17, W18, W19
+⚠ D3 take-0022 (fable-cursor) targeted unclaimed item(s) W02, W03, W23, W25, W31, W32, W34, W35, W37
+⚠ D3 take-0023 (fable-cursor) targeted unclaimed item(s) W15, W19, W31, W32, W35, W37
+⚠ D3 take-0024 (fable-cursor) targeted unclaimed item(s) W31, W32, W35, W37
+⚠ D3 take-0058 (fable-cursor) targeted unclaimed item(s) W03
+⚠ D3 take-0059 (fable-cursor) targeted unclaimed item(s) W03
+⚠ D3 take-0060 (fable-cursor) targeted unclaimed item(s) W26
+⚠ D3 take-0061 (fable-cursor) targeted unclaimed item(s) W01, W02, W25
+⚠ D3 take-0062 (fable-cursor) targeted unclaimed item(s) W25, W04, W36
+⚠ D3 take-0063 (fable-cursor) targeted unclaimed item(s) W09, W13, W20
+⚠ D3 take-0064 (fable-cursor) targeted unclaimed item(s) W03, W25, W26
+⚠ D3 take-0065 (fable-cursor) targeted unclaimed item(s) W25, W20, W31
+⚠ D3 take-0066 (fable-cursor) targeted unclaimed item(s) W12, W03, W25
+⚠ D3 take-0067 (fable-cursor) targeted unclaimed item(s) W17, W18, W19
+⚠ D3 take-0068 (fable-cursor) targeted unclaimed item(s) W25, W21, W20
+⚠ D3 take-0069 (fable-cursor) targeted unclaimed item(s) W25, W21, W36
+⚠ D3 take-0070 (fable-cursor) targeted unclaimed item(s) W25, W38, W36
+⚠ D3 take-0071 (fable-cursor) targeted unclaimed item(s) W25, W09, W32
+⚠ D3 take-0072 (fable-cursor) targeted unclaimed item(s) W25, W38
+⚠ D3 take-0075 (fable-cursor) targeted unclaimed item(s) W03, W34, W26
+⚠ D3 take-0076 (fable-cursor) targeted unclaimed item(s) W02, W03, W09
+⚠ D3 take-0077 (fable-cursor) targeted unclaimed item(s) W02, W03, W04
+⚠ D3 take-0078 (fable-cursor) targeted unclaimed item(s) W23, W24, W02
+⚠ D3 take-0079 (fable-cursor) targeted unclaimed item(s) W25, W26, W09
+⚠ D3 take-0080 (fable-cursor) targeted unclaimed item(s) W15, W16, W17
+⚠ D3 take-0081 (fable-cursor) targeted unclaimed item(s) W30, W31, W34
+⚠ D3 take-0082 (fable-cursor) targeted unclaimed item(s) C01, C03, W38
+⚠ D3 take-0083 (fable-cursor) targeted unclaimed item(s) W10, W30, W31
+⚠ D3 take-0084 (fable-cursor) targeted unclaimed item(s) W25, W41, W20
+⚠ D3 take-0085 (fable-cursor) targeted unclaimed item(s) C01, C03, W38
+⚠ D3 take-0086 (fable-cursor) targeted unclaimed item(s) W29, W23, W01, W32
+⚠ D3 take-0087 (fable-cursor) targeted unclaimed item(s) W02, W15, W17, W09, W32, W38
+⚠ D3 take-0088 (fable-cursor) targeted unclaimed item(s) W38, W09, W32
+⚠ D3 take-0089 (fable-cursor) targeted unclaimed item(s) W09, W10, W34
+⚠ D3 take-0090 (fable-cursor) targeted unclaimed item(s) W02, W04, W29, W32
+⚠ D3 take-0091 (fable-cursor) targeted unclaimed item(s) W32, W34, W29
+⚠ D3 take-0092 (fable-cursor) targeted unclaimed item(s) W26, W29, W25
+⚠ D3 take-0093 (fable-cursor) targeted unclaimed item(s) W15, W17, W18, W02
+⚠ D3 take-0094 (fable-cursor) targeted unclaimed item(s) W26, W25, W29
+⚠ D3 take-0095 (fable-cursor) targeted unclaimed item(s) W03, W21, W20
+⚠ D3 take-0096 (fable-cursor) targeted unclaimed item(s) W31, W10, W09
+⚠ D3 take-0097 (fable-cursor) targeted unclaimed item(s) W25, W29
+⚠ D3 take-0098 (fable-cursor) targeted unclaimed item(s) W35, W36, W34
+⚠ D3 take-0099 (fable-cursor) targeted unclaimed item(s) W03, W21, W20
+⚠ D3 take-0100 (fable-cursor) targeted unclaimed item(s) W10, W31, W09
+⚠ D3 take-0101 (fable-cursor) targeted unclaimed item(s) W15, W16, W19
+⚠ D3 take-0102 (fable-cursor) targeted unclaimed item(s) W32, W34, W35
+⚠ D3 take-0103 (fable-cursor) targeted unclaimed item(s) W10, W25, W09
+⚠ D3 take-0104 (fable-cursor) targeted unclaimed item(s) C03, C01, W41
+⚠ D3 take-0105 (fable-cursor) targeted unclaimed item(s) W35, C01, C03, W41
+⚠ D3 take-0106 (fable-cursor) targeted unclaimed item(s) W35, C01, W41
+⚠ D3 take-0107 (fable-cursor) targeted unclaimed item(s) W04, W06, W10, W38, C01
+⚠ D3 take-0108 (fable-cursor) targeted unclaimed item(s) W35, W31, W30, W10
+⚠ D3 take-0109 (fable-cursor) targeted unclaimed item(s) W15, W16, W09, W12, W38
+⚠ D3 take-0110 (fable-cursor) targeted unclaimed item(s) W09, W11, W14, W20, W16
+⚠ D3 take-0111 (fable-cursor) targeted unclaimed item(s) W11, W09, W29, W27, W28
+⚠ D3 take-0112 (fable-cursor) targeted unclaimed item(s) W03, W02, W23, W24, W38
+⚠ D3 take-0113 (fable-cursor) targeted unclaimed item(s) W06, W26, W29, W18, W20
+⚠ D3 take-0114 (fable-cursor) targeted unclaimed item(s) W08, W09, W12, W03, W28
+⚠ D3 take-0115 (fable-cursor) targeted unclaimed item(s) W13, W26, W28, W23, W12
+⚠ D3 take-0116 (fable-cursor) targeted unclaimed item(s) W09, W12, W14, W18, W20, W25, W29
+⚠ D3 take-0118 (fable-cursor) targeted unclaimed item(s) W09, W11, W14, W15, W19, W25, W29, C01, C03
+⚠ D3 take-0120 (fable-cursor) targeted unclaimed item(s) W08, W10, W23, W31, W12, W36
+⚠ D3 take-0121 (fable-cursor) targeted unclaimed item(s) W02, W03, W09, W11, W20, W25, W29, C02, U02
+⚠ D3 take-0122 (fable-cursor) targeted unclaimed item(s) W38, W08, W23, W40, W21
+✓ D8 PROJECT_STATE.md does not declare Phase 1 complete
+✓ anti-cheat green (89 checks, 78 warnings)

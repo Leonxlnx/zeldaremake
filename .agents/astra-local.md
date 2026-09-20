@@ -3,8 +3,8 @@ agent: astra-local
 runtime: Codex desktop / Astra on the owner's Windows PC
 github: Leonxlnx
 status: active
-branch: agent/astra-local-shafts-sept19
-updated: 2026-09-19T18:54:45Z
+branch: agent/astra-local-character-contact
+updated: 2026-09-20T11:56:00Z
 ---
 
 # astra-local — roster entry
@@ -16,12 +16,26 @@ front-matter on PR #2 and it is copied here at the next publish — nothing else
 edited by anyone but you.
 
 ## Current task
-Far-lantern halo fix is merged in fee69456. Shaft-facing fade ec293899 is in PR18: valid native take118,93 integrity checks green, zero regressions/determinism difference, seven-view and45pose camera evidence. Independent review/CI pending. Native Blender character evidence0e834cde is on PR10; default24591126 unchanged. Fable owns trees/grass/structures and runtime character-9; owner-fable owns the new canopy roof in PR17. Direct work; scheduled automation stays paused.
+C01/C02/C03: PR21 now integrates Fable e54a74ed at ab9b5309. Optional character 1e81bb6c includes the narrower arm carriage, faster run recovery, smaller boots and upright stair study. The full-high integrated-world 1620-frame fixture passes with no page errors/reach clamps and unchanged stair clearance (+2.260 mm up / +1.434 mm down). Max knee is149.83 up /147.34 down; flat root step9.149 mm. See 2026-09-20-world-integration/README.md. Default245 remains unchanged during Fable/character-10 review. A restrained CC0 chest-yaw study is native-only and under review; no new runtime changes. PR21 latest CI pending. Synthetic descent penetration and overall motion/likeness are unfinished. No automation.
+
 ## Files / systems being touched
 `public/models/link/**` (character asset candidates, local only while release rights are open),
-`art/characters/link/**` on her branches; runtime character code stays with fable-cursor.
+`art/characters/link/**` on her branches; bounded play-mode run grounding in `glbLink.ts`,
+coordinated with fable-cursor through PR2 issuecomment-5745167944. Other runtime work stays with Fable.
 
 ## Completed work
+- 2026-09-20 11:56 UTC: actual high-default movement on ab9b5309/e54a74ed completes1620 frames. Matching horizontal paths, unchanged runtime, no page errors/reach clamps. Integration check passes: flat root step9.622 to9.149 mm; stair root maxima25.202/19.846 mm unchanged. Nine images, trace and runnable check saved under world-integration. This is a changed-world regression, not an isolated asset A/B. Native torso trial reuses existing phase-aligned CC0 chest yaw at15% amplitude; head orientation preserved, leg matrices exact. Visual/collision review pending; no torso export/adoption yet.
+
+- 2026-09-20 11:35 UTC: integration of Fable e54a74ed prepared. Inbox retains both conflict blocks; native candidate1e81 and glbLink runtime unchanged. Build/typecheck, character/terrain/ledger tests pass. Existing ledger union exposed D2: our older take0120 re-sequences to0123 behind newer passes but retained stale valid=true. mergeLedgers now preserves score/images/source hash while classifying new regressions against the preceding valid canonical take; a focused immutable-input/idempotence test covers it. Re-union gives123 entries, original canonical122 intact, imported0123 explicitly invalid/regressed. Source anti-cheat89 checks green,78 historical claim warnings. Actual new-world movement capture is next; no transfer claim yet. Fable/character-10 notified5749536398; their review of our running pass is confirmed in Fable tick193.
+
+- 2026-09-20 10:53 UTC: stair posture diagnosis is reproducible from the actual-world trace via run-arms/diagnose_stairs.py. Worst ascent frame155 places the ankle72.87mm below and33.15mm horizontally from its hip, connecting411.28mm of leg bones. Two runtime trials were rejected and fully reverted: pin-offset clearance probing gives synthetic ascent shoe gap-270mm; uphill-forward swing gives only165.30 to162.28deg knee improvement with-10.98mm gap. Both left flat/down summary extrema unchanged. Research and trial recipes in run-arms/README.md. Production remains0dfd3601; candidate382/default245 unchanged. Typecheck/build pass. PR21 CI still running at10:50; no new Fable review confirmed. No new GPU captures or native jobs remain.
+
+- 57593ae0: keep rendered stance-sole take-off support; real-rig negative control and1320frame full-high regression pass. Generated local take0120 is valid:30/50,Phase1 25/42, W38 A8.92M/567draws, deterministic0%,94integrity checks green; local dirty-tree attestation disclosed, no CI/final-quality claim. Fable notified5745771473. Next native face study previews relaxed open lids using the existing morph; no asset/runtime face changes yet.
+
+- c5cadf62 integrates Fable941ea75b. Build + real GLB/IK check pass. Follow-up native high-default take0119 is VALID locally:29/50,Phase1 25/42,W38 passes (A8.92M), deterministic0%,94anti-cheat checks green. Reports copied under run-contact/integrated-take; generated ledger remains local, not manually changed. Earlier invalid3e05d6df ledger fork preserved in named git stash, not applied over Fable's official history. PR21 has full-high movement proof, video and jump evidence. No browser capture was running at that checkpoint.
+- Owner-fable PR17 latest5b9d4b8f: independently reviewed up-view roof and lobe/shade-floor decision cards; clear lobe gain at player height, shade-floor still weak through haze. Asked for bounded layered-lobe candidate (PR17 comment5745405787). Owner-fable independently PASSED PR18 bounded shafts, forwarded to integrator5745389339; full W31 remains unresolved. Agreed to use its shared capslot wrapper for future heavy captures with CAPSLOT_STALE_MIN=Infinity: reported missing-holder/age-only takeover races in5745389207, never kill others' browsers. Shared GPU slot was free at that checkpoint.
+- 3e05d6df / PR21: run-cycle floor in play mode; matched300frame world comparison and real-rig regression check. Subsequent high-default300frames complete and all physics samples exact to the diagnostic profile. Five-second150frame video complete. Actual run-jump180frames traverses every phase, airborne root matches ballistic arc, no reach clamps. Default asset unchanged. Local high-default fixed-view take0118 at3e05d6df is invalid W38 (old world A9.02M); preserved under progress/fixed-view-take, not published. Fable's941ea75b/d168b931 now supplies budget fixes and a different official take0118; keep the local generated ledger separate and never resolve it by hand. Next sync this integration base and validate.
+- Native mouth-corner study in primary workspace art/characters/link/progress/2026-09-19-mouth-expression:400vertices, maximum1.897mm displacement, blink deltas and weights exact. Three native camera pairs complete. Small expression change only; no runtime export or adoption and no claim to fix overall face quality.
 - PR #9 (`742cb26`): Link 9189538d, taken by hand as `ad01908`.
 - PR #10 (`a920d90`): eye-only candidate 6f28903d — draft, held pending the asset-licence review.
 - Movement review harness (`capture_play_motion.mjs`, PR #8) — the acceptance fixture for
@@ -63,3 +77,5 @@ Far-lantern halo fix is merged in fee69456. Shaft-facing fade ec293899 is in PR1
 2026-09-19 18:06 UTC — Halo follow-up full local take0117 completed valid on5e468708,93 anti-cheat checks green,29/50 with inherited Fable-5 verdicts, not proof of completion. PR16 opened, exact evidence posted to PR2. Local ledger appended by take tool only; integration must union with Fable's ledger if they also append117.
 
 2026-09-19 18:48 UTC — Halo PR16 merged by Fable fee69456, world15e74955. Separate shaft fade candidate170/75 degrees: six native matched views, unchanged costs, SSIM deltas-.0005..+.0039; seven-view+45pose stair-camera review and matching upward baseline complete. First tuple override was ignored, excluded; helper now rejects invalid value types. Source includes only facing-pair behavior change plus comments. Typecheck/build/evidence check pass. Full take pending. Owner-fable verified live in E:/zeldaremake-my-fable / PR17, canopy roof lane approved by integrator; coordinated via5744430504. Character-9 contract pending (10commits in verification); native face diagnostic13d052d9 preserved current24591126. No goal completion claim.
+
+2026-09-19T20:23:25Z — PR21 1de60fd0: native contact/flight study published; final studio evidence follow-up. Candidate3218b164 solves delayed lift while preserving hips/stride. Shared launcher now reused in capture_play_motion.mjs; four failed candidate Chrome runs and one Edge launch failure documented. Fable requested independent gameplay check5744986101; local capture coordination5744917554. Default24591126 remains. All local capture processes terminal; Blender hidden and active with retained-flight scene. Goal remains active; face, uphill and transition quality unfinished.

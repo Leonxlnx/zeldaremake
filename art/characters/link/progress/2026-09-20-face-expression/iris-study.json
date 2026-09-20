@@ -1,0 +1,35 @@
+{
+  "scope": "Eye UVs only; existing texture, geometry, material, rig, clips and blink keys unchanged. Native review only.",
+  "views": [
+    {
+      "view": "front",
+      "uv_scale": 1.0,
+      "file": "front-iris-1.00.png"
+    },
+    {
+      "view": "front",
+      "uv_scale": 1.14,
+      "file": "front-iris-1.14.png"
+    },
+    {
+      "view": "front",
+      "uv_scale": 1.25,
+      "file": "front-iris-1.25.png"
+    },
+    {
+      "view": "three-quarter",
+      "uv_scale": 1.0,
+      "file": "three-quarter-iris-1.00.png"
+    },
+    {
+      "view": "three-quarter",
+      "uv_scale": 1.14,
+      "file": "three-quarter-iris-1.14.png"
+    },
+    {
+      "view": "three-quarter",
+      "uv_scale": 1.25,
+      "file": "three-quarter-iris-1.25.png"
+    }
+  ]
+}

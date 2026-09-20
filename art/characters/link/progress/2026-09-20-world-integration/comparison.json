@@ -1,0 +1,118 @@
+{
+  "world_commit": "ab9b530947df4e33a2d5776bae6e28564a834073",
+  "bundles": {
+    "index-C8Futrc5.js": "a29687b3697aed1af49b7e93349fc869c7d13f27bb9232bbfe329308bacdebd4"
+  },
+  "scope": "Same character runtime on a changed world; flat baseline has identical run/boot data but an earlier stair clip.",
+  "scenarios": {
+    "flat-transitions": {
+      "before": {
+        "frames": 300,
+        "gaits": [
+          "walk",
+          "run",
+          "idle"
+        ],
+        "distanceXZ": 12.416666666666627,
+        "maxRootStepM": 0.009621561736269137,
+        "reachClampedFrames": 0,
+        "measuredShoePoints": 0,
+        "maxHipFlexDeg": 69.66471454503713,
+        "maxKneeFlexDeg": 98.34001427281972,
+        "minRenderedStairGapM": null,
+        "shoeSamplesBelowMinus2cm": 0
+      },
+      "after": {
+        "frames": 300,
+        "gaits": [
+          "walk",
+          "run",
+          "idle"
+        ],
+        "distanceXZ": 12.416666666666627,
+        "maxRootStepM": 0.009148615616615306,
+        "reachClampedFrames": 0,
+        "measuredShoePoints": 0,
+        "maxHipFlexDeg": 68.9736232948543,
+        "maxKneeFlexDeg": 97.92999445997896,
+        "minRenderedStairGapM": null,
+        "shoeSamplesBelowMinus2cm": 0
+      }
+    },
+    "stairs-up": {
+      "before": {
+        "frames": 660,
+        "gaits": [
+          "walk",
+          "stairs"
+        ],
+        "distanceXZ": 12.11388888888864,
+        "maxRootStepM": 0.025202352614958734,
+        "reachClampedFrames": 0,
+        "measuredShoePoints": 510,
+        "maxHipFlexDeg": 134.00785027610928,
+        "maxKneeFlexDeg": 149.834330212662,
+        "minRenderedStairGapM": 0.002260384326157272,
+        "shoeSamplesBelowMinus2cm": 0
+      },
+      "after": {
+        "frames": 660,
+        "gaits": [
+          "walk",
+          "stairs"
+        ],
+        "distanceXZ": 12.11388888888864,
+        "maxRootStepM": 0.025202352614958734,
+        "reachClampedFrames": 0,
+        "measuredShoePoints": 510,
+        "maxHipFlexDeg": 134.00785027610928,
+        "maxKneeFlexDeg": 149.834330212662,
+        "minRenderedStairGapM": 0.002260384326157272,
+        "shoeSamplesBelowMinus2cm": 0
+      }
+    },
+    "stairs-down": {
+      "before": {
+        "frames": 660,
+        "gaits": [
+          "stairs",
+          "walk"
+        ],
+        "distanceXZ": 12.495833333333042,
+        "maxRootStepM": 0.019846450549192873,
+        "reachClampedFrames": 0,
+        "measuredShoePoints": 486,
+        "maxHipFlexDeg": 127.58487702151264,
+        "maxKneeFlexDeg": 147.46703838114874,
+        "minRenderedStairGapM": 0.0014336462226145485,
+        "shoeSamplesBelowMinus2cm": 0
+      },
+      "after": {
+        "frames": 660,
+        "gaits": [
+          "stairs",
+          "walk"
+        ],
+        "distanceXZ": 12.495833333333042,
+        "maxRootStepM": 0.019846450549192873,
+        "reachClampedFrames": 0,
+        "measuredShoePoints": 486,
+        "maxHipFlexDeg": 127.58487702151264,
+        "maxKneeFlexDeg": 147.33705491912957,
+        "minRenderedStairGapM": 0.0014336462226145485,
+        "shoeSamplesBelowMinus2cm": 0
+      }
+    }
+  },
+  "image_sha256": {
+    "flat-transitions-180.png": "4ef1207b1d0e6cc11f2a3e7696d3b873b08f7a02f7da9e75da871047fe59340c",
+    "flat-transitions-30.png": "04cf2fb3d5c3c18aeb12ad2906c3f9d4c7790c48baa501052cac4c615d20f883",
+    "flat-transitions-300.png": "17d3ef77a4f029b7095dacbbb644c087d7043176250a311c10ad1bc31196d49b",
+    "stairs-down-30.png": "ac8e0b7336042f6770f9829b7dbd4e398614bc6a50d083f862794df06ccf2ef0",
+    "stairs-down-360.png": "562c7bc89f4f301a7c7648378c008d20503eeeba4e910eec28c68566877e2f75",
+    "stairs-down-660.png": "ba1279423e389788c39f1106d87f68daa766db5cbdd2170eb6934f79524a01d7",
+    "stairs-up-30.png": "7f6c3d015aace35aecb516f1980fd25fedf552cb175ccd1a45082180fd17892c",
+    "stairs-up-360.png": "211cfbbcb75d1b85c7395b7fe3109322fca2172ce07062dddc060f7d1a228ae2",
+    "stairs-up-660.png": "d42598033165a5384d24613fb72aa4561be2a783588a9223dd94ddbadfac9ed2"
+  }
+}

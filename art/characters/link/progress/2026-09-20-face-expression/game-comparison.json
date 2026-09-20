@@ -1,0 +1,24 @@
+{
+  "complete": true,
+  "world_commit": "b4319286091274df97d5ffe65e2f1890614a714a",
+  "profile": "high defaults",
+  "bundles": {
+    "index-BjbkTnJJ.js": "2ff757fe717e3c35e844396b51d3520e835106522159dae554104b362fe242a3"
+  },
+  "movement_samples_exact": 12,
+  "blink_states_exact": 5,
+  "errors": [],
+  "before_failed_requests": [
+    {
+      "url": "http://127.0.0.1:62934/models/link/link-runtime.glb",
+      "error": "net::ERR_ABORTED"
+    }
+  ],
+  "after_failed_requests": [
+    {
+      "url": "http://127.0.0.1:55691/models/link/face-expression-candidate.glb",
+      "error": "net::ERR_ABORTED"
+    }
+  ],
+  "scope": "12-frame movement smoke and five actual-world blink poses; not full animation acceptance."
+}

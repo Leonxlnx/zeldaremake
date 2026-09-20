@@ -1,0 +1,186 @@
+{
+  "rig-before": {
+    "flat": {
+      "maxHip": 86.23317273132933,
+      "maxKnee": 123.69197689124701,
+      "maxRootStep": 1.990851803079785e-06,
+      "minShoe": -1.915684890121949e-06,
+      "reachClamped": 0
+    },
+    "up": {
+      "maxHip": 146.0695948300998,
+      "maxKnee": 165.41046022230645,
+      "maxRootStep": 0.2750443636560158,
+      "minShoe": -0.27000170489782827,
+      "reachClamped": 0
+    },
+    "down": {
+      "maxHip": 134.52813134918,
+      "maxKnee": 161.2799843610303,
+      "maxRootStep": 0.01972719550352231,
+      "minShoe": -0.0978431562266846,
+      "reachClamped": 0
+    }
+  },
+  "rig-root-lift": {
+    "flat": {
+      "maxHip": 86.23317273132933,
+      "maxKnee": 123.69197689124701,
+      "maxRootStep": 1.990851803079785e-06,
+      "minShoe": -1.915684890121949e-06,
+      "reachClamped": 0
+    },
+    "up": {
+      "maxHip": 133.16414414071093,
+      "maxKnee": 151.70378663766044,
+      "maxRootStep": 0.2750443636560158,
+      "minShoe": -0.27000170489782827,
+      "reachClamped": 0
+    },
+    "down": {
+      "maxHip": 132.40893307806127,
+      "maxKnee": 154.19338460000236,
+      "maxRootStep": 0.0426023017238627,
+      "minShoe": -0.07423074585585243,
+      "reachClamped": 0
+    }
+  },
+  "rig-climb-lift": {
+    "flat": {
+      "maxHip": 86.23317273132933,
+      "maxKnee": 123.69197689124701,
+      "maxRootStep": 1.990851803079785e-06,
+      "minShoe": -1.915684890121949e-06,
+      "reachClamped": 0
+    },
+    "up": {
+      "maxHip": 133.16414414071093,
+      "maxKnee": 151.70378663766044,
+      "maxRootStep": 0.2750443636560158,
+      "minShoe": -0.27000170489782827,
+      "reachClamped": 0
+    },
+    "down": {
+      "maxHip": 134.52813134918,
+      "maxKnee": 161.2799843610303,
+      "maxRootStep": 0.01972719550352231,
+      "minShoe": -0.0978431562266846,
+      "reachClamped": 0
+    }
+  },
+  "rig-upper-support": {
+    "flat": {
+      "maxHip": 86.23317273132933,
+      "maxKnee": 123.69197689124701,
+      "maxRootStep": 1.990851803079785e-06,
+      "minShoe": -1.915684890121949e-06,
+      "reachClamped": 0
+    },
+    "up": {
+      "maxHip": 146.0695948300998,
+      "maxKnee": 165.41046022230645,
+      "maxRootStep": 0.2750443636560158,
+      "minShoe": -0.27000170489782827,
+      "reachClamped": 0
+    },
+    "down": {
+      "maxHip": 134.52813134918,
+      "maxKnee": 161.2799843610303,
+      "maxRootStep": 0.01972719550352231,
+      "minShoe": -0.0978431562266846,
+      "reachClamped": 0
+    }
+  },
+  "rig-phase-lift": {
+    "flat": {
+      "maxHip": 86.23317273132933,
+      "maxKnee": 123.69197689124701,
+      "maxRootStep": 1.990851803079785e-06,
+      "minShoe": -1.915684890121949e-06,
+      "reachClamped": 0
+    },
+    "up": {
+      "maxHip": 135.42600302438237,
+      "maxKnee": 145.61255988356106,
+      "maxRootStep": 0.2750443636560158,
+      "minShoe": -0.27000170489782827,
+      "reachClamped": 0
+    },
+    "down": {
+      "maxHip": 134.52813134918,
+      "maxKnee": 161.2799843610303,
+      "maxRootStep": 0.01972719550352231,
+      "minShoe": -0.0978431562266846,
+      "reachClamped": 0
+    }
+  },
+  "rig-held-lift": {
+    "flat": {
+      "maxHip": 86.23317273132933,
+      "maxKnee": 123.69197689124701,
+      "maxRootStep": 1.990851803079785e-06,
+      "minShoe": -1.915684890121949e-06,
+      "reachClamped": 0
+    },
+    "up": {
+      "maxHip": 145.25945868780443,
+      "maxKnee": 161.8821433055834,
+      "maxRootStep": 0.2750443636560158,
+      "minShoe": -0.27000170489782827,
+      "reachClamped": 0
+    },
+    "down": {
+      "maxHip": 134.52813134918,
+      "maxKnee": 161.2799843610303,
+      "maxRootStep": 0.01972719550352231,
+      "minShoe": -0.0978431562266846,
+      "reachClamped": 0
+    }
+  },
+  "rig-early-forward": {
+    "flat": {
+      "maxHip": 95.00073575907122,
+      "maxKnee": 116.3631047631729,
+      "maxRootStep": 1.9900663736777124e-06,
+      "minShoe": -1.941659858548106e-06,
+      "reachClamped": 0
+    },
+    "up": {
+      "maxHip": 149.16165191482187,
+      "maxKnee": 165.32406774352205,
+      "maxRootStep": 0.2750929591707112,
+      "minShoe": -0.2700016485832042,
+      "reachClamped": 0
+    },
+    "down": {
+      "maxHip": 133.4272621447681,
+      "maxKnee": 172.63481347678598,
+      "maxRootStep": 0.019727199564941955,
+      "minShoe": -0.10070035013217948,
+      "reachClamped": 0
+    }
+  },
+  "rig-held-takeoff": {
+    "flat": {
+      "maxHip": 86.23317273132933,
+      "maxKnee": 123.69197689124701,
+      "maxRootStep": 1.990851803079785e-06,
+      "minShoe": -1.915684890121949e-06,
+      "reachClamped": 0
+    },
+    "up": {
+      "maxHip": 146.0695948300998,
+      "maxKnee": 165.41046022230645,
+      "maxRootStep": 0.025888080930605017,
+      "minShoe": -0.27000170489782827,
+      "reachClamped": 0
+    },
+    "down": {
+      "maxHip": 134.52813134918,
+      "maxKnee": 161.2799843610303,
+      "maxRootStep": 0.01972719550352231,
+      "minShoe": -0.09768233900496881,
+      "reachClamped": 0
+    }
+  }
+}
