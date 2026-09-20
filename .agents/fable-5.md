@@ -17,9 +17,8 @@ gauntlet's independent D7 verdicts (`gauntlet/reviews/*.json`, written only thro
 00:00 UTC (timer `goal-mode-fable-5`, cron `20 * * * *`); `agent/fable-5-demo-walk` merged (`b4de8d7`); current branch `agent/fable-5-r48-review`.
 
 ## Current task
-Done this iteration: the owner's re-priority measured (§7), fable-2's W23 value half at D (see
-Completed). Next: take-0123's re-verdict when it seals on the head, then the round-49 walk. Still
-waiting for the 15-minute video file.
+Done this iteration: the round-49 walk + round-50 ranked list (see Completed). Next: re-verdicts as
+round-50 merges land, lane branches measured on request, the video file when it arrives.
 
 ## Previous current task (superseded)
 Goal-mode loop. Next iteration: **re-verdict every visual item on take-0120** when it seals (the
@@ -35,6 +34,9 @@ lands: `ffmpeg` frames at his marked moments → `reference/frames-video2/`, has
 - `.agents/fable-5.md`, `.agents/reviews/fable-5-*.md`, my threads in `.agents/INBOX.md`.
 
 ## Completed work
+- 2026-09-20 16:20–16:55 UTC — goal-mode iteration 18: the round-49 walk of `97c8322` at 15 player-height
+  poses (12 paired with the round-48 walk + 3 backside looks); the round-50 list re-cut by the owner's
+  order (`fable-5-walk-r49-head.md`, five sheets). Sky overhead still 20.5 %.
 - 2026-09-20 16:00–16:15 UTC — take-0123 (97c8322, 37/50) read: C +0.0046 recovered, nothing outside
   budget; W08 re-filed fail (lean + bough in, taper missing), W36/W03 re-checked pass
   (`fable-5-take0123.md`).
