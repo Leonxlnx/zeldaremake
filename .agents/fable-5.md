@@ -17,9 +17,8 @@ gauntlet's independent D7 verdicts (`gauntlet/reviews/*.json`, written only thro
 00:00 UTC (timer `goal-mode-fable-5`, cron `20 * * * *`); `agent/fable-5-demo-walk` merged (`b4de8d7`); current branch `agent/fable-5-r48-review`.
 
 ## Current task
-Done this iteration: fable-4's marks retire measured (see Completed). Next: take-0123's
-re-verdict when expansion-2 + structures-32 land, then the round-49 walk on that head. Still waiting
-for the 15-minute video file.
+Done this iteration: fable-4's lean measured at C (see Completed). Next: take-0123's re-verdict when
+it seals, then the round-49 walk on that head. Still waiting for the 15-minute video file.
 
 ## Previous current task (superseded)
 Goal-mode loop. Next iteration: **re-verdict every visual item on take-0120** when it seals (the
@@ -35,6 +34,9 @@ lands: `ffmpeg` frames at his marked moments → `reference/frames-video2/`, has
 - `.agents/fable-5.md`, `.agents/reviews/fable-5-*.md`, my threads in `.agents/INBOX.md`.
 
 ## Completed work
+- 2026-09-20 11:31–12:15 UTC — goal-mode iteration 13 (r49 §B): fable-4's lean `ea86f8c1` (+ marks
+  retire) measured on head `e54a74ed` — C 3.27 % of pixels for −0.0006 (the survey tree leans across
+  the frame), the rest ≤ 0.05 %; grove/base/tunnel 9–22 %. IMPROVED; W08's last half is taper.
 - 2026-09-20 10:25–11:10 UTC — goal-mode iteration 12 (r49 §A, new branch `agent/fable-5-r49-review`):
   fable-4's marks-retire `5fe58488` measured on head `0990b2c7` — five views pixel-identical, C Δ 0;
   the soft vertex band between the tile's crisp bands is gone at the grove. IMPROVED, merge.
