@@ -17,6 +17,8 @@ import { createRockMaterial, NEAR_FADE_M, NEAR_TILE_M } from './material';
 import { dressRock, mergeRockParts } from './dressing';
 import { buildRockLedge, type RockLedgeDef } from './ledge';
 import { buildClearingRocks, type ClearingLayout } from './clearing';
+import { PEBBLE_DEFAULTS, scatterPathPebbles, stairFootPebbles } from './pebbles';
+import { NORTH_Z1 } from '../util/northLocality';
 import { CUSHION, FERN, TUFT_A, TUFT_B, buildSproutMeshes, createSproutMaterial, type SproutSpot } from '../materials/sprouts';
 import type { Rng } from '../util/prng';
 
@@ -890,43 +892,17 @@ export async function create(ctx: WorldContext): Promise<WorldSystem> {
 
   ctx.progress('rocks', 0.6);
 
-  // --- pebbles: path edges, stair feet, scatter ---------------------------------------------
-  const pRng = rng.fork('pebbles');
-  const pathEdgePebble = (x: number, z: number, r: Rng) => {
-    const m = T.mask(x, z);
-    if (m.stairs > 0.5 || m.structure > 0.5) return false;
-    // fringe of the paved surface: dense right at the edge, thinning outward
-    if (m.path > 0.55 || m.path < 0.01) return r() < 0.04 && m.path < 0.01;
-    return r() < 0.9;
-  };
-  const pathPts = pathPtsAll;
-  const target = Math.round(2600 * density);
-  let tries = 0;
-  while (pebbles.length < target && tries < target * 30) {
-    tries++;
-    const seg = pathPts[pRng.int(0, pathPts.length)];
-    const x = seg[0] + pRng.range(-4.2, 4.2);
-    const z = seg[2] + pRng.range(-4.2, 4.2);
-    if (!pathEdgePebble(x, z, pRng)) continue;
-    const sc = pRng.range(0.025, 0.11);
-    pebbles.push({ x, y: T.height(x, z) - sc * 0.35, z, scale: sc, yaw: pRng.range(0, Math.PI * 2), variant: pRng.int(0, 4) });
-  }
-  // stair feet
+  // --- pebbles: path edges, stair feet, scatter (pebbles.ts) ----------------------------------
+  // fable-2 (GOAL_MODE #4): every candidate is a lattice cell with stateless per-cell draws, so a
+  // paving edit moves only the pebbles whose cell it touched (the old sequential stream re-rolled
+  // them world-wide — round 47's whole camera-D delta). The lattice reaches the north paving too;
+  // its pebbles (z < NORTH_Z1) are a separate instanced set under the north-locality toggle
+  const pebbleSets = scatterPathPebbles(T, seed, { ...PEBBLE_DEFAULTS, radius: Math.max(detailR, 84), northZ: NORTH_Z1, density });
+  pebbles.push(...pebbleSets.main);
+  const northPebbles: Instance[] = [...pebbleSets.north];
   for (const s of ctx.layout.stairs) {
-    const l = Math.hypot(s.dir[0], s.dir[1]);
-    const dx = s.dir[0] / l;
-    const dz = s.dir[1] / l;
-    const n = Math.round(70 * density);
-    for (let k = 0; k < n; k++) {
-      const u = pRng.range(-1.6, -0.1);
-      const v = pRng.range(-s.width / 2 - 1.0, s.width / 2 + 1.0);
-      const x = s.base[0] + u * dx - v * dz;
-      const z = s.base[2] + u * dz + v * dx;
-      const m = T.mask(x, z);
-      if (m.stairs > 0.5 || m.structure > 0.5) continue;
-      const sc = pRng.range(0.03, 0.12);
-      pebbles.push({ x, y: T.height(x, z) - sc * 0.35, z, scale: sc, yaw: pRng.range(0, Math.PI * 2), variant: pRng.int(0, 4) });
-    }
+    const at = stairFootPebbles(T, seed, s, density);
+    (s.base[2] < NORTH_Z1 ? northPebbles : pebbles).push(...at);
   }
   ctx.progress('rocks', 0.8);
 
@@ -984,7 +960,12 @@ export async function create(ctx: WorldContext): Promise<WorldSystem> {
   const strataSlots: InstanceSlot[] = [];
   const strataMeshes = buildInstanced(strata, strataGeos, material, 'strata', true, strataSlots);
   const pebbleMeshes = buildInstanced(pebbles, pebbleGeos, pebbleMaterial, 'pebbles', false);
-  for (const m of [...rubbleMeshes, ...strataMeshes, ...pebbleMeshes]) group.add(m);
+  const northPebbleMeshes = buildInstanced(northPebbles, pebbleGeos, pebbleMaterial, 'pebbles-north', false);
+  for (const m of [...rubbleMeshes, ...strataMeshes, ...pebbleMeshes, ...northPebbleMeshes]) group.add(m);
+  for (const m of northPebbleMeshes) {
+    m.visible = false;
+    ledgeMeshes.push(m);
+  }
   // the boulder-cap plants share the hardscape joint-sprout geometry and wind material; the
   // tufts, ferns and moss pads are packed into one InstancedMesh (one draw for all the cap and
   // crevice plants). The crevice spots go last so the cap / base plants keep their jitter draws.
@@ -1071,6 +1052,8 @@ export async function create(ctx: WorldContext): Promise<WorldSystem> {
     strata: strata.length,
     scree: rubble.length + strata.length,
     pebbles: pebbles.length,
+    /** the north paving's pebbles (pebbles-north, under the north-locality toggle) */
+    northPebbles: northPebbles.length,
     instancedMeshes: rubbleMeshes.length + strataMeshes.length + pebbleMeshes.length,
     samplePositions: {
       boulders: contact.map((p) => p.map(rnd)),
