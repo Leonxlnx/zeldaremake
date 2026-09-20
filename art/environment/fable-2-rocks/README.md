@@ -16,6 +16,28 @@ B 526 / C 393 / D 394 / E 526 / F 512; A 9.09 M tris on both (the head's number,
 change's — flagged to fable-cursor). Files: `ledge2-x-clearing-n.jpg` (+ `-crop`),
 `ledge2-x-ledge-foot.jpg`, `ledge2-x-northpath-n.jpg`.
 
+## Iteration 20 — round-50 #1, the wall half: the ledge's fine relief at 3 m — `agent/fable-2-ledge`
+
+fable-5 §7.2: "the ledge wall has 65 % of the reference rock mass's fine relief" (micro σ 0.034 vs 0.052 at
+`x-ledge-wall`). A `relief` option on the rock material (default 0 — every other rock material is unchanged): at near
+range a triplanar grain of the stone at 5–12 cm — pits where a warped value noise dips (−42 %, damp-dark) and grains
+where it peaks (+16 %), off under the moss and the lichen crust — plus a near-normal boost of the same amount. The
+ledge material takes 3.0.
+
+**Measured on the cap at `x-ledge-wall` (box 0.234–0.469 × 0.347–0.625, 4 px residual — the scale at which the
+before reads 0.031, fable-5's 0.034):**
+
+| build | mean l | macro σ | fine micro σ |
+|---|---|---|---|
+| before (head `6d6d80f8`) | 0.244 | 0.129 | **0.031** |
+| relief 1.0 | 0.244 | 0.129 | 0.035 |
+| relief 3.0 (landed) | 0.245 | 0.126 | **0.043** (+39 %; target 0.052) |
+
+The smooth brown bulge of the cap is a pocked, knapped skin now (`relief21-x-ledge-wall.jpg`, `…-tight.jpg`); at 7 m
+(`x-ledge-wall-7m`) the grain is under the fade and the frame is the head's. The ledge stands north of z −55 — off
+in the six fixed views (northLocality) — so A–F are untouched. The macro half of the wall (fable-5: "still one
+lightly bulged plane") is geometry — beds stepping in blocks — and is the next item on the ledge.
+
 ## Iteration 19 — round-50 #1, the D boulder's form: measured FAIL at D — `agent/fable-2-form` @ `d8ed5420` (unmerged)
 
 fable-5's round-50 #1 / ANALYSIS_VIDEO2 §7.2: "the D boulder face has 63 % of the frame's macro contrast (σ 0.074
