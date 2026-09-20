@@ -279,6 +279,12 @@ export function buildExpansionVegetation(ctx: WorldContext, templates: Expansion
     set.add(M, rng.int(0, set.variantCount), color);
   };
   const greenVar = (rng: Rng, amount = 0.14): [number, number, number] => [1 + (rng() - 0.5) * amount, 1 + (rng() - 0.5) * amount * 0.7, 1 + (rng() - 0.5) * amount * 1.2];
+  /** a moss cushion of `radius` m (plants.ts placeMossWith: the unit dome is 0.45 tall, flattened to 0.22–0.42 × the radius, a little longer one way) */
+  const cushion = (x: number, z: number, rng: Rng, radius: number, color: [number, number, number]) => {
+    const h = radius * (0.22 + rng() * 0.2);
+    composeMatrix(M, 0, x, T.height(x, z) - 0.012, z, n.x, n.y, n.z, 0.95, rng() * Math.PI * 2, radius, h / 0.45, radius * (0.75 + rng() * 0.5));
+    moss.add(M, rng.int(0, moss.variantCount), color);
+  };
 
   /**
    * A carpet card (the clump cards' aData encoding: phase, stiffness, tint slot, atlas tile +
@@ -439,10 +445,10 @@ export function buildExpansionVegetation(ctx: WorldContext, templates: Expansion
       const u = (rng() * 2 - 1) * (B.halfLength + 1.0);
       const v = BANK_TOE_V[0] - 0.3 + rng() * (BANK_TOE_V[1] - BANK_TOE_V[0] + 0.3);
       const [x, z] = southBankPoint(u, v).map(mm);
-      const scale = 0.6 + rng() * 0.7;
+      const radius = 0.08 + rng() * 0.18;
       const c: [number, number, number] = [0.95 + rng() * 0.1, 1, 0.9 + rng() * 0.1];
       if (groundOk(x, z, 0.08) < 0) continue;
-      plant(moss, x, z, rng, scale, 0.9, 0.01, c, scale * (0.8 + 0.4 * rng()));
+      cushion(x, z, rng, radius, c);
       toeMoss++;
     }
     counts['bank-face-tufts'] = faceTufts;
@@ -467,12 +473,12 @@ export function buildExpansionVegetation(ctx: WorldContext, templates: Expansion
           const v = side * (s.width / 2 + out);
           const x = mm(s.base[0] + dx * u - dz * v);
           const z = mm(s.base[2] + dz * u + dx * v);
-          const scale = 0.5 + rng() * 0.6;
+          const radius = 0.07 + rng() * 0.16;
           const c: [number, number, number] = [0.95 + rng() * 0.1, 1, 0.9 + rng() * 0.1];
           const kind = rng();
           if (groundOk(x, z, 0.08) < 0) continue;
           if (kind < 0.7) {
-            plant(moss, x, z, rng, scale, 0.9, 0.01, c, scale * (0.8 + 0.4 * rng()));
+            cushion(x, z, rng, radius, c);
             cheekMoss++;
           } else {
             plant(weeds, x, z, rng, 0.6 + rng() * 0.5, 0.6, 0.01, greenVar(rng, 0.14));

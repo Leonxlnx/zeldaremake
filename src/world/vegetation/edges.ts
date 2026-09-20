@@ -61,6 +61,8 @@ export const SOIL_MAT_LIFT = 0.012;
 /** moss cushions per metre of rim (in patches), tufts per metre, leaves per metre, and their seat ranges in d */
 export const RIM_MOSS_PER_M = 2.4;
 export const RIM_MOSS_D: readonly [number, number] = [-0.1, 0.3];
+/** the rim cushions' radius range (m) — the lawn's cushions are 0.05–0.26 (plants.ts) */
+export const RIM_MOSS_RADIUS: readonly [number, number] = [0.06, 0.2];
 export const RIM_TUFTS_PER_M = 1.6;
 export const RIM_TUFTS_D: readonly [number, number] = [-0.1, 0.12];
 export const RIM_LEAVES_PER_M = 1.1;
@@ -244,9 +246,11 @@ export function rimBandPlants(ctx: WorldContext, field: VegField, sets: RimPlant
     // patches: a 1.1 m noise gates the cushions, denser toward the turf's line
     const seats = rimSeats(field, rng, RIM_MOSS_PER_M * 2.2, RIM_MOSS_D, (p) => vnoise(p.x, p.z, 1.1, 11) * (0.35 + 0.65 * smoothstep(-0.1, 0.25, p.d)));
     for (const p of seats) {
-      const scale = 0.42 + rng() * 0.3;
+      // a cushion of RIM_MOSS_RADIUS m (plants.ts placeMossWith: the unit dome 0.45 tall, flattened, a little longer one way)
+      const radius = RIM_MOSS_RADIUS[0] + rng() * (RIM_MOSS_RADIUS[1] - RIM_MOSS_RADIUS[0]);
+      const h = radius * (0.22 + rng() * 0.2);
       T.normal(p.x, p.z, n);
-      composeMatrix(M, 0, p.x, T.height(p.x, p.z) - 0.008, p.z, n.x, n.y, n.z, 0.9, rng() * Math.PI * 2, scale * (0.8 + 0.4 * rng()), scale * 0.75, scale * (0.8 + 0.4 * rng()));
+      composeMatrix(M, 0, p.x, T.height(p.x, p.z) - 0.012, p.z, n.x, n.y, n.z, 0.95, rng() * Math.PI * 2, radius, h / 0.45, radius * (0.75 + rng() * 0.5));
       sets.moss.add(M, rng.int(0, sets.moss.variantCount), [0.95 + rng() * 0.1, 1, 0.92 + rng() * 0.1]);
       rimMoss++;
     }
@@ -493,11 +497,12 @@ export function terracePlants(ctx: WorldContext, field: VegField, sets: TerraceS
       const [x0, z0] = foot[rng.int(0, foot.length)];
       const px = mm(x0 + (rng() - 0.5) * 0.12);
       const pz = mm(z0 + (rng() - 0.5) * 0.12);
-      const scale = 0.5 + rng() * 0.4;
+      const radius = 0.08 + rng() * 0.18;
+      const h = radius * (0.22 + rng() * 0.2);
       const c: [number, number, number] = [0.95 + rng() * 0.1, 1, 0.9 + rng() * 0.1];
       if (!ok(px, pz, true)) continue;
       T.normal(px, pz, n);
-      composeMatrix(M, 0, px, T.height(px, pz) - 0.01, pz, n.x, n.y, n.z, 0.9, rng() * Math.PI * 2, scale * (0.8 + 0.4 * rng()), scale * 0.8, scale * (0.8 + 0.4 * rng()));
+      composeMatrix(M, 0, px, T.height(px, pz) - 0.012, pz, n.x, n.y, n.z, 0.95, rng() * Math.PI * 2, radius, h / 0.45, radius * (0.75 + rng() * 0.5));
       sets.moss.add(M, rng.int(0, sets.moss.variantCount), c);
       footMoss++;
     }
