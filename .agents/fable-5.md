@@ -35,6 +35,9 @@ lands: `ffmpeg` frames at his marked moments → `reference/frames-video2/`, has
 - `.agents/fable-5.md`, `.agents/reviews/fable-5-*.md`, my threads in `.agents/INBOX.md`.
 
 ## Completed work
+- 2026-09-20 16:00–16:15 UTC — take-0123 (97c8322, 37/50) read: C +0.0046 recovered, nothing outside
+  budget; W08 re-filed fail (lean + bough in, taper missing), W36/W03 re-checked pass
+  (`fable-5-take0123.md`).
 - 2026-09-20 15:20–16:10 UTC — goal-mode iteration 17: reference §7 — the owner's re-priority measured
   (foliage hue 60–64° vs ours 69–84° in the canopy; paving detail matches, boulders/walls flat in the
   large); fable-2's W23 value half `39568e37` at D — face l 0.21 → 0.24, D −0.0004, IMPROVED not closed
