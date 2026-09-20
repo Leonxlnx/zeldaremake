@@ -25,8 +25,8 @@
       "runtime": "Cursor Cloud Agent (Claude Fable 5.1)",
       "github": "Cursor Agent <cursoragent@cursor.com>",
       "status": "active",
-      "branch": "agent/fable-2-ledge",
-      "updated": "2026-09-20T11:15:00Z",
+      "branch": "agent/fable-2-ledge (+ agent/fable-2-w23-loaf for the D composition change)",
+      "updated": "2026-09-20T14:40:00Z",
       "currentTask": "",
       "file": ".agents/fable-2.md"
     },
@@ -57,7 +57,7 @@
       "status": "active",
       "branch": "agent/fable-5-r48-review",
       "updated": "2026-09-20T07:46:00Z",
-      "currentTask": "Done this iteration: fable-4's lean measured at C (see Completed). Next: take-0123's re-verdict when",
+      "currentTask": "Done this iteration: astra's branch and fable-3's tint step measured (see Completed). Next:",
       "file": ".agents/fable-5.md"
     },
     {
