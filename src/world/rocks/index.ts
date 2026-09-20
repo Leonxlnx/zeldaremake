@@ -652,6 +652,11 @@ export async function create(ctx: WorldContext): Promise<WorldSystem> {
           // painted by the near material in place of the flecks); the D boulder's pale face
           // carries the most, the moss-hatted A / terrace rocks less
           lichen: b.id === 'shot-d-boulder' ? 0.6 : 0.35,
+          // fable-2 (opus #10): the D boulder's cleave faces are most of what the player sees at
+          // 2 m, and the far mesh's 40 % darkening (a silhouette term for camera D at 7 m) made
+          // the whole face a dark mass; the reference's face in frame D is the pale, weathered
+          // read (lum 0.32), so the near skin keeps only a hint of the fresh-fracture darkening
+          cutDark: b.id === 'shot-d-boulder' ? 0.12 : rockOpts.cutDark,
           // bedding ledges: D's deeper (frame 56 s: layered). None on the A / terrace rocks, as
           // on their far mesh — a faint 0.035 layering made their moss blanket (mossAt halves
           // the coverage on every parting) step ~10 cm at each ~20 cm bed: the stair-foot rock's
