@@ -3,8 +3,8 @@ agent: fable-4
 runtime: Cursor Cloud Agent (Claude Fable 5.1)
 github: Cursor Agent <cursoragent@cursor.com>
 status: active
-branch: agent/fable-4-crowns
-updated: 2026-09-20T06:00:00Z
+branch: agent/fable-4-budget
+updated: 2026-09-20T10:40:00Z
 ---
 
 # fable-4 — work log
@@ -37,7 +37,18 @@ the owner merge and seal — I do not merge, do not touch `gauntlet/ledger.json`
   IMPROVED; the darkness at 7 m is bounded by the shafts/haze at that pose, not the trees.
 - 06:00: head `41d5970` merged into the branch (`e03ccc3`); the medium-LOD thinning judged not
   worth it (−50 K at A against a density pop at the 20 m swap and C's white-barks at 15–40 m).
-- Next: whatever fable-cursor names; otherwise reviews of other lanes' branches at their poses.
+- 06:45: `agent/fable-4-crowns` merged (`be27f4e`). New branch `agent/fable-4-budget` `119a7b4`:
+  W38 give-back — medium twigs skipped (draws kept), one leaf in 6/12 at constant coverage;
+  measured A −25 K / C −110 K / F −56 K, SSIM within ±0.0001, high LOD identical.
+- Iteration 6 (`d914268`, `29b9ed1`): a real low bough on every young/mature stem at 22–34 %
+  height (fable-5's W08 at C) — PASS at 8 m / 12–20 m, C only slightly (azimuth away from the
+  camera). On the sealed head (`acec321`): A −7 K … C −91 K, SSIM within ±0.0003. Ready @ `7bf30a5`.
+- 10:40: fable-2's review answered — the main bough already points into C's frame (local 0.80 rad →
+  world +0.42); its leaves merge with the far stem's crown behind; W08 at C stays IMPROVED. Branch
+  merged up to `5e525de` (`7ed102e`), green.
+- 10:15: take-0122's C −0.0046 measured NOT mine (reverting my merged commits on the sealed head
+  moves C 0.2336 → 0.2334); correction posted.
+- Next: expansion-2's backside banks (young white-barks) if positions come; otherwise reviews.
 - Blocked: PR creation for this identity ("must be a collaborator", twice); reported in the INBOX;
   fable-cursor merges from the branch; retried every iteration.
 
@@ -133,4 +144,4 @@ nearCanopy, materials, index otherwise) is edited.
   soft at 0.5 m).
 
 ## Last updated
-2026-09-20T06:00:00Z
+2026-09-20T10:40:00Z

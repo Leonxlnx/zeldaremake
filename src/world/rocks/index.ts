@@ -17,7 +17,7 @@ import { createRockMaterial, NEAR_FADE_M, NEAR_TILE_M } from './material';
 import { dressRock, mergeRockParts } from './dressing';
 import { buildRockLedge, type RockLedgeDef } from './ledge';
 import { buildClearingRocks, type ClearingLayout } from './clearing';
-import { PEBBLE_DEFAULTS, scatterPathPebbles, stairFootPebbles } from './pebbles';
+import { PEBBLE_DEFAULTS, PEBBLE_LOOKS, scatterPathPebbles, stairFootPebbles } from './pebbles';
 import { NORTH_Z1 } from '../util/northLocality';
 import { CUSHION, FERN, TUFT_A, TUFT_B, buildSproutMeshes, createSproutMaterial, type SproutSpot } from '../materials/sprouts';
 import type { Rng } from '../util/prng';
@@ -299,7 +299,10 @@ export async function create(ctx: WorldContext): Promise<WorldSystem> {
       // the D boulder's fresh fracture face stands toward the path (frame 56 s: a dark cleaved
       // face on the path side under a bright moss top)
       cutToward: b.id === 'shot-d-boulder' ? toLocal(towardPath(b.position[0], b.position[2]), yaw) : undefined,
-      cutDark: b.id === 'shot-d-boulder' ? 0.4 : 0.3,
+      // fable-2 (W23 at frame D, fable-5's round-49 #7 "the 7 m value"): the cleave toward the path is
+      // the face camera D sees, and at 0.4 it was the dark half of a rock the reference shows as
+      // one pale olive-tan loaf — a quarter now (the near skin keeps its own 0.12)
+      cutDark: b.id === 'shot-d-boulder' ? 0.25 : 0.3,
       facetBare: b.id === 'shot-d-boulder' ? 0.9 : 0.5,
       squashY: squash,
       creaseDeg: 24,
@@ -331,14 +334,18 @@ export async function create(ctx: WorldContext): Promise<WorldSystem> {
       mossShade: toLocal(shadeDir, yaw),
       // the lower band is a dark, damp green-brown (not bare soil), reaching ~0.35 m up the
       // visible face of the small boulders
-      dirt: 0.8,
+      // (W23: the D rock's collar reaches 45 % of its height, not 60 — frame D reads pale stone
+      // down to the grass, the dark only in the ground contact)
+      dirt: b.id === 'shot-d-boulder' ? 0.7 : 0.8,
       collar,
-      collarBand: [0.12, 0.6],
+      collarBand: b.id === 'shot-d-boulder' ? [0.1, 0.45] : [0.12, 0.6],
       // frame 56 s reads the D rock's sunlit face at lum 0.42 (flagstone-bright grey-tan) where a
       // 0.55 tint rendered 0.24: mid-grey stone, the collar and the fracture faces carry the dark.
       // The D rock's bare stone is warm and pale in the frame (hue 46, sat 0.34) where the A/terrace
       // rocks are cool grey under their moss, so it gets a tan tint of its own
-      tint: b.id === 'shot-d-boulder' ? new Color(0.82, 0.77, 0.68) : new Color(0.72, 0.72, 0.71),
+      // (W23: frame D's boulder is olive-tan — rgb 91/83/45 at l 0.32, hue 47°, sat 0.34 — where
+      // ours rendered grey-tan at 0.30 behind the ferns; the tint goes a step paler and yellower)
+      tint: b.id === 'shot-d-boulder' ? new Color(0.9, 0.85, 0.64) : new Color(0.72, 0.72, 0.71),
       freq: 0.9,
     };
     const geo = buildRock(bRng.fork(b.id), `${seed}/boulder-${b.id}`, rockOpts);
@@ -886,8 +893,13 @@ export async function create(ctx: WorldContext): Promise<WorldSystem> {
   const strataGeos = [0, 1, 2, 3].map((i) =>
     buildRock(vRng.fork(`strata-${i}`), `${seed}/strata-${i}`, { radius: 1, detail: 3, ridge: 0.14, lump: 0.15, cuts: 4, squashY: 0.55, creaseDeg: 30, cracks: 0, moss: 0.65, dirt: 0.5, tint: new Color(0.62, 0.6, 0.56), freq: 1, strata: 0.1 }),
   );
-  const pebbleGeos = [0, 1, 2, 3].map((i) =>
-    buildRock(vRng.fork(`pebble-${i}`), `${seed}/pebble-${i}`, { radius: 1, detail: 1, ridge: 0.12, lump: 0.25, cuts: 1, squashY: 0.7, creaseDeg: 50, cracks: 0, moss: 0.25, dirt: 0.3, tint: new Color(0.7, 0.69, 0.66), freq: 1 }),
+  // fable-2 (opus #16, the plaza at 1–2 m: "the joint pebbles are identical smooth olive
+  // ellipsoids"): eight variants at the same 80 triangles each — half of them angular chunks (two
+  // to four cleaves, 30° crease normals), half worn cobbles (one or two shallow spalls), flat to
+  // tall, bare grey / warm tan / dark / pale, moss on some and not others — one InstancedMesh per
+  // variant (+4 draws, +0 triangles). The scatter picks the variant per cell (pebbles.ts).
+  const pebbleGeos = PEBBLE_LOOKS.map((look, i) =>
+    buildRock(vRng.fork(`pebble-${i}`), `${seed}/pebble-${i}`, { radius: 1, detail: 1, ridge: 0.15, lump: look.lump, cuts: look.cuts, cutDepth: look.cutDepth, squashY: look.squash, creaseDeg: look.crease, cracks: 0, moss: look.moss, dirt: 0.3, tint: look.tint, freq: 1 }),
   );
 
   ctx.progress('rocks', 0.6);
@@ -897,7 +909,9 @@ export async function create(ctx: WorldContext): Promise<WorldSystem> {
   // paving edit moves only the pebbles whose cell it touched (the old sequential stream re-rolled
   // them world-wide — round 47's whole camera-D delta). The lattice reaches the north paving too;
   // its pebbles (z < NORTH_Z1) are a separate instanced set under the north-locality toggle
-  const pebbleSets = scatterPathPebbles(T, seed, { ...PEBBLE_DEFAULTS, radius: Math.max(detailR, 84), northZ: NORTH_Z1, density });
+  // (the envelope: the old scatter's reach — ±4.2 m squares around the path polylines' points —
+  // as a soft disc, full to 3.5 m and gone by 5.5 m; the north paving is its own set and ignores it)
+  const pebbleSets = scatterPathPebbles(T, seed, { ...PEBBLE_DEFAULTS, radius: Math.max(detailR, 84), northZ: NORTH_Z1, density, envelope: { pts: pathPtsAll.map((q) => [q[0], q[2]] as [number, number]), full: 3.5, far: 5.5 } });
   pebbles.push(...pebbleSets.main);
   const northPebbles: Instance[] = [...pebbleSets.north];
   for (const s of ctx.layout.stairs) {

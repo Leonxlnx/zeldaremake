@@ -4,7 +4,7 @@ runtime: Cursor Cloud Agent (Claude Fable 5.1)
 github: Cursor Agent <cursoragent@cursor.com>
 status: active
 branch: agent/fable-5-r48-review
-updated: 2026-09-20T06:23:00Z
+updated: 2026-09-20T07:46:00Z
 ---
 
 # fable-5 — work log
@@ -17,9 +17,9 @@ gauntlet's independent D7 verdicts (`gauntlet/reviews/*.json`, written only thro
 00:00 UTC (timer `goal-mode-fable-5`, cron `20 * * * *`); `agent/fable-5-demo-walk` merged (`b4de8d7`); current branch `agent/fable-5-r48-review`.
 
 ## Current task
-Done this iteration: take-0121 re-verdicted (see Completed). Next: the player-height walk of
-`cf8083b` (GOAL_MODE #3) with the ranked list; then the next sealed take. Still waiting for the
-15-minute video file.
+Done this iteration: fable-4's marks retire measured (see Completed). Next: take-0123's
+re-verdict when expansion-2 + structures-32 land, then the round-49 walk on that head. Still waiting
+for the 15-minute video file.
 
 ## Previous current task (superseded)
 Goal-mode loop. Next iteration: **re-verdict every visual item on take-0120** when it seals (the
@@ -35,6 +35,28 @@ lands: `ffmpeg` frames at his marked moments → `reference/frames-video2/`, has
 - `.agents/fable-5.md`, `.agents/reviews/fable-5-*.md`, my threads in `.agents/INBOX.md`.
 
 ## Completed work
+- 2026-09-20 10:25–11:10 UTC — goal-mode iteration 12 (r49 §A, new branch `agent/fable-5-r49-review`):
+  fable-4's marks-retire `5fe58488` measured on head `0990b2c7` — five views pixel-identical, C Δ 0;
+  the soft vertex band between the tile's crisp bands is gone at the grove. IMPROVED, merge.
+- 2026-09-20 09:32–10:10 UTC — goal-mode iteration 11 (§O): fable-2's eight pebble looks `a3c644b2`
+  measured on head `5e525dea` — six views inside budget (worst −0.0004), the looks land on the
+  path-edge scatter; at opus #16's pose the joint pebbles at 1–2 m are pixel-identical (they are the
+  hardscape's joint grit, not `pathEdgePebble`) — reported, hardscape half open.
+- 2026-09-20 08:20–09:25 UTC — goal-mode iteration 10 (§M): three lanes' answers to take-0121
+  measured as head (`acec3210`, perf-3 in) + commit. fable-4's low boughs IMPROVED (C: pole → limb
+  with lobe; B −0.0003 the whole cost); fable-3's measured string IMPROVED (A −0.0005, C +0.0030,
+  E +0.0022; my §J string position corrected); fable-2's W23 far look does not reach frame D — the
+  D boulder is > 99 % hidden behind the fern bank (372 px visible; reference 5.4 % of the frame),
+  reported as a FAIL with the occlusion sheet. take-0122 (37/50) sealed meanwhile: its C −0.0048
+  bisected across the five merges (fable-2 pebbles −0.0022 + fable-3's first strings −0.0029, the rest
+  ≈ 0); my 13 standing passes re-checked on its frames, all stand (§N).
+- 2026-09-20 07:20–07:46 UTC — goal-mode iteration 9 (§L): fable-3's light-string tweak measured
+  as head + commit (A −0.0001, C +0.0010, F +0.0005 — inside the budget); fable-2's merged wall
+  second pass checked at 3 m (IMPROVED). Small iteration; no new take.
+- 2026-09-20 06:25–07:19 UTC — goal-mode iteration 8: **player-height walk of the round-48 head
+  `89473888`** (GOAL_MODE #3; 20 poses, before = `3d50f6c8`) with the merged round-49 ranked list —
+  `.agents/reviews/fable-5-walk-r48-head.md` + six sheets; fable-4-budget (W38) checked visually
+  neutral (§K). INBOX note to fable-cursor + the round-49 lanes.
 - 2026-09-20 06:00–06:23 UTC — **take-0121 (`cf8083b`, round 48) re-verdicted**: 27 visual items
   filed (15 pass / 12 fail), U02/U03 from an own `?screen=equipment` render, W22 from an own motion
   pair, 26 sheets; re-scored **36/50, Phase 1 31/42** (take-0120: 30). Newly passing since
@@ -142,4 +164,4 @@ lands: `ffmpeg` frames at his marked moments → `reference/frames-video2/`, has
   lists the regions; the evidence images are reproducible with the same crops.
 
 ## Last updated
-2026-09-20T06:23:00Z
+2026-09-20T07:46:00Z

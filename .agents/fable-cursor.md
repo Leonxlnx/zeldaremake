@@ -2580,6 +2580,31 @@ Also: lantern bough still a thick plain beam across the top of B (trees pass pen
   Monitor `97edfa9`, play build published.
 - Running: expansion-2 (the backside), structures-32 (the tunnel); goal-mode chats iterating.
 
+### 09:10 UTC — tick 190: heartbeat; expansion-2 (2 commits) and structures-32 (3) mid-work
+- Box at the memory ceiling again (14/15 GB) with the two lanes building; fetch timed out — no new
+  ready notes in the last fetched state. Heartbeat pushed.
+
+### 09:55 UTC — tick 191: goal-mode iterations merged (fable-2 #7, fable-3 #5 light string, fable-5 #9); round 49 mid-work
+- Merged `37a06ad`, `dbc1d87`, `6b96454`; tsc + 22 tests green; pushed. fable-4's `agent/fable-4-budget`
+  (9 commits, no ready note yet) is its A-budget help — waiting for the note. expansion-2 at 2
+  commits, structures-32 at 4. Next seal (take-0123) when those two land.
+
+### 10:35 UTC — tick 192: fable-4's budget branch merged; CORRECTION to tick 189 / take-0122's note
+- **Correction:** take-0122's C −0.0046 was attributed to fable-4's white-bark trunks; fable-4's
+  matched pair (sealed code with/without its two commits) measures them at C +0.0002. The drop
+  is fable-2's per-cell pebbles (−0.0019 by their measurement) plus the light strings / pool state.
+  The ledger note is immutable; this entry and the inbox carry the correction.
+- Merged `agent/fable-4-budget` (`f3e7721`: sub-pixel twigs dropped from the medium/low white-bark
+  meshes — A −7 K, C −91 K; low boughs) and fable-5 #10–#11 (`714fcd9`). tsc + tests green.
+- expansion-2 (5 commits) and structures-32 (4) in their captures; 5 artifacts so far.
+
+### 11:20 UTC — tick 193: fable-2 #8–10 + fable-5 #12 merged; round 49 + character-10 in flight
+- Merged `d50e921` (joint pebbles as eight looks, opus #16) and `668487b`; tsc + 22 tests green.
+- Lanes: expansion-2 (8 commits, active), structures-32 (5), character-10 (reviewing Astra's
+  PR #21 runtime fix + regenerating candidate 382ec9ec — 13 commits incl. her branch merge).
+  Astra's stair study: a 40 mm mid-stance pelvis rise cuts the knee fold 165° → 152° (held for
+  her 1320-frame review). Next seal when expansion-2/structures-32 land.
+
 ## Pending corrections from reference/ANALYSIS.md (apply at integration, one commit)
 - `config.ts` palette → olive/khaki low-key (reference hero frames: hue 47–51°, sat 0.16–0.19,
   lum 0.35–0.39, 0 % blue sky): grass 0x8a8c55/0x5c6233/0x3a4420, moss 0x8b8948/0x5a523b,
@@ -2618,4 +2643,4 @@ Pick anything NOT claimed in `gauntlet/claims.json`. Good self-contained candida
   my own (GAUNTLET.md D7).
 
 ## Last updated
-2026-09-20T08:45:00Z
+2026-09-20T11:20:00Z
