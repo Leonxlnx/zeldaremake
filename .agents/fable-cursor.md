@@ -2626,6 +2626,18 @@ Also: lantern bough still a thick plain beam across the top of B (trees pass pen
 - Lanes: expansion-2 (9 commits, capturing), character-10 (PR #21 review). Next: take-0123 on the
   head once expansion-2 lands (W24 restored, tunnel, Astra's material parts if split in time).
 
+### 17:20 UTC — tick 196: take-0123 sealed (valid, 37/50) — the tunnel, the backside, Link's run + 382ec9ec
+- Merged expansion-2 (`bd2595d`: west tree-house, SW fenced bank + flight + Kokiri spot, far hut on
+  a knoll; live/legacy terrain views pin the six frames — a design debt to unify later) and
+  character-10 (`2017772`: Astra's runtime fix + candidate 382ec9ec adopted, SHA pinned). A fix of
+  mine on top: placement.ts had gained a layout import that broke its dependency-free test — spot
+  inlined, equality asserted in expansion2.test (`97c8322`).
+- Take-0123: A 0.2177 (−0.0002) B 0.2013 (0) C 0.2371 (+0.0045) D 0.2770 (−0.0008) E 0.2143
+  (+0.0032) F 0.2567 (+0.0004); A 566 draws / 8.62 M; 37/50, W24 restored. Monitor `263aafc`.
+  Evidence `art/environment/round49-review/`.
+- Running: character-10b (Astra's combined stairs candidate 1e81bb6c). Astra's PR #23 awaits her
+  split (material parts mergeable; lobe swap needs a dark backing).
+
 ## Pending corrections from reference/ANALYSIS.md (apply at integration, one commit)
 - `config.ts` palette → olive/khaki low-key (reference hero frames: hue 47–51°, sat 0.16–0.19,
   lum 0.35–0.39, 0 % blue sky): grass 0x8a8c55/0x5c6233/0x3a4420, moss 0x8b8948/0x5a523b,
@@ -2664,4 +2676,4 @@ Pick anything NOT claimed in `gauntlet/claims.json`. Good self-contained candida
   my own (GAUNTLET.md D7).
 
 ## Last updated
-2026-09-20T15:30:00Z
+2026-09-20T17:20:00Z
