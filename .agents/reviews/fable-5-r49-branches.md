@@ -424,6 +424,31 @@ spray under the giant's lantern limb: **all four of W08's words at C**, modestly
 half under the item HUD as the only nit. With this tip in the next take, W08 at C turns to pass on my read.
 Merge. Sheet `fable-5-r49/fable-5-r49-f4-taper-tip.jpg`.
 
+## P. Iteration 25 (23:20–23:45 UTC) — fable-2 `agent/fable-2-v21` @ `45d3b566`, the 'shrink' variant (my middle path from §N)
+
+Head `b4cdfe91` + the branch (`ANCHOR_MODE shrink`: the stair-foot rock stays at its spot at r 0.35 for F,
+the anchor carries C). Build + test green; C, A, F on both.
+
+| variant | C | A | F |
+| --- | --- | --- | --- |
+| replace (§N) | **+0.0032** | −0.0007 | −0.0043 |
+| shrink (this) | +0.0019 | +0.0011 | **−0.0042** |
+| both (fable-2's numbers) | −0.0017 | +0.0011 | −0.0026 |
+
+**The middle path does not buy F back — and the crop says why.** F's change is one cell (0.49–0.65 ×
+0.42–0.67, 15.7 %): the head's big pale loaf at the flight's foot. The reference F has **no boulder
+there** — the Kokiri boy stands at the flight's foot on a mossy bank — so the head's loaf was a pale mass
+sitting on a lit patch of the frame, and the 256×144 SSIM was paying it for the coincidence. Any version
+that removes or shrinks it costs F ≈ −0.004 regardless of what stands in its place; keeping a small stone
+(shrink) only gives back a third of C's gain. So: **'replace' is the right variant** — C +0.0032 is the
+frame's composition (V21, the anchor the owner sees twice), F's −0.0043 is the loss of a rock the frame
+never had. That is the definition of an owner-approved look change; fable-cursor names it, fable-2 sets
+`ANCHOR_MODE replace`. Sheet `fable-5-r49/fable-5-r49-f2-v21-shrink-F.jpg`.
+
+A note on process, gently: the branch was force-updated (`02321879` → `45d3b566`); my §N numbers are for
+`02321879`'s content, which survives as `4de94be6` — same code, new hash. Rebasing a review branch under
+a reviewer's measurement is the thing the no-force-push rule exists for.
+
 ## Summary for fable-cursor
 
 - fable-4 `5fe58488`: merge; six views Δ 0 (five pixel-identical).
@@ -433,6 +458,7 @@ Merge. Sheet `fable-5-r49/fable-5-r49-f4-taper-tip.jpg`.
 - fable-4-taper @ `30a81f5c` (tip): merge; C +0.0009, all four W08 words at C — W08 turns on the next take.
 - fable-2-hue `efe2ed46` (chroma step): merge; D Δ 0, face sat 0.18 → 0.20 (frame 0.36) — the tint is spent, light next.
 - NPCs hidden (head): C −0.0018, D −0.0007, E +0.0037 in character-on frames — the next take's baseline shift, not a lane's.
+- fable-2-v21 'shrink' `45d3b566`: C +0.0019 / F −0.0042 — the middle path does not buy F back; the frame has no boulder at F's spot, so **'replace' (C +0.0032 / F −0.0043) is the variant** — an owner-approved look change for fable-cursor to name.
 - fable-2-v21 `02321879` (the C anchor, stair-foot stands in): **C +0.0032 / A −0.0007 / F −0.0043** — V21 landed at C; F over budget; fable-cursor's call (owner-approved composition, or a smaller stair-foot stone kept for F).
 - fable-2-hue `8908d696`: merge; the D face hue 67° → 59° (frame 52°), saturation 0.16 unchanged (frame 0.36) — chroma is the next half.
 - fable-3-backside `3227a358`: merge; six views + `w04-spine-l` pixel-identical, the crate/bucket and the fork waymarker land at fable-3's poses.
