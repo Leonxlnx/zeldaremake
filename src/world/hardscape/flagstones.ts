@@ -1223,7 +1223,7 @@ export function placeFlagstones(pc: PavingContext, material: Material): PavingRe
     const uJoint = srng();
     // Round 50 (fable-5 V16 — `d_097` measured from above: 6–10 cm dark joints between 0.8–1.1 m
     // rounded stones; d_111–117 the same at player height). ONE seam for the whole paving: the
-    // nominal (geometric) gap is 2.8–5 cm — the erosion, the corner fillets and the wobble
+    // nominal (geometric) gap is 2.5–4.5 cm — the erosion, the corner fillets and the wobble
     // below widen the visible joint to ≈ 1.5–1.8× the nominal (measured as the edge-normal run
     // between neighbouring outlines, index.ts `jointMeasuredWidthM`), so it renders as the
     // frame's 6–10 cm. The discs keep round 33's seam; the lawn slabs' turf joints sit a step
@@ -1232,7 +1232,7 @@ export function placeFlagstones(pc: PavingContext, material: Material): PavingRe
     // per-camera slab sizes. The draws below are the control's, in the control's order, so the
     // stepping discs — which share this stream — keep their shapes and heights.
     const damp0 = dampBand(s.z);
-    const seamJoint = disc ? (0.035 + 0.03 * jointN + 0.01 * uJoint) * (1 - 0.35 * open) + 0.015 * damp0 : 0.028 + 0.016 * jointN + 0.006 * uJoint;
+    const seamJoint = disc ? (0.035 + 0.03 * jointN + 0.01 * uJoint) * (1 - 0.35 * open) + 0.015 * damp0 : 0.025 + 0.015 * jointN + 0.005 * uJoint;
     const lawnMid = smoothstep(-2.6, -4.0, s.z);
     const lawnJoint = (0.05 + 0.025 * jointN + (lawn > 0 ? srng.range(0, 0.04) * 0.25 : 0)) * (1 - 0.25 * lawnMid);
     // the disc field's weight (zones.ts `discField`; the spine north of the plaza): its stones

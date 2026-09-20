@@ -140,7 +140,7 @@ const measureJoints = (paving, stones) => {
         nx = -nx;
         nz = -nz;
       }
-      for (let d = 0.01; d <= 0.3; d += 0.01) {
+      for (let d = 0.005; d <= 0.3; d += 0.005) {
         if (paving.onStone(mx + nx * d, mz + nz * d)) {
           widths.push(d);
           break;
