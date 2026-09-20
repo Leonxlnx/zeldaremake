@@ -256,6 +256,16 @@ export async function create(ctx: WorldContext): Promise<WorldSystem> {
     const l = Math.max(1e-6, bd);
     return [(best[0] - x) / l, (best[2] - z) / l];
   };
+  /** unit xz direction from the D boulder to the hero frame D's camera (the face that frame reads) */
+  const towardD = (() => {
+    const d = ctx.layout.viewpoints.find((v) => v.id === 'D_log');
+    const b = ctx.layout.heroBoulders.find((h) => h.id === 'shot-d-boulder');
+    if (!d || !b) return null;
+    const dx = d.position[0] - b.position[0];
+    const dz = d.position[2] - b.position[2];
+    const l = Math.hypot(dx, dz) || 1;
+    return [dx / l, dz / l] as [number, number];
+  })();
   /** a world xz direction expressed in the local frame of a mesh yawed by `yaw` about +Y */
   const toLocal = (d: [number, number], yaw: number): [number, number] => [d[0] * Math.cos(yaw) - d[1] * Math.sin(yaw), d[0] * Math.sin(yaw) + d[1] * Math.cos(yaw)];
   for (const b of ctx.layout.heroBoulders) {
@@ -338,6 +348,12 @@ export async function create(ctx: WorldContext): Promise<WorldSystem> {
       // blanket is thinner; the A rock's face toward frame 1 s is moss from shoulder to collar
       mossSide: b.id === 'shot-d-boulder' ? 0.45 : 0.9,
       mossShade: toLocal(shadeDir, yaw),
+      // fable-2 (W23 at frame D, fable-5's 13:25 review of the loaf: "value inverted — moss + shade on
+      // the face D sees, l 0.21 / hue 63° / sat 0.15 against the reference's bare lit face l 0.27 /
+      // 52° / 0.36"): the face toward the hero frame's camera stays bare stone (the cap keeps its
+      // moss — the frame's greenery is on the crown) and is paled up to 30 % toward the lit read
+      bareToward: b.id === 'shot-d-boulder' && towardD ? toLocal(towardD, yaw) : undefined,
+      faceLift: b.id === 'shot-d-boulder' && towardD ? { dir: toLocal(towardD, yaw), amount: 0.3 } : undefined,
       // the lower band is a dark, damp green-brown (not bare soil), reaching ~0.35 m up the
       // visible face of the small boulders
       // (W23: the D rock's collar reaches 45 % of its height, not 60 — frame D reads pale stone
