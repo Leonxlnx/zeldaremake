@@ -74,3 +74,24 @@ crown, so the crown geometry is untouched. Cost ≈ +7 K at A against iteration 
 
 W12 163/163, determinism 0, console 0 errors, typecheck + build green. Camera A stays over 9.0 M
 (9.123 M) — the head's excess.
+
+## On take-0122's C (the seal note's attribution) — measured
+
+Tick 189 attributes take-0122's C 0.2372 → 0.2326 (−0.0046) to "fable-4's white-bark trunks". Three
+captures on the sealed code (`acec321` = `de4c71b8`), settle 6, one Chrome at a time:
+
+| build | A | B | C | D | E | F |
+| --- | --- | --- | --- | --- | --- | --- |
+| sealed head | 0.2177 | 0.2015 | 0.2336 | 0.2771 | 0.2110 | 0.2562 |
+| sealed head with my two merged commits reverted (`whitebark.ts`, `bark-texture.ts` at `0987e06`) | 0.2177 | 0.2015 | **0.2334** | **0.2769** | 0.2110 | 0.2562 |
+| this branch (`7bf30a5`) | 0.2177 | 0.2013 | 0.2339 | 0.2770 | 0.2112 | 0.2562 |
+
+Removing the white-bark crowns and marks makes C and D *worse* by 0.0002 each: my merged work is
++0.0002 at C, not −0.0046, and touches 0.32 % of C's pixels. The seal's C drop comes from
+elsewhere between `cf8083b` and `acec321` (fable-2 measured their per-cell pebbles at C −0.0019;
+the light strings and the settle-90 state are the other candidates). Draws and triangles are
+identical between the first two rows — the merged commits are colour and texture only.
+
+**This branch on the sealed head:** draws identical (562/518/405/392/518/503); triangles
+A 8.679 → 8.672 M (−7 K), B/E 7.856 → 7.832 (−24 K), C 7.107 → 7.016 (−91 K), D 8.097 → 8.063
+(−34 K), F 8.037 → 7.999 (−38 K); W12 163/163, determinism 0, console 0.
