@@ -58,7 +58,22 @@ const textures = {
 };
 const audits = [];
 // props build against the heightfield's LEGACY view in src/world/index.ts (round 49): the test does the same
-const ctx = { terrain: createTerrain('legacy'), layout: LAYOUT, config: WORLD, quality: { shadows: true }, textures, shared: {}, audit: (_, fn) => audits.push(fn) };
+// structures publish the west tree-house's platform / walkway for the character ground
+// (ctx.shared.walkSurfaces, distantHouse.ts): the same formula here — disc r = R + 0.22 at floorY +
+// 0.01, the deck's top line from the rim (platR − 0.15) to EXPANSION.westHouse.deckEnd, hw 0.475,
+// the wall ring at R · 0.96 ± 0.2 — so the deck pot builds in the test
+const westWalk = (() => {
+  const W = EXPANSION.westHouse;
+  const R = W.radius;
+  const platR = R + 0.22;
+  const c = { x: W.host[0], z: W.host[1] };
+  const end = W.deckEnd;
+  const L = Math.hypot(end[0] - c.x, end[2] - c.z);
+  const dir = [(end[0] - c.x) / L, (end[2] - c.z) / L];
+  const a = [c.x + dir[0] * (platR - 0.15), W.floorY, c.z + dir[1] * (platR - 0.15)];
+  return { id: 'west-house', disc: { x: c.x, z: c.z, r: platR, y: W.floorY + 0.01 }, deck: { a, b: [end[0], end[1], end[2]], hw: 0.475 }, wall: { r: R * 0.96, half: 0.2, gap: [0, 0] } };
+})();
+const ctx = { terrain: createTerrain('legacy'), layout: LAYOUT, config: WORLD, quality: { shadows: true }, textures, shared: { walkSurfaces: [westWalk] }, audit: (_, fn) => audits.push(fn) };
 
 // ---- builders
 {
@@ -307,7 +322,21 @@ for (const id of ['door-pot-large', 'sign-pot', 'saria-crate', 'saria-water-buck
 // fixed camera and west of camera C's clipped edge, on ground the live and legacy views share
 {
   const west = audit.placed.filter((p) => p.cluster === 'west-house');
-  assert.equal(west.length, 5, 'crate, bucket, two pots and the fork marker');
+  assert.equal(west.length, 6, 'crate, bucket, two pots, the fork marker and the deck pot');
+  // the deck pot: on the walkway's top line beside the door, inside the deck's width, outside the wall
+  const dp = west.find((p) => p.id === 'west-door-pot');
+  const a = westWalk.deck.a, b = westWalk.deck.b;
+  const L = Math.hypot(b[0] - a[0], b[2] - a[2]);
+  const dir = [(b[0] - a[0]) / L, (b[2] - a[2]) / L];
+  const rel = [dp.x - a[0], dp.z - a[2]];
+  const along = rel[0] * dir[0] + rel[1] * dir[1];
+  const across = -rel[0] * dir[1] + rel[1] * dir[0];
+  assert.ok(Math.abs(along - 0.55) < 0.02, `deck pot 0.55 m along the deck (${along.toFixed(3)})`);
+  assert.ok(Math.abs(across - (0.475 - 0.23)) < 0.02, `deck pot 0.245 m off the centreline on the door side (${across.toFixed(3)})`);
+  assert.ok(Math.abs(dp.y - (a[1] + (b[1] - a[1]) * (along / L))) < 0.01, 'deck pot stands on the deck top');
+  const rc = Math.hypot(dp.x - westWalk.disc.x, dp.z - westWalk.disc.z);
+  assert.ok(rc > westWalk.wall.r + westWalk.wall.half + 0.21, `deck pot (r 0.22) clear of the wall ring (centre at ${rc.toFixed(2)} m)`);
+  assert.ok(Math.hypot(dp.x - -19.69, dp.z - 8.235) < 1.0, 'deck pot within a metre of the door point (−19.69, 8.235)');
   const cams = LAYOUT.viewpoints.map((v) => { const cam = new THREE.PerspectiveCamera(v.fov, 1280 / 720, 0.1, 1000); cam.position.fromArray(v.position); cam.lookAt(new Vector3().fromArray(v.target)); cam.updateMatrixWorld(true); return { id: v.id, cam }; });
   for (const p of west) {
     for (const h of [0, 1.8]) for (const { id, cam } of cams) {
@@ -318,6 +347,7 @@ for (const id of ['door-pot-large', 'sign-pot', 'saria-crate', 'saria-water-buck
     assert.ok(p.x < 2.33 - 0.5663 * (p.z + 7.67) - 1.3, `${p.id} west of camera C's clipped edge`);
     // authored spot kept (no nudge): the shoulder is natural ground in both views
     const def = PROP_LAYOUT.find((d) => d.id === p.id);
+    if (def.onDeck) continue;
     assert.ok(Math.abs(def.x - p.x) < 1e-9 && Math.abs(def.z - p.z) < 1e-9, `${p.id} placed where authored`);
     const live = createTerrain('live');
     assert.ok(Math.abs(live.height(p.x, p.z) - ctx.terrain.height(p.x, p.z)) < 0.02, `${p.id}: live and legacy ground agree (${live.height(p.x, p.z).toFixed(3)} vs ${ctx.terrain.height(p.x, p.z).toFixed(3)})`);
@@ -330,7 +360,7 @@ for (const id of ['door-pot-large', 'sign-pot', 'saria-crate', 'saria-water-buck
   const [bx, bz] = southBankPoint(0, -1.0);
   assert.equal(expansionCull(bx, bz), true, 'a spot on the south bank top is culled');
   assert.equal(expansionCull(EXPANSION.farHut.host[0], EXPANSION.farHut.host[1]), true, 'the far hut knoll is culled');
-  for (const p of audit.placed) assert.equal(expansionCull(p.x, p.z), false, `${p.id} stands on ground the expansion did not change`);
+  for (const p of audit.placed) if (!PROP_LAYOUT.find((d) => d.id === p.id).onDeck) assert.equal(expansionCull(p.x, p.z), false, `${p.id} stands on ground the expansion did not change`);
 }
 
 // the footprints hook: every placed prop publishes its ground disc for the vegetation scatter
@@ -398,8 +428,8 @@ assert.equal(placementAllowed(withMask({ stairs: 1 }), 30, 30, 0.3, { paving: tr
 const blocked = withMask({ path: 1, stairs: 1, structure: 1, cliff: 1 });
 const empty = await create(blocked);
 assert.equal(empty.group.children.filter((g) => g.children.length).length <= 2, true, 'no fallback placements on forbidden ground (only the ladder, which leans on a house, and the lookout railing, bound to its hook, may build)');
-assert.deepEqual(empty.group.children.filter((g) => g.children.length).map((g) => g.name).sort(), ['village'], 'the probed props all skip (only the ladder, the hook-bound railing and the authored light strings build, all village)');
-assert.deepEqual(Object.keys(audits[audits.length - 1]().clusterBounds).sort(), ['plateau-lip', 'stair-foot', 'upper-house'], 'on forbidden ground only the ladder (house), the hook-bound railing and the authored light strings (stair-foot) build');
+assert.deepEqual(empty.group.children.filter((g) => g.children.length).map((g) => g.name).sort(), ['backside', 'village'], 'the probed props all skip (only the ladder, the hook-bound railing, the authored light string and the deck pot build)');
+assert.deepEqual(Object.keys(audits[audits.length - 1]().clusterBounds).sort(), ['plateau-lip', 'stair-foot', 'upper-house', 'west-house'], 'on forbidden ground only the ladder (house), the hook-bound railing, the authored light string (stair-foot) and the deck pot (west-house) build');
 // the blocked run overwrote the shared list; restore the real one for the checks below
 ctx.shared.propFootprints = audit.footprints;
 

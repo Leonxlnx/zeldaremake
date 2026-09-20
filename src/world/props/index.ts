@@ -255,6 +255,42 @@ export async function create(ctx: WorldContext): Promise<WorldSystem> {
       footR = 0.12;
       // every peg reserves a little ground for the vegetation scatter (the first one through footR)
       for (let i = 1; i < line.points.length; i++) footprints.push({ x: line.points[i][0], z: line.points[i][1], r: 0.12 });
+    } else if (def.onDeck) {
+      // on a published walk deck (structures' walkway): the prop stands level on the deck's top
+      // line, `along` from the platform end, inset from the edge — no ground probe, no conform
+      const surface = ctx.shared.walkSurfaces?.[def.onDeck.surface];
+      if (!surface) {
+        skipped.push(def.id);
+        continue;
+      }
+      const a = new Vector3().fromArray(surface.deck.a);
+      const b = new Vector3().fromArray(surface.deck.b);
+      const run = new Vector3(b.x - a.x, 0, b.z - a.z);
+      const length = run.length();
+      const dir = run.clone().normalize();
+      const side = new Vector3(-dir.z, 0, dir.x);
+      const t = Math.min(1, Math.max(0, def.onDeck.along / Math.max(length, 1e-6)));
+      const p = a.clone().lerp(b, t).addScaledVector(side, def.onDeck.side * Math.max(0, surface.deck.hw - 0.23));
+      x = p.x;
+      z = p.z;
+      groundY = p.y;
+      orientation = new Quaternion();
+      contactBand = 0;
+      const size = def.size * rng.range(0.96, 1.04);
+      if (def.kind === 'pot') {
+        parts = potGeometry(rng, size, def.variant ?? 0);
+        counts.pots++;
+      } else if (def.kind === 'crate') {
+        parts = crateGeometry(rng, size);
+        counts.crates++;
+      } else if (def.kind === 'barrel') {
+        parts = barrelGeometry(rng, size);
+        counts.barrels++;
+      } else {
+        parts = bucketGeometry(rng, size);
+        counts.buckets++;
+      }
+      taken.push([x, groundY, z, footR]);
     } else if (def.kind === 'platform' && def.platform?.dais) {
       // the lookout railing: bound to LAYOUT.plateauLookout, whose author verified the
       // clearances — no footprint probe, no nudge. The stone dais (hardscape) is the deck: its top
@@ -358,7 +394,8 @@ export async function create(ctx: WorldContext): Promise<WorldSystem> {
     // prop frame → world
     const world = new Quaternion().setFromAxisAngle(UP, yaw).premultiply(orientation);
     const position = new Vector3(x, groundY, z);
-    bases.push([x, terrain.height(x, z), z]);
+    // (a prop on a published walk deck meets a built surface, not the ground — no terrain base for it)
+    if (!def.onDeck) bases.push([x, terrain.height(x, z), z]);
     placed.push({ id: def.id, kind: def.kind, cluster: def.cluster, x: +x.toFixed(3), y: +groundY.toFixed(3), z: +z.toFixed(3), tiltDeg: +((tiltUsed * 180) / Math.PI).toFixed(2) });
     footprints.push({ x: +x.toFixed(3), z: +z.toFixed(3), r: +footR.toFixed(3) });
     if (localityOf(def.cluster) === 'backside') backsideCasters.push({ x, z, r: footR + 0.25, y0: groundY - 0.1, y1: groundY + (def.kind === 'marker' ? def.size + 0.15 : def.size * 1.1), shadow: true });
