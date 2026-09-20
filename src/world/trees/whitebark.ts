@@ -120,6 +120,7 @@ export interface ToeSpec {
  * them the LOD-0 height and radius `placeWhiteBark` and the LOD bucketing read, stay the
  * round-46 geometry, so the 80 placements do not move.
  */
+const _sway = new Vector3();
 const baseRngFor = (p: WhiteBarkParams) => createRng(`whitebark/${p.seed}`).fork('base-47');
 
 /**
@@ -192,14 +193,44 @@ export function createWhiteBarkTree(p: WhiteBarkParams, palette: Palette, detail
   /** the stem's size class: the flare's heights scale with the girth (a sapling's foot is a hand tall) */
   const girth = Math.min(1.2, Math.max(0.35, R / 0.3));
   /**
+   * Round 50 (W08 at C, fable-5 on take-0123: "the stem is still a straight-sided cylinder with no
+   * taper and no irregularity"). `growthPath`'s bends are four draws that can land near zero — the
+   * survey stem's did — so the lower stem carries its own bow or S: 0.3–0.55 R at the belly (a
+   * birch's, seen from 20 m as an edge that is not a rule) in a per-stem direction, zero at the
+   * foot (the flare, the toes and the seated-root mesh stand where they did) and zero again from
+   * half height. The bow moves the SWEPT SURFACE only (`trunkDense`, below): every branch, limb and
+   * shoot keeps sampling the unbent `trunk`, so the crown, the low boughs, their leaves and the
+   * asset's bounds are byte-identical — `height` / `radius` feed the placement sampler, and a bend
+   * the limbs followed re-rolled 18 placements. Their origins stay inside the stem (0.55 R of
+   * offset against a shouldered radius ≥ 1.1 R there). Drawn from `baseRng`; the same at every LOD.
+   */
+  const sway = baseRng.fork('stem-sway-50');
+  const swayAmp = R * sway.range(0.3, 0.55) * (p.age === 'sapling' ? 0.6 : 1);
+  const swayWaves = sway.range(0.8, 1.3);
+  const swayPhase = sway.range(0, TAU);
+  const swayAz = sway.range(0, TAU);
+  /** the bow's lateral offset at stem fraction `t` — applied to the sweep's polyline only (below) */
+  const swayAt = (t: number) => smoothstep(0, 0.12, t) * (1 - smoothstep(0.36, 0.5, t)) * swayAmp * Math.sin(TAU * swayWaves * t + swayPhase);
+  /**
    * The butt flare as a radius multiplier at height `h` above the ground: a sharp foot swell
    * (e-fold 14 cm on a mature stem) over a longer butt swell, +88 % at the ground line, +16 % at
    * 0.6 m, +4 % at 2 m — the same at every LOD so the three meshes keep one silhouette. The
    * old profile (+70 % at the ground fading over 2 m) was too gradual to read as a flare at 2 m.
    */
+  /**
+   * Round 50 (W08's "tapered" at C): the flare's terms are spent by 2 m, and above the flower line
+   * — the only part of the survey stem camera C sees, 1–5 m — the stem was a 1.3 : 1 cone that reads
+   * as a pole at 22 m. The butt taper of the reference's stems runs higher: a shoulder of +22–34 %
+   * (per stem, `baseRng`) that rises from the toes' crest (0.35–1.1 m, so the foot, the toes and the
+   * roots mesh keep their radius) and is gone by 0.36 H (4.6 m on the survey stem, 2.9 m on a young
+   * one). Same at every LOD.
+   */
+  const shoulder = baseRng.fork('shoulder-50').range(0.22, 0.34);
+  const shoulderTop = Math.max(2.2, H * 0.36);
   const flareAt = (h: number) => {
     const a = Math.max(0, h);
-    return 1 + 0.5 * Math.exp(-a / (0.14 * girth)) + 0.28 * Math.exp(-a / (0.5 * girth)) + 0.1 * Math.exp(-a / (1.8 * girth));
+    const bump = smoothstep(0.35, 1.1, a) * (1 - smoothstep(1.4, shoulderTop, a));
+    return 1 + 0.5 * Math.exp(-a / (0.14 * girth)) + 0.28 * Math.exp(-a / (0.5 * girth)) + 0.1 * Math.exp(-a / (1.8 * girth)) + shoulder * bump;
   };
   const taperAt = (t: number) => tipRadius + (R - tipRadius) * Math.pow(1 - t, p.taperPower);
   // the coarse radii (27 rings) keep feeding the epicormic shoots below, as before
@@ -218,8 +249,10 @@ export function createWhiteBarkTree(p: WhiteBarkParams, palette: Palette, detail
     const spacing = a.y < 3 ? 0.18 : a.y < 6 ? 0.35 : 0.6;
     const n = Math.max(1, Math.ceil(a.distanceTo(b) / spacing));
     for (let k = 0; k < n; k++) {
-      trunkDense.push(a.clone().lerp(b, k / n));
-      trunkDenseT.push((i + k / n) / (trunk.length - 1));
+      const t = (i + k / n) / (trunk.length - 1);
+      const w = swayAt(t);
+      trunkDense.push(a.clone().lerp(b, k / n).add(_sway.set(Math.cos(swayAz) * w, 0, Math.sin(swayAz) * w)));
+      trunkDenseT.push(t);
     }
   }
   trunkDense.push(trunk[trunk.length - 1].clone());
