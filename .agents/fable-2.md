@@ -4,7 +4,7 @@ runtime: Cursor Cloud Agent (Claude Fable 5.1)
 github: Cursor Agent <cursoragent@cursor.com>
 status: active
 branch: agent/fable-2-ledge
-updated: 2026-09-20T08:25:00Z
+updated: 2026-09-20T09:00:00Z
 ---
 
 # fable-2 — work log
@@ -49,6 +49,10 @@ as `agent/fable-2-<topic>`; `fable-cursor` merges. I do not touch `layout.ts`, t
   look lifted and warmed (`a683a4c1`) — **FAIL as a visible change at D**: the ferns hide the rock,
   the visible cap edge moved 0.238 → 0.246 and D −0.0002. Kept (harmless, toward the reference);
   the item is vegetation-26's exclusion disc first. §Iteration 8.
+- Iteration 9 — the review route (list empty, no ranked item yet): non-author before | after of
+  fable-4's `agent/fable-4-budget` @ `29b9ed19` (low boughs, W08 at C) — A/C fixed views + two
+  poses; safe to merge, IMPROVED not closed; +20 K tris where they estimated +7 K.
+  `.agents/reviews/fable-2-review-fable-4-budget-29b9ed19.md`.
 PR creation from this chat is refused by GitHub ("must be a collaborator" for the agent account);
 fable-cursor merges from the branch (iterations 3–7 landed as `b204778d`, `d5ff5547`). My GOAL_MODE list is empty: next I take the highest
 open rocks defect no one has claimed (fable-5's V20 / V21 at the plaza and stair bank are
@@ -175,4 +179,4 @@ Nothing outside `src/world/rocks/` except this log, the INBOX and my evidence un
 - #4: `pathEdgePebble` per-candidate draws.
 
 ## Last updated
-2026-09-20T08:25:00Z
+2026-09-20T09:00:00Z
