@@ -694,6 +694,8 @@ export interface ButtressRootOptions {
   noise: Noise2D;
   /** fin height at the collar as a multiple of the plain root's radius (default 1.5) */
   finHeight?: number;
+  /** far base: the same fin and split-toe profile at fewer radial/longitudinal samples */
+  coarse?: boolean;
   /**
    * path mask (0–1) under a local (x, z): where a ring's centre stands on paving the fin shrinks
    * to the plain root's section and is pressed under the surface, so no near root ever stands
@@ -742,7 +744,7 @@ export function buttressRoot(writer: GeometryWriter, path: Vector3[], radii: num
   const rr = o.rng;
   // 30 around (round 47; 22 through round 46): a stand-next pose (sn-bole-lantern-tree) puts the
   // lens 0.4 m from a fin's crest, where the tall thin section's 16° facets read as cut planes
-  const sides = 30;
+  const sides = o.coarse ? 12 : 30;
   const split = 0.58 + rr() * 0.14;
   const toeCount = rr() < 0.45 ? 3 : 2;
   const toeSpread = 0.32 + rr() * 0.28;
@@ -757,7 +759,7 @@ export function buttressRoot(writer: GeometryWriter, path: Vector3[], radii: num
   const tangentAt = (t: number) => sampleAt(Math.min(1, t + 0.03)).p.sub(sampleAt(Math.max(0, t - 0.03)).p).normalize();
   // ---- the fin: collar → split + a short taper into the toes ----
   const finEnd = Math.min(0.97, split + 0.12);
-  const finRings = 14;
+  const finRings = o.coarse ? 7 : 14;
   const finH = o.finHeight ?? 1.5;
   const mossStrength = o.mossStrength ?? 1;
   let previous: number[] | null = null;
@@ -851,8 +853,8 @@ export function buttressRoot(writer: GeometryWriter, path: Vector3[], radii: num
     const tipReach = axisReach(origin.p.clone().addScaledVector(dir, len));
     if (tipReach > o.maxReach) len = Math.max(0.6, len - (tipReach - o.maxReach));
     const r0 = origin.r * (toeCount === 3 ? 0.6 : 0.68) * (spreadIndex === 0 ? 1.1 : 1);
-    const segs = 8;
-    const toeSides = 8;
+    const segs = o.coarse ? 4 : 8;
+    const toeSides = o.coarse ? 6 : 8;
     const g0 = o.groundAt(origin.p.x, origin.p.z);
     const startAbove = origin.p.y - g0;
     let prevRow: number[] | null = null;
