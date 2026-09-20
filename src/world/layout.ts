@@ -635,7 +635,7 @@ export const EXPANSION = {
     [-9.6, 0, 11.0],
     [-10.8, 0, 12.6],
     [-12.2, 0, 14.4],
-    [-13.95, 0, 15.2],
+    [-14.45, 0, 14.7],
   ] as [number, number, number][],
   /** disc parameters (`steppingStonesAlong`): the reference's 0.8–1.0 m slabs nearly touching */
   discs: { from: 0.55, spacing: 1.05, radius: [0.38, 0.44] as [number, number], wobble: 0.15 },
@@ -649,10 +649,22 @@ export const EXPANSION = {
    * `skirt` m of soft edge along the ends and `back` m behind. Mean face 34°, 45° at mid-slope
    * (slope 0.3 in the mask's units — the splat keeps it grass). The white-bark at (−16.3, 13.0)
    * stands 0.4 m beyond the face's toe (its ground is unchanged); the ones at (−19.9, 13.5) /
-   * (−21.1, 21.2) are clear of the skirts. 23 m from camera C at bearings −31° … −42°: outside
+   * (−21.1, 21.2) are clear of the skirts. 23 m from camera C at bearings −33° … −42°: outside
    * its frame, and `cClip` zeroes the landform 0.9 m west of C's edge regardless.
+   *
+   * The lip's SE end is set by the TERRAIN'S OWN SHADOW, not by `cClip`: the detail ring casts,
+   * and a 1.7 m top edge throws 2.15 m ESE (sun azimuth −128°, elevation 38°: 1.27 m per m of
+   * height, 0.99 of it across C's edge). With the top's SE corner (u = halfLength, v = 0) 2.75 m
+   * west of the ray the shadow tip stays 0.5 m outside C's frame; the skirt's taper beyond it
+   * (height falling faster than the tip advances) and the face (0.27 m closer to the ray per m
+   * down, ≤ 1.1 m high at mid-slope) both land further out. A first cut with the corner at 1.4 m
+   * (halfLength 2.8, centre 0.7 m further SE) put the tip 0.4 m INSIDE the frame at z 19.8–21.5:
+   * 27 pixels at C's right edge, ≤ 3 LSB (gauntlet/tmp/shadow-probe-exp2.mjs marches the sun ray
+   * off the live and legacy samplers and reports every point of C's frame whose self-shadow
+   * differs). The west end did not move (the skirt still ends 0.9 m short of the (−19.9, 13.5)
+   * white-bark); the lip is 4.2 m.
    */
-  southBank: { x: -16.6, z: 17.38, yawDeg: 45, halfLength: 2.8, face: 2.6, depth: 3.4, skirt: 1.5, back: 2.2, height: 1.95 },
+  southBank: { x: -17.095, z: 16.885, yawDeg: 45, halfLength: 2.1, face: 2.6, depth: 3.4, skirt: 1.5, back: 2.2, height: 1.95 },
   /**
    * Camera C's right (west) frustum edge on the ground: the ray from C (2.33, −7.67) at bearing
    * −29.52° (heading 7.51° − half-width 37.03°) — x = 2.33 − 0.5663 · (z + 7.67). Every live-only
@@ -730,15 +742,15 @@ export const EXPANSION_STAIRS: StairDef[] = [
 
 /**
  * Rope fences on the south bank's lip, 0.15 m behind it, either side of the flight (its cheeks
- * and kerbs span lip coordinates −0.75 … 1.35): three posts west, two east. The east run stops
- * at u 1.8: the sun (azimuth −128°, elevation 38°) throws a 1.2 m post's shadow 1.6 m ESE, and
- * the last post's shadow tip is what comes nearest camera C's frame edge (1.6° outside at u 1.8;
- * 0.3° at the bank's end, u 2.7 — the terrain there is clipped by `cClip`, a cast shadow is not;
- * util/expansionLocality.ts tests the same tip with a 0.65 m sphere).
+ * and kerbs span lip coordinates −0.75 … 1.35), on the flat top (|u| < halfLength 2.1): two
+ * posts west, two east. The sun (azimuth −128°, elevation 38°) throws a 1.2 m post's shadow
+ * 1.6 m ESE; the east run's last post (u 1.95) stands 3.1 m west of camera C's edge, its shadow
+ * tip 1.5 m — the terrain there is clipped by `cClip`, a cast shadow is not;
+ * util/expansionLocality.ts tests the same tip with a 0.65 m sphere.
  */
 export const EXPANSION_ROPE_FENCES: FenceDef[] = [
-  { id: 'south-bank-west', style: 'rope', points: [-2.6, -1.75, -0.9].map((u) => bankP3(u, -0.15, 0)) },
-  { id: 'south-bank-east', style: 'rope', points: [1.3, 1.8].map((u) => bankP3(u, -0.15, 0)) },
+  { id: 'south-bank-west', style: 'rope', points: [-1.95, -1.15].map((u) => bankP3(u, -0.15, 0)) },
+  { id: 'south-bank-east', style: 'rope', points: [1.45, 1.95].map((u) => bankP3(u, -0.15, 0)) },
 ];
 
 /**

@@ -108,6 +108,31 @@ const fmt = (x, z) => `(${x.toFixed(2)}, ${z.toFixed(2)})`;
   for (const v of LAYOUT.viewpoints) assert.equal(live.height(v.position[0], v.position[2]), legacy.height(v.position[0], v.position[2]), `viewpoint ${v.id} ground`);
   // the legacy mask has none of the expansion (the paved plaza, the spine and the houses are unchanged)
   for (const s of expansionSteppingStones()) assert.equal(hf.surfaceMask(s.x, s.z, 'legacy').path, 0, `legacy mask has no disc at ${fmt(s.x, s.z)}`);
+
+  // The detail ring CASTS shadows (terrain/index.ts), and a cast shadow is not clipped by `cClip`:
+  // march the sun ray from every ground point of C's frame near its west edge (0.5 m outside …
+  // 1.5 m inside, z 6 … 36 — the bank and both flights) off the live and the legacy sampler; the
+  // live terrain must shade exactly the points the legacy terrain shades (take-0121's C had 27
+  // pixels at ≤ 3 LSB from the bank's SE corner throwing 0.4 m into the frame before the bank
+  // was shortened; see layout.ts `southBank`).
+  const { sunDirection } = loadTs(path.join(here, '../lighting/sun.ts'));
+  const { WORLD } = loadTs(path.join(here, '../config.ts'));
+  const sun = sunDirection(WORLD.sun.azimuthDeg, WORLD.sun.elevationDeg);
+  const cosEdge = Math.cos(Math.atan(-c.dxdz));
+  const shaded = (T, x, z) => {
+    const g = T.height(x, z);
+    for (let t = 0.1; t < 12; t += 0.05) if (T.height(x + sun.x * t, z + sun.z * t) > g + sun.y * t + 0.01) return true;
+    return false;
+  };
+  let marched = 0;
+  for (let z = 6; z <= 36; z += 0.25) {
+    for (let inside = -0.5; inside <= 1.5; inside += 0.1) {
+      const x = rayX(z) + inside / cosEdge;
+      assert.equal(shaded(live, x, z), shaded(legacy, x, z), `the live terrain's self-shadow at ${fmt(x, z)} (${inside.toFixed(1)} m inside C's edge) is the legacy one`);
+      marched++;
+    }
+  }
+  assert.ok(marched > 2000, `marched the sun ray along C's edge (${marched})`);
 }
 
 // 2. the south bank
@@ -115,7 +140,8 @@ const fmt = (x, z) => `(${x.toFixed(2)}, ${z.toFixed(2)})`;
   const B = EXPANSION.southBank;
   assert.ok(B.height >= 1.6 && B.height <= 2.0, `bank rise 1.6–2 m over the plain (${B.height})`);
   // the flat top: within the ± 14 cm medium breakup over the top region behind the lip
-  for (const u of [-2.4, -1.2, 0, 1.2, 2.4]) {
+  const uTop = [-0.85, -0.45, 0, 0.45, 0.85].map((f) => +(f * B.halfLength).toFixed(2));
+  for (const u of uTop) {
     for (const v of [-0.3, -1.2, -2.2, -3.0]) {
       const [x, z] = southBankPoint(u, v);
       near(live.height(x, z), B.height, 0.16, `bank top flat at u ${u}, v ${v} ${fmt(x, z)}`);
@@ -133,7 +159,7 @@ const fmt = (x, z) => `(${x.toFixed(2)}, ${z.toFixed(2)})`;
     assert.ok(B.height - toe >= 1.5, `the bank rises ≥ 1.5 m over the plain at u ${u} (${B.height - toe})`);
   }
   // the toe is untouched ground (the legacy plain) — off the flight's foot bank (u −0.5 … 1.1)
-  for (const u of [-2.4, 2.4]) {
+  for (const u of [-0.85 * B.halfLength, 0.85 * B.halfLength]) {
     const [tx, tz] = southBankPoint(u, B.face + 1.0);
     near(live.height(tx, tz), legacy.height(tx, tz), 0.03, `the plain beyond the toe at u ${u} is the legacy ground`);
   }
