@@ -11,6 +11,7 @@
 import { Color, Frustum, Group, InstancedMesh, Matrix4, Mesh, PerspectiveCamera, Quaternion, Sphere, Vector3, type BufferGeometry, type Camera } from 'three';
 import type { WorldContext, WorldSystem } from '../system';
 import { Noise2D, clamp, smoothstep } from '../util/noise';
+import { northBox, northVisible } from '../util/northLocality';
 import { buildRock, type RockOptions } from './rockgen';
 import { createRockMaterial, NEAR_FADE_M, NEAR_TILE_M } from './material';
 import { dressRock, mergeRockParts } from './dressing';
@@ -930,6 +931,9 @@ export async function create(ctx: WorldContext): Promise<WorldSystem> {
   })();
   const ledgeInfo: { id: string; height: number; length: number; triangles: number; mossShare: number; wetShare: number; contacts: number; maxFootGap: number }[] = [];
   const ledgeContacts: [number, number, number][] = [];
+  // the ledge faces stand in the north locality (z < −55): drawn only within its visibility radius
+  const ledgeMeshes: Mesh[] = [];
+  const nBox = northBox(ctx.layout);
   if (ledgeDefs.length) {
     const ledgeMaterial = await createRockMaterial(ctx.textures, ctx.config, anisotropy, 1.4, 0.85, { near: true, fade: LEDGE_FADE_M });
     const lRng = rng.fork('ledges');
@@ -940,6 +944,7 @@ export async function create(ctx: WorldContext): Promise<WorldSystem> {
       mesh.receiveShadow = true;
       mesh.name = `ledge-${def.id}`;
       group.add(mesh);
+      ledgeMeshes.push(mesh);
       let maxFootGap = 0;
       for (const c of built.contacts) maxFootGap = Math.max(maxFootGap, Math.abs(c[1] - T.height(c[0], c[2])));
       ledgeContacts.push(...built.contacts);
@@ -1052,9 +1057,13 @@ export async function create(ctx: WorldContext): Promise<WorldSystem> {
     group,
     update(_dt, _t, c) {
       nearUpdate(c.camera, false);
+      const show = northVisible(nBox, c.camera.position.x, c.camera.position.z);
+      for (const m of ledgeMeshes) m.visible = show;
     },
     onCameraMove(camera) {
       nearUpdate(camera, true);
+      const show = northVisible(nBox, camera.position.x, camera.position.z);
+      for (const m of ledgeMeshes) m.visible = show;
     },
     dispose() {
       for (const nr of nearRocks) nr.near.geometry.dispose();

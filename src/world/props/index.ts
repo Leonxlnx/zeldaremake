@@ -10,6 +10,7 @@
 import { BufferGeometry, Color, Group, Mesh, Quaternion, Vector3 } from 'three';
 import { mergeGeometries } from 'three/addons/utils/BufferGeometryUtils.js';
 import type { WorldContext, WorldSystem } from '../system';
+import { inNorth, northBox, northVisible } from '../util/northLocality';
 import { createRng } from '../util/prng';
 import { barrelGeometry, bucketGeometry, crateGeometry, ladderGeometry, markerGeometry, type Part, platformGeometry, potGeometry } from './geometry';
 import { PROP_LAYOUT, type PropDef } from './layout';
@@ -373,9 +374,13 @@ export async function create(ctx: WorldContext): Promise<WorldSystem> {
 
   // merge per cluster and material
   let meshes = 0;
+  const nBox = northBox(ctx.layout);
+  const northGroups: Group[] = [];
   for (const [cluster, batches] of clusters) {
     const group = new Group();
     group.name = cluster;
+    // a cluster whose props stand in the north locality draws only within its visibility radius
+    if (PROP_LAYOUT.some((d) => d.cluster === cluster && inNorth(nBox, d.x, d.z))) northGroups.push(group);
     for (const key of MATERIAL_KEYS) {
       const list = batches[key];
       if (!list.length) continue;
@@ -419,6 +424,14 @@ export async function create(ctx: WorldContext): Promise<WorldSystem> {
   return {
     name: 'props',
     group: root,
+    update(_dt, _t, c) {
+      const show = northVisible(nBox, c.camera.position.x, c.camera.position.z);
+      for (const g of northGroups) g.visible = show;
+    },
+    onCameraMove(camera) {
+      const show = northVisible(nBox, camera.position.x, camera.position.z);
+      for (const g of northGroups) g.visible = show;
+    },
     dispose() {
       ownedGeometry.forEach((g) => g.dispose());
       materials.dispose();

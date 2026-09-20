@@ -1823,7 +1823,17 @@ export async function create(ctx: WorldContext): Promise<WorldSystem> {
   const whiteGroup = new Group();
   whiteGroup.name = 'white-bark';
   familyMeshes(whites, 'whitebark', mats.whiteTree, mats.whiteTreeDepth, whiteGroup);
-  whiteGroup.add(createWhiteBarkRoots(whites.map((w) => w.params), whitePlacements, terrain, palette, mats.whiteTree, mats.whiteTreeDepth, ctx.quality.shadows));
+  // Root flares (fable-4) only on the white-barks a walker can get near: within WHITE_ROOT_REACH_M of
+  // the walkable network (spine, house branch, north path). The flare reads within ~20 m; on the 80
+  // trees it was one always-drawn mesh, +80 K triangles in camera A (W38 ceiling 9.0 M).
+  const WHITE_ROOT_REACH_M = 24;
+  const walkXZ: [number, number][][] = [
+    ctx.layout.pathSpine.map((p) => [p[0], p[2]] as [number, number]),
+    ctx.layout.pathToHouse.map((p) => [p[0], p[2]] as [number, number]),
+    ctx.layout.northPath.map((p) => [p[0], p[2]] as [number, number]),
+  ];
+  const rootPlacements = whitePlacements.filter((p) => walkXZ.some((poly) => poly.length > 1 && spineDistance(poly, p.x, p.z) <= WHITE_ROOT_REACH_M));
+  whiteGroup.add(createWhiteBarkRoots(whites.map((w) => w.params), rootPlacements, terrain, palette, mats.whiteTree, mats.whiteTreeDepth, ctx.quality.shadows));
   group.add(whiteGroup);
   ctx.progress('trees', 0.5);
   await yieldFrame();

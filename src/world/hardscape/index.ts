@@ -7,6 +7,7 @@ import { Group, InstancedMesh, Matrix4, Mesh } from 'three';
 import { mergeGeometries } from 'three/examples/jsm/utils/BufferGeometryUtils.js';
 import type { WorldContext, WorldSystem } from '../system';
 import { STONE_CIRCLE_STONES } from '../terrain/heightfield';
+import { northVisible } from '../util/northLocality';
 import { STONE_NEAR, createStoneMaterial } from './material';
 import { buildStairway, stairFrame, stairToWorld, type StairFrame } from './stairs';
 import { isPaved, nearIsolatedDisc, pavedLevel, placeFlagstones, rimDistance, type PavingContext } from './flagstones';
@@ -743,13 +744,8 @@ export async function create(ctx: WorldContext): Promise<WorldSystem> {
   northMesh.receiveShadow = paving.mesh.receiveShadow;
   northMesh.frustumCulled = paving.mesh.frustumCulled;
   group.add(northMesh);
-  /** the north paving and its joint fill draw only within this distance of their bounding box */
-  const NORTH_PAVING_VISIBLE_M = 45;
-  const northPavingVisible = (cx: number, cz: number) => {
-    const dx = Math.max(nbbox.x0 - cx, 0, cx - nbbox.x1);
-    const dz = Math.max(nbbox.z0 - cz, 0, cz - nbbox.z1);
-    return Math.hypot(dx, dz) < NORTH_PAVING_VISIBLE_M;
-  };
+  /** the north paving and its joint fill draw only within the north locality's visibility radius */
+  const northPavingVisible = (cx: number, cz: number) => northVisible(nbbox, cx, cz);
   const daisTriangles = dais.vertexCount / 3;
   const monolithMesh = new Mesh(monoliths.build(), stoneMat);
   monolithMesh.castShadow = true;
