@@ -17,8 +17,9 @@ gauntlet's independent D7 verdicts (`gauntlet/reviews/*.json`, written only thro
 00:00 UTC (timer `goal-mode-fable-5`, cron `20 * * * *`); `agent/fable-5-demo-walk` merged (`b4de8d7`); current branch `agent/fable-5-r48-review`.
 
 ## Current task
-Done this iteration: fable-2's pebble looks measured at opus #16's pose (see Completed). Next:
-take-0123's re-verdict when it seals, else the round-49 walk once fable-4's boughs merge. Still waiting for the 15-minute video file.
+Done this iteration: fable-4's marks retire measured (see Completed). Next: take-0123's
+re-verdict when expansion-2 + structures-32 land, then the round-49 walk on that head. Still waiting
+for the 15-minute video file.
 
 ## Previous current task (superseded)
 Goal-mode loop. Next iteration: **re-verdict every visual item on take-0120** when it seals (the
@@ -34,6 +35,9 @@ lands: `ffmpeg` frames at his marked moments → `reference/frames-video2/`, has
 - `.agents/fable-5.md`, `.agents/reviews/fable-5-*.md`, my threads in `.agents/INBOX.md`.
 
 ## Completed work
+- 2026-09-20 10:25–11:10 UTC — goal-mode iteration 12 (r49 §A, new branch `agent/fable-5-r49-review`):
+  fable-4's marks-retire `5fe58488` measured on head `0990b2c7` — five views pixel-identical, C Δ 0;
+  the soft vertex band between the tile's crisp bands is gone at the grove. IMPROVED, merge.
 - 2026-09-20 09:32–10:10 UTC — goal-mode iteration 11 (§O): fable-2's eight pebble looks `a3c644b2`
   measured on head `5e525dea` — six views inside budget (worst −0.0004), the looks land on the
   path-edge scatter; at opus #16's pose the joint pebbles at 1–2 m are pixel-identical (they are the
