@@ -8,6 +8,7 @@
 import { Vector3 } from 'three';
 import { houseSteppingStones, type SteppingStone } from '../layout';
 import type { WorldContext } from '../system';
+import { STONE_CIRCLE_STONES } from '../terrain/heightfield';
 import { Noise2D, smoothstep, clamp, lerp } from '../util/noise';
 
 export interface FieldSample {
@@ -270,6 +271,37 @@ const NORTH_FLOOR_Z: readonly [number, number] = [-40, -50];
 /** … and, north of the hollow's mouth (z band), across this distance band off the path (m) */
 const NORTH_FLOOR_OFF_Z: readonly [number, number] = [-22, -29];
 const NORTH_FLOOR_OFF_PATH: readonly [number, number] = [5.5, 10];
+/**
+ * Round 48 (vegetation-26; the round-47 reviews read expansion-1's ground north of the log arch
+ * as "a flat plane" with "nothing growing at the trees' feet") — the zones of that ground. Every
+ * one is gated on NORTH_ZONE_Z (0 south of the first value, 1 north of the second): no fixed
+ * camera sees ground past the arch's north lip (layout.ts `northClearing`: hidden by the north
+ * rise from A / B / E, under the arch approach's ground line from D), so the tiles and streams
+ * these zones touch are the walk's alone. The per-tile passes (grass.ts, carpet.ts) read them
+ * directly — a tile wholly north of the gate re-seats, nothing south of it moves; the corridor
+ * passes over one shared stream (plants.ts, litter.ts) never read them: the new ground takes
+ * new passes with their own streams after every existing one.
+ *
+ * - `clearingLawn`: the second clearing's banks (CLEARING_BOX around `northClearing`, feathered
+ *   over CLEARING_FEATHER m) and the `ledgeTerrace` pad (TERRACE_PAD_FEATHER) are lawn again, not
+ *   forest floor — turf rises up the banks and closes over the pad a Kokiri stands on. Returns
+ *   the pad and bank weights separately: the pad takes full turf, the banks keep a share of the
+ *   forest floor's darkening (BANK_FLOOR_SHARE) so they read as shaded ground under the far trees.
+ * - `farFloor`: the forest floor beyond the tunnel — within FAR_FLOOR_REACH m of `layout.northPath`
+ *   (feathered over the last FAR_FLOOR_FEATHER m), off the clearing lawn. Litter, humus (the
+ *   terrain's albedo patch follows it: terrain/material.ts FF_FAR_*), dark ferns and a low herb
+ *   carpet grow there.
+ */
+const NORTH_ZONE_Z: readonly [number, number] = [-59, -62];
+/** [x0, z0, x1, z1] of the clearing's banks (expansion-1's brief: x −9…9, z −62…−82) */
+const CLEARING_BOX: readonly [number, number, number, number] = [-9, -82, 9, -62];
+const CLEARING_FEATHER = 2.0;
+const TERRACE_PAD_FEATHER: readonly [number, number] = [0.15, 0.6];
+export const BANK_FLOOR_SHARE = 0.35;
+const FAR_FLOOR_REACH = 25;
+const FAR_FLOOR_FEATHER = 6;
+/** the standing stones' block half-width (m) the herb layer keeps off (heightfield `standingStoneMask` is 1 inside 0.26) */
+export const STANDING_STONE_CLEAR = 0.3;
 
 /**
  * The paved rim the layout polylines do not describe (`buildPavedRim`): the plaza discs of the
@@ -1347,6 +1379,127 @@ export class VegField {
   /** true where the corridor grows ground the detail disc did not (round 44): reach ≤ `R`, plain distance > `R` */
   inCorridor(x: number, z: number, R = this.ctx.config.detailRadius): boolean {
     return Math.hypot(x, z) > R && this.reach(x, z) <= R;
+  }
+
+  // ---- round 48: the ground north of the log arch (NORTH_ZONE_Z and the zones under it)
+
+  /** 0 south of the arch's north lip, 1 from NORTH_ZONE_Z[1] north: every round-48 zone is gated on it */
+  northGate(z: number): number {
+    return 1 - smoothstep(NORTH_ZONE_Z[1], NORTH_ZONE_Z[0], z);
+  }
+
+  /** signed distance (m) from the north path's paving edge (`layout.northPath`, its own half width; negative on the paving) */
+  northPathEdgeDistance(x: number, z: number): number {
+    return polylineDistance(this.ctx.layout.northPath, x, z) - this.ctx.layout.northPathHalfWidth;
+  }
+
+  /** the ledge terrace's flat pad (`layout.ledgeTerrace`): 1 on the top, feathered out over TERRACE_PAD_FEATHER past its half extents */
+  terracePad(x: number, z: number): number {
+    const t = this.ctx.layout.ledgeTerrace;
+    const yaw = (t.yawDeg * Math.PI) / 180;
+    const dx = x - t.x;
+    const dz = z - t.z;
+    const u = dx * Math.cos(yaw) - dz * Math.sin(yaw);
+    const v = dx * Math.sin(yaw) + dz * Math.cos(yaw);
+    const out = Math.max(Math.abs(u) - t.halfLength, Math.abs(v) - t.halfDepth);
+    return 1 - smoothstep(TERRACE_PAD_FEATHER[0], TERRACE_PAD_FEATHER[1], out);
+  }
+
+  /**
+   * The second clearing's lawn (round 48): `pad` 0..1 on the ledge terrace's top, `bank` 0..1 on
+   * the clearing's banks (CLEARING_BOX off the pad), both gated on NORTH_ZONE_Z. Off the paving
+   * by the masks as usual (the callers' `allowed`); the terrace's rock face (cliff) grows nothing.
+   */
+  clearingLawn(x: number, z: number): { pad: number; bank: number } {
+    const gate = this.northGate(z);
+    if (gate <= 0) return { pad: 0, bank: 0 };
+    const pad = this.terracePad(x, z) * gate;
+    const inBox = softBox(x, z, CLEARING_BOX, CLEARING_FEATHER) * gate;
+    return { pad, bank: inBox * (1 - pad) };
+  }
+
+  /**
+   * The forest floor beyond the tunnel (round 48): 1 within FAR_FLOOR_REACH − FAR_FLOOR_FEATHER m
+   * of the north path's centreline north of the gate, fading to 0 at FAR_FLOOR_REACH (z ≈ −95 at
+   * the clearing's meridian); the clearing lawn (pad and banks) takes none of it. It runs past the
+   * field grid's north edge — the passes over it sample the terrain exactly (`sampleExact`).
+   */
+  farFloor(x: number, z: number): number {
+    const gate = this.northGate(z);
+    if (gate <= 0) return 0;
+    const d = polylineDistance(this.ctx.layout.northPath, x, z);
+    const reach = 1 - smoothstep(FAR_FLOOR_REACH - FAR_FLOOR_FEATHER, FAR_FLOOR_REACH, d);
+    if (reach <= 0) return 0;
+    const lawn = this.clearingLawn(x, z);
+    return gate * reach * (1 - Math.max(lawn.pad, lawn.bank));
+  }
+
+  /** distance (m) from the nearest standing stone's axis (heightfield STONE_CIRCLE_STONES); +Infinity far from the clearing */
+  standingStoneDistance(x: number, z: number): number {
+    const nc = this.ctx.layout.northClearing;
+    if (Math.abs(x - nc.x) > nc.radius + 2 || Math.abs(z - nc.z) > nc.radius + 2) return Infinity;
+    let best = Infinity;
+    for (const s of STONE_CIRCLE_STONES) best = Math.min(best, Math.hypot(x - s.x, z - s.z));
+    return best;
+  }
+
+  /**
+   * True inside a village prop's ground footprint (`ctx.shared.propFootprints`, published by the
+   * props system before vegetation builds — fable-3's fern-through-the-pot) grown by `pad` m. The
+   * array is undefined until props publishes; nothing is rejected then.
+   */
+  insidePropFootprint(x: number, z: number, pad = 0): boolean {
+    const fp = this.ctx.shared?.propFootprints;
+    if (!fp) return false;
+    for (const f of fp) {
+      const r = f.r + pad;
+      if ((x - f.x) * (x - f.x) + (z - f.z) * (z - f.z) < r * r) return true;
+    }
+    return false;
+  }
+
+  /** the published prop footprints' count (audit) */
+  propFootprintCount(): number {
+    return this.ctx.shared?.propFootprints?.length ?? 0;
+  }
+
+  /**
+   * Distance (m) from the nearest paving north of the arch: the north path's edge, the second
+   * clearing's paved rim (`northClearing`), the `ledge` flight — negative on any of them. The
+   * disc-era `edgeDistance` knows the spine only, which ends at the arch.
+   */
+  northPavingDistance(x: number, z: number): number {
+    const nc = this.ctx.layout.northClearing;
+    return Math.min(this.northPathEdgeDistance(x, z), Math.hypot(x - nc.x, z - nc.z) - nc.radius, this.stairDistance(x, z));
+  }
+
+  /** true inside the field grid (the far floor runs past its north edge, `northExtent`) */
+  inGrid(x: number, z: number): boolean {
+    return Math.abs(x) < this.extent - this.cell && z < this.extent - this.cell && z > -this.northExtent + this.cell;
+  }
+
+  /**
+   * The exact terrain masks, normal and height at (x, z) as a FieldSample (round 48), for the far
+   * floor's ground past the grid's north edge — where `sample` answers "not allowed". Inside the
+   * grid the bilinear `sample` is the one every earlier pass reads; the far passes take this one
+   * everywhere so a pass does not change rule at the grid's edge.
+   */
+  sampleExact(x: number, z: number, out: FieldSample): FieldSample {
+    const T = this.ctx.terrain;
+    const m = T.mask(x, z);
+    T.normal(x, z, this.tmpN);
+    out.allow = m.path < 0.5 && m.stairs < 0.5 && m.structure < 0.5 && m.cliff < 0.8 ? 1 : 0;
+    out.path = m.path;
+    out.stairs = m.stairs;
+    out.structure = m.structure;
+    out.cliff = m.cliff;
+    out.plateau = m.plateau;
+    out.slope = 1 - clamp(this.tmpN.y, 0, 1);
+    out.nx = this.tmpN.x;
+    out.ny = this.tmpN.y;
+    out.nz = this.tmpN.z;
+    out.h = T.height(x, z);
+    return out;
   }
 }
 

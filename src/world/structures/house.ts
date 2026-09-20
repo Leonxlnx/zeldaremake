@@ -86,6 +86,7 @@
 import {
   BoxGeometry,
   BufferGeometry,
+  CanvasTexture,
   CatmullRomCurve3,
   CircleGeometry,
   Color,
@@ -93,6 +94,8 @@ import {
   DoubleSide,
   Float32BufferAttribute,
   Group,
+  LinearFilter,
+  LinearMipmapLinearFilter,
   LineCurve3,
   type Material,
   Matrix4,
@@ -101,7 +104,10 @@ import {
   MeshStandardMaterial,
   PlaneGeometry,
   PointLight,
+  RepeatWrapping,
   SphereGeometry,
+  SRGBColorSpace,
+  type Texture,
   TorusGeometry,
   Vector2,
   Vector3,
@@ -204,8 +210,8 @@ export interface HouseBuild {
   bases: [number, number, number][];
   lanterns: LanternRig[];
   lights: PointLight[];
-  /** materials created for this house (disposed by the system) */
-  materials: Material[];
+  /** materials (and round 48: the rug's canvas texture) created for this house, disposed by the system */
+  materials: { dispose(): void }[];
   roots: number;
   branches: number;
   leaves: number;
@@ -306,6 +312,13 @@ interface LanternSpec {
   tint?: LanternKind;
   /** pod scale (default 1; round 47's cluster pods are a little smaller) */
   scale?: number;
+  /**
+   * Round 48: metres the pod hangs BEHIND the bough line, back along the door axis (−F) into the
+   * porch recess under the soffit — camera B is face-on to the door, so a pod set straight back
+   * behind a front-rank pod sits on B's ray through it and is covered by it, while the walk poses
+   * that come at the door from the west (w29–w31, 15–19° off B's bearing) see it beside it.
+   */
+  back?: number;
 }
 
 // Reference B: three pods in a loose row under the eave just left of / over the door (frame
@@ -339,6 +352,14 @@ const LANTERNS: Record<string, LanternSpec[]> = {
     // row — and cost B 0.0031 SSIM against frame 14 s, which shows three; two cost half that.)
     { a: -0.11, cord: 0.3, hook: 'bough', tint: 'orange', scale: 0.88 },
     { a: 0.02, cord: 0.34, hook: 'bough', tint: 'lime', scale: 0.86 },
+    // Round 48 (structures-31, fable-5 #7: the demo's house bough carries 7–8 pods clustered):
+    // a sixth and seventh, hung 0.5 m BEHIND the front rank's orange and left lime pods (`back`)
+    // on B's rays through them — B looks up 4.5° at the cluster, so a pod half a metre further
+    // along the ray sits ≈ 4 cm higher (cords 0.10 / 0.0 against the front's 0.14 / 0.03) and is
+    // covered by the pod in front; from the west-side walk poses the second rank shows beside
+    // the first. Smaller (0.84) so the front pods cover them; one orange, one lime. Appended.
+    { a: -0.04, cord: 0.1, hook: 'bough', tint: 'orange', scale: 0.84, back: 0.5 },
+    { a: -0.18, cord: 0.0, hook: 'bough', tint: 'lime', scale: 0.84, back: 0.5 },
   ],
   // the upper house's pods hang on its plateau-side flanks: with Saria's cap lowered its front
   // shows above her roof in B, where the reference has only dark canopy (no lit pods there)
@@ -737,16 +758,17 @@ function indoorFog<M extends MeshStandardMaterial | MeshBasicMaterial>(base: M, 
  * the doorway plane (`indoorFog`) so the haze does not also fill the room. Double-sided so the
  * flat room planes need no winding.
  */
-function roomMaterial(mats: StructureMaterials, color = 0x3c3b3e, planked = false): MeshStandardMaterial {
+function roomMaterial(mats: StructureMaterials, color = 0x3c3b3e, planked = false, map: Texture | null = null): MeshStandardMaterial {
   // Round 46 (structures-29, survey-2 #16): the room's surfaces are PLANKED — the weathered
   // planks' colour and normal maps (the fences' / Saria's boards) under the same mean albedo as
   // the old flat tint (the map's linear mean is (0.081, 0.058, 0.044); the tint is divided by
   // it), so the lamp pools now show grain and board lines on the walls and the floor instead of
   // a smooth dark plane. The shelf props keep the flat material.
+  // (round 48: `map` — a texture of the caller's own, the rug's braid — in place of the planks)
   const tint = new Color(color);
-  if (planked) tint.multiply(new Color(1 / 0.081, 1 / 0.058, 1 / 0.044));
+  if (planked && !map) tint.multiply(new Color(1 / 0.081, 1 / 0.058, 1 / 0.044));
   const m = new MeshStandardMaterial({
-    map: planked ? mats.wood.map : null,
+    map: map ?? (planked ? mats.wood.map : null),
     normalMap: planked ? mats.wood.normalMap : mats.interior.normalMap,
     normalScale: planked ? new Vector2(0.7, 0.7) : new Vector2(0.3, 0.3),
     roughness: 1,
@@ -774,6 +796,115 @@ function roomMaterial(mats: StructureMaterials, color = 0x3c3b3e, planked = fals
   };
   m.customProgramCacheKey = () => 'structures:room-glow';
   return m;
+}
+
+type RGB = [number, number, number];
+const sgnPow48 = (x: number, p: number) => Math.sign(x) * Math.pow(Math.abs(x), p);
+
+/**
+ * Round 48 (structures-31, opus-review #11 "smooth flat-shaded forms"): a CHAMFERED BOX for the
+ * room's boards and brackets — a superellipsoid of exponent `e` (0.1: flat faces, the edges
+ * rolled over ≈ 8 % of the half-size) about the origin, half-sizes along x / y / z, so a shelf
+ * catches the lamp on a soft edge instead of a hard box corner. `tint(x, y, z)` in local
+ * −1…1 coordinates. 16 × 9 samples (the superellipse parametrisation crowds them at the edges).
+ */
+function softBox(sx: number, sy: number, sz: number, e: number, tint: (x: number, y: number, z: number) => RGB): BufferGeometry {
+  const g = gridSurface(
+    (u, v, out) => {
+      const th = u * TAU;
+      const ph = (v - 0.5) * Math.PI;
+      const cp = Math.cos(ph);
+      const x = sgnPow48(cp, e) * sgnPow48(Math.cos(th), e);
+      const y = sgnPow48(Math.sin(ph), e);
+      const z = sgnPow48(cp, e) * sgnPow48(Math.sin(th), e);
+      out.position.set(x * sx, y * sy, z * sz);
+      out.uv = [u * 2, v];
+      out.color = tint(x, y, z);
+    },
+    { cols: 16, rows: 9, closedU: true },
+  );
+  faceTowards(g, (p, o) => o.copy(p).multiplyScalar(4));
+  return g;
+}
+
+/**
+ * Round 48 (structures-31, #11 "the rug a flat concentric decal"): a BRAIDED RUG's cloth as a
+ * texture — three plaited bands (one per tone of the rug's palette) stacked in v, each a row of
+ * slanted, alternately-leaning stitches with a highlight along the upper edge and a shadow
+ * under it, the fibres' fleck over everything. Tiled round the rug (u) and across its bands (v),
+ * the rug's vertex colour carrying only the wear. 256 × 192, sRGB, generated once per house
+ * (disposed with the house's materials).
+ */
+function braidedRugTexture(seed: number): Texture {
+  const W = 256;
+  const H = 192;
+  const c = document.createElement('canvas');
+  c.width = W;
+  c.height = H;
+  const g = c.getContext('2d')!;
+  const tones: [number, number, number][] = [
+    [186, 92, 58], // rust
+    [206, 184, 132], // straw
+    [88, 116, 70], // moss green
+  ];
+  const noise = new Noise2D(`rug48/${seed}`);
+  const bandH = H / 3;
+  for (let b = 0; b < 3; b++) {
+    const [r, gg, bb] = tones[b];
+    g.fillStyle = `rgb(${r},${gg},${bb})`;
+    g.fillRect(0, b * bandH, W, bandH);
+    // the stitches: an oval leaning +32° then −32°, 16 across the tile, the seam between two
+    // bands a darker groove
+    const n = 16;
+    const sw = W / n;
+    for (let i = 0; i < n; i++) {
+      const cx = (i + 0.5) * sw;
+      const cy = b * bandH + bandH * 0.5;
+      const lean = (i % 2 === 0 ? 1 : -1) * 0.56;
+      g.save();
+      g.translate(cx, cy);
+      g.rotate(lean);
+      // shadow side then lit side of the stitch
+      g.fillStyle = `rgba(0,0,0,0.22)`;
+      g.beginPath();
+      g.ellipse(1.5, 2.5, sw * 0.36, bandH * 0.42, 0, 0, TAU);
+      g.fill();
+      g.fillStyle = `rgb(${Math.min(255, r * 1.12 + 10)},${Math.min(255, gg * 1.12 + 10)},${Math.min(255, bb * 1.1 + 8)})`;
+      g.beginPath();
+      g.ellipse(0, 0, sw * 0.34, bandH * 0.4, 0, 0, TAU);
+      g.fill();
+      g.fillStyle = `rgba(255,245,225,0.28)`;
+      g.beginPath();
+      g.ellipse(-1.5, -bandH * 0.14, sw * 0.2, bandH * 0.16, 0, 0, TAU);
+      g.fill();
+      g.restore();
+    }
+    g.fillStyle = 'rgba(20,10,5,0.45)';
+    g.fillRect(0, b * bandH - 1.5, W, 3);
+  }
+  // fibre fleck
+  const img = g.getImageData(0, 0, W, H);
+  const d = img.data;
+  for (let y = 0; y < H; y++) {
+    for (let x = 0; x < W; x++) {
+      const i = (y * W + x) * 4;
+      const f = 0.86 + 0.28 * (0.5 + 0.5 * noise.noise(x * 0.9 + seed, y * 0.9)) + 0.06 * noise.noise(x * 0.18, y * 3.1 + 7);
+      d[i] = Math.min(255, d[i] * f);
+      d[i + 1] = Math.min(255, d[i + 1] * f);
+      d[i + 2] = Math.min(255, d[i + 2] * f);
+    }
+  }
+  g.putImageData(img, 0, 0);
+  const tex = new CanvasTexture(c);
+  tex.wrapS = tex.wrapT = RepeatWrapping;
+  tex.colorSpace = SRGBColorSpace;
+  tex.minFilter = LinearMipmapLinearFilter;
+  tex.magFilter = LinearFilter;
+  tex.generateMipmaps = true;
+  tex.anisotropy = 4;
+  tex.name = 'structures:rug-braid';
+  tex.needsUpdate = true;
+  return tex;
 }
 
 export function buildHouse(def: HouseDef, ctx: WorldContext, mats: StructureMaterials, rng: Rng, shared: HouseSharedMaterials = {}): HouseBuild {
@@ -1434,8 +1565,20 @@ export function buildHouse(def: HouseDef, ctx: WorldContext, mats: StructureMate
 
   // ---- doorway through the back wall + room behind it ----
   const doorPlanePoint = frame.door((doorW0 + doorW1) / 2, doorTop * 0.5, dBack);
-  const roomMat = indoorFog(roomMaterial(mats, 0x3c3b3e, true), doorPlanePoint, F);
-  const materials: Material[] = [roomMat];
+  // Round 48 (structures-31, opus-review walk #11 "Saria's hollow is furnished but unlit and
+  // untextured", poses sn-house-door / sn-room-inside / sn-room-bed): the room's diffuse albedo
+  // was ≈ 0.01 linear (0x3c3b3e ≈ 0.047 × the 0.12–0.38 vertex shade), so no light — the lamps'
+  // pools are emissive — could show the boards, and the furniture read as flat forms in the
+  // dark. The reference doorway (d_030–d_036, ref-01) is a LIT room: back wall and floor
+  // visible, warm lamp, cool fill from the door, l ≈ 0.32. Now the walls / floor carry a real
+  // wood albedo (0x847e78, ≈ 0.23 linear, under 0.32–0.78 vertex shades — weathered planks
+  // in lamplight), the lamps are real point lights (below), and the emissive pools are what
+  // they were (B's tuned levels). From the plaza (B / E at 18 m) the doorway box keeps its
+  // dark, hazed read: ours measured p50 0.173 against the reference's 0.291 before this pass,
+  // so the lift moves it toward the frame, not past it (measured after, see the round log).
+  // (the hero house only; the upper house's doorway is a few hazed pixels in A / F and keeps round 46's levels)
+  const roomMat = indoorFog(roomMaterial(mats, hero ? 0x847e78 : 0x3c3b3e, true), doorPlanePoint, F);
+  const materials: { dispose(): void }[] = [roomMat];
   // the room's light sources: two pod lamps under the ceiling (reference B: a lamp glint at
   // frame (0.78, 0.44) ≈ 1.3 m up left of centre; sheet 04: pod lanterns inside), a bed of
   // embers glowing pink-amber low on the right, and an amber fill under the ceiling
@@ -1595,8 +1738,13 @@ export function buildHouse(def: HouseDef, ctx: WorldContext, mats: StructureMate
       const lat = 1 - 0.25 * smoothstep(0.45, 1, Math.abs(w - roomWc) / roomHw);
       // round 46: a fifth lighter than round 22's 0.1–0.32 and the recess's fall-off eased
       // (× 0.4 → × 0.5) — the boards' grain and joints need a level to show on; the doorway's
-      // level from B is set by the pools and the veil, and its p50 is measured below
-      const s = lerp(0.12, 0.38, Math.pow(smoothstep(roomFloorY, roomCeilY, y), 1.4)) * lerp(1, 0.5, depthOf(p)) * lat;
+      // level from B is set by the pools and the veil, and its p50 is measured below.
+      // Round 48: 0.12–0.38 → 0.32–0.78 with the material's albedo (see `roomMat`): these are
+      // now a wall's shade under its own lamps (a little darker low down and deep in), not the
+      // room's whole darkness; the recess fall-off eases to × 0.65 so the back wall reads
+      const s = hero
+        ? lerp(0.32, 0.78, Math.pow(smoothstep(roomFloorY, roomCeilY, y), 1.1)) * lerp(1, 0.65, depthOf(p)) * lat
+        : lerp(0.12, 0.38, Math.pow(smoothstep(roomFloorY, roomCeilY, y), 1.4)) * lerp(1, 0.5, depthOf(p)) * lat;
       const g = glowAt(p);
       // cool grey (see `roomMaterial`); the embers' pool is the only warm diffuse tint
       return [s * 0.92 + g[0], s * 0.96 + g[1], s * 1.05 + g[2]];
@@ -1689,14 +1837,17 @@ export function buildHouse(def: HouseDef, ctx: WorldContext, mats: StructureMate
           (u, v, out) => {
             const w = lerp(roomW0 - 0.02, roomW1 + 0.02, u);
             const d = lerp(roomBackD(w) - 0.02, roomFront + 0.06, v);
-            const b = isFloor ? boards(w, d, 4) : { relief: 0, shade: 1 };
+            // round 48: the ceiling is boarded too (shade only — no relief on the underside), the
+            // boards running across the room like the floor's run into it
+            const b = isFloor ? boards(w, d, 4) : { relief: 0, shade: boards(d, w, 6).shade };
             // round 47: the walked lines are worn smooth and pale (the joints' relief and the
             // grain's contrast flattened, the tone lifted), the floor under the furniture shaded
             const wear = isFloor && hero ? floorWear47(w, d) : 0;
             const ao = isFloor && hero ? floorAO47(w, d) : 0;
             frame.door(w, y - (isFloor ? b.relief * (1 - 0.55 * wear) : 0), d, out.position);
             const deep = depthOf(out.position);
-            const s = 0.3 * lerp(1, isFloor ? 0.55 : 0.4, deep);
+            // (round 48: 0.3 → 0.62 floor / 0.5 ceiling — a lamp-lit floor's own shade, see `roomMat`)
+            const s = (isFloor ? 0.62 : 0.5) * lerp(1, isFloor ? 0.6 : 0.45, deep);
             out.uv = [w / BOARD_TILE, d / BOARD_TILE];
             const g = glowAt(_p.copy(out.position));
             if (isFloor) {
@@ -1708,10 +1859,10 @@ export function buildHouse(def: HouseDef, ctx: WorldContext, mats: StructureMate
               const worn = lerp(b.shade, 0.5 + 0.5 * b.shade, wear) * (1 + 0.28 * wear) * (1 - 0.6 * ao);
               out.color = [(s * tintR + g[0] * 0.5) * worn, (s * tintG + g[1] * 0.5) * worn, (s * tintB + g[2] * 0.5) * worn];
             } else {
-              out.color = [s * 0.92 + g[0] * 0.5, s * 0.96 + g[1] * 0.5, s * 1.05 + g[2] * 0.5];
+              out.color = [(s * 0.92 + g[0] * 0.5) * b.shade, (s * 0.96 + g[1] * 0.5) * b.shade, (s * 1.05 + g[2] * 0.5) * b.shade];
             }
           },
-          { cols: isFloor ? (hero ? 72 : 36) : 16, rows: isFloor ? (hero ? 48 : 24) : 16 },
+          { cols: isFloor ? (hero ? 72 : 36) : hero ? 40 : 16, rows: isFloor ? (hero ? 48 : 24) : hero ? 24 : 16 },
         ),
       );
     }
@@ -1792,25 +1943,76 @@ export function buildHouse(def: HouseDef, ctx: WorldContext, mats: StructureMate
   // sightline through the door from B (back wall w −1.15…1.2). ----
   // (round 22: the paler base halves — 0x9a8878 → 0x5e544a — so the pots are shapes in the
   // lamps' pools, not pale objects filling the reference's dark opening)
-  const propsMat = indoorFog(roomMaterial(mats, 0x5e544a), doorPlanePoint, F);
+  // Round 48 (structures-31, opus-review #11): in the hero house the props' base goes back up to
+  // a real albedo (0x8c7e6e ≈ 0.26 linear under the pieces' 0.3–0.95 tints — clay, glaze and
+  // wood in lamplight) now that the lamps are lights; the pieces themselves are LATHED with
+  // throwing rings and painted bands (`kokiriPot`), the boards chamfered (`softBox`) and grained.
+  const propsMat = indoorFog(roomMaterial(mats, hero ? 0x8c7e6e : 0x5e544a), doorPlanePoint, F);
   materials.push(propsMat);
+  /** grain noise for the room's woodwork (round 48) */
+  const grainNoise = new Noise2D(`${ctx.config.seed}/structures/house/${def.id}/grain48`);
+  /**
+   * A turned (lathe) form standing on the origin along +y: the side from t 0 → 1, then the top
+   * disc. Round 48: the tint also gets the angle round the form (`th`) and the top disc's radius
+   * fraction, and `relief` (t, th) scales the profile — throwing rings on a pot, the waver of a
+   * hand-turned leg.
+   */
+  const turned = (
+    profile: (t: number) => number,
+    h: number,
+    segs: number,
+    rings: number,
+    tint: (t: number, up: number, th: number, rFrac: number) => [number, number, number],
+    relief?: (t: number, th: number) => number,
+  ) =>
+    gridSurface(
+      (u, v, out) => {
+        // v 0 → 0.5 the side (bottom → top), 0.5 → 1 the top disc (rim → centre)
+        const th = u * TAU;
+        const side = v <= 0.5;
+        const t = side ? v * 2 : 1;
+        const rFrac = side ? 1 : 1 - (v - 0.5) * 2;
+        const rr = (side ? profile(t) * (1 + (relief ? relief(t, th) : 0)) : profile(1) * rFrac);
+        const y = side ? t * h : h + 0.006 * k * Math.sin((v - 0.5) * Math.PI);
+        out.position.set(Math.cos(th) * rr, y, Math.sin(th) * rr);
+        out.uv = [(th * rr) / 0.6, side ? y / 0.6 : 0.5 + rr / 0.6];
+        out.color = tint(t, side ? 0 : 1, th, rFrac);
+      },
+      { cols: segs, rows: rings, closedU: true },
+    );
+  /**
+   * Wood tint with long grain (round 48): the grain lines darkened, the fibre between them
+   * flecked; on an end disc, growth rings by the radius. `along` in metres along the piece.
+   */
+  const woodTint = (base: [number, number, number], along: number, th: number, up: number, rFrac: number, seed: number, lines = 9): [number, number, number] => {
+    if (up) {
+      const ring = 0.5 + 0.5 * Math.sin(rFrac * 46 + 2 * grainNoise.noise(rFrac * 4 + seed, th * 0.5));
+      const s = 0.78 + 0.16 * ring;
+      return [base[0] * s, base[1] * s, base[2] * s * 0.96];
+    }
+    const gr = woodGrain(grainNoise, along, th, lines, 0.6, seed);
+    const fb = woodFibre(grainNoise, along, th, lines, seed);
+    const s = (1 - 0.3 * gr) * (0.9 + 0.2 * fb);
+    return [base[0] * s, base[1] * s * (1 - 0.04 * gr), base[2] * s * (1 - 0.08 * gr)];
+  };
   let propCount = 0;
   {
     const propRng = rng.fork('props');
     const props: BufferGeometry[] = [];
     const shelfD = 0.26 * k;
+    const BOARD: [number, number, number] = [0.46, 0.36, 0.26];
     /** a plank on two brackets, its back edge against the (concave) wall; returns its top */
     const shelf = (w0: number, w1: number, y: number) => {
       const wc = (w0 + w1) / 2;
       const d = Math.max(roomBackD(w0), roomBackD(wc), roomBackD(w1)) + shelfD / 2 + 0.01 * k;
-      const board = new BoxGeometry(w1 - w0, 0.035 * k, shelfD);
+      // round 48: chamfered boards with the grain running their length; the brackets' grain runs down
+      const seed = w0 * 3.1;
+      const board = softBox((w1 - w0) / 2, 0.0175 * k, shelfD / 2, 0.1, (x, y2, z) => woodTint(BOARD, x * (w1 - w0) * 0.5, Math.atan2(z, y2), 0, 1, seed, 7));
       board.applyMatrix4(basisMatrix(frame.door(wc, y, d), F));
-      setColorAttribute(board, [0.4, 0.32, 0.24]);
       props.push(board);
       for (const w of [w0 + 0.12 * k, w1 - 0.12 * k]) {
-        const bracket = new BoxGeometry(0.04 * k, 0.16 * k, shelfD * 0.75);
+        const bracket = softBox(0.02 * k, 0.08 * k, shelfD * 0.375, 0.12, (x, y2, z) => woodTint([0.34, 0.27, 0.2], y2 * 0.08 * k, Math.atan2(z, x), 0, 1, seed + w, 5));
         bracket.applyMatrix4(basisMatrix(frame.door(w, y - 0.1 * k, d - 0.03 * k), F));
-        setColorAttribute(bracket, [0.3, 0.24, 0.18]);
         props.push(bracket);
       }
       return { y: y + 0.018 * k, d };
@@ -1824,40 +2026,79 @@ export function buildHouse(def: HouseDef, ctx: WorldContext, mats: StructureMate
     ];
     // the shapes are built standing along +y, turned onto +z (rotateX +90°) and stood up on the
     // shelf by basisMatrix (local +z → world up)
-    const place = (geo: BufferGeometry, w: number, top: { y: number; d: number }, tint: [number, number, number]) => {
+    const place = (geo: BufferGeometry, w: number, top: { y: number; d: number }) => {
       geo.applyMatrix4(basisMatrix(frame.door(w, top.y, top.d + (propRng() - 0.5) * 0.06 * k), new Vector3(0, 1, 0)));
-      setColorAttribute(geo, tint);
       props.push(geo);
       propCount++;
     };
-    /** a jar (tapered cylinder), a round pot (squashed sphere), a bottle (body + neck) or a bowl */
-    const jar = (w: number, top: { y: number; d: number }, r: number, h: number, tint: [number, number, number]) => {
-      const g = new CylinderGeometry(r * 0.8, r, h, 10, 1);
+    /**
+     * Round 48: the KOKIRI POT — the village's clay: a round belly on a small foot, drawn in to
+     * a short neck and flared to a rolled lip, throwing rings all the way up, the clay's tint
+     * flecked and a painted band round the shoulder (dashes of a darker earth) with a pale
+     * line under the lip. `squat` 0 a tall jar → 1 a round pot. Replaces round 13's plain
+     * cylinders and squashed spheres.
+     */
+    const kokiriPot = (w: number, top: { y: number; d: number }, r: number, h: number, tint: [number, number, number], squat: number, seed: number) => {
+      const bellyT = lerp(0.42, 0.5, squat);
+      const waist = lerp(0.45, 0.5, squat);
+      const profile = (t: number) => {
+        const foot = 0.55 + 0.45 * smoothstep(0, 0.1, t);
+        const belly = Math.exp(-Math.pow((t - bellyT) / lerp(0.34, 0.3, squat), 2));
+        const body = waist + (1 - waist) * belly;
+        const neck = 1 - lerp(0.3, 0.32, squat) * smoothstep(bellyT + 0.2, 0.86, t);
+        const lip = 1 + 0.3 * smoothstep(0.88, 1, t);
+        return r * Math.min(foot * 1.05, body) * neck * lip;
+      };
+      const g = turned(
+        profile,
+        h,
+        16,
+        14,
+        (t, up, th) => {
+          if (up) return [0.16, 0.12, 0.09]; // the dark mouth
+          const fleck = 0.9 + 0.2 * (0.5 + 0.5 * grainNoise.noise(th * 2.5 + seed, t * 9));
+          // the painted band: nine dashes round the shoulder; a pale line under the lip
+          const bandT = bellyT + 0.16;
+          const band = (1 - smoothstep(0.03, 0.045, Math.abs(t - bandT))) * (0.5 + 0.5 * Math.sign(Math.sin(th * 9 + t * 3)));
+          const line = 1 - smoothstep(0.012, 0.02, Math.abs(t - 0.9));
+          const s = fleck * (1 - 0.55 * band) * (1 + 0.18 * line);
+          return [tint[0] * s, tint[1] * s * (1 - 0.1 * band), tint[2] * s * (1 - 0.15 * band)];
+        },
+        (t) => 0.012 * Math.sin(t * 70 + seed) * (1 - smoothstep(0.85, 1, t)),
+      );
       g.rotateX(Math.PI / 2);
-      g.translate(0, 0, h / 2);
-      place(g, w, top, tint);
+      place(g, w, top);
     };
-    const roundPot = (w: number, top: { y: number; d: number }, r: number, tint: [number, number, number]) => {
-      const g = new SphereGeometry(r, 10, 7);
-      g.scale(1, 0.8, 1);
-      g.rotateX(Math.PI / 2);
-      g.translate(0, 0, r * 0.8);
-      place(g, w, top, tint);
-    };
+    /** a jar: a taller Kokiri pot */
+    const jar = (w: number, top: { y: number; d: number }, r: number, h: number, tint: [number, number, number]) => kokiriPot(w, top, r, h, tint, 0.2, w * 7);
+    /** a round pot: a squat one */
+    const roundPot = (w: number, top: { y: number; d: number }, r: number, tint: [number, number, number]) => kokiriPot(w, top, r, r * 1.5, tint, 1, w * 5 + 1);
+    /** a bottle (glass): a rounded body drawn to a neck with a lip */
     const bottle = (w: number, top: { y: number; d: number }, r: number, h: number, tint: [number, number, number]) => {
-      const body = new CylinderGeometry(r, r * 0.95, h * 0.62, 8, 1);
-      body.translate(0, h * 0.31, 0);
-      const neck = new CylinderGeometry(r * 0.38, r * 0.7, h * 0.38, 8, 1);
-      neck.translate(0, h * 0.81, 0);
-      const g = merge([body, neck]);
+      const g = turned(
+        (t) => r * (0.7 + 0.3 * smoothstep(0, 0.1, t)) * (1 - 0.62 * smoothstep(0.55, 0.78, t)) * (1 + 0.14 * smoothstep(0.94, 1, t)),
+        h,
+        12,
+        10,
+        (t, up, th) => {
+          const sheen = 0.85 + 0.3 * Math.pow(0.5 + 0.5 * Math.cos(th - 0.6), 4);
+          return up ? [0.12, 0.14, 0.12] : [tint[0] * sheen, tint[1] * sheen, tint[2] * sheen * (1 + 0.1 * t)];
+        },
+      );
       g.rotateX(Math.PI / 2);
-      place(g, w, top, tint);
+      place(g, w, top);
     };
+    /** a wooden bowl, its grain across it */
     const bowl = (w: number, top: { y: number; d: number }, r: number, tint: [number, number, number]) => {
-      const g = new CylinderGeometry(r, r * 0.55, r * 0.55, 10, 1);
+      const g = turned(
+        (t) => r * (0.55 + 0.45 * Math.sqrt(t)) * (1 + 0.02 * Math.sin(t * 9)),
+        r * 0.55,
+        14,
+        8,
+        (t, up, th, rFrac) => woodTint([tint[0] * 0.75, tint[1] * 0.65, tint[2] * 0.55], t * r * 0.55, th, up, rFrac, w * 3, 7),
+      );
       g.rotateX(Math.PI / 2);
-      g.translate(0, 0, r * 0.275);
-      place(g, w, top, tint);
+      place(g, w, top);
     };
     // upper left shelf, right under the left lamp's pool; a lower one beneath it; one on the
     // right under the second lamp
@@ -2044,22 +2285,7 @@ export function buildHouse(def: HouseDef, ctx: WorldContext, mats: StructureMate
   const roomLanternRng = rng.fork('room-lanterns');
   const roomLanternMat = indoorFog(mats.lantern, doorPlanePoint, F);
   materials.push(roomLanternMat);
-  /** a turned (lathe) form standing on the origin along +y: the side from t 0 → 1, then the top disc */
-  const turned = (profile: (t: number) => number, h: number, segs: number, rings: number, tint: (t: number, up: number) => [number, number, number]) =>
-    gridSurface(
-      (u, v, out) => {
-        // v 0 → 0.5 the side (bottom → top), 0.5 → 1 the top disc (rim → centre)
-        const th = u * TAU;
-        const side = v <= 0.5;
-        const t = side ? v * 2 : 1;
-        const rr = side ? profile(t) : profile(1) * (1 - (v - 0.5) * 2);
-        const y = side ? t * h : h + 0.006 * k * Math.sin((v - 0.5) * Math.PI);
-        out.position.set(Math.cos(th) * rr, y, Math.sin(th) * rr);
-        out.uv = [th * rr / 0.6, side ? y / 0.6 : 0.5 + rr / 0.6];
-        out.color = tint(t, side ? 0 : 1);
-      },
-      { cols: segs, rows: rings, closedU: true },
-    );
+  // (`turned` — the lathe — is defined with the shelves above; round 48 moved it up and gave it grain)
   {
     const roomMats: StructureMaterials = { ...mats, lantern: roomLanternMat };
     for (const p of [lampPos, lamp2Pos]) {
@@ -2094,29 +2320,59 @@ export function buildHouse(def: HouseDef, ctx: WorldContext, mats: StructureMate
         return Math.max(leg, top) * (1 + 0.02 * noise.noise(t * 9, 3));
       },
       tableH,
-      20,
-      18,
-      (t, up) => {
+      hero ? 28 : 20,
+      hero ? 22 : 18,
+      // round 48: the stump's bark-side grain runs up the leg, the top shows its growth rings
+      (t, up, th, rFrac) => {
         const s = up ? 0.62 : lerp(0.3, 0.5, t);
-        return [s * 1.05, s * 0.86, s * 0.66];
+        return woodTint([s * 1.05, s * 0.86, s * 0.66], t * tableH, th, up, rFrac, 11, 12);
       },
+      hero ? (t, th) => 0.012 * (woodGrain(grainNoise, t * tableH, th, 12, 0.6, 11) - 0.5) * (1 - smoothstep(0.8, 0.92, t)) : undefined,
     );
     table.translate(tableC.x, tableC.y, tableC.z);
     faceTowards(table, (p, o) => o.copy(p).sub(tableC).multiplyScalar(3).add(p).setY(p.y + 0.4));
     const stoolC = frame.door(doorW0 + 0.08 * k, roomFloorY, tableD + 0.25 * k);
-    const stool = turned((t) => 0.16 * k * (1 - 0.18 * Math.sin(t * Math.PI)) * (1 + 0.08 * smoothstep(0.85, 1, t)), 0.3 * k, 14, 10, (t, up) => {
-      const s = up ? 0.55 : lerp(0.28, 0.45, t);
-      return [s * 1.0, s * 0.84, s * 0.64];
-    });
+    const stool = turned(
+      (t) => 0.16 * k * (1 - 0.18 * Math.sin(t * Math.PI)) * (1 + 0.08 * smoothstep(0.85, 1, t)),
+      0.3 * k,
+      hero ? 20 : 14,
+      hero ? 14 : 10,
+      (t, up, th, rFrac) => {
+        const s = up ? 0.55 : lerp(0.28, 0.45, t);
+        return woodTint([s * 1.0, s * 0.84, s * 0.64], t * 0.3 * k, th, up, rFrac, 17, 9);
+      },
+    );
     stool.translate(stoolC.x, stoolC.y, stoolC.z);
     faceTowards(stool, (p, o) => o.copy(p).sub(stoolC).multiplyScalar(3).add(p).setY(p.y + 0.3));
     // (round 12's single dark shelf up by the lamp is replaced by round 13's stocked shelves in
     // the room material, see `interior-props`)
-    // ember ring: a low stone kerb round the glow
-    const kerb = new TorusGeometry(0.2 * k, 0.05 * k, 6, 12);
+    // ember ring: a low stone kerb round the glow (round 48: field stones — the ring lumped by a
+    // noise round it, each stone a little different grey)
+    const kerb = new TorusGeometry(0.2 * k, 0.05 * k, hero ? 8 : 6, hero ? 22 : 12);
     kerb.rotateX(Math.PI / 2);
+    if (hero) {
+      const kp = kerb.attributes.position;
+      const kv = new Vector3();
+      for (let i = 0; i < kp.count; i++) {
+        kv.set(kp.getX(i), kp.getY(i), kp.getZ(i));
+        const a = Math.atan2(kv.z, kv.x);
+        const lump = 1 + 0.22 * grainNoise.noise(Math.cos(a) * 2.5 + 40, Math.sin(a) * 2.5) + 0.1 * grainNoise.noise(kv.x * 30, kv.z * 30 + kv.y * 40);
+        const ring = Math.hypot(kv.x, kv.z);
+        const rn = 0.2 * k + (ring - 0.2 * k) * lump;
+        kp.setXYZ(i, (kv.x / ring) * rn, kv.y * lump, (kv.z / ring) * rn);
+      }
+      kerb.computeVertexNormals();
+    }
     kerb.translate(hearthPos.x, hearthPos.y - 0.14 * k, hearthPos.z);
     setColorAttribute(kerb, [0.32, 0.31, 0.3]);
+    if (hero) {
+      const kc = kerb.attributes.color;
+      for (let i = 0; i < kc.count; i++) {
+        const a = Math.atan2(kerb.attributes.position.getZ(i) - hearthPos.z, kerb.attributes.position.getX(i) - hearthPos.x);
+        const stone = 0.8 + 0.4 * (0.5 + 0.5 * grainNoise.noise(Math.cos(a) * 3 + 60, Math.sin(a) * 3));
+        kc.setXYZ(i, 0.34 * stone, 0.32 * stone, 0.3 * stone * (0.95 + 0.1 * grainNoise.noise(a * 4, 9)));
+      }
+    }
     const furnitureGeo = merge([table, stool, kerb]);
     {
       const pos = furnitureGeo.attributes.position;
@@ -2183,21 +2439,26 @@ export function buildHouse(def: HouseDef, ctx: WorldContext, mats: StructureMate
       faceTowards(g, (p, o) => o.copy(p).sub(c).multiplyScalar(3).add(p));
       return g;
     };
-    /** a short log between two door-space points */
-    const log = (a: Vector3, b: Vector3, r0: number, r1: number, tint: [number, number, number], pale = false) =>
-      sweepTube(new LineCurve3(a, b), {
+    /** a short log between two door-space points (round 48: long grain along it, darkened in the tint) */
+    const log = (a: Vector3, b: Vector3, r0: number, r1: number, tint: [number, number, number], pale = false) => {
+      const len = a.distanceTo(b);
+      const seed = a.x * 1.7 + a.z * 0.9;
+      return sweepTube(new LineCurve3(a, b), {
         radius: (t) => lerp(r0, r1, t) * (1 + 0.05 * Math.sin(t * 7 + a.x)),
-        tubularSegments: 6,
-        radialSegments: 9,
+        tubularSegments: 8,
+        radialSegments: 11,
         uvMetres: 0.5,
         capEnd: true,
         capStart: true,
         color: (t, ang) => {
           const end = pale && (t < 0.02 || t > 0.98);
           const k2 = 0.85 + 0.15 * Math.max(0, Math.cos(ang));
-          return end ? [0.8, 0.7, 0.5] : [tint[0] * k2, tint[1] * k2, tint[2] * k2];
+          if (end) return [0.8, 0.7, 0.5];
+          const g = woodTint(tint, t * len, ang, 0, 1, seed, 8);
+          return [g[0] * k2, g[1] * k2, g[2] * k2];
         },
       });
+    };
     const place = (g: BufferGeometry, at: Vector3, axis: Vector3 = UPV) => {
       g.applyMatrix4(basisMatrix(at, axis));
       return g;
@@ -2266,34 +2527,47 @@ export function buildHouse(def: HouseDef, ctx: WorldContext, mats: StructureMate
     }
 
     // ---- the rug: an oval braided rug, concentric bands, a slightly wavy edge ----
+    // Round 48 (structures-31, #11 "the rug a flat concentric decal"): the braid is a TEXTURE
+    // now (`braidedRugTexture` — plaited stitches in the three tones, one band per third of the
+    // tile), tiled 6.6 bands across the oval's radius and 40 stitch-pairs round it, on a material
+    // of the rug's own (+1 draw, indoors only); the surface carries the bands' ridges (each band
+    // a little proud at its middle) so the lamps rake across them. The vertex colour keeps the
+    // wear toward the edges only.
     {
       const r = rugC47;
       const bandW = 0.085 * k;
-      const tones: [number, number, number][] = [
-        [0.78, 0.36, 0.22],
-        [0.82, 0.74, 0.52],
-        [0.32, 0.44, 0.26],
-      ];
+      const bands = ((r.rw + r.rd) * 0.5) / bandW;
       const rug = gridSurface(
         (u, v, out) => {
           const th = u * TAU;
           const wob = 1 + 0.03 * fNoise.noise(Math.cos(th) * 3 + 11, Math.sin(th) * 3 + 4);
           const rw = r.rw * v * wob;
           const rd = r.rd * v * wob;
-          const lift = 0.012 * k * (1 - Math.pow(v, 8)) + 0.002 * k * Math.sin(th * 40 + v * 60);
+          const bandPhase = v * bands;
+          const ridge = 0.5 + 0.5 * Math.cos((bandPhase - 0.5) * TAU);
+          const lift = 0.012 * k * (1 - Math.pow(v, 8)) + 0.003 * k * ridge + 0.001 * k * Math.sin(th * 80);
           frame.door(r.w + Math.cos(th) * rw, roomFloorY + lift, r.d + Math.sin(th) * rd, out.position);
-          out.uv = [u * 4, v * 2];
-          // bands by the local radius (the oval's mean); the braid's twist darkens every other bump
-          const ring = Math.floor((v * (r.rw + r.rd) * 0.5) / bandW);
-          const tone = tones[ring % 3];
-          const braid = 0.9 + 0.1 * Math.sin(th * (18 + ring * 6) + v * 30);
-          const worn = 1 - 0.18 * smoothstep(0.5, 1, v) * (0.5 + 0.5 * fNoise.noise(th * 2, v * 5 + 3));
-          out.color = [tone[0] * braid * worn, tone[1] * braid * worn, tone[2] * braid * worn];
+          out.uv = [u * 40, bandPhase / 3];
+          const worn = 1 - 0.22 * smoothstep(0.5, 1, v) * (0.5 + 0.5 * fNoise.noise(th * 2, v * 5 + 3));
+          out.color = [worn, worn, worn];
         },
-        { cols: 48, rows: 14, closedU: true },
+        { cols: 96, rows: 34, closedU: true },
       );
       faceTowards(rug, (p, o) => o.set(p.x, p.y + 2, p.z));
-      parts.push(rug);
+      {
+        const pos = rug.attributes.position;
+        const _g = new Vector3();
+        setFloatAttribute(rug, 'aGlow', (i) => glowOf(_g.set(pos.getX(i), pos.getY(i), pos.getZ(i))));
+      }
+      const rugTex = braidedRugTexture(Math.floor(hash2(def.position[0], def.position[2]) * 1000));
+      const rugMat = indoorFog(roomMaterial(mats, 0xb8b0a4, false, rugTex), doorPlanePoint, F);
+      rugMat.normalScale.set(0.15, 0.15);
+      materials.push(rugMat, rugTex);
+      const rugMesh = new Mesh(rug, rugMat);
+      rugMesh.name = 'interior-rug';
+      rugMesh.receiveShadow = true;
+      group.add(rugMesh);
+      furnish47.triangles += Math.floor((rug.index ? rug.index.count : rug.attributes.position.count) / 3);
       furnish47.rug = true;
       furnish47.pieces++;
     }
@@ -2303,7 +2577,14 @@ export function buildHouse(def: HouseDef, ctx: WorldContext, mats: StructureMate
       const topY = sill + 0.52 * k + 0.006 * k;
       const bowlW = tableW47 + 0.15 * k;
       const bowlD = tableD47 - 0.1 * k;
-      const bowl = turned((t) => 0.11 * k * (0.5 + 0.5 * Math.sqrt(t)) * (1 + 0.02 * Math.sin(t * 9)), 0.06 * k, 16, 8, (t, up) => (up ? [0.6, 0.48, 0.32] : [0.5 + 0.1 * t, 0.4 + 0.08 * t, 0.26]));
+      // (round 48: the bowl and the cup turned with their grain; the fruit softened by a wobble)
+      const bowl = turned(
+        (t) => 0.11 * k * (0.5 + 0.5 * Math.sqrt(t)) * (1 + 0.02 * Math.sin(t * 9)),
+        0.06 * k,
+        18,
+        8,
+        (t, up, th, rFrac) => woodTint(up ? [0.6, 0.48, 0.32] : [0.5 + 0.1 * t, 0.4 + 0.08 * t, 0.26], t * 0.06 * k, th, up, rFrac, 23, 7),
+      );
       parts.push(stand(bowl, bowlW, topY, bowlD));
       const fruit: [number, number, [number, number, number]][] = [
         [-0.035, 0.02, [0.9, 0.28, 0.18]],
@@ -2311,26 +2592,58 @@ export function buildHouse(def: HouseDef, ctx: WorldContext, mats: StructureMate
         [0.0, -0.04, [0.55, 0.78, 0.28]],
       ];
       for (const [dw, dd, tint] of fruit) {
-        const f = new SphereGeometry(0.034 * k, 10, 8);
+        const f = new SphereGeometry(0.034 * k, 12, 9);
+        {
+          const fp = f.attributes.position;
+          const fv = new Vector3();
+          for (let i = 0; i < fp.count; i++) {
+            fv.set(fp.getX(i), fp.getY(i), fp.getZ(i));
+            const wob = 1 + 0.06 * fNoise.noise(fv.x * 40 + dw * 90, fv.y * 40 + fv.z * 30) - 0.08 * Math.pow(Math.max(0, fv.y / (0.034 * k)), 6);
+            fp.setXYZ(i, fv.x * wob, fv.y * wob, fv.z * wob);
+          }
+          f.computeVertexNormals();
+        }
         setColorAttribute(f, tint);
+        {
+          const fc = f.attributes.color;
+          const fp = f.attributes.position;
+          for (let i = 0; i < fc.count; i++) {
+            const blush = 0.85 + 0.25 * (0.5 + 0.5 * fNoise.noise(fp.getX(i) * 60 + dd * 50, fp.getZ(i) * 60));
+            fc.setXYZ(i, tint[0] * blush, tint[1] * blush * (0.9 + 0.1 * blush), tint[2] * blush);
+          }
+        }
         parts.push(place(f, frame.door(bowlW + dw * k, topY + 0.05 * k, bowlD + dd * k)));
       }
-      const cup = turned((t) => 0.038 * k * (0.85 + 0.15 * t), 0.09 * k, 12, 6, (t, up) => (up ? [0.45, 0.55, 0.4] : [0.42, 0.5, 0.36]));
+      const cup = turned(
+        (t) => 0.038 * k * (0.85 + 0.15 * t) * (1 + 0.05 * smoothstep(0.92, 1, t)),
+        0.09 * k,
+        14,
+        7,
+        (t, up, th, rFrac) => woodTint(up ? [0.45, 0.55, 0.4] : [0.42, 0.5, 0.36], t * 0.09 * k, th, up, rFrac, 29, 6),
+      );
       parts.push(stand(cup, tableW47 - 0.17 * k, topY, tableD47 + 0.1 * k));
       furnish47.pieces += 3;
     }
 
     // ---- by the hearth: a big-bellied jug, firewood ----
     {
+      // (round 48: Kokiri clay — throwing rings up the belly, the tint flecked, a dark painted
+      // band of dashes round the shoulder, the glaze's sheen toward the lamp side)
       const jug = turned(
         (t) => jug47.r * (0.45 + 0.55 * Math.sin(Math.PI * Math.min(1, t * 1.05))) * (1 - 0.4 * smoothstep(0.72, 0.92, t)) + jug47.r * 0.32 * smoothstep(0.9, 1, t),
         0.42 * k,
-        18,
-        14,
-        (t, up) => {
+        24,
+        20,
+        (t, up, th) => {
+          if (up) return [0.25, 0.2, 0.15];
           const glaze = 0.6 + 0.35 * smoothstep(0.3, 0.6, t);
-          return up ? [0.25, 0.2, 0.15] : [0.85 * glaze, 0.5 * glaze, 0.34 * glaze];
+          const fleck = 0.9 + 0.2 * (0.5 + 0.5 * fNoise.noise(th * 2.5 + 3, t * 9));
+          const band = (1 - smoothstep(0.03, 0.05, Math.abs(t - 0.62))) * (0.5 + 0.5 * Math.sign(Math.sin(th * 11 + t * 3)));
+          const sheen = 1 + 0.12 * Math.pow(0.5 + 0.5 * Math.cos(th - 2.4), 3);
+          const s = glaze * fleck * sheen * (1 - 0.5 * band);
+          return [0.85 * s, 0.5 * s * (1 - 0.1 * band), 0.34 * s * (1 - 0.15 * band)];
         },
+        (t) => 0.012 * Math.sin(t * 60) * (1 - smoothstep(0.85, 1, t)),
       );
       parts.push(stand(jug, jug47.w, roomFloorY, jug47.d));
       const woodW = doorW1 + 0.05 * k;
@@ -2356,7 +2669,14 @@ export function buildHouse(def: HouseDef, ctx: WorldContext, mats: StructureMate
       const potTop = roomCeilY - 0.72 * k;
       const potH = 0.16 * k;
       const potR = 0.12 * k;
-      const pot = turned((t) => potR * (0.62 + 0.38 * t) * (1 + 0.06 * smoothstep(0.85, 1, t)), potH, 16, 6, (t, up) => (up ? [0.25, 0.3, 0.15] : [0.82, 0.5, 0.36]));
+      const clay = (seed: number) => (t: number, up: number, th: number): [number, number, number] => {
+        if (up) return [0.25, 0.3, 0.15];
+        const fleck = 0.9 + 0.2 * (0.5 + 0.5 * fNoise.noise(th * 2.5 + seed, t * 9));
+        const line = 1 - smoothstep(0.02, 0.035, Math.abs(t - 0.7));
+        return [0.82 * fleck * (1 - 0.3 * line), 0.5 * fleck * (1 - 0.35 * line), 0.36 * fleck * (1 - 0.35 * line)];
+      };
+      const rings = (t: number) => 0.012 * Math.sin(t * 50) * (1 - smoothstep(0.8, 1, t));
+      const pot = turned((t) => potR * (0.62 + 0.38 * t) * (1 + 0.06 * smoothstep(0.85, 1, t)), potH, 18, 8, clay(5), rings);
       parts.push(stand(pot, potW, potTop - potH, potD));
       const hook = frame.door(potW, roomCeilY - 0.01 * k, potD);
       for (let i = 0; i < 3; i++) {
@@ -2373,7 +2693,7 @@ export function buildHouse(def: HouseDef, ctx: WorldContext, mats: StructureMate
       // the floor pot by the right jamb, a leafy plant standing in it
       const fpW = doorW1 + 0.1 * k;
       const fpD = roomFront - 0.35 * k;
-      const fpot = turned((t) => 0.13 * k * (0.7 + 0.3 * t) * (1 + 0.07 * smoothstep(0.86, 1, t)), 0.2 * k, 16, 6, (t, up) => (up ? [0.22, 0.26, 0.14] : [0.86, 0.56, 0.38]));
+      const fpot = turned((t) => 0.13 * k * (0.7 + 0.3 * t) * (1 + 0.07 * smoothstep(0.86, 1, t)), 0.2 * k, 18, 8, clay(9), rings);
       parts.push(stand(fpot, fpW, roomFloorY, fpD));
       roomFoliage.addLeafCluster(frame.door(fpW, roomFloorY + 0.3 * k, fpD), 0.24 * k, 34, { size: 0.09, amount: 0.02, droop: 0.25, tint: [0.7, 0.92, 0.5], tintSpread: 0.25, flatten: 0.75 });
       furnish47.pieces++;
@@ -2395,7 +2715,7 @@ export function buildHouse(def: HouseDef, ctx: WorldContext, mats: StructureMate
       const _g = new Vector3();
       setFloatAttribute(furnishGeo, 'aGlow', (i) => glowOf(_g.set(pos.getX(i), pos.getY(i), pos.getZ(i))));
     }
-    furnish47.triangles = Math.floor((furnishGeo.index ? furnishGeo.index.count : furnishGeo.attributes.position.count) / 3);
+    furnish47.triangles += Math.floor((furnishGeo.index ? furnishGeo.index.count : furnishGeo.attributes.position.count) / 3);
     const furnishMesh = new Mesh(furnishGeo, propsMat);
     furnishMesh.name = 'interior-furnishing';
     furnishMesh.receiveShadow = true;
@@ -2425,22 +2745,53 @@ export function buildHouse(def: HouseDef, ctx: WorldContext, mats: StructureMate
   // upper pod, the short-range fill under the ceiling lights the arch and the near walls; neither
   // reaches the deep back wall, which stays a dark recess (reference: p50 0.30, centre 0.12–0.18).
   // (round 22: 0.28 → 0.2 and the fill 0.15 → 0.1 with the pools — the opening's p90)
-  const doorLight = new PointLight(0xffd8a0, 0.2 * k, 1.7 * k, 2);
+  /**
+   * Round 48: the hero room's light levels (cd, m). Sized from the renderer's own arithmetic —
+   * a point light's irradiance is I / d² × (1 − (d / range)⁴)², the sun's is 4.4 on the plaza,
+   * and the walls' albedo is ≈ 0.1–0.2 — so a lamp 1.2 m from the back wall needs ≈ 6 cd to
+   * bring it to the reference doorway's l ≈ 0.3; the ranges end at the threshold (the left lamp
+   * hangs 2.3 m behind the outer wall face: at the sill its light is 0.3 W/m², a trace of warm
+   * spill the reference also shows, and nothing reaches the plaza).
+   */
+  const RL = { lamp: 6, lampRange: 2.8, lamp2: 4, lamp2Range: 2.6, fill: 1.2, ember: 1.0, candle: 0.8 };
+  // Round 48 (structures-31, opus-review #11): the lamps are REAL lights now. Until this round
+  // the three room lights were 0.2 / 0.1 / 0.08 cd over 1–1.7 m — a hand's breadth of lit wood
+  // each — and everything else the room showed was the emissive pools (`glowOf`). The left lamp
+  // lights the back wall, the shelves and the bed (`RL.lamp`); the right lamp gets a light of
+  // its own over the right shelf and the hearth corner (`RL.lamp2`); the fill just inside the
+  // door is the COOL daylight the doorway lets in (0xc4d6ea, `RL.fill`, 2 m — it lights the
+  // floor's front and the jambs' insides, grey-blue against the lamps' amber); the embers and
+  // the candle carry small warm pools of their own. Ranges end at the room's threshold (see
+  // `RL`), and nothing reaches the plaza. (Only the hero house — the upper house's room is 25 m off.)
+  const doorLight = new PointLight(0xffd8a0, (hero ? RL.lamp : 0.2) * k, (hero ? RL.lampRange : 1.7) * k, 2);
   doorLight.position.copy(lampPos).addScaledVector(F, 0.1);
   doorLight.name = 'door-light';
   group.add(doorLight);
   lights.push(doorLight);
+  if (hero) {
+    const lamp2Light = new PointLight(0xffd0a0, RL.lamp2 * k, RL.lamp2Range * k, 2);
+    lamp2Light.position.copy(lamp2Pos).addScaledVector(F, 0.1);
+    lamp2Light.name = 'room-lamp-2';
+    group.add(lamp2Light);
+    lights.push(lamp2Light);
+    const candleLight = new PointLight(0xffb870, RL.candle * k, 1.4 * k, 2);
+    candleLight.position.copy(candlePos47).add(new Vector3(0, 0.06 * k, 0));
+    candleLight.name = 'candle-light';
+    group.add(candleLight);
+    lights.push(candleLight);
+  }
   // the "fill" sits just inside the arch, a little below it: it lights the jambs and the
   // threshold (the reference spills warm light there), not the recess. (At `archPos` itself, a
   // few centimetres under the arch's inner edge, the inverse-square falloff blew that edge out
   // to a pale band in the first round-12 probe.)
-  const fillLight = new PointLight(0xffd8a8, 0.1 * k, 1.6 * k, 2);
-  fillLight.position.copy(frame.door((doorW0 + doorW1) / 2, doorTop - 0.55 * k, roomFront - 0.5 * k));
+  // (round 48: cool — the door's daylight — and set 0.75 m inside the inner wall face)
+  const fillLight = new PointLight(hero ? 0xc4d6ea : 0xffd8a8, (hero ? RL.fill : 0.1) * k, (hero ? 2.0 : 1.6) * k, 2);
+  fillLight.position.copy(frame.door((doorW0 + doorW1) / 2, doorTop - 0.55 * k, roomFront - (hero ? 0.75 : 0.5) * k));
   fillLight.name = 'room-fill';
   group.add(fillLight);
   lights.push(fillLight);
   // pink-amber ember glow low right (reference doorway crop): short range, low on the floor
-  const emberLight = new PointLight(0xf5cfc0, 0.08 * k, 1.0 * k, 2);
+  const emberLight = new PointLight(0xf5cfc0, (hero ? RL.ember : 0.08) * k, (hero ? 1.5 : 1.0) * k, 2);
   emberLight.position.copy(hearthPos);
   emberLight.name = 'ember-light';
   group.add(emberLight);
@@ -4608,9 +4959,12 @@ export function buildHouse(def: HouseDef, ctx: WorldContext, mats: StructureMate
       line.y -= boughR11(spec.a) * 0.9;
       line.addScaledVector(frame.dir(spec.a), -0.04 * k);
       const knotY11 = boughHookYRound10(spec.a);
-      const r = Math.hypot(line.x - frame.C.x, line.z - frame.C.z);
       hook = line.clone();
-      hook.y = Math.max(line.y, Math.min(yFloor + soffitY(spec.a, r), archUnderY(lateralOf(line))) - 0.03);
+      // round 48: a second-rank pod hangs from the soffit in the porch recess, `back` m behind the line
+      if (spec.back) hook.addScaledVector(F, -spec.back * k);
+      const r = Math.hypot(hook.x - frame.C.x, hook.z - frame.C.z);
+      // (a second-rank pod is behind the arch body: its cord is tied to the soffit alone)
+      hook.y = Math.max(line.y, (spec.back ? yFloor + soffitY(spec.a, r) : Math.min(yFloor + soffitY(spec.a, r), archUnderY(lateralOf(hook)))) - 0.03);
       cord += hook.y - knotY11;
     } else if (spec.hook === 'eave') {
       // hooked to the soffit a little in from the ×1.0 lip; the cord is a vine. The soffit sits

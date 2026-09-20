@@ -130,7 +130,9 @@ export async function openWorld(browser, baseUrl, { width = 1280, height = 720, 
     consoleLines.push(`[pageerror] ${e.message}`);
     log(`[pageerror] ${e.message}`);
   });
-  const url = `${baseUrl}/?capture=1&dev=0&quality=${encodeURIComponent(quality)}`;
+  // ZR_URL_EXTRA="pool=small&foo=bar" appends probe params (never set by the take/CI path)
+  const extra = process.env.ZR_URL_EXTRA ? `&${process.env.ZR_URL_EXTRA.replace(/^[?&]/, '')}` : '';
+  const url = `${baseUrl}/?capture=1&dev=0&quality=${encodeURIComponent(quality)}${extra}`;
   const t0 = Date.now();
   await page.goto(url, { waitUntil: 'load', timeout: timeoutMs });
   await page.waitForFunction(() => !!window.__ZR__, { timeout: timeoutMs, polling: 250 });

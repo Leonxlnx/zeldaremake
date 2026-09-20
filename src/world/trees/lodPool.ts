@@ -47,6 +47,8 @@ interface Slot<B extends PoolBuilt> {
   gen: Generator<void, B> | null;
   /** ms spent so far on the in-progress build */
   genMs: number;
+  /** the longest chunk (ms) of the in-progress build so far: what `work` expects its next chunk to cost */
+  stepMs: number;
   /** the tick the item was last wanted or pinned (LRU order) */
   lastUse: number;
   pinned: boolean;
@@ -82,7 +84,20 @@ export interface PoolReport {
   workMsMax: number;
   /** how much of the frame budgets `work` used (ms, summed) */
   workMsTotal: number;
+  /** chunks run by `work` (round 48): count, p50 / p95 of their ms over the last ones, and how many exceeded LONG_STEP_MS */
+  steps: number;
+  stepMsP50: number;
+  stepMsP95: number;
+  longSteps: number;
+  /** `work` calls that ran past their budget by more than one chunk's tolerance (STEP_TOLERANCE_MS), and the p95 of a call's ms */
+  workOverBudget: number;
+  workMsP95: number;
 }
+
+/** a chunk between two yields longer than this (ms) is counted in `longSteps`: the frame it lands in pays it whole */
+export const LONG_STEP_MS = 12;
+/** how far past its budget a `work` call may run before it counts in `workOverBudget` (one mis-predicted small chunk) */
+export const STEP_TOLERANCE_MS = 1;
 
 const percentile = (sorted: number[], q: number) => (sorted.length ? sorted[Math.min(sorted.length - 1, Math.floor(q * (sorted.length - 1) + 0.5))] : 0);
 
@@ -98,6 +113,13 @@ export class LodPool<B extends PoolBuilt = PoolBuilt> {
   private stepMsMax = 0;
   private workMsMax = 0;
   private workMsTotal = 0;
+  /** the last chunks' ms (a ring of `history`), their count, and the count over LONG_STEP_MS */
+  private readonly stepMs: number[] = [];
+  private stepCount = 0;
+  private longSteps = 0;
+  /** the last `work` calls' ms and the count over budget + STEP_TOLERANCE_MS */
+  private readonly workMs: number[] = [];
+  private workOverBudget = 0;
 
   /**
    * @param capBytes byte cap: unpinned items are evicted past it (the unwanted least recently used
@@ -115,7 +137,7 @@ export class LodPool<B extends PoolBuilt = PoolBuilt> {
   /** register an item; `built` = buffers that already exist (the measurement build), counted resident */
   add(item: PoolItem<B>, built: B | null = null) {
     if (this.slots.has(item)) throw new Error(`LodPool: ${item.id} added twice`);
-    const slot: Slot<B> = { item, built, gen: null, genMs: 0, lastUse: this.tick, pinned: false, wanted: false, priority: Infinity };
+    const slot: Slot<B> = { item, built, gen: null, genMs: 0, stepMs: 0, lastUse: this.tick, pinned: false, wanted: false, priority: Infinity };
     this.slots.set(item, slot);
     if (built) {
       item.bytes = built.bytes;
@@ -188,9 +210,17 @@ export class LodPool<B extends PoolBuilt = PoolBuilt> {
    * more than the cap (the hollow is ~40 m across: from the plaza 2/3 of the canopy parts are
    * within 34 m) shrinks to what fits, it never inflates the pool — then advance the pending
    * builds — the in-progress one first, then the wanted items by priority — chunk by chunk while
-   * the budget lasts (a chunk that ends past the budget ends the call). A pending item is only
-   * started while it can fit: room at the cap, or evictable items that are not wanted or are
-   * wanted with a worse priority (so the pool never thrashes between a near and a far one).
+   * the budget lasts. A pending item is only started while it can fit: room at the cap, or
+   * evictable items that are not wanted or are wanted with a worse priority (so the pool never
+   * thrashes between a near and a far one).
+   *
+   * Round 48: the budget is checked BEFORE a chunk with what the chunk is expected to cost — the
+   * longest chunk of the same build so far, or the pool's median chunk for a build's first — and
+   * a chunk that would end past the budget is left for the next frame. The shipped loop checked
+   * only between chunks, so every `work` call could run the budget plus one whole chunk (a frame
+   * at 3 ms of budget paid 16–35 ms on the SwiftShader box, 232 ms natively under load). The first
+   * chunk of a call always runs, so a build whose chunks are all longer than the budget still
+   * advances one chunk a frame instead of starving into a synchronous build at its pin.
    */
   work(budgetMs: number) {
     const t0 = this.now();
@@ -198,9 +228,12 @@ export class LodPool<B extends PoolBuilt = PoolBuilt> {
       if (s.gen && !s.wanted && !s.pinned) {
         s.gen = null;
         s.genMs = 0;
+        s.stepMs = 0;
       }
     }
     this.evictToCap(0, -Infinity);
+    const typical = this.stepMsTypical();
+    let steps = 0;
     for (;;) {
       const elapsed = this.now() - t0;
       if (elapsed >= budgetMs) break;
@@ -213,17 +246,41 @@ export class LodPool<B extends PoolBuilt = PoolBuilt> {
         }
         s.gen = s.item.build();
         s.genMs = 0;
+        s.stepMs = 0;
       }
+      const expected = s.stepMs > 0 ? s.stepMs : typical;
+      if (steps > 0 && elapsed + expected > budgetMs) break;
       const c0 = this.now();
       const r = s.gen.next();
       const c1 = this.now();
-      s.genMs += c1 - c0;
-      this.stepMsMax = Math.max(this.stepMsMax, c1 - c0);
+      const stepMs = c1 - c0;
+      steps++;
+      s.genMs += stepMs;
+      s.stepMs = Math.max(s.stepMs, stepMs);
+      this.recordStep(stepMs);
       if (r.done) this.finish(s, r.value, s.genMs);
     }
     const ms = this.now() - t0;
     this.workMsMax = Math.max(this.workMsMax, ms);
     this.workMsTotal += ms;
+    this.workMs.push(ms);
+    if (this.workMs.length > this.history) this.workMs.shift();
+    if (ms > budgetMs + STEP_TOLERANCE_MS) this.workOverBudget++;
+  }
+
+  /** what a chunk of an untouched build is expected to cost: the median of the last chunks (0 until one has run) */
+  private stepMsTypical() {
+    if (!this.stepMs.length) return 0;
+    const sorted = [...this.stepMs].sort((a, b) => a - b);
+    return percentile(sorted, 0.5);
+  }
+
+  private recordStep(ms: number) {
+    this.stepCount++;
+    this.stepMsMax = Math.max(this.stepMsMax, ms);
+    if (ms > LONG_STEP_MS) this.longSteps++;
+    this.stepMs.push(ms);
+    if (this.stepMs.length > this.history) this.stepMs.shift();
   }
 
   get poolBytes() {
@@ -253,6 +310,8 @@ export class LodPool<B extends PoolBuilt = PoolBuilt> {
       else if (s.wanted && !s.built) pending++;
     }
     const r = (v: number) => Math.round(v * 100) / 100;
+    const steps = [...this.stepMs].sort((a, b) => a - b);
+    const works = [...this.workMs].sort((a, b) => a - b);
     return {
       capBytes: this.capBytes,
       poolBytes: this.bytes,
@@ -274,6 +333,12 @@ export class LodPool<B extends PoolBuilt = PoolBuilt> {
       stepMsMax: r(this.stepMsMax),
       workMsMax: r(this.workMsMax),
       workMsTotal: r(this.workMsTotal),
+      steps: this.stepCount,
+      stepMsP50: r(percentile(steps, 0.5)),
+      stepMsP95: r(percentile(steps, 0.95)),
+      longSteps: this.longSteps,
+      workOverBudget: this.workOverBudget,
+      workMsP95: r(percentile(works, 0.95)),
     };
   }
 
@@ -291,6 +356,8 @@ export class LodPool<B extends PoolBuilt = PoolBuilt> {
         s.built = null;
       }
       s.gen = null;
+      s.genMs = 0;
+      s.stepMs = 0;
     }
     this.bytes = 0;
   }
@@ -317,6 +384,7 @@ export class LodPool<B extends PoolBuilt = PoolBuilt> {
   private finish(s: Slot<B>, built: B, ms: number) {
     s.gen = null;
     s.genMs = 0;
+    s.stepMs = 0;
     this.evictToCap(built.bytes, s.priority);
     s.built = built;
     s.item.bytes = built.bytes;

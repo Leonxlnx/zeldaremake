@@ -153,4 +153,48 @@ for(const g of geometry)g.dispose();for(const m of[material,depth,distance])m.di
   assert.deepEqual([...nearMesh.instanceMatrix.array.slice(12,15)],[0,0,-40]);
   set.dispose();edge.dispose();for(const g of[...near,...far])g.dispose();
 }
-console.log('PASS: forced LOD refresh, interactive gate, conserved matrices/colors/counts, shadow bindings, consistent estimates, variant packs (slots, hidden empty LODs, layout validation) and submission culling (frustum, shadow sweep, pad, no-op re-cull)');
+
+// Incremental re-bucketing (round 48, lod-1): an unforced update lists at most `maxItems` plants a
+// call into staging lists and swaps the buckets when the last plant is listed; until then the old
+// buckets stand. The result equals one forced re-bucket at the job's camera (same lists, same order),
+// the listing is accounted exactly (`listedLast`), and a forced update cancels an open job.
+{
+  const geo=[new THREE.BoxGeometry(),new THREE.PlaneGeometry()];
+  const at=(x,y,z)=>Float32Array.from(new THREE.Matrix4().makeTranslation(x,y,z).elements);
+  const N=25,K=8;
+  const build=()=>{const s=new LodInstancedSet({name:'inc',variants:[geo],material,lodDistances:[10,20],maxDistance:60,hysteresis:0.6});for(let i=0;i<N;i++)s.add(at(i*3,0,0),0,[i/N,0,0]);s.build();return s;};
+  const inc=build(),ref=build();
+  const buckets=s=>s.submission().map(m=>[m.lod,m.bucket]);
+  const lists=s=>s.group.children.map(m=>[...m.instanceMatrix.array.slice(0,m.count*16)]);
+  inc.update(new THREE.Vector3(0,0,0),true);ref.update(new THREE.Vector3(0,0,0),true);
+  assert.equal(inc.listedLast,N,'a forced update lists the whole set');
+  const before=buckets(inc);
+  // camera moves 30 m: everything re-buckets, in ceil(N/K) = 4 calls of at most K plants
+  const cam=new THREE.Vector3(30,0,0);
+  let calls=0,listed=0;
+  while(!inc.update(cam,false,K)){calls++;listed+=inc.listedLast;assert.ok(inc.rebucketing,'a job is open until the last plant is listed');assert.ok(inc.listedLast<=K,'never more than maxItems a call');assert.deepEqual(buckets(inc),before,'the old buckets stand while the job runs');}
+  listed+=inc.listedLast;calls++;
+  assert.equal(calls,Math.ceil(N/K),'ceil(N / maxItems) calls to swap');
+  assert.equal(listed,N,'every plant listed exactly once');
+  assert.equal(inc.rebucketing,false,'the job is closed on the swap');
+  ref.update(cam,true);
+  assert.deepEqual(buckets(inc),buckets(ref),'the incremental result equals one forced re-bucket at the job camera');
+  assert.deepEqual(lists(inc),lists(ref),'same lists in the same order');
+  assert.equal(inc.update(cam,false,K),false,'settled: no job at the same camera');assert.equal(inc.listedLast,0);
+  // a camera drift below the hysteresis while a job is open does not restart it; the job keeps its own camera
+  const cam2=new THREE.Vector3(60,0,0);
+  assert.equal(inc.update(cam2,false,K),false);assert.ok(inc.rebucketing);
+  assert.equal(inc.update(new THREE.Vector3(60.3,0,0),false,K),false,'the open job advances for its own camera');
+  while(!inc.update(cam2,false,K));
+  ref.update(cam2,true);
+  assert.deepEqual(buckets(inc),buckets(ref),'a job bucketed for the camera it started at');
+  // a forced update mid-job drops the job and re-buckets at once (the captures never see a half-listed set)
+  const cam3=new THREE.Vector3(0,0,0);
+  assert.equal(inc.update(cam3,false,K),false);assert.ok(inc.rebucketing);
+  assert.equal(inc.update(cam3,true),true);assert.equal(inc.rebucketing,false);assert.equal(inc.listedLast,N);
+  ref.update(cam3,true);assert.deepEqual(buckets(inc),buckets(ref));
+  // maxItems = Infinity is the shipped one-shot
+  assert.equal(inc.update(new THREE.Vector3(30,0,0)),true,'default maxItems re-buckets in one call');assert.equal(inc.listedLast,N);
+  inc.dispose();ref.dispose();for(const g of geo)g.dispose();
+}
+console.log('PASS: forced LOD refresh, interactive gate, conserved matrices/colors/counts, shadow bindings, consistent estimates, variant packs (slots, hidden empty LODs, layout validation), submission culling (frustum, shadow sweep, pad, no-op re-cull) and incremental re-bucketing (bounded listing, exact accounting, forced cancel, same result as one-shot)');
