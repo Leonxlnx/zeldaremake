@@ -43,10 +43,14 @@ import type { Rng } from '../util/prng';
 export const ANCHOR_BOULDERS: { id: string; position: [number, number, number]; radius: number; replaces?: string }[] = [{ id: 'c-bank-anchor', position: [7.4, 0, 2.9], radius: 0.55, replaces: 'stair-foot' }];
 /**
  * measurement toggle for fable-cursor's call on V21: the frame has ONE rock at the boy's feet, ours
- * had the r 1.0 'stair-foot' boulder 1.7 m east of it. true = the anchor stands in for it (what a
- * layout move of 'stair-foot' to (7.4, 2.9) r 0.55 would give); false = both stand.
+ * had the r 1.0 'stair-foot' boulder 1.7 m east of it. 'replace' = the anchor stands in for it (what a
+ * layout move of 'stair-foot' to (7.4, 2.9) r 0.55 would give: C +0.0032, F −0.0034 … −0.0043 over
+ * budget); 'both' = both stand at full size (C −0.0017, F −0.0026); 'shrink' = fable-5's middle path —
+ * the stair-foot rock stays for F's structure at ≈ 0.35 m, the anchor carries C.
  */
-export const ANCHOR_REPLACES = true;
+export const ANCHOR_MODE: 'replace' | 'both' | 'shrink' = 'shrink';
+/** the stair-foot rock's radius under ANCHOR_MODE 'shrink' (the layout's is 1.0) */
+export const SHRUNK_STAIR_FOOT_R = 0.35;
 
 export const LEDGE_PREVIEW: RockLedgeDef[] = [
   { id: 'north-right-bank', foot: [[6.2, -14.5], [6.35, -18], [6.5, -22], [6.4, -25.5], [6.0, -28]], inset: 2.4, lean: 0.4 },
@@ -298,8 +302,11 @@ export async function create(ctx: WorldContext): Promise<WorldSystem> {
   /** a world xz direction expressed in the local frame of a mesh yawed by `yaw` about +Y */
   const toLocal = (d: [number, number], yaw: number): [number, number] => [d[0] * Math.cos(yaw) - d[1] * Math.sin(yaw), d[0] * Math.sin(yaw) + d[1] * Math.cos(yaw)];
   const anchors = ANCHOR_BOULDERS.filter((a) => !ctx.layout.heroBoulders.some((h) => h.id === a.id));
-  const replaced = new Set(ANCHOR_REPLACES ? anchors.map((a) => a.replaces).filter(Boolean) : []);
-  const heroList = [...ctx.layout.heroBoulders.filter((h) => !replaced.has(h.id)), ...anchors];
+  const replaced = new Set(anchors.length && ANCHOR_MODE !== 'both' ? anchors.map((a) => a.replaces).filter(Boolean) : []);
+  const heroList = [
+    ...ctx.layout.heroBoulders.filter((h) => !(ANCHOR_MODE === 'replace' && replaced.has(h.id))).map((h) => (ANCHOR_MODE === 'shrink' && replaced.has(h.id) ? { ...h, radius: SHRUNK_STAIR_FOOT_R } : h)),
+    ...anchors,
+  ];
   for (const b of heroList) {
     const r = b.radius;
     const anchor = b.id === 'c-bank-anchor';
