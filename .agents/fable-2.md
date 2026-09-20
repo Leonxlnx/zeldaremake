@@ -4,7 +4,7 @@ runtime: Cursor Cloud Agent (Claude Fable 5.1)
 github: Cursor Agent <cursoragent@cursor.com>
 status: active
 branch: agent/fable-2-ledge
-updated: 2026-09-20T05:10:00Z
+updated: 2026-09-20T06:40:00Z
 ---
 
 # fable-2 — work log
@@ -37,10 +37,16 @@ as `agent/fable-2-<topic>`; `fable-cursor` merges. I do not touch `layout.ts`, t
   hardscape's edging cheeks and was invisible — a real FAIL caught at the pose), slabs on the east
   bank and at the wall's foot; one mesh, drawn within 45 m (the first build cost the fixed
   cameras +2 draws / +0.14 M tris for stones behind the north rise).
+- Iteration 6 — GOAL_MODE fable-2 #4, the pebble scatter per cell (`pebbles.ts`): DONE
+  (`113f59b6` + `4d363760`), §Iteration 6. Stateless per-cell draws (0.1 m lattice on the paving's
+  fringe, 0.5 m for the scatter within 4 m); a paving edit moves only the pebbles within ~6 m
+  (tested); the north paving's ≈ 1 000 pebbles as `pebbles-north` under the north toggle. The
+  one-time re-roll: six views within −0.0019 of the head, A 8.99 M.
 PR creation from this chat is refused by GitHub ("must be a collaborator" for the agent account);
-fable-cursor merges from the branch (iteration 2 landed as `a569764`). Next: GOAL_MODE fable-2 #4
-(`pathEdgePebble` per-candidate draws) unless the INBOX ranks something higher; fable-5's V20
-motif at the plaza's bank feet (six-view exposure — needs fable-cursor's word on the budget).
+fable-cursor merges from the branch. My GOAL_MODE list is now empty: next I take the highest
+open rocks defect no one has claimed (fable-5's V20 / V21 at the plaza and stair bank are
+six-view-exposed and need fable-cursor's word on the budget; opus #16's joint pebbles likewise)
+or a review of another lane's branch at its poses.
 
 ## Iteration 1 (PR #12, merged `f092a094`)
 Rocks pass from survey-2 and the owner's 2026-09-19 references (rubric W23 / W24, W37 held). Items were:
@@ -64,6 +70,13 @@ Nothing outside `src/world/rocks/` except this log, the INBOX and my evidence un
 
 ## Completed work
 (newest first)
+- `113f59b6` + `4d363760` (`agent/fable-2-ledge`): `rocks/pebbles.ts` — per-cell pebble scatter
+  (hash2 of the cell for jitter / acceptance / size / yaw / variant; fine 0.1 m lattice on the
+  fringe inside coarse 0.5 m cells touching paving; coarse cells for the scatter within 4 m of
+  paving via a dilated 1 m paving grid); stair-foot pebbles hashed per (flight, index); the north
+  set toggled with the north locality. Calibrated 0.36 / 0.37 → the old ≈ 2 600. Tests 4/4.
+- `6946ad17`…: merged the head (fable-cursor's north-locality util); the clearing dressing joined
+  `ledgeMeshes` under `northVisible`, `CLEARING_DRAW_M` dropped.
 - `e070771d` + `7bf69c21` (`agent/fable-2-ledge`): `rocks/clearing.ts` — the north clearing's
   dressing from the layout's `northClearing` / `stairs.ledge` / `ledgeTerrace`: the pale boulder
   pair (r 0.52 + 0.33, half-buried at the west bank's foot), 11–14 scree blocks per flight flank
@@ -148,4 +161,4 @@ Nothing outside `src/world/rocks/` except this log, the INBOX and my evidence un
 - #4: `pathEdgePebble` per-candidate draws.
 
 ## Last updated
-2026-09-20T05:10:00Z
+2026-09-20T06:40:00Z
