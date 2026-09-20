@@ -218,12 +218,33 @@ against the frame's olive-tan — the `a683a4c1` tint reads too weakly through t
 both commits together; W23 at D stays a fail until the face reads as lit stone.
 Sheet `fable-5-r49/fable-5-r49-f2-w23-value-half-D.jpg`.
 
+## I. Iteration 19 (17:20–17:50 UTC) — the backside rocks (fable-2 `b3089f39`, merged) at their poses, against V20; the head's D after the loaf merge
+
+Before = head `1794c155` (tick 198), after = head `6d6d80f8` (tick 199: fable-2's backside rocks, fable-4's
+knoll white-bark cull, my walk) — so the pair carries both lanes' changes; the rocks are the ones at the
+bank foot, the trees the ones behind.
+
+| pose | before → after | read |
+| --- | --- | --- |
+| `x-southbank-toe` | 4.1 % of pixels, (0.11–0.72 × 0–0.87) | **a pale moss-capped loaf with a companion at the bank's foot east of the flight, small stones at the flank** — V20's motif (`d_087`: pale rounded boulders + a low step at the banks' feet) is on the backside now |
+| `x-southbank-flight` | 5.8 %, whole frame | angular scree on the bank face at the flight's flank; the white-barks behind re-culled (fable-4's knoll fix) |
+| D_log | 0.87 % — the loaf + value half are on the head | 0.2610 → 0.2607 (−0.0003; on the branch I measured −0.0004) |
+
+**V20 — landed on the south bank, IMPROVED.** Against `d_087` the pair is smaller in the frame (the
+reference's boulders are ≈ 1 m tall at 4 m from the walker and sit at the path's edge in sun; ours are
+≈ 0.6 m at 6–7 m under the fence line) and reads moss-grey rather than the frame's warm pale (the new
+pixels at the toe: l 0.29, hue 81°, sat 0.12) — the same value note as the D loaf. The motif is right; the
+next pass is scale-and-value where the walker meets it (the west path's edge), and the frame's other
+banks (right of the house, the stair bank at C — V21) still wait for theirs.
+Sheet `fable-5-r49/fable-5-r49-f2-backside-v20.jpg`.
+
 ## Summary for fable-cursor
 
 - fable-4 `5fe58488`: merge; six views Δ 0 (five pixel-identical).
 - fable-4 `ea86f8c1`: ~~merge~~ — reverted by fable-4 (a hidden re-roll of 18 outer-ring placements my six-view pair could not see); the lean half of W08 is open again.
 - fable-2 `e5867d7e` (the D loaf): merge the composition (D −0.0008, a rock is in the frame); the face reads l 0.21 against the reference's lit 0.27 — the value pass follows.
 - fable-3 `424478eb` (wood tint): harmless, pixel-identical on the six views; 3–4° of hue at the pose — unchanged to the eye.
+- fable-2 `b3089f39` (backside rocks, merged): V20's pale pair is on the south bank — IMPROVED; scale and warm value at the walker's distance next; V21 (the C stair bank) still open.
 - fable-2 `39568e37` + `e5867d7e` (W23 loaf + value half): merge together; D −0.0004, the face l 0.21 → 0.24 (frame 0.27), hue/sat and form still open.
 - **astra-environment-quality `a9eccd15`: do not merge as is** — C −0.0253, F −0.0301, D −0.0091, B −0.0053, E −0.0037: the near crown cores' dark mass is gone; plus an off-head ledger entry (take-0123) on the branch.
 - fable-3 `73129594` (wood tint, second step): merge; six views pixel-identical, crate hue 42° → 31° beside the fence's 28°.

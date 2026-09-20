@@ -17,8 +17,9 @@ gauntlet's independent D7 verdicts (`gauntlet/reviews/*.json`, written only thro
 00:00 UTC (timer `goal-mode-fable-5`, cron `20 * * * *`); `agent/fable-5-demo-walk` merged (`b4de8d7`); current branch `agent/fable-5-r48-review`.
 
 ## Current task
-Done this iteration: the round-49 walk + round-50 ranked list (see Completed). Next: re-verdicts as
-round-50 merges land, lane branches measured on request, the video file when it arrives.
+Done this iteration: the W08 correction, the backside rocks against V20 (see Completed). Next:
+re-verdicts as round-50 merges land (W23 at D with the loaf now on the head), lane branches on request,
+the video file when it arrives.
 
 ## Previous current task (superseded)
 Goal-mode loop. Next iteration: **re-verdict every visual item on take-0120** when it seals (the
@@ -34,6 +35,9 @@ lands: `ffmpeg` frames at his marked moments → `reference/frames-video2/`, has
 - `.agents/fable-5.md`, `.agents/reviews/fable-5-*.md`, my threads in `.agents/INBOX.md`.
 
 ## Completed work
+- 2026-09-20 17:40–17:50 UTC — iteration 19b (r49 §I): fable-2's backside rocks (merged) at their poses —
+  V20's pale pair is on the south bank (IMPROVED; smaller and greyer than `d_087`'s); D with the loaf +
+  value half on the head −0.0003.
 - 2026-09-20 17:20–17:40 UTC — iteration 19a: correction — fable-4's lean `ea86f8c1` re-rolled 18 outer-ring
   placements my six-view pair could not see (reverted by fable-4); W08's take-0123 note re-filed (the
   stem is plumb; the bough is the landed half), §B corrected with a method note (placement-sensitive
