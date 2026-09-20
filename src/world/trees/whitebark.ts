@@ -75,16 +75,6 @@ export interface Palette {
 }
 
 /** Deterministic architecture for variant `index` of `total` (ages spread from saplings to mature). */
-/**
- * Round 49: the lean azimuth's draw is turned by this so camera C sees the survey tree (variant 7,
- * instance yaw 0.378) lean across the frame (world +x) instead of toward the camera (world −z),
- * where a lean is foreshortened to nothing. The crown scaffolds and low boughs read
- * `leanAzimuth`, so they turn with it; the boughs' own offset (LOW_BOUGH_OFFSET) is reduced by
- * the same angle so every bough stays where round 49 measured it.
- */
-const LEAN_TURN = 1.246;
-const LOW_BOUGH_OFFSET = 1.9 - LEAN_TURN;
-
 export function whiteBarkParams(rng: Rng, index: number, total: number): WhiteBarkParams {
   const r = rng.fork(`variant-${index}`);
   const f = index / Math.max(1, total - 1);
@@ -100,11 +90,8 @@ export function whiteBarkParams(rng: Rng, index: number, total: number): WhiteBa
     age,
     height: r.range(base.height[0], base.height[1]),
     trunkRadius: r.range(base.radius[0], base.radius[1]),
-    // round 49 (fable-5's W08 at C: "the stem is straight — lean and taper"): 5–10° (was 2–8°,
-    // the same draw so every variant keeps its place in the range); the azimuth's draw turned by
-    // LEAN_TURN so the survey tree (variant 7, yaw 0.378) leans across camera C instead of toward it
-    leanDeg: r.range(5, 10),
-    leanAzimuth: (r.range(0, TAU) + LEAN_TURN) % TAU,
+    leanDeg: r.range(2, 8),
+    leanAzimuth: r.range(0, TAU),
     taperPower: r.range(0.8, 1.25),
     ridge: r.range(0.04, 0.13),
     sideLeaders: r.int(base.leaders[0], base.leaders[1] + 1),
@@ -586,7 +573,7 @@ export function createWhiteBarkTree(p: WhiteBarkParams, palette: Palette, detail
     // for a walker); the second, where drawn, at 30–42 %
     const t = main ? bt(0.22, 0.34) : bt(0.3, 0.42);
     const origin = sample(trunk, t);
-    const angle = p.leanAzimuth + LOW_BOUGH_OFFSET + i * 2.5 + bt(-0.55, 0.55);
+    const angle = p.leanAzimuth + 1.9 + i * 2.5 + bt(-0.55, 0.55);
     const reach = crownRadius * (main ? bt(0.45, 0.7) : bt(0.35, 0.58));
     const center = origin.clone().add(new Vector3(Math.cos(angle) * reach, H * (main ? bt(0.06, 0.11) : bt(0.065, 0.12)), Math.sin(angle) * reach));
     const path = growthPath(origin, center, tangent(trunk, t).lerp(new Vector3(Math.cos(angle), 0.2, Math.sin(angle)), 0.62), rng, 8, 1.1);
