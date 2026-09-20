@@ -581,8 +581,6 @@ const WHITE_BARK_COLOR = /* glsl */ `
  * no geometry, no draw calls.
  */
 const GIANT_BARK_COLOR = /* glsl */ `
-  // Keep the mapped bark beneath the moss: revealed gaps must retain its fissures and grain.
-  vec3 barkSurface = diffuseColor.rgb;
   float coarse = treeNoise(vTreeWorld * 0.55) * 0.55 + treeNoise(vTreeWorld * 2.1) * 0.45;
   float up = clamp(inverseTransformDirection(normalize(vNormal), viewMatrix).y, 0.0, 1.0);
   float lowBand = 1.0 - smoothstep(0.3, 4.5, vTreeLocalY);
@@ -595,7 +593,7 @@ const GIANT_BARK_COLOR = /* glsl */ `
   // the near base's moss is the vertex cover (bole.ts) with its cushions below; these far
   // sheets, which green a whole flare's upper skirt from 10 m, are thinned to a tint here so
   // the cords and the bark between the cushions show (the owner's "soft green")
-  moss = max(moss * 0.18, sheet * 0.12);
+  moss = max(moss * 0.45, sheet * 0.35);
   #else
   moss = max(moss, sheet);
   #endif
@@ -617,8 +615,7 @@ const GIANT_BARK_COLOR = /* glsl */ `
   #endif
   float lichen = lichenCluster * lichenFleck * foot * (1.0 - moss);
   vec3 lichenColor = mix(vec3(0.46, 0.5, 0.38), vec3(0.55, 0.56, 0.48), treeNoise(vTreeWorld * 4.0 + 9.0));
-  // A thin crust follows the bark's relief and albedo; a flat pale replacement hid both.
-  diffuseColor.rgb *= mix(vec3(1.0), lichenColor * 3.0, lichen * 0.6);
+  diffuseColor.rgb = mix(diffuseColor.rgb, lichenColor, lichen * 0.6);
   // moss cushions and small plant tufts: 10–20 cm, rare, on the sides of the bole (not on the
   // moss sheets), a shaded rim under each so they sit in the bark instead of on it. A first cut at
   // 40 cm in a yellow-green with a hard dark outline read as leaves stuck to the trunk
@@ -649,21 +646,9 @@ const GIANT_BARK_COLOR = /* glsl */ `
   if (vBarkMoss > 0.0) {
     // cushions 3–8 cm across (38 / 110 cycles per m read as static from 1 m)
     float mossFine = mossField(vTreeWorld);
-    // The vertex mask locates damp furrows/root shoulders; the existing fine field separates
-    // cushions within them. Saturated masks (including the actual 3-D cushions) keep their
-    // dense cover. The same coverage below also selects moss normals and roughness.
-    float cushionPeak = smoothstep(0.96, 1.0, vBarkMoss);
-    float mossPatch = smoothstep(0.40, 0.84, vBarkMoss) * smoothstep(0.24, 0.58, mossFine);
-    barkMossCover = mix(mossPatch, smoothstep(0.34, 0.82, vBarkMoss * (0.5 + 0.95 * mossFine)), cushionPeak);
-    #ifdef USE_COLOR
-    // bole.ts already greens the vertex tint under this mask. In exposed gaps recover the
-    // mapped bark's hue through the existing warm material tint, retaining vertex luminance
-    // (grain/crevice shade) and the original texture. Moss peaks keep their original colour.
-    float barkVertexValue = dot(vColor.rgb, vec3(0.2126, 0.7152, 0.0722));
-    vec3 exposedBark = barkSurface * barkVertexValue / max(vColor.rgb, vec3(1e-4));
-    float barkGap = vBarkMoss * (1.0 - barkMossCover) * (1.0 - cushionPeak);
-    diffuseColor.rgb = mix(diffuseColor.rgb, exposedBark, barkGap);
-    #endif
+    // cushions with ragged edges: the cover needs both a strong per-vertex moss AND the fine
+    // noise, so bark shows between the cushions (a 0.12–0.7 threshold greened whole boles)
+    barkMossCover = smoothstep(0.34, 0.82, vBarkMoss * (0.5 + 0.95 * mossFine));
     // a darker rim where a cushion meets the bark, so it sits on the bark as a volume
     float mossRim = barkMossCover * (1.0 - barkMossCover) * 4.0;
     vec3 mossCushion = mix(vec3(0.09, 0.16, 0.04), vec3(0.24, 0.36, 0.10), mossFine) * (1.0 - 0.35 * mossRim);
