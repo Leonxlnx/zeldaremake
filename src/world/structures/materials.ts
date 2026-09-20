@@ -13,11 +13,14 @@ import {
   LinearMipmapLinearFilter,
   MeshBasicMaterial,
   MeshStandardMaterial,
+  MultiplyBlending,
   NoColorSpace,
   RepeatWrapping,
+  ShaderMaterial,
   SRGBColorSpace,
   Texture,
   Vector2,
+  Vector3,
   type WebGLProgramParametersWithUniforms,
 } from 'three';
 import type { WorldContext } from '../system';
@@ -347,6 +350,17 @@ export const ARCH_BARK_FLOOR: ShadeFloor = { ...HOUSE_BARK_FLOOR, lift: 13, text
  * from the west mouth at player height.
  */
 export const LOG_INTERIOR_FLOOR: ShadeFloor = { lift: 4.5, texture: 0.6, canopy: 1, albedo: 0.08, chroma: 1 };
+/**
+ * Round 49 (structures-32): the passage tube's walls. The demo's tunnel (`d_121`) is a dark
+ * cylinder — walls l 0.05–0.07 — around a 0.39 window; the hollow's floor above (lift 4.5) was
+ * set so the west mouth's interior detail READS, which is the opposite brief. Lift 1.6 with the
+ * texture share high (0.8): what the fill light leaves is the fissure / plate modulation, not a
+ * flat grey; the pods' point lights carry the rest of what is seen inside.
+ */
+export const TUNNEL_WALL_FLOOR: ShadeFloor = { lift: 1.6, texture: 0.8, canopy: 1, albedo: 0.06, chroma: 1 };
+/** round 49: the tunnel floor decal's linear multiplier (warm packed earth) and its camera-distance fade (m) */
+export const TUNNEL_FLOOR_TINT = new Vector3(0.26, 0.215, 0.165);
+export const TUNNEL_FLOOR_FADE: [number, number] = [24, 40];
 
 export interface StructureMaterials {
   /** house trunk + roots (bark_brown_02, warm tint) */
@@ -390,6 +404,21 @@ export interface StructureMaterials {
   distantGlow: MeshBasicMaterial;
   /** round 47 (structures-30): pale daylight lying in the log arch's open fissures (vertex tints carry the fall-off) */
   daylightSliver: MeshBasicMaterial;
+  /**
+   * Round 49 (structures-32): the passage tube under the arch — cracked heartwood walls and
+   * ceiling around the walk (logArch.ts). `logInterior`'s maps, front-facing (the tube is built
+   * with its normals toward the walk), under TUNNEL_WALL_FLOOR: the demo's tunnel walls read
+   * l 0.05–0.07 against a 0.39 window, so the floor sits well under the hollow's.
+   */
+  tunnelWall: MeshStandardMaterial;
+  /**
+   * Round 49: the packed-earth / bark-litter shade on the tunnel's floor — a MULTIPLY decal
+   * laid a hand above the paving (the slabs are the hardscape's, not ours), so the floor under
+   * the log darkens toward the demo's l 0.15 while the slab pattern stays. Vertex colour = the
+   * fade (1 full, 0 none); `uTint` the linear multiplier; fades to no-op over `uFade` metres of
+   * camera distance (it has no fog of its own).
+   */
+  tunnelFloor: ShaderMaterial;
   /**
    * Pod lantern (body + cap + stem + cord in one draw): emissive gradient texture, brighter at
    * the bottom; UV v ≥ LANTERN_DARK_V is black so caps and cords do not glow. Vertex colours tint.
@@ -1298,6 +1327,51 @@ export async function loadMaterials(ctx: WorldContext, rng: () => number): Promi
     side: BackSide,
     vertexColors: true,
   });
+  // round 49 (structures-32): the passage tube's cracked heartwood — the hollow's maps, front
+  // faces (logArch.ts turns the tube's normals toward the walk), a darker base under its own floor
+  const tunnelWall = new MeshStandardMaterial({
+    map: barkC,
+    normalMap: barkN,
+    normalScale: new Vector2(1.6, 1.6),
+    roughness: 1,
+    color: new Color(0x2b2119),
+    vertexColors: true,
+    // the tube's faces point inward; the sun sees its back — it must still shadow the floor at the mouths
+    shadowSide: DoubleSide,
+  });
+  // round 49: the tunnel floor's multiply decal (see StructureMaterials.tunnelFloor)
+  const tunnelFloor = new ShaderMaterial({
+    uniforms: {
+      uTint: { value: TUNNEL_FLOOR_TINT.clone() },
+      uFade: { value: new Vector2(TUNNEL_FLOOR_FADE[0], TUNNEL_FLOOR_FADE[1]) },
+    },
+    vertexShader: /* glsl */ `
+      varying float vFade;
+      varying float vDist;
+      void main() {
+        vec4 wp = modelMatrix * vec4(position, 1.0);
+        vFade = color.r;
+        vDist = distance(cameraPosition, wp.xyz);
+        gl_Position = projectionMatrix * viewMatrix * wp;
+      }
+    `,
+    fragmentShader: /* glsl */ `
+      uniform vec3 uTint;
+      uniform vec2 uFade;
+      varying float vFade;
+      varying float vDist;
+      void main() {
+        float k = clamp(vFade, 0.0, 1.0) * (1.0 - smoothstep(uFade.x, uFade.y, vDist));
+        gl_FragColor = vec4(mix(vec3(1.0), uTint, k), 1.0);
+      }
+    `,
+    vertexColors: true,
+    blending: MultiplyBlending,
+    transparent: true,
+    depthWrite: false,
+    fog: false,
+    toneMapped: false,
+  });
   const roof = new MeshStandardMaterial({
     map: own(strawTexture(rng)),
     normalMap: thatchN,
@@ -1563,6 +1637,7 @@ export async function loadMaterials(ctx: WorldContext, rng: () => number): Promi
   applyShadeFloor(recessBark, RECESS_BARK_FLOOR, new Color(HOUSE_BARK_TINT));
   applyShadeFloor(archBark, ARCH_BARK_FLOOR, new Color(HOUSE_BARK_TINT));
   applyShadeFloor(logInterior, LOG_INTERIOR_FLOOR, new Color(HOUSE_BARK_TINT));
+  applyShadeFloor(tunnelWall, TUNNEL_WALL_FLOOR, new Color(HOUSE_BARK_TINT));
   // round 44 (structures-28): the rail fences stood on the plateau lip with no floor at all —
   // in the canopy's shade their Lambert response is ≈ 0.02 and the posts read as black boxes at
   // 2 m (survey-1 crops 19/20). FENCE_WOOD_FLOOR keeps the wood's own textured albedo (texture
@@ -1575,5 +1650,5 @@ export async function loadMaterials(ctx: WorldContext, rng: () => number): Promi
   applyShadeFloor(runes, FENCE_WOOD_FLOOR, new Color(HOUSE_BARK_TINT));
   applyShadeFloor(stone, STONE_FLOOR);
   const texturedSets = T.loaded().filter((s) => ['bark_brown_02', 'bark_willow_02', 'thatch_roof_angled', 'weathered_planks', 'worn_rock_natural_01'].includes(s));
-  return { bark, barkPale, logBark, sleeveBark, recessBark, archBark, interior, logInterior, roof, wood, woodDark, fenceWood, stone, hearth, ember, windowGlow, distantGlow, daylightSliver, lantern, lanternLime, lanternFar, lanternLimeFar, lanternHalo, leaf, vine, tuft, moss, capMoss, flower, runes, runeGlyphs, endGrain, texturedSets, ownedTextures };
+  return { bark, barkPale, logBark, sleeveBark, recessBark, archBark, interior, logInterior, roof, wood, woodDark, fenceWood, stone, hearth, ember, windowGlow, distantGlow, daylightSliver, tunnelWall, tunnelFloor, lantern, lanternLime, lanternFar, lanternLimeFar, lanternHalo, leaf, vine, tuft, moss, capMoss, flower, runes, runeGlyphs, endGrain, texturedSets, ownedTextures };
 }

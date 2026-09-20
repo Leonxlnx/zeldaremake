@@ -556,6 +556,39 @@ function logAxisPoint(lu: number) {
   return { x: LOG.cx + LOG.ax * lu - LOG.az * bend, z: LOG.cz + LOG.az * lu + LOG.ax * bend };
 }
 
+/**
+ * Round 49 (structures-32): the frame of the passage tube's FLOOR, for the ground tint under
+ * the log (material.ts — the only terrain-side part of the tunnel; the tube, its cheeks and the
+ * slab decal are structures/logArch.ts, which derives the same frame from the same layout).
+ * Origin: where the log's straight axis line crosses the tunnel line; `w` the walk's unit
+ * direction on that segment (north-ish), the across axis its right-hand perpendicular (east-ish).
+ * `aS`/`aN` are the along-walk extent of the tinted floor (the south cheek face −2.6 m and the
+ * north mouth +4.8 m in logArch.ts, each widened by the feather), `eHalf` its half-width (the
+ * tube's walls stand at ± 3.15 m). Heights are not involved: this is a plan-view box.
+ */
+export const ARCH_TUNNEL_FLOOR = (() => {
+  const line = TUNNEL.line;
+  let ox = line[1][0];
+  let oz = line[1][2];
+  let wx = 0;
+  let wz = -1;
+  for (let i = 0; i + 1 < line.length; i++) {
+    const [ax, , az] = line[i];
+    const [bx, , bz] = line[i + 1];
+    const va = -(ax - LOG.cx) * LOG.az + (az - LOG.cz) * LOG.ax;
+    const vb = -(bx - LOG.cx) * LOG.az + (bz - LOG.cz) * LOG.ax;
+    if ((va > 0 && vb > 0) || (va < 0 && vb < 0) || va === vb) continue;
+    const t = va / (va - vb);
+    ox = ax + (bx - ax) * t;
+    oz = az + (bz - az) * t;
+    const len = Math.hypot(bx - ax, bz - az) || 1;
+    wx = (bx - ax) / len;
+    wz = (bz - az) / len;
+    break;
+  }
+  return { ox, oz, wx, wz, aS: -2.9, aN: 5.0, eHalf: 3.3, feather: 0.9 };
+})();
+
 const STEPPING_STONES = houseSteppingStones();
 
 /** 1 on a stepping stone of the house branch (paved), soft 10 % rim. */
