@@ -427,7 +427,8 @@ export function terracePlants(ctx: WorldContext, field: VegField, sets: TerraceS
     field.sample(x, z, s);
     if (!field.allowed(x, z, s, true) && !(verge && field.lawnEdgeDistance(x, z, true) >= 0.04)) return false;
     if (s.stairs > 0.05 || s.structure > 0.05) return false;
-    if (field.insidePropFootprint(x, z, 0.08) || field.clearing(x, z).insideBoulder) return false;
+    // the mound's full box (x to 11) reaches the plaza trunk at (11.2, 9) — no root inside it
+    if (field.insideGiantTrunk(x, z) || field.insidePropFootprint(x, z, 0.08) || field.clearing(x, z).insideBoulder) return false;
     return true;
   };
   /** the toe: inside the box, below the first tread's upper half, on the face or the flat ground just under it */
@@ -569,7 +570,7 @@ export function terraceLitter(ctx: WorldContext, field: VegField, leaves: LodIns
       if (h > tread - 0.02 || h < tread - TERRACE_RISER - 0.03) continue;
       field.sample(px, pz, s);
       if (!field.allowed(px, pz, s, true) || s.stairs > 0.05 || s.structure > 0.05) continue;
-      if (field.insidePropFootprint(px, pz, 0.05) || field.clearing(px, pz).insideBoulder) continue;
+      if (field.insideGiantTrunk(px, pz) || field.insidePropFootprint(px, pz, 0.05) || field.clearing(px, pz).insideBoulder) continue;
       T.normal(px, pz, n);
       composeMatrix(M, 0, px, T.height(px, pz) + 0.005, pz, n.x, n.y, n.z, 1, yaw, scale, scale, scale);
       leaves.add(M, rng.int(0, leaves.variantCount), [tint[0] * k, tint[1] * k, tint[2] * k]);
