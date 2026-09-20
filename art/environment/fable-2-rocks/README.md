@@ -16,6 +16,31 @@ B 526 / C 393 / D 394 / E 526 / F 512; A 9.09 M tris on both (the head's number,
 change's — flagged to fable-cursor). Files: `ledge2-x-clearing-n.jpg` (+ `-crop`),
 `ledge2-x-ledge-foot.jpg`, `ledge2-x-northpath-n.jpg`.
 
+## Iteration 5 (goal mode, 2026-09-20) — the north clearing's rock dressing, GOAL_MODE fable-2 #3
+
+`e070771d` + `7bf69c21` (`src/world/rocks/clearing.ts`). BEFORE = the head `6c4415f8`, AFTER = this
+build; poses: opus's `x-clearing-n`, plus `x-clearing-west` p (−1.5, 5.45, −69.8) → t (−7, 5.3, −69.4),
+`x-ledge-flank-e` p (−0.3, 5.45, −71.2) → t (3, 4.9, −74.3), `x-ledge-wall-foot` p (1.6, 5.45, −72.2)
+→ t (−1.6, 4.5, −74.5).
+
+| pose | item | verdict | what changed |
+| --- | --- | --- | --- |
+| `x-clearing-west` | round-47 handoff: a boulder pair on the clearing's west bank; V20's "pale boulder pairs at a bank's foot" | **PASS** | a pale weathered loaf (r 0.52, tint 0.76/0.75/0.68) with a companion (r 0.33) against its flank, half-buried in the bank 0.5–1.3 m outside the paved disc, moss-capped, on the west bearing (`clearing-x-clearing-west.jpg`, `-crop`) |
+| `x-ledge-flank-e`, `x-clearing-n` | scree at the ledge flight's flanks; half-buried strata along the terrace face | **PASS** | 11–14 angular blocks per flank (fist to knee-sized, the biggest at the foot corners) in a band 0.6–1.4 m off the treads — the hardscape's edging cheeks hold the first 0.6 m, and the first build's shards inside them were invisible; 6–7 bedded slabs on the undressed east bank and three at the wall's foot west of the flight (`clearing-x-ledge-flank-e.jpg`, `clearing-x-clearing-n.jpg`, `clearing-x-ledge-wall-foot.jpg`) |
+
+One merged mesh under the hero (near) material, ~49 k triangles, one draw, drawn only within
+`CLEARING_DRAW_M` 45 m of the clearing (the fixed cameras are 60–70 m off behind the north rise;
+the first build sat in their frusta and cost +2 draws / +0.14 M tris for nothing). Positions from
+the layout's `northClearing` / `stairs.ledge` / `ledgeTerrace`; every piece seated on the
+heightfield, off the paving, treads and pads; own fork — the ≤ 45 m scatters are untouched.
+Tests: `clearing.test.mjs` (deterministic, attributes, counts, seats, the pair's bank, buried
+bases, null without a clearing).
+
+Six fixed views, head `0987e060` → `7bf69c21` (this VM, `capture.mjs --settle 12`): Δ SSIM 0.0000 ×6
+(A 0.2195, B 0.2042, C 0.2393, D 0.2794, E 0.2146, F 0.2601), C and F byte-identical, A/B/D/E the
+near-shader flips of iteration 3; draws 577 / 535 / 393 / 402 / 535 / 516 and A 9.08 M tris — the
+head's numbers exactly (without the 45 m toggle the mesh cost +2 draws / +0.14 M tris at A / B / D / E).
+
 ## Iteration 4 (goal mode, 2026-09-20) — the north-terrace wall at 3 m, fable-5's review
 
 `2f741068`. BEFORE = the merged head `0987e060` (iteration 2 in), AFTER = this build, at fable-5's

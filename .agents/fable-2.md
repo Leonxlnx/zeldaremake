@@ -4,7 +4,7 @@ runtime: Cursor Cloud Agent (Claude Fable 5.1)
 github: Cursor Agent <cursoragent@cursor.com>
 status: active
 branch: agent/fable-2-ledge
-updated: 2026-09-20T03:41:00Z
+updated: 2026-09-20T05:10:00Z
 ---
 
 # fable-2 — work log
@@ -31,10 +31,16 @@ as `agent/fable-2-<topic>`; `fable-cursor` merges. I do not touch `layout.ts`, t
   (`2f741068`), §Iteration 4. Ends sink into the bank (lip stays on the terrace top), beds
   0.3–0.45 m stepped hard, damp band in the vertex colour + `LEDGE_DAMP` 1.6 on the material,
   bark roots, slab crest.
+- Iteration 5 — GOAL_MODE fable-2 #3, the north clearing's rock dressing (`clearing.ts`): DONE
+  (`e070771d` + `7bf69c21`), §Iteration 5. The pale boulder pair on the west bank (V20's motif),
+  scree at the flight's flanks 0.6–1.4 m off the treads (the first band sat inside the
+  hardscape's edging cheeks and was invisible — a real FAIL caught at the pose), slabs on the east
+  bank and at the wall's foot; one mesh, drawn within 45 m (the first build cost the fixed
+  cameras +2 draws / +0.14 M tris for stones behind the north rise).
 PR creation from this chat is refused by GitHub ("must be a collaborator" for the agent account);
-fable-cursor merges from the branch (iteration 2 landed as `a569764`). Next: GOAL_MODE fable-2 #3
-(scree at the ledge flight's flanks, a boulder pair on the clearing's west bank, half-buried
-strata along the terrace face — positions in `art/environment/round47-review/README.md`).
+fable-cursor merges from the branch (iteration 2 landed as `a569764`). Next: GOAL_MODE fable-2 #4
+(`pathEdgePebble` per-candidate draws) unless the INBOX ranks something higher; fable-5's V20
+motif at the plaza's bank feet (six-view exposure — needs fable-cursor's word on the budget).
 
 ## Iteration 1 (PR #12, merged `f092a094`)
 Rocks pass from survey-2 and the owner's 2026-09-19 references (rubric W23 / W24, W37 held). Items were:
@@ -58,6 +64,12 @@ Nothing outside `src/world/rocks/` except this log, the INBOX and my evidence un
 
 ## Completed work
 (newest first)
+- `e070771d` + `7bf69c21` (`agent/fable-2-ledge`): `rocks/clearing.ts` — the north clearing's
+  dressing from the layout's `northClearing` / `stairs.ledge` / `ledgeTerrace`: the pale boulder
+  pair (r 0.52 + 0.33, half-buried at the west bank's foot), 11–14 scree blocks per flight flank
+  in a 0.6–1.4 m band off the treads, 6–7 bedded slabs on the east bank + 3 at the wall's foot;
+  one merged mesh, hero material, ~49 k tris, `CLEARING_DRAW_M` 45 m toggle in `nearUpdate`.
+  Tests `clearing.test.mjs` 3/3. Six views: the head's numbers exactly.
 - `2f741068` (`agent/fable-2-ledge`): the north-terrace wall at 3 m per fable-5's review. The
   end taper is a SINK into the bank (columns move along n, re-seated on the higher ground; the
   lip stays on the terrace top — the height taper had left the terrace's pale cut visible over
@@ -136,4 +148,4 @@ Nothing outside `src/world/rocks/` except this log, the INBOX and my evidence un
 - #4: `pathEdgePebble` per-candidate draws.
 
 ## Last updated
-2026-09-20T03:41:00Z
+2026-09-20T05:10:00Z
