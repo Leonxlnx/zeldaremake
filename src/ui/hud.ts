@@ -22,7 +22,7 @@
 import { createHearts } from './hearts';
 import { createItemSlot } from './itemSlot';
 import { createMinimap, type MinimapPose } from './minimap';
-import { createEquipmentScreen, CARD_BOX, GRID_COLS, GRID_ROWS, type EquipmentScreen } from './equipment';
+import { createEquipmentScreen, CARD_BOX, cellBox, type EquipmentScreen } from './equipment';
 import { createItemCard, type ItemCard } from './itemCard';
 import { createSpeaker, type Speaker, type SpeakerState } from './speaker';
 import { DEFAULT_ITEM, ITEMS, itemById, itemIndex, type ItemId } from './items';
@@ -61,8 +61,6 @@ const DEFAULT_POSE: MinimapPose = { x: 0, z: 2, dx: 5 / 14.87, dz: -14 / 14.87 }
 
 const DESIGN_W = 1280;
 const DESIGN_H = 720;
-/** grid thumbnail side (design px) */
-const THUMB = 72;
 
 function ensureStyle(): void {
   if (document.getElementById(HUD_STYLE_ID)) return;
@@ -185,16 +183,19 @@ function mount(host: HTMLElement, opts: HudOptions): HudHandle {
     if (card) {
       stage.appendChild(card.canvas);
       card.setSize(CARD_BOX.w * s * devicePixelRatio, CARD_BOX.h * s * devicePixelRatio);
-      // grid thumbnails (rows 0–1)
+      // grid thumbnails (rows 0–1): one canvas the size of the cell's inner box, rendered at the
+      // stage's device scale so the item is crisp at grid size
+      const dpr = Math.max(1, Math.min(3, devicePixelRatio || 1));
       for (const def of ITEMS) {
         const [row, col] = def.cell;
+        const box = cellBox(row, col);
         const cell = document.createElement('div');
         cell.className = 'zr-bag-thumb';
-        cell.style.left = `${GRID_COLS[col] - THUMB / 2}px`;
-        cell.style.top = `${GRID_ROWS[row].cy - THUMB / 2}px`;
-        cell.style.width = `${THUMB}px`;
-        cell.style.height = `${THUMB}px`;
-        cell.appendChild(card.thumbnail(def.id, Math.round(THUMB * s * devicePixelRatio)));
+        cell.style.left = `${box.x}px`;
+        cell.style.top = `${box.y}px`;
+        cell.style.width = `${box.w}px`;
+        cell.style.height = `${box.h}px`;
+        cell.appendChild(card.thumbnail(def.id, Math.round(box.w * s * dpr), Math.round(box.h * s * dpr)));
         cell.addEventListener('pointerdown', (e) => {
           e.stopPropagation();
           e.preventDefault();
