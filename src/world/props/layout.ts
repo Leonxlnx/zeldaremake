@@ -16,9 +16,11 @@ export type PropKind = 'pot' | 'crate' | 'barrel' | 'bucket' | 'ladder' | 'platf
  * is what draws together — every cluster of one locality merges into ONE mesh per material and
  * is distance-culled as one. The village's seven clusters span ~30 m and every fixed camera holds
  * most of them, so per-cluster meshes bought no culling there, only draw calls (up to 16 meshes,
- * 32 draws with the shadow pass); the north clearing is 60–75 m away and draws on its own.
+ * 32 draws with the shadow pass); the north clearing is 60–75 m away and draws on its own; the
+ * backside (round 49) is 8–25 m from every plaza camera but behind them all, and follows
+ * `util/expansionLocality.ts` (frustum + swept shadow footprints) like the house and its stair.
  */
-const CLUSTER_LOCALITY: Record<string, string> = { 'north-clearing': 'clearing' };
+const CLUSTER_LOCALITY: Record<string, string> = { 'north-clearing': 'clearing', 'west-house': 'backside' };
 export function localityOf(cluster: string): string {
   return CLUSTER_LOCALITY[cluster] ?? 'village';
 }
@@ -137,13 +139,15 @@ export const PROP_LAYOUT: readonly PropDef[] = [
   { id: 'west-landing-bucket', kind: 'bucket', x: -16.55, z: 5.25, size: 0.54, yaw: 0.9, cluster: 'west-house' },
   { id: 'west-landing-pot', kind: 'pot', x: -17.15, z: 5.55, size: 0.62, yaw: 1.7, cluster: 'west-house', variant: 0 },
   { id: 'west-landing-pot-squat', kind: 'pot', x: -16.8, z: 4.9, size: 0.44, yaw: -2.2, cluster: 'west-house', variant: 2 },
-  // a waymarker on the outer (north) side of the west path just past its fork at (−8.6, 9.4),
-  // where the south branch leaves for the bank: 0.8 m off the west line's discs, 2.2 m west of
-  // `cClip`'s margin (x < −8.24 at z 8.7), 1.6 m from the bush the vegetation scatter put at
-  // (−8.83, 8.38) (a first spot at (−9.2, 8.6) stood inside its crown), on the ledge face's slope
-  // (the post stands vertical, its foot conformed). The long board points along the west line to
-  // the house, the short one back to the plaza.
-  { id: 'west-fork-marker', kind: 'marker', x: -10.4, z: 8.7, size: 1.65, yaw: -1.39, cluster: 'west-house' },
+  // a waymarker on the outer (north) side of the west path past its fork at (−8.6, 9.4), where
+  // the south branch leaves for the bank: 0.9 m off the west line's discs, 2.5 m west of `cClip`'s
+  // margin, 2.2 m from the bush the vegetation scatter put at (−8.83, 8.38) (a first spot at
+  // (−9.2, 8.6) stood inside its crown), and far enough west that even its swept sun-shadow
+  // footprint (2.4 m ESE, `util/expansionLocality.ts` with its 0.75 m padding) stays outside
+  // camera C's frustum — at (−10.4, 8.7) the padded tip crossed C's edge by 4 cm and C drew the
+  // whole backside. On the ledge face's slope (the post stands vertical, its foot conformed); the
+  // long board points along the west line to the house, the short one back to the plaza.
+  { id: 'west-fork-marker', kind: 'marker', x: -11.0, z: 8.4, size: 1.65, yaw: -1.25, cluster: 'west-house' },
 
   // ---- the north clearing's entrance (GOAL_MODE fable-3 #2): where the north path's band (half
   // width 2.2, from the arch at (5.8, −58) south-west) meets the paved disc at (−1.5, −69.8) r 4.6.

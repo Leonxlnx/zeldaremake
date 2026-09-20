@@ -12,6 +12,7 @@ import { Box3, BufferGeometry, type Camera, Color, Group, Mesh, Quaternion, Sphe
 import { mergeGeometries } from 'three/addons/utils/BufferGeometryUtils.js';
 import type { WorldContext, WorldSystem } from '../system';
 import { expansionCull } from '../terrain/heightfield';
+import { type Caster, casterSpheres, expansionVisible, sunVector } from '../util/expansionLocality';
 import { createRng } from '../util/prng';
 import { barrelGeometry, bucketGeometry, crateGeometry, ladderGeometry, lightStringGeometry, markerGeometry, type Part, platformGeometry, potGeometry } from './geometry';
 import { localityOf, PROP_LAYOUT, type PropDef } from './layout';
@@ -176,6 +177,8 @@ export async function create(ctx: WorldContext): Promise<WorldSystem> {
     }
     return b;
   };
+  /** the backside props as vertical casters (expansionLocality's frustum + shadow-footprint rule) */
+  const backsideCasters: Caster[] = [];
   /** world-space extent of each cluster per material (audit + tests; the meshes merge past cluster level) */
   const clusterBounds = new Map<string, Partial<Record<MaterialKey, Box3>>>();
   const clusterNames = new Set<string>();
@@ -358,6 +361,7 @@ export async function create(ctx: WorldContext): Promise<WorldSystem> {
     bases.push([x, terrain.height(x, z), z]);
     placed.push({ id: def.id, kind: def.kind, cluster: def.cluster, x: +x.toFixed(3), y: +groundY.toFixed(3), z: +z.toFixed(3), tiltDeg: +((tiltUsed * 180) / Math.PI).toFixed(2) });
     footprints.push({ x: +x.toFixed(3), z: +z.toFixed(3), r: +footR.toFixed(3) });
+    if (localityOf(def.cluster) === 'backside') backsideCasters.push({ x, z, r: footR + 0.25, y0: groundY - 0.1, y1: groundY + (def.kind === 'marker' ? def.size + 0.15 : def.size * 1.1), shadow: true });
     clusterNames.add(def.cluster);
     const batches = batchesFor(localityOf(def.cluster));
     let bounds = clusterBounds.get(def.cluster);
@@ -467,9 +471,17 @@ export async function create(ctx: WorldContext): Promise<WorldSystem> {
     root.add(group);
     if (!first) localityBounds.push({ group, sphere });
   }
-  /** distance cull per locality: pose jumps come through onCameraMove, the walk through update */
+  // the backside locality follows util/expansionLocality.ts: hidden beyond 60 m of the expansion
+  // box, or when neither the props nor their sun-shadow footprints meet the camera's frustum —
+  // so the six fixed frames, which look away from it, draw none of it in either pass
+  const sunToward = ctx.sun ? ctx.sun.position.clone().sub(ctx.sun.target.position).normalize() : sunVector(ctx.config.sun.azimuthDeg, ctx.config.sun.elevationDeg);
+  const backsideSpheres = backsideCasters.flatMap((c) => casterSpheres(c, sunToward));
+  /** cull per locality: pose jumps come through onCameraMove, the walk through update */
   const cull = (camera: Camera) => {
-    for (const b of localityBounds) b.group.visible = camera.position.distanceTo(b.sphere.center) - b.sphere.radius < CLUSTER_VISIBLE_M;
+    for (const b of localityBounds) {
+      if (b.group.name === 'backside') b.group.visible = backsideSpheres.length > 0 && expansionVisible(camera, backsideSpheres);
+      else b.group.visible = camera.position.distanceTo(b.sphere.center) - b.sphere.radius < CLUSTER_VISIBLE_M;
+    }
   };
   const round3 = (v: number) => +v.toFixed(3);
   const boundsAudit: Record<string, Partial<Record<MaterialKey, { min: number[]; max: number[] }>>> = {};
@@ -497,7 +509,7 @@ export async function create(ctx: WorldContext): Promise<WorldSystem> {
     culledByExpansion,
     footprints,
     clusterBounds: boundsAudit,
-    culling: { visibleWithinM: CLUSTER_VISIBLE_M, localities: localityBounds.map((b) => ({ locality: b.group.name, centre: b.sphere.center.toArray().map((v) => +v.toFixed(2)), radius: +b.sphere.radius.toFixed(2) })) },
+    culling: { visibleWithinM: CLUSTER_VISIBLE_M, backside: 'expansionLocality (frustum + shadow footprints)', backsideCasters: backsideCasters.length, localities: localityBounds.map((b) => ({ locality: b.group.name, centre: b.sphere.center.toArray().map((v) => +v.toFixed(2)), radius: +b.sphere.radius.toFixed(2) })) },
     samplePositions: { bases },
   }));
   return {

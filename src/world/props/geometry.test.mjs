@@ -151,9 +151,9 @@ assert.ok(audit.pots >= 8, 'three sizes of pot in four clusters');
 assert.ok(audit.meshes <= 24, `bounded draw calls (${audit.meshes} meshes)`);
 assert.equal(audit.meshes, one.group.children.reduce((n, g) => n + g.children.length, 0));
 assert.equal(audit.clusters, new Set(PROP_LAYOUT.map((d) => d.cluster)).size, 'every authored cluster placed');
-assert.equal(audit.localities, 2, 'two merge localities: the village and the clearing');
-assert.equal(one.group.children.length, 2, 'one group per locality');
-assert.ok(audit.meshes <= 10, `≤ 10 meshes for the whole system (${audit.meshes})`);
+assert.equal(audit.localities, 3, 'three merge localities: the village, the clearing and the backside');
+assert.equal(one.group.children.length, 3, 'one group per locality');
+assert.ok(audit.meshes <= 14, `≤ 14 meshes for the whole system (${audit.meshes})`);
 // small props never tip more than 9° off level; the marker post stands vertical
 for (const p of audit.placed) if (['pot', 'crate', 'barrel', 'bucket'].includes(p.kind)) assert.ok(p.tiltDeg <= 9.01, `${p.id} tilt ${p.tiltDeg}°`);
 for (const p of audit.placed) if (p.kind === 'marker') assert.equal(p.tiltDeg, 0, `${p.id} vertical`);
@@ -200,21 +200,26 @@ for (const p of audit.placed) if (p.kind === 'marker') assert.equal(p.tiltDeg, 0
   for (const m of g.children) { m.geometry.computeBoundingSphere(); assert.ok(m.geometry.boundingSphere.radius < 4, `${m.name} compact (${m.geometry.boundingSphere.radius.toFixed(2)})`); }
 }
 
-// distance cull: from every fixed camera the clearing cluster is hidden and every village cluster
-// drawn; from the clearing the clearing draws; the walk (update) applies the same rule
+// culling: from every fixed camera the clearing (45 m rule) and the backside (expansionLocality:
+// frustum + shadow footprints) are hidden and the village drawn; from the deck landing the
+// backside draws; far north of the clearing everything is culled
 {
   const groups = () => Object.fromEntries(one.group.children.map((c) => [c.name, c.visible]));
+  const camAt = (p, t, fov = 46) => { const cam = new THREE.PerspectiveCamera(fov, 1280 / 720, 0.1, 1000); cam.position.fromArray(p); cam.lookAt(new Vector3().fromArray(t)); cam.updateMatrixWorld(true); return cam; };
   for (const v of LAYOUT.viewpoints) {
-    one.onCameraMove({ position: new Vector3().fromArray(v.position) }, ctx);
+    one.onCameraMove(camAt(v.position, v.target, v.fov), ctx);
     const vis = groups();
     assert.equal(vis['clearing'], false, `${v.id}: the clearing is culled`);
+    assert.equal(vis['backside'], false, `${v.id}: the backside is culled (neither the props nor their shadows meet the frustum)`);
     assert.equal(vis['village'], true, `${v.id}: the village drawn`);
   }
-  one.update(0.016, 1, { ...ctx, camera: { position: new Vector3(2.4, 5.8, -62.6) } });
+  one.update(0.016, 1, { ...ctx, camera: camAt([2.4, 5.8, -62.6], [0.4, 5.0, -64.6], 50) });
   assert.equal(groups()['clearing'], true, 'at the clearing the clearing draws');
-  one.update(0.016, 1, { ...ctx, camera: { position: new Vector3(5, 6, -120) } });
-  assert.deepEqual(groups(), { village: false, clearing: false }, 'far north of the clearing both localities are culled');
-  one.onCameraMove({ position: new Vector3().fromArray(LAYOUT.viewpoints[0].position) }, ctx);
+  one.update(0.016, 1, { ...ctx, camera: camAt([-13.2, 3.8, 7.9], [-16.6, 2.9, 5.4], 50) });
+  assert.equal(groups()['backside'], true, 'at the deck landing the backside draws');
+  one.update(0.016, 1, { ...ctx, camera: camAt([5, 6, -120], [5, 5, -119], 46) });
+  assert.deepEqual(groups(), { village: false, clearing: false, backside: false }, 'far north of the clearing every locality is culled');
+  one.onCameraMove(camAt(LAYOUT.viewpoints[0].position, LAYOUT.viewpoints[0].target, LAYOUT.viewpoints[0].fov), ctx);
 }
 
 // projection: the door / signpost dressing shows in B_house (composition, not occlusion)
@@ -231,6 +236,7 @@ for (const id of ['door-pot-large', 'sign-pot', 'saria-crate', 'saria-water-buck
   assert.ok(Math.abs(c.x) < 0.95 && Math.abs(c.y) < 0.95 && c.z > -1 && c.z < 1, `${id} projects inside B_house; actual ${c.toArray()}`);
   heroProjection[id] = [+((c.x + 1) / 2).toFixed(3), +((1 - c.y) / 2).toFixed(3)];
 }
+
 // the lookout railing is bound to LAYOUT.plateauLookout (no nudge) and stands ON the stone dais:
 // its ropes hang above the slab top (the highest turf under the slab + its proud height)
 {
@@ -373,7 +379,7 @@ for (const g of one.group.children) {
 assert.ok(contacts > 300, `real underside geometry is seated (${contacts} contact vertices)`);
 for (const [x, y, z] of audit.samplePositions.bases) assert.ok(Math.abs(ctx.terrain.height(x, z) - y) < 1e-8, 'audited bases touch the terrain');
 // each cluster mesh is compact (frustum culling works per locality)
-for (const g of one.group.children) for (const m of g.children) assert.ok(m.geometry.boundingSphere.radius < (g.name === 'clearing' ? 4.5 : 26), `${m.name} bounding radius ${m.geometry.boundingSphere.radius.toFixed(2)}`);
+for (const g of one.group.children) for (const m of g.children) assert.ok(m.geometry.boundingSphere.radius < (g.name === 'clearing' ? 4.5 : g.name === 'backside' ? 5 : 26), `${m.name} bounding radius ${m.geometry.boundingSphere.radius.toFixed(2)}`);
 
 // placement rules
 assert.equal(placementAllowed(ctx, 0, 0, 0.3), false, 'plaza paving stays clear');
