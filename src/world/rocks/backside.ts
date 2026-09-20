@@ -94,7 +94,16 @@ export function buildBacksideRocks(rng: Rng, seed: string, shadeDir: [number, nu
     bodies.push(c.body);
   };
   const stats = { boulders: 0, stepStones: 0, scree: 0, kerbStones: 0, discPebbles: 0, triangles: 0 };
-  const toLocal = (yaw: number): [number, number] => [shadeDir[0] * Math.cos(yaw) - shadeDir[1] * Math.sin(yaw), shadeDir[0] * Math.sin(yaw) + shadeDir[1] * Math.cos(yaw)];
+  const dirLocal = (d: [number, number], yaw: number): [number, number] => [d[0] * Math.cos(yaw) - d[1] * Math.sin(yaw), d[0] * Math.sin(yaw) + d[1] * Math.cos(yaw)];
+  const toLocal = (yaw: number): [number, number] => dirLocal(shadeDir, yaw);
+  // the side of the bank pair a walker sees: from the plain (+face) and from the flight (+lip)
+  const { lip: lipDir, face: faceDir } = southBankFrameVectors();
+  const seenFrom: [number, number] = (() => {
+    const x = lipDir[0] + faceDir[0];
+    const z = lipDir[1] + faceDir[1];
+    const l = Math.hypot(x, z) || 1;
+    return [x / l, z / l];
+  })();
   // the flight's span along the lip (its centre u 0.3, width 1.6, plus the hardscape's kerbs)
   const flightU = 0.3;
   const flightHalf = flight.width / 2 + 0.45;
@@ -122,16 +131,22 @@ export function buildBacksideRocks(rng: Rng, seed: string, shadeDir: [number, nu
         micro: 0.02,
         chip: 0.015,
         rimRound: 0.1,
-        moss: 0.85,
+        // fable-5 (17:50, V20 at `x-southbank-toe`): the pair read moss-grey — l 0.29, hue 81°, sat 0.12 —
+        // where the frame's is warm pale stone; the same note as the D loaf, the same answer: a warm
+        // tan tint, the moss a cap (thinner, off the sides the walker sees), the lichen greys halved,
+        // and the seen side bare and paled a quarter
+        moss: 0.6,
         mossThickness: Math.min(0.12, 0.1 / r),
         mossLumpy: 0.9,
-        mossSide: 0.5,
+        mossSide: 0.25,
         mossShade: toLocal(yaw),
-        facetBare: 0.5,
-        dirt: 0.75,
-        collarBand: [0.1, 0.55],
-        tint: new Color(0.76, 0.75, 0.68),
-        lichen: 0.35,
+        bareToward: dirLocal(seenFrom, yaw),
+        faceLift: { dir: dirLocal(seenFrom, yaw), amount: 0.25 },
+        facetBare: 0.6,
+        dirt: 0.6,
+        collarBand: [0.08, 0.42],
+        tint: new Color(0.92, 0.84, 0.64),
+        lichen: 0.18,
         freq: 0.9,
       });
       let gs = 0;
@@ -154,9 +169,10 @@ export function buildBacksideRocks(rng: Rng, seed: string, shadeDir: [number, nu
       const v = toeV + bRng.range(0.3, 0.8);
       const [x, z] = southBankPoint(u, v);
       if (!free(T, x, z, 0.5)) continue;
-      const rA = 0.5;
-      loaf('loaf', rA, 0.7, 0.3, x, z, bRng.range(0, Math.PI * 2), 2);
-      const rB = 0.3;
+      // (fable-5 17:50: ≈ 0.6 m in the frame at 6–7 m against `d_087`'s ≈ 1 m — a size up, sunk less)
+      const rA = 0.62;
+      loaf('loaf', rA, 0.7, 0.22, x, z, bRng.range(0, Math.PI * 2), 2);
+      const rB = 0.36;
       const [bx, bz] = southBankPoint(u + (rA + rB) * 0.88, v + bRng.range(-0.2, 0.2));
       if (free(T, bx, bz, 0.6)) loaf('companion', rB, 0.68, 0.36, bx, bz, bRng.range(0, Math.PI * 2), 3);
       break;
