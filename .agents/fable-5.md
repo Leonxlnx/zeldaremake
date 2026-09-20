@@ -30,6 +30,11 @@ lands: `ffmpeg` frames at his marked moments → `reference/frames-video2/`, has
 - `.agents/fable-5.md`, `.agents/reviews/fable-5-*.md`, my threads in `.agents/INBOX.md`.
 
 ## Completed work
+- 2026-09-20 04:20 UTC — U02/U03 pipeline ready for take-0120: `.agents/reviews/fable-5-tools/equip-screen.mjs`
+  renders `?screen=equipment` headlessly (full-page shot, 84 s on this VM; verified on the head —
+  Deku Stick card in the oval, grid, tabs). Also filed there: `before-after-sheet.py`, `ssim-pair.mjs`
+  (the gauntlet's 256×144 SSIM + pixDiff for two frames, optional reference) — the tools behind every
+  number in `fable-5-r48-branches.md`.
 - 2026-09-20 03:35–04:30 UTC — goal-mode iteration 5 (§H): `agent/fable-3-merge` (props per
   locality) pixel-identical at B/C/E and five props poses; `agent/fable-4-crowns` (crown albedo)
   IMPROVED — leaves −16…−29 %, under the haze, B/E identical, C +0.0001; shape still flat cards.
