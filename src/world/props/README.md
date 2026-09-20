@@ -15,6 +15,7 @@ Owned leaf module: `src/world/props/**` (lane `fable-3`, 2026-09-19; first pass 
 | bucket | 14 staves, floor, 2 hoops, rope handle | wood + iron + rope |
 | ladder | two laid ropes from a pegged crossbar on a house trunk to the ground, boards lashed between them | rope (procedural three-strand map) + wood |
 | marker | a Kokiri waymarker: squared post with a diamond cap, two crossboards lashed at different heights and angles (the long one points along +z, the way the path goes), nail studs, a small tag hanging on a rope from the long board's tip; stands vertical, foot conformed | wood + rope + iron |
+| lightString | the demo's string of small lights along a bank (frame A at (0.50–0.60, 0.55–0.62) and (0.90–0.95, 0.35–0.40), `d_011`, `d_087`): short stakes seated on the ground along an authored line, a thin cord drooping between them, a glowing pod hung under the cord every 0.3 m; placed as drawn (no footprint probe) | wood + rope + glow (emissive 2.2, fog-exempt like the lantern pods; no halo) |
 | platform | posts to their own ground, joists, deck boards, rope railing on three sides with lashings, ladder when the deck is high | wood + rope |
 | platform, `dais: true` | the lookout railing: bound to `LAYOUT.plateauLookout` (position, yaw, width) and hardscape's `lookout` slab (depth, proud height) — four posts rising from the turf through the stone dais to 0.88 m over its top (inset from the bevel; they stand on the ground wherever hardscape hides the slab by distance), two rope courses on the plaza side and both short sides, one step block on the turf at the fence side; no deck of its own (the character ground learns the slab top) | wood + rope |
 
@@ -33,14 +34,14 @@ relocated across the village.
 
 Draw calls: a `cluster` is a place (placement, audit, `audit.clusterBounds`); clusters belong to a
 merge locality (`localityOf` in `layout.ts`: the seven village clusters → `village`, the north
-clearing → `clearing`), and each locality is ONE mesh per material — 8 meshes for the whole system
-(≤ 8 draws per pass in a frame). Each locality is distance-culled as one (`CLUSTER_VISIBLE_M`,
+clearing → `clearing`), and each locality is ONE mesh per material — 9 meshes for the whole system
+(≤ 9 draws per pass in a frame). Each locality is distance-culled as one (`CLUSTER_VISIBLE_M`,
 45 m, through `update` / `onCameraMove`): the clearing never rides into the six frames' passes.
 
 ## Clusters
 
 `saria-door` (2 pots on the porch floor, viewer's left of the door), `signpost` (2 pots, bucket,
-crate), `stair-foot` (2 pots on the apron at the bottom riser's south corner), `plateau` (crate,
+crate), `stair-foot` (2 pots on the apron at the bottom riser's south corner, the two light strings on the flight's banks), `plateau` (crate,
 barrel, bucket, 2 pots by the plateau-north fence), `upper-house` (the rope ladder),
 `plateau-lip` (the rope railing on the lookout dais past the end of the plateau-west fence), `west`
 (the tall platform under the lantern tree), `north-clearing` (the waymarker and two pots on the
