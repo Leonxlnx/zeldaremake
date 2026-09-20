@@ -59,8 +59,11 @@ export async function create(ctx: WorldContext): Promise<WorldSystem> {
   let treadSlabs = 0;
   let stairTriangles = 0;
   const treadNose: [number, number, number][] = [];
+  /** round 50 (V17): the main flight's tread tints foot → top */
+  let mainTreadTone: number[] = [];
   for (const def of ctx.layout.stairs) {
     const b = buildStairway(def, T, rng.fork(`stairs-${def.id}`), ctx.config.seed);
+    if (def.id === 'main') mainTreadTone = b.treadTone;
     const mesh = new Mesh(b.geometry, stoneMat);
     mesh.castShadow = true;
     mesh.receiveShadow = true;
@@ -225,7 +228,9 @@ export async function create(ctx: WorldContext): Promise<WorldSystem> {
     const z = srng.range(bbox.z0, bbox.z1);
     if (!paved(x, z, 0.42) || paving.onStone(x, z)) continue;
     const gap = paving.edgeGap(x, z);
-    if (gap < 0.055 || gap > 0.22) continue;
+    // (round 50: 5.5 → 4.5 cm from every edge — with the seams at 6–10 cm only the junctions
+    // qualify, and a three-way junction between 1 m rounded stones is 9–16 cm across)
+    if (gap < 0.045 || gap > 0.22) continue;
     if (srng() > camWeight(x, z)) continue;
     spots.push({ x, y: T.height(x, z) + 0.012, z, size: srng(), kind: 'cushion', source: 'seam-cushions' });
     cushions++;
@@ -666,7 +671,10 @@ export async function create(ctx: WorldContext): Promise<WorldSystem> {
   // stream and source, appended after every spot above.
   const grng2 = rng.fork('spine-grass');
   const grassN = new Noise2D(`${ctx.config.seed}/spine-grass`);
-  const spineGrassTarget = Math.round(480 * Math.max(0.7, ctx.quality.density));
+  // (round 50, fable-5 V16: 480 → 560 — the demo's top-down `d_097` shows a green tuft at most
+  // junctions of the plaza and along one seam in four; with the stones at 0.8–1.1 m there are
+  // 1.7× the junctions per metre of path. Cheap: the tufts share the sprout InstancedMeshes.)
+  const spineGrassTarget = Math.round(560 * Math.max(0.7, ctx.quality.density));
   let spineGrass = 0;
   tries = 0;
   while (spineGrass < spineGrassTarget && tries < spineGrassTarget * 80) {
@@ -932,8 +940,90 @@ export async function create(ctx: WorldContext): Promise<WorldSystem> {
     return { n: a.length, p10: q(0.1), p50: q(0.5), p90: q(0.9) };
   };
   const latticeStones = paving.stones.filter((s) => !paving.steppingStones.some((d) => Math.hypot(s.x - d.x, s.z - d.z) < d.r * 0.6));
+  // Round 50 (fable-5 V16): the two numbers the defect is measured in. Span: the mean of a stone's
+  // extents along its outline's principal axes — what a ruler on the top-down frame reads (the
+  // equivalent-area diameter above is ~10 % less on a rounded polygon). Joint width: from the
+  // midpoint of every other outline edge ≥ 11 cm (the straight runs, not the fillet arcs) march
+  // outward along the edge normal until the next stone — the visible seam between two outlines,
+  // the junction triangles in the p90. Measured over the lattice stones the demo's top-down and
+  // the D-family frames see (the plaza and the spine to z −14; the far spine is the same lattice).
+  const spanOf = (s: { polygon: { x: number; z: number }[] }) => {
+    const poly = s.polygon;
+    let cx = 0;
+    let cz = 0;
+    for (const p of poly) {
+      cx += p.x / poly.length;
+      cz += p.z / poly.length;
+    }
+    let sxx = 0;
+    let szz = 0;
+    let sxz = 0;
+    for (const p of poly) {
+      sxx += (p.x - cx) ** 2;
+      szz += (p.z - cz) ** 2;
+      sxz += (p.x - cx) * (p.z - cz);
+    }
+    const th = 0.5 * Math.atan2(2 * sxz, sxx - szz);
+    const ax = Math.cos(th);
+    const az = Math.sin(th);
+    let lo = Infinity;
+    let hi = -Infinity;
+    let lo2 = Infinity;
+    let hi2 = -Infinity;
+    for (const p of poly) {
+      const u = (p.x - cx) * ax + (p.z - cz) * az;
+      const v = -(p.x - cx) * az + (p.z - cz) * ax;
+      lo = Math.min(lo, u);
+      hi = Math.max(hi, u);
+      lo2 = Math.min(lo2, v);
+      hi2 = Math.max(hi2, v);
+    }
+    return (hi - lo + hi2 - lo2) / 2;
+  };
+  const plazaSpineStones = latticeStones.filter((s) => s.z > -14);
+  const measureJoints = () => {
+    const widths: number[] = [];
+    for (const s of plazaSpineStones) {
+      const poly = s.polygon;
+      const n = poly.length;
+      let cx = 0;
+      let cz = 0;
+      for (const p of poly) {
+        cx += p.x / n;
+        cz += p.z / n;
+      }
+      for (let i = 0; i < n; i += 2) {
+        const a = poly[i];
+        const b = poly[(i + 1) % n];
+        const len = Math.hypot(b.x - a.x, b.z - a.z);
+        if (len < 0.11) continue;
+        const mx = (a.x + b.x) / 2;
+        const mz = (a.z + b.z) / 2;
+        let nx = -(b.z - a.z) / len;
+        let nz = (b.x - a.x) / len;
+        if ((mx - cx) * nx + (mz - cz) * nz < 0) {
+          nx = -nx;
+          nz = -nz;
+        }
+        for (let d = 0.01; d <= 0.3; d += 0.01) {
+          if (paving.onStone(mx + nx * d, mz + nz * d)) {
+            widths.push(d);
+            break;
+          }
+        }
+      }
+    }
+    return quantiles(widths);
+  };
+  let jointMeasured: ReturnType<typeof quantiles> | null = null;
   ctx.audit('hardscape', () => ({
     stairways: stairInfo.map((s) => ({ id: s.id, steps: s.steps, width: s.width, treadSlabs: s.treadSlabs })),
+    // round 50 (fable-5 V17, the tone half): the main flight's tread tint by step — the mean of
+    // the first and the last four; the demo's treads go l 0.37 (foot) → 0.65 (top)
+    mainTreadTone: {
+      foot: round(mainTreadTone.slice(0, 4).reduce((a, b) => a + b, 0) / Math.max(1, Math.min(4, mainTreadTone.length))),
+      top: round(mainTreadTone.slice(-4).reduce((a, b) => a + b, 0) / Math.max(1, Math.min(4, mainTreadTone.length))),
+    },
     totalSteps,
     treadSlabs,
     stairGeometry: 'procedural-v2',
@@ -954,6 +1044,15 @@ export async function create(ctx: WorldContext): Promise<WorldSystem> {
     flagstoneShoulderRollCm: quantiles(latticeStones.map((s) => s.bevel * 100)),
     flagstoneFilletCm: quantiles(latticeStones.map((s) => s.fillet * 100)),
     flagstoneJointCm: quantiles(latticeStones.map((s) => s.joint * 100)),
+    // round 50 (fable-5 V16, measured on the demo's `d_097`: 0.8–1.1 m stones in 6–10 cm joints):
+    // the median span of the plaza / spine lattice stones (m, mean of the principal extents) and
+    // the median visible joint between neighbouring outlines (m, edge-normal run), with their
+    // spreads; the lawn slabs and the stepping discs are excluded from both
+    flagstoneMedianSpanM: quantiles(plazaSpineStones.filter((s) => lawnZone(s.x, s.z) < 0.5).map(spanOf)).p50,
+    flagstoneSpanM: quantiles(plazaSpineStones.filter((s) => lawnZone(s.x, s.z) < 0.5).map(spanOf)),
+    flagstoneSpanLawnM: quantiles(latticeStones.filter((s) => lawnZone(s.x, s.z) >= 0.5).map(spanOf)),
+    jointMedianWidthM: (jointMeasured ??= measureJoints()).p50,
+    jointMeasuredWidthM: jointMeasured,
     // broken-edge features: V-notches in the edges, corners chamfered straight (chipped)
     flagstoneNotches: paving.stats.notches,
     flagstoneChippedCorners: paving.stats.chips,
@@ -962,7 +1061,6 @@ export async function create(ctx: WorldContext): Promise<WorldSystem> {
     flagstoneDished: paving.stats.dished,
     flagstoneCracked: paving.stats.cracked,
     flagstoneWobbled: paving.stats.wobbled,
-    flagstoneMergedD: paving.stats.mergedD,
     // round 42 player-height pass: stones with edge spalls (rim drops 0.6–1.8 cm), stones with a
     // moss creep on the shaded shoulder; the stone shader's near tile / normal / roughness blend
     flagstoneSpalled: paving.stats.spalled,

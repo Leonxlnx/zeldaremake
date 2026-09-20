@@ -25,7 +25,7 @@ import { Noise2D, clamp, smoothstep } from '../util/noise';
 import { MeshBuilder, buildSlab, centroid, distToPolygon, pointInPolygon, polygonArea, type P2 } from './geometry';
 import type { StairFrame } from './stairs';
 import { inStairFootprint } from './stairs';
-import { B_FOREGROUND_SLABS, aForeground, archInside, dForeground, dampBand, discField, earthPatch, hollowPath, lawnPocket, lawnPocketEdgeX, lawnZone, southPlaza, troddenStrip } from './zones';
+import { B_FOREGROUND_SLABS, archInside, dForeground, dampBand, discField, earthPatch, hollowPath, lawnPocket, lawnPocketEdgeX, lawnZone, southPlaza, stairFoot, troddenStrip } from './zones';
 import type { SteppingStone } from '../layout';
 
 export interface PlacedStone {
@@ -730,7 +730,7 @@ export interface PavingResult {
   steppingStones: IsolatedDisc[];
   /** the Voronoi seeds (for the offline paving audit): position, lawn weight, whether the seed kept its cell */
   seeds: { x: number; z: number; lawn: number; active: boolean; phantom: boolean }[];
-  stats: { seeds: number; skippedNarrow: number; skippedSmall: number; skippedSteep: number; split: number; broken: number; brokenLawnMid: number; big: number; rim: number; lawn: number; authored: number; steppingStones: number; edgeMossStones: number; notches: number; chips: number; dished: number; cracked: number; wobbled: number; mergedD: number; earth: number; field: number; dLattice: number; spalled: number; creep: number; hollow: number };
+  stats: { seeds: number; skippedNarrow: number; skippedSmall: number; skippedSteep: number; split: number; broken: number; brokenLawnMid: number; big: number; rim: number; lawn: number; authored: number; steppingStones: number; edgeMossStones: number; notches: number; chips: number; dished: number; cracked: number; wobbled: number; earth: number; field: number; spalled: number; creep: number; hollow: number };
 }
 
 interface Seed {
@@ -751,42 +751,34 @@ interface Seed {
   authored?: boolean;
 }
 
-// Round 11: the lattices outside the lawn paving are back to ~1 m (cells 0.7–1.4 m across after
-// the jitter) and every cell over its target — 0.68–1.0 m, the odd 1.25 m — is broken along
-// straight chords (`breakCell`), so the stones run 0.4–0.9 m, p50 0.6–0.7, p90 ≈ 1.0 (boards
-// 02/07); camera B/E's lawn slabs (frame 14 s) and camera A's ~1 m foreground (frame 1 s) keep
-// their sizes
-/** lattice spacing (m) in the damp band */
-const SPACING = 1.2;
-/** lattice for the north path (camera D's foreground) */
-const OPEN_SPACING = 1.15;
-/** lattice for the open plaza south of the spawn (reference A/F foregrounds) */
-const SOUTH_SPACING = 1.15;
-/** rim lattice spacing (m): 0.35–0.55 m stones along the paved edge */
+// Round 50 (fable-5 V16, measured on the demo's top-down `d_097` and the D-family frames
+// d_111–117): the paving is ONE scale everywhere a camera or the walk sees it — 0.8–1.1 m rounded
+// stones in 6–10 cm dark joints. The per-frame enlargements of rounds 23–34 (camera A's 1.1–1.3 m
+// foreground, D's 1.5–2.5 m slabs on their own lattice, the lawn's 1.0–1.6 m slabs in 15–45 cm
+// turf) were read off the hero frames' foreshortened foregrounds; the top-down shows the same
+// path at half that, so they go. The three open lattices share one spacing: hex cells of ~1.03 m
+// across before the jitter (2:1 in area after it), and only the cells over the break target
+// (1.08–1.38 m) are cracked, so most stones keep their rounded Voronoi outline and the straight
+// crack edges are the exception. The stair foot (zones.ts `stairFoot`) keeps a few 1.2–1.6 m
+// landing slabs, as the demo does.
+/** lattice spacing (m): the damp band's lattice */
+const SPACING = 1.03;
+/** lattice for the north path (the spine) */
+const OPEN_SPACING = 1.03;
+/** lattice for the open plaza south of the spawn */
+const SOUTH_SPACING = 1.03;
+/** rim lattice spacing (m): the sparse 0.35–0.55 m fringe along the paved edge */
 const RIM_SPACING = 0.5;
 /** the pieces of a broken cell: target across size (m) before the per-region factors, and the smallest piece allowed */
-const BREAK_TARGET: [number, number] = [0.88, 1.28];
-const BREAK_MIN_ACROSS = 0.42;
+const BREAK_TARGET: [number, number] = [1.08, 1.38];
+const BREAK_MIN_ACROSS = 0.45;
 /**
- * lawn-paving lattice (zones.ts `lawnZone`): 1.0–1.6 m slabs (the odd 2 m) in 15–45 cm turf
- * joints, so the cells run 1.4–2.1 m; low jitter (0.3 of the spacing) keeps them round-ish
+ * lawn-paving lattice (zones.ts `lawnZone`): the lawn slabs are a step larger than the field's
+ * (1.0–1.25 m) in 7–12 cm turf joints; jitter 0.4 of the spacing
  */
-const LAWN_SPACING = 1.8;
-/** camera D's foreground lattice (round 34, `dThin`): rows 1.75 m apart → the frame's 1.5–2.5 m slabs */
-const D_ROW = 1.75;
+const LAWN_SPACING = 1.15;
 /** soil stain on a slab's flank at the joint-fill line (0 = bare stone, 1 = the seam's soil tone); fades to 0 at the shoulder */
 const FLANK_STAIN_AT_FILL = 0.7;
-/**
- * Round 34: where camera D's foreground lattices are thinned to the frame's five-to-seven 1.5–2.5 m
- * slabs — unprojected, frame 56 s's bottom quarter (y 0.72–1.0) is z −6.5 … −12 on the spine, and
- * the frame's slabs stay 1.5–2.5 m to y ≈ 0.68 (z −13.5). Tighter than zones.ts `dForeground`
- * (which starts at z −5.5) so cameras B and C's stretch of the spine south of D's frame edge
- * keeps its stones; 1 from z −6.9 to −12.4, gone by −13.8 (the disc field fades out over the same
- * metres, so B/E's far spine is the plain path either way).
- */
-function dThin(z: number) {
-  return smoothstep(-5.9, -6.9, z) * smoothstep(-13.8, -12.4, z);
-}
 
 export function placeFlagstones(pc: PavingContext, material: Material): PavingResult {
   const { terrain, rng, bbox } = pc;
@@ -807,7 +799,7 @@ export function placeFlagstones(pc: PavingContext, material: Material): PavingRe
   const pad = 1.0;
   let row = 0;
   const bigCandidates: number[] = [];
-  const stats = { seeds: 0, skippedNarrow: 0, skippedSmall: 0, skippedSteep: 0, split: 0, broken: 0, brokenLawnMid: 0, big: 0, rim: 0, lawn: 0, authored: 0, steppingStones: 0, edgeMossStones: 0, notches: 0, chips: 0, dished: 0, cracked: 0, wobbled: 0, mergedD: 0, earth: 0, field: 0, dLattice: 0, spalled: 0, creep: 0, hollow: 0 };
+  const stats = { seeds: 0, skippedNarrow: 0, skippedSmall: 0, skippedSteep: 0, split: 0, broken: 0, brokenLawnMid: 0, big: 0, rim: 0, lawn: 0, authored: 0, steppingStones: 0, edgeMossStones: 0, notches: 0, chips: 0, dished: 0, cracked: 0, wobbled: 0, earth: 0, field: 0, spalled: 0, creep: 0, hollow: 0 };
   // the house branch's stepping stones in the grass: each gets one round slab of its own (below),
   // so the lattices stay off their discs (a lattice seed landing on one made a fragment, none left
   // the disc as bare grass) and the plaza's rim cells are clipped back from them
@@ -831,7 +823,8 @@ export function placeFlagstones(pc: PavingContext, material: Material): PavingRe
     if (nearIsolatedDisc(discs, x, z, 1.5)) return -1;
     // the lawn pocket west of the reference's path edge holds no slabs at all
     if (lawnPocket(x, z) > 0.5) return -1;
-    if (nearAuthored(x, z, 1.05)) return -1;
+    // (round 50: 1.05 → 0.62 m — the authored slabs are demo-scale stones now, not 1.5 m slabs)
+    if (nearAuthored(x, z, 0.62)) return -1;
     const rim = rimDistance(pc, x, z);
     if (!accept(rim)) return -1;
     grid.add(x, z, seeds.length);
@@ -859,8 +852,8 @@ export function placeFlagstones(pc: PavingContext, material: Material): PavingRe
     grid.add(x, z, seeds.length);
     seeds.push({ x, z, rim: 2, big: false, lawn: 1, phantom: true, reach: 0.7 * lawnPocket(x, z) });
   }
-  // the lawn paving next (its seeds win the later min-distance tests): a coarse, lightly
-  // jittered lattice whose cells become the 1.0–1.6 m slabs set in turf of reference B/E's
+  // the lawn paving next (its seeds win the later min-distance tests): a slightly coarser,
+  // jittered lattice whose cells become the 1.0–1.25 m slabs set in turf of reference B/E's
   // foreground; the other lattices are thinned out by the lawn weight so its 1.5 m fade mixes
   // the two sizes
   {
@@ -869,7 +862,7 @@ export function placeFlagstones(pc: PavingContext, material: Material): PavingRe
     let r = 0;
     for (let z = bbox.z0 - pad; z <= bbox.z1 + pad; z += rowH, r++) {
       for (let x = bbox.x0 - pad + (r & 1 ? LAWN_SPACING / 2 : 0); x <= bbox.x1 + pad; x += LAWN_SPACING) {
-        const jr = 0.3 * LAWN_SPACING * Math.sqrt(llat());
+        const jr = 0.4 * LAWN_SPACING * Math.sqrt(llat());
         const ja = llat.range(0, Math.PI * 2);
         const [wx, wz] = warp(x + Math.cos(ja) * jr, z + Math.sin(ja) * jr);
         const u = llat();
@@ -878,9 +871,12 @@ export function placeFlagstones(pc: PavingContext, material: Material): PavingRe
       }
     }
   }
-  // open-paving lattices next: a 1.2 m one for the south plaza (A/F foreground) and a coarser
-  // 1.5 m one for the north path (D foreground); then the base lattice, thinned to ~15 % where
-  // they rule so a few small stones sit among the slabs
+  // open-paving lattices next: one for the south plaza (A/F foreground) and one for the north
+  // path (the spine), both at the demo spacing; then the base lattice, thinned to ~20 % where
+  // they rule so a few small stones sit among the others
+  // (round 50: the A-foreground 45 % and D-foreground 60 % / 82 % thinnings of rounds 23–34 go —
+  // fable-5 V16: the top-down shows the whole path at 0.8–1.1 m; the stair foot keeps a 40 %
+  // thinning for its few landing slabs, zones.ts `stairFoot`)
   const openLattice = (spacing: number, forkName: string, regionW: (z: number) => number, bigChance: number) => {
     const rowH = (spacing * Math.sqrt(3)) / 2;
     const slat = rng.fork(forkName);
@@ -891,34 +887,17 @@ export function placeFlagstones(pc: PavingContext, material: Material): PavingRe
         const ja = slat.range(0, Math.PI * 2);
         const [wx, wz] = warp(x + Math.cos(ja) * jr, z + Math.sin(ja) * jr);
         const u = slat();
-        // round 22: on the south plaza one in ten seeds eats its neighbours (was one in 25) - frame
-        // 1 s mixes 0.4 m pieces with 1.3-1.8 m slabs where our jittered hex lattice read as a
-        // honeycomb of ~0.8 m; D's foreground path keeps its own big-slab thinning (one in 25)
+        // a few seeds eat their neighbours (`bigCandidates`): the demo's odd 1.3–1.5 m stone
         const big = slat.chance(bigChance);
         const open = (1 - dampBand(wz)) * regionW(wz) * (1 - lawnZone(wx, wz));
-        // thin the lattice on D's foreground path so the remaining cells grow to 1.4–1.9 m
-        // (round 23: 30 % → 60 % thinned - frame 56 s's foreground is 1.5–2.5 m slabs, five or six
-        // across the path's bottom quarter; the seeds elsewhere are untouched, this lattice's
-        // draws are the same and the base lattice never lands here)
-        const dz = dForeground(wz);
-        // round 33: camera A's foreground (zones.ts aForeground, z 3.4–8.5) thinned 45 % the same
-        // way — frame 1 s's bottom quarter is 1.1–1.3 m slabs (two across the 2.3 m of ground in
-        // its right-hand 40 %), ours were 0.6–0.75 m (three or four across the same ground); the
-        // south lattice's draws are unchanged, only which seeds are kept there
-        // (round 34: D's stretch 60 % → 82 % thinned, and from 0.45 m of the rim instead of 0.8 m —
-        // unprojected, frame 56 s's bottom quarter is z −6.5 … −12 and shows five to seven 1.5–2.5 m
-        // slabs edge to edge on the 4.5–5.2 m path; ours had 27 seeds there and 30 stones at p50
-        // 0.78 m. The freed cells are clipped to flat ground (`cellFor`) instead of being skipped
-        // as steep at the east bank)
-        const af = aForeground(wx, wz);
-        const dt = dThin(wz);
-        const id = tryAdd(wx, wz, 0.33, (rim) => rim >= 0.45 && u <= open * (1 - 0.6 * dz * smoothstep(0.8, 1.4, rim)) * (1 - dt) * (1 - 0.45 * af * smoothstep(0.8, 1.4, rim)));
+        const foot = stairFoot(wx, wz);
+        const id = tryAdd(wx, wz, 0.33, (rim) => rim >= 0.45 && u <= open * (1 - 0.4 * foot * smoothstep(0.7, 1.2, rim)));
         // a few larger slabs down the path centre (the odd 1.0–1.25 m stone of the boards)
         if (id >= 0 && big && seeds[id].rim >= 1.4) bigCandidates.push(id);
       }
     }
   };
-  openLattice(SOUTH_SPACING, 'south-lattice', southPlaza, 0.1);
+  openLattice(SOUTH_SPACING, 'south-lattice', southPlaza, 0.05);
   openLattice(OPEN_SPACING, 'north-lattice', (z) => 1 - southPlaza(z), 0.04);
   for (let z = bbox.z0 - pad; z <= bbox.z1 + pad; z += rowH, row++) {
     for (let x = bbox.x0 - pad + (row & 1 ? SPACING / 2 : 0); x <= bbox.x1 + pad; x += SPACING) {
@@ -928,13 +907,10 @@ export function placeFlagstones(pc: PavingContext, material: Material): PavingRe
       const thin = lat();
       const big = lat.chance(0.04);
       const open = 1 - dampBand(wz);
-      // thin the base lattice where the rim lattice takes over, where the coarse lattice rules
-      // (none at all on D's foreground path so its slabs stay big) and where the lawn does
+      // thin the base lattice where the rim lattice takes over, where the open lattices rule
+      // and where the lawn does
       const lawn = lawnZone(wx, wz);
-      // (round 33: a quarter as many base seeds in camera A's foreground — its slabs grow with
-      // the south lattice's thinning above)
-      // (round 34: no base seeds on camera D's stretch, `dThin` — its own lattice below)
-      const id = tryAdd(wx, wz, 0.33, (rim) => (rim >= 0.55 || thin >= 0.6) && thin >= Math.max(0.8 * open + 0.2 * Math.max(dForeground(wz), 0.75 * aForeground(wx, wz)) * smoothstep(0.8, 1.4, rim), lawn, dThin(wz)));
+      const id = tryAdd(wx, wz, 0.33, (rim) => (rim >= 0.55 || thin >= 0.6) && thin >= Math.max(0.8 * open, lawn, 0.4 * stairFoot(wx, wz)));
       if (id < 0) continue;
       if (seeds[id].rim >= 1.25 && big && open < 0.5 && lawn < 0.5) bigCandidates.push(id);
     }
@@ -949,60 +925,17 @@ export function placeFlagstones(pc: PavingContext, material: Material): PavingRe
       const ja = rlat.range(0, Math.PI * 2);
       const [wx, wz] = warp(x + Math.cos(ja) * jr, z + Math.sin(ja) * jr);
       const u = rlat();
-      // the open paving's edge keeps its big slabs: only a thin fringe of small stones there;
-      // the lawn paving's slabs meet the grass without a fringe at all
-      // (round 33: three quarters of the rim fringe goes in the disc field - frames 14 s / 56 s
-      // run the rounded ~1 m stones right to the grass edge with no 0.35–0.55 m fringe; the rim
-      // lattice is the last one sown, so the other lattices' seeds are untouched and the freed
-      // edge cells go to their neighbours)
-      // (and 60 % of it in camera A's foreground: frame 1 s's bottom row runs its big slabs off the
-      // frame where our plaza rim — 5.5–6.4 m from the origin at the frame's bottom edge — put a
-      // row of 0.35–0.55 m fringe stones)
-      // (the field's thinning is for the outermost ring only, rim < 0.55 m, and not on camera D's
-      // foreground stretch: with every rim seed 75 % thinned there, the interior cells grew out to
-      // the path's east bank at z −7 … −9.5 and were skipped as steep (> 0.28 m across the cell) —
-      // three 1.2 m holes of earth where frame 56 s is paved edge to edge; D's rim ring is the
-      // control's)
+      // the fringe of small stones along the paved edge is sparse: the demo runs its ~1 m stones
+      // to the grass with a small stone between them here and there (d_097's verges: grass and
+      // ferns to the slab edge, no soil band); the lawn paving's slabs meet the grass without a
+      // fringe at all, the disc field keeps a quarter of its outermost ring
+      // (round 50: half of round 33's fringe everywhere — with the open lattices at 0.98 m the
+      // edge cells are demo-sized on their own, and the 0.35–0.55 m fringe stones pulled the
+      // median span down; the rim lattice is the last one sown, so the other lattices' seeds are
+      // untouched and the freed edge cells go to their neighbours)
       const field = discField(wx, wz) * (1 - dForeground(wz));
-      // (round 34: D's stretch thins its rim ring after all — 80 % of the seeds within 0.55 m of the
-      // edge — now that the interior cells reaching the east bank are clipped to flat ground in
-      // `cellFor` rather than skipped; frame 56 s's slabs run to the grass with no fringe)
-      const dRim = dThin(wz);
-      const keep = (1 - 0.4 * (1 - dampBand(wz))) * (1 - lawnZone(wx, wz)) * (1 - 0.6 * aForeground(wx, wz));
-      if (tryAdd(wx, wz, 0.34, (rim) => rim >= 0.12 && u <= smoothstep(0.95, 0.35, rim) * keep * (1 - 0.75 * field * smoothstep(0.55, 0.25, rim)) * (1 - dRim)) >= 0) stats.rim++;
-    }
-  }
-  // round 34 — camera D's foreground stretch (`dThin`, frame 56 s's bottom quarter: z −6.5 … −12)
-  // gets a lattice of its own, laid across the path: rows 1.75 m apart, each row's seeds spread
-  // evenly over the paving it finds (two per row, three on every other row, ± 0.2 m), so the
-  // cells are the frame's two-to-three slabs across the 4.5–5.2 m path — 2.4 × 1.75 m and
-  // 1.6 × 1.75 m, 1.9–2.3 m across; a hex lattice put its columns on the rim or off the paving
-  // and left single-seed rows. Every other lattice is thinned out inside it above (the frame
-  // runs its big slabs to the grass, no 0.35–0.55 m fringe). Sown last, so no seed sown before
-  // it moves and the shared stream's draws stay in order for every earlier cell; its cells are
-  // clipped to flat ground in `cellFor` at the banks.
-  {
-    const dlat = rng.fork('d-lattice');
-    let r = 0;
-    for (let z0 = -13.6; z0 <= -5.6; z0 += D_ROW, r++) {
-      const wz = z0 + dlat.range(-0.2, 0.2);
-      let lo = NaN;
-      let hi = NaN;
-      for (let x = -4; x <= 6; x += 0.05) {
-        if (!isPaved(pc, x, wz, 0.5)) continue;
-        if (Number.isNaN(lo)) lo = x;
-        hi = x;
-      }
-      if (Number.isNaN(lo) || hi - lo < 2.4) continue;
-      const inset = 0.55;
-      const span = hi - lo - 2 * inset;
-      const n = r & 1 ? 3 : 2;
-      for (let i = 0; i < n; i++) {
-        const wx = lo + inset + ((i + 0.5) * span) / n + dlat.range(-0.2, 0.2);
-        const zj = wz + dlat.range(-0.15, 0.15);
-        const u = dlat();
-        if (tryAdd(wx, zj, 0.9, (rim) => rim >= 0.35 && u <= dThin(zj)) >= 0) stats.dLattice++;
-      }
+      const keep = 0.5 * (1 - 0.4 * (1 - dampBand(wz))) * (1 - lawnZone(wx, wz));
+      if (tryAdd(wx, wz, 0.34, (rim) => rim >= 0.12 && u <= smoothstep(0.95, 0.35, rim) * keep * (1 - 0.75 * field * smoothstep(0.55, 0.25, rim))) >= 0) stats.rim++;
     }
   }
   // big stones: the candidate eats up to two neighbours within ~0.75 spacing
@@ -1093,11 +1026,13 @@ export function placeFlagstones(pc: PavingContext, material: Material): PavingRe
       return { x: s.x + (p.x - s.x) * lo, z: s.z + (p.z - s.z) * lo };
     });
     // round 34, camera D's stretch only: a cell that runs up the bank at the path's edge is
-    // pulled back to ground within 13 cm of its seed's (bisection on the height), so the big slab
+    // pulled back to ground within 13 cm of its seed's (bisection on the height), so the slab
     // stops at the bank's toe with earth between it and the grass (frame 56 s's ragged soil
-    // edge) instead of the whole cell being skipped as steep (> 0.28 m) and left as a hole —
-    // which is what stopped round 33 from thinning D's rim ring. Cells elsewhere are untouched.
-    if (dThin(s.z) < 0.2 || s.disc) return pulled;
+    // edge) instead of the whole cell being skipped as steep (> 0.28 m) and left as a hole.
+    // Cells elsewhere are untouched. (round 50: gated on `dForeground` now that D's own lattice
+    // is gone — the stretch's rim ring is thinned like everyone's, so its edge cells still reach
+    // the east bank)
+    if (dForeground(s.z) < 0.2 || s.disc) return pulled;
     const h0 = terrain.height(s.x, s.z);
     return pulled.map((p) => {
       if (Math.abs(terrain.height(p.x, p.z) - h0) <= 0.13) return p;
@@ -1150,10 +1085,12 @@ export function placeFlagstones(pc: PavingContext, material: Material): PavingRe
     // frame-measured slab size (target lifted out of reach as the lawn weight comes in). The
     // stream is keyed on the seed so a lattice change elsewhere does not re-crack this cell.
     const brng = rng.fork(`break/${Math.round(sd.x * 50)}/${Math.round(sd.z * 50)}`);
-    // (round 33: camera A's foreground target × 1.32 → × 1.6, 1.4–2.05 m: with the lattice thinned
-    // there the grown cells must stay whole to read as frame 1 s's 1.1–1.3 m slabs)
-    const base = brng.range(BREAK_TARGET[0], BREAK_TARGET[1]) * (sd.big ? 1.25 : 1) * (1 + 0.6 * aForeground(sd.x, sd.z));
-    const lawnTarget = base + (2.6 - base) * smoothstep(0.15, 0.6, sd.lawn);
+    // (round 50: camera A's foreground × 1.6 goes with its thinning; the stair foot's landing
+    // slabs keep a × 1.4 target so the demo's few big stones at the flight's foot survive whole)
+    const base = brng.range(BREAK_TARGET[0], BREAK_TARGET[1]) * (sd.big ? 1.25 : 1) * (1 + 0.4 * stairFoot(sd.x, sd.z));
+    // (round 50: the lawn cells' target 2.6 → 1.45 m — the lawn slabs are a step up from the
+    // field's stones, not frame B's 1.5–1.8 m slabs)
+    const lawnTarget = base + (1.45 - base) * smoothstep(0.15, 0.6, sd.lawn);
     // round 23: camera B's mid-ground (frame 14 s, z < −3.5 behind Link) is ~1 m slabs in narrow
     // seams, not the bottom row's 1.5 m slabs in turf: the lawn cells there are cracked over
     // 1.4 m across (the authored frame-seeded slabs stay whole). Cells that break only for this
@@ -1166,7 +1103,8 @@ export function placeFlagstones(pc: PavingContext, material: Material): PavingRe
     // cell with a base target above 1.15 m would have taken it too — six far-spine slabs at
     // z −28 … −60 cracked in the first cut — so the rest of the spine keeps round 23's 1.4 m)
     const midTight = sd.lawn > 0.15 || discField(sd.x, sd.z) > 0.5;
-    const midTarget = sd.authored ? Infinity : midTight ? 2.6 - 1.45 * smoothstep(-3.0, -4.6, sd.z) : 2.6 - 1.2 * smoothstep(-3.2, -4.8, sd.z);
+    // (round 50: the authored B slabs crack over 1.45 m too — no 2 m slab survives anywhere)
+    const midTarget = sd.authored ? 1.45 : midTight ? 2.6 - 1.45 * smoothstep(-3.0, -4.6, sd.z) : 2.6 - 1.2 * smoothstep(-3.2, -4.8, sd.z);
     // the crack is a joint like any other (each piece is inset by half the seam), plus 0–2 cm
     const partsOld = breakCell(cell, lawnTarget, brng.range(0, 0.02), BREAK_MIN_ACROSS, brng);
     // the shared stream's draws, exactly as before the mid-ground cuts existed
@@ -1175,8 +1113,8 @@ export function placeFlagstones(pc: PavingContext, material: Material): PavingRe
     else for (let i = 0; i < partsOld.length; i++) sharedGaps.push(rng.range(0.03, 0.06));
     const midCut = midTarget < lawnTarget && acrossOf(cell) > midTarget;
     const mrng = midCut ? rng.fork(`break-mid/${Math.round(sd.x * 50)}/${Math.round(sd.z * 50)}`) : null;
-    let parts: P2[][] = [];
-    let partGaps: number[] = [];
+    const parts: P2[][] = [];
+    const partGaps: number[] = [];
     for (let i = 0; i < partsOld.length; i++) {
       const sub = mrng ? breakCell(partsOld[i], midTarget, mrng.range(0, 0.02), BREAK_MIN_ACROSS, mrng) : [partsOld[i]];
       if (sub.length > 1) stats.brokenLawnMid += sub.length - 1;
@@ -1185,29 +1123,16 @@ export function placeFlagstones(pc: PavingContext, material: Material): PavingRe
         partGaps.push(sub.length === 1 && partsOld.length > 1 ? sharedGaps[i] : mrng ? mrng.range(0.03, 0.06) : 0);
       }
     }
-    // round 23: camera D's foreground path (zones.ts dForeground) is re-broken to a target up to
-    // 90 % larger - frame 56 s's path is 1.5–2.5 m slabs (the one under Link's shadow spans half
-    // the frame) where the 0.9–1.3 m target cut the thinned lattice's 1.4–1.9 m cells back into
-    // ~1 m pieces. The cells that still break take their cuts from their own stream; the shared
-    // stream and the other regions' cells are untouched (the seeds do not move)
-    // (round 34: the weight is the larger of `dForeground` and `dThin` — the thinned stretch's own
-    // lattice runs to z −12.4 where dForeground has faded to 0.35 — and × (1 + 0.9) → × (1 + 1.3),
-    // 2.0–2.9 m at full weight: its 1.9–2.4 m cells are the frame's slabs and must stay whole)
-    const dFore = Math.max(dForeground(sd.z), dThin(sd.z));
-    if (dFore > 0.05 && !sd.authored && sd.lawn < 0.5) {
-      const drng = rng.fork(`break-d/${Math.round(sd.x * 50)}/${Math.round(sd.z * 50)}`);
-      const dParts = breakCell(cell, base * (1 + 1.3 * dFore), drng.range(0, 0.02), BREAK_MIN_ACROSS, drng);
-      parts = dParts;
-      partGaps = dParts.map(() => (dParts.length > 1 ? drng.range(0.03, 0.06) : 0));
-      if (dParts.length < partsOld.length) stats.mergedD += partsOld.length - dParts.length;
-    }
+    // (round 50: rounds 23–34's re-break of camera D's foreground to 2.0–2.9 m slabs is gone — the
+    // D-family frames d_111–117 show the same 0.8–1.1 m stones at player height)
     // round 33: camera C's plaza (zones.ts `earthPatch`, frame 46 s: mostly dark trodden earth with
-    // scattered flat stones, stone share ≈ 40 %; ours paved it edge to edge) — 55 % of the cells
-    // in the patch are left as earth. Decided on a hash fork keyed on the seed after every shared
-    // draw above, so the cells kept and every cell outside the patch are byte-identical; the
-    // authored camera-B slabs and the stepping discs are never dropped.
+    // scattered flat stones) — cells in the patch are left as earth. Decided on a hash fork keyed
+    // on the seed after every shared draw above, so the cells kept and every cell outside the
+    // patch are byte-identical; the authored camera-B slabs and the stepping discs are never
+    // dropped. (round 50: 55 % → 35 % — at the demo scale a dropped cell is a 1 m hole, not 2 m,
+    // and d_097's junction is paved edge to edge with a few earth gaps)
     const patch = sd.authored ? 0 : earthPatch(sd.x, sd.z);
-    if (patch > 0.01 && rng.fork(`patch/${Math.round(sd.x * 50)}/${Math.round(sd.z * 50)}`)() < 0.55 * patch) {
+    if (patch > 0.01 && rng.fork(`patch/${Math.round(sd.x * 50)}/${Math.round(sd.z * 50)}`)() < 0.35 * patch) {
       stats.earth++;
       continue;
     }
@@ -1295,85 +1220,47 @@ export function placeFlagstones(pc: PavingContext, material: Material): PavingRe
     const dFore = disc ? 0 : dForeground(s.z);
     const south = disc ? 0 : southPlaza(s.z) * (1 - dampBand(s.z));
     if (field > 0.5 && !dryRun) stats.field++;
-    // the geometric gap is 4.5–9 cm (4–8.3 cm between the open-paving slabs); the shoulders
-    // and the sunk side walls add ~1 cm of visual joint on each side, so the rendered seam
-    // reads 5–10 cm of dark dirt/moss like boards 02/07
     const uJoint = srng();
-    // (round 22: the open paving's seams narrow to ~55 % - frame 1 s reads 3-5 cm dark joints on its
-    // ~1 m plaza slabs where ours rendered 8-12 cm of brown; A's plaza box counted 29 % brown-soil
-    // pixels against the frame's 15 % and 24 % stone-like against 40 %)
-    // (round 23: the open paving's geometric seam is the frame's 3–5 cm dark line itself, 2.3–4.6
-    // cm (half of round 21's) breathing ±1.4 cm with the wobble below; the damp band's 3.5–6.5 cm.
-    // The visible seam used to be 2–3× the geometric one - the dark flank, the flank-coloured
-    // shoulder ring and the shoulder dirt on both sides - and the A/D boxes counted 6–10 px dark
-    // lines against the frame's 2–3 px; those three are now stone-toned and the fill's crevice
-    // shading carries the line)
+    // Round 50 (fable-5 V16 — `d_097` measured from above: 6–10 cm dark joints between 0.8–1.1 m
+    // rounded stones; d_111–117 the same at player height). ONE seam for the whole paving: the
+    // nominal (geometric) gap is 2.8–5 cm — the erosion, the corner fillets and the wobble
+    // below widen the visible joint to ≈ 1.5–1.8× the nominal (measured as the edge-normal run
+    // between neighbouring outlines, index.ts `jointMeasuredWidthM`), so it renders as the
+    // frame's 6–10 cm. The discs keep round 33's seam; the lawn slabs' turf joints sit a step
+    // wider (5–8.5 cm nominal, 7–12 visible). Rounds 22–34's per-camera seams (A's 3.8–7.7, the
+    // north path's 1.9–3.9, the field's 4.5–11, D's 6–12.5, the lawn's 8–20) went with the
+    // per-camera slab sizes. The draws below are the control's, in the control's order, so the
+    // stepping discs — which share this stream — keep their shapes and heights.
     const damp0 = dampBand(s.z);
-    // (round 33: camera A's plaza seams back up to 3.8–7.7 cm geometric (× 0.84, was × 0.42) —
-    // measured inside the paving mask, frame 1 s's plaza has 43 % of its pixels in the joint
-    // class against our 50 % but its joints are 5–12 cm of moss and dark earth where ours were
-    // 2–3 px hairlines with the rest of the darkness in Link's and the trees' shadows; the seam
-    // widening comes with the shoulder moss below so the joints read green-brown, not black)
-    const seamJoint = disc ? (0.035 + 0.03 * jointN + 0.01 * uJoint) * (1 - 0.35 * open) + 0.015 * damp0 : (0.045 + 0.035 * jointN + 0.012 * uJoint) * (0.42 + 0.28 * damp0 + 0.42 * south) + 0.005 * damp0;
-    // the disc field's gaps (no new draw: `uJoint` jitters them): 9–22 cm, frame 14 s's 0.08–0.2 m
-    // (round 48, opus-review #04 / fable-5's video-2 measurements: the spine's stones sit in 3–8 cm
-    // dark joints with grass in them, not 15–25 cm of bare earth — the field's gaps come down to
-    // 4.5–11 cm and camera D's thinned stretch to 6–12.5 cm; the earth between them is darker and
-    // greener (joints.ts) and carries green tufts (index.ts `spine-grass`))
-    const fieldJoint = 0.045 + 0.045 * jointN + 0.02 * uJoint;
-    // (no draw for the stones outside the lawn, so their streams stay exactly as before)
-    // (12–28 cm on the bottom row: the reference's bottom-row seams are 15–25 cm, its 40 cm gaps
-    // are dirt patches; round 23: camera B's mid-ground slabs, z < −2.6, sit closer - frame 14 s
-    // reads 3–8 cm seams between the slabs behind Link - so the turf joint narrows to a quarter)
+    const seamJoint = disc ? (0.035 + 0.03 * jointN + 0.01 * uJoint) * (1 - 0.35 * open) + 0.015 * damp0 : 0.028 + 0.016 * jointN + 0.006 * uJoint;
     const lawnMid = smoothstep(-2.6, -4.0, s.z);
-    // (round 48, opus-review #04: the lawn slabs' 12–28 cm turf joints were the "15–25 cm of bare
-    // mortar" at E / w05 — measured as runs between the slab outlines, the E foreground's gaps sat
-    // at p50 14 cm, the w05 plaza's at 27 cm. 8–20 cm now (× 0.67); the fill under them is the
-    // dark olive turf (joints.ts) and carries green tufts (index.ts), so what is left of the gap
-    // reads as grass between stones, as in frame E, not as a mortar band)
-    const lawnJoint = (0.08 + 0.08 * jointN + (lawn > 0 ? srng.range(0, 0.04) : 0)) * (1 - 0.75 * lawnMid);
-    // where the disc field takes over the seam: everywhere in it except camera B's bottom row
-    // (lawn slabs at z > −2.6, which keep their 12–28 cm turf joints); the round-23 mid-ground
-    // narrowing (lawnMid) is what it replaces — frame 14 s at 3× shows the stones behind Link in
-    // 8–20 cm gaps, not 3–8 cm seams
-    // (and at half strength on camera D's foreground stretch: frame 56 s's bottom quarter is flat
-    // 1.5–2.5 m slabs with rounded corners in 8–15 cm grass joints, not the discs of 14 s; the
-    // full field there took the stone share of z −8 … −11 from 81 % to 59 % — the frame's is ≈ 75 %)
+    const lawnJoint = (0.05 + 0.025 * jointN + (lawn > 0 ? srng.range(0, 0.04) * 0.25 : 0)) * (1 - 0.25 * lawnMid);
+    // the disc field's weight (zones.ts `discField`; the spine north of the plaza): its stones
+    // keep their domed profile and rolled, proud edge below — the demo's stones are softly convex
+    // everywhere, and the field is where the walk reads them closest
     const fieldW = field * (1 - lawn * (1 - lawnMid)) * (1 - 0.5 * dFore);
-    // round 34: the thinned stretch's own lattice (`dThin`) lays 1.9–2.4 m slabs, and frame 56 s
-    // at 2× sets them in 0.15–0.3 m of shadowed grass and earth (gap runs p50 0.22 m in its bottom
-    // quarter against our 0.16 m, 0.10 m once the slabs merged at 9–20 cm seams): 13–26 cm
-    // geometric seams there, on `uJoint` (no new draw); 0 elsewhere leaves the seam as is
-    const dThinW = disc ? 0 : dThin(s.z);
-    const dJoint = 0.06 + 0.04 * jointN + 0.025 * uJoint;
-    // corners: 14 % of the slab (5–16 cm; round 23 - frame 1 s's plaza slabs are irregular with
-    // rounded corners; 12 % read as chamfered hexagons and a quarter of the slab as cobbles set
-    // in mortar, with 8–15 cm junction triangles); the lawn slabs' 18 % (7–24 cm); round 33: the
-    // plaza's 17 % (frame 1 s's corners are rounder than round 23 left them), the disc field's
-    // 30 % (10–42 cm: the stones read as ovals and rounded discs, frames 14 s / 56 s)
-    const seamFillet = disc ? clamp(0.15 * size, 0.055, 0.12) : clamp((0.14 + 0.03 * south) * size, 0.05, 0.16 + 0.02 * south);
-    const lawnFillet = clamp(0.18 * size, 0.07, 0.24);
-    const fieldFillet = clamp(0.3 * size, 0.1, 0.42);
+    // corners: 24 % of the stone (8–28 cm, ± 20 % per stone and ± 50 % per corner) with the arcs'
+    // quarter points — the demo's outlines are rounded polygons; the plaza's chamfered hexagons
+    // (14 %) and the field's ovals (30 %) meet in the middle, the lawn slabs the same, the discs
+    // their own
+    const seamFillet = disc ? clamp(0.15 * size, 0.055, 0.12) : clamp(0.24 * size, 0.08, 0.28);
     // edge wobble (cellToOutline): ±1 cm on the open paving, ±0.6 cm on the lawn slabs, none on
     // the discs, under a noise phased per stone so the two sides of a seam move independently and
-    // the seam pinches to a hairline and opens to 5–6 cm along its length (frame 1 s at 4×: the
-    // joints are broken lines of uneven width, not channels); the seam is narrowed by 1.5× the
-    // amplitude so its mean grows only ~0.5 cm, and never closes (min = seam − 1.5 × amplitude)
-    const wobble = disc ? 0 : 0.01 * (1 - 0.4 * lawn) * (1 - 0.4 * fieldW);
+    // the seam pinches and opens along its length (frame 1 s at 4×: the joints are broken lines
+    // of uneven width, not channels); the seam is narrowed by 1.5× the amplitude so its mean
+    // grows only ~0.5 cm, and never closes (min = seam − 1.5 × amplitude)
+    const wobble = disc ? 0 : 0.01 * (1 - 0.4 * lawn);
     const wobblePhase = ((Math.round(s.x * 50) * 7919 + Math.round(s.z * 50) * 104729) % 977) * 0.113;
     const baseJoint = seamJoint + (lawnJoint - seamJoint) * lawn;
-    const baseShoulder = disc ? clamp(0.055 * size, 0.022, 0.042) : clamp(0.04 * size, 0.016, 0.03);
-    // the disc field's rolled edge: 6 % of the stone (3–6 cm), the soft shaded rim frame 14 s
-    // shows round every stone at 6–10 m
-    const fieldShoulder = clamp(0.06 * size, 0.03, 0.06);
+    // the rolled edge: 5 % of the stone (2–4.5 cm), the soft shaded rim of the demo's stones
+    const baseShoulder = disc ? clamp(0.055 * size, 0.022, 0.042) : clamp(0.05 * size, 0.02, 0.045);
     const uShoulder = srng.range(0.85, 1.15);
     const uFillet = srng.range(0.8, 1.2);
     const notchy = srng.chance(0.65);
     // round 42: edge wear on the trodden strip (zones.ts `troddenStrip`, the metre down the
-    // spine where feet go): the shoulder roll widens to 2–5 cm (× 1.8 at the centreline) and
-    // rises a little with it, so the slabs' edges there are worn round rather than cut — frame 03's
-    // foreground slabs, whose edges fall softly into the dark joints. Noise-free and draw-free:
-    // the stone's stream is untouched, only the ring offsets change on the strip.
+    // spine where feet go): the shoulder roll widens (× 1.8 at the centreline) and rises a little
+    // with it, so the slabs' edges there are worn round rather than cut — frame 03's foreground
+    // slabs, whose edges fall softly into the dark joints. Noise-free and draw-free.
     const trodden = disc ? 0 : troddenStrip(s.x, s.z);
     // round 44 (survey-1 #8, zones.ts `hollowPath`): the hollow path's slabs are SET stones — seated
     // with the grade, sunk 2–3.5 cm so the fill laps their shoulders, domed so the top emerges from
@@ -1385,27 +1272,24 @@ export function placeFlagstones(pc: PavingContext, material: Material): PavingRe
     const hrng = hollow > 0.001 ? rng.fork(`hollow/${Math.round(s.x * 50)}/${Math.round(s.z * 50)}`) : null;
     const roll = 1 + 0.8 * trodden + 0.6 * hollow;
     const style: OutlineStyle = {
-      // the damp band's seams are the widest (reference B/E foreground: 8–12 cm of soil and moss
-      // between the stones — its plaza box has the same dark and bright tones as ours but more
-      // of its area is joint)
-      joint: Math.max(0.012, baseJoint + (fieldJoint - baseJoint) * fieldW + (dJoint - baseJoint - (fieldJoint - baseJoint) * fieldW) * dThinW - 1.5 * wobble),
-      // a narrow shoulder (1.6–3 cm, was 2.2–4.2): the edge reads as a break, not a roll
-      shoulder: (baseShoulder + (fieldShoulder - baseShoulder) * fieldW) * uShoulder * roll,
-      fillet: (seamFillet + (lawnFillet - seamFillet) * lawn + (fieldFillet - seamFillet - (lawnFillet - seamFillet) * lawn) * fieldW) * uFillet,
-      erosion: disc ? ea * (1 + lawn) : ea * 1.3 * (1 + 0.5 * lawn) * (1 - 0.5 * fieldW),
+      joint: Math.max(0.012, baseJoint - 1.5 * wobble),
+      shoulder: baseShoulder * uShoulder * roll,
+      fillet: seamFillet * uFillet,
+      // (round 50: the erosion's × 1.3 goes — it widened the visible seam past the fillets' share)
+      erosion: disc ? ea * (1 + lawn) : ea * (1 + 0.5 * lawn),
       roundArcs: !disc,
       broken: !disc,
-      // two thirds of the stones carry notches (a quarter of their long edges, two at most); none
-      // in the disc field (its stones are rounded, not broken — the draw is kept for the stream)
-      notchChance: disc || fieldW > 0.5 ? 0 : notchy ? 0.25 : 0,
+      // two thirds of the stones carry a notch or two (a fifth of their long edges): the demo's
+      // edges are irregular, not broken (round 50: 0.25 → 0.18, and the field takes them too)
+      notchChance: disc ? 0 : notchy ? 0.18 : 0,
       notchDepth: clamp(0.07 * size, 0.025, 0.06),
       erodeFn: (x, z) => wearN.fbm((x + s.x) * 5.5 + 21, (z + s.z) * 5.5 - 9, 2) * 0.5 + 0.5,
       wobble,
       // two octaves: a 2 cycles/m bow (a metre of edge bows once or twice) and a 9 cycles/m
       // crumble (the chipped, broken edge of frame 1 s at 4×)
       wobbleFn: (x, z) => 0.6 * (wearN.fbm((x + s.x) * 2.0 + 57 + wobblePhase, (z + s.z) * 2.0 - 33, 2) * 0.5 + 0.5) + 0.4 * (wearN.fbm((x + s.x) * 9.0 - 71 - wobblePhase, (z + s.z) * 9.0 + 19, 1) * 0.5 + 0.5),
-      // (round 23: a sixth of the corners chipped, was a third - most of the frame's corners are round)
-      chipChance: 0.17 * (1 - fieldW),
+      // (round 50: one corner in ten chipped straight, was one in six — the demo's corners are round)
+      chipChance: 0.1,
     };
     // work in seed-local coordinates (the stone is built around its centroid, then placed)
     const local = cell.map((p) => ({ x: p.x - s.x, z: p.z - s.z }));
@@ -1492,7 +1376,9 @@ export function placeFlagstones(pc: PavingContext, material: Material): PavingRe
     // discs keep their crown; the dish replaces the crown (crown < 0 in the audit).
     const wrng = rng.fork(`wear/${Math.round(s.x * 50)}/${Math.round(s.z * 50)}`);
     // (round 33: no dish in the disc field — its stones are domed; the draw order is unchanged)
-    const dished = !disc && size >= 0.7 && lawn < 0.5 && wrng.chance(0.75) && fieldW < 0.5;
+    // (round 50: from 0.8 m and on half of them, was 0.7 m / three in four — most demo stones are
+    // softly convex; the biggest, most trodden ones dish)
+    const dished = !disc && size >= 0.8 && lawn < 0.5 && wrng.chance(0.5) && fieldW < 0.5;
     if (dished) crown = -(0.006 + 0.012 * wrng());
     // a dirt-filled crack across one slab in eight (≥ 0.45 m; frame 1 s shows a few cracked
     // plaza slabs): through a point within a quarter-radius of the centre, at any angle, spanning
@@ -1622,7 +1508,10 @@ export function placeFlagstones(pc: PavingContext, material: Material): PavingRe
     // (the thinned stretch's mean + 0.04: its nine slabs drew an area-weighted 0.915 against the
     // 0.942 of the 28 they replaced — the two 2 m slabs nearest camera D at 0.84 / 0.81 — and
     // frame 56 s's stone class rendered p50 0.532 against the frame's 0.557 / the control's 0.584)
-    let lum = 0.89 + 0.08 * tn + srng.range(-0.08, 0.08) * (1 + 0.7 * dThinW) + (seed.big ? 0.02 : 0) + 0.04 * dThinW;
+    // (round 50: D's thinned stretch — its ± 0.14 spread and + 0.04 mean — went with its lattice;
+    // the per-stone spread is ± 0.08 everywhere, the demo's "two tints mixed" are the grey and
+    // dark-warm populations below)
+    let lum = 0.89 + 0.08 * tn + srng.range(-0.08, 0.08) + (seed.big ? 0.02 : 0);
     // (round 48, opus-review #04: the "grey" fifth rendered as cool lavender beside cream — two
     // populations laid at random. The grey stone keeps its step down in luminance but not its blue
     // lift (satK below), so the family is one warm grey-beige with per-stone variance)
@@ -1661,7 +1550,10 @@ export function placeFlagstones(pc: PavingContext, material: Material): PavingRe
     // frame's 40° / 0.32 that the control matched)
     // (round 48: +0.02 warm bias — the E / D / A stone class rendered sRGB R/G 1.08–1.11 against
     // the frames' 1.11–1.12; fable-5's video-2 slab mean is #95815d, R/G 1.15)
-    const hueK = srng.range(-0.05, 0.05) * 1.6 + (darkWarm ? 0.035 : 0) - 0.04 * damp - 0.06 * dThinW + 0.02;
+    // (round 50: + 0.02 → + 0.045 — fable-5's demo slab mean is #95815d, sRGB R/G 1.155, and the
+    // E / D / A stone class rendered 1.08–1.11 on take-0118; the post chain passes about a
+    // quarter of an albedo hue shift, so the vertex tint carries the rest of the warmth)
+    const hueK = srng.range(-0.05, 0.05) * 1.6 + (darkWarm ? 0.035 : 0) - 0.04 * damp + 0.045;
     // the shaded band renders redder and more saturated than the sunlit plaza under the warm
     // fill light (B lit tops sRGB B/R 0.61, R/G 1.20 against the reference's 0.69 / 1.12, where
     // the A plaza matches at 0.71 / 1.10) and the post chain passes only ~1/4 of an albedo
@@ -1684,7 +1576,9 @@ export function placeFlagstones(pc: PavingContext, material: Material): PavingRe
     // rendered sRGB B/R 0.75 / 0.72 / 0.77 in E / D / A against the frames' 0.67 / 0.69 / 0.69,
     // the cool cast of #04; the grey stones' +0.075 → +0.02, the open paving's +0.18 → +0.07,
     // the base +0.045 → +0.02, the damp band's 0.1 → 0.06)
-    const satK = srng.range(-0.04, 0.04) + (grey ? 0.02 : 0) - (darkWarm ? 0.04 : 0) + 0.06 * damp + 0.02 + 0.07 * open * (1 - 0.35 * dFore);
+    // (round 50: the base blue + 0.02 → 0 and the open paving's + 0.07 → + 0.04 — #95815d is
+    // B/R 0.62 in sRGB, the take-0118 stone class rendered 0.72–0.77)
+    const satK = srng.range(-0.04, 0.04) + (grey ? 0.02 : 0) - (darkWarm ? 0.04 : 0) + 0.06 * damp + 0.04 * open * (1 - 0.35 * dFore);
     const tint: [number, number, number] = [lum * (1 + hueK) * (1 - 0.03 * open), lum * (1 - hueK * 0.3), lum * (1 - hueK * 0.5 + satK)];
     // moss lives in the joints and creeps onto the shoulders; a green film covers the shaded
     // north/west side of ~30 % of the stones (damp side, reference B/E), more on the damp path
