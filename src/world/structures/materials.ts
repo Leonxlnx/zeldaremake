@@ -1367,6 +1367,8 @@ export async function loadMaterials(ctx: WorldContext, rng: () => number): Promi
     `,
     vertexColors: true,
     blending: MultiplyBlending,
+    // three's multiply blend is dst × src (ZERO, SRC_COLOR) and is only offered premultiplied
+    premultipliedAlpha: true,
     transparent: true,
     depthWrite: false,
     fog: false,

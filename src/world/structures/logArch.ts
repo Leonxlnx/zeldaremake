@@ -2331,7 +2331,7 @@ export function buildLogArch(ctx: WorldContext, mats: StructureMaterials, rng: R
       for (let i = 0; i < n; i++) {
         const w = ws[i] / sum;
         const kind = tunRng();
-        const len = kind < 0.3 ? 0.22 + 0.2 * tunRng() : kind < 0.7 ? 0.06 + 0.14 * tunRng() : -0.12 - 0.16 * tunRng();
+        const len = kind < 0.3 ? 0.3 + 0.3 * tunRng() : kind < 0.7 ? 0.06 + 0.16 * tunRng() : -0.14 - 0.2 * tunRng();
         out.push({ t0: t, w, len, tilt: (tunRng() - 0.5) * 0.8 });
         t += w;
       }
