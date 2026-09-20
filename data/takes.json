@@ -1,6 +1,6 @@
 {
   "project": "zeldaremake",
-  "updatedAt": "2026-09-20T16:13:12.737Z",
+  "updatedAt": "2026-09-20T17:11:44.533Z",
   "monitorCadenceMinutes": 60,
   "takes": [
     {
@@ -82947,8 +82947,8 @@
     }
   ],
   "heartbeat": {
-    "at": "2026-09-20T16:13:12.737Z",
-    "reason": "round 50 building (5 lanes); take-0123 re-verdicted 37/50"
+    "at": "2026-09-20T17:11:44.533Z",
+    "reason": "round 50 mid-work; goal-mode merges + Astra NaN guard on the head"
   },
   "play": {
     "takeId": "take-0123",
