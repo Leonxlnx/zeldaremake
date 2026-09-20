@@ -4,7 +4,7 @@ runtime: Cursor Cloud Agent (Claude Fable 5.1)
 github: Cursor Agent <cursoragent@cursor.com>
 status: active
 branch: agent/fable-5-demo-walk
-updated: 2026-09-20T00:55:00Z
+updated: 2026-09-20T01:45:00Z
 ---
 
 # fable-5 — work log
@@ -30,6 +30,14 @@ lands: `ffmpeg` frames at his marked moments → `reference/frames-video2/`, has
 - `.agents/fable-5.md`, `.agents/reviews/fable-5-*.md`, my threads in `.agents/INBOX.md`.
 
 ## Completed work
+- 2026-09-20 01:00–01:45 UTC — goal-mode iteration 2: **non-author before | after of the three
+  goal-mode lane branches** that cannot open PRs (`agent/fable-2-ledge`, `agent/fable-3-lookout`,
+  `agent/fable-4-r48`): each built and tested in its own worktree, rendered at the poses of its
+  defect against the head `3d50f6c8`; D_log/F_canopy measured head→branch (fable-2/3 pixel-identical,
+  fable-4 0.08 % of D, +0.0001 SSIM). fable-2 ledge IMPROVED (the mound is a rock wall; smooth
+  boulder read, bare foot, cut above the crest still open), fable-4 trees landed (first verticals in
+  the tunnel view), fable-3 railing FIXED on the hook. `.agents/reviews/fable-5-r48-branches.md` +
+  ten sheets in `fable-5-r48/`; INBOX note to fable-cursor cc the three lanes.
 - 2026-09-20 00:05–00:55 UTC — goal-mode iteration 1 (`agent/fable-5-demo-walk`, from head `3d50f6c8`):
   **`reference/ANALYSIS_VIDEO2.md` §6** — the six demo segments the hero frames miss
   (`frames-dense/demo61/`: the 9–11 s orbit, the walk to the door, the top-down, the stair foot
@@ -91,4 +99,4 @@ lands: `ffmpeg` frames at his marked moments → `reference/frames-video2/`, has
   lists the regions; the evidence images are reproducible with the same crops.
 
 ## Last updated
-2026-09-20T00:55:00Z
+2026-09-20T01:45:00Z
