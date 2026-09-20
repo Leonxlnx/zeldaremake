@@ -17,9 +17,8 @@ gauntlet's independent D7 verdicts (`gauntlet/reviews/*.json`, written only thro
 00:00 UTC (timer `goal-mode-fable-5`, cron `20 * * * *`); `agent/fable-5-demo-walk` merged (`b4de8d7`); current branch `agent/fable-5-r48-review`.
 
 ## Current task
-Done this iteration: take-0121 re-verdicted (see Completed). Next: the player-height walk of
-`cf8083b` (GOAL_MODE #3) with the ranked list; then the next sealed take. Still waiting for the
-15-minute video file.
+Done this iteration: fable-2's pebble looks measured at opus #16's pose (see Completed). Next:
+take-0123's re-verdict when it seals, else the round-49 walk once fable-4's boughs merge. Still waiting for the 15-minute video file.
 
 ## Previous current task (superseded)
 Goal-mode loop. Next iteration: **re-verdict every visual item on take-0120** when it seals (the
@@ -35,6 +34,18 @@ lands: `ffmpeg` frames at his marked moments → `reference/frames-video2/`, has
 - `.agents/fable-5.md`, `.agents/reviews/fable-5-*.md`, my threads in `.agents/INBOX.md`.
 
 ## Completed work
+- 2026-09-20 09:32–10:10 UTC — goal-mode iteration 11 (§O): fable-2's eight pebble looks `a3c644b2`
+  measured on head `5e525dea` — six views inside budget (worst −0.0004), the looks land on the
+  path-edge scatter; at opus #16's pose the joint pebbles at 1–2 m are pixel-identical (they are the
+  hardscape's joint grit, not `pathEdgePebble`) — reported, hardscape half open.
+- 2026-09-20 08:20–09:25 UTC — goal-mode iteration 10 (§M): three lanes' answers to take-0121
+  measured as head (`acec3210`, perf-3 in) + commit. fable-4's low boughs IMPROVED (C: pole → limb
+  with lobe; B −0.0003 the whole cost); fable-3's measured string IMPROVED (A −0.0005, C +0.0030,
+  E +0.0022; my §J string position corrected); fable-2's W23 far look does not reach frame D — the
+  D boulder is > 99 % hidden behind the fern bank (372 px visible; reference 5.4 % of the frame),
+  reported as a FAIL with the occlusion sheet. take-0122 (37/50) sealed meanwhile: its C −0.0048
+  bisected across the five merges (fable-2 pebbles −0.0022 + fable-3's first strings −0.0029, the rest
+  ≈ 0); my 13 standing passes re-checked on its frames, all stand (§N).
 - 2026-09-20 07:20–07:46 UTC — goal-mode iteration 9 (§L): fable-3's light-string tweak measured
   as head + commit (A −0.0001, C +0.0010, F +0.0005 — inside the budget); fable-2's merged wall
   second pass checked at 3 m (IMPROVED). Small iteration; no new take.
