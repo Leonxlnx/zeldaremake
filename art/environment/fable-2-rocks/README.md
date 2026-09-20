@@ -16,6 +16,54 @@ B 526 / C 393 / D 394 / E 526 / F 512; A 9.09 M tris on both (the head's number,
 change's — flagged to fable-cursor). Files: `ledge2-x-clearing-n.jpg` (+ `-crop`),
 `ledge2-x-ledge-foot.jpg`, `ledge2-x-northpath-n.jpg`.
 
+## Iteration 14 (goal mode, 2026-09-20) — a mid-range detail band for the boulders (owner's "stones under-detailed") — FAIL, reverted
+
+`d4bfed58` → reverted by `f433b104`. The owner's 13:00 UTC re-priority (via fable-cursor's overlap map): "stones
+under-detailed", judged at 5–20 m. For rocks that is the far look — the shared material pulls the texture 78 % to
+grey and compresses its contrast to 70 %, so boulders past 6 m read as smooth domes. Tried: a 9–30 m band with 12 %
+more contrast, the near path's ± 10 % plate patchwork and +40 % normal relief.
+
+| where | result | verdict |
+| --- | --- | --- |
+| six views, branch `952eb035` → band | Δ SSIM 0.0000 ×5, E −0.0001; **≤ 0.02 % of pixels** per view | an after that looks like its before |
+| `x-shotd-8m`, `x-stairfoot-9m`, `x-terrace-13m`, `x-terrace-20m` (new 8–20 m poses) | the hero boulders are behind ferns / bushes / trunks at every one; nothing to judge (`mid14-x-shotd-8m.jpg`) | — |
+| `sn-boulder-terrace` (4 m) | the far side of the big rock a touch more mottled (`mid14-sn-boulder-terrace.jpg`) | too little to claim |
+
+**FAIL, reverted.** At 1280 × 720 a ± 10 % plate value on 0.3 m plates at 9 m and 12 % of the texture's contrast are
+below the frame's noise; a band strong enough to read would be the "crazed" look the compression exists to avoid.
+The honest next step for "stones under-detailed" on rocks is a change in what the far mesh IS (plate geometry at
+mid range), which is six-view-exposed and a look change — asked in the INBOX whether the owner's "stones" means the
+boulders at all before spending it (the hardscape's stones are Astra's lane now).
+
+## Iteration 13 (goal mode, 2026-09-20) — W24's count, a regression of mine caught and fixed
+
+`51fb6b35`. BEFORE = the head `ca562e76` (the envelope in), AFTER = this build. W24's auto check is
+`systems.rocks.pebbles ≥ 2000`; the envelope had left the plaza-side set at **1 822** in the browser (audited) —
+the next take would have failed W24. Fix: the audit's `pebbles` is every instanced small stone near path edges /
+stair feet / boulder bases (plaza-side + the north paving's set — real stones, distance-toggled like every north
+mesh), with `pebblesMain` / `northPebbles` as the breakdown; and the fringe acceptance 0.36 → 0.42 so the plaza-side
+set alone clears 2 000 with margin. Browser audit after: total **3 188**, main **2 079**, north 1 109. Per-cell: the
+raise adds stones and moves none.
+
+Six views, head `ca562e76` → `51fb6b35`: A +0.0002, B −0.0002, C +0.0006, D −0.0002, E +0.0002, F −0.0001; draws
+identical (566 / 522 / 407 / 396 / 522 / 507), triangles +20 K per frame (A 8.60 → 8.62 M); ≤ 0.14 % of pixels per
+view. All six within −0.0008 of take-0122.
+
+## Iteration 12 (goal mode, 2026-09-20) — W23 at frame D: the loaf 0.2 m prouder (branch `agent/fable-2-w23-loaf` @ `e5867d7e`)
+
+A D composition change on its OWN branch for fable-cursor's call (fable-5: "yes from the reviewer's side").
+BEFORE = the head `e54a74ed`, AFTER = `e5867d7e`: the D boulder's squash 0.64 → 0.72 and no sink (was 15 %
+of its height) — ≈ +0.19 m proud; the layout radius and the vegetation's clearRadius untouched.
+
+| frame / pose | before → after | verdict |
+| --- | --- | --- |
+| `D_log` (7.2 m) | nothing but fronds and a dark sliver → the boulder's moss top and shaded face stand above the fern bank at frame x 0.12–0.3, y 0.55–0.7 (1.01 % of the frame; `loaf12-D_log-boulder.jpg`, with the reference beside it) | **IMPROVED** — a rock is there now; not closed: it reads dark (the face toward D is in the giant's shade; box l 0.316 → 0.300 as more shaded rock replaces lit fern) and the fronds still stand in front (vegetation-26's disc) |
+| `sn-boulder-shotd` (2 m) | a sunk lump → a boulder with its moss top above the fern line (`loaf12-sn-boulder-shotd.jpg`) | IMPROVED |
+
+Six views, head `e54a74ed` → `e5867d7e`: A −0.0001, B −0.0001, C 0.0000, **D −0.0007**, E +0.0003, F 0.0000;
+draws and triangles identical (566 / 522 / 407 / 396 / 522 / 507; A 8.60 M). Inside the budget; the D cost is
+the composition change itself.
+
 ## Iteration 11 (goal mode, 2026-09-20) — a path-proximity envelope on the pebble scatter (take-0122's C, W38)
 
 `12dbc604` (+ test `847e91ab`). BEFORE = the branch at `1b394ceb` (head `0990b2c7` + the eight looks), AFTER = this
