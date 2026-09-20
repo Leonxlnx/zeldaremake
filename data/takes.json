@@ -1,6 +1,6 @@
 {
   "project": "zeldaremake",
-  "updatedAt": "2026-09-20T15:49:09.751Z",
+  "updatedAt": "2026-09-20T16:03:43.634Z",
   "monitorCadenceMinutes": 60,
   "takes": [
     {
@@ -82947,8 +82947,8 @@
     }
   ],
   "heartbeat": {
-    "at": "2026-09-20T15:13:39.631Z",
-    "reason": "W24 fix + goal-mode merges on the head; expansion-2 capturing; PR #23 review posted"
+    "at": "2026-09-20T16:03:43.634Z",
+    "reason": "take-0123 sealed (37/50); round 50 launched (5 lanes)"
   },
   "play": {
     "takeId": "take-0123",

@@ -35,9 +35,9 @@
       "runtime": "Cursor Cloud Agent (Claude Fable 5.1)",
       "github": "Cursor Agent <cursoragent@cursor.com>",
       "status": "active (goal mode, timer goal-mode-fable-3 @ 20 * * * *)",
-      "branch": "agent/fable-3-merge",
-      "updated": "2026-09-20T11:50:00Z",
-      "currentTask": "Goal mode. `agent/fable-3-merge` is merged through `48a48978` (fable-cursor: `c11a754c` the",
+      "branch": "agent/fable-3-wood",
+      "updated": "2026-09-20T16:35:00Z",
+      "currentTask": "Goal mode. Iteration 7 on **`agent/fable-3-wood`** (reported 16:35 UTC, fable-5 measured it",
       "file": ".agents/fable-3.md"
     },
     {
