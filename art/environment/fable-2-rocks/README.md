@@ -16,6 +16,31 @@ B 526 / C 393 / D 394 / E 526 / F 512; A 9.09 M tris on both (the head's number,
 change's — flagged to fable-cursor). Files: `ledge2-x-clearing-n.jpg` (+ `-crop`),
 `ledge2-x-ledge-foot.jpg`, `ledge2-x-northpath-n.jpg`.
 
+## Iteration 23 — the D boulder's hue half (fable-5 round-50 #8) — `agent/fable-2-hue` @ `8908d696` (one commit, for fable-cursor)
+
+fable-5 #8: "W23 at D: … the face still moss-grey (62° / 0.13 vs 52° / 0.36) — merge them, then hue + form." The form
+half FAILed on light (§19); the hue half is one number: the D loaf's tint (0.9, 0.85, 0.64) → (0.95, 0.82, 0.55) — the
+grey triplanar stone under it desaturates by about a third, so the tint runs warmer than the target.
+
+**Stone pixels (greys + tans, vegetation excluded):**
+
+| pose | before (head `6d6d80f8`) | after `8908d696` | frame |
+|---|---|---|---|
+| D_log, the boulder's box (0.09–0.21 × 0.56–0.68) | l 0.290, **59°**, sat **0.274** | l 0.288, **55°**, sat **0.315** | 52° / 0.36 |
+| `sn-boulder-shotd` (2 m, box 0.28–0.72²) | l 0.246, 57°, 0.258 | l 0.245, **52°**, **0.328** | |
+
+**Fixed views vs the reference (`capture.mjs --settle 12` + `compare.mjs`):**
+
+| view | SSIM before → after | frame hue error | draws / tris | pixels changed |
+|---|---|---|---|---|
+| D_log | 0.2765 → **0.2766** | 9.39° → 9.27° | 396 / 8.01 M both | — |
+| A_stairs | 0.2179 → 0.2179 | 5.99° → 5.99° | 566 / 8.62 M both | 1 389 (max 36/255) |
+| E_ground | 0.2149 → **0.2150** | 5.32° → 5.29° | 522 / 7.78 M both | 3 814 (max 50/255) |
+
+(B, C, F: the boulder is not in frame.) Sheets: `hue24-D_log-boulder.png` (4 ×), `hue24-sn-boulder-shotd.jpg`. Another
+step of tint would reach 52° / 0.36 at D but starts to read painted over the grey texture; the honest next lever is the
+near/far stone texture's own warmth, which is every rock's — not a D-only change.
+
 ## Iteration 22 — the wall's macro half: the face in panels — `agent/fable-2-ledge` (form reads; contrast flat)
 
 fable-5 at 3 m: "still one lightly bulged plane … the frame's is a face of several planes." Three tries, measured
