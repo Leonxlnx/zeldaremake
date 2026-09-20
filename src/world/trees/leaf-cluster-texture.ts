@@ -31,7 +31,7 @@ export function createLeafClusterTexture(rng: Rng, palette: LeafClusterPalette, 
   const sun = new Color(palette.leafSun);
   const cool = new Color(0x3d7346);
   const warm = new Color(0x93ab3f);
-  const css = (c: Color) => `rgb(${Math.round(c.r * 255)}, ${Math.round(c.g * 255)}, ${Math.round(c.b * 255)})`;
+  const css = (c: Color) => c.getStyle(SRGBColorSpace);
 
   // clamped so no leaf strays far from the clump: the outliers of an unclamped spread were what
   // made a card read as a star of loose leaves rather than a clump
@@ -138,7 +138,11 @@ export function createLeafClusterDetail(rng: Rng, palette: LeafClusterPalette, s
   const sun = new Color(palette.leafSun);
   const cool = new Color(0x3d7346);
   const warm = new Color(0x93ab3f);
-  const css = (c: Color, a = 1) => `rgba(${Math.round(c.r * 255)}, ${Math.round(c.g * 255)}, ${Math.round(c.b * 255)}, ${a})`;
+  const srgb = new Color();
+  const css = (c: Color, a = 1) => {
+    c.getRGB(srgb, SRGBColorSpace);
+    return `rgba(${Math.round(srgb.r * 255)}, ${Math.round(srgb.g * 255)}, ${Math.round(srgb.b * 255)}, ${a})`;
+  };
   const gauss = () => Math.max(-2.2, Math.min(2.2, r.gauss()));
   const leaves = 110;
   /** the wavy teardrop outline of a leaf: base at (0, 0), tip at (0, length) */
@@ -410,7 +414,11 @@ export function createFarCrownAtlas(rng: Rng, palette: LeafClusterPalette, size 
   const sun = new Color(palette.leafSun);
   const cool = new Color(0x3d7346);
   const warm = new Color(0x93ab3f);
-  const css = (c: Color, a: number) => `rgba(${Math.round(c.r * 255)}, ${Math.round(c.g * 255)}, ${Math.round(c.b * 255)}, ${a.toFixed(3)})`;
+  const srgb = new Color();
+  const css = (c: Color, a: number) => {
+    c.getRGB(srgb, SRGBColorSpace);
+    return `rgba(${Math.round(srgb.r * 255)}, ${Math.round(srgb.g * 255)}, ${Math.round(srgb.b * 255)}, ${a.toFixed(3)})`;
+  };
   const cell = size / 2;
   const sm = (a: number, b: number, x: number) => {
     const t = Math.min(1, Math.max(0, (x - a) / (b - a)));
