@@ -400,7 +400,8 @@ uniform vec3 uGrassDeep; uniform vec3 uGrassLight; uniform vec3 uMossDeep; unifo
 uniform vec3 uSoilTint; uniform vec3 uSoilDark; uniform vec3 uStoneTint; uniform vec3 uWetTint;
 uniform sampler2D tForestFloor; uniform vec4 uForestFloorBox;
 // round 49 (structures-32): the log arch's passage floor — origin / walk direction (plan), box (aS, aN, eHalf, feather), tint
-uniform vec2 uTunnelO; uniform vec2 uTunnelW; uniform vec4 uTunnelBox; uniform vec3 uTunnelTint; uniform vec3 uTunnelDrift;
+uniform vec2 uTunnelO; uniform vec2 uTunnelW; uniform vec4 uTunnelBox; uniform vec3 uTunnelTint; uniform vec4 uTunnelP01; uniform vec4 uTunnelP23;
+float tunnelSegDist(vec2 p, vec2 a, vec2 b) { vec2 ab = b - a; float t = clamp(dot(p - a, ab) / max(dot(ab, ab), 1e-4), 0.0, 1.0); return length(p - a - ab * t); }
 varying vec4 vW0; varying vec4 vW1; varying vec4 vW2; varying vec3 vWPos; varying vec3 vWNrm; varying vec3 vFaceFr;
 ${HASH_GLSL}
 ${FACE_GLSL}
@@ -854,8 +855,8 @@ const MAP_FRAG = /* glsl */ `
   {
     vec2 td = vWPos.xz - uTunnelO;
     float ta = dot(td, uTunnelW);
-    // the tube's centre line drifts west with the walk past the spine's end
-    float te = dot(td, vec2(-uTunnelW.y, uTunnelW.x)) - uTunnelDrift.z * smoothstep(uTunnelDrift.x, uTunnelDrift.y, ta);
+    // across: the distance to the walk polyline the tube's centre follows (it bends west past the spine's end)
+    float te = min(tunnelSegDist(vWPos.xz, uTunnelP01.xy, uTunnelP01.zw), min(tunnelSegDist(vWPos.xz, uTunnelP01.zw, uTunnelP23.xy), tunnelSegDist(vWPos.xz, uTunnelP23.xy, uTunnelP23.zw)));
     float tf = uTunnelBox.w;
     float inA = smoothstep(uTunnelBox.x - tf, uTunnelBox.x + 0.4 * tf, ta) * (1.0 - smoothstep(uTunnelBox.y - 0.4 * tf, uTunnelBox.y + tf, ta));
     float inE = 1.0 - smoothstep(uTunnelBox.z - tf, uTunnelBox.z + 0.4, abs(te));
@@ -1006,7 +1007,8 @@ export async function createTerrainMaterial(textures: TextureLibrary, config: Wo
     shader.uniforms.uTunnelW = { value: new Vector2(ARCH_TUNNEL_FLOOR.wx, ARCH_TUNNEL_FLOOR.wz) };
     shader.uniforms.uTunnelBox = { value: new Vector4(ARCH_TUNNEL_FLOOR.aS, ARCH_TUNNEL_FLOOR.aN, ARCH_TUNNEL_FLOOR.eHalf, ARCH_TUNNEL_FLOOR.feather) };
     shader.uniforms.uTunnelTint = { value: TUNNEL_FLOOR_TINT };
-    shader.uniforms.uTunnelDrift = { value: new Vector3(ARCH_TUNNEL_FLOOR.driftFrom, ARCH_TUNNEL_FLOOR.driftTo, ARCH_TUNNEL_FLOOR.driftEN) };
+    shader.uniforms.uTunnelP01 = { value: new Vector4(...ARCH_TUNNEL_FLOOR.pts[0], ...ARCH_TUNNEL_FLOOR.pts[1]) };
+    shader.uniforms.uTunnelP23 = { value: new Vector4(...ARCH_TUNNEL_FLOOR.pts[2], ...ARCH_TUNNEL_FLOOR.pts[3]) };
 
     shader.vertexShader = shader.vertexShader
       .replace('#include <common>', `#include <common>\n${VERT_PARS}`)
@@ -1019,7 +1021,7 @@ export async function createTerrainMaterial(textures: TextureLibrary, config: Wo
       .replace('#include <normal_fragment_maps>', NORMAL_FRAG)
       .replace('#include <roughnessmap_fragment>', ROUGH_FRAG);
   };
-  material.customProgramCacheKey = () => 'terrain-layered-v8-tunnel-floor';
+  material.customProgramCacheKey = () => 'terrain-layered-v9-tunnel-floor';
 
   return { material, layers: [...TERRAIN_LAYERS], textured, detailNormal: true, sets: names };
 }

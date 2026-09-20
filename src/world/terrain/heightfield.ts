@@ -565,9 +565,9 @@ function logAxisPoint(lu: number) {
  * `aS`/`aN` are the along-walk extent of the tinted floor (the south cheek face −2.6 m and the
  * north mouth +7.4 m in logArch.ts, each widened by the feather), `eHalf` its half-width (the
  * tube's walls stand at ± 2.75 m). Past the spine's end the walk bends west (`layout.northPath`)
- * and the tube's centre follows it: `drift` is the across offset the box's centre line takes,
- * `driftEN` at `aN` on a smoothstep from `driftFrom` to `aN` (the same curve in logArch.ts).
- * Heights are not involved: this is a plan-view box.
+ * and the tube's centre follows it: the across distance is measured to the walk polyline `pts`
+ * (logArch.ts runs the tube's centre along the same points, smoothed). Heights are not
+ * involved: this is a plan-view box.
  */
 export const ARCH_TUNNEL_FLOOR = (() => {
   const line = [...TUNNEL.line, LAYOUT.northPath[2]] as readonly P3[];
@@ -590,20 +590,16 @@ export const ARCH_TUNNEL_FLOOR = (() => {
     break;
   }
   const N_MOUTH_A = 7.4;
-  const toWalk = (x: number, z: number) => ({ a: (x - ox) * wx + (z - oz) * wz, e: (x - ox) * -wz + (z - oz) * wx });
-  /** the walk line's across offset at along a (0 on the spine's last segment) */
-  const eWalkAt = (a: number) => {
-    for (let i = 0; i + 1 < line.length; i++) {
-      const p = toWalk(line[i][0], line[i][2]);
-      const q = toWalk(line[i + 1][0], line[i + 1][2]);
-      if (q.a === p.a) continue;
-      const t = (a - p.a) / (q.a - p.a);
-      if ((t >= 0 && t <= 1) || (i + 2 === line.length && t > 1)) return p.e + (q.e - p.e) * t;
-    }
-    return 0;
-  };
   const spineEnd = LAYOUT.pathSpine[LAYOUT.pathSpine.length - 1];
-  return { ox, oz, wx, wz, aS: -2.9, aN: N_MOUTH_A + 0.5, eHalf: 2.95, feather: 0.9, driftFrom: toWalk(spineEnd[0], spineEnd[2]).a - 1.3, driftTo: N_MOUTH_A, driftEN: eWalkAt(N_MOUTH_A) };
+  // the walk polyline the tube's centre follows (logArch.ts `eCentreAt` smooths the same points):
+  // 4 m south of the crossing on the spine's last segment, its end, the north path's bend
+  const pts: [number, number][] = [
+    [ox - wx * 4, oz - wz * 4],
+    [spineEnd[0], spineEnd[2]],
+    [LAYOUT.northPath[1][0], LAYOUT.northPath[1][2]],
+    [LAYOUT.northPath[2][0], LAYOUT.northPath[2][2]],
+  ];
+  return { ox, oz, wx, wz, aS: -2.9, aN: N_MOUTH_A + 0.5, eHalf: 2.95, feather: 0.9, pts };
 })();
 
 const STEPPING_STONES = houseSteppingStones();

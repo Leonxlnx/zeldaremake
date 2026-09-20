@@ -36,8 +36,9 @@ export const NORTH_SIGNPOSTS: { id: string; position: [number, number, number]; 
   // the arch's north mouth: on the level ground east of the path as it leaves the tunnel, the
   // board turned to a walker coming out from under the log. Round 49 (structures-32): the
   // passage tube runs on to the north path's bend (mouth ≈ (4.8, −62.7), rim plates to −63.3),
-  // so the sign moved from (8.0, −60.5) — inside the tube's bark shell — to a metre past the rim.
-  { id: 'arch-north', position: [7.9, 4.48, -63.8], facing: [-0.9, 0.44] },
+  // so the sign moved from (8.0, −60.5) — inside the tube's bark shell — to a metre past the rim
+  // and a metre clear of the shell's flank (tube frame a 8.5, e 4.3; 2 m off the paving's edge).
+  { id: 'arch-north', position: [8.1, 4.48, -65.6], facing: [-0.74, 0.67] },
 ];
 
 export const NORTH_ROPE_FENCES: FenceDef[] = [

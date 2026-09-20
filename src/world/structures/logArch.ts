@@ -85,8 +85,8 @@ export interface LogArchBuild {
    * underside sits over the walk's ground
    */
   detail49: {
-    frame: { origin: [number, number, number]; walkDir: [number, number]; axisSkew: number };
-    tube: { eHalf: number; hTop: number; southFaceM: number; northMouthA: number; ceilingLifts: { a: number; hTop: number }[]; grid: [number, number]; triangles: number };
+    frame: { origin: [number, number, number]; walkDir: [number, number]; axisSkew: number; drift: { from: number; to: number; eAtMouth: number } };
+    tube: { eHalf: number; hTop: number; exponent: number; southFaceM: number; northMouthA: number; ceilingLifts: { a: number; e: number; hTop: number }[]; grid: [number, number]; triangles: number };
     cheeks: { east: number; west: number; triangles: number };
     portal: { shellFrom: number; to: number; rimRag: [number, number]; triangles: number };
     rimRoots: number;
@@ -119,9 +119,8 @@ export function buildLogArch(ctx: WorldContext, mats: StructureMaterials, rng: R
    * outer shell's colour can know what lies inside the passage. Origin O: where the (straight)
    * axis line crosses the tunnel line; W the walk's unit direction on that segment (north-ish);
    * EV its right-hand perpendicular (east). The tube's centre line sits on the walk over the
-   * spine's last segment and follows it west as the north path bends (a smoothstep from 1.3 m
-   * before the spine's end to the mouth, so the shell bends and does not kink; heightfield.ts
-   * ARCH_TUNNEL_FLOOR carries the same curve for the ground tint).
+   * spine's last segment and follows it west as the north path bends (`eCentreAt`, the walk
+   * polyline smoothed; heightfield.ts ARCH_TUNNEL_FLOOR gives the ground tint the same polyline).
    *
    * ± E_HALF × H_TOP m, exponent P_EXP (≈ 1.9 : 1; at the strip's edge, ± pathHalfWidth, the
    * ceiling is still 2.52 m up). Iteration 2's ± 3.15 × 2.75 exponent 4 left the north mouth
@@ -182,16 +181,51 @@ export function buildLogArch(ctx: WorldContext, mats: StructureMaterials, rng: R
       }
       return 0;
     };
-    const spineEnd = ctx.layout.pathSpine[ctx.layout.pathSpine.length - 1];
-    const DRIFT_FROM = toWalk(spineEnd[0], spineEnd[2]).a - 1.3;
-    const DRIFT_EN = eWalkAt(N_MOUTH_A);
-    const eCentreAt = (a: number) => DRIFT_EN * smoothstep(DRIFT_FROM, N_MOUTH_A, a);
-    /** tube frame → world: along a, across e from the tube's (drifting) centre line */
-    const fromTube = (a: number, e: number, out = new Vector3()) => fromWalk(a, eCentreAt(a) + e, out);
-    const toTube = (x: number, z: number) => {
-      const w = toWalk(x, z);
-      return { a: w.a, e: w.e - eCentreAt(w.a) };
+    /**
+     * The tube's centre line: the walk polyline smoothed by a 1.2 m box (seven taps), so the shell
+     * bends at the polyline's two kinks (11° at the spine's end, a further 19° at the north path's
+     * second point) without a crease and never sits more than a few centimetres off the walk —
+     * with the walls ± E_HALF from it and the strip ± pathHalfWidth, that is what keeps the
+     * feet out of the strip. (Iteration 3 eased the centre to the mouth on one smoothstep; it
+     * lagged the walk by 0.5 m and the east wall's foot stood inside the strip: minStripClearance
+     * 0.08.) Cross-sections are perpendicular to the centre line's own tangent, so `e` is the
+     * true across distance.
+     */
+    const eCentreAt = (a: number) => {
+      let sum = 0;
+      for (let k = -3; k <= 3; k++) sum += eWalkAt(a + k * 0.2);
+      return sum / 7;
     };
+    const _cT = new Vector3();
+    const _cN = new Vector3();
+    /** the centre line's point, tangent and right-hand normal at along a */
+    const centreAt = (a: number, outC: Vector3) => {
+      fromWalk(a, eCentreAt(a), outC);
+      const slope = (eCentreAt(a + 0.05) - eCentreAt(a - 0.05)) / 0.1;
+      _cT.copy(W).addScaledVector(EV, slope).normalize();
+      _cN.set(-_cT.z, 0, _cT.x);
+      return outC;
+    };
+    /** tube frame → world: along a on the centre line, across e along its normal */
+    const fromTube = (a: number, e: number, out = new Vector3()) => {
+      centreAt(a, out);
+      return out.addScaledVector(_cN, e);
+    };
+    const _q = new Vector3();
+    const _qc = new Vector3();
+    /** world → tube frame: the along a whose cross-section holds the point (three fixed-point steps), and the across e */
+    const toTube = (x: number, z: number) => {
+      _q.set(x, 0, z);
+      let a = toWalk(x, z).a;
+      for (let it = 0; it < 3; it++) {
+        centreAt(a, _qc);
+        a += (_q.x - _qc.x) * _cT.x + (_q.z - _qc.z) * _cT.z;
+      }
+      centreAt(a, _qc);
+      return { a, e: (_q.x - _qc.x) * _cN.x + (_q.z - _qc.z) * _cN.z };
+    };
+    const DRIFT_FROM = toWalk(ctx.layout.pathSpine[ctx.layout.pathSpine.length - 1][0], ctx.layout.pathSpine[ctx.layout.pathSpine.length - 1][2]).a;
+    const DRIFT_EN = eCentreAt(N_MOUTH_A);
     const _gw = new Vector3();
     /** the tube's centre line's ground at along a */
     const gWalk = (a: number) => {
