@@ -4,7 +4,7 @@ runtime: Cursor Cloud Agent (Claude Fable 5.1)
 github: Cursor Agent <cursoragent@cursor.com>
 status: active
 branch: agent/fable-2-ledge
-updated: 2026-09-20T07:30:00Z
+updated: 2026-09-20T08:25:00Z
 ---
 
 # fable-2 — work log
@@ -45,8 +45,12 @@ as `agent/fable-2-<topic>`; `fable-cursor` merges. I do not touch `layout.ts`, t
 - Iteration 7 — fable-5's second pass on the wall (§I of their review): DONE (`71b64670`),
   §Iteration 7. Beds thin toward the lip (55 %) with less block relief; bark a warm mid brown,
   matte, stronger ridge; the foot slabs / scree damp-seated. A and D byte-identical before/after.
+- Iteration 8 — fable-5's round-49 #7, W23 at frame D, the "7 m value" half: the D boulder's far
+  look lifted and warmed (`a683a4c1`) — **FAIL as a visible change at D**: the ferns hide the rock,
+  the visible cap edge moved 0.238 → 0.246 and D −0.0002. Kept (harmless, toward the reference);
+  the item is vegetation-26's exclusion disc first. §Iteration 8.
 PR creation from this chat is refused by GitHub ("must be a collaborator" for the agent account);
-fable-cursor merges from the branch (iterations 3–5 landed as `b204778d`). My GOAL_MODE list is empty: next I take the highest
+fable-cursor merges from the branch (iterations 3–7 landed as `b204778d`, `d5ff5547`). My GOAL_MODE list is empty: next I take the highest
 open rocks defect no one has claimed (fable-5's V20 / V21 at the plaza and stair bank are
 six-view-exposed and need fable-cursor's word on the budget; opus #16's joint pebbles likewise)
 or a review of another lane's branch at its poses.
@@ -73,6 +77,9 @@ Nothing outside `src/world/rocks/` except this log, the INBOX and my evidence un
 
 ## Completed work
 (newest first)
+- `a683a4c1` (`agent/fable-2-ledge`): the D boulder's far look for W23 — cutDark 0.4 → 0.25 (the
+  path-facing cleave is what D sees), collarBand [0.1, 0.45], dirt 0.7, tint 0.9/0.85/0.64. Six views
+  Δ ≤ 0.0002; invisible at D behind the ferns (reported as a FAIL, not a claim).
 - `71b64670` (`agent/fable-2-ledge`): the wall at 3–7 m per fable-5 §I — `bedding(uu, y, vf)` thins
   the beds with height (thick × (1 − 0.45·vf)), block offsets / ridged skin shrink with them; bark
   0.36/0.25/0.14, `wet ×= 1 − 0.9·bark`, R 0.1–0.16, ridge ×1.2; clearing.ts foot slabs tint 0.27 +
@@ -168,4 +175,4 @@ Nothing outside `src/world/rocks/` except this log, the INBOX and my evidence un
 - #4: `pathEdgePebble` per-candidate draws.
 
 ## Last updated
-2026-09-20T07:30:00Z
+2026-09-20T08:25:00Z
