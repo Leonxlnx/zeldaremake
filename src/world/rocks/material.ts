@@ -246,7 +246,18 @@ export async function createRockMaterial(textures: TextureLibrary, config: World
           // concept sheets' boulders are grey stone under the moss, not warm brown), and
           // compress its cracked-texture contrast so the boulders read smooth, not crazed
           c = mix(c, vec3(l) * vec3(0.985, 0.99, 0.99), 0.78);
-          c = mix(vec3(0.3), c, 0.7);
+          // fable-2 (owner 13:00 UTC "stones under-detailed", judged at 5–20 m): the mid range —
+          // full from 9 m out to 30 m (the haze), gone at the near path's 6.3 m and beyond 30 m —
+          // keeps 12 % more of the texture's contrast and lays the near path's ± 10 % plate patchwork
+          // (0.3 m plates) over the stone, so a boulder at 5–20 m reads as fractured stone, not a
+          // smooth dome; the normal relief rises 40 % over the same band (below)
+          float midW = smoothstep(30.0, 9.0, distance(vWPosR, cameraPosition)) * smoothstep(6.3, 9.0, distance(vWPosR, cameraPosition));
+          {
+            vec3 bwm = bw * bw;
+            vec2 pm = vWPosR.zy * bwm.x + vWPosR.xz * bwm.y + vWPosR.xy * bwm.z;
+            c *= 1.0 + midW * 0.2 * (rockVNoise(pm * 3.3 + 21.0) - 0.5);
+          }
+          c = mix(vec3(0.3), c, 0.7 + 0.12 * midW);
           ${nearWeight}${nearColour}${nearAlbedo}
           float mossCov = smoothstep(0.03, 0.85, clamp(vMossR, 0.0, 1.0));
           // lichen flecks (sheet 01 'Roots' / sheet 04): pale grey-green crusts 3–6 cm across,
@@ -284,6 +295,8 @@ export async function createRockMaterial(textures: TextureLibrary, config: World
           vec3 ny = texture2D(normalMap, vWPosR.xz * uRockTile).xyz * 2.0 - 1.0;
           vec3 nz = texture2D(normalMap, vWPosR.xy * uRockTile).xyz * 2.0 - 1.0;
           float ns = normalScale.x * (1.0 - 0.6 * clamp(vMossR, 0.0, 1.0));
+          // (the mid-range relief, see map_fragment: + 40 % between 9 and 30 m)
+          ns *= 1.0 + 0.4 * smoothstep(30.0, 9.0, distance(vWPosR, cameraPosition)) * smoothstep(6.3, 9.0, distance(vWPosR, cameraPosition));
           ${nearWeight}${nearNormal}
           nx.xy *= ns; ny.xy *= ns; nz.xy *= ns;
           mat3 tx = getTangentFrame(-vViewPosition, normal, vWPosR.zy);
@@ -304,6 +317,6 @@ export async function createRockMaterial(textures: TextureLibrary, config: World
         }`,
       );
   };
-  mat.customProgramCacheKey = () => (near ? `rock-triplanar-v12-pale-near-stone-damp${damp}` : 'rock-triplanar-v8-sunside-moss');
+  mat.customProgramCacheKey = () => (near ? `rock-triplanar-v13-mid-detail-damp${damp}` : 'rock-triplanar-v9-mid-detail');
   return mat;
 }
