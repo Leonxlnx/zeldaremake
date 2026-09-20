@@ -238,12 +238,76 @@ next pass is scale-and-value where the walker meets it (the west path's edge), a
 banks (right of the house, the stair bank at C — V21) still wait for theirs.
 Sheet `fable-5-r49/fable-5-r49-f2-backside-v20.jpg`.
 
+## J. Iteration 20 (18:20–19:20 UTC) — fable-4 `606ec987` (`agent/fable-4-taper`), W08's "tapered, irregular" at C
+
+Head `6d6d80f8` + `606ec987` (`whitebark.ts`: a +22–34 % shoulder from the toes' crest to 0.36 H and a
+0.3–0.55 R bow or S over the lower half, on the swept surface only — bounds, branches and leaves
+untouched, so the placement sampler reads the same numbers); tsc + build green. Eight views.
+
+| view | head → head + taper | SSIM vs reference |
+| --- | --- | --- |
+| A, B, D, E | **pixel-identical** | Δ 0 |
+| C_lookback | 0.46 % — the survey stem's lower half | 0.2271 → 0.2271 (Δ 0) |
+| F_canopy | 1.9 % — the white-barks at F's left | −0.0003 |
+| `wb-grove-10m` | 2.2 % | — |
+| `sn-whitebark-base` | 14.3 % — the 2 m stem is thicker at the toes and bows | — |
+
+**IMPROVED, modest at C, real at 2–10 m.** The stem reads thicker at the foot and narrows upward with a
+gentle bow — "tapered, irregular" in the small; at C the visible stem is 1–5 m of a trunk half under
+the HUD, so the read is subtle (0.46 % of pixels). No budget cost. Placement identity is fable-4's
+replica (80/80), which I did not re-run; consistent with A/B/D/E pixel-identical. Merge. What W08 still
+lacks at C is the lean (the reverted half) and a bough that shows out from under the HUD.
+Sheet `fable-5-r49/fable-5-r49-f4-taper.jpg`.
+
+## K. Iteration 20, second item — `agent/astra-environment-quality` @ `64d5b7c9`, re-measured (leaf warmth + crown work since §F)
+
+Astra's tip (base `97c83227`; 37 commits) vs head `6d6d80f8`, same eight views; tsc + build +
+`leaf-color`/`lodPool` tests green. D carries the head's loaf that the branch lacks (≈ −0.0003 of D's
+number is that, not astra's).
+
+| view | head → astra | SSIM vs reference | §F (a9eccd15) | budget −0.003 |
+| --- | --- | --- | --- | --- |
+| A | 3.3 % | −0.0020 | −0.0006 | ok |
+| B | 4.5 % | **−0.0051** | −0.0053 | over |
+| C | 5.5 % | **−0.0102** | −0.0253 | 3× |
+| D | 8.1 % | **−0.0088** | −0.0091 | 3× |
+| E | 4.5 % | **−0.0045** | −0.0037 | over |
+| F | 9.3 % | **−0.0125** | −0.0301 | 4× |
+
+**Better than §F, still not mergeable as a whole.** C and F recovered 60 % of their loss, so some crown
+mass came back, but the tops of C and F still lighten (C's top-left cell 11.6 % changed, those pixels
+l 0.21 → 0.40; F's top row 2–7 % per cell, l 0.24 → 0.35) — the canopy is still thinner than the head's
+where the frames have dark crowns. B/D/E are unchanged from §F.
+
+**The leaf warmth is the right move and it lands where it was aimed** — my §7.1 mask on the same
+frames (median foliage hue, canopy band = top 35 %):
+
+| frame | reference | head | astra tip |
+| --- | --- | --- | --- |
+| C-top | 68.6° | 83.6° | **65.9°** |
+| D-top | 63.8° | 72.0° | **66.0°** |
+| F-top | 60.0° | 77.5° | **69.5°** |
+| A-top | 63.8° | 76.6° | 73.6° |
+| B-top / E-top (near crowns) | 61.4° / 64.8° | 69.1° / 69.1° | 69.7° / 69.7° |
+
+The far crowns land on the target (C, D within 3° of the frame); the near crowns (A's, B/E's house cap)
+have not moved — the warmth term reaches the distant/cluster materials, not the near canopy. Saturation
+and luminance held within 0.02.
+
+**What I could not do:** isolate the warmth from the crown-mass change — the tip with `nearCanopy.ts`
+reverted to the head does not build (materials/nearCanopy are coupled), so the split has to come from
+astra by commit. Recommendation: land the warmth (materials/leaf-color, plus its extension to the near
+canopy) as its own PR — it would pass the six views on its own if the crown mass is untouched — and keep
+the near-crown core change back until C and F are inside −0.003.
+
 ## Summary for fable-cursor
 
 - fable-4 `5fe58488`: merge; six views Δ 0 (five pixel-identical).
 - fable-4 `ea86f8c1`: ~~merge~~ — reverted by fable-4 (a hidden re-roll of 18 outer-ring placements my six-view pair could not see); the lean half of W08 is open again.
 - fable-2 `e5867d7e` (the D loaf): merge the composition (D −0.0008, a rock is in the frame); the face reads l 0.21 against the reference's lit 0.27 — the value pass follows.
 - fable-3 `424478eb` (wood tint): harmless, pixel-identical on the six views; 3–4° of hue at the pose — unchanged to the eye.
+- **astra `64d5b7c9`: still over budget** (C −0.0102, F −0.0125, D −0.0088, B −0.0051, E −0.0045) but the leaf warmth lands the far crowns on the hue target (C-top 84° → 66°); split the warmth out and merge that.
+- fable-4 `606ec987` (taper/bow): merge; A/B/D/E pixel-identical, C Δ 0, F −0.0003; W08's taper half in, modest at C.
 - fable-2 `b3089f39` (backside rocks, merged): V20's pale pair is on the south bank — IMPROVED; scale and warm value at the walker's distance next; V21 (the C stair bank) still open.
 - fable-2 `39568e37` + `e5867d7e` (W23 loaf + value half): merge together; D −0.0004, the face l 0.21 → 0.24 (frame 0.27), hue/sat and form still open.
 - **astra-environment-quality `a9eccd15`: do not merge as is** — C −0.0253, F −0.0301, D −0.0091, B −0.0053, E −0.0037: the near crown cores' dark mass is gone; plus an off-head ledger entry (take-0123) on the branch.
