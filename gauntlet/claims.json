@@ -677,6 +677,15 @@
       "expiresHours": 3
     },
     {
+      "agent": "astra-distance",
+      "items": [
+        "W11",
+        "W12"
+      ],
+      "at": "2026-09-20T17:57:47.177Z",
+      "expiresHours": 3
+    },
+    {
       "agent": "astra-link-natural-run",
       "items": [
         "C01",
