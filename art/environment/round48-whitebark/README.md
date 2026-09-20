@@ -41,11 +41,135 @@ loop's 9.0 M line before this branch); this iteration adds 0.017 M. Commit `e3f5
 back inside the lane — the seated-root mesh skips saplings (their 2–5 cm toes lie under the grass)
 and builds young stems' toes with 8 sections — see iteration 2's capture for the net.
 
-## Iteration 2 — the trunk read at 5–20 m (`e3f50cd`, `9ee2c7c`)
+## Iteration 2 — the trunk read at 5–20 m (`e3f50cd`, `9ee2c7c`, `1812a6f`)
 
 GOAL_MODE fable-4 #3 (the owner's "detail at longer range"). Vertex colours and the tile only —
-geometry identical on 10/10 variants, placements unchanged. Per variant, from their own fork: one
-or two broad near-black bands (0.25–0.45 m) and one to three chevron branch scars (0.25–0.45 m,
-widest at the top, tapering to a point below, at 1.2–4.5 m); the tile's tonal zones ± 6 %.
+geometry identical on 10/10 variants (fingerprint), placements unchanged. Per variant, from their
+own fork (`base-47/range-48`, so nothing of round 47 moves): one or two broad near-black bands
+(0.25–0.45 m tall, flat-topped, wandering ± 4–9 cm) and one to three chevron branch scars
+(0.25–0.45 m, widest at the top, tapering to a point below) at 1.2–4.5 m; the tile's tonal zones
+± 6 % (was ± 4 %). Sheets `fable4-r48b-*.jpg`.
 
-_(verdicts and numbers follow in this file when the capture lands)_
+**What the first attempt taught (reported, not hidden):** `e3f50cd` alone rendered as a faint tone
+shift — 0.1–0.6 % of pixels changed at every pose, none strongly — although the vertex colours
+were 42 % darker (profile of variant 7: luminance 0.52 → 0.30 at 2.2 m, 0.57 → 0.28 at 2.9 m).
+The shaded face of a pale trunk is dark in linear terms, so gamma compresses a 42 % linear drop
+into ~20 sRGB levels; the round-47 foot reads darker only because it compounds with the grey
+lower bark. `1812a6f` takes the marks to a quarter of the base level (scars to 0.05) — a birch's
+bands are near-black.
+
+| pose | distance | verdict | what changed |
+| --- | --- | --- | --- |
+| `f4-trunk-2m` (the survey tree, 1.5–3 m of stem) | 2 m | PASS | a broad near-black band across the stem at 2.2 m and the chevron scar under it; 13.8 % of the frame changed, 2.5 % strongly |
+| `f4-trunk-8m` | 8 m | PASS | both bands and the scar read across the upper stem through the haze (centre crop); the neighbouring stems' marks too |
+| `f4-pair-12-20m` | 12 / 20 m | PASS at 12 m, soft at 20 m | the near stem's band is a dark ring at mid-height; on the 20 m stem the band is a darker zone, not a line |
+| `f4-trunk-16m` | 16 m | PASS (soft) | the band survives as a dark zone in a 55 %-hazed stem |
+| `w18-spine-r` (the stems beyond the arch) | 15–25 m | PASS (soft) | the pale poles at the arch's north side carry a dark middle third where before they were uniform |
+| `sn-whitebark-base` | 2 m, 0.3–1.9 m of stem | unchanged by design (6.7 % from the tile's zones) | the marks sit at 1.2–4.5 m; the foot is round 47's |
+
+Six fixed views (settle 6, `3d50f6c` → `1812a6f`, the whole branch): A 0.2199 → 0.2199,
+B 0.2045 → 0.2044, C 0.2397 → 0.2398, D 0.2783 → 0.2784, E 0.2145 → 0.2147, F 0.2606 → 0.2606 —
+all within ± 0.0002; draws 568/526/393/394/526/511 → 568/527/393/394/527/511; triangles
+A 9.086 → 9.064 M, B 8.314 → 8.293, C 7.587 → 7.554, D 8.506 → 8.485, E 8.314 → 8.293,
+F 8.528 → 8.496 (−0.021…−0.032 M on every view: the four clearing trees cost +0.017 M, the
+saplings' toes and the 8-section young toes give back 0.038–0.049 M). W12 163/163 seated,
+determinism 0, console 0 errors, anti-cheat green (87 checks), `roof.test.mjs` ok, typecheck +
+build green. **Camera A stays over the loop's 9.0 M line by 0.064 M — the head's excess, not this
+branch's; the branch lowers it.**
+
+## Iteration 3 — crowns at 3–10 m: the leaf mass layered by occlusion (`c46081f`, branch `agent/fable-4-crowns`)
+
+GOAL_MODE fable-4 #2 (fable-5 #6, opus #05; fable-5 on the clearing stems: "crowns are lime cards
+brighter than the haze"). BEFORE = the head `0987e06`. Colours and per-leaf fill shares only —
+geometry identical on 10/10 variants, placements unchanged. Sheets `fable4-r48c-*.jpg` and the
+enlarged lobe `fable4-r48c-f4-crown-up-lobe-crop.png`.
+
+What was tried, in order, each measured at `f4-crown-up` (the survey tree's lobe from 7 m below,
+green-pixel luminance of the near lobe, x 0.39–0.59 / y 0.06–0.44):
+1. Structured albedo (core 0.55 of the rim, undersides darker, sunlit palette reserved for the
+   rim/top, the round-47 × 1.12 boost removed): mean 101 → 91, **sd 19.5 → unchanged** — a FAIL
+   for "layered". From below one sees each lobe's bottom shell, whose leaves all share the same
+   shell/top terms (round 47 found the same); only the level moved.
+2. A per-leaf **bimodal occlusion draw** on top: 35 % of laminae shadowed (0.45 albedo, 0.4 fill
+   share), 20 % backlit (full fill): sd 19.5 → 22.2, histogram broadened (58 % → 37 % of pixels in
+   one bin), 3.9 % of the frame changed strongly.
+3. Raised to 45 % shadowed at 0.4 / 0.35 after reading ref-04 (dark foliage against a pale haze,
+   few lit rims): **sd 19.5 → 22.3, mean 101 → 90**, 6.3 % of the frame changed strongly. Kept.
+
+| pose | verdict | what changed |
+| --- | --- | --- |
+| `f4-crown-up` (7 m below the lobe) | IMPROVED, not closed | a mottled leaf mass — dark occluded laminae between lit ones — where before it was one flat pale field; the silhouette (clusters with sky between) is unchanged |
+| `f4-crown-side-8m` | IMPROVED | the crown's level under the giant's canopy drops 95 → 84 and the laminae differ from their neighbours; 14.6 % of the frame changed, 3.9 % strongly |
+| `f4-clearing-crown-7m` (young stem, side) | IMPROVED (soft) | sd 14.4 → 15.9, 8 % changed |
+| `x-arch-tunnel-n` (fable-5's pose, 10–17 m) | PASS for "brighter than the haze" | the clearing crowns' level 104 → 93, no longer above the haze; small in frame (1.2 % changed) |
+| `w18-spine-r` (15–25 m) | IMPROVED | foliage sd 23 → 27, level 111 → 103 |
+
+Six fixed views (settle 6, `0987e06` → `c46081f`): A 0.2199 → 0.2199, B 0.2044 → 0.2045,
+C 0.2398 → 0.2400, D 0.2784 → 0.2785, E 0.2147 → 0.2148, F 0.2606 → 0.2606 — every moved view
+moves toward the reference; draws 577/535/393/402/535/516 and triangles identical; W12 163/163,
+determinism 0, console 0, anti-cheat 87 green, typecheck + build green.
+
+**What closes it (not in this lane):** the leaf's hemisphere irradiance in `materials.ts` is not
+scaled by `vLeafShade` — only the ambient fill, sky transmission, sun-through and the floor are
+— so an occluded lamina cannot go below the hemisphere level however dark its albedo. One line
+gated on the white-bark material, `if (vIsLeaf > 0.5) reflectedLight.indirectDiffuse *= mix(0.5,
+1.0, vLeafShade);` before the fills, would let the 45 % read as shadow; asked of trees-30/31 in
+the INBOX. In-lane next: clumpier lobes (leaves on the outer twig thirds, gaps between sprigs) for
+the silhouette itself.
+
+## Iteration 4 — the marks at texel resolution (`cfcd4f4`, on `agent/fable-4-crowns`)
+
+fable-5's independent measure of iteration 2 (INBOX 03:10): band cores −37…−41 % (IMPROVED) but
+1.9 : 1 against the reference's 3–6 : 1, soft edges that "read as shade or dirt", and the young
+stems through the arch unchanged. Checked here first: the young variants do carry the vertex
+marks (variant 2: 0.50 → 0.17 at 1.1 m) — but a vertex band is interpolated over rings 0.18 m
+apart, so its core never reaches the dark and its edge is a gradient; at 10 m in 30 % haze that is
+0.2 % of the frame at `x-arch-tunnel-n`. The observation stands, the cause was the ring pitch,
+not the age gate.
+
+The fix is the texture octave (`bark-texture.ts`): two broad near-black bands a tile (0.22–0.34 m,
+torn-paper edges, fine horizontal fissures, a few pale flecks, recessed and rough) and two chevron
+branch scars (70–120 px wide, 0.22–0.34 m tall, point down, a raised warm callus rim), drawn after
+every older feature so those stay put, and kept clear of v 0.34–0.60 — the plain zone the root
+toes now sample (`rootToe` vSlice, same draw count). Every LOD, every variant and the saplings wear
+it; the per-variant tile offsets put the bands at different heights per variant. BEFORE = the head
+`3813fa6`. Sheets `fable4-r48d-*.jpg`; crops `fable4-r48d-x-arch-tunnel-n-stems-crop.png`,
+`fable4-r48d-tile-band-crop.png`.
+
+| pose | verdict | what changed |
+| --- | --- | --- |
+| `x-arch-tunnel-n` (fable-5's pose; young stems at 10.5 / 17 m) | PASS | both stems carry black torn-edged bands through the haze — two on the near stem, two on the far — where before there were soft grey zones (stems crop) |
+| `f4-trunk-2m` | PASS | the broad band with torn edges and a chevron on the survey trunk; band-core contrast on the stem column, linear median/p10: **1.94 : 1 → 3.72 : 1** (the reference's 3–6 : 1) |
+| `f4-trunk-8m`, `f4-pair-12-20m`, `w18-spine-r` | PASS | the bands stay black lines at 8–25 m instead of shade |
+| `f4-clearing-east-tree` | PASS | the young stem by the path: two bands and a chevron on a stem that had none readable |
+| `sn-whitebark-base` | PASS, toes clean | a band at 1.2 m and a chevron above; the toes and flare stay pale (the plain zone) |
+
+Six fixed views (settle 6, `3813fa6` → this commit alone): A 0.2199 =, B 0.2044 =, C 0.2398 =,
+D 0.2784 =, E 0.2147 → 0.2148, F 0.2606 = — draws 577/535/393/402/535/516 and triangles
+identical, W12 163/163, determinism 0, console 0, anti-cheat green, typecheck + build green.
+**Whole branch (`c46081f` crowns + `cfcd4f4` marks) vs the head `3813fa6`, settle 6:**
+A 0.2199 → 0.2199, B 0.2044 → 0.2045, C 0.2398 → 0.2400, D 0.2784 → 0.2785, E 0.2147 → 0.2148,
+F 0.2606 → 0.2606 — every moved view toward the reference; draws 577/535/393/402/535/516 and
+triangles identical; W12 163/163, determinism 0, console 0, anti-cheat 87 green.
+
+## Rounds 47–48 together — the owner's sheet (`fable4-cumulative-*.jpg`)
+
+BEFORE = `d06e275` (19 Sep morning, the world before any fable-4 lane) | NOW = `96aaa6c` (this
+branch: rounds 47 + 48). Four poses at player height: `sn-whitebark-base`, `f4-trunk-2m`,
+`f4-crown-up`, `w18-spine-r`. Honest caption: NOW also carries every other lane merged since
+(owner-fable's canopy roof closes the sky at `f4-crown-up`; the shrubs at the base are
+vegetation's) and the two sides were rendered in different batches (wind phase differs). The
+white-bark differences are: the fluted flared foot with toes into the grass and a sooty base
+instead of a straight cut; the black torn bands, chevron scars and lenticel rows instead of a
+1 m painted tiling; crowns under the haze as a mottled mass instead of pale lime; and the stems
+beyond the arch carrying their marks through the haze.
+
+## Known limits / handoffs
+- The bands are soft at 16–25 m: the vertex colour is interpolated over 18 sides × 0.18–0.35 m
+  rings, so a band's edge is a gradient, not a cut. Crisp edges at that range need a texture
+  octave (a second, larger-scale band layer in the tile) — a candidate for the next iteration.
+- Crowns from below (GOAL_MODE #2 / opus #05 at F) still need the material's fill terms scaled by
+  `vLeafShade` (INBOX 11:35, `materials.ts`, trees-30).
+- Seen while rendering, not mine: at `x-clearing-n` a pale arc hovers in mid-air in the haze
+  (x 0.40–0.53, y 0.37–0.42; in BEFORE and AFTER alike) — it looks like a far-forest trunk's root
+  arc whose trunk the haze has taken; for distant-1 / trees-31 to look at.

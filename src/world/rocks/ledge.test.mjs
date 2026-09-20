@@ -130,18 +130,23 @@ test('moss sheets sit on the lip and the upper face; the wet band is the foot', 
     const y = P.getY(i);
     const z = P.getZ(i);
     const above = y - T.height(x, z);
-    if (x > 8.2) {
+    // the end columns sink into the bank (their face vertices reach x > 8.2 too), so the lip is
+    // read on the standing middle of the run only
+    if (z < -16 && z > -24 && x > 8.2) {
       lipMoss += moss.getX(i);
       lipN++;
       continue;
     }
+    if (z >= -16 || z <= -24) continue;
     if (above > 0.05 && above < 0.5) (lowWet += wet.getX(i)), lowN++;
     if (above > 2.0 && above < 3.2) (highWet += wet.getX(i)), highN++;
   }
   assert.ok(lowN > 50 && highN > 50, `bands ${lowN} / ${highN}`);
   assert.ok(lowWet / lowN > 0.6, `foot band wet ${lowWet / lowN}`);
   assert.ok(highWet / highN < 0.3, `mid face wet ${highWet / highN}`);
-  assert.ok(lipN > 50 && lipMoss / lipN > 0.7, `lip moss ${lipMoss / lipN} over ${lipN}`);
+  // the shoulder is a slab top: moss full in the joints, a thinner skin on the slab middles, bark
+  // where a root crosses — a sheet on average, not a solid blanket
+  assert.ok(lipN > 50 && lipMoss / lipN > 0.5, `lip moss ${lipMoss / lipN} over ${lipN}`);
   assert.ok(b.stats.mossShare > 0.12 && b.stats.mossShare < 0.7, `moss share ${b.stats.mossShare}`);
 });
 
