@@ -129,6 +129,11 @@ export function buildClayMaps(seed: string, size = 512): { color: DataTexture; n
   // chips: (u, v, radius, depth) — tile-safe (kept inside the tile)
   const chips: number[][] = [];
   for (let i = 0; i < 7; i++) chips.push([0.08 + rng() * 0.84, 0.08 + rng() * 0.84, 0.012 + rng() * 0.02, 0.4 + rng() * 0.6]);
+  // slip drips: dark runs down the wall from a bead — (u, v0 start, length, half width, strength);
+  // v runs bottom → lip, so a drip occupies v0 − len … v0 and tapers toward its lower end
+  const drips: number[][] = [];
+  for (let i = 0; i < 5; i++) drips.push([rng(), 0.35 + rng() * 0.6, 0.12 + rng() * 0.3, 0.004 + rng() * 0.006, 0.35 + rng() * 0.3]);
+  const tone = new Noise2D(`${seed}/clay-tone`);
   for (let y = 0; y < size; y++) {
     const v = y / size;
     const ring = v * rings;
@@ -159,10 +164,30 @@ export function buildClayMaps(seed: string, size = 512): { color: DataTexture; n
       height[y * size + x] = clamp01(h);
       // albedo: near-white with the mottle and a hint of darker grit, lighter in the ring hollows
       const lit = 0.93 + 0.05 * m - 0.12 * (g > 0.72 ? (g - 0.72) * 3 : 0) + 0.04 * (prof - 0.5) * ringDepth[k];
+      // firing tone: broad patches where the kiln ran hotter (paler, toward orange) or cooler
+      // (darker, toward brown-red) — the second colour a fired pot reads at 1–5 m (fable-5:
+      // "pot bodies still one tone"); periodic in both axes like the mottle
+      const t = tone.fbm(ax * 0.9 + by * 0.7 + 11.3, ay * 0.9 + bx * 0.7 + 5.9, 2);
+      let tr = 1 + 0.26 * t;
+      let tg = 1 + 0.18 * t;
+      let tb = 1 + 0.09 * t;
+      // slip drips: a dark bead run, strongest at the top, thinning toward its lower end
+      for (const [du0, v0, len, hw, str] of drips) {
+        let du = u - du0;
+        du -= Math.round(du);
+        const along = (v0 - v) / len;
+        if (along < 0 || along > 1) continue;
+        const w = hw * (1.15 - 0.9 * along);
+        const core = Math.max(0, 1 - Math.abs(du) / w);
+        const d = str * core * (1 - along * 0.7);
+        tr *= 1 - d * 0.55;
+        tg *= 1 - d * 0.62;
+        tb *= 1 - d * 0.6;
+      }
       const i = (y * size + x) * 4;
-      colour[i] = Math.round(clamp01(lit) * 255);
-      colour[i + 1] = Math.round(clamp01(lit * 0.985) * 255);
-      colour[i + 2] = Math.round(clamp01(lit * 0.97) * 255);
+      colour[i] = Math.round(clamp01(lit * tr) * 255);
+      colour[i + 1] = Math.round(clamp01(lit * 0.985 * tg) * 255);
+      colour[i + 2] = Math.round(clamp01(lit * 0.97 * tb) * 255);
       colour[i + 3] = 255;
     }
   }

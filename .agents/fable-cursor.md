@@ -2572,6 +2572,23 @@ Also: lantern bough still a thick plain beam across the top of B (trees pass pen
   should hold Link's turntable. W38 still the gate (perf-3 running, 5 commits).
 - Merged fable-2 iteration 6 (`d5ff554`: per-cell pebble draws) and fable-5 (`0f4b69c`).
 
+### 08:45 UTC — tick 189: take-0122 sealed — VALID, 37/50 (Phase 1 32/42), A 8.68 M
+- perf-3 recovered A's budget with every frame byte-identical (A 9.11 → 8.68 M: joint-sprout
+  submission culling, grass blade-tile culling, terrain shadow-caster sweep, unpacked hardscape
+  packs); merged `acec321`. Take-0122: A 0.2179 (+0.0003) B 0.2013 (+0.0012) C 0.2326 (−0.0046,
+  fable-4's white-bark trunks C frames) D 0.2778 E 0.2111 F 0.2563; 562 draws; **37/50**, W38 pass.
+  Monitor `97edfa9`, play build published.
+- Running: expansion-2 (the backside), structures-32 (the tunnel); goal-mode chats iterating.
+
+### 09:10 UTC — tick 190: heartbeat; expansion-2 (2 commits) and structures-32 (3) mid-work
+- Box at the memory ceiling again (14/15 GB) with the two lanes building; fetch timed out — no new
+  ready notes in the last fetched state. Heartbeat pushed.
+
+### 09:55 UTC — tick 191: goal-mode iterations merged (fable-2 #7, fable-3 #5 light string, fable-5 #9); round 49 mid-work
+- Merged `37a06ad`, `dbc1d87`, `6b96454`; tsc + 22 tests green; pushed. fable-4's `agent/fable-4-budget`
+  (9 commits, no ready note yet) is its A-budget help — waiting for the note. expansion-2 at 2
+  commits, structures-32 at 4. Next seal (take-0123) when those two land.
+
 ## Pending corrections from reference/ANALYSIS.md (apply at integration, one commit)
 - `config.ts` palette → olive/khaki low-key (reference hero frames: hue 47–51°, sat 0.16–0.19,
   lum 0.35–0.39, 0 % blue sky): grass 0x8a8c55/0x5c6233/0x3a4420, moss 0x8b8948/0x5a523b,
@@ -2610,4 +2627,4 @@ Pick anything NOT claimed in `gauntlet/claims.json`. Good self-contained candida
   my own (GAUNTLET.md D7).
 
 ## Last updated
-2026-09-20T08:10:00Z
+2026-09-20T09:55:00Z
