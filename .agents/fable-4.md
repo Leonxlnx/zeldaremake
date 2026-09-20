@@ -4,7 +4,7 @@ runtime: Cursor Cloud Agent (Claude Fable 5.1)
 github: Cursor Agent <cursoragent@cursor.com>
 status: active
 branch: agent/fable-4-r49b
-updated: 2026-09-20T14:20:00Z
+updated: 2026-09-20T13:15:00Z
 ---
 
 # fable-4 — work log
@@ -43,6 +43,8 @@ the owner merge and seal — I do not merge, do not touch `gauntlet/ledger.json`
 - Iteration 6 (`d914268`, `29b9ed1`): a real low bough on every young/mature stem at 22–34 %
   height (fable-5's W08 at C) — PASS at 8 m / 12–20 m, C only slightly (azimuth away from the
   camera). On the sealed head (`acec321`): A −7 K … C −91 K, SSIM within ±0.0003. Ready @ `7bf30a5`.
+- 13:15: taper measured at C (a birch's 2:1 that does not read at 22 m — reported, not
+  exaggerated); non-author review of fable-2's W23 loaf at D (IMPROVED). Branch merged up to `ca562e7`.
 - 14:20: lean-out experiment — C −0.0019 vs −0.0021 in: the cost is the lean, not the direction;
   not shipped. Branch merged up to `e54a74e`, ready.
 - 13:25: `agent/fable-4-r49b`: `5fe5848` vertex marks retired (C −0.0001) and `ea86f8c` lean 5–10°
@@ -150,4 +152,4 @@ nearCanopy, materials, index otherwise) is edited.
   soft at 0.5 m).
 
 ## Last updated
-2026-09-20T14:20:00Z
+2026-09-20T13:15:00Z
