@@ -731,15 +731,6 @@ export function createGiantTree(def: GiantTreeDef, rng: Rng, o: GiantOptions): G
 
   // ---------- buttress roots ----------
   const rootCount = r.int(6, 9);
-  // Both base LODs keep the same broad fins and split toes. This fork does not consume the
-  // tree stream; these are the exact draws previously made inside nearBaseSteps.
-  const finRng = r.fork('near-base');
-  const bigCount = finRng.int(3, Math.min(6, rootCount));
-  const bigStart = finRng.int(0, rootCount);
-  const bigSet = new Set<number>();
-  for (let k = 0; k < bigCount; k++) bigSet.add((bigStart + Math.round((k * rootCount) / bigCount)) % rootCount);
-  const finShapes = Array.from({ length: rootCount }, (_, i) => bigSet.has(i) ? { flare: 2.4, finHeight: 2.1 } : { flare: 1.5, finHeight: 1.35 });
-  const farRootNoise = buildNearBase ? new Noise2D(`giant-near-relief/${def.id}`) : null;
   /** the plain roots as built (centreline, radii, draws), for the near base's fins */
   const plainRoots: { path: Vector3[]; radii: number[]; draws: TubeDraws; length: number; index: number }[] = [];
   for (let i = 0; i < rootCount; i++) {
@@ -785,26 +776,10 @@ export function createGiantTree(def: GiantTreeDef, rng: Rng, o: GiantOptions): G
       barkAudit.rootToes += built.toes;
       barkAudit.triangles += built.triangles;
     } else {
-      // The near base replaces this coarse fin at close range. Keep the root-only collapse
-      // code for the root-kit diagnostic; the shared profile changes sampling, not its reach.
+      // the plain root is replaced by the near base's fin at close range: collapsible
       wood.woodCollapsible = buildNearBase;
       wood.woodIsRoot = true;
-      if (farRootNoise) {
-        buttressRoot(wood, path, radii, {
-          groundAt: o.groundAt,
-          pathAt: o.pathAt,
-          color: barkColor,
-          draws: rootDraws,
-          rng: r.fork(`root-toes/${i}`),
-          ...finShapes[i],
-          maxReach: length + 0.15,
-          stiffness: stiff,
-          noise: farRootNoise,
-          coarse: true,
-        });
-      } else {
-        tube(wood, path, radii, 10, r, { color: barkColor, roughness: 0.08, bump: gnarlBump(1.4, 0.16), creviceShade: 1.8, barkTile: 1.2, structural: true, stiffness: stiff, draws: rootDraws });
-      }
+      tube(wood, path, radii, 10, r, { color: barkColor, roughness: 0.08, bump: gnarlBump(1.4, 0.16), creviceShade: 1.8, barkTile: 1.2, structural: true, stiffness: stiff, draws: rootDraws });
       wood.woodCollapsible = false;
       wood.woodIsRoot = false;
     }
@@ -885,18 +860,23 @@ export function createGiantTree(def: GiantTreeDef, rng: Rng, o: GiantOptions): G
     yield;
     let cushions = bole.cushions;
     // fins: one per plain root along its own centreline; 3–6 of them are the big flares
+    const bigCount = nrng.int(3, Math.min(6, rootCount));
+    const bigStart = nrng.int(0, rootCount);
+    const bigSet = new Set<number>();
+    for (let k = 0; k < bigCount; k++) bigSet.add((bigStart + Math.round((k * rootCount) / bigCount)) % rootCount);
     let toes = 0;
     /** fin footprints for the plant ring: [path, half-width] */
     const finFoot: { path: Vector3[]; halfWidth: number }[] = [];
     for (const root of plainRoots) {
-      const shape = finShapes[root.index];
+      const big = bigSet.has(root.index);
       const built = buttressRoot(nb, root.path, root.radii, {
         groundAt: o.groundAt,
         pathAt: o.pathAt,
         color: barkColor,
         draws: root.draws,
         rng: r.fork(`root-toes/${root.index}`),
-        ...shape,
+        flare: big ? 2.4 : 1.5,
+        finHeight: big ? 2.1 : 1.35,
         maxReach: root.length + 0.15,
         stiffness: stiff,
         noise: nNoise,
@@ -904,7 +884,7 @@ export function createGiantTree(def: GiantTreeDef, rng: Rng, o: GiantOptions): G
       });
       toes += built.toes;
       cushions += built.cushions;
-      finFoot.push({ path: root.path, halfWidth: root.radii[0] * shape.flare });
+      finFoot.push({ path: root.path, halfWidth: root.radii[0] * (big ? 2.4 : 1.5) });
       yield;
     }
     const woodTriangles = nb.triangles;
