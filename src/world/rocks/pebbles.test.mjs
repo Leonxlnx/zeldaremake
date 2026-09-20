@@ -97,6 +97,25 @@ test('a paving edit moves only the pebbles around it (per-cell draws)', () => {
   assert.ok(changed > 10, `the edit changed only ${changed} pebbles near it`);
 });
 
+test('the path envelope removes only the pebbles beyond it and moves none inside it', () => {
+  const T = stripTerrain();
+  const all = scatterPathPebbles(T, 'seed', opts);
+  // the "path polyline" is a run of points along the strip from z −30 to z 0 only: the strip's
+  // southern half (z > 0) is paving the old scatter never reached
+  const pts = [];
+  for (let z = -30; z <= 0; z += 3) pts.push([0, z]);
+  const env = scatterPathPebbles(T, 'seed', { ...opts, envelope: { pts, full: 3.5, far: 5.5 } });
+  const keys = new Set(env.main.map(key));
+  for (const p of all.main) {
+    let d = Infinity;
+    for (const q of pts) d = Math.min(d, Math.hypot(p.x - q[0], p.z - q[1]));
+    if (d <= 3.5) assert.ok(keys.has(key(p)), `a pebble inside the envelope moved or vanished: ${key(p)}`);
+    if (d >= 5.5) assert.ok(!keys.has(key(p)), `a pebble beyond the envelope survived: ${key(p)}`);
+  }
+  for (const p of env.main) assert.ok(all.main.some((q) => key(q) === key(p)), 'the envelope added a pebble');
+  assert.ok(env.main.length < all.main.length * 0.75 && env.main.length > all.main.length * 0.3, `envelope kept ${env.main.length} of ${all.main.length}`);
+});
+
 test('pebbles beyond northZ are returned separately', () => {
   const T = stripTerrain();
   const r = scatterPathPebbles(T, 'seed', { ...opts, northZ: 0 });
