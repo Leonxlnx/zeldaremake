@@ -584,6 +584,181 @@ export const LAYOUT = {
 
 export type Layout = typeof LAYOUT;
 
+/**
+ * Round 49 (expansion-2, owner: "make the game more broad" / "the backside more accurate";
+ * fable-5 V15: from Link's spot the plaza has no closure west, south or north — a flat plain
+ * with a hard tree line where the footage's 9–13 s orbit shows a second tree-house, a far hut in
+ * haze and a fence-topped bank with a Kokiri on it). Three dressings on the headings the six
+ * fixed frames do not look at, plus the flagstone discs that lead to them.
+ *
+ * EVERYTHING here is placed against the six fixed cameras (gauntlet/tmp/proj.mjs conventions:
+ * bearing = atan2(x, z), 0° = +z south, 90° = east): A / B / D / E / F look north-east to north
+ * and see none of it; C looks back SSE with its right (west) frustum edge at bearing −29.5°, and
+ * every built thing and every terrain vertex the bank moves stays west of that ray (`cClip`).
+ *
+ * WHY THESE ARE NOT IN `LAYOUT.stairs` / `npcSpots` / `houses` / `ROPE_FENCES`: the trees,
+ * vegetation, rocks and props streams iterate those lists (a stair's footprint, a 4.5 m keep-out
+ * round every npc spot, a house pad …) while rejection-sampling the whole 45 m disc — one more
+ * entry flips a candidate and re-rolls every placement after it, in all six frames. The round-49
+ * entries live in these separate exports; the heightfield, hardscape, structures and character
+ * ground read both lists. The same reasoning puts the south bank's landform in the heightfield's
+ * LIVE view only (heightfield.ts `createTerrain('legacy')` is what those four systems build
+ * against — src/world/index.ts) so the bank moves no candidate of theirs either.
+ */
+export const EXPANSION = {
+  /**
+   * Flagstone discs (isolated round stepping stones, like `pathToHouse`'s — SET stones lying with
+   * the grade, hardscape/flagstones.ts `setDiscs`) from the plaza's south-west rim (−5.9, 4.8) —
+   * 7.6 m out, 1.5 m outside the paved disc, 1.2 m west of camera C's edge — along the narrow
+   * shelf between C's edge and the west ledge's face (0.0 → 1.2 m over 5 m), then west up the
+   * ledge's gentle south shoulder (1.2 → 2.15 m over 7 m, grade ≤ 0.25) to the foot of the
+   * west house's flight. Natural ground the whole way; the heightfield flattens nothing here.
+   */
+  pathWest: [
+    [-5.9, 0, 4.8],
+    [-6.6, 0, 6.3],
+    [-7.4, 0, 7.8],
+    [-8.4, 0, 9.4],
+    [-10.0, 0, 9.7],
+    [-12.0, 0, 9.0],
+    [-13.6, 0, 8.2],
+    [-14.75, 0, 7.52],
+  ] as [number, number, number][],
+  /**
+   * The south branch forks off the west line at its fourth node (−8.4, 9.4) and runs south-west
+   * down the shoulder's toe onto the low plain (0.1–0.3 m) to the foot of the south bank's flight.
+   */
+  pathSouth: [
+    [-8.4, 0, 9.4],
+    [-9.6, 0, 11.0],
+    [-10.8, 0, 12.6],
+    [-12.2, 0, 14.4],
+    [-13.95, 0, 15.2],
+  ] as [number, number, number][],
+  /** disc parameters (`steppingStonesAlong`): the reference's 0.8–1.0 m slabs nearly touching */
+  discs: { from: 0.55, spacing: 1.05, radius: [0.38, 0.44] as [number, number], wobble: 0.2 },
+
+  /**
+   * The fence-topped bank: a grassy terrace 24 m south-west of the plaza centre (bearing −44°)
+   * whose face looks NORTH-EAST at Link's spot (the SW plaza pan sees it face-on). Authored in a
+   * lip frame: `x, z` is the lip's centre, the lip runs along `yawDeg` (45° = NW → SE), the face
+   * falls `face` m in front of it (NE, toward the plaza) to the natural plain (0.1–0.3 m), the
+   * flat top at `height` (ABSOLUTE; 1.65–1.85 m over the plain) reaches `depth` m behind it,
+   * `skirt` m of soft edge along the ends and `back` m behind. Mean face 34°, 45° at mid-slope
+   * (slope 0.3 in the mask's units — the splat keeps it grass). The white-bark at (−16.3, 13.0)
+   * stands 0.4 m beyond the face's toe (its ground is unchanged); the ones at (−19.9, 13.5) /
+   * (−21.1, 21.2) are clear of the skirts. 23 m from camera C at bearings −31° … −42°: outside
+   * its frame, and `cClip` zeroes the landform 0.9 m west of C's edge regardless.
+   */
+  southBank: { x: -16.6, z: 17.38, yawDeg: 45, halfLength: 2.8, face: 2.6, depth: 3.4, skirt: 1.5, back: 2.2, height: 1.95 },
+  /**
+   * Camera C's right (west) frustum edge on the ground: the ray from C (2.33, −7.67) at bearing
+   * −29.52° (heading 7.51° − half-width 37.03°) — x = 2.33 − 0.5663 · (z + 7.67). Every live-only
+   * terrain feature of the expansion is zero within `margin` m of it and full `fade` m further
+   * west. 0.9 m: the 0.2 m lattice's triangles reach one cell past a moved vertex and the smooth
+   * normals one more, so real moves (> 1 cm) start ≈ 1.1 m west of the ray, its own accuracy ± 0.1.
+   */
+  cClip: { x0: 2.33, z0: -7.67, dxdz: -0.5663, margin: 0.9, fade: 0.9 },
+
+  /**
+   * The second tree-house: a `distantHouse` at near scale wrapping the `southwest-giant`'s bole
+   * (layout giant at (−23, 2.6, 9); its published seat's base is 1.87 m — the giant already stands
+   * on the 2.6 m west ledge, the "low mound"). The floor is authored ABSOLUTE (`floorY`: the
+   * ground under the 7.7 m platform runs −0.3 … 3.04 m — the north rim sits 0.3 m over the turf,
+   * the south rim stands on its braces 3.6 m up); the wall radius grows to clear the published
+   * bole (structures/distantHouse.ts). Window (lit) toward the plaza centre (bearing 107°), door
+   * 20° north of it, the walkway deck leaving the door for `deckEnd` — the head of the
+   * `west-house` flight, on the giant's root ridge (natural ground 3.0–3.2 m there). 24 m from
+   * the plaza centre; behind every fixed camera (C: bearing −57°, 27° outside its right edge).
+   */
+  westHouse: { host: [-23, 9] as [number, number], floorY: 3.37, radius: 3.4, wall: 2.6, capHeight: 2.3, facingDeg: 107, doorDeg: -20, deckEnd: [-17.55, 3.26, 8.04] as [number, number, number], pods: 3 },
+
+  /**
+   * The far hut in the haze: 54.6 m out at bearing −120° (WNW) on the west-north ledge's 2.3 m
+   * shoulder — "on a rise"; no white-bark within 7 m (take-0121 audit bases). No published seat
+   * stands there, so structures raise a plain bark column for it (`farHutTrunk`) until the trees
+   * lane seats a real column (a COLUMN_SEATS entry at this xz is picked up automatically,
+   * HOST_MATCH_M 1.5). Window and lamps face the plaza (bearing 60°): from Link's spot the lamp is
+   * a warm point 7.5° over the horizon in the W pan, right of the lantern tree's trunk. Beyond the
+   * 45 m detail radius, so no near stream samples its ground.
+   */
+  farHut: { host: [-48, -26] as [number, number], floor: 5.6, radius: 1.9, wall: 2.2, capHeight: 1.5, facingDeg: 60, doorDeg: -40, walkwayDeg: 25, pods: 3 },
+  farHutTrunk: { baseRadius: 0.78, topRadius: 0.42, height: 17, lean: [0.06, -0.03] as [number, number], crownY: 12.5 },
+} as const;
+
+/** the lip frame of `EXPANSION.southBank`: unit vectors along the lip (NW → SE) and down the face (NE, toward the plaza) */
+export function southBankFrameVectors(): { lip: [number, number]; face: [number, number] } {
+  const a = (EXPANSION.southBank.yawDeg * Math.PI) / 180;
+  const lip: [number, number] = [Math.sin(a), Math.cos(a)];
+  return { lip, face: [lip[1], -lip[0]] };
+}
+
+/** a world point of the south bank's lip frame: `u` along the lip from its centre (m), `v` down the face (m, negative = onto the top) */
+export function southBankPoint(u: number, v: number): [number, number] {
+  const { lip, face } = southBankFrameVectors();
+  const b = EXPANSION.southBank;
+  return [b.x + lip[0] * u + face[0] * v, b.z + lip[1] * u + face[1] * v];
+}
+/** the same as an [x, y, z] triple */
+function bankP3(u: number, v: number, y: number): [number, number, number] {
+  const [x, z] = southBankPoint(u, v);
+  return [+x.toFixed(3), y, +z.toFixed(3)];
+}
+
+/**
+ * Round-49 flights (see `EXPANSION` for why they are not in `LAYOUT.stairs`). The heightfield's
+ * live view trenches / banks / lands them like the layout flights; hardscape lays their stones;
+ * the character ground climbs them.
+ *  - `south-bank`: 7 × 0.26 m up the bank's face at lip coordinate u = +0.3 (SE of centre),
+ *    climbing SW; base 0.1 m beyond the face's toe on the natural plain (0.17 m) so the first
+ *    riser shows; top (1.95 m) at the lip, two landing rows onto the terrace. 1.6 m wide. Its
+ *    east cheek bank ends 0.8 m west of camera C's edge (`cClip` zeroes anything nearer).
+ *  - `west-house`: 4 × 0.27 m from the west path's end (natural ground 2.14 m) up onto the
+ *    giant's root ridge (3.0–3.2 m), climbing WNW toward the house; one landing row that the
+ *    walkway deck's end rests on (`westHouse.deckEnd`, 0.4 m onto it). 1.0 m wide — a Kokiri
+ *    stair to a 0.95 m deck.
+ */
+export const EXPANSION_STAIRS: StairDef[] = [
+  { id: 'south-bank', base: bankP3(0.3, 2.71, 0.13), dir: [-0.7071, 0.7071], steps: 7, rise: 0.26, tread: 0.38, width: 1.6 },
+  { id: 'west-house', base: [-15.39, 2.1, 7.64], dir: [-0.983, 0.183], steps: 4, rise: 0.27, tread: 0.36, width: 1.0 },
+];
+
+/**
+ * Rope fences on the south bank's lip, 0.15 m behind it, either side of the flight (its cheeks
+ * and kerbs span lip coordinates −0.75 … 1.35): three posts west, three east.
+ */
+export const EXPANSION_ROPE_FENCES: FenceDef[] = [
+  { id: 'south-bank-west', style: 'rope', points: [-2.6, -1.75, -0.9].map((u) => bankP3(u, -0.15, 0)) },
+  { id: 'south-bank-east', style: 'rope', points: [1.5, 2.1, 2.7].map((u) => bankP3(u, -0.15, 0)) },
+];
+
+/**
+ * The Kokiri on the bank (footage 9–13 s: a kid standing on the fence-topped bank looking down at
+ * Link): 1.3 m behind the lip, 1 m west of its centre, on the flat top (the y is the terrace's
+ * height; the npc lane seats it on `ctx.terrain.height`). Read by character/placement.ts
+ * `NPC_SOUTH_BANK` — not in `LAYOUT.npcSpots` (see `EXPANSION`).
+ */
+export const EXPANSION_NPC_SPOTS = [{ id: 'kokiri-south-bank', position: bankP3(-1.0, -1.3, EXPANSION.southBank.height) }];
+
+/**
+ * The expansion's XZ box (the west house, the bank, the paths, with a 3.2 m margin; the far hut
+ * is its own point) — for `util/locality.ts`-style distance visibility of what is built here.
+ */
+export const EXPANSION_BOX = (() => {
+  const box = { x0: Infinity, x1: -Infinity, z0: Infinity, z1: -Infinity };
+  const add = (x: number, z: number, m: number) => {
+    box.x0 = Math.min(box.x0, x - m);
+    box.x1 = Math.max(box.x1, x + m);
+    box.z0 = Math.min(box.z0, z - m);
+    box.z1 = Math.max(box.z1, z + m);
+  };
+  for (const p of [...EXPANSION.pathWest, ...EXPANSION.pathSouth]) add(p[0], p[2], 3.2);
+  add(EXPANSION.westHouse.host[0], EXPANSION.westHouse.host[1], EXPANSION.westHouse.radius + 3.2);
+  const b = EXPANSION.southBank;
+  add(b.x, b.z, Math.max(b.halfLength + b.skirt, b.depth + b.back) + 3.2);
+  return box;
+})();
+
 export function v3(a: readonly [number, number, number]): Vector3 {
   return new Vector3(a[0], a[1], a[2]);
 }
@@ -610,8 +785,28 @@ export interface SteppingStone {
  * is moved to 0.2 m past the interval's end and the spacing continues from it.
  */
 export function houseSteppingStones(): SteppingStone[] {
-  const pts = LAYOUT.pathToHouse;
-  const { from, spacing, radius, wobble, skip } = LAYOUT.steppingStones;
+  return steppingStonesAlong(LAYOUT.pathToHouse, LAYOUT.steppingStones);
+}
+
+/**
+ * Round 49: the same discs along the expansion polylines (`EXPANSION.pathWest` / `pathSouth`,
+ * no skip interval). The two lines share their first node: the south line starts one spacing
+ * further in so its first disc does not land on the west line's.
+ */
+export function expansionSteppingStones(): SteppingStone[] {
+  const d = EXPANSION.discs;
+  const none: [number, number] = [Infinity, Infinity];
+  return [
+    ...steppingStonesAlong(EXPANSION.pathWest, { ...d, skip: none }),
+    ...steppingStonesAlong(EXPANSION.pathSouth, { ...d, from: d.from + d.spacing, skip: none }),
+  ];
+}
+
+export function steppingStonesAlong(
+  pts: readonly (readonly [number, number, number])[],
+  params: { from: number; spacing: number; radius: readonly [number, number]; wobble: number; skip: readonly [number, number] },
+): SteppingStone[] {
+  const { from, spacing, radius, wobble, skip } = params;
   const segs: { ax: number; ay: number; az: number; dx: number; dy: number; dz: number; len: number }[] = [];
   let total = 0;
   for (let i = 0; i < pts.length - 1; i++) {
