@@ -372,6 +372,138 @@ Visually neutral; whether it brings A under 9.0 M is fable-4's counter (no trian
 - **fable-4 `agent/fable-4-budget` @ `b5146d04`**: no src since `119a7b4f` (§K stands); fable-4's own
   table has A −25 K / C −110 K — the W38 gap at A (−111 K) is perf-3's.
 
+## M. Iteration 10 (08:20–09:20 UTC) — three lanes answer take-0121's fails, measured as head + commit on the perf-3 head
+
+The head is now `acec3210` (perf-3 merged: camera A 9.11 M → 8.66 M, the six views byte-identical by
+fable-cursor's own check). Each lane's new commits cherry-picked onto it in a worktree; the same
+six-view list rendered on the head and each union, same positions; builds + tests green.
+
+### fable-4 — `d914268f` + `29b9ed19`, a real low bough on every young and mature stem (W08 at C)
+
+| view | head → head + boughs | SSIM vs reference |
+| --- | --- | --- |
+| A_stairs, D_log, F_canopy | pixel-identical | Δ 0 |
+| B_house | 0.01 % | −0.0003 |
+| C_lookback | **0.73 %** — the survey tree at the right edge now carries a limb with a 1.7 m leaf lobe at a third of its height where the head has a pole with a sprig | 0.2226 → 0.2226 (Δ 0) |
+| E_ground | 0.01 % | +0.0001 |
+| `wb-grove-10m` | 9.7 % — boughs with lobes in the walker's eye line at 3.5–6 m on every stem | — |
+
+**IMPROVED for W08's "hierarchical branches"**: the C trunk stops being a bare pole, and at 10 m the
+grove reads as trees with limbs rather than poles under crowns. Inside the budget (B −0.0003 is the
+whole cost). What W08 still lacks at C: lean and taper (the stem is straight) — the boughs are the
+right next half. Safe to merge.
+
+### fable-2 — `a683a4c1`, the D boulder's far look for W23 (cleave darkening 0.4 → 0.25, collar 45 %, paler/yellower tint)
+
+| view | head → head + a683a4c1 | SSIM vs reference |
+| --- | --- | --- |
+| A_stairs | pixel-identical | +0.0001 |
+| B_house, E_ground | 0.01 % | Δ 0 / +0.0001 |
+| C_lookback, F_canopy | pixel-identical | Δ 0 |
+| D_log | **372 px (0.04 % of the frame)** at (0.10–0.21, 0.57–0.77), and those pixels went *darker* (l 0.253 → 0.241) | 0.2620 → 0.2618 (−0.0002) |
+
+**DOES NOT REACH THE FRAME — a FAIL to report, not a regression.** At D the reference's boulder is the
+olive-tan loaf at the path's left edge (box (0.02–0.20, 0.55–0.85) = 5.4 % of the frame; bare face
+rgb 92/86/43, hue 52°, sat 0.36, l 0.27 — fable-2's own 91/83/45 measurement agrees). Ours is the
+`shot-d-boulder` at ~7 m, squashed and sunk in an earlier round (index.ts: "squash 0.42, sink 0.22 →
+~0.55 m proud") and now **> 99 % hidden behind the fern/flower bank** on the left: the reference's box
+in our frame reads hue 72°, sat 0.17 — fern green. A rock-material change cannot fix W23 at D while the
+rock is not in the frame. Sheets: `fable-5-r48/fable-5-r48-f2-w23-D-occluded.jpg` (full frames, box
+drawn) and `fable-5-r48/fable-5-r48-f2-w23-D-far-look.jpg` (the crop, three-way). What W23 at D needs,
+in order: (1) the boulder standing proud of the bank — un-sink it (the reference's top edge is at
+y 0.55, above the path's far edge) and/or bring it to the path edge at 3–4 m; (2) the bank's ferns
+kept off its camera side (the layout radius 0.6 that "the vegetation's exclusions read" is smaller than
+the fern bank in front — fable-cursor's vegetation lane, so ask); (3) then the value work in `a683a4c1`
+lands where it can be seen. The commit itself is harmless (−0.0002 at D, inside budget) — merge or hold,
+either way the D fix is still open.
+
+### fable-3 — `fb5591ab` + `4b1edb0b`, the light string measured on frame A's own pixels
+
+| view | head → head + fable-3 | SSIM vs reference |
+| --- | --- | --- |
+| A_stairs | 0.16 % at (0.48–0.93, 0.26–0.61) — the string moves up from the pocket (head: pods at (0.49–0.57, 0.57–0.60)) to the house terrace's south bank at (0.49–0.55, 0.47) | 0.1953 → 0.1948 (−0.0005) |
+| B_house | 0.48 % — the right-bank string gone | +0.0002 |
+| C_lookback | 0.27 % at (0.06–0.27, 0.64–0.75) — the pocket string that hung across C's bottom-left is gone (the reference has no string there) | **+0.0030** |
+| D_log | pixel-identical | Δ 0 |
+| E_ground | 0.47 % — the right-bank string gone | **+0.0022** |
+| F_canopy | 0.25 % at (0–0.51, 0.25–0.68) — the string seen from below moves with the bank | Δ 0 |
+
+**IMPROVED, and a correction to my §J**: the reference's A string is at (0.48–0.57, 0.45–0.50) — the
+y 0.54–0.61 I wrote in §J was the head's string, not the frame's. fable-3's measurement is the right
+one, the pods now sit where the frame has them, and taking out the two strings the reference never
+shows gives C +0.0030 and E +0.0022 (the −0.0029 at C that fable-3 reported for the earlier version is
+paid back). A's −0.0005 is inside the budget. Safe to merge; it should go in before the next seal since it
+moves C and E in the right direction.
+
+### Iteration 10 in one line
+
+fable-4's boughs (C: the pole becomes a tree with a limb, budget −0.0003 at B) and fable-3's measured
+string (C +0.0030, E +0.0022, A −0.0005) are mergeable improvements; fable-2's W23 far look is harmless
+but does not reach frame D — the D boulder is > 99 % hidden behind the fern bank and needs to stand
+proud of it before any material work counts.
+
+## N. take-0122 (`acec3210`, sealed 08:23, 37/50, Phase 1 32/42) — C's −0.0048 apportioned, my passes re-checked
+
+The monitor's frames, take-0121 → take-0122: A +0.0004, B +0.0013, **C −0.0048**, D −0.0003, E −0.0004,
+F −0.0001 (SSIM vs reference; C changes 3.35 % of its pixels, almost all in the bottom-left quadrant:
+12.5 % of that cell). fable-2 flagged the same drop at 08:25 ("C −0.0044 before any rocks change").
+No lane breached its own budget; two lanes' costs stacked. Bisected on the first-parent chain with C
+rendered alone at each merge (same position, same settle; `cf8083b` → `cf8083b` pixel-identical):
+
+| merge | C SSIM vs reference (my render) | what changed |
+| --- | --- | --- |
+| `cf8083b` (take-0121) | 0.2293 | — |
+| `b204778d` fable-2 rocks (goal mode 3–5: wall, clearing rocks, **path-edge pebbles**) | 0.2271 (**−0.0022**, 2.75 % px) | the new pebble scatter along the path's left edge in C's bottom-left; changed pixels go from rgb 124/113/87 to 103/94/63 |
+| `c11a754c` fable-3 props (LODs, per-locality merges, **the first light strings**) | 0.2242 (**−0.0029**, 0.25 % px) | the pocket string's pods across C's bottom-left — bright points on a dark bank, few pixels, large SSIM cost |
+| `be27f4ec` fable-4 crowns | 0.2244 (+0.0002) | crown re-sample at the right edge |
+| `d5ff5547` fable-2 pebbles per cell | 0.2244 (0, 0.01 % px) | — |
+| sum `cf8083b` → `d5ff5547` | **−0.0049** ≈ the monitor's −0.0048, so perf-3 (`acec3210`) is ≈ 0 at C, as claimed | |
+
+Where it stands: fable-3's measured string (`dbc1d87e`, now on the head) removes the pocket string —
+§M measured **+0.0030 at C** for it — so the next take should read ≈ −0.002 at C against take-0121,
+inside the budget, with the pebble scatter as the remaining cost. The pebbles at C's path edge are
+fable-2's to weigh (the reference's C has bare slab edges and grass there). Systemic note for
+fable-cursor: the per-lane "−0.003 vs the latest sealed take" cannot see stacking; only the integrator
+can, with a six-view check of the head against the last seal before each take.
+
+**My standing passes on take-0122.** The frame changes sit on the ground and the strings (A 0.7 % px,
+B/E 2.0 % on the right ground, C 3.4 %, D 1.5 % on the path, F 0.9 %); the crowns, house, lantern branch,
+arch and stair foot the passes rely on are untouched. Re-looked at the two passes whose regions moved:
+**W03** (joints/slabs at C and D — the pebbles re-rolled, the joints and slab thickness read as before)
+and **W36** (nothing floats at E — the pebbles are seated, the string pods hang on their cord). Both
+stand; no verdict re-filed, none regressed. The 13 fails stand too (W02, W05, W06, W08, W09, W10, W23,
+W30, W31, W37, C01, C02, U02); W08 should turn with fable-4's boughs when merged and re-verdicted.
+
+## O. Iteration 11 (09:32–10:10 UTC) — fable-2 `a3c644b2`, eight pebble looks (opus #16), on head `5e525dea`
+
+Head `5e525dea` (tick 191: fable-2's wall, fable-3's measured string, my §L merged) + `a3c644b2`
+cherry-picked; six views + opus's two #16 poses (`w05-spine-d`, `w16-spine-d`) rendered on both at the
+same positions; build + `pebbles`/`rockgen` tests green.
+
+| view | head → head + a3c644b2 | SSIM vs reference |
+| --- | --- | --- |
+| A_stairs | 0.20 % | +0.0006 |
+| B_house / E_ground | 0.34 % / 0.33 % | +0.0004 / +0.0003 |
+| C_lookback | 0.82 % (the path-edge scatter in the bottom-left re-drawn in the new looks) | +0.0006 |
+| D_log | 0.55 % | −0.0003 |
+| F_canopy | 0.31 % | −0.0004 |
+| `w05-spine-d` | 0.39 % — **all of it in the far top-right cell**; the foreground is pixel-identical | — |
+| `w16-spine-d` | 0.84 % — the spine edge at 3–6 m | — |
+
+Budget: worst −0.0004, four views slightly up. The eight looks exist — at `w16-spine-d` the spine edge
+carries an angular grey chunk standing among cobbles, a mossy one, tints — but they are subtle where
+they land (pebbles at 3–8 m are 5–15 px).
+
+**At opus #16's own pose it is an after that looks like its before.** `w05-spine-d` looks down at the
+plaza paving at 1–2 m; the "identical smooth olive ellipsoids" opus named are the pebbles lying IN the
+slab joints there, and they are pixel-identical before and after (sheet
+`fable-5-r48/fable-5-r48-f2-pebble-looks-opus16.jpg`, top row). Those are not `pathEdgePebble` — they
+are the hardscape's joint grit (`hardscape/index.ts`, the ~880 `gritSpots` riding the TUFT_C sprout pack,
+1.4–4 cm, smooth), the "hardscape" half of opus's "hardscape + rocks (pathEdgePebble)" owner note. So:
+fable-2's half is done and harmless (merge); opus #16's read at 1–2 m stays open until the joint grit
+gets shapes of its own — fable-cursor's hardscape lane. The C cost of the path-edge scatter (§N,
+−0.0022) is unchanged by the new looks (+0.0006 here).
+
 ## Summary for fable-cursor
 
 | branch | does what its INBOX/commit says | at the defect's pose | merge risk seen |

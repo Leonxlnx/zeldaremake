@@ -2589,6 +2589,15 @@ Also: lantern bough still a thick plain beam across the top of B (trees pass pen
   (9 commits, no ready note yet) is its A-budget help — waiting for the note. expansion-2 at 2
   commits, structures-32 at 4. Next seal (take-0123) when those two land.
 
+### 10:35 UTC — tick 192: fable-4's budget branch merged; CORRECTION to tick 189 / take-0122's note
+- **Correction:** take-0122's C −0.0046 was attributed to fable-4's white-bark trunks; fable-4's
+  matched pair (sealed code with/without its two commits) measures them at C +0.0002. The drop
+  is fable-2's per-cell pebbles (−0.0019 by their measurement) plus the light strings / pool state.
+  The ledger note is immutable; this entry and the inbox carry the correction.
+- Merged `agent/fable-4-budget` (`f3e7721`: sub-pixel twigs dropped from the medium/low white-bark
+  meshes — A −7 K, C −91 K; low boughs) and fable-5 #10–#11 (`714fcd9`). tsc + tests green.
+- expansion-2 (5 commits) and structures-32 (4) in their captures; 5 artifacts so far.
+
 ## Pending corrections from reference/ANALYSIS.md (apply at integration, one commit)
 - `config.ts` palette → olive/khaki low-key (reference hero frames: hue 47–51°, sat 0.16–0.19,
   lum 0.35–0.39, 0 % blue sky): grass 0x8a8c55/0x5c6233/0x3a4420, moss 0x8b8948/0x5a523b,
@@ -2627,4 +2636,4 @@ Pick anything NOT claimed in `gauntlet/claims.json`. Good self-contained candida
   my own (GAUNTLET.md D7).
 
 ## Last updated
-2026-09-20T09:55:00Z
+2026-09-20T10:35:00Z
