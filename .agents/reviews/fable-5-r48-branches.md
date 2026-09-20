@@ -192,6 +192,150 @@ of pixels — the waymarker and pots at the path's entrance (11 m, left of the s
 on the far corner, the ledge wall darkening the far end — while the two young stems are unchanged
 (607 of 48 000 px in the near stem's box, wind in the crown; 9 px in the far one).
 
+## G. Iteration 4 (03:00–04:00 UTC) — fable-2's shot-D value, fable-3's cluster cull
+
+Both lane branches are still based on `3d50f6c8`, so a branch rendered against the merged head
+differs wherever the *other* lanes' merges show (at `x-northpath-n` fable-2's branch lacks the
+waymarker, the pots and the white-bark crown — 15.7 % of pixels — none of it fable-2's). For a
+clean read of one commit I cherry-picked it onto the head in its own worktree and rendered head |
+head + commit with the same shot list. Builds and tests green (`rockgen` + `ledge` tests, props
+geometry test).
+
+### fable-2 — `20513c24`, "the shot-D boulder reads as pale stone at 2 m" (opus #10, GOAL_MODE fable-2 #2)
+
+| pose | before (head `0987e060`) → after (head + `20513c24`) | verdict |
+| --- | --- | --- |
+| `sn-boulder-shotd` (2 m) | boulder face l **0.156 → 0.201 (+29 %)**; the ferns beside it 0.169 (shade) / 0.329 (lit fronds) unchanged to three decimals; the stone is warm tan with cleave lines and lichen, the moss cap a lighter green | **IMPROVED** — the "unreadable dark mass" now reads as stone; it is still three-quarters under ferns (the exclusion disc is vegetation-26's), and the top silhouette is flat |
+| `D_log` (the boulder at 7.2 m in the frame's left foreground, V9) | **pixel-identical** at the gauntlet's 256×144 (46 px of 921 600 differ at full resolution, all in the boulder's area); boulder region l 0.297 → 0.297 | the near-only path fades by 6.3 m as fable-2 states; nothing spent |
+| `A_stairs` | pixDiff 0.01 % (wind) | — |
+
+fable-2's own numbers (face 0.166 → 0.205 at fern parity 0.213, Δ SSIM ≤ 0.0001 ×6) are consistent
+with mine from a different region set. Sheet: `fable-5-r48-f2-shotd-value-sn-boulder-shotd.jpg`.
+
+### fable-3 — `0b46deb7`, the per-cluster distance cull (45 m)
+
+| check | result |
+| --- | --- |
+| the clearing's props still draw where a player sees them | present at `x-northpath-n` (5.6 m) and `x-arch-tunnel-n` (11 m) on the cull branch |
+| the six frames | `A_stairs` head → branch pixDiff 0.01 %; `D_log` differs only by the head's fable-4 trees the branch lacks (0.08 %, same as §D) — the cull itself moves nothing visible, which is its point (fable-3 measures the saving as A −8 draws / −8 k tris; I have no draw counter in `broll.mjs` to confirm the number) |
+
+No merge risk seen in either; both are additive to what fable-cursor already merged.
+
+## H. Iteration 5 (03:35–04:30 UTC) — fable-3's per-locality merge, fable-4's crown albedo
+
+Both new branches are based on the current head (`3813fa6f`, `src` = `0987e060`), so branch vs
+head is a clean read this time. One 8-shot list rendered on head, `agent/fable-3-merge` `f37968ba`
+and `agent/fable-4-crowns` `c46081f6` (builds + tests green: props geometry, lodPool 9/9).
+
+### fable-3 — `38aa5bfd`, props merged per locality (8 meshes for the system, was 20)
+
+| pose | head → branch |
+| --- | --- |
+| `B_house` (door pots), `C_lookback`, `E_ground` | **pixel-identical** (pixDiff 0, Δ SSIM 0) |
+| `w28-plateau-d` (crate, barrel, bucket, pot), `x-northpath-n` (marker + pots), `x-arch-tunnel-n`, `x-clearing-stones`, `wb-grove-10m` | **pixel-identical** |
+
+A pure batching change: nothing a camera sees moves. The draw saving is fable-3's number (no draw
+counter here). Safe to merge.
+
+### fable-4 — `c46081f6`, the crowns' albedo carries the layering (GOAL_MODE fable-4 #2; my "lime cards brighter than the haze")
+
+Leaf pixels = the pixels that changed inside the crown region; l = sRGB grey.
+
+| pose | leaf l before → after | spread (sd) | read |
+| --- | --- | --- | --- |
+| `wb-grove-10m`, mature crowns at 8–12 m | 0.464 → 0.392 (−16 %) | 0.066 → 0.073 | lime cards → olive leaves; neighbouring leaves now differ (some shaded, some lit) |
+| `x-arch-tunnel-n`, the two young crowns at 10–17 m | 0.429 → 0.330 (−23 %) | 0.064 → 0.068 | the crowns sit under the haze instead of glowing over it (region mean 0.449 → 0.438) |
+| `x-clearing-stones`, young crown at 6 m | 0.371 → 0.265 (−29 %) | 0.076 → 0.072 | darker, reads as foliage in shade |
+| `C_lookback`, the white-bark crown at the right edge | 0.392 → 0.329 | 0.048 → 0.045 | C pixDiff 0.18 %, SSIM vs reference 0.2324 → 0.2325 (+0.0001) |
+| `B_house`, `E_ground`, `w28-plateau-d`, `x-northpath-n` | — | — | B/E pixel-identical; the others 0–1.3 % (crowns at the frame edges) |
+
+**IMPROVED** — the complaint (crowns brighter than everything around them in the haze) is answered:
+−16…−29 % on the leaves with B/E untouched and C at +0.0001. What it is not yet: a layered
+silhouette — the leaves are still uniform flat cards, and the "lit rim" is a brighter card rather
+than an edge; the spread gain is modest (+11 % at 10 m, none at 6 m). Safe to merge; the next step
+for #2 is shape (lobed lamina outlines, a drooping lower shell), not tone.
+
+## I. Iteration 6 (04:20–05:15 UTC) — fable-2's wall at 3 m and clearing rocks; fable-4's texture bands
+
+Both branches carry the head's `src` (fable-2 merged `0987e060` at 03:45; fable-4-crowns is off it),
+so head → branch is clean. One 8-shot list on head, `agent/fable-2-ledge` `e070771d`,
+`agent/fable-4-crowns` `cfcd4f4d`; builds + tests green (rockgen + ledge, lodPool).
+
+### fable-2 — `2f741068` (the wall at 3 m, answering §fable-2's notes) + `e070771d` (GOAL_MODE #3 / V20: scree, strata slabs, the west-bank boulder pair)
+
+| pose | before → after | verdict |
+| --- | --- | --- |
+| `x-ledge-wall` (3 m) | one smooth humped boulder → a **squared slab crest** with a lit top plane, **stepped beds** on the face, a **damp gradient** (upper face l 0.170 → 0.203, lower face 0.120 → 0.121: the lower half now reads a third darker than the upper), a moss sheet on the shoulder, **pale strata slabs at the foot**; 31.5 % of pixels | **IMPROVED** — a built rock terrace now, not a boulder |
+| `x-clearing-n` (7 m) | the wall's west end sinks into the bank (the pale cut is gone from this bearing), crest and beds read, scree at the flight's flank; 12.8 % | IMPROVED |
+| `x-ledge-foot` | scree and half-buried strata slabs on **both flanks of the flight**; 9.4 % | landed (GOAL_MODE #3) |
+| `x-northpath-n` (15 m) | the block reads squared and stratified at the far end, one pale slab at the right flank; 1.4 % | consistent |
+| `C_lookback`, `D_log`, `wb-grove-5m` | **pixel-identical**; `x-arch-tunnel-n` 0.3 % (the wall at the far end) | nothing spent |
+
+Still open for fable-2, none blocking: (1) the beds read as chunky angular facets more than thin
+strata — a finer bedding frequency on the upper face would help; (2) the bark roots are still not
+readable as roots at 3 or 7 m; (3) the new strata slabs are very pale (l ≈ 0.6 against the wall's
+0.2) — clean limestone next to damp stone; a damp/dirt tint on their buried halves would seat them;
+(4) the pale terrain patch far west at `x-ledge-wall` is, as fable-2 says, terrain beyond the
+authored line (x < −4.5) — fable-cursor's layout ask (carry `north-terrace` west to x ≈ −4.8). I did
+not have a pose on the west bank for the boulder pair — not verified here.
+
+### fable-4 — `cfcd4f4d`, "the large octave at texel resolution" (GOAL_MODE #3, answering §E's "1.9 : 1 and soft")
+
+| pose | before → after | verdict |
+| --- | --- | --- |
+| `wb-grove-5m`, a mature trunk at 5 m | the two soft vertex zones → **three near-black torn-edged bands and two chevron scars with a callus rim**, crisp, on the same trunk; 6.5 % of pixels | **PASS at 5 m** — this is the birch read; the marks the vertex colour could not carry, the texture does |
+| `x-arch-tunnel-n`, the two young stems at 10–17 m | the texture octave is a tile, not gated on age: both saplings now carry a dark band at mid-height, soft in the haze; 3.9 % | the §E finding (saplings unmarked) is closed |
+| `C_lookback` | 0.39 % of pixels, SSIM vs reference **0.2335 → 0.2338 (+0.0003)** | toward the reference |
+| `D_log` | pixDiff 0 at the compare size, SSIM +0.0002 | — |
+| `x-ledge-wall`, `x-clearing-n`, `x-ledge-foot` | pixel-identical | — |
+
+Two notes, not blockers: at 5 m three bands plus two chevrons on the visible 6 m of stem is on the
+busy side — ref-04's tree beside the ledge carries one or two — and the texture bands sit on top of
+`1812a6f0`'s soft vertex zones, so some stems now show both (a soft zone above a crisp band); the
+vertex marks could retire. fable-4's `materials.ts` ask (the `indirectDiffuse *= mix(0.5, 1, vLeafShade)`
+line for the crowns' occlusion) is for trees-30/31 — the crowns' shape work stands as the next item.
+
+## J. Iteration 7 (05:20–06:10 UTC) — fable-3's light strings, fable-2's clearing cull; V18 re-filed as V18′
+
+Base for both = `0987e060`'s src (the branches' merge bases `cffe97a5` / `6c4415f8` carry it; the
+head has since gained fable-cursor's `19e0489a` north-locality util and `f68da42a` root-flare
+range, which neither branch has — so branch vs base, not vs head). One 6-shot list; builds + tests
+green.
+
+### fable-3 — `b8034a7c`, the demo's light strings (pegged cords with small glowing pods at the hero flight)
+
+| pose | base → branch | read |
+| --- | --- | --- |
+| `A_stairs` | 1 054 px changed: the **left string at x 0.49–0.59, y 0.54–0.61** (reference 0.50–0.60 / 0.55–0.62) and the **right string at x 0.88–0.93, y 0.26–0.38** (reference 0.90–0.95 / 0.35–0.40); pod colour rgb (190, 188, 145), hue 57°, l 0.66 against the reference pods' (172, 178, 136), hue 68°, l 0.62 | **landed at the reference's positions and value**; SSIM vs reference 0.1979 → 0.1980 (+0.0001) |
+| `F_canopy` | 0.27 % of pixels — the left string runs up the stair axis | SSIM 0.2486 → 0.2477 (**−0.0009**, inside the −0.003 budget; the only cost of the night so far) |
+| `w23-stairs-f`, `w22-stairs-r` | 0.02 % / 0.05 % | the string is not in these frames' view (bank side) |
+| `x-ledge-foot`, `D_log` | pixel-identical | — |
+
+Read at 1280 px: a row of small pale-yellow dots along the flight's foot and the right bank — the
+motif is there, the reference's soft halo (≈ 1.5× the pod) is not, by fable-3's own choice (glow
+stays Astra's / structures'). Worth the halo when lanterns take it. Sheet:
+`fable-5-r48-f3-lightstring-A_stairs.jpg`.
+
+### fable-2 — `7bf69c21`, clearing rocks drawn only within 45 m
+
+`A_stairs`, `F_canopy` pixel-identical; `D_log` 0.01 %; the dressing still draws at `x-ledge-foot`
+(9.4 % vs the base, which has no clearing rocks — the same content as §I). Harmless; safe to merge.
+
+### V18 re-filed — fable-3 was right, and the flight is not stone
+
+fable-3 read `d_105` (52 s, the top-down at the foot) as log nosings pegged with short stakes and
+asked me to re-file V18. Checked at three ranges (`ANALYSIS_VIDEO2.md` §6.6b, sheet
+`fable-5-walk/fable-5-v18-log-risered-flight.jpg`): every riser of the hero flight is a **round
+log** ≈ 0.15–0.20 m thick with **end stakes** on roughly every second log; the treads behind them
+are packed earth / flat stone; `d_013` (6 s) shows the same rolls and the light string on the
+flank; the A frame's wavy nosings are these logs at 10–18 m. **V18 withdrawn; V18′ filed at
+severity 3**: our flight is cut blue-grey slabs with square nosings where the reference's is
+log-risered — the largest available change at frame A after the giants, for hardscape-31 — and the
+rubric's W02 wording ("18 worn stone steps… each tread a distinct slab") reads the 1 s frame as
+stone. Proposal for `RUBRIC_PROPOSALS.md` (fable-cursor's file): keep the counts and audit checks,
+change the visual criterion to "log-risered: round timber nosings with bark and moss, packed
+treads, end stakes, no two logs alike".
+
 ## Summary for fable-cursor
 
 | branch | does what its INBOX/commit says | at the defect's pose | merge risk seen |
