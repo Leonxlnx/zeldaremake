@@ -12,12 +12,12 @@ import { Box3, BufferGeometry, type Camera, Color, Group, Mesh, Quaternion, Sphe
 import { mergeGeometries } from 'three/addons/utils/BufferGeometryUtils.js';
 import type { WorldContext, WorldSystem } from '../system';
 import { createRng } from '../util/prng';
-import { barrelGeometry, bucketGeometry, crateGeometry, ladderGeometry, markerGeometry, type Part, platformGeometry, potGeometry } from './geometry';
+import { barrelGeometry, bucketGeometry, crateGeometry, ladderGeometry, lightStringGeometry, markerGeometry, type Part, platformGeometry, potGeometry } from './geometry';
 import { localityOf, PROP_LAYOUT, type PropDef } from './layout';
 import { createPropMaterials, type MaterialKey, PLANK_MEAN } from './materials';
 
 const UP = new Vector3(0, 1, 0);
-const MATERIAL_KEYS: MaterialKey[] = ['wood', 'clay', 'iron', 'rope'];
+const MATERIAL_KEYS: MaterialKey[] = ['wood', 'clay', 'iron', 'rope', 'glow'];
 /** a small prop follows the terrain normal only this far (rad); beyond it, it is set level into the slope */
 const MAX_TILT = (9 * Math.PI) / 180;
 /** vertices below this local height are pulled onto the sampled ground (m) */
@@ -120,11 +120,12 @@ const COLOUR_DOMAIN: Record<MaterialKey, [number, number, number]> = {
   clay: [0.93, 0.92, 0.9],
   rope: [0.28 * 0.9, 0.2 * 0.9, 0.085 * 0.9],
   iron: [1, 1, 1],
+  glow: [1, 1, 1],
 };
 
 /** grime and moss where a prop meets the ground; continuous in space so shared edges stay seamless */
 function weather(geometry: BufferGeometry, material: MaterialKey, size: number): void {
-  if (material === 'iron') return;
+  if (material === 'iron' || material === 'glow') return;
   const p = geometry.attributes.position;
   const colors = geometry.attributes.color;
   const [dr, dg, db] = COLOUR_DOMAIN[material];
@@ -159,7 +160,7 @@ export async function create(ctx: WorldContext): Promise<WorldSystem> {
   const terrain = ctx.terrain;
   const ownedGeometry: BufferGeometry[] = [];
   const bases: number[][] = [];
-  const counts = { pots: 0, crates: 0, barrels: 0, buckets: 0, platforms: 0, ladders: 0, markers: 0, ropeRailings: 0 };
+  const counts = { pots: 0, crates: 0, barrels: 0, buckets: 0, platforms: 0, ladders: 0, markers: 0, lightStrings: 0, lightPods: 0, ropeRailings: 0 };
   const skipped: string[] = [];
   const placed: { id: string; kind: string; cluster: string; x: number; y: number; z: number; tiltDeg: number }[] = [];
   /** world-space geometry per merge locality and material, merged at the end */
@@ -167,7 +168,7 @@ export async function create(ctx: WorldContext): Promise<WorldSystem> {
   const batchesFor = (locality: string) => {
     let b = localities.get(locality);
     if (!b) {
-      b = { wood: [], clay: [], iron: [], rope: [] };
+      b = { wood: [], clay: [], iron: [], rope: [], glow: [] };
       localities.set(locality, b);
     }
     return b;
@@ -227,6 +228,27 @@ export async function create(ctx: WorldContext): Promise<WorldSystem> {
       contactBand = 0;
       counts.ladders++;
       footR = def.size / 2 + 0.2;
+    } else if (def.kind === 'lightString') {
+      // an authored line along a bank: every peg seated on the sampled ground, the string placed
+      // as drawn (no footprint probe — it hugs paving edges and banks the probe would refuse)
+      const line = def.string;
+      if (!line || line.points.length < 2) {
+        skipped.push(def.id);
+        continue;
+      }
+      x = line.points[0][0];
+      z = line.points[0][1];
+      groundY = terrain.height(x, z);
+      const pegs = line.points.map(([px, pz]) => new Vector3(px - x, terrain.height(px, pz) - groundY, pz - z));
+      parts = lightStringGeometry(rng, { pegs, lift: line.lift, sag: line.sag, spacing: line.spacing, podRadius: 0.032 });
+      yaw = 0;
+      orientation = new Quaternion();
+      contactBand = 0;
+      counts.lightStrings++;
+      counts.lightPods += parts.filter((p) => p.material === 'glow').length;
+      footR = 0.12;
+      // every peg reserves a little ground for the vegetation scatter (the first one through footR)
+      for (let i = 1; i < line.points.length; i++) footprints.push({ x: line.points[i][0], z: line.points[i][1], r: 0.12 });
     } else if (def.kind === 'platform' && def.platform?.dais) {
       // the lookout railing: bound to LAYOUT.plateauLookout, whose author verified the
       // clearances — no footprint probe, no nudge. The stone dais (hardscape) is the deck: its top
