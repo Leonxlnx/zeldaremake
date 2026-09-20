@@ -8,12 +8,20 @@
  *    once (seeded dwell times and speeds, util/prng) and the state at any simulation time is a
  *    closed-form lookup into it — no integration, so a `setTime` jump or a zero-dt re-render lands
  *    on the same pose and the loop wraps seamlessly (the leg lengths are quantised to whole steps).
- *  - kokiri-b SITS on a stair tread (placement.ts `NPC_SEAT`): hips on the tread, a two-bone
- *    solve puts both soles on the tread below and the hands on the thighs, with breathing and a
- *    slow head turn. Every height is read from the character ground (the rendered stair stones).
- *  - each of the two has a FAIRY (navi.ts `createFairy`, green-white) hovering 0.4 m in front of
- *    her face; it follows the walker with a short delayed-average lag (a spring-like trail that
- *    is still a pure function of t).
+ *  - kokiri-b SITS on a stair tread (placement.ts `NPC_SEAT`): the pelvis sunk to HIP_LIFT over
+ *    the tread just behind the nosing, the back rounded, a two-bone solve puts both soles flat on
+ *    the tread below (the 0.27 m riser is longer than her 0.20 m shin, so the thighs slope down
+ *    over the nosing and the knees fold to ≈ 100°) and the hands on the knees, with breathing, a
+ *    slow head turn and a small torso sway. Every height is read from the character ground
+ *    (the rendered stair stones). The skirt's front flaps ride on the thighs (kokiri.ts), so the
+ *    skirt lies on the lap by construction.
+ *  - kokiri-ledge (round 48, ref-04) STANDS on the raised ledge over the north clearing facing
+ *    south, with a weight-shift idle and a seeded look-around; under capture she is posed but
+ *    hidden — she sits inside camera D's frustum behind the log's west root mass, and hiding
+ *    her keeps the six fixed frames byte-identical and their draw counts unchanged.
+ *  - each girl has a FAIRY (navi.ts `createFairy`, green-white) hovering 0.4 m in front of her
+ *    face; it follows the walker with a short delayed-average lag (a spring-like trail that is
+ *    still a pure function of t).
  *
  * The walk cycle is driven by the distance walked (phase = steps × 2π × dist / legLength), so the
  * stance foot's speed over the ground matches her actual speed: the thigh follows a smoothed
@@ -45,22 +53,26 @@ export interface NpcActor {
 }
 
 export interface NpcOptions {
-  /** the kids' characters by slot (0 = kokiri-a, 1 = kokiri-b, 2 = kokiri-c) */
+  /** the kids' characters by slot (0 = kokiri-a, 1 = kokiri-b, 2 = kokiri-c the boy, 3 = kokiri-ledge) */
   chars: Character[];
   ground: Ground;
   layout: Layout;
   seed: string;
 }
 
+/** the kid slot that stands on the raised ledge (round 48) */
+export const LEDGE_SLOT = 3;
+
 export interface Npcs {
   /** the fairies (added to the character group) */
   group: Group;
   /**
-   * Free / play mode: place and pose kid `slot` for simulation time t if it has a behaviour
-   * (wander / sit); writes the actor's pos, yaw, contact and shadow. False = no behaviour, the
-   * caller poses it as before.
+   * Place and pose kid `slot` for simulation time t if it has a behaviour (wander / sit /
+   * ledge idle); writes the actor's pos, yaw, contact and shadow. False = no behaviour, the
+   * caller poses it as before. Under capture (`view` true) the wander and the seat stand aside
+   * for the per-view placement (false), and the ledge girl is posed on her spot but hidden.
    */
-  drive(slot: number, actor: NpcActor, t: number): boolean;
+  drive(slot: number, actor: NpcActor, t: number, view?: boolean): boolean;
   /** after every kid is posed: move the fairies to their faces (the walker's with a lag) */
   updateFairies(t: number): void;
   /** audit fields (`npcCount`, `npcWaypoints`, `npcSitting`, `npc` details) */
@@ -341,15 +353,22 @@ const _tmp = new Vector3();
 const _tmp2 = new Vector3();
 const _fwd = new Vector3();
 const _up = new Vector3(0, 1, 0);
-/** seated pelvis roll (rad): how far the hips joint rolls back on the seat */
-const PELVIS_ROLL = 0.45;
-/** hips joint above the seat surface (m): the thighs' underside rests on the stone */
-const HIP_LIFT = 0.08;
+/** seated pelvis roll (rad): the pelvis tips back a little under a rounded lower back */
+const PELVIS_ROLL = 0.16;
+/** hips joint above the seat surface (m): the pelvis sunk into the tread, the thighs' underside on the nosing */
+const HIP_LIFT = 0.065;
+/** how far behind the nosing the hips joint sits (m): the thighs' front half hangs over the edge */
+const SEAT_BACK = 0.06;
+/** the ankle targets ahead of the hips joint (m, L / R): the heels just clear the riser face */
+const SEAT_REACH: [number, number] = [0.15, 0.17];
 
 /**
- * Seated: root under the hips so the hips joint sits `HIP_LIFT` above the seat; each leg solved
- * to its ankle target (feet flat on the tread below); torso slouched a little forward with the
- * hands resting on the thighs; breathing and a slow head turn.
+ * Seated (round 48): root under the hips so the hips joint sits `HIP_LIFT` above the seat; each
+ * leg solved to its ankle target (feet flat on the tread below, knees ≈ 100° — the riser is
+ * longer than her shin, so the thighs slope down over the nosing); the pelvis tipped back a
+ * little, the back rounded forward over it, the hands on the knees (a planar solve in the chest
+ * frame toward each kneecap, the elbow hanging behind the shoulder→hand line); breathing, a slow
+ * torso sway and the head turn.
  */
 function poseSeated(rig: Rig, seat: SeatPose, t: number, phase: number, headYaw: number, headPitch: number): void {
   resetRig(rig);
@@ -358,14 +377,16 @@ function poseSeated(rig: Rig, seat: SeatPose, t: number, phase: number, headYaw:
   r.root.position.set(seat.hips.x, seat.hips.y - p.hipY, seat.hips.z);
   r.root.rotation.y = seat.yaw;
   const breath = Math.sin(t * Math.PI * 2 * 0.26 + phase);
-  // the pelvis rolls back (the skirt's hem swings forward onto the thighs instead of hanging
-  // through the tread) and the torso slouches forward past it; the thighs are solved in world
-  // terms below, so the pelvis roll is taken back out of their local angles
+  const sway = Math.sin(t * 0.19 + phase * 0.7);
+  // the pelvis tips back and the torso curls forward past it (a rounded back); the thighs are
+  // solved in world terms below, so the pelvis roll is taken back out of their local angles
   const pelvis = -PELVIS_ROLL;
   r.hips.rotation.x = pelvis;
-  r.chest.rotation.x = PELVIS_ROLL + 0.14 + 0.012 * breath;
+  r.hips.rotation.z = 0.02 * sway;
+  r.chest.rotation.x = PELVIS_ROLL + 0.3 + 0.014 * breath;
   r.chest.position.y += 0.004 * breath;
-  r.chest.rotation.y = 0.02 * Math.sin(t * 0.23 + phase);
+  r.chest.rotation.y = 0.03 * Math.sin(t * 0.23 + phase);
+  r.chest.rotation.z = -0.03 * sway;
   const l1 = p.hipY - p.kneeY;
   const l2 = p.kneeY - p.ankleY;
   _fwd.set(Math.sin(seat.yaw), 0, Math.cos(seat.yaw));
@@ -380,33 +401,61 @@ function poseSeated(rig: Rig, seat: SeatPose, t: number, phase: number, headYaw:
     const reach = _tmp2.dot(_fwd);
     const drop = -_tmp2.y;
     const { a, flex } = twoBone(l1, l2, reach, drop);
-    thigh.rotation.set(-a - pelvis, 0, side * 0.09);
+    // knees a little apart, the right one more (an asymmetric, relaxed sit)
+    thigh.rotation.set(-a - pelvis, 0, side * (side > 0 ? 0.07 : 0.11));
     knee.rotation.x = flex;
     // foot flat on its tread
     ankle.rotation.set(-(thigh.rotation.x + knee.rotation.x), 0, -thigh.rotation.z);
   }
-  // arms: hands in the lap (a planar solve in the chest frame toward a point 65 % down each thigh, a
-  // hand above it; the elbow hangs behind the shoulder→hand line so the forearm folds forward onto the thigh)
+  // arms: hands on the knees — a planar solve in the chest frame toward a point on top of each
+  // thigh just above the kneecap (as far as a child's arm reaches from a rounded back); the elbow
+  // hangs behind the shoulder→hand line so the forearm reaches forward onto the leg
   r.root.updateMatrixWorld(true);
   for (const side of [1, -1] as const) {
     const shoulder = side > 0 ? r.shoulderL : r.shoulderR;
     const elbow = side > 0 ? r.elbowL : r.elbowR;
     const thigh = side > 0 ? r.thighL : r.thighR;
-    const th = -thigh.rotation.x;
-    _tmp.set(side * (p.hipHalfWidth + 0.02), -0.65 * l1 * Math.cos(th) + 0.09, 0.65 * l1 * Math.sin(th));
-    r.hips.localToWorld(_tmp);
+    // 74 % down the thigh, the palm resting on its upper surface (thigh radius 0.06 + half a hand)
+    _tmp.set(side * 0.012, -0.74 * l1, 0.082);
+    thigh.localToWorld(_tmp);
     r.chest.worldToLocal(_tmp);
     _tmp.x -= side * p.shoulderHalfWidth;
     _tmp.y -= p.shoulderY - p.chestY;
     const { a, flex } = twoBone(p.upperArm, p.forearm + 0.02, _tmp.z, -_tmp.y, true);
-    shoulder.rotation.set(-a, 0, side * 0.12);
+    shoulder.rotation.set(-a, 0, side * 0.16);
     elbow.rotation.x = -flex;
   }
   r.neck.rotation.y = headYaw;
-  r.neck.rotation.x = -headPitch + 0.02 * breath;
+  r.neck.rotation.x = -headPitch - 0.08 + 0.02 * breath;
   if (r.cap) r.cap.rotation.x = 0.02 * Math.sin(t * 0.7 + phase);
   const b = blink(t + phase * 0.3);
   for (const e of r.eyes) e.scale.y = 1 - 0.92 * b;
+}
+
+/**
+ * The ledge girl's idle (round 48): standing on her spot facing `yaw`, weight shifting, breathing,
+ * the dwell-style look-around from the seeded head keys — the wander pose with the walk weight 0.
+ */
+function poseLedgeIdle(rig: Rig, x: number, z: number, y: number, yaw: number, t: number, phase: number, headYaw: number, headPitch: number, st: WanderState): void {
+  st.x = x;
+  st.z = z;
+  st.yaw = yaw;
+  st.speed = 0;
+  st.walk = 0;
+  st.phi = 0;
+  st.shuffle = 0;
+  st.shufflePhi = 0;
+  st.headYaw = headYaw;
+  st.headPitch = headPitch;
+  st.segment = 'dwell';
+  st.segmentIndex = 0;
+  rig.root.position.set(x, y, z);
+  rig.root.rotation.y = yaw;
+  poseWander(rig, st, t, phase);
+  // a slow shoulder-line turn: she looks over the clearing, then back along the ledge
+  const turn = 0.12 * Math.sin(t * 0.11 + phase);
+  rig.hips.rotation.y += turn;
+  rig.chest.rotation.y -= turn * 0.5;
 }
 
 /** slow seated look-around: a seeded sequence of head keys over a 14 s cycle */
@@ -478,18 +527,25 @@ export function createNpcs(opts: NpcOptions): Npcs {
   const seatYaw = Math.atan2(-dx, -dz) + MathUtils.degToRad(seatDef.yawDeg);
   const at = (u: number, v: number, out: Vector3) => out.set(stair.base[0] + dx * u + vx * v, 0, stair.base[2] + dz * u + vz * v);
   const seat: SeatPose = { hips: new Vector3(), yaw: seatYaw, ankleL: new Vector3(), ankleR: new Vector3() };
-  at(nosingU + 0.13, seatDef.v, seat.hips);
+  at(nosingU + SEAT_BACK, seatDef.v, seat.hips);
   seat.hips.y = ground.surface(seat.hips.x, seat.hips.z) + HIP_LIFT;
   const seatFwd = new Vector3(Math.sin(seatYaw), 0, Math.cos(seatYaw));
   const seatRight = new Vector3(-seatFwd.z, 0, seatFwd.x);
   const soleUp = -sitter.rig.props.sole[1];
   const hw = sitter.rig.props.hipHalfWidth;
   for (const [side, target, reach] of [
-    [1, seat.ankleL, 0.2],
-    [-1, seat.ankleR, 0.23],
+    [1, seat.ankleL, SEAT_REACH[0]],
+    [-1, seat.ankleR, SEAT_REACH[1]],
   ] as const) {
-    target.copy(seat.hips).addScaledVector(seatFwd, reach).addScaledVector(seatRight, -side * (hw + 0.035));
-    target.y = ground.surface(target.x, target.z) + soleUp;
+    // the feet a little wider than the hips (the knees fall apart), the right one further out
+    target.copy(seat.hips).addScaledVector(seatFwd, reach).addScaledVector(seatRight, -side * (hw + (side > 0 ? 0.035 : 0.05)));
+    // the tread below: `surface` is a max-height grid of the rendered stones, so under the heel — a
+    // hand's width in front of the riser — it reads the nosing lip of the seat tread (0.40 m for
+    // the left foot, not 0.27). Read it clear of the lip too, under the ball of the foot, and take
+    // the lower: both soles flat on the lower tread.
+    const heelY = ground.surface(target.x, target.z);
+    const ballY = ground.surface(target.x + seatFwd.x * 0.09, target.z + seatFwd.z * 0.09);
+    target.y = Math.min(heelY, ballY) + soleUp;
   }
   const seatKeys: [number, number, number][] = [
     [0, 0, 0],
@@ -505,9 +561,36 @@ export function createNpcs(opts: NpcOptions): Npcs {
   const seatPhase = rng.range(0, seatLookPeriod);
   const feetMid = new Vector3().addVectors(seat.ankleL, seat.ankleR).multiplyScalar(0.5);
 
-  // -- fairies --
+  // -- kokiri-ledge: the stand on the raised ledge (round 48; ref-04), facing south over the clearing --
+  const ledgeChar = chars[LEDGE_SLOT] ?? null;
+  const ledgeSpot = layout.npcSpots.find((n) => n.id === 'kokiri-ledge')?.position ?? [-0.6, 5.62, -78.4];
+  const ledge = { x: ledgeSpot[0], z: ledgeSpot[2], yaw: 0, y: ground.height(ledgeSpot[0], ledgeSpot[2]) };
+  const ledgeRng = rng.fork('ledge');
+  const ledgeKeys: [number, number, number][] = [
+    [0, 0, 0],
+    [0.1, 0, 0],
+    [0.2, -ledgeRng.range(0.5, 0.9), ledgeRng.range(0.08, 0.2)],
+    [0.38, -ledgeRng.range(0.4, 0.7), ledgeRng.range(0.05, 0.15)],
+    [0.5, ledgeRng.range(0.3, 0.6), ledgeRng.range(0.1, 0.22)],
+    [0.7, ledgeRng.range(0.5, 0.9), ledgeRng.range(0, 0.1)],
+    [0.85, 0, ledgeRng.range(0.05, 0.15)],
+    [1, 0, 0],
+  ];
+  const ledgeLookPeriod = 17;
+  const ledgePhase = ledgeRng.range(0, ledgeLookPeriod);
+  const ledgeSt: WanderState = { ...wander };
+  let ledgeShown = true;
+  const showLedge = (on: boolean) => {
+    if (!ledgeChar || ledgeShown === on) return;
+    ledgeShown = on;
+    ledgeChar.rig.root.visible = on;
+    for (const f of fairies) if (f.slot === LEDGE_SLOT) f.fairy.group.visible = on;
+  };
+
+  // -- fairies: one per girl --
   const fairies: { fairy: Fairy; slot: number }[] = [];
-  for (const slot of [0, 1]) {
+  for (const slot of [0, 1, LEDGE_SLOT]) {
+    if (!chars[slot]) continue;
     const fairy = createFairy({ name: `kokiri-fairy-${slot}`, tint: new Color(0.72, 1.0, 0.62), lightColor: 0xbfffc4, seed: `${opts.seed}/fairy/${slot}`, scale: 0.75 });
     fairies.push({ fairy, slot });
     group.add(fairy.group);
@@ -536,8 +619,22 @@ export function createNpcs(opts: NpcOptions): Npcs {
   let lastT = 0;
   return {
     group,
-    drive(slot, actor, t) {
+    drive(slot, actor, t, view = false) {
       lastT = t;
+      if (slot === LEDGE_SLOT && ledgeChar) {
+        // posed on her spot in every mode (the audit's contact stays true); shown only off the fixed views
+        actor.pos.set(ledge.x, 0, ledge.z);
+        actor.yaw = ledge.yaw;
+        const [hy, hp] = seatedLook(t, ledgePhase, ledgeKeys, ledgeLookPeriod);
+        poseLedgeIdle(ledgeChar.rig, ledge.x, ledge.z, ledge.y, ledge.yaw, t, 5.1, hy, hp, ledgeSt);
+        plantFeet(ledgeChar.rig, ground.height, actor.contact);
+        actor.shadow.position.set(ledge.x, ground.decalHeight(ledge.x, ledge.z, actor.shadowRadius), ledge.z);
+        showLedge(!view);
+        actor.shadow.visible = !view;
+        driven.add(LEDGE_SLOT);
+        return true;
+      }
+      if (view) return false;
       if (slot === 0) {
         wanderStateAt(sched, phase0, t, wander);
         actor.pos.set(wander.x, 0, wander.z);
@@ -582,15 +679,30 @@ export function createNpcs(opts: NpcOptions): Npcs {
     },
     audit() {
       wanderStateAt(sched, phase0, lastT, _st);
+      // the seated knee angles (interior, deg, L / R) and hip height over the tread, read off the posed rig
+      const kneeDeg = [sitter.rig.kneeL, sitter.rig.kneeR].map((k) => Number(((Math.PI - k.rotation.x) * (180 / Math.PI)).toFixed(1)));
       return {
         npcCount: chars.length,
+        npcGirls: chars.filter((c) => c.rig.root.name !== 'kokiri-2').length,
         npcWaypoints: NPC_LOOP.length,
         npcSitting: 1,
+        npcStanding: ledgeChar ? 1 : 0,
         npc: {
           loop: { periodS: Number(sched.period.toFixed(3)), lengthM: Number(sched.length.toFixed(3)), segments: sched.segments.length, offLimits, strideM: Number((4 * legLength * Math.sin(AMP)).toFixed(4)), speedRange: [1.0, 1.15] },
           walker: { segment: _st.segment, segmentIndex: _st.segmentIndex, x: Number(_st.x.toFixed(3)), z: Number(_st.z.toFixed(3)), yaw: Number(_st.yaw.toFixed(3)), speed: Number(_st.speed.toFixed(3)), phi: Number(_st.phi.toFixed(3)) },
-          seat: { stair: stair.id, tread: seatDef.tread, hips: [Number(seat.hips.x.toFixed(3)), Number(seat.hips.y.toFixed(3)), Number(seat.hips.z.toFixed(3))], feet: [seat.ankleL, seat.ankleR].map((a) => [Number(a.x.toFixed(3)), Number((a.y - soleUp).toFixed(3)), Number(a.z.toFixed(3))]), yaw: Number(seat.yaw.toFixed(3)) },
-          fairies: fairies.map(({ fairy, slot }) => ({ slot, anchor: [Number(fairy.anchor.x.toFixed(3)), Number(fairy.anchor.y.toFixed(3)), Number(fairy.anchor.z.toFixed(3))], draws: fairy.draws })),
+          seat: {
+            stair: stair.id,
+            tread: seatDef.tread,
+            hips: [Number(seat.hips.x.toFixed(3)), Number(seat.hips.y.toFixed(3)), Number(seat.hips.z.toFixed(3))],
+            hipOverTreadM: HIP_LIFT,
+            behindNosingM: SEAT_BACK,
+            kneeInteriorDeg: kneeDeg,
+            feet: [seat.ankleL, seat.ankleR].map((a) => [Number(a.x.toFixed(3)), Number((a.y - soleUp).toFixed(3)), Number(a.z.toFixed(3))]),
+            yaw: Number(seat.yaw.toFixed(3)),
+          },
+          /** the ledge girl (round 48): her spot, facing, whether she is shown (hidden under capture) */
+          ledge: ledgeChar ? { x: ledge.x, z: ledge.z, y: Number(ledge.y.toFixed(3)), yaw: ledge.yaw, shown: ledgeShown } : null,
+          fairies: fairies.map(({ fairy, slot }) => ({ slot, anchor: [Number(fairy.anchor.x.toFixed(3)), Number(fairy.anchor.y.toFixed(3)), Number(fairy.anchor.z.toFixed(3))], draws: fairy.draws, shown: fairy.group.visible })),
         },
       };
     },
