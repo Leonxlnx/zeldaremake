@@ -300,12 +300,45 @@ code types against the new nearCanopy), so the split has to come from astra by c
 canopy) as its own PR — it would pass the six views on its own if the crown mass is untouched — and keep
 the near-crown core change back until C and F are inside −0.003.
 
+## L. Iteration 21 (19:20–20:15 UTC) — three lane branches on head `6d6d80f8`: fable-4's instance-matrix lean, fable-2's wall relief + pair value, fable-2's D form planes
+
+Five poses (C, D, `sn-boulder-shotd`, `x-ledge-wall`, `x-southbank-toe`), builds green. **A render
+caveat first:** my first head render came out different from both fable-2 unions across the whole
+frame (1.5 % of D's pixels, diffuse, no region) while the two unions were pixel-identical to each other
+where neither touches — the head was the outlier; a second head render matched the unions exactly.
+One render in roughly sixty this session has done that (the pool/warm state, most likely); the rule I
+now apply: a pair that differs diffusely over the whole frame is re-rendered before it is read.
+
+| branch | C | D | `sn-boulder-shotd` | `x-ledge-wall` | `x-southbank-toe` |
+| --- | --- | --- | --- | --- | --- |
+| fable-4-taper `606ec987` + `6537e21a` (taper + the hero stem leaning 5.5° into C by its instance matrix) | 1.95 % px, **+0.0002** | identical | identical | identical | 4.6 % (the white-barks behind the bank) |
+| fable-2-ledge `dc874508` + `7e4a9eb8` (+ casters) — wall `relief`, the bank pair's value | identical | identical | identical | **8.0 %** | **3.0 %** |
+| fable-2-form `d8ed5420` — form planes on the D boulder | identical | 0.8 % px, **+0.0007** | 15.2 % | identical | identical |
+
+- **fable-4 — W08's lean, done the placement-safe way: IMPROVED, merge.** The tilt sits on the instance
+  matrix, so nothing the placement sampler reads changes; C's stem leans into the frame, C +0.0002.
+  With the bough (merged) and the taper/bow (this branch) three of W08's four words are in at C —
+  "irregular" is the remaining one, and it is subtle at C's distance.
+- **fable-2 — the wall's fine relief: IMPROVED, ~90 % of the way.** At `x-ledge-wall` micro σ **0.039 →
+  0.047** against §7.2's target ≈ 0.05 (the frame's rock mass 0.052); macro σ 0.124 → 0.120 (the form is
+  untouched, as designed). The pair's value at the toe: box l 0.15 → 0.18, hue 77° → 69° (grass in the
+  box; fable-2's stone-only read 0.177 → 0.255, 75° → 61°) — warmer and paler, toward `d_087`. Merge.
+- **fable-2 — the D form planes: as fable-2 reported, they do not read at D.** The boulder box's macro σ
+  is 0.072 → 0.071 (target 0.11–0.14); D's +0.0007 is the warmer tint, not form. At 2 m the planes are
+  real (15 % of the pose's pixels). The face camera D sees is in the giant's canopy shadow — a plane
+  needs light to be a plane. So round-50 #1's D half is now a *lighting* question (a shaft or a lighter
+  shadow on the boulder's south face, or the boulder out from under the canopy), not a rocks one; the
+  wall half is rocks' and it is landing. Hold or merge the branch on taste — it costs nothing at D.
+
 ## Summary for fable-cursor
 
 - fable-4 `5fe58488`: merge; six views Δ 0 (five pixel-identical).
 - fable-4 `ea86f8c1`: ~~merge~~ — reverted by fable-4 (a hidden re-roll of 18 outer-ring placements my six-view pair could not see); the lean half of W08 is open again.
 - fable-2 `e5867d7e` (the D loaf): merge the composition (D −0.0008, a rock is in the frame); the face reads l 0.21 against the reference's lit 0.27 — the value pass follows.
 - fable-3 `424478eb` (wood tint): harmless, pixel-identical on the six views; 3–4° of hue at the pose — unchanged to the eye.
+- fable-4 `6537e21a` (+ `606ec987`): merge; the instance-matrix lean at C, +0.0002, four other poses identical.
+- fable-2-ledge `dc874508` + `7e4a9eb8`: merge; wall micro σ 0.039 → 0.047 (target 0.05), the toe pair warmer.
+- fable-2-form `d8ed5420`: does not read at D (macro σ 0.072 → 0.071, the face is in canopy shadow) — a lighting question now; harmless (+0.0007).
 - **astra `64d5b7c9`: still over budget** (C −0.0102, F −0.0125, D −0.0088, B −0.0051, E −0.0045) but the leaf warmth lands the far crowns on the hue target (C-top 84° → 66°); split the warmth out and merge that.
 - fable-4 `606ec987` (taper/bow): merge; A/B/D/E pixel-identical, C Δ 0, F −0.0003; W08's taper half in, modest at C.
 - fable-2 `b3089f39` (backside rocks, merged): V20's pale pair is on the south bank — IMPROVED; scale and warm value at the walker's distance next; V21 (the C stair bank) still open.

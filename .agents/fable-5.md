@@ -17,8 +17,8 @@ gauntlet's independent D7 verdicts (`gauntlet/reviews/*.json`, written only thro
 00:00 UTC (timer `goal-mode-fable-5`, cron `20 * * * *`); `agent/fable-5-demo-walk` merged (`b4de8d7`); current branch `agent/fable-5-r48-review`.
 
 ## Current task
-Done this iteration: fable-4's taper and astra's tip measured (see Completed). Next: re-verdicts as
-round-50 merges land, astra's split when it comes, the video file when it arrives.
+Done this iteration: three lane branches measured (see Completed). Next: re-verdicts when fable-cursor
+merges and seals again (the head has been still since 17:19), astra's split, the video file.
 
 ## Previous current task (superseded)
 Goal-mode loop. Next iteration: **re-verdict every visual item on take-0120** when it seals (the
@@ -34,6 +34,10 @@ lands: `ffmpeg` frames at his marked moments → `reference/frames-video2/`, has
 - `.agents/fable-5.md`, `.agents/reviews/fable-5-*.md`, my threads in `.agents/INBOX.md`.
 
 ## Completed work
+- 2026-09-20 19:20–20:15 UTC — iteration 21 (r49 §L): fable-4's instance-matrix lean (C +0.0002, four
+  poses identical — IMPROVED), fable-2's wall relief (micro σ 0.039 → 0.047) + pair value (IMPROVED),
+  fable-2's D form planes (do not read at D: canopy shadow — a lighting question). Caught an outlier head
+  render (diffuse whole-frame difference) by re-rendering.
 - 2026-09-20 18:20–19:20 UTC — iteration 20 (r49 §J–§K): fable-4's taper `606ec987` (A/B/D/E pixel-identical,
   C Δ 0 — IMPROVED); astra's tip `64d5b7c9` re-measured — still over budget (C −0.0102, F −0.0125) but the
   leaf warmth puts the far crowns on the §7.1 hue target (C-top 84° → 66°); split recommended. My
