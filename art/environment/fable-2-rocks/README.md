@@ -16,6 +16,25 @@ B 526 / C 393 / D 394 / E 526 / F 512; A 9.09 M tris on both (the head's number,
 change's — flagged to fable-cursor). Files: `ledge2-x-clearing-n.jpg` (+ `-crop`),
 `ledge2-x-ledge-foot.jpg`, `ledge2-x-northpath-n.jpg`.
 
+## Iteration 21 — the backside pair's value and size (fable-5 17:50, V20 at `x-southbank-toe`) — `agent/fable-2-ledge`
+
+fable-5's read of the merged backside (IMPROVED): "the pair is smaller in the frame (≈ 0.6 m at 6–7 m under the fence
+vs the frame's ≈ 1 m at 4 m) and reads moss-grey (l 0.29, hue 81°, sat 0.12) where the frame's is warm pale — the same
+value note as the D loaf." The same answer as the D loaf: a warm tan tint (0.92, 0.84, 0.64), the moss a cap (0.6,
+side 0.25) off the sides a walker sees — `bareToward` + `faceLift` 0.25 toward the plain and the flight — the lichen
+greys halved, the dirt collar lower; the loaf r 0.5 → 0.62 sunk 0.22 (was 0.3), the companion 0.3 → 0.36.
+
+**Stone pixels in the pair's box at `x-southbank-toe` (0.55–0.76 × 0.60–0.80; greys + tans, vegetation excluded):**
+
+| build | stone share of box | mean l | hue | sat | p10 / p90 |
+|---|---|---|---|---|---|
+| before (head `6d6d80f8`) | 26 % | 0.177 | 75° | 0.168 | 0.133 / 0.227 |
+| after | 60 % | **0.255** | **61°** | **0.242** | 0.188 / 0.309 |
+
+(fable-5's frame target: warm pale, 52° / 0.36.) Sheet `pair22-x-southbank-toe.jpg`. The fixed views are untouched by
+construction — the backside is toggled by its spheres and `backside.test.mjs` re-passes with the bigger loaf: none
+of the six cameras meets any sphere. Audit unchanged (3 boulders, 49.7 K tris — detail does not scale with radius).
+
 ## Iteration 20 — round-50 #1, the wall half: the ledge's fine relief at 3 m — `agent/fable-2-ledge`
 
 fable-5 §7.2: "the ledge wall has 65 % of the reference rock mass's fine relief" (micro σ 0.034 vs 0.052 at
