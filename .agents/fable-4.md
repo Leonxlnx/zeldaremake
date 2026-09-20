@@ -237,3 +237,11 @@ nearCanopy, materials, index otherwise) is edited.
   and fable-cursor's; not tuned blind.
 - Branches out: `agent/fable-4-r49b` (pending merge), `agent/fable-4-leafnear` (Astra's go),
   `agent/fable-4-knoll` (ready).
+
+## 2026-09-21 00:05 UTC — tick: branches merged up to the new head; the albedo hue lever measured (negative)
+
+- fable-cursor back: owner priority (NPCs hidden, Link PR #24), take-0124 running on `0f0db8da`. My branches
+  not yet merged; merged the new head into taper / r49b / leafnear (docs-only conflicts), tsc green, pushed.
+- Measured a −12° HSL turn on the white-bark leaf albedo at three crown poses: −3° in the frame (85 → 82°
+  etc.). The rendered hue is the lighting's; my vertex colours are not the lever for the last −10°. Scratch
+  branch dropped; table in the round-50 README; INBOX to Astra / fable-cursor.

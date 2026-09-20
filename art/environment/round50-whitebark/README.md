@@ -116,3 +116,19 @@ a lobe low enough to clear the limb entirely is a lobe at head height.
 
 Six views vs the previous bough state: C 0.2374 → 0.2376, A/B/D/E/F identical; draws / triangles identical
 (A 8.62 M). **Whole branch vs the seal: A =, B −0.0002, C +0.0017, D +0.0005, E 0, F =.**
+
+## Negative result: the white-bark laminae's albedo is not the hue lever
+
+Tried on a scratch branch (not pushed): `canopy` / `leafSun` turned −12° in HSL (sat, l held) before the
+leaves are coloured — the same three poses, same mask, on the head:
+
+| pose | head | albedo −12° | Astra's warmth 0.5 (for scale) |
+| --- | --- | --- | --- |
+| `f4-crown-up` | 85° | **82°** | 75° |
+| `f4-crown-side-8m` | 82° | **80°** | 73° |
+| `x-arch-tunnel-n` | 78° | **75°** | 69° |
+
+A quarter of the turn survives to the frame: the rendered hue is set by the lighting terms (sun-through
+through `leafSun`, the leaf floor's canopy tint, the hemisphere) more than by the laminae's albedo. The
+−10° still owed to the 62–65° target therefore belongs to the material (Astra's term at a higher
+calibration or per species) or to the palette's `leafSun` — not to `whitebark.ts`. Branch dropped.
