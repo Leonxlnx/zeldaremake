@@ -675,6 +675,16 @@
       ],
       "at": "2026-09-20T10:26:39.721Z",
       "expiresHours": 3
+    },
+    {
+      "agent": "astra-link-natural-run",
+      "items": [
+        "C01",
+        "C02",
+        "C03"
+      ],
+      "at": "2026-09-20T18:09:11.888Z",
+      "expiresHours": 3
     }
   ]
 }

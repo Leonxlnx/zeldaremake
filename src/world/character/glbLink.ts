@@ -1726,7 +1726,7 @@ export async function loadGlbLink(url: string, opts: GlbLinkOptions = {}): Promi
     // a new play session (or a clock jump: index.ts recreates the state) starts the filter at its target
     const fresh = armsLoco !== loco;
     armsLoco = loco;
-    const alpha = tau > 1e-4 && loco.dt > 0 ? 1 - Math.exp(-loco.dt / tau) : 1;
+    const alpha = tau > 1e-4 ? 1 - Math.exp(-Math.max(0, loco.dt) / tau) : 1;
     for (let i = 0; i < armBones.length; i++) {
       const b = armBones[i];
       armMix[i].copy(b.quaternion);
