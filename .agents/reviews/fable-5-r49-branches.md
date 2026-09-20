@@ -295,8 +295,8 @@ have not moved — the warmth term reaches the distant/cluster materials, not th
 and luminance held within 0.02.
 
 **What I could not do:** isolate the warmth from the crown-mass change — the tip with `nearCanopy.ts`
-reverted to the head does not build (materials/nearCanopy are coupled), so the split has to come from
-astra by commit. Recommendation: land the warmth (materials/leaf-color, plus its extension to the near
+reverted to the head does not build (`giant.ts` 1339–1340: `'rec' is possibly 'null'` — astra's giant
+code types against the new nearCanopy), so the split has to come from astra by commit. Recommendation: land the warmth (materials/leaf-color, plus its extension to the near
 canopy) as its own PR — it would pass the six views on its own if the crown mass is untouched — and keep
 the near-crown core change back until C and F are inside −0.003.
 

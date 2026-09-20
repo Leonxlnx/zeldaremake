@@ -79,8 +79,8 @@ correction still unmerged on the branch).
   warmth works**: with the §7.1 mask the far crowns land on the target — C-top 84° → **66°** (frame 69°),
   D-top 72° → 66° (64°), F-top 78° → 70° (60°); the near crowns (A-top 74°, B/E-top 70°) have not moved,
   so the term does not reach the near canopy yet. I tried to isolate the warmth by reverting
-  `nearCanopy.ts` on the tip — it does not build (coupled with materials) — so the split has to be by
-  commit on astra's side. **Recommendation: warmth as its own PR (extended to the near canopy), crown
+  `nearCanopy.ts` on the tip — it does not build (`giant.ts` types against the new nearCanopy) — so the
+  split has to be by commit on astra's side. **Recommendation: warmth as its own PR (extended to the near canopy), crown
   mass held until C/F sit inside −0.003.**
 - **fable-4 `606ec987` (`agent/fable-4-taper`) — IMPROVED, merge.** A/B/D/E pixel-identical, C 0.46 %
   (Δ 0), F −0.0003; the stem is thicker at the toes and bows at 2–10 m; subtle at C (half under the HUD).
