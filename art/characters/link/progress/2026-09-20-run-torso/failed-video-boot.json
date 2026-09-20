@@ -1,0 +1,19 @@
+{
+  "world_commit": "47636a55fcd318fa67968d79535e8c107c6058b4",
+  "glb_sha256": "bfc3c08d22b2a77380951d574d1c5b98d4c2acb096f6ff443720714e9405c61b",
+  "bundles": {
+    "index-C8Futrc5.js": "a29687b3697aed1af49b7e93349fc869c7d13f27bb9232bbfe329308bacdebd4"
+  },
+  "failure": "Error: waitForFunction failed: frame got detached.\n    at IsolatedWorld.dispose (file:///E:/zeldaremake/node_modules/puppeteer-core/lib/puppeteer/api/Realm.js:65:39)\n    at [nodejs.dispose] (file:///E:/zeldaremake/node_modules/puppeteer-core/lib/puppeteer/api/Realm.js:68:14)\n    at [nodejs.dispose] (file:///E:/zeldaremake/node_modules/puppeteer-core/lib/puppeteer/cdp/IsolatedWorld.js:161:29)\n    at [nodejs.dispose] (file:///E:/zeldaremake/node_modules/puppeteer-core/lib/puppeteer/cdp/Frame.js:350:51)\n    at #removeFramesRecursively (file:///E:/zeldaremake/node_modules/puppeteer-core/lib/puppeteer/cdp/FrameManager.js:589:29)\n    at #onClientDisconnect (file:///E:/zeldaremake/node_modules/puppeteer-core/lib/puppeteer/cdp/FrameManager.js:145:46)\n    at file:///E:/zeldaremake/node_modules/puppeteer-core/lib/puppeteer/cdp/FrameManager.js:120:42\n    at onceHandler (file:///E:/zeldaremake/node_modules/puppeteer-core/lib/puppeteer/common/EventEmitter.js:91:13)\n    at file:///E:/zeldaremake/node_modules/puppeteer-core/lib/third_party/mitt/mitt.js:36:7\n    at Array.map (<anonymous>)",
+  "processAtFailure": {
+    "pid": 24232,
+    "exitCode": null,
+    "signal": null,
+    "connected": false
+  },
+  "disconnectedAt": "2026-09-20T12:00:29.316Z",
+  "bootState": {
+    "diagnosticError": "Attempted to use detached Frame '4671BD418A1EB8E5254528E7C9C91FB8'."
+  },
+  "errors": []
+}

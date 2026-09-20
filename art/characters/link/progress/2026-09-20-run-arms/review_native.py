@@ -3,10 +3,11 @@ import bpy,json,math
 from pathlib import Path
 from mathutils import Vector
 from mathutils.bvhtree import BVHTree
-out=Path(__file__).resolve().parent
-candidate=json.loads((out/'relaxed-run-study.json').read_text())['scene']
+job=globals().get('JOB',{})
+out=Path(job.get('out',Path(__file__).resolve().parent))
+candidate=json.loads((out/job.get('study','relaxed-run-study.json')).read_text())['scene']
 report=[]
-for label,name in [('before','Link | September19 retained hips flight'),('after',candidate)]:
+for label,name in [('before',job.get('before','Link | September19 retained hips flight')),('after',candidate)]:
     s=bpy.data.scenes[name];bpy.context.window.scene=s
     r=next(o for o in s.objects if o.type=='ARMATURE')
     body=next(o for o in s.objects if o.type=='MESH' and len(o.data.vertices)>30000)
