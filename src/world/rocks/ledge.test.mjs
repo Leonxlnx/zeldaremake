@@ -145,6 +145,37 @@ test('moss sheets sit on the lip and the upper face; the wet band is the foot', 
   assert.ok(b.stats.mossShare > 0.12 && b.stats.mossShare < 0.7, `moss share ${b.stats.mossShare}`);
 });
 
+test('a line authored at the LIP of a terrain step walks down to the base: the foot lands on the low ground, the face spans the rise, roots ridge the face', () => {
+  const T = terrainStep();
+  // the same bank, but the line is given on the plateau lip at x = 9.15 (ground ≈ 5 m) with the
+  // layout's `height` — as LAYOUT.rockLedges.north-terrace is authored; the drop is to the west
+  const lip = { id: 'lip', foot: [[9.15, -14], [9.15, -18], [9.15, -22], [9.15, -26]], inset: 0.35, height: 1.62, lean: 0.06 };
+  const b = buildRockLedge(lip, T, createRng('t/lip'), 'seed');
+  // the foot found the base of the slope (x ≈ 7.5, ground ≈ 1 m), not the lip
+  for (const [x, y, z] of b.contacts) {
+    assert.ok(x < 7.9, `foot contact at x ${x} — still on the slope / lip`);
+    assert.ok(Math.abs(y - T.height(x, z)) < 0.03, `foot contact ${y} vs ground ${T.height(x, z)}`);
+  }
+  // the face spans the step (≈ 4 m), not the layout's 1.62 m shelf above the lip
+  assert.ok(b.stats.height > 3.2 && b.stats.height < 4.6, `height ${b.stats.height}`);
+  const P = b.geometry.attributes.position;
+  let maxY = -Infinity;
+  for (let i = 0; i < P.count; i++) maxY = Math.max(maxY, P.getY(i));
+  assert.ok(maxY < 5.6, `top ${maxY} — a wall standing on the lip`);
+  // root ridges: some vertices carry the bark colour (r > g > b, dark) on the face
+  const C = b.geometry.attributes.color;
+  let barkVerts = 0;
+  for (let i = 0; i < C.count; i++) {
+    const r = C.getX(i);
+    const g = C.getY(i);
+    const bl = C.getZ(i);
+    if (r > g * 1.15 && g > bl * 1.15 && r < 0.3) barkVerts++;
+  }
+  assert.ok(barkVerts > 100, `only ${barkVerts} bark-coloured vertices — no root ridges`);
+  const none = buildRockLedge({ ...lip, roots: 0 }, T, createRng('t/lip'), 'seed');
+  assert.ok(none.stats.triangles === b.stats.triangles, 'roots must not change the grid');
+});
+
 test('a free-standing shelf (explicit height) has its top at foot + height', () => {
   const T = terrainStep();
   const flat = { ...T, height: () => 1 };
