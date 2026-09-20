@@ -1,0 +1,14 @@
+{
+  "source": "2843c667 plus candidate382ec9ec; before the release-coordinate correction",
+  "command": "node art/characters/link/check_run_grounding.mjs relaxed-run-boots.glb --shift-takeoff",
+  "frames": 240,
+  "speed_m_s": 4.6,
+  "anchor_shift_m": -0.04,
+  "before_root_range_m": 0.018012253842860336,
+  "before_exit_code": 1,
+  "failed_assertion": "Flat run must not pull the body down to cancel flight",
+  "after_root_range_m": 0.0007090808693146211,
+  "after_exit_code": 0,
+  "stair_traces_exact": false,
+  "stair_max_numeric_delta": 4.429391614078256
+}

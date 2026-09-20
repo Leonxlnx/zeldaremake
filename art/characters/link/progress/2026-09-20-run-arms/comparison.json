@@ -1,0 +1,68 @@
+{
+  "same_build_and_player_horizontal_path": true,
+  "studio_render": {
+    "calls": 11,
+    "triangles": 140886
+  },
+  "before": {
+    "frames": 300,
+    "gaits": [
+      "walk",
+      "run",
+      "idle"
+    ],
+    "distanceXZ": 12.416666666666627,
+    "maxRootStepM": 0.00768854197499837,
+    "reachClampedFrames": 0,
+    "measuredShoePoints": 0,
+    "maxHipFlexDeg": 69.66471454503713,
+    "maxKneeFlexDeg": 98.34001427281972,
+    "minRenderedStairGapM": null,
+    "shoeSamplesBelowMinus2cm": 0,
+    "steady_unplanted_near_floor_travel_m": 1.7497999999999987,
+    "steady_max_planted_drift_m": 0,
+    "steady_max_root_step_m": 0.00768854197499837,
+    "minimum_audited_shoe_gap_m": -0.0069
+  },
+  "after": {
+    "frames": 300,
+    "gaits": [
+      "walk",
+      "run",
+      "idle"
+    ],
+    "distanceXZ": 12.416666666666627,
+    "maxRootStepM": 0.016133624415604595,
+    "reachClampedFrames": 0,
+    "measuredShoePoints": 0,
+    "maxHipFlexDeg": 69.66471454503713,
+    "maxKneeFlexDeg": 98.34001427281972,
+    "minRenderedStairGapM": null,
+    "shoeSamplesBelowMinus2cm": 0,
+    "steady_unplanted_near_floor_travel_m": 0,
+    "steady_max_planted_drift_m": 0,
+    "steady_max_root_step_m": 0.016133624415604595,
+    "minimum_audited_shoe_gap_m": -0.0067
+  },
+  "scope": "Foot audit markers, not full mesh collision depth; steady run frames 165\u2013234. Near-floor threshold 12 mm.",
+  "release_coordinate_fix": {
+    "frames": 300,
+    "gaits": [
+      "walk",
+      "run",
+      "idle"
+    ],
+    "distanceXZ": 12.416666666666627,
+    "maxRootStepM": 0.009621561736269137,
+    "reachClampedFrames": 0,
+    "measuredShoePoints": 0,
+    "maxHipFlexDeg": 69.66471454503713,
+    "maxKneeFlexDeg": 98.34001427281972,
+    "minRenderedStairGapM": null,
+    "shoeSamplesBelowMinus2cm": 0,
+    "steady_unplanted_near_floor_travel_m": 0,
+    "steady_max_planted_drift_m": 0,
+    "steady_max_root_step_m": 0.007710328978678335,
+    "minimum_audited_shoe_gap_m": -0.0067
+  }
+}

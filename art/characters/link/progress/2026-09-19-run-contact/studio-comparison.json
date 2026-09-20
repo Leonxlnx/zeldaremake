@@ -1,0 +1,52 @@
+{
+  "unchanged_images": [
+    "01-body",
+    "02-front",
+    "03-side",
+    "04-back",
+    "05-face",
+    "06-boots",
+    "walk-0",
+    "walk-0.25",
+    "walk-0.5",
+    "walk-0.75",
+    "stairs-0",
+    "stairs-0.25",
+    "stairs-0.5",
+    "stairs-0.75"
+  ],
+  "changed_images": [
+    "run-0",
+    "run-0.25",
+    "run-0.5",
+    "run-0.75"
+  ],
+  "unchanged_walk_and_stairs_clearance": true,
+  "render": {
+    "calls": 11,
+    "triangles": 140886
+  },
+  "baseline_run_clearance": {
+    "samples": 121,
+    "minimum_sole_y": {
+      "L": 0.0056677949521641985,
+      "R": 0.005671911280871307
+    },
+    "worst_phase": {
+      "L": 0.008333333333333333,
+      "R": 0.5083333333333333
+    }
+  },
+  "candidate_run_clearance": {
+    "samples": 121,
+    "minimum_sole_y": {
+      "L": 0.006606106178034176,
+      "R": 0.006606239192436345
+    },
+    "worst_phase": {
+      "L": 0.19166666666666668,
+      "R": 0.6916666666666667
+    }
+  },
+  "scope": "Studio Three.js GLB only, no world IK."
+}
