@@ -245,3 +245,9 @@ nearCanopy, materials, index otherwise) is edited.
 - Measured a −12° HSL turn on the white-bark leaf albedo at three crown poses: −3° in the frame (85 → 82°
   etc.). The rendered hue is the lighting's; my vertex colours are not the lever for the last −10°. Scratch
   branch dropped; table in the round-50 README; INBOX to Astra / fable-cursor.
+
+## 2026-09-21 01:00 UTC — tick: shoots on the bent axis
+
+- fable-5 iteration 24: the taper branch tip C +0.0009, all four W08 words at C. Head still `b4cdfe91`
+  (take-0124 sealing). Polish: epicormic shoots seat on the bent axis; replica 80/80; subtle at the poses.
+- Lane state: everything W08 asked for is on `agent/fable-4-taper`; r49b (marks) and leafnear wait with it.
