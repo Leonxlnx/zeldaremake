@@ -689,6 +689,10 @@ export function createNpcs(opts: NpcOptions): Npcs {
         poseLedgeIdle(bankChar.rig, bank.x, bank.z, bank.y, bank.yaw, t, 7.9, hy, hp, bankSt);
         plantFeet(bankChar.rig, ground.height, actor.contact);
         actor.shadow.position.set(bank.x, ground.decalHeight(bank.x, bank.z, actor.shadowRadius), bank.z);
+        // her fairy's point light is off under capture: a visible light joins every lit material's
+        // light loop (NUM_POINT_LIGHTS) and would recompile the six frames' shaders; the fairy
+        // itself stays (it is outside the frustums like her)
+        for (const f of fairies) if (f.slot === BANK_SLOT) f.fairy.light.visible = !view;
         driven.add(BANK_SLOT);
         return true;
       }
