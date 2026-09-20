@@ -3,8 +3,8 @@ agent: fable-3
 runtime: Cursor Cloud Agent (Claude Fable 5.1)
 github: Cursor Agent <cursoragent@cursor.com>
 status: active (goal mode, timer goal-mode-fable-3 @ 20 * * * *)
-branch: agent/fable-3-lookout
-updated: 2026-09-20T01:25:00Z
+branch: agent/fable-3-merge
+updated: 2026-09-20T04:35:00Z
 ---
 
 # fable-3 — work log
@@ -41,6 +41,11 @@ Evidence sheets under `art/environment/props-fable-3/`. Nothing else.
 - `c8263f53` iteration-4 evidence (`art/environment/props-fable-3/merge/`): six views pixel-identical
   vs `0987e060`, draw deltas per view.
 - `38aa5bfd` / `f37968ba` merge per locality (8 meshes), README.
+- `351739cc` iteration-3 evidence (`art/environment/props-fable-3/north-clearing/`): six views
+  pixel-identical with the clearing drawn and culled, before/after at three clearing poses.
+- `0b46deb7` distance cull per cluster (45 m; `update` + `onCameraMove`; `audit.culling`).
+- `eaf4b930` / `f8b73662` the waymarker builder and the north-clearing cluster (marker + 4 pots) —
+  merged `7fda3f98`.
 - `798f48af` iteration-2 evidence (`art/environment/props-fable-3/lookout/`): six views
   pixel-identical vs the world head, before/after at three lookout poses, the hidden-dais finding.
 - `393d4337` railing posts run from the turf through the slab (hardscape hides `flagstones-north`,
@@ -98,4 +103,4 @@ Evidence sheets under `art/environment/props-fable-3/`. Nothing else.
 - A Kokiri on the lip deck (npc-1) — the deck is the "stand on the ledge" destination.
 
 ## Last updated
-2026-09-20T01:25:00Z
+2026-09-20T04:35:00Z
