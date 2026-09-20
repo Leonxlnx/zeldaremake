@@ -353,13 +353,14 @@ export const LOG_INTERIOR_FLOOR: ShadeFloor = { lift: 4.5, texture: 0.6, canopy:
 /**
  * Round 49 (structures-32): the passage tube's walls. The demo's tunnel (`d_121`) is a dark
  * cylinder — walls l 0.05–0.07 — around a 0.39 window; the hollow's floor above (lift 4.5) was
- * set so the west mouth's interior detail READS, which is the opposite brief. Lift 1.6 with the
- * texture share high (0.8): what the fill light leaves is the fissure / plate modulation, not a
- * flat grey; the pods' point lights carry the rest of what is seen inside.
+ * set so the west mouth's interior detail READS, which is the opposite brief. Lift 1.0 with the
+ * texture share high (0.85): what the fill light leaves is the fissure / plate modulation, not a
+ * flat grey; the pods' point lights carry the rest of what is seen inside. (Iteration 2 at lift
+ * 1.6 / albedo 0.06 read the walls 0.10–0.14 at `x-arch-tunnel-n` against the demo's 0.05–0.07.)
  */
-export const TUNNEL_WALL_FLOOR: ShadeFloor = { lift: 1.6, texture: 0.8, canopy: 1, albedo: 0.06, chroma: 1 };
+export const TUNNEL_WALL_FLOOR: ShadeFloor = { lift: 1.0, texture: 0.85, canopy: 1, albedo: 0.045, chroma: 1 };
 /** round 49: the tunnel floor decal's linear multiplier (warm packed earth) and its camera-distance fade (m) */
-export const TUNNEL_FLOOR_TINT = new Vector3(0.26, 0.215, 0.165);
+export const TUNNEL_FLOOR_TINT = new Vector3(0.19, 0.155, 0.12);
 export const TUNNEL_FLOOR_FADE: [number, number] = [24, 40];
 
 export interface StructureMaterials {

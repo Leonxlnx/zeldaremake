@@ -34,8 +34,10 @@ export const NORTH_LANTERN_POSTS: LanternPostDef[] = [
 
 export const NORTH_SIGNPOSTS: { id: string; position: [number, number, number]; facing: [number, number] }[] = [
   // the arch's north mouth: on the level ground east of the path as it leaves the tunnel, the
-  // board turned to a walker coming out from under the log (toward (5.8, −58))
-  { id: 'arch-north', position: [8.0, 4.48, -60.5], facing: [-0.66, 0.75] },
+  // board turned to a walker coming out from under the log. Round 49 (structures-32): the
+  // passage tube runs on to the north path's bend (mouth ≈ (4.8, −62.7), rim plates to −63.3),
+  // so the sign moved from (8.0, −60.5) — inside the tube's bark shell — to a metre past the rim.
+  { id: 'arch-north', position: [7.9, 4.48, -63.8], facing: [-0.9, 0.44] },
 ];
 
 export const NORTH_ROPE_FENCES: FenceDef[] = [
