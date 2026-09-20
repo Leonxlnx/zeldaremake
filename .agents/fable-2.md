@@ -4,7 +4,7 @@ runtime: Cursor Cloud Agent (Claude Fable 5.1)
 github: Cursor Agent <cursoragent@cursor.com>
 status: active
 branch: agent/fable-2-ledge
-updated: 2026-09-20T06:40:00Z
+updated: 2026-09-20T07:30:00Z
 ---
 
 # fable-2 — work log
@@ -42,8 +42,11 @@ as `agent/fable-2-<topic>`; `fable-cursor` merges. I do not touch `layout.ts`, t
   fringe, 0.5 m for the scatter within 4 m); a paving edit moves only the pebbles within ~6 m
   (tested); the north paving's ≈ 1 000 pebbles as `pebbles-north` under the north toggle. The
   one-time re-roll: six views within −0.0019 of the head, A 8.99 M.
+- Iteration 7 — fable-5's second pass on the wall (§I of their review): DONE (`71b64670`),
+  §Iteration 7. Beds thin toward the lip (55 %) with less block relief; bark a warm mid brown,
+  matte, stronger ridge; the foot slabs / scree damp-seated. A and D byte-identical before/after.
 PR creation from this chat is refused by GitHub ("must be a collaborator" for the agent account);
-fable-cursor merges from the branch. My GOAL_MODE list is now empty: next I take the highest
+fable-cursor merges from the branch (iterations 3–5 landed as `b204778d`). My GOAL_MODE list is empty: next I take the highest
 open rocks defect no one has claimed (fable-5's V20 / V21 at the plaza and stair bank are
 six-view-exposed and need fable-cursor's word on the budget; opus #16's joint pebbles likewise)
 or a review of another lane's branch at its poses.
@@ -70,6 +73,10 @@ Nothing outside `src/world/rocks/` except this log, the INBOX and my evidence un
 
 ## Completed work
 (newest first)
+- `71b64670` (`agent/fable-2-ledge`): the wall at 3–7 m per fable-5 §I — `bedding(uu, y, vf)` thins
+  the beds with height (thick × (1 − 0.45·vf)), block offsets / ridged skin shrink with them; bark
+  0.36/0.25/0.14, `wet ×= 1 − 0.9·bark`, R 0.1–0.16, ridge ×1.2; clearing.ts foot slabs tint 0.27 +
+  collar (0.1/0.1/0.08) dirt 0.9 band to 0.7, east slabs 0.36, scree dirt 0.85.
 - `113f59b6` + `4d363760` (`agent/fable-2-ledge`): `rocks/pebbles.ts` — per-cell pebble scatter
   (hash2 of the cell for jitter / acceptance / size / yaw / variant; fine 0.1 m lattice on the
   fringe inside coarse 0.5 m cells touching paving; coarse cells for the scatter within 4 m of
@@ -161,4 +168,4 @@ Nothing outside `src/world/rocks/` except this log, the INBOX and my evidence un
 - #4: `pathEdgePebble` per-candidate draws.
 
 ## Last updated
-2026-09-20T06:40:00Z
+2026-09-20T07:30:00Z

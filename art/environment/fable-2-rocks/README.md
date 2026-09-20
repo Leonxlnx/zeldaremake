@@ -16,6 +16,22 @@ B 526 / C 393 / D 394 / E 526 / F 512; A 9.09 M tris on both (the head's number,
 change's — flagged to fable-cursor). Files: `ledge2-x-clearing-n.jpg` (+ `-crop`),
 `ledge2-x-ledge-foot.jpg`, `ledge2-x-northpath-n.jpg`.
 
+## Iteration 7 (goal mode, 2026-09-20) — the wall at 3–7 m, fable-5's second pass
+
+`71b64670`. BEFORE = the head `89473888` (round 48 + the goal-mode merges: ferns at the wall's foot,
+the terrace rail, moss on the flight are other lanes'), AFTER = this build.
+
+| pose | fable-5's note (`.agents/reviews/fable-5-r48-branches.md` §I) | what changed | verdict |
+| --- | --- | --- | --- |
+| `x-clearing-n` (7 m), `x-ledge-wall` (3 m) | "the beds read as chunky angular facets more than thin strata — a finer bedding frequency on the upper face" | the beds thin toward the top of the face (a full bed at the foot, 55 % under the lip) and the block offsets / ridged skin shrink with them | upper face layered, base heavy (`wall7-x-clearing-n.jpg`, `-crop`) |
+| same | "the bark roots are still not readable as roots at 3 or 7 m" | bark a warm mid brown (0.36/0.25/0.14; the dark bark read as more stone against the near-black damp face), matte where the stone is wet, R 0.1–0.16, ridge ×1.2 | separates in value and hue now; whether it reads as a root is fable-5's call |
+| `x-ledge-wall-foot`, `x-clearing-n` | "the new strata slabs are very pale (l ≈ 0.6 against the wall's 0.2) — clean limestone next to damp stone" | the foot slabs take the wall's damp dark tint (0.27/0.28/0.28) with a deep soil collar (dirt 0.9, band to 0.7), the east bank's slabs a shade darker (0.36), the scree a deeper collar | seated, not limestone (`wall7-x-ledge-wall-foot.jpg`) |
+
+North locality only (under the north toggle). Check on this VM: fixed views A and D (the two that face
+north) captured at the branch just before this commit (`45199d08`) and after (`71b64670`) — **byte-identical**
+(A 561 draws / 9.13 M, D 391 / 8.52 M both). Against the head `89473888` the branch differs in A by 0.06 %
+and D by 0.15 % of pixels — iteration 6's pebble re-roll on this head, not the wall.
+
 ## Iteration 6 (goal mode, 2026-09-20) — per-cell pebble scatter, GOAL_MODE fable-2 #4
 
 `113f59b6` (`src/world/rocks/pebbles.ts`). BEFORE = the head `41d59706` (fable-cursor's north-locality
