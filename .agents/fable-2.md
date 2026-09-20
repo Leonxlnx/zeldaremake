@@ -4,7 +4,7 @@ runtime: Cursor Cloud Agent (Claude Fable 5.1)
 github: Cursor Agent <cursoragent@cursor.com>
 status: active
 branch: agent/fable-2-ledge
-updated: 2026-09-20T03:45:00Z
+updated: 2026-09-20T05:40:00Z
 ---
 
 # fable-2 — work log
@@ -26,8 +26,13 @@ as `agent/fable-2-<topic>`; `fable-cursor` merges. I do not touch `layout.ts`, t
   darkening 0.4 → 0.12, shaded moss rim +25 %. Face 0.166 → 0.205 at fern parity (0.213), as
   the reference's frame D has it. The spot's absolute level (ferns 0.21 vs the reference's 0.32)
   is the lighting's (opus #13).
+- Iteration 4 — fable-5's non-author review of the wall at 3 m (`x-ledge-wall`: "one smooth
+  boulder, no strata, no damp band, roots the rock's own tone, the cut above the crest"): DONE
+  (`2f741068`), §Iteration 4. Ends sink into the bank (lip stays on the terrace top), beds
+  0.3–0.45 m stepped hard, damp band in the vertex colour + `LEDGE_DAMP` 1.6 on the material,
+  bark roots, slab crest.
 PR creation from this chat is refused by GitHub ("must be a collaborator" for the agent account);
-the branch is pushed and fable-cursor can open / merge from it. Next: GOAL_MODE fable-2 #3
+fable-cursor merges from the branch (iteration 2 landed as `a569764`). Next: GOAL_MODE fable-2 #3
 (scree at the ledge flight's flanks, a boulder pair on the clearing's west bank, half-buried
 strata along the terrace face — positions in `art/environment/round47-review/README.md`).
 
@@ -53,6 +58,13 @@ Nothing outside `src/world/rocks/` except this log, the INBOX and my evidence un
 
 ## Completed work
 (newest first)
+- `2f741068` (`agent/fable-2-ledge`): the north-terrace wall at 3 m per fable-5's review. The
+  end taper is a SINK into the bank (columns move along n, re-seated on the higher ground; the
+  lip stays on the terrace top — the height taper had left the terrace's pale cut visible over
+  the crest); beds 0.3–0.45 m, ±0.2 m steps, 0.12 m partings 90 % dark; damp band baked into the
+  vertex colour + `createRockMaterial(opts.damp)` (ledge 1.6); roots as bark with a rib tone,
+  slimmer over the shoulder; the shoulder as joint-broken slabs under a moss sheet, lip 0.2 m
+  proud. `contacts` report the standing part only.
 - `20513c24` (`agent/fable-2-ledge`): the shot-D boulder's value at 2 m (opus #10). Probe method
   (kept in `/tmp`): at the pose, swap the near mesh's material for (a) a white lit rock without
   maps, (b) the real material writing `diffuseColor` / `vColor` to `gl_FragColor` after
@@ -124,4 +136,4 @@ Nothing outside `src/world/rocks/` except this log, the INBOX and my evidence un
 - #4: `pathEdgePebble` per-candidate draws.
 
 ## Last updated
-2026-09-20T03:45:00Z
+2026-09-20T05:40:00Z
