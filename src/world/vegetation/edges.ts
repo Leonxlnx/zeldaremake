@@ -39,8 +39,12 @@ import { MOSS_ULTRA_M } from './plantgeo';
 // ---------------------------------------------------------------------------------------------
 // W06 — the rim band
 
-/** the spine's rims worked: the polyline's points with z in this range (the plaza to the log) */
-export const RIM_SPINE_Z: readonly [number, number] = [-20, 1.5];
+/**
+ * the spine's rims worked: the polyline's stretch with z in this range — the plaza, the hollow and
+ * the rise to the log arch's feet (layout pathSpine ends at z −50; w16-spine-d / w15-spine-r look
+ * at z −30…−36)
+ */
+export const RIM_SPINE_Z: readonly [number, number] = [-44, 1.5];
 /**
  * The band the passes work over, in `lawnEdgeDistance` metres: RIM_INNER inside the mask edge to
  * RIM_BAND outside it. The slabs end at the mask's 0.5 iso (hardscape PAVED_ISO), d ≈ −0.1…−0.15,
@@ -68,7 +72,7 @@ export const RIM_MOSS_D: readonly [number, number] = [-0.1, 0.3];
  * ring stood at 280 of 289 before the band. The rim's cushions seat at this share of RIM_MOSS_PER_M
  * inside a ring.
  */
-export const RIM_MOSS_ULTRA_SHARE = 0.3;
+export const RIM_MOSS_ULTRA_SHARE = 0.25;
 /** the rim cushions' radius range (m) — the lawn's cushions are 0.05–0.26 (plants.ts) */
 export const RIM_MOSS_RADIUS: readonly [number, number] = [0.06, 0.2];
 export const RIM_TUFTS_PER_M = 1.6;
@@ -113,7 +117,8 @@ interface RimPoint {
 
 /** the plan boxes the rim band works: the spine's stretch (RIM_SPINE_Z, its half-width and the band) and the stair branch */
 export const RIM_BOXES: readonly (readonly [number, number, number, number])[] = [
-  [-3.6, RIM_SPINE_Z[0] - 0.5, 5.6, RIM_SPINE_Z[1] + 0.5],
+  // (the spine bears east north of the plaza: x 4.5 at z −42, so the box reaches x 7.5)
+  [-3.6, RIM_SPINE_Z[0] - 0.5, 7.5, RIM_SPINE_Z[1] + 0.5],
   [-0.2, -2.9, 7.4, 2.3],
 ];
 const RIM_GRID = 0.1;
@@ -170,14 +175,22 @@ const inBox = (x: number, z: number, b: readonly [number, number, number, number
  * the `dRange` slice of the band (the cells in the slice per metre of rim = slice width / grid²),
  * `weight(cell)` scaling the odds, one draw per cell from `rng` in scan order.
  */
-function rimSeats(field: VegField, rng: Rng, perM: number, dRange: readonly [number, number], weight: (p: RimPoint) => number = () => 1): RimPoint[] {
+function rimSeats(field: VegField, salt: number, perM: number, dRange: readonly [number, number], weight: (p: RimPoint) => number = () => 1): RimPoint[] {
   const cellsPerM = ((dRange[1] - dRange[0]) / RIM_GRID) * (1 / RIM_GRID);
   const p0 = perM / cellsPerM;
   const out: RimPoint[] = [];
   for (const c of rimCells(field)) {
     if (c.d < dRange[0] || c.d > dRange[1]) continue;
-    const draw = rng();
-    if (draw < p0 * weight(c)) out.push({ ...c, x: mm(c.x + (rng() - 0.5) * RIM_GRID), z: mm(c.z + (rng() - 0.5) * RIM_GRID) });
+    // the draw and the jitter hash the cell's seat, not the scan order: the band's extent can
+    // change (RIM_SPINE_Z) without re-rolling every other seat
+    if (hash01(c.x, c.z, 11 + salt) >= p0 * weight(c)) continue;
+    const x = mm(c.x + (hash01(c.x, c.z, 23 + salt) - 0.5) * RIM_GRID);
+    const z = mm(c.z + (hash01(c.x, c.z, 37 + salt) - 0.5) * RIM_GRID);
+    // the field's edge distance has seams (a 5 cm step of −1.9 m at (3.07, −6)): the jittered
+    // seat must still read inside the range
+    const d = field.lawnEdgeDistance(x, z, true);
+    if (!(d >= dRange[0] - 0.03 && d <= dRange[1] + 0.03)) continue;
+    out.push({ ...c, x, z, d });
   }
   return out;
 }
@@ -212,7 +225,7 @@ export function rimBandCarpet(ctx: WorldContext, field: VegField, mats: LodInsta
   // one mat every SOIL_MAT_PITCH along the edge, seated on the verge (SOIL_MAT_D), stretched
   // along the edge: its across span covers the slab lip to the blades' line (the part over a slab
   // is under the stone), its alpha rim feathering both ways
-  const seats = rimSeats(field, rng, 1 / SOIL_MAT_PITCH, SOIL_MAT_D);
+  const seats = rimSeats(field, 4, 1 / SOIL_MAT_PITCH, SOIL_MAT_D);
   for (const p of seats) {
     const across = SOIL_MAT_ACROSS[0] + (SOIL_MAT_ACROSS[1] - SOIL_MAT_ACROSS[0]) * rng();
     const along = SOIL_MAT_ALONG[0] + (SOIL_MAT_ALONG[1] - SOIL_MAT_ALONG[0]) * rng();
@@ -254,7 +267,7 @@ export function rimBandPlants(ctx: WorldContext, field: VegField, sets: RimPlant
     // patches: a 1.1 m noise gates the cushions, denser toward the turf's line
     const rings = ctx.layout.viewpoints.map((v) => [v.position[0], v.position[2]] as const);
     const inRing = (x: number, z: number) => rings.some(([rx, rz]) => Math.hypot(x - rx, z - rz) < MOSS_ULTRA_M);
-    const seats = rimSeats(field, rng, RIM_MOSS_PER_M * 2.2, RIM_MOSS_D, (p) => vnoise(p.x, p.z, 1.1, 11) * (0.35 + 0.65 * smoothstep(-0.1, 0.25, p.d)) * (inRing(p.x, p.z) ? RIM_MOSS_ULTRA_SHARE : 1));
+    const seats = rimSeats(field, 1, RIM_MOSS_PER_M * 2.2, RIM_MOSS_D, (p) => vnoise(p.x, p.z, 1.1, 11) * (0.35 + 0.65 * smoothstep(-0.1, 0.25, p.d)) * (inRing(p.x, p.z) ? RIM_MOSS_ULTRA_SHARE : 1));
     for (const p of seats) {
       // a cushion of RIM_MOSS_RADIUS m (plants.ts placeMossWith: the unit dome 0.45 tall, flattened, a little longer one way)
       const radius = RIM_MOSS_RADIUS[0] + rng() * (RIM_MOSS_RADIUS[1] - RIM_MOSS_RADIUS[0]);
@@ -267,7 +280,7 @@ export function rimBandPlants(ctx: WorldContext, field: VegField, sets: RimPlant
   }
   {
     const rng = ctx.rng.fork('edges/rim/tufts');
-    const seats = rimSeats(field, rng, RIM_TUFTS_PER_M, RIM_TUFTS_D, (p) => 1.4 - 3 * p.d);
+    const seats = rimSeats(field, 2, RIM_TUFTS_PER_M, RIM_TUFTS_D, (p) => 1.4 - 3 * p.d);
     const tuftLod = sets.tufts.opts.nearLods ?? 0;
     for (const p of seats) {
       const variant = rng.int(0, sets.tufts.variantCount);
@@ -295,7 +308,7 @@ export function rimBandLitter(ctx: WorldContext, field: VegField, leaves: LodIns
   const M = new Float32Array(16);
   const n = new Vector3();
   const rng = ctx.rng.fork('edges/rim/leaves');
-  const seats = rimSeats(field, rng, RIM_LEAVES_PER_M, RIM_LEAVES_D);
+  const seats = rimSeats(field, 3, RIM_LEAVES_PER_M, RIM_LEAVES_D);
   let count = 0;
   for (const p of seats) {
     const scale = 0.7 + rng() * 0.6;
@@ -391,9 +404,9 @@ export function tileMeetsTerrace(x0: number, z0: number, x1: number, z1: number)
   return false;
 }
 
-/** a position hash 0..1 (no stream) for the riser's blade thinning */
-function hash01(x: number, z: number): number {
-  let n = (Math.imul(Math.round(x * 1000), 374761393) + Math.imul(Math.round(z * 1000), 668265263)) | 0;
+/** a position hash 0..1 (no stream) for the riser's blade thinning and the rim seats' draws */
+function hash01(x: number, z: number, salt = 0): number {
+  let n = (Math.imul(Math.round(x * 1000) + salt * 7919, 374761393) + Math.imul(Math.round(z * 1000), 668265263)) | 0;
   n = Math.imul(n ^ (n >>> 13), 1274126177);
   return ((n ^ (n >>> 16)) >>> 0) / 4294967296;
 }
