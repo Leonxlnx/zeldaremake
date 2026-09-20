@@ -106,6 +106,12 @@ export function expansionVisible(camera: Camera, spheres: Sphere[]): boolean {
   const dx = Math.max(box.x0 - _p.x, 0, _p.x - box.x1);
   const dz = Math.max(box.z0 - _p.z, 0, _p.z - box.z1);
   if (Math.hypot(dx, dz) >= EXPANSION_VISIBLE_M) return false;
+  return frustumMeets(camera, spheres);
+}
+
+/** true when the camera's frustum meets one of `spheres` (world matrix refreshed first, see above) */
+export function frustumMeets(camera: Camera, spheres: Sphere[]): boolean {
+  camera.updateMatrixWorld();
   _m.multiplyMatrices(camera.projectionMatrix, camera.matrixWorldInverse);
   _f.setFromProjectionMatrix(_m);
   for (const s of spheres) if (_f.intersectsSphere(s)) return true;

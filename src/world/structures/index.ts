@@ -152,9 +152,10 @@ export async function create(ctx: WorldContext): Promise<WorldSystem> {
   // ---- round 49 (expansion-2): the west and south-west dressing — the second tree-house round the
   // southwest giant, the far hut in the haze on its bark column, the south bank's rope fences
   // (expansion.ts). Own forks after every stream above; its near group is consolidated apart and
-  // hidden beyond EXPANSION_VISIBLE_M of the expansion's box, its far group (the hut + column, the
-  // haze's far lamp) is consolidated apart and always drawn. The huts' platform / deck / wall go to
-  // ctx.shared.walkSurfaces for the character ground. ----
+  // hidden beyond EXPANSION_VISIBLE_M of the expansion's box or when neither it nor its shadow
+  // footprint meets the camera frustum (util/expansionLocality.ts); its far group (the hut + column,
+  // the haze's far lamp) is consolidated apart and frustum-hidden the same way at any distance.
+  // The west house's platform / deck / wall go to ctx.shared.walkSurfaces for the character ground. ----
   const expansion = buildExpansion(ctx, mats, rng.fork('expansion'), rope);
   bases.push(...expansion.bases);
   ctx.shared.walkSurfaces = [...(ctx.shared.walkSurfaces ?? []), ...expansion.houses.walk];
@@ -197,6 +198,7 @@ export async function create(ctx: WorldContext): Promise<WorldSystem> {
   const expansionFarDraws = consolidateStaticMeshes(expansion.far);
   group.add(expansion.group);
   expansion.near.visible = expansion.visible(ctx.camera);
+  expansion.far.visible = expansion.farVisible(ctx.camera);
   for (const d of [expansionNearDraws, expansionFarDraws]) {
     draws.before += d.before;
     draws.after += d.after;
@@ -313,8 +315,8 @@ export async function create(ctx: WorldContext): Promise<WorldSystem> {
     },
     /** round 49 (expansion-2): the west house, the far hut + column and the south bank's fences (expansion.ts); the near group draws only within `visibleWithinM` of the expansion's box */
     expansion: {
-      houses: expansion.houses.audit.map((a) => ({ id: a.id, hostSource: a.hostSource, seatId: a.seatId, centre: a.centre, floorY: a.floorY, radius: a.radius, window: a.window, door: a.door, lamps: a.lamps, pods: a.pods })),
-      houseTriangles: expansion.houses.triangles,
+      houses: [...expansion.houses.audit, ...expansion.farHouse.audit].map((a) => ({ id: a.id, hostSource: a.hostSource, seatId: a.seatId, centre: a.centre, floorY: a.floorY, radius: a.radius, window: a.window, door: a.door, lamps: a.lamps, pods: a.pods })),
+      houseTriangles: expansion.houses.triangles + expansion.farHouse.triangles,
       column: expansion.column,
       ropeFences: expansion.fences.length,
       fencePosts: expansion.fences.reduce((n, f) => n + f.posts, 0),
@@ -322,6 +324,7 @@ export async function create(ctx: WorldContext): Promise<WorldSystem> {
       draws: expansionNearDraws.after + expansionFarDraws.after,
       visibleWithinM: EXPANSION_VISIBLE_M,
       nearVisible: expansion.near.visible,
+      farVisible: expansion.far.visible,
       bases: expansion.bases,
     },
     logArch: true,
@@ -400,10 +403,12 @@ export async function create(ctx: WorldContext): Promise<WorldSystem> {
       swingLanterns(lanterns, t, windDir.x, windDir.y);
       north.visible = northVisible(c.camera.position.x, c.camera.position.z);
       expansion.near.visible = expansion.visible(c.camera);
+      expansion.far.visible = expansion.farVisible(c.camera);
     },
     onCameraMove(camera) {
       north.visible = northVisible(camera.position.x, camera.position.z);
       expansion.near.visible = expansion.visible(camera);
+      expansion.far.visible = expansion.farVisible(camera);
     },
     dispose() {
       // one-shot: every geometry, material and owned texture is released exactly once, however
