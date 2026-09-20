@@ -609,34 +609,36 @@ export const EXPANSION = {
   /**
    * Flagstone discs (isolated round stepping stones, like `pathToHouse`'s — SET stones lying with
    * the grade, hardscape/flagstones.ts `setDiscs`) from the plaza's south-west rim (−5.9, 4.8) —
-   * 7.6 m out, 1.5 m outside the paved disc, 1.2 m west of camera C's edge — along the narrow
-   * shelf between C's edge and the west ledge's face (0.0 → 1.2 m over 5 m), then west up the
-   * ledge's gentle south shoulder (1.2 → 2.15 m over 7 m, grade ≤ 0.25) to the foot of the
-   * west house's flight. Natural ground the whole way; the heightfield flattens nothing here.
+   * 7.6 m out, 1.5 m outside the paved disc, 1.2 m west of camera C's edge — up the west ledge's
+   * face along C's edge (every disc ≥ 1.0 m west of it: 0.0 → 1.5 m over 5 m, a stepping-stone
+   * climb of grade ≤ 0.42 like the reference's stones up to Saria's yard; the first six discs'
+   * splat is faded by `cClip`, the stones themselves are laid whole), then west along the ledge's
+   * gentle south shoulder (1.4 → 2.1 m over 5 m, grade ≤ 0.25) to the foot of the west house's
+   * flight. Natural ground the whole way; the heightfield flattens nothing here.
    */
   pathWest: [
     [-5.9, 0, 4.8],
-    [-6.6, 0, 6.3],
-    [-7.4, 0, 7.8],
-    [-8.4, 0, 9.4],
+    [-6.8, 0, 6.3],
+    [-7.6, 0, 7.8],
+    [-8.6, 0, 9.4],
     [-10.0, 0, 9.7],
     [-12.0, 0, 9.0],
     [-13.6, 0, 8.2],
     [-14.75, 0, 7.52],
   ] as [number, number, number][],
   /**
-   * The south branch forks off the west line at its fourth node (−8.4, 9.4) and runs south-west
+   * The south branch forks off the west line at its fourth node (−8.6, 9.4) and runs south-west
    * down the shoulder's toe onto the low plain (0.1–0.3 m) to the foot of the south bank's flight.
    */
   pathSouth: [
-    [-8.4, 0, 9.4],
+    [-8.6, 0, 9.4],
     [-9.6, 0, 11.0],
     [-10.8, 0, 12.6],
     [-12.2, 0, 14.4],
     [-13.95, 0, 15.2],
   ] as [number, number, number][],
   /** disc parameters (`steppingStonesAlong`): the reference's 0.8–1.0 m slabs nearly touching */
-  discs: { from: 0.55, spacing: 1.05, radius: [0.38, 0.44] as [number, number], wobble: 0.2 },
+  discs: { from: 0.55, spacing: 1.05, radius: [0.38, 0.44] as [number, number], wobble: 0.15 },
 
   /**
    * The fence-topped bank: a grassy terrace 24 m south-west of the plaza centre (bearing −44°)
@@ -667,11 +669,12 @@ export const EXPANSION = {
    * ground under the 7.7 m platform runs −0.3 … 3.04 m — the north rim sits 0.3 m over the turf,
    * the south rim stands on its braces 3.6 m up); the wall radius grows to clear the published
    * bole (structures/distantHouse.ts). Window (lit) toward the plaza centre (bearing 107°), door
-   * 20° north of it, the walkway deck leaving the door for `deckEnd` — the head of the
-   * `west-house` flight, on the giant's root ridge (natural ground 3.0–3.2 m there). 24 m from
-   * the plaza centre; behind every fixed camera (C: bearing −57°, 27° outside its right edge).
+   * 20° north of it, the walkway deck (3.8 m, falling 6°, on its braces: 1.2 m clear of the turf
+   * at the rim, 0.2 m at its end) leaving the platform for `deckEnd` — the landing row of the
+   * `west-house` flight on the ledge's 2.75 m shoulder. 24 m from the plaza centre; behind every
+   * fixed camera (C: bearing −57°, 27° outside its right edge).
    */
-  westHouse: { host: [-23, 9] as [number, number], floorY: 3.37, radius: 3.4, wall: 2.6, capHeight: 2.3, facingDeg: 107, doorDeg: -20, deckEnd: [-17.55, 3.26, 8.04] as [number, number, number], pods: 3 },
+  westHouse: { host: [-23, 9] as [number, number], floorY: 3.37, radius: 3.4, wall: 2.6, capHeight: 2.3, facingDeg: 107, doorDeg: -20, deckEnd: [-16.28, 2.95, 6.46] as [number, number, number], pods: 3 },
 
   /**
    * The far hut in the haze: 54.6 m out at bearing −120° (WNW) on the west-north ledge's 2.3 m
@@ -709,18 +712,20 @@ function bankP3(u: number, v: number, y: number): [number, number, number] {
  * Round-49 flights (see `EXPANSION` for why they are not in `LAYOUT.stairs`). The heightfield's
  * live view trenches / banks / lands them like the layout flights; hardscape lays their stones;
  * the character ground climbs them.
- *  - `south-bank`: 7 × 0.26 m up the bank's face at lip coordinate u = +0.3 (SE of centre),
- *    climbing SW; base 0.1 m beyond the face's toe on the natural plain (0.17 m) so the first
- *    riser shows; top (1.95 m) at the lip, two landing rows onto the terrace. 1.6 m wide. Its
- *    east cheek bank ends 0.8 m west of camera C's edge (`cClip` zeroes anything nearer).
- *  - `west-house`: 4 × 0.27 m from the west path's end (natural ground 2.14 m) up onto the
- *    giant's root ridge (3.0–3.2 m), climbing WNW toward the house; one landing row that the
- *    walkway deck's end rests on (`westHouse.deckEnd`, 0.4 m onto it). 1.0 m wide — a Kokiri
- *    stair to a 0.95 m deck.
+ *  - `south-bank`: 6 × 0.26 m up the bank's face at lip coordinate u = +0.3 (SE of centre),
+ *    climbing SW; base at the face's toe (v 2.35; the live ground there is 0.42 m — the plain's
+ *    0.25 m plus the flight's detail-suppression halo and the face's last centimetres — so the
+ *    first riser shows 0.23 m); top (1.95 m) 7 cm in front of the lip, two landing rows onto the
+ *    terrace. 1.6 m wide. Its east cheek bank ends 0.8 m west of camera C's edge (`cClip`
+ *    zeroes anything nearer).
+ *  - `west-house`: 3 × 0.25 m from the west path's end (natural ground 2.14 m) up the ledge's
+ *    south shoulder (2.1 → 2.75 m over 2 m), climbing NNW; one landing row (2.87 m) that the
+ *    walkway deck's end rests on (`westHouse.deckEnd`, 0.4 m onto it, 8 cm over the slabs).
+ *    1.0 m wide — a Kokiri stair to a 0.95 m deck.
  */
 export const EXPANSION_STAIRS: StairDef[] = [
-  { id: 'south-bank', base: bankP3(0.3, 2.71, 0.13), dir: [-0.7071, 0.7071], steps: 7, rise: 0.26, tread: 0.38, width: 1.6 },
-  { id: 'west-house', base: [-15.39, 2.1, 7.64], dir: [-0.983, 0.183], steps: 4, rise: 0.27, tread: 0.36, width: 1.0 },
+  { id: 'south-bank', base: bankP3(0.3, 2.35, 0.39), dir: [-0.7071, 0.7071], steps: 6, rise: 0.26, tread: 0.38, width: 1.6 },
+  { id: 'west-house', base: [-15.39, 2.12, 7.64], dir: [-0.6, -0.8], steps: 3, rise: 0.25, tread: 0.36, width: 1.0 },
 ];
 
 /**
