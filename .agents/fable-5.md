@@ -3,8 +3,8 @@ agent: fable-5
 runtime: Cursor Cloud Agent (Claude Fable 5.1)
 github: Cursor Agent <cursoragent@cursor.com>
 status: active
-branch: agent/fable-5-review
-updated: 2026-09-19T10:25:00Z
+branch: agent/fable-5-demo-walk
+updated: 2026-09-20T00:55:00Z
 ---
 
 # fable-5 — work log
@@ -13,13 +13,16 @@ Lane (from `docs/ONBOARDING_FABLE_CHATS.md`, chat 4): **reference analysis and i
 review**. Not world code. Owns `reference/` (analysis + downscaled comparison frames) and the
 gauntlet's independent D7 verdicts (`gauntlet/reviews/*.json`, written only through
 `node gauntlet/scripts/gauntlet.mjs --review …`). Does not edit `src/`, `gauntlet/rubric.json`,
-`gauntlet/ledger.json`, or any other agent's log. PR #14 (draft → `cursor/kokiri-world-phase1-f65e`).
+`gauntlet/ledger.json`, or any other agent's log. PR #14 merged (`97346d2`); goal mode since 2026-09-20
+00:00 UTC (timer `goal-mode-fable-5`, cron `20 * * * *`); current branch `agent/fable-5-demo-walk`.
 
 ## Current task
-Waiting for the owner's 15-minute Nintendo of America video file in the fable-5 chat (asked for a
-local upload; no YouTube scraping). When it lands: `ffmpeg` frames at the owner's marked moments →
-`reference/frames-video2/`, hashes → `reference/phash.json`, full `reference/ANALYSIS_VIDEO2.md`
-(currently INTERIM on his three screenshots). Then a re-review of whichever take is sealed next.
+Goal-mode loop. Next iteration: **re-verdict every visual item on take-0120** when it seals (the
+monitor's last take is 0118 at `d168b93`; 0120 was queued at tick 178) — strict, reference | ours
+crops, U02/U03 on the shipped bag screen with a non-author `?screen=equipment` render. Still waiting
+for the owner's 15-minute video file in this chat (local upload; no YouTube scraping) — when it
+lands: `ffmpeg` frames at his marked moments → `reference/frames-video2/`, hashes → `phash.json`,
+§2/§3 of `ANALYSIS_VIDEO2.md` rewritten on clean frames.
 
 ## Files / systems being touched
 - `reference/ANALYSIS_VIDEO2.md`, `reference/frames-video2/**`, `reference/phash.json`.
@@ -27,6 +30,17 @@ local upload; no YouTube scraping). When it lands: `ffmpeg` frames at the owner'
 - `.agents/fable-5.md`, `.agents/reviews/fable-5-*.md`, my threads in `.agents/INBOX.md`.
 
 ## Completed work
+- 2026-09-20 00:05–00:55 UTC — goal-mode iteration 1 (`agent/fable-5-demo-walk`, from head `3d50f6c8`):
+  **`reference/ANALYSIS_VIDEO2.md` §6** — the six demo segments the hero frames miss
+  (`frames-dense/demo61/`: the 9–11 s orbit, the walk to the door, the top-down, the stair foot
+  looking up, the run to the arch, under the arch), each measured and compared with the head at the
+  equivalent pose (own `broll.mjs` renders, 14 poses + 3 follow-ups); defects V15–V21. **Player-height
+  walk `.agents/reviews/fable-5-walk-3d50f6c8.md`**: before (`a0e06cf4`, the head just before the
+  three merges) | after (`3d50f6c8`) at the poses where fable-2/3/4's defects were recorded — crate
+  FIXED, pierced pot FIXED, white-bark scars + straight cut FIXED (toes near-black), stair-foot and
+  shot-D boulders IMPROVED, the ledge UNCHANGED (expected; fable-2 #1) — plus a 10-item ranked open
+  list. 15 sheets under `.agents/reviews/fable-5-walk/`. PR creation through the agent tool failed
+  with GitHub "must be a collaborator" (twice); branch pushed, fable-cursor told in the INBOX.
 - 2026-09-19 10:20 UTC — INBOX to fable-cursor: verdict list + **top-10 defects** with frame/pose and
   owning system for round 48 (`.agents/INBOX.md`, thread "take-0116 verdicts filed + top-10").
 - 2026-09-19 09:40–10:10 UTC — **independent review of take-0116 (`973a21e`)**: 21 W-items + C01,
@@ -54,6 +68,11 @@ local upload; no YouTube scraping). When it lands: `ffmpeg` frames at the owner'
   hashed into `reference/phash.json` before it is committed.
 
 ## Known issues
+- The Cursor PR tool cannot open a PR for `agent/fable-5-demo-walk` (GitHub validation "must be a
+  collaborator", 2026-09-20 00:50 UTC). The branch is pushed and rebased on the head; fable-cursor
+  can merge from the branch or open the PR. Re-try at the next iteration.
+- `reference/frames-dense/README.md`'s timing table is off for d_087–d_122 (documented in
+  `ANALYSIS_VIDEO2.md` §6 header; the file is fable-cursor's — not edited).
 - Video file not yet in this chat; §2 of the analysis covers three screenshots with YouTube chrome
   (positions ±0.03, hue biased ~5–10° warm by the red/white overlays).
 - U02/U03 cannot be judged from a take (no equipment-screen capture). Needs a non-author capture
@@ -62,6 +81,9 @@ local upload; no YouTube scraping). When it lands: `ffmpeg` frames at the owner'
   is not in that build.
 
 ## Recommended next work
+- fable-cursor: V15 (plaza closure W/S/N — the owner's "backside"), V16 (slab 2×/joint 2× and the
+  polarity, measured from above), V19 (the arch is not a tunnel: 3× too bright, no right wall) are
+  the three new sev-3 items for round 49 briefs; V17 (the flight's inverted gradient) for Astra.
 - fable-cursor: round-48 briefs from the INBOX top-10; a `RUBRIC_PROPOSALS.md` entry for W30's
   azimuth window (owner decides); a `?screen=equipment` capture in `take.mjs` so U02/U03 can be
   reviewed.
@@ -69,4 +91,4 @@ local upload; no YouTube scraping). When it lands: `ffmpeg` frames at the owner'
   lists the regions; the evidence images are reproducible with the same crops.
 
 ## Last updated
-2026-09-19T10:25:00Z
+2026-09-20T00:55:00Z
