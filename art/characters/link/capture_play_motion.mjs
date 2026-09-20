@@ -84,12 +84,15 @@ try{
   const smoke=process.argv.includes('--smoke');
   const descentDetail=process.argv.includes('--descent-detail');
   const flatVideo=process.argv.includes('--flat-video');
+  const stairsVideo=process.argv.includes('--stairs-video');
+  const video=flatVideo||stairsVideo;
+  assert.ok(!(flatVideo&&stairsVideo),'Choose one video route');
   const flatStills=process.argv.includes('--flat-stills');
   const jumpOnly=process.argv.includes('--jump-only');
   const framesDir=path.join(out,'video-frames');let videoFrames=0;
-  if(flatVideo)await fs.mkdir(framesDir);
-  for(const scenario of jumpOnly?['run-jump']:process.argv.includes('--stairs-only')?['stairs-up','stairs-down']:(flatVideo||flatStills||process.argv.includes('--flat-only'))?['flat-transitions']:descentDetail?['stairs-down']:['flat-transitions','stairs-up','stairs-down']){
-    const frames=smoke?12:jumpOnly?180:descentDetail?90:(scenario==='flat-transitions'?300:660);
+  if(video)await fs.mkdir(framesDir);
+  for(const scenario of jumpOnly?['run-jump']:(stairsVideo||process.argv.includes('--stairs-only'))?['stairs-up','stairs-down']:(flatVideo||flatStills||process.argv.includes('--flat-only'))?['flat-transitions']:descentDetail?['stairs-down']:['flat-transitions','stairs-up','stairs-down']){
+    const frames=smoke?12:jumpOnly?180:stairsVideo?240:descentDetail?90:(scenario==='flat-transitions'?300:660);
     await page.evaluate(scenario=>{
       const {player}=__playReview;player.setPlayMode(true);player.setInput({moveX:0,moveZ:0,run:false});
       const stairs=__ZR__.audit().layout.stairs.find(s=>s.id==='main');
@@ -99,7 +102,7 @@ try{
       else{const u=scenario==='stairs-up'?-.35:run+.15;player.position.set(stairs.base[0]+direction[0]*u,0,stairs.base[2]+direction[1]*u);}
       __ZR__.setTime(20);__playReview.previousRoot=null;
     },scenario);
-    const chunk=flatVideo||flatStills||jumpOnly?2:descentDetail?10:30;
+    const chunk=video||flatStills||jumpOnly?2:descentDetail?10:30;
     for(let start=0;start<frames;start+=chunk){
       const count=Math.min(chunk,frames-start);
       const rows=await page.evaluate(async({scenario,start,count})=>{
@@ -158,7 +161,7 @@ try{
         }return rows;
       },{scenario,start,count});
       report.samples.push(...rows);
-      if(flatVideo)await page.screenshot({path:path.join(framesDir,`frame-${String(videoFrames++).padStart(4,'0')}.png`)});
+      if(video)await page.screenshot({path:path.join(framesDir,`frame-${String(videoFrames++).padStart(4,'0')}.png`)});
       if(descentDetail||start===0||start+count===frames||start===Math.floor(frames/60)*30){
         const file=`${scenario}-${start+count}.png`;await page.screenshot({path:path.join(out,file)});report.images.push(file);
       }
@@ -256,8 +259,8 @@ try{
       minRenderedStairGapM:surface.length?Math.min(...surface.map(p=>p.gapM)):null,
       shoeSamplesBelowMinus2cm:surface.filter(p=>p.gapM<-.02).length}];
   }));
-  if(flatVideo){
-    const file=path.join(out,'walk-run-idle.mp4');
+  if(video){
+    const file=path.join(out,stairsVideo?'stairs-up-down.mp4':'walk-run-idle.mp4');
     execFileSync('ffmpeg',['-v','error','-framerate','30','-i',path.join(framesDir,'frame-%04d.png'),
       '-c:v','libx264','-threads','2','-crf','20','-pix_fmt','yuv420p','-movflags','+faststart',file],{windowsHide:true});
     const probe=JSON.parse(execFileSync('ffprobe',['-v','error','-count_frames','-select_streams','v:0',

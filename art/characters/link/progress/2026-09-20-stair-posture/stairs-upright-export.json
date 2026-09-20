@@ -1,0 +1,90 @@
+{
+  "sha256": "1e81bb6ca08c1c01008ad7fecad311d4419dbb691589c7ac5df95c8026c6ae37",
+  "source_sha256": "382ec9ecab9f77062b61c77192ada4df860abc33666284d8971abe1e577492eb",
+  "original_binary_preserved": true,
+  "rest_nodes_and_assets_exact": true,
+  "other_clips_and_unselected_channels_exact": true,
+  "gait": "stairs",
+  "hips_preserved": false,
+  "changed": [
+    [
+      "hips",
+      "translation"
+    ],
+    [
+      "thighL",
+      "translation"
+    ],
+    [
+      "thighL",
+      "rotation"
+    ],
+    [
+      "thighL",
+      "scale"
+    ],
+    [
+      "kneeL",
+      "translation"
+    ],
+    [
+      "kneeL",
+      "rotation"
+    ],
+    [
+      "kneeL",
+      "scale"
+    ],
+    [
+      "ankleL",
+      "translation"
+    ],
+    [
+      "ankleL",
+      "rotation"
+    ],
+    [
+      "ankleL",
+      "scale"
+    ],
+    [
+      "thighR",
+      "translation"
+    ],
+    [
+      "thighR",
+      "rotation"
+    ],
+    [
+      "thighR",
+      "scale"
+    ],
+    [
+      "kneeR",
+      "translation"
+    ],
+    [
+      "kneeR",
+      "rotation"
+    ],
+    [
+      "kneeR",
+      "scale"
+    ],
+    [
+      "ankleR",
+      "translation"
+    ],
+    [
+      "ankleR",
+      "rotation"
+    ],
+    [
+      "ankleR",
+      "scale"
+    ]
+  ],
+  "cycle_s": 0.7333333333333333,
+  "stride_m": 0.8066667,
+  "status": "Export checked; game and visual acceptance pending"
+}

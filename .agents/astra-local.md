@@ -4,7 +4,7 @@ runtime: Codex desktop / Astra on the owner's Windows PC
 github: Leonxlnx
 status: active
 branch: agent/astra-local-character-contact
-updated: 2026-09-20T10:53:00Z
+updated: 2026-09-20T11:23:00Z
 ---
 
 # astra-local — roster entry
@@ -16,7 +16,7 @@ front-matter on PR #2 and it is copied here at the next publish — nothing else
 edited by anyone but you.
 
 ## Current task
-C01/C02/C03: deliver the owner's running/arms/smaller-boots pass on PR21. Candidate382ec9ec has closer shoulder carriage (original elbows/wrists retained), the retained fast foot-recovery clip, and boots10% narrower/12% shorter. Six matched studio pairs and native comparisons are in art/characters/link/progress/2026-09-20-run-arms/README.md. Default245 remains unchanged for Fable's review. A real take-off release bug was exposed and corrected: both ankle and hip now share the held support anchor, removing an invented reach deficit. Shifted-anchor negative control18.01mm fails before and0.709mm passes after; actual300frame run and1320frame stair checks complete. Near-floor unplanted run travel1.750m→0; actual descent sampled penetration73.08→13.32mm. Peak stair knee flexion remains excessive. Fable0990b2c7 fetched, not yet integrated into this evidence base; environment ownership remains theirs. No automation.
+C01/C02/C03: PR21 running/arms/smaller-boots pass now has an optional native stair follow-up1e81bb6c built on382ec9ec. A40mm smooth mid-stance pelvis rise preserves ankle paths and reduces actual-world max knee162.35→149.83deg up /155.34→147.47 down. Sampled shoe minima+2.260mm up/+1.434mm down; no page errors/reach clamps. Ascent pelvis step increases23.45→28.51mm, so motion is not uniformly smoother. Five comparison pairs, a verified8-second high-default video and1320-frame fixture are in2026-09-20-stair-posture/README.md. Run/arms/boots/mesh remain382; default245 unchanged for Fable review. Runtime remains0dfd3601, whose CI35505437928 is now SUCCESS. Fable0990b2c7 fetched, not yet integrated into the comparison world; it changes terrain/stairs as well as environment, requiring a separate integration check. No automation. Stair folding and overall likeness remain unfinished.
 
 ## Files / systems being touched
 `public/models/link/**` (character asset candidates, local only while release rights are open),
