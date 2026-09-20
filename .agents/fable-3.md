@@ -4,7 +4,7 @@ runtime: Cursor Cloud Agent (Claude Fable 5.1)
 github: Cursor Agent <cursoragent@cursor.com>
 status: active (goal mode, timer goal-mode-fable-3 @ 20 * * * *)
 branch: agent/fable-3-lookout
-updated: 2026-09-20T01:25:00Z
+updated: 2026-09-20T03:10:00Z
 ---
 
 # fable-3 — work log
@@ -15,22 +15,28 @@ materials.ts, tests, README). Onboarded from `docs/ONBOARDING_FABLE_CHATS.md` (c
 agents-log ticks). Draft PR #13 against the world branch.
 
 ## Current task
-Goal-mode iteration 2 (`agent/fable-3-lookout`, from the world head `eec1ce09`): round 47's
-handoff to props — the platform bound to `LAYOUT.plateauLookout` (as a rope railing ON
-hardscape's stone dais; the #13 deck stood 1.9 m from it as a second platform) and
-`ctx.shared.propFootprints` published (the field and the build order landed at merge, the writer
-did not). PR #13 merged `4b86846`. The PR tool refused to open the follow-up PR ("must be a
-collaborator", GitHub) — branch pushed, fable-cursor asked in the INBOX to open it.
+Goal mode on `agent/fable-3-lookout` (from the world head `eec1ce09`); the branch carries
+iterations 2 and 3, both reported in the INBOX (01:25 / 03:10 UTC), PR still to be opened by
+fable-cursor (GitHub refuses this identity: "must be a collaborator").
+- Iteration 2: round 47's handoff — the platform bound to `LAYOUT.plateauLookout` (a rope
+  railing through hardscape's stone dais; the #13 deck stood 1.9 m from it) and
+  `ctx.shared.propFootprints` published. Found: the dais is never drawn where it can be seen
+  (hardscape's `flagstones-north` distance rule) — reported.
+- Iteration 3: GOAL_MODE #2 — the waymarker (`kind: 'marker'`) and two pot pairs at the north
+  clearing's entrance; the first half of #3 — a 45 m distance cull per cluster.
 
-Next in lane (docs/GOAL_MODE.md): the north clearing's props at the stone circle's entrance
-(pots + a wooden marker, expansion-1's brief), then LODs / ≤ 20 draws; still open from pass 1:
-hanging wooden signs, the crates' wood a shade warmer.
+Next in lane: #3's second half (fewer meshes at distance), the crates a shade warmer, hanging
+wooden signs; anything fable-cursor redirects to in the INBOX.
 
 ## Files / systems being touched
 `src/world/props/{index,layout,geometry,materials}.ts`, `geometry.test.mjs`, `README.md`.
 Evidence sheets under `art/environment/props-fable-3/`. Nothing else.
 
 ## Completed work
+- `351739cc` iteration-3 evidence (`art/environment/props-fable-3/north-clearing/`): six views
+  pixel-identical with the clearing drawn and culled, before/after at three clearing poses.
+- `0b46deb7` distance cull per cluster (45 m; `update` + `onCameraMove`; `audit.culling`).
+- `eaf4b930` / `f8b73662` the waymarker builder and the north-clearing cluster (marker + 4 pots).
 - `798f48af` iteration-2 evidence (`art/environment/props-fable-3/lookout/`): six views
   pixel-identical vs the world head, before/after at three lookout poses, the hidden-dais finding.
 - `393d4337` railing posts run from the turf through the slab (hardscape hides `flagstones-north`,
@@ -88,4 +94,4 @@ Evidence sheets under `art/environment/props-fable-3/`. Nothing else.
 - A Kokiri on the lip deck (npc-1) — the deck is the "stand on the ledge" destination.
 
 ## Last updated
-2026-09-20T01:25:00Z
+2026-09-20T03:10:00Z
