@@ -17,6 +17,8 @@ import { createRockMaterial, NEAR_FADE_M, NEAR_TILE_M } from './material';
 import { dressRock, mergeRockParts } from './dressing';
 import { buildRockLedge, type RockLedgeDef } from './ledge';
 import { buildClearingRocks, type ClearingLayout } from './clearing';
+import { buildBacksideRocks } from './backside';
+import { casterSpheres, expansionVisible, sunVector } from '../util/expansionLocality';
 import { PEBBLE_DEFAULTS, PEBBLE_LOOKS, scatterPathPebbles, stairFootPebbles } from './pebbles';
 import { NORTH_Z1 } from '../util/northLocality';
 import { CUSHION, FERN, TUFT_A, TUFT_B, buildSproutMeshes, createSproutMaterial, type SproutSpot } from '../materials/sprouts';
@@ -969,6 +971,24 @@ export async function create(ctx: WorldContext): Promise<WorldSystem> {
     ledgeMeshes.push(clearingMesh);
   }
 
+  // --- the plaza's backside (backside.ts, round 49 / V20): the pale boulder pair, the low stone step
+  // and the flight's scree at the fence-topped south bank — seated on the LIVE terrain (the bank is
+  // not in this system's legacy view), one mesh under the hero material, toggled with expansion-2's
+  // frustum + shadow-sweep spheres so camera C never draws it; own fork
+  const backside = buildBacksideRocks(rng.fork('backside'), seed, shadeDir);
+  let backsideMesh: Mesh | null = null;
+  let backsideSpheres: Sphere[] = [];
+  if (backside) {
+    backsideMesh = new Mesh(backside.geometry, heroMaterial);
+    backsideMesh.castShadow = true;
+    backsideMesh.receiveShadow = true;
+    backsideMesh.name = 'backside-rocks';
+    backsideMesh.visible = false;
+    group.add(backsideMesh);
+    const sunDir = sunVector(ctx.config.sun.azimuthDeg, ctx.config.sun.elevationDeg);
+    backsideSpheres = backside.casters.flatMap((c) => casterSpheres(c, sunDir));
+  }
+
   const rubbleSlots: InstanceSlot[] = [];
   const rubbleMeshes = buildInstanced(rubble, rubbleGeos, material, 'rubble', true, rubbleSlots);
   const strataSlots: InstanceSlot[] = [];
@@ -1063,6 +1083,8 @@ export async function create(ctx: WorldContext): Promise<WorldSystem> {
     ledges: ledgeInfo,
     /** the north clearing's dressing (clearing.ts): boulder pair / scree / slabs, one mesh */
     northClearing: clearing ? clearing.stats : null,
+    /** the plaza's backside (backside.ts): the south bank's pair / toe step / flight scree, one mesh */
+    backside: backside ? backside.stats : null,
     ledgeSource: ledgeInfo.length ? ((ctx.layout as unknown as { rockLedges?: unknown[] }).rockLedges?.length ? 'layout' : 'preview') : 'none',
     rubble: rubble.length,
     strata: strata.length,
@@ -1083,6 +1105,7 @@ export async function create(ctx: WorldContext): Promise<WorldSystem> {
       crevicePlants: crevicePlants.map((p) => [rnd(p.x), rnd(p.y), rnd(p.z), p.kind ?? 'tuft']),
       ledgeFeet: ledgeContacts.map((p) => p.map(rnd)),
       northClearingSeats: clearing ? clearing.contacts.map((p) => p.map(rnd)) : [],
+      backsideSeats: backside ? backside.contacts.map((p) => p.map(rnd)) : [],
     },
     palette: { moss: [P.mossDeep, P.mossBright] },
   }));
@@ -1094,6 +1117,7 @@ export async function create(ctx: WorldContext): Promise<WorldSystem> {
       nearUpdate(c.camera, false);
       const show = northVisible(nBox, c.camera.position.x, c.camera.position.z);
       for (const m of ledgeMeshes) m.visible = show;
+      if (backsideMesh) backsideMesh.visible = expansionVisible(c.camera, backsideSpheres);
       // round 49 (perf-3): the cap / crevice plants submit only the instances that can reach the frame (materials/sprouts.ts `cull`)
       plants.cull(c.camera);
     },
@@ -1101,6 +1125,7 @@ export async function create(ctx: WorldContext): Promise<WorldSystem> {
       nearUpdate(camera, true);
       const show = northVisible(nBox, camera.position.x, camera.position.z);
       for (const m of ledgeMeshes) m.visible = show;
+      if (backsideMesh) backsideMesh.visible = expansionVisible(camera, backsideSpheres);
       plants.cull(camera, true);
     },
     dispose() {
