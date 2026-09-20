@@ -209,7 +209,7 @@ export const TERRACE_WOBBLE = 0.025;
 /** the darkening: the share of the band's albedo that goes to soil */
 export const TERRACE_SOIL_SHARE = 0.62;
 export const C_TERRACES: readonly TerraceFace[] = [
-  { id: 'c-mound', box: [6.3, 1.0, 9.5, 4.2], treads: [0.22, 0.7], step: 0.24, downhill: [-0.8, -0.6], facing: 0.1, minSlope: 0.06 },
+  { id: 'c-mound', box: [6.3, 1.0, 11.0, 5.0], treads: [0.22, 1.18], step: 0.24, downhill: [-0.8, -0.6], facing: 0.1, minSlope: 0.06 },
   { id: 'c-plateau', box: [11.0, 5.0, 18.0, 11.5], treads: [0.3, 1.74], step: 0.36, downhill: [-0.75, 0.66], facing: 0.1, minSlope: 0.06 },
 ];
 

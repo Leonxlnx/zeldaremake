@@ -53,10 +53,15 @@ assert.ok(material.TERRACE_WOBBLE > 0 && material.TERRACE_WOBBLE < edges.TERRACE
 
 // W06 — the band's numbers
 assert.ok(edges.RIM_CLEAR[0] >= 0.04 && edges.RIM_CLEAR[0] + edges.RIM_CLEAR[1] <= edges.RIM_BAND, 'the turf clearance is inside the band');
-const soilStrip = [edges.RIM_CLEAR[0] - 0.06, edges.RIM_CLEAR[0] + edges.RIM_CLEAR[1] * 0.5];
-assert.ok(soilStrip[0] >= 0.04 && soilStrip[1] <= 0.3, `the visible soil strip ${soilStrip.map((v) => (v * 100).toFixed(0)).join('–')} cm reads as the brief's 4–8 cm+ of earth, not a verge`);
+// the earth: the soil mats seat on the verge between the slab lip (d ≈ −0.15, hardscape PAVED_ISO) and the
+// blades' line (d = 0), their across span bridging the two — the visible strip is the verge's own 10–20 cm
+assert.ok(edges.RIM_INNER <= -0.2 && edges.SOIL_MAT_D[0] <= -0.1 && edges.SOIL_MAT_D[1] >= 0 && edges.SOIL_MAT_D[1] <= 0.06, 'soil mats seat on the verge, from the slab lip to the blades');
+assert.ok(edges.SOIL_MAT_ACROSS[0] >= 0.15 && edges.SOIL_MAT_ACROSS[1] <= 0.35 && edges.SOIL_MAT_ALONG[0] >= edges.SOIL_MAT_ACROSS[1], 'soil mats bridge the verge across and stretch along the edge');
+assert.ok(edges.SOIL_MAT_PITCH <= 0.2, 'a soil mat every ≤ 0.2 m: a continuous band');
+for (const d of [edges.RIM_MOSS_D, edges.RIM_TUFTS_D, edges.RIM_LEAVES_D]) assert.ok(d[0] >= edges.RIM_INNER && d[0] <= 0 && d[1] > 0 && d[1] <= edges.RIM_BAND, `the ${d} seats straddle the mask edge inside the band`);
 assert.ok(edges.SOIL_MAT_LIGHT[1] < 0.5, 'soil mats are darker than the palette soil (lightness < ½)');
 assert.ok(edges.RIM_MOSS_PER_M <= 3 && edges.RIM_TUFTS_PER_M <= 3 && edges.RIM_LEAVES_PER_M <= 2, 'the rim stays a band: ≤ 3 cushions / tufts and ≤ 2 leaves per metre');
+console.log(`edges: soil mats at d ${edges.SOIL_MAT_D} every ${edges.SOIL_MAT_PITCH} m, ${edges.SOIL_MAT_ACROSS} across × ${edges.SOIL_MAT_ALONG} along`);
 assert.ok(edges.RIM_SPINE_Z[0] < -15 && edges.RIM_SPINE_Z[1] > 0, 'the spine stretch spans the plaza to the log');
 // the clearance noise is a function of position only (no stream): the same in, the same out
 assert.equal(edges.rimClear(1.234, -5.678), edges.rimClear(1.234, -5.678));

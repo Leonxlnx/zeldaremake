@@ -372,7 +372,7 @@ export async function create(ctx: WorldContext): Promise<WorldSystem> {
      * W05's terraces on the C embankment (tuft rows on the treads, foot moss, toe ferns and broad
      * leaves, leaves on the risers; the risers' soil is terrain/material.ts C_TERRACES)
      */
-    edges: { ...carpet.rim, ...plants.edges, ...litter.edges },
+    edges: { ...carpet.rim, ...plants.edges, ...litter.edges, terraceBlades: grass.terraceCulled },
     buildMs: Math.round(buildMs),
     /** upper bound of what the current camera's distance buckets could draw (before any culling) */
     drawableEstimate: drawable(),

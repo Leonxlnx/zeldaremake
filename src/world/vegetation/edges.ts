@@ -40,19 +40,31 @@ import type { LodInstancedSet } from './lodset';
 
 /** the spine's rims worked: the polyline's points with z in this range (the plaza to the log) */
 export const RIM_SPINE_Z: readonly [number, number] = [-20, 1.5];
-/** the band outside the paving edge (m) the passes work over */
+/**
+ * The band the passes work over, in `lawnEdgeDistance` metres: RIM_INNER inside the mask edge to
+ * RIM_BAND outside it. The slabs end at the mask's 0.5 iso (hardscape PAVED_ISO), d ≈ −0.1…−0.15,
+ * the stones' visible lip ≈ −0.2 with the joint inset; the blades run to d = 0 and lean over the
+ * paving from there (grass.ts RIM_LEAN). The pale gravel verge between the two — d −0.2…0 — is the
+ * two-tone hard line fable-5 read: SOIL_MAT_D lays the earth over it.
+ */
 export const RIM_BAND = 0.42;
+export const RIM_INNER = -0.25;
 /** the turf's noisy clearance from the edge (m): min + span × a 0.7 m value noise */
 export const RIM_CLEAR: readonly [number, number] = [0.13, 0.25];
-/** soil mats: pitch along the edge (m), width range (m), lightness range (× the palette's dark soil, ½ = 1.0) */
-export const SOIL_MAT_PITCH = 0.2;
-export const SOIL_MAT_WIDTH: readonly [number, number] = [0.32, 0.5];
+/** soil mats: pitch along the edge (m), seat range in d (m), across / along the edge (m), lightness range (× the palette's dark soil, ½ = 1.0) */
+export const SOIL_MAT_PITCH = 0.18;
+export const SOIL_MAT_D: readonly [number, number] = [-0.16, 0.02];
+export const SOIL_MAT_ACROSS: readonly [number, number] = [0.2, 0.3];
+export const SOIL_MAT_ALONG: readonly [number, number] = [0.36, 0.56];
 export const SOIL_MAT_LIGHT: readonly [number, number] = [0.28, 0.42];
 export const SOIL_MAT_LIFT = 0.012;
-/** moss cushions per metre of rim (in patches), tufts per metre, leaves per metre */
-export const RIM_MOSS_PER_M = 1.6;
-export const RIM_TUFTS_PER_M = 1.4;
-export const RIM_LEAVES_PER_M = 0.9;
+/** moss cushions per metre of rim (in patches), tufts per metre, leaves per metre, and their seat ranges in d */
+export const RIM_MOSS_PER_M = 2.4;
+export const RIM_MOSS_D: readonly [number, number] = [-0.1, 0.3];
+export const RIM_TUFTS_PER_M = 1.6;
+export const RIM_TUFTS_D: readonly [number, number] = [-0.1, 0.12];
+export const RIM_LEAVES_PER_M = 1.1;
+export const RIM_LEAVES_D: readonly [number, number] = [-0.18, 0.2];
 
 /** 0..1 value noise at metre scale, seeded by position (no stream) */
 function vnoise(x: number, z: number, scale: number, salt = 0): number {
@@ -124,9 +136,10 @@ function rimCells(field: VegField): RimPoint[] {
         const xm = mm(x);
         const zm = mm(z);
         const d = field.lawnEdgeDistance(xm, zm, true);
-        if (!Number.isFinite(d) || d < -0.06 || d > RIM_BAND) continue;
+        if (!Number.isFinite(d) || d < RIM_INNER || d > RIM_BAND) continue;
         field.sample(xm, zm, s);
-        if (!field.allowed(xm, zm, s, true) && d > 0.02) continue;
+        // the verge (d < 0.1) is the mask's gravel, never `allowed`: the band's point
+        if (!field.allowed(xm, zm, s, true) && d > 0.1) continue;
         if (s.stairs > 0.05 || s.structure > 0.05 || s.cliff > 0.5) continue;
         if (field.insideGiantTrunk(xm, zm) || field.insidePropFootprint(xm, zm, 0.05)) continue;
         if (field.clearing(xm, zm).insideBoulder) continue;
@@ -186,18 +199,20 @@ export function rimBandCarpet(ctx: WorldContext, field: VegField, mats: LodInsta
   const n = new Vector3();
   const white: [number, number, number] = [1, 1, 1];
   let soilMats = 0;
-  // one mat every SOIL_MAT_PITCH along the edge, its centre a third of the way out: the mat's
-  // width covers the slab edge to the turf's line, its alpha rim feathering both ways
-  const seats = rimSeats(field, rng, 1 / SOIL_MAT_PITCH, [0.02, 0.22]);
+  // one mat every SOIL_MAT_PITCH along the edge, seated on the verge (SOIL_MAT_D), stretched
+  // along the edge: its across span covers the slab lip to the blades' line (the part over a slab
+  // is under the stone), its alpha rim feathering both ways
+  const seats = rimSeats(field, rng, 1 / SOIL_MAT_PITCH, SOIL_MAT_D);
   for (const p of seats) {
-    const clear = rimClear(p.x, p.z);
-    const w = (SOIL_MAT_WIDTH[0] + (SOIL_MAT_WIDTH[1] - SOIL_MAT_WIDTH[0]) * rng()) * (0.8 + 0.5 * (clear - RIM_CLEAR[0]) / RIM_CLEAR[1]);
+    const across = SOIL_MAT_ACROSS[0] + (SOIL_MAT_ACROSS[1] - SOIL_MAT_ACROSS[0]) * rng();
+    const along = SOIL_MAT_ALONG[0] + (SOIL_MAT_ALONG[1] - SOIL_MAT_ALONG[0]) * rng();
     const light = SOIL_MAT_LIGHT[0] + (SOIL_MAT_LIGHT[1] - SOIL_MAT_LIGHT[0]) * rng();
     const tile = rng.int(0, matTiles);
-    const yaw = rng() * Math.PI * 2;
+    // the card's local z along the edge (the tangent of the edge distance), ± a little
+    const yaw = Math.atan2(-p.nz, p.nx) + (rng() - 0.5) * 0.5;
     T.normal(p.x, p.z, n);
     const y = T.height(p.x, p.z) + SOIL_MAT_LIFT;
-    composeMatrix(M, 0, p.x, y, p.z, n.x, n.y, n.z, 1, yaw, w, 1, w);
+    composeMatrix(M, 0, p.x, y, p.z, n.x, n.y, n.z, 1, yaw, across, 1, along);
     data[0] = 1;
     // < 0.5 flags the soil mat (materials.ts); the value is its lightness / 2
     data[1] = light;
@@ -227,7 +242,7 @@ export function rimBandPlants(ctx: WorldContext, field: VegField, sets: RimPlant
   {
     const rng = ctx.rng.fork('edges/rim/moss');
     // patches: a 1.1 m noise gates the cushions, denser toward the turf's line
-    const seats = rimSeats(field, rng, RIM_MOSS_PER_M * 2.2, [0.06, 0.4], (p) => vnoise(p.x, p.z, 1.1, 11) * (0.35 + 0.65 * smoothstep(0.04, 0.3, p.d)));
+    const seats = rimSeats(field, rng, RIM_MOSS_PER_M * 2.2, RIM_MOSS_D, (p) => vnoise(p.x, p.z, 1.1, 11) * (0.35 + 0.65 * smoothstep(-0.1, 0.25, p.d)));
     for (const p of seats) {
       const scale = 0.42 + rng() * 0.3;
       T.normal(p.x, p.z, n);
@@ -238,11 +253,11 @@ export function rimBandPlants(ctx: WorldContext, field: VegField, sets: RimPlant
   }
   {
     const rng = ctx.rng.fork('edges/rim/tufts');
-    const seats = rimSeats(field, rng, RIM_TUFTS_PER_M, [0.0, 0.2], (p) => 1.6 - 3 * p.d);
+    const seats = rimSeats(field, rng, RIM_TUFTS_PER_M, RIM_TUFTS_D, (p) => 1.4 - 3 * p.d);
     for (const p of seats) {
       const scale = 0.32 + rng() * 0.26;
       // the blades lean over the lip: the up vector pushed toward the paving, more the nearer the edge
-      const lean = (1 - smoothstep(0.02, 0.2, p.d)) * 0.55;
+      const lean = (1 - smoothstep(-0.05, 0.15, p.d)) * 0.55;
       T.normal(p.x, p.z, n);
       n.x -= p.nx * lean;
       n.z -= p.nz * lean;
@@ -261,7 +276,7 @@ export function rimBandLitter(ctx: WorldContext, field: VegField, leaves: LodIns
   const M = new Float32Array(16);
   const n = new Vector3();
   const rng = ctx.rng.fork('edges/rim/leaves');
-  const seats = rimSeats(field, rng, RIM_LEAVES_PER_M, [-0.06, 0.2]);
+  const seats = rimSeats(field, rng, RIM_LEAVES_PER_M, RIM_LEAVES_D);
   let count = 0;
   for (const p of seats) {
     const scale = 0.7 + rng() * 0.6;
@@ -300,10 +315,11 @@ export interface TerraceFace {
 export const TERRACE_RISER = 0.14;
 
 export const C_TERRACES: readonly TerraceFace[] = [
-  // the stair's south bank's north face off the plaza's rim (the 0.75 m rise camera C looks at,
-  // 20–35° — 1 − n.y 0.06–0.18 — running diagonally from (8, 1) to (6.3, 3.5), downhill to the
-  // north-west; A's right foreground is the face's west part, x < 6.3, left alone)
-  { id: 'c-mound', box: [6.3, 1.0, 9.5, 4.2], treads: [0.22, 0.7], step: 0.24, downhill: [-0.8, -0.6], facing: 0.1, minSlope: 0.06 },
+  // the stair's south bank's north face off the plaza's rim: the bank camera C sees behind the
+  // pots, 0 at the paving to ≈ 1.2 m at (10, 5), 20–35° — 1 − n.y 0.06–0.18 — its lower face
+  // running diagonally from (8, 1) to (6.3, 3.5), downhill to the north-west; A's right
+  // foreground is the face's west part, x < 6.3, left alone (the box's z ≤ 5 keeps it at A's edge)
+  { id: 'c-mound', box: [6.3, 1.0, 11.0, 5.0], treads: [0.22, 1.18], step: 0.24, downhill: [-0.8, -0.6], facing: 0.1, minSlope: 0.06 },
   // the plateau's south-west slope left of it in C (the fall from 2.9 m at (17.5, 5) to the
   // south lawn at (12, 7) / (14, 10); C's frame holds it to x ≈ 15.5, h ≤ 1.7)
   { id: 'c-plateau', box: [11.0, 5.0, 18.0, 11.5], treads: [0.3, 1.74], step: 0.36, downhill: [-0.75, 0.66], facing: 0.1, minSlope: 0.06 },
@@ -316,6 +332,63 @@ export const TERRACE_TOE_FERNS = { 'c-mound': 9, 'c-plateau': 12 } as Record<str
 export const TERRACE_RISER_LEAVES_PER_M2 = 1.6;
 /** the row tufts' scale range (the C frames see the faces from 11–19 m: bigger than the rim's lip tufts) */
 export const TERRACE_TUFT_SCALE: readonly [number, number] = [0.6, 0.95];
+
+/**
+ * The share of the lawn's blades a riser keeps (the rest are compacted out so the material's
+ * soil shows through a few standing blades); the cards (mats, clumps) on a riser all go.
+ */
+export const TERRACE_RISER_BLADE_KEEP = 0.15;
+
+const riserN = new Vector3();
+/**
+ * The riser weight at (x, z), 0..1 — the CPU twin of terrain/material.ts `terraceRiser` (same
+ * boxes, treads, step, slope and facing ramps; without the shader's ± TERRACE_WOBBLE contour
+ * noise, so the cover's line is the material's band ± 2.5 cm).
+ */
+export function terraceRiserAt(T: WorldContext['terrain'], x: number, z: number): number {
+  let w = 0;
+  for (const f of C_TERRACES) {
+    if (x < f.box[0] - 0.3 || x > f.box[2] + 0.3 || z < f.box[1] - 0.3 || z > f.box[3] + 0.3) continue;
+    const inBox = smoothstep(f.box[0] - 0.3, f.box[0] + 0.2, x) * (1 - smoothstep(f.box[2] - 0.2, f.box[2] + 0.3, x)) * smoothstep(f.box[1] - 0.3, f.box[1] + 0.2, z) * (1 - smoothstep(f.box[3] - 0.2, f.box[3] + 0.3, z));
+    if (inBox < 0.001) continue;
+    T.normal(x, z, riserN);
+    const slopeW = smoothstep(f.minSlope, f.minSlope + 0.05, 1 - riserN.y);
+    const faceW = smoothstep(f.facing, f.facing + 0.1, riserN.x * f.downhill[0] + riserN.z * f.downhill[1]);
+    if (slopeW * faceW < 0.001) continue;
+    const h = T.height(x, z);
+    const k = clamp(Math.floor((h - f.treads[0]) / f.step + 0.5), 0, Math.round((f.treads[1] - f.treads[0]) / f.step));
+    const tread = f.treads[0] + k * f.step;
+    const band = smoothstep(tread - TERRACE_RISER - 0.02, tread - TERRACE_RISER + 0.02, h) * (1 - smoothstep(tread - 0.035, tread - 0.005, h));
+    w = Math.max(w, inBox * slopeW * faceW * band);
+  }
+  return w;
+}
+
+/** true when a blade tile [x0, x1] × [z0, z1] overlaps a terraced face's box */
+export function tileMeetsTerrace(x0: number, z0: number, x1: number, z1: number): boolean {
+  for (const f of C_TERRACES) if (x1 >= f.box[0] && x0 <= f.box[2] && z1 >= f.box[1] && z0 <= f.box[3]) return true;
+  return false;
+}
+
+/** a position hash 0..1 (no stream) for the riser's blade thinning */
+function hash01(x: number, z: number): number {
+  let n = (Math.imul(Math.round(x * 1000), 374761393) + Math.imul(Math.round(z * 1000), 668265263)) | 0;
+  n = Math.imul(n ^ (n >>> 13), 1274126177);
+  return ((n ^ (n >>> 16)) >>> 0) / 4294967296;
+}
+
+/** true for a legacy blade at (x, z) that a riser drops (the band's weight over ½, all but TERRACE_RISER_BLADE_KEEP by the hash) */
+export function terraceDropsBlade(T: WorldContext['terrain'], x: number, z: number): boolean {
+  return terraceRiserAt(T, x, z) > 0.5 && hash01(x, z) >= TERRACE_RISER_BLADE_KEEP;
+}
+
+/** the carpet's side of the terraces: the turf mats and clump cards on a riser are pruned so the soil band shows */
+export function terraceCarpet(ctx: WorldContext, mats: LodInstancedSet, clumps: LodInstancedSet): { terraceMats: number; terraceClumps: number } {
+  const T = ctx.terrain;
+  const terraceMats = mats.prune((it) => terraceRiserAt(T, it.x, it.z) > 0.35);
+  const terraceClumps = clumps.prune((it) => terraceRiserAt(T, it.x, it.z) > 0.35);
+  return { terraceMats, terraceClumps };
+}
 
 export interface TerraceSets {
   tufts: LodInstancedSet;

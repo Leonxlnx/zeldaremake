@@ -75,14 +75,22 @@ export function pruneExpansion(sets: LodInstancedSet[]): Record<string, number> 
  * kept count; the dropped blades are reported through `dropped` (blade type, height, seat y) so
  * the caller can undo their share of its statistics.
  */
-export function compactExpansionBlades(matrices: Float32Array, data: Float32Array, count: number, dropped?: (type: number, height: number, y: number) => void): number {
+export function compactExpansionBlades(
+  matrices: Float32Array,
+  data: Float32Array,
+  count: number,
+  dropped?: (type: number, height: number, y: number, why: 'expansion' | 'terrace') => void,
+  /** round 50 (edges.ts): a second drop — the C bank's riser bands thin their blades so the soil shows */
+  alsoDrop?: (x: number, z: number) => boolean,
+): number {
   let kept = 0;
   for (let i = 0; i < count; i++) {
     const mo = i * 16;
-    if (expansionCull(matrices[mo + 12], matrices[mo + 14])) {
+    const why = expansionCull(matrices[mo + 12], matrices[mo + 14]) ? 'expansion' : alsoDrop?.(matrices[mo + 12], matrices[mo + 14]) ? 'terrace' : null;
+    if (why) {
       // the blade's height is its y-axis scale (field.ts composeMatrix: column 1 = up × h); its
       // type the integer part of the type slot (grass.ts)
-      dropped?.(Math.floor(data[i * 4 + 3] + 1e-6), Math.hypot(matrices[mo + 4], matrices[mo + 5], matrices[mo + 6]), matrices[mo + 13]);
+      dropped?.(Math.floor(data[i * 4 + 3] + 1e-6), Math.hypot(matrices[mo + 4], matrices[mo + 5], matrices[mo + 6]), matrices[mo + 13], why);
       continue;
     }
     if (kept !== i) {

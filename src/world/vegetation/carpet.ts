@@ -29,7 +29,7 @@ import { clamp, smoothstep } from '../util/noise';
 import { hash2, type Rng } from '../util/prng';
 import { CLUMP_GRID, MAT_GRID, createClumpAtlas, type ClumpAtlas } from './clump-atlas';
 import { COVERAGE_CELL, MAT_FOOT } from './coverage';
-import { rimBandCarpet, type RimCarpetResult } from './edges';
+import { rimBandCarpet, terraceCarpet, type RimCarpetResult } from './edges';
 import { filterExpansionSamples, pruneExpansion } from './expansion';
 import { A_FACE_HEIGHT, BANK_FLOOR_SHARE, VegField, composeMatrix, newSample } from './field';
 import { LodInstancedSet } from './lodset';
@@ -196,7 +196,7 @@ export interface CarpetResult {
   /** round 50: legacy-seated cards / mats pruned inside the expansion's live ground, per set (expansion.ts) */
   expansionCulled: Record<string, number>;
   /** round 50 (edges.ts W06): mats / cards pruned back from the worked rims, soil mats laid */
-  rim: RimCarpetResult;
+  rim: RimCarpetResult & { terraceMats: number; terraceClumps: number };
   samples: { clumps: number[][]; mats: number[][] };
 }
 
@@ -641,7 +641,8 @@ export function buildCarpet(ctx: WorldContext, field: VegField, parent: Group): 
   // so nothing re-rolls and no sweep mat fills a pruned seat
   // Round 50 (edges.ts, W06): the mats and cards pulled back from the paved rims E / D / B frame
   // to a noisy line, and the soil mats laid in the cleared band — after every seat and the sweep
-  const rim = rimBandCarpet(ctx, field, mats, clumps, atlas.matTiles);
+  // and (W05) the cards on the C bank's riser bands pruned so the material's soil shows there
+  const rim = { ...rimBandCarpet(ctx, field, mats, clumps, atlas.matTiles), ...terraceCarpet(ctx, mats, clumps) };
   const expansionCulled = pruneExpansion([mats, northMats, clumps, northClumps]);
   const clumpSamplesKept = filterExpansionSamples(clumpSamples);
   const matSamplesKept = filterExpansionSamples(matSamples);

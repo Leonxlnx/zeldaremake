@@ -148,7 +148,7 @@ assert.ok(q(hs,1)<=0.3201,`tallest clump ${q(hs,1).toFixed(3)} m`);assert.ok(q(h
 // the paved rims keep a band of real blades: no card root within its clear band, no card over the slabs
 for(const it of a.carpet.clumps.items){const e=a.field.lawnEdgeDistance(it.x,it.z,true);assert.ok(e>=0.14,`clump ${e.toFixed(2)} m from the paving`);assert.ok(scaleX(it)*0.5<=e+0.01,'card inside the lawn');}
 // (round 50: the soil mats are the exception — they lie IN the band, over the lip, their rim feathering both ways)
-for(const it of a.carpet.mats.items){const e=a.field.lawnEdgeDistance(it.x,it.z,true);if(it.data[1]<0.5){assert.ok(e>=-0.06&&e<=0.3,`soil mat ${e.toFixed(2)} m from the paving`);continue;}assert.ok(e>=0.1);assert.ok(scaleX(it)*0.5<=e+0.01,'mat inside the lawn');}
+for(const it of a.carpet.mats.items){const e=a.field.lawnEdgeDistance(it.x,it.z,true);if(it.data[1]<0.5){assert.ok(e>=edges.RIM_INNER-0.15&&e<=0.12,`soil mat ${e.toFixed(2)} m from the paving (on the verge)`);continue;}assert.ok(e>=0.1);assert.ok(scaleX(it)*0.5<=e+0.01,'mat inside the lawn');}
 // the walk corridor (frames 14 / 24: the trodden strip and the stones' 0.5 m carry nothing over the herb layer)
 const stones=houseSteppingStones(),stoneDist=(x,z)=>Math.min(...stones.map(st=>Math.hypot(x-st.x,z-st.z)-st.r));
 for(const it of a.carpet.clumps.items){const h=scaleY(it);
