@@ -23,6 +23,7 @@
  */
 import { BufferGeometry, Color, Frustum, Group, InstancedBufferAttribute, InstancedMesh, Matrix4, Mesh, PerspectiveCamera, Quaternion, Sphere, Vector3, type BufferAttribute, type Camera, type Material } from 'three';
 import type { TrunkSeat, WorldContext, WorldSystem } from '../system';
+import { expansionCull } from '../terrain/heightfield';
 import { BARK_DETAIL_M, BARK_DETAIL_TILES, BARK_TOUCH_M, BARK_TOUCH_TILES, CARD_EDGE_FADE, CARD_FLAT_EDGE_FADE, COLUMN_BARK_FLOOR, COLUMN_BARK_FLOOR_FAR, COLUMN_FLOOR_FADE_M, createTreeMaterials, CUSHION_FADE_M, DISTANT_BARK_M, DISTANT_NEAR_FLOOR, DISTANT_NEAR_TONE, NEAR_BASE_FLOOR, NEAR_BOLE_FLOOR, NEAR_BOLE_FLOOR_FADE, NEAR_BOLE_FLOOR_TOP, NEAR_BOLE_SLOTS, NEAR_CANOPY_LEAF_FLOOR, NEAR_CANOPY_LEAF_NEAR_M, NEAR_CANOPY_SLOTS, NEAR_CANOPY_SUN_THROUGH, TREE_BARK_FLOOR, TREE_BARK_FLOOR_NEAR, TREE_FLOOR_FADE_M, TREE_LEAF_FLOOR, TREE_LEAF_FLOOR_NEAR, TREE_NEAR_BOLE_FLOOR } from './materials';
 import type { ShadeFloor } from '../materials/shadeFloor';
 import { authoredWhiteBarks, createWhiteBarkRoots, createWhiteBarkTree, whiteBarkParams, whiteBarkTilt, type TreeAsset, type WhiteBarkParams } from './whitebark';
@@ -1869,7 +1870,12 @@ export async function create(ctx: WorldContext): Promise<WorldSystem> {
     return false;
   };
   const swappedWhites = whitePlaced.placements.filter((p) => whites[p.variant].params.age === 'mature' && inFarWall(p.x, p.y, p.z));
-  const whitePlacements = whitePlaced.placements.filter((p) => !swappedWhites.includes(p));
+  // Round 49 (fable-4, after expansion-2): the stream builds against the LEGACY terrain view, so a
+  // white-bark drawn onto the expansion's live-only ground (the far hut's knoll: the mature variant
+  // at (−39.7, 31.1) stood 0.7 m buried, its crown across the hut lamp's sight line from Link's
+  // spot) is dropped by the heightfield's own filter — a filter re-rolls nothing, and the six fixed
+  // frames see none of that ground (heightfield.ts expansionCull).
+  const whitePlacements = whitePlaced.placements.filter((p) => !swappedWhites.includes(p) && !expansionCull(p.x, p.z));
   whitePlacements.push(...authoredWhiteBarks(whites.map((w) => w.params), terrain));
   const seatFamily = <P, T extends { x: number; y: number; z: number; yaw: number; scale: number }>(variants: FamilyVariant<P, T>[], p: T, variant: number, tilt: Quaternion | null = null) => {
     const w = variants[variant];

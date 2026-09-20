@@ -2657,6 +2657,21 @@ Also: lantern bough still a thick plain beam across the top of B (trees pass pen
   irregularity missing), W36/W03 pass re-checked. Merged `17d73b2`. Round 50's five lanes just
   started (0 commits, building); character-10b evaluating 1e81bb6c. Heartbeat.
 
+### 17:25 UTC — tick 199: goal-mode merges (fable-2 backside rocks + W23 loaf/value, fable-4 knoll cull, fable-5 walk); round 50 mid-work
+- Merged `b3089f3`, `d6f5f35` (fable-4 applied `expansionCull` to the white-bark stream — a white-bark
+  had stood through the far hut; trees-32's item 2 now partly done, resolve at its merge), `c20a844`,
+  `fd0a67d` (W23: the D loaf 0.2 m prouder + its bare pale face — fable-5 IMPROVED). Astra's NaN
+  guard `b06057b` cherry-picked. tsc + tests green.
+- fable-5's round-49 walk of `97c8322`: closed at player height — the tunnel's north portal, the
+  ledge wall, "the plaza has a west side"; unchanged — the hollow, the lantern limb, the hero
+  flight (cut stone), the sky overhead (20.5 % blue, same as round 48 — owner-fable's roof does not
+  cover these poses). Round-50 list by the owner's order: boulder/wall form (fable-2), crown hue
+  (Astra), the far layer behind the backside (trees-32/astra-distance), giants' pale-green faceted
+  flares (`w04-spine-l` — next trees lane), hero flight as timber (hardscape-32), slab scale (V16,
+  hardscape-32), sky overhead, W05/W06 (vegetation-27), C01/C02/U02 (npc-3 + shell).
+- Lanes: hardscape-32 2 commits, structures-33 4, npc-3 4, vegetation-27 0, trees-32 0 (both
+  building 70 min); character-10b pending. Next seal when the first two or three land.
+
 ## Pending corrections from reference/ANALYSIS.md (apply at integration, one commit)
 - `config.ts` palette → olive/khaki low-key (reference hero frames: hue 47–51°, sat 0.16–0.19,
   lum 0.35–0.39, 0 % blue sky): grass 0x8a8c55/0x5c6233/0x3a4420, moss 0x8b8948/0x5a523b,
@@ -2695,4 +2710,4 @@ Pick anything NOT claimed in `gauntlet/claims.json`. Good self-contained candida
   my own (GAUNTLET.md D7).
 
 ## Last updated
-2026-09-20T16:35:00Z
+2026-09-20T17:25:00Z
