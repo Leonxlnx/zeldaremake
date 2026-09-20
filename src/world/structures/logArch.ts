@@ -2521,6 +2521,24 @@ export function buildLogArch(ctx: WorldContext, mats: StructureMaterials, rng: R
         if (Math.abs(e2) <= 2.45 && y2 > 1.6 && y2 < WALK_CLEAR_M + 0.03) y2 = WALK_CLEAR_M + 0.03;
         fromTube(a, e2, out.position);
         out.position.y = worldY(a, e2, y2);
+        // The strip is ± pathHalfWidth of the walk POLYLINE, the tube sits on its SMOOTHED centre
+        // line: where the two part (the bend) a wall's curve at |e| ≈ 2.55 can stand a hand inside
+        // the strip below the clearance (2.26 m in iteration 5's audit), and the terrain under a
+        // strip edge may lie higher than the centre line's ground. Measured in world terms: a wall
+        // is pushed out along the section until it is clear of the strip, the vault held up.
+        if (y2 > 0.05) {
+          for (let k = 0; k < 3; k++) {
+            const wd = walkDistance(out.position.x, out.position.z);
+            if (wd > ctx.layout.pathHalfWidth + 0.04 || out.position.y - terrain.height(out.position.x, out.position.z) >= WALK_CLEAR_M + 0.03) break;
+            if (Math.abs(e) > 2.0) {
+              e2 += Math.sign(e) * (ctx.layout.pathHalfWidth + 0.08 - wd);
+              fromTube(a, e2, out.position);
+              out.position.y = worldY(a, e2, y2);
+            } else {
+              out.position.y = terrain.height(out.position.x, out.position.z) + WALK_CLEAR_M + 0.03;
+            }
+          }
+        }
         if (y2 > 0.05 && walkDistance(out.position.x, out.position.z) <= ctx.layout.pathHalfWidth) tubeMinClear = Math.min(tubeMinClear, out.position.y - terrain.height(out.position.x, out.position.z));
         out.uv = [arc / 2.6, a / 2.6];
         // shade: darker toward the middle, fissures dark, plate edges catching the pods' light
@@ -2758,6 +2776,18 @@ export function buildLogArch(ctx: WorldContext, mats: StructureMaterials, rng: R
 
     // ---- aerial roots hanging from the mouths' rims (mostly the north), clamped over the walk floor ----
     const rootRng49 = rng.fork('rim-roots49');
+    /**
+     * The walk floor measured to the TUNNEL's walk polyline as well as to the path spine: at the
+     * north mouth the walk has bent 1.3 m east of the spine, and a root hung by `walkFloorAt`
+     * alone reached 1.78 m over the strip there (iteration 5's audit).
+     */
+    const rimFloorAt = (x: number, z: number) => {
+      const g = terrain.height(x, z);
+      const sd = walkDistance(x, z);
+      const strip = ctx.layout.pathHalfWidth;
+      const f = sd <= strip ? g + WALK_CLEAR_M : sd <= strip + 1.5 ? g + lerp(WALK_CLEAR_M, 1.3, (sd - strip) / 1.5) : g + 0.6;
+      return Math.max(f, walkFloorAt(x, z));
+    };
     for (let i = 0; i < 34; i++) {
       const north = i % 4 !== 3;
       // the upper half of the rim, denser toward the crown
@@ -2772,7 +2802,7 @@ export function buildLogArch(ctx: WorldContext, mats: StructureMaterials, rng: R
       if (py < 1.8) continue;
       const hook = fromTube(a, pe);
       hook.y = worldY(a, pe, py);
-      const floor = walkFloorAt(hook.x, hook.z);
+      const floor = rimFloorAt(hook.x, hook.z);
       const allowed = hook.y - floor;
       if (allowed < 0.3) continue;
       const len = Math.min(0.5 + rootRng49() * 1.1, allowed - 0.04);
@@ -2790,7 +2820,7 @@ export function buildLogArch(ctx: WorldContext, mats: StructureMaterials, rng: R
       }
       // the drift carries the tip sideways: keep it over its own floor
       const tip = pts[n];
-      const tipFloor = walkFloorAt(tip.x, tip.z);
+      const tipFloor = rimFloorAt(tip.x, tip.z);
       if (tip.y < tipFloor) {
         const k = Math.max(0.15, (hook.y - tipFloor - 0.04) / Math.max(1e-3, hook.y - tip.y));
         for (let j = 0; j <= n; j++) pts[j].y = hook.y - (hook.y - pts[j].y) * k;
