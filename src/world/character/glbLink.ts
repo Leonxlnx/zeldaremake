@@ -131,11 +131,12 @@
  * captures sit in a scheduled slot's open phase, so the adopted morphs leave them unchanged
  * too. Movement and the IK above are untouched by it.
  */
-import { AnimationAction, AnimationMixer, Bone, Box3, Group, LoopRepeat, Material, MathUtils, Mesh, Object3D, Quaternion, SkinnedMesh, Vector3 } from 'three';
+import { AnimationAction, AnimationMixer, Bone, Box3, Group, LoopRepeat, Material, MathUtils, Mesh, MeshStandardMaterial, Object3D, Quaternion, SkinnedMesh, Vector3 } from 'three';
 import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
 import { GAIT_SPEED, GAITS, type Gait, type GroundSampler } from './animation';
 import { BLINK_HALF_MORPH, BLINK_MORPH, blinkPhase, blinkWeights, createBlinkSchedule, nextBlinkStart, type BlinkSchedule, type BlinkWeights } from './blink';
 import { chainWeights, type FootAnchor, type GaitChain } from './gaitChain';
+import { BONE_REGION, gradeImage, LINK_BROW_COLOR, LINK_COLOR_GRADE, rasterizeRegionMask, REGION_GROUPS, type GradeStats, type RegionMask } from './linkColorGrade';
 import type { BlinkInfo, FootContact, JumpState, Locomotion, PlantInfo, Puppet, PuppetPose } from './puppet';
 
 /** served by Vite from public/ */
@@ -639,6 +640,115 @@ export interface LinkAssetInfo {
   footprint: { L: Footprint & { soleVertices: number }; R: Footprint & { soleVertices: number } };
   /** every morph target name the asset's meshes expose (sorted, deduplicated; empty on 9189538d) */
   morphTargets: string[];
+  /** round 50 (npc-3): the colour grade applied to the loaded base-colour maps (linkColorGrade.ts), or null when nothing matched */
+  colorGrade: LinkColorGradeInfo | null;
+}
+
+/** what the load-time colour grade did (rubric C01; see linkColorGrade.ts) */
+export interface LinkColorGradeInfo {
+  /** the table's entry ids in force */
+  entries: string[];
+  /** per re-coloured map: the material's name, the map's size, the texels changed and the mean sRGB each entry owned before / after */
+  maps: { material: string; width: number; height: number; touched: number; perEntry: Record<string, number>; meanBefore: Record<string, [number, number, number]>; meanAfter: Record<string, [number, number, number]> }[];
+  /** the brow material re-coloured to LINK_BROW_COLOR (its name), or null */
+  brows: string | null;
+  /** the body-part region mask: cells per side and the share of cells in each REGION_GROUPS entry */
+  regionMask: { size: number; coverage: Record<string, number> } | null;
+  ms: number;
+}
+
+/**
+ * Round 50 (npc-3), rubric C01 — Link's colours (fable-5 on take-0121: silhouette passes, "skin
+ * (125,107,93) s 0.14 vs tan (117,79,37) s 0.52 and dark hair vs golden — colour only"). The
+ * GLB is untouched: the LOADED base-colour maps are re-coloured once through a canvas by the
+ * `LINK_COLOR_GRADE` table (linkColorGrade.ts — the numbers Astra bakes into the source textures
+ * later) and the brow material's flat colour is set to `LINK_BROW_COLOR`. The body map (the
+ * material carrying the normal map) is graded with the body-part region mask rasterised from its
+ * own UVs and joint weights, so the hair band only reaches the head / cap bones and not the
+ * boots' brass knots; the orbital-skin map (the face around the eyes) is graded with the
+ * region-free entries. Nothing else about the materials (roughness, normal, clearcoat) changes;
+ * a load without a 2D canvas (no DOM) leaves the maps as delivered.
+ */
+function gradeLinkMaterials(skinned: SkinnedMesh[]): LinkColorGradeInfo | null {
+  const t0 = performance.now();
+  if (typeof document === 'undefined') return null;
+  const info: LinkColorGradeInfo = { entries: LINK_COLOR_GRADE.map((e) => e.id), maps: [], brows: null, regionMask: null, ms: 0 };
+  const mats = (m: SkinnedMesh): MeshStandardMaterial[] => (Array.isArray(m.material) ? m.material : [m.material]).filter((x): x is MeshStandardMaterial => !!x && (x as MeshStandardMaterial).isMeshStandardMaterial);
+  // the body primitive: the one whose material carries the normal map (Astra's `model.036`)
+  const body = skinned.find((m) => mats(m).some((x) => !!x.normalMap && !!x.map)) ?? null;
+  let mask: RegionMask | null = null;
+  if (body) {
+    const g = body.geometry;
+    const uv = g.attributes.uv;
+    const ji = g.attributes.skinIndex;
+    const jw = g.attributes.skinWeight;
+    const idx = g.index;
+    if (uv && ji && jw && idx) {
+      const n = uv.count;
+      const uvA = new Float32Array(n * 2);
+      const jiA = new Uint16Array(n * 4);
+      const jwA = new Float32Array(n * 4);
+      for (let i = 0; i < n; i++) {
+        uvA[i * 2] = uv.getX(i);
+        uvA[i * 2 + 1] = uv.getY(i);
+        jiA[i * 4] = ji.getX(i);
+        jiA[i * 4 + 1] = ji.getY(i);
+        jiA[i * 4 + 2] = ji.getZ(i);
+        jiA[i * 4 + 3] = ji.getW(i);
+        jwA[i * 4] = jw.getX(i);
+        jwA[i * 4 + 1] = jw.getY(i);
+        jwA[i * 4 + 2] = jw.getZ(i);
+        jwA[i * 4 + 3] = jw.getW(i);
+      }
+      const jointRegion = new Uint8Array(Math.max(1, body.skeleton.bones.length));
+      body.skeleton.bones.forEach((b, i) => {
+        const r = BONE_REGION[b.name];
+        jointRegion[i] = r ? REGION_GROUPS.indexOf(r) + 1 : 0;
+      });
+      const size = 1024;
+      mask = rasterizeRegionMask(uvA, jiA, jwA, idx.array as ArrayLike<number>, jointRegion, size);
+      const counts = new Array<number>(REGION_GROUPS.length + 1).fill(0);
+      for (let i = 0; i < mask.data.length; i++) counts[mask.data[i]]++;
+      const coverage: Record<string, number> = {};
+      REGION_GROUPS.forEach((r, i) => (coverage[r] = Number((counts[i + 1] / mask!.data.length).toFixed(4))));
+      info.regionMask = { size, coverage };
+    }
+  }
+  const done = new Set<object>();
+  for (const m of skinned) {
+    for (const mat of mats(m)) {
+      if (done.has(mat)) continue;
+      done.add(mat);
+      // the eyes (clearcoat) keep their maps; a material without a map is the brows (a flat dark-brown factor)
+      if ((mat as unknown as { clearcoat?: number }).clearcoat) continue;
+      if (!mat.map) {
+        if (/brow/i.test(mat.name) || (mat.color.r < 0.25 && mat.color.g < 0.12)) {
+          mat.color.setRGB(LINK_BROW_COLOR[0], LINK_BROW_COLOR[1], LINK_BROW_COLOR[2]);
+          info.brows = mat.name;
+        }
+        continue;
+      }
+      const tex = mat.map;
+      const img = tex.image as (ImageBitmap | HTMLImageElement | HTMLCanvasElement) | null;
+      if (!img || !img.width || !img.height || done.has(tex)) continue;
+      done.add(tex);
+      const canvas = document.createElement('canvas');
+      canvas.width = img.width;
+      canvas.height = img.height;
+      const c2d = canvas.getContext('2d', { willReadFrequently: true });
+      if (!c2d) continue;
+      c2d.drawImage(img, 0, 0);
+      const id = c2d.getImageData(0, 0, canvas.width, canvas.height);
+      const stats: GradeStats = gradeImage(id.data, canvas.width, canvas.height, LINK_COLOR_GRADE, m === body ? mask : null);
+      c2d.putImageData(id, 0, 0);
+      if ('close' in img && typeof (img as ImageBitmap).close === 'function') (img as ImageBitmap).close();
+      tex.image = canvas;
+      tex.needsUpdate = true;
+      info.maps.push({ material: mat.name, width: canvas.width, height: canvas.height, touched: stats.touched, perEntry: stats.perEntry, meanBefore: stats.meanBefore, meanAfter: stats.meanAfter });
+    }
+  }
+  info.ms = Math.round(performance.now() - t0);
+  return info.maps.length || info.brows ? info : null;
 }
 
 export interface GlbLink extends Puppet {
@@ -1371,6 +1481,8 @@ export async function loadGlbLink(url: string, opts: GlbLinkOptions = {}): Promi
     g.computeBoundingBox();
     if (g.boundingBox) bounds.union(g.boundingBox);
   }
+  // round 50 (npc-3), C01: the reference's tan skin / golden hair / olive tunic on the loaded maps (the GLB is untouched)
+  const colorGrade = gradeLinkMaterials(skinned);
 
   const bone = (name: string): Object3D => {
     const b = model.getObjectByName(name);
@@ -1622,6 +1734,7 @@ export async function loadGlbLink(url: string, opts: GlbLinkOptions = {}): Promi
       R: { heel: Number(footprints.R.fp.heel.toFixed(4)), toe: Number(footprints.R.fp.toe.toFixed(4)), latMin: Number(footprints.R.fp.latMin.toFixed(4)), latMax: Number(footprints.R.fp.latMax.toFixed(4)), soleVertices: footprints.R.soleVertices },
     },
     morphTargets: [...morphNames].sort(),
+    colorGrade,
   };
 
   // the blink (round 8): the schedule and the last pose's closure / weights, for the audit
