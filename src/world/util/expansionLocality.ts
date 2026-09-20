@@ -59,6 +59,21 @@ export function expansionCasters(): Caster[] {
   return out;
 }
 
+/**
+ * The far hut's casters (structures/expansion.ts `far` group): its bark column from `footY`
+ * (the knoll under it) to `topY`, and the hut itself from a metre under its floor to over its
+ * cap. The column's shadow footprint (1.28 m ESE per m of height) is what comes nearest camera
+ * C's west edge — layout.ts `farHutTrunk` explains its height.
+ */
+export function farHutCasters(footY: number, topY: number): Caster[] {
+  const F = EXPANSION.farHut;
+  const T = EXPANSION.farHutTrunk;
+  return [
+    { x: F.host[0], z: F.host[1], r: T.baseRadius + 0.4, y0: footY, y1: topY, shadow: true },
+    { x: F.host[0], z: F.host[1], r: F.radius + 1.6, y0: footY + F.floor - 1.2, y1: footY + F.floor + F.wall + F.capHeight + 0.6, shadow: true },
+  ];
+}
+
 /** the unit vector toward the sun from the config's azimuth (from +Z toward +X) and elevation — lighting/sun.ts's convention */
 export function sunVector(azimuthDeg: number, elevationDeg: number): Vector3 {
   const az = (azimuthDeg * Math.PI) / 180;

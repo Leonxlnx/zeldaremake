@@ -689,16 +689,31 @@ export const EXPANSION = {
   westHouse: { host: [-23, 9] as [number, number], floorY: 3.37, radius: 3.4, wall: 2.6, capHeight: 2.3, facingDeg: 107, doorDeg: -20, deckEnd: [-16.28, 2.95, 6.46] as [number, number, number], pods: 3 },
 
   /**
-   * The far hut in the haze: 54.6 m out at bearing −120° (WNW) on the west-north ledge's 2.3 m
-   * shoulder — "on a rise"; no white-bark within 7 m (take-0121 audit bases). No published seat
-   * stands there, so structures raise a plain bark column for it (`farHutTrunk`) until the trees
-   * lane seats a real column (a COLUMN_SEATS entry at this xz is picked up automatically,
-   * HOST_MATCH_M 1.5). Window and lamps face the plaza (bearing 60°): from Link's spot the lamp is
-   * a warm point 7.5° over the horizon in the W pan, right of the lantern tree's trunk. Beyond the
-   * 45 m detail radius, so no near stream samples its ground.
+   * The far hut in the haze: 53 m out at bearing −50.5° (SW) on the south-west plain, where the
+   * tree line is flat (the SW plaza pan's horizon) — 30 m behind the south bank, 4° right of the
+   * bank's centre, so the SW pan layers bank → Kokiri → hut in the haze, and it stands 2.8° inside
+   * the W pan's right edge. On a rise: `farHutRise` is a live-only knoll under it (heightfield.ts)
+   * — the plain there is 0.2 m; the nearest tree base is 11 m off (take-0121 audit), outside the
+   * knoll. No published seat stands there, so structures raise a plain bark column for it
+   * (`farHutTrunk`) until the trees lane seats a real column (a COLUMN_SEATS entry at this xz is
+   * picked up automatically, HOST_MATCH_M 1.5). Window and lamps face the plaza (bearing 129°).
+   *
+   * Sight line from Link's spot (0, 1.5, 2): the lamp (knoll 1.5 + floor 5.6 + 1.3 = 8.4 m) clears
+   * the west ledge's shoulder at (−8.4, 8.8) (1.5 m ground) by 1.6 m and the bank's lip by 2 m —
+   * gauntlet/tmp/farhut-site.mjs marched it. The first site, (−48, −26) at bearing −120° on the
+   * 2.3 m north-west shoulder, cleared the west ledge at (−9.4, −3.5) by 0.35 m, and the ledge's
+   * shrubs hid the lamp in the W pan.
+   *
+   * The column is SHORT (10.5 m, its crown 0.6 m over the hut's cap) because its sun shadow is
+   * what comes nearest camera C: the tip lands 1.28 m ESE per m of height, at (−30.4, 43.9) —
+   * bearing −32.4° from C, 2.9° outside its west edge (util/expansionLocality.ts tests the same
+   * footprint with 1.4 m spheres, 1.3° at that range); a 13 m column's tip (−27.9, 45.9) sat ON
+   * the edge (−29.4°) and would have put the far group into C's shadow pass.
    */
-  farHut: { host: [-48, -26] as [number, number], floor: 5.6, radius: 1.9, wall: 2.2, capHeight: 1.5, facingDeg: 60, doorDeg: -40, walkwayDeg: 25, pods: 3 },
-  farHutTrunk: { baseRadius: 0.78, topRadius: 0.42, height: 17, lean: [0.06, -0.03] as [number, number], crownY: 12.5 },
+  farHut: { host: [-41, 35.7] as [number, number], floor: 5.6, radius: 1.9, wall: 2.2, capHeight: 1.5, facingDeg: 129, doorDeg: -40, walkwayDeg: 25, pods: 3 },
+  farHutTrunk: { baseRadius: 0.78, topRadius: 0.42, height: 10.5, lean: [0.05, -0.04] as [number, number], crownY: 9.9 },
+  /** the knoll under the far hut (live view only): a rounded rise of `height` m over the plain, flat-topped within `top` m, gone at `radius` m */
+  farHutRise: { radius: 8, top: 1.5, height: 1.4 },
 } as const;
 
 /** the lip frame of `EXPANSION.southBank`: unit vectors along the lip (NW → SE) and down the face (NE, toward the plaza) */

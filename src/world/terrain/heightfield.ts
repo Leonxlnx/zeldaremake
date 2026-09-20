@@ -837,6 +837,14 @@ function macroHeight(x: number, z: number, live = false) {
     }
   }
 
+  // Round 49 (live view only): the knoll under the far hut (`EXPANSION.farHutRise`) — a rounded
+  // rise added to the plain (the detail passes stay on it: it is a grassy hill, not a pad).
+  if (live && x < -30 && z > 25) {
+    const R = EXPANSION.farHutRise;
+    const d = Math.hypot(x - EXPANSION.farHut.host[0], z - EXPANSION.farHut.host[1]);
+    if (d < R.radius) h += R.height * (1 - smoothstep(R.top, R.radius, d)) * cClip(x, z);
+  }
+
   // Stair ramps: keep terrain just under the steps so nothing pokes through.
   let stairW = 0;
   // the house-west flight's flank banks (0..1 on the earth face beside the treads, for the splat)

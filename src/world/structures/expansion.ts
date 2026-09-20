@@ -15,7 +15,7 @@ import { EXPANSION, EXPANSION_ROPE_FENCES } from '../layout';
 import type { WorldContext } from '../system';
 import type { Rng } from '../util/prng';
 import { Noise2D } from '../util/noise';
-import { EXPANSION_VISIBLE_M, casterSpheres, expansionCasters, expansionVisible, frustumMeets, sunVector } from '../util/expansionLocality';
+import { EXPANSION_VISIBLE_M, casterSpheres, expansionCasters, expansionVisible, farHutCasters, frustumMeets, sunVector } from '../util/expansionLocality';
 import { buildDistantHouses, type DistantHouseBuild, type DistantHouseDef } from './distantHouse';
 import { buildFence, type FenceBuild } from './fence';
 import { gridSurface, merge, TAU } from './geometry';
@@ -184,13 +184,7 @@ export function buildExpansion(ctx: WorldContext, mats: StructureMaterials, rng:
   // the far hut and its column as casters of their own (the sun's 46 m orthographic window
   // stretches 75 m along its azimuth on the ground, so the always-drawn far group rode into
   // camera A's shadow pass too: +4 draws / +10 k triangles for a hut 70 m behind it)
-  const F = EXPANSION.farHut;
-  const T = EXPANSION.farHutTrunk;
-  const farCasters = [
-    { x: column.foot.x, z: column.foot.z, r: T.baseRadius + 0.4, y0: column.foot.y, y1: column.top.y, shadow: true },
-    { x: F.host[0], z: F.host[1], r: F.radius + 1.6, y0: column.foot.y + F.floor - 1.2, y1: column.foot.y + F.floor + F.wall + F.capHeight + 0.6, shadow: true },
-  ];
-  const farSpheres: Sphere[] = farCasters.flatMap((c) => casterSpheres(c, sunToward));
+  const farSpheres: Sphere[] = farHutCasters(column.foot.y, column.top.y).flatMap((c) => casterSpheres(c, sunToward));
   const farVisible = (camera: Camera) => frustumMeets(camera, farSpheres);
   return {
     group,

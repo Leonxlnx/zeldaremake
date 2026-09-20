@@ -86,7 +86,7 @@ const fmt = (x, z) => `(${x.toFixed(2)}, ${z.toFixed(2)})`;
     for (let x = -48; x <= 48; x += 0.4) {
       const westOfRay = rayX(z) - x;
       const inBox = x >= EXPANSION_BOX.x0 && x <= EXPANSION_BOX.x1 && z >= EXPANSION_BOX.z0 && z <= EXPANSION_BOX.z1;
-      const farHut = Math.hypot(x - EXPANSION.farHut.host[0], z - EXPANSION.farHut.host[1]) < 6;
+      const farHut = Math.hypot(x - EXPANSION.farHut.host[0], z - EXPANSION.farHut.host[1]) < EXPANSION.farHutRise.radius + 0.6;
       const pinned = westOfRay <= c.margin - 0.35 || (!inBox && !farHut);
       const hl = live.height(x, z);
       const hg = legacy.height(x, z);
@@ -316,17 +316,83 @@ const fmt = (x, z) => `(${x.toFixed(2)}, ${z.toFixed(2)})`;
   assert.ok(EXPANSION.pathWest.some((p) => p[0] === fork[0] && p[2] === fork[2]), 'pathSouth forks off a pathWest node');
 }
 
-// 5. the far hut: 45–60 m out, on a rise, its host clear of every layout giant
+// 5. the far hut: 45–60 m out on the south-west plain, on its live-only knoll, its host clear of
+//    every layout giant, and its lamp in sight of Link's spot over the live terrain
 {
   const F = EXPANSION.farHut;
-  const dist = Math.hypot(F.host[0], F.host[1]);
-  assert.ok(dist >= 45 && dist <= 60, `far hut ${dist.toFixed(1)} m out`);
-  assert.ok(F.host[0] < 0 && F.host[1] < 0, 'north-west of the plaza');
+  const R = EXPANSION.farHutRise;
+  const dist = Math.hypot(F.host[0], F.host[1] - 2);
+  assert.ok(dist >= 45 && dist <= 60, `far hut ${dist.toFixed(1)} m from the plaza centre`);
+  assert.ok(F.host[0] < 0 && F.host[1] > 0, 'south-west of the plaza');
   const h = live.height(F.host[0], F.host[1]);
+  const hg = legacy.height(F.host[0], F.host[1]);
+  near(h - hg, R.height, 0.05, `the knoll raises the column's foot by ${R.height} m (live ${h.toFixed(2)}, legacy ${hg.toFixed(2)})`);
   assert.ok(h > 1.0, `on a rise (${h.toFixed(2)} m)`);
-  assert.equal(h, legacy.height(F.host[0], F.host[1]), 'the rise is the legacy ground (no landform added)');
+  // the knoll is round and gone at its radius
+  for (const a of [0, 1, 2, 3, 4, 5]) {
+    const x = F.host[0] + Math.cos(a) * (R.radius + 0.3);
+    const z = F.host[1] + Math.sin(a) * (R.radius + 0.3);
+    assert.equal(live.height(x, z), legacy.height(x, z), `the plain beyond the knoll (${a}) is the legacy ground`);
+  }
   for (const g of LAYOUT.giantTrees) assert.ok(Math.hypot(g.position[0] - F.host[0], g.position[2] - F.host[1]) > 8, `clear of ${g.id}`);
   assert.ok(hf.surfaceMask(F.host[0], F.host[1], 'live').structure > 0.5, 'live structure under the column');
+  // the window lamp (structures/distantHouse.ts: on the wall at `facingDeg`, 1.3 m over the floor)
+  // is in sight of Link's spot: the ray from (0, 1.5, 2) clears the live ground by ≥ 1.2 m the
+  // whole way (the west ledge's shoulder and the bank's lip are the high points on the line)
+  const facing = (F.facingDeg * Math.PI) / 180;
+  const lamp = [F.host[0] + Math.sin(facing) * (F.radius + 0.3), h + F.floor + 1.3, F.host[1] + Math.cos(facing) * (F.radius + 0.3)];
+  const toPlaza = Math.atan2(0 - F.host[0], 2 - F.host[1]);
+  near(facing, toPlaza, 0.06, 'the window faces the plaza centre');
+  let minClear = Infinity;
+  let at = '';
+  for (let s = 0.03; s < 0.97; s += 0.002) {
+    const x = lamp[0] * s;
+    const z = 2 + (lamp[2] - 2) * s;
+    const y = 1.5 + (lamp[1] - 1.5) * s;
+    const clear = y - live.height(x, z);
+    if (clear < minClear) {
+      minClear = clear;
+      at = fmt(x, z);
+    }
+  }
+  assert.ok(minClear >= 1.2, `the lamp's sight line from Link's spot clears the live ground by ${minClear.toFixed(2)} m (min at ${at})`);
+  // and its column is outside camera C's frame (the same test the fixed frames make of the near content)
+  const C = LAYOUT.viewpoints.find((v) => v.id === 'C_lookback');
+  const bearingFromC = (Math.atan2(F.host[0] - C.position[0], F.host[1] - C.position[2]) * 180) / Math.PI;
+  assert.ok(bearingFromC < -33, `the far hut is ${(-29.52 - bearingFromC).toFixed(1)}° outside camera C's west edge (bearing ${bearingFromC.toFixed(1)}°)`);
+}
+
+// 6. the visibility casters (util/expansionLocality.ts — what structures and hardscape toggle
+//    their expansion groups by): neither the near content's spheres nor the far hut's, sun-shadow
+//    footprints included, meet any fixed camera's frustum (else the group rides into that frame's
+//    shadow pass: draws and triangles change even though nothing of it is in frame), and all of
+//    them do meet the plaza-centre W / SW pans (the acceptance poses)
+{
+  const L = loadTs(path.join(here, '../util/expansionLocality.ts'));
+  const { WORLD } = loadTs(path.join(here, '../config.ts'));
+  const sun = L.sunVector(WORLD.sun.azimuthDeg, WORLD.sun.elevationDeg);
+  const nearSpheres = L.expansionCasters().flatMap((c) => L.casterSpheres(c, sun));
+  const F = EXPANSION.farHut;
+  const footY = live.height(F.host[0], F.host[1]);
+  const farSpheres = L.farHutCasters(footY, footY + EXPANSION.farHutTrunk.height).flatMap((c) => L.casterSpheres(c, sun));
+  const cam = (fov, p, t) => {
+    const c = new THREE.PerspectiveCamera(fov, 1280 / 720, 0.1, 400);
+    c.position.set(...p);
+    c.lookAt(...t);
+    c.updateMatrixWorld(true);
+    c.updateProjectionMatrix();
+    return c;
+  };
+  for (const v of LAYOUT.viewpoints) {
+    const c = cam(v.fov, v.position, v.target);
+    assert.equal(L.frustumMeets(c, nearSpheres), false, `${v.id}: the near content (and its shadow) is outside the frustum`);
+    assert.equal(L.frustumMeets(c, farSpheres), false, `${v.id}: the far hut (and its shadow) is outside the frustum`);
+  }
+  for (const [name, t] of [['W', [-10, 1.5, 2]], ['SW', [-7.07, 1.5, 9.07]]]) {
+    const c = cam(55, [0, 1.5, 2], t);
+    assert.equal(L.expansionVisible(c, nearSpheres), true, `plaza pan ${name} shows the near content`);
+    assert.equal(L.frustumMeets(c, farSpheres), true, `plaza pan ${name} shows the far hut`);
+  }
 }
 
 console.log('expansion2.test.mjs: ok');
