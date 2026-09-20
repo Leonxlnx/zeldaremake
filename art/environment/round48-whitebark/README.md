@@ -41,11 +41,48 @@ loop's 9.0 M line before this branch); this iteration adds 0.017 M. Commit `e3f5
 back inside the lane — the seated-root mesh skips saplings (their 2–5 cm toes lie under the grass)
 and builds young stems' toes with 8 sections — see iteration 2's capture for the net.
 
-## Iteration 2 — the trunk read at 5–20 m (`e3f50cd`, `9ee2c7c`)
+## Iteration 2 — the trunk read at 5–20 m (`e3f50cd`, `9ee2c7c`, `1812a6f`)
 
 GOAL_MODE fable-4 #3 (the owner's "detail at longer range"). Vertex colours and the tile only —
-geometry identical on 10/10 variants, placements unchanged. Per variant, from their own fork: one
-or two broad near-black bands (0.25–0.45 m) and one to three chevron branch scars (0.25–0.45 m,
-widest at the top, tapering to a point below, at 1.2–4.5 m); the tile's tonal zones ± 6 %.
+geometry identical on 10/10 variants (fingerprint), placements unchanged. Per variant, from their
+own fork (`base-47/range-48`, so nothing of round 47 moves): one or two broad near-black bands
+(0.25–0.45 m tall, flat-topped, wandering ± 4–9 cm) and one to three chevron branch scars
+(0.25–0.45 m, widest at the top, tapering to a point below) at 1.2–4.5 m; the tile's tonal zones
+± 6 % (was ± 4 %). Sheets `fable4-r48b-*.jpg`.
 
-_(verdicts and numbers follow in this file when the capture lands)_
+**What the first attempt taught (reported, not hidden):** `e3f50cd` alone rendered as a faint tone
+shift — 0.1–0.6 % of pixels changed at every pose, none strongly — although the vertex colours
+were 42 % darker (profile of variant 7: luminance 0.52 → 0.30 at 2.2 m, 0.57 → 0.28 at 2.9 m).
+The shaded face of a pale trunk is dark in linear terms, so gamma compresses a 42 % linear drop
+into ~20 sRGB levels; the round-47 foot reads darker only because it compounds with the grey
+lower bark. `1812a6f` takes the marks to a quarter of the base level (scars to 0.05) — a birch's
+bands are near-black.
+
+| pose | distance | verdict | what changed |
+| --- | --- | --- | --- |
+| `f4-trunk-2m` (the survey tree, 1.5–3 m of stem) | 2 m | PASS | a broad near-black band across the stem at 2.2 m and the chevron scar under it; 13.8 % of the frame changed, 2.5 % strongly |
+| `f4-trunk-8m` | 8 m | PASS | both bands and the scar read across the upper stem through the haze (centre crop); the neighbouring stems' marks too |
+| `f4-pair-12-20m` | 12 / 20 m | PASS at 12 m, soft at 20 m | the near stem's band is a dark ring at mid-height; on the 20 m stem the band is a darker zone, not a line |
+| `f4-trunk-16m` | 16 m | PASS (soft) | the band survives as a dark zone in a 55 %-hazed stem |
+| `w18-spine-r` (the stems beyond the arch) | 15–25 m | PASS (soft) | the pale poles at the arch's north side carry a dark middle third where before they were uniform |
+| `sn-whitebark-base` | 2 m, 0.3–1.9 m of stem | unchanged by design (6.7 % from the tile's zones) | the marks sit at 1.2–4.5 m; the foot is round 47's |
+
+Six fixed views (settle 6, `3d50f6c` → `1812a6f`, the whole branch): A 0.2199 → 0.2199,
+B 0.2045 → 0.2044, C 0.2397 → 0.2398, D 0.2783 → 0.2784, E 0.2145 → 0.2147, F 0.2606 → 0.2606 —
+all within ± 0.0002; draws 568/526/393/394/526/511 → 568/527/393/394/527/511; triangles
+A 9.086 → 9.064 M, B 8.314 → 8.293, C 7.587 → 7.554, D 8.506 → 8.485, E 8.314 → 8.293,
+F 8.528 → 8.496 (−0.021…−0.032 M on every view: the four clearing trees cost +0.017 M, the
+saplings' toes and the 8-section young toes give back 0.038–0.049 M). W12 163/163 seated,
+determinism 0, console 0 errors, anti-cheat green (87 checks), `roof.test.mjs` ok, typecheck +
+build green. **Camera A stays over the loop's 9.0 M line by 0.064 M — the head's excess, not this
+branch's; the branch lowers it.**
+
+## Known limits / handoffs
+- The bands are soft at 16–25 m: the vertex colour is interpolated over 18 sides × 0.18–0.35 m
+  rings, so a band's edge is a gradient, not a cut. Crisp edges at that range need a texture
+  octave (a second, larger-scale band layer in the tile) — a candidate for the next iteration.
+- Crowns from below (GOAL_MODE #2 / opus #05 at F) still need the material's fill terms scaled by
+  `vLeafShade` (INBOX 11:35, `materials.ts`, trees-30).
+- Seen while rendering, not mine: at `x-clearing-n` a pale arc hovers in mid-air in the haze
+  (x 0.40–0.53, y 0.37–0.42; in BEFORE and AFTER alike) — it looks like a far-forest trunk's root
+  arc whose trunk the haze has taken; for distant-1 / trees-31 to look at.

@@ -4,7 +4,7 @@ runtime: Cursor Cloud Agent (Claude Fable 5.1)
 github: Cursor Agent <cursoragent@cursor.com>
 status: active
 branch: agent/fable-4-r48
-updated: 2026-09-20T01:40:00Z
+updated: 2026-09-20T03:05:00Z
 ---
 
 # fable-4 — work log
@@ -21,8 +21,12 @@ the owner merge and seal — I do not merge, do not touch `gauntlet/ledger.json`
 `art/environment/round48-whitebark/README.md`.
 - Iteration 1 (done): four young white-barks on the north clearing's banks (GOAL_MODE #1 / the
   round-47 handoff) — `a0f55cd` + hook `f9b6c32`.
-- Iteration 2 (capturing): the trunk read at 5–20 m — broad near-black bands + chevron branch
-  scars per variant, tonal zones ± 6 % (GOAL_MODE #3) — `e3f50cd`, `9ee2c7c`.
+- Iteration 2 (done): the trunk read at 5–20 m — broad near-black bands + chevron branch scars
+  per variant, tonal zones ± 6 % (GOAL_MODE #3) — `e3f50cd`, `9ee2c7c`, `1812a6f`. PASS at 2/8 m,
+  soft at 16–25 m; the first cut was a FAIL by the rule (gamma ate a 42 % linear drop) and is
+  reported as such in the README.
+- Next: a texture octave for crisp band edges at 16–25 m; GOAL_MODE #2 once the material's fill
+  terms scale by `vLeafShade` (trees-30/31).
 - Blocked: PR creation for this identity ("must be a collaborator", twice); reported in the INBOX;
   fable-cursor merges from the branch; retried every iteration.
 
@@ -118,4 +122,4 @@ nearCanopy, materials, index otherwise) is edited.
   soft at 0.5 m).
 
 ## Last updated
-2026-09-20T01:40:00Z
+2026-09-20T03:05:00Z
