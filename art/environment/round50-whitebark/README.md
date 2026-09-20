@@ -61,3 +61,29 @@ leaves the table inert. Position, yaw, scale, the asset, the sampler and every o
 Six views vs the taper state: **C 0.2380 → 0.2373** (−0.0007; still **+0.0014 over the seal's 0.2359**),
 A/B/D/E/F pixel-identical (0.00 % of pixels); draws and triangles identical. Whole branch vs the seal:
 A =, B −0.0002, C +0.0014, D +0.0005, E +0.0001, F =.
+
+## W08's "a bough that shows" at C (same branch, third commit)
+
+fable-5 on take-0123: the low bough "sits half under the item HUD". Two causes at frame C, both measured:
+the mature main bough left the stem at 22–34 % (its lobe at 3.5–6 m — the HUD hides the stem above ≈ 5 m,
+and the giant's lantern limb crosses it at 4–4.5 m); and at 22.7 m the survey stem is the MEDIUM mesh, which
+kept one leaf in 6 at 2.2 × — a 150-lamina lobe thinned to 25 read as a few flat cards floating beside the
+stem (`fable4-r50-bough-C-lobe-sparse-medium-lod.png`, right panel, at 15–25 %).
+
+- Mature main bough at **12–17 %** of the stem (1.55–2.2 m; lobe centre 2.3–3.6 m, underside ≥ 1.8 m): below
+  the limb, against the haze. Young stems keep 22–34 % (a walker's head by the clearing's paths). Same draw.
+- The low boughs' lobes keep **one leaf in 2 / 4 at 1.3 / 2.0 ×** on the medium / low meshes (crown roof
+  unchanged at 1 in 6 / 12): the same covered area, four times the laminae. `boughSpray` flag around
+  `foliateLobe` in `lowerLimb`; retention is by leaf ordinal, so no stream moves and the high mesh is
+  byte-identical in triangle count (the mature hashes differ only by the bough's new height).
+
+Verified: placement replica 80/80 identical, infos identical (the lobe's horizontal reach is unchanged).
+
+| pose | read |
+| --- | --- |
+| C's lobe, 2× (`fable4-r50-bough-C-lobe-2x.png`: tilt state → bough) | a foliage lobe with its twig below the lantern limb, left of the stem — a bough that shows |
+| `f4-trunk-8m` (`fable4-r50-bough-f4-trunk-8m.png`) | the main bough at eye level plus a little, in front of the house |
+
+Six views vs the tilt state: C 0.2373 =, E −0.0001, A/B/D/F identical; triangles C 6.96 → 7.00 M, D 8.01 →
+8.02, B/E 7.78 → 7.79, F 7.94 → 7.96, **A 8.62 M =**; draws identical. Whole branch vs the seal (take-0123):
+**A =, B −0.0002, C +0.0014, D +0.0005, E 0, F =**; draws 566/522/407/396/522/507.

@@ -438,6 +438,16 @@ export function createWhiteBarkTree(p: WhiteBarkParams, palette: Palette, detail
   }
 
   // ---------- leaf sprays ----------
+  /**
+   * Round 50 (W08 at C, "a bough that shows"): true while a low bough's lobe is foliated. The crown's
+   * distance meshes keep one leaf in 6 / 12 at 2.2 / 3.2 × — the right trade for a roof seen at
+   * 20–44 m, but a low bough's lobe (≈ 150 laminae) thinned to 25 at 22 m read as a few flat cards
+   * floating beside the survey stem. The low boughs — the part of the tree at a walker's eye and in
+   * frame C — keep one in 2 / 4 at 1.3 / 2.0 × (the same covered area, scale² / every ≈ 0.85–1.0);
+   * ≈ +100 laminae per mature medium instance. Retention is by leaf ordinal (writer.ts addLeaf), so
+   * the stream and the high mesh are untouched.
+   */
+  let boughSpray = false;
   const leafOpts = (radius: number) => ({
     widthRatio: 0.69,
     wideFirst: 1,
@@ -446,10 +456,10 @@ export function createWhiteBarkTree(p: WhiteBarkParams, palette: Palette, detail
     flutter: 0.016,
     // round 49 (W38): the distance meshes keep one leaf in 6 / 12 (was 5 / 10) at the size that
     // holds the same covered area (scale² / every ≈ 0.8) — 4–10 px laminae at 20–44 m either way
-    mediumEvery: 6,
-    mediumScale: 2.19,
-    lowEvery: 12,
-    lowScale: 3.18,
+    mediumEvery: boughSpray ? 2 : 6,
+    mediumScale: boughSpray ? 1.3 : 2.19,
+    lowEvery: boughSpray ? 4 : 12,
+    lowScale: boughSpray ? 2.0 : 3.18,
   });
 
   /** lobe context for interior shading: leaves deep inside a lobe are darker (self-shadowed) */
@@ -650,10 +660,14 @@ export function createWhiteBarkTree(p: WhiteBarkParams, palette: Palette, detail
   // a walker's eye line at 2–7 m. Built after the crown, so the crown's stream is untouched.
   for (let i = 0; i < p.lowerLimbs; i++) {
     const main = i === 0;
-    // the main bough leaves the stem at 22–34 % of the height (2.8–4.4 m on a mature stem, so its
-    // lobe sits at 3.5–6 m — inside camera C's frame under the HUD, and at eye level plus a little
-    // for a walker); the second, where drawn, at 30–42 %
-    const t = main ? bt(0.22, 0.34) : bt(0.3, 0.42);
+    // the main bough leaves a MATURE stem at 12–17 % of the height (1.55–2.2 m on the survey stem, its
+    // lobe centred at 2.3–3.6 m): camera C's item HUD hides the stem above ≈ 5 m there and the giant's
+    // lantern limb crosses it at 4–4.5 m, so at 22–34 % the lobe sat half under the HUD (fable-5 on
+    // take-0123, "a bough that shows") and at 15–25 % behind the limb; below the limb it reads against
+    // the haze. The lobe's underside stays ≥ 1.8 m over the ground. A young stem keeps 22–34 %
+    // (1.5–3.4 m: lower and its leaves would brush a walker's head by the clearing's paths); the second,
+    // where drawn, at 30–42 %. The same draw either way; the lobe's reach is unchanged.
+    const t = main ? (p.age === 'mature' ? bt(0.12, 0.17) : bt(0.22, 0.34)) : bt(0.3, 0.42);
     const origin = sample(trunk, t);
     const angle = p.leanAzimuth + 1.9 + i * 2.5 + bt(-0.55, 0.55);
     const reach = crownRadius * (main ? bt(0.45, 0.7) : bt(0.35, 0.58));
@@ -663,8 +677,10 @@ export function createWhiteBarkTree(p: WhiteBarkParams, palette: Palette, detail
     tube(wood, path, taper(path, radius, 0.004), 6, rng, { color: branchColor(radius), roughness: p.ridge * 0.5 });
     // the main bough: a 1.7 m lobe in a few big tufts (W38: ≈ +2 K high-LOD triangles a stem);
     // the second, where drawn, the old small tuft
+    boughSpray = true;
     if (main) foliateLobe(path, center, crownRadius * 0.3, H * 0.075, radius, 2, 3, 4);
     else foliateLobe(path, center, crownRadius * 0.17, H * 0.04, radius, 2, 3, 4);
+    boughSpray = false;
   }
 
   // ---------- epicormic shoots through the trunk surface (detail near the eye) ----------
