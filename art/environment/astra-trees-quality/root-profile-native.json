@@ -1,0 +1,379 @@
+{
+  "before": "0645b7d3c94eaff60eec626e40038e43c0d1d4ed",
+  "after": "0db1590944c2f0372f59bcfd46c654b8ce3654d1",
+  "matchedCameraTimeLighting": true,
+  "output": [
+    {
+      "view": "A_stairs",
+      "pngByteIdentical": false,
+      "triangleDelta": 9688,
+      "callsDelta": 0,
+      "regions": [
+        {
+          "box": [
+            0,
+            0,
+            1280,
+            720
+          ],
+          "RGB_MAD": 0.000046296296296296294,
+          "changedPixels": 28,
+          "maxDelta": 15,
+          "changedBounds": [
+            93,
+            337,
+            161,
+            385
+          ]
+        }
+      ]
+    },
+    {
+      "view": "C_lookback",
+      "pngByteIdentical": false,
+      "triangleDelta": 9688,
+      "callsDelta": 0,
+      "regions": [
+        {
+          "box": [
+            0,
+            0,
+            1280,
+            720
+          ],
+          "RGB_MAD": 0.12001916956018518,
+          "changedPixels": 16695,
+          "maxDelta": 90,
+          "changedBounds": [
+            311,
+            271,
+            1069,
+            459
+          ]
+        }
+      ]
+    },
+    {
+      "view": "F_canopy",
+      "pngByteIdentical": false,
+      "triangleDelta": 9688,
+      "callsDelta": 0,
+      "regions": [
+        {
+          "box": [
+            0,
+            0,
+            1280,
+            720
+          ],
+          "RGB_MAD": 0.010877821180555556,
+          "changedPixels": 2301,
+          "maxDelta": 88,
+          "changedBounds": [
+            1063,
+            236,
+            1251,
+            457
+          ]
+        }
+      ]
+    },
+    {
+      "view": "sn-bole-lantern-tree",
+      "pngByteIdentical": true,
+      "triangleDelta": 9688,
+      "callsDelta": 0,
+      "regions": [
+        {
+          "box": [
+            0,
+            0,
+            1280,
+            720
+          ],
+          "RGB_MAD": 0,
+          "changedPixels": 0,
+          "maxDelta": 0,
+          "changedBounds": null
+        }
+      ]
+    },
+    {
+      "view": "sn-bole-nw-near",
+      "pngByteIdentical": false,
+      "triangleDelta": 9688,
+      "callsDelta": 0,
+      "regions": [
+        {
+          "box": [
+            0,
+            0,
+            1280,
+            720
+          ],
+          "RGB_MAD": 0.0000010850694444444444,
+          "changedPixels": 3,
+          "maxDelta": 1,
+          "changedBounds": [
+            429,
+            69,
+            1186,
+            190
+          ]
+        }
+      ]
+    },
+    {
+      "view": "sn-bole-stair-bank",
+      "pngByteIdentical": true,
+      "triangleDelta": 9688,
+      "callsDelta": 0,
+      "regions": [
+        {
+          "box": [
+            0,
+            0,
+            1280,
+            720
+          ],
+          "RGB_MAD": 0,
+          "changedPixels": 0,
+          "maxDelta": 0,
+          "changedBounds": null
+        }
+      ]
+    },
+    {
+      "view": "bole-reset-lantern-ese-in-11p85m",
+      "pngByteIdentical": false,
+      "triangleDelta": 9688,
+      "callsDelta": 0,
+      "regions": [
+        {
+          "box": [
+            0,
+            0,
+            1280,
+            720
+          ],
+          "RGB_MAD": 0.05093352141203704,
+          "changedPixels": 11707,
+          "maxDelta": 66,
+          "changedBounds": [
+            939,
+            147,
+            1279,
+            719
+          ]
+        },
+        {
+          "box": [
+            470,
+            140,
+            410,
+            500
+          ],
+          "RGB_MAD": 0,
+          "changedPixels": 0,
+          "maxDelta": 0,
+          "changedBounds": null
+        },
+        {
+          "box": [
+            520,
+            325,
+            345,
+            300
+          ],
+          "RGB_MAD": 0,
+          "changedPixels": 0,
+          "maxDelta": 0,
+          "changedBounds": null
+        }
+      ]
+    },
+    {
+      "view": "bole-reset-lantern-ese-out-12p15m",
+      "pngByteIdentical": false,
+      "triangleDelta": 9688,
+      "callsDelta": 0,
+      "regions": [
+        {
+          "box": [
+            0,
+            0,
+            1280,
+            720
+          ],
+          "RGB_MAD": 2.003840422453704,
+          "changedPixels": 150028,
+          "maxDelta": 96,
+          "changedBounds": [
+            290,
+            284,
+            1279,
+            719
+          ]
+        }
+      ]
+    },
+    {
+      "view": "bole-reset-nw-east-in-9p85m",
+      "pngByteIdentical": false,
+      "triangleDelta": 9688,
+      "callsDelta": 0,
+      "regions": [
+        {
+          "box": [
+            0,
+            0,
+            1280,
+            720
+          ],
+          "RGB_MAD": 0.7361176215277778,
+          "changedPixels": 69089,
+          "maxDelta": 73,
+          "changedBounds": [
+            4,
+            197,
+            580,
+            545
+          ]
+        },
+        {
+          "box": [
+            550,
+            125,
+            250,
+            390
+          ],
+          "RGB_MAD": 0.07780512820512821,
+          "changedPixels": 590,
+          "maxDelta": 73,
+          "changedBounds": [
+            550,
+            311,
+            580,
+            363
+          ]
+        },
+        {
+          "box": [
+            565,
+            400,
+            255,
+            140
+          ],
+          "RGB_MAD": 0,
+          "changedPixels": 0,
+          "maxDelta": 0,
+          "changedBounds": null
+        }
+      ]
+    },
+    {
+      "view": "bole-reset-nw-east-out-10p15m",
+      "pngByteIdentical": false,
+      "triangleDelta": 9688,
+      "callsDelta": 0,
+      "regions": [
+        {
+          "box": [
+            0,
+            0,
+            1280,
+            720
+          ],
+          "RGB_MAD": 1.0805913628472221,
+          "changedPixels": 109690,
+          "maxDelta": 104,
+          "changedBounds": [
+            6,
+            202,
+            923,
+            717
+          ]
+        }
+      ]
+    },
+    {
+      "view": "bole-reset-stairbank-west-in-11p85m",
+      "pngByteIdentical": false,
+      "triangleDelta": 9688,
+      "callsDelta": 0,
+      "regions": [
+        {
+          "box": [
+            0,
+            0,
+            1280,
+            720
+          ],
+          "RGB_MAD": 0.12586299189814815,
+          "changedPixels": 8710,
+          "maxDelta": 71,
+          "changedBounds": [
+            492,
+            195,
+            1279,
+            593
+          ]
+        },
+        {
+          "box": [
+            545,
+            145,
+            195,
+            390
+          ],
+          "RGB_MAD": 0.00019285557747096208,
+          "changedPixels": 34,
+          "maxDelta": 3,
+          "changedBounds": [
+            545,
+            240,
+            614,
+            357
+          ]
+        },
+        {
+          "box": [
+            550,
+            400,
+            210,
+            140
+          ],
+          "RGB_MAD": 0,
+          "changedPixels": 0,
+          "maxDelta": 0,
+          "changedBounds": null
+        }
+      ]
+    },
+    {
+      "view": "bole-reset-stairbank-west-out-12p15m",
+      "pngByteIdentical": false,
+      "triangleDelta": 9688,
+      "callsDelta": 0,
+      "regions": [
+        {
+          "box": [
+            0,
+            0,
+            1280,
+            720
+          ],
+          "RGB_MAD": 0.25435655381944444,
+          "changedPixels": 23409,
+          "maxDelta": 82,
+          "changedBounds": [
+            443,
+            200,
+            1279,
+            588
+          ]
+        }
+      ]
+    }
+  ]
+}

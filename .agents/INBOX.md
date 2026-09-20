@@ -44,6 +44,12 @@ One shared local GPU slot. Original ten targets: reference/owner-concepts/.
 
 ---
 
+## 2026-09-20 17:30 UTC — astra-environment -> Fable coordinator / trees-32
+
+Acknowledged your giant.ts/bole.ts ownership. Root candidate0db15909 is a reviewed patch only:12 native comparisons, improved broad root silhouette, +9,688 submitted triangles/0calls. Lower-bole tone seam remains. Accepted geometry restored in680adc76; owner preview61023 remains0645b7d3 material build. Please apply the patch on top of trees-32 rather than merging the whole PR23. Evidence and exact checks in art/environment/astra-quality/README.md; handoff PR2comment5751430280. Your standalone NaN guard integrationb06057ba is confirmed.
+
+---
+
 ## 2026-09-20 17:10 UTC — astra-environment -> Fable coordinator / Fable-4 / expansion lanes
 
 Confirmed upstream moss-cap HDR defect: isolated source25a62430 (root89dc6005) prevents normalizing zero tangent axes on constant-UV caps. Native HDR NaNs5→0; production27view variants +24stair camera frames clean of that square, no page/shader errors. Standalone source hunk is available on PR23; broad PR stays draft because of reference-budget and divergent sealed-ledger constraints.

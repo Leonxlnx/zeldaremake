@@ -1,0 +1,112 @@
+{
+  "baseline": "0645b7d3",
+  "rows": [
+    {
+      "id": "lantern-tree",
+      "roots": 8,
+      "oldRootTris": 1840,
+      "newRootTris": 2208,
+      "triangleDelta": 368,
+      "byteDelta": 33072
+    },
+    {
+      "id": "plateau-oak",
+      "roots": 7,
+      "oldRootTris": 1610,
+      "newRootTris": 1992,
+      "triangleDelta": 382,
+      "byteDelta": 32808
+    },
+    {
+      "id": "southwest-giant",
+      "roots": 8,
+      "oldRootTris": 1840,
+      "newRootTris": 2256,
+      "triangleDelta": 416,
+      "byteDelta": 36168
+    },
+    {
+      "id": "east-giant",
+      "roots": 6,
+      "oldRootTris": 1380,
+      "newRootTris": 1728,
+      "triangleDelta": 348,
+      "byteDelta": 27360
+    },
+    {
+      "id": "north-west",
+      "roots": 7,
+      "oldRootTris": 1610,
+      "newRootTris": 2088,
+      "triangleDelta": 478,
+      "byteDelta": 36132
+    },
+    {
+      "id": "north-east",
+      "roots": 6,
+      "oldRootTris": 1380,
+      "newRootTris": 1680,
+      "triangleDelta": 300,
+      "byteDelta": 24552
+    },
+    {
+      "id": "far-plateau",
+      "roots": 6,
+      "oldRootTris": 1380,
+      "newRootTris": 1632,
+      "triangleDelta": 252,
+      "byteDelta": 21744
+    },
+    {
+      "id": "south-giant",
+      "roots": 8,
+      "oldRootTris": 1840,
+      "newRootTris": 2352,
+      "triangleDelta": 512,
+      "byteDelta": 42360
+    },
+    {
+      "id": "south-centre",
+      "roots": 8,
+      "oldRootTris": 1840,
+      "newRootTris": 2304,
+      "triangleDelta": 464,
+      "byteDelta": 39264
+    },
+    {
+      "id": "plaza-south",
+      "roots": 6,
+      "oldRootTris": 1380,
+      "newRootTris": 1728,
+      "triangleDelta": 348,
+      "byteDelta": 27360
+    },
+    {
+      "id": "north-west-near",
+      "roots": 8,
+      "oldRootTris": 1840,
+      "newRootTris": 2352,
+      "triangleDelta": 512,
+      "byteDelta": 42360
+    },
+    {
+      "id": "stair-bank-giant",
+      "roots": 8,
+      "oldRootTris": 1840,
+      "newRootTris": 2304,
+      "triangleDelta": 464,
+      "byteDelta": 36480
+    }
+  ],
+  "totals": {
+    "roots": 86,
+    "addedTriangles": 4844,
+    "addedBytes": 399660,
+    "addedDraws": 0
+  },
+  "sameGeometries": 48,
+  "sameNearParts": 350,
+  "commonFinVertices": 4816,
+  "toeContacts": 212,
+  "nativeBoundaryReviewRequired": true
+}

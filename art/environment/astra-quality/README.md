@@ -12,7 +12,20 @@ Latest reviewed source **0645b7d3**, [local preview](http://127.0.0.1:61023/?mod
 
 Fixed-mask native crown interiors A/C/F move from78–79° green toward67.5/66/66° olive; decoded screenshot brightness shifts by less than0.3%. The distant controls both improve77.1→69.5°, with about1.1% lower decoded brightness after display processing. Blue-sky median hue/saturation/lightness stays exact. This is a modest material improvement, not full reference parity: mixed vegetation bands remain greener, large crown shapes and root transitions need work. Reference SSIM changes from the neutral variant by0 to−.0001; combined deficits versus97c83227 remain up to−.0116. PR remains draft; no new formal take or FPS claim.
 
-CPU leaf contracts3/3, moss-domain15degenerate/384ordinary cases, typecheck/build passed. [Detailed hue evaluation](../astra-trees-quality/tree-hue-review.md), [midpoint measurements](../astra-trees-quality/tree-hue-midpoint.json), [raw NaN cause and guard proof](moss-normal-study/README.md). The final archive retains24variant images and3diagnostic walk frames; full24-frame local sequence remains in ../../2026-09-20T17-06-07-764Z-daylight.
+CPU leaf contracts3/3, moss-domain15degenerate/384ordinary cases, typecheck/build passed. [Detailed hue evaluation](../astra-trees-quality/tree-hue-review.md), [midpoint measurements](../astra-trees-quality/tree-hue-midpoint.json), [raw NaN cause and guard proof](moss-normal-study/README.md). The final archive retains24variant images and3diagnostic walk frames; full24-frame local sequence remains in ../2026-09-20T17-06-07-764Z-daylight.
+
+## Root-profile patch — held for Fable trees-32
+
+Candidate **0db15909** replaces only the far giant root tubes with coarse versions of the existing broad fins and split toes. Twelve matched native views against0645b7d3 completed with no page/shader errors. Added submitted triangles are9,688 in these views, with no added draw calls (4,844 extra source triangles rendered in colour/shadow passes); A8,751,314/571. C reference SSIM improves+.0029, Aunchanged at4decimals, F−.0001.
+
+| Just beyond near-root range | Previous tubes | Shared coarse root profile |
+|---|---|---|
+| Lantern tree,12.15m | ![Old lantern roots](before-roots/bole-reset-lantern-ese-out-12p15m.png) | ![Coarse lantern fins](root-profile-study/bole-reset-lantern-ese-out-12p15m.png) |
+| Northwest tree,10.15m | ![Old northwest roots](before-roots/bole-reset-nw-east-out-10p15m.png) | ![Coarse northwest fins](root-profile-study/bole-reset-nw-east-out-10p15m.png) |
+
+The wider root silhouette is visibly retained, but the lower-bole material/relief switch and collar seam remain. Near geometry is CPU-byte-identical; the close lantern/stair-bank PNGs are also exact. Other boundary images change because their frames include coarse roots/shadows, so no blanket near-image invariance claim. [Exact comparisons](root-profile-comparison.json), [CPU geometry proof](root-profile-cpu.json). Reproduce CPU proof with `node art/environment/astra-distance/root-profile-check.mjs 0645b7d3 0db15909`.
+
+Fable47ce1295 reports active trees-32 ownership ofgiant.ts/bole.ts. This remains a standalone patch for that owner to apply on top; **680adc76 restores the accepted geometry**, and preview61023 is unchanged. No lower-trunk splice, material change or larger detail radius is part of this patch.
 
 ## Prior combined geometry review
 

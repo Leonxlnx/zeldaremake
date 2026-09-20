@@ -106,7 +106,7 @@ for (const view of [...Object.keys(boxes), ...optionalViews]) {
   const variants = entries.map(([key, meta]) => {
     const uniforms = meta.variant?.uniforms ?? {};
     assert.ok(Object.keys(uniforms).every(k => k === 'uTreeLeafWarmth'), key + ': unrelated uniform override');
-    assert.ok(baselineOnly || Object.hasOwn(uniforms, 'uTreeLeafWarmth'), key + ': explicit override required; candidate default is .35');
+    assert.ok(baselineOnly || Object.hasOwn(uniforms, 'uTreeLeafWarmth'), key + ': explicit override required; do not infer zero from the production default');
     return { key, meta, warmth: uniforms.uTreeLeafWarmth ?? null };
   }).sort((a, b) => a.warmth - b.warmth);
   const selected = baselineOnly ? variants.filter(v => v.warmth === 0 || v.warmth === null) : variants;

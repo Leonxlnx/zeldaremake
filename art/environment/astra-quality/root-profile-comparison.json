@@ -1,0 +1,360 @@
+{
+  "beforeSha": "0645b7d3c94eaff60eec626e40038e43c0d1d4ed",
+  "afterSha": "0db1590944c2f0372f59bcfd46c654b8ce3654d1",
+  "matchedViews": 12,
+  "note": "Combined changes. Fixed time12.6 daylight survey, not an official take.",
+  "unmatchedAfterViews": [],
+  "views": {
+    "A_stairs": {
+      "before": {
+        "simTime": 12.6,
+        "drawCalls": 571,
+        "triangles": 8741626,
+        "geometries": 385,
+        "textures": 95,
+        "programs": 104,
+        "width": 1280,
+        "height": 720,
+        "pixelRatio": 1
+      },
+      "after": {
+        "simTime": 12.6,
+        "drawCalls": 571,
+        "triangles": 8751314,
+        "geometries": 385,
+        "textures": 95,
+        "programs": 104,
+        "width": 1280,
+        "height": 720,
+        "pixelRatio": 1
+      },
+      "pngIdentical": false,
+      "trianglesDelta": 9688,
+      "callsDelta": 0,
+      "changedPixelFraction": 0,
+      "referenceSSIM": {
+        "before": 0.201,
+        "after": 0.201,
+        "delta": 0
+      }
+    },
+    "C_lookback": {
+      "before": {
+        "simTime": 12.6,
+        "drawCalls": 412,
+        "triangles": 7084263,
+        "geometries": 426,
+        "textures": 95,
+        "programs": 104,
+        "width": 1280,
+        "height": 720,
+        "pixelRatio": 1
+      },
+      "after": {
+        "simTime": 12.6,
+        "drawCalls": 412,
+        "triangles": 7093951,
+        "geometries": 426,
+        "textures": 95,
+        "programs": 104,
+        "width": 1280,
+        "height": 720,
+        "pixelRatio": 1
+      },
+      "pngIdentical": false,
+      "trianglesDelta": 9688,
+      "callsDelta": 0,
+      "changedPixelFraction": 0.00758,
+      "referenceSSIM": {
+        "before": 0.2169,
+        "after": 0.2198,
+        "delta": 0.0029
+      }
+    },
+    "F_canopy": {
+      "before": {
+        "simTime": 12.6,
+        "drawCalls": 512,
+        "triangles": 8069040,
+        "geometries": 432,
+        "textures": 95,
+        "programs": 104,
+        "width": 1280,
+        "height": 720,
+        "pixelRatio": 1
+      },
+      "after": {
+        "simTime": 12.6,
+        "drawCalls": 512,
+        "triangles": 8078728,
+        "geometries": 432,
+        "textures": 95,
+        "programs": 104,
+        "width": 1280,
+        "height": 720,
+        "pixelRatio": 1
+      },
+      "pngIdentical": false,
+      "trianglesDelta": 9688,
+      "callsDelta": 0,
+      "changedPixelFraction": 0.00061,
+      "referenceSSIM": {
+        "before": 0.2353,
+        "after": 0.2352,
+        "delta": -0.0001
+      }
+    },
+    "sn-bole-lantern-tree": {
+      "before": {
+        "simTime": 12.6,
+        "drawCalls": 256,
+        "triangles": 5093535,
+        "geometries": 487,
+        "textures": 95,
+        "programs": 147,
+        "width": 1280,
+        "height": 720,
+        "pixelRatio": 1
+      },
+      "after": {
+        "simTime": 12.6,
+        "drawCalls": 256,
+        "triangles": 5103223,
+        "geometries": 487,
+        "textures": 95,
+        "programs": 147,
+        "width": 1280,
+        "height": 720,
+        "pixelRatio": 1
+      },
+      "pngIdentical": true,
+      "trianglesDelta": 9688,
+      "callsDelta": 0,
+      "changedPixelFraction": 0
+    },
+    "sn-bole-nw-near": {
+      "before": {
+        "simTime": 12.6,
+        "drawCalls": 290,
+        "triangles": 6000176,
+        "geometries": 503,
+        "textures": 95,
+        "programs": 149,
+        "width": 1280,
+        "height": 720,
+        "pixelRatio": 1
+      },
+      "after": {
+        "simTime": 12.6,
+        "drawCalls": 290,
+        "triangles": 6009864,
+        "geometries": 503,
+        "textures": 95,
+        "programs": 149,
+        "width": 1280,
+        "height": 720,
+        "pixelRatio": 1
+      },
+      "pngIdentical": false,
+      "trianglesDelta": 9688,
+      "callsDelta": 0,
+      "changedPixelFraction": 0
+    },
+    "sn-bole-stair-bank": {
+      "before": {
+        "simTime": 12.6,
+        "drawCalls": 433,
+        "triangles": 8677288,
+        "geometries": 558,
+        "textures": 95,
+        "programs": 154,
+        "width": 1280,
+        "height": 720,
+        "pixelRatio": 1
+      },
+      "after": {
+        "simTime": 12.6,
+        "drawCalls": 433,
+        "triangles": 8686976,
+        "geometries": 558,
+        "textures": 95,
+        "programs": 154,
+        "width": 1280,
+        "height": 720,
+        "pixelRatio": 1
+      },
+      "pngIdentical": true,
+      "trianglesDelta": 9688,
+      "callsDelta": 0,
+      "changedPixelFraction": 0
+    },
+    "bole-reset-lantern-ese-in-11p85m": {
+      "before": {
+        "simTime": 12.6,
+        "drawCalls": 318,
+        "triangles": 5654254,
+        "geometries": 570,
+        "textures": 95,
+        "programs": 156,
+        "width": 1280,
+        "height": 720,
+        "pixelRatio": 1
+      },
+      "after": {
+        "simTime": 12.6,
+        "drawCalls": 318,
+        "triangles": 5663942,
+        "geometries": 570,
+        "textures": 95,
+        "programs": 156,
+        "width": 1280,
+        "height": 720,
+        "pixelRatio": 1
+      },
+      "pngIdentical": false,
+      "trianglesDelta": 9688,
+      "callsDelta": 0,
+      "changedPixelFraction": 0.00243
+    },
+    "bole-reset-lantern-ese-out-12p15m": {
+      "before": {
+        "simTime": 12.6,
+        "drawCalls": 315,
+        "triangles": 5572514,
+        "geometries": 571,
+        "textures": 95,
+        "programs": 156,
+        "width": 1280,
+        "height": 720,
+        "pixelRatio": 1
+      },
+      "after": {
+        "simTime": 12.6,
+        "drawCalls": 315,
+        "triangles": 5582202,
+        "geometries": 571,
+        "textures": 95,
+        "programs": 156,
+        "width": 1280,
+        "height": 720,
+        "pixelRatio": 1
+      },
+      "pngIdentical": false,
+      "trianglesDelta": 9688,
+      "callsDelta": 0,
+      "changedPixelFraction": 0.08254
+    },
+    "bole-reset-nw-east-in-9p85m": {
+      "before": {
+        "simTime": 12.6,
+        "drawCalls": 328,
+        "triangles": 7205902,
+        "geometries": 579,
+        "textures": 95,
+        "programs": 156,
+        "width": 1280,
+        "height": 720,
+        "pixelRatio": 1
+      },
+      "after": {
+        "simTime": 12.6,
+        "drawCalls": 328,
+        "triangles": 7215590,
+        "geometries": 579,
+        "textures": 95,
+        "programs": 156,
+        "width": 1280,
+        "height": 720,
+        "pixelRatio": 1
+      },
+      "pngIdentical": false,
+      "trianglesDelta": 9688,
+      "callsDelta": 0,
+      "changedPixelFraction": 0.03529
+    },
+    "bole-reset-nw-east-out-10p15m": {
+      "before": {
+        "simTime": 12.6,
+        "drawCalls": 325,
+        "triangles": 7233492,
+        "geometries": 579,
+        "textures": 95,
+        "programs": 156,
+        "width": 1280,
+        "height": 720,
+        "pixelRatio": 1
+      },
+      "after": {
+        "simTime": 12.6,
+        "drawCalls": 325,
+        "triangles": 7243180,
+        "geometries": 579,
+        "textures": 95,
+        "programs": 156,
+        "width": 1280,
+        "height": 720,
+        "pixelRatio": 1
+      },
+      "pngIdentical": false,
+      "trianglesDelta": 9688,
+      "callsDelta": 0,
+      "changedPixelFraction": 0.05074
+    },
+    "bole-reset-stairbank-west-in-11p85m": {
+      "before": {
+        "simTime": 12.6,
+        "drawCalls": 436,
+        "triangles": 7408476,
+        "geometries": 589,
+        "textures": 95,
+        "programs": 156,
+        "width": 1280,
+        "height": 720,
+        "pixelRatio": 1
+      },
+      "after": {
+        "simTime": 12.6,
+        "drawCalls": 436,
+        "triangles": 7418164,
+        "geometries": 589,
+        "textures": 95,
+        "programs": 156,
+        "width": 1280,
+        "height": 720,
+        "pixelRatio": 1
+      },
+      "pngIdentical": false,
+      "trianglesDelta": 9688,
+      "callsDelta": 0,
+      "changedPixelFraction": 0.00519
+    },
+    "bole-reset-stairbank-west-out-12p15m": {
+      "before": {
+        "simTime": 12.6,
+        "drawCalls": 435,
+        "triangles": 7236065,
+        "geometries": 590,
+        "textures": 95,
+        "programs": 157,
+        "width": 1280,
+        "height": 720,
+        "pixelRatio": 1
+      },
+      "after": {
+        "simTime": 12.6,
+        "drawCalls": 435,
+        "triangles": 7245753,
+        "geometries": 590,
+        "textures": 95,
+        "programs": 157,
+        "width": 1280,
+        "height": 720,
+        "pixelRatio": 1
+      },
+      "pngIdentical": false,
+      "trianglesDelta": 9688,
+      "callsDelta": 0,
+      "changedPixelFraction": 0.01236
+    }
+  }
+}

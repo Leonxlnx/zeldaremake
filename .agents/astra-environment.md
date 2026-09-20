@@ -4,7 +4,7 @@ runtime: Codex desktop coordinator with three owner-requested Astra Max subagent
 github: Leonxlnx
 status: active
 branch: agent/astra-environment-quality
-updated: 2026-09-20T16:54:00Z
+updated: 2026-09-20T17:28:00Z
 ---
 
 # Astra environment quality pass
@@ -76,3 +76,5 @@ Independent Astra stones review approves Fable4d2c33a65 leaf-range hunk in princ
 16:54UTC: Native6a survey30views+24walk completed with errors[], unchanged triangle/draw counts versusfed; black square persists, including clean upstream97 controls. Raw GPUprobe finds5NaN RGBpixels at constant-V mossy cap triangles. Runtime-only tangent-axis guard reduces5→0, samecamera/maxfiniteHDR; images/reports savedmoss-normal-study. Distanceagent preparing scopedsourceguard/check. Tree-only luminance-preserving warmth00c6bac3 is queued for native0/.35/.65 comparison, not accepted. Fable updatedPR2comment5751211298. Fetchedround50 activebranches; no speculative broadmerge.
 
 17:08UTC: sourceguard89dc6005 + warmth6f850599 native27variants/24walk complete errors[]. All9variantcamera/count comparisons match; A8,741,626/571. BlackpatchROIwalk18/19/23has0exact10pixels. Independentcores.35~70–71degrees,.65~60–65; midpointdefault.5candidate0645b7d3/bundleClEBro72 is rendering12poses×2variants+24walk. Leaf CPU3/3/typecheck/build pass. Guard-only proof explicit6a→89dc isgreen; defaultwholefunctioncomparison was correctly incompatible with laterwarmth and now accepts an explicit candidate revision. Fableaudit sharedPR2comment5751301645: safe knoll/rockfilters, backside nonconservativebounds requiresownerfix. Root-only coarsebuttressgeometry approveddistanceagent, +4844allroots predicted/0draws, no lowertrunksplice.
+
+17:28UTC: Warmth.5 native accepted by independenttrees review; preview61023 frozen0645b7d3/ClEBro72, exec72782, HTTP200verified; UIopenqueued. ed0122b8 evidencepushed withfivefreshpairs. Fable6d6d80f8 includes ourNaNguardb06057ba and acknowledges rockboundsfix. Its47ce1295 flags active trees-32giant/bole scope; rootpatch0db15909 is thereforeheld forFabletoapplyaftermerge, restoredacceptedsourcein680adc76. Nativebefore0645/after0db each12views/errors[], +9688submittedtris/no calls, C+.0029SSIM/A0/F−.0001. Broader roots improve silhouette but lowerbolematerialseam persists. CPU4,816fin samples/212toe endpoints exact,48near-other geometries/350canopyparts exact;~0.4MiB. Explicitreplaynode root-profile-check.mjs0645b7d3 0db15909passed afterrestoration; typecheck/buildgreen, restoredClEBro72bundle. NoactiveGPUjobs, originalpreviewserversretained. No newerupstreamgeometryimported yet; source-onlysafeplacementfilters next, backsideboundsawaitownerfix.

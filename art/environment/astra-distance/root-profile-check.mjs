@@ -1,4 +1,4 @@
-/** CPU only: node art/environment/astra-distance/root-profile-check.mjs [baseline-ref]
+/** CPU only: node art/environment/astra-distance/root-profile-check.mjs [baseline-ref] [candidate-ref]
  * Builds all authored giants against the same terrain/seed. Only the collapsible far roots
  * may change; near bases, other wood/foliage, contacts and near-canopy parts must byte-match.
  */
@@ -14,6 +14,7 @@ import * as BufferGeometryUtils from 'three/examples/jsm/utils/BufferGeometryUti
 const baseline = process.argv[2] ?? '6f850599';
 const files = ['src/world/trees/giant.ts', 'src/world/trees/bole.ts'];
 const oldSource = Object.fromEntries(files.map((file) => [path.resolve(file), execFileSync('git', ['show', `${baseline}:${file}`], { encoding: 'utf8' })]));
+const candidateSource = process.argv[3] ? Object.fromEntries(files.map((file) => [path.resolve(file), execFileSync('git', ['show', `${process.argv[3]}:${file}`], { encoding: 'utf8' })])) : {};
 const captured = [];
 function loader(overrides = {}, capture = false) {
   const cache = new Map();
@@ -42,7 +43,7 @@ function loader(overrides = {}, capture = false) {
   }
   return load;
 }
-const before = loader(oldSource), after = loader({}, true);
+const before = loader(oldSource), after = loader(candidateSource, true);
 const { createRng } = after('src/world/util/prng.ts'), { createTerrain } = after('src/world/terrain/heightfield.ts');
 const { LAYOUT } = after('src/world/layout.ts'), { WORLD } = after('src/world/config.ts');
 const constants = {};

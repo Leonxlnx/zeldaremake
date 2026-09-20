@@ -85,6 +85,22 @@ the two distance poses have separate masks and are not compared against one anot
 Visible draws/triangles are unchanged within every evaluated pair; this CPU report does
 not measure the added shader's runtime cost. Parent separately owns walk/black-patch review.
 
+The follow-up `2026-09-20T17-06-07-764Z-daylight` (`0645b7d3`) is complete with24 paired
+images and no errors. `tree-hue-midpoint.json` uses the unchanged evaluator with
+`--warmth=0,.5`. Recommend .5 as the measured compromise: native all-pixel cores are
+A67.50, C66.00, F66.00 degrees, and their fixed-green subsets are67.06/65.00/65.00.
+Core decoded screenshot Y changes -0.30/-0.12/-0.25%; HSL S changes only
+.0053/.0024/.0029. Top-band hues remain73.85/66.00/70.00, so this is not a claim that
+every crown band reaches62–65. Distant119/121 each reach69.47, with Y down1.13/1.15%.
+Sky median H/S/L remains exact; RGB MAD .042 of255. Original A/C/F, white-bark crown,
+sky and distant119 images show a subtle warming with retained relief and no obvious new
+oversaturation. The same dark crown/root-shape limits remain.
+
+The zero images match the first study byte-for-byte at A/F/distant119/121. C/sky differ
+by one pixel and the white-bark control by two pixels, at most one channel level; the
+selected measurement regions and all their zero statistics are exact. No cross-study
+pixel-identity claim is made beyond those checks. Each study still uses its own zero mask.
+
 The strongest remaining verified tree-shape defect is the giant lower-bole/root reset.
 Parent's original 16-13-23 native pair `bole-reset-lantern-ese-in-11p85m` versus
 `bole-reset-lantern-ese-out-12p15m` changes a flared, fissured buttress mass to smooth
