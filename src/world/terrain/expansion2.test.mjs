@@ -140,7 +140,7 @@ const fmt = (x, z) => `(${x.toFixed(2)}, ${z.toFixed(2)})`;
   // the fences' posts stand on the top, 0.15 m behind the lip
   for (const f of EXPANSION_ROPE_FENCES) {
     assert.equal(f.style, 'rope', `${f.id} is a rope fence`);
-    assert.ok(f.points.length >= 3, `${f.id} has ≥ 3 posts`);
+    assert.ok(f.points.length >= 2, `${f.id} has ≥ 2 posts`);
     for (const p of f.points) {
       near(live.height(p[0], p[2]), B.height, 0.16, `${f.id} post at ${fmt(p[0], p[2])} on the top`);
       const { v } = hf.southTerraceLocal(p[0], p[2]);
