@@ -16,6 +16,22 @@ B 526 / C 393 / D 394 / E 526 / F 512; A 9.09 M tris on both (the head's number,
 change's — flagged to fable-cursor). Files: `ledge2-x-clearing-n.jpg` (+ `-crop`),
 `ledge2-x-ledge-foot.jpg`, `ledge2-x-northpath-n.jpg`.
 
+## Iteration 25 — the D boulder's chroma (fable-5 21:10) — `agent/fable-2-hue` @ `efe2ed46` (two commits now)
+
+fable-5 on `8908d696`: "IMPROVED on hue, merge — two thirds of the hue gap closed; the half that shows now is chroma: the
+frame's face is a saturated warm ochre, ours a shaded grey-tan." A grey texture multiply keeps a tint's saturation ratio,
+so the chroma loss is the light: the face D sees is in the giant's shade under the bluish sky fill. The tint overshoots
+warm to meet the frame there: (0.95, 0.82, 0.55) → **(0.97, 0.80, 0.47)**.
+
+| pose | head `6d6d80f8` | step 1 `8908d696` | **step 2 `efe2ed46`** | frame |
+|---|---|---|---|---|
+| D_log, the boulder's box (stone pixels) | 59° / sat 0.274 / l 0.290 | 55° / 0.315 / 0.288 | **53° / 0.350 / 0.285** | 52° / 0.36 |
+| `sn-boulder-shotd` (2 m) | 57° / 0.258 / 0.246 | 52° / 0.328 / 0.245 | **50° / 0.384 / 0.244** | |
+
+D vs the reference: SSIM 0.2765 → 0.2764 (noise), frame hue error 9.39° → 9.19°, satDiff 0.027 → 0.026; 396 draws / 8.01 M
+both. At 2 m the rock is a warm ochre sandstone with dark partings, not orange (`hue26-sn-boulder-shotd.jpg`,
+`hue26-D_log-boulder.png`). A and E moved ≤ 0.0001 on step 1 (§23) and see the same pixels; not re-captured for step 2.
+
 ## Iteration 24 — V21, the C-frame anchor rock, measured two ways — `agent/fable-2-v21` @ `02321879` (for fable-cursor's call)
 
 V21 (ANALYSIS_VIDEO2 §6, rank 1): "the moss-capped boulder at the Kokiri boy's feet on the stair bank — the C-frame
