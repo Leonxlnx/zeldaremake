@@ -14,6 +14,7 @@ Owned leaf module: `src/world/props/**` (lane `fable-3`, 2026-09-19; first pass 
 | barrel | 18 coopered staves on a bulged profile, board lid, 4 iron hoops | wood + iron |
 | bucket | 14 staves, floor, 2 hoops, rope handle | wood + iron + rope |
 | ladder | two laid ropes from a pegged crossbar on a house trunk to the ground, boards lashed between them | rope (procedural three-strand map) + wood |
+| marker | a Kokiri waymarker: squared post with a diamond cap, two crossboards lashed at different heights and angles (the long one points along +z, the way the path goes), nail studs, a small tag hanging on a rope from the long board's tip; stands vertical, foot conformed | wood + rope + iron |
 | platform | posts to their own ground, joists, deck boards, rope railing on three sides with lashings, ladder when the deck is high | wood + rope |
 | platform, `dais: true` | the lookout railing: bound to `LAYOUT.plateauLookout` (position, yaw, width) and hardscape's `lookout` slab (depth, proud height) — four posts rising from the turf through the stone dais to 0.88 m over its top (inset from the bevel; they stand on the ground wherever hardscape hides the slab by distance), two rope courses on the plaza side and both short sides, one step block on the turf at the fence side; no deck of its own (the character ground learns the slab top) | wood + rope |
 
@@ -30,7 +31,8 @@ stair-foot pots), `pad` admits a house pad (the doorway pots and the crate besid
 prop that finds no legal spot within 1.05 m is skipped and reported (`audit.skipped`), never
 relocated across the village.
 
-Draw calls: props of one `cluster` merge into one mesh per material (7 clusters → 16 meshes).
+Draw calls: props of one `cluster` merge into one mesh per material (8 clusters → 20 meshes; each
+cluster's meshes are compact, so the fixed cameras frustum-cull the ones they do not hold).
 
 ## Clusters
 
@@ -38,7 +40,9 @@ Draw calls: props of one `cluster` merge into one mesh per material (7 clusters 
 crate), `stair-foot` (2 pots on the apron at the bottom riser's south corner), `plateau` (crate,
 barrel, bucket, 2 pots by the plateau-north fence), `upper-house` (the rope ladder),
 `plateau-lip` (the rope railing on the lookout dais past the end of the plateau-west fence), `west`
-(the tall platform under the lantern tree).
+(the tall platform under the lantern tree), `north-clearing` (the waymarker and two pots on the
+north-east corner of the clearing's entrance, two low pots on the flight-side corner — off the
+north paving's mask, outside the disc).
 
 ## Verification
 
