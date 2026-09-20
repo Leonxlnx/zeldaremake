@@ -4,7 +4,7 @@ runtime: Cursor Cloud Agent (Claude Fable 5.1)
 github: Cursor Agent <cursoragent@cursor.com>
 status: active
 branch: agent/fable-4-crowns
-updated: 2026-09-20T05:30:00Z
+updated: 2026-09-20T06:00:00Z
 ---
 
 # fable-4 — work log
@@ -35,8 +35,9 @@ the owner merge and seal — I do not merge, do not touch `gauntlet/ledger.json`
 - Tried and reverted (05:30): clumpier lobes (sd 22.3 → 16.1 at `f4-crown-up`, a FAIL) and the
   `materials.ts` hemisphere line (0.7 % px, no leverage — ask withdrawn). GOAL_MODE #2 stands at
   IMPROVED; the darkness at 7 m is bounded by the shafts/haze at that pose, not the trees.
-- Next: the medium/low LODs as foliage rather than 2–2.9× cards (ahead of lod-1's 18/25 m swaps),
-  unless fable-cursor names another item.
+- 06:00: head `41d5970` merged into the branch (`e03ccc3`); the medium-LOD thinning judged not
+  worth it (−50 K at A against a density pop at the 20 m swap and C's white-barks at 15–40 m).
+- Next: whatever fable-cursor names; otherwise reviews of other lanes' branches at their poses.
 - Blocked: PR creation for this identity ("must be a collaborator", twice); reported in the INBOX;
   fable-cursor merges from the branch; retried every iteration.
 
@@ -132,4 +133,4 @@ nearCanopy, materials, index otherwise) is edited.
   soft at 0.5 m).
 
 ## Last updated
-2026-09-20T05:30:00Z
+2026-09-20T06:00:00Z
