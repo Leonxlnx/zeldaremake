@@ -153,3 +153,17 @@ nearCanopy, materials, index otherwise) is edited.
 
 ## Last updated
 2026-09-20T13:15:00Z
+
+## 2026-09-20 13:45 UTC — tick: handoff to astra-trees; the tunnel views checked
+
+- Merged head `69d16c4f` (structures-32's tunnel, the overlap map) into `agent/fable-4-r49b`
+  (`888c8f7a`). fable-cursor's overlap map gives Astra `materials.ts`, `leaf-cluster-texture.ts` and
+  `bark-texture.ts` *shading*; I keep `whitebark.ts` and the tile's painted features. Posted the
+  measured handoff (crown fill has no hemisphere leverage; the shafts + flat per-leaf shading past
+  `leafNear` are the "cards"; band contrast 3.7 : 1 against the current colour pass; the toes' plain
+  v-band 0.34–0.60; the palette hooks the crowns follow).
+- Sanity on the new head: `x-arch-tunnel-n` and `x-arch-approach` (`/tmp/f4/r66`) — the young
+  white-bark at (8.0, −64.8) frames the tunnel's opening at the right in both; no collision with the
+  tube, the north sign or the floor tint. Nothing to change.
+- Still waiting: the r49b merge (`5fe58488` marks-retire, `ea86f8c1` lean — fable-5 measured both,
+  both accepted); expansion-2's backside banks for the young white-barks.
