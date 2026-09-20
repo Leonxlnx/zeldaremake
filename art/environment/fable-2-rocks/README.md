@@ -16,6 +16,30 @@ B 526 / C 393 / D 394 / E 526 / F 512; A 9.09 M tris on both (the head's number,
 change's — flagged to fable-cursor). Files: `ledge2-x-clearing-n.jpg` (+ `-crop`),
 `ledge2-x-ledge-foot.jpg`, `ledge2-x-northpath-n.jpg`.
 
+## Iteration 6 (goal mode, 2026-09-20) — per-cell pebble scatter, GOAL_MODE fable-2 #4
+
+`113f59b6` (`src/world/rocks/pebbles.ts`). BEFORE = the head `41d59706` (fable-cursor's north-locality
+toggle in), AFTER = this build. An engineering item: the old scatter drew every candidate from one
+sequential stream, so any paving edit re-rolled every pebble world-wide (round 47's whole camera-D
+delta). Now every candidate is a lattice cell with stateless per-cell draws — a 0.1 m lattice on the
+paving's centimetres-wide fringe inside the coarse 0.5 m cells that touch paving, the coarse lattice
+for the sparse scatter within 4 m of paving. Calibrated to the old population (2 590 vs 2 600 at
+density 1); the north paving's ≈ 1 000 pebbles are a separate `pebbles-north` set under the
+north-locality toggle; stair-foot pebbles hash per (flight id, index).
+
+| pose | what it shows | verdict |
+| --- | --- | --- |
+| `w05-spine-d`, `w16-spine-d` | the plaza's joint pebbles re-rolled once — same population, same character, different seats (`pebbles6-w05-spine-d.jpg`, `pebbles6-w16-spine-d.jpg`) | the one-time re-roll this scheme costs |
+| `x-northpath-edge` p (2, 5.45, −64.5) → t (−0.5, 4.0, −67.5), `x-northpath-n` | the north paving's fringe carries pebbles for the first time (`pebbles6-x-northpath-edge.jpg`) | new |
+| `pebbles.test.mjs` | a paved disc added at (3.5, 8) on a synthetic strip changes > 10 pebbles around it and **none** beyond 6 m; per-flight stair streams; the north split | **PASS** — the property the item asked for |
+
+Six fixed views, head `41d59706` → `4d363760` (this VM, `capture.mjs --settle 12`): A 0.2195 → 0.2195,
+B 0.2042 → 0.2061 (+0.0019), C 0.2393 → 0.2374 (−0.0019), D 0.2794 → 0.2793 (−0.0001), E 0.2146 → 0.2163
+(+0.0017), F 0.2601 → 0.2607 (+0.0006) — the one-time re-roll, every view within the −0.003 budget (vs
+take-0118 the worst is C −0.0021); 2–4.6 % of pixels per view (the joint pebbles), draws 567 / 525 / 393 /
+392 / 525 / 511 identical to the head's, camera A 8.99 M (the head 9.00 M; the north set is toggled off).
+From here on a paving edit by any lane moves only the pebbles within ~6 m of it.
+
 ## Iteration 5 (goal mode, 2026-09-20) — the north clearing's rock dressing, GOAL_MODE fable-2 #3
 
 `e070771d` + `7bf69c21` (`src/world/rocks/clearing.ts`). BEFORE = the head `6c4415f8`, AFTER = this
