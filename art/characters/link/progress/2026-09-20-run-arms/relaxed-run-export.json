@@ -1,0 +1,94 @@
+{
+  "sha256": "996d041760815919bab9f22e71f8c7a901cd89a3490cba1526900c2d7d314fd8",
+  "source_sha256": "2459112603a935a038dd06a67de85d5c5e28c72188f50ebd4d6e304af236bfa4",
+  "original_binary_preserved": true,
+  "rest_nodes_and_assets_exact": true,
+  "other_clips_and_unselected_channels_exact": true,
+  "gait": "run",
+  "hips_preserved": true,
+  "changed": [
+    [
+      "shoulderL",
+      "rotation"
+    ],
+    [
+      "shoulderR",
+      "rotation"
+    ],
+    [
+      "thighL",
+      "translation"
+    ],
+    [
+      "thighL",
+      "rotation"
+    ],
+    [
+      "thighL",
+      "scale"
+    ],
+    [
+      "kneeL",
+      "translation"
+    ],
+    [
+      "kneeL",
+      "rotation"
+    ],
+    [
+      "kneeL",
+      "scale"
+    ],
+    [
+      "ankleL",
+      "translation"
+    ],
+    [
+      "ankleL",
+      "rotation"
+    ],
+    [
+      "ankleL",
+      "scale"
+    ],
+    [
+      "thighR",
+      "translation"
+    ],
+    [
+      "thighR",
+      "rotation"
+    ],
+    [
+      "thighR",
+      "scale"
+    ],
+    [
+      "kneeR",
+      "translation"
+    ],
+    [
+      "kneeR",
+      "rotation"
+    ],
+    [
+      "kneeR",
+      "scale"
+    ],
+    [
+      "ankleR",
+      "translation"
+    ],
+    [
+      "ankleR",
+      "rotation"
+    ],
+    [
+      "ankleR",
+      "scale"
+    ]
+  ],
+  "cycle_s": 0.4666666666666667,
+  "stride_m": 1.82,
+  "status": "Export checked; game and visual acceptance pending"
+}

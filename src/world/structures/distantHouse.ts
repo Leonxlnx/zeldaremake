@@ -73,7 +73,7 @@
  * y ≤ 0.20). None is in front of the stair, Saria's house or the arch opening.
  */
 import { BoxGeometry, BufferGeometry, Color, CylinderGeometry, Float32BufferAttribute, Group, LatheGeometry, Mesh, Vector2, Vector3 } from 'three';
-import type { TrunkSeat, WorldContext } from '../system';
+import type { TrunkSeat, WalkSurface, WorldContext } from '../system';
 import type { Rng } from '../util/prng';
 import { basisMatrix, gridSurface, merge, setColorAttribute, TAU } from './geometry';
 import { MOSS_ALBEDO_PEAK, Noise3D, WOOD_ON_FENCE_WOOD, type StructureMaterials } from './materials';
@@ -87,6 +87,12 @@ export interface DistantHouseDef {
   offset: [number, number];
   /** platform height above the seat's terrain (m) */
   floor: number;
+  /**
+   * Round 49 (expansion-2): the platform's ABSOLUTE world height (m) — the west house wraps a
+   * giant on a mound whose ground under the platform runs over 3 m; `floor` is then derived from
+   * the seat's base and ignored as authored.
+   */
+  floorAbsolute?: number;
   /**
    * hut wall radius (m): the hut's authored scale (door 0.7 m, window 0.24 R). Without a published
    * seat it must also cover the bole's radius + lean + wander over the hut's height band; with one
@@ -108,8 +114,12 @@ export interface DistantHouseDef {
   facingDeg: number;
   /** door azimuth relative to the window (deg, + toward +X side = screen right) */
   doorDeg: number;
-  /** walkway stub: azimuth relative to the window (deg) and length (m) */
-  walkway: { deg: number; length: number };
+  /**
+   * walkway stub: azimuth relative to the window (deg) and length (m). Round 49: `end` (world
+   * x, y, z) instead lays the deck from the platform rim to exactly that point — the head of a
+   * flight — and `deg` / `length` are derived and ignored as authored.
+   */
+  walkway: { deg: number; length: number; end?: [number, number, number] };
   /** 2–3 pods: end post, eave, mid post */
   pods: number;
 }
@@ -251,8 +261,13 @@ const COARSE_CELL = { around: 0.08, up: 0.14 };
 
 export type HostSource = 'shared' | 'constants';
 
+/** Round 49: a hut's walkable built surfaces for the character ground (ctx.shared.walkSurfaces) */
+export type HutWalkSurface = WalkSurface;
+
 export interface DistantHouseBuild {
   group: Group;
+  /** round 49: every hut's platform, deck and wall for the character ground */
+  walk: HutWalkSurface[];
   /** the one emissive mesh shared by all houses */
   glow: Mesh;
   /**
@@ -709,6 +724,7 @@ export function buildDistantHouses(ctx: WorldContext, mats: StructureMaterials, 
   /** round 45 (details-1): the huts' soffit boards, one mesh in `mats.fenceWood` (see `soffit`) */
   const soffitParts: BufferGeometry[] = [];
   const audit: DistantHouseBuild['audit'] = [];
+  const walk: HutWalkSurface[] = [];
   let tris = 0;
   let degenerate = 0;
   const _axis = new Vector3();
@@ -718,10 +734,12 @@ export function buildDistantHouses(ctx: WorldContext, mats: StructureMaterials, 
   for (const def of defs) {
     const r = rng.fork(def.id);
     const host = resolveHost(def, ctx);
-    const floorY = host.base.y + def.floor;
+    // round 49: an absolute floor (the west house) overrides the seat-relative one
+    const floorH = def.floorAbsolute !== undefined ? def.floorAbsolute - host.base.y : def.floor;
+    const floorY = host.base.y + floorH;
     const eaveY = floorY + def.wall;
     // the hut sits on the bole's axis at floor height (plus the authored offset)
-    const axisFloor = host.axisAt(def.floor, _axis).clone();
+    const axisFloor = host.axisAt(floorH, _axis).clone();
     const c = new Vector3(axisFloor.x + def.offset[0], floorY, axisFloor.z + def.offset[1]);
 
     // ---- wall radius: over the hut's height band (platform underside → soffit), the bole's radius
@@ -732,7 +750,7 @@ export function buildDistantHouses(ctx: WorldContext, mats: StructureMaterials, 
     if (host.seat) {
       const seat = host.seat;
       let need = 0;
-      for (let h = def.floor - 0.3; h <= def.floor + def.wall + 0.15 + 1e-6; h += 0.1) {
+      for (let h = floorH - 0.3; h <= floorH + def.wall + 0.15 + 1e-6; h += 0.1) {
         seat.axisAt(h, _axis);
         need = Math.max(need, seat.radiusAt(h) + Math.hypot(_axis.x - c.x, _axis.z - c.z));
       }
@@ -742,9 +760,9 @@ export function buildDistantHouses(ctx: WorldContext, mats: StructureMaterials, 
       radiusForBole = (need + BOLE_CLEARANCE) / WALL_MIN_FACTOR;
       R = Math.max(def.radius, radiusForBole);
       boleClearance = Infinity;
-      for (let h = def.floor - 0.3; h <= def.floor + def.wall + 0.15 + 1e-6; h += 0.1) {
+      for (let h = floorH - 0.3; h <= floorH + def.wall + 0.15 + 1e-6; h += 0.1) {
         seat.axisAt(h, _axis);
-        const taper = lerp(1, WALL_TAPER, clamp((h - def.floor) / def.wall, 0, 1));
+        const taper = lerp(1, WALL_TAPER, clamp((h - floorH) / def.wall, 0, 1));
         const wallMin = R * taper * (1 - WOBBLE_3 - WOBBLE_7);
         boleClearance = Math.min(boleClearance, wallMin - seat.radiusAt(h) - Math.hypot(_axis.x - c.x, _axis.z - c.z));
       }
@@ -1117,11 +1135,19 @@ export function buildDistantHouses(ctx: WorldContext, mats: StructureMaterials, 
     );
 
     // walkway: a plank deck leaving the platform rim, dropping 4°, with posts and a sagging rope rail
-    const wDir = az(def.facingDeg + def.walkway.deg);
+    // round 49: with `walkway.end` the deck runs from the rim to exactly that point (a flight's head)
+    const wEnd = def.walkway.end ? new Vector3(def.walkway.end[0], def.walkway.end[1], def.walkway.end[2]) : null;
+    const wDir = wEnd ? new Vector3(wEnd.x - c.x, 0, wEnd.z - c.z).normalize() : az(def.facingDeg + def.walkway.deg);
     const wSide = new Vector3(-wDir.z, 0, wDir.x);
-    const L = def.walkway.length;
+    const L = wEnd ? Math.hypot(wEnd.x - c.x, wEnd.z - c.z) - platR : def.walkway.length;
     const deckStart = c.clone().addScaledVector(wDir, platR - 0.15).setY(floorY - 0.06);
-    const deckEnd = c.clone().addScaledVector(wDir, platR + L).setY(floorY - 0.06 - L * Math.tan(4 * DEG));
+    const deckEnd = wEnd ? wEnd.clone().setY(wEnd.y - 0.06) : c.clone().addScaledVector(wDir, platR + L).setY(floorY - 0.06 - L * Math.tan(4 * DEG));
+    walk.push({
+      id: def.id,
+      disc: { x: c.x, z: c.z, r: platR, y: floorY + 0.01 },
+      deck: { a: [deckStart.x, deckStart.y + 0.06, deckStart.z], b: [deckEnd.x, deckEnd.y + 0.06, deckEnd.z], hw: 0.475 },
+      wall: { r: R * WALL_TAPER, half: 0.2, gap: [aDoor - (doorW * 0.5 + 0.1) / R, aDoor + (doorW * 0.5 + 0.1) / R] },
+    });
     const deck = new BoxGeometry(0.95, 0.12, L + 0.15);
     deck.applyMatrix4(basisMatrix(deckStart.clone().lerp(deckEnd, 0.5), deckEnd.clone().sub(deckStart)));
     plankParts.push(setColorAttribute(deck, PLANK));
@@ -1252,8 +1278,8 @@ export function buildDistantHouses(ctx: WorldContext, mats: StructureMaterials, 
         soffitParts.push(faceToward(board, deckStart.clone().lerp(deckEnd, 0.5).setY(floorY - 10)));
       }
       // the joist frame under the platform: six radial joists and three brace struts from the bole
-      const boleR = host.seat ? host.seat.radiusAt(def.floor - 1.3) : R * 0.55;
-      host.axisAt(def.floor - 1.3, _axis);
+      const boleR = host.seat ? host.seat.radiusAt(floorH - 1.3) : R * 0.55;
+      host.axisAt(floorH - 1.3, _axis);
       const boleFoot = _axis.clone();
       const jPhase = r.range(0, TAU);
       for (let j = 0; j < 6; j++) {
@@ -1339,6 +1365,7 @@ export function buildDistantHouses(ctx: WorldContext, mats: StructureMaterials, 
   const constPeak = (t: RGB) => +(Math.max(t[0], t[1], t[2]) * peak).toFixed(2);
   return {
     group,
+    walk,
     glow,
     soffit,
     triangles: tris,

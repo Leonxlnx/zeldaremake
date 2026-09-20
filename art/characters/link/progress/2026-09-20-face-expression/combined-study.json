@@ -1,0 +1,22 @@
+{
+  "scope": "Existing iris UVs and optional resting blinkHalf influence only; no default asset changes. Native review only.",
+  "job": {
+    "factors": [
+      1.14
+    ],
+    "rest_half": 0.32,
+    "prefix": "combined"
+  },
+  "views": [
+    {
+      "view": "front",
+      "uv_scale": 1.14,
+      "file": "front-combined-1.14.png"
+    },
+    {
+      "view": "three-quarter",
+      "uv_scale": 1.14,
+      "file": "three-quarter-combined-1.14.png"
+    }
+  ]
+}

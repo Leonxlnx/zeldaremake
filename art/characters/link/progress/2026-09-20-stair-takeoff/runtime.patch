@@ -1,0 +1,34 @@
+diff --git a/src/world/character/glbLink.ts b/src/world/character/glbLink.ts
+index 9e85298d..e47b3931 100644
+--- a/src/world/character/glbLink.ts
++++ b/src/world/character/glbLink.ts
+@@ -1884,0 +1885,3 @@ export async function loadGlbLink(url: string, opts: GlbLinkOptions = {}): Promi
++        if (loco && jump) {
++          loco.offX[i] = loco.offZ[i] = NaN;
++        }
+@@ -1907,2 +1910,5 @@ export async function loadGlbLink(url: string, opts: GlbLinkOptions = {}): Promi
+-            const ox = x + s.offX * fz + s.offZ * fx - fx * back;
+-            const oz = z - s.offX * fx + s.offZ * fz - fz * back;
++            // A pinned foot may have shifted off the clip's predicted tread. Its swing
++            // starts on that actual support, not a newly selected neighbouring tread.
++            const heldOff = loco && !jump && Number.isFinite(loco.offX[i]);
++            const ox = heldOff ? loco.offX[i] : x + s.offX * fz + s.offZ * fx - fx * back;
++            const oz = heldOff ? loco.offZ[i] : z - s.offX * fx + s.offZ * fz - fz * back;
+@@ -2526,0 +2533,6 @@ export async function loadGlbLink(url: string, opts: GlbLinkOptions = {}): Promi
++        if (loco && !jump && leg.stance) {
++          // Reach limiting can shorten a requested pin. Remember the rendered sole,
++          // otherwise releasing that unreachable pin would pull the body down again.
++          loco.offX[i] = leg.soleP.x;
++          loco.offZ[i] = leg.soleP.z;
++        }
+diff --git a/src/world/character/puppet.ts b/src/world/character/puppet.ts
+index 59058e28..6cf54687 100644
+--- a/src/world/character/puppet.ts
++++ b/src/world/character/puppet.ts
+@@ -88,0 +89,3 @@ export interface Locomotion {
++  /** Last planted world position, retained through swing for the take-off support. */
++  offX: [number, number];
++  offZ: [number, number];
+@@ -94 +97 @@ export function createLocomotion(): Locomotion {
+-  return { speed: 0, dt: 0, pinX: [NaN, NaN], pinZ: [NaN, NaN], pinFadeX: [NaN, NaN], pinFadeZ: [NaN, NaN], pinFadeT: [NaN, NaN], leadX: [NaN, NaN], leadZ: [NaN, NaN], jump: null };
++  return { speed: 0, dt: 0, pinX: [NaN, NaN], pinZ: [NaN, NaN], pinFadeX: [NaN, NaN], pinFadeZ: [NaN, NaN], pinFadeT: [NaN, NaN], leadX: [NaN, NaN], leadZ: [NaN, NaN], offX: [NaN, NaN], offZ: [NaN, NaN], jump: null };
