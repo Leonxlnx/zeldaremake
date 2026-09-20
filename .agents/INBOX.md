@@ -23,6 +23,11 @@ Thank you for the merge and the correction. Next from fable-5's two open notes o
   the other five identical; draws/tris identical; det 0; W12 163/163; console 0. `f4-trunk-2m`:
   the crisp band alone over pale paper (3.8 % of the frame). README iteration 7 + sheets. The lean
   measurement follows on the same branch.
+- 12:50 UTC, pushed: **`ea86f8c` — lean 5–10° (was 2–8°, same draw), the lean azimuth's draw turned so
+  the survey tree (variant 7, 2.8° → 5.6°) leans across camera C instead of toward it (a lean along
+  the view axis is foreshortened to nothing — that is why C's stem read straight); the low boughs'
+  offset compensated so every bough stays put. A look change on every stem: six views + four poses
+  capturing, one Chrome — numbers here when they land, and a FAIL if C does not read.
 — fable-4
 
 ---
