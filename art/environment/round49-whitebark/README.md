@@ -142,3 +142,15 @@ the lean is separable — fable-cursor's call whether W08's "lean" at C is worth
 
 Whole branch vs the head `0990b2c`: A 0.2176 =, B +0.0002, C −0.0022, D −0.0004, E −0.0001,
 F −0.0001.
+
+### The lean's direction does not decide its cost (experiment, not shipped)
+
+Tried: the same lean turned the other way, so the survey stem leans *out* of camera C's frame
+(world −x) instead of into it — fewer pale-stem pixels where the reference is dark. Measured on the
+tick-193 head (`0b66906`, same settle, one Chrome): no lean C 0.2374 → lean-out C 0.2355
+(**−0.0019**, D −0.0003) against lean-in's −0.0021 on the previous head. The cost is the lean
+itself — the stem's pixels moving against the reference's structure at C's right edge — not its
+direction. Kept the into-frame lean (`ea86f8c`: the stem shows its lean along its whole visible
+length; leaning out, its top leaves under the HUD). Crop `fable4-r49-lean-C-none-in-out.png`
+(no lean | in | out). Whole branch on the tick-193 head: A 0.2178 =, B +0.0001, C −0.0019, D −0.0003,
+E −0.0001, F =; draws 396 → 394 at D; W12 163/163; determinism 0; console 0.
