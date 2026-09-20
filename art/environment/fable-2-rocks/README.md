@@ -16,6 +16,25 @@ B 526 / C 393 / D 394 / E 526 / F 512; A 9.09 M tris on both (the head's number,
 change's — flagged to fable-cursor). Files: `ledge2-x-clearing-n.jpg` (+ `-crop`),
 `ledge2-x-ledge-foot.jpg`, `ledge2-x-northpath-n.jpg`.
 
+## Iteration 14 (goal mode, 2026-09-20) — a mid-range detail band for the boulders (owner's "stones under-detailed") — FAIL, reverted
+
+`d4bfed58` → reverted by `f433b104`. The owner's 13:00 UTC re-priority (via fable-cursor's overlap map): "stones
+under-detailed", judged at 5–20 m. For rocks that is the far look — the shared material pulls the texture 78 % to
+grey and compresses its contrast to 70 %, so boulders past 6 m read as smooth domes. Tried: a 9–30 m band with 12 %
+more contrast, the near path's ± 10 % plate patchwork and +40 % normal relief.
+
+| where | result | verdict |
+| --- | --- | --- |
+| six views, branch `952eb035` → band | Δ SSIM 0.0000 ×5, E −0.0001; **≤ 0.02 % of pixels** per view | an after that looks like its before |
+| `x-shotd-8m`, `x-stairfoot-9m`, `x-terrace-13m`, `x-terrace-20m` (new 8–20 m poses) | the hero boulders are behind ferns / bushes / trunks at every one; nothing to judge (`mid14-x-shotd-8m.jpg`) | — |
+| `sn-boulder-terrace` (4 m) | the far side of the big rock a touch more mottled (`mid14-sn-boulder-terrace.jpg`) | too little to claim |
+
+**FAIL, reverted.** At 1280 × 720 a ± 10 % plate value on 0.3 m plates at 9 m and 12 % of the texture's contrast are
+below the frame's noise; a band strong enough to read would be the "crazed" look the compression exists to avoid.
+The honest next step for "stones under-detailed" on rocks is a change in what the far mesh IS (plate geometry at
+mid range), which is six-view-exposed and a look change — asked in the INBOX whether the owner's "stones" means the
+boulders at all before spending it (the hardscape's stones are Astra's lane now).
+
 ## Iteration 13 (goal mode, 2026-09-20) — W24's count, a regression of mine caught and fixed
 
 `51fb6b35`. BEFORE = the head `ca562e76` (the envelope in), AFTER = this build. W24's auto check is
