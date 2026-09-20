@@ -1154,8 +1154,11 @@ export function expansionCull(x: number, z: number, lift = 0.3): boolean {
   if (!onKnoll && (x < EXPANSION_BOX.x0 || x > EXPANSION_BOX.x1 || z < EXPANSION_BOX.z0 || z > EXPANSION_BOX.z1)) return false;
   // the discs by their circles (the first ones' splat is faded by `cClip`; the stones are laid whole)
   for (const d of EXPANSION_STONES) if (Math.hypot(x - d.x, z - d.z) < d.r + 0.12) return true;
+  // the masks the expansion ADDED (live over legacy): the box's north-east corner holds the plaza
+  // disc's south-west rim, whose own paving mask must not cull what already avoids it
   const m = surfaceMask(x, z, 'live');
-  if (m.path > 0.5 || m.stairs > 0.5 || m.structure > 0.5) return true;
+  const l = surfaceMask(x, z, 'legacy');
+  if ((m.path > 0.5 && l.path <= 0.5) || (m.stairs > 0.5 && l.stairs <= 0.5) || (m.structure > 0.5 && l.structure <= 0.5)) return true;
   return Math.abs(getTerrain().height(x, z) - getLegacyTerrain().height(x, z)) > lift;
 }
 

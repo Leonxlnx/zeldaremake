@@ -395,6 +395,15 @@ const fmt = (x, z) => `(${x.toFixed(2)}, ${z.toFixed(2)})`;
   }
   assert.ok(culled > 60 && culled < 900, `the cull clears the expansion's own ground only (${culled} of ${kept + culled} metre cells)`);
   assert.ok(B.height > 0, 'bank authored');
+  // the box's north-east corner holds the plaza disc's south-west rim: its own paving (legacy path
+  // mask 0.97 at take-0121's flagstone (−4.61, 2.45)) is not the expansion's and must not cull
+  for (const [x, z] of [[-4.611, 2.452], [-4.0, 3.2], [-5.2, 2.0]]) {
+    const l = hf.surfaceMask(x, z, 'legacy');
+    if (l.path > 0.5) assert.equal(hf.expansionCull(x, z), false, `the plaza's own paving at ${fmt(x, z)} is kept`);
+  }
+  // the host giant's bole IS culled (structure mask, live) — the trees lane applies the filter to
+  // its sampled white-barks, not to the layout giants
+  assert.equal(hf.expansionCull(EXPANSION.westHouse.host[0], EXPANSION.westHouse.host[1]), true, 'the west house bole is culled');
 }
 
 // 6. the visibility casters (util/expansionLocality.ts — what structures and hardscape toggle
