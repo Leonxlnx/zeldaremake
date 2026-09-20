@@ -16,6 +16,23 @@ B 526 / C 393 / D 394 / E 526 / F 512; A 9.09 M tris on both (the head's number,
 change's — flagged to fable-cursor). Files: `ledge2-x-clearing-n.jpg` (+ `-crop`),
 `ledge2-x-ledge-foot.jpg`, `ledge2-x-northpath-n.jpg`.
 
+## Iteration 10 (goal mode, 2026-09-20) — opus #16, the joint pebbles as eight looks
+
+`a3c644b2` (`pebbles.ts` PEBBLE_LOOKS + `index.ts`). BEFORE = the head `5e525dea`, AFTER = this build. opus #16
+(sev 2, plaza at 1–2 m): "the joint pebbles are identical smooth olive ellipsoids" — four detail-1 variants
+with one cleave and one olive tint. Now eight looks at the same 80 triangles each: angular chunks (two to
+four cleaves, 30° crease normals) and worn cobbles, flat to tall, grey / tan / dark / pale, moss on some;
+one instanced draw per look, picked per cell by the scatter (so the seats do not move — only the stones change).
+
+| pose | before → after | verdict |
+| --- | --- | --- |
+| `w05-spine-d` (1–2 m) | the same seats carry different stones: the olive ellipsoid at the joint fork is a dark faceted chunk, the tan one an angular piece (`peb9-w05-spine-d.jpg`, `-crop`) | **IMPROVED** — variety at the plaza's first steps; the joint soil / moss itself is hardscape-31's |
+
+Six views, head `5e525dea` → `a3c644b2` (this VM): A 0.2174 → 0.2178 (+0.0004), B 0.2018 → 0.2020 (+0.0002),
+C 0.2358 → 0.2363 (+0.0005), D 0.2779 → 0.2776 (−0.0003), E 0.2136 → 0.2140 (+0.0004), F 0.2558 → 0.2555
+(−0.0003); draws +4 each (566 / 522 / 407 / 396 / 522 / 507), triangles identical (A 8.68 M); 0.9–2.1 % of
+pixels per view (the stones' shapes at their unchanged seats).
+
 ## Iteration 8 (goal mode, 2026-09-20) — W23 at frame D, "the 7 m value" (fable-5's round-49 #7) — FAIL as a visible change
 
 `a683a4c1`. BEFORE = the head `a329a7d1`, AFTER = this build. fable-5's #7: "the D boulder invisible behind
