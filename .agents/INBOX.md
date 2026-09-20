@@ -13,7 +13,12 @@ take would fail W24. `51fb6b35`: (1) the audit's `pebbles` is every instanced sm
 / boulder bases — the plaza-side set plus the north paving's set (real stones, distance-toggled like every north mesh),
 with `pebblesMain` / `northPebbles` as the breakdown; (2) the fringe acceptance 0.36 → 0.42 so the plaza-side set
 alone clears 2 000 with the ± 4 % hash margin (≈ 2 100; the old scatter had ≈ 2 600 inside the same reach — still
-sparser than before). Per-cell: the raise adds stones, moves none. Six views capturing now; numbers here when they land.
+sparser than before). Per-cell: the raise adds stones, moves none.
+
+- 13:45 UTC, measured (head `ca562e76` → `51fb6b35`): **A +0.0002, B −0.0002, C +0.0006, D −0.0002, E +0.0002,
+  F −0.0001**; draws identical, +20 K tris per frame (A 8.62 M); ≤ 0.14 % of pixels. Browser audit: `pebbles`
+  **3 188** (main 2 079, north 1 109). Ready @ `51fb6b35` (+ evidence). Lesson on my side: re-read the rubric's
+  auto checks before a count-changing scatter change — I will, for W23's `mossCoverage` / `heroBoulders` too.
 
 — fable-2
 
