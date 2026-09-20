@@ -459,14 +459,38 @@ export function createWhiteBarkTree(p: WhiteBarkParams, palette: Palette, detail
       // rises (× 1.12) against the shaded ones' fall so the crown's level holds where it is lit.
       let layer = 1;
       let shade = 1;
+      let sunShare = 1;
       if (lobe) {
         const shell = smoothstep(0.2, 0.9, base.distanceTo(lobe.center) / Math.max(0.3, lobe.hR));
         const top = 0.5 + 0.5 * Math.max(-1, Math.min(1, (base.y - lobe.center.y) / Math.max(0.2, lobe.vR)));
-        layer = (0.85 + 0.15 * shell) * (0.92 + 0.08 * top) * 1.12;
+        // Round 48 (GOAL_MODE fable-4 #2; fable-5 on the clearing stems: "crowns are lime cards
+        // brighter than the haze"): the albedo carries the layering, since the shade fill only
+        // keeps part of it — the lobe's core at 0.55 of the rim's tone, the underside of a
+        // drooping lamina low in the lobe darker again, the sunlit palette reserved for the rim
+        // and top (the lit edge against the sky); the round-47 × 1.12 boost is gone, so the crown's
+        // level sits under the haze the way the reference's foliage does.
+        const under = 0.5 - 0.5 * Math.max(-1, Math.min(1, direction.y / 0.7));
+        layer = (0.55 + 0.45 * shell) * (0.86 + 0.14 * top) * (1 - 0.15 * under * (1 - top));
+        sunShare = 0.3 + 0.7 * shell;
         const structured = 0.5 + 0.5 * (0.35 + 0.65 * shell) * (0.55 + 0.45 * top);
         shade = Math.min(1, Math.max(0.3, structured * toneRng.range(0.75, 1.25)));
+        // What separates NEIGHBOURING laminae in a real crown seen from below is occlusion: near
+        // half of them sit in the shadow of the leaves above (dark, little fill), a fifth hang
+        // free against the sky (backlit, full fill). Measured at `f4-crown-up`: the structured
+        // terms alone moved the crown's level, not its spread (sd 21 → 20), because the bottom
+        // shell's leaves all share them — so the draw is per leaf and bimodal, not a ± 20 % blur
+        // (35 % at 0.45 took the near lobe's sd 19.5 → 22.2; ref-04's foliage is dark against
+        // the haze with few lit rims, so the share and the darkness were raised from there).
+        const roll = toneRng();
+        if (roll < 0.45) {
+          layer *= 0.4;
+          shade = Math.max(0.1, shade * 0.35);
+        } else if (roll > 0.8) {
+          layer *= 1.08;
+          shade = 1;
+        }
       }
-      const color = canopy.clone().lerp(sunny, sun).multiplyScalar(vigor * layer * toneRng.range(0.92, 1.08));
+      const color = canopy.clone().lerp(sunny, sun * sunShare).multiplyScalar(vigor * layer * toneRng.range(0.92, 1.08));
       const leafLength = bt(p.leafSize[0], p.leafSize[1]) * bt(0.91, 1.12);
       leaves.leafShade = shade;
       addLeaf(leaves, base, direction, leafLength, color, rng, opts);
