@@ -19,6 +19,7 @@ for(const s of ast.statements)if(ts.isVariableStatement(s))for(const d of s.decl
  const m={exports:{}};new Function('module',ts.transpileModule('module.exports='+d.initializer.getText(ast),{}).outputText)(m);profiles=m.exports;
 }
 const {createGiantTree}=loadTs('src/world/trees/giant.ts'),{createRng}=loadTs('src/world/util/prng.ts'),{createTerrain}=loadTs('src/world/terrain/heightfield.ts'),{LAYOUT}=loadTs('src/world/layout.ts'),{WORLD}=loadTs('src/world/config.ts');
+const {BARK_DETAIL_M}=loadTs('src/world/trees/materials.ts');
 const terrain=createTerrain(),rng=createRng(WORLD.seed).fork('trees');
 const poses=JSON.parse(readFileSync('art/environment/astra-quality/settings.json','utf8')).poses;
 const clamp=(v,a=0,b=1)=>Math.max(a,Math.min(b,v)),mix=(a,b,t)=>a+(b-a)*t,ss=(a,b,x)=>{const t=clamp((x-a)/(b-a));return t*t*(3-2*t);};
@@ -38,7 +39,9 @@ for(const [id,poseId] of [['stair-bank-giant','sn-bole-stair-bank'],['lantern-tr
    va.fromBufferAttribute(pos,ids[0]);vb.fromBufferAttribute(pos,ids[1]);vc.fromBufferAttribute(pos,ids[2]);p.copy(va).add(vb).add(vc).divideScalar(3).add(origin);const screen=p.clone().project(cam);if(Math.abs(screen.x)>1||Math.abs(screen.y)>1||screen.z>1||screen.z<0)continue;
    n.set(0,0,0);for(const k of ids)n.add(new THREE.Vector3().fromBufferAttribute(norm,k));n.normalize();toEye.copy(cam.position).sub(p);const d=toEye.length();toEye.divideScalar(d);const facing=n.dot(toEye);if(facing<=0)continue;
    const weight=ab.subVectors(vb,va).cross(ac.subVectors(vc,va)).length()*.5*facing/(d*d);const mask=w<0&&w>-.5?Math.min(1,-w/.45):w<=-1&&w>-1.5?(-w-1)/.45:0;
-   const fine=field(p.toArray()),oldCover=ss(.34,.82,mask*(.5+.95*fine)),newCover=mix(ss(.40,.84,mask)*ss(.24,.58,fine),oldCover,ss(.96,1,mask));
+   const fine=field(p.toArray()),oldCover=ss(.34,.82,mask*(.5+.95*fine));
+   const gapNear=(1-ss(BARK_DETAIL_M[0],BARK_DETAIL_M[1],d))*(1-ss(.96,1,mask));
+   const newCover=mix(oldCover,Math.min(oldCover,ss(.40,.84,mask)*ss(.24,.58,fine)),gapNear);
    tally.triangles++;tally.weight+=weight;tally.rawMoss+=mask*weight;tally.fullMask+=(mask>.995?weight:0);tally.cushions+=(w<-.47&&w>-.5?weight:0);tally.oldCover+=oldCover*weight;tally.newCover+=newCover*weight;tally.oldDense+=(oldCover>.5?weight:0);tally.newDense+=(newCover>.5?weight:0);
    if(mask>.35){tally.affectedWeight+=weight;tally.affected+=(1-newCover)*weight;}
    const color=[0,1,2].map(axis=>ids.reduce((s,k)=>s+colour.array[k*3+axis],0)/3);tally.samples.push({p:p.toArray(),mask,fine,weight,oldCover,newCover,color,cushion:w<-.47&&w>-.5});

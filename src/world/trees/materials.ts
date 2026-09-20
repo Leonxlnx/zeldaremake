@@ -582,6 +582,9 @@ const WHITE_BARK_COLOR = /* glsl */ `
  * no geometry, no draw calls.
  */
 const GIANT_BARK_COLOR = /* glsl */ `
+  #ifdef NEAR_BASE_DETAIL
+  vec3 bareBark = diffuseColor.rgb;
+  #endif
   float coarse = treeNoise(vTreeWorld * 0.55) * 0.55 + treeNoise(vTreeWorld * 2.1) * 0.45;
   float up = clamp(inverseTransformDirection(normalize(vNormal), viewMatrix).y, 0.0, 1.0);
   float lowBand = 1.0 - smoothstep(0.3, 4.5, vTreeLocalY);
@@ -650,6 +653,30 @@ const GIANT_BARK_COLOR = /* glsl */ `
     // cushions with ragged edges: the cover needs both a strong per-vertex moss AND the fine
     // noise, so bark shows between the cushions (a 0.12–0.7 threshold greened whole boles)
     barkMossCover = smoothstep(0.34, 0.82, vBarkMoss * (0.5 + 0.95 * mossFine));
+    #ifdef NEAR_BASE_DETAIL
+    // At arm's length, reveal mapped bark between cushions in the existing field. The
+    // shared detail fade restores the original cover by 6 m; full-mask cushions stay exact.
+    if (barkNearDetail > 0.0) {
+      float priorMossCover = barkMossCover;
+      float patchCover = smoothstep(0.40, 0.84, vBarkMoss) * smoothstep(0.24, 0.58, mossFine);
+      float gapNear = barkNearDetail * (1.0 - smoothstep(0.96, 1.0, vBarkMoss));
+      barkMossCover = mix(barkMossCover, min(barkMossCover, patchCover), gapNear);
+      #ifdef USE_COLOR
+      float openedCover = priorMossCover - barkMossCover;
+      if (openedCover > 0.0) {
+        // Recover the map/material hue only in newly exposed gaps. Keep vertex grain and
+        // crevice variation; remove part of the compounded dark material value only below
+        // unit vertex value, leaving already lifted bark (the stair-bank giant) unamplified.
+        vec3 lumW = vec3(0.2126, 0.7152, 0.0722);
+        float vertexValue = dot(vColor.rgb, lumW);
+        vec3 dryBark = bareBark * vertexValue / max(vColor.rgb, vec3(1e-4));
+        dryBark /= mix(dot(diffuse, lumW), 1.0, clamp(vertexValue, 0.0, 1.0));
+        dryBark = mix(dryBark, lichenColor, lichen * 0.6) * (0.86 + tone * 0.28);
+        diffuseColor.rgb = mix(diffuseColor.rgb, dryBark, openedCover / max(1.0 - barkMossCover, 1e-4));
+      }
+      #endif
+    }
+    #endif
     // a darker rim where a cushion meets the bark, so it sits on the bark as a volume
     float mossRim = barkMossCover * (1.0 - barkMossCover) * 4.0;
     vec3 mossCushion = mix(vec3(0.09, 0.16, 0.04), vec3(0.24, 0.36, 0.10), mossFine) * (1.0 - 0.35 * mossRim);

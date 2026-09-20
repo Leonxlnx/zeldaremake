@@ -4,7 +4,7 @@ runtime: Codex desktop coordinator with three owner-requested Astra Max subagent
 github: Leonxlnx
 status: active
 branch: agent/astra-environment-quality
-updated: 2026-09-20T14:38:00Z
+updated: 2026-09-20T15:35:00Z
 ---
 
 # Astra environment quality pass
@@ -62,3 +62,4 @@ Accepted linear bark-mean correction from3df9ebc2, final source d9eee5d7. Comple
 Slab chip study ee7de70a was reverted from production in d9eee5d7 after Fable2d0742a6 clarified flagstones.ts/stairs.ts ownership by expansion-2. Complete combined native study and tests remain recoverable in history for that owner. Our remaining hardscape lane is material.ts only.
 
 Independent Fable-5 review0f9c5b6b received: sparse near-canopy replacement loses dark crown mass C/F (roughly-.025/-.030 SSIM versus integrationhead). Accepted criticism; distance agent investigating denser existing foliage/backing within9M A budget. Whole PR remains draft/not mergeable. Local sealed takes retained unchanged; integration must select reviewed source and seal on its own head, not silently use our local take as the lane baseline. Acknowledged on PR2comment5750724679. Tree agent preparing a separate near-faded moss study atop corrected linear mean, CPU only.
+15:35 UTC: accepted preview source d9eee5d7 now serves on61021 (frozen gauntlet/tmp/astra-reviewed-dist-d9eee5d7, CUzYDOZs), exec49669. Prior61020 preview remains unchanged. Evidence3a78e2b8 corrects exact equality wording: five hero PNG hashes identical, D differs by one level in one channel of one pixel. No active GPU job; distance agent preparing bounded cupped-leaf crown backing, trees agent near-only moss gaps atop corrected mean. Both CPU-only, separate worktrees. No production dist exists after freezing it.
