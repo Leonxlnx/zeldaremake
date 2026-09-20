@@ -187,9 +187,9 @@ export function buildClearingRocks(layout: ClearingLayout, T: Terrain, rng: Rng,
           mossSide: 0.3,
           mossShade: toLocal(yaw),
           facetBare: 0.7,
-          dirt: 0.7,
-          collarBand: [0.05, 0.5],
-          tint: new Color(0.64, 0.63, 0.58),
+          dirt: 0.85,
+          collarBand: [0.05, 0.62],
+          tint: new Color(0.6, 0.59, 0.54),
           freq: 1,
         });
         const ground = T.height(x, z);
@@ -245,8 +245,13 @@ export function buildClearingRocks(layout: ClearingLayout, T: Terrain, rng: Rng,
         mossSide: 0.45,
         mossShade: toLocal(yaw),
         facetBare: 0.4,
-        dirt: 0.6,
-        tint: new Color(0.42, 0.42, 0.4),
+        // fable-5 at 3 m: the first slabs were "clean limestone next to damp stone" (l 0.6 against
+        // the wall's 0.2) — the foot slabs take the wall's damp dark tint and a deep soil collar,
+        // the east bank's a shade darker than before
+        dirt: west ? 0.9 : 0.75,
+        collarBand: west ? [0.1, 0.7] : [0.08, 0.55],
+        collar: west ? new Color(0.1, 0.1, 0.08) : undefined,
+        tint: west ? new Color(0.27, 0.28, 0.28) : new Color(0.36, 0.36, 0.34),
         freq: 1,
       });
       const ground = T.height(x, z);

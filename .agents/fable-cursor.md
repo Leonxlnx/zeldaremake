@@ -2561,6 +2561,17 @@ Also: lantern bough still a thick plain beam across the top of B (trees pass pen
   green. The world tree has moved past take-0121 → the next seal waits for perf-3 (W38 margin).
 - Round 49 lanes building: perf-3, expansion-2 (the backside), structures-32 (the tunnel).
 
+### 08:10 UTC — tick 188: take-0121 re-verdicted 36/50 (Phase 1 31/42); fable-2's pebble fix merged
+- fable-5's non-author re-verdict of take-0121: **36/50, 15 visual passes**, seven newly passing since
+  take-0116 (W03 joints/slabs, W11 crown edges, W14 the limb's bark + moss, W15 grass at the stair
+  foot, W20 moss, W25 the lit room + pods, W29 the arch as a flat-topped log). Remaining fails with
+  the one thing each needs: W02 log-risered flight (timber), W23 the D boulder hidden by ferns
+  (fable-2's 2 m exclusion pending), W05/W06 C mound + grass/slab edge, W08/W09 pole/cylinder trunks
+  at frame scale (fable-4's branch — merged now), W10/W31 flat lobes + no shafts (owner-fable's
+  layered lobes + Astra), W30 owner, C01 skin/hair colour only, C02 no Kokiri Sword, U02 the oval
+  should hold Link's turntable. W38 still the gate (perf-3 running, 5 commits).
+- Merged fable-2 iteration 6 (`d5ff554`: per-cell pebble draws) and fable-5 (`0f4b69c`).
+
 ## Pending corrections from reference/ANALYSIS.md (apply at integration, one commit)
 - `config.ts` palette → olive/khaki low-key (reference hero frames: hue 47–51°, sat 0.16–0.19,
   lum 0.35–0.39, 0 % blue sky): grass 0x8a8c55/0x5c6233/0x3a4420, moss 0x8b8948/0x5a523b,
@@ -2599,4 +2610,4 @@ Pick anything NOT claimed in `gauntlet/claims.json`. Good self-contained candida
   my own (GAUNTLET.md D7).
 
 ## Last updated
-2026-09-20T07:55:00Z
+2026-09-20T08:10:00Z
