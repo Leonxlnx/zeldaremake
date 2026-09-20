@@ -362,12 +362,40 @@ studs, the pot's two-tone firing), seated on the ground, out of the six frames b
 note not fable-3's: at `px-west-landing` the foreground is two flat pale-green leaf blobs (the scatter
 bush's cards at 1 m) — the old flat-lobe read, now on the backside too (vegetation-27 / owner-fable's
 lobe swap). Sheet `fable-5-r49/fable-5-r49-f3-backside-props.jpg`.
+## N. Iteration 23 (21:20–21:45 UTC) — fable-2 `agent/fable-2-v21` @ `02321879`: V21's anchor boulder at C
+
+Head `6d6d80f8` + the branch (`rocks/index.ts`: a hero boulder `c-bank-anchor` at (7.4, 2.9) r 0.55 —
+pale rounded stone with a moss cap — projecting to C (0.28, 0.49) and A (0.84, 0.56); in this variant it
+**stands in for the stair-foot boulder**, which goes). Build + `rockgen` test green. C, A, F rendered
+on both.
+
+| view | head → branch | SSIM vs reference | budget |
+| --- | --- | --- | --- |
+| C_lookback | 2.5 % (r1c0 15 %, r1c1 5 %) | 0.2287 → 0.2319 (**+0.0032**) | gain |
+| A_stairs | 1.0 % (the right bank) | −0.0007 | ok |
+| F_canopy | 3.9 % (r1c2 16.5 % — the stair foot F looks at) | 0.2453 → 0.2410 (**−0.0043**) | **over** |
+
+**V21 at C: landed — the frame's anchor is where the frame has it.** The head's big stair-foot loaf at
+C's left-centre (which the frame does not have there) goes, and a small pale moss-capped rock sits on
+the bank at the flight's foot where the Kokiri boy stands in `d_019`/`d_093` — C gains +0.0032, the
+largest single C gain of the round. **But F pays −0.0043**: F frames the stair foot from the left and
+loses the boulder it had. fable-2's both-rocks variant was C −0.0017 / F −0.0026 — inside F's budget
+but a loss at C. Neither variant clears all three frames.
+
+Reading for fable-cursor: this is the composition the owner sees twice (V21's whole point), so the
+C gain is the one that matters and F's −0.0043 is the price of moving a rock the frames never had at
+F's spot — an **owner-approved look change** by the rules, if you call it so. If not, the middle path is
+a *smaller* stair-foot stone kept for F (F sees the foot from the left, C from behind — a 0.35 m stone
+at the old spot would give F most of its structure back without returning C's loaf). Sheet
+`fable-5-r49/fable-5-r49-f2-v21-anchor.jpg`.
+
 ## Summary for fable-cursor
 
 - fable-4 `5fe58488`: merge; six views Δ 0 (five pixel-identical).
 - fable-4 `ea86f8c1`: ~~merge~~ — reverted by fable-4 (a hidden re-roll of 18 outer-ring placements my six-view pair could not see); the lean half of W08 is open again.
 - fable-2 `e5867d7e` (the D loaf): merge the composition (D −0.0008, a rock is in the frame); the face reads l 0.21 against the reference's lit 0.27 — the value pass follows.
 - fable-3 `424478eb` (wood tint): harmless, pixel-identical on the six views; 3–4° of hue at the pose — unchanged to the eye.
+- fable-2-v21 `02321879` (the C anchor, stair-foot stands in): **C +0.0032 / A −0.0007 / F −0.0043** — V21 landed at C; F over budget; fable-cursor's call (owner-approved composition, or a smaller stair-foot stone kept for F).
 - fable-2-hue `8908d696`: merge; the D face hue 67° → 59° (frame 52°), saturation 0.16 unchanged (frame 0.36) — chroma is the next half.
 - fable-3-backside `3227a358`: merge; six views + `w04-spine-l` pixel-identical, the crate/bucket and the fork waymarker land at fable-3's poses.
 - fable-4 `6537e21a` (+ `606ec987`): merge; the instance-matrix lean at C, +0.0002, four other poses identical.

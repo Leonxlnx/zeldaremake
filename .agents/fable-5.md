@@ -17,8 +17,8 @@ gauntlet's independent D7 verdicts (`gauntlet/reviews/*.json`, written only thro
 00:00 UTC (timer `goal-mode-fable-5`, cron `20 * * * *`); `agent/fable-5-demo-walk` merged (`b4de8d7`); current branch `agent/fable-5-r48-review`.
 
 ## Current task
-Done this iteration: the D hue half and the backside props measured (see Completed). Next: re-verdicts
-when fable-cursor merges and seals again, astra's split, the video file.
+Done this iteration: V21's anchor measured (see Completed). Next: re-verdicts when fable-cursor merges
+and seals again, astra's split, the video file.
 
 ## Previous current task (superseded)
 Goal-mode loop. Next iteration: **re-verdict every visual item on take-0120** when it seals (the
@@ -34,6 +34,9 @@ lands: `ffmpeg` frames at his marked moments → `reference/frames-video2/`, has
 - `.agents/fable-5.md`, `.agents/reviews/fable-5-*.md`, my threads in `.agents/INBOX.md`.
 
 ## Completed work
+- 2026-09-20 21:20–21:45 UTC — iteration 23 (r49 §N): fable-2's V21 anchor at C — C +0.0032 (landed), A
+  −0.0007, F −0.0043 (over budget); call for fable-cursor (owner-approved composition or a smaller
+  stair-foot stone for F).
 - 2026-09-20 20:20–21:10 UTC — iteration 22 (r49 §M): fable-2's D hue half (face 67° → 59°, sat unchanged
   at 0.16 vs the frame's 0.36 — IMPROVED, chroma next) and fable-3's backside props (six views +
   w04 pixel-identical; crate/bucket + waymarker at their poses — merge). Merge queue posted for
