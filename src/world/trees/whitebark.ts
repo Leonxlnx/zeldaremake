@@ -100,7 +100,7 @@ export function whiteBarkParams(rng: Rng, index: number, total: number): WhiteBa
     droop: r.range(0.15, 1),
     leafSize: [base.leaf[0], base.leaf[1]],
     leafDensity: base.density * r.range(0.9, 1.12),
-    lowerLimbs: age === 'sapling' ? 0 : r.chance(0.55) ? 1 : 0,
+    lowerLimbs: age === 'sapling' ? 0 : r.chance(0.35) ? 2 : 1,
     roots: r.int(base.roots[0], base.roots[1] + 1),
   };
 }
@@ -411,10 +411,12 @@ export function createWhiteBarkTree(p: WhiteBarkParams, palette: Palette, detail
     wideSecond: 0.54,
     stiffness: stiffnessFor(radius),
     flutter: 0.016,
-    mediumEvery: 5,
-    mediumScale: 2.0,
-    lowEvery: 10,
-    lowScale: 2.9,
+    // round 49 (W38): the distance meshes keep one leaf in 6 / 12 (was 5 / 10) at the size that
+    // holds the same covered area (scale² / every ≈ 0.8) — 4–10 px laminae at 20–44 m either way
+    mediumEvery: 6,
+    mediumScale: 2.19,
+    lowEvery: 12,
+    lowScale: 3.18,
   });
 
   /** lobe context for interior shading: leaves deep inside a lobe are darker (self-shadowed) */
@@ -525,7 +527,11 @@ export function createWhiteBarkTree(p: WhiteBarkParams, palette: Palette, detail
         twigTarget.y -= p.droop * bt(0.1, 0.6);
         const twig = growthPath(twigOrigin, twigTarget, tangent(secondary, twigT), rng, 4, 0.64);
         const twigRadius = Math.max(0.005, secondaryRadius * (1 - twigT) * 0.39);
-        tube(wood, twig, taper(twig, twigRadius, 0.0016), 3, rng, { color: branchColor(twigRadius), roughness: 0.015 });
+        // Round 49 (W38): a 5–20 mm twig is under a pixel beyond the 20 m swap — the medium mesh
+        // takes the tube's draws (so every leaf stays where the high mesh puts it) and builds no
+        // wood for it; the low mesh already skips it (writer.ts, < 12 mm). Its leaves are kept.
+        if (detail === 'medium' && twigRadius < 0.012) consumeTubeDraws(rng, 3);
+        else tube(wood, twig, taper(twig, twigRadius, 0.0016), 3, rng, { color: branchColor(twigRadius), roughness: 0.015 });
         leafSpray(twig, twigRadius * 0.6, 14, bt(0.9, 1.04), 0.3);
 
         const sprigPhase = rng() * TAU;
@@ -603,17 +609,29 @@ export function createWhiteBarkTree(p: WhiteBarkParams, palette: Palette, detail
     }
   }
 
-  // ---------- lower limb (pruning history) ----------
+  // ---------- low boughs ----------
+  // Round 49 (fable-5's W08 at C: "a straight pale pole with a sprig" — camera C sees the survey
+  // tree's lowest 6 m at 22.7 m, crown out of frame, and the old pruning-history limb's 1 m tuft
+  // was the sprig). Every young and mature stem now carries one or two low boughs at 30–42 % of
+  // its height — a limb thick enough to read, a lobe 1.7 m across and 1.8 m tall — the foliage in
+  // a walker's eye line at 2–7 m. Built after the crown, so the crown's stream is untouched.
   for (let i = 0; i < p.lowerLimbs; i++) {
-    const t = bt(0.3, 0.42);
+    const main = i === 0;
+    // the main bough leaves the stem at 22–34 % of the height (2.8–4.4 m on a mature stem, so its
+    // lobe sits at 3.5–6 m — inside camera C's frame under the HUD, and at eye level plus a little
+    // for a walker); the second, where drawn, at 30–42 %
+    const t = main ? bt(0.22, 0.34) : bt(0.3, 0.42);
     const origin = sample(trunk, t);
     const angle = p.leanAzimuth + 1.9 + i * 2.5 + bt(-0.55, 0.55);
-    const reach = crownRadius * bt(0.35, 0.58);
-    const center = origin.clone().add(new Vector3(Math.cos(angle) * reach, H * bt(0.065, 0.12), Math.sin(angle) * reach));
+    const reach = crownRadius * (main ? bt(0.45, 0.7) : bt(0.35, 0.58));
+    const center = origin.clone().add(new Vector3(Math.cos(angle) * reach, H * (main ? bt(0.06, 0.11) : bt(0.065, 0.12)), Math.sin(angle) * reach));
     const path = growthPath(origin, center, tangent(trunk, t).lerp(new Vector3(Math.cos(angle), 0.2, Math.sin(angle)), 0.62), rng, 8, 1.1);
-    const radius = R * bt(0.12, 0.18);
+    const radius = R * (main ? bt(0.15, 0.21) : bt(0.12, 0.18));
     tube(wood, path, taper(path, radius, 0.004), 6, rng, { color: branchColor(radius), roughness: p.ridge * 0.5 });
-    foliateLobe(path, center, crownRadius * 0.17, H * 0.04, radius, 2, 3, 4);
+    // the main bough: a 1.7 m lobe in a few big tufts (W38: ≈ +2 K high-LOD triangles a stem);
+    // the second, where drawn, the old small tuft
+    if (main) foliateLobe(path, center, crownRadius * 0.3, H * 0.075, radius, 2, 3, 4);
+    else foliateLobe(path, center, crownRadius * 0.17, H * 0.04, radius, 2, 3, 4);
   }
 
   // ---------- epicormic shoots through the trunk surface (detail near the eye) ----------
