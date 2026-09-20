@@ -29,7 +29,7 @@ export interface BacksideBuild {
   stats: { boulders: number; stepStones: number; scree: number; triangles: number };
   /** seat points (x, y, z) */
   contacts: [number, number, number][];
-  /** casters for the locality's visibility test (each piece group as a low sphere stack) */
+  /** casters for the locality's visibility test — one tight caster per piece (a group sphere reached across camera C's edge: +1 draw / +31 K tris in C for nothing) */
   casters: Caster[];
 }
 
@@ -114,7 +114,7 @@ export function buildBacksideRocks(rng: Rng, seed: string, shadeDir: [number, nu
       const cy = ground + r * squash * 0.62 - sinkFrac * 2 * r * squash;
       parts.push({ geometry: g, matrix: pose(T, x, cy, z, yaw, 0.35) });
       contacts.push([x, ground, z]);
-      casters.push({ x, z, r: r * 1.1, y0: ground - 0.1, y1: cy + r * squash + 0.1, shadow: true });
+      casters.push({ x, z, r: r * squash + 0.15, y0: ground - 0.05, y1: cy + r * squash + 0.05, shadow: true });
       stats.boulders++;
     };
     // the loaf at u ≈ −1.5 (west of the flight's kerb), 0.6 m out on the plain; the companion along
@@ -171,20 +171,13 @@ export function buildBacksideRocks(rng: Rng, seed: string, shadeDir: [number, nu
       // half-buried: the flat slab's underside 0.4 of its thickness in the plain
       parts.push({ geometry: slab, matrix: pose(T, x, ground - sc * 0.32 * 0.4, z, yaw, 0.7) });
       contacts.push([x, ground, z]);
+      casters.push({ x, z, r: sc + 0.1, y0: ground - 0.05, y1: ground + sc * 0.32 * 1.2, shadow: true });
       stats.stepStones++;
     };
     // west run: from the pair toward the flight's kerb; east run: past the kerb to the lip's end
     let k = 0;
     for (let u = -0.85 - flightHalf + 0.5; u > -B.halfLength - 0.6; u -= sRng.range(0.85, 1.15)) slabAt(u, k++);
     for (let u = flightU + flightHalf + 0.5; u < B.halfLength + 0.6; u += sRng.range(0.85, 1.15)) slabAt(u, k++);
-    if (stats.stepStones) {
-      const [wx, wz] = southBankPoint(-1.2, toeV);
-      const [ex, ez] = southBankPoint(1.9, toeV);
-      const wy = T.height(wx, wz);
-      const ey = T.height(ex, ez);
-      casters.push({ x: wx, z: wz, r: 1.6, y0: wy - 0.2, y1: wy + 0.35, shadow: true });
-      casters.push({ x: ex, z: ez, r: 0.9, y0: ey - 0.2, y1: ey + 0.35, shadow: true });
-    }
   }
 
   // --- scree at the flight's flanks ------------------------------------------------------------
@@ -234,14 +227,10 @@ export function buildBacksideRocks(rng: Rng, seed: string, shadeDir: [number, nu
         const ground = T.height(x, z);
         parts.push({ geometry: shard, matrix: pose(T, x, ground - sc * 0.28, z, yaw, 0.6) });
         contacts.push([x, ground, z]);
+        casters.push({ x, z, r: sc + 0.08, y0: ground - 0.05, y1: ground + sc * 1.4, shadow: true });
         stats.scree++;
         if (stats.scree >= target) break;
       }
-      // one caster per flank: a low sphere at the flank's middle
-      const mx = flight.base[0] + dir.x * run * 0.45 + side.x * (flight.width / 2 + 0.95) * sign;
-      const mz = flight.base[2] + dir.z * run * 0.45 + side.z * (flight.width / 2 + 0.95) * sign;
-      const my = T.height(mx, mz);
-      casters.push({ x: mx, z: mz, r: 1.5, y0: my - 0.4, y1: my + 0.9, shadow: true });
     }
   }
 
