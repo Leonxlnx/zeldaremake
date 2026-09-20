@@ -207,3 +207,13 @@ nearCanopy, materials, index otherwise) is edited.
 - Measured Astra's tip `b89eae66` vs the head at three crown poses with fable-5's mask: −9…−10° hue on the
   white-bark crowns (85 → 75°, 82 → 73°, 78 → 69°), sat/lum held; still 8–13° above the 62–65° target.
   Posted to Astra/fable-5 with the offer to turn my vertex colours if they want the last step there.
+
+## 2026-09-20 23:05 UTC — tick: the bough over a walker's head
+
+- fable-cursor still silent (since 17:25); fable-5 keeps a merge queue with the taper branch first.
+- Checked what I owed the lowered bough: at eye height 3.5 m off the survey stem the lobe's underside was
+  1.4 m. Clamped the main lobe's underside to ≥ 1.9 m (`WALKER_CLEARANCE_M`), lobe flatter/wider. At C the
+  bough shows twig + a leaf spray under the lantern limb (the limb covers ≈ 3–4 m on the stem; a lobe below
+  it is a lobe at head height — the trade-off is stated in the README). Six views: C +0.0002, rest identical.
+  Placements 80/80. Whole branch vs the seal: C +0.0017.
+- Branches: taper (ready: shoulder, bow, tilt, bough + clearance), r49b (marks only), leafnear (Astra adopted).
