@@ -186,12 +186,35 @@ at `w28-plateau-d` the crate lid goes hue 42° → **31°** (r/g 1.11 → 1.20, 
 top 41° → **30°**, luminance held at 0.27–0.28 — the wood now sits beside the fence's 28° instead of a
 yellow-tan step away. §D's "3× the move" landed as measured. IMPROVED; merge.
 
+## H. Iteration 17 (15:20–16:10 UTC) — fable-2 `39568e37` (`agent/fable-2-w23-loaf`), the W23 value half on top of the loaf
+
+Head `94b701a0` (tick 195: my §C–§G merged, fable-3's tint, fable-2's W24 fix) + `e5867d7e` +
+`39568e37` (`rocks/index.ts`, `rockgen.ts`: `bareToward` keeps the face toward D bare stone, `faceLift`
+pales it up to 30 %); build + `rockgen` test green. First pass rendered a stale bundle (built before the
+second cherry-pick — caught by grepping the bundle for `faceLift`), rebuilt and re-rendered D and
+`sn-boulder-shotd` on head and union at the same positions.
+
+| view | head → head + loaf + value half | SSIM vs reference |
+| --- | --- | --- |
+| D_log | 0.88 % (6 590 px at (0.09–0.32, 0.55–0.88)) | 0.2612 → 0.2608 (**−0.0004**; the loaf alone was −0.0008) |
+| `sn-boulder-shotd` | 18.9 % — the face toward D is bare strata stone, the cap keeps its moss | — |
+| A / B / C / E / F (with the loaf, seven-view run) | 0.04 / 0.15 / 0 / 0.13 / 0 % | 0 / −0.0001 / 0 / +0.0003 / 0 |
+
+The face D sees: **l 0.21 → 0.24** (head's fronds 0.26, the frame's bare face 0.27), hue 62°, sat 0.13
+(frame: 52°, 0.36); the face box's macro σ 0.072 (frame 0.117). **IMPROVED — half of the value gap
+closed, the D cost halved; not closed.** What is left is not luminance: the hue/saturation (moss-grey
+against the frame's olive-tan — the `a683a4c1` tint reads too weakly through the lift) and the form
+(one plane; §7.2 of `ANALYSIS_VIDEO2.md`: a lit plane + an undercut shadow, macro σ 0.11–0.14). Merge
+both commits together; W23 at D stays a fail until the face reads as lit stone.
+Sheet `fable-5-r49/fable-5-r49-f2-w23-value-half-D.jpg`.
+
 ## Summary for fable-cursor
 
 - fable-4 `5fe58488`: merge; six views Δ 0 (five pixel-identical).
 - fable-4 `ea86f8c1`: merge; C −0.0006 for a survey tree that leans across the frame; taper is the last W08 half.
 - fable-2 `e5867d7e` (the D loaf): merge the composition (D −0.0008, a rock is in the frame); the face reads l 0.21 against the reference's lit 0.27 — the value pass follows.
 - fable-3 `424478eb` (wood tint): harmless, pixel-identical on the six views; 3–4° of hue at the pose — unchanged to the eye.
+- fable-2 `39568e37` + `e5867d7e` (W23 loaf + value half): merge together; D −0.0004, the face l 0.21 → 0.24 (frame 0.27), hue/sat and form still open.
 - **astra-environment-quality `a9eccd15`: do not merge as is** — C −0.0253, F −0.0301, D −0.0091, B −0.0053, E −0.0037: the near crown cores' dark mass is gone; plus an off-head ledger entry (take-0123) on the branch.
 - fable-3 `73129594` (wood tint, second step): merge; six views pixel-identical, crate hue 42° → 31° beside the fence's 28°.
 - structures-32 (`cfb0717f`, merged): V19's tonal half closed at the `d_121` pose (frame 0.147 vs 0.141, window:wall 5.8 vs 5.0); six views pixel-identical; the window's content is the open half.
