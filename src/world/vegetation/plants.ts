@@ -5,12 +5,13 @@
  * and tilted toward the local normal; positions respect the terrain mask (never on flagstones,
  * stairs, house pads or cliffs) and the layout (clearings at NPC spots, boulder rings, trunks).
  */
-import { Color, Group, type Material } from 'three';
+import { Color, Group, Vector3, type Material } from 'three';
 import { ROPE_FENCES, houseSteppingStones } from '../layout';
 import type { WorldContext } from '../system';
+import { STONE_CIRCLE_STONES } from '../terrain/heightfield';
 import { smoothstep, clamp } from '../util/noise';
 import type { Rng } from '../util/prng';
-import { VegField, composeMatrix, newSample, type FieldSample } from './field';
+import { STANDING_STONE_CLEAR, VegField, composeMatrix, newSample, type FieldSample } from './field';
 import { rgb } from './geometry';
 import { LodInstancedSet, type PackLayout } from './lodset';
 import { createVegMaterial, createVegShadowMaterials, type VegMaterialOptions } from './materials';
@@ -41,6 +42,11 @@ export interface PlantSets {
   /** round 44: the north corridor's small ferns and broad leaves (the disc sets' geometry, ending at NORTH_PLANT_MAX_M) */
   fernsNorth: LodInstancedSet;
   weedsNorth: LodInstancedSet;
+  /** round 48: the clearing banks' shrubs and the terrace pad's tufts (the disc sets' geometry, cut at NORTH_BUSH_MAX_M / the tufts' range) */
+  bushesNorth: LodInstancedSet;
+  tuftsNorth: LodInstancedSet;
+  /** round 48: what the north passes seated, per item (audit) */
+  north: { clearingFerns: number; flankFerns: number; clearingBushes: number; padTufts: number; padClover: number; stoneMoss: number; farHerbs: number; farFootFerns: number; farFeet: number; propRejected: number };
   all: LodInstancedSet[];
   materials: Material[];
 }
@@ -122,6 +128,85 @@ const NORTH_VERGE_FERN_TINT = 0.82;
 const NORTH_VERGE_BUSH_TINT = 0.6;
 /** the verge's disc-falloff floor (the corridor's ground past the fade keeps this share; carpet.ts NORTH_CARPET.reachFloor) */
 const NORTH_CARPET_REACH_FLOOR_PLANTS = 0.8;
+/**
+ * Round 48 (vegetation-26) — the ground north of the log arch that expansion-1 opened (field.ts
+ * NORTH_ZONE_Z and the zones under it; the round-47 reviews: "a flat plane", "nothing growing at
+ * the trees' feet", the clearing's banks "bare cut soil + litter"). Ref-04 is the target: dense
+ * dark ferns and shrubs at the path edges, fine leaf litter everywhere, the corridor floor litter
+ * not lawn. Four passes, each its own stream after every pass above (nothing south of the gate
+ * moves; the six fixed cameras see none of this ground — layout.ts `northClearing`):
+ *
+ * - the clearing's banks (`clearingLawn.bank`): dark ferns (CLEARING_FERN_*) thickening up the
+ *   slope and at the terrace flanks (TERRACE_FLANK_FERNS: an authored clump each side of the
+ *   `ledge` flight's landing), broad-leaf rosettes, clover, a few leafy shrubs on the outer bank
+ *   tops (`bushesNorth`, its own set: the disc `bushes` draw their far LOD at any range, and 30
+ *   crowns 80–95 m north of camera A — in its frustum, behind the north rise — would have cost it
+ *   the triangles it has no room for; cut at NORTH_BUSH_MAX_M like the north ferns);
+ * - the terrace pad (`clearingLawn.pad`): tufts (`tuftsNorth`, its own set so the B3 claim
+ *   `grassInstances` stays the disc's) and clover close the turf a Kokiri stands on;
+ * - the standing stones: moss cushions at their feet, on the paving, in the ring STONE_MOSS_RING m
+ *   off each axis (the stones' footprints are `structure`; grow around, not under) — placed
+ *   directly, the paving mask would reject a scatter there;
+ * - the forest floor beyond the tunnel (`farFloor`): a low herb carpet (broad leaves, clover, moss
+ *   beds) and dark ferns at the far trees' feet (FAR_TREE_FEET, plus any `ctx.shared.trunkSeats`
+ *   the trees system seats north of the gate) reaching FAR_FLOOR_REACH m from the north path.
+ */
+const NORTH_BUSH_MAX_M = 36;
+/** the clearing banks' fern candidates per m² of the clearing box and the pass's base acceptance */
+const CLEARING_FERN_PER_M2 = 5.5;
+const CLEARING_FERN_P = 0.16;
+/** ref-04's fronds are darker than the disc ferns' palette (× the set's) */
+const CLEARING_FERN_TINT = 0.76;
+const CLEARING_BUSH_TINT = 0.58;
+/** the authored fern clumps flanking the terrace (expansion-1's brief), centre and radius (m) */
+const TERRACE_FLANK_FERNS: readonly (readonly [number, number, number])[] = [
+  [-3.5, -78.5, 1.1],
+  [2.4, -79.0, 1.0],
+];
+const TERRACE_FLANK_COUNT = 9;
+/** the moss ring at a standing stone's foot: [inner, outer] m off the axis, cushions per stone */
+const STONE_MOSS_RING: readonly [number, number] = [0.32, 0.62];
+const STONE_MOSS_COUNT = 11;
+/** the terrace pad's tufts per m² (candidates) and the pad's clover candidates per m² */
+const PAD_TUFT_PER_M2 = 14;
+const PAD_CLOVER_PER_M2 = 10;
+/**
+ * The far forest's tree feet (x, z, foot radius m): the distant trees the trees system seeds north
+ * of the tunnel within 27 m of the north path (trees/distant.ts placeDistantTrees — a label-forked
+ * seeded placement it does not publish; byte-identical since round 47: layout.ts `northPath` keeps
+ * its candidates), replayed in node at eb6d2bc (gauntlet/tmp probe: the round-47
+ * distant-candidates replay, 729 placements = the take-0118 audit's `distantTrees`). The foot is
+ * the kind's bole radius × the base flare (DISTANT_FLARE) × the instance scale. A seat the trees
+ * system does publish (`ctx.shared.trunkSeats`) within FAR_FOOT_MERGE_M of one of these replaces
+ * it — trees-31 is dressing these columns this round; when it seats them, the ferns follow the seat.
+ */
+const FAR_TREE_FEET: readonly (readonly [number, number, number])[] = [
+  [25.76, -56.2, 1.91], // broad 23 m × 1.19, 20 m off the path
+  [-10.93, -56.98, 1.58], // broad 19 × 1.19, 15.9 m
+  [19.6, -57.03, 1.48], // broad 19 × 1.11, 13.8 m
+  [-7.81, -58.33, 2.04], // broad 23 × 1.27, 13 m
+  [-25.3, -58.69, 1.59], // broad 19 × 1.2, 26.3 m
+  [-20.21, -58.7, 1.64], // broad 19 × 1.24, 21.8 m
+  [30.22, -58.86, 1.48], // broad 19 × 1.11, 24.4 m
+  [15.6, -59.25, 1.94], // broad 23 × 1.2, 9.9 m
+  [-2.57, -60.06, 1.8], // broad 23 × 1.12, 7.8 m — the first tree through the tunnel's mouth
+  [13.14, -69, 0.19], // slender 11 × 0.9, 10.2 m
+  [18.69, -76.14, 1.55], // broad 19 × 1.17, 18.6 m
+  [-14.61, -76.6, 1.39], // broad 19 × 1.04, 14.8 m
+  [0.93, -85.98, 1.85], // broad 19 × 1.39, 16.4 m — the row behind the ledge
+  [-5.22, -86.44, 1.89], // broad 23 × 1.18, 17.1 m
+  [-11.77, -86.58, 2.21], // broad 23 × 1.37, 19.7 m
+  [-18.21, -87, 2.2], // broad 23 × 1.37, 24 m
+  [15.69, -87.16, 1.96], // broad 23 × 1.22, 24.1 m
+  [10.94, -89.63, 2.1], // broad 23 × 1.31, 23.4 m
+  [2.06, -93.8, 2.08], // broad 23 × 1.29, 24.3 m
+  [-2.7, -95.8, 1.47], // broad 19 × 1.11, 26 m
+];
+const FAR_FOOT_MERGE_M = 3;
+/** ferns around a far tree's foot: count per foot, and the ring [inner, outer] past the foot radius (m) */
+const FAR_FOOT_FERNS = 7;
+const FAR_FOOT_RING: readonly [number, number] = [0.25, 1.6];
+const FAR_FOOT_FERN_TINT = 0.74;
 /** round 44 (survey-1 #10): a violet clump's pigment spread (× 1 ± this) and hue lean (red up / blue down or the reverse, this fraction) */
 export const FLOWER_CLUMP_SPREAD = 0.12;
 export const FLOWER_CLUMP_LEAN = 0.08;
@@ -3308,9 +3393,313 @@ export function buildPlants(ctx: WorldContext, field: VegField, parent: Group): 
     if (atHouse) it.variant = BIG_LEAF_VARIANTS[0] + (it.variant & 1);
     else if (big) it.variant = (Math.abs(Math.floor(it.x * 7.31 + it.z * 3.17)) % 2) * 2 + (it.variant & 1);
   }
-  const all = [ferns, tufts, heroFerns, fiddleheads, bushes, hedge, flowers, yellowFlowers, whiteFlowers, weeds, seedheads, clover, moss, saplings, fernsNorth, weedsNorth];
+  // ---- Round 48 (vegetation-26) — the ground north of the log arch (see NORTH_BUSH_MAX_M and the
+  // constants under it; field.ts NORTH_ZONE_Z). Own sets where the disc sets have no range cut,
+  // own streams after every pass above; nothing south of the gate moves.
+  const bushesNorth = new LodInstancedSet({ name: 'bushes-north', variants: bushes.opts.variants, material: bushes.opts.material, shadowMaterials: bushes.opts.shadowMaterials, lodDistances: bushes.opts.lodDistances, maxDistance: NORTH_BUSH_MAX_M * q.distance, castShadowLods: 2, nearLods: 1, packs: PACKS.bushes });
+  const tuftsNorth = new LodInstancedSet({ name: 'tufts-north', variants: tufts.opts.variants, material: tufts.opts.material, lodDistances: tufts.opts.lodDistances, maxDistance: tufts.opts.maxDistance, castShadowLods: 0, packs: PACKS.tufts });
+  const north = { clearingFerns: 0, flankFerns: 0, clearingBushes: 0, padTufts: 0, padClover: 0, stoneMoss: 0, farHerbs: 0, farFootFerns: 0, farFeet: 0, propRejected: 0 };
+  {
+    const L = ctx.layout;
+    /** the clearing box grown by its feather and the terrace bay behind it */
+    const clearingBox: [number, number, number, number] = [-11.5, -84.5, 11.5, -59];
+    const clearingArea = (clearingBox[2] - clearingBox[0]) * (clearingBox[3] - clearingBox[1]);
+    /** the ground every north pass keeps off: the rock face, the paving and a verge, the stones, the props' footprints */
+    const groundOk = (x: number, z: number, s: FieldSample, verge: number, pad = 0.1): boolean => {
+      if (s.cliff > 0.5 || s.structure > 0.3 || s.stairs > 0.05) return false;
+      if (field.northPavingDistance(x, z) < verge) return false;
+      if (field.standingStoneDistance(x, z) < STANDING_STONE_CLEAR + 0.15) return false;
+      if (field.insidePropFootprint(x, z, pad)) {
+        north.propRejected++;
+        return false;
+      }
+      return true;
+    };
+    /** the pass's weight on the clearing's banks: the bank share, thicker up the slope and in the cluster noise */
+    const bankWeight = (x: number, z: number, s: FieldSample, verge: number) => {
+      const lawn = field.clearingLawn(x, z);
+      if (lawn.bank <= 0.02 || !groundOk(x, z, s, verge)) return 0;
+      return lawn.bank * (0.45 + 1.1 * field.cluster(x, z)) * (1 + 1.4 * smoothstep(0.1, 0.4, s.slope));
+    };
+    // (1a) dark ferns up the clearing's banks — ref-04's path edges: thickest in the first two
+    // metres off the paving, thinning up the slope
+    scatter(
+      ctx,
+      field,
+      {
+        label: 'ferns-clearing-r48',
+        candidates: Math.round(clearingArea * CLEARING_FERN_PER_M2 * q.density),
+        box: clearingBox,
+        minSpacing: 0.42,
+        r32: true,
+        accept(x, z, s) {
+          const w = bankWeight(x, z, s, 0.35);
+          if (w <= 0) return 0;
+          const edge = field.northPavingDistance(x, z);
+          return CLEARING_FERN_P * w * (1 + 2.2 * (1 - smoothstep(0.35, 2.6, edge)));
+        },
+      },
+      (x, z, s, rng) => {
+        placeInstance(fernsNorth, x, z, s, rng, 0.55 + rng() * 0.45, 0.65, 0.02, greenVar(rng, 0.18).multiplyScalar(CLEARING_FERN_TINT));
+        north.clearingFerns++;
+      },
+    );
+    // (1b) the authored fern clumps flanking the terrace (the `ledge` flight's landing is between
+    // them): bigger fronds, packed, on the banks either side of the pad
+    {
+      const rng = ctx.rng.fork('plants/ferns-terrace-flanks-r48');
+      const s = newSample();
+      for (const [cx, cz, r] of TERRACE_FLANK_FERNS) {
+        for (let i = 0; i < TERRACE_FLANK_COUNT * 3 && north.flankFerns < TERRACE_FLANK_COUNT * TERRACE_FLANK_FERNS.length; i++) {
+          const a = rng() * Math.PI * 2;
+          const d = Math.sqrt(rng()) * r;
+          const scale = 0.7 + rng() * 0.4;
+          const c = greenVar(rng, 0.16).clone().multiplyScalar(CLEARING_FERN_TINT);
+          const x = Math.round((cx + Math.cos(a) * d) * 1000) / 1000;
+          const z = Math.round((cz + Math.sin(a) * d) * 1000) / 1000;
+          field.sample(x, z, s);
+          if (!field.allowed(x, z, s, true) || !groundOk(x, z, s, 0.25) || field.clearing(x, z).npc > 0.4) continue;
+          if (fernsNorth.items.some((p) => Math.abs(p.z - z) < 0.5 && Math.hypot(p.x - x, p.z - z) < 0.36)) continue;
+          placeInstance(fernsNorth, x, z, s, rng, scale, 0.6, 0.02, c);
+          north.flankFerns++;
+        }
+      }
+    }
+    // (1c) broad-leaf rosettes and clover between the fronds on the banks
+    scatter(
+      ctx,
+      field,
+      {
+        label: 'weeds-clearing-r48',
+        candidates: Math.round(clearingArea * 6 * q.density),
+        box: clearingBox,
+        minSpacing: 0.24,
+        r32: true,
+        accept(x, z, s) {
+          const w = bankWeight(x, z, s, 0.2);
+          return w <= 0 ? 0 : 0.2 * w * (0.4 + field.flowerPatch(x, z));
+        },
+      },
+      (x, z, s, rng) => placeInstance(weedsNorth, x, z, s, rng, 0.65 + rng() * 0.6, 0.8, 0.012, greenVar(rng, 0.2).multiplyScalar(0.88)),
+    );
+    scatter(
+      ctx,
+      field,
+      {
+        label: 'clover-clearing-r48',
+        candidates: Math.round(clearingArea * 5 * q.density),
+        box: clearingBox,
+        minSpacing: 0.2,
+        low: true,
+        r32: true,
+        accept(x, z, s) {
+          const lawn = field.clearingLawn(x, z);
+          const w = Math.max(lawn.bank, lawn.pad);
+          if (w <= 0.02 || !groundOk(x, z, s, 0.12, 0.05)) return 0;
+          return 0.14 * w * (0.5 + field.cluster(x, z));
+        },
+      },
+      (x, z, s, rng) => {
+        placeInstance(clover, x, z, s, rng, 0.75 + rng() * 0.55, 0.9, 0.008, greenVar(rng, 0.18));
+        if (field.clearingLawn(x, z).pad > 0.5) north.padClover++;
+      },
+    );
+    // (1d) leafy shrubs on the outer bank tops: dark crowns closing the clearing's horizon (ref-04's
+    // shrub masses); off the pad, the flight, and the ferns' first metres
+    scatter(
+      ctx,
+      field,
+      {
+        label: 'bushes-clearing-r48',
+        candidates: Math.round(clearingArea * 1.4 * q.density),
+        box: clearingBox,
+        minSpacing: 2.2,
+        r32: true,
+        accept(x, z, s) {
+          const lawn = field.clearingLawn(x, z);
+          if (lawn.bank <= 0.3 || lawn.pad > 0.02 || !groundOk(x, z, s, 1.6, 0.6)) return 0;
+          if (field.terracePad(x, z) > 0 || field.clearing(x, z).npc > 0.05) return 0;
+          if (bushes.items.some((p) => Math.hypot(p.x - x, p.z - z) < 2.0)) return 0;
+          // the outer banks: 2.5 m and more up from the disc's rim
+          const rim = Math.hypot(x - L.northClearing.x, z - L.northClearing.z) - L.northClearing.radius;
+          return 0.5 * lawn.bank * smoothstep(1.8, 3.2, rim) * (0.4 + field.cluster(x, z));
+        },
+      },
+      (x, z, s, rng) => {
+        placeInstance(bushesNorth, x, z, s, rng, 0.55 + rng() * 0.3, 0.3, 0.04, tint.setRGB(CLEARING_BUSH_TINT + rng() * 0.1, CLEARING_BUSH_TINT + 0.05 + rng() * 0.1, CLEARING_BUSH_TINT - 0.08 + rng() * 0.1));
+        north.clearingBushes++;
+      },
+    );
+    // the round-47 house-shrub rule for the north crowns too: the big-leaf variant grows at the
+    // house feet only, so a north crown that drew it takes a leafy crown by a position hash
+    for (const it of bushesNorth.items) {
+      if (it.variant === BIG_LEAF_VARIANTS[0] || it.variant === BIG_LEAF_VARIANTS[1]) it.variant = (Math.abs(Math.floor(it.x * 7.31 + it.z * 3.17)) % 2) * 2 + (it.variant & 1);
+    }
+    // (2) the terrace pad's turf: tufts (short at the Kokiri's feet, mid elsewhere) over the pad's
+    // clover above and the pad's carpet (carpet.ts / grass.ts read `clearingLawn.pad`)
+    {
+      const t = L.ledgeTerrace;
+      const padBox: [number, number, number, number] = [t.x - t.halfLength - 0.6, t.z - t.halfDepth - 0.6, t.x + t.halfLength + 0.6, t.z + t.halfDepth + 0.6];
+      const padArea = (padBox[2] - padBox[0]) * (padBox[3] - padBox[1]);
+      scatter(
+        ctx,
+        field,
+        {
+          label: 'tufts-terrace-pad-r48',
+          candidates: Math.round(padArea * PAD_TUFT_PER_M2 * q.density),
+          box: padBox,
+          minSpacing: 0.26,
+          low: true,
+          r32: true,
+          accept(x, z, s) {
+            const pad = field.clearingLawn(x, z).pad;
+            if (pad <= 0.3 || !groundOk(x, z, s, 0.1, 0.05)) return 0;
+            return 0.75 * pad * (1 - 0.5 * field.clearing(x, z).npc);
+          },
+        },
+        (x, z, s, rng) => {
+          // the height class: short where the Kokiri stands, short or mid elsewhere (no tall tufts on a 3 m pad)
+          const npc = field.clearing(x, z).npc;
+          const cls = npc > 0.3 ? 0 : rng() < 0.55 ? 0 : 1;
+          const variant = cls + 3 * rng.int(0, 2);
+          const scale = 0.8 + rng() * 0.3;
+          composeMatrix(M, 0, x, T.height(x, z) - 0.01, z, s.nx, s.ny, s.nz, 0.85, rng() * Math.PI * 2, scale, scale, scale);
+          tuftsNorth.add(M, variant, greenVar(rng, 0.2));
+          north.padTufts++;
+        },
+      );
+      scatter(
+        ctx,
+        field,
+        {
+          label: 'clover-terrace-pad-r48',
+          candidates: Math.round(padArea * PAD_CLOVER_PER_M2 * q.density),
+          box: padBox,
+          minSpacing: 0.2,
+          low: true,
+          r32: true,
+          accept(x, z, s) {
+            const pad = field.clearingLawn(x, z).pad;
+            return pad <= 0.3 || !groundOk(x, z, s, 0.1, 0.05) ? 0 : 0.4 * pad;
+          },
+        },
+        (x, z, s, rng) => {
+          placeInstance(clover, x, z, s, rng, 0.7 + rng() * 0.5, 0.9, 0.008, greenVar(rng, 0.18));
+          north.padClover++;
+        },
+      );
+    }
+    // (3) moss cushions at the standing stones' feet: a ring STONE_MOSS_RING m off each axis, on
+    // the paving (a scatter's `allowed` would reject the disc), sunk into the slabs' relief; the
+    // stones' `structure` footprint (heightfield standingStoneMask, 1 inside 0.26 m) stays bare
+    {
+      const rng = ctx.rng.fork('plants/moss-standing-stones-r48');
+      const nrm = new Vector3();
+      for (const st of STONE_CIRCLE_STONES) {
+        for (let i = 0; i < STONE_MOSS_COUNT; i++) {
+          const a = rng() * Math.PI * 2;
+          const d = STONE_MOSS_RING[0] + Math.pow(rng(), 1.6) * (STONE_MOSS_RING[1] - STONE_MOSS_RING[0]);
+          const radius = 0.06 + rng() * 0.12;
+          const x = Math.round((st.x + Math.cos(a) * d) * 1000) / 1000;
+          const z = Math.round((st.z + Math.sin(a) * d) * 1000) / 1000;
+          const m = T.mask(x, z);
+          if (m.structure > 0.5 || m.stairs > 0.5 || field.insidePropFootprint(x, z)) continue;
+          T.normal(x, z, nrm);
+          const h = radius * (0.22 + rng() * 0.2);
+          composeMatrix(M, 0, x, T.height(x, z) - 0.014, z, nrm.x, nrm.y, nrm.z, 0.95, rng() * Math.PI * 2, radius, h / 0.45, radius * (0.75 + rng() * 0.5));
+          moss.add(M, rng.int(0, 2), tint.setRGB(0.86 + rng() * 0.18, 0.92 + rng() * 0.16, 0.86 + rng() * 0.18));
+          north.stoneMoss++;
+        }
+      }
+    }
+    // (4) the forest floor beyond the tunnel (`farFloor`): a low herb carpet — broad leaves,
+    // clover, moss beds — over the litter (litter.ts), and dark ferns at the far trees' feet. The
+    // ground runs past the field grid, so these sample the terrain exactly (field.ts sampleExact).
+    {
+      const farBox: [number, number, number, number] = [-26, -96, 32, -59];
+      const farArea = (farBox[2] - farBox[0]) * (farBox[3] - farBox[1]);
+      const s = newSample();
+      const farGround = (x: number, z: number): number => {
+        const ff = field.farFloor(x, z);
+        if (ff <= 0.02) return 0;
+        field.sampleExact(x, z, s);
+        if (s.allow <= 0 || !groundOk(x, z, s, 0.3)) return 0;
+        if (field.insideGiantTrunk(x, z) || field.logDistance(x, z) < 0.6) return 0;
+        return ff;
+      };
+      const farPass = (label: string, perM2: number, minSpacing: number, accept: (x: number, z: number, ff: number) => number, place: (x: number, z: number, rng: Rng) => void) => {
+        const rng = ctx.rng.fork(`plants/${label}`);
+        const spacing = new Spacing(Math.max(minSpacing, 0.5));
+        const n = Math.round(farArea * perM2 * q.density);
+        for (let i = 0; i < n; i++) {
+          const x = farBox[0] + rng() * (farBox[2] - farBox[0]);
+          const z = farBox[1] + rng() * (farBox[3] - farBox[1]);
+          const ff = farGround(x, z);
+          const p = ff <= 0 ? 0 : accept(x, z, ff);
+          if (p <= 0 || rng() > p) continue;
+          if (!spacing.ok(x, z, minSpacing)) continue;
+          spacing.add(x, z);
+          place(x, z, rng);
+          north.farHerbs++;
+        }
+      };
+      farPass('weeds-far-floor-r48', 1.6, 0.3, (x, z, ff) => 0.35 * ff * (0.3 + field.cluster(x, z)) * (0.4 + field.flowerPatch(x, z)), (x, z, rng) => placeInstance(weedsNorth, x, z, s, rng, 0.6 + rng() * 0.6, 0.8, 0.012, greenVar(rng, 0.22).multiplyScalar(0.86)));
+      farPass('clover-far-floor-r48', 1.4, 0.22, (x, z, ff) => 0.3 * ff * (0.4 + field.cluster(x, z)), (x, z, rng) => placeInstance(clover, x, z, s, rng, 0.75 + rng() * 0.6, 0.9, 0.008, greenVar(rng, 0.2).multiplyScalar(0.94)));
+      farPass('moss-far-floor-r48', 1.0, 0.4, (x, z, ff) => {
+        const c = field.cluster(x, z);
+        return 0.5 * ff * c * c * (1 - 0.6 * field.dry(x, z));
+      }, (x, z, rng) => {
+        const radius = 0.1 + rng() * 0.24;
+        const h = radius * (0.22 + rng() * 0.2);
+        composeMatrix(M, 0, x, T.height(x, z) - 0.012, z, s.nx, s.ny, s.nz, 0.95, rng() * Math.PI * 2, radius, h / 0.45, radius * (0.75 + rng() * 0.5));
+        moss.add(M, rng.int(0, 2), tint.setRGB(0.88 + rng() * 0.2, 0.9 + rng() * 0.16, 0.88 + rng() * 0.2));
+      });
+      farPass('ferns-far-floor-r48', 0.9, 0.5, (x, z, ff) => 0.12 * ff * (0.3 + 1.2 * field.cluster(x, z)) * (1 + 2 * smoothstep(0.12, 0.4, s.slope)), (x, z, rng) => placeInstance(fernsNorth, x, z, s, rng, 0.45 + rng() * 0.4, 0.7, 0.02, greenVar(rng, 0.2).multiplyScalar(FAR_FOOT_FERN_TINT)));
+      // the far trees' feet: the trees system's published seats north of the gate, and the authored
+      // list (FAR_TREE_FEET) where it publishes none — a ring of dark ferns past the butt flare
+      const feet: { x: number; z: number; r: number }[] = [];
+      for (const seat of ctx.shared?.trunkSeats ?? []) {
+        if (seat.z > -56 || Math.abs(seat.x) > 40) continue;
+        feet.push({ x: seat.x, z: seat.z, r: seat.radiusAt(0.3) });
+      }
+      for (const [fx, fz, fr] of FAR_TREE_FEET) {
+        if (feet.some((f) => Math.hypot(f.x - fx, f.z - fz) < FAR_FOOT_MERGE_M)) continue;
+        feet.push({ x: fx, z: fz, r: fr });
+      }
+      north.farFeet = feet.length;
+      const rng = ctx.rng.fork('plants/ferns-far-feet-r48');
+      for (const f of feet) {
+        let placed = 0;
+        for (let i = 0; i < FAR_FOOT_FERNS * 3 && placed < FAR_FOOT_FERNS; i++) {
+          const a = rng() * Math.PI * 2;
+          const d = f.r + FAR_FOOT_RING[0] + Math.pow(rng(), 1.3) * (FAR_FOOT_RING[1] - FAR_FOOT_RING[0]);
+          const scale = 0.5 + rng() * 0.45;
+          const c = greenVar(rng, 0.18).clone().multiplyScalar(FAR_FOOT_FERN_TINT);
+          const x = Math.round((f.x + Math.cos(a) * d) * 1000) / 1000;
+          const z = Math.round((f.z + Math.sin(a) * d) * 1000) / 1000;
+          field.sampleExact(x, z, s);
+          if (s.allow <= 0 || !groundOk(x, z, s, 0.3) || field.clearingLawn(x, z).pad > 0.1) continue;
+          if (fernsNorth.items.some((p) => Math.abs(p.z - z) < 0.45 && Math.hypot(p.x - x, p.z - z) < 0.4)) continue;
+          placeInstance(fernsNorth, x, z, s, rng, scale, 0.65, 0.02, c);
+          north.farFootFerns++;
+          placed++;
+        }
+      }
+    }
+    // (5) the props' footprints (fable-3's fern-through-the-pot): every standing plant seated inside
+    // one goes — the disc streams above never asked, and the props publish before we build
+    if (field.propFootprintCount() > 0) {
+      for (const set of [ferns, heroFerns, fiddleheads, tufts, flowers, yellowFlowers, whiteFlowers, weeds, seedheads, fernsNorth, weedsNorth, bushesNorth, tuftsNorth]) {
+        const before = set.count;
+        set.prune((it) => field.insidePropFootprint(it.x, it.z));
+        north.propRejected += before - set.count;
+      }
+    }
+  }
+
+  const all = [ferns, tufts, heroFerns, fiddleheads, bushes, hedge, flowers, yellowFlowers, whiteFlowers, weeds, seedheads, clover, moss, saplings, fernsNorth, weedsNorth, bushesNorth, tuftsNorth];
   for (const set of all) parent.add(set.build());
-  return { ferns, tufts, heroFerns, fiddleheads, bushes, hedge, flowers, yellowFlowers, whiteFlowers, weeds, seedheads, clover, moss, saplings, fernsNorth, weedsNorth, all, materials };
+  return { ferns, tufts, heroFerns, fiddleheads, bushes, hedge, flowers, yellowFlowers, whiteFlowers, weeds, seedheads, clover, moss, saplings, fernsNorth, weedsNorth, bushesNorth, tuftsNorth, north, all, materials };
 }
 
 export { clamp };
