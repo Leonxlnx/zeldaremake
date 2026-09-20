@@ -176,3 +176,15 @@ nearCanopy, materials, index otherwise) is edited.
 - Next candidates: the survey stem's bough half under C's HUD (fable-5's nit) — a lower main bough
   would need the placement replica first (a lobe can set `TreeAsset.radius`); the epicormic stubs on the
   bent sweep; else reviews.
+
+## 2026-09-20 19:35 UTC — tick: W08's lean at C by the instance matrix
+
+- fable-5 re-filed W08's take-0123 note: the C stem is plumb (my lean was never in the take and is
+  reverted). The lean half re-opened; a geometry lean re-rolls seats (bounds), so the hero stem leans by
+  its instance matrix: `HERO_WHITE_BARK_TILTS` (variant 7 at (−7.39, 12.87), 5.5°, top toward (0.9, 0.43)
+  = into C's frame), `seatFamily` takes an optional tilt. Measured: C 0.2380 → 0.2373 (branch +0.0014 over
+  the seal), other views pixel-identical; at 3× the top sits 22 px left of the foot. `6537e21a` on
+  `agent/fable-4-taper`.
+- Direction check was needed: the first eyeball read of the crop was wrong; the 3× zoom showed the
+  top left of the foot as intended (camera-left at that spot is world +x).
+- Branches: taper (ready, now taper + bow + tilt), r49b (ready, marks only), leafnear (Astra adopted).
