@@ -77,6 +77,46 @@ determinism 0, console 0 errors, anti-cheat green (87 checks), `roof.test.mjs` o
 build green. **Camera A stays over the loop's 9.0 M line by 0.064 M — the head's excess, not this
 branch's; the branch lowers it.**
 
+## Iteration 3 — crowns at 3–10 m: the leaf mass layered by occlusion (`c46081f`, branch `agent/fable-4-crowns`)
+
+GOAL_MODE fable-4 #2 (fable-5 #6, opus #05; fable-5 on the clearing stems: "crowns are lime cards
+brighter than the haze"). BEFORE = the head `0987e06`. Colours and per-leaf fill shares only —
+geometry identical on 10/10 variants, placements unchanged. Sheets `fable4-r48c-*.jpg` and the
+enlarged lobe `fable4-r48c-f4-crown-up-lobe-crop.png`.
+
+What was tried, in order, each measured at `f4-crown-up` (the survey tree's lobe from 7 m below,
+green-pixel luminance of the near lobe, x 0.39–0.59 / y 0.06–0.44):
+1. Structured albedo (core 0.55 of the rim, undersides darker, sunlit palette reserved for the
+   rim/top, the round-47 × 1.12 boost removed): mean 101 → 91, **sd 19.5 → unchanged** — a FAIL
+   for "layered". From below one sees each lobe's bottom shell, whose leaves all share the same
+   shell/top terms (round 47 found the same); only the level moved.
+2. A per-leaf **bimodal occlusion draw** on top: 35 % of laminae shadowed (0.45 albedo, 0.4 fill
+   share), 20 % backlit (full fill): sd 19.5 → 22.2, histogram broadened (58 % → 37 % of pixels in
+   one bin), 3.9 % of the frame changed strongly.
+3. Raised to 45 % shadowed at 0.4 / 0.35 after reading ref-04 (dark foliage against a pale haze,
+   few lit rims): **sd 19.5 → 22.3, mean 101 → 90**, 6.3 % of the frame changed strongly. Kept.
+
+| pose | verdict | what changed |
+| --- | --- | --- |
+| `f4-crown-up` (7 m below the lobe) | IMPROVED, not closed | a mottled leaf mass — dark occluded laminae between lit ones — where before it was one flat pale field; the silhouette (clusters with sky between) is unchanged |
+| `f4-crown-side-8m` | IMPROVED | the crown's level under the giant's canopy drops 95 → 84 and the laminae differ from their neighbours; 14.6 % of the frame changed, 3.9 % strongly |
+| `f4-clearing-crown-7m` (young stem, side) | IMPROVED (soft) | sd 14.4 → 15.9, 8 % changed |
+| `x-arch-tunnel-n` (fable-5's pose, 10–17 m) | PASS for "brighter than the haze" | the clearing crowns' level 104 → 93, no longer above the haze; small in frame (1.2 % changed) |
+| `w18-spine-r` (15–25 m) | IMPROVED | foliage sd 23 → 27, level 111 → 103 |
+
+Six fixed views (settle 6, `0987e06` → `c46081f`): A 0.2199 → 0.2199, B 0.2044 → 0.2045,
+C 0.2398 → 0.2400, D 0.2784 → 0.2785, E 0.2147 → 0.2148, F 0.2606 → 0.2606 — every moved view
+moves toward the reference; draws 577/535/393/402/535/516 and triangles identical; W12 163/163,
+determinism 0, console 0, anti-cheat 87 green, typecheck + build green.
+
+**What closes it (not in this lane):** the leaf's hemisphere irradiance in `materials.ts` is not
+scaled by `vLeafShade` — only the ambient fill, sky transmission, sun-through and the floor are
+— so an occluded lamina cannot go below the hemisphere level however dark its albedo. One line
+gated on the white-bark material, `if (vIsLeaf > 0.5) reflectedLight.indirectDiffuse *= mix(0.5,
+1.0, vLeafShade);` before the fills, would let the 45 % read as shadow; asked of trees-30/31 in
+the INBOX. In-lane next: clumpier lobes (leaves on the outer twig thirds, gaps between sprigs) for
+the silhouette itself.
+
 ## Known limits / handoffs
 - The bands are soft at 16–25 m: the vertex colour is interpolated over 18 sides × 0.18–0.35 m
   rings, so a band's edge is a gradient, not a cut. Crisp edges at that range need a texture

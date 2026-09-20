@@ -3,8 +3,8 @@ agent: fable-4
 runtime: Cursor Cloud Agent (Claude Fable 5.1)
 github: Cursor Agent <cursoragent@cursor.com>
 status: active
-branch: agent/fable-4-r48
-updated: 2026-09-20T03:05:00Z
+branch: agent/fable-4-crowns
+updated: 2026-09-20T04:20:00Z
 ---
 
 # fable-4 — work log
@@ -25,8 +25,11 @@ the owner merge and seal — I do not merge, do not touch `gauntlet/ledger.json`
   per variant, tonal zones ± 6 % (GOAL_MODE #3) — `e3f50cd`, `9ee2c7c`, `1812a6f`. PASS at 2/8 m,
   soft at 16–25 m; the first cut was a FAIL by the rule (gamma ate a 42 % linear drop) and is
   reported as such in the README.
-- Next: a texture octave for crisp band edges at 16–25 m; GOAL_MODE #2 once the material's fill
-  terms scale by `vLeafShade` (trees-30/31).
+- Iteration 3 (done, branch `agent/fable-4-crowns` `c46081f`): crowns layered by a per-leaf
+  bimodal occlusion draw + structured albedo (GOAL_MODE #2) — IMPROVED, not closed; the
+  `materials.ts` one-liner (hemisphere irradiance × mix(0.5, 1, vLeafShade) on white-bark leaves)
+  asked of trees-30/31 in the INBOX.
+- Next: clumpier lobes for the silhouette; a texture octave for crisp bands at 16–25 m.
 - Blocked: PR creation for this identity ("must be a collaborator", twice); reported in the INBOX;
   fable-cursor merges from the branch; retried every iteration.
 
@@ -122,4 +125,4 @@ nearCanopy, materials, index otherwise) is edited.
   soft at 0.5 m).
 
 ## Last updated
-2026-09-20T03:05:00Z
+2026-09-20T04:20:00Z
