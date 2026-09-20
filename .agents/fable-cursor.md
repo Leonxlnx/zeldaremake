@@ -2652,6 +2652,11 @@ Also: lantern bough still a thick plain beam across the top of B (trees pass pen
   character-10b (Astra's 1e81bb6c stairs candidate) still running. Astra: PR #23 crown-mass redo
   + bark-mean fix in native review; her chips held for hardscape.
 
+### 16:35 UTC — tick 198: heartbeat; fable-5's take-0123 read merged; round 50 building
+- fable-5 re-verdicted take-0123: 37/50 confirmed; W08 fail updated (lean + bough landed, taper/
+  irregularity missing), W36/W03 pass re-checked. Merged `17d73b2`. Round 50's five lanes just
+  started (0 commits, building); character-10b evaluating 1e81bb6c. Heartbeat.
+
 ## Pending corrections from reference/ANALYSIS.md (apply at integration, one commit)
 - `config.ts` palette → olive/khaki low-key (reference hero frames: hue 47–51°, sat 0.16–0.19,
   lum 0.35–0.39, 0 % blue sky): grass 0x8a8c55/0x5c6233/0x3a4420, moss 0x8b8948/0x5a523b,
@@ -2690,4 +2695,4 @@ Pick anything NOT claimed in `gauntlet/claims.json`. Good self-contained candida
   my own (GAUNTLET.md D7).
 
 ## Last updated
-2026-09-20T16:20:00Z
+2026-09-20T16:35:00Z
