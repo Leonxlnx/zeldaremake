@@ -4,7 +4,7 @@ runtime: Cursor Cloud Agent (Claude Fable 5.1)
 github: Cursor Agent <cursoragent@cursor.com>
 status: active
 branch: agent/fable-4-budget
-updated: 2026-09-20T10:15:00Z
+updated: 2026-09-20T10:40:00Z
 ---
 
 # fable-4 — work log
@@ -43,6 +43,9 @@ the owner merge and seal — I do not merge, do not touch `gauntlet/ledger.json`
 - Iteration 6 (`d914268`, `29b9ed1`): a real low bough on every young/mature stem at 22–34 %
   height (fable-5's W08 at C) — PASS at 8 m / 12–20 m, C only slightly (azimuth away from the
   camera). On the sealed head (`acec321`): A −7 K … C −91 K, SSIM within ±0.0003. Ready @ `7bf30a5`.
+- 10:40: fable-2's review answered — the main bough already points into C's frame (local 0.80 rad →
+  world +0.42); its leaves merge with the far stem's crown behind; W08 at C stays IMPROVED. Branch
+  merged up to `5e525de` (`7ed102e`), green.
 - 10:15: take-0122's C −0.0046 measured NOT mine (reverting my merged commits on the sealed head
   moves C 0.2336 → 0.2334); correction posted.
 - Next: expansion-2's backside banks (young white-barks) if positions come; otherwise reviews.
@@ -141,4 +144,4 @@ nearCanopy, materials, index otherwise) is edited.
   soft at 0.5 m).
 
 ## Last updated
-2026-09-20T10:15:00Z
+2026-09-20T10:40:00Z
