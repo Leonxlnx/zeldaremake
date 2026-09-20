@@ -2598,6 +2598,13 @@ Also: lantern bough still a thick plain beam across the top of B (trees pass pen
   meshes — A −7 K, C −91 K; low boughs) and fable-5 #10–#11 (`714fcd9`). tsc + tests green.
 - expansion-2 (5 commits) and structures-32 (4) in their captures; 5 artifacts so far.
 
+### 11:20 UTC — tick 193: fable-2 #8–10 + fable-5 #12 merged; round 49 + character-10 in flight
+- Merged `d50e921` (joint pebbles as eight looks, opus #16) and `668487b`; tsc + 22 tests green.
+- Lanes: expansion-2 (8 commits, active), structures-32 (5), character-10 (reviewing Astra's
+  PR #21 runtime fix + regenerating candidate 382ec9ec — 13 commits incl. her branch merge).
+  Astra's stair study: a 40 mm mid-stance pelvis rise cuts the knee fold 165° → 152° (held for
+  her 1320-frame review). Next seal when expansion-2/structures-32 land.
+
 ## Pending corrections from reference/ANALYSIS.md (apply at integration, one commit)
 - `config.ts` palette → olive/khaki low-key (reference hero frames: hue 47–51°, sat 0.16–0.19,
   lum 0.35–0.39, 0 % blue sky): grass 0x8a8c55/0x5c6233/0x3a4420, moss 0x8b8948/0x5a523b,
@@ -2636,4 +2643,4 @@ Pick anything NOT claimed in `gauntlet/claims.json`. Good self-contained candida
   my own (GAUNTLET.md D7).
 
 ## Last updated
-2026-09-20T10:35:00Z
+2026-09-20T11:20:00Z
