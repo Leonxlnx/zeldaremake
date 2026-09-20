@@ -2626,7 +2626,7 @@ Also: lantern bough still a thick plain beam across the top of B (trees pass pen
 - Lanes: expansion-2 (9 commits, capturing), character-10 (PR #21 review). Next: take-0123 on the
   head once expansion-2 lands (W24 restored, tunnel, Astra's material parts if split in time).
 
-### 17:20 UTC — tick 196: take-0123 sealed (valid, 37/50) — the tunnel, the backside, Link's run + 382ec9ec
+### 15:45 UTC — tick 196: take-0123 sealed (valid, 37/50) — the tunnel, the backside, Link's run + 382ec9ec
 - Merged expansion-2 (`bd2595d`: west tree-house, SW fenced bank + flight + Kokiri spot, far hut on
   a knoll; live/legacy terrain views pin the six frames — a design debt to unify later) and
   character-10 (`2017772`: Astra's runtime fix + candidate 382ec9ec adopted, SHA pinned). A fix of
@@ -2676,4 +2676,4 @@ Pick anything NOT claimed in `gauntlet/claims.json`. Good self-contained candida
   my own (GAUNTLET.md D7).
 
 ## Last updated
-2026-09-20T17:20:00Z
+2026-09-20T15:45:00Z
