@@ -23,8 +23,8 @@ export type MaterialKey = 'wood' | 'clay' | 'iron' | 'rope' | 'glow';
  * linear, like the lantern pods, so the height fog's far-shade exemption keeps them lit; no halo
  * geometry (the lantern glow language stays with structures / atmosphere).
  */
-export const GLOW_EMISSIVE = 0xe6f56a;
-export const GLOW_INTENSITY = 2.2;
+export const GLOW_EMISSIVE = 0xb8e84a;
+export const GLOW_INTENSITY = 2.3;
 
 export interface PropMaterials {
   wood: MeshStandardMaterial;

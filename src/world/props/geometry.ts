@@ -551,19 +551,24 @@ export function lightStringGeometry(rng: Rng, spec: LightStringSpec): Part[] {
   const parts: Part[] = [];
   const push = (geometry: BufferGeometry, material: MaterialKey) => parts.push({ geometry, material });
   const tops: Vector3[] = [];
-  for (const foot of spec.pegs) {
-    const h = spec.lift + 0.06 + rng.range(-0.02, 0.02);
-    const peg = board(0.04, h + 0.06, 0.04, { grain: 'y', rng, chamfer: 0.006, shade: 0.8 });
-    // a little off plumb, the way a stake driven into a bank stands
-    const q = new Quaternion().setFromAxisAngle(new Vector3(rng.range(-1, 1), 0, rng.range(-1, 1)).normalize(), rng.range(0, 0.07));
-    place(peg, new Vector3(foot.x, foot.y + h / 2 - 0.03, foot.z), q);
-    const pos = peg.attributes.position;
-    const contact: number[] = [];
-    for (let i = 0; i < pos.count; i++) if (pos.getY(i) < foot.y + 0.04) contact.push(i);
-    peg.userData.contactIndices = contact;
-    push(peg, 'wood');
-    tops.push(new Vector3(foot.x, foot.y + h - 0.02, foot.z));
-  }
+  const last = spec.pegs.length - 1;
+  spec.pegs.forEach((foot, k) => {
+    const h = spec.lift + rng.range(-0.02, 0.02);
+    // the demo's strings hover along the bank with no visible support: one slim stake at each end
+    // carries the cord, the points between only shape it (a stake at every node read as a row
+    // of dark sticks in the foreground of frames whose reference shows none)
+    if (k === 0 || k === last) {
+      const peg = board(0.028, h + 0.08, 0.028, { grain: 'y', rng, chamfer: 0.004, shade: 0.8 });
+      const q = new Quaternion().setFromAxisAngle(new Vector3(rng.range(-1, 1), 0, rng.range(-1, 1)).normalize(), rng.range(0, 0.07));
+      place(peg, new Vector3(foot.x, foot.y + h / 2 - 0.03, foot.z), q);
+      const pos = peg.attributes.position;
+      const contact: number[] = [];
+      for (let i = 0; i < pos.count; i++) if (pos.getY(i) < foot.y + 0.04) contact.push(i);
+      peg.userData.contactIndices = contact;
+      push(peg, 'wood');
+    }
+    tops.push(new Vector3(foot.x, foot.y + h, foot.z));
+  });
   const podColour: [number, number, number] = [1, 1, 1];
   for (let s = 0; s + 1 < tops.length; s++) {
     const a = tops[s];
@@ -571,7 +576,7 @@ export function lightStringGeometry(rng: Rng, spec: LightStringSpec): Part[] {
     const mid = a.clone().add(b).multiplyScalar(0.5);
     mid.y -= spec.sag * (0.85 + rng.range(0, 0.3));
     const curve = new CatmullRomCurve3([a, mid, b]);
-    const cord = rope([a, mid, b], 0.007, 4);
+    const cord = rope([a, mid, b], 0.005, 4);
     tintBy(cord, () => [0.42, 0.4, 0.3]);
     push(cord, 'rope');
     const len = curve.getLength();
