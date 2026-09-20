@@ -1,0 +1,19 @@
+{
+  "source_sha256": "382ec9ecab9f77062b61c77192ada4df860abc33666284d8971abe1e577492eb",
+  "sha256": "ea93932d8afe02ec4bbcf3487fb20ce3f55272fb60f20998dc728cb637ae575f",
+  "affected_vertices": 13492,
+  "encoded_position_changes": 13492,
+  "native_import_offset_m": 2.8014183044433594e-06,
+  "native_displacement_error_m": 2.4916332858060386e-08,
+  "preserved_morph_normal_noise_max": 1.1920928955078125e-07,
+  "original_binary_prefix_exact": true,
+  "unedited_json_exact": true,
+  "height_depth_exact": true,
+  "run_rotation_bones": [
+    "shoulderL",
+    "elbowL",
+    "shoulderR",
+    "elbowR"
+  ],
+  "status": "Export checked; visual/game acceptance pending"
+}

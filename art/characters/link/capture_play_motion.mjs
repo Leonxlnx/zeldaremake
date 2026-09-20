@@ -83,6 +83,8 @@ try{
   else assert.equal(report.setup.character.linkAsset.file,'models/link/'+candidate);
   const smoke=process.argv.includes('--smoke');
   const descentDetail=process.argv.includes('--descent-detail');
+  const stairDetail=process.argv.includes('--stair-detail');
+  report.stairDetail=stairDetail;
   const flatVideo=process.argv.includes('--flat-video');
   const flatStills=process.argv.includes('--flat-stills');
   const jumpOnly=process.argv.includes('--jump-only');
@@ -99,10 +101,10 @@ try{
       else{const u=scenario==='stairs-up'?-.35:run+.15;player.position.set(stairs.base[0]+direction[0]*u,0,stairs.base[2]+direction[1]*u);}
       __ZR__.setTime(20);__playReview.previousRoot=null;
     },scenario);
-    const chunk=flatVideo||flatStills||jumpOnly?2:descentDetail?10:30;
+    const chunk=stairDetail?1:flatVideo||flatStills||jumpOnly?2:descentDetail?10:30;
     for(let start=0;start<frames;start+=chunk){
       const count=Math.min(chunk,frames-start);
-      const rows=await page.evaluate(async({scenario,start,count})=>{
+      const rows=await page.evaluate(async({scenario,start,count,stairDetail})=>{
         const {player,hero,body,markers,stairs,point,ray,down,direction}=__playReview;const rows=[];
         for(let j=0;j<count;j++){
           const i=start+j;const jumping=scenario==='run-jump';
@@ -145,7 +147,7 @@ try{
             if(row.blink.applied.length!==3)throw Error('Expected blink on all three body primitives');
           }
           __playReview.previousRoot=root;
-          if(i%10===0){
+          if(stairDetail||i%10===0){
             row.shoeSurface=[];body.updateWorldMatrix(true,false);body.skeleton.update();
             for(const [side,ids] of Object.entries(markers))for(const index of ids){
               point.fromBufferAttribute(body.geometry.attributes.position,index);body.applyBoneTransform(index,point);body.localToWorld(point);
@@ -156,10 +158,11 @@ try{
           }
           rows.push(row);
         }return rows;
-      },{scenario,start,count});
+      },{scenario,start,count,stairDetail});
       report.samples.push(...rows);
       if(flatVideo)await page.screenshot({path:path.join(framesDir,`frame-${String(videoFrames++).padStart(4,'0')}.png`)});
-      if(descentDetail||start===0||start+count===frames||start===Math.floor(frames/60)*30){
+      const supportFrame=stairDetail&&scenario==='stairs-down'&&[274,449,475,476,477,478].includes(start);
+      if(supportFrame||descentDetail||start===0||start+count===frames||start===Math.floor(frames/60)*30){
         const file=`${scenario}-${start+count}.png`;await page.screenshot({path:path.join(out,file)});report.images.push(file);
       }
       if(start%120===0)console.log(scenario,start+count,'/',frames);
