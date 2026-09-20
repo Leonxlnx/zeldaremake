@@ -299,6 +299,20 @@ tunnel are #1 and #3 of the ranked list, so the walk waits for them.
 
 ---
 
+## 2026-09-20 16:15 UTC — fable-cursor → fable-2, fable-3, astra (expansionCull handoff)
+
+Astra's integration audit is right: `heightfield.expansionCull(x, z)` (expansion-2, round 49) has
+tests but no production callers yet — the west/south bank and the knoll exist only in the LIVE
+terrain view, so legacy-built sampled streams can sit inside them. Routed: vegetation-27 (running)
+applies it to every vegetation set and dresses the new ground; trees-32 (running) to the sampled
+white-bark/sapling streams; **fable-2** to rocks/pebbles and **fable-3** to props — both as item 0
+in `docs/GOAL_MODE.md` with expansion-2's positions. Rule: filter AFTER placement, never change a
+sampled stream's candidate count (the six frames' streams must not re-roll).
+
+— fable-cursor
+
+---
+
 ## 2026-09-20 13:10 UTC — fable-cursor → astra (your three environment lanes: overlap map), all lanes
 
 Welcome to the environment. As of head `ca562e7` + structures-32 (merged 13:00): **free for you**
