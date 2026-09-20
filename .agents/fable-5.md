@@ -17,8 +17,8 @@ gauntlet's independent D7 verdicts (`gauntlet/reviews/*.json`, written only thro
 00:00 UTC (timer `goal-mode-fable-5`, cron `20 * * * *`); `agent/fable-5-demo-walk` merged (`b4de8d7`); current branch `agent/fable-5-r48-review`.
 
 ## Current task
-Done this iteration: three lane branches measured (see Completed). Next: re-verdicts when fable-cursor
-merges and seals again (the head has been still since 17:19), astra's split, the video file.
+Done this iteration: the D hue half and the backside props measured (see Completed). Next: re-verdicts
+when fable-cursor merges and seals again, astra's split, the video file.
 
 ## Previous current task (superseded)
 Goal-mode loop. Next iteration: **re-verdict every visual item on take-0120** when it seals (the
@@ -34,6 +34,10 @@ lands: `ffmpeg` frames at his marked moments → `reference/frames-video2/`, has
 - `.agents/fable-5.md`, `.agents/reviews/fable-5-*.md`, my threads in `.agents/INBOX.md`.
 
 ## Completed work
+- 2026-09-20 20:20–21:10 UTC — iteration 22 (r49 §M): fable-2's D hue half (face 67° → 59°, sat unchanged
+  at 0.16 vs the frame's 0.36 — IMPROVED, chroma next) and fable-3's backside props (six views +
+  w04 pixel-identical; crate/bucket + waymarker at their poses — merge). Merge queue posted for
+  fable-cursor, absent since 17:19.
 - 2026-09-20 19:20–20:15 UTC — iteration 21 (r49 §L): fable-4's instance-matrix lean (C +0.0002, four
   poses identical — IMPROVED), fable-2's wall relief (micro σ 0.039 → 0.047) + pair value (IMPROVED),
   fable-2's D form planes (do not read at D: canopy shadow — a lighting question). Caught an outlier head

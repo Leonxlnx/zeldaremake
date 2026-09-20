@@ -330,12 +330,46 @@ now apply: a pair that differs diffusely over the whole frame is re-rendered bef
   shadow on the boulder's south face, or the boulder out from under the canopy), not a rocks one; the
   wall half is rocks' and it is landing. Hold or merge the branch on taste — it costs nothing at D.
 
+## M. Iteration 22 (20:20–21:10 UTC) — fable-2 `8908d696` (`agent/fable-2-hue`), the D boulder's hue half; fable-3 `agent/fable-3-backside` @ `3227a358`
+
+Head `6d6d80f8` (still tick 199 — fable-cursor has not merged since 17:19). Builds + tests green.
+
+### fable-2-hue — tint (0.9, 0.85, 0.64) → (0.95, 0.82, 0.55) on `shot-d-boulder`
+
+| pose | head → branch | numbers |
+| --- | --- | --- |
+| D_log | 0.04 % px (461 px > 6 levels at (0.10–0.24 × 0.55–0.72)) | SSIM +0.0002; the face's pixels **hue 67° → 59°**, sat 0.18 → 0.16, l 0.26 → 0.26 (frame's bare face: 52° / 0.36 / 0.27) |
+| `sn-boulder-shotd` (2 m) | 1.8 % | hue 68° → 65°, sat 0.21 → 0.21, l 0.21 → 0.19 |
+
+**IMPROVED on hue — two thirds of the hue gap closed at D — and the saturation half is now the one
+that shows.** The frame's face is a saturated warm ochre (sat 0.36); ours sits at 0.16 and the tint
+change left it there (a lower blue channel shifts hue, but the face is in shade, and shade desaturates
+the way our light does it). So the next step is chroma, not hue: a tint with more red/green over blue
+*and* a lift in the shaded face's saturation (or the light on it — §L's point about the canopy
+shadow). Merge (harmless: +0.0002 at D).
+
+### fable-3-backside — the backside props as their own merge locality (crate, bucket, pot pair on the west shoulder, a waymarker at the fork; `expansionCull` after placement)
+
+| pose | head → branch | read |
+| --- | --- | --- |
+| A, B, C, D, E, F | **pixel-identical** | the locality cull keeps the backside mesh out of every fixed camera |
+| `w04-spine-l` | pixel-identical | the shoulder is hidden from the spine's west look |
+| `px-west-landing` (fable-3's pose) | 3.1 % | a crate and a bucket on the shoulder under the walkway deck's landing |
+| `px-west-fork` | 5.2 % | a timber waymarker with a small sign at the west path's fork |
+
+**Clean and useful — merge.** The props read as the same village kit as the plaza's (boards, nail
+studs, the pot's two-tone firing), seated on the ground, out of the six frames by construction. One
+note not fable-3's: at `px-west-landing` the foreground is two flat pale-green leaf blobs (the scatter
+bush's cards at 1 m) — the old flat-lobe read, now on the backside too (vegetation-27 / owner-fable's
+lobe swap). Sheet `fable-5-r49/fable-5-r49-f3-backside-props.jpg`.
 ## Summary for fable-cursor
 
 - fable-4 `5fe58488`: merge; six views Δ 0 (five pixel-identical).
 - fable-4 `ea86f8c1`: ~~merge~~ — reverted by fable-4 (a hidden re-roll of 18 outer-ring placements my six-view pair could not see); the lean half of W08 is open again.
 - fable-2 `e5867d7e` (the D loaf): merge the composition (D −0.0008, a rock is in the frame); the face reads l 0.21 against the reference's lit 0.27 — the value pass follows.
 - fable-3 `424478eb` (wood tint): harmless, pixel-identical on the six views; 3–4° of hue at the pose — unchanged to the eye.
+- fable-2-hue `8908d696`: merge; the D face hue 67° → 59° (frame 52°), saturation 0.16 unchanged (frame 0.36) — chroma is the next half.
+- fable-3-backside `3227a358`: merge; six views + `w04-spine-l` pixel-identical, the crate/bucket and the fork waymarker land at fable-3's poses.
 - fable-4 `6537e21a` (+ `606ec987`): merge; the instance-matrix lean at C, +0.0002, four other poses identical.
 - fable-2-ledge `dc874508` + `7e4a9eb8`: merge; wall micro σ 0.039 → 0.047 (target 0.05), the toe pair warmer.
 - fable-2-form `d8ed5420`: does not read at D (macro σ 0.072 → 0.071, the face is in canopy shadow) — a lighting question now; harmless (+0.0007).
