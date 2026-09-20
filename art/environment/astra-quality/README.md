@@ -1,5 +1,14 @@
 # Environment — five native before/after comparisons
 
+Latest verified source: **d9eee5d7**, native27-view `after-bark-linear/` (bundle `index-CUzYDOZs.js`). The bark colour-space correction is accepted: clearer warm grain with identical geometry/draws and byte-identical six hero images versus a9eccd15. The earlier canopy replacement is still under review: Fable-5 correctly found its foliage too sparse to retain C/F's dark crown masses. This branch is not ready for integration as a whole.
+
+| Latest material comparison | Before | Verified mean-only correction |
+|---|---|---|
+| Tree beside the stairs: visible wood grain instead of unnecessary darkening | ![Before stair bark](after-atlas/sn-bole-stair-bank.png) | ![Corrected stair bark](after-bark-linear/sn-bole-stair-bank.png) |
+| Approached distant-tree type, axis3m away: mapped plates and fissures recover | ![Before distant stem](before-stems/distant-stem-v2-3m.png) | ![Corrected distant stem](after-bark-linear/distant-stem-v2-3m.png) |
+
+Reproduce the27 matches using `check.mjs after-atlas after-bark-linear bark-linear-comparison.json` and `check.mjs before-stems after-bark-linear bark-linear-stems-comparison.json`. No page/shader errors; the three bole and three stem images are also byte-identical to the combined study after the deferred chips were removed. Typecheck/build, the linear texture-mean check and source anti-cheat pass. Last formal valid take remains0124 on a9eccd15; it is not relabelled as a take of the new source. See the26m composition caveat below.
+
 The most visible correction replaces the closed dark crown discs beside the stairs with the existing layered branches and leaves. Stone shading is more coherent and exposed bark is slightly warmer; these are modest material improvements, not a claim that the forest has reached the owner references.
 
 Three owner-requested Astra Max agents contributed, alongside Fable's separate geometry/expansion lanes. Character work is deferred. The ten original targets remain in `reference/owner-concepts/` and are comparison-only.
@@ -58,3 +67,11 @@ Fable's pebble correction accounts for the extra20,560 submitted triangles in th
 The material-only candidate `a2eb130f` has24 matched native views in `moss-study/` against `after-atlas/`; all cameras/time/image hashes match, geometry and draw counts are unchanged, no page/shader errors. `node art/environment/astra-quality/check.mjs after-atlas moss-study moss-study-comparison.json` reproduces the comparison.
 
 Decision: **HOLD / source restored to a9eccd15**. The lantern trunk loses some uniform green but reveals near-black bare patches; north-west is similar, stair-bank and w04 improve too little. It does not reach reference05 warm readable bark. Independent shader review also identified that new near-only coarse moss suppression could amplify an existing LOD colour jump. No NaN, unbounded tint gain, additional texture sample or geometry issue was found. This study is retained honestly and is not part of the owner preview.
+## Separated follow-up studies
+
+`chip-and-bark-study/` is the complete27-view native study of ee7de70a. It combined the bark linear-mean correction with sparse chips on11 existing lawn slab rims. All submitted triangle/draw counts match the relevant baselines. The24 original cameras compare to after-atlas; three actual distant-stem controls compare to before-stems (captured at f4a44634, source equivalent to a9eccd15). Reproduce with check.mjs and chip-study-comparison.json / chip-study-stems-comparison.json.
+
+The chip geometry is **deferred**, not accepted: Fable clarified in2d0742a6 that expansion-2 owns flagstones.ts/stairs.ts. The scoped source/test can be recovered from ee7de70a for that owner; d9eee5d7 restores the original geometry. Its independent CPU gates preserved all555 seats, footprints and crowns, all48,969 foot vertices and175,977 triangles. Native w05 differs by0.66% of pixels, so this is a small edge study, not a large stone-quality upgrade.
+
+The bark correction fixes an existing colour-space mismatch: an encoded ffmpeg YAVG value was used as the mean of linear GPU texture samples. The measured high-quality2K mean is0.2554942; the1K version differs by0.67%. The same scalar serves nearby bark detail and distant bark contrast. See the runnable bark-linear-mean-check.mjs and its notes. No moss/floor/light changes or new rendering operations are included. The final mean-only source is d9eee5d7 and its native verification is pending; these combined images are not substituted for that check.
+Distance-control caveat: the26m-axis image contains the intended tree only partly. At native y360 it is roughly x586–660 (centre hit24.649m), while the dominant trunk at x662–938 is an intervening variant0 tree about4.7–4.9m from those camera rays. Its improvement is close-range evidence, not26m-fade evidence. The3m/6m controls and partially visible26m target were separately checked. No image was cropped or altered to hide this.

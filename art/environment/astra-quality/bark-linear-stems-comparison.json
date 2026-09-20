@@ -1,0 +1,115 @@
+{
+  "beforeSha": "f4a446346514fcd6fcdb14891d7bd46c8cfc0adb",
+  "afterSha": "d9eee5d78056b4d56d698fa404b2dd2a318ce3c7",
+  "matchedViews": 3,
+  "note": "Combined changes. Fixed time12.6 daylight survey, not an official take.",
+  "unmatchedAfterViews": [
+    "A_stairs",
+    "B_house",
+    "C_lookback",
+    "D_log",
+    "E_ground",
+    "F_canopy",
+    "sky-opening",
+    "w04-spine-l",
+    "w05-spine-d",
+    "w09-spine-d",
+    "w23-stairs-f",
+    "sn-bole-lantern-tree",
+    "sn-bole-nw-near",
+    "sn-bole-stair-bank",
+    "sn-lantern-limb",
+    "w19-spine-u",
+    "w21-spine-l",
+    "f4-trunk-2m",
+    "f4-crown-up",
+    "distance-crown-118m",
+    "distance-crown-119m",
+    "distance-crown-120m",
+    "distance-crown-121m",
+    "distance-crown-122m"
+  ],
+  "views": {
+    "distant-stem-v2-3m": {
+      "before": {
+        "simTime": 12.6,
+        "drawCalls": 386,
+        "triangles": 4933204,
+        "geometries": 459,
+        "textures": 101,
+        "programs": 153,
+        "width": 1280,
+        "height": 720,
+        "pixelRatio": 1
+      },
+      "after": {
+        "simTime": 12.6,
+        "drawCalls": 386,
+        "triangles": 4933204,
+        "geometries": 765,
+        "textures": 102,
+        "programs": 232,
+        "width": 1280,
+        "height": 720,
+        "pixelRatio": 1
+      },
+      "trianglesDelta": 0,
+      "callsDelta": 0,
+      "changedPixelFraction": 0.6704
+    },
+    "distant-stem-v2-6m": {
+      "before": {
+        "simTime": 12.6,
+        "drawCalls": 387,
+        "triangles": 5030648,
+        "geometries": 459,
+        "textures": 101,
+        "programs": 153,
+        "width": 1280,
+        "height": 720,
+        "pixelRatio": 1
+      },
+      "after": {
+        "simTime": 12.6,
+        "drawCalls": 387,
+        "triangles": 5030648,
+        "geometries": 765,
+        "textures": 102,
+        "programs": 232,
+        "width": 1280,
+        "height": 720,
+        "pixelRatio": 1
+      },
+      "trianglesDelta": 0,
+      "callsDelta": 0,
+      "changedPixelFraction": 0.32375
+    },
+    "distant-stem-v2-26m": {
+      "before": {
+        "simTime": 12.6,
+        "drawCalls": 394,
+        "triangles": 5253238,
+        "geometries": 463,
+        "textures": 101,
+        "programs": 153,
+        "width": 1280,
+        "height": 720,
+        "pixelRatio": 1
+      },
+      "after": {
+        "simTime": 12.6,
+        "drawCalls": 394,
+        "triangles": 5253238,
+        "geometries": 766,
+        "textures": 102,
+        "programs": 232,
+        "width": 1280,
+        "height": 720,
+        "pixelRatio": 1
+      },
+      "trianglesDelta": 0,
+      "callsDelta": 0,
+      "changedPixelFraction": 0.25019
+    }
+  }
+}

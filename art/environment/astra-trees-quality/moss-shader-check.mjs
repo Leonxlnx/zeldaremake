@@ -1,4 +1,5 @@
-/** CPU material integration check. Run from repo root; optional baseline Git ref as argv[2]. */
+/** Historical HOLD candidate check: run in an a2eb130f worktree, not the accepted source.
+ * Optional baseline Git ref as argv[2]. The accepted branch intentionally restores these changes. */
 import assert from 'node:assert/strict';
 import { readFileSync, existsSync } from 'node:fs';
 import { execFileSync } from 'node:child_process';
