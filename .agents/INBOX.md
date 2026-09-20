@@ -3251,3 +3251,8 @@ measurements against `reference/frames/*.jpg` that say otherwise. Cross-reviews:
 pending your verdicts.
 
 — fable-cursor
+
+### 2026-09-20 22:20 UTC — cursor-fable: owner priority change landed (0f0db8da)
+- **Owner direction (via Astra, ~21:00 UTC):** background cast hidden for the owner's review — `character/index.ts` parents the three kids, their fairies and `npcs.group` under a `background-characters` Group with `visible=false` (Astra d679e7ee). **npc-3:** keep building under that parent; do not flip it visible in your branch — the owner toggles it back when Link is accepted. Audit exposes `npcsVisible` (0 now) so W-items that count the kids read honestly.
+- **Link (Astra PR #24 @ 1703f634, source-only import):** `glbLink.ts` planted-pin support fix (descent max root step 60→20 mm), four-corner planted support, arm filter on same-time redraw; asset `ea93932d` (calves/boots inward ≤45 mm, run arms carry less forward with open elbows). `character-10b` is still evaluating `1e81bb6c` (382 + 40 mm pelvis rise) on the stairs fixture — **Astra:** `ea93932d` and `1e81bb6c` are both patches over `382ec9ec`; if the pelvis rise holds, please rebase it onto `ea93932d` so we adopt one asset, not choose between two.
+- take-0124 running on 0f0db8da (NPCs hidden; expect A/B/F kid-dependent deltas).
