@@ -5,14 +5,15 @@
  *
  * Every prop is seated on the sampled heightfield (its underside conformed to the ground, its
  * upright limited to a few degrees off the terrain normal — a pot is set level, not tipped down
- * a bank), weathered at the base, and merged per `cluster` and material into one mesh each.
+ * a bank), weathered at the base, and merged per locality (`localityOf(cluster)`) and material
+ * into one mesh each; each locality is distance-culled as one.
  */
-import { BufferGeometry, type Camera, Color, Group, Mesh, Quaternion, Sphere, Vector3 } from 'three';
+import { Box3, BufferGeometry, type Camera, Color, Group, Mesh, Quaternion, Sphere, Vector3 } from 'three';
 import { mergeGeometries } from 'three/addons/utils/BufferGeometryUtils.js';
 import type { WorldContext, WorldSystem } from '../system';
 import { createRng } from '../util/prng';
 import { barrelGeometry, bucketGeometry, crateGeometry, ladderGeometry, markerGeometry, type Part, platformGeometry, potGeometry } from './geometry';
-import { PROP_LAYOUT, type PropDef } from './layout';
+import { localityOf, PROP_LAYOUT, type PropDef } from './layout';
 import { createPropMaterials, type MaterialKey, PLANK_MEAN } from './materials';
 
 const UP = new Vector3(0, 1, 0);
@@ -161,16 +162,19 @@ export async function create(ctx: WorldContext): Promise<WorldSystem> {
   const counts = { pots: 0, crates: 0, barrels: 0, buckets: 0, platforms: 0, ladders: 0, markers: 0, ropeRailings: 0 };
   const skipped: string[] = [];
   const placed: { id: string; kind: string; cluster: string; x: number; y: number; z: number; tiltDeg: number }[] = [];
-  /** world-space geometry per cluster and material, merged at the end */
-  const clusters = new Map<string, Record<MaterialKey, BufferGeometry[]>>();
-  const batchesFor = (cluster: string) => {
-    let b = clusters.get(cluster);
+  /** world-space geometry per merge locality and material, merged at the end */
+  const localities = new Map<string, Record<MaterialKey, BufferGeometry[]>>();
+  const batchesFor = (locality: string) => {
+    let b = localities.get(locality);
     if (!b) {
       b = { wood: [], clay: [], iron: [], rope: [] };
-      clusters.set(cluster, b);
+      localities.set(locality, b);
     }
     return b;
   };
+  /** world-space extent of each cluster per material (audit + tests; the meshes merge past cluster level) */
+  const clusterBounds = new Map<string, Partial<Record<MaterialKey, Box3>>>();
+  const clusterNames = new Set<string>();
   /** props that reserve ground (x, y, z, radius) so later ones keep clear */
   const taken: number[][] = [];
   /**
@@ -321,7 +325,13 @@ export async function create(ctx: WorldContext): Promise<WorldSystem> {
     bases.push([x, terrain.height(x, z), z]);
     placed.push({ id: def.id, kind: def.kind, cluster: def.cluster, x: +x.toFixed(3), y: +groundY.toFixed(3), z: +z.toFixed(3), tiltDeg: +((tiltUsed * 180) / Math.PI).toFixed(2) });
     footprints.push({ x: +x.toFixed(3), z: +z.toFixed(3), r: +footR.toFixed(3) });
-    const batches = batchesFor(def.cluster);
+    clusterNames.add(def.cluster);
+    const batches = batchesFor(localityOf(def.cluster));
+    let bounds = clusterBounds.get(def.cluster);
+    if (!bounds) {
+      bounds = {};
+      clusterBounds.set(def.cluster, bounds);
+    }
     for (const part of parts) {
       const g = part.geometry;
       weather(g, part.material, def.kind === 'platform' || def.kind === 'ladder' ? 0.9 : def.size);
@@ -372,18 +382,25 @@ export async function create(ctx: WorldContext): Promise<WorldSystem> {
         }
       }
       g.userData.contactIndices = contact;
+      g.computeBoundingBox();
+      if (g.boundingBox) {
+        const box = bounds[part.material];
+        if (box) box.union(g.boundingBox);
+        else bounds[part.material] = g.boundingBox.clone();
+      }
       batches[part.material].push(g);
     }
   }
 
   ctx.shared.propFootprints = footprints;
 
-  // merge per cluster and material
+  // merge per locality and material: one mesh per material for the whole village, one set for
+  // the clearing (the seven village clusters were 16 meshes, up to 32 draws with the shadow pass)
   let meshes = 0;
-  const clusterBounds: { group: Group; sphere: Sphere }[] = [];
-  for (const [cluster, batches] of clusters) {
+  const localityBounds: { group: Group; sphere: Sphere }[] = [];
+  for (const [locality, batches] of localities) {
     const group = new Group();
-    group.name = cluster;
+    group.name = locality;
     const sphere = new Sphere();
     let first = true;
     for (const key of MATERIAL_KEYS) {
@@ -397,7 +414,7 @@ export async function create(ctx: WorldContext): Promise<WorldSystem> {
       }
       const merged = mergeGeometries(list, false);
       list.forEach((g) => g.dispose());
-      if (!merged) throw new Error(`props: cannot merge ${cluster}/${key}`);
+      if (!merged) throw new Error(`props: cannot merge ${locality}/${key}`);
       merged.userData.contactIndices = contactIndices;
       merged.computeBoundingBox();
       merged.computeBoundingSphere();
@@ -408,19 +425,29 @@ export async function create(ctx: WorldContext): Promise<WorldSystem> {
       }
       ownedGeometry.push(merged);
       const mesh = new Mesh(merged, materials[key]);
-      mesh.name = `${cluster}-${key}`;
+      mesh.name = `${locality}-${key}`;
       mesh.castShadow = ctx.quality.shadows;
       mesh.receiveShadow = true;
       group.add(mesh);
       meshes++;
     }
     root.add(group);
-    if (!first) clusterBounds.push({ group, sphere });
+    if (!first) localityBounds.push({ group, sphere });
   }
-  /** distance cull per cluster: pose jumps come through onCameraMove, the walk through update */
+  /** distance cull per locality: pose jumps come through onCameraMove, the walk through update */
   const cull = (camera: Camera) => {
-    for (const b of clusterBounds) b.group.visible = camera.position.distanceTo(b.sphere.center) - b.sphere.radius < CLUSTER_VISIBLE_M;
+    for (const b of localityBounds) b.group.visible = camera.position.distanceTo(b.sphere.center) - b.sphere.radius < CLUSTER_VISIBLE_M;
   };
+  const round3 = (v: number) => +v.toFixed(3);
+  const boundsAudit: Record<string, Partial<Record<MaterialKey, { min: number[]; max: number[] }>>> = {};
+  for (const [cluster, bounds] of clusterBounds) {
+    const entry: Partial<Record<MaterialKey, { min: number[]; max: number[] }>> = {};
+    for (const key of MATERIAL_KEYS) {
+      const box = bounds[key];
+      if (box) entry[key] = { min: box.min.toArray().map(round3), max: box.max.toArray().map(round3) };
+    }
+    boundsAudit[cluster] = entry;
+  }
 
   let triangles = 0;
   for (const g of ownedGeometry) triangles += g.attributes.position.count / 3;
@@ -428,13 +455,15 @@ export async function create(ctx: WorldContext): Promise<WorldSystem> {
     ...counts,
     geometry: 'original-lathed-pottery-chamfered-boards-coopered-staves-laid-rope',
     textured: { wood: materials.sets, clay: 'procedural-wheel-marks', rope: 'procedural-laid-strands' },
-    clusters: clusters.size,
+    clusters: clusterNames.size,
+    localities: localities.size,
     meshes,
     triangles,
     placed,
     skipped,
     footprints,
-    culling: { visibleWithinM: CLUSTER_VISIBLE_M, clusters: clusterBounds.map((b) => ({ cluster: b.group.name, centre: b.sphere.center.toArray().map((v) => +v.toFixed(2)), radius: +b.sphere.radius.toFixed(2) })) },
+    clusterBounds: boundsAudit,
+    culling: { visibleWithinM: CLUSTER_VISIBLE_M, localities: localityBounds.map((b) => ({ locality: b.group.name, centre: b.sphere.center.toArray().map((v) => +v.toFixed(2)), radius: +b.sphere.radius.toFixed(2) })) },
     samplePositions: { bases },
   }));
   return {

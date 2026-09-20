@@ -132,7 +132,10 @@ for (const k of Object.keys(want)) assert.equal(audit[k], want[k], `${k} placed 
 assert.ok(audit.pots >= 8, 'three sizes of pot in four clusters');
 assert.ok(audit.meshes <= 24, `bounded draw calls (${audit.meshes} meshes)`);
 assert.equal(audit.meshes, one.group.children.reduce((n, g) => n + g.children.length, 0));
-assert.equal(audit.clusters, new Set(PROP_LAYOUT.map((d) => d.cluster)).size, 'one group per cluster');
+assert.equal(audit.clusters, new Set(PROP_LAYOUT.map((d) => d.cluster)).size, 'every authored cluster placed');
+assert.equal(audit.localities, 2, 'two merge localities: the village and the clearing');
+assert.equal(one.group.children.length, 2, 'one group per locality');
+assert.ok(audit.meshes <= 8, `≤ 8 meshes for the whole system (${audit.meshes})`);
 // small props never tip more than 9° off level; the marker post stands vertical
 for (const p of audit.placed) if (['pot', 'crate', 'barrel', 'bucket'].includes(p.kind)) assert.ok(p.tiltDeg <= 9.01, `${p.id} tilt ${p.tiltDeg}°`);
 for (const p of audit.placed) if (p.kind === 'marker') assert.equal(p.tiltDeg, 0, `${p.id} vertical`);
@@ -174,8 +177,8 @@ for (const p of audit.placed) if (p.kind === 'marker') assert.equal(p.tiltDeg, 0
   const dir = Math.atan2(LAYOUT.northClearing.x - marker.x, LAYOUT.northClearing.z - marker.z);
   const def = PROP_LAYOUT.find((d) => d.id === marker.id);
   assert.ok(Math.abs(((def.yaw - dir + Math.PI) % (2 * Math.PI)) - Math.PI) < 0.15, `the marker's long board points into the circle (yaw ${def.yaw} vs ${dir.toFixed(2)})`);
-  const g = one.group.children.find((c) => c.name === 'north-clearing');
-  assert.ok(g && g.children.length <= 4, 'the clearing cluster is ≤ 4 meshes');
+  const g = one.group.children.find((c) => c.name === 'clearing');
+  assert.ok(g && g.children.length <= 4, 'the clearing locality is ≤ 4 meshes');
   for (const m of g.children) { m.geometry.computeBoundingSphere(); assert.ok(m.geometry.boundingSphere.radius < 4, `${m.name} compact (${m.geometry.boundingSphere.radius.toFixed(2)})`); }
 }
 
@@ -186,12 +189,13 @@ for (const p of audit.placed) if (p.kind === 'marker') assert.equal(p.tiltDeg, 0
   for (const v of LAYOUT.viewpoints) {
     one.onCameraMove({ position: new Vector3().fromArray(v.position) }, ctx);
     const vis = groups();
-    assert.equal(vis['north-clearing'], false, `${v.id}: the clearing cluster is culled`);
-    for (const [name, on] of Object.entries(vis)) if (name !== 'north-clearing') assert.equal(on, true, `${v.id}: ${name} drawn`);
+    assert.equal(vis['clearing'], false, `${v.id}: the clearing is culled`);
+    assert.equal(vis['village'], true, `${v.id}: the village drawn`);
   }
   one.update(0.016, 1, { ...ctx, camera: { position: new Vector3(2.4, 5.8, -62.6) } });
-  assert.equal(groups()['north-clearing'], true, 'at the clearing the cluster draws');
-  assert.equal(groups()['saria-door'], false, 'from the clearing the village dressing is culled (55+ m)');
+  assert.equal(groups()['clearing'], true, 'at the clearing the clearing draws');
+  one.update(0.016, 1, { ...ctx, camera: { position: new Vector3(5, 6, -120) } });
+  assert.deepEqual(groups(), { village: false, clearing: false }, 'far north of the clearing both localities are culled');
   one.onCameraMove({ position: new Vector3().fromArray(LAYOUT.viewpoints[0].position) }, ctx);
 }
 
@@ -226,15 +230,13 @@ for (const id of ['door-pot-large', 'sign-pot', 'saria-crate', 'saria-water-buck
     }
   }
   const slabTop = turfMax + LK.height;
-  const lip = one.group.children.find((g) => g.name === 'plateau-lip');
-  const ropes = lip.children.find((m) => m.name === 'plateau-lip-rope');
-  const wood = lip.children.find((m) => m.name === 'plateau-lip-wood');
-  ropes.geometry.computeBoundingBox();
-  wood.geometry.computeBoundingBox();
-  assert.ok(ropes.geometry.boundingBox.min.y > slabTop + 0.3, `rope courses above the slab top (${ropes.geometry.boundingBox.min.y.toFixed(3)} vs slab ${slabTop.toFixed(3)})`);
-  assert.ok(wood.geometry.boundingBox.max.y > slabTop + 0.8 && wood.geometry.boundingBox.max.y < slabTop + 0.95, `posts ≈ 0.88 m over the slab (${(wood.geometry.boundingBox.max.y - slabTop).toFixed(3)})`);
+  // the meshes merge per locality, so the cluster's own extent comes from the audit
+  const lip = audit.clusterBounds['plateau-lip'];
+  assert.ok(lip && lip.rope && lip.wood, 'the lookout cluster reports rope and wood bounds');
+  assert.ok(lip.rope.min[1] > slabTop + 0.3, `rope courses above the slab top (${lip.rope.min[1]} vs slab ${slabTop.toFixed(3)})`);
+  assert.ok(lip.wood.max[1] > slabTop + 0.8 && lip.wood.max[1] < slabTop + 0.95, `posts ≈ 0.88 m over the slab (${(lip.wood.max[1] - slabTop).toFixed(3)})`);
   // the step block stands on the turf beside the slab, below its top
-  assert.ok(wood.geometry.boundingBox.min.y < slabTop - 0.1, 'step block on the turf');
+  assert.ok(lip.wood.min[1] < slabTop - 0.1, 'step block on the turf');
   // only F sees the plateau lip
   for (const id of ['A_stairs', 'B_house', 'C_lookback', 'D_log']) {
     const v = LAYOUT.viewpoints.find((q) => q.id === id);
@@ -293,7 +295,7 @@ for (const g of one.group.children) {
 assert.ok(contacts > 300, `real underside geometry is seated (${contacts} contact vertices)`);
 for (const [x, y, z] of audit.samplePositions.bases) assert.ok(Math.abs(ctx.terrain.height(x, z) - y) < 1e-8, 'audited bases touch the terrain');
 // each cluster mesh is compact (frustum culling works per locality)
-for (const g of one.group.children) for (const m of g.children) assert.ok(m.geometry.boundingSphere.radius < 4.5, `${m.name} bounding radius ${m.geometry.boundingSphere.radius.toFixed(2)}`);
+for (const g of one.group.children) for (const m of g.children) assert.ok(m.geometry.boundingSphere.radius < (g.name === 'clearing' ? 4.5 : 26), `${m.name} bounding radius ${m.geometry.boundingSphere.radius.toFixed(2)}`);
 
 // placement rules
 assert.equal(placementAllowed(ctx, 0, 0, 0.3), false, 'plaza paving stays clear');
@@ -312,7 +314,8 @@ assert.equal(placementAllowed(withMask({ stairs: 1 }), 30, 30, 0.3, { paving: tr
 const blocked = withMask({ path: 1, stairs: 1, structure: 1, cliff: 1 });
 const empty = await create(blocked);
 assert.equal(empty.group.children.filter((g) => g.children.length).length <= 2, true, 'no fallback placements on forbidden ground (only the ladder, which leans on a house, and the lookout railing, bound to its hook, may build)');
-assert.deepEqual(empty.group.children.filter((g) => g.children.length).map((g) => g.name).sort(), ['plateau-lip', 'upper-house'], 'the probed props all skip');
+assert.deepEqual(empty.group.children.filter((g) => g.children.length).map((g) => g.name).sort(), ['village'], 'the probed props all skip (only the ladder and the hook-bound railing build, both village)');
+assert.deepEqual(Object.keys(audits[audits.length - 1]().clusterBounds).sort(), ['plateau-lip', 'upper-house'], 'only the ladder and the railing clusters have geometry on forbidden ground');
 // the blocked run overwrote the shared list; restore the real one for the checks below
 ctx.shared.propFootprints = audit.footprints;
 

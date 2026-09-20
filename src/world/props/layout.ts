@@ -1,14 +1,27 @@
 /**
  * Village props — WHERE the domestic details stand. Own authored positions (the shared
  * `src/world/layout.ts` is read, never written, for the houses / stairs / boulders / npc spots
- * the placement rules keep clear of). Every prop names a `cluster`: props of one cluster merge
- * into one mesh per material, so the whole dressing costs a handful of draw calls.
+ * the placement rules keep clear of). Every prop names a `cluster` (a place); clusters belong to
+ * a merge locality (`localityOf`), and each locality is one mesh per material, so the whole
+ * dressing costs a handful of draw calls.
  *
  * Placement (index.ts) seats each prop on `ctx.terrain.height`, probes its footprint against the
  * terrain masks and the layout's obstacles, and skips a prop rather than relocating it across the
  * village. Projections quoted below are pinhole into the six fixed cameras (1280×720).
  */
 export type PropKind = 'pot' | 'crate' | 'barrel' | 'bucket' | 'ladder' | 'platform' | 'marker';
+
+/**
+ * Merge localities: a cluster is a place (its props are placed and audited together); a locality
+ * is what draws together — every cluster of one locality merges into ONE mesh per material and
+ * is distance-culled as one. The village's seven clusters span ~30 m and every fixed camera holds
+ * most of them, so per-cluster meshes bought no culling there, only draw calls (up to 16 meshes,
+ * 32 draws with the shadow pass); the north clearing is 60–75 m away and draws on its own.
+ */
+const CLUSTER_LOCALITY: Record<string, string> = { 'north-clearing': 'clearing' };
+export function localityOf(cluster: string): string {
+  return CLUSTER_LOCALITY[cluster] ?? 'village';
+}
 
 export interface PropDef {
   id: string;
