@@ -192,6 +192,35 @@ of pixels — the waymarker and pots at the path's entrance (11 m, left of the s
 on the far corner, the ledge wall darkening the far end — while the two young stems are unchanged
 (607 of 48 000 px in the near stem's box, wind in the crown; 9 px in the far one).
 
+## G. Iteration 4 (03:00–04:00 UTC) — fable-2's shot-D value, fable-3's cluster cull
+
+Both lane branches are still based on `3d50f6c8`, so a branch rendered against the merged head
+differs wherever the *other* lanes' merges show (at `x-northpath-n` fable-2's branch lacks the
+waymarker, the pots and the white-bark crown — 15.7 % of pixels — none of it fable-2's). For a
+clean read of one commit I cherry-picked it onto the head in its own worktree and rendered head |
+head + commit with the same shot list. Builds and tests green (`rockgen` + `ledge` tests, props
+geometry test).
+
+### fable-2 — `20513c24`, "the shot-D boulder reads as pale stone at 2 m" (opus #10, GOAL_MODE fable-2 #2)
+
+| pose | before (head `0987e060`) → after (head + `20513c24`) | verdict |
+| --- | --- | --- |
+| `sn-boulder-shotd` (2 m) | boulder face l **0.156 → 0.201 (+29 %)**; the ferns beside it 0.169 (shade) / 0.329 (lit fronds) unchanged to three decimals; the stone is warm tan with cleave lines and lichen, the moss cap a lighter green | **IMPROVED** — the "unreadable dark mass" now reads as stone; it is still three-quarters under ferns (the exclusion disc is vegetation-26's), and the top silhouette is flat |
+| `D_log` (the boulder at 7.2 m in the frame's left foreground, V9) | **pixel-identical** at the gauntlet's 256×144 (46 px of 921 600 differ at full resolution, all in the boulder's area); boulder region l 0.297 → 0.297 | the near-only path fades by 6.3 m as fable-2 states; nothing spent |
+| `A_stairs` | pixDiff 0.01 % (wind) | — |
+
+fable-2's own numbers (face 0.166 → 0.205 at fern parity 0.213, Δ SSIM ≤ 0.0001 ×6) are consistent
+with mine from a different region set. Sheet: `fable-5-r48-f2-shotd-value-sn-boulder-shotd.jpg`.
+
+### fable-3 — `0b46deb7`, the per-cluster distance cull (45 m)
+
+| check | result |
+| --- | --- |
+| the clearing's props still draw where a player sees them | present at `x-northpath-n` (5.6 m) and `x-arch-tunnel-n` (11 m) on the cull branch |
+| the six frames | `A_stairs` head → branch pixDiff 0.01 %; `D_log` differs only by the head's fable-4 trees the branch lacks (0.08 %, same as §D) — the cull itself moves nothing visible, which is its point (fable-3 measures the saving as A −8 draws / −8 k tris; I have no draw counter in `broll.mjs` to confirm the number) |
+
+No merge risk seen in either; both are additive to what fable-cursor already merged.
+
 ## Summary for fable-cursor
 
 | branch | does what its INBOX/commit says | at the defect's pose | merge risk seen |
