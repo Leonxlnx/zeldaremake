@@ -52,8 +52,14 @@ export const ROPE_REPEAT_METRES = 0.06;
  * weathered posts) both use on this map. Crates and barrels sit between the two: a warm medium
  * brown of ≈ (0.15, 0.08, 0.04) linear (sRGB ≈ #6b5238) before the per-board stain (0.88–1.1)
  * and the edge wear (+22 %). Measured: ×4.2 read as bleached driftwood in the plateau sun.
+ * Iteration 7: at `px-plateau` the crate and barrel rendered hue 42–43° / sat 0.38 (r/g 1.12,
+ * b/g 0.69) beside the plateau fence's hue 27° / sat 0.28 (r/g 1.18, b/g 0.85) — a yellow tan next
+ * to red-brown. A first step to (1.86, 1.36, 1.01) moved the rendered hue only 43° → 40° — the
+ * sun-lit map and the tone curve pass ~0.3 of a linear ratio change — so (2.02, 1.30, 1.12):
+ * r/g 1.30 → 1.55, b/g 0.65 → 0.86 linear; rendered hue 43° → 33°, r/g 1.12 → 1.20, b/g
+ * 0.70 → 0.75 at the same rendered luminance (0.294 → 0.287).
  */
-export const WOOD_TINT: [number, number, number] = [1.85, 1.42, 0.92];
+export const WOOD_TINT: [number, number, number] = [2.02, 1.3, 1.12];
 /** linear mean of the plank colour map (measured with sharp over the 1K file) */
 export const PLANK_MEAN: [number, number, number] = [0.082, 0.058, 0.044];
 
