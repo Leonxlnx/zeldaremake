@@ -396,9 +396,10 @@ export const BARK_DETAIL_TILES = 3.7;
  */
 export const BARK_TOUCH_M: [number, number] = [0.6, 2.0];
 export const BARK_TOUCH_TILES = 11.0;
-/** mean luminance of tree_bark_03/color.jpg (ffmpeg signalstats YAVG 133.29 / 255) — the fine
- *  albedo term modulates around it so the bole's average colour does not shift */
-const BARK_DETAIL_MEAN = 133.29 / 255;
+/** Linear luminance of tree_bark_03/2k/color.jpg after its SRGBColorSpace decode; texture2D
+ * returns linear samples. The 1K mean is 0.253794 (0.67% lower). Measured/checkable with
+ * art/environment/astra-trees-quality/bark-linear-mean-check.mjs; shared by near/distant bark. */
+const BARK_DETAIL_MEAN = 0.2554942;
 /**
  * Distant trees' bark (round 44, survey #2 crops 04/05): the solid vertices of a distant tree
  * read the bark map within these view distances (m) — full at the near end, none at the far end.
