@@ -20,7 +20,7 @@ import { Noise2D, clamp, lerp, smoothstep } from '../util/noise';
 import { TAU, basisMatrix, faceTowards, gridSurface, merge, setColorAttribute, sweepTube } from './geometry';
 import { FoliageBuilder } from './foliage';
 import { buildLantern, type LanternKind, type LanternRig } from './lantern';
-import { FAR_HALO_EAST_SCALE, Noise3D, type StructureMaterials } from './materials';
+import { FAR_HALO_EAST_SCALE, Noise3D, type StructureMaterials, TUNNEL_FLOOR_TINT } from './materials';
 import { buildMossTufts, type MossTuftSpec } from './mossTufts';
 
 export interface LogArchBuild {
@@ -77,6 +77,24 @@ export interface LogArchBuild {
    * of it reaches over the walkable strip (m over the ground; ≥ WALK_CLEAR_M by construction)
    */
   detail47: { roots: number; rootlets: number; rimVines: number; rimBeards: number; fungusTiers: number; fungi: number; lightSlivers: number; litter: number; minStripClearance: number };
+  /**
+   * round 49 (structures-32): the passage TUBE under the arch — its walk frame, the superellipse
+   * cross-section (half-width, height over the walk, the pod lifts), the cheeks and the north
+   * portal, the rim roots and the floor decal; `minStripClearance` is the tube's least height
+   * over the walkable strip (≥ WALK_CLEAR_M by construction), `bellyOverWalk` where the shell's
+   * underside sits over the walk's ground
+   */
+  detail49: {
+    frame: { origin: [number, number, number]; walkDir: [number, number]; axisSkew: number; drift: { from: number; to: number; eAtMouth: number } };
+    tube: { eHalf: number; hTop: number; exponent: number; southFaceM: number; northMouthA: number; ceilingLifts: { a: number; e: number; hTop: number }[]; grid: [number, number]; triangles: number };
+    cheeks: { east: number; west: number; triangles: number };
+    portal: { shellFrom: number; to: number; rimRag: [number, number]; triangles: number };
+    rimRoots: number;
+    floorDecal: { from: number; to: number; eHalf: number; tint: [number, number, number]; triangles: number };
+    minStripClearance: number;
+    bellyOverWalk: { atCrossing: number; southFace: number; northFlank: number };
+    groundAtCrossing: number;
+  };
 }
 
 export function buildLogArch(ctx: WorldContext, mats: StructureMaterials, rng: Rng): LogArchBuild {
@@ -95,6 +113,138 @@ export function buildLogArch(ctx: WorldContext, mats: StructureMaterials, rng: R
   const A = new Vector3(Math.cos(yaw), 0, -Math.sin(yaw)); // long axis (east, slightly north)
   const cx = def.position[0];
   const cz = def.position[2];
+  /**
+   * Round 49 (structures-32): the PASSAGE TUBE's frame — where the tunnel under the arch runs
+   * (the tube itself is built at the end of this function, see `detail49`). Hoisted here so the
+   * outer shell's colour can know what lies inside the passage. Origin O: where the (straight)
+   * axis line crosses the tunnel line; W the walk's unit direction on that segment (north-ish);
+   * EV its right-hand perpendicular (east). The tube's centre line sits on the walk over the
+   * spine's last segment and follows it west as the north path bends (`eCentreAt`, the walk
+   * polyline smoothed; heightfield.ts ARCH_TUNNEL_FLOOR gives the ground tint the same polyline).
+   *
+   * ± E_HALF × H_TOP m, exponent P_EXP (≈ 1.9 : 1; at the strip's edge, ± pathHalfWidth, the
+   * ceiling is still 2.52 m up). Iteration 2's ± 3.15 × 2.75 exponent 4 left the north mouth
+   * 5.5 m off filling half the frame at `x-arch-tunnel-n` (frame l 0.25, the window 0.46); the
+   * mouth is now N_MOUTH_A past the crossing — the tube runs on under its own bark shell to the
+   * bend in the north path — so the window is a quarter of it.
+   */
+  const tubeFrame = (() => {
+    const E_HALF = 2.75;
+    const H_TOP = 2.9;
+    const P_EXP = 5;
+    /** the south cheek face stands this far south of the axis line (under the belly's overhang) */
+    const S_FACE_M = 2.6;
+    /** the north mouth, along the walk from the crossing (heightfield.ts ARCH_TUNNEL_FLOOR carries the same) */
+    const N_MOUTH_A = 7.4;
+    const tline: [number, number][] = [...ctx.layout.pathSpine.slice(-3), ...ctx.layout.northPath.slice(1, 3)].map(([x, , z]) => [x, z]);
+    const O = new Vector3();
+    const W = new Vector3(0, 0, -1);
+    for (let i = 0; i + 1 < tline.length; i++) {
+      const [ax, az] = tline[i];
+      const [bx, bz] = tline[i + 1];
+      const va = -(ax - cx) * A.z + (az - cz) * A.x;
+      const vb = -(bx - cx) * A.z + (bz - cz) * A.x;
+      if ((va > 0 && vb > 0) || (va < 0 && vb < 0) || va === vb) continue;
+      const t = va / (va - vb);
+      O.set(ax + (bx - ax) * t, 0, az + (bz - az) * t);
+      W.set(bx - ax, 0, bz - az).normalize();
+      break;
+    }
+    const EV = new Vector3(-W.z, 0, W.x);
+    O.y = terrain.height(O.x, O.z);
+    const toWalk = (x: number, z: number) => ({ a: (x - O.x) * W.x + (z - O.z) * W.z, e: (x - O.x) * EV.x + (z - O.z) * EV.z });
+    const fromWalk = (a: number, e: number, out = new Vector3()) => out.set(O.x + W.x * a + EV.x * e, 0, O.z + W.z * a + EV.z * e);
+    /** the axis line's along-walk position at across e (the axis is skewed ≈ 12° from the walk's perpendicular) */
+    const kAxis = (A.x * W.x + A.z * W.z) / (A.x * EV.x + A.z * EV.z);
+    const aAxisAt = (e: number) => kAxis * e;
+    /** horizontal distance to the tunnel's walk line (the walkable strip is ± pathHalfWidth of it) */
+    const walkDistance = (x: number, z: number) => {
+      let best = Infinity;
+      for (let i = 0; i + 1 < tline.length; i++) {
+        const [ax, az] = tline[i];
+        const [bx, bz] = tline[i + 1];
+        const dx = bx - ax;
+        const dz = bz - az;
+        const t = clamp(((x - ax) * dx + (z - az) * dz) / (dx * dx + dz * dz), 0, 1);
+        best = Math.min(best, Math.hypot(x - ax - dx * t, z - az - dz * t));
+      }
+      return best;
+    };
+    /** the walk line's across offset at along a (0 on the spine's last segment) */
+    const eWalkAt = (a: number) => {
+      for (let i = 0; i + 1 < tline.length; i++) {
+        const p = toWalk(tline[i][0], tline[i][1]);
+        const q = toWalk(tline[i + 1][0], tline[i + 1][1]);
+        if (q.a === p.a) continue;
+        const t = (a - p.a) / (q.a - p.a);
+        if ((t >= 0 && t <= 1) || (i + 2 === tline.length && t > 1)) return p.e + (q.e - p.e) * t;
+      }
+      return 0;
+    };
+    /**
+     * The tube's centre line: the walk polyline smoothed by a 1.2 m box (seven taps), so the shell
+     * bends at the polyline's two kinks (11° at the spine's end, a further 19° at the north path's
+     * second point) without a crease and never sits more than a few centimetres off the walk —
+     * with the walls ± E_HALF from it and the strip ± pathHalfWidth, that is what keeps the
+     * feet out of the strip. (Iteration 3 eased the centre to the mouth on one smoothstep; it
+     * lagged the walk by 0.5 m and the east wall's foot stood inside the strip: minStripClearance
+     * 0.08.) Cross-sections are perpendicular to the centre line's own tangent, so `e` is the
+     * true across distance.
+     */
+    const eCentreAt = (a: number) => {
+      let sum = 0;
+      for (let k = -3; k <= 3; k++) sum += eWalkAt(a + k * 0.2);
+      return sum / 7;
+    };
+    const _cT = new Vector3();
+    const _cN = new Vector3();
+    /** the centre line's point, tangent and right-hand normal at along a */
+    const centreAt = (a: number, outC: Vector3) => {
+      fromWalk(a, eCentreAt(a), outC);
+      const slope = (eCentreAt(a + 0.05) - eCentreAt(a - 0.05)) / 0.1;
+      _cT.copy(W).addScaledVector(EV, slope).normalize();
+      _cN.set(-_cT.z, 0, _cT.x);
+      return outC;
+    };
+    /** tube frame → world: along a on the centre line, across e along its normal */
+    const fromTube = (a: number, e: number, out = new Vector3()) => {
+      centreAt(a, out);
+      return out.addScaledVector(_cN, e);
+    };
+    const _q = new Vector3();
+    const _qc = new Vector3();
+    /** world → tube frame: the along a whose cross-section holds the point (three fixed-point steps), and the across e */
+    const toTube = (x: number, z: number) => {
+      _q.set(x, 0, z);
+      let a = toWalk(x, z).a;
+      for (let it = 0; it < 3; it++) {
+        centreAt(a, _qc);
+        a += (_q.x - _qc.x) * _cT.x + (_q.z - _qc.z) * _cT.z;
+      }
+      centreAt(a, _qc);
+      return { a, e: (_q.x - _qc.x) * _cN.x + (_q.z - _qc.z) * _cN.z };
+    };
+    const DRIFT_FROM = toWalk(ctx.layout.pathSpine[ctx.layout.pathSpine.length - 1][0], ctx.layout.pathSpine[ctx.layout.pathSpine.length - 1][2]).a;
+    const DRIFT_EN = eCentreAt(N_MOUTH_A);
+    const _gw = new Vector3();
+    /** the tube's centre line's ground at along a */
+    const gWalk = (a: number) => {
+      fromTube(a, 0, _gw);
+      return terrain.height(_gw.x, _gw.z);
+    };
+    /**
+     * 1 inside the passage's plan footprint (between the south face and the north mouth, within
+     * the walls), 0 a metre outside it: what the tube encloses. The outer shell's underside there
+     * is the tunnel's vault — no sky, no lit path under it to bounce — and its colour loses the
+     * ground-bounce term (`outerColor`), with the plates on it.
+     */
+    const inside = (x: number, z: number) => {
+      const { a, e } = toTube(x, z);
+      return smoothstep(-1.0, 0.2, a - (aAxisAt(e) - S_FACE_M)) * smoothstep(N_MOUTH_A + 1.0, N_MOUTH_A - 0.2, a) * smoothstep(E_HALF + 1.0, E_HALF - 0.2, Math.abs(e));
+    };
+    return { E_HALF, H_TOP, P_EXP, S_FACE_M, N_MOUTH_A, O, W, EV, toWalk, fromWalk, kAxis, aAxisAt, walkDistance, DRIFT_FROM, DRIFT_EN, eCentreAt, fromTube, toTube, gWalk, inside };
+  })();
+
   const h0 = terrain.height(cx - A.x * (L / 2), cz - A.z * (L / 2));
   const h1 = terrain.height(cx + A.x * (L / 2), cz + A.z * (L / 2));
 
@@ -357,7 +507,13 @@ export function buildLogArch(ctx: WorldContext, mats: StructureMaterials, rng: R
     // GROUND BOUNCE: the underside (up < 0.1) comes up ≈ × 3 to an albedo of ≈ 0.035 — still a
     // dark mass, and in D (50 m, ~90 % veil) ≈ +1 % of the pixel, but at 9–16 m the plate cells
     // ride on a surface term of 10–15 % of the pixel and read.
-    const belly = lerp(0.48, 1, smoothstep(-0.95, 0.35, up)) * (1 + 2.2 * smoothstep(0.1, -0.5, up));
+    // Round 49 (structures-32): inside the passage tube (`tubeFrame.inside`) the underside is
+    // the tunnel's vault — the path under it is the tunnel's dark floor and the sky is walled off,
+    // so the bounce term goes and the surface itself drops to a third: from inside the vault
+    // reads as the demo's dark cylinder and not as the round-46 lit belly (which D, 50 m off and
+    // outside, never sees through the 4 m opening).
+    const vault = tubeFrame.inside(p.x, p.z) * smoothstep(0.1, -0.35, up);
+    const belly = lerp(0.48, 1, smoothstep(-0.95, 0.35, up)) * (1 + 2.2 * smoothstep(0.1, -0.5, up) * (1 - vault)) * (1 - 0.68 * vault);
     // round 46: the plates' area contrast over the whole bark body (`plateAt`), fading out only
     // where the moss cap begins (the same edge as the moss mask). The first pass faded it out
     // from up −0.1 to 0.45 and w18-spine-f did not move (p50 0.256 → 0.257): from the path the
@@ -2148,6 +2304,610 @@ export function buildLogArch(ctx: WorldContext, mats: StructureMaterials, rng: R
     }
   }
 
+  // ---- Round 49 (structures-32, fable-5 V19 sev-3 / opus-review #01 / the owner's "when he walks
+  // underneath there's this deep world"): THE TUNNEL. ----
+  /**
+   * `d_120`–`d_121` (60 s, the demo's darkest frame, l 0.131): the walk under the log is a DARK
+   * TUBE — the belly over the top fifth of the frame, near-black walls either side (l 0.05–0.07),
+   * a dark cracked floor (0.15) and one small bright window (0.39) with the far trunks in it.
+   * Ours read 0.405 at `x-arch-tunnel-n`: the belly arches 2.5 m over the crossing but nothing
+   * closed the sides — east of the walk the belly stays ≈ 3 m up for ten metres (the parabola's
+   * crown is 4.3 m east of the path), so the "right wall" was the open forest and the paving under
+   * the belly was sky-lit (floor l 0.45).
+   *
+   * Built here, all in the round-44 near LOD (dropped past NEAR_LOD_M: the six hero cameras at
+   * 48–64 m never draw it, D at 51 m sees the arch as take-0121 did):
+   *  - the PASSAGE TUBE: a superellipse round the walk line (± E_HALF across, H_TOP over the walk,
+   *    exponent 5 — near-vertical walls under a flat-arched ceiling, ≈ 1.9 : 1 like the demo's
+   *    opening) from the south cheek face under the belly's overhang to a north mouth N_MOUTH_A
+   *    past the axis, its centre following the walk as the north path bends west. The vault is
+   *    held a hand under the belly wherever the belly is the lower (the crossing's middle), so
+   *    the log's own bark — lit for D under LOG_BARK_FLOOR's lift 10 — never shows from inside;
+   *    round 47's roots and fungi hang on through it. Cracked heartwood on the walls:
+   *    longitudinal fissures, plates, a long grain, drip stains under the rims, moss at the feet
+   *    near the mouths, soil-stained feet — the round-43 hollow's recipe on `tunnelWall` (front
+   *    faces, TUNNEL_WALL_FLOOR). Where a pod lantern hangs the ceiling domes up round it alone
+   *    (a chimney; the pods keep their D positions) and never comes below WALK_CLEAR_M over the
+   *    strip.
+   *  - the CHEEKS: bark masses under the belly either side of the tube, from its walls out to
+   *    ± CHEEK_E / CHEEK_W across — a south face and a north face (annuli round the tube's rim,
+   *    up into the belly, down into the ground, bark-plated) and a rounded east end. The log rests
+   *    on them: from the south approach the arch reads as the demo's horizontal log over a dark
+   *    opening (`d_119`), not a mound over a gap.
+   *  - the NORTH PORTAL: the tube runs past the belly's north flank under its own bark shell to
+   *    the north path's bend, so from inside the north mouth is a framed window 8 m off, a
+   *    quarter of the frame, not the open half of it; the rim is torn — bark plates standing out
+   *    ± 0.6 m, the crown's sagging into the mouth — with aerial roots hanging from it.
+   *  - the FLOOR: a multiply decal a hand over the paving (`tunnelFloor`) plus the terrain's
+   *    packed-earth tint (terrain/material.ts ARCH_TUNNEL_FLOOR) — slabs and verges under the log
+   *    darken together toward the demo's floor.
+   * Own forks. The tube and the decal are their own draws (within 40 m only); the cheeks, the
+   * portal and the roots join the bark plates' draw. The walk frame below is derived from the
+   * layout exactly as heightfield.ts derives ARCH_TUNNEL_FLOOR, so the two floors agree.
+   */
+  const detail49 = {
+    frame: { origin: [0, 0, 0] as [number, number, number], walkDir: [0, 0] as [number, number], axisSkew: 0, drift: { from: 0, to: 0, eAtMouth: 0 } },
+    tube: { eHalf: 0, hTop: 0, exponent: 0, southFaceM: 0, northMouthA: 0, ceilingLifts: [] as { a: number; e: number; hTop: number }[], grid: [0, 0] as [number, number], triangles: 0 },
+    cheeks: { east: 0, west: 0, triangles: 0 },
+    portal: { shellFrom: 0, to: 0, rimRag: [0, 0] as [number, number], triangles: 0 },
+    rimRoots: 0,
+    floorDecal: { from: 0, to: 0, eHalf: 0, tint: [0, 0, 0] as [number, number, number], triangles: 0 },
+    /** the tube's least height over the ground within the walkable strip (m; ≥ WALK_CLEAR_M by construction) */
+    minStripClearance: Infinity,
+    /** the belly's height over the walk's ground at the crossing and at the tube's ends (m) */
+    bellyOverWalk: { atCrossing: 0, southFace: 0, northFlank: 0 },
+    groundAtCrossing: 0,
+  };
+  {
+    const tunRng = rng.fork('tunnel49');
+    const { E_HALF, H_TOP, P_EXP, S_FACE_M, N_MOUTH_A, O, W, EV, toWalk, fromWalk, kAxis, aAxisAt, walkDistance, DRIFT_FROM, DRIFT_EN, fromTube, toTube, gWalk } = tubeFrame;
+    const CHEEK_E = 5.5;
+    const CHEEK_W = 5.2;
+    /** the portal shell's wall / roof thickness */
+    const SHELL_T = 0.5;
+    /** the tube's feet run this far under the walk's ground */
+    const FOOT_DROP = 0.5;
+    /** the belly's (the shell's underside's) height at a plan point, NaN outside the log's footprint */
+    const _by = new Vector3();
+    const bellyYAt = (x: number, z: number) => {
+      const s = (x - cx) * A.x + (z - cz) * A.z;
+      const lat = -(x - cx) * A.z + (z - cz) * A.x - bend(s);
+      let r = R;
+      let psi = -Math.PI / 2;
+      for (let it = 0; it < 3; it++) {
+        if (Math.abs(lat) >= r) return NaN;
+        psi = -Math.acos(lat / r);
+        r = rBase(psi, s) + bark(psi, s);
+      }
+      if (Math.abs(lat) >= r) return NaN;
+      return surfacePoint(psi, s, r, _by).y;
+    };
+
+    // -- the tube's cross-section: a superellipse over the walk's ground; the ceiling is lifted
+    // where a pod hangs into it --
+    const profile = (theta: number, hTop: number) => {
+      const c = Math.cos(theta);
+      const s = Math.sin(theta);
+      return { e: E_HALF * Math.sign(c) * Math.pow(Math.abs(c), 2 / P_EXP), y: hTop * Math.sign(s) * Math.pow(Math.abs(s), 2 / P_EXP) };
+    };
+    /** the profile's height share at across e (1 over the walk, 0 at the walls) */
+    const profileShare = (e: number) => Math.pow(Math.max(1e-4, 1 - Math.pow(Math.min(1, Math.abs(e) / E_HALF), P_EXP)), 1 / P_EXP);
+    const TH_DROP = Math.asin(Math.pow(FOOT_DROP / H_TOP, P_EXP / 2));
+    /**
+     * The pods hang from the belly through the tube's ceiling: over each pod the ceiling domes up
+     * to clear its crown — a chimney ± 0.55 m round the pod, gone by 1.2 m — and nowhere else
+     * (iteration 2 lifted the whole width for ± 1.4 m along, and the belly's bark plates,
+     * under LOG_BARK_FLOOR's lift 10 for D, showed through as the brightest thing in the frame).
+     */
+    const lifts: { a: number; e: number; need: number }[] = [];
+    for (const l of lanterns) {
+      const { a, e } = toTube(l.pod.x, l.pod.z);
+      if (Math.abs(e) > E_HALF + 0.3 || a < -S_FACE_M - 1.5 || a > N_MOUTH_A + 1) continue;
+      // the pod body's crown over the walk's ground, plus the swing's reach
+      const top = l.pod.y + 0.36 - gWalk(a);
+      const need = top / profileShare(e) + 0.12;
+      if (need > H_TOP) lifts.push({ a, e, need });
+    }
+    const hTopAt = (a: number, e: number) => {
+      let h = H_TOP;
+      for (const l of lifts) h = Math.max(h, lerp(H_TOP, l.need, 1 - smoothstep(0.55, 1.2, Math.hypot(a - l.a, e - l.e))));
+      return h;
+    };
+    /**
+     * The ceiling never rises above the belly: where the log's underside hangs lower than the
+     * tube's profile (the crossing's middle, the chimneys' crowns) the tube's ceiling is held a
+     * hand under it, so from inside the whole vault is the tube's dark heartwood and not the
+     * belly's plates. Over the walkable strip the cap yields to the walk clearance (a belly that
+     * low is round 47's business, `logMinPathClearance`); the pods' crowns may then sit a
+     * centimetre into the ceiling, which nothing sees.
+     */
+    const _cap = new Vector3();
+    const ceilingCap = (a: number, e: number, gB: number) => {
+      fromTube(a, e, _cap);
+      const belly = bellyYAt(_cap.x, _cap.z);
+      if (Number.isNaN(belly)) return Infinity;
+      // 0.18 under the bark surface: under the round-44 plates standing on it, too
+      const cap = belly - gB - 0.18;
+      if (Math.abs(e) > ctx.layout.pathHalfWidth + 0.05) return cap;
+      return cap + 0.12 < WALK_CLEAR_M + 0.05 ? Infinity : Math.max(cap, WALK_CLEAR_M + 0.05);
+    };
+    /** profile parameter → angle: samples pile toward the feet, where y ∝ sin^(2/P) climbs steepest */
+    const thetaAt = (u: number) => {
+      const w = u < 0.5 ? 0.5 * Math.pow(2 * u, 2) : 1 - 0.5 * Math.pow(2 * (1 - u), 2);
+      return -TH_DROP + w * (Math.PI + 2 * TH_DROP);
+    };
+    // -- the tube's ends: the south face is parallel to the axis under the belly's overhang, the
+    // north rim torn into plates that stand out their own length --
+    const rimPlates = (() => {
+      const n = 13;
+      const ws: number[] = [];
+      let sum = 0;
+      for (let i = 0; i < n; i++) {
+        const w = 0.25 + Math.pow(tunRng(), 1.4) * 0.75;
+        ws.push(w);
+        sum += w;
+      }
+      const out: { t0: number; w: number; len: number; tilt: number }[] = [];
+      let t = 0;
+      for (let i = 0; i < n; i++) {
+        const w = ws[i] / sum;
+        const kind = tunRng();
+        const len = kind < 0.3 ? 0.3 + 0.3 * tunRng() : kind < 0.7 ? 0.06 + 0.16 * tunRng() : -0.14 - 0.2 * tunRng();
+        out.push({ t0: t, w, len, tilt: (tunRng() - 0.5) * 0.8 });
+        t += w;
+      }
+      return out;
+    })();
+    /** the north rim's along offset at the profile fraction f (0 east foot … 1 west foot) */
+    const ragNorth = (f: number) => {
+      const ff = clamp(f, 0, 1);
+      for (const p of rimPlates) {
+        if (ff < p.t0 || ff > p.t0 + p.w) continue;
+        const x = (ff - p.t0) / p.w;
+        const edge = smoothstep(0, 0.12, x) * smoothstep(1, 0.88, x);
+        return p.len * (1 + p.tilt * (x - 0.5) * 2) * (0.2 + 0.8 * edge) + 0.03 * noise.noise(ff * 40, 49.5);
+      }
+      return 0;
+    };
+    const aSouthAt = (e: number) => aAxisAt(e) - S_FACE_M + 0.1 * noise.noise(e * 1.3 + 9, 49.1);
+    const aNorthAt = (f: number) => N_MOUTH_A + ragNorth(f);
+    /** the world height of a profile point: over the walk's ground, the buried feet over the local ground */
+    const _gl = new Vector3();
+    const worldY = (a: number, e: number, y: number) => {
+      const gB = gWalk(a);
+      if (y >= 0.25) return gB + y;
+      fromTube(a, e, _gl);
+      const gL = terrain.height(_gl.x, _gl.z);
+      return lerp(gL, gB, clamp(y / 0.25, 0, 1)) + y;
+    };
+
+    // ---- the tube ----
+    const TUBE_COLS = 72;
+    const TUBE_ROWS = 64;
+    const _cin = new Vector3();
+    let tubeMinClear = Infinity;
+    const tube = gridSurface(
+      (u, v, out) => {
+        const theta = thetaAt(u);
+        const p0 = profile(theta, 1);
+        const aS = aSouthAt(p0.e);
+        const aN = aNorthAt(u);
+        const a = lerp(aS, aN, v);
+        const hTop = hTopAt(a, p0.e);
+        const { e, y } = profile(theta, hTop);
+        const gB = gWalk(a);
+        // relief: the round-43 hollow's fissures / plates / grain in (arc round, along) coordinates,
+        // depth d INTO the wall (away from the walk), fading out on the buried feet
+        const arc = theta * E_HALF;
+        const fis = Math.pow(1 - Math.abs(noise.noise(arc * 0.9 + 7, a * 0.14 + 40)), 6);
+        const crack2 = Math.pow(1 - Math.abs(noise.noise(arc * 2.1 + 23, a * 0.3 + 41)), 8);
+        const plate = smoothstep(0.15, 0.6, noise.noise(arc * 1.4 + 3, a * 0.7 + 42));
+        const grain = noise.ridged(arc * 6 + 1, a * 0.5 + 43, 2) - 0.5;
+        const dMouth = Math.min(a - aS, aN - a);
+        const d = (0.05 * noise.noise(arc * 0.5, a * 0.6 + 44) + 0.14 * fis + 0.06 * crack2 - 0.05 * plate + 0.02 * grain) * smoothstep(-0.1, 0.3, y) * smoothstep(0, 0.6, dMouth);
+        // inward = toward the walk's centre line at chest height, in the cross-section plane
+        const ie = -e;
+        const iy = 1.3 - y;
+        const il = Math.hypot(ie, iy) || 1;
+        let e2 = e - (ie / il) * d;
+        let y2 = y - (iy / il) * d;
+        // the north rim's crown plates sag a little into the mouth (torn, hanging), never under the clearance
+        y2 -= 0.3 * smoothstep(0.25, 0.4, u) * smoothstep(0.75, 0.6, u) * smoothstep(aN - 0.9, aN, a) * Math.max(0, ragNorth(u)) / 0.6;
+        // the vault held under the belly where the belly is the lower (relief and all)
+        y2 = Math.min(y2, ceilingCap(a, e2, gB));
+        // nothing over the walkable strip below the walk clearance: plates near the feet are pushed
+        // out, the ceiling's held up
+        if (Math.abs(e2) < 2.45 && y2 < WALK_CLEAR_M + 0.05 && Math.abs(e) > 2.0) e2 = Math.sign(e) * 2.45;
+        if (Math.abs(e2) <= 2.45 && y2 > 1.6 && y2 < WALK_CLEAR_M + 0.03) y2 = WALK_CLEAR_M + 0.03;
+        fromTube(a, e2, out.position);
+        out.position.y = worldY(a, e2, y2);
+        // The strip is ± pathHalfWidth of the walk POLYLINE, the tube sits on its SMOOTHED centre
+        // line: where the two part (the bend) a wall's curve at |e| ≈ 2.55 can stand a hand inside
+        // the strip below the clearance (2.26 m in iteration 5's audit), and the terrain under a
+        // strip edge may lie higher than the centre line's ground. Measured in world terms: a wall
+        // is pushed out along the section until it is clear of the strip, the vault held up.
+        if (y2 > 0.05) {
+          for (let k = 0; k < 3; k++) {
+            const wd = walkDistance(out.position.x, out.position.z);
+            if (wd > ctx.layout.pathHalfWidth + 0.04 || out.position.y - terrain.height(out.position.x, out.position.z) >= WALK_CLEAR_M + 0.03) break;
+            if (Math.abs(e) > 2.0) {
+              e2 += Math.sign(e) * (ctx.layout.pathHalfWidth + 0.08 - wd);
+              fromTube(a, e2, out.position);
+              out.position.y = worldY(a, e2, y2);
+            } else {
+              out.position.y = terrain.height(out.position.x, out.position.z) + WALK_CLEAR_M + 0.03;
+            }
+          }
+        }
+        if (y2 > 0.05 && walkDistance(out.position.x, out.position.z) <= ctx.layout.pathHalfWidth) tubeMinClear = Math.min(tubeMinClear, out.position.y - terrain.height(out.position.x, out.position.z));
+        out.uv = [arc / 2.6, a / 2.6];
+        // shade: darker toward the middle, fissures dark, plate edges catching the pods' light
+        const deep = lerp(1, 0.35, smoothstep(0.8, 3.5, dMouth));
+        let k = deep * (1 - 0.6 * fis - 0.3 * crack2) * (1 + 0.15 * plate + 0.12 * grain);
+        const up = clamp(y / hTop, 0, 1);
+        const drip = Math.pow(Math.max(0, noise.noise(arc * 3 + 11, 0.5 + a * 0.1)), 3) * smoothstep(3.5, 0.5, dMouth) * smoothstep(0.3, 0.9, up);
+        k *= 1 - 0.5 * drip;
+        let c: [number, number, number] = [k, k * (1 + 0.06 * drip), k * (1 + 0.16 * drip)];
+        const moss = smoothstep(3, 0.5, dMouth) * smoothstep(0.45, 0.02, up) * (0.45 + 0.55 * Math.max(0, noise.noise(arc * 1.3 + 2, a * 1.1)));
+        c = [lerp(c[0], 2.6 * deep, moss), lerp(c[1], 5.2 * deep, moss), lerp(c[2], 1.3 * deep, moss)];
+        const stain = smoothstep(0.5, 0.0, y);
+        out.color = [c[0] * (1 - 0.35 * stain), c[1] * (1 - 0.4 * stain), c[2] * (1 - 0.45 * stain)];
+      },
+      { cols: TUBE_COLS, rows: TUBE_ROWS },
+    );
+    faceTowards(tube, (p, o) => {
+      const { a } = toTube(p.x, p.z);
+      fromTube(a, 0, o);
+      o.y = gWalk(a) + 1.3;
+      return o;
+    });
+    const triCount = (g: BufferGeometry) => Math.floor((g.index ? g.index.count : g.attributes.position.count) / 3);
+    detail49.tube.triangles = triCount(tube);
+    tube.translate(-tuftCentre.x, -tuftCentre.y, -tuftCentre.z);
+    const tubeMesh = new Mesh(tube, mats.tunnelWall);
+    tubeMesh.name = 'log-tunnel';
+    tubeMesh.castShadow = tubeMesh.receiveShadow = true;
+    nearGroup.add(tubeMesh);
+
+    // ---- the cheeks: two mouth-face annuli (south: round the tube's rim; north: round the
+    // portal's shell) up into the belly and out to the cheek ends, plus the rounded east end ----
+    const barkParts: BufferGeometry[] = [];
+    /** bark tone for the cheek / portal surfaces (the shell's damp grey-brown, plated, grimed in the fissures) */
+    const cheekColor = (a: number, e: number, y: number, occl: number): [number, number, number] => {
+      const n1 = noise.noise(e * 0.9 + a * 0.3 + 61, y * 0.9 + 12);
+      const n2 = noise.noise(e * 1.7 - a * 0.5 + 83, y * 1.6 + 5);
+      const face = 0.65 * smoothstep(0.08, 0.28, n1) + 0.35 * smoothstep(0.2, 0.4, n2);
+      const seam = smoothstep(0.3, 0.1, n1) * smoothstep(-0.14, -0.02, n1);
+      const cells = 0.82 + 0.36 * hash2(Math.floor((e + a * 0.4) / 0.36), Math.floor((y + e * 0.2) / 0.95), 49);
+      const shade = lerp(0.6, 1.25, face) * (1 - 0.45 * seam) * cells * occl;
+      const grime = smoothstep(0.45, 0.15, face);
+      // soil-stained toward the ground, a little moss low on the shaded faces
+      const stain = smoothstep(0.8, 0.0, y);
+      const moss = smoothstep(1.2, 0.1, y) * smoothstep(0.35, 0.7, noise.noise(e * 1.4 + 20, a * 1.4 + 4)) * 0.6;
+      const barkC: [number, number, number] = [0.78 * shade * (1 - 0.25 * grime) * (1 - 0.3 * stain), 0.75 * shade * (1 - 0.15 * grime) * (1 - 0.35 * stain), 0.7 * shade * (1 - 0.3 * grime) * (1 - 0.45 * stain)];
+      return [lerp(barkC[0], 1.1 * shade, moss), lerp(barkC[1], 2.0 * shade, moss), lerp(barkC[2], 0.45 * shade, moss)];
+    };
+    /** the cheek envelope's ceiling at a plan point: into the belly, or the shoulder rounding down to the ground at the cheek ends */
+    const cheekTop = (x: number, z: number, e: number, gB: number) => {
+      const belly = bellyYAt(x, z);
+      const top = (Number.isNaN(belly) ? axisAt((x - cx) * A.x + (z - cz) * A.z).y : belly) + 0.35 - gB;
+      const end = e > 0 ? CHEEK_E : CHEEK_W;
+      const sh = Math.abs(e) - (end - 1.3);
+      if (sh <= 0) return top;
+      if (sh >= 1.3) return -1;
+      return top * Math.sqrt(Math.max(0, 1 - (sh / 1.3) ** 2));
+    };
+    const _fp = new Vector3();
+    /**
+     * A mouth face: rays from C = (0, 1.2) in the face's (e, y) plane through the inner rim
+     * (`innerAt`) march out to the envelope (the belly / the cheek shoulders / the ground); the
+     * annulus is lerp(rim, outer) with bark plates standing out along `outward`.
+     */
+    const mouthFace = (aAt: (e: number) => number, innerAt: (u: number) => { e: number; y: number }, outward: number, cols: number, rows: number) => {
+      const outer: { e: number; y: number }[] = [];
+      for (let i = 0; i < cols; i++) {
+        const rim = innerAt(i / (cols - 1));
+        const de = rim.e - 0;
+        const dy = rim.y - 1.2;
+        const dl = Math.hypot(de, dy) || 1;
+        let last = rim;
+        for (let t = 0.1; t <= 9; t += 0.1) {
+          const e = rim.e + (de / dl) * t;
+          const y = rim.y + (dy / dl) * t;
+          const a = aAt(e);
+          fromTube(a, e, _fp);
+          const gB = gWalk(a);
+          const gL = terrain.height(_fp.x, _fp.z);
+          if (gB + y < gL - 0.4) break;
+          if (y > cheekTop(_fp.x, _fp.z, e, gB)) break;
+          last = { e, y };
+        }
+        // a hand further, so the edge is well inside the belly / ground / shoulder
+        outer.push({ e: last.e + (de / dl) * 0.12, y: last.y + (dy / dl) * 0.12 });
+      }
+      const geo = gridSurface(
+        (u, v, out) => {
+          const rim = innerAt(u);
+          const o = outer[Math.min(cols - 1, Math.max(0, Math.round(u * (cols - 1))))];
+          const e = lerp(rim.e, o.e, v);
+          const y = lerp(rim.y, o.y, v);
+          const a = aAt(e);
+          // bark plates standing out of the face, the rim itself flush (it meets the tube)
+          const plate = smoothstep(0.2, 0.5, noise.noise(e * 1.1 + 31, y * 1.1 + outward * 7));
+          const off = outward * (0.04 + 0.1 * plate + 0.02 * noise.noise(e * 5, y * 5 + 3)) * smoothstep(0, 0.25, v);
+          fromTube(a + off, e, out.position);
+          out.position.y = worldY(a, e, y);
+          out.uv = [e / 1.3, y / 1.3];
+          // occlusion up under the belly's overhang and toward the tube's rim
+          const occl = lerp(0.55, 1, smoothstep(0, 0.35, v)) * lerp(1, 0.6, smoothstep(2.4, 3.6, y));
+          out.color = cheekColor(a, e, y, occl);
+        },
+        { cols, rows },
+      );
+      faceTowards(geo, (p, o) => o.copy(p).addScaledVector(W, outward * 5));
+      return geo;
+    };
+    // south face: round the tube's rim at the south end
+    const southRim = (u: number) => {
+      const e0 = profile(thetaAt(u), 1).e;
+      return profile(thetaAt(u), hTopAt(aSouthAt(e0), e0));
+    };
+    const southFace = mouthFace((e) => aSouthAt(e), southRim, -1, 56, 7);
+    barkParts.push(southFace);
+    // north face: round the portal shell (the tube passes through it), at the belly's north side
+    const shellOf = (theta: number, hTop: number) => {
+      const p = profile(theta, hTop);
+      return { e: p.e * ((E_HALF + SHELL_T) / E_HALF), y: p.y >= 0 ? p.y * ((hTop + SHELL_T) / hTop) : p.y };
+    };
+    const aNorthFace = (e: number) => aAxisAt(e) + S_FACE_M + 0.1 * noise.noise(e * 1.3 + 19, 49.7);
+    const northRim = (u: number) => {
+      const e0 = profile(thetaAt(u), 1).e;
+      return shellOf(thetaAt(u), hTopAt(aNorthFace(e0), e0));
+    };
+    const northFace = mouthFace((e) => aNorthFace(e), northRim, 1, 56, 7);
+    barkParts.push(northFace);
+    // the east end: the shoulder between the two faces, from the belly down to the ground
+    const eastEnd = gridSurface(
+      (u, v, out) => {
+        const e0 = CHEEK_E - 1.3;
+        const ang = (v * Math.PI) / 2; // 0 at the top (inside the belly) … π/2 at the ground
+        const e = e0 + 1.3 * Math.sin(ang) + 0.06 * noise.noise(u * 7 + 3, v * 7);
+        const a = lerp(aSouthAt(e), aNorthFace(e), u);
+        fromTube(a, e, out.position);
+        const gB = gWalk(a);
+        const belly = bellyYAt(out.position.x, out.position.z);
+        const top = (Number.isNaN(belly) ? gB + 3.2 : belly) + 0.35 - gB;
+        const y = top * Math.cos(ang) - 0.4 * smoothstep(0.85, 1, v);
+        out.position.y = worldY(a, e, y);
+        out.uv = [a / 1.3, y / 1.3];
+        out.color = cheekColor(a, e, Math.max(0, y), lerp(0.65, 1, v));
+      },
+      { cols: 18, rows: 10 },
+    );
+    faceTowards(eastEnd, (p, o) => o.copy(p).addScaledVector(EV, 5));
+    barkParts.push(eastEnd);
+    // the west end: the same shoulder where the sunk west body comes down to meet the ground
+    const westEnd = gridSurface(
+      (u, v, out) => {
+        const e0 = -(CHEEK_W - 1.3);
+        const ang = (v * Math.PI) / 2;
+        const e = e0 - 1.3 * Math.sin(ang) + 0.06 * noise.noise(u * 7 + 13, v * 7 + 5);
+        const a = lerp(aSouthAt(e), aNorthFace(e), u);
+        fromTube(a, e, out.position);
+        const gB = gWalk(a);
+        const belly = bellyYAt(out.position.x, out.position.z);
+        const top = (Number.isNaN(belly) ? gB + 3.2 : belly) + 0.35 - gB;
+        const y = top * Math.cos(ang) - 0.4 * smoothstep(0.85, 1, v);
+        out.position.y = worldY(a, e, y);
+        out.uv = [a / 1.3, y / 1.3];
+        out.color = cheekColor(a, e, Math.max(0, y), lerp(0.65, 1, v));
+      },
+      { cols: 18, rows: 10 },
+    );
+    faceTowards(westEnd, (p, o) => o.copy(p).addScaledVector(EV, -5));
+    barkParts.push(westEnd);
+    detail49.cheeks = { east: 1, west: 1, triangles: triCount(southFace) + triCount(northFace) + triCount(eastEnd) + triCount(westEnd) };
+
+    // ---- the north portal: the tube's bark shell from inside the belly to the torn rim, and the
+    // rim annulus between the tube and the shell ----
+    const PORTAL_FROM = S_FACE_M - 1.4;
+    const portalShell = gridSurface(
+      (u, v, out) => {
+        const theta = thetaAt(u);
+        const aFrom = aAxisAt(profile(theta, 1).e) + PORTAL_FROM;
+        const aTo = aNorthAt(u);
+        const a = lerp(aFrom, aTo, v);
+        const hTop = hTopAt(a, profile(theta, 1).e);
+        const { e, y } = shellOf(theta, hTop);
+        // bark ridges running along the portal, plates between
+        const arc = theta * (E_HALF + SHELL_T);
+        const ridge = noise.ridged(arc * 1.1 + 5, a * 0.16 + 9, 3) - 0.5;
+        const plate = smoothstep(0.1, 0.3, noise.noise(arc * 0.9 + 51, a * 0.45 + 17));
+        const dOut = (0.12 * ridge + 0.06 * plate + 0.02 * noise.noise(arc * 2.6, a * 2.6)) * smoothstep(-0.1, 0.3, y);
+        const oe = e;
+        const oy = y - 1.3;
+        const ol = Math.hypot(oe, oy) || 1;
+        fromTube(a, e + (oe / ol) * dOut, out.position);
+        out.position.y = worldY(a, e, y + (oy / ol) * dOut);
+        out.uv = [arc / 2.6, a / 2.6];
+        const up = clamp(y / (hTop + SHELL_T), 0, 1);
+        // the crown of the portal takes the log's damp grey-brown; the flanks darker under the flank's overhang
+        const occl = lerp(0.7, 1, up) * lerp(0.7, 1, smoothstep(0, 1, v));
+        const c = cheekColor(a, e, Math.max(0, y), occl * (1 + 0.6 * ridge));
+        // a little moss on the crown toward the rim, where the rain reaches
+        const moss = smoothstep(0.6, 1, up) * smoothstep(0.35, 0.65, noise.noise(arc * 1.2 + 2, a * 1.1 + 6)) * smoothstep(0.3, 0.9, v) * 0.7;
+        out.color = [lerp(c[0], 1.3 * occl, moss), lerp(c[1], 2.3 * occl, moss), lerp(c[2], 0.5 * occl, moss)];
+      },
+      { cols: TUBE_COLS, rows: 24 },
+    );
+    faceTowards(portalShell, (p, o) => {
+      // away from the tube's centre line: outward normals on the shell
+      const { a } = toTube(p.x, p.z);
+      fromTube(a, 0, o);
+      o.y = gWalk(a) + 1.3;
+      return o.multiplyScalar(-1).addScaledVector(p, 2);
+    });
+    barkParts.push(portalShell);
+    // the torn rim: the annulus from the tube's rim to the shell's, each plate its own reach
+    // (the same `ragNorth`, so the three meet edge to edge); end-grain-pale split faces
+    const rimAnnulus = gridSurface(
+      (u, v, out) => {
+        const theta = thetaAt(u);
+        const aN = aNorthAt(u);
+        const hTop = hTopAt(aN, profile(theta, 1).e);
+        const inner = profile(theta, hTop);
+        const outerP = shellOf(theta, hTop);
+        const e = lerp(inner.e, outerP.e, v);
+        // the crown plates sag into the mouth with the tube's rim (the same term)
+        const y = lerp(inner.y - 0.3 * smoothstep(0.25, 0.4, u) * smoothstep(0.75, 0.6, u) * Math.max(0, ragNorth(u)) / 0.6, outerP.y, v);
+        fromTube(aN, e, out.position);
+        out.position.y = worldY(aN, e, y);
+        out.uv = [e / 1.3, y / 1.3];
+        const fibre = 0.85 + 0.3 * noise.noise(u * 60, v * 4 + 2);
+        const d = lerp(0.42, 0.62, v) * fibre;
+        out.color = [d, d * 0.84, d * 0.66];
+      },
+      { cols: TUBE_COLS, rows: 3 },
+    );
+    faceTowards(rimAnnulus, (p, o) => o.copy(p).addScaledVector(W, 5));
+    barkParts.push(rimAnnulus);
+    const ragVals = rimPlates.map((p) => p.len);
+    detail49.portal = { shellFrom: +PORTAL_FROM.toFixed(2), to: N_MOUTH_A, rimRag: [+Math.min(...ragVals).toFixed(2), +Math.max(...ragVals).toFixed(2)], triangles: triCount(portalShell) + triCount(rimAnnulus) };
+
+    // ---- aerial roots hanging from the mouths' rims (mostly the north), clamped over the walk floor ----
+    const rootRng49 = rng.fork('rim-roots49');
+    /**
+     * The walk floor measured to the TUNNEL's walk polyline as well as to the path spine: at the
+     * north mouth the walk has bent 1.3 m east of the spine, and a root hung by `walkFloorAt`
+     * alone reached 1.78 m over the strip there (iteration 5's audit).
+     */
+    const rimFloorAt = (x: number, z: number) => {
+      const g = terrain.height(x, z);
+      const sd = walkDistance(x, z);
+      const strip = ctx.layout.pathHalfWidth;
+      const f = sd <= strip ? g + WALK_CLEAR_M : sd <= strip + 1.5 ? g + lerp(WALK_CLEAR_M, 1.3, (sd - strip) / 1.5) : g + 0.6;
+      return Math.max(f, walkFloorAt(x, z));
+    };
+    for (let i = 0; i < 34; i++) {
+      const north = i % 4 !== 3;
+      // the upper half of the rim, denser toward the crown
+      const u = 0.5 + (rootRng49() - 0.5) * (0.55 + 0.35 * rootRng49());
+      const theta = thetaAt(u);
+      const e0 = profile(theta, 1).e;
+      const a = north ? aNorthAt(u) + 0.05 : aSouthAt(e0) - 0.08;
+      const hTop = hTopAt(a, e0);
+      const p = north ? shellOf(theta, hTop) : profile(theta, hTop);
+      const pe = p.e * (north ? 0.97 : 1.03);
+      const py = p.y - 0.05;
+      if (py < 1.8) continue;
+      const hook = fromTube(a, pe);
+      hook.y = worldY(a, pe, py);
+      const floor = rimFloorAt(hook.x, hook.z);
+      const allowed = hook.y - floor;
+      if (allowed < 0.3) continue;
+      const len = Math.min(0.5 + rootRng49() * 1.1, allowed - 0.04);
+      const n = 6;
+      const pts: Vector3[] = [];
+      const drift = new Vector3((rootRng49() - 0.5) * 0.25, 0, (rootRng49() - 0.5) * 0.25);
+      for (let j = 0; j <= n; j++) {
+        const t = j / n;
+        const q = hook.clone();
+        q.y -= len * t;
+        q.addScaledVector(drift, t * t);
+        q.x += noise.noise(i * 1.7 + t * 3.1, 50.5) * 0.05 * t;
+        q.z += noise.noise(i * 2.3 + 19, t * 3.1 + 50) * 0.05 * t;
+        pts.push(q);
+      }
+      // the drift carries the tip sideways: keep it over its own floor
+      const tip = pts[n];
+      const tipFloor = rimFloorAt(tip.x, tip.z);
+      if (tip.y < tipFloor) {
+        const k = Math.max(0.15, (hook.y - tipFloor - 0.04) / Math.max(1e-3, hook.y - tip.y));
+        for (let j = 0; j <= n; j++) pts[j].y = hook.y - (hook.y - pts[j].y) * k;
+      }
+      const r0 = 0.012 + rootRng49() * 0.012;
+      const pale = 0.75 + rootRng49() * 0.5;
+      barkParts.push(
+        sweepTube(new CatmullRomCurve3(pts, false, 'catmullrom', 0.5), {
+          radius: (t) => r0 * (1 - 0.8 * t) * (1 + 0.12 * Math.sin(t * 17 + i)),
+          tubularSegments: n,
+          radialSegments: 5,
+          uvMetres: 0.4,
+          capEnd: true,
+          color: (t, ang) => {
+            const tipK = smoothstep(0.6, 1, t);
+            const side = 0.85 + 0.25 * Math.max(0, Math.cos(ang + 0.8));
+            return [lerp(0.42, 0.7 * pale, tipK) * side, lerp(0.33, 0.6 * pale, tipK) * side, lerp(0.24, 0.45 * pale, tipK) * side];
+          },
+        }),
+      );
+      hungTips.push(pts[n].clone());
+      detail49.rimRoots++;
+    }
+    {
+      const barkGeo = merge(barkParts);
+      barkGeo.translate(-tuftCentre.x, -tuftCentre.y, -tuftCentre.z);
+      const cheekMesh = new Mesh(barkGeo, mats.logBark);
+      cheekMesh.name = 'log-tunnel-cheeks';
+      cheekMesh.castShadow = cheekMesh.receiveShadow = true;
+      nearGroup.add(cheekMesh);
+    }
+
+    // ---- the floor decal: a multiply sheet a hand over the paving, feathered at the mouths and
+    // under the walls (vertex colour = the fade) ----
+    const DECAL_E = E_HALF + 0.4;
+    const decalFrom = aSouthAt(0) - 0.7;
+    const decalTo = N_MOUTH_A + 0.6;
+    const decal = gridSurface(
+      (u, v, out) => {
+        const e = (u - 0.5) * 2 * DECAL_E;
+        const a = lerp(decalFrom, decalTo, v);
+        fromTube(a, e, out.position);
+        out.position.y = terrain.height(out.position.x, out.position.z) + 0.08;
+        out.uv = [u, v];
+        const along = smoothstep(decalFrom, aSouthAt(e) + 0.5, a) * (1 - smoothstep(aNorthAt(0.5 - e / (2 * E_HALF)) - 0.5, decalTo, a));
+        const across = 1 - smoothstep(E_HALF - 0.25, DECAL_E, Math.abs(e));
+        const k = along * across * (0.85 + 0.15 * noise.noise(a * 1.1 + 3, e * 1.1 + 7));
+        out.color = [k, k, k];
+      },
+      { cols: 28, rows: 56 },
+    );
+    faceTowards(decal, (p, o) => o.set(p.x, p.y + 5, p.z));
+    detail49.floorDecal = { from: +decalFrom.toFixed(2), to: +decalTo.toFixed(2), eHalf: DECAL_E, tint: [TUNNEL_FLOOR_TINT.x, TUNNEL_FLOOR_TINT.y, TUNNEL_FLOOR_TINT.z], triangles: triCount(decal) };
+    decal.translate(-tuftCentre.x, -tuftCentre.y, -tuftCentre.z);
+    const decalMesh = new Mesh(decal, mats.tunnelFloor);
+    decalMesh.name = 'log-tunnel-floor';
+    decalMesh.castShadow = decalMesh.receiveShadow = false;
+    decalMesh.renderOrder = -1;
+    nearGroup.add(decalMesh);
+
+    // ---- audit ----
+    detail49.frame = { origin: [+O.x.toFixed(2), +O.y.toFixed(2), +O.z.toFixed(2)], walkDir: [+W.x.toFixed(3), +W.z.toFixed(3)], axisSkew: +kAxis.toFixed(3), drift: { from: +DRIFT_FROM.toFixed(2), to: N_MOUTH_A, eAtMouth: +DRIFT_EN.toFixed(2) } };
+    detail49.tube.eHalf = E_HALF;
+    detail49.tube.hTop = H_TOP;
+    detail49.tube.southFaceM = S_FACE_M;
+    detail49.tube.northMouthA = N_MOUTH_A;
+    detail49.tube.exponent = P_EXP;
+    detail49.tube.ceilingLifts = lifts.map((l) => ({ a: +l.a.toFixed(2), e: +l.e.toFixed(2), hTop: +l.need.toFixed(2) }));
+    detail49.tube.grid = [TUBE_COLS, TUBE_ROWS];
+    detail49.minStripClearance = tubeMinClear === Infinity ? Infinity : +tubeMinClear.toFixed(2);
+    detail49.groundAtCrossing = +O.y.toFixed(2);
+    {
+      const at = (a: number) => {
+        fromTube(a, 0, _fp);
+        const b = bellyYAt(_fp.x, _fp.z);
+        return Number.isNaN(b) ? NaN : +(b - gWalk(a)).toFixed(2);
+      };
+      detail49.bellyOverWalk = { atCrossing: at(0), southFace: at(aSouthAt(0)), northFlank: at(S_FACE_M) };
+    }
+    // the rim roots' tips over the strip fold into round 47's figure
+    for (const t of detail49.rimRoots > 0 ? hungTips.slice(-detail49.rimRoots) : []) {
+      if (walkDistance(t.x, t.z) <= ctx.layout.pathHalfWidth) detail47.minStripClearance = Math.min(detail47.minStripClearance, t.y - terrain.height(t.x, t.z));
+    }
+    if (tubeMinClear !== Infinity) detail47.minStripClearance = Math.min(detail47.minStripClearance, tubeMinClear);
+  }
+
+
   return {
     group,
     bases,
@@ -2161,5 +2921,6 @@ export function buildLogArch(ctx: WorldContext, mats: StructureMaterials, rng: R
     detail41,
     detail44,
     detail47: { ...detail47, minStripClearance: detail47.minStripClearance === Infinity ? Infinity : +detail47.minStripClearance.toFixed(2) },
+    detail49,
   };
 }

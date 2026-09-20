@@ -2605,6 +2605,12 @@ Also: lantern bough still a thick plain beam across the top of B (trees pass pen
   Astra's stair study: a 40 mm mid-stance pelvis rise cuts the knee fold 165° → 152° (held for
   her 1320-frame review). Next seal when expansion-2/structures-32 land.
 
+### 12:20 UTC — tick 194: goal-mode merges (fable-2 #11 pebble envelope, fable-3 #6, fable-5 #13); lanes still capturing
+- Merged `4b9e053`, `d5d27d3`, `423a069`; tsc + 23 tests green; pushed. expansion-2 9 commits
+  (active), structures-32 5 (capturing 2 h), character-10 reviewing PR #21 (Astra's integrated-world
+  regression of candidate 1e81 on `e54a74e` is clean: 1620 frames, stair gaps +2.3/+1.4 mm, knees
+  ≤ 150°). Heartbeat.
+
 ## Pending corrections from reference/ANALYSIS.md (apply at integration, one commit)
 - `config.ts` palette → olive/khaki low-key (reference hero frames: hue 47–51°, sat 0.16–0.19,
   lum 0.35–0.39, 0 % blue sky): grass 0x8a8c55/0x5c6233/0x3a4420, moss 0x8b8948/0x5a523b,
@@ -2643,4 +2649,4 @@ Pick anything NOT claimed in `gauntlet/claims.json`. Good self-contained candida
   my own (GAUNTLET.md D7).
 
 ## Last updated
-2026-09-20T11:20:00Z
+2026-09-20T12:20:00Z
