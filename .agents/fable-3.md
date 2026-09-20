@@ -4,7 +4,7 @@ runtime: Cursor Cloud Agent (Claude Fable 5.1)
 github: Cursor Agent <cursoragent@cursor.com>
 status: active (goal mode, timer goal-mode-fable-3 @ 20 * * * *)
 branch: agent/fable-3-merge
-updated: 2026-09-20T08:25:00Z
+updated: 2026-09-20T11:50:00Z
 ---
 
 # fable-3 — work log
@@ -15,27 +15,24 @@ materials.ts, tests, README). Onboarded from `docs/ONBOARDING_FABLE_CHATS.md` (c
 agents-log ticks). Draft PR #13 against the world branch.
 
 ## Current task
-Goal mode on **`agent/fable-3-merge`** (reported 04:35 and 08:25 UTC; waiting for fable-cursor's
-merge from the branch — the PR tool is still refused by GitHub, repository-side). The branch carries:
-- the two commits the 02:25 merge missed (the 45 m cull, the clearing evidence);
-- iteration 4: merge per locality (village / clearing), 8 → now 9 meshes for the system, six views
-  pixel-identical, draws A −26 / B −23 / E −23 / F −24 / D −7 / C +2;
-- iteration 5: the demo's **light string**, placed by measuring reference A's pixels (a string at
-  (0.49–0.54, 0.47) → the house terrace's south bank above the pocket left of the flight; A's
-  second string sits on a bank our plaza lacks — V15). Six views: A 0, B −0.0009, C 0, D 0,
-  E −0.0002, F −0.0005. Verdict IMPROVED not closed: our pods are hard 2 px points at 16 m, the
-  reference's are soft blobs (bloom — the lantern glow's owner).
-- V18 (fable-5's "no rail on the flight") re-filed after reading `d_105`: log-risered treads with
-  end stakes → hardscape-31 (fable-5 confirmed and filed V18′).
+Goal mode. `agent/fable-3-merge` is merged through `48a48978` (fable-cursor: `c11a754c` the
+locality merge + cull, `dbc1d87e` the measured light string and the two-tone pots / hewn marker
+on fable-4's non-author review). Iteration 6's own six-view verification (67e1d411 → 48a48978
+on the same head: Δ 0 A–E, +0.0001 F, B/E pixel-identical) is in
+`art/environment/props-fable-3/pot-tones/` and reported 11:50 UTC. The branch now carries only
+evidence + log; the next iteration starts a fresh branch off the head.
 
-Next in lane: fable-5's two clearing notes (pot bodies one tone, crossboards clean-edged), the
-crates a shade warmer, hanging wooden signs.
+Next in lane: the crates a shade warmer toward the fences' red-brown (`WOOD_TINT`), hanging wooden
+signs at the porch; the demo's second light string waits for a plaza-left bank (V15); a drips
+relief in the clay normal map if the owner wants the two tones stronger.
 
 ## Files / systems being touched
 `src/world/props/{index,layout,geometry,materials}.ts`, `geometry.test.mjs`, `README.md`.
 Evidence sheets under `art/environment/props-fable-3/`. Nothing else.
 
 ## Completed work
+- `48a48978` pots in two tones (clay-map firing tone + slip drips, per-pot UV offset, wider flash),
+  the marker hand-hewn (`board({ wobble })`); evidence `pot-tones/` — merged `dbc1d87e`.
 - `21dfa7d0` iteration-5 evidence (`art/environment/props-fable-3/light-strings/`): reference|ours
   crops at the same band of A, before/after at the bank pose, six views.
 - `b8034a7c` … `4b1edb0b` the `lightString` kind + `glow` material; four placements measured
@@ -105,4 +102,4 @@ Evidence sheets under `art/environment/props-fable-3/`. Nothing else.
 - A Kokiri on the lip deck (npc-1) — the deck is the "stand on the ledge" destination.
 
 ## Last updated
-2026-09-20T08:25:00Z
+2026-09-20T11:50:00Z
