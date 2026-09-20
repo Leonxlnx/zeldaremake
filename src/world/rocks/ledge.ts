@@ -23,18 +23,31 @@ import { Noise3, computeCreaseNormals } from './rockgen';
 
 export interface RockLedgeDef {
   id: string;
-  /** the foot line on the path side, world xz, in order; the face rises on `side` of the walk direction */
+  /**
+   * the face's line, world xz, in order along the path. Either the FOOT (ground level on the path
+   * side) or the LIP of a terrain step: when a point stands above a drop on the path side the
+   * builder walks down the slope to its base and uses that as the foot, the given point as the
+   * top's ground point (`LAYOUT.rockLedges.north-terrace` is authored at the terrace lip).
+   */
   foot: [number, number][];
-  /** which side of the walk direction the bank is on (default: whichever the terrain says is higher) */
+  /** which side of the walk direction the bank is on (default: whichever the terrain says is higher, probed 1–3 m out) */
   side?: 'left' | 'right';
-  /** horizontal distance from the foot line to the top's ground point (default 2.2 m) */
+  /** horizontal distance from the foot line to the top's ground point (default 2.2 m; added to the walked slope when the line is a lip) */
   inset?: number;
-  /** face height above the foot; omit to read it from the terrain at the top point (a terrain step) */
+  /**
+   * face height above the foot; omit to read it from the terrain at the top point (a terrain
+   * step). Ignored when the line is a lip — the step's own rise is the height.
+   */
   height?: number;
-  /** how far the lip overhangs the face at the top (default 0.35 m) */
+  /** how far the lip overhangs the face at the top, metres (default 0.35 m) */
   lean?: number;
   /** end taper: the face sinks into the bank over this run at both ends (default 1.4 m) */
   taper?: number;
+  /**
+   * root ridges per 3 m of run (default 0.7): rounded ridges of dark bark that emerge at the lip
+   * and run down the face to the foot, wandering a little — ref-04's rock-AND-root wall. 0 = none.
+   */
+  roots?: number;
 }
 
 export interface LedgeBuild {
@@ -50,6 +63,7 @@ export interface LedgeBuild {
 const _p = new Vector3();
 const _q = new Vector3();
 const _tmp = new Color();
+const _tmp2 = new Color();
 
 /** resample a polyline at ~`step` m spacing (world xz) */
 function resample(pts: [number, number][], step: number): Vector2[] {
@@ -71,36 +85,107 @@ function resample(pts: [number, number][], step: number): Vector2[] {
  */
 export function buildRockLedge(def: RockLedgeDef, T: Terrain, rng: Rng, seed: string): LedgeBuild {
   const N = new Noise3(`${seed}/ledge-${def.id}`);
-  const inset = def.inset ?? 2.2;
+  const insetDef = def.inset ?? 2.2;
   const lean = def.lean ?? 0.35;
-  const taper = def.taper ?? 1.4;
-  const foot = resample(def.foot, 0.14);
-  const J = foot.length;
+  // the authored line is the face at full height: it is extended along its end tangents by the
+  // taper run on both sides, and those extensions are what sink into the bank. Columns on a
+  // stair or a structure pad are dropped (the north terrace's line runs into the `ledge`
+  // flight's flank at its east end: the face stops short of the treads).
+  const authored = def.foot.map(([x, z]) => new Vector2(x, z));
+  let authoredLen = 0;
+  for (let k = 1; k < authored.length; k++) authoredLen += authored[k].distanceTo(authored[k - 1]);
+  const ext = Math.min(def.taper ?? 1.4, 0.4 * authoredLen);
+  const t0 = authored[1].clone().sub(authored[0]).normalize();
+  const t1 = authored[authored.length - 1].clone().sub(authored[authored.length - 2]).normalize();
+  const extended: [number, number][] = [
+    [authored[0].x - t0.x * ext, authored[0].y - t0.y * ext],
+    ...def.foot,
+    [authored[authored.length - 1].x + t1.x * ext, authored[authored.length - 1].y + t1.y * ext],
+  ];
+  const line = resample(extended, 0.14).filter((p) => {
+    const m = T.mask(p.x, p.y);
+    return m.stairs < 0.3 && m.structure < 0.5;
+  });
+  const J = line.length;
+  if (J < 3) throw new Error(`rock ledge ${def.id}: fewer than three columns off the stairs / structures`);
   // walk direction and the "into the bank" normal per column
   const tan: Vector2[] = [];
   const nIn: Vector2[] = [];
   for (let j = 0; j < J; j++) {
-    const a = foot[Math.max(0, j - 1)];
-    const b = foot[Math.min(J - 1, j + 1)];
+    const a = line[Math.max(0, j - 1)];
+    const b = line[Math.min(J - 1, j + 1)];
     const t = b.clone().sub(a).normalize();
     tan.push(t);
     nIn.push(new Vector2(-t.y, t.x)); // left of the walk direction
   }
-  // which side is the bank: the def says, or the terrain (higher side at mid-run)
+  // which side is the bank: the def says, or the terrain — the higher side, read as the mean of
+  // the ground 1, 2 and 3 m out on each side of the mid-run point (a lip is a local crest, so the
+  // ground right beside it says nothing; the slope 2–3 m out does)
   let sideSign = def.side === 'right' ? -1 : def.side === 'left' ? 1 : 0;
   if (sideSign === 0) {
-    const m = foot[Math.floor(J / 2)];
+    const m = line[Math.floor(J / 2)];
     const n = nIn[Math.floor(J / 2)];
-    const hl = T.height(m.x + n.x * inset, m.y + n.y * inset);
-    const hr = T.height(m.x - n.x * inset, m.y - n.y * inset);
+    let hl = 0;
+    let hr = 0;
+    for (const d of [1, 2, 3]) {
+      hl += T.height(m.x + n.x * d, m.y + n.y * d);
+      hr += T.height(m.x - n.x * d, m.y - n.y * d);
+    }
     sideSign = hr > hl ? -1 : 1;
   }
   for (const n of nIn) n.multiplyScalar(sideSign);
+  // lip → base: a line point standing above a drop on the path side walks down the slope (0.1 m
+  // steps along −n, while the ground keeps falling and stays off the paving, ≤ 4.5 m) to the base
+  // of the step, which becomes the foot; the point itself becomes the top's ground point. The
+  // walked distances are smoothed over neighbouring columns so the foot line stays a line.
+  const walked = new Float32Array(J);
+  for (let j = 0; j < J; j++) {
+    const f = line[j];
+    const n = nIn[j];
+    const here = T.height(f.x, f.y);
+    // a drop of ≥ 0.2 m within 1.5 m on the path side marks a lip (the crest may run flat first)
+    let lowest = here;
+    for (const d of [0.5, 1.0, 1.5]) lowest = Math.min(lowest, T.height(f.x - n.x * d, f.y - n.y * d));
+    if (here - lowest < 0.2) continue;
+    let d = 0;
+    let prev = here;
+    let descending = false;
+    for (let k = 1; k <= 45; k++) {
+      const x = f.x - n.x * k * 0.1;
+      const z = f.y - n.y * k * 0.1;
+      const hk = T.height(x, z);
+      if (T.mask(x, z).path > 0.3) break;
+      const fell = prev - hk >= 0.015;
+      // the crest may run flat for up to 1.2 m before the slope; once descending, stop at the flat
+      if (!fell && (descending || k * 0.1 > 1.2)) break;
+      if (fell) descending = true;
+      prev = hk;
+      d = k * 0.1;
+    }
+    walked[j] = descending ? d : 0;
+  }
+  const walkedS = new Float32Array(J);
+  for (let j = 0; j < J; j++) {
+    let s = 0;
+    let c = 0;
+    for (let k = -2; k <= 2; k++) {
+      const jj = Math.min(J - 1, Math.max(0, j + k));
+      s += walked[jj];
+      c++;
+    }
+    walkedS[j] = s / c;
+  }
+  const isLip = walkedS.some((w) => w > 0.3);
+  const foot: Vector2[] = line.map((f, j) => f.clone().addScaledVector(nIn[j], -walkedS[j]));
   // cumulative run length (m) per column for the along-wall noise domain
   const u: number[] = [0];
   for (let j = 1; j < J; j++) u.push(u[j - 1] + foot[j].distanceTo(foot[j - 1]));
   const length = u[J - 1];
-  // per-column foot ground, top ground and face height (tapered at the ends)
+  // the end taper is the extension run (never more than a quarter of the whole run each side)
+  const taper = Math.min(Math.max(ext, 0.4), 0.25 * length);
+  // per-column inset (the def's, plus the slope walked), foot ground, top ground and face height
+  // (tapered at the ends)
+  const insetJ: number[] = [];
   const footY: number[] = [];
   const topY: number[] = [];
   const faceH: number[] = [];
@@ -108,17 +193,44 @@ export function buildRockLedge(def: RockLedgeDef, T: Terrain, rng: Rng, seed: st
   for (let j = 0; j < J; j++) {
     const f = foot[j];
     const n = nIn[j];
+    const inset = insetDef + walkedS[j];
     const fy = T.height(f.x, f.y);
-    const ty = def.height !== undefined ? fy + def.height : T.height(f.x + n.x * inset, f.y + n.y * inset);
+    const ty = def.height !== undefined && !isLip ? fy + def.height : T.height(f.x + n.x * inset, f.y + n.y * inset);
     const endW = smoothstep(0, taper, u[j]) * smoothstep(0, taper, length - u[j]);
     // the wall rides the bank: its own height is the ground rise, tapered to nothing at the ends
     // (the ends sink back into the slope, so the face never ends in a cut wall)
     const h = Math.max(0, ty - fy) * (0.25 + 0.75 * endW);
+    insetJ.push(inset);
     footY.push(fy);
     topY.push(ty);
     faceH.push(h);
     maxH = Math.max(maxH, h);
   }
+  // root ridges (see RockLedgeDef.roots): each has a run position at the lip, a wander, a radius
+  const rootsPer3m = def.roots ?? 0.7;
+  const nRoots = Math.round((length / 3) * rootsPer3m);
+  const roots: { u0: number; wander: number; R: number; phase: number }[] = [];
+  for (let k = 0; k < nRoots; k++) {
+    roots.push({ u0: length * ((k + 0.5 + rng.range(-0.3, 0.3)) / nRoots), wander: rng.range(-0.45, 0.45), R: rng.range(0.09, 0.15), phase: rng.range(0, 10) });
+  }
+  /** root ridge bump (m) and bark weight 0..1 at wall coordinates (run uu, face fraction vf 0 foot … 1 lip, > 1 shoulder) */
+  const rootAt = (uu: number, vf: number) => {
+    let bump = 0;
+    let bark = 0;
+    for (const rt of roots) {
+      // the ridge wanders across the run as it descends and thins toward the foot; over the
+      // shoulder (vf > 1) it thickens back toward the tree it came from
+      const centre = rt.u0 + rt.wander * (1 - Math.min(1, vf)) + 0.12 * N.fbm(vf * 2.1 + rt.phase, rt.u0 * 0.7, 2.2, 2);
+      const taperR = vf >= 1 ? 1 + 0.4 * Math.min(1, vf - 1) : 0.45 + 0.55 * vf;
+      const R = rt.R * taperR;
+      const d = Math.abs(uu - centre);
+      if (d >= 2 * R) continue;
+      const w = 1 - (d / (2 * R)) * (d / (2 * R));
+      bump = Math.max(bump, R * w * w);
+      bark = Math.max(bark, smoothstep(0.15, 0.6, w));
+    }
+    return { bump, bark };
+  };
   // rows: the buried skirt (v < 0), the face (0..1), the lip shoulder (> 1)
   const faceRows = Math.max(8, Math.round(maxH / 0.1));
   const skirtRows = 2;
@@ -166,11 +278,18 @@ export function buildRockLedge(def: RockLedgeDef, T: Terrain, rng: Rng, seed: st
   const dark = new Color(0.1, 0.095, 0.085);
   const soil = new Color(0.16, 0.14, 0.09);
   const at = (i: number, j: number) => i * J + j;
+  const bark = new Color(0.2, 0.15, 0.1);
   for (let j = 0; j < J; j++) {
     const f = foot[j];
     const n = nIn[j];
     const h = faceH[j];
     const uu = u[j];
+    const inset = insetJ[j];
+    // the face climbs steeply: its top edge sits `retreat` behind the foot — 12 % of the height on
+    // a free-standing shelf, 30 % of the inset when the face dresses a terrain slope (a 24° lean
+    // over the north terrace's 1.7 m rise), the lip overhanging that by `lean`
+    const retreat = Math.min(0.45 * inset, Math.max(0.12 * h, isLip ? 0.3 * inset : 0));
+    const leanHere = lean * (h > 0.6 ? 1 : h / 0.6);
     for (let i = 0; i < I; i++) {
       // v: −skirt..0 buried, 0..1 the face, 1..1+cap the lip shoulder
       let v: number;
@@ -187,9 +306,8 @@ export function buildRockLedge(def: RockLedgeDef, T: Terrain, rng: Rng, seed: st
       }
       const vf = clamp(v, 0, 1);
       const y0 = footY[j] + vf * h;
-      // the face retreats a little with height (a lean back of ~12 % of the height) and the lip
-      // overhangs the top: `lean` m out over the last quarter
-      let back = 0.12 * h * vf - lean * smoothstep(0.55, 1.0, vf) * (h > 0.6 ? 1 : h / 0.6);
+      // the face retreats to `retreat` at the top and the lip overhangs it over the last quarter
+      let back = retreat * vf - leanHere * smoothstep(0.55, 1.0, vf);
       let y = y0;
       let out = 0; // displacement along −n (toward the path)
       let moss = 0;
@@ -233,6 +351,16 @@ export function buildRockLedge(def: RockLedgeDef, T: Terrain, rng: Rng, seed: st
         moss = clamp((smoothstep(0.42, 0.62, sheetN) * (0.6 + 0.4 * underLip) + ledgeMoss) * (1 - smoothstep(0.1, 0.4, wet)) * (1 - 0.7 * jn.joint), 0, 1) * hs;
         // the collar just above the ground: soil-dark
         _tmp.lerp(soil, 0.7 * (1 - smoothstep(0.02, 0.28, yAbove)));
+        // root ridges: a rounded bark ridge bulging out of the stone, moss along its crest near
+        // the lip, thinning to the foot (tapered with the relief at the foot row)
+        const rt = rootAt(uu, vf);
+        if (rt.bump > 0) {
+          out += hs * footTaper * rt.bump;
+          const barkTone = 0.85 + 0.3 * (N.fbm(uu * 9.1 + seedOff, y0 * 9.1, 1.3, 2) * 0.5 + 0.5);
+          _tmp.lerp(_tmp2.copy(bark).multiplyScalar(barkTone), rt.bark);
+          moss = Math.max(moss * (1 - 0.6 * rt.bark), rt.bark * 0.55 * smoothstep(0.5, 0.95, vf));
+          wet *= 1 - 0.5 * rt.bark;
+        }
       } else {
         // the lip shoulder: a quarter-round from the face's top edge back and down onto the top
         // ground, under a continuous moss sheet; the last row sits 6 cm into the top ground
@@ -240,7 +368,7 @@ export function buildRockLedge(def: RockLedgeDef, T: Terrain, rng: Rng, seed: st
         // (back = inset, y = the terrain there, 6 cm under it for contact): convex shoulder
         const c = clamp(v - 1, 0, 1); // 0 at the lip edge, 1 at the top ground point
         const ang = (c * Math.PI) / 2;
-        const lipBack = 0.12 * h - lean * (h > 0.6 ? 1 : h / 0.6);
+        const lipBack = retreat - leanHere;
         const groundTop = topY[j] - 0.06;
         const lipY = footY[j] + h + 0.12 * hs;
         back = lipBack + (inset - lipBack) * Math.sin(ang);
@@ -251,6 +379,14 @@ export function buildRockLedge(def: RockLedgeDef, T: Terrain, rng: Rng, seed: st
         moss = 1 - 0.15 * (lump * 0.5 + 0.5);
         _tmp.copy(stone).multiplyScalar(0.9);
         wet = 0;
+        // the roots run on over the shoulder toward the trees they came from, thickening
+        const rt = rootAt(uu, 1 + c);
+        if (rt.bump > 0 && c < 0.999) {
+          y += hs * rt.bump * (1 - c);
+          const barkTone = 0.85 + 0.3 * (N.fbm(uu * 9.1 + seedOff, c * 9.1, 1.3, 2) * 0.5 + 0.5);
+          _tmp.lerp(_tmp2.copy(bark).multiplyScalar(barkTone), rt.bark * (1 - c));
+          moss = Math.max(0.35, moss - 0.5 * rt.bark * (1 - c));
+        }
       }
       const px = f.x + n.x * back - n.x * out;
       const pz = f.y + n.y * back - n.y * out;
