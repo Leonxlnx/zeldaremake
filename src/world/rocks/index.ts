@@ -299,7 +299,10 @@ export async function create(ctx: WorldContext): Promise<WorldSystem> {
       // the D boulder's fresh fracture face stands toward the path (frame 56 s: a dark cleaved
       // face on the path side under a bright moss top)
       cutToward: b.id === 'shot-d-boulder' ? toLocal(towardPath(b.position[0], b.position[2]), yaw) : undefined,
-      cutDark: b.id === 'shot-d-boulder' ? 0.4 : 0.3,
+      // fable-2 (W23 at frame D, fable-5's round-49 #7 "the 7 m value"): the cleave toward the path is
+      // the face camera D sees, and at 0.4 it was the dark half of a rock the reference shows as
+      // one pale olive-tan loaf — a quarter now (the near skin keeps its own 0.12)
+      cutDark: b.id === 'shot-d-boulder' ? 0.25 : 0.3,
       facetBare: b.id === 'shot-d-boulder' ? 0.9 : 0.5,
       squashY: squash,
       creaseDeg: 24,
@@ -331,14 +334,18 @@ export async function create(ctx: WorldContext): Promise<WorldSystem> {
       mossShade: toLocal(shadeDir, yaw),
       // the lower band is a dark, damp green-brown (not bare soil), reaching ~0.35 m up the
       // visible face of the small boulders
-      dirt: 0.8,
+      // (W23: the D rock's collar reaches 45 % of its height, not 60 — frame D reads pale stone
+      // down to the grass, the dark only in the ground contact)
+      dirt: b.id === 'shot-d-boulder' ? 0.7 : 0.8,
       collar,
-      collarBand: [0.12, 0.6],
+      collarBand: b.id === 'shot-d-boulder' ? [0.1, 0.45] : [0.12, 0.6],
       // frame 56 s reads the D rock's sunlit face at lum 0.42 (flagstone-bright grey-tan) where a
       // 0.55 tint rendered 0.24: mid-grey stone, the collar and the fracture faces carry the dark.
       // The D rock's bare stone is warm and pale in the frame (hue 46, sat 0.34) where the A/terrace
       // rocks are cool grey under their moss, so it gets a tan tint of its own
-      tint: b.id === 'shot-d-boulder' ? new Color(0.82, 0.77, 0.68) : new Color(0.72, 0.72, 0.71),
+      // (W23: frame D's boulder is olive-tan — rgb 91/83/45 at l 0.32, hue 47°, sat 0.34 — where
+      // ours rendered grey-tan at 0.30 behind the ferns; the tint goes a step paler and yellower)
+      tint: b.id === 'shot-d-boulder' ? new Color(0.9, 0.85, 0.64) : new Color(0.72, 0.72, 0.71),
       freq: 0.9,
     };
     const geo = buildRock(bRng.fork(b.id), `${seed}/boulder-${b.id}`, rockOpts);
