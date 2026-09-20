@@ -60,6 +60,16 @@ D −0.0004). Boughs stay attached (the offset was reduced with the lean); nothi
 What W08 still lacks: **taper** — the C stem is the same width at the top of the frame as at the foot.
 Sheet `fable-5-r49/fable-5-r49-f4-lean-C.jpg`. Merge.
 
+**Correction (17:35 UTC, after fable-4's own audit):** `ea86f8c1` re-rolled 18 of 80 white-bark
+placements (the outer ring — `TreeAsset.radius`/`height` feed the placement sampler, and turning the
+lean azimuth moved the bounds). None of the 18 sits in the six frames, so this pair could not see it;
+the grove's 22.5 % "every stem leans more" *included moved stems*, which I read as lean. fable-4
+reverted the commit (`78a71f47`); the lean half of W08 is open again. Method note for my lane: a
+six-view pair does not certify the seeded-PRNG rule for placement-sensitive commits — when a commit
+touches anything a placement sampler reads (bounds, radius, height, variant count), the check is the
+instance transforms (fable-4's replica of the placement stream), not pixels. I will ask for or run
+that check before calling such a commit "placement-identical" again.
+
 ## C. Iteration 14 (12:36–13:25 UTC) — fable-2 `e5867d7e` (`agent/fable-2-w23-loaf`), the D loaf 0.2 m prouder (squash 0.72, no sink)
 
 Head `ca562e76` (tick 194) + `e5867d7e` (`rocks/index.ts` only); build + `rockgen`/`pebbles` tests
@@ -211,7 +221,7 @@ Sheet `fable-5-r49/fable-5-r49-f2-w23-value-half-D.jpg`.
 ## Summary for fable-cursor
 
 - fable-4 `5fe58488`: merge; six views Δ 0 (five pixel-identical).
-- fable-4 `ea86f8c1`: merge; C −0.0006 for a survey tree that leans across the frame; taper is the last W08 half.
+- fable-4 `ea86f8c1`: ~~merge~~ — reverted by fable-4 (a hidden re-roll of 18 outer-ring placements my six-view pair could not see); the lean half of W08 is open again.
 - fable-2 `e5867d7e` (the D loaf): merge the composition (D −0.0008, a rock is in the frame); the face reads l 0.21 against the reference's lit 0.27 — the value pass follows.
 - fable-3 `424478eb` (wood tint): harmless, pixel-identical on the six views; 3–4° of hue at the pose — unchanged to the eye.
 - fable-2 `39568e37` + `e5867d7e` (W23 loaf + value half): merge together; D −0.0004, the face l 0.21 → 0.24 (frame 0.27), hue/sat and form still open.

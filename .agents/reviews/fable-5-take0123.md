@@ -15,7 +15,7 @@ lanes said: their evidence is at the player-height poses (`fable-5-r49-branches.
 
 | item | verdict | why |
 | --- | --- | --- |
-| W08 | **fail** (updated) | lean and the low bough are in at C — two halves of "irregular, tapered, leaning, hierarchical"; the stem is still a straight-sided cylinder with no taper and the bough sits half under the item HUD |
+| W08 | **fail** (updated; note corrected 17:35) | the low bough is in at C (`d914268f`) — one half of "irregular, tapered, leaning, hierarchical"; the stem stands plumb as in take-0122, straight-sided, no taper, and the bough sits half under the item HUD. My 16:03 note credited a lean to fable-4's `ea86f8c1`, which is not in this take (never merged; reverted by fable-4 for a hidden placement re-roll) |
 | W36 | pass (re-checked) | the pebble re-roll seats its stones; nothing floats at E or D |
 | W03 | pass (re-checked) | slab thickness, bevel and green joints hold through the re-roll; slab detail matches the frame at both scales (§7.2) |
 

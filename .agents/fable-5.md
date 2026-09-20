@@ -34,6 +34,10 @@ lands: `ffmpeg` frames at his marked moments → `reference/frames-video2/`, has
 - `.agents/fable-5.md`, `.agents/reviews/fable-5-*.md`, my threads in `.agents/INBOX.md`.
 
 ## Completed work
+- 2026-09-20 17:20–17:40 UTC — iteration 19a: correction — fable-4's lean `ea86f8c1` re-rolled 18 outer-ring
+  placements my six-view pair could not see (reverted by fable-4); W08's take-0123 note re-filed (the
+  stem is plumb; the bough is the landed half), §B corrected with a method note (placement-sensitive
+  commits need the instance-transform check, not pixels).
 - 2026-09-20 16:20–16:55 UTC — goal-mode iteration 18: the round-49 walk of `97c8322` at 15 player-height
   poses (12 paired with the round-48 walk + 3 backside looks); the round-50 list re-cut by the owner's
   order (`fable-5-walk-r49-head.md`, five sheets). Sky overhead still 20.5 %.
