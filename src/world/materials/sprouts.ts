@@ -7,8 +7,8 @@
  * Joint sprouts (W21): small grass / weed tufts growing out of flagstone and stair joints, plus
  * the moss cushions and the seam grit that live in the same joints. Geometry blades (no alpha
  * cards), GPU instanced, animated with the shared wind model's `windGrass` so they ripple with
- * the rest of the vegetation. Variants are packed several to an InstancedMesh (see
- * `HARDSCAPE_PACKS`) so the whole set costs four draw calls.
+ * the rest of the vegetation. Variants can be packed several to an InstancedMesh (see
+ * `HARDSCAPE_PACKS`) so a set costs few draw calls.
  */
 import {
   BufferGeometry,
@@ -473,8 +473,15 @@ export const GRIT = 6;
  * overhead small: the 2 000+ seam pebbles (60 vertices) ride with the smallest tuft (90), the
  * moss cushions (150) with the clover (126). Four draws for the whole joint flora + grit — the
  * same count the four tuft/clover variants alone used before the cushions and grit existed.
+ *
+ * Round 49 (perf-3, W38): the two pairs are unpacked — one variant a draw, six draws. Packed, every
+ * pebble submitted the tuft's 30 collapsed triangles on top of its own 20 and every clover the
+ * cushion's 50: from camera A, after the submission cull above, the 2 252 tuft-C / grit and 912
+ * clover / cushion instances still in the frame carried ≈ 97 K collapsed triangles for two draws
+ * saved; the hero views sit at 576 of W38's 700 draws. The instances, their order within a
+ * variant and their jitter streams (per source × variant) are what they were.
  */
-export const HARDSCAPE_PACKS: number[][] = [[TUFT_B], [TUFT_A], [TUFT_C, GRIT], [CLOVER, CUSHION]];
+export const HARDSCAPE_PACKS: number[][] = [[TUFT_B], [TUFT_A], [TUFT_C], [GRIT], [CLOVER], [CUSHION]];
 /** the boulder cap plants: a few dozen instances, all variants in one draw */
 export const BOULDER_PACKS: number[][] = [[TUFT_A, TUFT_B, FERN]];
 
