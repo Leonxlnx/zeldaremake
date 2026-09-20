@@ -11,7 +11,8 @@
  * tread tops with their nosing overhangs, for the character's footprint planting (glbLink.ts).
  */
 import { Box3, BufferAttribute, BufferGeometry, Mesh, type Object3D } from 'three';
-import type { Layout } from '../layout';
+import { EXPANSION_STAIRS, type Layout } from '../layout';
+import type { SharedGeometry, WalkSurface } from '../system';
 import { archTunnel, surfaceMask, type Terrain } from '../terrain/heightfield';
 
 export interface Ground {
@@ -156,11 +157,54 @@ function buildSurfaceGrid(geometry: BufferGeometry, CELL: number): SurfaceGrid |
   return { x0, z0, nx, nz, cell: CELL, top, covered, triangles };
 }
 
-export function createGround(terrain: Terrain, layout: Layout): Ground {
-  const frames: StairFrame[] = layout.stairs.map((s) => {
+/**
+ * `shared` (round 49): the structures' published walk surfaces (`ctx.shared.walkSurfaces` — the
+ * west house's platform disc, walkway deck and wall ring) become walkable / blocking here.
+ */
+export function createGround(terrain: Terrain, layout: Layout, shared?: SharedGeometry): Ground {
+  // round 49: the expansion's flights (layout EXPANSION_STAIRS) climb like the layout's
+  const allStairs = [...layout.stairs, ...EXPANSION_STAIRS];
+  const frames: StairFrame[] = allStairs.map((s) => {
     const l = Math.hypot(s.dir[0], s.dir[1]);
     return { ox: s.base[0], oz: s.base[2], dx: s.dir[0] / l, dz: s.dir[1] / l, run: s.steps * s.tread, tread: s.tread, rise: s.rise, steps: s.steps, halfWidth: s.width / 2, baseY: s.base[1] };
   });
+  const walkSurfaces: WalkSurface[] = shared?.walkSurfaces ?? [];
+  /** the built surface (platform / deck top) under (x, z), or null off every walk surface */
+  const builtTop = (x: number, z: number): number | null => {
+    let best: number | null = null;
+    for (const w of walkSurfaces) {
+      const d = Math.hypot(x - w.disc.x, z - w.disc.z);
+      if (d <= w.disc.r) best = Math.max(best ?? -Infinity, w.disc.y);
+      const { a, b, hw } = w.deck;
+      const dx = b[0] - a[0];
+      const dz = b[2] - a[2];
+      const len2 = dx * dx + dz * dz;
+      if (len2 > 1e-9) {
+        const t = ((x - a[0]) * dx + (z - a[2]) * dz) / len2;
+        if (t >= -0.02 && t <= 1.02) {
+          const px = a[0] + dx * t;
+          const pz = a[2] + dz * t;
+          if (Math.hypot(x - px, z - pz) <= hw) best = Math.max(best ?? -Infinity, a[1] + (b[1] - a[1]) * Math.min(Math.max(t, 0), 1));
+        }
+      }
+    }
+    return best;
+  };
+  /** true inside a hut's wall ring (not in its doorway) */
+  const wallBlocked = (x: number, z: number): boolean => {
+    for (const w of walkSurfaces) {
+      const dx = x - w.disc.x;
+      const dz = z - w.disc.z;
+      const d = Math.hypot(dx, dz);
+      if (Math.abs(d - w.wall.r) > w.wall.half) continue;
+      const ang = Math.atan2(dz, dx);
+      const rel = Math.atan2(Math.sin(ang - w.wall.gap[0]), Math.cos(ang - w.wall.gap[0]));
+      const span = Math.atan2(Math.sin(w.wall.gap[1] - w.wall.gap[0]), Math.cos(w.wall.gap[1] - w.wall.gap[0]));
+      if (rel >= 0 && rel <= span) continue;
+      return true;
+    }
+    return false;
+  };
   const stairAt = (x: number, z: number): number | null => {
     for (const f of frames) {
       const rx = x - f.ox;
@@ -213,11 +257,15 @@ export function createGround(terrain: Terrain, layout: Layout): Ground {
   // Vector3) and the landform for the fields nobody here reads: 2.1–2.9 µs a call against 0.9–1.1 —
   // and the foot planting (glbLink.ts envelopes and scans) samples this ground several hundred
   // times a frame off the paving, where neither the stairs nor the slab grid answer first
-  const pathAt = (x: number, z: number) => surfaceMask(x, z).path;
+  // (round 49: the LIVE view — with the expansion's flights, discs and structure pads)
+  const pathAt = (x: number, z: number) => surfaceMask(x, z, 'live').path;
   const walk = (x: number, z: number): number => {
     const h = terrain.height(x, z);
     const s = stairAt(x, z);
     if (s !== null) return Math.max(h, s);
+    // round 49: a built surface (the west house's platform / deck) over the ground
+    const built = builtTop(x, z);
+    if (built !== null) return Math.max(h, built);
     // the foot stands on the slab under it (one cell of slack for the sole's footprint)
     const slab = slabTop(x, z, 0.05);
     if (slab !== null) return Math.max(h, slab);
@@ -243,9 +291,13 @@ export function createGround(terrain: Terrain, layout: Layout): Ground {
       return stairAt(x, z) !== null;
     },
     blocked(x, z) {
+      // round 49: the hut's wall ring blocks (its doorway is the gap); on its platform / deck the
+      // ground's structure pad (the bole under the floor) does not
+      if (wallBlocked(x, z)) return true;
+      if (builtTop(x, z) !== null) return false;
       // the log arch's structure band is walkable where the path runs under its raised belly
       // (heightfield `archTunnel`, round 47); its grounded walls and root masses stay blocked
-      return surfaceMask(x, z).structure > 0.5 && archTunnel(x, z) < 0.5;
+      return surfaceMask(x, z, 'live').structure > 0.5 && archTunnel(x, z) < 0.5;
     },
     attachSurface(scene) {
       if (grid) return true;
@@ -259,7 +311,7 @@ export function createGround(terrain: Terrain, layout: Layout): Ground {
       };
       // the stair stones (rendered tread tops with their nosing overhangs) at 1 cm, one grid per flight
       if (!stairGrids.length && hardscape) {
-        for (const s of layout.stairs) {
+        for (const s of allStairs) {
           const m = hardscape.getObjectByName(`stairs-${s.id}`) as Mesh | undefined;
           if (!worldSpace(m)) continue;
           const g = buildSurfaceGrid(m.geometry, STAIR_CELL);
@@ -271,7 +323,15 @@ export function createGround(terrain: Terrain, layout: Layout): Ground {
       // the north paving + lookout dais are a second mesh (hidden by distance for rendering);
       // the feet stand on both, so the grid reads their geometries together
       const north = hardscape?.getObjectByName('flagstones-north') as Mesh | undefined;
-      const merged = worldSpace(north) ? concatPositions(slabs.geometry, north.geometry) : null;
+      // round 49: the expansion's stepping discs are a third mesh (hidden by distance for rendering too)
+      const expansion = hardscape?.getObjectByName('flagstones-expansion') as Mesh | undefined;
+      let merged: BufferGeometry | null = null;
+      for (const extra of [north, expansion]) {
+        if (!worldSpace(extra)) continue;
+        const next = concatPositions(merged ?? slabs.geometry, extra.geometry);
+        merged?.dispose();
+        merged = next;
+      }
       grid = buildSurfaceGrid(merged ?? slabs.geometry, CELL);
       merged?.dispose();
       return grid !== null;

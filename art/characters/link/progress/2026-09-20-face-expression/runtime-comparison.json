@@ -1,0 +1,59 @@
+{
+  "complete": true,
+  "errors": [],
+  "render": {
+    "calls": 11,
+    "triangles": 140886
+  },
+  "all_gait_clearance_exact": true,
+  "image_differences": [
+    {
+      "view": "blink-0",
+      "max_channel_delta": 173,
+      "mean_channel_delta": 0.4146070460704607,
+      "pixels_changed": 17177
+    },
+    {
+      "view": "blink-0.25",
+      "max_channel_delta": 169,
+      "mean_channel_delta": 0.2823876467931346,
+      "pixels_changed": 15711
+    },
+    {
+      "view": "blink-0.5",
+      "max_channel_delta": 166,
+      "mean_channel_delta": 0.12936878952122854,
+      "pixels_changed": 2484
+    },
+    {
+      "view": "blink-0.75",
+      "max_channel_delta": 166,
+      "mean_channel_delta": 0.05952743902439025,
+      "pixels_changed": 1193
+    },
+    {
+      "view": "blink-1",
+      "max_channel_delta": 5,
+      "mean_channel_delta": 1.1291779584462512e-05,
+      "pixels_changed": 2
+    },
+    {
+      "view": "05-face",
+      "max_channel_delta": 173,
+      "mean_channel_delta": 0.4146070460704607,
+      "pixels_changed": 17177
+    },
+    {
+      "view": "04-back",
+      "max_channel_delta": 0,
+      "mean_channel_delta": 0.0,
+      "pixels_changed": 0
+    },
+    {
+      "view": "06-boots",
+      "max_channel_delta": 0,
+      "mean_channel_delta": 0.0,
+      "pixels_changed": 0
+    }
+  ]
+}

@@ -3,8 +3,8 @@ agent: fable-2
 runtime: Cursor Cloud Agent (Claude Fable 5.1)
 github: Cursor Agent <cursoragent@cursor.com>
 status: active
-branch: agent/fable-2-ledge
-updated: 2026-09-20T11:15:00Z
+branch: agent/fable-2-ledge (+ agent/fable-2-w23-loaf for the D composition change)
+updated: 2026-09-20T14:40:00Z
 ---
 
 # fable-2 — work log
@@ -49,6 +49,15 @@ as `agent/fable-2-<topic>`; `fable-cursor` merges. I do not touch `layout.ts`, t
   look lifted and warmed (`a683a4c1`) — **FAIL as a visible change at D**: the ferns hide the rock,
   the visible cap edge moved 0.238 → 0.246 and D −0.0002. Kept (harmless, toward the reference);
   the item is vegetation-26's exclusion disc first. §Iteration 8.
+- Iteration 14 — a 9–30 m detail band for the boulders (owner's "stones under-detailed"): **FAIL,
+  reverted** (`d4bfed58` → `f433b104`) — ≤ 0.02 % of pixels in the six views, Δ 0; the hero boulders are
+  hidden by vegetation at every 8–20 m pose I could find. §Iteration 14.
+- Iteration 13 — W24 regression (mine): the envelope left `systems.rocks.pebbles` at 1 822 < 2 000. Fixed
+  (`51fb6b35`): the audit counts every instanced pebble (main + north, breakdown kept) and the fringe
+  acceptance 0.42 puts the plaza-side set at 2 079. Six views within ±0.0006, +20 K tris. §Iteration 13.
+- Iteration 12 — W23 at D, the loaf 0.2 m prouder (fable-5's reviewer yes; fable-cursor's call): on its
+  own branch `agent/fable-2-w23-loaf` @ `e5867d7e`. D shows the boulder above the fronds now (IMPROVED,
+  dark; not closed), D −0.0007, the rest ≤ 0.0003. §Iteration 12.
 - Iteration 11 — take-0122's C −0.0022 (fable-5's bisect: my per-cell scatter): a path-proximity
   envelope on the scatter (`12dbc604`) — 935 far pebbles go, seats identical; SSIM neutral (A −0.0004,
   F +0.0005), ≈ −70 K tris per frame. C not recovered (the re-roll itself); reported. §Iteration 11.
@@ -87,6 +96,12 @@ Nothing outside `src/world/rocks/` except this log, the INBOX and my evidence un
 
 ## Completed work
 (newest first)
+- `51fb6b35` (`agent/fable-2-ledge`): W24 — audit `pebbles` = main + north (`pebblesMain`, `northPebbles`),
+  `PEBBLE_DEFAULTS` 0.42 / 0.43. Lesson logged: re-read the rubric's auto checks before a count-changing
+  scatter change.
+- `e5867d7e` (`agent/fable-2-w23-loaf`, off `e54a74ed`): the D boulder squash 0.72, sinkFrac 0 (the
+  others keep 0.74 / 0.15). Six views A −0.0001 B −0.0001 C 0 D −0.0007 E +0.0003 F 0; draws / tris
+  identical.
 - `12dbc604` (`agent/fable-2-ledge`): `PebbleScatterOptions.envelope` — acceptance × (1 − smoothstep(full,
   far, dist to the nearest path point)), index.ts passes `pathPtsAll` with 3.5 / 5.5 m; north cells ignore
   it. Test: the envelope removes only beyond-`far` pebbles and moves none inside `full`.
@@ -191,4 +206,4 @@ Nothing outside `src/world/rocks/` except this log, the INBOX and my evidence un
 - #4: `pathEdgePebble` per-candidate draws.
 
 ## Last updated
-2026-09-20T11:15:00Z
+2026-09-20T14:40:00Z

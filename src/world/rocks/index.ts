@@ -1067,7 +1067,13 @@ export async function create(ctx: WorldContext): Promise<WorldSystem> {
     rubble: rubble.length,
     strata: strata.length,
     scree: rubble.length + strata.length,
-    pebbles: pebbles.length,
+    /**
+     * every instanced small stone near path edges, stair feet and boulder bases (W24): the plaza-side
+     * set plus the north paving's set (`pebbles-north`, drawn within the north locality like every
+     * other north mesh). Breakdown below.
+     */
+    pebbles: pebbles.length + northPebbles.length,
+    pebblesMain: pebbles.length,
     /** the north paving's pebbles (pebbles-north, under the north-locality toggle) */
     northPebbles: northPebbles.length,
     instancedMeshes: rubbleMeshes.length + strataMeshes.length + pebbleMeshes.length,
