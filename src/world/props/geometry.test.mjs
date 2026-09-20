@@ -109,6 +109,21 @@ const ctx = { terrain: createTerrain(), layout: LAYOUT, config: WORLD, quality: 
   let slopes = 0;
   for (let i = 0; i < nd.length; i += 4) if (Math.abs(nd[i] - 128) > 12 || Math.abs(nd[i + 1] - 128) > 12) slopes++;
   assert.ok(slopes > nd.length / 4 / 20, 'clay normal map has relief');
+  // two-tone firing + slip drips: the colour map is no longer one tone (fable-5) — a real spread
+  // of luminance, and the darkest runs (drips) well below the body
+  {
+    const cd = a.color.image.data; const lum = [];
+    for (let i = 0; i < cd.length; i += 4 * 7) lum.push((0.2126 * cd[i] + 0.7152 * cd[i + 1] + 0.0722 * cd[i + 2]) / 255);
+    const mean = lum.reduce((x, y) => x + y, 0) / lum.length;
+    const sd = Math.sqrt(lum.reduce((x, y) => x + (y - mean) ** 2, 0) / lum.length);
+    lum.sort((x, y) => x - y);
+    assert.ok(sd > 0.05, `clay colour map has tonal spread (sd ${sd.toFixed(3)})`);
+    assert.ok(lum[Math.floor(lum.length * 0.01)] < mean - 0.12, `slip drips run dark (p1 ${lum[Math.floor(lum.length * 0.01)].toFixed(2)} vs mean ${mean.toFixed(2)})`);
+    // the two tones lean different ways: paler patches warmer (r/b up), darker patches browner
+    let warm = 0, n = 0;
+    for (let i = 0; i < cd.length; i += 4 * 13) { const l = (0.2126 * cd[i] + 0.7152 * cd[i + 1] + 0.0722 * cd[i + 2]) / 255; if (l > mean + 0.04) { warm += cd[i] / Math.max(1, cd[i + 2]); n++; } }
+    assert.ok(n > 50 && warm / n > 1.03, `the paler firing patches lean warm (r/b ${(warm / n).toFixed(3)})`);
+  }
   [a, b, r].forEach((m) => { m.color.dispose(); m.normal.dispose(); });
 }
 
