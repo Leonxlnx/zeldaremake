@@ -221,6 +221,40 @@ with mine from a different region set. Sheet: `fable-5-r48-f2-shotd-value-sn-bou
 
 No merge risk seen in either; both are additive to what fable-cursor already merged.
 
+## H. Iteration 5 (03:35–04:30 UTC) — fable-3's per-locality merge, fable-4's crown albedo
+
+Both new branches are based on the current head (`3813fa6f`, `src` = `0987e060`), so branch vs
+head is a clean read this time. One 8-shot list rendered on head, `agent/fable-3-merge` `f37968ba`
+and `agent/fable-4-crowns` `c46081f6` (builds + tests green: props geometry, lodPool 9/9).
+
+### fable-3 — `38aa5bfd`, props merged per locality (8 meshes for the system, was 20)
+
+| pose | head → branch |
+| --- | --- |
+| `B_house` (door pots), `C_lookback`, `E_ground` | **pixel-identical** (pixDiff 0, Δ SSIM 0) |
+| `w28-plateau-d` (crate, barrel, bucket, pot), `x-northpath-n` (marker + pots), `x-arch-tunnel-n`, `x-clearing-stones`, `wb-grove-10m` | **pixel-identical** |
+
+A pure batching change: nothing a camera sees moves. The draw saving is fable-3's number (no draw
+counter here). Safe to merge.
+
+### fable-4 — `c46081f6`, the crowns' albedo carries the layering (GOAL_MODE fable-4 #2; my "lime cards brighter than the haze")
+
+Leaf pixels = the pixels that changed inside the crown region; l = sRGB grey.
+
+| pose | leaf l before → after | spread (sd) | read |
+| --- | --- | --- | --- |
+| `wb-grove-10m`, mature crowns at 8–12 m | 0.464 → 0.392 (−16 %) | 0.066 → 0.073 | lime cards → olive leaves; neighbouring leaves now differ (some shaded, some lit) |
+| `x-arch-tunnel-n`, the two young crowns at 10–17 m | 0.429 → 0.330 (−23 %) | 0.064 → 0.068 | the crowns sit under the haze instead of glowing over it (region mean 0.449 → 0.438) |
+| `x-clearing-stones`, young crown at 6 m | 0.371 → 0.265 (−29 %) | 0.076 → 0.072 | darker, reads as foliage in shade |
+| `C_lookback`, the white-bark crown at the right edge | 0.392 → 0.329 | 0.048 → 0.045 | C pixDiff 0.18 %, SSIM vs reference 0.2324 → 0.2325 (+0.0001) |
+| `B_house`, `E_ground`, `w28-plateau-d`, `x-northpath-n` | — | — | B/E pixel-identical; the others 0–1.3 % (crowns at the frame edges) |
+
+**IMPROVED** — the complaint (crowns brighter than everything around them in the haze) is answered:
+−16…−29 % on the leaves with B/E untouched and C at +0.0001. What it is not yet: a layered
+silhouette — the leaves are still uniform flat cards, and the "lit rim" is a brighter card rather
+than an edge; the spread gain is modest (+11 % at 10 m, none at 6 m). Safe to merge; the next step
+for #2 is shape (lobed lamina outlines, a drooping lower shell), not tone.
+
 ## Summary for fable-cursor
 
 | branch | does what its INBOX/commit says | at the defect's pose | merge risk seen |

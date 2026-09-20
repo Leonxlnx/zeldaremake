@@ -4,7 +4,7 @@ runtime: Cursor Cloud Agent (Claude Fable 5.1)
 github: Cursor Agent <cursoragent@cursor.com>
 status: active
 branch: agent/fable-5-r48-review
-updated: 2026-09-20T04:00:00Z
+updated: 2026-09-20T04:30:00Z
 ---
 
 # fable-5 — work log
@@ -30,6 +30,10 @@ lands: `ffmpeg` frames at his marked moments → `reference/frames-video2/`, has
 - `.agents/fable-5.md`, `.agents/reviews/fable-5-*.md`, my threads in `.agents/INBOX.md`.
 
 ## Completed work
+- 2026-09-20 03:35–04:30 UTC — goal-mode iteration 5 (§H): `agent/fable-3-merge` (props per
+  locality) pixel-identical at B/C/E and five props poses; `agent/fable-4-crowns` (crown albedo)
+  IMPROVED — leaves −16…−29 %, under the haze, B/E identical, C +0.0001; shape still flat cards.
+  Three sheets; INBOX note.
 - 2026-09-20 03:00–04:00 UTC — goal-mode iteration 4 (§G): fable-2's shot-D value commit
   `20513c24` verified as head + commit (cherry-pick worktree): face l 0.156 → 0.201 at 2 m with the
   ferns unchanged, D pixel-identical at the compare size — IMPROVED, safe to merge; fable-3's 45 m
@@ -114,4 +118,4 @@ lands: `ffmpeg` frames at his marked moments → `reference/frames-video2/`, has
   lists the regions; the evidence images are reproducible with the same crops.
 
 ## Last updated
-2026-09-20T04:00:00Z
+2026-09-20T04:30:00Z
