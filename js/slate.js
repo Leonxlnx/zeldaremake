@@ -18,6 +18,7 @@ export function renderSlate(data) {
   const roll = slate.roll || (take?.phase ? `phase-${take.phase}` : 'phase-1');
   const sha = take?.shortSha || (take?.sha ? take.sha.slice(0, 7) : null);
 
+  renderPlayLink(data, take);
   root.innerHTML = `
     <div class="sf big"><span class="k">Scene</span><span class="v">${esc(scene)}<small>${esc(sceneTitle)}</small></span></div>
     <div class="sf big"><span class="k">Take</span><span class="v">${esc(String(takeNo).padStart(2, '0'))}${take && !take.valid ? '<small style="color:var(--red-t)">struck</small>' : ''}</span></div>
@@ -28,6 +29,27 @@ export function renderSlate(data) {
     <div class="sf"><span class="k">Commit</span><span class="v">${
       sha ? `<a href="${REPO}/commit/${esc(take.sha || sha)}" target="_blank" rel="noopener" title="${esc(take.subject || '')}">${esc(sha)} ↗</a>` : '<span class="dash">—</span>'
     }</span></div>`;
+}
+
+/**
+ * The "Walk the world" link is pinned to the build under play/ (takes.json `play`, written by
+ * monitor.mjs when the captured dist is published): its SHA is shown, and when the take on screen
+ * is not the one the build came from the link says so instead of implying it is.
+ */
+function renderPlayLink(data, take) {
+  const link = $('#play-link');
+  if (!link) return;
+  const play = data.play;
+  if (!play) {
+    link.innerHTML = '▶ Walk the world';
+    link.title = 'Walk the latest published build: WASD + mouse, keys 1–6 jump to the reference viewpoints';
+    link.classList.remove('is-other');
+    return;
+  }
+  const same = !take || !take.sha || take.sha === play.sha;
+  link.innerHTML = `▶ Walk the world <small class="mono">${esc(play.shortSha)}</small>`;
+  link.title = `${same ? 'This take\'s build' : `The build of ${play.takeId || play.shortSha} (the latest published), not of ${take.id}`}${play.at ? ` · published ${fmtDateTime(play.at)}` : ''} · WASD + mouse, keys 1–6 jump to the reference viewpoints`;
+  link.classList.toggle('is-other', !same);
 }
 
 function shortCam(s) {

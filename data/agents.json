@@ -5,9 +5,9 @@
       "runtime": "Codex desktop / Astra on the owner's Windows PC",
       "github": "Leonxlnx",
       "status": "active",
-      "branch": "agent/astra-local-daylight",
-      "updated": "2026-09-16T14:28:36.6836394Z",
-      "currentTask": "Owner video analysis and lighting/shadow refinement, followed by Blender Link. Fable continues trees/grass/structures. Direct work; scheduled automation stays paused.",
+      "branch": "agent/astra-local-shafts-sept19",
+      "updated": "2026-09-19T18:54:45Z",
+      "currentTask": "Far-lantern halo fix is merged in fee69456. Shaft-facing fade ec293899 is in PR18: valid native take118,93 integrity checks green, zero regressions/determinism difference, seven-view and45pose camera evidence. Independent review/CI pending. Native Blender character evidence0e834cde is on PR10; default24591126 unchanged. Fable owns trees/grass/structures and runtime character-9; owner-fable owns the new canopy roof in PR17. Direct work; scheduled automation stays paused.",
       "file": ".agents/astra-local.md"
     },
     {
@@ -21,6 +21,36 @@
       "file": ".agents/codex.md"
     },
     {
+      "agent": "fable-2",
+      "runtime": "Cursor Cloud Agent (Claude Fable 5.1)",
+      "github": "Cursor Agent <cursoragent@cursor.com>",
+      "status": "active",
+      "branch": "agent/fable-2-rocks",
+      "updated": "2026-09-19T12:45:00Z",
+      "currentTask": "Rocks pass from survey-2 and the owner's 2026-09-19 references (rubric W23 / W24, W37 held) —",
+      "file": ".agents/fable-2.md"
+    },
+    {
+      "agent": "fable-3",
+      "runtime": "Cursor Cloud Agent (Claude Fable 5.1)",
+      "github": "Cursor Agent <cursoragent@cursor.com>",
+      "status": "active",
+      "branch": "agent/fable-3-props",
+      "updated": "2026-09-19T12:45:00Z",
+      "currentTask": "First pass verified and reported (INBOX 12:45, PR #13): six views within budget (worst C",
+      "file": ".agents/fable-3.md"
+    },
+    {
+      "agent": "fable-4",
+      "runtime": "Cursor Cloud Agent (Claude Fable 5.1)",
+      "github": "Cursor Agent <cursoragent@cursor.com>",
+      "status": "active",
+      "branch": "agent/fable-4-whitebark",
+      "updated": "2026-09-19T11:40:00Z",
+      "currentTask": "Delivered (PR #15, `80fab20`) and waiting for fable-cursor's merge / review: survey-2 #31",
+      "file": ".agents/fable-4.md"
+    },
+    {
       "agent": "fable-5",
       "runtime": "Cursor Cloud Agent (Claude Fable 5.1)",
       "github": "Cursor Agent <cursoragent@cursor.com>",
@@ -31,6 +61,16 @@
       "file": ".agents/fable-5.md"
     },
     {
+      "agent": "fable-6",
+      "runtime": "Claude Code (Claude Fable 5.1) on the owner's Windows laptop (Radeon 780M)",
+      "github": "Leonxlnx",
+      "status": "active",
+      "branch": "agent/fable-6-monitor-perf",
+      "updated": "2026-09-19T19:30:00Z",
+      "currentTask": "Both halves delivered: PR #19 (draft → world branch) carries the Director's Monitor as a",
+      "file": ".agents/fable-6.md"
+    },
+    {
       "agent": "fable-cursor",
       "runtime": "Cursor Cloud Agent (Claude Fable 5.1, 1M context) + parallel sub-agents",
       "github": "Cursor Agent <cursoragent@cursor.com>",
@@ -39,6 +79,26 @@
       "updated": "2026-09-14T15:20:00Z",
       "currentTask": "Round thirty-two of the frame-matching loop (environment only, per the owner): frame D one-to-one",
       "file": ".agents/fable-cursor.md"
+    },
+    {
+      "agent": "opus-review",
+      "runtime": "Claude Code (Claude Opus 5) on the owner's Windows PC",
+      "github": "Leonxlnx",
+      "status": "active",
+      "branch": "agent/opus-review",
+      "updated": "2026-09-19T20:50:00Z",
+      "currentTask": "Two jobs. **A —** strict pass/fail verdicts with evidence on the latest sealed take on the",
+      "file": ".agents/opus-review.md"
+    },
+    {
+      "agent": "owner-fable",
+      "runtime": "Claude Code (Claude Fable 5.1) on the owner's Windows laptop (native D3D11 GPU: Radeon 780M)",
+      "github": "Leonxlnx",
+      "status": "active",
+      "branch": "agent/owner-fable-canopy-distance",
+      "updated": "2026-09-19T20:20:00Z",
+      "currentTask": "**Canopy roof** (owner priority: overhead canopy + detail at longer distances; rubric W10/W11",
+      "file": ".agents/owner-fable.md"
     }
   ]
 }
