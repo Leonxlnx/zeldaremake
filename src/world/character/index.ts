@@ -25,7 +25,7 @@ import { createKokiri } from './kokiri';
 import { createNpcs } from './npc';
 import { createLink } from './link';
 import { createNavi, TRAIL_COUNT } from './navi';
-import { headingOf, marchToGround, matchViewpoint, pointAtDepth, projectPoint, VIEW_TABLE, type CamPose, type V3 } from './placement';
+import { headingOf, marchToGround, matchViewpoint, NPC_SOUTH_BANK, pointAtDepth, projectPoint, VIEW_TABLE, type CamPose, type V3 } from './placement';
 import { PLAYER_KEY, type PlayerHandle, type PlayerInput } from './player';
 import { createContactShadow } from './shadow';
 import { consolidateRigParts } from './consolidate';
@@ -63,8 +63,8 @@ interface Actor extends GaitChain {
   shadowRadius: number;
 }
 
-/** kokiri-a (wander), kokiri-b (seat), the boy at Saria's door, kokiri-ledge (round 48: the stand on the raised ledge) */
-const KID_COUNT = 4;
+/** kokiri-a (wander), kokiri-b (seat), the boy at Saria's door, kokiri-ledge (round 48: the stand on the raised ledge), kokiri-south-bank (round 50: the stand on the south bank) */
+const KID_COUNT = 5;
 
 type LinkSource = 'glb' | 'procedural';
 
@@ -109,13 +109,14 @@ export async function create(ctx: WorldContext): Promise<WorldSystem> {
   const link: Actor = { ...hardChain('idle'), puppet: linkLoad.puppet, pos: new Vector3(spawn[0], 0, spawn[2]), yaw: Math.PI, phase: 0, idleTurn: 0, look: 0.5, contact: new Vector3(), shadow: createContactShadow(0.36, 0.6), shadowRadius: 0.36 };
   group.add(link.puppet.group, link.shadow);
 
-  // kid default spots: kokiri-a (stair-foot verge), kokiri-b (plaza west), kokiri-c beside the house door, kokiri-ledge on the raised ledge
+  // kid default spots: kokiri-a (stair-foot verge), kokiri-b (plaza west), kokiri-c beside the house door, kokiri-ledge on the raised ledge,
+  // kokiri-south-bank on the south bank's terrace (round 50; placement.ts NPC_SOUTH_BANK — not a layout npcSpot, see layout.ts EXPANSION)
   const house = ctx.layout.houses[0];
   const fl = Math.hypot(house.facing[0], house.facing[1]);
   const fx = house.facing[0] / fl;
   const fz = house.facing[1] / fl;
   const doorKid: V3 = [house.position[0] + fx * (house.trunkRadius + 1.0) + fz * 1.3, 0, house.position[2] + fz * (house.trunkRadius + 1.0) - fx * 1.3];
-  const kidSpots: V3[] = [spot('kokiri-a'), spot('kokiri-b'), doorKid, spot('kokiri-ledge')];
+  const kidSpots: V3[] = [spot('kokiri-a'), spot('kokiri-b'), doorKid, spot('kokiri-ledge'), [NPC_SOUTH_BANK.x, 0, NPC_SOUTH_BANK.z]];
   const kids: Actor[] = [];
   const kidChars: ReturnType<typeof createKokiri>[] = [];
   for (let i = 0; i < KID_COUNT; i++) {
@@ -126,9 +127,10 @@ export async function create(ctx: WorldContext): Promise<WorldSystem> {
     group.add(puppet.group, shadow);
     kids.push({ ...hardChain('idle'), puppet, pos: new Vector3(kidSpots[i][0], 0, kidSpots[i][2]), yaw: 0, phase: 1.3 + i * 2.1, idleTurn: 0.28, look: 0, contact: new Vector3(), shadow, shadowRadius: 0.32 });
   }
-  // NPC behaviour (npc.ts): in free / play mode kokiri-a wanders the plaza loop, kokiri-b sits on the stairs and kokiri-ledge
-  // idles on the raised ledge, each with a fairy; under capture (view mode) the per-view placement above stands for the
-  // first two (only their fairies are added) and the ledge girl is posed but hidden (round 48)
+  // NPC behaviour (npc.ts): in free / play mode kokiri-a wanders the plaza loop, kokiri-b sits on the stairs, kokiri-ledge
+  // idles on the raised ledge and kokiri-south-bank idles on the bank's terrace, each with a fairy; under capture (view mode)
+  // the per-view placement above stands for the first two (only their fairies are added), the ledge girl is posed but
+  // hidden (round 48) and the bank girl stays shown (round 50: outside every fixed frustum)
   const npcs = createNpcs({ chars: kidChars, ground, layout: ctx.layout, seed: `${ctx.config.seed}/npc` });
   group.add(npcs.group);
 
