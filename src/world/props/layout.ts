@@ -122,6 +122,27 @@ export const PROP_LAYOUT: readonly PropDef[] = [
   // ---- the west platform under the lantern tree (round 31): tall deck with its ladder, kept
   { id: 'west-tree-platform', kind: 'platform', x: -8.7, z: -10.0, size: 1, yaw: 0, cluster: 'west', platform: { deck: 1.28, width: 1.8, depth: 1.4, rail: true, ladder: true } },
 
+  // ---- the plaza's backside (round 49, expansion-2): the west tree-house's landing. The
+  // `west-house` flight (EXPANSION_STAIRS: base (−15.39, 7.64), 3 risers NNW, 1.0 m wide) tops out
+  // on the ledge's 2.75 m shoulder at the walkway deck's end (−16.28, 6.46); the deck runs WNW to
+  // the house on the southwest giant. The shoulder SOUTH of the landing is natural, near-level
+  // ground (2.6–2.9 m, tilt 10–15°; the flight's own bank is 21–37°), identical in the live and
+  // legacy heightfield views (props build against the legacy one; only the south bank and the far
+  // hut's knoll are live-only). Stores where the walker steps off the deck: a crate, a bucket and
+  // a pot pair, all ≥ 0.9 m off the landing slabs and clear of the deck's line. Every fixed
+  // camera looks north-east to north (C looks SSE with its west edge at x ≈ −6.4 here, 9 m east
+  // of the group; `cClip` margin included); pinhole: outside all six, and sun shadows (1.27 m ESE
+  // per m of height) reach x ≈ −15.3 at most.
+  { id: 'west-landing-crate', kind: 'crate', x: -15.9, z: 5.2, size: 0.6, yaw: -0.5, cluster: 'west-house' },
+  { id: 'west-landing-bucket', kind: 'bucket', x: -16.55, z: 5.25, size: 0.54, yaw: 0.9, cluster: 'west-house' },
+  { id: 'west-landing-pot', kind: 'pot', x: -17.15, z: 5.55, size: 0.62, yaw: 1.7, cluster: 'west-house', variant: 0 },
+  { id: 'west-landing-pot-squat', kind: 'pot', x: -16.8, z: 4.9, size: 0.44, yaw: -2.2, cluster: 'west-house', variant: 2 },
+  // a waymarker on the outer (north) side of the west path's fork at (−8.6, 9.4), where the south
+  // branch leaves for the bank: 0.9 m off both disc lines, 1.0 m west of `cClip`'s margin
+  // (x < −8.18 at z 8.6), on the ledge face's slope (tilt 32°: the post stands vertical, its foot
+  // conformed). The long board points along the west line to the house, the short one back.
+  { id: 'west-fork-marker', kind: 'marker', x: -9.2, z: 8.6, size: 1.65, yaw: -0.63, cluster: 'west-house' },
+
   // ---- the north clearing's entrance (GOAL_MODE fable-3 #2): where the north path's band (half
   // width 2.2, from the arch at (5.8, −58) south-west) meets the paved disc at (−1.5, −69.8) r 4.6.
   // The mask's skirt is wide, so the two flank corners are (0.4, −64.4) — the walker's LEFT

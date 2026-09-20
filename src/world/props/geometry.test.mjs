@@ -56,7 +56,8 @@ const textures = {
   report: () => ({}),
 };
 const audits = [];
-const ctx = { terrain: createTerrain(), layout: LAYOUT, config: WORLD, quality: { shadows: true }, textures, shared: {}, audit: (_, fn) => audits.push(fn) };
+// props build against the heightfield's LEGACY view in src/world/index.ts (round 49): the test does the same
+const ctx = { terrain: createTerrain('legacy'), layout: LAYOUT, config: WORLD, quality: { shadows: true }, textures, shared: {}, audit: (_, fn) => audits.push(fn) };
 
 // ---- builders
 {
@@ -129,7 +130,7 @@ const ctx = { terrain: createTerrain(), layout: LAYOUT, config: WORLD, quality: 
 
 // ---- the system
 const one = await create(ctx);
-const two = await create({ ...ctx, terrain: createTerrain() });
+const two = await create({ ...ctx, terrain: createTerrain('legacy') });
 const audit = audits[0]();
 assert.deepEqual(audit.skipped, [], `every authored prop finds a legal spot (skipped: ${audit.skipped})`);
 assert.ok(textureLoads.includes('weathered_planks/color') && textureLoads.includes('weathered_planks/normal'), 'wood loads the plank maps');
@@ -293,6 +294,27 @@ for (const id of ['door-pot-large', 'sign-pot', 'saria-crate', 'saria-water-buck
   camC.position.fromArray(vc.position); camC.lookAt(new Vector3().fromArray(vc.target)); camC.updateMatrixWorld(true);
   for (const [px, pz] of left) { const c = new Vector3(px, ctx.terrain.height(px, pz) + 0.3, pz).project(camC); assert.ok(!(Math.abs(c.x) < 1 && Math.abs(c.y) < 1 && c.z > -1 && c.z < 1), `string peg (${px}, ${pz}) outside C`); }
   assert.equal(audit.skipped.length, 0);
+}
+
+// the backside (expansion-2): the west landing's stores and the fork marker stand behind every
+// fixed camera and west of camera C's clipped edge, on ground the live and legacy views share
+{
+  const west = audit.placed.filter((p) => p.cluster === 'west-house');
+  assert.equal(west.length, 5, 'crate, bucket, two pots and the fork marker');
+  const cams = LAYOUT.viewpoints.map((v) => { const cam = new THREE.PerspectiveCamera(v.fov, 1280 / 720, 0.1, 1000); cam.position.fromArray(v.position); cam.lookAt(new Vector3().fromArray(v.target)); cam.updateMatrixWorld(true); return { id: v.id, cam }; });
+  for (const p of west) {
+    for (const h of [0, 1.8]) for (const { id, cam } of cams) {
+      const c = new Vector3(p.x, p.y + h, p.z).project(cam);
+      assert.ok(!(Math.abs(c.x) < 1 && Math.abs(c.y) < 1 && c.z > -1 && c.z < 1), `${p.id} outside ${id}`);
+    }
+    // EXPANSION.cClip: x = 2.33 − 0.5663 (z + 7.67), margin 1.3 m west of it
+    assert.ok(p.x < 2.33 - 0.5663 * (p.z + 7.67) - 1.3, `${p.id} west of camera C's clipped edge`);
+    // authored spot kept (no nudge): the shoulder is natural ground in both views
+    const def = PROP_LAYOUT.find((d) => d.id === p.id);
+    assert.ok(Math.abs(def.x - p.x) < 1e-9 && Math.abs(def.z - p.z) < 1e-9, `${p.id} placed where authored`);
+    const live = createTerrain('live');
+    assert.ok(Math.abs(live.height(p.x, p.z) - ctx.terrain.height(p.x, p.z)) < 0.02, `${p.id}: live and legacy ground agree (${live.height(p.x, p.z).toFixed(3)} vs ${ctx.terrain.height(p.x, p.z).toFixed(3)})`);
+  }
 }
 
 // the footprints hook: every placed prop publishes its ground disc for the vegetation scatter
