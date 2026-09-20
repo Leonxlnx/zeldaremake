@@ -650,7 +650,7 @@ export const EXPANSION = {
    * (slope 0.3 in the mask's units — the splat keeps it grass). The white-bark at (−16.3, 13.0)
    * stands 0.4 m beyond the face's toe (its ground is unchanged); the ones at (−19.9, 13.5) /
    * (−21.1, 21.2) are clear of the skirts. 23 m from camera C at bearings −33° … −42°: outside
-   * its frame, and `cClip` zeroes the landform 0.9 m west of C's edge regardless.
+   * its frame, and `cClip` zeroes the landform 1.3 m west of C's edge regardless.
    *
    * The lip's SE end is set by the TERRAIN'S OWN SHADOW, not by `cClip`: the detail ring casts,
    * and a 1.7 m top edge throws 2.15 m ESE (sun azimuth −128°, elevation 38°: 1.27 m per m of
@@ -669,10 +669,15 @@ export const EXPANSION = {
    * Camera C's right (west) frustum edge on the ground: the ray from C (2.33, −7.67) at bearing
    * −29.52° (heading 7.51° − half-width 37.03°) — x = 2.33 − 0.5663 · (z + 7.67). Every live-only
    * terrain feature of the expansion is zero within `margin` m of it and full `fade` m further
-   * west. 0.9 m: the 0.2 m lattice's triangles reach one cell past a moved vertex and the smooth
-   * normals one more, so real moves (> 1 cm) start ≈ 1.1 m west of the ray, its own accuracy ± 0.1.
+   * west. 1.3 m: the chunk builder's wet-band curvature channel (terrain/chunks.ts NEAR_GROUND
+   * CURV_STEP) reads the rendered height 0.6 m either side of a vertex (+ 0.2 m of lattice
+   * interpolation), the 0.2 m lattice's triangles reach one cell past a moved vertex and the
+   * smooth normals one more — 1.2 m — and the ray's own accuracy is ± 0.04 m (its ground line
+   * unprojected from C's right pixel column). At 0.9 m the six frames were identical but for
+   * 14 pixels at ≤ 2 LSB in C's last eight columns, rows 344–367: vertices 0.3–0.9 m west of the
+   * edge whose curvature read the faded disc / flight terrain 1.1 m out.
    */
-  cClip: { x0: 2.33, z0: -7.67, dxdz: -0.5663, margin: 0.9, fade: 0.9 },
+  cClip: { x0: 2.33, z0: -7.67, dxdz: -0.5663, margin: 1.3, fade: 0.9 },
 
   /**
    * The second tree-house: a `distantHouse` at near scale wrapping the `southwest-giant`'s bole
@@ -743,8 +748,8 @@ function bankP3(u: number, v: number, y: number): [number, number, number] {
  *    climbing SW; base at the face's toe (v 2.35; the live ground there is 0.42 m — the plain's
  *    0.25 m plus the flight's detail-suppression halo and the face's last centimetres — so the
  *    first riser shows 0.23 m); top (1.95 m) 7 cm in front of the lip, two landing rows onto the
- *    terrace. 1.6 m wide. Its east cheek bank ends 0.8 m west of camera C's edge (`cClip`
- *    zeroes anything nearer).
+ *    terrace. 1.6 m wide. Its foot is 3.9 m west of camera C's edge, its east cheek bank ends
+ *    ≈ 2.9 m west of it (`cClip` fades anything within 2.2 m and zeroes anything within 1.3 m).
  *  - `west-house`: 3 × 0.25 m from the west path's end (natural ground 2.14 m) up the ledge's
  *    south shoulder (2.1 → 2.75 m over 2 m), climbing NNW; one landing row (2.87 m) that the
  *    walkway deck's end rests on (`westHouse.deckEnd`, 0.4 m onto it, 8 cm over the slabs).
