@@ -9,11 +9,11 @@
  * drooping tip) and broad sedge blades (blunt). Height, width, yaw, tilt, tint, dryness,
  * wind phase and stiffness are all per instance.
  */
-import { BufferGeometry, Float32BufferAttribute, Group, InstancedBufferAttribute, InstancedMesh, Sphere, Uint16BufferAttribute, Vector3, type Material } from 'three';
+import { BufferGeometry, DynamicDrawUsage, Float32BufferAttribute, Frustum, Group, InstancedBufferAttribute, InstancedMesh, Matrix4, Sphere, Uint16BufferAttribute, Vector3, type Camera, type Material } from 'three';
 import type { WorldContext } from '../system';
 import { smoothstep, clamp } from '../util/noise';
 import type { Rng } from '../util/prng';
-import { A_FACE_HEIGHT, VegField, composeMatrix, newSample } from './field';
+import { A_FACE_HEIGHT, BANK_FLOOR_SHARE, VegField, composeMatrix, newSample } from './field';
 import { BLADE_MIN, COVERAGE_CELL } from './coverage';
 import { perfFlags, perfRuntime } from '../../perfFlags';
 
@@ -28,7 +28,33 @@ export interface GrassTile {
   count: number;
   lods: BufferGeometry[];
   lod: number;
+  /** submission culling (round 49): the tile's blades grouped in CULL_CELL_M ground cells, see `cullTiles` */
+  cells: { sphere: Sphere; blades: number }[];
+  /** cell index of every blade, in stream order */
+  cellOf: Uint8Array;
+  /** cell bitmask submitted by the last cull (all cells until a cull trims the tile) */
+  keptMask: number;
+  /** the pristine instance streams, copied the first time the tile is trimmed */
+  src: { matrices: Float32Array; data: Float32Array } | null;
 }
+
+/**
+ * Submission culling of the blade tiles (round 49, perf-3; lodset.ts's pattern at cell grain). A
+ * tile is one InstancedMesh three culls whole by its sphere, so the tile the camera stands in, the
+ * tiles beside it and the ones at the frustum's edges submitted every blade — 174 K of camera A's
+ * 9.11 M triangles were blades behind or beside the camera. Each tile's blades are grouped at build
+ * into CULL_CELL_M ground cells, each with the sphere holding every member blade (root box, its
+ * height range, the tallest blade's reach in every direction for the rim lean, GRASS_CULL_PAD_M for
+ * the wind); per cull the visible tiles that are not wholly inside the frustum test their cells
+ * (conservative plane separation) and, when the kept set changed, rewrite the instance streams
+ * with the kept cells' blades in their original order and draw that many. Blades of a cell outside
+ * every plane can reach no pixel, so the frame is identical to the untrimmed one; what changes is
+ * the triangle count. Off while the drawn share of a tile is below 1 (`?veg=…,<density>` / the
+ * governor), whose prefix thinning wants the whole shuffled stream.
+ */
+const CULL_CELL_M = 2;
+/** blades bend ≤ 0.35 × the wind strength (wind.ts windGrass); the vegetation's CULL_PAD_M, the rest slack */
+const GRASS_CULL_PAD_M = 1.5;
 
 export interface GrassResult {
   tiles: GrassTile[];
@@ -42,6 +68,15 @@ export interface GrassResult {
   /** upper-bound estimate (no frustum culling) of what the last update() left drawable */
   visible: { drawCalls: number; triangles: number; lodCounts: number[] };
   update(camPos: Vector3): void;
+  /** trim the visible tiles' streams to the cells that can reach the frame (see CULL_CELL_M); skipped while the view-projection is unchanged unless `force` */
+  cull(camera: Camera, force?: boolean): void;
+  /**
+   * After the last cull: blades submitted by the visible tiles, visible tiles trimmed, stream
+   * rewrites so far, and `trimmed` — blades missing from the scene graph's tile counts over ALL
+   * tiles (a hidden tile keeps its last trim): the audit's graph-backed `grassInstances` is the
+   * built count less this.
+   */
+  culled: { blades: number; trimmedTiles: number; rewrites: number; trimmed: number };
 }
 
 /**
@@ -442,7 +477,10 @@ export async function buildGrass(ctx: WorldContext, field: VegField, material: M
       // frame 46 s' trodden foreground before camera C (round 35): short dusty turf
       const foot = field.cFoot(x, z);
       // the north corridor's forest floor (round 44): sparse, short, deep-tinted turf
-      const nfloor = field.northFloor(x, z);
+      // round 48: the second clearing's banks and the ledge terrace's pad are lawn again (field.ts
+      // clearingLawn) — the pad in full, the banks keeping BANK_FLOOR_SHARE of the floor's cut
+      const lawn = field.clearingLawn(x, z);
+      const nfloor = field.northFloor(x, z) * (1 - Math.max(lawn.pad, lawn.bank * (1 - BANK_FLOOR_SHARE)));
       // the reference's slopes are not thicker than its flats; the boost stays for banks outside
       // the low verges so the embankments still read dense
       const slopeBoost = 1 + 0.6 * smoothstep(0.15, 0.5, s.slope) * (1 - s.cliff) * (1 - low);
@@ -725,7 +763,33 @@ export async function buildGrass(ctx: WorldContext, field: VegField, material: M
     const yc = ySum / count;
     mesh.boundingSphere = new Sphere(new Vector3(mx, yc + maxH * 0.5, mz), Math.hypot(TILE * 0.71, (yMax - yMin) * 0.5 + maxH) + 0.35);
     parent.add(mesh);
-    tiles.push({ mesh, cx, cz, count, lods, lod: 2 });
+    // the cull cells (CULL_CELL_M): every blade's cell from its root, each cell's sphere from its
+    // members' root box and height range plus the tile's tallest blade in every direction
+    const perSide = Math.ceil(TILE / CULL_CELL_M);
+    const cellOf = new Uint8Array(count);
+    const box = Array.from({ length: perSide * perSide }, () => ({ n: 0, x0: Infinity, x1: -Infinity, y0: Infinity, y1: -Infinity, z0: Infinity, z1: -Infinity }));
+    for (let i = 0; i < count; i++) {
+      const bx = matrices[i * 16 + 12];
+      const by = matrices[i * 16 + 13];
+      const bz = matrices[i * 16 + 14];
+      const ci = Math.min(perSide - 1, Math.max(0, Math.floor((bx - x0) / CULL_CELL_M)));
+      const cj = Math.min(perSide - 1, Math.max(0, Math.floor((bz - z0) / CULL_CELL_M)));
+      const c = ci + cj * perSide;
+      cellOf[i] = c;
+      const b = box[c];
+      b.n++;
+      b.x0 = Math.min(b.x0, bx);
+      b.x1 = Math.max(b.x1, bx);
+      b.y0 = Math.min(b.y0, by);
+      b.y1 = Math.max(b.y1, by);
+      b.z0 = Math.min(b.z0, bz);
+      b.z1 = Math.max(b.z1, bz);
+    }
+    const cells = box.map((b) => ({
+      blades: b.n,
+      sphere: b.n === 0 ? new Sphere(new Vector3(mx, yc, mz), 0) : new Sphere(new Vector3((b.x0 + b.x1) / 2, (b.y0 + b.y1) / 2 + maxH * 0.5, (b.z0 + b.z1) / 2), Math.hypot((b.x1 - b.x0) / 2, (b.y1 - b.y0) / 2 + maxH * 0.5, (b.z1 - b.z0) / 2) + maxH + GRASS_CULL_PAD_M),
+    }));
+    tiles.push({ mesh, cx, cz, count, lods, lod: 2, cells, cellOf, keptMask: (1 << cells.length) - 1, src: null });
     total += count;
     onProgress((ti + 1) / tileCoords.length);
     if (ti % 6 === 5) await new Promise<void>((r) => setTimeout(r, 0));
@@ -770,7 +834,8 @@ export async function buildGrass(ctx: WorldContext, field: VegField, material: M
         t.mesh.geometry = t.lods[lod];
       }
       const drawn = density < 1 ? Math.round(t.count * density) : t.count;
-      if (t.mesh.count !== drawn) t.mesh.count = drawn;
+      // the prefix thinning owns the drawn count; otherwise the submission cull below does
+      if (THIN_ENABLED && t.mesh.count !== drawn) t.mesh.count = drawn;
       t.mesh.visible = d < d2 && drawn > 0;
       if (t.mesh.visible) {
         visible.drawCalls++;
@@ -780,5 +845,87 @@ export async function buildGrass(ctx: WorldContext, field: VegField, material: M
     }
   };
 
-  return { tiles, count: total, typeCounts, heightMean: mean, heightCV: cv, samples, tileSize: TILE, lodDistances, visible, update };
+  // ---- submission culling (see CULL_CELL_M) ----
+  const frustum = new Frustum();
+  const viewProj = new Matrix4();
+  const lastViewProj = new Matrix4().makeScale(0, 0, 0);
+  const culled = { blades: total, trimmedTiles: 0, rewrites: 0, trimmed: 0 };
+  /** the tile sphere against the frustum: 1 wholly inside, -1 wholly outside, 0 cut */
+  const classify = (s: Sphere): number => {
+    let inside = true;
+    for (const plane of frustum.planes) {
+      const d = plane.distanceToPoint(s.center);
+      if (d < -s.radius) return -1;
+      if (d < s.radius) inside = false;
+    }
+    return inside ? 1 : 0;
+  };
+  /** rewrite the tile's streams with the blades of the cells in `mask` (stream order kept) and draw that many */
+  const rewrite = (t: GrassTile, mask: number) => {
+    const im = t.mesh;
+    const aData = t.lods[0].getAttribute('aData') as InstancedBufferAttribute;
+    if (!t.src) {
+      // first trim: the streams are still the pristine ones
+      t.src = { matrices: (im.instanceMatrix.array as Float32Array).slice(), data: (aData.array as Float32Array).slice() };
+      im.instanceMatrix.setUsage(DynamicDrawUsage);
+      aData.setUsage(DynamicDrawUsage);
+    }
+    const mat = im.instanceMatrix.array as Float32Array;
+    const dat = aData.array as Float32Array;
+    const sm = t.src.matrices;
+    const sd = t.src.data;
+    let j = 0;
+    for (let i = 0; i < t.count; i++) {
+      if (!((mask >> t.cellOf[i]) & 1)) continue;
+      const si = i * 16;
+      const dj = j * 16;
+      for (let k = 0; k < 16; k++) mat[dj + k] = sm[si + k];
+      dat[j * 4] = sd[i * 4];
+      dat[j * 4 + 1] = sd[i * 4 + 1];
+      dat[j * 4 + 2] = sd[i * 4 + 2];
+      dat[j * 4 + 3] = sd[i * 4 + 3];
+      j++;
+    }
+    im.count = j;
+    im.instanceMatrix.needsUpdate = true;
+    aData.needsUpdate = true;
+    t.keptMask = mask;
+    culled.rewrites++;
+  };
+  const cull = (camera: Camera, force = false) => {
+    if (THIN_ENABLED) return;
+    camera.updateMatrixWorld();
+    viewProj.multiplyMatrices(camera.projectionMatrix, camera.matrixWorldInverse);
+    if (!force && viewProj.equals(lastViewProj)) return;
+    lastViewProj.copy(viewProj);
+    frustum.setFromProjectionMatrix(viewProj);
+    culled.blades = 0;
+    culled.trimmedTiles = 0;
+    culled.trimmed = 0;
+    for (const t of tiles) {
+      if (!t.mesh.visible) {
+        culled.trimmed += t.count - t.mesh.count;
+        continue;
+      }
+      const all = (1 << t.cells.length) - 1;
+      // (the tile meshes carry no transform: matrixAutoUpdate off at the identity)
+      const where = classify(t.mesh.boundingSphere!);
+      let mask = all;
+      if (where === 0) {
+        mask = 0;
+        for (let c = 0; c < t.cells.length; c++) if (t.cells[c].blades > 0 && frustum.intersectsSphere(t.cells[c].sphere)) mask |= 1 << c;
+      } else if (where < 0) {
+        // three drops the whole mesh; leave its streams as they are
+        culled.blades += t.mesh.count;
+        culled.trimmed += t.count - t.mesh.count;
+        continue;
+      }
+      if (mask !== t.keptMask) rewrite(t, mask);
+      if (mask !== all) culled.trimmedTiles++;
+      culled.blades += t.mesh.count;
+      culled.trimmed += t.count - t.mesh.count;
+    }
+  };
+
+  return { tiles, count: total, typeCounts, heightMean: mean, heightCV: cv, samples, tileSize: TILE, lodDistances, visible, update, cull, culled };
 }

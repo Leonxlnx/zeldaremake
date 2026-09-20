@@ -17,14 +17,11 @@ other agent's log. Runs on the same laptop as `astra-local` and `owner-fable`: e
 native D3D11 render (`ZR_NATIVE_GPU=1`), one capture at a time, headless Chrome only.
 
 ## Current task
-Half B — the native measurement matrix of take-0116 (`973a21e`) is running detached on the laptop
-(`gauntlet/perf/r48/run-matrix.sh` → `matrix.log`, then `run-matrix-2.sh`): the take's player
-strip, the near-LOD variants (18 / 25 m swaps, pre-warmed pools; `build-variants.mjs`, scratch
-builds only), a 40 s play-mode trace and a six-view SSIM capture per variant, each system alone per
-hero view, a baseline repeat, the warm-up retry, then the per-pixel knobs (shadow map, composer
-stages, render scale). Results → `docs/PERF_2026-09-19.md` §4–7 and the INBOX brief for `lod-1`.
-Half A (the monitor as a director's cut) is in PR #19 and under adversarial review; QA screenshots
-against the real `monitor` data are clean (no console errors).
+Both halves delivered: PR #19 (draft → world branch) carries the Director's Monitor as a
+director's cut and `docs/PERF_2026-09-19.md` with the native profile of take-0116 and the `lod-1`
+brief (posted in the INBOX 2026-09-20 00:05 UTC). Waiting on fable-cursor's review / merge; the
+next publish with this code lights up the headline, the evidence gallery and the play-link SHA on
+the live monitor, and a strip staged under `gauntlet/out/player` lights up the player strip.
 
 ## Files / systems being touched
 - `site/**` (app.js, js/*.js, styles.css, index.html, SCHEMA.md, README.md, dev/*).
@@ -35,6 +32,12 @@ against the real `monitor` data are clean (no console errors).
 - `.agents/fable-6.md`, my threads in `.agents/INBOX.md`.
 
 ## Completed work
+- 2026-09-19 23:50 UTC — perf §4–§7: each system alone per hero view (trees 30 % / vegetation
+  21–27 % / structures 14–23 % of the triangles; the character's 129 draws for 0.17 M tris); the
+  six views per variant (F −0.0086 at 18 and 25 m = the stair-bank giant 13.6 m from F; A/C/D
+  byte-identical; the pool change byte-identical); the native ablations (shadow map a third of
+  the frame: 2048/8 −19 %, off −34 %; pixels the other third: scale 0.75 −27 %; composer 2–7 ms;
+  vegetation LOD 0 %); the warm-up retry (78 s, 64 s the warm pass); the brief for `lod-1` (§7).
 - 2026-09-19 22:50 UTC — perf §3 / §5.1 / §5.2 in `docs/PERF_2026-09-19.md`: the 780M frame is
   per-pixel bound (GPU finish 100 ms of a 142 ms step, flat from 8.1 to 10.7 M tris); the
   near-canopy pool cap (64 MB vs 125 MB demand) is the hitch story — pools at 192 / 32 MB give
@@ -89,8 +92,9 @@ against the real `monitor` data are clean (no console errors).
 - `take.mjs` rotates its capture directory, so a player strip written into `gauntlet/out/last`
   before a publish never reaches the published dir; `monitor.mjs` picks it up from
   `gauntlet/out/player` (or `<takeDir>/player`) when its `sha` is the take's commit.
-- The take-0116 player strip is rendered by the matrix-3 step (after the per-pixel matrix); until
-  then the monitor's strip panel shows its empty state.
+- The take-0116 player strip (14 native poses, `gauntlet/perf/r48/player-0116/index.json`) is on
+  the monitor only in the PR's screenshots (a local copy of the data); it reaches the live site
+  when a take is published with this code and a strip staged under `gauntlet/out/player`.
 
 ## Recommended next work
 - fable-cursor: the `lod-1` brief lands in the INBOX when `docs/PERF_2026-09-19.md` is in.

@@ -193,6 +193,13 @@ export function placeWhiteBark(
         if (segmentDistance(x, z, pl[i][0], pl[i][2], pl[i + 1][0], pl[i + 1][2]) < L.pathHalfWidth + 2.5 + treeRadius * 0.3) return true;
       }
     }
+    // round 48 (expansion-1's ask): the paving beyond the log arch (`northPath`, its own half-width)
+    // with the same margin — no tree on the new slabs or their verge. Take-0118's 161 tree bases
+    // all stand ≥ 9 m off this polyline, so no existing placement flips.
+    const np = L.northPath;
+    for (let i = 0; i < np.length - 1; i++) {
+      if (segmentDistance(x, z, np[i][0], np[i][2], np[i + 1][0], np[i + 1][2]) < L.northPathHalfWidth + 2.5 + treeRadius * 0.3) return true;
+    }
     return false;
   };
 

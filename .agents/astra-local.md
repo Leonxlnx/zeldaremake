@@ -4,7 +4,7 @@ runtime: Codex desktop / Astra on the owner's Windows PC
 github: Leonxlnx
 status: active
 branch: agent/astra-local-character-contact
-updated: 2026-09-20T11:23:00Z
+updated: 2026-09-20T11:35:00Z
 ---
 
 # astra-local — roster entry
@@ -24,6 +24,8 @@ C01/C02/C03: PR21 running/arms/smaller-boots pass now has an optional native sta
 coordinated with fable-cursor through PR2 issuecomment-5745167944. Other runtime work stays with Fable.
 
 ## Completed work
+- 2026-09-20 11:35 UTC: integration of Fable e54a74ed prepared. Inbox retains both conflict blocks; native candidate1e81 and glbLink runtime unchanged. Build/typecheck, character/terrain/ledger tests pass. Existing ledger union exposed D2: our older take0120 re-sequences to0123 behind newer passes but retained stale valid=true. mergeLedgers now preserves score/images/source hash while classifying new regressions against the preceding valid canonical take; a focused immutable-input/idempotence test covers it. Re-union gives123 entries, original canonical122 intact, imported0123 explicitly invalid/regressed. Source anti-cheat89 checks green,78 historical claim warnings. Actual new-world movement capture is next; no transfer claim yet. Fable/character-10 notified5749536398; their review of our running pass is confirmed in Fable tick193.
+
 - 2026-09-20 10:53 UTC: stair posture diagnosis is reproducible from the actual-world trace via run-arms/diagnose_stairs.py. Worst ascent frame155 places the ankle72.87mm below and33.15mm horizontally from its hip, connecting411.28mm of leg bones. Two runtime trials were rejected and fully reverted: pin-offset clearance probing gives synthetic ascent shoe gap-270mm; uphill-forward swing gives only165.30 to162.28deg knee improvement with-10.98mm gap. Both left flat/down summary extrema unchanged. Research and trial recipes in run-arms/README.md. Production remains0dfd3601; candidate382/default245 unchanged. Typecheck/build pass. PR21 CI still running at10:50; no new Fable review confirmed. No new GPU captures or native jobs remain.
 
 - 57593ae0: keep rendered stance-sole take-off support; real-rig negative control and1320frame full-high regression pass. Generated local take0120 is valid:30/50,Phase1 25/42, W38 A8.92M/567draws, deterministic0%,94integrity checks green; local dirty-tree attestation disclosed, no CI/final-quality claim. Fable notified5745771473. Next native face study previews relaxed open lids using the existing morph; no asset/runtime face changes yet.

@@ -31,14 +31,14 @@ assert.ok(cov.BLADE_MIN>=2&&cov.BLADE_REACH>=0.15&&cov.MAT_FOOT>0.3&&cov.MAT_FOO
 
 // the whole detail disc and the corridor: < 1 % of the lawn cells uncovered (the owner's acceptance), the open lawn itself < 0.2 %
 const R=WORLD.detailRadius;
-const rep=cov.auditCoverage(field,grass.tiles,[carpet.clumps,carpet.northClumps],carpet.mats,R);
+const rep=cov.auditCoverage(field,grass.tiles,[carpet.clumps,carpet.northClumps],[carpet.mats,carpet.northMats],R);
 assert.ok(rep.cells>=100000,`lawn cells sampled: ${rep.cells}`);
 assert.ok(rep.share<0.01,`uncovered lawn cells ${(rep.share*100).toFixed(2)} % (${rep.uncovered} of ${rep.cells}) — the owner's "no bare patches" is < 1 %`);
 assert.ok(rep.byZone.lawn.share<0.002,`open lawn uncovered ${(rep.byZone.lawn.share*100).toFixed(2)} %`);
 assert.ok(rep.byZone.north.share<0.02,`north corridor floor uncovered ${(rep.byZone.north.share*100).toFixed(2)} %`);
 assert.ok(rep.byZone.hollow.share<0.01,`D's hollow uncovered ${(rep.byZone.hollow.share*100).toFixed(2)} %`);
 // the walk (art/environment/survey2: every pose stands inside reach 30) is closed tighter still
-const walk=cov.auditCoverage(field,grass.tiles,[carpet.clumps,carpet.northClumps],carpet.mats,30);
+const walk=cov.auditCoverage(field,grass.tiles,[carpet.clumps,carpet.northClumps],[carpet.mats,carpet.northMats],30);
 assert.ok(walk.share<0.005,`uncovered lawn inside the walk's reach ${(walk.share*100).toFixed(2)} %`);
 // no 8 m tile of the walk holds more than 40 uncovered cells (2.5 m² of bare lawn)
 for(const [cx,cz,cells,unc] of walk.worstTiles)assert.ok(unc<=40,`tile ${cx},${cz}: ${unc} of ${cells} cells uncovered`);
@@ -52,6 +52,6 @@ assert.ok(carpet.infillMats>=3000,`infill mats: ${carpet.infillMats}`);
 {const f2=new VegField(ctx,WORLD.detailRadius+6,0.5),g2=new THREE.Group();
   const gr2=await read('vegetation/grass').buildGrass({...ctx,rng:read('util/prng').createRng(WORLD.seed)},f2,read('vegetation/materials').createVegMaterial(ctx,'grass',{name:'veg-grass'}),g2,()=>{});
   const c2=read('vegetation/carpet').buildCarpet({...ctx,rng:read('util/prng').createRng(WORLD.seed)},f2,g2);
-  const rep2=cov.auditCoverage(f2,gr2.tiles,[c2.clumps,c2.northClumps],c2.mats,R);
+  const rep2=cov.auditCoverage(f2,gr2.tiles,[c2.clumps,c2.northClumps],[c2.mats,c2.northMats],R);
   assert.equal(rep2.uncovered,rep.uncovered,'the audit reproduces');assert.equal(gr2.count,grass.count);assert.equal(c2.mats.count,carpet.mats.count);}
 console.log(JSON.stringify({passed:true,cells:rep.cells,uncovered:rep.uncovered,sharePct:Math.round(rep.share*10000)/100,walkSharePct:Math.round(walk.share*10000)/100,byZone:Object.fromEntries(Object.entries(rep.byZone).map(([k,v])=>[k,Math.round(v.share*10000)/100])),blades:grass.count,mats:carpet.mats.count,infillMats:carpet.infillMats,seedStalks:grass.typeCounts[3]}));

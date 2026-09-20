@@ -137,8 +137,10 @@ const scaleX = (m: Float32Array) => Math.hypot(m[0], m[1], m[2]);
  * Sample the lawn and report its coverage. `radius` bounds the sampled ground (reach ≤ radius,
  * field.ts `reach`: the detail disc and the north corridor).
  */
-export function auditCoverage(field: VegField, tiles: readonly GrassTile[], clumps: readonly LodInstancedSet[], mats: LodInstancedSet, radius: number): CoverageReport {
+export function auditCoverage(field: VegField, tiles: readonly GrassTile[], clumps: readonly LodInstancedSet[], mats: LodInstancedSet | readonly LodInstancedSet[], radius: number): CoverageReport {
   const cell = COVERAGE_CELL;
+  // round 48: the mats come in sets like the cards (carpet.ts `mats` and `northMats`)
+  const matSets = Array.isArray(mats) ? (mats as readonly LodInstancedSet[]) : [mats as LodInstancedSet];
   // mats and cards as discs (x, z, r)
   let n = 0;
   for (const c of clumps) n += c.count;
@@ -152,15 +154,20 @@ export function auditCoverage(field: VegField, tiles: readonly GrassTile[], clum
       k++;
     }
   }
-  const matPts = new Float64Array(mats.count * 3);
-  for (let i = 0; i < mats.count; i++) {
-    const it = mats.items[i];
-    matPts[i * 3] = it.x;
-    matPts[i * 3 + 1] = it.z;
-    matPts[i * 3 + 2] = scaleX(it.matrix) * MAT_FOOT;
+  let nm = 0;
+  for (const m of matSets) nm += m.count;
+  const matPts = new Float64Array(nm * 3);
+  k = 0;
+  for (const m of matSets) {
+    for (const it of m.items) {
+      matPts[k * 3] = it.x;
+      matPts[k * 3 + 1] = it.z;
+      matPts[k * 3 + 2] = scaleX(it.matrix) * MAT_FOOT;
+      k++;
+    }
   }
   const cardF = bucket(cards, n, 0.5);
-  const matF = bucket(matPts, mats.count, 0.5);
+  const matF = bucket(matPts, nm, 0.5);
   // blade roots from the tile matrices (translation columns)
   let blades = 0;
   for (const t of tiles) blades += t.count;

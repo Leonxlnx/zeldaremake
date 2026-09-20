@@ -131,6 +131,11 @@ export function buildStairway(def: StairDef, terrain: Terrain, rng: Rng, seed: s
   // riser fissures and the per-riser corner moss are noise fields and hash forks keyed on the
   // step, so every draw of the flight below keeps its place
   const spall = new Noise2D(`${seed}/stairs-spall-${def.id}`);
+  // round 48 (opus-review #15 — "even machined bands at 6 m and at A"): the per-tread tone swing
+  // and the nosing moss patches come from a stream of their own (a fork: no draw of the flight's
+  // stream moves) and a noise field, so every stone of the flight stays where it is
+  const toneRng = rng.fork('tread-tone');
+  const noseMossN = new Noise2D(`${seed}/stairs-nose-moss-${def.id}`);
   const all = new MeshBuilder();
   const w = def.width;
   const hw = w / 2;
@@ -182,12 +187,26 @@ export function buildStairway(def: StairDef, terrain: Terrain, rng: Rng, seed: s
     // worn treads: a darker grey-brown than the plaza slabs (reference A lit tread #746d5d
     // against flagstone #a79774 — ≈ 0.7× in sRGB, cooler: B/R 0.80 vs 0.69), with only a mild
     // tread-to-tread swing so the flight reads as one stone with lit nosings, not a patchwork
-    const tint = 0.7 + rng.range(0, 0.12);
-    const hue = rng.range(-0.025, 0.025);
+    const tint0 = 0.7 + rng.range(0, 0.12);
+    const hue0 = rng.range(-0.025, 0.025);
     // (round 22: cooler still - the flight in frame 1 s (x 0.60-0.80, y 0.27-0.60) reads sat 0.118 /
     // hue 50 deg on its lit stone against our 0.150 / 48 deg, i.e. a greyer, cooler stone than the
     // plaza's, where the plaza itself matches the frame; red 0.98 -> 0.90, blue 1.14 -> 1.34 - the post chain passes ~1/4 of an albedo shift)
-    const color: [number, number, number] = [tint * (1 + hue) * 0.9, tint, tint * (1 - hue * 0.6) * 1.34];
+    // Round 48 (opus-review #15, w26-stairs-f / A): the flight read as even parallel bands — the
+    // old ± 0.06 swing under a × 1.34 blue lift rendered as one cool grey. Per tread, from the
+    // tone stream: ± 0.08 of luminance (uniform) with one tread in five a darker, damper one
+    // (× 0.86), the hue swinging ± 0.04, and the blue lift 1.34 → 1.12 (the frame's lit tread is
+    // #746d5d — cooler than the plaza's slabs, not blue). A tread's two pieces share the tone.
+    const toneSwing = toneRng.range(-0.08, 0.08);
+    const dampTread = toneRng.chance(0.2) ? 0.86 : 1;
+    const hueSwing = toneRng.range(-0.04, 0.04);
+    // 60 % of the treads carry moss patches on the nosing (below), 15–35 cm long, one to three a tread
+    const noseMossy = toneRng.chance(0.6);
+    const noseMossK = noseMossy ? toneRng.range(0.7, 1.0) : 0;
+    const noseMossPhase = toneRng.range(0, 100);
+    const tint = (tint0 + toneSwing) * dampTread;
+    const hue = hue0 + hueSwing;
+    const color: [number, number, number] = [tint * (1 + hue) * 0.9, tint, tint * (1 - hue * 0.6) * 1.12];
 
     // split the tread into two stones sometimes (round 31: 0.36 → 0.2 — frame 8 s reads the
     // flight with a third of our vertical joint energy, 0.037 against 0.068 in its box)
@@ -254,10 +273,12 @@ export function buildStairway(def: StairDef, terrain: Terrain, rng: Rng, seed: s
       // 5 cycles/m noise peaks along the lip the wall top and the roll drop 1–2.5 cm, a chip out
       // of the rolled nose every 0.4–0.8 m, heavier where feet go (the centre third); nothing on
       // the back or the flanks. The frame's lips are broken lines, not one continuous highlight.
+      // (round 48: 1–2.5 cm → 2–4 cm deep and a lower threshold, so every tread's lip is broken
+      // by one to three chips that read at 6–10 m, not only at arm's length)
       const noseSpall = (x: number, z: number) => {
         if (z > -depth / 2 + 0.06) return 0;
         const nz = spall.noise((x + cxl) * 5.0 + i * 7.3, i * 2.1 + 0.7) * 0.5 + 0.5;
-        return (0.01 + 0.015 * feet(x + cxl)) * smoothstep(0.62, 0.82, nz);
+        return (0.02 + 0.02 * feet(x + cxl)) * smoothstep(0.55, 0.78, nz);
       };
       // per-tread micro-roughness (aRough): the treads catch the low sun a little differently
       const treadRough = (hash2(i, Math.round(cxl * 100) + 91, 7) - 0.5) * 0.08;
@@ -297,7 +318,17 @@ export function buildStairway(def: StairDef, terrain: Terrain, rng: Rng, seed: s
           const back = smoothstep(depth / 2 - 0.16, depth / 2 - 0.02, z);
           const patch = smoothstep(0.35, 0.8, noise.fbm((x + cxl) * 3.4 + i * 17.3, (z + czl) * 3.4 - 2.2, 2) * 0.5 + 0.5);
           const flankBias = 0.3 + 1.1 * (1 - feet(x + cxl));
-          return 1.1 * flankBias * back * patch * (0.3 + 0.7 * smoothstep(0.4, 1, edge)) * (0.55 + 0.45 * mossAt(x + cxl, z + czl));
+          let m = 1.1 * flankBias * back * patch * (0.3 + 0.7 * smoothstep(0.4, 1, edge)) * (0.55 + 0.45 * mossAt(x + cxl, z + czl));
+          // round 48: moss patches on the nosing — on 60 % of the treads, a 1.6 cycles/m noise along
+          // the lip thresholded to 15–35 cm patches, full on the roll and the first 8 cm of the top,
+          // spilling over the front face; the frame's lips are broken by moss, ours were clean lines
+          if (noseMossK > 0) {
+            const front = smoothstep(-depth / 2 + 0.14, -depth / 2 + 0.03, z);
+            const along = noseMossN.fbm((x + cxl) * 1.6 + noseMossPhase, i * 3.7 + 1.1, 2) * 0.5 + 0.5;
+            const fine = noseMossN.noise((x + cxl) * 9 - noseMossPhase, i * 1.3) * 0.5 + 0.5;
+            m += noseMossK * front * smoothstep(0.5, 0.68, along) * (0.7 + 0.5 * fine) * (0.5 + 0.5 * smoothstep(0.4, 1, edge));
+          }
+          return m;
         },
         // worn nose: the front bevel and the first ~12 cm of the tread catch the light, the back
         // of the tread (under the next riser) and the flanks pick up grime

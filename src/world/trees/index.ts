@@ -25,10 +25,10 @@ import { BufferGeometry, Color, Frustum, Group, InstancedBufferAttribute, Instan
 import type { TrunkSeat, WorldContext, WorldSystem } from '../system';
 import { BARK_DETAIL_M, BARK_DETAIL_TILES, BARK_TOUCH_M, BARK_TOUCH_TILES, CARD_EDGE_FADE, CARD_FLAT_EDGE_FADE, COLUMN_BARK_FLOOR, COLUMN_BARK_FLOOR_FAR, COLUMN_FLOOR_FADE_M, createTreeMaterials, CUSHION_FADE_M, DISTANT_BARK_M, DISTANT_NEAR_FLOOR, DISTANT_NEAR_TONE, NEAR_BASE_FLOOR, NEAR_BOLE_FLOOR, NEAR_BOLE_FLOOR_FADE, NEAR_BOLE_FLOOR_TOP, NEAR_BOLE_SLOTS, NEAR_CANOPY_LEAF_FLOOR, NEAR_CANOPY_LEAF_NEAR_M, NEAR_CANOPY_SLOTS, NEAR_CANOPY_SUN_THROUGH, TREE_BARK_FLOOR, TREE_BARK_FLOOR_NEAR, TREE_FLOOR_FADE_M, TREE_LEAF_FLOOR, TREE_LEAF_FLOOR_NEAR, TREE_NEAR_BOLE_FLOOR } from './materials';
 import type { ShadeFloor } from '../materials/shadeFloor';
-import { createWhiteBarkTree, whiteBarkParams, type TreeAsset, type WhiteBarkParams } from './whitebark';
+import { authoredWhiteBarks, createWhiteBarkRoots, createWhiteBarkTree, whiteBarkParams, type TreeAsset, type WhiteBarkParams } from './whitebark';
 import { placeWhiteBark, viewProjector, type WhiteBarkPlacement } from './placement';
 import { columnParams, createColumnTree, emergentParams, type ColumnAsset, type ColumnParams } from './column';
-import { createGiantTree, LOBE_SECONDARY_REACH, LOBE_TWIG_REACH, LOBE_TWIG_TINT, NEAR_BASE_CUT_Y, NEAR_BASE_IN_M, NEAR_BASE_OUT_M, NEAR_BASE_RADIUS_OVERRIDE, type CanopyBough, type GiantAsset, type GiantProfile } from './giant';
+import { createGiantTree, LOBE_SECONDARY_REACH, LOBE_TWIG_REACH, LOBE_TWIG_TINT, NEAR_BASE_CUT_Y, NEAR_BASE_RADIUS_OVERRIDE, type CanopyBough, type GiantAsset, type GiantProfile } from './giant';
 import { NEAR_CANOPY_HERO_MARGIN, NEAR_CANOPY_IN_M, NEAR_CANOPY_MAX_Y, NEAR_CANOPY_MIN_IN_M, NEAR_CANOPY_OUT_M, type NearCanopyPart } from './nearCanopy';
 import { LodPool, type PoolBuilt, type PoolItem } from './lodPool';
 import type { GiantTreeDef } from '../layout';
@@ -1395,22 +1395,96 @@ const SHADOW_FLOOR_Y = -20;
  * the wanted — so a pool holds the drawn parts plus the nearest of the approaching ones that fit.
  * A part that must be drawn before its build is ready (an explicit re-pose, or a walk faster than
  * the pre-fetch) is finished synchronously, so every frame is what it would have been with every
- * part resident. 34 m ahead of the 22 m canopy swap is 7.5 s at walking speed (1.6 m/s), the
- * radius the pre-fetch is ordered by; how far it reaches in this hollow is set by the cap (see
- * NEAR_CANOPY_POOL_BYTES). 22 m ahead of the 10 m base swap is likewise 7.5 s.
+ * part resident. The pre-fetch radius runs 8–16 m ahead of the swap radius (7.5 s at walking
+ * speed, 1.6 m/s), the radius the pre-fetch is ordered by; how far it reaches in this hollow is
+ * set by the cap (see NEAR_LOD_TIERS).
+ *
+ * Round 48 (lod-1, docs/PERF_2026-09-19.md): the caps and the near radii follow the machine.
+ * fable-6's native trace of the sealed world found the 64 MB canopy pool a third of its demand
+ * (125 MB inside the 34 m pre-fetch radius on the plaza → north-path walk): 264 builds and 504
+ * evictions in 40 s — the same deterministic parts rebuilt as the walker passed them — 7 s of
+ * the walk in the builder and trees.update at 23 ms p95. With 192 / 32 MB the whole demand is
+ * resident, the walk has no build and no eviction, and trees.update is 0.6 ms; the frames are
+ * identical (the pool decides when a part's buffers exist, never whether it is drawn). The
+ * larger caps are what round 41 held resident (173 MB) before round 42 capped it for a 4-core CI
+ * VM — so the tier is chosen by `navigator.deviceMemory` (Chromium: 0.25–8 GB, capped at 8;
+ * absent elsewhere → 4): ≥ 8 GB gets the large pools AND the wider near swap radii that only the
+ * large pools make hitch-free (fable-6 §5.2: the 18 m base / 26 m canopy swaps alone, with the
+ * shipped pools, cost 39 synchronous builds on the walk); under 8 GB everything stays as
+ * shipped. `?pool=large|small` on the URL forces a tier (the perf traces compare both on one
+ * machine); the six fixed frames are byte-identical in either (see nearBand / the hero pass).
  */
-const NEAR_CANOPY_PREFETCH_M = 34;
-const NEAR_BASE_PREFETCH_M = 22;
+interface NearLodTier {
+  name: 'large' | 'small';
+  canopyPoolBytes: number;
+  basePoolBytes: number;
+  canopyPrefetchM: number;
+  basePrefetchM: number;
+  /** the default near-base [in, out] band (m) of a bole no fixed camera constrains (see nearBand) */
+  baseBand: [number, number];
+  /** cap on every near-canopy part's [in, out] swap radii (m): the parts are built with nearCanopy.ts NEAR_CANOPY_IN_M / OUT_M, the small tier draws them in at the shipped 22 / 26 */
+  canopySwapM: [number, number];
+}
+const NEAR_LOD_TIERS: Record<NearLodTier['name'], NearLodTier> = {
+  large: { name: 'large', canopyPoolBytes: 192 << 20, basePoolBytes: 32 << 20, canopyPrefetchM: 42, basePrefetchM: 30, baseBand: [18, 21], canopySwapM: [NEAR_CANOPY_IN_M, NEAR_CANOPY_OUT_M] },
+  /**
+   * 64 MB holds ≈ 140 of the 364 canopy parts (0.47 MB each on average): the drawn set is 41–51
+   * parts / 17.5–21 MB on the plaza→stairs walk and the parts within 26 m of the camera come to
+   * 61–75 MB, so 64 MB pre-fetches to about the 26 m out-radius (a 40 MB cap: 28 synchronous
+   * builds, trees update to 27 ms). 12 MB ≈ 9 of the 22 bases (0.7–1.4 MB each; ≤ 6 are shown).
+   */
+  small: { name: 'small', canopyPoolBytes: 64 << 20, basePoolBytes: 12 << 20, canopyPrefetchM: 34, basePrefetchM: 22, baseBand: [10, 13], canopySwapM: [22, 26] },
+};
+/** the machine's memory in GB as the browser reports it (Chromium's `navigator.deviceMemory`; 4 when unavailable) */
+const deviceMemoryGB = (): number => {
+  const n = typeof navigator === 'undefined' ? undefined : (navigator as Navigator & { deviceMemory?: number }).deviceMemory;
+  return typeof n === 'number' && Number.isFinite(n) && n > 0 ? n : 4;
+};
+const nearLodTierFor = (deviceGB: number, poolParam: string | null): NearLodTier => {
+  if (poolParam === 'large' || poolParam === 'small') return NEAR_LOD_TIERS[poolParam];
+  return deviceGB >= 8 ? NEAR_LOD_TIERS.large : NEAR_LOD_TIERS.small;
+};
+const NEAR_LOD_DEVICE_GB = deviceMemoryGB();
+const NEAR_LOD_TIER = nearLodTierFor(NEAR_LOD_DEVICE_GB, typeof location === 'undefined' ? null : new URLSearchParams(location.search).get('pool'));
+const NEAR_CANOPY_PREFETCH_M = NEAR_LOD_TIER.canopyPrefetchM;
+const NEAR_BASE_PREFETCH_M = NEAR_LOD_TIER.basePrefetchM;
+const NEAR_CANOPY_POOL_BYTES = NEAR_LOD_TIER.canopyPoolBytes;
+const NEAR_BASE_POOL_BYTES = NEAR_LOD_TIER.basePoolBytes;
 /**
- * 64 MB holds ≈ 140 of the 364 canopy parts (0.47 MB each on average): the drawn set is 41–51
- * parts / 17.5–21 MB on the plaza→stairs walk and the parts within 26 m of the camera come to
- * 61–75 MB, so 64 MB pre-fetches to about the 26 m out-radius — the 40 s walk traced with no
- * synchronous build (a 40 MB cap: 28 synchronous builds, trees update to 27 ms). 12 MB ≈ 9 of
- * the 22 bases (0.7–1.4 MB each; ≤ 6 are shown).
+ * The chunked builds' budget per frame (ms; lodPool.ts `work`). 3 as shipped; 6 from round 48 —
+ * with the pools sized to their demand the builder runs rarely, and when it does a 6 ms slice
+ * finishes a 12–27 ms part in 2–5 frames instead of 5–9, ahead of the walker. The pool no
+ * longer starts a chunk that its own step history says would end past the budget (the shipped
+ * builder checked the budget only between chunks, so a frame paid the budget plus one whole
+ * chunk), so this is what a frame pays, give or take one mis-predicted chunk.
  */
-const NEAR_CANOPY_POOL_BYTES = 64 << 20;
-const NEAR_BASE_POOL_BYTES = 12 << 20;
-const NEAR_LOD_BUILD_BUDGET_MS = 3;
+const NEAR_LOD_BUILD_BUDGET_MS = 6;
+/**
+ * The near-base bands the fixed cameras constrain (round 48; [in, out] m, key = NearBole id).
+ * giant.ts NEAR_BASE_RADIUS_OVERRIDE holds the round-44 bands derived from the cameras'
+ * distances (wider than the shipped 10 m where every camera stands far, narrower where one is
+ * close); these are the boles that took the shipped default because a fixed camera stands
+ * within 18 m of them, re-derived for the 18 m default of the large tier. The rule (giant.ts):
+ * with `reset` a capture's state is `distance < in`, so a camera stays outside the in-radius of
+ * every bole it frames or whose base its frame could meet; a camera that stands INSIDE the
+ * in-radius must have the bole and its 6.4 m shadow (sun 38° up, cast to the ESE) fully behind
+ * it — fable-6's `lod18` variant measured that: the stair-bank giant active at A (10.2 m,
+ * off-frame) and plaza-south active at A (12.6 m, behind) left A byte-identical, while the same
+ * giant active at F (13.6 m, its right edge) cost F −0.0086.
+ *   stair-bank-giant  A 10.2 (off-frame) · B/E 12.8 (behind) · F 13.6 (right edge) · D 16.0 · C 18.7
+ *   lantern-tree      D 12.4 · C 13.8 · B/E/F 14.7 · A 19.8 — its base is 60–117° off every axis (the limb is what A / D frame)
+ *   north-west-near   C 9.8 (behind; active in C as shipped) · D 11.6 (its base sits on D's left edge) · B/E 16.0 · F 17.3
+ *   plaza-south       A 12.6 (behind) · F 17.7 (behind) · B/E 19.0 · D 23.9
+ *   swap-18           C 19.4 (behind) · D 24.6 — the mature white-bark at (11.1, −25) built as a column
+ * The 3 m of hysteresis never reach a camera: a capture re-poses with `reset`.
+ */
+const NEAR_BASE_HERO_BAND: Record<string, [number, number]> = {
+  'stair-bank-giant': [12, 13.5],
+  'lantern-tree': [12, 13.5],
+  'north-west-near': [10, 13],
+  'plaza-south': [15, 17],
+  'swap-18': [15, 17],
+};
 /** the built buffers a pool holds: one BufferGeometry */
 interface GeometryBuilt extends PoolBuilt {
   geometry: BufferGeometry;
@@ -1516,7 +1590,7 @@ export async function create(ctx: WorldContext): Promise<WorldSystem> {
     triangles: number;
     active: boolean;
     dist: number;
-    /** this bole's [in, out] band (NEAR_BASE_IN_M / OUT_M unless NEAR_BASE_RADIUS_OVERRIDE names it) */
+    /** this bole's [in, out] band (see nearBand) */
     band: [number, number];
     /** the root-kit test (rootkit.ts): always shown, and its slot folds the plain roots only */
     kit?: boolean;
@@ -1526,7 +1600,12 @@ export async function create(ctx: WorldContext): Promise<WorldSystem> {
     item?: PoolItem<GeometryBuilt>;
   }
   const nearBoles: NearBole[] = [];
-  const nearBand = (id: string): [number, number] => NEAR_BASE_RADIUS_OVERRIDE[id] ?? [NEAR_BASE_IN_M, NEAR_BASE_OUT_M];
+  /**
+   * A bole's [in, out] band: the camera-derived bands first (NEAR_BASE_HERO_BAND here, giant.ts
+   * NEAR_BASE_RADIUS_OVERRIDE — both hold whatever tier runs, so the six fixed frames are the
+   * same in either), else the tier's default (18 / 21 m on the large tier, 10 / 13 as shipped).
+   */
+  const nearBand = (id: string): [number, number] => NEAR_BASE_HERO_BAND[id] ?? NEAR_BASE_RADIUS_OVERRIDE[id] ?? NEAR_LOD_TIER.baseBand;
   const nearBasePool = new LodPool<GeometryBuilt>(NEAR_BASE_POOL_BYTES);
   const nearCanopyPool = new LodPool<GeometryBuilt>(NEAR_CANOPY_POOL_BYTES);
   /**
@@ -1791,6 +1870,7 @@ export async function create(ctx: WorldContext): Promise<WorldSystem> {
   };
   const swappedWhites = whitePlaced.placements.filter((p) => whites[p.variant].params.age === 'mature' && inFarWall(p.x, p.y, p.z));
   const whitePlacements = whitePlaced.placements.filter((p) => !swappedWhites.includes(p));
+  whitePlacements.push(...authoredWhiteBarks(whites.map((w) => w.params), terrain));
   const seatFamily = <P, T extends { x: number; y: number; z: number; yaw: number; scale: number }>(variants: FamilyVariant<P, T>[], p: T, variant: number) => {
     const w = variants[variant];
     w.placements.push(p);
@@ -1822,6 +1902,17 @@ export async function create(ctx: WorldContext): Promise<WorldSystem> {
   const whiteGroup = new Group();
   whiteGroup.name = 'white-bark';
   familyMeshes(whites, 'whitebark', mats.whiteTree, mats.whiteTreeDepth, whiteGroup);
+  // Root flares (fable-4) only on the white-barks a walker can get near: within WHITE_ROOT_REACH_M of
+  // the walkable network (spine, house branch, north path). The flare reads within ~20 m; on the 80
+  // trees it was one always-drawn mesh, +80 K triangles in camera A (W38 ceiling 9.0 M).
+  const WHITE_ROOT_REACH_M = 24;
+  const walkXZ: [number, number][][] = [
+    ctx.layout.pathSpine.map((p) => [p[0], p[2]] as [number, number]),
+    ctx.layout.pathToHouse.map((p) => [p[0], p[2]] as [number, number]),
+    ctx.layout.northPath.map((p) => [p[0], p[2]] as [number, number]),
+  ];
+  const rootPlacements = whitePlacements.filter((p) => walkXZ.some((poly) => poly.length > 1 && spineDistance(poly, p.x, p.z) <= WHITE_ROOT_REACH_M));
+  whiteGroup.add(createWhiteBarkRoots(whites.map((w) => w.params), rootPlacements, terrain, palette, mats.whiteTree, mats.whiteTreeDepth, ctx.quality.shadows));
   group.add(whiteGroup);
   ctx.progress('trees', 0.5);
   await yieldFrame();
@@ -2702,6 +2793,15 @@ export async function create(ctx: WorldContext): Promise<WorldSystem> {
     }
     const kept = nearCanopies.filter((nc) => nc.inM >= 0);
     nearCanopies.splice(0, nearCanopies.length, ...kept);
+    // the tier's cap on the swap radii (NEAR_LOD_TIERS.canopySwapM): the parts are built with
+    // the wide radii; the small tier draws them in at the shipped 22 / 26 m (a hero cut below
+    // the cap stands). Never widens: a part a camera limited keeps its cut.
+    const [capIn, capOut] = NEAR_LOD_TIER.canopySwapM;
+    for (const nc of nearCanopies) {
+      if (nc.fixedSwap) continue;
+      nc.inM = Math.min(nc.inM, capIn);
+      nc.outM = Math.min(nc.outM, capOut);
+    }
     return { limited, dropped };
   };
   const heroPass = nearCanopyHeroPass();
@@ -2987,9 +3087,11 @@ export async function create(ctx: WorldContext): Promise<WorldSystem> {
        * shown for the current camera], and the ids shown now
        */
       nearBase: {
-        inM: NEAR_BASE_IN_M,
-        outM: NEAR_BASE_OUT_M,
-        bands: NEAR_BASE_RADIUS_OVERRIDE,
+        inM: NEAR_LOD_TIER.baseBand[0],
+        outM: NEAR_LOD_TIER.baseBand[1],
+        /** giant.ts NEAR_BASE_RADIUS_OVERRIDE (the round-44 camera-derived bands) under the round-48 hero bands; then every bole's band as it runs */
+        bands: { ...NEAR_BASE_RADIUS_OVERRIDE, ...NEAR_BASE_HERO_BAND },
+        boleBands: Object.fromEntries(nearBoles.map((nb) => [nb.id, nb.band])),
         cutY: NEAR_BASE_CUT_Y,
         slots: NEAR_BOLE_SLOTS,
         floor: [NEAR_BASE_FLOOR.lift, NEAR_BASE_FLOOR.texture],
@@ -3000,6 +3102,9 @@ export async function create(ctx: WorldContext): Promise<WorldSystem> {
         builtBytes: nearBoles.reduce((n, nb) => n + (nb.item ? nb.item.bytes : 0), 0),
         residentBytes: nearBasePool.poolBytes,
         prefetchM: NEAR_BASE_PREFETCH_M,
+        /** round 48: the near-LOD tier (NEAR_LOD_TIERS) and the device memory (GB) that chose it */
+        tier: NEAR_LOD_TIER.name,
+        deviceMemoryGB: NEAR_LOD_DEVICE_GB,
         pool: nearBasePool.report(),
         /** per giant: [id, relief (m), rings, sides, moss share, fins, big fins, toes, wood triangles, fern clumps, tufts, litter leaves, plant triangles] */
         giants: giants
@@ -3028,8 +3133,11 @@ export async function create(ctx: WorldContext): Promise<WorldSystem> {
        * laminae]
        */
       nearCanopy: {
-        inM: NEAR_CANOPY_IN_M,
-        outM: NEAR_CANOPY_OUT_M,
+        /** the parts' built radii (nearCanopy.ts) and the tier's cap on them as drawn (NEAR_LOD_TIERS.canopySwapM) */
+        inM: Math.min(NEAR_CANOPY_IN_M, NEAR_LOD_TIER.canopySwapM[0]),
+        outM: Math.min(NEAR_CANOPY_OUT_M, NEAR_LOD_TIER.canopySwapM[1]),
+        builtInM: NEAR_CANOPY_IN_M,
+        builtOutM: NEAR_CANOPY_OUT_M,
         heroMargin: NEAR_CANOPY_HERO_MARGIN,
         minInM: NEAR_CANOPY_MIN_IN_M,
         maxY: NEAR_CANOPY_MAX_Y,
@@ -3128,12 +3236,19 @@ export async function create(ctx: WorldContext): Promise<WorldSystem> {
       // each radius: the swap-in radius is the floor, the pre-fetch radius the full demand)
       const within = (radii: number[], parts: { dist: number; item?: PoolItem<GeometryBuilt> }[]) =>
         Object.fromEntries(radii.map((r) => [r, parts.reduce((n, p) => n + (p.item && p.dist < r ? p.item.bytes : 0), 0)]));
+      const [canopyIn, canopyOut] = NEAR_LOD_TIER.canopySwapM;
+      const [baseIn, baseOut] = NEAR_LOD_TIER.baseBand;
       return {
+        /** round 48: the near-LOD tier in force and what chose it (NEAR_LOD_TIERS) */
+        tier: NEAR_LOD_TIER.name,
+        deviceMemoryGB: NEAR_LOD_DEVICE_GB,
+        poolBytesCap: { nearCanopy: NEAR_CANOPY_POOL_BYTES, nearBase: NEAR_BASE_POOL_BYTES },
+        swapM: { nearCanopy: [canopyIn, canopyOut], nearBase: [baseIn, baseOut] },
         nearCanopyPool: nearCanopyPool.report(),
         nearBasePool: nearBasePool.report(),
         prefetchM: { nearCanopy: NEAR_CANOPY_PREFETCH_M, nearBase: NEAR_BASE_PREFETCH_M },
         buildBudgetMs: NEAR_LOD_BUILD_BUDGET_MS,
-        bytesWithinM: { nearCanopy: within([NEAR_CANOPY_IN_M, NEAR_CANOPY_OUT_M, 30, NEAR_CANOPY_PREFETCH_M], nearCanopies), nearBase: within([NEAR_BASE_IN_M, NEAR_BASE_OUT_M, NEAR_BASE_PREFETCH_M], nearBoles) },
+        bytesWithinM: { nearCanopy: within([canopyIn, canopyOut, 34, NEAR_CANOPY_PREFETCH_M], nearCanopies), nearBase: within([baseIn, baseOut, NEAR_BASE_PREFETCH_M], nearBoles) },
       };
     },
     dispose() {

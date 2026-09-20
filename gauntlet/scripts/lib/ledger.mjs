@@ -130,9 +130,10 @@ export function entryIdentity(e) {
 }
 
 /**
- * Append entries of `local` that are missing from `base` onto `base`'s chain (same content,
+ * Append entries of `local` that are missing from `base` onto `base`'s chain (same capture evidence,
  * recomputed prevHash/hash). Used by `take.mjs --publish`: the monitor branch's ledger is the
- * canonical chain and local-only takes are re-sealed on top of it. Returns the merged ledger,
+ * canonical chain and local-only takes are re-sealed on top of it. Scores remain unchanged;
+ * regression validity is checked against the new preceding valid take. Returns the merged ledger,
  * `appended` (ids of all entries added) and `rebased` (those whose id or hash had to change).
  */
 export function mergeLedgers(base, local) {
@@ -159,6 +160,20 @@ export function mergeLedgers(base, local) {
       content.capturedAt = content.capturedAt ?? content.at;
       content.at = new Date(Date.parse(head.at) + 1000).toISOString();
       content.resequenced = true;
+    }
+    // Importing an older capture after newer passes can introduce regressions relative to
+    // the canonical baseline. Retain its evidence, but do not carry forward stale validity.
+    const previous = merged.entries.findLast((entry) => entry.valid !== false);
+    if (content.score?.items && previous?.score?.items) {
+      const regressions = Object.keys(content.score.items).filter((id) => previous.score.items[id] === 'pass' && content.score.items[id] === 'fail');
+      if (regressions.length) {
+        const reason = `D2 regression after ledger merge: ${regressions.join(', ')} (vs ${previous.id})`;
+        content.mergeRegression = { baseline: previous.id, sourceHash: e.hash, sourceValid: e.valid ?? null };
+        content.regressed = [...new Set([...(content.regressed ?? []), ...regressions])];
+        content.invalidAll = [...new Set([...(content.invalidAll ?? (content.invalid ? [content.invalid] : [])), reason])];
+        content.invalid = content.invalid ?? reason;
+        content.valid = false;
+      }
     }
     const sealed = appendEntry(merged, content);
     appended.push(sealed.id);

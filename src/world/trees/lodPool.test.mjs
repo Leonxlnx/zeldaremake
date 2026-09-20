@@ -307,7 +307,9 @@ test('a chunked build spreads over frames within the budget and ends like a sync
   const log = [];
   const now = clock();
   const pool = new LodPool(1000, now);
-  // 6 chunks of 2 ms each (then the finishing step): a 3 ms budget takes two chunks per frame (the second ends past the budget)
+  // 6 chunks of 2 ms each (then the finishing step): a 3 ms budget takes ONE chunk per frame —
+  // round 48: a second chunk is expected to cost what the first did and would end past the
+  // budget, so it waits for the next frame (the shipped loop ran it and paid 4 ms on a 3 ms budget)
   const item = fakeItem('x', 10, log, 6, now, 2);
   pool.add(item);
   let frames = 0;
@@ -316,14 +318,18 @@ test('a chunked build spreads over frames within the budget and ends like a sync
     pool.want(item, 1);
     pool.work(3);
   }
-  assert.equal(frames, 4, `three frames of two chunks and the finishing step (${frames})`);
+  assert.equal(frames, 7, `six frames of one chunk and the finishing step (${frames})`);
   assert.deepEqual(log, ['install x']);
   const r = pool.report();
   assert.equal(r.built, 1);
   assert.equal(r.syncBuilds, 0);
   assert.equal(r.buildMsMax, 12, 'the build time is the sum of its chunks');
   assert.equal(r.stepMsMax, 2);
-  assert.ok(r.workMsMax <= 4, `no work call ran past one chunk over the budget (${r.workMsMax})`);
+  assert.equal(r.steps, 7);
+  assert.equal(r.stepMsP50, 2);
+  assert.equal(r.longSteps, 0);
+  assert.ok(r.workMsMax <= 3, `no work call ran past the budget (${r.workMsMax})`);
+  assert.equal(r.workOverBudget, 0);
 
   // a build in progress that is pinned mid-way is finished, not restarted
   const y = fakeItem('y', 10, log, 6, now, 2);
@@ -349,6 +355,50 @@ test('a chunked build spreads over frames within the budget and ends like a sync
   pool.work(3);
   assert.equal(pool.report().building, 0);
   assert.ok(!pool.isResident(z));
+});
+
+test('the budget is checked before a chunk with its expected cost; the first chunk of a frame always runs', () => {
+  const log = [];
+  const now = clock();
+  const pool = new LodPool(1000, now);
+  // a 4 ms budget fits two 2 ms chunks exactly: three frames of two and the finishing step
+  const w = fakeItem('w', 10, log, 6, now, 2);
+  pool.add(w);
+  let framesW = 0;
+  for (; framesW < 10 && !pool.isResident(w); framesW++) {
+    pool.begin();
+    pool.want(w, 1);
+    pool.work(4);
+  }
+  assert.equal(framesW, 4, `two chunks per frame when they fit (${framesW})`);
+  assert.equal(pool.report().workMsMax, 4);
+  assert.equal(pool.report().workOverBudget, 0);
+
+  // chunks longer than the budget still advance one a frame (a build that never advanced would
+  // end as a synchronous build at its pin); every such call counts as over budget
+  const big = fakeItem('big', 10, log, 3, now, 5);
+  pool.add(big);
+  let framesBig = 0;
+  for (; framesBig < 10 && !pool.isResident(big); framesBig++) {
+    pool.begin();
+    pool.want(big, 1);
+    pool.work(3);
+  }
+  assert.equal(framesBig, 4, `one 5 ms chunk a frame on a 3 ms budget, then the finish (${framesBig})`);
+  assert.equal(pool.report().workOverBudget, 3, 'the three over-long chunks are counted');
+  assert.equal(pool.report().stepMsMax, 5);
+  assert.equal(pool.report().longSteps, 0, 'five ms is under LONG_STEP_MS');
+
+  // a build's first chunk is expected to cost the pool's median chunk: after the 2 ms and 5 ms
+  // chunks above (median 2), a new build's first chunk runs and its second waits when it would
+  // end past a 3 ms budget
+  const v = fakeItem('v', 10, log, 2, now, 2);
+  pool.add(v);
+  pool.begin();
+  pool.want(v, 1);
+  pool.work(3);
+  assert.ok(!pool.isResident(v));
+  assert.equal(pool.report().building, 1);
 });
 
 test('runBuild finishes a generator and returns its value', () => {

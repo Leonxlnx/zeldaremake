@@ -15,9 +15,15 @@ function load(file){file=path.resolve(file);if(modules.has(file))return modules.
 }
 const read=name=>load(path.join(root,name+'.ts'));
 const {WORLD}=read('config'),{LAYOUT}=read('layout'),{VegField,newSample}=read('vegetation/field');
-function make(){const ctx={config:WORLD,layout:LAYOUT,terrain:read('terrain/heightfield').createTerrain(),rng:read('util/prng').createRng(WORLD.seed),wind:read('wind/wind').createWind(),quality:{tier:'high',density:1,distance:1,shadows:true,pixelRatio:1.5}};
+function make(shared={}){const ctx={config:WORLD,layout:LAYOUT,terrain:read('terrain/heightfield').createTerrain(),rng:read('util/prng').createRng(WORLD.seed),wind:read('wind/wind').createWind(),quality:{tier:'high',density:1,distance:1,shadows:true,pixelRatio:1.5},shared};
   const group=new THREE.Group(),field=new VegField(ctx,WORLD.detailRadius+6,.5);return{ctx,group,field,plants:read('vegetation/plants').buildPlants(ctx,field,group)};
 }
+// round 48 (vegetation-26): the passes north of the log arch's north lip (field.ts NORTH_ZONE_Z) seat on ground the field
+// grid's coarse `allowed` cannot answer — the far floor runs past the grid, the moss at the standing stones' feet stands
+// on the clearing's paving by design — so their roots are held to the exact terrain mask instead
+const {STONE_CIRCLE_STONES}=read('terrain/heightfield');
+const NORTH_GATE_Z=-59;
+const stoneDistance=(x,z)=>Math.min(...STONE_CIRCLE_STONES.map(st=>Math.hypot(x-st.x,z-st.z)));
 const a=make(),b=make();
 const hash=array=>createHash('sha256').update(Buffer.from(array.buffer,array.byteOffset,array.byteLength)).digest('hex');
 let checkedVertices=0,checkedBases=0,shadowMeshes=0;
@@ -27,7 +33,10 @@ for(let j=0;j<a.plants.all.length;j++){
   for(let i=0;i<first.count;i++){
     const item=first.items[i];assert.deepEqual(item,second.items[i],'Fresh seed/terrain reproduces transforms, variant and pigment');
     const sample=a.field.sample(item.x,item.z,newSample());
-    assert.ok(a.field.allowed(item.x,item.z,sample),'Placed root obeys original field exclusions');
+    if(item.z>=NORTH_GATE_Z)assert.ok(a.field.allowed(item.x,item.z,sample),'Placed root obeys original field exclusions');
+    else{const m=a.ctx.terrain.mask(item.x,item.z);
+      if(first===a.plants.moss&&stoneDistance(item.x,item.z)<0.7)assert.ok(m.structure<0.5&&stoneDistance(item.x,item.z)>=0.3,`stone-foot moss off the stone's footprint (${first.opts.name})`);
+      else assert.ok(a.ctx.terrain.vegetationAllowed(item.x,item.z),`round-48 north root obeys the exact terrain mask (${first.opts.name} at ${item.x}, ${item.z})`);}
     assert.ok(!a.field.insideGiantTrunk(item.x,item.z),'No root inside giant trunk');
     const gap=a.ctx.terrain.height(item.x,item.z)-item.y;
     assert.ok(gap>=-.004&&gap<.061,`Root contact gap ${gap} for ${first.opts.name}`);checkedBases++;
@@ -335,7 +344,9 @@ for(const id of['A_stairs','B_house','D_log']){
 assert.deepEqual([a.plants.clover,a.plants.fiddleheads,a.plants.tufts,a.plants.moss].map(s=>s.opts.maxDistance),[16,24,22,24]);
 // round 44: the north corridor's own fern / broad-leaf sets stop at 30 m (the fixed cameras stand 40 m+ off the plain)
 assert.deepEqual([a.plants.fernsNorth,a.plants.weedsNorth].map(s=>s.opts.maxDistance),[30,30]);
-for(const set of a.plants.all)if(![a.plants.clover,a.plants.fiddleheads,a.plants.tufts,a.plants.moss,a.plants.fernsNorth,a.plants.weedsNorth].includes(set))assert.equal(set.opts.maxDistance,undefined,`${set.opts.name} has no far cut`);
+// round 48: the clearing banks' shrubs stop at 36 m (camera A looks north over them), the pad's tufts at the tufts' 22 m
+assert.deepEqual([a.plants.bushesNorth,a.plants.tuftsNorth].map(s=>s.opts.maxDistance),[36,22]);
+for(const set of a.plants.all)if(![a.plants.clover,a.plants.fiddleheads,a.plants.tufts,a.plants.moss,a.plants.fernsNorth,a.plants.weedsNorth,a.plants.bushesNorth,a.plants.tuftsNorth].includes(set))assert.equal(set.opts.maxDistance,undefined,`${set.opts.name} has no far cut`);
 assert.deepEqual(a.plants.tufts.opts.lodDistances,[10]);assert.deepEqual(a.plants.ferns.opts.lodDistances,[12,20]);
 // the pack layout: the round-13 trade (flowers mid LOD in pairs, near weeds / fiddleheads per variant) holds
 // (round 43: one ultra tier ahead of them — flowers / weeds pack it whole, one draw for the few clumps inside the ring)
@@ -643,7 +654,10 @@ grassMaterial.dispose();for(const t of grass.tiles){t.mesh.dispose();for(const g
     // round 46 (survey-2 #06): the north pass floors the disc falloff at NORTH_LITTER_REACH_FLOOR — the hollow floor and the
     // plain are strewn to 25 m (≈ 6.4 K leaves, was ≈ 4.7 K ≤ 6 000); its leaves' far LOD lies FLAT on the floor (the fold's
     // clipped sliver read as a raised chip) and every piece seats on the exact terrain height and normal
-    assert.ok(litter.northTwigs.count>=300&&litter.northTwigs.count<=900&&litter.northLeaves.count>=3000&&litter.northLeaves.count<=8000,`north litter ${litter.northTwigs.count} twigs, ${litter.northLeaves.count} leaves`);
+    // round 48: the far-floor pass strews the plain past the round-44 pass' reach to z ≈ −95 (+ ≈ 2 K leaves, ≈ 200 twigs)
+    assert.ok(litter.northTwigs.count>=300&&litter.northTwigs.count<=1200&&litter.northLeaves.count>=3000&&litter.northLeaves.count<=11000,`north litter ${litter.northTwigs.count} twigs, ${litter.northLeaves.count} leaves`);
+    {const far=litter.northLeaves.items.filter(it=>it.z<-84&&it.z>-96&&Math.abs(it.x+1.5)<14).length;assert.ok(far>=400,`${far} far-floor leaves past z −84`);
+      const pad=litter.northLeaves.items.filter(it=>it.x>-3.1&&it.x<1.7&&it.z>-79.8&&it.z<-76.8).length;assert.ok(pad<=40,`${pad} leaves left on the terrace pad`);}
     {const {NORTH_LITTER_REACH_FLOOR,NORTH_LITTER_LIFT}=read('vegetation/litter');assert.ok(NORTH_LITTER_REACH_FLOOR>=0.75&&NORTH_LITTER_LIFT<=0.002);
       const onPath=it=>{a.field.sample(it.x,it.z,sampleN);return sampleN.path>0.5;};const sampleN=newSample();const nrm=new THREE.Vector3();
       for(const it of litter.northLeaves.items){if(onPath(it))continue;const gap=it.y-a.ctx.terrain.height(it.x,it.z);assert.ok(Math.abs(gap-NORTH_LITTER_LIFT)<5e-5,`north leaf ${gap.toFixed(5)} m over the ground (float32 seat)`);
@@ -651,7 +665,8 @@ grassMaterial.dispose();for(const t of grass.tiles){t.mesh.dispose();for(const g
       for(const [,,flat] of litter.northLeaves.opts.variants){flat.computeBoundingBox();const fb=flat.boundingBox;assert.equal(flat.index.count/3,2,'north far leaf: two triangles');assert.ok(fb.min.y>=0&&fb.max.y<=0.012,`north far leaf lies flat: y ${fb.min.y.toFixed(4)}…${fb.max.y.toFixed(4)}`);}
       for(const [ultra,near] of litter.northLeaves.opts.variants){assert.equal(near.index.count/3,14);assert.ok(ultra.index.count/3>=28);}}
     assert.ok(litter.northTwigs.items.every(it=>it.z<-15)&&litter.northTwigs.items.some(it=>it.z<-56),'north twigs lie north of the plaza, some past the arch');
-    const sample=newSample();for(const it of litter.northTwigs.items){a.field.sample(it.x,it.z,sample);assert.ok(a.field.allowed(it.x,it.z,sample),'north twigs never lie on the paving');}
+    // (round 48: the far-floor pass' twigs lie past the field grid's north edge — held to the exact terrain mask)
+    const sample=newSample();for(const it of litter.northTwigs.items){a.field.sample(it.x,it.z,sample);assert.ok(it.z<NORTH_GATE_Z?a.ctx.terrain.vegetationAllowed(it.x,it.z):a.field.allowed(it.x,it.z,sample),'north twigs never lie on the paving');}
     assert.equal(litter.count,litter.leaves.count+litter.northLeaves.count+litter.twigs.count+litter.northTwigs.count+litter.roots.count,'every litter piece audited once');}
   assert.deepEqual(litter.leaves.packLayout[0],[[0,1,2,3]],'ultra leaves in one draw');assert.deepEqual(litter.leaves.packLayout[1],[[0],[1],[2],[3]],'near leaves per variant');
   for(const [ultra,near,far] of litter.leaves.opts.variants){assert.equal(near.index.count/3,14);assert.equal(far.index.count/3,2,'far leaf: the two-triangle fold');
@@ -676,5 +691,49 @@ grassMaterial.dispose();for(const t of grass.tiles){t.mesh.dispose();for(const g
   {const sh={vertexShader:'#include <project_vertex>\n#include <begin_vertex>\n#include <worldpos_vertex>',fragmentShader:'#include <color_fragment>\n#include <lights_fragment_end>',uniforms:{}};
     read('vegetation/materials').createVegMaterial(a.ctx,'litter',{leafDetail:true}).onBeforeCompile(sh);assert.ok(sh.fragmentShader.includes('vLeafUv.x < 1.5')&&sh.fragmentShader.includes('vegLeafTrans = leafFade * 0.4 * v;'),'litter block');}
   litterMaterial.dispose();for(const set of litter.all)for(const v of set.opts.variants)for(const g of v)g.dispose();}
+// round 48 (vegetation-26): the ground north of the log arch — the second clearing's banks, the ledge terrace's pad, the
+// standing stones' feet and the forest floor beyond the tunnel (plants.ts NORTH_BUSH_MAX_M …; field.ts NORTH_ZONE_Z)
+{const P=a.plants,N=P.north;
+  // the clearing banks' shrubs and the pad's tufts are their own sets (the disc bushes draw their far LOD at any range,
+  // the disc tufts back the B3 claim), the disc sets' geometry and material, cut like the north ferns; both north of the gate
+  assert.strictEqual(P.bushesNorth.opts.variants,P.bushes.opts.variants);assert.strictEqual(P.bushesNorth.opts.material,P.bushes.opts.material);
+  assert.ok(P.bushesNorth.opts.maxDistance>=30&&P.bushesNorth.opts.maxDistance<=40,`north bushes cut at ${P.bushesNorth.opts.maxDistance} m`);
+  assert.strictEqual(P.tuftsNorth.opts.variants,P.tufts.opts.variants);assert.equal(P.tuftsNorth.opts.maxDistance,P.tufts.opts.maxDistance);
+  for(const set of[P.bushesNorth,P.tuftsNorth])for(const it of set.items)assert.ok(it.z<NORTH_GATE_Z,`${set.opts.name} at z ${it.z} is north of the gate`);
+  // (1) the banks: dark ferns off the paving, thickest in the first two metres, the two authored clumps at the terrace flanks
+  const inBox=(it,b)=>it.x>=b[0]&&it.z>=b[1]&&it.x<=b[2]&&it.z<=b[3];
+  const bankFerns=P.fernsNorth.items.filter(it=>inBox(it,[-11,-84,11,-60])&&Math.hypot(it.x+1.5,it.z+69.8)>4.6);
+  assert.ok(N.clearingFerns>=150&&bankFerns.length>=N.clearingFerns,`${N.clearingFerns} clearing-bank ferns (${bankFerns.length} north ferns in the box)`);
+  for(const [fx,fz] of[[-3.5,-78.5],[2.4,-79.0]]){const n=P.fernsNorth.items.filter(it=>Math.hypot(it.x-fx,it.z-fz)<1.4).length;assert.ok(n>=6,`terrace-flank clump at (${fx}, ${fz}): ${n} fronds`);}
+  assert.ok(N.flankFerns>=12,`${N.flankFerns} flank ferns`);
+  assert.ok(N.clearingBushes>=6&&N.clearingBushes<=60,`${N.clearingBushes} clearing shrubs`);
+  for(const it of P.bushesNorth.items)assert.ok(Math.hypot(it.x+1.5,it.z+69.8)>4.6+1.8,`shrub ${it.x}, ${it.z} stays off the clearing's rim`);
+  // the ferns' tint is ref-04's dark green: the bank fronds (this pass' 0.76 × among the round-44 corridor ferns' 0.94 ×) are mostly dark
+  const dark=bankFerns.filter(it=>it.color[1]<0.85).length;assert.ok(dark>=0.6*bankFerns.length,`${dark} of ${bankFerns.length} bank fronds dark`);
+  // (2) the terrace pad: tufts and clover a Kokiri stands on, short at her feet
+  const pad=[-3.1,-79.8,1.7,-76.8];const padTufts=P.tuftsNorth.items.filter(it=>inBox(it,pad));
+  assert.ok(N.padTufts>=40&&padTufts.length>=0.6*P.tuftsNorth.count,`${N.padTufts} pad tufts (${padTufts.length} on the pad of ${P.tuftsNorth.count})`);
+  for(const it of P.tuftsNorth.items){assert.ok(it.variant%3<2,'no tall tuft on the pad');if(Math.hypot(it.x+0.6,it.z+78.4)<0.9)assert.equal(it.variant%3,0,'short tufts at the Kokiri feet');}
+  assert.ok(N.padClover>=20,`${N.padClover} pad clover`);
+  // (3) moss cushions at every standing stone's foot, in the ring off its footprint
+  for(const st of STONE_CIRCLE_STONES){const n=P.moss.items.filter(it=>{const d=Math.hypot(it.x-st.x,it.z-st.z);return d>=0.3&&d<0.7;}).length;assert.ok(n>=5,`stone (${st.x.toFixed(2)}, ${st.z.toFixed(2)}): ${n} moss cushions at its foot`);}
+  assert.ok(N.stoneMoss>=5*STONE_CIRCLE_STONES.length,`${N.stoneMoss} stone-foot cushions`);
+  // (4) the far floor: a low herb carpet past the clearing (z −83 … −95, where the round-44 pass' reach ran out) and ferns at the trees' feet
+  const farHerbs=[...P.weedsNorth.items,...P.clover.items,...P.moss.items].filter(it=>it.z<-83&&it.z>-96&&Math.abs(it.x+1.5)<12).length;
+  assert.ok(N.farHerbs>=300&&farHerbs>=60,`${N.farHerbs} far-floor herbs (${farHerbs} past z −83)`);
+  assert.ok(N.farFeet>=1&&N.farFootFerns>=N.farFeet*4,`${N.farFootFerns} ferns at ${N.farFeet} far tree feet`);
+  // nothing north seats inside the standing stones' footprints or on the north paving (the moss ring excepted above)
+  for(const set of[P.fernsNorth,P.weedsNorth,P.clover,P.bushesNorth,P.tuftsNorth])for(const it of set.items)if(it.z<NORTH_GATE_Z)assert.ok(stoneDistance(it.x,it.z)>=0.3,`${set.opts.name} off the standing stones`);
+  // (5) a prop footprint published before the build (ctx.shared.propFootprints) rejects every standing plant inside it — the
+  // disc streams' too (fable-3's fern through the pot); the footprint here sits in the shot-D fern bank
+  const foot={x:-3.9,z:-11.4,r:0.9};const inside=set=>set.items.filter(it=>Math.hypot(it.x-foot.x,it.z-foot.z)<foot.r).length;
+  const before=inside(P.ferns)+inside(P.weeds)+inside(P.tufts);assert.ok(before>=3,`${before} disc plants stand in the test footprint before it is published`);
+  const c=make({propFootprints:[foot]});
+  for(const set of[c.plants.ferns,c.plants.heroFerns,c.plants.fiddleheads,c.plants.tufts,c.plants.flowers,c.plants.whiteFlowers,c.plants.weeds,c.plants.seedheads,c.plants.fernsNorth,c.plants.weedsNorth,c.plants.bushesNorth,c.plants.tuftsNorth])assert.equal(inside(set),0,`${set.opts.name}: none inside the published footprint`);
+  assert.ok(c.plants.north.propRejected>=before,`${c.plants.north.propRejected} rejected by the footprint`);
+  // the footprint moves nothing else: every fern outside it keeps its seat
+  const outside=set=>set.items.filter(it=>Math.hypot(it.x-foot.x,it.z-foot.z)>=foot.r).map(it=>`${it.x},${it.z}`).join('|');
+  assert.equal(outside(c.plants.ferns),outside(P.ferns),'the disc ferns outside the footprint are the same');
+  {const geos=new Set();c.group.traverse(o=>{if(o.isMesh){geos.add(o.geometry);o.dispose();}});for(const g of geos)g.dispose();for(const m of c.plants.materials)m.dispose();}}
 for(const fixture of[a,b]){const geos=new Set();fixture.group.traverse(o=>{if(o.isMesh){geos.add(o.geometry);o.dispose();}});for(const g of geos)g.dispose();for(const m of fixture.plants.materials)m.dispose();}
 console.log(JSON.stringify({passed:true,checkedVertices,checkedBases,shadowMeshes,bushes:a.plants.bushes.count,stripBlades:strip.length,stripHeightRatio:Math.round(q(strip,0.95)/q(lawn,0.95)*1000)/1000,note:'CPU geometry/placement contracts only; GPU capture and foliage appearance still require review.'}));

@@ -1,15 +1,27 @@
 {
   "item": "C02",
-  "reviewer": "opus-review",
+  "reviewer": "fable-5",
   "verdict": "fail",
-  "evidence": "gauntlet/reviews/evidence/opus-review/take-0116-C02b-equipment-item-slots.jpg",
-  "takeId": "take-0116",
+  "evidence": "gauntlet/reviews/evidence/fable-5/take-0121-C02-A-shield.jpg",
+  "takeId": "take-0121",
   "author": "fable-cursor",
-  "takeSha": "973a21e5b045177f66da3d04dc4e67e387270620",
-  "at": "2026-09-19T19:34:14.678Z",
+  "takeSha": "cf8083ba21018a37478c2b1f5b2af4be97cbf710",
+  "at": "2026-09-20T06:20:34.291Z",
   "criterion": "Matches the equipment screen renders in the reference.",
-  "note": "Judged against the criterion's own reference, the equipment renders in frame 34 s, using a non-author render of the same commit (973a21e, ?screen=equipment, my own worktree) because no take captures that screen. In the slots our Deku Shield is a flat vector icon of a shield with a small red spiral and our Kokiri Sword a flat vector sword; the reference's slots carry rendered 3-D items. In world the shield is worse: at A it hangs low on the back and reads as a brown satchel, with a dark red spiral covering about 40 % of the face against the reference's roughly 70 % (take-0116-C02-A-shield-back.jpg). No scabbard and no sword hilt is visible above the shoulder in any of the take's six frames.",
+  "note": "The Deku Shield on Link's back reads as the right object and the red spiral has grown to ~50-55 % of the face (from ~45 %; the reference's is ~70 %). The Kokiri Sword is still not visible anywhere: no scabbard or hilt on the back at A, and the equipment grid on cf8083b shows the sword slot but the oval never shows Link holding it. 'Matches the equipment screen renders' needs both items.",
   "history": [
+    {
+      "item": "C02",
+      "reviewer": "opus-review",
+      "verdict": "fail",
+      "evidence": "gauntlet/reviews/evidence/opus-review/take-0116-C02b-equipment-item-slots.jpg",
+      "takeId": "take-0116",
+      "author": "fable-cursor",
+      "takeSha": "973a21e5b045177f66da3d04dc4e67e387270620",
+      "at": "2026-09-19T19:34:14.678Z",
+      "criterion": "Matches the equipment screen renders in the reference.",
+      "note": "Judged against the criterion's own reference, the equipment renders in frame 34 s, using a non-author render of the same commit (973a21e, ?screen=equipment, my own worktree) because no take captures that screen. In the slots our Deku Shield is a flat vector icon of a shield with a small red spiral and our Kokiri Sword a flat vector sword; the reference's slots carry rendered 3-D items. In world the shield is worse: at A it hangs low on the back and reads as a brown satchel, with a dark red spiral covering about 40 % of the face against the reference's roughly 70 % (take-0116-C02-A-shield-back.jpg). No scabbard and no sword hilt is visible above the shoulder in any of the take's six frames."
+    },
     {
       "item": "C02",
       "reviewer": "fable-5",

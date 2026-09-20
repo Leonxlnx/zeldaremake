@@ -26,16 +26,28 @@ export const ROCK_SET = 'rock_boulder_cracked';
  *    plates (`aMoss` < 0) painted in their own pale vertex colour (dressing.ts)
  */
 export const NEAR_TILE_M = 2.6;
-export const NEAR_FADE_M: [number, number] = [2.5, 6.0];
+/**
+ * fable-2: the near terms hold to 4 m and are gone by 6.3 m (were 2.5 / 6.0) so the wet band,
+ * moss cushions and lichen crust read at player height, 2–6 m off; camera D — the nearest hero
+ * camera to any hero rock — stands 7.22 m from the D boulder's centre, ≥ 6.4 m from its lumps.
+ */
+export const NEAR_FADE_M: [number, number] = [4.0, 6.3];
 export const NEAR_NORMAL_BOOST = 0.8;
 
 /**
  * @param shade overall albedo multiplier (rock and moss alike) — the big terrace boulder in
  *   shot A reads darker than the small stair-foot ones in the reference
  * @param opts.near the hero boulders' near-detail variant (see NEAR_TILE_M)
+ * @param opts.fade the near variant's fade band (m) when it is not the hero boulders' NEAR_FADE_M —
+ *   the ledge faces (ledge.ts) are read from the path, 3–9 m off, so theirs reaches further
  */
-export async function createRockMaterial(textures: TextureLibrary, config: WorldConfig, anisotropy = 8, tile = 1.4, shade = 1, opts: { near?: boolean } = {}) {
+export async function createRockMaterial(textures: TextureLibrary, config: WorldConfig, anisotropy = 8, tile = 1.4, shade = 1, opts: { near?: boolean; fade?: [number, number]; damp?: number } = {}) {
   const near = !!opts.near;
+  const fade = opts.fade ?? NEAR_FADE_M;
+  // the wet band's darkening: the hero boulders' (0.7 / 0.72 / 0.78, a damp sheen) raised to
+  // `damp` — the ledge passes 1.6 so its foot band is the near-black damp stone of ref-04
+  const damp = opts.damp ?? 1;
+  const wetTint = [0.7, 0.72, 0.78].map((v) => Math.pow(v, damp).toFixed(3)).join(', ');
   const [color, normal, rough] = await Promise.all([
     textures.load(ROCK_SET, 'color', { anisotropy }),
     textures.load(ROCK_SET, 'normal', { anisotropy }),
@@ -53,7 +65,7 @@ export async function createRockMaterial(textures: TextureLibrary, config: World
     vertexColors: true,
     color: new Color(shade, shade, shade),
   });
-  mat.name = `${shade === 1 ? 'rock-triplanar' : `rock-triplanar-shade${shade}`}${near ? '-near' : ''}`;
+  mat.name = `${shade === 1 ? 'rock-triplanar' : `rock-triplanar-shade${shade}`}${near ? '-near' : ''}${opts.fade ? `-fade${opts.fade[1]}` : ''}${damp !== 1 ? `-damp${damp}` : ''}`;
   // the boulder caps in the reference are an olive-brown moss (#70683b, R > G), not the yellow-green
   // of the ground moss: pull both palette greens toward it. Round 4 (frames 1 s / 56 s, measured
   // in the rock boxes): the sunlit cushion reads lum 0.45–0.47 at HSL sat 0.27–0.30 where ours
@@ -75,13 +87,13 @@ export async function createRockMaterial(textures: TextureLibrary, config: World
     shader.uniforms.uRockTile = { value: 1 / tile };
     if (near) {
       shader.uniforms.uNearTile = { value: 1 / NEAR_TILE_M };
-      shader.uniforms.uNearFade = { value: new Vector2(NEAR_FADE_M[0], NEAR_FADE_M[1]) };
+      shader.uniforms.uNearFade = { value: new Vector2(fade[0], fade[1]) };
       shader.uniforms.uNearNormalBoost = { value: NEAR_NORMAL_BOOST };
     }
-    // the near variant's extra varying (the wet band) and its per-fragment weight
-    const nearVaryV = near ? ' attribute float aWet; varying float vWetR;' : '';
-    const nearVaryF = near ? ' varying float vWetR; uniform float uNearTile; uniform vec2 uNearFade; uniform float uNearNormalBoost;' : '';
-    const nearAssign = near ? '\n        vWetR = aWet;' : '';
+    // the near variant's extra varyings (the wet band, the lichen crust) and its per-fragment weight
+    const nearVaryV = near ? ' attribute float aWet; varying float vWetR; attribute float aLichen; varying float vLichenR;' : '';
+    const nearVaryF = near ? ' varying float vWetR; varying float vLichenR; uniform float uNearTile; uniform vec2 uNearFade; uniform float uNearNormalBoost;' : '';
+    const nearAssign = near ? '\n        vWetR = aWet; vLichenR = aLichen;' : '';
     const nearWeight = near ? 'float nearW = 1.0 - smoothstep(uNearFade.x, uNearFade.y, distance(vWPosR, cameraPosition));' : '';
     shader.vertexShader = shader.vertexShader
       .replace('#include <common>', `#include <common>\nattribute float aMoss; varying float vMossR; varying vec3 vWPosR; varying vec3 vWNrmR;${nearVaryV}`)
@@ -111,7 +123,13 @@ export async function createRockMaterial(textures: TextureLibrary, config: World
             vec3 cn = nx * bw.x + ny * bw.y + nz * bw.z;
             float lnr = dot(cn, vec3(0.299, 0.587, 0.114));
             cn = mix(cn, vec3(lnr) * vec3(0.985, 0.99, 0.99), 0.78);
-            cn = mix(vec3(0.3), cn, 0.86);
+            // fable-2 (opus #10: the D boulder "an unreadable dark mass" at 2 m): in frame D the
+            // reference's boulder face renders at parity with the ferns beside it (lum 0.32 both);
+            // ours rendered 0.17 against ferns at 0.21 — probes at the pose (white lit rock 0.47,
+            // normal map / roughness / near colour terms each changing nothing measurable) put the
+            // whole gap in the stone's value, so the near stone is lifted ×1.35 and warmed toward
+            // the reference's olive-tan (rgb 91/83/45), with a little less of the source's crazing
+            cn = mix(vec3(0.37), cn, 0.8) * vec3(1.43, 1.35, 1.22);
             // plate tone: neighbouring 25–40 cm plates differ ±10 % in value (frame-05's faces are
             // a patchwork of lighter and darker slabs), so a face in flat shade still reads as
             // fractured stone rather than one even grey
@@ -132,12 +150,16 @@ export async function createRockMaterial(textures: TextureLibrary, config: World
           diffuseColor.rgb *= mix(c * 1.08, vec3(0.62 + 0.45 * l), plate);
           if (nearW > 0.0005) {
             float vl = dot(vColor.rgb, vec3(0.299, 0.587, 0.114));
-            // grime: the cracks and partings (dark vertex colour) hold a damp dark brown
-            float grime = smoothstep(0.42, 0.16, vl) * nearW * (1.0 - plate);
-            diffuseColor.rgb = mix(diffuseColor.rgb, vec3(0.12, 0.1, 0.075) * (0.7 + 0.8 * l), 0.7 * grime);
-            // the wet band above the ground: darker and a shade cooler (frame-05's dark undersides)
             float wet = clamp(vWetR, 0.0, 1.0) * nearW * (1.0 - plate);
-            diffuseColor.rgb *= mix(vec3(1.0), vec3(0.62, 0.65, 0.69), wet);
+            // grime: the cracks and partings (dark vertex colour) hold a damp dark brown — not the
+            // collar (fable-2: the soil collar is dark already; grimed as well it went black and
+            // swallowed the wet band, survey-2 #19 / #32)
+            float grime = smoothstep(0.42, 0.16, vl) * nearW * (1.0 - plate) * (1.0 - 0.85 * wet);
+            diffuseColor.rgb = mix(diffuseColor.rgb, vec3(0.12, 0.1, 0.075) * (0.7 + 0.8 * l), 0.55 * grime);
+            // the wet band above the ground: a shade darker, cooler, a little bluer (damp stone,
+            // not mud); the gloss (roughness below) carries most of the read — at 0.56–0.68 the
+            // band was the darkest thing on the D boulder's face (opus #10)
+            diffuseColor.rgb *= mix(vec3(1.0), vec3(${wetTint}), wet);
           }`
       : /* glsl */ `
           diffuseColor.rgb *= c * 1.08;`;
@@ -145,19 +167,39 @@ export async function createRockMaterial(textures: TextureLibrary, config: World
     // round 44 (survey-1 crop 32): the hero variant's flecks are irregular crusts, not dots — the
     // fleck field is domain-warped (the lattice of the value noise no longer shows), thresholded
     // lower inside a clump so neighbouring flecks fuse into one plate, and each crust has a dark
-    // rim band outside its edge; the instanced far rocks keep the round-42 flecks
+    // rim band outside its edge; the instanced far rocks keep the round-42 flecks.
+    // fable-2 (survey-2 #32): at near range the flecks still read as polka dots at 1 m, so they
+    // fade out with nearW and the CRUST field baked per vertex by rockgen (`aLichen`: colonies
+    // that spread over the middle of a plate and stop at its joints) fades in — its edge torn by
+    // a fine noise, a damp dark rim just outside it, a granular tone inside. The hero cameras
+    // (≥ 6.5 m from every hero rock) keep the far flecks exactly.
     const fleckExpr = near
       ? /* glsl */ `
             vec2 lw = lp + (vec2(rockVNoise(lp * 9.0 + 5.0), rockVNoise(lp * 9.0 - 7.0)) - 0.5) * 0.09;
             float fl = rockVNoise(lw * 14.0) * 0.55 + rockVNoise(lw * 31.0 + 3.0) * 0.3 + rockVNoise(lp * 67.0 + 9.0) * 0.15;
             float thr = 0.66 - 0.16 * cluster;
-            float fleck = smoothstep(thr - 0.03, thr + 0.05, fl);
-            float fleckRim = smoothstep(thr - 0.1, thr - 0.03, fl) * (1.0 - fleck) * cluster * (1.0 - mossCov) * smoothstep(-0.5, 0.1, vWNrmR.y) * (1.0 - plate);
-            diffuseColor.rgb *= 1.0 - 0.22 * fleckRim;`
+            float fleck = smoothstep(thr - 0.03, thr + 0.05, fl) * (1.0 - nearW);
+            float fleckRim = smoothstep(thr - 0.1, thr - 0.03, fl) * (1.0 - fleck) * cluster * (1.0 - mossCov) * smoothstep(-0.5, 0.1, vWNrmR.y) * (1.0 - plate) * (1.0 - nearW);
+            diffuseColor.rgb *= 1.0 - 0.22 * fleckRim;
+            float cn = rockVNoise(lp * 26.0 + 1.0) * 0.6 + rockVNoise(lp * 55.0 + 7.0) * 0.4;
+            float cv = clamp(vLichenR, 0.0, 1.0) + 0.34 * (cn - 0.5);
+            float crust = smoothstep(0.36, 0.52, cv) * nearW;
+            float crustRim = smoothstep(0.18, 0.36, cv) * (1.0 - smoothstep(0.36, 0.52, cv)) * nearW * (1.0 - mossCov) * (1.0 - plate);
+            diffuseColor.rgb *= 1.0 - 0.22 * crustRim;
+            // the crust's own tone: per-colony pale grey / grey-green / whitish, granular inside
+            // (crustose lichen is a chalky skin a shade paler than the stone, not a green paint)
+            float colonyTone = rockVNoise(lp * 2.3 + 4.0);
+            vec3 crustCol = mix(mix(vec3(0.66, 0.66, 0.59), vec3(0.62, 0.66, 0.52), smoothstep(0.3, 0.6, colonyTone)), vec3(0.75, 0.74, 0.68), smoothstep(0.65, 0.9, colonyTone));
+            crustCol *= 0.86 + 0.28 * rockVNoise(lp * 44.0 + 2.0);`
       : /* glsl */ `
             float fleck = smoothstep(0.56, 0.68, rockVNoise(lp * 19.0) * 0.7 + rockVNoise(lp * 43.0 + 3.0) * 0.3);`;
+    // the crust replaces the fleck colour where it is present
+    const lichenColExpr = near ? 'mix(mix(vec3(0.62, 0.66, 0.5), vec3(0.7, 0.7, 0.64), rockVNoise(lp * 7.0)), crustCol, crust) * diffuse' : 'mix(vec3(0.62, 0.66, 0.5), vec3(0.7, 0.7, 0.64), rockVNoise(lp * 7.0)) * diffuse';
+    const lichenAmount = near ? 'max(cluster * fleck, crust)' : 'cluster * fleck';
     // cushions (aMoss > 1): the crown lifted toward the lit bright green, the rim the plain moss
-    const nearMossLift = near ? '\n          moss *= 1.0 + 0.35 * max(0.0, vMossR - 1.0);' : '';
+    // (opus #10: at near range the blanket's shaded rim — the damp dark green turned from the sun —
+    // is what made the D boulder's cap a black-edged mass; lifted a quarter, sunlit moss untouched)
+    const nearMossLift = near ? '\n          moss *= 1.0 + 0.35 * max(0.0, vMossR - 1.0);\n          moss *= 1.0 + 0.25 * nearW * (1.0 - sunSide);' : '';
     const nearNormal = near
       ? /* glsl */ `
           if (nearW > 0.0005) {
@@ -166,13 +208,16 @@ export async function createRockMaterial(textures: TextureLibrary, config: World
             vec3 mz = texture2D(normalMap, vWPosR.xy * uNearTile).xyz * 2.0 - 1.0;
             nx = mix(nx, mx, nearW); ny = mix(ny, my, nearW); nz = mix(nz, mz, nearW);
             ns *= 1.0 + uNearNormalBoost * nearW;
+            // the lichen crust is a smooth skin over the pitting
+            ns *= 1.0 - 0.45 * smoothstep(0.34, 0.5, clamp(vLichenR, 0.0, 1.0)) * nearW;
           }
           ns *= 1.0 - clamp(-vMossR, 0.0, 1.0);`
       : '';
     const nearRough = near
       ? /* glsl */ `
-          roughnessFactor *= 1.0 - 0.4 * clamp(vWetR, 0.0, 1.0) * nearW;
-          roughnessFactor = mix(roughnessFactor, 0.95, clamp(-vMossR, 0.0, 1.0));`
+          roughnessFactor *= 1.0 - 0.55 * clamp(vWetR, 0.0, 1.0) * nearW;
+          roughnessFactor = mix(roughnessFactor, 0.95, clamp(-vMossR, 0.0, 1.0));
+          roughnessFactor = mix(roughnessFactor, 0.96, smoothstep(0.34, 0.5, clamp(vLichenR, 0.0, 1.0)) * nearW);`
       : '';
     shader.fragmentShader = shader.fragmentShader
       .replace(
@@ -210,9 +255,9 @@ export async function createRockMaterial(textures: TextureLibrary, config: World
             vec3 bwl = bw * bw;
             vec2 lp = vWPosR.zy * bwl.x + vWPosR.xz * bwl.y + vWPosR.xy * bwl.z;
             float cluster = smoothstep(0.46, 0.7, rockVNoise(lp * 3.1 + 11.0));${fleckExpr}
-            float lichen = cluster * fleck * (1.0 - mossCov) * smoothstep(-0.5, 0.1, vWNrmR.y)${nearLichenMask};
-            vec3 lichenCol = mix(vec3(0.62, 0.66, 0.5), vec3(0.7, 0.7, 0.64), rockVNoise(lp * 7.0)) * diffuse;
-            diffuseColor.rgb = mix(diffuseColor.rgb, lichenCol * (0.85 + 0.3 * l), 0.75 * lichen);
+            float lichen = ${lichenAmount} * (1.0 - mossCov) * smoothstep(-0.5, 0.1, vWNrmR.y)${nearLichenMask};
+            vec3 lichenCol = ${lichenColExpr};
+            diffuseColor.rgb = mix(diffuseColor.rgb, lichenCol * (0.85 + 0.3 * l), ${near ? 'mix(0.75, 0.7, crust)' : '0.75'} * lichen);
           }
           // moss: the texture luminance (mean ≈ 0.3) picks between deep and bright green so the
           // moss keeps the rock's pitting; blend is near-opaque where the coverage is full. The
@@ -259,6 +304,6 @@ export async function createRockMaterial(textures: TextureLibrary, config: World
         }`,
       );
   };
-  mat.customProgramCacheKey = () => (near ? 'rock-triplanar-v10-lichen-crusts' : 'rock-triplanar-v8-sunside-moss');
+  mat.customProgramCacheKey = () => (near ? `rock-triplanar-v12-pale-near-stone-damp${damp}` : 'rock-triplanar-v8-sunside-moss');
   return mat;
 }

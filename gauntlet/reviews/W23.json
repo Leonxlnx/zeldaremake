@@ -1,15 +1,27 @@
 {
   "item": "W23",
-  "reviewer": "opus-review",
+  "reviewer": "fable-5",
   "verdict": "fail",
-  "evidence": "gauntlet/reviews/evidence/opus-review/take-0116-W23-D-hero-boulder.jpg",
-  "takeId": "take-0116",
+  "evidence": "gauntlet/reviews/evidence/fable-5/take-0121-W23-D-boulder.jpg",
+  "takeId": "take-0121",
   "author": "fable-cursor",
-  "takeSha": "973a21e5b045177f66da3d04dc4e67e387270620",
-  "at": "2026-09-19T19:29:38.712Z",
+  "takeSha": "cf8083ba21018a37478c2b1f5b2af4be97cbf710",
+  "at": "2026-09-20T06:20:32.722Z",
   "criterion": "Boulder at the left of shot D reads as layered, mossy rock like the reference, not a smooth blob.",
-  "note": "There is no boulder reading at the left of D. The whole left foreground is a dark bank of ferns, moss and violets with a smooth pale green trunk across it; the one candidate mass behind the fronds is unlit and indistinguishable from the moss around it (take-0116-W23b-D-boulder-wide.jpg shows the full left foreground). The reference at the same place has a pale grey-tan layered rock about 1 m across, half buried in grass with a moss cap and smaller stones beside it, unmistakably rock. The audit reports 3 hero boulders with geometry procedural-v4-near-lod and mossCoverage true, so the object exists; it is occluded and unlit at the criterion's viewpoint.",
+  "note": "At D the hero boulder is invisible: a dark shape behind a trunk and under ferns at x 0.35-0.45 where the reference's is a lit, layered, moss-capped rock filling x 0.05-0.40 of the left foreground. The 2 m read is improved on fable-2's branch (20513c24, not in cf8083b) but D is decided by the fern exclusion disc and the rock's value at 7 m, neither of which has changed.",
   "history": [
+    {
+      "item": "W23",
+      "reviewer": "opus-review",
+      "verdict": "fail",
+      "evidence": "gauntlet/reviews/evidence/opus-review/take-0116-W23-D-hero-boulder.jpg",
+      "takeId": "take-0116",
+      "author": "fable-cursor",
+      "takeSha": "973a21e5b045177f66da3d04dc4e67e387270620",
+      "at": "2026-09-19T19:29:38.712Z",
+      "criterion": "Boulder at the left of shot D reads as layered, mossy rock like the reference, not a smooth blob.",
+      "note": "There is no boulder reading at the left of D. The whole left foreground is a dark bank of ferns, moss and violets with a smooth pale green trunk across it; the one candidate mass behind the fronds is unlit and indistinguishable from the moss around it (take-0116-W23b-D-boulder-wide.jpg shows the full left foreground). The reference at the same place has a pale grey-tan layered rock about 1 m across, half buried in grass with a moss cap and smaller stones beside it, unmistakably rock. The audit reports 3 hero boulders with geometry procedural-v4-near-lod and mossCoverage true, so the object exists; it is occluded and unlit at the criterion's viewpoint."
+    },
     {
       "item": "W23",
       "reviewer": "fable-5",

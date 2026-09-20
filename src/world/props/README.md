@@ -1,43 +1,61 @@
-# Village props integration
+# Village props
 
-Owned leaf module: `src/world/props/**`. No shared layout, assembler, terrain, vegetation,
-structures, assets or renderer changes. All meshes and pigments are original procedural work;
-there are no downloaded, Nintendo or generated-image assets.
+Owned leaf module: `src/world/props/**` (lane `fable-3`, 2026-09-19; first pass `codex`, rounds
+31–32 `fable-cursor`). No shared layout, terrain, vegetation, structures or renderer changes;
+`src/world/index.ts` registers `{ name: 'props', create }` (async — the wood maps load through
+`ctx.textures`).
 
-Fable should add `import * as props from './props';` in `src/world/index.ts` and register
-`{ name: 'props', create: props.create }` in the existing `SYSTEMS` list.
-The synchronous `create(ctx)` returns a standard `WorldSystem`; no animation update is required.
-Its `dispose()` releases owned geometries/materials and detaches meshes.
+## What it builds
 
-`layout.ts` contains small authored domestic details, with a bounded 1.05 m placement search.
-Footprint probes reject path, stair, structure and cliff masks, giant trunks, and close existing
-prop origins. If no safe local position exists the prop is skipped, and reported as skipped.
-Counts come from instantiated props, not requested definitions. Current terrain produces three
-pots, two crates, two buckets, one raised platform, one ladder and three rope railing sections
-in fifteen material batches, 16,508 triangles on the current terrain. All eight definitions
-are accepted. Counts can change with terrain updates.
+| kind | geometry | material |
+| --- | --- | --- |
+| pot | lathed closed profile (outer wall, rolled lip, inner wall, solid floor), 3 thrown shapes (`variant` 0 classic belly / 1 tall neck / 2 squat wide mouth), per-pot radius wobble | clay: procedural wheel-ring colour + normal `DataTexture`s (`materials.ts`), vertex-coloured ochre body, dark rim band and shoulder line, firing flash, dark cavity |
+| crate | corner battens, 4–5 horizontal boards per side, 4 lid boards, floor boards, nail studs; one board askew | wood: `weathered_planks` colour/normal/roughness (CC0, credited) — every board on its own column of the map at true scale, chamfered arrises paler, end grain darker |
+| barrel | 18 coopered staves on a bulged profile, board lid, 4 iron hoops | wood + iron |
+| bucket | 14 staves, floor, 2 hoops, rope handle | wood + iron + rope |
+| ladder | two laid ropes from a pegged crossbar on a house trunk to the ground, boards lashed between them | rope (procedural three-strand map) + wood |
+| marker | a Kokiri waymarker: squared post with a diamond cap, two crossboards lashed at different heights and angles (the long one points along +z, the way the path goes), nail studs, a small tag hanging on a rope from the long board's tip; stands vertical, foot conformed | wood + rope + iron |
+| lightString | the demo's string of small lights along a bank (frame A, measured on its pixels: a near-horizontal string at (0.49–0.54, 0.47) on the bank left of the flight; `d_011`, `d_087` show the motif elsewhere): a slim stake at each end seated on the ground, a thin cord drooping through the authored nodes, a glowing pod hung under the cord every 0.3 m; placed as drawn (no footprint probe) | wood + rope + glow (emissive 2.3 yellow-green, fog-exempt like the lantern pods; no halo) |
+| platform | posts to their own ground, joists, deck boards, rope railing on three sides with lashings, ladder when the deck is high | wood + rope |
+| platform, `dais: true` | the lookout railing: bound to `LAYOUT.plateauLookout` (position, yaw, width) and hardscape's `lookout` slab (depth, proud height) — four posts rising from the turf through the stone dais to 0.88 m over its top (inset from the bevel; they stand on the ground wherever hardscape hides the slab by distance), two rope courses on the plaza side and both short sides, one step block on the turf at the fence side; no deck of its own (the character ground learns the slab top) | wood + rope |
 
-Pottery has lathed inner/outer walls and a closed floor, rolled lips and open loop handles.
-Crates have separate planks, braces and nail heads. Buckets have hollow wedge staves, hoops,
-floor and a rope handle. The platform has individual ground-sampled supports, planking,
-cross bracing, five ladder rungs, sagging rail ropes and lashings.
+Hooks: after placement the system publishes `ctx.shared.propFootprints` (`{ x, z, r }` per placed
+prop, `r` the prop's own ground footprint) — vegetation builds after props and keeps its ferns out
+of those discs. The hook-bound lookout railing is placed exactly (no footprint probe or nudge).
 
-For small props the root follows the terrain normal, with the underside additionally conformed
-to the actual sampled heightfield (8 mm embed) to remove tangent-plane gaps on curved terrain.
-Platform feet use individual ground heights. Platform yaw is currently zero, so those support
-samples use authored X/Z offsets; rotate their sampling if changing its yaw in future.
+Placement (`layout.ts` → `index.ts`): every prop is seated on `ctx.terrain.height`; small props
+follow the terrain normal up to 9° and are otherwise set level into the slope, and their
+underside (the lowest 8 cm) is conformed to the sampled heightfield (8 mm embed). Footprint probes
+reject the `path` / `stairs` / `structure` / `cliff` masks, giant trunks, house trunks (porch
+sector aware), hero boulders, npc spots (0.8 m) and the signpost; `paving` admits flagstones (the
+stair-foot pots), `pad` admits a house pad (the doorway pots and the crate beside the porch). A
+prop that finds no legal spot within 1.05 m is skipped and reported (`audit.skipped`), never
+relocated across the village.
 
-Verification: `node src/world/props/geometry.test.mjs` under Node 20+ (including Fable’s Node 22), then `npm run typecheck`
-and `npm run build`. Tests exercise real terrain, all categories, forbidden masks, deterministic
-geometry, finite vertices/normals, geometry budget, footprint support and disposal.
+Draw calls: a `cluster` is a place (placement, audit, `audit.clusterBounds`); clusters belong to a
+merge locality (`localityOf` in `layout.ts`: the seven village clusters → `village`, the north
+clearing → `clearing`), and each locality is ONE mesh per material — 9 meshes for the whole system
+(≤ 9 draws per pass in a frame). Each locality is distance-culled as one (`CLUSTER_VISIBLE_M`,
+45 m, through `update` / `onCameraMove`): the clearing never rides into the six frames' passes.
 
-Visual verification: Fable captured the integrated first pass and confirmed contact and scale.
-Iteration 2 addresses muted pigment and hero-view placement; its recapture is pending.
-This is not a reference-match or visual-pass claim. Pigments are vertex colors, not fine wood-grain textures;
-joinery and clay silhouettes carry the detail. Placement must be reviewed in integrated shots
-B/D, especially vegetation overlap and platform visibility. No rubric items are claimed passed.
+## Clusters
 
-Iteration2 legal cluster: small pot(6.75,-11.6), crate(7.7,-11.7), bucket(7.6,-7.2).
-Current B_house projected centers are approximately(.559,.551),(.589,.540),(.665,.570).
-Projection tests do not establish occlusion or final visual quality. Recheck after Fable camera/terrain changes.
-Clay uses dusty brown#8d6a55 with soil/moss at contact; wood darkens near ground.
+`saria-door` (2 pots on the porch floor, viewer's left of the door), `signpost` (2 pots, bucket,
+crate), `stair-foot` (2 pots on the apron at the bottom riser's south corner, the light string on the house terrace's bank above the lawn pocket left of the flight), `plateau` (crate,
+barrel, bucket, 2 pots by the plateau-north fence), `upper-house` (the rope ladder),
+`plateau-lip` (the rope railing on the lookout dais past the end of the plateau-west fence), `west`
+(the tall platform under the lantern tree), `north-clearing` (the waymarker and two pots on the
+north-east corner of the clearing's entrance, two low pots on the flight-side corner — off the
+north paving's mask, outside the disc).
+
+## Verification
+
+`node src/world/props/geometry.test.mjs` (Node 20+): builders (chamfered box winding, pot
+proportions and bands, crate board columns, barrel parts), procedural map determinism, every
+authored prop placed, counts, tilt limit, B_house projections of the door dressing, the lookout
+railing at its hook with the ropes above the slab top and outside A–D, one published footprint
+per placed prop, geometry determinism / finiteness / attributes, contact gaps of the seated
+vertices, compact cluster bounds, placement rules, disposal. Then `npm run typecheck && npm run build`.
+
+Visual acceptance is before/after at the survey poses (`art/environment/survey2/manifest.json`)
+and the six fixed views within −0.003 SSIM of the sealed take — see PR #13 and `.agents/fable-3.md`.

@@ -39,3 +39,24 @@ test('an entry that is already later than the head is not resequenced', () => {
   assert.equal(merged.entries[1].resequenced, undefined);
   assert.equal(merged.entries[1].at, '2026-09-11T10:30:00.000Z');
 });
+
+test('imported scores are reclassified against the last canonical valid take without changing evidence', () => {
+  const monitor = { entries: [] };
+  appendEntry(monitor, { ...mk('take-0001', '2026-09-11T10:00:00.000Z', 'fable'), valid: true, score: { items: { W01: 'pass', W02: 'pass' } } });
+  appendEntry(monitor, { ...mk('take-0002', '2026-09-11T10:01:00.000Z', 'fable'), valid: false, score: { items: { W01: 'fail', W02: 'fail' } }, regressed: ['W01', 'W02'] });
+  const local = { entries: [] };
+  const original = appendEntry(local, { ...mk('take-0001', '2026-09-11T09:50:00.000Z', 'astra'), valid: true, score: { items: { W01: 'fail', W02: 'pending' } }, images: { A: 'sha256:image' } });
+  const snapshot = JSON.stringify({ monitor, local });
+  const result = mergeLedgers(monitor, local);
+  const imported = result.ledger.entries.at(-1);
+  assert.equal(imported.valid, false);
+  assert.deepEqual(imported.regressed, ['W01']);
+  assert.deepEqual(imported.mergeRegression, { baseline: 'take-0001', sourceHash: original.hash, sourceValid: true });
+  assert.match(imported.invalid, /D2 regression after ledger merge/);
+  assert.deepEqual(imported.score, original.score);
+  assert.deepEqual(imported.images, original.images);
+  assert.equal(entryIdentity(imported), entryIdentity(original));
+  assert.equal(JSON.stringify({ monitor, local }), snapshot, 'inputs are immutable');
+  assert.ok(verifyChain(result.ledger).ok);
+  assert.equal(mergeLedgers(result.ledger, local).appended.length, 0);
+});

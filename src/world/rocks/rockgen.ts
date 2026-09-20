@@ -80,6 +80,16 @@ export interface RockOptions {
    * or out a little, so the silhouette reads as stacked layers.
    */
   strata?: number;
+  /**
+   * fable-2 (survey-2 #32 / #19, the "black hole on top"): multiplier on the bedding parting's
+   * groove depth over the crown (default 1 — unchanged far meshes). A parting plane meets the
+   * near-flat cap at a grazing angle, so its groove is not a line there but a sunken patch the
+   * width of the cap's height band: at the near build's 0.1 strata that was a 6–7 cm pit with
+   * walls too steep for the moss and a floor the colour pass paints parting-dark — a black hole.
+   * The near build passes 0.1: the parting keeps its dark line and its ledge step on the crown,
+   * but no pit.
+   */
+  strataCrown?: number;
   /** moss cushion thickness on the upward faces (fraction of the radius) */
   mossThickness?: number;
   /**
@@ -114,6 +124,18 @@ export interface RockOptions {
   mossShade?: [number, number];
   /** lumpiness of the moss cushion 0..1: its thickness varies ±50 % at 1 so the edge reads soft */
   mossLumpy?: number;
+  /**
+   * fable-2 (survey-2 #17 / #25, `sn-boulder-stairfoot`): the cushion SWELL follows the smooth
+   * coverage only (default false — unchanged far meshes). The swell used to dip wherever the
+   * colour coverage does — at every crack line (`1 − crack·0.5`) and along the bare cleave
+   * facets — so the shaded side's 12 cm blanket was cut into hard-edged steps that read as a
+   * stack of angular shards along the stair-foot rock's flank — and, worse, on the near skin the
+   * micro relief swings the normal's y across the cap gate at every ridge, so the swell switched
+   * on and off at the ridge pitch. With it on, the swell mask is evaluated on a low-frequency
+   * normal and without the crack term (the fracture faces still keep it off): the blanket is
+   * one lumpy sheet and the colour still draws the crack lines and the relief through it.
+   */
+  mossSwellSmooth?: boolean;
   /** colour of the contact collar (default: brown soil) */
   collar?: Color;
   /** the collar's fade band in normalised rock height 0..1 (default [0.05, 0.45]) */
@@ -159,6 +181,15 @@ export interface RockOptions {
    * photo texture without it.
    */
   plates?: number;
+  /**
+   * fable-2 (survey-2 #32, `sn-boulder-shotd`): lichen CRUST coverage 0..1 (default 0 — the far
+   * meshes are byte-identical with it off). Writes the `aLichen` attribute the near material
+   * paints: colonies of pale crust that spread over the middle of a plate and stop at the plate
+   * joints (`plates` must be on), on the bare, un-mossed skin above the collar, never on the
+   * fresh cleave facets — clustered patches 10–30 cm across that follow the plates, in place of
+   * the round-42/44 flecks that read as polka dots at 1 m.
+   */
+  lichen?: number;
 }
 
 const _t = new Vector3();
@@ -175,6 +206,7 @@ export function buildRock(rng: Rng, seed: string, o: RockOptions): BufferGeometr
   const cuts = o.cuts ?? 3;
   const squashY = o.squashY ?? 0.8;
   const strata = o.strata ?? 0;
+  const strataCrown = o.strataCrown ?? 1;
   const freq = (o.freq ?? 1) / Math.max(0.2, r);
   // PolyhedronGeometry subdivides linearly: 20·(detail+1)² triangles, already non-indexed
   const ico = new IcosahedronGeometry(r, o.detail);
@@ -214,12 +246,17 @@ export function buildRock(rng: Rng, seed: string, o: RockOptions): BufferGeometr
   const chip = o.chip ?? 0;
   const rimRound = o.rimRound ?? 0;
   const plates = o.plates ?? 0;
+  const lichen = o.lichen ?? 0;
   // the near relief is an absolute scale (pits ~15 cm, hairlines ~9 cm apart on every rock): its
   // noise frequencies, expressed in the rock-relative domain above, scale with the radius
   const nk = Math.max(1, r / 0.75);
   /**
    * the plate field at a noise-domain point: { level 0..1 (three ledges, the step between them
-   * softened over 40 % of a level), step 0..1 (1 on the joint between two plates), id (the ledge) }
+   * softened over 40 % of a level), step 0..1 (1 on the joint between two plates), id (the ledge) }.
+   * fable-2 (survey-2 #19 "slate seams"): `step` used to span the whole softened band (40 % of a
+   * level painted up to 55 % dark — wide dark seams at 1 m); the colour joint is now the narrow
+   * line at the step's middle (± 0.09 of a level, ≈ 40 % of the old width) while the geometry
+   * keeps its soft ledge.
    */
   const plateAt = (x: number, y: number, z: number) => {
     const f = 2.6 * nk;
@@ -227,7 +264,7 @@ export function buildRock(rng: Rng, seed: string, o: RockOptions): BufferGeometr
     const q = clamp(pn, 0, 0.999) * 3;
     const id = Math.floor(q);
     const fr = q - id;
-    const step = 1 - smoothstep(0, 0.2, Math.abs(fr - 0.5));
+    const step = 1 - smoothstep(0, 0.09, Math.abs(fr - 0.5));
     return { level: (id + smoothstep(0.3, 0.7, fr)) / 3, step, id };
   };
   /** main crack line strength 0..1 at a (final-shape) point; the bedding partings count as cracks */
@@ -311,7 +348,9 @@ export function buildRock(rng: Rng, seed: string, o: RockOptions): BufferGeometr
         // final vertex) finds the groove where the geometry has it.
         const b = bedding(_p.x * d, _p.y * d * squashY, _p.z * d, x, y, z);
         const side = 1 - Math.abs(_p.y / r) * 0.6;
-        d *= 1 + strata * side * (0.55 * b.step - 1.1 * b.groove);
+        // the groove's sink is damped over the crown by `strataCrown` (see RockOptions)
+        const grooveDamp = 1 - (1 - strataCrown) * smoothstep(-0.1, 0.55, _p.y / r);
+        d *= 1 + strata * side * (0.55 * b.step - 1.1 * b.groove * grooveDamp);
       }
       if (crackDepth > 0) {
         // the crack lines become furrows: the vertex sinks by the groove depth where the colour
@@ -491,7 +530,16 @@ export function buildRock(rng: Rng, seed: string, o: RockOptions): BufferGeometr
       if (!s) {
         _n.fromBufferAttribute(nrm0, i);
         // vertex-averaged direction (independent of which face we came from) → welded offset
-        const m = mossAt(_p, _n, crackAt(_p), facet[i]);
+        let m: number;
+        if (o.mossSwellSmooth) {
+          // the swell mask on a LOW-FREQUENCY normal (70 % the ellipsoid's radial direction, 30 %
+          // the smooth normal) and without the crack term: on the near skin the micro relief
+          // swings n.y across the cap's `up` gate at every ridge, and a 12 cm swell switching on
+          // and off at that pitch is a stack of slabs (sn-boulder-stairfoot). The facets still
+          // keep the swell off the fracture faces; the colour coverage keeps the real normal.
+          _t.set(_p.x, _p.y * 1.4, _p.z).normalize().multiplyScalar(0.7).addScaledVector(_n, 0.3).normalize();
+          m = mossAt(_p, _t, 0, facet[i]);
+        } else m = mossAt(_p, _n, crackAt(_p), facet[i]);
         let k = mossThick * r * smoothstep(0.1, 0.75, m);
         if (mossLumpy > 0) {
           // the cushion is a pad of pillows, not a uniform shell: its thickness varies ±50 % at
@@ -529,6 +577,32 @@ export function buildRock(rng: Rng, seed: string, o: RockOptions): BufferGeometr
   // wetter) — read only by the near-LOD material's wet/dark term (material.ts), so the far look
   // is untouched by the attribute
   const wet = new Float32Array(count);
+  // `aLichen` 0..1: crust colonies (see RockOptions.lichen) — read by the near material only
+  const lich = lichen > 0 ? new Float32Array(count) : null;
+  /**
+   * crust coverage at a vertex: a colony field at ~0.45 r blobs picks WHICH plates are colonised
+   * (each plate level shifts the threshold so neighbouring plates differ), the crust sits in the
+   * middle of its plate and dies at the joint, and only on bare skin — not the moss, the collar,
+   * the fresh cleave facets or the undersides
+   */
+  const lichenAt = (i: number, x: number, y: number, z: number, ny: number, h01: number, m: number, fct: number) => {
+    // colonies ~0.3 r across (3.4 cycles per r): on the 1 m stair-foot rock 15–30 cm patches, on
+    // the 0.6 m D rock 10–20 cm — one colony per plate or two, never one skin over the face
+    const ck = 3.4 * nk;
+    const colony = N.fbm(x * ck + 13.1, y * ck - 7.7, z * ck + 3.3, 2) * 0.5 + 0.5;
+    const level = plateId ? plateId[i] : 1;
+    const joint = plateStep ? plateStep[i] : 0;
+    // a second, finer field tears the colony's edge and leaves gaps inside it
+    const tear = N.fbm(x * ck * 2.7 - 5.5, y * ck * 2.7 + 9.1, z * ck * 2.7 - 2.2, 2) * 0.5 + 0.5;
+    const thr = 0.61 - 0.2 * lichen + 0.06 * (level - 1);
+    const cov = smoothstep(thr - 0.06, thr + 0.1, colony + 0.3 * (tear - 0.5));
+    // bare skin: no moss, above the collar, not a fresh cleave facet, not the underside — the
+    // exposed sides down to the collar carry the crust (frame 56 s: the D rock's path face)
+    // (the cleave faces ARE most of the D rock's bare skin — `facetBare` keeps the moss off them —
+    // so old fracture faces take crust too, only thinner: the colour pass already darkens them)
+    const bare = (1 - smoothstep(0.08, 0.35, m)) * smoothstep(0.1, 0.28, h01) * (1 - 0.4 * smoothstep(0.2, 0.7, fct)) * smoothstep(-0.45, -0.1, ny);
+    return clamp(cov * (1 - joint) * bare, 0, 1);
+  };
   const tint = o.tint ?? new Color(0.72, 0.72, 0.7);
   const dirt = o.dirt ?? 0.5;
   const cutDark = o.cutDark ?? 0;
@@ -569,11 +643,18 @@ export function buildRock(rng: Rng, seed: string, o: RockOptions): BufferGeometr
     col[i * 3 + 1] = tmp.g;
     col[i * 3 + 2] = tmp.b;
     moss[i] = mossAt(_p, _n, crack, facet[i]);
-    wet[i] = clamp(1 - smoothstep(0.06, 0.32, h01 + 0.04 * v) + 0.6 * smoothstep(0.15, -0.4, _n.y) * (1 - smoothstep(0.3, 0.7, h01)), 0, 1);
+    // the band's upper edge is a wavy tide line (low-frequency wobble ± 0.07 of the height), not
+    // a level line following the fine tone noise
+    const tide = N.fbm(x * 0.8 + 2.1, y * 0.8 - 6.3, z * 0.8 + 4.7, 2);
+    wet[i] = clamp(1 - smoothstep(0.06, 0.34, h01 + 0.07 * tide) + 0.6 * smoothstep(0.15, -0.4, _n.y) * (1 - smoothstep(0.3, 0.7, h01)), 0, 1);
+    // (the vertex colour multiplies the crust in the shader, so the furrows stay dark under it;
+    // the crack term only softens the crust's edge at the lines)
+    if (lich) lich[i] = lichenAt(i, x, y, z, _n.y, h01, moss[i], facet[i]) * (1 - crack * 0.35);
   }
   base.setAttribute('color', new Float32BufferAttribute(col, 3));
   base.setAttribute('aMoss', new Float32BufferAttribute(moss, 1));
   base.setAttribute('aWet', new Float32BufferAttribute(wet, 1));
+  if (lich) base.setAttribute('aLichen', new Float32BufferAttribute(lich, 1));
   // final normals: hard on the bare rock, soft on the cushion
   if (softN) {
     const out = hardN;
@@ -595,13 +676,15 @@ export function buildRock(rng: Rng, seed: string, o: RockOptions): BufferGeometr
   let nCrack = 0;
   let nMoss = 0;
   let nFacet = 0;
+  let nLichen = 0;
   for (let i = 0; i < count; i++) {
     _p.fromBufferAttribute(pos, i);
     if (crackAt(_p) > 0.3) nCrack++;
     if (moss[i] > 0.5) nMoss++;
     if (facet[i] > 0.5) nFacet++;
+    if (lich && lich[i] > 0.5) nLichen++;
   }
-  base.userData.rockStats = { crackShare: nCrack / count, mossShare: nMoss / count, facetShare: nFacet / count };
+  base.userData.rockStats = { crackShare: nCrack / count, mossShare: nMoss / count, facetShare: nFacet / count, lichenShare: nLichen / count };
   base.computeBoundingSphere();
   base.computeBoundingBox();
   return base;
