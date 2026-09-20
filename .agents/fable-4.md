@@ -145,3 +145,23 @@ nearCanopy, materials, index otherwise) is edited.
 
 ## Last updated
 2026-09-20T10:40:00Z
+
+## 2026-09-20 16:50 UTC — tick: expansion-2 landed; a white-bark through the far hut (fixed)
+
+- Head `97c83227` (expansion-2, character-10, the W24 fix). My replica of the white-bark placement,
+  run in the legacy view with `expansionCull`: one scatter tree inside the expansion's moved ground —
+  mature variant 7 at (−39.72, 31.12) on the far hut's knoll, 0.70 m buried, crown across the lamp's
+  sight line from Link's spot (expansion-2's "nearest base 11 m off" came from the audit's strided
+  sample). Fix on `agent/fable-4-knoll` (`6f18fa6f`, off the head): `expansionCull` on the white-bark
+  placements, one line in `trees/index.ts`. Measured: `f4-sw-pan-hut` — the hut's silhouette appears
+  where the crown was; `f4-knoll-20m` — the birch through the hut's level is gone; six views
+  SSIM-identical (A/F pixel-identical, 2–3 flicker pixels elsewhere), draws/triangles identical.
+- The bank white-barks I offered: computed, not placed — every 6–8 m stem on the bank's top lands its
+  shadow 3.4–8.7 m inside C; shadow-safe seats only at x ≲ −26…−32 behind the bank. Handed to
+  expansion-2 / fable-cursor as a composition call.
+- Noted to vegetation-26 / fable-2 / fable-3: `expansionCull` has no consumer in their streams.
+- Owner's "trees too green" (13:00): the white-bark vertex colours stay inside the palette (canopy
+  hue 93° sat 0.23, sun 76° sat 0.32); the green is the material lighting and the palette — Astra's
+  and fable-cursor's; not tuned blind.
+- Branches out: `agent/fable-4-r49b` (pending merge), `agent/fable-4-leafnear` (Astra's go),
+  `agent/fable-4-knoll` (ready).
