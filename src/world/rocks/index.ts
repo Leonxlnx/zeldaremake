@@ -18,7 +18,7 @@ import { dressRock, mergeRockParts } from './dressing';
 import { buildRockLedge, type RockLedgeDef } from './ledge';
 import { buildClearingRocks, type ClearingLayout } from './clearing';
 import { buildBacksideRocks } from './backside';
-import { casterSpheres, expansionVisible, sunVector } from '../util/expansionLocality';
+import { expansionVisible, sunVector } from '../util/expansionLocality';
 import { PEBBLE_DEFAULTS, PEBBLE_LOOKS, scatterPathPebbles, stairFootPebbles } from './pebbles';
 import { NORTH_Z1 } from '../util/northLocality';
 import { expansionCull } from '../terrain/heightfield';
@@ -1025,7 +1025,7 @@ export async function create(ctx: WorldContext): Promise<WorldSystem> {
     backsideMesh.visible = false;
     group.add(backsideMesh);
     const sunDir = sunVector(ctx.config.sun.azimuthDeg, ctx.config.sun.elevationDeg);
-    backsideSpheres = backside.casters.flatMap((c) => casterSpheres(c, sunDir));
+    backsideSpheres = backside.spheres(sunDir);
   }
 
   const rubbleSlots: InstanceSlot[] = [];

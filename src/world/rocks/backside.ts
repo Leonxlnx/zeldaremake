@@ -16,12 +16,12 @@
  * spheres), so camera C — whose right edge the bank runs along, 1–4 m outside it — never draws it
  * or its shadow. Own stream (`backside`).
  */
-import { BufferGeometry, Color, Float32BufferAttribute, Matrix4, Quaternion, Vector3 } from 'three';
+import { BufferGeometry, Color, Float32BufferAttribute, Matrix4, Quaternion, Sphere, Vector3 } from 'three';
 import { EXPANSION, EXPANSION_STAIRS, expansionSteppingStones, southBankFrameVectors, southBankPoint } from '../layout';
 import { hash2, hashString } from '../util/prng';
 import { getTerrain, type Terrain } from '../terrain/heightfield';
 import type { Rng } from '../util/prng';
-import type { Caster } from '../util/expansionLocality';
+import { casterSpheres, type Caster } from '../util/expansionLocality';
 import { buildRock } from './rockgen';
 import { mergeRockParts } from './dressing';
 
@@ -30,8 +30,17 @@ export interface BacksideBuild {
   stats: { boulders: number; stepStones: number; scree: number; kerbStones: number; discPebbles: number; triangles: number };
   /** seat points (x, y, z) */
   contacts: [number, number, number][];
-  /** casters for the locality's visibility test — one tight caster per piece (a group sphere reached across camera C's edge: +1 draw / +31 K tris in C for nothing) */
+  /**
+   * casters for the locality's visibility test — one per piece: a circle of the built vertices'
+   * bounding-sphere radius from the ground to the body's top, so the shadow sweep follows the whole
+   * piece; `spheres()` adds the exact body sphere, which the util's 0.5 m stack would otherwise miss
+   * on pieces under half a metre (Astra's audit: 1 876 vertices escaped the first cut's spheres)
+   */
   casters: Caster[];
+  /** the exact body sphere of every piece (world), conservative by construction */
+  bodies: Sphere[];
+  /** every sphere the locality test needs: the exact bodies plus the casters' stacks and shadow sweeps */
+  spheres(sunDir: Vector3): Sphere[];
 }
 
 const _up = new Vector3(0, 1, 0);
@@ -40,6 +49,19 @@ const _q = new Quaternion();
 const _q2 = new Quaternion();
 const _p = new Vector3();
 const _s = new Vector3(1, 1, 1);
+
+/**
+ * A conservative caster for a built piece: the bounding sphere of its vertices under `matrix` (so every
+ * vertex lies inside the body sphere whatever the squash or the displacement — Astra's audit of the
+ * first cut found 1 876 vertices escaping spheres whose radius had been scaled by squashY), as a
+ * circle on the ground of that radius spanning the sphere's height.
+ */
+function casterOf(geometry: BufferGeometry, matrix: Matrix4, ground: number, shadow: boolean): { caster: Caster; body: Sphere } {
+  geometry.computeBoundingSphere();
+  const body = geometry.boundingSphere!.clone().applyMatrix4(matrix) as Sphere;
+  body.radius += 0.02;
+  return { caster: { x: body.center.x, z: body.center.z, r: body.radius, y0: Math.min(ground, body.center.y - body.radius), y1: body.center.y + body.radius, shadow }, body };
+}
 
 function free(T: Terrain, x: number, z: number, maxSlope: number): boolean {
   const m = T.mask(x, z);
@@ -65,6 +87,12 @@ export function buildBacksideRocks(rng: Rng, seed: string, shadeDir: [number, nu
   const parts: { geometry: BufferGeometry; matrix: Matrix4 }[] = [];
   const contacts: [number, number, number][] = [];
   const casters: Caster[] = [];
+  const bodies: Sphere[] = [];
+  const addCaster = (g: BufferGeometry, mtx: Matrix4, ground: number, shadow: boolean) => {
+    const c = casterOf(g, mtx, ground, shadow);
+    casters.push(c.caster);
+    bodies.push(c.body);
+  };
   const stats = { boulders: 0, stepStones: 0, scree: 0, kerbStones: 0, discPebbles: 0, triangles: 0 };
   const toLocal = (yaw: number): [number, number] => [shadeDir[0] * Math.cos(yaw) - shadeDir[1] * Math.sin(yaw), shadeDir[0] * Math.sin(yaw) + shadeDir[1] * Math.cos(yaw)];
   // the flight's span along the lip (its centre u 0.3, width 1.6, plus the hardscape's kerbs)
@@ -113,9 +141,10 @@ export function buildBacksideRocks(rng: Rng, seed: string, shadeDir: [number, nu
       }
       const ground = gs / 8;
       const cy = ground + r * squash * 0.62 - sinkFrac * 2 * r * squash;
-      parts.push({ geometry: g, matrix: pose(T, x, cy, z, yaw, 0.35) });
+      const mtx = pose(T, x, cy, z, yaw, 0.35);
+      parts.push({ geometry: g, matrix: mtx });
       contacts.push([x, ground, z]);
-      casters.push({ x, z, r: r * squash + 0.15, y0: ground - 0.05, y1: cy + r * squash + 0.05, shadow: true });
+      addCaster(g, mtx, ground, true);
       stats.boulders++;
     };
     // the loaf at u ≈ −1.5 (west of the flight's kerb), 0.6 m out on the plain; the companion along
@@ -170,9 +199,10 @@ export function buildBacksideRocks(rng: Rng, seed: string, shadeDir: [number, nu
       });
       const ground = T.height(x, z);
       // half-buried: the flat slab's underside 0.4 of its thickness in the plain
-      parts.push({ geometry: slab, matrix: pose(T, x, ground - sc * 0.32 * 0.4, z, yaw, 0.7) });
+      const mtx = pose(T, x, ground - sc * 0.32 * 0.4, z, yaw, 0.7);
+      parts.push({ geometry: slab, matrix: mtx });
       contacts.push([x, ground, z]);
-      casters.push({ x, z, r: sc + 0.1, y0: ground - 0.05, y1: ground + sc * 0.32 * 1.2, shadow: true });
+      addCaster(slab, mtx, ground, true);
       stats.stepStones++;
     };
     // west run: from the pair toward the flight's kerb; east run: past the kerb to the lip's end
@@ -226,9 +256,10 @@ export function buildBacksideRocks(rng: Rng, seed: string, shadeDir: [number, nu
           freq: 1,
         });
         const ground = T.height(x, z);
-        parts.push({ geometry: shard, matrix: pose(T, x, ground - sc * 0.28, z, yaw, 0.6) });
+        const mtx = pose(T, x, ground - sc * 0.28, z, yaw, 0.6);
+        parts.push({ geometry: shard, matrix: mtx });
         contacts.push([x, ground, z]);
-        casters.push({ x, z, r: sc + 0.08, y0: ground - 0.05, y1: ground + sc * 1.4, shadow: true });
+        addCaster(shard, mtx, ground, true);
         stats.scree++;
         if (stats.scree >= target) break;
       }
@@ -269,9 +300,10 @@ export function buildBacksideRocks(rng: Rng, seed: string, shadeDir: [number, nu
       });
       const ground = T.height(x, z);
       const cy = ground + r * o.squash * 0.62 - o.sink * 2 * r * o.squash;
-      parts.push({ geometry: g, matrix: pose(T, x, cy, z, yaw, 0.5) });
+      const mtx = pose(T, x, cy, z, yaw, 0.5);
+      parts.push({ geometry: g, matrix: mtx });
       contacts.push([x, ground, z]);
-      casters.push({ x, z, r: r * o.squash + 0.12, y0: ground - 0.05, y1: cy + r * o.squash + 0.05, shadow: true });
+      addCaster(g, mtx, ground, true);
     };
     // the west-skirt boulder: a half-buried loaf on the bank's NW skirt
     {
@@ -332,11 +364,11 @@ export function buildBacksideRocks(rng: Rng, seed: string, shadeDir: [number, nu
           const sc = 0.03 + 0.06 * hash2(i, 30 + j, k0);
           const g = buildRock(eRng.fork(`disc-${i}-${j}`), `${seed}/backside-disc-${i}-${j}`, { radius: sc, detail: 1, ridge: 0.15, lump: 0.3, cuts: 2, cutDepth: [0.6, 0.85], squashY: 0.6, creaseDeg: 40, cracks: 0, moss: 0.2, dirt: 0.4, tint: new Color(0.7, 0.69, 0.64), freq: 1 });
           const ground = T.height(x, z);
-          parts.push({ geometry: g, matrix: pose(T, x, ground - sc * 0.35, z, hash2(i, 40 + j, k0) * Math.PI * 2, 0.6) });
+          const mtx = pose(T, x, ground - sc * 0.35, z, hash2(i, 40 + j, k0) * Math.PI * 2, 0.6);
+          parts.push({ geometry: g, matrix: mtx });
+          addCaster(g, mtx, ground, false); // (5 cm stones: no shadow worth following)
           stats.discPebbles++;
         }
-        // one caster per disc ring (5 cm stones: no shadow worth following)
-        casters.push({ x: d.x, z: d.z, r: d.r + 0.42, y0: T.height(d.x, d.z) - 0.05, y1: T.height(d.x, d.z) + 0.1, shadow: false });
       });
     }
   }
@@ -347,5 +379,12 @@ export function buildBacksideRocks(rng: Rng, seed: string, shadeDir: [number, nu
   const geometry = mergeRockParts(empty, parts);
   for (const p of parts) p.geometry.dispose();
   stats.triangles = geometry.attributes.position.count / 3;
-  return { geometry, stats, contacts, casters };
+  return {
+    geometry,
+    stats,
+    contacts,
+    casters,
+    bodies,
+    spheres: (sunDir: Vector3) => [...bodies, ...casters.flatMap((c) => casterSpheres(c, sunDir))],
+  };
 }
