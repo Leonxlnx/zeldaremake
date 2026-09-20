@@ -1,15 +1,27 @@
 {
   "item": "W08",
-  "reviewer": "opus-review",
+  "reviewer": "fable-5",
   "verdict": "fail",
-  "evidence": "gauntlet/reviews/evidence/opus-review/take-0116-W08-C-whitebark-trunks.jpg",
-  "takeId": "take-0116",
+  "evidence": "gauntlet/reviews/evidence/fable-5/take-0121-W08-C-whitebarks.jpg",
+  "takeId": "take-0121",
   "author": "fable-cursor",
-  "takeSha": "973a21e5b045177f66da3d04dc4e67e387270620",
-  "at": "2026-09-19T19:27:59.928Z",
+  "takeSha": "cf8083ba21018a37478c2b1f5b2af4be97cbf710",
+  "at": "2026-09-20T06:20:31.156Z",
   "criterion": "Trunks are irregular, tapered, leaning, with hierarchical branches — recognisably the Verdant white trees, better.",
-  "note": "No trunk at C reads as a tapered, leaning, hierarchically branched white-bark tree. The visible near white-bark at the right edge is a straight untapered pale pole with no flare and no branch structure, and the whole background layer behind it is a wall of flat grey-blue polygonal cards with straight cut edges and angular notches, with no trunk-and-limb structure at all (see take-0116-W08b-C-background-trunks.jpg). Measured, that band is #535a5a with sigma 23.6 against the reference's #6e6c60 with sigma 11.4: ours carries twice the local contrast because the card edges are hard, where the reference's hazed crown is soft and shows a real branching silhouette. Auto gates are met (10 variants, 78 instances, geometry procedural-v1).",
+  "note": "At C the only white-bark in frame (right edge, x 0.90-0.97) is a straight pale pole with fine banding and one leaf sprig: no lean, no taper that reads, no branching hierarchy. The base flares and the range-48 marks are real at player height (my fable-5-r48 reviews) but do not reach this frame; fable-4's texture bands (cfcd4f4d) are not in cf8083b. Fails 'irregular, tapered, leaning, hierarchical' at the criterion's frame.",
   "history": [
+    {
+      "item": "W08",
+      "reviewer": "opus-review",
+      "verdict": "fail",
+      "evidence": "gauntlet/reviews/evidence/opus-review/take-0116-W08-C-whitebark-trunks.jpg",
+      "takeId": "take-0116",
+      "author": "fable-cursor",
+      "takeSha": "973a21e5b045177f66da3d04dc4e67e387270620",
+      "at": "2026-09-19T19:27:59.928Z",
+      "criterion": "Trunks are irregular, tapered, leaning, with hierarchical branches — recognisably the Verdant white trees, better.",
+      "note": "No trunk at C reads as a tapered, leaning, hierarchically branched white-bark tree. The visible near white-bark at the right edge is a straight untapered pale pole with no flare and no branch structure, and the whole background layer behind it is a wall of flat grey-blue polygonal cards with straight cut edges and angular notches, with no trunk-and-limb structure at all (see take-0116-W08b-C-background-trunks.jpg). Measured, that band is #535a5a with sigma 23.6 against the reference's #6e6c60 with sigma 11.4: ours carries twice the local contrast because the card edges are hard, where the reference's hazed crown is soft and shows a real branching silhouette. Auto gates are met (10 variants, 78 instances, geometry procedural-v1)."
+    },
     {
       "item": "W08",
       "reviewer": "fable-5",
