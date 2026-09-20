@@ -9,7 +9,7 @@
 import { Scene, WebGLRenderer, Camera, DirectionalLight } from 'three';
 import { WORLD } from './config';
 import { LAYOUT } from './layout';
-import { getTerrain } from './terrain/heightfield';
+import { getLegacyTerrain, getTerrain } from './terrain/heightfield';
 import { createWind } from './wind/wind';
 import { createRng } from './util/prng';
 import { createTextureLibrary } from './materials/textures';
@@ -27,20 +27,27 @@ import * as vegetation from './vegetation';
 import * as props from './props';
 import * as character from './character';
 
-const SYSTEMS: { name: string; create: SystemFactory }[] = [
+/**
+ * `terrain: 'legacy'` (round 49, expansion-2): the system builds against the heightfield's LEGACY
+ * view — the ground without the round-49 expansion (terrain/heightfield.ts `TerrainView`) — so its
+ * rejection-sampled streams read exactly the numbers they read in take-0121 and no placement in
+ * the six fixed frames re-rolls. The rendered ground (terrain), the paving, the structures and the
+ * character ground take the live view; the two agree everywhere outside the expansion footprints.
+ */
+const SYSTEMS: { name: string; create: SystemFactory; terrain?: 'legacy' }[] = [
   { name: 'lighting', create: lighting.create },
-  { name: 'atmosphere', create: atmosphere.create },
+  { name: 'atmosphere', create: atmosphere.create, terrain: 'legacy' },
   { name: 'terrain', create: terrain.create },
   { name: 'hardscape', create: hardscape.create },
-  { name: 'rocks', create: rocks.create },
+  { name: 'rocks', create: rocks.create, terrain: 'legacy' },
   // trees before structures: the lantern bough wraps the giant's BUILT limb (ctx.shared.lanternLimb)
-  { name: 'trees', create: trees.create },
-  { name: 'canopy', create: canopy.create }, // owner-fable: the canopy roof (reads the giants from layout; no trees internals)
+  { name: 'trees', create: trees.create, terrain: 'legacy' },
+  { name: 'canopy', create: canopy.create, terrain: 'legacy' }, // owner-fable: the canopy roof (reads the giants from layout; no trees internals)
   { name: 'structures', create: structures.create },
   // props before vegetation: props publish their footprints (ctx.shared.propFootprints) so the
   // scatter can keep ferns out of the pots; forks are label-keyed, so the order moves no stream
-  { name: 'props', create: props.create },
-  { name: 'vegetation', create: vegetation.create },
+  { name: 'props', create: props.create, terrain: 'legacy' },
+  { name: 'vegetation', create: vegetation.create, terrain: 'legacy' },
   { name: 'character', create: character.create },
 ];
 
@@ -106,10 +113,14 @@ export async function createWorld(opts: {
   const systems: WorldSystem[] = [];
   const failures: SystemFailure[] = [];
   const buildMs: Record<string, number> = {};
+  /** the context each system was created with (the legacy-terrain systems get a view of `ctx` with that terrain; `shared` is the same object) */
+  const ctxFor = new Map<WorldSystem, WorldContext>();
   for (const s of SYSTEMS) {
     const t0 = performance.now();
     try {
-      const sys = await s.create(ctx);
+      const sysCtx: WorldContext = s.terrain === 'legacy' ? { ...ctx, terrain: getLegacyTerrain() } : ctx;
+      const sys = await s.create(sysCtx);
+      ctxFor.set(sys, sysCtx);
       if (sys.group) {
         sys.group.name = sys.group.name || s.name;
         opts.scene.add(sys.group);
@@ -141,7 +152,7 @@ export async function createWorld(opts: {
       timings.wind = b - a;
       for (const s of systems) {
         a = b;
-        s.update?.(dt, t, ctx);
+        s.update?.(dt, t, ctxFor.get(s) ?? ctx);
         b = performance.now();
         timings[s.name] = b - a;
       }

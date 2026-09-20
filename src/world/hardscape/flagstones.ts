@@ -19,7 +19,7 @@
  * crack line on one slab in eight) → a single draw call.
  */
 import { Matrix4, Mesh, Quaternion, Vector3, type Material } from 'three';
-import { legacyPathMask, standingStoneMask, surfaceMask, type Terrain } from '../terrain/heightfield';
+import { expansionDiscMask, legacyPathMask, standingStoneMask, surfaceMask, type Terrain } from '../terrain/heightfield';
 import type { Rng } from '../util/prng';
 import { Noise2D, clamp, smoothstep } from '../util/noise';
 import { MeshBuilder, buildSlab, centroid, distToPolygon, pointInPolygon, polygonArea, type P2 } from './geometry';
@@ -584,9 +584,19 @@ export interface PavingContext {
   region?: PavingRegion;
   /** round 47 (the north pass): round slabs laid like the stepping stones — the stone circle's centre slab and the plinths under its standing stones */
   extraDiscs?: IsolatedDisc[];
+  /**
+   * Round 49 (the expansion pass): the stepping discs are SET stones — seated with the ground's
+   * grade like the hollow path's slabs (`hollowPath` treatment at 1), sunk to their shoulder and
+   * domed — where a level disc on the 25° shoulder would be skipped as "steep".
+   */
+  setDiscs?: boolean;
 }
 
-export type PavingRegion = 'legacy' | 'north' | 'live';
+/**
+ * `expansion` (round 49): the plaza's west / south-west stepping discs — the level is the live
+ * mask's expansion discs alone (heightfield `expansionDiscMask`), nothing continuous.
+ */
+export type PavingRegion = 'legacy' | 'north' | 'live' | 'expansion';
 
 /** a stepping stone that sits in grass (not inside the plaza paving): gets its own round slab */
 export interface IsolatedDisc {
@@ -651,12 +661,15 @@ function archTongueDepth(x: number, z: number): number {
  * mask), and every seed and every shared-stream draw stays where it was.
  */
 export function pavedLevel(pc: PavingContext, x: number, z: number, strict = false, region: PavingRegion = pc.region ?? 'live'): number {
-  const m = surfaceMask(x, z);
+  // round 49: the expansion pass reads the LIVE mask (its own flights and discs); every other pass
+  // the legacy view, as before (heightfield `surfaceMask`)
+  const m = surfaceMask(x, z, region === 'expansion' ? 'live' : 'legacy');
   if (m.stairs >= 0.5) return 0;
   // round 47: the pass's own view of the path mask (PavingContext.region)
   let path = m.path;
   if (region === 'legacy') path = legacyPathMask(x, z, m.path);
   else if (region === 'north' && legacyPathMask(x, z, m.path) >= 0.36) path = 0;
+  else if (region === 'expansion') path = expansionDiscMask(x, z);
   // the standing stones' footprints are `structure` for the grass and the character, not for the
   // north paving: their plinth slabs run under them
   const structure = region === 'north' && standingStoneMask(x, z) >= 0.5 ? 0 : m.structure;
@@ -1367,7 +1380,8 @@ export function placeFlagstones(pc: PavingContext, material: Material): PavingRe
     // the soil lip, edges rolled wider (× 1.6) like the trodden strip's. Own hash fork for the
     // sink / dome draws; every stream above and below keeps its place, and outside the zone
     // (weight 0) every value below is the control's.
-    const hollow = disc ? 0 : hollowPath(s.x, s.z);
+    // (round 49: the expansion pass's discs are set stones — the hollow treatment at 1, `setDiscs`)
+    const hollow = disc ? (pc.setDiscs ? 1 : 0) : hollowPath(s.x, s.z);
     const hrng = hollow > 0.001 ? rng.fork(`hollow/${Math.round(s.x * 50)}/${Math.round(s.z * 50)}`) : null;
     const roll = 1 + 0.8 * trodden + 0.6 * hollow;
     const style: OutlineStyle = {

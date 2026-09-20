@@ -2611,6 +2611,21 @@ Also: lantern bough still a thick plain beam across the top of B (trees pass pen
   regression of candidate 1e81 on `e54a74e` is clean: 1620 frames, stair gaps +2.3/+1.4 mm, knees
   ≤ 150°). Heartbeat.
 
+### 15:30 UTC — tick 195 (owner re-priority to environment; Astra's PR #23)
+- Owner (13:00, via Astra): environment first — stones under-detailed, trees too green, weak distant
+  detail, wider render distance; Link deferred (PR #21 reviewed separately by character-10).
+  Astra opened three environment lanes (stones material, tree shading, distant crowns) on PR #23.
+- PR #23 `a9eccd15`: stone AO/normal fix, bark albedo kept, distant continuity — mergeable; the
+  flat-lobe swap at 26/30 m removes the dark crown discs but the layered foliage is too sparse
+  (F −0.030, C −0.025 vs head; haze shows where the reference has canopy) — fable-5 measured it,
+  my read of her F pair agrees. Asked: dark core as backing / denser clusters, split the PR, drop
+  her off-head ledger/claims from the branch. Astra also found the bark-mean bug (BARK_DETAIL_MEAN
+  encoded vs linear) — same in `lanternBranch.ts` SLEEVE_BARK_MEAN, mine to fix alongside hers.
+- Merged fable-2's W24 fix (`51fb6b3` — the pebble envelope had dropped the audit count to 1,822;
+  the head's W24 was red since the envelope merge), fable-3's tint step, fable-5 #14–16.
+- Lanes: expansion-2 (9 commits, capturing), character-10 (PR #21 review). Next: take-0123 on the
+  head once expansion-2 lands (W24 restored, tunnel, Astra's material parts if split in time).
+
 ## Pending corrections from reference/ANALYSIS.md (apply at integration, one commit)
 - `config.ts` palette → olive/khaki low-key (reference hero frames: hue 47–51°, sat 0.16–0.19,
   lum 0.35–0.39, 0 % blue sky): grass 0x8a8c55/0x5c6233/0x3a4420, moss 0x8b8948/0x5a523b,
@@ -2649,4 +2664,4 @@ Pick anything NOT claimed in `gauntlet/claims.json`. Good self-contained candida
   my own (GAUNTLET.md D7).
 
 ## Last updated
-2026-09-20T12:20:00Z
+2026-09-20T15:30:00Z

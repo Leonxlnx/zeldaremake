@@ -7,9 +7,27 @@
  * Owner: terrain agent. Interface (`Terrain`) is frozen; implementation may be refined.
  */
 import { Vector3 } from 'three';
-import { LAYOUT, houseSteppingStones } from '../layout';
+import { EXPANSION, EXPANSION_BOX, EXPANSION_STAIRS, LAYOUT, expansionSteppingStones, houseSteppingStones, southBankFrameVectors, type StairDef } from '../layout';
 import { WORLD } from '../config';
 import { Noise2D, smoothstep, clamp, lerp } from '../util/noise';
+
+/**
+ * Round 49 (expansion-2): the heightfield has two VIEWS of the same world.
+ *  - `live`   — everything, including the round-49 expansion (layout.ts `EXPANSION`: the south
+ *               bank's landform, the two new flights' trenches and banks, the stepping discs' paved
+ *               surface, the west house's and far hut's structure pads). The terrain MESH renders
+ *               this view; hardscape, structures and the character ground build on it.
+ *  - `legacy` — the world as take-0121 left it: no expansion feature in the height, the masks or
+ *               the detail. The trees, rocks, vegetation and props systems build against THIS view
+ *               (src/world/index.ts hands them `getLegacyTerrain()`): their rejection-sampled
+ *               streams read height / slope / mask over the whole 45 m disc, and one changed
+ *               sample re-rolls every placement after it in all six fixed frames. Outside the
+ *               expansion footprints the two views are the same numbers (the lattice caches are
+ *               shared there, `LIVE_HEIGHT_BOX`), so a legacy-placed plant still sits on the
+ *               rendered ground everywhere except inside the bank and the two flights, where it is
+ *               buried — the vegetation lane switches to the live view when it re-tunes.
+ */
+export type TerrainView = 'live' | 'legacy';
 
 export interface TerrainMask {
   /** 1 on flagstone path surface */
@@ -135,7 +153,7 @@ interface StairFrame {
   landing: number;
 }
 
-const stairFrames: StairFrame[] = LAYOUT.stairs.map((s) => {
+function stairFrameOf(s: StairDef): StairFrame {
   const l = Math.hypot(s.dir[0], s.dir[1]);
   return {
     id: s.id,
@@ -151,9 +169,58 @@ const stairFrames: StairFrame[] = LAYOUT.stairs.map((s) => {
     // (hardscape/stairs.ts), and the 6 cm bank lifted the shelf to 0.30–0.34 under them)
     footBank: s.id === 'main' ? 0.13 : 0,
     apron: s.id === 'house-west',
-    landing: s.id === 'house-west' ? 0.85 : 1.7,
+    // (round 49: the west-house flight lays one landing row — the walkway deck's end rests on it)
+    landing: s.id === 'house-west' || s.id === 'west-house' ? 0.85 : 1.7,
   };
-});
+}
+
+const stairFrames: StairFrame[] = LAYOUT.stairs.map(stairFrameOf);
+/** round 49: the expansion flights (layout `EXPANSION_STAIRS`) — in the live view's ramps and masks only */
+const expansionStairFrames: StairFrame[] = EXPANSION_STAIRS.map(stairFrameOf);
+const LIVE_FRAMES: StairFrame[] = [...stairFrames, ...expansionStairFrames];
+const framesFor = (live: boolean) => (live ? LIVE_FRAMES : stairFrames);
+
+/**
+ * Round 49: camera C's right (west) frustum edge on the ground (layout `EXPANSION.cClip`): 0 within
+ * `margin` m east of / on the ray, 1 from `margin + fade` m west of it. Every live-only feature of
+ * the expansion (the south terrace, its flight, the discs' surface) is multiplied by this, so no
+ * terrain vertex camera C renders moves — the six fixed frames stay byte-identical.
+ */
+function cClip(x: number, z: number): number {
+  const c = EXPANSION.cClip;
+  const rayW = c.x0 + c.dxdz * (z - c.z0) - x;
+  return smoothstep(c.margin, c.margin + c.fade, rayW);
+}
+
+/**
+ * Round 49: the fence-topped bank south-west of the plaza (layout `EXPANSION.southBank`) — a flat
+ * terrace at `height` (absolute) whose face falls toward the plaza over `face` m from the lip,
+ * with `skirt` m soft ends and a `back` m skirt behind the flat top. Authored in the lip frame
+ * (u along the lip, v positive down the face toward the plaza). Live view only.
+ */
+const SOUTH_TERRACE = (() => {
+  const b = EXPANSION.southBank;
+  const { lip, face } = southBankFrameVectors();
+  return { ...b, lipX: lip[0], lipZ: lip[1], faceX: face[0], faceZ: face[1] };
+})();
+
+/** the terrace's lip-frame coordinates of a point */
+export function southTerraceLocal(x: number, z: number): { u: number; v: number } {
+  const dx = x - SOUTH_TERRACE.x;
+  const dz = z - SOUTH_TERRACE.z;
+  return { u: dx * SOUTH_TERRACE.lipX + dz * SOUTH_TERRACE.lipZ, v: dx * SOUTH_TERRACE.faceX + dz * SOUTH_TERRACE.faceZ };
+}
+
+/** terrace pad weight 0..1 (1 = the flat top; the face and skirts ease to 0), already clipped to camera C's edge */
+function southTerraceWeight(x: number, z: number): number {
+  const T = SOUTH_TERRACE;
+  const { u, v } = southTerraceLocal(x, z);
+  if (Math.abs(u) >= T.halfLength + T.skirt || v >= T.face || -v >= T.depth + T.back) return 0;
+  const along = 1 - smoothstep(T.halfLength, T.halfLength + T.skirt, Math.abs(u));
+  const front = 1 - smoothstep(0, T.face, v);
+  const back = 1 - smoothstep(T.depth, T.depth + T.back, -v);
+  return along * front * back * cClip(x, z);
+}
 
 /** the terrace flight of frame D's right edge (layout `stairs.house-west`), if authored */
 const HOUSE_WEST = stairFrames.find((f) => f.id === 'house-west') ?? null;
@@ -614,7 +681,36 @@ export function steppingStoneMask(x: number, z: number): number {
   return m;
 }
 
-function pathInfluence(x: number, z: number) {
+/** round 49: the expansion polylines' stepping discs (layout `EXPANSION.pathWest` / `pathSouth`) */
+const EXPANSION_STONES = expansionSteppingStones();
+const EXPANSION_STONES_BOX = (() => {
+  const b = { x0: Infinity, x1: -Infinity, z0: Infinity, z1: -Infinity };
+  for (const s of EXPANSION_STONES) {
+    b.x0 = Math.min(b.x0, s.x - s.r * 1.3);
+    b.x1 = Math.max(b.x1, s.x + s.r * 1.3);
+    b.z0 = Math.min(b.z0, s.z - s.r * 1.3);
+    b.z1 = Math.max(b.z1, s.z + s.r * 1.3);
+  }
+  return b;
+})();
+
+/**
+ * 1 on a stepping disc of the expansion paths (paved surface for the splat, the paving and the
+ * character ground; the ground under them is NOT flattened — they are set stones lying with the
+ * grade, hardscape/flagstones.ts `setDiscs`), soft 10 % rim, clipped to camera C's edge. Live only.
+ */
+export function expansionDiscMask(x: number, z: number): number {
+  const b = EXPANSION_STONES_BOX;
+  if (x < b.x0 || x > b.x1 || z < b.z0 || z > b.z1) return 0;
+  let m = 0;
+  for (const s of EXPANSION_STONES) {
+    const d = Math.hypot(x - s.x, z - s.z);
+    if (d < s.r * 1.2) m = Math.max(m, 1 - smoothstep(s.r * 0.92, s.r * 1.12, d));
+  }
+  return m > 0 ? m * cClip(x, z) : 0;
+}
+
+function pathInfluence(x: number, z: number, live = false) {
   const hw = LAYOUT.pathHalfWidth;
   const a = closestOnPolyline(LAYOUT.pathSpine, x, z);
   const b = closestOnPolyline(LAYOUT.pathToStairs, x, z);
@@ -715,16 +811,18 @@ function pathInfluence(x: number, z: number) {
     surface *= 1 - sb.along * smoothstep(-0.1, 0.06, sb.d);
     weight *= 1 - sb.along * smoothstep(-0.2, 0.25, sb.d);
   }
+  // round 49 (live view): the expansion paths' stepping discs are paved surface (no flattening)
+  if (live) surface = Math.max(surface, expansionDiscMask(x, z));
   return { weight, surface, y, dist: best.dist, toe: sb.toe, bank, bankDx, bankDz };
 }
 
-/** Macro landform + authored flattening (paths, stair ramps, house pads). No detail yet. */
-function macroHeight(x: number, z: number) {
+/** Macro landform + authored flattening (paths, stair ramps, house pads). No detail yet. `live`: with the round-49 expansion (see `TerrainView`). */
+function macroHeight(x: number, z: number, live = false) {
   const land = landform(x, z);
   let h = land.h;
 
   // Path flattening — blend toward the authored path height profile.
-  const p = pathInfluence(x, z);
+  const p = pathInfluence(x, z, live);
   if (p.weight > 0) {
     // authored y is the design height; add a little long-wavelength undulation so it's not a
     // ruler. Kept to ±2.5 cm over ~4 m: the slabs are seated on the mean height under them and
@@ -772,15 +870,41 @@ function macroHeight(x: number, z: number) {
     }
   }
 
+  // Round 49 (live view only): the fence-topped south terrace (`SOUTH_TERRACE`) — a flat pad at
+  // its height, its face the grassy bank toward the plaza. Before the stair ramps, like the ledge
+  // terrace, so the `south-bank` flight's trench, banks and landing rule where they cross it. The
+  // pad only ever RAISES the ground (the plain there is 0.0–0.4 m).
+  let southTerraceW = 0;
+  if (live && z > 10 && x < -8) {
+    southTerraceW = southTerraceWeight(x, z);
+    if (southTerraceW > 0) {
+      h = lerp(h, Math.max(h, SOUTH_TERRACE.height), southTerraceW);
+      padW = Math.max(padW, southTerraceW * smoothstep(0.7, 0.95, southTerraceW));
+    }
+  }
+
+  // Round 49 (live view only): the knoll under the far hut (`EXPANSION.farHutRise`) — a rounded
+  // rise added to the plain (the detail passes stay on it: it is a grassy hill, not a pad).
+  if (live && x < -30 && z > 25) {
+    const R = EXPANSION.farHutRise;
+    const d = Math.hypot(x - EXPANSION.farHut.host[0], z - EXPANSION.farHut.host[1]);
+    if (d < R.radius) h += R.height * (1 - smoothstep(R.top, R.radius, d)) * cClip(x, z);
+  }
+
   // Stair ramps: keep terrain just under the steps so nothing pokes through.
   let stairW = 0;
   // the house-west flight's flank banks (0..1 on the earth face beside the treads, for the splat)
   let hwBank = 0;
-  for (const f of stairFrames) {
+  for (const f of framesFor(live)) {
     const { u, v } = stairLocal(f, x, z);
     // the house-west flight's south bank reaches HOUSE_WEST_BANK.southReach beyond the flush lip
     const vLimit = f === HOUSE_WEST && v > 0 ? f.halfWidth + 0.5 + HOUSE_WEST_BANK.southReach : f.halfWidth + 1.3;
     if (u > -1.2 && u < f.run + f.landing + 0.7 && Math.abs(v) < vLimit) {
+      // round 49: an expansion flight's every blend is clipped to camera C's edge (cClip); the
+      // layout flights are untouched (clip 1)
+      const clip = expansionStairFrames.includes(f) ? cClip(x, z) : 1;
+      if (clip <= 0) continue;
+      const h0 = h;
       const ramp = f.baseY + clamp(u / f.run, 0, 1) * f.rise;
       // the house-west flight's north flank is a short verge (HOUSE_WEST_BANK.northVerge): the
       // signpost stands just beyond it; its south flank is the long grassy fall B / E look at
@@ -851,7 +975,8 @@ function macroHeight(x: number, z: number) {
       // wider suppression halo so detail passes fade out before the cheeks
       const su = smoothstep(-1.2, -0.3, u) * smoothstep(f.run + f.landing + 0.7, f.run + f.landing - 0.5, u);
       const sv = shortVerge ? 1 - smoothstep(f.halfWidth + 0.3, f.halfWidth + 0.35 + HOUSE_WEST_BANK.northVerge, av) : 1 - smoothstep(f.halfWidth + 0.4, f.halfWidth + 1.3, av);
-      stairW = Math.max(stairW, su * sv);
+      stairW = Math.max(stairW, su * sv * clip);
+      if (clip < 1) h = lerp(h0, h, clip);
     }
   }
 
@@ -880,6 +1005,16 @@ function macroHeight(x: number, z: number) {
   // round 48 (#14): the north clearing's skirt bank counts as an embankment, scaled by its rise
   // over the floor the way `edgeOf` scales the landform ramps (a 1.7 m bank peaks at ≈ 0.4)
   const discBank = p.bank * smoothstep(0.3, 1.2, Math.abs(land.h - p.y)) * 0.4;
+  // round 49: the south terrace's face and skirts are an embankment too (peaks mid-slope, scaled
+  // like `edgeOf` scales a 1.8 m terrace) so the detail passes erode and terrace it a little
+  if (southTerraceW > 0 && southTerraceW < 1) {
+    const terraceBank = 4 * southTerraceW * (1 - southTerraceW) * clamp(SOUTH_TERRACE.height / LAYOUT.terraces.eastPlateau.height, 0.35, 1) * 0.4;
+    if (terraceBank > discBank) {
+      // its fall line: down the face toward the plaza (the skirts share it — a small error there)
+      const pt = { ...p, bankDx: SOUTH_TERRACE.faceX, bankDz: SOUTH_TERRACE.faceZ };
+      return { h, land, p: pt, suppress, logW, embank: Math.max(land.embank, terraceBank) * (1 - suppress), discBank: terraceBank, hwBank };
+    }
+  }
   return { h, land, p, suppress, logW, embank: Math.max(land.embank, discBank) * (1 - suppress), discBank, hwBank };
 }
 
@@ -974,8 +1109,8 @@ function hashAngle(id: string) {
   return h % 1000;
 }
 
-function rawHeight(x: number, z: number): number {
-  const m = macroHeight(x, z);
+function rawHeight(x: number, z: number, live = false): number {
+  const m = macroHeight(x, z, live);
   let h = m.h;
   // Medium + small breakup, suppressed on paths, under the log-arch mouth and along the south bank's toe.
   const breakup = (1 - Math.max(m.p.surface, m.logW, m.p.toe)) * (medium.fbm(x * 0.35, z * 0.35, 3) * 0.14 + fine.noise(x * 1.7, z * 1.7) * 0.035);
@@ -984,19 +1119,32 @@ function rawHeight(x: number, z: number): number {
   return h;
 }
 
-/** Detail-pass factors at a point (for material layering / placement). Not cached. */
+/** Detail-pass factors at a point (for material layering / placement; the live view). Not cached. */
 export function terrainDetail(x: number, z: number): TerrainDetail {
-  return detailPasses(x, z, macroHeight(x, z)).detail;
+  return detailPasses(x, z, macroHeight(x, z, true)).detail;
 }
+
+/**
+ * Round 49: the west house (a `distantHouse` at near scale round the `southwest-giant`'s bole) and
+ * the far hut's bark column — `structure` in the live mask (no grass, the character does not walk
+ * into the trunk; the hut's deck and floor are walkable surfaces the character ground adds above).
+ */
+const EXPANSION_STRUCTURES = [
+  { x: EXPANSION.westHouse.host[0], z: EXPANSION.westHouse.host[1], r0: EXPANSION.westHouse.radius, r1: EXPANSION.westHouse.radius + 0.5 },
+  { x: EXPANSION.farHut.host[0], z: EXPANSION.farHut.host[1], r0: EXPANSION.farHutTrunk.baseRadius + 0.1, r1: EXPANSION.farHutTrunk.baseRadius + 0.8 },
+];
 
 /**
  * Cheap subset of `Terrain.mask` (no slope evaluation): paved surface, stair footprint and
  * structure pads. Used by placement loops that call it tens of thousands of times.
+ * `view` (round 49): `legacy` (the default — every caller that existed before round 49 keeps its
+ * numbers) or `live` (with the expansion: its flights, discs and structure pads).
  */
-export function surfaceMask(x: number, z: number): { path: number; stairs: number; structure: number } {
-  const p = pathInfluence(x, z);
+export function surfaceMask(x: number, z: number, view: TerrainView = 'legacy'): { path: number; stairs: number; structure: number } {
+  const live = view === 'live';
+  const p = pathInfluence(x, z, live);
   let stairs = 0;
-  for (const f of stairFrames) {
+  for (const f of framesFor(live)) {
     const { u, v } = stairLocal(f, x, z);
     // treads plus the two rows of landing slabs past the top step (see hardscape/stairs.ts). On the
     // main run's south-east side (v > 0, the flank cameras A and F look along) the mask stops 5 cm
@@ -1024,7 +1172,40 @@ export function surfaceMask(x: number, z: number): { path: number; stairs: numbe
   // hardscape/flagstones.ts `pavedLevel` ignores this in its north pass; the character cannot walk
   // through them and no grass grows under them)
   structure = Math.max(structure, standingStoneMask(x, z));
+  // round 49 (live): the west house's bole footprint and the far hut's column
+  if (live) {
+    for (const s of EXPANSION_STRUCTURES) {
+      const d = Math.hypot(x - s.x, z - s.z);
+      if (d < s.r1) structure = Math.max(structure, 1 - smoothstep(s.r0, s.r1, d));
+    }
+  }
   return { path: p.surface, stairs, structure };
+}
+
+/**
+ * Round 49 — for the streams that build against the LEGACY view (trees, vegetation, rocks, props;
+ * src/world/index.ts): true where a legacy-placed instance would now stand IN the expansion —
+ * on a stepping disc (grass through the stones), inside a flight's footprint, on the west house's
+ * bole or the far hut's column, or where the live ground differs from the legacy ground by more
+ * than `lift` m (the bank's body and face, the knoll: an instance seated on the legacy plain
+ * there is buried, or floats). Apply it AFTER a placement loop as a filter
+ * (`instances.filter((i) => !expansionCull(i.x, i.z))`): a filter re-rolls nothing, so the six
+ * fixed frames keep every instance they show, and only the expansion's own ground is cleared.
+ * Everything outside `EXPANSION_BOX` and the far hut's knoll returns false at the cost of a
+ * bounds test.
+ */
+export function expansionCull(x: number, z: number, lift = 0.3): boolean {
+  const F = EXPANSION.farHut;
+  const onKnoll = Math.hypot(x - F.host[0], z - F.host[1]) < EXPANSION.farHutRise.radius + 0.5;
+  if (!onKnoll && (x < EXPANSION_BOX.x0 || x > EXPANSION_BOX.x1 || z < EXPANSION_BOX.z0 || z > EXPANSION_BOX.z1)) return false;
+  // the discs by their circles (the first ones' splat is faded by `cClip`; the stones are laid whole)
+  for (const d of EXPANSION_STONES) if (Math.hypot(x - d.x, z - d.z) < d.r + 0.12) return true;
+  // the masks the expansion ADDED (live over legacy): the box's north-east corner holds the plaza
+  // disc's south-west rim, whose own paving mask must not cull what already avoids it
+  const m = surfaceMask(x, z, 'live');
+  const l = surfaceMask(x, z, 'legacy');
+  if ((m.path > 0.5 && l.path <= 0.5) || (m.stairs > 0.5 && l.stairs <= 0.5) || (m.structure > 0.5 && l.structure <= 0.5)) return true;
+  return Math.abs(getTerrain().height(x, z) - getLegacyTerrain().height(x, z)) > lift;
 }
 
 const _n = new Vector3();
@@ -1064,8 +1245,15 @@ export function latticeZone(x: number, z: number): Zone {
   return 2;
 }
 
-export function createTerrain(): Terrain {
-  const caches: Map<number, number>[] = [new Map(), new Map(), new Map()];
+/**
+ * Lattice sample caches shared by every terrain instance of a view (the legacy and the live views
+ * are separate maps: the same numbers outside the expansion footprints, `inExpansionFootprint`).
+ */
+const SAMPLE_CACHES: Record<TerrainView, Map<number, number>[]> = { live: [new Map(), new Map(), new Map()], legacy: [new Map(), new Map(), new Map()] };
+
+export function createTerrain(view: TerrainView = 'live'): Terrain {
+  const live = view === 'live';
+  const caches = SAMPLE_CACHES[view];
   const KEY = 1 << 20;
   const OFF = 1 << 19;
 
@@ -1076,7 +1264,7 @@ export function createTerrain(): Terrain {
     const c = cache.get(key);
     if (c !== undefined) return c;
     const s = ZONES[zone].spacing;
-    const h = Math.fround(rawHeight(gi * s, gj * s));
+    const h = Math.fround(rawHeight(gi * s, gj * s, live));
     cache.set(key, h);
     return h;
   };
@@ -1149,7 +1337,7 @@ export function createTerrain(): Terrain {
   };
 
   const mask = (x: number, z: number): TerrainMask => {
-    const sm = surfaceMask(x, z);
+    const sm = surfaceMask(x, z, view);
     const s = slope(x, z);
     const land = landform(x, z);
     return {
@@ -1182,9 +1370,20 @@ export function isLatticeTerrain(t: Terrain): t is LatticeTerrain {
   return typeof (t as LatticeTerrain).latticeHeight === 'function';
 }
 
-/** Convenience singleton — most systems just need one shared terrain. */
+/** Convenience singleton — most systems just need one shared terrain (the LIVE view: the rendered ground). */
 let shared: Terrain | null = null;
 export function getTerrain(): Terrain {
-  if (!shared) shared = createTerrain();
+  if (!shared) shared = createTerrain('live');
   return shared;
+}
+
+/**
+ * Round 49: the LEGACY view — the ground as take-0121 left it, without the expansion (see
+ * `TerrainView`). src/world/index.ts hands it to the trees, rocks, vegetation, props, canopy and
+ * atmosphere systems so their rejection-sampled streams read exactly the numbers they read before.
+ */
+let sharedLegacy: Terrain | null = null;
+export function getLegacyTerrain(): Terrain {
+  if (!sharedLegacy) sharedLegacy = createTerrain('legacy');
+  return sharedLegacy;
 }

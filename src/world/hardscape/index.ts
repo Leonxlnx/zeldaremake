@@ -3,11 +3,12 @@
  * The hero stairway (and the two short stairs), flagstone paths + plaza, joint fill and the
  * grass sprouting from the joints. Everything is cut-stone geometry seated on the heightfield.
  */
-import { Group, InstancedMesh, Matrix4, Mesh } from 'three';
+import { Group, InstancedMesh, Matrix4, Mesh, type Camera } from 'three';
 import { mergeGeometries } from 'three/examples/jsm/utils/BufferGeometryUtils.js';
 import type { WorldContext, WorldSystem } from '../system';
 import { STONE_CIRCLE_STONES } from '../terrain/heightfield';
 import { northVisible } from '../util/northLocality';
+import { EXPANSION_VISIBLE_M, casterSpheres, expansionCasters, expansionVisible as expansionLocalityVisible, sunVector } from '../util/expansionLocality';
 import { STONE_NEAR, createStoneMaterial } from './material';
 import { buildStairway, stairFrame, stairToWorld, type StairFrame } from './stairs';
 import { isPaved, nearIsolatedDisc, pavedLevel, placeFlagstones, rimDistance, type PavingContext } from './flagstones';
@@ -21,7 +22,7 @@ import { archNorthLip, archSeam, discField, hollowPath, jointSoil, lawnPocket, l
 import { buildFlowerHeads, type FlowerHead } from './flowers';
 import { STANDING_STONE_SKIRT, buildStandingStone } from './standing-stones';
 import { Noise2D, smoothstep } from '../util/noise';
-import { houseSteppingStones } from '../layout';
+import { EXPANSION, EXPANSION_STAIRS, expansionSteppingStones, houseSteppingStones } from '../layout';
 
 /** joint-grass tint (materials/sprouts.ts `SproutSpot.jointTint`) per sprout scatter; scatters not listed keep their greens */
 const JOINT_TUFT_TINT: Record<string, number> = {
@@ -72,6 +73,25 @@ export async function create(ctx: WorldContext): Promise<WorldSystem> {
     treadNose.push(...b.treadNose);
     stairInfo.push({ id: def.id, steps: def.steps, width: def.width, treadSlabs: b.treadSlabs, triangles: b.triangles });
   }
+  // round 49 (expansion-2): the expansion's flights (layout `EXPANSION_STAIRS` — the south bank's
+  // and the west house's), own forks, in their own group so they can be hidden by distance with
+  // the rest of the expansion's hardscape (below). Their frames join the paving passes' footprints.
+  const expansionGroup = new Group();
+  expansionGroup.name = 'hardscape-expansion';
+  group.add(expansionGroup);
+  const expansionFrames: StairFrame[] = EXPANSION_STAIRS.map((s) => stairFrame(s));
+  const expansionStairInfo: { id: string; steps: number; width: number; treadSlabs: number; triangles: number }[] = [];
+  let expansionStairTriangles = 0;
+  for (const def of EXPANSION_STAIRS) {
+    const b = buildStairway(def, T, rng.fork(`stairs-expansion/${def.id}`), ctx.config.seed);
+    const mesh = new Mesh(b.geometry, stoneMat);
+    mesh.castShadow = true;
+    mesh.receiveShadow = true;
+    mesh.name = `stairs-${def.id}`;
+    expansionGroup.add(mesh);
+    expansionStairTriangles += b.triangles;
+    expansionStairInfo.push({ id: def.id, steps: def.steps, width: def.width, treadSlabs: b.treadSlabs, triangles: b.triangles });
+  }
   ctx.progress('hardscape', 0.3);
 
   // --- flagstones --------------------------------------------------------------------------
@@ -120,6 +140,25 @@ export async function create(ctx: WorldContext): Promise<WorldSystem> {
   // ground learns the slab tops it stands on from that one mesh (character/ground.ts attachSurface)
   const pavingN = placeFlagstones(pcN, stoneMat);
   ctx.progress('hardscape', 0.7);
+
+  // --- round 49 (expansion-2): the stepping discs to the west house and the south bank ---------
+  // layout `EXPANSION.pathWest` / `pathSouth`: isolated round slabs like Saria's ramp's, laid by a
+  // third `placeFlagstones` pass on its own stream and box. Its paving level is the live mask's
+  // expansion discs ALONE (flagstones.ts `pavedLevel`, region 'expansion'), so no lattice seed is
+  // ever accepted (every paved point is inside a disc) and the pass lays exactly the discs; they
+  // are SET stones — seated with the ground's grade like the hollow path's (`setDiscs`) — since
+  // the shoulder they climb runs at up to 25°, where a level slab would be skipped as "steep".
+  // Nothing of it is inside any fixed camera's view (layout.ts `EXPANSION`).
+  const ebbox = { x0: Infinity, x1: -Infinity, z0: Infinity, z1: -Infinity };
+  for (const p of [...EXPANSION.pathWest, ...EXPANSION.pathSouth]) {
+    ebbox.x0 = Math.min(ebbox.x0, p[0] - 2.0);
+    ebbox.x1 = Math.max(ebbox.x1, p[0] + 2.0);
+    ebbox.z0 = Math.min(ebbox.z0, p[2] - 2.0);
+    ebbox.z1 = Math.max(ebbox.z1, p[2] + 2.0);
+  }
+  const pcE: PavingContext = { terrain: T, frames: [...frames, ...expansionFrames], rng: rng.fork('paving-expansion'), seed: ctx.config.seed, bbox: ebbox, density: ctx.quality.density, steppingStones: expansionSteppingStones(), region: 'expansion', setDiscs: true };
+  const pavingE = placeFlagstones(pcE, stoneMat);
+  ctx.progress('hardscape', 0.72);
 
   // --- joint fill --------------------------------------------------------------------------
   // the stepping stones on Saria's grassy ramp are paved discs with no joints: grass and clover
@@ -808,6 +847,22 @@ export async function create(ctx: WorldContext): Promise<WorldSystem> {
   group.add(northMesh);
   /** the north paving and its joint fill draw only within the north locality's visibility radius */
   const northPavingVisible = (cx: number, cz: number) => northVisible(nbbox, cx, cz);
+  // round 49: the expansion's discs, a third mesh (`flagstones-expansion`; character/ground.ts reads
+  // it with the other two), in the expansion group with its flights — drawn within 60 m of the
+  // expansion's box (the plaza is inside that; the six fixed frames cull it by frustum)
+  const expansionMesh = new Mesh(pavingE.mesh.geometry, stoneMat);
+  expansionMesh.name = 'flagstones-expansion';
+  expansionMesh.castShadow = paving.mesh.castShadow;
+  expansionMesh.receiveShadow = paving.mesh.receiveShadow;
+  expansionMesh.frustumCulled = paving.mesh.frustumCulled;
+  expansionGroup.add(expansionMesh);
+  // util/expansionLocality.ts: hidden beyond 60 m of the box, or when neither the locality's
+  // casters nor their shadow footprints meet the camera's frustum (the same rule the structures'
+  // near group follows, so the flights and discs appear with the house and the fences)
+  const sunToward = ctx.sun ? ctx.sun.position.clone().sub(ctx.sun.target.position).normalize() : sunVector(ctx.config.sun.azimuthDeg, ctx.config.sun.elevationDeg);
+  const casterSpheresE = expansionCasters().flatMap((c) => casterSpheres(c, sunToward));
+  const expansionVisible = (camera: Camera) => expansionLocalityVisible(camera, casterSpheresE);
+  expansionGroup.visible = expansionVisible(ctx.camera);
   const daisTriangles = dais.vertexCount / 3;
   const monolithMesh = new Mesh(monoliths.build(), stoneMat);
   monolithMesh.castShadow = true;
@@ -972,6 +1027,21 @@ export async function create(ctx: WorldContext): Promise<WorldSystem> {
     // round 47 (expansion-1): the paving beyond the arch — its own pass (flagstones.ts `region:
     // 'north'`), joint fill, joint sprouts and seam grit; the stone circle's standing stones and
     // the plateau lookout dais (one merged mesh, `hardscape-blocks`)
+    /** round 49 (expansion-2): the stepping discs to the west house / south bank and the two expansion flights (hardscape-expansion group) */
+    expansion: {
+      discs: pavingE.steppingStones.length,
+      discsLaid: pavingE.stats.steppingStones,
+      discsSkippedSteep: pavingE.stats.skippedSteep,
+      seeds: pavingE.stats.seeds,
+      stones: pavingE.stones.length,
+      triangles: pavingE.triangles,
+      stairs: expansionStairInfo,
+      stairTriangles: expansionStairTriangles,
+      visibleWithinM: EXPANSION_VISIBLE_M,
+      casterSpheres: casterSpheresE.length,
+      visible: expansionGroup.visible,
+      discTops: pavingE.stones.map((s) => [round(s.x), round(s.topY), round(s.z)]),
+    },
     northPaving: {
       flagstones: pavingN.stones.length,
       seeds: pavingN.stats.seeds,
@@ -1087,6 +1157,7 @@ export async function create(ctx: WorldContext): Promise<WorldSystem> {
       // north joints' 670 and the plaza's far / behind-the-camera tufts were 447 K of camera A's
       // 9.11 M, all collapsed to zero area by the shader or off-frame
       sprouts.cull(c.camera);
+      expansionGroup.visible = expansionVisible(c.camera);
     },
     onCameraMove(camera) {
       const show = northPavingVisible(camera.position.x, camera.position.z);
@@ -1094,6 +1165,7 @@ export async function create(ctx: WorldContext): Promise<WorldSystem> {
       jointsN.mesh.visible = show;
       monolithMesh.visible = show;
       sprouts.cull(camera, true);
+      expansionGroup.visible = expansionVisible(camera);
     },
     dispose() {
       if (disposed) return;

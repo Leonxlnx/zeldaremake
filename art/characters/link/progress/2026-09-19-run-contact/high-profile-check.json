@@ -1,0 +1,8 @@
+{
+  "complete": true,
+  "frames": 300,
+  "root_body_feet_ik_exact": true,
+  "high_profile": "high defaults",
+  "high_manifest": "game-high-after/manifest.json",
+  "compared_to": "game-balanced-after/manifest.json"
+}
