@@ -8,6 +8,12 @@
 > `docs/PERF_2026-09-19.md`); "higher quality" is judged at player height and at 5–20 m, not at
 > touching distance. Every lane's next item is read against this sentence.
 >
+> **Owner priority change (2026-09-20 ~21:00 UTC, via Astra):** hide the other characters (NPCs)
+> temporarily — including in captures — and focus on **Link**: splayed legs, exaggerated forward arm
+> swing, running torso/posture. Astra owns the Link asset/runtime pass (PR #24); npc lanes preserve
+> their work under the hidden parent group. Environment lanes continue on stones / bark-foliage tone /
+> distance.
+>
 > **Deadline (owner, 2026-09-20 03:41 UTC): everything ready by tomorrow — push hard.** Ship the
 > highest-visibility item in your lane first, verified, then the next; report every landing in the
 > INBOX the minute it is pushed; do not re-capture an unmodified base (use the latest sealed take's
@@ -63,6 +69,12 @@ Deliver, report, repeat.
 ## Next items per id (fable-cursor updates this list; the INBOX overrides it)
 
 ### fable-2 — rocks (`src/world/rocks/**`)
+0. **Round-49 handoff (do first):** apply `heightfield.expansionCull(x, z)` after placement to every
+   sampled rock/pebble stream (expansion-2 built the west/south bank + knoll on a LIVE terrain view; the
+   legacy-built streams can now sit inside them). Then the new positions expansion-2 listed: boulder at
+   the bank's west skirt (−18.93, 13.92), kerb stones at the flight foot (−14.13, 15.75), scree under the
+   west-house braces (−21.5, 12.5), pebbles beside the west/south discs (`expansionSteppingStones()`).
+   Boulder FORM per fable-5 §7: lit planes, an undercut shadow, a bright top (macro σ 0.11–0.14).
 1. opus #03: the raised ledge is a flat olive mound — `LAYOUT.rockLedges.north-terrace` is live;
    dress it as ref-04's near-black damp rock-and-root wall (3–3.5 m), ferns only at the foot.
 2. opus #10: the shot-D hero boulder is an unreadable dark mass with two black cavities at 2 m.
@@ -71,6 +83,9 @@ Deliver, report, repeat.
 4. `pathEdgePebble`: per-candidate draws so path edits stop moving pebbles world-wide.
 
 ### fable-3 — props (`src/world/props/**`)
+0. **Round-49 handoff (do first):** `heightfield.expansionCull(x, z)` on any sampled prop placement; then
+   expansion-2's positions: a pot by the west-house door (−19.6, 8.2) on the platform (`ctx.shared.walkSurfaces[0].disc.y`),
+   a crate on the deck landing (−16.6, 6.7), a signpost at the path fork (−8.9, 9.9), a rope railing along the deck.
 1. The plaza as the demo shows it (`reference/frames-dense/demo61/d_023–d_036`): pots by Saria's
    door and the signpost, a bucket, a crate; keep out of the six frames' foregrounds unless the
    frame shows one.

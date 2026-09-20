@@ -122,6 +122,14 @@ export interface RockOptions {
    */
   mossSide?: number;
   mossShade?: [number, number];
+  /**
+   * keep the moss off the faces turned toward this local xz direction (the cap stays): the face a
+   * hero frame reads must be bare stone (W23 at frame D — the reference's boulder is lit bare rock
+   * with the greenery on its crown, ours wore its shade blanket on the camera side)
+   */
+  bareToward?: [number, number];
+  /** pale the vertex colour on the faces turned toward `dir` (local xz) by up to `amount`: the lit-face read a shaded hero rock needs at its frame */
+  faceLift?: { dir: [number, number]; amount: number };
   /** lumpiness of the moss cushion 0..1: its thickness varies ±50 % at 1 so the edge reads soft */
   mossLumpy?: number;
   /**
@@ -483,6 +491,10 @@ export function buildRock(rng: Rng, seed: string, o: RockOptions): BufferGeometr
   const shadeZ = o.mossShade?.[1] ?? 0;
   const mossLumpy = o.mossLumpy ?? 0;
   const facetBare = o.facetBare ?? 0;
+  const bareX = o.bareToward?.[0] ?? 0;
+  const bareZ = o.bareToward?.[1] ?? 0;
+  /** 1 on the side faces turned toward `bareToward` (the cap is spared), 0 elsewhere / when unset */
+  const bareSideAt = (n: Vector3) => (o.bareToward ? smoothstep(-0.1, 0.5, n.x * bareX + n.z * bareZ) * (1 - smoothstep(0.5, 0.85, n.y)) : 0);
 
   /**
    * moss coverage 0..1 for a vertex at p with normal n: the cap (upward faces), patches, the
@@ -512,7 +524,8 @@ export function buildRock(rng: Rng, seed: string, o: RockOptions): BufferGeometr
       cov = Math.max(cov, blanket * (0.75 + 0.35 * patch));
       side *= 1.5;
     }
-    return clamp(mossAmt * (cov + side) * smoothstep(0.02, 0.2, h01) * (1 - crack * 0.5) * (1 - facetBare * fct), 0, 1);
+    const bare = bareSideAt(n);
+    return clamp(mossAmt * (cov + side) * (1 - bare) * smoothstep(0.02, 0.2, h01) * (1 - crack * 0.5) * (1 - facetBare * fct), 0, 1);
   };
 
   // 3. moss cushion: upward faces swell by the moss thickness (welded per position), so the cap
@@ -622,6 +635,7 @@ export function buildRock(rng: Rng, seed: string, o: RockOptions): BufferGeometr
     let tone = 0.87 + 0.26 * v;
     if (strata > 0) tone *= 1 + 0.08 * bedding(_p.x, _p.y, _p.z, x, y, z).step;
     tmp.copy(tint).multiplyScalar(tone);
+    if (o.faceLift) tmp.multiplyScalar(1 + o.faceLift.amount * smoothstep(0, 0.6, _n.x * o.faceLift.dir[0] + _n.z * o.faceLift.dir[1]));
     // cracks + bedding partings: dark
     const crack = crackAt(_p);
     tmp.lerp(dark, crack * 0.92);

@@ -4,7 +4,7 @@ runtime: Cursor Cloud Agent (Claude Fable 5.1)
 github: Cursor Agent <cursoragent@cursor.com>
 status: active
 branch: agent/fable-2-ledge (+ agent/fable-2-w23-loaf for the D composition change)
-updated: 2026-09-20T14:40:00Z
+updated: 2026-09-20T16:25:00Z
 ---
 
 # fable-2 — work log
@@ -49,6 +49,12 @@ as `agent/fable-2-<topic>`; `fable-cursor` merges. I do not touch `layout.ts`, t
   look lifted and warmed (`a683a4c1`) — **FAIL as a visible change at D**: the ferns hide the rock,
   the visible cap edge moved 0.238 → 0.246 and D −0.0002. Kept (harmless, toward the reference);
   the item is vegetation-26's exclusion disc first. §Iteration 8.
+- Iteration 16 — the plaza's backside (expansion-2, V20): `backside.ts` — pale boulder pair, low stone step
+  and flight scree at the fenced south bank, live-terrain seated, expansionVisible-toggled with per-piece
+  casters (`06f2a781` + `294bc94c`). A / C the head's draws and tris; landed at three poses. §Iteration 16.
+- Iteration 15 — W23's value half per fable-5's loaf review: `bareToward` + `faceLift` on the D boulder
+  (`39568e37` on `agent/fable-2-w23-loaf`): the face toward D bare and up to 30 % paler; D +0.0005, the
+  branch nets D −0.0002 vs the head. IMPROVED; the fronds stay vegetation's. §Iteration 15.
 - Iteration 14 — a 9–30 m detail band for the boulders (owner's "stones under-detailed"): **FAIL,
   reverted** (`d4bfed58` → `f433b104`) — ≤ 0.02 % of pixels in the six views, Δ 0; the hero boulders are
   hidden by vegetation at every 8–20 m pose I could find. §Iteration 14.
@@ -96,6 +102,13 @@ Nothing outside `src/world/rocks/` except this log, the INBOX and my evidence un
 
 ## Completed work
 (newest first)
+- `06f2a781` + `294bc94c` (`agent/fable-2-ledge`): `rocks/backside.ts` — reads `EXPANSION.southBank`,
+  `EXPANSION_STAIRS`, `southBankPoint`; seats on `getTerrain()` (live); returns per-piece `Caster`s for
+  `casterSpheres` / `expansionVisible` in `update` / `onCameraMove`. Lesson: group casters over-reach —
+  one per piece.
+- `39568e37` (`agent/fable-2-w23-loaf`): rockgen `bareToward` (moss off the faces toward a local xz
+  direction, cap spared) and `faceLift` (vertex colour × (1 + amount·smoothstep(dot))); index.ts derives
+  `towardD` from `layout.viewpoints` D_log and the D boulder. Six views all ≥ 0.
 - `51fb6b35` (`agent/fable-2-ledge`): W24 — audit `pebbles` = main + north (`pebblesMain`, `northPebbles`),
   `PEBBLE_DEFAULTS` 0.42 / 0.43. Lesson logged: re-read the rubric's auto checks before a count-changing
   scatter change.
@@ -206,4 +219,4 @@ Nothing outside `src/world/rocks/` except this log, the INBOX and my evidence un
 - #4: `pathEdgePebble` per-candidate draws.
 
 ## Last updated
-2026-09-20T14:40:00Z
+2026-09-20T16:25:00Z
