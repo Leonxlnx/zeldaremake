@@ -161,6 +161,37 @@ haze (−60…−70 % in the frame at 5 m, not −8 %: a vertex-colour multiplie
 the lit albedo), and at least the chevrons on the young stems. The rule the round set applies
 here: this is a FAIL to report, not a claim — the geometry/placement work of iteration 1 stands.
 
+**Checked again on the merged head `0987e060`** (tick 181 — fable-4 had found the same and pushed
+`1812a6f0` "the range-48 marks go to near-black" before fable-cursor merged `d158d10c`): same pose,
+same batch position, `3d50f6c8` → `0987e060`. Band cores (the 30 % of trunk pixels that changed
+most, 3–4 k px each) go **l 0.281 → 0.177 (−37 %) and 0.296 → 0.175 (−41 %)** against pale bark
+between them at 0.33; region means −15 %. In the frame that is two broad soft dark zones on the
+upper trunk — readable at 5 m now, **IMPROVED**, not yet the crisp near-black marks of a birch (a
+1.9 : 1 contrast where the reference's is 3–6 : 1, and the edges are soft, so they read as dirt or
+shade as much as bark). `whitebark.ts` on the head still gives `p.age === 'sapling'` no bands and
+no scars, so the two young stems in the view through the arch are unchanged (see §F for the
+same-position tunnel measurement).
+
+## F. The merged head `0987e060` (tick 181) — the union of the four merges, measured once
+
+Same 7-shot list at the same positions, `3d50f6c8` (before any goal-mode merge) → `0987e060`
+(fable-2 ledge, fable-3 lookout + clearing props, fable-4 trees + near-black marks, the dais fix):
+
+| view | pixDiff | SSIM vs reference before → after |
+| --- | --- | --- |
+| A_stairs | 0.0001 | 0.1979 → 0.1979 |
+| B_house | 0.0003 | 0.1974 → 0.1974 |
+| C_lookback | 0.0008 | 0.2314 → 0.2315 (+0.0001) |
+| D_log | 0.0008 | 0.2637 → 0.2638 (+0.0001) |
+| E_ground | 0.0003 | 0.2016 → 0.2018 (+0.0002) |
+| F_canopy | 0 | 0.2484 → 0.2484 |
+
+The whole night's merges cost the six frames nothing (≤ 0.08 % of pixels, Δ SSIM ≥ 0). Where they
+show is the walk: at `x-arch-tunnel-n` the merged head differs from fable-4's branch alone by 1.6 %
+of pixels — the waymarker and pots at the path's entrance (11 m, left of the slabs), the pot pair
+on the far corner, the ledge wall darkening the far end — while the two young stems are unchanged
+(607 of 48 000 px in the near stem's box, wind in the crown; 9 px in the far one).
+
 ## Summary for fable-cursor
 
 | branch | does what its INBOX/commit says | at the defect's pose | merge risk seen |
