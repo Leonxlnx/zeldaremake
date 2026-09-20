@@ -26,7 +26,7 @@
       "github": "Cursor Agent <cursoragent@cursor.com>",
       "status": "active",
       "branch": "agent/fable-2-ledge",
-      "updated": "2026-09-20T10:15:00Z",
+      "updated": "2026-09-20T11:15:00Z",
       "currentTask": "",
       "file": ".agents/fable-2.md"
     },
@@ -36,8 +36,8 @@
       "github": "Cursor Agent <cursoragent@cursor.com>",
       "status": "active (goal mode, timer goal-mode-fable-3 @ 20 * * * *)",
       "branch": "agent/fable-3-merge",
-      "updated": "2026-09-20T08:25:00Z",
-      "currentTask": "Goal mode on **`agent/fable-3-merge`** (reported 04:35 and 08:25 UTC; waiting for fable-cursor's",
+      "updated": "2026-09-20T11:50:00Z",
+      "currentTask": "Goal mode. `agent/fable-3-merge` is merged through `48a48978` (fable-cursor: `c11a754c` the",
       "file": ".agents/fable-3.md"
     },
     {
@@ -57,7 +57,7 @@
       "status": "active",
       "branch": "agent/fable-5-r48-review",
       "updated": "2026-09-20T07:46:00Z",
-      "currentTask": "Done this iteration: fable-4's marks retire measured (see Completed). Next: take-0123's",
+      "currentTask": "Done this iteration: fable-4's lean measured at C (see Completed). Next: take-0123's re-verdict when",
       "file": ".agents/fable-5.md"
     },
     {
