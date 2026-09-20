@@ -7,7 +7,7 @@
  * Owner: terrain agent. Interface (`Terrain`) is frozen; implementation may be refined.
  */
 import { Vector3 } from 'three';
-import { EXPANSION, EXPANSION_STAIRS, LAYOUT, expansionSteppingStones, houseSteppingStones, southBankFrameVectors, type StairDef } from '../layout';
+import { EXPANSION, EXPANSION_BOX, EXPANSION_STAIRS, LAYOUT, expansionSteppingStones, houseSteppingStones, southBankFrameVectors, type StairDef } from '../layout';
 import { WORLD } from '../config';
 import { Noise2D, smoothstep, clamp, lerp } from '../util/noise';
 
@@ -1134,6 +1134,29 @@ export function surfaceMask(x: number, z: number, view: TerrainView = 'legacy'):
     }
   }
   return { path: p.surface, stairs, structure };
+}
+
+/**
+ * Round 49 — for the streams that build against the LEGACY view (trees, vegetation, rocks, props;
+ * src/world/index.ts): true where a legacy-placed instance would now stand IN the expansion —
+ * on a stepping disc (grass through the stones), inside a flight's footprint, on the west house's
+ * bole or the far hut's column, or where the live ground differs from the legacy ground by more
+ * than `lift` m (the bank's body and face, the knoll: an instance seated on the legacy plain
+ * there is buried, or floats). Apply it AFTER a placement loop as a filter
+ * (`instances.filter((i) => !expansionCull(i.x, i.z))`): a filter re-rolls nothing, so the six
+ * fixed frames keep every instance they show, and only the expansion's own ground is cleared.
+ * Everything outside `EXPANSION_BOX` and the far hut's knoll returns false at the cost of a
+ * bounds test.
+ */
+export function expansionCull(x: number, z: number, lift = 0.3): boolean {
+  const F = EXPANSION.farHut;
+  const onKnoll = Math.hypot(x - F.host[0], z - F.host[1]) < EXPANSION.farHutRise.radius + 0.5;
+  if (!onKnoll && (x < EXPANSION_BOX.x0 || x > EXPANSION_BOX.x1 || z < EXPANSION_BOX.z0 || z > EXPANSION_BOX.z1)) return false;
+  // the discs by their circles (the first ones' splat is faded by `cClip`; the stones are laid whole)
+  for (const d of EXPANSION_STONES) if (Math.hypot(x - d.x, z - d.z) < d.r + 0.12) return true;
+  const m = surfaceMask(x, z, 'live');
+  if (m.path > 0.5 || m.stairs > 0.5 || m.structure > 0.5) return true;
+  return Math.abs(getTerrain().height(x, z) - getLegacyTerrain().height(x, z)) > lift;
 }
 
 const _n = new Vector3();

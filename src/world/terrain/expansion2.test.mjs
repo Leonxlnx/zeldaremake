@@ -362,6 +362,38 @@ const fmt = (x, z) => `(${x.toFixed(2)}, ${z.toFixed(2)})`;
   assert.ok(bearingFromC < -33, `the far hut is ${(-29.52 - bearingFromC).toFixed(1)}° outside camera C's west edge (bearing ${bearingFromC.toFixed(1)}°)`);
 }
 
+// 5b. `expansionCull` — the filter the legacy-built streams (vegetation, rocks, props, trees) apply
+//     after placement: true on every disc, on the bank's top and face, on the knoll and the column,
+//     false everywhere the ground is the legacy ground (the whole detail zone outside the box, every
+//     fixed viewpoint, the plain past the bank's toe)
+{
+  for (const s of expansionSteppingStones()) assert.equal(hf.expansionCull(s.x, s.z), true, `cull on the disc at ${fmt(s.x, s.z)}`);
+  const B = EXPANSION.southBank;
+  for (const [u, v] of [[0, -1], [-1.5, -2], [1.5, -0.5], [0, 1.3], [-1, 1.8]]) {
+    const [x, z] = southBankPoint(u, v);
+    assert.equal(hf.expansionCull(x, z), true, `cull on the bank at u ${u}, v ${v}`);
+  }
+  const F = EXPANSION.farHut;
+  assert.equal(hf.expansionCull(F.host[0], F.host[1]), true, 'cull on the column');
+  assert.equal(hf.expansionCull(F.host[0] + 4, F.host[1] + 2), true, 'cull on the knoll');
+  assert.equal(hf.expansionCull(F.host[0] + EXPANSION.farHutRise.radius + 1, F.host[1]), false, 'the plain past the knoll is kept');
+  for (const v of LAYOUT.viewpoints) assert.equal(hf.expansionCull(v.position[0], v.position[2]), false, `viewpoint ${v.id} is kept`);
+  let kept = 0;
+  let culled = 0;
+  for (let z = -48; z <= 48; z += 1.0) {
+    for (let x = -48; x <= 48; x += 1.0) {
+      const c = hf.expansionCull(x, z);
+      if (c) culled++;
+      else kept++;
+      const inBox = x >= EXPANSION_BOX.x0 && x <= EXPANSION_BOX.x1 && z >= EXPANSION_BOX.z0 && z <= EXPANSION_BOX.z1;
+      const onKnoll = Math.hypot(x - F.host[0], z - F.host[1]) < EXPANSION.farHutRise.radius + 0.5;
+      if (!inBox && !onKnoll) assert.equal(c, false, `nothing culled outside the box at ${fmt(x, z)}`);
+    }
+  }
+  assert.ok(culled > 60 && culled < 900, `the cull clears the expansion's own ground only (${culled} of ${kept + culled} metre cells)`);
+  assert.ok(B.height > 0, 'bank authored');
+}
+
 // 6. the visibility casters (util/expansionLocality.ts — what structures and hardscape toggle
 //    their expansion groups by): neither the near content's spheres nor the far hut's, sun-shadow
 //    footprints included, meet any fixed camera's frustum (else the group rides into that frame's
