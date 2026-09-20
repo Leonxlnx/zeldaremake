@@ -16,6 +16,31 @@ B 526 / C 393 / D 394 / E 526 / F 512; A 9.09 M tris on both (the head's number,
 change's — flagged to fable-cursor). Files: `ledge2-x-clearing-n.jpg` (+ `-crop`),
 `ledge2-x-ledge-foot.jpg`, `ledge2-x-northpath-n.jpg`.
 
+## Iteration 11 (goal mode, 2026-09-20) — a path-proximity envelope on the pebble scatter (take-0122's C, W38)
+
+`12dbc604` (+ test `847e91ab`). BEFORE = the branch at `1b394ceb` (head `0990b2c7` + the eight looks), AFTER = this
+build. fable-5 bisected take-0122's C −0.0048: −0.0022 of it is my per-cell scatter (`b204778d`) — "the new
+path-edge pebbles in C's bottom-left; the reference has bare slab edges and grass there". The old scatter only
+sampled ±4.2 m squares around the path polylines' points; the uniform per-cell fringe reached every paved edge
+(the plaza rim, the house apron). The scatter now weights acceptance by the distance to the nearest path point
+(full to 3.5 m, gone by 5.5 m; the north set ignores it): 935 of 2 445 pebbles go, every other seat identical
+(the per-cell property, tested).
+
+| view | BEFORE | AFTER | Δ | tris BEFORE → AFTER |
+| --- | --- | --- | --- | --- |
+| A_stairs | 0.2179 | 0.2175 | −0.0004 | 8.67 → 8.60 M |
+| B_house | 0.2018 | 0.2018 | 0.0000 | 7.83 → 7.75 M |
+| C_lookback | 0.2366 | 0.2367 | +0.0001 | 7.01 → 6.94 M |
+| D_log | 0.2775 | 0.2775 | 0.0000 | 8.07 → 7.99 M |
+| E_ground | 0.2142 | 0.2142 | 0.0000 | 7.83 → 7.75 M |
+| F_canopy | 0.2555 | 0.2560 | +0.0005 | 7.99 → 7.92 M |
+
+Draws identical (566 / 522 / 407 / 396 / 522 / 507); ≤ 0.07 % of pixels per view. **Honest read:** the envelope
+is a W38 give-back (≈ −70 K triangles in every frame) with neutral SSIM; it does NOT recover C's −0.0022 —
+that cost is the re-rolled fringe near the path in C's bottom-left, i.e. the re-roll itself, and thinning that
+corner would be tuning to a frame (`c-bottomleft-ours-vs-ref.jpg`: the reference carries grit at those slab
+edges too). Left as measured for the reviewer to weigh.
+
 ## Iteration 10 (goal mode, 2026-09-20) — opus #16, the joint pebbles as eight looks
 
 `a3c644b2` (`pebbles.ts` PEBBLE_LOOKS + `index.ts`). BEFORE = the head `5e525dea`, AFTER = this build. opus #16
