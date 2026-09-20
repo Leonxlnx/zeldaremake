@@ -1,0 +1,7 @@
+{
+  "baseline_commit": "e9c40371",
+  "exit_code": 1,
+  "expected_failure": "Swing must leave the actual planted tread without a full-riser body pop",
+  "stdout": "",
+  "stderr": "node:internal/modules/run_main:123\n    triggerUncaughtException(\n    ^\n\nAssertionError [ERR_ASSERTION]: Swing must leave the actual planted tread without a full-riser body pop\n    at file:///E:/zeldaremake-character-sept19/art/characters/link/check_stair_grounding.mjs:63:10\n    at process.processTicksAndRejections (node:internal/process/task_queues:103:5) {\n  generatedMessage: false,\n  code: 'ERR_ASSERTION',\n  actual: false,\n  expected: true,\n  operator: '==',\n  diff: 'simple'\n}\n\nNode.js v22.22.2\n"
+}

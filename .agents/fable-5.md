@@ -17,9 +17,9 @@ gauntlet's independent D7 verdicts (`gauntlet/reviews/*.json`, written only thro
 00:00 UTC (timer `goal-mode-fable-5`, cron `20 * * * *`); `agent/fable-5-demo-walk` merged (`b4de8d7`); current branch `agent/fable-5-r48-review`.
 
 ## Current task
-Done this iteration: fable-4's marks retire measured (see Completed). Next: take-0123's
-re-verdict when expansion-2 + structures-32 land, then the round-49 walk on that head. Still waiting
-for the 15-minute video file.
+Done this iteration: astra's branch and fable-3's tint step measured (see Completed). Next:
+take-0123's re-verdict when it seals on the head, the round-49 walk, fable-2's mid-range rock band.
+Still waiting for the 15-minute video file.
 
 ## Previous current task (superseded)
 Goal-mode loop. Next iteration: **re-verdict every visual item on take-0120** when it seals (the
@@ -35,6 +35,21 @@ lands: `ffmpeg` frames at his marked moments → `reference/frames-video2/`, has
 - `.agents/fable-5.md`, `.agents/reviews/fable-5-*.md`, my threads in `.agents/INBOX.md`.
 
 ## Completed work
+- 2026-09-20 14:20–15:10 UTC — goal-mode iteration 16 (r49 §F–§G): astra's environment branch
+  `a9eccd15` measured against the head — C −0.0253, F −0.0301, D −0.0091, B −0.0053, E −0.0037 (the
+  near crown cores' dark mass gone), plus an off-head ledger entry on the branch — reported as not
+  mergeable; fable-3's second tint step `73129594` — six views pixel-identical, crate hue 42° → 31°.
+- 2026-09-20 13:22–14:05 UTC — goal-mode iteration 15 (r49 §E): structures-32's tunnel measured at the
+  V19 poses, before `ca562e76` / after `69d16c4f` — six views pixel-identical; at the `d_121` pose frame
+  0.395 → 0.147 (ref 0.141), window:wall 1.5 → 5.8 (ref 5.0), both walls present. V19's tonal half
+  closed; the window's content (trunks and lights, no ground) is the open half.
+- 2026-09-20 12:36–13:25 UTC — goal-mode iteration 14 (r49 §C–§D): fable-2's D loaf `e5867d7e` on
+  `ca562e76` — D 0.78 % px for −0.0008, a rock in the frame but its face l 0.21 vs the reference's lit
+  0.27 (composition fixed, value inverted); fable-3's wood tint `424478eb` — six views pixel-identical,
+  3–4° of hue at the pose, unchanged to the eye.
+- 2026-09-20 11:31–12:15 UTC — goal-mode iteration 13 (r49 §B): fable-4's lean `ea86f8c1` (+ marks
+  retire) measured on head `e54a74ed` — C 3.27 % of pixels for −0.0006 (the survey tree leans across
+  the frame), the rest ≤ 0.05 %; grove/base/tunnel 9–22 %. IMPROVED; W08's last half is taper.
 - 2026-09-20 10:25–11:10 UTC — goal-mode iteration 12 (r49 §A, new branch `agent/fable-5-r49-review`):
   fable-4's marks-retire `5fe58488` measured on head `0990b2c7` — five views pixel-identical, C Δ 0;
   the soft vertex band between the tile's crisp bands is gone at the grove. IMPROVED, merge.

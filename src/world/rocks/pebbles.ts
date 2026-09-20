@@ -73,8 +73,12 @@ export interface PebbleScatterOptions {
   envelope?: { pts: [number, number][]; full: number; far: number };
 }
 
-/** calibrated on the round-48 world at density 1 to the old ≈ 2 600 (the browser world lands ≈ 2 700 at 0.38 / 0.39 — hashes vary ± 4 % with the seed — so a notch under, to keep camera A at the head's 9.00 M) */
-export const PEBBLE_DEFAULTS: Omit<PebbleScatterOptions, 'radius' | 'northZ' | 'density'> = { fringe: 0.36, scatter: 0.37 };
+/**
+ * calibrated on the round-48 world at density 1: with the path envelope the plaza-side set landed at
+ * 1 822 in the browser at 0.36 / 0.37 — under W24's 2 000 — so 0.42 / 0.43 puts it at ≈ 2 100 with the
+ * ± 4 % hash margin (the old scatter had ≈ 2 600 inside the same reach)
+ */
+export const PEBBLE_DEFAULTS: Omit<PebbleScatterOptions, 'radius' | 'northZ' | 'density'> = { fringe: 0.42, scatter: 0.43 };
 
 /**
  * Pebbles along every paved edge inside the lattice: `main` (z ≥ northZ) and `north` (z < northZ).
