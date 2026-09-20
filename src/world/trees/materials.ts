@@ -148,7 +148,7 @@ export const NEAR_CANOPY_SUN_THROUGH = 0.3;
  * the floor), so the floor drops to a third and keeps three quarters of the bark's own colour and
  * fissures: the cords read as bark, the furrows dark, the moss its own green.
  */
-export const NEAR_BASE_FLOOR: ShadeFloor = { lift: 2.5, texture: 0.75, canopy: 0.18, albedo: 0.08, chroma: 0.8 };
+export const NEAR_BASE_FLOOR: ShadeFloor = { lift: 2.5, texture: 0.65, canopy: 0.18, albedo: 0.08, chroma: 0.8 };
 
 interface WindOpts {
   /** stiffness of the whole-tree sway layer (1 = does not move) */
