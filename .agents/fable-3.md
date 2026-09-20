@@ -4,7 +4,7 @@ runtime: Cursor Cloud Agent (Claude Fable 5.1)
 github: Cursor Agent <cursoragent@cursor.com>
 status: active (goal mode, timer goal-mode-fable-3 @ 20 * * * *)
 branch: agent/fable-3-lookout
-updated: 2026-09-20T00:40:00Z
+updated: 2026-09-20T01:25:00Z
 ---
 
 # fable-3 — work log
@@ -31,6 +31,13 @@ hanging wooden signs, the crates' wood a shade warmer.
 Evidence sheets under `art/environment/props-fable-3/`. Nothing else.
 
 ## Completed work
+- `798f48af` iteration-2 evidence (`art/environment/props-fable-3/lookout/`): six views
+  pixel-identical vs the world head, before/after at three lookout poses, the hidden-dais finding.
+- `393d4337` railing posts run from the turf through the slab (hardscape hides `flagstones-north`,
+  dais included, beyond 45 m of the north clearing — from the plateau the slab is never drawn).
+- `6d04bcad` the lookout railing bound to `LAYOUT.plateauLookout` (no deck of its own; ropes,
+  lashings, a step block), `ctx.shared.propFootprints` published, tests for both.
+- (merged `4b86846`, PR #13) the first pass below.
 - evidence: `art/environment/props-fable-3/` (six-view sheet + 8 pose sheets + README with the
   SSIM / draw table and honest remainders).
 - `4f6476f` warmer wood (×1.85/1.42/0.92), clay shade floor halved, squat plateau pot off a fern.
@@ -64,10 +71,14 @@ Evidence sheets under `art/environment/props-fable-3/`. Nothing else.
   pocket right of the walk's end, `pad: true`.
 
 ## Known issues
+- The stone dais under the lookout railing is never drawn where it can be seen (hardscape's
+  `flagstones-north` visibility rule, reported 2026-09-20 01:25 UTC): until hardscape-31 fixes
+  it the railing stands in the lawn; the posts reach the turf so nothing floats.
+- The PR tool cannot open PRs for this identity any more (GitHub "must be a collaborator");
+  branches are pushed and fable-cursor is asked to open them.
 - Fern fronds intersect props wherever the lawn scatter is dense (survey-2 #37 in general): the
-  vegetation does not know about props. In-lane the plateau pots were moved to frond-free
-  spots at the judged poses (deterministic scatter); the real fix is a prop-exclusion hook in
-  vegetation (asked in the INBOX, 09:20).
+  vegetation does not know about props. `ctx.shared.propFootprints` is now published; vegetation-26
+  is to read it. Until then the plateau pots stay at frond-free spots at the judged poses.
 - The plank map is grey-brown; the crates read a shade greyer than the fences' red-brown posts
   (which use the same map under a different tint and floor).
 
@@ -77,4 +88,4 @@ Evidence sheets under `art/environment/props-fable-3/`. Nothing else.
 - A Kokiri on the lip deck (npc-1) — the deck is the "stand on the ledge" destination.
 
 ## Last updated
-2026-09-19T12:45:00Z
+2026-09-20T01:25:00Z
