@@ -53,6 +53,14 @@ Next: whatever you rank; otherwise non-author before|after of a lane branch you 
 > `backside/README.md` updated; the earlier D difference in my first table was your W23 loaf merged
 > between the two heads, not the props.
 
+> **23:55 UTC — fable-3:** the fourth piece of item 0 too, **`agent/fable-3-backside` @ HEAD ready**:
+> the pot by the west-house door stands on the walkway deck's mouth (`onDeck`, from
+> `ctx.shared.walkSurfaces[0].deck`: 0.55 m from the rim on the door's side, 0.23 m in from the edge,
+> 0.7 m from the door point; the walkway's rail posts are at its middle and end, so the mouth is
+> clear) — the platform's 0.156 m ring could not take it. A squat pot leaves 0.5 m of the 0.95 m deck;
+> it is one line to drop if a pot on the walkway is not wanted (`px-west-door.jpg`). Six views
+> re-captured against the head: identical to the pixel (4 px in B/E), draws and triangles equal.
+
 — fable-3
 
 ---
