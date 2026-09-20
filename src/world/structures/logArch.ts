@@ -387,7 +387,7 @@ export function buildLogArch(ctx: WorldContext, mats: StructureMaterials, rng: R
    * Both shells take term 1 through `rBase` (the hollow's ceiling is the same chord, the wall
    * thickness holds); terms 2–3 are outer relief.
    */
-  const CROWN_FLAT = 0.85;
+  const CROWN_FLAT = 0.6;
   const CROWN_EXP = 2.6;
   const crownProfile = (psi: number) => {
     const up = Math.sin(psi);
@@ -421,7 +421,7 @@ export function buildLogArch(ctx: WorldContext, mats: StructureMaterials, rng: R
     return smoothstep(-0.02, 0.62, up + mossEdge(psi, s)) * (0.22 + 0.42 * cushions + 0.18 * clumps);
   };
   /** the cap's LOWER round-50 thickness as displacement (m): 0.55 × the field, ≤ 0.45 m (was ≤ 0.82) */
-  const MOSS_CAP_SCALE = 0.55;
+  const MOSS_CAP_SCALE = 0.45;
   const mossCap = (psi: number, s: number, up: number) => MOSS_CAP_SCALE * mossField(psi, s, up);
   /**
    * bark relief only (no moss): broad longitudinal ridges, deep narrow fissures, lumps, grain.
@@ -586,7 +586,12 @@ export function buildLogArch(ctx: WorldContext, mats: StructureMaterials, rng: R
     // 'belly' the survey names is the SOUTH FLANK 6–12 m up (up 0…0.6) seen at 17 m, not the
     // underside, so the flank carries the plates too.
     const plated = lerp(plateAt(psi, s), 1, smoothstep(0.3, 0.7, up + mossEdge(psi, s)));
-    const shade = ao * vari * belly * plated;
+    // round 50: the west crown mass is a SHADED root ball, not a lit moss hump — its faces and
+    // crown drop to ≈ 0.45 of the shade and lose most of the moss tint over the lift (the frame's
+    // west mass at x 0.39–0.47 is the darkest thing in the band; the first cut's moss-lit mass
+    // read as a pale blob left of the body and the dark-body silhouette did not reach it)
+    const massLift = smoothstep(0.2, 1.4, westMass(psi, s, up));
+    const shade = ao * vari * belly * plated * (1 - 0.55 * massLift);
     // damp, weathered grey-brown bark (the material tint + dark bark map carry the rest).
     // Round 21: ×0.78 — D's arch mass rendered p50 0.481 against the reference's 0.404 with the
     // surrounding haze at ≈ 0.5: the body has to be darker under the veil to read as a mass
@@ -596,10 +601,11 @@ export function buildLogArch(ctx: WorldContext, mats: StructureMaterials, rng: R
     // underneath is brown, so the green has to be pushed hard through the vertex tint
     // round 41: the shaded floor between the cushion colonies and the lifted hearts, only where
     // the moss is a real cushion (thick cap, m high) — the flanks' creeping patches keep their tone
-    const bed = m * smoothstep(0.15, 0.4, mossField(psi, s, up));
+    const bed = m * smoothstep(0.15, 0.4, mossField(psi, s, up)) * (1 - massLift);
+    const mMass = m * (1 - 0.7 * massLift);
     const heart = lerp(1, lerp(CROWN_FLOOR, CROWN_HEART, colony(p)), bed);
     const mossC = [(1.3 + 0.8 * shade) * heart, (2.4 + 1.4 * shade) * heart, (0.5 + 0.3 * shade) * heart];
-    return [lerp(barkC[0], mossC[0], m), lerp(barkC[1], mossC[1], m), lerp(barkC[2], mossC[2], m)];
+    return [lerp(barkC[0], mossC[0], mMass), lerp(barkC[1], mossC[1], mMass), lerp(barkC[2], mossC[2], mMass)];
   };
 
   const _n = new Vector3();
