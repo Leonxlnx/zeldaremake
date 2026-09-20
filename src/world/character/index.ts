@@ -96,7 +96,7 @@ async function createLinkPuppet(blinkSeed: string): Promise<{ puppet: Puppet; so
 export async function create(ctx: WorldContext): Promise<WorldSystem> {
   const group = new Group();
   group.name = 'character';
-  const ground = createGround(ctx.terrain, ctx.layout);
+  const ground = createGround(ctx.terrain, ctx.layout, ctx.shared);
   // the hardscape is built before this system, so the rendered slab tops are available now
   ground.attachSurface(ctx.scene);
   const spot = (id: string): V3 => {

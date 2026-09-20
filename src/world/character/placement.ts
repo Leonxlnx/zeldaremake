@@ -15,6 +15,8 @@
  * have them, so the six harness views never see the loop).
  */
 
+import { EXPANSION_NPC_SPOTS } from '../layout';
+
 export type V3 = [number, number, number];
 
 export interface CamPose {
@@ -234,3 +236,26 @@ export interface NpcSeat {
  * so the turf lap and the kerb stones stay clear, 1.4 m from the stair-foot lantern post.
  */
 export const NPC_SEAT: NpcSeat = { stair: 'main', tread: 1, v: 1.0, yawDeg: 12 };
+
+export interface NpcStand {
+  /** layout id (`EXPANSION_NPC_SPOTS`) */
+  id: string;
+  /** world x / z; the y is `ground.height` there (the terrace top, ≈ 1.95 m) */
+  x: number;
+  z: number;
+  /** what the kid looks at (world x / z): the plaza centre — Link's spot */
+  lookAt: [number, number];
+}
+
+/**
+ * Round 49 (expansion-2): the Kokiri on the fence-topped south bank (footage 9–13 s: a kid
+ * standing on the bank looking down at Link) — `EXPANSION_NPC_SPOTS.kokiri-south-bank`, 1.3 m
+ * behind the lip and 1 m west of its centre, facing the plaza. The stand itself is authored here
+ * for the npc lane: a fifth kid slot in character/index.ts + npc.ts (a `kokiri-ledge`-style
+ * stand: idle, the look-around keys, the fairy), NOT in this round — the six fixed frames' kid
+ * slots are pinned and a new slot re-rolls the kokiri look streams.
+ */
+export const NPC_SOUTH_BANK: NpcStand = (() => {
+  const p = EXPANSION_NPC_SPOTS[0].position;
+  return { id: EXPANSION_NPC_SPOTS[0].id, x: p[0], z: p[2], lookAt: [0, 2] };
+})();

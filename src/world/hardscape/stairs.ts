@@ -55,7 +55,8 @@ export function hasPavedApron(def: StairDef): boolean {
  * the terrace) a second row showed as a grey band beside Link where frame 14 s has turf
  */
 export function landingRows(def: StairDef): number {
-  return hasPavedApron(def) ? 1 : 2;
+  // (round 49: the expansion's `west-house` flight lays one row too — the walkway deck's end rests on it)
+  return hasPavedApron(def) || def.id === 'west-house' ? 1 : 2;
 }
 
 /** length of the landing past the top step (m) — the terrain's stair mask stops here (heightfield StairFrame.landing) */
