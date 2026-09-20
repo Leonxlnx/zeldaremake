@@ -1,0 +1,1672 @@
+{
+  "sha": "50ed246630dd3cf1b4c9c377356ca1b8eedf8fed",
+  "settings": {
+    "views": [
+      "A_stairs",
+      "B_house",
+      "C_lookback",
+      "D_log",
+      "E_ground",
+      "F_canopy",
+      "sky-opening",
+      "w04-spine-l",
+      "w05-spine-d",
+      "w09-spine-d",
+      "w23-stairs-f",
+      "sn-bole-lantern-tree",
+      "sn-bole-nw-near",
+      "sn-bole-stair-bank",
+      "sn-lantern-limb",
+      "w19-spine-u",
+      "w21-spine-l",
+      "f4-trunk-2m",
+      "f4-crown-up"
+    ],
+    "poses": {
+      "w04-spine-l": {
+        "p": [
+          0,
+          1.45,
+          3.56
+        ],
+        "t": [
+          -7.07,
+          1.3,
+          -3.51
+        ],
+        "fov": 46
+      },
+      "w05-spine-d": {
+        "p": [
+          0,
+          1.45,
+          0.56
+        ],
+        "t": [
+          0,
+          0.01,
+          -1.94
+        ],
+        "fov": 46
+      },
+      "w09-spine-d": {
+        "p": [
+          1.4,
+          1.46,
+          -11.35
+        ],
+        "t": [
+          1.77,
+          -0.01,
+          -13.82
+        ],
+        "fov": 46
+      },
+      "w23-stairs-f": {
+        "p": [
+          6.4,
+          1.45,
+          -0.3
+        ],
+        "t": [
+          14.29,
+          1.3,
+          -6.45
+        ],
+        "fov": 46
+      },
+      "sn-bole-lantern-tree": {
+        "p": [
+          -8.2,
+          3.35,
+          -7
+        ],
+        "t": [
+          -11.5,
+          5.78,
+          -7.2
+        ],
+        "fov": 46
+      },
+      "sn-bole-nw-near": {
+        "p": [
+          -4.2,
+          1.76,
+          -12.6
+        ],
+        "t": [
+          -6,
+          3.17,
+          -12.8
+        ],
+        "fov": 46
+      },
+      "sn-bole-stair-bank": {
+        "p": [
+          8.9,
+          1.25,
+          9
+        ],
+        "t": [
+          10.6,
+          2.62,
+          9.15
+        ],
+        "fov": 46
+      },
+      "sn-lantern-limb": {
+        "p": [
+          0.1,
+          1.44,
+          3.1
+        ],
+        "t": [
+          0,
+          2.15,
+          1.5
+        ],
+        "fov": 46
+      },
+      "w19-spine-u": {
+        "p": [
+          4.68,
+          5.34,
+          -44.1
+        ],
+        "t": [
+          4.77,
+          15.34,
+          -45.1
+        ],
+        "fov": 46
+      },
+      "w21-spine-l": {
+        "p": [
+          5.65,
+          5.69,
+          -56.06
+        ],
+        "t": [
+          -0.87,
+          5.54,
+          -63.64
+        ],
+        "fov": 46
+      },
+      "f4-trunk-2m": {
+        "p": [
+          -5.5,
+          1.7,
+          13.4
+        ],
+        "t": [
+          -7.39,
+          2.1,
+          12.87
+        ],
+        "fov": 46
+      },
+      "f4-crown-up": {
+        "p": [
+          -5,
+          1.5,
+          14.5
+        ],
+        "t": [
+          -7.39,
+          8.3,
+          12.87
+        ],
+        "fov": 46
+      }
+    }
+  },
+  "images": {
+    "A_stairs": {
+      "variant": {
+        "name": "default"
+      },
+      "sha256": "0ed9906caac275b0e2352c48d5a6be70eecf7fab077883acb74bee56280e43c1",
+      "stats": {
+        "simTime": 12.6,
+        "drawCalls": 566,
+        "triangles": 8595330,
+        "geometries": 380,
+        "textures": 95,
+        "programs": 103,
+        "width": 1280,
+        "height": 720,
+        "pixelRatio": 1
+      },
+      "camera": {
+        "position": [
+          0.4,
+          1.8,
+          8.6
+        ],
+        "direction": [
+          0.4001487551488514,
+          -0.05779926463261199,
+          -0.9146257260545179
+        ],
+        "fov": 46
+      },
+      "lighting": {
+        "sunAzimuthDeg": -128,
+        "sunElevationDeg": 38,
+        "sunIntensity": 4.4,
+        "sunColor": "#ffe7bf",
+        "shadows": true,
+        "shadowMapSize": 4096,
+        "shadowType": "pcss-vogel+canopy-transmission",
+        "shadowFilterTaps": 12,
+        "shadowSearchTaps": 8,
+        "shadowFilterDynamic": false,
+        "shadowWindowRadiusM": 46,
+        "shadowSnapSpace": "light-camera-texel",
+        "shadowSnapMetres": 0.0224609375,
+        "shadowTexelCm": 2.2,
+        "shadowBias": -0.00012,
+        "shadowNormalBias": 0.028,
+        "shadowRadiusTexels": 1.5,
+        "shadowPenumbraPerM": 0.0093,
+        "shadowPenumbraRangeM": [
+          0.04,
+          0.45
+        ],
+        "shadowCanopyLeak": 0.1,
+        "shadowCanopyLeakRangeM": [
+          5,
+          11
+        ],
+        "cascades": 1,
+        "hemiIntensity": 0.55,
+        "hemiSkyLinear": [
+          0.479,
+          0.638,
+          0.745
+        ],
+        "hemiGroundLinear": [
+          0.407,
+          0.381,
+          0.242
+        ],
+        "environmentMap": true,
+        "environmentIntensity": 0.22,
+        "environmentTint": [
+          1.049,
+          1,
+          1.0025
+        ]
+      }
+    },
+    "B_house": {
+      "variant": {
+        "name": "default"
+      },
+      "sha256": "42ad988b0efe2d777f0c225ab6ddc07def15f8539eb1b3b7b7d17b26514aeb66",
+      "stats": {
+        "simTime": 12.6,
+        "drawCalls": 522,
+        "triangles": 7754627,
+        "geometries": 402,
+        "textures": 98,
+        "programs": 103,
+        "width": 1280,
+        "height": 720,
+        "pixelRatio": 1
+      },
+      "camera": {
+        "position": [
+          0,
+          1.5,
+          2
+        ],
+        "direction": [
+          0.33630596344635905,
+          0.013452238537854384,
+          -0.9416566976498055
+        ],
+        "fov": 46
+      },
+      "lighting": {
+        "sunAzimuthDeg": -128,
+        "sunElevationDeg": 38,
+        "sunIntensity": 4.4,
+        "sunColor": "#ffe7bf",
+        "shadows": true,
+        "shadowMapSize": 4096,
+        "shadowType": "pcss-vogel+canopy-transmission",
+        "shadowFilterTaps": 12,
+        "shadowSearchTaps": 8,
+        "shadowFilterDynamic": false,
+        "shadowWindowRadiusM": 46,
+        "shadowSnapSpace": "light-camera-texel",
+        "shadowSnapMetres": 0.0224609375,
+        "shadowTexelCm": 2.2,
+        "shadowBias": -0.00012,
+        "shadowNormalBias": 0.028,
+        "shadowRadiusTexels": 1.5,
+        "shadowPenumbraPerM": 0.0093,
+        "shadowPenumbraRangeM": [
+          0.04,
+          0.45
+        ],
+        "shadowCanopyLeak": 0.1,
+        "shadowCanopyLeakRangeM": [
+          5,
+          11
+        ],
+        "cascades": 1,
+        "hemiIntensity": 0.55,
+        "hemiSkyLinear": [
+          0.479,
+          0.638,
+          0.745
+        ],
+        "hemiGroundLinear": [
+          0.407,
+          0.381,
+          0.242
+        ],
+        "environmentMap": true,
+        "environmentIntensity": 0.22,
+        "environmentTint": [
+          1.049,
+          1,
+          1.0025
+        ]
+      }
+    },
+    "C_lookback": {
+      "variant": {
+        "name": "default"
+      },
+      "sha256": "126476561948e0358bd883bbd16d4dee1591073360c91432dfc45cbf0172c6f9",
+      "stats": {
+        "simTime": 12.6,
+        "drawCalls": 407,
+        "triangles": 6938215,
+        "geometries": 436,
+        "textures": 98,
+        "programs": 103,
+        "width": 1280,
+        "height": 720,
+        "pixelRatio": 1
+      },
+      "camera": {
+        "position": [
+          2.33,
+          1.45,
+          -7.67
+        ],
+        "direction": [
+          0.13040706314611447,
+          -0.06136802971581855,
+          0.9895594791675757
+        ],
+        "fov": 46
+      },
+      "lighting": {
+        "sunAzimuthDeg": -128,
+        "sunElevationDeg": 38,
+        "sunIntensity": 4.4,
+        "sunColor": "#ffe7bf",
+        "shadows": true,
+        "shadowMapSize": 4096,
+        "shadowType": "pcss-vogel+canopy-transmission",
+        "shadowFilterTaps": 12,
+        "shadowSearchTaps": 8,
+        "shadowFilterDynamic": false,
+        "shadowWindowRadiusM": 46,
+        "shadowSnapSpace": "light-camera-texel",
+        "shadowSnapMetres": 0.0224609375,
+        "shadowTexelCm": 2.2,
+        "shadowBias": -0.00012,
+        "shadowNormalBias": 0.028,
+        "shadowRadiusTexels": 1.5,
+        "shadowPenumbraPerM": 0.0093,
+        "shadowPenumbraRangeM": [
+          0.04,
+          0.45
+        ],
+        "shadowCanopyLeak": 0.1,
+        "shadowCanopyLeakRangeM": [
+          5,
+          11
+        ],
+        "cascades": 1,
+        "hemiIntensity": 0.55,
+        "hemiSkyLinear": [
+          0.479,
+          0.638,
+          0.745
+        ],
+        "hemiGroundLinear": [
+          0.407,
+          0.381,
+          0.242
+        ],
+        "environmentMap": true,
+        "environmentIntensity": 0.22,
+        "environmentTint": [
+          1.049,
+          1,
+          1.0025
+        ]
+      }
+    },
+    "D_log": {
+      "variant": {
+        "name": "default"
+      },
+      "sha256": "4d6731f14c80878296239faf7def0adff87547bcfd64dc853eeaaaf94983f7c6",
+      "stats": {
+        "simTime": 12.6,
+        "drawCalls": 396,
+        "triangles": 7986347,
+        "geometries": 450,
+        "textures": 98,
+        "programs": 103,
+        "width": 1280,
+        "height": 720,
+        "pixelRatio": 1
+      },
+      "camera": {
+        "position": [
+          0.2,
+          1.45,
+          -3
+        ],
+        "direction": [
+          0.10953219056304957,
+          0.03311438319348014,
+          -0.9934314958044038
+        ],
+        "fov": 48
+      },
+      "lighting": {
+        "sunAzimuthDeg": -128,
+        "sunElevationDeg": 38,
+        "sunIntensity": 4.4,
+        "sunColor": "#ffe7bf",
+        "shadows": true,
+        "shadowMapSize": 4096,
+        "shadowType": "pcss-vogel+canopy-transmission",
+        "shadowFilterTaps": 12,
+        "shadowSearchTaps": 8,
+        "shadowFilterDynamic": false,
+        "shadowWindowRadiusM": 46,
+        "shadowSnapSpace": "light-camera-texel",
+        "shadowSnapMetres": 0.0224609375,
+        "shadowTexelCm": 2.2,
+        "shadowBias": -0.00012,
+        "shadowNormalBias": 0.028,
+        "shadowRadiusTexels": 1.5,
+        "shadowPenumbraPerM": 0.0093,
+        "shadowPenumbraRangeM": [
+          0.04,
+          0.45
+        ],
+        "shadowCanopyLeak": 0.1,
+        "shadowCanopyLeakRangeM": [
+          5,
+          11
+        ],
+        "cascades": 1,
+        "hemiIntensity": 0.55,
+        "hemiSkyLinear": [
+          0.479,
+          0.638,
+          0.745
+        ],
+        "hemiGroundLinear": [
+          0.407,
+          0.381,
+          0.242
+        ],
+        "environmentMap": true,
+        "environmentIntensity": 0.22,
+        "environmentTint": [
+          1.049,
+          1,
+          1.0025
+        ]
+      }
+    },
+    "E_ground": {
+      "variant": {
+        "name": "default"
+      },
+      "sha256": "42ad988b0efe2d777f0c225ab6ddc07def15f8539eb1b3b7b7d17b26514aeb66",
+      "stats": {
+        "simTime": 12.6,
+        "drawCalls": 522,
+        "triangles": 7754627,
+        "geometries": 450,
+        "textures": 98,
+        "programs": 103,
+        "width": 1280,
+        "height": 720,
+        "pixelRatio": 1
+      },
+      "camera": {
+        "position": [
+          0,
+          1.5,
+          2
+        ],
+        "direction": [
+          0.33630596344635905,
+          0.013452238537854384,
+          -0.9416566976498055
+        ],
+        "fov": 46
+      },
+      "lighting": {
+        "sunAzimuthDeg": -128,
+        "sunElevationDeg": 38,
+        "sunIntensity": 4.4,
+        "sunColor": "#ffe7bf",
+        "shadows": true,
+        "shadowMapSize": 4096,
+        "shadowType": "pcss-vogel+canopy-transmission",
+        "shadowFilterTaps": 12,
+        "shadowSearchTaps": 8,
+        "shadowFilterDynamic": false,
+        "shadowWindowRadiusM": 46,
+        "shadowSnapSpace": "light-camera-texel",
+        "shadowSnapMetres": 0.0224609375,
+        "shadowTexelCm": 2.2,
+        "shadowBias": -0.00012,
+        "shadowNormalBias": 0.028,
+        "shadowRadiusTexels": 1.5,
+        "shadowPenumbraPerM": 0.0093,
+        "shadowPenumbraRangeM": [
+          0.04,
+          0.45
+        ],
+        "shadowCanopyLeak": 0.1,
+        "shadowCanopyLeakRangeM": [
+          5,
+          11
+        ],
+        "cascades": 1,
+        "hemiIntensity": 0.55,
+        "hemiSkyLinear": [
+          0.479,
+          0.638,
+          0.745
+        ],
+        "hemiGroundLinear": [
+          0.407,
+          0.381,
+          0.242
+        ],
+        "environmentMap": true,
+        "environmentIntensity": 0.22,
+        "environmentTint": [
+          1.049,
+          1,
+          1.0025
+        ]
+      }
+    },
+    "F_canopy": {
+      "variant": {
+        "name": "default"
+      },
+      "sha256": "edead59d0a495b3f106ec01756d7ee28aa9e92baf3b29bf1add345c2f3121464",
+      "stats": {
+        "simTime": 12.6,
+        "drawCalls": 507,
+        "triangles": 7922992,
+        "geometries": 453,
+        "textures": 98,
+        "programs": 103,
+        "width": 1280,
+        "height": 720,
+        "pixelRatio": 1
+      },
+      "camera": {
+        "position": [
+          -1.96,
+          1.8,
+          4
+        ],
+        "direction": [
+          0.9721254966661625,
+          -0.06836560096623101,
+          -0.22427252024288002
+        ],
+        "fov": 46
+      },
+      "lighting": {
+        "sunAzimuthDeg": -128,
+        "sunElevationDeg": 38,
+        "sunIntensity": 4.4,
+        "sunColor": "#ffe7bf",
+        "shadows": true,
+        "shadowMapSize": 4096,
+        "shadowType": "pcss-vogel+canopy-transmission",
+        "shadowFilterTaps": 12,
+        "shadowSearchTaps": 8,
+        "shadowFilterDynamic": false,
+        "shadowWindowRadiusM": 46,
+        "shadowSnapSpace": "light-camera-texel",
+        "shadowSnapMetres": 0.0224609375,
+        "shadowTexelCm": 2.2,
+        "shadowBias": -0.00012,
+        "shadowNormalBias": 0.028,
+        "shadowRadiusTexels": 1.5,
+        "shadowPenumbraPerM": 0.0093,
+        "shadowPenumbraRangeM": [
+          0.04,
+          0.45
+        ],
+        "shadowCanopyLeak": 0.1,
+        "shadowCanopyLeakRangeM": [
+          5,
+          11
+        ],
+        "cascades": 1,
+        "hemiIntensity": 0.55,
+        "hemiSkyLinear": [
+          0.479,
+          0.638,
+          0.745
+        ],
+        "hemiGroundLinear": [
+          0.407,
+          0.381,
+          0.242
+        ],
+        "environmentMap": true,
+        "environmentIntensity": 0.22,
+        "environmentTint": [
+          1.049,
+          1,
+          1.0025
+        ]
+      }
+    },
+    "sky-opening": {
+      "variant": {
+        "name": "default"
+      },
+      "sha256": "66fe5ffee3516888a41c329b37389cce3ff2bf5e222d32a7cda0b5ab1fe109d7",
+      "stats": {
+        "simTime": 12.6,
+        "drawCalls": 398,
+        "triangles": 6653210,
+        "geometries": 479,
+        "textures": 98,
+        "programs": 162,
+        "width": 1280,
+        "height": 720,
+        "pixelRatio": 1
+      },
+      "camera": {
+        "position": [
+          0,
+          1.8,
+          0.5
+        ],
+        "direction": [
+          8.466276089701586e-17,
+          0.7225449858931141,
+          -0.6913239062557577
+        ],
+        "fov": 72
+      },
+      "lighting": {
+        "sunAzimuthDeg": -128,
+        "sunElevationDeg": 38,
+        "sunIntensity": 4.4,
+        "sunColor": "#ffe7bf",
+        "shadows": true,
+        "shadowMapSize": 4096,
+        "shadowType": "pcss-vogel+canopy-transmission",
+        "shadowFilterTaps": 12,
+        "shadowSearchTaps": 8,
+        "shadowFilterDynamic": false,
+        "shadowWindowRadiusM": 46,
+        "shadowSnapSpace": "light-camera-texel",
+        "shadowSnapMetres": 0.0224609375,
+        "shadowTexelCm": 2.2,
+        "shadowBias": -0.00012,
+        "shadowNormalBias": 0.028,
+        "shadowRadiusTexels": 1.5,
+        "shadowPenumbraPerM": 0.0093,
+        "shadowPenumbraRangeM": [
+          0.04,
+          0.45
+        ],
+        "shadowCanopyLeak": 0.1,
+        "shadowCanopyLeakRangeM": [
+          5,
+          11
+        ],
+        "cascades": 1,
+        "hemiIntensity": 0.55,
+        "hemiSkyLinear": [
+          0.479,
+          0.638,
+          0.745
+        ],
+        "hemiGroundLinear": [
+          0.407,
+          0.381,
+          0.242
+        ],
+        "environmentMap": true,
+        "environmentIntensity": 0.22,
+        "environmentTint": [
+          1.049,
+          1,
+          1.0025
+        ]
+      }
+    },
+    "w04-spine-l": {
+      "variant": {
+        "name": "default"
+      },
+      "sha256": "62b85da83984767214414312eb55aa9a27b7efd0ad97b2f78141ed24aadd0a3a",
+      "stats": {
+        "simTime": 12.6,
+        "drawCalls": 338,
+        "triangles": 6248703,
+        "geometries": 487,
+        "textures": 98,
+        "programs": 164,
+        "width": 1280,
+        "height": 720,
+        "pixelRatio": 1
+      },
+      "camera": {
+        "position": [
+          0,
+          1.45,
+          3.56
+        ],
+        "direction": [
+          -0.707027221072027,
+          -0.015000577533352821,
+          -0.707027221072027
+        ],
+        "fov": 46
+      },
+      "lighting": {
+        "sunAzimuthDeg": -128,
+        "sunElevationDeg": 38,
+        "sunIntensity": 4.4,
+        "sunColor": "#ffe7bf",
+        "shadows": true,
+        "shadowMapSize": 4096,
+        "shadowType": "pcss-vogel+canopy-transmission",
+        "shadowFilterTaps": 12,
+        "shadowSearchTaps": 8,
+        "shadowFilterDynamic": false,
+        "shadowWindowRadiusM": 46,
+        "shadowSnapSpace": "light-camera-texel",
+        "shadowSnapMetres": 0.0224609375,
+        "shadowTexelCm": 2.2,
+        "shadowBias": -0.00012,
+        "shadowNormalBias": 0.028,
+        "shadowRadiusTexels": 1.5,
+        "shadowPenumbraPerM": 0.0093,
+        "shadowPenumbraRangeM": [
+          0.04,
+          0.45
+        ],
+        "shadowCanopyLeak": 0.1,
+        "shadowCanopyLeakRangeM": [
+          5,
+          11
+        ],
+        "cascades": 1,
+        "hemiIntensity": 0.55,
+        "hemiSkyLinear": [
+          0.479,
+          0.638,
+          0.745
+        ],
+        "hemiGroundLinear": [
+          0.407,
+          0.381,
+          0.242
+        ],
+        "environmentMap": true,
+        "environmentIntensity": 0.22,
+        "environmentTint": [
+          1.049,
+          1,
+          1.0025
+        ]
+      }
+    },
+    "w05-spine-d": {
+      "variant": {
+        "name": "default"
+      },
+      "sha256": "7a21b3095c9dc8b491fc1411d7f9b8e6691fb965e201468f7a816015762aac50",
+      "stats": {
+        "simTime": 12.6,
+        "drawCalls": 307,
+        "triangles": 6353805,
+        "geometries": 487,
+        "textures": 98,
+        "programs": 164,
+        "width": 1280,
+        "height": 720,
+        "pixelRatio": 1
+      },
+      "camera": {
+        "position": [
+          0,
+          1.45,
+          0.56
+        ],
+        "direction": [
+          1.0611951577662901e-16,
+          -0.49912220511167665,
+          -0.8665316060966604
+        ],
+        "fov": 46
+      },
+      "lighting": {
+        "sunAzimuthDeg": -128,
+        "sunElevationDeg": 38,
+        "sunIntensity": 4.4,
+        "sunColor": "#ffe7bf",
+        "shadows": true,
+        "shadowMapSize": 4096,
+        "shadowType": "pcss-vogel+canopy-transmission",
+        "shadowFilterTaps": 12,
+        "shadowSearchTaps": 8,
+        "shadowFilterDynamic": false,
+        "shadowWindowRadiusM": 46,
+        "shadowSnapSpace": "light-camera-texel",
+        "shadowSnapMetres": 0.0224609375,
+        "shadowTexelCm": 2.2,
+        "shadowBias": -0.00012,
+        "shadowNormalBias": 0.028,
+        "shadowRadiusTexels": 1.5,
+        "shadowPenumbraPerM": 0.0093,
+        "shadowPenumbraRangeM": [
+          0.04,
+          0.45
+        ],
+        "shadowCanopyLeak": 0.1,
+        "shadowCanopyLeakRangeM": [
+          5,
+          11
+        ],
+        "cascades": 1,
+        "hemiIntensity": 0.55,
+        "hemiSkyLinear": [
+          0.479,
+          0.638,
+          0.745
+        ],
+        "hemiGroundLinear": [
+          0.407,
+          0.381,
+          0.242
+        ],
+        "environmentMap": true,
+        "environmentIntensity": 0.22,
+        "environmentTint": [
+          1.049,
+          1,
+          1.0025
+        ]
+      }
+    },
+    "w09-spine-d": {
+      "variant": {
+        "name": "default"
+      },
+      "sha256": "c08f52fb19bb49e3f8cefcce01e51acdfda707628f3593d333b0ceeefcb4f4a9",
+      "stats": {
+        "simTime": 12.6,
+        "drawCalls": 295,
+        "triangles": 7131870,
+        "geometries": 530,
+        "textures": 100,
+        "programs": 164,
+        "width": 1280,
+        "height": 720,
+        "pixelRatio": 1
+      },
+      "camera": {
+        "position": [
+          1.4,
+          1.46,
+          -11.35
+        ],
+        "direction": [
+          0.12767200824219313,
+          -0.5072374381514163,
+          -0.852296919887074
+        ],
+        "fov": 46
+      },
+      "lighting": {
+        "sunAzimuthDeg": -128,
+        "sunElevationDeg": 38,
+        "sunIntensity": 4.4,
+        "sunColor": "#ffe7bf",
+        "shadows": true,
+        "shadowMapSize": 4096,
+        "shadowType": "pcss-vogel+canopy-transmission",
+        "shadowFilterTaps": 12,
+        "shadowSearchTaps": 8,
+        "shadowFilterDynamic": false,
+        "shadowWindowRadiusM": 46,
+        "shadowSnapSpace": "light-camera-texel",
+        "shadowSnapMetres": 0.0224609375,
+        "shadowTexelCm": 2.2,
+        "shadowBias": -0.00012,
+        "shadowNormalBias": 0.028,
+        "shadowRadiusTexels": 1.5,
+        "shadowPenumbraPerM": 0.0093,
+        "shadowPenumbraRangeM": [
+          0.04,
+          0.45
+        ],
+        "shadowCanopyLeak": 0.1,
+        "shadowCanopyLeakRangeM": [
+          5,
+          11
+        ],
+        "cascades": 1,
+        "hemiIntensity": 0.55,
+        "hemiSkyLinear": [
+          0.479,
+          0.638,
+          0.745
+        ],
+        "hemiGroundLinear": [
+          0.407,
+          0.381,
+          0.242
+        ],
+        "environmentMap": true,
+        "environmentIntensity": 0.22,
+        "environmentTint": [
+          1.049,
+          1,
+          1.0025
+        ]
+      }
+    },
+    "w23-stairs-f": {
+      "variant": {
+        "name": "default"
+      },
+      "sha256": "22fdd1cb47050c586e307f35ec4e4545f850e2df6b41278ce35be1be8c306983",
+      "stats": {
+        "simTime": 12.6,
+        "drawCalls": 508,
+        "triangles": 9932370,
+        "geometries": 559,
+        "textures": 100,
+        "programs": 168,
+        "width": 1280,
+        "height": 720,
+        "pixelRatio": 1
+      },
+      "camera": {
+        "position": [
+          6.4,
+          1.45,
+          -0.3
+        ],
+        "direction": [
+          0.788617219237545,
+          -0.01499272279919284,
+          -0.6147016347669074
+        ],
+        "fov": 46
+      },
+      "lighting": {
+        "sunAzimuthDeg": -128,
+        "sunElevationDeg": 38,
+        "sunIntensity": 4.4,
+        "sunColor": "#ffe7bf",
+        "shadows": true,
+        "shadowMapSize": 4096,
+        "shadowType": "pcss-vogel+canopy-transmission",
+        "shadowFilterTaps": 12,
+        "shadowSearchTaps": 8,
+        "shadowFilterDynamic": false,
+        "shadowWindowRadiusM": 46,
+        "shadowSnapSpace": "light-camera-texel",
+        "shadowSnapMetres": 0.0224609375,
+        "shadowTexelCm": 2.2,
+        "shadowBias": -0.00012,
+        "shadowNormalBias": 0.028,
+        "shadowRadiusTexels": 1.5,
+        "shadowPenumbraPerM": 0.0093,
+        "shadowPenumbraRangeM": [
+          0.04,
+          0.45
+        ],
+        "shadowCanopyLeak": 0.1,
+        "shadowCanopyLeakRangeM": [
+          5,
+          11
+        ],
+        "cascades": 1,
+        "hemiIntensity": 0.55,
+        "hemiSkyLinear": [
+          0.479,
+          0.638,
+          0.745
+        ],
+        "hemiGroundLinear": [
+          0.407,
+          0.381,
+          0.242
+        ],
+        "environmentMap": true,
+        "environmentIntensity": 0.22,
+        "environmentTint": [
+          1.049,
+          1,
+          1.0025
+        ]
+      }
+    },
+    "sn-bole-lantern-tree": {
+      "variant": {
+        "name": "default"
+      },
+      "sha256": "0c5ff6e085c1df8597330dc0b9fb69069d27bd058a980e7f1b3b9e456c7e913c",
+      "stats": {
+        "simTime": 12.6,
+        "drawCalls": 256,
+        "triangles": 5071131,
+        "geometries": 592,
+        "textures": 100,
+        "programs": 169,
+        "width": 1280,
+        "height": 720,
+        "pixelRatio": 1
+      },
+      "camera": {
+        "position": [
+          -8.2,
+          3.35,
+          -7
+        ],
+        "direction": [
+          -0.8042825929244,
+          0.5922444547897849,
+          -0.048744399571176156
+        ],
+        "fov": 46
+      },
+      "lighting": {
+        "sunAzimuthDeg": -128,
+        "sunElevationDeg": 38,
+        "sunIntensity": 4.4,
+        "sunColor": "#ffe7bf",
+        "shadows": true,
+        "shadowMapSize": 4096,
+        "shadowType": "pcss-vogel+canopy-transmission",
+        "shadowFilterTaps": 12,
+        "shadowSearchTaps": 8,
+        "shadowFilterDynamic": false,
+        "shadowWindowRadiusM": 46,
+        "shadowSnapSpace": "light-camera-texel",
+        "shadowSnapMetres": 0.0224609375,
+        "shadowTexelCm": 2.2,
+        "shadowBias": -0.00012,
+        "shadowNormalBias": 0.028,
+        "shadowRadiusTexels": 1.5,
+        "shadowPenumbraPerM": 0.0093,
+        "shadowPenumbraRangeM": [
+          0.04,
+          0.45
+        ],
+        "shadowCanopyLeak": 0.1,
+        "shadowCanopyLeakRangeM": [
+          5,
+          11
+        ],
+        "cascades": 1,
+        "hemiIntensity": 0.55,
+        "hemiSkyLinear": [
+          0.479,
+          0.638,
+          0.745
+        ],
+        "hemiGroundLinear": [
+          0.407,
+          0.381,
+          0.242
+        ],
+        "environmentMap": true,
+        "environmentIntensity": 0.22,
+        "environmentTint": [
+          1.049,
+          1,
+          1.0025
+        ]
+      }
+    },
+    "sn-bole-nw-near": {
+      "variant": {
+        "name": "default"
+      },
+      "sha256": "81b88f00cb2d5068d192da2ffea9578f20be33ccde989af84326d5db7a3d18b9",
+      "stats": {
+        "simTime": 12.6,
+        "drawCalls": 290,
+        "triangles": 5977768,
+        "geometries": 603,
+        "textures": 100,
+        "programs": 169,
+        "width": 1280,
+        "height": 720,
+        "pixelRatio": 1
+      },
+      "camera": {
+        "position": [
+          -4.2,
+          1.76,
+          -12.6
+        ],
+        "direction": [
+          -0.7842336985097289,
+          0.6143163971659543,
+          -0.08713707761219258
+        ],
+        "fov": 46
+      },
+      "lighting": {
+        "sunAzimuthDeg": -128,
+        "sunElevationDeg": 38,
+        "sunIntensity": 4.4,
+        "sunColor": "#ffe7bf",
+        "shadows": true,
+        "shadowMapSize": 4096,
+        "shadowType": "pcss-vogel+canopy-transmission",
+        "shadowFilterTaps": 12,
+        "shadowSearchTaps": 8,
+        "shadowFilterDynamic": false,
+        "shadowWindowRadiusM": 46,
+        "shadowSnapSpace": "light-camera-texel",
+        "shadowSnapMetres": 0.0224609375,
+        "shadowTexelCm": 2.2,
+        "shadowBias": -0.00012,
+        "shadowNormalBias": 0.028,
+        "shadowRadiusTexels": 1.5,
+        "shadowPenumbraPerM": 0.0093,
+        "shadowPenumbraRangeM": [
+          0.04,
+          0.45
+        ],
+        "shadowCanopyLeak": 0.1,
+        "shadowCanopyLeakRangeM": [
+          5,
+          11
+        ],
+        "cascades": 1,
+        "hemiIntensity": 0.55,
+        "hemiSkyLinear": [
+          0.479,
+          0.638,
+          0.745
+        ],
+        "hemiGroundLinear": [
+          0.407,
+          0.381,
+          0.242
+        ],
+        "environmentMap": true,
+        "environmentIntensity": 0.22,
+        "environmentTint": [
+          1.049,
+          1,
+          1.0025
+        ]
+      }
+    },
+    "sn-bole-stair-bank": {
+      "variant": {
+        "name": "default"
+      },
+      "sha256": "83d2f415aba07e46a3fc8eba1ee4fe216e0a2ddab2bdf601f93007f409cf8935",
+      "stats": {
+        "simTime": 12.6,
+        "drawCalls": 433,
+        "triangles": 8567968,
+        "geometries": 645,
+        "textures": 100,
+        "programs": 169,
+        "width": 1280,
+        "height": 720,
+        "pixelRatio": 1
+      },
+      "camera": {
+        "position": [
+          8.9,
+          1.25,
+          9
+        ],
+        "direction": [
+          0.7767984788397655,
+          0.6260081858885171,
+          0.06854104225056744
+        ],
+        "fov": 46
+      },
+      "lighting": {
+        "sunAzimuthDeg": -128,
+        "sunElevationDeg": 38,
+        "sunIntensity": 4.4,
+        "sunColor": "#ffe7bf",
+        "shadows": true,
+        "shadowMapSize": 4096,
+        "shadowType": "pcss-vogel+canopy-transmission",
+        "shadowFilterTaps": 12,
+        "shadowSearchTaps": 8,
+        "shadowFilterDynamic": false,
+        "shadowWindowRadiusM": 46,
+        "shadowSnapSpace": "light-camera-texel",
+        "shadowSnapMetres": 0.0224609375,
+        "shadowTexelCm": 2.2,
+        "shadowBias": -0.00012,
+        "shadowNormalBias": 0.028,
+        "shadowRadiusTexels": 1.5,
+        "shadowPenumbraPerM": 0.0093,
+        "shadowPenumbraRangeM": [
+          0.04,
+          0.45
+        ],
+        "shadowCanopyLeak": 0.1,
+        "shadowCanopyLeakRangeM": [
+          5,
+          11
+        ],
+        "cascades": 1,
+        "hemiIntensity": 0.55,
+        "hemiSkyLinear": [
+          0.479,
+          0.638,
+          0.745
+        ],
+        "hemiGroundLinear": [
+          0.407,
+          0.381,
+          0.242
+        ],
+        "environmentMap": true,
+        "environmentIntensity": 0.22,
+        "environmentTint": [
+          1.049,
+          1,
+          1.0025
+        ]
+      }
+    },
+    "sn-lantern-limb": {
+      "variant": {
+        "name": "default"
+      },
+      "sha256": "9490c43e25371f46e13ce41925a68588eb357e25848c7925c6614286a9c896dc",
+      "stats": {
+        "simTime": 12.6,
+        "drawCalls": 428,
+        "triangles": 7093583,
+        "geometries": 652,
+        "textures": 102,
+        "programs": 175,
+        "width": 1280,
+        "height": 720,
+        "pixelRatio": 1
+      },
+      "camera": {
+        "position": [
+          0.1,
+          1.44,
+          3.1
+        ],
+        "direction": [
+          -0.057034942038918235,
+          0.4049480884763205,
+          -0.9125590726226941
+        ],
+        "fov": 46
+      },
+      "lighting": {
+        "sunAzimuthDeg": -128,
+        "sunElevationDeg": 38,
+        "sunIntensity": 4.4,
+        "sunColor": "#ffe7bf",
+        "shadows": true,
+        "shadowMapSize": 4096,
+        "shadowType": "pcss-vogel+canopy-transmission",
+        "shadowFilterTaps": 12,
+        "shadowSearchTaps": 8,
+        "shadowFilterDynamic": false,
+        "shadowWindowRadiusM": 46,
+        "shadowSnapSpace": "light-camera-texel",
+        "shadowSnapMetres": 0.0224609375,
+        "shadowTexelCm": 2.2,
+        "shadowBias": -0.00012,
+        "shadowNormalBias": 0.028,
+        "shadowRadiusTexels": 1.5,
+        "shadowPenumbraPerM": 0.0093,
+        "shadowPenumbraRangeM": [
+          0.04,
+          0.45
+        ],
+        "shadowCanopyLeak": 0.1,
+        "shadowCanopyLeakRangeM": [
+          5,
+          11
+        ],
+        "cascades": 1,
+        "hemiIntensity": 0.55,
+        "hemiSkyLinear": [
+          0.479,
+          0.638,
+          0.745
+        ],
+        "hemiGroundLinear": [
+          0.407,
+          0.381,
+          0.242
+        ],
+        "environmentMap": true,
+        "environmentIntensity": 0.22,
+        "environmentTint": [
+          1.049,
+          1,
+          1.0025
+        ]
+      }
+    },
+    "w19-spine-u": {
+      "variant": {
+        "name": "default"
+      },
+      "sha256": "89a5f0ddcfb08d8253c6f0c3524d0f6aafab54a18acb45a922dc4847e1eb8116",
+      "stats": {
+        "simTime": 12.6,
+        "drawCalls": 194,
+        "triangles": 3649248,
+        "geometries": 693,
+        "textures": 102,
+        "programs": 211,
+        "width": 1280,
+        "height": 720,
+        "pixelRatio": 1
+      },
+      "camera": {
+        "position": [
+          4.68,
+          5.34,
+          -44.1
+        ],
+        "direction": [
+          0.008954975633432833,
+          0.9949972926036132,
+          -0.09949972926035858
+        ],
+        "fov": 46
+      },
+      "lighting": {
+        "sunAzimuthDeg": -128,
+        "sunElevationDeg": 38,
+        "sunIntensity": 4.4,
+        "sunColor": "#ffe7bf",
+        "shadows": true,
+        "shadowMapSize": 4096,
+        "shadowType": "pcss-vogel+canopy-transmission",
+        "shadowFilterTaps": 12,
+        "shadowSearchTaps": 8,
+        "shadowFilterDynamic": false,
+        "shadowWindowRadiusM": 46,
+        "shadowSnapSpace": "light-camera-texel",
+        "shadowSnapMetres": 0.0224609375,
+        "shadowTexelCm": 2.2,
+        "shadowBias": -0.00012,
+        "shadowNormalBias": 0.028,
+        "shadowRadiusTexels": 1.5,
+        "shadowPenumbraPerM": 0.0093,
+        "shadowPenumbraRangeM": [
+          0.04,
+          0.45
+        ],
+        "shadowCanopyLeak": 0.1,
+        "shadowCanopyLeakRangeM": [
+          5,
+          11
+        ],
+        "cascades": 1,
+        "hemiIntensity": 0.55,
+        "hemiSkyLinear": [
+          0.479,
+          0.638,
+          0.745
+        ],
+        "hemiGroundLinear": [
+          0.407,
+          0.381,
+          0.242
+        ],
+        "environmentMap": true,
+        "environmentIntensity": 0.22,
+        "environmentTint": [
+          1.049,
+          1,
+          1.0025
+        ]
+      }
+    },
+    "w21-spine-l": {
+      "variant": {
+        "name": "default"
+      },
+      "sha256": "21efd7c21cc7605d4bcfe17bfcf8caa9e28215b800d272a91bc813b1f165061b",
+      "stats": {
+        "simTime": 12.6,
+        "drawCalls": 254,
+        "triangles": 3779022,
+        "geometries": 718,
+        "textures": 102,
+        "programs": 226,
+        "width": 1280,
+        "height": 720,
+        "pixelRatio": 1
+      },
+      "camera": {
+        "position": [
+          5.65,
+          5.69,
+          -56.06
+        ],
+        "direction": [
+          -0.6520348847995294,
+          -0.015000802564406598,
+          -0.7580405562546693
+        ],
+        "fov": 46
+      },
+      "lighting": {
+        "sunAzimuthDeg": -128,
+        "sunElevationDeg": 38,
+        "sunIntensity": 4.4,
+        "sunColor": "#ffe7bf",
+        "shadows": true,
+        "shadowMapSize": 4096,
+        "shadowType": "pcss-vogel+canopy-transmission",
+        "shadowFilterTaps": 12,
+        "shadowSearchTaps": 8,
+        "shadowFilterDynamic": false,
+        "shadowWindowRadiusM": 46,
+        "shadowSnapSpace": "light-camera-texel",
+        "shadowSnapMetres": 0.0224609375,
+        "shadowTexelCm": 2.2,
+        "shadowBias": -0.00012,
+        "shadowNormalBias": 0.028,
+        "shadowRadiusTexels": 1.5,
+        "shadowPenumbraPerM": 0.0093,
+        "shadowPenumbraRangeM": [
+          0.04,
+          0.45
+        ],
+        "shadowCanopyLeak": 0.1,
+        "shadowCanopyLeakRangeM": [
+          5,
+          11
+        ],
+        "cascades": 1,
+        "hemiIntensity": 0.55,
+        "hemiSkyLinear": [
+          0.479,
+          0.638,
+          0.745
+        ],
+        "hemiGroundLinear": [
+          0.407,
+          0.381,
+          0.242
+        ],
+        "environmentMap": true,
+        "environmentIntensity": 0.22,
+        "environmentTint": [
+          1.049,
+          1,
+          1.0025
+        ]
+      }
+    },
+    "f4-trunk-2m": {
+      "variant": {
+        "name": "default"
+      },
+      "sha256": "74e317859826d1c9846ce0cb2f52756cfdcb7f4a9b5054f44ddcb951c19dff8e",
+      "stats": {
+        "simTime": 12.6,
+        "drawCalls": 262,
+        "triangles": 4772647,
+        "geometries": 733,
+        "textures": 102,
+        "programs": 227,
+        "width": 1280,
+        "height": 720,
+        "pixelRatio": 1
+      },
+      "camera": {
+        "position": [
+          -5.5,
+          1.7,
+          13.4
+        ],
+        "direction": [
+          -0.9434681079771575,
+          0.19967579004807579,
+          -0.26457042181370133
+        ],
+        "fov": 46
+      },
+      "lighting": {
+        "sunAzimuthDeg": -128,
+        "sunElevationDeg": 38,
+        "sunIntensity": 4.4,
+        "sunColor": "#ffe7bf",
+        "shadows": true,
+        "shadowMapSize": 4096,
+        "shadowType": "pcss-vogel+canopy-transmission",
+        "shadowFilterTaps": 12,
+        "shadowSearchTaps": 8,
+        "shadowFilterDynamic": false,
+        "shadowWindowRadiusM": 46,
+        "shadowSnapSpace": "light-camera-texel",
+        "shadowSnapMetres": 0.0224609375,
+        "shadowTexelCm": 2.2,
+        "shadowBias": -0.00012,
+        "shadowNormalBias": 0.028,
+        "shadowRadiusTexels": 1.5,
+        "shadowPenumbraPerM": 0.0093,
+        "shadowPenumbraRangeM": [
+          0.04,
+          0.45
+        ],
+        "shadowCanopyLeak": 0.1,
+        "shadowCanopyLeakRangeM": [
+          5,
+          11
+        ],
+        "cascades": 1,
+        "hemiIntensity": 0.55,
+        "hemiSkyLinear": [
+          0.479,
+          0.638,
+          0.745
+        ],
+        "hemiGroundLinear": [
+          0.407,
+          0.381,
+          0.242
+        ],
+        "environmentMap": true,
+        "environmentIntensity": 0.22,
+        "environmentTint": [
+          1.049,
+          1,
+          1.0025
+        ]
+      }
+    },
+    "f4-crown-up": {
+      "variant": {
+        "name": "default"
+      },
+      "sha256": "6023d98e39e809df1947fcf887573dc63f5e17548e69712c16d5741061cb4ef9",
+      "stats": {
+        "simTime": 12.6,
+        "drawCalls": 190,
+        "triangles": 4463343,
+        "geometries": 752,
+        "textures": 102,
+        "programs": 227,
+        "width": 1280,
+        "height": 720,
+        "pixelRatio": 1
+      },
+      "camera": {
+        "position": [
+          -5,
+          1.5,
+          14.5
+        ],
+        "direction": [
+          -0.323419192941916,
+          0.9201884987468735,
+          -0.220574596023148
+        ],
+        "fov": 46
+      },
+      "lighting": {
+        "sunAzimuthDeg": -128,
+        "sunElevationDeg": 38,
+        "sunIntensity": 4.4,
+        "sunColor": "#ffe7bf",
+        "shadows": true,
+        "shadowMapSize": 4096,
+        "shadowType": "pcss-vogel+canopy-transmission",
+        "shadowFilterTaps": 12,
+        "shadowSearchTaps": 8,
+        "shadowFilterDynamic": false,
+        "shadowWindowRadiusM": 46,
+        "shadowSnapSpace": "light-camera-texel",
+        "shadowSnapMetres": 0.0224609375,
+        "shadowTexelCm": 2.2,
+        "shadowBias": -0.00012,
+        "shadowNormalBias": 0.028,
+        "shadowRadiusTexels": 1.5,
+        "shadowPenumbraPerM": 0.0093,
+        "shadowPenumbraRangeM": [
+          0.04,
+          0.45
+        ],
+        "shadowCanopyLeak": 0.1,
+        "shadowCanopyLeakRangeM": [
+          5,
+          11
+        ],
+        "cascades": 1,
+        "hemiIntensity": 0.55,
+        "hemiSkyLinear": [
+          0.479,
+          0.638,
+          0.745
+        ],
+        "hemiGroundLinear": [
+          0.407,
+          0.381,
+          0.242
+        ],
+        "environmentMap": true,
+        "environmentIntensity": 0.22,
+        "environmentTint": [
+          1.049,
+          1,
+          1.0025
+        ]
+      }
+    }
+  },
+  "errors": [],
+  "captureScriptSha256": "036b0898bea42d9f092bcf204cc566a484fd75bcf23ec927316de29381c68cc5",
+  "sourceDiffSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+  "complete": true
+}

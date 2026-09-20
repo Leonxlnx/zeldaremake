@@ -5,7 +5,7 @@ import assert from 'node:assert/strict';
 import crypto from 'node:crypto';
 import {execFileSync} from 'node:child_process';
 import puppeteer from 'puppeteer-core';
-import {ROOT,serveStatic,findChrome} from './lib/browser.mjs';
+import {ROOT,serveStatic,findChrome,READY_TIMEOUT_MS} from './lib/browser.mjs';
 
 const settings=process.argv[2]?JSON.parse(await fs.readFile(process.argv[2],'utf8')):{};
 for(const probe of [settings,...(settings.variants??[])])for(const [key,value] of Object.entries(probe.postfx??{})){
@@ -20,12 +20,12 @@ await fs.writeFile(path.join(out,'source.diff'),diff);
 report.sourceDiffSha256=crypto.createHash('sha256').update(diff).digest('hex');
 const server=await serveStatic(path.join(ROOT,'dist'));let browser;
 try {
- browser=await puppeteer.launch({executablePath:findChrome(),headless:true,pipe:true,protocolTimeout:180000,args:['--no-sandbox','--disable-gpu-sandbox','--use-angle=d3d11','--no-proxy-server','--hide-scrollbars','--mute-audio'],defaultViewport:{width:1280,height:720}});
+ browser=await puppeteer.launch({executablePath:findChrome(),headless:true,pipe:true,protocolTimeout:READY_TIMEOUT_MS,args:['--no-sandbox','--disable-gpu-sandbox','--use-angle=d3d11','--no-proxy-server','--hide-scrollbars','--mute-audio'],defaultViewport:{width:1280,height:720}});
  const page=await browser.newPage();page.on('pageerror',e=>report.errors.push(e.message));
  await page.evaluateOnNewDocument(s=>{window.__ATMO_SKY__=s.sky;window.__ATMO_FOG__=s.fog;window.__ATMO_LIGHT__=s.light;window.__ATMO_SETTINGS__=s.postfx;window.__ATMO_SHADOWFILTER__=s.shadowFilter;},settings);
  await page.goto(server.url+'/?capture=1&dev=0&hud=0&quality=high&'+new URLSearchParams(settings.params??{}),{waitUntil:'domcontentloaded',timeout:180000});
- await page.waitForFunction(()=>window.__ZR__,{timeout:180000});await page.evaluate(()=>__ZR__.ready());
- await page.waitForFunction(()=>{const el=document.getElementById('loading');return !el||getComputedStyle(el).opacity==='0';},{timeout:180000});
+ await page.waitForFunction(()=>window.__ZR__,{timeout:READY_TIMEOUT_MS});await page.evaluate(()=>__ZR__.ready());
+ await page.waitForFunction(()=>{const el=document.getElementById('loading');return !el||getComputedStyle(el).opacity==='0';},{timeout:READY_TIMEOUT_MS});
  const views=await page.evaluate(()=>__ZR__.viewpoints().filter(v=>!v.diagnostic).map(v=>v.id));
  for(const id of settings.views??[...views,'sky-opening']) {
   const pose=settings.poses?.[id];

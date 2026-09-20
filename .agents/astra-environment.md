@@ -4,7 +4,7 @@ runtime: Codex desktop coordinator with three owner-requested Astra Max subagent
 github: Leonxlnx
 status: active
 branch: agent/astra-environment-quality
-updated: 2026-09-20T12:56:00Z
+updated: 2026-09-20T13:38:00Z
 ---
 
 # Astra environment quality pass
@@ -37,9 +37,11 @@ Larger visible forest means useful LOD and continuous silhouettes, not all full-
 rendered indiscriminately. Keep the performance gate and report actual measured cost.
 
 ## Known issues
-No new environment source changes or quality improvement claimed yet. Baseline atca562e76
-is being prepared; newer in-flight Fable branches are reviewed before integration.
+Three source candidates integrated locally; actual quality remains unverified. Complete19-view baseline atca562e76 is preserved in art/environment/astra-quality/before. Baseline performance trace running; native candidate comparison is next. New Fable structures32 at69d16c4f will be integrated after the matched comparison.
 
 ## Recommended next work
 Fable keeps its existing geometry, expansion, structures and vegetation lanes. Notify this
 coordinator of overlap with stone materials, tree materials, distant trees or LOD changes.
+
+## September20 native baseline and integration
+Three Astra Max lanes delivered91c15407, a3aec477 and1ed75aaa. Imported only their scoped source/checks/evidence; individual logs and claims remain in their branches. Combined material/tree checks12/12 pass. Full19-view high720p baseline is complete with no page errors, A8,595,330 triangles/566 calls. PR23 remains draft. Fable's13:10UTC overlap acknowledgement is read and replied to on PR2 comment5750113979. Native performance and candidate visual checks remain pending. The tree lane is investigating the baseline's closed crown discs with existing pooled leaf geometry.

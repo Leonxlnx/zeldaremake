@@ -1,0 +1,244 @@
+{
+  "base": "ca562e76",
+  "verifiedAt": "2026-09-20T13:12:25.977Z",
+  "variants": [
+    {
+      "variant": 0,
+      "kind": "broad",
+      "height": 19,
+      "nearUnchanged": true,
+      "nearHash": "51590997a7e932b6b1471af045e8d4c31ad5bdf4822f4a576e41e957ab4552bb",
+      "nearTriangles": 1438,
+      "farTrianglesBefore": 22,
+      "farTrianglesAfter": 34
+    },
+    {
+      "variant": 1,
+      "kind": "broad",
+      "height": 23,
+      "nearUnchanged": true,
+      "nearHash": "b4946e57b8093e8be07fece104f6ae170d1e5867593f2fff1e9734ef01e177e4",
+      "nearTriangles": 1298,
+      "farTrianglesBefore": 22,
+      "farTrianglesAfter": 34
+    },
+    {
+      "variant": 2,
+      "kind": "broad",
+      "height": 27,
+      "nearUnchanged": true,
+      "nearHash": "9b51700496d51d2fc78f40f5ef1e25f9748bdd6c62d86a9d90bc91f0fe7bb4d4",
+      "nearTriangles": 1492,
+      "farTrianglesBefore": 22,
+      "farTrianglesAfter": 34
+    },
+    {
+      "variant": 3,
+      "kind": "slender",
+      "height": 11,
+      "nearUnchanged": true,
+      "nearHash": "03c223735555c6da3711b12a14bf53a098d0a36c1e94e5b0fb04c4fcba9b60e1",
+      "nearTriangles": 719,
+      "farTrianglesBefore": 22,
+      "farTrianglesAfter": 26
+    },
+    {
+      "variant": 4,
+      "kind": "slender",
+      "height": 14,
+      "nearUnchanged": true,
+      "nearHash": "be4701c6763ebb93ebf412101939f295584e7f6e81c3ef63e6ff64a35ac0aaa8",
+      "nearTriangles": 719,
+      "farTrianglesBefore": 22,
+      "farTrianglesAfter": 26
+    },
+    {
+      "variant": 5,
+      "kind": "slender",
+      "height": 26,
+      "nearUnchanged": true,
+      "nearHash": "90f9a2fcf4c93b75327ca78b36ea5504512e79f2a3ed7db707e5450e5c916c97",
+      "nearTriangles": 719,
+      "farTrianglesBefore": 22,
+      "farTrianglesAfter": 26
+    }
+  ],
+  "placementCount": 729,
+  "placementsUnchanged": true,
+  "placementHash": "2d5de057d06dd2bd1c7bbc52caa79c879f0483d09aabc4ab4b2fa3199efb2a9d",
+  "maxAllFarTriangleIncrease": 7124,
+  "drawGroupCountPerVariant": [
+    2,
+    2,
+    2,
+    2,
+    2,
+    2
+  ],
+  "targetTree": {
+    "variant": 2,
+    "x": 35.616240619813254,
+    "y": 17.248469508839285,
+    "z": -146.9485764292427,
+    "yaw": 5.2534550295459965,
+    "scale": 1.0692373526468875,
+    "tint": 15592951
+  },
+  "crownCentre": [
+    35.616240619813254,
+    37.51479429090839,
+    -146.9485764292427
+  ],
+  "poses": [
+    {
+      "name": "distance-crown-118m",
+      "s": 1,
+      "from": {
+        "p": [
+          7.821081293347213,
+          105.51479429090838,
+          -32.26889593606917
+        ],
+        "t": [
+          35.616240619813254,
+          37.51479429090839,
+          -146.9485764292427
+        ],
+        "fov": 46
+      },
+      "to": {
+        "p": [
+          7.821081293347213,
+          105.51479429090838,
+          -32.26889593606917
+        ],
+        "t": [
+          35.616240619813254,
+          37.51479429090839,
+          -146.9485764292427
+        ],
+        "fov": 46
+      }
+    },
+    {
+      "name": "distance-crown-119m",
+      "s": 1,
+      "from": {
+        "p": [
+          7.585529095665297,
+          105.51479429090838,
+          -31.297034236974483
+        ],
+        "t": [
+          35.616240619813254,
+          37.51479429090839,
+          -146.9485764292427
+        ],
+        "fov": 46
+      },
+      "to": {
+        "p": [
+          7.585529095665297,
+          105.51479429090838,
+          -31.297034236974483
+        ],
+        "t": [
+          35.616240619813254,
+          37.51479429090839,
+          -146.9485764292427
+        ],
+        "fov": 46
+      }
+    },
+    {
+      "name": "distance-crown-120m",
+      "s": 1,
+      "from": {
+        "p": [
+          7.349976897983382,
+          105.51479429090838,
+          -30.32517253787978
+        ],
+        "t": [
+          35.616240619813254,
+          37.51479429090839,
+          -146.9485764292427
+        ],
+        "fov": 46
+      },
+      "to": {
+        "p": [
+          7.349976897983382,
+          105.51479429090838,
+          -30.32517253787978
+        ],
+        "t": [
+          35.616240619813254,
+          37.51479429090839,
+          -146.9485764292427
+        ],
+        "fov": 46
+      }
+    },
+    {
+      "name": "distance-crown-121m",
+      "s": 1,
+      "from": {
+        "p": [
+          7.114424700301466,
+          105.51479429090838,
+          -29.35331083878509
+        ],
+        "t": [
+          35.616240619813254,
+          37.51479429090839,
+          -146.9485764292427
+        ],
+        "fov": 46
+      },
+      "to": {
+        "p": [
+          7.114424700301466,
+          105.51479429090838,
+          -29.35331083878509
+        ],
+        "t": [
+          35.616240619813254,
+          37.51479429090839,
+          -146.9485764292427
+        ],
+        "fov": 46
+      }
+    },
+    {
+      "name": "distance-crown-122m",
+      "s": 1,
+      "from": {
+        "p": [
+          6.878872502619551,
+          105.51479429090838,
+          -28.381449139690403
+        ],
+        "t": [
+          35.616240619813254,
+          37.51479429090839,
+          -146.9485764292427
+        ],
+        "fov": 46
+      },
+      "to": {
+        "p": [
+          6.878872502619551,
+          105.51479429090838,
+          -28.381449139690403
+        ],
+        "t": [
+          35.616240619813254,
+          37.51479429090839,
+          -146.9485764292427
+        ],
+        "fov": 46
+      }
+    }
+  ]
+}
