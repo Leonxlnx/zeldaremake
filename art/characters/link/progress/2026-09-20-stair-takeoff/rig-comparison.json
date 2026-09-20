@@ -1,0 +1,51 @@
+{
+  "flat_trace_exact": true,
+  "frames_per_scenario": 600,
+  "baseline": {
+    "flat": {
+      "maxHip": 86.23317273132933,
+      "maxKnee": 123.69197689124701,
+      "maxRootStep": 1.990851803079785e-06,
+      "minShoe": -1.915684890121949e-06,
+      "reachClamped": 0
+    },
+    "up": {
+      "maxHip": 146.0695948300998,
+      "maxKnee": 165.41046022230645,
+      "maxRootStep": 0.2750443636560158,
+      "minShoe": -0.27000170489782827,
+      "reachClamped": 0
+    },
+    "down": {
+      "maxHip": 134.52813134918,
+      "maxKnee": 161.2799843610303,
+      "maxRootStep": 0.01972719550352231,
+      "minShoe": -0.0978431562266846,
+      "reachClamped": 0
+    }
+  },
+  "candidate": {
+    "flat": {
+      "maxHip": 86.23317273132933,
+      "maxKnee": 123.69197689124701,
+      "maxRootStep": 1.990851803079785e-06,
+      "minShoe": -1.915684890121949e-06,
+      "reachClamped": 0
+    },
+    "up": {
+      "maxHip": 146.0695948300998,
+      "maxKnee": 165.41046022230645,
+      "maxRootStep": 0.025887885288005563,
+      "minShoe": -0.27000170489782827,
+      "reachClamped": 0
+    },
+    "down": {
+      "maxHip": 134.52813134918,
+      "maxKnee": 161.2799843610303,
+      "maxRootStep": 0.01972719550352231,
+      "minShoe": -0.09768233900496881,
+      "reachClamped": 0
+    }
+  },
+  "scope": "Production GLB/mixer/IK on analytic stairs, no forest rendering or character-system input path. Stair folding remains unresolved."
+}

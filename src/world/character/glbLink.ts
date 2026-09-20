@@ -1592,6 +1592,7 @@ export async function loadGlbLink(url: string, opts: GlbLinkOptions = {}): Promi
     }
     mixer.update(0);
   }
+  const runFloor = Math.min(...pathTable.run[0].soleY, ...pathTable.run[1].soleY);
 
   const asset: LinkAssetInfo = {
     file,
@@ -1842,9 +1843,14 @@ export async function loadGlbLink(url: string, opts: GlbLinkOptions = {}): Promi
       }
       const lower = legs[0].soleP.y <= legs[1].soleP.y ? 0 : 1;
       const soleMin = legs[lower].soleP.y;
+      // Running has flight: grounding the lowest sole every frame converts its lift into a
+      // downward body bob. Fade to the authored cycle floor with the run action in play mode;
+      // never raise the floor through a sole. Walk, stairs and fixed captures retain their rule.
+      const runWeight = loco ? actions.get('run')!.action.weight : 0;
+      const soleFloor = soleMin - runWeight * Math.max(0, soleMin - placed - runFloor);
       for (let i = 0; i < 2; i++) {
         const leg = legs[i];
-        leg.contact = 1 - MathUtils.smoothstep(leg.soleP.y - soleMin, CONTACT_LIFT0, CONTACT_LIFT1);
+        leg.contact = 1 - MathUtils.smoothstep(leg.soleP.y - soleFloor, CONTACT_LIFT0, CONTACT_LIFT1);
 
         // 2. each foot, per active clip, from the clip's swing table — never from which sole
         // happens to be lower (at double support that flips between frames, and the two feet may
@@ -1876,6 +1882,9 @@ export async function loadGlbLink(url: string, opts: GlbLinkOptions = {}): Promi
         const pinnedX = loco && !airborne ? loco.pinX[i] : NaN;
         const pinnedZ = loco && !airborne ? loco.pinZ[i] : NaN;
         const pinned = Number.isFinite(pinnedX) && Number.isFinite(pinnedZ);
+        if (loco && jump) {
+          loco.offX[i] = loco.offZ[i] = NaN;
+        }
         leg.relA.set(0, 0, 0);
         leg.relH.set(0, 0, 0);
         leg.attA.set(0, 0, 0);
@@ -1898,8 +1907,11 @@ export async function loadGlbLink(url: string, opts: GlbLinkOptions = {}): Promi
             const len = (s.tLand - s.tOff) / a.rate;
             const back = speed * sw.phase * len;
             const ahead = speed * (1 - sw.phase) * len;
-            const ox = x + s.offX * fz + s.offZ * fx - fx * back;
-            const oz = z - s.offX * fx + s.offZ * fz - fz * back;
+            // A pinned foot may have shifted off the clip's predicted tread. Its swing
+            // starts on that actual support, not a newly selected neighbouring tread.
+            const heldOff = loco && !jump && Number.isFinite(loco.offX[i]);
+            const ox = heldOff ? loco.offX[i] : x + s.offX * fz + s.offZ * fx - fx * back;
+            const oz = heldOff ? loco.offZ[i] : z - s.offX * fx + s.offZ * fz - fz * back;
             const lx = x + s.landX * fz + s.landZ * fx + fx * ahead;
             const lz = z - s.landX * fx + s.landZ * fz + fz * ahead;
             footConfig(surface, base, ox, oz, fx, fz, s.offYaw, leg.fp, cfgOff);
@@ -1935,9 +1947,11 @@ export async function loadGlbLink(url: string, opts: GlbLinkOptions = {}): Promi
               leg.relA.x += rw * (ox + fx * cfgOff.shift - _p.x);
               leg.relA.y += rw * (gOff + s.offLift - _p.y);
               leg.relA.z += rw * (oz + fz * cfgOff.shift - _p.z);
-              leg.relH.x += rw * (x + s.offHip.x * fz + s.offHip.z * fx - fx * back);
+              // Anchor both ends of the frozen clip pose to the same take-off spot. Mixing
+              // a held sole with the predicted hip invents a reach deficit after a stance pin.
+              leg.relH.x += rw * (ox + (s.offHip.x - s.offX) * fz + (s.offHip.z - s.offZ) * fx);
               leg.relH.y += rw * s.offHip.y;
-              leg.relH.z += rw * (z - s.offHip.x * fx + s.offHip.z * fz - fz * back);
+              leg.relH.z += rw * (oz - (s.offHip.x - s.offX) * fx + (s.offHip.z - s.offZ) * fz);
               relW += rw;
             }
             const aw = weight * MathUtils.smoothstep(sw.phase, 1 - ATTACK, 1);
@@ -2182,7 +2196,7 @@ export async function loadGlbLink(url: string, opts: GlbLinkOptions = {}): Promi
         leg.rootAtLand = r1;
       }
       const gMin = Math.min(legs[0].gRoot, legs[1].gRoot);
-      const shift = gMin - soleMin;
+      const shift = gMin - soleFloor;
       root.position.y += shift;
       for (const leg of legs) {
         leg.hip.y += shift;
@@ -2518,6 +2532,12 @@ export async function loadGlbLink(url: string, opts: GlbLinkOptions = {}): Promi
       for (let i = 0; i < 2; i++) {
         const leg = legs[i];
         leg.soleP.copy(leg.sole).applyMatrix4(leg.ankle.matrixWorld);
+        if (loco && !jump && leg.stance) {
+          // Reach limiting can shorten a requested pin. Remember the rendered sole,
+          // otherwise releasing that unreachable pin would pull the body down again.
+          loco.offX[i] = leg.soleP.x;
+          loco.offZ[i] = leg.soleP.z;
+        }
         leg.contactOff = 0;
         leg.contactGround = surface(leg.soleP.x, leg.soleP.z);
         if (Math.abs(leg.soleP.y - leg.contactGround) > CONTACT_OFF) {

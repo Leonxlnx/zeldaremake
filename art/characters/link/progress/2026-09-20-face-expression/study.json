@@ -1,0 +1,36 @@
+{
+  "scene": "Link | September19 run contact baseline",
+  "scope": "Native expression preview using existing eyelid morph. No mesh, texture, action or default model changed. Runtime expression and blink compatibility not yet evaluated.",
+  "views": [
+    {
+      "view": "front",
+      "blinkHalf": 0,
+      "file": "front-rest-0.00.png"
+    },
+    {
+      "view": "front",
+      "blinkHalf": 0.18,
+      "file": "front-rest-0.18.png"
+    },
+    {
+      "view": "front",
+      "blinkHalf": 0.32,
+      "file": "front-rest-0.32.png"
+    },
+    {
+      "view": "three-quarter",
+      "blinkHalf": 0,
+      "file": "three-quarter-rest-0.00.png"
+    },
+    {
+      "view": "three-quarter",
+      "blinkHalf": 0.18,
+      "file": "three-quarter-rest-0.18.png"
+    },
+    {
+      "view": "three-quarter",
+      "blinkHalf": 0.32,
+      "file": "three-quarter-rest-0.32.png"
+    }
+  ]
+}
