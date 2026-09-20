@@ -1779,30 +1779,9 @@ export function placeFlagstones(pc: PavingContext, material: Material): PavingRe
       }
       return v;
     };
-    // The broad lawn slabs used to exclude spalls entirely, leaving an unbroken rolled rim in
-    // w05/B/E. Cut one or two local fractures into that rim (boards 02/08): a shallow bite
-    // fading along the existing edge vertices, not more surface grain. The seated foot, outline
-    // and centre height stay fixed; a separate stream leaves every existing draw in place.
-    const lawnSpalls: { p: P2; reach: number; depth: number }[] = [];
-    if (!disc && lawn >= 0.5 && size >= 0.7) {
-      const erng = rng.fork(`lawn-spall/${Math.round(s.x * 50)}/${Math.round(s.z * 50)}`);
-      if (erng.chance(0.75)) {
-        const first = erng.int(0, outline.outer.length);
-        const count = erng.chance(0.5) ? 1 : 2;
-        for (let i = 0; i < count; i++) {
-          const at = (first + Math.floor(i * outline.outer.length * 0.5)) % outline.outer.length;
-          lawnSpalls.push({ p: outline.outer[at], reach: erng.range(0.14, 0.24), depth: erng.range(0.012, 0.022) });
-        }
-      }
-    }
-    // Existing path-stone spalls remain unchanged. The slab builder carries each drop through
-    // the wall/shoulder into the first cap ring, so a fracture cannot leave an open edge.
+    // the edge spalls: the drop per outline vertex (geometry.ts takes it off the wall top and the
+    // shoulder roll); a 14 cycles/m noise thresholded so one vertex in five or six is chipped
     const spallAt = (x: number, z: number) => {
-      if (lawnSpalls.length) {
-        let drop = 0;
-        for (const cut of lawnSpalls) drop = Math.max(drop, cut.depth * Math.max(0, 1 - Math.hypot(x - cut.p.x, z - cut.p.z) / cut.reach));
-        return drop;
-      }
       if (!spalled) return 0;
       const nz = wearN.fbm((x + s.x) * 14 + spallPhase, (z + s.z) * 14 - spallPhase, 1) * 0.5 + 0.5;
       return spallDepth * smoothstep(0.6, 0.8, nz);
@@ -1828,7 +1807,7 @@ export function placeFlagstones(pc: PavingContext, material: Material): PavingRe
       // round 42: the shoulder as a two-band quarter-round on the slabs a player can read
       // (radius > 0.3 m), so the lit rim rolls into the joint instead of breaking at one crease
       bevelRings: disc || (radius <= 0.3 && hollow < 0.5) ? 1 : 2,
-      rimDrop: spalled || lawnSpalls.length ? spallAt : undefined,
+      rimDrop: spalled ? spallAt : undefined,
       dip: -crown,
       color: tint,
       sideColor,
@@ -1922,7 +1901,7 @@ export function placeFlagstones(pc: PavingContext, material: Material): PavingRe
     if (dished) stats.dished++;
     if (cracked) stats.cracked++;
     if (outline.wobbled) stats.wobbled++;
-    if (spalled || lawnSpalls.length) stats.spalled++;
+    if (spalled) stats.spalled++;
     if (creep > 0) stats.creep++;
     return true;
   }
