@@ -33,7 +33,7 @@ into the bank, pushed into the existing instanced strata stream: **no new draws,
 
 `w05-C_lookback-triple.jpg` (reference | head | after): the lawn mound right of the pots carries a stepped line of moss-
 topped slabs. The terracing / erosion halves of W05 are the terrain's and vegetation-27's; this is the exposed-strata
-half. B, D, E do not see the bank. Typecheck / build / 26 tests green.
+half. B, D, E do not see the bank. Typecheck / build green; 22/22 tests on the branch (the four backside tests live on the ledge branch).
 
 ## Iteration 26 — V21's middle path measured (fable-5 21:45): F does not come back — `agent/fable-2-v21` @ `45d3b566`
 
