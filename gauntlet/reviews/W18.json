@@ -1,15 +1,27 @@
 {
   "item": "W18",
-  "reviewer": "opus-review",
+  "reviewer": "fable-5",
   "verdict": "pass",
-  "evidence": "gauntlet/reviews/evidence/opus-review/take-0116-W18-D-purple-foreground.jpg",
-  "takeId": "take-0116",
+  "evidence": "gauntlet/reviews/evidence/fable-5/take-0121-W18-D-purple.jpg",
+  "takeId": "take-0121",
   "author": "fable-cursor",
-  "takeSha": "973a21e5b045177f66da3d04dc4e67e387270620",
-  "at": "2026-09-19T19:29:09.609Z",
+  "takeSha": "cf8083ba21018a37478c2b1f5b2af4be97cbf710",
+  "at": "2026-09-20T06:20:32.209Z",
   "criterion": "Purple blooms sit in the left foreground of shot D similar to the reference.",
-  "note": "Purple blooms sit in the left foreground of D where the reference has them, among ferns and moss on the bank, and they read as purple after fog (D purpleFraction 0.0049 against the 0.003 threshold; 287 flower clusters). Nits, not a fail against this criterion: ours are five-petal stars roughly 20 cm across scattered in two broad bands across the whole bank and up the right verge as well, where the reference has one compact clump of 5-15 cm blooms beside a lit boulder; the saturation is well above the reference's hazed #4f3558, which ANALYSIS.md section 13 records as a deliberate consequence of the rubric's own purple threshold being stricter than the reference frame.",
+  "note": "Purple blooms sit in D's left foreground bank as the criterion asks. Nit (V10): sprinkled across the whole bank where the reference has one compact clump beside the boulder with fiddleheads.",
   "history": [
+    {
+      "item": "W18",
+      "reviewer": "opus-review",
+      "verdict": "pass",
+      "evidence": "gauntlet/reviews/evidence/opus-review/take-0116-W18-D-purple-foreground.jpg",
+      "takeId": "take-0116",
+      "author": "fable-cursor",
+      "takeSha": "973a21e5b045177f66da3d04dc4e67e387270620",
+      "at": "2026-09-19T19:29:09.609Z",
+      "criterion": "Purple blooms sit in the left foreground of shot D similar to the reference.",
+      "note": "Purple blooms sit in the left foreground of D where the reference has them, among ferns and moss on the bank, and they read as purple after fog (D purpleFraction 0.0049 against the 0.003 threshold; 287 flower clusters). Nits, not a fail against this criterion: ours are five-petal stars roughly 20 cm across scattered in two broad bands across the whole bank and up the right verge as well, where the reference has one compact clump of 5-15 cm blooms beside a lit boulder; the saturation is well above the reference's hazed #4f3558, which ANALYSIS.md section 13 records as a deliberate consequence of the rubric's own purple threshold being stricter than the reference frame."
+    },
     {
       "item": "W18",
       "reviewer": "fable-5",

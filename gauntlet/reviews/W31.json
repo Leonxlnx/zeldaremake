@@ -1,15 +1,27 @@
 {
   "item": "W31",
-  "reviewer": "opus-review",
+  "reviewer": "fable-5",
   "verdict": "fail",
-  "evidence": "gauntlet/reviews/evidence/opus-review/take-0116-W31-A-god-rays.jpg",
-  "takeId": "take-0116",
+  "evidence": "gauntlet/reviews/evidence/fable-5/take-0121-W31-A-god-rays.jpg",
+  "takeId": "take-0121",
   "author": "fable-cursor",
-  "takeSha": "973a21e5b045177f66da3d04dc4e67e387270620",
-  "at": "2026-09-19T19:31:10.105Z",
+  "takeSha": "cf8083ba21018a37478c2b1f5b2af4be97cbf710",
+  "at": "2026-09-20T06:20:33.609Z",
   "criterion": "Shafts are visible, soft, and directional as in the reference; they do not wash the whole frame.",
-  "note": "No shaft reads at A. The upper left, where the reference has three or four broad soft beams leaning down to the right and lighting the mist over the stair foot, is an even cool blue-grey field with trunks and a hut in it, measuring #7f8589 l 0.231 against the reference's warm #7d7b69 l 0.197, with no directional structure and no local luminance lift anywhere along a beam axis. The same is true of F, where the reference has four. The atmosphere audit reports godRays true, so the pass exists and is not visible in the frames the criterion names.",
+  "note": "No shafts read at A, B or F: the upper left of A is a slightly brighter haze, F's stair top is a bright haze gap, B has the mist veil. The reference has three or four soft directional beams from the upper left in each. Unchanged from take-0116 despite the shaft-fade merge.",
   "history": [
+    {
+      "item": "W31",
+      "reviewer": "opus-review",
+      "verdict": "fail",
+      "evidence": "gauntlet/reviews/evidence/opus-review/take-0116-W31-A-god-rays.jpg",
+      "takeId": "take-0116",
+      "author": "fable-cursor",
+      "takeSha": "973a21e5b045177f66da3d04dc4e67e387270620",
+      "at": "2026-09-19T19:31:10.105Z",
+      "criterion": "Shafts are visible, soft, and directional as in the reference; they do not wash the whole frame.",
+      "note": "No shaft reads at A. The upper left, where the reference has three or four broad soft beams leaning down to the right and lighting the mist over the stair foot, is an even cool blue-grey field with trunks and a hut in it, measuring #7f8589 l 0.231 against the reference's warm #7d7b69 l 0.197, with no directional structure and no local luminance lift anywhere along a beam axis. The same is true of F, where the reference has four. The atmosphere audit reports godRays true, so the pass exists and is not visible in the frames the criterion names."
+    },
     {
       "item": "W31",
       "reviewer": "fable-5",

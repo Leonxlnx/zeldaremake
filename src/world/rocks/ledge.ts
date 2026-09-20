@@ -215,7 +215,7 @@ export function buildRockLedge(def: RockLedgeDef, T: Terrain, rng: Rng, seed: st
   const nRoots = Math.round((length / 3) * rootsPer3m);
   const roots: { u0: number; wander: number; R: number; phase: number }[] = [];
   for (let k = 0; k < nRoots; k++) {
-    roots.push({ u0: length * ((k + 0.5 + rng.range(-0.3, 0.3)) / nRoots), wander: rng.range(-0.45, 0.45), R: rng.range(0.09, 0.14), phase: rng.range(0, 10) });
+    roots.push({ u0: length * ((k + 0.5 + rng.range(-0.3, 0.3)) / nRoots), wander: rng.range(-0.45, 0.45), R: rng.range(0.1, 0.16), phase: rng.range(0, 10) });
   }
   /**
    * root ridge at wall coordinates (run uu, face fraction vf 0 foot … 1 lip, > 1 shoulder):
@@ -261,11 +261,17 @@ export function buildRockLedge(def: RockLedgeDef, T: Terrain, rng: Rng, seed: st
   const blockPhase = rng.range(0, 1);
   const seedOff = rng.range(-40, 40);
 
-  /** bedding at wall coordinates (run u, height y): { groove 0..1, step -1..1 } */
-  const bedding = (uu: number, y: number) => {
+  /**
+   * bedding at wall coordinates (run u, height y, face fraction vf): { groove 0..1, step -1..1 }.
+   * The beds thin toward the top of the face (a full bed at the foot, 55 % of it under the lip —
+   * fable-5 at 3 m: "chunky angular facets more than thin strata"), so the upper face reads as
+   * layered stone while the base keeps its heavy blocks.
+   */
+  const bedding = (uu: number, y: number, vf = 0.5) => {
     // beds undulate along the run (slow) and pinch/swell (faster), so the ledges are not
     // evenly ruled lines
-    const h = (y + uu * bedTilt) / bedThick + bedPhase + 0.3 * N.fbm(uu * 0.22 + seedOff, y * 0.3, 3.3, 2) + 0.16 * N.fbm(uu * 0.7 + seedOff, y * 0.7, 6.1, 2);
+    const thick = bedThick * (1 - 0.45 * vf);
+    const h = (y + uu * bedTilt) / thick + bedPhase + 0.3 * N.fbm(uu * 0.22 + seedOff, y * 0.3, 3.3, 2) + 0.16 * N.fbm(uu * 0.7 + seedOff, y * 0.7, 6.1, 2);
     const k = Math.floor(h);
     const f = h - k;
     const groove = 1 - smoothstep(0, 0.13, Math.min(f, 1 - f));
@@ -293,7 +299,9 @@ export function buildRockLedge(def: RockLedgeDef, T: Terrain, rng: Rng, seed: st
   const dark = new Color(0.1, 0.095, 0.085);
   const soil = new Color(0.16, 0.14, 0.09);
   const at = (i: number, j: number) => i * J + j;
-  const bark = new Color(0.22, 0.15, 0.09);
+  // bark: a warm mid brown — against the near-black damp stone a dark bark read as more stone
+  // (fable-5 at 3–7 m); it separates in value and hue, and stays matte where the stone is wet
+  const bark = new Color(0.36, 0.25, 0.14);
   for (let j = 0; j < J; j++) {
     const f = foot[j];
     const n = nIn[j];
@@ -336,7 +344,7 @@ export function buildRockLedge(def: RockLedgeDef, T: Terrain, rng: Rng, seed: st
         wet = 1;
       } else if (phase === 'face') {
         // beds are continuous in world height, so they run level along a rising foot
-        const bed = bedding(uu, y0);
+        const bed = bedding(uu, y0, vf);
         const jn = joints(uu, y0, bed.k);
         // relief: beds step ± 0.16 m, blocks ± 0.09 m, a ridged skin ± 0.06 m, micro ± 0.02 m —
         // all of it tapered to nothing at the foot row, which must sit exactly on the terrain
@@ -344,7 +352,9 @@ export function buildRockLedge(def: RockLedgeDef, T: Terrain, rng: Rng, seed: st
         const mic = N.fbm(uu * 6.5 - seedOff, y0 * 6.5, 5.5, 2);
         const blockOff = N.fbm(jn.block * 3.7 + 0.5, bed.k * 2.9 + seedOff, 1.0, 1);
         const footTaper = smoothstep(0, 0.22, vf);
-        out = hs * footTaper * (0.2 * bed.step + 0.09 * blockOff + 0.06 * (rd - 0.5) * 2 + 0.02 * mic);
+        // (block offsets and the ridged skin shrink up the face with the beds: thin strata, not chunks)
+        const thin = 1 - 0.4 * vf;
+        out = hs * footTaper * (0.2 * bed.step * (0.7 + 0.3 * thin) + 0.06 * blockOff * thin + 0.05 * (rd - 0.5) * 2 * thin + 0.02 * mic);
         // the parting grooves and joints sink
         out -= hs * footTaper * (0.12 * bed.groove + 0.06 * jn.joint);
         // colour: bed tone ± 14 %, block tone ± 8 %, partings and joints dark, ridges a shade paler
@@ -374,11 +384,11 @@ export function buildRockLedge(def: RockLedgeDef, T: Terrain, rng: Rng, seed: st
         // (tapered with the relief at the foot row)
         const rt = rootAt(uu, vf);
         if (rt.bump > 0) {
-          out += hs * footTaper * rt.bump;
+          out += hs * footTaper * rt.bump * 1.2;
           const barkTone = (0.7 + 0.6 * rt.rib) * (0.9 + 0.2 * (N.fbm(uu * 9.1 + seedOff, y0 * 9.1, 1.3, 2) * 0.5 + 0.5));
           _tmp.lerp(_tmp2.copy(bark).multiplyScalar(barkTone), rt.bark);
           moss = Math.max(moss * (1 - 0.7 * rt.bark), rt.bark * 0.5 * smoothstep(0.55, 0.95, vf) * smoothstep(0.2, 0.8, rt.rib));
-          wet *= 1 - 0.6 * rt.bark;
+          wet *= 1 - 0.9 * rt.bark;
         }
       } else {
         // the lip shoulder: a quarter-round from the face's top edge back and down onto the top

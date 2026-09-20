@@ -47,8 +47,8 @@ export interface PebbleScatterOptions {
   density: number;
 }
 
-/** calibrated on the round-48 world at density 1: ≈ 1 850 fringe + ≈ 750 scatter, the old 2 600 */
-export const PEBBLE_DEFAULTS: Omit<PebbleScatterOptions, 'radius' | 'northZ' | 'density'> = { fringe: 0.38, scatter: 0.39 };
+/** calibrated on the round-48 world at density 1 to the old ≈ 2 600 (the browser world lands ≈ 2 700 at 0.38 / 0.39 — hashes vary ± 4 % with the seed — so a notch under, to keep camera A at the head's 9.00 M) */
+export const PEBBLE_DEFAULTS: Omit<PebbleScatterOptions, 'radius' | 'northZ' | 'density'> = { fringe: 0.36, scatter: 0.37 };
 
 /**
  * Pebbles along every paved edge inside the lattice: `main` (z ≥ northZ) and `north` (z < northZ).
