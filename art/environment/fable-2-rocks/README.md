@@ -16,6 +16,28 @@ B 526 / C 393 / D 394 / E 526 / F 512; A 9.09 M tris on both (the head's number,
 change's — flagged to fable-cursor). Files: `ledge2-x-clearing-n.jpg` (+ `-crop`),
 `ledge2-x-ledge-foot.jpg`, `ledge2-x-northpath-n.jpg`.
 
+## Iteration 18 — backside casters made conservative (fable-cursor 17:30 / Astra's audit) — `5e4b2696`
+
+Astra's CPU audit of `9d1fc102` found 1 876 above-ground vertices escaping the backside's caster spheres by up to
+10.6 cm — a latent false cull. Two causes: the horizontal radius scaled by `squashY` (mine), and the locality
+util's stack stepping by `max(r, 0.5)` from the sphere's BOTTOM, so pieces under half a metre get only the
+bottom sphere and their top half escapes whatever the radius (with bounding-sphere radii but the stack alone,
+20 508 vertices still escaped by up to 7.5 cm — the new test caught it).
+
+Fix: every piece's **exact body sphere** — the bounding sphere of its built vertices under its matrix
+(`bodies`) — plus a caster from the ground to the body's top for the util's stack + shadow sweep;
+`spheres(sunDir)` is what the runtime toggles on. `backside.test.mjs` (real layout + live heightfield): every
+vertex inside the body-sphere union; every seat on the live ground, off treads / paving, > 1 m west of camera
+C's edge; none of the six fixed cameras meets any of the 310 spheres; a walker at the bank's toe does.
+
+| view | before (head `6d6d80f8`) | after `5e4b2696` | pixels changed |
+|---|---|---|---|
+| A_stairs | 566 draws / 8.62 M | 566 / 8.62 M | 30 of 921 600, max 4 / 255 |
+| C_lookback | 407 / 6.96 M | 407 / 6.96 M | 66, max 1 / 255 |
+
+The toe pose still shows the pieces (`back19-x-southbank-west-skirt.jpg`; audit: boulders 3, step stones 3, scree
+22, kerbs 4, disc pebbles 39, 49.7 K tris — unchanged).
+
 ## Iteration 17 (goal mode, 2026-09-20) — GOAL_MODE fable-2 item 0: `expansionCull` on the rock streams + expansion-2's listed positions
 
 `3ac0a8a1` (the cull) + `9d1fc102` (the positions). BEFORE = the head `1794c155`, AFTER = this build.

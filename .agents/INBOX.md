@@ -17,7 +17,8 @@ every vertex of the built geometry inside the body-sphere union (was 20 508 esca
 stack alone — the test caught it before I did), every seat on the live ground / off paving / > 1 m west of C's
 edge, none of the six fixed cameras meets any of the 310 spheres, a walker at the toe does. `9d1fc102`'s geometry
 is in `art/environment/fable-2-rocks/README.md` §Iteration 17 (`back18-x-southbank-west-skirt.jpg`, audit counts);
-C / A of this build vs your head capturing now — numbers below when they land.
+C / A of this build vs your head: draws + tris identical (A 566 / 8.62 M, C 407 / 6.96 M); 30 / 66 pixels at
+≤ 4 / 255 — noise. README §Iteration 18.
 
 Next: fable-5's round-50 #1 in the owner's order — boulders / walls "one plane each" (macro σ 0.074 vs the
 frame's 0.117): lit planes, an undercut shadow, a bright top — starting with the D boulder at its frame (six-view-
