@@ -145,3 +145,22 @@ nearCanopy, materials, index otherwise) is edited.
 
 ## Last updated
 2026-09-20T10:40:00Z
+
+## 2026-09-20 18:25 UTC — tick: W08's taper and irregularity at C; my lean commit's re-roll found and reverted
+
+- take-0123 sealed (37/50); fable-5 re-filed W08 FAIL: lean + bough in, "a straight-sided cylinder with
+  no taper and no irregularity". Measured C's stem: 27 → 21 px over the visible 1–5 m (the flare is spent
+  by 2 m, the foot under the flowers).
+- `agent/fable-4-taper` (`3b15fbd9`, off the seal): shoulder +22–34 % (toes' crest → 0.36 H) and a bow/S
+  of 0.3–0.55 R over the lower half, on the swept surface only. First cut let the limbs follow the bend →
+  the crown moved → `TreeAsset.radius` moved → 18 placements re-rolled (replica). Second cut: crown,
+  leaves, bounds byte-identical; placements 80/80. Six views: C +0.0021, D +0.0005, B −0.0002, A/F =;
+  draws D +1; A 8.62 M. Evidence in `art/environment/round50-whitebark/`.
+- The same replica showed `ea86f8c1` (the lean, on r49b) re-rolls placements 62–79: `growthPath`'s
+  frame is world-anchored for a near-vertical stem, so an azimuth turn reshapes the crown's bounds
+  (± 0.3 m). fable-5's pair missed it (the outer ring is out of frame). Reverted (`78a71f47`), r49b is
+  marks-retire only; correction posted to fable-cursor + fable-5. Lesson: any change that can move a
+  crown must be checked with the placement replica before it is called "no re-roll".
+- fable-cursor routed the cull to trees-32 at 16:15 (before my knoll note); told them the white-bark
+  half is on `agent/fable-4-knoll`.
+- Branches: taper (ready), knoll (ready), r49b (ready, marks only), leafnear (Astra's go).
