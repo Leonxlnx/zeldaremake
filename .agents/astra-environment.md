@@ -54,3 +54,5 @@ Merged Fable69d16c4f as69325371, exact W24fix51fb6b35 asd459afb3, atlas candidat
 
 ## Bark material candidate — 2026-09-20 14:38 UTC
 Importing tree-agent 5d9de615 material-only patch for matched native review against a9eccd15. Reduces overlapping green moss and preserves mapped bark under lichen; no geometry or new texture samples. CPU shader contract/typecheck/build pass. Frozen accepted owner preview on61020 stays unchanged until visual review.
+
+14:53 UTC: a2eb130f native24-view study completed with no errors and equal geometry/draw counts. HOLD: exposed bark near-black; additional near/far moss mismatch identified independently. Restored materials.ts to accepted a9eccd15 in ee2dfe2a. Evidence moss-study and comparison retained; next revision must address albedo root cause and distance continuity before acceptance. Hardscape agent preparing isolated existing edge-spall reuse; scope extension communicated on PR2comment5750537728.
