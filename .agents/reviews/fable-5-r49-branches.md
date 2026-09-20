@@ -104,9 +104,48 @@ the crate still reads yellow-tan at 38–39°. If the crates are to sit with the
 to be ~3× this (or the fence and the crates share one map/tint path); if 3–4° was the intent, it is
 in and costs nothing. Merge either way; the read at the pose is unchanged.
 
+## E. Iteration 15 (13:22–14:05 UTC) — structures-32 merged (`cfb0717f`): the log arch as a real tunnel, measured at the V19 poses
+
+Round-49 #1 on my list ("the far forest is cones on a flat plain and the arch is not a tunnel", V19 /
+opus #01). Before = head `ca562e76`, after = head `69d16c4f` (structures-32 in); the six fixed views +
+`x-arch-approach`, `x-arch-tunnel-n` (the `d_121` pose), `x-arch-tunnel-s`, same positions both.
+
+| view | before → after | SSIM vs reference |
+| --- | --- | --- |
+| A, B, C, D, E, F | **pixel-identical** | Δ 0 (B −0.0001 is rounding) |
+| `x-arch-approach` | 67.5 % of pixels | — |
+| `x-arch-tunnel-n` | 94.5 % | — |
+| `x-arch-tunnel-s` | 32.3 % | — |
+
+The V19 regions at `x-arch-tunnel-n`, luminance (reference `d_121` / before / **after**):
+
+| region | ref | before | after |
+| --- | --- | --- | --- |
+| frame mean | 0.141 | 0.395 | **0.147** |
+| belly (0–1 × 0–0.20) | 0.121 | 0.301 | **0.090** |
+| window (0.28–0.62 × 0.20–0.60) | 0.326 | 0.538 | **0.296** |
+| left wall (0–0.2 × 0.25–0.75) | 0.059 | 0.272 | **0.054** |
+| right wall (0.8–1 × 0.25–0.75) | 0.072 | 0.440 (there was none) | **0.048** |
+| floor (0.2–0.8 × 0.85–1) | 0.161 | 0.465 | **0.105** |
+| window : wall | 5.0 | 1.5 | **5.8** |
+
+**V19's tonal half is closed** — every region lands within ±0.06 of the frame, most within ±0.03, and
+the contrast that makes a tunnel a tunnel (a bright window in near-black walls) is there from inside
+and from the approach. The player now walks into darkness and out toward light, which is the
+reference's whole move at 60 s. Sheet `fable-5-r49/fable-5-r49-s32-tunnel.jpg`.
+
+**Still open — the structural half.** Through the window the reference shows tall vertical trunks with
+vines, glowing dots and lantern points, and *no ground plane*; ours shows the north path's slabs, the
+ledge flight, a signpost and the cones in haze. That is trees-31 / astra-distance and the terrain
+north, not structures. Two nits for structures-32: (1) at `x-arch-approach` the right cheek carries a
+vertical shading seam at frame x ≈ 0.85 where the near wall section meets the far one (the grain runs
+through, the value steps); (2) the floor under the log reads 0.105 against the frame's 0.161 — a
+shade too dark now, the cracked-slab floor of `d_121` is readable.
+
 ## Summary for fable-cursor
 
 - fable-4 `5fe58488`: merge; six views Δ 0 (five pixel-identical).
 - fable-4 `ea86f8c1`: merge; C −0.0006 for a survey tree that leans across the frame; taper is the last W08 half.
 - fable-2 `e5867d7e` (the D loaf): merge the composition (D −0.0008, a rock is in the frame); the face reads l 0.21 against the reference's lit 0.27 — the value pass follows.
 - fable-3 `424478eb` (wood tint): harmless, pixel-identical on the six views; 3–4° of hue at the pose — unchanged to the eye.
+- structures-32 (`cfb0717f`, merged): V19's tonal half closed at the `d_121` pose (frame 0.147 vs 0.141, window:wall 5.8 vs 5.0); six views pixel-identical; the window's content is the open half.

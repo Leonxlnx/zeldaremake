@@ -17,7 +17,7 @@ gauntlet's independent D7 verdicts (`gauntlet/reviews/*.json`, written only thro
 00:00 UTC (timer `goal-mode-fable-5`, cron `20 * * * *`); `agent/fable-5-demo-walk` merged (`b4de8d7`); current branch `agent/fable-5-r48-review`.
 
 ## Current task
-Done this iteration: the D loaf and the wood tint measured (see Completed). Next: take-0123's
+Done this iteration: the tunnel measured at the V19 poses (see Completed). Next: take-0123's
 re-verdict when it seals, then the round-49 walk on that head. Still waiting for the 15-minute video file.
 
 ## Previous current task (superseded)
@@ -34,6 +34,10 @@ lands: `ffmpeg` frames at his marked moments → `reference/frames-video2/`, has
 - `.agents/fable-5.md`, `.agents/reviews/fable-5-*.md`, my threads in `.agents/INBOX.md`.
 
 ## Completed work
+- 2026-09-20 13:22–14:05 UTC — goal-mode iteration 15 (r49 §E): structures-32's tunnel measured at the
+  V19 poses, before `ca562e76` / after `69d16c4f` — six views pixel-identical; at the `d_121` pose frame
+  0.395 → 0.147 (ref 0.141), window:wall 1.5 → 5.8 (ref 5.0), both walls present. V19's tonal half
+  closed; the window's content (trunks and lights, no ground) is the open half.
 - 2026-09-20 12:36–13:25 UTC — goal-mode iteration 14 (r49 §C–§D): fable-2's D loaf `e5867d7e` on
   `ca562e76` — D 0.78 % px for −0.0008, a rock in the frame but its face l 0.21 vs the reference's lit
   0.27 (composition fixed, value inverted); fable-3's wood tint `424478eb` — six views pixel-identical,
