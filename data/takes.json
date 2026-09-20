@@ -1,6 +1,6 @@
 {
   "project": "zeldaremake",
-  "updatedAt": "2026-09-20T09:06:53.273Z",
+  "updatedAt": "2026-09-20T10:06:57.848Z",
   "monitorCadenceMinutes": 60,
   "takes": [
     {
@@ -82276,8 +82276,8 @@
     }
   ],
   "heartbeat": {
-    "at": "2026-09-20T09:06:53.273Z",
-    "reason": "round 49 mid-work; goal-mode iterations merged"
+    "at": "2026-09-20T10:06:57.848Z",
+    "reason": "round 49 in captures; fable-4 budget + goal-mode iterations merged"
   },
   "play": {
     "takeId": "take-0122",

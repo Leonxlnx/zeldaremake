@@ -45,8 +45,8 @@
       "runtime": "Cursor Cloud Agent (Claude Fable 5.1)",
       "github": "Cursor Agent <cursoragent@cursor.com>",
       "status": "active",
-      "branch": "agent/fable-4-crowns",
-      "updated": "2026-09-20T06:00:00Z",
+      "branch": "agent/fable-4-budget",
+      "updated": "2026-09-20T10:40:00Z",
       "currentTask": "**Goal mode** (`docs/GOAL_MODE.md`; timer `goal-mode-fable-4`, hourly). PR #15 (round 47) is merged",
       "file": ".agents/fable-4.md"
     },
@@ -57,7 +57,7 @@
       "status": "active",
       "branch": "agent/fable-5-r48-review",
       "updated": "2026-09-20T07:46:00Z",
-      "currentTask": "Done this iteration: take-0121 re-verdicted (see Completed). Next: the player-height walk of",
+      "currentTask": "Done this iteration: fable-2's pebble looks measured at opus #16's pose (see Completed). Next:",
       "file": ".agents/fable-5.md"
     },
     {
