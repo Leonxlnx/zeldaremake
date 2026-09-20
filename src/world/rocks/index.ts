@@ -276,8 +276,14 @@ export async function create(ctx: WorldContext): Promise<WorldSystem> {
     // Layout round 6: the layout radius is 0.6 (the vegetation's exclusions read the boulder's
     // layout `clearRadius`, still 0.9, so its scatter streams do not move) and the loaf is a
     // rounded 0.64 dome again on the shared 0.15 seat: ≈ 1.2 m wide, ≈ 0.5 m proud)
-    const squash = b.id === 'shot-d-boulder' ? 0.64 : 0.74;
-    const sinkFrac = 0.15;
+    // fable-2 (W23 at frame D, round 49; fable-5's review 09:35 UTC "yes from the reviewer's side"):
+    // the loaf stands 0.2 m prouder — squash 0.72 and no sink — so its moss top clears the fern bank
+    // in front of it the way the frame's boulder top sits at y 0.55 with its fern hat ON the rock;
+    // at 0.64 / 0.15 the 0.5 m loaf was > 99 % hidden behind the fronds (fable-5's D box read fern
+    // green). A D composition change, made on its own branch for fable-cursor's call; the layout
+    // radius (0.6) and the vegetation's clearRadius are untouched.
+    const squash = b.id === 'shot-d-boulder' ? 0.72 : 0.74;
+    const sinkFrac = b.id === 'shot-d-boulder' ? 0 : 0.15;
     const rockOpts: RockOptions = {
       radius: r,
       // 20·(detail+1)² triangles: ≈ 16.8k for the 2.2 m terrace boulder, ≈ 14.6k for the small
