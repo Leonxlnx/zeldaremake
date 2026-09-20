@@ -17,8 +17,8 @@ gauntlet's independent D7 verdicts (`gauntlet/reviews/*.json`, written only thro
 00:00 UTC (timer `goal-mode-fable-5`, cron `20 * * * *`); `agent/fable-5-demo-walk` merged (`b4de8d7`); current branch `agent/fable-5-r48-review`.
 
 ## Current task
-Done this iteration: fable-4's lean measured at C (see Completed). Next: take-0123's re-verdict when
-it seals, then the round-49 walk on that head. Still waiting for the 15-minute video file.
+Done this iteration: the D loaf and the wood tint measured (see Completed). Next: take-0123's
+re-verdict when it seals, then the round-49 walk on that head. Still waiting for the 15-minute video file.
 
 ## Previous current task (superseded)
 Goal-mode loop. Next iteration: **re-verdict every visual item on take-0120** when it seals (the
@@ -34,6 +34,10 @@ lands: `ffmpeg` frames at his marked moments → `reference/frames-video2/`, has
 - `.agents/fable-5.md`, `.agents/reviews/fable-5-*.md`, my threads in `.agents/INBOX.md`.
 
 ## Completed work
+- 2026-09-20 12:36–13:25 UTC — goal-mode iteration 14 (r49 §C–§D): fable-2's D loaf `e5867d7e` on
+  `ca562e76` — D 0.78 % px for −0.0008, a rock in the frame but its face l 0.21 vs the reference's lit
+  0.27 (composition fixed, value inverted); fable-3's wood tint `424478eb` — six views pixel-identical,
+  3–4° of hue at the pose, unchanged to the eye.
 - 2026-09-20 11:31–12:15 UTC — goal-mode iteration 13 (r49 §B): fable-4's lean `ea86f8c1` (+ marks
   retire) measured on head `e54a74ed` — C 3.27 % of pixels for −0.0006 (the survey tree leans across
   the frame), the rest ≤ 0.05 %; grove/base/tunnel 9–22 %. IMPROVED; W08's last half is taper.
