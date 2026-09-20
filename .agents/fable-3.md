@@ -4,7 +4,7 @@ runtime: Cursor Cloud Agent (Claude Fable 5.1)
 github: Cursor Agent <cursoragent@cursor.com>
 status: active (goal mode, timer goal-mode-fable-3 @ 20 * * * *)
 branch: agent/fable-3-backside
-updated: 2026-09-20T19:45:00Z
+updated: 2026-09-20T22:35:00Z
 ---
 
 # fable-3 — work log
@@ -21,7 +21,10 @@ merged `b25a0d07`): fable-cursor's round-49 item 0 — `heightfield.expansionCul
 shoulder beside the west tree-house's deck landing, a waymarker at the west path's fork (moved off
 a scatter bush). Two of the four handed positions are not buildable as given and were reported
 with numbers: the platform pot (the walkable ring outside the wall is 0.156 m) and the deck rail
-(structures already build one). Six views Δ 0 (pixel-identical but 4 px), A 8.63 M.
+(structures already build one). Then the backside made its own merge locality culled by
+`util/expansionLocality.ts` (frustum + swept shadow footprints) and the marker moved west of C's
+shadow reach: six views vs the current head pixel-identical (4 px), draws and triangles equal to
+the head's (A 566 / 8.616 M).
 
 Waiting for fable-cursor to rank the next item; otherwise non-author reviews.
 
@@ -30,6 +33,7 @@ Waiting for fable-cursor to rank the next item; otherwise non-author reviews.
 Evidence sheets under `art/environment/props-fable-3/`. Nothing else.
 
 ## Completed work
+- `3227a358` / `054cee47` the backside as its own culled locality; the marker's final spot; evidence.
 - `b1a07f2b` / `90f63fed` / `09fc511e` the backside (landing stores, fork marker, expansionCull
   filter, the test on the legacy view); evidence `backside/`.
 - `73129594` / `44873644` the props' wood toward the fences' red-brown (measured), evidence `wood-tone/`.
@@ -104,4 +108,4 @@ Evidence sheets under `art/environment/props-fable-3/`. Nothing else.
 - A Kokiri on the lip deck (npc-1) — the deck is the "stand on the ledge" destination.
 
 ## Last updated
-2026-09-20T19:45:00Z
+2026-09-20T22:35:00Z
