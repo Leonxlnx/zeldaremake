@@ -1,0 +1,708 @@
+{
+  "capture": "E:\\zeldaremake-astra-environment\\art\\environment\\astra-quality\\after-round49",
+  "source": "fedffe49aa9fb367a8c85c1cdc8b5c1bd4feac1c",
+  "sourceDiffSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+  "mode": "BASELINE PREFLIGHT ONLY; no candidate comparison",
+  "missingOptionalViews": [],
+  "distantControlsCaptured": [
+    "distance-crown-118m",
+    "distance-crown-119m",
+    "distance-crown-120m",
+    "distance-crown-121m",
+    "distance-crown-122m"
+  ],
+  "method": "Fixed k=0 colour-mask membership for every candidate. RGB-derived HSL; H55–170, S>.12, L.06–.85. Published band: Lanczos3 320x180; y<floor(.35*180)=62. Native interior boxes also include all pixels.",
+  "limits": "Colour masks are not material IDs. A interior overlaps reference HUD, so reference comparison uses top band only. C/F dark reference interiors are poorly selected by this green mask. Decoded screenshot Rec709 Y is post-tone-map, not shader radiance. Distant poses are each compared only with themselves; no reference or cross-distance composition score. Sky control tests blue pixels only. No automatic visual accept/HOLD.",
+  "output": [
+    {
+      "view": "A_stairs",
+      "referenceTop35": {
+        "count": 1151,
+        "regionPixels": 19840,
+        "hueMedianDeg": 63.750000000000014,
+        "HSL_S_median": 0.13793103448275862,
+        "HSL_L_median": 0.28431372549019607,
+        "HSV_S_median": 0.23809523809523803,
+        "HSV_V_median": 0.3333333333333333,
+        "encodedYMean": 0.3318074022589062,
+        "decodedScreenshotYMean": 0.11383023818279378,
+        "RGB_MAD_bytes": 0,
+        "maxChannelDeltaBytes": 0,
+        "changedPixelShare": 0,
+        "chromaticPixelCount": 1151
+      },
+      "regions": [
+        {
+          "name": "top35-fixed-foliage",
+          "nativeSize": [
+            320,
+            180
+          ],
+          "bounds": [
+            0,
+            0,
+            320,
+            62
+          ],
+          "regionPixels": 19840,
+          "fixedBaselinePixelCount": 3446,
+          "fixedBaselineShare": 0.17368951612903225,
+          "variants": [
+            {
+              "key": "A_stairs",
+              "warmth": null,
+              "hueMedianDeg": 75.90036014405763,
+              "HSL_S_median": 0.17999999999999997,
+              "HSL_L_median": 0.2549019607843137,
+              "HSV_S_median": 0.30508474576271183,
+              "HSV_V_median": 0.3058823529411765,
+              "encodedYMean": 0.30382034117419354,
+              "decodedScreenshotYMean": 0.08325165959611268,
+              "RGB_MAD_bytes": 0,
+              "maxChannelDeltaBytes": 0,
+              "changedPixelShare": 0,
+              "chromaticPixelCount": 3446,
+              "deltaFromZero": {
+                "hueDeg": 0,
+                "HSL_S": 0,
+                "HSL_L": 0,
+                "HSV_S": 0,
+                "decodedScreenshotYPercent": 0
+              }
+            }
+          ]
+        },
+        {
+          "name": "native-crown-interior-all-pixels",
+          "nativeSize": [
+            1280,
+            720
+          ],
+          "bounds": [
+            1164,
+            18,
+            1260,
+            61
+          ],
+          "regionPixels": 4128,
+          "fixedBaselinePixelCount": 4128,
+          "fixedBaselineShare": 1,
+          "variants": [
+            {
+              "key": "A_stairs",
+              "warmth": null,
+              "hueMedianDeg": 78.74999999999999,
+              "HSL_S_median": 0.14285714285714288,
+              "HSL_L_median": 0.20588235294117646,
+              "HSV_S_median": 0.25,
+              "HSV_V_median": 0.23137254901960785,
+              "encodedYMean": 0.2310586757105943,
+              "decodedScreenshotYMean": 0.04457579464142977,
+              "RGB_MAD_bytes": 0,
+              "maxChannelDeltaBytes": 0,
+              "changedPixelShare": 0,
+              "chromaticPixelCount": 4128,
+              "deltaFromZero": {
+                "hueDeg": 0,
+                "HSL_S": 0,
+                "HSL_L": 0,
+                "HSV_S": 0,
+                "decodedScreenshotYPercent": 0
+              }
+            }
+          ]
+        },
+        {
+          "name": "native-crown-interior-fixed-foliage",
+          "nativeSize": [
+            1280,
+            720
+          ],
+          "bounds": [
+            1164,
+            18,
+            1260,
+            61
+          ],
+          "regionPixels": 4128,
+          "fixedBaselinePixelCount": 2665,
+          "fixedBaselineShare": 0.6455910852713178,
+          "variants": [
+            {
+              "key": "A_stairs",
+              "warmth": null,
+              "hueMedianDeg": 77.14285714285714,
+              "HSL_S_median": 0.1612903225806451,
+              "HSL_L_median": 0.20784313725490194,
+              "HSV_S_median": 0.27777777777777773,
+              "HSV_V_median": 0.23921568627450981,
+              "encodedYMean": 0.234093066107494,
+              "decodedScreenshotYMean": 0.04573173928374221,
+              "RGB_MAD_bytes": 0,
+              "maxChannelDeltaBytes": 0,
+              "changedPixelShare": 0,
+              "chromaticPixelCount": 2665,
+              "deltaFromZero": {
+                "hueDeg": 0,
+                "HSL_S": 0,
+                "HSL_L": 0,
+                "HSV_S": 0,
+                "decodedScreenshotYPercent": 0
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "view": "C_lookback",
+      "referenceTop35": {
+        "count": 710,
+        "regionPixels": 19840,
+        "hueMedianDeg": 68.57142857142854,
+        "HSL_S_median": 0.14285714285714285,
+        "HSL_L_median": 0.28823529411764703,
+        "HSV_S_median": 0.24859550561797747,
+        "HSV_V_median": 0.32941176470588235,
+        "encodedYMean": 0.3124106777133381,
+        "decodedScreenshotYMean": 0.09415846297921465,
+        "RGB_MAD_bytes": 0,
+        "maxChannelDeltaBytes": 0,
+        "changedPixelShare": 0,
+        "chromaticPixelCount": 710
+      },
+      "regions": [
+        {
+          "name": "top35-fixed-foliage",
+          "nativeSize": [
+            320,
+            180
+          ],
+          "bounds": [
+            0,
+            0,
+            320,
+            62
+          ],
+          "regionPixels": 19840,
+          "fixedBaselinePixelCount": 1605,
+          "fixedBaselineShare": 0.08089717741935484,
+          "variants": [
+            {
+              "key": "C_lookback",
+              "warmth": null,
+              "hueMedianDeg": 76.36363636363635,
+              "HSL_S_median": 0.15646258503401358,
+              "HSL_L_median": 0.18823529411764706,
+              "HSV_S_median": 0.27058823529411763,
+              "HSV_V_median": 0.2196078431372549,
+              "encodedYMean": 0.2314702378596303,
+              "decodedScreenshotYMean": 0.04708314939038268,
+              "RGB_MAD_bytes": 0,
+              "maxChannelDeltaBytes": 0,
+              "changedPixelShare": 0,
+              "chromaticPixelCount": 1605,
+              "deltaFromZero": {
+                "hueDeg": 0,
+                "HSL_S": 0,
+                "HSL_L": 0,
+                "HSV_S": 0,
+                "decodedScreenshotYPercent": 0
+              }
+            }
+          ]
+        },
+        {
+          "name": "native-crown-interior-all-pixels",
+          "nativeSize": [
+            1280,
+            720
+          ],
+          "bounds": [
+            44,
+            93,
+            281,
+            154
+          ],
+          "regionPixels": 14457,
+          "fixedBaselinePixelCount": 14457,
+          "fixedBaselineShare": 1,
+          "variants": [
+            {
+              "key": "C_lookback",
+              "warmth": null,
+              "hueMedianDeg": 78.00000000000001,
+              "HSL_S_median": 0.10869565217391303,
+              "HSL_L_median": 0.17058823529411765,
+              "HSV_S_median": 0.19607843137254902,
+              "HSV_V_median": 0.18823529411764706,
+              "encodedYMean": 0.2064292485491332,
+              "decodedScreenshotYMean": 0.039814618951933084,
+              "RGB_MAD_bytes": 0,
+              "maxChannelDeltaBytes": 0,
+              "changedPixelShare": 0,
+              "chromaticPixelCount": 14457,
+              "deltaFromZero": {
+                "hueDeg": 0,
+                "HSL_S": 0,
+                "HSL_L": 0,
+                "HSV_S": 0,
+                "decodedScreenshotYPercent": 0
+              }
+            }
+          ]
+        },
+        {
+          "name": "native-crown-interior-fixed-foliage",
+          "nativeSize": [
+            1280,
+            720
+          ],
+          "bounds": [
+            44,
+            93,
+            281,
+            154
+          ],
+          "regionPixels": 14457,
+          "fixedBaselinePixelCount": 2800,
+          "fixedBaselineShare": 0.19367780314034724,
+          "variants": [
+            {
+              "key": "C_lookback",
+              "warmth": null,
+              "hueMedianDeg": 76.36363636363635,
+              "HSL_S_median": 0.12643678160919544,
+              "HSL_L_median": 0.17058823529411765,
+              "HSV_S_median": 0.2244897959183674,
+              "HSV_V_median": 0.19607843137254902,
+              "encodedYMean": 0.1914303098039231,
+              "decodedScreenshotYMean": 0.031297095555059565,
+              "RGB_MAD_bytes": 0,
+              "maxChannelDeltaBytes": 0,
+              "changedPixelShare": 0,
+              "chromaticPixelCount": 2800,
+              "deltaFromZero": {
+                "hueDeg": 0,
+                "HSL_S": 0,
+                "HSL_L": 0,
+                "HSV_S": 0,
+                "decodedScreenshotYPercent": 0
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "view": "F_canopy",
+      "referenceTop35": {
+        "count": 968,
+        "regionPixels": 19840,
+        "hueMedianDeg": 60,
+        "HSL_S_median": 0.13793103448275867,
+        "HSL_L_median": 0.24117647058823533,
+        "HSV_S_median": 0.23971830985915493,
+        "HSV_V_median": 0.27450980392156865,
+        "encodedYMean": 0.3081002568465413,
+        "decodedScreenshotYMean": 0.09011103953401728,
+        "RGB_MAD_bytes": 0,
+        "maxChannelDeltaBytes": 0,
+        "changedPixelShare": 0,
+        "chromaticPixelCount": 968
+      },
+      "regions": [
+        {
+          "name": "top35-fixed-foliage",
+          "nativeSize": [
+            320,
+            180
+          ],
+          "bounds": [
+            0,
+            0,
+            320,
+            62
+          ],
+          "regionPixels": 19840,
+          "fixedBaselinePixelCount": 4900,
+          "fixedBaselineShare": 0.2469758064516129,
+          "variants": [
+            {
+              "key": "F_canopy",
+              "warmth": null,
+              "hueMedianDeg": 76,
+              "HSL_S_median": 0.1716574024266332,
+              "HSL_L_median": 0.20588235294117646,
+              "HSV_S_median": 0.29301637060257746,
+              "HSV_V_median": 0.24705882352941178,
+              "encodedYMean": 0.2516861010003983,
+              "decodedScreenshotYMean": 0.05746073796066862,
+              "RGB_MAD_bytes": 0,
+              "maxChannelDeltaBytes": 0,
+              "changedPixelShare": 0,
+              "chromaticPixelCount": 4900,
+              "deltaFromZero": {
+                "hueDeg": 0,
+                "HSL_S": 0,
+                "HSL_L": 0,
+                "HSV_S": 0,
+                "decodedScreenshotYPercent": 0
+              }
+            }
+          ]
+        },
+        {
+          "name": "native-crown-interior-all-pixels",
+          "nativeSize": [
+            1280,
+            720
+          ],
+          "bounds": [
+            793,
+            144,
+            1049,
+            237
+          ],
+          "regionPixels": 23808,
+          "fixedBaselinePixelCount": 23808,
+          "fixedBaselineShare": 1,
+          "variants": [
+            {
+              "key": "F_canopy",
+              "warmth": null,
+              "hueMedianDeg": 78.00000000000001,
+              "HSL_S_median": 0.11904761904761903,
+              "HSL_L_median": 0.16666666666666669,
+              "HSV_S_median": 0.21276595744680848,
+              "HSV_V_median": 0.18823529411764706,
+              "encodedYMean": 0.18434756921384904,
+              "decodedScreenshotYMean": 0.028964607273229498,
+              "RGB_MAD_bytes": 0,
+              "maxChannelDeltaBytes": 0,
+              "changedPixelShare": 0,
+              "chromaticPixelCount": 23808,
+              "deltaFromZero": {
+                "hueDeg": 0,
+                "HSL_S": 0,
+                "HSL_L": 0,
+                "HSV_S": 0,
+                "decodedScreenshotYPercent": 0
+              }
+            }
+          ]
+        },
+        {
+          "name": "native-crown-interior-fixed-foliage",
+          "nativeSize": [
+            1280,
+            720
+          ],
+          "bounds": [
+            793,
+            144,
+            1049,
+            237
+          ],
+          "regionPixels": 23808,
+          "fixedBaselinePixelCount": 10247,
+          "fixedBaselineShare": 0.43040154569892475,
+          "variants": [
+            {
+              "key": "F_canopy",
+              "warmth": null,
+              "hueMedianDeg": 76.36363636363635,
+              "HSL_S_median": 0.13636363636363635,
+              "HSL_L_median": 0.17058823529411765,
+              "HSV_S_median": 0.24,
+              "HSV_V_median": 0.19215686274509805,
+              "encodedYMean": 0.19299150680162075,
+              "decodedScreenshotYMean": 0.031756107225664694,
+              "RGB_MAD_bytes": 0,
+              "maxChannelDeltaBytes": 0,
+              "changedPixelShare": 0,
+              "chromaticPixelCount": 10247,
+              "deltaFromZero": {
+                "hueDeg": 0,
+                "HSL_S": 0,
+                "HSL_L": 0,
+                "HSV_S": 0,
+                "decodedScreenshotYPercent": 0
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "view": "sky-opening",
+      "regions": [
+        {
+          "name": "native-fixed-blue-sky-control",
+          "nativeSize": [
+            1280,
+            720
+          ],
+          "bounds": [
+            742,
+            0,
+            1152,
+            230
+          ],
+          "regionPixels": 94300,
+          "fixedBaselinePixelCount": 13742,
+          "fixedBaselineShare": 0.14572640509013784,
+          "variants": [
+            {
+              "key": "sky-opening",
+              "warmth": null,
+              "hueMedianDeg": 206.66666666666669,
+              "HSL_S_median": 0.41379310344827597,
+              "HSL_L_median": 0.6588235294117648,
+              "HSV_S_median": 0.3529411764705882,
+              "HSV_V_median": 0.8,
+              "encodedYMean": 0.6281579630217056,
+              "decodedScreenshotYMean": 0.3628871637173233,
+              "RGB_MAD_bytes": 0,
+              "maxChannelDeltaBytes": 0,
+              "changedPixelShare": 0,
+              "chromaticPixelCount": 13742,
+              "deltaFromZero": {
+                "hueDeg": 0,
+                "HSL_S": 0,
+                "HSL_L": 0,
+                "HSV_S": 0,
+                "decodedScreenshotYPercent": 0
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "view": "distance-crown-118m",
+      "regions": [
+        {
+          "name": "native-distant-fixed-foliage",
+          "nativeSize": [
+            1280,
+            720
+          ],
+          "bounds": [
+            102,
+            180,
+            1177,
+            612
+          ],
+          "regionPixels": 464400,
+          "fixedBaselinePixelCount": 259596,
+          "fixedBaselineShare": 0.5589922480620155,
+          "variants": [
+            {
+              "key": "distance-crown-118m",
+              "warmth": null,
+              "hueMedianDeg": 77.14285714285714,
+              "HSL_S_median": 0.2682926829268293,
+              "HSL_L_median": 0.1,
+              "HSV_S_median": 0.4230769230769231,
+              "HSV_V_median": 0.12941176470588237,
+              "encodedYMean": 0.13760739943727385,
+              "decodedScreenshotYMean": 0.02004763760152319,
+              "RGB_MAD_bytes": 0,
+              "maxChannelDeltaBytes": 0,
+              "changedPixelShare": 0,
+              "chromaticPixelCount": 259596,
+              "deltaFromZero": {
+                "hueDeg": 0,
+                "HSL_S": 0,
+                "HSL_L": 0,
+                "HSV_S": 0,
+                "decodedScreenshotYPercent": 0
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "view": "distance-crown-119m",
+      "regions": [
+        {
+          "name": "native-distant-fixed-foliage",
+          "nativeSize": [
+            1280,
+            720
+          ],
+          "bounds": [
+            102,
+            180,
+            1177,
+            612
+          ],
+          "regionPixels": 464400,
+          "fixedBaselinePixelCount": 259892,
+          "fixedBaselineShare": 0.5596296296296296,
+          "variants": [
+            {
+              "key": "distance-crown-119m",
+              "warmth": null,
+              "hueMedianDeg": 77.14285714285714,
+              "HSL_S_median": 0.2682926829268293,
+              "HSL_L_median": 0.1,
+              "HSV_S_median": 0.4230769230769231,
+              "HSV_V_median": 0.12941176470588237,
+              "encodedYMean": 0.1374135645938151,
+              "decodedScreenshotYMean": 0.019989505845076565,
+              "RGB_MAD_bytes": 0,
+              "maxChannelDeltaBytes": 0,
+              "changedPixelShare": 0,
+              "chromaticPixelCount": 259892,
+              "deltaFromZero": {
+                "hueDeg": 0,
+                "HSL_S": 0,
+                "HSL_L": 0,
+                "HSV_S": 0,
+                "decodedScreenshotYPercent": 0
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "view": "distance-crown-120m",
+      "regions": [
+        {
+          "name": "native-distant-fixed-foliage",
+          "nativeSize": [
+            1280,
+            720
+          ],
+          "bounds": [
+            102,
+            180,
+            1177,
+            612
+          ],
+          "regionPixels": 464400,
+          "fixedBaselinePixelCount": 259852,
+          "fixedBaselineShare": 0.5595434969853574,
+          "variants": [
+            {
+              "key": "distance-crown-120m",
+              "warmth": null,
+              "hueMedianDeg": 77.14285714285714,
+              "HSL_S_median": 0.2682926829268293,
+              "HSL_L_median": 0.1,
+              "HSV_S_median": 0.4230769230769231,
+              "HSV_V_median": 0.12941176470588237,
+              "encodedYMean": 0.13737853999849958,
+              "decodedScreenshotYMean": 0.01997765329917614,
+              "RGB_MAD_bytes": 0,
+              "maxChannelDeltaBytes": 0,
+              "changedPixelShare": 0,
+              "chromaticPixelCount": 259852,
+              "deltaFromZero": {
+                "hueDeg": 0,
+                "HSL_S": 0,
+                "HSL_L": 0,
+                "HSV_S": 0,
+                "decodedScreenshotYPercent": 0
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "view": "distance-crown-121m",
+      "regions": [
+        {
+          "name": "native-distant-fixed-foliage",
+          "nativeSize": [
+            1280,
+            720
+          ],
+          "bounds": [
+            102,
+            180,
+            1177,
+            612
+          ],
+          "regionPixels": 464400,
+          "fixedBaselinePixelCount": 260178,
+          "fixedBaselineShare": 0.5602454780361757,
+          "variants": [
+            {
+              "key": "distance-crown-121m",
+              "warmth": null,
+              "hueMedianDeg": 77.14285714285714,
+              "HSL_S_median": 0.2682926829268293,
+              "HSL_L_median": 0.1,
+              "HSV_S_median": 0.4230769230769231,
+              "HSV_V_median": 0.12941176470588237,
+              "encodedYMean": 0.1372143641660872,
+              "decodedScreenshotYMean": 0.019928229562589096,
+              "RGB_MAD_bytes": 0,
+              "maxChannelDeltaBytes": 0,
+              "changedPixelShare": 0,
+              "chromaticPixelCount": 260178,
+              "deltaFromZero": {
+                "hueDeg": 0,
+                "HSL_S": 0,
+                "HSL_L": 0,
+                "HSV_S": 0,
+                "decodedScreenshotYPercent": 0
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "view": "distance-crown-122m",
+      "regions": [
+        {
+          "name": "native-distant-fixed-foliage",
+          "nativeSize": [
+            1280,
+            720
+          ],
+          "bounds": [
+            102,
+            180,
+            1177,
+            612
+          ],
+          "regionPixels": 464400,
+          "fixedBaselinePixelCount": 260643,
+          "fixedBaselineShare": 0.5612467700258398,
+          "variants": [
+            {
+              "key": "distance-crown-122m",
+              "warmth": null,
+              "hueMedianDeg": 77.14285714285714,
+              "HSL_S_median": 0.2682926829268293,
+              "HSL_L_median": 0.1,
+              "HSV_S_median": 0.4230769230769231,
+              "HSV_V_median": 0.12941176470588237,
+              "encodedYMean": 0.1370387466381373,
+              "decodedScreenshotYMean": 0.019875487172416346,
+              "RGB_MAD_bytes": 0,
+              "maxChannelDeltaBytes": 0,
+              "changedPixelShare": 0,
+              "chromaticPixelCount": 260643,
+              "deltaFromZero": {
+                "hueDeg": 0,
+                "HSL_S": 0,
+                "HSL_L": 0,
+                "HSV_S": 0,
+                "decodedScreenshotYPercent": 0
+              }
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

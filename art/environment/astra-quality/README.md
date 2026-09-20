@@ -1,5 +1,21 @@
 # Environment — native before/after comparisons
 
+Latest reviewed source **0645b7d3**, [local preview](http://127.0.0.1:61023/?mode=play&dev=0&hud=0), frozen bundle **index-ClEBro72.js**. The moss-cap normal fix removes the reproduced black bloom square. Tree foliage now has a measured, subtle warmer hue; ground plants, wood and global lighting retain their existing treatment. Native24views (12poses × neutral/.5) and24stair camera frames completed without page/shader errors. All variant camera/time/render counts match; A remains8,741,626triangles/571calls.
+
+| Latest isolated comparison | Before | Reviewed correction |
+|---|---|---|
+| Stair crown: reduced green cast | ![Neutral stairs](leaf-warmth-final/A_stairs-neutral.png) | ![Warmer stairs](leaf-warmth-final/A_stairs-warm50.png) |
+| Lookback crown: warmer leaves at retained brightness | ![Neutral lookback](leaf-warmth-final/C_lookback-neutral.png) | ![Warmer lookback](leaf-warmth-final/C_lookback-warm50.png) |
+| Canopy: leaf relief retained | ![Neutral canopy](leaf-warmth-final/F_canopy-neutral.png) | ![Warmer canopy](leaf-warmth-final/F_canopy-warm50.png) |
+| Distant tree at121m: same geometry with warmer leaf colour | ![Neutral distant](leaf-warmth-final/distance-crown-121m-neutral.png) | ![Warmer distant](leaf-warmth-final/distance-crown-121m-warm50.png) |
+| Stair landing: invalid moss normal removed | ![Before square](moss-normal-study/before-beauty.png) | ![Guarded normal](moss-normal-study/guard-beauty.png) |
+
+Fixed-mask native crown interiors A/C/F move from78–79° green toward67.5/66/66° olive; decoded screenshot brightness shifts by less than0.3%. The distant controls both improve77.1→69.5°, with about1.1% lower decoded brightness after display processing. Blue-sky median hue/saturation/lightness stays exact. This is a modest material improvement, not full reference parity: mixed vegetation bands remain greener, large crown shapes and root transitions need work. Reference SSIM changes from the neutral variant by0 to−.0001; combined deficits versus97c83227 remain up to−.0116. PR remains draft; no new formal take or FPS claim.
+
+CPU leaf contracts3/3, moss-domain15degenerate/384ordinary cases, typecheck/build passed. [Detailed hue evaluation](../astra-trees-quality/tree-hue-review.md), [midpoint measurements](../astra-trees-quality/tree-hue-midpoint.json), [raw NaN cause and guard proof](moss-normal-study/README.md). The final archive retains24variant images and3diagnostic walk frames; full24-frame local sequence remains in ../../2026-09-20T17-06-07-764Z-daylight.
+
+## Prior combined geometry review
+
 Latest combined native source **fedffe49**, preview **http://127.0.0.1:61022/?mode=play&dev=0&hud=0**, frozen bundle **index-CdXyIg1Y.js**. Fresh Fable production baseline97c83227 and candidate each have27 matched native views. The candidate also has24 fixed-time stair camera frames. Source includes Fable's backside expansion/wood tint/previously accepted Link changes, our stone and distant-tree work, corrected bark texture mean, Fable4's leaf detail range, and dense near crown leaves with the original flat-core shade floor restored.
 
 Independent visual review accepts the crown improvement: F shared-core luminance0.208→0.189, C0.220→0.203; edges and interiors now contain leaves instead of smooth cores. A8,741,626 triangles/571 calls versus baseline8,615,890/566. No frame-rate improvement is claimed. Full-frame reference SSIM deltas are A−0.0021, B−0.0051, C−0.0106, D−0.0091, E−0.0044, F−0.0115. This is still outside Fable's comparison budget in five views; visual progress is not reference parity or permission to merge the entire branch.
