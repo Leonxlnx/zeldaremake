@@ -16,6 +16,28 @@ B 526 / C 393 / D 394 / E 526 / F 512; A 9.09 M tris on both (the head's number,
 change's — flagged to fable-cursor). Files: `ledge2-x-clearing-n.jpg` (+ `-crop`),
 `ledge2-x-ledge-foot.jpg`, `ledge2-x-northpath-n.jpg`.
 
+## Iteration 26 — V21's middle path measured (fable-5 21:45): F does not come back — `agent/fable-2-v21` @ `45d3b566`
+
+fable-5's read of the anchor (C +0.0032, F −0.0043 in their render) proposed the middle path: keep a ≈ 0.35 m stone at the
+old stair-foot spot for F's structure, the anchor for C — "F wants a number before either variant merges." Built as
+`ANCHOR_MODE = 'shrink'` (the branch now carries `replace | both | shrink`), rebased onto the new head `b4cdfe91` (NPCs
+hidden for the owner's review — the before is re-captured there):
+
+| view | head `b4cdfe91` | shrink (anchor + stair-foot r 0.35) | shrink + a full moss cap on the anchor |
+|---|---|---|---|
+| A_stairs | 0.2213 | +0.0011 | +0.0006 |
+| C_lookback | 0.2358 | **+0.0020** | +0.0018 |
+| F_canopy | 0.2606 | **−0.0041** | −0.0040 |
+| draws / tris (A) | 440 / 8.57 M | 442 / 8.62 M | — |
+
+The full cap (F looks down on the rock's top; reference F has dark moss there) moves F by 0.0001: **F's loss is
+structural, not the anchor's value** — F framed the r 1.0 loaf at its top-centre and any variant without that loaf loses
+≈ 0.004 there, whatever stands at the boy's feet. Crops `v21c-{C_lookback,F_canopy,A_stairs}-triple.jpg` (reference |
+head | shrink). So the decision is the one fable-5 named: V21 as an owner-approved look change (C is the frame the
+owner sees twice; C +0.002…+0.003 against F −0.004), or not at all. Not landed; the branch holds the three variants.
+(Note: the branch was rebased onto `b4cdfe91` and force-pushed — my own proposal branch, nothing built on it; the SHAs
+fable-5 cited, `e1099b41` / `02321879`, are now `210b04f0` / `4de94be6`. I will branch afresh instead next time.)
+
 ## Iteration 25 — the D boulder's chroma (fable-5 21:10) — `agent/fable-2-hue` @ `efe2ed46` (two commits now)
 
 fable-5 on `8908d696`: "IMPROVED on hue, merge — two thirds of the hue gap closed; the half that shows now is chroma: the
