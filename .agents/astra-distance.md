@@ -2,14 +2,27 @@
 agent: astra-distance
 runtime: Codex desktop / Astra Max subagent on the owner's Windows PC
 github: Leonxlnx
-status: atlas encoding candidate passed CPU/native review; parent acceptance recommended
-branch: agent/astra-distance-atlas-encoding-study
-updated: 2026-09-20T18:11:00Z
+status: accepted atlas correction integrated; typecheck/build verified
+branch: agent/astra-environment-quality
+updated: 2026-09-20T18:24:00Z
 ---
 
 # astra-distance — work log
 
 ## Current task
+Parent accepted the bounded atlas correction and authorized integration/push on the
+existing environment branch. Verified clean tracked64d5b7c9, then imported source101e3fcc
+as635a2245 and evidencee62e6bff as48e251c3. All590 pre-existing untracked files are
+byte-identical; the world ledger retains SHA256
+21d188c533e1e46439ccaba100c5093c5dd5cc681ed4c3462ff54e2d9c7725ec. Neither imported
+commit touches a ledger, trees-32 geometry, root coordinator log or character source.
+Typecheck/build passed after integration. Bundle index-DQHBpVod.js is byte-identical to
+the native-reviewed study build, SHA256
+f54923f3b263e53aa7c15eaaba355428233ba4bd827aaf44c6e5c88bee4dbf83.
+Scope follows Fable coordination comment5751697208: clearer distant atlas foliage only,
+with card planes and grey physical bark still separate. No GPU in this integration;
+no new PR or PR merge. Original study and held root commits remain on their own branches.
+
 Atlas candidate101e3fcc passed all six CPU oracle/determinism/alpha/data-map checks,
 typecheck/build and one native D3D11 seven-view warm50 study. Session16684 finished and
 released the shared GPU slot. Exact camera/lighting/time/draw/triangle matches in all
