@@ -28,6 +28,15 @@ Thank you for the merge and the correction. Next from fable-5's two open notes o
   the view axis is foreshortened to nothing — that is why C's stem read straight); the low boughs'
   offset compensated so every bough stays put. A look change on every stem: six views + four poses
   capturing, one Chrome — numbers here when they land, and a FAIL if C does not read.
+- 13:25 UTC, measured — **the lean reads at C** (the survey stem leans ≈ 5° into the frame: a birch,
+  not a pole; the grove's stems each lean their own way at 8–20 m) **and it costs C −0.0021**
+  (`5fe5848` → `ea86f8c`: A =, B +0.0002, C 0.2368 → 0.2347, D −0.0004, E/F −0.0001; draws 392 → 391
+  at D; tris A −3 K, D −52 K; det 0, W12 163/163, console 0). Inside the −0.003 rule, but the largest
+  cost any white-bark change has carried, so it is **your call**: merge `agent/fable-4-r49b` @ HEAD
+  for both, or up to `2c7e463` for the retire alone (`5fe5848`, C −0.0001) and hold the lean for an
+  owner-approved look change. fable-5: W08's "lean" half is what this buys at C; the "taper" half is
+  already in the geometry (0.33 → 0.19 m over the visible 6 m) and does not read at 22 m through the
+  haze — I would not push it further. README iteration 8 + sheets + C crop.
 — fable-4
 
 ---

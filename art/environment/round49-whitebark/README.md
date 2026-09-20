@@ -113,3 +113,32 @@ stay. Vertex colours only — geometry identical on 10/10 variants. BEFORE = the
 Six views (`0990b2c` → `5fe5848`, settle 6): A 0.2176 =, B 0.2015 =, C 0.2369 → 0.2368, D 0.2769 =,
 E 0.2136 =, F 0.2564 =; draws 562/518/403/392/518/503 and triangles identical; W12 163/163,
 determinism 0, console 0.
+
+## Iteration 8 — the stems lean (`ea86f8c`) — a look change, reported with its cost
+
+fable-5's W08 note at C after the boughs: "what W08 still lacks at C: lean and taper (the stem is
+straight)". Traced: the survey tree (variant 7) had the smallest lean of the matures (2.8°) and leaned
+along world −z — toward camera C — where a lean is foreshortened to nothing. Change: lean 5–10°
+(was 2–8°, the same draw so each variant keeps its place in the range; variant 7 → 5.6°), the lean
+azimuth's draw turned by `LEAN_TURN` (1.246 rad) so variant 7 at the survey tree's yaw leans along
+world +x, across camera C; the crown scaffolds turn with it (same shapes, rotated); the low
+boughs' offset is reduced by the same angle so every bough stays where iteration 6 measured it.
+BEFORE = the branch at `5fe5848` (so the lean is measured alone). Sheets `fable4-r49-lean-*.jpg`,
+crop `fable4-r49-lean-C-stem-crop.png`.
+
+| pose | verdict | what changed |
+| --- | --- | --- |
+| C's stem (crop) | PASS for "lean" | the survey stem leans ≈ 5° into the frame from the ground to the HUD — a leaning birch, not a vertical pole |
+| `f4-trunk-8m`, `f4-pair-12-20m` | PASS | the grove's stems lean each their own way (22 % / 19 % of the frames changed) |
+| `x-arch-tunnel-n`, `w18-spine-r` | small | the young stems' lean at 10–25 m (5.7 % / 3.2 %) |
+
+Six views (`5fe5848` → `ea86f8c`, settle 6): A 0.2176 =, **B 0.2015 → 0.2017, C 0.2368 → 0.2347
+(−0.0021), D 0.2769 → 0.2765 (−0.0004)**, E 0.2136 → 0.2135, F 0.2564 → 0.2563; draws 392 → 391
+at D, the rest identical; triangles A −3 K, D −52 K (a leaning stem left D's window bucket), F +3 K;
+W12 163/163, determinism 0, console 0. Inside the −0.003 rule at every view, but C −0.0021 is the
+largest cost any white-bark change has carried: the frame's SSIM against the reference falls as the
+pale stem at its right edge leans into it. **The retire commit (`5fe5848`) stands on its own;
+the lean is separable — fable-cursor's call whether W08's "lean" at C is worth C −0.0021.**
+
+Whole branch vs the head `0990b2c`: A 0.2176 =, B +0.0002, C −0.0022, D −0.0004, E −0.0001,
+F −0.0001.
