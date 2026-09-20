@@ -16,6 +16,40 @@ B 526 / C 393 / D 394 / E 526 / F 512; A 9.09 M tris on both (the head's number,
 change's — flagged to fable-cursor). Files: `ledge2-x-clearing-n.jpg` (+ `-crop`),
 `ledge2-x-ledge-foot.jpg`, `ledge2-x-northpath-n.jpg`.
 
+## Iteration 19 — round-50 #1, the D boulder's form: measured FAIL at D — `agent/fable-2-form` @ `d8ed5420` (unmerged)
+
+fable-5's round-50 #1 / ANALYSIS_VIDEO2 §7.2: "the D boulder face has 63 % of the frame's macro contrast (σ 0.074
+vs 0.117) — one shaded loaf where the frame's rock has lit planes, a shadowed undercut and a bright top."
+
+Built: a rockgen `planes` option — explicit cleave planes after the seeded cuts (no seed draws, so every other rock
+is untouched), each with its own lift / dark / bare, the bedding steps and cracks re-carved on the plane so it keeps
+its relief. The D loaf gets a moss-capped flat top tilted 11° to camera D, a pale bare chamfer crest at 30°, a
+shoulder plane at 37° and a 40° undercut below the belly; squash 0.78 keeps the crown within 4 cm of the loaf's;
+the tint warmed toward the frame's tan. Four takes (bare top / moss top / chamfer / a +70 % crest albedo).
+
+**Measured at D (stone pixels of the boulder's box 0.09–0.21 × 0.56–0.68, low-saturation mask):**
+
+| take | mean l | σ | p10 | p90 |
+|---|---|---|---|---|
+| before (head `6d6d80f8`) | 0.266 | **0.048** | 0.213 | 0.346 |
+| 1 bare top, no re-carve | 0.273 | 0.043 | 0.221 | 0.331 |
+| 2 moss top, bedding re-carved | 0.265 | 0.042 | 0.214 | 0.320 |
+| 3 + pale chamfer crest (`d8ed5420`) | 0.263 | 0.041 | 0.217 | 0.318 |
+| 4 crest albedo +70 %, shoulder −15 % | 0.262 | 0.044 | 0.214 | 0.327 |
+
+Nothing moves it. The boulder stands under the giant's canopy shadow at D (fable-5: "still in the giant's shade");
+under sky light alone plane angles grade almost nothing, and even a +70 % crest albedo does not lift p90 — the
+frame's contrast is **sunlight on planes**, and the light is not in this lane (sun: `config.ts`; the giant: trees).
+The before's σ 0.048 was the bright moss lump on the crown; the planes trade it for bands and lose 4 points.
+
+**At 2 m (`sn-boulder-shotd`, box 0.28–0.72²):** stone σ 0.059 → 0.066 (+12 %), macro σ 0.032 → 0.034; the rock reads
+as a bedded block with a pale crest and an undercut instead of a loaf (`form20-sn-boulder-shotd.jpg`) — a form
+gain at player height, not the σ 0.11–0.14 the item asks for.
+
+Sheets: `form20-D_log-boulder.jpg` (the boulder at D, 4×, before / `d8ed5420`), `form20-sn-boulder-shotd.jpg`.
+Typecheck / build / 22 tests green on the branch. Left unmerged for fable-cursor's call: merge as a player-height form
+change, or leave the loaf; the D frame needs light on the rock first.
+
 ## Iteration 18 — backside casters made conservative (fable-cursor 17:30 / Astra's audit) — `5e4b2696`
 
 Astra's CPU audit of `9d1fc102` found 1 876 above-ground vertices escaping the backside's caster spheres by up to
