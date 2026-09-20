@@ -11,22 +11,28 @@ import { northVisible } from '../util/northLocality';
 import { STONE_NEAR, createStoneMaterial } from './material';
 import { buildStairway, stairFrame, stairToWorld, type StairFrame } from './stairs';
 import { isPaved, nearIsolatedDisc, pavedLevel, placeFlagstones, rimDistance, type PavingContext } from './flagstones';
-import { MeshBuilder, buildSlab, irregularPolygon, jitteredRect } from './geometry';
+import { MeshBuilder, buildSlab, jitteredRect } from './geometry';
 import { buildJointMesh, jointFillLift, jointFillTones } from './joints';
 import { HARDSCAPE_PACKS, JOINT_TUFT_DEEP, JOINT_TUFT_TIP, SPROUT_LOD_FAR, buildSproutMeshes, createSproutMaterial, type SproutSpot } from '../materials/sprouts';
 import { seamGritTone } from '../materials/grit';
 import { SPROUT_JITTER_SCHEME, createSproutJitterStreams } from './sprout-jitter';
 import { JOINT_SOIL, JOINT_SOIL_DRY, JOINT_SOIL_MID } from './joints';
-import { archSeam, discField, hollowPath, jointSoil, lawnPocket, lawnPocketEdgeX, lawnZone, southPlaza } from './zones';
+import { archNorthLip, archSeam, discField, hollowPath, jointSoil, lawnPocket, lawnPocketEdgeX, lawnZone, southPlaza } from './zones';
 import { buildFlowerHeads, type FlowerHead } from './flowers';
+import { STANDING_STONE_SKIRT, buildStandingStone } from './standing-stones';
 import { Noise2D, smoothstep } from '../util/noise';
 import { houseSteppingStones } from '../layout';
 
 /** joint-grass tint (materials/sprouts.ts `SproutSpot.jointTint`) per sprout scatter; scatters not listed keep their greens */
 const JOINT_TUFT_TINT: Record<string, number> = {
-  joints: 1.0,
-  'disc-turf': 1.0,
-  'lawn-paving': 0.9,
+  // (round 48: the spine's joint grass a little greener — 1.0 → 0.8 / 0.7 — and a green scatter
+  // of its own (`spine-grass`, 0.35): the frames' joints carry living grass patches, not only straw)
+  joints: 0.65,
+  'disc-turf': 0.7,
+  'spine-grass': 0.35,
+  // (the lawn slabs' turf joints, camera E / w05's foreground: 0.9 → 0.55 — the frame's gaps
+  // between the slabs are living grass, ours read as straw in orange dirt)
+  'lawn-paving': 0.55,
   'edge-turf': 0.7,
   stairs: 0.8,
   'stairs-flank': 0.8,
@@ -612,6 +618,32 @@ export async function create(ctx: WorldContext): Promise<WorldSystem> {
     spots.push({ x, y: T.height(x, z) + 0.012, z, size: nrngJ(), kind: 'cushion', source: 'north-cushions' });
     northPads++;
   }
+  // --- round 48: green grass in the spine's joints ---------------------------------------------
+  // (opus-review #04, fable-5's video-2 notes: "joints 3–8 cm dark with grass patches between the
+  // stones"). The khaki joint tufts above are round 34's dead straw; the frames' joints also carry
+  // living green in patches — short tufts at the slab corners and along the seams. Sown down the
+  // spine from the damp band to the hollow path (z 1 … −34) in gaps 3–30 cm from a stone, gated by
+  // a 0.7 m noise so they come in patches with bare seams between, greener (jointTint 0.35). Own
+  // stream and source, appended after every spot above.
+  const grng2 = rng.fork('spine-grass');
+  const grassN = new Noise2D(`${ctx.config.seed}/spine-grass`);
+  const spineGrassTarget = Math.round(480 * Math.max(0.7, ctx.quality.density));
+  let spineGrass = 0;
+  tries = 0;
+  while (spineGrass < spineGrassTarget && tries < spineGrassTarget * 80) {
+    tries++;
+    const x = grng2.range(-3.0, 5.5);
+    const z = grng2.range(-34.5, 1.0);
+    if (!paved(x, z, 0.42) || paving.onStone(x, z)) continue;
+    const gap = paving.edgeGap(x, z);
+    if (gap < 0.03 || gap > 0.3) continue;
+    // patches: a 0.7 m noise, denser where the field and the hollow's earth show
+    const patch = smoothstep(0.42, 0.7, grassN.fbm(x * 1.4 + 9, z * 1.4 - 3, 2) * 0.5 + 0.5);
+    if (grng2() > patch * (0.55 + 0.45 * Math.max(discField(x, z), hollowPath(x, z)))) continue;
+    if (grng2() > camWeight(x, z)) continue;
+    spots.push({ x, y: T.height(x, z) + 0.015, z, size: grng2.chance(0.3) ? grng2.range(0.05, 0.2) : grng2.range(0.25, 0.6), scale: grng2.range(1.0, 1.35), source: 'spine-grass' });
+    spineGrass++;
+  }
   const nrngG = rng.fork('north-grit');
   const northGritTarget = Math.round(220 * Math.max(0.7, ctx.quality.density));
   let northGrit = 0;
@@ -631,6 +663,28 @@ export async function create(ctx: WorldContext): Promise<WorldSystem> {
     const tint: [number, number, number] = [pale * lift[0], pale * lift[1], pale * lift[2]];
     gritSpots.push({ x, y: T.height(x, z) + 0.01, z, size, kind: 'grit', tint, source: 'north-grit' });
     northGrit++;
+  }
+  // --- round 48: bark litter on the tunnel floor's north seam -------------------------------
+  // (round 47's handoff; zones.ts `archNorthLip`, joints.ts's tongue): bark fragments 2–4.5 cm
+  // over the tongue's soil — the grit mesh in a dark red-brown (0.7 / 0.45 / 0.3 of the seam
+  // soil's grit tone) with a fifth of them the paler dry bark. On the paving only, in the tongue's
+  // weight, sitting on the raised fill. Own stream and source; appended after every other spot.
+  const lipRng = rng.fork('lip-litter');
+  const lipTarget = Math.round(110 * Math.max(0.7, ctx.quality.density));
+  let lipLitter = 0;
+  tries = 0;
+  while (lipLitter < lipTarget && tries < lipTarget * 60) {
+    tries++;
+    const x = lipRng.range(2.5, 10.5);
+    const z = lipRng.range(-60.5, -57.0);
+    const w = archNorthLip(x, z);
+    if (lipRng() > w) continue;
+    if (!(paved(x, z, 0.4) || pavedN(x, z, 0.4)) || onStoneAll(x, z)) continue;
+    const size = lipRng.chance(0.3) ? lipRng.range(0.03, 0.045) : lipRng.range(0.02, 0.03);
+    const pale = lipRng.chance(0.2) ? 1.5 : 1;
+    const tint: [number, number, number] = [0.7 * pale, 0.45 * pale, 0.3 * pale];
+    gritSpots.push({ x, y: T.height(x, z) + 0.008 + 0.03 * w, z, size, kind: 'grit', tint, source: 'lip-litter' });
+    lipLitter++;
   }
 
   // --- round 47: the stone circle and the lookout dais ----------------------------------------
@@ -654,41 +708,49 @@ export async function create(ctx: WorldContext): Promise<WorldSystem> {
   };
   const monoUv = 1 / 1.7;
   const blockN = new Noise2D(`${ctx.config.seed}/monolith-moss`);
-  for (const s of ringStones) {
-    const height = circleRng.range(SC.height[0], SC.height[1]);
-    // footprint 0.30–0.42 m across, a little oblong; the ground under the whole footprint
-    const across = circleRng.range(0.3, 0.42);
-    const outline = irregularPolygon(circleRng, 6, { radiusJitter: 0.22, angleJitter: 0.25, aspect: circleRng.range(1.1, 1.5) }).map((p) => ({ x: p.x * across * 0.5, z: p.z * across * 0.5 }));
-    let groundMin = Infinity;
-    let groundMax = -Infinity;
-    for (const p of outline) {
-      const h = T.height(s.x + p.x, s.z + p.z);
-      groundMin = Math.min(groundMin, h);
-      groundMax = Math.max(groundMax, h);
-    }
-    // the plinth's top is ~4 cm over the ground; the block stands on the ground through it
-    const top = groundMax + height;
-    const thickness = top - groundMin + 0.06;
-    const tint = 0.78 + circleRng.range(0, 0.14);
-    placeBlock(outline, s.x, s.z, top, circleRng.range(0, Math.PI * 2), circleRng.range(-0.05, 0.05), circleRng.range(-0.05, 0.05), {
-      thickness,
-      bevel: 0.035,
-      dip: 0,
-      color: [tint, tint, tint * 0.96],
-      sideColor: [tint * 0.86, tint * 0.86, tint * 0.84],
-      // a block standing 0.6–0.85 m proud takes the shader's lichen and grime on its faces like its top
-      wear: 0.6,
-      sideWear: 0.7,
-      mossEdge: 0.5,
-      mossInner: 0.2,
-      mossFn: (x, z) => 0.3 + 0.7 * (blockN.fbm((x + s.x) * 2.3 + 5, (z + s.z) * 2.3 - 3, 2) * 0.5 + 0.5),
+  // Round 48 (opus-review #02 — "seven smooth cylinders … bollards"): the ring's stones are
+  // standing-stones.ts blocks — tapered, bowed, noise-faceted, in 3–5 strata bands, tops cleaved
+  // and chipped (two of them split), leaning 3–8°, a soil / moss bedding skirt heaped over the
+  // plinth at each foot and the damp band up the lowest 20 cm; the fourth stone lies fallen.
+  // Footprints stay inside the `structure` mask's 0.26–0.34 m (heightfield standingStoneMask):
+  // 0.42–0.56 m across at the base, the fallen one 0.36–0.42 m thick and ≤ 0.7 m long, centred
+  // on its spot. The moss weighs toward the flank facing away from the sun. Tints hold one
+  // family a step darker and cooler than the slabs (0.58–0.7 of the material colour — the first
+  // cut's 0.78–0.9 rendered as pale pegs beside the paving), no pale-tan outlier.
+  // (`ctx.sun.position` points toward the sun; the config's azimuth −128° is the fallback)
+  const sunAz = (ctx.config.sun.azimuthDeg * Math.PI) / 180;
+  const sunDir = ctx.sun ? Math.atan2(ctx.sun.position.z, ctx.sun.position.x) : Math.atan2(Math.cos(sunAz), Math.sin(sunAz));
+  const shadeDir = sunDir + Math.PI;
+  const stoneStats: { bands: number; chips: number; split: boolean; fallen: boolean; tiltDeg: number; acrossM: number }[] = [];
+  const FALLEN_INDEX = 0;
+  ringStones.forEach((s, i) => {
+    const fallen = i === FALLEN_INDEX;
+    const split = i === 1 || i === 5;
+    const height = circleRng.range(SC.height[0], SC.height[1]) * (fallen ? 0.85 : 1);
+    const across = fallen ? circleRng.range(0.36, 0.42) : circleRng.range(0.42, 0.56);
+    const tiltRad = (circleRng.range(3, 8) * Math.PI) / 180;
+    const tint = 0.58 + circleRng.range(0, 0.12);
+    const r = buildStandingStone(monoliths, circleRng.fork(`stone-${i}`), {
+      x: s.x,
+      z: s.z,
+      ground: (x, z) => T.height(x, z),
+      height: fallen ? Math.min(height, 0.66) : height,
+      across,
+      fallen,
+      split,
+      tint,
+      tiltRad,
+      // the lean goes a little off the ring's tangent, never straight into the clearing's centre
+      tiltDir: s.ang + Math.PI / 2 + circleRng.range(-0.6, 0.6) + (circleRng.chance(0.5) ? Math.PI : 0),
+      yaw: circleRng.range(0, Math.PI * 2),
+      shadeDir,
       uvScale: monoUv,
       uvOffset: [circleRng() * 3, circleRng() * 3],
-      rings: 2,
-      sideStain: 1.4,
+      noise: blockN,
     });
-    standingStones.push({ x: s.x, y: top, z: s.z, height });
-  }
+    standingStones.push({ x: s.x, y: r.topY, z: s.z, height: r.topY - r.groundY });
+    stoneStats.push({ bands: r.bands, chips: r.chips, split: r.split, fallen, tiltDeg: Math.round((tiltRad * 180) / Math.PI * 10) / 10, acrossM: Math.round(across * 100) / 100 });
+  });
   const LK = ctx.layout.lookout;
   const lkRng = rng.fork('lookout');
   const lkYaw = (LK.yawDeg * Math.PI) / 180;
@@ -904,7 +966,9 @@ export async function create(ctx: WorldContext): Promise<WorldSystem> {
     },
     // connected planted joints: tufts, clover and pads in runs along the seams near the paved edge (part of jointSprouts)
     jointSproutsInEdgeSeams: edgeTufts,
-    jointSproutsOnStairs: sprouts.count - flagstoneSprouts - lawnTufts - pocketTufts - lawnPocketTufts - lawnEdgeTufts - lawnEdgeBand - edgeGrass - (discTufts - discPads) - sprouts.cushions - northTufts,
+    jointSproutsOnStairs: sprouts.count - flagstoneSprouts - lawnTufts - pocketTufts - lawnPocketTufts - lawnEdgeTufts - lawnEdgeBand - edgeGrass - (discTufts - discPads) - sprouts.cushions - northTufts - spineGrass,
+    // round 48: green tufts in the spine's joints (own stream)
+    jointSproutsSpineGrass: spineGrass,
     // round 47 (expansion-1): the paving beyond the arch — its own pass (flagstones.ts `region:
     // 'north'`), joint fill, joint sprouts and seam grit; the stone circle's standing stones and
     // the plateau lookout dais (one merged mesh, `hardscape-blocks`)
@@ -927,6 +991,15 @@ export async function create(ctx: WorldContext): Promise<WorldSystem> {
       ringRadius: SC.ringRadius,
       heightM: quantiles(standingStones.map((s) => s.height)),
       centreSlabRadius: SC.centreSlabRadius,
+      // round 48 (standing-stones.ts): tapered noise-faceted blocks in strata bands, cleaved and
+      // chipped tops, one fallen, bedding skirts over the plinths; hidden with the north paving
+      shape: 'standing-stones-v1',
+      stones: stoneStats,
+      fallen: stoneStats.filter((s) => s.fallen).length,
+      splitTops: stoneStats.filter((s) => s.split).length,
+      tiltDeg: quantiles(stoneStats.filter((s) => !s.fallen).map((s) => s.tiltDeg)),
+      skirt: STANDING_STONE_SKIRT,
+      hiddenWithNorthPaving: true,
     },
     lookout: { x: LK.x, z: LK.z, topY: round(lkTop), proudM: LK.height, yawDeg: LK.yawDeg, triangles: daisTriangles },
     blockTriangles: monolithMesh.geometry.getAttribute('position').count / 3,
@@ -954,10 +1027,13 @@ export async function create(ctx: WorldContext): Promise<WorldSystem> {
     // round 42: the near-field pebbles within NEAR_GRIT_R m of the walked poses (and how many are the pale ones)
     seamGritNearField: nearGrit,
     seamGritPale: paleGrit,
-    seamGritAtStairFeet: sprouts.grit - seamGrit - nearGrit - hollowGrit - seamGrit2 - northGrit,
+    seamGritAtStairFeet: sprouts.grit - seamGrit - nearGrit - hollowGrit - seamGrit2 - northGrit - lipLitter,
     // round 44: the hollow path's joint grit and the arch seam's (zones.ts hollowPath / archSeam)
     seamGritHollowPath: hollowGrit,
     seamGritArchSeam: seamGrit2,
+    // round 48: bark fragments on the north lip's soil tongue (zones.ts archNorthLip)
+    lipLitter,
+    lipTongue: 'soil-bark-litter-v1',
     // round 44: the hollow path's set stones (flagstones.ts: seated with the grade, sunk, domed)
     flagstonesHollowSeated: paving.stats.hollow,
     seamGritLodFar: SPROUT_LOD_FAR,
@@ -1003,11 +1079,13 @@ export async function create(ctx: WorldContext): Promise<WorldSystem> {
       const show = northPavingVisible(c.camera.position.x, c.camera.position.z);
       northMesh.visible = show;
       jointsN.mesh.visible = show;
+      monolithMesh.visible = show;
     },
     onCameraMove(camera) {
       const show = northPavingVisible(camera.position.x, camera.position.z);
       northMesh.visible = show;
       jointsN.mesh.visible = show;
+      monolithMesh.visible = show;
     },
     dispose() {
       if (disposed) return;

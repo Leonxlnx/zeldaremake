@@ -4,7 +4,7 @@
  * world axes: north = −z, east = +x.
  */
 import { LAYOUT } from '../layout';
-import { smoothstep } from '../util/noise';
+import { Noise2D, smoothstep } from '../util/noise';
 
 /**
  * The damp band: where the path leaves the plaza northward under the canopy (reference B/E
@@ -231,6 +231,33 @@ export function archInside(x: number, z: number): number {
 export function archSeam(x: number, z: number) {
   const d = archInside(x, z);
   return smoothstep(-1.5, -0.9, d) * smoothstep(1.5, 0.9, d);
+}
+
+/**
+ * Round 48 (round 47's handoff): the tunnel floor's NORTH seam — the paving just past the log's
+ * north lip (z ≈ −57.5 … −59.5 at x 4–8). The south approach's seam is the gravel floor thinning
+ * into the paving (`archSeam` above, pale dust); under the north lip the floor is in the log's
+ * shade and the ground there is the litter that falls off the log's belly, so the seam is the
+ * opposite: dark soil and bark litter washed OUT over the first slabs in tongues. 1 on the
+ * paving within a tongue's reach of the lip (0.35 m almost everywhere, 0.9–1.3 m where the
+ * along-edge noise peaks, fading over 0.3 m), 0 under the log (`archInside` > 0) and on the
+ * south lip. Fixed-seed noise, no stream draws.
+ */
+const LIP_N = new Noise2D('arch-north-lip');
+export function archNorthLip(x: number, z: number): number {
+  const dx = x - ARCH.cx;
+  const dz = z - ARCH.cz;
+  const lu = dx * ARCH.ax + dz * ARCH.az;
+  const lv = -dx * ARCH.az + dz * ARCH.ax;
+  if (Math.abs(lu) > ARCH.L / 2) return 0;
+  const k = Math.min(1, Math.max(0, (-ARCH.L * 0.15 - lu) / (ARCH.L * 0.35)));
+  const lvc = lv - 1.8 * k * k;
+  // metres out from the north lip's edge (lvc = −0.9 R), positive on the paving side
+  const out = -(lvc + ARCH.R * 0.9);
+  if (out < -0.3 || out > 1.6) return 0;
+  const n = LIP_N.fbm(lu * 0.85 + 2.2, 0.5, 2) * 0.5 + 0.5;
+  const reach = 0.35 + 0.95 * smoothstep(0.42, 0.78, n);
+  return smoothstep(-0.25, 0.05, out) * smoothstep(reach, reach - 0.3, out);
 }
 
 /**

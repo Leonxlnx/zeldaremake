@@ -615,17 +615,36 @@ function pathInfluence(x: number, z: number) {
     weight = plazaWeight;
   }
   surface = Math.max(surface, plazaSurface);
-  // round 47: the north clearing's disc — paved to its radius, flattened to its own floor beyond
+  // round 47: the north clearing's disc — paved to its radius, flattened to its own floor beyond.
+  // Round 48 (opus-review #14, the "void band" under the ledge): the skirt used to start rising
+  // at 0.9 r — 0.5 m inside the paving's edge (1.05 r) — so the rim slabs sat at the foot of a
+  // plain smoothstep ramp, and that ramp is the only bank in the world `detailPasses` left bare:
+  // `embank` comes from the landform's plateau ramps alone and is ≈ 0 here, so the 1.7 m face got
+  // no erosion, terracing, slope lumps or damp foot, its splat stayed 3/4 grass, and — facing
+  // south under a north-west sun (N·L ≈ 0.09) — it rendered as one flat hemisphere-lit grey band
+  // with a crease at each end. Now the floor stays flat to the paving's edge (1.0 r) and the
+  // skirt's own embankment weight (`bank`, peaking mid-slope, scaled by the rise) feeds the
+  // detail passes and the splat like the landform banks' does.
+  let bank = 0;
+  // the skirt's downslope direction (toward the disc's centre: its floor is below the plain)
+  let bankDx = 0;
+  let bankDz = 0;
   if (z < -60) {
     for (const d of NORTH_DISCS) {
       const dp = Math.hypot(x - d.x, z - d.z);
       const ds = 1 - smoothstep(d.radius * 0.85, d.radius * 1.05, dp);
-      const dw = 1 - smoothstep(d.radius * 0.9, d.radius * 1.45, dp);
+      const dw = 1 - smoothstep(d.radius * 1.0, d.radius * 1.5, dp);
       if (dw > weight) {
         y = lerp(y, d.y, (dw - weight) / Math.max(dw, 1e-6));
         weight = dw;
       }
       surface = Math.max(surface, ds);
+      const b = 4 * dw * (1 - dw);
+      if (b > bank && dp > 1e-6) {
+        bank = b;
+        bankDx = (d.x - x) / dp;
+        bankDz = (d.z - z) / dp;
+      }
     }
   }
   // paved apron at the foot of the house-west flight: the strip in front of its first riser (the
@@ -650,7 +669,7 @@ function pathInfluence(x: number, z: number) {
     surface *= 1 - sb.along * smoothstep(-0.1, 0.06, sb.d);
     weight *= 1 - sb.along * smoothstep(-0.2, 0.25, sb.d);
   }
-  return { weight, surface, y, dist: best.dist, toe: sb.toe };
+  return { weight, surface, y, dist: best.dist, toe: sb.toe, bank, bankDx, bankDz };
 }
 
 /** Macro landform + authored flattening (paths, stair ramps, house pads). No detail yet. */
@@ -812,7 +831,10 @@ function macroHeight(x: number, z: number) {
   // how much authored flat surface is here (detail passes fade out on it); the south bank's toe
   // strip counts as one so the paving edge and the foot of the bank stay at plaza level
   const suppress = clamp(Math.max(p.surface, stairW, padW, logW, p.toe), 0, 1);
-  return { h, land, p, suppress, logW, embank: land.embank * (1 - suppress), hwBank };
+  // round 48 (#14): the north clearing's skirt bank counts as an embankment, scaled by its rise
+  // over the floor the way `edgeOf` scales the landform ramps (a 1.7 m bank peaks at ≈ 0.4)
+  const discBank = p.bank * smoothstep(0.3, 1.2, Math.abs(land.h - p.y)) * 0.4;
+  return { h, land, p, suppress, logW, embank: Math.max(land.embank, discBank) * (1 - suppress), discBank, hwBank };
 }
 
 /** Direction of steepest descent of the macro landform (finite differences). */
@@ -836,7 +858,10 @@ function detailPasses(x: number, z: number, m: ReturnType<typeof macroHeight>) {
 
   // 1. Erosion channels + 2. terracing on embankments: work in the slope frame so gullies run downhill.
   if (m.embank > 0.03) {
-    const ds = macroDownslope(x, z);
+    // round 48 (#14): the north clearing's skirt is cut into the plain by the disc's flattening,
+    // not by the landform, so its fall line is radial (pathInfluence `bankDx/Dz`), not the
+    // landform's gradient
+    const ds = m.discBank > m.land.embank ? { dx: m.p.bankDx, dz: m.p.bankDz } : macroDownslope(x, z);
     const a = x * ds.dx + z * ds.dz; // along slope
     const c = -x * ds.dz + z * ds.dx; // across slope
     const gully = erosionNoise.ridged(c * 1.35 + 11.3, a * 0.28 - 4.1, 3); // 0..1, elongated downhill
@@ -846,11 +871,13 @@ function detailPasses(x: number, z: number, m: ReturnType<typeof macroHeight>) {
 
     // terracing: soften the macro height toward quantised steps (soil ledges), noise-modulated
     const stepH = 0.55 + 0.25 * terraceNoise.noise(x * 0.05, z * 0.05);
-    const q = Math.round(m.land.h / stepH) * stepH;
+    // (the skirt bank's steps quantise the flattened height — the landform is the flat plain there)
+    const hb = m.discBank > m.land.embank ? m.h : m.land.h;
+    const q = Math.round(hb / stepH) * stepH;
     const tAmt = m.embank * (0.28 + 0.3 * terraceNoise.fbm(x * 0.21 + 3.7, z * 0.21, 2));
-    const tDelta = (q - m.land.h) * clamp(tAmt, 0, 0.7);
+    const tDelta = (q - hb) * clamp(tAmt, 0, 0.7);
     // ledge edge factor: strongest where we are near the riser of a terrace step
-    const frac = Math.abs(((m.land.h / stepH) % 1 + 1) % 1 - 0.5) * 2; // 0 at mid-step, 1 at riser
+    const frac = Math.abs(((hb / stepH) % 1 + 1) % 1 - 0.5) * 2; // 0 at mid-step, 1 at riser
     terrace = m.embank * smoothstep(0.55, 1, frac);
     dh += tDelta;
 
