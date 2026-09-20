@@ -2524,6 +2524,21 @@ Also: lantern bough still a thick plain beam across the top of B (trees pass pen
 - Owner (03:41): everything ready by tomorrow — deadline at the top of `docs/GOAL_MODE.md` and on
   PR #2 with per-lane priorities.
 
+### 06:25 UTC — tick 184–185: take-0120 sealed (30/50); round 48 merged from branches; W38 fought again
+- Take-0120 on `f68da42`: A 0.2201 (−0.0008) B 0.2044 (+0.0021) C 0.2391 (−0.0004) D 0.2791 (+0.0004)
+  E 0.2150 (+0.0038) F 0.2609 (+0.0008); A 567 draws / 8.997 M; **30/50** (U03 pass, U02 fail by
+  opus-review). Monitor `33d05b7`, play build published. Contents: canopy roof, shaft fade, white-bark
+  bases + clearing white-barks, boulders + ledge wall, village props + lookout railing.
+- W38 again: the external merges put A at 9.08 M. Probes (A-only): −20 K hiding the north locality
+  (new shared `util/northLocality.ts`: rocks' ledge faces, props' north cluster, hardscape's north
+  paving), −80 K without white-bark root flares, −70 K without props. Landed: root flares only
+  within 24 m of the walkable network (`f68da42`) → 8.997 M. Proposal filed: W38 ceiling 9 → 11 M
+  or measured at the governor's tier (`gauntlet/RUBRIC_PROPOSALS.md`) — the frame is per-pixel
+  bound on the 780M (fable-6 §3, correlation 0.04).
+- Round 48: all seven lanes silent 6–7 h after substantial commits (captures died under load);
+  merged from the branches (`12e1b58`…`cf8083b`), tsc + 37 tests green; integrated capture running
+  on `cf8083b` → take-0121 if within budget (A watch: hardscape stairs + npc faces + structures room).
+
 ## Pending corrections from reference/ANALYSIS.md (apply at integration, one commit)
 - `config.ts` palette → olive/khaki low-key (reference hero frames: hue 47–51°, sat 0.16–0.19,
   lum 0.35–0.39, 0 % blue sky): grass 0x8a8c55/0x5c6233/0x3a4420, moss 0x8b8948/0x5a523b,
@@ -2562,4 +2577,4 @@ Pick anything NOT claimed in `gauntlet/claims.json`. Good self-contained candida
   my own (GAUNTLET.md D7).
 
 ## Last updated
-2026-09-20T04:10:00Z
+2026-09-20T06:25:00Z
