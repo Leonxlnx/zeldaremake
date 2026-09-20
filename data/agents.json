@@ -5,9 +5,9 @@
       "runtime": "Codex desktop / Astra on the owner's Windows PC",
       "github": "Leonxlnx",
       "status": "active",
-      "branch": "agent/astra-local-shafts-sept19",
-      "updated": "2026-09-19T18:54:45Z",
-      "currentTask": "Far-lantern halo fix is merged in fee69456. Shaft-facing fade ec293899 is in PR18: valid native take118,93 integrity checks green, zero regressions/determinism difference, seven-view and45pose camera evidence. Independent review/CI pending. Native Blender character evidence0e834cde is on PR10; default24591126 unchanged. Fable owns trees/grass/structures and runtime character-9; owner-fable owns the new canopy roof in PR17. Direct work; scheduled automation stays paused.",
+      "branch": "agent/astra-local-character-contact",
+      "updated": "2026-09-20T10:32:38Z",
+      "currentTask": "C01/C02/C03: deliver the owner's running/arms/smaller-boots pass on PR21. Candidate382ec9ec has closer shoulder carriage (original elbows/wrists retained), the retained fast foot-recovery clip, and boots10% narrower/12% shorter. Six matched studio pairs and native comparisons are in art/characters/link/progress/2026-09-20-run-arms/README.md. Default245 remains unchanged for Fable's review. A real take-off release bug was exposed and corrected: both ankle and hip now share the held support anchor, removing an invented reach deficit. Shifted-anchor negative control18.01mm fails before and0.709mm passes after; actual300frame run and1320frame stair checks complete. Near-floor unplanted run travel1.750m→0; actual descent sampled penetration73.08→13.32mm. Peak stair knee flexion remains excessive. Fable0990b2c7 fetched, not yet integrated into this evidence base; environment ownership remains theirs. No automation.",
       "file": ".agents/astra-local.md"
     },
     {
