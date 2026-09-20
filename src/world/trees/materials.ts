@@ -31,6 +31,7 @@ import { createLeafClusterDetail, createLeafClusterTexture } from './leaf-cluste
 import { BARK_AO_LIFT } from './bole';
 import { CUSHION_ROOT_W, CUSHION_ROOT_W_PER_M } from './writer';
 import { DISTANT_NEAR_GAIN } from './distant';
+import { injectTreeLeafWarmth } from './leaf-color';
 
 export interface TreeMaterials {
   whiteTree: MeshStandardMaterial;
@@ -1185,6 +1186,8 @@ ${sunThrough}
     }
     `,
   );
+  // Near-base leaves are ground ferns and litter, outside the crown colour adjustment.
+  if (nearDetail !== 'base') injectTreeLeafWarmth(shader, 'vIsLeaf > 0.5');
 }
 
 export async function createTreeMaterials(ctx: WorldContext): Promise<TreeMaterials> {
@@ -1212,7 +1215,7 @@ export async function createTreeMaterials(ctx: WorldContext): Promise<TreeMateri
     side: DoubleSide,
   });
   const whiteWind = { treeStiffness: 0.8, flex: 0.35 };
-  injectWind(whiteTree, wind, whiteWind, colourSlots, (s) => treeFragment(s, leafSun, 0.72, WHITE_BARK_COLOR, WHITE_BARK_FLOOR, 'uWhiteBarkFloor', undefined, false, { leafNear: WHITE_BARK_LEAF_NEAR_M }), 'white');
+  injectWind(whiteTree, wind, whiteWind, colourSlots, (s) => treeFragment(s, leafSun, 0.72, WHITE_BARK_COLOR, WHITE_BARK_FLOOR, 'uWhiteBarkFloor', undefined, false, { leafNear: WHITE_BARK_LEAF_NEAR_M }), 'white-leaf-warmth');
   const whiteTreeDepth = new MeshDepthMaterial({ depthPacking: RGBADepthPacking, side: DoubleSide });
   injectWind(whiteTreeDepth, wind, whiteWind, depthSlots, undefined, 'white-depth');
 
@@ -1239,15 +1242,15 @@ export async function createTreeMaterials(ctx: WorldContext): Promise<TreeMateri
     side: DoubleSide,
   });
   const giantWind = { treeStiffness: 0.97, flex: 0.3 };
-  injectWind(giantTree, wind, giantWind, colourSlots, (s) => treeFragment(s, leafSun, 0.78, GIANT_BARK_COLOR, TREE_BARK_FLOOR), 'giant');
+  injectWind(giantTree, wind, giantWind, colourSlots, (s) => treeFragment(s, leafSun, 0.78, GIANT_BARK_COLOR, TREE_BARK_FLOOR), 'giant-leaf-warmth');
   const giantTreeDepth = new MeshDepthMaterial({ depthPacking: RGBADepthPacking, side: DoubleSide });
   injectWind(giantTreeDepth, wind, giantWind, depthSlots, undefined, 'giant-depth');
   // the near bole's copy: same maps and wind, its own floor uniforms (clone() carries no hooks)
   const giantTreeNear = giantTree.clone();
-  injectWind(giantTreeNear, wind, giantWind, colourSlots, (s) => treeFragment(s, leafSun, 0.78, GIANT_BARK_COLOR, TREE_NEAR_BOLE_FLOOR, 'uNearBoleFloor', { top: NEAR_BOLE_FLOOR_TOP, fade: NEAR_BOLE_FLOOR_FADE }), 'giant-near');
+  injectWind(giantTreeNear, wind, giantWind, colourSlots, (s) => treeFragment(s, leafSun, 0.78, GIANT_BARK_COLOR, TREE_NEAR_BOLE_FLOOR, 'uNearBoleFloor', { top: NEAR_BOLE_FLOOR_TOP, fade: NEAR_BOLE_FLOOR_FADE }), 'giant-near-leaf-warmth');
   // the columns' copy (round 45): same maps and wind, the bark floor at COLUMN_BARK_FLOOR
   const columnTree = giantTree.clone();
-  injectWind(columnTree, wind, giantWind, colourSlots, (s) => treeFragment(s, leafSun, 0.78, GIANT_BARK_COLOR, COLUMN_BARK_FLOOR_FAR, 'uColumnFloor', undefined, false, { barkNear: COLUMN_BARK_FLOOR, barkFade: COLUMN_FLOOR_FADE_M }), 'column');
+  injectWind(columnTree, wind, giantWind, colourSlots, (s) => treeFragment(s, leafSun, 0.78, GIANT_BARK_COLOR, COLUMN_BARK_FLOOR_FAR, 'uColumnFloor', undefined, false, { barkNear: COLUMN_BARK_FLOOR, barkFade: COLUMN_FLOOR_FADE_M }), 'column-leaf-warmth');
   // the near bases' copy: same maps and wind, the bark floor at NEAR_BASE_FLOOR
   const giantTreeNearBase = giantTree.clone();
   giantTreeNearBase.normalScale.set(2.0, 2.0);
@@ -1261,7 +1264,7 @@ export async function createTreeMaterials(ctx: WorldContext): Promise<TreeMateri
     giantWind,
     colourSlots,
     (s) => treeFragment(s, leafSun, 0.78, GIANT_BARK_COLOR, TREE_BARK_FLOOR, 'uBarkFloor', undefined, 'bark', { leafFloor: NEAR_CANOPY_LEAF_FLOOR, leafNear: NEAR_CANOPY_LEAF_NEAR_M, preserveFlatFloor: true, sunThrough: NEAR_CANOPY_SUN_THROUGH }),
-    'giant-near-canopy-flat-floor',
+    'giant-near-canopy-flat-floor-leaf-warmth',
   );
 
   // --- giant canopy cluster cards (procedural alpha texture; dappled shadows through the alpha) ---
@@ -1365,8 +1368,9 @@ export async function createTreeMaterials(ctx: WorldContext): Promise<TreeMateri
         ${LEAF_NEAR_MUL}
         `,
       );
+      injectTreeLeafWarmth(s);
     },
-    'giant-canopy',
+    'giant-canopy-leaf-warmth',
   );
   const giantCanopyDepth = new MeshDepthMaterial({ depthPacking: RGBADepthPacking, side: DoubleSide, map: cluster, alphaTest: CARD_ALPHA_TEST });
   injectWind(giantCanopyDepth, wind, giantWind, depthSlots, biasedMap, 'giant-canopy-depth');
