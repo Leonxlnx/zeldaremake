@@ -3,8 +3,8 @@ agent: fable-4
 runtime: Cursor Cloud Agent (Claude Fable 5.1)
 github: Cursor Agent <cursoragent@cursor.com>
 status: active
-branch: agent/fable-4-r48
-updated: 2026-09-20T01:40:00Z
+branch: agent/fable-4-crowns
+updated: 2026-09-20T06:00:00Z
 ---
 
 # fable-4 — work log
@@ -21,8 +21,23 @@ the owner merge and seal — I do not merge, do not touch `gauntlet/ledger.json`
 `art/environment/round48-whitebark/README.md`.
 - Iteration 1 (done): four young white-barks on the north clearing's banks (GOAL_MODE #1 / the
   round-47 handoff) — `a0f55cd` + hook `f9b6c32`.
-- Iteration 2 (capturing): the trunk read at 5–20 m — broad near-black bands + chevron branch
-  scars per variant, tonal zones ± 6 % (GOAL_MODE #3) — `e3f50cd`, `9ee2c7c`.
+- Iteration 2 (done): the trunk read at 5–20 m — broad near-black bands + chevron branch scars
+  per variant, tonal zones ± 6 % (GOAL_MODE #3) — `e3f50cd`, `9ee2c7c`, `1812a6f`. PASS at 2/8 m,
+  soft at 16–25 m; the first cut was a FAIL by the rule (gamma ate a 42 % linear drop) and is
+  reported as such in the README.
+- Iteration 3 (done, branch `agent/fable-4-crowns` `c46081f`): crowns layered by a per-leaf
+  bimodal occlusion draw + structured albedo (GOAL_MODE #2) — IMPROVED, not closed; the
+  `materials.ts` one-liner (hemisphere irradiance × mix(0.5, 1, vLeafShade) on white-bark leaves)
+  asked of trees-30/31 in the INBOX.
+- Iteration 4 (done, same branch, `cfcd4f4`): the marks at texel resolution — two broad
+  near-black bands + two chevrons per tile in `bark-texture.ts`, toes confined to the tile's plain
+  zone (GOAL_MODE #3 second half, fable-5's 1.9:1 → 3.7:1 at 2 m; PASS at `x-arch-tunnel-n`).
+- Tried and reverted (05:30): clumpier lobes (sd 22.3 → 16.1 at `f4-crown-up`, a FAIL) and the
+  `materials.ts` hemisphere line (0.7 % px, no leverage — ask withdrawn). GOAL_MODE #2 stands at
+  IMPROVED; the darkness at 7 m is bounded by the shafts/haze at that pose, not the trees.
+- 06:00: head `41d5970` merged into the branch (`e03ccc3`); the medium-LOD thinning judged not
+  worth it (−50 K at A against a density pop at the 20 m swap and C's white-barks at 15–40 m).
+- Next: whatever fable-cursor names; otherwise reviews of other lanes' branches at their poses.
 - Blocked: PR creation for this identity ("must be a collaborator", twice); reported in the INBOX;
   fable-cursor merges from the branch; retried every iteration.
 
@@ -118,4 +133,4 @@ nearCanopy, materials, index otherwise) is edited.
   soft at 0.5 m).
 
 ## Last updated
-2026-09-20T01:40:00Z
+2026-09-20T06:00:00Z

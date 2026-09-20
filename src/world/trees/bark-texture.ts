@@ -263,6 +263,85 @@ export function paintWhiteBark(rng: Rng, width = WHITE_BARK_TEXTURE_SIZE[0], hei
     paint(rng() * width, rng() * height, big ? 36 + rng() * 30 : 18 + rng() * 22, big ? 70 + rng() * 70 : 34 + rng() * 40, 0, 0.7 + rng() * 0.2, 3, 'knot', 6, (rng() - 0.5) * 0.7);
   }
 
+  // Round 48 (GOAL_MODE fable-4 #3; fable-5's measure of the vertex marks: 1.9 : 1 against the
+  // reference's 3–6 : 1, soft edges that "read as shade or dirt"): the large octave at texel
+  // resolution — two broad near-black bands a tile (0.22–0.34 m, edges hard and ragged, pale
+  // lenticel flecks inside, recessed and rough) and two chevron branch scars (widest at the top,
+  // a point below, a raised callus rim). Kept clear of v 0.34–0.60, the plain zone the root toes
+  // sample (whitebark.ts rootToe vSlice), and drawn after every older feature so those stay put.
+  const broad = [
+    { vc: 0.21 + rng() * 0.05, hM: 0.26 + rng() * 0.08 },
+    { vc: 0.69 + rng() * 0.05, hM: 0.22 + rng() * 0.08 },
+  ];
+  for (const band of broad) {
+    const bandY = band.vc * height;
+    const bandH = band.hM * pxPerM;
+    const phase = rng() * 50;
+    for (let x = 0; x < width; x++) {
+      const ang = (x / width) * Math.PI * 2;
+      const cx = Math.cos(ang) * 1.5;
+      const cz = Math.sin(ang) * 1.5;
+      // the band's thickness breathes around the stem; its edges are torn paper — a slow
+      // wander of a few centimetres with small nicks, not a saw
+      const thick = bandH * (0.8 + 0.2 * noise.noise(cx * 1.1 + phase, cz * 1.1));
+      const ragTop = (noise.noise(cx * 0.9 + phase, cz * 0.9) * 0.07 + detail.noise(cx * 7 + phase, cz * 7) * 0.012) * bandH;
+      const ragBot = (noise.noise(cx * 0.9 + phase + 17, cz * 0.9 + 17) * 0.07 + detail.noise(cx * 7 + phase + 5, cz * 7) * 0.012) * bandH;
+      const yTop = bandY - thick / 2 + ragTop;
+      const yBot = bandY + thick / 2 + ragBot;
+      for (let y = Math.floor(yTop); y <= Math.ceil(yBot); y++) {
+        if (y < 0 || y >= height) continue;
+        const i = y * width + x;
+        const edge = Math.min(1, Math.min(y - yTop, yBot - y) / 2.5);
+        if (edge <= 0) continue;
+        // near-uniform black with fine horizontal fissures and a few pale lenticel dashes
+        const fleck = Math.max(0, (detail.noise(x * 0.12 + phase, y * 0.5) - 0.62) * 3.5);
+        const fissure = Math.max(0, (Math.abs(detail.noise(x * 0.025 + phase, y * 0.55)) - 0.5) * 4);
+        const core = (0.95 + 0.05 * detail.noise(x * 0.05, y * 0.05 + phase)) * (1 - 0.4 * Math.min(1, fleck)) * (1 - 0.3 * Math.min(1, fissure));
+        const dd = edge * core;
+        darkness[i] = Math.max(darkness[i], dd);
+        heightMap[i] -= 0.18 * dd;
+        rough[i] = Math.min(1, rough[i] + 0.32 * dd);
+      }
+    }
+  }
+  // (v ranges clear of both bands; the tile wraps in v as the stem's UV runs on, so the scar
+  // may cross the tile's edge)
+  const chevrons = [
+    { vc: 0.03 + rng() * 0.03, uc: rng() * width },
+    { vc: 0.86 + rng() * 0.04, uc: rng() * width },
+  ];
+  for (const scar of chevrons) {
+    const hPx = (0.22 + rng() * 0.12) * pxPerM;
+    const wPx = 70 + rng() * 50;
+    const phase = rng() * 50;
+    const yTop = scar.vc * height - hPx * 0.3;
+    for (let yy = Math.floor(yTop - 6); yy <= Math.ceil(yTop + hPx + 6); yy++) {
+      const y = ((yy % height) + height) % height;
+      const t = (yy - yTop) / hPx; // 0 at the top edge, 1 at the point
+      if (t < -0.04 || t > 1.04) continue;
+      const half = (wPx / 2) * Math.pow(Math.max(0, 1 - Math.max(0, t)), 0.85);
+      for (let dx = -Math.ceil(wPx / 2) - 6; dx <= Math.ceil(wPx / 2) + 6; dx++) {
+        const x = (((Math.round(scar.uc) + dx) % width) + width) % width;
+        const i = y * width + x;
+        const rag = detail.noise(x * 0.09 + phase, yy * 0.09) * 4;
+        const inside = half - Math.abs(dx) + rag; // px inside the dark edge (negative outside)
+        const topIn = yy - yTop + rag * 0.5; // px below the top edge
+        if (inside > 0 && topIn > 0) {
+          const edge = Math.min(1, Math.min(inside, topIn) / 2);
+          const core = 0.93 + 0.07 * detail.noise(x * 0.05, y * 0.05 + phase);
+          const dd = edge * core;
+          darkness[i] = Math.max(darkness[i], dd);
+          heightMap[i] -= 0.16 * dd;
+          rough[i] = Math.min(1, rough[i] + 0.3 * dd);
+        } else if (inside > -4 && topIn > -4 && t < 1.0) {
+          // the callus rim: a hair raised, a shade warmer than the paper
+          heightMap[i] += 0.07;
+          inner[i] = Math.max(inner[i], 0.25);
+        }
+      }
+    }
+  }
+
   // Colour
   const color = new Uint8ClampedArray(N * 4);
   for (let i = 0; i < N; i++) {
