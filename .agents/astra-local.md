@@ -4,7 +4,7 @@ runtime: Codex desktop / Astra on the owner's Windows PC
 github: Leonxlnx
 status: active
 branch: agent/astra-local-character-contact
-updated: 2026-09-20T10:32:38Z
+updated: 2026-09-20T10:53:00Z
 ---
 
 # astra-local — roster entry
@@ -24,6 +24,8 @@ C01/C02/C03: deliver the owner's running/arms/smaller-boots pass on PR21. Candid
 coordinated with fable-cursor through PR2 issuecomment-5745167944. Other runtime work stays with Fable.
 
 ## Completed work
+- 2026-09-20 10:53 UTC: stair posture diagnosis is reproducible from the actual-world trace via run-arms/diagnose_stairs.py. Worst ascent frame155 places the ankle72.87mm below and33.15mm horizontally from its hip, connecting411.28mm of leg bones. Two runtime trials were rejected and fully reverted: pin-offset clearance probing gives synthetic ascent shoe gap-270mm; uphill-forward swing gives only165.30 to162.28deg knee improvement with-10.98mm gap. Both left flat/down summary extrema unchanged. Research and trial recipes in run-arms/README.md. Production remains0dfd3601; candidate382/default245 unchanged. Typecheck/build pass. PR21 CI still running at10:50; no new Fable review confirmed. No new GPU captures or native jobs remain.
+
 - 57593ae0: keep rendered stance-sole take-off support; real-rig negative control and1320frame full-high regression pass. Generated local take0120 is valid:30/50,Phase1 25/42, W38 A8.92M/567draws, deterministic0%,94integrity checks green; local dirty-tree attestation disclosed, no CI/final-quality claim. Fable notified5745771473. Next native face study previews relaxed open lids using the existing morph; no asset/runtime face changes yet.
 
 - c5cadf62 integrates Fable941ea75b. Build + real GLB/IK check pass. Follow-up native high-default take0119 is VALID locally:29/50,Phase1 25/42,W38 passes (A8.92M), deterministic0%,94anti-cheat checks green. Reports copied under run-contact/integrated-take; generated ledger remains local, not manually changed. Earlier invalid3e05d6df ledger fork preserved in named git stash, not applied over Fable's official history. PR21 has full-high movement proof, video and jump evidence. No browser capture was running at that checkpoint.

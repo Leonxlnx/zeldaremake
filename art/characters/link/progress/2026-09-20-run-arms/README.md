@@ -34,6 +34,37 @@ Copy the resulting model beside the existing runtime asset for local review, the
 
 ## Limitations and rejected variants
 
+### Stair follow-up, 20 September 10:50 UTC
+
+`python art/characters/link/progress/2026-09-20-run-arms/diagnose_stairs.py`
+extracts the worst recorded poses from the existing actual-world trace. At ascent
+frame 155, the right ankle is only 72.87 mm below its hip and 33.15 mm away
+horizontally, with approximately 412 mm of leg bones connecting them. The resulting
+162.35-degree knee fold is a compressed target, not a stretched leg. The descent
+also brings the trailing ankle close to the hip. Merely removing the native swing
+arc did not solve this in the previous stair study.
+
+Two additional source-only trials were rejected and fully reverted on top of
+`0dfd3601`, using candidate382 and `check_stair_grounding.mjs`:
+
+| Synthetic ascent trial | Max knee flexion | Min audited shoe gap |
+| --- | ---: | ---: |
+| Retained source | 165.30 degrees | -0.007 mm |
+| Add `leg.pinX/Z` to the geometric clearance probe's `sx/sz` | 165.30 degrees | -270.00 mm |
+| Advance uphill stair swing by `min(0.10, rise * 0.4) * sin(pi * phase)^2` in `sh` | 162.28 degrees | -10.98 mm |
+
+Both trials kept the flat and descending summary metrics unchanged and reported
+zero reach clamps. Neither is a suitable fix: the probe-only change breaks support
+consistency, and the forward arc barely reduces the fold while worsening clearance.
+These are diagnostic fixture results, not additional actual-world captures.
+
+The next hypothesis is a coordinated support-height and foot-trajectory adjustment,
+tested against both knee compression and contact continuity. Johansen's
+[locomotion thesis, sections 7.3.6 and 7.4](https://runevision.com/thesis/rune_skovbo_johansen_thesis.pdf)
+describes deriving body support from grounded feet and then solving hip/foot alignment
+together. That is research guidance, not evidence that a new implementation here works.
+No new solver, rig proportions or shared default has been introduced in this follow-up.
+
 A 0.20-radian shoulder correction plus inward forearms caused substantially more clothing intersections and was rejected. A second forearm adjustment was also removed: shoulder-only correction preserves the original elbow and wrist curves. Native triangle-overlap counts include sewn sleeve/armpit contacts, so they are not penetration depths or a collision-free guarantee. The narrower shoulders still need visual review at those seams. Face quality and the known excessive stair knee folding are separate unfinished work.
 
 ## Validation
