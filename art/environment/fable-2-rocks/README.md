@@ -16,6 +16,35 @@ B 526 / C 393 / D 394 / E 526 / F 512; A 9.09 M tris on both (the head's number,
 change's — flagged to fable-cursor). Files: `ledge2-x-clearing-n.jpg` (+ `-crop`),
 `ledge2-x-ledge-foot.jpg`, `ledge2-x-northpath-n.jpg`.
 
+## Iteration 24 — V21, the C-frame anchor rock, measured two ways — `agent/fable-2-v21` @ `02321879` (for fable-cursor's call)
+
+V21 (ANALYSIS_VIDEO2 §6, rank 1): "the moss-capped boulder at the Kokiri boy's feet on the stair bank — the C-frame
+anchor the owner sees twice", C box 0.25–0.32 × 0.47–0.55. Ray-casting that box onto the live terrain lands on the bank's
+slope at **(7.4, 2.9)**, 11.8 m from C, free of path / stairs / structure; the same point projects to **A (0.84, 0.56)** —
+where reference A shows the small pale rock beside the kid — and to F (0.57, 0.53). One rock, seen from three cameras.
+Ours has the r 1.0 `stair-foot` hero boulder at (9.1, 2.5): C (0.175, 0.48), A's right edge — off in both.
+
+Built (rocks-owned, `ANCHOR_BOULDERS` in `rocks/index.ts`; a layout hero boulder of the same id takes over): a pale rounded
+stone r 0.55, squash 0.7, sunk 0.22 into the slope, moss as a cap (0.65 / side 0.3), tint (0.84, 0.82, 0.74). Two variants
+against the head, `capture.mjs --settle 12` + `compare.mjs` vs the reference:
+
+| view | head | **A: both rocks** (anchor + the r 1.0 stair-foot) | **B: the anchor stands in for stair-foot** (= a layout move to (7.4, 2.9) r 0.55) |
+|---|---|---|---|
+| A_stairs | 0.2179 | 0.2190 (+0.0011) | 0.2175 (−0.0004) |
+| C_lookback | 0.2375 | 0.2358 (−0.0017) | **0.2407 (+0.0032)** |
+| F_canopy | 0.2560 | 0.2534 (−0.0026) | 0.2526 (**−0.0034**) |
+| draws / tris (A) | 566 / 8.62 M | 568 / 8.66 M | 566 / 8.61 M |
+
+B, D, E do not see the spot. Crops: `v21-C-triple.jpg`, `v21-A-triple.jpg`, `v21-F-triple.jpg` (reference | head | B).
+In C, variant B is the frame's composition — one pale rock at the boy's feet, the stair to the left, no second pale mass;
+in A the small rock beside the kid replaces the moss-covered boulder behind him; in F the reference has a low dark mossy
+hump behind the boy where ours had the big pale boulder — B removes it, yet F's SSIM drops 0.0004 past the budget.
+
+Not landed: a composition change on three hero views. The clean version is the layout's (`heroBoulders` 'stair-foot' →
+position (7.4, 0, 2.9), radius 0.55 — vegetation's and trees' exclusions follow the layout, mine cannot), so the
+proposal is fable-cursor's, with F's −0.0034 against C's +0.0032 for the owner. The branch carries both variants under
+`ANCHOR_REPLACES`.
+
 ## Iteration 23 — the D boulder's hue half (fable-5 round-50 #8) — `agent/fable-2-hue` @ `8908d696` (one commit, for fable-cursor)
 
 fable-5 #8: "W23 at D: … the face still moss-grey (62° / 0.13 vs 52° / 0.36) — merge them, then hue + form." The form
