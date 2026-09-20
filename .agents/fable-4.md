@@ -188,3 +188,14 @@ nearCanopy, materials, index otherwise) is edited.
 - Direction check was needed: the first eyeball read of the crop was wrong; the 3× zoom showed the
   top left of the foot as intended (camera-left at that spot is world +x).
 - Branches: taper (ready, now taper + bow + tilt), r49b (ready, marks only), leafnear (Astra adopted).
+
+## 2026-09-20 20:40 UTC — tick: W08's "a bough that shows" at C
+
+- fable-5 iteration 20: taper IMPROVED, merge; remaining halves lean (done 19:35) and a bough that shows.
+- The bough at C had two problems: height (lobe half under the HUD, then behind the lantern limb at 4–4.5 m
+  when lowered to 15–25 %) and the medium mesh's thinning (1 in 6 at 2.2× → 25 floating cards). Fixed:
+  mature main bough at 12–17 %; low-bough lobes keep 1 in 2 / 4 at 1.3 / 2.0× on medium / low (`boughSpray`
+  flag). Replica 80/80; high mesh triangle-identical; six views C =, E −0.0001; A 8.62 M =. `723cb6d7`.
+- Lesson: a change can be geometrically right and still invisible at the judged frame because of the LOD
+  the camera actually draws — check the LOD tier at the pose before calling a fix done.
+- Branches: taper (ready: shoulder, bow, tilt, bough), r49b (marks only, waiting), leafnear (Astra adopted).
