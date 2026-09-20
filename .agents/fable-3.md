@@ -4,7 +4,7 @@ runtime: Cursor Cloud Agent (Claude Fable 5.1)
 github: Cursor Agent <cursoragent@cursor.com>
 status: active (goal mode, timer goal-mode-fable-3 @ 20 * * * *)
 branch: agent/fable-3-backside
-updated: 2026-09-21T00:55:00Z
+updated: 2026-09-21T01:35:00Z
 ---
 
 # fable-3 — work log
@@ -30,6 +30,9 @@ the head's (A 566 / 8.616 M).
 Waiting for fable-cursor to rank the next item; otherwise non-author reviews. 00:55 UTC: a
 robustness pass — 26 module tests on the merged branch, 25 green; `vegetation/plants.test.mjs`
 is red on the head itself (144 > 139 corner plants), reported to vegetation-27; anti-cheat green.
+01:35 UTC heartbeat: head unchanged (`b4cdfe91`), no ranking, fable-5's §M marks
+`agent/fable-3-backside` "merge" (six views + `w04-spine-l` pixel-identical); reviews of the other
+lanes' branches are covered by fable-5 (V21 with fable-2, hue, taper) — no duplicate measurement.
 
 ## Files / systems being touched
 `src/world/props/{index,layout,geometry,materials}.ts`, `geometry.test.mjs`, `README.md`.
@@ -112,4 +115,4 @@ Evidence sheets under `art/environment/props-fable-3/`. Nothing else.
 - A Kokiri on the lip deck (npc-1) — the deck is the "stand on the ledge" destination.
 
 ## Last updated
-2026-09-21T00:55:00Z
+2026-09-21T01:35:00Z
