@@ -4,7 +4,7 @@ runtime: Codex desktop coordinator with three owner-requested Astra Max subagent
 github: Leonxlnx
 status: active
 branch: agent/astra-environment-quality
-updated: 2026-09-20T15:35:00Z
+updated: 2026-09-20T15:55:00Z
 ---
 
 # Astra environment quality pass
@@ -37,7 +37,7 @@ Larger visible forest means useful LOD and continuous silhouettes, not all full-
 rendered indiscriminately. Keep the performance gate and report actual measured cost.
 
 ## Known issues
-Three source candidates integrated locally; actual quality remains unverified. Complete19-view baseline atca562e76 is preserved in art/environment/astra-quality/before. Baseline performance trace running; native candidate comparison is next. New Fable structures32 at69d16c4f will be integrated after the matched comparison.
+Reference quality is not reached. Sparse near crowns C/F are under repair; moss gap experiments are held because they darken exposed wood. Last accepted material source d9eee5d7, owner preview61021. Fable integrationhead97c83227 is fetched but not merged while isolated crown review runs. Historical measurements and limitations follow below.
 
 ## Recommended next work
 Fable keeps its existing geometry, expansion, structures and vegetation lanes. Notify this
@@ -63,3 +63,8 @@ Slab chip study ee7de70a was reverted from production in d9eee5d7 after Fable2d0
 
 Independent Fable-5 review0f9c5b6b received: sparse near-canopy replacement loses dark crown mass C/F (roughly-.025/-.030 SSIM versus integrationhead). Accepted criticism; distance agent investigating denser existing foliage/backing within9M A budget. Whole PR remains draft/not mergeable. Local sealed takes retained unchanged; integration must select reviewed source and seal on its own head, not silently use our local take as the lane baseline. Acknowledged on PR2comment5750724679. Tree agent preparing a separate near-faded moss study atop corrected linear mean, CPU only.
 15:35 UTC: accepted preview source d9eee5d7 now serves on61021 (frozen gauntlet/tmp/astra-reviewed-dist-d9eee5d7, CUzYDOZs), exec49669. Prior61020 preview remains unchanged. Evidence3a78e2b8 corrects exact equality wording: five hero PNG hashes identical, D differs by one level in one channel of one pixel. No active GPU job; distance agent preparing bounded cupped-leaf crown backing, trees agent near-only moss gaps atop corrected mean. Both CPU-only, separate worktrees. No production dist exists after freezing it.
+
+## 2026-09-20 15:55 UTC — near moss held; dense crown native check
+Candidate573ada5d completed33 native views, zero errors, same geometry/draws, all six boundary images byte-identical. HOLD on visual review: lantern/NW bare gaps are still too dark. Restored exact accepted d9eee5d7 material; evidence retained. Imported scoped crown repair e1c47f9f as2d76dac2:52 ordinary parts and10 far geometries unchanged, deterministic inner leaf clusters restore85–88% CPU projected core coverage, +86,744 triangles for five bank lobes/no added draws. Typecheck/build/CPU check pass. Native27-view capture is running the immutable2d76dac2 buildCE6X0JIm; it still contains the held moss for isolated comparison against after-moss-near. Source restoration does not alter this in-flight build.
+
+Independent Astra stones review approves Fable4d2c33a65 leaf-range hunk in principle: modest margins/veins, no geometry/depth change, increased fragment work out to16m; timing/shimmer unmeasured. Incorrect19px comment should be corrected. Sent PR2comment5750872516. Not imported yet.

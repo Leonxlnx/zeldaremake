@@ -1,0 +1,205 @@
+{
+  "beforeSha": "3a78e2b8efdd5cfbf70c23ebef8a81cceb635c11",
+  "afterSha": "573ada5dff7444951d3b86cae0389a230e6f3149",
+  "matchedViews": 6,
+  "note": "Combined changes. Fixed time12.6 daylight survey, not an official take.",
+  "unmatchedAfterViews": [
+    "A_stairs",
+    "B_house",
+    "C_lookback",
+    "D_log",
+    "E_ground",
+    "F_canopy",
+    "sky-opening",
+    "w04-spine-l",
+    "w05-spine-d",
+    "w09-spine-d",
+    "w23-stairs-f",
+    "sn-bole-lantern-tree",
+    "sn-bole-nw-near",
+    "sn-bole-stair-bank",
+    "sn-lantern-limb",
+    "w19-spine-u",
+    "w21-spine-l",
+    "f4-trunk-2m",
+    "f4-crown-up",
+    "distance-crown-118m",
+    "distance-crown-119m",
+    "distance-crown-120m",
+    "distance-crown-121m",
+    "distance-crown-122m",
+    "distant-stem-v2-3m",
+    "distant-stem-v2-6m",
+    "distant-stem-v2-26m"
+  ],
+  "views": {
+    "bole-reset-lantern-ese-in-11p85m": {
+      "before": {
+        "simTime": 12.6,
+        "drawCalls": 310,
+        "triangles": 5618650,
+        "geometries": 433,
+        "textures": 95,
+        "programs": 150,
+        "width": 1280,
+        "height": 720,
+        "pixelRatio": 1
+      },
+      "after": {
+        "simTime": 12.6,
+        "drawCalls": 310,
+        "triangles": 5618650,
+        "geometries": 756,
+        "textures": 102,
+        "programs": 232,
+        "width": 1280,
+        "height": 720,
+        "pixelRatio": 1
+      },
+      "pngIdentical": true,
+      "trianglesDelta": 0,
+      "callsDelta": 0,
+      "changedPixelFraction": 0
+    },
+    "bole-reset-lantern-ese-out-12p15m": {
+      "before": {
+        "simTime": 12.6,
+        "drawCalls": 307,
+        "triangles": 5536910,
+        "geometries": 434,
+        "textures": 95,
+        "programs": 150,
+        "width": 1280,
+        "height": 720,
+        "pixelRatio": 1
+      },
+      "after": {
+        "simTime": 12.6,
+        "drawCalls": 307,
+        "triangles": 5536910,
+        "geometries": 751,
+        "textures": 102,
+        "programs": 232,
+        "width": 1280,
+        "height": 720,
+        "pixelRatio": 1
+      },
+      "pngIdentical": true,
+      "trianglesDelta": 0,
+      "callsDelta": 0,
+      "changedPixelFraction": 0
+    },
+    "bole-reset-nw-east-in-9p85m": {
+      "before": {
+        "simTime": 12.6,
+        "drawCalls": 320,
+        "triangles": 7170298,
+        "geometries": 454,
+        "textures": 95,
+        "programs": 151,
+        "width": 1280,
+        "height": 720,
+        "pixelRatio": 1
+      },
+      "after": {
+        "simTime": 12.6,
+        "drawCalls": 320,
+        "triangles": 7170298,
+        "geometries": 752,
+        "textures": 102,
+        "programs": 232,
+        "width": 1280,
+        "height": 720,
+        "pixelRatio": 1
+      },
+      "pngIdentical": true,
+      "trianglesDelta": 0,
+      "callsDelta": 0,
+      "changedPixelFraction": 0
+    },
+    "bole-reset-nw-east-out-10p15m": {
+      "before": {
+        "simTime": 12.6,
+        "drawCalls": 317,
+        "triangles": 7197888,
+        "geometries": 455,
+        "textures": 95,
+        "programs": 151,
+        "width": 1280,
+        "height": 720,
+        "pixelRatio": 1
+      },
+      "after": {
+        "simTime": 12.6,
+        "drawCalls": 317,
+        "triangles": 7197888,
+        "geometries": 751,
+        "textures": 102,
+        "programs": 232,
+        "width": 1280,
+        "height": 720,
+        "pixelRatio": 1
+      },
+      "pngIdentical": true,
+      "trianglesDelta": 0,
+      "callsDelta": 0,
+      "changedPixelFraction": 0
+    },
+    "bole-reset-stairbank-west-in-11p85m": {
+      "before": {
+        "simTime": 12.6,
+        "drawCalls": 436,
+        "triangles": 7321732,
+        "geometries": 490,
+        "textures": 95,
+        "programs": 154,
+        "width": 1280,
+        "height": 720,
+        "pixelRatio": 1
+      },
+      "after": {
+        "simTime": 12.6,
+        "drawCalls": 436,
+        "triangles": 7321732,
+        "geometries": 758,
+        "textures": 102,
+        "programs": 232,
+        "width": 1280,
+        "height": 720,
+        "pixelRatio": 1
+      },
+      "pngIdentical": true,
+      "trianglesDelta": 0,
+      "callsDelta": 0,
+      "changedPixelFraction": 0
+    },
+    "bole-reset-stairbank-west-out-12p15m": {
+      "before": {
+        "simTime": 12.6,
+        "drawCalls": 435,
+        "triangles": 7149321,
+        "geometries": 492,
+        "textures": 95,
+        "programs": 155,
+        "width": 1280,
+        "height": 720,
+        "pixelRatio": 1
+      },
+      "after": {
+        "simTime": 12.6,
+        "drawCalls": 435,
+        "triangles": 7149321,
+        "geometries": 758,
+        "textures": 102,
+        "programs": 232,
+        "width": 1280,
+        "height": 720,
+        "pixelRatio": 1
+      },
+      "pngIdentical": true,
+      "trianglesDelta": 0,
+      "callsDelta": 0,
+      "changedPixelFraction": 0
+    }
+  }
+}
