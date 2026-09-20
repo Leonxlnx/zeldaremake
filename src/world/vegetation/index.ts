@@ -17,10 +17,12 @@
  */
 import { Frustum, Group, InstancedMesh, Matrix4, Sphere, Vector3, type BufferGeometry } from 'three';
 import type { WorldContext, WorldSystem } from '../system';
+import { expansionVisible } from '../util/expansionLocality';
 import { buildCarpet, CLUMP_CELL, MAT_CELL, type CarpetResult } from './carpet';
+import { buildExpansionVegetation, templateOf, type ExpansionVegetation } from './expansion';
 import { VegField } from './field';
 import { buildGrass, GRASS_TYPE_NAMES, type GrassResult } from './grass';
-import { buildLitter, type LitterResult } from './litter';
+import { buildLitter, LEAF_TINTS, type LitterResult } from './litter';
 import { createVegMaterial } from './materials';
 import { buildPlants, type PlantSets } from './plants';
 
@@ -57,11 +59,32 @@ export async function create(ctx: WorldContext): Promise<WorldSystem> {
   litterGroup.name = 'litter';
   group.add(litterGroup);
   const litter: LitterResult = buildLitter(ctx, field, litterMaterial, litterGroup);
+  ctx.progress('vegetation', 0.96);
+
+  // round 50 (expansion.ts): the round-49 expansion's own ground, dressed against the LIVE view
+  // with the disc sets' geometry and materials; its group shows only when the camera can see the
+  // locality (util/expansionLocality.ts), so the six fixed frames pay nothing for it
+  const expansion: ExpansionVegetation = buildExpansionVegetation(
+    ctx,
+    {
+      tufts: templateOf(plants.tufts),
+      ferns: templateOf(plants.ferns),
+      moss: templateOf(plants.moss),
+      flowers: templateOf(plants.flowers),
+      whiteFlowers: templateOf(plants.whiteFlowers),
+      bushes: templateOf(plants.bushes),
+      weeds: templateOf(plants.weeds),
+      clumps: { ...templateOf(carpet.clumps), tiles: carpet.atlas.clumpTiles },
+      mats: { ...templateOf(carpet.mats), tiles: carpet.atlas.matTiles },
+      leaves: { ...templateOf(litter.leaves), tints: LEAF_TINTS.map((c) => [c.r, c.g, c.b] as [number, number, number]) },
+    },
+    group,
+  );
   ctx.progress('vegetation', 1);
 
   const buildMs = performance.now() - t0;
   const camPos = new Vector3();
-  const sets = [...plants.all, ...carpet.all, ...litter.all];
+  const sets = [...plants.all, ...carpet.all, ...litter.all, ...expansion.sets];
   let disposed = false;
 
   // unit vector toward the sun for the shadow sweep: the live light when there is one (same
@@ -116,6 +139,8 @@ export async function create(ctx: WorldContext): Promise<WorldSystem> {
     grass.update(camPos);
     // round 49 (perf-3): the blade tiles trim to the 2 m cells that can reach the frame (grass.ts `cull`)
     grass.cull(camera, force);
+    // round 50: the expansion's plants show only where the camera can see the locality
+    expansion.group.visible = expansionVisible(camera, expansion.spheres);
     const sun = currentSun();
     let budget = REBUCKET_BUDGET;
     let listed = 0;
@@ -163,10 +188,14 @@ export async function create(ctx: WorldContext): Promise<WorldSystem> {
   };
   refresh(true);
 
+  /** false for an expansion set while its group is hidden (the locality is out of view) */
+  const shown = (s: (typeof sets)[number]) => expansion.group.visible || !expansion.sets.includes(s);
+
   const drawable = () => {
     let drawCalls = grass.visible.drawCalls;
     let triangles = grass.visible.triangles;
     for (const s of sets) {
+      if (!shown(s)) continue;
       const st = s.stats();
       drawCalls += st.drawCalls;
       triangles += st.triangles;
@@ -207,7 +236,7 @@ export async function create(ctx: WorldContext): Promise<WorldSystem> {
     }
     const sphere = new Sphere();
     const rows: Record<string, SubmissionRow> = {};
-    const add = (key: string, mesh: InstancedMesh, bucket: number, tris: number) => {
+    const add = (key: string, mesh: InstancedMesh, bucket: number, tris: number, groupShown = true) => {
       const r = (rows[key] ??= { meshes: 0, bucket: 0, submitted: 0, drawn: 0, calls: 0, triangles: 0, bucketCalls: 0, bucketTriangles: 0, castShadow: mesh.castShadow });
       r.meshes++;
       r.bucket += bucket;
@@ -215,7 +244,7 @@ export async function create(ctx: WorldContext): Promise<WorldSystem> {
         r.bucketCalls += mesh.castShadow ? 2 : 1;
         r.bucketTriangles += bucket * tris * (mesh.castShadow ? 2 : 1);
       }
-      if (!mesh.visible || mesh.count === 0) return;
+      if (!groupShown || !mesh.visible || mesh.count === 0) return;
       r.submitted += mesh.count;
       sphere.copy(mesh.boundingSphere!).applyMatrix4(mesh.matrixWorld);
       const colour = view.intersectsSphere(sphere) ? 1 : 0;
@@ -225,7 +254,7 @@ export async function create(ctx: WorldContext): Promise<WorldSystem> {
       r.triangles += tris * mesh.count * (colour + depth);
     };
     for (const t of grass.tiles) add(`grass-lod${t.lod}`, t.mesh, t.mesh.visible ? t.count : 0, t.mesh.geometry.index!.count / 3);
-    for (const s of sets) for (const m of s.submission()) add(`${s.opts.name}-lod${m.lod}`, m.mesh, m.bucket, m.triangles);
+    for (const s of sets) for (const m of s.submission()) add(`${s.opts.name}-lod${m.lod}`, m.mesh, m.bucket, m.triangles, shown(s));
     let drawCalls = 0;
     let triangles = 0;
     for (const r of Object.values(rows)) {
@@ -322,6 +351,28 @@ export async function create(ctx: WorldContext): Promise<WorldSystem> {
     litterKinds: { leaves: litter.leaves.count, northLeaves: litter.northLeaves.count, twigs: litter.twigs.count, northTwigs: litter.northTwigs.count, roots: litter.roots.count },
     windLayers: 3,
     windLayerNames: ['windGrass', 'windLeaf', 'windBranch'],
+    /**
+     * round 50 (expansion.ts): the legacy streams' instances pruned inside the round-49
+     * expansion's live ground (`culled`, per set), and the expansion's own live-view sets — their
+     * counts per set and per pass, and whether their group is shown at the audit's pose
+     * (util/expansionLocality.ts; the six fixed cameras never see the locality)
+     */
+    expansion: {
+      culled: { grass: grass.expansionCulled, ...carpet.expansionCulled, ...plants.expansionCulled, ...litter.expansionCulled },
+      culledTotal: grass.expansionCulled + [carpet.expansionCulled, plants.expansionCulled, litter.expansionCulled].reduce((n, r) => n + Object.values(r).reduce((a, b) => a + b, 0), 0),
+      visible: expansion.group.visible,
+      sets: Object.fromEntries(expansion.sets.map((s) => [s.opts.name, s.count])),
+      instances: expansion.sets.reduce((n, s) => n + s.count, 0),
+      passes: expansion.counts,
+      liveView: true,
+    },
+    /**
+     * round 50 (edges.ts): W06's rim band at the paved rims E / D / B frame (the turf pulled back
+     * to a noisy line, soil mats in the band, moss cushions, lip tufts, leaves in the angle) and
+     * W05's terraces on the C embankment (tuft rows on the treads, foot moss, toe ferns and broad
+     * leaves, leaves on the risers; the risers' soil is terrain/material.ts C_TERRACES)
+     */
+    edges: { ...carpet.rim, ...plants.edges, ...litter.edges },
     buildMs: Math.round(buildMs),
     /** upper bound of what the current camera's distance buckets could draw (before any culling) */
     drawableEstimate: drawable(),

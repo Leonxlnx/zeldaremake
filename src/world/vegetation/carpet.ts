@@ -29,6 +29,8 @@ import { clamp, smoothstep } from '../util/noise';
 import { hash2, type Rng } from '../util/prng';
 import { CLUMP_GRID, MAT_GRID, createClumpAtlas, type ClumpAtlas } from './clump-atlas';
 import { COVERAGE_CELL, MAT_FOOT } from './coverage';
+import { rimBandCarpet, type RimCarpetResult } from './edges';
+import { filterExpansionSamples, pruneExpansion } from './expansion';
 import { A_FACE_HEIGHT, BANK_FLOOR_SHARE, VegField, composeMatrix, newSample } from './field';
 import { LodInstancedSet } from './lodset';
 import { createVegMaterial } from './materials';
@@ -191,6 +193,10 @@ export interface CarpetResult {
   lawnCellsM2: number;
   /** round 47: mats the closing sweep added where the grid left the lawn open (MAT_INFILL_WIDTH) */
   infillMats: number;
+  /** round 50: legacy-seated cards / mats pruned inside the expansion's live ground, per set (expansion.ts) */
+  expansionCulled: Record<string, number>;
+  /** round 50 (edges.ts W06): mats / cards pruned back from the worked rims, soil mats laid */
+  rim: RimCarpetResult;
   samples: { clumps: number[][]; mats: number[][] };
 }
 
@@ -629,6 +635,17 @@ export function buildCarpet(ctx: WorldContext, field: VegField, parent: Group): 
     }
   }
 
+  // Round 50 (expansion.ts): the grids and the sweep seat against the LEGACY ground; inside the
+  // round-49 expansion (the south bank, the knoll, the discs, the flights) the live ground is
+  // elsewhere, so the cards and mats there are pruned — after every seat and the closing sweep,
+  // so nothing re-rolls and no sweep mat fills a pruned seat
+  // Round 50 (edges.ts, W06): the mats and cards pulled back from the paved rims E / D / B frame
+  // to a noisy line, and the soil mats laid in the cleared band — after every seat and the sweep
+  const rim = rimBandCarpet(ctx, field, mats, clumps, atlas.matTiles);
+  const expansionCulled = pruneExpansion([mats, northMats, clumps, northClumps]);
+  const clumpSamplesKept = filterExpansionSamples(clumpSamples);
+  const matSamplesKept = filterExpansionSamples(matSamples);
+
   // mats under the clumps: three draws the mats before the cards inside the shared render list
   // by material / depth order; the cards' alpha test needs no ordering
   parent.add(mats.build());
@@ -646,6 +663,8 @@ export function buildCarpet(ctx: WorldContext, field: VegField, parent: Group): 
     atlas,
     lawnCellsM2,
     infillMats,
-    samples: { clumps: clumpSamples, mats: matSamples },
+    expansionCulled,
+    rim,
+    samples: { clumps: clumpSamplesKept, mats: matSamplesKept },
   };
 }
