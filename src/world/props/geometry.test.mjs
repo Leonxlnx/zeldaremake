@@ -38,7 +38,8 @@ const { buildClayMaps, buildRopeMaps } = loadTs(path.join(here, 'materials.ts'))
 const { PROP_LAYOUT } = loadTs(path.join(here, 'layout.ts'));
 const { LAYOUT } = loadTs(path.join(here, '../layout.ts'));
 const { WORLD } = loadTs(path.join(here, '../config.ts'));
-const { createTerrain } = loadTs(path.join(here, '../terrain/heightfield.ts'));
+const { createTerrain, expansionCull } = loadTs(path.join(here, '../terrain/heightfield.ts'));
+const { southBankPoint, EXPANSION } = loadTs(path.join(here, '../layout.ts'));
 const { createRng } = loadTs(path.join(here, '../util/prng.ts'));
 const { Vector3 } = THREE;
 
@@ -315,6 +316,15 @@ for (const id of ['door-pot-large', 'sign-pot', 'saria-crate', 'saria-water-buck
     const live = createTerrain('live');
     assert.ok(Math.abs(live.height(p.x, p.z) - ctx.terrain.height(p.x, p.z)) < 0.02, `${p.id}: live and legacy ground agree (${live.height(p.x, p.z).toFixed(3)} vs ${ctx.terrain.height(p.x, p.z).toFixed(3)})`);
   }
+}
+
+// round 49's expansionCull runs after placement: the bank's top would be culled, nothing placed is
+{
+  assert.deepEqual(audit.culledByExpansion, [], 'no authored prop stands in the live-only expansion ground');
+  const [bx, bz] = southBankPoint(0, -1.0);
+  assert.equal(expansionCull(bx, bz), true, 'a spot on the south bank top is culled');
+  assert.equal(expansionCull(EXPANSION.farHut.host[0], EXPANSION.farHut.host[1]), true, 'the far hut knoll is culled');
+  for (const p of audit.placed) assert.equal(expansionCull(p.x, p.z), false, `${p.id} stands on ground the expansion did not change`);
 }
 
 // the footprints hook: every placed prop publishes its ground disc for the vegetation scatter

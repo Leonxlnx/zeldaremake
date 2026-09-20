@@ -11,6 +11,7 @@
 import { Box3, BufferGeometry, type Camera, Color, Group, Mesh, Quaternion, Sphere, Vector3 } from 'three';
 import { mergeGeometries } from 'three/addons/utils/BufferGeometryUtils.js';
 import type { WorldContext, WorldSystem } from '../system';
+import { expansionCull } from '../terrain/heightfield';
 import { createRng } from '../util/prng';
 import { barrelGeometry, bucketGeometry, crateGeometry, ladderGeometry, lightStringGeometry, markerGeometry, type Part, platformGeometry, potGeometry } from './geometry';
 import { localityOf, PROP_LAYOUT, type PropDef } from './layout';
@@ -162,6 +163,8 @@ export async function create(ctx: WorldContext): Promise<WorldSystem> {
   const bases: number[][] = [];
   const counts = { pots: 0, crates: 0, barrels: 0, buckets: 0, platforms: 0, ladders: 0, markers: 0, lightStrings: 0, lightPods: 0, ropeRailings: 0 };
   const skipped: string[] = [];
+  /** authored props whose spot lies inside round 49's live-only expansion ground (`expansionCull`) */
+  const culledByExpansion: string[] = [];
   const placed: { id: string; kind: string; cluster: string; x: number; y: number; z: number; tiltDeg: number }[] = [];
   /** world-space geometry per merge locality and material, merged at the end */
   const localities = new Map<string, Record<MaterialKey, BufferGeometry[]>>();
@@ -293,6 +296,14 @@ export async function create(ctx: WorldContext): Promise<WorldSystem> {
         continue;
       }
       [x, z] = spot;
+      // round 49: props build on the LEGACY heightfield view; a spot that the expansion's live-only
+      // ground has since raised, paved or built on (the south bank, the far hut's knoll, the west
+      // discs and flights) is dropped here — a filter after placement, so no stream re-rolls
+      if (expansionCull(x, z)) {
+        skipped.push(def.id);
+        culledByExpansion.push(def.id);
+        continue;
+      }
       groundY = terrain.height(x, z);
       if (def.kind === 'platform') {
         const spec = def.platform ?? { deck: 1.2, width: 1.8, depth: 1.4, rail: true, ladder: true };
@@ -483,6 +494,7 @@ export async function create(ctx: WorldContext): Promise<WorldSystem> {
     triangles,
     placed,
     skipped,
+    culledByExpansion,
     footprints,
     clusterBounds: boundsAudit,
     culling: { visibleWithinM: CLUSTER_VISIBLE_M, localities: localityBounds.map((b) => ({ locality: b.group.name, centre: b.sphere.center.toArray().map((v) => +v.toFixed(2)), radius: +b.sphere.radius.toFixed(2) })) },
