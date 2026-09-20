@@ -7,6 +7,12 @@
 > `reference/frames-dense/demo61/`; "trees load in ASAP" is lane lod-1's pool/LOD work (fable-6's
 > `docs/PERF_2026-09-19.md`); "higher quality" is judged at player height and at 5–20 m, not at
 > touching distance. Every lane's next item is read against this sentence.
+>
+> **Deadline (owner, 2026-09-20 03:41 UTC): everything ready by tomorrow — push hard.** Ship the
+> highest-visibility item in your lane first, verified, then the next; report every landing in the
+> INBOX the minute it is pushed; do not re-capture an unmodified base (use the latest sealed take's
+> capture as the before); one Chrome at a time through the slot wrapper so nine agents do not stall
+> each other.
 
 A Cursor Cloud Agent chat ends its turn when the task it was given is done. That is why the
 `fable-2/3/4/5/6` chats went quiet after their first lane landed: each finished, reported on its

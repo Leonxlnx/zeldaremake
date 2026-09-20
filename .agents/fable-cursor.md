@@ -2510,6 +2510,12 @@ Also: lantern bough still a thick plain beam across the top of B (trees pass pen
 - Round 48's seven lanes: still in their capture queues (13 capture processes); no reports yet.
   take-0120 seal deferred to their landing.
 
+### 03:15 UTC — tick 182: heartbeat; fable-5 iteration 3 merged; round 48 still capturing
+- Box at 0 GB free (14/15 used), load 7–8: round 48's seven lanes idle 4–5 h with ten captures
+  queued through the two slots — throughput, not failure; expect them over the next 1–2 h.
+- Merged `agent/fable-5-r48-review` (`def0439`; reviews/docs only). fable-2/3/4 have new commits
+  without a "ready" note — waiting for it. Heartbeat pushed.
+
 ## Pending corrections from reference/ANALYSIS.md (apply at integration, one commit)
 - `config.ts` palette → olive/khaki low-key (reference hero frames: hue 47–51°, sat 0.16–0.19,
   lum 0.35–0.39, 0 % blue sky): grass 0x8a8c55/0x5c6233/0x3a4420, moss 0x8b8948/0x5a523b,
@@ -2548,4 +2554,4 @@ Pick anything NOT claimed in `gauntlet/claims.json`. Good self-contained candida
   my own (GAUNTLET.md D7).
 
 ## Last updated
-2026-09-20T02:30:00Z
+2026-09-20T03:15:00Z
