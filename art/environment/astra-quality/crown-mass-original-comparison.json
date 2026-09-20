@@ -1,0 +1,580 @@
+{
+  "beforeSha": "50ed246630dd3cf1b4c9c377356ca1b8eedf8fed",
+  "afterSha": "2d76dac2dc08cccce8cb62c2258b0062cd9cf774",
+  "matchedViews": 19,
+  "note": "Combined changes. Fixed time12.6 daylight survey, not an official take.",
+  "unmatchedAfterViews": [
+    "distance-crown-118m",
+    "distance-crown-119m",
+    "distance-crown-120m",
+    "distance-crown-121m",
+    "distance-crown-122m",
+    "distant-stem-v2-3m",
+    "distant-stem-v2-6m",
+    "distant-stem-v2-26m"
+  ],
+  "views": {
+    "A_stairs": {
+      "before": {
+        "simTime": 12.6,
+        "drawCalls": 566,
+        "triangles": 8595330,
+        "geometries": 380,
+        "textures": 95,
+        "programs": 103,
+        "width": 1280,
+        "height": 720,
+        "pixelRatio": 1
+      },
+      "after": {
+        "simTime": 12.6,
+        "drawCalls": 571,
+        "triangles": 8741626,
+        "geometries": 385,
+        "textures": 95,
+        "programs": 104,
+        "width": 1280,
+        "height": 720,
+        "pixelRatio": 1
+      },
+      "pngIdentical": false,
+      "trianglesDelta": 146296,
+      "callsDelta": 5,
+      "changedPixelFraction": 0.0482,
+      "referenceSSIM": {
+        "before": 0.2031,
+        "after": 0.1986,
+        "delta": -0.0045
+      }
+    },
+    "B_house": {
+      "before": {
+        "simTime": 12.6,
+        "drawCalls": 522,
+        "triangles": 7754627,
+        "geometries": 402,
+        "textures": 98,
+        "programs": 103,
+        "width": 1280,
+        "height": 720,
+        "pixelRatio": 1
+      },
+      "after": {
+        "simTime": 12.6,
+        "drawCalls": 522,
+        "triangles": 7777923,
+        "geometries": 407,
+        "textures": 98,
+        "programs": 104,
+        "width": 1280,
+        "height": 720,
+        "pixelRatio": 1
+      },
+      "pngIdentical": false,
+      "trianglesDelta": 23296,
+      "callsDelta": 0,
+      "changedPixelFraction": 0.04336,
+      "referenceSSIM": {
+        "before": 0.1895,
+        "after": 0.1841,
+        "delta": -0.0054
+      }
+    },
+    "C_lookback": {
+      "before": {
+        "simTime": 12.6,
+        "drawCalls": 407,
+        "triangles": 6938215,
+        "geometries": 436,
+        "textures": 98,
+        "programs": 103,
+        "width": 1280,
+        "height": 720,
+        "pixelRatio": 1
+      },
+      "after": {
+        "simTime": 12.6,
+        "drawCalls": 412,
+        "triangles": 7084263,
+        "geometries": 441,
+        "textures": 98,
+        "programs": 104,
+        "width": 1280,
+        "height": 720,
+        "pixelRatio": 1
+      },
+      "pngIdentical": false,
+      "trianglesDelta": 146048,
+      "callsDelta": 5,
+      "changedPixelFraction": 0.09629,
+      "referenceSSIM": {
+        "before": 0.227,
+        "after": 0.2053,
+        "delta": -0.0217
+      }
+    },
+    "D_log": {
+      "before": {
+        "simTime": 12.6,
+        "drawCalls": 396,
+        "triangles": 7986347,
+        "geometries": 450,
+        "textures": 98,
+        "programs": 103,
+        "width": 1280,
+        "height": 720,
+        "pixelRatio": 1
+      },
+      "after": {
+        "simTime": 12.6,
+        "drawCalls": 396,
+        "triangles": 8009731,
+        "geometries": 455,
+        "textures": 98,
+        "programs": 104,
+        "width": 1280,
+        "height": 720,
+        "pixelRatio": 1
+      },
+      "pngIdentical": false,
+      "trianglesDelta": 23384,
+      "callsDelta": 0,
+      "changedPixelFraction": 0.07552,
+      "referenceSSIM": {
+        "before": 0.2615,
+        "after": 0.2523,
+        "delta": -0.0092
+      }
+    },
+    "E_ground": {
+      "before": {
+        "simTime": 12.6,
+        "drawCalls": 522,
+        "triangles": 7754627,
+        "geometries": 450,
+        "textures": 98,
+        "programs": 103,
+        "width": 1280,
+        "height": 720,
+        "pixelRatio": 1
+      },
+      "after": {
+        "simTime": 12.6,
+        "drawCalls": 522,
+        "triangles": 7777923,
+        "geometries": 455,
+        "textures": 98,
+        "programs": 104,
+        "width": 1280,
+        "height": 720,
+        "pixelRatio": 1
+      },
+      "pngIdentical": false,
+      "trianglesDelta": 23296,
+      "callsDelta": 0,
+      "changedPixelFraction": 0.04336,
+      "referenceSSIM": {
+        "before": 0.2013,
+        "after": 0.1971,
+        "delta": -0.0042
+      }
+    },
+    "F_canopy": {
+      "before": {
+        "simTime": 12.6,
+        "drawCalls": 507,
+        "triangles": 7922992,
+        "geometries": 453,
+        "textures": 98,
+        "programs": 103,
+        "width": 1280,
+        "height": 720,
+        "pixelRatio": 1
+      },
+      "after": {
+        "simTime": 12.6,
+        "drawCalls": 512,
+        "triangles": 8069040,
+        "geometries": 458,
+        "textures": 98,
+        "programs": 104,
+        "width": 1280,
+        "height": 720,
+        "pixelRatio": 1
+      },
+      "pngIdentical": false,
+      "trianglesDelta": 146048,
+      "callsDelta": 5,
+      "changedPixelFraction": 0.12712,
+      "referenceSSIM": {
+        "before": 0.2473,
+        "after": 0.2141,
+        "delta": -0.0332
+      }
+    },
+    "sky-opening": {
+      "before": {
+        "simTime": 12.6,
+        "drawCalls": 398,
+        "triangles": 6653210,
+        "geometries": 479,
+        "textures": 98,
+        "programs": 162,
+        "width": 1280,
+        "height": 720,
+        "pixelRatio": 1
+      },
+      "after": {
+        "simTime": 12.6,
+        "drawCalls": 396,
+        "triangles": 6671524,
+        "geometries": 481,
+        "textures": 98,
+        "programs": 163,
+        "width": 1280,
+        "height": 720,
+        "pixelRatio": 1
+      },
+      "pngIdentical": false,
+      "trianglesDelta": 18314,
+      "callsDelta": -2,
+      "changedPixelFraction": 0.02989
+    },
+    "w04-spine-l": {
+      "before": {
+        "simTime": 12.6,
+        "drawCalls": 338,
+        "triangles": 6248703,
+        "geometries": 487,
+        "textures": 98,
+        "programs": 164,
+        "width": 1280,
+        "height": 720,
+        "pixelRatio": 1
+      },
+      "after": {
+        "simTime": 12.6,
+        "drawCalls": 337,
+        "triangles": 6267482,
+        "geometries": 488,
+        "textures": 98,
+        "programs": 165,
+        "width": 1280,
+        "height": 720,
+        "pixelRatio": 1
+      },
+      "pngIdentical": false,
+      "trianglesDelta": 18779,
+      "callsDelta": -1,
+      "changedPixelFraction": 0.07585
+    },
+    "w05-spine-d": {
+      "before": {
+        "simTime": 12.6,
+        "drawCalls": 307,
+        "triangles": 6353805,
+        "geometries": 487,
+        "textures": 98,
+        "programs": 164,
+        "width": 1280,
+        "height": 720,
+        "pixelRatio": 1
+      },
+      "after": {
+        "simTime": 12.6,
+        "drawCalls": 307,
+        "triangles": 6374365,
+        "geometries": 488,
+        "textures": 98,
+        "programs": 165,
+        "width": 1280,
+        "height": 720,
+        "pixelRatio": 1
+      },
+      "pngIdentical": false,
+      "trianglesDelta": 20560,
+      "callsDelta": 0,
+      "changedPixelFraction": 0.04287
+    },
+    "w09-spine-d": {
+      "before": {
+        "simTime": 12.6,
+        "drawCalls": 295,
+        "triangles": 7131870,
+        "geometries": 530,
+        "textures": 100,
+        "programs": 164,
+        "width": 1280,
+        "height": 720,
+        "pixelRatio": 1
+      },
+      "after": {
+        "simTime": 12.6,
+        "drawCalls": 295,
+        "triangles": 7164030,
+        "geometries": 531,
+        "textures": 100,
+        "programs": 165,
+        "width": 1280,
+        "height": 720,
+        "pixelRatio": 1
+      },
+      "pngIdentical": false,
+      "trianglesDelta": 32160,
+      "callsDelta": 0,
+      "changedPixelFraction": 0.03267
+    },
+    "w23-stairs-f": {
+      "before": {
+        "simTime": 12.6,
+        "drawCalls": 508,
+        "triangles": 9932370,
+        "geometries": 559,
+        "textures": 100,
+        "programs": 168,
+        "width": 1280,
+        "height": 720,
+        "pixelRatio": 1
+      },
+      "after": {
+        "simTime": 12.6,
+        "drawCalls": 508,
+        "triangles": 10027850,
+        "geometries": 556,
+        "textures": 100,
+        "programs": 169,
+        "width": 1280,
+        "height": 720,
+        "pixelRatio": 1
+      },
+      "pngIdentical": false,
+      "trianglesDelta": 95480,
+      "callsDelta": 0,
+      "changedPixelFraction": 0.02103
+    },
+    "sn-bole-lantern-tree": {
+      "before": {
+        "simTime": 12.6,
+        "drawCalls": 256,
+        "triangles": 5071131,
+        "geometries": 592,
+        "textures": 100,
+        "programs": 169,
+        "width": 1280,
+        "height": 720,
+        "pixelRatio": 1
+      },
+      "after": {
+        "simTime": 12.6,
+        "drawCalls": 256,
+        "triangles": 5093535,
+        "geometries": 591,
+        "textures": 100,
+        "programs": 170,
+        "width": 1280,
+        "height": 720,
+        "pixelRatio": 1
+      },
+      "pngIdentical": false,
+      "trianglesDelta": 22404,
+      "callsDelta": 0,
+      "changedPixelFraction": 0.1755
+    },
+    "sn-bole-nw-near": {
+      "before": {
+        "simTime": 12.6,
+        "drawCalls": 290,
+        "triangles": 5977768,
+        "geometries": 603,
+        "textures": 100,
+        "programs": 169,
+        "width": 1280,
+        "height": 720,
+        "pixelRatio": 1
+      },
+      "after": {
+        "simTime": 12.6,
+        "drawCalls": 290,
+        "triangles": 6000176,
+        "geometries": 603,
+        "textures": 100,
+        "programs": 170,
+        "width": 1280,
+        "height": 720,
+        "pixelRatio": 1
+      },
+      "pngIdentical": false,
+      "trianglesDelta": 22408,
+      "callsDelta": 0,
+      "changedPixelFraction": 0.0777
+    },
+    "sn-bole-stair-bank": {
+      "before": {
+        "simTime": 12.6,
+        "drawCalls": 433,
+        "triangles": 8567968,
+        "geometries": 645,
+        "textures": 100,
+        "programs": 169,
+        "width": 1280,
+        "height": 720,
+        "pixelRatio": 1
+      },
+      "after": {
+        "simTime": 12.6,
+        "drawCalls": 433,
+        "triangles": 8677288,
+        "geometries": 644,
+        "textures": 100,
+        "programs": 170,
+        "width": 1280,
+        "height": 720,
+        "pixelRatio": 1
+      },
+      "pngIdentical": false,
+      "trianglesDelta": 109320,
+      "callsDelta": 0,
+      "changedPixelFraction": 0.52594
+    },
+    "sn-lantern-limb": {
+      "before": {
+        "simTime": 12.6,
+        "drawCalls": 428,
+        "triangles": 7093583,
+        "geometries": 652,
+        "textures": 102,
+        "programs": 175,
+        "width": 1280,
+        "height": 720,
+        "pixelRatio": 1
+      },
+      "after": {
+        "simTime": 12.6,
+        "drawCalls": 427,
+        "triangles": 7107935,
+        "geometries": 651,
+        "textures": 102,
+        "programs": 176,
+        "width": 1280,
+        "height": 720,
+        "pixelRatio": 1
+      },
+      "pngIdentical": false,
+      "trianglesDelta": 14352,
+      "callsDelta": -1,
+      "changedPixelFraction": 0.03735
+    },
+    "w19-spine-u": {
+      "before": {
+        "simTime": 12.6,
+        "drawCalls": 194,
+        "triangles": 3649248,
+        "geometries": 693,
+        "textures": 102,
+        "programs": 211,
+        "width": 1280,
+        "height": 720,
+        "pixelRatio": 1
+      },
+      "after": {
+        "simTime": 12.6,
+        "drawCalls": 196,
+        "triangles": 3685536,
+        "geometries": 685,
+        "textures": 102,
+        "programs": 212,
+        "width": 1280,
+        "height": 720,
+        "pixelRatio": 1
+      },
+      "pngIdentical": false,
+      "trianglesDelta": 36288,
+      "callsDelta": 2,
+      "changedPixelFraction": 0.12302
+    },
+    "w21-spine-l": {
+      "before": {
+        "simTime": 12.6,
+        "drawCalls": 254,
+        "triangles": 3779022,
+        "geometries": 718,
+        "textures": 102,
+        "programs": 226,
+        "width": 1280,
+        "height": 720,
+        "pixelRatio": 1
+      },
+      "after": {
+        "simTime": 12.6,
+        "drawCalls": 259,
+        "triangles": 3836112,
+        "geometries": 707,
+        "textures": 102,
+        "programs": 228,
+        "width": 1280,
+        "height": 720,
+        "pixelRatio": 1
+      },
+      "pngIdentical": false,
+      "trianglesDelta": 57090,
+      "callsDelta": 5,
+      "changedPixelFraction": 0.87112
+    },
+    "f4-trunk-2m": {
+      "before": {
+        "simTime": 12.6,
+        "drawCalls": 262,
+        "triangles": 4772647,
+        "geometries": 733,
+        "textures": 102,
+        "programs": 227,
+        "width": 1280,
+        "height": 720,
+        "pixelRatio": 1
+      },
+      "after": {
+        "simTime": 12.6,
+        "drawCalls": 260,
+        "triangles": 4786789,
+        "geometries": 722,
+        "textures": 102,
+        "programs": 229,
+        "width": 1280,
+        "height": 720,
+        "pixelRatio": 1
+      },
+      "pngIdentical": false,
+      "trianglesDelta": 14142,
+      "callsDelta": -2,
+      "changedPixelFraction": 0.04076
+    },
+    "f4-crown-up": {
+      "before": {
+        "simTime": 12.6,
+        "drawCalls": 190,
+        "triangles": 4463343,
+        "geometries": 752,
+        "textures": 102,
+        "programs": 227,
+        "width": 1280,
+        "height": 720,
+        "pixelRatio": 1
+      },
+      "after": {
+        "simTime": 12.6,
+        "drawCalls": 186,
+        "triangles": 4456499,
+        "geometries": 739,
+        "textures": 102,
+        "programs": 229,
+        "width": 1280,
+        "height": 720,
+        "pixelRatio": 1
+      },
+      "pngIdentical": false,
+      "trianglesDelta": -6844,
+      "callsDelta": -4,
+      "changedPixelFraction": 0.00681
+    }
+  }
+}
