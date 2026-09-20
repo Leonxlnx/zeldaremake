@@ -845,6 +845,24 @@ const leafFloorShaded = () => /* glsl */ `
       }
 `;
 const LEAF_FLOOR_SHADED = leafFloorShaded();
+/**
+ * A flat lobe's inner near leaves stand in for its far core. Flat mode removes the sun, so
+ * the ordinary near floor (3.2 / 0.75) would remove most of that core's neutral shade fill.
+ * Keep its original distance-faded floor for these leaves alone; the ordinary branch is the
+ * exact existing block. Values come from the original presets, not a compensating leaf tint.
+ */
+const NEAR_CANOPY_FLAT_FLOOR_SHADED = (() => {
+  const originalFloor = Object.entries({
+    uLeafFloorNearLift: TREE_LEAF_FLOOR_NEAR.lift,
+    uLeafFloorLift: TREE_LEAF_FLOOR.lift,
+    uLeafFloorNearTexture: TREE_LEAF_FLOOR_NEAR.texture,
+    uLeafFloorTexture: TREE_LEAF_FLOOR.texture,
+    uLeafFloorCanopy: TREE_LEAF_FLOOR.canopy,
+    uLeafFloorAlbedo: TREE_LEAF_FLOOR.albedo,
+    uLeafFloorChroma: TREE_LEAF_FLOOR.chroma,
+  }).reduce((block, [name, value]) => block.replaceAll(name, value.toFixed(6)), LEAF_FLOOR_SHADED);
+  return /* glsl */ `if (vLeafFlat > 0.5) { ${originalFloor} } else { ${LEAF_FLOOR_SHADED} }`;
+})();
 /** white-barks are pale already; their shaded sides are not among the measured gaps */
 const WHITE_BARK_FLOOR: ShadeFloor = { lift: 0, texture: 1, canopy: 0, albedo: 0.08, chroma: 1 };
 /**
@@ -952,6 +970,8 @@ const NEAR_CANOPY_SUN_THROUGH_GLSL = /* glsl */ `
 interface LeafVariant {
   leafFloor?: ShadeFloor;
   leafNear?: [number, number];
+  /** Inner flat leaves of a near lobe retain the floor of the authored far core. */
+  preserveFlatFloor?: boolean;
   /** set = the near-canopy sun-through block scaled by this (uSunThrough) in place of the far block */
   sunThrough?: number;
   /**
@@ -969,6 +989,7 @@ interface LeafVariant {
  * canopy's limb sleeves — their far-program moss sheets stay as they are).
  */
 function treeFragment(shader: WebGLProgramParametersWithUniforms, sun: Color, leafRoughness: number, barkColor: string, barkFloor: ShadeFloor, barkPrefix = 'uBarkFloor', heightFade?: { top: number; fade: [number, number] }, nearDetail: false | 'base' | 'bark' = false, variant: LeafVariant = {}) {
+  const leafFloor = variant.preserveFlatFloor ? NEAR_CANOPY_FLAT_FLOOR_SHADED : LEAF_FLOOR_SHADED;
   shader.uniforms.uLeafSun = { value: sun };
   shader.uniforms.uLeafRough = { value: leafRoughness };
   shader.uniforms.uLeafTransmit = { value: LEAF_TRANSMIT };
@@ -1128,7 +1149,7 @@ function treeFragment(shader: WebGLProgramParametersWithUniforms, sun: Color, le
       ${LEAF_SKY_TRANSMISSION}
 ${sunThrough}
       ${LEAF_FLAT_SUNLESS}
-      ${LEAF_FLOOR_SHADED}
+      ${leafFloor}
       ${LEAF_FLAT_LEVEL}
       ${LEAF_NEAR_MUL}
     } else {
@@ -1232,8 +1253,8 @@ export async function createTreeMaterials(ctx: WorldContext): Promise<TreeMateri
     wind,
     giantWind,
     colourSlots,
-    (s) => treeFragment(s, leafSun, 0.78, GIANT_BARK_COLOR, TREE_BARK_FLOOR, 'uBarkFloor', undefined, 'bark', { leafFloor: NEAR_CANOPY_LEAF_FLOOR, leafNear: NEAR_CANOPY_LEAF_NEAR_M, sunThrough: NEAR_CANOPY_SUN_THROUGH }),
-    'giant-near-canopy',
+    (s) => treeFragment(s, leafSun, 0.78, GIANT_BARK_COLOR, TREE_BARK_FLOOR, 'uBarkFloor', undefined, 'bark', { leafFloor: NEAR_CANOPY_LEAF_FLOOR, leafNear: NEAR_CANOPY_LEAF_NEAR_M, preserveFlatFloor: true, sunThrough: NEAR_CANOPY_SUN_THROUGH }),
+    'giant-near-canopy-flat-floor',
   );
 
   // --- giant canopy cluster cards (procedural alpha texture; dappled shadows through the alpha) ---
