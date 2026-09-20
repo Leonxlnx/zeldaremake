@@ -591,7 +591,10 @@ export function buildExpansionVegetation(ctx: WorldContext, templates: Expansion
       const d = Math.hypot(x - kx, z - kz);
       return (1 - smoothstep(KNOLL_R - 2.2, KNOLL_R - 0.2, d)) * smoothstep(EXPANSION.farHutTrunk.baseRadius + 0.2, EXPANSION.farHutTrunk.baseRadius + 0.9, d);
     };
-    lawn('knoll', box, knoll, { tuftsPerM2: 0.6, tint: 1.1, dry: 0.35, height: 0.9, matWidth: 1.1 });
+    // the knoll has no blade tiles under its cards (grass.ts reads the legacy view), so the bent
+    // tufts stand in for the blade layer — 3 / m², lower cards, or the cards read as single leaves
+    // from the 3 m view
+    lawn('knoll', box, knoll, { tuftsPerM2: 3.0, tint: 1.1, dry: 0.35, height: 0.72, tuftHeight: [0.45, 0.85], matWidth: 1.1 });
   }
 
   for (const set of sets) group.add(set.build());
