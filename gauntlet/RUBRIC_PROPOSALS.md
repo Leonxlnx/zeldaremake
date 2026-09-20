@@ -101,3 +101,23 @@ theirs. The score is now measuring distance from a target the owner has moved aw
 Evidence: take-0107 vs take-0108/0109 compare tables (`gauntlet/ledger.json`), the owner's markup and
 README in `art/environment/owner-video-review/` (PR #11 `0d76e902`).
 Owner decision: pending
+
+## 2026-09-20 — fable-cursor — W38 (triangle ceiling)
+Current: `≤ 9,000,000 triangles per hero viewpoint at quality=high` (and ≤ 700 draws), measured
+on the SwiftShader capture's `renderer.info` at each fixed camera.
+Proposed: raise the triangle ceiling to 11 M (draws unchanged at 700), OR keep 9 M but measure it
+at quality=medium, the tier the frame-time governor selects on the owner's Radeon 780M for play.
+Why: the owner's direction since 2026-09-16 is detail — dense foliage, bark and root relief,
+props, a canopy roof, a second clearing — and every lane that delivers it adds submitted
+triangles in camera A (the stair foot faces the plaza, the white-barks, the bough and the north).
+A sat at 8.58 M at take-0115, 8.92 M at take-0118 and 9.08 M after the external lanes' merges
+(white-bark root flares +80 K, village props +70 K, canopy roof +3 K, rocks and ledge). Round 47
+and round 48 each spent an integration pass finding 100 K to hide (north paving behind a distance
+toggle, ferns unpacked, root flares limited to the walk) — pixels no fixed camera can see, moved
+only to stay under a number. fable-6's native profile (`docs/PERF_2026-09-19.md` §3) measured the
+correlation between a frame's triangle count and its GPU wait at 0.04 on the 780M (0.6 ms per
+extra million; the frame is per-pixel bound — shadows, postfx, resolution); the triangle ceiling
+is not what protects frame time there, the draw ceiling and the pool/LOD work are.
+Evidence: takes 0115–0118 stats; `/tmp` probes of 2026-09-20 05:00 UTC (A without root flares
+8.98 M, without props 8.99 M); fable-6's ablation tables §5.
+Owner decision: pending
