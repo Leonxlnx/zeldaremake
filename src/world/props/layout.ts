@@ -8,7 +8,7 @@
  * terrain masks and the layout's obstacles, and skips a prop rather than relocating it across the
  * village. Projections quoted below are pinhole into the six fixed cameras (1280×720).
  */
-export type PropKind = 'pot' | 'crate' | 'barrel' | 'bucket' | 'ladder' | 'platform';
+export type PropKind = 'pot' | 'crate' | 'barrel' | 'bucket' | 'ladder' | 'platform' | 'marker';
 
 export interface PropDef {
   id: string;
@@ -16,7 +16,7 @@ export interface PropDef {
   /** authored foot position (y is sampled from the terrain) */
   x: number;
   z: number;
-  /** pots / barrel / bucket: height (m); crate: width (m); platform: unused (see `deck`) */
+  /** pots / barrel / bucket / marker: height (m); crate: width (m); platform: unused (see `deck`) */
   size: number;
   yaw: number;
   cluster: string;
@@ -28,8 +28,16 @@ export interface PropDef {
   pad?: boolean;
   /** ladder: the house it leans on, the angle around the trunk (rad, 0 = the door, + = viewer's right) and the peg height */
   lean?: { house: string; angle: number; top: number };
-  /** platform: deck height above the ground (m), footprint, railing, ladder, block steps */
-  platform?: { deck: number; width: number; depth: number; rail: boolean; ladder: boolean; steps?: number };
+  /**
+   * platform: deck height above the ground (m), footprint, railing, ladder, block steps.
+   * `dais: true` binds the platform to `LAYOUT.plateauLookout` (fable-cursor's hook): position,
+   * yaw and width come from the hook, the depth from the `lookout` slab, and the wooden part
+   * is a rope railing set into hardscape's stone dais — posts from the turf up through the
+   * slab, ropes on its lip and short sides, a step block on the fence side — instead of a deck
+   * of its own (the character ground learns the slab top, so wood over the stone would swallow
+   * the player's feet).
+   */
+  platform?: { deck: number; width: number; depth: number; rail: boolean; ladder: boolean; steps?: number; dais?: boolean };
 }
 
 export const PROP_LAYOUT: readonly PropDef[] = [
@@ -72,13 +80,33 @@ export const PROP_LAYOUT: readonly PropDef[] = [
   // (between the roots at a ≈ 0.8 and 1.97 rad), the crossbar pegged 3.4 m up
   { id: 'upper-ladder', kind: 'ladder', x: 0, z: 0, size: 0.44, yaw: 0, cluster: 'upper-house', lean: { house: 'upper', angle: 1.35, top: 3.4 } },
 
-  // ---- the plateau lip: a low deck with a rope railing where the plateau-west fence ends
-  // (23.3, 1.9), looking south-west over the stair bank and the plaza. Only camera F sees it —
-  // (0.62, 0.23) at 26 m, among the reference's fence posts on the wall top; A/B/C/D/E: outside.
-  // Local x runs along the lip (0.57, 0.82); the railing is the −z side, toward the plaza. Deck
-  // 0.62 m: the lawn's ferns stand 0.4–0.8 m and poked through a 0.4 m deck; two block steps.
-  { id: 'lip-platform', kind: 'platform', x: 23.5, z: 2.65, size: 1, yaw: 2.18, cluster: 'plateau-lip', platform: { deck: 0.62, width: 2.2, depth: 1.5, rail: true, ladder: false, steps: 2 } },
+  // ---- the plateau lookout: the rope railing on hardscape's stone dais at LAYOUT.plateauLookout
+  // (21.6, 2.2, yaw 124°, 2.2 × 1.6 m, top 0.35 m over the highest turf), 1.7 m past the last
+  // post of the plateau-west fence, looking south-west over the stair bank and the plaza. x, z,
+  // yaw, width, depth and the deck height are all taken from the hook at build time (the values
+  // here are the fallback); the railing is the −z side (the plaza) and both short sides, open on
+  // +z where one step block stands on the turf. Only camera F sees it — (0.58–0.63, 0.22) at
+  // 23 m among the reference's fence posts on the wall top; A/B/C/D/E: outside.
+  { id: 'lookout-railing', kind: 'platform', x: 21.6, z: 2.2, size: 1, yaw: (124 * Math.PI) / 180, cluster: 'plateau-lip', platform: { deck: 0.35, width: 2.2, depth: 1.6, rail: true, ladder: false, steps: 1, dais: true } },
 
   // ---- the west platform under the lantern tree (round 31): tall deck with its ladder, kept
   { id: 'west-tree-platform', kind: 'platform', x: -8.7, z: -10.0, size: 1, yaw: 0, cluster: 'west', platform: { deck: 1.28, width: 1.8, depth: 1.4, rail: true, ladder: true } },
+
+  // ---- the north clearing's entrance (GOAL_MODE fable-3 #2): where the north path's band (half
+  // width 2.2, from the arch at (5.8, −58) south-west) meets the paved disc at (−1.5, −69.8) r 4.6.
+  // The mask's skirt is wide, so the two flank corners are (0.4, −64.4) — the walker's LEFT
+  // entering from the arch, the disc's north-east rim — and (4.3, −67.7) on the right toward the
+  // ledge flight. The waymarker stands on the left corner, its long board pointing into the
+  // circle (yaw so +z → the centre), a pot pair at its foot; a second, low pair on the right
+  // corner. Ground 4.16–4.34 m, tilt ≤ 11° (pots set level, the post vertical). Fixed frames: C/F
+  // do not hold the direction; in D the left corner projects at x 0.43, inside the log's west
+  // root mass (x 0.39–0.47, y 0.27–0.46) with the ground line at 0.47; A/B/E's rays to it pass
+  // the log's west end at z −54 inside the bark (x ≈ 0.4, y ≈ 5.5). The tall post therefore
+  // stands on that corner; the flight-side corner (D x 0.47, A's ray under the belly at x ≈ 3.8)
+  // takes only pots below the far ground line — verified by the six-view capture, not the pinhole.
+  { id: 'circle-marker', kind: 'marker', x: 0.4, z: -64.4, size: 1.75, yaw: -2.8, cluster: 'north-clearing' },
+  { id: 'circle-pot-marker', kind: 'pot', x: -0.2, z: -64.9, size: 0.58, yaw: 2.4, cluster: 'north-clearing', variant: 1 },
+  { id: 'circle-pot-marker-squat', kind: 'pot', x: 0.9, z: -64.15, size: 0.46, yaw: 0.3, cluster: 'north-clearing', variant: 2 },
+  { id: 'circle-pot-flight', kind: 'pot', x: 4.75, z: -68.45, size: 0.66, yaw: 0.6, cluster: 'north-clearing', variant: 0 },
+  { id: 'circle-pot-flight-squat', kind: 'pot', x: 4.15, z: -68.7, size: 0.44, yaw: -1.4, cluster: 'north-clearing', variant: 2 },
 ];
