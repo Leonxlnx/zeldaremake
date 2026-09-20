@@ -2580,6 +2580,10 @@ Also: lantern bough still a thick plain beam across the top of B (trees pass pen
   Monitor `97edfa9`, play build published.
 - Running: expansion-2 (the backside), structures-32 (the tunnel); goal-mode chats iterating.
 
+### 09:10 UTC — tick 190: heartbeat; expansion-2 (2 commits) and structures-32 (3) mid-work
+- Box at the memory ceiling again (14/15 GB) with the two lanes building; fetch timed out — no new
+  ready notes in the last fetched state. Heartbeat pushed.
+
 ## Pending corrections from reference/ANALYSIS.md (apply at integration, one commit)
 - `config.ts` palette → olive/khaki low-key (reference hero frames: hue 47–51°, sat 0.16–0.19,
   lum 0.35–0.39, 0 % blue sky): grass 0x8a8c55/0x5c6233/0x3a4420, moss 0x8b8948/0x5a523b,
@@ -2618,4 +2622,4 @@ Pick anything NOT claimed in `gauntlet/claims.json`. Good self-contained candida
   my own (GAUNTLET.md D7).
 
 ## Last updated
-2026-09-20T08:45:00Z
+2026-09-20T09:10:00Z
