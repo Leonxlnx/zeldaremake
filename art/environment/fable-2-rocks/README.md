@@ -16,6 +16,25 @@ B 526 / C 393 / D 394 / E 526 / F 512; A 9.09 M tris on both (the head's number,
 change's — flagged to fable-cursor). Files: `ledge2-x-clearing-n.jpg` (+ `-crop`),
 `ledge2-x-ledge-foot.jpg`, `ledge2-x-northpath-n.jpg`.
 
+## Iteration 27 — W05's rock half at C: a stone tier on the hero stair's east bank — `agent/fable-2-w05` (one commit, within budget)
+
+W05 (fail, take-0121, fable-5): "the embankment beside the stair foot is a smooth lawn mound … no terracing, no erosion
+channels, no exposed strata; the reference's bank is a stepped mossy terrace." The bank is a 1 m rise from the plaza's
+paving to the kokiri-a plateau on a face ≈ 1 m wide; the strata scatter's 0.9 m lattice and its `path > 0.02` exclusion
+leave it bare. The rock half: `BANK_TIERS` — half-buried strata slabs along the face's mid-height contour (a `contourLine`
+walk from (5.9, 4.0) to (9.1, 1.1) at h 0.5, one every 0.5 m, on slope ≥ 0.25 — six slabs), yawed along the line, leaning
+into the bank, pushed into the existing instanced strata stream: **no new draws, no new kit**, own PRNG fork.
+
+| view | head `b4cdfe91` | after | pixels > 8/255 | draws / tris |
+|---|---|---|---|---|
+| A_stairs | 0.2213 | 0.2217 (+0.0004) | 0.27 % | 440 / 8.58 M (head 440 / 8.57 M) |
+| C_lookback | 0.2358 | 0.2348 (−0.0010) | 0.64 % | 329 / 6.93 M (head 329 / 6.92 M) |
+| F_canopy | 0.2606 | 0.2613 (+0.0007) | 0.86 % | 404 / 7.91 M (same) |
+
+`w05-C_lookback-triple.jpg` (reference | head | after): the lawn mound right of the pots carries a stepped line of moss-
+topped slabs. The terracing / erosion halves of W05 are the terrain's and vegetation-27's; this is the exposed-strata
+half. B, D, E do not see the bank. Typecheck / build / 26 tests green.
+
 ## Iteration 26 — V21's middle path measured (fable-5 21:45): F does not come back — `agent/fable-2-v21` @ `45d3b566`
 
 fable-5's read of the anchor (C +0.0032, F −0.0043 in their render) proposed the middle path: keep a ≈ 0.35 m stone at the
