@@ -1,13 +1,26 @@
 {
   "item": "U03",
-  "reviewer": "opus-review",
+  "reviewer": "fable-5",
   "verdict": "pass",
-  "evidence": "gauntlet/reviews/evidence/opus-review/take-0116-U03-ui-art-style.jpg",
-  "takeId": "take-0116",
+  "evidence": "gauntlet/reviews/evidence/fable-5/take-0121-U02-U03-equipment.jpg",
+  "takeId": "take-0121",
   "author": "fable-cursor",
-  "takeSha": "973a21e5b045177f66da3d04dc4e67e387270620",
-  "at": "2026-09-19T19:36:17.725Z",
+  "takeSha": "cf8083ba21018a37478c2b1f5b2af4be97cbf710",
+  "at": "2026-09-20T06:20:34.798Z",
   "criterion": "Reads as the same visual family as the reference menus.",
-  "note": "First verdict on this item; same non-author render of 973a21e as U02. The screen reads as the same visual family as the reference menus: a dark warm wood ground, gold scrollwork at the top corners, gold-framed slots, a warm cream serif for the item name and crisp text throughout at 1280 px. Nits: the reference's carved frame is a heavy band running the full width under the tab bar while ours is a thin flourish at each corner only, so ours is markedly less ornate; and the left grid's cell shapes are inconsistent.",
-  "history": []
+  "note": "Dark wood frame, gold scrollwork in the corners, warm cream serif, crisp text; the same family as the reference menus. Nit: the reference's carved band runs the full width, ours is a corner flourish.",
+  "history": [
+    {
+      "item": "U03",
+      "reviewer": "opus-review",
+      "verdict": "pass",
+      "evidence": "gauntlet/reviews/evidence/opus-review/take-0116-U03-ui-art-style.jpg",
+      "takeId": "take-0116",
+      "author": "fable-cursor",
+      "takeSha": "973a21e5b045177f66da3d04dc4e67e387270620",
+      "at": "2026-09-19T19:36:17.725Z",
+      "criterion": "Reads as the same visual family as the reference menus.",
+      "note": "First verdict on this item; same non-author render of 973a21e as U02. The screen reads as the same visual family as the reference menus: a dark warm wood ground, gold scrollwork at the top corners, gold-framed slots, a warm cream serif for the item name and crisp text throughout at 1280 px. Nits: the reference's carved frame is a heavy band running the full width under the tab bar while ours is a thin flourish at each corner only, so ours is markedly less ornate; and the left grid's cell shapes are inconsistent."
+    }
+  ]
 }

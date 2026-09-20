@@ -1,15 +1,27 @@
 {
   "item": "W30",
-  "reviewer": "opus-review",
+  "reviewer": "fable-5",
   "verdict": "fail",
-  "evidence": "gauntlet/reviews/evidence/opus-review/take-0116-W30-A-shadow-direction.jpg",
-  "takeId": "take-0116",
+  "evidence": "gauntlet/reviews/evidence/fable-5/take-0121-W30-A-shadows.jpg",
+  "takeId": "take-0121",
   "author": "fable-cursor",
-  "takeSha": "973a21e5b045177f66da3d04dc4e67e387270620",
-  "at": "2026-09-19T19:30:49.752Z",
+  "takeSha": "cf8083ba21018a37478c2b1f5b2af4be97cbf710",
+  "at": "2026-09-20T06:20:33.421Z",
   "criterion": "Shadow direction and softness on the plaza match the reference.",
-  "note": "Link's shadow on the plaza falls to the lower right; the reference's falls to the lower left, a mirrored direction (take-0116-W30b-A-link-shadow.jpg at 3x). Our shadow is also short and hard-edged where the reference's is long, soft and about 1.2 times his projected height, and almost nothing else in the plaza casts a readable shadow, so the surface reads evenly lit. This restates the conflict already on file in gauntlet/RUBRIC_PROPOSALS.md: the rubric's own auto window pins azimuth to [-155, -105] and the audit sits at -128 with elevation 38, both inside the window, while ANALYSIS.md section 7 triangulates the reference sun to the opposite side. The criterion as written is not met by the frame, and the fix path is the owner's decision on the proposal, not a lighting change.",
+  "note": "Link's and the Kokiri's shadows fall long to the lower right; in the reference frame they fall to the lower left. Fails 'shadow direction matches the reference' as written - the same conflict with the rubric's own azimuth text as on take-0116; the fix path is RUBRIC_PROPOSALS.md, not a reviewer's pass.",
   "history": [
+    {
+      "item": "W30",
+      "reviewer": "opus-review",
+      "verdict": "fail",
+      "evidence": "gauntlet/reviews/evidence/opus-review/take-0116-W30-A-shadow-direction.jpg",
+      "takeId": "take-0116",
+      "author": "fable-cursor",
+      "takeSha": "973a21e5b045177f66da3d04dc4e67e387270620",
+      "at": "2026-09-19T19:30:49.752Z",
+      "criterion": "Shadow direction and softness on the plaza match the reference.",
+      "note": "Link's shadow on the plaza falls to the lower right; the reference's falls to the lower left, a mirrored direction (take-0116-W30b-A-link-shadow.jpg at 3x). Our shadow is also short and hard-edged where the reference's is long, soft and about 1.2 times his projected height, and almost nothing else in the plaza casts a readable shadow, so the surface reads evenly lit. This restates the conflict already on file in gauntlet/RUBRIC_PROPOSALS.md: the rubric's own auto window pins azimuth to [-155, -105] and the audit sits at -128 with elevation 38, both inside the window, while ANALYSIS.md section 7 triangulates the reference sun to the opposite side. The criterion as written is not met by the frame, and the fix path is the owner's decision on the proposal, not a lighting change."
+    },
     {
       "item": "W30",
       "reviewer": "fable-5",

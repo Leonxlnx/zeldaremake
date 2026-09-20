@@ -1,15 +1,27 @@
 {
   "item": "C01",
-  "reviewer": "opus-review",
+  "reviewer": "fable-5",
   "verdict": "fail",
-  "evidence": "gauntlet/reviews/evidence/opus-review/take-0116-C01-B-link.jpg",
-  "takeId": "take-0116",
+  "evidence": "gauntlet/reviews/evidence/fable-5/take-0121-C01-B-link.jpg",
+  "takeId": "take-0121",
   "author": "fable-cursor",
-  "takeSha": "973a21e5b045177f66da3d04dc4e67e387270620",
-  "at": "2026-09-19T19:33:29.522Z",
+  "takeSha": "cf8083ba21018a37478c2b1f5b2af4be97cbf710",
+  "at": "2026-09-20T06:20:34.123Z",
   "criterion": "Silhouette and colours match the reference Link without using any Nintendo asset.",
-  "note": "The child proportions, the pointed ears, the tunic, the bare legs and the boots are all right, so the silhouette is close, but the criterion also names colours and they are not. Skin is cool cream where the reference samples a warm tan; the tunic is a darker, more saturated green than the reference's low-saturation olive; there is no pale undershirt at the collar. Two silhouette differences also read at frame scale: the cap is a tight hood pulled over the skull with a heavy fringe hanging across the brow and over the ear roots, where the reference has a soft cap with a rolled brim above the brows and a swept fringe, and ours wears a chest harness with pouches that the reference Link does not have.",
+  "note": "Astra's model is in the take and the silhouette now passes outright: child proportions, long cap, pointed ears, cross-belt, pouch, boots, Navi at the head; the tunic is the reference's olive green. Colours still miss on the two that carry the face: the cheek samples pale grey-pink (125,107,93) s 0.14 against the reference's warm tan (117,79,37) s 0.52, and the hair dark brown (95,77,53) against golden (141,116,60). A colour-only fail now.",
   "history": [
+    {
+      "item": "C01",
+      "reviewer": "opus-review",
+      "verdict": "fail",
+      "evidence": "gauntlet/reviews/evidence/opus-review/take-0116-C01-B-link.jpg",
+      "takeId": "take-0116",
+      "author": "fable-cursor",
+      "takeSha": "973a21e5b045177f66da3d04dc4e67e387270620",
+      "at": "2026-09-19T19:33:29.522Z",
+      "criterion": "Silhouette and colours match the reference Link without using any Nintendo asset.",
+      "note": "The child proportions, the pointed ears, the tunic, the bare legs and the boots are all right, so the silhouette is close, but the criterion also names colours and they are not. Skin is cool cream where the reference samples a warm tan; the tunic is a darker, more saturated green than the reference's low-saturation olive; there is no pale undershirt at the collar. Two silhouette differences also read at frame scale: the cap is a tight hood pulled over the skull with a heavy fringe hanging across the brow and over the ear roots, where the reference has a soft cap with a rolled brim above the brows and a swept fringe, and ours wears a chest harness with pouches that the reference Link does not have."
+    },
     {
       "item": "C01",
       "reviewer": "fable-5",
