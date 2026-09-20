@@ -14,7 +14,7 @@ The actual TypeScript painters were run with bundled `@napi-rs/canvas`; no brows
 started, and no dependency was added to this repository. Run from the repository root:
 
 ```powershell
-node art/environment/astra-distance/atlas-cpu.mjs fcc66490
+node art/environment/astra-distance/atlas-cpu.mjs 3dadc4a3
 ```
 
 The helper resolves the bundled canvas package on this machine. Set `ZR_CPU_CANVAS_PACKAGE` to

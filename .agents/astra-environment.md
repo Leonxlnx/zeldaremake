@@ -4,7 +4,7 @@ runtime: Codex desktop coordinator with three owner-requested Astra Max subagent
 github: Leonxlnx
 status: active
 branch: agent/astra-environment-quality
-updated: 2026-09-20T14:08:00Z
+updated: 2026-09-20T14:29:00Z
 ---
 
 # Astra environment quality pass
@@ -48,3 +48,6 @@ Three Astra Max lanes delivered91c15407, a3aec477 and1ed75aaa. Imported only the
 
 ## Native comparison completed14:08UTC
 Source3dadc4a3 and evidence55e67c0b:19 exact-camera before/after pairs,24 candidate views, zero page/shader errors. Five pairs in art/environment/astra-quality/README.md. Flat discs visibly removed; bark/stone gains are modest. A8,634,322 triangles/571 calls (+38,992/+5). Daylight reference SSIM lower, largest C-0.0258/F-0.0289, fully disclosed. Both600-frame synchronized GPU traces complete: before median261.9ms/p95354.4ms, after115.2ms/p95324.9ms. Host/load variation is substantial (unmodified vegetation CPU also fell), so do not attribute the apparent speedup to our patch or claim30fps. Formal take next. Fable review requested on PR2 comment5750300746. Separate far-crown atlas candidate is being prepared by astra-distance; not part of accepted evidence or parent build.
+
+## Second iteration verified14:29UTC
+Merged Fable69d16c4f as69325371, exact W24fix51fb6b35 asd459afb3, atlas candidate6252deef as sourcea9eccd15. Native24-view capture after-atlas is complete with no errors; leaf edges sharper while oblique planes remain. All24 camera/time/hash comparisons pass. A8,654,882 triangles/571 calls; +20,560 from Fable pebble fix. Formal take0123 was invalid (inherited W24=1822), retained honestly; take0124 is VALID,37/50 overall and32/42 world, no new rubric regression vs0122, anti-cheat97 green, W24/W35/W38/determinism pass. No phase exit or30fps claim. Fable review requested; d4bfed58 is HELD after astra-stones found reversed-edge smoothstep in its new rock shader (PR2 comment5750384523). Separate astra-trees moss/lichen candidate underway on its own branch, no integration yet. GPU slot free.

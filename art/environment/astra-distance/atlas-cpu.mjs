@@ -19,7 +19,7 @@ const compile = (source) => {
   return module.exports;
 };
 const file = 'src/world/trees/leaf-cluster-texture.ts';
-const baselineRef = process.argv[2] || 'fcc66490';
+const baselineRef = process.argv[2] || '3dadc4a3';
 const before = compile(execFileSync('git', ['show', `${baselineRef}:${file}`], { encoding: 'utf8' }));
 const after = compile(readFileSync(file, 'utf8'));
 const { createRng } = compile(readFileSync('src/world/util/prng.ts', 'utf8'));

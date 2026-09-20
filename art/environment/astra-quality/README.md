@@ -41,3 +41,15 @@ Five additional `after/distance-crown-118m.png` through `122m.png` views inspect
 Baseline `before-perf.json`:600 identical fixed-step frames from spawn to stair ascent at high720p on the owner's AMD Radeon780M, `perftrace.mjs --finish` (GPU completion included). Median261.9ms/p95354.4ms; a159s cold shader-compilation first frame is retained in the raw data. Other owner browser tabs may remain open, so this is a synchronized local harness result, not an isolated GPU benchmark or a30fps claim. The matching candidate trace (`after-perf.json`) completed at median115.2ms/p95324.9ms; its unchanged vegetation update also fell from14.0 to4.9ms. This large host/load variation prevents attributing the apparent speedup to these changes. No30fps result or isolated fragment-cost conclusion is claimed.
 
 Remaining art work: fuller canopy edges and tapered visible bough ends; less smooth moss coverage; more varied slab/joint/stair geometry; leaf-scale structure in the blurred distant crown atlas. Static stills do not prove temporal stability. The next atlas candidate is separate and is not included in these images.
+## Second iteration: distant leaf edges and Fable integration
+
+`after-atlas/` records24 complete native views at `a9eccd15` (bundle `index-Dcw7zlsM.js`). This combines the leaf-shaped far-crown atlas with Fable's newer structures32 world (`69d16c4f`) and its exact W24 pebble fix (`51fb6b35`, cherry-picked as `d459afb3`). It is a separate stage: the five original comparison pairs above remain frozen.
+
+| Target | Previous candidate | Second iteration |
+|---|---|---|
+| Upward depth-row crowns: blurred margins become leaf edges; oblique planes still show | ![Previous upward](after/w19-spine-u.png) | ![New upward](after-atlas/w19-spine-u.png) |
+| Actual distant crowns at121m: sharper contours at the same geometry budget | ![Previous distant crowns](after/distance-crown-121m.png) | ![New distant crowns](after-atlas/distance-crown-121m.png) |
+
+`node art/environment/astra-quality/check.mjs after after-atlas atlas-comparison.json` verifies all24 matched views. Both119m and121m comparisons retain identical submitted triangles, draws and textures. The atlas itself changes no geometry, draw groups or persistent texture size; CPU startup painting adds roughly0.4s on this machine. Native inspection accepts the sharper leaf margins as an incremental improvement, while pale underside planes and close overhead structure remain unfinished. Stills do not establish shimmer or isolated GPU cost.
+
+Fable's pebble correction accounts for the extra20,560 submitted triangles in the six hero views: A now8,654,882/571 calls. The w21 image is chiefly changed by Fable's real log tunnel, so it is not presented as atlas evidence. Formal take-0124 is VALID:37/50 overall,32/42 world, W24 restored, W35/W38 and determinism pass,97 anti-cheat checks green, no new rubric regressions versus take-0122. Evidence is preserved under `take-0124/`; the initial invalid take remains under `take-0123/`. This is still below the phase exit requirement, and W37 remains failing.
