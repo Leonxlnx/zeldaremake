@@ -94,7 +94,7 @@ export type SproutJitterStreams = (source: string | undefined, variant: number) 
  * lumpy top — the pads that sit in wide seam junctions and at the stair tread/riser corners
  * (concept sheet 02 'Moss edges', sheet 04 stairs inset). No wind (heightFactor 0).
  */
-function buildCushion(rng: Rng, deep: Color, light: Color): BufferGeometry {
+function buildCushion(rng: Rng, deep: Color, light: Color, floorMoss = false): BufferGeometry {
   const pos: number[] = [];
   const nrm: number[] = [];
   const col: number[] = [];
@@ -110,15 +110,17 @@ function buildCushion(rng: Rng, deep: Color, light: Color): BufferGeometry {
     const t = r / rings;
     const a = (s / segs) * Math.PI * 2 + (r & 1 ? Math.PI / segs : 0);
     const rad = Math.sin((t * Math.PI) / 2) * (0.92 + 0.12 * bump[r * segs + (s % segs)]);
-    const h = 0.3 * Math.cos((t * Math.PI) / 2) * bump[r * segs + (s % segs)];
+    const h = (floorMoss ? 0.16 : 0.3) * Math.cos((t * Math.PI) / 2) * bump[r * segs + (s % segs)];
     return [Math.cos(a) * rad, h, Math.sin(a) * rad, t];
   };
   const push = (p: number[]) => {
     pos.push(p[0], p[1], p[2]);
     // dome normal ≈ direction from a point below the centre
-    const l = Math.hypot(p[0], p[1] + 0.35, p[2]) || 1;
-    nrm.push(p[0] / l, (p[1] + 0.35) / l, p[2] / l);
+    const ny = floorMoss ? p[1] / (0.16 * 0.16) : p[1] + 0.35;
+    const l = Math.hypot(p[0], ny, p[2]) || 1;
+    nrm.push(p[0] / l, ny / l, p[2] / l);
     tmp.copy(light).lerp(deep, 0.25 + 0.7 * p[3]);
+    if (floorMoss) tmp.multiplyScalar(0.72); // shaded interstices beneath the leafy shoots
     col.push(tmp.r, tmp.g, tmp.b);
     wind.push(0, phase);
     uv.push(0, p[3]);
@@ -131,7 +133,7 @@ function buildCushion(rng: Rng, deep: Color, light: Color): BufferGeometry {
       const d = pt(r + 1, s + 1);
       if (r === 0) {
         // crown fan
-        push([0, 0.3, 0, 0]);
+        push([0, floorMoss ? 0.16 : 0.3, 0, 0]);
         push(d);
         push(c);
       } else {
@@ -141,6 +143,34 @@ function buildCushion(rng: Rng, deep: Color, light: Color): BufferGeometry {
         push(a);
         push(b);
         push(d);
+      }
+    }
+  }
+  if (floorMoss) {
+    // A cushion is a colony of leafy shoots. Keep the original seated rim and instance
+    // stream; small lanceolate leaves break the smooth pebble silhouette without an atlas.
+    const shoots = rng.fork('floor-shoots');
+    const normal = new Vector3();
+    for (let i = 0; i < 24; i++) {
+      const a = i * 2.3999632297 + shoots.range(-0.2, 0.2);
+      const r = Math.sqrt((i + 0.5) / 24) * 0.87;
+      const x = Math.cos(a) * r, z = Math.sin(a) * r;
+      const y = 0.16 * Math.sqrt(1 - r * r) * 0.85;
+      for (let leaf = 0; leaf < 3; leaf++) {
+        const angle = a + leaf * Math.PI * 2 / 3;
+        const reach = shoots.range(0.06, 0.13), width = shoots.range(0.024, 0.04);
+        const tip = new Vector3(x + Math.cos(angle) * reach, y + shoots.range(0.08, 0.14), z + Math.sin(angle) * reach);
+        const left = new Vector3(x - Math.sin(angle) * width, y, z + Math.cos(angle) * width);
+        const right = new Vector3(x + Math.sin(angle) * width, y, z - Math.cos(angle) * width);
+        normal.copy(left).sub(right).cross(tip.clone().sub(right)).normalize();
+        for (const [p, shade] of [[right, 0.8], [left, 0.8], [tip, 0.24]] as const) {
+          pos.push(p.x, p.y, p.z);
+          nrm.push(normal.x, normal.y, normal.z);
+          tmp.copy(light).lerp(deep, shade);
+          col.push(tmp.r, tmp.g, tmp.b);
+          wind.push(0, phase);
+          uv.push(0, shade);
+        }
       }
     }
   }
@@ -561,7 +591,7 @@ function packGeometries(geos: BufferGeometry[], variantIds: number[]): BufferGeo
  * consumed in list order by its own instances only: a scatter can then grow or shrink without
  * re-rolling any other scatter's instances. Without the option the behaviour is exactly the old one.
  */
-export function buildSproutMeshes(spots: SproutSpot[], rng: Rng, material: MeshStandardMaterial, config: WorldConfig, packs: number[][] = HARDSCAPE_PACKS, opts: { gritTone?: Color; jitter?: SproutJitterStreams } = {}): SproutBuild {
+export function buildSproutMeshes(spots: SproutSpot[], rng: Rng, material: MeshStandardMaterial, config: WorldConfig, packs: number[][] = HARDSCAPE_PACKS, opts: { gritTone?: Color; jitter?: SproutJitterStreams; floorMoss?: boolean } = {}): SproutBuild {
   // Reference (B/E/D): small dark-green grass tufts and clover growing from the joints across
   // the whole plaza, 6–12 cm tall — the deep/mid grass greens, not lime blades.
   const deep = new Color(config.palette.grassDeep).lerp(new Color(config.palette.grassMid), 0.3);
@@ -575,7 +605,7 @@ export function buildSproutMeshes(spots: SproutSpot[], rng: Rng, material: MeshS
     buildTuft(rng.fork('tuft-b'), 9, 0.11, 0.05, deep, light),
     buildTuft(rng.fork('tuft-c'), 5, 0.065, 0.03, deep, light),
     buildClover(rng.fork('clover'), 0.05, deep, light),
-    buildCushion(rng.fork('cushion'), mossDeep, mossBright),
+    buildCushion(rng.fork('cushion'), mossDeep, mossBright, opts.floorMoss),
     buildFrond(rng.fork('fern'), 0.2, new Color(config.palette.grassDeep), new Color(config.palette.grassMid).lerp(new Color(config.palette.grassLight), 0.3)),
     buildGritGeometry(rng.fork('grit-geo'), opts.gritTone ?? DEFAULT_GRIT_TONE),
   ];

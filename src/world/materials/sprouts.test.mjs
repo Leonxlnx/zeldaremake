@@ -128,3 +128,37 @@ build.meshes.forEach((m, k) => {
   assert.equal(inside.length, expected.length, `${m.name}: the instances under the camera are restored (${inside.length} / ${expected.length})`);
 });
 console.log(`sprouts.test: ${total} instances, ${kept} kept from the axis view, ${build.submitted.join('/')} after the top view — ok`);
+
+// Floor moss changes the cushion prototype only. Shared boulder callers omit the option.
+const floor = buildSproutMeshes(spots, createRng(`${WORLD.seed}/sprout-cull-test`), createSproutMaterial(createWind(), WORLD), WORLD, undefined, { floorMoss: true });
+const plain = buildSproutMeshes(spots, createRng(`${WORLD.seed}/sprout-cull-test`), createSproutMaterial(createWind(), WORLD), WORLD);
+floor.meshes.forEach((m, i) => {
+  const old = plain.meshes[i];
+  assert.equal(m.name, old.name);
+  assert.deepEqual(m.instanceMatrix.array, old.instanceMatrix.array, 'all authored seats, scale and rotation stay exact');
+  assert.deepEqual(m.instanceColor.array, old.instanceColor.array, 'all per-instance tints stay exact');
+  if (!m.name.endsWith('-v4')) {
+    for (const key of Object.keys(old.geometry.attributes)) assert.deepEqual(m.geometry.attributes[key].array, old.geometry.attributes[key].array, `${m.name} ${key} unchanged`);
+    return;
+  }
+  const p = m.geometry.attributes.position, n = m.geometry.attributes.normal;
+  assert.equal(p.count / 3, 122, '50-triangle substrate plus 72 small lanceolate leaves');
+  for (let j = 0; j < p.count; j++) {
+    assert.ok(p.getY(j) >= -1e-6 && p.getY(j) <= 0.33, 'the existing seat and top envelope are retained');
+    assert.ok(Math.hypot(p.getX(j), p.getZ(j)) < 1.06, 'no foliage extends beyond the old cushion footprint');
+    assert.ok(Math.abs(Math.hypot(n.getX(j), n.getY(j), n.getZ(j)) - 1) < 1e-6, 'unit finite normals');
+    assert.equal(m.geometry.attributes.aWind.getX(j), 0, 'moss does not wave with grass');
+  }
+  const op = old.geometry.attributes.position;
+  for (let j = 0; j < op.count; j++) if (Math.abs(op.getY(j)) < 1e-6) {
+    assert.equal(p.getX(j), op.getX(j), 'seated rim X exact');
+    assert.equal(p.getZ(j), op.getZ(j), 'seated rim Z exact');
+    assert.ok(Math.abs(p.getY(j)) < 1e-6, 'rim remains at ground contact');
+  }
+  for (let j = op.count; j < p.count; j += 3) {
+    const a = new THREE.Vector3().fromBufferAttribute(p, j), b = new THREE.Vector3().fromBufferAttribute(p, j + 1), c = new THREE.Vector3().fromBufferAttribute(p, j + 2);
+    const face = b.sub(a).cross(c.sub(a));
+    assert.ok(face.length() > 1e-5 && face.y > 0, 'leaf faces have area and upward winding');
+  }
+});
+console.log('floor moss: seats, jitter, non-cushion meshes, contact envelope and leaf normals pass');
