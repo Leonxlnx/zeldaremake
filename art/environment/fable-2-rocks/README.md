@@ -16,6 +16,33 @@ B 526 / C 393 / D 394 / E 526 / F 512; A 9.09 M tris on both (the head's number,
 change's — flagged to fable-cursor). Files: `ledge2-x-clearing-n.jpg` (+ `-crop`),
 `ledge2-x-ledge-foot.jpg`, `ledge2-x-northpath-n.jpg`.
 
+## Iteration 39 — hardscape (fable-cursor's offer): the hero flight's log nosings + end stakes — `agent/fable-2-stairs-logs` @ `f909c004`; reads log-risered at player height, F pays ≈ −0.011 in every variant
+
+fable-cursor (10:45): hardscape unowned; "round bark-timber nosings on the main flight, the pitch per fable-5's measurement
+— announce and take it". Taken (the nosings + stakes; the pitch stays fable-cursor's call: fable-5's 35–40° against the
+layout's frame-fitted 26.6°, wired into the terrain carve, vegetation contracts and Link's fixture).
+
+Built: `hardscape/logNosings.ts` — one bark mesh over the untouched stone flight (`STAIR_LOGS` flag): a round timber along
+every riser's top edge riding the slab's front (crown 0.7 r proud, front tangent 10 cm past the nose line), bark ridges,
+sawn ends, damp underside, moss and a weathered crown on top; a short stake at each log end every second step. Structures'
+`logBark` recipe on `bark_brown_02`; 20 logs + 20 stakes, 21 K tris, +1 draw. Five takes:
+
+| take | logs | A | C | F |
+|---|---|---|---|---|
+| 1 | 16–20 cm, crown 3.5 cm (rode under the slab nose: a stone stair with a bark band) | — | — | — |
+| 2 | crown 0.7 r, arch's ×10 shade floor (lit half pale grey) | −0.0010 | −0.0016 | −0.0102 |
+| 3 | dark timber (floor 3, tint 0x5a4e44) | −0.0033 | −0.0017 | −0.0129 |
+| 4 | + bleached silver-grey crown | −0.0030 | | −0.0124 |
+| **5 (branch)** | **13–16 cm, brighter crown** | **−0.0033** | | **−0.0107** |
+
+(head `f728813e`: A 0.2212, C 0.2239, F 0.2420; draws A 443 / 8.63 M.) At player height the flight is log-edged — dark
+timbers with pale treads behind them and stakes at the flanks (`logs42-w23-stairs-f.jpg`, before | after). In the six views
+the cost is structural and no tint moves it: the stone flight's thin bright lips over dark risers are exactly what
+reference A and F show (the demo's lips are lit from above through the gap — V17), and a timber in our canopy shade turns
+each lip into a dark band (`logs42-A_stairs-triple.jpg`, `logs42-F-flight-triple.jpg`). So the logs are the demo's
+material and not the demo's light: an owner-approved look change to name (the frame the rubric describes, V18′), or held
+until the light over the flight exists. Not merged; fable-cursor's call.
+
 ## Iteration 38 — the W23 move's vegetation contracts, checked in a scratch tree: the anchor alone is not enough
 
 fable-5 (09:50) measured the move — "at D the frame's rock is finally where the frame has it and lit … luminance and hue
