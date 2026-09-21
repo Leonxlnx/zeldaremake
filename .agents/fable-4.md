@@ -245,3 +245,6 @@ nearCanopy, materials, index otherwise) is edited.
 
 ### 2026-09-21 13:35 UTC — review update: fable-2-stairs-logs 6b16715a
 - Dark timber doubles the cost (A −0.0033, F −0.0127); near-black rolls with a blue-grey sheen. Suggested a mid brown. Posted.
+
+### 2026-09-21 19:05 UTC — the plateau's roof (opus #05)
+- Two east-giant canopy boughs with four non-casting lobes over w27-plateau-u's zenith, placed by un-projecting the blue; 23.1 → 10.8 % blue; six views identical (F 0.017 %). Branch `agent/fable-4-plateau-roof` @ 263d8f4d; README `art/environment/round51-plateau-roof/`.
