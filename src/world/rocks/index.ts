@@ -39,8 +39,10 @@ import type { Rng } from '../util/prng';
  * the boy's feet. The frame's rock is ONE rock seen from two cameras — it projects to C's V21 box
  * (0.28, 0.49) and to A's right (0.84, 0.56), where reference A shows the small pale rock beside the
  * kid. Rocks-owned until the layout carries it (a layout hero boulder of the same id takes over).
+ * (7.2, 3.1), not the box centre (7.4, 2.9): fable-3's stair-pot-squat stands at (7.55, 2.1) r 0.22 and the
+ * loaf reaches ≈ 0.7 m — 0.12 m clear here, 0.13 m into the pot there; C reads (0.30, 0.46) either way.
  */
-export const ANCHOR_BOULDERS: { id: string; position: [number, number, number]; radius: number; replaces?: string }[] = [{ id: 'c-bank-anchor', position: [7.4, 0, 2.9], radius: 0.55, replaces: 'stair-foot' }];
+export const ANCHOR_BOULDERS: { id: string; position: [number, number, number]; radius: number; replaces?: string }[] = [{ id: 'c-bank-anchor', position: [7.2, 0, 3.1], radius: 0.55, replaces: 'stair-foot' }];
 /**
  * measurement toggle for fable-cursor's call on V21: the frame has ONE rock at the boy's feet, ours
  * had the r 1.0 'stair-foot' boulder 1.7 m east of it. 'replace' = the anchor stands in for it (what a
