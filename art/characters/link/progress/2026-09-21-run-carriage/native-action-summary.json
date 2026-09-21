@@ -1,0 +1,583 @@
+{
+  "kind": "Read-only historical action inspection; diagnostic copies are never bound to rigs",
+  "fullLocalReportSha256": "c72d9fd2ef781c0c99a5686d9b8eea841ee2dca26664e4e8903aee0aed9e4210",
+  "files": [
+    {
+      "label": "cc0Narrow",
+      "file": "E:\\zeldaremake\\art\\characters\\link\\experiments\\2026-09-13\\source-runtime\\cc0-arm-narrow-study.blend",
+      "sha256": "cee946187ceb8a72ab58f1b0208b11e57aaa992658ae0a1d92d834280a24392d",
+      "actions": [
+        {
+          "original": {
+            "name": "run | blended CC0 arms.001",
+            "frame_range": [
+              0,
+              56
+            ],
+            "bones": {
+              "shoulderL": {
+                "keys": [
+                  89,
+                  89,
+                  89,
+                  89
+                ],
+                "off_integer_keys": 32,
+                "interpolation": [
+                  "LINEAR"
+                ],
+                "adjacent_240hz_max_degrees": 29.572254960889847,
+                "samplesSha256": "4a8daa220777e64ca85d8986e7d07ebf32b02e7fd68e9ccd3dde889ab1209ce6"
+              },
+              "shoulderR": {
+                "keys": [
+                  89,
+                  89,
+                  89,
+                  89
+                ],
+                "off_integer_keys": 32,
+                "interpolation": [
+                  "LINEAR"
+                ],
+                "adjacent_240hz_max_degrees": 31.67599711286726,
+                "samplesSha256": "59f9346542f5fa69985e76ebadad37618f9a725b3956c3ecc08189c6425322a9"
+              },
+              "elbowL": {
+                "keys": [
+                  89,
+                  89,
+                  89,
+                  89
+                ],
+                "off_integer_keys": 32,
+                "interpolation": [
+                  "LINEAR"
+                ],
+                "adjacent_240hz_max_degrees": 22.79931700334582,
+                "samplesSha256": "7422b9350fa4f317d581903f8c3d0fc4814c427ee2643ae9e3578da4217be851"
+              },
+              "elbowR": {
+                "keys": [
+                  89,
+                  89,
+                  89,
+                  89
+                ],
+                "off_integer_keys": 32,
+                "interpolation": [
+                  "LINEAR"
+                ],
+                "adjacent_240hz_max_degrees": 23.874796143603543,
+                "samplesSha256": "4fffa47a851ef7d4e765e33c8ab2722494cce524c355ace3f59ad3b52e87f4ec"
+              },
+              "handL": {
+                "keys": [
+                  89,
+                  89,
+                  89,
+                  89
+                ],
+                "off_integer_keys": 32,
+                "interpolation": [
+                  "LINEAR"
+                ],
+                "adjacent_240hz_max_degrees": 24.813443814105316,
+                "samplesSha256": "2c591f0afdad683dd18b1ee9c599ca87750ddb688dc9d7b5d2f4517558637ff5"
+              },
+              "handR": {
+                "keys": [
+                  89,
+                  89,
+                  89,
+                  89
+                ],
+                "off_integer_keys": 32,
+                "interpolation": [
+                  "LINEAR"
+                ],
+                "adjacent_240hz_max_degrees": 34.8761854931965,
+                "samplesSha256": "14afb04def06a9c0ca567faf591d3d37455819ca8c6f2169cfa0e991ea6fe7e8"
+              }
+            }
+          },
+          "integer_grid_only": {
+            "name": "diagnostic | integer keys only | cc0Narrow",
+            "frame_range": [
+              0,
+              56
+            ],
+            "bones": {
+              "shoulderL": {
+                "keys": [
+                  57,
+                  57,
+                  57,
+                  57
+                ],
+                "off_integer_keys": 0,
+                "interpolation": [
+                  "LINEAR"
+                ],
+                "adjacent_240hz_max_degrees": 1.3428775164193991,
+                "samplesSha256": "98ce46c62a39a220bf156ae7522127ac87abd37187b8e7e3032d7771276dc06e"
+              },
+              "shoulderR": {
+                "keys": [
+                  57,
+                  57,
+                  57,
+                  57
+                ],
+                "off_integer_keys": 0,
+                "interpolation": [
+                  "LINEAR"
+                ],
+                "adjacent_240hz_max_degrees": 1.4254363325334722,
+                "samplesSha256": "c2706bfc8af6e7aeccae3764e0b660005b1a92125baaa793717a30aeb9cf6765"
+              },
+              "elbowL": {
+                "keys": [
+                  57,
+                  57,
+                  57,
+                  57
+                ],
+                "off_integer_keys": 0,
+                "interpolation": [
+                  "LINEAR"
+                ],
+                "adjacent_240hz_max_degrees": 1.4515537145262207,
+                "samplesSha256": "d456be7f80c82f26385d3386c6bc9c9cc8845e13290147fb7abe0585e3f27094"
+              },
+              "elbowR": {
+                "keys": [
+                  57,
+                  57,
+                  57,
+                  57
+                ],
+                "off_integer_keys": 0,
+                "interpolation": [
+                  "LINEAR"
+                ],
+                "adjacent_240hz_max_degrees": 1.4237880899146562,
+                "samplesSha256": "b63a116faf1e43afb3d54eadaa5c05be206398bff778295668df85da3c1f5306"
+              },
+              "handL": {
+                "keys": [
+                  57,
+                  57,
+                  57,
+                  57
+                ],
+                "off_integer_keys": 0,
+                "interpolation": [
+                  "LINEAR"
+                ],
+                "adjacent_240hz_max_degrees": 0.7187293163946428,
+                "samplesSha256": "ee1f0d4b604b50e20697f0a5c4fcc168e49fe889577bd777536f8f164361944d"
+              },
+              "handR": {
+                "keys": [
+                  57,
+                  57,
+                  57,
+                  57
+                ],
+                "off_integer_keys": 0,
+                "interpolation": [
+                  "LINEAR"
+                ],
+                "adjacent_240hz_max_degrees": 0.9503789952490361,
+                "samplesSha256": "18360299eed02a3b922ad704214b34b90de4909895ed241e66e455fe909af1f6"
+              }
+            }
+          },
+          "retime_before_update": {
+            "name": "diagnostic | original in-place retime",
+            "frame_range": [
+              0,
+              112
+            ],
+            "bones": {
+              "shoulderL": {
+                "keys": [
+                  89,
+                  89,
+                  89,
+                  89
+                ],
+                "off_integer_keys": 32,
+                "interpolation": [
+                  "LINEAR"
+                ],
+                "adjacent_240hz_max_degrees": 29.572254960889847,
+                "samplesSha256": "4a8daa220777e64ca85d8986e7d07ebf32b02e7fd68e9ccd3dde889ab1209ce6"
+              },
+              "shoulderR": {
+                "keys": [
+                  89,
+                  89,
+                  89,
+                  89
+                ],
+                "off_integer_keys": 32,
+                "interpolation": [
+                  "LINEAR"
+                ],
+                "adjacent_240hz_max_degrees": 31.67599711286726,
+                "samplesSha256": "59f9346542f5fa69985e76ebadad37618f9a725b3956c3ecc08189c6425322a9"
+              },
+              "elbowL": {
+                "keys": [
+                  89,
+                  89,
+                  89,
+                  89
+                ],
+                "off_integer_keys": 32,
+                "interpolation": [
+                  "LINEAR"
+                ],
+                "adjacent_240hz_max_degrees": 22.79931700334582,
+                "samplesSha256": "7422b9350fa4f317d581903f8c3d0fc4814c427ee2643ae9e3578da4217be851"
+              },
+              "elbowR": {
+                "keys": [
+                  89,
+                  89,
+                  89,
+                  89
+                ],
+                "off_integer_keys": 32,
+                "interpolation": [
+                  "LINEAR"
+                ],
+                "adjacent_240hz_max_degrees": 23.874796143603543,
+                "samplesSha256": "4fffa47a851ef7d4e765e33c8ab2722494cce524c355ace3f59ad3b52e87f4ec"
+              },
+              "handL": {
+                "keys": [
+                  89,
+                  89,
+                  89,
+                  89
+                ],
+                "off_integer_keys": 32,
+                "interpolation": [
+                  "LINEAR"
+                ],
+                "adjacent_240hz_max_degrees": 24.813443814105316,
+                "samplesSha256": "2c591f0afdad683dd18b1ee9c599ca87750ddb688dc9d7b5d2f4517558637ff5"
+              },
+              "handR": {
+                "keys": [
+                  89,
+                  89,
+                  89,
+                  89
+                ],
+                "off_integer_keys": 32,
+                "interpolation": [
+                  "LINEAR"
+                ],
+                "adjacent_240hz_max_degrees": 34.8761854931965,
+                "samplesSha256": "14afb04def06a9c0ca567faf591d3d37455819ca8c6f2169cfa0e991ea6fe7e8"
+              }
+            }
+          },
+          "retime_after_update": {
+            "name": "diagnostic | original in-place retime",
+            "frame_range": [
+              0,
+              112
+            ],
+            "bones": {
+              "shoulderL": {
+                "keys": [
+                  89,
+                  89,
+                  89,
+                  89
+                ],
+                "off_integer_keys": 32,
+                "interpolation": [
+                  "LINEAR"
+                ],
+                "adjacent_240hz_max_degrees": 29.572254960889847,
+                "samplesSha256": "4a8daa220777e64ca85d8986e7d07ebf32b02e7fd68e9ccd3dde889ab1209ce6"
+              },
+              "shoulderR": {
+                "keys": [
+                  89,
+                  89,
+                  89,
+                  89
+                ],
+                "off_integer_keys": 32,
+                "interpolation": [
+                  "LINEAR"
+                ],
+                "adjacent_240hz_max_degrees": 31.67599711286726,
+                "samplesSha256": "59f9346542f5fa69985e76ebadad37618f9a725b3956c3ecc08189c6425322a9"
+              },
+              "elbowL": {
+                "keys": [
+                  89,
+                  89,
+                  89,
+                  89
+                ],
+                "off_integer_keys": 32,
+                "interpolation": [
+                  "LINEAR"
+                ],
+                "adjacent_240hz_max_degrees": 22.79931700334582,
+                "samplesSha256": "7422b9350fa4f317d581903f8c3d0fc4814c427ee2643ae9e3578da4217be851"
+              },
+              "elbowR": {
+                "keys": [
+                  89,
+                  89,
+                  89,
+                  89
+                ],
+                "off_integer_keys": 32,
+                "interpolation": [
+                  "LINEAR"
+                ],
+                "adjacent_240hz_max_degrees": 23.874796143603543,
+                "samplesSha256": "4fffa47a851ef7d4e765e33c8ab2722494cce524c355ace3f59ad3b52e87f4ec"
+              },
+              "handL": {
+                "keys": [
+                  89,
+                  89,
+                  89,
+                  89
+                ],
+                "off_integer_keys": 32,
+                "interpolation": [
+                  "LINEAR"
+                ],
+                "adjacent_240hz_max_degrees": 24.813443814105316,
+                "samplesSha256": "2c591f0afdad683dd18b1ee9c599ca87750ddb688dc9d7b5d2f4517558637ff5"
+              },
+              "handR": {
+                "keys": [
+                  89,
+                  89,
+                  89,
+                  89
+                ],
+                "off_integer_keys": 32,
+                "interpolation": [
+                  "LINEAR"
+                ],
+                "adjacent_240hz_max_degrees": 34.8761854931965,
+                "samplesSha256": "14afb04def06a9c0ca567faf591d3d37455819ca8c6f2169cfa0e991ea6fe7e8"
+              }
+            }
+          },
+          "retimeUpdateSamplesExact": true
+        }
+      ]
+    },
+    {
+      "label": "retainedFlight",
+      "file": "E:\\zeldaremake\\art\\characters\\link\\progress\\2026-09-19-run-contact\\run-flight-retained-action.blend",
+      "sha256": "90f114a0791f72dd1254ce96018ee90d5967d6c9756d22bdf67daea35e09327b",
+      "actions": [
+        {
+          "original": {
+            "name": "run | velocity continuous contact September19.003",
+            "frame_range": [
+              0,
+              112
+            ],
+            "bones": {
+              "shoulderL": {
+                "keys": [
+                  89,
+                  89,
+                  89,
+                  89
+                ],
+                "off_integer_keys": 32,
+                "interpolation": [
+                  "LINEAR"
+                ],
+                "adjacent_240hz_max_degrees": 29.572254960889847,
+                "samplesSha256": "4a8daa220777e64ca85d8986e7d07ebf32b02e7fd68e9ccd3dde889ab1209ce6"
+              },
+              "shoulderR": {
+                "keys": [
+                  89,
+                  89,
+                  89,
+                  89
+                ],
+                "off_integer_keys": 32,
+                "interpolation": [
+                  "LINEAR"
+                ],
+                "adjacent_240hz_max_degrees": 31.67599711286726,
+                "samplesSha256": "59f9346542f5fa69985e76ebadad37618f9a725b3956c3ecc08189c6425322a9"
+              },
+              "elbowL": {
+                "keys": [
+                  89,
+                  89,
+                  89,
+                  89
+                ],
+                "off_integer_keys": 32,
+                "interpolation": [
+                  "LINEAR"
+                ],
+                "adjacent_240hz_max_degrees": 22.79931700334582,
+                "samplesSha256": "7422b9350fa4f317d581903f8c3d0fc4814c427ee2643ae9e3578da4217be851"
+              },
+              "elbowR": {
+                "keys": [
+                  89,
+                  89,
+                  89,
+                  89
+                ],
+                "off_integer_keys": 32,
+                "interpolation": [
+                  "LINEAR"
+                ],
+                "adjacent_240hz_max_degrees": 23.874796143603543,
+                "samplesSha256": "4fffa47a851ef7d4e765e33c8ab2722494cce524c355ace3f59ad3b52e87f4ec"
+              },
+              "handL": {
+                "keys": [
+                  89,
+                  89,
+                  89,
+                  89
+                ],
+                "off_integer_keys": 32,
+                "interpolation": [
+                  "LINEAR"
+                ],
+                "adjacent_240hz_max_degrees": 24.813443814105316,
+                "samplesSha256": "2c591f0afdad683dd18b1ee9c599ca87750ddb688dc9d7b5d2f4517558637ff5"
+              },
+              "handR": {
+                "keys": [
+                  89,
+                  89,
+                  89,
+                  89
+                ],
+                "off_integer_keys": 32,
+                "interpolation": [
+                  "LINEAR"
+                ],
+                "adjacent_240hz_max_degrees": 34.8761854931965,
+                "samplesSha256": "14afb04def06a9c0ca567faf591d3d37455819ca8c6f2169cfa0e991ea6fe7e8"
+              }
+            }
+          },
+          "integer_grid_only": {
+            "name": "diagnostic | integer keys only | retainedFlight",
+            "frame_range": [
+              0,
+              112
+            ],
+            "bones": {
+              "shoulderL": {
+                "keys": [
+                  57,
+                  57,
+                  57,
+                  57
+                ],
+                "off_integer_keys": 0,
+                "interpolation": [
+                  "LINEAR"
+                ],
+                "adjacent_240hz_max_degrees": 1.3428775164193991,
+                "samplesSha256": "98ce46c62a39a220bf156ae7522127ac87abd37187b8e7e3032d7771276dc06e"
+              },
+              "shoulderR": {
+                "keys": [
+                  57,
+                  57,
+                  57,
+                  57
+                ],
+                "off_integer_keys": 0,
+                "interpolation": [
+                  "LINEAR"
+                ],
+                "adjacent_240hz_max_degrees": 1.4254363325334722,
+                "samplesSha256": "c2706bfc8af6e7aeccae3764e0b660005b1a92125baaa793717a30aeb9cf6765"
+              },
+              "elbowL": {
+                "keys": [
+                  57,
+                  57,
+                  57,
+                  57
+                ],
+                "off_integer_keys": 0,
+                "interpolation": [
+                  "LINEAR"
+                ],
+                "adjacent_240hz_max_degrees": 1.4515537145262207,
+                "samplesSha256": "d456be7f80c82f26385d3386c6bc9c9cc8845e13290147fb7abe0585e3f27094"
+              },
+              "elbowR": {
+                "keys": [
+                  57,
+                  57,
+                  57,
+                  57
+                ],
+                "off_integer_keys": 0,
+                "interpolation": [
+                  "LINEAR"
+                ],
+                "adjacent_240hz_max_degrees": 1.4237880899146562,
+                "samplesSha256": "b63a116faf1e43afb3d54eadaa5c05be206398bff778295668df85da3c1f5306"
+              },
+              "handL": {
+                "keys": [
+                  57,
+                  57,
+                  57,
+                  57
+                ],
+                "off_integer_keys": 0,
+                "interpolation": [
+                  "LINEAR"
+                ],
+                "adjacent_240hz_max_degrees": 0.7187293163946428,
+                "samplesSha256": "ee1f0d4b604b50e20697f0a5c4fcc168e49fe889577bd777536f8f164361944d"
+              },
+              "handR": {
+                "keys": [
+                  57,
+                  57,
+                  57,
+                  57
+                ],
+                "off_integer_keys": 0,
+                "interpolation": [
+                  "LINEAR"
+                ],
+                "adjacent_240hz_max_degrees": 0.9503789952490361,
+                "samplesSha256": "18360299eed02a3b922ad704214b34b90de4909895ed241e66e455fe909af1f6"
+              }
+            }
+          }
+        }
+      ]
+    }
+  ]
+}

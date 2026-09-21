@@ -1,0 +1,570 @@
+{
+  "scope": "CPU-only raw production. Frozen e3ef asset; frames120 through589 per direction, warmup from80. All327 production rest-sole vertices tested. Not global/swept collision proof or transition coverage.",
+  "status": "PASS after outward timber, shared dense sole support, dense hip endpoint guard and timber shoulder raster acceptance.",
+  "inputs": {
+    "baselineRef": "working-source",
+    "runtimeSha256": "34681bb92593e3e536234fd33dcd60d0fe404201124a6341d6331a1a2484323c",
+    "candidateSha256": "fa18f6e1358db348f3de8244e5b1d2b361c6d09f411ebcd69b1d91dd49e7b1ad",
+    "groundRef": "working-source",
+    "groundSha256": "5b1bd609c80ffefdea080defcf0c89e1387174a650db710a066e57fae35de561",
+    "assetFile": "art/characters/link/progress/2026-09-21-motion-integration/stairs-upright-candidate.glb",
+    "assetSha256": "e3ef74a02336b5f6952ed340e8191369284dacc92da9b5782dd9f3cb7dceb552",
+    "sourceManifest": "art/characters/link/progress/2026-09-21-stair-clearance/motion-input.json",
+    "manifestSha256": "c08e57df3aa930580c9d6f1b3ba52e5d3498169c94493c55021c463302f25990",
+    "phaseFile": "art/characters/link/progress/2026-09-21-stair-clearance/phase-reference.json",
+    "includeLogs": true,
+    "dependencies": {
+      "src/world/hardscape/stairs.ts": "73133a0745e2455dd6e059fb70baa14a5bbdadee72f4dd251268da1f6cf76e11",
+      "src/world/terrain/heightfield.ts": "c09159bab3d264542daaeeecead41cad7f6d679a8b09097a5f745fc8f4ce2af3",
+      "src/world/layout.ts": "790de1455bc08d36f42eee3615e43371767a42abcc585651fd051feebe3923e0",
+      "src/world/config.ts": "9af72376d8b55bcee8ddd53a3b6b648292a19ecc6aabb75c003dabc72fe98b02",
+      "src/world/util/prng.ts": "95beabffc3f533bf54b61d3596c5c8c31a92d7fb667a43439e9b730654fa14b9",
+      "src/world/hardscape/logNosings.ts": "a5def33b461fe07c3fefab06c0da0466fb085fa870e38d53876997f85cc72e3a",
+      "src/world/hardscape/index.ts": "ab2b9f8398eb9d5c0b86999eeab34cbe85be83a0603da9611d7097223ca41eb8"
+    },
+    "gitHead": "59cba21b439a4a74e3d6f75a7989926c21d2bb74",
+    "createdAt": "2026-09-21T18:32:36.185Z"
+  },
+  "exactCrossChecks": {
+    "count": 7520,
+    "maxErrorM": 1.7763568394002505e-15,
+    "triangles": 22744,
+    "buckets": 4664
+  },
+  "geometry": {
+    "positionsSha256": "0f864dc29d8f6d8d6b9b48c679a17a8752cac63c6b14e25b5b707243f5fa09e3",
+    "indicesSha256": null,
+    "vertices": 42255,
+    "triangles": 14085,
+    "surface": {
+      "cells": 0,
+      "covered": 0,
+      "cellSize": 0.1,
+      "triangles": 0,
+      "stairs": {
+        "flights": 1,
+        "cells": 1218224,
+        "covered": 401184,
+        "cellSize": 0.01,
+        "triangles": 21151
+      }
+    },
+    "meshes": [
+      {
+        "name": "stairs-main",
+        "positionsSha256": "0f864dc29d8f6d8d6b9b48c679a17a8752cac63c6b14e25b5b707243f5fa09e3",
+        "indicesSha256": null,
+        "vertices": 42255,
+        "triangles": 14085
+      },
+      {
+        "name": "stairs-main-logs",
+        "positionsSha256": "d7ce71daa843b15dce38ff4527345afde5f742a0957709aa1eb9f302fa8706f7",
+        "indicesSha256": "452caf0d203b51ee61d10228162eac29ed873bc4651f2b55eabbc4ebecb8a29c",
+        "vertices": 12680,
+        "triangles": 21280
+      }
+    ]
+  },
+  "flat": {
+    "idle": "1471f111422376d1c2f7ca9ac3114ebb862a2bc21cd129290f84912fd2ecff84",
+    "walk": "d436df87777f8314cd21de31547618ea65c341359a9bb969358e00899048ddcb",
+    "run": "38eb9b527fbfce83b4f187ed254292d82e8768a7a55e7b6dd217b9944c524dde"
+  },
+  "flatExactVsOriginal": true,
+  "scenarios": {
+    "stairs-up": {
+      "frames": 470,
+      "soleVerticesPerFrame": 327,
+      "soleQueries": 153690,
+      "nativeMarkerRays": 3760,
+      "fullSoleMinimum": {
+        "frame": 168,
+        "vertices": 327,
+        "hits": 327,
+        "minGap": 0.0011875730105130877,
+        "worst": {
+          "side": "R",
+          "vertex": 49755,
+          "point": [
+            9.600075491000526,
+            1.621090697338313,
+            -1.8142464030430419
+          ],
+          "mesh": "stairs-main"
+        }
+      },
+      "eightMarkerMinimum": {
+        "frame": 168,
+        "gapM": 0.0026613720932522344
+      },
+      "summary": {
+        "maxRootStep": 0.031105019267852363,
+        "maxKnee": 168.26447198222724,
+        "maxPlantedDrift": 1.6379863033504008e-06,
+        "minSoleGap": 0.0026613720932522344
+      },
+      "reachClampFrames": 0,
+      "selectedNativeFullSoleRays": 1635,
+      "selectedNativeFullSoleMinima": [
+        {
+          "frame": 121,
+          "soleVertices": 327,
+          "rays": 327,
+          "minGap": 0.008116456500376179,
+          "worst": {
+            "side": "R",
+            "vertex": 49655,
+            "point": [
+              9.056732297618199,
+              1.4174464743907635,
+              -1.3752555299928362
+            ],
+            "mesh": "stairs-main-logs",
+            "gridGap": 0.007243017512101435
+          }
+        },
+        {
+          "frame": 129,
+          "soleVertices": 327,
+          "rays": 327,
+          "minGap": 0.008084872999913673,
+          "worst": {
+            "side": "R",
+            "vertex": 49655,
+            "point": [
+              9.056730236957883,
+              1.4174164141045134,
+              -1.3752537118979595
+            ],
+            "mesh": "stairs-main-logs",
+            "gridGap": 0.0072129572258512464
+          }
+        },
+        {
+          "frame": 139,
+          "soleVertices": 327,
+          "rays": 327,
+          "minGap": 0.008089229989830748,
+          "worst": {
+            "side": "R",
+            "vertex": 49655,
+            "point": [
+              9.05672963111037,
+              1.4174212451165031,
+              -1.375253095469535
+            ],
+            "mesh": "stairs-main-logs",
+            "gridGap": 0.007217788237841027
+          }
+        },
+        {
+          "frame": 168,
+          "soleVertices": 327,
+          "rays": 327,
+          "minGap": 0.0011875730105135318,
+          "worst": {
+            "side": "R",
+            "vertex": 49755,
+            "point": [
+              9.600075491000526,
+              1.621090697338313,
+              -1.8142464030430419
+            ],
+            "mesh": "stairs-main",
+            "gridGap": 0.001090697338312907
+          }
+        },
+        {
+          "frame": 331,
+          "soleVertices": 327,
+          "rays": 327,
+          "minGap": 0.003674721165300987,
+          "worst": {
+            "side": "L",
+            "vertex": 56643,
+            "point": [
+              11.896883282715644,
+              3.309908684320426,
+              -3.8283224491692596
+            ],
+            "mesh": "stairs-main-logs",
+            "gridGap": 0.003591354913687894
+          }
+        }
+      ],
+      "meanSurfaceCalls": 3107.9106382978725,
+      "maxSurfaceCalls": 5448,
+      "original": {
+        "inputs": {
+          "candidateSha256": "4d99129627063eea0b73f9bf233133fb4941d39aa4d3d016aac49cf18eda1361",
+          "groundSha256": "5eb065905485bb210e682f018d61dad2a3c2065229f12fbaf742d01b92938c77"
+        },
+        "summary": {
+          "maxRootStep": 0.030946326636044574,
+          "maxKnee": 174.67008441889539,
+          "maxPlantedDrift": 0.009134691238014378,
+          "minSoleGap": -0.03600095103001655
+        },
+        "meanSurfaceCalls": 1925.2936170212765,
+        "maxSurfaceCalls": 2430,
+        "surfaceCallsIncreasePercent": 61.425281360787196,
+        "negativeEightMarkerFrames": 139,
+        "rootYMaxDifferenceM": 0.2700000000000009
+      },
+      "denseStance": {
+        "inputs": {
+          "candidateSha256": "bac4e1af0bee194f76583ff001f4b27c979b1cebb33d3700146ac546430f1d8f",
+          "groundSha256": "5eb065905485bb210e682f018d61dad2a3c2065229f12fbaf742d01b92938c77"
+        },
+        "summary": {
+          "maxRootStep": 0.031105019267852363,
+          "maxKnee": 174.67008441889539,
+          "maxPlantedDrift": 0.009134691238014378,
+          "minSoleGap": 0.0026613720932522344
+        },
+        "meanSurfaceCalls": 2629.0914893617023,
+        "maxSurfaceCalls": 3362,
+        "surfaceCallsIncreasePercent": 18.212342585781194,
+        "negativeEightMarkerFrames": 0,
+        "rootYMaxDifferenceM": 0.2700000000000009
+      },
+      "swingWithoutDenseHipGuard": {
+        "inputs": {
+          "candidateSha256": "7dd583ca957f3b95faa3aa9d117f998f564611c37898a0935e15921e7fb33085",
+          "groundSha256": "5eb065905485bb210e682f018d61dad2a3c2065229f12fbaf742d01b92938c77"
+        },
+        "summary": {
+          "maxRootStep": 0.031105019267852363,
+          "maxKnee": 174.67008441889539,
+          "maxPlantedDrift": 0.009134691238014378,
+          "minSoleGap": 0.0026613720932522344
+        },
+        "meanSurfaceCalls": 2952.3382978723403,
+        "maxSurfaceCalls": 3977,
+        "surfaceCallsIncreasePercent": 5.269461854613633,
+        "negativeEightMarkerFrames": 0,
+        "rootYMaxDifferenceM": 0.2700000000000009,
+        "negativeFullSoleFrames": 1
+      },
+      "beforeTimberShoulderFix": {
+        "inputs": {
+          "candidateSha256": "cd4650090d7b6f66a524498776b8a5ef0b4fa4abcf909b403a36c6f0fba3defa",
+          "groundSha256": "5eb065905485bb210e682f018d61dad2a3c2065229f12fbaf742d01b92938c77"
+        },
+        "summary": {
+          "maxRootStep": 0.031105019267852363,
+          "maxKnee": 174.67008441889539,
+          "maxPlantedDrift": 0.009134691238014378,
+          "minSoleGap": 0.0026613720932522344
+        },
+        "meanSurfaceCalls": 3101.176595744681,
+        "maxSurfaceCalls": 5466,
+        "surfaceCallsIncreasePercent": 0.2171447624889078,
+        "negativeEightMarkerFrames": 0,
+        "rootYMaxDifferenceM": 0.2700000000000009,
+        "negativeFullSoleFrames": 0
+      },
+      "timberShoulderRootChange": {
+        "maximum": {
+          "frame": 425,
+          "deltaM": 0.2700000000000009
+        },
+        "greaterThan1mmFrames": 116,
+        "greaterThan1mmSpans": [
+          {
+            "start": 298,
+            "end": 355
+          },
+          {
+            "start": 386,
+            "end": 443
+          }
+        ]
+      }
+    },
+    "stairs-down": {
+      "frames": 470,
+      "soleVerticesPerFrame": 327,
+      "soleQueries": 153690,
+      "nativeMarkerRays": 3760,
+      "fullSoleMinimum": {
+        "frame": 194,
+        "vertices": 327,
+        "hits": 327,
+        "minGap": 0.00206587635491573,
+        "worst": {
+          "side": "R",
+          "vertex": 49868,
+          "point": [
+            13.159409801811128,
+            4.114500086742645,
+            -4.82909126039473
+          ],
+          "mesh": "stairs-main-logs"
+        }
+      },
+      "eightMarkerMinimum": {
+        "frame": 192,
+        "gapM": 0.005380821554553883
+      },
+      "summary": {
+        "maxRootStep": 0.023889548786931947,
+        "maxKnee": 166.7017716578768,
+        "maxPlantedDrift": 1.2537657555758748e-06,
+        "minSoleGap": 0.005380821554553883
+      },
+      "reachClampFrames": 0,
+      "selectedNativeFullSoleRays": 2289,
+      "selectedNativeFullSoleMinima": [
+        {
+          "frame": 168,
+          "soleVertices": 327,
+          "rays": 327,
+          "minGap": 0.00807120059157107,
+          "worst": {
+            "side": "L",
+            "vertex": 56493,
+            "point": [
+              13.74078736040303,
+              4.38899425207626,
+              -4.959831565781691
+            ],
+            "mesh": "stairs-main-logs",
+            "gridGap": 0.007975613465419862
+          }
+        },
+        {
+          "frame": 194,
+          "soleVertices": 327,
+          "rays": 327,
+          "minGap": 0.00206587635491573,
+          "worst": {
+            "side": "R",
+            "vertex": 49868,
+            "point": [
+              13.159409801811128,
+              4.114500086742645,
+              -4.82909126039473
+            ],
+            "mesh": "stairs-main-logs",
+            "gridGap": 0.003530543285613419
+          }
+        },
+        {
+          "frame": 257,
+          "soleVertices": 327,
+          "rays": 327,
+          "minGap": 0.006677357829024011,
+          "worst": {
+            "side": "R",
+            "vertex": 49923,
+            "point": [
+              11.93951408247623,
+              3.2928236852907427,
+              -3.8983358326452255
+            ],
+            "mesh": "stairs-main-logs",
+            "gridGap": 0.0025838743471391368
+          }
+        },
+        {
+          "frame": 345,
+          "soleVertices": 327,
+          "rays": 327,
+          "minGap": 0.005746123119280355,
+          "worst": {
+            "side": "R",
+            "vertex": 49923,
+            "point": [
+              10.667397007896716,
+              2.4852939910388985,
+              -2.9060845143677505
+            ],
+            "mesh": "stairs-main-logs",
+            "gridGap": 0.003781921336750038
+          }
+        },
+        {
+          "frame": 375,
+          "soleVertices": 327,
+          "rays": 327,
+          "minGap": 0.008244069365398232,
+          "worst": {
+            "side": "L",
+            "vertex": 56155,
+            "point": [
+              10.566759101391966,
+              2.160977767811941,
+              -2.604467147543648
+            ],
+            "mesh": "stairs-main",
+            "gridGap": 0.0009777678119409217
+          }
+        },
+        {
+          "frame": 521,
+          "soleVertices": 327,
+          "rays": 327,
+          "minGap": 0.005184828230694105,
+          "worst": {
+            "side": "L",
+            "vertex": 56492,
+            "point": [
+              8.62463000973668,
+              1.1418584690657707,
+              -0.970147732342886
+            ],
+            "mesh": "stairs-main-logs",
+            "gridGap": 0.0040701733199211
+          }
+        },
+        {
+          "frame": 522,
+          "soleVertices": 327,
+          "rays": 327,
+          "minGap": 0.007097528855272595,
+          "worst": {
+            "side": "L",
+            "vertex": 56333,
+            "point": [
+              8.605357363315647,
+              1.1444101431991496,
+              -1.0663801341828296
+            ],
+            "mesh": "stairs-main-logs",
+            "gridGap": 0.0069682696487345375
+          }
+        }
+      ],
+      "meanSurfaceCalls": 3147.891489361702,
+      "maxSurfaceCalls": 6124,
+      "original": {
+        "inputs": {
+          "candidateSha256": "4d99129627063eea0b73f9bf233133fb4941d39aa4d3d016aac49cf18eda1361",
+          "groundSha256": "5eb065905485bb210e682f018d61dad2a3c2065229f12fbaf742d01b92938c77"
+        },
+        "summary": {
+          "maxRootStep": 0.023445841849308202,
+          "maxKnee": 166.82032221180924,
+          "maxPlantedDrift": 1.3068129405159911e-06,
+          "minSoleGap": -0.016019319607010196
+        },
+        "meanSurfaceCalls": 1933.6936170212766,
+        "maxSurfaceCalls": 2709,
+        "surfaceCallsIncreasePercent": 62.7916367749517,
+        "negativeEightMarkerFrames": 119,
+        "rootYMaxDifferenceM": 0.02954280376434304
+      },
+      "denseStance": {
+        "inputs": {
+          "candidateSha256": "bac4e1af0bee194f76583ff001f4b27c979b1cebb33d3700146ac546430f1d8f",
+          "groundSha256": "5eb065905485bb210e682f018d61dad2a3c2065229f12fbaf742d01b92938c77"
+        },
+        "summary": {
+          "maxRootStep": 0.023889548786931947,
+          "maxKnee": 166.82032221180924,
+          "maxPlantedDrift": 1.2530556267888605e-06,
+          "minSoleGap": 0.0023678955791286427
+        },
+        "meanSurfaceCalls": 2628.404255319149,
+        "maxSurfaceCalls": 3559,
+        "surfaceCallsIncreasePercent": 19.764358279030226,
+        "negativeEightMarkerFrames": 0,
+        "rootYMaxDifferenceM": 4.440892098500626e-16
+      },
+      "swingWithoutDenseHipGuard": {
+        "inputs": {
+          "candidateSha256": "7dd583ca957f3b95faa3aa9d117f998f564611c37898a0935e15921e7fb33085",
+          "groundSha256": "5eb065905485bb210e682f018d61dad2a3c2065229f12fbaf742d01b92938c77"
+        },
+        "summary": {
+          "maxRootStep": 0.023889548786931947,
+          "maxKnee": 166.82032221180924,
+          "maxPlantedDrift": 1.2530556267888605e-06,
+          "minSoleGap": 0.005380821554553883
+        },
+        "meanSurfaceCalls": 2950.682978723404,
+        "maxSurfaceCalls": 4174,
+        "surfaceCallsIncreasePercent": 6.683486909990544,
+        "negativeEightMarkerFrames": 0,
+        "rootYMaxDifferenceM": 4.440892098500626e-16,
+        "negativeFullSoleFrames": 0
+      },
+      "beforeTimberShoulderFix": {
+        "inputs": {
+          "candidateSha256": "cd4650090d7b6f66a524498776b8a5ef0b4fa4abcf909b403a36c6f0fba3defa",
+          "groundSha256": "5eb065905485bb210e682f018d61dad2a3c2065229f12fbaf742d01b92938c77"
+        },
+        "summary": {
+          "maxRootStep": 0.023889548786931947,
+          "maxKnee": 166.82032221180924,
+          "maxPlantedDrift": 1.2530556267888605e-06,
+          "minSoleGap": 0.005380821554553883
+        },
+        "meanSurfaceCalls": 3095.0659574468086,
+        "maxSurfaceCalls": 5831,
+        "surfaceCallsIncreasePercent": 1.7067659507479682,
+        "negativeEightMarkerFrames": 0,
+        "rootYMaxDifferenceM": 4.440892098500626e-16,
+        "negativeFullSoleFrames": 0
+      },
+      "timberShoulderRootChange": {
+        "maximum": {
+          "frame": 300,
+          "deltaM": -4.440892098500626e-16
+        },
+        "greaterThan1mmFrames": 0,
+        "greaterThan1mmSpans": []
+      }
+    }
+  },
+  "nativeCaptureCoverageNote": "Initial-patch native minima ascent96/descent80 are outside CPU measurement interval and depend on earlier pin history. Root is capturing all327 vertices over actual player transitions separately.",
+  "smallProductionRegression": {
+    "cfg": {
+      "shift": 0,
+      "support": 1.4126116037368774,
+      "pitch": 0,
+      "back": 0.06954021545937979,
+      "ahead": 0.11841791672890375
+    },
+    "contacts": [
+      {
+        "requiredSupport": 1.3899145516794207,
+        "mesh": "stairs-main-logs"
+      },
+      {
+        "requiredSupport": 1.365786920495235,
+        "mesh": "stairs-main-logs"
+      },
+      {
+        "requiredSupport": 1.0699569869965013,
+        "mesh": "stairs-main"
+      },
+      {
+        "requiredSupport": 1.404453132356342,
+        "mesh": "stairs-main-logs"
+      }
+    ],
+    "flatCfg": {
+      "shift": 0,
+      "support": 0,
+      "pitch": 0,
+      "back": 0.06954021347629329,
+      "ahead": 0.11841791527403096
+    },
+    "missingSupport": -0.008158471380535381,
+    "before": false,
+    "pageErrors": [],
+    "sourceSha256": "0620e817ef8a6ba61f4d5e5406649d1e4162a83178bbebc3ddeeb3c8d4de2a4c"
+  },
+  "historicalNegativeControl": {
+    "command": "node art/characters/link/progress/2026-09-21-curved-support/check.mjs --before",
+    "expectedExit": "nonzero",
+    "missingSupportM": 0.00928399344795583,
+    "historicalSource": "6c13f70c:src/world/character/glbLink.ts",
+    "withGroundSha256": "5b1bd609c80ffefdea080defcf0c89e1387174a650db710a066e57fae35de561",
+    "note": "Historical glbLink.ts is checked with current outward geometry and corrected current ground sampler. The older sampler had35.996mm missing support; corrected ground reduces the remaining deficit to9.284mm, which still fails."
+  },
+  "performanceScope": "Instrumented surface-sampler call counts; not production frame-time or GPU benchmark."
+}

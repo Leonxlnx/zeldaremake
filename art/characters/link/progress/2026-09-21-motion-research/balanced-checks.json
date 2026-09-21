@@ -1,0 +1,151 @@
+{
+  "baseSha256": "e3ef74a02336b5f6952ed340e8191369284dacc92da9b5782dd9f3cb7dceb552",
+  "candidateSha256": "053a1536b456a08f2e40adf813724d24c21ee60b80c900eda1d16734416172e6",
+  "measuredRuntimeSha256": "63904e225810b56337bfaecde9fd4aef1e809248ea952e9461dcf771a9272107",
+  "currentRuntimeSha256": "63904e225810b56337bfaecde9fd4aef1e809248ea952e9461dcf771a9272107",
+  "sourceUnchangedSinceRun": true,
+  "originalComparatorExit": 1,
+  "originalComparatorFailure": "Native sampled head difference 0.0013890842125390951 degrees exceeds 0.0001 degree tolerance.",
+  "remainingStructuralAssertionsCheckedIndependentlyAndPass": true,
+  "rawEndpointQuaternionComponentsExact": true,
+  "modes": {
+    "native": {
+      "sampleCount": 113,
+      "specsEqual": true,
+      "lowerBodyMatricesExactlyEqual": true,
+      "rootFootIkTraceExactlyEqual": null,
+      "headOrientationDifferenceDeg": 0.0013890842125390951,
+      "headWithin00001DegreeTolerance": false,
+      "candidateYaw": {
+        "min": -2.0172698791636594,
+        "max": 1.9877904777219102,
+        "mean": 0.010867148025527051
+      },
+      "candidateLean": {
+        "min": 4.928020861283427,
+        "max": 5.571959966329716,
+        "mean": 5.250529094331556
+      },
+      "candidateChestLean": {
+        "min": 6.988830726869318,
+        "max": 7.901396489096181,
+        "mean": 7.445887474460139
+      },
+      "points": {
+        "head": {
+          "min": 0.00001981232909040712,
+          "max": 0.001169390019697972,
+          "mean": 0.0007722089775982359
+        },
+        "handL": {
+          "min": 0.00014608504929916738,
+          "max": 0.010389101122544597,
+          "mean": 0.0062223672783378635
+        },
+        "handR": {
+          "min": 0.00016632667286339646,
+          "max": 0.010391101802546775,
+          "mean": 0.006360929534484653
+        }
+      },
+      "zeroDt": []
+    },
+    "capture": {
+      "sampleCount": 600,
+      "specsEqual": true,
+      "lowerBodyMatricesExactlyEqual": true,
+      "rootFootIkTraceExactlyEqual": true,
+      "headOrientationDifferenceDeg": 0.001848269098082887,
+      "headWithin00001DegreeTolerance": false,
+      "candidateYaw": {
+        "min": -2.014364650396641,
+        "max": 1.9844924871585699,
+        "mean": 0.025328524384968465
+      },
+      "candidateLean": {
+        "min": 4.928468775335487,
+        "max": 5.571229970757122,
+        "mean": 5.248359450059072
+      },
+      "candidateChestLean": {
+        "min": 6.989465791753406,
+        "max": 7.900364064893282,
+        "mean": 7.442812658797531
+      },
+      "points": {
+        "head": {
+          "min": 0.0000982591308933876,
+          "max": 0.0011685147783335184,
+          "mean": 0.0007732576681429743
+        },
+        "handL": {
+          "min": 0.000669586052977397,
+          "max": 0.010375597279076445,
+          "mean": 0.006194470348198477
+        },
+        "handR": {
+          "min": 0.0008208782392442193,
+          "max": 0.01037566365426338,
+          "mean": 0.006349205440234089
+        }
+      },
+      "zeroDt": []
+    },
+    "play": {
+      "sampleCount": 600,
+      "specsEqual": true,
+      "lowerBodyMatricesExactlyEqual": true,
+      "rootFootIkTraceExactlyEqual": true,
+      "headOrientationDifferenceDeg": 0.0027675359506602435,
+      "headWithin00001DegreeTolerance": false,
+      "candidateYaw": {
+        "min": -2.0169889915758192,
+        "max": 1.9874740918266134,
+        "mean": 0.005432460233339676
+      },
+      "candidateLean": {
+        "min": 4.928022516243967,
+        "max": 5.571944880244513,
+        "mean": 5.248433312849957
+      },
+      "candidateChestLean": {
+        "min": 6.988833073314607,
+        "max": 7.901375235886025,
+        "mean": 7.442917272320712
+      },
+      "points": {
+        "head": {
+          "min": 0.000003876087458103245,
+          "max": 0.0011692780397708808,
+          "mean": 0.0007699485796399425
+        },
+        "handL": {
+          "min": 0.00002660541787861774,
+          "max": 0.010401413653012911,
+          "mean": 0.006177934161572333
+        },
+        "handR": {
+          "min": 0.00003345513634186364,
+          "max": 0.010391324402907671,
+          "mean": 0.006308047088184463
+        }
+      },
+      "zeroDt": [
+        {
+          "headOrientationDeg": 0,
+          "handTranslationM": {
+            "L": 2.237726045655905e-16,
+            "R": 0
+          }
+        },
+        {
+          "headOrientationDeg": 0,
+          "handTranslationM": {
+            "L": 2.237726045655905e-16,
+            "R": 0
+          }
+        }
+      ]
+    }
+  }
+}

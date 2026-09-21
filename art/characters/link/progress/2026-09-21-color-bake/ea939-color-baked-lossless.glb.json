@@ -1,0 +1,51 @@
+{
+  "input": "E:\\zeldaremake-astra-motion-sept21\\public\\models\\link\\link-runtime.glb",
+  "inputSha256": "ea93932d8afe02ec4bbcf3487fb20ce3f55272fb60f20998dc728cb637ae575f",
+  "output": "E:\\zeldaremake-astra-motion-sept21\\art\\characters\\link\\progress\\2026-09-21-color-bake\\ea939-color-baked-lossless.glb",
+  "outputSha256": "3cb51f3653c0519f33fe32653d7351c5ff3d7c38944cb7f00001fcb673f704c7",
+  "inputBytes": 47784756,
+  "outputBytes": 60493640,
+  "originalBinaryPrefixBytes": 47665288,
+  "originalBinaryPrefixSha256": "a36ff8510658d1b61d8091aa49ee5af763f9f5f3aecdf437797d8f5e10c1cfc8",
+  "encoding": "lossless",
+  "changedImages": [
+    {
+      "index": 2,
+      "file": "baked-hardware-body-color-lossless.png",
+      "pngSha256": "9c2dbff2a91327738bbab2f846b20c77d1a7bd3b2f4635de18a004adf0f0f6e9",
+      "rgbaSha256": "2e024fb6b314b23b06a2b31ae3ff101648f9d37e23b71c82126aab72cf63c117"
+    },
+    {
+      "index": 4,
+      "file": "baked-face-orbital-color-lossless.png",
+      "pngSha256": "ef8b3c7dc71fc5b6fb5fc35fa150fbf8f06bf968c5e04c847433f3a0eb12d954",
+      "rgbaSha256": "aaf44bb77f90693791202d65f2ef8822399cd42a99548b338ebb0ded35415a4a"
+    }
+  ],
+  "brow": {
+    "material": "Original warm brow fibres.034",
+    "materialIndex": 3,
+    "sourceLinearRGBA": [
+      0.1599999964237213,
+      0.06499999761581421,
+      0.01600000075995922,
+      1
+    ],
+    "bakedLinearRGBA": [
+      0.3,
+      0.155,
+      0.04,
+      1
+    ]
+  },
+  "untouchedImages": [
+    0,
+    1,
+    3
+  ],
+  "allOtherJsonExact": true,
+  "allOriginalBinaryBytesExact": true,
+  "animationsRigGeometryMorphsExact": true,
+  "unusedOriginalImagesRetained": true,
+  "runtimeGradeMustBeRemovedBeforeAdoption": true
+}

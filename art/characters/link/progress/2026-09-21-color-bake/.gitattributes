@@ -1,0 +1,4 @@
+# These manifests and captured implementations have byte hashes in the bake contract.
+capture.json -text
+png-compression.json -text
+source-*.ts.txt binary

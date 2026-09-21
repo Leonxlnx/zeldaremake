@@ -1,0 +1,1221 @@
+{
+  "kind": "Exact existing one-time grade captured as PNG; evidence only",
+  "capturedAt": "2026-09-21T17:22:51.330Z",
+  "source": {
+    "file": "E:\\zeldaremake-astra-motion-sept21\\public\\models\\link\\link-runtime.glb",
+    "sha256": "ea93932d8afe02ec4bbcf3487fb20ce3f55272fb60f20998dc728cb637ae575f",
+    "bytes": 47784756,
+    "binLength": 47665288,
+    "binSha256": "a36ff8510658d1b61d8091aa49ee5af763f9f5f3aecdf437797d8f5e10c1cfc8",
+    "contract": {
+      "nodes": [
+        {
+          "name": "cap",
+          "rotation": [
+            -0.9732490181922913,
+            0,
+            0,
+            0.22975286841392517
+          ],
+          "scale": [
+            1,
+            1,
+            1.0000004768371582
+          ],
+          "translation": [
+            0,
+            0.24400001764297485,
+            -0.11999999731779099
+          ]
+        },
+        {
+          "children": [
+            0
+          ],
+          "name": "head",
+          "translation": [
+            0,
+            0.06099998950958252,
+            0
+          ]
+        },
+        {
+          "children": [
+            1
+          ],
+          "name": "neck",
+          "translation": [
+            0,
+            0.2149999737739563,
+            0
+          ]
+        },
+        {
+          "name": "handL",
+          "rotation": [
+            -0.04663601517677307,
+            -0.08374563604593277,
+            0.0633932426571846,
+            0.9933745861053467
+          ],
+          "scale": [
+            1,
+            0.9999998807907104,
+            1
+          ],
+          "translation": [
+            3.958120942115784e-8,
+            0.11223190277814865,
+            -6.05359673500061e-9
+          ]
+        },
+        {
+          "children": [
+            3
+          ],
+          "name": "elbowL",
+          "rotation": [
+            -0.05456588789820671,
+            -0.02567213959991932,
+            0.009738626889884472,
+            0.998132586479187
+          ],
+          "scale": [
+            0.9999999403953552,
+            0.9999998807907104,
+            1
+          ],
+          "translation": [
+            -6.752088665962219e-9,
+            0.16470876336097717,
+            -1.257285475730896e-8
+          ]
+        },
+        {
+          "children": [
+            4
+          ],
+          "name": "shoulderL",
+          "rotation": [
+            0.9794229865074158,
+            0.14270563423633575,
+            0.1427057385444641,
+            0.0009033113019540906
+          ],
+          "scale": [
+            0.999998927116394,
+            0.9999998211860657,
+            1
+          ],
+          "translation": [
+            0.15000000596046448,
+            0.18799996376037598,
+            0
+          ]
+        },
+        {
+          "name": "handR",
+          "rotation": [
+            -0.04663601517677307,
+            0.08374563604593277,
+            -0.0633932426571846,
+            0.9933745861053467
+          ],
+          "scale": [
+            1,
+            0.9999998807907104,
+            1
+          ],
+          "translation": [
+            -3.958120942115784e-8,
+            0.11223190277814865,
+            -6.05359673500061e-9
+          ]
+        },
+        {
+          "children": [
+            6
+          ],
+          "name": "elbowR",
+          "rotation": [
+            -0.05456588789820671,
+            0.02567213959991932,
+            -0.009738626889884472,
+            0.998132586479187
+          ],
+          "scale": [
+            0.9999999403953552,
+            0.9999998807907104,
+            1
+          ],
+          "translation": [
+            6.752088665962219e-9,
+            0.16470876336097717,
+            -1.257285475730896e-8
+          ]
+        },
+        {
+          "children": [
+            7
+          ],
+          "name": "shoulderR",
+          "rotation": [
+            0.9794229865074158,
+            -0.14270563423633575,
+            -0.1427057385444641,
+            0.0009033113019540906
+          ],
+          "scale": [
+            0.999998927116394,
+            0.9999998211860657,
+            1
+          ],
+          "translation": [
+            -0.15000000596046448,
+            0.18799996376037598,
+            0
+          ]
+        },
+        {
+          "children": [
+            2,
+            5,
+            8
+          ],
+          "name": "chest",
+          "translation": [
+            0,
+            0.09000003337860107,
+            0
+          ]
+        },
+        {
+          "name": "toeL",
+          "rotation": [
+            -0.2208956927061081,
+            -5.0432827691793136e-8,
+            -1.237752034199957e-8,
+            0.9752973914146423
+          ],
+          "scale": [
+            1,
+            1.0000001192092896,
+            1.0000001192092896
+          ],
+          "translation": [
+            -5.407228442777523e-9,
+            0.1092875599861145,
+            4.6409187604012914e-10
+          ]
+        },
+        {
+          "children": [
+            10
+          ],
+          "name": "ankleL",
+          "rotation": [
+            -0.49559715390205383,
+            -0.008494962006807327,
+            0.002642858074977994,
+            0.868506908416748
+          ],
+          "scale": [
+            0.9999999403953552,
+            1.0000001192092896,
+            1.0000001192092896
+          ],
+          "translation": [
+            -4.414269227925871e-10,
+            0.23057536780834198,
+            1.7929879803091353e-10
+          ]
+        },
+        {
+          "children": [
+            11
+          ],
+          "name": "kneeL",
+          "rotation": [
+            0.0790073350071907,
+            0.006563455332070589,
+            -0.006005915347486734,
+            0.9968343377113342
+          ],
+          "scale": [
+            0.9999999403953552,
+            0.9999999403953552,
+            0.9999999403953552
+          ],
+          "translation": [
+            7.450580596923828e-9,
+            0.18070964515209198,
+            -1.862645149230957e-9
+          ]
+        },
+        {
+          "children": [
+            12
+          ],
+          "name": "thighL",
+          "rotation": [
+            0.9990177154541016,
+            0,
+            0,
+            0.04431309551000595
+          ],
+          "scale": [
+            1,
+            1,
+            1.000015139579773
+          ],
+          "translation": [
+            0.07400000095367432,
+            0,
+            0
+          ]
+        },
+        {
+          "name": "toeR",
+          "rotation": [
+            -0.2208956927061081,
+            5.0432827691793136e-8,
+            1.237752034199957e-8,
+            0.9752973914146423
+          ],
+          "scale": [
+            1,
+            1.0000001192092896,
+            1.0000001192092896
+          ],
+          "translation": [
+            5.407228442777523e-9,
+            0.1092875599861145,
+            4.6409187604012914e-10
+          ]
+        },
+        {
+          "children": [
+            14
+          ],
+          "name": "ankleR",
+          "rotation": [
+            -0.49559715390205383,
+            0.008494962006807327,
+            -0.002642858074977994,
+            0.868506908416748
+          ],
+          "scale": [
+            0.9999999403953552,
+            1.0000001192092896,
+            1.0000001192092896
+          ],
+          "translation": [
+            4.414269227925871e-10,
+            0.23057536780834198,
+            1.7929879803091353e-10
+          ]
+        },
+        {
+          "children": [
+            15
+          ],
+          "name": "kneeR",
+          "rotation": [
+            0.0790073350071907,
+            -0.006563455332070589,
+            0.006005915347486734,
+            0.9968343377113342
+          ],
+          "scale": [
+            0.9999999403953552,
+            0.9999999403953552,
+            0.9999999403953552
+          ],
+          "translation": [
+            -7.450580596923828e-9,
+            0.18070964515209198,
+            -1.862645149230957e-9
+          ]
+        },
+        {
+          "children": [
+            16
+          ],
+          "name": "thighR",
+          "rotation": [
+            0.9990177154541016,
+            0,
+            0,
+            0.04431309551000595
+          ],
+          "scale": [
+            1,
+            1,
+            1.000015139579773
+          ],
+          "translation": [
+            -0.07400000095367432,
+            0,
+            0
+          ]
+        },
+        {
+          "children": [
+            9,
+            13,
+            17
+          ],
+          "name": "hips",
+          "translation": [
+            0,
+            0.5199999809265137,
+            0
+          ]
+        },
+        {
+          "mesh": 0,
+          "name": "Link | anatomical eye 0.034",
+          "skin": 0
+        },
+        {
+          "mesh": 1,
+          "name": "Link | anatomical eye 1.034",
+          "skin": 0
+        },
+        {
+          "mesh": 2,
+          "name": "Link_skin_eye_study_body.034",
+          "skin": 0
+        },
+        {
+          "children": [
+            19,
+            20,
+            21,
+            18
+          ],
+          "name": "Link | source eye rig.034"
+        }
+      ],
+      "meshes": [
+        {
+          "name": "Sphere.067",
+          "primitives": [
+            {
+              "attributes": {
+                "POSITION": 0,
+                "NORMAL": 1,
+                "TEXCOORD_0": 2,
+                "TANGENT": 3,
+                "JOINTS_0": 4,
+                "WEIGHTS_0": 5
+              },
+              "indices": 6,
+              "material": 0
+            }
+          ]
+        },
+        {
+          "name": "Sphere.068",
+          "primitives": [
+            {
+              "attributes": {
+                "POSITION": 8,
+                "NORMAL": 9,
+                "TEXCOORD_0": 10,
+                "TANGENT": 11,
+                "JOINTS_0": 12,
+                "WEIGHTS_0": 13
+              },
+              "indices": 14,
+              "material": 0
+            }
+          ]
+        },
+        {
+          "extras": {
+            "targetNames": [
+              "blink",
+              "blinkHalf"
+            ]
+          },
+          "name": "Link | Rodin Gen25 multiview trial.034",
+          "primitives": [
+            {
+              "attributes": {
+                "POSITION": 635,
+                "NORMAL": 636,
+                "TEXCOORD_0": 17,
+                "TANGENT": 637,
+                "JOINTS_0": 19,
+                "WEIGHTS_0": 20
+              },
+              "indices": 21,
+              "material": 1,
+              "targets": [
+                {
+                  "POSITION": 22,
+                  "NORMAL": 23
+                },
+                {
+                  "POSITION": 24,
+                  "NORMAL": 25
+                }
+              ]
+            },
+            {
+              "attributes": {
+                "POSITION": 26,
+                "NORMAL": 27,
+                "TEXCOORD_0": 28,
+                "TANGENT": 29,
+                "JOINTS_0": 30,
+                "WEIGHTS_0": 31
+              },
+              "indices": 32,
+              "material": 2,
+              "targets": [
+                {
+                  "POSITION": 248,
+                  "NORMAL": 246
+                },
+                {
+                  "POSITION": 249,
+                  "NORMAL": 247
+                }
+              ]
+            },
+            {
+              "attributes": {
+                "POSITION": 37,
+                "NORMAL": 38,
+                "TEXCOORD_0": 39,
+                "TANGENT": 40,
+                "JOINTS_0": 41,
+                "WEIGHTS_0": 42
+              },
+              "indices": 43,
+              "material": 3,
+              "targets": [
+                {
+                  "POSITION": 44,
+                  "NORMAL": 45
+                },
+                {
+                  "POSITION": 46,
+                  "NORMAL": 47
+                }
+              ]
+            }
+          ],
+          "weights": [
+            0,
+            0
+          ]
+        }
+      ],
+      "skins": [
+        {
+          "inverseBindMatrices": 7,
+          "joints": [
+            18,
+            9,
+            2,
+            1,
+            0,
+            5,
+            4,
+            3,
+            8,
+            7,
+            6,
+            13,
+            12,
+            11,
+            10,
+            17,
+            16,
+            15,
+            14
+          ],
+          "name": "Link | source eye rig.034"
+        }
+      ],
+      "materials": [
+        {
+          "doubleSided": true,
+          "extensions": {
+            "KHR_materials_clearcoat": {
+              "clearcoatFactor": 0.6499999761581421,
+              "clearcoatRoughnessFactor": 0.07000000029802322
+            }
+          },
+          "name": "Link | generated study living eyes.034",
+          "pbrMetallicRoughness": {
+            "baseColorTexture": {
+              "index": 0
+            },
+            "metallicFactor": 0,
+            "roughnessFactor": 0.23999999463558197
+          }
+        },
+        {
+          "doubleSided": true,
+          "name": "model.036",
+          "normalTexture": {
+            "index": 1
+          },
+          "pbrMetallicRoughness": {
+            "baseColorTexture": {
+              "index": 2
+            },
+            "metallicRoughnessTexture": {
+              "index": 3
+            }
+          }
+        },
+        {
+          "doubleSided": true,
+          "name": "Link | orbital skin.034",
+          "pbrMetallicRoughness": {
+            "baseColorTexture": {
+              "index": 4
+            },
+            "metallicFactor": 0,
+            "roughnessFactor": 0.6000000238418579
+          }
+        },
+        {
+          "doubleSided": true,
+          "name": "Original warm brow fibres.034",
+          "pbrMetallicRoughness": {
+            "baseColorFactor": [
+              0.1599999964237213,
+              0.06499999761581421,
+              0.01600000075995922,
+              1
+            ],
+            "metallicFactor": 0,
+            "roughnessFactor": 0.6200000047683716
+          }
+        }
+      ],
+      "textures": [
+        {
+          "sampler": 0,
+          "source": 0
+        },
+        {
+          "sampler": 0,
+          "source": 1
+        },
+        {
+          "sampler": 0,
+          "source": 2
+        },
+        {
+          "sampler": 0,
+          "source": 3
+        },
+        {
+          "sampler": 0,
+          "source": 4
+        }
+      ],
+      "samplers": [
+        {
+          "magFilter": 9729,
+          "minFilter": 9987
+        }
+      ],
+      "images": [
+        {
+          "bufferView": 7,
+          "mimeType": "image/png",
+          "name": "corneal-eye-color"
+        },
+        {
+          "bufferView": 23,
+          "mimeType": "image/png",
+          "name": "nose-zero-margin-normal"
+        },
+        {
+          "bufferView": 24,
+          "mimeType": "image/png",
+          "name": "hardware-body-color"
+        },
+        {
+          "bufferView": 25,
+          "mimeType": "image/png",
+          "name": "hardware-body-metallic-hardware-body-roughness"
+        },
+        {
+          "bufferView": 41,
+          "mimeType": "image/png",
+          "name": "face-orbital-color"
+        }
+      ]
+    }
+  },
+  "runtimeSha256": "63904e225810b56337bfaecde9fd4aef1e809248ea952e9461dcf771a9272107",
+  "gradeSha256": "c24c50565c4027cbdaff8e715b0d7836c22c6d11b8de645b8edc89a7816afab1",
+  "errors": [],
+  "browser": "Chrome/153.0.8010.52",
+  "images": [
+    {
+      "materialIndex": 1,
+      "imageIndex": 2,
+      "material": "model.036",
+      "image": "hardware-body-color",
+      "width": 4096,
+      "height": 4096,
+      "sourceRgbaSha256": "61be86b587e37c4b2375a58d6afd280dcc6b7d9f05a2312ba6dd299684480e76",
+      "rgbaSha256": "2e024fb6b314b23b06a2b31ae3ff101648f9d37e23b71c82126aab72cf63c117",
+      "roundtripRgbaSha256": "2e024fb6b314b23b06a2b31ae3ff101648f9d37e23b71c82126aab72cf63c117",
+      "changedPixels": 7039535,
+      "alphaChanged": 0,
+      "nonOpaquePixels": 0,
+      "file": "baked-hardware-body-color.png",
+      "pngSha256": "610bb5ec9daaffaaafb479bd1233c7f11240a4571e6b17a100d35cedf752d5c4",
+      "pngBytes": 19585160,
+      "sourcePngSha256": "ecc9fd078e44bbbb9e9ad055fee9aeb66d292c91949a6941f96f60b22a1332c7",
+      "independentPngRgbaSha256": "2e024fb6b314b23b06a2b31ae3ff101648f9d37e23b71c82126aab72cf63c117"
+    },
+    {
+      "materialIndex": 2,
+      "imageIndex": 4,
+      "material": "Link | orbital skin.034",
+      "image": "face-orbital-color",
+      "width": 1024,
+      "height": 1024,
+      "sourceRgbaSha256": "5bc254c9e87b59c61b8bb5e157954eee84e70d659456ddcd17e8168c1a8aecc0",
+      "rgbaSha256": "aaf44bb77f90693791202d65f2ef8822399cd42a99548b338ebb0ded35415a4a",
+      "roundtripRgbaSha256": "aaf44bb77f90693791202d65f2ef8822399cd42a99548b338ebb0ded35415a4a",
+      "changedPixels": 578217,
+      "alphaChanged": 0,
+      "nonOpaquePixels": 0,
+      "file": "baked-face-orbital-color.png",
+      "pngSha256": "034c758a2b7db326107313d2605fed0858f49a4b2b551b63c295d8b4581c9b76",
+      "pngBytes": 180713,
+      "sourcePngSha256": "fc1df924a5be9482b40fb7159c80c2378d9ee60437c54392fd18bf2962ee59d8",
+      "independentPngRgbaSha256": "aaf44bb77f90693791202d65f2ef8822399cd42a99548b338ebb0ded35415a4a"
+    }
+  ],
+  "brow": {
+    "material": "Original warm brow fibres.034",
+    "materialIndex": 3,
+    "sourceLinearRGBA": [
+      0.1599999964237213,
+      0.06499999761581421,
+      0.01600000075995922,
+      1
+    ],
+    "bakedLinearRGBA": [
+      0.3,
+      0.155,
+      0.04,
+      1
+    ]
+  },
+  "gradeAudit": {
+    "entries": [
+      "skin",
+      "hair",
+      "tunic"
+    ],
+    "maps": [
+      {
+        "material": "model.036",
+        "width": 4096,
+        "height": 4096,
+        "touched": 7039535,
+        "perEntry": {
+          "skin": 2711627,
+          "hair": 485444,
+          "tunic": 4119164
+        },
+        "meanBefore": {
+          "skin": [
+            189,
+            144,
+            110
+          ],
+          "hair": [
+            154,
+            104,
+            54
+          ],
+          "tunic": [
+            72,
+            86,
+            54
+          ]
+        },
+        "meanAfter": {
+          "skin": [
+            222,
+            143,
+            64
+          ],
+          "hair": [
+            222,
+            145,
+            36
+          ],
+          "tunic": [
+            80,
+            100,
+            47
+          ]
+        }
+      },
+      {
+        "material": "Link | orbital skin.034",
+        "width": 1024,
+        "height": 1024,
+        "touched": 578217,
+        "perEntry": {
+          "skin": 578217,
+          "tunic": 0
+        },
+        "meanBefore": {
+          "skin": [
+            193,
+            149,
+            121
+          ],
+          "tunic": [
+            0,
+            0,
+            0
+          ]
+        },
+        "meanAfter": {
+          "skin": [
+            223,
+            143,
+            76
+          ],
+          "tunic": [
+            0,
+            0,
+            0
+          ]
+        }
+      }
+    ],
+    "brows": "Original warm brow fibres.034",
+    "regionMask": {
+      "size": 1024,
+      "coverage": {
+        "head": 0.1619,
+        "torso": 0.2493,
+        "arms": 0.0783,
+        "legs": 0.205
+      }
+    },
+    "ms": 2782
+  },
+  "before": {
+    "Link | generated study living eyes.034": {
+      "color": [
+        1,
+        1,
+        1
+      ],
+      "opacity": 1,
+      "roughness": 0.23999999463558197,
+      "metalness": 0,
+      "normalScale": [
+        1,
+        1
+      ],
+      "clearcoat": 0.6499999761581421,
+      "clearcoatRoughness": 0.07000000029802322,
+      "side": 2,
+      "maps": {
+        "map": {
+          "rgbaSha256": "fd4bd4a2acb305e3a3925d71edee7a01159ea02c59d2ffd8708b75edcc8b3af5",
+          "width": 2048,
+          "height": 2048,
+          "colorSpace": "srgb",
+          "flipY": false,
+          "channel": 0,
+          "wrapS": 1000,
+          "wrapT": 1000,
+          "minFilter": 1008,
+          "magFilter": 1006,
+          "offset": [
+            0,
+            0
+          ],
+          "repeat": [
+            1,
+            1
+          ],
+          "rotation": 0
+        }
+      }
+    },
+    "model.036": {
+      "color": [
+        1,
+        1,
+        1
+      ],
+      "opacity": 1,
+      "roughness": 1,
+      "metalness": 1,
+      "normalScale": [
+        1,
+        1
+      ],
+      "side": 2,
+      "maps": {
+        "map": {
+          "rgbaSha256": "61be86b587e37c4b2375a58d6afd280dcc6b7d9f05a2312ba6dd299684480e76",
+          "width": 4096,
+          "height": 4096,
+          "colorSpace": "srgb",
+          "flipY": false,
+          "channel": 0,
+          "wrapS": 1000,
+          "wrapT": 1000,
+          "minFilter": 1008,
+          "magFilter": 1006,
+          "offset": [
+            0,
+            0
+          ],
+          "repeat": [
+            1,
+            1
+          ],
+          "rotation": 0
+        },
+        "normalMap": {
+          "rgbaSha256": "6eacf5d152782346b8434574b2ebf93319d1052406832eefa3d57ef85b2d7f47",
+          "width": 4096,
+          "height": 4096,
+          "colorSpace": "",
+          "flipY": false,
+          "channel": 0,
+          "wrapS": 1000,
+          "wrapT": 1000,
+          "minFilter": 1008,
+          "magFilter": 1006,
+          "offset": [
+            0,
+            0
+          ],
+          "repeat": [
+            1,
+            1
+          ],
+          "rotation": 0
+        },
+        "metalnessMap": {
+          "rgbaSha256": "feeea558070127cc83d65c24f06a501d977edf6588a7757b10ecf725a39b549b",
+          "width": 2048,
+          "height": 2048,
+          "colorSpace": "",
+          "flipY": false,
+          "channel": 0,
+          "wrapS": 1000,
+          "wrapT": 1000,
+          "minFilter": 1008,
+          "magFilter": 1006,
+          "offset": [
+            0,
+            0
+          ],
+          "repeat": [
+            1,
+            1
+          ],
+          "rotation": 0
+        },
+        "roughnessMap": {
+          "rgbaSha256": "feeea558070127cc83d65c24f06a501d977edf6588a7757b10ecf725a39b549b",
+          "width": 2048,
+          "height": 2048,
+          "colorSpace": "",
+          "flipY": false,
+          "channel": 0,
+          "wrapS": 1000,
+          "wrapT": 1000,
+          "minFilter": 1008,
+          "magFilter": 1006,
+          "offset": [
+            0,
+            0
+          ],
+          "repeat": [
+            1,
+            1
+          ],
+          "rotation": 0
+        }
+      }
+    },
+    "Link | orbital skin.034": {
+      "color": [
+        1,
+        1,
+        1
+      ],
+      "opacity": 1,
+      "roughness": 0.6000000238418579,
+      "metalness": 0,
+      "normalScale": [
+        1,
+        1
+      ],
+      "side": 2,
+      "maps": {
+        "map": {
+          "rgbaSha256": "5bc254c9e87b59c61b8bb5e157954eee84e70d659456ddcd17e8168c1a8aecc0",
+          "width": 1024,
+          "height": 1024,
+          "colorSpace": "srgb",
+          "flipY": false,
+          "channel": 0,
+          "wrapS": 1000,
+          "wrapT": 1000,
+          "minFilter": 1008,
+          "magFilter": 1006,
+          "offset": [
+            0,
+            0
+          ],
+          "repeat": [
+            1,
+            1
+          ],
+          "rotation": 0
+        }
+      }
+    },
+    "Original warm brow fibres.034": {
+      "color": [
+        0.1599999964237213,
+        0.06499999761581421,
+        0.01600000075995922
+      ],
+      "opacity": 1,
+      "roughness": 0.6200000047683716,
+      "metalness": 0,
+      "normalScale": [
+        1,
+        1
+      ],
+      "side": 2,
+      "maps": {}
+    }
+  },
+  "after": {
+    "Link | generated study living eyes.034": {
+      "color": [
+        1,
+        1,
+        1
+      ],
+      "opacity": 1,
+      "roughness": 0.23999999463558197,
+      "metalness": 0,
+      "normalScale": [
+        1,
+        1
+      ],
+      "clearcoat": 0.6499999761581421,
+      "clearcoatRoughness": 0.07000000029802322,
+      "side": 2,
+      "maps": {
+        "map": {
+          "rgbaSha256": "fd4bd4a2acb305e3a3925d71edee7a01159ea02c59d2ffd8708b75edcc8b3af5",
+          "width": 2048,
+          "height": 2048,
+          "colorSpace": "srgb",
+          "flipY": false,
+          "channel": 0,
+          "wrapS": 1000,
+          "wrapT": 1000,
+          "minFilter": 1008,
+          "magFilter": 1006,
+          "offset": [
+            0,
+            0
+          ],
+          "repeat": [
+            1,
+            1
+          ],
+          "rotation": 0
+        }
+      }
+    },
+    "model.036": {
+      "color": [
+        1,
+        1,
+        1
+      ],
+      "opacity": 1,
+      "roughness": 1,
+      "metalness": 1,
+      "normalScale": [
+        1,
+        1
+      ],
+      "side": 2,
+      "maps": {
+        "map": {
+          "rgbaSha256": "2e024fb6b314b23b06a2b31ae3ff101648f9d37e23b71c82126aab72cf63c117",
+          "width": 4096,
+          "height": 4096,
+          "colorSpace": "srgb",
+          "flipY": false,
+          "channel": 0,
+          "wrapS": 1000,
+          "wrapT": 1000,
+          "minFilter": 1008,
+          "magFilter": 1006,
+          "offset": [
+            0,
+            0
+          ],
+          "repeat": [
+            1,
+            1
+          ],
+          "rotation": 0
+        },
+        "normalMap": {
+          "rgbaSha256": "6eacf5d152782346b8434574b2ebf93319d1052406832eefa3d57ef85b2d7f47",
+          "width": 4096,
+          "height": 4096,
+          "colorSpace": "",
+          "flipY": false,
+          "channel": 0,
+          "wrapS": 1000,
+          "wrapT": 1000,
+          "minFilter": 1008,
+          "magFilter": 1006,
+          "offset": [
+            0,
+            0
+          ],
+          "repeat": [
+            1,
+            1
+          ],
+          "rotation": 0
+        },
+        "metalnessMap": {
+          "rgbaSha256": "feeea558070127cc83d65c24f06a501d977edf6588a7757b10ecf725a39b549b",
+          "width": 2048,
+          "height": 2048,
+          "colorSpace": "",
+          "flipY": false,
+          "channel": 0,
+          "wrapS": 1000,
+          "wrapT": 1000,
+          "minFilter": 1008,
+          "magFilter": 1006,
+          "offset": [
+            0,
+            0
+          ],
+          "repeat": [
+            1,
+            1
+          ],
+          "rotation": 0
+        },
+        "roughnessMap": {
+          "rgbaSha256": "feeea558070127cc83d65c24f06a501d977edf6588a7757b10ecf725a39b549b",
+          "width": 2048,
+          "height": 2048,
+          "colorSpace": "",
+          "flipY": false,
+          "channel": 0,
+          "wrapS": 1000,
+          "wrapT": 1000,
+          "minFilter": 1008,
+          "magFilter": 1006,
+          "offset": [
+            0,
+            0
+          ],
+          "repeat": [
+            1,
+            1
+          ],
+          "rotation": 0
+        }
+      }
+    },
+    "Link | orbital skin.034": {
+      "color": [
+        1,
+        1,
+        1
+      ],
+      "opacity": 1,
+      "roughness": 0.6000000238418579,
+      "metalness": 0,
+      "normalScale": [
+        1,
+        1
+      ],
+      "side": 2,
+      "maps": {
+        "map": {
+          "rgbaSha256": "aaf44bb77f90693791202d65f2ef8822399cd42a99548b338ebb0ded35415a4a",
+          "width": 1024,
+          "height": 1024,
+          "colorSpace": "srgb",
+          "flipY": false,
+          "channel": 0,
+          "wrapS": 1000,
+          "wrapT": 1000,
+          "minFilter": 1008,
+          "magFilter": 1006,
+          "offset": [
+            0,
+            0
+          ],
+          "repeat": [
+            1,
+            1
+          ],
+          "rotation": 0
+        }
+      }
+    },
+    "Original warm brow fibres.034": {
+      "color": [
+        0.3,
+        0.155,
+        0.04
+      ],
+      "opacity": 1,
+      "roughness": 0.6200000047683716,
+      "metalness": 0,
+      "normalScale": [
+        1,
+        1
+      ],
+      "side": 2,
+      "maps": {}
+    }
+  },
+  "checks": {
+    "oneProductionLoaderGrade": true,
+    "pngRoundtripExact": true,
+    "independentPngDecodeExact": true,
+    "alphaExact": true,
+    "allOtherMaterialAndMapStateExact": true,
+    "productionFilesUnchanged": true
+  }
+}

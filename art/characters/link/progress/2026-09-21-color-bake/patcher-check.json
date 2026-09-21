@@ -1,0 +1,18 @@
+{
+  "compatible": [
+    {
+      "file": "stairs-upright-candidate.glb",
+      "sha256": "e3ef74a02336b5f6952ed340e8191369284dacc92da9b5782dd9f3cb7dceb552",
+      "sameSourcePixelsAndRigUvMaskInputs": true
+    },
+    {
+      "file": "run-torso-candidate.glb",
+      "sha256": "ad0518e6bdbffbc93620c57595b09143a4458bf311e22ec13c55a78ec29e53c9",
+      "sameSourcePixelsAndRigUvMaskInputs": true
+    }
+  ],
+  "rejectsWrongHash": true,
+  "rejectsAlreadyBakedInput": true,
+  "rejectsInputOverwrite": true,
+  "rejectedInvocationsCreatedNoOutput": true
+}

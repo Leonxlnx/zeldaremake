@@ -650,6 +650,16 @@
       ],
       "at": "2026-09-20T10:26:39.721Z",
       "expiresHours": 3
+    },
+    {
+      "agent": "astra-motion-sept21",
+      "items": [
+        "C01",
+        "C02",
+        "C03"
+      ],
+      "at": "2026-09-21T16:54:16.426Z",
+      "expiresHours": 3
     }
   ]
 }

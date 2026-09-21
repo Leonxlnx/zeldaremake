@@ -1,0 +1,58 @@
+{
+  "file": "E:\\zeldaremake-astra-motion-sept21\\public\\models\\link\\link-runtime.glb",
+  "sha256": "89df38f255e47afbcbb28a60555fb4a4a20091741d427ef1d7b8ea1ac33f306b",
+  "bytes": 47825216,
+  "periodS": 0.4666666666666667,
+  "maxStepBoundDeg": 2.9034433302205733,
+  "bones": {
+    "shoulderL": {
+      "keys": 113,
+      "maxStepDeg": 1.3430763412824696,
+      "stepsOver5Deg": 0,
+      "loopMaxComponentDifference": 0,
+      "loopOrientationDifferenceDeg": 0
+    },
+    "elbowL": {
+      "keys": 113,
+      "maxStepDeg": 1.397368578952646,
+      "stepsOver5Deg": 0,
+      "loopMaxComponentDifference": 9.313225746154785e-9,
+      "loopOrientationDifferenceDeg": 0
+    },
+    "shoulderR": {
+      "keys": 113,
+      "maxStepDeg": 1.4263173748408555,
+      "stepsOver5Deg": 0,
+      "loopMaxComponentDifference": 0,
+      "loopOrientationDifferenceDeg": 0
+    },
+    "elbowR": {
+      "keys": 113,
+      "maxStepDeg": 1.3545524255708064,
+      "stepsOver5Deg": 0,
+      "loopMaxComponentDifference": 8.940696716308594e-8,
+      "loopOrientationDifferenceDeg": 0.000014589290462454057
+    },
+    "handL": {
+      "keys": 57,
+      "maxStepDeg": 0.7200051607713607,
+      "stepsOver5Deg": 0,
+      "loopMaxComponentDifference": 7.450580596923828e-9,
+      "loopOrientationDifferenceDeg": 0
+    },
+    "handR": {
+      "keys": 57,
+      "maxStepDeg": 0.9515019727613517,
+      "stepsOver5Deg": 0,
+      "loopMaxComponentDifference": 8.940696716308594e-8,
+      "loopOrientationDifferenceDeg": 0.0000101019860158646
+    }
+  },
+  "preservation": {
+    "originalBinSha256": "d2a68a880471f76cdb152ae711d025034fe4788f7aa1258f8519ed7709dde43c",
+    "originalBinAndAccessorSpansExact": true,
+    "restRigMeshesMaterialsImagesExact": true,
+    "otherClipsAndUnselectedRunChannelsExact": true
+  },
+  "pass": true
+}
