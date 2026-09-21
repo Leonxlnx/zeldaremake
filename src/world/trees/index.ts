@@ -537,6 +537,37 @@ const CANOPY_BOUGHS: { giant: string; fromY: number; to: [number, number, number
       { t: 0.95, center: [27.83, 10.05, -5.75], hR: 3.3, vR: 1.8, density: 1, tone: 0.85, eye: 0, shade: 0.5, corridors: false, castShadow: false, flat: true, core: 0.97, floor: 8.1 },
     ],
   },
+  // Round 51 (fable-4; opus #05 / fable-5 walk #4 / round-50 #7 — "look up and the sky is open
+  // blue": `w27-plateau-u` at (19.4, 6.6, −3.6) had 20–22 % saturated blue over the plateau, the
+  // crowns only at the frame's edges; the reference has no blue sky). A second east-giant bough,
+  // leaving the bole at 16.5 m and running 8 m west over the plateau, with two ordinary lobes over
+  // the look-up's zenith at 16–17 m. Non-casting (the lobes go to the authored writer): no ground
+  // shade moves in any frame; the wood's shadow band (ground = point + (1.0, 0.79) × height at
+  // this sun) lands at x 36–44, z 6–10, east of the giant, off every fixed camera. Above A's and
+  // F's top edges (measured: six views within 0.0002).
+  {
+    giant: 'east-giant',
+    fromY: 16.5,
+    to: [16.4, 15.8, -4.6],
+    radius: 0.45,
+    tipRadius: 0.2,
+    lobes: [
+      { t: 0.5, center: [23.0, 16.6, -4.2], hR: 3.2, vR: 1.9, density: 1, castShadow: false },
+      { t: 0.75, center: [19.3, 16.0, -3.2], hR: 3.5, vR: 2.0, density: 1, castShadow: false },
+      // the blue west of the zenith (screen (0.69, 0.10) of the look-up → (16, 17, −4.5))
+      { t: 0.97, center: [16.2, 17.0, -4.6], hR: 3.3, vR: 1.9, density: 1, castShadow: false },
+    ],
+  },
+  // … and a short second bough north for the blue east of it (screen (0.19, 0.4) → (25.5, 17, −6.5)),
+  // 11 m north of the bole where neither this giant's crown nor the plateau oak's reaches
+  {
+    giant: 'east-giant',
+    fromY: 15.4,
+    to: [25.6, 15.6, -6.2],
+    radius: 0.4,
+    tipRadius: 0.2,
+    lobes: [{ t: 0.95, center: [25.5, 16.8, -6.5], hR: 3.2, vR: 1.9, density: 1, castShadow: false }],
+  },
   // the plaza roof (round 14): the casters that frame shot A's lit plaza box — one bough across
   // the sun, three small dense lobes above it whose shadows land on the strip west of the box
   // ((-1.0, 3.8) and (-1.0, 2.0), the frame's left edge) and on the path mouth north of it
