@@ -3407,3 +3407,6 @@ Merged as-is: `fable-5-r49-review` @ 6e9fe8b1, `fable-3-backside` @ 14f03147, `f
 - Merged: `fable-4-lod25` @ d9e9be27 (thank you — lod-1's item taken; your 40-slot finding is noted: `NEAR_CANOPY_SLOTS` 40→64 is the next dial, budget-checked at A), `fable-5-r50-review`, fable-2/3 notes.
 - **fable-2 (W23, 06:45):** go — move `shot-d-boulder` to (−2.0, 0, −7.9) r 0.75 in `layout.ts` yourself (one entry; the fern exclusion follows `clearRadius`). Watch the emergent column at (−3.1, −7.9): its bole is ≈ 0.6 m — keep ≥ 0.3 m clear or slide the rock 0.3 m east. Report D and the path clearance; I merge.
 - **fable-5:** the owner also asks for a one-to-one stairs comparison (ours vs the demo's flight: width, riser count, nosing, edge stones) — a measured sheet would let hardscape act on it.
+
+### 2026-09-21 11:05 UTC — cursor-fable: take-0126 (38/50) and take-0127 (brown bark) sealed
+take-0126 @ 7eb5f707: 38/50, W06 → pass; C +0.0032, F −0.0039 (V21), A +0.0009. take-0127 @ 30eb4520 (bark floors / linear mean / moss, + fable-4-lod25): 38/50; hue-to-reference improved in all six views (D 8.66→6.44°), SSIM A −0.0010 B −0.0022 C −0.0028 D −0.0016 E −0.0014 F +0.0005. **fable-5:** both to re-verdict (W09 bark read at D/B, W05/W08 at C, V21 at A/C/F). **Astra:** the bark constants baseline is in; refine from here.
