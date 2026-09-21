@@ -4,7 +4,7 @@ runtime: Cursor Cloud Agent (Claude Fable 5.1)
 github: Cursor Agent <cursoragent@cursor.com>
 status: active
 branch: agent/fable-2-ledge (+ agent/fable-2-w23-loaf for the D composition change)
-updated: 2026-09-20T16:25:00Z
+updated: 2026-09-20T17:25:00Z
 ---
 
 # fable-2 — work log
@@ -49,6 +49,10 @@ as `agent/fable-2-<topic>`; `fable-cursor` merges. I do not touch `layout.ts`, t
   look lifted and warmed (`a683a4c1`) — **FAIL as a visible change at D**: the ferns hide the rock,
   the visible cap edge moved 0.238 → 0.246 and D −0.0002. Kept (harmless, toward the reference);
   the item is vegetation-26's exclusion disc first. §Iteration 8.
+- Iteration 17 — GOAL_MODE item 0 (round-49 handoff): `expansionCull` after placement on strata / rubble /
+  pebbles (`3ac0a8a1`; 3 strata culled, streams and draws unchanged) + expansion-2's listed positions in
+  `backside.ts` (`9d1fc102`: west-skirt boulder, kerb stones, brace scree, disc pebble rings). A byte-identical,
+  C 5 px. §Iteration 17.
 - Iteration 16 — the plaza's backside (expansion-2, V20): `backside.ts` — pale boulder pair, low stone step
   and flight scree at the fenced south bank, live-terrain seated, expansionVisible-toggled with per-piece
   casters (`06f2a781` + `294bc94c`). A / C the head's draws and tris; landed at three poses. §Iteration 16.
@@ -102,6 +106,9 @@ Nothing outside `src/world/rocks/` except this log, the INBOX and my evidence un
 
 ## Completed work
 (newest first)
+- `3ac0a8a1` + `9d1fc102` (`agent/fable-2-ledge`): the expansion cull (pebbles filtered; rubble / strata
+  scale 0 in place, adoption loops guarded; `expansionCulled` audit) and the listed backside positions
+  (per-piece casters; discs within 1.6 m of C's edge skipped).
 - `06f2a781` + `294bc94c` (`agent/fable-2-ledge`): `rocks/backside.ts` — reads `EXPANSION.southBank`,
   `EXPANSION_STAIRS`, `southBankPoint`; seats on `getTerrain()` (live); returns per-piece `Caster`s for
   `casterSpheres` / `expansionVisible` in `update` / `onCameraMove`. Lesson: group casters over-reach —
@@ -219,4 +226,4 @@ Nothing outside `src/world/rocks/` except this log, the INBOX and my evidence un
 - #4: `pathEdgePebble` per-candidate draws.
 
 ## Last updated
-2026-09-20T16:25:00Z
+2026-09-20T17:25:00Z

@@ -18,10 +18,10 @@ import { dressRock, mergeRockParts } from './dressing';
 import { buildRockLedge, type RockLedgeDef } from './ledge';
 import { buildClearingRocks, type ClearingLayout } from './clearing';
 import { buildBacksideRocks } from './backside';
-import { casterSpheres, expansionVisible, sunVector } from '../util/expansionLocality';
+import { expansionVisible, sunVector } from '../util/expansionLocality';
 import { PEBBLE_DEFAULTS, PEBBLE_LOOKS, scatterPathPebbles, stairFootPebbles } from './pebbles';
 import { NORTH_Z1 } from '../util/northLocality';
-import { expansionCull } from '../terrain/heightfield';
+import { expansionCull, type Terrain } from '../terrain/heightfield';
 import { CUSHION, FERN, TUFT_A, TUFT_B, buildSproutMeshes, createSproutMaterial, type SproutSpot } from '../materials/sprouts';
 import type { Rng } from '../util/prng';
 
@@ -33,6 +33,74 @@ import type { Rng } from '../util/prng';
  * step from the ~1 m verge at x ≈ 6.4 up to the 5.4 m plateau at x ≈ 8.6, z −15…−27). The
  * preview is off in every capture and take.
  */
+/**
+ * fable-2 (W05 at C): stone tiers on steep banks — an outcrop line of half-buried strata slabs along a
+ * bank's mid-height contour between two points, seated on the terrain and leaning into the face.
+ * `height` is the contour's height above the bank's foot (the walk from `from` toward `to` keeps to
+ * the terrain height nearest to that value across the face).
+ */
+export const BANK_TIERS: { id: string; from: [number, number]; to: [number, number]; height: number; spacing: number; scale: [number, number]; yawAlong: boolean; keepOut?: [number, number, number][] }[] = [
+  // the hero stair's east bank at C: a 1 m rise from the plaza's paving to the kokiri-a plateau,
+  // running (6.0, 3.9) → (9.0, 1.2); the tier at its mid height. keepOut: fable-3's stair-foot pots
+  // ('stair-pot' (7.95, 1.8) r 0.26, 'stair-pot-squat' (7.55, 2.1) r 0.22 — props/layout.ts; props build
+  // after rocks, so their footprints are not in ctx.shared yet) — a slab reaches ≈ 0.5 m, so the tier
+  // skips the two contour points beside them and resumes past the pots (fable-3, 01:50 UTC)
+  { id: 'c-stair-bank', from: [5.9, 4.0], to: [9.1, 1.1], height: 0.5, spacing: 0.5, scale: [0.34, 0.5], yawAlong: true, keepOut: [[7.95, 1.8, 0.9], [7.55, 2.1, 0.85]] },
+];
+
+/**
+ * points every `spacing` m from `from` to `to`, each slid across the line (± 1.2 m, perpendicular) to
+ * where the terrain height is nearest `height` — a contour walk along a bank
+ */
+export function contourLine(T: Terrain, from: [number, number], to: [number, number], height: number, spacing: number): [number, number][] {
+  const dx = to[0] - from[0];
+  const dz = to[1] - from[1];
+  const len = Math.hypot(dx, dz) || 1;
+  const ux = dx / len;
+  const uz = dz / len;
+  const px = -uz; // perpendicular
+  const pz = ux;
+  const out: [number, number][] = [];
+  for (let d = spacing * 0.5; d < len; d += spacing) {
+    const bx = from[0] + ux * d;
+    const bz = from[1] + uz * d;
+    let best: [number, number] = [bx, bz];
+    let bestErr = Infinity;
+    for (let s = -1.2; s <= 1.2; s += 0.05) {
+      const x = bx + px * s;
+      const z = bz + pz * s;
+      const err = Math.abs(T.height(x, z) - height);
+      if (err < bestErr) {
+        bestErr = err;
+        best = [x, z];
+      }
+    }
+    if (bestErr < 0.12) out.push(best);
+  }
+  return out;
+}
+
+/**
+ * fable-2 (V21, ANALYSIS_VIDEO2 §6 — "the moss-capped boulder at the Kokiri boy's feet on the stair
+ * bank, the C-frame anchor the owner sees twice"): a rounded pale rock on the stair bank's slope at
+ * the boy's feet. The frame's rock is ONE rock seen from two cameras — it projects to C's V21 box
+ * (0.28, 0.49) and to A's right (0.84, 0.56), where reference A shows the small pale rock beside the
+ * kid. Rocks-owned until the layout carries it (a layout hero boulder of the same id takes over).
+ * (7.2, 3.1), not the box centre (7.4, 2.9): fable-3's stair-pot-squat stands at (7.55, 2.1) r 0.22 and the
+ * loaf reaches ≈ 0.7 m — 0.12 m clear here, 0.13 m into the pot there; C reads (0.30, 0.46) either way.
+ */
+export const ANCHOR_BOULDERS: { id: string; position: [number, number, number]; radius: number; replaces?: string }[] = [{ id: 'c-bank-anchor', position: [7.2, 0, 3.1], radius: 0.55, replaces: 'stair-foot' }];
+/**
+ * measurement toggle for fable-cursor's call on V21: the frame has ONE rock at the boy's feet, ours
+ * had the r 1.0 'stair-foot' boulder 1.7 m east of it. 'replace' = the anchor stands in for it (what a
+ * layout move of 'stair-foot' to (7.4, 2.9) r 0.55 would give: C +0.0032, F −0.0034 … −0.0043 over
+ * budget); 'both' = both stand at full size (C −0.0017, F −0.0026); 'shrink' = fable-5's middle path —
+ * the stair-foot rock stays for F's structure at ≈ 0.35 m, the anchor carries C.
+ */
+export const ANCHOR_MODE: 'replace' | 'both' | 'shrink' = 'replace';
+/** the stair-foot rock's radius under ANCHOR_MODE 'shrink' (the layout's is 1.0) */
+export const SHRUNK_STAIR_FOOT_R = 0.35;
+
 export const LEDGE_PREVIEW: RockLedgeDef[] = [
   { id: 'north-right-bank', foot: [[6.2, -14.5], [6.35, -18], [6.5, -22], [6.4, -25.5], [6.0, -28]], inset: 2.4, lean: 0.4 },
 ];
@@ -40,6 +108,22 @@ export const LEDGE_PREVIEW: RockLedgeDef[] = [
 export const LEDGE_FADE_M: [number, number] = [7, 14];
 /** the ledge material's damp band: the hero boulders' sheen raised to this power (ref-04's near-black foot) */
 export const LEDGE_DAMP = 1.6;
+/**
+ * fable-2 (the owner's "stones under-detailed", at player height): the hero boulders' near skin takes the
+ * material's `relief` grain too — pits and grains at 5–12 cm over the rockgen plates and micro relief,
+ * inside NEAR_FADE_M only. Every fixed camera stands ≥ 6.5 m from every hero rock (past the 6.3 m fade),
+ * so the six views are untouched by construction. 1.5 (the ledge takes 3.0: its skin has no plates; at
+ * 2.0 the shot-D face in its shade turned to a dark honeycomb — the stair-foot rock read best there).
+ */
+export const HERO_NEAR_RELIEF = 1.5;
+/**
+ * the instanced embankment strata and rubble skirts: the same near skin (plates, wet band, lichen crust,
+ * relief) inside a SHORT fade — a walker passes these at 1–3 m along every bank; beyond 4.5 m they are
+ * the plain far stones they were. The fixed cameras' nearest slab is measured in README §31.
+ */
+export const STRATA_NEAR_FADE_M: [number, number] = [2.5, 4.5];
+/** the ledge wall's near grain (material `relief`): fable-5 §7.2, micro σ 0.034 → 0.05 at 3 m — measured at `x-ledge-wall` (4 px residual on the cap): 0.031 → 0.035 at 1.0, 0.043 at 3.0 */
+export const LEDGE_RELIEF = 3.0;
 
 /**
  * Near-LOD swap radii (m, 3D to the boulder's centre) for the hero boulders (round 42): within
@@ -161,16 +245,19 @@ export async function create(ctx: WorldContext): Promise<WorldSystem> {
   const seed = ctx.config.seed;
   const P = ctx.config.palette;
   const anisotropy = ctx.renderer.capabilities.getMaxAnisotropy();
-  const material = await createRockMaterial(ctx.textures, ctx.config, anisotropy, 1.4);
+  // fable-2 (owner's "stones" at player height): the embankment strata and the rubble skirts in the near
+  // skin within STRATA_NEAR_FADE_M — instanced, so one material for all of them (the plain far material
+  // they had is this one with nearW = 0 beyond the fade)
+  const strataMaterial = await createRockMaterial(ctx.textures, ctx.config, anisotropy, 1.4, 1, { near: true, fade: STRATA_NEAR_FADE_M, relief: HERO_NEAR_RELIEF });
   // the hero boulders' own material: the same look with the near-detail terms (material.ts
   // NEAR_TILE_M) that fade in under NEAR_FADE_M — the rubble, strata and pebbles keep the plain
   // one, so the stones in a hero camera's foreground never change
-  const heroMaterial = await createRockMaterial(ctx.textures, ctx.config, anisotropy, 1.4, 1, { near: true });
+  const heroMaterial = await createRockMaterial(ctx.textures, ctx.config, anisotropy, 1.4, 1, { near: true, relief: HERO_NEAR_RELIEF });
   // the stair-foot boulder at the right edge of shot A (the mossy rock the Kokiri kid stands
   // beside): the reference reads it at lum ≈ 0.26 (box (0.82,0.60)-(0.98,0.70)) where the shared
   // rock material rendered 0.29 at exposure 1.0 — darker rock and moss for it alone, without
   // moving it
-  const stairFootMaterial = await createRockMaterial(ctx.textures, ctx.config, anisotropy, 1.4, 0.9, { near: true });
+  const stairFootMaterial = await createRockMaterial(ctx.textures, ctx.config, anisotropy, 1.4, 0.9, { near: true, relief: HERO_NEAR_RELIEF });
   const pebbleMaterial = await createRockMaterial(ctx.textures, ctx.config, anisotropy, 0.35);
   const density = clamp(ctx.quality.density, 0.4, 1.4);
   const detailR = ctx.config.detailRadius;
@@ -238,6 +325,28 @@ export async function create(ctx: WorldContext): Promise<WorldSystem> {
   // zero scale in place (a zero-scale instance rasterises nothing and casts nothing). The strata go
   // first, before the hero loop adopts slabs; the rubble after it (no hero boulder stands within the
   // expansion's box, so no kit rebuilds a culled skirt stone — guarded in the loops all the same).
+  // fable-2 (W05 at C, the rock half — "the embankment beside the stair foot is a smooth lawn mound …
+  // no terracing, no exposed strata; the reference's bank is a stepped mossy terrace"): the strata
+  // scatter's 0.9 m lattice and its paving exclusion leave the 1 m face east of the hero stair bare.
+  // A TIER of half-buried slabs follows that face's mid-height contour — the outcrop line that steps
+  // a bank in the frames — pushed into the same instanced stream (no new draws, no new kit).
+  for (const tier of BANK_TIERS) {
+    const tRng = rng.fork(`tier/${tier.id}`);
+    const line = contourLine(T, tier.from, tier.to, tier.height, tier.spacing);
+    for (const [px, pz] of line) {
+      const m = T.mask(px, pz);
+      if (m.path > 0.2 || m.stairs > 0.3 || m.structure > 0.3) continue;
+      const slope = T.slope(px, pz);
+      if (slope < 0.25) continue; // the contour left the face (a flat shoulder, or inside the stair-foot rock)
+      if (tier.keepOut?.some(([kx, kz, kr]) => Math.hypot(px - kx, pz - kz) < kr)) continue; // another lane's prop stands here
+      const sc = tRng.range(tier.scale[0], tier.scale[1]);
+      T.normal(px, pz, _n);
+      // the slab lies along the contour: its yaw follows the line, ± a little, and it leans into the bank
+      const yaw = tier.yawAlong ? Math.atan2(tier.to[0] - tier.from[0], tier.to[1] - tier.from[1]) + tRng.range(-0.35, 0.35) : tRng.range(0, Math.PI * 2);
+      strata.push({ x: px + tRng.range(-0.06, 0.06), y: T.height(px, pz) - sc * 0.3, z: pz + tRng.range(-0.06, 0.06), scale: sc * (0.85 + 0.3 * slope), yaw, tiltTo: _n.clone().lerp(_up, 0.35).normalize(), variant: tRng.int(0, 4) });
+    }
+  }
+
   const culled = { pebbles: 0, rubble: 0, strata: 0 };
   for (const it of strata) if (it.scale > 0 && expansionCull(it.x, it.z)) (it.scale = 0), culled.strata++;
 
@@ -282,8 +391,15 @@ export async function create(ctx: WorldContext): Promise<WorldSystem> {
   })();
   /** a world xz direction expressed in the local frame of a mesh yawed by `yaw` about +Y */
   const toLocal = (d: [number, number], yaw: number): [number, number] => [d[0] * Math.cos(yaw) - d[1] * Math.sin(yaw), d[0] * Math.sin(yaw) + d[1] * Math.cos(yaw)];
-  for (const b of ctx.layout.heroBoulders) {
+  const anchors = ANCHOR_BOULDERS.filter((a) => !ctx.layout.heroBoulders.some((h) => h.id === a.id));
+  const replaced = new Set(anchors.length && ANCHOR_MODE !== 'both' ? anchors.map((a) => a.replaces).filter(Boolean) : []);
+  const heroList = [
+    ...ctx.layout.heroBoulders.filter((h) => !(ANCHOR_MODE === 'replace' && replaced.has(h.id))).map((h) => (ANCHOR_MODE === 'shrink' && replaced.has(h.id) ? { ...h, radius: SHRUNK_STAIR_FOOT_R } : h)),
+    ...anchors,
+  ];
+  for (const b of heroList) {
     const r = b.radius;
+    const anchor = b.id === 'c-bank-anchor';
     const collar = new Color(0.13, 0.135, 0.09);
     // round 45 (details-1): this rock's spill and skirt stones are rubble[ownStart …] — the near
     // kit rebuilds them (below, after the skirt loop) and hides their far instances while it is in
@@ -306,8 +422,9 @@ export async function create(ctx: WorldContext): Promise<WorldSystem> {
     // at 0.64 / 0.15 the 0.5 m loaf was > 99 % hidden behind the fronds (fable-5's D box read fern
     // green). A D composition change, made on its own branch for fable-cursor's call; the layout
     // radius (0.6) and the vegetation's clearRadius are untouched.
-    const squash = b.id === 'shot-d-boulder' ? 0.72 : 0.74;
-    const sinkFrac = b.id === 'shot-d-boulder' ? 0 : 0.15;
+    const squash = b.id === 'shot-d-boulder' ? 0.72 : anchor ? 0.7 : 0.74;
+    // (the bank anchor sits on a 25–40 % slope: sunk a little more so its uphill side is in the bank)
+    const sinkFrac = b.id === 'shot-d-boulder' ? 0 : anchor ? 0.22 : 0.15;
     const rockOpts: RockOptions = {
       radius: r,
       // 20·(detail+1)² triangles: ≈ 16.8k for the 2.2 m terrace boulder, ≈ 14.6k for the small
@@ -343,7 +460,8 @@ export async function create(ctx: WorldContext): Promise<WorldSystem> {
       crackDepth: 0.025,
       // frame 56 s: the D rock is half bare stone (moss 35 % of its box, bare 54 %); at 1.0 the
       // cushion took 51 % of ours
-      moss: b.id === 'shot-d-boulder' ? 0.85 : 1.0,
+      // (V21's rock: a pale rounded stone with a moss cap and a little at the collar — not a blanket)
+      moss: b.id === 'shot-d-boulder' ? 0.85 : anchor ? 0.65 : 1.0,
       // faint bedding (dark partings, only a hint of a ledge) under a thick moss cap, sitting in
       // a dark collar of soil — the reference boulders are rounded first, layered second.
       // Sheet 01 'Mossy root' / sheet 04: the caps are thick pads over grey — not warm-brown —
@@ -360,7 +478,7 @@ export async function create(ctx: WorldContext): Promise<WorldSystem> {
       mossLumpy: 1.0,
       // D's frame face is bare lit stone under the moss top with the fracture in shade, so its
       // blanket is thinner; the A rock's face toward frame 1 s is moss from shoulder to collar
-      mossSide: b.id === 'shot-d-boulder' ? 0.45 : 0.9,
+      mossSide: b.id === 'shot-d-boulder' ? 0.45 : anchor ? 0.3 : 0.9,
       mossShade: toLocal(shadeDir, yaw),
       // fable-2 (W23 at frame D, fable-5's 13:25 review of the loaf: "value inverted — moss + shade on
       // the face D sees, l 0.21 / hue 63° / sat 0.15 against the reference's bare lit face l 0.27 /
@@ -381,7 +499,11 @@ export async function create(ctx: WorldContext): Promise<WorldSystem> {
       // rocks are cool grey under their moss, so it gets a tan tint of its own
       // (W23: frame D's boulder is olive-tan — rgb 91/83/45 at l 0.32, hue 47°, sat 0.34 — where
       // ours rendered grey-tan at 0.30 behind the ferns; the tint goes a step paler and yellower)
-      tint: b.id === 'shot-d-boulder' ? new Color(0.9, 0.85, 0.64) : new Color(0.72, 0.72, 0.71),
+      // fable-2 (fable-5 round-50 #8, the hue half of W23 at D: the face 62° / 0.13 against the frame's 52° / 0.36):
+      // the tan a step warmer and more saturated — the grey triplanar stone under it desaturates by a third
+      // (fable-5 21:10: two thirds of the hue gap closed, chroma still short — the face is in the giant's shade,
+      // lit by the bluish sky fill, which greys a tan; the tint overshoots warm to meet the frame's ochre there)
+      tint: b.id === 'shot-d-boulder' ? new Color(0.97, 0.8, 0.47) : anchor ? new Color(0.84, 0.82, 0.74) : new Color(0.72, 0.72, 0.71),
       freq: 0.9,
     };
     const geo = buildRock(bRng.fork(b.id), `${seed}/boulder-${b.id}`, rockOpts);
@@ -975,7 +1097,7 @@ export async function create(ctx: WorldContext): Promise<WorldSystem> {
   const ledgeMeshes: Mesh[] = [];
   const nBox = northBox(ctx.layout);
   if (ledgeDefs.length) {
-    const ledgeMaterial = await createRockMaterial(ctx.textures, ctx.config, anisotropy, 1.4, 0.85, { near: true, fade: LEDGE_FADE_M, damp: LEDGE_DAMP });
+    const ledgeMaterial = await createRockMaterial(ctx.textures, ctx.config, anisotropy, 1.4, 0.85, { near: true, fade: LEDGE_FADE_M, damp: LEDGE_DAMP, relief: LEDGE_RELIEF });
     const lRng = rng.fork('ledges');
     for (const def of ledgeDefs) {
       const built = buildRockLedge(def, T, lRng.fork(def.id), `${seed}/ledge`);
@@ -1025,13 +1147,13 @@ export async function create(ctx: WorldContext): Promise<WorldSystem> {
     backsideMesh.visible = false;
     group.add(backsideMesh);
     const sunDir = sunVector(ctx.config.sun.azimuthDeg, ctx.config.sun.elevationDeg);
-    backsideSpheres = backside.casters.flatMap((c) => casterSpheres(c, sunDir));
+    backsideSpheres = backside.spheres(sunDir);
   }
 
   const rubbleSlots: InstanceSlot[] = [];
-  const rubbleMeshes = buildInstanced(rubble, rubbleGeos, material, 'rubble', true, rubbleSlots);
+  const rubbleMeshes = buildInstanced(rubble, rubbleGeos, strataMaterial, 'rubble', true, rubbleSlots);
   const strataSlots: InstanceSlot[] = [];
-  const strataMeshes = buildInstanced(strata, strataGeos, material, 'strata', true, strataSlots);
+  const strataMeshes = buildInstanced(strata, strataGeos, strataMaterial, 'strata', true, strataSlots);
   const pebbleMeshes = buildInstanced(pebbles, pebbleGeos, pebbleMaterial, 'pebbles', false);
   const northPebbleMeshes = buildInstanced(northPebbles, pebbleGeos, pebbleMaterial, 'pebbles-north', false);
   for (const m of [...rubbleMeshes, ...strataMeshes, ...pebbleMeshes, ...northPebbleMeshes]) group.add(m);

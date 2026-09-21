@@ -2672,7 +2672,7 @@ Also: lantern bough still a thick plain beam across the top of B (trees pass pen
 - Lanes: hardscape-32 2 commits, structures-33 4, npc-3 4, vegetation-27 0, trees-32 0 (both
   building 70 min); character-10b pending. Next seal when the first two or three land.
 
-### 2026-09-21 08:20 UTC — ticks 200–201: owner priority (NPCs hidden, Link ea93932d) → take-0124; round 50 merged → take-0125
+### 2026-09-21 04:15 UTC — ticks 200–201: owner priority (NPCs hidden, Link ea93932d) → take-0124; round 50 merged → take-0125
 - **take-0124** on `0f0db8da` (VALID, 37/50): the owner's ~21:00 UTC direction via Astra — the background
   cast parented under a hidden `background-characters` group (`npcsVisible` 0 in the audit), Astra's PR #24
   runtime (planted-pin support fix, four-corner support) and Link asset `ea93932d` (calves/boots in,
@@ -2688,6 +2688,24 @@ Also: lantern bough still a thick plain beam across the top of B (trees pass pen
 - Monitor push failed twice on a rotated origin credential — `monitor.mjs` now re-reads the URL per attempt.
 - character-10b: ADOPT `1e81bb6c`'s stairs channels; Astra asked to rebase them onto `ea93932d`.
 - Round 51 running: lod-1 (trees high quality around the player), vegetation-28 (grass fullness, knoll turf, C hostas).
+
+### 2026-09-21 04:55 UTC — tick 202: nine Fable-chat branches merged → take-0126; round 51 stopped (account usage block)
+- Merged (tsc + 76/76 tests green): `agent/fable-5-r49-review` (take-0125 re-verdicts, W06 → pass),
+  `fable-3-backside` (deck pot/crate, fork signpost, village locality — six views identical),
+  `fable-4-r49b` + `fable-4-taper` + `fable-4-leafnear` (W08 at C: tapered leaning hero stem with a
+  bough, marks retired, near leaf line — C +0.0014), `fable-2-ledge` (wall relief, casters, near-skin
+  relief on hero boulders/strata — the owner's "stones under-detailed"), `fable-2-hue` (D boulder
+  ochre), `fable-2-w05` (C bank strata tier, pot keep-out), `fable-2-v21` (stair-foot rock → the
+  frame's single anchor at (7.2, 3.1); C +0.0032 measured). `rocks/index.ts` w05/v21 conflict resolved
+  by keeping both blocks and combining the tint ternaries.
+- Round 51 (lod-1, vegetation-28) stopped mid-run: the Cursor account is blocked on an unpaid invoice.
+  vegetation-28's one finding merged first (7292b9a0): the vegetation test fixtures were built on the
+  LIVE terrain view while the game uses the LEGACY one — my round-49 "weed re-roll" re-bases were a
+  fixture artefact; contracts restored (139 / ≥ 16). Sub-agents resume when the owner clears the block.
+- Three biggest remaining gaps (unchanged in kind): Link's posture on stairs / run torso (Astra, PR #24
+  + the combined `ea93932d`+stairs-upright asset requested); near-LOD swap distances (lod-1, blocked);
+  grass fullness at player height (vegetation-28, blocked). Environment lanes continue through the
+  Fable chats, which are unaffected.
 
 ## Pending corrections from reference/ANALYSIS.md (apply at integration, one commit)
 - `config.ts` palette → olive/khaki low-key (reference hero frames: hue 47–51°, sat 0.16–0.19,
@@ -2727,4 +2745,4 @@ Pick anything NOT claimed in `gauntlet/claims.json`. Good self-contained candida
   my own (GAUNTLET.md D7).
 
 ## Last updated
-2026-09-21T08:20:00Z
+2026-09-21T04:55:00Z

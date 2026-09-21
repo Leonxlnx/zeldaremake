@@ -26,7 +26,7 @@ assert.ok(Math.max(...CLUMP_CHARACTERS.map(c=>c.spread))/Math.min(...CLUMP_CHARA
 assert.ok(Math.max(...CLUMP_CHARACTERS.map(c=>c.blades[0]))/Math.min(...CLUMP_CHARACTERS.map(c=>c.blades[0]))>=1.6,'blade counts from sparse to dense');
 const {clumpCardGeometry,turfMatGeometry,CLUMP_CELL,MAT_CELL}=read('vegetation/carpet');
 const edges=read('vegetation/edges');let soilMatsSeen=0;
-function make(){const ctx={config:WORLD,layout:LAYOUT,terrain:read('terrain/heightfield').createTerrain(),rng:read('util/prng').createRng(WORLD.seed),wind:read('wind/wind').createWind(),quality:{tier:'high',density:1,distance:1,shadows:true,pixelRatio:1.5}};
+function make(){const ctx={config:WORLD,layout:LAYOUT,terrain: read('terrain/heightfield').getLegacyTerrain(),rng:read('util/prng').createRng(WORLD.seed),wind:read('wind/wind').createWind(),quality:{tier:'high',density:1,distance:1,shadows:true,pixelRatio:1.5}};
   const group=new THREE.Group(),field=new VegField(ctx,WORLD.detailRadius+6,.5);return{ctx,group,field,carpet:read('vegetation/carpet').buildCarpet(ctx,field,group)};}
 const a=make(),b=make();
 const scaleX=it=>Math.hypot(it.matrix[0],it.matrix[1],it.matrix[2]),scaleY=it=>Math.hypot(it.matrix[4],it.matrix[5],it.matrix[6]);

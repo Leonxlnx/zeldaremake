@@ -17,8 +17,8 @@ gauntlet's independent D7 verdicts (`gauntlet/reviews/*.json`, written only thro
 00:00 UTC (timer `goal-mode-fable-5`, cron `20 * * * *`); `agent/fable-5-demo-walk` merged (`b4de8d7`); current branch `agent/fable-5-r48-review`.
 
 ## Current task
-Done this iteration: the round-49 walk + round-50 ranked list (see Completed). Next: re-verdicts as
-round-50 merges land, lane branches measured on request, the video file when it arrives.
+Done this iteration: take-0125 re-verdicted (see Completed). Next: lane branches on the round-50 head as
+they come (fable-4-taper merge → W08), astra's split, the video file.
 
 ## Previous current task (superseded)
 Goal-mode loop. Next iteration: **re-verdict every visual item on take-0120** when it seals (the
@@ -34,6 +34,46 @@ lands: `ffmpeg` frames at his marked moments → `reference/frames-video2/`, has
 - `.agents/fable-5.md`, `.agents/reviews/fable-5-*.md`, my threads in `.agents/INBOX.md`.
 
 ## Completed work
+- 2026-09-21 04:20–04:55 UTC — iteration 30: take-0125 (c4d12f6, round 50) re-verdicted — 11 verdicts, W06
+  turns (38/50 with my verdicts), C01 close (tunic only), W05/W02/W08/C02 fail updated
+  (`fable-5-take0125.md`, four sheets).
+- 2026-09-21 03:20–03:50 UTC — iteration 29 (r49 §T): V16's seams measured twice too dark (E 12.0 % vs
+  the frame's 5.4 %) with slabs 0.03 darker; V17 unchanged at w23-stairs-f (canopy shade — a light, not
+  albedo); fable-2's near relief on the hero boulders (A identical, 2 m micro σ up). take-0125 still unsealed.
+- 2026-09-21 01:20–03:00 UTC — iterations 27–28 (r49 §R–§S): round 50 measured on the head (B −0.0119,
+  C −0.0111, F −0.0164 from the demo-scale slabs — V16 answered, the metric punishes it; D/E gain); the
+  V21 and taper calls re-measured on the round-50 head (unchanged); take-0125 pre-read (C01 closer, W06
+  likely turns, W05 still a dome). take-0125 not yet sealed.
+- 2026-09-21 00:20–00:45 UTC — iteration 26 (r49 §Q): fable-2's W05 rock half at C — C −0.0010, stones
+  on the slope, the mound unchanged; W05 needs the terrain to tier (vegetation-27 / terrain).
+- 2026-09-20 23:20–23:45 UTC — iteration 25 (r49 §P): V21 'shrink' variant — C +0.0019 / F −0.0042: F's
+  loss is the head's pale loaf the frame never had; 'replace' (C +0.0032) is the variant, an owner-approved
+  look change for fable-cursor to name.
+- 2026-09-20 22:20–23:15 UTC — iteration 24 (r49 §O): the owner's NPC hide measured on character-on
+  frames (C −0.0018, D −0.0007, E +0.0037 — the next take's baseline); fable-2's chroma step (face sat
+  0.18 → 0.20, tint spent); fable-4-taper's tip (C +0.0009, all four W08 words at C — turns on the next take).
+- 2026-09-20 21:20–21:45 UTC — iteration 23 (r49 §N): fable-2's V21 anchor at C — C +0.0032 (landed), A
+  −0.0007, F −0.0043 (over budget); call for fable-cursor (owner-approved composition or a smaller
+  stair-foot stone for F).
+- 2026-09-20 20:20–21:10 UTC — iteration 22 (r49 §M): fable-2's D hue half (face 67° → 59°, sat unchanged
+  at 0.16 vs the frame's 0.36 — IMPROVED, chroma next) and fable-3's backside props (six views +
+  w04 pixel-identical; crate/bucket + waymarker at their poses — merge). Merge queue posted for
+  fable-cursor, absent since 17:19.
+- 2026-09-20 19:20–20:15 UTC — iteration 21 (r49 §L): fable-4's instance-matrix lean (C +0.0002, four
+  poses identical — IMPROVED), fable-2's wall relief (micro σ 0.039 → 0.047) + pair value (IMPROVED),
+  fable-2's D form planes (do not read at D: canopy shadow — a lighting question). Caught an outlier head
+  render (diffuse whole-frame difference) by re-rendering.
+- 2026-09-20 18:20–19:20 UTC — iteration 20 (r49 §J–§K): fable-4's taper `606ec987` (A/B/D/E pixel-identical,
+  C Δ 0 — IMPROVED); astra's tip `64d5b7c9` re-measured — still over budget (C −0.0102, F −0.0125) but the
+  leaf warmth puts the far crowns on the §7.1 hue target (C-top 84° → 66°); split recommended. My
+  nearCanopy-revert isolation did not build.
+- 2026-09-20 17:40–17:50 UTC — iteration 19b (r49 §I): fable-2's backside rocks (merged) at their poses —
+  V20's pale pair is on the south bank (IMPROVED; smaller and greyer than `d_087`'s); D with the loaf +
+  value half on the head −0.0003.
+- 2026-09-20 17:20–17:40 UTC — iteration 19a: correction — fable-4's lean `ea86f8c1` re-rolled 18 outer-ring
+  placements my six-view pair could not see (reverted by fable-4); W08's take-0123 note re-filed (the
+  stem is plumb; the bough is the landed half), §B corrected with a method note (placement-sensitive
+  commits need the instance-transform check, not pixels).
 - 2026-09-20 16:20–16:55 UTC — goal-mode iteration 18: the round-49 walk of `97c8322` at 15 player-height
   poses (12 paired with the round-48 walk + 3 backside looks); the round-50 list re-cut by the owner's
   order (`fable-5-walk-r49-head.md`, five sheets). Sky overhead still 20.5 %.

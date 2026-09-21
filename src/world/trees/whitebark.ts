@@ -8,7 +8,7 @@
  * trunk via vertex colour, palette-driven leaf colours with per-leaf variation, and per-vertex
  * wind attributes (trunk / branch / leaf layers). Geometry-only: metres, +Y up, base at y = 0.
  */
-import { BufferGeometry, Color, Mesh, Vector3, type Material } from 'three';
+import { BufferGeometry, Color, Mesh, Quaternion, Vector3, type Material } from 'three';
 import { createRng, type Rng } from '../util/prng';
 import { Noise2D, smoothstep } from '../util/noise';
 import { consumeTubeDraws } from './bole';
@@ -120,6 +120,9 @@ export interface ToeSpec {
  * them the LOD-0 height and radius `placeWhiteBark` and the LOD bucketing read, stay the
  * round-46 geometry, so the 80 placements do not move.
  */
+const _sway = new Vector3();
+/** a low bough's lobe keeps its underside this high over the tree's ground (a walker's eye is 1.45 m) */
+const WALKER_CLEARANCE_M = 1.9;
 const baseRngFor = (p: WhiteBarkParams) => createRng(`whitebark/${p.seed}`).fork('base-47');
 
 /**
@@ -192,14 +195,44 @@ export function createWhiteBarkTree(p: WhiteBarkParams, palette: Palette, detail
   /** the stem's size class: the flare's heights scale with the girth (a sapling's foot is a hand tall) */
   const girth = Math.min(1.2, Math.max(0.35, R / 0.3));
   /**
+   * Round 50 (W08 at C, fable-5 on take-0123: "the stem is still a straight-sided cylinder with no
+   * taper and no irregularity"). `growthPath`'s bends are four draws that can land near zero — the
+   * survey stem's did — so the lower stem carries its own bow or S: 0.3–0.55 R at the belly (a
+   * birch's, seen from 20 m as an edge that is not a rule) in a per-stem direction, zero at the
+   * foot (the flare, the toes and the seated-root mesh stand where they did) and zero again from
+   * half height. The bow moves the SWEPT SURFACE only (`trunkDense`, below): every branch, limb and
+   * shoot keeps sampling the unbent `trunk`, so the crown, the low boughs, their leaves and the
+   * asset's bounds are byte-identical — `height` / `radius` feed the placement sampler, and a bend
+   * the limbs followed re-rolled 18 placements. Their origins stay inside the stem (0.55 R of
+   * offset against a shouldered radius ≥ 1.1 R there). Drawn from `baseRng`; the same at every LOD.
+   */
+  const sway = baseRng.fork('stem-sway-50');
+  const swayAmp = R * sway.range(0.3, 0.55) * (p.age === 'sapling' ? 0.6 : 1);
+  const swayWaves = sway.range(0.8, 1.3);
+  const swayPhase = sway.range(0, TAU);
+  const swayAz = sway.range(0, TAU);
+  /** the bow's lateral offset at stem fraction `t` — applied to the sweep's polyline only (below) */
+  const swayAt = (t: number) => smoothstep(0, 0.12, t) * (1 - smoothstep(0.36, 0.5, t)) * swayAmp * Math.sin(TAU * swayWaves * t + swayPhase);
+  /**
    * The butt flare as a radius multiplier at height `h` above the ground: a sharp foot swell
    * (e-fold 14 cm on a mature stem) over a longer butt swell, +88 % at the ground line, +16 % at
    * 0.6 m, +4 % at 2 m — the same at every LOD so the three meshes keep one silhouette. The
    * old profile (+70 % at the ground fading over 2 m) was too gradual to read as a flare at 2 m.
    */
+  /**
+   * Round 50 (W08's "tapered" at C): the flare's terms are spent by 2 m, and above the flower line
+   * — the only part of the survey stem camera C sees, 1–5 m — the stem was a 1.3 : 1 cone that reads
+   * as a pole at 22 m. The butt taper of the reference's stems runs higher: a shoulder of +22–34 %
+   * (per stem, `baseRng`) that rises from the toes' crest (0.35–1.1 m, so the foot, the toes and the
+   * roots mesh keep their radius) and is gone by 0.36 H (4.6 m on the survey stem, 2.9 m on a young
+   * one). Same at every LOD.
+   */
+  const shoulder = baseRng.fork('shoulder-50').range(0.22, 0.34);
+  const shoulderTop = Math.max(2.2, H * 0.36);
   const flareAt = (h: number) => {
     const a = Math.max(0, h);
-    return 1 + 0.5 * Math.exp(-a / (0.14 * girth)) + 0.28 * Math.exp(-a / (0.5 * girth)) + 0.1 * Math.exp(-a / (1.8 * girth));
+    const bump = smoothstep(0.35, 1.1, a) * (1 - smoothstep(1.4, shoulderTop, a));
+    return 1 + 0.5 * Math.exp(-a / (0.14 * girth)) + 0.28 * Math.exp(-a / (0.5 * girth)) + 0.1 * Math.exp(-a / (1.8 * girth)) + shoulder * bump;
   };
   const taperAt = (t: number) => tipRadius + (R - tipRadius) * Math.pow(1 - t, p.taperPower);
   // the coarse radii (27 rings) keep feeding the epicormic shoots below, as before
@@ -218,8 +251,10 @@ export function createWhiteBarkTree(p: WhiteBarkParams, palette: Palette, detail
     const spacing = a.y < 3 ? 0.18 : a.y < 6 ? 0.35 : 0.6;
     const n = Math.max(1, Math.ceil(a.distanceTo(b) / spacing));
     for (let k = 0; k < n; k++) {
-      trunkDense.push(a.clone().lerp(b, k / n));
-      trunkDenseT.push((i + k / n) / (trunk.length - 1));
+      const t = (i + k / n) / (trunk.length - 1);
+      const w = swayAt(t);
+      trunkDense.push(a.clone().lerp(b, k / n).add(_sway.set(Math.cos(swayAz) * w, 0, Math.sin(swayAz) * w)));
+      trunkDenseT.push(t);
     }
   }
   trunkDense.push(trunk[trunk.length - 1].clone());
@@ -307,38 +342,10 @@ export function createWhiteBarkTree(p: WhiteBarkParams, palette: Palette, detail
     wobble: bandRng.range(0.03, 0.07),
     phase: bandRng.range(0, 100),
   }));
-  /**
-   * Round 48 (GOAL_MODE fable-4 #3, the owner's "detail at longer range"): what a stem shows at
-   * 5–20 m through 20–60 % haze is its LARGE dark marks — the 6–14 cm bands above are 4–9 px at
-   * 15 m and go under the veil. Per variant, from their own fork so the bands above do not move:
-   * one or two broad dark bands (0.25–0.45 m, near-black) and one to three branch scars — the
-   * black downward-pointing chevrons a birch keeps under a shed limb, 0.25–0.45 m tall, widest
-   * at the top, tapering to a point below — at 1.2–4.5 m, where a walker's eye meets the stem.
-   */
-  const rangeRng = baseRng.fork('range-48');
-  const broadBands = p.age === 'sapling' ? [] : Array.from({ length: 1 + rangeRng.int(0, 2) }, () => ({
-    y: rangeRng.range(0.8, Math.min(3.6, H * 0.4)),
-    sigma: rangeRng.range(0.1, 0.2),
-    strength: rangeRng.range(0.45, 0.6),
-    wobble: rangeRng.range(0.04, 0.09),
-    phase: rangeRng.range(0, 100),
-  }));
-  const scars = p.age === 'sapling' ? [] : Array.from({ length: 1 + rangeRng.int(0, 3) }, () => ({
-    y: rangeRng.range(1.2, Math.min(4.5, H * 0.45)),
-    phi: rangeRng.range(-Math.PI, Math.PI),
-    halfWidth: R * rangeRng.range(0.45, 0.75),
-    height: rangeRng.range(0.25, 0.45) * girth,
-    strength: rangeRng.range(0.55, 0.75),
-  }));
-  /**
-   * The large marks are pushed to near-black separately from the soot: measured at
-   * `f4-trunk-2m`, a 42 % linear drop on the pale upper bark rendered as ~20 sRGB levels (the
-   * shaded face is dark in linear terms, so gamma compresses it) — the round-47 foot reads
-   * darker only because it compounds with the grey lower bark. A birch's bands and scars are
-   * near-black (linear ≈ 0.05): the mark's own weight takes the vertex the rest of the way.
-   */
-  let mark = 0;
-  const markBlack = dark.clone().multiplyScalar(0.2);
+  // Round 48's vertex-colour broad bands and chevrons (the range-48 fork) retired in round 49: the
+  // tile carries the large marks at texel resolution now (bark-texture.ts), and fable-5's review
+  // found stems showing both — a soft zone above a crisp band — and three bands plus two chevrons
+  // on 6 m of stem busy against ref-04's one or two. The 6–14 cm bands and the foot stay.
   const tinted = new Color();
   for (let k = 0; k < trunkRows.length; k++) {
     const centre = trunkDense[Math.min(k, trunkDense.length - 1)];
@@ -357,31 +364,10 @@ export function createWhiteBarkTree(p: WhiteBarkParams, palette: Palette, detail
         const d = (y - b.y - wob) / b.sigma;
         soot += b.strength * Math.exp(-d * d * 0.5);
       }
-      mark = 0;
-      for (const b of broadBands) {
-        const wob = footNoise.noise(cx * 0.9 + b.phase, cz * 0.9) * b.wobble;
-        const d = (y - b.y - wob) / b.sigma;
-        // flat-topped: a band, not a line
-        mark += b.strength * Math.exp(-Math.pow(d * d, 1.6) * 0.5) * (0.85 + 0.15 * footNoise.noise(cx * 3 + b.phase, y * 6));
-      }
-      const ringR = Math.hypot(x, z);
-      for (const s of scars) {
-        // v runs −1 at the chevron's point to +0.5 at its top edge; the width shrinks to the point
-        const v = (y - s.y) / s.height;
-        if (v < -1.05 || v > 0.55) continue;
-        const dphi = Math.atan2(Math.sin(phi - s.phi), Math.cos(phi - s.phi));
-        const w = s.halfWidth * (0.12 + 0.88 * Math.min(1, (v + 1) / 1.5));
-        const across = 1 - Math.min(1, Math.abs(dphi * ringR) / Math.max(0.01, w));
-        const along = smoothstep(-1.05, -0.85, v) * (1 - smoothstep(0.35, 0.55, v));
-        mark += s.strength * Math.pow(across, 0.7) * along;
-      }
-      soot = Math.min(0.78, soot + mark);
-      mark = Math.min(1, mark / 0.6);
+      soot = Math.min(0.72, soot);
       if (soot < 0.01) continue;
       tinted.setRGB(wood.colors[idx * 3], wood.colors[idx * 3 + 1], wood.colors[idx * 3 + 2]);
       tinted.lerp(dark, soot * 0.75).multiplyScalar(1 - soot * 0.3);
-      // the large marks go on to near-black: a further lerp to the dark bark at a fifth of its level
-      if (mark > 0.01) tinted.lerp(markBlack, mark * 0.85);
       wood.colors[idx * 3] = tinted.r;
       wood.colors[idx * 3 + 1] = tinted.g;
       wood.colors[idx * 3 + 2] = tinted.b;
@@ -405,6 +391,16 @@ export function createWhiteBarkTree(p: WhiteBarkParams, palette: Palette, detail
   }
 
   // ---------- leaf sprays ----------
+  /**
+   * Round 50 (W08 at C, "a bough that shows"): true while a low bough's lobe is foliated. The crown's
+   * distance meshes keep one leaf in 6 / 12 at 2.2 / 3.2 × — the right trade for a roof seen at
+   * 20–44 m, but a low bough's lobe (≈ 150 laminae) thinned to 25 at 22 m read as a few flat cards
+   * floating beside the survey stem. The low boughs — the part of the tree at a walker's eye and in
+   * frame C — keep one in 2 / 4 at 1.3 / 2.0 × (the same covered area, scale² / every ≈ 0.85–1.0);
+   * ≈ +100 laminae per mature medium instance. Retention is by leaf ordinal (writer.ts addLeaf), so
+   * the stream and the high mesh are untouched.
+   */
+  let boughSpray = false;
   const leafOpts = (radius: number) => ({
     widthRatio: 0.69,
     wideFirst: 1,
@@ -413,10 +409,10 @@ export function createWhiteBarkTree(p: WhiteBarkParams, palette: Palette, detail
     flutter: 0.016,
     // round 49 (W38): the distance meshes keep one leaf in 6 / 12 (was 5 / 10) at the size that
     // holds the same covered area (scale² / every ≈ 0.8) — 4–10 px laminae at 20–44 m either way
-    mediumEvery: 6,
-    mediumScale: 2.19,
-    lowEvery: 12,
-    lowScale: 3.18,
+    mediumEvery: boughSpray ? 2 : 6,
+    mediumScale: boughSpray ? 1.3 : 2.19,
+    lowEvery: boughSpray ? 4 : 12,
+    lowScale: boughSpray ? 2.0 : 3.18,
   });
 
   /** lobe context for interior shading: leaves deep inside a lobe are darker (self-shadowed) */
@@ -617,21 +613,38 @@ export function createWhiteBarkTree(p: WhiteBarkParams, palette: Palette, detail
   // a walker's eye line at 2–7 m. Built after the crown, so the crown's stream is untouched.
   for (let i = 0; i < p.lowerLimbs; i++) {
     const main = i === 0;
-    // the main bough leaves the stem at 22–34 % of the height (2.8–4.4 m on a mature stem, so its
-    // lobe sits at 3.5–6 m — inside camera C's frame under the HUD, and at eye level plus a little
-    // for a walker); the second, where drawn, at 30–42 %
-    const t = main ? bt(0.22, 0.34) : bt(0.3, 0.42);
+    // the main bough leaves a MATURE stem at 12–17 % of the height (1.55–2.2 m on the survey stem, its
+    // lobe centred at 2.3–3.6 m): camera C's item HUD hides the stem above ≈ 5 m there and the giant's
+    // lantern limb crosses it at 4–4.5 m, so at 22–34 % the lobe sat half under the HUD (fable-5 on
+    // take-0123, "a bough that shows") and at 15–25 % behind the limb; below the limb it reads against
+    // the haze. The lobe's underside stays ≥ 1.8 m over the ground. A young stem keeps 22–34 %
+    // (1.5–3.4 m: lower and its leaves would brush a walker's head by the clearing's paths); the second,
+    // where drawn, at 30–42 %. The same draw either way; the lobe's reach is unchanged.
+    const t = main ? (p.age === 'mature' ? bt(0.12, 0.17) : bt(0.22, 0.34)) : bt(0.3, 0.42);
     const origin = sample(trunk, t);
     const angle = p.leanAzimuth + 1.9 + i * 2.5 + bt(-0.55, 0.55);
     const reach = crownRadius * (main ? bt(0.45, 0.7) : bt(0.35, 0.58));
-    const center = origin.clone().add(new Vector3(Math.cos(angle) * reach, H * (main ? bt(0.06, 0.11) : bt(0.065, 0.12)), Math.sin(angle) * reach));
+    const rise = H * (main ? bt(0.06, 0.11) : bt(0.065, 0.12));
+    // the main lobe flatter than round 49's (0.05 H, was 0.075): a drooping birch bough's spray, and at
+    // camera C it keeps most of its laminae under the giant's lantern limb (which covers ≈ 3–4 m on
+    // the survey stem) while the underside clears a walker
+    const lobeVR = main ? H * 0.05 : H * 0.04;
+    // the lobe's underside stays over a walker's head (WALKER_CLEARANCE_M): the main bough leaves a
+    // mature stem at 1.55–2.2 m and rises to its lobe, and with a low rise the lobe's bottom laminae
+    // reached 1.4 m — measured standing 3.5 m off the survey stem along the bough. The clamp lifts
+    // the lobe's centre only where the draw would put it lower; the reach and the horizontal extent
+    // (the asset's bounds) do not move.
+    const centerY = main ? Math.max(origin.y + rise, WALKER_CLEARANCE_M + lobeVR + 0.1) : origin.y + rise;
+    const center = new Vector3(origin.x + Math.cos(angle) * reach, centerY, origin.z + Math.sin(angle) * reach);
     const path = growthPath(origin, center, tangent(trunk, t).lerp(new Vector3(Math.cos(angle), 0.2, Math.sin(angle)), 0.62), rng, 8, 1.1);
     const radius = R * (main ? bt(0.15, 0.21) : bt(0.12, 0.18));
     tube(wood, path, taper(path, radius, 0.004), 6, rng, { color: branchColor(radius), roughness: p.ridge * 0.5 });
     // the main bough: a 1.7 m lobe in a few big tufts (W38: ≈ +2 K high-LOD triangles a stem);
     // the second, where drawn, the old small tuft
-    if (main) foliateLobe(path, center, crownRadius * 0.3, H * 0.075, radius, 2, 3, 4);
-    else foliateLobe(path, center, crownRadius * 0.17, H * 0.04, radius, 2, 3, 4);
+    boughSpray = true;
+    if (main) foliateLobe(path, center, crownRadius * 0.34, lobeVR, radius, 2, 3, 4);
+    else foliateLobe(path, center, crownRadius * 0.17, lobeVR, radius, 2, 3, 4);
+    boughSpray = false;
   }
 
   // ---------- epicormic shoots through the trunk surface (detail near the eye) ----------
@@ -639,7 +652,9 @@ export function createWhiteBarkTree(p: WhiteBarkParams, palette: Palette, detail
     const shoots = rng.int(0, 3);
     for (let i = 0; i < shoots; i++) {
       const t = 0.2 + (i / Math.max(1, shoots - 1)) * 0.3 + bt(-0.04, 0.04);
-      const origin = sample(trunk, t);
+      // on the BENT axis (the sweep's, `swayAt`): a shoot seated on the unbent path and pointing into
+      // the bow was swallowed by the moved surface (`sn-whitebark-base`, the stub at 1.6 m)
+      const origin = sample(trunk, t).add(_sway.set(Math.cos(swayAz) * swayAt(t), 0, Math.sin(swayAz) * swayAt(t)));
       const angle = rng() * TAU;
       const outward = new Vector3(Math.cos(angle), 0, Math.sin(angle));
       const ri = t * (trunkRadii.length - 1);
@@ -750,6 +765,32 @@ function rootToe(writer: GeometryWriter, toe: ToeSpec, frame: TreeFrame, color: 
     }
     rows.push(row);
   }
+}
+
+/**
+ * Round 50 (W08 at C — fable-5 on take-0123: "the C stem is plumb"). The rubric judges the white-barks
+ * at frame C, where one stem stands at the right edge: the mature variant 7 at (−7.39, 12.87), whose
+ * own 2–8° lean happens to point at the camera and foreshortens to plumb. A lean in the geometry moves
+ * every crown's bounds (`TreeAsset.radius` feeds the placement sampler: 18 seats re-rolled, reverted
+ * on r49b), so the hero stem leans by its INSTANCE matrix instead — a world-space tilt about the ground
+ * point, applied after the yaw; position, yaw, scale, the asset and every other tree are untouched.
+ * `toward` is the horizontal direction the top moves (into C's frame: camera-left at that spot).
+ * Matched by position (0.6 m), so a re-roll upstream leaves the table inert rather than wrong.
+ */
+export const HERO_WHITE_BARK_TILTS: { x: number; z: number; tiltDeg: number; toward: [number, number] }[] = [
+  { x: -7.39, z: 12.87, tiltDeg: 5.5, toward: [0.9, 0.43] },
+];
+const _tiltAxis = new Vector3();
+/** the instance tilt for a seated white-bark, or null — see HERO_WHITE_BARK_TILTS */
+export function whiteBarkTilt(x: number, z: number): Quaternion | null {
+  for (const t of HERO_WHITE_BARK_TILTS) {
+    if (Math.hypot(x - t.x, z - t.z) > 0.6) continue;
+    const l = Math.hypot(t.toward[0], t.toward[1]) || 1;
+    // up × toward: rotating +y about this axis moves the top along `toward`
+    _tiltAxis.set(t.toward[1] / l, 0, -t.toward[0] / l);
+    return new Quaternion().setFromAxisAngle(_tiltAxis, (t.tiltDeg * Math.PI) / 180);
+  }
+  return null;
 }
 
 export interface RootPlacement {

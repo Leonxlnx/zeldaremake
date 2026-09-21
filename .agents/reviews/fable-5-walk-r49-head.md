@@ -40,7 +40,7 @@ evidence but ranks by that. Severity 3 = the frame is wrong without it.
 | 6 | **Slabs 2× the frame's size with joints 2× as wide** (V16) — hardscape-32 has it | E, D, `w05-spine-d` | hardscape-32 | — | 2 |
 | 7 | **Open sky overhead, 20.5 % blue at the plateau** (F's lobes; the gaps between the grove crowns) | `w27-plateau-u`, F | canopy (owner-fable) | trees | 2 |
 | 8 | **W23 at D**: the loaf + value half get a rock into the frame at l 0.24; the face still moss-grey (62° / 0.13 vs 52° / 0.36) and one plane — merge them, then hue + form | D left, `sn-boulder-shotd` | rocks (fable-2) + vegetation-26 | stones | 2 |
-| 9 | **White-bark taper and irregularity** (W08's last halves): the C stem is a straight-sided cylinder that now leans and carries a bough | C right, `wb-grove-10m` | fable-4 | trees | 2 |
+| 9 | **White-bark taper, irregularity and lean** (W08's open halves): the C stem is a plumb straight-sided cylinder that carries a bough; the lean commit was reverted for a hidden placement re-roll | C right, `wb-grove-10m` | fable-4 | trees | 2 |
 | 10 | **The C embankment a lawn mound (W05); grass meets slab without a soil/moss band (W06)** — vegetation-27 has both | C, E | vegetation-27 | — | 2 |
 | 11 | **Link's colour grade (C01), the sword (C02), the bag oval (U02)** — npc-3 has C01 | E, D, the bag screen | character / npc-3 / shell | — | 2 |
 | 12 | Tunnel nits: the right cheek's vertical shading seam at `x-arch-approach` (x ≈ 0.85), the floor under the log at l 0.105 vs the frame's 0.161 | `x-arch-approach`, `x-arch-tunnel-n` | structures-33 | — | 1 |

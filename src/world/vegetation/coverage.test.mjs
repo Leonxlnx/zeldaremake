@@ -20,7 +20,7 @@ function load(file){file=path.resolve(file);if(modules.has(file))return modules.
 const read=name=>load(path.join(root,name+'.ts'));
 const {WORLD}=read('config'),{LAYOUT}=read('layout'),{VegField}=read('vegetation/field');
 const cov=read('vegetation/coverage');
-const ctx={config:WORLD,layout:LAYOUT,terrain:read('terrain/heightfield').createTerrain(),rng:read('util/prng').createRng(WORLD.seed),wind:read('wind/wind').createWind(),quality:{tier:'high',density:1,distance:1,shadows:true,pixelRatio:1.5},progress(){},audit(){}};
+const ctx={config:WORLD,layout:LAYOUT,terrain: read('terrain/heightfield').getLegacyTerrain(),rng:read('util/prng').createRng(WORLD.seed),wind:read('wind/wind').createWind(),quality:{tier:'high',density:1,distance:1,shadows:true,pixelRatio:1.5},progress(){},audit(){}};
 const field=new VegField(ctx,WORLD.detailRadius+6,0.5),group=new THREE.Group();
 const grass=await read('vegetation/grass').buildGrass(ctx,field,read('vegetation/materials').createVegMaterial(ctx,'grass',{name:'veg-grass'}),group,()=>{});
 const carpet=read('vegetation/carpet').buildCarpet(ctx,field,group);

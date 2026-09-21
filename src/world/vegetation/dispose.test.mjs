@@ -39,7 +39,7 @@ for (const name of ['createVegMaterial','createVegShadowMaterials']) {
 const {WORLD}=read('config'),{LAYOUT}=read('layout');
 const camera=new THREE.PerspectiveCamera(), scene=new THREE.Scene();
 const ctx={config:WORLD,layout:LAYOUT,scene,camera,
-  terrain:read('terrain/heightfield').createTerrain(),rng:read('util/prng').createRng(WORLD.seed),
+  terrain: read('terrain/heightfield').getLegacyTerrain(),rng:read('util/prng').createRng(WORLD.seed),
   wind:read('wind/wind').createWind(),quality:{tier:'low',density:.02,distance:.6,shadows:true,pixelRatio:1},
   progress(){},audit(){}};
 const system=await read('vegetation/index').create(ctx);

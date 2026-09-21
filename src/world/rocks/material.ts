@@ -41,12 +41,19 @@ export const NEAR_NORMAL_BOOST = 0.8;
  * @param opts.fade the near variant's fade band (m) when it is not the hero boulders' NEAR_FADE_M —
  *   the ledge faces (ledge.ts) are read from the path, 3–9 m off, so theirs reaches further
  */
-export async function createRockMaterial(textures: TextureLibrary, config: WorldConfig, anisotropy = 8, tile = 1.4, shade = 1, opts: { near?: boolean; fade?: [number, number]; damp?: number } = {}) {
+export async function createRockMaterial(textures: TextureLibrary, config: WorldConfig, anisotropy = 8, tile = 1.4, shade = 1, opts: { near?: boolean; fade?: [number, number]; damp?: number; relief?: number } = {}) {
   const near = !!opts.near;
   const fade = opts.fade ?? NEAR_FADE_M;
   // the wet band's darkening: the hero boulders' (0.7 / 0.72 / 0.78, a damp sheen) raised to
   // `damp` — the ledge passes 1.6 so its foot band is the near-black damp stone of ref-04
   const damp = opts.damp ?? 1;
+  // fable-2 (round-50 #1 / ANALYSIS_VIDEO2 §7.2, the wall half: "the ledge wall has 65 % of the
+  // reference rock mass's fine relief at 3 m" — micro σ 0.034 vs 0.052): `relief` adds, at near
+  // range, a grain of the stone at 5–12 cm — a triplanar value speckle with pits (dark, damp) and
+  // grains (a shade paler) — and boosts the near normal by the same amount, so the face at arm's
+  // length is pocked and knapped rather than one smooth skin. 0 (default) leaves every other rock as it was.
+  const relief = opts.relief ?? 0;
+  const reliefExpr = relief > 0 ? relief.toFixed(3) : '';
   const wetTint = [0.7, 0.72, 0.78].map((v) => Math.pow(v, damp).toFixed(3)).join(', ');
   const [color, normal, rough] = await Promise.all([
     textures.load(ROCK_SET, 'color', { anisotropy }),
@@ -159,7 +166,24 @@ export async function createRockMaterial(textures: TextureLibrary, config: World
             // the wet band above the ground: a shade darker, cooler, a little bluer (damp stone,
             // not mud); the gloss (roughness below) carries most of the read — at 0.56–0.68 the
             // band was the darkest thing on the D boulder's face (opus #10)
-            diffuseColor.rgb *= mix(vec3(1.0), vec3(${wetTint}), wet);
+            diffuseColor.rgb *= mix(vec3(1.0), vec3(${wetTint}), wet);${
+              reliefExpr
+                ? `
+            // the grain (see \`relief\`): pits where a warped value noise dips, grains where it peaks,
+            // off under the moss and the lichen crust, faded with nearW like the rest of the near skin
+            {
+              vec3 rw = triW(vWNrmR);
+              vec2 gp = vWPosR.zy * rw.x + vWPosR.xz * rw.y + vWPosR.xy * rw.z;
+              vec2 gw = gp + (vec2(rockVNoise(gp * 6.0 + 2.0), rockVNoise(gp * 6.0 - 3.0)) - 0.5) * 0.12;
+              float gr = rockVNoise(gw * 11.0) * 0.6 + rockVNoise(gw * 23.0 + 5.0) * 0.4;
+              float pit = smoothstep(0.34, 0.2, gr);
+              float grain = smoothstep(0.62, 0.78, gr);
+              float gm = ${reliefExpr} * nearW * (1.0 - plate) * (1.0 - clamp(vMossR, 0.0, 1.0)) * (1.0 - smoothstep(0.3, 0.5, clamp(vLichenR, 0.0, 1.0)));
+              diffuseColor.rgb *= 1.0 - 0.42 * pit * gm;
+              diffuseColor.rgb *= 1.0 + 0.16 * grain * gm;
+            }`
+                : ''
+            }
           }`
       : /* glsl */ `
           diffuseColor.rgb *= c * 1.08;`;
@@ -207,7 +231,8 @@ export async function createRockMaterial(textures: TextureLibrary, config: World
             vec3 my = texture2D(normalMap, vWPosR.xz * uNearTile).xyz * 2.0 - 1.0;
             vec3 mz = texture2D(normalMap, vWPosR.xy * uNearTile).xyz * 2.0 - 1.0;
             nx = mix(nx, mx, nearW); ny = mix(ny, my, nearW); nz = mix(nz, mz, nearW);
-            ns *= 1.0 + uNearNormalBoost * nearW;
+            ns *= 1.0 + uNearNormalBoost * nearW;${reliefExpr ? `
+            ns *= 1.0 + ${reliefExpr} * 0.6 * nearW;` : ''}
             // the lichen crust is a smooth skin over the pitting
             ns *= 1.0 - 0.45 * smoothstep(0.34, 0.5, clamp(vLichenR, 0.0, 1.0)) * nearW;
           }
@@ -304,6 +329,6 @@ export async function createRockMaterial(textures: TextureLibrary, config: World
         }`,
       );
   };
-  mat.customProgramCacheKey = () => (near ? `rock-triplanar-v12-pale-near-stone-damp${damp}` : 'rock-triplanar-v8-sunside-moss');
+  mat.customProgramCacheKey = () => (near ? `rock-triplanar-v13-pale-near-stone-damp${damp}-relief${relief}` : 'rock-triplanar-v8-sunside-moss');
   return mat;
 }

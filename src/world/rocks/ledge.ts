@@ -354,11 +354,30 @@ export function buildRockLedge(def: RockLedgeDef, T: Terrain, rng: Rng, seed: st
         const footTaper = smoothstep(0, 0.22, vf);
         // (block offsets and the ridged skin shrink up the face with the beds: thin strata, not chunks)
         const thin = 1 - 0.4 * vf;
-        out = hs * footTaper * (0.2 * bed.step * (0.7 + 0.3 * thin) + 0.06 * blockOff * thin + 0.05 * (rd - 0.5) * 2 * thin + 0.02 * mic);
+        // fable-2 (round-50 #1's macro half — fable-5 at 3 m: "still one lightly bulged plane … a face
+        // of several planes"): the face in PANELS — 1.2–2 m wide, 0.6–1 m tall, each its own plane
+        // stepping ± 0.12 m from its neighbours at wobbled but sharp boundaries (a joint or a bed
+        // line: vertical and horizontal arrises, the frame's rock/root mass) — under a slow swell of
+        // ± 0.1 m and a shelf where the upper bed stands proud over a recess. Tapered to nothing at
+        // the foot row like the rest of the relief.
+        const massN = N.fbm(uu * 0.42 + seedOff * 0.7, y0 * 0.55 + 2.2, 4.4, 2);
+        const pw = 1.6 + 0.4 * N.fbm(uu * 0.3 + 1.0, 0.5, 6.6, 1);
+        const pu = uu / pw + 0.11 * seedOff + 0.08 * N.fbm(uu * 1.1, y0 * 1.6, 7.7, 2);
+        const pv = y0 / 0.8 + 0.07 * seedOff + 0.06 * N.fbm(uu * 1.4 + 3.0, y0 * 1.2, 8.2, 2);
+        const pi = Math.floor(pu + 0.5 * Math.floor(pv)); // staggered like the blocks
+        const pj = Math.floor(pv);
+        const panelOff = N.fbm(pi * 2.3 + 0.7, pj * 3.1 + seedOff, 2.0, 1) * 2.4; // ≈ ± 1
+        const shelfBand = smoothstep(0.5, 0.64, vf) * (1 - smoothstep(0.82, 0.92, vf));
+        const recessBand = smoothstep(0.24, 0.4, vf) * (1 - smoothstep(0.46, 0.58, vf));
+        const shelfN = N.fbm(uu * 0.6 + seedOff, 1.7, 8.8, 2) * 0.5 + 0.5;
+        const shelf = smoothstep(0.35, 0.6, shelfN);
+        const mass = 0.12 * Math.max(-1, Math.min(1, panelOff)) + 0.22 * massN + 0.14 * shelf * shelfBand - 0.1 * shelf * recessBand;
+        out = hs * footTaper * (mass + 0.2 * bed.step * (0.7 + 0.3 * thin) + 0.06 * blockOff * thin + 0.05 * (rd - 0.5) * 2 * thin + 0.02 * mic);
         // the parting grooves and joints sink
         out -= hs * footTaper * (0.12 * bed.groove + 0.06 * jn.joint);
         // colour: bed tone ± 14 %, block tone ± 8 %, partings and joints dark, ridges a shade paler
-        let tone = 1 + 0.14 * bed.step + 0.08 * blockOff + 0.14 * (rd - 0.5);
+        // (the mass in the tone too, a shade: a recess a little darker, a buttress a little paler)
+        let tone = 1 + 0.14 * bed.step + 0.08 * blockOff + 0.14 * (rd - 0.5) + 0.2 * massN + 0.07 * Math.max(-1, Math.min(1, panelOff));
         _tmp.copy(stone).multiplyScalar(tone);
         _tmp.lerp(dark, 0.9 * Math.max(bed.groove, jn.joint * 0.9));
         // drip streaks below the lip: dark vertical streaks fading down ~2 m
