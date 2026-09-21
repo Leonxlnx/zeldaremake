@@ -245,3 +245,6 @@ nearCanopy, materials, index otherwise) is edited.
 
 ### 2026-09-21 13:35 UTC — review update: fable-2-stairs-logs 6b16715a
 - Dark timber doubles the cost (A −0.0033, F −0.0127); near-black rolls with a blue-grey sheen. Suggested a mid brown. Posted.
+
+### 2026-09-21 15:20 UTC — W10 measured, not shipped
+- Per-leaf layered draws on the giants' lobes (4 variants, giant.ts far laminae then nearCanopy.ts near parts): all lower the foliage sd at w27/w10u; p10 pinned by the leaf floor, p90 by the sun term. Geometry cannot widen the range — the floor in materials.ts is the lever (Astra). README `art/environment/round51-w10/`; INBOX note; giant.ts / nearCanopy.ts untouched on the branch.
