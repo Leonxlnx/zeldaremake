@@ -49,6 +49,14 @@ as `agent/fable-2-<topic>`; `fable-cursor` merges. I do not touch `layout.ts`, t
   look lifted and warmed (`a683a4c1`) — **FAIL as a visible change at D**: the ferns hide the rock,
   the visible cap edge moved 0.238 → 0.246 and D −0.0002. Kept (harmless, toward the reference);
   the item is vegetation-26's exclusion disc first. §Iteration 8.
+- Iteration 49 — the path pebbles merged per 10 m tile (`PEBBLE_TILE_M`, `agent/fable-2-pebble-tiles` @
+  `1e2777be`), fable-cursor's tick-213 "A at 8.80 M, nothing more without a matching cut": one InstancedMesh
+  per look spanned the whole scatter, so every camera drew all 2 042 × 80 tris. Six views pixel-identical
+  (F 2 px), SSIM equal; triangles A −30 K, B/E −30 K, C −100 K, D −40 K, F −130 K; draws +5/+4/+1/+3/+4/−4.
+  Next lever for A itself: a per-tile distance LOD in `nearUpdate`. README §49.
+- Iteration 48 — non-author review of fable-3's `agent/fable-3-arch-rim` @ `c48d6a6e` (the 4 cm tuck) at
+  `x-arch-approach` / `x-arch-tunnel-s` / D: the wall-through at the roll's end 72 → 25 px, D byte-identical,
+  a residual where the `s²` falloff is smallest; safe to merge. `.agents/reviews/fable-2-review-fable-3-arch-rim-c48d6a6e.md`.
 - Iteration 47 — fable-5's r53 §B "13–16 cm timber", measured outward on the tinted head: fable-5's box
   39.4 → 41.6 % dark / 13.0 → 12.1 % pale / mean l 0.302 → 0.296, A −0.0016, F −0.0007 — **FAIL, reverted**
   (`agent/fable-2-logs-thin` @ `de1d607f`). With the crown pale, a thinner log shows more dark stone behind
@@ -249,4 +257,4 @@ Nothing outside `src/world/rocks/` except this log, the INBOX and my evidence un
 - #4: `pathEdgePebble` per-candidate draws.
 
 ## Last updated
-2026-09-21T21:25:00Z
+2026-09-21T22:40:00Z

@@ -16,6 +16,30 @@ B 526 / C 393 / D 394 / E 526 / F 512; A 9.09 M tris on both (the head's number,
 change's — flagged to fable-cursor). Files: `ledge2-x-clearing-n.jpg` (+ `-crop`),
 `ledge2-x-ledge-foot.jpg`, `ledge2-x-northpath-n.jpg`.
 
+## Iteration 49 — the path pebbles merged per 10 m tile: −30 … −130 K triangles per view, pixels identical — `agent/fable-2-pebble-tiles` @ `1e2777be`
+
+fable-cursor (tick 213): A at 8.80 M against W38's 9.0 M ceiling — "nothing more on A's side of the canopy without a
+matching cut". A cut from rocks: the path pebbles were eight `InstancedMesh`es (one per look), each with a bounding
+sphere spanning the whole scatter (radius 84 m), so every fixed camera drew all 2 042 pebbles × 80 triangles whether
+one was in its frustum or not. `PEBBLE_TILE_M` = 10: the same instances, looks baked in, merged into one static mesh
+per 10 m ground tile; three.js culls tile by tile. Positions, looks and the W24 count (`systems.rocks.pebbles` 3 151,
+main 2 042) untouched — 20 tiles replace the eight look-meshes; the north set stays under its toggle. BEFORE = head `0963c09d`, AFTER = `1e2777be`, both
+captured here (`--settle 12`):
+
+| view | SSIM (both) | changed px | draws | triangles |
+|---|---|---|---|---|
+| A_stairs | 0.2291 | **0** | 442 → 447 (+5) | 8.80 → 8.77 M (**−30 K**) |
+| B_house | 0.1965 | 0 | 424 → 428 (+4) | 7.95 → 7.92 M (−30 K) |
+| C_lookback | 0.2201 | 0 | 341 → 342 (+1) | 7.05 → 6.95 M (**−100 K**) |
+| D_log | 0.2788 | 0 | 390 → 393 (+3) | 8.18 → 8.14 M (−40 K) |
+| E_ground | 0.2182 | 0 | 424 → 428 (+4) | 7.95 → 7.92 M (−30 K) |
+| F_canopy | 0.2420 | 2 | 407 → 403 (−4) | 8.09 → 7.96 M (**−130 K**) |
+
+A keeps most of the plaza in view, so culling alone buys it 30 K; the lever for A itself is a per-tile distance LOD
+(a 20-triangle look for tiles beyond ≈ 10 m, swapped in `nearUpdate` — a 3 cm pebble is ≈ 9 px there) — the next
+iteration if fable-cursor wants A's triangles specifically. Tests 28/28 (`tiers.test` serves `BufferGeometryUtils`
+to the module loader), typecheck / build green.
+
 ## Iteration 47 — the thinner timber (13–16 cm) measured on outward faces: worse on every number — FAIL, reverted (`agent/fable-2-logs-thin` @ `de1d607f`)
 
 fable-5's r53 §B named three levers for the flight's weight at A: a paler drier crown (§46, landed), the 13–16 cm timber,
