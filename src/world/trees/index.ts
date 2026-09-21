@@ -31,7 +31,7 @@ import { columnParams, createColumnTree, emergentParams, hutHostParams, type Col
 import { expansionCull, getTerrain, type Terrain, type TerrainView } from '../terrain/heightfield';
 import { casterSpheres, expansionVisible, type Caster } from '../util/expansionLocality';
 import { EXPANSION } from '../layout';
-import { createGiantTree, LOBE_SECONDARY_REACH, LOBE_TWIG_REACH, LOBE_TWIG_TINT, NEAR_BASE_CUT_Y, NEAR_BASE_RADIUS_OVERRIDE, type CanopyBough, type GiantAsset, type GiantProfile } from './giant';
+import { createGiantTree, LOBE_SECONDARY_REACH, LOBE_TWIG_REACH, LOBE_TWIG_TINT, NEAR_BASE_CUT_Y, NEAR_BASE_RADIUS_OVERRIDE, NEAR_BASE_RADIUS_OVERRIDE_LARGE, type CanopyBough, type GiantAsset, type GiantProfile } from './giant';
 import { NEAR_CANOPY_HERO_MARGIN, NEAR_CANOPY_IN_M, NEAR_CANOPY_MAX_Y, NEAR_CANOPY_MIN_IN_M, NEAR_CANOPY_OUT_M, type NearCanopyPart } from './nearCanopy';
 import { LodPool, type PoolBuilt, type PoolItem } from './lodPool';
 import type { GiantTreeDef } from '../layout';
@@ -1493,7 +1493,17 @@ interface NearLodTier {
   canopySwapM: [number, number];
 }
 const NEAR_LOD_TIERS: Record<NearLodTier['name'], NearLodTier> = {
-  large: { name: 'large', canopyPoolBytes: 192 << 20, basePoolBytes: 32 << 20, canopyPrefetchM: 42, basePrefetchM: 30, baseBand: [18, 21], canopySwapM: [NEAR_CANOPY_IN_M, NEAR_CANOPY_OUT_M] },
+  /**
+   * Round 51 (fable-4 for the paused lod-1 lane; fable-6 §7 step 4): the near bases swap at 25 / 28 m
+   * on the large tier (the per-camera bands re-derived — giant.ts NEAR_BASE_RADIUS_OVERRIDE_LARGE — so
+   * no fixed camera stands inside a band it frames), pre-fetched from 38 m; and the pools sized to what
+   * the six poses' own audit showed the 26 / 30 m canopy already wanted: 375 parts / 203 MB inside the
+   * 42 m pre-fetch at F against 192 MB — 81 evictions and 29 rebuilds across the six poses. 256 MB
+   * holds that demand resident (fable-6's "25 m with 256 MB"); 48 MB holds every one of the 23 near
+   * bases (≈ 1.4 MB each), so neither pool can churn on a walk. What is DRAWN in a fixed frame does not
+   * depend on a pool cap; the canopy swap itself stays 26 / 30.
+   */
+  large: { name: 'large', canopyPoolBytes: 256 << 20, basePoolBytes: 48 << 20, canopyPrefetchM: 42, basePrefetchM: 38, baseBand: [25, 28], canopySwapM: [NEAR_CANOPY_IN_M, NEAR_CANOPY_OUT_M] },
   /**
    * 64 MB holds ≈ 140 of the 364 canopy parts (0.47 MB each on average): the drawn set is 41–51
    * parts / 17.5–21 MB on the plaza→stairs walk and the parts within 26 m of the camera come to
@@ -1672,11 +1682,13 @@ export async function create(ctx: WorldContext): Promise<WorldSystem> {
   }
   const nearBoles: NearBole[] = [];
   /**
-   * A bole's [in, out] band: the camera-derived bands first (NEAR_BASE_HERO_BAND here, giant.ts
-   * NEAR_BASE_RADIUS_OVERRIDE — both hold whatever tier runs, so the six fixed frames are the
-   * same in either), else the tier's default (18 / 21 m on the large tier, 10 / 13 as shipped).
+   * A bole's [in, out] band: the camera-derived bands first (NEAR_BASE_HERO_BAND here, then on the
+   * large tier giant.ts NEAR_BASE_RADIUS_OVERRIDE_LARGE — round 51's 25 m re-derivation — then
+   * NEAR_BASE_RADIUS_OVERRIDE, which holds whatever tier runs), else the tier's default (25 / 28 m
+   * on the large tier from round 51, 10 / 13 as shipped). Every band keeps the nearest fixed camera
+   * ≥ 2 m outside its out-radius, so the six fixed frames are the same in either tier.
    */
-  const nearBand = (id: string): [number, number] => NEAR_BASE_HERO_BAND[id] ?? NEAR_BASE_RADIUS_OVERRIDE[id] ?? NEAR_LOD_TIER.baseBand;
+  const nearBand = (id: string): [number, number] => NEAR_BASE_HERO_BAND[id] ?? (NEAR_LOD_TIER.name === 'large' ? NEAR_BASE_RADIUS_OVERRIDE_LARGE[id] : undefined) ?? NEAR_BASE_RADIUS_OVERRIDE[id] ?? NEAR_LOD_TIER.baseBand;
   const nearBasePool = new LodPool<GeometryBuilt>(NEAR_BASE_POOL_BYTES);
   const nearCanopyPool = new LodPool<GeometryBuilt>(NEAR_CANOPY_POOL_BYTES);
   /**
