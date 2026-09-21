@@ -16,6 +16,25 @@ B 526 / C 393 / D 394 / E 526 / F 512; A 9.09 M tris on both (the head's number,
 change's — flagged to fable-cursor). Files: `ledge2-x-clearing-n.jpg` (+ `-crop`),
 `ledge2-x-ledge-foot.jpg`, `ledge2-x-northpath-n.jpg`.
 
+## Iteration 38 — the W23 move's vegetation contracts, checked in a scratch tree: the anchor alone is not enough
+
+fable-5 (09:50) measured the move — "at D the frame's rock is finally where the frame has it and lit … luminance and hue
+matched for the first time; W23 is a near pass on the next take; E pays; vegetation's contracts have to move before this
+merges." To hand vegetation a verified patch I tried the one I named in §36 in a scratch working tree (their file, not
+committed): the cluster anchor pinned to the old constants (−3.2, −10.2) instead of the rock. **Both tests still fail**,
+because the failures are not the cluster's:
+
+- `carpet.test` "lawn band: 0.93 clumps / m²" measures the box **[−3.1, −8.4, −1.9, −6.6] — the very ground the rock now
+  stands on** ((−2.0, −7.6), clearRadius 0.9): its exclusion disc empties most of that 1.2 × 1.8 m box. The frame's lawn
+  band there IS part rock now; the contract's box has to shrink or exclude the disc.
+- `plants.test` "Hero fern crowns west of the shot-D boulder" (≥ 3 within 1.6 m of (−3.7, −10.3)): the hero-fern tries
+  reject `insideBoulder` — with the rock gone from the old spot the acceptance stream shifts and the count at the pinned
+  point drops, whatever the anchor.
+
+So the move needs vegetation to re-derive the two contracts (and decide the cluster's anchor — with the frame's clump left
+of the rock, it may well follow the rock as it does today, which is also what E pays for). Reported; the scratch patch
+reverted; nothing of vegetation's touched in any branch.
+
 ## Iteration 37 — the form planes re-measured on the moved rock (scratch, not landed): a fifth of the missing contrast, D −0.0013
 
 With the rock 5.2 m from D and 4 × the pixels, the §19 form planes (flat top, chamfer crest, shoulder, 40° undercut) got one
