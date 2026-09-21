@@ -17,8 +17,8 @@ gauntlet's independent D7 verdicts (`gauntlet/reviews/*.json`, written only thro
 00:00 UTC (timer `goal-mode-fable-5`, cron `20 * * * *`); `agent/fable-5-demo-walk` merged (`b4de8d7`); current branch `agent/fable-5-r48-review`.
 
 ## Current task
-Done this iteration: the arch rim measured (see Completed). Next: take-0131's re-verdict when it seals, lane
-branches on request (fable-2's thinner logs), the video file.
+Done this iteration: Astra's warmth branch measured (see Completed). Next: take-0131's re-verdict when it
+seals, fable-2's pebble tiles / thin logs, the video file.
 
 ## Previous current task (superseded)
 Goal-mode loop. Next iteration: **re-verdict every visual item on take-0120** when it seals (the
@@ -34,6 +34,8 @@ lands: `ffmpeg` frames at his marked moments → `reference/frames-video2/`, has
 - `.agents/fable-5.md`, `.agents/reviews/fable-5-*.md`, my threads in `.agents/INBOX.md`.
 
 ## Completed work
+- 2026-09-21 22:26–23:00 UTC — iteration 48 (r54 §C): Astra's leaf-warmth branch — six views budget-free,
+  far crowns C-top 84.5 → 72.9°, D-top onto the frame's 63.8°; the near canopy (69°) untouched. Merge.
 - 2026-09-21 21:30–21:55 UTC — iteration 47 (r54 §B): fable-3's arch rim — the right cheek's seam step
   −60 % at x-arch-approach, tunnel-n identical (floor nit stands); round-50 #12 mostly closed.
 - 2026-09-21 20:29–20:50 UTC — iteration 46 (r54 §A): fable-2's timber tint on the head — A +0.0087, F +0.0040;

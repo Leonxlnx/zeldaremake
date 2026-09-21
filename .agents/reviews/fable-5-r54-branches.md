@@ -40,3 +40,32 @@ arch poses:
 
 **Nit #12 mostly closed.** The seam where the near cheek met the far wall is graded now rather than
 stepped; from inside the tunnel nothing moves. Sheet `fable-5-r54/fable-5-r54-f3-arch-rim.jpg`.
+
+## C. Iteration 48 (22:26–23:00 UTC) — Astra `agent/astra-leaf-warmth` @ `a3fe274f`: the warmth term as its own branch (§7.1's ask)
+
+`leaf-color.ts` + `materials.ts` (the luminance-preserving warmth on the leaf materials, restored "without
+changing tree geometry"); base = the head `0963c09d`; tsc + build green. Same seven positions:
+
+| view | head → warmth | SSIM vs reference |
+| --- | --- | --- |
+| A, B, C, D, E, F | 0.00 % of pixels beyond 24 levels — a low-amplitude colour shift only | 0 / 0 / +0.0001 / −0.0001 / 0 / **+0.0006** |
+| `w05-spine-d` | pixel-identical | — |
+
+Canopy band (top 35 %), median foliage hue — reference / head / **warmth**:
+
+| frame | reference | head | warmth |
+| --- | --- | --- | --- |
+| C_lookback | 68.6° | 84.5° | **72.9°** |
+| D_log | 63.8° | 68.6° | **63.8°** (on the frame) |
+| F_canopy | 60.0° | 77.5° | **73.8°** |
+| A_stairs | 63.8° | 76.4° | 75.0° |
+| B_house / E_ground (the house cap, near) | 61.4° / 64.8° | 69.0° / 69.1° | 68.9° / 69.0° (untouched) |
+
+Saturation and luminance held to ±0.01 everywhere.
+
+**Budget-free and aimed right — merge.** The far crowns move 4–12° toward the frames (C-top −11.6°,
+D-top exactly onto the frame's 63.8°); the six views do not pay for it. What it does not reach, as in
+r49 §K: the near canopy — B/E's house cap sits at 69° against 61–65°, and A/F's canopy band at 73–75°
+against 60–64° is the mid layer. The remaining 8–13° of "trees too green" is that layer's; the term is
+proven on the far one. Sheet not needed — the numbers are the evidence; the crops would show nothing at
+this amplitude.
