@@ -1,0 +1,239 @@
+{
+  "mode": "production",
+  "passed": true,
+  "checks": [
+    "prop on raised platform blocks before builtTop return",
+    "expanded player radius is 0.12 m",
+    "2D policy does not bypass a prop because its published top is low",
+    "existing wall and structure-pad behavior remains",
+    "real grounded player step stops at the prop and still moves away",
+    "real airborne step cannot enter a prop even above its top",
+    "airborne entry cannot end with landing inside a solid prop",
+    "expanded discs preserve path and flight centre routes",
+    "existing NPC default calls remain clear along the authored loop",
+    "west deck pot blocks on the deck while a player-width corridor stays open"
+  ],
+  "failures": [],
+  "descentCounterexample": {
+    "frames": [
+      {
+        "frame": 1,
+        "x": 500.35,
+        "y": 3.8,
+        "phase": "air",
+        "vx": 0
+      },
+      {
+        "frame": 2,
+        "x": 500.35,
+        "y": 3.54,
+        "phase": "air",
+        "vx": 0
+      },
+      {
+        "frame": 3,
+        "x": 500.35,
+        "y": 3.02,
+        "phase": "air",
+        "vx": 0
+      },
+      {
+        "frame": 4,
+        "x": 500.35,
+        "y": 3,
+        "phase": "land",
+        "vx": 0
+      }
+    ],
+    "bodyInside": false,
+    "propTop": 3.5,
+    "landingGround": 3
+  },
+  "blockers": 46,
+  "routes": [
+    {
+      "name": "pathSpine",
+      "clearanceM": 4.706826467567854,
+      "blocker": "sign-pot-squat",
+      "x": 6.3,
+      "z": -9.85,
+      "segment": 3
+    },
+    {
+      "name": "pathToStairs",
+      "clearanceM": 2.2839270706189176,
+      "blocker": "stair-pot",
+      "x": 7.95,
+      "z": 1.8,
+      "segment": 2
+    },
+    {
+      "name": "pathToHouse",
+      "clearanceM": 0.36149342851829497,
+      "blocker": "saria-crate",
+      "x": 9.7,
+      "z": -7.95,
+      "segment": 6
+    },
+    {
+      "name": "northPath",
+      "clearanceM": 2.334016081726647,
+      "blocker": "circle-pot-marker-squat",
+      "x": 0.9,
+      "z": -64.15,
+      "segment": 2
+    },
+    {
+      "name": "pathWest",
+      "clearanceM": 0.4766654385477159,
+      "blocker": "west-fork-marker",
+      "x": -11,
+      "z": 8.4,
+      "segment": 4
+    },
+    {
+      "name": "pathSouth",
+      "clearanceM": 2.1451948696153917,
+      "blocker": "west-fork-marker",
+      "x": -11,
+      "z": 8.4,
+      "segment": 0
+    }
+  ],
+  "flights": [
+    {
+      "name": "stairs:main",
+      "clearanceM": 1.4591085029346238,
+      "blocker": "upper-barrel",
+      "x": 18.55,
+      "z": -9.15,
+      "segment": 0,
+      "rectangle": {
+        "clearanceM": 0.341997556123364,
+        "blocker": "stair-pot",
+        "x": 7.95,
+        "z": 1.8
+      }
+    },
+    {
+      "name": "stairs:house-west",
+      "clearanceM": 0.9143021883532444,
+      "blocker": "saria-water-bucket",
+      "x": 7.25,
+      "z": -8,
+      "segment": 0,
+      "rectangle": {
+        "clearanceM": 0.06296485411158478,
+        "blocker": "saria-water-bucket",
+        "x": 7.25,
+        "z": -8
+      }
+    },
+    {
+      "name": "stairs:ledge",
+      "clearanceM": 5.031752735445107,
+      "blocker": "circle-pot-flight-squat",
+      "x": 4.15,
+      "z": -68.7,
+      "segment": 0,
+      "rectangle": {
+        "clearanceM": 4.55048976935354,
+        "blocker": "circle-pot-flight-squat",
+        "x": 4.15,
+        "z": -68.7
+      }
+    },
+    {
+      "name": "stairs:south-bank",
+      "clearanceM": 7.784149316047337,
+      "blocker": "west-fork-marker",
+      "x": -11,
+      "z": 8.4,
+      "segment": 0,
+      "rectangle": {
+        "clearanceM": 7.46811692138768,
+        "blocker": "west-door-pot",
+        "x": -19.153,
+        "z": 7.808
+      }
+    },
+    {
+      "name": "stairs:west-house",
+      "clearanceM": 0.4017238153271968,
+      "blocker": "west-landing-pot",
+      "x": -17.15,
+      "z": 5.55,
+      "segment": 0,
+      "rectangle": {
+        "clearanceM": 0.09353853486836822,
+        "blocker": "west-landing-crate",
+        "x": -15.9,
+        "z": 5.2
+      }
+    }
+  ],
+  "npcRoute": {
+    "name": "NPC_LOOP",
+    "clearanceM": 0.5577055511800003,
+    "blocker": "stair-pot-squat",
+    "x": 7.55,
+    "z": 2.1,
+    "segment": 0
+  },
+  "deckCentre": {
+    "name": "west-deck-centre",
+    "clearanceM": -0.09285279188894968,
+    "blocker": "west-door-pot",
+    "x": -19.153,
+    "z": 7.808,
+    "segment": 0
+  },
+  "deckSide": {
+    "name": "west-deck-opposite-side",
+    "clearanceM": 0.10714720811105063,
+    "blocker": "west-door-pot",
+    "x": -19.153,
+    "z": 7.808,
+    "segment": 0
+  },
+  "deckEntry": {
+    "name": "west-deck-entry-turn",
+    "clearanceM": 0.6117416248334703,
+    "blocker": "west-landing-crate",
+    "x": -15.9,
+    "z": 5.2,
+    "segment": 0
+  },
+  "deckCorridorSamples": 199,
+  "rimEncroachments": [
+    {
+      "owner": "saria-water-bucket",
+      "x": 7.25,
+      "z": -8,
+      "expandedRadius": 0.32899999999999996,
+      "pathRimSamples": 5,
+      "stairRimSamples": 0
+    },
+    {
+      "owner": "saria-crate",
+      "x": 9.7,
+      "z": -7.95,
+      "expandedRadius": 0.538,
+      "pathRimSamples": 2,
+      "stairRimSamples": 0
+    },
+    {
+      "owner": "west-landing-crate",
+      "x": -15.9,
+      "z": 5.2,
+      "expandedRadius": 0.552,
+      "pathRimSamples": 0,
+      "stairRimSamples": 3
+    }
+  ],
+  "sources": {
+    "src/world/character/ground.ts": "2e61839bc6314039e3679e10961751ca1cb89bb2b1ee81f10d1062482505c4be",
+    "src/world/character/index.ts": "2cc06a0e01b0dcded198f1446ba6b7365a48fd9b765887d021c2111a9910d4de",
+    "src/world/props/index.ts": "07365939eff71eee15a43dac28f46e5226fb75fabd0328f05d020d1d4b93cfd1"
+  }
+}

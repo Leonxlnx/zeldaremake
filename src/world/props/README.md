@@ -23,6 +23,13 @@ Hooks: after placement the system publishes `ctx.shared.propFootprints` (`{ x, z
 prop, `r` the prop's own ground footprint) — vegetation builds after props and keeps its ferns out
 of those discs. The hook-bound lookout railing is placed exactly (no footprint probe or nudge).
 
+Round 52: the system also publishes `ctx.shared.propBlockers` (`{ x, z, r, top }`) — the solid props a
+walker should not pass through: one disc per pot / crate / barrel / bucket / marker / ladder at its placed
+spot with the body's radius (`footprintRadius`, not the vegetation margin) and its top; the lookout's rope
+railing as discs every 0.25 m along its three courses; nothing for the light strings. Meant for the
+character's `ground.blocked()` (see the INBOX, 2026-09-21); the test asserts no disc reaches a path or a
+flight, and that the apron pots clear the hero flight's width.
+
 Placement (`layout.ts` → `index.ts`): every prop is seated on `ctx.terrain.height`; small props
 follow the terrain normal up to 9° and are otherwise set level into the slope, and their
 underside (the lowest 8 cm) is conformed to the sampled heightfield (8 mm embed). Footprint probes
