@@ -1,15 +1,27 @@
 {
   "item": "W23",
   "reviewer": "fable-5",
-  "verdict": "fail",
-  "evidence": "gauntlet/reviews/evidence/fable-5/take-0126-W08-V21-W23-F.jpg",
-  "takeId": "take-0126",
+  "verdict": "pass",
+  "evidence": "gauntlet/reviews/evidence/fable-5/take-0128-W23-D-E.jpg",
+  "takeId": "take-0128",
   "author": "cursor-fable",
-  "takeSha": "7eb5f7079085583c176a550dc4b57447277ed287",
-  "at": "2026-09-21T08:23:06.662Z",
+  "takeSha": "7573b442a4d42be576423295ede7e16de5cadfc4",
+  "at": "2026-09-21T13:24:20.487Z",
   "criterion": "Boulder at the left of shot D reads as layered, mossy rock like the reference, not a smooth blob.",
-  "note": "take-0126 (7eb5f70): the shot-D boulder is in the frame now (0.2 m prouder, bare face toward D, warm tan tint + chroma - fable-2's loaf, value, hue and chroma steps all merged) and reads as a warm rock among the ferns at (0.10-0.30, 0.55-0.85) where take-0121 had 372 px of dark sliver. Still a fail against the frame's lit olive-tan loaf: the face sits in the giants' canopy shade (l 0.24-0.26 vs 0.27, half the chroma - fable-2's four position probes all in shade), it is one plane (macro sigma 0.07 vs the frame's 0.12) and smaller in the frame. fable-cursor has given the layout move to (-2.0, -7.9) r 0.75 - the frame's rock spot; re-verdict after it. Near.",
+  "note": "take-0128 (7573b44): the shot-D boulder now stands at the frame's rock spot - the path's west edge in front of the fern bank, ~5 m from D (fable-2's layout move on fable-cursor's go) - and it is what the criterion asks: a layered rock (strata lines, a chamfered crest) with a moss cap, lit, at the left of D where take-0121 had 372 px of dark sliver behind ferns. Stone pixels l 0.28 / hue 53 / sat 0.23 against the frame's 0.29 / 50 / 0.32: luminance and hue matched, chroma at 72 %. Not a smooth blob. Pass. Nits: the frame's fern cluster sits ON the rock's crown, ours behind it; the face is one plane where the frame shows a lit plane and an undercut (ANALYSIS_VIDEO2 7.2); E pays -0.0030 for the rock in its left third (named, r51 A).",
   "history": [
+    {
+      "item": "W23",
+      "reviewer": "fable-5",
+      "verdict": "fail",
+      "evidence": "gauntlet/reviews/evidence/fable-5/take-0126-W08-V21-W23-F.jpg",
+      "takeId": "take-0126",
+      "author": "cursor-fable",
+      "takeSha": "7eb5f7079085583c176a550dc4b57447277ed287",
+      "at": "2026-09-21T08:23:06.662Z",
+      "criterion": "Boulder at the left of shot D reads as layered, mossy rock like the reference, not a smooth blob.",
+      "note": "take-0126 (7eb5f70): the shot-D boulder is in the frame now (0.2 m prouder, bare face toward D, warm tan tint + chroma - fable-2's loaf, value, hue and chroma steps all merged) and reads as a warm rock among the ferns at (0.10-0.30, 0.55-0.85) where take-0121 had 372 px of dark sliver. Still a fail against the frame's lit olive-tan loaf: the face sits in the giants' canopy shade (l 0.24-0.26 vs 0.27, half the chroma - fable-2's four position probes all in shade), it is one plane (macro sigma 0.07 vs the frame's 0.12) and smaller in the frame. fable-cursor has given the layout move to (-2.0, -7.9) r 0.75 - the frame's rock spot; re-verdict after it. Near."
+    },
     {
       "item": "W23",
       "reviewer": "fable-5",
