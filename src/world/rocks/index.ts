@@ -21,7 +21,7 @@ import { buildBacksideRocks } from './backside';
 import { expansionVisible, sunVector } from '../util/expansionLocality';
 import { PEBBLE_DEFAULTS, PEBBLE_LOOKS, scatterPathPebbles, stairFootPebbles } from './pebbles';
 import { NORTH_Z1 } from '../util/northLocality';
-import { expansionCull } from '../terrain/heightfield';
+import { expansionCull, type Terrain } from '../terrain/heightfield';
 import { CUSHION, FERN, TUFT_A, TUFT_B, buildSproutMeshes, createSproutMaterial, type SproutSpot } from '../materials/sprouts';
 import type { Rng } from '../util/prng';
 
@@ -33,6 +33,53 @@ import type { Rng } from '../util/prng';
  * step from the ~1 m verge at x ≈ 6.4 up to the 5.4 m plateau at x ≈ 8.6, z −15…−27). The
  * preview is off in every capture and take.
  */
+/**
+ * fable-2 (W05 at C): stone tiers on steep banks — an outcrop line of half-buried strata slabs along a
+ * bank's mid-height contour between two points, seated on the terrain and leaning into the face.
+ * `height` is the contour's height above the bank's foot (the walk from `from` toward `to` keeps to
+ * the terrain height nearest to that value across the face).
+ */
+export const BANK_TIERS: { id: string; from: [number, number]; to: [number, number]; height: number; spacing: number; scale: [number, number]; yawAlong: boolean; keepOut?: [number, number, number][] }[] = [
+  // the hero stair's east bank at C: a 1 m rise from the plaza's paving to the kokiri-a plateau,
+  // running (6.0, 3.9) → (9.0, 1.2); the tier at its mid height. keepOut: fable-3's stair-foot pots
+  // ('stair-pot' (7.95, 1.8) r 0.26, 'stair-pot-squat' (7.55, 2.1) r 0.22 — props/layout.ts; props build
+  // after rocks, so their footprints are not in ctx.shared yet) — a slab reaches ≈ 0.5 m, so the tier
+  // skips the two contour points beside them and resumes past the pots (fable-3, 01:50 UTC)
+  { id: 'c-stair-bank', from: [5.9, 4.0], to: [9.1, 1.1], height: 0.5, spacing: 0.5, scale: [0.34, 0.5], yawAlong: true, keepOut: [[7.95, 1.8, 0.9], [7.55, 2.1, 0.85]] },
+];
+
+/**
+ * points every `spacing` m from `from` to `to`, each slid across the line (± 1.2 m, perpendicular) to
+ * where the terrain height is nearest `height` — a contour walk along a bank
+ */
+export function contourLine(T: Terrain, from: [number, number], to: [number, number], height: number, spacing: number): [number, number][] {
+  const dx = to[0] - from[0];
+  const dz = to[1] - from[1];
+  const len = Math.hypot(dx, dz) || 1;
+  const ux = dx / len;
+  const uz = dz / len;
+  const px = -uz; // perpendicular
+  const pz = ux;
+  const out: [number, number][] = [];
+  for (let d = spacing * 0.5; d < len; d += spacing) {
+    const bx = from[0] + ux * d;
+    const bz = from[1] + uz * d;
+    let best: [number, number] = [bx, bz];
+    let bestErr = Infinity;
+    for (let s = -1.2; s <= 1.2; s += 0.05) {
+      const x = bx + px * s;
+      const z = bz + pz * s;
+      const err = Math.abs(T.height(x, z) - height);
+      if (err < bestErr) {
+        bestErr = err;
+        best = [x, z];
+      }
+    }
+    if (bestErr < 0.12) out.push(best);
+  }
+  return out;
+}
+
 export const LEDGE_PREVIEW: RockLedgeDef[] = [
   { id: 'north-right-bank', foot: [[6.2, -14.5], [6.35, -18], [6.5, -22], [6.4, -25.5], [6.0, -28]], inset: 2.4, lean: 0.4 },
 ];
@@ -257,6 +304,28 @@ export async function create(ctx: WorldContext): Promise<WorldSystem> {
   // zero scale in place (a zero-scale instance rasterises nothing and casts nothing). The strata go
   // first, before the hero loop adopts slabs; the rubble after it (no hero boulder stands within the
   // expansion's box, so no kit rebuilds a culled skirt stone — guarded in the loops all the same).
+  // fable-2 (W05 at C, the rock half — "the embankment beside the stair foot is a smooth lawn mound …
+  // no terracing, no exposed strata; the reference's bank is a stepped mossy terrace"): the strata
+  // scatter's 0.9 m lattice and its paving exclusion leave the 1 m face east of the hero stair bare.
+  // A TIER of half-buried slabs follows that face's mid-height contour — the outcrop line that steps
+  // a bank in the frames — pushed into the same instanced stream (no new draws, no new kit).
+  for (const tier of BANK_TIERS) {
+    const tRng = rng.fork(`tier/${tier.id}`);
+    const line = contourLine(T, tier.from, tier.to, tier.height, tier.spacing);
+    for (const [px, pz] of line) {
+      const m = T.mask(px, pz);
+      if (m.path > 0.2 || m.stairs > 0.3 || m.structure > 0.3) continue;
+      const slope = T.slope(px, pz);
+      if (slope < 0.25) continue; // the contour left the face (a flat shoulder, or inside the stair-foot rock)
+      if (tier.keepOut?.some(([kx, kz, kr]) => Math.hypot(px - kx, pz - kz) < kr)) continue; // another lane's prop stands here
+      const sc = tRng.range(tier.scale[0], tier.scale[1]);
+      T.normal(px, pz, _n);
+      // the slab lies along the contour: its yaw follows the line, ± a little, and it leans into the bank
+      const yaw = tier.yawAlong ? Math.atan2(tier.to[0] - tier.from[0], tier.to[1] - tier.from[1]) + tRng.range(-0.35, 0.35) : tRng.range(0, Math.PI * 2);
+      strata.push({ x: px + tRng.range(-0.06, 0.06), y: T.height(px, pz) - sc * 0.3, z: pz + tRng.range(-0.06, 0.06), scale: sc * (0.85 + 0.3 * slope), yaw, tiltTo: _n.clone().lerp(_up, 0.35).normalize(), variant: tRng.int(0, 4) });
+    }
+  }
+
   const culled = { pebbles: 0, rubble: 0, strata: 0 };
   for (const it of strata) if (it.scale > 0 && expansionCull(it.x, it.z)) (it.scale = 0), culled.strata++;
 
