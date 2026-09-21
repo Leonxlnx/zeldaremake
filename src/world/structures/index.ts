@@ -296,6 +296,7 @@ export async function create(ctx: WorldContext): Promise<WorldSystem> {
     logPassageDetail: log.detail47,
     /** round 49 (structures-32): the passage tube under the arch — frame, cross-section, cheeks, north portal, floor decal; the tube's least height over the strip */
     logTunnel: log.detail49,
+    logFlatTop: log.detail50,
     signposts: signposts.length,
     fences: fences.length,
     fencePosts,
@@ -317,7 +318,7 @@ export async function create(ctx: WorldContext): Promise<WorldSystem> {
     },
     /** round 49 (expansion-2): the west house, the far hut + column and the south bank's fences (expansion.ts); the near group draws only within `visibleWithinM` of the expansion's box */
     expansion: {
-      houses: [...expansion.houses.audit, ...expansion.farHouse.audit].map((a) => ({ id: a.id, hostSource: a.hostSource, seatId: a.seatId, centre: a.centre, floorY: a.floorY, radius: a.radius, window: a.window, door: a.door, lamps: a.lamps, pods: a.pods })),
+      houses: [...expansion.houses.audit, ...expansion.farHouse.audit].map((a) => ({ id: a.id, hostSource: a.hostSource, seatId: a.seatId, centre: a.centre, floorY: a.floorY, radius: a.radius, window: a.window, door: a.door, lamps: a.lamps, pods: a.pods, dressing: a.dressing })),
       houseTriangles: expansion.houses.triangles + expansion.farHouse.triangles,
       column: expansion.column,
       ropeFences: expansion.fences.length,

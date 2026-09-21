@@ -81,6 +81,8 @@ export interface StairBuild {
   triangles: number;
   /** world-space points on the top of every tread's front edge (for the audit) */
   treadNose: [number, number, number][];
+  /** per step, foot → top: the tread top's whole-slab tint level (round 50 V17 audit / test) */
+  treadTone: number[];
 }
 
 function outlineHash(p: P2[]): string {
@@ -142,6 +144,7 @@ export function buildStairway(def: StairDef, terrain: Terrain, rng: Rng, seed: s
   const hw = w / 2;
   const shapeHashes: string[] = [];
   const treadNose: [number, number, number][] = [];
+  const treadTone: number[] = [];
   let treadSlabs = 0;
   const tmpM = new Matrix4();
   const uvScale = 1 / 1.7;
@@ -199,13 +202,25 @@ export function buildStairway(def: StairDef, terrain: Terrain, rng: Rng, seed: s
     // (× 0.86), the hue swinging ± 0.04, and the blue lift 1.34 → 1.12 (the frame's lit tread is
     // #746d5d — cooler than the plaza's slabs, not blue). A tread's two pieces share the tone.
     const toneSwing = toneRng.range(-0.08, 0.08);
-    const dampTread = toneRng.chance(0.2) ? 0.86 : 1;
+    // Round 50 (fable-5 V17, the tone half): up the hero flight the demo's treads go l 0.37 at the
+    // foot → 0.65 at the top, into the haze gap; ours went 0.35 → 0.17 (take-0123, A / w23). The
+    // lighting half is the atmosphere's; the stone carries what wear can: the lower treads are
+    // damp, darker stone (× 0.88 at the foot, three in ten a damper one) and the upper treads
+    // dry, pale, worn stone (× 1.16 at the top, one in ten damp, the wet blotches × 0.4) — the
+    // gradient is per step, 0 at the first riser to 1 at the last, and only on the main flight.
+    // Same draws from the tone stream in the same order (`chance` is one draw), so hardscape-31's
+    // per-tread swing, damp treads and nosing moss keep their places on every flight.
+    const rise = isMain && def.steps > 1 ? i / (def.steps - 1) : 0;
+    const dryK = isMain ? 0.88 + 0.28 * rise : 1;
+    const dampChance = isMain ? 0.3 - 0.2 * rise : 0.2;
+    const dampTread = toneRng() < dampChance ? 0.86 : 1;
     const hueSwing = toneRng.range(-0.04, 0.04);
     // 60 % of the treads carry moss patches on the nosing (below), 15–35 cm long, one to three a tread
     const noseMossy = toneRng.chance(0.6);
     const noseMossK = noseMossy ? toneRng.range(0.7, 1.0) : 0;
     const noseMossPhase = toneRng.range(0, 100);
-    const tint = (tint0 + toneSwing) * dampTread;
+    const tint = (tint0 + toneSwing) * dampTread * dryK;
+    treadTone.push(tint);
     const hue = hue0 + hueSwing;
     const color: [number, number, number] = [tint * (1 + hue) * 0.9, tint, tint * (1 - hue * 0.6) * 1.12];
 
@@ -340,7 +355,9 @@ export function buildStairway(def: StairDef, terrain: Terrain, rng: Rng, seed: s
           const grime = 1 - 0.16 * flank * (0.6 + 0.4 * (wear.noise((x + cxl) * 2.1 + 7, (z + czl) * 2.1) * 0.5 + 0.5));
           // wet / dark patches (frames 1 s / 8 s: the treads carry damp blotches 0.3–0.6 m across,
           // darkest toward the back of the tread and the flanks, the trodden centre-front stays dry)
-          const wet = smoothstep(0.2, 0.7, wear.fbm((x + cxl) * 1.7 + 31, (z + czl) * 1.7 + i * 0.61, 2)) * (0.45 + 0.55 * Math.max(back, 1 - feet(x + cxl)));
+          // (round 50, V17: on the main flight the damp blotches fade up the run — × 1.2 at the
+          // foot, × 0.4 on the top treads, which are dry stone)
+          const wet = smoothstep(0.2, 0.7, wear.fbm((x + cxl) * 1.7 + 31, (z + czl) * 1.7 + i * 0.61, 2)) * (0.45 + 0.55 * Math.max(back, 1 - feet(x + cxl))) * (isMain ? 1.2 - 0.8 * rise : 1);
           const damp = 1 - 0.2 * wet;
           if (part === 'bevel') return (0.98 + (noseBright - 0.98) * front) * grime * (1 - 0.08 * wet);
           // the nose face under the lip: a shade lighter and greener than the riser stone below it
@@ -770,5 +787,5 @@ export function buildStairway(def: StairDef, terrain: Terrain, rng: Rng, seed: s
 
   all.transform(f.matrix);
   const geometry = all.build();
-  return { geometry, steps: def.steps, treadSlabs, shapeHashes, triangles: all.vertexCount / 3, treadNose };
+  return { geometry, steps: def.steps, treadSlabs, shapeHashes, triangles: all.vertexCount / 3, treadNose, treadTone };
 }

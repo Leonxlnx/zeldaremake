@@ -249,10 +249,10 @@ export interface NpcStand {
 /**
  * Round 49 (expansion-2): the Kokiri on the fence-topped south bank (footage 9–13 s: a kid
  * standing on the bank looking down at Link) — `EXPANSION_NPC_SPOTS.kokiri-south-bank`, 1.3 m
- * behind the lip and 1 m west of its centre, facing the plaza. The stand itself is authored here
- * for the npc lane: a fifth kid slot in character/index.ts + npc.ts (a `kokiri-ledge`-style
- * stand: idle, the look-around keys, the fairy), NOT in this round — the six fixed frames' kid
- * slots are pinned and a new slot re-rolls the kokiri look streams.
+ * behind the lip and 1 m west of its centre, facing the plaza. Round 50 (npc-3) stands the fifth
+ * kid slot on it (character/index.ts KID_COUNT 5, npc.ts `BANK_SLOT`: a `kokiri-ledge`-style
+ * stand — idle, her own look-around keys from a forked rng, the fairy); the six fixed frames' kid
+ * slots 0–3 and their look streams are untouched.
  */
 // placement.ts stays dependency-free (placement.test.mjs loads it standalone); the spot mirrors
 // layout.ts EXPANSION_NPC_SPOTS[0] and terrain/expansion2.test.mjs asserts the two agree.

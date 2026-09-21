@@ -25,6 +25,7 @@ assert.ok(CLUMP_CHARACTERS.some(c=>c.leanBias<-0.2)&&CLUMP_CHARACTERS.some(c=>c.
 assert.ok(Math.max(...CLUMP_CHARACTERS.map(c=>c.spread))/Math.min(...CLUMP_CHARACTERS.map(c=>c.spread))>=1.8,'spreads from upright to open');
 assert.ok(Math.max(...CLUMP_CHARACTERS.map(c=>c.blades[0]))/Math.min(...CLUMP_CHARACTERS.map(c=>c.blades[0]))>=1.6,'blade counts from sparse to dense');
 const {clumpCardGeometry,turfMatGeometry,CLUMP_CELL,MAT_CELL}=read('vegetation/carpet');
+const edges=read('vegetation/edges');let soilMatsSeen=0;
 function make(){const ctx={config:WORLD,layout:LAYOUT,terrain:read('terrain/heightfield').createTerrain(),rng:read('util/prng').createRng(WORLD.seed),wind:read('wind/wind').createWind(),quality:{tier:'high',density:1,distance:1,shadows:true,pixelRatio:1.5}};
   const group=new THREE.Group(),field=new VegField(ctx,WORLD.detailRadius+6,.5);return{ctx,group,field,carpet:read('vegetation/carpet').buildCarpet(ctx,field,group)};}
 const a=make(),b=make();
@@ -59,13 +60,25 @@ const isMats=set=>set===a.carpet.mats||set===a.carpet.northMats;
 for(const set of a.carpet.all){assert.deepEqual(set.opts.instanceData,{attribute:'aData',size:4});
   const tiles=isClumps(set)?CLUMP_TILES:MAT_TILES;
   for(const it of set.items){assert.equal(it.data.length,4);
-    if(isMats(set)){assert.ok(it.data[0]>=0&&it.data[0]<=3&&it.data[1]===1,'mats: palette position 0..3, full stiffness');assert.equal(Math.floor(it.data[2]*4),0,'mats leave the integer palette index unused');}
+    // round 50 (edges.ts W06): the rim band's SOIL mats ride the mat set with data[1] < 0.5 — their
+    // lightness in SOIL_MAT_LIGHT, the flag materials.ts reads to tint them the palette's dark soil
+    // instead of the grass palette; the turf mats keep the full stiffness 1
+    if(isMats(set)){assert.ok(it.data[0]>=0&&it.data[0]<=3,'mats: palette position 0..3');
+      if(it.data[1]<0.5){soilMatsSeen++;assert.ok(it.data[1]>=edges.SOIL_MAT_LIGHT[0]-1e-9&&it.data[1]<=edges.SOIL_MAT_LIGHT[1]+1e-9,'soil mat: lightness in SOIL_MAT_LIGHT');assert.ok(edges.inRimRegion(it.x,it.z),'soil mats lie in the rim region');}
+      else assert.equal(it.data[1],1,'turf mats: full stiffness');
+      assert.equal(Math.floor(it.data[2]*4),0,'mats leave the integer palette index unused');}
     else assert.ok(it.data[0]>=0&&it.data[0]<1&&it.data[1]>=0.05&&it.data[1]<=1,'phase / stiffness in range');
     const slot=it.data[2]*4,idx=Math.floor(slot);assert.ok(idx>=0&&idx<=3,'palette index 0..3');assert.ok(slot-idx>=0&&slot-idx<=0.75+1e-6,'slot fraction is a shade lift or a bank darkening');
     const tile=Math.floor(it.data[3]+1e-3);assert.ok(tile>=0&&tile<tiles,`atlas tile ${tile} of ${tiles}`);
     // round 40: a clump's fraction is (dryness step 0..15 + mirror flag 0.25 / 0.75) / 16 (materials.ts CARD_COLOR_VERTEX); a mat keeps its continuous dryness ≤ 0.95
     if(isClumps(set)){const slot=(it.data[3]-tile)*16,step=Math.floor(slot),sub=slot-step;assert.ok(step>=0&&step<=15,`dryness step ${step}`);assert.ok(Math.abs(sub-0.25)<1e-4||Math.abs(sub-0.75)<1e-4,`mirror flag in the sub-step: ${sub.toFixed(4)}`);}
     else assert.ok(it.data[3]-tile<=0.95+1e-6,'dryness ≤ 0.95');}}
+// round 50 (edges.ts W06): the soil mats counted above are the rim pass's, the turf pulled back from the paved rims
+// and the expansion's buried mats / cards pruned (expansion.ts) — both audited
+assert.ok(soilMatsSeen>=100&&soilMatsSeen===a.carpet.rim.soilMats,`soil mats: ${soilMatsSeen} seen, ${a.carpet.rim.soilMats} audited`);
+assert.ok(a.carpet.rim.prunedMats>=10&&a.carpet.rim.prunedClumps>=10,`rim prune: ${a.carpet.rim.prunedMats} mats, ${a.carpet.rim.prunedClumps} clumps pulled back`);
+{const culled=Object.values(a.carpet.expansionCulled).reduce((n,v)=>n+v,0);assert.ok(culled>=50&&culled<=5000,`expansion cull (per set name): ${JSON.stringify(a.carpet.expansionCulled)}`);}
+for(const set of a.carpet.all)for(const it of set.items)assert.ok(!read('terrain/heightfield').expansionCull(it.x,it.z),`no card left inside the expansion's live ground at ${it.x}, ${it.z}`);
 // round 40 (Astra's "repeated fans"): per-card variation without a stream draw — all six tiles in use, ≈ half the cards
 // mirrored, the width / height jitter (0.8–1.25 × / 0.7–1.3 ×) shows as a spread of aspect ratios, and the instance
 // colour carries a hue / lightness jitter (no card is plain white)
@@ -79,7 +92,8 @@ for(const set of a.carpet.all){assert.deepEqual(set.opts.instanceData,{attribute
 // neighbouring mats never step hard in tone (the blades' drift at half strength, continuous): of every pair of
 // mats within 0.8 m, the median differs by < 0.35 entries, the 99th percentile by < 0.75, the steepest (the
 // giants' litter-floor offset meeting the tint mottle) by < 1.25
-{const ms=a.carpet.mats.items.filter(it=>Math.hypot(it.x,it.z)<14);const steps=[];
+// (round 50: the rim band's soil mats sit outside the palette — data[1] < 0.5 — and are left out of the pairs)
+{const ms=a.carpet.mats.items.filter(it=>Math.hypot(it.x,it.z)<14&&it.data[1]>=0.5);const steps=[];
   const g=new Map(),key=(x,z)=>`${Math.floor(x/0.8)},${Math.floor(z/0.8)}`;for(const it of ms){const k=key(it.x,it.z);(g.get(k)||g.set(k,[]).get(k)).push(it);}
   for(const p of ms){const cx=Math.floor(p.x/0.8),cz=Math.floor(p.z/0.8);for(let dx=-1;dx<=1;dx++)for(let dz=-1;dz<=1;dz++){const arr=g.get(`${cx+dx},${cz+dz}`);if(!arr)continue;
     for(const r of arr){if(r===p||r.x<p.x||(r.x===p.x&&r.z<=p.z))continue;if(Math.hypot(p.x-r.x,p.z-r.z)>0.8)continue;steps.push(Math.abs(p.data[0]-r.data[0]));}}}
@@ -121,18 +135,20 @@ for(const [name,b,mats] of[['lawn band',[-3.1,-8.4,-1.9,-6.6],2],['north verge',
   assert.ok(perM2(a.carpet.clumps,b)>=3,`${name}: ${perM2(a.carpet.clumps,b).toFixed(2)} clumps / m²`);
   assert.ok(perM2(a.carpet.mats,b)>=mats,`${name}: ${perM2(a.carpet.mats,b).toFixed(2)} mats / m²`);}
 // seating: on allowed turf, off the giant trunks, roots sunk ≤ 3 cm (clumps) / lifted 1.8 cm (mats), tilt to the normal
-for(const set of a.carpet.all)for(const it of set.items){
-  a.field.sample(it.x,it.z,s);assert.ok(a.field.allowed(it.x,it.z,s,true),`${set.opts.name} root on turf at (${it.x},${it.z})`);
+// (round 50: a soil mat — data[1] < 0.5 — roots in the rim band, on the turf or the verge to the slab lip, SOIL_MAT_LIFT up)
+for(const set of a.carpet.all)for(const it of set.items){const soil=isMats(set)&&it.data[1]<0.5;
+  a.field.sample(it.x,it.z,s);assert.ok(a.field.allowed(it.x,it.z,s,true)||(soil&&edges.inRimRegion(it.x,it.z)&&a.field.lawnEdgeDistance(it.x,it.z,true)<edges.RIM_BAND),`${set.opts.name} root on turf at (${it.x},${it.z})`);
   assert.ok(!a.field.insideGiantTrunk(it.x,it.z));
   const gap=a.ctx.terrain.height(it.x,it.z)-it.y;
-  if(isClumps(set))assert.ok(gap>=-1e-4&&gap<=0.0301,`clump sunk ${gap.toFixed(4)} m`);else assert.ok(Math.abs(gap+0.018)<1e-4,`mat lifted ${(-gap).toFixed(4)} m`);
+  if(isClumps(set))assert.ok(gap>=-1e-4&&gap<=0.0301,`clump sunk ${gap.toFixed(4)} m`);else if(soil)assert.ok(Math.abs(gap+edges.SOIL_MAT_LIFT)<1e-4,`soil mat lifted ${(-gap).toFixed(4)} m`);else assert.ok(Math.abs(gap+0.018)<1e-4,`mat lifted ${(-gap).toFixed(4)} m`);
   const clr=a.field.clearing(it.x,it.z);assert.ok(!clr.insideBoulder,'no card inside a boulder');}
 // heights: the reference's 0.15–0.35 m tufts, never over camera C's 0.35 m stair-foot rule
 const hs=a.carpet.clumps.items.map(scaleY);const q=(arr,f)=>{const t=[...arr].sort((p,r)=>p-r);return t[Math.min(t.length-1,Math.floor(f*t.length))];};
 assert.ok(q(hs,1)<=0.3201,`tallest clump ${q(hs,1).toFixed(3)} m`);assert.ok(q(hs,0.5)>=0.18&&q(hs,0.5)<=0.3,`median clump ${q(hs,0.5).toFixed(3)} m`);
 // the paved rims keep a band of real blades: no card root within its clear band, no card over the slabs
 for(const it of a.carpet.clumps.items){const e=a.field.lawnEdgeDistance(it.x,it.z,true);assert.ok(e>=0.14,`clump ${e.toFixed(2)} m from the paving`);assert.ok(scaleX(it)*0.5<=e+0.01,'card inside the lawn');}
-for(const it of a.carpet.mats.items){const e=a.field.lawnEdgeDistance(it.x,it.z,true);assert.ok(e>=0.1);assert.ok(scaleX(it)*0.5<=e+0.01,'mat inside the lawn');}
+// (round 50: the soil mats are the exception — they lie IN the band, over the lip, their rim feathering both ways)
+for(const it of a.carpet.mats.items){const e=a.field.lawnEdgeDistance(it.x,it.z,true);if(it.data[1]<0.5){assert.ok(e>=edges.RIM_INNER-0.15&&e<=0.12,`soil mat ${e.toFixed(2)} m from the paving (on the verge)`);continue;}assert.ok(e>=0.1);assert.ok(scaleX(it)*0.5<=e+0.01,'mat inside the lawn');}
 // the walk corridor (frames 14 / 24: the trodden strip and the stones' 0.5 m carry nothing over the herb layer)
 const stones=houseSteppingStones(),stoneDist=(x,z)=>Math.min(...stones.map(st=>Math.hypot(x-st.x,z-st.z)-st.r));
 for(const it of a.carpet.clumps.items){const h=scaleY(it);
@@ -163,7 +179,8 @@ for(const it of a.carpet.clumps.items){if(inBox(it,[1.5,-16,7,-4]))assert.ok(sca
   assert.ok(footClumps<=0.3*lawnClumps,`foot clumps ${footClumps.toFixed(2)} / cell vs lawn ${lawnClumps.toFixed(2)}`);
   assert.ok(bankClumps<=0.4*lawnClumps,`bank clumps ${bankClumps.toFixed(2)} / cell vs lawn ${lawnClumps.toFixed(2)}`);
   assert.ok(lawnMats>0.5,`lawn mats ${lawnMats.toFixed(2)} / cell`);
-  for(const it of a.carpet.mats.items){assert.ok(a.field.cFoot(it.x,it.z)<1,`mat in the C-foot core at ${it.x.toFixed(1)},${it.z.toFixed(1)}`);assert.ok(a.field.bankDark(it.x,it.z)<1,`mat in the bank core at ${it.x.toFixed(1)},${it.z.toFixed(1)}`);}
+  // (round 50: the soil mats — data[1] < 0.5 — are dark earth, not turf; the paved rim through C's trodden foreground keeps its band)
+  for(const it of a.carpet.mats.items){if(it.data[1]<0.5)continue;assert.ok(a.field.cFoot(it.x,it.z)<1,`mat in the C-foot core at ${it.x.toFixed(1)},${it.z.toFixed(1)}`);assert.ok(a.field.bankDark(it.x,it.z)<1,`mat in the bank core at ${it.x.toFixed(1)},${it.z.toFixed(1)}`);}
   // the feathers still thin: within the half-zones the mats run under half the lawn's density
   const footHalf=it=>a.field.cFoot(it.x,it.z)>0.5&&a.field.lawnEdgeDistance(it.x,it.z,true)>0.5,bankHalf=it=>a.field.bankDark(it.x,it.z)>0.5&&a.field.lawnEdgeDistance(it.x,it.z,true)>0.5;
   const footMats=core(a.carpet.mats,footHalf)/cells(footHalf,MAT_CELL),bankMatsD=core(a.carpet.mats,bankHalf)/cells(bankHalf,MAT_CELL);
