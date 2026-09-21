@@ -16,6 +16,27 @@ B 526 / C 393 / D 394 / E 526 / F 512; A 9.09 M tris on both (the head's number,
 change's — flagged to fable-cursor). Files: `ledge2-x-clearing-n.jpg` (+ `-crop`),
 `ledge2-x-ledge-foot.jpg`, `ledge2-x-northpath-n.jpg`.
 
+## Iteration 32 — the reciprocal prop check: fable-3's backside props vs my rock bodies; the V21 anchor moved off their squat pot — `agent/fable-2-v21` @ `a1dcf4f6`
+
+fable-3 replicated my contour walk to catch a slab on their pots (§29); the reciprocal check, offline on the same
+samplers: their backside props (`props/layout.ts` on `agent/fable-3-backside`: west-landing crate / bucket / two pots,
+the west-fork marker, the west-door pot) against every backside rock body sphere and the live strata / rubble dump —
+**no overlaps**; the closest is a 0.11 m disc pebble 0.25 m from the fork marker's foot (a stone at a post's foot, fine).
+
+The same check on the V21 anchor was not fine: at the box centre (7.4, 2.9) the loaf's ≈ 0.7 m reach ran **0.13 m into
+`stair-pot-squat` (7.55, 2.1) r 0.22**. Moved 0.28 m NW along the bank to **(7.2, 3.1)** — 0.12 m clear, ground 0.66,
+slope 0.31, C projection (0.30, 0.46): still the V21 box. Re-measured on the round-50 head `0147a3d0`:
+
+| view | head | V21 'replace' at (7.2, 3.1) | (at (7.4, 2.9), §28) |
+|---|---|---|---|
+| A_stairs | 0.2210 | 0.2206 (−0.0004) | −0.0005 |
+| C_lookback | 0.2227 | **0.2263 (+0.0036)** | +0.0032 |
+| F_canopy | 0.2451 | 0.2408 (−0.0043) | −0.0042 |
+| draws / tris | 440 / 8.61 M, 338 / 6.98 M, 405 / 7.98 M | 440 / 8.60 M, 338 / 6.97 M, 405 / 7.98 M | |
+
+`v21f-C_lookback-triple.jpg`: one pale moss-capped rock behind the pots, clear of them, the loaf gone. The layout proposal
+is therefore `heroBoulders` 'stair-foot' → position (7.2, 0, 3.1), radius 0.55.
+
 ## Iteration 31 — the embankment strata and rubble skirts take the near skin (2.5–4.5 m fade) — `agent/fable-2-ledge`
 
 The instanced strata (92) and rubble (64) rendered the plain far material at any distance; a walker passes the bank slabs
