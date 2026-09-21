@@ -461,7 +461,11 @@ export async function create(ctx: WorldContext): Promise<WorldSystem> {
       // frame 56 s: the D rock is half bare stone (moss 35 % of its box, bare 54 %); at 1.0 the
       // cushion took 51 % of ours
       // (V21's rock: a pale rounded stone with a moss cap and a little at the collar — not a blanket)
-      moss: b.id === 'shot-d-boulder' ? 0.85 : anchor ? 0.65 : 1.0,
+      // fable-2 (take-0126 pre-read, W23 "still greener than the frame's"): the frame's rock box at D is 99.5 %
+      // stone and 0.3 % green — the greenery is the plants above and behind it, not moss on it — where ours
+      // was 24 % green inside the same box: the cap. So the D rock is near-bare: moss only where the collar
+      // meets the ground, the crown stone.
+      moss: b.id === 'shot-d-boulder' ? 0.25 : anchor ? 0.65 : 1.0,
       // faint bedding (dark partings, only a hint of a ledge) under a thick moss cap, sitting in
       // a dark collar of soil — the reference boulders are rounded first, layered second.
       // Sheet 01 'Mossy root' / sheet 04: the caps are thick pads over grey — not warm-brown —
@@ -478,7 +482,7 @@ export async function create(ctx: WorldContext): Promise<WorldSystem> {
       mossLumpy: 1.0,
       // D's frame face is bare lit stone under the moss top with the fracture in shade, so its
       // blanket is thinner; the A rock's face toward frame 1 s is moss from shoulder to collar
-      mossSide: b.id === 'shot-d-boulder' ? 0.45 : anchor ? 0.3 : 0.9,
+      mossSide: b.id === 'shot-d-boulder' ? 0.15 : anchor ? 0.3 : 0.9,
       mossShade: toLocal(shadeDir, yaw),
       // fable-2 (W23 at frame D, fable-5's 13:25 review of the loaf: "value inverted — moss + shade on
       // the face D sees, l 0.21 / hue 63° / sat 0.15 against the reference's bare lit face l 0.27 /
@@ -822,7 +826,8 @@ export async function create(ctx: WorldContext): Promise<WorldSystem> {
           // fable-2 (survey-2 #32): lichen as crust colonies that follow the plates (`aLichen`,
           // painted by the near material in place of the flecks); the D boulder's pale face
           // carries the most, the moss-hatted A / terrace rocks less
-          lichen: b.id === 'shot-d-boulder' ? 0.6 : 0.35,
+          // (the crust is grey-green; the frame's D rock has none — a third of it stays for the 2 m read)
+          lichen: b.id === 'shot-d-boulder' ? 0.3 : 0.35,
           // fable-2 (opus #10): the D boulder's cleave faces are most of what the player sees at
           // 2 m, and the far mesh's 40 % darkening (a silhouette term for camera D at 7 m) made
           // the whole face a dark mass; the reference's face in frame D is the pale, weathered
