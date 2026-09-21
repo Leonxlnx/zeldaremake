@@ -30,7 +30,7 @@ export interface Ground {
   decalHeight(x: number, z: number, radius: number): number;
   /** true inside a stair run (for the stair-climb gait) */
   onStairs(x: number, z: number): boolean;
-  /** true where walking is blocked (structure pads: trunks, the log's walls — not the tunnel under its belly) */
+  /** true where solid props or structure pads/walls block walking and airborne movement */
   blocked(x: number, z: number): boolean;
   /** learn the paving surface from the rendered hardscape meshes; true once a surface grid exists */
   attachSurface(scene: Object3D): boolean;
@@ -169,6 +169,7 @@ export function createGround(terrain: Terrain, layout: Layout, shared?: SharedGe
     return { ox: s.base[0], oz: s.base[2], dx: s.dir[0] / l, dz: s.dir[1] / l, run: s.steps * s.tread, tread: s.tread, rise: s.rise, steps: s.steps, halfWidth: s.width / 2, baseY: s.base[1] };
   });
   const walkSurfaces: WalkSurface[] = shared?.walkSurfaces ?? [];
+  const propBlockers = shared?.propBlockers ?? [];
   /** the built surface (platform / deck top) under (x, z), or null off every walk surface */
   const builtTop = (x: number, z: number): number | null => {
     let best: number | null = null;
@@ -291,6 +292,10 @@ export function createGround(terrain: Terrain, layout: Layout, shared?: SharedGe
       return stairAt(x, z) !== null;
     },
     blocked(x, z) {
+      // ponytail: solid discs use the wall policy at every height until prop-top landing is implemented.
+      for (const b of propBlockers) {
+        if ((x - b.x) ** 2 + (z - b.z) ** 2 < (b.r + 0.12) ** 2) return true;
+      }
       // round 49: the hut's wall ring blocks (its doorway is the gap); on its platform / deck the
       // ground's structure pad (the bole under the floor) does not
       if (wallBlocked(x, z)) return true;
