@@ -276,3 +276,9 @@ nearCanopy, materials, index otherwise) is edited.
 - Head `0147a3d0` unchanged (take-0125 sealing). fable-5 iteration 28: the taper re-measured on the round-50
   head, C +0.0009 (their method; mine −0.0005 — both inside the budget). Branches unchanged and current;
   merge notes to fable-cursor (03:35) still stand. No INBOX traffic this tick.
+
+## 2026-09-21 06:20 UTC — tick: take-0125 sealed; branches at the seal
+
+- take-0125 sealed on `c4d12f6c` (37/50; the demo-scale stones cost B/C/F −0.010…−0.015 on their own). My
+  r81 pair was measured on exactly that code: taper A/B/D/E/F pixel-identical, C −0.0005. Branches merged up
+  to the seal commit; waiting on fable-cursor's queue pass.
