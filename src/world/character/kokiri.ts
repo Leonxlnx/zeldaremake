@@ -19,8 +19,9 @@
  *
  * `variant` 0 = the girl who wanders the plaza (kokiri-a), 1 = the girl who sits on the steps
  * (kokiri-b, darker tunic and hair), 2 = the boy at Saria's door (the round-1 look), 3 = the
- * girl on the raised ledge (kokiri-ledge, ref-04). Every material is cached per look so the
- * per-joint merge (consolidate.ts) keeps a kid at ~23 meshes.
+ * girl on the raised ledge (kokiri-ledge, ref-04), 4 = the girl on the south bank (round 50,
+ * `NPC_SOUTH_BANK`). Every material is cached per look so the per-joint merge (consolidate.ts)
+ * keeps a kid at ~23 meshes.
  */
 import {
   BoxGeometry,
@@ -70,26 +71,27 @@ export const KOKIRI_CHILD_PROPORTIONS: Proportions = {
  * kid palette (albedo, ≈ 1.3× the hazed display values like palette.ts), read off demo d_024/d_033
  * and ref-01: the girls' deep forest-green tunic (display ≈ #2b4a2a), a brighter green headband,
  * near-black boots with khaki cuffs, maroon-red hair (display ≈ #5e2226), dark leather belt and
- * wristbands. Indexed by the girl look g (0 = kokiri-a, 1 = kokiri-b, 2 = the ledge girl); the boy
- * keeps the palette's kid colours.
+ * wristbands. Indexed by the girl look g (0 = kokiri-a, 1 = kokiri-b, 2 = the ledge girl, 3 = the
+ * girl on the south bank — round 50, a slightly bluer tunic and a darker auburn bob); the boy keeps
+ * the palette's kid colours. Looks 0–2 are pinned: the six fixed frames' kids wear them.
  */
 const KID = {
-  tunic: [0x375f35, 0x2f522f, 0x3a5a2e],
-  band: [0x4d7a3c, 0x44703a, 0x568a3e],
+  tunic: [0x375f35, 0x2f522f, 0x3a5a2e, 0x335a3a],
+  band: [0x4d7a3c, 0x44703a, 0x568a3e, 0x4a7c46],
   belt: 0x4a3322,
   buckle: 0xb8963f,
   boot: 0x352721,
   cuff: 0x8f7f5a,
-  hair: [0x93412f, 0x7e382c, 0x9c4a30],
-  skin: [0xbd8a62, 0xb6845e, 0xc08f66],
-  iris: ['#4a2c1a', '#3d2818', '#3b4a24'],
+  hair: [0x93412f, 0x7e382c, 0x9c4a30, 0x843a2a],
+  skin: [0xbd8a62, 0xb6845e, 0xc08f66, 0xba8860],
+  iris: ['#4a2c1a', '#3d2818', '#3b4a24', '#46301c'],
   lash: 0x1c120e,
 } as const;
 /** the boy's skin (round 47's value; unchanged so B / E keep their pixels) */
 const BOY_SKIN = 0xb28058;
 
-/** the girl look index for a variant (the boy, variant 2, has none) */
-const girlLook = (variant: number) => (variant === 3 ? 2 : variant % 2);
+/** the girl look index for a variant (the boy, variant 2, has none): 0 kokiri-a, 1 kokiri-b, 2 the ledge girl, 3 the south-bank girl */
+const girlLook = (variant: number) => (variant === 3 ? 2 : variant === 4 ? 3 : variant % 2);
 
 const mats = new Map<string, MeshStandardMaterial>();
 function kidMat(key: string, color: number, roughness = 0.9): MeshStandardMaterial {
