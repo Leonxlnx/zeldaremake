@@ -64,7 +64,7 @@ interface SurfaceGrid {
 
 const CELL = 0.1;
 /** the stair stones are rasterised finer: a nosing overhang is 2–5.7 cm */
-const STAIR_CELL = 0.01;
+export const STAIR_CELL = 0.01;
 
 /** positions + index of two triangle geometries as one (the surface grid reads nothing else) */
 function concatPositions(a: BufferGeometry, b: BufferGeometry): BufferGeometry {
@@ -92,7 +92,7 @@ function concatPositions(a: BufferGeometry, b: BufferGeometry): BufferGeometry {
 }
 
 /** rasterise the up-facing triangles of a world-space mesh into a max-height grid of `CELL`-sized cells */
-function buildSurfaceGrid(geometry: BufferGeometry, CELL: number): SurfaceGrid | null {
+function buildSurfaceGrid(geometry: BufferGeometry, CELL: number, timberTriangleStart = Infinity): SurfaceGrid | null {
   const pos = geometry.attributes.position;
   if (!pos) return null;
   geometry.computeBoundingBox();
@@ -119,15 +119,15 @@ function buildSurfaceGrid(geometry: BufferGeometry, CELL: number): SurfaceGrid |
     const ax = pos.getX(a), ay = pos.getY(a), az = pos.getZ(a);
     const bx = pos.getX(b), by = pos.getY(b), bz = pos.getZ(b);
     const cx = pos.getX(c), cy = pos.getY(c), cz = pos.getZ(c);
-    // horizontal-ish faces only (tops and rolled shoulders; undersides never win the max), skip
-    // the side walls
+    // Preserve the stone/paving slope filter. Appended outward timber also needs its
+    // steeper upper shoulders; downward faces and vertical walls do not support a sole.
     const ux = bx - ax, uy = by - ay, uz = bz - az;
     const vx = cx - ax, vy = cy - ay, vz = cz - az;
     const nX = uy * vz - uz * vy;
     const nY = uz * vx - ux * vz;
     const nZ = ux * vy - uy * vx;
     const nLen = Math.hypot(nX, nY, nZ);
-    if (nLen < 1e-9 || Math.abs(nY) / nLen < 0.5) continue;
+    if (nLen < 1e-9 || (t < timberTriangleStart ? Math.abs(nY) / nLen < 0.5 : nY <= 0)) continue;
     triangles++;
     // vertices always land in their own cells so slab rims are covered
     splat(Math.floor((ax - x0) / CELL), Math.floor((az - z0) / CELL), ay);
@@ -309,12 +309,17 @@ export function createGround(terrain: Terrain, layout: Layout, shared?: SharedGe
         const e = m.matrixWorld.elements;
         return Math.abs(e[0] - 1) <= 1e-6 && Math.abs(e[5] - 1) <= 1e-6 && Math.abs(e[10] - 1) <= 1e-6 && Math.abs(e[12]) + Math.abs(e[13]) + Math.abs(e[14]) <= 1e-6;
       };
-      // the stair stones (rendered tread tops with their nosing overhangs) at 1 cm, one grid per flight
+      // Stone treads and optional timber nosings share one rendered support grid per flight.
       if (!stairGrids.length && hardscape) {
         for (const s of allStairs) {
           const m = hardscape.getObjectByName(`stairs-${s.id}`) as Mesh | undefined;
           if (!worldSpace(m)) continue;
-          const g = buildSurfaceGrid(m.geometry, STAIR_CELL);
+          const logs = hardscape.getObjectByName(`stairs-${s.id}-logs`) as Mesh | undefined;
+          const merged = worldSpace(logs) ? concatPositions(m.geometry, logs.geometry) : null;
+          // concatPositions appends all timber triangles after the stone triangles.
+          const timberTriangleStart = merged ? (m.geometry.index?.count ?? m.geometry.attributes.position.count) / 3 : Infinity;
+          const g = buildSurfaceGrid(merged ?? m.geometry, STAIR_CELL, timberTriangleStart);
+          merged?.dispose();
           if (g) stairGrids.push(g);
         }
       }
