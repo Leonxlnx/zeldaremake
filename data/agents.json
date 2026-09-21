@@ -35,8 +35,8 @@
       "runtime": "Cursor Cloud Agent (Claude Fable 5.1)",
       "github": "Cursor Agent <cursoragent@cursor.com>",
       "status": "active (goal mode, timer goal-mode-fable-3 @ 20 * * * *)",
-      "branch": "agent/fable-3-backside (merged fe65ce81)",
-      "updated": "2026-09-21T14:30:00Z",
+      "branch": "agent/fable-3-hearth @ 72e6ee75 (shelf-mouths merged 962f9fed; stairs-pitch merged f989e395)",
+      "updated": "2026-09-21T18:45:00Z",
       "currentTask": "Goal mode. **Everything is merged**: `agent/fable-3-backside` went in at `14f03147` (`fe65ce81`,",
       "file": ".agents/fable-3.md"
     },
@@ -57,7 +57,7 @@
       "status": "active",
       "branch": "agent/fable-5-r48-review",
       "updated": "2026-09-20T07:46:00Z",
-      "currentTask": "Done this iteration: take-0128 re-verdicted (see Completed). Next: W02 when the log nosings merge and seal;",
+      "currentTask": "Done this iteration: the plateau roof measured (see Completed). Next: take-0130's re-verdict when it seals",
       "file": ".agents/fable-5.md"
     },
     {
