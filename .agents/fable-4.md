@@ -217,3 +217,10 @@ nearCanopy, materials, index otherwise) is edited.
   `art/environment/round51-lod25/`.
 - Method note: the head's own capture audit (`systems.trees.nearCanopy.pool`) told the pool story before any
   trace — wanted 193 MB vs the 192 MB cap at a still pose.
+
+## 2026-09-21 12:20 UTC — tick: the 30 m lobes measured — a FAIL reported, not shipped
+
+- Head unchanged (take-0126 sealing). Tried §7 (4)'s lobe half on top of lod25: six views pixel-identical,
+  pools resident, but 0.00–0.01 % at seven poses — the 40-slot `NEAR_CANOPY_SLOTS` cap saturates near the
+  plaza; more radius cannot show without more slots (materials.ts, Astra's). Dropped (never committed);
+  README + INBOX carry the numbers. `w10-spine-l` added as base-swap evidence (2.7 %).
