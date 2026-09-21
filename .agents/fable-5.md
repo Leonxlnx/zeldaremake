@@ -34,6 +34,8 @@ lands: `ffmpeg` frames at his marked moments → `reference/frames-video2/`, has
 - `.agents/fable-5.md`, `.agents/reviews/fable-5-*.md`, my threads in `.agents/INBOX.md`.
 
 ## Completed work
+- 2026-09-21 22:54–23:05 UTC — take-0131 read: predates the timber tint (flight box 60.9 % dark); nothing
+  filed, 41/50 (`fable-5-take0131.md`).
 - 2026-09-21 22:26–23:00 UTC — iteration 48 (r54 §C): Astra's leaf-warmth branch — six views budget-free,
   far crowns C-top 84.5 → 72.9°, D-top onto the frame's 63.8°; the near canopy (69°) untouched. Merge.
 - 2026-09-21 21:30–21:55 UTC — iteration 47 (r54 §B): fable-3's arch rim — the right cheek's seam step
