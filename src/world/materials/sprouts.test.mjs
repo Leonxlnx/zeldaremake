@@ -148,6 +148,7 @@ floor.meshes.forEach((m, i) => {
     assert.ok(Math.hypot(p.getX(j), p.getZ(j)) < 1.06, 'no foliage extends beyond the old cushion footprint');
     assert.ok(Math.abs(Math.hypot(n.getX(j), n.getY(j), n.getZ(j)) - 1) < 1e-6, 'unit finite normals');
     assert.equal(m.geometry.attributes.aWind.getX(j), 0, 'moss does not wave with grass');
+    assert.ok(m.geometry.attributes.uv.getX(j) <= -0.55 && m.geometry.attributes.uv.getX(j) >= -1, 'floor moss carries its relative post-tint albedo factor');
   }
   const op = old.geometry.attributes.position;
   for (let j = 0; j < op.count; j++) if (Math.abs(op.getY(j)) < 1e-6) {

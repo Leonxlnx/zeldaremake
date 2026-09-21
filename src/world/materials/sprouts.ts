@@ -120,10 +120,11 @@ function buildCushion(rng: Rng, deep: Color, light: Color, floorMoss = false): B
     const l = Math.hypot(p[0], ny, p[2]) || 1;
     nrm.push(p[0] / l, ny / l, p[2] / l);
     tmp.copy(light).lerp(deep, 0.25 + 0.7 * p[3]);
-    if (floorMoss) tmp.multiplyScalar(0.72); // shaded interstices beneath the leafy shoots
     col.push(tmp.r, tmp.g, tmp.b);
     wind.push(0, phase);
-    uv.push(0, p[3]);
+    // Negative U tags floor moss with a relative albedo factor applied after the joint tint.
+    // The substrate stays shaded beneath its living tips; other sprouts retain their UVs.
+    uv.push(floorMoss ? -0.55 : 0, p[3]);
   };
   for (let r = 0; r < rings; r++) {
     for (let s = 0; s < segs; s++) {
@@ -169,7 +170,7 @@ function buildCushion(rng: Rng, deep: Color, light: Color, floorMoss = false): B
           tmp.copy(light).lerp(deep, shade);
           col.push(tmp.r, tmp.g, tmp.b);
           wind.push(0, phase);
-          uv.push(0, shade);
+          uv.push(shade > 0.5 ? -0.75 : -1, shade);
         }
       }
     }
@@ -435,6 +436,9 @@ export function createSproutMaterial(wind: Wind, _config: WorldConfig): MeshStan
           float tipK = aTuftLighting > 0.5 ? smoothstep(0.05, 0.95, uv.y) : 0.35;
           vec3 jointRamp = mix(uJointDeep, uJointTip, tipK) * instanceColor.rgb;
           vColor.rgb = mix(vColor.rgb, jointRamp, clamp(aJointTint, 0.0, 1.0));
+          // Only floor-moss geometry authors negative U; retain its darker interstices
+          // after the hue-matching tint so the leafy layer does not become a flat olive mass.
+          if (uv.x < 0.0) vColor.rgb *= -uv.x;
         }
         #endif`,
       )
@@ -484,7 +488,7 @@ export function createSproutMaterial(wind: Wind, _config: WorldConfig): MeshStan
         #endif`,
       );
   };
-  mat.customProgramCacheKey = () => 'joint-sprouts-wind-v4-variant-packs-tuft-up-v1-joint-tint';
+  mat.customProgramCacheKey = () => 'joint-sprouts-wind-v4-variant-packs-tuft-up-v1-joint-tint-floor-moss';
   return wind.bind(mat);
 }
 
