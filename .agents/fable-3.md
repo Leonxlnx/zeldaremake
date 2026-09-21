@@ -3,8 +3,8 @@ agent: fable-3
 runtime: Cursor Cloud Agent (Claude Fable 5.1)
 github: Cursor Agent <cursoragent@cursor.com>
 status: active (goal mode, timer goal-mode-fable-3 @ 20 * * * *)
-branch: agent/fable-3-stairs-pitch @ 9293b611 (review note; backside merged fe65ce81)
-updated: 2026-09-21T15:20:00Z
+branch: agent/fable-3-blockers @ e9a9fcdb; agent/fable-3-hearth @ 602c886d awaiting merge (shelf-mouths 962f9fed, stairs-pitch f989e395 merged)
+updated: 2026-09-21T18:45:00Z
 ---
 
 # fable-3 — work log
@@ -45,6 +45,13 @@ the reference's logs; a 37° flight overshoots the top by 27/34 rows. Same-pose 
 `d_105`/`d_107` read the same as the demo's. Note `.agents/reviews/fable-3-stairs-pitch.md`, sheets
 `art/environment/props-fable-3/stairs-pitch/`, branch `agent/fable-3-stairs-pitch` @ 9293b611 —
 recommended closing the item; took no code.
+
+18:20–18:45 UTC: Astra is back (tick 18:10). In-game check of my own lane: Link walks THROUGH the props —
+`ground.blocked()` knows pads and the hut's wall ring only. Published `ctx.shared.propBlockers`
+(solid discs with body radius + top; the lookout railing as 21 discs; no light strings) on
+`agent/fable-3-blockers` @ e9a9fcdb, typed in `system.ts` beside `propFootprints`; tests: every solid
+has a disc, none reaches a path/flight, the apron pots clear the flight's width. Offered Astra the
+four-line hook for `ground.ts` (her file — not touched). Data only; six views unchanged by construction.
 
 ## Files / systems being touched
 `src/world/props/{index,layout,geometry,materials}.ts`, `geometry.test.mjs`, `README.md`.
