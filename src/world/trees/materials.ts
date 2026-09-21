@@ -115,7 +115,13 @@ export const NEAR_CANOPY_SLOTS = 40;
  */
 export const TREE_BARK_FLOOR: ShadeFloor = { ...SHARED_BARK_FLOOR };
 export const TREE_LEAF_FLOOR: ShadeFloor = { ...SHARED_LEAF_FLOOR };
-export const TREE_BARK_FLOOR_NEAR: ShadeFloor = { ...SHARED_BARK_FLOOR, lift: 5.5, texture: 0.3 };
+/**
+ * 2026-09-21 (owner, direct: "the trees stay green — they need to render brown the second you step in"):
+ * within TREE_FLOOR_FADE_M[0] the floor keeps 0.55 of the bark's own textured colour and only 0.6 of
+ * its light leaf-filtered (was 0.3 / 1.0 — a flat leaf-green column at 3 m). Fades to the shared floor
+ * by TREE_FLOOR_FADE_M[1], so the six fixed frames (≥ 10 m to every giant bole they frame) are unchanged.
+ */
+export const TREE_BARK_FLOOR_NEAR: ShadeFloor = { ...SHARED_BARK_FLOOR, lift: 5.5, texture: 0.55, canopy: 0.2 };
 /**
  * The column trees' bark floor (TreeMaterials.columnTree) within COLUMN_FLOOR_FADE_M[0]: a little
  * under the shared lift so a shaded column sits under the haze rather than in it, and 0.45 of its
@@ -163,7 +169,9 @@ export const NEAR_CANOPY_SUN_THROUGH = 0.3;
  * the floor), so the floor drops to a third and keeps two thirds of the bark's own colour and
  * fissures: the cords read as bark, the furrows dark, the moss its own green.
  */
-export const NEAR_BASE_FLOOR: ShadeFloor = { lift: 2.5, texture: 0.65, canopy: 1, albedo: 0.08, chroma: 0.6 };
+// 2026-09-21 (owner: brown bark at arm's length): the near base's shade reads its own bark — lift 2.5→5
+// (a 2 m bole rendered at sRGB 25, black-green), 0.4 of its light leaf-filtered instead of all of it
+export const NEAR_BASE_FLOOR: ShadeFloor = { lift: 5, texture: 0.7, canopy: 0.2, albedo: 0.08, chroma: 0.7 };
 
 interface WindOpts {
   /** stiffness of the whole-tree sway layer (1 = does not move) */
@@ -411,9 +419,15 @@ export const BARK_DETAIL_TILES = 3.7;
  */
 export const BARK_TOUCH_M: [number, number] = [0.6, 2.0];
 export const BARK_TOUCH_TILES = 11.0;
-/** mean luminance of tree_bark_03/color.jpg (ffmpeg signalstats YAVG 133.29 / 255) — the fine
- *  albedo term modulates around it so the bole's average colour does not shift */
-const BARK_DETAIL_MEAN = 133.29 / 255;
+/** mean LINEAR luminance of tree_bark_03/color.jpg (Rec. 709 over every texel after the sRGB
+ *  transfer: 0.2538 on the 1K map, 0.2555 on the 2K) — the fine albedo term modulates around it so
+ *  the bole's average colour does not shift. `texture2D(map)` on an SRGBColorSpace texture returns
+ *  linear values; until 2026-09-21 this held the ENCODED mean (133.29 / 255 = 0.5227, ffmpeg YAVG),
+ *  so every factor `lum / mean` sat near its lower clamp: the near-detail programs darkened bark
+ *  ×0.68 within 1.5–6 m and ×0.8 more at arm's length, the distant boles' near blend ×0.46 inside
+ *  38 m — the owner's "the trees stay green, they never render to brown even a foot away". Same
+ *  bug as structures' SLEEVE_BARK_MEAN (fixed by structures-33). */
+const BARK_DETAIL_MEAN = 0.254;
 /**
  * Distant trees' bark (round 44, survey #2 crops 04/05): the solid vertices of a distant tree
  * read the bark map within these view distances (m) — full at the near end, none at the far end.
@@ -601,21 +615,24 @@ const GIANT_BARK_COLOR = /* glsl */ `
   float coarse = treeNoise(vTreeWorld * 0.55) * 0.55 + treeNoise(vTreeWorld * 2.1) * 0.45;
   float up = clamp(inverseTransformDirection(normalize(vNormal), viewMatrix).y, 0.0, 1.0);
   float lowBand = 1.0 - smoothstep(0.3, 4.5, vTreeLocalY);
-  float moss = smoothstep(0.5, 0.82, up * 0.5 + coarse * 0.55 + lowBand * 0.22);
+  // 2026-09-21 (owner: "the trees stay green"): the bole's moss is patches on the upward faces and
+  // the foot, not half the low bole — threshold 0.5→0.62, the foot's weight 0.22→0.12 (was: coarse
+  // > 0.51 anywhere below 4.5 m greened the bark between the sheets)
+  float moss = smoothstep(0.62, 0.9, up * 0.5 + coarse * 0.55 + lowBand * 0.12);
   vec3 mossColor = mix(vec3(0.12, 0.19, 0.05), vec3(0.28, 0.4, 0.11), coarse);
   // root sheets: the upward faces of the roots and the foot of the bole, under a soft-edged
   // cover that follows the coarse noise so the sheets still have ragged margins
-  float sheet = smoothstep(0.45, 0.85, up) * (1.0 - smoothstep(0.6, 2.2, vTreeLocalY)) * smoothstep(0.18, 0.5, coarse);
+  float sheet = smoothstep(0.45, 0.85, up) * (1.0 - smoothstep(0.6, 2.2, vTreeLocalY)) * smoothstep(0.3, 0.65, coarse);
   #ifdef NEAR_BASE_DETAIL
   // the near base's moss is the vertex cover (bole.ts) with its cushions below; these far
   // sheets, which green a whole flare's upper skirt from 10 m, are thinned to a tint here so
   // the cords and the bark between the cushions show (the owner's "soft green")
-  moss = max(moss * 0.45, sheet * 0.35);
+  moss = max(moss * 0.35, sheet * 0.2);
   #else
   moss = max(moss, sheet);
   #endif
-  mossColor = mix(mossColor, vec3(0.33, 0.47, 0.13), sheet * 0.65);
-  diffuseColor.rgb = mix(diffuseColor.rgb, mossColor, moss * 0.8);
+  mossColor = mix(mossColor, vec3(0.26, 0.38, 0.11), sheet * 0.6);
+  diffuseColor.rgb = mix(diffuseColor.rgb, mossColor, moss * 0.75);
   // close-range detail only: past 4–10 m the flecks are 1–3 px of speckle on boles the reference
   // frames show as smooth hazed columns (F's stair-bank giant at 10 m, D's north-west-near at 11 m)
   float foot = (1.0 - smoothstep(1.6, 3.2, vTreeLocalY)) * (1.0 - smoothstep(4.0, 10.0, length(vViewPosition)));
@@ -646,13 +663,15 @@ const GIANT_BARK_COLOR = /* glsl */ `
   float tuftRim = (smoothstep(0.66, 0.7, tuftN) - smoothstep(0.7, 0.82, tuftN)) * tuftSide;
   vec3 tuftColor = mix(vec3(0.13, 0.22, 0.06), vec3(0.26, 0.38, 0.11), tuftFine);
   diffuseColor.rgb = mix(diffuseColor.rgb, diffuseColor.rgb * 0.7, tuftRim * 0.6);
-  diffuseColor.rgb = mix(diffuseColor.rgb, tuftColor, tuftCore * 0.9);
+  diffuseColor.rgb = mix(diffuseColor.rgb, tuftColor, tuftCore * 0.6);
   #else
   float tuftCore = smoothstep(0.74, 0.8, tuftN) * tuftSide;
   float tuftRim = (smoothstep(0.7, 0.74, tuftN) - smoothstep(0.74, 0.8, tuftN)) * tuftSide;
-  vec3 tuftColor = mix(vec3(0.27, 0.4, 0.12), vec3(0.36, 0.5, 0.15), treeNoise(vTreeWorld * 13.0 + 31.0));
+  // 2026-09-21 (owner: "the trees stay green"): the 4–10 m tufts were bright yellow-green discs at 0.85 —
+  // darker moss, half the blend, so they read as moss on brown bark, not leaves stuck to it
+  vec3 tuftColor = mix(vec3(0.17, 0.27, 0.08), vec3(0.25, 0.37, 0.11), treeNoise(vTreeWorld * 13.0 + 31.0));
   diffuseColor.rgb = mix(diffuseColor.rgb, diffuseColor.rgb * 0.6, tuftRim * 0.7);
-  diffuseColor.rgb = mix(diffuseColor.rgb, tuftColor, tuftCore * 0.85);
+  diffuseColor.rgb = mix(diffuseColor.rgb, tuftColor, tuftCore * 0.5);
   #endif
   float tone = treeNoise(vec3(vTreeWorld.x * 0.08, vTreeWorld.y * 0.15, vTreeWorld.z * 0.08));
   diffuseColor.rgb *= 0.86 + tone * 0.28;
@@ -665,7 +684,8 @@ const GIANT_BARK_COLOR = /* glsl */ `
     float mossFine = mossField(vTreeWorld);
     // cushions with ragged edges: the cover needs both a strong per-vertex moss AND the fine
     // noise, so bark shows between the cushions (a 0.12–0.7 threshold greened whole boles)
-    barkMossCover = smoothstep(0.34, 0.82, vBarkMoss * (0.5 + 0.95 * mossFine));
+    // 2026-09-21 (owner): cushions where the vertex moss is strong, bark between them — 0.34→0.5
+    barkMossCover = smoothstep(0.5, 0.9, vBarkMoss * (0.5 + 0.95 * mossFine));
     // a darker rim where a cushion meets the bark, so it sits on the bark as a volume
     float mossRim = barkMossCover * (1.0 - barkMossCover) * 4.0;
     vec3 mossCushion = mix(vec3(0.09, 0.16, 0.04), vec3(0.24, 0.36, 0.10), mossFine) * (1.0 - 0.35 * mossRim);
@@ -872,7 +892,9 @@ const WHITE_BARK_FLOOR: ShadeFloor = { lift: 0, texture: 1, canopy: 0, albedo: 0
  * left edge is a dark near trunk in frame 14 s, our bole a hazed column either way). Texture
  * 0.25 as measured — the giants' 0.1 was not swept on this bole.
  */
-export const NEAR_BOLE_FLOOR: ShadeFloor = { lift: 13, texture: 0.25, canopy: 1, albedo: 0.08, chroma: 0.5 };
+// 2026-09-21 (owner: brown bark): the level (lift 13, D/B-calibrated) stays; the light is 0.4 leaf-filtered and
+// keeps 0.45 of the bark's own colour (was 1.0 / 0.25 — a flat leaf-green column from 2 m)
+export const NEAR_BOLE_FLOOR: ShadeFloor = { lift: 13, texture: 0.45, canopy: 0.2, albedo: 0.08, chroma: 0.7 };
 /**
  * Round 36: the near bole's floor is the ground's — the low mist and the bounce off the lit
  * verge and paving that a column standing on the path's edge gets at its foot, not up its length
@@ -1232,7 +1254,8 @@ export async function createTreeMaterials(ctx: WorldContext): Promise<TreeMateri
     roughness: 1,
     metalness: 0,
     vertexColors: true,
-    color: new Color(0x9b7e62),
+    // 2026-09-21 (owner: brown bark): 0x9b7e62 → 0xa47c56 — warmer (R/G 1.23 → 1.32), the same value
+    color: new Color(0xa47c56),
     side: DoubleSide,
   });
   const giantWind = { treeStiffness: 0.97, flex: 0.3 };
