@@ -110,13 +110,13 @@ function buildCushion(rng: Rng, deep: Color, light: Color, floorMoss = false): B
     const t = r / rings;
     const a = (s / segs) * Math.PI * 2 + (r & 1 ? Math.PI / segs : 0);
     const rad = Math.sin((t * Math.PI) / 2) * (0.92 + 0.12 * bump[r * segs + (s % segs)]);
-    const h = (floorMoss ? 0.16 : 0.3) * Math.cos((t * Math.PI) / 2) * bump[r * segs + (s % segs)];
+    const h = (floorMoss ? 0.065 : 0.3) * Math.cos((t * Math.PI) / 2) * bump[r * segs + (s % segs)];
     return [Math.cos(a) * rad, h, Math.sin(a) * rad, t];
   };
   const push = (p: number[]) => {
     pos.push(p[0], p[1], p[2]);
     // dome normal ≈ direction from a point below the centre
-    const ny = floorMoss ? p[1] / (0.16 * 0.16) : p[1] + 0.35;
+    const ny = floorMoss ? p[1] / (0.065 * 0.065) : p[1] + 0.35;
     const l = Math.hypot(p[0], ny, p[2]) || 1;
     nrm.push(p[0] / l, ny / l, p[2] / l);
     tmp.copy(light).lerp(deep, 0.25 + 0.7 * p[3]);
@@ -133,7 +133,7 @@ function buildCushion(rng: Rng, deep: Color, light: Color, floorMoss = false): B
       const d = pt(r + 1, s + 1);
       if (r === 0) {
         // crown fan
-        push([0, floorMoss ? 0.16 : 0.3, 0, 0]);
+        push([0, floorMoss ? 0.065 : 0.3, 0, 0]);
         push(d);
         push(c);
       } else {
@@ -151,15 +151,15 @@ function buildCushion(rng: Rng, deep: Color, light: Color, floorMoss = false): B
     // stream; small lanceolate leaves break the smooth pebble silhouette without an atlas.
     const shoots = rng.fork('floor-shoots');
     const normal = new Vector3();
-    for (let i = 0; i < 24; i++) {
+    for (let i = 0; i < 96; i++) {
       const a = i * 2.3999632297 + shoots.range(-0.2, 0.2);
-      const r = Math.sqrt((i + 0.5) / 24) * 0.87;
+      const r = Math.sqrt((i + 0.5) / 96) * 0.86;
       const x = Math.cos(a) * r, z = Math.sin(a) * r;
-      const y = 0.16 * Math.sqrt(1 - r * r) * 0.85;
+      const y = 0.065 * Math.sqrt(1 - r * r) * 0.7;
       for (let leaf = 0; leaf < 3; leaf++) {
         const angle = a + leaf * Math.PI * 2 / 3;
-        const reach = shoots.range(0.06, 0.13), width = shoots.range(0.024, 0.04);
-        const tip = new Vector3(x + Math.cos(angle) * reach, y + shoots.range(0.08, 0.14), z + Math.sin(angle) * reach);
+        const reach = shoots.range(0.09, 0.16), width = shoots.range(0.045, 0.07);
+        const tip = new Vector3(x + Math.cos(angle) * reach, y + shoots.range(0.045, 0.09), z + Math.sin(angle) * reach);
         const left = new Vector3(x - Math.sin(angle) * width, y, z + Math.cos(angle) * width);
         const right = new Vector3(x + Math.sin(angle) * width, y, z - Math.cos(angle) * width);
         normal.copy(left).sub(right).cross(tip.clone().sub(right)).normalize();

@@ -142,7 +142,7 @@ floor.meshes.forEach((m, i) => {
     return;
   }
   const p = m.geometry.attributes.position, n = m.geometry.attributes.normal;
-  assert.equal(p.count / 3, 122, '50-triangle substrate plus 72 small lanceolate leaves');
+  assert.equal(p.count / 3, 338, '50-triangle substrate plus 288 small lanceolate leaves');
   for (let j = 0; j < p.count; j++) {
     assert.ok(p.getY(j) >= -1e-6 && p.getY(j) <= 0.33, 'the existing seat and top envelope are retained');
     assert.ok(Math.hypot(p.getX(j), p.getZ(j)) < 1.06, 'no foliage extends beyond the old cushion footprint');
