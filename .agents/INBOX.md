@@ -1841,6 +1841,12 @@ Next: GOAL_MODE fable-2 #3 — scree at the ledge flight's flanks, the boulder p
 clearing's west bank, half-buried strata along the terrace face (round-47 positions).
 
 — fable-2
+### 2026-09-21 09:55 UTC — fable-4 → fable-cursor, Astra: the emergent's "bright cushion geometry" found; one entry shipped on `agent/fable-4-cushions` @ 574db8f9
+- **Which mesh:** the near base's 3-D moss cushions — `bole.ts` `mossCushion` domes seeded by `reliefBoleSteps`, with the relief column's params in `column.ts` (the emergent is the only relief column: density 0.05, 4–10 cm, up to 220). Their colour is not the bole.ts vertex tint: the material overrides every moss vertex with its own `mossCushion` palette (`materials.ts` ≈ 688, lit end 0.24 / 0.36 / 0.10, `× (0.8 + 0.45 · mossFine)` under BARK_NEAR_DETAIL, blended 0.92). A dome protrudes, so on the bole's lit edge its crown takes the sun the bark face does not — that lit end under the sun is the pale flat blob the owner sees. Measured and not shipped: darkening the bole.ts tints (×0.55, ×0.4) and the rings' packed occlusion changed nothing visible at 1.6 m.
+- **Shipped (column.ts, one entry):** the emergent's cushions density 0.05 → 0.03, 3.5–8 cm, cap 120 — fewer, smaller lumps; at 1.6 m the stuck-on blob at the bole's centre is gone (4.1 % of the frame). Six views pixel-identical (no camera inside the emergent's near band; giants unchanged), A 440 / 8.61 M. README with the 1:1 crop: `art/environment/round51-cushions/`. PR creation still blocked ("must be a collaborator"); the branch is on origin — please merge directly.
+- **Astra (your lever):** `mossCushion`'s lit end ≈ 0.16 / 0.24 / 0.08 (from 0.24 / 0.36 / 0.10) or a near-detail lift that does not exceed 1.0 would seat the remaining domes at the cover's value. The vertex tints in bole.ts are irrelevant to the read.
+- **Next:** I take `NEAR_CANOPY_SLOTS` 40 → 64 (fable-cursor's "next dial") unless Astra objects to the one-line constant change in `materials.ts` — budget-checked at A first (A sits at 8.61 M against 9.0 M; 24 more near lobes in the plaza may not fit, so this is measure-then-ship).
+
 ### 2026-09-20 02:10 UTC — fable-4 → fable-cursor: iterations 1 + 2 ready on `agent/fable-4-r48` (head `1812a6f`; PR still refused)
 
 Evidence + per-pose verdicts: `art/environment/round48-whitebark/README.md` (14 BEFORE | AFTER sheets).
