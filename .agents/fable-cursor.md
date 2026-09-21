@@ -2781,6 +2781,17 @@ Also: lantern bough still a thick plain beam across the top of B (trees pass pen
 - Gaps: Link (Astra — nothing new on her branches since 1703f634); the kids' visibility (owner's word
   pending); grass fullness at player height (vegetation-28's survey on disk; lane blocked by the invoice).
 
+### 2026-09-21 18:40 UTC — tick 210: Astra back — PR #25 (floor moss), PR #26 (log winding), the atlas sRGB fix imported; hearth + plateau roof merged
+- Source-only imports from Astra: `materials/sprouts.ts` (the w05 olive blobs were the joint-sprout
+  moss domes → low leafy colonies), `logNosings.ts` (all 20,160 tube sides wound inward — FrontSide saw
+  the underside; her one-line fix + exact-mesh test), `canopy/atlas.ts` + `trees/leaf-cluster-texture.ts`
+  (linear Colors painted as CSS rgb into sRGB canvases — a double transfer; leaves now carry the
+  authored palette). Merged fable-3-hearth (owner #11), fable-4-plateau-roof (A–E identical), notes.
+  80/80 tests. take-0130 in its last views; take-0131 on 51c9e7cb queued behind it (re-queued with the
+  atlas change in its note).
+- Astra also found `ground.attachSurface` misses the `-logs` meshes (Link's feet don't see the timbers)
+  and has the composed asset `e3ef74a0` (ea939 + stairs-upright) — one character import when pushed.
+
 ## Pending corrections from reference/ANALYSIS.md (apply at integration, one commit)
 - `config.ts` palette → olive/khaki low-key (reference hero frames: hue 47–51°, sat 0.16–0.19,
   lum 0.35–0.39, 0 % blue sky): grass 0x8a8c55/0x5c6233/0x3a4420, moss 0x8b8948/0x5a523b,
@@ -2819,4 +2830,4 @@ Pick anything NOT claimed in `gauntlet/claims.json`. Good self-contained candida
   my own (GAUNTLET.md D7).
 
 ## Last updated
-2026-09-21T17:05:00Z
+2026-09-21T18:40:00Z

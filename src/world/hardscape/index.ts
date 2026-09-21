@@ -935,7 +935,7 @@ export async function create(ctx: WorldContext): Promise<WorldSystem> {
   }
   const sproutMat = createSproutMaterial(ctx.wind, ctx.config);
   // per-(source, variant) jitter streams (sprout-jitter.ts): a scatter can change without re-rolling any other
-  const sprouts = buildSproutMeshes([...spots, ...gritSpots], srng, sproutMat, ctx.config, HARDSCAPE_PACKS, { gritTone: seamGritTone(JOINT_SOIL, JOINT_SOIL_MID), jitter: createSproutJitterStreams(rng) });
+  const sprouts = buildSproutMeshes([...spots, ...gritSpots], srng, sproutMat, ctx.config, HARDSCAPE_PACKS, { gritTone: seamGritTone(JOINT_SOIL, JOINT_SOIL_MID), jitter: createSproutJitterStreams(rng), floorMoss: true });
   for (const m of sprouts.meshes) group.add(m);
   ctx.progress('hardscape', 1);
 

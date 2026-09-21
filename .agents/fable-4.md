@@ -248,3 +248,11 @@ nearCanopy, materials, index otherwise) is edited.
 
 ### 2026-09-21 17:40 UTC — the stand beyond the arch (V2 / opus #01)
 - Three `after` depth bands of the 26 m pole beyond the north clearing; the palisade first cut withdrawn. Found and fixed the far layer's re-roll (rows before the pool desynchronise the radial stream): `DepthBand.after`. Six views within 0.0002, C/F pixel-identical. Branch `agent/fable-4-northstand` @ 7fec320f; README `art/environment/round51-northstand/`.
+### 2026-09-21 19:05 UTC — the plateau's roof (opus #05)
+- Two east-giant canopy boughs with four non-casting lobes over w27-plateau-u's zenith, placed by un-projecting the blue; 23.1 → 10.8 % blue; six views identical (F 0.017 %). Branch `agent/fable-4-plateau-roof` @ 263d8f4d; README `art/environment/round51-plateau-roof/`.
+
+### 2026-09-21 20:25 UTC — plateau roof v4
+- Two more lobes for the far corner (projected into A/F first); blue 9.6 %; six views vs 24dc4cac A–E identical, F 0.09 %. Pushed on the same branch.
+
+### 2026-09-21 21:10 UTC — tick: opus #06 checked, w10-notes rebased
+- opus #06 (giant root flares "pale tubes on the moss", `x-arch-tunnel-u`): rendered on the head 24dc4cac — the flare at the arch reads as brown bark with a moss cap now (the brown-bark floors + rootkit since round 48); no item. Astra is back on the world (`agent/astra-world-resume`, floor moss). `w10-notes` merged with the head for a clean pass. Nothing addressed to me in the INBOX; plateau-roof v4 waits.

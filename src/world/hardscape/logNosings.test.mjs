@@ -98,3 +98,29 @@ test('the crowns carry moss and the undersides are darker; the build is determin
   const other = buildLogNosings(main, 'another-seed');
   assert.notDeepEqual(Array.from(other.geometry.attributes.position.array), Array.from(build.geometry.attributes.position.array), 'the seed matters');
 });
+
+
+test('tube sides and caps face outward; FrontSide rays hit the outer crown', () => {
+  const g = build.geometry, P = g.attributes.position, N = g.attributes.normal, I = g.index;
+  const a = new THREE.Vector3(), b = new THREE.Vector3(), c = new THREE.Vector3();
+  const geometric = new THREE.Vector3(), authored = new THREE.Vector3(), tmp = new THREE.Vector3();
+  const mesh = new THREE.Mesh(g, new THREE.MeshBasicMaterial());
+  const ray = new THREE.Raycaster(), down = new THREE.Vector3(0, -1, 0);
+  let crowns = 0;
+  for (let i = 0; i < I.count; i += 3) {
+    a.fromBufferAttribute(P, I.getX(i)); b.fromBufferAttribute(P, I.getX(i+1)); c.fromBufferAttribute(P, I.getX(i+2));
+    geometric.crossVectors(tmp.copy(b).sub(a), c.clone().sub(a)).normalize();
+    authored.set(0, 0, 0);
+    for (let k=0; k<3; k++) authored.add(tmp.fromBufferAttribute(N, I.getX(i+k)));
+    assert.ok(geometric.dot(authored.normalize()) > 0.5, `triangle ${i/3} must face outward`);
+    if (geometric.y < 0.8 || (i / 3) % 37 !== 0) continue;
+    const origin = a.clone().add(b).add(c).divideScalar(3); origin.y += 1;
+    ray.set(origin, down); mesh.material.side = THREE.FrontSide;
+    const front = ray.intersectObject(mesh, false)[0];
+    mesh.material.side = THREE.DoubleSide;
+    const both = ray.intersectObject(mesh, false)[0];
+    assert.ok(front && both && Math.abs(front.point.y-both.point.y) < 1e-8, 'one-sided crown must match the outer surface');
+    crowns++;
+  }
+  assert.ok(crowns > 20, 'check crowns throughout the flight');
+});

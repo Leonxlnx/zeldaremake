@@ -16,6 +16,29 @@ B 526 / C 393 / D 394 / E 526 / F 512; A 9.09 M tris on both (the head's number,
 change's — flagged to fable-cursor). Files: `ledge2-x-clearing-n.jpg` (+ `-crop`),
 `ledge2-x-ledge-foot.jpg`, `ledge2-x-northpath-n.jpg`.
 
+## Iteration 45 — V16's seams, taken and measured: the tone and the rim are the frame's already; the lever is the COUNT of dark features (FAIL to land, the finding reported)
+
+Announced 17:40 and taken on `agent/fable-2-seams`. The hypothesis of §43 (the slab's stained flank + shaded shoulder widen
+the seam into a dark rim) tested as three constants — flank stain 0.7 → 0.4, the flank ×0.86 instead of ×0.76, the shoulder
+as bright as the top — and it moved **nothing**: joint-dark share E 8.2 → 8.3 %, C 6.2 → 6.3 %, D 6.3 → 6.3 %; SSIM E −0.0001,
+C +0.0001, D +0.0002. Reverted (forward commit; the branch keeps the negative result).
+
+What the pixels say instead (blur-difference > 0.12 at 640 px, per box, reference vs ours):
+
+| | dark px mean l / slab mean l → ratio | dark runs: median width / p90 / **count** |
+|---|---|---|
+| reference E | 0.253 / 0.491 → 0.51 | 2 px / 5 px / **262** |
+| ours E | 0.233 / 0.451 → 0.52 | 2 px / 8 px / **573** |
+| reference D | 0.247 / 0.474 → 0.52 | 2 px / 4 px / **240** |
+| ours D | 0.237 / 0.429 → 0.55 | 2 px / 6 px / **483** |
+
+The seam's darkness ratio is the frame's (0.52 vs 0.51 — round 50's fill tone was right) and the median line is as thin
+(2 px); what doubles the dark AREA is **twice as many dark runs** and a fatter tail: more dark features per stone — the
+broken-slab splits, the notches and chipped corners, and the joint tufts (the E zoom, `seams43-E-pair.jpg`: every joint of
+ours sprouts a dark tuft; the frame's joints are bare soft lines with a plant here and there). So V16's next pass is
+fewer dark features per stone (split cells / notches / tuft density on the plaza and spine), not a tone or a rim — and
+those touch the W06 / W15 turf contracts, so it is hardscape-32's or a lane with the go, not a two-constant evening.
+
 ## Iteration 42 — the stairs' pitch, projected before claiming it: steepening does not buy the frame's riser spacing at A
 
 fable-cursor (14:50, tick 207): the log nosings merged (F −0.0104 named as the owner's look change), vegetation's W23 contracts
