@@ -175,10 +175,9 @@ const SOLE_L = new Vector3(-0.000000016, 0.05900068, 0.08564404);
 const SOLE_R = new Vector3(0.000000016, 0.05900068, 0.08564404);
 /**
  * The boot's footprint is measured on the mesh at load (`measureFootprint`): the sole's vertices
- * — those the ankle bone drives, in the lowest SOLE_BAND of the boot — give the heel / toe reach
- * behind / ahead of the marker along the rest forward (+Z) and the width either side (Astra's
- * 9189538d boots: heel 0.079, toe 0.141 / 0.135, 0.154 m wide). These are the fallbacks for an
- * asset whose sole cannot be found.
+ * — those driven mostly by the ankle and its descendants, in the lowest SOLE_BAND of the boot —
+ * give heel / toe reach along rest forward (+Z) and width either side of the marker.
+ * These constants are fallbacks for an asset whose sole cannot be found.
  */
 const SOLE_BAND = 0.012;
 const FALLBACK_FOOTPRINT: Footprint = { heel: 0.08, toe: 0.14, latMin: -0.075, latMax: 0.075 };
@@ -1326,13 +1325,15 @@ function jumpHipLean(j: JumpState, t: number): number {
 }
 
 /**
- * Measure a boot's footprint on the rest-posed skinned meshes: the vertices the ankle bone
- * drives (its dominant skin weight) within SOLE_BAND of the lowest such vertex are the sole; its
+ * Measure a boot's footprint on the rest-posed skinned meshes: vertices with summed skin weight
+ * above 0.5 on the ankle subtree, within SOLE_BAND of its lowest vertex, form the sole. Its
  * reach behind / ahead of the sole marker along the rest forward (+Z) and either side (±X) is the
  * footprint. Call before anything animates (the meshes' world matrices are the bind pose).
  */
 function measureFootprint(meshes: SkinnedMesh[], ankle: Object3D, marker: Vector3): { fp: Footprint; soleVertices: number } {
   const m0 = ankle.localToWorld(marker.clone());
+  const footBones = new Set<Object3D>();
+  ankle.traverse((bone) => footBones.add(bone));
   const pts: Vector3[] = [];
   let yMin = Infinity;
   for (const mesh of meshes) {
@@ -1341,19 +1342,13 @@ function measureFootprint(meshes: SkinnedMesh[], ankle: Object3D, marker: Vector
     const si = g.attributes.skinIndex;
     const sw = g.attributes.skinWeight;
     if (!pos || !si || !sw) continue;
-    const boneIndex = mesh.skeleton.bones.indexOf(ankle as Bone);
-    if (boneIndex < 0) continue;
+    if (!mesh.skeleton.bones.some((bone) => footBones.has(bone))) continue;
     for (let i = 0; i < pos.count; i++) {
-      let best = -1;
-      let bw = 0;
+      let footWeight = 0;
       for (let k = 0; k < 4; k++) {
-        const w = sw.getComponent(i, k);
-        if (w > bw) {
-          bw = w;
-          best = si.getComponent(i, k);
-        }
+        if (footBones.has(mesh.skeleton.bones[si.getComponent(i, k)])) footWeight += sw.getComponent(i, k);
       }
-      if (best !== boneIndex) continue;
+      if (footWeight <= 0.5) continue;
       const p = new Vector3().fromBufferAttribute(pos, i).applyMatrix4(mesh.matrixWorld);
       pts.push(p);
       if (p.y < yMin) yMin = p.y;

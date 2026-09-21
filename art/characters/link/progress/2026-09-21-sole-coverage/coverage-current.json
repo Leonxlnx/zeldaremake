@@ -1,0 +1,1322 @@
+{
+  "mode": "current",
+  "scope": "Raw source geometry and complete authored clips; no rendered-terrain intersection test.",
+  "inputs": {
+    "current": {
+      "file": "E:\\zeldaremake-astra-motion-sept21\\public\\models\\link\\link-runtime.glb",
+      "sha256": "89df38f255e47afbcbb28a60555fb4a4a20091741d427ef1d7b8ea1ac33f306b"
+    }
+  },
+  "runtimeSha256": "30028f1fa56ffea4be1c7b9c8582bec6d34fc860f44066d10f5b945b4da04a66",
+  "replaySha256": "cd1a8610ecd0b8d8a73c8e4af1afad499643f25801e114fcd82c5f11f1dc639a",
+  "selectorCorrection": "Original327 evidence uses ankle-dominant +12mm; >.95 ankle/+5mm defines only the separate extremal markers.",
+  "assets": {
+    "current": {
+      "mesh": "Link_skin_eye_study_body.034",
+      "meshIndex": 2,
+      "primitiveIndex": 0,
+      "vertices": 82133,
+      "coordinates": "raw glTF mesh rest coordinates: X lateral, Y up, Z forward",
+      "positionAccessorSha256": "ad987cc268fb1d1425326e12349faec00723e08a4f945d0dbc3d42e0e5d8b12a",
+      "jointAccessorSha256": "e1c86c936b0a7bf21735a59857fa732ac608f9f400d1a4875dca8e7884979849",
+      "weightAccessorSha256": "b009256bfffec8f0826d4d147fd558b93d112209f716cb9f0030d5debb1bc8ea",
+      "otherPrimitiveMinimumYs": [
+        {
+          "mesh": 0,
+          "primitive": 0,
+          "minimumY": 0.9441989064216614
+        },
+        {
+          "mesh": 1,
+          "primitive": 0,
+          "minimumY": 0.9449414014816284
+        },
+        {
+          "mesh": 2,
+          "primitive": 1,
+          "minimumY": 0.9095720052719116
+        },
+        {
+          "mesh": 2,
+          "primitive": 2,
+          "minimumY": 0.9921291470527649
+        }
+      ],
+      "sides": {
+        "L": {
+          "ankleDominantVertices": 3455,
+          "toeDominantVertices": 430,
+          "bottomY": 0.006968902889639139,
+          "bandUpperY": 0.01896890288963914,
+          "ankleLow": {
+            "count": 163,
+            "uniquePositions": 91,
+            "bounds": {
+              "min": [
+                0.019554900005459785,
+                0.006968902889639139,
+                -0.06982620805501938
+              ],
+              "max": [
+                0.1576494425535202,
+                0.018899939954280853,
+                0.12385616451501846
+              ]
+            }
+          },
+          "omittedToeLow": {
+            "count": 106,
+            "uniquePositions": 64,
+            "bounds": {
+              "min": [
+                0.02200622297823429,
+                0.0074284798465669155,
+                0.08898286521434784
+              ],
+              "max": [
+                0.16021202504634857,
+                0.01885896548628807,
+                0.20073696970939636
+              ]
+            }
+          },
+          "familyLow": {
+            "count": 269,
+            "uniquePositions": 155,
+            "bounds": {
+              "min": [
+                0.019554900005459785,
+                0.006968902889639139,
+                -0.06982620805501938
+              ],
+              "max": [
+                0.16021202504634857,
+                0.018899939954280853,
+                0.20073696970939636
+              ]
+            }
+          },
+          "allSameSideBodyVerticesInsideBandCovered": true,
+          "allSelectedVerticesReferencedByRenderedTriangles": true,
+          "minimumAnklePlusToeWeight": 0.9999999701976776,
+          "omittedBeyondAnkleProxyCount": 86,
+          "forwardExtentUnderestimateM": 0.0768808051943779,
+          "farthestOmitted": {
+            "index": 56951,
+            "position": [
+              0.08206182718276978,
+              0.01885896548628807,
+              0.20073696970939636
+            ],
+            "heightAboveBottomM": 0.011890062596648932
+          },
+          "lowestOmitted": {
+            "index": 56488,
+            "position": [
+              0.05832715332508087,
+              0.0074284798465669155,
+              0.09872337430715561
+            ],
+            "heightAboveBottomM": 0.00045957695692777634
+          },
+          "heightBands": [
+            {
+              "aboveBottomM": 0.001,
+              "ankle": {
+                "count": 15,
+                "bounds": {
+                  "min": [
+                    0.03438236564397812,
+                    0.006968902889639139,
+                    -0.05050230026245117
+                  ],
+                  "max": [
+                    0.13743728399276733,
+                    0.007801624946296215,
+                    0.12385616451501846
+                  ]
+                }
+              },
+              "toe": {
+                "count": 7,
+                "bounds": {
+                  "min": [
+                    0.03962697833776474,
+                    0.0074284798465669155,
+                    0.09548863768577576
+                  ],
+                  "max": [
+                    0.10888233780860901,
+                    0.007878980599343777,
+                    0.17378339171409607
+                  ]
+                }
+              }
+            },
+            {
+              "aboveBottomM": 0.003,
+              "ankle": {
+                "count": 62,
+                "bounds": {
+                  "min": [
+                    0.022208089008927345,
+                    0.006968902889639139,
+                    -0.06413013488054276
+                  ],
+                  "max": [
+                    0.14812013506889343,
+                    0.009849290363490582,
+                    0.12385616451501846
+                  ]
+                }
+              },
+              "toe": {
+                "count": 38,
+                "bounds": {
+                  "min": [
+                    0.028478557243943214,
+                    0.0074284798465669155,
+                    0.08898286521434784
+                  ],
+                  "max": [
+                    0.15131719410419464,
+                    0.009694579057395458,
+                    0.18252885341644287
+                  ]
+                }
+              }
+            },
+            {
+              "aboveBottomM": 0.005,
+              "ankle": {
+                "count": 86,
+                "bounds": {
+                  "min": [
+                    0.022208089008927345,
+                    0.006968902889639139,
+                    -0.06621278822422028
+                  ],
+                  "max": [
+                    0.15268082916736603,
+                    0.011819562874734402,
+                    0.12385616451501846
+                  ]
+                }
+              },
+              "toe": {
+                "count": 53,
+                "bounds": {
+                  "min": [
+                    0.025512242689728737,
+                    0.0074284798465669155,
+                    0.08898286521434784
+                  ],
+                  "max": [
+                    0.1528044492006302,
+                    0.011851424351334572,
+                    0.1904405802488327
+                  ]
+                }
+              }
+            },
+            {
+              "aboveBottomM": 0.008,
+              "ankle": {
+                "count": 144,
+                "bounds": {
+                  "min": [
+                    0.019554900005459785,
+                    0.006968902889639139,
+                    -0.0669056698679924
+                  ],
+                  "max": [
+                    0.1576494425535202,
+                    0.0144087178632617,
+                    0.12385616451501846
+                  ]
+                }
+              },
+              "toe": {
+                "count": 87,
+                "bounds": {
+                  "min": [
+                    0.02301560528576374,
+                    0.0074284798465669155,
+                    0.08898286521434784
+                  ],
+                  "max": [
+                    0.15832921862602234,
+                    0.014809167012572289,
+                    0.19425536692142487
+                  ]
+                }
+              }
+            },
+            {
+              "aboveBottomM": 0.012,
+              "ankle": {
+                "count": 163,
+                "bounds": {
+                  "min": [
+                    0.019554900005459785,
+                    0.006968902889639139,
+                    -0.06982620805501938
+                  ],
+                  "max": [
+                    0.1576494425535202,
+                    0.018899939954280853,
+                    0.12385616451501846
+                  ]
+                }
+              },
+              "toe": {
+                "count": 106,
+                "bounds": {
+                  "min": [
+                    0.02200622297823429,
+                    0.0074284798465669155,
+                    0.08898286521434784
+                  ],
+                  "max": [
+                    0.16021202504634857,
+                    0.01885896548628807,
+                    0.20073696970939636
+                  ]
+                }
+              }
+            },
+            {
+              "aboveBottomM": 0.02,
+              "ankle": {
+                "count": 244,
+                "bounds": {
+                  "min": [
+                    0.017552616074681282,
+                    0.006968902889639139,
+                    -0.06982620805501938
+                  ],
+                  "max": [
+                    0.1605786830186844,
+                    0.026662811636924744,
+                    0.12385616451501846
+                  ]
+                }
+              },
+              "toe": {
+                "count": 127,
+                "bounds": {
+                  "min": [
+                    0.02200622297823429,
+                    0.0074284798465669155,
+                    0.08898286521434784
+                  ],
+                  "max": [
+                    0.16061986982822418,
+                    0.02669467218220234,
+                    0.20282766222953796
+                  ]
+                }
+              }
+            },
+            {
+              "aboveBottomM": 0.03,
+              "ankle": {
+                "count": 297,
+                "bounds": {
+                  "min": [
+                    0.017552616074681282,
+                    0.006968902889639139,
+                    -0.07221098244190216
+                  ],
+                  "max": [
+                    0.1605786830186844,
+                    0.03640058636665344,
+                    0.12385616451501846
+                  ]
+                }
+              },
+              "toe": {
+                "count": 259,
+                "bounds": {
+                  "min": [
+                    0.020704353228211403,
+                    0.0074284798465669155,
+                    0.08898286521434784
+                  ],
+                  "max": [
+                    0.1613326221704483,
+                    0.036837417632341385,
+                    0.2038709819316864
+                  ]
+                }
+              }
+            },
+            {
+              "aboveBottomM": 0.06,
+              "ankle": {
+                "count": 776,
+                "bounds": {
+                  "min": [
+                    0.01727246679365635,
+                    0.006968902889639139,
+                    -0.07663813978433609
+                  ],
+                  "max": [
+                    0.1605786830186844,
+                    0.06669681519269943,
+                    0.13847500085830688
+                  ]
+                }
+              },
+              "toe": {
+                "count": 343,
+                "bounds": {
+                  "min": [
+                    0.020704353228211403,
+                    0.0074284798465669155,
+                    0.08898286521434784
+                  ],
+                  "max": [
+                    0.1613326221704483,
+                    0.06593689322471619,
+                    0.2038709819316864
+                  ]
+                }
+              }
+            }
+          ],
+          "forwardHeightProfile": [
+            {
+              "forwardIntervalM": [
+                -0.1,
+                0
+              ],
+              "vertices": 987,
+              "minimumHeightAboveBottomM": 0.0,
+              "lowBandAnkle": 74,
+              "lowBandToe": 0
+            },
+            {
+              "forwardIntervalM": [
+                0,
+                0.05
+              ],
+              "vertices": 685,
+              "minimumHeightAboveBottomM": 0.0004140823148190975,
+              "lowBandAnkle": 51,
+              "lowBandToe": 0
+            },
+            {
+              "forwardIntervalM": [
+                0.05,
+                0.09
+              ],
+              "vertices": 1396,
+              "minimumHeightAboveBottomM": 0.000791747123003006,
+              "lowBandAnkle": 28,
+              "lowBandToe": 1
+            },
+            {
+              "forwardIntervalM": [
+                0.09,
+                0.12
+              ],
+              "vertices": 369,
+              "minimumHeightAboveBottomM": 0.00040496885776519775,
+              "lowBandAnkle": 9,
+              "lowBandToe": 11
+            },
+            {
+              "forwardIntervalM": [
+                0.12,
+                0.15
+              ],
+              "vertices": 175,
+              "minimumHeightAboveBottomM": 0.0007143914699554443,
+              "lowBandAnkle": 1,
+              "lowBandToe": 30
+            },
+            {
+              "forwardIntervalM": [
+                0.15,
+                0.18
+              ],
+              "vertices": 126,
+              "minimumHeightAboveBottomM": 0.0008463556878268719,
+              "lowBandAnkle": 0,
+              "lowBandToe": 35
+            },
+            {
+              "forwardIntervalM": [
+                0.18,
+                0.21
+              ],
+              "vertices": 147,
+              "minimumHeightAboveBottomM": 0.001706381794065237,
+              "lowBandAnkle": 0,
+              "lowBandToe": 29
+            }
+          ]
+        },
+        "R": {
+          "ankleDominantVertices": 3447,
+          "toeDominantVertices": 450,
+          "bottomY": 0.006968902889639139,
+          "bandUpperY": 0.01896890288963914,
+          "ankleLow": {
+            "count": 164,
+            "uniquePositions": 93,
+            "bounds": {
+              "min": [
+                -0.15727367997169495,
+                0.006968902889639139,
+                -0.06954021006822586
+              ],
+              "max": [
+                -0.01810796745121479,
+                0.0187588632106781,
+                0.11841791868209839
+              ]
+            }
+          },
+          "omittedToeLow": {
+            "count": 104,
+            "uniquePositions": 63,
+            "bounds": {
+              "min": [
+                -0.15797404944896698,
+                0.007369352038949728,
+                0.0979338213801384
+              ],
+              "max": [
+                -0.02286231704056263,
+                0.01831291988492012,
+                0.20075708627700806
+              ]
+            }
+          },
+          "familyLow": {
+            "count": 268,
+            "uniquePositions": 156,
+            "bounds": {
+              "min": [
+                -0.15797404944896698,
+                0.006968902889639139,
+                -0.06954021006822586
+              ],
+              "max": [
+                -0.01810796745121479,
+                0.0187588632106781,
+                0.20075708627700806
+              ]
+            }
+          },
+          "allSameSideBodyVerticesInsideBandCovered": true,
+          "allSelectedVerticesReferencedByRenderedTriangles": true,
+          "minimumAnklePlusToeWeight": 0.999999925494194,
+          "omittedBeyondAnkleProxyCount": 95,
+          "forwardExtentUnderestimateM": 0.08233916759490967,
+          "farthestOmitted": {
+            "index": 50146,
+            "position": [
+              -0.08531571924686432,
+              0.01786697655916214,
+              0.20075708627700806
+            ],
+            "heightAboveBottomM": 0.010898073669523
+          },
+          "lowestOmitted": {
+            "index": 49871,
+            "position": [
+              -0.05587910860776901,
+              0.007369352038949728,
+              0.10386354476213455
+            ],
+            "heightAboveBottomM": 0.00040044914931058884
+          },
+          "heightBands": [
+            {
+              "aboveBottomM": 0.001,
+              "ankle": {
+                "count": 18,
+                "bounds": {
+                  "min": [
+                    -0.1415480673313141,
+                    0.006968902889639139,
+                    -0.056999996304512024
+                  ],
+                  "max": [
+                    -0.025997551158070564,
+                    0.007910842075943947,
+                    0.11421234905719757
+                  ]
+                }
+              },
+              "toe": {
+                "count": 5,
+                "bounds": {
+                  "min": [
+                    -0.10567618906497955,
+                    0.007369352038949728,
+                    0.09832458198070526
+                  ],
+                  "max": [
+                    -0.03825010359287262,
+                    0.007774320896714926,
+                    0.16048985719680786
+                  ]
+                }
+              }
+            },
+            {
+              "aboveBottomM": 0.003,
+              "ankle": {
+                "count": 77,
+                "bounds": {
+                  "min": [
+                    -0.14772377908229828,
+                    0.006968902889639139,
+                    -0.06489554047584534
+                  ],
+                  "max": [
+                    -0.021152565255761147,
+                    0.009912975132465363,
+                    0.11421234905719757
+                  ]
+                }
+              },
+              "toe": {
+                "count": 36,
+                "bounds": {
+                  "min": [
+                    -0.14531776309013367,
+                    0.007369352038949728,
+                    0.0979338213801384
+                  ],
+                  "max": [
+                    -0.0279091689735651,
+                    0.009762820787727833,
+                    0.18234361708164215
+                  ]
+                }
+              }
+            },
+            {
+              "aboveBottomM": 0.005,
+              "ankle": {
+                "count": 98,
+                "bounds": {
+                  "min": [
+                    -0.15342159569263458,
+                    0.006968902889639139,
+                    -0.06520973891019821
+                  ],
+                  "max": [
+                    -0.021152565255761147,
+                    0.011946969665586948,
+                    0.11463531106710434
+                  ]
+                }
+              },
+              "toe": {
+                "count": 49,
+                "bounds": {
+                  "min": [
+                    -0.14907099306583405,
+                    0.007369352038949728,
+                    0.0979338213801384
+                  ],
+                  "max": [
+                    -0.023591527715325356,
+                    0.011851424351334572,
+                    0.19098436832427979
+                  ]
+                }
+              }
+            },
+            {
+              "aboveBottomM": 0.008,
+              "ankle": {
+                "count": 143,
+                "bounds": {
+                  "min": [
+                    -0.15727367997169495,
+                    0.006968902889639139,
+                    -0.06842033565044403
+                  ],
+                  "max": [
+                    -0.01810796745121479,
+                    0.014049244113266468,
+                    0.11841791868209839
+                  ]
+                }
+              },
+              "toe": {
+                "count": 85,
+                "bounds": {
+                  "min": [
+                    -0.15556804835796356,
+                    0.007369352038949728,
+                    0.0979338213801384
+                  ],
+                  "max": [
+                    -0.02286231704056263,
+                    0.014795496128499508,
+                    0.19762307405471802
+                  ]
+                }
+              }
+            },
+            {
+              "aboveBottomM": 0.012,
+              "ankle": {
+                "count": 164,
+                "bounds": {
+                  "min": [
+                    -0.15727367997169495,
+                    0.006968902889639139,
+                    -0.06954021006822586
+                  ],
+                  "max": [
+                    -0.01810796745121479,
+                    0.0187588632106781,
+                    0.11841791868209839
+                  ]
+                }
+              },
+              "toe": {
+                "count": 104,
+                "bounds": {
+                  "min": [
+                    -0.15797404944896698,
+                    0.007369352038949728,
+                    0.0979338213801384
+                  ],
+                  "max": [
+                    -0.02286231704056263,
+                    0.01831291988492012,
+                    0.20075708627700806
+                  ]
+                }
+              }
+            },
+            {
+              "aboveBottomM": 0.02,
+              "ankle": {
+                "count": 238,
+                "bounds": {
+                  "min": [
+                    -0.15962614119052887,
+                    0.006968902889639139,
+                    -0.07169941067695618
+                  ],
+                  "max": [
+                    -0.01710682176053524,
+                    0.026367060840129852,
+                    0.11841791868209839
+                  ]
+                }
+              },
+              "toe": {
+                "count": 124,
+                "bounds": {
+                  "min": [
+                    -0.15808942914009094,
+                    0.007369352038949728,
+                    0.0979338213801384
+                  ],
+                  "max": [
+                    -0.019817719236016273,
+                    0.0257254671305418,
+                    0.20332717895507812
+                  ]
+                }
+              }
+            },
+            {
+              "aboveBottomM": 0.03,
+              "ankle": {
+                "count": 279,
+                "bounds": {
+                  "min": [
+                    -0.15962614119052887,
+                    0.006968902889639139,
+                    -0.07169941067695618
+                  ],
+                  "max": [
+                    -0.01710682176053524,
+                    0.03651432320475578,
+                    0.12740512192249298
+                  ]
+                }
+              },
+              "toe": {
+                "count": 264,
+                "bounds": {
+                  "min": [
+                    -0.15922239422798157,
+                    0.007369352038949728,
+                    0.0979338213801384
+                  ],
+                  "max": [
+                    -0.019690008834004402,
+                    0.03682830557227135,
+                    0.2037944793701172
+                  ]
+                }
+              }
+            },
+            {
+              "aboveBottomM": 0.06,
+              "ankle": {
+                "count": 756,
+                "bounds": {
+                  "min": [
+                    -0.15962614119052887,
+                    0.006968902889639139,
+                    -0.07529668509960175
+                  ],
+                  "max": [
+                    -0.015829673036932945,
+                    0.0669243261218071,
+                    0.12740512192249298
+                  ]
+                }
+              },
+              "toe": {
+                "count": 352,
+                "bounds": {
+                  "min": [
+                    -0.15922239422798157,
+                    0.007369352038949728,
+                    0.0979338213801384
+                  ],
+                  "max": [
+                    -0.019690008834004402,
+                    0.06690157949924469,
+                    0.2037944793701172
+                  ]
+                }
+              }
+            }
+          ],
+          "forwardHeightProfile": [
+            {
+              "forwardIntervalM": [
+                -0.1,
+                0
+              ],
+              "vertices": 1003,
+              "minimumHeightAboveBottomM": 0.0,
+              "lowBandAnkle": 70,
+              "lowBandToe": 0
+            },
+            {
+              "forwardIntervalM": [
+                0,
+                0.05
+              ],
+              "vertices": 685,
+              "minimumHeightAboveBottomM": 0.0003958921879529953,
+              "lowBandAnkle": 49,
+              "lowBandToe": 0
+            },
+            {
+              "forwardIntervalM": [
+                0.05,
+                0.09
+              ],
+              "vertices": 1362,
+              "minimumHeightAboveBottomM": 0.00048688147217035294,
+              "lowBandAnkle": 35,
+              "lowBandToe": 0
+            },
+            {
+              "forwardIntervalM": [
+                0.09,
+                0.12
+              ],
+              "vertices": 396,
+              "minimumHeightAboveBottomM": 0.000254814513027668,
+              "lowBandAnkle": 10,
+              "lowBandToe": 9
+            },
+            {
+              "forwardIntervalM": [
+                0.12,
+                0.15
+              ],
+              "vertices": 174,
+              "minimumHeightAboveBottomM": 0.0008054180070757866,
+              "lowBandAnkle": 0,
+              "lowBandToe": 28
+            },
+            {
+              "forwardIntervalM": [
+                0.15,
+                0.18
+              ],
+              "vertices": 136,
+              "minimumHeightAboveBottomM": 0.0007872274145483971,
+              "lowBandAnkle": 0,
+              "lowBandToe": 43
+            },
+            {
+              "forwardIntervalM": [
+                0.18,
+                0.21
+              ],
+              "vertices": 141,
+              "minimumHeightAboveBottomM": 0.0015471135266125202,
+              "lowBandAnkle": 0,
+              "lowBandToe": 24
+            }
+          ]
+        }
+      }
+    }
+  },
+  "toeAnimation": {
+    "L": {
+      "toe": "toeL",
+      "directParent": "ankleL",
+      "clips": {
+        "idle": {
+          "channels": {
+            "translation": {
+              "keys": 2,
+              "times": [
+                0.0,
+                3.0
+              ],
+              "interpolation": "STEP",
+              "constantValue": [
+                -5.2356421420540755e-09,
+                0.1092875599861145,
+                1.3225293749030698e-08
+              ],
+              "maximumComponentRange": 0,
+              "rawValuesSha256": "a80f626f4ae596d956a553e2ba6f7048779d2cff1b5c158e141c2326865d34d0"
+            },
+            "rotation": {
+              "keys": 2,
+              "times": [
+                0.0,
+                3.0
+              ],
+              "interpolation": "STEP",
+              "constantValue": [
+                -0.2208956927061081,
+                -5.0432827691793136e-08,
+                -1.237752123017799e-08,
+                0.9752973914146423
+              ],
+              "maximumComponentRange": 0,
+              "rawValuesSha256": "8139af999858261a4bcbd7ec010c042d06294a0c3275bffd752bc7998cdcf7cc"
+            },
+            "scale": {
+              "keys": 2,
+              "times": [
+                0.0,
+                3.0
+              ],
+              "interpolation": "STEP",
+              "constantValue": [
+                1.0,
+                1.0,
+                0.9999998807907104
+              ],
+              "maximumComponentRange": 0,
+              "rawValuesSha256": "51e8a22252a56931887311a563773bcdc304197b2e956268ab8360d96fb76fa8"
+            }
+          },
+          "toeRotationRelativeToBindDeg": 1.0177775410831718e-13,
+          "toePositionRelativeToBindM": 1.2762355390045129e-08,
+          "maximumScaleComponentRelativeToBind": 2.384185791015625e-07
+        },
+        "walk": {
+          "channels": {
+            "translation": {
+              "keys": 2,
+              "times": [
+                0.0,
+                0.550000011920929
+              ],
+              "interpolation": "STEP",
+              "constantValue": [
+                -7.592904083253416e-09,
+                0.10928758978843689,
+                -1.0016871776485914e-08
+              ],
+              "maximumComponentRange": 0,
+              "rawValuesSha256": "cb4c126b323785e246d36e7c2fcd00b207f0f35fcb1777db4a6f41fc1dda2c5f"
+            },
+            "rotation": {
+              "keys": 2,
+              "times": [
+                0.0,
+                0.550000011920929
+              ],
+              "interpolation": "STEP",
+              "constantValue": [
+                -0.2208956927061081,
+                -5.0432834797220494e-08,
+                -1.237752300653483e-08,
+                0.9752974510192871
+              ],
+              "maximumComponentRange": 0,
+              "rawValuesSha256": "edd3716b2113673ea440e817daaadfd4ec32fe2ba4f9cf6cca09b2c769bc2258"
+            },
+            "scale": {
+              "keys": 2,
+              "times": [
+                0.0,
+                0.550000011920929
+              ],
+              "interpolation": "STEP",
+              "constantValue": [
+                1.0,
+                1.0,
+                0.9999999403953552
+              ],
+              "maximumComponentRange": 0,
+              "rawValuesSha256": "f99440900cb6afd9e2fb0c3aa97288e363bc4cd31c7f793599d91f1982b808e4"
+            }
+          },
+          "toeRotationRelativeToBindDeg": 1.5087594189126935e-06,
+          "toePositionRelativeToBindM": 3.166711538474995e-08,
+          "maximumScaleComponentRelativeToBind": 1.7881393432617188e-07
+        },
+        "run": {
+          "channels": {
+            "translation": {
+              "keys": 2,
+              "times": [
+                0.0,
+                0.46666666865348816
+              ],
+              "interpolation": "STEP",
+              "constantValue": [
+                -6.266592578185737e-09,
+                0.10928758233785629,
+                2.6219796112059157e-08
+              ],
+              "maximumComponentRange": 0,
+              "rawValuesSha256": "b61d52c348f828df7d2342fe8622133a8bacf83a3da63cb2da4162558dfa1393"
+            },
+            "rotation": {
+              "keys": 2,
+              "times": [
+                0.0,
+                0.46666666865348816
+              ],
+              "interpolation": "STEP",
+              "constantValue": [
+                -0.2208956927061081,
+                -5.0432831244506815e-08,
+                -1.237752211835641e-08,
+                0.9752974510192871
+              ],
+              "maximumComponentRange": 0,
+              "rawValuesSha256": "f5b1949710e8944b67c945902c4c21cd84462b06249b8c140d9fb502fcb12bf7"
+            },
+            "scale": {
+              "keys": 2,
+              "times": [
+                0.0,
+                0.46666666865348816
+              ],
+              "interpolation": "STEP",
+              "constantValue": [
+                1.0,
+                1.0,
+                1.0
+              ],
+              "maximumComponentRange": 0,
+              "rawValuesSha256": "f46913286d895f62d646314f400fc3d7a543cf34eb4ae56df87f43dc4582a36b"
+            }
+          },
+          "toeRotationRelativeToBindDeg": 1.5087594189126077e-06,
+          "toePositionRelativeToBindM": 3.411297654107356e-08,
+          "maximumScaleComponentRelativeToBind": 1.1920928955078125e-07
+        },
+        "stairs": {
+          "channels": {
+            "translation": {
+              "keys": 2,
+              "times": [
+                0.0,
+                0.7333333492279053
+              ],
+              "interpolation": "STEP",
+              "constantValue": [
+                9.392342015246413e-09,
+                0.1092875599861145,
+                3.199954079491363e-08
+              ],
+              "maximumComponentRange": 0,
+              "rawValuesSha256": "c387f436adabc431a6951b131afa087a60c48b65365d5c2b916d4b58eafbe606"
+            },
+            "rotation": {
+              "keys": 2,
+              "times": [
+                0.0,
+                0.7333333492279053
+              ],
+              "interpolation": "STEP",
+              "constantValue": [
+                -0.2208956927061081,
+                -5.0432827691793136e-08,
+                -1.237752123017799e-08,
+                0.9752974510192871
+              ],
+              "maximumComponentRange": 0,
+              "rawValuesSha256": "d3e382d8e760c708f64202df9ad0ab956466c2abd8139ac2f4fa71c288173dd4"
+            },
+            "scale": {
+              "keys": 2,
+              "times": [
+                0.0,
+                0.7333333492279053
+              ],
+              "interpolation": "STEP",
+              "constantValue": [
+                1.0,
+                1.0,
+                0.9999998807907104
+              ],
+              "maximumComponentRange": 0,
+              "rawValuesSha256": "51e8a22252a56931887311a563773bcdc304197b2e956268ab8360d96fb76fa8"
+            }
+          },
+          "toeRotationRelativeToBindDeg": 1.5087594189126386e-06,
+          "toePositionRelativeToBindM": 3.483549661274968e-08,
+          "maximumScaleComponentRelativeToBind": 2.384185791015625e-07
+        }
+      },
+      "maximumCrossClipRelativeRotationDeg": 1.5087594189126818e-06,
+      "conclusion": "All three local TRS channels are constant for the full duration of every clip; no toe lift relative to ankle is authored."
+    },
+    "R": {
+      "toe": "toeR",
+      "directParent": "ankleR",
+      "clips": {
+        "idle": {
+          "channels": {
+            "translation": {
+              "keys": 2,
+              "times": [
+                0.0,
+                3.0
+              ],
+              "interpolation": "STEP",
+              "constantValue": [
+                5.2356421420540755e-09,
+                0.1092875599861145,
+                1.3225293749030698e-08
+              ],
+              "maximumComponentRange": 0,
+              "rawValuesSha256": "9c3545e46fff51e7164077fc83da9e9ff08deab37f772a07ff2a89058b5f487e"
+            },
+            "rotation": {
+              "keys": 2,
+              "times": [
+                0.0,
+                3.0
+              ],
+              "interpolation": "STEP",
+              "constantValue": [
+                -0.2208956927061081,
+                5.0432827691793136e-08,
+                1.237752123017799e-08,
+                0.9752973914146423
+              ],
+              "maximumComponentRange": 0,
+              "rawValuesSha256": "592340e54a44dffb8345cc467efb8cc25017fbc788bbeb7a664ad59adc6507d1"
+            },
+            "scale": {
+              "keys": 2,
+              "times": [
+                0.0,
+                3.0
+              ],
+              "interpolation": "STEP",
+              "constantValue": [
+                1.0,
+                1.0,
+                0.9999998807907104
+              ],
+              "maximumComponentRange": 0,
+              "rawValuesSha256": "51e8a22252a56931887311a563773bcdc304197b2e956268ab8360d96fb76fa8"
+            }
+          },
+          "toeRotationRelativeToBindDeg": 1.0177775410831718e-13,
+          "toePositionRelativeToBindM": 1.2762355390045129e-08,
+          "maximumScaleComponentRelativeToBind": 2.384185791015625e-07
+        },
+        "walk": {
+          "channels": {
+            "translation": {
+              "keys": 2,
+              "times": [
+                0.0,
+                0.550000011920929
+              ],
+              "interpolation": "STEP",
+              "constantValue": [
+                1.5987767554292986e-08,
+                0.1092875748872757,
+                -3.503191292608676e-09
+              ],
+              "maximumComponentRange": 0,
+              "rawValuesSha256": "358562e6a7b0c543760cc41b3a5b7d7edecf7b8e7c69ed79f8357ba4bb83ca82"
+            },
+            "rotation": {
+              "keys": 2,
+              "times": [
+                0.0,
+                0.550000011920929
+              ],
+              "interpolation": "STEP",
+              "constantValue": [
+                -0.2208956927061081,
+                5.0432827691793136e-08,
+                1.237751945382115e-08,
+                0.9752973914146423
+              ],
+              "maximumComponentRange": 0,
+              "rawValuesSha256": "59b123e7b84c9d918f3d6e15c59834c804d65c2963281c310f3012a9b3259b62"
+            },
+            "scale": {
+              "keys": 2,
+              "times": [
+                0.0,
+                0.550000011920929
+              ],
+              "interpolation": "STEP",
+              "constantValue": [
+                1.0,
+                0.9999998807907104,
+                0.9999999403953552
+              ],
+              "maximumComponentRange": 0,
+              "rawValuesSha256": "31b616bd12ece6f4b0b0a769d15ac86093727ca3684ecef589888c812059476c"
+            }
+          },
+          "toeRotationRelativeToBindDeg": 1.0177775480601198e-13,
+          "toePositionRelativeToBindM": 1.8701116238224493e-08,
+          "maximumScaleComponentRelativeToBind": 2.384185791015625e-07
+        },
+        "run": {
+          "channels": {
+            "translation": {
+              "keys": 2,
+              "times": [
+                0.0,
+                0.46666666865348816
+              ],
+              "interpolation": "STEP",
+              "constantValue": [
+                -7.2609274148760505e-09,
+                0.1092875599861145,
+                5.307231099038745e-09
+              ],
+              "maximumComponentRange": 0,
+              "rawValuesSha256": "b70a5f119cedf0953e9199fed38c2229561da8b1993be9c297e33cb85b91485d"
+            },
+            "rotation": {
+              "keys": 2,
+              "times": [
+                0.0,
+                0.46666666865348816
+              ],
+              "interpolation": "STEP",
+              "constantValue": [
+                -0.2208956927061081,
+                5.043282413907946e-08,
+                1.2377525671070089e-08,
+                0.9752974510192871
+              ],
+              "maximumComponentRange": 0,
+              "rawValuesSha256": "e4c072ef6cf73508770466eab2594c2a27b1955f52d892afcb2980648dd2941a"
+            },
+            "scale": {
+              "keys": 2,
+              "times": [
+                0.0,
+                0.46666666865348816
+              ],
+              "interpolation": "STEP",
+              "constantValue": [
+                1.0,
+                0.9999998807907104,
+                0.9999998807907104
+              ],
+              "maximumComponentRange": 0,
+              "rawValuesSha256": "531fe416623f7c938ade69f739eb4c9f386a7ff84b52a3f6a292b2ed4b67ee48"
+            }
+          },
+          "toeRotationRelativeToBindDeg": 1.5087594189128764e-06,
+          "toePositionRelativeToBindM": 1.3562380704255068e-08,
+          "maximumScaleComponentRelativeToBind": 2.384185791015625e-07
+        },
+        "stairs": {
+          "channels": {
+            "translation": {
+              "keys": 2,
+              "times": [
+                0.0,
+                0.7333333492279053
+              ],
+              "interpolation": "STEP",
+              "constantValue": [
+                1.7904313587280285e-09,
+                0.10928754508495331,
+                -3.762814948515825e-09
+              ],
+              "maximumComponentRange": 0,
+              "rawValuesSha256": "884537c501be34ea92dfaa60496cd631f52764c073097533b9882f437679c717"
+            },
+            "rotation": {
+              "keys": 2,
+              "times": [
+                0.0,
+                0.7333333492279053
+              ],
+              "interpolation": "STEP",
+              "constantValue": [
+                -0.2208956927061081,
+                5.0432831244506815e-08,
+                1.237752034199957e-08,
+                0.9752974510192871
+              ],
+              "maximumComponentRange": 0,
+              "rawValuesSha256": "be40c3249ee9bb1c90ef949cee20b50c55872815c076271ce9c16d0a53274e7e"
+            },
+            "scale": {
+              "keys": 2,
+              "times": [
+                0.0,
+                0.7333333492279053
+              ],
+              "interpolation": "STEP",
+              "constantValue": [
+                1.0,
+                0.9999997615814209,
+                0.9999998211860657
+              ],
+              "maximumComponentRange": 0,
+              "rawValuesSha256": "4dcf57c64462a868b6ce0cb1bfe040347722faa9342019a8042d523b093f4e6b"
+            }
+          },
+          "toeRotationRelativeToBindDeg": 1.508759418912605e-06,
+          "toePositionRelativeToBindM": 1.5905740076327727e-08,
+          "maximumScaleComponentRelativeToBind": 3.5762786865234375e-07
+        }
+      },
+      "maximumCrossClipRelativeRotationDeg": 1.5087594189129156e-06,
+      "conclusion": "All three local TRS channels are constant for the full duration of every clip; no toe lift relative to ankle is authored."
+    }
+  },
+  "decision": "The historical ankle-only327 rule omits a meaningful low toe region; the complete ankle+toe family is537. This static asset check is separate from the follow-up terrain replay in ../2026-09-21-complete-foot/cpu-comparison.json."
+}

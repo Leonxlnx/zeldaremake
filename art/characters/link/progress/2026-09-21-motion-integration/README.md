@@ -2,6 +2,8 @@
 
 Current local delivery: `89df38f255e47afbcbb28a60555fb4a4a20091741d427ef1d7b8ea1ac33f306b` (47,825,216 bytes). Based on integrated world `6c13f70c`. Blender 4.5.13 is controlled through MCP; matched renders use four CPU threads. No new asset service or dependency.
 
+**Validation correction, later September21:** the historical327-point test below omitted210 low toe-dominant vertices. Expanding the check to537 measured real timber penetration (worst−309.19 mm uphill /−46.44 mm downhill). The shared footprint measurement now includes the ankle/toe hierarchy. A fresh actual-player capture checks all537 vertices in1,320frames, including stair transitions and endpoint terrain:708,840 hits, no negative samples or reach clamps, minimum+1.187mmup/+1.267mmdown. This repairs the contact omission; extreme knee folding remains. [Correction, runnable check and evidence](../2026-09-21-complete-foot/README.md).
+
 ## What changed
 
 The historical Blender arm action retained **32 old fractional keys alongside 57 intended keys**. Its 120 Hz export hid those leftovers; later denser sampling carried them into the current shoulder curves. Read-only native inspection confirms the residual keys and shows that `f.update()` alone does not remove the defect. We reconstructed only the four shoulder/elbow run rotations from the hash-pinned, smooth CC0-derived `24591126` motion, reapplying the already-reviewed carriage adjustments. This repairs temporal jumps without introducing another artistic offset. [Reproduction, raw key checks and runtime comparison](../2026-09-21-run-carriage/README.md).

@@ -1,4 +1,4 @@
-// Drive the actual player handle and inspect deformed shoe vertices against rendered stairs.
+// Drive the actual player handle and inspect deformed shoe vertices against rendered ground.
 import fs from 'node:fs/promises';
 import path from 'node:path';
 import crypto from 'node:crypto';
@@ -64,11 +64,16 @@ try{
     const bodies=[];hero.traverse(o=>{if(o.isSkinnedMesh&&o.geometry.attributes.position.count>10000&&o.morphTargetDictionary?.blink!==undefined)bodies.push(o);});
     if(bodies.length!==1)throw Error('Expected one skinned body, got '+bodies.length);
     const body=bodies[0],a=body.geometry.attributes,markers={};
+    const footBones=(mesh,side)=>{
+      const ankle=mesh.skeleton.bones.find(b=>b.name==='ankle'+side),family=new Set();
+      ankle?.traverse(b=>family.add(b));
+      return family;
+    };
     for(const side of ['L','R']){
-      const bone=body.skeleton.bones.findIndex(b=>b.name==='ankle'+side),vertices=[];
-      if(bone<0)throw Error('Ankle bone missing');
+      const family=footBones(body,side),vertices=[];
+      if(!family.size)throw Error('Ankle bone missing');
       for(let i=0;i<a.position.count;i++){
-        let weight=0;for(let k=0;k<4;k++)if(a.skinIndex.getComponent(i,k)===bone)weight+=a.skinWeight.getComponent(i,k);
+        let weight=0;for(let k=0;k<4;k++)if(family.has(body.skeleton.bones[a.skinIndex.getComponent(i,k)]))weight+=a.skinWeight.getComponent(i,k);
         if(weight>.95)vertices.push({i,p:new Vector3().fromBufferAttribute(a.position,i)});
       }
       const bottom=Math.min(...vertices.map(v=>v.p.y));const sole=vertices.filter(v=>v.p.y<bottom+.005);
@@ -79,20 +84,32 @@ try{
     }
     const stairs=[];scene.traverse(o=>{if(o.isMesh&&/^stairs-/.test(o.name))stairs.push(o);});
     if(stairs.length<1)throw Error('Rendered stair meshes missing');
+    const surfaces=[...stairs];
     const soles={L:[],R:[]};let exactHeight=null;
     if(fullSole){
       scene.updateMatrixWorld(true);
-      exactHeight=(await import('/__review-exact-height.mjs')).buildFrontSideHeightSampler(stairs);
+      // The feet leave the finite stairs at both endpoints. Include actual ground there.
+      const main=__ZR__.audit().layout.stairs.find(s=>s.id==='main');
+      const x0=Math.min(main.base[0],main.top[0])-2,x1=Math.max(main.base[0],main.top[0])+2;
+      const z0=Math.min(main.base[2],main.top[2])-2,z1=Math.max(main.base[2],main.top[2])+2;
+      scene.traverse(mesh=>{
+        if(!mesh.isMesh||!/^terrain-chunk-/.test(mesh.name))return;
+        if(!mesh.geometry.boundingBox)mesh.geometry.computeBoundingBox();
+        const b=mesh.geometry.boundingBox.clone().applyMatrix4(mesh.matrixWorld);
+        if(b.min.x<=x1&&b.max.x>=x0&&b.min.z<=z1&&b.max.z>=z0)surfaces.push(mesh);
+      });
+      if(surfaces.length===stairs.length)throw Error('Rendered endpoint terrain missing');
+      exactHeight=(await import('/__review-exact-height.mjs')).buildFrontSideHeightSampler(surfaces);
       for(const side of ['L','R']){
         const all=[];
         hero.traverse(mesh=>{
           if(!mesh.isSkinnedMesh)return;
-          const a=mesh.geometry.attributes,ankle=mesh.skeleton.bones.findIndex(b=>b.name==='ankle'+side);
-          if(ankle<0||!a.skinIndex||!a.skinWeight)return;
+          const a=mesh.geometry.attributes,family=footBones(mesh,side);
+          if(!family.size||!a.skinIndex||!a.skinWeight)return;
           for(let vertex=0;vertex<a.position.count;vertex++){
-            let best=-1,weight=0;
-            for(let k=0;k<4;k++){const w=a.skinWeight.getComponent(vertex,k);if(w>weight){weight=w;best=a.skinIndex.getComponent(vertex,k);}}
-            if(best===ankle)all.push({mesh,vertex,y:new Vector3().fromBufferAttribute(a.position,vertex).applyMatrix4(mesh.matrixWorld).y});
+            let weight=0;
+            for(let k=0;k<4;k++)if(family.has(mesh.skeleton.bones[a.skinIndex.getComponent(vertex,k)]))weight+=a.skinWeight.getComponent(vertex,k);
+            if(weight>0.5)all.push({mesh,vertex,y:new Vector3().fromBufferAttribute(a.position,vertex).applyMatrix4(mesh.matrixWorld).y});
           }
         });
         const bottom=Math.min(...all.map(v=>v.y));soles[side]=all.filter(v=>v.y<=bottom+.012);
@@ -100,8 +117,8 @@ try{
       }
     }
     const ray=new Raycaster(),point=new Vector3(),down=new Vector3(0,-1,0);
-    window.__playReview={scene,player,hero,body,markers,stairs,point,ray,down,soles,exactHeight};
-    return {markers,soleCounts:Object.fromEntries(Object.entries(soles).map(([s,v])=>[s,v.length])),stairMeshes:stairs.map(o=>o.name),character:__ZR__.audit().systems.character};
+    window.__playReview={scene,player,hero,body,markers,stairs:surfaces,point,ray,down,soles,exactHeight};
+    return {markers,soleCounts:Object.fromEntries(Object.entries(soles).map(([s,v])=>[s,v.length])),stairMeshes:stairs.map(o=>o.name),terrainMeshes:surfaces.filter(o=>/^terrain-chunk-/.test(o.name)).map(o=>o.name),character:__ZR__.audit().systems.character};
   },fullSole);
   assert.equal(report.setup.character.linkSource,'glb');assert.equal(report.setup.character.mode,'play');
   if(candidate==='link-runtime.glb')assert.equal(report.setup.character.linkAsset.sha256,report.glb_sha256);
@@ -185,7 +202,7 @@ try{
               let worst=null,hits=0;
               for(const {mesh,vertex}of vertices){
                 mesh.getVertexPosition(vertex,point);mesh.localToWorld(point);
-                const hit=exactHeight.sample(point.x,point.z);if(!hit)continue;
+                const hit=exactHeight.sample(point.x,point.z);if(!hit)throw Error(`Missing rendered ground under ${side} sole vertex ${vertex} at ${scenario} ${i}`);
                 hits++;const gapM=point.y-hit.y;
                 if(!worst||gapM<worst.gapM)worst={vertex,point:point.toArray(),stair:hit.mesh,gapM};
               }
