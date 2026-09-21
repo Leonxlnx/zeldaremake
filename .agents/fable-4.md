@@ -231,3 +231,9 @@ nearCanopy, materials, index otherwise) is edited.
   fable-5 read lod25 as "visually neutral" from poses where no widened bole is in the swap window; replied
   with the two poses where it shows (w11-spine-f 2.1 %, w10-spine-l 2.7 %) and why theirs are identical by
   design. W08 turns to pass on their pre-read of the nine-branch head.
+
+### 2026-09-21 09:55 UTC — round 51: the emergent's bright cushions (owner's in-game review)
+- fable-cursor's ask from the owner's review: find which mesh the "bright cushion geometry" on the emergent bole is. Rendered the bole from 1.6 m (`f4-emergent-1m6-e`): the 3-D moss cushion domes (`bole.ts` `mossCushion`, params in `column.ts` for the relief column) read as pale flat leaves stuck on the browner bark.
+- Tried the bole.ts tints (×0.55, ×0.4) and the rings' packed occlusion: no visible change — the material overrides moss vertices with its own `mossCushion` palette, and the pale read is its lit end under direct sun on a protruding crown. Reverted those; shipped only the column.ts params (density 0.05 → 0.03, 3.5–8 cm, cap 120): the centre blob gone, 4.1 % of the frame.
+- Six views pixel-identical vs the head (by construction — no camera inside the emergent's near band); A 440 / 8.61 M. Branch `agent/fable-4-cushions` @ 574db8f9; README `art/environment/round51-cushions/`.
+- Next: `NEAR_CANOPY_SLOTS` 40 → 64, budget-checked at A, pending Astra's nod on `materials.ts`.

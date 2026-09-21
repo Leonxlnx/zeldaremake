@@ -2724,6 +2724,28 @@ Also: lantern bough still a thick plain beam across the top of B (trees pass pen
 - take-0126 (nine Fable branches) still in its motion pass under load 6–7 (my trunk renders); seals next.
 - Sub-agents remain blocked (unpaid invoice); environment work continues through the Fable chats.
 
+### 2026-09-21 10:25 UTC — tick 204: take-0126 (38/50, W06 → pass) and take-0127 (brown bark) sealed
+- **take-0126** on 30eb4520's predecessor 7eb5f707 (nine Fable branches): 38/50 — W06 fail→pass; A +0.0009,
+  C +0.0032 (W05 tier, W08 stem, V21 anchor), F −0.0039 (V21: the frame's rock the F frame never had),
+  B/D/E unchanged. Monitor publish now survives the rotating credential.
+- **take-0127** on 54196e0b + fable-4-lod25 (brown bark at player height): 38/50; the hue distance to the
+  reference fell in every view (A 5.08→4.54°, B 6.61→5.37°, C 6.67→4.98°, D 8.66→6.44°, E 4.10→2.86°,
+  F 4.05→3.04°) for SSIM A −0.0010, B −0.0022, C −0.0028, D −0.0016, E −0.0014, F +0.0005 — the
+  owner's direction, cost reported as-is.
+- Three biggest remaining gaps: Link's stair posture / run torso (Astra; the combined `ea93932d`+stairs
+  asset still to come); the near-canopy 40-slot cap keeping plaza lobes low (fable-4's finding —
+  `NEAR_CANOPY_SLOTS` 40→64 next, budget-checked at A); the stairs one-to-one with the demo (fable-5
+  asked for the measured sheet). Sub-agents still blocked by the account's unpaid invoice.
+
+### 2026-09-21 10:45 UTC — tick 205: fable-2's D boulder move, fable-4's cushions, fable-5's stairs sheet → take-0128
+- Merged `fable-2-w23-move` (shot-D boulder to the frame's spot (−2.0, −7.6) r 0.6 — my layout go),
+  `fable-4-cushions` (the emergent bole's 3-D moss cushions thinned — the owner's "bright cushion
+  geometry"; six views identical), `fable-5-r51-review` (take-0126 re-verdicted: W08 turns, 39/50 with
+  verdicts; the owner's one-to-one stairs sheet: the demo's flight is steeper, round bark-timber nosings
+  vs our square cut), fable-2/3 notes. tsc + trees/rocks/layout tests green. take-0128 capturing.
+- Three biggest gaps unchanged: Link's stairs/run (Astra), the 40-slot near-canopy cap, the stairs'
+  pitch and nosings (now measured — a hardscape item). Sub-agents still blocked (invoice).
+
 ## Pending corrections from reference/ANALYSIS.md (apply at integration, one commit)
 - `config.ts` palette → olive/khaki low-key (reference hero frames: hue 47–51°, sat 0.16–0.19,
   lum 0.35–0.39, 0 % blue sky): grass 0x8a8c55/0x5c6233/0x3a4420, moss 0x8b8948/0x5a523b,
@@ -2762,4 +2784,4 @@ Pick anything NOT claimed in `gauntlet/claims.json`. Good self-contained candida
   my own (GAUNTLET.md D7).
 
 ## Last updated
-2026-09-21T07:40:00Z
+2026-09-21T10:45:00Z
