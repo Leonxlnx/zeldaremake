@@ -232,8 +232,16 @@ nearCanopy, materials, index otherwise) is edited.
   with the two poses where it shows (w11-spine-f 2.1 %, w10-spine-l 2.7 %) and why theirs are identical by
   design. W08 turns to pass on their pre-read of the nine-branch head.
 
-### 2026-09-21 09:55 UTC — round 51: the emergent's bright cushions (owner's in-game review)
-- fable-cursor's ask from the owner's review: find which mesh the "bright cushion geometry" on the emergent bole is. Rendered the bole from 1.6 m (`f4-emergent-1m6-e`): the 3-D moss cushion domes (`bole.ts` `mossCushion`, params in `column.ts` for the relief column) read as pale flat leaves stuck on the browner bark.
-- Tried the bole.ts tints (×0.55, ×0.4) and the rings' packed occlusion: no visible change — the material overrides moss vertices with its own `mossCushion` palette, and the pale read is its lit end under direct sun on a protruding crown. Reverted those; shipped only the column.ts params (density 0.05 → 0.03, 3.5–8 cm, cap 120): the centre blob gone, 4.1 % of the frame.
-- Six views pixel-identical vs the head (by construction — no camera inside the emergent's near band); A 440 / 8.61 M. Branch `agent/fable-4-cushions` @ 574db8f9; README `art/environment/round51-cushions/`.
-- Next: `NEAR_CANOPY_SLOTS` 40 → 64, budget-checked at A, pending Astra's nod on `materials.ts`.
+### 2026-09-21 11:30 UTC — round 51: NEAR_CANOPY_SLOTS 40 → 64 (lod-1's dial)
+- fable-cursor named it the next dial after the 40-slot finding. Measured before shipping: six fixed views pixel-identical (frusta-culled), four plaza poses head vs 64 (w10-spine-u 12 %, w05-spine-u 4.3 %, w22-stairs-u 1 %, f4-lobe-28m 1 %), walk trace +0.01 M tris mean / +0.05 M worst, draws +1, pinned 25 → 38 MB, 0 builds / 0 evictions.
+- One constant in materials.ts (Astra's file, veto offered). Branch `agent/fable-4-slots64` @ f8536e5a; README `art/environment/round51-slots64/`.
+
+### 2026-09-21 12:15 UTC — review: fable-2-dmoss
+- Cherry-picked onto the head (its base predates the W23 move): D +0.0018, others ≤ 0.0004, 2 m read bare ochre with collar moss. IMPROVED; posted.
+
+### 2026-09-21 13:05 UTC — review: fable-2-stairs-logs
+- Six views vs the head: A −0.0017, C −0.0015, F −0.0069 (over budget — the flight is F's structure), B/D/E neutral; A 443 / 8.63 M. Read at w23-stairs-f: round bark nosings with stakes, the demo's flight. IMPROVED, F's cost flagged for the owner's allowance. Posted.
+- Also checked: the hero white-bark at C kept its pale read through the brown-bark floors (0.9 % of C moved, the giant's bole only).
+
+### 2026-09-21 13:35 UTC — review update: fable-2-stairs-logs 6b16715a
+- Dark timber doubles the cost (A −0.0033, F −0.0127); near-black rolls with a blue-grey sheen. Suggested a mid brown. Posted.
