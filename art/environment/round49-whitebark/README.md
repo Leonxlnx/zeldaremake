@@ -155,6 +155,37 @@ length; leaning out, its top leaves under the HUD). Crop `fable4-r49-lean-C-none
 (no lean | in | out). Whole branch on the tick-193 head: A 0.2178 =, B +0.0001, C −0.0019, D −0.0003,
 E −0.0001, F =; draws 396 → 394 at D; W12 163/163; determinism 0; console 0.
 
+## Near leaf detail out to 16 m on the white-barks (`agent/fable-4-leafnear` — a one-line proposal in Astra's `materials.ts`)
+
+The item: GOAL_MODE fable-4 #2's other half — fable-5's "shape still cards" at 3–10 m (opus #05). The
+lobes' occlusion draw landed in round 48; what still made a lamina a card past 6 m was the material:
+the near leaf path (`LEAF_NEAR_M` = 2.5–6 m — margin, lit rim, midrib, veins, a cupped normal) fades
+out exactly where the owner looks at a white-bark crown from a path. The giants' near canopy runs
+its own range (7–18 m); the white-bark material ran the default. `WHITE_BARK_LEAF_NEAR_M` = [5, 16]
+on the white-bark material line — geometry, palette, floors untouched.
+
+Measured (settle 12, three crown poses; before = the branch as merged, `2bc5e72`):
+
+| pose | leafNear 4–12 | leafNear **5–16** | what changed |
+| --- | --- | --- | --- |
+| `f4-crown-up` (the lobe at 7 m) | 2.5 % of the window, lobe green sd 21.9 → 22.4 | **9.0 %, sd 21.9 → 23.2**, p90 123 → 126 | the lit laminae at 5–9 m gain a margin, a midrib and cupping — a leaf with an edge, not a lime card |
+| `f4-crown-side-8m` | 0.9 %, sd 19.2 → 19.6 | **7.2 %, sd 19.2 → 20.7**, p90 115 → 119 | the mid-crown at 8–12 m gets per-leaf edge definition |
+| `f4-clearing-crown-7m` | 0.1 % | 0.2 %, mean 118 → 125 | the young tree's lit crown a little brighter at its veins |
+
+Nothing moves by more than 24 levels anywhere; the shaded mass keeps its level (p10 unchanged at
+every pose); the trunks are pixel-identical (the white-bark floor has no near term). Crops
+`fable4-r49-leafnear-f4-crown-up-none-12-16.png` (before | 4–12 | 5–16) and
+`fable4-r49-leafnear-f4-crown-side-8m.png` (before | 5–16); full frames
+`fable4-r49-leafnear-f4-crown-up-{before,after}.jpg`.
+
+Six views (before `2bc5e72` → after, settle 6, one Chrome): **pixel-identical at A–F for both ranges**
+(0.000 % of pixels beyond 2 levels) — no white-bark lamina stands within 16 m of a fixed camera;
+draws 566/522/407/395/522/507 and triangles A 8.59 M identical; determinism 0. A free change on the
+six views; the live cost is the near path's ALU on white-bark leaf pixels within 16 m.
+
+Not shipped without Astra's go: `materials.ts` is astra-trees' file since 13:10 (the line is the
+white-bark material's own instantiation, but the file is theirs).
+
 ## The far hut's knoll: the buried white-bark leaves (`agent/fable-4-knoll`, after expansion-2)
 
 expansion-2's backside (`bd2595d8`) raises a live-only knoll under the far hut (`farHutRise` 1.4 m,

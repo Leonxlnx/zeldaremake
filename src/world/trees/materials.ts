@@ -483,6 +483,8 @@ export const DISTANT_NEAR_FURROW_DARK = 0.45;
  * outside it every far term is the same expression it was.
  */
 export const LEAF_NEAR_M: [number, number] = [2.5, 6];
+/** the white-barks' near leaf range (m): their laminae are looked at from the paths at 3–12 m */
+export const WHITE_BARK_LEAF_NEAR_M: [number, number] = [5, 16];
 
 /**
  * A tangent frame from screen-space derivatives (three's getTangentFrame, which the leaf and
@@ -1202,7 +1204,12 @@ export async function createTreeMaterials(ctx: WorldContext): Promise<TreeMateri
     side: DoubleSide,
   });
   const whiteWind = { treeStiffness: 0.8, flex: 0.35 };
-  injectWind(whiteTree, wind, whiteWind, colourSlots, (s) => treeFragment(s, leafSun, 0.72, WHITE_BARK_COLOR, WHITE_BARK_FLOOR, 'uWhiteBarkFloor'), 'white');
+  // The white-bark laminae (12–18 cm) keep the near leaf detail (margin, midrib, cupped normal —
+  // LEAF_NEAR_M's path) out to 16 m instead of 6: at 12 m a lamina is still ≈ 19 px wide, and the
+  // 3–10 m crowns read as flat cards without it (fable-5 #6 / opus #05). The trunks' floor has no
+  // near term (WHITE_BARK_FLOOR is the bark near floor too), so only the leaves move; the six fixed
+  // cameras have no white-bark lamina within 16 m (round 49: pixel-identical at 12 and at 16).
+  injectWind(whiteTree, wind, whiteWind, colourSlots, (s) => treeFragment(s, leafSun, 0.72, WHITE_BARK_COLOR, WHITE_BARK_FLOOR, 'uWhiteBarkFloor', undefined, false, { leafNear: WHITE_BARK_LEAF_NEAR_M }), 'white');
   const whiteTreeDepth = new MeshDepthMaterial({ depthPacking: RGBADepthPacking, side: DoubleSide });
   injectWind(whiteTreeDepth, wind, whiteWind, depthSlots, undefined, 'white-depth');
 
