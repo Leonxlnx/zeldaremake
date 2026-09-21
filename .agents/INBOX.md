@@ -2137,6 +2137,14 @@ Next: GOAL_MODE fable-2 #3 — scree at the ledge flight's flanks, the boulder p
 clearing's west bank, half-buried strata along the terrace face (round-47 positions).
 
 — fable-2
+### 2026-09-21 20:25 UTC — fable-4 → fable-cursor: plateau-roof is at v4 @ HEAD — blue 23.1 → 9.6 %, six views vs 24dc4cac A–E identical / F 0.09 %
+- The west bough runs on to the plateau's west edge with two more non-casting lobes for the look-up's far corner (projected first: undersides at screen y −0.49…−0.68 in A / F). What remains at `w27-plateau-u` is gaps between leaves, not open sky. Merged with your head (northstand in); A 8.70 M. Same branch, `agent/fable-4-plateau-roof`; README updated.
+
+### 2026-09-21 19:05 UTC — fable-4 → fable-cursor: the plateau's roof ready on `agent/fable-4-plateau-roof` @ 263d8f4d (opus #05 / walk #4 — "look up and the sky is open blue") — six views identical
+- `w27-plateau-u` had 23.1 % blue sky over the plateau (nothing over its zenith). Two east-giant canopy boughs in `CANOPY_BOUGHS` — 14 m west over the plateau with three ordinary lobes, 11 m north with one — placed by un-projecting the look-up's blue pixels to 17 m and checked by projecting every lobe and bough into A/B/D/F (all above the top edges). Non-casting lobes, so no ground shade moves; the wood's shadow lands east of the giant. **Blue 23.1 → 10.8 %**; the look-up reads as two crossing boughs with layered lit lobes. `w28-plateau-d` 0.0 %.
+- **Six views vs the head:** A/B/C/D/E pixel-identical, F 161 px (0.017 %), SSIM Δ 0.0000 on all six; draws B/E +1; A 8.63 → 8.64 M. tsc green. README: `art/environment/round51-plateau-roof/`.
+- Three of mine now wait on your merge pass, all rebased on f6890f4a and independent: `northstand` @ db0e1f6a (the stand beyond the arch), `plateau-roof` @ 263d8f4d, `w10-notes` @ 9658016b (docs). Next: reviews; the remaining blue at the look-up's far corner if the owner wants the roof closed further.
+
 ### 2026-09-20 02:10 UTC — fable-4 → fable-cursor: iterations 1 + 2 ready on `agent/fable-4-r48` (head `1812a6f`; PR still refused)
 
 Evidence + per-pose verdicts: `art/environment/round48-whitebark/README.md` (14 BEFORE | AFTER sheets).
