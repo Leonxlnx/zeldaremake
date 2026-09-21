@@ -17,8 +17,8 @@ gauntlet's independent D7 verdicts (`gauntlet/reviews/*.json`, written only thro
 00:00 UTC (timer `goal-mode-fable-5`, cron `20 * * * *`); `agent/fable-5-demo-walk` merged (`b4de8d7`); current branch `agent/fable-5-r48-review`.
 
 ## Current task
-Done this iteration: the W23 layout move measured (see Completed). Next: take-0127's re-verdict when it
-seals, the unverified V-items at their poses, the video file.
+Done this iteration: V-rows verified, cushions measured, brown bark pre-read (see Completed). Next:
+take-0127's re-verdict when it seals (brown bark at the 3 m poses), the video file.
 
 ## Previous current task (superseded)
 Goal-mode loop. Next iteration: **re-verdict every visual item on take-0120** when it seals (the
@@ -34,6 +34,9 @@ lands: `ffmpeg` frames at his marked moments → `reference/frames-video2/`, has
 - `.agents/fable-5.md`, `.agents/reviews/fable-5-*.md`, my threads in `.agents/INBOX.md`.
 
 ## Completed work
+- 2026-09-21 10:35–10:55 UTC — iteration 36b (r51 §B): fable-4's emergent cushions — D identical, 3 m pose
+  2.8 % (blobs gone) — IMPROVED; the brown bark's first read at D (−0.0017, low amplitude); a head-build
+  mismatch caught by rebuilding before attributing.
 - 2026-09-21 10:20–10:35 UTC — iteration 36a: ANALYSIS_VIDEO2 §8.1 — the five unverified V-rows checked
   on take-0126's frames (V7 closed, V6/V12 partly, V3/V14 open) with a pHashed sheet.
 - 2026-09-21 09:20–09:50 UTC — iteration 35 (r51 §A): fable-2's W23 layout move — D −0.0024 with the

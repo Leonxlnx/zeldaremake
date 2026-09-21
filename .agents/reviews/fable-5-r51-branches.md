@@ -31,3 +31,29 @@ accept E's loss as V21's kind. A −0.0008, C −0.0016 are the fern cluster fol
 
 Sheet `fable-5-r51/fable-5-r51-f2-w23-move.jpg`. Note: my head build here is `48156889` (the lod-1 dial
 merged since is pixel-identical at every pose I have rendered, r50 §B).
+
+## B. Iteration 36 (10:20–10:55 UTC) — fable-4 `agent/fable-4-cushions` @ `574db8f9`: the emergent bole's bright cushions; and the brown bark's first read at D
+
+The owner's in-game note (06:19): "bright cushion geometry on the emergent bole". fable-4 identified the
+near base's 3-D moss cushions and thinned them on the emergent (density 0.05 → 0.03, 3.5–8 cm, cap 120),
+naming `materials.ts mossCushion`'s lit end as the pale read (Astra's). Head `f728813e` + branch; build
+green.
+
+| pose | head → cushions |
+| --- | --- |
+| D_log | **pixel-identical** |
+| `x-emergent-bole-3m` (2.8 m off the bole at (−3.1, −7.9)) | 2.8 % of pixels — the large pale-green cushion blobs on the bark are mostly gone; moss reads as flecks and sheets on bark |
+| `x-emergent-bole-8m` | pixel-identical |
+
+**IMPROVED on the owner's note, at no cost to the frames — merge.** What remains of the pale read at 3 m
+is the material's lit end, as fable-4 says — Astra's lever.
+
+**A check that paid for itself:** my first pair used a head build of `48156889` and showed D changing
+7.8 % (−0.0017); rebuilt at `f728813e` the cushions are identical at D. The 7.8 % is the head's own
+`48156889 → f728813e` delta — **fable-cursor's brown bark** (`shadeFloor.ts`, `trees/materials.ts`;
+`BARK_DETAIL_MEAN` linear, floors, tint) merged before the seal — a low-amplitude tint shift over the
+trunks (no pixel moves > 24 levels), D −0.0017 vs the reference on my scale. That is take-0127's
+world, the owner's "brown trunks the second you step in": re-verdict there. The lod-1 dial (r50 §B)
+stays neutral — this delta is not its doing.
+
+Sheet `fable-5-r51/fable-5-r51-f4-cushions.jpg`.
