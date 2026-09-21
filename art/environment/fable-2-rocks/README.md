@@ -16,6 +16,65 @@ B 526 / C 393 / D 394 / E 526 / F 512; A 9.09 M tris on both (the head's number,
 change's — flagged to fable-cursor). Files: `ledge2-x-clearing-n.jpg` (+ `-crop`),
 `ledge2-x-ledge-foot.jpg`, `ledge2-x-northpath-n.jpg`.
 
+## Iteration 34 — W23's "still smaller": the D boulder at r 0.75, and where the frame's rock actually stands
+
+fable-5's take-0126 pre-read: "W23's D face is a warm tan now, paler than take-0125's, still smaller and greener than the
+frame's — a near fail." Size is the layout's radius (0.6). Scratch build (rock only, nothing landed): **r 0.75** at D on the
+merged head:
+
+| | D vs reference | stone share of the box 0.05–0.30 × 0.50–0.80 | stone l / hue / sat |
+|---|---|---|---|
+| r 0.6 (layout) | 0.2796 | 41.2 % | 0.305 / 60° / 0.35 |
+| r 0.75 | 0.2802 (+0.0006) | 42.9 % | 0.290 / 56° / 0.34 |
+
+Two points larger, still behind the fern bank (`dsize37-D_log-triple.jpg`). The frame's rock is not a bigger rock at our
+spot: ray-casting the reference's rock (bottom-left, x 0.05–0.40, ground contact ≈ (0.22, 0.86)) onto our terrain lands
+at **≈ (−2.0, −7.9), 5.5 m from D's camera, at the path's west edge** (ground 0.08, off the paving) — 1.9 m south-east of
+the layout's (−2.6, −9.6), in front of the ferns, and lit. §33's SE / S probes stood within 0.6 m of that spot and read
+l 0.27–0.28: **the position is reachable (layout), the light is not (trees / lighting)** — both outside rocks. The rock's
+id-specific look (ochre tint, bare camera side, moss cap) follows whatever position and radius the layout gives it.
+
+## Iteration 33 — round 51's "light on the D face (W23)": a position probe — no shift within 1.6 m leaves the shade
+
+fable-5's round-51 turn order names "light on the D face (W23)" with §L's two options: light on the boulder's south face,
+or the boulder out from under the giant's canopy. The second is a layout move (fable-cursor's), so here is what it would
+buy, measured: four scratch builds (the rock alone moved, nothing landed) rendered at D on the merged head `48156889`,
+the boulder's stone pixels in its projected box:
+
+| shot-D boulder at | in D | stone mean l | p90 |
+|---|---|---|---|
+| (−2.6, −9.6) — the layout's | 7.2 m | **0.293** | 0.397 |
+| +1.2 m east (−1.4, −9.6) | 6.9 m | 0.281 | 0.428 |
+| south-east (−1.6, −8.4) | 5.8 m | 0.279 | 0.394 |
+| +1.6 m south (−2.6, −8.0) | 5.8 m | 0.269 | 0.330 |
+| −1.6 m north (−2.6, −11.2) | 8.7 m | 0.282 | 0.361 |
+
+Every spot is as shaded as the layout's (`dlight36-D_log-shifts.jpg`): the giant's canopy shadow covers D's whole left
+foreground, so **the position is not the lever — light on the face is** (a warmer fill or a canopy gap over the bank:
+trees / lighting, not rocks; the frame's rock reads l 0.33 with lit planes). The stone's hue and chroma are on the frame
+now (55° / 0.36 vs 52° / 0.36) after the hue branch merged.
+
+## Iteration 32 — the reciprocal prop check: fable-3's backside props vs my rock bodies; the V21 anchor moved off their squat pot — `agent/fable-2-v21` @ `a1dcf4f6`
+
+fable-3 replicated my contour walk to catch a slab on their pots (§29); the reciprocal check, offline on the same
+samplers: their backside props (`props/layout.ts` on `agent/fable-3-backside`: west-landing crate / bucket / two pots,
+the west-fork marker, the west-door pot) against every backside rock body sphere and the live strata / rubble dump —
+**no overlaps**; the closest is a 0.11 m disc pebble 0.25 m from the fork marker's foot (a stone at a post's foot, fine).
+
+The same check on the V21 anchor was not fine: at the box centre (7.4, 2.9) the loaf's ≈ 0.7 m reach ran **0.13 m into
+`stair-pot-squat` (7.55, 2.1) r 0.22**. Moved 0.28 m NW along the bank to **(7.2, 3.1)** — 0.12 m clear, ground 0.66,
+slope 0.31, C projection (0.30, 0.46): still the V21 box. Re-measured on the round-50 head `0147a3d0`:
+
+| view | head | V21 'replace' at (7.2, 3.1) | (at (7.4, 2.9), §28) |
+|---|---|---|---|
+| A_stairs | 0.2210 | 0.2206 (−0.0004) | −0.0005 |
+| C_lookback | 0.2227 | **0.2263 (+0.0036)** | +0.0032 |
+| F_canopy | 0.2451 | 0.2408 (−0.0043) | −0.0042 |
+| draws / tris | 440 / 8.61 M, 338 / 6.98 M, 405 / 7.98 M | 440 / 8.60 M, 338 / 6.97 M, 405 / 7.98 M | |
+
+`v21f-C_lookback-triple.jpg`: one pale moss-capped rock behind the pots, clear of them, the loaf gone. The layout proposal
+is therefore `heroBoulders` 'stair-foot' → position (7.2, 0, 3.1), radius 0.55.
+
 ## Iteration 31 — the embankment strata and rubble skirts take the near skin (2.5–4.5 m fade) — `agent/fable-2-ledge`
 
 The instanced strata (92) and rubble (64) rendered the plain far material at any distance; a walker passes the bank slabs
