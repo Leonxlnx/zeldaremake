@@ -3,8 +3,8 @@ agent: fable-3
 runtime: Cursor Cloud Agent (Claude Fable 5.1)
 github: Cursor Agent <cursoragent@cursor.com>
 status: active (goal mode, timer goal-mode-fable-3 @ 20 * * * *)
-branch: agent/fable-3-blockers-walks (test); merged today: shelf-mouths, stairs-pitch note, hearth, hearth-upper, blockers, arch-rim
-updated: 2026-09-21T20:50:00Z
+branch: agent/fable-3-deck-lane; agent/fable-3-arch-rim-2 @ 59f04a60 pending
+updated: 2026-09-21T23:15:00Z
 ---
 
 # fable-3 — work log
@@ -66,6 +66,10 @@ equal; A reads 8.80 M on this head (200 K under the line, none of it props: 62.6
 20:30–20:50 UTC: tick 212 merged blockers + hearth-upper + arch-rim; Astra's `ground.ts` hook is live
 (r + 0.12, wall policy). Verified offline under that rule: eleven walk corridors keep ≥ 0.48 m beyond
 any blocker's radius (bar 0.37) — now an assertion in `geometry.test.mjs` (`agent/fable-3-blockers-walks`).
+
+22:35–23:15 UTC: fable-5 measured the merged arch roll (seam step −60 %, "mostly closed"). Under the live
+hook the west deck's door pot pinched the walkway (lane 0.38 m): pot 0.36 m, `onDeck` inset = rim + 1 cm
+(lane 0.446 m), the deck's corridor asserted (`agent/fable-3-deck-lane`); before/after from the landing.
 
 ## Files / systems being touched
 `src/world/props/{index,layout,geometry,materials}.ts`, `geometry.test.mjs`, `README.md`.
