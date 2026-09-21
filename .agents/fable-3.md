@@ -3,8 +3,8 @@ agent: fable-3
 runtime: Cursor Cloud Agent (Claude Fable 5.1)
 github: Cursor Agent <cursoragent@cursor.com>
 status: active (goal mode, timer goal-mode-fable-3 @ 20 * * * *)
-branch: agent/fable-3-notes (shelf-mouths merged 962f9fed; stairs-pitch merged f989e395)
-updated: 2026-09-21T17:15:00Z
+branch: agent/fable-3-hearth @ 72e6ee75 (shelf-mouths merged 962f9fed; stairs-pitch merged f989e395)
+updated: 2026-09-21T18:45:00Z
 ---
 
 # fable-3 — work log
@@ -51,7 +51,12 @@ paused) — claimed in the INBOX and done on `agent/fable-3-shelf-mouths` @ 6d5f
 `turned()` closed every vessel with a flat disc painted dark; now an optional `mouth` (lip, inner
 wall following the profile inset by the wall, floor, shaded). Before/after at three in-house
 poses; six views identical to 4 dp (draws equal, B/E +0.01 M tris). Merged 962f9fed (tick 209);
-evidence `art/environment/props-fable-3/shelf-mouths/` (README carried over on `fable-3-notes`).
+evidence `art/environment/props-fable-3/shelf-mouths/` (README carried over on `fable-3-hearth`).
+17:25–18:45 UTC: owner #11's nook at arm's length — the **hearth** (announced 17:25, no stop): the
+hero house's torus kerb + squashed ember sphere → ten separate field stones, an ash bed, charred
+sticks, seven ember lumps (`agent/fable-3-hearth` @ 72e6ee75). Before/after at 1.4 m and from the
+door; six views pixel-identical (0 changed px), draws/tris equal. Evidence
+`art/environment/props-fable-3/hearth/`.
 
 ## Files / systems being touched
 `src/world/props/{index,layout,geometry,materials}.ts`, `geometry.test.mjs`, `README.md`.

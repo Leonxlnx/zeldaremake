@@ -34,4 +34,16 @@ Head 24dc4cac (before) vs this branch (after), high quality, 1280×720, `--settl
 
 ## Six views
 
-Head 24dc4cac vs this branch, same settle both sides; table in the INBOX note / below.
+Head 24dc4cac vs this branch (72e6ee75), SwiftShader, `--settle 12` both sides, 256×144 luminance
+SSIM vs the reference frames; "changed px" is the 1280×720 count over tolerance 8.
+
+| view | before | after | Δ | SSIM before↔after | changed px | draws | tris |
+| --- | --- | --- | --- | --- | --- | --- | --- |
+| A | 0.2206 | 0.2206 | +0.0000 | 1.0000 | 0 | 442 = 442 | 8.68 M = 8.68 M |
+| B | 0.1968 | 0.1968 | +0.0000 | 1.0000 | 0 | 423 = 423 | 7.86 M = 7.86 M |
+| C | 0.2223 | 0.2223 | +0.0000 | 1.0000 | 0 | 340 = 340 | 6.96 M |
+| D | 0.2801 | 0.2801 | +0.0000 | 1.0000 | 0 | 390 = 390 | 8.13 M |
+| E | 0.2184 | 0.2184 | +0.0000 | 1.0000 | 0 | 423 = 423 | 7.86 M |
+| F | 0.2320 | 0.2320 | +0.0000 | 1.0000 | 0 | 407 = 407 | 8.02 M |
+
+Pixel-identical: the hearth sits below the sill line from every fixed camera.
