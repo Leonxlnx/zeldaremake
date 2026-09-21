@@ -27,7 +27,7 @@ export const STAIR_LOGS = true;
 /** flights that take the logs (the demo shows them on the hero flight; the house-west and expansion flights stay stone) */
 export const LOG_FLIGHTS = new Set(['main']);
 /** log radius range (m): ≈ 0.16–0.20 m across, §9 */
-export const LOG_RADIUS: [number, number] = [0.08, 0.1];
+export const LOG_RADIUS: [number, number] = [0.065, 0.08];
 /**
  * the log's crown above the tread surface, as a share of its radius: 0.7 → a 0.18 m log stands
  * ≈ 6 cm proud, its upper half in the light — the timber IS the step's edge (first take: 3.5 cm and
@@ -97,7 +97,7 @@ export function buildLogNosings(def: StairDef, seed: string): LogNosingBuild {
   const dampCol = new Color(0.78, 0.74, 0.7);
   // the weathered crown: sun-bleached silver-grey timber — the frames' flight is a row of LIT lips
   // (A: 15 lips at l 0.45–0.59 over troughs 0.24–0.36) and a dark log killed them (A −0.0033, F −0.0129)
-  const crownCol = new Color(1.9, 1.85, 1.7);
+  const crownCol = new Color(2.6, 2.5, 2.3);
 
   /**
    * a cylinder along `axis` from `a` to `b` (world), radius `r` with a per-ring wobble and bark
@@ -207,7 +207,7 @@ export function buildLogNosings(def: StairDef, seed: string): LogNosingBuild {
         tmpC.lerp(dampCol, 0.55 * under);
         // the crown bleaches toward silver-grey (the lit lip), the front stays bark, the underside damp
         const crown = smoothstep(0.0, 0.75, up);
-        tmpC.lerp(crownCol, 0.75 * crown);
+        tmpC.lerp(crownCol, 0.85 * crown);
         const mossField = mossN.fbm(t * 4.2 + i * 1.7, ang * 0.8 + 0.5, 2) * 0.5 + 0.5;
         const moss = smoothstep(0.25, 0.85, up) * smoothstep(0.42, 0.62, mossField);
         tmpC.lerp(mossCol, 0.7 * moss);
