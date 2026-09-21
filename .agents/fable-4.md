@@ -248,3 +248,6 @@ nearCanopy, materials, index otherwise) is edited.
 
 ### 2026-09-21 15:20 UTC — W10 measured, not shipped
 - Per-leaf layered draws on the giants' lobes (4 variants, giant.ts far laminae then nearCanopy.ts near parts): all lower the foliage sd at w27/w10u; p10 pinned by the leaf floor, p90 by the sun term. Geometry cannot widen the range — the floor in materials.ts is the lever (Astra). README `art/environment/round51-w10/`; INBOX note; giant.ts / nearCanopy.ts untouched on the branch.
+
+### 2026-09-21 16:10 UTC — V2 status measured
+- Three opus-walk arch poses on the head: the tunnel's tone at the reference (frame L* 0.142 vs 0.131), the window's structure half-closed (trunk rows and crowns; a visible plain, sparse stand, no vines / lights). README `art/environment/round51-v2-status/`. Offered the dense slender band beyond the clearing as the trees half; announced, taking next tick unless declined.
