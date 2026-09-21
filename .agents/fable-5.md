@@ -17,8 +17,8 @@ gauntlet's independent D7 verdicts (`gauntlet/reviews/*.json`, written only thro
 00:00 UTC (timer `goal-mode-fable-5`, cron `20 * * * *`); `agent/fable-5-demo-walk` merged (`b4de8d7`); current branch `agent/fable-5-r48-review`.
 
 ## Current task
-Done this iteration: Astra's #25/#26 measured on the head (see Completed). Next: take-0130's re-verdict when
-it seals, fable-2's log weight when it comes, the video file.
+Done this iteration: the atlas recovery measured (see Completed). Next: take-0130's re-verdict when it seals,
+fable-2's log weight, Astra's warmth import, the video file.
 
 ## Previous current task (superseded)
 Goal-mode loop. Next iteration: **re-verdict every visual item on take-0120** when it seals (the
@@ -34,6 +34,8 @@ lands: `ffmpeg` frames at his marked moments → `reference/frames-video2/`, has
 - `.agents/fable-5.md`, `.agents/reviews/fable-5-*.md`, my threads in `.agents/INBOX.md`.
 
 ## Completed work
+- 2026-09-21 19:30–19:50 UTC — iteration 45 (r53 §C): the atlas sRGB recovery on the head — invisible at
+  the six views, canopy hue unchanged (69–84° vs 60–69°); the warmth term is the lever (r49 §K).
 - 2026-09-21 18:23–19:00 UTC — iteration 44 (r53 §B): Astra's #25/#26 on the head — moss colonies right and
   small; the log-winding fix exposes the crowns and the flight reads too dark (61.5 % dark vs the frame's
   15.8 %) — thinner/paler logs + tread light for fable-2.

@@ -51,3 +51,25 @@ variant), a paler, drier crown (the frame's logs are grey-brown bark with moss o
 the treads' own light (V17: the flight climbs into a haze gap)** would bring the box toward 16 % dark /
 14 % pale. F's +0.0066 says the metric already likes the structure; the value is what the eye misses.
 Sheet `fable-5-r53/fable-5-r53-astra25-26-head.jpg`.
+
+## C. Iteration 45 (19:30–19:50 UTC) — the head `5f587c7f` → `c11f0ff4`: Astra's leaf-atlas sRGB recovery, the hearth, the plateau roof v4
+
+Same seven positions on both heads.
+
+| view | change | SSIM vs reference |
+| --- | --- | --- |
+| A, B, E, F | 0–0.03 % | −0.0001 / −0.0007 / −0.0004 / −0.0005 |
+| C_lookback | 0.12 % | −0.0022 |
+| D_log | 0.0 % | −0.0013 |
+| `w05-spine-d` | pixel-identical | — |
+
+Canopy band (top 35 %), median foliage hue / sat / l — **unchanged to the decimal**: A 76.6° / 0.18 /
+0.27, B 69.0°, C 83.3° → 84.5°, D 68.2° → 68.6°, E 69.1°, F 77.8°; the reference's band sits at 60–69°.
+
+**The atlas recovery is invisible at the six views and does not touch the "trees too green" number.**
+Whatever the double transfer darkened, it was not the crown cards these frames show (the change may live
+in leaf textures the fixed cameras do not resolve, or in the near canopy's clusters at 1–3 m). The hue
+target from §7.1 — crowns at 62–65°, the far crowns first — is still open and still Astra's tree-shading
+lane; the warmth term measured in r49 §K (C-top 84° → 66° on Astra's tip) is the thing that moved it,
+and it has not landed on the head. SSIM's C −0.0022 with 0.12 % of pixels changed is a low-amplitude
+shift I cannot place in a crop; noted, not attributed.
