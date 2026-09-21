@@ -3,8 +3,8 @@ agent: fable-3
 runtime: Cursor Cloud Agent (Claude Fable 5.1)
 github: Cursor Agent <cursoragent@cursor.com>
 status: active (goal mode, timer goal-mode-fable-3 @ 20 * * * *)
-branch: agent/fable-3-blockers @ e9a9fcdb; agent/fable-3-hearth @ 602c886d awaiting merge (shelf-mouths 962f9fed, stairs-pitch f989e395 merged)
-updated: 2026-09-21T18:45:00Z
+branch: agent/fable-3-hearth-upper @ cedd3bbd, agent/fable-3-blockers @ a255b839 (hearth merged tick 210)
+updated: 2026-09-21T19:45:00Z
 ---
 
 # fable-3 — work log
@@ -44,14 +44,24 @@ props' `board`/`lashing`/`rope` builders for the end stakes.
 the reference's logs; a 37° flight overshoots the top by 27/34 rows. Same-pose renders at
 `d_105`/`d_107` read the same as the demo's. Note `.agents/reviews/fable-3-stairs-pitch.md`, sheets
 `art/environment/props-fable-3/stairs-pitch/`, branch `agent/fable-3-stairs-pitch` @ 9293b611 —
-recommended closing the item; took no code.
+recommended closing the item; took no code. fable-5 accepted and withdrew the §9 row (15:40);
+merged f989e395, the item closed (tick 209).
+16:05–16:50 UTC: the owner's "shelf props read hollow" (06:19, unclaimed ten hours, structures
+paused) — claimed in the INBOX and done on `agent/fable-3-shelf-mouths` @ 6d5fca4e: `house.ts`'s
+`turned()` closed every vessel with a flat disc painted dark; now an optional `mouth` (lip, inner
+wall following the profile inset by the wall, floor, shaded). Before/after at three in-house
+poses; six views identical to 4 dp (draws equal, B/E +0.01 M tris). Merged 962f9fed (tick 209);
+evidence `art/environment/props-fable-3/shelf-mouths/` (README carried over on `fable-3-hearth`).
+17:25–18:45 UTC: owner #11's nook at arm's length — the **hearth** (announced 17:25, no stop): the
+hero house's torus kerb + squashed ember sphere → ten separate field stones, an ash bed, charred
+sticks, seven ember lumps (`agent/fable-3-hearth` @ 72e6ee75). Before/after at 1.4 m and from the
+door; six views pixel-identical (0 changed px), draws/tris equal. Evidence
+`art/environment/props-fable-3/hearth/`.
 
-18:20–18:45 UTC: Astra is back (tick 18:10). In-game check of my own lane: Link walks THROUGH the props —
-`ground.blocked()` knows pads and the hut's wall ring only. Published `ctx.shared.propBlockers`
-(solid discs with body radius + top; the lookout railing as 21 discs; no light strings) on
-`agent/fable-3-blockers` @ e9a9fcdb, typed in `system.ts` beside `propFootprints`; tests: every solid
-has a disc, none reaches a path/flight, the apron pots clear the flight's width. Offered Astra the
-four-line hook for `ground.ts` (her file — not touched). Data only; six views unchanged by construction.
+18:40–19:45 UTC: hearth merged (tick 210). The upper house's doorway still showed the torus hearth —
+the plateau is a destination (owner #14) — so the `hero` gate went: eight coarser stones / two sticks /
+five embers there (`agent/fable-3-hearth-upper` @ cedd3bbd). Six views pixel-identical (0 px), draws/tris
+equal; A reads 8.80 M on this head (200 K under the line, none of it props: 62.6 K total).
 
 ## Files / systems being touched
 `src/world/props/{index,layout,geometry,materials}.ts`, `geometry.test.mjs`, `README.md`.
