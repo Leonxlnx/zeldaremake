@@ -4,10 +4,14 @@ runtime: Codex Astra + Blender MCP + Astra Max subagents
 github: Leonxlnx
 status: active
 branch: agent/astra-motion-sept21
-updated: 2026-09-21T21:08:00+00:00
+updated: 2026-09-21T21:52:00+00:00
 ---
 
 # Astra motion continuation
+
+21:52 current delivery: `5050496a` contains accepted shorter boots, complete-foot support and repaired run arms. Source GLB/SHA pair remains `4dcf89c5`. `1e4379c4` imports the independently reviewed leaf warmth from `0858f39f` / PR28; native C/F geometry and submission counts unchanged, modest olive/golden colour improvement only. Local colour contracts and typecheck/build pass (`index-CuONDKJE.js`). Fable has source/evidence handoffs for both character changes and warmth; no automatic merge.
+
+Current local animation study: the main flight's 0.54 m treads disagree with the clip's measured 0.4033 m alternating foot advance. Testing 1.08 m/cycle with corresponding time/path scaling; a per-frame minimum hip drop was rejected for eight switching velocity jumps. The next isolated candidate uses the smallest constant whole-cycle drop. No candidate gait is production. Swing-pitch-only and tiny pelvis-only changes also fail to restore natural posture. Root owns live Blender MCP; subagents handle cadence/export checks and the three previously assigned bank cores. World GPU slot is free. CI remains green at `def7c885`; `06552ded` runs and `5050496a` waits as of 21:49 UTC.
 
 21:25 delivery update: complete-foot06552ded pushed, PR2 handoff5767530571. Native shorter tips4dcf accepted and nowpairedwithregisteredhash; exactrig/clip/texture preservation and portabledeformationcheck pass. Actual1320frame candidate replay(all537 lowsole vertices) stayspositive708,840hits,+1.187mmup/+1.264mmdown,noerrors/clamps; knees167.22/168.35stillunfinished. Rebuilt default bundleindex-Bci-UCRa.js. Blender active shorterbootstudy atidle; originalscenes preserved. Bank sparse703leafshell rejected byroot/author/independentreview: smoothovalcorestilldominates. World agent recovers already-reviewed0.5leafwarmth onto0963c09d; originalnearcanopyhookalreadyincluded. Currentpelvis/forefootstaticbounds ruleouttinybody-only/stance-rockerfix; nextdiagnosischecks swingfootpitch andcadenceagainst.54mtreads. No speculative gaitcandidate adopted.
 

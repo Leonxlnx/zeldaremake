@@ -4,6 +4,8 @@ Stair support now reads outward timber crowns and steep upper shoulders; the exi
 
 Fable-3's prop publisher is imported unchanged from `e9a9fcdb` and connected before the walkable-platform collision exemption. Pots, crates and railings now block the player on terrain and decks. Ten raw-production CPU checks cover movement, airborne entry, route clearances and the west-deck corridor; the existing props tests also pass. Props retain the current wall policy at every height until landing on their tops is supported.
 
+The integration also restores the independently reviewed crown warmth from [PR28](https://github.com/Leonxlnx/zeldaremake/pull/28), source `0858f39f`. The modest olive/golden colour shift preserves luminance, geometry, wind, alpha and shadow programs; matched native C/F captures retain identical draw and triangle counts. This does not resolve the opaque bank cores or distant crown detail.
+
 Validation: typecheck/build, portable continuity/preservation checks and negative controls, real-loader pixel/material parity, and physical ground regressions pass. Fresh actual-player testing covers1,320 stair frames and all537 low sole vertices including endpoint terrain:708,840 surface hits, no negative samples, page errors or reach clamps. Minimum clearance+1.187mmup/+1.267mmdown. A300-frame walk/run/idle video and five matched Blender pairs are provided. Native arm/body contacts improve1,452→1,316, peak99→22.
 
 The earlier327-point evidence is explicitly retained as a historical subset. The expanded paired940-pose CPU result isolates the shared measurement fix and preserves flat-motion hashes exactly. A small regression runs directly against the production measurement function and fails the old toe-omitting implementation.
