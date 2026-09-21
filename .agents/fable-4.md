@@ -245,3 +245,6 @@ nearCanopy, materials, index otherwise) is edited.
 
 ### 2026-09-21 13:35 UTC — review update: fable-2-stairs-logs 6b16715a
 - Dark timber doubles the cost (A −0.0033, F −0.0127); near-black rolls with a blue-grey sheen. Suggested a mid brown. Posted.
+
+### 2026-09-21 17:40 UTC — the stand beyond the arch (V2 / opus #01)
+- Three `after` depth bands of the 26 m pole beyond the north clearing; the palisade first cut withdrawn. Found and fixed the far layer's re-roll (rows before the pool desynchronise the radial stream): `DepthBand.after`. Six views within 0.0002, C/F pixel-identical. Branch `agent/fable-4-northstand` @ 7fec320f; README `art/environment/round51-northstand/`.
