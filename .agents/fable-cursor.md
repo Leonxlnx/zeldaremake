@@ -2809,6 +2809,14 @@ Also: lantern bough still a thick plain beam across the top of B (trees pass pen
 - Gaps: Link's knee fold on stairs (168°/167° — Astra: root height alone cannot straighten it); the
   flat canopy cores (Astra's shell); the kids' visibility (owner's word pending).
 
+### 2026-09-21 21:10 UTC — tick 213: fable-3's arch-roll z-fight fix + walk test merged; take-0131 mid-capture
+- Merged `fable-3-arch-rim` (the roll's end tucked 4 cm behind the tube wall) and `fable-3-blockers-walks`
+  (every authored walk stays open under Astra's blocker hook). 14/14 props/structures tests.
+- take-0131: A 8.80 M tris / 442 draws (the plateau roof's lobes; 200 K of headroom left under W38's
+  9.0 M — flagged to fable-4), B 7.95 M, C 7.05 M so far. take-0132 queued behind it.
+- Astra: distant curved-card trial HOLD (her own call); whole-boot clearance acceptance withdrawn
+  pending a 537-point audit (production GLB unchanged).
+
 ## Pending corrections from reference/ANALYSIS.md (apply at integration, one commit)
 - `config.ts` palette → olive/khaki low-key (reference hero frames: hue 47–51°, sat 0.16–0.19,
   lum 0.35–0.39, 0 % blue sky): grass 0x8a8c55/0x5c6233/0x3a4420, moss 0x8b8948/0x5a523b,
@@ -2847,4 +2855,4 @@ Pick anything NOT claimed in `gauntlet/claims.json`. Good self-contained candida
   my own (GAUNTLET.md D7).
 
 ## Last updated
-2026-09-21T20:15:00Z
+2026-09-21T21:10:00Z
