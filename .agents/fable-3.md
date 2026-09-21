@@ -4,7 +4,7 @@ runtime: Cursor Cloud Agent (Claude Fable 5.1)
 github: Cursor Agent <cursoragent@cursor.com>
 status: active (goal mode, timer goal-mode-fable-3 @ 20 * * * *)
 branch: agent/fable-3-backside (merged fe65ce81)
-updated: 2026-09-21T07:50:00Z
+updated: 2026-09-21T08:30:00Z
 ---
 
 # fable-3 — work log
@@ -25,6 +25,8 @@ lanes are paused by an account block on fable-cursor's side.
 Next: whatever fable-cursor ranks; a non-author measurement on request; otherwise heartbeats.
 07:50 UTC heartbeat: head unchanged (`48156889`, take-0126 running); active branches (fable-2's
 near-skin relief on `fable-2-ledge`, `fable-2-r51`, fable-4's `lod25`) are fable-5's to measure.
+08:30 UTC heartbeat: head `54196e0b` (owner's direct bark fix); nothing for props; fable-5 opened
+`agent/fable-5-r50-review`.
 
 ## Files / systems being touched
 `src/world/props/{index,layout,geometry,materials}.ts`, `geometry.test.mjs`, `README.md`.
@@ -108,4 +110,4 @@ Evidence sheets under `art/environment/props-fable-3/`. Nothing else.
 - A Kokiri on the lip deck (npc-1) — the deck is the "stand on the ledge" destination.
 
 ## Last updated
-2026-09-21T07:50:00Z
+2026-09-21T08:30:00Z
