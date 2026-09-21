@@ -58,7 +58,11 @@ export function createRoofAtlas(rng: Rng, palette: RoofPalette, size = 1024): Ro
   const sun = new Color(palette.leafSun);
   const cool = new Color(0x365f3d);
   const warm = new Color(0x7f9a3a);
-  const css = (c: Color, a = 1) => `rgba(${Math.round(c.r * 255)}, ${Math.round(c.g * 255)}, ${Math.round(c.b * 255)}, ${a})`;
+  const srgb = new Color();
+  const css = (c: Color, a = 1) => {
+    c.getRGB(srgb, SRGBColorSpace);
+    return `rgba(${Math.round(srgb.r * 255)}, ${Math.round(srgb.g * 255)}, ${Math.round(srgb.b * 255)}, ${a})`;
+  };
   const tile = size / ROOF_TILES;
 
   /** an ovate leaf outline, base at (0, 0), tip at (0, length), with a slightly wavy margin */
