@@ -4,10 +4,16 @@ runtime: Codex Astra + Blender MCP + Astra Max subagents
 github: Leonxlnx
 status: active
 branch: agent/astra-motion-sept21
-updated: 2026-09-21T21:52:00+00:00
+updated: 2026-09-21T22:42:00+00:00
 ---
 
 # Astra motion continuation
+
+22:42 current delivery: `e7ae11df` synchronizes the accepted canonical world through `0963c09d` while retaining current character4dcf, complete-foot support, warmth and bank foliage. Exact imports: Fable4 northern stand7fec320f, plateau roof263d8f4d/f8639ca2; house6d5fca4e/72e6ee75/cedd3bbd; arch932767c9/c48d6a6e; timber tintc1e7d115; moss three-file slice27c2e3c8; atlas51c9e7cb; props validation9e50c054. Typecheck/build (`index-Cpm3E5qS.js`), moss, outward-timber and prop-route checks pass. Other agents' logs were excluded. Source tree differences from canonical are now only the retained character, crown warmth and three bank cores.
+
+Bank source57eea8c0 is imported as004ef8f4: layered leaves/twigs on recessed24/25/26 cores, +65,440triangles/+3draws/+3geometries/+1program/0textures. Root reviewed all four raw C/F images and accepted the visual improvement. Exact tree parity proof passes on root004. PR29 and Fable handoff5768427470 provide source, images, costs and the remaining dark patches; expanded core-recession scope still awaits Fable acknowledgment, no merge. Quaternius pinned SOURCE.json and CC0 LICENSE are delivered in89afc50e with exact Git-blob hashes. CI5050496a passed;89afc50e still running at22:38.
+
+Current local motion study remains rejected:1.08m cycle /54/55s aligns alternating contacts with0.54m treads but needs44.013mm constant source hip drop. Actual-player1320frame comparison checks all537 low sole and4701 full-foot vertices; source4dcf passes both, while candidate110c168f has six descent timber penetrations (worst16.161mm), more highly folded descent frames and worse knee jerk. No candidate asset/clip metadata is production. Actual new knee peaks up82/down179 transfer into copied native Blender scenes within1.74/3.55micrometres and visibly remain folded. Root/OSS agent now evaluate coordinated pelvis and ground-contact forefoot feasibility; older toe-joint rocker bounds do not bound every ground-contact pivot. World agent separately diagnoses Fable4 north-spine underside visibility, read-only first. Live Blender stays root-owned; GPU slot free.
 
 21:52 current delivery: `5050496a` contains accepted shorter boots, complete-foot support and repaired run arms. Source GLB/SHA pair remains `4dcf89c5`. `1e4379c4` imports the independently reviewed leaf warmth from `0858f39f` / PR28; native C/F geometry and submission counts unchanged, modest olive/golden colour improvement only. Local colour contracts and typecheck/build pass (`index-CuONDKJE.js`). Fable has source/evidence handoffs for both character changes and warmth; no automatic merge.
 
