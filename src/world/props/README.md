@@ -33,7 +33,7 @@ prop that finds no legal spot within 1.05 m is skipped and reported (`audit.skip
 relocated across the village.
 
 Draw calls: a `cluster` is a place (placement, audit, `audit.clusterBounds`); clusters belong to a
-merge locality (`localityOf` in `layout.ts`: the seven village clusters → `village`, the north
+merge locality (`localityOf` in `layout.ts`: the eight village clusters → `village`, the north
 clearing → `clearing`), and each locality is ONE mesh per material — 9 meshes for the whole system
 (≤ 9 draws per pass in a frame). Each locality is distance-culled as one (`CLUSTER_VISIBLE_M`,
 45 m, through `update` / `onCameraMove`): the clearing never rides into the six frames' passes.
@@ -44,9 +44,11 @@ clearing → `clearing`), and each locality is ONE mesh per material — 9 meshe
 crate), `stair-foot` (2 pots on the apron at the bottom riser's south corner, the light string on the house terrace's bank above the lawn pocket left of the flight), `plateau` (crate,
 barrel, bucket, 2 pots by the plateau-north fence), `upper-house` (the rope ladder),
 `plateau-lip` (the rope railing on the lookout dais past the end of the plateau-west fence), `west`
-(the tall platform under the lantern tree), `north-clearing` (the waymarker and two pots on the
-north-east corner of the clearing's entrance, two low pots on the flight-side corner — off the
-north paving's mask, outside the disc).
+(the tall platform under the lantern tree), `west-house` (round 49's backside: a crate, a bucket
+and a pot pair on the shoulder where the west tree-house's walkway deck lands, a waymarker at the
+west path's fork — behind every fixed camera, west of C's clipped edge), `north-clearing` (the
+waymarker and two pots on the north-east corner of the clearing's entrance, two low pots on the
+flight-side corner — off the north paving's mask, outside the disc).
 
 ## Verification
 

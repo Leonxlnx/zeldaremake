@@ -38,7 +38,8 @@ const { buildClayMaps, buildRopeMaps } = loadTs(path.join(here, 'materials.ts'))
 const { PROP_LAYOUT } = loadTs(path.join(here, 'layout.ts'));
 const { LAYOUT } = loadTs(path.join(here, '../layout.ts'));
 const { WORLD } = loadTs(path.join(here, '../config.ts'));
-const { createTerrain } = loadTs(path.join(here, '../terrain/heightfield.ts'));
+const { createTerrain, expansionCull } = loadTs(path.join(here, '../terrain/heightfield.ts'));
+const { southBankPoint, EXPANSION } = loadTs(path.join(here, '../layout.ts'));
 const { createRng } = loadTs(path.join(here, '../util/prng.ts'));
 const { Vector3 } = THREE;
 
@@ -56,7 +57,23 @@ const textures = {
   report: () => ({}),
 };
 const audits = [];
-const ctx = { terrain: createTerrain(), layout: LAYOUT, config: WORLD, quality: { shadows: true }, textures, shared: {}, audit: (_, fn) => audits.push(fn) };
+// props build against the heightfield's LEGACY view in src/world/index.ts (round 49): the test does the same
+// structures publish the west tree-house's platform / walkway for the character ground
+// (ctx.shared.walkSurfaces, distantHouse.ts): the same formula here — disc r = R + 0.22 at floorY +
+// 0.01, the deck's top line from the rim (platR − 0.15) to EXPANSION.westHouse.deckEnd, hw 0.475,
+// the wall ring at R · 0.96 ± 0.2 — so the deck pot builds in the test
+const westWalk = (() => {
+  const W = EXPANSION.westHouse;
+  const R = W.radius;
+  const platR = R + 0.22;
+  const c = { x: W.host[0], z: W.host[1] };
+  const end = W.deckEnd;
+  const L = Math.hypot(end[0] - c.x, end[2] - c.z);
+  const dir = [(end[0] - c.x) / L, (end[2] - c.z) / L];
+  const a = [c.x + dir[0] * (platR - 0.15), W.floorY, c.z + dir[1] * (platR - 0.15)];
+  return { id: 'west-house', disc: { x: c.x, z: c.z, r: platR, y: W.floorY + 0.01 }, deck: { a, b: [end[0], end[1], end[2]], hw: 0.475 }, wall: { r: R * 0.96, half: 0.2, gap: [0, 0] } };
+})();
+const ctx = { terrain: createTerrain('legacy'), layout: LAYOUT, config: WORLD, quality: { shadows: true }, textures, shared: { walkSurfaces: [westWalk] }, audit: (_, fn) => audits.push(fn) };
 
 // ---- builders
 {
@@ -129,7 +146,7 @@ const ctx = { terrain: createTerrain(), layout: LAYOUT, config: WORLD, quality: 
 
 // ---- the system
 const one = await create(ctx);
-const two = await create({ ...ctx, terrain: createTerrain() });
+const two = await create({ ...ctx, terrain: createTerrain('legacy') });
 const audit = audits[0]();
 assert.deepEqual(audit.skipped, [], `every authored prop finds a legal spot (skipped: ${audit.skipped})`);
 assert.ok(textureLoads.includes('weathered_planks/color') && textureLoads.includes('weathered_planks/normal'), 'wood loads the plank maps');
@@ -149,9 +166,9 @@ assert.ok(audit.pots >= 8, 'three sizes of pot in four clusters');
 assert.ok(audit.meshes <= 24, `bounded draw calls (${audit.meshes} meshes)`);
 assert.equal(audit.meshes, one.group.children.reduce((n, g) => n + g.children.length, 0));
 assert.equal(audit.clusters, new Set(PROP_LAYOUT.map((d) => d.cluster)).size, 'every authored cluster placed');
-assert.equal(audit.localities, 2, 'two merge localities: the village and the clearing');
-assert.equal(one.group.children.length, 2, 'one group per locality');
-assert.ok(audit.meshes <= 10, `≤ 10 meshes for the whole system (${audit.meshes})`);
+assert.equal(audit.localities, 3, 'three merge localities: the village, the clearing and the backside');
+assert.equal(one.group.children.length, 3, 'one group per locality');
+assert.ok(audit.meshes <= 14, `≤ 14 meshes for the whole system (${audit.meshes})`);
 // small props never tip more than 9° off level; the marker post stands vertical
 for (const p of audit.placed) if (['pot', 'crate', 'barrel', 'bucket'].includes(p.kind)) assert.ok(p.tiltDeg <= 9.01, `${p.id} tilt ${p.tiltDeg}°`);
 for (const p of audit.placed) if (p.kind === 'marker') assert.equal(p.tiltDeg, 0, `${p.id} vertical`);
@@ -198,21 +215,26 @@ for (const p of audit.placed) if (p.kind === 'marker') assert.equal(p.tiltDeg, 0
   for (const m of g.children) { m.geometry.computeBoundingSphere(); assert.ok(m.geometry.boundingSphere.radius < 4, `${m.name} compact (${m.geometry.boundingSphere.radius.toFixed(2)})`); }
 }
 
-// distance cull: from every fixed camera the clearing cluster is hidden and every village cluster
-// drawn; from the clearing the clearing draws; the walk (update) applies the same rule
+// culling: from every fixed camera the clearing (45 m rule) and the backside (expansionLocality:
+// frustum + shadow footprints) are hidden and the village drawn; from the deck landing the
+// backside draws; far north of the clearing everything is culled
 {
   const groups = () => Object.fromEntries(one.group.children.map((c) => [c.name, c.visible]));
+  const camAt = (p, t, fov = 46) => { const cam = new THREE.PerspectiveCamera(fov, 1280 / 720, 0.1, 1000); cam.position.fromArray(p); cam.lookAt(new Vector3().fromArray(t)); cam.updateMatrixWorld(true); return cam; };
   for (const v of LAYOUT.viewpoints) {
-    one.onCameraMove({ position: new Vector3().fromArray(v.position) }, ctx);
+    one.onCameraMove(camAt(v.position, v.target, v.fov), ctx);
     const vis = groups();
     assert.equal(vis['clearing'], false, `${v.id}: the clearing is culled`);
+    assert.equal(vis['backside'], false, `${v.id}: the backside is culled (neither the props nor their shadows meet the frustum)`);
     assert.equal(vis['village'], true, `${v.id}: the village drawn`);
   }
-  one.update(0.016, 1, { ...ctx, camera: { position: new Vector3(2.4, 5.8, -62.6) } });
+  one.update(0.016, 1, { ...ctx, camera: camAt([2.4, 5.8, -62.6], [0.4, 5.0, -64.6], 50) });
   assert.equal(groups()['clearing'], true, 'at the clearing the clearing draws');
-  one.update(0.016, 1, { ...ctx, camera: { position: new Vector3(5, 6, -120) } });
-  assert.deepEqual(groups(), { village: false, clearing: false }, 'far north of the clearing both localities are culled');
-  one.onCameraMove({ position: new Vector3().fromArray(LAYOUT.viewpoints[0].position) }, ctx);
+  one.update(0.016, 1, { ...ctx, camera: camAt([-13.2, 3.8, 7.9], [-16.6, 2.9, 5.4], 50) });
+  assert.equal(groups()['backside'], true, 'at the deck landing the backside draws');
+  one.update(0.016, 1, { ...ctx, camera: camAt([5, 6, -120], [5, 5, -119], 46) });
+  assert.deepEqual(groups(), { village: false, clearing: false, backside: false }, 'far north of the clearing every locality is culled');
+  one.onCameraMove(camAt(LAYOUT.viewpoints[0].position, LAYOUT.viewpoints[0].target, LAYOUT.viewpoints[0].fov), ctx);
 }
 
 // projection: the door / signpost dressing shows in B_house (composition, not occlusion)
@@ -229,6 +251,7 @@ for (const id of ['door-pot-large', 'sign-pot', 'saria-crate', 'saria-water-buck
   assert.ok(Math.abs(c.x) < 0.95 && Math.abs(c.y) < 0.95 && c.z > -1 && c.z < 1, `${id} projects inside B_house; actual ${c.toArray()}`);
   heroProjection[id] = [+((c.x + 1) / 2).toFixed(3), +((1 - c.y) / 2).toFixed(3)];
 }
+
 // the lookout railing is bound to LAYOUT.plateauLookout (no nudge) and stands ON the stone dais:
 // its ropes hang above the slab top (the highest turf under the slab + its proud height)
 {
@@ -295,6 +318,51 @@ for (const id of ['door-pot-large', 'sign-pot', 'saria-crate', 'saria-water-buck
   assert.equal(audit.skipped.length, 0);
 }
 
+// the backside (expansion-2): the west landing's stores and the fork marker stand behind every
+// fixed camera and west of camera C's clipped edge, on ground the live and legacy views share
+{
+  const west = audit.placed.filter((p) => p.cluster === 'west-house');
+  assert.equal(west.length, 6, 'crate, bucket, two pots, the fork marker and the deck pot');
+  // the deck pot: on the walkway's top line beside the door, inside the deck's width, outside the wall
+  const dp = west.find((p) => p.id === 'west-door-pot');
+  const a = westWalk.deck.a, b = westWalk.deck.b;
+  const L = Math.hypot(b[0] - a[0], b[2] - a[2]);
+  const dir = [(b[0] - a[0]) / L, (b[2] - a[2]) / L];
+  const rel = [dp.x - a[0], dp.z - a[2]];
+  const along = rel[0] * dir[0] + rel[1] * dir[1];
+  const across = -rel[0] * dir[1] + rel[1] * dir[0];
+  assert.ok(Math.abs(along - 0.55) < 0.02, `deck pot 0.55 m along the deck (${along.toFixed(3)})`);
+  assert.ok(Math.abs(across - (0.475 - 0.23)) < 0.02, `deck pot 0.245 m off the centreline on the door side (${across.toFixed(3)})`);
+  assert.ok(Math.abs(dp.y - (a[1] + (b[1] - a[1]) * (along / L))) < 0.01, 'deck pot stands on the deck top');
+  const rc = Math.hypot(dp.x - westWalk.disc.x, dp.z - westWalk.disc.z);
+  assert.ok(rc > westWalk.wall.r + westWalk.wall.half + 0.21, `deck pot (r 0.22) clear of the wall ring (centre at ${rc.toFixed(2)} m)`);
+  assert.ok(Math.hypot(dp.x - -19.69, dp.z - 8.235) < 1.0, 'deck pot within a metre of the door point (−19.69, 8.235)');
+  const cams = LAYOUT.viewpoints.map((v) => { const cam = new THREE.PerspectiveCamera(v.fov, 1280 / 720, 0.1, 1000); cam.position.fromArray(v.position); cam.lookAt(new Vector3().fromArray(v.target)); cam.updateMatrixWorld(true); return { id: v.id, cam }; });
+  for (const p of west) {
+    for (const h of [0, 1.8]) for (const { id, cam } of cams) {
+      const c = new Vector3(p.x, p.y + h, p.z).project(cam);
+      assert.ok(!(Math.abs(c.x) < 1 && Math.abs(c.y) < 1 && c.z > -1 && c.z < 1), `${p.id} outside ${id}`);
+    }
+    // EXPANSION.cClip: x = 2.33 − 0.5663 (z + 7.67), margin 1.3 m west of it
+    assert.ok(p.x < 2.33 - 0.5663 * (p.z + 7.67) - 1.3, `${p.id} west of camera C's clipped edge`);
+    // authored spot kept (no nudge): the shoulder is natural ground in both views
+    const def = PROP_LAYOUT.find((d) => d.id === p.id);
+    if (def.onDeck) continue;
+    assert.ok(Math.abs(def.x - p.x) < 1e-9 && Math.abs(def.z - p.z) < 1e-9, `${p.id} placed where authored`);
+    const live = createTerrain('live');
+    assert.ok(Math.abs(live.height(p.x, p.z) - ctx.terrain.height(p.x, p.z)) < 0.02, `${p.id}: live and legacy ground agree (${live.height(p.x, p.z).toFixed(3)} vs ${ctx.terrain.height(p.x, p.z).toFixed(3)})`);
+  }
+}
+
+// round 49's expansionCull runs after placement: the bank's top would be culled, nothing placed is
+{
+  assert.deepEqual(audit.culledByExpansion, [], 'no authored prop stands in the live-only expansion ground');
+  const [bx, bz] = southBankPoint(0, -1.0);
+  assert.equal(expansionCull(bx, bz), true, 'a spot on the south bank top is culled');
+  assert.equal(expansionCull(EXPANSION.farHut.host[0], EXPANSION.farHut.host[1]), true, 'the far hut knoll is culled');
+  for (const p of audit.placed) if (!PROP_LAYOUT.find((d) => d.id === p.id).onDeck) assert.equal(expansionCull(p.x, p.z), false, `${p.id} stands on ground the expansion did not change`);
+}
+
 // the footprints hook: every placed prop publishes its ground disc for the vegetation scatter
 {
   const fp = ctx.shared.propFootprints;
@@ -341,7 +409,7 @@ for (const g of one.group.children) {
 assert.ok(contacts > 300, `real underside geometry is seated (${contacts} contact vertices)`);
 for (const [x, y, z] of audit.samplePositions.bases) assert.ok(Math.abs(ctx.terrain.height(x, z) - y) < 1e-8, 'audited bases touch the terrain');
 // each cluster mesh is compact (frustum culling works per locality)
-for (const g of one.group.children) for (const m of g.children) assert.ok(m.geometry.boundingSphere.radius < (g.name === 'clearing' ? 4.5 : 26), `${m.name} bounding radius ${m.geometry.boundingSphere.radius.toFixed(2)}`);
+for (const g of one.group.children) for (const m of g.children) assert.ok(m.geometry.boundingSphere.radius < (g.name === 'clearing' ? 4.5 : g.name === 'backside' ? 5 : 26), `${m.name} bounding radius ${m.geometry.boundingSphere.radius.toFixed(2)}`);
 
 // placement rules
 assert.equal(placementAllowed(ctx, 0, 0, 0.3), false, 'plaza paving stays clear');
@@ -360,8 +428,8 @@ assert.equal(placementAllowed(withMask({ stairs: 1 }), 30, 30, 0.3, { paving: tr
 const blocked = withMask({ path: 1, stairs: 1, structure: 1, cliff: 1 });
 const empty = await create(blocked);
 assert.equal(empty.group.children.filter((g) => g.children.length).length <= 2, true, 'no fallback placements on forbidden ground (only the ladder, which leans on a house, and the lookout railing, bound to its hook, may build)');
-assert.deepEqual(empty.group.children.filter((g) => g.children.length).map((g) => g.name).sort(), ['village'], 'the probed props all skip (only the ladder, the hook-bound railing and the authored light strings build, all village)');
-assert.deepEqual(Object.keys(audits[audits.length - 1]().clusterBounds).sort(), ['plateau-lip', 'stair-foot', 'upper-house'], 'on forbidden ground only the ladder (house), the hook-bound railing and the authored light strings (stair-foot) build');
+assert.deepEqual(empty.group.children.filter((g) => g.children.length).map((g) => g.name).sort(), ['backside', 'village'], 'the probed props all skip (only the ladder, the hook-bound railing, the authored light string and the deck pot build)');
+assert.deepEqual(Object.keys(audits[audits.length - 1]().clusterBounds).sort(), ['plateau-lip', 'stair-foot', 'upper-house', 'west-house'], 'on forbidden ground only the ladder (house), the hook-bound railing, the authored light string (stair-foot) and the deck pot (west-house) build');
 // the blocked run overwrote the shared list; restore the real one for the checks below
 ctx.shared.propFootprints = audit.footprints;
 

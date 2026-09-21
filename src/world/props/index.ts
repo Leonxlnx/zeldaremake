@@ -11,6 +11,8 @@
 import { Box3, BufferGeometry, type Camera, Color, Group, Mesh, Quaternion, Sphere, Vector3 } from 'three';
 import { mergeGeometries } from 'three/addons/utils/BufferGeometryUtils.js';
 import type { WorldContext, WorldSystem } from '../system';
+import { expansionCull } from '../terrain/heightfield';
+import { type Caster, casterSpheres, expansionVisible, sunVector } from '../util/expansionLocality';
 import { createRng } from '../util/prng';
 import { barrelGeometry, bucketGeometry, crateGeometry, ladderGeometry, lightStringGeometry, markerGeometry, type Part, platformGeometry, potGeometry } from './geometry';
 import { localityOf, PROP_LAYOUT, type PropDef } from './layout';
@@ -162,6 +164,8 @@ export async function create(ctx: WorldContext): Promise<WorldSystem> {
   const bases: number[][] = [];
   const counts = { pots: 0, crates: 0, barrels: 0, buckets: 0, platforms: 0, ladders: 0, markers: 0, lightStrings: 0, lightPods: 0, ropeRailings: 0 };
   const skipped: string[] = [];
+  /** authored props whose spot lies inside round 49's live-only expansion ground (`expansionCull`) */
+  const culledByExpansion: string[] = [];
   const placed: { id: string; kind: string; cluster: string; x: number; y: number; z: number; tiltDeg: number }[] = [];
   /** world-space geometry per merge locality and material, merged at the end */
   const localities = new Map<string, Record<MaterialKey, BufferGeometry[]>>();
@@ -173,6 +177,8 @@ export async function create(ctx: WorldContext): Promise<WorldSystem> {
     }
     return b;
   };
+  /** the backside props as vertical casters (expansionLocality's frustum + shadow-footprint rule) */
+  const backsideCasters: Caster[] = [];
   /** world-space extent of each cluster per material (audit + tests; the meshes merge past cluster level) */
   const clusterBounds = new Map<string, Partial<Record<MaterialKey, Box3>>>();
   const clusterNames = new Set<string>();
@@ -249,6 +255,42 @@ export async function create(ctx: WorldContext): Promise<WorldSystem> {
       footR = 0.12;
       // every peg reserves a little ground for the vegetation scatter (the first one through footR)
       for (let i = 1; i < line.points.length; i++) footprints.push({ x: line.points[i][0], z: line.points[i][1], r: 0.12 });
+    } else if (def.onDeck) {
+      // on a published walk deck (structures' walkway): the prop stands level on the deck's top
+      // line, `along` from the platform end, inset from the edge — no ground probe, no conform
+      const surface = ctx.shared.walkSurfaces?.[def.onDeck.surface];
+      if (!surface) {
+        skipped.push(def.id);
+        continue;
+      }
+      const a = new Vector3().fromArray(surface.deck.a);
+      const b = new Vector3().fromArray(surface.deck.b);
+      const run = new Vector3(b.x - a.x, 0, b.z - a.z);
+      const length = run.length();
+      const dir = run.clone().normalize();
+      const side = new Vector3(-dir.z, 0, dir.x);
+      const t = Math.min(1, Math.max(0, def.onDeck.along / Math.max(length, 1e-6)));
+      const p = a.clone().lerp(b, t).addScaledVector(side, def.onDeck.side * Math.max(0, surface.deck.hw - 0.23));
+      x = p.x;
+      z = p.z;
+      groundY = p.y;
+      orientation = new Quaternion();
+      contactBand = 0;
+      const size = def.size * rng.range(0.96, 1.04);
+      if (def.kind === 'pot') {
+        parts = potGeometry(rng, size, def.variant ?? 0);
+        counts.pots++;
+      } else if (def.kind === 'crate') {
+        parts = crateGeometry(rng, size);
+        counts.crates++;
+      } else if (def.kind === 'barrel') {
+        parts = barrelGeometry(rng, size);
+        counts.barrels++;
+      } else {
+        parts = bucketGeometry(rng, size);
+        counts.buckets++;
+      }
+      taken.push([x, groundY, z, footR]);
     } else if (def.kind === 'platform' && def.platform?.dais) {
       // the lookout railing: bound to LAYOUT.plateauLookout, whose author verified the
       // clearances — no footprint probe, no nudge. The stone dais (hardscape) is the deck: its top
@@ -293,6 +335,14 @@ export async function create(ctx: WorldContext): Promise<WorldSystem> {
         continue;
       }
       [x, z] = spot;
+      // round 49: props build on the LEGACY heightfield view; a spot that the expansion's live-only
+      // ground has since raised, paved or built on (the south bank, the far hut's knoll, the west
+      // discs and flights) is dropped here — a filter after placement, so no stream re-rolls
+      if (expansionCull(x, z)) {
+        skipped.push(def.id);
+        culledByExpansion.push(def.id);
+        continue;
+      }
       groundY = terrain.height(x, z);
       if (def.kind === 'platform') {
         const spec = def.platform ?? { deck: 1.2, width: 1.8, depth: 1.4, rail: true, ladder: true };
@@ -344,9 +394,11 @@ export async function create(ctx: WorldContext): Promise<WorldSystem> {
     // prop frame → world
     const world = new Quaternion().setFromAxisAngle(UP, yaw).premultiply(orientation);
     const position = new Vector3(x, groundY, z);
-    bases.push([x, terrain.height(x, z), z]);
+    // (a prop on a published walk deck meets a built surface, not the ground — no terrain base for it)
+    if (!def.onDeck) bases.push([x, terrain.height(x, z), z]);
     placed.push({ id: def.id, kind: def.kind, cluster: def.cluster, x: +x.toFixed(3), y: +groundY.toFixed(3), z: +z.toFixed(3), tiltDeg: +((tiltUsed * 180) / Math.PI).toFixed(2) });
     footprints.push({ x: +x.toFixed(3), z: +z.toFixed(3), r: +footR.toFixed(3) });
+    if (localityOf(def.cluster) === 'backside') backsideCasters.push({ x, z, r: footR + 0.25, y0: groundY - 0.1, y1: groundY + (def.kind === 'marker' ? def.size + 0.15 : def.size * 1.1), shadow: true });
     clusterNames.add(def.cluster);
     const batches = batchesFor(localityOf(def.cluster));
     let bounds = clusterBounds.get(def.cluster);
@@ -456,9 +508,17 @@ export async function create(ctx: WorldContext): Promise<WorldSystem> {
     root.add(group);
     if (!first) localityBounds.push({ group, sphere });
   }
-  /** distance cull per locality: pose jumps come through onCameraMove, the walk through update */
+  // the backside locality follows util/expansionLocality.ts: hidden beyond 60 m of the expansion
+  // box, or when neither the props nor their sun-shadow footprints meet the camera's frustum —
+  // so the six fixed frames, which look away from it, draw none of it in either pass
+  const sunToward = ctx.sun ? ctx.sun.position.clone().sub(ctx.sun.target.position).normalize() : sunVector(ctx.config.sun.azimuthDeg, ctx.config.sun.elevationDeg);
+  const backsideSpheres = backsideCasters.flatMap((c) => casterSpheres(c, sunToward));
+  /** cull per locality: pose jumps come through onCameraMove, the walk through update */
   const cull = (camera: Camera) => {
-    for (const b of localityBounds) b.group.visible = camera.position.distanceTo(b.sphere.center) - b.sphere.radius < CLUSTER_VISIBLE_M;
+    for (const b of localityBounds) {
+      if (b.group.name === 'backside') b.group.visible = backsideSpheres.length > 0 && expansionVisible(camera, backsideSpheres);
+      else b.group.visible = camera.position.distanceTo(b.sphere.center) - b.sphere.radius < CLUSTER_VISIBLE_M;
+    }
   };
   const round3 = (v: number) => +v.toFixed(3);
   const boundsAudit: Record<string, Partial<Record<MaterialKey, { min: number[]; max: number[] }>>> = {};
@@ -483,9 +543,10 @@ export async function create(ctx: WorldContext): Promise<WorldSystem> {
     triangles,
     placed,
     skipped,
+    culledByExpansion,
     footprints,
     clusterBounds: boundsAudit,
-    culling: { visibleWithinM: CLUSTER_VISIBLE_M, localities: localityBounds.map((b) => ({ locality: b.group.name, centre: b.sphere.center.toArray().map((v) => +v.toFixed(2)), radius: +b.sphere.radius.toFixed(2) })) },
+    culling: { visibleWithinM: CLUSTER_VISIBLE_M, backside: 'expansionLocality (frustum + shadow footprints)', backsideCasters: backsideCasters.length, localities: localityBounds.map((b) => ({ locality: b.group.name, centre: b.sphere.center.toArray().map((v) => +v.toFixed(2)), radius: +b.sphere.radius.toFixed(2) })) },
     samplePositions: { bases },
   }));
   return {

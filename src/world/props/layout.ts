@@ -16,9 +16,11 @@ export type PropKind = 'pot' | 'crate' | 'barrel' | 'bucket' | 'ladder' | 'platf
  * is what draws together — every cluster of one locality merges into ONE mesh per material and
  * is distance-culled as one. The village's seven clusters span ~30 m and every fixed camera holds
  * most of them, so per-cluster meshes bought no culling there, only draw calls (up to 16 meshes,
- * 32 draws with the shadow pass); the north clearing is 60–75 m away and draws on its own.
+ * 32 draws with the shadow pass); the north clearing is 60–75 m away and draws on its own; the
+ * backside (round 49) is 8–25 m from every plaza camera but behind them all, and follows
+ * `util/expansionLocality.ts` (frustum + swept shadow footprints) like the house and its stair.
  */
-const CLUSTER_LOCALITY: Record<string, string> = { 'north-clearing': 'clearing' };
+const CLUSTER_LOCALITY: Record<string, string> = { 'north-clearing': 'clearing', 'west-house': 'backside' };
 export function localityOf(cluster: string): string {
   return CLUSTER_LOCALITY[cluster] ?? 'village';
 }
@@ -57,6 +59,13 @@ export interface PropDef {
    * are placed as drawn (no footprint probe); `x`/`z` of the def are the first peg.
    */
   string?: { points: [number, number][]; lift: number; sag: number; spacing: number };
+  /**
+   * on a published walk deck (`ctx.shared.walkSurfaces[surface].deck`, structures' walkway of the
+   * west tree-house): `along` m from the deck's platform end along its top line, `side` × (half
+   * width − 0.23 m) off the centreline; the prop stands level on the deck's top. `x`/`z` here are
+   * the fallback / documentation of where that lands. Skipped when no surface is published.
+   */
+  onDeck?: { surface: number; along: number; side: -1 | 1 };
 }
 
 export const PROP_LAYOUT: readonly PropDef[] = [
@@ -121,6 +130,39 @@ export const PROP_LAYOUT: readonly PropDef[] = [
 
   // ---- the west platform under the lantern tree (round 31): tall deck with its ladder, kept
   { id: 'west-tree-platform', kind: 'platform', x: -8.7, z: -10.0, size: 1, yaw: 0, cluster: 'west', platform: { deck: 1.28, width: 1.8, depth: 1.4, rail: true, ladder: true } },
+
+  // ---- the plaza's backside (round 49, expansion-2): the west tree-house's landing. The
+  // `west-house` flight (EXPANSION_STAIRS: base (−15.39, 7.64), 3 risers NNW, 1.0 m wide) tops out
+  // on the ledge's 2.75 m shoulder at the walkway deck's end (−16.28, 6.46); the deck runs WNW to
+  // the house on the southwest giant. The shoulder SOUTH of the landing is natural, near-level
+  // ground (2.6–2.9 m, tilt 10–15°; the flight's own bank is 21–37°), identical in the live and
+  // legacy heightfield views (props build against the legacy one; only the south bank and the far
+  // hut's knoll are live-only). Stores where the walker steps off the deck: a crate, a bucket and
+  // a pot pair, all ≥ 0.9 m off the landing slabs and clear of the deck's line. Every fixed
+  // camera looks north-east to north (C looks SSE with its west edge at x ≈ −6.4 here, 9 m east
+  // of the group; `cClip` margin included); pinhole: outside all six, and sun shadows (1.27 m ESE
+  // per m of height) reach x ≈ −15.3 at most.
+  { id: 'west-landing-crate', kind: 'crate', x: -15.9, z: 5.2, size: 0.6, yaw: -0.5, cluster: 'west-house' },
+  { id: 'west-landing-bucket', kind: 'bucket', x: -16.55, z: 5.25, size: 0.54, yaw: 0.9, cluster: 'west-house' },
+  { id: 'west-landing-pot', kind: 'pot', x: -17.15, z: 5.55, size: 0.62, yaw: 1.7, cluster: 'west-house', variant: 0 },
+  { id: 'west-landing-pot-squat', kind: 'pot', x: -16.8, z: 4.9, size: 0.44, yaw: -2.2, cluster: 'west-house', variant: 2 },
+  // the pot by the west-house door (fable-cursor's item 0): the platform's walkable ring outside
+  // the wall is 0.04 R + 0.02 = 0.156 m — no pot stands there — so it stands on the walkway deck's
+  // mouth beside the door instead: 0.55 m from the platform rim along the deck (structures' rail
+  // posts are at its middle and end, the rail anchors to the wall), on the door's side (+wSide:
+  // the door at bearing 103° is 0.46 m off the deck's 111° line), 0.23 m in from the edge — a
+  // squat pot 0.42 m across leaves 0.5 m of the 0.95 m deck to walk. Position and height come
+  // from `ctx.shared.walkSurfaces[0].deck` at build time; the x/z here are where that lands.
+  { id: 'west-door-pot', kind: 'pot', x: -19.2, z: 7.8, size: 0.42, yaw: 0.9, cluster: 'west-house', variant: 2, onDeck: { surface: 0, along: 0.55, side: 1 } },
+  // a waymarker on the outer (north) side of the west path past its fork at (−8.6, 9.4), where
+  // the south branch leaves for the bank: 0.9 m off the west line's discs, 2.5 m west of `cClip`'s
+  // margin, 2.2 m from the bush the vegetation scatter put at (−8.83, 8.38) (a first spot at
+  // (−9.2, 8.6) stood inside its crown), and far enough west that even its swept sun-shadow
+  // footprint (2.4 m ESE, `util/expansionLocality.ts` with its 0.75 m padding) stays outside
+  // camera C's frustum — at (−10.4, 8.7) the padded tip crossed C's edge by 4 cm and C drew the
+  // whole backside. On the ledge face's slope (the post stands vertical, its foot conformed); the
+  // long board points along the west line to the house, the short one back to the plaza.
+  { id: 'west-fork-marker', kind: 'marker', x: -11.0, z: 8.4, size: 1.65, yaw: -1.25, cluster: 'west-house' },
 
   // ---- the north clearing's entrance (GOAL_MODE fable-3 #2): where the north path's band (half
   // width 2.2, from the arch at (5.8, −58) south-west) meets the paved disc at (−1.5, −69.8) r 4.6.
