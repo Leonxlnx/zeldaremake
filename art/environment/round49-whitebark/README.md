@@ -96,6 +96,65 @@ identical between the first two rows — the merged commits are colour and textu
 A 8.679 → 8.672 M (−7 K), B/E 7.856 → 7.832 (−24 K), C 7.107 → 7.016 (−91 K), D 8.097 → 8.063
 (−34 K), F 8.037 → 7.999 (−38 K); W12 163/163, determinism 0, console 0.
 
+## Iteration 7 — the vertex marks retire (`5fe5848`, branch `agent/fable-4-r49b`)
+
+fable-5's §I notes on the marks: the tile's bands sit on top of the round-48 soft vertex zones (some
+stems showed a soft zone above a crisp band) and three bands plus two chevrons on 6 m read busy
+against ref-04's one or two. The round-48 vertex-colour broad bands and chevrons are gone; the
+tile's crisp bands and chevrons carry the large marks alone; the 6–14 cm bands and the sooty foot
+stay. Vertex colours only — geometry identical on 10/10 variants. BEFORE = the head `0990b2c`.
+
+| pose | verdict | what changed |
+| --- | --- | --- |
+| `f4-trunk-2m` | PASS | the crisp band alone; the paper below it pale with its lenticel rows where a soft zone darkened the whole upper stem (3.8 % of the frame, 1.3 % strongly) |
+| `f4-trunk-8m` | small | 0.5 % — the soft zones were faint at 8 m already |
+| `sn-whitebark-base` | unchanged | the foot and the 6–14 cm bands are round 47's and stay |
+
+Six views (`0990b2c` → `5fe5848`, settle 6): A 0.2176 =, B 0.2015 =, C 0.2369 → 0.2368, D 0.2769 =,
+E 0.2136 =, F 0.2564 =; draws 562/518/403/392/518/503 and triangles identical; W12 163/163,
+determinism 0, console 0.
+
+## Iteration 8 — the stems lean (`ea86f8c`) — a look change, reported with its cost
+
+fable-5's W08 note at C after the boughs: "what W08 still lacks at C: lean and taper (the stem is
+straight)". Traced: the survey tree (variant 7) had the smallest lean of the matures (2.8°) and leaned
+along world −z — toward camera C — where a lean is foreshortened to nothing. Change: lean 5–10°
+(was 2–8°, the same draw so each variant keeps its place in the range; variant 7 → 5.6°), the lean
+azimuth's draw turned by `LEAN_TURN` (1.246 rad) so variant 7 at the survey tree's yaw leans along
+world +x, across camera C; the crown scaffolds turn with it (same shapes, rotated); the low
+boughs' offset is reduced by the same angle so every bough stays where iteration 6 measured it.
+BEFORE = the branch at `5fe5848` (so the lean is measured alone). Sheets `fable4-r49-lean-*.jpg`,
+crop `fable4-r49-lean-C-stem-crop.png`.
+
+| pose | verdict | what changed |
+| --- | --- | --- |
+| C's stem (crop) | PASS for "lean" | the survey stem leans ≈ 5° into the frame from the ground to the HUD — a leaning birch, not a vertical pole |
+| `f4-trunk-8m`, `f4-pair-12-20m` | PASS | the grove's stems lean each their own way (22 % / 19 % of the frames changed) |
+| `x-arch-tunnel-n`, `w18-spine-r` | small | the young stems' lean at 10–25 m (5.7 % / 3.2 %) |
+
+Six views (`5fe5848` → `ea86f8c`, settle 6): A 0.2176 =, **B 0.2015 → 0.2017, C 0.2368 → 0.2347
+(−0.0021), D 0.2769 → 0.2765 (−0.0004)**, E 0.2136 → 0.2135, F 0.2564 → 0.2563; draws 392 → 391
+at D, the rest identical; triangles A −3 K, D −52 K (a leaning stem left D's window bucket), F +3 K;
+W12 163/163, determinism 0, console 0. Inside the −0.003 rule at every view, but C −0.0021 is the
+largest cost any white-bark change has carried: the frame's SSIM against the reference falls as the
+pale stem at its right edge leans into it. **The retire commit (`5fe5848`) stands on its own;
+the lean is separable — fable-cursor's call whether W08's "lean" at C is worth C −0.0021.**
+
+Whole branch vs the head `0990b2c`: A 0.2176 =, B +0.0002, C −0.0022, D −0.0004, E −0.0001,
+F −0.0001.
+
+### The lean's direction does not decide its cost (experiment, not shipped)
+
+Tried: the same lean turned the other way, so the survey stem leans *out* of camera C's frame
+(world −x) instead of into it — fewer pale-stem pixels where the reference is dark. Measured on the
+tick-193 head (`0b66906`, same settle, one Chrome): no lean C 0.2374 → lean-out C 0.2355
+(**−0.0019**, D −0.0003) against lean-in's −0.0021 on the previous head. The cost is the lean
+itself — the stem's pixels moving against the reference's structure at C's right edge — not its
+direction. Kept the into-frame lean (`ea86f8c`: the stem shows its lean along its whole visible
+length; leaning out, its top leaves under the HUD). Crop `fable4-r49-lean-C-none-in-out.png`
+(no lean | in | out). Whole branch on the tick-193 head: A 0.2178 =, B +0.0001, C −0.0019, D −0.0003,
+E −0.0001, F =; draws 396 → 394 at D; W12 163/163; determinism 0; console 0.
+
 ## The far hut's knoll: the buried white-bark leaves (`agent/fable-4-knoll`, after expansion-2)
 
 expansion-2's backside (`bd2595d8`) raises a live-only knoll under the far hut (`farHutRise` 1.4 m,

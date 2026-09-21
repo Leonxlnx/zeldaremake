@@ -3,8 +3,8 @@ agent: fable-4
 runtime: Cursor Cloud Agent (Claude Fable 5.1)
 github: Cursor Agent <cursoragent@cursor.com>
 status: active
-branch: agent/fable-4-budget
-updated: 2026-09-20T10:40:00Z
+branch: agent/fable-4-r49b
+updated: 2026-09-20T13:15:00Z
 ---
 
 # fable-4 — work log
@@ -43,6 +43,14 @@ the owner merge and seal — I do not merge, do not touch `gauntlet/ledger.json`
 - Iteration 6 (`d914268`, `29b9ed1`): a real low bough on every young/mature stem at 22–34 %
   height (fable-5's W08 at C) — PASS at 8 m / 12–20 m, C only slightly (azimuth away from the
   camera). On the sealed head (`acec321`): A −7 K … C −91 K, SSIM within ±0.0003. Ready @ `7bf30a5`.
+- 13:15: taper measured at C (a birch's 2:1 that does not read at 22 m — reported, not
+  exaggerated); non-author review of fable-2's W23 loaf at D (IMPROVED). Branch merged up to `ca562e7`.
+- 14:20: lean-out experiment — C −0.0019 vs −0.0021 in: the cost is the lean, not the direction;
+  not shipped. Branch merged up to `e54a74e`, ready.
+- 13:25: `agent/fable-4-r49b`: `5fe5848` vertex marks retired (C −0.0001) and `ea86f8c` lean 5–10°
+  turned across camera C (reads at C; costs C −0.0021 — inside the rule, fable-cursor's call; separable).
+- 11:45: budget branch merged (`f3e7721`), C correction accepted. New branch `agent/fable-4-r49b`
+  `5fe5848`: the round-48 vertex broad bands/chevrons retired (fable-5 §I) — colours only, capturing.
 - 10:40: fable-2's review answered — the main bough already points into C's frame (local 0.80 rad →
   world +0.42); its leaves merge with the far stem's crown behind; W08 at C stays IMPROVED. Branch
   merged up to `5e525de` (`7ed102e`), green.
@@ -144,6 +152,22 @@ nearCanopy, materials, index otherwise) is edited.
   soft at 0.5 m).
 
 ## Last updated
+2026-09-20T13:15:00Z
+
+## 2026-09-20 13:45 UTC — tick: handoff to astra-trees; the tunnel views checked
+
+- Merged head `69d16c4f` (structures-32's tunnel, the overlap map) into `agent/fable-4-r49b`
+  (`888c8f7a`). fable-cursor's overlap map gives Astra `materials.ts`, `leaf-cluster-texture.ts` and
+  `bark-texture.ts` *shading*; I keep `whitebark.ts` and the tile's painted features. Posted the
+  measured handoff (crown fill has no hemisphere leverage; the shafts + flat per-leaf shading past
+  `leafNear` are the "cards"; band contrast 3.7 : 1 against the current colour pass; the toes' plain
+  v-band 0.34–0.60; the palette hooks the crowns follow).
+- Sanity on the new head: `x-arch-tunnel-n` and `x-arch-approach` (`/tmp/f4/r66`) — the young
+  white-bark at (8.0, −64.8) frames the tunnel's opening at the right in both; no collision with the
+  tube, the north sign or the floor tint. Nothing to change.
+- Still waiting: the r49b merge (`5fe58488` marks-retire, `ea86f8c1` lean — fable-5 measured both,
+  both accepted); expansion-2's backside banks for the young white-barks.
+
 2026-09-20T10:40:00Z
 
 ## 2026-09-20 16:50 UTC — tick: expansion-2 landed; a white-bark through the far hut (fixed)
