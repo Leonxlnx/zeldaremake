@@ -1,0 +1,10 @@
+{
+  "version": 1,
+  "baselineGroundRef": "6c13f70c",
+  "baselineGroundSha256": "e4f42855f69b921c30c744977cee3cad110f071a10a1808a16e8864cac8ca77f",
+  "quantizationM": 0.000001,
+  "queries": 1260,
+  "stoneSurfaceSha256": "d2c60ae95d75039ca663e24a954aa23c38a375cae4239f8ef3c9bb65a5d0d963",
+  "placementHeightSha256": "10fbece7045c2c344261a8f9e69f8a1c89591c392ddf9d2eb8619248928ee09c",
+  "provenance": "Historical stone-only sampler queried against current deterministic production stone meshes, 20 main-flight steps × 3 lanes × 21 offsets, snapped to 1 cm cell centres; captured 2026-09-21."
+}

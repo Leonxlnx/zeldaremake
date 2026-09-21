@@ -9,6 +9,7 @@ import {ROOT,serveStatic,launchBrowser,READY_TIMEOUT_MS} from '../../../gauntlet
 const candidate=process.env.LINK_REVIEW_ASSET||'link-runtime.glb';assert.match(candidate,/^[\w-]+\.glb$/);
 const world=process.env.LINK_WORLD_ROOT||ROOT;
 const balancedRender=process.argv.includes('--balanced-render');
+const fullSole=process.argv.includes('--full-sole');
 const out=path.join(ROOT,'art/characters/link/progress',new Date().toISOString().replace(/[:.]/g,'-')+'-play-motion');
 await fs.mkdir(out,{recursive:true});
 const hash=b=>crypto.createHash('sha256').update(b).digest('hex');
@@ -24,6 +25,8 @@ report.bundles=Object.fromEntries(await Promise.all((await fs.readdir(path.join(
   .filter(f=>f.endsWith('.js')).sort().map(async f=>[f,hash(await fs.readFile(path.join(world,'dist/assets',f)))])));
 const core=await fs.readFile(path.join(world,'node_modules/three/build/three.core.js'),'utf8');
 report.measurement_core_sha256=hash(core);
+const exactHeightCode=fullSole?await fs.readFile(new URL('./progress/2026-09-21-stair-clearance/knee-peaks/exact-mesh-height.mjs',import.meta.url),'utf8'):null;
+if(fullSole)report.exact_height_sha256=hash(exactHeightCode);
 const server=await serveStatic(path.join(world,'dist'));let browser,page;
 try{
   browser=await launchBrowser();
@@ -42,7 +45,9 @@ try{
   page.on('response',r=>{if(r.url().endsWith('.glb'))report.glbResponse={status:r.status(),headers:r.headers()};});
   await page.setRequestInterception(true);
   page.on('request',r=>r.url()===server.url+'/__review-three-core.js'
-    ?r.respond({status:200,contentType:'application/javascript',body:core}):r.continue());
+    ?r.respond({status:200,contentType:'application/javascript',body:core})
+    :fullSole&&r.url()===server.url+'/__review-exact-height.mjs'
+      ?r.respond({status:200,contentType:'application/javascript',body:exactHeightCode}):r.continue());
   // Three's native inspection hook: no production code or capture API changes.
   await page.evaluateOnNewDocument(()=>{
     window.__reviewScenes=[];window.__THREE_DEVTOOLS__=new EventTarget();
@@ -51,7 +56,7 @@ try{
   await page.goto(server.url+'/?capture=1&dev=0&hud=0&quality=high'+(balancedRender?'&shadow=2048,8&scale=0.75':'')+(candidate==='link-runtime.glb'?'':'&link='+encodeURIComponent(candidate)),{waitUntil:'domcontentloaded',timeout:180000});
   try{await page.waitForFunction(()=>window.__ZR__,{timeout:READY_TIMEOUT_MS,polling:250});await page.evaluate(()=>__ZR__.ready());}
   finally{report.pendingRequests=[...pending];}
-  report.setup=await page.evaluate(async()=>{
+  report.setup=await page.evaluate(async fullSole=>{
     const {Vector3,Raycaster}=await import('/__review-three-core.js');
     const scene=__reviewScenes.find(s=>s.userData.player);if(!scene)throw Error('Player scene missing');
     const player=scene.userData.player;player.setPlayMode(true);
@@ -74,15 +79,37 @@ try{
     }
     const stairs=[];scene.traverse(o=>{if(o.isMesh&&/^stairs-/.test(o.name))stairs.push(o);});
     if(stairs.length<1)throw Error('Rendered stair meshes missing');
+    const soles={L:[],R:[]};let exactHeight=null;
+    if(fullSole){
+      scene.updateMatrixWorld(true);
+      exactHeight=(await import('/__review-exact-height.mjs')).buildFrontSideHeightSampler(stairs);
+      for(const side of ['L','R']){
+        const all=[];
+        hero.traverse(mesh=>{
+          if(!mesh.isSkinnedMesh)return;
+          const a=mesh.geometry.attributes,ankle=mesh.skeleton.bones.findIndex(b=>b.name==='ankle'+side);
+          if(ankle<0||!a.skinIndex||!a.skinWeight)return;
+          for(let vertex=0;vertex<a.position.count;vertex++){
+            let best=-1,weight=0;
+            for(let k=0;k<4;k++){const w=a.skinWeight.getComponent(vertex,k);if(w>weight){weight=w;best=a.skinIndex.getComponent(vertex,k);}}
+            if(best===ankle)all.push({mesh,vertex,y:new Vector3().fromBufferAttribute(a.position,vertex).applyMatrix4(mesh.matrixWorld).y});
+          }
+        });
+        const bottom=Math.min(...all.map(v=>v.y));soles[side]=all.filter(v=>v.y<=bottom+.012);
+        if(soles[side].length!==__ZR__.audit().systems.character.linkAsset.footprint[side].soleVertices)throw Error('Sole selection differs from production footprint');
+      }
+    }
     const ray=new Raycaster(),point=new Vector3(),down=new Vector3(0,-1,0);
-    window.__playReview={scene,player,hero,body,markers,stairs,point,ray,down};
-    return {markers,stairMeshes:stairs.map(o=>o.name),character:__ZR__.audit().systems.character};
-  });
+    window.__playReview={scene,player,hero,body,markers,stairs,point,ray,down,soles,exactHeight};
+    return {markers,soleCounts:Object.fromEntries(Object.entries(soles).map(([s,v])=>[s,v.length])),stairMeshes:stairs.map(o=>o.name),character:__ZR__.audit().systems.character};
+  },fullSole);
   assert.equal(report.setup.character.linkSource,'glb');assert.equal(report.setup.character.mode,'play');
   if(candidate==='link-runtime.glb')assert.equal(report.setup.character.linkAsset.sha256,report.glb_sha256);
   else assert.equal(report.setup.character.linkAsset.file,'models/link/'+candidate);
   const smoke=process.argv.includes('--smoke');
   const descentDetail=process.argv.includes('--descent-detail');
+  const stairDetail=process.argv.includes('--stair-detail');
+  report.stairDetail=stairDetail;
   const flatVideo=process.argv.includes('--flat-video');
   const flatStills=process.argv.includes('--flat-stills');
   const jumpOnly=process.argv.includes('--jump-only');
@@ -99,11 +126,11 @@ try{
       else{const u=scenario==='stairs-up'?-.35:run+.15;player.position.set(stairs.base[0]+direction[0]*u,0,stairs.base[2]+direction[1]*u);}
       __ZR__.setTime(20);__playReview.previousRoot=null;
     },scenario);
-    const chunk=flatVideo||flatStills||jumpOnly?2:descentDetail?10:30;
+    const chunk=stairDetail?1:flatVideo||flatStills||jumpOnly?2:descentDetail?10:30;
     for(let start=0;start<frames;start+=chunk){
       const count=Math.min(chunk,frames-start);
-      const rows=await page.evaluate(async({scenario,start,count})=>{
-        const {player,hero,body,markers,stairs,point,ray,down,direction}=__playReview;const rows=[];
+      const rows=await page.evaluate(async({scenario,start,count,stairDetail})=>{
+        const {player,hero,body,markers,stairs,point,ray,down,direction,soles,exactHeight}=__playReview;const rows=[];
         for(let j=0;j<count;j++){
           const i=start+j;const jumping=scenario==='run-jump';
           const moving=jumping?i<140:scenario!=='flat-transitions'||i<240;
@@ -145,21 +172,33 @@ try{
             if(row.blink.applied.length!==3)throw Error('Expected blink on all three body primitives');
           }
           __playReview.previousRoot=root;
-          if(i%10===0){
+          if(stairDetail||i%10===0){
             row.shoeSurface=[];body.updateWorldMatrix(true,false);body.skeleton.update();
             for(const [side,ids] of Object.entries(markers))for(const index of ids){
               point.fromBufferAttribute(body.geometry.attributes.position,index);body.applyBoneTransform(index,point);body.localToWorld(point);
               ray.set(point.clone().setY(point.y+1),down);ray.far=2;
               const hits=ray.intersectObjects(stairs,false);
               if(hits.length)row.shoeSurface.push({foot:side,vertex:index,point:point.toArray(),stair:hits[0].object.name,gapM:point.y-hits[0].point.y});
+              if(exactHeight&&hits.length){const hit=exactHeight.sample(point.x,point.z);if(!hit||Math.abs(hit.y-hits[0].point.y)>1e-6)throw Error('Exact triangle sampler disagrees with native ray');}
             }
+            if(exactHeight)row.fullSole=Object.fromEntries(Object.entries(soles).map(([side,vertices])=>{
+              let worst=null,hits=0;
+              for(const {mesh,vertex}of vertices){
+                mesh.getVertexPosition(vertex,point);mesh.localToWorld(point);
+                const hit=exactHeight.sample(point.x,point.z);if(!hit)continue;
+                hits++;const gapM=point.y-hit.y;
+                if(!worst||gapM<worst.gapM)worst={vertex,point:point.toArray(),stair:hit.mesh,gapM};
+              }
+              return [side,{vertices:vertices.length,hits,worst}];
+            }));
           }
           rows.push(row);
         }return rows;
-      },{scenario,start,count});
+      },{scenario,start,count,stairDetail});
       report.samples.push(...rows);
       if(flatVideo)await page.screenshot({path:path.join(framesDir,`frame-${String(videoFrames++).padStart(4,'0')}.png`)});
-      if(descentDetail||start===0||start+count===frames||start===Math.floor(frames/60)*30){
+      const supportFrame=stairDetail&&scenario==='stairs-down'&&[274,449,475,476,477,478].includes(start);
+      if(supportFrame||descentDetail||start===0||start+count===frames||start===Math.floor(frames/60)*30){
         const file=`${scenario}-${start+count}.png`;await page.screenshot({path:path.join(out,file)});report.images.push(file);
       }
       if(start%120===0)console.log(scenario,start+count,'/',frames);
@@ -247,6 +286,7 @@ try{
   }
   report.summary=Object.fromEntries([...new Set(report.samples.map(r=>r.scenario))].map(scenario=>{
     const rows=report.samples.filter(r=>r.scenario===scenario),surface=rows.flatMap(r=>r.shoeSurface??[]);
+    const full=rows.flatMap(r=>Object.values(r.fullSole??{})).filter(s=>s.worst);
     return [scenario,{frames:rows.length,gaits:[...new Set(rows.map(r=>r.gait))],
       distanceXZ:Math.hypot(rows.at(-1).root[0]-rows[0].root[0],rows.at(-1).root[2]-rows[0].root[2]),
       maxRootStepM:Math.max(...rows.map(r=>Math.abs(r.rootStepY??0))),
@@ -254,6 +294,7 @@ try{
       maxHipFlexDeg:Math.max(...rows.flatMap(r=>Object.values(r.legAngles).map(a=>a.hipFlexDeg))),
       maxKneeFlexDeg:Math.max(...rows.flatMap(r=>Object.values(r.legAngles).map(a=>a.kneeFlexDeg))),
       minRenderedStairGapM:surface.length?Math.min(...surface.map(p=>p.gapM)):null,
+      ...(fullSole?{fullSoleQueries:full.reduce((n,s)=>n+s.hits,0),minFullSoleGapM:full.length?Math.min(...full.map(s=>s.worst.gapM)):null,fullSoleFeetBelowZero:full.filter(s=>s.worst.gapM<0).length}:{}),
       shoeSamplesBelowMinus2cm:surface.filter(p=>p.gapM<-.02).length}];
   }));
   if(flatVideo){

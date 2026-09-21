@@ -1,4 +1,4 @@
-"""Append selected native channels to 24591126; preserve unedited clips and binary data."""
+"""Append selected native channels to a verified base; preserve unedited binary data."""
 import copy,hashlib,json,math,struct,sys
 from pathlib import Path
 out=Path(sys.argv[3]) if len(sys.argv)>3 else Path(__file__).resolve().parent
@@ -18,7 +18,7 @@ def values(model,index):
  start=offset+v.get('byteOffset',0)+a.get('byteOffset',0)
  return [struct.unpack_from(fmt,raw,start+i*v.get('byteStride',size)) for i in range(a['count'])]
 old=load(Path(sys.argv[1]));native=load(out/(stem+'-native.glb'))
-assert hashlib.sha256(old[0]).hexdigest()=='2459112603a935a038dd06a67de85d5c5e28c72188f50ebd4d6e304af236bfa4'
+assert hashlib.sha256(old[0]).hexdigest()==study.get('source_sha256','2459112603a935a038dd06a67de85d5c5e28c72188f50ebd4d6e304af236bfa4')
 original=old[1];doc=copy.deepcopy(original);binary=bytearray(old[0][old[2]:old[2]+original['buffers'][0]['byteLength']]);prefix=bytes(binary)
 def append(rows,kind):
  assert rows and all(math.isfinite(v) for row in rows for v in row)
