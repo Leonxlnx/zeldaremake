@@ -17,8 +17,8 @@ gauntlet's independent D7 verdicts (`gauntlet/reviews/*.json`, written only thro
 00:00 UTC (timer `goal-mode-fable-5`, cron `20 * * * *`); `agent/fable-5-demo-walk` merged (`b4de8d7`); current branch `agent/fable-5-r48-review`.
 
 ## Current task
-Done this iteration: the V-list status pass (see Completed). Next: take-0126's re-verdict when it seals;
-the unverified V3/V6/V7/V12/V14 at their poses if the seal keeps waiting; the video file.
+Done this iteration: take-0126 re-verdicted, the stairs sheet (see Completed). Next: take-0127's
+re-verdict (brown bark — trunks at 3 m; queued behind 0126), the unverified V3/V6/V7/V12/V14, the video.
 
 ## Previous current task (superseded)
 Goal-mode loop. Next iteration: **re-verdict every visual item on take-0120** when it seals (the
@@ -34,6 +34,9 @@ lands: `ffmpeg` frames at his marked moments → `reference/frames-video2/`, has
 - `.agents/fable-5.md`, `.agents/reviews/fable-5-*.md`, my threads in `.agents/INBOX.md`.
 
 ## Completed work
+- 2026-09-21 08:20–08:50 UTC — iteration 34: take-0126 re-verdicted (W08 → pass, W23 near; 39/50 with my
+  verdicts; `fable-5-take0126.md`); the owner's one-to-one stairs comparison (ANALYSIS_VIDEO2 §9 + sheet).
+  New branch `agent/fable-5-r51-review`.
 - 2026-09-21 07:20–07:40 UTC — iteration 33: ANALYSIS_VIDEO2 §8 — the V1–V21 status pass at take-0125 /
   `48156889` (closed / landed / open-with-reason / unverified) and the six-view baseline note.
   take-0126 still unsealed.
