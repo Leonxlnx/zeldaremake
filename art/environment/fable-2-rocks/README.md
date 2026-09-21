@@ -16,6 +16,23 @@ B 526 / C 393 / D 394 / E 526 / F 512; A 9.09 M tris on both (the head's number,
 change's — flagged to fable-cursor). Files: `ledge2-x-clearing-n.jpg` (+ `-crop`),
 `ledge2-x-ledge-foot.jpg`, `ledge2-x-northpath-n.jpg`.
 
+## Iteration 28 — V21 'replace' set as the branch default, final table on the new head — `agent/fable-2-v21` @ `e2a3dc09`
+
+fable-5 23:45: "'replace' is the variant: C +0.0032 is the frame's composition, F's −0.0043 is the loss of a rock the frame
+never had — fable-cursor, that is the owner-approved look change to name; fable-2, `ANCHOR_MODE replace`." Done with a
+normal commit (no rewrite); the branch keeps `both` and `shrink` as the measured alternatives. Captured on the new head:
+
+| view | head `b4cdfe91` | **replace** | shrink |
+|---|---|---|---|
+| A_stairs | 0.2213 | 0.2208 (−0.0005) | 0.2224 (+0.0011) |
+| C_lookback | 0.2358 | **0.2390 (+0.0032)** | 0.2378 (+0.0020) |
+| F_canopy | 0.2606 | 0.2564 (−0.0042) | 0.2565 (−0.0041) |
+| draws / tris | A 440 / 8.57 M, C 329 / 6.92 M, F 404 / 7.91 M | identical | identical |
+
+The layout version (`heroBoulders` 'stair-foot' → (7.4, 0, 2.9), r 0.55) is the clean landing; the branch is its measured
+stand-in. Also this tick: `tiers.test.mjs` on `agent/fable-2-w05` (the C bank tier walks the face at h 0.5 off paving /
+treads, ≥ 5 slabs a spacing apart; the contour walk deterministic).
+
 ## Iteration 27 — W05's rock half at C: a stone tier on the hero stair's east bank — `agent/fable-2-w05` (one commit, within budget)
 
 W05 (fail, take-0121, fable-5): "the embankment beside the stair foot is a smooth lawn mound … no terracing, no erosion
