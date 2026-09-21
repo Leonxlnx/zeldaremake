@@ -2707,6 +2707,23 @@ Also: lantern bough still a thick plain beam across the top of B (trees pass pen
   grass fullness at player height (vegetation-28, blocked). Environment lanes continue through the
   Fable chats, which are unaffected.
 
+### 2026-09-21 07:40 UTC — tick 203: owner's in-game review; brown bark; fable-4's LOD dial merged
+- **Owner (06:19 UTC, in the game):** stairs unchanged; shelf props read hollow; trunks stay green even
+  a foot away; the girl by the house unchanged; "did you even update the game?" — his build predates
+  the NPC hide (0f0db8da), and there is no hosted URL (GitHub Pages is not enabled; monitor.yml only
+  runs on main). Answered with run instructions, the Pages switch, and the invoice block.
+- **Brown bark (54196e0b, my own hands — no sub-agents):** `BARK_DETAIL_MEAN` was the ENCODED texture
+  mean (0.523) against linear samples (0.254) — every lum/mean factor at its lower clamp; bark floors
+  were fully leaf-filtered light with a tenth of the bark's own colour; moss covered half the low bole.
+  Now linear mean, floors 0.45–0.7 textured / 0.2 leaf-filtered (near base lift 2.5→5), tint 0xa47c56,
+  moss/sheets/tufts thinned. Trunk at 3 m sRGB 35/39/25 → 51/53/36. take-0127 queued behind 0126.
+  Still open: bright cushion geometry on the emergent bole; the shelf props' "hollow" read.
+- Merged `agent/fable-4-lod25` (lod-1's dial taken by fable-4: near bases swap at 25/28 m, pools
+  resident, six views pixel-identical) + fable-5 r50 reviews + fable-2/3 notes. fable-4's finding: the
+  40-slot `NEAR_CANOPY_SLOTS` cap, not the 26/30 m radius, is what keeps plaza lobes low.
+- take-0126 (nine Fable branches) still in its motion pass under load 6–7 (my trunk renders); seals next.
+- Sub-agents remain blocked (unpaid invoice); environment work continues through the Fable chats.
+
 ## Pending corrections from reference/ANALYSIS.md (apply at integration, one commit)
 - `config.ts` palette → olive/khaki low-key (reference hero frames: hue 47–51°, sat 0.16–0.19,
   lum 0.35–0.39, 0 % blue sky): grass 0x8a8c55/0x5c6233/0x3a4420, moss 0x8b8948/0x5a523b,
@@ -2745,4 +2762,4 @@ Pick anything NOT claimed in `gauntlet/claims.json`. Good self-contained candida
   my own (GAUNTLET.md D7).
 
 ## Last updated
-2026-09-21T04:55:00Z
+2026-09-21T07:40:00Z
