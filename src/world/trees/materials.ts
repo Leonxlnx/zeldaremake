@@ -91,8 +91,17 @@ export interface TreeMaterials {
 
 /** how many trees may show their near base at once (the collapse test costs one loop per vertex) */
 export const NEAR_BOLE_SLOTS = 6;
-/** how many near-canopy lobes may be shown at once (the collapse test runs on the tagged leaf vertices only) */
-export const NEAR_CANOPY_SLOTS = 40;
+/**
+ * How many near-canopy lobes may be shown at once (the collapse test runs on the tagged leaf
+ * vertices only). Round 51 (fable-4, lod-1's dial): 40 → 64 — near the plaza more than 40 lobes
+ * are active inside the 26 / 30 m band, so the cap, not the radius, decided which crowns swapped
+ * (the 30 / 34 m step measured 0.00–0.01 % for that reason). At 64 the plaza look-ups change
+ * (w10-spine-u 12 %, w05-spine-u 4 % of the frame: shaped lit laminae where flat far foliage
+ * was); the six fixed views are pixel-identical (the hero pass culls to the frusta); the walk
+ * trace costs +0.01 M triangles mean / +0.05 M worst frame, +1 draw, pinned canopy 25 → 38 MB
+ * with 0 builds / 0 evictions.
+ */
+export const NEAR_CANOPY_SLOTS = 64;
 
 /**
  * The trees' shade floors under the round-41 daylight (task 2 of round 41). The shared presets
