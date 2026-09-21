@@ -58,6 +58,12 @@ So the logs now *pay* at A (+0.0074 over the flight without them) and are free a
 faces: Astra's fix alone brought it to −0.0039, the tint the rest). Files: `logs50-A.jpg` (reference | inward | outward
 dark | tinted, A's flight), `logs50-3rd-tread.jpg` (the 2 m head-on pose, same three), `logs50-w23-stairs-f.jpg`.
 
+In fable-5's measure (19:00 note; flight box 0.60–0.92 × 0.25–0.70, dark l < 0.25 / pale l > 0.45 — the thresholds that
+give the frame their 15.8 / 14.0 %): reference **15.8 % dark / 14.0 % pale / mean l 0.344**; take-0129 51.8 / 8.2 / 0.268
+(theirs 52 / 8 / 0.267); head `c11f0ff4` 60.6 / 7.3 / 0.250 (theirs 61.5 / 7.3 / 0.248); the same head without logs
+46.9 / 9.9 / 0.280; **`c1e7d115` 39.4 / 12.8 / 0.302**. The timbers now sit below their own absence on the dark share;
+the 39 → 16 % that remains is the treads' light (V17), hardscape's stone tint.
+
 ## Iteration 45 — V16's seams, taken and measured: the tone and the rim are the frame's already; the lever is the COUNT of dark features (FAIL to land, the finding reported)
 
 Announced 17:40 and taken on `agent/fable-2-seams`. The hypothesis of §43 (the slab's stained flank + shaded shoulder widen
