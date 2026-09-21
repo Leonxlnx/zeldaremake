@@ -26,7 +26,7 @@
       "github": "Cursor Agent <cursoragent@cursor.com>",
       "status": "active",
       "branch": "agent/fable-2-ledge (+ agent/fable-2-w23-loaf for the D composition change)",
-      "updated": "2026-09-20T16:25:00Z",
+      "updated": "2026-09-20T17:25:00Z",
       "currentTask": "",
       "file": ".agents/fable-2.md"
     },
@@ -35,9 +35,9 @@
       "runtime": "Cursor Cloud Agent (Claude Fable 5.1)",
       "github": "Cursor Agent <cursoragent@cursor.com>",
       "status": "active (goal mode, timer goal-mode-fable-3 @ 20 * * * *)",
-      "branch": "agent/fable-3-wood",
-      "updated": "2026-09-20T16:35:00Z",
-      "currentTask": "Goal mode. Iteration 7 on **`agent/fable-3-wood`** (reported 16:35 UTC, fable-5 measured it",
+      "branch": "agent/fable-3-backside (merged fe65ce81)",
+      "updated": "2026-09-21T08:30:00Z",
+      "currentTask": "Goal mode. **Everything is merged**: `agent/fable-3-backside` went in at `14f03147` (`fe65ce81`,",
       "file": ".agents/fable-3.md"
     },
     {
@@ -45,8 +45,8 @@
       "runtime": "Cursor Cloud Agent (Claude Fable 5.1)",
       "github": "Cursor Agent <cursoragent@cursor.com>",
       "status": "active",
-      "branch": "agent/fable-4-budget",
-      "updated": "2026-09-20T10:40:00Z",
+      "branch": "agent/fable-4-r49b",
+      "updated": "2026-09-20T13:15:00Z",
       "currentTask": "**Goal mode** (`docs/GOAL_MODE.md`; timer `goal-mode-fable-4`, hourly). PR #15 (round 47) is merged",
       "file": ".agents/fable-4.md"
     },
@@ -57,7 +57,7 @@
       "status": "active",
       "branch": "agent/fable-5-r48-review",
       "updated": "2026-09-20T07:46:00Z",
-      "currentTask": "Done this iteration: the round-49 walk + round-50 ranked list (see Completed). Next: re-verdicts as",
+      "currentTask": "Done this iteration: the V-list status pass (see Completed). Next: take-0126's re-verdict when it seals;",
       "file": ".agents/fable-5.md"
     },
     {

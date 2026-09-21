@@ -1,0 +1,255 @@
+{
+  "capturedAt": "2026-09-21T07:45:31.549Z",
+  "durationMs": 11163398,
+  "width": 1280,
+  "height": 720,
+  "quality": "high",
+  "settleFrames": 90,
+  "simTime": 12.5,
+  "git": {
+    "source": "workspace",
+    "sha": "2253af7487bccfbc09b521ec050d3057981c42f7",
+    "shortSha": "2253af74",
+    "branch": "cursor/kokiri-world-phase1-f65e",
+    "subject": "agents log: tick 203 (owner review, brown bark, fable-4 lod25 merged); inbox: W23 layout go, stairs comparison ask, bark constants to Astra",
+    "author": "Cursor Agent",
+    "committedAt": "2026-09-21T07:31:24+00:00",
+    "dirty": true
+  },
+  "distHash": "sha256:41376bce28a2595b315be9d1fc429848352158a0a0da62065a298ded49457470",
+  "viewpoints": [
+    {
+      "id": "A_stairs",
+      "label": "The Stairs",
+      "refSeconds": 1,
+      "file": "A_stairs.png",
+      "sha256": "sha256:889beaa76a79ab803d361cab6078b5dc5cb99001babea23f282bc6d5c8c40dca",
+      "bytes": 1358434,
+      "stdev": 38.26,
+      "worldMean": 0.381,
+      "retries": 0,
+      "stats": {
+        "simTime": 14.000000000000075,
+        "drawCalls": 440,
+        "triangles": 8611576,
+        "geometries": 297,
+        "textures": 91,
+        "programs": 100,
+        "width": 1280,
+        "height": 720,
+        "pixelRatio": 1
+      },
+      "pose": {
+        "position": [
+          0.4,
+          1.8,
+          8.6
+        ],
+        "direction": [
+          0.4001487551488514,
+          -0.05779926463261199,
+          -0.9146257260545179
+        ],
+        "fov": 46
+      },
+      "renderer": "ANGLE (Google, Vulkan 1.3.0 (SwiftShader Device (Subzero) (0x0000C0DE)), SwiftShader driver)",
+      "captureMs": 1179312,
+      "ms": 1179312
+    },
+    {
+      "id": "B_house",
+      "label": "Saria's House",
+      "refSeconds": 14,
+      "file": "B_house.png",
+      "sha256": "sha256:53a468949280554d00ea117ecc3aecd90ebd6dbcc8671db58308931e14de1eb2",
+      "bytes": 1359771,
+      "stdev": 37.32,
+      "worldMean": 0.358,
+      "retries": 0,
+      "stats": {
+        "simTime": 14.000000000000075,
+        "drawCalls": 420,
+        "triangles": 7789729,
+        "geometries": 312,
+        "textures": 91,
+        "programs": 100,
+        "width": 1280,
+        "height": 720,
+        "pixelRatio": 1
+      },
+      "pose": {
+        "position": [
+          0,
+          1.5,
+          2
+        ],
+        "direction": [
+          0.33630596344635905,
+          0.013452238537854384,
+          -0.9416566976498055
+        ],
+        "fov": 46
+      },
+      "renderer": "ANGLE (Google, Vulkan 1.3.0 (SwiftShader Device (Subzero) (0x0000C0DE)), SwiftShader driver)",
+      "captureMs": 1232747,
+      "ms": 1232747
+    },
+    {
+      "id": "C_lookback",
+      "label": "Look Back",
+      "refSeconds": 46,
+      "file": "C_lookback.png",
+      "sha256": "sha256:86fa199e5f4d1dbad735225b4ed6eb15cb5988d8592bc341b6958e61d637b867",
+      "bytes": 1247431,
+      "stdev": 37.76,
+      "worldMean": 0.34,
+      "retries": 0,
+      "stats": {
+        "simTime": 14.000000000000075,
+        "drawCalls": 338,
+        "triangles": 7012349,
+        "geometries": 355,
+        "textures": 91,
+        "programs": 100,
+        "width": 1280,
+        "height": 720,
+        "pixelRatio": 1
+      },
+      "pose": {
+        "position": [
+          2.33,
+          1.45,
+          -7.67
+        ],
+        "direction": [
+          0.13040706314611447,
+          -0.06136802971581855,
+          0.9895594791675757
+        ],
+        "fov": 46
+      },
+      "renderer": "ANGLE (Google, Vulkan 1.3.0 (SwiftShader Device (Subzero) (0x0000C0DE)), SwiftShader driver)",
+      "captureMs": 918066,
+      "ms": 918066
+    },
+    {
+      "id": "D_log",
+      "label": "The Log Arch",
+      "refSeconds": 56,
+      "file": "D_log.png",
+      "sha256": "sha256:62e029fc457a64091300e69c2bf31ebbe3930d7ba8fa6eea7c4ae8e175aa7e37",
+      "bytes": 1283273,
+      "stdev": 34.08,
+      "worldMean": 0.372,
+      "retries": 0,
+      "stats": {
+        "simTime": 14.000000000000075,
+        "drawCalls": 390,
+        "triangles": 8076461,
+        "geometries": 369,
+        "textures": 91,
+        "programs": 100,
+        "width": 1280,
+        "height": 720,
+        "pixelRatio": 1
+      },
+      "pose": {
+        "position": [
+          0.2,
+          1.45,
+          -3
+        ],
+        "direction": [
+          0.10953219056304957,
+          0.03311438319348014,
+          -0.9934314958044038
+        ],
+        "fov": 48
+      },
+      "renderer": "ANGLE (Google, Vulkan 1.3.0 (SwiftShader Device (Subzero) (0x0000C0DE)), SwiftShader driver)",
+      "captureMs": 1323237,
+      "ms": 1323237
+    },
+    {
+      "id": "E_ground",
+      "label": "Saria's House (hold)",
+      "refSeconds": 24,
+      "file": "E_ground.png",
+      "sha256": "sha256:53a468949280554d00ea117ecc3aecd90ebd6dbcc8671db58308931e14de1eb2",
+      "bytes": 1359771,
+      "stdev": 37.32,
+      "worldMean": 0.358,
+      "retries": 0,
+      "stats": {
+        "simTime": 14.000000000000075,
+        "drawCalls": 420,
+        "triangles": 7789729,
+        "geometries": 369,
+        "textures": 91,
+        "programs": 100,
+        "width": 1280,
+        "height": 720,
+        "pixelRatio": 1
+      },
+      "pose": {
+        "position": [
+          0,
+          1.5,
+          2
+        ],
+        "direction": [
+          0.33630596344635905,
+          0.013452238537854384,
+          -0.9416566976498055
+        ],
+        "fov": 46
+      },
+      "renderer": "ANGLE (Google, Vulkan 1.3.0 (SwiftShader Device (Subzero) (0x0000C0DE)), SwiftShader driver)",
+      "captureMs": 1228024,
+      "ms": 1228024
+    },
+    {
+      "id": "F_canopy",
+      "label": "Up the Stairs",
+      "refSeconds": 8,
+      "file": "F_canopy.png",
+      "sha256": "sha256:5f2bd417a13360f0b05437858db0dbfcb5fb4b8297f61e2c6aba7e59a8fe9849",
+      "bytes": 1331375,
+      "stdev": 40.11,
+      "worldMean": 0.307,
+      "retries": 0,
+      "stats": {
+        "simTime": 14.000000000000075,
+        "drawCalls": 405,
+        "triangles": 7996547,
+        "geometries": 372,
+        "textures": 91,
+        "programs": 100,
+        "width": 1280,
+        "height": 720,
+        "pixelRatio": 1
+      },
+      "pose": {
+        "position": [
+          -1.96,
+          1.8,
+          4
+        ],
+        "direction": [
+          0.9721254966661625,
+          -0.06836560096623101,
+          -0.22427252024288002
+        ],
+        "fov": 46
+      },
+      "renderer": "ANGLE (Google, Vulkan 1.3.0 (SwiftShader Device (Subzero) (0x0000C0DE)), SwiftShader driver)",
+      "captureMs": 1708547,
+      "ms": 1708547
+    }
+  ],
+  "renderer": "ANGLE (Google, Vulkan 1.3.0 (SwiftShader Device (Subzero) (0x0000C0DE)), SwiftShader driver)",
+  "extra": {
+    "determinism": "A_stairs.det.png",
+    "motion": "A_stairs.motion.png"
+  }
+}
