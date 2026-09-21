@@ -134,7 +134,7 @@ export function buildLogNosings(def: StairDef, seed: string): LogNosingBuild {
         const a1 = a0 + 1;
         const b0 = a0 + RADIAL + 1;
         const b1 = b0 + 1;
-        idx.push(a0, b0, a1, a1, b0, b1);
+        idx.push(a0, a1, b0, a1, b1, b0);
       }
     }
     // end caps: a fan on each end (the sawn face, paler wood)
