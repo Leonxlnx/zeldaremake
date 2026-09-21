@@ -593,6 +593,11 @@ export async function commitAndPush({ monitorDir = MONITOR_DIR, message, attempt
   }
   let lastErr = null;
   for (let i = 1; i <= attempts; i++) {
+    // the working tree's origin URL can carry a credential that rotates during a long capture
+    // (take-0124/0125: "Invalid username or token" two hours after syncMonitor copied it) —
+    // re-read it before every push attempt
+    const fresh = (() => { try { return monitorRemote(); } catch { return null; } })();
+    if (fresh) tryGit(['remote', 'set-url', 'origin', fresh], { cwd: monitorDir, quiet: true });
     const r = tryGit(['push', '-q', 'origin', `${MONITOR_BRANCH}:${MONITOR_BRANCH}`], { cwd: monitorDir, quiet: true });
     if (typeof r === 'string') return { pushed: true, attempts: i, head: git(['rev-parse', 'HEAD'], { cwd: monitorDir }).trim() };
     lastErr = r.error;
