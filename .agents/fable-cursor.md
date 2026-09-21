@@ -2672,6 +2672,23 @@ Also: lantern bough still a thick plain beam across the top of B (trees pass pen
 - Lanes: hardscape-32 2 commits, structures-33 4, npc-3 4, vegetation-27 0, trees-32 0 (both
   building 70 min); character-10b pending. Next seal when the first two or three land.
 
+### 2026-09-21 08:20 UTC — ticks 200–201: owner priority (NPCs hidden, Link ea93932d) → take-0124; round 50 merged → take-0125
+- **take-0124** on `0f0db8da` (VALID, 37/50): the owner's ~21:00 UTC direction via Astra — the background
+  cast parented under a hidden `background-characters` group (`npcsVisible` 0 in the audit), Astra's PR #24
+  runtime (planted-pin support fix, four-corner support) and Link asset `ea93932d` (calves/boots in,
+  run arms back). B +0.0084 E +0.0047 F +0.0037 A −0.0012 D −0.0030.
+- **take-0125** on `c4d12f6c` (VALID, 37/50): round 50 — hardscape-32 (stones at the demo's scale, p50
+  1.39→1.06 m, joints 15.5→9.5 cm; the accepted cost B −0.0103 C −0.0120 F −0.0151 at 256×144),
+  structures-33 (arch flat crown + west mass, D +0.0035; `SLEEVE_BARK_MEAN` linear 0.108), vegetation-27
+  (7,265 buried instances → 0, rim band, terraced C bank), trees-32 (merged on its identical six-view;
+  its report timed out), npc-3 (fifth kid + fairies under the hidden cast; Link colour grade — W35
+  1.23→1.41, W34 9.22→8.84). A 8.61 M tris / 440 draws.
+- `plants.test`: two contracts had failed since expansion-2's `52be8f2d` re-rolled the weed stream (SE
+  corner 139→144; C foreground 17→13) — re-based with notes; vegetation-28 restores C's hostas.
+- Monitor push failed twice on a rotated origin credential — `monitor.mjs` now re-reads the URL per attempt.
+- character-10b: ADOPT `1e81bb6c`'s stairs channels; Astra asked to rebase them onto `ea93932d`.
+- Round 51 running: lod-1 (trees high quality around the player), vegetation-28 (grass fullness, knoll turf, C hostas).
+
 ## Pending corrections from reference/ANALYSIS.md (apply at integration, one commit)
 - `config.ts` palette → olive/khaki low-key (reference hero frames: hue 47–51°, sat 0.16–0.19,
   lum 0.35–0.39, 0 % blue sky): grass 0x8a8c55/0x5c6233/0x3a4420, moss 0x8b8948/0x5a523b,
@@ -2710,4 +2727,4 @@ Pick anything NOT claimed in `gauntlet/claims.json`. Good self-contained candida
   my own (GAUNTLET.md D7).
 
 ## Last updated
-2026-09-20T17:25:00Z
+2026-09-21T08:20:00Z
