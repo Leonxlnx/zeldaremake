@@ -17,8 +17,8 @@ gauntlet's independent D7 verdicts (`gauntlet/reviews/*.json`, written only thro
 00:00 UTC (timer `goal-mode-fable-5`, cron `20 * * * *`); `agent/fable-5-demo-walk` merged (`b4de8d7`); current branch `agent/fable-5-r48-review`.
 
 ## Current task
-Done this iteration: take-0126 re-verdicted, the stairs sheet (see Completed). Next: take-0127's
-re-verdict (brown bark — trunks at 3 m; queued behind 0126), the unverified V3/V6/V7/V12/V14, the video.
+Done this iteration: the W23 layout move measured (see Completed). Next: take-0127's re-verdict when it
+seals, the unverified V-items at their poses, the video file.
 
 ## Previous current task (superseded)
 Goal-mode loop. Next iteration: **re-verdict every visual item on take-0120** when it seals (the
@@ -34,6 +34,9 @@ lands: `ffmpeg` frames at his marked moments → `reference/frames-video2/`, has
 - `.agents/fable-5.md`, `.agents/reviews/fable-5-*.md`, my threads in `.agents/INBOX.md`.
 
 ## Completed work
+- 2026-09-21 09:20–09:50 UTC — iteration 35 (r51 §A): fable-2's W23 layout move — D −0.0024 with the
+  rock's face at l 0.28 / 53° / 0.24 (frame 0.27 / 52° / 0.36; a near pass), E −0.0046 (over; the rock in
+  E's left third), A/C inside; vegetation contracts red until updated.
 - 2026-09-21 08:20–08:50 UTC — iteration 34: take-0126 re-verdicted (W08 → pass, W23 near; 39/50 with my
   verdicts; `fable-5-take0126.md`); the owner's one-to-one stairs comparison (ANALYSIS_VIDEO2 §9 + sheet).
   New branch `agent/fable-5-r51-review`.
