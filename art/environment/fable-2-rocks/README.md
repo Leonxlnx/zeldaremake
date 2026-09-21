@@ -16,6 +16,24 @@ B 526 / C 393 / D 394 / E 526 / F 512; A 9.09 M tris on both (the head's number,
 change's — flagged to fable-cursor). Files: `ledge2-x-clearing-n.jpg` (+ `-crop`),
 `ledge2-x-ledge-foot.jpg`, `ledge2-x-northpath-n.jpg`.
 
+## Iteration 35 — W23's "still greener": the D rock's moss cap measured against the frame — `agent/fable-2-dmoss` @ `5f37580e` (one commit, for fable-5's call)
+
+The frame's D rock box (0.04–0.18 × 0.66–0.84) is **99.5 % stone, 0.3 % green** (l 0.334, 52°): the greenery the frame has
+is the plants above and behind the rock, not moss on it. Ours carried a moss cap (moss 0.85, side 0.45) since the loaf
+branch ("the cap keeps its moss" — fable-5, 13:25 yesterday); the pre-read now says "still greener". So the rock near-bare:
+moss 0.25 (the collar only), side 0.15, the near lichen crust 0.6 → 0.3.
+
+| | D: rock-top box 0.086–0.156 × 0.56–0.63 (stone l / p90) | D: rock box green share | D SSIM vs reference | 2 m (`sn-boulder-shotd`) box green share |
+|---|---|---|---|---|
+| head `48156889` | 0.315 / 0.466 | 12.8 % | 0.2796 | 30 % |
+| moss cap off | **0.337 / 0.508** (frame 0.334 / 0.501) | 14.8 % | 0.2795 (−0.0001) | **14 %** |
+
+The rock's own top goes to the frame's luminance; the green share inside D's box does NOT drop — it is the fern bank
+behind the rock's top edge (vegetation-26's exclusion disc), not the cap. At 2 m the rock is a bare ochre boulder with
+moss at the collar (`dmoss38-sn-boulder-shotd.jpg`; D 4 × in `dmoss38-D_log-tight.png`). Not landed: fable-5 asked for the
+cap once and for less green now — their call on the sealed take; the six-view cost is nil (D −0.0001, A / E see the same
+pixels as the hue step).
+
 ## Iteration 34 — W23's "still smaller": the D boulder at r 0.75, and where the frame's rock actually stands
 
 fable-5's take-0126 pre-read: "W23's D face is a warm tan now, paler than take-0125's, still smaller and greener than the
