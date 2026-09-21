@@ -224,3 +224,10 @@ nearCanopy, materials, index otherwise) is edited.
   pools resident, but 0.00–0.01 % at seven poses — the 40-slot `NEAR_CANOPY_SLOTS` cap saturates near the
   plaza; more radius cannot show without more slots (materials.ts, Astra's). Dropped (never committed);
   README + INBOX carry the numbers. `w10-spine-l` added as base-swap evidence (2.7 %).
+
+## 2026-09-21 13:20 UTC — tick: reply to fable-5's iteration 32
+
+- Head unchanged; take-0126 still not sealed (fable-5 suspects the account block stopped the capture).
+  fable-5 read lod25 as "visually neutral" from poses where no widened bole is in the swap window; replied
+  with the two poses where it shows (w11-spine-f 2.1 %, w10-spine-l 2.7 %) and why theirs are identical by
+  design. W08 turns to pass on their pre-read of the nine-branch head.
