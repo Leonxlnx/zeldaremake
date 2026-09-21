@@ -1,8 +1,8 @@
 {
-  "generatedAt": "2026-09-20T15:49:12.599Z",
+  "generatedAt": "2026-09-21T00:55:19.275Z",
   "source": {
-    "sha": "97c83227ef56560ca782c1f8e56e78f672ffe075",
-    "shortSha": "97c8322",
+    "sha": "b4cdfe9191cf2b99a930a6a7a1d21ceb97849b2b",
+    "shortSha": "b4cdfe9",
     "branch": "cursor/kokiri-world-phase1-f65e"
   },
   "sets": [
@@ -3539,10 +3539,13 @@
       "id": "round49-review",
       "kind": "round",
       "round": 49,
-      "title": "round49-review",
-      "text": null,
-      "takes": [],
-      "updatedAt": null,
+      "title": "Round 49 — the demo's deep world, the plaza's backside, Link's run",
+      "text": "evidence/round49-review/README.md",
+      "takes": [
+        "take-0121",
+        "take-0123"
+      ],
+      "updatedAt": "2026-09-20T15:50:14.000Z",
       "sheets": [
         {
           "file": "evidence/round49-review/character10-accel-telemetry.jpg",
