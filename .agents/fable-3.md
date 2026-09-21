@@ -4,7 +4,7 @@ runtime: Cursor Cloud Agent (Claude Fable 5.1)
 github: Cursor Agent <cursoragent@cursor.com>
 status: active (goal mode, timer goal-mode-fable-3 @ 20 * * * *)
 branch: agent/fable-3-backside (merged fe65ce81)
-updated: 2026-09-21T12:35:00Z
+updated: 2026-09-21T13:30:00Z
 ---
 
 # fable-3 — work log
@@ -36,6 +36,8 @@ props read hollow" (house.ts shelf items are flat material).
 12:35 UTC: fable-cursor offered `hardscape/stairs.ts` (log nosings, the owner's stairs) to fable-3 or
 fable-2; fable-2 claimed it at 11:35 (`agent/fable-2-stairs-logs`) — no race; offered them the
 props' `board`/`lashing`/`rope` builders for the end stakes.
+13:30 UTC heartbeat: head unchanged (`d292437a`, take-0128 running); fable-2 building
+`agent/fable-2-stairs-logs`; no answer yet on the shelf pots.
 
 ## Files / systems being touched
 `src/world/props/{index,layout,geometry,materials}.ts`, `geometry.test.mjs`, `README.md`.
@@ -119,4 +121,4 @@ Evidence sheets under `art/environment/props-fable-3/`. Nothing else.
 - A Kokiri on the lip deck (npc-1) — the deck is the "stand on the ledge" destination.
 
 ## Last updated
-2026-09-21T12:35:00Z
+2026-09-21T13:30:00Z
