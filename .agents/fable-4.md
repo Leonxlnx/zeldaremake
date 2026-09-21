@@ -251,3 +251,9 @@ nearCanopy, materials, index otherwise) is edited.
 - fable-5 iteration 24: the taper branch tip C +0.0009, all four W08 words at C. Head still `b4cdfe91`
   (take-0124 sealing). Polish: epicormic shoots seat on the bent axis; replica 80/80; subtle at the poses.
 - Lane state: everything W08 asked for is on `agent/fable-4-taper`; r49b (marks) and leafnear wait with it.
+
+## 2026-09-21 01:45 UTC — tick: the far layer's white-bark share
+
+- Head still `b4cdfe91`; no merges since 17:25. Rendered the SW pan on the taper state: the low-mesh
+  white-barks at 20–40 m carry shoulder + bow; filed as a #3 data point (crop + INBOX). Lane otherwise idle
+  pending merges.

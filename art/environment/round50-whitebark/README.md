@@ -141,3 +141,11 @@ The shoots (mature stems, 2–3 per tree at 0.2–0.5 of the height) started on 
 the crown's radius). Subtle at the survey poses: `sn-whitebark-base` 0.6 % of pixels, `f4-trunk-8m` 1.5 %
 (the sprays move to the surface); no six-view capture — the shoots are ≤ 0.5 m features on stems 20 m+ from
 the fixed cameras.
+
+### The far layer's white-bark share (round-50 #3, a data point)
+
+`f4-sw-pan-hut` (Link's spot → the far hut), the knoll state → the taper branch
+(`fable4-r50-taper-sw-pan-far-stems.png`, 20.5 % of the frame): the near stem at 8 m goes from an even pole
+to a fat-footed, bowed birch; the white-barks at 20–40 m in the haze — the LOW mesh — show the shoulder and
+the bow too (the same terms at every LOD). The smooth cones behind them are `distant.ts`'s far giants
+(trees-32 / astra-distance), not the white-barks.
