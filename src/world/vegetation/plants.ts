@@ -343,6 +343,19 @@ const PACKS: Record<string, PackLayout> = {
   tufts: [SINGLE(6), [[0, 3], [1, 4], [2, 5]]],
 };
 
+/**
+ * Frame 56 s' hero fern clump (reference 0.05–0.14 × 0.55–0.68 at camera D, left of and above the mossy rock).
+ * 2026-09-21: the shot-D boulder moved to the frame's spot (−2.0, −7.6) and its terrain mound went with it, so
+ * the clump no longer rides on the rock: three authored crown spots that project into the reference box on
+ * today's ground (roots at sx 0.08–0.12, sy 0.65–0.67), and an anchor for their blooms and fiddleheads.
+ */
+export const HERO_CLUMP_ANCHOR: readonly [number, number] = [-4.4, -12.4];
+export const HERO_CLUMP_SPOTS: readonly (readonly [number, number, number])[] = [
+  [-4.6, -12.4, 1.02],
+  [-4.2, -12.0, 0.92],
+  [-4.4, -13.0, 0.94],
+];
+
 export function buildPlants(ctx: WorldContext, field: VegField, parent: Group): PlantSets {
   const P = ctx.config.palette;
   const pal = makePalette(P);
@@ -464,6 +477,11 @@ export function buildPlants(ctx: WorldContext, field: VegField, parent: Group): 
   // the ring clusters are laid around the rock's clearance radius (layout `clearRadius`), not the
   // rendered radius, so the rock can be resized without moving the fronds and their streams
   const dbr = dBoulder?.clearRadius ?? dBoulder?.radius ?? 0.9;
+  // 2026-09-21 (fable-2's W23 move, take-0128): the rock now stands at the frame's spot (−2.0, −7.6), 5 m from
+  // camera D, and its mound went with it; frame 56 s' lit fern clump is 10–12 m from D, up-left of the rock —
+  // following the rock put the crowns at D's bottom-left edge (root sx −0.04). The clump is authored
+  // (HERO_CLUMP_SPOTS / HERO_CLUMP_ANCHOR, top of file), independent of the boulder.
+  const [hcx, hcz] = HERO_CLUMP_ANCHOR;
   const cameraXZ = ctx.layout.viewpoints.map((v) => [v.position[0], v.position[2]] as const);
   const nearCamera = (x: number, z: number, r: number) => cameraXZ.some(([cx, cz]) => Math.hypot(x - cx, z - cz) < r);
 
@@ -535,11 +553,7 @@ export function buildPlants(ctx: WorldContext, field: VegField, parent: Group): 
   {
     const rng = ctx.rng.fork('plants/hero-ferns-shotD');
     const s = newSample();
-    const spots: readonly [number, number, number][] = [
-      [dbx - 1.45, dbz - 0.75, 1.02],
-      [dbx - 1.0, dbz + 0.5, 0.92],
-      [dbx - 1.2, dbz - 1.7, 0.94],
-    ];
+    const spots = HERO_CLUMP_SPOTS;
     for (const [cx, cz, sc] of spots) {
       const x = cx + (rng() - 0.5) * 0.16;
       const z = cz + (rng() - 0.5) * 0.16;
@@ -550,8 +564,8 @@ export function buildPlants(ctx: WorldContext, field: VegField, parent: Group): 
     // pale-yellow blooms at the crowns' feet, on the camera side so they show under the fronds
     let blooms = 0;
     for (let i = 0; i < 40 && blooms < 6; i++) {
-      const x = dbx - 1.7 + rng() * 1.3;
-      const z = dbz - 1.6 + rng() * 2.4;
+      const x = hcx - 1.7 + rng() * 1.3;
+      const z = hcz - 1.6 + rng() * 2.4;
       field.sample(x, z, s);
       if (!field.allowed(x, z, s) || field.insideGiantTrunk(x, z) || field.clearing(x, z).insideBoulder) continue;
       if (Math.hypot(x - dbx, z - dbz) < dbr + 0.15) continue;
@@ -648,6 +662,9 @@ export function buildPlants(ctx: WorldContext, field: VegField, parent: Group): 
         field.sample(x, z, s);
         if (!field.allowed(x, z, s) || field.insideGiantTrunk(x, z) || field.clearing(x, z).insideBoulder) continue;
         if (field.stoneDistance(x, z) < STONE_CLEARANCE || field.troddenZone(x, z) > 0.6 || field.sightlineC(x, z, 0.3) > 0) continue;
+        // no bud inside a fixed camera's ultra range (the six views' budgets stay untouched whatever the
+        // upstream streams do — 2026-09-21: two buds at 3.3 m from camera A after the shot-D boulder moved)
+        if (nearCamera(x, z, FIDDLEHEAD_ULTRA_M + 0.2)) continue;
         placeInstance(fiddleheads, x, z, s, rng, scale, 0.5, 0.012, greenVar(rng, 0.12));
       }
     };
@@ -668,10 +685,12 @@ export function buildPlants(ctx: WorldContext, field: VegField, parent: Group): 
   {
     const rng = ctx.rng.fork('plants/fiddleheads-shotD');
     const s = newSample();
+    // (2026-09-21: on the camera side of the authored crowns — west of them is the north-west-near
+    // giant's trunk at (−6.0, −12.8); roots project at D to sx 0.05–0.09, sy 0.68–0.69)
     const spots: readonly [number, number][] = [
-      [dbx - 1.0, dbz + 0.3],
-      [dbx - 1.15, dbz - 0.6],
-      [dbx - 1.4, dbz - 1.1],
+      [hcx + 0.2, hcz + 0.6],
+      [hcx - 0.2, hcz + 0.8],
+      [hcx - 0.2, hcz + 0.4],
     ];
     for (const [cx, cz] of spots) {
       const x = cx + (rng() - 0.5) * 0.12;
@@ -970,8 +989,11 @@ export function buildPlants(ctx: WorldContext, field: VegField, parent: Group): 
   // D's bottom-left corner (the near west verge) stays grass and litter, as for the violets —
   // except the rim strip that frame 14 s shows dotted white (`allowRim`, the B-rim cluster below)
   const dNearCorner = (x: number, z: number) => x > -3.1 && x < -1.4 && z > -9.4 && z < -6.3;
+  // (2026-09-21: the rim exception is the strip itself — x > −2.5, ≤ 0.9 m off the lawn edge — not the whole
+  // corner: the shot-D boulder's old clearance at (−2.6, −9.6) had been doing that rejection until it moved)
+  const dRimStrip = (x: number, z: number) => x > -2.5 && field.lawnEdgeDistance(x, z) <= 0.9;
   const whiteGround = (x: number, z: number, s: FieldSample, cReach = 0.2, allowRim = false) => {
-    if (s.cliff > 0.3 || (!allowRim && dNearCorner(x, z)) || field.bankFace(x, z) > 0.3) return false;
+    if (s.cliff > 0.3 || (dNearCorner(x, z) && !(allowRim && dRimStrip(x, z))) || field.bankFace(x, z) > 0.3) return false;
     const clr = field.clearing(x, z);
     if (clr.insideBoulder || field.boulderDistance(x, z) < 0.25 || field.giantDistance(x, z) < 0.3) return false;
     if (nearKokiri(x, z, 1.0) || field.sightlineC(x, z, cReach) > 0 || nearViolet(x, z, 0.45)) return false;
@@ -1118,6 +1140,35 @@ export function buildPlants(ctx: WorldContext, field: VegField, parent: Group): 
     },
     (x, z, s, rng) => placeInstance(weeds, x, z, s, rng, 0.65 + rng() * 0.65, 0.8, 0.012, greenVar(rng, 0.22)),
   );
+  // 2026-09-21: camera C's foreground broad-leaf clusters (frame 26 s' bottom-left mass: ≥ 16 hostas of scale
+  // ≥ 1.05 in [3.6, −5.8, 6.8, −3.4] projecting into C's (−0.02…0.34, 0.76…1.02)) are a scored composition,
+  // and the main stream's acceptance there shifts whenever an upstream set moves (the shot-D boulder, the
+  // hero clump: 17 → 13 twice this round). The box is topped up to its round-45 count from its own stream.
+  {
+    const C_FG: [number, number, number, number] = [3.6, -5.8, 6.8, -3.4];
+    const inCFrame = (x: number, z: number) => {
+      const p = field.screenPoint('C_lookback', x, T.height(x, z), z);
+      return !!p && p.sx >= 0.0 && p.sx <= 0.32 && p.sy >= 0.78 && p.sy <= 1.0;
+    };
+    const have = weeds.items.filter((it) => it.x > C_FG[0] && it.x < C_FG[2] && it.z > C_FG[1] && it.z < C_FG[3] && Math.hypot(it.matrix[0], it.matrix[1], it.matrix[2]) >= 1.05 && inCFrame(it.x, it.z)).length;
+    scatter(
+      ctx,
+      field,
+      {
+        label: 'weeds-c-foreground',
+        candidates: 4000,
+        box: C_FG,
+        minSpacing: 0.3,
+        max: Math.max(0, 16 - have),
+        accept(x, z, s) {
+          const edge = field.edgeDistance(x, z);
+          if (edge < 0.15 || field.clearing(x, z).insideBoulder || field.bankFace(x, z) > 0.3 || !inCFrame(x, z)) return 0;
+          return 0.6 * field.falloff(x, z);
+        },
+      },
+      (x, z, s, rng) => placeInstance(weeds, x, z, s, rng, 1.05 + rng() * 0.25, 0.8, 0.012, greenVar(rng, 0.22)),
+    );
+  }
 
   // The west-verge white clumps beyond 11 m sit below B's line of sight over the nearer ferns, so
   // the dots that actually read in frame 14 s (0.06–0.14 × 0.70–0.79, just left of the flagstones)

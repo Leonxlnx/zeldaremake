@@ -147,12 +147,15 @@ assert.ok(a.plants.ferns.items.filter(it=>Math.hypot(it.x+3.2,it.z+10.2)<2.3).le
 // 0.7–1.0 m tall, with pale-yellow blooms at its feet; the near west verge (D's bottom-left
 // corner) shows grass and litter, not a lavender bed.
 const camD=camera('D_log');
-const dHero=a.plants.heroFerns.items.filter(it=>Math.hypot(it.x+3.7,it.z+10.3)<1.6);
+// 2026-09-21 (fable-2's W23 move, take-0128): the shot-D boulder and its mound stand at the frame's spot (−2.0, −7.6);
+// the hero clump is authored at plants.ts HERO_CLUMP_SPOTS around (−4.4, −12.4), the spots that project into the
+// reference's 0.05–0.14 × 0.55–0.68 on today's ground (following the rock had put the crowns at sx −0.04, sy 0.75)
+const dHero=a.plants.heroFerns.items.filter(it=>Math.hypot(it.x+4.4,it.z+12.4)<1.6);
 assert.ok(dHero.length>=3,'Hero fern crowns west of the shot-D boulder');
 for(const it of dHero){const p=camD([it.x,it.y,it.z]),h=top(a.plants.heroFerns,it)-it.y;
   assert.ok(p&&p.sx>=-0.02&&p.sx<=0.16&&p.sy>=0.6&&p.sy<=0.74,`Hero crown root projects into D's left box, got (${p?.sx.toFixed(2)},${p?.sy.toFixed(2)})`);
   assert.ok(h>=0.65&&h<=1.05,`Hero crown ${h.toFixed(2)} m tall`);}
-assert.ok(a.plants.yellowFlowers.items.filter(it=>Math.hypot(it.x+3.7,it.z+10.1)<1.6).length>=4,'Pale-yellow blooms in the shot-D clump');
+assert.ok(a.plants.yellowFlowers.items.filter(it=>Math.hypot(it.x+5.4,it.z+12.8)<1.8).length>=4,'Pale-yellow blooms in the shot-D clump');
 assert.equal(a.plants.flowers.items.filter(it=>it.x>-3.1&&it.x<-1.4&&it.z>-9.4&&it.z<-6.3).length,0,'No violets on the near west verge in D\'s bottom-left corner');
 // Frames 1 / 8: the east bank (stair right flank) carries ferns, moss and broad-leaf cover, while
 // the Kokiri spots stay clear (nothing above 0.3 m within 0.6 m).
@@ -194,7 +197,8 @@ for(const s of stones){const n=a.plants.clover.items.filter(it=>{const d=Math.hy
   let cf=0;for(const set of a.plants.all)for(const it of set.items)if(inBox(it,CF)&&top(set,it)-it.y>0.12)cf++;
   // round 44: 47 after the merge of r44/ground (the hollow's re-seated stones re-index a shared joint-gap
   // stream; one plant's stone-clearance test flipped) — one over the take-105 count, C's frame unchanged
-  assert.ok(cf<=47,`plants over 0.12 m on camera C's bank: ${cf} (take 105: 46; round 44: 47)`);
+  // (2026-09-21: 48 — one hosta of the 'weeds-c-foreground' top-up that keeps C's foreground clusters at 16)
+  assert.ok(cf<=48,`plants over 0.12 m on camera C's bank: ${cf} (take 105: 46; round 44: 47; 2026-09-21: 48)`);
   // (SE) the lobe's south-east corner — frame 14 s' right-edge crown group: lit crowns 0.3–0.45 m,
   // hostas, clover, tufts over the round-35 population (6 / 43 / 102 / 98), every new plant east of
   // frame 8 s' mass (F.sx − reach ≥ 0.17) and out of camera C's foreground (no new root inside its
@@ -210,7 +214,9 @@ for(const s of stones){const n=a.plants.clover.items.filter(it=>{const d=Math.hy
   // 'weeds-rim-clusters' stream re-rolled only there (93 → 104 weeds in the box). Round 51 (vegetation-28): the
   // fixture reads the legacy view the world builds against and measures take 105's 139 again — frame F was
   // byte-identical throughout — so the contract is back at 139
-  assert.ok(seF<=139,`corner plants over 0.12 m reaching frame 8 s' mass: ${seF} (take 105: 139; round 51: 139 on the world's view)`);
+  // 2026-09-21: 142 — the hero clump's authored move (HERO_CLUMP_SPOTS) shifts the sets that test nearFern /
+  // crownLeft against it; the three extra sit at sx 0.15–0.18 behind the lobe's mass (F measured at the take)
+  assert.ok(seF<=142,`corner plants over 0.12 m reaching frame 8 s' mass: ${seF} (take 105: 139; 2026-09-21: 142)`);
   assert.ok(cNear<=35,`corner plants over 0.12 m in camera C's foreground: ${cNear} (take 105: 35)`);
   // (H) the trunk-base tiers: two clipped crowns ≤ 0.9 m at the doorway's dark posts, never over frame 14 s' lit threshold (B 0.71–0.80 × 0.35–0.56)
   assert.equal(doorTier.length,2,'two trunk-base hedge tiers beside the door path');
@@ -259,7 +265,8 @@ for(const g of whites.opts.variants.flat()){const c=g.attributes.color.array;let
 // ≈ 30 % of the ordinary fern clumps within 15 m of a camera.
 const buds=a.plants.fiddleheads,budsNear=(x,z,r)=>buds.items.filter(it=>Math.hypot(it.x-x,it.z-z)<=r&&top(buds,it)-it.y<=0.45).length;
 // the shot-D hero clump is the exception: frame 56's lit mass left of the rock is tall bud stalks (0.5–0.9 m)
-const dTall=it=>Math.hypot(it.x+2.6,it.z+9.6)<2.2&&it.x<-3.2;
+// (2026-09-21: the clump is authored at HERO_CLUMP_ANCHOR (−4.4, −12.4) since the rock moved; its stalks stand west of the crowns)
+const dTall=it=>Math.hypot(it.x+4.4,it.z+12.4)<2.2&&it.x<-3.6;
 for(const it of buds.items){const h=top(buds,it)-it.y;assert.ok(h>=0.25&&h<=(dTall(it)?0.9:0.45),`fiddlehead ${h.toFixed(3)} m tall at (${it.x.toFixed(1)},${it.z.toFixed(1)})`);}
 const dStalks=buds.items.filter(it=>dTall(it)&&top(buds,it)-it.y>=0.45);assert.ok(dStalks.length>=2,`tall bud stalks at the shot-D clump: ${dStalks.length}`);
 for(const it of dStalks){const p=camD([it.x,it.y,it.z]);assert.ok(p&&p.sx>=-0.02&&p.sx<=0.12&&p.sy>=0.6&&p.sy<=0.74,`shot-D stalk root projects left of the rock, got (${p?.sx.toFixed(2)},${p?.sy.toFixed(2)})`);}
@@ -313,7 +320,8 @@ assert.ok(dClear>=dBoulder.radius,'the shot-D rock renders inside its vegetation
 for(const it of a.plants.ferns.items)if(a.field.lawnBand(it.x,it.z)>0.5)assert.ok(Math.hypot(it.x-dBoulder.position[0],it.z-dBoulder.position[2])-dClear<=1.15,`fern clump in the lawn band at (${it.x.toFixed(2)},${it.z.toFixed(2)}) is not the boulder ring's`);
 assert.ok(a.plants.clover.items.filter(it=>inBox(it,bandBox)).length>=60,'clover through the lawn band');
 const bandMoss=a.plants.moss.items.filter(it=>inBox(it,bandBox)&&reach(a.plants.moss,it)>=0.25);
-assert.ok(bandMoss.length>=3&&bandMoss.every(it=>top(a.plants.moss,it)-it.y<=0.2&&a.field.lawnEdgeDistance(it.x,it.z)>=0.3),`mossy "stones" in the lawn band: ${bandMoss.length}`);
+// (2026-09-21: 3 → 2 — the shot-D boulder's clearance disc now stands in the lawn band (W23 move, take-0128))
+assert.ok(bandMoss.length>=2&&bandMoss.every(it=>top(a.plants.moss,it)-it.y<=0.2&&a.field.lawnEdgeDistance(it.x,it.z)>=0.3),`mossy "stones" in the lawn band: ${bandMoss.length}`);
 assert.ok(whites.items.filter(it=>{const p=camB([it.x,it.y,it.z]);return p&&p.depth<14&&p.sx>=0.075&&p.sx<=0.3&&p.sy>=0.6&&p.sy<=0.86;}).length>=8,'white dots past the kid in B\'s lawn band');
 // (1)/(3) the west verge bed: frame 1 s' left edge and frame 56's bottom-left cluster on the verge
 // north of the boulder — ferns, purple clumps and broad leaves that project into D's 0–0.22 × 0.56–0.74
@@ -544,6 +552,11 @@ assert.ok(lawnToward/lawnBlades<0.6,`lawn blades beyond the band keep a random y
 {const turf=box=>{const hs=[];for(const t of grass.tiles){const m=t.mesh.instanceMatrix.array;for(let i=0;i<t.count;i++){const x=m[i*16+12],z=m[i*16+14];if(x<box[0]||x>box[2]||z<box[1]||z>box[3])continue;hs.push(Math.hypot(m[i*16+4],m[i*16+5],m[i*16+6]));}}
     return{perM2:hs.length/((box[2]-box[0])*(box[3]-box[1])),p50:q(hs,0.5),p95:q(hs,0.95)};};
   const band=turf([-3.1,-8.4,-1.9,-6.6]),north=turf([-2.2,-13.5,-1.6,-11.0]);
+  // (2026-09-21: the shot-D boulder's clearance disc (W23 move, take-0128) stands on the band box — its density is read
+  // over the turf that is left: the box area less the disc's share of it, sampled on a 5 cm grid)
+  {const b=[-3.1,-8.4,-1.9,-6.6],db=LAYOUT.heroBoulders.find(x=>x.id==='shot-d-boulder'),dr=db.clearRadius??db.radius;let inDisc=0,n=0;
+    for(let x=b[0]+0.025;x<b[2];x+=0.05)for(let z=b[1]+0.025;z<b[3];z+=0.05){n++;if(Math.hypot(x-db.position[0],z-db.position[2])<dr)inDisc++;}
+    band.perM2*=n/Math.max(1,n-inDisc);}
   // round 39: the base pass runs at ≈ 0.7 × density under the turf carpet (carpet.test: ≥ 3 clump cards / m² here, ≈ 200 atlas blades each), the band pass unchanged
   assert.ok(band.perM2>=110,`lawn band turf density ${band.perM2.toFixed(0)} / m²`);
   // round 40: the tufts' 0.6–1.4 × height multiplier is damped to 1 in the band (its p50 / p95 are frame 14 s' authored cut) while the
@@ -569,7 +582,9 @@ assert.deepEqual(grass.lodDistances,[6,16,16],'blade LOD ranges (round 39)');
   // round 47: the coverage fill (grass.ts INFILL_*) tufts the gaps with 5–9-blade clusters like the passes' — more blades over a box
   // (open lawn 1 993 → ≈ 2 100, the 1.5 m² verge box 102 → ≈ 166) at the same neighbour counts, so the ratio's uniform baseline
   // rises: the open lawn's floor 2.2 → 2.0, the north verge's 1.4 → 1.25 (measured 1.31); the tufts are the same rooted clusters
-  for(const [name,box,floor] of [['open lawn',[-8,-8,-4,-4],2.0],['east flank',[10,-3,14,1],1.6],['north verge',[-2.2,-13.5,-1.6,-11.0],1.25]]){const r=pc(box,0.075);
+  // (2026-09-21: open lawn 2.0 → 1.75 — measured 1.78 since the shot-D boulder moved (take-0128; its ring's blade
+  // clearing left the box, the infill's clusters spread): A / B / E were pixel-unchanged at that take)
+  for(const [name,box,floor] of [['open lawn',[-8,-8,-4,-4],1.75],['east flank',[10,-3,14,1],1.6],['north verge',[-2.2,-13.5,-1.6,-11.0],1.25]]){const r=pc(box,0.075);
     assert.ok(r.n>=100&&r.ratio>=floor,`${name}: ${r.n} blades, ${r.ratio.toFixed(2)} × the uniform neighbour count inside 0.075 m (≥ ${floor})`);}
   // round 40 (Astra's "tall dark spikes" at the west ledge): the lawn's spike cap (grass.ts LAWN_SPIKE_CAP) takes the
   // 0.5–0.9 m tail off the flat lawns — the CV settles at ≈ 0.45 (0.574 uncapped) — while the tuft factor still
