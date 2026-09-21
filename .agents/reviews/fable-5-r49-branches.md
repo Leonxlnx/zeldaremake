@@ -497,6 +497,31 @@ drift, not for a scale change the reference asks for. D and E gain outright.
 take-0125's re-verdict follows when it seals (W03/V16, W02/V17 tread tone, W05/W06 with vegetation-27,
 C01 with the colour grade, W29/W32 with the arch crown, W23 with the loaf, W36 with Link alone).
 
+## S. Iteration 28 (02:20–03:00 UTC) — the two pending calls re-measured on the round-50 head; a pre-read of take-0125's items
+
+take-0125 has not sealed (launched 01:18). On head `0147a3d0` (round 50 in), each branch merged with the
+head in its worktree, C / A / F rendered on head and union:
+
+| branch | C | A | F | read |
+| --- | --- | --- | --- | --- |
+| fable-2-v21 @ `3a7e323e` ('replace' default) | **+0.0029** | −0.0005 | **−0.0042** | the §N/§P picture holds on the new head — C's anchor gains, F loses the loaf the frame never had; fable-cursor's naming call |
+| fable-4-taper @ `a8f5246c` | +0.0009 | +0.0001 | Δ 0 | stable; merge |
+
+The round-50 head's C now sits at 0.2179 against the frame (was 0.2287 before the slab scale) — the
+baseline every C number in this file is relative to has moved; the deltas above are on the new one.
+
+**Pre-read of take-0125's items on my own character-on renders of `0147a3d0`** (not verdicts — those
+wait for the take's frames; sheet `fable-5-r49/fable-5-r49-r50-preread-CDE.jpg`):
+
+- **C01 (Link's colour)** — the grade moves the skin toward the frame: skin-like pixels sat 0.24 → 0.27
+  (frame 0.29), hue 35° → 36° (frame 34°), l 0.53 (frame 0.49); the hair stays a yellower blond than the
+  frame's gold, the tunic reads a shade greener. Closer; whether it passes I decide on the take.
+- **W06 (grass → slab band)** — the rim band shows at E: a dark soil/moss line where the lawn meets the
+  slab edges, the frame's dark mossy verge. Likely turns.
+- **W05 (the C bank)** — the mound behind the stair-foot boulder is the same dome with a darker band on it;
+  I do not see a step in the ground plane at C's distance. Likely stays a fail; will look on the take.
+- **W03 / V16** — slabs at the demo's scale with dark seams (§R): W03 should hold; V16 is answered by eye.
+
 ## Summary for fable-cursor
 
 - fable-4 `5fe58488`: merge; six views Δ 0 (five pixel-identical).
@@ -506,6 +531,7 @@ C01 with the colour grade, W29/W32 with the arch crown, W23 with the loaf, W36 w
 - fable-4-taper @ `30a81f5c` (tip): merge; C +0.0009, all four W08 words at C — W08 turns on the next take.
 - fable-2-hue `efe2ed46` (chroma step): merge; D Δ 0, face sat 0.18 → 0.20 (frame 0.36) — the tint is spent, light next.
 - NPCs hidden (head): C −0.0018, D −0.0007, E +0.0037 in character-on frames — the next take's baseline shift, not a lane's.
+- On the round-50 head: fable-2-v21 'replace' C +0.0029 / F −0.0042 (unchanged picture); fable-4-taper tip C +0.0009, A/F ≈ 0 — merge.
 - fable-2-w05 `3949f007` (stone tier at C): harmless (C −0.0010); reads as stones on the slope — W05 needs the terrain to tier first (vegetation-27 / terrain).
 - fable-2-v21 'shrink' `45d3b566`: C +0.0019 / F −0.0042 — the middle path does not buy F back; the frame has no boulder at F's spot, so **'replace' (C +0.0032 / F −0.0043) is the variant** — an owner-approved look change for fable-cursor to name.
 - fable-2-v21 `02321879` (the C anchor, stair-foot stands in): **C +0.0032 / A −0.0007 / F −0.0043** — V21 landed at C; F over budget; fable-cursor's call (owner-approved composition, or a smaller stair-foot stone kept for F).
