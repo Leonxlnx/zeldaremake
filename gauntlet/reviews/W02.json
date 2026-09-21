@@ -1,15 +1,27 @@
 {
   "item": "W02",
   "reviewer": "fable-5",
-  "verdict": "fail",
-  "evidence": "gauntlet/reviews/evidence/fable-5/take-0125-W05-W29-W32-W02-W15.jpg",
-  "takeId": "take-0125",
+  "verdict": "pass",
+  "evidence": "gauntlet/reviews/evidence/fable-5/take-0129-W02-A-F.jpg",
+  "takeId": "take-0129",
   "author": "cursor-fable",
-  "takeSha": "c4d12f6cd364c0cd0a645a9a4b33ec1e989c8e8f",
-  "at": "2026-09-21T04:25:30.199Z",
+  "takeSha": "93fdff4a927657a8a94ae44b99404de94c63e387",
+  "at": "2026-09-21T16:47:31.144Z",
   "criterion": "Steps read as individually cut, weathered stone with soft mossy edges like the reference, not extruded boxes.",
-  "note": "take-0125 (c4d12f6): the flight at A is still cut stone slabs with moss on the nosings; hardscape-32 dried and lightened the lower treads, but the reference's flight is log-risered (round bark timbers, packed treads, end stakes - ANALYSIS_VIDEO2 6.6b / V18') and its treads brighten foot -> top into a haze gap (0.37 -> 0.40 -> 0.65) where ours darken into canopy shade (0.31 -> 0.18 -> 0.17 at w23-stairs-f). Fail; RUBRIC_PROPOSALS carries the log-riser criterion.",
+  "note": "take-0129 (93fdff4): the hero flight at A is log-risered now - fable-2's bark timbers 0.16-0.20 m along every riser's top edge, crown 6 cm proud, moss on the upper side, a stake at the log ends every second step (20 logs, 20 stakes) - and the pale cut-slab faces sit under the crowns. That is the reference's flight in kind: ANALYSIS_VIDEO2 6.6b / 9 measured the frame's stair as round bark-and-moss timber nosings with end stakes and packed treads, not cut stone (the criterion's letter 'individually cut, weathered stone' is the rubric text RUBRIC_PROPOSALS asks to change; the frame it names is timber-nosed). The pitch is the layout's 26.6 deg, which fable-3's anchor projection puts on the frame's logs in A and F. Pass. Still open beside it: the treads darken upward into canopy shade where the frame's brighten into a haze gap (V17 - a light, not albedo); F pays -0.0104 for the darker nosings where its pale slabs matched the frame's brightness - the owner-approved cost of the demo's stairs.",
   "history": [
+    {
+      "item": "W02",
+      "reviewer": "fable-5",
+      "verdict": "fail",
+      "evidence": "gauntlet/reviews/evidence/fable-5/take-0125-W05-W29-W32-W02-W15.jpg",
+      "takeId": "take-0125",
+      "author": "cursor-fable",
+      "takeSha": "c4d12f6cd364c0cd0a645a9a4b33ec1e989c8e8f",
+      "at": "2026-09-21T04:25:30.199Z",
+      "criterion": "Steps read as individually cut, weathered stone with soft mossy edges like the reference, not extruded boxes.",
+      "note": "take-0125 (c4d12f6): the flight at A is still cut stone slabs with moss on the nosings; hardscape-32 dried and lightened the lower treads, but the reference's flight is log-risered (round bark timbers, packed treads, end stakes - ANALYSIS_VIDEO2 6.6b / V18') and its treads brighten foot -> top into a haze gap (0.37 -> 0.40 -> 0.65) where ours darken into canopy shade (0.31 -> 0.18 -> 0.17 at w23-stairs-f). Fail; RUBRIC_PROPOSALS carries the log-riser criterion."
+    },
     {
       "item": "W02",
       "reviewer": "fable-5",

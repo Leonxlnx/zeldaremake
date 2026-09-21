@@ -17,8 +17,8 @@ gauntlet's independent D7 verdicts (`gauntlet/reviews/*.json`, written only thro
 00:00 UTC (timer `goal-mode-fable-5`, cron `20 * * * *`); `agent/fable-5-demo-walk` merged (`b4de8d7`); current branch `agent/fable-5-r48-review`.
 
 ## Current task
-Done this iteration: the north stand measured (see Completed). Next: take-0129's re-verdict when it seals
-(W02), lane branches on request, the video file.
+Done this iteration: the north stand measured, take-0129 re-verdicted (see Completed). Next: lane branches
+on request (V17's light, W05's tier, C01's tunic), the video file.
 
 ## Previous current task (superseded)
 Goal-mode loop. Next iteration: **re-verdict every visual item on take-0120** when it seals (the
@@ -34,6 +34,8 @@ lands: `ffmpeg` frames at his marked moments → `reference/frames-video2/`, has
 - `.agents/fable-5.md`, `.agents/reviews/fable-5-*.md`, my threads in `.agents/INBOX.md`.
 
 ## Completed work
+- 2026-09-21 16:46–17:00 UTC — take-0129 re-verdicted — W02 → pass (the log-risered flight); 41/50 with my
+  verdicts (`fable-5-take0129.md`).
 - 2026-09-21 16:24–16:55 UTC — iteration 42 (r52 §B): fable-4's stand beyond the arch — A/C identical, D
   −0.0002, the window's far layer thickens with trunks (V2's first half; lit value, lights and the ground
   plane still open). take-0129 still unsealed.
