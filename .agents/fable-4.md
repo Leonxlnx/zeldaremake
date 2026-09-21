@@ -259,3 +259,6 @@ nearCanopy, materials, index otherwise) is edited.
 
 ### 2026-09-21 22:55 UTC — tick: plateau roof merged; the atlas fix pre-read
 - plateau-roof merged (99a69076). Measured Astra's atlas sRGB fix alone (head vs head-minus-commit): A −0.0001 … C −0.0022, hue-to-ref +0.02–0.21° in all six, 0.4 % of C's pixels (the cards) lighter by ~8 levels. Posted. A now 8.80 M (200 K headroom).
+
+### 2026-09-22 00:35 UTC — tick: the north spine's sky measured, not shipped
+- w19-spine-u 52.5 % blue. Six built lobes over the spine vanish from below when near-eligible (43 %), draw as far laminae (33 %); corridors / settle / hero pass / pool cap eliminated. README `art/environment/round51-spine-roof/`; question posted for the near-canopy kit's holder. Nothing shipped.
