@@ -1,0 +1,428 @@
+{
+  "capture": "E:\\zeldaremake-astra-leaf-warmth\\art\\environment\\astra-leaf-warmth\\native-pair",
+  "sources": [
+    "0963c09da4139a0542a338d3345796dce6b20b8a",
+    "0858f39f75ee14130be7ff84692cdd33422c83ab"
+  ],
+  "mode": "Canonical source without warmth versus exact recovered 0.5; no runtime overrides",
+  "controlsCaptured": [
+    "C_lookback",
+    "F_canopy"
+  ],
+  "method": "Fixed k=0 colour-mask membership for every candidate. RGB-derived HSL; H55–170, S>.12, L.06–.85. Published band: Lanczos3 320x180; y<floor(.35*180)=62. Native interior boxes also include all pixels.",
+  "limits": "Colour masks are not material IDs. C/F dark reference interiors are poorly selected by this green mask. Decoded screenshot Rec709 Y is post-tone-map, not shader radiance. This current-head pair does not revalidate the earlier near-whitebark, distance or sky controls. No automatic visual accept/HOLD.",
+  "output": [
+    {
+      "view": "C_lookback",
+      "referenceTop35": {
+        "count": 710,
+        "regionPixels": 19840,
+        "hueMedianDeg": 68.57142857142854,
+        "HSL_S_median": 0.14285714285714285,
+        "HSL_L_median": 0.28823529411764703,
+        "HSV_S_median": 0.24859550561797747,
+        "HSV_V_median": 0.32941176470588235,
+        "encodedYMean": 0.3124106777133381,
+        "decodedScreenshotYMean": 0.09415846297921465,
+        "RGB_MAD_bytes": 0,
+        "maxChannelDeltaBytes": 0,
+        "changedPixelShare": 0,
+        "chromaticPixelCount": 710
+      },
+      "regions": [
+        {
+          "name": "top35-fixed-foliage",
+          "nativeSize": [
+            320,
+            180
+          ],
+          "bounds": [
+            0,
+            0,
+            320,
+            62
+          ],
+          "regionPixels": 19840,
+          "fixedBaselinePixelCount": 1432,
+          "fixedBaselineShare": 0.0721774193548387,
+          "variants": [
+            {
+              "key": "before",
+              "warmth": 0,
+              "hueMedianDeg": 85.00000000000001,
+              "HSL_S_median": 0.14583333333333334,
+              "HSL_L_median": 0.20588235294117646,
+              "HSV_S_median": 0.2545454545454545,
+              "HSV_V_median": 0.23529411764705882,
+              "encodedYMean": 0.24506806933946718,
+              "decodedScreenshotYMean": 0.05220901155049319,
+              "RGB_MAD_bytes": 0,
+              "maxChannelDeltaBytes": 0,
+              "changedPixelShare": 0,
+              "chromaticPixelCount": 1432,
+              "deltaFromZero": {
+                "hueDeg": 0,
+                "HSL_S": 0,
+                "HSL_L": 0,
+                "HSV_S": 0,
+                "decodedScreenshotYPercent": 0
+              }
+            },
+            {
+              "key": "after",
+              "warmth": 0.5,
+              "hueMedianDeg": 72.85714285714286,
+              "HSL_S_median": 0.15151515151515157,
+              "HSL_L_median": 0.2019607843137255,
+              "HSV_S_median": 0.26315789473684215,
+              "HSV_V_median": 0.23137254901960785,
+              "encodedYMean": 0.2445073814218421,
+              "decodedScreenshotYMean": 0.05196445100364172,
+              "RGB_MAD_bytes": 0.9797486033519553,
+              "maxChannelDeltaBytes": 5,
+              "changedPixelShare": 0.6417597765363129,
+              "chromaticPixelCount": 1432,
+              "deltaFromZero": {
+                "hueDeg": -12.142857142857153,
+                "HSL_S": 0.005681818181818232,
+                "HSL_L": -0.0039215686274509665,
+                "HSV_S": 0.008612440191387627,
+                "decodedScreenshotYPercent": -0.46842592799319904
+              }
+            }
+          ]
+        },
+        {
+          "name": "native-crown-interior-all-pixels",
+          "nativeSize": [
+            1280,
+            720
+          ],
+          "bounds": [
+            44,
+            93,
+            281,
+            154
+          ],
+          "regionPixels": 14457,
+          "fixedBaselinePixelCount": 14457,
+          "fixedBaselineShare": 1,
+          "variants": [
+            {
+              "key": "before",
+              "warmth": 0,
+              "hueMedianDeg": 107.99999999999996,
+              "HSL_S_median": 0.058823529411764705,
+              "HSL_L_median": 0.19803921568627453,
+              "HSV_S_median": 0.1111111111111111,
+              "HSV_V_median": 0.21176470588235294,
+              "encodedYMean": 0.21264290863912905,
+              "decodedScreenshotYMean": 0.03871732758733005,
+              "RGB_MAD_bytes": 0,
+              "maxChannelDeltaBytes": 0,
+              "changedPixelShare": 0,
+              "chromaticPixelCount": 14457,
+              "deltaFromZero": {
+                "hueDeg": 0,
+                "HSL_S": 0,
+                "HSL_L": 0,
+                "HSV_S": 0,
+                "decodedScreenshotYPercent": 0
+              }
+            },
+            {
+              "key": "after",
+              "warmth": 0.5,
+              "hueMedianDeg": 80.00000000000001,
+              "HSL_S_median": 0.05999999999999999,
+              "HSL_L_median": 0.19607843137254904,
+              "HSV_S_median": 0.11320754716981131,
+              "HSV_V_median": 0.20784313725490197,
+              "encodedYMean": 0.21243505259003986,
+              "decodedScreenshotYMean": 0.03862345172320107,
+              "RGB_MAD_bytes": 0.8880357842798183,
+              "maxChannelDeltaBytes": 8,
+              "changedPixelShare": 0.9721242304765857,
+              "chromaticPixelCount": 14457,
+              "deltaFromZero": {
+                "hueDeg": -27.999999999999943,
+                "HSL_S": 0.0011764705882352858,
+                "HSL_L": -0.0019607843137254832,
+                "HSV_S": 0.0020964360587002046,
+                "decodedScreenshotYPercent": -0.2424647308552852
+              }
+            }
+          ]
+        },
+        {
+          "name": "native-crown-interior-fixed-foliage",
+          "nativeSize": [
+            1280,
+            720
+          ],
+          "bounds": [
+            44,
+            93,
+            281,
+            154
+          ],
+          "regionPixels": 14457,
+          "fixedBaselinePixelCount": 1328,
+          "fixedBaselineShare": 0.09185861520370754,
+          "variants": [
+            {
+              "key": "before",
+              "warmth": 0,
+              "hueMedianDeg": 88,
+              "HSL_S_median": 0.14583333333333334,
+              "HSL_L_median": 0.2,
+              "HSV_S_median": 0.2545454545454545,
+              "HSV_V_median": 0.22745098039215686,
+              "encodedYMean": 0.22075017540751155,
+              "decodedScreenshotYMean": 0.04084883511134586,
+              "RGB_MAD_bytes": 0,
+              "maxChannelDeltaBytes": 0,
+              "changedPixelShare": 0,
+              "chromaticPixelCount": 1328,
+              "deltaFromZero": {
+                "hueDeg": 0,
+                "HSL_S": 0,
+                "HSL_L": 0,
+                "HSV_S": 0,
+                "decodedScreenshotYPercent": 0
+              }
+            },
+            {
+              "key": "after",
+              "warmth": 0.5,
+              "hueMedianDeg": 72.00000000000001,
+              "HSL_S_median": 0.15217391304347824,
+              "HSL_L_median": 0.19411764705882353,
+              "HSV_S_median": 0.2641509433962264,
+              "HSV_V_median": 0.2235294117647059,
+              "encodedYMean": 0.22010157335223288,
+              "decodedScreenshotYMean": 0.04056395921635487,
+              "RGB_MAD_bytes": 1.6498493975903614,
+              "maxChannelDeltaBytes": 4,
+              "changedPixelShare": 0.9819277108433735,
+              "chromaticPixelCount": 1328,
+              "deltaFromZero": {
+                "hueDeg": -15.999999999999986,
+                "HSL_S": 0.0063405797101449,
+                "HSL_L": -0.0058823529411764774,
+                "HSV_S": 0.009605488850771893,
+                "decodedScreenshotYPercent": -0.6973904989321711
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "view": "F_canopy",
+      "referenceTop35": {
+        "count": 968,
+        "regionPixels": 19840,
+        "hueMedianDeg": 60,
+        "HSL_S_median": 0.13793103448275867,
+        "HSL_L_median": 0.24117647058823533,
+        "HSV_S_median": 0.23971830985915493,
+        "HSV_V_median": 0.27450980392156865,
+        "encodedYMean": 0.3081002568465413,
+        "decodedScreenshotYMean": 0.09011103953401728,
+        "RGB_MAD_bytes": 0,
+        "maxChannelDeltaBytes": 0,
+        "changedPixelShare": 0,
+        "chromaticPixelCount": 968
+      },
+      "regions": [
+        {
+          "name": "top35-fixed-foliage",
+          "nativeSize": [
+            320,
+            180
+          ],
+          "bounds": [
+            0,
+            0,
+            320,
+            62
+          ],
+          "regionPixels": 19840,
+          "fixedBaselinePixelCount": 4433,
+          "fixedBaselineShare": 0.2234375,
+          "variants": [
+            {
+              "key": "before",
+              "warmth": 0,
+              "hueMedianDeg": 77.49999999999999,
+              "HSL_S_median": 0.1703703703703704,
+              "HSL_L_median": 0.2235294117647059,
+              "HSV_S_median": 0.29113924050632917,
+              "HSV_V_median": 0.26666666666666666,
+              "encodedYMean": 0.2667530276933673,
+              "decodedScreenshotYMean": 0.06369584518834458,
+              "RGB_MAD_bytes": 0,
+              "maxChannelDeltaBytes": 0,
+              "changedPixelShare": 0,
+              "chromaticPixelCount": 4433,
+              "deltaFromZero": {
+                "hueDeg": 0,
+                "HSL_S": 0,
+                "HSL_L": 0,
+                "HSV_S": 0,
+                "decodedScreenshotYPercent": 0
+              }
+            },
+            {
+              "key": "after",
+              "warmth": 0.5,
+              "hueMedianDeg": 74.11764705882354,
+              "HSL_S_median": 0.1717171717171717,
+              "HSL_L_median": 0.22352941176470587,
+              "HSV_S_median": 0.293103448275862,
+              "HSV_V_median": 0.26666666666666666,
+              "encodedYMean": 0.266469018369358,
+              "decodedScreenshotYMean": 0.06357152841083334,
+              "RGB_MAD_bytes": 0.5362057297541168,
+              "maxChannelDeltaBytes": 5,
+              "changedPixelShare": 0.32303180690277467,
+              "chromaticPixelCount": 4433,
+              "deltaFromZero": {
+                "hueDeg": -3.3823529411764497,
+                "HSL_S": 0.0013468013468013185,
+                "HSL_L": -2.7755575615628914e-17,
+                "HSV_S": 0.001964207769532822,
+                "decodedScreenshotYPercent": -0.19517250637562933
+              }
+            }
+          ]
+        },
+        {
+          "name": "native-crown-interior-all-pixels",
+          "nativeSize": [
+            1280,
+            720
+          ],
+          "bounds": [
+            793,
+            144,
+            1049,
+            237
+          ],
+          "regionPixels": 23808,
+          "fixedBaselinePixelCount": 23808,
+          "fixedBaselineShare": 1,
+          "variants": [
+            {
+              "key": "before",
+              "warmth": 0,
+              "hueMedianDeg": 88,
+              "HSL_S_median": 0.10869565217391303,
+              "HSL_L_median": 0.18823529411764706,
+              "HSV_S_median": 0.19607843137254902,
+              "HSV_V_median": 0.20392156862745098,
+              "encodedYMean": 0.2013439164953499,
+              "decodedScreenshotYMean": 0.03375975030319021,
+              "RGB_MAD_bytes": 0,
+              "maxChannelDeltaBytes": 0,
+              "changedPixelShare": 0,
+              "chromaticPixelCount": 23808,
+              "deltaFromZero": {
+                "hueDeg": 0,
+                "HSL_S": 0,
+                "HSL_L": 0,
+                "HSV_S": 0,
+                "decodedScreenshotYPercent": 0
+              }
+            },
+            {
+              "key": "after",
+              "warmth": 0.5,
+              "hueMedianDeg": 71.24999999999999,
+              "HSL_S_median": 0.11111111111111112,
+              "HSL_L_median": 0.18627450980392157,
+              "HSV_S_median": 0.2,
+              "HSV_V_median": 0.2,
+              "encodedYMean": 0.2010384340409243,
+              "decodedScreenshotYMean": 0.03363009451274597,
+              "RGB_MAD_bytes": 1.1110551075268817,
+              "maxChannelDeltaBytes": 4,
+              "changedPixelShare": 0.999957997311828,
+              "chromaticPixelCount": 23808,
+              "deltaFromZero": {
+                "hueDeg": -16.750000000000014,
+                "HSL_S": 0.0024154589371980922,
+                "HSL_L": -0.0019607843137254832,
+                "HSV_S": 0.003921568627450994,
+                "decodedScreenshotYPercent": -0.38405435253466846
+              }
+            }
+          ]
+        },
+        {
+          "name": "native-crown-interior-fixed-foliage",
+          "nativeSize": [
+            1280,
+            720
+          ],
+          "bounds": [
+            793,
+            144,
+            1049,
+            237
+          ],
+          "regionPixels": 23808,
+          "fixedBaselinePixelCount": 8270,
+          "fixedBaselineShare": 0.3473622311827957,
+          "variants": [
+            {
+              "key": "before",
+              "warmth": 0,
+              "hueMedianDeg": 89.99999999999999,
+              "HSL_S_median": 0.1372549019607843,
+              "HSL_L_median": 0.19803921568627453,
+              "HSV_S_median": 0.2413793103448276,
+              "HSV_V_median": 0.22745098039215686,
+              "encodedYMean": 0.21237684197548992,
+              "decodedScreenshotYMean": 0.037421229812065235,
+              "RGB_MAD_bytes": 0,
+              "maxChannelDeltaBytes": 0,
+              "changedPixelShare": 0,
+              "chromaticPixelCount": 8270,
+              "deltaFromZero": {
+                "hueDeg": 0,
+                "HSL_S": 0,
+                "HSL_L": 0,
+                "HSV_S": 0,
+                "decodedScreenshotYPercent": 0
+              }
+            },
+            {
+              "key": "after",
+              "warmth": 0.5,
+              "hueMedianDeg": 72.00000000000001,
+              "HSL_S_median": 0.14851485148514845,
+              "HSL_L_median": 0.19411764705882353,
+              "HSV_S_median": 0.2586206896551724,
+              "HSV_V_median": 0.2235294117647059,
+              "encodedYMean": 0.21153548929509255,
+              "decodedScreenshotYMean": 0.03708196845756983,
+              "RGB_MAD_bytes": 1.6085852478839178,
+              "maxChannelDeltaBytes": 4,
+              "changedPixelShare": 1,
+              "chromaticPixelCount": 8270,
+              "deltaFromZero": {
+                "hueDeg": -17.99999999999997,
+                "HSL_S": 0.011259949524364155,
+                "HSL_L": -0.003921568627450994,
+                "HSV_S": 0.01724137931034478,
+                "decodedScreenshotYPercent": -0.9066012961071124
+              }
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}
