@@ -15,7 +15,14 @@ function load(file){file=path.resolve(file);if(modules.has(file))return modules.
 }
 const read=name=>load(path.join(root,name+'.ts'));
 const {WORLD}=read('config'),{LAYOUT}=read('layout'),{VegField,newSample}=read('vegetation/field');
-function make(shared={}){const ctx={config:WORLD,layout:LAYOUT,terrain:read('terrain/heightfield').createTerrain(),rng:read('util/prng').createRng(WORLD.seed),wind:read('wind/wind').createWind(),quality:{tier:'high',density:1,distance:1,shadows:true,pixelRatio:1.5},shared};
+// round 51 (vegetation-28, item 3): the fixture reads the LEGACY terrain view — the one src/world/index.ts hands the
+// vegetation system (SYSTEMS: `terrain: 'legacy'`, expansion-2) — not `createTerrain()`'s live default. Under the live
+// view the expansion's stepping discs and the bank add paved rims the field reads off the mask, so the disc-wide
+// rim-cluster sampler (plants.ts 'weeds-rim-clusters', a 44-cluster budget over one stream) accepted centres along the
+// west path and its consumption shifted: that, not 52be8f2d's layout, was the "re-roll" the round-49 re-bases measured.
+// The rendered world never changed (frames C / F byte-identical at the merge); the fixture now measures it.
+const vegetationTerrain=()=>read('terrain/heightfield').getLegacyTerrain();
+function make(shared={}){const ctx={config:WORLD,layout:LAYOUT,terrain:vegetationTerrain(),rng:read('util/prng').createRng(WORLD.seed),wind:read('wind/wind').createWind(),quality:{tier:'high',density:1,distance:1,shadows:true,pixelRatio:1.5},shared};
   const group=new THREE.Group(),field=new VegField(ctx,WORLD.detailRadius+6,.5);return{ctx,group,field,plants:read('vegetation/plants').buildPlants(ctx,field,group)};
 }
 // round 48 (vegetation-26): the passes north of the log arch's north lip (field.ts NORTH_ZONE_Z) seat on ground the field
@@ -199,10 +206,11 @@ for(const s of stones){const n=a.plants.clover.items.filter(it=>{const d=Math.hy
   let seF=0,cNear=0;for(const set of a.plants.all)for(const it of set.items){if(!inBox(it,SE)||top(set,it)-it.y<=0.12)continue;
     const pf=camF([it.x,it.y,it.z]);if(pf){const hw=reach(set,it)*pf.perM;if(pf.sx-hw<0.17&&pf.sx+hw>=0)seF++;}
     const pc=camC([it.x,it.y,it.z]);if(pc&&pc.depth<8){const hw=reach(set,it)*pc.perM;if(!(pc.sx+hw<-0.02||pc.sx-hw>1.02||pc.sy<-0.02))cNear++;}}
-  // round 49 (expansion-2 52be8f2d, layout/heightfield only): the corner's hosta stream re-rolled
-  // (93 → 104 weeds in the box, 42 → 47 reaching the mass at sx 0.15–0.18 behind the lobe); frame F
-  // stayed byte-identical at its merge, so the contract follows the measured 144
-  assert.ok(seF<=144,`corner plants over 0.12 m reaching frame 8 s' mass: ${seF} (take 105: 139; round 49: 144)`);
+  // round 49's re-base to 144 measured the fixture's LIVE view, not the world (see `vegetationTerrain`): the
+  // 'weeds-rim-clusters' stream re-rolled only there (93 → 104 weeds in the box). Round 51 (vegetation-28): the
+  // fixture reads the legacy view the world builds against and measures take 105's 139 again — frame F was
+  // byte-identical throughout — so the contract is back at 139
+  assert.ok(seF<=139,`corner plants over 0.12 m reaching frame 8 s' mass: ${seF} (take 105: 139; round 51: 139 on the world's view)`);
   assert.ok(cNear<=35,`corner plants over 0.12 m in camera C's foreground: ${cNear} (take 105: 35)`);
   // (H) the trunk-base tiers: two clipped crowns ≤ 0.9 m at the doorway's dark posts, never over frame 14 s' lit threshold (B 0.71–0.80 × 0.35–0.56)
   assert.equal(doorTier.length,2,'two trunk-base hedge tiers beside the door path');
@@ -337,10 +345,12 @@ assert.ok(a.plants.weeds.items.filter(it=>inBox(it,bMass)&&scaleOf(it)>=1.5).len
 assert.ok(a.plants.flowers.items.filter(it=>inBox(it,[4,-15,9,-8])&&inD(a.plants.flowers,it,[0.72,0.5,1.02,0.86])).length>=16,'purple clumps on D\'s right verge');
 assert.ok(a.plants.weeds.items.filter(it=>inBox(it,[3,-13,8,-7])&&scaleOf(it)>=1.4&&inD(a.plants.weeds,it,[0.72,0.5,1.02,0.9])).length>=20,'broad-leaf clusters on D\'s right verge');
 // (4) frame 46: heart-leaf clusters in the grass 3–5 m before camera C (≤ 0.35 m, the stair-foot rule above) and white clumps on the bank beside the stair foot
-// round 49 (expansion-2 52be8f2d, layout/heightfield only): the weed stream re-rolled — C's foreground
-// clusters 17 → 13 (box 32 → 28); C recovered its SSIM by take-0123. Contract at the measured 13 until the
-// vegetation lane restores the round-45 count (open item, vegetation-28).
-assert.ok(a.plants.weeds.items.filter(it=>inBox(it,[3.6,-5.8,6.8,-3.4])&&scaleOf(it)>=1.05&&inFrame(camC,a.plants.weeds,it,[-0.02,0.76,0.34,1.02])).length>=13,'broad-leaf clusters in C\'s foreground (round 45: 16; round 49: 13)');
+// round 49 re-based this to 13 after 52be8f2d "re-rolled the weed stream" (box 32 → 28, C's frame 17 → 13) — but only
+// the fixture's live view had: the world's legacy view kept the 'weeds-rim-clusters' pass' four hostas at C's stair foot
+// (its cluster at ≈ (5.9, −4.6) is 0.3–1.3 m off the lobe's rim), and frame C never lost them. Round 51 (vegetation-28,
+// item 3): the fixture reads the world's view (`vegetationTerrain`) and measures 17 in the frame region again, the
+// round-45 population; the contract is back at ≥ 16. No frame changes — the world is what it was.
+assert.ok(a.plants.weeds.items.filter(it=>inBox(it,[3.6,-5.8,6.8,-3.4])&&scaleOf(it)>=1.05&&inFrame(camC,a.plants.weeds,it,[-0.02,0.76,0.34,1.02])).length>=16,'broad-leaf clusters in C\'s foreground (round 45: 16; round 51: 17 on the world\'s view)');
 assert.ok(whites.items.filter(it=>{const p=camC([it.x,it.y,it.z]);return p&&p.depth>=12.2&&p.sx>=0.12&&p.sx<=0.32&&p.sy>=0.4&&p.sy<=0.58&&kidClear(it,1.0);}).length>=2,'white clumps on the bank beside C\'s stair foot');
 // (5) board 06: broad-leaf weeds along the path edges in clusters of 5–12 (≥ 40 clusters of 15–30 cm leaves within 22 m of a camera)
 {const big=a.plants.weeds.items.filter(it=>scaleOf(it)>=1.3&&nearCam(it,22)&&a.field.lawnEdgeDistance(it.x,it.z)>=0.2&&a.field.lawnEdgeDistance(it.x,it.z)<=1.8);

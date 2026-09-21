@@ -33,7 +33,7 @@ const read = (name) => load(path.join(root, name + '.ts'));
 const { WORLD } = read('config'),
   { LAYOUT } = read('layout'),
   { VegField } = read('vegetation/field');
-const ctx = { config: WORLD, layout: LAYOUT, terrain: read('terrain/heightfield').createTerrain(), rng: read('util/prng').createRng(WORLD.seed), wind: read('wind/wind').createWind(), quality: { tier: 'high', density: 1, distance: 1, shadows: true, pixelRatio: 1 }, shared: {}, progress() {} };
+const ctx = { config: WORLD, layout: LAYOUT, terrain: read('terrain/heightfield').getLegacyTerrain(), rng: read('util/prng').createRng(WORLD.seed), wind: read('wind/wind').createWind(), quality: { tier: 'high', density: 1, distance: 1, shadows: true, pixelRatio: 1 }, shared: {}, progress() {} };
 const field = new VegField(ctx, WORLD.detailRadius + 6, 0.5);
 const group = new THREE.Group();
 const grass = await read('vegetation/grass').buildGrass(ctx, field, new THREE.MeshStandardMaterial(), group, () => {});
