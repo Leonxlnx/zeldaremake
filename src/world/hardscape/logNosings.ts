@@ -26,8 +26,12 @@ import { stairFrame, stairToWorld } from './stairs';
 export const STAIR_LOGS = true;
 /** flights that take the logs (the demo shows them on the hero flight; the house-west and expansion flights stay stone) */
 export const LOG_FLIGHTS = new Set(['main']);
-/** log radius range (m): ≈ 0.16–0.20 m across, §9 */
-export const LOG_RADIUS: [number, number] = [0.08, 0.1];
+/**
+ * log radius range (m): ≈ 0.13–0.16 m across. §9 read the demo's timbers as 0.15–0.20 m; fable-5's
+ * r53 §B measure of the A frame's flight (pale packed treads between THIN dark nosings: 15.8 % dark /
+ * 14.0 % pale where ours at 16–20 cm was 39 / 13 with the grey-tan tint) asked for the thinner variant
+ */
+export const LOG_RADIUS: [number, number] = [0.065, 0.08];
 /**
  * the log's crown above the tread surface, as a share of its radius: 0.7 → a 0.18 m log stands
  * ≈ 6 cm proud, its upper half in the light — the timber IS the step's edge (first take: 3.5 cm and
