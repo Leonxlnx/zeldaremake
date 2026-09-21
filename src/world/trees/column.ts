@@ -502,7 +502,10 @@ export function createColumnTree(p: ColumnParams, palette: Palette, detail: Deta
           // the bulge meets the far bole flush at the cut: the emergent's far sweep has none
           mossBulge: p.mossBulge ?? 0.6,
           bulgeFade: p.mossBulge ? undefined : [cutY - 2, cutY],
-          cushions: { rng: nrng.fork('cushions'), density: 0.05, size: [0.04, 0.1], maxCount: 220 },
+          // round 51 (the owner at the emergent's foot): fewer and smaller — 3 % of the eligible
+          // vertices at 3.5–8 cm (was 5 % at 4–10 cm, up to 220): moss lumps in the furrows, not a
+          // stuck-on leaf every hand's width; the tints darkened in bole.ts with them
+          cushions: { rng: nrng.fork('cushions'), density: 0.03, size: [0.035, 0.08], maxCount: 120 },
         })
       : yield* reliefBoleSteps(nb, trunk.slice(0, cutIndex + 1), trunkRadii.slice(0, cutIndex + 1), {
           color: barkColor,
