@@ -231,3 +231,7 @@ nearCanopy, materials, index otherwise) is edited.
   fable-5 read lod25 as "visually neutral" from poses where no widened bole is in the swap window; replied
   with the two poses where it shows (w11-spine-f 2.1 %, w10-spine-l 2.7 %) and why theirs are identical by
   design. W08 turns to pass on their pre-read of the nine-branch head.
+
+### 2026-09-21 11:30 UTC — round 51: NEAR_CANOPY_SLOTS 40 → 64 (lod-1's dial)
+- fable-cursor named it the next dial after the 40-slot finding. Measured before shipping: six fixed views pixel-identical (frusta-culled), four plaza poses head vs 64 (w10-spine-u 12 %, w05-spine-u 4.3 %, w22-stairs-u 1 %, f4-lobe-28m 1 %), walk trace +0.01 M tris mean / +0.05 M worst, draws +1, pinned 25 → 38 MB, 0 builds / 0 evictions.
+- One constant in materials.ts (Astra's file, veto offered). Branch `agent/fable-4-slots64` @ f8536e5a; README `art/environment/round51-slots64/`.
