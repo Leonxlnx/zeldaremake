@@ -265,3 +265,8 @@ nearCanopy, materials, index otherwise) is edited.
   take-0123, no flip. Merged the head into taper / r49b / leafnear; the trees/index.ts conflict resolved as
   trees-32's block + my seatFamily tilt. Six views on the new head: A/B/D/E/F pixel-identical, C −0.0005.
 - Branches: taper (ready), r49b (marks only), leafnear (Astra adopted).
+
+## 2026-09-21 04:25 UTC — tick: review of trees-32's knoll
+
+- Head still `0147a3d0` (take-0125 sealing); branches wait. Reviewed trees-32's knoll white-barks + host
+  column at my two knoll poses: the hut's sight line from Link's spot is clear, nothing floats — IMPROVED.
