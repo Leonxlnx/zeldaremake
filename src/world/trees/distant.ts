@@ -19,6 +19,7 @@ import { GeometryWriter, TAU, UP, growthPath, rootButtress, taper, tube } from '
 import { consumeTubeDraws } from './bole';
 import type { Palette } from './whitebark';
 import { createFarCrownAtlas, FAR_CROWN_CELLS, farCrownCellUv, SOLID_UV } from './leaf-cluster-texture';
+import { injectTreeLeafWarmth } from './leaf-color';
 
 export type DistantKind = 'broad' | 'slender';
 
@@ -420,8 +421,9 @@ export function createDistantCrownMaterial(wind: Wind, rng: Rng, palette: Palett
     #endif
     `,
         );
+    injectTreeLeafWarmth(s);
   };
-  material.customProgramCacheKey = () => 'trees-distant-crown-v2';
+  material.customProgramCacheKey = () => 'trees-distant-crown-v2-leaf-warmth';
   wind.bind(material);
   return material;
 }

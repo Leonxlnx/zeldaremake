@@ -1,0 +1,111 @@
+{
+  "sources": [
+    "0963c09da4139a0542a338d3345796dce6b20b8a",
+    "0858f39f75ee14130be7ff84692cdd33422c83ab"
+  ],
+  "renderer": "ANGLE (AMD, AMD Radeon 780M Graphics (0x00001900) Direct3D11 vs_5_0 ps_5_0, D3D11)",
+  "browser": "Chrome/153.0.8010.52",
+  "settings": {
+    "views": [
+      {
+        "id": "F_canopy"
+      },
+      {
+        "id": "C_lookback"
+      }
+    ],
+    "time": 12.6,
+    "width": 1280,
+    "height": 720,
+    "quality": "high",
+    "pixelRatio": 1
+  },
+  "publicHash": "aa8fd95022c831b5d8af296a67448bf8a3e4db2f6e668ef8e92179c3ce46df05",
+  "checks": [
+    "native hardware both builds",
+    "exact canonical/recovery source SHAs",
+    "same public inputs",
+    "same camera/light/viewport/time",
+    "identical trees audit except three wall-clock work timings",
+    "complete identical hardscape audit and renderer stats",
+    "image hashes verified",
+    "no page/shader/system errors"
+  ],
+  "limits": "Wall-clock work timings are recorded but are neither deterministic nor an FPS claim.",
+  "rows": [
+    {
+      "id": "F_canopy",
+      "beforeSha256": "550b6d523aa7965c13ef6300d4c3e749242e647764ba82c9c2acb0320d1c11fc",
+      "afterSha256": "1ed87745c1c9b9ed16739d15145e0bc7f219c82c823a52f59944d073421800c3",
+      "stats": {
+        "simTime": 12.6,
+        "drawCalls": 407,
+        "triangles": 8090816,
+        "geometries": 314,
+        "textures": 91,
+        "programs": 100,
+        "width": 1280,
+        "height": 720,
+        "pixelRatio": 1
+      },
+      "delta": {
+        "triangles": 0,
+        "drawCalls": 0,
+        "geometries": 0,
+        "textures": 0,
+        "programs": 0
+      },
+      "measuredCpuWorkMs": {
+        "workMsMax": {
+          "before": 0.4,
+          "after": 0.1
+        },
+        "workMsTotal": {
+          "before": 1.3,
+          "after": 0.5
+        },
+        "workMsP95": {
+          "before": 0.2,
+          "after": 0.1
+        }
+      }
+    },
+    {
+      "id": "C_lookback",
+      "beforeSha256": "f065597b0d6eaaa542b03b637a799f0e59ca659a76adba361dcf165ff9cd7840",
+      "afterSha256": "0cefdcb0d2900bd9032c12dad647a756bfc0833f99fe5710ab660eaaff4284b0",
+      "stats": {
+        "simTime": 12.6,
+        "drawCalls": 341,
+        "triangles": 7053338,
+        "geometries": 353,
+        "textures": 91,
+        "programs": 100,
+        "width": 1280,
+        "height": 720,
+        "pixelRatio": 1
+      },
+      "delta": {
+        "triangles": 0,
+        "drawCalls": 0,
+        "geometries": 0,
+        "textures": 0,
+        "programs": 0
+      },
+      "measuredCpuWorkMs": {
+        "workMsMax": {
+          "before": 0.4,
+          "after": 0.1
+        },
+        "workMsTotal": {
+          "before": 1.9,
+          "after": 0.8
+        },
+        "workMsP95": {
+          "before": 0.2,
+          "after": 0.1
+        }
+      }
+    }
+  ]
+}

@@ -1,0 +1,27 @@
+{
+  "base": "0963c09da4139a0542a338d3345796dce6b20b8a",
+  "candidate": "0858f39f75ee14130be7ff84692cdd33422c83ab",
+  "original": "0645b7d3c94eaff60eec626e40038e43c0d1d4ed",
+  "changed": [
+    "src/world/trees/distant.ts",
+    "src/world/trees/leaf-color.test.mjs",
+    "src/world/trees/leaf-color.ts",
+    "src/world/trees/materials.ts"
+  ],
+  "exactFiles": [
+    {
+      "file": "leaf-color.ts",
+      "sha256": "c5aa353d0e90dfa44466272c4852e40f7d3fd143f8c4ad7729dbf0db2018b0e5"
+    },
+    {
+      "file": "leaf-color.test.mjs",
+      "sha256": "c0391419db7f4d7c16c24e2da14a3d7519f551eebdccba350c13bd2f31824ccd"
+    }
+  ],
+  "checks": [
+    "Exactly four source/test files changed; all other geometry/assets identical",
+    "New helper and existing three-contract test identical to reviewed 0645b7d3",
+    "Removing only recovered hooks and key suffixes restores canonical materials.ts exactly",
+    "Removing only recovered hook and key suffix restores canonical distant.ts exactly"
+  ]
+}
