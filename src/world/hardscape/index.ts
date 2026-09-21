@@ -11,6 +11,7 @@ import { northVisible } from '../util/northLocality';
 import { EXPANSION_VISIBLE_M, casterSpheres, expansionCasters, expansionVisible as expansionLocalityVisible, sunVector } from '../util/expansionLocality';
 import { STONE_NEAR, createStoneMaterial } from './material';
 import { buildStairway, stairFrame, stairToWorld, type StairFrame } from './stairs';
+import { buildLogNosings, createStairTimberMaterial, LOG_FLIGHTS, STAIR_LOGS } from './logNosings';
 import { isPaved, nearIsolatedDisc, pavedLevel, placeFlagstones, rimDistance, type PavingContext } from './flagstones';
 import { MeshBuilder, buildSlab, jitteredRect } from './geometry';
 import { buildJointMesh, jointFillLift, jointFillTones } from './joints';
@@ -50,6 +51,11 @@ export async function create(ctx: WorldContext): Promise<WorldSystem> {
   const rng = ctx.rng.fork('hardscape');
   const anisotropy = ctx.renderer.capabilities.getMaxAnisotropy();
   const stoneMat = await createStoneMaterial(ctx.textures, ctx.config, anisotropy);
+  // fable-2 (§9 / V18′): the hero flight's round bark-timber nosings and end stakes — one bark mesh per flight
+  const timberMat = STAIR_LOGS ? await createStairTimberMaterial(ctx.textures, ctx.config, anisotropy) : null;
+  let stairLogs = 0;
+  let stairStakes = 0;
+  let stairLogTriangles = 0;
 
   // --- stairways ---------------------------------------------------------------------------
   const frames: StairFrame[] = ctx.layout.stairs.map((s) => stairFrame(s));
@@ -75,6 +81,17 @@ export async function create(ctx: WorldContext): Promise<WorldSystem> {
     b.shapeHashes.forEach((h) => shapeHashes.add(h));
     treadNose.push(...b.treadNose);
     stairInfo.push({ id: def.id, steps: def.steps, width: def.width, treadSlabs: b.treadSlabs, triangles: b.triangles });
+    if (timberMat && LOG_FLIGHTS.has(def.id)) {
+      const logs = buildLogNosings(def, ctx.config.seed);
+      const logMesh = new Mesh(logs.geometry, timberMat);
+      logMesh.castShadow = true;
+      logMesh.receiveShadow = true;
+      logMesh.name = `stairs-${def.id}-logs`;
+      group.add(logMesh);
+      stairLogs += logs.logs;
+      stairStakes += logs.stakes;
+      stairLogTriangles += logs.triangles;
+    }
   }
   // round 49 (expansion-2): the expansion's flights (layout `EXPANSION_STAIRS` — the south bank's
   // and the west house's), own forks, in their own group so they can be hidden by distance with
@@ -1026,6 +1043,10 @@ export async function create(ctx: WorldContext): Promise<WorldSystem> {
     },
     totalSteps,
     treadSlabs,
+    /** fable-2 (§9): the main flight's log nosings and end stakes */
+    stairLogs,
+    stairStakes,
+    stairLogTriangles,
     stairGeometry: 'procedural-v2',
     uniqueStepShapes: shapeHashes.size,
     mossJoints: true,

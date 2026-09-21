@@ -131,7 +131,9 @@ assert.ok(a.carpet.infillMats>=3000&&a.carpet.infillMats<=12000,`round 47 infill
 assert.ok(CLUMP_CELL<=0.45&&MAT_CELL<=0.6);
 const perM2=(set,b)=>set.items.filter(it=>inBox(it,b)).length/((b[2]-b[0])*(b[3]-b[1]));
 // (the north verge lies in shot D's soil shoulder — frame 56 s' ragged earth edge — where the mats thin like the blades)
-for(const [name,b,mats] of[['lawn band',[-3.1,-8.4,-1.9,-6.6],2],['north verge',[-2.2,-13.5,-1.6,-11.0],1],['grass close-up',[-5,5,-2,8],2],['terrace lawn',[6.3,-11,8.8,-8.4],2]]){
+// (2026-09-21: the 'lawn band' box moved 0.8 m west — the shot-D boulder now stands at (−2.0, −7.6) r 0.9 on the
+// old box [−3.1, −8.4, −1.9, −6.6] (fable-2's W23 move, take-0128); the frame's lawn band there is part rock now)
+for(const [name,b,mats] of[['lawn band',[-3.9,-8.4,-2.9,-6.6],2],['north verge',[-2.2,-13.5,-1.6,-11.0],1],['grass close-up',[-5,5,-2,8],2],['terrace lawn',[6.3,-11,8.8,-8.4],2]]){
   assert.ok(perM2(a.carpet.clumps,b)>=3,`${name}: ${perM2(a.carpet.clumps,b).toFixed(2)} clumps / m²`);
   assert.ok(perM2(a.carpet.mats,b)>=mats,`${name}: ${perM2(a.carpet.mats,b).toFixed(2)} mats / m²`);}
 // seating: on allowed turf, off the giant trunks, roots sunk ≤ 3 cm (clumps) / lifted 1.8 cm (mats), tilt to the normal
@@ -166,7 +168,7 @@ for(const it of a.carpet.clumps.items){if(inBox(it,[1.5,-16,7,-4]))assert.ok(sca
 // metre-wide lit plane there is a single bright decal on frames 14 / 24 / 46 s' dark ground; the blades' dusty
 // fringe and the soil do those cells); a mat never takes the shade lift (slot fraction 0.25 exactly where it is
 // not bank-darkened) — it faces the sky the lifted blades under-collect
-{const {C_FOOT}=read('vegetation/field');const lawn=[-3.1,-8.4,-1.9,-6.6];
+{const {C_FOOT}=read('vegetation/field');const lawn=[-3.9,-8.4,-2.9,-6.6]; // (2026-09-21: 0.8 m west of the shot-D boulder's new spot, as the 'lawn band' box above)
   const core=(set,pick)=>{const n=set.items.filter(pick).length;return n;};
   const footPick=it=>a.field.cFoot(it.x,it.z)>0.95&&a.field.lawnEdgeDistance(it.x,it.z,true)>0.5;
   const bankPick=it=>a.field.bankDark(it.x,it.z)>0.9&&a.field.lawnEdgeDistance(it.x,it.z,true)>0.5;
