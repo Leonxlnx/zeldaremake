@@ -6,9 +6,9 @@
  * "the single largest change left at A".
  *
  * Built as its own mesh over the stone flight (which stays as it is, so the change can be pulled by
- * `STAIR_LOGS`): one bark geometry per flight, structures' `logBark` recipe on `bark_brown_02`
- * (dark weathered grey-brown, strong normal map, vertex colours carrying the moss and the damp
- * underside). The log rides the slab's front edge, its crown ≈ 6 cm proud of the tread — the timber
+ * `STAIR_LOGS`): one bark geometry per flight on `bark_brown_02` (lifted and cooled to the frames'
+ * lit grey-tan `#746d5d` — `LOG_TINT` — with a strong normal map, vertex colours carrying the moss and
+ * the damp underside). The log rides the slab's front edge, its crown ≈ 6 cm proud of the tread — the timber
  * is the step's edge, the pale slab the tread behind it — and its front tangent 10 cm past the nose line.
  * Every draw is a hash or a noise field keyed on the step, so the flight's stone stream is untouched.
  */
@@ -17,7 +17,7 @@ import type { StairDef } from '../layout';
 import type { WorldConfig } from '../config';
 import type { TextureLibrary } from '../materials/textures';
 import { applyShadeFloor } from '../materials/shadeFloor';
-import { HOUSE_BARK_TINT, LOG_BARK_FLOOR } from '../structures/materials';
+import { LOG_BARK_FLOOR } from '../structures/materials';
 import { hash2 } from '../util/prng';
 import { Noise2D, smoothstep } from '../util/noise';
 import { stairFrame, stairToWorld } from './stairs';
@@ -39,6 +39,24 @@ export const LOG_FRONT = 0.1;
 /** stake radius and height above the tread (m) */
 export const STAKE_RADIUS = 0.045;
 export const STAKE_HEIGHT: [number, number] = [0.22, 0.34];
+/**
+ * The timber's tint over `bark_brown_02` (linear mean 0.113 / 0.091 / 0.047 — a dark, orange bark).
+ * The first takes carried the log arch's `0x6e6258` (≈ 0.15 linear), an effective albedo near 2 %,
+ * and were tuned with the tube's side triangles wound inward (Astra's fix, 27c2e3c8): what read as
+ * "the timber" then was the far inner wall. With the faces outward the A frame's flight measured
+ * lips l 68 over troughs 63 where the reference has l 100 over 85 (§6.6b: bark `#746d5d` lit, shadow
+ * `#453e32`) — the dark logs sat exactly where the lit lips belong. The tint lifts the bark to a
+ * lit grey-tan and cools the texture's orange (R/B 2.4 → 1.4); the pair below pins the A-frame lips
+ * ≈ 15 points over the treads behind, as the reference's, with the flight's saturation at 0.32
+ * (reference 0.29, the flight without logs 0.30).
+ */
+export const LOG_TINT: [number, number, number] = [1.35, 1.5, 2.3];
+/**
+ * The shade floor's light tint (the tone the shaded side is lifted toward). The arch's
+ * `HOUSE_BARK_TINT` (0x70553f, a saturated brown) put the flight's saturation at 0.36 whatever the
+ * albedo; the reference's lit bark tone itself keeps the lifted shade grey-tan.
+ */
+export const LOG_FLOOR_TINT = 0x746d5d;
 
 export interface LogNosingBuild {
   geometry: BufferGeometry;
@@ -50,7 +68,7 @@ export interface LogNosingBuild {
 const RADIAL = 14;
 const ALONG = 18;
 
-/** the timber material: structures' log-arch bark recipe, a shade darker for the damp flight */
+/** the timber material: the arch's bark set and shade floor, tinted to the frames' lit grey-tan (`LOG_TINT`, `LOG_FLOOR_TINT`) */
 export async function createStairTimberMaterial(textures: TextureLibrary, config: WorldConfig, anisotropy = 8): Promise<MeshStandardMaterial> {
   const [barkC, barkN, barkR] = await Promise.all([
     textures.load('bark_brown_02', 'color', { anisotropy }),
@@ -63,10 +81,10 @@ export async function createStairTimberMaterial(textures: TextureLibrary, config
     normalScale: new Vector2(2.0, 2.0),
     roughnessMap: barkR,
     roughness: 1,
-    color: new Color(0x6e6258),
+    color: new Color(...LOG_TINT),
     vertexColors: true,
   });
-  applyShadeFloor(mat, LOG_BARK_FLOOR, new Color(HOUSE_BARK_TINT));
+  applyShadeFloor(mat, LOG_BARK_FLOOR, new Color(LOG_FLOOR_TINT));
   mat.name = 'stair-timber';
   return mat;
 }
