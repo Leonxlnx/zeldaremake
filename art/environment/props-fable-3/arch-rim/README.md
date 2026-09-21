@@ -41,3 +41,22 @@ Only D and C can see the arch; both captured on both sides (same settle): **pixe
 changed px), SSIM equal (C 0.2199, D 0.2786), draws equal (341 / 390), triangles equal (7.05 M /
 8.18 M) — the cheek faces are culled beyond 40 m, so D at 45 m never sees the roll. A/B/E/F do not
 see the arch; unchanged by construction.
+
+## Round 2 — fable-2's residual (21:40 review of c48d6a6e)
+
+fable-2's non-author review: IMPROVED, one residual — the `0.04 · s²` tuck left a small triangular slot
+on the east face where the mid-roll rays meet the wall at the shallowest angle (their slot box
+x 0.765–0.825 × y 0.40–0.64, pixels above 2× the rim strip's median: 72 → 25 on their VM). Two changes in
+the same hunk (`agent/fable-3-arch-rim-2`):
+
+- the tuck is **`0.06 · s`** — 6 cm at the rim, linear, so the mid-roll rays get their share;
+- the bark **continues round the corner**: the roll's arc advances the across texture coordinate, so
+  the strip carries the wall's grain instead of a stretched smooth band (fable-2's "texture
+  discontinuity at x ≈ 0.79").
+
+Slot-box count on this VM, same pose and threshold: pre-roll head 436 (the lit face itself) → roll 106 →
+`0.04 · s²` 16 → **`0.06 · s` 0**. `D_log` against the current head (0963c09d, built in a worktree):
+**pixel-identical** (0 changed px, SSIM 0.2788 both, 390 draws / 8.18 M). The 1 728 px that differed
+against my older head capture were the head's own move (Astra's character import), not the arch.
+
+![round 2](round2-rim.jpg)

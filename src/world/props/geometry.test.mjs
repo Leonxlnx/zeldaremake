@@ -333,10 +333,13 @@ for (const id of ['door-pot-large', 'sign-pot', 'saria-crate', 'saria-water-buck
   const along = rel[0] * dir[0] + rel[1] * dir[1];
   const across = -rel[0] * dir[1] + rel[1] * dir[0];
   assert.ok(Math.abs(along - 0.55) < 0.02, `deck pot 0.55 m along the deck (${along.toFixed(3)})`);
-  assert.ok(Math.abs(across - (0.475 - 0.23)) < 0.02, `deck pot 0.245 m off the centreline on the door side (${across.toFixed(3)})`);
+  const dpDef = PROP_LAYOUT.find((d) => d.id === 'west-door-pot');
+  const dpR = footprintRadius(dpDef);
+  // its rim a hand (1 cm) inside the deck's edge, whatever its size (round 52: 0.36 m → r 0.187)
+  assert.ok(Math.abs(across - (0.475 - (dpR + 0.01))) < 0.02, `deck pot's rim 1 cm inside the deck's edge on the door side (across ${across.toFixed(3)}, r ${dpR.toFixed(3)})`);
   assert.ok(Math.abs(dp.y - (a[1] + (b[1] - a[1]) * (along / L))) < 0.01, 'deck pot stands on the deck top');
   const rc = Math.hypot(dp.x - westWalk.disc.x, dp.z - westWalk.disc.z);
-  assert.ok(rc > westWalk.wall.r + westWalk.wall.half + 0.21, `deck pot (r 0.22) clear of the wall ring (centre at ${rc.toFixed(2)} m)`);
+  assert.ok(rc > westWalk.wall.r + westWalk.wall.half + dpR, `deck pot (r ${dpR.toFixed(2)}) clear of the wall ring (centre at ${rc.toFixed(2)} m)`);
   assert.ok(Math.hypot(dp.x - -19.69, dp.z - 8.235) < 1.0, 'deck pot within a metre of the door point (−19.69, 8.235)');
   const cams = LAYOUT.viewpoints.map((v) => { const cam = new THREE.PerspectiveCamera(v.fov, 1280 / 720, 0.1, 1000); cam.position.fromArray(v.position); cam.lookAt(new Vector3().fromArray(v.target)); cam.updateMatrixWorld(true); return { id: v.id, cam }; });
   for (const p of west) {
@@ -476,6 +479,29 @@ for (const id of ['door-pot-large', 'sign-pot', 'saria-crate', 'saria-water-buck
   const dl = Math.hypot(deckDir[0], deckDir[1]);
   corridor("the west deck's landing", [[westWalk.deck.b[0], westWalk.deck.b[2]], [westWalk.deck.b[0] + (deckDir[0] / dl) * 2.5, westWalk.deck.b[2] + (deckDir[1] / dl) * 2.5]]);
   console.log(`walk clearance beyond each blocker's radius (m, hook margin 0.12 + body 0.25 = ${WALK}): ${clearances.join(' · ')}`);
+
+  // the deck itself: a prop standing on the 0.95 m walkway pinches it; the lane left for Link's
+  // centre on the far side of the blocked band (r + 0.12) must take his 0.2 m half-width plus a hand
+  {
+    const LANE = 0.42;
+    const a = westWalk.deck.a;
+    const b = westWalk.deck.b;
+    const L = Math.hypot(b[0] - a[0], b[2] - a[2]);
+    const dir = [(b[0] - a[0]) / L, (b[2] - a[2]) / L];
+    const side = [-dir[1], dir[0]];
+    let narrowest = Infinity;
+    for (const q of bl) {
+      const rx = q.x - a[0];
+      const rz = q.z - a[2];
+      const along = rx * dir[0] + rz * dir[1];
+      const lat = rx * side[0] + rz * side[1];
+      if (along < -0.5 || along > L + 0.5 || Math.abs(lat) > westWalk.deck.hw + q.r) continue;
+      const lane = lat >= 0 ? lat - (q.r + 0.12) + westWalk.deck.hw : westWalk.deck.hw - (lat + q.r + 0.12);
+      narrowest = Math.min(narrowest, lane);
+      assert.ok(lane >= LANE, `a blocker on the west deck at along ${along.toFixed(2)} leaves a ${lane.toFixed(2)} m lane (need ${LANE})`);
+    }
+    console.log(`west deck: narrowest lane for Link's centre ${narrowest === Infinity ? 'n/a (nothing on the deck)' : narrowest.toFixed(3) + ' m'}`);
+  }
 }
 
 // geometry: determinism, finiteness, attributes, budget

@@ -8,7 +8,7 @@
  * system can hang lanterns from it); a crown of diverging leaders carrying big leaf lobes at
  * 14–24 m. Botanical primitives derived from Verdant Forest by Leonxlnx.
  */
-import { BufferGeometry, Color, Vector3 } from 'three';
+import { Box3, BufferGeometry, Color, Vector3 } from 'three';
 import type { GiantTreeDef } from '../layout';
 import type { Rng } from '../util/prng';
 import { Noise2D, smoothstep } from '../util/noise';
@@ -432,6 +432,8 @@ export interface CanopyLobe {
    * for the haze across its depth — and only the fringe carries leaf silhouettes.
    */
   core?: number;
+  /** Selected bank foliage: recess its core and reuse a bounded, persistent near part. */
+  layeredCore?: { leaves: number; twigs: number };
 }
 
 /**
@@ -605,6 +607,7 @@ export function createGiantTree(def: GiantTreeDef, rng: Rng, o: GiantOptions): G
   let leaves = new GeometryWriter('high');
   const treeLeaves = leaves;
   const authoredLeaves = new GeometryWriter('high');
+  const originalCorePositions: Vector3[] = [];
   // likewise `cards` is rebound to `authoredCards` while a flat lobe is foliated
   let cards = new GeometryWriter('high');
   const treeCards = cards;
@@ -1949,6 +1952,7 @@ export function createGiantTree(def: GiantTreeDef, rng: Rng, o: GiantOptions): G
       // a compact clump does the same whichever way its stem runs
       const lobePath = hanging || lobeSpec.compact ? stem.slice(stem.length - 3) : stem;
       const leavesBefore = leaves.leafCount;
+      const lobeVertexStart = leaves.positions.length / 3;
       const lobeRec = foliateLobe(lobePath, lobeSpec.center, lobeSpec.hR, lobeSpec.vR, stemRadius, 3, 4, 4, 0.55 * d, d, lobeSpec.compact === true);
       if (into) builtLobes.push({ center: lobeSpec.center.clone(), hR: lobeSpec.hR, vR: lobeSpec.vR, leaves: leaves.leafCount - leavesBefore });
       else lobeLeafCounts.push(leaves.leafCount - leavesBefore);
@@ -1957,7 +1961,21 @@ export function createGiantTree(def: GiantTreeDef, rng: Rng, o: GiantOptions): G
         // so they fold with the laminae while the near version is drawn (round 44)
         const cardsBefore = cards.triangles;
         if (lobeRec) leaves.leafSwapGroup = cards.leafSwapGroup = lobeRec.group;
+        const coreVertexStart = leaves.positions.length / 3;
         lobeCore(lobeSpec.center, lobeSpec.hR, lobeSpec.vR, lobeSpec.core);
+        if (lobeSpec.layeredCore && lobeRec) {
+          const bounds = new Box3();
+          for (let v = lobeVertexStart; v < leaves.positions.length / 3; v++) {
+            const p = new Vector3().fromArray(leaves.positions, v * 3);
+            bounds.expandByPoint(p);
+            if (v < coreVertexStart) continue;
+            // Save the old float32 positions for exact conservative mesh culling bounds.
+            originalCorePositions.push(new Vector3(Math.fround(p.x), Math.fround(p.y), Math.fround(p.z)));
+            p.sub(lobeSpec.center).multiplyScalar(0.6).add(lobeSpec.center);
+            leaves.positions.splice(v * 3, 3, p.x, p.y, p.z);
+          }
+          lobeRec.layeredCore = { ...lobeSpec.layeredCore, bounds, tone: lobeSpec.tone ?? 1 };
+        }
         if (lobeRec) {
           leaves.leafSwapGroup = cards.leafSwapGroup = -1;
           lobeRec.farCards += (cards.triangles - cardsBefore) / 2;
@@ -2046,9 +2064,21 @@ export function createGiantTree(def: GiantTreeDef, rng: Rng, o: GiantOptions): G
     };
   }
 
+  const authoredGeometry = authoredLeaves.finish(`giant-authored-leaves-${def.id}`);
+  if (originalCorePositions.length) {
+    // Recession must not shrink the authored mesh's old visibility volume.
+    for (const p of originalCorePositions) authoredGeometry.boundingBox!.expandByPoint(p);
+    const sphere = authoredGeometry.boundingSphere!;
+    authoredGeometry.boundingBox!.getCenter(sphere.center);
+    let radiusSq = 0;
+    const p = new Vector3(), position = authoredGeometry.getAttribute('position');
+    for (let v = 0; v < position.count; v++) radiusSq = Math.max(radiusSq, p.fromBufferAttribute(position, v).distanceToSquared(sphere.center));
+    for (const old of originalCorePositions) radiusSq = Math.max(radiusSq, old.distanceToSquared(sphere.center));
+    sphere.radius = Math.sqrt(radiusSq);
+  }
   return {
     geometry: mergeParts(`giant-${def.id}`, [treeWood.finish('wood'), treeLeaves.finish('leaves')]),
-    authoredLeaves: authoredLeaves.finish(`giant-authored-leaves-${def.id}`),
+    authoredLeaves: authoredGeometry,
     cards: treeCards.finish(`giant-cards-${def.id}`),
     authoredCards: authoredCards.finish(`giant-authored-cards-${def.id}`),
     cardCount: treeCards.triangles / 2,
