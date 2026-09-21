@@ -1,0 +1,4785 @@
+{
+  "sourceRef": "24dc4cac",
+  "imageBuild": "b266441d1135d3bd0a6eb093dced3c39eb15e2bc",
+  "limitation": "Tree-only undeformed CPU geometry. Alpha texture and GPU wind are not evaluated; card intersections are candidates, not certified visible fragments.",
+  "views": {
+    "A_stairs": [
+      {
+        "pixel": [
+          170,
+          50
+        ],
+        "hits": [
+          {
+            "object": "column-col-1-678757811-medium@-5.700,-31.900",
+            "kind": "column",
+            "materialRole": "columnTree",
+            "distance": 44.108260237366736,
+            "point": [
+              -3.2235409729143853,
+              13.06820143882167,
+              -33.890424901605954
+            ],
+            "rootOrigin": [
+              -5.699999809265137,
+              2.7194900512695312,
+              -31.899999618530273
+            ],
+            "rootCode": 6,
+            "cardFacing": 0.8680512178865715,
+            "flat": false,
+            "uv": [
+              0.7292916860457184,
+              0.331344661264503
+            ],
+            "instanceId": 0,
+            "faceIndex": 8204
+          },
+          {
+            "object": "column-col-1-678757811-medium@-5.700,-31.900",
+            "kind": "column",
+            "materialRole": "columnTree",
+            "distance": 44.227834957147884,
+            "point": [
+              -3.2333641646276816,
+              13.098748824328005,
+              -34.00561377152849
+            ],
+            "rootOrigin": [
+              -5.699999809265137,
+              2.7194900512695312,
+              -31.899999618530273
+            ],
+            "rootCode": 6,
+            "cardFacing": 0.9542446119218854,
+            "flat": false,
+            "uv": [
+              0.45656752122935523,
+              0.35926856066925045
+            ],
+            "instanceId": 0,
+            "faceIndex": 8199
+          },
+          {
+            "object": "distant-0-near",
+            "kind": "distant-tree",
+            "materialRole": "distant-crown",
+            "distance": 59.260371391782684,
+            "point": [
+              -4.468303185223684,
+              16.939064623915833,
+              -48.486775735731094
+            ],
+            "rootOrigin": [
+              -10.932504653930664,
+              20.304404270083182,
+              -56.98359680175781
+            ],
+            "rootCode": 8.378999710083008,
+            "cardFacing": 0.3748929507931,
+            "flat": false,
+            "uv": [
+              0.029983406190185524,
+              0.6715519588859395
+            ],
+            "instanceId": 3,
+            "faceIndex": 1435
+          },
+          {
+            "object": "distant-1-near",
+            "kind": "distant-tree",
+            "materialRole": "distant-crown",
+            "distance": 61.177532096071495,
+            "point": [
+              -4.625799997074065,
+              17.428835766333698,
+              -50.3336174041967
+            ],
+            "rootOrigin": [
+              -2.5692954063415527,
+              22.47295024429468,
+              -60.061031341552734
+            ],
+            "rootCode": 10.142999649047852,
+            "cardFacing": 0.31455498320501857,
+            "flat": false,
+            "uv": [
+              0.9134381496788989,
+              0.669714136978202
+            ],
+            "instanceId": 1,
+            "faceIndex": 1281
+          },
+          {
+            "object": "distant-1-near",
+            "kind": "distant-tree",
+            "materialRole": "distant-crown",
+            "distance": 62.42583201344418,
+            "point": [
+              -4.728349176587014,
+              17.747735102859867,
+              -51.536131255533576
+            ],
+            "rootOrigin": [
+              -7.808504104614258,
+              24.855928553819012,
+              -58.328697204589844
+            ],
+            "rootCode": 10.142999649047852,
+            "cardFacing": 0.8042026992925712,
+            "flat": false,
+            "uv": [
+              0.4816421201853587,
+              0.5405295738542455
+            ],
+            "instanceId": 0,
+            "faceIndex": 1289
+          },
+          {
+            "object": "distant-0-near",
+            "kind": "distant-tree",
+            "materialRole": "distant-crown",
+            "distance": 63.48499754851931,
+            "point": [
+              -4.815360763368938,
+              18.018316861062452,
+              -52.55644793509178
+            ],
+            "rootOrigin": [
+              -10.932504653930664,
+              20.304404270083182,
+              -56.98359680175781
+            ],
+            "rootCode": 8.378999710083008,
+            "cardFacing": 0.1350160574851806,
+            "flat": false,
+            "uv": [
+              0.37232347520827735,
+              0.3467809929254902
+            ],
+            "instanceId": 3,
+            "faceIndex": 1437
+          },
+          {
+            "object": "distant-1-near",
+            "kind": "distant-tree",
+            "materialRole": "distant-crown",
+            "distance": 63.89595322686567,
+            "point": [
+              -4.849121213917803,
+              18.123302442926587,
+              -52.95233027764384
+            ],
+            "rootOrigin": [
+              -2.5692954063415527,
+              22.47295024429468,
+              -60.061031341552734
+            ],
+            "rootCode": 10.142999649047852,
+            "cardFacing": 0.25440746303808004,
+            "flat": false,
+            "uv": [
+              0.4639398454057771,
+              0.09248002717030292
+            ],
+            "instanceId": 1,
+            "faceIndex": 1292
+          },
+          {
+            "object": "distant-1-near",
+            "kind": "distant-tree",
+            "materialRole": "distant-crown",
+            "distance": 65.45561652160016,
+            "point": [
+              -4.977249229441601,
+              18.52174482281705,
+              -54.45478709049644
+            ],
+            "rootOrigin": [
+              -7.808504104614258,
+              24.855928553819012,
+              -58.328697204589844
+            ],
+            "rootCode": 10.142999649047852,
+            "cardFacing": 0.5545945151860985,
+            "flat": false,
+            "uv": [
+              0.17588890929348075,
+              0.1564161946285849
+            ],
+            "instanceId": 0,
+            "faceIndex": 1284
+          }
+        ]
+      },
+      {
+        "pixel": [
+          245,
+          72
+        ],
+        "hits": [
+          {
+            "object": "column-col-2-328830636-medium@-1.000,-35.500",
+            "kind": "column",
+            "materialRole": "columnTree",
+            "distance": 45.26275126633676,
+            "point": [
+              -0.31207375850629926,
+              12.808576759969228,
+              -35.297845515248035
+            ],
+            "rootOrigin": [
+              -1,
+              3.418959140777588,
+              -35.5
+            ],
+            "rootCode": 0,
+            "cardFacing": 0.9046298061466114,
+            "flat": false,
+            "uv": [
+              2.2996448759805994,
+              6.533837634239768
+            ],
+            "instanceId": 0,
+            "faceIndex": 3999
+          },
+          {
+            "object": "column-col-2-328830636-medium@-1.000,-35.500",
+            "kind": "column",
+            "materialRole": "columnTree",
+            "distance": 45.73151887708111,
+            "point": [
+              -0.31944841216985476,
+              12.922588040350774,
+              -35.75247736115422
+            ],
+            "rootOrigin": [
+              -1,
+              3.418959140777588,
+              -35.5
+            ],
+            "rootCode": 0,
+            "cardFacing": 0.5372655001925905,
+            "flat": false,
+            "uv": [
+              0.8436025304029762,
+              0.6845340228536541
+            ],
+            "instanceId": 0,
+            "faceIndex": 6641
+          },
+          {
+            "object": "column-col-2-328830636-medium@-1.000,-35.500",
+            "kind": "column",
+            "materialRole": "columnTree",
+            "distance": 45.77994567389681,
+            "point": [
+              -0.3202102627038186,
+              12.934366160219101,
+              -35.799443839901954
+            ],
+            "rootOrigin": [
+              -1,
+              3.418959140777588,
+              -35.5
+            ],
+            "rootCode": 0,
+            "cardFacing": 0.8736774941867425,
+            "flat": false,
+            "uv": [
+              3.631879245753601,
+              6.625026275392171
+            ],
+            "instanceId": 0,
+            "faceIndex": 4027
+          },
+          {
+            "object": "column-col-2-328830636-medium@-1.000,-35.500",
+            "kind": "column",
+            "materialRole": "columnTree",
+            "distance": 45.99186583160557,
+            "point": [
+              -0.32354419135333734,
+              12.985908305975864,
+              -36.004973510202504
+            ],
+            "rootOrigin": [
+              -1,
+              3.418959140777588,
+              -35.5
+            ],
+            "rootCode": 0,
+            "cardFacing": 0.6154902345415981,
+            "flat": false,
+            "uv": [
+              0.5479459384959797,
+              0.9397086486610668
+            ],
+            "instanceId": 0,
+            "faceIndex": 6638
+          },
+          {
+            "object": "distant-1-near",
+            "kind": "distant-tree",
+            "materialRole": "distant-crown",
+            "distance": 59.53497568886166,
+            "point": [
+              -0.5366044421802139,
+              16.27979478572201,
+              -49.13968864962483
+            ],
+            "rootOrigin": [
+              -7.808504104614258,
+              24.855928553819012,
+              -58.328697204589844
+            ],
+            "rootCode": 10.142999649047852,
+            "cardFacing": 0.6097478919902671,
+            "flat": false,
+            "uv": [
+              0.0733786485377394,
+              0.12323360884897205
+            ],
+            "instanceId": 0,
+            "faceIndex": 1285
+          },
+          {
+            "object": "distant-0-near",
+            "kind": "distant-tree",
+            "materialRole": "distant-crown",
+            "distance": 63.087343106183596,
+            "point": [
+              -0.592490298600282,
+              17.143783568973177,
+              -52.584933839900685
+            ],
+            "rootOrigin": [
+              -10.932504653930664,
+              20.304404270083182,
+              -56.98359680175781
+            ],
+            "rootCode": 8.378999710083008,
+            "cardFacing": 0.8719577965766337,
+            "flat": false,
+            "uv": [
+              0.444078103564977,
+              0.1981834073241342
+            ],
+            "instanceId": 3,
+            "faceIndex": 1422
+          },
+          {
+            "object": "distant-1-near",
+            "kind": "distant-tree",
+            "materialRole": "distant-crown",
+            "distance": 64.48199222720152,
+            "point": [
+              -0.6144309233660445,
+              17.48298305359151,
+              -53.937527085993395
+            ],
+            "rootOrigin": [
+              -2.5692954063415527,
+              22.47295024429468,
+              -60.061031341552734
+            ],
+            "rootCode": 10.142999649047852,
+            "cardFacing": 0.27027750779776993,
+            "flat": false,
+            "uv": [
+              0.8850943665037492,
+              0.6979874124269192
+            ],
+            "instanceId": 1,
+            "faceIndex": 1294
+          },
+          {
+            "object": "distant-1-near",
+            "kind": "distant-tree",
+            "materialRole": "distant-crown",
+            "distance": 65.22488655314224,
+            "point": [
+              -0.6261181394553388,
+              17.663666043088572,
+              -54.65801931065748
+            ],
+            "rootOrigin": [
+              -7.808504104614258,
+              24.855928553819012,
+              -58.328697204589844
+            ],
+            "rootCode": 10.142999649047852,
+            "cardFacing": 0.3626138408055859,
+            "flat": false,
+            "uv": [
+              0.11772752031614987,
+              0.031237540326404644
+            ],
+            "instanceId": 0,
+            "faceIndex": 1292
+          }
+        ]
+      },
+      {
+        "pixel": [
+          291,
+          32
+        ],
+        "hits": [
+          {
+            "object": "column-col-2-328830636-medium@-1.000,-35.500",
+            "kind": "column",
+            "materialRole": "columnTree",
+            "distance": 48.083639227226755,
+            "point": [
+              1.766741921728352,
+              15.525683984092952,
+              -37.46271786404167
+            ],
+            "rootOrigin": [
+              -1,
+              3.418959140777588,
+              -35.5
+            ],
+            "rootCode": 8,
+            "cardFacing": 0.46677160794956707,
+            "flat": false,
+            "uv": [
+              0.7190991324433726,
+              0.29542840317426633
+            ],
+            "instanceId": 0,
+            "faceIndex": 10328
+          },
+          {
+            "object": "column-col-2-328830636-medium@-1.000,-35.500",
+            "kind": "column",
+            "materialRole": "columnTree",
+            "distance": 48.147726154080274,
+            "point": [
+              1.768563545277925,
+              15.543977876145219,
+              -37.524111262666864
+            ],
+            "rootOrigin": [
+              -1,
+              3.418959140777588,
+              -35.5
+            ],
+            "rootCode": 8,
+            "cardFacing": 0.5834371355910681,
+            "flat": false,
+            "uv": [
+              0.43739647047394425,
+              0.18468687797969707
+            ],
+            "instanceId": 0,
+            "faceIndex": 10331
+          },
+          {
+            "object": "column-col-2-328830636-medium@-1.000,-35.500",
+            "kind": "column",
+            "materialRole": "columnTree",
+            "distance": 48.201198443610565,
+            "point": [
+              1.770083455603483,
+              15.559241773799272,
+              -37.57533614967133
+            ],
+            "rootOrigin": [
+              -1,
+              3.418959140777588,
+              -35.5
+            ],
+            "rootCode": 8,
+            "cardFacing": 0.7353688689934079,
+            "flat": false,
+            "uv": [
+              0.44577790599092604,
+              0.05111185181760047
+            ],
+            "instanceId": 0,
+            "faceIndex": 10335
+          },
+          {
+            "object": "distant-1-near",
+            "kind": "distant-tree",
+            "materialRole": "distant-crown",
+            "distance": 57.07569350786636,
+            "point": [
+              2.022334421491724,
+              18.0925049944707,
+              -46.076842460349596
+            ],
+            "rootOrigin": [
+              -7.808504104614258,
+              24.855928553819012,
+              -58.328697204589844
+            ],
+            "rootCode": 10.142999649047852,
+            "cardFacing": 0.6360207595129651,
+            "flat": false,
+            "uv": [
+              0.014306711298916473,
+              0.15006311485942794
+            ],
+            "instanceId": 0,
+            "faceIndex": 1285
+          },
+          {
+            "object": "distant-1-near",
+            "kind": "distant-tree",
+            "materialRole": "distant-crown",
+            "distance": 62.32887346596635,
+            "point": [
+              2.1716521808482803,
+              19.59204806515458,
+              -51.109234978634326
+            ],
+            "rootOrigin": [
+              15.598648071289062,
+              23.70940443587324,
+              -59.25106430053711
+            ],
+            "rootCode": 10.142999649047852,
+            "cardFacing": 0.7906659491078398,
+            "flat": false,
+            "uv": [
+              0.5309902605173198,
+              0.6886712360895757
+            ],
+            "instanceId": 2,
+            "faceIndex": 1280
+          },
+          {
+            "object": "distant-1-near",
+            "kind": "distant-tree",
+            "materialRole": "distant-crown",
+            "distance": 65.48773433272541,
+            "point": [
+              2.261440467277776,
+              20.49375864080298,
+              -54.13533115637317
+            ],
+            "rootOrigin": [
+              -2.5692954063415527,
+              22.47295024429468,
+              -60.061031341552734
+            ],
+            "rootCode": 10.142999649047852,
+            "cardFacing": 0.6008757806322235,
+            "flat": false,
+            "uv": [
+              0.3747002767511836,
+              0.21702388226051753
+            ],
+            "instanceId": 1,
+            "faceIndex": 1284
+          },
+          {
+            "object": "distant-1-near",
+            "kind": "distant-tree",
+            "materialRole": "distant-crown",
+            "distance": 65.59625380391104,
+            "point": [
+              2.2645250530740437,
+              20.52473599591905,
+              -54.23928963090453
+            ],
+            "rootOrigin": [
+              -7.808504104614258,
+              24.855928553819012,
+              -58.328697204589844
+            ],
+            "rootCode": 10.142999649047852,
+            "cardFacing": 0.47226920229536024,
+            "flat": false,
+            "uv": [
+              0.44251467285026314,
+              0.7212300879340945
+            ],
+            "instanceId": 0,
+            "faceIndex": 1297
+          },
+          {
+            "object": "distant-1-near",
+            "kind": "distant-tree",
+            "materialRole": "distant-crown",
+            "distance": 69.12752775863638,
+            "point": [
+              2.3648989063970625,
+              21.53275350754644,
+              -57.62214663780612
+            ],
+            "rootOrigin": [
+              15.598648071289062,
+              23.70940443587324,
+              -59.25106430053711
+            ],
+            "rootCode": 10.142999649047852,
+            "cardFacing": 0.3962758998928755,
+            "flat": false,
+            "uv": [
+              0.1263464464495762,
+              0.5362431807678794
+            ],
+            "instanceId": 2,
+            "faceIndex": 1296
+          }
+        ]
+      },
+      {
+        "pixel": [
+          473,
+          190
+        ],
+        "hits": [
+          {
+            "object": "giants-authored-leaves-plateau-oak",
+            "kind": "giant-authored-leaves",
+            "giants": [
+              "plateau-oak"
+            ],
+            "materialRole": "giantTree",
+            "distance": 22.68559355223478,
+            "point": [
+              5.313260556562925,
+              4.895887475418085,
+              -13.329694623046366
+            ],
+            "rootOrigin": [
+              19,
+              5.720843315124512,
+              -21
+            ],
+            "rootCode": 0.6499999761581421,
+            "cardFacing": 0.8291732637987359,
+            "flat": false,
+            "uv": [
+              0.521268494293448,
+              0.7767965574381056
+            ],
+            "faceIndex": 131887
+          },
+          {
+            "object": "column-col-3-37923781-medium@8.800,-26.900",
+            "kind": "column",
+            "materialRole": "columnTree",
+            "distance": 35.88633356820727,
+            "point": [
+              8.172285386068879,
+              6.6973834595367645,
+              -26.090577281106114
+            ],
+            "rootOrigin": [
+              8.800000190734863,
+              5.312550067901611,
+              -26.899999618530273
+            ],
+            "rootCode": 0,
+            "cardFacing": 0.8714820468310129,
+            "flat": false,
+            "uv": [
+              2.0203439419993714,
+              1.368325487287147
+            ],
+            "instanceId": 0,
+            "faceIndex": 768
+          },
+          {
+            "object": "column-col-3-37923781-medium@8.800,-26.900",
+            "kind": "column",
+            "materialRole": "columnTree",
+            "distance": 37.79302793095914,
+            "point": [
+              8.585238487091301,
+              6.9575887384289405,
+              -27.93373933099277
+            ],
+            "rootOrigin": [
+              8.800000190734863,
+              5.312550067901611,
+              -26.899999618530273
+            ],
+            "rootCode": 0,
+            "cardFacing": 0.9912638524155288,
+            "flat": false,
+            "uv": [
+              0.2430997990337017,
+              1.5618636688544658
+            ],
+            "instanceId": 0,
+            "faceIndex": 845
+          },
+          {
+            "object": "giants-canopy-0-lantern-tree+north-west-near+north-west+north-east",
+            "kind": "giant-canopy-cards",
+            "materialRole": "giantCanopy",
+            "distance": 56.408361191806826,
+            "point": [
+              12.616959431363746,
+              9.498010568710509,
+              -45.928797418261226
+            ],
+            "rootOrigin": [
+              15,
+              3.794323205947876,
+              -37
+            ],
+            "rootCode": 5,
+            "cardFacing": 0.4950985512366683,
+            "flat": false,
+            "uv": [
+              0.4456893940571813,
+              0.41982517022198235
+            ],
+            "faceIndex": 3170
+          },
+          {
+            "object": "giants-canopy-0-lantern-tree+north-west-near+north-west+north-east",
+            "kind": "giant-canopy-cards",
+            "materialRole": "giantCanopy",
+            "distance": 58.19249392757342,
+            "point": [
+              13.003368055768071,
+              9.741489945982481,
+              -47.653481675353866
+            ],
+            "rootOrigin": [
+              15,
+              3.794323205947876,
+              -37
+            ],
+            "rootCode": 5,
+            "cardFacing": 0.9961558072900389,
+            "flat": false,
+            "uv": [
+              0.31545318956669327,
+              0.7679716946165983
+            ],
+            "faceIndex": 3149
+          },
+          {
+            "object": "distant-0-near",
+            "kind": "distant-tree",
+            "materialRole": "distant-crown",
+            "distance": 62.67751734126746,
+            "point": [
+              13.974737333941242,
+              10.353558031458888,
+              -51.98906115283393
+            ],
+            "rootOrigin": [
+              19.600189208984375,
+              19.00784551275433,
+              -57.0301513671875
+            ],
+            "rootCode": 8.378999710083008,
+            "cardFacing": 0.5353554694929146,
+            "flat": false,
+            "uv": [
+              0.11401778607060774,
+              0.0941990083887806
+            ],
+            "instanceId": 4,
+            "faceIndex": 1422
+          },
+          {
+            "object": "distant-1-near",
+            "kind": "distant-tree",
+            "materialRole": "distant-crown",
+            "distance": 67.21055366746668,
+            "point": [
+              14.956505279827216,
+              10.972178406349318,
+              -56.37105372092931
+            ],
+            "rootOrigin": [
+              25.75541877746582,
+              23.43837195242395,
+              -56.200950622558594
+            ],
+            "rootCode": 10.142999649047852,
+            "cardFacing": 0.9618266089040486,
+            "flat": false,
+            "uv": [
+              0.6001887749411841,
+              0.5654543009476625
+            ],
+            "instanceId": 3,
+            "faceIndex": 1280
+          },
+          {
+            "object": "distant-1-near",
+            "kind": "distant-tree",
+            "materialRole": "distant-crown",
+            "distance": 67.55808435858121,
+            "point": [
+              15.031773702181528,
+              11.019605682671955,
+              -56.70700446035914
+            ],
+            "rootOrigin": [
+              15.598648071289062,
+              23.70940443587324,
+              -59.25106430053711
+            ],
+            "rootCode": 10.142999649047852,
+            "cardFacing": 0.11352584757695247,
+            "flat": false,
+            "uv": [
+              0.20643746043695319,
+              0.052589911503642964
+            ],
+            "instanceId": 2,
+            "faceIndex": 1284
+          }
+        ]
+      },
+      {
+        "pixel": [
+          970,
+          59
+        ],
+        "hits": [
+          {
+            "object": "giants-canopy-1-plateau-oak+far-plateau+east-giant+stair-bank-giant",
+            "kind": "giant-canopy-cards",
+            "materialRole": "giantCanopy",
+            "distance": 42.18668036654467,
+            "point": [
+              28.968440182035938,
+              12.845776217954596,
+              -20.409499369298132
+            ],
+            "rootOrigin": [
+              31,
+              3.6426308155059814,
+              -30
+            ],
+            "rootCode": 6,
+            "cardFacing": 0.14808426077004447,
+            "flat": false,
+            "uv": [
+              0.8695494268246395,
+              0.9796188843413647
+            ],
+            "faceIndex": 1449
+          },
+          {
+            "object": "distant-0-near",
+            "kind": "distant-tree",
+            "materialRole": "distant-crown",
+            "distance": 65.48367197530125,
+            "point": [
+              44.744953181242295,
+              18.94564834882661,
+              -36.429581004276095
+            ],
+            "rootOrigin": [
+              44.14352798461914,
+              15.496417188592488,
+              -41.43795394897461
+            ],
+            "rootCode": 8.378999710083008,
+            "cardFacing": 0.7414687501237549,
+            "flat": false,
+            "uv": [
+              0.8902310621137636,
+              0.8446501448881379
+            ],
+            "instanceId": 18,
+            "faceIndex": 1424
+          },
+          {
+            "object": "distant-0-near",
+            "kind": "distant-tree",
+            "materialRole": "distant-crown",
+            "distance": 67.73678162699584,
+            "point": [
+              46.27073875500008,
+              19.53558206228533,
+              -37.97892270293289
+            ],
+            "rootOrigin": [
+              44.14352798461914,
+              15.496417188592488,
+              -41.43795394897461
+            ],
+            "rootCode": 8.378999710083008,
+            "cardFacing": 0.46168203465484137,
+            "flat": false,
+            "uv": [
+              0.8761654829785033,
+              0.9121839035330667
+            ],
+            "instanceId": 18,
+            "faceIndex": 1427
+          },
+          {
+            "object": "distant-1-near",
+            "kind": "distant-tree",
+            "materialRole": "distant-crown",
+            "distance": 68.19892456975757,
+            "point": [
+              46.58369779565284,
+              19.656585361954804,
+              -38.29671342005232
+            ],
+            "rootOrigin": [
+              55.41351318359375,
+              24.316136454043317,
+              -40.69221115112305
+            ],
+            "rootCode": 10.142999649047852,
+            "cardFacing": 0.5241934515231798,
+            "flat": false,
+            "uv": [
+              0.8862501462010826,
+              0.6832443194883884
+            ],
+            "instanceId": 27,
+            "faceIndex": 1281
+          },
+          {
+            "object": "distant-1-near",
+            "kind": "distant-tree",
+            "materialRole": "distant-crown",
+            "distance": 70.15645289253627,
+            "point": [
+              47.90931835427573,
+              20.169126751935057,
+              -39.642799818688836
+            ],
+            "rootOrigin": [
+              55.41351318359375,
+              24.316136454043317,
+              -40.69221115112305
+            ],
+            "rootCode": 10.142999649047852,
+            "cardFacing": 0.1996920816590377,
+            "flat": false,
+            "uv": [
+              0.8786640395547475,
+              0.788361150818798
+            ],
+            "instanceId": 27,
+            "faceIndex": 1294
+          },
+          {
+            "object": "distant-0-near",
+            "kind": "distant-tree",
+            "materialRole": "distant-crown",
+            "distance": 70.18314594536022,
+            "point": [
+              47.92739464935872,
+              20.176115817808586,
+              -39.66115518802182
+            ],
+            "rootOrigin": [
+              44.14352798461914,
+              15.496417188592488,
+              -41.43795394897461
+            ],
+            "rootCode": 8.378999710083008,
+            "cardFacing": 0.9300367239911279,
+            "flat": false,
+            "uv": [
+              0.3502367074560627,
+              0.3627002162049764
+            ],
+            "instanceId": 18,
+            "faceIndex": 1423
+          },
+          {
+            "object": "distant-0-near",
+            "kind": "distant-tree",
+            "materialRole": "distant-crown",
+            "distance": 71.2912364593598,
+            "point": [
+              48.67778357046906,
+              20.466248147267343,
+              -40.42312912832001
+            ],
+            "rootOrigin": [
+              44.14352798461914,
+              15.496417188592488,
+              -41.43795394897461
+            ],
+            "rootCode": 8.378999710083008,
+            "cardFacing": 0.8475224374841033,
+            "flat": false,
+            "uv": [
+              0.6812722199324259,
+              0.9511610640713457
+            ],
+            "instanceId": 18,
+            "faceIndex": 1429
+          },
+          {
+            "object": "distant-1-near",
+            "kind": "distant-tree",
+            "materialRole": "distant-crown",
+            "distance": 73.62769057433971,
+            "point": [
+              50.26000926450136,
+              21.07800401602382,
+              -42.02978230856537
+            ],
+            "rootOrigin": [
+              55.029701232910156,
+              24.900896900724547,
+              -51.16615676879883
+            ],
+            "rootCode": 10.142999649047852,
+            "cardFacing": 0.2719882429412318,
+            "flat": false,
+            "uv": [
+              0.5641661438991401,
+              0.7975276046589688
+            ],
+            "instanceId": 26,
+            "faceIndex": 1295
+          }
+        ]
+      },
+      {
+        "pixel": [
+          1095,
+          29
+        ],
+        "hits": [
+          {
+            "object": "giants-authored-leaves-stair-bank-giant",
+            "kind": "giant-authored-leaves",
+            "giants": [
+              "stair-bank-giant"
+            ],
+            "materialRole": "giantTree",
+            "distance": 12.68894403993461,
+            "point": [
+              9.928628615361408,
+              5.302198789718744,
+              0.9875666704791177
+            ],
+            "rootOrigin": [
+              10.600000381469727,
+              0.019357435405254364,
+              9.149999618530273
+            ],
+            "rootCode": 1026.25,
+            "cardFacing": 0.5585502262956042,
+            "flat": true,
+            "uv": [
+              0,
+              0
+            ],
+            "faceIndex": 13055
+          },
+          {
+            "object": "giants-authored-cards-stair-bank-giant",
+            "kind": "giant-authored-cards",
+            "giants": [
+              "stair-bank-giant"
+            ],
+            "materialRole": "giantCanopy",
+            "distance": 13.526265820791997,
+            "point": [
+              10.5574065701095,
+              5.533302916137368,
+              0.485235175275724
+            ],
+            "rootOrigin": [
+              10.600000381469727,
+              0.019357435405254364,
+              9.149999618530273
+            ],
+            "rootCode": 1026.25,
+            "cardFacing": 0.5334744262601819,
+            "flat": true,
+            "uv": [
+              0.2867605867521042,
+              0.464142328485728
+            ],
+            "faceIndex": 957
+          },
+          {
+            "object": "giants-authored-cards-stair-bank-giant",
+            "kind": "giant-authored-cards",
+            "giants": [
+              "stair-bank-giant"
+            ],
+            "materialRole": "giantCanopy",
+            "distance": 14.334658753667064,
+            "point": [
+              11.164460711762802,
+              5.75642256598546,
+              0.00025886154938348227
+            ],
+            "rootOrigin": [
+              10.600000381469727,
+              0.019357435405254364,
+              9.149999618530273
+            ],
+            "rootCode": 1026.25,
+            "cardFacing": 0.6992826783023953,
+            "flat": true,
+            "uv": [
+              0.6429453014073075,
+              0.7115964217964796
+            ],
+            "faceIndex": 1041
+          },
+          {
+            "object": "giants-authored-leaves-stair-bank-giant",
+            "kind": "giant-authored-leaves",
+            "giants": [
+              "stair-bank-giant"
+            ],
+            "materialRole": "giantTree",
+            "distance": 14.347984977335576,
+            "point": [
+              11.17446789878978,
+              5.760100656475615,
+              -0.007735892694276103
+            ],
+            "rootOrigin": [
+              10.600000381469727,
+              0.019357435405254364,
+              9.149999618530273
+            ],
+            "rootCode": 1026.25,
+            "cardFacing": 0.4635371261657827,
+            "flat": true,
+            "uv": [
+              0,
+              0
+            ],
+            "faceIndex": 12951
+          },
+          {
+            "object": "giants-authored-cards-stair-bank-giant",
+            "kind": "giant-authored-cards",
+            "giants": [
+              "stair-bank-giant"
+            ],
+            "materialRole": "giantCanopy",
+            "distance": 14.511073105657982,
+            "point": [
+              11.296937207620196,
+              5.805113625547796,
+              -0.10557677683588906
+            ],
+            "rootOrigin": [
+              10.600000381469727,
+              0.019357435405254364,
+              9.149999618530273
+            ],
+            "rootCode": 1026.25,
+            "cardFacing": 0.2249033346351801,
+            "flat": true,
+            "uv": [
+              0.3573234190193627,
+              0.3849909069814421
+            ],
+            "faceIndex": 1045
+          },
+          {
+            "object": "giants-authored-cards-stair-bank-giant",
+            "kind": "giant-authored-cards",
+            "giants": [
+              "stair-bank-giant"
+            ],
+            "materialRole": "giantCanopy",
+            "distance": 14.52080098626803,
+            "point": [
+              11.304242256902153,
+              5.80779855910821,
+              -0.11141278985229874
+            ],
+            "rootOrigin": [
+              10.600000381469727,
+              0.019357435405254364,
+              9.149999618530273
+            ],
+            "rootCode": 1026.25,
+            "cardFacing": 0.5063098179570715,
+            "flat": true,
+            "uv": [
+              0.1991676175086613,
+              0.7078110338960468
+            ],
+            "faceIndex": 951
+          },
+          {
+            "object": "giants-authored-cards-stair-bank-giant",
+            "kind": "giant-authored-cards",
+            "giants": [
+              "stair-bank-giant"
+            ],
+            "materialRole": "giantCanopy",
+            "distance": 14.690314476481348,
+            "point": [
+              11.431536623435171,
+              5.85458495349987,
+              -0.21310841863291863
+            ],
+            "rootOrigin": [
+              10.600000381469727,
+              0.019357435405254364,
+              9.149999618530273
+            ],
+            "rootCode": 1026.25,
+            "cardFacing": 0.6317711995366363,
+            "flat": true,
+            "uv": [
+              0.30414213492983944,
+              0.3039878591114369
+            ],
+            "faceIndex": 936
+          },
+          {
+            "object": "distant-2-near",
+            "kind": "distant-tree",
+            "materialRole": "distant-crown",
+            "distance": 55.76108129823518,
+            "point": [
+              42.273195532241914,
+              17.190279192774675,
+              -24.852548330963913
+            ],
+            "rootOrigin": [
+              59.33416748046875,
+              28.48990952685176,
+              -16.15776252746582
+            ],
+            "rootCode": 11.906999588012695,
+            "cardFacing": 0.8841960545077101,
+            "flat": false,
+            "uv": [
+              0.025117266239186344,
+              0.6216856293896448
+            ],
+            "instanceId": 3,
+            "faceIndex": 1479
+          }
+        ]
+      }
+    ],
+    "C_lookback": [
+      {
+        "pixel": [
+          160,
+          133
+        ],
+        "hits": [
+          {
+            "object": "giants-authored-leaves-stair-bank-giant",
+            "kind": "giant-authored-leaves",
+            "giants": [
+              "stair-bank-giant"
+            ],
+            "materialRole": "giantTree",
+            "distance": 12.996358628623632,
+            "point": [
+              9.967385546651695,
+              3.7111361730154018,
+              2.5995152184841217
+            ],
+            "rootOrigin": [
+              10.600000381469727,
+              0.019357435405254364,
+              9.149999618530273
+            ],
+            "rootCode": 1024.199951171875,
+            "cardFacing": 0.8732768911739137,
+            "flat": true,
+            "uv": [
+              0,
+              0
+            ],
+            "faceIndex": 7683
+          },
+          {
+            "object": "giants-authored-cards-stair-bank-giant",
+            "kind": "giant-authored-cards",
+            "giants": [
+              "stair-bank-giant"
+            ],
+            "materialRole": "giantCanopy",
+            "distance": 13.620355941584922,
+            "point": [
+              10.334081187741798,
+              3.8197006514604395,
+              3.092587938687121
+            ],
+            "rootOrigin": [
+              10.600000381469727,
+              0.019357435405254364,
+              9.149999618530273
+            ],
+            "rootCode": 1024.199951171875,
+            "cardFacing": 0.44659372565599875,
+            "flat": true,
+            "uv": [
+              0.8547145086114248,
+              0.21291982811625704
+            ],
+            "faceIndex": 544
+          },
+          {
+            "object": "giants-authored-leaves-stair-bank-giant",
+            "kind": "giant-authored-leaves",
+            "giants": [
+              "stair-bank-giant"
+            ],
+            "materialRole": "giantTree",
+            "distance": 14.985202239814276,
+            "point": [
+              11.136141033069556,
+              4.057159729323651,
+              4.171067706065044
+            ],
+            "rootOrigin": [
+              10.600000381469727,
+              0.019357435405254364,
+              9.149999618530273
+            ],
+            "rootCode": 1023.2000122070312,
+            "cardFacing": 0.7889062151249029,
+            "flat": true,
+            "uv": [
+              0,
+              0
+            ],
+            "faceIndex": 4893
+          },
+          {
+            "object": "giants-authored-cards-stair-bank-giant",
+            "kind": "giant-authored-cards",
+            "giants": [
+              "stair-bank-giant"
+            ],
+            "materialRole": "giantCanopy",
+            "distance": 15.052374344197924,
+            "point": [
+              11.17561510991043,
+              4.068846485543575,
+              4.2241460311511325
+            ],
+            "rootOrigin": [
+              10.600000381469727,
+              0.019357435405254364,
+              9.149999618530273
+            ],
+            "rootCode": 1024.199951171875,
+            "cardFacing": 0.28863902513539746,
+            "flat": true,
+            "uv": [
+              0.595401980048181,
+              0.7904370083498149
+            ],
+            "faceIndex": 533
+          },
+          {
+            "object": "giants-authored-cards-stair-bank-giant",
+            "kind": "giant-authored-cards",
+            "giants": [
+              "stair-bank-giant"
+            ],
+            "materialRole": "giantCanopy",
+            "distance": 15.107862628053157,
+            "point": [
+              11.208223121833948,
+              4.078500463968523,
+              4.267991987682668
+            ],
+            "rootOrigin": [
+              10.600000381469727,
+              0.019357435405254364,
+              9.149999618530273
+            ],
+            "rootCode": 1024.199951171875,
+            "cardFacing": 0.5343262319511499,
+            "flat": true,
+            "uv": [
+              0.8533172918562615,
+              0.8131394175269352
+            ],
+            "faceIndex": 528
+          },
+          {
+            "object": "giants-authored-cards-stair-bank-giant",
+            "kind": "giant-authored-cards",
+            "giants": [
+              "stair-bank-giant"
+            ],
+            "materialRole": "giantCanopy",
+            "distance": 15.731411916265882,
+            "point": [
+              11.574655478581336,
+              4.186986994043995,
+              4.760710685878033
+            ],
+            "rootOrigin": [
+              10.600000381469727,
+              0.019357435405254364,
+              9.149999618530273
+            ],
+            "rootCode": 1024.199951171875,
+            "cardFacing": 0.7460125003093427,
+            "flat": true,
+            "uv": [
+              0.35728250839139214,
+              0.5486367605519795
+            ],
+            "faceIndex": 535
+          },
+          {
+            "object": "giants-authored-cards-stair-bank-giant",
+            "kind": "giant-authored-cards",
+            "giants": [
+              "stair-bank-giant"
+            ],
+            "materialRole": "giantCanopy",
+            "distance": 15.860444523693051,
+            "point": [
+              11.650482238920237,
+              4.209436381944809,
+              4.862670193423133
+            ],
+            "rootOrigin": [
+              10.600000381469727,
+              0.019357435405254364,
+              9.149999618530273
+            ],
+            "rootCode": 1024.199951171875,
+            "cardFacing": 0.7703020710200603,
+            "flat": true,
+            "uv": [
+              0.47109978578214734,
+              0.5218934866595906
+            ],
+            "faceIndex": 543
+          },
+          {
+            "object": "giants-authored-leaves-stair-bank-giant",
+            "kind": "giant-authored-leaves",
+            "giants": [
+              "stair-bank-giant"
+            ],
+            "materialRole": "giantTree",
+            "distance": 16.03616438424288,
+            "point": [
+              11.753745034413365,
+              4.240008524831922,
+              5.00152122344411
+            ],
+            "rootOrigin": [
+              10.600000381469727,
+              0.019357435405254364,
+              9.149999618530273
+            ],
+            "rootCode": 1024.199951171875,
+            "cardFacing": 0.8141678899392495,
+            "flat": true,
+            "uv": [
+              0,
+              0
+            ],
+            "faceIndex": 7546
+          }
+        ]
+      },
+      {
+        "pixel": [
+          556,
+          35
+        ],
+        "hits": [
+          {
+            "object": "giants-canopy-2-south-giant+plaza-south+south-centre+southwest-giant",
+            "kind": "giant-canopy-cards",
+            "materialRole": "giantCanopy",
+            "distance": 27.558566986997956,
+            "point": [
+              8.252890268129551,
+              9.665359375105407,
+              17.96009667532328
+            ],
+            "rootOrigin": [
+              4.400000095367432,
+              0.27331674098968506,
+              20.5
+            ],
+            "rootCode": 20,
+            "cardFacing": 0.6794674909290992,
+            "flat": false,
+            "uv": [
+              0.9110403282827048,
+              0.8735841217685796
+            ],
+            "faceIndex": 1516
+          },
+          {
+            "object": "giants-canopy-2-south-giant+plaza-south+south-centre+southwest-giant",
+            "kind": "giant-canopy-cards",
+            "materialRole": "giantCanopy",
+            "distance": 42.450673298987674,
+            "point": [
+              11.453503405556079,
+              14.104777624355913,
+              31.810095648621378
+            ],
+            "rootOrigin": [
+              12,
+              0.09128259867429733,
+              22
+            ],
+            "rootCode": 25,
+            "cardFacing": 0.8858590027181117,
+            "flat": false,
+            "uv": [
+              0.34621516238217326,
+              0.9744021791023285
+            ],
+            "faceIndex": 791
+          },
+          {
+            "object": "distant-2-near",
+            "kind": "distant-tree",
+            "materialRole": "distant-crown",
+            "distance": 58.405581512493235,
+            "point": [
+              14.882534045329788,
+              18.861022926682782,
+              46.6485246624009
+            ],
+            "rootOrigin": [
+              27.583389282226562,
+              22.944741574246336,
+              56.25381088256836
+            ],
+            "rootCode": 11.906999588012695,
+            "cardFacing": 0.4249859937287437,
+            "flat": false,
+            "uv": [
+              0.12456723591864462,
+              0.08763145146717617
+            ],
+            "instanceId": 10,
+            "faceIndex": 1488
+          },
+          {
+            "object": "distant-2-near",
+            "kind": "distant-tree",
+            "materialRole": "distant-crown",
+            "distance": 59.844692055636514,
+            "point": [
+              15.191827842600429,
+              19.290029641654684,
+              47.98693033366244
+            ],
+            "rootOrigin": [
+              27.583389282226562,
+              22.944741574246336,
+              56.25381088256836
+            ],
+            "rootCode": 11.906999588012695,
+            "cardFacing": 0.6356480824915413,
+            "flat": false,
+            "uv": [
+              0.93155020128433,
+              0.7022442143335575
+            ],
+            "instanceId": 10,
+            "faceIndex": 1477
+          },
+          {
+            "object": "distant-2-near",
+            "kind": "distant-tree",
+            "materialRole": "distant-crown",
+            "distance": 60.66489759216608,
+            "point": [
+              15.368106507324505,
+              19.534537392990973,
+              48.74974021433607
+            ],
+            "rootOrigin": [
+              17.85668182373047,
+              23.13287465899998,
+              61.99324417114258
+            ],
+            "rootCode": 11.906999588012695,
+            "cardFacing": 0.4141731007587466,
+            "flat": false,
+            "uv": [
+              0.8164566326966967,
+              0.9082434305847831
+            ],
+            "instanceId": 8,
+            "faceIndex": 1491
+          },
+          {
+            "object": "distant-2-near",
+            "kind": "distant-tree",
+            "materialRole": "distant-crown",
+            "distance": 67.35651193623194,
+            "point": [
+              16.806269003046538,
+              21.52934418617611,
+              54.973094376158215
+            ],
+            "rootOrigin": [
+              17.85668182373047,
+              23.13287465899998,
+              61.99324417114258
+            ],
+            "rootCode": 11.906999588012695,
+            "cardFacing": 0.5826044069756365,
+            "flat": false,
+            "uv": [
+              0.23439109255356605,
+              0.7558103191015904
+            ],
+            "instanceId": 8,
+            "faceIndex": 1483
+          },
+          {
+            "object": "distant-2-near",
+            "kind": "distant-tree",
+            "materialRole": "distant-crown",
+            "distance": 68.33476171296788,
+            "point": [
+              17.01651455337442,
+              21.820965788935577,
+              55.88288900960867
+            ],
+            "rootOrigin": [
+              17.85668182373047,
+              23.13287465899998,
+              61.99324417114258
+            ],
+            "rootCode": 11.906999588012695,
+            "cardFacing": 0.7561119214899774,
+            "flat": false,
+            "uv": [
+              0.2620270903855715,
+              0.7619643058555953
+            ],
+            "instanceId": 8,
+            "faceIndex": 1480
+          },
+          {
+            "object": "distant-2-near",
+            "kind": "distant-tree",
+            "materialRole": "distant-crown",
+            "distance": 68.85366405401025,
+            "point": [
+              17.128037101964097,
+              21.975653411635918,
+              56.365480037373004
+            ],
+            "rootOrigin": [
+              27.583389282226562,
+              22.944741574246336,
+              56.25381088256836
+            ],
+            "rootCode": 11.906999588012695,
+            "cardFacing": 0.869201576829291,
+            "flat": false,
+            "uv": [
+              0.1376050021317849,
+              0.18112489968574885
+            ],
+            "instanceId": 10,
+            "faceIndex": 1484
+          }
+        ]
+      },
+      {
+        "pixel": [
+          837,
+          208
+        ],
+        "hits": [
+          {
+            "object": "giants-canopy-2-south-giant+plaza-south+south-centre+southwest-giant",
+            "kind": "giant-canopy-cards",
+            "materialRole": "giantCanopy",
+            "distance": 43.382319828201744,
+            "point": [
+              -1.7925286992423297,
+              6.317323470246667,
+              35.240833049898896
+            ],
+            "rootOrigin": [
+              -4.5,
+              0.2002611607313156,
+              27
+            ],
+            "rootCode": 6,
+            "cardFacing": 0.9993277054317024,
+            "flat": false,
+            "uv": [
+              0.6991271920122484,
+              0.3965399189906463
+            ],
+            "faceIndex": 1758
+          },
+          {
+            "object": "giants-canopy-2-south-giant+plaza-south+south-centre+southwest-giant",
+            "kind": "giant-canopy-cards",
+            "materialRole": "giantCanopy",
+            "distance": 45.21188136056913,
+            "point": [
+              -1.9663880030804606,
+              6.522592986077474,
+              37.05051058168681
+            ],
+            "rootOrigin": [
+              -4.5,
+              0.2002611607313156,
+              27
+            ],
+            "rootCode": 7,
+            "cardFacing": 0.6364716933553778,
+            "flat": false,
+            "uv": [
+              0.355049385463236,
+              0.28856416685014996
+            ],
+            "faceIndex": 1804
+          },
+          {
+            "object": "giants-canopy-2-south-giant+plaza-south+south-centre+southwest-giant",
+            "kind": "giant-canopy-cards",
+            "materialRole": "giantCanopy",
+            "distance": 45.58237029319853,
+            "point": [
+              -2.001594770804382,
+              6.564160368467234,
+              37.41697297461215
+            ],
+            "rootOrigin": [
+              -4.5,
+              0.2002611607313156,
+              27
+            ],
+            "rootCode": 8,
+            "cardFacing": 0.33889982182284184,
+            "flat": false,
+            "uv": [
+              0.7283465133916744,
+              0.9459631880639611
+            ],
+            "faceIndex": 1847
+          },
+          {
+            "object": "giants-canopy-2-south-giant+plaza-south+south-centre+southwest-giant",
+            "kind": "giant-canopy-cards",
+            "materialRole": "giantCanopy",
+            "distance": 45.81337590356795,
+            "point": [
+              -2.0235467379238266,
+              6.590078277734475,
+              37.64546797486588
+            ],
+            "rootOrigin": [
+              -4.5,
+              0.2002611607313156,
+              27
+            ],
+            "rootCode": 7,
+            "cardFacing": 0.9558701053109689,
+            "flat": false,
+            "uv": [
+              0.5536606286173829,
+              0.41462163907917793
+            ],
+            "faceIndex": 1792
+          },
+          {
+            "object": "whitebark-wb-5-541590326-low",
+            "kind": "whitebark",
+            "materialRole": "whiteTree",
+            "distance": 64.09003699512496,
+            "point": [
+              -3.760338596327137,
+              8.640646846703667,
+              55.723495058598594
+            ],
+            "rootOrigin": [
+              -4.84981632232666,
+              -0.2805135250091553,
+              55.59978485107422
+            ],
+            "rootCode": 0.8729710578918457,
+            "cardFacing": 0.5611995365625645,
+            "flat": false,
+            "uv": [
+              0.505594961674352,
+              0.6964908206212087
+            ],
+            "instanceId": 0,
+            "faceIndex": 1664
+          },
+          {
+            "object": "whitebark-wb-5-541590326-low",
+            "kind": "whitebark",
+            "materialRole": "whiteTree",
+            "distance": 64.61527199020354,
+            "point": [
+              -3.810250550082321,
+              8.699576120865695,
+              56.24302170620607
+            ],
+            "rootOrigin": [
+              -4.84981632232666,
+              -0.2805135250091553,
+              55.59978485107422
+            ],
+            "rootCode": 0.6401976943016052,
+            "cardFacing": 0.7735301167180252,
+            "flat": false,
+            "uv": [
+              0.528059647950598,
+              0.10975784755946084
+            ],
+            "instanceId": 0,
+            "faceIndex": 2860
+          },
+          {
+            "object": "whitebark-wb-5-541590326-low",
+            "kind": "whitebark",
+            "materialRole": "whiteTree",
+            "distance": 65.0964577895504,
+            "point": [
+              -3.8559766033531226,
+              8.753563250737619,
+              56.718977892586246
+            ],
+            "rootOrigin": [
+              -4.84981632232666,
+              -0.2805135250091553,
+              55.59978485107422
+            ],
+            "rootCode": 1,
+            "cardFacing": 0.5598910319440586,
+            "flat": false,
+            "uv": [
+              0.41800470648720456,
+              0.4704217263783487
+            ],
+            "instanceId": 0,
+            "faceIndex": 2861
+          },
+          {
+            "object": "whitebark-wb-5-541590326-low",
+            "kind": "whitebark",
+            "materialRole": "whiteTree",
+            "distance": 65.88384989138618,
+            "point": [
+              -3.930800784038469,
+              8.841905507968887,
+              57.4978124768244
+            ],
+            "rootOrigin": [
+              -4.84981632232666,
+              -0.2805135250091553,
+              55.59978485107422
+            ],
+            "rootCode": 0.625918984413147,
+            "cardFacing": 0.8509874395214934,
+            "flat": false,
+            "uv": [
+              0.2756660279985035,
+              0.6365198753324846
+            ],
+            "instanceId": 0,
+            "faceIndex": 2825
+          }
+        ]
+      },
+      {
+        "pixel": [
+          1090,
+          51
+        ],
+        "hits": [
+          {
+            "object": "distant-2-near",
+            "kind": "distant-tree",
+            "materialRole": "distant-crown",
+            "distance": 68.61621843124142,
+            "point": [
+              -20.36136707353539,
+              18.856114965305686,
+              54.702385347623746
+            ],
+            "rootOrigin": [
+              -34.935997009277344,
+              20.123673003484555,
+              49.13138198852539
+            ],
+            "rootCode": 11.906999588012695,
+            "cardFacing": 0.967261924400536,
+            "flat": false,
+            "uv": [
+              0.47413521785068335,
+              0.7401336111096501
+            ],
+            "instanceId": 6,
+            "faceIndex": 1478
+          },
+          {
+            "object": "distant-1-near",
+            "kind": "distant-tree",
+            "materialRole": "distant-crown",
+            "distance": 82.58801116365551,
+            "point": [
+              -24.981835598542478,
+              22.40038826004461,
+              67.4027943795864
+            ],
+            "rootOrigin": [
+              -26.96269416809082,
+              19.27483462343389,
+              71.58906555175781
+            ],
+            "rootCode": 10.142999649047852,
+            "cardFacing": 0.9609918228374466,
+            "flat": false,
+            "uv": [
+              0.2871956389172476,
+              0.31966619817762476
+            ],
+            "instanceId": 1,
+            "faceIndex": 1293
+          },
+          {
+            "object": "distant-1-near",
+            "kind": "distant-tree",
+            "materialRole": "distant-crown",
+            "distance": 83.47151754700333,
+            "point": [
+              -25.274010948841713,
+              22.624510399572657,
+              68.20590480827428
+            ],
+            "rootOrigin": [
+              -26.96269416809082,
+              19.27483462343389,
+              71.58906555175781
+            ],
+            "rootCode": 10.142999649047852,
+            "cardFacing": 0.24296060629509886,
+            "flat": false,
+            "uv": [
+              0.1988553158429896,
+              0.805413523182062
+            ],
+            "instanceId": 1,
+            "faceIndex": 1283
+          },
+          {
+            "object": "distant-1-near",
+            "kind": "distant-tree",
+            "materialRole": "distant-crown",
+            "distance": 87.56483061486385,
+            "point": [
+              -26.627668604324402,
+              23.662875373293335,
+              71.92674087085764
+            ],
+            "rootOrigin": [
+              -26.96269416809082,
+              19.27483462343389,
+              71.58906555175781
+            ],
+            "rootCode": 10.142999649047852,
+            "cardFacing": 0.9512330145425887,
+            "flat": false,
+            "uv": [
+              0.2403479291182339,
+              0.32296367697730993
+            ],
+            "instanceId": 1,
+            "faceIndex": 1285
+          },
+          {
+            "object": "distant-1-near",
+            "kind": "distant-tree",
+            "materialRole": "distant-crown",
+            "distance": 88.25904315817752,
+            "point": [
+              -26.857244526861848,
+              23.838978685535523,
+              72.55778252915165
+            ],
+            "rootOrigin": [
+              -26.96269416809082,
+              19.27483462343389,
+              71.58906555175781
+            ],
+            "rootCode": 10.142999649047852,
+            "cardFacing": 0.7323983930901776,
+            "flat": false,
+            "uv": [
+              0.7446857515914755,
+              0.8188522090982497
+            ],
+            "instanceId": 1,
+            "faceIndex": 1281
+          },
+          {
+            "object": "distant-1-near",
+            "kind": "distant-tree",
+            "materialRole": "distant-crown",
+            "distance": 91.92136858830338,
+            "point": [
+              -28.06837467331556,
+              24.768013525032142,
+              75.886849304015
+            ],
+            "rootOrigin": [
+              -26.96269416809082,
+              19.27483462343389,
+              71.58906555175781
+            ],
+            "rootCode": 10.142999649047852,
+            "cardFacing": 0.8226698057291085,
+            "flat": false,
+            "uv": [
+              0.2767594062980159,
+              0.8732493682222715
+            ],
+            "instanceId": 1,
+            "faceIndex": 1289
+          },
+          {
+            "object": "distant-1-near",
+            "kind": "distant-tree",
+            "materialRole": "distant-crown",
+            "distance": 93.79215391783885,
+            "point": [
+              -28.68704293570039,
+              25.242582151310085,
+              77.58739978820402
+            ],
+            "rootOrigin": [
+              -26.96269416809082,
+              19.27483462343389,
+              71.58906555175781
+            ],
+            "rootCode": 10.142999649047852,
+            "cardFacing": 0.508786945495044,
+            "flat": false,
+            "uv": [
+              0.29326792247225414,
+              0.8865912019141058
+            ],
+            "instanceId": 1,
+            "faceIndex": 1287
+          },
+          {
+            "object": "distant-1-near",
+            "kind": "distant-tree",
+            "materialRole": "distant-crown",
+            "distance": 107.92435572020095,
+            "point": [
+              -33.36055870188941,
+              28.82754697316648,
+              90.43362123234556
+            ],
+            "rootOrigin": [
+              -39.924591064453125,
+              25.000820922926323,
+              91.68830871582031
+            ],
+            "rootCode": 10.142999649047852,
+            "cardFacing": 0.7911105428393949,
+            "flat": false,
+            "uv": [
+              0.37224058905180285,
+              0.8160987728501445
+            ],
+            "instanceId": 9,
+            "faceIndex": 1282
+          }
+        ]
+      },
+      {
+        "pixel": [
+          1260,
+          95
+        ],
+        "hits": [
+          {
+            "object": "whitebark-wb-7-312981887-medium",
+            "kind": "whitebark",
+            "materialRole": "whiteTree",
+            "distance": 23.72853327141003,
+            "point": [
+              -8.672472694374301,
+              6.091207752912715,
+              12.834830562973782
+            ],
+            "rootOrigin": [
+              -7.39356803894043,
+              0.301628440618515,
+              12.86949634552002
+            ],
+            "rootCode": 1,
+            "cardFacing": 0.5139993361941535,
+            "flat": false,
+            "uv": [
+              0.17407034460107704,
+              0.3712245694238637
+            ],
+            "instanceId": 1,
+            "faceIndex": 14321
+          },
+          {
+            "object": "giants-canopy-2-south-giant+plaza-south+south-centre+southwest-giant",
+            "kind": "giant-canopy-cards",
+            "materialRole": "giantCanopy",
+            "distance": 41.610202324412676,
+            "point": [
+              -16.963864886008416,
+              9.588791867975191,
+              28.28713812539577
+            ],
+            "rootOrigin": [
+              -4.5,
+              0.2002611607313156,
+              27
+            ],
+            "rootCode": 11,
+            "cardFacing": 0.8047037446485693,
+            "flat": false,
+            "uv": [
+              0.8284400460423189,
+              0.4269021989928628
+            ],
+            "faceIndex": 1926
+          },
+          {
+            "object": "giants-sector-2-south-giant+plaza-south+south-centre+southwest-giant",
+            "kind": "giant",
+            "giants": [
+              "south-giant",
+              "plaza-south",
+              "south-centre",
+              "southwest-giant"
+            ],
+            "materialRole": "giantTree",
+            "distance": 43.29026601884031,
+            "point": [
+              -17.742878688139278,
+              9.917405716744335,
+              29.738952318679672
+            ],
+            "rootOrigin": [
+              -4.5,
+              0.2002611607313156,
+              27
+            ],
+            "rootCode": 0,
+            "cardFacing": 0.5097612325739231,
+            "flat": false,
+            "uv": [
+              0.9039895507505274,
+              0.846239947402941
+            ],
+            "faceIndex": 125401
+          },
+          {
+            "object": "giants-sector-2-south-giant+plaza-south+south-centre+southwest-giant",
+            "kind": "giant",
+            "giants": [
+              "south-giant",
+              "plaza-south",
+              "south-centre",
+              "southwest-giant"
+            ],
+            "materialRole": "giantTree",
+            "distance": 43.32356597581925,
+            "point": [
+              -17.75831924922217,
+              9.923919057317667,
+              29.767728221842226
+            ],
+            "rootOrigin": [
+              -4.5,
+              0.2002611607313156,
+              27
+            ],
+            "rootCode": 0,
+            "cardFacing": 0.3349426272782753,
+            "flat": false,
+            "uv": [
+              0.6824013373151578,
+              0.8806674074842609
+            ],
+            "faceIndex": 125399
+          },
+          {
+            "object": "giants-canopy-2-south-giant+plaza-south+south-centre+southwest-giant",
+            "kind": "giant-canopy-cards",
+            "materialRole": "giantCanopy",
+            "distance": 46.20206639288153,
+            "point": [
+              -19.093025523614266,
+              10.486942414034313,
+              32.255162343968394
+            ],
+            "rootOrigin": [
+              -4.5,
+              0.2002611607313156,
+              27
+            ],
+            "rootCode": 11,
+            "cardFacing": 0.807652290521094,
+            "flat": false,
+            "uv": [
+              0.945521079447936,
+              0.19876446151199018
+            ],
+            "faceIndex": 1928
+          },
+          {
+            "object": "distant-2-near",
+            "kind": "distant-tree",
+            "materialRole": "distant-crown",
+            "distance": 57.9413477534344,
+            "point": [
+              -24.536308559430204,
+              12.783099662399465,
+              42.39957255575512
+            ],
+            "rootOrigin": [
+              -34.935997009277344,
+              20.123673003484555,
+              49.13138198852539
+            ],
+            "rootCode": 11.906999588012695,
+            "cardFacing": 0.4496707838876276,
+            "flat": false,
+            "uv": [
+              0.555605470589393,
+              0.6394831438583413
+            ],
+            "instanceId": 6,
+            "faceIndex": 1476
+          },
+          {
+            "object": "distant-2-near",
+            "kind": "distant-tree",
+            "materialRole": "distant-crown",
+            "distance": 58.18454485405181,
+            "point": [
+              -24.649074461489477,
+              12.830668058471858,
+              42.60972947040837
+            ],
+            "rootOrigin": [
+              -34.935997009277344,
+              20.123673003484555,
+              49.13138198852539
+            ],
+            "rootCode": 11.906999588012695,
+            "cardFacing": 0.6947264126874676,
+            "flat": false,
+            "uv": [
+              0.06866549066631567,
+              0.6085390742173591
+            ],
+            "instanceId": 6,
+            "faceIndex": 1483
+          },
+          {
+            "object": "distant-2-near",
+            "kind": "distant-tree",
+            "materialRole": "distant-crown",
+            "distance": 64.47889802760011,
+            "point": [
+              -27.567647140575176,
+              14.061818775395507,
+              48.048946629381746
+            ],
+            "rootOrigin": [
+              -34.935997009277344,
+              20.123673003484555,
+              49.13138198852539
+            ],
+            "rootCode": 11.906999588012695,
+            "cardFacing": 0.1349512581541493,
+            "flat": false,
+            "uv": [
+              0.28234693773024605,
+              0.4106129562433036
+            ],
+            "instanceId": 6,
+            "faceIndex": 1489
+          }
+        ]
+      }
+    ],
+    "F_canopy": [
+      {
+        "pixel": [
+          667,
+          70
+        ],
+        "hits": [
+          {
+            "object": "giants-authored-leaves-stair-bank-giant",
+            "kind": "giant-authored-leaves",
+            "giants": [
+              "stair-bank-giant"
+            ],
+            "materialRole": "giantTree",
+            "distance": 12.685058270990725,
+            "point": [
+              10.065120910675056,
+              5.066014158842152,
+              1.6250638037374046
+            ],
+            "rootOrigin": [
+              10.600000381469727,
+              0.019357435405254364,
+              9.149999618530273
+            ],
+            "rootCode": 1026.25,
+            "cardFacing": 0.9149170180729351,
+            "flat": true,
+            "uv": [
+              0,
+              0
+            ],
+            "faceIndex": 13163
+          },
+          {
+            "object": "giants-authored-leaves-stair-bank-giant",
+            "kind": "giant-authored-leaves",
+            "giants": [
+              "stair-bank-giant"
+            ],
+            "materialRole": "giantTree",
+            "distance": 15.379795923075745,
+            "point": [
+              12.619665430425233,
+              5.759826606373571,
+              1.120546610938686
+            ],
+            "rootOrigin": [
+              10.600000381469727,
+              0.019357435405254364,
+              9.149999618530273
+            ],
+            "rootCode": 1026.25,
+            "cardFacing": 0.7948355669512633,
+            "flat": true,
+            "uv": [
+              0.9561878065121632,
+              0.43385241427189414
+            ],
+            "faceIndex": 12559
+          },
+          {
+            "object": "giants-authored-cards-stair-bank-giant",
+            "kind": "giant-authored-cards",
+            "giants": [
+              "stair-bank-giant"
+            ],
+            "materialRole": "giantCanopy",
+            "distance": 15.839803090726567,
+            "point": [
+              13.055740826580767,
+              5.878264369182455,
+              1.0344226334483682
+            ],
+            "rootOrigin": [
+              10.600000381469727,
+              0.019357435405254364,
+              9.149999618530273
+            ],
+            "rootCode": 1026.25,
+            "cardFacing": 0.5017803009881474,
+            "flat": true,
+            "uv": [
+              0.8123554527837817,
+              0.7165043739833883
+            ],
+            "faceIndex": 1034
+          },
+          {
+            "object": "giants-authored-leaves-stair-bank-giant",
+            "kind": "giant-authored-leaves",
+            "giants": [
+              "stair-bank-giant"
+            ],
+            "materialRole": "giantTree",
+            "distance": 15.843513887220507,
+            "point": [
+              13.059258569705097,
+              5.879219785675692,
+              1.0337278865483426
+            ],
+            "rootOrigin": [
+              10.600000381469727,
+              0.019357435405254364,
+              9.149999618530273
+            ],
+            "rootCode": 1026.25,
+            "cardFacing": 0.9385481492482928,
+            "flat": true,
+            "uv": [
+              0,
+              0
+            ],
+            "faceIndex": 12964
+          },
+          {
+            "object": "giants-authored-cards-east-giant",
+            "kind": "giant-authored-cards",
+            "giants": [
+              "east-giant"
+            ],
+            "materialRole": "giantCanopy",
+            "distance": 28.543557067753593,
+            "point": [
+              25.098584803306778,
+              9.14909209997041,
+              -1.3440138312427807
+            ],
+            "rootOrigin": [
+              27,
+              5.738464832305908,
+              5
+            ],
+            "rootCode": 1024.25,
+            "cardFacing": 0.8390557963265409,
+            "flat": true,
+            "uv": [
+              0.9954219691181807,
+              0.7227055846430286
+            ],
+            "faceIndex": 18
+          },
+          {
+            "object": "giants-authored-cards-east-giant",
+            "kind": "giant-authored-cards",
+            "giants": [
+              "east-giant"
+            ],
+            "materialRole": "giantCanopy",
+            "distance": 28.78448485530278,
+            "point": [
+              25.326978375817667,
+              9.21112362939536,
+              -1.3891210835007035
+            ],
+            "rootOrigin": [
+              27,
+              5.738464832305908,
+              5
+            ],
+            "rootCode": 1024.25,
+            "cardFacing": 0.5526057226801098,
+            "flat": true,
+            "uv": [
+              0.32178249075478743,
+              0.3072148930661741
+            ],
+            "faceIndex": 28
+          },
+          {
+            "object": "giants-authored-leaves-east-giant",
+            "kind": "giant-authored-leaves",
+            "giants": [
+              "east-giant"
+            ],
+            "materialRole": "giantTree",
+            "distance": 29.003571313351667,
+            "point": [
+              25.534666909180917,
+              9.267531685134024,
+              -1.4301391338884715
+            ],
+            "rootOrigin": [
+              27,
+              5.738464832305908,
+              5
+            ],
+            "rootCode": 1024.25,
+            "cardFacing": 0.7504058406051017,
+            "flat": true,
+            "uv": [
+              0,
+              0
+            ],
+            "faceIndex": 2313
+          },
+          {
+            "object": "giants-authored-cards-east-giant",
+            "kind": "giant-authored-cards",
+            "giants": [
+              "east-giant"
+            ],
+            "materialRole": "giantCanopy",
+            "distance": 29.3605443892511,
+            "point": [
+              25.873068539496092,
+              9.359441323647802,
+              -1.496972747178491
+            ],
+            "rootOrigin": [
+              27,
+              5.738464832305908,
+              5
+            ],
+            "rootCode": 1024.25,
+            "cardFacing": 0.40194435696640485,
+            "flat": true,
+            "uv": [
+              0.33315426905539924,
+              0.9663197395671603
+            ],
+            "faceIndex": 101
+          }
+        ]
+      },
+      {
+        "pixel": [
+          840,
+          205
+        ],
+        "hits": [
+          {
+            "object": "giants-authored-leaves-stair-bank-giant",
+            "kind": "giant-authored-leaves",
+            "giants": [
+              "stair-bank-giant"
+            ],
+            "materialRole": "giantTree",
+            "distance": 11.49900685817618,
+            "point": [
+              9.470884800339661,
+              3.04928800762941,
+              4.036206073245368
+            ],
+            "rootOrigin": [
+              10.600000381469727,
+              0.019357435405254364,
+              9.149999618530273
+            ],
+            "rootCode": 1024.199951171875,
+            "cardFacing": 0.9620180358054143,
+            "flat": true,
+            "uv": [
+              0,
+              0
+            ],
+            "faceIndex": 7842
+          },
+          {
+            "object": "giants-authored-cards-stair-bank-giant",
+            "kind": "giant-authored-cards",
+            "giants": [
+              "stair-bank-giant"
+            ],
+            "materialRole": "giantCanopy",
+            "distance": 11.62448320896377,
+            "point": [
+              9.595617808042853,
+              3.0629201501451426,
+              4.036601151359783
+            ],
+            "rootOrigin": [
+              10.600000381469727,
+              0.019357435405254364,
+              9.149999618530273
+            ],
+            "rootCode": 1024.199951171875,
+            "cardFacing": 0.8351987666180047,
+            "flat": true,
+            "uv": [
+              0.42686889169377895,
+              0.3422522492839669
+            ],
+            "faceIndex": 526
+          },
+          {
+            "object": "giants-authored-leaves-stair-bank-giant",
+            "kind": "giant-authored-leaves",
+            "giants": [
+              "stair-bank-giant"
+            ],
+            "materialRole": "giantTree",
+            "distance": 12.878352789354375,
+            "point": [
+              10.842059253366813,
+              3.199144456229412,
+              4.040549117860515
+            ],
+            "rootOrigin": [
+              10.600000381469727,
+              0.019357435405254364,
+              9.149999618530273
+            ],
+            "rootCode": 1023.2000122070312,
+            "cardFacing": 0.6045195735698231,
+            "flat": true,
+            "uv": [
+              0,
+              0
+            ],
+            "faceIndex": 5061
+          },
+          {
+            "object": "giants-authored-cards-stair-bank-giant",
+            "kind": "giant-authored-cards",
+            "giants": [
+              "stair-bank-giant"
+            ],
+            "materialRole": "giantCanopy",
+            "distance": 13.151152200990213,
+            "point": [
+              11.113242555235395,
+              3.2287822360523437,
+              4.041408061211084
+            ],
+            "rootOrigin": [
+              10.600000381469727,
+              0.019357435405254364,
+              9.149999618530273
+            ],
+            "rootCode": 1023.2000122070312,
+            "cardFacing": 0.810809484780166,
+            "flat": true,
+            "uv": [
+              0.18219349521146527,
+              0.8139476649130126
+            ],
+            "faceIndex": 311
+          },
+          {
+            "object": "giants-sector-1-plateau-oak+far-plateau+east-giant+stair-bank-giant",
+            "kind": "giant",
+            "giants": [
+              "plateau-oak",
+              "far-plateau",
+              "east-giant",
+              "stair-bank-giant"
+            ],
+            "materialRole": "giantTree",
+            "distance": 13.193728581985205,
+            "point": [
+              11.155566706561828,
+              3.2334078670169415,
+              4.041542118316
+            ],
+            "rootOrigin": [
+              10.600000381469727,
+              0.019357435405254364,
+              9.149999618530273
+            ],
+            "rootCode": 0,
+            "cardFacing": 0.6999354415915999,
+            "flat": false,
+            "uv": [
+              0.2113427855656193,
+              0.24012259445766138
+            ],
+            "faceIndex": 196261
+          },
+          {
+            "object": "giants-sector-1-plateau-oak+far-plateau+east-giant+stair-bank-giant",
+            "kind": "giant",
+            "giants": [
+              "plateau-oak",
+              "far-plateau",
+              "east-giant",
+              "stair-bank-giant"
+            ],
+            "materialRole": "giantTree",
+            "distance": 13.199155586012889,
+            "point": [
+              11.16096156010149,
+              3.23399747367887,
+              4.041559205922587
+            ],
+            "rootOrigin": [
+              10.600000381469727,
+              0.019357435405254364,
+              9.149999618530273
+            ],
+            "rootCode": 0,
+            "cardFacing": 0.35983259104512494,
+            "flat": false,
+            "uv": [
+              0.42008565581073615,
+              0.243962266959223
+            ],
+            "faceIndex": 196262
+          },
+          {
+            "object": "giants-authored-cards-stair-bank-giant",
+            "kind": "giant-authored-cards",
+            "giants": [
+              "stair-bank-giant"
+            ],
+            "materialRole": "giantCanopy",
+            "distance": 13.81150495841775,
+            "point": [
+              11.769683271450262,
+              3.300525021393206,
+              4.043487265145656
+            ],
+            "rootOrigin": [
+              10.600000381469727,
+              0.019357435405254364,
+              9.149999618530273
+            ],
+            "rootCode": 1024.199951171875,
+            "cardFacing": 0.17830226348710737,
+            "flat": true,
+            "uv": [
+              0.5852950625341122,
+              0.9374386963167276
+            ],
+            "faceIndex": 515
+          },
+          {
+            "object": "giants-authored-leaves-stair-bank-giant",
+            "kind": "giant-authored-leaves",
+            "giants": [
+              "stair-bank-giant"
+            ],
+            "materialRole": "giantTree",
+            "distance": 13.907229321523824,
+            "point": [
+              11.864840547269555,
+              3.310924815074636,
+              4.043788665374801
+            ],
+            "rootOrigin": [
+              10.600000381469727,
+              0.019357435405254364,
+              9.149999618530273
+            ],
+            "rootCode": 1022.2000122070312,
+            "cardFacing": 0.9535620432071149,
+            "flat": true,
+            "uv": [
+              0,
+              0
+            ],
+            "faceIndex": 2318
+          }
+        ]
+      },
+      {
+        "pixel": [
+          990,
+          159
+        ],
+        "hits": [
+          {
+            "object": "giants-authored-leaves-stair-bank-giant",
+            "kind": "giant-authored-leaves",
+            "giants": [
+              "stair-bank-giant"
+            ],
+            "materialRole": "giantTree",
+            "distance": 11.288851517208498,
+            "point": [
+              9.05589051274601,
+              3.5071541103047905,
+              5.781558203495596
+            ],
+            "rootOrigin": [
+              10.600000381469727,
+              0.019357435405254364,
+              9.149999618530273
+            ],
+            "rootCode": 1025.199951171875,
+            "cardFacing": 0.9686754676159866,
+            "flat": true,
+            "uv": [
+              0,
+              0
+            ],
+            "faceIndex": 10468
+          },
+          {
+            "object": "giants-authored-leaves-stair-bank-giant",
+            "kind": "giant-authored-leaves",
+            "giants": [
+              "stair-bank-giant"
+            ],
+            "materialRole": "giantTree",
+            "distance": 12.343658266701018,
+            "point": [
+              10.085192355081556,
+              3.6666670311035463,
+              5.948023287636025
+            ],
+            "rootOrigin": [
+              10.600000381469727,
+              0.019357435405254364,
+              9.149999618530273
+            ],
+            "rootCode": 1023.2000122070312,
+            "cardFacing": 0.9038173294481614,
+            "flat": true,
+            "uv": [
+              0,
+              0
+            ],
+            "faceIndex": 4994
+          },
+          {
+            "object": "giants-authored-cards-stair-bank-giant",
+            "kind": "giant-authored-cards",
+            "giants": [
+              "stair-bank-giant"
+            ],
+            "materialRole": "giantCanopy",
+            "distance": 13.579176275354508,
+            "point": [
+              11.290835913162333,
+              3.8535079726832224,
+              6.143007448826185
+            ],
+            "rootOrigin": [
+              10.600000381469727,
+              0.019357435405254364,
+              9.149999618530273
+            ],
+            "rootCode": 1023.2000122070312,
+            "cardFacing": 0.5213473408921576,
+            "flat": true,
+            "uv": [
+              0.20294560677711979,
+              0.9994969243511873
+            ],
+            "faceIndex": 263
+          },
+          {
+            "object": "giants-authored-cards-stair-bank-giant",
+            "kind": "giant-authored-cards",
+            "giants": [
+              "stair-bank-giant"
+            ],
+            "materialRole": "giantCanopy",
+            "distance": 13.769321501057584,
+            "point": [
+              11.476383485001104,
+              3.8822626429983575,
+              6.173015354075931
+            ],
+            "rootOrigin": [
+              10.600000381469727,
+              0.019357435405254364,
+              9.149999618530273
+            ],
+            "rootCode": 1025.199951171875,
+            "cardFacing": 0.2977401074386321,
+            "flat": true,
+            "uv": [
+              0.349724487629526,
+              0.37877908683719375
+            ],
+            "faceIndex": 783
+          },
+          {
+            "object": "giants-authored-cards-stair-bank-giant",
+            "kind": "giant-authored-cards",
+            "giants": [
+              "stair-bank-giant"
+            ],
+            "materialRole": "giantCanopy",
+            "distance": 13.787127520639089,
+            "point": [
+              11.49375896043177,
+              3.8849553544287803,
+              6.1758254238344605
+            ],
+            "rootOrigin": [
+              10.600000381469727,
+              0.019357435405254364,
+              9.149999618530273
+            ],
+            "rootCode": 1025.199951171875,
+            "cardFacing": 0.7061386573057687,
+            "flat": true,
+            "uv": [
+              0.9024804897045209,
+              0.36052797408733267
+            ],
+            "faceIndex": 778
+          },
+          {
+            "object": "giants-authored-cards-stair-bank-giant",
+            "kind": "giant-authored-cards",
+            "giants": [
+              "stair-bank-giant"
+            ],
+            "materialRole": "giantCanopy",
+            "distance": 13.897480939514516,
+            "point": [
+              11.601444067121832,
+              3.901643526146886,
+              6.193240927828078
+            ],
+            "rootOrigin": [
+              10.600000381469727,
+              0.019357435405254364,
+              9.149999618530273
+            ],
+            "rootCode": 1025.199951171875,
+            "cardFacing": 0.5920195357859593,
+            "flat": true,
+            "uv": [
+              0.6767027104157128,
+              0.7428813680604391
+            ],
+            "faceIndex": 761
+          },
+          {
+            "object": "giants-authored-leaves-stair-bank-giant",
+            "kind": "giant-authored-leaves",
+            "giants": [
+              "stair-bank-giant"
+            ],
+            "materialRole": "giantTree",
+            "distance": 14.04356928708262,
+            "point": [
+              11.744000042771354,
+              3.923735704668177,
+              6.216295965238068
+            ],
+            "rootOrigin": [
+              10.600000381469727,
+              0.019357435405254364,
+              9.149999618530273
+            ],
+            "rootCode": 1025.199951171875,
+            "cardFacing": 0.9644079719152996,
+            "flat": true,
+            "uv": [
+              0,
+              0
+            ],
+            "faceIndex": 10386
+          },
+          {
+            "object": "giants-authored-cards-stair-bank-giant",
+            "kind": "giant-authored-cards",
+            "giants": [
+              "stair-bank-giant"
+            ],
+            "materialRole": "giantCanopy",
+            "distance": 15.141368382278836,
+            "point": [
+              12.815254688936065,
+              4.089750133575869,
+              6.389545917268661
+            ],
+            "rootOrigin": [
+              10.600000381469727,
+              0.019357435405254364,
+              9.149999618530273
+            ],
+            "rootCode": 1022.2000122070312,
+            "cardFacing": 0.49847491006118977,
+            "flat": true,
+            "uv": [
+              0.8029485703179448,
+              0.8299193089706086
+            ],
+            "faceIndex": 141
+          }
+        ]
+      },
+      {
+        "pixel": [
+          252,
+          42
+        ],
+        "hits": [
+          {
+            "object": "giants-canopy-1-plateau-oak+far-plateau+east-giant+stair-bank-giant",
+            "kind": "giant-canopy-cards",
+            "materialRole": "giantCanopy",
+            "distance": 37.60577322986929,
+            "point": [
+              26.99829771873989,
+              11.679544034811924,
+              -17.86334336540022
+            ],
+            "rootOrigin": [
+              31,
+              3.6426308155059814,
+              -30
+            ],
+            "rootCode": 8,
+            "cardFacing": 0.724070396164365,
+            "flat": false,
+            "uv": [
+              0.7934151948815259,
+              0.5583024131135372
+            ],
+            "faceIndex": 1462
+          },
+          {
+            "object": "distant-2-near",
+            "kind": "distant-tree",
+            "materialRole": "distant-crown",
+            "distance": 58.32082685253033,
+            "point": [
+              42.94990936086447,
+              17.121668125642152,
+              -29.906715733161807
+            ],
+            "rootOrigin": [
+              57.32396697998047,
+              25.2063092523631,
+              -27.72620964050293
+            ],
+            "rootCode": 11.906999588012695,
+            "cardFacing": 0.6685251371433479,
+            "flat": false,
+            "uv": [
+              0.46372172469545836,
+              0.13575356006552605
+            ],
+            "instanceId": 11,
+            "faceIndex": 1475
+          },
+          {
+            "object": "distant-2-near",
+            "kind": "distant-tree",
+            "materialRole": "distant-crown",
+            "distance": 63.553167223256246,
+            "point": [
+              46.979069173510325,
+              18.49627453997463,
+              -32.94870754198769
+            ],
+            "rootOrigin": [
+              57.32396697998047,
+              25.2063092523631,
+              -27.72620964050293
+            ],
+            "rootCode": 11.906999588012695,
+            "cardFacing": 0.5655348762284095,
+            "flat": false,
+            "uv": [
+              0.057461594674314595,
+              0.023109777033143444
+            ],
+            "instanceId": 11,
+            "faceIndex": 1484
+          },
+          {
+            "object": "distant-1-near",
+            "kind": "distant-tree",
+            "materialRole": "distant-crown",
+            "distance": 64.15585721762561,
+            "point": [
+              47.44317015562207,
+              18.654609333473395,
+              -33.29910103633878
+            ],
+            "rootOrigin": [
+              55.41351318359375,
+              24.316136454043317,
+              -40.69221115112305
+            ],
+            "rootCode": 10.142999649047852,
+            "cardFacing": 0.24186640034441895,
+            "flat": false,
+            "uv": [
+              0.9543080701865259,
+              0.6919977036009517
+            ],
+            "instanceId": 10,
+            "faceIndex": 1294
+          },
+          {
+            "object": "distant-2-near",
+            "kind": "distant-tree",
+            "materialRole": "distant-crown",
+            "distance": 66.53444950066661,
+            "point": [
+              49.27480337488238,
+              19.2794976201076,
+              -34.681973274931956
+            ],
+            "rootOrigin": [
+              57.32396697998047,
+              25.2063092523631,
+              -27.72620964050293
+            ],
+            "rootCode": 11.906999588012695,
+            "cardFacing": 0.20948279705707074,
+            "flat": false,
+            "uv": [
+              0.7067016830592354,
+              0.5657881762089506
+            ],
+            "instanceId": 11,
+            "faceIndex": 1490
+          },
+          {
+            "object": "distant-0-near",
+            "kind": "distant-tree",
+            "materialRole": "distant-crown",
+            "distance": 70.72533581315187,
+            "point": [
+              52.50199226421883,
+              20.380500001204823,
+              -37.118481783749004
+            ],
+            "rootOrigin": [
+              44.14352798461914,
+              15.496417188592488,
+              -41.43795394897461
+            ],
+            "rootCode": 8.378999710083008,
+            "cardFacing": 0.8822691246808432,
+            "flat": false,
+            "uv": [
+              0.47372017528947014,
+              0.3675223933803295
+            ],
+            "instanceId": 8,
+            "faceIndex": 1422
+          },
+          {
+            "object": "distant-1-near",
+            "kind": "distant-tree",
+            "materialRole": "distant-crown",
+            "distance": 71.6480443236003,
+            "point": [
+              53.212523266728766,
+              20.62290797682466,
+              -37.654928484812665
+            ],
+            "rootOrigin": [
+              55.41351318359375,
+              24.316136454043317,
+              -40.69221115112305
+            ],
+            "rootCode": 10.142999649047852,
+            "cardFacing": 0.6455181534270563,
+            "flat": false,
+            "uv": [
+              0.08890649483677891,
+              0.6248800691951417
+            ],
+            "instanceId": 10,
+            "faceIndex": 1287
+          },
+          {
+            "object": "distant-2-near",
+            "kind": "distant-tree",
+            "materialRole": "distant-crown",
+            "distance": 72.08778303051423,
+            "point": [
+              53.551143731076856,
+              20.73843326843911,
+              -37.910584931006404
+            ],
+            "rootOrigin": [
+              57.32396697998047,
+              25.2063092523631,
+              -27.72620964050293
+            ],
+            "rootCode": 11.906999588012695,
+            "cardFacing": 0.9147986553984959,
+            "flat": false,
+            "uv": [
+              0.9011225079499505,
+              0.6830352325724449
+            ],
+            "instanceId": 11,
+            "faceIndex": 1477
+          }
+        ]
+      },
+      {
+        "pixel": [
+          536,
+          63
+        ],
+        "hits": [
+          {
+            "object": "giants-authored-cards-east-giant",
+            "kind": "giant-authored-cards",
+            "giants": [
+              "east-giant"
+            ],
+            "materialRole": "giantCanopy",
+            "distance": 28.785815428580275,
+            "point": [
+              24.170228688171754,
+              9.369780238291453,
+              -5.409184116389055
+            ],
+            "rootOrigin": [
+              27,
+              5.738464832305908,
+              5
+            ],
+            "rootCode": 1025.25,
+            "cardFacing": 0.2842121891217665,
+            "flat": true,
+            "uv": [
+              0.23100067890660342,
+              0.18489072219925012
+            ],
+            "faceIndex": 564
+          },
+          {
+            "object": "giants-authored-cards-east-giant",
+            "kind": "giant-authored-cards",
+            "giants": [
+              "east-giant"
+            ],
+            "materialRole": "giantCanopy",
+            "distance": 28.989390279933126,
+            "point": [
+              24.355023085753043,
+              9.423314135589145,
+              -5.4757263778927445
+            ],
+            "rootOrigin": [
+              27,
+              5.738464832305908,
+              5
+            ],
+            "rootCode": 1025.25,
+            "cardFacing": 0.5506080347993336,
+            "flat": true,
+            "uv": [
+              0.5988143446409626,
+              0.7033865622389419
+            ],
+            "faceIndex": 787
+          },
+          {
+            "object": "giants-authored-cards-east-giant",
+            "kind": "giant-authored-cards",
+            "giants": [
+              "east-giant"
+            ],
+            "materialRole": "giantCanopy",
+            "distance": 29.227844479749482,
+            "point": [
+              24.571479096468305,
+              9.486020224078661,
+              -5.5536696091680575
+            ],
+            "rootOrigin": [
+              27,
+              5.738464832305908,
+              5
+            ],
+            "rootCode": 1025.25,
+            "cardFacing": 0.30352509558699703,
+            "flat": true,
+            "uv": [
+              0.6077585959800387,
+              0.5003762708034084
+            ],
+            "faceIndex": 634
+          },
+          {
+            "object": "giants-authored-leaves-east-giant",
+            "kind": "giant-authored-leaves",
+            "giants": [
+              "east-giant"
+            ],
+            "materialRole": "giantTree",
+            "distance": 29.34259199203457,
+            "point": [
+              24.675640770986345,
+              9.51619527515699,
+              -5.591176987503987
+            ],
+            "rootOrigin": [
+              27,
+              5.738464832305908,
+              5
+            ],
+            "rootCode": 1025.25,
+            "cardFacing": 0.9337774021870051,
+            "flat": true,
+            "uv": [
+              0,
+              0
+            ],
+            "faceIndex": 4935
+          },
+          {
+            "object": "giants-authored-cards-east-giant",
+            "kind": "giant-authored-cards",
+            "giants": [
+              "east-giant"
+            ],
+            "materialRole": "giantCanopy",
+            "distance": 29.791865259131825,
+            "point": [
+              25.08346709231673,
+              9.634340265953007,
+              -5.738030388241512
+            ],
+            "rootOrigin": [
+              27,
+              5.738464832305908,
+              5
+            ],
+            "rootCode": 1025.25,
+            "cardFacing": 0.3596086527107685,
+            "flat": true,
+            "uv": [
+              0.8611312121574876,
+              0.6116334764815027
+            ],
+            "faceIndex": 538
+          },
+          {
+            "object": "giants-authored-cards-east-giant",
+            "kind": "giant-authored-cards",
+            "giants": [
+              "east-giant"
+            ],
+            "materialRole": "giantCanopy",
+            "distance": 29.92840304342357,
+            "point": [
+              25.207408814133558,
+              9.670245485448216,
+              -5.782660326011811
+            ],
+            "rootOrigin": [
+              27,
+              5.738464832305908,
+              5
+            ],
+            "rootCode": 1025.25,
+            "cardFacing": 0.7921620633078681,
+            "flat": true,
+            "uv": [
+              0.8384523343678814,
+              0.1679742131550095
+            ],
+            "faceIndex": 476
+          },
+          {
+            "object": "giants-authored-cards-east-giant",
+            "kind": "giant-authored-cards",
+            "giants": [
+              "east-giant"
+            ],
+            "materialRole": "giantCanopy",
+            "distance": 31.225114881690505,
+            "point": [
+              26.384494693831556,
+              10.011240642331142,
+              -6.206514931153238
+            ],
+            "rootOrigin": [
+              27,
+              5.738464832305908,
+              5
+            ],
+            "rootCode": 1024.25,
+            "cardFacing": 0.7215432571823956,
+            "flat": true,
+            "uv": [
+              0.40715064169613,
+              0.30553069632749574
+            ],
+            "faceIndex": 54
+          },
+          {
+            "object": "giants-authored-cards-east-giant",
+            "kind": "giant-authored-cards",
+            "giants": [
+              "east-giant"
+            ],
+            "materialRole": "giantCanopy",
+            "distance": 31.82099973676235,
+            "point": [
+              26.92540719893245,
+              10.167939951802204,
+              -6.401291081491923
+            ],
+            "rootOrigin": [
+              27,
+              5.738464832305908,
+              5
+            ],
+            "rootCode": 1024.25,
+            "cardFacing": 0.4887499751732405,
+            "flat": true,
+            "uv": [
+              0.6886438244735914,
+              0.2596257739082246
+            ],
+            "faceIndex": 184
+          }
+        ]
+      },
+      {
+        "pixel": [
+          966,
+          45
+        ],
+        "hits": [
+          {
+            "object": "column-col-0-619356256-medium@21.200,6.800",
+            "kind": "column",
+            "materialRole": "columnTree",
+            "distance": 23.753623876828925,
+            "point": [
+              20.73519629686501,
+              8.11797501310603,
+              7.040707822594888
+            ],
+            "rootOrigin": [
+              21.200000762939453,
+              3.6134579181671143,
+              6.800000190734863
+            ],
+            "rootCode": -0.028447847813367844,
+            "cardFacing": 0.7261041935736063,
+            "flat": false,
+            "uv": [
+              3.451117965222784,
+              3.21029330717061
+            ],
+            "instanceId": 0,
+            "faceIndex": 1508
+          },
+          {
+            "object": "column-col-0-619356256-medium@21.200,6.800",
+            "kind": "column",
+            "materialRole": "columnTree",
+            "distance": 24.39655539068197,
+            "point": [
+              21.349479700020563,
+              8.2889815618636,
+              7.123009659725211
+            ],
+            "rootOrigin": [
+              21.200000762939453,
+              3.6134579181671143,
+              6.800000190734863
+            ],
+            "rootCode": -0.14614389836788177,
+            "cardFacing": 0.6002697259904983,
+            "flat": false,
+            "uv": [
+              0.4338319031272754,
+              3.3065938467754528
+            ],
+            "instanceId": 0,
+            "faceIndex": 1452
+          },
+          {
+            "object": "distant-0-near",
+            "kind": "distant-tree",
+            "materialRole": "distant-crown",
+            "distance": 71.295232081742,
+            "point": [
+              66.15841828917985,
+              20.76306421208579,
+              13.12652195845123
+            ],
+            "rootOrigin": [
+              66.6209945678711,
+              16.33774438164187,
+              5.84782600402832
+            ],
+            "rootCode": 8.378999710083008,
+            "cardFacing": 0.9606122694680388,
+            "flat": false,
+            "uv": [
+              0.5523495179845013,
+              0.8767317798290101
+            ],
+            "instanceId": 5,
+            "faceIndex": 1425
+          },
+          {
+            "object": "distant-2-near",
+            "kind": "distant-tree",
+            "materialRole": "distant-crown",
+            "distance": 74.30747643076104,
+            "point": [
+              69.03644132893155,
+              21.564259205706815,
+              13.51212017298574
+            ],
+            "rootOrigin": [
+              79.45535278320312,
+              28.33748708400981,
+              0.519254744052887
+            ],
+            "rootCode": 11.906999588012695,
+            "cardFacing": 0.13284123034920184,
+            "flat": false,
+            "uv": [
+              0.4730469019412809,
+              0.4490498767087801
+            ],
+            "instanceId": 4,
+            "faceIndex": 1488
+          },
+          {
+            "object": "distant-2-near",
+            "kind": "distant-tree",
+            "materialRole": "distant-crown",
+            "distance": 84.8022591963501,
+            "point": [
+              79.06359155211662,
+              24.355655399600714,
+              14.855560155753574
+            ],
+            "rootOrigin": [
+              79.45535278320312,
+              28.33748708400981,
+              0.519254744052887
+            ],
+            "rootCode": 11.906999588012695,
+            "cardFacing": 0.8720564768894239,
+            "flat": false,
+            "uv": [
+              0.015636868690848963,
+              0.6967130826888777
+            ],
+            "instanceId": 4,
+            "faceIndex": 1481
+          },
+          {
+            "object": "distant-2-near",
+            "kind": "distant-tree",
+            "materialRole": "distant-crown",
+            "distance": 88.48785294733278,
+            "point": [
+              82.58496050545115,
+              25.335947474103197,
+              15.327354009509591
+            ],
+            "rootOrigin": [
+              79.45535278320312,
+              28.33748708400981,
+              0.519254744052887
+            ],
+            "rootCode": 11.906999588012695,
+            "cardFacing": 0.9182369404913097,
+            "flat": false,
+            "uv": [
+              0.02542143478608222,
+              0.21519641961159106
+            ],
+            "instanceId": 4,
+            "faceIndex": 1474
+          },
+          {
+            "object": "distant-2-near",
+            "kind": "distant-tree",
+            "materialRole": "distant-crown",
+            "distance": 88.86065024406456,
+            "point": [
+              82.94114648667828,
+              25.435103881475733,
+              15.375075892380707
+            ],
+            "rootOrigin": [
+              79.45535278320312,
+              28.33748708400981,
+              0.519254744052887
+            ],
+            "rootCode": 11.906999588012695,
+            "cardFacing": 0.2754556922399059,
+            "flat": false,
+            "uv": [
+              0.6365567948670101,
+              0.9484264052128697
+            ],
+            "instanceId": 4,
+            "faceIndex": 1491
+          },
+          {
+            "object": "distant-2-near",
+            "kind": "distant-tree",
+            "materialRole": "distant-crown",
+            "distance": 89.07549060592677,
+            "point": [
+              83.14641386862536,
+              25.492246995515536,
+              15.402577665260116
+            ],
+            "rootOrigin": [
+              91.20889282226562,
+              25.29259359520165,
+              16.300704956054688
+            ],
+            "rootCode": 11.906999588012695,
+            "cardFacing": 0.5135476251316061,
+            "flat": false,
+            "uv": [
+              0.14838857675640058,
+              0.7949114170987281
+            ],
+            "instanceId": 1,
+            "faceIndex": 1481
+          }
+        ]
+      }
+    ]
+  },
+  "nearCanopy": {
+    "inM": 26,
+    "outM": 30,
+    "builtInM": 26,
+    "builtOutM": 30,
+    "heroMargin": 1.5,
+    "minInM": 7,
+    "maxY": 25,
+    "slots": 64,
+    "limbsMax": 12,
+    "leafFloor": [
+      3.2,
+      0.75
+    ],
+    "leafNearM": [
+      7,
+      18
+    ],
+    "sunThrough": 0.3,
+    "parts": 420,
+    "heroPass": {
+      "limited": 67,
+      "dropped": 0
+    },
+    "builtTriangles": 3150625,
+    "residentTriangles": 3150625,
+    "residentVertices": 2894351,
+    "residentBytes": 227297022,
+    "builtBytes": 227297022,
+    "prefetchM": 42,
+    "buildBudgetMs": 6,
+    "pool": {
+      "capBytes": 268435456,
+      "poolBytes": 227297022,
+      "items": 420,
+      "resident": 420,
+      "pinned": 65,
+      "wanted": 341,
+      "pinnedBytes": 36797328,
+      "wantedBytes": 185459400,
+      "pending": 0,
+      "building": 0,
+      "built": 0,
+      "evicted": 0,
+      "syncBuilds": 0,
+      "hits": 271,
+      "buildMsP50": 0,
+      "buildMsP95": 0,
+      "buildMsMax": 0,
+      "stepMsMax": 0,
+      "workMsMax": 0.16,
+      "workMsTotal": 0.54,
+      "steps": 0,
+      "stepMsP50": 0,
+      "stepMsP95": 0,
+      "longSteps": 0,
+      "workOverBudget": 0,
+      "workMsP95": 0.15
+    },
+    "built": 0,
+    "evicted": 0,
+    "poolBytes": 227297022,
+    "buildMsP95": 0,
+    "giants": [
+      [
+        "lantern-tree",
+        27,
+        0,
+        8,
+        3,
+        237160,
+        20801,
+        14974
+      ],
+      [
+        "plateau-oak",
+        31,
+        0,
+        14,
+        4,
+        271705,
+        24370,
+        14267
+      ],
+      [
+        "southwest-giant",
+        28,
+        0,
+        0,
+        3,
+        254800,
+        23627,
+        10810
+      ],
+      [
+        "east-giant",
+        26,
+        0,
+        14,
+        4,
+        222094,
+        19866,
+        9187
+      ],
+      [
+        "north-west",
+        21,
+        0,
+        1,
+        2,
+        180258,
+        17874,
+        4248
+      ],
+      [
+        "north-east",
+        24,
+        0,
+        1,
+        2,
+        212240,
+        20904,
+        5649
+      ],
+      [
+        "far-plateau",
+        23,
+        0,
+        0,
+        2,
+        208325,
+        20047,
+        5364
+      ],
+      [
+        "south-giant",
+        26,
+        0,
+        8,
+        2,
+        229575,
+        22823,
+        10712
+      ],
+      [
+        "south-centre",
+        28,
+        0,
+        3,
+        3,
+        255934,
+        23730,
+        10699
+      ],
+      [
+        "plaza-south",
+        23,
+        0,
+        7,
+        2,
+        205952,
+        19782,
+        9068
+      ],
+      [
+        "north-west-near",
+        29,
+        0,
+        13,
+        1,
+        248245,
+        26172,
+        19378
+      ],
+      [
+        "stair-bank-giant",
+        27,
+        0,
+        18,
+        2,
+        226787,
+        23118,
+        11560
+      ]
+    ],
+    "columns": [
+      [
+        "swap-8",
+        6,
+        0,
+        0,
+        31437,
+        3282,
+        2184
+      ],
+      [
+        "seat-4",
+        6,
+        0,
+        2,
+        31437,
+        3282,
+        2184
+      ],
+      [
+        "seat-1",
+        6,
+        0,
+        1,
+        30408,
+        3210,
+        2310
+      ],
+      [
+        "swap-18",
+        8,
+        0,
+        2,
+        42416,
+        4408,
+        3136
+      ],
+      [
+        "seat-2",
+        8,
+        0,
+        0,
+        42416,
+        4408,
+        3136
+      ],
+      [
+        "seat-5",
+        8,
+        0,
+        2,
+        42416,
+        4408,
+        3136
+      ],
+      [
+        "seat-0",
+        8,
+        0,
+        4,
+        40553,
+        4192,
+        2968
+      ],
+      [
+        "seat-3",
+        8,
+        0,
+        2,
+        40553,
+        4192,
+        2968
+      ],
+      [
+        "seat-6",
+        8,
+        0,
+        1,
+        40553,
+        4192,
+        2968
+      ],
+      [
+        "seat-7",
+        4,
+        0,
+        0,
+        20785,
+        2180,
+        1176
+      ],
+      [
+        "seat-8",
+        7,
+        0,
+        0,
+        34576,
+        3713,
+        2450
+      ]
+    ],
+    "shown": [
+      [
+        "seat-6/lobe-7",
+        22,
+        26,
+        5023,
+        527,
+        null,
+        [
+          13,
+          17.5,
+          7.4
+        ]
+      ],
+      [
+        "seat-7/lobe-0",
+        22,
+        26,
+        5230,
+        551,
+        null,
+        [
+          0.1,
+          21,
+          -6.6
+        ]
+      ],
+      [
+        "seat-7/lobe-1",
+        23.1,
+        26,
+        5095,
+        527,
+        null,
+        [
+          -5.2,
+          22.9,
+          -4.8
+        ]
+      ],
+      [
+        "seat-7/lobe-3",
+        24.2,
+        26,
+        5413,
+        575,
+        null,
+        [
+          0,
+          22.8,
+          -7.9
+        ]
+      ],
+      [
+        "lantern-tree/lobe-4",
+        18.5,
+        26,
+        4450,
+        476,
+        null,
+        [
+          -16.8,
+          12.1,
+          0
+        ]
+      ],
+      [
+        "lantern-tree/lobe-5",
+        20.5,
+        26,
+        4405,
+        500,
+        null,
+        [
+          -19.2,
+          12.5,
+          1.5
+        ]
+      ],
+      [
+        "lantern-tree/lobe-6",
+        21.3,
+        26,
+        4405,
+        500,
+        null,
+        [
+          -20.2,
+          12.8,
+          3
+        ]
+      ],
+      [
+        "lantern-tree/lobe-11",
+        22.7,
+        26,
+        9408,
+        1029,
+        null,
+        [
+          -11.8,
+          22.2,
+          2.4
+        ]
+      ],
+      [
+        "lantern-tree/lobe-12",
+        25.8,
+        26,
+        8946,
+        981,
+        null,
+        [
+          -11,
+          24.8,
+          -3.5
+        ]
+      ],
+      [
+        "lantern-tree/lobe-13",
+        21.3,
+        26,
+        9114,
+        981,
+        null,
+        [
+          -4.3,
+          22.9,
+          1.9
+        ]
+      ],
+      [
+        "lantern-tree/lobe-14",
+        20.6,
+        26,
+        8541,
+        909,
+        null,
+        [
+          -11.1,
+          20.3,
+          2.3
+        ]
+      ],
+      [
+        "lantern-tree/lobe-20",
+        25.7,
+        26,
+        9027,
+        957,
+        null,
+        [
+          -5.5,
+          24.4,
+          -7.6
+        ]
+      ],
+      [
+        "lantern-tree/lobe-22",
+        19.7,
+        26,
+        10008,
+        1029,
+        null,
+        [
+          -0.3,
+          21.1,
+          0.5
+        ]
+      ],
+      [
+        "lantern-tree/lobe-24",
+        18.7,
+        26,
+        5655,
+        591,
+        null,
+        [
+          -13.6,
+          12.5,
+          -6
+        ]
+      ],
+      [
+        "lantern-tree/lobe-25",
+        19.5,
+        26,
+        6045,
+        621,
+        null,
+        [
+          -13.6,
+          12.5,
+          -7.4
+        ]
+      ],
+      [
+        "lantern-tree/limb-28",
+        17.8,
+        26,
+        10517,
+        90,
+        null,
+        [
+          -17.3,
+          9.6,
+          -0.8
+        ]
+      ],
+      [
+        "southwest-giant/lobe-0",
+        25.8,
+        26,
+        4414,
+        476,
+        null,
+        [
+          -22.3,
+          13.8,
+          14.5
+        ]
+      ],
+      [
+        "southwest-giant/lobe-6",
+        25.5,
+        26,
+        4378,
+        476,
+        null,
+        [
+          -26.1,
+          9.9,
+          4.1
+        ]
+      ],
+      [
+        "southwest-giant/lobe-10",
+        21.2,
+        26,
+        8829,
+        909,
+        28.5,
+        [
+          -10.9,
+          20.4,
+          9.1
+        ]
+      ],
+      [
+        "southwest-giant/lobe-12",
+        25.1,
+        26,
+        9357,
+        1005,
+        null,
+        [
+          -15.4,
+          22.7,
+          0.4
+        ]
+      ],
+      [
+        "southwest-giant/lobe-13",
+        19.2,
+        23.7,
+        10392,
+        1029,
+        25.2,
+        [
+          -6.6,
+          20.2,
+          6.5
+        ]
+      ],
+      [
+        "southwest-giant/lobe-16",
+        26,
+        26,
+        9396,
+        1029,
+        null,
+        [
+          -13.9,
+          22.5,
+          14.1
+        ]
+      ],
+      [
+        "southwest-giant/lobe-17",
+        25.5,
+        26,
+        10215,
+        1053,
+        null,
+        [
+          -15.4,
+          19.1,
+          17.1
+        ]
+      ],
+      [
+        "southwest-giant/lobe-25",
+        21.7,
+        26,
+        9216,
+        933,
+        null,
+        [
+          -10.2,
+          21.8,
+          2.3
+        ]
+      ],
+      [
+        "southwest-giant/limb-28",
+        24.2,
+        26,
+        11294,
+        121,
+        null,
+        [
+          -21.4,
+          11.5,
+          14.7
+        ]
+      ],
+      [
+        "southwest-giant/limb-30",
+        24.2,
+        26,
+        10580,
+        121,
+        null,
+        [
+          -25.3,
+          8.1,
+          3.5
+        ]
+      ],
+      [
+        "south-giant/lobe-6",
+        21.2,
+        26,
+        8913,
+        909,
+        null,
+        [
+          0.1,
+          13.8,
+          21.4
+        ]
+      ],
+      [
+        "south-giant/lobe-9",
+        19,
+        25,
+        9453,
+        1005,
+        26.5,
+        [
+          2.7,
+          17.7,
+          13.2
+        ]
+      ],
+      [
+        "south-giant/lobe-24",
+        24.8,
+        26,
+        9099,
+        957,
+        null,
+        [
+          9.4,
+          20.9,
+          15.1
+        ]
+      ],
+      [
+        "south-centre/lobe-0",
+        20.6,
+        26,
+        5071,
+        548,
+        null,
+        [
+          0.7,
+          10,
+          22.7
+        ]
+      ],
+      [
+        "south-centre/lobe-1",
+        18.9,
+        26,
+        4405,
+        500,
+        29.6,
+        [
+          1.7,
+          10,
+          20.6
+        ]
+      ],
+      [
+        "south-centre/lobe-2",
+        18.5,
+        26,
+        4186,
+        476,
+        28.6,
+        [
+          3.8,
+          9.9,
+          19.7
+        ]
+      ],
+      [
+        "south-centre/lobe-9",
+        19,
+        26,
+        9969,
+        1005,
+        28,
+        [
+          -7.5,
+          17.6,
+          13
+        ]
+      ],
+      [
+        "south-centre/lobe-12",
+        22.7,
+        26,
+        8820,
+        933,
+        30.3,
+        [
+          0.5,
+          21.5,
+          15
+        ]
+      ],
+      [
+        "south-centre/lobe-25",
+        20.5,
+        26,
+        9654,
+        981,
+        28,
+        [
+          0.3,
+          19.8,
+          13.4
+        ]
+      ],
+      [
+        "south-centre/lobe-27",
+        23.9,
+        26,
+        9246,
+        981,
+        null,
+        [
+          -9.3,
+          22.5,
+          13.4
+        ]
+      ],
+      [
+        "south-centre/limb-28",
+        20,
+        26,
+        10347,
+        109,
+        null,
+        [
+          0.4,
+          7.8,
+          22.9
+        ]
+      ],
+      [
+        "plaza-south/lobe-0",
+        18.1,
+        25.8,
+        9207,
+        957,
+        27.3,
+        [
+          -3.9,
+          16.8,
+          13.9
+        ]
+      ],
+      [
+        "plaza-south/lobe-3",
+        19,
+        22.4,
+        9309,
+        1005,
+        23.9,
+        [
+          3.8,
+          19.5,
+          7.9
+        ]
+      ],
+      [
+        "plaza-south/lobe-11",
+        22.9,
+        26,
+        9837,
+        1005,
+        null,
+        [
+          -7.3,
+          17.9,
+          19.4
+        ]
+      ],
+      [
+        "plaza-south/lobe-12",
+        24.4,
+        26,
+        8772,
+        933,
+        null,
+        [
+          1,
+          22.2,
+          17.1
+        ]
+      ],
+      [
+        "plaza-south/lobe-14",
+        25.6,
+        26,
+        9120,
+        933,
+        null,
+        [
+          -4.1,
+          15.4,
+          25.6
+        ]
+      ],
+      [
+        "plaza-south/lobe-15",
+        16.7,
+        21.2,
+        9726,
+        981,
+        22.7,
+        [
+          -0.4,
+          18.1,
+          7.6
+        ]
+      ],
+      [
+        "plaza-south/lobe-16",
+        23.6,
+        26,
+        8736,
+        933,
+        null,
+        [
+          3.6,
+          22.3,
+          14.4
+        ]
+      ],
+      [
+        "plaza-south/lobe-17",
+        20.5,
+        26,
+        4501,
+        500,
+        29.2,
+        [
+          8.4,
+          10,
+          19.6
+        ]
+      ],
+      [
+        "plaza-south/lobe-20",
+        17.3,
+        26,
+        4402,
+        476,
+        28.2,
+        [
+          0.1,
+          9.8,
+          19.2
+        ]
+      ],
+      [
+        "plaza-south/lobe-21",
+        18.9,
+        26,
+        4768,
+        524,
+        30.2,
+        [
+          -1.9,
+          10.5,
+          20.8
+        ]
+      ],
+      [
+        "plaza-south/lobe-22",
+        19.7,
+        26,
+        4405,
+        500,
+        null,
+        [
+          -4.8,
+          11.4,
+          20.9
+        ]
+      ],
+      [
+        "plaza-south/limb-24",
+        17.6,
+        26,
+        9698,
+        72,
+        28.8,
+        [
+          0.1,
+          8,
+          20.3
+        ]
+      ],
+      [
+        "north-west-near/lobe-5",
+        24.3,
+        26,
+        9033,
+        1005,
+        null,
+        [
+          -7.5,
+          20.8,
+          -10.1
+        ]
+      ],
+      [
+        "north-west-near/lobe-6",
+        18.7,
+        26,
+        8640,
+        933,
+        null,
+        [
+          -2.1,
+          19,
+          -3.4
+        ]
+      ],
+      [
+        "north-west-near/lobe-8",
+        25.4,
+        26,
+        8352,
+        933,
+        29.7,
+        [
+          -10.4,
+          17.2,
+          -14.3
+        ]
+      ],
+      [
+        "north-west-near/lobe-13",
+        23.9,
+        26,
+        9864,
+        1029,
+        null,
+        [
+          -1.6,
+          21.9,
+          -8.8
+        ]
+      ],
+      [
+        "north-west-near/lobe-16",
+        24.4,
+        26,
+        9441,
+        1005,
+        null,
+        [
+          -5.5,
+          22.4,
+          -8.7
+        ]
+      ],
+      [
+        "north-west-near/lobe-27",
+        22.7,
+        25.2,
+        5511,
+        591,
+        26.7,
+        [
+          -3.6,
+          16,
+          -13.6
+        ]
+      ],
+      [
+        "stair-bank-giant/lobe-2",
+        20.9,
+        26,
+        9711,
+        1053,
+        null,
+        [
+          10.4,
+          18.5,
+          6
+        ]
+      ],
+      [
+        "stair-bank-giant/lobe-3",
+        14.6,
+        26,
+        9297,
+        1005,
+        null,
+        [
+          1.1,
+          16,
+          4.7
+        ]
+      ],
+      [
+        "stair-bank-giant/lobe-6",
+        20.3,
+        22.9,
+        8982,
+        981,
+        24.4,
+        [
+          9.9,
+          17.4,
+          9.1
+        ]
+      ],
+      [
+        "stair-bank-giant/lobe-10",
+        19.5,
+        22.6,
+        9294,
+        981,
+        24.1,
+        [
+          6.1,
+          18.9,
+          8.5
+        ]
+      ],
+      [
+        "stair-bank-giant/lobe-11",
+        23.8,
+        26,
+        9360,
+        1029,
+        28,
+        [
+          14.2,
+          17.2,
+          12.2
+        ]
+      ],
+      [
+        "stair-bank-giant/lobe-14",
+        20.5,
+        26,
+        9174,
+        981,
+        null,
+        [
+          8.3,
+          19.3,
+          6.3
+        ]
+      ],
+      [
+        "stair-bank-giant/lobe-15",
+        18.8,
+        25.2,
+        8871,
+        957,
+        26.7,
+        [
+          5,
+          15.4,
+          14.9
+        ]
+      ],
+      [
+        "stair-bank-giant/lobe-19",
+        18.8,
+        23.8,
+        4405,
+        500,
+        25.3,
+        [
+          7.8,
+          15.1,
+          12.9
+        ]
+      ],
+      [
+        "stair-bank-giant/lobe-20",
+        18.7,
+        24.4,
+        4624,
+        524,
+        25.9,
+        [
+          6.7,
+          15.3,
+          13.7
+        ]
+      ],
+      [
+        "stair-bank-giant/lobe-21",
+        20.3,
+        26,
+        4624,
+        524,
+        27.8,
+        [
+          7.1,
+          15.5,
+          15.9
+        ]
+      ]
+    ],
+    "shownTriangles": 510180,
+    "foldedTriangles": 132235
+  }
+}

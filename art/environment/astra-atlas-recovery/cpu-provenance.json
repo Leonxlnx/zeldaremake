@@ -1,0 +1,10 @@
+{
+  "baseline": "5f587c7f0cc9644470c75cc8846252ec7107f2a9",
+  "candidate": "181986ba8d6f1213ff8e03aa5109116c80157dfe",
+  "reusedSourceCommit": "d7516294a2682ec86011674fe7bc672f418dfdae",
+  "reusedTest": "art/environment/astra-distance/atlas-encoding-check.mjs",
+  "testSha256": "4caad1e3b5e095f3fa26abacac38170857645fcaedd16d9452d7949336305bc0",
+  "command": "node E:/zeldaremake-astra-link-run/art/environment/astra-distance/atlas-encoding-check.mjs 5f587c7f",
+  "scope": "Actual current production sources against baseline and independent encoding oracle; no GPU in this check",
+  "legacyFields": "internalFarTuftRgbHasNoEffect is only an independence check here; the current radial far atlas has no nested cluster mask. floorResponse fields are inherited old illustrative arithmetic and are not accepted current-world measurements."
+}

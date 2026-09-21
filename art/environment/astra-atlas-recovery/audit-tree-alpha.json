@@ -1,0 +1,249 @@
+{
+  "sourceRef": "24dc4cac",
+  "opaqueFillCount": 110,
+  "method": "Exact source calls and PRNG; quadratic fills polygonized to 128 intervals; strokes/gradients ignored. Texture-space coverage lower bound, not a rendered-fragment certificate.",
+  "samples": [
+    {
+      "view": "A_stairs",
+      "pixel": [
+        473,
+        190
+      ],
+      "object": "giants-canopy-0-lantern-tree+north-west-near+north-west+north-east",
+      "distance": 56.408361191806826,
+      "uv": [
+        0.4456893940571813,
+        0.41982517022198235
+      ],
+      "opaqueFillCount": 3,
+      "maxInteriorMarginTexels": 13.09789330370424,
+      "coverage": [
+        {
+          "leaf": 4,
+          "marginTexels": 2.534463536901296
+        },
+        {
+          "leaf": 27,
+          "marginTexels": 13.09789330370424
+        },
+        {
+          "leaf": 75,
+          "marginTexels": 7.145872753713483
+        }
+      ]
+    },
+    {
+      "view": "A_stairs",
+      "pixel": [
+        473,
+        190
+      ],
+      "object": "giants-canopy-0-lantern-tree+north-west-near+north-west+north-east",
+      "distance": 58.19249392757342,
+      "uv": [
+        0.31545318956669327,
+        0.7679716946165983
+      ],
+      "opaqueFillCount": 1,
+      "maxInteriorMarginTexels": 13.87292546671769,
+      "coverage": [
+        {
+          "leaf": 44,
+          "marginTexels": 13.87292546671769
+        }
+      ]
+    },
+    {
+      "view": "A_stairs",
+      "pixel": [
+        970,
+        59
+      ],
+      "object": "giants-canopy-1-plateau-oak+far-plateau+east-giant+stair-bank-giant",
+      "distance": 42.18668036654467,
+      "uv": [
+        0.8695494268246395,
+        0.9796188843413647
+      ],
+      "opaqueFillCount": 0,
+      "maxInteriorMarginTexels": 0,
+      "coverage": []
+    },
+    {
+      "view": "C_lookback",
+      "pixel": [
+        556,
+        35
+      ],
+      "object": "giants-canopy-2-south-giant+plaza-south+south-centre+southwest-giant",
+      "distance": 27.558566986997956,
+      "uv": [
+        0.9110403282827048,
+        0.8735841217685796
+      ],
+      "opaqueFillCount": 0,
+      "maxInteriorMarginTexels": 0,
+      "coverage": []
+    },
+    {
+      "view": "C_lookback",
+      "pixel": [
+        556,
+        35
+      ],
+      "object": "giants-canopy-2-south-giant+plaza-south+south-centre+southwest-giant",
+      "distance": 42.450673298987674,
+      "uv": [
+        0.34621516238217326,
+        0.9744021791023285
+      ],
+      "opaqueFillCount": 0,
+      "maxInteriorMarginTexels": 0,
+      "coverage": []
+    },
+    {
+      "view": "C_lookback",
+      "pixel": [
+        837,
+        208
+      ],
+      "object": "giants-canopy-2-south-giant+plaza-south+south-centre+southwest-giant",
+      "distance": 43.382319828201744,
+      "uv": [
+        0.6991271920122484,
+        0.3965399189906463
+      ],
+      "opaqueFillCount": 1,
+      "maxInteriorMarginTexels": 6.459971200928075,
+      "coverage": [
+        {
+          "leaf": 47,
+          "marginTexels": 6.459971200928075
+        }
+      ]
+    },
+    {
+      "view": "C_lookback",
+      "pixel": [
+        837,
+        208
+      ],
+      "object": "giants-canopy-2-south-giant+plaza-south+south-centre+southwest-giant",
+      "distance": 45.21188136056913,
+      "uv": [
+        0.355049385463236,
+        0.28856416685014996
+      ],
+      "opaqueFillCount": 1,
+      "maxInteriorMarginTexels": 1.8333460007410987,
+      "coverage": [
+        {
+          "leaf": 96,
+          "marginTexels": 1.8333460007410987
+        }
+      ]
+    },
+    {
+      "view": "C_lookback",
+      "pixel": [
+        837,
+        208
+      ],
+      "object": "giants-canopy-2-south-giant+plaza-south+south-centre+southwest-giant",
+      "distance": 45.58237029319853,
+      "uv": [
+        0.7283465133916744,
+        0.9459631880639611
+      ],
+      "opaqueFillCount": 0,
+      "maxInteriorMarginTexels": 0,
+      "coverage": []
+    },
+    {
+      "view": "C_lookback",
+      "pixel": [
+        837,
+        208
+      ],
+      "object": "giants-canopy-2-south-giant+plaza-south+south-centre+southwest-giant",
+      "distance": 45.81337590356795,
+      "uv": [
+        0.5536606286173829,
+        0.41462163907917793
+      ],
+      "opaqueFillCount": 3,
+      "maxInteriorMarginTexels": 13.410775174708485,
+      "coverage": [
+        {
+          "leaf": 5,
+          "marginTexels": 1.6688268807778246
+        },
+        {
+          "leaf": 29,
+          "marginTexels": 6.867777489640611
+        },
+        {
+          "leaf": 62,
+          "marginTexels": 13.410775174708485
+        }
+      ]
+    },
+    {
+      "view": "C_lookback",
+      "pixel": [
+        1260,
+        95
+      ],
+      "object": "giants-canopy-2-south-giant+plaza-south+south-centre+southwest-giant",
+      "distance": 41.610202324412676,
+      "uv": [
+        0.8284400460423189,
+        0.4269021989928628
+      ],
+      "opaqueFillCount": 0,
+      "maxInteriorMarginTexels": 0,
+      "coverage": []
+    },
+    {
+      "view": "C_lookback",
+      "pixel": [
+        1260,
+        95
+      ],
+      "object": "giants-canopy-2-south-giant+plaza-south+south-centre+southwest-giant",
+      "distance": 46.20206639288153,
+      "uv": [
+        0.945521079447936,
+        0.19876446151199018
+      ],
+      "opaqueFillCount": 0,
+      "maxInteriorMarginTexels": 0,
+      "coverage": []
+    },
+    {
+      "view": "F_canopy",
+      "pixel": [
+        252,
+        42
+      ],
+      "object": "giants-canopy-1-plateau-oak+far-plateau+east-giant+stair-bank-giant",
+      "distance": 37.60577322986929,
+      "uv": [
+        0.7934151948815259,
+        0.5583024131135372
+      ],
+      "opaqueFillCount": 2,
+      "maxInteriorMarginTexels": 17.99528060945319,
+      "coverage": [
+        {
+          "leaf": 56,
+          "marginTexels": 1.1422775594345715
+        },
+        {
+          "leaf": 78,
+          "marginTexels": 17.99528060945319
+        }
+      ]
+    }
+  ]
+}

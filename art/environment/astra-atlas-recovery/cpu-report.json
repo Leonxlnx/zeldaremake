@@ -1,0 +1,754 @@
+{
+  "ref": "5f587c7f",
+  "kind": "CPU Canvas2D authoring evidence; not a world render or exact Chrome raster",
+  "sourceHashes": {
+    "leaves": "5e18361a3b81208cfe2a2d5cb04a7e177a0430b5acbf4e432caffe2a800fa56f",
+    "roof": "9fcceee22186281726ff72e2d1588c81c57c8c546566df4ba557acb851bc5e44"
+  },
+  "candidateSourceHashes": {
+    "leaves": "eacd815ee5e05306e65e1c9766a1f73e168ecb7e22092df1e2ddbd9990649ef7",
+    "roof": "3472f532efcb97eb17077f9759cf5d5007f52dc07444212675e8284cb39e29d4"
+  },
+  "seed": "kokiri-forest-phase1",
+  "palette": {
+    "leafCanopy": 6190666,
+    "leafSun": 10597485
+  },
+  "simplePalette": {
+    "leafCanopy": {
+      "intendedLinear": [
+        0.11193242782769693,
+        0.18116424423948302,
+        0.06847816983662762
+      ],
+      "wrongBytes": [
+        29,
+        46,
+        17
+      ],
+      "correctBytes": [
+        94,
+        118,
+        74
+      ],
+      "sampledWrong": [
+        0.012286488353353374,
+        0.02732089163382382,
+        0.005605391621829107
+      ],
+      "sampledCorrect": [
+        0.11193242782769693,
+        0.18116424423948302,
+        0.06847816983662762
+      ],
+      "lumaWrong": 0.022556718395529782,
+      "lumaCorrect": 0.15830962549845115,
+      "intendedSignalRetained": 0.14248481938168991
+    },
+    "leafSun": {
+      "intendedLinear": [
+        0.35640014413537763,
+        0.45641102317066595,
+        0.15292615198613213
+      ],
+      "wrongBytes": [
+        91,
+        116,
+        39
+      ],
+      "correctBytes": [
+        161,
+        180,
+        109
+      ],
+      "sampledWrong": [
+        0.10461648408208657,
+        0.17464740364527903,
+        0.02028856305209031
+      ],
+      "sampledCorrect": [
+        0.35640014413537763,
+        0.45641102317066595,
+        0.15292615198613213
+      ],
+      "lumaWrong": 0.14861412185531606,
+      "lumaCorrect": 0.41323710258824026,
+      "intendedSignalRetained": 0.359634023480701
+    }
+  },
+  "cases": [
+    {
+      "name": "cluster-512",
+      "threshold": 0.42,
+      "size": 512,
+      "alphaUnchanged": true,
+      "auxiliaryUnchanged": null,
+      "correctBrushEncoding": true,
+      "deterministic": true,
+      "before": {
+        "coveredPixels": 89485,
+        "linearMean": [
+          0.04690262575573055,
+          0.07450047064230737,
+          0.02428106410115683
+        ],
+        "linearLuma": 0.06500732766715007,
+        "encodedMean": [
+          0.21883509888292824,
+          0.28090566170044245,
+          0.15283183620442276
+        ],
+        "encodedLuma": 0.2584625298446263,
+        "linearPercentiles": [
+          0.010220622611142677,
+          0.058240862063090496,
+          0.14702298644484257
+        ],
+        "nearDetailMean": [
+          0.44999999999987583,
+          0.44999999999987583,
+          0.44999999999987583
+        ],
+        "nearDetailLuma": 0.44999999999987583,
+        "nearDetailLowerClampFraction": [
+          1,
+          1,
+          1
+        ],
+        "allChannelsLowerClamped": 1
+      },
+      "corrected": {
+        "coveredPixels": 89485,
+        "linearMean": [
+          0.1832809925322679,
+          0.25468896869453933,
+          0.10592346911315574
+        ],
+        "linearLuma": 0.2287667638926645,
+        "encodedMean": [
+          0.45228274647848515,
+          0.5305146332992816,
+          0.34874207200907265
+        ],
+        "encodedLuma": 0.5007585552360272,
+        "linearPercentiles": [
+          0.0958695216325948,
+          0.22637705865588095,
+          0.37972069961144533
+        ],
+        "nearDetailMean": [
+          0.45014766567298575,
+          0.458138176866956,
+          0.44999999999987583
+        ],
+        "nearDetailLuma": 0.45585181781731476,
+        "nearDetailLowerClampFraction": [
+          0.9865787562161256,
+          0.8461306364195117,
+          1
+        ],
+        "allChannelsLowerClamped": 0.8461306364195117
+      },
+      "linearLumaRatio": 3.5190919562790524,
+      "nearDetailLumaRatio": 1.0130040395943123,
+      "floorResponse": [
+        {
+          "tintLinear": [
+            1,
+            1,
+            1
+          ],
+          "beforeAlbedoLuma": 0.06500732766715007,
+          "afterAlbedoLuma": 0.2287667638926645,
+          "farFloorLumaRatio": 1.5646734430568114,
+          "note": "Floor-only response for ordinary giant card at >=10m, achromatic ambient/filter; excludes direct lighting, fog, grade, transmission and vLeafShade."
+        },
+        {
+          "tintLinear": [
+            0.11193242782769693,
+            0.18116424423948302,
+            0.06847816983662762
+          ],
+          "beforeAlbedoLuma": 0.010889109302782654,
+          "afterAlbedoLuma": 0.03788491643010497,
+          "farFloorLumaRatio": 1.1144427871516147,
+          "note": "Floor-only response for ordinary giant card at >=10m, achromatic ambient/filter; excludes direct lighting, fog, grade, transmission and vLeafShade."
+        }
+      ]
+    },
+    {
+      "name": "detail-1024",
+      "threshold": 0.42,
+      "size": 1024,
+      "alphaUnchanged": true,
+      "auxiliaryUnchanged": true,
+      "correctBrushEncoding": true,
+      "deterministic": true,
+      "before": {
+        "coveredPixels": 387651,
+        "linearMean": [
+          0.05154498137456108,
+          0.07774168722840082,
+          0.026423648201249813
+        ],
+        "linearLuma": 0.06846710514611419,
+        "encodedMean": [
+          0.2089375115612141,
+          0.2744892983132937,
+          0.13406520247344558
+        ],
+        "encodedLuma": 0.25041436873016454,
+        "linearPercentiles": [
+          0.010413386854301269,
+          0.04440567509433765,
+          0.2065912282012043
+        ],
+        "nearDetailMean": [
+          0.452942815570808,
+          0.45480987178386706,
+          0.45000001685645724
+        ],
+        "nearDetailLuma": 0.45406566410721166,
+        "nearDetailLowerClampFraction": [
+          0.9710822363414514,
+          0.9643906503530237,
+          0.9999896814402646
+        ],
+        "allChannelsLowerClamped": 0.9643906503530237
+      },
+      "corrected": {
+        "coveredPixels": 387651,
+        "linearMean": [
+          0.183232607903003,
+          0.2538182180451991,
+          0.10107586114861115
+        ],
+        "linearLuma": 0.22778371916103454,
+        "encodedMean": [
+          0.4477191911201684,
+          0.527524075248483,
+          0.33562154476854256
+        ],
+        "encodedLuma": 0.4967021941821516,
+        "linearPercentiles": [
+          0.09590035829572671,
+          0.20989724432341525,
+          0.42399109661839657
+        ],
+        "nearDetailMean": [
+          0.46120372624415834,
+          0.4683241712029209,
+          0.45148794322158314
+        ],
+        "nearDetailLuma": 0.4655947889444354,
+        "nearDetailLowerClampFraction": [
+          0.9448859928131231,
+          0.8778179341727481,
+          0.9736077038366985
+        ],
+        "allChannelsLowerClamped": 0.8778179341727481
+      },
+      "linearLumaRatio": 3.3269074057523853,
+      "nearDetailLumaRatio": 1.0253908757005277,
+      "floorResponse": [
+        {
+          "tintLinear": [
+            1,
+            1,
+            1
+          ],
+          "beforeAlbedoLuma": 0.06846710514611419,
+          "afterAlbedoLuma": 0.22778371916103454,
+          "farFloorLumaRatio": 1.5428772466188272,
+          "note": "Floor-only response for ordinary giant card at >=10m, achromatic ambient/filter; excludes direct lighting, fog, grade, transmission and vLeafShade."
+        },
+        {
+          "tintLinear": [
+            0.11193242782769693,
+            0.18116424423948302,
+            0.06847816983662762
+          ],
+          "beforeAlbedoLuma": 0.011430135984788425,
+          "afterAlbedoLuma": 0.037746975853552106,
+          "farFloorLumaRatio": 1.1113091601421607,
+          "note": "Floor-only response for ordinary giant card at >=10m, achromatic ambient/filter; excludes direct lighting, fog, grade, transmission and vLeafShade."
+        }
+      ]
+    },
+    {
+      "name": "detail-512",
+      "threshold": 0.42,
+      "size": 512,
+      "alphaUnchanged": true,
+      "auxiliaryUnchanged": true,
+      "correctBrushEncoding": true,
+      "deterministic": true,
+      "before": {
+        "coveredPixels": 96956,
+        "linearMean": [
+          0.050446714808384266,
+          0.07665299653535262,
+          0.02564101233660757
+        ],
+        "linearLuma": 0.06739847578104975,
+        "encodedMean": [
+          0.20908837564495028,
+          0.27464570547071915,
+          0.13424747348512844
+        ],
+        "encodedLuma": 0.250571464800401,
+        "linearPercentiles": [
+          0.011425820176713309,
+          0.04446792941287447,
+          0.19960066486641642
+        ],
+        "nearDetailMean": [
+          0.4523564217676455,
+          0.45392624067575255,
+          0.44999999999966117
+        ],
+        "nearDetailLuma": 0.4533090225990752,
+        "nearDetailLowerClampFraction": [
+          0.9763500969511943,
+          0.9696047691736458,
+          1
+        ],
+        "allChannelsLowerClamped": 0.9696047691736458
+      },
+      "corrected": {
+        "coveredPixels": 96956,
+        "linearMean": [
+          0.1824734632749138,
+          0.2531438628795837,
+          0.10052693581210333
+        ],
+        "linearLuma": 0.22710039378935876,
+        "encodedMean": [
+          0.4478058371333167,
+          0.5276116354376336,
+          0.3357719167539127
+        ],
+        "encodedLuma": 0.49679409502917116,
+        "linearPercentiles": [
+          0.09743403941105697,
+          0.20992558416123697,
+          0.41694972799853597
+        ],
+        "nearDetailMean": [
+          0.4598720421124377,
+          0.4669154126316115,
+          0.4511815086605718
+        ],
+        "nearDetailLuma": 0.464282004192526,
+        "nearDetailLowerClampFraction": [
+          0.946790296629399,
+          0.8808428565534882,
+          0.9784953999752465
+        ],
+        "allChannelsLowerClamped": 0.8808428565534882
+      },
+      "linearLumaRatio": 3.3695182444053424,
+      "nearDetailLumaRatio": 1.024206404563793,
+      "floorResponse": [
+        {
+          "tintLinear": [
+            1,
+            1,
+            1
+          ],
+          "beforeAlbedoLuma": 0.06739847578104975,
+          "afterAlbedoLuma": 0.22710039378935876,
+          "farFloorLumaRatio": 1.5461790372939395,
+          "note": "Floor-only response for ordinary giant card at >=10m, achromatic ambient/filter; excludes direct lighting, fog, grade, transmission and vLeafShade."
+        },
+        {
+          "tintLinear": [
+            0.11193242782769693,
+            0.18116424423948302,
+            0.06847816983662762
+          ],
+          "beforeAlbedoLuma": 0.01125907106640384,
+          "afterAlbedoLuma": 0.03763882135966502,
+          "farFloorLumaRatio": 1.1116560315512576,
+          "note": "Floor-only response for ordinary giant card at >=10m, achromatic ambient/filter; excludes direct lighting, fog, grade, transmission and vLeafShade."
+        }
+      ]
+    },
+    {
+      "name": "far-crown-1024",
+      "threshold": 0.3,
+      "size": 1024,
+      "alphaUnchanged": true,
+      "auxiliaryUnchanged": null,
+      "correctBrushEncoding": true,
+      "deterministic": true,
+      "before": {
+        "coveredPixels": 320774,
+        "linearMean": [
+          0.023171494801175987,
+          0.045257011653296146,
+          0.007063685392593502
+        ],
+        "linearLuma": 0.037804072614512664,
+        "encodedMean": [
+          0.1619882277391118,
+          0.23208890457009643,
+          0.07812482235087442
+        ],
+        "encodedLuma": 0.20606929393960124,
+        "linearPercentiles": [
+          0.02174155383531628,
+          0.03568859513519545,
+          0.060602395789217556
+        ],
+        "nearDetailMean": [
+          0.44999999999920526,
+          0.44999999999920526,
+          0.44999999999920526
+        ],
+        "nearDetailLuma": 0.44999999999920526,
+        "nearDetailLowerClampFraction": [
+          1,
+          1,
+          1
+        ],
+        "allChannelsLowerClamped": 1
+      },
+      "corrected": {
+        "coveredPixels": 320774,
+        "linearMean": [
+          0.16024575423774332,
+          0.22994399203261837,
+          0.07746871306826021
+        ],
+        "linearLuma": 0.20411743153620127,
+        "encodedMean": [
+          0.4349452800256843,
+          0.5149787823247196,
+          0.30725410853700397
+        ],
+        "encodedLuma": 0.4829659382884716,
+        "linearPercentiles": [
+          0.15232525641993241,
+          0.20141677036307787,
+          0.2649027217679882
+        ],
+        "nearDetailMean": [
+          0.44999999999920526,
+          0.45002170859776375,
+          0.44999999999920526
+        ],
+        "nearDetailLuma": 0.45001552598889427,
+        "nearDetailLowerClampFraction": [
+          1,
+          0.9981762861079764,
+          1
+        ],
+        "allChannelsLowerClamped": 0.9981762861079764
+      },
+      "linearLumaRatio": 5.399350319146364,
+      "nearDetailLumaRatio": 1.000034502199309,
+      "floorResponse": [
+        {
+          "tintLinear": [
+            1,
+            1,
+            1
+          ],
+          "beforeAlbedoLuma": 0.037804072614512664,
+          "afterAlbedoLuma": 0.20411743153620127,
+          "farFloorLumaRatio": 1.6328416347095238,
+          "note": "Floor-only response for ordinary giant card at >=10m, achromatic ambient/filter; excludes direct lighting, fog, grade, transmission and vLeafShade."
+        },
+        {
+          "tintLinear": [
+            0.11193242782769693,
+            0.18116424423948302,
+            0.06847816983662762
+          ],
+          "beforeAlbedoLuma": 0.006450222648486683,
+          "afterAlbedoLuma": 0.03398989319339685,
+          "farFloorLumaRatio": 1.1189874445994197,
+          "note": "Floor-only response for ordinary giant card at >=10m, achromatic ambient/filter; excludes direct lighting, fog, grade, transmission and vLeafShade."
+        }
+      ],
+      "cells": [
+        {
+          "storageCell": 0,
+          "beforeLuma": 0.03721568750526599,
+          "afterLuma": 0.20288604915210914,
+          "ratio": 5.451627062469313
+        },
+        {
+          "storageCell": 1,
+          "beforeLuma": 0.03850389777594224,
+          "afterLuma": 0.20542388681296303,
+          "ratio": 5.335145236680808
+        },
+        {
+          "storageCell": 2,
+          "beforeLuma": 0.0373755333505685,
+          "afterLuma": 0.20327286562094873,
+          "ratio": 5.438661268437976
+        },
+        {
+          "storageCell": 3,
+          "beforeLuma": 0.03837842668761759,
+          "afterLuma": 0.20537181867400994,
+          "ratio": 5.351230792904574
+        }
+      ]
+    },
+    {
+      "name": "roof-1024",
+      "threshold": 0.4,
+      "size": 1024,
+      "alphaUnchanged": true,
+      "auxiliaryUnchanged": true,
+      "correctBrushEncoding": true,
+      "deterministic": true,
+      "before": {
+        "coveredPixels": 449835,
+        "linearMean": [
+          0.02233765648336938,
+          0.037682081007758474,
+          0.010309617468860902
+        ],
+        "linearLuma": 0.03244356448636494,
+        "encodedMean": [
+          0.14083849045333857,
+          0.19477492945695055,
+          0.08517251968453636
+        ],
+        "encodedLuma": 0.1753947485392143,
+        "linearPercentiles": [
+          0.0068471253834955425,
+          0.02202568079171329,
+          0.09412542933405763
+        ],
+        "nearDetailMean": [
+          0.4500000000027733,
+          0.4500000000027733,
+          0.4500000000027733
+        ],
+        "nearDetailLuma": 0.4500000000027733,
+        "nearDetailLowerClampFraction": [
+          1,
+          1,
+          1
+        ],
+        "allChannelsLowerClamped": 1
+      },
+      "corrected": {
+        "coveredPixels": 449835,
+        "linearMean": [
+          0.125868607245125,
+          0.1828903386963199,
+          0.06780385163140454
+        ],
+        "linearLuma": 0.16245827422370895,
+        "encodedMean": [
+          0.37879149152084807,
+          0.45526022722492027,
+          0.2805834296106633
+        ],
+        "encodedLuma": 0.42639130922648516,
+        "linearPercentiles": [
+          0.07515518143733925,
+          0.15099611269147648,
+          0.28790383351393745
+        ],
+        "nearDetailMean": [
+          0.45000580501216636,
+          0.45059795628283095,
+          0.4500000000027733
+        ],
+        "nearDetailLuma": 0.4504288924792675,
+        "nearDetailLowerClampFraction": [
+          0.9994775862260606,
+          0.981090844420732,
+          1
+        ],
+        "allChannelsLowerClamped": 0.981090844420732
+      },
+      "linearLumaRatio": 5.007411386377884,
+      "nearDetailLumaRatio": 1.0009530943922034,
+      "floorResponse": [
+        {
+          "tintLinear": [
+            1,
+            1,
+            1
+          ],
+          "beforeAlbedoLuma": 0.03244356448636494,
+          "afterAlbedoLuma": 0.16245827422370895,
+          "farFloorLumaRatio": 1.5050221783432076,
+          "note": "Floor-only response for ordinary giant card at >=10m, achromatic ambient/filter; excludes direct lighting, fog, grade, transmission and vLeafShade."
+        },
+        {
+          "tintLinear": [
+            0.11193242782769693,
+            0.18116424423948302,
+            0.06847816983662762
+          ],
+          "beforeAlbedoLuma": 0.0054649545565618254,
+          "afterAlbedoLuma": 0.027027362492742693,
+          "farFloorLumaRatio": 1.0935604633583842,
+          "note": "Floor-only response for ordinary giant card at >=10m, achromatic ambient/filter; excludes direct lighting, fog, grade, transmission and vLeafShade."
+        }
+      ],
+      "cells": [
+        {
+          "storageCell": 0,
+          "beforeLuma": 0.03149377272283884,
+          "afterLuma": 0.15969611795476968,
+          "ratio": 5.0707204678263365
+        },
+        {
+          "storageCell": 1,
+          "beforeLuma": 0.033327702180901315,
+          "afterLuma": 0.16503298903234392,
+          "ratio": 4.951826205615738
+        },
+        {
+          "storageCell": 2,
+          "beforeLuma": 0.03217855169037123,
+          "afterLuma": 0.16190775030701002,
+          "ratio": 5.031542496533726
+        },
+        {
+          "storageCell": 3,
+          "beforeLuma": 0.03261210766839662,
+          "afterLuma": 0.16275844803366982,
+          "ratio": 4.990736866461225
+        }
+      ]
+    },
+    {
+      "name": "roof-512",
+      "threshold": 0.4,
+      "size": 512,
+      "alphaUnchanged": true,
+      "auxiliaryUnchanged": true,
+      "correctBrushEncoding": true,
+      "deterministic": true,
+      "before": {
+        "coveredPixels": 113348,
+        "linearMean": [
+          0.021989912070228455,
+          0.03712526783658012,
+          0.010170766260466663
+        ],
+        "linearLuma": 0.03196137618685836,
+        "encodedMean": [
+          0.1405046544150782,
+          0.19415407833047568,
+          0.08517807730072215
+        ],
+        "encodedLuma": 0.17488014353171397,
+        "linearPercentiles": [
+          0.007318820935142137,
+          0.021964640314749997,
+          0.09168306191023975
+        ],
+        "nearDetailMean": [
+          0.44999999999928925,
+          0.44999999999928925,
+          0.44999999999928925
+        ],
+        "nearDetailLuma": 0.44999999999928925,
+        "nearDetailLowerClampFraction": [
+          1,
+          1,
+          1
+        ],
+        "allChannelsLowerClamped": 1
+      },
+      "corrected": {
+        "coveredPixels": 113348,
+        "linearMean": [
+          0.12493394438454541,
+          0.18162314231579507,
+          0.06735110484490968
+        ],
+        "linearLuma": 0.16132057773021344,
+        "encodedMean": [
+          0.3780296944271518,
+          0.4543210671006932,
+          0.28012281455629956
+        ],
+        "encodedLuma": 0.4255244074365931,
+        "linearPercentiles": [
+          0.07737914622163637,
+          0.14963620408681141,
+          0.28363118209053184
+        ],
+        "nearDetailMean": [
+          0.4500028126470321,
+          0.4505061928921744,
+          0.44999999999928925
+        ],
+        "nearDetailLuma": 0.4503626271251908,
+        "nearDetailLowerClampFraction": [
+          0.9996206373292867,
+          0.9829639693686699,
+          1
+        ],
+        "allChannelsLowerClamped": 0.9829639693686699
+      },
+      "linearLumaRatio": 5.04736018834333,
+      "nearDetailLumaRatio": 1.0008058380575604,
+      "floorResponse": [
+        {
+          "tintLinear": [
+            1,
+            1,
+            1
+          ],
+          "beforeAlbedoLuma": 0.03196137618685836,
+          "afterAlbedoLuma": 0.16132057773021344,
+          "farFloorLumaRatio": 1.503418854082129,
+          "note": "Floor-only response for ordinary giant card at >=10m, achromatic ambient/filter; excludes direct lighting, fog, grade, transmission and vLeafShade."
+        },
+        {
+          "tintLinear": [
+            0.11193242782769693,
+            0.18116424423948302,
+            0.06847816983662762
+          ],
+          "beforeAlbedoLuma": 0.005383847302235923,
+          "afterAlbedoLuma": 0.026838693093006724,
+          "farFloorLumaRatio": 1.093126519250391,
+          "note": "Floor-only response for ordinary giant card at >=10m, achromatic ambient/filter; excludes direct lighting, fog, grade, transmission and vLeafShade."
+        }
+      ],
+      "cells": [
+        {
+          "storageCell": 0,
+          "beforeLuma": 0.03103311654423513,
+          "afterLuma": 0.15857649001147997,
+          "ratio": 5.109911851278048
+        },
+        {
+          "storageCell": 1,
+          "beforeLuma": 0.03285146301713557,
+          "afterLuma": 0.16397011043495813,
+          "ratio": 4.991257477617666
+        },
+        {
+          "storageCell": 2,
+          "beforeLuma": 0.0316417937189421,
+          "afterLuma": 0.16063689573433546,
+          "ratio": 5.076731653116476
+        },
+        {
+          "storageCell": 3,
+          "beforeLuma": 0.03214912097822491,
+          "afterLuma": 0.1616358217277924,
+          "ratio": 5.027690238786647
+        }
+      ]
+    }
+  ],
+  "internalFarTuftRgbHasNoEffect": true
+}

@@ -1,0 +1,31 @@
+<!doctype html>
+<html lang="en">
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Leaf atlas encoding · matched native comparison</title>
+<style>
+*{box-sizing:border-box}body{margin:0;background:#141914;color:#e2e8de;font:16px/1.5 system-ui,sans-serif}main{max-width:1536px;margin:auto;padding:28px}h1{font-size:28px;line-height:1.2;margin:0 0 12px}p{max-width:1000px;color:#bfcbb9}a{color:#c6e79f}nav{display:flex;flex-wrap:wrap;gap:8px;margin:22px 0}button,select{font:inherit;color:inherit;background:#273023;border:1px solid #526247;border-radius:5px;padding:7px 12px;cursor:pointer}button[aria-pressed=true]{background:#c8dea9;color:#172013}.frame{position:relative;aspect-ratio:16/9;background:#090c08}.frame img{position:absolute;inset:0;width:100%;height:100%;object-fit:contain}.frame .after{clip-path:inset(0 0 0 50%)}.split{position:absolute;top:0;bottom:0;width:2px;left:50%;background:#edf9d9;pointer-events:none}.labels{display:flex;justify-content:space-between;gap:24px;margin-bottom:8px;font-size:14px}.controls{display:flex;align-items:center;gap:14px;margin:14px 0}.controls input{width:min(500px,50vw);accent-color:#bed994}small{display:block;color:#a9b89e}kbd{border:1px solid #627057;border-radius:3px;padding:1px 5px}
+</style>
+<main>
+<h1>Leaf atlas color encoding</h1>
+<p>Current world <b>5f587c7f</b> compared with the exact four-helper recovery <b>181986ba</b>. Native D3D11, identical camera, lighting, time and assets. The large smooth bank canopy cores are separate geometry and remain unchanged.</p>
+<nav aria-label="Camera views" id="views"></nav>
+<div class="labels"><span>Before · current world</span><span>After · recovered sRGB helpers</span></div>
+<div class="frame"><img id="before" alt="Current world before color encoding correction"><img class="after" id="after" alt="Current world with corrected color encoding"><div class="split" id="split"></div></div>
+<div class="controls"><label for="divider">Comparison split</label><input id="divider" type="range" min="0" max="100" value="50"><button id="toggle" type="button">Show whole after</button></div>
+<small id="caption"></small>
+<p><a id="rawBefore" href="#">Open original before PNG</a> · <a id="rawAfter" href="#">Open original after PNG</a> · <a href="README.md">Evidence and limitations</a> · <a href="audit-trees-current.md">Tree attribution</a></p>
+<p><small>Use the divider or hold <kbd>Space</kbd> to inspect the complete candidate. Source images remain unmodified.</small></p>
+</main>
+<script>
+const views=['A_stairs','B_house','C_lookback','D_log','E_ground','F_canopy','w05-spine-d','sky-opening','f4-crown-up','distance-crown-119m','distance-crown-121m'];
+const caption={F_canopy:'Ordinary atlas target: (252,42). Flat opaque bank cores: (840,205), (990,159), (667,70).',C_lookback:'Ordinary atlas target: (837,208). Flat opaque bank core: (160,133).',A_stairs:'Flat opaque bank corner: (1095,29).', 'w05-spine-d':'Floor moss and geometry guard. This patch changes only atlas brush colors.', 'distance-crown-119m':'The probe name describes its placement; visible trees occur at multiple depths.', 'distance-crown-121m':'The probe name describes its placement; visible trees occur at multiple depths.'};
+const divider=document.querySelector('#divider'), after=document.querySelector('#after'), split=document.querySelector('#split');
+function move(value){divider.value=value;after.style.clipPath=`inset(0 0 0 ${value}%)`;split.style.left=`${value}%`;}
+function select(id){document.querySelector('#before').src=`native-pair/before/${id}.png`;after.src=`native-pair/after/${id}.png`;document.querySelector('#rawBefore').href=`native-pair/before/${id}.png`;document.querySelector('#rawAfter').href=`native-pair/after/${id}.png`;document.querySelector('#caption').textContent=caption[id]||'Matched raw native images, 1280×720.';document.querySelectorAll('nav button').forEach(b=>b.setAttribute('aria-pressed',String(b.textContent===id)));}
+for(const id of views){const b=document.createElement('button');b.textContent=id;b.type='button';b.addEventListener('click',()=>select(id));document.querySelector('#views').append(b);}
+divider.addEventListener('input',()=>move(divider.value));document.querySelector('#toggle').addEventListener('click',()=>move(Number(divider.value)===0?50:0));let saved;
+document.addEventListener('keydown',e=>{if(e.code==='Space'&&!e.repeat&&e.target.tagName!=='INPUT'&&e.target.tagName!=='BUTTON'){e.preventDefault();saved=divider.value;move(0);}});document.addEventListener('keyup',e=>{if(e.code==='Space'&&saved!==undefined){move(saved);saved=undefined;}});
+select('F_canopy');
+</script>
+</html>
