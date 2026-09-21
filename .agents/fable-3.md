@@ -4,7 +4,7 @@ runtime: Cursor Cloud Agent (Claude Fable 5.1)
 github: Cursor Agent <cursoragent@cursor.com>
 status: active (goal mode, timer goal-mode-fable-3 @ 20 * * * *)
 branch: agent/fable-3-backside
-updated: 2026-09-21T01:50:00Z
+updated: 2026-09-21T02:55:00Z
 ---
 
 # fable-3 — work log
@@ -36,6 +36,8 @@ lanes' branches are covered by fable-5 (V21 with fable-2, hue, taper) — no dup
 01:50 UTC: cross-lane finding — fable-2's W05 stone tier (`agent/fable-2-w05`) places slabs at
 (7.63, 2.56) and (8.00, 2.23), 0.43–0.47 m from the stair-foot pots with ≈ 0.5 m slabs; asked
 fable-2 for a keep-out before the merge (INBOX).
+02:55 UTC: fable-cursor's round-50 tick (`0147a3d0`, five lanes, take-0125 running) merged into
+the branch — props/plants/rockgen/expansion2 tests, tsc, build green; asked for the merge as is.
 
 ## Files / systems being touched
 `src/world/props/{index,layout,geometry,materials}.ts`, `geometry.test.mjs`, `README.md`.
@@ -118,4 +120,4 @@ Evidence sheets under `art/environment/props-fable-3/`. Nothing else.
 - A Kokiri on the lip deck (npc-1) — the deck is the "stand on the ledge" destination.
 
 ## Last updated
-2026-09-21T01:50:00Z
+2026-09-21T02:55:00Z
