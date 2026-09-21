@@ -265,3 +265,6 @@ nearCanopy, materials, index otherwise) is edited.
 
 ### 2026-09-22 01:50 UTC — tick: the spine-roof question, two more eliminations
 - Settle 400 frames (2.4 s of pool build work) and a 512 MB canopy pool both leave w19 at 43.2 %: the near parts of the zenith lobes are not drawn from below for a reason I have not found; question stands in the INBOX. fable-cursor: A at 8.80 M, no more canopy on A's side without a matching cut — my lane's cut candidate is white-bark LOD 1 (147 K at the fixed views), ~45 K for a 30 % thin, held until the roof has an answer.
+
+### 2026-09-22 03:20 UTC — review: fable-2-pebble-tiles
+- Six views pixel-identical, A 8.80 → 8.77 M, F −130 K, draws +5 at A. IMPROVED (perf), posted.
