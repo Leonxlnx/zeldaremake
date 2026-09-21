@@ -63,10 +63,12 @@ export async function createStairTimberMaterial(textures: TextureLibrary, config
     normalScale: new Vector2(2.0, 2.0),
     roughnessMap: barkR,
     roughness: 1,
-    color: new Color(0x6e6258),
+    color: new Color(0x5a4e44),
     vertexColors: true,
   });
-  applyShadeFloor(mat, LOG_BARK_FLOOR, new Color(HOUSE_BARK_TINT));
+  // the log arch's floor lifts its bark ×10 to read at 30 m through the haze; at 2–8 m that turned
+  // the stair logs' lit half pale grey — a third of it here, the timber dark like the demo's
+  applyShadeFloor(mat, { ...LOG_BARK_FLOOR, lift: 3 }, new Color(HOUSE_BARK_TINT));
   mat.name = 'stair-timber';
   return mat;
 }
@@ -91,7 +93,7 @@ export function buildLogNosings(def: StairDef, seed: string): LogNosingBuild {
     return [wx, def.base[1] + y, wz];
   };
   const tmpC = new Color();
-  const mossCol = new Color(0.62, 1.05, 0.42);
+  const mossCol = new Color(0.5, 0.9, 0.34);
   const dampCol = new Color(0.78, 0.74, 0.7);
 
   /**
@@ -202,7 +204,7 @@ export function buildLogNosings(def: StairDef, seed: string): LogNosingBuild {
         tmpC.lerp(dampCol, 0.55 * under);
         const mossField = mossN.fbm(t * 4.2 + i * 1.7, ang * 0.8 + 0.5, 2) * 0.5 + 0.5;
         const moss = smoothstep(0.25, 0.85, up) * smoothstep(0.42, 0.62, mossField);
-        tmpC.lerp(mossCol, 0.85 * moss);
+        tmpC.lerp(mossCol, 0.7 * moss);
         return tmpC;
       },
       0.12 * hash2(i, 41, 7),
