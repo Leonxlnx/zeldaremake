@@ -69,6 +69,22 @@ export interface Navi {
   update(t: number, pixelRatio: number): void;
 }
 
+/**
+ * Where Navi hovers off the fixed frames (round 50; the demo frames d_011 / d_024 have her above
+ * and beside the cap, never over the face — like the girls' fairies, npc.ts): `up` over the head
+ * centre, `left` out to Link's left (his left is (cos yaw, 0, −sin yaw) for +Z forward), `ahead`
+ * a little past the ear line. Under capture the per-view table (placement.ts `navi`) stands her
+ * on the reference screen spot instead, so the six frames do not read this.
+ */
+export const NAVI_HOVER = { up: 0.4, left: 0.32, ahead: 0.05 } as const;
+
+/** Navi's hover anchor for a head centre at (x, headY, z) facing `yaw` (see NAVI_HOVER) */
+export function naviHoverAnchor(x: number, headY: number, z: number, yaw: number, out: Vector3): Vector3 {
+  const fx = Math.sin(yaw);
+  const fz = Math.cos(yaw);
+  return out.set(x + fx * NAVI_HOVER.ahead + fz * NAVI_HOVER.left, headY + NAVI_HOVER.up, z + fz * NAVI_HOVER.ahead - fx * NAVI_HOVER.left);
+}
+
 export function createNavi(): Navi {
   const anchor = new Vector3(0, 1.4, 0);
   const velocity = new Vector3();
@@ -215,8 +231,10 @@ export function createNavi(): Navi {
 export interface FairyOptions {
   /** scene-graph name prefix */
   name: string;
-  /** tint of the bloom and the wings (linear RGB; Navi is blue-white, the Kokiri's are green-white) */
+  /** tint of the bloom and the wings (linear RGB; Navi is blue-white, the Kokiri's warm white — round 50) */
   tint: Color;
+  /** tint of the ball itself (linear RGB); default = a quarter of `tint` over white. The Kokiri's is a soft green (round 50) */
+  coreTint?: Color;
   /** point-light colour */
   lightColor: number;
   /** seed for the hover's phases (util/prng hashString) */
@@ -297,7 +315,10 @@ export function createFairy(opts: FairyOptions): Fairy {
   root.add(body);
   const tint = opts.tint;
 
-  const core = new Mesh(new SphereGeometry(0.034 * s, 14, 10), new MeshBasicMaterial({ color: new Color(1, 1, 1).lerp(tint, 0.25).multiplyScalar(2.2), fog: false, toneMapped: false }));
+  // the ball: blown out at its centre either way; a `coreTint` keeps its fringe (and the shading
+  // toward the wings) in that colour — the demo girls' fairies read warm white with a green heart
+  const coreColor = opts.coreTint ? opts.coreTint.clone().multiplyScalar(1.9) : new Color(1, 1, 1).lerp(tint, 0.25).multiplyScalar(2.2);
+  const core = new Mesh(new SphereGeometry(0.034 * s, 14, 10), new MeshBasicMaterial({ color: coreColor, fog: false, toneMapped: false }));
   core.name = `${opts.name}-core`;
   body.add(core);
 

@@ -194,6 +194,7 @@ const CARD_VERTEX_PARS = /* glsl */ `
 attribute vec4 aData;
 uniform vec3 uTints[4];
 uniform vec3 uDryTip;
+uniform vec3 uSoilTint;
 uniform vec4 uTileGrid;
 uniform float uCardMode;
 uniform float uUpMix;
@@ -237,6 +238,10 @@ vec3 rootTone = mix(vec3(0.36, 0.38, 0.40), vec3(0.66, 0.72, 0.64), shadeLift);
 vec3 bladeColor = mix(tint * rootTone, tint * vec3(1.0, 1.0, 0.92), pow(bladeT, 0.8));
 bladeColor = mix(bladeColor, uDryTip, vegDry * smoothstep(0.45, 1.0, bladeT));
 bladeColor = mix(bladeColor, vec3(dot(bladeColor, vec3(0.30, 0.59, 0.11))), 0.3 * bankDark) * (1.0 - 0.5 * bankDark);
+// round 50 (edges.ts): a SOIL mat — a mat whose second float is below 0.5 — is the damp dark earth
+// at a paved rim (the terrain palette's dark soil, the float × 2 its lightness), no grass palette,
+// no dry tips; the atlas tile's dabs mottle it and its ragged rim feathers it into the turf
+if (uCardMode > 0.5 && aData.y < 0.5) bladeColor = uSoilTint * (0.45 + 1.1 * aData.y * 2.0);
 vColor = vec4(bladeColor, 1.0);
 #ifdef USE_INSTANCING_COLOR
   vColor.rgb *= instanceColor.rgb;
@@ -771,6 +776,8 @@ export function createVegMaterial(ctx: WorldContext, kind: VegKind, opts: VegMat
     uniforms.uUpMix = { value: card.upMix };
     uniforms.uAtlasLum = { value: new Vector2(card.lum[0], card.lum[1]) };
     uniforms.uAlphaBoost = { value: card.alphaBoost };
+    // round 50: the rim band's soil mats (edges.ts) take the terrain palette's dark soil
+    uniforms.uSoilTint = { value: new Color(P.soilDark) };
   } else if (kind === 'plant' || kind === 'bush') {
     uniforms.uPlantHeight = { value: opts.plantHeight ?? 1 };
     uniforms.uSwayAmount = { value: opts.sway ?? (kind === 'bush' ? 2.2 : 3.2) };

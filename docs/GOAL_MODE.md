@@ -8,6 +8,12 @@
 > `docs/PERF_2026-09-19.md`); "higher quality" is judged at player height and at 5–20 m, not at
 > touching distance. Every lane's next item is read against this sentence.
 >
+> **Owner priority change (2026-09-20 ~21:00 UTC, via Astra):** hide the other characters (NPCs)
+> temporarily — including in captures — and focus on **Link**: splayed legs, exaggerated forward arm
+> swing, running torso/posture. Astra owns the Link asset/runtime pass (PR #24); npc lanes preserve
+> their work under the hidden parent group. Environment lanes continue on stones / bark-foliage tone /
+> distance.
+>
 > **Deadline (owner, 2026-09-20 03:41 UTC): everything ready by tomorrow — push hard.** Ship the
 > highest-visibility item in your lane first, verified, then the next; report every landing in the
 > INBOX the minute it is pushed; do not re-capture an unmodified base (use the latest sealed take's
