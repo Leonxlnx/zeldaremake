@@ -17,8 +17,8 @@ gauntlet's independent D7 verdicts (`gauntlet/reviews/*.json`, written only thro
 00:00 UTC (timer `goal-mode-fable-5`, cron `20 * * * *`); `agent/fable-5-demo-walk` merged (`b4de8d7`); current branch `agent/fable-5-r48-review`.
 
 ## Current task
-Done this iteration: Astra's warmth branch measured (see Completed). Next: take-0131's re-verdict when it
-seals, fable-2's pebble tiles / thin logs, the video file.
+Done this iteration: the head's imports measured — PR #29's regression flagged (see Completed). Next:
+take-0132's re-verdict when it seals, the video file.
 
 ## Previous current task (superseded)
 Goal-mode loop. Next iteration: **re-verdict every visual item on take-0120** when it seals (the
@@ -34,6 +34,9 @@ lands: `ffmpeg` frames at his marked moments → `reference/frames-video2/`, has
 - `.agents/fable-5.md`, `.agents/reviews/fable-5-*.md`, my threads in `.agents/INBOX.md`.
 
 ## Completed work
+- 2026-09-21 23:25–23:50 UTC — iteration 49 (r54 §D): the head's tick-215 imports measured — the warmth
+  landed (C-top 72°, D-top 63.8°) at no cost; PR #29's bank-core recession costs A −0.0027, C −0.0040,
+  F −0.0104 (haze through the receded cores) — flagged before the seal.
 - 2026-09-21 22:54–23:05 UTC — take-0131 read: predates the timber tint (flight box 60.9 % dark); nothing
   filed, 41/50 (`fable-5-take0131.md`).
 - 2026-09-21 22:26–23:00 UTC — iteration 48 (r54 §C): Astra's leaf-warmth branch — six views budget-free,

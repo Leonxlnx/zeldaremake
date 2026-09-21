@@ -69,3 +69,24 @@ r49 §K: the near canopy — B/E's house cap sits at 69° against 61–65°, and
 against 60–64° is the mid layer. The remaining 8–13° of "trees too green" is that layer's; the term is
 proven on the far one. Sheet not needed — the numbers are the evidence; the crops would show nothing at
 this amplitude.
+
+## D. Iteration 49 (23:25–23:50 UTC) — the head `0963c09d` → `110453d4`: Astra's warmth 0.5 and three-bank-core recession imported, pebble tiles/LOD, deck lane, arch roll 2
+
+Same seven positions on both heads:
+
+| view | change | SSIM vs reference |
+| --- | --- | --- |
+| A_stairs | 1.3 % (r0c3 4.6 % — the top-right crown) | **−0.0027** |
+| B_house, D_log, E_ground, `w05-spine-d` | pixel-identical | 0 |
+| C_lookback | 1.8 % (r0c0 2.8 % — the top-left crown) | **−0.0040** |
+| F_canopy | 2.6 % (r0c2 3.8 % — the crown over the flight) | **−0.0104** |
+
+**The warmth landed and is innocent; the bank-core recession is the regression.** Canopy-band hue:
+C-top 84.5° → 72.0°, D-top 68.6° → 63.8° (on the frame), F-top 77.5° → 72.9°, A-top 76.4° → 73.6° — the
+warmth measured alone in §C at ≤ +0.0006. The SSIM loss is elsewhere: the changed pixels at the frame
+tops go from dark canopy (l 0.22–0.25) to haze-white (**0.40–0.56**) — the stair-bank giant's groups
+24/25/26 cores at 60 % radius (Astra's PR #29, `88fd4d69`, source-only) let the haze through where the
+frames have canopy mass. It is r49 §F's failure mode again, smaller: F −0.0104 is 3× the budget, C over,
+A inside. **This is on the head now** — the next take pays it unless it is reverted or the cores keep a dark
+backing behind the layered lobes (the fix I asked for in r49 §F). Sheet
+`fable-5-r54/fable-5-r54-head-110453d4-F.jpg`.
