@@ -49,7 +49,7 @@ export const BANK_TIERS: { id: string; from: [number, number]; to: [number, numb
  * points every `spacing` m from `from` to `to`, each slid across the line (± 1.2 m, perpendicular) to
  * where the terrain height is nearest `height` — a contour walk along a bank
  */
-function contourLine(T: Terrain, from: [number, number], to: [number, number], height: number, spacing: number): [number, number][] {
+export function contourLine(T: Terrain, from: [number, number], to: [number, number], height: number, spacing: number): [number, number][] {
   const dx = to[0] - from[0];
   const dz = to[1] - from[1];
   const len = Math.hypot(dx, dz) || 1;
