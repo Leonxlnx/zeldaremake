@@ -8,6 +8,8 @@ import { Color, Group, type BufferGeometry, type Material, type Vector3 } from '
 import type { WorldContext } from '../system';
 import { smoothstep } from '../util/noise';
 import { createRng, type Rng } from '../util/prng';
+import { rimBandLitter, terraceLitter } from './edges';
+import { filterExpansionSamples, pruneExpansion } from './expansion';
 import { VegField, composeMatrix, newSample } from './field';
 import { MeshBuilder, TAU, V, blend, foldedLeaf, lanceLeaf, lathe, rgb, sampleCurve, shapedLeaf, skeletonLeaf, tone, tube, type RGB } from './geometry';
 import { LodInstancedSet } from './lodset';
@@ -228,7 +230,7 @@ function rootGeometry(seed: string): BufferGeometry {
   return m.finish();
 }
 
-const LEAF_TINTS = [0xc9a94a, 0xd6b35a, 0xb8783a, 0x8a5a2b, 0x7d5530, 0x7f7d3c, 0x9a8a3e, 0x6f7a3a, 0xa8642e].map((h) => new Color(h));
+export const LEAF_TINTS = [0xc9a94a, 0xd6b35a, 0xb8783a, 0x8a5a2b, 0x7d5530, 0x7f7d3c, 0x9a8a3e, 0x6f7a3a, 0xa8642e].map((h) => new Color(h));
 
 export interface LitterResult {
   leaves: LodInstancedSet;
@@ -241,6 +243,10 @@ export interface LitterResult {
   count: number;
   samples: number[][];
   all: LodInstancedSet[];
+  /** round 50: legacy-seated litter pruned inside the expansion's live ground, per set (expansion.ts) */
+  expansionCulled: Record<string, number>;
+  /** round 50 (edges.ts): leaves seated in the rim band (W06) and on the terraces' risers (W05) */
+  edges: { rimLeaves: number; terraceLeaves: number };
 }
 
 const M = new Float32Array(16);
@@ -605,6 +611,17 @@ export function buildLitter(ctx: WorldContext, field: VegField, material: Materi
   }
 
   const all = [leaves, northLeaves, twigs, northTwigs, roots];
+  // Round 50 (edges.ts): leaves in the angle of the paved rims E / D / B frame (W06) and on the C
+  // embankment's risers (W05) — after every pass above, on their own forks
+  const tints = LEAF_TINTS.map((c) => [c.r, c.g, c.b] as [number, number, number]);
+  const edges = { rimLeaves: rimBandLitter(ctx, field, leaves, tints), terraceLeaves: terraceLitter(ctx, field, leaves, tints) };
+  count += edges.rimLeaves + edges.terraceLeaves;
+  // Round 50 (expansion.ts): the passes above seat against the LEGACY ground; inside the round-49
+  // expansion (the south bank, the knoll, the discs, the flights) the live ground is elsewhere,
+  // so the litter there goes — after every seat and every rule, so nothing re-rolls
+  const expansionCulled = pruneExpansion(all);
+  count -= Object.values(expansionCulled).reduce((a, b) => a + b, 0);
+  const keptSamples = filterExpansionSamples(samples);
   for (const set of all) parent.add(set.build());
-  return { leaves, northLeaves, twigs, northTwigs, roots, count, samples, all };
+  return { leaves, northLeaves, twigs, northTwigs, roots, count, samples: keptSamples, all, expansionCulled, edges };
 }

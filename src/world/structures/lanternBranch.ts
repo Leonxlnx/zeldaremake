@@ -287,8 +287,17 @@ const SLEEVE_NEAR_TILES = 3.7;
  */
 const SLEEVE_RELIEF_FLOOR = 0.35;
 const SLEEVE_RELIEF_NORM = 1.3;
-/** mean luminance of bark_brown_02/color.jpg (ffmpeg signalstats YAVG / 255) */
-const SLEEVE_BARK_MEAN = 85.98 / 255;
+/**
+ * Mean LINEAR luminance of bark_brown_02/color.jpg — the mean of the texels after the sRGB → linear
+ * transfer, Rec. 709 weights (2K map 0.1086, 1K 0.1066; sharp over every texel). The shader
+ * divides a `texture2D(map)` sample by it, and that sample is linear (the colour map is
+ * SRGBColorSpace, decoded by the sampler), so the mean has to be linear too. Round 50
+ * (structures-33, Astra's PR #2 finding): through round 49 this was the ENCODED mean, ffmpeg's
+ * YAVG 85.98 / 255 = 0.337 — a linear texel (0.02–0.4) over 0.337 gave 0.06–1.2, mostly under
+ * the 0.5 clamp, so within SLEEVE_NEAR_M the sleeve went ≈ × 0.5 darker overall and the
+ * fissures' modulation was clamped flat instead of riding about its own mid-tone.
+ */
+const SLEEVE_BARK_MEAN = 0.108;
 function applySleeveNearBark(material: MeshStandardMaterial): void {
   const previousCompile = material.onBeforeCompile;
   material.onBeforeCompile = function (shader, renderer) {
