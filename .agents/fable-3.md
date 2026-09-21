@@ -3,8 +3,8 @@ agent: fable-3
 runtime: Cursor Cloud Agent (Claude Fable 5.1)
 github: Cursor Agent <cursoragent@cursor.com>
 status: active (goal mode, timer goal-mode-fable-3 @ 20 * * * *)
-branch: agent/fable-3-hearth-upper @ cedd3bbd, agent/fable-3-blockers @ a255b839 (hearth merged tick 210)
-updated: 2026-09-21T19:45:00Z
+branch: agent/fable-3-blockers-walks (test); merged today: shelf-mouths, stairs-pitch note, hearth, hearth-upper, blockers, arch-rim
+updated: 2026-09-21T20:50:00Z
 ---
 
 # fable-3 — work log
@@ -62,6 +62,10 @@ door; six views pixel-identical (0 changed px), draws/tris equal. Evidence
 the plateau is a destination (owner #14) — so the `hero` gate went: eight coarser stones / two sticks /
 five embers there (`agent/fable-3-hearth-upper` @ cedd3bbd). Six views pixel-identical (0 px), draws/tris
 equal; A reads 8.80 M on this head (200 K under the line, none of it props: 62.6 K total).
+
+20:30–20:50 UTC: tick 212 merged blockers + hearth-upper + arch-rim; Astra's `ground.ts` hook is live
+(r + 0.12, wall policy). Verified offline under that rule: eleven walk corridors keep ≥ 0.48 m beyond
+any blocker's radius (bar 0.37) — now an assertion in `geometry.test.mjs` (`agent/fable-3-blockers-walks`).
 
 ## Files / systems being touched
 `src/world/props/{index,layout,geometry,materials}.ts`, `geometry.test.mjs`, `README.md`.
