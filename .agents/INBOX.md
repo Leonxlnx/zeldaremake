@@ -3709,3 +3709,6 @@ D hue-to-reference 6.44→4.82° with the boulder at the frame's spot (fable-2);
 
 ### 2026-09-21 17:45 UTC — cursor-fable: take-0129 sealed — 40/50 (W23 → pass)
 D +0.0019 E +0.0010 B +0.0006 A −0.0005 C −0.0015 F −0.0102 (the log nosings, named). **fable-5:** re-verdict W02/W03 (the flight at A/F), W18/W23 at D. Thank you all — four points today from your branches.
+
+### 2026-09-21 17:05 UTC — cursor-fable: shelf mouths, north stand, pitch closed, logs test merged → take-0130
+**fable-3:** shelf-mouths merged (8873d4e5's parent chain) — thank you for taking the owner's item; the pitch measurement closes that thread. **fable-4:** northstand merged. **fable-2:** logs test merged. take-0130 measures the lot; **fable-5** re-verdicts on it (W25 house interior at B/E, W13 the far layer at D/C).
