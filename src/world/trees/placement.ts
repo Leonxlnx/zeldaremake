@@ -9,6 +9,12 @@ import type { Rng } from '../util/prng';
 import { Noise2D, smoothstep } from '../util/noise';
 import { TAU } from './writer';
 import type { Age } from './whitebark';
+import { EXPANSION } from '../layout';
+
+/** the round-49 stepping-stone lines (layout) a white-bark must stay off — see `blocked` */
+const EXPANSION_DISC_LINES: readonly (readonly (readonly [number, number, number])[])[] = [EXPANSION.pathWest, EXPANSION.pathSouth];
+/** clearance from those lines (m): the largest disc radius + 1.4 — under the 2.51 m of the nearest take-0123 tree */
+export const EXPANSION_DISC_CLEARANCE = EXPANSION.discs.radius[1] + 1.4;
 
 /** a world-space line along the sun direction that tree crowns must stay clear of */
 export interface SunCorridor {
@@ -69,6 +75,12 @@ export interface WhiteBarkPlacement {
   z: number;
   yaw: number;
   scale: number;
+  /**
+   * round 50: the heightfield view `y` was read from — unset = the terrain the placement was
+   * sampled on (the trees' legacy view); 'live' for an authored entry seated on the rendered
+   * ground where the round-49 expansion changed it. The base-gap audit reads the same view.
+   */
+  view?: 'live' | 'legacy';
 }
 
 export interface VariantInfo {
@@ -199,6 +211,18 @@ export function placeWhiteBark(
     const np = L.northPath;
     for (let i = 0; i < np.length - 1; i++) {
       if (segmentDistance(x, z, np[i][0], np[i][2], np[i + 1][0], np[i + 1][2]) < L.northPathHalfWidth + 2.5 + treeRadius * 0.3) return true;
+    }
+    // round 50 (trees-32, expansion-2's ask): the stepping-stone lines west and south-west of the
+    // plaza (layout EXPANSION.pathWest / pathSouth — isolated 0.38–0.44 m discs, no paved band), so
+    // no tree stands on the new stones. A NARROW margin, on purpose: an accepted candidate that a
+    // new rule blocks skips its yaw draw and re-rolls every tree after it, in all six frames —
+    // the nearest take-0123 tree, the white-bark at (−16.3, 13.0), is 2.51 m from the south
+    // line's end, so the clearance stays under that (disc radius + 1.4 = 1.84 m: a 0.6 m bole and
+    // its 1.6 m toe reach off the stones). The audit's whiteBarkSampled proves no flip.
+    for (const pl of EXPANSION_DISC_LINES) {
+      for (let i = 0; i < pl.length - 1; i++) {
+        if (segmentDistance(x, z, pl[i][0], pl[i][2], pl[i + 1][0], pl[i + 1][2]) < EXPANSION_DISC_CLEARANCE) return true;
+      }
     }
     return false;
   };

@@ -185,6 +185,60 @@ const FF_CLEARING_FEATHER = 2.0;
 const FF_BANK_KEEP = 0.35;
 const FF_PAD_FEATHER: readonly [number, number] = [0.15, 0.6];
 
+/**
+ * Round 50 (vegetation-27; fable-5's W05 "the C embankment is a smooth lawn mound") — the
+ * terraced faces: on each, the lawn's albedo darkens toward exposed soil in a band TERRACE_RISER
+ * below every tread height (treads[0], + step, … ≤ treads[1]), so the bank reads as turf steps
+ * with soil risers between them. The tread heights wander ± TERRACE_WOBBLE along the contour so
+ * the risers are not contour lines. Only the albedo mask — the geometry is the heightfield's,
+ * the rows of tufts on the treads / moss at the foot / ferns at the toe are vegetation/edges.ts,
+ * which carries the SAME faces (box, treads, step, downhill, facing, minSlope) — its test asserts
+ * the two agree.
+ */
+export interface TerraceFace {
+  id: string;
+  box: readonly [number, number, number, number];
+  treads: readonly [number, number];
+  step: number;
+  downhill: readonly [number, number];
+  facing: number;
+  minSlope: number;
+}
+export const TERRACE_RISER = 0.14;
+export const TERRACE_WOBBLE = 0.025;
+/** the darkening: the share of the band's albedo that goes to soil */
+export const TERRACE_SOIL_SHARE = 0.62;
+export const C_TERRACES: readonly TerraceFace[] = [
+  { id: 'c-mound', box: [6.3, 1.0, 11.0, 5.0], treads: [0.22, 1.18], step: 0.24, downhill: [-0.8, -0.6], facing: 0.1, minSlope: 0.06 },
+  { id: 'c-plateau', box: [11.0, 5.0, 18.0, 11.5], treads: [0.3, 1.74], step: 0.36, downhill: [-0.75, 0.66], facing: 0.1, minSlope: 0.06 },
+];
+
+/** the GLSL of the faces: `terraceRiser(p, h, nn)` → 0..1, the riser band's weight at a point */
+function terraceGlsl(): string {
+  const faces = C_TERRACES.map((t, i) => /* glsl */ `
+  {
+    vec4 bx = vec4(${f(t.box[0])}, ${f(t.box[1])}, ${f(t.box[2])}, ${f(t.box[3])});
+    float inBox = smoothstep(bx.x - 0.3, bx.x + 0.2, p.x) * (1.0 - smoothstep(bx.z - 0.2, bx.z + 0.3, p.x))
+                * smoothstep(bx.y - 0.3, bx.y + 0.2, p.y) * (1.0 - smoothstep(bx.w - 0.2, bx.w + 0.3, p.y));
+    if (inBox > 0.001) {
+      float slopeW = smoothstep(${f(t.minSlope)}, ${f(t.minSlope + 0.05)}, 1.0 - nn.y);
+      float faceW = smoothstep(${f(t.facing)}, ${f(t.facing + 0.1)}, dot(nn.xz, vec2(${f(t.downhill[0])}, ${f(t.downhill[1])})));
+      float hw = h + (tVNoise(p * 1.9 + vec2(${f(17 + i * 7)}, ${f(5 - i * 3)})) - 0.5) * ${f(2 * TERRACE_WOBBLE)};
+      float kf = clamp(floor((hw - ${f(t.treads[0])}) / ${f(t.step)} + 0.5), 0.0, ${f(Math.round((t.treads[1] - t.treads[0]) / t.step))});
+      float tread = ${f(t.treads[0])} + kf * ${f(t.step)};
+      // the band: from the riser's foot up to just under the tread's lip, feathered 2 cm each way
+      float band = smoothstep(tread - ${f(TERRACE_RISER)} - 0.02, tread - ${f(TERRACE_RISER)} + 0.02, hw) * (1.0 - smoothstep(tread - 0.035, tread - 0.005, hw));
+      w = max(w, inBox * slopeW * faceW * band);
+    }
+  }`);
+  return /* glsl */ `
+float terraceRiser(vec2 p, float h, vec3 nn) {
+  float w = 0.0;${faces.join('')}
+  return w;
+}
+`;
+}
+
 /** the terrain audit's record of the patch */
 export const FOREST_FLOOR = { box: FOREST_FLOOR_BOX, res: [FOREST_FLOOR_RES, FOREST_FLOOR_RES_Z], northZ: FF_NORTH_Z, offZ: FF_OFF_Z, offPath: FF_OFF_PATH, litterBase: FF_LITTER_BASE, humusDarken: FF_HUMUS_DARKEN, far: { z: FF_FAR_Z, litterBase: FF_FAR_LITTER_BASE, humusBand: FF_FAR_HUMUS_BAND, pathClear: FF_FAR_PATH_CLEAR, bankKeep: FF_BANK_KEEP } };
 
@@ -447,7 +501,7 @@ vec3 nrm2(sampler2D t, vec2 uv, float inv, float k) {
   return normalize(mix(a, b, k));
 }
 float lum(vec3 c) { return dot(c, vec3(0.299, 0.587, 0.114)); }
-
+${terraceGlsl()}
 // round 43: camera-distance weights of the near-field treatment (1 at the feet, 0 beyond)
 float groundNearW() { return 1.0 - smoothstep(${f(NEAR_FADE[0])}, ${f(NEAR_FADE[1])}, length(vViewPosition)); }
 float groundDetailW() { return 1.0 - smoothstep(${f(DETAIL_FADE[0])}, ${f(DETAIL_FADE[1])}, length(vViewPosition)); }
@@ -812,6 +866,20 @@ const MAP_FRAG = /* glsl */ `
     r = mix(r, vec3(lum(r)) * vec3(0.92, 0.9, 0.86), 0.45) * (0.8 + 0.4 * k);
     c += r * w1.y;
   }
+  // round 50 (vegetation-27, W05): the terraced faces' risers — the lawn hands its albedo to
+  // exposed soil in the band under each tread (C_TERRACES), so the C bank reads as turf steps
+  {
+    float lawn = clamp(w0.x + w0.z * 0.6 + w0.w * 0.4, 0.0, 1.0) * (1.0 - w1.x) * (1.0 - w1.y);
+    if (lawn > 0.01) {
+      float rw = terraceRiser(uvw, vWPos.y, normalize(vWNrm)) * lawn;
+      if (rw > 0.002) {
+        vec3 rs = col2(tSoilC, uvw, uTiles0.y, mixK);
+        // the soil layer's tone, damp-dark (the risers sit in the treads' shade and hold the wet)
+        rs = mix(rs, uSoilTint * (0.6 + 0.9 * lum(rs)), 0.35) * mix(0.45, 0.72, tVNoise(uvw * 6.3 + vec2(-3.0, 11.0)));
+        c = mix(c, rs, rw * ${f(TERRACE_SOIL_SHARE)});
+      }
+    }
+  }
   // round 43: the near-field detail — the 0.7 m litter tile's luminance where the detail normal
   // dips (in the canopy shade the albedo term is what the eye gets), bank ridges / pebbles, then
   // the procedural leaves and twigs on top
@@ -1021,7 +1089,7 @@ export async function createTerrainMaterial(textures: TextureLibrary, config: Wo
       .replace('#include <normal_fragment_maps>', NORMAL_FRAG)
       .replace('#include <roughnessmap_fragment>', ROUGH_FRAG);
   };
-  material.customProgramCacheKey = () => 'terrain-layered-v9-tunnel-floor';
+  material.customProgramCacheKey = () => 'terrain-layered-v10-terrace-risers';
 
   return { material, layers: [...TERRAIN_LAYERS], textured, detailNormal: true, sets: names };
 }
