@@ -148,6 +148,27 @@ export interface GiantAsset {
    * stairs and bank that shots A / E / F measure.
    */
   authoredCards: BufferGeometry;
+  /**
+   * Round 50 (trees-32): the DETACHED boughs (GiantOptions.detachedBoughs) — wood, laminae and
+   * cards each in a geometry of their own, local space, same attributes and materials as
+   * `geometry` / `cards`; null for a tree without any. Built last from their own stream after the
+   * near canopy, registered nowhere else (no near-canopy record, no limb / bare-height / lobe
+   * audit), so `geometry`, `authoredLeaves`, `cards` and every audit number are byte-for-byte the
+   * tree without them; the caller draws them in meshes it shows and hides on its own rule (the
+   * spreading giant's low bough over the south-west bank: in no fixed frame, shown from the pans).
+   */
+  detached: {
+    wood: BufferGeometry;
+    leaves: BufferGeometry;
+    cards: BufferGeometry;
+    woodTriangles: number;
+    leafCount: number;
+    leafTriangles: number;
+    cardCount: number;
+    /** the lobes as authored (local centres) with the laminae each got */
+    lobes: { center: Vector3; hR: number; vR: number; leaves: number }[];
+    dress: GiantAsset['boughDress'];
+  } | null;
   /** cards in `cards` */
   cardCount: number;
   /** cards in `authoredCards` */
@@ -517,6 +538,15 @@ export interface GiantOptions {
   /** authored canopy boughs (see CanopyBough), built after everything else */
   canopyBoughs?: CanopyBough[];
   /**
+   * Round 50 (trees-32): canopy boughs built into GiantAsset.detached instead of the tree — same
+   * CanopyBough treatment (a plain or dressed sweep, lobes with stems, laminae and cards), their
+   * own stream (`detached-bough/<index>`), after the near canopy, so nothing of the tree proper
+   * and none of its audit numbers move. Their lobes get no near-canopy version and the wood is
+   * never `ghostWood`. For content that must appear and vanish on the caller's rule (a low bough
+   * over ground no fixed frame sees, gated like the expansion locality) — see the trees index.
+   */
+  detachedBoughs?: CanopyBough[];
+  /**
    * distance (m) from the trunk base to the nearest hero camera that faces it; within NEAR_BOLE_M
    * the bole and roots are built with the near-bole bark (bole.ts) unless `GiantProfile.relief`
    * says otherwise. Undefined = far.
@@ -544,7 +574,12 @@ export function createGiantTree(def: GiantTreeDef, rng: Rng, o: GiantOptions): G
   const r = rng.fork(`giant/${def.id}`);
   const bt = (a: number, b: number) => between(r, a, b);
   const gnarl = new Noise2D(`giant-bark/${def.id}`);
-  const wood = new GeometryWriter('high');
+  // `wood` is rebound to the detached boughs' writer while those are built, last of all (every
+  // wood helper takes the writer as an argument at call time); `treeWood` is the tree's own
+  let wood = new GeometryWriter('high');
+  const treeWood = wood;
+  /** set while the detached boughs (GiantOptions.detachedBoughs) are built: nothing of them is recorded on the tree */
+  let detachedMode = false;
   // `leaves` is rebound to `authoredLeaves` while the authored canopy-bough lobes are foliated
   // (the leaf helpers read it at call time), so those laminae land in their own geometry
   let leaves = new GeometryWriter('high');
@@ -1332,7 +1367,7 @@ export function createGiantTree(def: GiantTreeDef, rng: Rng, o: GiantOptions): G
     // 9–12 m for these, cut under A by swapRadii — a player sees the same lit, layered near
     // version every other lobe gets, on the wood the core hid.
     const flatEligible = lobeFlat && !compact && !ghost;
-    if (near && !ghost && (flatEligible || (!lobeFlat && !compact && lobeTone === 1 && leaves.leafShade === 1 && eyeOverride !== 1)) && center.y <= NEAR_CANOPY_MAX_Y) {
+    if (near && !ghost && !detachedMode && (flatEligible || (!lobeFlat && !compact && lobeTone === 1 && leaves.leafShade === 1 && eyeOverride !== 1)) && center.y <= NEAR_CANOPY_MAX_Y) {
       const fixedSwap = flatEligible && NEAR_CANOPY_FLAT_SWAP_M !== null;
       const radii2 = fixedSwap ? NEAR_CANOPY_FLAT_SWAP_M : swapRadii(center, hR + 1.4);
       if (radii2) {
@@ -1771,11 +1806,25 @@ export function createGiantTree(def: GiantTreeDef, rng: Rng, o: GiantOptions): G
   const lobeLeafCounts: number[] = [];
   const boughDressAudit: GiantAsset['boughDress'] = [];
   let boughIndex = 0;
-  for (const spec of o.canopyBoughs ?? []) {
+  /**
+   * One canopy bough from stream `rcb` into the current writers (`wood`, `leaves` / `cards` as
+   * rebound per lobe). `into` = the detached target (round 50): every lamina and card goes to its
+   * writers whatever the lobe's castShadow / flat, the dress noise is keyed by `noiseKey`, and
+   * nothing is recorded on the tree (limbs, bare height, lobe leaf counts, dress audit — the
+   * caller gets those back in the return value instead).
+   */
+  const buildCanopyBough = (
+    spec: CanopyBough,
+    rcb: Rng,
+    noiseKey: string,
+    into?: { leaves: GeometryWriter; cards: GeometryWriter },
+  ): { lobes: { center: Vector3; hR: number; vR: number; leaves: number }[]; dress: GiantAsset['boughDress'] } => {
+    const builtLobes: { center: Vector3; hR: number; vR: number; leaves: number }[] = [];
+    const dressAudit: GiantAsset['boughDress'] = [];
     const tTrunk = Math.min(0.98, Math.max(0.05, (spec.fromHeight + skirt) / (fork + skirt)));
     const origin = sample(trunk, tTrunk);
     origin.y = spec.fromHeight;
-    bareHeight = Math.min(bareHeight, origin.y);
+    if (!into) bareHeight = Math.min(bareHeight, origin.y);
     const to = spec.to;
     const run = Math.hypot(to.x - origin.x, to.z - origin.z);
     const horiz = new Vector3(to.x - origin.x, 0, to.z - origin.z).normalize();
@@ -1795,7 +1844,7 @@ export function createGiantTree(def: GiantTreeDef, rng: Rng, o: GiantOptions): G
       path.push(p);
       radii.push(r0 + (r1 - r0) * Math.pow(s, 0.85));
     }
-    ghost = spec.ghostWood === true;
+    ghost = !into && spec.ghostWood === true;
     // the plain sweep's draws are taken up front either way, so a dressed bough leaves the stream
     // exactly where the plain one did
     const boughDraws = consumeTubeDraws(rcb, 12);
@@ -1810,7 +1859,7 @@ export function createGiantTree(def: GiantTreeDef, rng: Rng, o: GiantOptions): G
         const toward = UP.clone().multiplyScalar(k.up).addScaledVector(side, k.side).normalize();
         return { distance, azimuth: Math.atan2(toward.dot(v), toward.dot(u)), reach: k.reach, halfWidth: k.halfWidth, stubLength: k.stubLength, stubRadius: k.stubRadius, stubPitch: k.stubPitch };
       });
-      const dressNoise = new Noise2D(`bough-relief/${def.id}/${boughIndex}`);
+      const dressNoise = new Noise2D(`bough-relief/${def.id}/${noiseKey}`);
       const mossStrength = dress.moss ?? 0.8;
       const built = reliefBole(wood, path, radii, {
         color: barkColor,
@@ -1839,15 +1888,14 @@ export function createGiantTree(def: GiantTreeDef, rng: Rng, o: GiantOptions): G
         },
         lichen: { band: [-100, 1e4], strength: dress.lichen ?? 0.7 },
       });
-      boughDressAudit.push({ giant: def.id, relief: built.amplitude, rings: built.rings, sides: built.sides, knees: knees.length, triangles: built.triangles });
+      dressAudit.push({ giant: def.id, relief: built.amplitude, rings: built.rings, sides: built.sides, knees: knees.length, triangles: built.triangles });
       const krng = rcb.fork('bough-knees');
       for (const knee of knees) kneeStub(wood, knee, axisAt(knee.distance).radius, axisAt, barkColor, krng, dressNoise, mossStrength * 0.8);
     } else {
       tube(wood, path, radii, 12, rcb, { color: barkColor, roughness: 0.06, bump: boughBump, creviceShade: 1.8, barkTile: 1.2, structural: true, stiffness: stiff, draws: boughDraws });
     }
-    if (!ghost) limbs++;
+    if (!ghost && !into) limbs++;
     ghost = false;
-    boughIndex++;
     for (const lobeSpec of spec.lobes) {
       const at = sample(path, lobeSpec.t);
       const ax = tangent(path, lobeSpec.t);
@@ -1863,12 +1911,12 @@ export function createGiantTree(def: GiantTreeDef, rng: Rng, o: GiantOptions): G
       // a non-casting lobe's laminae go to their own writer (the leaf helpers read `leaves` at
       // call time); the leaf ordinal is one sequence across both writers, so every lamina's
       // detail pick is what it was when all of them shared one writer
-      leaves = lobeSpec.castShadow === false ? authoredLeaves : treeLeaves;
-      leaves.leafOrdinal = Math.max(treeLeaves.leafOrdinal, authoredLeaves.leafOrdinal);
+      leaves = into ? into.leaves : lobeSpec.castShadow === false ? authoredLeaves : treeLeaves;
+      if (!into) leaves.leafOrdinal = Math.max(treeLeaves.leafOrdinal, authoredLeaves.leafOrdinal);
       // a flat lobe's cards go to their own (non-casting) writer, and every leaf and card of it
       // is written flat (writer.ts leafFlat)
       lobeFlat = lobeSpec.flat === true;
-      cards = lobeFlat ? authoredCards : treeCards;
+      cards = into ? into.cards : lobeFlat ? authoredCards : treeCards;
       leaves.leafFlat = cards.leafFlat = lobeFlat;
       eyeOverride = lobeSpec.eye ?? null;
       lobeTone = lobeSpec.tone ?? 1;
@@ -1882,7 +1930,8 @@ export function createGiantTree(def: GiantTreeDef, rng: Rng, o: GiantOptions): G
       const lobePath = hanging || lobeSpec.compact ? stem.slice(stem.length - 3) : stem;
       const leavesBefore = leaves.leafCount;
       const lobeRec = foliateLobe(lobePath, lobeSpec.center, lobeSpec.hR, lobeSpec.vR, stemRadius, 3, 4, 4, 0.55 * d, d, lobeSpec.compact === true);
-      lobeLeafCounts.push(leaves.leafCount - leavesBefore);
+      if (into) builtLobes.push({ center: lobeSpec.center.clone(), hR: lobeSpec.hR, vR: lobeSpec.vR, leaves: leaves.leafCount - leavesBefore });
+      else lobeLeafCounts.push(leaves.leafCount - leavesBefore);
       if (lobeFlat && lobeSpec.core) {
         // the core and its rim cards are the lobe's far foliage too: tagged with the same group
         // so they fold with the laminae while the near version is drawn (round 44)
@@ -1904,6 +1953,12 @@ export function createGiantTree(def: GiantTreeDef, rng: Rng, o: GiantOptions): G
       leaves = treeLeaves;
       cards = treeCards;
     }
+    return { lobes: builtLobes, dress: dressAudit };
+  };
+  for (const spec of o.canopyBoughs ?? []) {
+    const built = buildCanopyBough(spec, rcb, `${boughIndex}`);
+    boughDressAudit.push(...built.dress);
+    boughIndex++;
   }
 
   // ---------- near canopy (nearCanopy.ts) ----------
@@ -1937,8 +1992,42 @@ export function createGiantTree(def: GiantTreeDef, rng: Rng, o: GiantOptions): G
     nearLimbs.forEach((limb, idx) => nearCanopy.push(kit.limbPart(r, limb, idx)));
   }
 
+  // ---------- detached boughs (round 50, trees-32) ----------
+  // Last of all, into writers of their own from their own stream: the tree above, its near
+  // canopy and every audit number are what they were without them (see GiantAsset.detached).
+  let detached: GiantAsset['detached'] = null;
+  if (o.detachedBoughs?.length) {
+    const dWood = new GeometryWriter('high');
+    const dLeaves = new GeometryWriter('high');
+    const dCards = new GeometryWriter('high');
+    dLeaves.leafOrdinal = Math.max(treeLeaves.leafOrdinal, authoredLeaves.leafOrdinal);
+    const rdb = r.fork('detached-bough');
+    wood = dWood;
+    detachedMode = true;
+    const dLobes: NonNullable<GiantAsset['detached']>['lobes'] = [];
+    const dDress: GiantAsset['boughDress'] = [];
+    o.detachedBoughs.forEach((spec, i) => {
+      const built = buildCanopyBough(spec, rdb.fork(i), `detached-${i}`, { leaves: dLeaves, cards: dCards });
+      dLobes.push(...built.lobes);
+      dDress.push(...built.dress);
+    });
+    wood = treeWood;
+    detachedMode = false;
+    detached = {
+      wood: dWood.finish(`giant-detached-wood-${def.id}`),
+      leaves: dLeaves.finish(`giant-detached-leaves-${def.id}`),
+      cards: dCards.finish(`giant-detached-cards-${def.id}`),
+      woodTriangles: dWood.triangles,
+      leafCount: dLeaves.leafCount,
+      leafTriangles: dLeaves.triangles,
+      cardCount: dCards.triangles / 2,
+      lobes: dLobes,
+      dress: dDress,
+    };
+  }
+
   return {
-    geometry: mergeParts(`giant-${def.id}`, [wood.finish('wood'), treeLeaves.finish('leaves')]),
+    geometry: mergeParts(`giant-${def.id}`, [treeWood.finish('wood'), treeLeaves.finish('leaves')]),
     authoredLeaves: authoredLeaves.finish(`giant-authored-leaves-${def.id}`),
     cards: treeCards.finish(`giant-cards-${def.id}`),
     authoredCards: authoredCards.finish(`giant-authored-cards-${def.id}`),
@@ -1947,7 +2036,7 @@ export function createGiantTree(def: GiantTreeDef, rng: Rng, o: GiantOptions): G
     leafCount: treeLeaves.leafCount + authoredLeaves.leafCount,
     authoredLeafCount: authoredLeaves.leafCount,
     lobeLeafCounts,
-    woodTriangles: wood.triangles,
+    woodTriangles: treeWood.triangles,
     leafTriangles: treeLeaves.triangles + authoredLeaves.triangles,
     limbs,
     wildLimbs,
@@ -1964,8 +2053,8 @@ export function createGiantTree(def: GiantTreeDef, rng: Rng, o: GiantOptions): G
     nearBase,
     nearBaseBuild,
     nearBaseAudit,
-    boleRings: wood.trunkRows
-      .map((row) => row.map((i) => new Vector3(wood.positions[i * 3], wood.positions[i * 3 + 1], wood.positions[i * 3 + 2])))
+    boleRings: treeWood.trunkRows
+      .map((row) => row.map((i) => new Vector3(treeWood.positions[i * 3], treeWood.positions[i * 3 + 1], treeWood.positions[i * 3 + 2])))
       .filter((ring) => ring.length && ring[0].y < 8),
     boughDress: boughDressAudit,
     coreRimCards,
@@ -1973,5 +2062,6 @@ export function createGiantTree(def: GiantTreeDef, rng: Rng, o: GiantOptions): G
     nearCanopyGroups: nearGroups,
     nearCanopyHeroKept: nearTally.kept,
     nearCanopyHeroLimited: nearTally.limited,
+    detached,
   };
 }
