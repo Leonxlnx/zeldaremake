@@ -11,6 +11,7 @@
  * slopes — and the worst 8 m tiles, so a fill pass can be aimed and measured. Read by the audit
  * (index.ts `coverage`), the contracts (coverage.test.mjs) and the survey tooling.
  */
+import { expansionCull } from '../terrain/heightfield';
 import type { GrassTile } from './grass';
 import { VegField, newSample } from './field';
 import type { LodInstancedSet } from './lodset';
@@ -207,6 +208,9 @@ export function auditCoverage(field: VegField, tiles: readonly GrassTile[], clum
       if (field.insideGiantTrunk(x, z)) continue;
       const clr = field.clearing(x, z);
       if (clr.insideBoulder) continue;
+      // round 50: the round-49 expansion's ground (the south bank, the knoll, the discs, the
+      // flights) is the expansion's own live-view lawn (expansion.ts), not the legacy streams'
+      if (expansionCull(x, z)) continue;
       // the paved rim's first band is real blades only by design (carpet.ts CLUMP_RIM_CLEAR)
       cells++;
       const zone = coverageZone(field, x, z, s.slope, s.h);
