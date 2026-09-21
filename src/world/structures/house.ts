@@ -2401,30 +2401,92 @@ export function buildHouse(def: HouseDef, ctx: WorldContext, mats: StructureMate
     // the room material, see `interior-props`)
     // ember ring: a low stone kerb round the glow (round 48: field stones — the ring lumped by a
     // noise round it, each stone a little different grey)
-    const kerb = new TorusGeometry(0.2 * k, 0.05 * k, hero ? 8 : 6, hero ? 22 : 12);
-    kerb.rotateX(Math.PI / 2);
+    // Round 52 (fable-3, owner #11 "the detail inside the nook"): in the hero house the kerb is no
+    // longer one torus — a smooth doughnut at arm's length however it is lumped — but a ring of
+    // SEPARATE field stones, each a lumpy flattened ellipsoid of its own size and grey, sunk a third
+    // into the floor with gaps between, soot-darkened on the faces toward the fire; inside them an
+    // ash bed and three charred sticks. The other houses keep the torus.
+    let kerb: BufferGeometry;
+    const hearthFloorY = hearthPos.y - 0.2 * k;
     if (hero) {
-      const kp = kerb.attributes.position;
-      const kv = new Vector3();
-      for (let i = 0; i < kp.count; i++) {
-        kv.set(kp.getX(i), kp.getY(i), kp.getZ(i));
-        const a = Math.atan2(kv.z, kv.x);
-        const lump = 1 + 0.22 * grainNoise.noise(Math.cos(a) * 2.5 + 40, Math.sin(a) * 2.5) + 0.1 * grainNoise.noise(kv.x * 30, kv.z * 30 + kv.y * 40);
-        const ring = Math.hypot(kv.x, kv.z);
-        const rn = 0.2 * k + (ring - 0.2 * k) * lump;
-        kp.setXYZ(i, (kv.x / ring) * rn, kv.y * lump, (kv.z / ring) * rn);
+      const hRng = rng.fork('hearth52');
+      const stones: BufferGeometry[] = [];
+      const nStones = 10;
+      const _rad = new Vector3();
+      const _nrm = new Vector3();
+      for (let i = 0; i < nStones; i++) {
+        const a = (i / nStones) * TAU + hRng.range(-0.11, 0.11);
+        const rx = k * hRng.range(0.05, 0.086);
+        const ry = rx * hRng.range(0.5, 0.68);
+        const rz = rx * hRng.range(0.72, 1.0);
+        const stone = new SphereGeometry(1, 12, 8);
+        const sp = stone.attributes.position;
+        const sv = new Vector3();
+        for (let j = 0; j < sp.count; j++) {
+          sv.set(sp.getX(j), sp.getY(j), sp.getZ(j));
+          const lump = 1 + 0.16 * grainNoise.noise(sv.x * 1.7 + i * 5.3, sv.y * 1.7 + sv.z * 1.3 + i * 2.1);
+          sp.setXYZ(j, sv.x * rx * lump, sv.y * ry * lump, sv.z * rz * lump);
+        }
+        stone.rotateX(hRng.range(-0.14, 0.14));
+        stone.rotateY(a + hRng.range(-0.5, 0.5));
+        const ring = (0.2 + hRng.range(-0.012, 0.012)) * k;
+        const cx = hearthPos.x + Math.cos(a) * ring;
+        const cz = hearthPos.z + Math.sin(a) * ring;
+        stone.translate(cx, hearthFloorY + ry * 0.64, cz);
+        stone.computeVertexNormals();
+        const grey = 0.27 + 0.17 * hRng();
+        const warm = hRng.range(-0.02, 0.035);
+        const pos = stone.attributes.position;
+        const nrm = stone.attributes.normal;
+        setColorAttribute(stone, (j) => {
+          _rad.set(pos.getX(j) - hearthPos.x, 0, pos.getZ(j) - hearthPos.z).normalize();
+          _nrm.set(nrm.getX(j), nrm.getY(j), nrm.getZ(j));
+          const soot = 1 - 0.42 * Math.max(0, -_nrm.dot(_rad));
+          const fleck = 0.92 + 0.16 * (0.5 + 0.5 * grainNoise.noise(pos.getX(j) * 40, pos.getZ(j) * 40 + pos.getY(j) * 30));
+          const g = grey * soot * fleck;
+          return [g * (1 + warm), g, g * (1 - warm * 0.5)];
+        });
+        stones.push(stone);
       }
-      kerb.computeVertexNormals();
-    }
-    kerb.translate(hearthPos.x, hearthPos.y - 0.14 * k, hearthPos.z);
-    setColorAttribute(kerb, [0.32, 0.31, 0.3]);
-    if (hero) {
-      const kc = kerb.attributes.color;
-      for (let i = 0; i < kc.count; i++) {
-        const a = Math.atan2(kerb.attributes.position.getZ(i) - hearthPos.z, kerb.attributes.position.getX(i) - hearthPos.x);
-        const stone = 0.8 + 0.4 * (0.5 + 0.5 * grainNoise.noise(Math.cos(a) * 3 + 60, Math.sin(a) * 3));
-        kc.setXYZ(i, 0.34 * stone, 0.32 * stone, 0.3 * stone * (0.95 + 0.1 * grainNoise.noise(a * 4, 9)));
+      // the ash bed: paler at the middle where the embers lie, darkening to the stones
+      const ashR = 0.165 * k;
+      const ash = new CircleGeometry(ashR, 14);
+      ash.rotateX(-Math.PI / 2);
+      ash.translate(hearthPos.x, hearthFloorY + 0.012 * k, hearthPos.z);
+      const ap = ash.attributes.position;
+      setColorAttribute(ash, (j) => {
+        const r = Math.hypot(ap.getX(j) - hearthPos.x, ap.getZ(j) - hearthPos.z) / ashR;
+        const c = 0.1 + 0.09 * (1 - r) * (0.85 + 0.3 * grainNoise.noise(ap.getX(j) * 25 + 7, ap.getZ(j) * 25));
+        return [c * 1.05, c, c * 0.94];
+      });
+      // charred sticks lying across the ash, black with a little red left at the ends
+      const sticks: BufferGeometry[] = [];
+      for (let i = 0; i < 3; i++) {
+        const len = k * hRng.range(0.16, 0.24);
+        const r = k * hRng.range(0.011, 0.016);
+        const stick = new CylinderGeometry(r * 0.8, r, len, 6, 1);
+        stick.rotateZ(Math.PI / 2);
+        stick.rotateX(hRng.range(-0.12, 0.12));
+        stick.rotateY(hRng.range(0, Math.PI));
+        const off = k * hRng.range(0, 0.05);
+        const oa = hRng.range(0, TAU);
+        stick.translate(hearthPos.x + Math.cos(oa) * off, hearthFloorY + 0.012 * k + r + i * 0.009 * k, hearthPos.z + Math.sin(oa) * off);
+        const cp = stick.attributes.position;
+        setColorAttribute(stick, (j) => {
+          const d = Math.min(1, Math.hypot(cp.getX(j) - hearthPos.x, cp.getZ(j) - hearthPos.z) / (0.12 * k));
+          // charcoal: near-black, a breath of red toward the ends, grey ash dust on the upper side
+          const ch = 0.022 + 0.02 * d;
+          const dust = 0.5 + 0.5 * Math.max(0, cp.getY(j) - (hearthFloorY + 0.012 * k + r)) / (r + 1e-6);
+          return [ch * 1.4 + 0.03 * dust, ch * 0.9 + 0.03 * dust, ch * 0.8 + 0.03 * dust];
+        });
+        sticks.push(stick);
       }
+      kerb = merge([...stones, ash, ...sticks]);
+    } else {
+      kerb = new TorusGeometry(0.2 * k, 0.05 * k, 6, 12);
+      kerb.rotateX(Math.PI / 2);
+      kerb.translate(hearthPos.x, hearthPos.y - 0.14 * k, hearthPos.z);
+      setColorAttribute(kerb, [0.32, 0.31, 0.3]);
     }
     const furnitureGeo = merge([table, stool, kerb]);
     {
@@ -2438,9 +2500,26 @@ export function buildHouse(def: HouseDef, ctx: WorldContext, mats: StructureMate
     group.add(furnitureMesh);
     // the embers themselves (dim orange) and a small soft pink-amber halo facing the door — kept
     // small so the doorway as a whole stays neutral (reference box saturation ≈ 0.1)
-    const embers = new SphereGeometry(0.045 * k, 10, 6);
-    embers.scale(1, 0.35, 1);
-    embers.translate(hearthPos.x, hearthPos.y - 0.12 * k, hearthPos.z);
+    // (round 52: in the hero house, seven small lumps scattered among the char — the same emissive,
+    // about the same lit area as the one squashed sphere they replace, so the doorway keeps its level)
+    let embers: BufferGeometry;
+    if (hero) {
+      const eRng = rng.fork('embers52');
+      const lumps: BufferGeometry[] = [];
+      for (let i = 0; i < 7; i++) {
+        const lump = new SphereGeometry(k * eRng.range(0.014, 0.026), 6, 4);
+        lump.scale(1, 0.55, 1);
+        const a = eRng.range(0, TAU);
+        const d = k * eRng.range(0, 0.075);
+        lump.translate(hearthPos.x + Math.cos(a) * d, hearthFloorY + 0.022 * k, hearthPos.z + Math.sin(a) * d);
+        lumps.push(lump);
+      }
+      embers = merge(lumps);
+    } else {
+      embers = new SphereGeometry(0.045 * k, 10, 6);
+      embers.scale(1, 0.35, 1);
+      embers.translate(hearthPos.x, hearthPos.y - 0.12 * k, hearthPos.z);
+    }
     const emberMesh = new Mesh(embers, mats.hearth);
     emberMesh.name = 'door-embers';
     group.add(emberMesh);
