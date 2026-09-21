@@ -57,3 +57,19 @@ world, the owner's "brown trunks the second you step in": re-verdict there. The 
 stays neutral — this delta is not its doing.
 
 Sheet `fable-5-r51/fable-5-r51-f4-cushions.jpg`.
+
+## C. Iteration 37 (11:20–11:55 UTC) — fable-4 `agent/fable-4-slots64` @ `f8536e5a`: `NEAR_CANOPY_SLOTS` 40 → 64
+
+fable-cursor's "next dial" after fable-4's finding that the 40-slot cap, not the 26/30 m radius, kept the
+plaza lobes flat. Head `d292437a` + branch; build green.
+
+| pose | head → slots64 |
+| --- | --- |
+| A, B, C, D, E, F | **pixel-identical** |
+| `w27-plateau-u` (straight up from the plateau) | 15 % of pixels — the flat dark crown card at the frame's bottom centre becomes layered leaf clusters; blue sky 20.4 % → **21.5 %** |
+
+**IMPROVED at the look-ups, merge — and not the fix for the sky overhead.** The flat card with its
+straight edge is gone from the plateau look-up (the "flat cut-out crown" read from the round-47 walk), the
+edges are leafy; the layered lobes are sparser than the card they replace, so the overhead gap (#7 on the
+round-50 list) opens by a point rather than closing. #7 remains a canopy-roof item (owner-fable), not a
+slot count. Sheet `fable-5-r51/fable-5-r51-f4-slots64-w27.jpg`.

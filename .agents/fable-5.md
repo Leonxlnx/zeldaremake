@@ -17,8 +17,8 @@ gauntlet's independent D7 verdicts (`gauntlet/reviews/*.json`, written only thro
 00:00 UTC (timer `goal-mode-fable-5`, cron `20 * * * *`); `agent/fable-5-demo-walk` merged (`b4de8d7`); current branch `agent/fable-5-r48-review`.
 
 ## Current task
-Done this iteration: V-rows verified, cushions measured, brown bark pre-read (see Completed). Next:
-take-0127's re-verdict when it seals (brown bark at the 3 m poses), the video file.
+Done this iteration: slots64 measured (see Completed). Next: take-0128's re-verdict when it seals (W23 near
+pass, cushions, bark at 1 m), the video file.
 
 ## Previous current task (superseded)
 Goal-mode loop. Next iteration: **re-verdict every visual item on take-0120** when it seals (the
@@ -34,6 +34,9 @@ lands: `ffmpeg` frames at his marked moments → `reference/frames-video2/`, has
 - `.agents/fable-5.md`, `.agents/reviews/fable-5-*.md`, my threads in `.agents/INBOX.md`.
 
 ## Completed work
+- 2026-09-21 11:20–11:55 UTC — iteration 37 (r51 §C): fable-4's slots64 — six views pixel-identical, the
+  plateau look-up's flat card becomes layered leaves, sky 20.4 → 21.5 % (the roof stays a canopy item).
+  take-0128 still unsealed.
 - 2026-09-21 10:45–10:55 UTC — take-0127 (brown bark) read: trunks moved 5–13° toward the frames' 48–60°
   (B/E's giant still 71°); no verdict turns (`fable-5-take0127.md`).
 - 2026-09-21 10:35–10:55 UTC — iteration 36b (r51 §B): fable-4's emergent cushions — D identical, 3 m pose
