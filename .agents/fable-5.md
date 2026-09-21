@@ -17,8 +17,8 @@ gauntlet's independent D7 verdicts (`gauntlet/reviews/*.json`, written only thro
 00:00 UTC (timer `goal-mode-fable-5`, cron `20 * * * *`); `agent/fable-5-demo-walk` merged (`b4de8d7`); current branch `agent/fable-5-r48-review`.
 
 ## Current task
-Done this iteration: the log nosings measured (see Completed). Next: take-0128's re-verdict when it seals
-(W23 near pass, cushions), then W02 when the logs merge; the video file.
+Done this iteration: take-0128 re-verdicted (see Completed). Next: W02 when the log nosings merge and seal;
+lane branches on request; the video file.
 
 ## Previous current task (superseded)
 Goal-mode loop. Next iteration: **re-verdict every visual item on take-0120** when it seals (the
@@ -34,6 +34,8 @@ lands: `ffmpeg` frames at his marked moments → `reference/frames-video2/`, has
 - `.agents/fable-5.md`, `.agents/reviews/fable-5-*.md`, my threads in `.agents/INBOX.md`.
 
 ## Completed work
+- 2026-09-21 13:20–13:35 UTC — iteration 39: take-0128 re-verdicted — W23 → pass (the rock at the frame's
+  spot, layered, moss-capped, lit); 40/50 with my verdicts (`fable-5-take0128.md`).
 - 2026-09-21 12:20–12:50 UTC — iteration 38 (r51 §D): fable-2's log nosings + stakes — A −0.0009, C −0.0016,
   F −0.0104 (V16's kind of cost); the flight reads as the demo's log-risered stair — W02 turns on my read
   at the next take; merge as the owner-approved change.
