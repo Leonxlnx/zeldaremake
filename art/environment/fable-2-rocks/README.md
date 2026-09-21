@@ -16,6 +16,23 @@ B 526 / C 393 / D 394 / E 526 / F 512; A 9.09 M tris on both (the head's number,
 change's — flagged to fable-cursor). Files: `ledge2-x-clearing-n.jpg` (+ `-crop`),
 `ledge2-x-ledge-foot.jpg`, `ledge2-x-northpath-n.jpg`.
 
+## Iteration 31 — the embankment strata and rubble skirts take the near skin (2.5–4.5 m fade) — `agent/fable-2-ledge`
+
+The instanced strata (92) and rubble (64) rendered the plain far material at any distance; a walker passes the bank slabs
+at 1–3 m. They now share one near-capable material — plates, wet band, lichen crust and the relief grain (1.5) — inside a
+short fade `STRATA_NEAR_FADE_M` = [2.5, 4.5]; beyond it they are byte-for-byte the far stones they were (the old far
+material is retired: this one with nearW = 0 is it). Rubble beside a hero boulder was already rebuilt by its near kit;
+the clearing / backside pieces use `heroMaterial` (§30 reaches them).
+
+**Fixed cameras — nearest in-frustum slab or skirt stone, from the live instance dump:** A 3.16 m (a strata slab at
+(3.07, 6.65) in A's foreground), F 5.40, D 6.33, B / E 9.20, C 10.88. So only A can change: **A 0.2210 → 0.2211
+(+0.0001), 487 pixels > 8/255**, draws / tris identical. The other five are outside the fade by construction.
+
+**At player height:** most standalone slabs sit under the fern banks (two aimed poses on the D path's east bank show only
+ferns — reported, not claimed); where one is exposed — A's foreground slab at 2.5 m (`x-A-slab`, camera (1.0, 1.4, 5.2) →
+(3.07, 0.7, 6.65)) — the pale-green mossy blob becomes a stone with a moss cap, pale lichen rim and pitted skin: fine micro
+σ 0.041 → 0.045, macro σ 0.098 → 0.117 (`stratanear34-x-A-slab.jpg`). Typecheck / build / 26 tests green.
+
 ## Iteration 30 — the hero boulders' near skin takes the relief (owner's "stones under-detailed", at player height) — `agent/fable-2-ledge`
 
 The `relief` material option (§20) was the ledge's only. The hero boulders' near material (and the stair-foot rock's)
