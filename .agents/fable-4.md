@@ -238,3 +238,7 @@ nearCanopy, materials, index otherwise) is edited.
 
 ### 2026-09-21 12:15 UTC — review: fable-2-dmoss
 - Cherry-picked onto the head (its base predates the W23 move): D +0.0018, others ≤ 0.0004, 2 m read bare ochre with collar moss. IMPROVED; posted.
+
+### 2026-09-21 13:05 UTC — review: fable-2-stairs-logs
+- Six views vs the head: A −0.0017, C −0.0015, F −0.0069 (over budget — the flight is F's structure), B/D/E neutral; A 443 / 8.63 M. Read at w23-stairs-f: round bark nosings with stakes, the demo's flight. IMPROVED, F's cost flagged for the owner's allowance. Posted.
+- Also checked: the hero white-bark at C kept its pale read through the brown-bark floors (0.9 % of C moved, the giant's bole only).
