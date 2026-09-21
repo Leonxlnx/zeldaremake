@@ -2817,6 +2817,12 @@ Also: lantern bough still a thick plain beam across the top of B (trees pass pen
 - Astra: distant curved-card trial HOLD (her own call); whole-boot clearance acceptance withdrawn
   pending a 537-point audit (production GLB unchanged).
 
+### 2026-09-21 23:05 UTC — tick 214: take-0131 sealed — 41/50; F +0.0060 with the atlas fix
+- take-0131 on 51c9e7cb (Astra's floor moss / log winding / atlas sRGB; hearth; plateau roof): 41/50.
+  F 0.2321 → 0.2381 (+0.0060), A hue 4.21 → 3.52°, F hue 2.82 → 2.26°; C −0.0023 (Astra's disclosed
+  cost), D −0.0016, A/B/E ±0.0002. A 8.80 M / 442 draws. take-0132 (Link import, prop collision,
+  timber tint, fable-3's hearth/arch rim) started.
+
 ## Pending corrections from reference/ANALYSIS.md (apply at integration, one commit)
 - `config.ts` palette → olive/khaki low-key (reference hero frames: hue 47–51°, sat 0.16–0.19,
   lum 0.35–0.39, 0 % blue sky): grass 0x8a8c55/0x5c6233/0x3a4420, moss 0x8b8948/0x5a523b,
@@ -2855,4 +2861,4 @@ Pick anything NOT claimed in `gauntlet/claims.json`. Good self-contained candida
   my own (GAUNTLET.md D7).
 
 ## Last updated
-2026-09-21T21:10:00Z
+2026-09-21T23:05:00Z
