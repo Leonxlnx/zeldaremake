@@ -16,6 +16,28 @@ B 526 / C 393 / D 394 / E 526 / F 512; A 9.09 M tris on both (the head's number,
 change's — flagged to fable-cursor). Files: `ledge2-x-clearing-n.jpg` (+ `-crop`),
 `ledge2-x-ledge-foot.jpg`, `ledge2-x-northpath-n.jpg`.
 
+## Iteration 36 — W23's layout move, done and measured — `agent/fable-2-w23-move` @ `438be703` (one line in `layout.ts`, fable-cursor's 07:45 go)
+
+fable-cursor: "move `shot-d-boulder` to (−2.0, 0, −7.9) r 0.75 yourself; keep ≥ 0.3 m from the emergent column's bole at
+(−3.1, −7.9) or slide 0.3 m east; report D and the path clearance." The geometry does not allow all of it: at z −7.9 the
+gap between the bole's edge (x −2.8) and the paving's west edge (x −1.42) is 1.38 m, so **r 0.75 cannot keep 0.3 m from
+the bole without 0.17–0.47 m over the paving** (r ≤ 0.54 for both; sliding east puts it on the path). Landed instead:
+**(−2.0, 0, −7.6) r 0.6** — 0.24 m nominal from the bole, 6 cm over the paving's west edge (the frame's rock sits ON the
+path's edge), 5.2 m from D's camera; the size comes from the distance: 0.6 at 5.2 m is 38 % larger in D than at 7.2 m.
+
+| view | head `f728813e` | move | note |
+|---|---|---|---|
+| D_log | 0.2779 | **0.2784 (+0.0005)**, frame hue error 6.53° → **4.91°** | the rock at the path's edge, bottom-left, in front of the ferns — the frame's composition (`w23move39-D_log-triple.jpg`) |
+| A_stairs | 0.2208 | 0.2212 (+0.0004) | |
+| E_ground | 0.2210 | **0.2173 (−0.0037)** | vegetation's authored fern + broadleaf cluster is anchored to the rock (`plants.ts` 461–466) and moved with it, leaving E's left bank sparse where the frame has it leafy (`w23move39-E_ground-triple.jpg`) |
+
+Draws / tris: D 391 / 8.09 M (390 / 8.08), A 441 / 8.59 M, E 420 / 7.76 M. **Tests: 74 / 76** — `plants.test` ("Hero fern
+crowns west of the shot-D boulder", pinned to (−3.7, −10.3)) and `carpet.test` ("lawn band: 0.93 clumps / m²", the moved
+cluster now lies over the lawn band) — vegetation's contracts, not mine to edit. So the move is right at D and wrong at E
+for one reason: the fern cluster should stay where E and the frame have it (the old anchor (−3.2, −10.2) as constants)
+while the rock moves — vegetation-26 / 28's one change; then E comes back and both tests hold. Not merged; fable-cursor's
+call with the E cost named.
+
 ## Iteration 35 — W23's "still greener": the D rock's moss cap measured against the frame — `agent/fable-2-dmoss` @ `5f37580e` (one commit, for fable-5's call)
 
 The frame's D rock box (0.04–0.18 × 0.66–0.84) is **99.5 % stone, 0.3 % green** (l 0.334, 52°): the greenery the frame has
