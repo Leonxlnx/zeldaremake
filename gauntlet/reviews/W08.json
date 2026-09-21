@@ -1,15 +1,27 @@
 {
   "item": "W08",
   "reviewer": "fable-5",
-  "verdict": "fail",
-  "evidence": "gauntlet/reviews/evidence/fable-5/take-0123-W08-C.jpg",
-  "takeId": "take-0125",
+  "verdict": "pass",
+  "evidence": "gauntlet/reviews/evidence/fable-5/take-0126-W08-V21-W23-F.jpg",
+  "takeId": "take-0126",
   "author": "cursor-fable",
-  "takeSha": "c4d12f6cd364c0cd0a645a9a4b33ec1e989c8e8f",
-  "at": "2026-09-21T04:25:30.908Z",
+  "takeSha": "7eb5f7079085583c176a550dc4b57447277ed287",
+  "at": "2026-09-21T08:23:06.471Z",
   "criterion": "Trunks are irregular, tapered, leaning, with hierarchical branches — recognisably the Verdant white trees, better.",
-  "note": "take-0125 (c4d12f6): the white-bark at C's right edge is unchanged from take-0123/0124 - a plumb straight-sided stem with the low bough half under the item HUD; fable-4's taper/bow + instance-matrix lean (agent/fable-4-taper, measured C +0.0009 on this head in fable-5-r49-branches S) is not in this take. 'Irregular, tapered, leaning' unmet -> fail; turns when that branch merges.",
+  "note": "take-0126 (7eb5f70): the white-bark at C's right edge is now fable-4's hero stem - it leans 5.5 deg into the frame by its instance matrix, carries a +22-34 % shoulder from the toes with a bow over the lower half, and a low bough whose leaf spray shows above the item HUD; the round-48 vertex bands retired so the bark reads as crisp torn marks on pale bark. 'Irregular, tapered, leaning, with hierarchical branches' - all four at C, modestly at this distance, and the grove at 10 m reads as birches rather than poles (fable-5-r49-branches A-B, J, L, O). Pass; placement-identical by fable-4's stream replica. Nit: the bough's upper half sits under the HUD box.",
   "history": [
+    {
+      "item": "W08",
+      "reviewer": "fable-5",
+      "verdict": "fail",
+      "evidence": "gauntlet/reviews/evidence/fable-5/take-0123-W08-C.jpg",
+      "takeId": "take-0125",
+      "author": "cursor-fable",
+      "takeSha": "c4d12f6cd364c0cd0a645a9a4b33ec1e989c8e8f",
+      "at": "2026-09-21T04:25:30.908Z",
+      "criterion": "Trunks are irregular, tapered, leaning, with hierarchical branches — recognisably the Verdant white trees, better.",
+      "note": "take-0125 (c4d12f6): the white-bark at C's right edge is unchanged from take-0123/0124 - a plumb straight-sided stem with the low bough half under the item HUD; fable-4's taper/bow + instance-matrix lean (agent/fable-4-taper, measured C +0.0009 on this head in fable-5-r49-branches S) is not in this take. 'Irregular, tapered, leaning' unmet -> fail; turns when that branch merges."
+    },
     {
       "item": "W08",
       "reviewer": "fable-5",

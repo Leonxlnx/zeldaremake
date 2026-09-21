@@ -552,3 +552,36 @@ means no measurement of mine covers it yet, not that it is open.
 Baseline note for the six views: two owner-approved changes moved them since take-0123 — NPCs hidden
 (C −0.0018, E +0.0037) and the demo-scale paving (B −0.0103, C −0.0118, F −0.0151 on take-0125). Deltas
 of that size in the next takes are those, not a lane's drift.
+
+## 9. The hero flight, one-to-one (owner's ask via fable-cursor, 2026-09-21 07:45 UTC)
+
+Frames: reference `A_stairs` (the flight from the plaza at ≈ 8 m), `d_105` / `d_107` (52–53 s, the
+flight from the plaza's north edge), against ours in take-0126's `A_stairs` and my `w23-stairs-f`
+render of the round-50 head (head-on from the foot). Sheet `reference/frames-video2/stairs-comparison.jpg`
+(pHashed). Counts by eye on the crops; spacings from the luminance profile along the flight's centre
+(risers = shadow minima, 720-px scale).
+
+| property | the demo's flight | ours (take-0126) | for hardscape |
+| --- | --- | --- | --- |
+| risers visible in A | 15–16, the top ones dissolving into the haze gap | 16, all crisp to the top step | the top of the flight has to fade — a haze plane / canopy gap over the flight (V17) |
+| riser spacing along the centre in A | ≈ 11 px (6–19) | ≈ 14 px (6–29) | ours reads ≈ 1.3× the tread depth, or a gentler pitch: the demo's is steep (≈ 35–40°, `d_105`), one tread ≈ 1.3 riser heights |
+| nosing | **round bark timbers**, dark, ≈ 0.15–0.20 m across, moss on top | square cut-slab edges with a moss lip | log risers (V18′): the single largest change left at A |
+| edge | **short end stakes** at the log ends every second step; a dark mossy bank on the left with ferns and stones | no stakes; grass banks, a lantern post at the right | stakes at the log ends; the left flank darker (the hollow's shade) |
+| tread | packed earth and stone, warm (l 0.37 at the foot), **brightening upward** 0.40 → 0.65 into the gap | pale cut stone, l 0.31 at the foot, **darkening upward** 0.18 → 0.17 into canopy shade | tread albedo is not the lever (§7.3 / r49 §T); the light over the upper flight is |
+| width | at the foot in A ≈ 0.25 of the frame; the demo's flight is **narrow** (≈ 1.2 Link heights ≈ 1.6–2 m in `d_105`) between two tall banks | at the foot in A ≈ 0.25 of the frame; head-on (`w23`) it reads wide and flat, banks low | the banks should rise beside the flight (the left one dark and steep) so the flight reads as a cut through them, not a stair laid on a lawn |
+| what the frame shows at the top | a bright gap, trunks beyond | the top step and a dark canopy | V17 |
+
+Count per the rubric: W02's "18 worn stone steps" is a count we match within two; the miss is the
+material and the light, not the number.
+
+### 8.1 The five "unverified" rows, checked on take-0126's frames (2026-09-21 10:30 UTC)
+
+Sheet `reference/frames-video2/v-check-take0126.jpg` (pHashed): reference crop | take-0126 crop.
+
+| # | status now | what the frames show |
+| --- | --- | --- |
+| V3 right-bank stair | **open** (sev 2) | the stair climbs from path level over a low flowered verge; the frame's climbs from a dark bank ≈ 1 m high with a grass lip — the bank has to rise (terrain, expansion) |
+| V6 door buttresses | **partly closed** | one knotted bark column stands left of the door (a buttress read); the right side is plank wall — the frame has two columns framing the opening |
+| V7 mist veil at B | **closed** | the north path recedes into haze past the mid-ground, dark trunks through it; the frame's 60 % hidden ribbon is matched in kind |
+| V12 pole house + pebble pile | **half closed** | the pebble pile at the house base is gone (per-cell pebbles + the envelope); the second house on its pole still stands at B's top-left where the frame has canopy — layout's call, not a lane's |
+| V14 pod posts | **open** (sev 1) | the lantern post at A carries **one** pod on a curled iron-like hook; the frame's leaning bark post carries 3–4 lime pods at 1.3–1.6 m — structures/lanternPost |
