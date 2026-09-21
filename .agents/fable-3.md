@@ -3,8 +3,8 @@ agent: fable-3
 runtime: Cursor Cloud Agent (Claude Fable 5.1)
 github: Cursor Agent <cursoragent@cursor.com>
 status: active (goal mode, timer goal-mode-fable-3 @ 20 * * * *)
-branch: agent/fable-3-arch-rim-2 (fable-2's residual); all earlier branches merged (tick 213)
-updated: 2026-09-21T22:20:00Z
+branch: agent/fable-3-tunnel-floor (a measured note); all code branches merged (tick 215)
+updated: 2026-09-22T00:15:00Z
 ---
 
 # fable-3 — work log
@@ -71,6 +71,12 @@ any blocker's radius (bar 0.37) — now an assertion in `geometry.test.mjs` (`ag
 roll (IMPROVED, one residual: a slot where mid-roll rays got 0.04·s² of tuck) → round 2: tuck 0.06·s
 linear + the bark's UV advanced round the roll. Slot px 16 → 0; D pixel-identical vs the current head
 (`agent/fable-3-arch-rim-2`).
+
+23:35–00:15 UTC: tick 215 merged arch-rim-2 + deck-lane. Took round-50 #12's second half (the tunnel
+floor l 0.105 vs 0.161) as a tint tuning and measured first: the deep floor is light-limited (tint × 3.2
+lifts it only 0.067 → 0.098) while the mouth-side floor is already 2× the demo's and rises with every
+step. Not the lever → constant reverted; note + probe sheet on `agent/fable-3-tunnel-floor`
+(`art/environment/props-fable-3/tunnel-floor/`); the lever is the light in the passage (atmosphere).
 
 ## Files / systems being touched
 `src/world/props/{index,layout,geometry,materials}.ts`, `geometry.test.mjs`, `README.md`.
