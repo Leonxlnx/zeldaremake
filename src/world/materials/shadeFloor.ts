@@ -77,7 +77,15 @@ export interface ShadeFloor {
  * The same floor suits other dark bark that stands against the giants (the lantern limb's wrap,
  * the house bark): the reference's shaded wood is the same hazed grey-green everywhere.
  */
-export const GIANT_BARK_FLOOR: ShadeFloor = { lift: 7, texture: 0.1, canopy: 1, albedo: 0.08, chroma: 0.5 };
+/**
+ * 2026-09-21 — the owner, in the game, directly: "the trees stay green, they never render to brown,
+ * even a foot away; I need them all brown the second you step in." The grey-green column above was
+ * calibrated to the reference frames' hazed trunks at 10–35 m; at player height it is what he sees on
+ * every shaded bole. The floor now keeps 0.45 of the bark's own textured brown and only 0.4 of its
+ * light leaf-filtered, at 0.7 chroma — a shaded trunk reads as dark warm bark instead of a green
+ * column. The frame-fit cost is measured at the next take and reported, not tuned around.
+ */
+export const GIANT_BARK_FLOOR: ShadeFloor = { lift: 7, texture: 0.45, canopy: 0.2, albedo: 0.08, chroma: 0.7 };
 
 /**
  * leaves (all species and the canopy cards): the floor keeps the leaf's own colour and texture
