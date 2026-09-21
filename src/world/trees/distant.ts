@@ -673,6 +673,17 @@ export interface DepthBand {
   kind?: DistantKind;
   /** only variants at least this tall (unscaled) */
   minVariantHeight?: number;
+  /** round 51: discs no tree of the row stands in (authored trees the row would otherwise pierce) */
+  avoid?: { x: number; z: number; r: number }[];
+  /**
+   * round 51: place the row AFTER the radial pool. A row placed before it seeds the spacing grid,
+   * and a radial candidate the grid rejects is skipped before its draws and before it counts
+   * toward the target — so a new row inside the 60–215 m annulus re-rolled every radial tree
+   * after its first collision (camera C's whole far background moved for a stand 130 m behind
+   * it). An `after` row yields to the radial trees instead: the pool's stream is untouched and the
+   * row's own candidates drop where a radial tree already stands.
+   */
+  after?: boolean;
   /**
    * own PRNG stream for the row's jitter / picks / tints; without it the row draws from the
    * shared 'distant-placement' stream and every later placement (the other bands, the radial
@@ -774,29 +785,35 @@ export function placeDistantTrees(rng: Rng, terrain: Terrain, variants: DistantV
     return p;
   };
   const broadOnly = variants.map((v, i) => (v.kind === 'broad' && !v.bandOnly ? i : -1)).filter((i) => i >= 0);
-  for (const band of bands) {
-    const kind = band.kind ?? 'broad';
-    const pool = variants
-      .map((v, i) => (v.kind === kind && (band.maxVariantHeight === undefined || v.height <= band.maxVariantHeight) && (band.minVariantHeight === undefined || v.height >= band.minVariantHeight) ? i : -1))
-      .filter((i) => i >= 0);
-    const bandPool = pool.length ? pool : broadOnly;
-    const rb = band.stream ? rng.fork(band.stream) : r;
-    const nx = Math.max(1, Math.round((band.xMax - band.xMin) / band.spacing));
-    const nz = Math.max(1, Math.round((band.zMax - band.zMin) / band.spacing));
-    for (let i = 0; i < nx; i++) {
-      for (let j = 0; j < nz; j++) {
-        const x = band.xMin + ((i + 0.5 + rb.range(-0.4, 0.4)) / nx) * (band.xMax - band.xMin);
-        const z = band.zMin + ((j + 0.5 + rb.range(-0.4, 0.4)) / nz) * (band.zMax - band.zMin);
-        const m = terrain.mask(x, z);
-        if (m.structure > 0.4 || m.path > 0.4 || terrain.slope(x, z) > 0.72) continue;
-        if (tooCloseIn(grid, cell, x, z, band.spacing * 0.6)) continue;
-        const tintShift = rb.range(-0.05, 0.05);
-        const tint = depthCool(new Color(1 + tintShift * 0.5, 1 + tintShift, 1 - tintShift * 0.6).multiplyScalar(band.shade * rb.range(0.9, 1.05)), x, z);
-        const p = cleared({ variant: bandPool[rb.int(0, bandPool.length)], x, y: terrain.height(x, z), z, yaw: rb() * TAU, scale: rb.range(band.scale[0], band.scale[1]), tint }, band.spacing * 0.6);
-        if (p) push(p);
+  /** the authored rows: those placed before the radial pool seed its spacing grid, `after` rows yield to it */
+  const placeBands = (after: boolean) => {
+    for (const band of bands) {
+      if ((band.after ?? false) !== after) continue;
+      const kind = band.kind ?? 'broad';
+      const pool = variants
+        .map((v, i) => (v.kind === kind && (band.maxVariantHeight === undefined || v.height <= band.maxVariantHeight) && (band.minVariantHeight === undefined || v.height >= band.minVariantHeight) ? i : -1))
+        .filter((i) => i >= 0);
+      const bandPool = pool.length ? pool : broadOnly;
+      const rb = band.stream ? rng.fork(band.stream) : r;
+      const nx = Math.max(1, Math.round((band.xMax - band.xMin) / band.spacing));
+      const nz = Math.max(1, Math.round((band.zMax - band.zMin) / band.spacing));
+      for (let i = 0; i < nx; i++) {
+        for (let j = 0; j < nz; j++) {
+          const x = band.xMin + ((i + 0.5 + rb.range(-0.4, 0.4)) / nx) * (band.xMax - band.xMin);
+          const z = band.zMin + ((j + 0.5 + rb.range(-0.4, 0.4)) / nz) * (band.zMax - band.zMin);
+          const m = terrain.mask(x, z);
+          if (m.structure > 0.4 || m.path > 0.4 || terrain.slope(x, z) > 0.72) continue;
+          if (tooCloseIn(grid, cell, x, z, band.spacing * 0.6)) continue;
+          if (band.avoid && band.avoid.some((a) => Math.hypot(x - a.x, z - a.z) < a.r)) continue;
+          const tintShift = rb.range(-0.05, 0.05);
+          const tint = depthCool(new Color(1 + tintShift * 0.5, 1 + tintShift, 1 - tintShift * 0.6).multiplyScalar(band.shade * rb.range(0.9, 1.05)), x, z);
+          const p = cleared({ variant: bandPool[rb.int(0, bandPool.length)], x, y: terrain.height(x, z), z, yaw: rb() * TAU, scale: rb.range(band.scale[0], band.scale[1]), tint }, band.spacing * 0.6);
+          if (p) push(p);
+        }
       }
     }
-  }
+  };
+  placeBands(false);
   const tooClose = (x: number, z: number, minD: number) => tooCloseIn(grid, cell, x, z, minD);
   const broadIdx = broadOnly;
   const slenderIdx = variants.map((v, i) => (v.kind === 'slender' && !v.bandOnly ? i : -1)).filter((i) => i >= 0);
@@ -826,6 +843,7 @@ export function placeDistantTrees(rng: Rng, terrain: Terrain, variants: DistantV
     placed++;
     if (p) push(p);
   }
+  placeBands(true);
   lastClearanceTally = { moved, dropped };
   return out;
 }
