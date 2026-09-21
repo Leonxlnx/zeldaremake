@@ -108,7 +108,6 @@ import {
   SphereGeometry,
   SRGBColorSpace,
   type Texture,
-  TorusGeometry,
   Vector2,
   Vector3,
 } from 'three';
@@ -2405,13 +2404,15 @@ export function buildHouse(def: HouseDef, ctx: WorldContext, mats: StructureMate
     // longer one torus — a smooth doughnut at arm's length however it is lumped — but a ring of
     // SEPARATE field stones, each a lumpy flattened ellipsoid of its own size and grey, sunk a third
     // into the floor with gaps between, soot-darkened on the faces toward the fire; inside them an
-    // ash bed and three charred sticks. The other houses keep the torus.
+    // ash bed and three charred sticks. (Round 52b: the other furnished house too — the plateau is a
+    // destination (owner #14) and its doorway shows the hearth — at eight coarser stones, two
+    // sticks, five embers; the torus is gone.)
     let kerb: BufferGeometry;
     const hearthFloorY = hearthPos.y - 0.2 * k;
-    if (hero) {
+    {
       const hRng = rng.fork('hearth52');
       const stones: BufferGeometry[] = [];
-      const nStones = 10;
+      const nStones = hero ? 10 : 8;
       const _rad = new Vector3();
       const _nrm = new Vector3();
       for (let i = 0; i < nStones; i++) {
@@ -2419,7 +2420,7 @@ export function buildHouse(def: HouseDef, ctx: WorldContext, mats: StructureMate
         const rx = k * hRng.range(0.05, 0.086);
         const ry = rx * hRng.range(0.5, 0.68);
         const rz = rx * hRng.range(0.72, 1.0);
-        const stone = new SphereGeometry(1, 12, 8);
+        const stone = new SphereGeometry(1, hero ? 12 : 9, hero ? 8 : 6);
         const sp = stone.attributes.position;
         const sv = new Vector3();
         for (let j = 0; j < sp.count; j++) {
@@ -2461,7 +2462,7 @@ export function buildHouse(def: HouseDef, ctx: WorldContext, mats: StructureMate
       });
       // charred sticks lying across the ash, black with a little red left at the ends
       const sticks: BufferGeometry[] = [];
-      for (let i = 0; i < 3; i++) {
+      for (let i = 0; i < (hero ? 3 : 2); i++) {
         const len = k * hRng.range(0.16, 0.24);
         const r = k * hRng.range(0.011, 0.016);
         const stick = new CylinderGeometry(r * 0.8, r, len, 6, 1);
@@ -2482,11 +2483,6 @@ export function buildHouse(def: HouseDef, ctx: WorldContext, mats: StructureMate
         sticks.push(stick);
       }
       kerb = merge([...stones, ash, ...sticks]);
-    } else {
-      kerb = new TorusGeometry(0.2 * k, 0.05 * k, 6, 12);
-      kerb.rotateX(Math.PI / 2);
-      kerb.translate(hearthPos.x, hearthPos.y - 0.14 * k, hearthPos.z);
-      setColorAttribute(kerb, [0.32, 0.31, 0.3]);
     }
     const furnitureGeo = merge([table, stool, kerb]);
     {
@@ -2500,13 +2496,14 @@ export function buildHouse(def: HouseDef, ctx: WorldContext, mats: StructureMate
     group.add(furnitureMesh);
     // the embers themselves (dim orange) and a small soft pink-amber halo facing the door — kept
     // small so the doorway as a whole stays neutral (reference box saturation ≈ 0.1)
-    // (round 52: in the hero house, seven small lumps scattered among the char — the same emissive,
-    // about the same lit area as the one squashed sphere they replace, so the doorway keeps its level)
+    // (round 52: seven small lumps (five in the other house) scattered among the char — the same
+    // emissive, about the same lit area as the one squashed sphere they replace, so the doorway
+    // keeps its level)
     let embers: BufferGeometry;
-    if (hero) {
+    {
       const eRng = rng.fork('embers52');
       const lumps: BufferGeometry[] = [];
-      for (let i = 0; i < 7; i++) {
+      for (let i = 0; i < (hero ? 7 : 5); i++) {
         const lump = new SphereGeometry(k * eRng.range(0.014, 0.026), 6, 4);
         lump.scale(1, 0.55, 1);
         const a = eRng.range(0, TAU);
@@ -2515,10 +2512,6 @@ export function buildHouse(def: HouseDef, ctx: WorldContext, mats: StructureMate
         lumps.push(lump);
       }
       embers = merge(lumps);
-    } else {
-      embers = new SphereGeometry(0.045 * k, 10, 6);
-      embers.scale(1, 0.35, 1);
-      embers.translate(hearthPos.x, hearthPos.y - 0.12 * k, hearthPos.z);
     }
     const emberMesh = new Mesh(embers, mats.hearth);
     emberMesh.name = 'door-embers';

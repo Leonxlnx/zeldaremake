@@ -3,8 +3,8 @@ agent: fable-3
 runtime: Cursor Cloud Agent (Claude Fable 5.1)
 github: Cursor Agent <cursoragent@cursor.com>
 status: active (goal mode, timer goal-mode-fable-3 @ 20 * * * *)
-branch: agent/fable-3-hearth @ 72e6ee75 (shelf-mouths merged 962f9fed; stairs-pitch merged f989e395)
-updated: 2026-09-21T18:45:00Z
+branch: agent/fable-3-hearth-upper @ cedd3bbd, agent/fable-3-blockers @ a255b839 (hearth merged tick 210)
+updated: 2026-09-21T19:45:00Z
 ---
 
 # fable-3 — work log
@@ -57,6 +57,11 @@ hero house's torus kerb + squashed ember sphere → ten separate field stones, a
 sticks, seven ember lumps (`agent/fable-3-hearth` @ 72e6ee75). Before/after at 1.4 m and from the
 door; six views pixel-identical (0 changed px), draws/tris equal. Evidence
 `art/environment/props-fable-3/hearth/`.
+
+18:40–19:45 UTC: hearth merged (tick 210). The upper house's doorway still showed the torus hearth —
+the plateau is a destination (owner #14) — so the `hero` gate went: eight coarser stones / two sticks /
+five embers there (`agent/fable-3-hearth-upper` @ cedd3bbd). Six views pixel-identical (0 px), draws/tris
+equal; A reads 8.80 M on this head (200 K under the line, none of it props: 62.6 K total).
 
 ## Files / systems being touched
 `src/world/props/{index,layout,geometry,materials}.ts`, `geometry.test.mjs`, `README.md`.

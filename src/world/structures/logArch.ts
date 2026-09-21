@@ -2701,21 +2701,36 @@ export function buildLogArch(ctx: WorldContext, mats: StructureMaterials, rng: R
         // a hand further, so the edge is well inside the belly / ground / shoulder
         outer.push({ e: last.e + (de / dl) * 0.12, y: last.y + (dy / dl) * 0.12 });
       }
+      // Round 52 (fable-3, fable-5's round-50 #12): the face used to meet the tube's wall at a
+      // mathematically sharp corner — the same bark maps on both, `logBark`'s base three times
+      // `tunnelWall`'s — so from the approach the east cheek carried a vertical value step with the
+      // grain running through it. A bored log's rim ROLLS into the bore: the face's first RIM_ROLL
+      // metres along each ray are a quarter-round turning into the tube (by physical distance, so
+      // every ray rolls the same 0.32 m whatever its length), the occlusion graded down to the
+      // bore's value over it, the plates kept off the roll; `vv` packs the rows toward the rim so
+      // the roll has geometry.
+      const RIM_ROLL = 0.32;
       const geo = gridSurface(
-        (u, v, out) => {
+        (u, v0, out) => {
+          const v = Math.pow(v0, 1.7);
           const rim = innerAt(u);
           const o = outer[Math.min(cols - 1, Math.max(0, Math.round(u * (cols - 1))))];
           const e = lerp(rim.e, o.e, v);
           const y = lerp(rim.y, o.y, v);
           const a = aAt(e);
+          const dist = v * Math.hypot(o.e - rim.e, o.y - rim.y);
+          const s = Math.max(0, 1 - dist / RIM_ROLL);
+          const roll = RIM_ROLL * (1 - Math.sqrt(Math.max(0, 1 - s * s)));
           // bark plates standing out of the face, the rim itself flush (it meets the tube)
           const plate = smoothstep(0.2, 0.5, noise.noise(e * 1.1 + 31, y * 1.1 + outward * 7));
-          const off = outward * (0.04 + 0.1 * plate + 0.02 * noise.noise(e * 5, y * 5 + 3)) * smoothstep(0, 0.25, v);
-          fromTube(a + off, e, out.position);
-          out.position.y = worldY(a, e, y);
+          const off = outward * (0.04 + 0.1 * plate + 0.02 * noise.noise(e * 5, y * 5 + 3)) * smoothstep(0, 0.25, v) * (1 - s);
+          const aP = a + off - outward * roll;
+          fromTube(aP, e, out.position);
+          out.position.y = worldY(aP, e, y);
           out.uv = [e / 1.3, y / 1.3];
-          // occlusion up under the belly's overhang and toward the tube's rim
-          const occl = lerp(0.55, 1, smoothstep(0, 0.35, v)) * lerp(1, 0.6, smoothstep(2.4, 3.6, y));
+          // occlusion up under the belly's overhang and toward the tube's rim, into the bore's value over the roll
+          const bore = lerp(0.6, 1, smoothstep(0, RIM_ROLL * 1.5, dist));
+          const occl = lerp(0.55, 1, smoothstep(0, 0.35, v)) * lerp(1, 0.6, smoothstep(2.4, 3.6, y)) * bore;
           out.color = cheekColor(a, e, y, occl);
         },
         { cols, rows },
@@ -2728,7 +2743,7 @@ export function buildLogArch(ctx: WorldContext, mats: StructureMaterials, rng: R
       const e0 = profile(thetaAt(u), 1).e;
       return profile(thetaAt(u), hTopAt(aSouthAt(e0), e0));
     };
-    const southFace = mouthFace((e) => aSouthAt(e), southRim, -1, 56, 7);
+    const southFace = mouthFace((e) => aSouthAt(e), southRim, -1, 56, 12);
     barkParts.push(southFace);
     // north face: round the portal shell (the tube passes through it), at the belly's north side
     const shellOf = (theta: number, hTop: number) => {
@@ -2740,7 +2755,7 @@ export function buildLogArch(ctx: WorldContext, mats: StructureMaterials, rng: R
       const e0 = profile(thetaAt(u), 1).e;
       return shellOf(thetaAt(u), hTopAt(aNorthFace(e0), e0));
     };
-    const northFace = mouthFace((e) => aNorthFace(e), northRim, 1, 56, 7);
+    const northFace = mouthFace((e) => aNorthFace(e), northRim, 1, 56, 12);
     barkParts.push(northFace);
     // the east end: the shoulder between the two faces, from the belly down to the ground
     const eastEnd = gridSurface(

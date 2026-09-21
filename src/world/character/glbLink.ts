@@ -131,18 +131,18 @@
  * captures sit in a scheduled slot's open phase, so the adopted morphs leave them unchanged
  * too. Movement and the IK above are untouched by it.
  */
-import { AnimationAction, AnimationMixer, Bone, Box3, Group, LoopRepeat, Material, MathUtils, Mesh, MeshStandardMaterial, Object3D, Quaternion, SkinnedMesh, Vector3 } from 'three';
+import { AnimationAction, AnimationMixer, Bone, Box3, Group, LoopRepeat, Material, MathUtils, Mesh, Object3D, Quaternion, SkinnedMesh, Vector3 } from 'three';
 import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
 import { GAIT_SPEED, GAITS, type Gait, type GroundSampler } from './animation';
 import { BLINK_HALF_MORPH, BLINK_MORPH, blinkPhase, blinkWeights, createBlinkSchedule, nextBlinkStart, type BlinkSchedule, type BlinkWeights } from './blink';
 import { chainWeights, type FootAnchor, type GaitChain } from './gaitChain';
-import { BONE_REGION, gradeImage, LINK_BROW_COLOR, LINK_COLOR_GRADE, rasterizeRegionMask, REGION_GROUPS, type GradeStats, type RegionMask } from './linkColorGrade';
+import { STAIR_CELL } from './ground';
 import type { BlinkInfo, FootContact, JumpState, Locomotion, PlantInfo, Puppet, PuppetPose } from './puppet';
 
 /** served by Vite from public/ */
 export const LINK_GLB_FILE = 'models/link/link-runtime.glb';
 /** the delivered file's hash, recorded in public/models/link/SOURCE.md — reported, never recomputed at runtime */
-export const LINK_GLB_SHA256 = 'ea93932d8afe02ec4bbcf3487fb20ce3f55272fb60f20998dc728cb637ae575f';
+export const LINK_GLB_SHA256 = '89df38f255e47afbcbb28a60555fb4a4a20091741d427ef1d7b8ea1ac33f306b';
 /** skull top above the `head` bone (m) on Astra's rig, measured on the 409b603 asset's skin mesh (cap excluded) */
 export const HEAD_TOP_ANATOMICAL_M = 0.276;
 
@@ -229,7 +229,7 @@ const LIP_CLOSE = 0.95;
 const TABLE_N = 96;
 const STANCE_LIFT = 0.001;
 const MIN_SWING_S = 0.1;
-/** largest vertical foot correction (m): a step edge under one foot can never pull a leg apart */
+/** largest downward foot/root correction (m); solveLeg bounds upward targets by physical reach */
 const MAX_CORRECTION = 0.3;
 /**
  * Highest a sole may be above the root's floor (m): the clips' swing arcs peak at 0.15, and a
@@ -640,115 +640,8 @@ export interface LinkAssetInfo {
   footprint: { L: Footprint & { soleVertices: number }; R: Footprint & { soleVertices: number } };
   /** every morph target name the asset's meshes expose (sorted, deduplicated; empty on 9189538d) */
   morphTargets: string[];
-  /** round 50 (npc-3): the colour grade applied to the loaded base-colour maps (linkColorGrade.ts), or null when nothing matched */
-  colorGrade: LinkColorGradeInfo | null;
-}
-
-/** what the load-time colour grade did (rubric C01; see linkColorGrade.ts) */
-export interface LinkColorGradeInfo {
-  /** the table's entry ids in force */
-  entries: string[];
-  /** per re-coloured map: the material's name, the map's size, the texels changed and the mean sRGB each entry owned before / after */
-  maps: { material: string; width: number; height: number; touched: number; perEntry: Record<string, number>; meanBefore: Record<string, [number, number, number]>; meanAfter: Record<string, [number, number, number]> }[];
-  /** the brow material re-coloured to LINK_BROW_COLOR (its name), or null */
-  brows: string | null;
-  /** the body-part region mask: cells per side and the share of cells in each REGION_GROUPS entry */
-  regionMask: { size: number; coverage: Record<string, number> } | null;
-  ms: number;
-}
-
-/**
- * Round 50 (npc-3), rubric C01 — Link's colours (fable-5 on take-0121: silhouette passes, "skin
- * (125,107,93) s 0.14 vs tan (117,79,37) s 0.52 and dark hair vs golden — colour only"). The
- * GLB is untouched: the LOADED base-colour maps are re-coloured once through a canvas by the
- * `LINK_COLOR_GRADE` table (linkColorGrade.ts — the numbers Astra bakes into the source textures
- * later) and the brow material's flat colour is set to `LINK_BROW_COLOR`. The body map (the
- * material carrying the normal map) is graded with the body-part region mask rasterised from its
- * own UVs and joint weights, so the hair band only reaches the head / cap bones and not the
- * boots' brass knots; the orbital-skin map (the face around the eyes) is graded with the
- * region-free entries. Nothing else about the materials (roughness, normal, clearcoat) changes;
- * a load without a 2D canvas (no DOM) leaves the maps as delivered.
- */
-function gradeLinkMaterials(skinned: SkinnedMesh[]): LinkColorGradeInfo | null {
-  const t0 = performance.now();
-  if (typeof document === 'undefined') return null;
-  const info: LinkColorGradeInfo = { entries: LINK_COLOR_GRADE.map((e) => e.id), maps: [], brows: null, regionMask: null, ms: 0 };
-  const mats = (m: SkinnedMesh): MeshStandardMaterial[] => (Array.isArray(m.material) ? m.material : [m.material]).filter((x): x is MeshStandardMaterial => !!x && (x as MeshStandardMaterial).isMeshStandardMaterial);
-  // the body primitive: the one whose material carries the normal map (Astra's `model.036`)
-  const body = skinned.find((m) => mats(m).some((x) => !!x.normalMap && !!x.map)) ?? null;
-  let mask: RegionMask | null = null;
-  if (body) {
-    const g = body.geometry;
-    const uv = g.attributes.uv;
-    const ji = g.attributes.skinIndex;
-    const jw = g.attributes.skinWeight;
-    const idx = g.index;
-    if (uv && ji && jw && idx) {
-      const n = uv.count;
-      const uvA = new Float32Array(n * 2);
-      const jiA = new Uint16Array(n * 4);
-      const jwA = new Float32Array(n * 4);
-      for (let i = 0; i < n; i++) {
-        uvA[i * 2] = uv.getX(i);
-        uvA[i * 2 + 1] = uv.getY(i);
-        jiA[i * 4] = ji.getX(i);
-        jiA[i * 4 + 1] = ji.getY(i);
-        jiA[i * 4 + 2] = ji.getZ(i);
-        jiA[i * 4 + 3] = ji.getW(i);
-        jwA[i * 4] = jw.getX(i);
-        jwA[i * 4 + 1] = jw.getY(i);
-        jwA[i * 4 + 2] = jw.getZ(i);
-        jwA[i * 4 + 3] = jw.getW(i);
-      }
-      const jointRegion = new Uint8Array(Math.max(1, body.skeleton.bones.length));
-      body.skeleton.bones.forEach((b, i) => {
-        const r = BONE_REGION[b.name];
-        jointRegion[i] = r ? REGION_GROUPS.indexOf(r) + 1 : 0;
-      });
-      const size = 1024;
-      mask = rasterizeRegionMask(uvA, jiA, jwA, idx.array as ArrayLike<number>, jointRegion, size);
-      const counts = new Array<number>(REGION_GROUPS.length + 1).fill(0);
-      for (let i = 0; i < mask.data.length; i++) counts[mask.data[i]]++;
-      const coverage: Record<string, number> = {};
-      REGION_GROUPS.forEach((r, i) => (coverage[r] = Number((counts[i + 1] / mask!.data.length).toFixed(4))));
-      info.regionMask = { size, coverage };
-    }
-  }
-  const done = new Set<object>();
-  for (const m of skinned) {
-    for (const mat of mats(m)) {
-      if (done.has(mat)) continue;
-      done.add(mat);
-      // the eyes (clearcoat) keep their maps; a material without a map is the brows (a flat dark-brown factor)
-      if ((mat as unknown as { clearcoat?: number }).clearcoat) continue;
-      if (!mat.map) {
-        if (/brow/i.test(mat.name) || (mat.color.r < 0.25 && mat.color.g < 0.12)) {
-          mat.color.setRGB(LINK_BROW_COLOR[0], LINK_BROW_COLOR[1], LINK_BROW_COLOR[2]);
-          info.brows = mat.name;
-        }
-        continue;
-      }
-      const tex = mat.map;
-      const img = tex.image as (ImageBitmap | HTMLImageElement | HTMLCanvasElement) | null;
-      if (!img || !img.width || !img.height || done.has(tex)) continue;
-      done.add(tex);
-      const canvas = document.createElement('canvas');
-      canvas.width = img.width;
-      canvas.height = img.height;
-      const c2d = canvas.getContext('2d', { willReadFrequently: true });
-      if (!c2d) continue;
-      c2d.drawImage(img, 0, 0);
-      const id = c2d.getImageData(0, 0, canvas.width, canvas.height);
-      const stats: GradeStats = gradeImage(id.data, canvas.width, canvas.height, LINK_COLOR_GRADE, m === body ? mask : null);
-      c2d.putImageData(id, 0, 0);
-      if ('close' in img && typeof (img as ImageBitmap).close === 'function') (img as ImageBitmap).close();
-      tex.image = canvas;
-      tex.needsUpdate = true;
-      info.maps.push({ material: mat.name, width: canvas.width, height: canvas.height, touched: stats.touched, perEntry: stats.perEntry, meanBefore: stats.meanBefore, meanAfter: stats.meanAfter });
-    }
-  }
-  info.ms = Math.round(performance.now() - t0);
-  return info.maps.length || info.brows ? info : null;
+  /** No load-time grade: the delivered texture pixels already contain the reviewed colour correction. */
+  colorGrade: null;
 }
 
 export interface GlbLink extends Puppet {
@@ -780,6 +673,40 @@ export function clipRate(gait: Gait, durationS: number): number {
 }
 
 const mod = (a: number, n: number) => ((a % n) + n) % n;
+
+// Six ankle-local footprint points plus the sole marker: world offsets and initial gaps.
+// Shared scratch follows the other synchronous pose helpers; no per-frame allocations.
+const _hipFootprint = new Float64Array(7 * 4);
+const _hipLateral = new Vector3();
+const _hipForward = new Vector3();
+
+/** Only the final hip-turn clearance uses the stair grid's half-cell uncertainty. */
+function hipContactHeight(surface: GroundSampler, x: number, z: number): number {
+  const radius = STAIR_CELL * 0.5;
+  let top = -Infinity;
+  for (let ix = -1; ix <= 1; ix++) {
+    for (let iz = -1; iz <= 1; iz++) {
+      top = Math.max(top, surface(x + ix * radius, z + iz * radius));
+    }
+  }
+  return top;
+}
+
+/** Preserve existing clearance at this endpoint; this is not a swept collision test. */
+function clearsHipFootprint(surface: GroundSampler, hip: Vector3, aim: Vector3, count: number, fp: Footprint, planeGap: number): boolean {
+  for (let i = 0; i < count; i++) {
+    const k = i * 4;
+    const x = hip.x + aim.x + _hipFootprint[k];
+    const y = hip.y + aim.y + _hipFootprint[k + 1];
+    const z = hip.z + aim.z + _hipFootprint[k + 2];
+    if (y - hipContactHeight(surface, x, z) < _hipFootprint[k + 3] - 1e-6) return false;
+  }
+  const k = (count - 1) * 4;
+  const x = hip.x + aim.x + _hipFootprint[k];
+  const y = hip.y + aim.y + _hipFootprint[k + 1];
+  const z = hip.z + aim.z + _hipFootprint[k + 2];
+  return y - footprintSupport(surface, x, z, fp, _hipLateral, _hipForward) >= planeGap - 1e-6;
+}
 
 const _target = new Vector3();
 const _q = new Quaternion();
@@ -902,6 +829,21 @@ function footReach(fp: Footprint, yawRel: number, out: { back: number; ahead: nu
   out.ahead = ahead;
 }
 
+/** Required marker height for an oriented sole plane, including curved support between its edges. */
+function footprintSupport(ground: GroundSampler, x: number, z: number, fp: Footprint, lateral: Vector3, forward: Vector3): number {
+  const nx = Math.max(1, Math.ceil((fp.latMax - fp.latMin) / STAIR_CELL));
+  const nz = Math.max(1, Math.ceil((fp.heel + fp.toe) / STAIR_CELL));
+  let support = -Infinity;
+  for (let i = 0; i <= nx; i++) for (let j = 0; j <= nz; j++) {
+    const lat = MathUtils.lerp(fp.latMin, fp.latMax, i / nx);
+    const along = MathUtils.lerp(-fp.heel, fp.toe, j / nz);
+    const px = x + lateral.x * lat + forward.x * along;
+    const pz = z + lateral.z * lat + forward.z * along;
+    support = Math.max(support, ground(px, pz) - lateral.y * lat - forward.y * along);
+  }
+  return support;
+}
+
 /**
  * The stance configuration of a foot whose clip sole marker is at world (x, z), facing (fx, fz)
  * with the foot yawed `yawRel` from it — see the constants above. The footprint's reach along the
@@ -998,6 +940,7 @@ function footConfig(ground: GroundSampler, base: GroundSampler | null, x: number
   const sx = x + fx * shift;
   const sz = z + fz * shift;
   let support = sinkFootprint(ground, sx, sz, fx, fz, back, ahead, PLANT_LAMBDAS);
+  let detail = !!base && (!Number.isNaN(e) || ground(sx, sz) > base(sx, sz) + 1e-6);
   if (base) {
     // A lateral heel can still stand on the upper tread while the centre line overhangs it.
     // Include that support even when the rendered stone matches the analytic tread height.
@@ -1009,10 +952,19 @@ function footConfig(ground: GroundSampler, base: GroundSampler | null, x: number
         const pz = sz + fz * proj - fx * l;
         const v = envelope(ground, px, pz, fx, fz, -1, PLANT_STEP, PLANT_LAMBDAS, false, NO_REACH);
         if (v > support) support = v;
+        if (v > base(px, pz) + 1e-6) detail = true;
       }
     }
   }
   if (pitch > 0) support += (e - shift) * Math.sin(pitch);
+  // Sample curved rendered support across the sole before selecting the root support.
+  // An edge/relief probe keeps ordinary terrain on the existing support path.
+  if (base && detail) {
+    const cp = Math.cos(pitch);
+    _u.set(fz * cy - fx * sy, 0, -fx * cy - fz * sy);
+    _v.set(cp * (fx * cy + fz * sy), -Math.sin(pitch), cp * (fz * cy - fx * sy));
+    support = Math.max(support, footprintSupport(ground, sx, sz, fp, _u, _v));
+  }
   out.shift = shift;
   out.support = support;
   out.pitch = pitch;
@@ -1479,9 +1431,6 @@ export async function loadGlbLink(url: string, opts: GlbLinkOptions = {}): Promi
     g.computeBoundingBox();
     if (g.boundingBox) bounds.union(g.boundingBox);
   }
-  // round 50 (npc-3), C01: the reference's tan skin / golden hair / olive tunic on the loaded maps (the GLB is untouched)
-  const colorGrade = gradeLinkMaterials(skinned);
-
   const bone = (name: string): Object3D => {
     const b = model.getObjectByName(name);
     if (!b) throw new Error(`bone "${name}" missing`);
@@ -1732,7 +1681,7 @@ export async function loadGlbLink(url: string, opts: GlbLinkOptions = {}): Promi
       R: { heel: Number(footprints.R.fp.heel.toFixed(4)), toe: Number(footprints.R.fp.toe.toFixed(4)), latMin: Number(footprints.R.fp.latMin.toFixed(4)), latMax: Number(footprints.R.fp.latMax.toFixed(4)), soleVertices: footprints.R.soleVertices },
     },
     morphTargets: [...morphNames].sort(),
-    colorGrade,
+    colorGrade: null,
   };
 
   // the blink (round 8): the schedule and the last pose's closure / weights, for the audit
@@ -2356,7 +2305,6 @@ export async function loadGlbLink(url: string, opts: GlbLinkOptions = {}): Promi
           const cap = leg.g + hold + STAIR_CLEAR_M;
           if (target > cap) target = cap + (target - cap) * MathUtils.smoothstep(leg.phase, STAIR_CAP_OUT[0], STAIR_CAP_OUT[1]);
         }
-        leg.delta = MathUtils.clamp(target - leg.soleP.y, -MAX_CORRECTION, MAX_CORRECTION);
         leg.tiltAngle = groundTilt(ground, leg.soleP.x, leg.soleP.z, leg.contact, leg.qTilt);
         if (Math.abs(leg.pitch) > 1e-5) {
           // toe-down about the foot's lateral axis: a positive turn about up × forward takes the
@@ -2371,6 +2319,16 @@ export async function loadGlbLink(url: string, opts: GlbLinkOptions = {}): Promi
             leg.tiltAngle += Math.abs(leg.pitch);
           }
         }
+        // The current swing/pin position can cross a crown between the planned contact spots.
+        // Read its fully tilted sole before IK, while leaving take-off/landing placement intact.
+        if (loco && !jump && base && leg.swingW > 0.5 && Math.abs(leg.swingRise) > STEP_MIN) {
+          _q.multiplyQuaternions(leg.qTilt, leg.qAnkle);
+          _u.subVectors(leg.fpLocal[1], leg.fpLocal[0]).multiplyScalar(1 / (leg.fp.latMax - leg.fp.latMin)).applyQuaternion(_q);
+          _v.subVectors(leg.fpLocal[2], leg.fpLocal[0]).multiplyScalar(1 / (leg.fp.heel + leg.fp.toe)).applyQuaternion(_q);
+          target = Math.max(target, footprintSupport(surface, leg.soleP.x + fx * leg.shift + leg.pinX, leg.soleP.z + fz * leg.shift + leg.pinZ, leg.fp, _u, _v));
+        }
+        // Upward support must not be truncated through the ground; solveLeg bounds physical reach.
+        leg.delta = Math.max(-MAX_CORRECTION, target - leg.soleP.y);
         leg.active = Math.abs(leg.delta) > 1e-6 || leg.tiltAngle > 1e-5 || Math.abs(leg.shift) > 1e-6 || leg.pinX !== 0 || leg.pinZ !== 0;
         if (Math.abs(leg.shift - leg.pin) > maxShift) maxShift = Math.abs(leg.shift - leg.pin);
         const reach = (leg.kneeP.distanceTo(leg.hip) + leg.ankleP.distanceTo(leg.kneeP)) * MAX_REACH;
@@ -2583,17 +2541,34 @@ export async function loadGlbLink(url: string, opts: GlbLinkOptions = {}): Promi
             if (_n.lengthSq() < 1e-10) continue;
             _n.normalize();
             const slack = Math.max(0, leg.soleP.y + leg.delta - (leg.g + leg.hold));
+            // The ankle pivot preserves qTilt * qAnkle through the hip turn. Check
+            // its final footprint as well as vertical slack: a backward turn can
+            // move a previously clear heel onto a higher tread.
+            _q2.multiplyQuaternions(leg.qTilt, leg.qAnkle);
+            const count = leg.fpLocal.length + 1;
+            for (let i = 0; i < count; i++) {
+              _p.copy(i < leg.fpLocal.length ? leg.fpLocal[i] : leg.sole).applyQuaternion(_q2);
+              const k = i * 4;
+              _hipFootprint[k] = _p.x;
+              _hipFootprint[k + 1] = _p.y;
+              _hipFootprint[k + 2] = _p.z;
+              _hipFootprint[k + 3] = Math.min(0, leg.target.y + _p.y - hipContactHeight(surface, leg.target.x + _p.x, leg.target.z + _p.z));
+            }
+            _hipLateral.subVectors(leg.fpLocal[1], leg.fpLocal[0]).multiplyScalar(1 / (leg.fp.latMax - leg.fp.latMin)).applyQuaternion(_q2);
+            _hipForward.subVectors(leg.fpLocal[2], leg.fpLocal[0]).multiplyScalar(1 / (leg.fp.heel + leg.fp.toe)).applyQuaternion(_q2);
+            const soleIndex = (count - 1) * 4;
+            const planeGap = Math.min(0, leg.target.y + _hipFootprint[soleIndex + 1] - footprintSupport(surface, leg.target.x + _hipFootprint[soleIndex], leg.target.z + _hipFootprint[soleIndex + 2], leg.fp, _hipLateral, _hipForward));
             let eps = flex - HIP_FLEX_MAX;
             _v.subVectors(leg.target, leg.hip);
             _aim.copy(_v).applyQuaternion(_q.setFromAxisAngle(_n, eps));
-            if (_v.y - _aim.y > slack + 1e-6) {
-              // the full turn would take the sole under its envelope: the largest turn that does not
+            if (_v.y - _aim.y > slack + 1e-6 || !clearsHipFootprint(surface, leg.hip, _aim, count, leg.fp, planeGap)) {
+              // Keep a valid endpoint while reducing a turn that violates the envelope or final footprint.
               let lo = 0;
               let hi = eps;
               for (let k = 0; k < 8; k++) {
                 const mid = 0.5 * (lo + hi);
                 _aim.copy(_v).applyQuaternion(_q.setFromAxisAngle(_n, mid));
-                if (_v.y - _aim.y > slack) hi = mid;
+                if (_v.y - _aim.y > slack || !clearsHipFootprint(surface, leg.hip, _aim, count, leg.fp, planeGap)) hi = mid;
                 else lo = mid;
               }
               eps = lo;
