@@ -78,7 +78,7 @@ summary. The runnable final check needs neither that file nor the unpublished
 trial Git object. It reads the exact Git ref supplied, not uncommitted files.
 The optional third argument selects a separate JSON output path. The additional
 [root integration receipt](root-integration-proof.json) records a real PASS on
-root's source004ef8f4 after its canonical tree-context imports; the original
+root's source 004ef8f4 after its canonical tree-context imports; the original
 57eea8c0 delivery receipt remains separate.
 
 ```sh
