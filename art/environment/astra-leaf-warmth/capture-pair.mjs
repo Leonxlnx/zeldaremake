@@ -39,13 +39,13 @@ for (const build of builds) {
       const state = await page.evaluate(() => ({ stats: __ZR__.stats(), camera: __ZR__.cameraPose(), lighting: __ZR__.audit().systems.lighting, trees: __ZR__.audit().systems.trees, hardscape: __ZR__.audit().systems.hardscape, failures: __ZR__.audit().systemFailures }));
       assert.deepEqual(state.failures, []); assert.equal(state.stats.simTime, 12.6);
       report.images[pose.id] = { sha256: hash(png), ...state };
-      fs.writeFileSync(path.join(out, 'manifest.json'), JSON.stringify(report, null, 2) + '\n');
+      fs.writeFileSync(path.join(out, 'manifest.json'), JSON.stringify(report) + '\n');
       console.log(build.label, pose.id, state.stats.drawCalls, state.stats.triangles);
     }
     report.errors = consoleLines.filter(s => /^\[pageerror\]/.test(s) || (/^\[page:error\]/.test(s) && /THREE|WebGL|shader|GL_INVALID/.test(s)));
     assert.deepEqual(report.errors, []); report.complete = true;
   } finally {
-    report.finishedAt = new Date().toISOString(); fs.writeFileSync(path.join(out, 'manifest.json'), JSON.stringify(report, null, 2) + '\n');
+    report.finishedAt = new Date().toISOString(); fs.writeFileSync(path.join(out, 'manifest.json'), JSON.stringify(report) + '\n');
     await browser?.close(); await server.close();
   }
 }

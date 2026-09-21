@@ -75,7 +75,8 @@ Those geometry defects are separate held/prototype lanes.
 - `native-pair/{before,after}-build.json`: immutable bundles, source SHAs and public
   hashes. Before JS6145e298…; after JS1aff24f9…; publicaa8fd950….
 - `native-pair/{before,after}/manifest.json`: native renderer, cameras, scene state,
-  screenshot hashes and console receipts. The four PNGs are raw renderer captures.
+  screenshot hashes and console receipts. JSON is whitespace-compacted, retaining
+  every raw audit value. The four PNGs are raw renderer captures.
 - `native-report.json` / `compare-native.mjs`: provenance, identical submissions,
   timing disclosure and PNG hash verification.
 - `hue-report.json` / `evaluate-hue.mjs`: unchanged prior colour math, masks and
