@@ -37,3 +37,21 @@ this box) shows the 26 / 30 swap already wanting 375 parts / 193 MB inside the 4
 
 Not done here: the 30 m canopy lobes (fable-6 measured C −0.0005 / D −0.0009 for them) — a second step with
 its own measurement, and one that raises the resident set again.
+
+## Negative result: the 30 / 34 m canopy lobes (fable-6 §7 step 4's second half) — not shipped
+
+Tried on top of this branch: `NEAR_CANOPY_IN_M / OUT_M` 26 / 30 → 30 / 34 with the pre-fetch at 50 m (the
+lobe height cap left at 25 m, so no new parts). Measured: six views pixel-identical (the hero pass holds),
+pools 420 / 420 resident with 0 builds / 0 evictions on the walk (wanted 208 MB of 256) — so it is FREE, but
+**at seven walker poses the lobe step changed 0.00–0.01 % of the pixels** (`w22-stairs-u`, `w05-spine-u`, a
+constructed pose 27.9 m from `stair-bank-giant/lobe-2`, `w10-spine-f / l / u`, and the same three isolated
+against the lod25 build). An after that looks like its before. The cause is upstream of the radius: the
+material draws the **40 nearest active lobes** (`NEAR_CANOPY_SLOTS`, the shader's slot array in
+`materials.ts`), and near the plaza more than 40 are active inside 26 m already — the 26–30 m ring never
+reaches a slot; on the north path the eligible lobes at 26–30 m did not surface either. Wider lobes need
+more slots (fable-6 §5.4 counted ≈ 50 near-canopy parts around a standing walker at 25 m) — a
+`materials.ts` uniform-array change (Astra's file), not a radius. Left at 26 / 30.
+
+Also filed: `w10-spine-l` (north path) — the bole at the right of the frame gains its near base with the
+25 m bands (`fable4-lod25-w10-spine-l-bole-2x.png`, 2.7 % of the frame; head → lod25); the lobe step on top
+of it: 0.01 %.
