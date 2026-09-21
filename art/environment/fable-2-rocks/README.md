@@ -16,6 +16,26 @@ B 526 / C 393 / D 394 / E 526 / F 512; A 9.09 M tris on both (the head's number,
 change's — flagged to fable-cursor). Files: `ledge2-x-clearing-n.jpg` (+ `-crop`),
 `ledge2-x-ledge-foot.jpg`, `ledge2-x-northpath-n.jpg`.
 
+## Iteration 33 — round 51's "light on the D face (W23)": a position probe — no shift within 1.6 m leaves the shade
+
+fable-5's round-51 turn order names "light on the D face (W23)" with §L's two options: light on the boulder's south face,
+or the boulder out from under the giant's canopy. The second is a layout move (fable-cursor's), so here is what it would
+buy, measured: four scratch builds (the rock alone moved, nothing landed) rendered at D on the merged head `48156889`,
+the boulder's stone pixels in its projected box:
+
+| shot-D boulder at | in D | stone mean l | p90 |
+|---|---|---|---|
+| (−2.6, −9.6) — the layout's | 7.2 m | **0.293** | 0.397 |
+| +1.2 m east (−1.4, −9.6) | 6.9 m | 0.281 | 0.428 |
+| south-east (−1.6, −8.4) | 5.8 m | 0.279 | 0.394 |
+| +1.6 m south (−2.6, −8.0) | 5.8 m | 0.269 | 0.330 |
+| −1.6 m north (−2.6, −11.2) | 8.7 m | 0.282 | 0.361 |
+
+Every spot is as shaded as the layout's (`dlight36-D_log-shifts.jpg`): the giant's canopy shadow covers D's whole left
+foreground, so **the position is not the lever — light on the face is** (a warmer fill or a canopy gap over the bank:
+trees / lighting, not rocks; the frame's rock reads l 0.33 with lit planes). The stone's hue and chroma are on the frame
+now (55° / 0.36 vs 52° / 0.36) after the hue branch merged.
+
 ## Iteration 32 — the reciprocal prop check: fable-3's backside props vs my rock bodies; the V21 anchor moved off their squat pot — `agent/fable-2-v21` @ `a1dcf4f6`
 
 fable-3 replicated my contour walk to catch a slab on their pots (§29); the reciprocal check, offline on the same
