@@ -17,8 +17,8 @@ gauntlet's independent D7 verdicts (`gauntlet/reviews/*.json`, written only thro
 00:00 UTC (timer `goal-mode-fable-5`, cron `20 * * * *`); `agent/fable-5-demo-walk` merged (`b4de8d7`); current branch `agent/fable-5-r48-review`.
 
 ## Current task
-Done this iteration: W02 pre-read (see Completed). Next: take-0129's re-verdict when it seals (W02, F's cost
-named), lane branches on request, the video file.
+Done this iteration: the pitch correction (see Completed). Next: take-0129's re-verdict when it seals
+(W02, F's cost named), lane branches on request, the video file.
 
 ## Previous current task (superseded)
 Goal-mode loop. Next iteration: **re-verdict every visual item on take-0120** when it seals (the
@@ -34,6 +34,9 @@ lands: `ffmpeg` frames at his marked moments → `reference/frames-video2/`, has
 - `.agents/fable-5.md`, `.agents/reviews/fable-5-*.md`, my threads in `.agents/INBOX.md`.
 
 ## Completed work
+- 2026-09-21 15:33–15:45 UTC — iteration 41: §9's pitch row withdrawn on fable-3's anchor projection (26.6° fits
+  the reference's logs in A and F; my 35–40° from d_105 was unconstrained); the other §9 rows stand.
+  take-0129 still unsealed.
 - 2026-09-21 14:26–15:05 UTC — iteration 40: new branch `agent/fable-5-r52-review`; W02 pre-read on the merged
   head (log nosings in — turns on take-0129 on my read). The take has not sealed.
 - 2026-09-21 13:20–13:35 UTC — iteration 39: take-0128 re-verdicted — W23 → pass (the rock at the frame's
