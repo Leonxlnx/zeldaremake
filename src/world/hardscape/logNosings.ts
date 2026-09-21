@@ -93,8 +93,11 @@ export function buildLogNosings(def: StairDef, seed: string): LogNosingBuild {
     return [wx, def.base[1] + y, wz];
   };
   const tmpC = new Color();
-  const mossCol = new Color(0.5, 0.9, 0.34);
+  const mossCol = new Color(0.62, 1.0, 0.42);
   const dampCol = new Color(0.78, 0.74, 0.7);
+  // the weathered crown: sun-bleached silver-grey timber — the frames' flight is a row of LIT lips
+  // (A: 15 lips at l 0.45–0.59 over troughs 0.24–0.36) and a dark log killed them (A −0.0033, F −0.0129)
+  const crownCol = new Color(1.9, 1.85, 1.7);
 
   /**
    * a cylinder along `axis` from `a` to `b` (world), radius `r` with a per-ring wobble and bark
@@ -202,6 +205,9 @@ export function buildLogNosings(def: StairDef, seed: string): LogNosingBuild {
         tmpC.setRGB(tone, tone * 0.97, tone * 0.93);
         const under = smoothstep(0.1, -0.6, up);
         tmpC.lerp(dampCol, 0.55 * under);
+        // the crown bleaches toward silver-grey (the lit lip), the front stays bark, the underside damp
+        const crown = smoothstep(0.0, 0.75, up);
+        tmpC.lerp(crownCol, 0.75 * crown);
         const mossField = mossN.fbm(t * 4.2 + i * 1.7, ang * 0.8 + 0.5, 2) * 0.5 + 0.5;
         const moss = smoothstep(0.25, 0.85, up) * smoothstep(0.42, 0.62, mossField);
         tmpC.lerp(mossCol, 0.7 * moss);
