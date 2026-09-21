@@ -496,7 +496,13 @@ export const LAYOUT = {
     // 0.57–1.15 m ring that whiteGround() had rejected, its stream shifted, and a white clump
     // landed within 0.45 m of the lawn band's second authored "mossy stone" spot (−3.05, −8.7),
     // which then failed all 24 tries (plants.test.mjs: mossy stones 2 < 3).
-    { id: 'shot-d-boulder', position: [-2.6, 0, -9.6] as [number, number, number], radius: 0.6, clearRadius: 0.9 },
+    // fable-2 (W23, fable-cursor 07:45 "layout go"): the frame's rock stands at the path's west edge in front of the
+    // fern bank, ≈ 5 m from camera D (ray-cast of reference D's rock: ≈ (−2.0, −7.9)); ours stood 7.2 m out under
+    // the ferns. (−2.0, −7.6): 0.24 m nominal from the emergent column's bole at (−3.1, −7.9), its east edge
+    // 6 cm over the paving's west edge (the frame's rock sits ON the path's edge). r 0.75 as asked cannot fit the
+    // 1.38 m gap between bole and paving with 0.3 m of bole clearance (r ≤ 0.54 for both) — the frame's size
+    // comes from the distance instead: 0.6 at 5.2 m is 38 % larger in D than 0.6 at 7.2 m.
+    { id: 'shot-d-boulder', position: [-2.0, 0, -7.6] as [number, number, number], radius: 0.6, clearRadius: 0.9 },
     // right edge of shot A (≈ 0.9, 0.7): the mossy rock the Kokiri kid stands beside
     { id: 'stair-foot', position: [9.1, 0.2, 2.5] as [number, number, number], radius: 1.0 },
   ] as { id: string; position: [number, number, number]; radius: number; clearRadius?: number }[],
