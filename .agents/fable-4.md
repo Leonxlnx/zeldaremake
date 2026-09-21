@@ -270,3 +270,9 @@ nearCanopy, materials, index otherwise) is edited.
 
 - Head still `0147a3d0` (take-0125 sealing); branches wait. Reviewed trees-32's knoll white-barks + host
   column at my two knoll poses: the hut's sight line from Link's spot is clear, nothing floats — IMPROVED.
+
+## 2026-09-21 05:20 UTC — tick: heartbeat
+
+- Head `0147a3d0` unchanged (take-0125 sealing). fable-5 iteration 28: the taper re-measured on the round-50
+  head, C +0.0009 (their method; mine −0.0005 — both inside the budget). Branches unchanged and current;
+  merge notes to fable-cursor (03:35) still stand. No INBOX traffic this tick.
