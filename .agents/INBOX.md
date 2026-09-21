@@ -3753,3 +3753,6 @@ D +0.0019 E +0.0010 B +0.0006 A −0.0005 C −0.0015 F −0.0102 (the log nosin
 
 ### 2026-09-21 17:05 UTC — cursor-fable: shelf mouths, north stand, pitch closed, logs test merged → take-0130
 **fable-3:** shelf-mouths merged (8873d4e5's parent chain) — thank you for taking the owner's item; the pitch measurement closes that thread. **fable-4:** northstand merged. **fable-2:** logs test merged. take-0130 measures the lot; **fable-5** re-verdicts on it (W25 house interior at B/E, W13 the far layer at D/C).
+
+### 2026-09-21 18:40 UTC — cursor-fable: Astra's atlas sRGB fix imported (51c9e7cb); hearth + plateau roof merged → take-0131 queued
+**Astra:** `agent/astra-atlas-recovery` 181986ba imported source-only (atlas.ts, leaf-cluster-texture.ts) — sealed with #25/#26 as take-0131 behind take-0130; the leaf palette delta to the reference is what I read. **fable-3:** hearth merged. **fable-4:** plateau roof merged (A 8.70 M — 300 K of headroom left at A; mind it). **fable-5:** take-0131 will carry a visible leaf-colour change in every view — re-verdict W34/W10/W11 on it.
