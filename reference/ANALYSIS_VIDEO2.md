@@ -518,3 +518,37 @@ the distant-crown change in `a9eccd15` shows the risk the other way — removing
 cores cost F −0.030 and C −0.025 against the reference because the canopy's *mass* went with them
 (§F of `.agents/reviews/fable-5-r49-branches.md`). Detail in the distance has to keep the dark
 silhouette the frames have.
+
+## 8. Status of V1–V21 at take-0125 / head `48156889` (2026-09-21 07:30 UTC)
+
+What the rounds since take-0116 did to the numbered list, from my verdicts (`gauntlet/reviews/`) and
+branch measurements (`.agents/reviews/fable-5-r49-branches.md`, `fable-5-r50-branches.md`). "Unverified"
+means no measurement of mine covers it yet, not that it is open.
+
+| # | status | evidence |
+| --- | --- | --- |
+| V1 arch silhouette | **closed** — flat-top crown ≈ 2.2 : 1 (structures-33, D +0.0034), pinpoint lanterns since round 48 | W29 pass on take-0125 |
+| V2 no world beyond the arch | **open** — the window shows the north path, a sign and cones; the frame's trunks-and-lights layer is trees-32 / astra-distance | §6.6 structural half; r49 §E |
+| V3 right-bank stair from a low lawn | unverified at D since expansion-2 | — |
+| V4 house interior black | **closed** — lit, furnished hollow | W25 pass |
+| V5 pods in a row | **closed** (six clustered under the eave, frame 7–8) | W26 pass |
+| V6 doorway without buttresses | partly — the expansion huts got knotted buttresses (structures-33); the main house's door frame unverified at B | — |
+| V7 no mist veil | improved — mist pools under the arch at D and veils the plaza from the lookout; B's north path unverified | W32 pass; r48 walk |
+| V8 slabs 1–1.5 m with orange grout | **closed in scale** (span p50 1.06 m, joints 9.5 cm, hardscape-32); **seams overshoot** — joint-like dark px 12.0 % at E vs the frame's 5.4 %, slabs 0.03 darker | §7.2, r49 §T |
+| V9 hero boulder unlit behind ferns | improved, **open** — 0.2 m prouder, bare warm face (loaf + value + hue merged); the face sits in canopy shade at l 0.24–0.26 vs the frame's 0.27 and half its chroma; fable-2's four position probes all in shade | r49 §L, §O; W23 fail |
+| V10 purple heads everywhere | open (nit) | W18 pass with the note |
+| V11 girl without fairy, A-pose | **closed, then hidden** — fairies above-left and a look-around (npc-3); NPCs hidden by the owner's ~21:00 priority | r49 §O |
+| V12 second house on a pole + pebble pile at B | unverified | — |
+| V13 the 2:22 corridor | partly — the ledge wall stands with beds and relief (fable-2), the tunnel is dark with a bright exit (§E); the corridor's shade between them unmeasured | r49 §E, §L |
+| V14 pod posts 1–2 pods on a hook | open (unverified since round 48) | — |
+| V15 no closure W / S / N | **mostly closed** — a fence-topped bank, walkway deck and giant to the west, the south bank with its pair and flight (expansion-2, fable-2, fable-3); the north-west / far hut wait for a pose | r49 walk |
+| V16 slab scale | **closed** (see V8); seams the next pass | §7.2, r49 §T |
+| V17 tread gradient inverted | **open** — 0.31 → 0.18 → 0.17 at `w23-stairs-f`, unchanged by the tread lightening: the upper flight is in canopy shade, the frame's climbs into a haze gap — a light, not an albedo | r49 §T |
+| V18′ cut-stone flight | **open** — W02 fail on take-0125; RUBRIC_PROPOSALS carries the log-riser criterion | W02 |
+| V19 tunnel not a tunnel | **tonal half closed** (frame 0.147 vs 0.141, window : wall 5.8 vs 5.0); structural half = V2 | r49 §E |
+| V20 pale pairs at the banks' feet | **landed on the south bank** (smaller and greyer than `d_087`'s); the other banks open | r49 §I |
+| V21 the C-frame anchor | **landed** — the stair-foot loaf replaced by the anchor at (7.2, 3.1) (merged `7eb5f707`; C +0.0032, F −0.0042 for a rock the frame never had) | r49 §N, §P, §S |
+
+Baseline note for the six views: two owner-approved changes moved them since take-0123 — NPCs hidden
+(C −0.0018, E +0.0037) and the demo-scale paving (B −0.0103, C −0.0118, F −0.0151 on take-0125). Deltas
+of that size in the next takes are those, not a lane's drift.
