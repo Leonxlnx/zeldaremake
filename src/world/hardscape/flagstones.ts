@@ -777,15 +777,8 @@ const BREAK_MIN_ACROSS = 0.45;
  * (1.0–1.25 m) in 7–12 cm turf joints; jitter 0.4 of the spacing
  */
 const LAWN_SPACING = 1.15;
-/**
- * soil stain on a slab's flank at the joint-fill line (0 = bare stone, 1 = the seam's soil tone); fades to 0 at the shoulder.
- * (fable-2 for hardscape, V16 — fable-5 on the round-50 head: the stones are the frame's count but "the seams are twice as
- * dark / wide as the frame's" (joint-dark share E 12 % vs 5.4 %). At the 1 m scale there are twice the edges per m², so the
- * per-edge dark band — the stained flank plus the shaded shoulder — doubles the dark area although the joint itself is the
- * frame's 6–10 cm. The stain at 0.7 → 0.4 and the flank's own darkening eased below; the joint fill's tone, which already
- * matches `d_097`'s joint mean, stays.)
- */
-const FLANK_STAIN_AT_FILL = 0.4;
+/** soil stain on a slab's flank at the joint-fill line (0 = bare stone, 1 = the seam's soil tone); fades to 0 at the shoulder */
+const FLANK_STAIN_AT_FILL = 0.7;
 
 export function placeFlagstones(pc: PavingContext, material: Material): PavingResult {
   const { terrain, rng, bbox } = pc;
@@ -1660,8 +1653,7 @@ export function placeFlagstones(pc: PavingContext, material: Material): PavingRe
     const footStain = (FLANK_STAIN_AT_FILL * (1 + 0.2 * flankW) * wallH) / (wallH - fillH);
     // (round 48: a further 0.1 off the flank — reference E at 2× shows the slabs' edges as a dark
     // band 3–5 cm tall under every top; ours were lit like the top and read as stickers)
-    // (V16: the flank a shade lighter than round 48's — the seam's dark line is the fill's, the wall is stone)
-    const flankK: [number, number, number] = [1 - 0.14 * flankW, 1 - 0.16 * flankW, 1 - 0.2 * flankW];
+    const flankK: [number, number, number] = [1 - 0.24 * flankW, 1 - 0.26 * flankW, 1 - 0.31 * flankW];
 
     // 5. build the stone into the shared geometry and place it
     const from = all.vertexCount;
@@ -1727,8 +1719,7 @@ export function placeFlagstones(pc: PavingContext, material: Material): PavingRe
       dip: -crown,
       color: tint,
       sideColor,
-      // (V16: the rolled shoulder as bright as the top — the frame's slab edges catch the light, they do not rim the stone dark)
-      bevelColor: [tint[0] * (1 - shoulderMix) + sideColor[0] * shoulderMix, tint[1] * (1 - shoulderMix) + sideColor[1] * shoulderMix, tint[2] * (1 - shoulderMix) + sideColor[2] * shoulderMix],
+      bevelColor: [tint[0] * 0.95 * (1 - shoulderMix) + sideColor[0] * shoulderMix, tint[1] * 0.95 * (1 - shoulderMix) + sideColor[1] * shoulderMix, tint[2] * 0.95 * (1 - shoulderMix) + sideColor[2] * shoulderMix],
       sideStain: footStain,
       // (round 23: the shoulder moss at 30 % on the open paving and the lawn slabs, 75 % in the
       // damp band's seams - frame 1 s / 56 s: moss in a few joints, not a film round every slab;
