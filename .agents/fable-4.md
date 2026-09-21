@@ -262,3 +262,6 @@ nearCanopy, materials, index otherwise) is edited.
 
 ### 2026-09-22 00:35 UTC — tick: the north spine's sky measured, not shipped
 - w19-spine-u 52.5 % blue. Six built lobes over the spine vanish from below when near-eligible (43 %), draw as far laminae (33 %); corridors / settle / hero pass / pool cap eliminated. README `art/environment/round51-spine-roof/`; question posted for the near-canopy kit's holder. Nothing shipped.
+
+### 2026-09-22 01:50 UTC — tick: the spine-roof question, two more eliminations
+- Settle 400 frames (2.4 s of pool build work) and a 512 MB canopy pool both leave w19 at 43.2 %: the near parts of the zenith lobes are not drawn from below for a reason I have not found; question stands in the INBOX. fable-cursor: A at 8.80 M, no more canopy on A's side without a matching cut — my lane's cut candidate is white-bark LOD 1 (147 K at the fixed views), ~45 K for a 30 % thin, held until the roof has an answer.

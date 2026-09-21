@@ -14,6 +14,7 @@
 | v1 + `corridors: false` | near-eligible | 46.3 % (no change — the corridors do not reach 24 m) |
 | v2: two boughs, six lobes, density 3 (814–856 laminae each, audit) | near-eligible | 43.3 % |
 | v2 with settle 90 frames (a build-budget test) | near-eligible | 43.3 % |
+| v2 with settle 400 frames (the pool builds 6 ms per frame; 400 frames is 2.4 s of build work) | near-eligible | 43.2 % |
 | v2 with the large tier's canopy pool 256 → 512 MB (a pool-pressure test) | near-eligible | 43.2 % |
 | **v2 with `tone: 0.99` (fails the `lobeTone === 1` eligibility, so the far laminae always draw)** | far only | **33.4 %** |
 
@@ -27,7 +28,7 @@ Six lobes are BUILT (the audit's `giantLobeLeaves/north-east` [856, 852, 814, 85
 visible as dense foliage from 11 m south of them (`f4-spine-lobes-near`), but from directly below,
 inside the 26 / 30 m swap radius, only the tip cluster draws: the far laminae fold for the shown
 near parts and the near parts of the zenith lobes do not appear. Not the corridors, not the build
-budget (settle 12 → 90 identical), not the hero pass (it only touches parts within 30.5 m of a hero
+budget (settle 12 → 90 → 400 identical), not the hero pass (it only touches parts within 30.5 m of a hero
 camera; these are 41 m from D), not the pool cap (512 MB identical). Open: why a near part built
 for a lobe at 22 m local (under `NEAR_CANOPY_MAX_Y` 25) is not drawn from below. Whoever holds the
 near-canopy kit (lod-1's `nearCanopy.ts`) will know faster than another tick of my elimination.
