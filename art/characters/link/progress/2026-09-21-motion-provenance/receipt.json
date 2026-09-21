@@ -1,0 +1,43 @@
+{
+  "scope": "Small motion provenance restoration; no binary assets copied or downloaded.",
+  "verifiedDate": "2026-09-21",
+  "official": "https://quaternius.com/packs/universalanimationlibrary.html",
+  "mirror": "https://github.com/J-Ponzo/gltf-universal-animation-library",
+  "mirrorCommit": "e24c23cf2a1323488a3faa226ea7ea21f644b73e",
+  "originalReceiptRetrievedUTC": "2026-09-16T05:00:21.9312494Z",
+  "originalRootStatus": "All five local files untracked; git check-ignore finds no ignore rule.",
+  "targetStatusAtRestore": "Previously absent/untracked, no ignore rule; SOURCE.json and LICENSE now restored, pending root staging.",
+  "sourceReceiptSha256": "221f368f4e7c9d8c1f052ebd5a6ffec32ff1821faef061004467a6d5b195ffc2",
+  "existingLocalFilesMatchRecordedSha256AndPinnedMirrorGitBlobs": [
+    {
+      "name": "AnimationLibrary_Godot_Standard.bin",
+      "bytes": 1587224,
+      "sha256": "6e65377d81558333c4093dbb144a48fd19019343d82b1a3a7992a98ec0e0543c",
+      "pinnedMirrorGitBlob": "481652b8b1571b15c254b44f4d9b9f702498f948"
+    },
+    {
+      "name": "AnimationLibrary_Godot_Standard.gltf",
+      "bytes": 2459987,
+      "sha256": "0ff075c7ad6855c5c2c37a171592ee8f0d6ab2f58259e2be77a9b63dd8027765",
+      "pinnedMirrorGitBlob": "d9e132ad1d41089f8f96488775829d220a4beb05"
+    },
+    {
+      "name": "LICENSE",
+      "bytes": 7048,
+      "sha256": "a2010f343487d3f7618affe54f789f5487602331c0a8d03f49e9a7c547cf0499",
+      "pinnedMirrorGitBlob": "0e259d42c996742e9e3cba14c677129b2c1b6311"
+    },
+    {
+      "name": "README.md",
+      "bytes": 1051,
+      "sha256": "370e6ff244ef43b269f936be7d630a77a3eb7ed8bbc3315ffcae5b327b814fcb",
+      "pinnedMirrorGitBlob": "a3f34ff7c0cc8ea89e18287188daea504ec3c696"
+    }
+  ],
+  "copiedFiles": [
+    "SOURCE.json",
+    "LICENSE"
+  ],
+  "upstreamReadmeNotCopied": "Its license link points to a different medieval-village repository; preserved upstream checksum remains in the original receipt.",
+  "limits": "Receipt supports the Quaternius Jog_Fwd_Loop motion input. It does not replace native authoring baselines or assign a license to the complete character or game."
+}

@@ -1,3 +1,6 @@
 # These files are verified byte-for-byte; keep their canonical Git line endings.
 gauntlet/rubric.json text eol=lf
 gauntlet/RUBRIC.md text eol=lf
+# Preserve the recorded source receipt and upstream license hashes on every host.
+reference/animations/quaternius-standard/SOURCE.json -text
+reference/animations/quaternius-standard/LICENSE text eol=lf
