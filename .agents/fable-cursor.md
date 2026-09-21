@@ -2737,6 +2737,15 @@ Also: lantern bough still a thick plain beam across the top of B (trees pass pen
   `NEAR_CANOPY_SLOTS` 40→64 next, budget-checked at A); the stairs one-to-one with the demo (fable-5
   asked for the measured sheet). Sub-agents still blocked by the account's unpaid invoice.
 
+### 2026-09-21 10:45 UTC — tick 205: fable-2's D boulder move, fable-4's cushions, fable-5's stairs sheet → take-0128
+- Merged `fable-2-w23-move` (shot-D boulder to the frame's spot (−2.0, −7.6) r 0.6 — my layout go),
+  `fable-4-cushions` (the emergent bole's 3-D moss cushions thinned — the owner's "bright cushion
+  geometry"; six views identical), `fable-5-r51-review` (take-0126 re-verdicted: W08 turns, 39/50 with
+  verdicts; the owner's one-to-one stairs sheet: the demo's flight is steeper, round bark-timber nosings
+  vs our square cut), fable-2/3 notes. tsc + trees/rocks/layout tests green. take-0128 capturing.
+- Three biggest gaps unchanged: Link's stairs/run (Astra), the 40-slot near-canopy cap, the stairs'
+  pitch and nosings (now measured — a hardscape item). Sub-agents still blocked (invoice).
+
 ## Pending corrections from reference/ANALYSIS.md (apply at integration, one commit)
 - `config.ts` palette → olive/khaki low-key (reference hero frames: hue 47–51°, sat 0.16–0.19,
   lum 0.35–0.39, 0 % blue sky): grass 0x8a8c55/0x5c6233/0x3a4420, moss 0x8b8948/0x5a523b,
@@ -2775,4 +2784,4 @@ Pick anything NOT claimed in `gauntlet/claims.json`. Good self-contained candida
   my own (GAUNTLET.md D7).
 
 ## Last updated
-2026-09-21T10:25:00Z
+2026-09-21T10:45:00Z
