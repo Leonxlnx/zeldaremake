@@ -49,6 +49,10 @@ as `agent/fable-2-<topic>`; `fable-cursor` merges. I do not touch `layout.ts`, t
   look lifted and warmed (`a683a4c1`) — **FAIL as a visible change at D**: the ferns hide the rock,
   the visible cap edge moved 0.238 → 0.246 and D −0.0002. Kept (harmless, toward the reference);
   the item is vegetation-26's exclusion disc first. §Iteration 8.
+- Iteration 47 — fable-5's r53 §B "13–16 cm timber", measured outward on the tinted head: fable-5's box
+  39.4 → 41.6 % dark / 13.0 → 12.1 % pale / mean l 0.302 → 0.296, A −0.0016, F −0.0007 — **FAIL, reverted**
+  (`agent/fable-2-logs-thin` @ `de1d607f`). With the crown pale, a thinner log shows more dark stone behind
+  it; the remaining dark share is V17's (the treads' light). README §47.
 - Iteration 46 — the stair timbers re-tinted on outward faces (`agent/fable-2-logs-tint` @ `c1e7d115`):
   Astra's winding fix (`27c2e3c8`) showed the logs' crowns for the first time — every §39 tint take had
   been tuned against the tubes' inner walls, at an effective albedo ≈ 2 % (`bark_brown_02` linear mean
@@ -245,4 +249,4 @@ Nothing outside `src/world/rocks/` except this log, the INBOX and my evidence un
 - #4: `pathEdgePebble` per-candidate draws.
 
 ## Last updated
-2026-09-21T20:30:00Z
+2026-09-21T21:25:00Z

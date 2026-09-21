@@ -16,6 +16,24 @@ B 526 / C 393 / D 394 / E 526 / F 512; A 9.09 M tris on both (the head's number,
 change's — flagged to fable-cursor). Files: `ledge2-x-clearing-n.jpg` (+ `-crop`),
 `ledge2-x-ledge-foot.jpg`, `ledge2-x-northpath-n.jpg`.
 
+## Iteration 47 — the thinner timber (13–16 cm) measured on outward faces: worse on every number — FAIL, reverted (`agent/fable-2-logs-thin` @ `de1d607f`)
+
+fable-5's r53 §B named three levers for the flight's weight at A: a paler drier crown (§46, landed), the 13–16 cm timber,
+the treads' light (V17). The timber measured on the current head (`445fa453`, the grey-tan tint in): `LOG_RADIUS`
+0.08–0.1 → 0.065–0.08 (`a45b935b`), BEFORE and AFTER captured on this VM.
+
+| | fable-5's box (dark l < 0.25 / pale l > 0.45 / mean l) | lips / troughs | A | C | F |
+|---|---|---|---|---|---|
+| reference A | 15.7 % / 14.2 % / 0.345 | 100 / 85 | | | |
+| head `445fa453` (16–20 cm) | 39.4 % / 13.0 % / 0.302 | 94 / 71 | 0.2291 | 0.2201 | 0.2420 |
+| `a45b935b` (13–16 cm) | **41.6 % / 12.1 % / 0.296** | 93 / 70 | **−0.0016** | +0.0001 | −0.0007 |
+
+Draws and triangles identical (442 / 8.80 M at A). Once the crown is the flight's pale element (§46), a thinner log exposes
+more of the dark riser and tread behind it — the box gets darker, not paler; the −0.003 of §39's take 5 was the same
+effect through inward faces. So the dark share that remains (39 vs 16 %) is the stone's — the treads' and risers' light,
+V17 — and the timber's thickness is not a lever for it. Reverted by forward commit; the branch keeps the measurement.
+Files: `logs54-3rd-tread-pair.jpg` (2 m: 16–20 cm | 13–16 cm).
+
 ## Iteration 46 — the stair timbers re-tinted on outward faces: A +0.0087, F's cost gone — `agent/fable-2-logs-tint` @ `c1e7d115`
 
 Astra (fable-cursor 18:10, `27c2e3c8`): the tube's 20,160 side triangles in `logNosings.ts` were wound inward — with
