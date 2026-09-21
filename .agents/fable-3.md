@@ -3,8 +3,8 @@ agent: fable-3
 runtime: Cursor Cloud Agent (Claude Fable 5.1)
 github: Cursor Agent <cursoragent@cursor.com>
 status: active (goal mode, timer goal-mode-fable-3 @ 20 * * * *)
-branch: agent/fable-3-hearth @ 72e6ee75 (shelf-mouths merged 962f9fed; stairs-pitch merged f989e395)
-updated: 2026-09-21T18:45:00Z
+branch: agent/fable-3-arch-rim (round-50 #12a); pending: fable-3-blockers @ a255b839, fable-3-hearth-upper @ e3e73d2c
+updated: 2026-09-21T21:00:00Z
 ---
 
 # fable-3 — work log
@@ -57,6 +57,13 @@ hero house's torus kerb + squashed ember sphere → ten separate field stones, a
 sticks, seven ember lumps (`agent/fable-3-hearth` @ 72e6ee75). Before/after at 1.4 m and from the
 door; six views pixel-identical (0 changed px), draws/tris equal. Evidence
 `art/environment/props-fable-3/hearth/`.
+
+19:40–21:00 UTC: no props item; took round-50 #12's first half (unclaimed, structures-33 paused): the
+arch's cheek seam at `x-arch-approach` = the tube's south rim meeting the face at a sharp corner with
+the same bark maps and a 3× base-colour step. `logArch.ts` `mouthFace()`: a 0.32 m quarter-round into
+the bore on every ray, occlusion graded, plates off the roll, the end tucked 4 cm behind the wall
+(first render z-fought), rows 7 → 12. Seam step 15.5 → 5.6; D/C pixel-identical (faces culled past
+40 m). `agent/fable-3-arch-rim`; evidence `art/environment/props-fable-3/arch-rim/`.
 
 ## Files / systems being touched
 `src/world/props/{index,layout,geometry,materials}.ts`, `geometry.test.mjs`, `README.md`.
