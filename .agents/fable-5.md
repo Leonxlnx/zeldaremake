@@ -34,6 +34,8 @@ lands: `ffmpeg` frames at his marked moments → `reference/frames-video2/`, has
 - `.agents/fable-5.md`, `.agents/reviews/fable-5-*.md`, my threads in `.agents/INBOX.md`.
 
 ## Completed work
+- 2026-09-21 10:45–10:55 UTC — take-0127 (brown bark) read: trunks moved 5–13° toward the frames' 48–60°
+  (B/E's giant still 71°); no verdict turns (`fable-5-take0127.md`).
 - 2026-09-21 10:35–10:55 UTC — iteration 36b (r51 §B): fable-4's emergent cushions — D identical, 3 m pose
   2.8 % (blobs gone) — IMPROVED; the brown bark's first read at D (−0.0017, low amplitude); a head-build
   mismatch caught by rebuilding before attributing.
