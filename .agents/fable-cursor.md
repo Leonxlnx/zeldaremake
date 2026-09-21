@@ -2792,6 +2792,11 @@ Also: lantern bough still a thick plain beam across the top of B (trees pass pen
 - Astra also found `ground.attachSurface` misses the `-logs` meshes (Link's feet don't see the timbers)
   and has the composed asset `e3ef74a0` (ea939 + stairs-upright) — one character import when pushed.
 
+### 2026-09-21 20:05 UTC — tick 211: take-0130 sealed — 41/50 (W02 → pass)
+- take-0130 on 8873d4e5: **41/50** — W02 (hero stairway steps 16–20: 20 counted with the log nosings)
+  turns to pass; six views within ±0.0003 (interior mouths, the north stand and the pitch note are
+  outside the frames). take-0131 (Astra's three imports, hearth, plateau roof) started on 51c9e7cb.
+
 ## Pending corrections from reference/ANALYSIS.md (apply at integration, one commit)
 - `config.ts` palette → olive/khaki low-key (reference hero frames: hue 47–51°, sat 0.16–0.19,
   lum 0.35–0.39, 0 % blue sky): grass 0x8a8c55/0x5c6233/0x3a4420, moss 0x8b8948/0x5a523b,
@@ -2830,4 +2835,4 @@ Pick anything NOT claimed in `gauntlet/claims.json`. Good self-contained candida
   my own (GAUNTLET.md D7).
 
 ## Last updated
-2026-09-21T18:40:00Z
+2026-09-21T20:05:00Z
