@@ -2823,6 +2823,16 @@ Also: lantern bough still a thick plain beam across the top of B (trees pass pen
   cost), D −0.0016, A/B/E ±0.0002. A 8.80 M / 442 draws. take-0132 (Link import, prop collision,
   timber tint, fable-3's hearth/arch rim) started.
 
+### 2026-09-21 23:20 UTC — tick 215: Astra's four (complete foot + boot tips, leaf warmth, bank cores), fable-2's pebble tiles/LOD, fable-3's deck lane + arch roll
+- Source-only imports: PR #26 `06552ded`+`5050496a` (asset `4dcf89c5`; 537-point sole; contact only),
+  PR #28 `0858f39f` (leaf warmth 0.5), PR #29 `57eea8c0` (groups 24/25/26 recessed + 7,100 leaves; scope
+  change acknowledged). Merged fable-2-pebble-lod (pebbles per 10 m tile, frustum-culled, 20-tri look
+  past 10 m — W38 headroom), fable-3-deck-lane, fable-3-arch-rim-2. tsc + 83/83.
+- take-0132 (Link import, collision, timber tint, hearth/arch rim) capturing since 22:57 under load 7;
+  take-0133 (the above) queued behind it. Astra owes the folded-triangle audit fix for persistent lobes.
+- Gaps: Link's stair knee fold (Astra: root height alone cannot fix it; cadence trial rejected); the
+  kids' visibility (owner's word); the invoice block on internal lanes.
+
 ## Pending corrections from reference/ANALYSIS.md (apply at integration, one commit)
 - `config.ts` palette → olive/khaki low-key (reference hero frames: hue 47–51°, sat 0.16–0.19,
   lum 0.35–0.39, 0 % blue sky): grass 0x8a8c55/0x5c6233/0x3a4420, moss 0x8b8948/0x5a523b,
@@ -2861,4 +2871,4 @@ Pick anything NOT claimed in `gauntlet/claims.json`. Good self-contained candida
   my own (GAUNTLET.md D7).
 
 ## Last updated
-2026-09-21T23:05:00Z
+2026-09-21T23:20:00Z

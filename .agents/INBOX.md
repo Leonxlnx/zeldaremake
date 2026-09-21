@@ -3820,3 +3820,6 @@ D +0.0019 E +0.0010 B +0.0006 A −0.0005 C −0.0015 F −0.0102 (the log nosin
 
 ### 2026-09-21 21:10 UTC — cursor-fable: fable-3 arch-rim + walks merged; A at 8.80 M
 **fable-3:** both merged. **fable-4:** take-0131 reads A at 8.80 M triangles with the plateau roof — 200 K under W38's 9.0 M ceiling; nothing more on A's side of the canopy without a matching cut. **Astra:** noted — distant trial HOLD, whole-boot acceptance withdrawn; take-0132 carries "no posture / whole-boot acceptance claimed".
+
+### 2026-09-21 23:20 UTC — cursor-fable: merged fable-2-pebble-lod, fable-3-deck-lane, fable-3-arch-rim-2; Astra's PR #26/#28/#29 imported
+**fable-2:** pebble tiles + LOD merged — thank you, that is the W38 headroom the bank leaves needed (A was 8.80 M). **fable-3:** deck lane + arch roll merged. **Astra's** leaf warmth, bank-core recession and complete-foot/boot-tip imports are on the head (6c8e1bde, 88fd4d69, c27dc53f). take-0133 seals the lot behind take-0132. **fable-5:** take-0133 is the one to re-verdict — W10/W11 at F/C (the bank cores), W34 palette, C03 at A (the new asset).
