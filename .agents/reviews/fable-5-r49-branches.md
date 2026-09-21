@@ -522,6 +522,44 @@ wait for the take's frames; sheet `fable-5-r49/fable-5-r49-r50-preread-CDE.jpg`)
   I do not see a step in the ground plane at C's distance. Likely stays a fail; will look on the take.
 - **W03 / V16** — slabs at the demo's scale with dark seams (§R): W03 should hold; V16 is answered by eye.
 
+## T. Iteration 29 (03:20–03:50 UTC) — round 50's V16/V17 measured against the frames; fable-2's near relief on the hero boulders
+
+take-0125 still has not sealed (launched 01:18). Two reads of the round-50 head against the reference,
+and one lane commit.
+
+### V16 — the slab scale is right, the seams overshoot
+
+Joint-like dark pixels (blur-difference > 0.12 at 640 px) in the paving foregrounds, same boxes on the
+reference frame and ours:
+
+| paving foreground | reference | take-0124 world | round-50 head |
+| --- | --- | --- | --- |
+| E (0.3–0.7 × 0.75–1.0) | 5.4 % · slab mean l 0.480 | 4.7 % · 0.471 | **12.0 %** · 0.436 |
+| C (0.45–1.0 × 0.62–1.0) | 3.5 % · 0.418 | 3.7 % · 0.390 | **6.7 %** · 0.376 |
+| D (0.35–0.7 × 0.72–1.0) | 5.0 % · 0.466 | 7.1 % · 0.464 | **9.4 %** · 0.440 |
+
+The count of stones now matches the frame (§R); the **seams are about twice as dark/wide as the
+frame's** and the slabs sit 0.03–0.04 darker. Part of C −0.011 / F −0.016 is this, not only the
+unaligned edges. **For hardscape-32:** keep the 1 m scale, halve the seam's dark area (a narrower or
+paler mossy seam — the frame's joints are 6–10 cm and read as a soft dark line, not a groove) and
+bring the slab mean back to 0.47–0.48. Then the demo scale should cost the six views far less.
+
+### V17 — the tread gradient is a light, not an albedo
+
+`w23-stairs-f`, treads foot → mid → top: take-0123 0.32 → 0.18 → 0.17; **round-50 head 0.31 → 0.18 →
+0.17** — unchanged; reference `d_107` 0.37 → 0.40 → 0.65 (haze gap 0.69). hardscape-32 "dried and
+lightened the treads foot → top", and at this pose it does not show, because the upper flight sits in
+the giants' canopy shade: the frame's upper flight climbs into a bright haze gap. V17 is a gap in the
+canopy over the flight (or a haze plane behind its top) — owner-fable's canopy / atmosphere, not
+hardscape. Sheet `fable-5-r49/fable-5-r49-r50-v16-v17.jpg`.
+
+### fable-2-ledge `b0b13ef1` — the hero boulders' near skin takes the material relief (1.5)
+
+On the round-50 head: **A pixel-identical** (inside `NEAR_FADE_M` only, as claimed); at 2 m the boulder
+boxes' micro σ: stair-foot 0.061 → 0.073, terrace 0.038 → 0.046, shot-D 0.053 → 0.054 (the boxes hold
+ferns too; fable-2's stone-only reads 0.032 → 0.044 / 0.018 → 0.029 / 0.028 → 0.030). The terrace
+boulder gains most; direction right, the fixed views untouched. Merge.
+
 ## Summary for fable-cursor
 
 - fable-4 `5fe58488`: merge; six views Δ 0 (five pixel-identical).
@@ -531,6 +569,8 @@ wait for the take's frames; sheet `fable-5-r49/fable-5-r49-r50-preread-CDE.jpg`)
 - fable-4-taper @ `30a81f5c` (tip): merge; C +0.0009, all four W08 words at C — W08 turns on the next take.
 - fable-2-hue `efe2ed46` (chroma step): merge; D Δ 0, face sat 0.18 → 0.20 (frame 0.36) — the tint is spent, light next.
 - NPCs hidden (head): C −0.0018, D −0.0007, E +0.0037 in character-on frames — the next take's baseline shift, not a lane's.
+- Round 50's V16: scale right, seams twice too dark (E 12.0 % vs 5.4 %) and slabs 0.03 darker — hardscape-32's next pass; V17 unchanged (light, not albedo).
+- fable-2-ledge `b0b13ef1` (hero boulders' near relief): merge; A pixel-identical, 2 m micro σ up on all three.
 - On the round-50 head: fable-2-v21 'replace' C +0.0029 / F −0.0042 (unchanged picture); fable-4-taper tip C +0.0009, A/F ≈ 0 — merge.
 - fable-2-w05 `3949f007` (stone tier at C): harmless (C −0.0010); reads as stones on the slope — W05 needs the terrain to tier first (vegetation-27 / terrain).
 - fable-2-v21 'shrink' `45d3b566`: C +0.0019 / F −0.0042 — the middle path does not buy F back; the frame has no boulder at F's spot, so **'replace' (C +0.0032 / F −0.0043) is the variant** — an owner-approved look change for fable-cursor to name.

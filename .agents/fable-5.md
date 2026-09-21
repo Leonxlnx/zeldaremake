@@ -17,8 +17,8 @@ gauntlet's independent D7 verdicts (`gauntlet/reviews/*.json`, written only thro
 00:00 UTC (timer `goal-mode-fable-5`, cron `20 * * * *`); `agent/fable-5-demo-walk` merged (`b4de8d7`); current branch `agent/fable-5-r48-review`.
 
 ## Current task
-Done this iteration: round 50 measured, pending calls re-measured, take-0125 pre-read (see Completed).
-Next: take-0125's full re-verdict the moment it seals; astra's split; the video file.
+Done this iteration: V16/V17 measured on the round-50 head, fable-2's near relief (see Completed). Next:
+take-0125's re-verdict when it seals (or take-0124's world if the capture died), astra's split, the video.
 
 ## Previous current task (superseded)
 Goal-mode loop. Next iteration: **re-verdict every visual item on take-0120** when it seals (the
@@ -34,6 +34,9 @@ lands: `ffmpeg` frames at his marked moments → `reference/frames-video2/`, has
 - `.agents/fable-5.md`, `.agents/reviews/fable-5-*.md`, my threads in `.agents/INBOX.md`.
 
 ## Completed work
+- 2026-09-21 03:20–03:50 UTC — iteration 29 (r49 §T): V16's seams measured twice too dark (E 12.0 % vs
+  the frame's 5.4 %) with slabs 0.03 darker; V17 unchanged at w23-stairs-f (canopy shade — a light, not
+  albedo); fable-2's near relief on the hero boulders (A identical, 2 m micro σ up). take-0125 still unsealed.
 - 2026-09-21 01:20–03:00 UTC — iterations 27–28 (r49 §R–§S): round 50 measured on the head (B −0.0119,
   C −0.0111, F −0.0164 from the demo-scale slabs — V16 answered, the metric punishes it; D/E gain); the
   V21 and taper calls re-measured on the round-50 head (unchanged); take-0125 pre-read (C01 closer, W06
