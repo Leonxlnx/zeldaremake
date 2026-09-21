@@ -11,6 +11,8 @@ import type { WorldContext } from '../system';
 import { STONE_CIRCLE_STONES } from '../terrain/heightfield';
 import { smoothstep, clamp } from '../util/noise';
 import type { Rng } from '../util/prng';
+import { rimBandPlants, terracePlants } from './edges';
+import { pruneExpansion } from './expansion';
 import { STANDING_STONE_CLEAR, VegField, composeMatrix, newSample, type FieldSample } from './field';
 import { rgb } from './geometry';
 import { LodInstancedSet, type PackLayout } from './lodset';
@@ -49,6 +51,10 @@ export interface PlantSets {
   north: { clearingFerns: number; flankFerns: number; clearingBushes: number; padTufts: number; padClover: number; stoneMoss: number; farHerbs: number; farFootFerns: number; farFeet: number; propRejected: number };
   all: LodInstancedSet[];
   materials: Material[];
+  /** round 50: legacy-seated plants pruned inside the expansion's live ground, per set (expansion.ts) */
+  expansionCulled: Record<string, number>;
+  /** round 50 (edges.ts): what the rim band and the terraces seated, per pass */
+  edges: Record<string, number>;
 }
 
 interface ScatterOpts {
@@ -3698,8 +3704,16 @@ export function buildPlants(ctx: WorldContext, field: VegField, parent: Group): 
   }
 
   const all = [ferns, tufts, heroFerns, fiddleheads, bushes, hedge, flowers, yellowFlowers, whiteFlowers, weeds, seedheads, clover, moss, saplings, fernsNorth, weedsNorth, bushesNorth, tuftsNorth];
+  // Round 50 (expansion.ts): every pass above seats against the LEGACY ground; inside the
+  // round-49 expansion (the south bank, the knoll, the discs, the flights) the live ground is
+  // elsewhere, so the plants there go — after every seat and every rule, so nothing re-rolls
+  // Round 50 (edges.ts): W06's rim band (moss cushions and short tufts at the paved rims E / D / B
+  // frame) and W05's terraces (tuft rows, foot moss, toe ferns and broad leaves on the C
+  // embankment) — after every pass above, on their own forks
+  const edges = { ...rimBandPlants(ctx, field, { moss, tufts }), ...terracePlants(ctx, field, { tufts, moss, ferns, weeds }) };
+  const expansionCulled = pruneExpansion(all);
   for (const set of all) parent.add(set.build());
-  return { ferns, tufts, heroFerns, fiddleheads, bushes, hedge, flowers, yellowFlowers, whiteFlowers, weeds, seedheads, clover, moss, saplings, fernsNorth, weedsNorth, bushesNorth, tuftsNorth, north, all, materials };
+  return { ferns, tufts, heroFerns, fiddleheads, bushes, hedge, flowers, yellowFlowers, whiteFlowers, weeds, seedheads, clover, moss, saplings, fernsNorth, weedsNorth, bushesNorth, tuftsNorth, north, all, materials, expansionCulled, edges };
 }
 
 export { clamp };

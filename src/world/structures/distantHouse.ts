@@ -72,10 +72,11 @@
  * others sit right of the arch, above it (the arch's top projects at y ≥ 0.35, every lit point at
  * y ≤ 0.20). None is in front of the stair, Saria's house or the arch opening.
  */
-import { BoxGeometry, BufferGeometry, Color, CylinderGeometry, Float32BufferAttribute, Group, LatheGeometry, Mesh, Vector2, Vector3 } from 'three';
+import { BoxGeometry, BufferGeometry, CatmullRomCurve3, Color, CylinderGeometry, Float32BufferAttribute, Group, LatheGeometry, Mesh, Vector2, Vector3 } from 'three';
 import type { TrunkSeat, WalkSurface, WorldContext } from '../system';
 import type { Rng } from '../util/prng';
-import { basisMatrix, gridSurface, merge, setColorAttribute, TAU } from './geometry';
+import { FoliageBuilder } from './foliage';
+import { basisMatrix, gridSurface, merge, setColorAttribute, sweepTube, TAU } from './geometry';
 import { MOSS_ALBEDO_PEAK, Noise3D, WOOD_ON_FENCE_WOOD, type StructureMaterials } from './materials';
 import { buildMossTufts, type MossTuftSpec } from './mossTufts';
 
@@ -122,6 +123,19 @@ export interface DistantHouseDef {
   walkway: { deg: number; length: number; end?: [number, number, number] };
   /** 2–3 pods: end post, eave, mid post */
   pods: number;
+  /**
+   * Round 50 (structures-33): the main house's standard on a hut the player walks up to (the
+   * expansion's west house and far hut — never the three village huts, whose streams and
+   * geometry this leaves exactly alone). Each part is opt-in:
+   *  - `doorBough`: a gnarled eave bough growing out of the wall left of the door, arching over
+   *    it, with `pods` pod lanterns clustered on its underside over the door (the demo's second
+   *    house hangs its pods over the door); `length` m of reach across the door;
+   *  - `buttresses`: two knotted bark buttress roots framing the doorway, feet on the platform;
+   *  - `interior`: the door's dark back becomes a lit room glimpse — a warm lamp-lit back wall,
+   *    a plank floor, a shelf and a second lamp deeper in, still under the fog's 2.0 exemption;
+   *  - `fringe`: hanging moss beards and leaf clumps along the cap's lobed edge.
+   */
+  dressing?: { doorBough?: { length: number; pods: number }; buttresses?: boolean; interior?: boolean; fringe?: boolean };
 }
 
 /**
@@ -330,6 +344,8 @@ export interface DistantHouseBuild {
     revealPeak: number;
     revealMouthPeak: number;
     revealMouthLitShare: number;
+    /** round 50: the dressing as built (null on the undressed village huts) */
+    dressing: { bough: [number, number, number][] | null; boughPods: [number, number, number][]; buttresses: number; fringe: number; room: { depth: number; shallow: boolean; lamp: [number, number, number] } | null } | null;
   }[];
 }
 
@@ -995,7 +1011,126 @@ export function buildDistantHouses(ctx: WorldContext, mats: StructureMaterials, 
     const revealPeak = Math.max(tintPeak(winTunnel, glowPeak), tintPeak(doorTunnel, glowPeak));
     const mouthPeak = Math.max(tintPeak(winTunnel, glowPeak, 21), tintPeak(doorTunnel, glowPeak, 24));
     const mouthLit = (tintLitShare(winTunnel, glowPeak, 21, REVEAL_LIT_LINEAR) + tintLitShare(doorTunnel, glowPeak, 24, REVEAL_LIT_LINEAR)) / 2;
-    glowParts.push(winTunnel, winBackDisc, doorTunnel, doorFloor, doorBack);
+    /**
+     * Round 50 (structures-33, `dressing.interior`): the LIT ROOM GLIMPSE. Behind the 0.35 m
+     * reveal the door's dark back becomes a room ROOM_DEPTH deep — a back wall, two side walls,
+     * a plank floor and a dark ceiling, all tinted by a second lamp hung inside (cos / d² with a
+     * 0.6 m reference distance: the back wall 1 m off is ≈ half lit, the floor under the lamp
+     * lit), a shelf with two pots against the back wall, and the lamp disc itself (the one
+     * strongly emissive point of the room, 2.2 linear like the door lamp). Every surface tint
+     * peaks at REVEAL_PEAK (0.99 linear) — lit wood, under the fog's 2.0 exemption — so from
+     * the deck the doorway reads as the main house's warm room and not as a lamp.
+     */
+    const roomParts: BufferGeometry[] = [];
+    let roomLamp: Vector3 | null = null;
+    /**
+     * How deep a room fits behind the door before the HOST BOLE. The wall clears the bole by
+     * BOLE_CLEARANCE at its tightest, so a hut wrapping a bole has the bole ≈ 0.4 m behind its
+     * door (the west house round the southwest giant: the door's 3 m view showed the giant's
+     * mossy root flare filling the doorway through a 1.3 m room, and the flare — beyond the
+     * seat's nominal `radiusAt` — already showed at the sill through take-0123's 0.35 m reveal).
+     * The nominal gap over the door's height less 0.12 m, floored at the reveal's depth; a hut on
+     * a plain column (no seat) takes the column as 0.55 R, as the ladder does. Below
+     * DOOR_DEPTH + 0.08 the room is SHALLOW: the lit back wall and the lamp only, a hand behind
+     * the reveal, no box.
+     */
+    let roomDepth = Math.min(1.3, Math.max(0.7, R - 1.1));
+    {
+      let gap = Infinity;
+      for (let h = floorH; h <= floorH + doorH + 1e-6; h += 0.15) {
+        const bole = host.seat ? host.seat.radiusAt(h) : R * 0.55;
+        host.axisAt(h, _axis);
+        const toward = (_axis.x - c.x) * Math.cos(aDoor) + (_axis.z - c.z) * Math.sin(aDoor);
+        const taper = lerp(1, WALL_TAPER, clamp(h - floorH, 0, def.wall) / def.wall);
+        gap = Math.min(gap, wallR(aDoor) * taper - bole - toward);
+      }
+      roomDepth = clamp(gap - 0.12, DOOR_DEPTH + 0.02, roomDepth);
+    }
+    const shallowRoom = roomDepth < DOOR_DEPTH + 0.08;
+    if (def.dressing?.interior) {
+      const ROOM_DEPTH = roomDepth;
+      // the room is the reveal's back opening continued (+2 cm each way, so the reveal's back
+      // edge overlaps it): wider and the wall's unlit inner face would show past the jambs
+      const roomW = doorBackW + 0.04;
+      const roomH = doorHs + doorBackW / 2 + 0.03;
+      const roomRng = r.fork('room50');
+      const lampT = roomRng.range(0.55, 0.75);
+      const right = new Vector3(doorDir.z, 0, -doorDir.x).normalize();
+      roomLamp = doorBase
+        .clone()
+        .addScaledVector(doorDir, shallowRoom ? -(ROOM_DEPTH - 0.06) : -ROOM_DEPTH * lampT)
+        .addScaledVector(right, roomRng.range(-0.18, 0.18))
+        .setY(floorY + roomH - 0.28);
+      const roomLit = (p: Vector3, n: Vector3, grain: number): RGB => {
+        const irr = lampIrradiance(roomLamp!, p, n);
+        const lit = clamp(Math.pow(Math.min(1, irr * 0.36), 0.75) * grain, 0, 1);
+        return mix(REVEAL_DARK, REVEAL_WOOD, lit);
+      };
+      /** a point of the room box: across x ∈ [−½, ½] of roomW, up y from the floor, depth d from the wall's face */
+      const roomP = (x: number, y: number, d: number, out: Vector3) => out.copy(doorBase).addScaledVector(right, x * roomW).addScaledVector(doorDir, -d).setY(floorY + y);
+      const plankGrain = (u: number) => 0.8 + 0.2 * Math.sin(u * 27 + 1.3) + 0.08 * Math.sin(u * 61);
+      // the back wall: a fan of lit wood, plank grain across it
+      const back = gridSurface(
+        (u, v, out) => {
+          roomP(u - 0.5, v * roomH, ROOM_DEPTH, out.position);
+          out.uv = [u * roomW, v * roomH];
+          out.color = roomLit(out.position, doorDir, plankGrain(v * 3.1));
+        },
+        { cols: 6, rows: 6 },
+      );
+      roomParts.push(faceToward(back, doorBase.clone().setY(floorY + roomH / 2)));
+      if (!shallowRoom) {
+      // the side walls (inward normals), from the reveal's back to the room's back
+      for (const side of [-1, 1] as const) {
+        const nIn = right.clone().multiplyScalar(-side);
+        const wallSide = gridSurface(
+          (u, v, out) => {
+            roomP(side * 0.5, v * roomH, lerp(DOOR_DEPTH, ROOM_DEPTH, u), out.position);
+            out.uv = [u * ROOM_DEPTH, v * roomH];
+            out.color = roomLit(out.position, nIn, plankGrain(u * 2.3 + side));
+          },
+          { cols: 5, rows: 5 },
+        );
+        roomParts.push(faceToward(wallSide, doorBase.clone().addScaledVector(doorDir, -ROOM_DEPTH * 0.5).setY(floorY + roomH / 2)));
+      }
+      // the floor (planks, lit from above) and the ceiling (dark, the lamp's underside light only)
+      const floor = gridSurface(
+        (u, v, out) => {
+          roomP(u - 0.5, 0.012, lerp(DOOR_DEPTH, ROOM_DEPTH, v), out.position);
+          out.uv = [u * roomW, v * ROOM_DEPTH];
+          const t = roomLit(out.position, new Vector3(0, 1, 0), plankGrain(u * 5.7));
+          out.color = [t[0] * 0.85, t[1] * 0.8, t[2] * 0.75];
+        },
+        { cols: 5, rows: 5 },
+      );
+      roomParts.push(faceToward(floor, doorBase.clone().addScaledVector(doorDir, -ROOM_DEPTH * 0.5).setY(floorY + roomH / 2)));
+      const ceiling = gridSurface(
+        (u, v, out) => {
+          roomP(u - 0.5, roomH, lerp(DOOR_DEPTH, ROOM_DEPTH, v), out.position);
+          out.uv = [u * roomW, v * ROOM_DEPTH];
+          const t = roomLit(out.position, new Vector3(0, -1, 0), 0.45);
+          out.color = [t[0] * 0.6, t[1] * 0.55, t[2] * 0.5];
+        },
+        { cols: 3, rows: 3 },
+      );
+      roomParts.push(faceToward(ceiling, doorBase.clone().addScaledVector(doorDir, -ROOM_DEPTH * 0.5).setY(floorY + roomH / 2)));
+      // a shelf on the back wall, two pots on it (dark shapes against the lit wood)
+      const shelfY = 0.95;
+      const shelfA = roomP(-0.46, shelfY, ROOM_DEPTH - 0.06, new Vector3());
+      const shelfB = roomP(0.46, shelfY, ROOM_DEPTH - 0.06, new Vector3());
+      const shelfTint = roomLit(shelfA.clone().lerp(shelfB, 0.5), new Vector3(0, 1, 0), 0.7);
+      roomParts.push(bar(shelfA, shelfB, 0.05, [shelfTint[0] * 0.7, shelfTint[1] * 0.65, shelfTint[2] * 0.6], 0.16));
+      for (const px of [-0.28, 0.18]) {
+        const pot = new CylinderGeometry(0.06, 0.05, 0.16, 8);
+        pot.translate(0, 0.08, 0);
+        const at = roomP(px + roomRng.range(-0.04, 0.04), shelfY + 0.025, ROOM_DEPTH - 0.06, new Vector3());
+        pot.translate(at.x, at.y, at.z);
+        roomParts.push(setColorAttribute(pot, [0.045, 0.03, 0.02]));
+      }
+      }
+      roomParts.push(facingDisc(roomLamp, doorDir, 0.06, GLOW_AMBER, 10));
+    }
+    glowParts.push(winTunnel, winBackDisc, doorTunnel, doorFloor, ...(roomParts.length ? roomParts : [doorBack]));
 
     const barkGeo = merge([...walls, soffit, winCollar, doorCollar]);
     const barkMesh = new Mesh(barkGeo, mats.bark);
@@ -1217,6 +1352,165 @@ export function buildDistantHouses(ctx: WorldContext, mats: StructureMaterials, 
       hang(midHook, 0.2, GLOW_AMBER, midPostTop.clone().setY(midPostTop.y + 0.02));
     }
 
+    // ---- round 50 (structures-33): the DRESSING — the main house's standard on the huts the
+    // player walks up to (`DistantHouseDef.dressing`; the three village huts have none and are
+    // built exactly as before: every stream below is a fresh fork, every mesh a new one) ----
+    const dressParts: BufferGeometry[] = [];
+    let dressFoliage: FoliageBuilder | null = null;
+    const dressAudit: { bough: [number, number, number][] | null; boughPods: [number, number, number][]; buttresses: number; fringe: number; room: { depth: number; shallow: boolean; lamp: [number, number, number] } | null } = { bough: null, boughPods: [], buttresses: 0, fringe: 0, room: null };
+    if (def.dressing) {
+      const dr = r.fork('dressing50');
+      /** the wall's outward direction at angle a */
+      const outAt = (a: number) => new Vector3(Math.cos(a), 0, Math.sin(a));
+      /** the viewer's left when facing the door from outside is +doorTangent (increasing wall angle) */
+      const aHalfDoor = (doorW / 2) / R;
+      const barkShade = (a: number, y: number, k: number): RGB => {
+        const w = wallColor(a, clamp((y - floorY) / def.wall, 0, 1));
+        return [w[0] * k, w[1] * k * 0.97, w[2] * k * 0.92];
+      };
+      if (def.dressing.doorBough) {
+        // ---- the EAVE BOUGH: a gnarled limb growing out of the wall left of the door head,
+        // arching out over the door and across to the right, rising and tapering; a burl at
+        // its root; knots along it; the pod cluster hangs from its underside over the door ----
+        const B = def.dressing.doorBough;
+        const yRoot = floorY + doorH + 0.5;
+        const aRoot = aDoor + (aHalfDoor + 0.6 / R);
+        const reach = B.length / R;
+        // the limb climbs, but stays a hand under the soffit (eaveY) to its tip — the pods hang
+        // from it, and a hook inside the cap would put a cord through the soffit
+        const rise = clamp(eaveY - 0.16 - yRoot, 0.1, 0.55) / 0.55;
+        const ctrl: Vector3[] = [
+          wallSurface(aRoot, yRoot - 0.05, new Vector3(), -0.3),
+          wallSurface(aRoot - 0.04 / R, yRoot + 0.02 * rise, new Vector3(), 0.32),
+          wallSurface(aRoot - reach * 0.3, yRoot + 0.14 * rise, new Vector3(), 0.58),
+          wallSurface(aRoot - reach * 0.62, yRoot + 0.3 * rise, new Vector3(), 0.5),
+          wallSurface(aRoot - reach, yRoot + 0.55 * rise, new Vector3(), 0.28),
+        ];
+        const curve = new CatmullRomCurve3(ctrl, false, 'catmullrom', 0.5);
+        const knotPhase = dr.range(0, TAU);
+        const boughR = (t: number) => (0.13 - 0.085 * t) * (1 + 0.16 * Math.max(0, Math.sin(t * 19 + knotPhase)) ** 2 + 0.35 * Math.max(0, 1 - t * 7));
+        const bough = sweepTube(curve, {
+          radius: boughR,
+          tubularSegments: 18,
+          radialSegments: 9,
+          uvMetres: 1.6,
+          displace: (t, ang) => 0.006 * Math.sin(ang * 5 + t * 23) + 0.004 * Math.sin(ang * 11 - t * 40 + knotPhase),
+          color: (t, _ang, up) => barkShade(aRoot - reach * t, yRoot, (0.8 + 0.2 * Math.max(0, up)) * (0.9 + 0.1 * Math.cos(t * 31 + knotPhase))),
+          capEnd: true,
+        });
+        dressParts.push(bough);
+        dressAudit.bough = [ctrl[0], ctrl[2], ctrl[4]].map((p) => [+p.x.toFixed(2), +p.y.toFixed(2), +p.z.toFixed(2)] as [number, number, number]);
+        // the pod cluster: `B.pods` pods on short cords from the bough's underside BESIDE the
+        // door opening (the demo's second house: pods by the door). The door head is 0.85 m under
+        // the eave and a 0.6 m pod on a cord cannot clear it, so the pods hang past the jambs —
+        // their inner edge ≥ 0.12 m outside the opening, 0.1 m apart along the wall, the first
+        // two on the far (left) side, the third by the root, more further left; a spot the limb
+        // does not reach (t outside 0.1–0.94) is skipped and the audit shows the count
+        const podS = R > 2.5 ? 1.25 : 1.0;
+        const podRad = 0.148 * podS;
+        const aClear = aHalfDoor + (podRad + 0.12) / R;
+        const aStep = (2 * podRad + 0.1) / R;
+        const spots: [number, number, RGB][] = [
+          [aDoor - aClear, 0.1, GLOW_AMBER],
+          [aDoor - aClear - aStep, 0.2, GLOW_LIME],
+          [aDoor + aClear, 0.14, GLOW_AMBER],
+          [aDoor - aClear - 2 * aStep, 0.12, GLOW_AMBER],
+        ];
+        const cluster: [number, number, RGB][] = [];
+        for (const [a, drop, col] of spots) {
+          const t = (aRoot - a) / reach;
+          if (t >= 0.1 && t <= 0.94) cluster.push([t, drop, col]);
+        }
+        const _bp = new Vector3();
+        for (let i = 0; i < Math.min(B.pods, cluster.length); i++) {
+          const [t, drop, col] = cluster[i];
+          curve.getPointAt(t, _bp);
+          const hook = _bp.clone().setY(_bp.y - boughR(t) + 0.01);
+          const podTop = hook.clone().setY(hook.y - drop);
+          plankParts.push(bar(hook, podTop, 0.025, PLANK_DARK));
+          glowParts.push(distantPod(podTop, podS, col, dr.fork(`bough-pod/${i}`)));
+          const centre = podTop.clone().setY(podTop.y - (POD_STEM_H + POD_TOP - POD_BODY_MID) * podS);
+          pods.push(centre);
+          dressAudit.boughPods.push([+centre.x.toFixed(2), +centre.y.toFixed(2), +centre.z.toFixed(2)]);
+        }
+      }
+      if (def.dressing.buttresses) {
+        // ---- KNOTTED BARK BUTTRESSES framing the doorway: one each side, a root's foot on the
+        // platform 0.4 m out from the jamb, leaning in to the wall as it climbs, merging into
+        // the bark above the door head; knots as radius swells, a crevice tone on the wall side ----
+        for (const side of [-1, 1] as const) {
+          const a0 = aDoor + side * (aHalfDoor + 0.4 / R);
+          const yTop = floorY + doorH + 0.32;
+          const ctrl = [
+            wallSurface(a0 + (side * 0.04) / R, floorY - 0.06, new Vector3(), 0.5),
+            wallSurface(a0, floorY + 0.4, new Vector3(), 0.34),
+            wallSurface(a0 - (side * 0.05) / R, floorY + 0.95, new Vector3(), 0.17),
+            wallSurface(a0 - (side * 0.1) / R, yTop, new Vector3(), 0.0),
+            wallSurface(a0 - (side * 0.14) / R, yTop + 0.3, new Vector3(), -0.2),
+          ];
+          const curve = new CatmullRomCurve3(ctrl, false, 'catmullrom', 0.5);
+          const kp = dr.range(0, TAU);
+          const knots = [dr.range(0.25, 0.4), dr.range(0.55, 0.72)];
+          const radius = (t: number) => {
+            let k = 1;
+            for (const q of knots) k += 0.32 * Math.exp(-(((t - q) / 0.06) ** 2));
+            return (0.16 - 0.09 * t) * k * (1 + 0.05 * Math.sin(t * 29 + kp));
+          };
+          const buttress = sweepTube(curve, {
+            radius,
+            tubularSegments: 14,
+            radialSegments: 9,
+            uvMetres: 1.6,
+            displace: (t, ang) => 0.008 * Math.sin(ang * 4 + t * 17 + kp) + 0.004 * Math.sin(ang * 9 - t * 31),
+            // the crevice against the wall and under the knots is grimed, the outer flank the wall's shade
+            color: (t, _ang, up) => barkShade(a0, floorY + t * doorH, (0.68 + 0.24 * Math.max(0, up)) * (1 - 0.15 * Math.max(0, Math.sin(t * 29 + kp))) * lerp(0.85, 1, t)),
+            capStart: true,
+          });
+          dressParts.push(buttress);
+          dressAudit.buttresses++;
+        }
+      }
+      if (def.dressing.fringe) {
+        // ---- the CAP'S MOSS FRINGE (the main house's round-11 rim skirt): drooping leaf clumps
+        // and short hanging vines along the lobed moss edge, thinned and shortened over the door ----
+        dressFoliage = new FoliageBuilder(dr.fork('fringe'), `${ctx.config.seed}/hut-fringe/${def.id}`);
+        const fr = dr.fork('fringe-place');
+        const n = 22;
+        for (let i = 0; i < n; i++) {
+          const a = (i / n) * TAU + fr.range(-0.08, 0.08);
+          const overDoor = smoothstep(0.55, 0.15, Math.abs(dAngle(a, aDoor)));
+          if (fr() < 0.55 * overDoor) continue;
+          const p = capPoint(a, edgeV(a) + 0.01, new Vector3());
+          p.addScaledVector(outAt(a), 0.06);
+          p.y -= 0.06 + fr() * 0.06;
+          const radius = (0.16 + fr() * 0.1) * lerp(1, 0.7, overDoor);
+          const tintF: [number, number, number] = fr() < 0.5 ? [1.2, 0.75, 0.9] : [1.8, 1.1, 1.3];
+          dressFoliage.addLeafCluster(p, radius, 14, { size: 0.11, amount: 0.05, droop: 0.9, tint: tintF, tintSpread: 0.25, flatten: 0.4 });
+          if (fr() < 0.5) {
+            const hook = p.clone().add(new Vector3(fr.range(-0.05, 0.05), 0, fr.range(-0.05, 0.05)));
+            dressFoliage.addHangingVine(hook, (0.25 + fr() * 0.35) * lerp(1, 0.5, overDoor), { amount: 0.08, leafSize: 0.08 });
+          }
+          dressAudit.fringe++;
+        }
+      }
+      if (roomLamp) dressAudit.room = { depth: +roomDepth.toFixed(2), shallow: shallowRoom, lamp: [+roomLamp.x.toFixed(2), +roomLamp.y.toFixed(2), +roomLamp.z.toFixed(2)] };
+      if (dressParts.length) {
+        const dressGeo = merge(dressParts);
+        const dressMesh = new Mesh(dressGeo, mats.bark);
+        dressMesh.name = `distant-house-dressing:${def.id}`;
+        dressMesh.castShadow = dressMesh.receiveShadow = true;
+        group.add(dressMesh);
+        tris += triangles(dressGeo);
+        degenerate += countDegenerate(dressGeo);
+      }
+      if (dressFoliage) {
+        for (const m of dressFoliage.build(mats, `hut-fringe:${def.id}`)) {
+          group.add(m);
+          if (m.geometry) tris += triangles(m.geometry as BufferGeometry);
+        }
+      }
+    }
+
     // ---- round 44 (structures-28): the UNDERSIDE. Survey-1 crop 30: from the hollow path straight
     // up the hollow-column hut read as a black flat-shaded slab — the deck's and the platform's
     // bottoms are lit planks facing the ground, ≈ 0.02 in the canopy's shade. A soffit 8 m up in
@@ -1335,6 +1629,7 @@ export function buildDistantHouses(ctx: WorldContext, mats: StructureMaterials, 
       revealPeak: +revealPeak.toFixed(2),
       revealMouthPeak: +mouthPeak.toFixed(2),
       revealMouthLitShare: +mouthLit.toFixed(2),
+      dressing: def.dressing ? dressAudit : null,
     });
   }
 

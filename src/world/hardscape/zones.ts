@@ -89,14 +89,38 @@ export function lawnZone(x: number, z: number) {
 }
 
 /**
- * Camera A's near foreground (reference frame 1 s: 1.1–1.3 m slabs with cracked edges and soft
- * moss seams across the frame bottom): the cell breaking leaves the stones here at the top of
- * the boards' range instead of the 0.6–0.7 m median, and the lattices are thinned (flagstones.ts).
- * Round 33: z 3.4 → 1.2 — unprojected, camera A's bottom quarter (frame y 0.75–1.0) is z 1.5–6.7
- * at x −0.5 … 4.3, not z 4–7; the zone used to cover only its last tenth. Fades over 1.2 m.
+ * Camera A's near foreground (reference frame 1 s: the frame bottom's slabs). Round 33 thinned the
+ * lattices and lifted the break target here to 1.1–1.3 m slabs; round 50 (fable-5 V16, the demo's
+ * top-down `d_097`) took that back — the paving is one 0.8–1.1 m scale everywhere — so the
+ * flagstones no longer read this zone. Kept for the joint fill / flora readers. Fades over 1.2 m.
  */
 export function aForeground(x: number, z: number) {
   return softBox(x, z, -1.5, 4.5, 1.2, 8.5, 1.2);
+}
+
+/**
+ * Round 50: the foot of the hero flight — the paving within ~1.8 m in front of the main run's
+ * first riser, across the flight's width plus half a metre. The demo (`d_105`–`d_109`, the stair
+ * foot looking up; `d_097`'s right arm) keeps a few 1.2–1.6 m landing slabs where the path meets
+ * the flight, so the lattice is thinned 40 % here and the break target lifted × 1.4
+ * (flagstones.ts) while the rest of the paving comes down to the demo's 0.8–1.1 m. 1 on the
+ * apron, fading over 1 m along the approach and 0.8 m across. (In the world as laid, most of
+ * this apron is camera C's trodden-earth patch — `earthPatch` — so the zone reaches only the
+ * plaza's edge cells beside the approach; it is the hook for the landing slabs should the
+ * patch's stone share come up.)
+ */
+const MAIN_STAIR = (() => {
+  const def = LAYOUT.stairs.find((s) => s.id === 'main') ?? LAYOUT.stairs[0];
+  const l = Math.hypot(def.dir[0], def.dir[1]);
+  return { bx: def.base[0], bz: def.base[2], dx: def.dir[0] / l, dz: def.dir[1] / l, hw: def.width / 2 };
+})();
+export function stairFoot(x: number, z: number) {
+  const rx = x - MAIN_STAIR.bx;
+  const rz = z - MAIN_STAIR.bz;
+  // local across / along (stairs.ts `worldToStair`): along < 0 is in front of the first riser
+  const across = rx * MAIN_STAIR.dz - rz * MAIN_STAIR.dx;
+  const along = rx * MAIN_STAIR.dx + rz * MAIN_STAIR.dz;
+  return smoothstep(-2.8, -1.8, along) * smoothstep(0.6, -0.1, along) * smoothstep(MAIN_STAIR.hw + 1.1, MAIN_STAIR.hw + 0.3, Math.abs(across));
 }
 
 /**

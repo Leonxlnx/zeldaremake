@@ -23,12 +23,14 @@
  */
 import { BufferGeometry, Color, Frustum, Group, InstancedBufferAttribute, InstancedMesh, Matrix4, Mesh, PerspectiveCamera, Quaternion, Sphere, Vector3, type BufferAttribute, type Camera, type Material } from 'three';
 import type { TrunkSeat, WorldContext, WorldSystem } from '../system';
-import { expansionCull } from '../terrain/heightfield';
 import { BARK_DETAIL_M, BARK_DETAIL_TILES, BARK_TOUCH_M, BARK_TOUCH_TILES, CARD_EDGE_FADE, CARD_FLAT_EDGE_FADE, COLUMN_BARK_FLOOR, COLUMN_BARK_FLOOR_FAR, COLUMN_FLOOR_FADE_M, createTreeMaterials, CUSHION_FADE_M, DISTANT_BARK_M, DISTANT_NEAR_FLOOR, DISTANT_NEAR_TONE, NEAR_BASE_FLOOR, NEAR_BOLE_FLOOR, NEAR_BOLE_FLOOR_FADE, NEAR_BOLE_FLOOR_TOP, NEAR_BOLE_SLOTS, NEAR_CANOPY_LEAF_FLOOR, NEAR_CANOPY_LEAF_NEAR_M, NEAR_CANOPY_SLOTS, NEAR_CANOPY_SUN_THROUGH, TREE_BARK_FLOOR, TREE_BARK_FLOOR_NEAR, TREE_FLOOR_FADE_M, TREE_LEAF_FLOOR, TREE_LEAF_FLOOR_NEAR, TREE_NEAR_BOLE_FLOOR } from './materials';
 import type { ShadeFloor } from '../materials/shadeFloor';
 import { authoredWhiteBarks, createWhiteBarkRoots, createWhiteBarkTree, whiteBarkParams, type TreeAsset, type WhiteBarkParams } from './whitebark';
 import { placeWhiteBark, viewProjector, type WhiteBarkPlacement } from './placement';
-import { columnParams, createColumnTree, emergentParams, type ColumnAsset, type ColumnParams } from './column';
+import { columnParams, createColumnTree, emergentParams, hutHostParams, type ColumnAsset, type ColumnParams } from './column';
+import { expansionCull, getTerrain, type Terrain, type TerrainView } from '../terrain/heightfield';
+import { casterSpheres, expansionVisible, type Caster } from '../util/expansionLocality';
+import { EXPANSION } from '../layout';
 import { createGiantTree, LOBE_SECONDARY_REACH, LOBE_TWIG_REACH, LOBE_TWIG_TINT, NEAR_BASE_CUT_Y, NEAR_BASE_RADIUS_OVERRIDE, type CanopyBough, type GiantAsset, type GiantProfile } from './giant';
 import { NEAR_CANOPY_HERO_MARGIN, NEAR_CANOPY_IN_M, NEAR_CANOPY_MAX_Y, NEAR_CANOPY_MIN_IN_M, NEAR_CANOPY_OUT_M, type NearCanopyPart } from './nearCanopy';
 import { LodPool, type PoolBuilt, type PoolItem } from './lodPool';
@@ -899,6 +901,46 @@ const CANOPY_BOUGHS: { giant: string; fromY: number; to: [number, number, number
   // (0.36–0.38) facing away from the sun — terrain and vegetation, not canopy.
 ];
 /**
+ * Round 50 (trees-32): the "spreading giant" of the demo's orbit (reference/frames-dense/demo61
+ * d_019–d_027 — a giant whose low bough reaches out level over the ground a few metres up, dark
+ * foliage hanging from it). Ours is the `southwest-giant` at (−23, 9): one low bough leaving the
+ * bole 7.5 m up (world 9.4) and reaching 5.5 m ESE over the south-west bank's back corner toward
+ * (−20, 14) — its tip 3.2 m over the bank's top (1.95), two leaf curtains hanging under it —
+ * built DETACHED (giant.ts GiantOptions.detachedBoughs): its own three meshes, shown only when
+ * the expansion-locality gate says a camera could see them or their shadow (see the giant loop),
+ * so the giant proper, the six fixed frames and every audit number of the tree are untouched.
+ *
+ * Where it may stand (gauntlet/tmp/r50-probe bough4.mjs marched the six cameras' frusta and the
+ * sun): camera C looks south past the plaza and its west edge on the ground is layout `cClip`
+ * (x = 2.33 − 0.5663 (z + 7.67)); everything here is west of that ray — the bole 18 m, the tip
+ * 8.8 m, the bank's centre 4.8 m — but a caster's SHADOW runs 1.009 m E and 0.788 m S per m of
+ * height (azimuth −128°, elevation 38°), so height is the constraint: foliage 8–10 m up at the
+ * bole would lay its shade 0.3–2.7 m INSIDE C's frame at (−12 … −10, 19). Hence the bough leaves
+ * low (7.5 m: its wood's own footprint stays 1.1–4.1 m outside, and the wood mesh does not cast
+ * anyway) and the curtains hang at 4.4 / 5.8 m: their leaves' footprint lands 1.6–3.0 m outside
+ * C's edge at (−14.7 … −13.5, 16.3–17.0) — on the bank's back and the plain west of it, the
+ * "spreading" shade the reference shows under such a bough. The gate's own spheres (util/
+ * expansionLocality casterSpheres: wood as frustum-only stacks, curtains swept along the sun to
+ * the ground, +0.6 m) meet none of the six frusta, nearest by 0.97 m at C's edge; the curtains'
+ * floors (3.9 / 4.2) keep their leaves 1.95 m over the bank top's back corner.
+ * Pans from Link's spot (0, 1.5, 2), fov 55: W (→ (−24, 3, 1.75)) has the bough's root at
+ * (0.33, 0.24) and tip (0.18, 0.39) of the frame; SW (→ the bank) root (0.74, 0.20), tip (0.60, 0.40).
+ */
+const DETACHED_BOUGHS: (typeof CANOPY_BOUGHS)[number][] = [
+  {
+    giant: 'southwest-giant',
+    fromY: 9.4,
+    to: [-20.2, 5.2, 13.7],
+    radius: 0.55,
+    tipRadius: 0.2,
+    dress: { relief: 1, moss: 0.8, lichen: 0.6 },
+    lobes: [
+      { t: 0.95, center: [-21.4, 4.4, 12.5], hR: 1.5, vR: 1.0, density: 1.2, floor: 3.9 },
+      { t: 0.6, center: [-22.3, 5.8, 11.0], hR: 1.6, vR: 1.2, density: 1.2, floor: 4.2 },
+    ],
+  },
+];
+/**
  * Screen windows of a hero camera that must stay open to the far haze. Reference F has a bright
  * haze gap at the top-centre (x 0.35–0.55, y 0–0.10) where the stair shafts come from; white-bark
  * crowns 15–45 m out on the plateau were closing it. Crowns overlapping a window are re-seated
@@ -1336,9 +1378,19 @@ function spineDistance(spine: [number, number][], x: number, z: number): number 
 /** regular column variants (columnParams); the emergent (emergentParams) is variant index COLUMN_VARIANTS */
 const COLUMN_VARIANTS = 4;
 const COLUMN_EMERGENT = COLUMN_VARIANTS;
+/** the far hut's host (column.ts hutHostParams): variant index COLUMN_VARIANTS + 1 */
+const COLUMN_HUT_HOST = COLUMN_VARIANTS + 1;
 /** radius of the pavement / stairs / structure probe ring around a seat (m) */
 const COLUMN_SEAT_RING = 1.6;
-const COLUMN_SEATS: { x: number; z: number; variant: number; ring?: number }[] = [
+/**
+ * A seat's `view` (round 50, trees-32) is the heightfield view it reads its ground from — the
+ * trees build against the LEGACY view (src/world/index.ts), which is the plain the six frames
+ * see; a seat on ground the round-49 expansion raised (the far hut's knoll, +1.4 m) reads the
+ * LIVE view so it stands on the rendered ground. `host`: the seat is a structure's host (the hut
+ * hangs on it), so the structure mask under it — its own hut's — and the no-vegetation rule the
+ * mask implies do not block it. Base gaps are audited against each seat's own view.
+ */
+const COLUMN_SEATS: { x: number; z: number; variant: number; ring?: number; view?: TerrainView; host?: boolean }[] = [
   { x: -3.5, z: -24.7, variant: 3 },
   { x: -5.7, z: -31.9, variant: 1 },
   { x: -1.0, z: -35.5, variant: 2 },
@@ -1348,6 +1400,20 @@ const COLUMN_SEATS: { x: number; z: number; variant: number; ring?: number }[] =
   { x: 15.7, z: 5.2, variant: 3 },
   // round 31: 0.4 m west of (−2.7, −7.9), see the "left edge" note above
   { x: -3.1, z: -7.9, variant: COLUMN_EMERGENT, ring: 1.0 },
+  // round 50 (trees-32): the far hut's host on its knoll (layout EXPANSION.farHut.host, live
+  // ground 1.61 m — structures/distantHouse.ts resolveHost takes the published seat within 1.5 m).
+  // LAST in the list: the seat loop draws one yaw and one scale per seat, so an entry appended
+  // here re-rolls none of the seats before it. Its family never casts (see the seated columns).
+  { x: -41, z: 35.7, variant: COLUMN_HUT_HOST, view: 'live', host: true },
+];
+/**
+ * Round 50 (trees-32): the two white-barks off the far hut's knoll (expansion-2's brief), authored
+ * placements seated on the LIVE ground (fable-4's family; only the placement is ours). `crown`
+ * picks the smallest / largest mature variant — the (−34, 45) tree stands nearest camera C's edge.
+ */
+const KNOLL_WHITE_BARKS: { x: number; z: number; crown: 'small' | 'large' }[] = [
+  { x: -50, z: 39, crown: 'large' },
+  { x: -34, z: 45, crown: 'small' },
 ];
 /**
  * Knees on the emergent's bole (round 40 — the owner's markup on our frame A circles "the smooth
@@ -1543,6 +1609,10 @@ interface ColumnPlacement {
   scale: number;
   /** 'seat' = authored COLUMN_SEATS entry, 'swap' = a mature white-bark built as a column */
   source: 'seat' | 'swap';
+  /** the heightfield view the seat reads (COLUMN_SEATS.view; 'legacy' = the trees' own terrain) */
+  view: TerrainView;
+  /** false: none of the seat's meshes casts (the far hut's host — its shadow footprint is what camera C could see) */
+  casts: boolean;
 }
 type ColumnVariant = FamilyVariant<ColumnParams, ColumnPlacement, ColumnAsset>;
 
@@ -1869,14 +1939,35 @@ export async function create(ctx: WorldContext): Promise<WorldSystem> {
     }
     return false;
   };
-  const swappedWhites = whitePlaced.placements.filter((p) => whites[p.variant].params.age === 'mature' && inFarWall(p.x, p.y, p.z));
-  // Round 49 (fable-4, after expansion-2): the stream builds against the LEGACY terrain view, so a
-  // white-bark drawn onto the expansion's live-only ground (the far hut's knoll: the mature variant
-  // at (−39.7, 31.1) stood 0.7 m buried, its crown across the hut lamp's sight line from Link's
-  // spot) is dropped by the heightfield's own filter — a filter re-rolls nothing, and the six fixed
-  // frames see none of that ground (heightfield.ts expansionCull).
-  const whitePlacements = whitePlaced.placements.filter((p) => !swappedWhites.includes(p) && !expansionCull(p.x, p.z));
+  // Round 49/50 (fable-4 d6f5f35f, trees-32): the SAMPLED stream against the round-49 expansion's ground
+  // (heightfield.ts expansionCull) — a filter after the placement, so nothing re-rolls: an instance
+  // the legacy plain seated where the live ground is the bank, a stepping disc or the knoll is
+  // dropped rather than left buried or floating. Take-0123's 80 sampled trees: none culled (the
+  // audit's whiteBarkCulled), so the six frames keep every tree they show. The authored entries
+  // below are not filtered (the knoll pair is seated on the live ground on purpose).
+  const sampledWhites = whitePlaced.placements.filter((p) => !expansionCull(p.x, p.z));
+  const whiteBarkCulled = whitePlaced.placements.filter((p) => !sampledWhites.includes(p)).map((p) => [Math.round(p.x * 100) / 100, Math.round(p.z * 100) / 100]);
+  const swappedWhites = sampledWhites.filter((p) => whites[p.variant].params.age === 'mature' && inFarWall(p.x, p.y, p.z));
+  const whitePlacements = sampledWhites.filter((p) => !swappedWhites.includes(p));
   whitePlacements.push(...authoredWhiteBarks(whites.map((w) => w.params), terrain));
+  // the two white-barks off the far hut's knoll (round 50, trees-32), seated on the LIVE ground
+  // (both views agree there: −0.14 / 0.34 m — the knoll's rise ends 8 m from the hut), from their
+  // own stream. Mature variants chosen for the crown radius: (−34, 45) stands 5.7 m west of camera
+  // C's edge on the ground and 64 m from C, its crown rim 2.5 m outside C's right plane (the
+  // smallest mature crown, 3.3 m); (−50, 39) is 23 m outside. Both are in every fixed camera's
+  // FAR LOD (≥ 49.5 m, lodDist 44 at quality high), which does not cast — the (−34, 45) tree's
+  // shadow would otherwise land 12 m inside C's frame.
+  const liveTerrain = getTerrain();
+  {
+    const knollRng = rng.fork('whitebark/knoll');
+    const mature = whites.map((w, i) => (w.params.age === 'mature' ? i : -1)).filter((i) => i >= 0);
+    // a smaller / larger crown among the mature variants (by the low LOD's radius)
+    const byRadius = [...mature].sort((a, b) => whites[a].lods[2].radius - whites[b].lods[2].radius);
+    for (const spot of KNOLL_WHITE_BARKS) {
+      const variant = byRadius.length ? byRadius[spot.crown === 'small' ? 0 : byRadius.length - 1] : 0;
+      whitePlacements.push({ variant, x: spot.x, y: liveTerrain.height(spot.x, spot.z), z: spot.z, yaw: knollRng() * TAU, scale: knollRng.range(0.92, 1.08), view: 'live' });
+    }
+  }
   const seatFamily = <P, T extends { x: number; y: number; z: number; yaw: number; scale: number }>(variants: FamilyVariant<P, T>[], p: T, variant: number) => {
     const w = variants[variant];
     w.placements.push(p);
@@ -1927,24 +2018,26 @@ export async function create(ctx: WorldContext): Promise<WorldSystem> {
   const giantDefsAll: GiantTreeDef[] = [...ctx.layout.giantTrees, ...EXTRA_GIANTS];
   const columnRng = rng.fork('columns');
   const columns: ColumnVariant[] = [];
-  const columnParamSets = [...Array.from({ length: COLUMN_VARIANTS }, (_, i) => columnParams(columnRng, i, COLUMN_VARIANTS)), emergentParams(columnRng)];
+  // (every params function forks its own stream off columnRng by name — none draws from it)
+  const columnParamSets = [...Array.from({ length: COLUMN_VARIANTS }, (_, i) => columnParams(columnRng, i, COLUMN_VARIANTS)), emergentParams(columnRng), hutHostParams(columnRng)];
   // Finalize deterministic placements before creating terrain-dependent root geometry.
   for (const params of columnParamSets) {
     columns.push({ params, lods: [], meshes: [], placements: [], matrices: [], counts: [0, 0, 0], lists: [[], [], []], submitted: [[], [], []] });
   }
   const seatRng = columnRng.fork('seats');
   const columnSeatsSkipped: { x: number; z: number; reason: string }[] = [];
-  const seatBlocked = (x: number, z: number, ring: number): string | null => {
+  const seatBlocked = (x: number, z: number, ring: number, t: Terrain = terrain, host = false): string | null => {
     const probes: [number, number][] = [[x, z]];
     for (let i = 0; i < 6; i++) probes.push([x + Math.cos((i / 6) * TAU) * ring, z + Math.sin((i / 6) * TAU) * ring]);
     for (const [px, pz] of probes) {
-      const m = terrain.mask(px, pz);
+      const m = t.mask(px, pz);
       if (m.path > 0.3) return 'path';
       if (m.stairs > 0.3) return 'stairs';
-      if (m.structure > 0.3) return 'structure';
+      // a host seat stands in its own hut's structure mask (and the no-vegetation it implies)
+      if (m.structure > 0.3 && !host) return 'structure';
     }
-    if (!terrain.vegetationAllowed(x, z)) return 'no-vegetation';
-    if (terrain.slope(x, z) > 0.6) return 'slope';
+    if (!host && !t.vegetationAllowed(x, z)) return 'no-vegetation';
+    if (t.slope(x, z) > 0.6) return 'slope';
     for (const h of ctx.layout.houses) if (Math.hypot(x - h.position[0], z - h.position[2]) < h.trunkRadius + COLUMN_CLEARANCE.house) return `house:${h.id}`;
     for (const g of giantDefsAll) if (Math.hypot(x - g.position[0], z - g.position[2]) < g.trunkRadius + COLUMN_CLEARANCE.giant) return `giant:${g.id}`;
     for (const p of whitePlacements) if (Math.hypot(x - p.x, z - p.z) < COLUMN_CLEARANCE.whiteBark) return 'white-bark';
@@ -1954,7 +2047,7 @@ export async function create(ctx: WorldContext): Promise<WorldSystem> {
   for (const p of swappedWhites) {
     const variant = seatRng.int(0, COLUMN_VARIANTS);
     const id = `swap-${whitePlaced.placements.indexOf(p)}`;
-    seatFamily(columns, { id, x: p.x, y: p.y, z: p.z, yaw: seatRng() * TAU, scale: seatRng.range(0.95, 1.05), source: 'swap' }, variant);
+    seatFamily(columns, { id, x: p.x, y: p.y, z: p.z, yaw: seatRng() * TAU, scale: seatRng.range(0.95, 1.05), source: 'swap', view: 'legacy', casts: true }, variant);
   }
   for (let i = 0; i < COLUMN_SEATS.length; i++) {
     const seat = COLUMN_SEATS[i];
@@ -1962,12 +2055,14 @@ export async function create(ctx: WorldContext): Promise<WorldSystem> {
     // re-rolls the ones after it
     const yaw = seatRng() * TAU;
     const scale = seatRng.range(0.95, 1.05);
-    const reason = seatBlocked(seat.x, seat.z, seat.ring ?? COLUMN_SEAT_RING);
+    const view: TerrainView = seat.view ?? 'legacy';
+    const seatTerrain = view === 'live' ? liveTerrain : terrain;
+    const reason = seatBlocked(seat.x, seat.z, seat.ring ?? COLUMN_SEAT_RING, seatTerrain, seat.host === true);
     if (reason) {
       columnSeatsSkipped.push({ x: seat.x, z: seat.z, reason });
       continue;
     }
-    seatFamily(columns, { id: `seat-${i}`, x: seat.x, y: terrain.height(seat.x, seat.z), z: seat.z, yaw, scale, source: 'seat' }, seat.variant);
+    seatFamily(columns, { id: `seat-${i}`, x: seat.x, y: seatTerrain.height(seat.x, seat.z), z: seat.z, yaw, scale, source: 'seat', view, casts: seat.host !== true }, seat.variant);
   }
   const columnPlacements = columns.flatMap((c) => c.placements);
   // A variant's flat roots cannot be shared between differently sloped seats. These ten
@@ -1977,10 +2072,12 @@ export async function create(ctx: WorldContext): Promise<WorldSystem> {
   for (const c of columns) for (let i = 0; i < c.placements.length; i++) {
     const p = c.placements[i];
     const cos = Math.cos(p.yaw), sin = Math.sin(p.yaw);
+    // the seat's own heightfield view (COLUMN_SEATS.view): its roots meet the ground it reads
+    const seatTerrain = p.view === 'live' ? liveTerrain : terrain;
     const groundAt = (lx: number, lz: number) => (
-      terrain.height(p.x + p.scale * (cos * lx + sin * lz), p.z + p.scale * (-sin * lx + cos * lz)) - p.y
+      seatTerrain.height(p.x + p.scale * (cos * lx + sin * lz), p.z + p.scale * (-sin * lx + cos * lz)) - p.y
     ) / p.scale;
-    const pathAt = (lx: number, lz: number) => terrain.mask(p.x + p.scale * (cos * lx + sin * lz), p.z + p.scale * (-sin * lx + cos * lz)).path;
+    const pathAt = (lx: number, lz: number) => seatTerrain.mask(p.x + p.scale * (cos * lx + sin * lz), p.z + p.scale * (-sin * lx + cos * lz)).path;
     // the sun in the seat's local frame (the yaw undone) for the near base's shaded-side moss
     const localSun = new Vector3(cos * sunDir.x - sin * sunDir.z, sunDir.y, sin * sunDir.x + cos * sunDir.z);
     // the emergent's knees (EMERGENT_KNEES): world azimuths into the seat's local frame like the sun
@@ -2008,6 +2105,10 @@ export async function create(ctx: WorldContext): Promise<WorldSystem> {
     m.name += `@${p.x.toFixed(3)},${p.z.toFixed(3)}`;
     // the emergent's bole stands 5 m from camera D: its own bark floor (materials NEAR_BOLE_FLOOR)
     if (c.params === columnParamSets[COLUMN_EMERGENT]) m.material = mats.giantTreeNear;
+    // the far hut's host never casts (ColumnPlacement.casts): the submission cull then tests its
+    // frustum sphere alone, and its 1.28 m-per-m shadow footprint — which reaches camera C's
+    // frame from a 13 m column (layout.ts farHutTrunk) — is never in a depth pass
+    if (!p.casts) m.castShadow = false;
   }
   // the seated columns' near bases: one hidden mesh per seat, posed like its instance
   for (const c of seatedColumns) {
@@ -2020,7 +2121,7 @@ export async function create(ctx: WorldContext): Promise<WorldSystem> {
     mesh.rotation.y = p.yaw;
     mesh.scale.setScalar(p.scale);
     mesh.customDepthMaterial = mats.giantTreeDepth;
-    mesh.castShadow = ctx.quality.shadows;
+    mesh.castShadow = ctx.quality.shadows && p.casts;
     mesh.receiveShadow = true;
     mesh.visible = false;
     mesh.userData.kind = 'column-near-base';
@@ -2099,6 +2200,20 @@ export async function create(ctx: WorldContext): Promise<WorldSystem> {
   giantGroup.name = 'giants';
   const giants: { def: GiantTreeDef; asset: GiantAsset; origin: Vector3; angle: number }[] = [];
   const contacts: [number, number, number][] = [];
+  /**
+   * The detached boughs (DETACHED_BOUGHS, giant.ts GiantOptions.detachedBoughs): their meshes,
+   * gated as one by `detachedVisible` (util/expansionLocality.ts expansionVisible against
+   * `detachedCasters`' spheres — the wood's frustum stacks and the curtains' shadow sweeps), so a
+   * camera that can see neither the bough nor its shade — every one of the six fixed frames —
+   * draws none of it, not even in the depth pass. Hidden until the first rebucket.
+   */
+  const detachedGroup = new Group();
+  detachedGroup.name = 'giant-detached-boughs';
+  detachedGroup.visible = false;
+  const detachedMeshes: Mesh[] = [];
+  const detachedCasters: Caster[] = [];
+  const detachedGeometries: BufferGeometry[] = [];
+  const detachedAudit: { giant: string; boughs: number; woodTriangles: number; leaves: number; leafTriangles: number; cards: number; lobes: { center: number[]; hR: number; vR: number; leaves: number }[]; dress: GiantAsset['boughDress'] }[] = [];
   const giantDefs = giantDefsAll;
   /** what was published as ctx.shared.lanternLimb (audit) */
   let lanternLimbAudit: { samples: number; range: [number, number]; side: [number, number]; vertical: [number, number]; ends: [number[], number[]]; rings: number[][] } | undefined;
@@ -2239,7 +2354,7 @@ export async function create(ctx: WorldContext): Promise<WorldSystem> {
     // carry their crowns
     const plazaDist = Math.hypot(px, pz);
     const farFade = 1 - 0.45 * Math.min(1, Math.max(0, (plazaDist - 26) / 16));
-    const canopyBoughs: CanopyBough[] = CANOPY_BOUGHS.filter((b) => b.giant === def.id).map((b) => ({
+    const toLocalBough = (b: (typeof CANOPY_BOUGHS)[number]): CanopyBough => ({
       to: new Vector3(b.to[0], b.to[1], b.to[2]).sub(origin),
       fromHeight: b.fromY - gy,
       radius: b.radius,
@@ -2247,7 +2362,10 @@ export async function create(ctx: WorldContext): Promise<WorldSystem> {
       ghostWood: b.ghostWood,
       dress: b.dress,
       lobes: b.lobes.map((l) => ({ t: l.t, center: new Vector3(l.center[0], l.center[1], l.center[2]).sub(origin), hR: l.hR, vR: l.vR, density: l.density, tone: l.tone, eye: l.eye, shade: l.shade, corridors: l.corridors, compact: l.compact, castShadow: l.castShadow, flat: l.flat, core: l.core, floor: l.floor === undefined ? undefined : l.floor - gy })),
-    }));
+    });
+    const canopyBoughs: CanopyBough[] = CANOPY_BOUGHS.filter((b) => b.giant === def.id).map(toLocalBough);
+    const detachedSpecs = DETACHED_BOUGHS.filter((b) => b.giant === def.id);
+    const detachedBoughs: CanopyBough[] = detachedSpecs.map(toLocalBough);
     const asset = createGiantTree(def, rng, {
       groundAt: (lx, lz) => terrain.height(px + lx, pz + lz) - gy,
       limbSpec,
@@ -2281,6 +2399,7 @@ export async function create(ctx: WorldContext): Promise<WorldSystem> {
       limbFoliage: def.id === 'lantern-tree' ? LANTERN_LIMB_FOLIAGE : 1,
       profile: GIANT_PROFILES[def.id],
       canopyBoughs,
+      detachedBoughs: detachedBoughs.length ? detachedBoughs : undefined,
       sunDir,
       pathAt: (lx, lz) => terrain.mask(px + lx, pz + lz).path,
       basePalette,
@@ -2306,6 +2425,58 @@ export async function create(ctx: WorldContext): Promise<WorldSystem> {
     for (const g of [asset.geometry, asset.authoredLeaves, asset.cards, asset.authoredCards]) {
       g.translate(px, gy, pz);
       rootsToWorld(g.getAttribute('aRoot') as BufferAttribute, px, gy, pz);
+    }
+    // the detached boughs (DETACHED_BOUGHS): three meshes of their own in `detachedGroup`, shown
+    // by the gate below — wood (never casts: its footprint is what comes nearest camera C),
+    // laminae and cards (cast: the curtains' shade on the bank is the point of them)
+    if (asset.detached) {
+      const d = asset.detached;
+      for (const g of [d.wood, d.leaves, d.cards]) {
+        g.translate(px, gy, pz);
+        rootsToWorld(g.getAttribute('aRoot') as BufferAttribute, px, gy, pz);
+      }
+      const make = (g: BufferGeometry, name: string, material: Material, depth: Material, casts: boolean, kind: string) => {
+        const geometry = mergeParts(name, [g]);
+        detachedGeometries.push(geometry);
+        const mesh = new Mesh(geometry, material);
+        mesh.name = name;
+        mesh.customDepthMaterial = depth;
+        mesh.castShadow = casts && ctx.quality.shadows;
+        mesh.receiveShadow = true;
+        mesh.userData.kind = kind;
+        mesh.userData.giants = [def.id];
+        detachedGroup.add(mesh);
+        detachedMeshes.push(mesh);
+        return mesh;
+      };
+      if (d.wood.getAttribute('position').count > 0) make(d.wood, `giant-detached-wood-${def.id}`, mats.giantTree, mats.giantTreeDepth, false, 'giant-detached-wood');
+      if (d.leaves.getAttribute('position').count > 0) make(d.leaves, `giant-detached-leaves-${def.id}`, mats.giantTree, mats.giantTreeDepth, true, 'giant-detached-leaves');
+      if (d.cards.getAttribute('position').count > 0) make(d.cards, `giant-detached-cards-${def.id}`, mats.giantCanopy, mats.giantCanopyDepth, true, 'giant-detached-cards');
+      // the gate's casters from the authored spec (world): the wood as frustum-only stacks along
+      // its droop (the same curve giant.ts sweeps), each curtain swept along the sun to the live
+      // ground under it (the bank's body is live-only ground)
+      for (const b of detachedSpecs) {
+        const run = Math.hypot(b.to[0] - px, b.to[2] - pz);
+        for (let k = 0; k <= 8; k++) {
+          const s = k / 8;
+          const x = px + (b.to[0] - px) * s;
+          const z = pz + (b.to[2] - pz) * s;
+          const y = b.fromY + (b.to[1] - b.fromY) * Math.pow(s, 1.7) + 0.02 * run * Math.sin(s * Math.PI);
+          const r = b.radius + 0.5;
+          detachedCasters.push({ x, z, r, y0: y - r - 0.5, y1: y + r + 0.5, shadow: false });
+        }
+        for (const l of b.lobes) detachedCasters.push({ x: l.center[0], z: l.center[2], r: l.hR + 0.6, y0: liveTerrain.height(l.center[0], l.center[2]), y1: l.center[1] + l.vR + 0.5, shadow: true });
+      }
+      detachedAudit.push({
+        giant: def.id,
+        boughs: detachedSpecs.length,
+        woodTriangles: d.woodTriangles,
+        leaves: d.leafCount,
+        leafTriangles: d.leafTriangles,
+        cards: d.cardCount,
+        lobes: d.lobes.map((l) => ({ center: [Math.round((l.center.x + px) * 100) / 100, Math.round((l.center.y + gy) * 100) / 100, Math.round((l.center.z + pz) * 100) / 100], hR: l.hR, vR: l.vR, leaves: l.leaves })),
+        dress: d.dress,
+      });
     }
     // the lantern tree publishes its built limb — the sweep's own ring centres and nominal radii,
     // wiggle included, in world space (the tree is only translated) — so structures can wrap the
@@ -2486,6 +2657,7 @@ export async function create(ctx: WorldContext): Promise<WorldSystem> {
     }
   }
   group.add(giantGroup);
+  group.add(detachedGroup);
 
   // ------------------------------------------------------------------ distant trees
   const distantGroup = new Group();
@@ -2836,6 +3008,9 @@ export async function create(ctx: WorldContext): Promise<WorldSystem> {
       else slots[i].set(0, 0, 0, 0);
     }
   };
+  // the detached boughs' gate (see detachedGroup): the casters' spheres once, tested per pose
+  const detachedSpheres = detachedCasters.flatMap((c) => casterSpheres(c, sunDir));
+  const detachedVisible = (camera: Camera) => detachedMeshes.length > 0 && expansionVisible(camera, detachedSpheres);
   const rebucket = (camera: Camera, force = false) => {
     camera.getWorldPosition(_v);
     const moved = force || _v.distanceTo(camPos) >= 1.5;
@@ -2847,6 +3022,7 @@ export async function create(ctx: WorldContext): Promise<WorldSystem> {
     nearBoleUpdate(_v, force);
     nearCanopyUpdate(_v, force);
     cull(camera, moved);
+    detachedGroup.visible = detachedVisible(camera);
   };
   rebucket(ctx.camera, true);
 
@@ -2855,8 +3031,13 @@ export async function create(ctx: WorldContext): Promise<WorldSystem> {
   const columnBases: [number, number, number][] = columnPlacements.map((p) => [p.x, p.y, p.z]);
   const distantBases: [number, number, number][] = distantPlacements.map((p) => [p.x, p.y, p.z]);
   const allBases = [...whiteBases, ...columnBases, ...contacts, ...distantBases];
+  // each base against the view it was seated on (round 50: the live-seated knoll trees and the far
+  // hut's host would otherwise report the knoll's 1.4 m rise as a gap against the legacy plain)
+  const liveSeated = new Set<[number, number, number]>();
+  whitePlacements.forEach((p, i) => p.view === 'live' && liveSeated.add(whiteBases[i]));
+  columnPlacements.forEach((p, i) => p.view === 'live' && liveSeated.add(columnBases[i]));
   let maxBaseGap = 0;
-  for (const [x, y, z] of allBases) maxBaseGap = Math.max(maxBaseGap, Math.abs(y - terrain.height(x, z)));
+  for (const b of allBases) maxBaseGap = Math.max(maxBaseGap, Math.abs(b[1] - (liveSeated.has(b) ? liveTerrain : terrain).height(b[0], b[2])));
   const sampleBases = (() => {
     const pool = [...whiteBases, ...columnBases, ...contacts];
     const stride = Math.max(1, Math.ceil(pool.length / 300));
@@ -2910,6 +3091,7 @@ export async function create(ctx: WorldContext): Promise<WorldSystem> {
     }
     for (const nb of nearBoles) add(family(nb.mesh.userData.kind as string), nb.mesh);
     for (const nc of nearCanopies) add(family(`${nc.mesh.userData.kind as string}-${nc.kind}`), nc.mesh);
+    if (detachedGroup.visible) for (const m of detachedMeshes) add(family(m.userData.kind as string), m);
     const total = tally();
     for (const t of Object.values(byFamily)) {
       total.meshes += t.meshes;
@@ -2928,6 +3110,15 @@ export async function create(ctx: WorldContext): Promise<WorldSystem> {
       columnLodSubmitted: [0, 1, 2].map((l) => seatedColumns.reduce((n, c) => n + c.submitted[l].length, 0)),
       distantSubmitted: [0, 1].map((l) => distantSets.reduce((n, d) => n + d.submitted[l].length, 0)),
       giantSectorsCasting: sectorMeshes.filter((m) => m.castShadow).length,
+      /**
+       * round 50 (trees-32): the detached boughs (DETACHED_BOUGHS) — per giant, their geometry and
+       * lobes as built (world centres), whether the gate shows them for the current camera, and
+       * the gate's sphere count (util/expansionLocality.ts casterSpheres)
+       */
+      detachedBoughs: detachedAudit,
+      detachedBoughsVisible: detachedGroup.visible,
+      detachedBoughSpheres: detachedSpheres.length,
+      detachedBoughMeshes: detachedMeshes.map((m) => ({ name: m.name, castShadow: m.castShadow, triangles: Math.floor((m.geometry.index ? m.geometry.index.count : m.geometry.attributes.position.count) / 3) })),
       cullPadM: CULL_PAD_M,
     };
   };
@@ -3027,6 +3218,17 @@ export async function create(ctx: WorldContext): Promise<WorldSystem> {
         }),
       whiteBarkVariants: whites.length,
       whiteBarkInstances: whitePlacements.length,
+      /**
+       * round 50 (trees-32): every SAMPLED white-bark placement as drawn ([x, z] cm, the swapped-to-column
+       * ones included) — the stream every fixed frame was tuned against. A placement-rule change is
+       * safe only while none of these flips (placement.ts fill: a newly blocked accepted candidate
+       * skips its yaw draw and re-rolls every tree after it); diff this list across a build to prove it.
+       */
+      whiteBarkSampled: whitePlaced.placements.map((p) => [Math.round(p.x * 100) / 100, Math.round(p.z * 100) / 100]),
+      /** round 50: sampled white-barks dropped by heightfield.expansionCull ([x, z] cm) — none in take-0123's stream */
+      whiteBarkCulled,
+      /** round 50: the authored white-barks seated on the LIVE view ([x, y, z] cm, variant) — the knoll pair */
+      whiteBarkLiveSeated: whitePlacements.filter((p) => p.view === 'live').map((p) => [Math.round(p.x * 100) / 100, Math.round(p.y * 100) / 100, Math.round(p.z * 100) / 100, p.variant]),
       /** white-barks moved out of the hero-camera view gaps (VIEW_GAPS) */
       whiteBarkReseated: whitePlaced.reseated,
       whiteBarkAges: whites.map((w) => w.params.age),
@@ -3040,6 +3242,21 @@ export async function create(ctx: WorldContext): Promise<WorldSystem> {
       columnTrunkRadii: columns.map((c) => Math.round(c.params.trunkRadius * 100) / 100),
       columnSeats: columnPlacements.map((p) => [Math.round(p.x * 10) / 10, Math.round(p.z * 10) / 10, p.source]),
       columnSeatsSkipped,
+      /**
+       * round 50 (trees-32): the seats on the LIVE heightfield view (the far hut's host on its
+       * knoll): id, [x, y, z] cm, the gap to the live ground (m), the gap to the legacy plain the
+       * other trees stand on (the knoll's rise), whether its meshes cast
+       */
+      columnLiveSeats: columnPlacements
+        .filter((p) => p.view === 'live')
+        .map((p) => ({
+          id: p.id,
+          position: [Math.round(p.x * 100) / 100, Math.round(p.y * 100) / 100, Math.round(p.z * 100) / 100],
+          liveGap: Math.round(Math.abs(p.y - liveTerrain.height(p.x, p.z)) * 1e4) / 1e4,
+          legacyRise: Math.round((p.y - terrain.height(p.x, p.z)) * 100) / 100,
+          casts: p.casts,
+          height: Math.round((seatedColumns.find((c) => c.placements[0] === p)?.params.height ?? 0) * 10) / 10,
+        })),
       columnLodInstances,
       columnLeafCount: columnLeaves,
       leafGeometry: 'laminae',
@@ -3263,6 +3480,7 @@ export async function create(ctx: WorldContext): Promise<WorldSystem> {
       nearCanopyPool.dispose();
       nearBasePool.dispose();
       for (const g of sectorGeometries) g.dispose();
+      for (const g of detachedGeometries) g.dispose();
       for (const s of distantSets) (s.variant.near.dispose(), s.variant.far.dispose());
       (distantCrown.map?.dispose(), distantCrown.dispose());
     },
