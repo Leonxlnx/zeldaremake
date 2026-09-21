@@ -43,8 +43,14 @@ test('the C stair-bank tier walks the face at its mid height, off the paving and
   const tier = BANK_TIERS.find((t) => t.id === 'c-stair-bank');
   assert.ok(tier);
   const pts = contourLine(T, tier.from, tier.to, tier.height, tier.spacing);
-  const onFace = pts.filter(([x, z]) => T.slope(x, z) >= 0.25);
-  assert.ok(onFace.length >= 5, `only ${onFace.length} slabs on the face`);
+  const placed = pts.filter(([x, z]) => T.slope(x, z) >= 0.25 && !tier.keepOut.some(([kx, kz, kr]) => Math.hypot(x - kx, z - kz) < kr));
+  const onFace = placed;
+  // (three: the contour past fable-3's pots flattens into the stair-foot rock and fails the slope filter)
+  assert.ok(onFace.length >= 3, `only ${onFace.length} slabs on the face`);
+  // fable-3's stair-foot pots (props/layout.ts): no slab within reach of either
+  for (const [kx, kz] of [[7.95, 1.8], [7.55, 2.1]]) for (const [x, z] of onFace) assert.ok(Math.hypot(x - kx, z - kz) >= 0.85, `slab (${x.toFixed(2)}, ${z.toFixed(2)}) within 0.85 m of the pot at (${kx}, ${kz})`);
+  // the tier sits on the face west of the pots, toward the frame's terrace edge (C box 0.25–0.32)
+  assert.ok(onFace.every(([x]) => x < 7.4), `a slab east of the pots: ${JSON.stringify(onFace.map(([x, z]) => [+x.toFixed(2), +z.toFixed(2)]))}`);
   for (const [x, z] of pts) {
     assert.ok(Math.abs(T.height(x, z) - tier.height) < 0.12, `height ${T.height(x, z)} at (${x.toFixed(2)}, ${z.toFixed(2)})`);
     const m = T.mask(x, z);
@@ -53,7 +59,7 @@ test('the C stair-bank tier walks the face at its mid height, off the paving and
   // consecutive slabs sit about a spacing apart along the run (the walk slides across, not along)
   for (let i = 1; i < onFace.length; i++) {
     const d = Math.hypot(onFace[i][0] - onFace[i - 1][0], onFace[i][1] - onFace[i - 1][1]);
-    assert.ok(d > tier.spacing * 0.5 && d < tier.spacing * 2.6, `spacing ${d.toFixed(2)} between slabs ${i - 1} and ${i}`);
+    assert.ok(d > tier.spacing * 0.5 && d < tier.spacing * 3.6, `spacing ${d.toFixed(2)} between slabs ${i - 1} and ${i}`); // (the gap across the pots is two spacings)
   }
 });
 

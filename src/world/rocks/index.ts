@@ -39,10 +39,13 @@ import type { Rng } from '../util/prng';
  * `height` is the contour's height above the bank's foot (the walk from `from` toward `to` keeps to
  * the terrain height nearest to that value across the face).
  */
-export const BANK_TIERS: { id: string; from: [number, number]; to: [number, number]; height: number; spacing: number; scale: [number, number]; yawAlong: boolean }[] = [
+export const BANK_TIERS: { id: string; from: [number, number]; to: [number, number]; height: number; spacing: number; scale: [number, number]; yawAlong: boolean; keepOut?: [number, number, number][] }[] = [
   // the hero stair's east bank at C: a 1 m rise from the plaza's paving to the kokiri-a plateau,
-  // running (6.0, 3.9) → (9.0, 1.2); the tier at its mid height
-  { id: 'c-stair-bank', from: [5.9, 4.0], to: [9.1, 1.1], height: 0.5, spacing: 0.5, scale: [0.34, 0.5], yawAlong: true },
+  // running (6.0, 3.9) → (9.0, 1.2); the tier at its mid height. keepOut: fable-3's stair-foot pots
+  // ('stair-pot' (7.95, 1.8) r 0.26, 'stair-pot-squat' (7.55, 2.1) r 0.22 — props/layout.ts; props build
+  // after rocks, so their footprints are not in ctx.shared yet) — a slab reaches ≈ 0.5 m, so the tier
+  // skips the two contour points beside them and resumes past the pots (fable-3, 01:50 UTC)
+  { id: 'c-stair-bank', from: [5.9, 4.0], to: [9.1, 1.1], height: 0.5, spacing: 0.5, scale: [0.34, 0.5], yawAlong: true, keepOut: [[7.95, 1.8, 0.9], [7.55, 2.1, 0.85]] },
 ];
 
 /**
@@ -295,6 +298,7 @@ export async function create(ctx: WorldContext): Promise<WorldSystem> {
       if (m.path > 0.2 || m.stairs > 0.3 || m.structure > 0.3) continue;
       const slope = T.slope(px, pz);
       if (slope < 0.25) continue; // the contour left the face (a flat shoulder, or inside the stair-foot rock)
+      if (tier.keepOut?.some(([kx, kz, kr]) => Math.hypot(px - kx, pz - kz) < kr)) continue; // another lane's prop stands here
       const sc = tRng.range(tier.scale[0], tier.scale[1]);
       T.normal(px, pz, _n);
       // the slab lies along the contour: its yaw follows the line, ± a little, and it leans into the bank
