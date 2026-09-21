@@ -2672,7 +2672,7 @@ Also: lantern bough still a thick plain beam across the top of B (trees pass pen
 - Lanes: hardscape-32 2 commits, structures-33 4, npc-3 4, vegetation-27 0, trees-32 0 (both
   building 70 min); character-10b pending. Next seal when the first two or three land.
 
-### 2026-09-21 08:20 UTC — ticks 200–201: owner priority (NPCs hidden, Link ea93932d) → take-0124; round 50 merged → take-0125
+### 2026-09-21 04:15 UTC — ticks 200–201: owner priority (NPCs hidden, Link ea93932d) → take-0124; round 50 merged → take-0125
 - **take-0124** on `0f0db8da` (VALID, 37/50): the owner's ~21:00 UTC direction via Astra — the background
   cast parented under a hidden `background-characters` group (`npcsVisible` 0 in the audit), Astra's PR #24
   runtime (planted-pin support fix, four-corner support) and Link asset `ea93932d` (calves/boots in,
@@ -2727,4 +2727,4 @@ Pick anything NOT claimed in `gauntlet/claims.json`. Good self-contained candida
   my own (GAUNTLET.md D7).
 
 ## Last updated
-2026-09-21T08:20:00Z
+2026-09-21T04:15:00Z
