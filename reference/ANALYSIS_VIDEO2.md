@@ -573,3 +573,15 @@ render of the round-50 head (head-on from the foot). Sheet `reference/frames-vid
 
 Count per the rubric: W02's "18 worn stone steps" is a count we match within two; the miss is the
 material and the light, not the number.
+
+### 8.1 The five "unverified" rows, checked on take-0126's frames (2026-09-21 10:30 UTC)
+
+Sheet `reference/frames-video2/v-check-take0126.jpg` (pHashed): reference crop | take-0126 crop.
+
+| # | status now | what the frames show |
+| --- | --- | --- |
+| V3 right-bank stair | **open** (sev 2) | the stair climbs from path level over a low flowered verge; the frame's climbs from a dark bank ≈ 1 m high with a grass lip — the bank has to rise (terrain, expansion) |
+| V6 door buttresses | **partly closed** | one knotted bark column stands left of the door (a buttress read); the right side is plank wall — the frame has two columns framing the opening |
+| V7 mist veil at B | **closed** | the north path recedes into haze past the mid-ground, dark trunks through it; the frame's 60 % hidden ribbon is matched in kind |
+| V12 pole house + pebble pile | **half closed** | the pebble pile at the house base is gone (per-cell pebbles + the envelope); the second house on its pole still stands at B's top-left where the frame has canopy — layout's call, not a lane's |
+| V14 pod posts | **open** (sev 1) | the lantern post at A carries **one** pod on a curled iron-like hook; the frame's leaning bark post carries 3–4 lime pods at 1.3–1.6 m — structures/lanternPost |

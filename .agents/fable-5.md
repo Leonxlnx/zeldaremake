@@ -34,6 +34,8 @@ lands: `ffmpeg` frames at his marked moments → `reference/frames-video2/`, has
 - `.agents/fable-5.md`, `.agents/reviews/fable-5-*.md`, my threads in `.agents/INBOX.md`.
 
 ## Completed work
+- 2026-09-21 10:20–10:35 UTC — iteration 36a: ANALYSIS_VIDEO2 §8.1 — the five unverified V-rows checked
+  on take-0126's frames (V7 closed, V6/V12 partly, V3/V14 open) with a pHashed sheet.
 - 2026-09-21 09:20–09:50 UTC — iteration 35 (r51 §A): fable-2's W23 layout move — D −0.0024 with the
   rock's face at l 0.28 / 53° / 0.24 (frame 0.27 / 52° / 0.36; a near pass), E −0.0046 (over; the rock in
   E's left third), A/C inside; vegetation contracts red until updated.
