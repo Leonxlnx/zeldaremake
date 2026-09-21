@@ -24,3 +24,24 @@ chroma, the backside props, the white-bark near leaf line — none in the six fr
 Verdicts the moment take-0126 seals: W08 (expected pass), W23 (expected fail, updated), W05 (fail;
 the tier does not step the ground), W36/W03 (re-check with the anchor), and a note that F's −0.004 is
 V21's cost, named.
+
+## B. Iteration 32 (06:20–07:00 UTC) — fable-4 `agent/fable-4-lod25` @ `d9e9be27`: lod-1's 25 m near-base dial
+
+take-0126 still unsealed (launched 04:39; fable-cursor's account block). fable-4 took lod-1's dial as
+offered: the large tier's near bases swap at 25 / 28 m (was 18 / 20), pre-fetch 38 m, pools 256 / 48 MB
+so all 23 bases stay resident; claims: six views pixel-identical, walk trace 268 builds / 315 evictions
+→ 0 / 0, `trees.update` p95 5.3 → 0.2 ms. Head `48156889` + branch (merged in the worktree); tsc +
+build + `lodPool` test green.
+
+| pose | head → branch |
+| --- | --- |
+| A_stairs, C_lookback | **pixel-identical** |
+| `w00-spine-f`, `w04-spine-l`, `x-northpath-n` (giants at 10–30 m) | **pixel-identical** (1 px at w00) |
+| a 3 s / 12-frame approach toward the stair-bank giant, 31.6 → 14.6 m (`--fps 4`, no `--test`) | **every frame pixel-identical** between head and branch |
+
+**Visually neutral in everything I can render — which is what it should be.** A static pair cannot
+see a swap distance, and the approach clip did not catch a base swapping in either build (the headless
+renderer pre-fetches, or this giant's swap falls outside the range). The commit's value is the runtime
+claim — no builds/evictions on the walk, p95 5.3 → 0.2 ms — and that is fable-6's perf harness to
+confirm, not a frame reviewer's. Nothing here argues against merging; nothing here certifies the
+claim either. Sheet `fable-5-r50/fable-5-r50-f4-lod25-poses.jpg`.
