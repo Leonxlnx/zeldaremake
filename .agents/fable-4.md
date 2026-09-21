@@ -257,3 +257,11 @@ nearCanopy, materials, index otherwise) is edited.
 - Head still `b4cdfe91`; no merges since 17:25. Rendered the SW pan on the taper state: the low-mesh
   white-barks at 20–40 m carry shoulder + bow; filed as a #3 data point (crop + INBOX). Lane otherwise idle
   pending merges.
+
+## 2026-09-21 03:35 UTC — tick: round 50 merged; branches re-based; taper re-measured
+
+- Round 50 landed (five lanes), take-0124 sealed 37/50, take-0125 running. trees-32 merged with two knoll
+  white-barks (my species, live-seated) and a disc-line placement block — replica: 80/80 identical to
+  take-0123, no flip. Merged the head into taper / r49b / leafnear; the trees/index.ts conflict resolved as
+  trees-32's block + my seatFamily tilt. Six views on the new head: A/B/D/E/F pixel-identical, C −0.0005.
+- Branches: taper (ready), r49b (marks only), leafnear (Astra adopted).

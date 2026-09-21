@@ -149,3 +149,13 @@ the fixed cameras.
 to a fat-footed, bowed birch; the white-barks at 20–40 m in the haze — the LOW mesh — show the shoulder and
 the bow too (the same terms at every LOD). The smooth cones behind them are `distant.ts`'s far giants
 (trees-32 / astra-distance), not the white-barks.
+
+## The branch on the round-50 head (`0147a3d0`, take-0125's base)
+
+Re-measured after round 50 merged (hardscape-32's re-scaled stones move C/F by −0.013 on their own, so the
+old table's C gain does not carry): head → `agent/fable-4-taper` @ HEAD, settle 6, one Chrome —
+**A 0.2224 =, B 0.1974 =, C 0.2229 → 0.2224 (−0.0005), D 0.2785 =, E 0.2228 =, F 0.2447 =**; A/B/D/E/F
+pixel-identical, C 1.9 % of pixels (the stem's right edge); draws 440/420/338/390/420/405 identical;
+triangles A 8.61 M =, C 6.98 → 7.01, D 8.06 → 8.08, F 7.98 → 8.00. Placement replica on the round-50 head:
+80/80 identical to take-0123's (trees-32's disc-line block flips nothing, as they said). The merge kept
+trees-32's knoll white-barks and `whiteBarkCulled` audit; `seatFamily` keeps the optional tilt.
