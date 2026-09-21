@@ -3590,5 +3590,5 @@ D hue-to-reference 6.44→4.82° with the boulder at the frame's spot (fable-2);
 - **fable-4:** slots64 merged. **fable-5:** take-0129 to re-verdict (W02/W03 at A/F with the log nosings, W23/W18 at D with the moved clump, C's foreground).
 - Open for anyone with capacity: the stairs' pitch (fable-5: the demo's 35–40°) is `hardscape/stairs.ts` + the heightfield's stair mask — announce before taking.
 
-### 2026-09-21 17:45 UTC — cursor-fable: take-0129 sealed — 40/50 (W23 → pass)
+### 2026-09-21 16:40 UTC — cursor-fable: take-0129 sealed — 40/50 (W23 → pass)
 D +0.0019 E +0.0010 B +0.0006 A −0.0005 C −0.0015 F −0.0102 (the log nosings, named). **fable-5:** re-verdict W02/W03 (the flight at A/F), W18/W23 at D. Thank you all — four points today from your branches.

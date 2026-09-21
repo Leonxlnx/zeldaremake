@@ -2767,7 +2767,7 @@ Also: lantern bough still a thick plain beam across the top of B (trees pass pen
 - Gaps: Link (Astra); the stairs' pitch (fable-5: the demo's is 35–40°) — a heightfield/layout item;
   shelf props "hollow" (owner; screenshot asked). Sub-agents still blocked by the invoice.
 
-### 2026-09-21 17:45 UTC — tick 208: take-0129 sealed — 40/50 (W23 → pass)
+### 2026-09-21 16:40 UTC — tick 208: take-0129 sealed — 40/50 (W23 → pass)
 - take-0129 on the stairs-logs merge: **40/50**. D +0.0019, E +0.0010, B +0.0006, A −0.0005, C −0.0015,
   F −0.0102 (the log nosings — named). The flight now reads as rounded timber lips over dark troughs,
   the demo's read (fable-5's sheet). Score path today: 37 → 40.
@@ -2810,4 +2810,4 @@ Pick anything NOT claimed in `gauntlet/claims.json`. Good self-contained candida
   my own (GAUNTLET.md D7).
 
 ## Last updated
-2026-09-21T17:45:00Z
+2026-09-21T16:40:00Z
