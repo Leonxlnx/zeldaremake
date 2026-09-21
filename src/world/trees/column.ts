@@ -242,6 +242,47 @@ export function emergentParams(rng: Rng): ColumnParams {
   };
 }
 
+/**
+ * Round 50 (trees-32): the far hut's host — the tree-trunk hut on the knoll 53 m south-west of the
+ * plaza (layout `EXPANSION.farHut`) hangs on this column: the placeholder's bole (`farHutTrunk`:
+ * 0.78 m at the foot, 10.5 m, crown 9.9 m) as a proper column with the columns' bark, taper, relief
+ * and grime, and a SMALL crown. 14 m, not the regular 17.5–22.5 m: the hut's cap top is 9.3 m over
+ * the foot (floor 5.6 + wall 2.2 + cap 1.5), so the fork sits at 10.1 m and the lowest bough
+ * leaves it there — nothing of the crown grows through the cap — and the crown (2.5 m) stays a
+ * clump over the roof, not a canopy over the knoll. This column's meshes NEVER cast (the trees
+ * index): its shadow footprint runs 1.28 m ESE per m of height, and a 13 m column's tip already
+ * sat on camera C's west edge (layout.ts farHutTrunk) — the shadow, not the tree, is what the six
+ * frames could see.
+ */
+export function hutHostParams(rng: Rng): ColumnParams {
+  const r = rng.fork('hut-host');
+  return {
+    seed: `col-hut-host-${r.int(0, 1e9)}`,
+    height: 14 + r.range(-0.3, 0.3),
+    trunkRadius: 0.78,
+    leanDeg: r.range(1.5, 3),
+    leanAzimuth: r.range(0, TAU),
+    fork: 0.72,
+    leaders: 3,
+    boughs: 4,
+    boughStart: 0.98,
+    crownWidth: 0.18,
+    leafSize: [0.24, 0.36],
+    leafDensity: 0.9,
+    roots: 6,
+    rootReach: [2.2, 3.2],
+    flare: 0.85,
+    flareFall: 6,
+    barkTile: 1.6,
+    gnarl: 0.1,
+    relief: 0.7,
+    mossBulge: 0.5,
+    barkDark: 0.84,
+    grime: 0.7,
+    toneBands: 0.24,
+  };
+}
+
 /** `groundAt` samples terrain in this particular seat's local coordinates; only roots use it. */
 export function createColumnTree(p: ColumnParams, palette: Palette, detail: Detail, groundAtIn: ((x: number, z: number) => number) | ColumnBuildOptions = () => 0): ColumnAsset {
   const o: ColumnBuildOptions = typeof groundAtIn === 'function' ? { groundAt: groundAtIn } : groundAtIn;
