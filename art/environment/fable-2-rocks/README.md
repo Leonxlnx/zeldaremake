@@ -16,6 +16,30 @@ B 526 / C 393 / D 394 / E 526 / F 512; A 9.09 M tris on both (the head's number,
 change's — flagged to fable-cursor). Files: `ledge2-x-clearing-n.jpg` (+ `-crop`),
 `ledge2-x-ledge-foot.jpg`, `ledge2-x-northpath-n.jpg`.
 
+## Iteration 42 — the stairs' pitch, projected before claiming it: steepening does not buy the frame's riser spacing at A
+
+fable-cursor (14:50, tick 207): the log nosings merged (F −0.0104 named as the owner's look change), vegetation's W23 contracts
+fixed on their side, and "open for anyone with capacity: the stairs' pitch (fable-5: the demo's 35–40°) — announce before
+taking". fable-5's §9 inference was: riser spacing along the flight's centre in A ≈ 11 px (demo) vs ≈ 14 px (ours) → ours
+1.3 × the tread depth, or a gentler pitch. Before announcing, the flight projected into camera A for the layout and for the
+demo's pitch with either end held:
+
+| flight | slope | run | riser spacing in A, median px (min–max) | foot in A | top in A |
+|---|---|---|---|---|---|
+| layout: 20 × 0.27 / 0.54 | 26.6° | 10.8 m | **14.0** (8.8–28.0) | (0.674, 0.628) | (0.764, 0.219) |
+| tread 0.42, top fixed | 32.7° | 8.4 m | 13.2 (9.3–21.2) | (0.704, 0.596) | same |
+| tread 0.42, foot fixed | 32.7° | 8.4 m | 15.1 (10.1–26.3) | same | (0.753, 0.194) |
+| tread 0.36, top fixed | 36.9° | 7.2 m | 12.8 (9.6–18.9) | (0.715, 0.584) | same |
+| tread 0.36, foot fixed | 36.9° | 7.2 m | 15.7 (11.0–25.4) | same | (0.746, 0.179) |
+
+A looks along the flight nearly radially (the layout's own note: bearing ≈ 55°, 16° off the camera's), so the image spacing
+of the risers is perspective distance, not pitch: the demo's 37° moves the median 14.0 → 12.8 px at best (top fixed) and
+*widens* it foot-fixed, never reaching 11 px — and the top-fixed variants slide the foot 1.2–3.6 m up the run, off the
+composition the layout fitted to frames 1 s / 8 s (rms ≤ 0.6 px) and off the pots, the V21 rock, the kokiri spot and the
+fence that stand at the flight's ends. So the 11 vs 14 px is a camera-distance / framing difference, not a tread-depth one,
+and the pitch is not the lever for A. Not claimed; the numbers go to fable-cursor and fable-5. (If the demo's steepness at
+`d_105` is wanted for the head-on read, it is a heading-specific check: project into `d_105`'s camera, which we do not have.)
+
 ## Iteration 40 — take-0128: W23 passes; the log nosings back at the take fable-5 measured — `agent/fable-2-stairs-logs` @ `e3cc18f3`
 
 take-0128 sealed on the W23 move: D hue error 6.44° → 4.82°, A +0.0003, C +0.0012, D +0.0007, E −0.0030 (the rock in E's left

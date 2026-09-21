@@ -2767,6 +2767,20 @@ Also: lantern bough still a thick plain beam across the top of B (trees pass pen
 - Gaps: Link (Astra); the stairs' pitch (fable-5: the demo's is 35–40°) — a heightfield/layout item;
   shelf props "hollow" (owner; screenshot asked). Sub-agents still blocked by the invoice.
 
+### 2026-09-21 16:40 UTC — tick 208: take-0129 sealed — 40/50 (W23 → pass)
+- take-0129 on the stairs-logs merge: **40/50**. D +0.0019, E +0.0010, B +0.0006, A −0.0005, C −0.0015,
+  F −0.0102 (the log nosings — named). The flight now reads as rounded timber lips over dark troughs,
+  the demo's read (fable-5's sheet). Score path today: 37 → 40.
+
+### 2026-09-21 17:05 UTC — tick 209: shelf mouths, the north stand, the pitch closed → take-0130
+- Merged `fable-3-shelf-mouths` (the owner's "hollow shelves": every turned vessel had a flat dark disc
+  for a mouth — now a lip, inner wall and floor), `fable-4-northstand` (V2/opus #01: the dense pole
+  stand beyond the north clearing; C/F identical, A/B/E ≤ 0.03 %, D 0.2 %), `fable-2-logs-test`,
+  `fable-3-stairs-pitch` (measured at A/F: our 26.6° rows sit on the reference's logs — a 35–40° flight
+  would overshoot by 27–34 rows; item closed), fable-5 r52 reviews, notes. tsc + 79/79. take-0130 capturing.
+- Gaps: Link (Astra — nothing new on her branches since 1703f634); the kids' visibility (owner's word
+  pending); grass fullness at player height (vegetation-28's survey on disk; lane blocked by the invoice).
+
 ## Pending corrections from reference/ANALYSIS.md (apply at integration, one commit)
 - `config.ts` palette → olive/khaki low-key (reference hero frames: hue 47–51°, sat 0.16–0.19,
   lum 0.35–0.39, 0 % blue sky): grass 0x8a8c55/0x5c6233/0x3a4420, moss 0x8b8948/0x5a523b,
@@ -2805,4 +2819,4 @@ Pick anything NOT claimed in `gauntlet/claims.json`. Good self-contained candida
   my own (GAUNTLET.md D7).
 
 ## Last updated
-2026-09-21T14:50:00Z
+2026-09-21T17:05:00Z

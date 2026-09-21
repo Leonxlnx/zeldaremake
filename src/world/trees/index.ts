@@ -25,7 +25,7 @@ import { BufferGeometry, Color, Frustum, Group, InstancedBufferAttribute, Instan
 import type { TrunkSeat, WorldContext, WorldSystem } from '../system';
 import { BARK_DETAIL_M, BARK_DETAIL_TILES, BARK_TOUCH_M, BARK_TOUCH_TILES, CARD_EDGE_FADE, CARD_FLAT_EDGE_FADE, COLUMN_BARK_FLOOR, COLUMN_BARK_FLOOR_FAR, COLUMN_FLOOR_FADE_M, createTreeMaterials, CUSHION_FADE_M, DISTANT_BARK_M, DISTANT_NEAR_FLOOR, DISTANT_NEAR_TONE, NEAR_BASE_FLOOR, NEAR_BOLE_FLOOR, NEAR_BOLE_FLOOR_FADE, NEAR_BOLE_FLOOR_TOP, NEAR_BOLE_SLOTS, NEAR_CANOPY_LEAF_FLOOR, NEAR_CANOPY_LEAF_NEAR_M, NEAR_CANOPY_SLOTS, NEAR_CANOPY_SUN_THROUGH, TREE_BARK_FLOOR, TREE_BARK_FLOOR_NEAR, TREE_FLOOR_FADE_M, TREE_LEAF_FLOOR, TREE_LEAF_FLOOR_NEAR, TREE_NEAR_BOLE_FLOOR } from './materials';
 import type { ShadeFloor } from '../materials/shadeFloor';
-import { authoredWhiteBarks, createWhiteBarkRoots, createWhiteBarkTree, whiteBarkParams, whiteBarkTilt, type TreeAsset, type WhiteBarkParams } from './whitebark';
+import { authoredWhiteBarks, createWhiteBarkRoots, createWhiteBarkTree, whiteBarkParams, whiteBarkTilt, type TreeAsset, type WhiteBarkParams, CLEARING_WHITE_BARKS } from './whitebark';
 import { placeWhiteBark, viewProjector, type WhiteBarkPlacement } from './placement';
 import { columnParams, createColumnTree, emergentParams, hutHostParams, type ColumnAsset, type ColumnParams } from './column';
 import { expansionCull, getTerrain, type Terrain, type TerrainView } from '../terrain/heightfield';
@@ -1319,6 +1319,18 @@ const DEPTH_BANDS: DepthBand[] = [
   // around them (0.50–0.55 in 0.58 air); ours sat 0.08–0.1 under a 0.50–0.52 haze. ×1.3 on the
   // instance tint lifts the shaded bark's ambient term to ≈ 0.46 at that depth.
   { xMin: -17.5, xMax: -6.5, zMin: -46.5, zMax: -45, spacing: 2.2, scale: [1.2, 1.35], shade: 1.3, kind: 'slender', minVariantHeight: 20, stream: 'depth-band-far-trunks-d' },
+  // Round 51 (fable-4; V2 / opus #01, the window out of the log arch): the frame's view through
+  // the arch (ANALYSIS_VIDEO2 §6.6, d_121) is a DENSE stand of tall trunks with no ground plane;
+  // ours showed the north plain between the two rows (5 / 7 m spacing). Three bands of the 26 m
+  // poles, own streams (the radial layer and the two rows keep their placements): two flanks
+  // either side of the north clearing (|x| ≥ 12, so from the path they stand 15 m+ off in the
+  // haze — a first cut at x ±32 / z −66…−80 / 2.6 m was a palisade 5 m from the walk line) and a
+  // back stand behind the ledge terrace (z ≤ −81; the terrace pad ends at −79.8) that closes the
+  // window's centre from the tunnel. Off the four authored white-barks (whitebark.ts
+  // CLEARING_WHITE_BARKS) and, by the shared clearance, off the path spine and the structures.
+  { xMin: -34, xMax: -12, zMin: -82, zMax: -64, spacing: 3.4, scale: [0.85, 1.1], shade: 0.7, kind: 'slender', minVariantHeight: 20, stream: 'depth-band-north-stand-w', after: true, avoid: CLEARING_WHITE_BARKS.map((w) => ({ x: w.x, z: w.z, r: 3 })) },
+  { xMin: 12, xMax: 34, zMin: -82, zMax: -64, spacing: 3.4, scale: [0.85, 1.1], shade: 0.7, kind: 'slender', minVariantHeight: 20, stream: 'depth-band-north-stand-e', after: true, avoid: CLEARING_WHITE_BARKS.map((w) => ({ x: w.x, z: w.z, r: 3 })) },
+  { xMin: -12, xMax: 12, zMin: -90, zMax: -81, spacing: 3.0, scale: [0.85, 1.1], shade: 0.7, kind: 'slender', minVariantHeight: 20, stream: 'depth-band-north-stand-n', after: true },
 ];
 /** round 45: no distant tree within this of the path spine (m) … */
 const DISTANT_SPINE_CLEARANCE = 6;

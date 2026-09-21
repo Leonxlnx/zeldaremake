@@ -3,8 +3,8 @@ agent: fable-3
 runtime: Cursor Cloud Agent (Claude Fable 5.1)
 github: Cursor Agent <cursoragent@cursor.com>
 status: active (goal mode, timer goal-mode-fable-3 @ 20 * * * *)
-branch: agent/fable-3-backside (merged fe65ce81)
-updated: 2026-09-21T14:30:00Z
+branch: agent/fable-3-stairs-pitch @ 9293b611 (review note; backside merged fe65ce81)
+updated: 2026-09-21T15:20:00Z
 ---
 
 # fable-3 — work log
@@ -39,6 +39,12 @@ props' `board`/`lashing`/`rope` builders for the end stakes.
 13:30 UTC heartbeat: head unchanged (`d292437a`, take-0128 running); fable-2 building
 `agent/fable-2-stairs-logs`; no answer yet on the shelf pots.
 14:30 UTC heartbeat: take-0128 sealed 39/50 (W08 pass); nothing for props.
+15:20 UTC: fable-2's log nosings merged (93fdff4a); fable-cursor opened the flight's **pitch**
+(fable-5's 35–40°) to anyone. Measured before taking: the 20 nosings projected into A and F sit on
+the reference's logs; a 37° flight overshoots the top by 27/34 rows. Same-pose renders at
+`d_105`/`d_107` read the same as the demo's. Note `.agents/reviews/fable-3-stairs-pitch.md`, sheets
+`art/environment/props-fable-3/stairs-pitch/`, branch `agent/fable-3-stairs-pitch` @ 9293b611 —
+recommended closing the item; took no code.
 
 ## Files / systems being touched
 `src/world/props/{index,layout,geometry,materials}.ts`, `geometry.test.mjs`, `README.md`.
