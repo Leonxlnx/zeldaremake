@@ -80,6 +80,27 @@ export function contourLine(T: Terrain, from: [number, number], to: [number, num
   return out;
 }
 
+/**
+ * fable-2 (V21, ANALYSIS_VIDEO2 §6 — "the moss-capped boulder at the Kokiri boy's feet on the stair
+ * bank, the C-frame anchor the owner sees twice"): a rounded pale rock on the stair bank's slope at
+ * the boy's feet. The frame's rock is ONE rock seen from two cameras — it projects to C's V21 box
+ * (0.28, 0.49) and to A's right (0.84, 0.56), where reference A shows the small pale rock beside the
+ * kid. Rocks-owned until the layout carries it (a layout hero boulder of the same id takes over).
+ * (7.2, 3.1), not the box centre (7.4, 2.9): fable-3's stair-pot-squat stands at (7.55, 2.1) r 0.22 and the
+ * loaf reaches ≈ 0.7 m — 0.12 m clear here, 0.13 m into the pot there; C reads (0.30, 0.46) either way.
+ */
+export const ANCHOR_BOULDERS: { id: string; position: [number, number, number]; radius: number; replaces?: string }[] = [{ id: 'c-bank-anchor', position: [7.2, 0, 3.1], radius: 0.55, replaces: 'stair-foot' }];
+/**
+ * measurement toggle for fable-cursor's call on V21: the frame has ONE rock at the boy's feet, ours
+ * had the r 1.0 'stair-foot' boulder 1.7 m east of it. 'replace' = the anchor stands in for it (what a
+ * layout move of 'stair-foot' to (7.4, 2.9) r 0.55 would give: C +0.0032, F −0.0034 … −0.0043 over
+ * budget); 'both' = both stand at full size (C −0.0017, F −0.0026); 'shrink' = fable-5's middle path —
+ * the stair-foot rock stays for F's structure at ≈ 0.35 m, the anchor carries C.
+ */
+export const ANCHOR_MODE: 'replace' | 'both' | 'shrink' = 'replace';
+/** the stair-foot rock's radius under ANCHOR_MODE 'shrink' (the layout's is 1.0) */
+export const SHRUNK_STAIR_FOOT_R = 0.35;
+
 export const LEDGE_PREVIEW: RockLedgeDef[] = [
   { id: 'north-right-bank', foot: [[6.2, -14.5], [6.35, -18], [6.5, -22], [6.4, -25.5], [6.0, -28]], inset: 2.4, lean: 0.4 },
 ];
@@ -370,8 +391,15 @@ export async function create(ctx: WorldContext): Promise<WorldSystem> {
   })();
   /** a world xz direction expressed in the local frame of a mesh yawed by `yaw` about +Y */
   const toLocal = (d: [number, number], yaw: number): [number, number] => [d[0] * Math.cos(yaw) - d[1] * Math.sin(yaw), d[0] * Math.sin(yaw) + d[1] * Math.cos(yaw)];
-  for (const b of ctx.layout.heroBoulders) {
+  const anchors = ANCHOR_BOULDERS.filter((a) => !ctx.layout.heroBoulders.some((h) => h.id === a.id));
+  const replaced = new Set(anchors.length && ANCHOR_MODE !== 'both' ? anchors.map((a) => a.replaces).filter(Boolean) : []);
+  const heroList = [
+    ...ctx.layout.heroBoulders.filter((h) => !(ANCHOR_MODE === 'replace' && replaced.has(h.id))).map((h) => (ANCHOR_MODE === 'shrink' && replaced.has(h.id) ? { ...h, radius: SHRUNK_STAIR_FOOT_R } : h)),
+    ...anchors,
+  ];
+  for (const b of heroList) {
     const r = b.radius;
+    const anchor = b.id === 'c-bank-anchor';
     const collar = new Color(0.13, 0.135, 0.09);
     // round 45 (details-1): this rock's spill and skirt stones are rubble[ownStart …] — the near
     // kit rebuilds them (below, after the skirt loop) and hides their far instances while it is in
@@ -394,8 +422,9 @@ export async function create(ctx: WorldContext): Promise<WorldSystem> {
     // at 0.64 / 0.15 the 0.5 m loaf was > 99 % hidden behind the fronds (fable-5's D box read fern
     // green). A D composition change, made on its own branch for fable-cursor's call; the layout
     // radius (0.6) and the vegetation's clearRadius are untouched.
-    const squash = b.id === 'shot-d-boulder' ? 0.72 : 0.74;
-    const sinkFrac = b.id === 'shot-d-boulder' ? 0 : 0.15;
+    const squash = b.id === 'shot-d-boulder' ? 0.72 : anchor ? 0.7 : 0.74;
+    // (the bank anchor sits on a 25–40 % slope: sunk a little more so its uphill side is in the bank)
+    const sinkFrac = b.id === 'shot-d-boulder' ? 0 : anchor ? 0.22 : 0.15;
     const rockOpts: RockOptions = {
       radius: r,
       // 20·(detail+1)² triangles: ≈ 16.8k for the 2.2 m terrace boulder, ≈ 14.6k for the small
@@ -431,7 +460,8 @@ export async function create(ctx: WorldContext): Promise<WorldSystem> {
       crackDepth: 0.025,
       // frame 56 s: the D rock is half bare stone (moss 35 % of its box, bare 54 %); at 1.0 the
       // cushion took 51 % of ours
-      moss: b.id === 'shot-d-boulder' ? 0.85 : 1.0,
+      // (V21's rock: a pale rounded stone with a moss cap and a little at the collar — not a blanket)
+      moss: b.id === 'shot-d-boulder' ? 0.85 : anchor ? 0.65 : 1.0,
       // faint bedding (dark partings, only a hint of a ledge) under a thick moss cap, sitting in
       // a dark collar of soil — the reference boulders are rounded first, layered second.
       // Sheet 01 'Mossy root' / sheet 04: the caps are thick pads over grey — not warm-brown —
@@ -448,7 +478,7 @@ export async function create(ctx: WorldContext): Promise<WorldSystem> {
       mossLumpy: 1.0,
       // D's frame face is bare lit stone under the moss top with the fracture in shade, so its
       // blanket is thinner; the A rock's face toward frame 1 s is moss from shoulder to collar
-      mossSide: b.id === 'shot-d-boulder' ? 0.45 : 0.9,
+      mossSide: b.id === 'shot-d-boulder' ? 0.45 : anchor ? 0.3 : 0.9,
       mossShade: toLocal(shadeDir, yaw),
       // fable-2 (W23 at frame D, fable-5's 13:25 review of the loaf: "value inverted — moss + shade on
       // the face D sees, l 0.21 / hue 63° / sat 0.15 against the reference's bare lit face l 0.27 /
@@ -473,7 +503,7 @@ export async function create(ctx: WorldContext): Promise<WorldSystem> {
       // the tan a step warmer and more saturated — the grey triplanar stone under it desaturates by a third
       // (fable-5 21:10: two thirds of the hue gap closed, chroma still short — the face is in the giant's shade,
       // lit by the bluish sky fill, which greys a tan; the tint overshoots warm to meet the frame's ochre there)
-      tint: b.id === 'shot-d-boulder' ? new Color(0.97, 0.8, 0.47) : new Color(0.72, 0.72, 0.71),
+      tint: b.id === 'shot-d-boulder' ? new Color(0.97, 0.8, 0.47) : anchor ? new Color(0.84, 0.82, 0.74) : new Color(0.72, 0.72, 0.71),
       freq: 0.9,
     };
     const geo = buildRock(bRng.fork(b.id), `${seed}/boulder-${b.id}`, rockOpts);
