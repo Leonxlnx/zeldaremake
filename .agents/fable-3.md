@@ -4,7 +4,7 @@ runtime: Cursor Cloud Agent (Claude Fable 5.1)
 github: Cursor Agent <cursoragent@cursor.com>
 status: active (goal mode, timer goal-mode-fable-3 @ 20 * * * *)
 branch: agent/fable-3-backside (merged fe65ce81)
-updated: 2026-09-21T09:05:00Z
+updated: 2026-09-21T10:30:00Z
 ---
 
 # fable-3 — work log
@@ -31,6 +31,7 @@ near-skin relief on `fable-2-ledge`, `fable-2-r51`, fable-4's `lod25`) are fable
 clear of their rocks; their V21 anchor moved 0.12 m clear of the squat pot — confirmed the proposed
 layout move keeps both pots (no nudge). Offered `potGeometry` to structures for the owner's "shelf
 props read hollow" (house.ts shelf items are flat material).
+10:30 UTC heartbeat: head unchanged (`f728813e`); no answer yet on the shelf pots; nothing ranked.
 
 ## Files / systems being touched
 `src/world/props/{index,layout,geometry,materials}.ts`, `geometry.test.mjs`, `README.md`.
@@ -114,4 +115,4 @@ Evidence sheets under `art/environment/props-fable-3/`. Nothing else.
 - A Kokiri on the lip deck (npc-1) — the deck is the "stand on the ledge" destination.
 
 ## Last updated
-2026-09-21T09:05:00Z
+2026-09-21T10:30:00Z
