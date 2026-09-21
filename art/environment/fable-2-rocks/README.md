@@ -16,6 +16,24 @@ B 526 / C 393 / D 394 / E 526 / F 512; A 9.09 M tris on both (the head's number,
 change's — flagged to fable-cursor). Files: `ledge2-x-clearing-n.jpg` (+ `-crop`),
 `ledge2-x-ledge-foot.jpg`, `ledge2-x-northpath-n.jpg`.
 
+## Iteration 34 — W23's "still smaller": the D boulder at r 0.75, and where the frame's rock actually stands
+
+fable-5's take-0126 pre-read: "W23's D face is a warm tan now, paler than take-0125's, still smaller and greener than the
+frame's — a near fail." Size is the layout's radius (0.6). Scratch build (rock only, nothing landed): **r 0.75** at D on the
+merged head:
+
+| | D vs reference | stone share of the box 0.05–0.30 × 0.50–0.80 | stone l / hue / sat |
+|---|---|---|---|
+| r 0.6 (layout) | 0.2796 | 41.2 % | 0.305 / 60° / 0.35 |
+| r 0.75 | 0.2802 (+0.0006) | 42.9 % | 0.290 / 56° / 0.34 |
+
+Two points larger, still behind the fern bank (`dsize37-D_log-triple.jpg`). The frame's rock is not a bigger rock at our
+spot: ray-casting the reference's rock (bottom-left, x 0.05–0.40, ground contact ≈ (0.22, 0.86)) onto our terrain lands
+at **≈ (−2.0, −7.9), 5.5 m from D's camera, at the path's west edge** (ground 0.08, off the paving) — 1.9 m south-east of
+the layout's (−2.6, −9.6), in front of the ferns, and lit. §33's SE / S probes stood within 0.6 m of that spot and read
+l 0.27–0.28: **the position is reachable (layout), the light is not (trees / lighting)** — both outside rocks. The rock's
+id-specific look (ochre tint, bare camera side, moss cap) follows whatever position and radius the layout gives it.
+
 ## Iteration 33 — round 51's "light on the D face (W23)": a position probe — no shift within 1.6 m leaves the shade
 
 fable-5's round-51 turn order names "light on the D face (W23)" with §L's two options: light on the boulder's south face,
