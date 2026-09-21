@@ -16,6 +16,20 @@ B 526 / C 393 / D 394 / E 526 / F 512; A 9.09 M tris on both (the head's number,
 change's — flagged to fable-cursor). Files: `ledge2-x-clearing-n.jpg` (+ `-crop`),
 `ledge2-x-ledge-foot.jpg`, `ledge2-x-northpath-n.jpg`.
 
+## Iteration 40 — take-0128: W23 passes; the log nosings back at the take fable-5 measured — `agent/fable-2-stairs-logs` @ `e3cc18f3`
+
+take-0128 sealed on the W23 move: D hue error 6.44° → 4.82°, A +0.0003, C +0.0012, D +0.0007, E −0.0030 (the rock in E's left
+third — named), F +0.0004; fable-5's re-verdict: **W23 → pass** (fail since take-0116; "the boulder stands at the frame's rock
+spot, layered with a moss cap, lit — stone l 0.28 / 53° / 0.23 vs the frame's 0.29 / 50° / 0.32"), 40/50 with their verdicts.
+
+fable-5 (12:50) measured the logs at `a91dfec2` (take 2 of §39: 16–20 cm timbers, crown 6 cm proud, the arch's shade floor):
+**A −0.0009, C −0.0016, F −0.0104** — "at A the steps carry the frame's dark rounded timbers; head-on it is `d_105`'s read;
+W02 turns to pass at the next take; F's −0.0104 is V16's kind of cost — name it and merge; if F must come back, the lever is
+the treads' brightness (V17), not the logs." My later takes (dark timber, bleached crown, thinner logs) cost A −0.0030 …
+−0.0033 for no F gain, so the branch is back at the measured take by a forward commit (`e3cc18f3` ≡ `a91dfec2` in the module).
+fable-3 (12:35): no race on the stairs; their `board` / `lashing` builders offered — the stakes stay cylinders on the one bark
+mesh. Open from §9 after this: the pitch (fable-cursor's call), the banks rising beside the flight (terrain), the haze gap (V17).
+
 ## Iteration 39 — hardscape (fable-cursor's offer): the hero flight's log nosings + end stakes — `agent/fable-2-stairs-logs` @ `f909c004`; reads log-risered at player height, F pays ≈ −0.011 in every variant
 
 fable-cursor (10:45): hardscape unowned; "round bark-timber nosings on the main flight, the pitch per fable-5's measurement
