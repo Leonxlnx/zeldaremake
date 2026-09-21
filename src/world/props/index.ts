@@ -190,6 +190,15 @@ export async function create(ctx: WorldContext): Promise<WorldSystem> {
    * its ferns out of these discs; `r` is the prop's own footprint, the plant adds its reach
    */
   const footprints: { x: number; z: number; r: number }[] = [];
+  /**
+   * Round 52: the solid props a walker should not pass through — published as
+   * `ctx.shared.propBlockers` for the character's ground (`blocked()`), which knew structure pads
+   * and the hut's wall ring but let Link walk through the pots at Saria's door. `r` is the piece's
+   * own radius at the ground (`footprintRadius`, which is the body's extent, not the vegetation
+   * margin); `top` its world height. Light strings (a cord on 3 cm pegs) are not in it; the
+   * lookout's rope railing is, as discs every 0.25 m along its three courses.
+   */
+  const blockers: { x: number; z: number; r: number; top: number }[] = [];
   const tmp = new Vector3();
 
   for (const def of PROP_LAYOUT) {
@@ -204,6 +213,8 @@ export async function create(ctx: WorldContext): Promise<WorldSystem> {
     let tiltUsed = 0;
     /** ground footprint radius published for the vegetation scatter (m) */
     let footR = footprintRadius(def);
+    /** the piece's height over its ground (m) for `propBlockers`; 0 = publishes no blocker of its own */
+    let solidTop = 0;
 
     if (def.kind === 'ladder') {
       const house = ctx.layout.houses.find((h) => h.id === def.lean?.house);
@@ -228,6 +239,7 @@ export async function create(ctx: WorldContext): Promise<WorldSystem> {
       const contactY = terrain.height(house.position[0] + dir.x * R * 1.2, house.position[2] + dir.z * R * 1.2);
       const top = Math.max(2.2, contactY - groundY + def.lean.top);
       parts = ladderGeometry(rng, { width: def.size, height: top, lean, footY: [footY[0] - groundY, footY[1] - groundY], pegDepth: 0.35 });
+      solidTop = top;
       // local +z points at the trunk
       yaw = Math.atan2(dir.x, dir.z);
       orientation = new Quaternion();
@@ -327,6 +339,23 @@ export async function create(ctx: WorldContext): Promise<WorldSystem> {
       if (def.platform.rail) counts.ropeRailings += 3;
       footR = Math.hypot(width, depth) / 2 + 0.1;
       taken.push([x, groundY, z, footR]);
+      if (def.platform.rail) {
+        // the railing's three rope courses in the deck's frame (geometry.ts platformGeometry: the
+        // −z lip and the two short sides, inset 0.2 / 0.18 from the slab's edge, open at +z)
+        const hx = width / 2 - 0.2;
+        const hz = depth / 2 - 0.18;
+        const railTop = groundY + deck + 0.9;
+        const course = (x0: number, z0: number, x1: number, z1: number) => {
+          const n = Math.max(1, Math.ceil(Math.hypot(x1 - x0, z1 - z0) / 0.25));
+          for (let i = 0; i <= n; i++) {
+            const w = worldAt(x0 + ((x1 - x0) * i) / n, z0 + ((z1 - z0) * i) / n);
+            blockers.push({ x: +w.x.toFixed(3), z: +w.z.toFixed(3), r: 0.12, top: +railTop.toFixed(3) });
+          }
+        };
+        course(-hx, -hz, hx, -hz);
+        course(-hx, -hz, -hx, hz);
+        course(hx, -hz, hx, hz);
+      }
     } else {
       const radius = footprintRadius(def);
       const spot = findSpot(ctx, def, radius, taken);
@@ -398,6 +427,10 @@ export async function create(ctx: WorldContext): Promise<WorldSystem> {
     if (!def.onDeck) bases.push([x, terrain.height(x, z), z]);
     placed.push({ id: def.id, kind: def.kind, cluster: def.cluster, x: +x.toFixed(3), y: +groundY.toFixed(3), z: +z.toFixed(3), tiltDeg: +((tiltUsed * 180) / Math.PI).toFixed(2) });
     footprints.push({ x: +x.toFixed(3), z: +z.toFixed(3), r: +footR.toFixed(3) });
+    if (def.kind === 'pot' || def.kind === 'barrel' || def.kind === 'marker') solidTop = def.size;
+    else if (def.kind === 'crate') solidTop = def.size * 0.9;
+    else if (def.kind === 'bucket') solidTop = def.size * 0.66;
+    if (solidTop > 0) blockers.push({ x: +x.toFixed(3), z: +z.toFixed(3), r: +footprintRadius(def).toFixed(3), top: +(groundY + solidTop).toFixed(3) });
     if (localityOf(def.cluster) === 'backside') backsideCasters.push({ x, z, r: footR + 0.25, y0: groundY - 0.1, y1: groundY + (def.kind === 'marker' ? def.size + 0.15 : def.size * 1.1), shadow: true });
     clusterNames.add(def.cluster);
     const batches = batchesFor(localityOf(def.cluster));
@@ -467,6 +500,7 @@ export async function create(ctx: WorldContext): Promise<WorldSystem> {
   }
 
   ctx.shared.propFootprints = footprints;
+  ctx.shared.propBlockers = blockers;
 
   // merge per locality and material: one mesh per material for the whole village, one set for
   // the clearing (the seven village clusters were 16 meshes, up to 32 draws with the shadow pass)
@@ -545,6 +579,7 @@ export async function create(ctx: WorldContext): Promise<WorldSystem> {
     skipped,
     culledByExpansion,
     footprints,
+    blockers,
     clusterBounds: boundsAudit,
     culling: { visibleWithinM: CLUSTER_VISIBLE_M, backside: 'expansionLocality (frustum + shadow footprints)', backsideCasters: backsideCasters.length, localities: localityBounds.map((b) => ({ locality: b.group.name, centre: b.sphere.center.toArray().map((v) => +v.toFixed(2)), radius: +b.sphere.radius.toFixed(2) })) },
     samplePositions: { bases },

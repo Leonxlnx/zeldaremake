@@ -88,6 +88,13 @@ export interface SharedGeometry {
   /** village props' ground footprints (centre + radius, m), published by props before vegetation scatters */
   propFootprints?: { x: number; z: number; r: number }[];
   /**
+   * Round 52 (fable-3): the solid props a walker should not pass through — pots, crates, barrels,
+   * buckets, markers, ladders and the lookout's rope railing (as discs along its courses) — with
+   * their solid radius at the ground and their top (world y), published by props for the
+   * character's ground (`blocked()`); light strings and the vegetation margins are not in it
+   */
+  propBlockers?: { x: number; z: number; r: number; top: number }[];
+  /**
    * Round 49 (expansion-2): walkable built surfaces above the ground — the west house's platform
    * disc and walkway deck, with its wall ring (the door is the gap) — published by structures for
    * the character ground (character/ground.ts reads them; nothing else does).

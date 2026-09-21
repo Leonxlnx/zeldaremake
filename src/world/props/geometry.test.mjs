@@ -32,7 +32,7 @@ function loadTs(file) {
   return module.exports;
 }
 const here = path.dirname(fileURLToPath(import.meta.url));
-const { create, placementAllowed, EMBED } = loadTs(path.join(here, 'index.ts'));
+const { create, placementAllowed, EMBED, footprintRadius } = loadTs(path.join(here, 'index.ts'));
 const { chamferedBox, potGeometry, crateGeometry, barrelGeometry } = loadTs(path.join(here, 'geometry.ts'));
 const { buildClayMaps, buildRopeMaps } = loadTs(path.join(here, 'materials.ts'));
 const { PROP_LAYOUT } = loadTs(path.join(here, 'layout.ts'));
@@ -374,6 +374,60 @@ for (const id of ['door-pot-large', 'sign-pot', 'saria-crate', 'saria-water-buck
   const pot = audit.placed.find((q) => q.id === 'door-pot-large');
   const potFp = fp.find((f) => Math.abs(f.x - pot.x) < 1e-9 && Math.abs(f.z - pot.z) < 1e-9);
   assert.ok(potFp && Math.abs(potFp.r - 0.8 * 0.47) < 1e-3, `pot footprint = 0.47 × size (${potFp?.r})`);
+}
+
+// the blockers hook (round 52): the solid props a walker should not pass through, for the
+// character's ground — one disc per pot / crate / barrel / bucket / marker / ladder at its
+// placed spot with the body's radius and its top, the lookout railing as discs along its three
+// courses, nothing for the light strings; no disc sits on a path
+{
+  const bl = ctx.shared.propBlockers;
+  assert.ok(Array.isArray(bl) && bl.length > 0, 'propBlockers published');
+  assert.deepEqual(bl, audit.blockers, 'the audit lists the same blockers');
+  const solidKinds = new Set(['pot', 'crate', 'barrel', 'bucket', 'marker', 'ladder']);
+  const solids = audit.placed.filter((p) => solidKinds.has(p.kind));
+  for (const p of solids) {
+    const b = bl.find((q) => Math.abs(q.x - p.x) < 1e-6 && Math.abs(q.z - p.z) < 1e-6);
+    assert.ok(b, `${p.id} has a blocker`);
+    assert.ok(b.r > 0.1 && b.r < 1.0, `${p.id} blocker radius ${b.r}`);
+    assert.ok(b.top > p.y + 0.3 && b.top < p.y + 3.5, `${p.id} blocker top ${b.top} over ground ${p.y}`);
+    const def = PROP_LAYOUT.find((d) => d.id === p.id);
+    if (def.kind !== 'ladder') assert.ok(Math.abs(b.r - footprintRadius(def)) < 1e-3, `${p.id} blocker = the body's footprint radius`);
+  }
+  // the railing: 9 discs along the lip and 6 down each side, all r 0.12, above the deck
+  const rail = bl.filter((q) => q.r === 0.12);
+  assert.equal(rail.length, 9 + 6 + 6, `railing discs (${rail.length})`);
+  for (const q of rail) assert.ok(Math.hypot(q.x - LAYOUT.plateauLookout.x, q.z - LAYOUT.plateauLookout.z) < 1.5, 'railing discs sit on the lookout');
+  assert.equal(bl.length, solids.length + rail.length, 'no other blockers (light strings publish none)');
+  for (const f of audit.footprints.filter((q) => q.r === 0.12 && !rail.some((r) => r.x === q.x && r.z === q.z))) {
+    assert.ok(!bl.some((b) => Math.hypot(b.x - f.x, b.z - f.z) < 1e-6), 'a light-string peg is not a blocker');
+  }
+  // no blocker disc reaches onto a path or a flight (centre + 8 rim samples, the mask at 'legacy');
+  // the props authored on the paved apron (`paving`) may stand on the paving but must clear the
+  // hero flight's width, so the walk up the stairs stays open
+  const main = LAYOUT.stairs.find((s) => s.id === 'main');
+  const mL = Math.hypot(main.dir[0], main.dir[1]);
+  const ux = main.dir[0] / mL;
+  const uz = main.dir[1] / mL;
+  for (const b of bl) {
+    const owner = audit.placed.find((p) => Math.abs(p.x - b.x) < 1e-6 && Math.abs(p.z - b.z) < 1e-6);
+    const def = owner && PROP_LAYOUT.find((d) => d.id === owner.id);
+    const onPaving = !!def?.paving;
+    for (let i = -1; i < 8; i++) {
+      const a = (i / 8) * Math.PI * 2;
+      const x = i < 0 ? b.x : b.x + Math.cos(a) * b.r;
+      const z = i < 0 ? b.z : b.z + Math.sin(a) * b.r;
+      const m = ctx.terrain.mask(x, z);
+      assert.ok(m.stairs === 0, `blocker at (${b.x}, ${b.z}) r ${b.r} reaches a flight`);
+      if (!onPaving) assert.ok(m.path <= 0.5, `blocker at (${b.x}, ${b.z}) r ${b.r} reaches a path (${m.path.toFixed(2)})`);
+    }
+    if (onPaving) {
+      const dx = b.x - main.base[0];
+      const dz = b.z - main.base[2];
+      const across = Math.abs(dx * -uz + dz * ux);
+      assert.ok(across > main.width / 2 + b.r, `${owner.id} on the apron clears the flight's width (across ${across.toFixed(2)} m)`);
+    }
+  }
 }
 
 // geometry: determinism, finiteness, attributes, budget
