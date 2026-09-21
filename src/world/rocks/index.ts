@@ -48,6 +48,12 @@ export const LEDGE_DAMP = 1.6;
  * 2.0 the shot-D face in its shade turned to a dark honeycomb — the stair-foot rock read best there).
  */
 export const HERO_NEAR_RELIEF = 1.5;
+/**
+ * the instanced embankment strata and rubble skirts: the same near skin (plates, wet band, lichen crust,
+ * relief) inside a SHORT fade — a walker passes these at 1–3 m along every bank; beyond 4.5 m they are
+ * the plain far stones they were. The fixed cameras' nearest slab is measured in README §31.
+ */
+export const STRATA_NEAR_FADE_M: [number, number] = [2.5, 4.5];
 /** the ledge wall's near grain (material `relief`): fable-5 §7.2, micro σ 0.034 → 0.05 at 3 m — measured at `x-ledge-wall` (4 px residual on the cap): 0.031 → 0.035 at 1.0, 0.043 at 3.0 */
 export const LEDGE_RELIEF = 3.0;
 
@@ -171,7 +177,10 @@ export async function create(ctx: WorldContext): Promise<WorldSystem> {
   const seed = ctx.config.seed;
   const P = ctx.config.palette;
   const anisotropy = ctx.renderer.capabilities.getMaxAnisotropy();
-  const material = await createRockMaterial(ctx.textures, ctx.config, anisotropy, 1.4);
+  // fable-2 (owner's "stones" at player height): the embankment strata and the rubble skirts in the near
+  // skin within STRATA_NEAR_FADE_M — instanced, so one material for all of them (the plain far material
+  // they had is this one with nearW = 0 beyond the fade)
+  const strataMaterial = await createRockMaterial(ctx.textures, ctx.config, anisotropy, 1.4, 1, { near: true, fade: STRATA_NEAR_FADE_M, relief: HERO_NEAR_RELIEF });
   // the hero boulders' own material: the same look with the near-detail terms (material.ts
   // NEAR_TILE_M) that fade in under NEAR_FADE_M — the rubble, strata and pebbles keep the plain
   // one, so the stones in a hero camera's foreground never change
@@ -1039,9 +1048,9 @@ export async function create(ctx: WorldContext): Promise<WorldSystem> {
   }
 
   const rubbleSlots: InstanceSlot[] = [];
-  const rubbleMeshes = buildInstanced(rubble, rubbleGeos, material, 'rubble', true, rubbleSlots);
+  const rubbleMeshes = buildInstanced(rubble, rubbleGeos, strataMaterial, 'rubble', true, rubbleSlots);
   const strataSlots: InstanceSlot[] = [];
-  const strataMeshes = buildInstanced(strata, strataGeos, material, 'strata', true, strataSlots);
+  const strataMeshes = buildInstanced(strata, strataGeos, strataMaterial, 'strata', true, strataSlots);
   const pebbleMeshes = buildInstanced(pebbles, pebbleGeos, pebbleMaterial, 'pebbles', false);
   const northPebbleMeshes = buildInstanced(northPebbles, pebbleGeos, pebbleMaterial, 'pebbles-north', false);
   for (const m of [...rubbleMeshes, ...strataMeshes, ...pebbleMeshes, ...northPebbleMeshes]) group.add(m);
