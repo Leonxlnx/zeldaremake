@@ -48,7 +48,7 @@ export const ANCHOR_BOULDERS: { id: string; position: [number, number, number]; 
  * budget); 'both' = both stand at full size (C −0.0017, F −0.0026); 'shrink' = fable-5's middle path —
  * the stair-foot rock stays for F's structure at ≈ 0.35 m, the anchor carries C.
  */
-export const ANCHOR_MODE: 'replace' | 'both' | 'shrink' = 'shrink';
+export const ANCHOR_MODE: 'replace' | 'both' | 'shrink' = 'replace';
 /** the stair-foot rock's radius under ANCHOR_MODE 'shrink' (the layout's is 1.0) */
 export const SHRUNK_STAIR_FOOT_R = 0.35;
 
