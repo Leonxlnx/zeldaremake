@@ -2718,15 +2718,21 @@ export function buildLogArch(ctx: WorldContext, mats: StructureMaterials, rng: R
           const e = lerp(rim.e, o.e, v);
           const y = lerp(rim.y, o.y, v);
           const a = aAt(e);
-          const dist = v * Math.hypot(o.e - rim.e, o.y - rim.y);
+          const rayLen = Math.hypot(o.e - rim.e, o.y - rim.y) || 1;
+          const dist = v * rayLen;
           const s = Math.max(0, 1 - dist / RIM_ROLL);
           const roll = RIM_ROLL * (1 - Math.sqrt(Math.max(0, 1 - s * s)));
+          // the roll's end would lie on the tube's wall (same depth, a brighter material — it
+          // z-fights through in patches); tuck it 4 cm outward along the ray, behind the wall
+          const tuck = 0.04 * s * s;
+          const eP = e + ((o.e - rim.e) / rayLen) * tuck;
+          const yP = y + ((o.y - rim.y) / rayLen) * tuck;
           // bark plates standing out of the face, the rim itself flush (it meets the tube)
           const plate = smoothstep(0.2, 0.5, noise.noise(e * 1.1 + 31, y * 1.1 + outward * 7));
           const off = outward * (0.04 + 0.1 * plate + 0.02 * noise.noise(e * 5, y * 5 + 3)) * smoothstep(0, 0.25, v) * (1 - s);
-          const aP = a + off - outward * roll;
-          fromTube(aP, e, out.position);
-          out.position.y = worldY(aP, e, y);
+          const aP = aAt(eP) + off - outward * roll;
+          fromTube(aP, eP, out.position);
+          out.position.y = worldY(aP, eP, yP);
           out.uv = [e / 1.3, y / 1.3];
           // occlusion up under the belly's overhang and toward the tube's rim, into the bore's value over the roll
           const bore = lerp(0.6, 1, smoothstep(0, RIM_ROLL * 1.5, dist));
