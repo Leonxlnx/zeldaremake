@@ -4,7 +4,7 @@ runtime: Codex Astra + Blender MCP + Astra Max subagents
 github: Leonxlnx
 status: active
 branch: agent/astra-motion-sept21
-updated: 2026-09-21T18:50:47+00:00
+updated: 2026-09-21T19:45:25+00:00
 ---
 
 # Astra motion continuation
@@ -22,3 +22,11 @@ Verification/reproduction, five matched native comparisons and actual videos: ar
 Remaining: natural stair landing/posture, residual clothing contact, face/hand detail and forest reference quality. Existing Rodin provider permission and CC0 motion provenance remain recorded; Nintendo/reference-media release scope remains separate. No final quality, performance, phase-exit or whole-fan-game rights claim.
 
 Source integration saved as `ec79e4ed`; reproduction/evidence is a separate following commit.
+
+19:45 follow-up: `ec79e4ed` and evidence `27df6e03` are pushed on draft PR26; final character handoff is PR2 comment5765968490. Fable canonical remains c11f0ff4 at the latest fetch. PR26/27 CI was still capturing; source typecheck/build/anti-cheat passed on PR26, no final CI success claimed.
+
+`e5f9365c` source-imports Fable3's unchanged prop publisher/type/tests from e9a9fcdb and connects its solid discs before ground.blocked's builtTop exemption. Raw-production10-check CPU regression, existing props tests, typecheck/build passed; build index-_T_gIcCc.js. No character/index.ts change. An optional j.y bypass was rejected because actual stepPlayer could enter above a pot and land through it; current2D wall policy deliberately blocks airborne entry until top landing is supported. All five flights and six path centrelines remain clear with player radius. West deck requires steering around its pot; an offset corridor is checked.
+
+Further local studies, not adopted: flat-run knees stay within0.435mm of the hip/ankle sagittal line; residual apparent splay is mainly boot silhouette. Actual stair peaks up507/down375 transfer into copied native Blender scenes with12 vertex checks each, maximum1.754/1.032micrometre error. Positive pelvis translation alone is bounded by the other leg to63.63/27.04mm and leaves148.75/159.15degree folds. The future-seat candidate passes contact but leaves the peak folds unchanged and costs26% more queries. Dense support early rejection saves only0.09% uphill; held. Fresh torso curves on clean arms still raise contacts1316 to1389 (peak22 to24; below armpit21 unchanged); held. Root restored the accepted clean-run scene as active. Preserve local studies; do not import their candidates as production.
+
+Fable environment handoff5766133621 identifies the three bare bank canopy cores exactly, requests current ownership, and asks for contact coordination before log radius changes. No shared geometry lane was taken over. Next character work is the stair foot path/timing and body-height coordination; broader forest quality and face/hand art remain unfinished. Goal stays active.

@@ -2,7 +2,7 @@
 
 The character hook consumes Fable-3's `ctx.shared.propBlockers` from commit `e9a9fcdb333b79c0dfe5f32fda28e9655738f6f9`. It adds the player's 0.12 m radius to each published solid disc and checks those discs before `ground.blocked()` returns early for a walkable platform. Props therefore block movement on decks as well as terrain. Existing walls, structure masks, the log tunnel and NPC callers keep their existing paths.
 
-`prop-contact.patch` changes **only `src/world/character/ground.ts`** relative to `ec79e4ed`. It adds no movement or landing framework and leaves `character/index.ts` unchanged. Import Fable's producer/type change first. The world already builds props before character, so its published array is available when `createGround` captures it.
+The root agent imported Fable's four producer/type files unchanged and committed the integration locally as `e5f9365c`, with Cursor Agent attribution. The hook changes **only `src/world/character/ground.ts`** relative to `ec79e4ed`; it adds no movement or landing framework and leaves `character/index.ts` unchanged. The raw-production regression, `props/geometry.test.mjs`, project typecheck and build all pass. Push is pending at this review checkpoint. The world already builds props before character, so its published array is available when `createGround` captures it.
 
 ## Deliberate height policy
 
@@ -12,7 +12,7 @@ An optional height bypass was tested and rejected. The actual extracted `stepPla
 
 ## Runnable CPU check
 
-After importing the producer and applying the hook, run from the repository root:
+Run the applied local source from the repository root:
 
 ```text
 node art/characters/link/progress/2026-09-21-prop-contact/check.mjs
@@ -20,7 +20,15 @@ node art/characters/link/progress/2026-09-21-prop-contact/check.mjs
 
 The default loads raw production source and builds the actual prop publisher with deterministic terrain and texture stubs. It uses the existing tests' in-memory TypeScript loader pattern; it requires neither a browser, a renderer, a GLB, historical Git objects nor source snapshots. The real `moveRoot` and `stepPlayer` closures are extracted with the TypeScript AST and executed against controlled ground/actor state, so the player call sites are tested rather than reimplemented.
 
-For this isolated review, `--candidate` explicitly selects prepared character/producer snapshots and passes all ten checks. `--before` explicitly selects the unmodified character snapshots with Fable's producer and fails seven relevant contact checks. Candidate TypeScript validation against Fable's producer and type source completed with no diagnostics. No production source was edited by this review.
+The root agent ran this default command against the applied source: **10 checks passed, zero failures**. The exact result is [`check-production.json`](check-production.json), SHA-256 `f7bf88f7bcc8df02a1d218b770e7ba47f319c2908292dfe6073ed5831622f2b3`. In the descent counterexample the player remains at x = 500.35 m on every frame and lands outside the prop (`bodyInside: false`). The report records these raw input hashes; line-ending changes can change them without changing TypeScript behavior:
+
+| Raw production source | SHA-256 |
+| --- | --- |
+| `src/world/character/ground.ts` | `2e61839bc6314039e3679e10961751ca1cb89bb2b1ee81f10d1062482505c4be` |
+| `src/world/character/index.ts` | `2cc06a0e01b0dcded198f1446ba6b7365a48fd9b765887d021c2111a9910d4de` |
+| `src/world/props/index.ts` | `07365939eff71eee15a43dac28f46e5226fb75fabd0328f05d020d1d4b93cfd1` |
+
+For the preceding isolated review, `--candidate` explicitly selected prepared character/producer snapshots and passed all ten checks. `--before` explicitly selected the unmodified character snapshots with Fable's producer and failed seven relevant contact checks. These optional historical modes require local review snapshots; the default command does not. Candidate TypeScript validation against Fable's producer and type source completed with no diagnostics. The root agent also completed the production props test, project typecheck and build successfully (build bundle `index-_T_gIcCc.js`). Production edits were owned by the root agent; this review modified only its isolated evidence files.
 
 The checks cover expanded-disc boundaries, props on raised platforms, preserved wall/structure blocking, grounded movement, airborne blocking and the descent counterexample, existing NPC default calls, authored routes, and the real west-deck pot. The west walk-surface fixture uses the same published formula as `props/geometry.test.mjs` and `distantHouse.ts`; it is not a new rendering fixture.
 
@@ -44,17 +52,18 @@ Three expanded rims reach the soft terrain masks: Saria's bucket and crate touch
 
 ## Integration allowlist
 
-Import unchanged from Fable's commit, preserving attribution:
+Already imported unchanged from Fable's commit, preserving attribution; include these four files in the integration:
 
 - `src/world/props/index.ts`
 - `src/world/props/geometry.test.mjs`
 - `src/world/props/README.md`
 - `src/world/system.ts`
 
-Then stage the integrated hook and its standalone regression/documentation:
+Include the integrated hook, standalone regression, documentation and exact raw-production evidence:
 
 - `src/world/character/ground.ts`
 - `art/characters/link/progress/2026-09-21-prop-contact/check.mjs`
 - `art/characters/link/progress/2026-09-21-prop-contact/README.md`
+- `art/characters/link/progress/2026-09-21-prop-contact/check-production.json`
 
-The generated `check-production.json` may be retained as evidence after the root agent runs the raw-production check. `prepare.mjs`, patches, source snapshots, candidate/before reports, input manifests and rejected height-bypass files are local review material; the default regression does not depend on them. No change to `character/index.ts` belongs in this integration.
+These eight files are the integration allowlist. `prepare.mjs`, patches, source snapshots, candidate/before reports, input manifests and rejected height-bypass files are local review material; the default regression does not depend on them. No change to `character/index.ts` belongs in this integration.

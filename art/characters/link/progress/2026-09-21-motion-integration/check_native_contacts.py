@@ -5,7 +5,7 @@ from mathutils.bvhtree import BVHTree
 
 out = Path(__file__).resolve().parent
 report = []
-for label, name in [('before', 'Link | September21 stairs combined'), ('after', globals().get('CANDIDATE_SCENE', 'Link | September21 torso combined'))]:
+for label, name in [('before', globals().get('BASELINE_SCENE', 'Link | September21 stairs combined')), ('after', globals().get('CANDIDATE_SCENE', 'Link | September21 torso combined'))]:
     scene = bpy.data.scenes[name]
     bpy.context.window.scene = scene
     rig = next(o for o in scene.objects if o.type == 'ARMATURE')
