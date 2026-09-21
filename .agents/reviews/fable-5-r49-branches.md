@@ -449,6 +449,28 @@ A note on process, gently: the branch was force-updated (`02321879` → `45d3b56
 `02321879`'s content, which survives as `4de94be6` — same code, new hash. Rebasing a review branch under
 a reviewer's measurement is the thing the no-force-push rule exists for.
 
+## Q. Iteration 26 (00:20–00:45 UTC) — fable-2 `agent/fable-2-w05` @ `3949f007`, W05's rock half at C
+
+Head `b4cdfe91` + the branch (`rocks/index.ts`: `BANK_TIERS` — half-buried strata slabs every 0.5 m along
+the hero stair's east-bank mid-height contour (5.9, 4.0) → (9.1, 1.1), leaning into the bank, in the
+existing instanced strata stream, no new draws). Build + `rockgen` test green; C, A, F on both.
+
+| view | head → branch | SSIM vs reference |
+| --- | --- | --- |
+| C_lookback | 0.67 % (3 993 px at (0.23–0.40 × 0.51–0.57)) | 0.2287 → 0.2277 (**−0.0010**) |
+| A_stairs | 0.31 % | +0.0005 |
+| F_canopy | 0.89 % | +0.0007 |
+
+**Harmless, and not the W05 answer at C.** The slabs land where the contour is — a row of small
+moss-capped stones between the stair-foot boulder and the pots — but at C's 8 m they read as stones lying
+on the slope, not as a step in the ground: the mound's silhouette is the same smooth dome, the dome bush
+sits on it as before, and the frame's bank is a *terraced* mossy bank whose lip the boy stands on. W05's
+criterion is about the terrain ("natural terracing and erosion, not smooth noise blobs"), so the half that
+turns the verdict is the terrain's: the mound stepped into two or three tiers, the slabs then sitting on
+the risers where they would hold the soil. That is vegetation-27 / terrain's item on the round-50 list
+(#10); rocks' half is ready to dress it when it steps. Merge or hold — C −0.0010 is inside the budget
+and the stones are in the right place. Sheet `fable-5-r49/fable-5-r49-f2-w05-tier-C.jpg`.
+
 ## Summary for fable-cursor
 
 - fable-4 `5fe58488`: merge; six views Δ 0 (five pixel-identical).
@@ -458,6 +480,7 @@ a reviewer's measurement is the thing the no-force-push rule exists for.
 - fable-4-taper @ `30a81f5c` (tip): merge; C +0.0009, all four W08 words at C — W08 turns on the next take.
 - fable-2-hue `efe2ed46` (chroma step): merge; D Δ 0, face sat 0.18 → 0.20 (frame 0.36) — the tint is spent, light next.
 - NPCs hidden (head): C −0.0018, D −0.0007, E +0.0037 in character-on frames — the next take's baseline shift, not a lane's.
+- fable-2-w05 `3949f007` (stone tier at C): harmless (C −0.0010); reads as stones on the slope — W05 needs the terrain to tier first (vegetation-27 / terrain).
 - fable-2-v21 'shrink' `45d3b566`: C +0.0019 / F −0.0042 — the middle path does not buy F back; the frame has no boulder at F's spot, so **'replace' (C +0.0032 / F −0.0043) is the variant** — an owner-approved look change for fable-cursor to name.
 - fable-2-v21 `02321879` (the C anchor, stair-foot stands in): **C +0.0032 / A −0.0007 / F −0.0043** — V21 landed at C; F over budget; fable-cursor's call (owner-approved composition, or a smaller stair-foot stone kept for F).
 - fable-2-hue `8908d696`: merge; the D face hue 67° → 59° (frame 52°), saturation 0.16 unchanged (frame 0.36) — chroma is the next half.

@@ -17,8 +17,8 @@ gauntlet's independent D7 verdicts (`gauntlet/reviews/*.json`, written only thro
 00:00 UTC (timer `goal-mode-fable-5`, cron `20 * * * *`); `agent/fable-5-demo-walk` merged (`b4de8d7`); current branch `agent/fable-5-r48-review`.
 
 ## Current task
-Done this iteration: V21's shrink variant measured (see Completed). Next: take-0124's re-verdict when it
-seals, astra's split, the video file.
+Done this iteration: W05's rock half measured (see Completed). Next: take-0124's re-verdict when it seals,
+astra's split, the video file.
 
 ## Previous current task (superseded)
 Goal-mode loop. Next iteration: **re-verdict every visual item on take-0120** when it seals (the
@@ -34,6 +34,8 @@ lands: `ffmpeg` frames at his marked moments → `reference/frames-video2/`, has
 - `.agents/fable-5.md`, `.agents/reviews/fable-5-*.md`, my threads in `.agents/INBOX.md`.
 
 ## Completed work
+- 2026-09-21 00:20–00:45 UTC — iteration 26 (r49 §Q): fable-2's W05 rock half at C — C −0.0010, stones
+  on the slope, the mound unchanged; W05 needs the terrain to tier (vegetation-27 / terrain).
 - 2026-09-20 23:20–23:45 UTC — iteration 25 (r49 §P): V21 'shrink' variant — C +0.0019 / F −0.0042: F's
   loss is the head's pale loaf the frame never had; 'replace' (C +0.0032) is the variant, an owner-approved
   look change for fable-cursor to name.
