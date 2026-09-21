@@ -86,6 +86,26 @@ export const NEAR_BASE_RADIUS_OVERRIDE: Record<string, [number, number]> = {
   'seat-5': [18, 21],
   'seat-6': [12, 13.5],
 };
+/**
+ * Round 51 (fable-4 for the paused lod-1 lane; fable-6's brief §7 step 4, docs/PERF_2026-09-19.md):
+ * the LARGE tier's bands where the 25 / 28 m default is more than a fixed camera allows but the
+ * round-44 band above is less than the rule gives — the same rule: the nearest fixed camera's
+ * ground distance to the base stays ≥ 2 m outside the out-radius, 3 m of hysteresis, never narrower
+ * than the small tier's band. Read by index.ts nearBand ahead of NEAR_BASE_RADIUS_OVERRIDE when
+ * the large tier runs; the small tier keeps every band as shipped. Nearest camera (m):
+ * north-west C 29.6 · north-east C 31.9 · far-plateau C 36.3 · east-giant A 26.8 · seat-1 C 25.5 ·
+ * seat-2 C 28.0 · seat-5 A 23.9. The boles a camera stands within 20 m of keep their bands (the hero
+ * table in index.ts and the round-44 entries); swap-8 (C 33.7) and seat-8 (A 49.5) take the default.
+ */
+export const NEAR_BASE_RADIUS_OVERRIDE_LARGE: Record<string, [number, number]> = {
+  'north-west': [24.5, 27.5],
+  'north-east': [25, 28],
+  'far-plateau': [25, 28],
+  'east-giant': [21.5, 24.5],
+  'seat-1': [20.5, 23.5],
+  'seat-2': [23, 26],
+  'seat-5': [18.5, 21.5],
+};
 /** relief amplitude (m) of the near base at bole radius ρ: 5 cm at r 1.1, 10 cm at r 2.2 (concept 05) */
 export const nearBaseAmplitude = (refRadius: number) => Math.max(0.035, Math.min(0.12, 0.05 * refRadius));
 /** cord pitch (m around the bole) of the near bases' relief: concept 05's fissures every 25–35 cm */
