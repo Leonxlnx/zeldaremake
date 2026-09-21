@@ -49,6 +49,10 @@ as `agent/fable-2-<topic>`; `fable-cursor` merges. I do not touch `layout.ts`, t
   look lifted and warmed (`a683a4c1`) — **FAIL as a visible change at D**: the ferns hide the rock,
   the visible cap edge moved 0.238 → 0.246 and D −0.0002. Kept (harmless, toward the reference);
   the item is vegetation-26's exclusion disc first. §Iteration 8.
+- Iteration 50 — the pebble tiles' distance LOD (`PEBBLE_LOD_M` 10 m ± 1, 20-tri far looks swapped in
+  `nearUpdate`; `agent/fable-2-pebble-lod` @ `15fd5128`, stacked on 49): six views unchanged to 4 decimals
+  (E −0.0001; ≤ 184 changed px, ≤ 3 strong), draws as 49; triangles with 49: A 8.80 → 8.69 M (−110 K),
+  B/E −90 K, C −120 K, D −90 K, F −130 K. README §50.
 - Iteration 49 — the path pebbles merged per 10 m tile (`PEBBLE_TILE_M`, `agent/fable-2-pebble-tiles` @
   `1e2777be`), fable-cursor's tick-213 "A at 8.80 M, nothing more without a matching cut": one InstancedMesh
   per look spanned the whole scatter, so every camera drew all 2 042 × 80 tris. Six views pixel-identical
@@ -257,4 +261,4 @@ Nothing outside `src/world/rocks/` except this log, the INBOX and my evidence un
 - #4: `pathEdgePebble` per-candidate draws.
 
 ## Last updated
-2026-09-21T22:40:00Z
+2026-09-21T23:25:00Z

@@ -16,6 +16,28 @@ B 526 / C 393 / D 394 / E 526 / F 512; A 9.09 M tris on both (the head's number,
 change's — flagged to fable-cursor). Files: `ledge2-x-clearing-n.jpg` (+ `-crop`),
 `ledge2-x-ledge-foot.jpg`, `ledge2-x-northpath-n.jpg`.
 
+## Iteration 50 — the pebble tiles' distance LOD: A 8.80 → 8.69 M (−110 K with §49), six views unchanged — `agent/fable-2-pebble-lod` @ `15fd5128` (stacked on §49)
+
+The lever §49 named for A itself. Beyond `PEBBLE_LOD_M` = 10 m (camera to the tile's nearest point, ± 1 m band so a
+walking camera never flickers a tile) a tile shows its far looks: the same eight recipes at `PEBBLE_LOW_DETAIL` = 0 (20
+triangles, keyed forks of their own — the near looks and their streams are the geometry they were), merged per tile
+like the near set and swapped in `nearUpdate`. A 3 cm pebble at 10 m is ≈ 9 px. BEFORE = §49's capture (same head),
+AFTER captured here:
+
+| view | SSIM (head → tiles → LOD) | changed px vs tiles (> 8 / > 40) | draws | triangles head → tiles → LOD |
+|---|---|---|---|---|
+| A_stairs | 0.2291 → 0.2291 → 0.2291 | 104 / 3 | 447 | 8.80 → 8.77 → **8.69 M (−110 K)** |
+| B_house | 0.1965 = = | 184 / 1 | 428 | 7.95 → 7.92 → 7.86 M (−90 K) |
+| C_lookback | 0.2201 = = | 66 / 1 | 342 | 7.05 → 6.95 → 6.93 M (−120 K) |
+| D_log | 0.2788 = = | 99 / 0 | 393 | 8.18 → 8.14 → 8.09 M (−90 K) |
+| E_ground | 0.2182 → 0.2182 → 0.2181 | 184 / 1 | 428 | 7.95 → 7.92 → 7.86 M (−90 K) |
+| F_canopy | 0.2420 = = | 1 / 0 | 403 | 8.09 → 7.96 → 7.96 M (−130 K) |
+
+The changed pixels are the far pebbles' silhouettes (≤ 0.02 % of a frame, at most three strong); `pebbles56-A-lod-pair.jpg`
+shows A's far plaza at ×3, before | after — specks either way. Draws as §49 (one mesh visible per tile). W24's count
+untouched. Tests 28/28, typecheck / build green. Together the two commits give A 310 K of headroom under W38's ceiling
+where tick 213 had 200 K.
+
 ## Iteration 49 — the path pebbles merged per 10 m tile: −30 … −130 K triangles per view, pixels identical — `agent/fable-2-pebble-tiles` @ `1e2777be`
 
 fable-cursor (tick 213): A at 8.80 M against W38's 9.0 M ceiling — "nothing more on A's side of the canopy without a
