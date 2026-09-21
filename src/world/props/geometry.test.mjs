@@ -40,6 +40,7 @@ const { LAYOUT } = loadTs(path.join(here, '../layout.ts'));
 const { WORLD } = loadTs(path.join(here, '../config.ts'));
 const { createTerrain, expansionCull } = loadTs(path.join(here, '../terrain/heightfield.ts'));
 const { southBankPoint, EXPANSION } = loadTs(path.join(here, '../layout.ts'));
+const { NPC_LOOP } = loadTs(path.join(here, '../character/placement.ts'));
 const { createRng } = loadTs(path.join(here, '../util/prng.ts'));
 const { Vector3 } = THREE;
 
@@ -428,6 +429,53 @@ for (const id of ['door-pot-large', 'sign-pot', 'saria-crate', 'saria-water-buck
       assert.ok(across > main.width / 2 + b.r, `${owner.id} on the apron clears the flight's width (across ${across.toFixed(2)} m)`);
     }
   }
+
+  // the walks stay open under the character's hook (ground.ts: blocked where d < r + 0.12): every
+  // path centreline, the Kokiri girl's loop, Saria's door approach, the hero flight's approach, the
+  // lookout's open side and the west deck's landing keep a body's width (0.25 m) beyond the margin
+  const WALK = 0.12 + 0.25;
+  const nearest = (x, z) => {
+    let best = { d: Infinity, b: null };
+    for (const b of bl) {
+      const d = Math.hypot(x - b.x, z - b.z) - b.r;
+      if (d < best.d) best = { d, b };
+    }
+    return best;
+  };
+  const clearances = [];
+  const corridor = (name, pts, step = 0.25) => {
+    let minD = Infinity;
+    for (let i = 0; i + 1 < pts.length; i++) {
+      const [x0, z0] = pts[i];
+      const [x1, z1] = pts[i + 1];
+      const n = Math.max(1, Math.ceil(Math.hypot(x1 - x0, z1 - z0) / step));
+      for (let k = 0; k <= n; k++) {
+        const x = x0 + ((x1 - x0) * k) / n;
+        const z = z0 + ((z1 - z0) * k) / n;
+        const { d, b } = nearest(x, z);
+        minD = Math.min(minD, d);
+        assert.ok(d >= WALK, `${name}: a blocker (${b?.x}, ${b?.z}) r ${b?.r} sits ${d.toFixed(2)} m off the walk at (${x.toFixed(2)}, ${z.toFixed(2)})`);
+      }
+    }
+    clearances.push(`${name} ${minD.toFixed(2)}`);
+  };
+  const xz = (poly) => poly.map((p) => [p[0], p[p.length - 1]]);
+  for (const key of ['pathSpine', 'pathToStairs', 'pathToHouse', 'northPath']) corridor(key, xz(LAYOUT[key]));
+  for (const key of ['pathWest', 'pathSouth']) corridor(`EXPANSION.${key}`, xz(EXPANSION[key]));
+  corridor('the girl\'s loop', [...NPC_LOOP, NPC_LOOP[0]].map((w) => [w.x, w.z]));
+  const saria = LAYOUT.houses.find((h) => h.id === 'saria');
+  const fl = Math.hypot(saria.facing[0], saria.facing[1]);
+  const door = [saria.position[0] + (saria.facing[0] / fl) * (saria.trunkRadius + 0.4), saria.position[2] + (saria.facing[1] / fl) * (saria.trunkRadius + 0.4)];
+  const toHouse = xz(LAYOUT.pathToHouse);
+  corridor("Saria's door approach", [toHouse[toHouse.length - 1], door]);
+  corridor("the flight's approach", [[main.base[0] - ux * 3, main.base[2] - uz * 3], [main.base[0] + ux * 1.5, main.base[2] + uz * 1.5]]);
+  const lk = LAYOUT.plateauLookout;
+  const open = (t) => [lk.x + Math.sin(lk.yaw) * t, lk.z + Math.cos(lk.yaw) * t];
+  corridor("the lookout's open side", [open(2.3), open(0)]);
+  const deckDir = [westWalk.deck.b[0] - westWalk.deck.a[0], westWalk.deck.b[2] - westWalk.deck.a[2]];
+  const dl = Math.hypot(deckDir[0], deckDir[1]);
+  corridor("the west deck's landing", [[westWalk.deck.b[0], westWalk.deck.b[2]], [westWalk.deck.b[0] + (deckDir[0] / dl) * 2.5, westWalk.deck.b[2] + (deckDir[1] / dl) * 2.5]]);
+  console.log(`walk clearance beyond each blocker's radius (m, hook margin 0.12 + body 0.25 = ${WALK}): ${clearances.join(' · ')}`);
 }
 
 // geometry: determinism, finiteness, attributes, budget
