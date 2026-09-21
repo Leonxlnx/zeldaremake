@@ -16,6 +16,22 @@ B 526 / C 393 / D 394 / E 526 / F 512; A 9.09 M tris on both (the head's number,
 change's — flagged to fable-cursor). Files: `ledge2-x-clearing-n.jpg` (+ `-crop`),
 `ledge2-x-ledge-foot.jpg`, `ledge2-x-northpath-n.jpg`.
 
+## Iteration 37 — the form planes re-measured on the moved rock (scratch, not landed): a fifth of the missing contrast, D −0.0013
+
+With the rock 5.2 m from D and 4 × the pixels, the §19 form planes (flat top, chamfer crest, shoulder, 40° undercut) got one
+more measurement, as a scratch merge of `agent/fable-2-form` onto the move. Stone pixels (greys + tans) in the rock's D box
+0.01–0.20 × 0.68–0.92:
+
+| | mean l | σ | p10 / p90 | D vs reference |
+|---|---|---|---|---|
+| move only (§36) | 0.306 | 0.063 | 0.220 / 0.382 | 0.2784 |
+| move + planes | 0.307 | 0.075 | 0.198 / 0.389 | 0.2771 (−0.0013) |
+| the frame's rock (0.04–0.40 × 0.62–0.90) | 0.431 | 0.130 | 0.234 / 0.595 | |
+
+The planes add a fifth of the missing σ — all of it from the undercut's shade (p10 down), none from a lit plane (p90 flat at
+0.39 against the frame's 0.60) — and cost D 0.0013. Not proposed. The frame's contrast is light on the rock; W23's
+re-verdict after the move rests on the layout move and, for "one plane", on the canopy's light.
+
 ## Iteration 36 — W23's layout move, done and measured — `agent/fable-2-w23-move` @ `438be703` (one line in `layout.ts`, fable-cursor's 07:45 go)
 
 fable-cursor: "move `shot-d-boulder` to (−2.0, 0, −7.9) r 0.75 yourself; keep ≥ 0.3 m from the emergent column's bole at
