@@ -20,6 +20,7 @@ import { buildClearingRocks, type ClearingLayout } from './clearing';
 import { buildBacksideRocks } from './backside';
 import { expansionVisible, sunVector } from '../util/expansionLocality';
 import { PEBBLE_DEFAULTS, PEBBLE_LOOKS, scatterPathPebbles, stairFootPebbles } from './pebbles';
+import { mergeGeometries } from 'three/examples/jsm/utils/BufferGeometryUtils.js';
 import { NORTH_Z1 } from '../util/northLocality';
 import { expansionCull, type Terrain } from '../terrain/heightfield';
 import { CUSHION, FERN, TUFT_A, TUFT_B, buildSproutMeshes, createSproutMaterial, type SproutSpot } from '../materials/sprouts';
@@ -234,6 +235,76 @@ function buildInstanced(list: Instance[], geos: BufferGeometry[], material: Inst
     im.computeBoundingSphere();
     out.push(im);
   });
+  return out;
+}
+
+/**
+ * The path pebbles' tile size (m). One InstancedMesh per look spanned the whole scatter (a bounding
+ * sphere of 84 m), so every fixed camera drew all ≈ 2 000 pebbles × 80 triangles whether or not a
+ * single one was in its frustum (A: 8.80 M against W38's 9.0 M ceiling, tick 213). Merged per tile
+ * instead, three.js culls tile by tile: a camera pays for the pebbles it can see, in fewer draws than
+ * the eight looks cost. Positions, looks and the W24 count are untouched (the tiles re-pack the same
+ * instances); 0 → the eight instanced looks as before.
+ */
+export const PEBBLE_TILE_M = 10;
+/**
+ * The pebble tiles' distance LOD (m, camera to the tile's nearest point): beyond it a tile shows its
+ * 20-triangle looks (`PEBBLE_LOW_DETAIL`) instead of the 80-triangle ones — a 3 cm pebble at 10 m is
+ * ≈ 9 px, a 20-face silhouette. Hysteresis ± `PEBBLE_LOD_BAND_M` so a walking camera never flickers a
+ * tile; 0 → no LOD (every tile its full looks).
+ */
+export const PEBBLE_LOD_M = 10;
+export const PEBBLE_LOD_BAND_M = 1;
+/** icosahedron subdivision of the far looks: 20·(detail+1)² triangles → 20 */
+export const PEBBLE_LOW_DETAIL = 0;
+
+interface PebbleTile {
+  hi: Mesh;
+  lo: Mesh | null;
+  centre: Vector3;
+  radius: number;
+  low: boolean;
+}
+
+/** one tile's instances merged into a static mesh (looks baked in), or null when none */
+function mergeTile(parts: BufferGeometry[], material: Mesh['material'], name: string): Mesh | null {
+  const merged = mergeGeometries(parts, false);
+  for (const p of parts) p.dispose();
+  if (!merged) return null;
+  merged.computeBoundingSphere();
+  const mesh = new Mesh(merged, material);
+  mesh.castShadow = false;
+  mesh.receiveShadow = true;
+  mesh.name = name;
+  return mesh;
+}
+
+/**
+ * the instances merged into one static mesh per `tileM` ground tile, for per-tile frustum culling; with
+ * `loGeos`, a second mesh per tile carries the far looks (same instances, same transforms) for the LOD swap
+ */
+function buildTiled(list: Instance[], geos: BufferGeometry[], material: Mesh['material'], name: string, tileM: number, loGeos?: BufferGeometry[]): PebbleTile[] {
+  const tiles = new Map<string, { tx: number; tz: number; parts: BufferGeometry[]; loParts: BufferGeometry[] }>();
+  for (const it of list) {
+    if (it.scale <= 0) continue;
+    const tx = Math.floor(it.x / tileM);
+    const tz = Math.floor(it.z / tileM);
+    const key = `${tx}_${tz}`;
+    let tile = tiles.get(key);
+    if (!tile) tiles.set(key, (tile = { tx, tz, parts: [], loParts: [] }));
+    instanceMatrix(it, _m);
+    tile.parts.push(geos[it.variant % geos.length].clone().applyMatrix4(_m));
+    if (loGeos) tile.loParts.push(loGeos[it.variant % loGeos.length].clone().applyMatrix4(_m));
+  }
+  const out: PebbleTile[] = [];
+  for (const tile of tiles.values()) {
+    const hi = mergeTile(tile.parts, material, `${name}-t${tile.tx}_${tile.tz}`);
+    if (!hi) continue;
+    const lo = loGeos ? mergeTile(tile.loParts, material, `${name}-lo-t${tile.tx}_${tile.tz}`) : null;
+    if (lo) lo.visible = false;
+    const sphere = hi.geometry.boundingSphere!;
+    out.push({ hi, lo, centre: sphere.center.clone(), radius: sphere.radius, low: false });
+  }
   return out;
 }
 
@@ -1061,6 +1132,14 @@ export async function create(ctx: WorldContext): Promise<WorldSystem> {
   const pebbleGeos = PEBBLE_LOOKS.map((look, i) =>
     buildRock(vRng.fork(`pebble-${i}`), `${seed}/pebble-${i}`, { radius: 1, detail: 1, ridge: 0.15, lump: look.lump, cuts: look.cuts, cutDepth: look.cutDepth, squashY: look.squash, creaseDeg: look.crease, cracks: 0, moss: look.moss, dirt: 0.3, tint: look.tint, freq: 1 }),
   );
+  // the far looks for the tile LOD (PEBBLE_LOD_M): the same eight recipes at PEBBLE_LOW_DETAIL — 20
+  // triangles, their own keyed forks, so the near looks above are the streams they were
+  const pebbleLoGeos =
+    PEBBLE_TILE_M > 0 && PEBBLE_LOD_M > 0
+      ? PEBBLE_LOOKS.map((look, i) =>
+          buildRock(vRng.fork(`pebble-lo-${i}`), `${seed}/pebble-lo-${i}`, { radius: 1, detail: PEBBLE_LOW_DETAIL, ridge: 0.15, lump: look.lump, cuts: look.cuts, cutDepth: look.cutDepth, squashY: look.squash, creaseDeg: look.crease, cracks: 0, moss: look.moss, dirt: 0.3, tint: look.tint, freq: 1 }),
+        )
+      : undefined;
 
   ctx.progress('rocks', 0.6);
 
@@ -1154,7 +1233,8 @@ export async function create(ctx: WorldContext): Promise<WorldSystem> {
   const rubbleMeshes = buildInstanced(rubble, rubbleGeos, strataMaterial, 'rubble', true, rubbleSlots);
   const strataSlots: InstanceSlot[] = [];
   const strataMeshes = buildInstanced(strata, strataGeos, strataMaterial, 'strata', true, strataSlots);
-  const pebbleMeshes = buildInstanced(pebbles, pebbleGeos, pebbleMaterial, 'pebbles', false);
+  const pebbleTiles: PebbleTile[] = PEBBLE_TILE_M > 0 ? buildTiled(pebbles, pebbleGeos, pebbleMaterial, 'pebbles', PEBBLE_TILE_M, pebbleLoGeos) : [];
+  const pebbleMeshes: (Mesh | InstancedMesh)[] = PEBBLE_TILE_M > 0 ? pebbleTiles.flatMap((t) => (t.lo ? [t.hi, t.lo] : [t.hi])) : buildInstanced(pebbles, pebbleGeos, pebbleMaterial, 'pebbles', false);
   const northPebbleMeshes = buildInstanced(northPebbles, pebbleGeos, pebbleMaterial, 'pebbles-north', false);
   for (const m of [...rubbleMeshes, ...strataMeshes, ...pebbleMeshes, ...northPebbleMeshes]) group.add(m);
   for (const m of northPebbleMeshes) {
@@ -1180,6 +1260,17 @@ export async function create(ctx: WorldContext): Promise<WorldSystem> {
   const collapsed = new Matrix4().makeScale(0, 0, 0);
   const nearUpdate = (camera: Camera, reset: boolean) => {
     camera.getWorldPosition(_cam);
+    // the pebble tiles' LOD: a tile shows its far looks once its nearest point is beyond PEBBLE_LOD_M
+    // (+ the band), its near looks again inside PEBBLE_LOD_M (− the band); the hidden mesh costs nothing
+    for (const t of pebbleTiles) {
+      if (!t.lo) continue;
+      const d = t.centre.distanceTo(_cam) - t.radius;
+      if (reset) t.low = d > PEBBLE_LOD_M;
+      else if (t.low) t.low = d > PEBBLE_LOD_M - PEBBLE_LOD_BAND_M;
+      else t.low = d > PEBBLE_LOD_M + PEBBLE_LOD_BAND_M;
+      t.hi.visible = !t.low;
+      t.lo.visible = t.low;
+    }
     for (const nr of nearRocks) {
       nr.dist = nr.centre.distanceTo(_cam);
       const was = nr.active;
@@ -1261,7 +1352,11 @@ export async function create(ctx: WorldContext): Promise<WorldSystem> {
     expansionCulled: culled,
     /** the north paving's pebbles (pebbles-north, under the north-locality toggle) */
     northPebbles: northPebbles.length,
-    instancedMeshes: rubbleMeshes.length + strataMeshes.length + pebbleMeshes.length,
+    instancedMeshes: rubbleMeshes.length + strataMeshes.length + (PEBBLE_TILE_M > 0 ? 0 : pebbleMeshes.length),
+    /** the path pebbles' merged ground tiles (PEBBLE_TILE_M), each culled by its own bounds */
+    pebbleTiles: pebbleTiles.length,
+    /** the tiles' distance LOD (PEBBLE_LOD_M): the far-look tiles for the current camera */
+    pebbleLod: { m: PEBBLE_LOD_M, bandM: PEBBLE_LOD_BAND_M, lowDetail: PEBBLE_LOW_DETAIL, lowTiles: pebbleTiles.filter((t) => t.low).length },
     samplePositions: {
       boulders: contact.map((p) => p.map(rnd)),
       pebbles: samplePebbles.map((p) => [rnd(p.x), rnd(p.y), rnd(p.z)]),
