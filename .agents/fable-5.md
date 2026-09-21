@@ -17,8 +17,8 @@ gauntlet's independent D7 verdicts (`gauntlet/reviews/*.json`, written only thro
 00:00 UTC (timer `goal-mode-fable-5`, cron `20 * * * *`); `agent/fable-5-demo-walk` merged (`b4de8d7`); current branch `agent/fable-5-r48-review`.
 
 ## Current task
-Done this iteration: take-0128 re-verdicted (see Completed). Next: W02 when the log nosings merge and seal;
-lane branches on request; the video file.
+Done this iteration: the north stand measured, take-0129 re-verdicted (see Completed). Next: lane branches
+on request (V17's light, W05's tier, C01's tunic), the video file.
 
 ## Previous current task (superseded)
 Goal-mode loop. Next iteration: **re-verdict every visual item on take-0120** when it seals (the
@@ -34,6 +34,16 @@ lands: `ffmpeg` frames at his marked moments → `reference/frames-video2/`, has
 - `.agents/fable-5.md`, `.agents/reviews/fable-5-*.md`, my threads in `.agents/INBOX.md`.
 
 ## Completed work
+- 2026-09-21 16:46–17:00 UTC — take-0129 re-verdicted — W02 → pass (the log-risered flight); 41/50 with my
+  verdicts (`fable-5-take0129.md`).
+- 2026-09-21 16:24–16:55 UTC — iteration 42 (r52 §B): fable-4's stand beyond the arch — A/C identical, D
+  −0.0002, the window's far layer thickens with trunks (V2's first half; lit value, lights and the ground
+  plane still open). take-0129 still unsealed.
+- 2026-09-21 15:33–15:45 UTC — iteration 41: §9's pitch row withdrawn on fable-3's anchor projection (26.6° fits
+  the reference's logs in A and F; my 35–40° from d_105 was unconstrained); the other §9 rows stand.
+  take-0129 still unsealed.
+- 2026-09-21 14:26–15:05 UTC — iteration 40: new branch `agent/fable-5-r52-review`; W02 pre-read on the merged
+  head (log nosings in — turns on take-0129 on my read). The take has not sealed.
 - 2026-09-21 13:20–13:35 UTC — iteration 39: take-0128 re-verdicted — W23 → pass (the rock at the frame's
   spot, layered, moss-capped, lit); 40/50 with my verdicts (`fable-5-take0128.md`).
 - 2026-09-21 12:20–12:50 UTC — iteration 38 (r51 §D): fable-2's log nosings + stakes — A −0.0009, C −0.0016,

@@ -1956,6 +1956,14 @@ export function buildHouse(def: HouseDef, ctx: WorldContext, mats: StructureMate
    * disc. Round 48: the tint also gets the angle round the form (`th`) and the top disc's radius
    * fraction, and `relief` (t, th) scales the profile — throwing rings on a pot, the waver of a
    * hand-turned leg.
+   *
+   * Round 52 (fable-3, the owner's "shelf props read hollow"): with `mouth` the top is no longer a
+   * flat disc painted dark — which at arm's length read as a black paper lid — but a vessel's
+   * mouth: the body colour rolls over a lip (`wall` of the rim radius wide, half that high), an
+   * inner wall follows the outer profile inset by the wall down to `depth` of the height, and a
+   * floor closes it. The lamps then shade a real cavity (the lit inner wall on one side, the far
+   * wall and floor in the vessel's own shadow, `shade` deepening the tint toward the floor), so
+   * the pieces read as thrown pots with something to look into rather than cut-outs.
    */
   const turned = (
     profile: (t: number) => number,
@@ -1964,12 +1972,52 @@ export function buildHouse(def: HouseDef, ctx: WorldContext, mats: StructureMate
     rings: number,
     tint: (t: number, up: number, th: number, rFrac: number) => [number, number, number],
     relief?: (t: number, th: number) => number,
+    mouth?: { depth: number; wall: number; shade?: number },
   ) =>
     gridSurface(
       (u, v, out) => {
         // v 0 → 0.5 the side (bottom → top), 0.5 → 1 the top disc (rim → centre)
         const th = u * TAU;
         const side = v <= 0.5;
+        if (mouth && !side) {
+          const R = profile(1);
+          const inset = 1 - mouth.wall;
+          const s = (v - 0.5) * 2;
+          const shade = mouth.shade ?? 0.45;
+          if (s <= 0.18) {
+            // the lip: the body colour rolls over the rim from the outside to the bore
+            const q = s / 0.18;
+            const rr = R * (1 - mouth.wall * q);
+            const y = h + 0.5 * mouth.wall * R * Math.sin(Math.PI * q);
+            out.position.set(Math.cos(th) * rr, y, Math.sin(th) * rr);
+            out.uv = [(th * rr) / 0.6, y / 0.6];
+            out.color = tint(1, 0, th, 1);
+          } else if (s <= 0.76) {
+            // the inner wall: the outer profile inset by the wall, down to the floor
+            const q = (s - 0.18) / 0.58;
+            const t = 1 - mouth.depth * q;
+            const rr = Math.max(0.15 * R, profile(t) * inset);
+            const y = t * h;
+            out.position.set(Math.cos(th) * rr, y, Math.sin(th) * rr);
+            out.uv = [(th * rr) / 0.6, 0.5 + y / 0.6];
+            const c = tint(t, 1, th, 1);
+            const d = 1 - shade * q;
+            out.color = [c[0] * d, c[1] * d, c[2] * d];
+          } else {
+            // the floor
+            const q = (s - 0.76) / 0.24;
+            const t = 1 - mouth.depth;
+            const rFrac = 1 - q;
+            const rr = Math.max(0.15 * R, profile(t) * inset) * rFrac;
+            const y = t * h;
+            out.position.set(Math.cos(th) * rr, y, Math.sin(th) * rr);
+            out.uv = [(th * rr) / 0.6, 0.5 + rr / 0.6];
+            const c = tint(t, 1, th, rFrac);
+            const d = 1 - shade;
+            out.color = [c[0] * d, c[1] * d, c[2] * d];
+          }
+          return;
+        }
         const t = side ? v * 2 : 1;
         const rFrac = side ? 1 : 1 - (v - 0.5) * 2;
         const rr = (side ? profile(t) * (1 + (relief ? relief(t, th) : 0)) : profile(1) * rFrac);
@@ -2053,7 +2101,7 @@ export function buildHouse(def: HouseDef, ctx: WorldContext, mats: StructureMate
         profile,
         h,
         16,
-        14,
+        22,
         (t, up, th) => {
           if (up) return [0.16, 0.12, 0.09]; // the dark mouth
           const fleck = 0.9 + 0.2 * (0.5 + 0.5 * grainNoise.noise(th * 2.5 + seed, t * 9));
@@ -2065,6 +2113,7 @@ export function buildHouse(def: HouseDef, ctx: WorldContext, mats: StructureMate
           return [tint[0] * s, tint[1] * s * (1 - 0.1 * band), tint[2] * s * (1 - 0.15 * band)];
         },
         (t) => 0.012 * Math.sin(t * 70 + seed) * (1 - smoothstep(0.85, 1, t)),
+        { depth: 0.5, wall: 0.22 },
       );
       g.rotateX(Math.PI / 2);
       place(g, w, top);
@@ -2079,11 +2128,13 @@ export function buildHouse(def: HouseDef, ctx: WorldContext, mats: StructureMate
         (t) => r * (0.7 + 0.3 * smoothstep(0, 0.1, t)) * (1 - 0.62 * smoothstep(0.55, 0.78, t)) * (1 + 0.14 * smoothstep(0.94, 1, t)),
         h,
         12,
-        10,
+        16,
         (t, up, th) => {
           const sheen = 0.85 + 0.3 * Math.pow(0.5 + 0.5 * Math.cos(th - 0.6), 4);
           return up ? [0.12, 0.14, 0.12] : [tint[0] * sheen, tint[1] * sheen, tint[2] * sheen * (1 + 0.1 * t)];
         },
+        undefined,
+        { depth: 0.28, wall: 0.35 },
       );
       g.rotateX(Math.PI / 2);
       place(g, w, top);
@@ -2094,8 +2145,10 @@ export function buildHouse(def: HouseDef, ctx: WorldContext, mats: StructureMate
         (t) => r * (0.55 + 0.45 * Math.sqrt(t)) * (1 + 0.02 * Math.sin(t * 9)),
         r * 0.55,
         14,
-        8,
+        14,
         (t, up, th, rFrac) => woodTint([tint[0] * 0.75, tint[1] * 0.65, tint[2] * 0.55], t * r * 0.55, th, up, rFrac, w * 3, 7),
+        undefined,
+        { depth: 0.72, wall: 0.09, shade: 0.3 },
       );
       g.rotateX(Math.PI / 2);
       place(g, w, top);
@@ -2582,8 +2635,10 @@ export function buildHouse(def: HouseDef, ctx: WorldContext, mats: StructureMate
         (t) => 0.11 * k * (0.5 + 0.5 * Math.sqrt(t)) * (1 + 0.02 * Math.sin(t * 9)),
         0.06 * k,
         18,
-        8,
+        14,
         (t, up, th, rFrac) => woodTint(up ? [0.6, 0.48, 0.32] : [0.5 + 0.1 * t, 0.4 + 0.08 * t, 0.26], t * 0.06 * k, th, up, rFrac, 23, 7),
+        undefined,
+        { depth: 0.7, wall: 0.09, shade: 0.3 },
       );
       parts.push(stand(bowl, bowlW, topY, bowlD));
       const fruit: [number, number, [number, number, number]][] = [
@@ -2618,8 +2673,10 @@ export function buildHouse(def: HouseDef, ctx: WorldContext, mats: StructureMate
         (t) => 0.038 * k * (0.85 + 0.15 * t) * (1 + 0.05 * smoothstep(0.92, 1, t)),
         0.09 * k,
         14,
-        7,
+        12,
         (t, up, th, rFrac) => woodTint(up ? [0.45, 0.55, 0.4] : [0.42, 0.5, 0.36], t * 0.09 * k, th, up, rFrac, 29, 6),
+        undefined,
+        { depth: 0.8, wall: 0.14, shade: 0.3 },
       );
       parts.push(stand(cup, tableW47 - 0.17 * k, topY, tableD47 + 0.1 * k));
       furnish47.pieces += 3;
@@ -2633,7 +2690,7 @@ export function buildHouse(def: HouseDef, ctx: WorldContext, mats: StructureMate
         (t) => jug47.r * (0.45 + 0.55 * Math.sin(Math.PI * Math.min(1, t * 1.05))) * (1 - 0.4 * smoothstep(0.72, 0.92, t)) + jug47.r * 0.32 * smoothstep(0.9, 1, t),
         0.42 * k,
         24,
-        20,
+        28,
         (t, up, th) => {
           if (up) return [0.25, 0.2, 0.15];
           const glaze = 0.6 + 0.35 * smoothstep(0.3, 0.6, t);
@@ -2644,6 +2701,7 @@ export function buildHouse(def: HouseDef, ctx: WorldContext, mats: StructureMate
           return [0.85 * s, 0.5 * s * (1 - 0.1 * band), 0.34 * s * (1 - 0.15 * band)];
         },
         (t) => 0.012 * Math.sin(t * 60) * (1 - smoothstep(0.85, 1, t)),
+        { depth: 0.42, wall: 0.3 },
       );
       parts.push(stand(jug, jug47.w, roomFloorY, jug47.d));
       const woodW = doorW1 + 0.05 * k;

@@ -251,3 +251,5 @@ nearCanopy, materials, index otherwise) is edited.
 
 ### 2026-09-21 16:10 UTC — V2 status measured
 - Three opus-walk arch poses on the head: the tunnel's tone at the reference (frame L* 0.142 vs 0.131), the window's structure half-closed (trunk rows and crowns; a visible plain, sparse stand, no vines / lights). README `art/environment/round51-v2-status/`. Offered the dense slender band beyond the clearing as the trees half; announced, taking next tick unless declined.
+### 2026-09-21 17:40 UTC — the stand beyond the arch (V2 / opus #01)
+- Three `after` depth bands of the 26 m pole beyond the north clearing; the palisade first cut withdrawn. Found and fixed the far layer's re-roll (rows before the pool desynchronise the radial stream): `DepthBand.after`. Six views within 0.0002, C/F pixel-identical. Branch `agent/fable-4-northstand` @ 7fec320f; README `art/environment/round51-northstand/`.
