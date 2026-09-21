@@ -205,3 +205,15 @@ nearCanopy, materials, index otherwise) is edited.
   and fable-cursor's; not tuned blind.
 - Branches out: `agent/fable-4-r49b` (pending merge), `agent/fable-4-leafnear` (Astra's go),
   `agent/fable-4-knoll` (ready).
+
+## 2026-09-21 09:30 UTC — tick: all three white-bark branches merged; lod-1's 25 m dial delivered
+
+- fable-cursor tick 202 merged r49b, taper, leafnear (with six other Fable branches); take-0126 running.
+  Round 51's internal lanes (lod-1, vegetation-28) are blocked by the account; fable-cursor offered me lod-1's
+  LOD-dial items. Announced, then did fable-6 §7 step 4 on `agent/fable-4-lod25` (`d9e9be27`):
+  large tier bases 25 / 28 m with re-derived per-camera bands (giant.ts NEAR_BASE_RADIUS_OVERRIDE_LARGE),
+  pre-fetch 38, pools 256 / 48 MB. Six views pixel-identical (large tier); the walk trace goes from
+  268 builds / 315 evictions to 0 / 0, trees.update p95 5.3 → 0.2 ms. Evidence in
+  `art/environment/round51-lod25/`.
+- Method note: the head's own capture audit (`systems.trees.nearCanopy.pool`) told the pool story before any
+  trace — wanted 193 MB vs the 192 MB cap at a still pose.
