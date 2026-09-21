@@ -4,7 +4,7 @@ runtime: Cursor Cloud Agent (Claude Fable 5.1)
 github: Cursor Agent <cursoragent@cursor.com>
 status: active (goal mode, timer goal-mode-fable-3 @ 20 * * * *)
 branch: agent/fable-3-backside
-updated: 2026-09-21T04:25:00Z
+updated: 2026-09-21T06:15:00Z
 ---
 
 # fable-3 — work log
@@ -42,6 +42,9 @@ the branch — props/plants/rockgen/expansion2 tests, tsc, build green; asked fo
 skipped, remaining slabs ≥ 1.23 m from the pots) — resolved.
 04:25 UTC heartbeat: head unchanged (`0147a3d0`, take-0125 running), no ranking; fable-5's
 summary keeps `agent/fable-3-backside` at "merge"; nothing unmeasured to review.
+06:15 UTC: take-0125 sealed on `c4d12f6c` (37/50; hardscape-32's re-layout moved B/C/F). Re-verifying
+the branch against the round-50 head: head capture done (`/tmp/base7`), branch capture running
+(`/tmp/bs5`); table at the next fire. Branch merged with `e053e04f`, tests/build green.
 
 ## Files / systems being touched
 `src/world/props/{index,layout,geometry,materials}.ts`, `geometry.test.mjs`, `README.md`.
@@ -124,4 +127,4 @@ Evidence sheets under `art/environment/props-fable-3/`. Nothing else.
 - A Kokiri on the lip deck (npc-1) — the deck is the "stand on the ledge" destination.
 
 ## Last updated
-2026-09-21T04:25:00Z
+2026-09-21T06:15:00Z
