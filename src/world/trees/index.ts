@@ -452,7 +452,7 @@ const EXTRA_GIANTS: GiantTreeDef[] = []; // stair-bank-giant adopted into LAYOUT
  * window (structures distantHouse.ts). They stand in the frame's bright haze (0.55–0.61 at those
  * points), so they are as small as covers the lamps and ordinary leaves, not shade curtains.
  */
-const CANOPY_BOUGHS: { giant: string; fromY: number; to: [number, number, number]; radius: number; tipRadius?: number; ghostWood?: boolean; dress?: CanopyBough['dress']; lobes: { t: number; center: [number, number, number]; hR: number; vR: number; density?: number; tone?: number; eye?: number; shade?: number; corridors?: boolean; compact?: boolean; castShadow?: boolean; flat?: boolean; core?: number; floor?: number }[] }[] = [
+const CANOPY_BOUGHS: { giant: string; fromY: number; to: [number, number, number]; radius: number; tipRadius?: number; ghostWood?: boolean; dress?: CanopyBough['dress']; lobes: { t: number; center: [number, number, number]; hR: number; vR: number; density?: number; tone?: number; eye?: number; shade?: number; corridors?: boolean; compact?: boolean; castShadow?: boolean; flat?: boolean; core?: number; floor?: number; layeredCore?: { leaves: number; twigs: number } }[] }[] = [
   // Round 33: the four north-west-near boughs leave at 18.4–19 m instead of 11.8–13.2 (above the
   // fork, from the sheared axis' top at (−10, −21.4)). The sun lines through shot D's air box
   // (x 0.35–0.75, y 0.10–0.27; air 2.5–11 m up over the path) climb WNW at 38°: at height Y they
@@ -894,8 +894,8 @@ const CANOPY_BOUGHS: { giant: string; fromY: number; to: [number, number, number
     tipRadius: 0.15,
     ghostWood: true,
     lobes: [
-      { t: 0.3, center: [11.2, 3.4, 3.7], hR: 1.9, vR: 1.5, density: 1, tone: 0.6, eye: 0, shade: 0.4, corridors: false, castShadow: false, flat: true, core: 0.97 },
-      { t: 0.8, center: [10.4, 3.4, 5.9], hR: 1.5, vR: 1.4, density: 1, tone: 0.6, eye: 0, shade: 0.4, corridors: false, castShadow: false, flat: true, core: 0.97 },
+      { t: 0.3, center: [11.2, 3.4, 3.7], hR: 1.9, vR: 1.5, density: 1, tone: 0.6, eye: 0, shade: 0.4, corridors: false, castShadow: false, flat: true, core: 0.97, layeredCore: { leaves: 2800, twigs: 40 } },
+      { t: 0.8, center: [10.4, 3.4, 5.9], hR: 1.5, vR: 1.4, density: 1, tone: 0.6, eye: 0, shade: 0.4, corridors: false, castShadow: false, flat: true, core: 0.97, layeredCore: { leaves: 2100, twigs: 32 } },
     ],
   },
   // Round 45: the bank canopy's CORNER lobe — the dark mass in A's top-right corner and the near
@@ -920,7 +920,7 @@ const CANOPY_BOUGHS: { giant: string; fromY: number; to: [number, number, number
     radius: 0.45,
     tipRadius: 0.15,
     ghostWood: true,
-    lobes: [{ t: 0.95, center: [11.6, 5.5, 1.6], hR: 1.8, vR: 1.1, density: 1, tone: 0.85, eye: 0, shade: 0.5, corridors: false, castShadow: false, flat: true, core: 0.97, floor: 4.75 }],
+    lobes: [{ t: 0.95, center: [11.6, 5.5, 1.6], hR: 1.8, vR: 1.1, density: 1, tone: 0.85, eye: 0, shade: 0.5, corridors: false, castShadow: false, flat: true, core: 0.97, floor: 4.75, layeredCore: { leaves: 2200, twigs: 32 } }],
   },
   // Not here (round 38, measured and dropped): a mid-distance leaf tree for shot D. Frame 56 s has
   // a dark spreading tree left of the path's axis at D (0.36–0.5, 0.25–0.5), branches and leaf
@@ -1790,6 +1790,7 @@ export async function create(ctx: WorldContext): Promise<WorldSystem> {
     outM: number;
     /** the radii are NEAR_CANOPY_FLAT_SWAP_M and the hero pass leaves them (nearCanopy.ts NearCanopyPart.fixedSwap) */
     fixedSwap: boolean;
+    persistent?: boolean;
     /** the nearest hero camera that frames the built part's cull sphere (m to the centre; Infinity: none) */
     hero: number;
     mesh: Mesh;
@@ -2319,6 +2320,10 @@ export async function create(ctx: WorldContext): Promise<WorldSystem> {
         giantPartToWorld(geometry, g.origin);
         geometry.computeBoundingBox();
         geometry.computeBoundingSphere();
+        if (part.envelope) {
+          geometry.boundingBox!.copy(part.envelope).translate(g.origin);
+          geometry.boundingBox!.getBoundingSphere(geometry.boundingSphere!);
+        }
         geometry.boundingSphere!.radius += CULL_PAD_M;
       };
       finalize(part.geometry);
@@ -2342,6 +2347,7 @@ export async function create(ctx: WorldContext): Promise<WorldSystem> {
         inM: part.inM,
         outM: part.outM,
         fixedSwap: part.fixedSwap === true,
+        ...(part.persistent ? { persistent: true } : {}),
         hero: Infinity,
         mesh,
         triangles: part.triangles,
@@ -2423,7 +2429,7 @@ export async function create(ctx: WorldContext): Promise<WorldSystem> {
       tipRadius: b.tipRadius,
       ghostWood: b.ghostWood,
       dress: b.dress,
-      lobes: b.lobes.map((l) => ({ t: l.t, center: new Vector3(l.center[0], l.center[1], l.center[2]).sub(origin), hR: l.hR, vR: l.vR, density: l.density, tone: l.tone, eye: l.eye, shade: l.shade, corridors: l.corridors, compact: l.compact, castShadow: l.castShadow, flat: l.flat, core: l.core, floor: l.floor === undefined ? undefined : l.floor - gy })),
+      lobes: b.lobes.map((l) => ({ t: l.t, center: new Vector3(l.center[0], l.center[1], l.center[2]).sub(origin), hR: l.hR, vR: l.vR, density: l.density, tone: l.tone, eye: l.eye, shade: l.shade, corridors: l.corridors, compact: l.compact, castShadow: l.castShadow, flat: l.flat, core: l.core, floor: l.floor === undefined ? undefined : l.floor - gy, layeredCore: l.layeredCore })),
     });
     const canopyBoughs: CanopyBough[] = CANOPY_BOUGHS.filter((b) => b.giant === def.id).map(toLocalBough);
     const detachedSpecs = DETACHED_BOUGHS.filter((b) => b.giant === def.id);
@@ -3007,7 +3013,7 @@ export async function create(ctx: WorldContext): Promise<WorldSystem> {
     let limited = 0;
     let dropped = 0;
     for (const nc of nearCanopies) {
-      if (nc.fixedSwap) continue;
+      if (nc.fixedSwap || nc.persistent) continue;
       nc.mesh.updateMatrixWorld(true);
       sphere.copy(nc.mesh.geometry.boundingSphere!).applyMatrix4(nc.mesh.matrixWorld);
       sphere.radius += 1;
@@ -3038,7 +3044,7 @@ export async function create(ctx: WorldContext): Promise<WorldSystem> {
     // the cap stands). Never widens: a part a camera limited keeps its cut.
     const [capIn, capOut] = NEAR_LOD_TIER.canopySwapM;
     for (const nc of nearCanopies) {
-      if (nc.fixedSwap) continue;
+      if (nc.fixedSwap || nc.persistent) continue;
       nc.inM = Math.min(nc.inM, capIn);
       nc.outM = Math.min(nc.outM, capOut);
     }
@@ -3053,9 +3059,9 @@ export async function create(ctx: WorldContext): Promise<WorldSystem> {
       else nc.active = nc.dist < nc.inM;
     }
     const byDist = (a: NearCanopy, b: NearCanopy) => a.dist - b.dist;
-    const shownLobes = nearCanopies.filter((nc) => nc.active && nc.kind === 'lobe').sort(byDist).slice(0, NEAR_CANOPY_SLOTS);
+    const shownLobes = nearCanopies.filter((nc) => !nc.persistent && nc.active && nc.kind === 'lobe').sort(byDist).slice(0, NEAR_CANOPY_SLOTS);
     const shownLimbs = nearCanopies.filter((nc) => nc.active && nc.kind === 'limb').sort(byDist).slice(0, NEAR_CANOPY_LIMBS_MAX);
-    for (const nc of nearCanopies) nc.mesh.visible = nc.kind === 'lobe' ? shownLobes.includes(nc) : shownLimbs.includes(nc);
+    for (const nc of nearCanopies) nc.mesh.visible = nc.persistent || (nc.kind === 'lobe' ? shownLobes.includes(nc) : shownLimbs.includes(nc));
     // the pool: a shown part is pinned (built now if it is not resident — the frame never waits
     // for a build), a part within the pre-fetch radius is wanted (built ahead, nearest first)
     nearCanopyPool.begin();
