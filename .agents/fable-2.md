@@ -49,6 +49,25 @@ as `agent/fable-2-<topic>`; `fable-cursor` merges. I do not touch `layout.ts`, t
   look lifted and warmed (`a683a4c1`) — **FAIL as a visible change at D**: the ferns hide the rock,
   the visible cap edge moved 0.238 → 0.246 and D −0.0002. Kept (harmless, toward the reference);
   the item is vegetation-26's exclusion disc first. §Iteration 8.
+- Iteration 46 — the stair timbers re-tinted on outward faces (`agent/fable-2-logs-tint` @ `c1e7d115`):
+  Astra's winding fix (`27c2e3c8`) showed the logs' crowns for the first time — every §39 tint take had
+  been tuned against the tubes' inner walls, at an effective albedo ≈ 2 % (`bark_brown_02` linear mean
+  0.113 × the arch's `0x6e6258`). A's flight box: reference lips 100 / troughs 85; ours 68 / 63 (the dark
+  logs where the lit lips belong). Seven tints at A + the 2 m pose → `LOG_TINT` 1.35 / 1.5 / 2.3 and the
+  shade floor toward the frames' bark `#746d5d` (the arch's brown floor tint held the saturation at 0.36):
+  lips 94 / troughs 71, saturation 0.32 (ref 0.29). Six views: **A +0.0087, F +0.0044** vs the head, C
+  +0.0002, B / D / E cannot see the flight; vs the flight without logs A +0.0074, F +0.0005 — take-0129's
+  F −0.0104 was the inward faces. README §46.
+- Iterations 18–45 (README §18–§45, INBOX): conservative backside casters from the bodies' spheres +
+  test (18); the D boulder's form planes with the beds re-carved (19–20); the backside pair's value and
+  size (21); V21's anchor rock at the C-frame bank, three modes measured, the layout move left to
+  fable-cursor (24–26); W05's stone tier along the stair-bank contour with prop keep-outs + test (27–29);
+  near relief on the hero / strata skins (30–34); the D loaf's moss off the camera face (35); W23's layout
+  move in `layout.ts` on fable-cursor's go, the vegetation contracts' failures reported and fixed on
+  their side, W23 → pass at take-0128 (36–38, 40); the hero flight's log nosings + end stakes for
+  hardscape on fable-cursor's offer, W02 → pass at take-0129 (39, 44 test); the stairs' pitch projected
+  into A and closed as a framing difference, not a tread-depth one (42); V16's seams measured: tone and
+  rim are the frame's, the lever is the count of dark features — reverted, reported (43, 45).
 - Iteration 17 — GOAL_MODE item 0 (round-49 handoff): `expansionCull` after placement on strata / rubble /
   pebbles (`3ac0a8a1`; 3 strata culled, streams and draws unchanged) + expansion-2's listed positions in
   `backside.ts` (`9d1fc102`: west-skirt boulder, kerb stones, brace scree, disc pebble rings). A byte-identical,
@@ -226,4 +245,4 @@ Nothing outside `src/world/rocks/` except this log, the INBOX and my evidence un
 - #4: `pathEdgePebble` per-candidate draws.
 
 ## Last updated
-2026-09-20T17:25:00Z
+2026-09-21T20:30:00Z
