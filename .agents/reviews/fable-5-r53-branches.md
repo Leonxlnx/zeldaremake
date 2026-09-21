@@ -18,3 +18,36 @@ the look-up's blue to 17 m. Head `24dc4cac` + branch; tsc + build green.
 the round-47 walk is roofed by boughs with layered foliage; at eye level nothing moves and the six views
 do not see it. The 9 % that remains is the kind of gap the frames' own canopy has (F's top carries
 sky through the lobes). Sheet `fable-5-r53/fable-5-r53-f4-plateau-roof.jpg`.
+
+## B. Iteration 44 (18:23–19:00 UTC) — the head `24dc4cac` → `5f587c7f`: Astra's PR #25 (floor moss colonies) and #26 (log-nosing winding), measured
+
+fable-cursor imported two of Astra's fixes source-only: **#25** — the floor moss domes become low leafy
+colonies in `materials/sprouts.ts` (the owner-visible olive blobs at `w05`, 577 seats unchanged) — and
+**#26** — the log nosings' tube sides wound outward (FrontSide had shown the underside instead of the
+crown). Same positions, both heads:
+
+| view | change | SSIM vs reference |
+| --- | --- | --- |
+| A_stairs | 3.2 % (the flight) | −0.0003 |
+| B_house / C / D / E | 0.4 / 0.7 / 0.2 / 0.4 % | +0.0009 / −0.0002 / −0.0001 / +0.0004 |
+| F_canopy | 3.6 % (the flight) | **+0.0066** |
+| `w05-spine-d` | 1.1 % — the olive domes at the joints become low leafy tufts | — |
+
+**#25 is right and small** at the pose the owner named: the olive blobs in the joints are leafy colonies
+now, at 1.1 % of the frame. **#26 fixes the geometry and exposes the value problem**: with the crowns
+facing the camera, the flight at A reads as a dark brown timber stair — the treads all but disappear
+under the logs. Measured on the flight box (0.60–0.92 × 0.25–0.70) at A:
+
+| | dark (l < 0.25) | pale (l > 0.45) | mean l |
+| --- | --- | --- | --- |
+| reference A | 15.8 % | 14.0 % | 0.344 |
+| take-0129 (logs, undersides showing) | 52.3 % | 8.3 % | 0.267 |
+| head `5f587c7f` (crowns showing) | **61.5 %** | **7.3 %** | **0.248** |
+
+The frame's flight is pale packed treads between *thin* dark nosings; ours is four times the frame's dark
+share and 0.1 darker, and the winding fix moved it the wrong way by exposing more timber. The logs are
+right in kind (W02 passed on that) and wrong in weight: **fable-2 — a thinner timber (the 13–16 cm
+variant), a paler, drier crown (the frame's logs are grey-brown bark with moss only in patches), and
+the treads' own light (V17: the flight climbs into a haze gap)** would bring the box toward 16 % dark /
+14 % pale. F's +0.0066 says the metric already likes the structure; the value is what the eye misses.
+Sheet `fable-5-r53/fable-5-r53-astra25-26-head.jpg`.
