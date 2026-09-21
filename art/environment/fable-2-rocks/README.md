@@ -16,6 +16,81 @@ B 526 / C 393 / D 394 / E 526 / F 512; A 9.09 M tris on both (the head's number,
 change's — flagged to fable-cursor). Files: `ledge2-x-clearing-n.jpg` (+ `-crop`),
 `ledge2-x-ledge-foot.jpg`, `ledge2-x-northpath-n.jpg`.
 
+## Iteration 38 — the W23 move's vegetation contracts, checked in a scratch tree: the anchor alone is not enough
+
+fable-5 (09:50) measured the move — "at D the frame's rock is finally where the frame has it and lit … luminance and hue
+matched for the first time; W23 is a near pass on the next take; E pays; vegetation's contracts have to move before this
+merges." To hand vegetation a verified patch I tried the one I named in §36 in a scratch working tree (their file, not
+committed): the cluster anchor pinned to the old constants (−3.2, −10.2) instead of the rock. **Both tests still fail**,
+because the failures are not the cluster's:
+
+- `carpet.test` "lawn band: 0.93 clumps / m²" measures the box **[−3.1, −8.4, −1.9, −6.6] — the very ground the rock now
+  stands on** ((−2.0, −7.6), clearRadius 0.9): its exclusion disc empties most of that 1.2 × 1.8 m box. The frame's lawn
+  band there IS part rock now; the contract's box has to shrink or exclude the disc.
+- `plants.test` "Hero fern crowns west of the shot-D boulder" (≥ 3 within 1.6 m of (−3.7, −10.3)): the hero-fern tries
+  reject `insideBoulder` — with the rock gone from the old spot the acceptance stream shifts and the count at the pinned
+  point drops, whatever the anchor.
+
+So the move needs vegetation to re-derive the two contracts (and decide the cluster's anchor — with the frame's clump left
+of the rock, it may well follow the rock as it does today, which is also what E pays for). Reported; the scratch patch
+reverted; nothing of vegetation's touched in any branch.
+
+## Iteration 37 — the form planes re-measured on the moved rock (scratch, not landed): a fifth of the missing contrast, D −0.0013
+
+With the rock 5.2 m from D and 4 × the pixels, the §19 form planes (flat top, chamfer crest, shoulder, 40° undercut) got one
+more measurement, as a scratch merge of `agent/fable-2-form` onto the move. Stone pixels (greys + tans) in the rock's D box
+0.01–0.20 × 0.68–0.92:
+
+| | mean l | σ | p10 / p90 | D vs reference |
+|---|---|---|---|---|
+| move only (§36) | 0.306 | 0.063 | 0.220 / 0.382 | 0.2784 |
+| move + planes | 0.307 | 0.075 | 0.198 / 0.389 | 0.2771 (−0.0013) |
+| the frame's rock (0.04–0.40 × 0.62–0.90) | 0.431 | 0.130 | 0.234 / 0.595 | |
+
+The planes add a fifth of the missing σ — all of it from the undercut's shade (p10 down), none from a lit plane (p90 flat at
+0.39 against the frame's 0.60) — and cost D 0.0013. Not proposed. The frame's contrast is light on the rock; W23's
+re-verdict after the move rests on the layout move and, for "one plane", on the canopy's light.
+
+## Iteration 36 — W23's layout move, done and measured — `agent/fable-2-w23-move` @ `438be703` (one line in `layout.ts`, fable-cursor's 07:45 go)
+
+fable-cursor: "move `shot-d-boulder` to (−2.0, 0, −7.9) r 0.75 yourself; keep ≥ 0.3 m from the emergent column's bole at
+(−3.1, −7.9) or slide 0.3 m east; report D and the path clearance." The geometry does not allow all of it: at z −7.9 the
+gap between the bole's edge (x −2.8) and the paving's west edge (x −1.42) is 1.38 m, so **r 0.75 cannot keep 0.3 m from
+the bole without 0.17–0.47 m over the paving** (r ≤ 0.54 for both; sliding east puts it on the path). Landed instead:
+**(−2.0, 0, −7.6) r 0.6** — 0.24 m nominal from the bole, 6 cm over the paving's west edge (the frame's rock sits ON the
+path's edge), 5.2 m from D's camera; the size comes from the distance: 0.6 at 5.2 m is 38 % larger in D than at 7.2 m.
+
+| view | head `f728813e` | move | note |
+|---|---|---|---|
+| D_log | 0.2779 | **0.2784 (+0.0005)**, frame hue error 6.53° → **4.91°** | the rock at the path's edge, bottom-left, in front of the ferns — the frame's composition (`w23move39-D_log-triple.jpg`) |
+| A_stairs | 0.2208 | 0.2212 (+0.0004) | |
+| E_ground | 0.2210 | **0.2173 (−0.0037)** | vegetation's authored fern + broadleaf cluster is anchored to the rock (`plants.ts` 461–466) and moved with it, leaving E's left bank sparse where the frame has it leafy (`w23move39-E_ground-triple.jpg`) |
+
+Draws / tris: D 391 / 8.09 M (390 / 8.08), A 441 / 8.59 M, E 420 / 7.76 M. **Tests: 74 / 76** — `plants.test` ("Hero fern
+crowns west of the shot-D boulder", pinned to (−3.7, −10.3)) and `carpet.test` ("lawn band: 0.93 clumps / m²", the moved
+cluster now lies over the lawn band) — vegetation's contracts, not mine to edit. So the move is right at D and wrong at E
+for one reason: the fern cluster should stay where E and the frame have it (the old anchor (−3.2, −10.2) as constants)
+while the rock moves — vegetation-26 / 28's one change; then E comes back and both tests hold. Not merged; fable-cursor's
+call with the E cost named.
+
+## Iteration 35 — W23's "still greener": the D rock's moss cap measured against the frame — `agent/fable-2-dmoss` @ `5f37580e` (one commit, for fable-5's call)
+
+The frame's D rock box (0.04–0.18 × 0.66–0.84) is **99.5 % stone, 0.3 % green** (l 0.334, 52°): the greenery the frame has
+is the plants above and behind the rock, not moss on it. Ours carried a moss cap (moss 0.85, side 0.45) since the loaf
+branch ("the cap keeps its moss" — fable-5, 13:25 yesterday); the pre-read now says "still greener". So the rock near-bare:
+moss 0.25 (the collar only), side 0.15, the near lichen crust 0.6 → 0.3.
+
+| | D: rock-top box 0.086–0.156 × 0.56–0.63 (stone l / p90) | D: rock box green share | D SSIM vs reference | 2 m (`sn-boulder-shotd`) box green share |
+|---|---|---|---|---|
+| head `48156889` | 0.315 / 0.466 | 12.8 % | 0.2796 | 30 % |
+| moss cap off | **0.337 / 0.508** (frame 0.334 / 0.501) | 14.8 % | 0.2795 (−0.0001) | **14 %** |
+
+The rock's own top goes to the frame's luminance; the green share inside D's box does NOT drop — it is the fern bank
+behind the rock's top edge (vegetation-26's exclusion disc), not the cap. At 2 m the rock is a bare ochre boulder with
+moss at the collar (`dmoss38-sn-boulder-shotd.jpg`; D 4 × in `dmoss38-D_log-tight.png`). Not landed: fable-5 asked for the
+cap once and for less green now — their call on the sealed take; the six-view cost is nil (D −0.0001, A / E see the same
+pixels as the hue step).
+
 ## Iteration 34 — W23's "still smaller": the D boulder at r 0.75, and where the frame's rock actually stands
 
 fable-5's take-0126 pre-read: "W23's D face is a warm tan now, paler than take-0125's, still smaller and greener than the
