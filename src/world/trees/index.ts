@@ -548,14 +548,19 @@ const CANOPY_BOUGHS: { giant: string; fromY: number; to: [number, number, number
   {
     giant: 'east-giant',
     fromY: 16.5,
-    to: [16.4, 15.8, -4.6],
-    radius: 0.45,
+    to: [13.4, 16.2, -1.6],
+    radius: 0.5,
     tipRadius: 0.2,
     lobes: [
-      { t: 0.5, center: [23.0, 16.6, -4.2], hR: 3.2, vR: 1.9, density: 1, castShadow: false },
-      { t: 0.75, center: [19.3, 16.0, -3.2], hR: 3.5, vR: 2.0, density: 1, castShadow: false },
+      { t: 0.4, center: [23.0, 16.6, -4.2], hR: 3.2, vR: 1.9, density: 1, castShadow: false },
+      { t: 0.6, center: [19.3, 16.0, -3.2], hR: 3.5, vR: 2.0, density: 1, castShadow: false },
       // the blue west of the zenith (screen (0.69, 0.10) of the look-up → (16, 17, −4.5))
-      { t: 0.97, center: [16.2, 17.0, -4.6], hR: 3.3, vR: 1.9, density: 1, castShadow: false },
+      { t: 0.78, center: [16.2, 17.0, -4.6], hR: 3.3, vR: 1.9, density: 1, castShadow: false },
+      // … and the look-up's far corner (screen (0.85, 0.15) → (13.8, 17, −2.2); (0.85, 0.5) →
+      // (15.4, 17, 0.4)): the bough runs on 4 m to the plateau's west edge. Projected into A / F
+      // the lobes' undersides sit at screen y −0.49 … −0.68 — above the frames.
+      { t: 0.93, center: [13.8, 17.2, -2.0], hR: 3.2, vR: 1.9, density: 1, castShadow: false },
+      { t: 0.99, center: [15.2, 16.4, 0.6], hR: 3.0, vR: 1.8, density: 1, castShadow: false },
     ],
   },
   // … and a short second bough north for the blue east of it (screen (0.19, 0.4) → (25.5, 17, −6.5)),
