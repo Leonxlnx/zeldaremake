@@ -17,8 +17,8 @@ gauntlet's independent D7 verdicts (`gauntlet/reviews/*.json`, written only thro
 00:00 UTC (timer `goal-mode-fable-5`, cron `20 * * * *`); `agent/fable-5-demo-walk` merged (`b4de8d7`); current branch `agent/fable-5-r48-review`.
 
 ## Current task
-Done this iteration: take-0125 re-verdicted (see Completed). Next: lane branches on the round-50 head as
-they come (fable-4-taper merge → W08), astra's split, the video file.
+Done this iteration: the nine-branch head pre-read (see Completed). Next: take-0126's re-verdict when it
+seals (W08, W23, W05, V21's F cost named), astra's split, the video file.
 
 ## Previous current task (superseded)
 Goal-mode loop. Next iteration: **re-verdict every visual item on take-0120** when it seals (the
@@ -34,6 +34,9 @@ lands: `ffmpeg` frames at his marked moments → `reference/frames-video2/`, has
 - `.agents/fable-5.md`, `.agents/reviews/fable-5-*.md`, my threads in `.agents/INBOX.md`.
 
 ## Completed work
+- 2026-09-21 05:20–06:10 UTC — iteration 31: `agent/fable-5-r49-review` merged (1364ce6c) → new branch
+  `agent/fable-5-r50-review`; the nine-branch head `48156889` pre-read for take-0126 (W08 turns on my
+  read, V21's anchor in, W23 near) — the take has not sealed since 04:39.
 - 2026-09-21 04:20–04:55 UTC — iteration 30: take-0125 (c4d12f6, round 50) re-verdicted — 11 verdicts, W06
   turns (38/50 with my verdicts), C01 close (tunic only), W05/W02/W08/C02 fail updated
   (`fable-5-take0125.md`, four sheets).
