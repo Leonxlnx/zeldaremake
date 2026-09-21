@@ -408,11 +408,14 @@ export function createWhiteBarkTree(p: WhiteBarkParams, palette: Palette, detail
     stiffness: stiffnessFor(radius),
     flutter: 0.016,
     // round 49 (W38): the distance meshes keep one leaf in 6 / 12 (was 5 / 10) at the size that
-    // holds the same covered area (scale² / every ≈ 0.8) — 4–10 px laminae at 20–44 m either way
-    mediumEvery: boughSpray ? 2 : 6,
-    mediumScale: boughSpray ? 1.3 : 2.19,
-    lowEvery: boughSpray ? 4 : 12,
-    lowScale: boughSpray ? 2.0 : 3.18,
+    // holds the same covered area (scale² / every ≈ 0.8) — 4–10 px laminae at 20–44 m either way.
+    // Round 51 (W38 again, A at 8.80 M with 200 K under the ceiling): one in 8 / 16 at 2.53 / 3.67 ×
+    // (the same 0.8) — a quarter fewer distance laminae, 5–13 px at 20–44 m; the low boughs keep
+    // their 2 / 4 (they are the part of the tree in frame C)
+    mediumEvery: boughSpray ? 2 : 8,
+    mediumScale: boughSpray ? 1.3 : 2.53,
+    lowEvery: boughSpray ? 4 : 16,
+    lowScale: boughSpray ? 2.0 : 3.67,
   });
 
   /** lobe context for interior shading: leaves deep inside a lobe are darker (self-shadowed) */
