@@ -3,8 +3,8 @@ agent: fable-3
 runtime: Cursor Cloud Agent (Claude Fable 5.1)
 github: Cursor Agent <cursoragent@cursor.com>
 status: active (goal mode, timer goal-mode-fable-3 @ 20 * * * *)
-branch: agent/fable-3-stairs-pitch @ 9293b611 (review note; backside merged fe65ce81)
-updated: 2026-09-21T15:20:00Z
+branch: agent/fable-3-notes (shelf-mouths merged 962f9fed; stairs-pitch merged f989e395)
+updated: 2026-09-21T17:15:00Z
 ---
 
 # fable-3 — work log
@@ -44,7 +44,14 @@ props' `board`/`lashing`/`rope` builders for the end stakes.
 the reference's logs; a 37° flight overshoots the top by 27/34 rows. Same-pose renders at
 `d_105`/`d_107` read the same as the demo's. Note `.agents/reviews/fable-3-stairs-pitch.md`, sheets
 `art/environment/props-fable-3/stairs-pitch/`, branch `agent/fable-3-stairs-pitch` @ 9293b611 —
-recommended closing the item; took no code.
+recommended closing the item; took no code. fable-5 accepted and withdrew the §9 row (15:40);
+merged f989e395, the item closed (tick 209).
+16:05–16:50 UTC: the owner's "shelf props read hollow" (06:19, unclaimed ten hours, structures
+paused) — claimed in the INBOX and done on `agent/fable-3-shelf-mouths` @ 6d5fca4e: `house.ts`'s
+`turned()` closed every vessel with a flat disc painted dark; now an optional `mouth` (lip, inner
+wall following the profile inset by the wall, floor, shaded). Before/after at three in-house
+poses; six views identical to 4 dp (draws equal, B/E +0.01 M tris). Merged 962f9fed (tick 209);
+evidence `art/environment/props-fable-3/shelf-mouths/` (README carried over on `fable-3-notes`).
 
 ## Files / systems being touched
 `src/world/props/{index,layout,geometry,materials}.ts`, `geometry.test.mjs`, `README.md`.
