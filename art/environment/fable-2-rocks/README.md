@@ -16,6 +16,332 @@ B 526 / C 393 / D 394 / E 526 / F 512; A 9.09 M tris on both (the head's number,
 change's — flagged to fable-cursor). Files: `ledge2-x-clearing-n.jpg` (+ `-crop`),
 `ledge2-x-ledge-foot.jpg`, `ledge2-x-northpath-n.jpg`.
 
+## Iteration 31 — the embankment strata and rubble skirts take the near skin (2.5–4.5 m fade) — `agent/fable-2-ledge`
+
+The instanced strata (92) and rubble (64) rendered the plain far material at any distance; a walker passes the bank slabs
+at 1–3 m. They now share one near-capable material — plates, wet band, lichen crust and the relief grain (1.5) — inside a
+short fade `STRATA_NEAR_FADE_M` = [2.5, 4.5]; beyond it they are byte-for-byte the far stones they were (the old far
+material is retired: this one with nearW = 0 is it). Rubble beside a hero boulder was already rebuilt by its near kit;
+the clearing / backside pieces use `heroMaterial` (§30 reaches them).
+
+**Fixed cameras — nearest in-frustum slab or skirt stone, from the live instance dump:** A 3.16 m (a strata slab at
+(3.07, 6.65) in A's foreground), F 5.40, D 6.33, B / E 9.20, C 10.88. So only A can change: **A 0.2210 → 0.2211
+(+0.0001), 487 pixels > 8/255**, draws / tris identical. The other five are outside the fade by construction.
+
+**At player height:** most standalone slabs sit under the fern banks (two aimed poses on the D path's east bank show only
+ferns — reported, not claimed); where one is exposed — A's foreground slab at 2.5 m (`x-A-slab`, camera (1.0, 1.4, 5.2) →
+(3.07, 0.7, 6.65)) — the pale-green mossy blob becomes a stone with a moss cap, pale lichen rim and pitted skin: fine micro
+σ 0.041 → 0.045, macro σ 0.098 → 0.117 (`stratanear34-x-A-slab.jpg`). Typecheck / build / 26 tests green.
+
+## Iteration 30 — the hero boulders' near skin takes the relief (owner's "stones under-detailed", at player height) — `agent/fable-2-ledge`
+
+The `relief` material option (§20) was the ledge's only. The hero boulders' near material (and the stair-foot rock's)
+now take it at 1.5 — pits and grains at 5–12 cm over rockgen's plates and micro relief, inside NEAR_FADE_M (4.0–6.3 m)
+only. Every fixed camera stands past the fade from every hero rock (A 9.7 m from the stair-foot rock, D 6.6 m from the
+shot-D boulder, C 4.8 m from it but looking the other way): **A byte-identical (0 pixels), D 68 pixels at ≤ 8/255** —
+render noise. Draws / tris identical.
+
+**Fine micro σ (4 px residual) on the stone box 0.30–0.70² at the survey poses:**
+
+| pose (2 m) | head `0147a3d0` | relief 2.0 | **relief 1.5 (landed)** |
+|---|---|---|---|
+| `sn-boulder-stairfoot` | 0.032 | 0.048 | **0.044** (+38 %) |
+| `sn-boulder-shotd` | 0.028 | 0.031 (face went to a dark honeycomb in its shade) | **0.030** |
+| `sn-boulder-terrace` | 0.018 | 0.029 | (not re-rendered at 1.5; scales with the term) |
+
+Sheets `nearrelief31-sn-boulder-stairfoot.jpg` (the pale smooth stone is pitted, knapped limestone), `nearrelief31-sn-
+boulder-shotd.jpg`, `nearrelief31-sn-boulder-terrace-r2.jpg` (at 2.0). Typecheck / build / 26 tests green.
+
+## Iteration 29 — the tier keeps out of fable-3's pots; branches current with the round-50 head — `agent/fable-2-w05` @ `8812d37b`
+
+fable-3 (01:50) replicated `contourLine` and found two tier slabs reaching their stair-foot pots ('stair-pot' (7.95, 1.8)
+r 0.26, 'stair-pot-squat' (7.55, 2.1) r 0.22 — in the sealed A / C / F frames; props build after rocks, so their footprints
+are not in `ctx.shared` for me). `keepOut` on the tier def skips the two contour points; the points past the pots fail the
+slope filter (the face flattens into the stair-foot rock there), so the tier is the three slabs west of the pots — toward
+the frame's terrace edge, where C's box sits. `tiers.test.mjs` asserts no slab within 0.85 m of either pot (24/24 on the
+branch). On the round-50 head `0147a3d0` (hardscape's new flagstones: C's baseline is 0.2227 now):
+
+| view | head `0147a3d0` | after | draws / tris |
+|---|---|---|---|
+| A_stairs | 0.2210 | 0.2220 (+0.0010) | 440 / 8.61 M both |
+| C_lookback | 0.2227 | 0.2230 (+0.0003) | 338 / 6.98 M both |
+| F_canopy | 0.2451 | 0.2452 (+0.0001) | 405 / 7.98 M both |
+
+fable-5 (00:45) on the tier: "harmless and in the right place, but not what turns W05 — the mound stepped into two or
+three tiers is the half that counts (vegetation-27 / terrain); fable-2's slabs then sit on the risers." Agreed; the tier
+def takes new contour heights when the bank is cut. All four lane branches (`ledge`, `hue`, `w05`, `v21`) merged with the
+round-50 head by merge commit — typecheck, build and tests green on each.
+
+## Iteration 28 — V21 'replace' set as the branch default, final table on the new head — `agent/fable-2-v21` @ `e2a3dc09`
+
+fable-5 23:45: "'replace' is the variant: C +0.0032 is the frame's composition, F's −0.0043 is the loss of a rock the frame
+never had — fable-cursor, that is the owner-approved look change to name; fable-2, `ANCHOR_MODE replace`." Done with a
+normal commit (no rewrite); the branch keeps `both` and `shrink` as the measured alternatives. Captured on the new head:
+
+| view | head `b4cdfe91` | **replace** | shrink |
+|---|---|---|---|
+| A_stairs | 0.2213 | 0.2208 (−0.0005) | 0.2224 (+0.0011) |
+| C_lookback | 0.2358 | **0.2390 (+0.0032)** | 0.2378 (+0.0020) |
+| F_canopy | 0.2606 | 0.2564 (−0.0042) | 0.2565 (−0.0041) |
+| draws / tris | A 440 / 8.57 M, C 329 / 6.92 M, F 404 / 7.91 M | identical | identical |
+
+The layout version (`heroBoulders` 'stair-foot' → (7.4, 0, 2.9), r 0.55) is the clean landing; the branch is its measured
+stand-in. Also this tick: `tiers.test.mjs` on `agent/fable-2-w05` (the C bank tier walks the face at h 0.5 off paving /
+treads, ≥ 5 slabs a spacing apart; the contour walk deterministic).
+
+## Iteration 27 — W05's rock half at C: a stone tier on the hero stair's east bank — `agent/fable-2-w05` (one commit, within budget)
+
+W05 (fail, take-0121, fable-5): "the embankment beside the stair foot is a smooth lawn mound … no terracing, no erosion
+channels, no exposed strata; the reference's bank is a stepped mossy terrace." The bank is a 1 m rise from the plaza's
+paving to the kokiri-a plateau on a face ≈ 1 m wide; the strata scatter's 0.9 m lattice and its `path > 0.02` exclusion
+leave it bare. The rock half: `BANK_TIERS` — half-buried strata slabs along the face's mid-height contour (a `contourLine`
+walk from (5.9, 4.0) to (9.1, 1.1) at h 0.5, one every 0.5 m, on slope ≥ 0.25 — six slabs), yawed along the line, leaning
+into the bank, pushed into the existing instanced strata stream: **no new draws, no new kit**, own PRNG fork.
+
+| view | head `b4cdfe91` | after | pixels > 8/255 | draws / tris |
+|---|---|---|---|---|
+| A_stairs | 0.2213 | 0.2217 (+0.0004) | 0.27 % | 440 / 8.58 M (head 440 / 8.57 M) |
+| C_lookback | 0.2358 | 0.2348 (−0.0010) | 0.64 % | 329 / 6.93 M (head 329 / 6.92 M) |
+| F_canopy | 0.2606 | 0.2613 (+0.0007) | 0.86 % | 404 / 7.91 M (same) |
+
+`w05-C_lookback-triple.jpg` (reference | head | after): the lawn mound right of the pots carries a stepped line of moss-
+topped slabs. The terracing / erosion halves of W05 are the terrain's and vegetation-27's; this is the exposed-strata
+half. B, D, E do not see the bank. Typecheck / build green; 22/22 tests on the branch (the four backside tests live on the ledge branch).
+
+## Iteration 26 — V21's middle path measured (fable-5 21:45): F does not come back — `agent/fable-2-v21` @ `45d3b566`
+
+fable-5's read of the anchor (C +0.0032, F −0.0043 in their render) proposed the middle path: keep a ≈ 0.35 m stone at the
+old stair-foot spot for F's structure, the anchor for C — "F wants a number before either variant merges." Built as
+`ANCHOR_MODE = 'shrink'` (the branch now carries `replace | both | shrink`), rebased onto the new head `b4cdfe91` (NPCs
+hidden for the owner's review — the before is re-captured there):
+
+| view | head `b4cdfe91` | shrink (anchor + stair-foot r 0.35) | shrink + a full moss cap on the anchor |
+|---|---|---|---|
+| A_stairs | 0.2213 | +0.0011 | +0.0006 |
+| C_lookback | 0.2358 | **+0.0020** | +0.0018 |
+| F_canopy | 0.2606 | **−0.0041** | −0.0040 |
+| draws / tris (A) | 440 / 8.57 M | 442 / 8.62 M | — |
+
+The full cap (F looks down on the rock's top; reference F has dark moss there) moves F by 0.0001: **F's loss is
+structural, not the anchor's value** — F framed the r 1.0 loaf at its top-centre and any variant without that loaf loses
+≈ 0.004 there, whatever stands at the boy's feet. Crops `v21c-{C_lookback,F_canopy,A_stairs}-triple.jpg` (reference |
+head | shrink). So the decision is the one fable-5 named: V21 as an owner-approved look change (C is the frame the
+owner sees twice; C +0.002…+0.003 against F −0.004), or not at all. Not landed; the branch holds the three variants.
+(Note: the branch was rebased onto `b4cdfe91` and force-pushed — my own proposal branch, nothing built on it; the SHAs
+fable-5 cited, `e1099b41` / `02321879`, are now `210b04f0` / `4de94be6`. I will branch afresh instead next time.)
+
+## Iteration 25 — the D boulder's chroma (fable-5 21:10) — `agent/fable-2-hue` @ `efe2ed46` (two commits now)
+
+fable-5 on `8908d696`: "IMPROVED on hue, merge — two thirds of the hue gap closed; the half that shows now is chroma: the
+frame's face is a saturated warm ochre, ours a shaded grey-tan." A grey texture multiply keeps a tint's saturation ratio,
+so the chroma loss is the light: the face D sees is in the giant's shade under the bluish sky fill. The tint overshoots
+warm to meet the frame there: (0.95, 0.82, 0.55) → **(0.97, 0.80, 0.47)**.
+
+| pose | head `6d6d80f8` | step 1 `8908d696` | **step 2 `efe2ed46`** | frame |
+|---|---|---|---|---|
+| D_log, the boulder's box (stone pixels) | 59° / sat 0.274 / l 0.290 | 55° / 0.315 / 0.288 | **53° / 0.350 / 0.285** | 52° / 0.36 |
+| `sn-boulder-shotd` (2 m) | 57° / 0.258 / 0.246 | 52° / 0.328 / 0.245 | **50° / 0.384 / 0.244** | |
+
+D vs the reference: SSIM 0.2765 → 0.2764 (noise), frame hue error 9.39° → 9.19°, satDiff 0.027 → 0.026; 396 draws / 8.01 M
+both. At 2 m the rock is a warm ochre sandstone with dark partings, not orange (`hue26-sn-boulder-shotd.jpg`,
+`hue26-D_log-boulder.png`). A and E moved ≤ 0.0001 on step 1 (§23) and see the same pixels; not re-captured for step 2.
+
+## Iteration 24 — V21, the C-frame anchor rock, measured two ways — `agent/fable-2-v21` @ `02321879` (for fable-cursor's call)
+
+V21 (ANALYSIS_VIDEO2 §6, rank 1): "the moss-capped boulder at the Kokiri boy's feet on the stair bank — the C-frame
+anchor the owner sees twice", C box 0.25–0.32 × 0.47–0.55. Ray-casting that box onto the live terrain lands on the bank's
+slope at **(7.4, 2.9)**, 11.8 m from C, free of path / stairs / structure; the same point projects to **A (0.84, 0.56)** —
+where reference A shows the small pale rock beside the kid — and to F (0.57, 0.53). One rock, seen from three cameras.
+Ours has the r 1.0 `stair-foot` hero boulder at (9.1, 2.5): C (0.175, 0.48), A's right edge — off in both.
+
+Built (rocks-owned, `ANCHOR_BOULDERS` in `rocks/index.ts`; a layout hero boulder of the same id takes over): a pale rounded
+stone r 0.55, squash 0.7, sunk 0.22 into the slope, moss as a cap (0.65 / side 0.3), tint (0.84, 0.82, 0.74). Two variants
+against the head, `capture.mjs --settle 12` + `compare.mjs` vs the reference:
+
+| view | head | **A: both rocks** (anchor + the r 1.0 stair-foot) | **B: the anchor stands in for stair-foot** (= a layout move to (7.4, 2.9) r 0.55) |
+|---|---|---|---|
+| A_stairs | 0.2179 | 0.2190 (+0.0011) | 0.2175 (−0.0004) |
+| C_lookback | 0.2375 | 0.2358 (−0.0017) | **0.2407 (+0.0032)** |
+| F_canopy | 0.2560 | 0.2534 (−0.0026) | 0.2526 (**−0.0034**) |
+| draws / tris (A) | 566 / 8.62 M | 568 / 8.66 M | 566 / 8.61 M |
+
+B, D, E do not see the spot. Crops: `v21-C-triple.jpg`, `v21-A-triple.jpg`, `v21-F-triple.jpg` (reference | head | B).
+In C, variant B is the frame's composition — one pale rock at the boy's feet, the stair to the left, no second pale mass;
+in A the small rock beside the kid replaces the moss-covered boulder behind him; in F the reference has a low dark mossy
+hump behind the boy where ours had the big pale boulder — B removes it, yet F's SSIM drops 0.0004 past the budget.
+
+Not landed: a composition change on three hero views. The clean version is the layout's (`heroBoulders` 'stair-foot' →
+position (7.4, 0, 2.9), radius 0.55 — vegetation's and trees' exclusions follow the layout, mine cannot), so the
+proposal is fable-cursor's, with F's −0.0034 against C's +0.0032 for the owner. The branch carries both variants under
+`ANCHOR_REPLACES`.
+
+## Iteration 23 — the D boulder's hue half (fable-5 round-50 #8) — `agent/fable-2-hue` @ `8908d696` (one commit, for fable-cursor)
+
+fable-5 #8: "W23 at D: … the face still moss-grey (62° / 0.13 vs 52° / 0.36) — merge them, then hue + form." The form
+half FAILed on light (§19); the hue half is one number: the D loaf's tint (0.9, 0.85, 0.64) → (0.95, 0.82, 0.55) — the
+grey triplanar stone under it desaturates by about a third, so the tint runs warmer than the target.
+
+**Stone pixels (greys + tans, vegetation excluded):**
+
+| pose | before (head `6d6d80f8`) | after `8908d696` | frame |
+|---|---|---|---|
+| D_log, the boulder's box (0.09–0.21 × 0.56–0.68) | l 0.290, **59°**, sat **0.274** | l 0.288, **55°**, sat **0.315** | 52° / 0.36 |
+| `sn-boulder-shotd` (2 m, box 0.28–0.72²) | l 0.246, 57°, 0.258 | l 0.245, **52°**, **0.328** | |
+
+**Fixed views vs the reference (`capture.mjs --settle 12` + `compare.mjs`):**
+
+| view | SSIM before → after | frame hue error | draws / tris | pixels changed |
+|---|---|---|---|---|
+| D_log | 0.2765 → **0.2766** | 9.39° → 9.27° | 396 / 8.01 M both | — |
+| A_stairs | 0.2179 → 0.2179 | 5.99° → 5.99° | 566 / 8.62 M both | 1 389 (max 36/255) |
+| E_ground | 0.2149 → **0.2150** | 5.32° → 5.29° | 522 / 7.78 M both | 3 814 (max 50/255) |
+
+(B, C, F: the boulder is not in frame.) Sheets: `hue24-D_log-boulder.png` (4 ×), `hue24-sn-boulder-shotd.jpg`. Another
+step of tint would reach 52° / 0.36 at D but starts to read painted over the grey texture; the honest next lever is the
+near/far stone texture's own warmth, which is every rock's — not a D-only change.
+
+## Iteration 22 — the wall's macro half: the face in panels — `agent/fable-2-ledge` (form reads; contrast flat)
+
+fable-5 at 3 m: "still one lightly bulged plane … the frame's is a face of several planes." Three tries, measured
+against the relief-3.0 build at `x-clearing-n` (the pose where the face shows; `x-ledge-wall` sits at the lip and
+sees the cap):
+
+| try | what | vertices moved (max / mean) | stone σ at `x-clearing-n` (box 0.2–0.42 × 0.6–0.85) |
+|---|---|---|---|
+| before | relief 3.0 only | — | 0.096 |
+| a | fbm swell ± 0.2 (0.2 ×) + shelf | 12 cm / 2.1 cm | invisible |
+| b | swell 0.45 × | 23 cm / 4.2 cm | more bulges, not planes; 0.079 → 0.079 macro in the wide box |
+| **c (landed)** | **panels 1.2–2 m × 0.8 m, each ± 0.12 m at wobbled sharp boundaries + 0.22 × swell + shelf / recess** | 19 cm / 3.8 cm | **0.096 → 0.096** |
+
+The panels DO read as planes — the cap's slab breaks into two levels and the face carries a proud panel over a
+shadowed recess (`panels23-x-clearing-n-tight.png`, 1.8 ×; `panels23-x-clearing-n.jpg`) — but the stone's luminance
+σ does not move: the face is in shade at this hour and the cap lit, and that split already carries the σ. Landed as
+form (bounded: the ledge is north, off in A–F; the foot row still seats exactly; ledge tests 5/5), reported as
+contrast-flat. fable-5's read at their poses decides whether it stays.
+
+## Iteration 21 — the backside pair's value and size (fable-5 17:50, V20 at `x-southbank-toe`) — `agent/fable-2-ledge`
+
+fable-5's read of the merged backside (IMPROVED): "the pair is smaller in the frame (≈ 0.6 m at 6–7 m under the fence
+vs the frame's ≈ 1 m at 4 m) and reads moss-grey (l 0.29, hue 81°, sat 0.12) where the frame's is warm pale — the same
+value note as the D loaf." The same answer as the D loaf: a warm tan tint (0.92, 0.84, 0.64), the moss a cap (0.6,
+side 0.25) off the sides a walker sees — `bareToward` + `faceLift` 0.25 toward the plain and the flight — the lichen
+greys halved, the dirt collar lower; the loaf r 0.5 → 0.62 sunk 0.22 (was 0.3), the companion 0.3 → 0.36.
+
+**Stone pixels in the pair's box at `x-southbank-toe` (0.55–0.76 × 0.60–0.80; greys + tans, vegetation excluded):**
+
+| build | stone share of box | mean l | hue | sat | p10 / p90 |
+|---|---|---|---|---|---|
+| before (head `6d6d80f8`) | 26 % | 0.177 | 75° | 0.168 | 0.133 / 0.227 |
+| after | 60 % | **0.255** | **61°** | **0.242** | 0.188 / 0.309 |
+
+(fable-5's frame target: warm pale, 52° / 0.36.) Sheet `pair22-x-southbank-toe.jpg`. The fixed views are untouched by
+construction — the backside is toggled by its spheres and `backside.test.mjs` re-passes with the bigger loaf: none
+of the six cameras meets any sphere. Audit unchanged (3 boulders, 49.7 K tris — detail does not scale with radius).
+
+## Iteration 20 — round-50 #1, the wall half: the ledge's fine relief at 3 m — `agent/fable-2-ledge`
+
+fable-5 §7.2: "the ledge wall has 65 % of the reference rock mass's fine relief" (micro σ 0.034 vs 0.052 at
+`x-ledge-wall`). A `relief` option on the rock material (default 0 — every other rock material is unchanged): at near
+range a triplanar grain of the stone at 5–12 cm — pits where a warped value noise dips (−42 %, damp-dark) and grains
+where it peaks (+16 %), off under the moss and the lichen crust — plus a near-normal boost of the same amount. The
+ledge material takes 3.0.
+
+**Measured on the cap at `x-ledge-wall` (box 0.234–0.469 × 0.347–0.625, 4 px residual — the scale at which the
+before reads 0.031, fable-5's 0.034):**
+
+| build | mean l | macro σ | fine micro σ |
+|---|---|---|---|
+| before (head `6d6d80f8`) | 0.244 | 0.129 | **0.031** |
+| relief 1.0 | 0.244 | 0.129 | 0.035 |
+| relief 3.0 (landed) | 0.245 | 0.126 | **0.043** (+39 %; target 0.052) |
+
+The smooth brown bulge of the cap is a pocked, knapped skin now (`relief21-x-ledge-wall.jpg`, `…-tight.jpg`); at 7 m
+(`x-ledge-wall-7m`) the grain is under the fade and the frame is the head's. The ledge stands north of z −55 — off
+in the six fixed views (northLocality) — so A–F are untouched. The macro half of the wall (fable-5: "still one
+lightly bulged plane") is geometry — beds stepping in blocks — and is the next item on the ledge.
+
+## Iteration 19 — round-50 #1, the D boulder's form: measured FAIL at D — `agent/fable-2-form` @ `d8ed5420` (unmerged)
+
+fable-5's round-50 #1 / ANALYSIS_VIDEO2 §7.2: "the D boulder face has 63 % of the frame's macro contrast (σ 0.074
+vs 0.117) — one shaded loaf where the frame's rock has lit planes, a shadowed undercut and a bright top."
+
+Built: a rockgen `planes` option — explicit cleave planes after the seeded cuts (no seed draws, so every other rock
+is untouched), each with its own lift / dark / bare, the bedding steps and cracks re-carved on the plane so it keeps
+its relief. The D loaf gets a moss-capped flat top tilted 11° to camera D, a pale bare chamfer crest at 30°, a
+shoulder plane at 37° and a 40° undercut below the belly; squash 0.78 keeps the crown within 4 cm of the loaf's;
+the tint warmed toward the frame's tan. Four takes (bare top / moss top / chamfer / a +70 % crest albedo).
+
+**Measured at D (stone pixels of the boulder's box 0.09–0.21 × 0.56–0.68, low-saturation mask):**
+
+| take | mean l | σ | p10 | p90 |
+|---|---|---|---|---|
+| before (head `6d6d80f8`) | 0.266 | **0.048** | 0.213 | 0.346 |
+| 1 bare top, no re-carve | 0.273 | 0.043 | 0.221 | 0.331 |
+| 2 moss top, bedding re-carved | 0.265 | 0.042 | 0.214 | 0.320 |
+| 3 + pale chamfer crest (`d8ed5420`) | 0.263 | 0.041 | 0.217 | 0.318 |
+| 4 crest albedo +70 %, shoulder −15 % | 0.262 | 0.044 | 0.214 | 0.327 |
+
+Nothing moves it. The boulder stands under the giant's canopy shadow at D (fable-5: "still in the giant's shade");
+under sky light alone plane angles grade almost nothing, and even a +70 % crest albedo does not lift p90 — the
+frame's contrast is **sunlight on planes**, and the light is not in this lane (sun: `config.ts`; the giant: trees).
+The before's σ 0.048 was the bright moss lump on the crown; the planes trade it for bands and lose 4 points.
+
+**At 2 m (`sn-boulder-shotd`, box 0.28–0.72²):** stone σ 0.059 → 0.066 (+12 %), macro σ 0.032 → 0.034; the rock reads
+as a bedded block with a pale crest and an undercut instead of a loaf (`form20-sn-boulder-shotd.jpg`) — a form
+gain at player height, not the σ 0.11–0.14 the item asks for.
+
+Sheets: `form20-D_log-boulder.jpg` (the boulder at D, 4×, before / `d8ed5420`), `form20-sn-boulder-shotd.jpg`.
+Typecheck / build / 22 tests green on the branch. Left unmerged for fable-cursor's call: merge as a player-height form
+change, or leave the loaf; the D frame needs light on the rock first.
+
+## Iteration 18 — backside casters made conservative (fable-cursor 17:30 / Astra's audit) — `5e4b2696`
+
+Astra's CPU audit of `9d1fc102` found 1 876 above-ground vertices escaping the backside's caster spheres by up to
+10.6 cm — a latent false cull. Two causes: the horizontal radius scaled by `squashY` (mine), and the locality
+util's stack stepping by `max(r, 0.5)` from the sphere's BOTTOM, so pieces under half a metre get only the
+bottom sphere and their top half escapes whatever the radius (with bounding-sphere radii but the stack alone,
+20 508 vertices still escaped by up to 7.5 cm — the new test caught it).
+
+Fix: every piece's **exact body sphere** — the bounding sphere of its built vertices under its matrix
+(`bodies`) — plus a caster from the ground to the body's top for the util's stack + shadow sweep;
+`spheres(sunDir)` is what the runtime toggles on. `backside.test.mjs` (real layout + live heightfield): every
+vertex inside the body-sphere union; every seat on the live ground, off treads / paving, > 1 m west of camera
+C's edge; none of the six fixed cameras meets any of the 310 spheres; a walker at the bank's toe does.
+
+| view | before (head `6d6d80f8`) | after `5e4b2696` | pixels changed |
+|---|---|---|---|
+| A_stairs | 566 draws / 8.62 M | 566 / 8.62 M | 30 of 921 600, max 4 / 255 |
+| C_lookback | 407 / 6.96 M | 407 / 6.96 M | 66, max 1 / 255 |
+
+The toe pose still shows the pieces (`back19-x-southbank-west-skirt.jpg`; audit: boulders 3, step stones 3, scree
+22, kerbs 4, disc pebbles 39, 49.7 K tris — unchanged).
+
+## Iteration 17 (goal mode, 2026-09-20) — GOAL_MODE fable-2 item 0: `expansionCull` on the rock streams + expansion-2's listed positions
+
+`3ac0a8a1` (the cull) + `9d1fc102` (the positions). BEFORE = the head `1794c155`, AFTER = this build.
+
+**The cull:** `heightfield.expansionCull(x, z)` AFTER placement on every sampled rock stream — the strata right after
+their scatter (before the hero loop adopts slabs), the rubble and both pebble lists after — with the handoff's rule:
+every stream keeps its candidate count and its draws; the pebble lists are filtered, rubble / strata collapse to a
+zero scale in place because the near kits reference them by index. Audit on the round-49 head: culled
+{ strata 3, rubble 0, pebbles 0 } — three slabs sat inside the bank / knoll; the pebble envelope already kept the
+pebbles at the path polylines. `systems.rocks.expansionCulled` reports it.
+
+**The positions (added to `backside.ts`):** the boulder at the bank's west skirt (−18.93, 13.92), three or four kerb
+stones at the flight foot (−14.13, 15.75) along the lip, a scree fan under the west house's braces (−21.5, 12.5),
+and hashed pebble rings (3–5 stones, 0.12–0.37 m off the rim) beside the west / south stepping discs — discs within
+1.6 m of camera C's frustum edge get none (their rings crossed it; caught by the offline `expansionVisible`
+check and fixed). Audit: backside { boulders 3, stepStones 3, scree 22, kerbStones 4, discPebbles 39 }, ~50 k tris.
+
+| pose | what changed | verdict |
+| --- | --- | --- |
+| `x-southbank-west-skirt` p (−15, 1.5, 10) → t (−19, 0.9, 14) | a moss-topped pale loaf half-buried at the bank's NW end beside the white-bark (`back18-x-southbank-west-skirt.jpg`) | landed |
+| `x-southbank-toe` | the toe pair, the kerb stones and the flank scree as in iteration 16 | consistent |
+| `x-west-discs`, `x-westhouse-braces` | the disc pebbles and the brace scree are under the west bank's flowers / behind the bole at these poses — placed (audit) but not readable there | not claimed visually |
+
+Fixed views A and C, head → final build: A byte-identical, C 5 pixels at 1/255; draws and triangles the head's
+(A 566 / 8.62 M, C 407 / 6.96 M). Offline, none of the six cameras meets a backside sphere.
+
 ## Iteration 16 (goal mode, 2026-09-20) — the plaza's backside: rocks at the fence-topped south bank (expansion-2, V20)
 
 `06f2a781` + `294bc94c` (`src/world/rocks/backside.ts`). BEFORE = the head `97c83227` (expansion-2 in), AFTER = this

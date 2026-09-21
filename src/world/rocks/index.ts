@@ -18,7 +18,7 @@ import { dressRock, mergeRockParts } from './dressing';
 import { buildRockLedge, type RockLedgeDef } from './ledge';
 import { buildClearingRocks, type ClearingLayout } from './clearing';
 import { buildBacksideRocks } from './backside';
-import { casterSpheres, expansionVisible, sunVector } from '../util/expansionLocality';
+import { expansionVisible, sunVector } from '../util/expansionLocality';
 import { PEBBLE_DEFAULTS, PEBBLE_LOOKS, scatterPathPebbles, stairFootPebbles } from './pebbles';
 import { NORTH_Z1 } from '../util/northLocality';
 import { expansionCull } from '../terrain/heightfield';
@@ -40,6 +40,22 @@ export const LEDGE_PREVIEW: RockLedgeDef[] = [
 export const LEDGE_FADE_M: [number, number] = [7, 14];
 /** the ledge material's damp band: the hero boulders' sheen raised to this power (ref-04's near-black foot) */
 export const LEDGE_DAMP = 1.6;
+/**
+ * fable-2 (the owner's "stones under-detailed", at player height): the hero boulders' near skin takes the
+ * material's `relief` grain too — pits and grains at 5–12 cm over the rockgen plates and micro relief,
+ * inside NEAR_FADE_M only. Every fixed camera stands ≥ 6.5 m from every hero rock (past the 6.3 m fade),
+ * so the six views are untouched by construction. 1.5 (the ledge takes 3.0: its skin has no plates; at
+ * 2.0 the shot-D face in its shade turned to a dark honeycomb — the stair-foot rock read best there).
+ */
+export const HERO_NEAR_RELIEF = 1.5;
+/**
+ * the instanced embankment strata and rubble skirts: the same near skin (plates, wet band, lichen crust,
+ * relief) inside a SHORT fade — a walker passes these at 1–3 m along every bank; beyond 4.5 m they are
+ * the plain far stones they were. The fixed cameras' nearest slab is measured in README §31.
+ */
+export const STRATA_NEAR_FADE_M: [number, number] = [2.5, 4.5];
+/** the ledge wall's near grain (material `relief`): fable-5 §7.2, micro σ 0.034 → 0.05 at 3 m — measured at `x-ledge-wall` (4 px residual on the cap): 0.031 → 0.035 at 1.0, 0.043 at 3.0 */
+export const LEDGE_RELIEF = 3.0;
 
 /**
  * Near-LOD swap radii (m, 3D to the boulder's centre) for the hero boulders (round 42): within
@@ -161,16 +177,19 @@ export async function create(ctx: WorldContext): Promise<WorldSystem> {
   const seed = ctx.config.seed;
   const P = ctx.config.palette;
   const anisotropy = ctx.renderer.capabilities.getMaxAnisotropy();
-  const material = await createRockMaterial(ctx.textures, ctx.config, anisotropy, 1.4);
+  // fable-2 (owner's "stones" at player height): the embankment strata and the rubble skirts in the near
+  // skin within STRATA_NEAR_FADE_M — instanced, so one material for all of them (the plain far material
+  // they had is this one with nearW = 0 beyond the fade)
+  const strataMaterial = await createRockMaterial(ctx.textures, ctx.config, anisotropy, 1.4, 1, { near: true, fade: STRATA_NEAR_FADE_M, relief: HERO_NEAR_RELIEF });
   // the hero boulders' own material: the same look with the near-detail terms (material.ts
   // NEAR_TILE_M) that fade in under NEAR_FADE_M — the rubble, strata and pebbles keep the plain
   // one, so the stones in a hero camera's foreground never change
-  const heroMaterial = await createRockMaterial(ctx.textures, ctx.config, anisotropy, 1.4, 1, { near: true });
+  const heroMaterial = await createRockMaterial(ctx.textures, ctx.config, anisotropy, 1.4, 1, { near: true, relief: HERO_NEAR_RELIEF });
   // the stair-foot boulder at the right edge of shot A (the mossy rock the Kokiri kid stands
   // beside): the reference reads it at lum ≈ 0.26 (box (0.82,0.60)-(0.98,0.70)) where the shared
   // rock material rendered 0.29 at exposure 1.0 — darker rock and moss for it alone, without
   // moving it
-  const stairFootMaterial = await createRockMaterial(ctx.textures, ctx.config, anisotropy, 1.4, 0.9, { near: true });
+  const stairFootMaterial = await createRockMaterial(ctx.textures, ctx.config, anisotropy, 1.4, 0.9, { near: true, relief: HERO_NEAR_RELIEF });
   const pebbleMaterial = await createRockMaterial(ctx.textures, ctx.config, anisotropy, 0.35);
   const density = clamp(ctx.quality.density, 0.4, 1.4);
   const detailR = ctx.config.detailRadius;
@@ -975,7 +994,7 @@ export async function create(ctx: WorldContext): Promise<WorldSystem> {
   const ledgeMeshes: Mesh[] = [];
   const nBox = northBox(ctx.layout);
   if (ledgeDefs.length) {
-    const ledgeMaterial = await createRockMaterial(ctx.textures, ctx.config, anisotropy, 1.4, 0.85, { near: true, fade: LEDGE_FADE_M, damp: LEDGE_DAMP });
+    const ledgeMaterial = await createRockMaterial(ctx.textures, ctx.config, anisotropy, 1.4, 0.85, { near: true, fade: LEDGE_FADE_M, damp: LEDGE_DAMP, relief: LEDGE_RELIEF });
     const lRng = rng.fork('ledges');
     for (const def of ledgeDefs) {
       const built = buildRockLedge(def, T, lRng.fork(def.id), `${seed}/ledge`);
@@ -1025,13 +1044,13 @@ export async function create(ctx: WorldContext): Promise<WorldSystem> {
     backsideMesh.visible = false;
     group.add(backsideMesh);
     const sunDir = sunVector(ctx.config.sun.azimuthDeg, ctx.config.sun.elevationDeg);
-    backsideSpheres = backside.casters.flatMap((c) => casterSpheres(c, sunDir));
+    backsideSpheres = backside.spheres(sunDir);
   }
 
   const rubbleSlots: InstanceSlot[] = [];
-  const rubbleMeshes = buildInstanced(rubble, rubbleGeos, material, 'rubble', true, rubbleSlots);
+  const rubbleMeshes = buildInstanced(rubble, rubbleGeos, strataMaterial, 'rubble', true, rubbleSlots);
   const strataSlots: InstanceSlot[] = [];
-  const strataMeshes = buildInstanced(strata, strataGeos, material, 'strata', true, strataSlots);
+  const strataMeshes = buildInstanced(strata, strataGeos, strataMaterial, 'strata', true, strataSlots);
   const pebbleMeshes = buildInstanced(pebbles, pebbleGeos, pebbleMaterial, 'pebbles', false);
   const northPebbleMeshes = buildInstanced(northPebbles, pebbleGeos, pebbleMaterial, 'pebbles-north', false);
   for (const m of [...rubbleMeshes, ...strataMeshes, ...pebbleMeshes, ...northPebbleMeshes]) group.add(m);
