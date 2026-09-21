@@ -20,6 +20,7 @@ import { buildClearingRocks, type ClearingLayout } from './clearing';
 import { buildBacksideRocks } from './backside';
 import { expansionVisible, sunVector } from '../util/expansionLocality';
 import { PEBBLE_DEFAULTS, PEBBLE_LOOKS, scatterPathPebbles, stairFootPebbles } from './pebbles';
+import { mergeGeometries } from 'three/examples/jsm/utils/BufferGeometryUtils.js';
 import { NORTH_Z1 } from '../util/northLocality';
 import { expansionCull, type Terrain } from '../terrain/heightfield';
 import { CUSHION, FERN, TUFT_A, TUFT_B, buildSproutMeshes, createSproutMaterial, type SproutSpot } from '../materials/sprouts';
@@ -234,6 +235,45 @@ function buildInstanced(list: Instance[], geos: BufferGeometry[], material: Inst
     im.computeBoundingSphere();
     out.push(im);
   });
+  return out;
+}
+
+/**
+ * The path pebbles' tile size (m). One InstancedMesh per look spanned the whole scatter (a bounding
+ * sphere of 84 m), so every fixed camera drew all ≈ 2 000 pebbles × 80 triangles whether or not a
+ * single one was in its frustum (A: 8.80 M against W38's 9.0 M ceiling, tick 213). Merged per tile
+ * instead, three.js culls tile by tile: a camera pays for the pebbles it can see, in fewer draws than
+ * the eight looks cost. Positions, looks and the W24 count are untouched (the tiles re-pack the same
+ * instances); 0 → the eight instanced looks as before.
+ */
+export const PEBBLE_TILE_M = 10;
+
+/** the instances merged into one static mesh per `tileM` ground tile (looks baked in), for per-tile frustum culling */
+function buildTiled(list: Instance[], geos: BufferGeometry[], material: Mesh['material'], name: string, tileM: number): Mesh[] {
+  const tiles = new Map<string, { tx: number; tz: number; parts: BufferGeometry[] }>();
+  for (const it of list) {
+    if (it.scale <= 0) continue;
+    const tx = Math.floor(it.x / tileM);
+    const tz = Math.floor(it.z / tileM);
+    const key = `${tx}_${tz}`;
+    let tile = tiles.get(key);
+    if (!tile) tiles.set(key, (tile = { tx, tz, parts: [] }));
+    const part = geos[it.variant % geos.length].clone();
+    part.applyMatrix4(instanceMatrix(it, _m));
+    tile.parts.push(part);
+  }
+  const out: Mesh[] = [];
+  for (const tile of tiles.values()) {
+    const merged = mergeGeometries(tile.parts, false);
+    for (const p of tile.parts) p.dispose();
+    if (!merged) continue;
+    merged.computeBoundingSphere();
+    const mesh = new Mesh(merged, material);
+    mesh.castShadow = false;
+    mesh.receiveShadow = true;
+    mesh.name = `${name}-t${tile.tx}_${tile.tz}`;
+    out.push(mesh);
+  }
   return out;
 }
 
@@ -1154,7 +1194,7 @@ export async function create(ctx: WorldContext): Promise<WorldSystem> {
   const rubbleMeshes = buildInstanced(rubble, rubbleGeos, strataMaterial, 'rubble', true, rubbleSlots);
   const strataSlots: InstanceSlot[] = [];
   const strataMeshes = buildInstanced(strata, strataGeos, strataMaterial, 'strata', true, strataSlots);
-  const pebbleMeshes = buildInstanced(pebbles, pebbleGeos, pebbleMaterial, 'pebbles', false);
+  const pebbleMeshes: (Mesh | InstancedMesh)[] = PEBBLE_TILE_M > 0 ? buildTiled(pebbles, pebbleGeos, pebbleMaterial, 'pebbles', PEBBLE_TILE_M) : buildInstanced(pebbles, pebbleGeos, pebbleMaterial, 'pebbles', false);
   const northPebbleMeshes = buildInstanced(northPebbles, pebbleGeos, pebbleMaterial, 'pebbles-north', false);
   for (const m of [...rubbleMeshes, ...strataMeshes, ...pebbleMeshes, ...northPebbleMeshes]) group.add(m);
   for (const m of northPebbleMeshes) {
@@ -1261,7 +1301,9 @@ export async function create(ctx: WorldContext): Promise<WorldSystem> {
     expansionCulled: culled,
     /** the north paving's pebbles (pebbles-north, under the north-locality toggle) */
     northPebbles: northPebbles.length,
-    instancedMeshes: rubbleMeshes.length + strataMeshes.length + pebbleMeshes.length,
+    instancedMeshes: rubbleMeshes.length + strataMeshes.length + (PEBBLE_TILE_M > 0 ? 0 : pebbleMeshes.length),
+    /** the path pebbles' merged ground tiles (PEBBLE_TILE_M), each culled by its own bounds */
+    pebbleTiles: PEBBLE_TILE_M > 0 ? pebbleMeshes.length : 0,
     samplePositions: {
       boulders: contact.map((p) => p.map(rnd)),
       pebbles: samplePebbles.map((p) => [rnd(p.x), rnd(p.y), rnd(p.z)]),
