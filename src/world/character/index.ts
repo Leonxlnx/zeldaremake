@@ -24,8 +24,8 @@ import { createGround } from './ground';
 import { createKokiri } from './kokiri';
 import { createNpcs } from './npc';
 import { createLink } from './link';
-import { createNavi, TRAIL_COUNT } from './navi';
-import { headingOf, marchToGround, matchViewpoint, pointAtDepth, projectPoint, VIEW_TABLE, type CamPose, type V3 } from './placement';
+import { createNavi, naviHoverAnchor, TRAIL_COUNT } from './navi';
+import { headingOf, marchToGround, matchViewpoint, NPC_SOUTH_BANK, pointAtDepth, projectPoint, VIEW_TABLE, type CamPose, type V3 } from './placement';
 import { PLAYER_KEY, type PlayerHandle, type PlayerInput } from './player';
 import { createContactShadow } from './shadow';
 import { consolidateRigParts } from './consolidate';
@@ -63,8 +63,8 @@ interface Actor extends GaitChain {
   shadowRadius: number;
 }
 
-/** kokiri-a (wander), kokiri-b (seat), the boy at Saria's door, kokiri-ledge (round 48: the stand on the raised ledge) */
-const KID_COUNT = 4;
+/** kokiri-a (wander), kokiri-b (seat), the boy at Saria's door, kokiri-ledge (round 48: the stand on the raised ledge), kokiri-south-bank (round 50: the stand on the south bank) */
+const KID_COUNT = 5;
 
 type LinkSource = 'glb' | 'procedural';
 
@@ -115,13 +115,14 @@ export async function create(ctx: WorldContext): Promise<WorldSystem> {
   backgroundCast.visible = false;
   group.add(backgroundCast);
 
-  // kid default spots: kokiri-a (stair-foot verge), kokiri-b (plaza west), kokiri-c beside the house door, kokiri-ledge on the raised ledge
+  // kid default spots: kokiri-a (stair-foot verge), kokiri-b (plaza west), kokiri-c beside the house door, kokiri-ledge on the raised ledge,
+  // kokiri-south-bank on the south bank's terrace (round 50; placement.ts NPC_SOUTH_BANK — not a layout npcSpot, see layout.ts EXPANSION)
   const house = ctx.layout.houses[0];
   const fl = Math.hypot(house.facing[0], house.facing[1]);
   const fx = house.facing[0] / fl;
   const fz = house.facing[1] / fl;
   const doorKid: V3 = [house.position[0] + fx * (house.trunkRadius + 1.0) + fz * 1.3, 0, house.position[2] + fz * (house.trunkRadius + 1.0) - fx * 1.3];
-  const kidSpots: V3[] = [spot('kokiri-a'), spot('kokiri-b'), doorKid, spot('kokiri-ledge')];
+  const kidSpots: V3[] = [spot('kokiri-a'), spot('kokiri-b'), doorKid, spot('kokiri-ledge'), [NPC_SOUTH_BANK.x, 0, NPC_SOUTH_BANK.z]];
   const kids: Actor[] = [];
   const kidChars: ReturnType<typeof createKokiri>[] = [];
   for (let i = 0; i < KID_COUNT; i++) {
@@ -132,9 +133,10 @@ export async function create(ctx: WorldContext): Promise<WorldSystem> {
     backgroundCast.add(puppet.group, shadow);
     kids.push({ ...hardChain('idle'), puppet, pos: new Vector3(kidSpots[i][0], 0, kidSpots[i][2]), yaw: 0, phase: 1.3 + i * 2.1, idleTurn: 0.28, look: 0, contact: new Vector3(), shadow, shadowRadius: 0.32 });
   }
-  // NPC behaviour (npc.ts): in free / play mode kokiri-a wanders the plaza loop, kokiri-b sits on the stairs and kokiri-ledge
-  // idles on the raised ledge, each with a fairy; under capture (view mode) the per-view placement above stands for the
-  // first two (only their fairies are added) and the ledge girl is posed but hidden (round 48)
+  // NPC behaviour (npc.ts): in free / play mode kokiri-a wanders the plaza loop, kokiri-b sits on the stairs, kokiri-ledge
+  // idles on the raised ledge and kokiri-south-bank idles on the bank's terrace, each with a fairy; under capture (view mode)
+  // the per-view placement above stands for the first two (only their fairies are added), the ledge girl is posed but
+  // hidden (round 48) and the bank girl stays shown (round 50: outside every fixed frustum)
   const npcs = createNpcs({ chars: kidChars, ground, layout: ctx.layout, seed: `${ctx.config.seed}/npc` });
   backgroundCast.add(npcs.group);
 
@@ -202,7 +204,8 @@ export async function create(ctx: WorldContext): Promise<WorldSystem> {
       kids[i].pos.set(kidSpots[i][0], 0, kidSpots[i][2]);
       faceToward(kids[i], spawn[0], spawn[2]);
     }
-    naviAnchor.set(link.pos.x + 0.35 * Math.sin(link.yaw + 1.2), 1.35, link.pos.z + 0.35 * Math.cos(link.yaw + 1.2));
+    // round 50: above and to his left like the girls' fairies (navi.ts NAVI_HOVER); the head centre ≈ 1.05 m over the ground
+    naviHoverAnchor(link.pos.x, ground.height(link.pos.x, link.pos.z) + 1.05, link.pos.z, link.yaw, naviAnchor);
   };
 
   /** Reference composition for a recognised viewpoint. */

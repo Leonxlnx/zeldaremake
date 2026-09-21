@@ -92,7 +92,10 @@ const SOIL_OPEN_GATE: [number, number] = [0.1, 0.4];
 // contact line stays a recess of the same hue, the open turf a hair greener at most)
 const CREVICE_TINT: [number, number, number] = [0.72, 0.7, 0.5];
 const TURF_CREVICE_TINT: [number, number, number] = [0.72, 0.7, 0.54];
-const TURF_OPEN_TINT: [number, number, number] = [1.08, 1.1, 1.0];
+// (round 50, fable-5 V16: the mossy earth's open lift × 1.08–1.1 → none — at 6–10 cm the joint
+// centre is 3–5 cm from a slab, inside the open ramp, and the lift put the centre line a shade
+// above the seam soil; the demo's joints are one dark tone edge to edge, a hair greener)
+const TURF_OPEN_TINT: [number, number, number] = [1.0, 1.03, 0.95];
 const glslVec3 = (v: [number, number, number]) => v.map((n) => n.toFixed(4)).join(', ');
 
 /**
@@ -133,8 +136,15 @@ export function jointFillTones(palette: WorldConfig['palette']): { soil: Color; 
   // turf rendered 59,56,36 – 67,67,40 (hue 52°, B/R 0.61): too dark and too grey-green)
   // (round 48: 0.42 / × 1.15 → 0.52 / × 0.7 — Y 0.123 → 0.062, G/R 0.58 → 0.66: the reference's
   // sunlit joints are dark olive at 0.55 of the slab tops; ours rendered pale orange strips)
-  const turf = new Color(TURF_BASE).lerp(new Color(palette.grassDeep), 0.52).multiplyScalar(0.7);
-  const turfMid = new Color(TURF_BASE_MID).lerp(new Color(palette.grassMid), 0.55);
+  // (round 50, fable-5 V16: on take-0123 the E foreground's turf joints still rendered sRGB
+  // 128–153 / lum 0.44–0.53 against the slab tops' 0.61 — 0.7–0.85 of the slab where `d_097`'s
+  // dark class sits at 0.58 of its bright class (95,84,58 against 162,145,110; hue 43°, B/R 0.61)
+  // and fable-5's joint mean is #575026. The mossy earth goes to 0.6 of the deep green and
+  // × 0.42 (Y 0.062 → 0.039, hue 35° → 41°, B/R 0.49); its damp lift, which sat at Y 0.18 — a
+  // slab's albedo — and mottled the joints pale where the noise peaked, comes to 0.6 / × 0.5 (Y
+  // 0.088). The joints read darker than the stone at every width now, as in the demo.)
+  const turf = new Color(TURF_BASE).lerp(new Color(palette.grassDeep), 0.6).multiplyScalar(0.42);
+  const turfMid = new Color(TURF_BASE_MID).lerp(new Color(palette.grassMid), 0.6).multiplyScalar(0.5);
   // the lawn pocket's ground: dark mossy earth under the lawn's tufts (round 13 — the damp seam
   // soil pulled 85 % to the deep grass green and dimmed to 0.6, sRGB ≈ 54,58,32), the shadowed
   // earth between dense grass. The pocket's warm light lifts a fill's red a fifth and drops its
@@ -244,9 +254,15 @@ function buildGapField(bbox: { x0: number; x1: number; z0: number; z1: number },
 // slab tops. The seam soil keeps its dark tone; the damp lift and the dry open dirt come down
 // (mid 0x8a6a45 → 0x7a5e3d, dry 0x9e7c4e → 0x836740) so a wide junction no longer dries out to
 // pale orange, and the mossy earth / field earth below are darker and greener.)
-export const JOINT_SOIL = 0x6e5232;
-export const JOINT_SOIL_MID = 0x7a5e3d;
-export const JOINT_SOIL_DRY = 0x836740;
+// (round 50, fable-5 V16: the joints are 6–10 cm now and the demo's are DARKER than the slab at
+// every width — `d_097`'s dark class is hue 43° at 0.58 of its stone class; the joint mean
+// #575026 / #625332. The seam soil × 0.76 and 4° more olive (0x6e5232 → 0x5a4b2a, Y 0.097 →
+// 0.074, hue 32° → 41°), the damp lift × 0.76 (0x7a5e3d → 0x685639, Y 0.13 → 0.099) and the
+// open dirt × 0.7 (0x836740 → 0x705e3c): at the new scale a junction is 10–20 cm across and sits
+// in the dry ramp's foot, so it stays a darker olive-brown rather than drying to a pale patch.)
+export const JOINT_SOIL = 0x5a4b2a;
+export const JOINT_SOIL_MID = 0x685639;
+export const JOINT_SOIL_DRY = 0x705e3c;
 const TURF_BASE = 0x8a603f;
 const TURF_BASE_MID = 0xab8356;
 /** the open-soil lift of the width tint: the dry dirt over the seam soil, per (linear) channel */
@@ -306,18 +322,27 @@ export async function buildJointMesh(
   // 64,60,36 against the frame's 81,77,50 and still 59 % in the 40° bin against the frame's 36 %
   // (46 % in the 50° bin) — the unlifted earth was a fifth too dark in C's shade and its 50°
   // albedo renders 10° browner; nine tenths to the green, × 1.6 (albedo hue ≈ 62°, Y 0.11))
-  const trodden = new Color(TURF_BASE).lerp(new Color(P.grassDeep), 0.9).multiplyScalar(1.6);
+  // (round 50, fable-5 V16: × 1.6 → × 1.1 and 0.9 → 0.8 to the green (Y 0.11 → 0.084, hue ≈ 50°)
+  // — the patch's earth rendered brighter than the slabs beside it on the top-down, where
+  // `d_097`'s bare earth (its right third) reads at 0.73 of its stone class, hue 47°)
+  const trodden = new Color(TURF_BASE).lerp(new Color(P.grassDeep), 0.8).multiplyScalar(1.1);
   // (round 48: 0.22 / × 1.12 → 0.42 / × 0.66 — the field's 9–22 cm gaps were the "bare orange
   // mortar" of opus-review #04 at w05 / w09 / w13; with the gaps at 4.5–11 cm the earth between the
   // stones is the dark olive-brown of the frames' joints, and the field's tufts carry the green)
-  const fieldEarth = new Color(TURF_BASE).lerp(new Color(P.grassDeep), 0.42).multiplyScalar(0.66);
+  // (round 50: 0.42 / × 0.66 → 0.55 / × 0.5 (Y 0.071 → 0.049, hue 30° → 38°) — the field's gaps
+  // are the same 6–10 cm joints as the rest of the paving now, d_111–117's dark olive)
+  const fieldEarth = new Color(TURF_BASE).lerp(new Color(P.grassDeep), 0.55).multiplyScalar(0.5);
   // (the moss patches keep round 10's soil in their blend so the B/E fill does not shift)
-  const mossD = new Color(P.mossDeep).lerp(new Color(TURF_BASE), 0.25);
+  // (round 50: × 0.6 — at Y 0.114 the deep-moss patches were brighter than the darkened earth
+  // around them by 3×, pale green-beige blotches on the top-down; the moss in the demo's joints
+  // is a mid green a step above the soil, and the tufts (index.ts) carry the bright green)
+  const mossD = new Color(P.mossDeep).lerp(new Color(TURF_BASE), 0.25).multiplyScalar(0.6);
   // round 48: the bark litter under the log's north lip — a red-brown a shade darker than the
   // seam soil (linear ≈ 0.115 / 0.062 / 0.036, hue 20°), the tone of the log's shed bark plates
   const barkLitter = new Color(0x5e3c22);
   const deepGreen = new Color(P.grassDeep);
-  const mossB = new Color(P.mossBright);
+  // (round 50: the bright moss × 0.6 with the deep moss above — mossBright's Y 0.25 is a slab's)
+  const mossB = new Color(P.mossBright).multiplyScalar(0.6);
   const tmp = new Color();
   const tmp2 = new Color();
 
@@ -645,7 +670,7 @@ export async function buildJointMesh(
       #endif`,
       );
   };
-  mat.customProgramCacheKey = () => `flagstone-joints-v11-crevice${gapField ? '1' : '0'}`;
+  mat.customProgramCacheKey = () => `flagstone-joints-v12-crevice${gapField ? '1' : '0'}`;
   const mesh = new Mesh(g, mat);
   mesh.receiveShadow = true;
   mesh.castShadow = false;

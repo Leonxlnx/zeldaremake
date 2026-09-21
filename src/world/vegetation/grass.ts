@@ -15,6 +15,8 @@ import { smoothstep, clamp } from '../util/noise';
 import type { Rng } from '../util/prng';
 import { A_FACE_HEIGHT, BANK_FLOOR_SHARE, VegField, composeMatrix, newSample } from './field';
 import { BLADE_MIN, COVERAGE_CELL } from './coverage';
+import { terraceDropsBlade, tileMeetsTerrace } from './edges';
+import { compactExpansionBlades, filterExpansionSamples, tileMeetsExpansion } from './expansion';
 import { perfFlags, perfRuntime } from '../../perfFlags';
 
 export const GRASS_TYPE_NAMES = ['turf', 'meadow', 'sedge', 'seed'] as const;
@@ -63,6 +65,10 @@ export interface GrassResult {
   heightMean: number;
   heightCV: number;
   samples: number[][];
+  /** round 50: legacy-placed blades dropped inside the expansion's live ground (expansion.ts) */
+  expansionCulled: number;
+  /** round 50 (edges.ts W05): the blades the C bank's riser bands thinned out */
+  terraceCulled: number;
   tileSize: number;
   lodDistances: number[];
   /** upper-bound estimate (no frustum culling) of what the last update() left drawable */
@@ -397,6 +403,8 @@ export async function buildGrass(ctx: WorldContext, field: VegField, material: M
   let hSq = 0;
   const sampleEvery = 997;
   const samples: number[][] = [];
+  let expansionCulled = 0;
+  let terraceCulled = 0;
 
   // the disc's tiles, then (round 44) the north corridor's — field.ts `reach` — in the same
   // row-major order, so every disc tile keeps its index (and its `grass/<cx>/<cz>` stream)
@@ -730,6 +738,30 @@ export async function buildGrass(ctx: WorldContext, field: VegField, material: M
         }
       }
     }
+    // Round 50 (expansion.ts): the tile builds against the LEGACY ground; where the round-49
+    // expansion raised or paved it (the south bank, the knoll, the stepping discs, the flights)
+    // the legacy blades are buried or float, so they are compacted out of the streams here —
+    // after every pass and every draw, so no other blade re-rolls, and before the cull cells
+    // and the tile's sphere read the streams. Their share of the statistics is undone.
+    // Likewise (edges.ts, W05) the C bank's riser bands thin their blades to TERRACE_RISER_BLADE_KEEP
+    // so the terrain material's soil shows between the tuft rows on the treads.
+    const meetsTerrace = tileMeetsTerrace(x0, z0, x0 + TILE, z0 + TILE);
+    if (meetsTerrace || tileMeetsExpansion(x0, z0, x0 + TILE, z0 + TILE)) {
+      count = compactExpansionBlades(
+        matrices,
+        data,
+        count,
+        (type, h, y, why) => {
+          typeCounts[type]--;
+          hSum -= h;
+          hSq -= h * h;
+          ySum -= y;
+          if (why === 'expansion') expansionCulled++;
+          else terraceCulled++;
+        },
+        meetsTerrace ? (bx, bz) => terraceDropsBlade(T, bx, bz) : undefined,
+      );
+    }
     if (count === 0) continue;
 
     // Performance flags (perfFlags.ts): when the drawn share of a tile may drop below 1 (`?veg=
@@ -795,7 +827,10 @@ export async function buildGrass(ctx: WorldContext, field: VegField, material: M
     if (ti % 6 === 5) await new Promise<void>((r) => setTimeout(r, 0));
   }
 
-  // keep ≤ 400 evenly spread samples
+  // keep ≤ 400 evenly spread samples (less the ones the expansion compaction dropped, round 50)
+  const keptSamples = filterExpansionSamples(samples);
+  samples.length = 0;
+  samples.push(...keptSamples);
   while (samples.length > 400) samples.splice(Math.floor(samples.length / 2) % samples.length, 1);
 
   const mean = total ? hSum / total : 0;
@@ -927,5 +962,5 @@ export async function buildGrass(ctx: WorldContext, field: VegField, material: M
     }
   };
 
-  return { tiles, count: total, typeCounts, heightMean: mean, heightCV: cv, samples, tileSize: TILE, lodDistances, visible, update, cull, culled };
+  return { tiles, count: total, typeCounts, heightMean: mean, heightCV: cv, samples, expansionCulled, terraceCulled, tileSize: TILE, lodDistances, visible, update, cull, culled };
 }
