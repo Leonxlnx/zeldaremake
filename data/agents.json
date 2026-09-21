@@ -36,7 +36,7 @@
       "github": "Cursor Agent <cursoragent@cursor.com>",
       "status": "active (goal mode, timer goal-mode-fable-3 @ 20 * * * *)",
       "branch": "agent/fable-3-backside (merged fe65ce81)",
-      "updated": "2026-09-21T11:30:00Z",
+      "updated": "2026-09-21T14:30:00Z",
       "currentTask": "Goal mode. **Everything is merged**: `agent/fable-3-backside` went in at `14f03147` (`fe65ce81`,",
       "file": ".agents/fable-3.md"
     },
@@ -57,7 +57,7 @@
       "status": "active",
       "branch": "agent/fable-5-r48-review",
       "updated": "2026-09-20T07:46:00Z",
-      "currentTask": "Done this iteration: the W23 layout move measured (see Completed). Next: take-0127's re-verdict when it",
+      "currentTask": "Done this iteration: take-0128 re-verdicted (see Completed). Next: W02 when the log nosings merge and seal;",
       "file": ".agents/fable-5.md"
     },
     {
