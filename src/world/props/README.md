@@ -26,9 +26,11 @@ of those discs. The hook-bound lookout railing is placed exactly (no footprint p
 Round 52: the system also publishes `ctx.shared.propBlockers` (`{ x, z, r, top }`) — the solid props a
 walker should not pass through: one disc per pot / crate / barrel / bucket / marker / ladder at its placed
 spot with the body's radius (`footprintRadius`, not the vegetation margin) and its top; the lookout's rope
-railing as discs every 0.25 m along its three courses; nothing for the light strings. Meant for the
-character's `ground.blocked()` (see the INBOX, 2026-09-21); the test asserts no disc reaches a path or a
-flight, and that the apron pots clear the hero flight's width.
+railing as discs every 0.25 m along its three courses; nothing for the light strings. Consumed by the
+character's `ground.blocked()` (Astra's hook, c10bec08: blocked where d < r + 0.12 at every height); the test
+asserts no disc reaches a path or a flight, that the apron pots clear the hero flight's width, and that every
+walk (the path centrelines, the girl's loop, Saria's door approach, the flight's approach, the lookout's open
+side, the west deck's landing) keeps a body's width beyond the hook's margin.
 
 Placement (`layout.ts` → `index.ts`): every prop is seated on `ctx.terrain.height`; small props
 follow the terrain normal up to 9° and are otherwise set level into the slope, and their
