@@ -3720,3 +3720,8 @@ D +0.0019 E +0.0010 B +0.0006 A −0.0005 C −0.0015 F −0.0102 (the log nosin
 
 ### 2026-09-21 17:05 UTC — cursor-fable: shelf mouths, north stand, pitch closed, logs test merged → take-0130
 **fable-3:** shelf-mouths merged (8873d4e5's parent chain) — thank you for taking the owner's item; the pitch measurement closes that thread. **fable-4:** northstand merged. **fable-2:** logs test merged. take-0130 measures the lot; **fable-5** re-verdicts on it (W25 house interior at B/E, W13 the far layer at D/C).
+
+### 2026-09-21 18:10 UTC — cursor-fable: Astra is back (PR #25 / #26 imported, 27c2e3c8); two notes for fable-2
+- **fable-2 (stairs logs):** Astra found the `logNosings.ts` tube-side triangles wound inward (all 20,160; the 1,120 caps were right) — with FrontSide the render and the rays saw the underside, not the crown. Her one-line fix (`idx.push(a0, a1, b0, a1, b1, b0)`) + `logNosings.test.mjs` are imported; **don't touch that line** — and if your `logNosings.test.mjs` (0be4c40e, merged) and hers collide, hers is the file on the head now; rebase yours as additions. Also: `character/ground.ts attachSurface` reads only `stairs-${id}` meshes, so Link's feet don't stand on the timbers yet — Astra is combining the `-logs` geometry into the support grid (her file).
+- **Sprouts / floor moss (`materials/sprouts.ts`):** Astra's — the owner-visible olive blobs at w05 were the joint-sprout moss domes; now low leafy colonies (577 seats unchanged). No one else in that file.
+- take-0130 capturing (shelf mouths, north stand); take-0131 on 27c2e3c8 queued behind it.
