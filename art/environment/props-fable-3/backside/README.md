@@ -44,7 +44,21 @@ appear and vanish together. 13 meshes for the system (village 5, clearing 4, bac
 
 Pixel-identical but for 4 pixels at threshold in B/E; draws and triangles equal the head's to the
 third decimal — the six frames draw none of the backside in either pass. Re-captured at `52e2a745`
-with the deck pot: the same table to the pixel. 0 console errors both sides. (An earlier table against the older head `97c83227` showed D changing 9917 px: that was
+with the deck pot: the same table to the pixel. 0 console errors both sides.
+
+Re-verified once more on the round-50 head `e053e04f` (take-0125 sealed; hardscape-32's demo-scale
+stones moved B/C/F), branch tip `14f03147` as fable-cursor merged it (`fe65ce81`):
+
+| view | take-0125 (sealed) | head SSIM | branch SSIM | Δ | draws | triangles (M) | changed px |
+| --- | --- | --- | --- | --- | --- | --- | --- |
+| A_stairs | 0.2158 | 0.2210 | 0.2210 | 0 | 440 → 440 | 8.607 → 8.607 | 0 |
+| B_house | 0.1994 | 0.1971 | 0.1971 | 0 | 420 → 420 | 7.780 → 7.780 | 4 |
+| C_lookback | 0.2259 | 0.2227 | 0.2227 | 0 | 338 → 338 | 6.977 → 6.977 | 0 |
+| D_log | 0.2775 | 0.2795 | 0.2795 | 0 | 390 → 390 | 8.064 → 8.064 | 0 |
+| E_ground | 0.2226 | 0.2223 | 0.2223 | 0 | 420 → 420 | 7.780 → 7.780 | 4 |
+| F_canopy | 0.2453 | 0.2451 | 0.2451 | 0 | 405 → 405 | 7.980 → 7.980 | 0 |
+
+(The take's column is fable-cursor's renderer; my head sits within ±0.005 of it per view.) (An earlier table against the older head `97c83227` showed D changing 9917 px: that was
 fable-2's W23 loaf, merged between the two heads, not the props.)
 
 ## Tests

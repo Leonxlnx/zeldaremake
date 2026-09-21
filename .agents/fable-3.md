@@ -3,8 +3,8 @@ agent: fable-3
 runtime: Cursor Cloud Agent (Claude Fable 5.1)
 github: Cursor Agent <cursoragent@cursor.com>
 status: active (goal mode, timer goal-mode-fable-3 @ 20 * * * *)
-branch: agent/fable-3-backside
-updated: 2026-09-21T04:25:00Z
+branch: agent/fable-3-backside (merged fe65ce81)
+updated: 2026-09-21T08:30:00Z
 ---
 
 # fable-3 — work log
@@ -15,39 +15,25 @@ materials.ts, tests, README). Onboarded from `docs/ONBOARDING_FABLE_CHATS.md` (c
 agents-log ticks). Draft PR #13 against the world branch.
 
 ## Current task
-Goal mode. Iteration 8 on **`agent/fable-3-backside`** (reported 19:45 UTC; `agent/fable-3-wood`
-merged `b25a0d07`): fable-cursor's round-49 item 0 — `heightfield.expansionCull` after placement
-(filter, audited as `culledByExpansion`), the backside dressed: crate + bucket + pot pair on the
-shoulder beside the west tree-house's deck landing, a waymarker at the west path's fork (moved off
-a scatter bush). Two of the four handed positions are not buildable as given and were reported
-with numbers: the platform pot (the walkable ring outside the wall is 0.156 m) and the deck rail
-(structures already build one). Then the pot by the door on the walkway deck's mouth (`onDeck`, from `walkSurfaces[0].deck` — the
-platform's ring is 0.156 m). The backside made its own merge locality culled by
-`util/expansionLocality.ts` (frustum + swept shadow footprints) and the marker moved west of C's
-shadow reach: six views vs the current head pixel-identical (4 px), draws and triangles equal to
-the head's (A 566 / 8.616 M).
+Goal mode. **Everything is merged**: `agent/fable-3-backside` went in at `14f03147` (`fe65ce81`,
+fable-cursor's nine-branch batch 04:55 UTC; take-0126 running on the lot). Re-verified on the
+round-50 head before the merge report landed: six views identical (4 px in B/E), draws and
+triangles equal (A 440 / 8.607 M). Props' list is empty; none of take-0125's failing rubric
+items (W02/05/06/08/09/10/23/30/31/37, C01/02, U02) is one props can move. Round 51's internal
+lanes are paused by an account block on fable-cursor's side.
 
-Waiting for fable-cursor to rank the next item; otherwise non-author reviews. 00:55 UTC: a
-robustness pass — 26 module tests on the merged branch, 25 green; `vegetation/plants.test.mjs`
-is red on the head itself (144 > 139 corner plants), reported to vegetation-27; anti-cheat green.
-01:35 UTC heartbeat: head unchanged (`b4cdfe91`), no ranking, fable-5's §M marks
-`agent/fable-3-backside` "merge" (six views + `w04-spine-l` pixel-identical); reviews of the other
-lanes' branches are covered by fable-5 (V21 with fable-2, hue, taper) — no duplicate measurement.
-01:50 UTC: cross-lane finding — fable-2's W05 stone tier (`agent/fable-2-w05`) places slabs at
-(7.63, 2.56) and (8.00, 2.23), 0.43–0.47 m from the stair-foot pots with ≈ 0.5 m slabs; asked
-fable-2 for a keep-out before the merge (INBOX).
-02:55 UTC: fable-cursor's round-50 tick (`0147a3d0`, five lanes, take-0125 running) merged into
-the branch — props/plants/rockgen/expansion2 tests, tsc, build green; asked for the merge as is.
-03:25 UTC: fable-2's `8812d37b` adds the keep-out; verified with the replicated walk (three points
-skipped, remaining slabs ≥ 1.23 m from the pots) — resolved.
-04:25 UTC heartbeat: head unchanged (`0147a3d0`, take-0125 running), no ranking; fable-5's
-summary keeps `agent/fable-3-backside` at "merge"; nothing unmeasured to review.
+Next: whatever fable-cursor ranks; a non-author measurement on request; otherwise heartbeats.
+07:50 UTC heartbeat: head unchanged (`48156889`, take-0126 running); active branches (fable-2's
+near-skin relief on `fable-2-ledge`, `fable-2-r51`, fable-4's `lod25`) are fable-5's to measure.
+08:30 UTC heartbeat: head `54196e0b` (owner's direct bark fix); nothing for props; fable-5 opened
+`agent/fable-5-r50-review`.
 
 ## Files / systems being touched
 `src/world/props/{index,layout,geometry,materials}.ts`, `geometry.test.mjs`, `README.md`.
 Evidence sheets under `art/environment/props-fable-3/`. Nothing else.
 
 ## Completed work
+- merged `fe65ce81`: the backside branch (item 0 in full) — final six-view table on the round-50 head in `backside/README.md`.
 - `52e2a745` / `da630293` the deck pot by the west-house door (`onDeck`), six views identical to the head.
 - `3227a358` / `054cee47` the backside as its own culled locality; the marker's final spot; evidence.
 - `b1a07f2b` / `90f63fed` / `09fc511e` the backside (landing stores, fork marker, expansionCull
@@ -124,4 +110,4 @@ Evidence sheets under `art/environment/props-fable-3/`. Nothing else.
 - A Kokiri on the lip deck (npc-1) — the deck is the "stand on the ledge" destination.
 
 ## Last updated
-2026-09-21T04:25:00Z
+2026-09-21T08:30:00Z
