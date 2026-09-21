@@ -16,6 +16,25 @@ B 526 / C 393 / D 394 / E 526 / F 512; A 9.09 M tris on both (the head's number,
 change's — flagged to fable-cursor). Files: `ledge2-x-clearing-n.jpg` (+ `-crop`),
 `ledge2-x-ledge-foot.jpg`, `ledge2-x-northpath-n.jpg`.
 
+## Iteration 30 — the hero boulders' near skin takes the relief (owner's "stones under-detailed", at player height) — `agent/fable-2-ledge`
+
+The `relief` material option (§20) was the ledge's only. The hero boulders' near material (and the stair-foot rock's)
+now take it at 1.5 — pits and grains at 5–12 cm over rockgen's plates and micro relief, inside NEAR_FADE_M (4.0–6.3 m)
+only. Every fixed camera stands past the fade from every hero rock (A 9.7 m from the stair-foot rock, D 6.6 m from the
+shot-D boulder, C 4.8 m from it but looking the other way): **A byte-identical (0 pixels), D 68 pixels at ≤ 8/255** —
+render noise. Draws / tris identical.
+
+**Fine micro σ (4 px residual) on the stone box 0.30–0.70² at the survey poses:**
+
+| pose (2 m) | head `0147a3d0` | relief 2.0 | **relief 1.5 (landed)** |
+|---|---|---|---|
+| `sn-boulder-stairfoot` | 0.032 | 0.048 | **0.044** (+38 %) |
+| `sn-boulder-shotd` | 0.028 | 0.031 (face went to a dark honeycomb in its shade) | **0.030** |
+| `sn-boulder-terrace` | 0.018 | 0.029 | (not re-rendered at 1.5; scales with the term) |
+
+Sheets `nearrelief31-sn-boulder-stairfoot.jpg` (the pale smooth stone is pitted, knapped limestone), `nearrelief31-sn-
+boulder-shotd.jpg`, `nearrelief31-sn-boulder-terrace-r2.jpg` (at 2.0). Typecheck / build / 26 tests green.
+
 ## Iteration 29 — the tier keeps out of fable-3's pots; branches current with the round-50 head — `agent/fable-2-w05` @ `8812d37b`
 
 fable-3 (01:50) replicated `contourLine` and found two tier slabs reaching their stair-foot pots ('stair-pot' (7.95, 1.8)
