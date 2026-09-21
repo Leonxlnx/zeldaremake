@@ -16,6 +16,48 @@ B 526 / C 393 / D 394 / E 526 / F 512; A 9.09 M tris on both (the head's number,
 change's — flagged to fable-cursor). Files: `ledge2-x-clearing-n.jpg` (+ `-crop`),
 `ledge2-x-ledge-foot.jpg`, `ledge2-x-northpath-n.jpg`.
 
+## Iteration 46 — the stair timbers re-tinted on outward faces: A +0.0087, F's cost gone — `agent/fable-2-logs-tint` @ `c1e7d115`
+
+Astra (fable-cursor 18:10, `27c2e3c8`): the tube's 20,160 side triangles in `logNosings.ts` were wound inward — with
+FrontSide the render (and fable-5's rays) saw the far inner wall through each log, not its crown. Every tint take of §39
+(dark timber, bleached crown, thinner logs) was tuned against that inner wall, and the timber's effective albedo was never
+looked at: `bark_brown_02` has a linear mean of 0.113 / 0.091 / 0.047 and the arch's `0x6e6258` multiplies it by ≈ 0.15 —
+**≈ 2 % albedo**, near-black wood. On the head with her fix, the A frame's flight box (0.62–0.88 × 0.25–0.70, row profile
+at 200 × 120; lips = local row maxima, troughs = minima):
+
+| A flight box | mean l | dark (< 40) | saturation | lips / troughs |
+|---|---|---|---|---|
+| reference A (§6.6b: bark `#746d5d` lit, `#453e32` shadow) | 90 | 1.2 % | 0.29 | **100 / 85** |
+| head `c11f0ff4`, `LOG_FLIGHTS` emptied (no logs) | 74 | 5.9 % | 0.30 | 86 / 67 |
+| take-2 logs, faces inward (what take-0129 measured) | 71 | 7.1 % | 0.30 | 81 / 64 |
+| head `c11f0ff4`: faces outward, tint `0x6e6258` | 65 | **13.6 %** | 0.33 | **68 / 63** |
+| `c1e7d115`: `LOG_TINT` 1.35 / 1.5 / 2.3, floor tint `#746d5d` | 81 | 5.7 % | 0.32 | **94 / 71** |
+
+The reference's flight is a tan base with lit lips 15 points over the treads behind; ours with outward dark logs had the
+dark timber exactly where the lit lips belong (68 over 63 — the alternation gone, the dark share doubled). Seven tints at
+A + the 2 m head-on pose: lifting alone (×1.8 / 1.85 / 2.4) puts the lips at 100 but the flight's saturation at 0.36 whatever
+the albedo — the shade floor's light tint was the arch's `HOUSE_BARK_TINT` (a saturated brown); with the reference's own
+lit bark tone as the floor tint the saturation comes to 0.32. The landed pair is 0.8 × that lift (our whole flight runs
+≈ 15 points darker than the frame's — troughs 71 vs 85 — so lips ≈ 94 keeps the frame's lip / trough relation instead of
+its absolute), cooled so the texture's orange R/B 2.4 comes to ≈ 1.4. `LOG_TINT`, `LOG_FLOOR_TINT` in `logNosings.ts`;
+the winding line is Astra's and untouched; tests 4/4 (hers included), typecheck / build green.
+
+Six views, all captured on this VM on head `c11f0ff4` (its take-2 tint, and once more with `LOG_FLIGHTS` emptied) and on
+`c1e7d115`:
+
+| view | head, no logs | head `c11f0ff4` (take-2 tint, faces outward) | `c1e7d115` | Δ vs head | Δ vs no logs | draws / tris |
+|---|---|---|---|---|---|---|
+| A_stairs | 0.2217 | 0.2204 | **0.2291** | **+0.0087** | **+0.0074** | 442 / 8.80 M |
+| B_house | — | — | 0.1965 | 0 (flight ≈ 54° off axis, outside the 37° half-FOV) | — | 424 / 7.95 M |
+| C_lookback | 0.2216 | 0.2199 | 0.2201 | +0.0002 | −0.0015 | 341 / 7.05 M |
+| D_log | — | — | 0.2786 | 0 (flight behind the camera) | — | 390 / 8.18 M |
+| E_ground | — | — | 0.2182 | 0 (E's frame ≡ B's) | — | 424 / 7.95 M |
+| F_canopy | 0.2415 | 0.2376 | **0.2420** | **+0.0044** | +0.0005 | 407 / 8.09 M |
+
+So the logs now *pay* at A (+0.0074 over the flight without them) and are free at F (take-0129's −0.0104 was the inward
+faces: Astra's fix alone brought it to −0.0039, the tint the rest). Files: `logs50-A.jpg` (reference | inward | outward
+dark | tinted, A's flight), `logs50-3rd-tread.jpg` (the 2 m head-on pose, same three), `logs50-w23-stairs-f.jpg`.
+
 ## Iteration 45 — V16's seams, taken and measured: the tone and the rim are the frame's already; the lever is the COUNT of dark features (FAIL to land, the finding reported)
 
 Announced 17:40 and taken on `agent/fable-2-seams`. The hypothesis of §43 (the slab's stained flank + shaded shoulder widen
