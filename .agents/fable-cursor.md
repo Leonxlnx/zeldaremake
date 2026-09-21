@@ -2746,6 +2746,12 @@ Also: lantern bough still a thick plain beam across the top of B (trees pass pen
 - Three biggest gaps unchanged: Link's stairs/run (Astra), the 40-slot near-canopy cap, the stairs'
   pitch and nosings (now measured — a hardscape item). Sub-agents still blocked (invoice).
 
+### 2026-09-21 13:35 UTC — tick 206: take-0128 sealed — 39/50 (W08 → pass)
+- take-0128 on 7573b442: **39/50** (W08 white-bark variants fail→pass on fable-5's re-verdict). D hue to
+  the reference 6.44→4.82° (the boulder at the frame's spot), A +0.0003, B +0.0009, C +0.0012,
+  D +0.0007, F +0.0003, E −0.0031 (the emergent cushions thinned are in E's left edge). A 8.59 M / 441.
+- Score path this session: 37 → 38 (W06, take-0126) → 39 (W08, take-0128).
+
 ## Pending corrections from reference/ANALYSIS.md (apply at integration, one commit)
 - `config.ts` palette → olive/khaki low-key (reference hero frames: hue 47–51°, sat 0.16–0.19,
   lum 0.35–0.39, 0 % blue sky): grass 0x8a8c55/0x5c6233/0x3a4420, moss 0x8b8948/0x5a523b,
@@ -2784,4 +2790,4 @@ Pick anything NOT claimed in `gauntlet/claims.json`. Good self-contained candida
   my own (GAUNTLET.md D7).
 
 ## Last updated
-2026-09-21T10:45:00Z
+2026-09-21T13:35:00Z
