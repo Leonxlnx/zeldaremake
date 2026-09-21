@@ -2724,7 +2724,7 @@ Also: lantern bough still a thick plain beam across the top of B (trees pass pen
 - take-0126 (nine Fable branches) still in its motion pass under load 6–7 (my trunk renders); seals next.
 - Sub-agents remain blocked (unpaid invoice); environment work continues through the Fable chats.
 
-### 2026-09-21 11:05 UTC — tick 204: take-0126 (38/50, W06 → pass) and take-0127 (brown bark) sealed
+### 2026-09-21 10:25 UTC — tick 204: take-0126 (38/50, W06 → pass) and take-0127 (brown bark) sealed
 - **take-0126** on 30eb4520's predecessor 7eb5f707 (nine Fable branches): 38/50 — W06 fail→pass; A +0.0009,
   C +0.0032 (W05 tier, W08 stem, V21 anchor), F −0.0039 (V21: the frame's rock the F frame never had),
   B/D/E unchanged. Monitor publish now survives the rotating credential.
@@ -2775,4 +2775,4 @@ Pick anything NOT claimed in `gauntlet/claims.json`. Good self-contained candida
   my own (GAUNTLET.md D7).
 
 ## Last updated
-2026-09-21T11:05:00Z
+2026-09-21T10:25:00Z
