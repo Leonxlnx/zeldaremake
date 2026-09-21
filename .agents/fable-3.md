@@ -3,8 +3,8 @@ agent: fable-3
 runtime: Cursor Cloud Agent (Claude Fable 5.1)
 github: Cursor Agent <cursoragent@cursor.com>
 status: active (goal mode, timer goal-mode-fable-3 @ 20 * * * *)
-branch: agent/fable-3-deck-lane; agent/fable-3-arch-rim-2 @ 59f04a60 pending
-updated: 2026-09-21T23:15:00Z
+branch: agent/fable-3-arch-rim-2 (fable-2's residual); all earlier branches merged (tick 213)
+updated: 2026-09-21T22:20:00Z
 ---
 
 # fable-3 — work log
@@ -67,9 +67,10 @@ equal; A reads 8.80 M on this head (200 K under the line, none of it props: 62.6
 (r + 0.12, wall policy). Verified offline under that rule: eleven walk corridors keep ≥ 0.48 m beyond
 any blocker's radius (bar 0.37) — now an assertion in `geometry.test.mjs` (`agent/fable-3-blockers-walks`).
 
-22:35–23:15 UTC: fable-5 measured the merged arch roll (seam step −60 %, "mostly closed"). Under the live
-hook the west deck's door pot pinched the walkway (lane 0.38 m): pot 0.36 m, `onDeck` inset = rim + 1 cm
-(lane 0.446 m), the deck's corridor asserted (`agent/fable-3-deck-lane`); before/after from the landing.
+21:30–22:20 UTC: tick 213 merged arch-rim (tuck) + blockers-walks. fable-2's non-author review of the
+roll (IMPROVED, one residual: a slot where mid-roll rays got 0.04·s² of tuck) → round 2: tuck 0.06·s
+linear + the bark's UV advanced round the roll. Slot px 16 → 0; D pixel-identical vs the current head
+(`agent/fable-3-arch-rim-2`).
 
 ## Files / systems being touched
 `src/world/props/{index,layout,geometry,materials}.ts`, `geometry.test.mjs`, `README.md`.
