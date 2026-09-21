@@ -8,8 +8,8 @@
  * Built as its own mesh over the stone flight (which stays as it is, so the change can be pulled by
  * `STAIR_LOGS`): one bark geometry per flight, structures' `logBark` recipe on `bark_brown_02`
  * (dark weathered grey-brown, strong normal map, vertex colours carrying the moss and the damp
- * underside). The log sits on the slab's front edge, its crown ≈ 3.5 cm proud of the tread — the
- * lip a foot feels on a log-risered stair — and its front bulges 1–3 cm past the slab's own nose.
+ * underside). The log rides the slab's front edge, its crown ≈ 6 cm proud of the tread — the timber
+ * is the step's edge, the pale slab the tread behind it — and its front tangent 10 cm past the nose line.
  * Every draw is a hash or a noise field keyed on the step, so the flight's stone stream is untouched.
  */
 import { BufferGeometry, Color, Float32BufferAttribute, MeshStandardMaterial, Vector2, Vector3 } from 'three';
@@ -28,8 +28,14 @@ export const STAIR_LOGS = true;
 export const LOG_FLIGHTS = new Set(['main']);
 /** log radius range (m): ≈ 0.16–0.20 m across, §9 */
 export const LOG_RADIUS: [number, number] = [0.08, 0.1];
-/** the log's crown above the tread surface (m) */
-export const LOG_PROUD = 0.035;
+/**
+ * the log's crown above the tread surface, as a share of its radius: 0.7 → a 0.18 m log stands
+ * ≈ 6 cm proud, its upper half in the light — the timber IS the step's edge (first take: 3.5 cm and
+ * the slab's nose rode over it — a stone stair with a bark band, the reverse of log-risered)
+ */
+export const LOG_PROUD_R = 0.7;
+/** the log's front tangent this far in front of the slab's nose line (m); the slab noses overhang their risers 6.5–9.5 cm */
+export const LOG_FRONT = 0.1;
 /** stake radius and height above the tread (m) */
 export const STAKE_RADIUS = 0.045;
 export const STAKE_HEIGHT: [number, number] = [0.22, 0.34];
@@ -169,10 +175,10 @@ export function buildLogNosings(def: StairDef, seed: string): LogNosingBuild {
     const h2 = hash2(i, 23, 7);
     const r = LOG_RADIUS[0] + (LOG_RADIUS[1] - LOG_RADIUS[0]) * h;
     const topY = (i + 1) * def.rise;
-    const cy = topY - r + LOG_PROUD;
-    // the log lies along the riser's top edge, its centre 2 cm behind the tread's nose line so its
-    // front bulges 1–3 cm past the slab's own overhang; the overhang past the flanks is uneven
-    const along = i * def.tread - 0.02;
+    const cy = topY - r + LOG_PROUD_R * r;
+    // the log rides the slab's front edge like a fixed timber kerb: its front tangent LOG_FRONT
+    // past the nose line, its back over the slab's first 8 cm; the overhang past the flanks is uneven
+    const along = i * def.tread - LOG_FRONT + r;
     const overL = 0.08 + 0.1 * h2;
     const overR = 0.08 + 0.1 * hash2(i, 29, 7);
     const a = new Vector3(...worldOf(-hw - overL, along, cy));
