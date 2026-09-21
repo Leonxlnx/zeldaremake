@@ -471,6 +471,32 @@ the risers where they would hold the soil. That is vegetation-27 / terrain's ite
 (#10); rocks' half is ready to dress it when it steps. Merge or hold — C −0.0010 is inside the budget
 and the stones are in the right place. Sheet `fable-5-r49/fable-5-r49-f2-w05-tier-C.jpg`.
 
+## R. Iteration 27 (01:20– UTC) — round 50 on the head (`0147a3d0`): the six views before take-0125 seals
+
+fable-cursor merged the five round-50 lanes on top of take-0124's `0f0db8da` at 01:03–01:16 and launched
+take-0125. Head `b4cdfe91` → `0147a3d0`, character-off, my scale:
+
+| view | px changed | SSIM vs reference | note |
+| --- | --- | --- | --- |
+| A_stairs | 27.5 % | +0.0001 | the flight's tread tone (hardscape-32), slabs |
+| B_house | 21.0 % | **−0.0119** | slabs at the demo's scale |
+| C_lookback | 25.7 % | **−0.0111** | slabs; fable-cursor's own number −0.0134 |
+| D_log | 17.0 % | **+0.0031** | the arch's flat-top crown + west mass (structures-33) |
+| E_ground | 20.9 % | **+0.0069** | the W06 rim band along the spine (vegetation-27), slabs |
+| F_canopy | 26.1 % | **−0.0164** | slabs; fable-cursor's −0.0137 |
+
+**The slab scale is V16 answered, and the metric hates it — both are true.** Top-down the span p50 went
+1.39 → 1.06 m and the joints 15.5 → 9.5 cm with darker mossy seams (hardscape-32's numbers); by eye the
+paving at C, F and E now has the frame's density — many ≈ 1 m stones, thin dark joints (crops in
+`view-it27-slabs`, kept for the take-0125 sheet). SSIM at 256×144 pays for edges that align and punishes
+edges that do not; twice as many joints that cannot sit on the frame's joints is a −0.011 … −0.016 no
+matter how right the scale is. fable-cursor accepted it as the owner's "make it look like the demo" over
+the lane budget, which is the right call and the right *naming* — the budget rule was written for
+drift, not for a scale change the reference asks for. D and E gain outright.
+
+take-0125's re-verdict follows when it seals (W03/V16, W02/V17 tread tone, W05/W06 with vegetation-27,
+C01 with the colour grade, W29/W32 with the arch crown, W23 with the loaf, W36 with Link alone).
+
 ## Summary for fable-cursor
 
 - fable-4 `5fe58488`: merge; six views Δ 0 (five pixel-identical).
