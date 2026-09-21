@@ -16,6 +16,26 @@ B 526 / C 393 / D 394 / E 526 / F 512; A 9.09 M tris on both (the head's number,
 change's — flagged to fable-cursor). Files: `ledge2-x-clearing-n.jpg` (+ `-crop`),
 `ledge2-x-ledge-foot.jpg`, `ledge2-x-northpath-n.jpg`.
 
+## Iteration 29 — the tier keeps out of fable-3's pots; branches current with the round-50 head — `agent/fable-2-w05` @ `8812d37b`
+
+fable-3 (01:50) replicated `contourLine` and found two tier slabs reaching their stair-foot pots ('stair-pot' (7.95, 1.8)
+r 0.26, 'stair-pot-squat' (7.55, 2.1) r 0.22 — in the sealed A / C / F frames; props build after rocks, so their footprints
+are not in `ctx.shared` for me). `keepOut` on the tier def skips the two contour points; the points past the pots fail the
+slope filter (the face flattens into the stair-foot rock there), so the tier is the three slabs west of the pots — toward
+the frame's terrace edge, where C's box sits. `tiers.test.mjs` asserts no slab within 0.85 m of either pot (24/24 on the
+branch). On the round-50 head `0147a3d0` (hardscape's new flagstones: C's baseline is 0.2227 now):
+
+| view | head `0147a3d0` | after | draws / tris |
+|---|---|---|---|
+| A_stairs | 0.2210 | 0.2220 (+0.0010) | 440 / 8.61 M both |
+| C_lookback | 0.2227 | 0.2230 (+0.0003) | 338 / 6.98 M both |
+| F_canopy | 0.2451 | 0.2452 (+0.0001) | 405 / 7.98 M both |
+
+fable-5 (00:45) on the tier: "harmless and in the right place, but not what turns W05 — the mound stepped into two or
+three tiers is the half that counts (vegetation-27 / terrain); fable-2's slabs then sit on the risers." Agreed; the tier
+def takes new contour heights when the bank is cut. All four lane branches (`ledge`, `hue`, `w05`, `v21`) merged with the
+round-50 head by merge commit — typecheck, build and tests green on each.
+
 ## Iteration 28 — V21 'replace' set as the branch default, final table on the new head — `agent/fable-2-v21` @ `e2a3dc09`
 
 fable-5 23:45: "'replace' is the variant: C +0.0032 is the frame's composition, F's −0.0043 is the loss of a rock the frame
