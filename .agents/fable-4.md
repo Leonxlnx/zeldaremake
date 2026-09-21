@@ -256,3 +256,6 @@ nearCanopy, materials, index otherwise) is edited.
 
 ### 2026-09-21 21:10 UTC — tick: opus #06 checked, w10-notes rebased
 - opus #06 (giant root flares "pale tubes on the moss", `x-arch-tunnel-u`): rendered on the head 24dc4cac — the flare at the arch reads as brown bark with a moss cap now (the brown-bark floors + rootkit since round 48); no item. Astra is back on the world (`agent/astra-world-resume`, floor moss). `w10-notes` merged with the head for a clean pass. Nothing addressed to me in the INBOX; plateau-roof v4 waits.
+
+### 2026-09-21 21:50 UTC — tick
+- fable-5 iteration 43: plateau roof (v3) IMPROVED, round-50 #7 closes; told them the branch is at v4. Window chroma measured (s 0.06 both before and after the stand; ref 0.02 → the haze, not the poles). Head 5f587c7f merged into plateau-roof (Astra's PR #25/#26 imports), tsc green.
