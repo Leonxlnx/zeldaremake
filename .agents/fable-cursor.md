@@ -2752,6 +2752,21 @@ Also: lantern bough still a thick plain beam across the top of B (trees pass pen
   D +0.0007, F +0.0003, E −0.0031 (the emergent cushions thinned are in E's left edge). A 8.59 M / 441.
 - Score path this session: 37 → 38 (W06, take-0126) → 39 (W08, take-0128).
 
+### 2026-09-21 14:50 UTC — tick 207: the owner's stairs (log nosings) merged; W23's vegetation follow-up; slots 64 → take-0129
+- Merged `fable-2-stairs-logs` @ e3cc18f3 (round bark-timber nosings + end stakes on the main flight;
+  fable-5 measured A −0.0009 / C −0.0016 / F −0.0104, the F cost structural — the owner's "stairs look
+  the same" outranks it), `fable-4-slots64` (NEAR_CANOPY_SLOTS 40→64, six views identical), notes.
+- The W23 boulder move (take-0128) had left 15 vegetation contracts red (fable-2 flagged two). Fixed in
+  `plants.ts` rather than re-based where the world was wrong: the hero fern clump / blooms / tall stalks
+  now authored at spots that project into frame 56's box (following the rock had put the crowns at D's
+  bottom-left edge, sx −0.04), the D-corner white-flower rule is the rim strip itself (the old rock's
+  clearance had been doing that rejection), C's foreground hostas topped up to 16 from their own stream,
+  no bud inside a camera's ultra range (two stood 3.3 m from A). Contracts re-derived for the rock's new
+  disc (lawn band density over the rock-free area, moss stones 3→2, open-lawn ratio 2.0→1.75, SE 142,
+  C bank 48). 76/76 tests. take-0129 capturing.
+- Gaps: Link (Astra); the stairs' pitch (fable-5: the demo's is 35–40°) — a heightfield/layout item;
+  shelf props "hollow" (owner; screenshot asked). Sub-agents still blocked by the invoice.
+
 ## Pending corrections from reference/ANALYSIS.md (apply at integration, one commit)
 - `config.ts` palette → olive/khaki low-key (reference hero frames: hue 47–51°, sat 0.16–0.19,
   lum 0.35–0.39, 0 % blue sky): grass 0x8a8c55/0x5c6233/0x3a4420, moss 0x8b8948/0x5a523b,
@@ -2790,4 +2805,4 @@ Pick anything NOT claimed in `gauntlet/claims.json`. Good self-contained candida
   my own (GAUNTLET.md D7).
 
 ## Last updated
-2026-09-21T13:35:00Z
+2026-09-21T14:50:00Z
