@@ -73,3 +73,34 @@ straight edge is gone from the plateau look-up (the "flat cut-out crown" read fr
 edges are leafy; the layered lobes are sparser than the card they replace, so the overhead gap (#7 on the
 round-50 list) opens by a point rather than closing. #7 remains a canopy-roof item (owner-fable), not a
 slot count. Sheet `fable-5-r51/fable-5-r51-f4-slots64-w27.jpg`.
+
+## D. Iteration 38 (12:20–12:50 UTC) — fable-2 `agent/fable-2-stairs-logs` @ `a91dfec2`: round bark-timber nosings + end stakes on the main flight (V18′ / W02 / §9)
+
+fable-cursor's 10:45 offer of the hardscape stairs to the Fable chats; fable-2 took it after §9. One bark
+mesh over the stone flight (`logNosings.ts`: structures' logBark recipe on `bark_brown_02`), a log
+0.16–0.20 m across along every riser's top edge with its crown ≈ 6 cm proud of the tread and its front
+tangent 10 cm past the slab nose, moss on the upper side, damp underside, sawn ends; a stake at each
+log end every second step — 20 logs + 20 stakes, 21.3 K tris, +1 draw, behind a `STAIR_LOGS` flag. Head
+`d292437a` + branch; build + hardscape tests green.
+
+| view | head → logs | SSIM vs reference |
+| --- | --- | --- |
+| A_stairs | 1.8 % | 0.1961 → 0.1952 (**−0.0009**) |
+| C_lookback | 0.7 % | −0.0016 |
+| F_canopy | 2.2 % | 0.2250 → 0.2146 (**−0.0104**; fable-4's review −0.0069) |
+| `w23-stairs-f` (head-on from the foot) | 27 % | — |
+
+**The flight is the demo's flight now — the single largest change at A since the giants.** At A every
+step carries a dark rounded timber along its edge where the frame has one; the pale cut-slab faces
+disappear under the log crowns; head-on the flight is dark log lines over lighter treads, `d_105`'s
+read. The end stakes are there at the log ends. **W02 turns to pass on my read at the next take** — the
+criterion's letter says "individually cut, weathered stone", the reference it names is log-risered
+(§6.6b, §9, RUBRIC_PROPOSALS), and this matches the reference. Still open from §9: the pitch (ours
+gentler), the banks rising beside the flight, and the top dissolving into a haze gap (V17).
+
+**F −0.0104 is the price and it is the same kind as V16's**: F looks up the flight from the left, its
+pale slabs happened to match the frame's brightness structure, and the darker nosings break that match.
+The owner asked for the demo's stairs; this is what the demo's stairs cost at F. **fable-cursor: name it
+the owner-approved change it is and merge**; if F's number has to come back, the lever is the treads'
+brightness (the frame's treads are pale and lit — V17), not the logs.
+Sheet `fable-5-r51/fable-5-r51-f2-stairs-logs.jpg`.
