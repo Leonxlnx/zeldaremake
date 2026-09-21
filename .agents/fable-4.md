@@ -170,6 +170,78 @@ nearCanopy, materials, index otherwise) is edited.
 
 2026-09-20T10:40:00Z
 
+## 2026-09-20 18:25 UTC — tick: W08's taper and irregularity at C; my lean commit's re-roll found and reverted
+
+- take-0123 sealed (37/50); fable-5 re-filed W08 FAIL: lean + bough in, "a straight-sided cylinder with
+  no taper and no irregularity". Measured C's stem: 27 → 21 px over the visible 1–5 m (the flare is spent
+  by 2 m, the foot under the flowers).
+- `agent/fable-4-taper` (`3b15fbd9`, off the seal): shoulder +22–34 % (toes' crest → 0.36 H) and a bow/S
+  of 0.3–0.55 R over the lower half, on the swept surface only. First cut let the limbs follow the bend →
+  the crown moved → `TreeAsset.radius` moved → 18 placements re-rolled (replica). Second cut: crown,
+  leaves, bounds byte-identical; placements 80/80. Six views: C +0.0021, D +0.0005, B −0.0002, A/F =;
+  draws D +1; A 8.62 M. Evidence in `art/environment/round50-whitebark/`.
+- The same replica showed `ea86f8c1` (the lean, on r49b) re-rolls placements 62–79: `growthPath`'s
+  frame is world-anchored for a near-vertical stem, so an azimuth turn reshapes the crown's bounds
+  (± 0.3 m). fable-5's pair missed it (the outer ring is out of frame). Reverted (`78a71f47`), r49b is
+  marks-retire only; correction posted to fable-cursor + fable-5. Lesson: any change that can move a
+  crown must be checked with the placement replica before it is called "no re-roll".
+- fable-cursor routed the cull to trees-32 at 16:15 (before my knoll note); told them the white-bark
+  half is on `agent/fable-4-knoll`.
+- Branches: taper (ready), knoll (ready), r49b (ready, marks only), leafnear (Astra's go).
+
+## 2026-09-20 18:50 UTC — tick: knoll merged; merge check of the three pending branches
+
+- `agent/fable-4-knoll` merged (`d6f5f35f`). Round-50 list (fable-5, by the owner's order) has white-bark
+  taper at #9 — `agent/fable-4-taper` covers it, awaiting fable-cursor's next pass.
+- Astra adopted the `leafNear` line (their branch, line 474) and runs a leaf-warmth pass on the white-bark
+  program — the crown hue shift (#2) reaches my crowns through their material; nothing for me to rotate.
+- Test-merged r49b + taper + leafnear on the head: code auto-merges, tsc/build/tests green, docs-only
+  conflicts. Asked fable-cursor whether r49b is blocked.
+- Next candidates: the survey stem's bough half under C's HUD (fable-5's nit) — a lower main bough
+  would need the placement replica first (a lobe can set `TreeAsset.radius`); the epicormic stubs on the
+  bent sweep; else reviews.
+
+## 2026-09-20 19:35 UTC — tick: W08's lean at C by the instance matrix
+
+- fable-5 re-filed W08's take-0123 note: the C stem is plumb (my lean was never in the take and is
+  reverted). The lean half re-opened; a geometry lean re-rolls seats (bounds), so the hero stem leans by
+  its instance matrix: `HERO_WHITE_BARK_TILTS` (variant 7 at (−7.39, 12.87), 5.5°, top toward (0.9, 0.43)
+  = into C's frame), `seatFamily` takes an optional tilt. Measured: C 0.2380 → 0.2373 (branch +0.0014 over
+  the seal), other views pixel-identical; at 3× the top sits 22 px left of the foot. `6537e21a` on
+  `agent/fable-4-taper`.
+- Direction check was needed: the first eyeball read of the crop was wrong; the 3× zoom showed the
+  top left of the foot as intended (camera-left at that spot is world +x).
+- Branches: taper (ready, now taper + bow + tilt), r49b (ready, marks only), leafnear (Astra adopted).
+
+## 2026-09-20 20:40 UTC — tick: W08's "a bough that shows" at C
+
+- fable-5 iteration 20: taper IMPROVED, merge; remaining halves lean (done 19:35) and a bough that shows.
+- The bough at C had two problems: height (lobe half under the HUD, then behind the lantern limb at 4–4.5 m
+  when lowered to 15–25 %) and the medium mesh's thinning (1 in 6 at 2.2× → 25 floating cards). Fixed:
+  mature main bough at 12–17 %; low-bough lobes keep 1 in 2 / 4 at 1.3 / 2.0× on medium / low (`boughSpray`
+  flag). Replica 80/80; high mesh triangle-identical; six views C =, E −0.0001; A 8.62 M =. `723cb6d7`.
+- Lesson: a change can be geometrically right and still invisible at the judged frame because of the LOD
+  the camera actually draws — check the LOD tier at the pose before calling a fix done.
+- Branches: taper (ready: shoulder, bow, tilt, bough), r49b (marks only, waiting), leafnear (Astra adopted).
+
+## 2026-09-20 21:20 UTC — tick: Astra's warmth measured on the white-bark crowns
+
+- fable-5 iteration 21: the instance-matrix lean at C +0.0002, IMPROVED. fable-cursor silent since 17:25;
+  taper (4 commits), r49b, leafnear all wait.
+- Measured Astra's tip `b89eae66` vs the head at three crown poses with fable-5's mask: −9…−10° hue on the
+  white-bark crowns (85 → 75°, 82 → 73°, 78 → 69°), sat/lum held; still 8–13° above the 62–65° target.
+  Posted to Astra/fable-5 with the offer to turn my vertex colours if they want the last step there.
+
+## 2026-09-20 23:05 UTC — tick: the bough over a walker's head
+
+- fable-cursor still silent (since 17:25); fable-5 keeps a merge queue with the taper branch first.
+- Checked what I owed the lowered bough: at eye height 3.5 m off the survey stem the lobe's underside was
+  1.4 m. Clamped the main lobe's underside to ≥ 1.9 m (`WALKER_CLEARANCE_M`), lobe flatter/wider. At C the
+  bough shows twig + a leaf spray under the lantern limb (the limb covers ≈ 3–4 m on the stem; a lobe below
+  it is a lobe at head height — the trade-off is stated in the README). Six views: C +0.0002, rest identical.
+  Placements 80/80. Whole branch vs the seal: C +0.0017.
+- Branches: taper (ready: shoulder, bow, tilt, bough + clearance), r49b (marks only), leafnear (Astra adopted).
+
 ## 2026-09-20 16:50 UTC — tick: expansion-2 landed; a white-bark through the far hut (fixed)
 
 - Head `97c83227` (expansion-2, character-10, the W24 fix). My replica of the white-bark placement,
@@ -189,3 +261,48 @@ nearCanopy, materials, index otherwise) is edited.
   and fable-cursor's; not tuned blind.
 - Branches out: `agent/fable-4-r49b` (pending merge), `agent/fable-4-leafnear` (Astra's go),
   `agent/fable-4-knoll` (ready).
+
+## 2026-09-21 00:05 UTC — tick: branches merged up to the new head; the albedo hue lever measured (negative)
+
+- fable-cursor back: owner priority (NPCs hidden, Link PR #24), take-0124 running on `0f0db8da`. My branches
+  not yet merged; merged the new head into taper / r49b / leafnear (docs-only conflicts), tsc green, pushed.
+- Measured a −12° HSL turn on the white-bark leaf albedo at three crown poses: −3° in the frame (85 → 82°
+  etc.). The rendered hue is the lighting's; my vertex colours are not the lever for the last −10°. Scratch
+  branch dropped; table in the round-50 README; INBOX to Astra / fable-cursor.
+
+## 2026-09-21 01:00 UTC — tick: shoots on the bent axis
+
+- fable-5 iteration 24: the taper branch tip C +0.0009, all four W08 words at C. Head still `b4cdfe91`
+  (take-0124 sealing). Polish: epicormic shoots seat on the bent axis; replica 80/80; subtle at the poses.
+- Lane state: everything W08 asked for is on `agent/fable-4-taper`; r49b (marks) and leafnear wait with it.
+
+## 2026-09-21 01:45 UTC — tick: the far layer's white-bark share
+
+- Head still `b4cdfe91`; no merges since 17:25. Rendered the SW pan on the taper state: the low-mesh
+  white-barks at 20–40 m carry shoulder + bow; filed as a #3 data point (crop + INBOX). Lane otherwise idle
+  pending merges.
+
+## 2026-09-21 03:35 UTC — tick: round 50 merged; branches re-based; taper re-measured
+
+- Round 50 landed (five lanes), take-0124 sealed 37/50, take-0125 running. trees-32 merged with two knoll
+  white-barks (my species, live-seated) and a disc-line placement block — replica: 80/80 identical to
+  take-0123, no flip. Merged the head into taper / r49b / leafnear; the trees/index.ts conflict resolved as
+  trees-32's block + my seatFamily tilt. Six views on the new head: A/B/D/E/F pixel-identical, C −0.0005.
+- Branches: taper (ready), r49b (marks only), leafnear (Astra adopted).
+
+## 2026-09-21 04:25 UTC — tick: review of trees-32's knoll
+
+- Head still `0147a3d0` (take-0125 sealing); branches wait. Reviewed trees-32's knoll white-barks + host
+  column at my two knoll poses: the hut's sight line from Link's spot is clear, nothing floats — IMPROVED.
+
+## 2026-09-21 05:20 UTC — tick: heartbeat
+
+- Head `0147a3d0` unchanged (take-0125 sealing). fable-5 iteration 28: the taper re-measured on the round-50
+  head, C +0.0009 (their method; mine −0.0005 — both inside the budget). Branches unchanged and current;
+  merge notes to fable-cursor (03:35) still stand. No INBOX traffic this tick.
+
+## 2026-09-21 06:20 UTC — tick: take-0125 sealed; branches at the seal
+
+- take-0125 sealed on `c4d12f6c` (37/50; the demo-scale stones cost B/C/F −0.010…−0.015 on their own). My
+  r81 pair was measured on exactly that code: taper A/B/D/E/F pixel-identical, C −0.0005. Branches merged up
+  to the seal commit; waiting on fable-cursor's queue pass.
