@@ -95,6 +95,12 @@ export interface LogArchBuild {
     bellyOverWalk: { atCrossing: number; southFace: number; northFlank: number };
     groundAtCrossing: number;
   };
+  /**
+   * round 50 (structures-33): the flat top — the crown superellipse, the moss cap's scale, the
+   * mid-span top line (world y) the west crown mass lifts the west third to, that mass's greatest
+   * lift (m) and the body's crown height (world y) at s −10 / −7 / 0 / +6 as built
+   */
+  detail50: { crownFlat: number; crownExp: number; mossCapScale: number; topLine: number; westMassMax: number; crownY: { s: number; y: number }[] };
 }
 
 export function buildLogArch(ctx: WorldContext, mats: StructureMaterials, rng: Rng): LogArchBuild {
@@ -358,10 +364,42 @@ export function buildLogArch(ctx: WorldContext, mats: StructureMaterials, rng: R
   const sEndE = (psi: number) => L / 2 + 0.35 * (1 + Math.cos(psi + 1)) + plateAmount(psi, platesE, 1) + 0.25 * noise.noise(psi * 3, 8.5);
 
   // ---- radius model: bulges along the length, bark ridges along the axis, moss cushions on top ----
+  /**
+   * Round 50 (structures-33; fable-5 #1 / structures-32 item 4, W29): the FLAT TOP. In frame D
+   * (56 s) the arch is a flat-topped horizontal log — its top edge runs level at y ≈ 0.27–0.29
+   * from the west root mass (x 0.39–0.47) to the east (measured: peak-to-ends rise 4 px, sd 5 px
+   * over x 0.44–0.62) over a body ≈ 45 px thick; ours (take-0123) peaked at y 0.25 mid-span
+   * and fell to 0.32 at x 0.44 (rise 72 px, sd 39 px) over a 110 px body — a rounded mound.
+   * Three shape terms, all on the UPPER half so the belly, the passage tube (round 49), the
+   * cheeks, the pods' hooks (ψ ≤ 0.27 rad above the equator) and every clearance are exactly what
+   * they were:
+   *  1. the cross-section above the equator is a SUPERELLIPSE (exponent CROWN_EXP, semi-axes R
+   *     across and CROWN_FLAT × R up), blended in from up 0.3: the crown sits 0.51 m lower with
+   *     squarer shoulders (+1.4 % at 37°), a flat ≈ 4 m wide on top instead of a ridge;
+   *  2. the moss cap is lower (`mossCap`: 0.55 × its round-21 thickness) and its edge feathers
+   *     wider down the flanks;
+   *  3. the WEST CROWN MASS (`westMass`, in `detail`): the body's top over the west third is
+   *     lifted to the mid-span top line (`TOP_LINE`, the same world height the frame's flat top
+   *     projects to) so the top edge runs level to the broken end instead of falling 4 m with the
+   *     bowed axis — the frame's dark west root mass (x 0.39–0.47, y 0.27–0.46). Eased in from
+   *     s −4.5 (east of it nothing moves), on the crown only (up 0.2 → 0.75), and faded out over
+   *     the last 1.3 m to the torn rim so the end-grain annulus keeps its 0.55 m wall.
+   * Both shells take term 1 through `rBase` (the hollow's ceiling is the same chord, the wall
+   * thickness holds); terms 2–3 are outer relief.
+   */
+  const CROWN_FLAT = 0.6;
+  const CROWN_EXP = 2.6;
+  const crownProfile = (psi: number) => {
+    const up = Math.sin(psi);
+    if (up <= 0.3) return 1;
+    const c = Math.abs(Math.cos(psi));
+    const se = Math.pow(Math.pow(c, CROWN_EXP) + Math.pow(up / CROWN_FLAT, CROWN_EXP), -1 / CROWN_EXP);
+    return lerp(1, se, smoothstep(0.3, 0.6, up));
+  };
   const rBase = (psi: number, s: number) => {
     const taper = 1 + 0.07 * ((s + L / 2) / L) - 0.05 * (1 - (s + L / 2) / L);
     const bulge = 1 + 0.05 * noise.fbm(s * 0.18, Math.cos(psi) * 0.6, 2) + 0.03 * noise.noise(s * 0.4 + 3, Math.sin(psi) * 0.8);
-    return R * taper * bulge;
+    return R * taper * bulge * crownProfile(psi);
   };
   const upness = (psi: number) => Math.sin(psi);
   /**
@@ -370,14 +408,21 @@ export function buildLogArch(ctx: WorldContext, mats: StructureMaterials, rng: R
    * hangs unevenly down the flanks. Shared by the relief and the colour mask so they agree.
    */
   const mossEdge = (psi: number, s: number) => 0.22 * noise.noise(s * 1.1 + 3, psi * R * 0.9);
-  /** thickness of the moss cap (metres) — a real cushion on the upper third, feathering out on the flanks
-   *  (round 21: thicker and lumpier — 0.22 + 0.42 cushions + 0.18 clumps, was 0.16 / 0.3 / 0.12) */
-  const mossCap = (psi: number, s: number, up: number) => {
+  /**
+   * The moss FIELD (0–0.82): where the cap is and how much of a cushion it is — the round-21
+   * thickness shape, which the tufts, trefoils, plates and the crown's colony bed key their
+   * thresholds on (unchanged semantics). Round 50: the edge feathers from up −0.02 to 0.62 (was
+   * 0.08–0.75), so the cap reaches full cover 12° further down each flank — wider.
+   */
+  const mossField = (psi: number, s: number, up: number) => {
     const arc = psi * R;
     const cushions = 0.5 + 0.5 * noise.fbm(arc * 0.7 + 4, s * 0.7, 2);
     const clumps = noise.ridged(arc * 1.4 + 2, s * 1.1, 2);
-    return smoothstep(0.08, 0.75, up + mossEdge(psi, s)) * (0.22 + 0.42 * cushions + 0.18 * clumps);
+    return smoothstep(-0.02, 0.62, up + mossEdge(psi, s)) * (0.22 + 0.42 * cushions + 0.18 * clumps);
   };
+  /** the cap's LOWER round-50 thickness as displacement (m): 0.55 × the field, ≤ 0.45 m (was ≤ 0.82) */
+  const MOSS_CAP_SCALE = 0.45;
+  const mossCap = (psi: number, s: number, up: number) => MOSS_CAP_SCALE * mossField(psi, s, up);
   /**
    * bark relief only (no moss): broad longitudinal ridges, deep narrow fissures, lumps, grain.
    * Round 21: deeper — the ridges' swing ×1.5 (±0.37 m), the fissures 0.6 m (was 0.4), a second
@@ -466,7 +511,28 @@ export function buildLogArch(ctx: WorldContext, mats: StructureMaterials, rng: R
     return cords3 * 0.08 - crack * 0.11 - chip * 0.025;
   };
   const bark = (psi: number, s: number) => barkCoarse(psi, s) + barkFine(psi, s);
-  const detail = (psi: number, s: number, up: number) => bark(psi, s) + mossCap(psi, s, up);
+  /**
+   * Round 50: the WEST CROWN MASS (see `crownProfile`). The mid-span top line is the flattened
+   * body's crown at s 0; west of WEST_MASS_TO the crown is lifted by what the bowed axis has
+   * dropped below it, eased in over 2.5 m, full on the crown (up ≥ 0.75), gone at the shoulders
+   * (up 0.2) and over the 1.3 m before the torn rim; ± 12 % metre-scale lumps so it reads as a
+   * root ball / burl and not a ramp. Radial displacement, so on the shoulders it also widens the
+   * mass a little — a rounded hump, not a fin.
+   */
+  const WEST_MASS_TO = -4.5;
+  const TOP_LINE = axisAt(0).y + rBase(Math.PI / 2, 0);
+  const westMass = (psi: number, s: number, up: number) => {
+    if (s > WEST_MASS_TO || up < 0.2) return 0;
+    const deficit = Math.max(0, TOP_LINE - (yc(s) + rBase(Math.PI / 2, s)));
+    if (deficit <= 0) return 0;
+    const along = smoothstep(WEST_MASS_TO, WEST_MASS_TO - 2.5, s);
+    const rim = sEndW(psi);
+    const rimFade = smoothstep(rim + 0.3, rim + 1.6, s);
+    const across = smoothstep(0.2, 0.75, up);
+    const lumps = 1 + 0.12 * noise.fbm(s * 0.6 + 21, psi * R * 0.5, 2);
+    return deficit * along * rimFade * across * lumps;
+  };
+  const detail = (psi: number, s: number, up: number) => bark(psi, s) + mossCap(psi, s, up) + westMass(psi, s, up);
   /**
    * Round 41 (structures-26): the crown moss as CUSHION COLONIES, the recipe of Saria's cap
    * (round 40, accepted): a 3D field over the surface point picks 0.4–0.8 m colonies; the sheet is
@@ -520,7 +586,12 @@ export function buildLogArch(ctx: WorldContext, mats: StructureMaterials, rng: R
     // 'belly' the survey names is the SOUTH FLANK 6–12 m up (up 0…0.6) seen at 17 m, not the
     // underside, so the flank carries the plates too.
     const plated = lerp(plateAt(psi, s), 1, smoothstep(0.3, 0.7, up + mossEdge(psi, s)));
-    const shade = ao * vari * belly * plated;
+    // round 50: the west crown mass is a SHADED root ball, not a lit moss hump — its faces and
+    // crown drop to ≈ 0.45 of the shade and lose most of the moss tint over the lift (the frame's
+    // west mass at x 0.39–0.47 is the darkest thing in the band; the first cut's moss-lit mass
+    // read as a pale blob left of the body and the dark-body silhouette did not reach it)
+    const massLift = smoothstep(0.2, 1.4, westMass(psi, s, up));
+    const shade = ao * vari * belly * plated * (1 - 0.55 * massLift);
     // damp, weathered grey-brown bark (the material tint + dark bark map carry the rest).
     // Round 21: ×0.78 — D's arch mass rendered p50 0.481 against the reference's 0.404 with the
     // surrounding haze at ≈ 0.5: the body has to be darker under the veil to read as a mass
@@ -530,10 +601,11 @@ export function buildLogArch(ctx: WorldContext, mats: StructureMaterials, rng: R
     // underneath is brown, so the green has to be pushed hard through the vertex tint
     // round 41: the shaded floor between the cushion colonies and the lifted hearts, only where
     // the moss is a real cushion (thick cap, m high) — the flanks' creeping patches keep their tone
-    const bed = m * smoothstep(0.15, 0.4, mossCap(psi, s, up));
+    const bed = m * smoothstep(0.15, 0.4, mossField(psi, s, up)) * (1 - massLift);
+    const mMass = m * (1 - 0.7 * massLift);
     const heart = lerp(1, lerp(CROWN_FLOOR, CROWN_HEART, colony(p)), bed);
     const mossC = [(1.3 + 0.8 * shade) * heart, (2.4 + 1.4 * shade) * heart, (0.5 + 0.3 * shade) * heart];
-    return [lerp(barkC[0], mossC[0], m), lerp(barkC[1], mossC[1], m), lerp(barkC[2], mossC[2], m)];
+    return [lerp(barkC[0], mossC[0], mMass), lerp(barkC[1], mossC[1], mMass), lerp(barkC[2], mossC[2], mMass)];
   };
 
   const _n = new Vector3();
@@ -880,9 +952,12 @@ export function buildLogArch(ctx: WorldContext, mats: StructureMaterials, rng: R
     n.y += 0.4;
     n.normalize();
     const fern = vegRng() < 0.45;
-    foliage.addTuft(p, n, (fern ? 0.85 : 0.55) * (0.75 + vegRng() * 0.6), fern ? 1 : 0, 0.05, topShade);
+    // round 50 (the flat top, see `crownProfile`): the crown's ferns 0.6 (were 0.85, ≤ 1.1 m tall
+    // = 17 px of fuzz on D's top edge) and the grass 0.45 — the frame's top edge is clean
+    foliage.addTuft(p, n, (fern ? 0.6 : 0.45) * (0.75 + vegRng() * 0.6), fern ? 1 : 0, 0.05, topShade);
   }
-  // hero ferns on the crown of the broken west mass: they break the silhouette against the haze
+  // hero ferns on the crown of the broken west mass (round 50: 0.7–1.0 m, were 1.15–1.6 m —
+  // they stood on the west mass's crown, now the level top line D measures)
   for (let i = 0; i < 6; i++) {
     const psi = Math.PI / 2 + (vegRng() - 0.5) * 1.2;
     const s = sEndW(psi) + 0.9 + vegRng() * 2.6;
@@ -890,15 +965,16 @@ export function buildLogArch(ctx: WorldContext, mats: StructureMaterials, rng: R
     const n = radialDir(psi, s);
     n.y += 0.8;
     n.normalize();
-    foliage.addTuft(p, n, 1.15 + vegRng() * 0.45, 1, 0.06, topShade);
+    foliage.addTuft(p, n, 0.7 + vegRng() * 0.3, 1, 0.06, topShade);
   }
-  // bushy leaf clumps (saplings / ivy mounds) rooted in the moss along the top
+  // bushy leaf clumps (saplings / ivy mounds) rooted in the moss along the top (round 50: 0.35–0.65 m
+  // radius sunk to the sheet, were 0.55–1.0 m standing 0.25 m proud — 15 px lumps on D's top edge)
   for (let i = 0; i < 9; i++) {
     const psi = Math.PI / 2 + (vegRng() - 0.5) * 1.1;
     const s = lerp(-L / 2 + 1.2, L / 2 - 1.5, (i + vegRng()) / 9);
     if (s < sEndW(psi) + 0.8) continue;
-    const p = surfacePoint(psi, s, rBase(psi, s) + detail(psi, s, upness(psi)) + 0.25);
-    foliage.addLeafCluster(p, 0.55 + vegRng() * 0.45, 70, { size: 0.15, amount: 0.05, droop: 0.45, tint: [0.55, 0.64, 0.32], tintSpread: 0.3, flatten: 0.55 });
+    const p = surfacePoint(psi, s, rBase(psi, s) + detail(psi, s, upness(psi)) + 0.05);
+    foliage.addLeafCluster(p, 0.35 + vegRng() * 0.3, 70, { size: 0.15, amount: 0.05, droop: 0.45, tint: [0.55, 0.64, 0.32], tintSpread: 0.3, flatten: 0.55 });
   }
   // where the path spine crosses under the arch (along-axis s of the spine's crossing of the
   // axis line). Layout round 6: solved from `layout.pathSpine` instead of the stale "x ≈ 2"
@@ -1178,7 +1254,7 @@ export function buildLogArch(ctx: WorldContext, mats: StructureMaterials, rng: R
     const keep2 = tuftRng();
     if (s < sEndW(psi) + 0.25 || s > sEndE(psi) - 0.4) continue;
     const up = upness(psi);
-    const thick = mossCap(psi, s, up);
+    const thick = mossField(psi, s, up);
     if (keep > smoothstep(0.15, 0.4, thick)) continue;
     surfacePoint(psi, s, rBase(psi, s) + detail(psi, s, up), _tp);
     // on the colony hearts only (a 4 % straggle on the floor between), never on the near-vertical
@@ -1293,7 +1369,7 @@ export function buildLogArch(ctx: WorldContext, mats: StructureMaterials, rng: R
       const v = carpetWarp(f);
       const s = lerp(sEndW(psi) + 0.3, sEndE(psi) - 0.5, v);
       const up = upness(psi);
-      const thick = mossCap(psi, s, up);
+      const thick = mossField(psi, s, up);
       surfacePoint(psi, s, rBase(psi, s) + detail(psi, s, up), out.position);
       surfaceNormal(psi, s, _cn);
       const off = carpetOffset(out.position, thick);
@@ -1436,7 +1512,7 @@ export function buildLogArch(ctx: WorldContext, mats: StructureMaterials, rng: R
         const psi0 = arc0 / R - Math.PI;
         if (s0 < sEndW(psi0) + 0.25 || s0 > sPlateTo) continue;
         const up0 = upness(psi0);
-        const thick0 = mossCap(psi0, s0, up0);
+        const thick0 = mossField(psi0, s0, up0);
         if (thick0 > 0.13) continue;
         plateArcCells++;
         // the fissure channels stay open; a few plates straggle over their shallow edges
@@ -1687,7 +1763,7 @@ export function buildLogArch(ctx: WorldContext, mats: StructureMaterials, rng: R
       const psi = psi0 + (plantRng() - 0.5) * 0.15;
       if (s < sEndW(psi) + 0.4 || s > sEndE(psi) - 0.6) continue;
       const up = upness(psi);
-      if (mossCap(psi, s, up) < 0.2) continue;
+      if (mossField(psi, s, up) < 0.2) continue;
       surfacePoint(psi, s, rBase(psi, s) + detail(psi, s, up) - 0.01, _tp);
       surfaceNormal(psi, s, _tn);
       trefoil(_tp, _tn, 1);
@@ -2922,5 +2998,13 @@ export function buildLogArch(ctx: WorldContext, mats: StructureMaterials, rng: R
     detail44,
     detail47: { ...detail47, minStripClearance: detail47.minStripClearance === Infinity ? Infinity : +detail47.minStripClearance.toFixed(2) },
     detail49,
+    detail50: {
+      crownFlat: CROWN_FLAT,
+      crownExp: CROWN_EXP,
+      mossCapScale: MOSS_CAP_SCALE,
+      topLine: +TOP_LINE.toFixed(2),
+      westMassMax: +[-11.5, -11, -10.5, -10, -9, -8, -7, -6, -5].reduce((m, s) => Math.max(m, westMass(Math.PI / 2, s, 1)), 0).toFixed(2),
+      crownY: [-10, -7, 0, 6].map((s) => ({ s, y: +surfacePoint(Math.PI / 2, s, rBase(Math.PI / 2, s) + detail(Math.PI / 2, s, 1)).y.toFixed(2) })),
+    },
   };
 }
