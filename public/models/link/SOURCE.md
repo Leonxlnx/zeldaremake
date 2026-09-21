@@ -1,5 +1,13 @@
 # Young Link runtime candidate — Blender source and validation
 
+## September 21 shorter boot tips
+
+Current delivery: **4dcf89c5c10391981289e2583152c26fb4ac93047c6fcb4bb0959e246805d850**,51,111,284bytes. A native Blender edit shortens only the distal boot tips, by at most11.39mm (about4.1% of total sole length). Width, sole height, heels, ankles and cuffs remain unchanged. The source is89df below; all original BIN bytes, rig, clips, weights, UVs, textures and morphs are preserved. Only body POSITION/NORMAL/TANGENT references change to appended arrays.
+
+The earlier ankle-only327-point footprint omitted210 low toe vertices. Runtime source06552ded fixes that shared measurement. With the complete537-point footprint, the shorter model passes1,320actual player stair frames and708,840surface queries, including transitions and endpoint terrain: no negative samples/reach clamps/page errors, minimum+1.187mmup/+1.264mmdown. Peak knees167.22/168.35degrees and thigh/tunic intrusion remain unfinished. This is an incremental shape improvement, not completed locomotion.
+
+Native pairs, exact deformation checks, provenance and fresh-clone verification: `art/characters/link/progress/2026-09-21-boot-tip/README.md`. Appended geometry adds3,286,068bytes; no added triangles or textures. Existing source/provider and CC0 animation provenance below are unchanged.
+
 ## September 21 repaired run delivery
 
 Current local delivery: **89df38f255e47afbcbb28a60555fb4a4a20091741d427ef1d7b8ea1ac33f306b**, 47,825,216 bytes. It replaces only four run shoulder/elbow rotation channels on the colour-baked stairs delivery below. Historical native actions retained 32 unwanted fractional keys; the new carrier reconstructs the already-reviewed carriage from the smooth, hash-pinned `24591126` CC0-derived motion using fresh selected curves. Current calves, boot dimensions, geometry, materials, textures, morphs, hands' local channels, idle/walk/stairs, run hips/legs, stride and cycle are preserved exactly.

@@ -1,0 +1,10 @@
+{
+  "correspondence": "raw one-to-one nearest source; no registration or fitted transform",
+  "raw_native_source_error_m": 2.807853386941425e-06,
+  "raw_native_after_error_m": 2.5284246448160263e-06,
+  "deformation_delta_error_m": 3.056626222408543e-07,
+  "one_to_one_vertices": 1664,
+  "raw_source_tolerance_m": 3e-06,
+  "deformation_delta_tolerance_m": 1e-06,
+  "original_native_rows_sha256": "80a2a811f9a9ebd1b2d8a0a96339e0d1386135a9d81bc349a452c1c6769c4474"
+}

@@ -1,7 +1,7 @@
 {
   "file": "E:\\zeldaremake-astra-motion-sept21\\public\\models\\link\\link-runtime.glb",
-  "sha256": "89df38f255e47afbcbb28a60555fb4a4a20091741d427ef1d7b8ea1ac33f306b",
-  "bytes": 47825216,
+  "sha256": "4dcf89c5c10391981289e2583152c26fb4ac93047c6fcb4bb0959e246805d850",
+  "bytes": 51111284,
   "periodS": 0.4666666666666667,
   "maxStepBoundDeg": 2.9034433302205733,
   "bones": {
@@ -51,7 +51,17 @@
   "preservation": {
     "originalBinSha256": "d2a68a880471f76cdb152ae711d025034fe4788f7aa1258f8519ed7709dde43c",
     "originalBinAndAccessorSpansExact": true,
-    "restRigMeshesMaterialsImagesExact": true,
+    "restRigMaterialsImagesExact": true,
+    "meshMetadataExact": false,
+    "declaredBootGeometryChange": {
+      "mesh": 2,
+      "primitive": 0,
+      "attributes": [
+        "POSITION",
+        "NORMAL",
+        "TANGENT"
+      ]
+    },
     "otherClipsAndUnselectedRunChannelsExact": true
   },
   "pass": true

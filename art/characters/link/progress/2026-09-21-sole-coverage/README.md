@@ -1,5 +1,7 @@
 # Foot-family coverage diagnosis
 
+The following diagnosis originally used89df. The later accepted4dcf boot-tip edit preserves the same537 vertex indices and toe tracks; [its own report](../2026-09-21-boot-tip/README.md) records changed forward bounds and fresh contact verification. `coverage-current.json` now reports4dcf. The paired table below retains both historical shapes for comparison.
+
 **The former 327-vertex footprint omitted 210 low toe vertices; production now measures the complete 537-vertex foot family.** This static audit identified the missing region (127 distinct positions) inside the same 12 mm sole band. These are drawn vertices, and no toe animation keeps them clear. The static audit alone did not establish terrain penetration.
 
 The subsequent [paired CPU surface replay](../2026-09-21-complete-foot/cpu-comparison.json) measured actual intersections on unchanged asset89df with the old footprint: **78/470 ascent poses, worst −309.193 mm; 131/470 descent poses, worst −46.443 mm**. The adopted family footprint removes negative vertical clearances in all **940 sampled poses**, with minima **+1.188 mm ascent / +2.092 mm descent**. Flat idle/walk/run root/skeleton trace hashes remain exact. This contact fix does not establish natural stair posture or arbitrary-route collision freedom; the [complete-foot report](../2026-09-21-complete-foot/README.md) records the pose changes and test limits.

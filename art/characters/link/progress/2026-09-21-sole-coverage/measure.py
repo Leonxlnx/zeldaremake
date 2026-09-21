@@ -157,10 +157,16 @@ def toe_animation(doc, binary):
 
 
 parser = argparse.ArgumentParser(description=__doc__)
-parser.add_argument('--held', type=Path, help='Optional held4dcf GLB for comparison; exact hash required.')
+parser.add_argument('--current', type=Path, default=ROOT/'public/models/link/link-runtime.glb',
+                    help='Current asset, restricted to the reviewed89df or4dcf hash.')
+parser.add_argument('--held', type=Path, help='Historical89df-to4dcf comparison; --current must be original89df.')
 args = parser.parse_args()
-sources = {'current': (ROOT/'public/models/link/link-runtime.glb', CURRENT_SHA)}
+current_file = args.current.resolve()
+current_sha = hashlib.sha256(current_file.read_bytes()).hexdigest()
+assert current_sha in (CURRENT_SHA, HELD_SHA), 'Unreviewed current asset'
+sources = {'current': (current_file, current_sha)}
 if args.held:
+    assert current_sha == CURRENT_SHA, 'Historical comparison requires the original89df control via --current'
     sources['held'] = (args.held.resolve(), HELD_SHA)
 mode = 'comparison' if args.held else 'current'
 loaded = {key: load(*source) for key, source in sources.items()}
@@ -181,7 +187,7 @@ report = {'mode': mode, 'scope': 'Raw source geometry and complete authored clip
           'selectorCorrection': 'Original327 evidence uses ankle-dominant +12mm; >.95 ankle/+5mm defines only the separate extremal markers.',
           'assets': reports, 'toeAnimation': animations['current'],
           'decision': 'The historical ankle-only327 rule omits a meaningful low toe region; the complete ankle+toe family is537. This static asset check is separate from the follow-up terrain replay in ../2026-09-21-complete-foot/cpu-comparison.json.'}
-selection = {'sourceSha256': CURRENT_SHA,
+selection = {'sourceSha256': current_sha,
              'meshIndex': 2, 'primitiveIndex': 0, 'meshNode': reports['current']['mesh'],
              'rule': 'Dominant bone ankleSIDE OR toeSIDE, rest POSITION.y <= minimum ankle-family POSITION.y +0.012.',
              'bandM': .012, 'totalVertices': 537, 'bySide': selections['current']}

@@ -22,8 +22,10 @@ function unpack(bytes) {
   return {doc:JSON.parse(bytes.subarray(20,20+length)),bin:bytes.subarray(28+length)};
 }
 const bytes = await fs.readFile(file);
-const expected = '89df38f255e47afbcbb28a60555fb4a4a20091741d427ef1d7b8ea1ac33f306b';
-assert.equal(hash(bytes),expected,'Wrong candidate asset');
+const originalExpected = '89df38f255e47afbcbb28a60555fb4a4a20091741d427ef1d7b8ea1ac33f306b';
+const shorterExpected = '4dcf89c5c10391981289e2583152c26fb4ac93047c6fcb4bb0959e246805d850';
+const expected = hash(bytes), shorter = expected === shorterExpected;
+assert.ok([originalExpected,shorterExpected].includes(expected),'Wrong candidate asset');
 const model = unpack(bytes);
 const bones = ['shoulderL','elbowL','shoulderR','elbowR'];
 const period = 28/60;
@@ -69,7 +71,23 @@ for(const name of [...bones,'handL','handR']) {
 // unselected animations without distributing a second full-size character.
 const p=JSON.parse(await fs.readFile(path.join(out,'rebuilt-source-preservation.json')));
 assert.equal(hash(model.bin.subarray(0,p.originalBinBytes)),p.originalBinSha256);
-for(const [key,want] of Object.entries(p.fixedMetadata)) assert.equal(jsonHash(model.doc[key]),want,key);
+const boot = shorter ? JSON.parse(await fs.readFile(path.join(out,'../2026-09-21-boot-tip/source-preservation.json'))) : null;
+if(boot) assert.equal(boot.source_sha256,originalExpected);
+for(const [key,want] of Object.entries(p.fixedMetadata)) {
+  let metadata = model.doc[key];
+  if(key === 'meshes' && boot) {
+    // These three active boot arrays changed. Restore only their references for the
+    // original mesh-metadata contract; boot/check.py checks the actual deformation.
+    metadata = structuredClone(metadata);
+    assert.deepEqual(Object.keys(boot.body_attributes),['POSITION','NORMAL','TANGENT']);
+    const attrs = metadata[2].primitives[0].attributes;
+    for(const [i,kind] of Object.keys(boot.body_attributes).entries()) {
+      assert.equal(attrs[kind],boot.accessor_count+i,'Unexpected boot accessor');
+      attrs[kind] = boot.body_attributes[kind];
+    }
+  }
+  assert.equal(jsonHash(metadata),want,key);
+}
 assert.equal(jsonHash(model.doc.accessors.slice(0,p.accessors.count)),p.accessors.sha256);
 assert.equal(jsonHash(model.doc.bufferViews.slice(0,p.bufferViews.count)),p.bufferViews.sha256);
 assert.equal(model.doc.animations.length,p.animations.length);
@@ -84,7 +102,9 @@ for(const [i,a] of p.animations.entries()) {
   for(const n of bones) assert.ok(b.channels.find(c=>model.doc.nodes[c.target.node].name===n&&c.target.path==='rotation').sampler>=a.originalSamplers.count);
 }
 report.preservation={originalBinSha256:p.originalBinSha256,originalBinAndAccessorSpansExact:true,
-  restRigMeshesMaterialsImagesExact:true,otherClipsAndUnselectedRunChannelsExact:true};
+  restRigMaterialsImagesExact:true,meshMetadataExact:!shorter,
+  declaredBootGeometryChange:shorter?{mesh:2,primitive:0,attributes:['POSITION','NORMAL','TANGENT']}:null,
+  otherClipsAndUnselectedRunChannelsExact:true};
 if(historical) {
   const recover=(ref,want)=>{
     const b=execFileSync('git',['show',ref+':public/models/link/link-runtime.glb'],{cwd:root,maxBuffer:100_000_000});

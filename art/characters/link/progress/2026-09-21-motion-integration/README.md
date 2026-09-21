@@ -1,6 +1,6 @@
 # September 21 — repaired run curves and physical stair support
 
-Current local delivery: `89df38f255e47afbcbb28a60555fb4a4a20091741d427ef1d7b8ea1ac33f306b` (47,825,216 bytes). Based on integrated world `6c13f70c`. Blender 4.5.13 is controlled through MCP; matched renders use four CPU threads. No new asset service or dependency.
+Current delivery: `4dcf89c5c10391981289e2583152c26fb4ac93047c6fcb4bb0959e246805d850` (51,111,284bytes). It preserves the repaired89df motion below and shortens the distal boot tips by at most11.39mm. [Native before/after, portable preservation check and actual-player evidence](../2026-09-21-boot-tip/README.md). Based on integrated world `6c13f70c`. Blender4.5.13 is controlled through MCP; matched renders use four CPU threads. No new asset service or dependency.
 
 **Validation correction, later September21:** the historical327-point test below omitted210 low toe-dominant vertices. Expanding the check to537 measured real timber penetration (worst−309.19 mm uphill /−46.44 mm downhill). The shared footprint measurement now includes the ankle/toe hierarchy. A fresh actual-player capture checks all537 vertices in1,320frames, including stair transitions and endpoint terrain:708,840 hits, no negative samples or reach clamps, minimum+1.187mmup/+1.267mmdown. This repairs the contact omission; extreme knee folding remains. [Correction, runnable check and evidence](../2026-09-21-complete-foot/README.md).
 
