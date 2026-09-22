@@ -138,10 +138,20 @@ carry the owner's explicit clarity priority and rejected063 correction.
 
 Final evidence-only publication is bda086f6. Staged receipts, script hashes,
 native manifest and rejected source patch are byte-exact; production source
-remains unchanged from 520537e6. Root accepted the atlas raw pairs and integrated
-its source locally as 886c531c, with evidence 9926541b pending public push.
+remains unchanged from 520537e6. Root accepted the atlas raw pairs and published
+its exact source as 886c531c, with evidence 9926541b and the identical reviewed
+BbCczJse production bundle.
 PR2 handoff 5779765139 delivers the final 588 rejection and explicitly corrects
 the fog field names/scope. The distant-crown agent received prior rejected
 1327bb79 and 1de017a8 evidence: curved sheets failed, and fitting a low sapling to
 whole-crown bounds inflated leaves to 4.64-6.60 m. Its new close-crown work is a
 CPU proposal only. This bank lane is finished and has no GPU work queued.
+
+PR2 follow-up 5779809946 links the public atlas and requested the next local GPU
+slot from owner-fable after its before-clearing six-view job. The same own-message
+block was added to the local shared INBOX in E:/zeldaremake-my-fable; no other log
+or production file there was edited or staged. Owner-fable is actively working
+on the separate north-stand roof57cea818 under canopy/**. At 16:07 UTC the fog
+agent confirmed actual acquisition and baseline session57416 launch, followed
+by its candidate pass. Both messages now state that acquisition and ask others
+to await its explicit final release. This is not a fabricated Fable reply.
