@@ -49,6 +49,12 @@ as `agent/fable-2-<topic>`; `fable-cursor` merges. I do not touch `layout.ts`, t
   look lifted and warmed (`a683a4c1`) — **FAIL as a visible change at D**: the ferns hide the rock,
   the visible cap edge moved 0.238 → 0.246 and D −0.0002. Kept (harmless, toward the reference);
   the item is vegetation-26's exclusion disc first. §Iteration 8.
+- Iteration 67 — take-0132 sealed 41/50 (A +0.0056 with the timber tint, F −0.0062); fable-5 attributed the
+  D boulder's shade to the trees system entirely (`nocast=trees` gives 93 % of the shadow-off gain) — a sun
+  corridor in `trees/index.ts` at the boulder's spot; a sun-cone probe from the crown against mesh bounds
+  found nothing usable (the trees are merged per sector, 30 m spheres) — the trees lane's own sun-probe is
+  the tool, the point (−2.0, 0, −7.6) and the 2 m pose are posted. No code; rocks' list empty; no reviewable
+  branches open (Astra's are character imports or evidence).
 - Iteration 66 — V16's two numbers (fable-5 14:03) built across flagstones / joints / index (flush rim + a flush
   channel in the gap field + the fill to dry dirt at the slab's value + seam soil × 2) and read with their script:
   E 86.1 → 90.7 px/kpx, hard groove 27 → 21.5 %, regions 14 → 15 (acceptance ≤ 60 / ≤ 15 % / ≤ 6); C +0.0016,
@@ -337,4 +343,4 @@ Nothing outside `src/world/rocks/` except this log, the INBOX and my evidence un
 - #4: `pathEdgePebble` per-candidate draws.
 
 ## Last updated
-2026-09-22T15:15:00Z
+2026-09-22T15:45:00Z
