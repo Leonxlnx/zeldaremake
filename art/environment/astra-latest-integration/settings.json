@@ -1,0 +1,10 @@
+{
+  "sourceSha": "6231cffbfec78d405cb3e83064bf3f68c7daca8d",
+  "dist": "dist",
+  "bundle": "index-Hs0AcnGr.js",
+  "out": "art/environment/astra-latest-integration/native",
+  "views": [
+    "A_stairs",
+    "F_canopy"
+  ]
+}

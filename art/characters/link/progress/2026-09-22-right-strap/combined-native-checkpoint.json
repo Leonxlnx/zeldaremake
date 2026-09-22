@@ -1,0 +1,14 @@
+{
+  "path": "E:\\zeldaremake-native-checkpoints\\2026-09-22-posture-both-straps.blend",
+  "bytes": 37136670,
+  "sha256": "942686c311a84fad16fa991ee373ff792ec37072885aef1227b6876de1922e31",
+  "scene": "Link | September22 chest posture both straps",
+  "runtimeSha256": "7f406e40e65430ed3c11bd045e2e9482dae8cee8122e9869ed62a2c3cfecbbda",
+  "clips": [
+    "stairs",
+    "run",
+    "walk",
+    "idle"
+  ],
+  "activePreview": "run phase0.65"
+}

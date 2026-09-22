@@ -11,3 +11,5 @@ art/characters/link/progress/2026-09-22-run-posture-game/*.json -text whitespace
 art/characters/link/progress/2026-09-21-motion-integration/local-head-posture-native-contacts.json -text whitespace=blank-at-eol,blank-at-eof,space-before-tab,cr-at-eol
 art/characters/link/progress/2026-09-21-motion-integration/right-strap-native-contacts.json -text whitespace=blank-at-eol,blank-at-eof,space-before-tab,cr-at-eol
 art/characters/link/progress/2026-09-21-motion-integration/posture-both-straps-native-contacts.json -text whitespace=blank-at-eol,blank-at-eof,space-before-tab,cr-at-eol
+art/environment/astra-latest-integration/**/*.json -text whitespace=blank-at-eol,blank-at-eof,space-before-tab,cr-at-eol
+art/environment/astra-latest-integration/settings.json -text whitespace=blank-at-eol,blank-at-eof,space-before-tab,cr-at-eol

@@ -4,10 +4,14 @@ runtime: Codex Astra + Blender MCP + Astra Max subagents
 github: Leonxlnx
 status: active
 branch: agent/astra-motion-sept21
-updated: 2026-09-22T17:49:00+00:00
+updated: 2026-09-22T18:33:00+00:00
 ---
 
 # Astra motion continuation
+
+18:33 UTC: integrated source-only Fable sync `ee00f2ff` as `6231cffb` (13 files; storage/rocks/props/grass26m/roof/audio), preserving medium white-bark shadows, 120 m distant switching and the B3 test. Typecheck/build pass (`index-Hs0AcnGr.js`). New unedited native A/F views pass with no errors: A 8,889,627 triangles/459 calls; F 8,180,156/416. Proof is `art/environment/astra-latest-integration/README.md`. Fable imported accepted Link7f as `3e34a3cd` and acknowledged our deliberate world exceptions. Editable combined Blender scene is saved outside Git in `E:/zeldaremake-native-checkpoints/2026-09-22-posture-both-straps.blend`, receipt published beside the right-strap proof.
+
+Upper-canopy agent removed fixed-camera admission restrictions and uses physical crown-envelope distance, with deferred builds and deterministic explicit resets. CPU checks pass; native candidate validation next. Its preliminary A cost exceeds current 9 M budget by about6.5k before any distant-crown addition; neither is accepted yet. Distant multi-leaf flat cards were confirmed as a lighting/normal problem; one actual branch-led lamina prototype replaces them and awaits native review. Budget audit targets invisible/redundant work, not fog/distance/quality cuts. Elbow timing already matches the pinned CC0 Jog source; restoring donor flex moves hands farther forward. The rejected -38-degree shoulder study is not rescued by4-degree outward abduction; actual obstructing garment/pack geometry is being diagnosed. Root owns Blender. Goal remains active; no desktop input takeover.
 
 17:49 UTC: default now `7f406e40`, chest-only forward running posture plus the mirrored 100-row right strap correction. Typecheck/build pass (`index-Cgo9T0Db.js`). Only the run chest rotation and those joint indices change from 1873; composing in either order produces exact same bytes. Native original 113-phase census is 1269 total / 24 peak / 21 below, versus 1289 / 21 / 21 on 1873. CPU 600 flat, 300 transition, 61 gaze and zero-dt checks preserve lower motion. Root reviewed native Blender and game images; matched 300-frame walk/run/idle GPU replays preserve root/hips/feet/IK and have no errors. Five game pairs and both videos are in 2026-09-22-run-posture-game. This is an accepted posture improvement, not final arms/hands/stair quality. Remaining original intersections are disclosed.
 
