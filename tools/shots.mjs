@@ -38,13 +38,14 @@ await page.evaluate(() => window.debugAPI.place('bed'));
 await page.waitForTimeout(400);
 await page.screenshot({ path: path.join(outDir, 'prompt_bed.png') });
 await page.evaluate(() => { void window.debugAPI.perform('bed'); });
-await page.waitForFunction(() => document.getElementById('fade').classList.contains('on'), null, { timeout: 4000 });
+await page.waitForFunction(() => parseFloat(getComputedStyle(document.getElementById('fade')).opacity) > 0.92, null, { timeout: 4000 });
 await page.screenshot({ path: path.join(outDir, 'fade_bed.png') });
 await page.waitForFunction(
-  () => window.debugAPI.getCycle() > 0.6 && !document.getElementById('fade').classList.contains('on'),
+  () => window.debugAPI.getCycle() > 0.6 && parseFloat(getComputedStyle(document.getElementById('fade')).opacity) < 0.08,
   null,
   { timeout: 8000 }
 );
+await page.waitForTimeout(250);
 await page.screenshot({ path: path.join(outDir, 'rest_cycle.png') });
 await page.waitForFunction(() => (window.debugAPI.getStatus() || '').includes('Rested'), null, { timeout: 8000 });
 
@@ -59,7 +60,7 @@ await page.evaluate(() => window.debugAPI.place('bath'));
 await page.waitForTimeout(300);
 await page.screenshot({ path: path.join(outDir, 'prompt_bath.png') });
 await page.evaluate(() => { void window.debugAPI.perform('bathroom'); });
-await page.waitForFunction(() => document.getElementById('fade').classList.contains('on'), null, { timeout: 4000 });
+await page.waitForFunction(() => parseFloat(getComputedStyle(document.getElementById('fade')).opacity) > 0.92, null, { timeout: 4000 });
 await page.screenshot({ path: path.join(outDir, 'fade_bath.png') });
 await page.waitForFunction(() => (window.debugAPI.getStatus() || '').includes('Refreshed'), null, { timeout: 6000 });
 

@@ -481,8 +481,8 @@ export function createShip(mats) {
   practical(2.7, 2.0, 6.9, '#ffe0b0', 6.5, 0.22, '#c4b09a');
   practical(2.1, 2.0, 1.4, '#d8fff8', 4.5, 0.15, '#9eb4c4');
 
-  const bunk = new THREE.PointLight('#ffb15a', 11, 4.6, 2);
-  bunk.position.set(-3.3, 2.05, 1.5);
+  const bunk = new THREE.PointLight('#ffb15a', 16, 5.4, 2);
+  bunk.position.set(-3.15, 1.85, 1.55);
   tagLight(bunk, 0.9, '#ffb15a');
   root.add(bunk);
   kit.box('dark', mats.dark, 0.18, 0.08, 0.18, -3.55, 2.15, 1.45);
@@ -515,6 +515,16 @@ export function createShip(mats) {
   tagLight(fill, 0.2, '#8aa0b4');
   root.add(fill);
   root.add(fill.target);
+
+  const quarterFill = new THREE.PointLight('#d5e4f4', 5.5, 6.5, 2);
+  quarterFill.position.set(-2.35, 2.15, 2.35);
+  tagLight(quarterFill, 0.28, '#8ea6bc');
+  root.add(quarterFill);
+
+  const deckGlow = new THREE.PointLight('#d7e4f6', 4.2, 6.2, 2);
+  deckGlow.position.set(0, 1.05, 13.35);
+  tagLight(deckGlow, 0.35, '#9aafc4');
+  root.add(deckGlow);
 
   const rect = new THREE.RectAreaLight('#c5dcff', 4.5, 3.3, 1.25);
   rect.position.set(0, 1.55, 14.9);
@@ -668,6 +678,38 @@ export function createShip(mats) {
   chevron(-1.05, 2.0, false);
   chevron(1.05, 1.3, false);
   chevron(1.05, 6.7, false);
+
+  // Bunk wall: the camera looks straight at this plane, so it cannot be bare.
+  kit.box('metal', mats.metal, 0.22, 0.045, 1.55, -4.38, 1.48, 1.55);
+  kit.box('dark', mats.dark, 0.08, 0.16, 0.08, -4.36, 1.4, 0.95);
+  kit.box('dark', mats.dark, 0.08, 0.16, 0.08, -4.36, 1.4, 2.15);
+  kit.box('orange', mats.orange, 0.12, 0.1, 0.16, -4.3, 1.56, 1.15);
+  const mug = new THREE.CylinderGeometry(0.035, 0.04, 0.08, 8);
+  kit.add('dark', mats.dark, mug, -4.32, 1.56, 1.85);
+  mug.dispose();
+  kit.box('metal', mats.metal, 0.06, 0.06, 1.7, -4.46, 1.95, 1.5);
+  kit.box('emitWarm', mats.warm, 0.02, 0.035, 1.15, -4.4, 1.72, 1.55);
+  kit.box('screen', mats.screen, 0.02, 0.28, 0.42, -4.4, 1.95, 2.45);
+  kit.box('dark', mats.dark, 0.04, 0.34, 0.48, -4.43, 1.95, 2.45);
+  kit.box('paintDeep', mats.paintDeep, 0.08, 0.55, 0.7, -4.4, 1.15, 3.15);
+  for (let i = 0; i < 5; i++) {
+    kit.rivet(-4.4, 1.28 + (i % 2) * 0.08, 2.85 + i * 0.12, 'x', 1);
+  }
+
+  // Viewport surround, seen large in the window shot.
+  kit.box('emitTeal', mats.teal, 2.8, 0.025, 0.02, 0, 2.12, 14.94);
+  kit.box('metal', mats.metal, 0.55, 0.35, 0.08, -2.05, 1.7, 14.9);
+  kit.box('metal', mats.metal, 0.55, 0.35, 0.08, 2.05, 1.55, 14.9);
+  kit.box('orange', mats.orange, 0.28, 0.08, 0.02, -2.05, 1.42, 14.88);
+  kit.box('dark', mats.dark, 0.7, 0.05, 0.05, 0.4, 1.02, 14.9);
+  for (let i = 0; i < 8; i++) {
+    kit.rivet(-1.45 + i * 0.18, 0.98, 14.9, 'z', -1);
+    kit.rivet(-1.45 + i * 0.18, 2.22, 14.9, 'z', -1);
+  }
+  for (let i = 0; i < 4; i++) {
+    kit.box('dark', mats.dark, 0.08, 0.1, 0.04, -1.85, 1.15 + i * 0.22, 14.9);
+    kit.box('dark', mats.dark, 0.08, 0.1, 0.04, 1.85, 1.15 + i * 0.22, 14.9);
+  }
 
   let cycle = 0;
   let cycleTarget = 0;

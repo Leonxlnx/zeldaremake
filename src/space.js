@@ -134,6 +134,57 @@ function nebulaTexture(seed, core, edge) {
   return tex;
 }
 
+function makeStreakField({ count, radius, pointScale, along, seed, color }) {
+  const positions = new Float32Array(count * 3);
+  const sizes = new Float32Array(count);
+  const rnd = mulberry32(seed);
+  for (let i = 0; i < count; i++) {
+    const theta = rnd() * Math.PI * 2;
+    const y = rnd() * 2 - 1;
+    const ring = Math.sqrt(Math.max(0.04, 1 - y * y));
+    const r = radius * (0.82 + rnd() * 0.36);
+    positions[i * 3] = Math.cos(theta) * ring * r;
+    positions[i * 3 + 1] = y * r * 0.48;
+    positions[i * 3 + 2] = Math.sin(theta) * ring * r;
+    sizes[i] = pointScale * (0.55 + rnd());
+  }
+  const geo = new THREE.BufferGeometry();
+  geo.setAttribute('position', new THREE.BufferAttribute(positions, 3));
+  geo.setAttribute('aSize', new THREE.BufferAttribute(sizes, 1));
+  const mat = new THREE.ShaderMaterial({
+    uniforms: {
+      uColor: { value: new THREE.Color(color) },
+      uAlong: { value: along },
+    },
+    vertexShader: `
+      attribute float aSize;
+      void main() {
+        vec4 mv = modelViewMatrix * vec4(position, 1.0);
+        gl_PointSize = aSize * (460.0 / max(12.0, -mv.z));
+        gl_Position = projectionMatrix * mv;
+      }
+    `,
+    fragmentShader: `
+      uniform vec3 uColor;
+      uniform float uAlong;
+      void main() {
+        vec2 p = gl_PointCoord - vec2(0.5);
+        float streak = exp(-p.y * p.y * 42.0) * exp(-p.x * p.x * uAlong);
+        if (streak < 0.05) discard;
+        gl_FragColor = vec4(uColor * streak * 1.7, streak);
+      }
+    `,
+    transparent: true,
+    depthWrite: false,
+    blending: THREE.AdditiveBlending,
+    fog: false,
+  });
+  const pts = new THREE.Points(geo, mat);
+  pts.frustumCulled = false;
+  pts.userData.skipAO = true;
+  return pts;
+}
+
 function makeStarShell({ count, radius, speed, length, width, color, seed }) {
   const geo = new THREE.PlaneGeometry(1, 1);
   const mat = new THREE.MeshBasicMaterial({
@@ -222,16 +273,19 @@ export function createSpace() {
   root.add(sky);
 
   const far = makeStarShell({
-    count: 1600, radius: 340, speed: 0.012, length: 0.55, width: 0.18, color: 0xd5e4ff, seed: 3,
+    count: 1400, radius: 340, speed: 0.012, length: 0.7, width: 0.16, color: 0xd5e4ff, seed: 3,
   });
   const mid = makeStarShell({
-    count: 700, radius: 230, speed: 0.03, length: 2.4, width: 0.22, color: 0xe7f0ff, seed: 9,
+    count: 420, radius: 220, speed: 0.028, length: 3.2, width: 0.2, color: 0xe7f0ff, seed: 9,
   });
-  const near = makeStarShell({
-    count: 280, radius: 150, speed: 0.055, length: 6.5, width: 0.28, color: 0xf4f7ff, seed: 21,
-  });
-  root.add(far, mid, near);
-  const shells = [far, mid, near];
+  root.add(far, mid);
+  const shells = [far, mid];
+  const streakNear = makeStreakField({ count: 420, radius: 130, pointScale: 22, along: 2.4, seed: 41, color: 0xf3f7ff });
+  const streakFar = makeStreakField({ count: 700, radius: 260, pointScale: 8, along: 18, seed: 77, color: 0xc9d8ff });
+  streakNear.userData.speed = 0.05;
+  streakFar.userData.speed = 0.018;
+  root.add(streakNear, streakFar);
+  const streaks = [streakNear, streakFar];
 
   const { map, cityMap } = planetTextures();
   const sunDir = new THREE.Vector3(0.85, 0.42, 0.15).normalize();
@@ -304,6 +358,7 @@ export function createSpace() {
     planetGroup.position.set(x, y, z);
     planet.rotation.y = t * 0.04;
     for (const shell of shells) shell.rotation.y = t * shell.userData.speed;
+    for (const streak of streaks) streak.rotation.y = t * streak.userData.speed;
     for (const neb of nebulas) neb.lookAt(0, 1.6, 8);
   }
 

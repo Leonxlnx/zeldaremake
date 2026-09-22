@@ -19,8 +19,8 @@ renderer.outputColorSpace = THREE.SRGBColorSpace;
 renderer.toneMapping = THREE.ACESFilmicToneMapping;
 renderer.toneMappingExposure = 1.0;
 renderer.shadowMap.enabled = true;
-renderer.shadowMap.type = THREE.PCFSoftShadowMap;
-renderer.info.autoReset = true;
+renderer.shadowMap.type = THREE.PCFShadowMap;
+renderer.info.autoReset = false;
 app.appendChild(renderer.domElement);
 
 const scene = new THREE.Scene();
@@ -118,7 +118,10 @@ function frame(now) {
   ship.update(dt);
   space.update(dt);
   interact.update(dt);
+  renderer.info.reset();
   post.render(now * 0.001);
+  perf.triangles = renderer.info.render.triangles;
+  perf.calls = renderer.info.render.calls;
   const sampleDt = now - lastSample;
   lastSample = now;
   if (sampleDt > 0 && sampleDt < 200) {
@@ -130,8 +133,6 @@ function frame(now) {
       fpsFrames = 0;
     }
   }
-  perf.triangles = renderer.info.render.triangles;
-  perf.calls = renderer.info.render.calls;
   window.debugAPI.frames += 1;
   requestAnimationFrame(frame);
 }

@@ -61,3 +61,31 @@ Fix list for iteration 3:
 - Lift the cockpit floor with a practical, without washing the corridor.
 - Wait on real fade opacity before interaction shots. Use `PCFShadowMap`.
 - Measure frame time again after the cheaper shadow map.
+
+## Iteration 3
+
+Quarters now has the bunk, shelf, mug, warm strip, and a lit screen. Cockpit floor reads as plated metal instead of a black band. Corridor histogram is unchanged in a good way (median 168, 4% fixture white, 1.3% near-black). Rest cycle is visibly dimmer and warmer than the day bunk shot (median 109 vs 137).
+
+Frame budget: 109k triangles, 90 calls, 42fps on llvmpipe. No shader errors. Pointer lock still engages.
+
+The window shot got brighter (median 130 vs 43) and still does not read as flight. Stars are points. The viewport surround is a flat off-white band. Fade screenshots missed the overlay even though the rest-cycle lighting change fired.
+
+| # | Rubric | Result |
+| --- | --- | --- |
+| 1 | Lighting intentional | pass |
+| 2 | Materials physical | pass |
+| 3 | Detail density | fail |
+| 4 | Post stack balanced | pass |
+| 5 | Space view sells motion | fail |
+| 6 | Cohesive palette | pass |
+| 7 | Tech clean, 60fps | fail |
+| 8 | Cold-look test | pass |
+| 9 | Interactions | fail |
+
+Items 1, 2, 4, 6, and 8 held from iteration 2. Detail fails on the window frame. Motion fails because the streak sprites did not read in the still. 42fps on llvmpipe is not 60. Interaction overlay shots are not proof.
+
+Fix list for iteration 4:
+
+- Put a few dozen long streaks in the forward view, not a full shell of huge points. Pull the window camera back so the sill and bolts are in frame with the planet.
+- Half-resolution AO to buy frame time without removing the effect.
+- Capture fade text with the overlay held still, and log opacity while the real fade runs.
