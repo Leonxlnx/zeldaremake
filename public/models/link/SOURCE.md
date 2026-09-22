@@ -1,8 +1,14 @@
 # Young Link runtime candidate — Blender source and validation
 
-## September 21 shorter boot tips
+## September 22 run posture and shoulder straps
 
-Current delivery: **1873fc17861455ac7b4e9cf624301039872e9d23dd7923bac3a2dc23851853d5**, 51,111,284 bytes. An isolated shoulder-strap region was incorrectly owned by the head. Exactly 243 active joint-index bytes now assign it to the chest; every other byte of source `4dcf89c5` remains unchanged, including weights, geometry, clips, textures and rig transforms. Ordinary head look no longer stretches the strap into shards. All 243 points match four native Blender poses within 0.0625 micrometres; the unchanged 113-phase contact census improves 1316 to 1289, peak 22 to 21, with below-armpit count 21 unchanged. [Selector, before/after and portable check](../../../art/characters/link/progress/2026-09-22-head-owned-patch/README.md). This is a skinning repair, not the held rear-arm or body-posture study.
+Current delivery: **7f406e40e65430ed3c11bd045e2e9482dae8cee8122e9869ed62a2c3cfecbbda**, 51,113,876 bytes. Running gains 10 degrees of forward chest lean, with the head, arms and pack moving together. Only the run chest rotation channel changes; original arm cycles, leg motion, stride, other clips, geometry and textures remain exact. A second incorrectly head-owned shoulder strap is reassigned to the chest through exactly 100 joint-index bytes. The two edits commute byte for byte. [Composition and default-asset check](../../../art/characters/link/progress/2026-09-22-right-strap/COMPOSITION.md).
+
+The posture passes 600 flat runtime frames, 300 gait-transition frames, gaze and zero-dt checks. A matched 300-frame native game replay preserves every root/hip/foot/IK sample and shows the less upright carriage. The original 113-phase native contact census improves 1289 to 1269 total, with below-armpit count 21 unchanged; peak count rises from 21 to 24. Residual clothing contact and difficult stair posture remain unfinished. [Posture evidence](../../../art/characters/link/progress/2026-09-22-body-posture/DELIVERY.md) · [Five game comparisons and videos](../../../art/characters/link/progress/2026-09-22-run-posture-game/README.md).
+
+Previous delivery: **1873fc17861455ac7b4e9cf624301039872e9d23dd7923bac3a2dc23851853d5**, 51,111,284 bytes. Exactly 243 active joint-index bytes attached the left strap to the chest; every other byte of `4dcf89c5` was preserved. All 243 points matched four native Blender poses within 0.0625 micrometres. The original 113-phase contact census improved 1316 to 1289, peak 22 to 21, with below-armpit count 21 unchanged. [Left strap selector and check](../../../art/characters/link/progress/2026-09-22-head-owned-patch/README.md).
+
+## September 21 shorter boot tips
 
 Previous delivery: **4dcf89c5c10391981289e2583152c26fb4ac93047c6fcb4bb0959e246805d850**, 51,111,284 bytes. A native Blender edit shortens only the distal boot tips, by at most 11.39 mm (about 4.1% of total sole length). Width, sole height, heels, ankles and cuffs remain unchanged. The source is 89df below; all original BIN bytes, rig, clips, weights, UVs, textures and morphs are preserved. Only body POSITION/NORMAL/TANGENT references change to appended arrays.
 
