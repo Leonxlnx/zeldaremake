@@ -10,7 +10,7 @@
  * whatever the joint width (reference B/E foreground: 15–45 cm joints of one dark olive tone
  * between the slabs).
  */
-import { BufferAttribute, BufferGeometry, ClampToEdgeWrapping, Color, DataTexture, Float32BufferAttribute, LinearFilter, Mesh, MeshStandardMaterial, RedFormat, UnsignedByteType, Vector2, Vector4 } from 'three';
+import { BufferAttribute, BufferGeometry, ClampToEdgeWrapping, Color, DataTexture, Float32BufferAttribute, LinearFilter, Mesh, MeshStandardMaterial, RGFormat, UnsignedByteType, Vector2, Vector4 } from 'three';
 import type { Terrain } from '../terrain/heightfield';
 import type { TextureLibrary } from '../materials/textures';
 import type { WorldConfig } from '../config';
@@ -23,6 +23,8 @@ export interface JointPaving {
   edgeGap(x: number, z: number): number;
   /** is the point under a slab */
   onStone(x: number, z: number): boolean;
+  /** V16: how far the nearest slab's rim is flush with the fill here (0..1) — the fill takes the slab's value there */
+  flush?(x: number, z: number): number;
 }
 
 /** gap-field texel (m) and the distance at which the field saturates */
@@ -90,6 +92,19 @@ const SOIL_OPEN_GATE: [number, number] = [0.1, 0.4];
 // (turf albedo 27° → 41° at the slab foot); the frames' dark class in the lit B/D foregrounds
 // sits 63–66 % in the 30–40° bin against our 26–42 %, with our surplus in the 40–70° bins — the
 // contact line stays a recess of the same hue, the open turf a hair greener at most)
+/**
+ * V16 (round 52 #3, fable-5 14:03): the seam sits 0.28 below the slab where the frame's sits 0.15 (medians on the
+ * counted line at 640 px: reference E seam 0.360 vs slab 0.514; ours 0.262 vs 0.549). The seam soil's albedos
+ * (packed soil and mossy earth alike, the lawn pocket untouched) lift by this so the line that shows sits at ≈ 0.40
+ * — round 50's × 0.42 on the mossy earth was measured on `d_097`'s dark class, a different frame than E / C / D.
+ * 1 → the round-50 fill.
+ */
+export const SEAM_FILL_LIFT = 2.0;
+/**
+ * the dry dirt the fill turns to where the slab's rim is flush (linear albedo; ≈ the slab tops' own value, l 0.50–0.55
+ * in the frames — "the slab's own value over ≈ 40 % of each run"), fable-5's second number
+ */
+export const FLUSH_TONE: [number, number, number] = [0.3, 0.245, 0.14];
 const CREVICE_TINT: [number, number, number] = [0.72, 0.7, 0.5];
 const TURF_CREVICE_TINT: [number, number, number] = [0.72, 0.7, 0.54];
 // (round 50, fable-5 V16: the mossy earth's open lift × 1.08–1.1 → none — at 6–10 cm the joint
@@ -129,8 +144,8 @@ export function jointFillLift(gap: number, soil = 1): [number, number, number] {
  * mean (soil.lerp(mid, 0.3)) for the seam grit.
  */
 export function jointFillTones(palette: WorldConfig['palette']): { soil: Color; soilMid: Color; turf: Color; turfMid: Color; lawn: Color; soilMean: Color; soilMeanR10: Color; turfMean: Color } {
-  const soil = new Color(JOINT_SOIL);
-  const soilMid = new Color(JOINT_SOIL_MID);
+  const soil = new Color(JOINT_SOIL).multiplyScalar(SEAM_FILL_LIFT);
+  const soilMid = new Color(JOINT_SOIL_MID).multiplyScalar(SEAM_FILL_LIFT);
   // (round 33: the mossy earth × 1.3 and browner — lerp 0.56 → 0.42 to the deep green, × 1.15:
   // frame 14 s's gaps behind Link are sRGB 86,74,43 – 98,84,56 (hue 43°, B/R 0.5) where the old
   // turf rendered 59,56,36 – 67,67,40 (hue 52°, B/R 0.61): too dark and too grey-green)
@@ -143,8 +158,8 @@ export function jointFillTones(palette: WorldConfig['palette']): { soil: Color; 
   // × 0.42 (Y 0.062 → 0.039, hue 35° → 41°, B/R 0.49); its damp lift, which sat at Y 0.18 — a
   // slab's albedo — and mottled the joints pale where the noise peaked, comes to 0.6 / × 0.5 (Y
   // 0.088). The joints read darker than the stone at every width now, as in the demo.)
-  const turf = new Color(TURF_BASE).lerp(new Color(palette.grassDeep), 0.6).multiplyScalar(0.42);
-  const turfMid = new Color(TURF_BASE_MID).lerp(new Color(palette.grassMid), 0.6).multiplyScalar(0.5);
+  const turf = new Color(TURF_BASE).lerp(new Color(palette.grassDeep), 0.6).multiplyScalar(0.42 * SEAM_FILL_LIFT);
+  const turfMid = new Color(TURF_BASE_MID).lerp(new Color(palette.grassMid), 0.6).multiplyScalar(0.5 * SEAM_FILL_LIFT);
   // the lawn pocket's ground: dark mossy earth under the lawn's tufts (round 13 — the damp seam
   // soil pulled 85 % to the deep grass green and dimmed to 0.6, sRGB ≈ 54,58,32), the shadowed
   // earth between dense grass. The pocket's warm light lifts a fill's red a fifth and drops its
@@ -181,6 +196,9 @@ function buildGapField(bbox: { x0: number; x1: number; z0: number; z1: number },
   const h = Math.ceil((bbox.z1 - bbox.z0) / GAP_CELL) + 1;
   const gap = new Float32Array(w * h);
   const under = new Uint8Array(w * h);
+  // V16: the second channel — the nearest slab's flush-stretch weight (flagstones.ts `flush`), so the
+  // fill can take the slab's value exactly where that slab's rim comes down to it
+  const flush = new Uint8Array(w * h);
   for (let j = 0; j < h; j++) {
     for (let i = 0; i < w; i++) {
       const x = bbox.x0 + i * GAP_CELL;
@@ -188,6 +206,7 @@ function buildGapField(bbox: { x0: number; x1: number; z0: number; z1: number },
       const k = j * w + i;
       gap[k] = Math.min(GAP_MAX, paving.edgeGap(x, z));
       under[k] = paving.onStone(x, z) ? 1 : 0;
+      flush[k] = paving.flush ? Math.round(Math.max(0, Math.min(1, paving.flush(x, z))) * 255) : 0;
     }
   }
   // under-slab texels: take the minimum of the 3×3 neighbourhood, three times (15 cm inward)
@@ -210,9 +229,12 @@ function buildGapField(bbox: { x0: number; x1: number; z0: number; z1: number },
       }
     }
   }
-  const data = new Uint8Array(w * h);
-  for (let k = 0; k < data.length; k++) data[k] = Math.round((gap[k] / GAP_MAX) * 255);
-  const texture = new DataTexture(data, w, h, RedFormat, UnsignedByteType);
+  const data = new Uint8Array(w * h * 2);
+  for (let k = 0; k < w * h; k++) {
+    data[k * 2] = Math.round((gap[k] / GAP_MAX) * 255);
+    data[k * 2 + 1] = flush[k];
+  }
+  const texture = new DataTexture(data, w, h, RGFormat, UnsignedByteType);
   texture.name = 'joint-gap-field';
   texture.minFilter = LinearFilter;
   texture.magFilter = LinearFilter;
@@ -629,11 +651,12 @@ export async function buildJointMesh(
     shader.uniforms.uGapMap = { value: gapField?.texture ?? null };
     shader.uniforms.uGapRect = { value: gapField?.rect ?? new Vector4(0, 0, 1, 1) };
     shader.uniforms.uGapMax = { value: GAP_MAX };
+    shader.uniforms.uFlushTone = { value: new Color(...FLUSH_TONE) };
     shader.vertexShader = shader.vertexShader
       .replace('#include <common>', '#include <common>\nvarying vec2 vJointXZ; attribute float aSoil; attribute float aRim; varying float vJointSoil; varying float vJointRim;')
       .replace('#include <worldpos_vertex>', '#include <worldpos_vertex>\nvJointXZ = (modelMatrix * vec4(transformed, 1.0)).xz; vJointSoil = aSoil; vJointRim = aRim;');
     shader.fragmentShader = shader.fragmentShader
-      .replace('#include <common>', `#include <common>\nvarying vec2 vJointXZ; varying float vJointSoil; varying float vJointRim;\n${gapField ? '#define JOINT_GAP_FIELD' : ''}\nuniform sampler2D uGapMap; uniform vec4 uGapRect; uniform float uGapMax;`)
+      .replace('#include <common>', `#include <common>\nvarying vec2 vJointXZ; varying float vJointSoil; varying float vJointRim;\n${gapField ? '#define JOINT_GAP_FIELD' : ''}\nuniform sampler2D uGapMap; uniform vec3 uFlushTone; uniform vec4 uGapRect; uniform float uGapMax;`)
       .replace(
         '#include <map_fragment>',
         /* glsl */ `
@@ -666,11 +689,16 @@ export async function buildJointMesh(
         vec3 kTurf = mix(vec3(1.0), vec3(${glslVec3(TURF_CREVICE_TINT)}), crevice);
         kTurf = mix(kTurf, vec3(${glslVec3(TURF_OPEN_TINT)}), open);
         diffuseColor.rgb *= mix(mix(kTurf, kSoil, clamp(vJointSoil, 0.0, 1.0)), vec3(1.0), clamp(vJointRim, 0.0, 1.0));
+        // V16 (round 52 #3): where the nearest slab's rim has come down flush (flagstones.ts FLUSH_SHARE), the
+        // seam soil gives way to dry dirt at the slab's own value — the line closes there, as the frame's do
+        float flushW = texture2D(uGapMap, (vJointXZ - uGapRect.xy) * uGapRect.zw).g * (1.0 - clamp(vJointRim, 0.0, 1.0));
+        float lm = clamp(dot(diffuseColor.rgb, vec3(0.299, 0.587, 0.114)) / max(1e-4, dot(uFlushTone, vec3(0.299, 0.587, 0.114))), 0.6, 1.4);
+        diffuseColor.rgb = mix(diffuseColor.rgb, uFlushTone * mix(1.0, lm, 0.35), flushW);
       }
       #endif`,
       );
   };
-  mat.customProgramCacheKey = () => `flagstone-joints-v12-crevice${gapField ? '1' : '0'}`;
+  mat.customProgramCacheKey = () => `flagstone-joints-v13-flush${gapField ? '1' : '0'}`;
   const mesh = new Mesh(g, mat);
   mesh.receiveShadow = true;
   mesh.castShadow = false;

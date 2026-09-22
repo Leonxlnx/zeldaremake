@@ -60,6 +60,8 @@ export interface PlacedStone {
   mottleGrey: number;
   /** the stone's whole-slab luminance factor (the vertex tint's level; 1 = the material's own) */
   lum: number;
+  /** V16: the phase of this slab's flush-stretch noise (null: the slab keeps its continuous rim — discs, lawn slabs) */
+  flushPhase: number | null;
 }
 
 // --- geometry helpers ----------------------------------------------------------------------
@@ -726,6 +728,8 @@ export interface PavingResult {
   onStone(x: number, z: number): boolean;
   /** distance (m) from a joint point to the nearest stone edge (Infinity when no stone is near) */
   edgeGap(x: number, z: number): number;
+  /** V16: how far the nearest slab's rim is flush with the fill at this point (0..1; see FLUSH_SHARE) — the joint fill reads it to take the slab's value there */
+  flush(x: number, z: number): number;
   /** the house branch's stepping stones that got their own round slab */
   steppingStones: IsolatedDisc[];
   /** the Voronoi seeds (for the offline paving audit): position, lawn weight, whether the seed kept its cell */
@@ -779,11 +783,26 @@ const BREAK_MIN_ACROSS = 0.45;
 const LAWN_SPACING = 1.15;
 /** soil stain on a slab's flank at the joint-fill line (0 = bare stone, 1 = the seam's soil tone); fades to 0 at the shoulder */
 const FLANK_STAIN_AT_FILL = 0.7;
+/**
+ * V16 (round 52 #3): the share of each slab's outline over which the rim comes down flush with the joint
+ * fill, so the seam line closes for stretches as the frame's do; 0 → the continuous recess of round 48.
+ * `FLUSH_T` is the noise threshold band that gives that share (≈ 0.4 at [0.52, 0.6] for one octave).
+ */
+const FLUSH_SHARE = 0.4;
+const FLUSH_T: [number, number] = [0.52, 0.6];
 
 export function placeFlagstones(pc: PavingContext, material: Material): PavingResult {
   const { terrain, rng, bbox } = pc;
   const tintNoise = new Noise2D(`${pc.seed}/flag-tint`);
   const wearN = new Noise2D(`${pc.seed}/flag-wear`);
+  /**
+   * V16 (fable-5's re-scope, 04:48 / 14:03): the frame's joints close for stretches — the seam soil gives way to
+   * the slab's own value and the rim comes down flush with the fill — where ours is one continuous recess round
+   * every slab. One low-frequency noise (≈ 1.7 cycles / m) per slab, thresholded for ≈ FLUSH_SHARE of its outline,
+   * drives both halves: the rim drop here (`flushAt`) and the fill's tone in joints.ts (`flush`, read through the
+   * gap field). Keyed per slab so no stream above or below moves.
+   */
+  const flushWeight = (wx: number, wz: number, phase: number) => smoothstep(FLUSH_T[0], FLUSH_T[1], wearN.fbm(wx * 1.7 + phase, wz * 1.7 - phase, 1) * 0.5 + 0.5);
   const warpN = new Noise2D(`${pc.seed}/flag-warp`);
 
   // 1. seeds: hex lattices jittered by half their spacing and warped by a slow noise field, so
@@ -1694,6 +1713,25 @@ export function placeFlagstones(pc: PavingContext, material: Material): PavingRe
       const nz = wearN.fbm((x + s.x) * 14 + spallPhase, (z + s.z) * 14 - spallPhase, 1) * 0.5 + 0.5;
       return spallDepth * smoothstep(0.6, 0.8, nz);
     };
+    // V16, round 52 #3 (fable-5's re-scope, 04:48): the frame's joints are a soft line that CLOSES for
+    // stretches — the seam's width and depth are the frame's, but ours is one continuous recess round
+    // every slab (visible line length 1.4–1.7 × the frame's, the hard-groove share of it 2 ×). So over
+    // seeded stretches of each outline the rim comes down to the fill — the wall top and shoulder roll
+    // meet the joint's soil (round 44's soil lip does this for the hollow's set stones) — and the
+    // recess comes and goes along the joint. A ≈ 1.7 cycles / m noise thresholded for ≈ FLUSH_SHARE of
+    // the outline, its own keyed fork (no stream above or below moves), none on the discs and the lawn
+    // slabs; the drop is the rim's height over the fill at that vertex, so the edge is flush, not chipped.
+    const flushOn = FLUSH_SHARE > 0 && !disc && lawn < 0.5;
+    const flushRng = rng.fork(`flush/${Math.round(s.x * 50)}/${Math.round(s.z * 50)}`);
+    const flushPhase = flushRng.range(0, 100);
+    const flushAt = (x: number, z: number) => {
+      if (!flushOn) return 0;
+      const w = flushWeight(x + s.x, z + s.z, flushPhase);
+      if (w <= 0) return 0;
+      const fill = terrain.height(s.x + x, s.z + z) + 0.008;
+      return Math.max(0, rimY - fill + 0.002) * w;
+    };
+    const rimDropAt = (x: number, z: number) => Math.max(spallAt(x, z), flushAt(x, z));
     // the crack line in slab-local coordinates (affine: exact under interpolation)
     const cnx = Math.cos(crackAng);
     const cnz = Math.sin(crackAng);
@@ -1715,7 +1753,7 @@ export function placeFlagstones(pc: PavingContext, material: Material): PavingRe
       // round 42: the shoulder as a two-band quarter-round on the slabs a player can read
       // (radius > 0.3 m), so the lit rim rolls into the joint instead of breaking at one crease
       bevelRings: disc || (radius <= 0.3 && hollow < 0.5) ? 1 : 2,
-      rimDrop: spalled ? spallAt : undefined,
+      rimDrop: spalled || flushOn ? rimDropAt : undefined,
       dip: -crown,
       color: tint,
       sideColor,
@@ -1800,6 +1838,7 @@ export function placeFlagstones(pc: PavingContext, material: Material): PavingRe
       mottleMoss,
       mottleGrey,
       lum,
+      flushPhase: flushOn ? flushPhase : null,
     };
     stoneGrid.add(s.x, s.z, stones.length);
     stones.push(stone);
@@ -1841,6 +1880,21 @@ export function placeFlagstones(pc: PavingContext, material: Material): PavingRe
     return best;
   };
 
+  const flush = (x: number, z: number) => {
+    let best = Infinity;
+    let phase: number | null = null;
+    stoneGrid.near(x, z, 1.3, (id) => {
+      const st = stones[id];
+      if (Math.hypot(st.x - x, st.z - z) > st.radius + 0.4) return;
+      const d = distToPolygon(st.polygon, x, z);
+      if (d < best) {
+        best = d;
+        phase = st.flushPhase;
+      }
+    });
+    return phase === null ? 0 : flushWeight(x, z, phase);
+  };
+
   const seedAudit = seeds.map((s, i) => ({ x: s.x, z: s.z, lawn: s.lawn, active: active[i] === 1, phantom: !!s.phantom }));
-  return { stones, mesh, triangles: all.vertexCount / 3, grid: stoneGrid, onStone, edgeGap, steppingStones: discs, seeds: seedAudit, stats };
+  return { stones, mesh, triangles: all.vertexCount / 3, grid: stoneGrid, onStone, edgeGap, flush, steppingStones: discs, seeds: seedAudit, stats };
 }

@@ -188,7 +188,7 @@ export async function create(ctx: WorldContext): Promise<WorldSystem> {
   const paved = (x: number, z: number, threshold?: number) => isPaved(pc, x, z, threshold) && !nearIsolatedDisc(grassDiscs, x, z, 1.4);
   // the fill is clipped to the mask's 0.5 iso (the slab level; joints.ts), so it takes the level itself
   const pavedLevelAt = (x: number, z: number) => (nearIsolatedDisc(grassDiscs, x, z, 1.4) ? 0 : pavedLevel(pc, x, z));
-  const joints = await buildJointMesh(T, pavedLevelAt, bbox, ctx.textures, ctx.config, ctx.config.seed, { edgeGap: paving.edgeGap, onStone: paving.onStone });
+  const joints = await buildJointMesh(T, pavedLevelAt, bbox, ctx.textures, ctx.config, ctx.config.seed, { edgeGap: paving.edgeGap, onStone: paving.onStone, flush: paving.flush });
   group.add(joints.mesh);
   // round 47: the north paving's own fill, on the north bounding box. Its level is the live mask
   // capped by (1 − legacy level), so its 0.5 iso is the legacy fill's 0.5 iso exactly (both are
@@ -197,7 +197,9 @@ export async function create(ctx: WorldContext): Promise<WorldSystem> {
   const pavedLevelN = (x: number, z: number) => Math.min(pavedLevel(pc, x, z, false, 'live'), 1 - pavedLevel(pc, x, z));
   const edgeGapAll = (x: number, z: number) => Math.min(paving.edgeGap(x, z), pavingN.edgeGap(x, z));
   const onStoneAll = (x: number, z: number) => paving.onStone(x, z) || pavingN.onStone(x, z);
-  const jointsN = await buildJointMesh(T, pavedLevelN, nbbox, ctx.textures, ctx.config, ctx.config.seed, { edgeGap: edgeGapAll, onStone: onStoneAll });
+  // (V16: the flush weight of whichever pass owns the nearest slab)
+  const flushAll = (x: number, z: number) => (paving.edgeGap(x, z) <= pavingN.edgeGap(x, z) ? paving.flush(x, z) : pavingN.flush(x, z));
+  const jointsN = await buildJointMesh(T, pavedLevelN, nbbox, ctx.textures, ctx.config, ctx.config.seed, { edgeGap: edgeGapAll, onStone: onStoneAll, flush: flushAll });
   jointsN.mesh.name = 'joint-fill-north';
   group.add(jointsN.mesh);
 
