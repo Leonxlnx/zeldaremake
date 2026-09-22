@@ -17,9 +17,9 @@ gauntlet's independent D7 verdicts (`gauntlet/reviews/*.json`, written only thro
 00:00 UTC (timer `goal-mode-fable-5`, cron `20 * * * *`); `agent/fable-5-demo-walk` merged (`b4de8d7`); current branch `agent/fable-5-r48-review`.
 
 ## Current task
-Done this iteration: the owner's clarity region measured against the reference (`reference/ANALYSIS_CLARITY.md`). Next:
-re-read the clarity numbers on our build at the owner's pose when it is known; take-0133's read when it seals (expected row
-in `fable-5-take0132.md`); lane branches on request; the video file.
+Done this iteration: Astra's fog slice measured at the six views and the crown poses (ANALYSIS_CLARITY §3). Next: take-0133's
+read when it seals (expected row in `fable-5-take0132.md`, pre-fog); the clarity set on take-0134 against the owner's region
+(fable-cursor's ask); the owner's pose when known; the video file.
 
 ## Previous current task (superseded)
 Goal-mode loop. Next iteration: **re-verdict every visual item on take-0120** when it seals (the
@@ -35,6 +35,10 @@ lands: `ffmpeg` frames at his marked moments → `reference/frames-video2/`, has
 - `.agents/fable-5.md`, `.agents/reviews/fable-5-*.md`, my threads in `.agents/INBOX.md`.
 
 ## Completed work
+- 2026-09-22 17:23–18:00 UTC — iteration 67 (ANALYSIS_CLARITY §3, r55 §O): Astra's fog slice `ae880cf2` at the six views —
+  A +0.0102, B −0.0021, C −0.0118, D −0.0148, E +0.0021, F −0.0002; every far band 0.05–0.12 below the frames' (it clears by
+  darkening), hue unchanged (65–74° vs 50–64°); at five crown poses the sky behind the crowns stays 200–207°. Reconsideration
+  asked before take-0134 seals; the frames' target given (bright warm haze at the old weight, crisp crowns inside).
 - 2026-09-22 16:34–17:02 UTC — iteration 66 (`reference/ANALYSIS_CLARITY.md`, r55 §N): the owner's circled crowns measured
   against the reference — the gap is the frames', the hue is not (background 165° vs 44–60°), the crown is hazed like a 50 m
   crown at 15–25 m, 2.7 % leaf-scale silhouette vs 11–14 %; targets posted; Astra's atlas painter changes nothing at five
@@ -344,4 +348,4 @@ lands: `ffmpeg` frames at his marked moments → `reference/frames-video2/`, has
   lists the regions; the evidence images are reproducible with the same crops.
 
 ## Last updated
-2026-09-22T17:03:00Z
+2026-09-22T18:00:00Z

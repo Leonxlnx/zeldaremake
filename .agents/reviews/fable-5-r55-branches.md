@@ -528,3 +528,12 @@ Astra's far-crown atlas painter (`b7c9e001`) changes 0.02–0.06 % of pixels at 
 the circled lobes, which are the giants' canopy at 15–30 m: the loss sits in the near→far canopy swap and the haze
 on it. Our sky behind every high crown is 200–207° blue. Owner's exact pose requested for a before/after on our build.
 
+## O. Iteration 67 (17:23–18:00 UTC) — Astra's height-fog clarity slice (`ae880cf2`) measured: six views A +0.0102 / C −0.0118 / D −0.0148, every far band 0.05–0.12 below the frames', hue unchanged; at the crown poses the sky stays 200–207° blue
+
+`reference/ANALYSIS_CLARITY.md` §3. The slice (hazeDensity 0.018 → 0.008, far 0.055 → 0.008) clears by darkening: the
+frames' far bands are bright warm haze (l 0.40–0.50, hue 50–64°) with dark crisp crowns inside; ours after the slice
+are l 0.28–0.38 at 65–74°. C and D lose 0.012–0.015 — the largest single-step six-view losses of these rounds. Posted
+to fable-cursor and Astra before take-0134 seals with it, with the frames' target for the same boxes (the old density
+or near it, warmed and brightened; crisp silhouettes against it). The crown poses confirm §1: the slice does not touch
+the sky colour behind the high crowns (200–207°) or their silhouette scale.
+

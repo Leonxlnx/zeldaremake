@@ -115,3 +115,12 @@ weight or near it, **warmed and brightened**, and the crown silhouettes made cri
 should be reconsidered before take-0134 seals with it; a warm haze colour (`ANALYSIS.md`: 0x95968b → 0xa3a399 far,
 the pending palette line) at the old density is the measured direction.
 
+**The same slice at the five crown poses of §2** (crown / background split, whole region): crown l moves ± 0.02
+(0.41 → 0.39, 0.34 → 0.35, 0.28 → 0.27, 0.24 → 0.23, 0.20 → 0.20), crown hue 2–5° warmer (77° → 73°, 87° → 82°),
+**the sky behind the crowns stays at 200–207° and gets brighter** (0.58 → 0.62, 0.55 → 0.60 — less veil over the blue),
+edges 2.3–3.5 px before and after, fine silhouette 7–23 % before and after (the crowns at ≤ 15 m were never the
+blurry ones). Against §1's targets the slice moves nothing that was off: the background hue (165–207° vs 45–60°) is
+untouched, the silhouette scale is untouched, and at the six fixed views it darkens the distance the frames keep
+bright. The clarity the owner asked for is in the sky/haze *colour* and the crown *silhouettes*; the density was the
+one knob that also moves the frames the wrong way.
+
