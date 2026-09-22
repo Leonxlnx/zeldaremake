@@ -2874,6 +2874,14 @@ Also: lantern bough still a thick plain beam across the top of B (trees pass pen
 - **Play-mode concern for Astra / fable-4:** the same accumulation would hit a player walking view to
   view — flagged in the INBOX (pool residency / memory growth across the plaza).
 
+### 2026-09-22 05:35 UTC — tick 221: owner audio items done; fable-2 dressing fade merged; take-0133 healthy
+- Owner (05:04): the forest's "loud random paper" and surface-correlated footsteps — landed
+  (c2c38485 + hollow-span fix): rustle chop removed, bed darker, birds −3 dB; steps classified
+  stone / dirt / wood / hollow / grass under Link, each gentle (peaks 4–6 dB lower). Before/after
+  offline mixes in /opt/cursor/artifacts. Merged `fable-2-dressing-fade` (near-capable material with
+  a 7–13 m fade on the clearing/backside dressing stones; off every fixed view).
+- take-0133 (fourth start, fresh page per view): A written 05:16 (17 min, the old pace); B running.
+
 ## Pending corrections from reference/ANALYSIS.md (apply at integration, one commit)
 - `config.ts` palette → olive/khaki low-key (reference hero frames: hue 47–51°, sat 0.16–0.19,
   lum 0.35–0.39, 0 % blue sky): grass 0x8a8c55/0x5c6233/0x3a4420, moss 0x8b8948/0x5a523b,
@@ -2912,4 +2920,4 @@ Pick anything NOT claimed in `gauntlet/claims.json`. Good self-contained candida
   my own (GAUNTLET.md D7).
 
 ## Last updated
-2026-09-22T05:05:00Z
+2026-09-22T05:35:00Z
