@@ -146,16 +146,23 @@ function sceneAudit(scene: Scene): Record<string, unknown> {
     // Points/Sprite particle systems count each vertex as one instance (a mote/leaf), zero triangles —
     // otherwise legitimate particle audits (fireflies, leaves) fail the B3 scene-graph cross-check.
     const t = isParticles ? 0 : triCount(m);
+    // A static mesh built by merging N placed copies (rocks/index.ts mergeTile: the pebbles per ground
+    // tile) declares them in userData.mergedInstances; it counts as N instances for the B3 cross-check
+    // only if the geometry can hold that many parts (>= 4 vertices each) — the triangles are the mesh's
+    // own, not multiplied.
+    const declared = Number((m as Mesh).userData?.mergedInstances) || 0;
+    const vertexCount = (m as Mesh).geometry?.attributes?.position?.count ?? 0;
+    const merged = !isParticles && !(m as InstancedMesh).isInstancedMesh && declared > 1 && declared * 4 <= vertexCount ? declared : 0;
     const inst = isParticles
       ? asPoints.isSprite
         ? 1
         : asPoints.geometry?.attributes.position?.count ?? 1
       : (m as InstancedMesh).isInstancedMesh
         ? (m as InstancedMesh).count
-        : 1;
+        : merged || 1;
     if ((m as InstancedMesh).isInstancedMesh) instanced++;
     instances += inst;
-    triangles += t * inst;
+    triangles += merged ? t : t * inst;
     if (m.geometry) geometries.add(m.geometry.uuid);
     const mats = Array.isArray(m.material) ? m.material : [m.material];
     for (const mat of mats) {
@@ -179,7 +186,7 @@ function sceneAudit(scene: Scene): Record<string, unknown> {
     byName[key] ??= { meshes: 0, instances: 0, triangles: 0 };
     byName[key].meshes++;
     byName[key].instances += inst;
-    byName[key].triangles += t * inst;
+    byName[key].triangles += merged ? t : t * inst;
   });
 
   return {
