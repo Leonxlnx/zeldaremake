@@ -1,0 +1,4282 @@
+{
+  "sha": "7464eb4405ddcdb69d706ab15727c7914235500a",
+  "snapshot": {
+    "label": "after",
+    "source": "7464eb4405ddcdb69d706ab15727c7914235500a",
+    "root": "E:\\zeldaremake-astra-atmosphere-clarity\\art\\environment\\astra-atmosphere-clarity\\frozen\\after",
+    "files": {
+      "assets/index-DQEncs0e.js": {
+        "bytes": 1996954,
+        "sha256": "bb077bd2b25f0d3d8dbf454e28ff2b1f3df2643d90c207a6f23eec3819a2eeda"
+      },
+      "audio/.gitignore": {
+        "bytes": 115,
+        "sha256": "ff8b10682eb5f972aa7c112d83ebb7556a1f67d7636a1e934ecca934a837c5b4"
+      },
+      "audio/README.md": {
+        "bytes": 1840,
+        "sha256": "2b31b219a5bf146d49d26884f6cdfa6493712c0a7013bb219df43f1f034a571f"
+      },
+      "favicon.svg": {
+        "bytes": 159,
+        "sha256": "73e2ea7e9add88bb83724dbced91d1b628bcdb1dad5e95689d177714440278a8"
+      },
+      "index.html": {
+        "bytes": 1377,
+        "sha256": "756b98851fcb9ba9cb10042649cdac3f181e5881112a70f755640c5ccabcc590"
+      },
+      "models/link/link-runtime.glb": {
+        "bytes": 51111284,
+        "sha256": "4dcf89c5c10391981289e2583152c26fb4ac93047c6fcb4bb0959e246805d850"
+      },
+      "models/link/SOURCE.md": {
+        "bytes": 12877,
+        "sha256": "c17d91dc6be1cc851c2570608578f99e5495fb05ac9a960ed8debf148f344327"
+      },
+      "models/trees/root-base-a-prototype.glb": {
+        "bytes": 11841308,
+        "sha256": "a57c6dd30307b51926e3ef4ce0ef0ffefe02acecdf97114be5715fd524861f41"
+      },
+      "models/trees/SOURCE.md": {
+        "bytes": 1802,
+        "sha256": "33f1b1191efd853e51e11261520bdf1745d23e4e4f2d9f97bb3557b84229caad"
+      },
+      "textures/aerial_grass_rock/2k/color.jpg": {
+        "bytes": 957919,
+        "sha256": "26f10ab05eeb6f5a8921c7e796bea9c9ecf93d6ad2162d2134aa5fdff6deb6cf"
+      },
+      "textures/aerial_grass_rock/2k/normal.jpg": {
+        "bytes": 2160908,
+        "sha256": "59820a92f11679362a900085e34fa29572fca1f28b14dcc4e83de6395fcc960f"
+      },
+      "textures/aerial_grass_rock/color.jpg": {
+        "bytes": 283497,
+        "sha256": "f1b79d761730702e472e0bca006b70e4ec5e0d27187332df88b4369542db2511"
+      },
+      "textures/aerial_grass_rock/LICENSE.txt": {
+        "bytes": 481,
+        "sha256": "4c5ee34de6e5170c476f2f72367583e698ec07959772b34fc71a0528bb310827"
+      },
+      "textures/aerial_grass_rock/normal.jpg": {
+        "bytes": 609825,
+        "sha256": "ed680826731749f9c915fac5f89a68df70c609ebc9c978db7649564003e1d622"
+      },
+      "textures/bark_brown_02/2k/color.jpg": {
+        "bytes": 1014210,
+        "sha256": "5f14c38847024d845b96750ce6f6169cb9969fa70cd9cdbc36c5e26a8914ea2b"
+      },
+      "textures/bark_brown_02/2k/normal.jpg": {
+        "bytes": 2208663,
+        "sha256": "b69f007f53583be4b5c93a589083a91cfe60e47c6609d5a3ffb86869d7a65e9a"
+      },
+      "textures/bark_brown_02/2k/roughness.jpg": {
+        "bytes": 427425,
+        "sha256": "726c1f28071f0912f6b2ffea45ee931a9c71d0dbae06a451c4b75b34ccfd325b"
+      },
+      "textures/bark_brown_02/color.jpg": {
+        "bytes": 249152,
+        "sha256": "9af49cb19627040bdf0da624763ec5f0582a5b634689678aa1f83b1ffa1e0768"
+      },
+      "textures/bark_brown_02/LICENSE.txt": {
+        "bytes": 494,
+        "sha256": "6669501049279de13e37475d2cc96e587c27d6d7c282b92f872b187ac7eface4"
+      },
+      "textures/bark_brown_02/normal.jpg": {
+        "bytes": 242186,
+        "sha256": "ba9dfa208b2cb31721a773cb3d85fdf718169c7d1abd3f4cdda8fc2031138b43"
+      },
+      "textures/bark_brown_02/roughness.jpg": {
+        "bytes": 76056,
+        "sha256": "a36f19b36f11cc65b7f04425906289809c20580d00e0192bda94bb72cc51a94c"
+      },
+      "textures/bark_willow_02/2k/color.jpg": {
+        "bytes": 1063696,
+        "sha256": "a8e51e90b488d53bf930354079c691425c91e5f477225db067cc2b8722d41298"
+      },
+      "textures/bark_willow_02/2k/normal.jpg": {
+        "bytes": 2251775,
+        "sha256": "d889ab472f2b759bef41e1dcd3d869055eb41ad6bc002920eb192e78d14539d1"
+      },
+      "textures/bark_willow_02/2k/roughness.jpg": {
+        "bytes": 368595,
+        "sha256": "88392ccc4361126c1511130cba493b348af4f740e1e944e5ee28045a5494ca89"
+      },
+      "textures/bark_willow_02/color.jpg": {
+        "bytes": 243560,
+        "sha256": "90b12701ad7ff3265f23fd59eeafdf66d2ecfa5deba6994d73544a97da34c202"
+      },
+      "textures/bark_willow_02/LICENSE.txt": {
+        "bytes": 496,
+        "sha256": "a4585906526f8d2844ba338dd1697fa580219aa385fb974ff1268d035009578b"
+      },
+      "textures/bark_willow_02/normal.jpg": {
+        "bytes": 296878,
+        "sha256": "ea7f64f4db49cf9436ce2f56ba400662ca59cea8fea93be4fea3c6212355b2a0"
+      },
+      "textures/bark_willow_02/roughness.jpg": {
+        "bytes": 55163,
+        "sha256": "0ab488428ee2e1c197d0f903ea02337ab0b8fb40106daa4516c5c76b219060f7"
+      },
+      "textures/brown_mud_leaves_01/2k/color.jpg": {
+        "bytes": 1293463,
+        "sha256": "71f6fd6f92abea62ef2002415a729a0fbecc14d353db81e06cdefdc1074dfcb6"
+      },
+      "textures/brown_mud_leaves_01/2k/normal.jpg": {
+        "bytes": 2547899,
+        "sha256": "fd5e1bab845401c93fc2c053ce25763b3437d7980e7f6f7b182cc013857a6fb9"
+      },
+      "textures/brown_mud_leaves_01/color.jpg": {
+        "bytes": 345413,
+        "sha256": "72599fd201f3d9a3896d2640dcb3cb1fd41bc13213f0d279c032c6df5cfd0e92"
+      },
+      "textures/brown_mud_leaves_01/LICENSE.txt": {
+        "bytes": 485,
+        "sha256": "a20bcec87c8b3558f0fc144c337be2255c03269267f2a2ef8775a494df590752"
+      },
+      "textures/brown_mud_leaves_01/normal.jpg": {
+        "bytes": 604305,
+        "sha256": "4fe98c9764dc003d5f4db61ac391904088438f2b6955986ebc3f74d8f915e78e"
+      },
+      "textures/CREDITS.md": {
+        "bytes": 10814,
+        "sha256": "2e2213ff1ffbb8acdcefbe4a7537552ff4cf5ee353087926b41b8e2e6e44325f"
+      },
+      "textures/forest_ground_04/2k/color.jpg": {
+        "bytes": 1268314,
+        "sha256": "5331ace94458f6ac2015302b49737afc0b4510b65787928458f497569798ced6"
+      },
+      "textures/forest_ground_04/2k/normal.jpg": {
+        "bytes": 2268589,
+        "sha256": "9147e8f4a38b80d6d0725298208fe3b4379a03d4f1681d1beb1ca62af3aa5fbd"
+      },
+      "textures/forest_ground_04/color.jpg": {
+        "bytes": 307957,
+        "sha256": "e6322d665ab85787d838a4e6081906207cf22c09b806681722411dab99a3ed43"
+      },
+      "textures/forest_ground_04/LICENSE.txt": {
+        "bytes": 479,
+        "sha256": "86aec82c045d3a64feac45265bb24f627bb8fe43991d2c9c65d0a3883c459fd5"
+      },
+      "textures/forest_ground_04/normal.jpg": {
+        "bytes": 503163,
+        "sha256": "2c0bcd6e78fc578cb4327829a2cac5e3486e09d86fbf87a6663a764401734ac3"
+      },
+      "textures/leafy_grass/2k/color.jpg": {
+        "bytes": 1322061,
+        "sha256": "f0ffd8672de7f2fc00e33a8e9e75d7d38c9b2bc652356c858c86c30aab9d49de"
+      },
+      "textures/leafy_grass/2k/normal.jpg": {
+        "bytes": 2698138,
+        "sha256": "278d7585db7e98f9059eea6330e39fd35757b12e227e9ede9166df24f7baec5a"
+      },
+      "textures/leafy_grass/color.jpg": {
+        "bytes": 327741,
+        "sha256": "c48756699537b5a1015f75da0873eaee50b02efa010072f351e0220a476426c2"
+      },
+      "textures/leafy_grass/LICENSE.txt": {
+        "bytes": 469,
+        "sha256": "4390d15c9b89977c4413d88c75b4f47ec5c291a9061dd01d682e5337a1f7db5a"
+      },
+      "textures/leafy_grass/normal.jpg": {
+        "bytes": 587504,
+        "sha256": "a1866cc29f3a399cf434b5d7623bfb5d3b1c325feeb94a3078f4c6e0c7ec72d4"
+      },
+      "textures/rocky_trail/2k/color.jpg": {
+        "bytes": 1119941,
+        "sha256": "9490910a753a5e316f147599e54691f43cb284b0c8f25b99204cc3117b2e55f4"
+      },
+      "textures/rocky_trail/2k/normal.jpg": {
+        "bytes": 2392358,
+        "sha256": "c7208e8886bd19a746836f0db143b81cf967a5aaf68f6449b9bdfe8fd05cc7e9"
+      },
+      "textures/rocky_trail/color.jpg": {
+        "bytes": 275281,
+        "sha256": "0769f302f47011da5d3d0d78cd2ae54bd05d8beff0d0dfa6df4fda7d9052a416"
+      },
+      "textures/rocky_trail/LICENSE.txt": {
+        "bytes": 469,
+        "sha256": "278de58b1cebdbfe4d34ca1fdb4f3f83680229cbcc959368d30339f29d90ca7d"
+      },
+      "textures/rocky_trail/normal.jpg": {
+        "bytes": 557120,
+        "sha256": "8536635f3c951a37accef26f1017892a5ed5aa47b5bdc71f86338fd5703c394e"
+      },
+      "textures/rock_boulder_cracked/2k/color.jpg": {
+        "bytes": 961346,
+        "sha256": "c18457cfd18a165d0865a7c2cab33a3a10d3eaeb079f3b84a19938ef6761fb70"
+      },
+      "textures/rock_boulder_cracked/2k/normal.jpg": {
+        "bytes": 1511750,
+        "sha256": "f386e681e86a54eac3fb3f184dd3d38292dd14f3d3f05c9227d332732f586d5c"
+      },
+      "textures/rock_boulder_cracked/2k/roughness.jpg": {
+        "bytes": 178854,
+        "sha256": "28e7114b26c6b2bedb682a361a5b3109f96de100a25265f36e6ea512533714fe"
+      },
+      "textures/rock_boulder_cracked/color.jpg": {
+        "bytes": 215177,
+        "sha256": "ddfa2401258ba9851fb40f59b062d002e63bdf320b134edbd88409ec29d8aa3d"
+      },
+      "textures/rock_boulder_cracked/LICENSE.txt": {
+        "bytes": 515,
+        "sha256": "1a3626b7255fae0f36c93ada6e6940ac605b9462ccc2297144b5c6219f841b21"
+      },
+      "textures/rock_boulder_cracked/normal.jpg": {
+        "bytes": 340606,
+        "sha256": "dd324abb44bd077de3806ad39cbf5310895e80352a84fbf43447ec0480195a22"
+      },
+      "textures/rock_boulder_cracked/roughness.jpg": {
+        "bytes": 19885,
+        "sha256": "7976b189b158bb85bbb33ca4872c63bd1c7037fad674899b3f9c780aed1a832b"
+      },
+      "textures/rock_face_03/2k/color.jpg": {
+        "bytes": 882266,
+        "sha256": "092aef292c94439ef9049a48fed0040945af61463726ed851e8675eaf6ac52fe"
+      },
+      "textures/rock_face_03/2k/normal.jpg": {
+        "bytes": 1743948,
+        "sha256": "8f60e34183379e7d4efe8f741ac74f6f6301fafa329a6136eb8066d012800e4d"
+      },
+      "textures/rock_face_03/color.jpg": {
+        "bytes": 181452,
+        "sha256": "24d9b1ea7fa8d03841df2e36399cd283040dd64b62bf337dd07dfb1c88d09259"
+      },
+      "textures/rock_face_03/LICENSE.txt": {
+        "bytes": 471,
+        "sha256": "bc4dcc7ca20533cd6bd852892713303d849fe376e3ceed9b87f94b272e5c65d1"
+      },
+      "textures/rock_face_03/normal.jpg": {
+        "bytes": 382733,
+        "sha256": "265efa60470d976414913ad08ad5df85c3750bd10b9bd08008a6475051f7dfda"
+      },
+      "textures/thatch_roof_angled/2k/color.jpg": {
+        "bytes": 814437,
+        "sha256": "82f66205257315a6ad12e2aeb1498ba4ed59ddd56af14229f678c8685ca10068"
+      },
+      "textures/thatch_roof_angled/2k/normal.jpg": {
+        "bytes": 2168310,
+        "sha256": "abc1edad3322cb42a8c3a4f0a9ded1c4c501d70e3c03f24831c67c425d969a07"
+      },
+      "textures/thatch_roof_angled/2k/roughness.jpg": {
+        "bytes": 517190,
+        "sha256": "137887ea8219b4321f8938028d1079520ecc9c1544fd758e316c56751851ec38"
+      },
+      "textures/thatch_roof_angled/color.jpg": {
+        "bytes": 202383,
+        "sha256": "80d8bc22f6591e97cbfc0c02bb17f2e1f18f6be3d07136edc9a92fef38643fb0"
+      },
+      "textures/thatch_roof_angled/LICENSE.txt": {
+        "bytes": 504,
+        "sha256": "14e8b146373324def44c9e895827eb2523eb18fb15337a4537ac32c8965e1d5f"
+      },
+      "textures/thatch_roof_angled/normal.jpg": {
+        "bytes": 275537,
+        "sha256": "d44f9e2b313960fe65a3c86950b05b67e907a693bae387d018442e5d6a66e0a7"
+      },
+      "textures/thatch_roof_angled/roughness.jpg": {
+        "bytes": 105181,
+        "sha256": "9190ca2176b0ac494b5fe0a4ceb30f9b1eeedd79906bb38aa326fc52bfca03e4"
+      },
+      "textures/tree_bark_03/2k/color.jpg": {
+        "bytes": 1041639,
+        "sha256": "88d00559b80f1357eb26dba0354520fccac8eb1641126207b4e92debd75d070f"
+      },
+      "textures/tree_bark_03/2k/normal.jpg": {
+        "bytes": 1918588,
+        "sha256": "d3e330105708c27f038eb76425b6f2c5e9c51209ba084e97d57cc0b1e4c0d29d"
+      },
+      "textures/tree_bark_03/2k/roughness.jpg": {
+        "bytes": 297241,
+        "sha256": "c5df39c3fc7426ec61e3567d987388c49528e8946a654a9b88d85ebb99dcff6f"
+      },
+      "textures/tree_bark_03/color.jpg": {
+        "bytes": 279157,
+        "sha256": "c1d5b6ec4e463983158242eaec5b7b36f5e9523aceec2e20b6a87af4ed7971cb"
+      },
+      "textures/tree_bark_03/LICENSE.txt": {
+        "bytes": 532,
+        "sha256": "5a2590d86b0150cc52fb74fba2cc9b62122a3023e79fc111727bfefea77e162b"
+      },
+      "textures/tree_bark_03/normal.jpg": {
+        "bytes": 372173,
+        "sha256": "b7ad78428013e80c9744f6862950c4e3ac7d30d9dc0df8dc6fd55c0763f8c49c"
+      },
+      "textures/tree_bark_03/roughness.jpg": {
+        "bytes": 32793,
+        "sha256": "6e7741cc16c945a734b5a9aa1f9abe8d3721904ccb41f2ee33a813c55877c186"
+      },
+      "textures/weathered_planks/2k/color.jpg": {
+        "bytes": 435510,
+        "sha256": "cf57e382d2c490b3fa34b4db41a992db95c37205db52693eb9c71f474aaacffa"
+      },
+      "textures/weathered_planks/2k/normal.jpg": {
+        "bytes": 834188,
+        "sha256": "1943c8de9e5219990bf41e509ddb71a295034fdc4474b7a17138373d3395a2b6"
+      },
+      "textures/weathered_planks/2k/roughness.jpg": {
+        "bytes": 73134,
+        "sha256": "bae856a5746a52b7393d27c4567b881e74969be4edbefe0186667225d5f9807b"
+      },
+      "textures/weathered_planks/color.jpg": {
+        "bytes": 101227,
+        "sha256": "52a8296fed5dc5155b7293ed0d67a6aeefd8ad6f1f978362815907327b2ed407"
+      },
+      "textures/weathered_planks/LICENSE.txt": {
+        "bytes": 500,
+        "sha256": "4c558a9bdb15b507863846ef417bb92aa3a977e52f14a1d3ef7a4a48c2857f2b"
+      },
+      "textures/weathered_planks/normal.jpg": {
+        "bytes": 60637,
+        "sha256": "6e1ebb09e3dc4efd41d54be62d8af8bbd7ea03320089b3c5228bc7770fee2e50"
+      },
+      "textures/weathered_planks/roughness.jpg": {
+        "bytes": 12136,
+        "sha256": "15ecb7247ee0635cb72bc8f18ef327f647f6c6d2b67abdde73312d17b1399673"
+      },
+      "textures/worn_rock_natural_01/2k/ao.jpg": {
+        "bytes": 241415,
+        "sha256": "82319894909362a725661eb1cbbd122beb579c4f33715771651f1bca33a5834c"
+      },
+      "textures/worn_rock_natural_01/2k/color.jpg": {
+        "bytes": 743083,
+        "sha256": "885d276b4b50fb1bf4ce1ca88acd54ad6525a145ac6cff2af832cc407f4727c2"
+      },
+      "textures/worn_rock_natural_01/2k/normal.jpg": {
+        "bytes": 1131040,
+        "sha256": "8b22b0c9c4d26bf4c9cb3a8da6842eb64dbdf13d35172b1b01505e5988984eb3"
+      },
+      "textures/worn_rock_natural_01/2k/roughness.jpg": {
+        "bytes": 413779,
+        "sha256": "4ff4f3ce123c81509a2ff3ddae201e9810b0464b65b689fb612cd9c15b7ee18b"
+      },
+      "textures/worn_rock_natural_01/ao.jpg": {
+        "bytes": 48230,
+        "sha256": "1a47dc697664d41d3880070c4613336c4b1b8da6458c73be6dc0a3f1335df5f2"
+      },
+      "textures/worn_rock_natural_01/color.jpg": {
+        "bytes": 152072,
+        "sha256": "c3aeea048ef58a75fc4a47d31466c45d5ee3d6049030a1e85efd4a5bee8078e1"
+      },
+      "textures/worn_rock_natural_01/LICENSE.txt": {
+        "bytes": 528,
+        "sha256": "c9d99939065b1b90803d29c6bfc2e3ad78049f6ccaf70b5417bc5e8d89612358"
+      },
+      "textures/worn_rock_natural_01/normal.jpg": {
+        "bytes": 163700,
+        "sha256": "949e0614b219e19aa13af12f653a7d03c764b9df2175618d33e61cbb57622ba7"
+      },
+      "textures/worn_rock_natural_01/roughness.jpg": {
+        "bytes": 62680,
+        "sha256": "2cf39b9a72d4516e94c10ce718026140dd79bbf5955e4144888683365498bd5d"
+      }
+    }
+  },
+  "settingsSha256": "c073092e30de97b68783c2c69762108d97bd4e45f2f2ce17d9d586d345c61dc6",
+  "settings": {
+    "views": [
+      "reconstructed-distant-up",
+      "A_stairs",
+      "F_canopy",
+      "sky-opening"
+    ],
+    "poses": {
+      "reconstructed-distant-up": {
+        "p": [
+          54.00101693066348,
+          21.992752345655013,
+          -165.33335274009295
+        ],
+        "t": [
+          35.616240619813254,
+          37.51479429090839,
+          -146.9485764292427
+        ],
+        "fov": 60
+      }
+    },
+    "variants": [
+      {
+        "name": "default"
+      }
+    ],
+    "note": "Shared reconstructed view from the distance lane, not the original owner camera. Default high production settings, no fog/grade/light overrides."
+  },
+  "captureScriptSha256": "b9510805d0466e732d0ffa889a5595e4ef614cd82b1fc5958c2d1e3a99543055",
+  "images": {
+    "reconstructed-distant-up": {
+      "sha256": "545836fa26e1b76eaf67bd36e1549852b05e5dff3e33350aec47eb2b1633e0f1",
+      "stats": {
+        "simTime": 12.6,
+        "drawCalls": 131,
+        "triangles": 2039386,
+        "geometries": 338,
+        "textures": 91,
+        "programs": 92,
+        "width": 1280,
+        "height": 720,
+        "pixelRatio": 1
+      },
+      "camera": {
+        "position": [
+          54.00101693066348,
+          21.992752345655013,
+          -165.33335274009295
+        ],
+        "direction": [
+          -0.607140721553532,
+          0.5126014908902387,
+          0.6071407215535465
+        ],
+        "fov": 60
+      },
+      "lighting": {
+        "sunAzimuthDeg": -128,
+        "sunElevationDeg": 38,
+        "sunIntensity": 4.4,
+        "sunColor": "#ffe7bf",
+        "shadows": true,
+        "shadowMapSize": 4096,
+        "shadowType": "pcss-vogel+canopy-transmission",
+        "shadowFilterTaps": 12,
+        "shadowSearchTaps": 8,
+        "shadowFilterDynamic": false,
+        "shadowWindowRadiusM": 46,
+        "shadowSnapSpace": "light-camera-texel",
+        "shadowSnapMetres": 0.0224609375,
+        "shadowTexelCm": 2.2,
+        "shadowBias": -0.00012,
+        "shadowNormalBias": 0.028,
+        "shadowRadiusTexels": 1.5,
+        "shadowPenumbraPerM": 0.0093,
+        "shadowPenumbraRangeM": [
+          0.04,
+          0.45
+        ],
+        "shadowCanopyLeak": 0.1,
+        "shadowCanopyLeakRangeM": [
+          5,
+          11
+        ],
+        "cascades": 1,
+        "hemiIntensity": 0.55,
+        "hemiSkyLinear": [
+          0.479,
+          0.638,
+          0.745
+        ],
+        "hemiGroundLinear": [
+          0.407,
+          0.381,
+          0.242
+        ],
+        "environmentMap": true,
+        "environmentIntensity": 0.22,
+        "environmentTint": [
+          1.049,
+          1,
+          1.0025
+        ]
+      },
+      "atmosphere": {
+        "fogNear": 28,
+        "fogFar": 190,
+        "fogColor": "#95968b",
+        "heightFog": true,
+        "heightFogBaseM": 0.4,
+        "heightFogFalloff": 1,
+        "distanceFogMax": 0.86,
+        "hazeDensityPerM": 0.008,
+        "hazeStartM": 5,
+        "hazeAt30m": 0.18,
+        "hazeThinMidStartM": 8,
+        "hazeThinMidDensityPerM": 0.008,
+        "hazeThinMidEndM": 15,
+        "hazeCatchUpEndM": 22,
+        "hazeCatchUpDensityPerM": 0.008,
+        "midAirDim": 1,
+        "midAirDimInM": [
+          9,
+          13
+        ],
+        "midAirDimOutM": [
+          16,
+          21
+        ],
+        "hazeFarStartM": 49,
+        "hazeFarDensityPerM": 0.008,
+        "hazeUniformHeightM": 8,
+        "hazeScaleHeightM": 7,
+        "hazeUpwardCut": 0.9,
+        "hazeDensityUniformHeightM": 3,
+        "hazeDensityScaleHeightM": 5,
+        "hazeDensityProfileOpen": 1,
+        "hazeOpenDensity": 1,
+        "distanceFogMaxOpen": 0.86,
+        "hazeShadeVeil": 1,
+        "hazeShadeVeilKnee": 0.3,
+        "hazeShadeVeilOutM": [
+          40,
+          50
+        ],
+        "plateauGlareDisplay": "#cac9be",
+        "plateauGlareBearingDeg": 57,
+        "plateauGlareAmount": 0.25,
+        "hazeNearDisplay": "#838c93",
+        "hazeFarDisplay": "#9aa9b3",
+        "hazeLitDisplay": "#adb5bb",
+        "hazeLitKnee": 0.2,
+        "canopyOpenBearingDeg": 75,
+        "canopyOpenEdges": [
+          0.25,
+          0.7
+        ],
+        "hazeClosedDisplay": "#7f8b91",
+        "hazeFarLitDisplay": "#a5afb6",
+        "hazeFarLitStartM": 52,
+        "hazeFarLitEndM": 56,
+        "hazeFarLitAmount": 0.5,
+        "hazeFarLitKnee": 0.1,
+        "skyFarLitUpEdges": [
+          0.05,
+          0.17
+        ],
+        "hollowDim": 0.65,
+        "hollowDimInM": [
+          42,
+          52
+        ],
+        "hollowVeilDisplay": "#616b72",
+        "hazeSunLobeGain": 0,
+        "hazeBackScatterMin": 0.65,
+        "hazeBackScatterFullDeg": 135,
+        "hazeFarBackDisplay": "#808a8f",
+        "groundMistDisplay": "#89887a",
+        "hazeNearFieldDisplay": "#877f71",
+        "hazeNearFieldInM": [
+          10,
+          28
+        ],
+        "hazeNearFieldAmount": 1,
+        "farShadeStartM": 22,
+        "farShadeFullM": 44,
+        "farShadeMin": 0.65,
+        "skyGapDisplay": "#7bb1d2",
+        "sky": "procedural-warm-haze+sun+cirrus",
+        "groundMist": true,
+        "groundMistBillboards": 32,
+        "groundMistSheets": 9,
+        "godRays": true,
+        "fallingLeaves": 96,
+        "fireflies": 180,
+        "fairy": true,
+        "fairySource": "character:navi",
+        "fairyLight": true,
+        "ambientOcclusion": true,
+        "bloom": true,
+        "antialiasing": "fxaa",
+        "postfx": {
+          "passes": [
+            "scene-hdr",
+            "mist-half",
+            "ssao-half",
+            "ssao-blur-half",
+            "godray-march-quarter",
+            "godray-smear-x2-quarter",
+            "bloom-bright-quarter",
+            "bloom-blur-x2-quarter",
+            "composite-aces-grade",
+            "fxaa",
+            "soften-down-640",
+            "soften-blur-x2-640",
+            "soften-haze-blur-x3-320",
+            "soften-weights-x3-320",
+            "soften-final"
+          ],
+          "hdr": true,
+          "resolution": [
+            1280,
+            720
+          ],
+          "shadowCasterCull": true,
+          "shadowCastersTested": 76,
+          "shadowCastersCulled": 54,
+          "shadowCullMarginM": 1,
+          "stagesEnabled": {
+            "ao": true,
+            "rays": true,
+            "bloom": true,
+            "soft": false
+          },
+          "ambientOcclusion": true,
+          "aoResolution": [
+            640,
+            360
+          ],
+          "godRays": true,
+          "godRayMethod": "volumetric-shadow-march+gap-mask",
+          "godRaySteps": 24,
+          "godRayResolution": [
+            320,
+            180
+          ],
+          "godRayStrength": 0.32,
+          "godRayBackScatterMin": 0.35,
+          "godRayExtinctionPerM": 0.045,
+          "godRayMaxDistM": 40,
+          "godRayAirFadeM": [
+            3,
+            6.5
+          ],
+          "godRayMistNearM": [
+            0,
+            0
+          ],
+          "godRayAnisotropy": 0.6,
+          "godRayContrastPow": 1,
+          "godRayGapFrequencyPerM": 0.22,
+          "godRayGapFloor": 0.3,
+          "godRayGapNoiseMax": 1,
+          "godRayFarAirM": [
+            30,
+            45
+          ],
+          "godRayFarAirFill": 0.23,
+          "godRayGapHollowZ": [
+            -24,
+            -40
+          ],
+          "godRayFixedColumns": [
+            [
+              1.3,
+              6.6,
+              -9.4,
+              1.8,
+              1
+            ],
+            [
+              -3,
+              8,
+              -14.5,
+              1.8,
+              1
+            ],
+            [
+              5,
+              7,
+              -17,
+              1.8,
+              1
+            ],
+            [
+              13.3,
+              10,
+              -14.6,
+              1.3,
+              7.5
+            ],
+            [
+              9.6,
+              6.9,
+              -6.6,
+              1.3,
+              7.5
+            ],
+            [
+              20.4,
+              11.2,
+              -12.8,
+              1.3,
+              7.5
+            ]
+          ],
+          "godRayScreenFan": true,
+          "godRayScreenFanMix": 1,
+          "godRayScreenFanLeanDeg": 26,
+          "godRayScreenFanFloor": 0.75,
+          "godRayScreenFanAmp": 0.23,
+          "godRayScreenFanFacingDeg": [
+            170,
+            75
+          ],
+          "godRayScreenFanViewGain": 1,
+          "godRayScreenFanFadeY": [
+            0.35,
+            0.6
+          ],
+          "godRayScreenFanBeams": [
+            [
+              0.255,
+              0.12,
+              1
+            ],
+            [
+              0.35,
+              0.13,
+              0.45
+            ],
+            [
+              0.465,
+              0.07,
+              0.15
+            ]
+          ],
+          "sunScreenUv": [
+            1.457,
+            1.543
+          ],
+          "sunInFront": true,
+          "bloom": true,
+          "bloomThreshold": 1,
+          "bloomIntensity": 0.25,
+          "bloomRadiusTexels": 1.4,
+          "toneMapping": "aces-fitted",
+          "contrast": 0.93,
+          "contrastPivot": 0.18,
+          "lift": 0.003,
+          "aoStrength": 0.2,
+          "aoFadeM": [
+            22,
+            34
+          ],
+          "aoNearStrength": 0.2,
+          "aoNearM": [
+            6,
+            10
+          ],
+          "antialiasing": "fxaa",
+          "softening": false,
+          "softeningGrid": [
+            640,
+            360
+          ],
+          "softeningDetailFloor": 0.85,
+          "softeningActivityKnee": 0.08,
+          "softeningUniform": 0,
+          "softeningHazeRangeM": [
+            16,
+            50
+          ],
+          "softeningBlurSigmaGrid": [
+            1.2,
+            4.2
+          ],
+          "softeningHazeWeightMode": 0,
+          "softeningHazeFarOnly": false,
+          "softeningNearSharp": 0.25,
+          "softeningNearSharpRangeM": [
+            4,
+            10
+          ],
+          "deterministic": true,
+          "headless": true
+        }
+      },
+      "perf": {
+        "step": 7.5,
+        "camera": 0,
+        "update": 2.799999952316284,
+        "render": 4.700000047683716,
+        "systems": {
+          "wind": 0,
+          "lighting": 0.10000002384185791,
+          "atmosphere": 0.10000002384185791,
+          "terrain": 0,
+          "hardscape": 0.09999990463256836,
+          "rocks": 0,
+          "trees": 0.30000007152557373,
+          "canopy": 0.10000002384185791,
+          "structures": 0,
+          "props": 0.09999990463256836,
+          "vegetation": 0.10000002384185791,
+          "character": 1.899999976158142
+        },
+        "systemPerf": {
+          "trees": {
+            "tier": "large",
+            "deviceMemoryGB": 32,
+            "poolBytesCap": {
+              "nearCanopy": 268435456,
+              "nearBase": 50331648
+            },
+            "swapM": {
+              "nearCanopy": [
+                26,
+                30
+              ],
+              "nearBase": [
+                25,
+                28
+              ]
+            },
+            "nearCanopyPool": {
+              "capBytes": 268435456,
+              "poolBytes": 234773574,
+              "items": 426,
+              "resident": 426,
+              "pinned": 3,
+              "wanted": 3,
+              "pinnedBytes": 4966080,
+              "wantedBytes": 4966080,
+              "pending": 0,
+              "building": 0,
+              "built": 0,
+              "evicted": 0,
+              "syncBuilds": 0,
+              "hits": 199,
+              "buildMsP50": 0,
+              "buildMsP95": 0,
+              "buildMsMax": 0,
+              "stepMsMax": 0,
+              "workMsMax": 0.1,
+              "workMsTotal": 0.6,
+              "steps": 0,
+              "stepMsP50": 0,
+              "stepMsP95": 0,
+              "longSteps": 0,
+              "workOverBudget": 0,
+              "workMsP95": 0.1
+            },
+            "nearBasePool": {
+              "capBytes": 50331648,
+              "poolBytes": 34726800,
+              "items": 23,
+              "resident": 23,
+              "pinned": 0,
+              "wanted": 0,
+              "pinnedBytes": 0,
+              "wantedBytes": 0,
+              "pending": 0,
+              "building": 0,
+              "built": 0,
+              "evicted": 0,
+              "syncBuilds": 0,
+              "hits": 4,
+              "buildMsP50": 0,
+              "buildMsP95": 0,
+              "buildMsMax": 0,
+              "stepMsMax": 0,
+              "workMsMax": 0.1,
+              "workMsTotal": 0.2,
+              "steps": 0,
+              "stepMsP50": 0,
+              "stepMsP95": 0,
+              "longSteps": 0,
+              "workOverBudget": 0,
+              "workMsP95": 0.1
+            },
+            "prefetchM": {
+              "nearCanopy": 42,
+              "nearBase": 38
+            },
+            "buildBudgetMs": 6,
+            "bytesWithinM": {
+              "nearCanopy": {
+                "26": 0,
+                "30": 0,
+                "34": 0,
+                "42": 0
+              },
+              "nearBase": {
+                "25": 0,
+                "28": 0,
+                "38": 0
+              }
+            }
+          },
+          "vegetation": {
+            "rebucketBudget": 8000,
+            "frame": {
+              "listed": 0,
+              "listedMax": 109076,
+              "swaps": 0,
+              "refreshMs": 0.10000002384185791,
+              "refreshMsMax": 40.39999997615814,
+              "frames": 17,
+              "jobsOpen": 0
+            },
+            "sets": {
+              "ferns": {
+                "updateMs": 0,
+                "cullMs": 0,
+                "updateMsMax": 1.600000023841858,
+                "cullMsMax": 1.7999999523162842,
+                "swaps": 2,
+                "count": 1394
+              },
+              "tufts": {
+                "updateMs": 0,
+                "cullMs": 0,
+                "updateMsMax": 4.100000023841858,
+                "cullMsMax": 1.7000000476837158,
+                "swaps": 2,
+                "count": 5537
+              },
+              "hero-ferns": {
+                "updateMs": 0,
+                "cullMs": 0,
+                "updateMsMax": 0.19999992847442627,
+                "cullMsMax": 0.10000002384185791,
+                "swaps": 2,
+                "count": 18
+              },
+              "fiddleheads": {
+                "updateMs": 0,
+                "cullMs": 0,
+                "updateMsMax": 0.5,
+                "cullMsMax": 0.20000004768371582,
+                "swaps": 2,
+                "count": 612
+              },
+              "bushes": {
+                "updateMs": 0,
+                "cullMs": 0,
+                "updateMsMax": 0.10000002384185791,
+                "cullMsMax": 0.2999999523162842,
+                "swaps": 2,
+                "count": 125
+              },
+              "hedge": {
+                "updateMs": 0,
+                "cullMs": 0,
+                "updateMsMax": 0.10000002384185791,
+                "cullMsMax": 0.10000002384185791,
+                "swaps": 2,
+                "count": 31
+              },
+              "flowers": {
+                "updateMs": 0,
+                "cullMs": 0,
+                "updateMsMax": 0.2999999523162842,
+                "cullMsMax": 0.10000002384185791,
+                "swaps": 2,
+                "count": 263
+              },
+              "flowers-yellow": {
+                "updateMs": 0,
+                "cullMs": 0,
+                "updateMsMax": 0.10000002384185791,
+                "cullMsMax": 0,
+                "swaps": 2,
+                "count": 11
+              },
+              "flowers-white": {
+                "updateMs": 0,
+                "cullMs": 0,
+                "updateMsMax": 0.10000002384185791,
+                "cullMsMax": 0,
+                "swaps": 2,
+                "count": 63
+              },
+              "weeds": {
+                "updateMs": 0,
+                "cullMs": 0,
+                "updateMsMax": 2.8000000715255737,
+                "cullMsMax": 1.2999999523162842,
+                "swaps": 2,
+                "count": 5315
+              },
+              "seedheads": {
+                "updateMs": 0,
+                "cullMs": 0,
+                "updateMsMax": 0.2999999523162842,
+                "cullMsMax": 0.20000004768371582,
+                "swaps": 2,
+                "count": 987
+              },
+              "clover": {
+                "updateMs": 0,
+                "cullMs": 0,
+                "updateMsMax": 0.8999999761581421,
+                "cullMsMax": 0.30000007152557373,
+                "swaps": 2,
+                "count": 8701
+              },
+              "moss": {
+                "updateMs": 0,
+                "cullMs": 0,
+                "updateMsMax": 0.5999999046325684,
+                "cullMsMax": 0.20000004768371582,
+                "swaps": 2,
+                "count": 2068
+              },
+              "saplings": {
+                "updateMs": 0,
+                "cullMs": 0,
+                "updateMsMax": 0,
+                "cullMsMax": 0.10000002384185791,
+                "swaps": 2,
+                "count": 22
+              },
+              "ferns-north": {
+                "updateMs": 0,
+                "cullMs": 0,
+                "updateMsMax": 0.10000002384185791,
+                "cullMsMax": 0.10000002384185791,
+                "swaps": 2,
+                "count": 954
+              },
+              "weeds-north": {
+                "updateMs": 0,
+                "cullMs": 0.10000002384185791,
+                "updateMsMax": 0.20000004768371582,
+                "cullMsMax": 0.10000002384185791,
+                "swaps": 2,
+                "count": 2004
+              },
+              "bushes-north": {
+                "updateMs": 0,
+                "cullMs": 0,
+                "updateMsMax": 0,
+                "cullMsMax": 0.09999990463256836,
+                "swaps": 2,
+                "count": 32
+              },
+              "tufts-north": {
+                "updateMs": 0,
+                "cullMs": 0,
+                "updateMsMax": 0,
+                "cullMsMax": 0,
+                "swaps": 2,
+                "count": 93
+              },
+              "turf-mats": {
+                "updateMs": 0,
+                "cullMs": 0,
+                "updateMsMax": 5.600000023841858,
+                "cullMsMax": 2.200000047683716,
+                "swaps": 2,
+                "count": 29531
+              },
+              "turf-mats-north": {
+                "updateMs": 0,
+                "cullMs": 0,
+                "updateMsMax": 0.6999999284744263,
+                "cullMsMax": 0.09999990463256836,
+                "swaps": 2,
+                "count": 5052
+              },
+              "grass-clumps": {
+                "updateMs": 0,
+                "cullMs": 0,
+                "updateMsMax": 1.8000000715255737,
+                "cullMsMax": 0.19999992847442627,
+                "swaps": 2,
+                "count": 15138
+              },
+              "grass-clumps-north": {
+                "updateMs": 0,
+                "cullMs": 0,
+                "updateMsMax": 0.6000000238418579,
+                "cullMsMax": 0.09999990463256836,
+                "swaps": 2,
+                "count": 8851
+              },
+              "litter-leaves": {
+                "updateMs": 0,
+                "cullMs": 0,
+                "updateMsMax": 2.200000047683716,
+                "cullMsMax": 3.899999976158142,
+                "swaps": 2,
+                "count": 8859
+              },
+              "litter-leaves-north": {
+                "updateMs": 0,
+                "cullMs": 0,
+                "updateMsMax": 0.5,
+                "cullMsMax": 0.10000002384185791,
+                "swaps": 2,
+                "count": 8349
+              },
+              "litter-twigs": {
+                "updateMs": 0,
+                "cullMs": 0,
+                "updateMsMax": 0.20000004768371582,
+                "cullMsMax": 0.10000002384185791,
+                "swaps": 2,
+                "count": 1213
+              },
+              "litter-twigs-north": {
+                "updateMs": 0,
+                "cullMs": 0,
+                "updateMsMax": 0.10000002384185791,
+                "cullMsMax": 0,
+                "swaps": 2,
+                "count": 945
+              },
+              "litter-roots": {
+                "updateMs": 0,
+                "cullMs": 0,
+                "updateMsMax": 0.10000002384185791,
+                "cullMsMax": 0.10000002384185791,
+                "swaps": 2,
+                "count": 131
+              },
+              "turf-mats-expansion": {
+                "updateMs": 0,
+                "cullMs": 0,
+                "updateMsMax": 0.20000004768371582,
+                "cullMsMax": 0.10000002384185791,
+                "swaps": 2,
+                "count": 923
+              },
+              "grass-clumps-expansion": {
+                "updateMs": 0,
+                "cullMs": 0,
+                "updateMsMax": 0.09999990463256836,
+                "cullMsMax": 0,
+                "swaps": 2,
+                "count": 839
+              },
+              "tufts-expansion": {
+                "updateMs": 0,
+                "cullMs": 0,
+                "updateMsMax": 0.10000002384185791,
+                "cullMsMax": 0.10000002384185791,
+                "swaps": 2,
+                "count": 727
+              },
+              "weeds-expansion": {
+                "updateMs": 0,
+                "cullMs": 0,
+                "updateMsMax": 0,
+                "cullMsMax": 0,
+                "swaps": 2,
+                "count": 7
+              },
+              "moss-expansion": {
+                "updateMs": 0,
+                "cullMs": 0,
+                "updateMsMax": 0.10000002384185791,
+                "cullMsMax": 0,
+                "swaps": 2,
+                "count": 77
+              },
+              "ferns-expansion": {
+                "updateMs": 0,
+                "cullMs": 0,
+                "updateMsMax": 0.2999999523162842,
+                "cullMsMax": 0,
+                "swaps": 2,
+                "count": 92
+              },
+              "flowers-expansion": {
+                "updateMs": 0,
+                "cullMs": 0,
+                "updateMsMax": 0,
+                "cullMsMax": 0,
+                "swaps": 2,
+                "count": 18
+              },
+              "flowers-white-expansion": {
+                "updateMs": 0,
+                "cullMs": 0,
+                "updateMsMax": 0.10000002384185791,
+                "cullMsMax": 0,
+                "swaps": 2,
+                "count": 22
+              },
+              "bushes-expansion": {
+                "updateMs": 0,
+                "cullMs": 0,
+                "updateMsMax": 0.09999990463256836,
+                "cullMsMax": 0,
+                "swaps": 2,
+                "count": 7
+              },
+              "litter-leaves-expansion": {
+                "updateMs": 0,
+                "cullMs": 0,
+                "updateMsMax": 0.10000002384185791,
+                "cullMsMax": 0,
+                "swaps": 2,
+                "count": 65
+              }
+            }
+          }
+        },
+        "buildMs": {
+          "lighting": 508.90000009536743,
+          "atmosphere": 27.100000023841858,
+          "terrain": 6158.200000047684,
+          "hardscape": 5805.5,
+          "rocks": 17196.200000047684,
+          "trees": 13987.700000047684,
+          "canopy": 66.19999992847443,
+          "structures": 18040.5,
+          "props": 708.4000000953674,
+          "vegetation": 20320.700000047684,
+          "character": 1162.3999999761581
+        },
+        "warmup": null,
+        "flags": {},
+        "tier": "high",
+        "perfState": {
+          "flags": {},
+          "tier": "high",
+          "version": 0,
+          "fx": {
+            "ao": true,
+            "rays": true,
+            "bloom": true,
+            "soft": true
+          },
+          "shadowMapSize": 4096,
+          "shadowTaps": 12,
+          "vegLodScale": 1,
+          "grassDensity": 1,
+          "renderScale": 1
+        },
+        "governor": null
+      },
+      "depth": {
+        "file": "reconstructed-distant-up-depth.f32",
+        "width": 320,
+        "height": 180,
+        "sha256": "703062e746f6d229fe5ff2dc946ba1be50bb52e8db1f44f95aaa776e78bf7b59",
+        "format": "little-endian float32 Euclidean metres; Infinity sky; top-left row-major"
+      },
+      "staticFrameMs": {
+        "samples": [
+          36.299999952316284,
+          36.5,
+          30.899999976158142,
+          32.10000002384186,
+          34.90000009536743,
+          37.800000071525574,
+          36.799999952316284,
+          36.700000047683716,
+          35.39999997615814,
+          35.89999997615814,
+          36.5,
+          35.39999997615814,
+          36,
+          35.200000047683716,
+          35.09999990463257,
+          35.5,
+          37.800000071525574,
+          33.799999952316284,
+          32.89999997615814,
+          33.799999952316284,
+          33.299999952316284,
+          34.300000071525574,
+          33,
+          36.5,
+          35.200000047683716,
+          34.60000002384186,
+          33.5,
+          35.90000009536743,
+          36,
+          34.09999990463257,
+          33.60000002384186,
+          37.5
+        ],
+        "median": 35.39999997615814,
+        "p95": 37.800000071525574
+      }
+    },
+    "A_stairs": {
+      "sha256": "d93c6ae3a97d6a1f553b1d9d27166efe01d6c9abfd0d755448b113fee662c79a",
+      "stats": {
+        "simTime": 12.6,
+        "drawCalls": 450,
+        "triangles": 8741301,
+        "geometries": 338,
+        "textures": 91,
+        "programs": 101,
+        "width": 1280,
+        "height": 720,
+        "pixelRatio": 1
+      },
+      "camera": {
+        "position": [
+          0.4,
+          1.8,
+          8.6
+        ],
+        "direction": [
+          0.4001487551488514,
+          -0.05779926463261199,
+          -0.9146257260545179
+        ],
+        "fov": 46
+      },
+      "lighting": {
+        "sunAzimuthDeg": -128,
+        "sunElevationDeg": 38,
+        "sunIntensity": 4.4,
+        "sunColor": "#ffe7bf",
+        "shadows": true,
+        "shadowMapSize": 4096,
+        "shadowType": "pcss-vogel+canopy-transmission",
+        "shadowFilterTaps": 12,
+        "shadowSearchTaps": 8,
+        "shadowFilterDynamic": false,
+        "shadowWindowRadiusM": 46,
+        "shadowSnapSpace": "light-camera-texel",
+        "shadowSnapMetres": 0.0224609375,
+        "shadowTexelCm": 2.2,
+        "shadowBias": -0.00012,
+        "shadowNormalBias": 0.028,
+        "shadowRadiusTexels": 1.5,
+        "shadowPenumbraPerM": 0.0093,
+        "shadowPenumbraRangeM": [
+          0.04,
+          0.45
+        ],
+        "shadowCanopyLeak": 0.1,
+        "shadowCanopyLeakRangeM": [
+          5,
+          11
+        ],
+        "cascades": 1,
+        "hemiIntensity": 0.55,
+        "hemiSkyLinear": [
+          0.479,
+          0.638,
+          0.745
+        ],
+        "hemiGroundLinear": [
+          0.407,
+          0.381,
+          0.242
+        ],
+        "environmentMap": true,
+        "environmentIntensity": 0.22,
+        "environmentTint": [
+          1.049,
+          1,
+          1.0025
+        ]
+      },
+      "atmosphere": {
+        "fogNear": 28,
+        "fogFar": 190,
+        "fogColor": "#95968b",
+        "heightFog": true,
+        "heightFogBaseM": 0.4,
+        "heightFogFalloff": 1,
+        "distanceFogMax": 0.86,
+        "hazeDensityPerM": 0.008,
+        "hazeStartM": 5,
+        "hazeAt30m": 0.18,
+        "hazeThinMidStartM": 8,
+        "hazeThinMidDensityPerM": 0.008,
+        "hazeThinMidEndM": 15,
+        "hazeCatchUpEndM": 22,
+        "hazeCatchUpDensityPerM": 0.008,
+        "midAirDim": 1,
+        "midAirDimInM": [
+          9,
+          13
+        ],
+        "midAirDimOutM": [
+          16,
+          21
+        ],
+        "hazeFarStartM": 49,
+        "hazeFarDensityPerM": 0.008,
+        "hazeUniformHeightM": 8,
+        "hazeScaleHeightM": 7,
+        "hazeUpwardCut": 0.9,
+        "hazeDensityUniformHeightM": 3,
+        "hazeDensityScaleHeightM": 5,
+        "hazeDensityProfileOpen": 1,
+        "hazeOpenDensity": 1,
+        "distanceFogMaxOpen": 0.86,
+        "hazeShadeVeil": 1,
+        "hazeShadeVeilKnee": 0.3,
+        "hazeShadeVeilOutM": [
+          40,
+          50
+        ],
+        "plateauGlareDisplay": "#cac9be",
+        "plateauGlareBearingDeg": 57,
+        "plateauGlareAmount": 0.25,
+        "hazeNearDisplay": "#838c93",
+        "hazeFarDisplay": "#9aa9b3",
+        "hazeLitDisplay": "#adb5bb",
+        "hazeLitKnee": 0.2,
+        "canopyOpenBearingDeg": 75,
+        "canopyOpenEdges": [
+          0.25,
+          0.7
+        ],
+        "hazeClosedDisplay": "#7f8b91",
+        "hazeFarLitDisplay": "#a5afb6",
+        "hazeFarLitStartM": 52,
+        "hazeFarLitEndM": 56,
+        "hazeFarLitAmount": 0.5,
+        "hazeFarLitKnee": 0.1,
+        "skyFarLitUpEdges": [
+          0.05,
+          0.17
+        ],
+        "hollowDim": 0.65,
+        "hollowDimInM": [
+          42,
+          52
+        ],
+        "hollowVeilDisplay": "#616b72",
+        "hazeSunLobeGain": 0,
+        "hazeBackScatterMin": 0.65,
+        "hazeBackScatterFullDeg": 135,
+        "hazeFarBackDisplay": "#808a8f",
+        "groundMistDisplay": "#89887a",
+        "hazeNearFieldDisplay": "#877f71",
+        "hazeNearFieldInM": [
+          10,
+          28
+        ],
+        "hazeNearFieldAmount": 1,
+        "farShadeStartM": 22,
+        "farShadeFullM": 44,
+        "farShadeMin": 0.65,
+        "skyGapDisplay": "#7bb1d2",
+        "sky": "procedural-warm-haze+sun+cirrus",
+        "groundMist": true,
+        "groundMistBillboards": 32,
+        "groundMistSheets": 9,
+        "godRays": true,
+        "fallingLeaves": 96,
+        "fireflies": 180,
+        "fairy": true,
+        "fairySource": "character:navi",
+        "fairyLight": true,
+        "ambientOcclusion": true,
+        "bloom": true,
+        "antialiasing": "fxaa",
+        "postfx": {
+          "passes": [
+            "scene-hdr",
+            "mist-half",
+            "ssao-half",
+            "ssao-blur-half",
+            "godray-march-quarter",
+            "godray-smear-x2-quarter",
+            "bloom-bright-quarter",
+            "bloom-blur-x2-quarter",
+            "composite-aces-grade",
+            "fxaa",
+            "soften-down-640",
+            "soften-blur-x2-640",
+            "soften-haze-blur-x3-320",
+            "soften-weights-x3-320",
+            "soften-final"
+          ],
+          "hdr": true,
+          "resolution": [
+            1280,
+            720
+          ],
+          "shadowCasterCull": true,
+          "shadowCastersTested": 118,
+          "shadowCastersCulled": 2,
+          "shadowCullMarginM": 1,
+          "stagesEnabled": {
+            "ao": true,
+            "rays": true,
+            "bloom": true,
+            "soft": false
+          },
+          "ambientOcclusion": true,
+          "aoResolution": [
+            640,
+            360
+          ],
+          "godRays": true,
+          "godRayMethod": "volumetric-shadow-march+gap-mask",
+          "godRaySteps": 24,
+          "godRayResolution": [
+            320,
+            180
+          ],
+          "godRayStrength": 0.32,
+          "godRayBackScatterMin": 0.35,
+          "godRayExtinctionPerM": 0.045,
+          "godRayMaxDistM": 40,
+          "godRayAirFadeM": [
+            3,
+            6.5
+          ],
+          "godRayMistNearM": [
+            0,
+            0
+          ],
+          "godRayAnisotropy": 0.6,
+          "godRayContrastPow": 1,
+          "godRayGapFrequencyPerM": 0.22,
+          "godRayGapFloor": 0.3,
+          "godRayGapNoiseMax": 1,
+          "godRayFarAirM": [
+            30,
+            45
+          ],
+          "godRayFarAirFill": 0.23,
+          "godRayGapHollowZ": [
+            -24,
+            -40
+          ],
+          "godRayFixedColumns": [
+            [
+              1.3,
+              6.6,
+              -9.4,
+              1.8,
+              1
+            ],
+            [
+              -3,
+              8,
+              -14.5,
+              1.8,
+              1
+            ],
+            [
+              5,
+              7,
+              -17,
+              1.8,
+              1
+            ],
+            [
+              13.3,
+              10,
+              -14.6,
+              1.3,
+              7.5
+            ],
+            [
+              9.6,
+              6.9,
+              -6.6,
+              1.3,
+              7.5
+            ],
+            [
+              20.4,
+              11.2,
+              -12.8,
+              1.3,
+              7.5
+            ]
+          ],
+          "godRayScreenFan": true,
+          "godRayScreenFanMix": 1,
+          "godRayScreenFanLeanDeg": 26,
+          "godRayScreenFanFloor": 0.75,
+          "godRayScreenFanAmp": 0.23,
+          "godRayScreenFanFacingDeg": [
+            170,
+            75
+          ],
+          "godRayScreenFanViewGain": 0.982,
+          "godRayScreenFanFadeY": [
+            0.35,
+            0.6
+          ],
+          "godRayScreenFanBeams": [
+            [
+              0.255,
+              0.12,
+              1
+            ],
+            [
+              0.35,
+              0.13,
+              0.45
+            ],
+            [
+              0.465,
+              0.07,
+              0.15
+            ]
+          ],
+          "sunScreenUv": [
+            -1.763,
+            3.798
+          ],
+          "sunInFront": true,
+          "bloom": true,
+          "bloomThreshold": 1,
+          "bloomIntensity": 0.25,
+          "bloomRadiusTexels": 1.4,
+          "toneMapping": "aces-fitted",
+          "contrast": 0.93,
+          "contrastPivot": 0.18,
+          "lift": 0.003,
+          "aoStrength": 0.2,
+          "aoFadeM": [
+            22,
+            34
+          ],
+          "aoNearStrength": 0.2,
+          "aoNearM": [
+            6,
+            10
+          ],
+          "antialiasing": "fxaa",
+          "softening": false,
+          "softeningGrid": [
+            640,
+            360
+          ],
+          "softeningDetailFloor": 0.85,
+          "softeningActivityKnee": 0.08,
+          "softeningUniform": 0,
+          "softeningHazeRangeM": [
+            16,
+            50
+          ],
+          "softeningBlurSigmaGrid": [
+            1.2,
+            4.2
+          ],
+          "softeningHazeWeightMode": 0,
+          "softeningHazeFarOnly": false,
+          "softeningNearSharp": 0.25,
+          "softeningNearSharpRangeM": [
+            4,
+            10
+          ],
+          "deterministic": true,
+          "headless": true
+        }
+      },
+      "perf": {
+        "step": 27.09999990463257,
+        "camera": 0,
+        "update": 7.699999928474426,
+        "render": 19.399999976158142,
+        "systems": {
+          "wind": 0.09999990463256836,
+          "lighting": 0,
+          "atmosphere": 0.30000007152557373,
+          "terrain": 0,
+          "hardscape": 0.10000002384185791,
+          "rocks": 0.09999990463256836,
+          "trees": 0.7000000476837158,
+          "canopy": 0,
+          "structures": 0.10000002384185791,
+          "props": 0,
+          "vegetation": 0.5,
+          "character": 5.799999952316284
+        },
+        "systemPerf": {
+          "trees": {
+            "tier": "large",
+            "deviceMemoryGB": 32,
+            "poolBytesCap": {
+              "nearCanopy": 268435456,
+              "nearBase": 50331648
+            },
+            "swapM": {
+              "nearCanopy": [
+                26,
+                30
+              ],
+              "nearBase": [
+                25,
+                28
+              ]
+            },
+            "nearCanopyPool": {
+              "capBytes": 268435456,
+              "poolBytes": 234773574,
+              "items": 426,
+              "resident": 426,
+              "pinned": 77,
+              "wanted": 324,
+              "pinnedBytes": 45692094,
+              "wantedBytes": 181640604,
+              "pending": 0,
+              "building": 0,
+              "built": 0,
+              "evicted": 0,
+              "syncBuilds": 0,
+              "hits": 1462,
+              "buildMsP50": 0,
+              "buildMsP95": 0,
+              "buildMsMax": 0,
+              "stepMsMax": 0,
+              "workMsMax": 0.2,
+              "workMsTotal": 2.3,
+              "steps": 0,
+              "stepMsP50": 0,
+              "stepMsP95": 0,
+              "longSteps": 0,
+              "workOverBudget": 0,
+              "workMsP95": 0.1
+            },
+            "nearBasePool": {
+              "capBytes": 50331648,
+              "poolBytes": 34726800,
+              "items": 23,
+              "resident": 23,
+              "pinned": 2,
+              "wanted": 16,
+              "pinnedBytes": 3370722,
+              "wantedBytes": 24499002,
+              "pending": 0,
+              "building": 0,
+              "built": 0,
+              "evicted": 0,
+              "syncBuilds": 0,
+              "hits": 34,
+              "buildMsP50": 0,
+              "buildMsP95": 0,
+              "buildMsMax": 0,
+              "stepMsMax": 0,
+              "workMsMax": 0.1,
+              "workMsTotal": 0.4,
+              "steps": 0,
+              "stepMsP50": 0,
+              "stepMsP95": 0,
+              "longSteps": 0,
+              "workOverBudget": 0,
+              "workMsP95": 0
+            },
+            "prefetchM": {
+              "nearCanopy": 42,
+              "nearBase": 38
+            },
+            "buildBudgetMs": 6,
+            "bytesWithinM": {
+              "nearCanopy": {
+                "26": 86797902,
+                "30": 125306118,
+                "34": 150303030,
+                "42": 181640604
+              },
+              "nearBase": {
+                "25": 16889478,
+                "28": 18395298,
+                "38": 24499002
+              }
+            }
+          },
+          "vegetation": {
+            "rebucketBudget": 8000,
+            "frame": {
+              "listed": 0,
+              "listedMax": 109076,
+              "swaps": 0,
+              "refreshMs": 0.5,
+              "refreshMsMax": 40.39999997615814,
+              "frames": 68,
+              "jobsOpen": 0
+            },
+            "sets": {
+              "ferns": {
+                "updateMs": 0,
+                "cullMs": 0,
+                "updateMsMax": 1.600000023841858,
+                "cullMsMax": 1.7999999523162842,
+                "swaps": 3,
+                "count": 1394
+              },
+              "tufts": {
+                "updateMs": 0,
+                "cullMs": 0,
+                "updateMsMax": 4.100000023841858,
+                "cullMsMax": 1.7000000476837158,
+                "swaps": 3,
+                "count": 5537
+              },
+              "hero-ferns": {
+                "updateMs": 0,
+                "cullMs": 0,
+                "updateMsMax": 0.19999992847442627,
+                "cullMsMax": 0.10000002384185791,
+                "swaps": 3,
+                "count": 18
+              },
+              "fiddleheads": {
+                "updateMs": 0,
+                "cullMs": 0,
+                "updateMsMax": 0.5,
+                "cullMsMax": 0.20000004768371582,
+                "swaps": 3,
+                "count": 612
+              },
+              "bushes": {
+                "updateMs": 0,
+                "cullMs": 0,
+                "updateMsMax": 0.10000002384185791,
+                "cullMsMax": 0.2999999523162842,
+                "swaps": 3,
+                "count": 125
+              },
+              "hedge": {
+                "updateMs": 0,
+                "cullMs": 0,
+                "updateMsMax": 0.10000002384185791,
+                "cullMsMax": 0.10000002384185791,
+                "swaps": 3,
+                "count": 31
+              },
+              "flowers": {
+                "updateMs": 0,
+                "cullMs": 0,
+                "updateMsMax": 0.2999999523162842,
+                "cullMsMax": 0.10000002384185791,
+                "swaps": 3,
+                "count": 263
+              },
+              "flowers-yellow": {
+                "updateMs": 0,
+                "cullMs": 0,
+                "updateMsMax": 0.10000002384185791,
+                "cullMsMax": 0,
+                "swaps": 3,
+                "count": 11
+              },
+              "flowers-white": {
+                "updateMs": 0,
+                "cullMs": 0,
+                "updateMsMax": 0.10000002384185791,
+                "cullMsMax": 0,
+                "swaps": 3,
+                "count": 63
+              },
+              "weeds": {
+                "updateMs": 0,
+                "cullMs": 0,
+                "updateMsMax": 2.8000000715255737,
+                "cullMsMax": 1.2999999523162842,
+                "swaps": 3,
+                "count": 5315
+              },
+              "seedheads": {
+                "updateMs": 0,
+                "cullMs": 0,
+                "updateMsMax": 0.2999999523162842,
+                "cullMsMax": 0.20000004768371582,
+                "swaps": 3,
+                "count": 987
+              },
+              "clover": {
+                "updateMs": 0,
+                "cullMs": 0,
+                "updateMsMax": 0.8999999761581421,
+                "cullMsMax": 0.5,
+                "swaps": 3,
+                "count": 8701
+              },
+              "moss": {
+                "updateMs": 0,
+                "cullMs": 0,
+                "updateMsMax": 0.5999999046325684,
+                "cullMsMax": 0.7999999523162842,
+                "swaps": 3,
+                "count": 2068
+              },
+              "saplings": {
+                "updateMs": 0,
+                "cullMs": 0,
+                "updateMsMax": 0,
+                "cullMsMax": 0.10000002384185791,
+                "swaps": 3,
+                "count": 22
+              },
+              "ferns-north": {
+                "updateMs": 0,
+                "cullMs": 0,
+                "updateMsMax": 0.10000002384185791,
+                "cullMsMax": 0.10000002384185791,
+                "swaps": 3,
+                "count": 954
+              },
+              "weeds-north": {
+                "updateMs": 0,
+                "cullMs": 0,
+                "updateMsMax": 0.20000004768371582,
+                "cullMsMax": 0.10000002384185791,
+                "swaps": 3,
+                "count": 2004
+              },
+              "bushes-north": {
+                "updateMs": 0,
+                "cullMs": 0,
+                "updateMsMax": 0,
+                "cullMsMax": 0.09999990463256836,
+                "swaps": 3,
+                "count": 32
+              },
+              "tufts-north": {
+                "updateMs": 0,
+                "cullMs": 0,
+                "updateMsMax": 0,
+                "cullMsMax": 0,
+                "swaps": 3,
+                "count": 93
+              },
+              "turf-mats": {
+                "updateMs": 0,
+                "cullMs": 0,
+                "updateMsMax": 5.600000023841858,
+                "cullMsMax": 2.399999976158142,
+                "swaps": 3,
+                "count": 29531
+              },
+              "turf-mats-north": {
+                "updateMs": 0,
+                "cullMs": 0,
+                "updateMsMax": 0.7000000476837158,
+                "cullMsMax": 0.10000002384185791,
+                "swaps": 3,
+                "count": 5052
+              },
+              "grass-clumps": {
+                "updateMs": 0,
+                "cullMs": 0.10000002384185791,
+                "updateMsMax": 1.8000000715255737,
+                "cullMsMax": 0.30000007152557373,
+                "swaps": 3,
+                "count": 15138
+              },
+              "grass-clumps-north": {
+                "updateMs": 0,
+                "cullMs": 0,
+                "updateMsMax": 0.6000000238418579,
+                "cullMsMax": 0.09999990463256836,
+                "swaps": 3,
+                "count": 8851
+              },
+              "litter-leaves": {
+                "updateMs": 0,
+                "cullMs": 0.10000002384185791,
+                "updateMsMax": 2.200000047683716,
+                "cullMsMax": 3.899999976158142,
+                "swaps": 3,
+                "count": 8859
+              },
+              "litter-leaves-north": {
+                "updateMs": 0,
+                "cullMs": 0,
+                "updateMsMax": 0.5,
+                "cullMsMax": 0.19999992847442627,
+                "swaps": 3,
+                "count": 8349
+              },
+              "litter-twigs": {
+                "updateMs": 0,
+                "cullMs": 0,
+                "updateMsMax": 0.20000004768371582,
+                "cullMsMax": 0.10000002384185791,
+                "swaps": 3,
+                "count": 1213
+              },
+              "litter-twigs-north": {
+                "updateMs": 0,
+                "cullMs": 0,
+                "updateMsMax": 0.20000004768371582,
+                "cullMsMax": 0.10000002384185791,
+                "swaps": 3,
+                "count": 945
+              },
+              "litter-roots": {
+                "updateMs": 0,
+                "cullMs": 0,
+                "updateMsMax": 0.10000002384185791,
+                "cullMsMax": 0.10000002384185791,
+                "swaps": 3,
+                "count": 131
+              },
+              "turf-mats-expansion": {
+                "updateMs": 0,
+                "cullMs": 0,
+                "updateMsMax": 0.20000004768371582,
+                "cullMsMax": 0.10000002384185791,
+                "swaps": 3,
+                "count": 923
+              },
+              "grass-clumps-expansion": {
+                "updateMs": 0,
+                "cullMs": 0,
+                "updateMsMax": 0.09999990463256836,
+                "cullMsMax": 0.09999990463256836,
+                "swaps": 3,
+                "count": 839
+              },
+              "tufts-expansion": {
+                "updateMs": 0,
+                "cullMs": 0,
+                "updateMsMax": 0.10000002384185791,
+                "cullMsMax": 0.10000002384185791,
+                "swaps": 3,
+                "count": 727
+              },
+              "weeds-expansion": {
+                "updateMs": 0,
+                "cullMs": 0,
+                "updateMsMax": 0,
+                "cullMsMax": 0,
+                "swaps": 3,
+                "count": 7
+              },
+              "moss-expansion": {
+                "updateMs": 0,
+                "cullMs": 0,
+                "updateMsMax": 0.10000002384185791,
+                "cullMsMax": 0.10000002384185791,
+                "swaps": 3,
+                "count": 77
+              },
+              "ferns-expansion": {
+                "updateMs": 0,
+                "cullMs": 0,
+                "updateMsMax": 0.2999999523162842,
+                "cullMsMax": 0.10000002384185791,
+                "swaps": 3,
+                "count": 92
+              },
+              "flowers-expansion": {
+                "updateMs": 0,
+                "cullMs": 0,
+                "updateMsMax": 0,
+                "cullMsMax": 0.10000002384185791,
+                "swaps": 3,
+                "count": 18
+              },
+              "flowers-white-expansion": {
+                "updateMs": 0,
+                "cullMs": 0,
+                "updateMsMax": 0.10000002384185791,
+                "cullMsMax": 0.10000002384185791,
+                "swaps": 3,
+                "count": 22
+              },
+              "bushes-expansion": {
+                "updateMs": 0,
+                "cullMs": 0,
+                "updateMsMax": 0.09999990463256836,
+                "cullMsMax": 0.10000002384185791,
+                "swaps": 3,
+                "count": 7
+              },
+              "litter-leaves-expansion": {
+                "updateMs": 0,
+                "cullMs": 0,
+                "updateMsMax": 0.10000002384185791,
+                "cullMsMax": 0,
+                "swaps": 3,
+                "count": 65
+              }
+            }
+          }
+        },
+        "buildMs": {
+          "lighting": 508.90000009536743,
+          "atmosphere": 27.100000023841858,
+          "terrain": 6158.200000047684,
+          "hardscape": 5805.5,
+          "rocks": 17196.200000047684,
+          "trees": 13987.700000047684,
+          "canopy": 66.19999992847443,
+          "structures": 18040.5,
+          "props": 708.4000000953674,
+          "vegetation": 20320.700000047684,
+          "character": 1162.3999999761581
+        },
+        "warmup": null,
+        "flags": {},
+        "tier": "high",
+        "perfState": {
+          "flags": {},
+          "tier": "high",
+          "version": 0,
+          "fx": {
+            "ao": true,
+            "rays": true,
+            "bloom": true,
+            "soft": true
+          },
+          "shadowMapSize": 4096,
+          "shadowTaps": 12,
+          "vegLodScale": 1,
+          "grassDensity": 1,
+          "renderScale": 1
+        },
+        "governor": null
+      },
+      "depth": {
+        "file": "A_stairs-depth.f32",
+        "width": 320,
+        "height": 180,
+        "sha256": "f8b72f98d74a0317ce7e53a7395bdef0abffe0b4ec68b2d44c790914a4f532fe",
+        "format": "little-endian float32 Euclidean metres; Infinity sky; top-left row-major"
+      },
+      "staticFrameMs": {
+        "samples": [
+          58.39999997615814,
+          59.10000002384186,
+          58,
+          63.59999990463257,
+          59.39999997615814,
+          62.800000071525574,
+          64.79999995231628,
+          61.200000047683716,
+          58.89999997615814,
+          57.700000047683716,
+          64.10000002384186,
+          61,
+          65.29999995231628,
+          66.60000002384186,
+          65.5,
+          63,
+          65.10000002384186,
+          65.5,
+          64.79999995231628,
+          64.29999995231628,
+          58.90000009536743,
+          57.60000002384186,
+          60,
+          60.10000002384186,
+          63,
+          63.199999928474426,
+          62.700000047683716,
+          60.10000002384186,
+          58.199999928474426,
+          59.300000071525574,
+          56.60000002384186,
+          59.699999928474426
+        ],
+        "median": 61.200000047683716,
+        "p95": 65.5
+      }
+    },
+    "F_canopy": {
+      "sha256": "56b8c91f2863595a8c805272a333ba91d9db17d43442f6825e435492905e69a3",
+      "stats": {
+        "simTime": 12.6,
+        "drawCalls": 406,
+        "triangles": 7994522,
+        "geometries": 352,
+        "textures": 91,
+        "programs": 101,
+        "width": 1280,
+        "height": 720,
+        "pixelRatio": 1
+      },
+      "camera": {
+        "position": [
+          -1.96,
+          1.8,
+          4
+        ],
+        "direction": [
+          0.9721254966661625,
+          -0.06836560096623101,
+          -0.22427252024288002
+        ],
+        "fov": 46
+      },
+      "lighting": {
+        "sunAzimuthDeg": -128,
+        "sunElevationDeg": 38,
+        "sunIntensity": 4.4,
+        "sunColor": "#ffe7bf",
+        "shadows": true,
+        "shadowMapSize": 4096,
+        "shadowType": "pcss-vogel+canopy-transmission",
+        "shadowFilterTaps": 12,
+        "shadowSearchTaps": 8,
+        "shadowFilterDynamic": false,
+        "shadowWindowRadiusM": 46,
+        "shadowSnapSpace": "light-camera-texel",
+        "shadowSnapMetres": 0.0224609375,
+        "shadowTexelCm": 2.2,
+        "shadowBias": -0.00012,
+        "shadowNormalBias": 0.028,
+        "shadowRadiusTexels": 1.5,
+        "shadowPenumbraPerM": 0.0093,
+        "shadowPenumbraRangeM": [
+          0.04,
+          0.45
+        ],
+        "shadowCanopyLeak": 0.1,
+        "shadowCanopyLeakRangeM": [
+          5,
+          11
+        ],
+        "cascades": 1,
+        "hemiIntensity": 0.55,
+        "hemiSkyLinear": [
+          0.479,
+          0.638,
+          0.745
+        ],
+        "hemiGroundLinear": [
+          0.407,
+          0.381,
+          0.242
+        ],
+        "environmentMap": true,
+        "environmentIntensity": 0.22,
+        "environmentTint": [
+          1.049,
+          1,
+          1.0025
+        ]
+      },
+      "atmosphere": {
+        "fogNear": 28,
+        "fogFar": 190,
+        "fogColor": "#95968b",
+        "heightFog": true,
+        "heightFogBaseM": 0.4,
+        "heightFogFalloff": 1,
+        "distanceFogMax": 0.86,
+        "hazeDensityPerM": 0.008,
+        "hazeStartM": 5,
+        "hazeAt30m": 0.18,
+        "hazeThinMidStartM": 8,
+        "hazeThinMidDensityPerM": 0.008,
+        "hazeThinMidEndM": 15,
+        "hazeCatchUpEndM": 22,
+        "hazeCatchUpDensityPerM": 0.008,
+        "midAirDim": 1,
+        "midAirDimInM": [
+          9,
+          13
+        ],
+        "midAirDimOutM": [
+          16,
+          21
+        ],
+        "hazeFarStartM": 49,
+        "hazeFarDensityPerM": 0.008,
+        "hazeUniformHeightM": 8,
+        "hazeScaleHeightM": 7,
+        "hazeUpwardCut": 0.9,
+        "hazeDensityUniformHeightM": 3,
+        "hazeDensityScaleHeightM": 5,
+        "hazeDensityProfileOpen": 1,
+        "hazeOpenDensity": 1,
+        "distanceFogMaxOpen": 0.86,
+        "hazeShadeVeil": 1,
+        "hazeShadeVeilKnee": 0.3,
+        "hazeShadeVeilOutM": [
+          40,
+          50
+        ],
+        "plateauGlareDisplay": "#cac9be",
+        "plateauGlareBearingDeg": 57,
+        "plateauGlareAmount": 0.25,
+        "hazeNearDisplay": "#838c93",
+        "hazeFarDisplay": "#9aa9b3",
+        "hazeLitDisplay": "#adb5bb",
+        "hazeLitKnee": 0.2,
+        "canopyOpenBearingDeg": 75,
+        "canopyOpenEdges": [
+          0.25,
+          0.7
+        ],
+        "hazeClosedDisplay": "#7f8b91",
+        "hazeFarLitDisplay": "#a5afb6",
+        "hazeFarLitStartM": 52,
+        "hazeFarLitEndM": 56,
+        "hazeFarLitAmount": 0.5,
+        "hazeFarLitKnee": 0.1,
+        "skyFarLitUpEdges": [
+          0.05,
+          0.17
+        ],
+        "hollowDim": 0.65,
+        "hollowDimInM": [
+          42,
+          52
+        ],
+        "hollowVeilDisplay": "#616b72",
+        "hazeSunLobeGain": 0,
+        "hazeBackScatterMin": 0.65,
+        "hazeBackScatterFullDeg": 135,
+        "hazeFarBackDisplay": "#808a8f",
+        "groundMistDisplay": "#89887a",
+        "hazeNearFieldDisplay": "#877f71",
+        "hazeNearFieldInM": [
+          10,
+          28
+        ],
+        "hazeNearFieldAmount": 1,
+        "farShadeStartM": 22,
+        "farShadeFullM": 44,
+        "farShadeMin": 0.65,
+        "skyGapDisplay": "#7bb1d2",
+        "sky": "procedural-warm-haze+sun+cirrus",
+        "groundMist": true,
+        "groundMistBillboards": 32,
+        "groundMistSheets": 9,
+        "godRays": true,
+        "fallingLeaves": 96,
+        "fireflies": 180,
+        "fairy": true,
+        "fairySource": "character:navi",
+        "fairyLight": true,
+        "ambientOcclusion": true,
+        "bloom": true,
+        "antialiasing": "fxaa",
+        "postfx": {
+          "passes": [
+            "scene-hdr",
+            "mist-half",
+            "ssao-half",
+            "ssao-blur-half",
+            "godray-march-quarter",
+            "godray-smear-x2-quarter",
+            "bloom-bright-quarter",
+            "bloom-blur-x2-quarter",
+            "composite-aces-grade",
+            "fxaa",
+            "soften-down-640",
+            "soften-blur-x2-640",
+            "soften-haze-blur-x3-320",
+            "soften-weights-x3-320",
+            "soften-final"
+          ],
+          "hdr": true,
+          "resolution": [
+            1280,
+            720
+          ],
+          "shadowCasterCull": true,
+          "shadowCastersTested": 119,
+          "shadowCastersCulled": 0,
+          "shadowCullMarginM": 1,
+          "stagesEnabled": {
+            "ao": true,
+            "rays": true,
+            "bloom": true,
+            "soft": false
+          },
+          "ambientOcclusion": true,
+          "aoResolution": [
+            640,
+            360
+          ],
+          "godRays": true,
+          "godRayMethod": "volumetric-shadow-march+gap-mask",
+          "godRaySteps": 24,
+          "godRayResolution": [
+            320,
+            180
+          ],
+          "godRayStrength": 0.32,
+          "godRayBackScatterMin": 0.35,
+          "godRayExtinctionPerM": 0.045,
+          "godRayMaxDistM": 40,
+          "godRayAirFadeM": [
+            3,
+            6.5
+          ],
+          "godRayMistNearM": [
+            0,
+            0
+          ],
+          "godRayAnisotropy": 0.6,
+          "godRayContrastPow": 1,
+          "godRayGapFrequencyPerM": 0.22,
+          "godRayGapFloor": 0.3,
+          "godRayGapNoiseMax": 1,
+          "godRayFarAirM": [
+            30,
+            45
+          ],
+          "godRayFarAirFill": 0.23,
+          "godRayGapHollowZ": [
+            -24,
+            -40
+          ],
+          "godRayFixedColumns": [
+            [
+              1.3,
+              6.6,
+              -9.4,
+              1.8,
+              1
+            ],
+            [
+              -3,
+              8,
+              -14.5,
+              1.8,
+              1
+            ],
+            [
+              5,
+              7,
+              -17,
+              1.8,
+              1
+            ],
+            [
+              13.3,
+              10,
+              -14.6,
+              1.3,
+              7.5
+            ],
+            [
+              9.6,
+              6.9,
+              -6.6,
+              1.3,
+              7.5
+            ],
+            [
+              20.4,
+              11.2,
+              -12.8,
+              1.3,
+              7.5
+            ]
+          ],
+          "godRayScreenFan": true,
+          "godRayScreenFanMix": 1,
+          "godRayScreenFanLeanDeg": 26,
+          "godRayScreenFanFloor": 0.75,
+          "godRayScreenFanAmp": 0.23,
+          "godRayScreenFanFacingDeg": [
+            170,
+            75
+          ],
+          "godRayScreenFanViewGain": 0.296,
+          "godRayScreenFanFadeY": [
+            0.35,
+            0.6
+          ],
+          "godRayScreenFanBeams": [
+            [
+              0.255,
+              0.12,
+              1
+            ],
+            [
+              0.35,
+              0.13,
+              0.45
+            ],
+            [
+              0.465,
+              0.07,
+              0.15
+            ]
+          ],
+          "sunScreenUv": [
+            1.256,
+            -0.773
+          ],
+          "sunInFront": false,
+          "bloom": true,
+          "bloomThreshold": 1,
+          "bloomIntensity": 0.25,
+          "bloomRadiusTexels": 1.4,
+          "toneMapping": "aces-fitted",
+          "contrast": 0.93,
+          "contrastPivot": 0.18,
+          "lift": 0.003,
+          "aoStrength": 0.2,
+          "aoFadeM": [
+            22,
+            34
+          ],
+          "aoNearStrength": 0.2,
+          "aoNearM": [
+            6,
+            10
+          ],
+          "antialiasing": "fxaa",
+          "softening": false,
+          "softeningGrid": [
+            640,
+            360
+          ],
+          "softeningDetailFloor": 0.85,
+          "softeningActivityKnee": 0.08,
+          "softeningUniform": 0,
+          "softeningHazeRangeM": [
+            16,
+            50
+          ],
+          "softeningBlurSigmaGrid": [
+            1.2,
+            4.2
+          ],
+          "softeningHazeWeightMode": 0,
+          "softeningHazeFarOnly": false,
+          "softeningNearSharp": 0.25,
+          "softeningNearSharpRangeM": [
+            4,
+            10
+          ],
+          "deterministic": true,
+          "headless": true
+        }
+      },
+      "perf": {
+        "step": 19.5,
+        "camera": 0,
+        "update": 4.800000071525574,
+        "render": 14.699999928474426,
+        "systems": {
+          "wind": 0,
+          "lighting": 0,
+          "atmosphere": 0.30000007152557373,
+          "terrain": 0,
+          "hardscape": 0,
+          "rocks": 0.09999990463256836,
+          "trees": 0.40000009536743164,
+          "canopy": 0,
+          "structures": 0,
+          "props": 0,
+          "vegetation": 0.3999999761581421,
+          "character": 3.600000023841858
+        },
+        "systemPerf": {
+          "trees": {
+            "tier": "large",
+            "deviceMemoryGB": 32,
+            "poolBytesCap": {
+              "nearCanopy": 268435456,
+              "nearBase": 50331648
+            },
+            "swapM": {
+              "nearCanopy": [
+                26,
+                30
+              ],
+              "nearBase": [
+                25,
+                28
+              ]
+            },
+            "nearCanopyPool": {
+              "capBytes": 268435456,
+              "poolBytes": 234773574,
+              "items": 426,
+              "resident": 426,
+              "pinned": 68,
+              "wanted": 347,
+              "pinnedBytes": 41763408,
+              "wantedBytes": 192935952,
+              "pending": 0,
+              "building": 0,
+              "built": 0,
+              "evicted": 0,
+              "syncBuilds": 0,
+              "hits": 5254,
+              "buildMsP50": 0,
+              "buildMsP95": 0,
+              "buildMsMax": 0,
+              "stepMsMax": 0,
+              "workMsMax": 0.6,
+              "workMsTotal": 4.1,
+              "steps": 0,
+              "stepMsP50": 0,
+              "stepMsP95": 0,
+              "longSteps": 0,
+              "workOverBudget": 0,
+              "workMsP95": 0.1
+            },
+            "nearBasePool": {
+              "capBytes": 50331648,
+              "poolBytes": 34726800,
+              "items": 23,
+              "resident": 23,
+              "pinned": 0,
+              "wanted": 17,
+              "pinnedBytes": 0,
+              "wantedBytes": 25700418,
+              "pending": 0,
+              "building": 0,
+              "built": 0,
+              "evicted": 0,
+              "syncBuilds": 0,
+              "hits": 106,
+              "buildMsP50": 0,
+              "buildMsP95": 0,
+              "buildMsMax": 0,
+              "stepMsMax": 0,
+              "workMsMax": 0.1,
+              "workMsTotal": 0.6,
+              "steps": 0,
+              "stepMsP50": 0,
+              "stepMsP95": 0,
+              "longSteps": 0,
+              "workOverBudget": 0,
+              "workMsP95": 0
+            },
+            "prefetchM": {
+              "nearCanopy": 42,
+              "nearBase": 38
+            },
+            "buildBudgetMs": 6,
+            "bytesWithinM": {
+              "nearCanopy": {
+                "26": 82923108,
+                "30": 124813938,
+                "34": 153448734,
+                "42": 192935952
+              },
+              "nearBase": {
+                "25": 15516888,
+                "28": 16889478,
+                "38": 25700418
+              }
+            }
+          },
+          "vegetation": {
+            "rebucketBudget": 8000,
+            "frame": {
+              "listed": 0,
+              "listedMax": 109076,
+              "swaps": 0,
+              "refreshMs": 0.3999999761581421,
+              "refreshMsMax": 40.39999997615814,
+              "frames": 119,
+              "jobsOpen": 0
+            },
+            "sets": {
+              "ferns": {
+                "updateMs": 0,
+                "cullMs": 0,
+                "updateMsMax": 1.600000023841858,
+                "cullMsMax": 1.7999999523162842,
+                "swaps": 4,
+                "count": 1394
+              },
+              "tufts": {
+                "updateMs": 0,
+                "cullMs": 0,
+                "updateMsMax": 4.100000023841858,
+                "cullMsMax": 1.7000000476837158,
+                "swaps": 4,
+                "count": 5537
+              },
+              "hero-ferns": {
+                "updateMs": 0,
+                "cullMs": 0,
+                "updateMsMax": 0.19999992847442627,
+                "cullMsMax": 0.10000002384185791,
+                "swaps": 4,
+                "count": 18
+              },
+              "fiddleheads": {
+                "updateMs": 0,
+                "cullMs": 0,
+                "updateMsMax": 0.5,
+                "cullMsMax": 0.20000004768371582,
+                "swaps": 4,
+                "count": 612
+              },
+              "bushes": {
+                "updateMs": 0,
+                "cullMs": 0,
+                "updateMsMax": 0.10000002384185791,
+                "cullMsMax": 0.2999999523162842,
+                "swaps": 4,
+                "count": 125
+              },
+              "hedge": {
+                "updateMs": 0,
+                "cullMs": 0,
+                "updateMsMax": 0.10000002384185791,
+                "cullMsMax": 0.10000002384185791,
+                "swaps": 4,
+                "count": 31
+              },
+              "flowers": {
+                "updateMs": 0,
+                "cullMs": 0,
+                "updateMsMax": 0.2999999523162842,
+                "cullMsMax": 0.10000002384185791,
+                "swaps": 4,
+                "count": 263
+              },
+              "flowers-yellow": {
+                "updateMs": 0,
+                "cullMs": 0,
+                "updateMsMax": 0.10000002384185791,
+                "cullMsMax": 0,
+                "swaps": 4,
+                "count": 11
+              },
+              "flowers-white": {
+                "updateMs": 0,
+                "cullMs": 0,
+                "updateMsMax": 0.10000002384185791,
+                "cullMsMax": 0.10000002384185791,
+                "swaps": 4,
+                "count": 63
+              },
+              "weeds": {
+                "updateMs": 0,
+                "cullMs": 0,
+                "updateMsMax": 2.8000000715255737,
+                "cullMsMax": 1.2999999523162842,
+                "swaps": 4,
+                "count": 5315
+              },
+              "seedheads": {
+                "updateMs": 0,
+                "cullMs": 0,
+                "updateMsMax": 0.2999999523162842,
+                "cullMsMax": 0.20000004768371582,
+                "swaps": 4,
+                "count": 987
+              },
+              "clover": {
+                "updateMs": 0,
+                "cullMs": 0,
+                "updateMsMax": 0.8999999761581421,
+                "cullMsMax": 0.5,
+                "swaps": 4,
+                "count": 8701
+              },
+              "moss": {
+                "updateMs": 0,
+                "cullMs": 0,
+                "updateMsMax": 0.5999999046325684,
+                "cullMsMax": 0.7999999523162842,
+                "swaps": 4,
+                "count": 2068
+              },
+              "saplings": {
+                "updateMs": 0,
+                "cullMs": 0,
+                "updateMsMax": 0,
+                "cullMsMax": 0.10000002384185791,
+                "swaps": 4,
+                "count": 22
+              },
+              "ferns-north": {
+                "updateMs": 0,
+                "cullMs": 0.10000002384185791,
+                "updateMsMax": 0.10000002384185791,
+                "cullMsMax": 0.10000002384185791,
+                "swaps": 4,
+                "count": 954
+              },
+              "weeds-north": {
+                "updateMs": 0,
+                "cullMs": 0,
+                "updateMsMax": 0.20000004768371582,
+                "cullMsMax": 0.10000002384185791,
+                "swaps": 4,
+                "count": 2004
+              },
+              "bushes-north": {
+                "updateMs": 0,
+                "cullMs": 0,
+                "updateMsMax": 0,
+                "cullMsMax": 0.09999990463256836,
+                "swaps": 4,
+                "count": 32
+              },
+              "tufts-north": {
+                "updateMs": 0,
+                "cullMs": 0,
+                "updateMsMax": 0,
+                "cullMsMax": 0,
+                "swaps": 4,
+                "count": 93
+              },
+              "turf-mats": {
+                "updateMs": 0,
+                "cullMs": 0,
+                "updateMsMax": 5.600000023841858,
+                "cullMsMax": 2.399999976158142,
+                "swaps": 4,
+                "count": 29531
+              },
+              "turf-mats-north": {
+                "updateMs": 0,
+                "cullMs": 0,
+                "updateMsMax": 0.7000000476837158,
+                "cullMsMax": 0.10000002384185791,
+                "swaps": 4,
+                "count": 5052
+              },
+              "grass-clumps": {
+                "updateMs": 0,
+                "cullMs": 0,
+                "updateMsMax": 1.8000000715255737,
+                "cullMsMax": 0.30000007152557373,
+                "swaps": 4,
+                "count": 15138
+              },
+              "grass-clumps-north": {
+                "updateMs": 0,
+                "cullMs": 0,
+                "updateMsMax": 0.6000000238418579,
+                "cullMsMax": 0.10000002384185791,
+                "swaps": 4,
+                "count": 8851
+              },
+              "litter-leaves": {
+                "updateMs": 0,
+                "cullMs": 0,
+                "updateMsMax": 2.200000047683716,
+                "cullMsMax": 3.899999976158142,
+                "swaps": 4,
+                "count": 8859
+              },
+              "litter-leaves-north": {
+                "updateMs": 0,
+                "cullMs": 0,
+                "updateMsMax": 0.5,
+                "cullMsMax": 0.19999992847442627,
+                "swaps": 4,
+                "count": 8349
+              },
+              "litter-twigs": {
+                "updateMs": 0,
+                "cullMs": 0,
+                "updateMsMax": 0.20000004768371582,
+                "cullMsMax": 0.10000002384185791,
+                "swaps": 4,
+                "count": 1213
+              },
+              "litter-twigs-north": {
+                "updateMs": 0,
+                "cullMs": 0,
+                "updateMsMax": 0.20000004768371582,
+                "cullMsMax": 0.10000002384185791,
+                "swaps": 4,
+                "count": 945
+              },
+              "litter-roots": {
+                "updateMs": 0,
+                "cullMs": 0,
+                "updateMsMax": 0.10000002384185791,
+                "cullMsMax": 0.10000002384185791,
+                "swaps": 4,
+                "count": 131
+              },
+              "turf-mats-expansion": {
+                "updateMs": 0,
+                "cullMs": 0,
+                "updateMsMax": 0.20000004768371582,
+                "cullMsMax": 0.10000002384185791,
+                "swaps": 4,
+                "count": 923
+              },
+              "grass-clumps-expansion": {
+                "updateMs": 0,
+                "cullMs": 0,
+                "updateMsMax": 0.09999990463256836,
+                "cullMsMax": 0.10000002384185791,
+                "swaps": 4,
+                "count": 839
+              },
+              "tufts-expansion": {
+                "updateMs": 0,
+                "cullMs": 0,
+                "updateMsMax": 0.10000002384185791,
+                "cullMsMax": 0.10000002384185791,
+                "swaps": 4,
+                "count": 727
+              },
+              "weeds-expansion": {
+                "updateMs": 0,
+                "cullMs": 0,
+                "updateMsMax": 0,
+                "cullMsMax": 0.10000002384185791,
+                "swaps": 4,
+                "count": 7
+              },
+              "moss-expansion": {
+                "updateMs": 0,
+                "cullMs": 0.10000002384185791,
+                "updateMsMax": 0.10000002384185791,
+                "cullMsMax": 0.10000002384185791,
+                "swaps": 4,
+                "count": 77
+              },
+              "ferns-expansion": {
+                "updateMs": 0,
+                "cullMs": 0,
+                "updateMsMax": 0.2999999523162842,
+                "cullMsMax": 0.10000002384185791,
+                "swaps": 4,
+                "count": 92
+              },
+              "flowers-expansion": {
+                "updateMs": 0,
+                "cullMs": 0,
+                "updateMsMax": 0,
+                "cullMsMax": 0.10000002384185791,
+                "swaps": 4,
+                "count": 18
+              },
+              "flowers-white-expansion": {
+                "updateMs": 0,
+                "cullMs": 0,
+                "updateMsMax": 0.10000002384185791,
+                "cullMsMax": 0.10000002384185791,
+                "swaps": 4,
+                "count": 22
+              },
+              "bushes-expansion": {
+                "updateMs": 0,
+                "cullMs": 0,
+                "updateMsMax": 0.09999990463256836,
+                "cullMsMax": 0.10000002384185791,
+                "swaps": 4,
+                "count": 7
+              },
+              "litter-leaves-expansion": {
+                "updateMs": 0,
+                "cullMs": 0,
+                "updateMsMax": 0.10000002384185791,
+                "cullMsMax": 0,
+                "swaps": 4,
+                "count": 65
+              }
+            }
+          }
+        },
+        "buildMs": {
+          "lighting": 508.90000009536743,
+          "atmosphere": 27.100000023841858,
+          "terrain": 6158.200000047684,
+          "hardscape": 5805.5,
+          "rocks": 17196.200000047684,
+          "trees": 13987.700000047684,
+          "canopy": 66.19999992847443,
+          "structures": 18040.5,
+          "props": 708.4000000953674,
+          "vegetation": 20320.700000047684,
+          "character": 1162.3999999761581
+        },
+        "warmup": null,
+        "flags": {},
+        "tier": "high",
+        "perfState": {
+          "flags": {},
+          "tier": "high",
+          "version": 0,
+          "fx": {
+            "ao": true,
+            "rays": true,
+            "bloom": true,
+            "soft": true
+          },
+          "shadowMapSize": 4096,
+          "shadowTaps": 12,
+          "vegLodScale": 1,
+          "grassDensity": 1,
+          "renderScale": 1
+        },
+        "governor": null
+      },
+      "depth": {
+        "file": "F_canopy-depth.f32",
+        "width": 320,
+        "height": 180,
+        "sha256": "8b6c78da2df22cc1d5447195b31d5005b295d6816904f8ce2cb1e94f81b98168",
+        "format": "little-endian float32 Euclidean metres; Infinity sky; top-left row-major"
+      }
+    },
+    "sky-opening": {
+      "sha256": "5c5079fcd32233cc6f779f20c5c7f74989e2c84e18ad7f0912cf88a0eca41fb5",
+      "stats": {
+        "simTime": 12.6,
+        "drawCalls": 414,
+        "triangles": 6798034,
+        "geometries": 396,
+        "textures": 91,
+        "programs": 101,
+        "width": 1280,
+        "height": 720,
+        "pixelRatio": 1
+      },
+      "camera": {
+        "position": [
+          0,
+          1.8,
+          0.5
+        ],
+        "direction": [
+          8.466276089701586e-17,
+          0.7225449858931141,
+          -0.6913239062557577
+        ],
+        "fov": 72
+      },
+      "lighting": {
+        "sunAzimuthDeg": -128,
+        "sunElevationDeg": 38,
+        "sunIntensity": 4.4,
+        "sunColor": "#ffe7bf",
+        "shadows": true,
+        "shadowMapSize": 4096,
+        "shadowType": "pcss-vogel+canopy-transmission",
+        "shadowFilterTaps": 12,
+        "shadowSearchTaps": 8,
+        "shadowFilterDynamic": false,
+        "shadowWindowRadiusM": 46,
+        "shadowSnapSpace": "light-camera-texel",
+        "shadowSnapMetres": 0.0224609375,
+        "shadowTexelCm": 2.2,
+        "shadowBias": -0.00012,
+        "shadowNormalBias": 0.028,
+        "shadowRadiusTexels": 1.5,
+        "shadowPenumbraPerM": 0.0093,
+        "shadowPenumbraRangeM": [
+          0.04,
+          0.45
+        ],
+        "shadowCanopyLeak": 0.1,
+        "shadowCanopyLeakRangeM": [
+          5,
+          11
+        ],
+        "cascades": 1,
+        "hemiIntensity": 0.55,
+        "hemiSkyLinear": [
+          0.479,
+          0.638,
+          0.745
+        ],
+        "hemiGroundLinear": [
+          0.407,
+          0.381,
+          0.242
+        ],
+        "environmentMap": true,
+        "environmentIntensity": 0.22,
+        "environmentTint": [
+          1.049,
+          1,
+          1.0025
+        ]
+      },
+      "atmosphere": {
+        "fogNear": 28,
+        "fogFar": 190,
+        "fogColor": "#95968b",
+        "heightFog": true,
+        "heightFogBaseM": 0.4,
+        "heightFogFalloff": 1,
+        "distanceFogMax": 0.86,
+        "hazeDensityPerM": 0.008,
+        "hazeStartM": 5,
+        "hazeAt30m": 0.18,
+        "hazeThinMidStartM": 8,
+        "hazeThinMidDensityPerM": 0.008,
+        "hazeThinMidEndM": 15,
+        "hazeCatchUpEndM": 22,
+        "hazeCatchUpDensityPerM": 0.008,
+        "midAirDim": 1,
+        "midAirDimInM": [
+          9,
+          13
+        ],
+        "midAirDimOutM": [
+          16,
+          21
+        ],
+        "hazeFarStartM": 49,
+        "hazeFarDensityPerM": 0.008,
+        "hazeUniformHeightM": 8,
+        "hazeScaleHeightM": 7,
+        "hazeUpwardCut": 0.9,
+        "hazeDensityUniformHeightM": 3,
+        "hazeDensityScaleHeightM": 5,
+        "hazeDensityProfileOpen": 1,
+        "hazeOpenDensity": 1,
+        "distanceFogMaxOpen": 0.86,
+        "hazeShadeVeil": 1,
+        "hazeShadeVeilKnee": 0.3,
+        "hazeShadeVeilOutM": [
+          40,
+          50
+        ],
+        "plateauGlareDisplay": "#cac9be",
+        "plateauGlareBearingDeg": 57,
+        "plateauGlareAmount": 0.25,
+        "hazeNearDisplay": "#838c93",
+        "hazeFarDisplay": "#9aa9b3",
+        "hazeLitDisplay": "#adb5bb",
+        "hazeLitKnee": 0.2,
+        "canopyOpenBearingDeg": 75,
+        "canopyOpenEdges": [
+          0.25,
+          0.7
+        ],
+        "hazeClosedDisplay": "#7f8b91",
+        "hazeFarLitDisplay": "#a5afb6",
+        "hazeFarLitStartM": 52,
+        "hazeFarLitEndM": 56,
+        "hazeFarLitAmount": 0.5,
+        "hazeFarLitKnee": 0.1,
+        "skyFarLitUpEdges": [
+          0.05,
+          0.17
+        ],
+        "hollowDim": 0.65,
+        "hollowDimInM": [
+          42,
+          52
+        ],
+        "hollowVeilDisplay": "#616b72",
+        "hazeSunLobeGain": 0,
+        "hazeBackScatterMin": 0.65,
+        "hazeBackScatterFullDeg": 135,
+        "hazeFarBackDisplay": "#808a8f",
+        "groundMistDisplay": "#89887a",
+        "hazeNearFieldDisplay": "#877f71",
+        "hazeNearFieldInM": [
+          10,
+          28
+        ],
+        "hazeNearFieldAmount": 1,
+        "farShadeStartM": 22,
+        "farShadeFullM": 44,
+        "farShadeMin": 0.65,
+        "skyGapDisplay": "#7bb1d2",
+        "sky": "procedural-warm-haze+sun+cirrus",
+        "groundMist": true,
+        "groundMistBillboards": 32,
+        "groundMistSheets": 9,
+        "godRays": true,
+        "fallingLeaves": 96,
+        "fireflies": 180,
+        "fairy": true,
+        "fairySource": "character:navi",
+        "fairyLight": true,
+        "ambientOcclusion": true,
+        "bloom": true,
+        "antialiasing": "fxaa",
+        "postfx": {
+          "passes": [
+            "scene-hdr",
+            "mist-half",
+            "ssao-half",
+            "ssao-blur-half",
+            "godray-march-quarter",
+            "godray-smear-x2-quarter",
+            "bloom-bright-quarter",
+            "bloom-blur-x2-quarter",
+            "composite-aces-grade",
+            "fxaa",
+            "soften-down-640",
+            "soften-blur-x2-640",
+            "soften-haze-blur-x3-320",
+            "soften-weights-x3-320",
+            "soften-final"
+          ],
+          "hdr": true,
+          "resolution": [
+            1280,
+            720
+          ],
+          "shadowCasterCull": true,
+          "shadowCastersTested": 109,
+          "shadowCastersCulled": 9,
+          "shadowCullMarginM": 1,
+          "stagesEnabled": {
+            "ao": true,
+            "rays": true,
+            "bloom": true,
+            "soft": false
+          },
+          "ambientOcclusion": true,
+          "aoResolution": [
+            640,
+            360
+          ],
+          "godRays": true,
+          "godRayMethod": "volumetric-shadow-march+gap-mask",
+          "godRaySteps": 24,
+          "godRayResolution": [
+            320,
+            180
+          ],
+          "godRayStrength": 0.32,
+          "godRayBackScatterMin": 0.35,
+          "godRayExtinctionPerM": 0.045,
+          "godRayMaxDistM": 40,
+          "godRayAirFadeM": [
+            3,
+            6.5
+          ],
+          "godRayMistNearM": [
+            0,
+            0
+          ],
+          "godRayAnisotropy": 0.6,
+          "godRayContrastPow": 1,
+          "godRayGapFrequencyPerM": 0.22,
+          "godRayGapFloor": 0.3,
+          "godRayGapNoiseMax": 1,
+          "godRayFarAirM": [
+            30,
+            45
+          ],
+          "godRayFarAirFill": 0.23,
+          "godRayGapHollowZ": [
+            -24,
+            -40
+          ],
+          "godRayFixedColumns": [
+            [
+              1.3,
+              6.6,
+              -9.4,
+              1.8,
+              1
+            ],
+            [
+              -3,
+              8,
+              -14.5,
+              1.8,
+              1
+            ],
+            [
+              5,
+              7,
+              -17,
+              1.8,
+              1
+            ],
+            [
+              13.3,
+              10,
+              -14.6,
+              1.3,
+              7.5
+            ],
+            [
+              9.6,
+              6.9,
+              -6.6,
+              1.3,
+              7.5
+            ],
+            [
+              20.4,
+              11.2,
+              -12.8,
+              1.3,
+              7.5
+            ]
+          ],
+          "godRayScreenFan": true,
+          "godRayScreenFanMix": 1,
+          "godRayScreenFanLeanDeg": 26,
+          "godRayScreenFanFloor": 0.75,
+          "godRayScreenFanAmp": 0.23,
+          "godRayScreenFanFacingDeg": [
+            170,
+            75
+          ],
+          "godRayScreenFanViewGain": 1,
+          "godRayScreenFanFadeY": [
+            0.35,
+            0.6
+          ],
+          "godRayScreenFanBeams": [
+            [
+              0.255,
+              0.12,
+              1
+            ],
+            [
+              0.35,
+              0.13,
+              0.45
+            ],
+            [
+              0.465,
+              0.07,
+              0.15
+            ]
+          ],
+          "sunScreenUv": [
+            0.192,
+            0.566
+          ],
+          "sunInFront": true,
+          "bloom": true,
+          "bloomThreshold": 1,
+          "bloomIntensity": 0.25,
+          "bloomRadiusTexels": 1.4,
+          "toneMapping": "aces-fitted",
+          "contrast": 0.93,
+          "contrastPivot": 0.18,
+          "lift": 0.003,
+          "aoStrength": 0.2,
+          "aoFadeM": [
+            22,
+            34
+          ],
+          "aoNearStrength": 0.2,
+          "aoNearM": [
+            6,
+            10
+          ],
+          "antialiasing": "fxaa",
+          "softening": false,
+          "softeningGrid": [
+            640,
+            360
+          ],
+          "softeningDetailFloor": 0.85,
+          "softeningActivityKnee": 0.08,
+          "softeningUniform": 0,
+          "softeningHazeRangeM": [
+            16,
+            50
+          ],
+          "softeningBlurSigmaGrid": [
+            1.2,
+            4.2
+          ],
+          "softeningHazeWeightMode": 0,
+          "softeningHazeFarOnly": false,
+          "softeningNearSharp": 0.25,
+          "softeningNearSharpRangeM": [
+            4,
+            10
+          ],
+          "deterministic": true,
+          "headless": true
+        }
+      },
+      "perf": {
+        "step": 17.40000009536743,
+        "camera": 0,
+        "update": 3.200000047683716,
+        "render": 14.200000047683716,
+        "systems": {
+          "wind": 0.10000002384185791,
+          "lighting": 0,
+          "atmosphere": 0.10000002384185791,
+          "terrain": 0.10000002384185791,
+          "hardscape": 0,
+          "rocks": 0,
+          "trees": 0.3999999761581421,
+          "canopy": 0,
+          "structures": 0.10000002384185791,
+          "props": 0,
+          "vegetation": 0.19999992847442627,
+          "character": 2.200000047683716
+        },
+        "systemPerf": {
+          "trees": {
+            "tier": "large",
+            "deviceMemoryGB": 32,
+            "poolBytesCap": {
+              "nearCanopy": 268435456,
+              "nearBase": 50331648
+            },
+            "swapM": {
+              "nearCanopy": [
+                26,
+                30
+              ],
+              "nearBase": [
+                25,
+                28
+              ]
+            },
+            "nearCanopyPool": {
+              "capBytes": 268435456,
+              "poolBytes": 234773574,
+              "items": 426,
+              "resident": 426,
+              "pinned": 65,
+              "wanted": 371,
+              "pinnedBytes": 40012074,
+              "wantedBytes": 206332416,
+              "pending": 0,
+              "building": 0,
+              "built": 0,
+              "evicted": 0,
+              "syncBuilds": 0,
+              "hits": 6229,
+              "buildMsP50": 0,
+              "buildMsP95": 0,
+              "buildMsMax": 0,
+              "stepMsMax": 0,
+              "workMsMax": 0.6,
+              "workMsTotal": 4.2,
+              "steps": 0,
+              "stepMsP50": 0,
+              "stepMsP95": 0,
+              "longSteps": 0,
+              "workOverBudget": 0,
+              "workMsP95": 0.1
+            },
+            "nearBasePool": {
+              "capBytes": 50331648,
+              "poolBytes": 34726800,
+              "items": 23,
+              "resident": 23,
+              "pinned": 0,
+              "wanted": 19,
+              "pinnedBytes": 0,
+              "wantedBytes": 28613916,
+              "pending": 0,
+              "building": 0,
+              "built": 0,
+              "evicted": 0,
+              "syncBuilds": 0,
+              "hits": 106,
+              "buildMsP50": 0,
+              "buildMsP95": 0,
+              "buildMsMax": 0,
+              "stepMsMax": 0,
+              "workMsMax": 0.1,
+              "workMsTotal": 0.7,
+              "steps": 0,
+              "stepMsP50": 0,
+              "stepMsP95": 0,
+              "longSteps": 0,
+              "workOverBudget": 0,
+              "workMsP95": 0
+            },
+            "prefetchM": {
+              "nearCanopy": 42,
+              "nearBase": 38
+            },
+            "buildBudgetMs": 6,
+            "bytesWithinM": {
+              "nearCanopy": {
+                "26": 87062910,
+                "30": 120102786,
+                "34": 158911596,
+                "42": 206332416
+              },
+              "nearBase": {
+                "25": 13709718,
+                "28": 21218142,
+                "38": 28613916
+              }
+            }
+          },
+          "vegetation": {
+            "rebucketBudget": 8000,
+            "frame": {
+              "listed": 0,
+              "listedMax": 109076,
+              "swaps": 0,
+              "refreshMs": 0.19999992847442627,
+              "refreshMsMax": 40.39999997615814,
+              "frames": 134,
+              "jobsOpen": 0
+            },
+            "sets": {
+              "ferns": {
+                "updateMs": 0,
+                "cullMs": 0,
+                "updateMsMax": 1.600000023841858,
+                "cullMsMax": 1.7999999523162842,
+                "swaps": 5,
+                "count": 1394
+              },
+              "tufts": {
+                "updateMs": 0,
+                "cullMs": 0,
+                "updateMsMax": 4.100000023841858,
+                "cullMsMax": 1.7000000476837158,
+                "swaps": 5,
+                "count": 5537
+              },
+              "hero-ferns": {
+                "updateMs": 0,
+                "cullMs": 0,
+                "updateMsMax": 0.19999992847442627,
+                "cullMsMax": 0.10000002384185791,
+                "swaps": 5,
+                "count": 18
+              },
+              "fiddleheads": {
+                "updateMs": 0,
+                "cullMs": 0,
+                "updateMsMax": 0.5,
+                "cullMsMax": 0.20000004768371582,
+                "swaps": 5,
+                "count": 612
+              },
+              "bushes": {
+                "updateMs": 0,
+                "cullMs": 0,
+                "updateMsMax": 0.10000002384185791,
+                "cullMsMax": 0.2999999523162842,
+                "swaps": 5,
+                "count": 125
+              },
+              "hedge": {
+                "updateMs": 0,
+                "cullMs": 0,
+                "updateMsMax": 0.10000002384185791,
+                "cullMsMax": 0.10000002384185791,
+                "swaps": 5,
+                "count": 31
+              },
+              "flowers": {
+                "updateMs": 0,
+                "cullMs": 0,
+                "updateMsMax": 0.2999999523162842,
+                "cullMsMax": 0.10000002384185791,
+                "swaps": 5,
+                "count": 263
+              },
+              "flowers-yellow": {
+                "updateMs": 0,
+                "cullMs": 0,
+                "updateMsMax": 0.10000002384185791,
+                "cullMsMax": 0,
+                "swaps": 5,
+                "count": 11
+              },
+              "flowers-white": {
+                "updateMs": 0,
+                "cullMs": 0,
+                "updateMsMax": 0.10000002384185791,
+                "cullMsMax": 0.10000002384185791,
+                "swaps": 5,
+                "count": 63
+              },
+              "weeds": {
+                "updateMs": 0,
+                "cullMs": 0,
+                "updateMsMax": 2.8000000715255737,
+                "cullMsMax": 1.2999999523162842,
+                "swaps": 5,
+                "count": 5315
+              },
+              "seedheads": {
+                "updateMs": 0,
+                "cullMs": 0,
+                "updateMsMax": 0.2999999523162842,
+                "cullMsMax": 0.20000004768371582,
+                "swaps": 5,
+                "count": 987
+              },
+              "clover": {
+                "updateMs": 0,
+                "cullMs": 0,
+                "updateMsMax": 0.8999999761581421,
+                "cullMsMax": 0.5,
+                "swaps": 5,
+                "count": 8701
+              },
+              "moss": {
+                "updateMs": 0,
+                "cullMs": 0,
+                "updateMsMax": 0.5999999046325684,
+                "cullMsMax": 0.7999999523162842,
+                "swaps": 5,
+                "count": 2068
+              },
+              "saplings": {
+                "updateMs": 0,
+                "cullMs": 0,
+                "updateMsMax": 0,
+                "cullMsMax": 0.10000002384185791,
+                "swaps": 5,
+                "count": 22
+              },
+              "ferns-north": {
+                "updateMs": 0,
+                "cullMs": 0,
+                "updateMsMax": 0.10000002384185791,
+                "cullMsMax": 0.10000002384185791,
+                "swaps": 5,
+                "count": 954
+              },
+              "weeds-north": {
+                "updateMs": 0,
+                "cullMs": 0,
+                "updateMsMax": 0.20000004768371582,
+                "cullMsMax": 0.10000002384185791,
+                "swaps": 5,
+                "count": 2004
+              },
+              "bushes-north": {
+                "updateMs": 0,
+                "cullMs": 0,
+                "updateMsMax": 0,
+                "cullMsMax": 0.10000002384185791,
+                "swaps": 5,
+                "count": 32
+              },
+              "tufts-north": {
+                "updateMs": 0,
+                "cullMs": 0,
+                "updateMsMax": 0,
+                "cullMsMax": 0,
+                "swaps": 5,
+                "count": 93
+              },
+              "turf-mats": {
+                "updateMs": 0,
+                "cullMs": 0,
+                "updateMsMax": 5.600000023841858,
+                "cullMsMax": 2.399999976158142,
+                "swaps": 5,
+                "count": 29531
+              },
+              "turf-mats-north": {
+                "updateMs": 0,
+                "cullMs": 0,
+                "updateMsMax": 0.7000000476837158,
+                "cullMsMax": 0.10000002384185791,
+                "swaps": 5,
+                "count": 5052
+              },
+              "grass-clumps": {
+                "updateMs": 0,
+                "cullMs": 0,
+                "updateMsMax": 1.8000000715255737,
+                "cullMsMax": 0.30000007152557373,
+                "swaps": 5,
+                "count": 15138
+              },
+              "grass-clumps-north": {
+                "updateMs": 0,
+                "cullMs": 0,
+                "updateMsMax": 0.6000000238418579,
+                "cullMsMax": 0.10000002384185791,
+                "swaps": 5,
+                "count": 8851
+              },
+              "litter-leaves": {
+                "updateMs": 0,
+                "cullMs": 0,
+                "updateMsMax": 2.200000047683716,
+                "cullMsMax": 4.700000047683716,
+                "swaps": 5,
+                "count": 8859
+              },
+              "litter-leaves-north": {
+                "updateMs": 0,
+                "cullMs": 0,
+                "updateMsMax": 2.399999976158142,
+                "cullMsMax": 0.3999999761581421,
+                "swaps": 5,
+                "count": 8349
+              },
+              "litter-twigs": {
+                "updateMs": 0,
+                "cullMs": 0,
+                "updateMsMax": 0.20000004768371582,
+                "cullMsMax": 0.10000002384185791,
+                "swaps": 5,
+                "count": 1213
+              },
+              "litter-twigs-north": {
+                "updateMs": 0,
+                "cullMs": 0,
+                "updateMsMax": 0.20000004768371582,
+                "cullMsMax": 0.10000002384185791,
+                "swaps": 5,
+                "count": 945
+              },
+              "litter-roots": {
+                "updateMs": 0,
+                "cullMs": 0,
+                "updateMsMax": 0.10000002384185791,
+                "cullMsMax": 0.10000002384185791,
+                "swaps": 5,
+                "count": 131
+              },
+              "turf-mats-expansion": {
+                "updateMs": 0,
+                "cullMs": 0,
+                "updateMsMax": 0.20000004768371582,
+                "cullMsMax": 0.10000002384185791,
+                "swaps": 5,
+                "count": 923
+              },
+              "grass-clumps-expansion": {
+                "updateMs": 0,
+                "cullMs": 0,
+                "updateMsMax": 0.09999990463256836,
+                "cullMsMax": 0.10000002384185791,
+                "swaps": 5,
+                "count": 839
+              },
+              "tufts-expansion": {
+                "updateMs": 0,
+                "cullMs": 0,
+                "updateMsMax": 0.10000002384185791,
+                "cullMsMax": 0.10000002384185791,
+                "swaps": 5,
+                "count": 727
+              },
+              "weeds-expansion": {
+                "updateMs": 0,
+                "cullMs": 0,
+                "updateMsMax": 0,
+                "cullMsMax": 0.10000002384185791,
+                "swaps": 5,
+                "count": 7
+              },
+              "moss-expansion": {
+                "updateMs": 0,
+                "cullMs": 0,
+                "updateMsMax": 0.10000002384185791,
+                "cullMsMax": 0.10000002384185791,
+                "swaps": 5,
+                "count": 77
+              },
+              "ferns-expansion": {
+                "updateMs": 0,
+                "cullMs": 0,
+                "updateMsMax": 0.2999999523162842,
+                "cullMsMax": 0.10000002384185791,
+                "swaps": 5,
+                "count": 92
+              },
+              "flowers-expansion": {
+                "updateMs": 0,
+                "cullMs": 0,
+                "updateMsMax": 0,
+                "cullMsMax": 0.10000002384185791,
+                "swaps": 5,
+                "count": 18
+              },
+              "flowers-white-expansion": {
+                "updateMs": 0,
+                "cullMs": 0,
+                "updateMsMax": 0.10000002384185791,
+                "cullMsMax": 0.10000002384185791,
+                "swaps": 5,
+                "count": 22
+              },
+              "bushes-expansion": {
+                "updateMs": 0,
+                "cullMs": 0,
+                "updateMsMax": 0.09999990463256836,
+                "cullMsMax": 0.10000002384185791,
+                "swaps": 5,
+                "count": 7
+              },
+              "litter-leaves-expansion": {
+                "updateMs": 0,
+                "cullMs": 0,
+                "updateMsMax": 0.10000002384185791,
+                "cullMsMax": 0,
+                "swaps": 5,
+                "count": 65
+              }
+            }
+          }
+        },
+        "buildMs": {
+          "lighting": 508.90000009536743,
+          "atmosphere": 27.100000023841858,
+          "terrain": 6158.200000047684,
+          "hardscape": 5805.5,
+          "rocks": 17196.200000047684,
+          "trees": 13987.700000047684,
+          "canopy": 66.19999992847443,
+          "structures": 18040.5,
+          "props": 708.4000000953674,
+          "vegetation": 20320.700000047684,
+          "character": 1162.3999999761581
+        },
+        "warmup": null,
+        "flags": {},
+        "tier": "high",
+        "perfState": {
+          "flags": {},
+          "tier": "high",
+          "version": 0,
+          "fx": {
+            "ao": true,
+            "rays": true,
+            "bloom": true,
+            "soft": true
+          },
+          "shadowMapSize": 4096,
+          "shadowTaps": 12,
+          "vegLodScale": 1,
+          "grassDensity": 1,
+          "renderScale": 1
+        },
+        "governor": null
+      },
+      "depth": {
+        "file": "sky-opening-depth.f32",
+        "width": 320,
+        "height": 180,
+        "sha256": "4157891ef00b7e00ebfbd0d10682b84445489cba6efe47d2b27559fc698ae55c",
+        "format": "little-endian float32 Euclidean metres; Infinity sky; top-left row-major"
+      }
+    }
+  },
+  "errors": [],
+  "note": "The upward pose is reconstructed, not the original owner camera. Native high 1280x720, time12.6, 14 settled frames. Static timing includes requestAnimationFrame and synchronous one-pixel read; no gameplay FPS claim.",
+  "runtime": {
+    "renderer": "ANGLE (AMD, AMD Radeon 780M Graphics (0x00001900) Direct3D11 vs_5_0 ps_5_0, D3D11)",
+    "devicePixelRatio": 1,
+    "scripts": [
+      "http://127.0.0.1:62565/assets/index-DQEncs0e.js"
+    ],
+    "perf": {
+      "step": 68029.39999997616,
+      "camera": 0,
+      "update": 21.200000047683716,
+      "render": 68008.19999992847,
+      "systems": {
+        "wind": 0,
+        "lighting": 0.2999999523162842,
+        "atmosphere": 1.5,
+        "terrain": 0.20000004768371582,
+        "hardscape": 3.799999952316284,
+        "rocks": 0.5,
+        "trees": 0.7000000476837158,
+        "canopy": 0,
+        "structures": 0.2999999523162842,
+        "props": 0.10000002384185791,
+        "vegetation": 0.5,
+        "character": 13.300000071525574
+      },
+      "systemPerf": {
+        "trees": {
+          "tier": "large",
+          "deviceMemoryGB": 32,
+          "poolBytesCap": {
+            "nearCanopy": 268435456,
+            "nearBase": 50331648
+          },
+          "swapM": {
+            "nearCanopy": [
+              26,
+              30
+            ],
+            "nearBase": [
+              25,
+              28
+            ]
+          },
+          "nearCanopyPool": {
+            "capBytes": 268435456,
+            "poolBytes": 234773574,
+            "items": 426,
+            "resident": 426,
+            "pinned": 77,
+            "wanted": 324,
+            "pinnedBytes": 45692094,
+            "wantedBytes": 181640604,
+            "pending": 0,
+            "building": 0,
+            "built": 0,
+            "evicted": 0,
+            "syncBuilds": 0,
+            "hits": 154,
+            "buildMsP50": 0,
+            "buildMsP95": 0,
+            "buildMsMax": 0,
+            "stepMsMax": 0,
+            "workMsMax": 0.1,
+            "workMsTotal": 0.4,
+            "steps": 0,
+            "stepMsP50": 0,
+            "stepMsP95": 0,
+            "longSteps": 0,
+            "workOverBudget": 0,
+            "workMsP95": 0.1
+          },
+          "nearBasePool": {
+            "capBytes": 50331648,
+            "poolBytes": 34726800,
+            "items": 23,
+            "resident": 23,
+            "pinned": 2,
+            "wanted": 16,
+            "pinnedBytes": 3370722,
+            "wantedBytes": 24499002,
+            "pending": 0,
+            "building": 0,
+            "built": 0,
+            "evicted": 0,
+            "syncBuilds": 0,
+            "hits": 4,
+            "buildMsP50": 0,
+            "buildMsP95": 0,
+            "buildMsMax": 0,
+            "stepMsMax": 0,
+            "workMsMax": 0.1,
+            "workMsTotal": 0.1,
+            "steps": 0,
+            "stepMsP50": 0,
+            "stepMsP95": 0,
+            "longSteps": 0,
+            "workOverBudget": 0,
+            "workMsP95": 0
+          },
+          "prefetchM": {
+            "nearCanopy": 42,
+            "nearBase": 38
+          },
+          "buildBudgetMs": 6,
+          "bytesWithinM": {
+            "nearCanopy": {
+              "26": 86797902,
+              "30": 125306118,
+              "34": 150303030,
+              "42": 181640604
+            },
+            "nearBase": {
+              "25": 16889478,
+              "28": 18395298,
+              "38": 24499002
+            }
+          }
+        },
+        "vegetation": {
+          "rebucketBudget": 8000,
+          "frame": {
+            "listed": 0,
+            "listedMax": 109076,
+            "swaps": 0,
+            "refreshMs": 0.3999999761581421,
+            "refreshMsMax": 40.39999997615814,
+            "frames": 2,
+            "jobsOpen": 0
+          },
+          "sets": {
+            "ferns": {
+              "updateMs": 0,
+              "cullMs": 0,
+              "updateMsMax": 1.600000023841858,
+              "cullMsMax": 1.7999999523162842,
+              "swaps": 1,
+              "count": 1394
+            },
+            "tufts": {
+              "updateMs": 0,
+              "cullMs": 0,
+              "updateMsMax": 4.100000023841858,
+              "cullMsMax": 1.7000000476837158,
+              "swaps": 1,
+              "count": 5537
+            },
+            "hero-ferns": {
+              "updateMs": 0,
+              "cullMs": 0,
+              "updateMsMax": 0.19999992847442627,
+              "cullMsMax": 0.10000002384185791,
+              "swaps": 1,
+              "count": 18
+            },
+            "fiddleheads": {
+              "updateMs": 0,
+              "cullMs": 0,
+              "updateMsMax": 0.5,
+              "cullMsMax": 0.20000004768371582,
+              "swaps": 1,
+              "count": 612
+            },
+            "bushes": {
+              "updateMs": 0,
+              "cullMs": 0,
+              "updateMsMax": 0.10000002384185791,
+              "cullMsMax": 0.2999999523162842,
+              "swaps": 1,
+              "count": 125
+            },
+            "hedge": {
+              "updateMs": 0,
+              "cullMs": 0.10000002384185791,
+              "updateMsMax": 0.10000002384185791,
+              "cullMsMax": 0.10000002384185791,
+              "swaps": 1,
+              "count": 31
+            },
+            "flowers": {
+              "updateMs": 0,
+              "cullMs": 0,
+              "updateMsMax": 0.2999999523162842,
+              "cullMsMax": 0.10000002384185791,
+              "swaps": 1,
+              "count": 263
+            },
+            "flowers-yellow": {
+              "updateMs": 0,
+              "cullMs": 0,
+              "updateMsMax": 0.10000002384185791,
+              "cullMsMax": 0,
+              "swaps": 1,
+              "count": 11
+            },
+            "flowers-white": {
+              "updateMs": 0,
+              "cullMs": 0,
+              "updateMsMax": 0.09999990463256836,
+              "cullMsMax": 0,
+              "swaps": 1,
+              "count": 63
+            },
+            "weeds": {
+              "updateMs": 0,
+              "cullMs": 0,
+              "updateMsMax": 2.8000000715255737,
+              "cullMsMax": 1.2999999523162842,
+              "swaps": 1,
+              "count": 5315
+            },
+            "seedheads": {
+              "updateMs": 0,
+              "cullMs": 0,
+              "updateMsMax": 0.2999999523162842,
+              "cullMsMax": 0.20000004768371582,
+              "swaps": 1,
+              "count": 987
+            },
+            "clover": {
+              "updateMs": 0,
+              "cullMs": 0,
+              "updateMsMax": 0.8999999761581421,
+              "cullMsMax": 0.30000007152557373,
+              "swaps": 1,
+              "count": 8701
+            },
+            "moss": {
+              "updateMs": 0,
+              "cullMs": 0,
+              "updateMsMax": 0.5999999046325684,
+              "cullMsMax": 0.20000004768371582,
+              "swaps": 1,
+              "count": 2068
+            },
+            "saplings": {
+              "updateMs": 0,
+              "cullMs": 0,
+              "updateMsMax": 0,
+              "cullMsMax": 0.10000002384185791,
+              "swaps": 1,
+              "count": 22
+            },
+            "ferns-north": {
+              "updateMs": 0,
+              "cullMs": 0,
+              "updateMsMax": 0,
+              "cullMsMax": 0.10000002384185791,
+              "swaps": 1,
+              "count": 954
+            },
+            "weeds-north": {
+              "updateMs": 0,
+              "cullMs": 0,
+              "updateMsMax": 0.09999990463256836,
+              "cullMsMax": 0.10000002384185791,
+              "swaps": 1,
+              "count": 2004
+            },
+            "bushes-north": {
+              "updateMs": 0,
+              "cullMs": 0,
+              "updateMsMax": 0,
+              "cullMsMax": 0,
+              "swaps": 1,
+              "count": 32
+            },
+            "tufts-north": {
+              "updateMs": 0,
+              "cullMs": 0,
+              "updateMsMax": 0,
+              "cullMsMax": 0,
+              "swaps": 1,
+              "count": 93
+            },
+            "turf-mats": {
+              "updateMs": 0,
+              "cullMs": 0,
+              "updateMsMax": 5.600000023841858,
+              "cullMsMax": 2.200000047683716,
+              "swaps": 1,
+              "count": 29531
+            },
+            "turf-mats-north": {
+              "updateMs": 0,
+              "cullMs": 0,
+              "updateMsMax": 0.5,
+              "cullMsMax": 0.09999990463256836,
+              "swaps": 1,
+              "count": 5052
+            },
+            "grass-clumps": {
+              "updateMs": 0,
+              "cullMs": 0,
+              "updateMsMax": 1.8000000715255737,
+              "cullMsMax": 0.19999992847442627,
+              "swaps": 1,
+              "count": 15138
+            },
+            "grass-clumps-north": {
+              "updateMs": 0,
+              "cullMs": 0,
+              "updateMsMax": 0.40000009536743164,
+              "cullMsMax": 0.09999990463256836,
+              "swaps": 1,
+              "count": 8851
+            },
+            "litter-leaves": {
+              "updateMs": 0,
+              "cullMs": 0,
+              "updateMsMax": 2.200000047683716,
+              "cullMsMax": 0.3999999761581421,
+              "swaps": 1,
+              "count": 8859
+            },
+            "litter-leaves-north": {
+              "updateMs": 0,
+              "cullMs": 0,
+              "updateMsMax": 0.5,
+              "cullMsMax": 0.10000002384185791,
+              "swaps": 1,
+              "count": 8349
+            },
+            "litter-twigs": {
+              "updateMs": 0,
+              "cullMs": 0,
+              "updateMsMax": 0.20000004768371582,
+              "cullMsMax": 0.09999990463256836,
+              "swaps": 1,
+              "count": 1213
+            },
+            "litter-twigs-north": {
+              "updateMs": 0,
+              "cullMs": 0,
+              "updateMsMax": 0,
+              "cullMsMax": 0,
+              "swaps": 1,
+              "count": 945
+            },
+            "litter-roots": {
+              "updateMs": 0,
+              "cullMs": 0,
+              "updateMsMax": 0.10000002384185791,
+              "cullMsMax": 0.10000002384185791,
+              "swaps": 1,
+              "count": 131
+            },
+            "turf-mats-expansion": {
+              "updateMs": 0,
+              "cullMs": 0,
+              "updateMsMax": 0.20000004768371582,
+              "cullMsMax": 0,
+              "swaps": 1,
+              "count": 923
+            },
+            "grass-clumps-expansion": {
+              "updateMs": 0,
+              "cullMs": 0,
+              "updateMsMax": 0.09999990463256836,
+              "cullMsMax": 0,
+              "swaps": 1,
+              "count": 839
+            },
+            "tufts-expansion": {
+              "updateMs": 0,
+              "cullMs": 0,
+              "updateMsMax": 0.10000002384185791,
+              "cullMsMax": 0.10000002384185791,
+              "swaps": 1,
+              "count": 727
+            },
+            "weeds-expansion": {
+              "updateMs": 0,
+              "cullMs": 0,
+              "updateMsMax": 0,
+              "cullMsMax": 0,
+              "swaps": 1,
+              "count": 7
+            },
+            "moss-expansion": {
+              "updateMs": 0,
+              "cullMs": 0,
+              "updateMsMax": 0.10000002384185791,
+              "cullMsMax": 0,
+              "swaps": 1,
+              "count": 77
+            },
+            "ferns-expansion": {
+              "updateMs": 0,
+              "cullMs": 0,
+              "updateMsMax": 0,
+              "cullMsMax": 0,
+              "swaps": 1,
+              "count": 92
+            },
+            "flowers-expansion": {
+              "updateMs": 0,
+              "cullMs": 0,
+              "updateMsMax": 0,
+              "cullMsMax": 0,
+              "swaps": 1,
+              "count": 18
+            },
+            "flowers-white-expansion": {
+              "updateMs": 0,
+              "cullMs": 0,
+              "updateMsMax": 0.10000002384185791,
+              "cullMsMax": 0,
+              "swaps": 1,
+              "count": 22
+            },
+            "bushes-expansion": {
+              "updateMs": 0,
+              "cullMs": 0,
+              "updateMsMax": 0.09999990463256836,
+              "cullMsMax": 0,
+              "swaps": 1,
+              "count": 7
+            },
+            "litter-leaves-expansion": {
+              "updateMs": 0,
+              "cullMs": 0,
+              "updateMsMax": 0,
+              "cullMsMax": 0,
+              "swaps": 1,
+              "count": 65
+            }
+          }
+        }
+      },
+      "buildMs": {
+        "lighting": 508.90000009536743,
+        "atmosphere": 27.100000023841858,
+        "terrain": 6158.200000047684,
+        "hardscape": 5805.5,
+        "rocks": 17196.200000047684,
+        "trees": 13987.700000047684,
+        "canopy": 66.19999992847443,
+        "structures": 18040.5,
+        "props": 708.4000000953674,
+        "vegetation": 20320.700000047684,
+        "character": 1162.3999999761581
+      },
+      "warmup": null,
+      "flags": {},
+      "tier": "high",
+      "perfState": {
+        "flags": {},
+        "tier": "high",
+        "version": 0,
+        "fx": {
+          "ao": true,
+          "rays": true,
+          "bloom": true,
+          "soft": true
+        },
+        "shadowMapSize": 4096,
+        "shadowTaps": 12,
+        "vegLodScale": 1,
+        "grassDensity": 1,
+        "renderScale": 1
+      },
+      "governor": null
+    }
+  },
+  "complete": true
+}

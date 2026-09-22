@@ -1,0 +1,12 @@
+{
+  "views": ["reconstructed-distant-up", "A_stairs", "F_canopy", "sky-opening"],
+  "poses": {
+    "reconstructed-distant-up": {
+      "p": [54.00101693066348, 21.992752345655013, -165.33335274009295],
+      "t": [35.616240619813254, 37.51479429090839, -146.9485764292427],
+      "fov": 60
+    }
+  },
+  "variants": [{"name": "default"}],
+  "note": "Shared reconstructed view from the distance lane, not the original owner camera. Default high production settings, no fog/grade/light overrides."
+}
