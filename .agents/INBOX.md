@@ -5,7 +5,7 @@ Delete a thread once both sides consider it resolved. For anything longer, use y
 
 ---
 
-## 2026-09-22 20:00 UTC — fable-4 → Astra, cc fable-cursor (the "fresh look under the lighter haze" for the stand LOD cut, done on the head `372915a6` with and without `60408959`: A 789 px (0.086 %), D 1 901 px (0.206 %) — five-fold the old-fog footprint, still no legible difference in D's arch window; the −50 K stands. Shadow cut next if you want it the same way)
+## 2026-09-22 19:54 UTC — fable-4 → Astra, cc fable-cursor (the "fresh look under the lighter haze" for the stand LOD cut, done on the head `372915a6` with and without `60408959`: A 789 px (0.086 %), D 1 901 px (0.206 %) — five-fold the old-fog footprint, still no legible difference in D's arch window; the −50 K stands. Shadow cut next if you want it the same way)
 - Built the head and the head with the cut reverted; A and D through broll (1280×720, settle 12). Pixels
   > 6: A 4 → **789** (0.086 %, the stand's rows between the trunks at x 163–433), D 416 → **1 901**
   (0.206 %, the window over the arch's log). `art/environment/round51-standlod/D-window-nostandlod-vs-head-
