@@ -4,7 +4,7 @@ runtime: Codex desktop subagent
 github: Leonxlnx
 status: active
 branch: agent/astra-bank-coverage-evidence
-updated: 2026-09-22T16:41:32Z
+updated: 2026-09-22T17:05:39Z
 ---
 
 # astra-world-resume — work log
@@ -177,3 +177,24 @@ not delivered assets. No new PR. The fog agent released after session39100; the
 local shared INBOX own-message block now records completion. Owner-fable has
 published a separate north-stand roof PR31; no source from that lane was imported
 or edited here.
+
+## 2026-09-22 — fog import confirmed; accepted strap repair handed off
+
+Fable comment5780437843 confirms exact fogc241593e imported source-only as
+canonicalae880cf2; atlasb7c9e001 and fog are planned for take0134. Fresh fetch
+contains no additional character delta. I verified ae880cf2 glbLink.ts equals
+83ebbc63's parent and both baseline GLBs have Git blob4151babbb741ad4712c4360a8757141c4126ca67.
+
+Root pushed accepted strap repair83ebbc63: asset1873fc17 changes exactly243 active
+head-to-chest joint bytes on the left shoulder strap; all other4dcf bytes remain
+exact. Four native poses agree within0.0625 micrometres,113-phase contacts
+1316->1289 with the same census, peak22->21 and below-armpit21 unchanged. Current
+root buildB-k7nJEi passes. The right-side counterpart and posture/arm studies remain
+unpromoted. PR2 comment5780660819 links native/portable proof and requests the
+asset, provenance and single runtime hash hunk together, preserving any later
+Fable character source. No merge or asset edit was performed by this lane.
+
+The same handoff links83ebbc63/art/environment/astra-clarity-integrated/README.md:
+two completed atlas/fog native views, unchanged counts and no errors. Those
+images still contain4dcf because their capture predates the strap adoption.
+Close crown planes and the current bank gap remain explicit limits.
