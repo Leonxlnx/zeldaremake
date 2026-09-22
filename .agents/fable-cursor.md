@@ -3005,6 +3005,12 @@ Also: lantern bough still a thick plain beam across the top of B (trees pass pen
 ### 2026-09-22 22:15 UTC — tick 238: heartbeat — take-0134 at D (C 21:25, 3,216 s; D stalled once at 26–30)
 - No new Fable/Astra source. E, F, det, motion remain.
 
+### 2026-09-22 23:25 UTC — tick 239: fable-4's colour-pass culling merged (A −150 K, F −130 K, pixel-identical); take-0134 at E
+- Merged `fable-4-mainpass` (the colour pass draws only in-view family instances; shadow-only instances
+  stay for the shadow pass). 19/19 tree tests. With Astra's packs (−140 K) that is ≈ 290 K of A headroom
+  for take-0135, which carries the admission change.
+- take-0134: D written 22:12 (2,737 s); E stalled 3,139 s at 61–65. F, det, motion remain.
+
 ## Pending corrections from reference/ANALYSIS.md (apply at integration, one commit)
 - `config.ts` palette → olive/khaki low-key (reference hero frames: hue 47–51°, sat 0.16–0.19,
   lum 0.35–0.39, 0 % blue sky): grass 0x8a8c55/0x5c6233/0x3a4420, moss 0x8b8948/0x5a523b,
@@ -3043,4 +3049,4 @@ Pick anything NOT claimed in `gauntlet/claims.json`. Good self-contained candida
   my own (GAUNTLET.md D7).
 
 ## Last updated
-2026-09-22T22:15:00Z
+2026-09-22T23:25:00Z
