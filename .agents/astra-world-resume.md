@@ -4,7 +4,7 @@ runtime: Codex desktop subagent
 github: Leonxlnx
 status: active
 branch: agent/astra-bank-coverage-evidence
-updated: 2026-09-22T16:02:00Z
+updated: 2026-09-22T16:07:00Z
 ---
 
 # astra-world-resume — work log
@@ -135,3 +135,13 @@ TREE_* and DISTANT_* shade-floor constants remain unchanged. Root owns review
 and adoption. Fog capture waits normally behind an owner-fable capslot job;
 this bank lane has no GPU work queued. PR2 handoffs 5779276030 and 5779456172
 carry the owner's explicit clarity priority and rejected063 correction.
+
+Final evidence-only publication is bda086f6. Staged receipts, script hashes,
+native manifest and rejected source patch are byte-exact; production source
+remains unchanged from 520537e6. Root accepted the atlas raw pairs and integrated
+its source locally as 886c531c, with evidence 9926541b pending public push.
+PR2 handoff 5779765139 delivers the final 588 rejection and explicitly corrects
+the fog field names/scope. The distant-crown agent received prior rejected
+1327bb79 and 1de017a8 evidence: curved sheets failed, and fitting a low sapling to
+whole-crown bounds inflated leaves to 4.64-6.60 m. Its new close-crown work is a
+CPU proposal only. This bank lane is finished and has no GPU work queued.
