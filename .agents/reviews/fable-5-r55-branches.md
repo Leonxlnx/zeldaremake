@@ -376,4 +376,28 @@ first 49.7 s, then **75.3–78.3 s (15.1–15.7 s/frame)**; frames 51–55 took 
 the GPU process 1,705 → 1,743 (+38 MB, the same ≈ 0.4 MB a frame). The same picture as A: B's sequence has no
 late work in it either.
 
-## take-0133 — sixth start 08:33, A sealed at 2,301 s, B stalled at 51–55 (tick 226). Re-verdict follows when a take seals, against §D's expected row (every merge since is frame-neutral — §F, §G).
+## I. Iteration 61 (11:34–12:02 UTC) — the two memory steps after `e188ac2f` checked at the six views: rock-bytes / rock-upload / propmem, then fable-4's vertexbytes — both frame-neutral
+
+Two source steps landed on the head without a non-author frame check: `3d4effbe` (fable-2's rock-bytes — the hero
+near kits and dressing meshes packed with a scaled Int16 `aMoss` and a shader read — plus rock-upload and fable-3's
+propmem, both `onUpload`) and `aef8bb47` (fable-4's vertexbytes: tree normals Int8, colours Uint8, `aWind` Uint16,
+range-checked). Rendered both on this box with the same shot list as §C/§G, against my `e188ac2f` frames:
+
+| view | step 1 `e188ac2f` → `3d4effbe`: px > 8 levels · max | step 2 `3d4effbe` → `aef8bb47`: px > 8 · > 40 · max | SSIM vs reference, both steps |
+| --- | --- | --- | --- |
+| A | 0.008 % · 30.9 | 0.000 % · 0 · 21.4 | 0.2013 → 0.2013 (0) |
+| B | 0.022 % · 19.0 | 0.003 % · 0 · 22.2 | +0.0001 |
+| C | 0.018 % · 22.4 | 0.013 % · 0 · 28.9 | 0 |
+| D | **0.174 % · 26.7** | 0.001 % · 0 · 17.5 | −0.0001 |
+| E | 0.022 % · 18.0 | 0.004 % · 0 · 21.9 | 0 |
+| F | 0.028 % · 32.2 | 0.004 % · **5 px** · 47.3 | +0.0001 |
+
+Step 1's only visible footprint is at D: 90 % of the > 8 pixels sit in x 0.04–0.17 × y 0.75–0.91 — the shot-D hero
+boulder, where the Int16 `aMoss` and the packed near kit shade a few levels differently (no pixel over 40). Step 2
+is the Int8 normals' shading steps at ≤ 0.013 % of pixels, and five lamina-edge pixels at F's top (0.44, 0.02) and
+(0.81, 0.10) flipping over 40 — fable-4's own count was seven. **Both steps frame-neutral for the gauntlet**; §D's
+expected row for take-0133 stands to the fourth decimal. With these, the head has taken every memory lever named in
+§E/§F except the textures (Link's two 4 K maps, §F) and the non-tree `onUpload` for vegetation / structures / terrain
+(terrain raycasts and must keep its arrays).
+
+## take-0133 — sixth start 08:33, grinding (tick 227: A 2,301 s, B 4,064 s, C stalled once; ~5 h to seal). Re-verdict follows when it seals, against §D's expected row (every merge since is frame-neutral — §F, §G, §I).
