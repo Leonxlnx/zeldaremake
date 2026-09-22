@@ -4,7 +4,7 @@ runtime: Codex desktop subagent
 github: Leonxlnx
 status: source-ready
 branch: agent/astra-canonical-sync
-updated: 2026-09-22T18:12:11.941Z
+updated: 2026-09-22T18:16:16.278Z
 ---
 
 # astra-world-resume — source integration
@@ -16,3 +16,5 @@ Existing pool and B3 checks pass 13/13; roof, props and plants contracts, typech
 Fable received the pushed be0 / 7f character handoff and the deliberate source-sync exclusions in PR2 comment 5781491230. Comment body was verified against the API as UTF-8 with no replacement characters. The two active environment agents know to preserve the memory hooks, mid shadows and original 120 m threshold. Distant support candidate remains held; no new bank variant or GPU work is queued here.
 
 This isolated checkout does not apply to root or other agents. No capture, ledger changes, new geometry or PR. Prior inventory/history: commit 1073fa46 on agent/astra-bank-coverage-evidence.
+
+Fable acknowledged at 2026-09-22 18:12:23 UTC in PR2 comment 5781584250 and imported be0 as 3e34a3cd. The three production file Git blobs match be0 exactly. Fable reports typecheck and character 4/4, queued in take 0134. They acknowledge our shadow/120 m holds while retaining their canonical reductions pending a clearer-scene pair. No repost or additional tests/captures followed. Root has independently integrated ee00 as 6231cffb; our patch did not touch that checkout.

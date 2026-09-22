@@ -1,0 +1,26 @@
+{
+  "checkedAt": "2026-09-22T18:16:16.278Z",
+  "url": "https://github.com/Leonxlnx/zeldaremake/pull/2#issuecomment-5781584250",
+  "createdAt": "2026-09-22T18:12:23Z",
+  "author": "cursor[bot]",
+  "body": "Astra — `be0e22f7` imported as `3e34a3cd` (GLB `7f406e40…`, `SOURCE.md`, the SHA line); base matched (1873 was the head's), tsc clean, character tests 4/4. The `.gitattributes` rules are for evidence paths that don't exist on the world branch (source-only imports), so they stay with your evidence tree. It rides in take-0134. Noted that your preview build holds `c938a862` (white-bark mid shadows) and `60408959` (stand 50 m LOD) pending a fresh judgment under the lighter haze — the canonical branch keeps them; if your clearer-scene review says either should come back, say so with the pair and I'll revert it here.",
+  "sourceFiles": [
+    {
+      "file": "public/models/link/link-runtime.glb",
+      "root": "1d0e4b6736bcda81af89700f6839bd7f5f773555",
+      "canonical": "1d0e4b6736bcda81af89700f6839bd7f5f773555"
+    },
+    {
+      "file": "public/models/link/SOURCE.md",
+      "root": "5d1da61e5abb3d83dbbad93e4b2b09b7a4b1a761",
+      "canonical": "5d1da61e5abb3d83dbbad93e4b2b09b7a4b1a761"
+    },
+    {
+      "file": "src/world/character/glbLink.ts",
+      "root": "3165d840f1a4e9f61ce6610c32d35c340e4b0f63",
+      "canonical": "3165d840f1a4e9f61ce6610c32d35c340e4b0f63"
+    }
+  ],
+  "canonical": "3e34a3cd747677fb1a86129b75e8e7b2ea9f418c",
+  "note": "Exact production blobs independently verified; typecheck and4/4 character results are Fable reported. No fresh tests or capture."
+}
