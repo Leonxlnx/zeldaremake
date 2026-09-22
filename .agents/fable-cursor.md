@@ -2959,6 +2959,13 @@ Also: lantern bough still a thick plain beam across the top of B (trees pass pen
 - Gaps: F's canopy mass (Astra), Link's knee fold (Astra), the capture's stalls (box-bound; the world's
   3.6 GB tab is the lever — memory branches landing).
 
+### 2026-09-22 16:15 UTC — tick 232: take-0133 A at 8.83 M with the 26 m blades; fable-4 stand LOD merged
+- take-0133: A written 15:56 (1,489 s, no stall) — 452 draws, 8.83 M tris: the 26 m blades cost ≈ +150 K
+  at A, 170 K under W38's ceiling. B under way (one 487 s chunk). Merged `fable-4-standlod` (north
+  stand poles far LOD beyond 50 m: A/B/D/E −50 K; lands in the next take).
+- Astra: fog candidate confined to `HEIGHT_FOG_DEFAULTS`; the `063772a4` backing pair REJECTED (not
+  importing); the bank's `588d3681` successor waits on its F/C coverage gate.
+
 ## Pending corrections from reference/ANALYSIS.md (apply at integration, one commit)
 - `config.ts` palette → olive/khaki low-key (reference hero frames: hue 47–51°, sat 0.16–0.19,
   lum 0.35–0.39, 0 % blue sky): grass 0x8a8c55/0x5c6233/0x3a4420, moss 0x8b8948/0x5a523b,
@@ -2997,4 +3004,4 @@ Pick anything NOT claimed in `gauntlet/claims.json`. Good self-contained candida
   my own (GAUNTLET.md D7).
 
 ## Last updated
-2026-09-22T15:55:00Z
+2026-09-22T16:15:00Z

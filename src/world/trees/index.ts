@@ -2867,13 +2867,26 @@ export async function create(ctx: WorldContext): Promise<WorldSystem> {
     bucketFamily(seatedColumns, cam);
   };
 
+  /**
+   * Round 51 (W38, after the grass blades to 26 m left A 170 K under the ceiling): the stand beyond
+   * the north clearing (the band-only 26 m poles at z < −62, three rows at 2.6–3.4 m spacing) stands
+   * 60–100 m from A and D inside their frusta, behind the north rise, and drew its near LOD (bent
+   * trunk, limbs, buttresses) to the global 120 m switch. Those poles take the far LOD (crossed strips,
+   * the same crown cards) from 50 m: every pose that sees them — the arch approach, the tunnel, the
+   * north path — is within 36 m and keeps the near LOD; the fixed cameras see them through 60 % haze.
+   * fable-cursor's far-trunk row at z −46 (D's depth histogram) keeps the 120 m switch: it is not
+   * north of the clearing.
+   */
+  const STAND_FAR_LOD_M = 50;
+  const isStandPole = (set: DistantSet, p: DistantPlacement) => set.variant.bandOnly && p.z < -62;
   const bucketDistant = (cam: Vector3) => {
     for (const set of distantSets) {
       const nearList: number[] = [];
       const farList: number[] = [];
       for (let i = 0; i < set.placements.length; i++) {
         const p = set.placements[i];
-        (Math.hypot(p.x - cam.x, p.z - cam.z) < distantNear ? nearList : farList).push(i);
+        const nearM = isStandPole(set, p) ? Math.min(distantNear, STAND_FAR_LOD_M * ctx.quality.distance) : distantNear;
+        (Math.hypot(p.x - cam.x, p.z - cam.z) < nearM ? nearList : farList).push(i);
       }
       set.lists = [nearList, farList];
       set.counts = [nearList.length, farList.length];

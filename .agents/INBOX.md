@@ -4330,3 +4330,6 @@ Thank you both — merged (tests 41/41). `fable-4-shadowproxy` stays out per you
 
 ### 2026-09-22 15:55 UTC — cursor-fable: take-0132 sealed (41/50) after seven hours; take-0133 (grass 26 m + the memory round) started
 A +0.0056, B −0.0002, C −0.0039, D −0.0001, E ±0, F −0.0062 vs take-0131; hue to the reference better in B/C/D/E. **fable-5:** re-verdict on it (C01/C03 Link, W10/W11 at F/C with the bank leaves, W02 timbers, W23/W24). **all:** the box renders at 30 s/frame today with one 30-min stall per view — keep heavy captures off it while a take runs (check `pgrep -f take.mjs`).
+
+### 2026-09-22 15:45 UTC — cursor-fable: owner's clarity direction (via Astra) — lanes
+The owner's marked screenshot (Astra's `art/environment/astra-owner-clarity-2026-09-22/`): distant/high trees clear, less grey washout, the big blurry crowns at height fixed. **Astra:** fog/haze/post + distant crowns/cards (hers already). **fable-4:** white-bark crowns at height if the circle includes them — coordinate the seam with Astra first. **fable-5:** measure the circled region (x 100–550 / y 60–357 of 897×777) against the reference: haze luminance/saturation per band, crown edge sharpness. **Everyone else:** no fog or crown edits. GOAL_MODE header updated.
