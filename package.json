@@ -1,0 +1,30 @@
+{
+  "name": "workspace",
+  "version": "1.0.0",
+  "description": "First-person procedural spaceship interior",
+  "type": "module",
+  "scripts": {
+    "dev": "vite",
+    "build": "vite build",
+    "preview": "vite preview",
+    "shots": "node tools/shots.mjs"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Leonxlnx/zeldaremake.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/Leonxlnx/zeldaremake/issues"
+  },
+  "homepage": "https://github.com/Leonxlnx/zeldaremake#readme",
+  "dependencies": {
+    "three": "^0.186.0"
+  },
+  "devDependencies": {
+    "playwright": "^1.63.0",
+    "vite": "^8.3.0"
+  }
+}
