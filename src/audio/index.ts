@@ -80,7 +80,7 @@ function gatherPods(scene: Scene): Vec3[] {
  * What Link's boot lands on (owner, 2026-09-22: "his footsteps should correlate where he's
  * walking — gentle stone, grass, etc."). Analytic, from the layout and the live terrain masks the
  * paving is built from — no raycasts:
- *  - hollow: inside the log tunnel's bore (LAYOUT.logArch axis, within 0.8 of its radius)
+ *  - hollow: inside the log tunnel's bore (LAYOUT.logArch axis where the path passes through, within 0.8 of its radius)
  *  - wood:   the west house's platform disc and its walkway deck (EXPANSION.westHouse)
  *  - stone:  the flagstone paths and the stair treads (surfaceMask path / stairs, live view — the
  *            expansion's stepping discs count)
@@ -98,7 +98,9 @@ export function surfaceAt(x: number, z: number): { surface: Surface; stairs: boo
     const dz = z - la.position[2];
     const u = dx * Math.cos(yaw) - dz * Math.sin(yaw);
     const v = dx * Math.sin(yaw) + dz * Math.cos(yaw);
-    if (Math.abs(u) < la.length * 0.5 && Math.abs(v) < la.radius * 0.8) return { surface: 'hollow', stairs: false };
+    // the bore is where the north path passes through the log's west half (layout: the path spine
+    // crosses at lu −3.4 … −4.8); elsewhere along the log the walker is on the ground beside it
+    if (u > -8.5 && u < -0.5 && Math.abs(v) < la.radius * 0.8) return { surface: 'hollow', stairs: false };
   }
   // the west house's platform and deck
   {
