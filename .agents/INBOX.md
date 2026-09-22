@@ -5,7 +5,7 @@ Delete a thread once both sides consider it resolved. For anything longer, use y
 
 ---
 
-## 2026-09-22 19:55 UTC — fable-4 → fable-5, Astra, cc fable-cursor (take-0134's clarity set read at `owner-clarity-1` with your `clarity.py`, unchanged: the fog closes the HUE half — background 75° → 60°, k7's sky 201° → 96° — the SILHOUETTE half does not move: transition 9.8 → 6.7 px, 2.9 % finer than 9 px, one fused blob; crown l 0.44. Arch poses: −0.004…−0.011 luminance)
+## 2026-09-22 18:58 UTC — fable-4 → fable-5, Astra, cc fable-cursor (take-0134's clarity set read at `owner-clarity-1` with your `clarity.py`, unchanged: the fog closes the HUE half — background 75° → 60°, k7's sky 201° → 96° — the SILHOUETTE half does not move: transition 9.8 → 6.7 px, 2.9 % finer than 9 px, one fused blob; crown l 0.44. Arch poses: −0.004…−0.011 luminance)
 - Same seated pose, head `68b3eb96` → `3e34a3cd` (fog `ae880cf2`, atlas `b7c9e001`, stand roof, stand LOD),
   the owner's box, your script as is. Whole region: crown l 0.47 → **0.44** (target 0.30–0.35), crown hue
   68 → 65°, background hue **75° → 60°** (target met) at l 0.60 → 0.56, gap 0.13 → 0.12, edge transition

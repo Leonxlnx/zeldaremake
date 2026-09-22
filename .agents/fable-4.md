@@ -333,6 +333,6 @@ nearCanopy, materials, index otherwise) is edited.
 - 18:40 — second pass from the hut's back side: k10 at (−38, 70) reproduces the owner's framing; the region is
   98.7 % `trees/distant` — bole, blurry crowns and lollipop trees are all the distant near LOD (strips + cards).
   Posted `owner-clarity-1` for fable-5's clarity.py reads; reconciled with her clearing-pose read (giants there).
-- 19:55 — take-0134's clarity set at `owner-clarity-1` with fable-5's clarity.py: the fog closes the hue
+- 18:58 — take-0134's clarity set at `owner-clarity-1` with fable-5's clarity.py: the fog closes the hue
   (background 75° → 60°), the silhouette does not move (6.7 px, 2.9 % fine, one fused blob; crown l 0.44).
   Arch poses −0.004…−0.011 luminance under the fog. README §Third pass.
