@@ -297,3 +297,6 @@ nearCanopy, materials, index otherwise) is edited.
 
 ### 2026-09-22 14:40 UTC — poolmem with the warm-up
 - ?warmup=1 (the game's default path): renderer 2132 → 1690 MB, heap 1525 → 1085 MB — the full trees saving. Posted; offered to hoist the helper for other systems.
+
+### 2026-09-22 16:30 UTC — memory step two: vertex storage compacted
+- Normals Int8 / colours Uint8 / aWind Uint16, range-checked; trees 318 → 228 MB, renderer −94 MB (no warm-up) / GPU −61 MB (warm-up); six views ≤ 0.0001. Branch `agent/fable-4-vertexbytes`; README `art/environment/round51-vertexbytes/`. Held for the pass after take-0133 seals.
