@@ -21,7 +21,7 @@
  * instances that can reach the image (see "submission culling" below). Everything is seated via
  * ctx.terrain.height; randomness only via ctx.rng.
  */
-import { BufferGeometry, Color, Frustum, Group, InstancedBufferAttribute, InstancedMesh, Matrix4, Mesh, PerspectiveCamera, Quaternion, Sphere, Vector3, type BufferAttribute, type Camera, type Material } from 'three';
+import { BufferGeometry, Color, Frustum, Group, InstancedBufferAttribute, InstancedMesh, Matrix4, Mesh, MeshBasicMaterial, PerspectiveCamera, Quaternion, Sphere, Vector3, type BufferAttribute, type Camera, type Material } from 'three';
 import type { TrunkSeat, WorldContext, WorldSystem } from '../system';
 import { BARK_DETAIL_M, BARK_DETAIL_TILES, BARK_TOUCH_M, BARK_TOUCH_TILES, CARD_EDGE_FADE, CARD_FLAT_EDGE_FADE, COLUMN_BARK_FLOOR, COLUMN_BARK_FLOOR_FAR, COLUMN_FLOOR_FADE_M, createTreeMaterials, CUSHION_FADE_M, DISTANT_BARK_M, DISTANT_NEAR_FLOOR, DISTANT_NEAR_TONE, NEAR_BASE_FLOOR, NEAR_BOLE_FLOOR, NEAR_BOLE_FLOOR_FADE, NEAR_BOLE_FLOOR_TOP, NEAR_BOLE_SLOTS, NEAR_CANOPY_LEAF_FLOOR, NEAR_CANOPY_LEAF_NEAR_M, NEAR_CANOPY_SLOTS, NEAR_CANOPY_SUN_THROUGH, TREE_BARK_FLOOR, TREE_BARK_FLOOR_NEAR, TREE_FLOOR_FADE_M, TREE_LEAF_FLOOR, TREE_LEAF_FLOOR_NEAR, TREE_NEAR_BOLE_FLOOR } from './materials';
 import type { ShadeFloor } from '../materials/shadeFloor';
@@ -1655,6 +1655,14 @@ interface FamilyVariant<P, T extends { x: number; z: number; scale: number }, A 
   lists: number[][];
   /** placement indices actually submitted per LOD (the bucket minus the culled instances) */
   submitted: number[][];
+  /**
+   * round 51 (fable-5's option after the mid-LOD shadow give-back): a shadow-only twin of the mid
+   * bucket on the LOW geometry — writes no colour or depth in the main pass, casts in the shadow
+   * pass — so a white-bark 20–44 m out keeps its crown's band on its own trunk and the patch at its
+   * feet at one lamina in 16. Its instances are the mid bucket's whose shadow reaches the frame.
+   */
+  shadowProxy?: InstancedMesh;
+  submittedShadow?: number[];
 }
 type WhiteVariant = FamilyVariant<WhiteBarkParams, WhiteBarkPlacement>;
 interface ColumnPlacement {
@@ -2040,6 +2048,8 @@ export async function create(ctx: WorldContext): Promise<WorldSystem> {
   };
   // fable-4 (round 50, W08 at C): the hero stem's instance tilt — whitebark.ts HERO_WHITE_BARK_TILTS
   for (const p of whitePlacements) seatFamily(whites, p, p.variant, whiteBarkTilt(p.x, p.z));
+  /** the shadow proxies' main-pass material: no colour, no depth — only the shadow pass sees them */
+  const shadowOnly = new MeshBasicMaterial({ colorWrite: false, depthWrite: false });
   const familyMeshes = <P, T extends { x: number; z: number; scale: number }>(variants: FamilyVariant<P, T>[], label: string, material: Material, depth: Material, parent: Group) => {
     for (const w of variants) {
       const n = Math.max(1, w.placements.length);
@@ -2054,6 +2064,25 @@ export async function create(ctx: WorldContext): Promise<WorldSystem> {
         // meshes keep casting: measured without them E −0.0032 / A, D −0.0019 (their shade is on
         // the paths the fixed views frame).
         mesh.castShadow = l < (label === 'whitebark' ? 1 : 2) && ctx.quality.shadows;
+        if (label === 'whitebark' && l === 1 && ctx.quality.shadows) {
+          // the shadow-only twin (FamilyVariant.shadowProxy): the low geometry, a material that
+          // writes nothing, the family's depth twin for the shadow pass (wind + leaf alpha as the
+          // mid mesh had); three draws it in the main pass too (a layer the main camera lacks would
+          // also skip it in the shadow pass in r186), so its cost is the low mesh twice
+          const proxy = new InstancedMesh(w.lods[2].geometry, shadowOnly, n);
+          proxy.name = `${label}-${(w.params as { seed: string }).seed}-mid-shadow`;
+          proxy.customDepthMaterial = depth;
+          proxy.castShadow = true;
+          proxy.receiveShadow = false;
+          proxy.count = 0;
+          proxy.visible = false;
+          proxy.userData.kind = label;
+          proxy.userData.lodLevel = 1;
+          proxy.userData.shadowProxy = true;
+          parent.add(proxy);
+          w.shadowProxy = proxy;
+          w.submittedShadow = [];
+        }
         mesh.receiveShadow = true;
         mesh.count = 0;
         mesh.visible = false;
@@ -2889,6 +2918,22 @@ export async function create(ctx: WorldContext): Promise<WorldSystem> {
           if (inView(sphere) || (casts && shadowReaches(sphere))) kept.push(i);
         }
         if (!sameList(kept, w.submitted[l])) fillFamily(w, l, kept);
+        if (l === 1 && w.shadowProxy) {
+          const keptShadow: number[] = [];
+          for (const i of w.lists[1]) if (shadowReaches(instanceSphere(w, 2, i, sphere))) keptShadow.push(i);
+          if (!sameList(keptShadow, w.submittedShadow!)) {
+            const proxy = w.shadowProxy;
+            for (let k = 0; k < keptShadow.length; k++) proxy.setMatrixAt(k, w.matrices[keptShadow[k]]);
+            proxy.count = keptShadow.length;
+            proxy.visible = keptShadow.length > 0;
+            proxy.instanceMatrix.needsUpdate = true;
+            if (keptShadow.length) {
+              proxy.computeBoundingSphere();
+              proxy.boundingSphere!.radius += CULL_PAD_M;
+            }
+            w.submittedShadow = keptShadow;
+          }
+        }
       }
     }
   };
