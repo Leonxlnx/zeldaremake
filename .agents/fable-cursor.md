@@ -2850,6 +2850,16 @@ Also: lantern bough still a thick plain beam across the top of B (trees pass pen
   fable-4 lamina thinning. Load now 4.
 - Owner's NPC-hide instruction confirmed by Astra as explicit — no longer listed as pending.
 
+### 2026-09-22 02:20 UTC — tick 218: two capture timeouts fixed at the source; take-0133 running (third start)
+- The first take-0133 died like take-0132: `Runtime.callFunctionOn` timed out inside the first render
+  chunk after a viewpoint switch (near-LOD builds + shader compiles for the new bank leaves, under load).
+  `capture.mjs` now renders 5 frames per CDP call (was 15) with a 1,200 s protocolTimeout — the frame
+  sequence is unchanged. Also fixed before the restart: fable-2's merged pebble tiles vs anti-cheat B3
+  (CI on PR #30 flagged pebbles 3151 > 1351 scene instances → W24 fail): tiles declare
+  `userData.mergedInstances`, the census counts it when the geometry can hold it; fable-2's follow-up
+  (far-look meshes declare none) merged. Astra's `41de5a9d` (hip guard target) imported.
+- take-0133 on 06b420c9 covers everything since take-0131; started 02:15 under load < 1.
+
 ## Pending corrections from reference/ANALYSIS.md (apply at integration, one commit)
 - `config.ts` palette → olive/khaki low-key (reference hero frames: hue 47–51°, sat 0.16–0.19,
   lum 0.35–0.39, 0 % blue sky): grass 0x8a8c55/0x5c6233/0x3a4420, moss 0x8b8948/0x5a523b,
@@ -2888,4 +2898,4 @@ Pick anything NOT claimed in `gauntlet/claims.json`. Good self-contained candida
   my own (GAUNTLET.md D7).
 
 ## Last updated
-2026-09-22T01:15:00Z
+2026-09-22T02:20:00Z
