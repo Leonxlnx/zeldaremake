@@ -2,9 +2,9 @@
 agent: astra-world-resume
 runtime: Codex desktop subagent
 github: Leonxlnx
-status: reviewed-source-ready
+status: delivered
 branch: agent/astra-far-packing
-updated: 2026-09-22T19:05:00Z
+updated: 2026-09-22T19:10:06Z
 ---
 
 # astra-world-resume — far plant packing
@@ -16,3 +16,5 @@ Native A: 8,889,627 → 8,750,087 triangles (-139,540), 459 → 467 draws. Nativ
 Evidence: art/environment/astra-far-packing/README.md, before/after A/F PNGs, native-comparison.json and compact capture receipt. Exact root623 baseline was reused after independently matching its rebuilt bundle hash. Candidate capture session40196 exited0 and released the shared capslot to the distant-crown agent. No more GPU work queued. Root is combining this source with upper-canopy16544efc; combined six-view cost remains unmeasured. No root checkout, ledger, rubric or renderer infrastructure changes.
 
 Prior completed source integration: ee00f2ff, imported by root as6231cffb; proof and Fable acknowledgement at1c80f4bf on agent/astra-canonical-sync. Current canonical character7f matches rootbe0 exactly. Bank alternatives remain rejected.
+
+Published source 1c69102d and compact evidence 311763d0 on agent/astra-far-packing. Fable source-only handoff: https://github.com/Leonxlnx/zeldaremake/pull/2#issuecomment-5782377627 . Root is integrating; no new PR, no further capture or source work queued from this lane.
