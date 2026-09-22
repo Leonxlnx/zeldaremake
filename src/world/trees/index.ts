@@ -2047,8 +2047,13 @@ export async function create(ctx: WorldContext): Promise<WorldSystem> {
         const mesh = new InstancedMesh(w.lods[l].geometry, material, n);
         mesh.name = `${label}-${(w.params as { seed: string }).seed}-${DETAILS[l]}`;
         mesh.customDepthMaterial = depth;
-        // near and mid LODs cast shadows (dappled light on the paths); the far LOD only receives
-        mesh.castShadow = l < 2 && ctx.quality.shadows;
+        // near and mid LODs cast shadows (dappled light on the paths); the far LOD only receives.
+        // Round 51 (W38; fable-2's triangle map: the shadow pass is a third of every frame and the
+        // trees' casters 1.3 M of it whichever way the camera looks): the WHITE-BARKS' mid meshes no
+        // longer cast — their dapple fell on ground 20–44 m out, under the haze. The columns' mid
+        // meshes keep casting: measured without them E −0.0032 / A, D −0.0019 (their shade is on
+        // the paths the fixed views frame).
+        mesh.castShadow = l < (label === 'whitebark' ? 1 : 2) && ctx.quality.shadows;
         mesh.receiveShadow = true;
         mesh.count = 0;
         mesh.visible = false;

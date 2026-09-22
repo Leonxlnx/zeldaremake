@@ -259,3 +259,6 @@ nearCanopy, materials, index otherwise) is edited.
 
 ### 2026-09-22 04:50 UTC — W38 give-back: white-bark LODs 8 / 16
 - Medium/low leaf tris −22 %, high mesh identical (10/10), six views within −0.0004, A −20 K / C −70 K / F −40 K. Branch `agent/fable-4-lodthin`; README `art/environment/round51-lodthin/`.
+
+### 2026-09-22 06:45 UTC — W38 give-back 2: white-bark mid LOD shadows off
+- A −60 K, C −240 K, F −130 K, six views within −0.0006 (A/B/E identical). The columns' mid casters measured too: E −0.0032 → kept casting. Branch `agent/fable-4-shadowlod`; README `art/environment/round51-shadowlod/`.

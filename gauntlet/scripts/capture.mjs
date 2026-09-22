@@ -173,7 +173,11 @@ async function renderAt(page, viewpointId, simTime, frames, log = null) {
   let reported = false;
   for (let left = frames; left > 0; left -= RENDER_CHUNK) {
     const n = Math.min(RENDER_CHUNK, left);
+    const tc = Date.now();
     await page.evaluate((k) => window.__ZR__.render(k, 1 / 60), n);
+    const chunkS = (Date.now() - tc) / 1000;
+    // a chunk far over the running per-frame rate is a build/compile stall, not rendering — name it
+    if (log && chunkS > 120) log(`  ${viewpointId}: frames ${done + 1}-${done + n} took ${chunkS.toFixed(0)} s (${(chunkS / n).toFixed(1)} s/frame)`);
     done += n;
     const perFrame = (Date.now() - t0) / done / 1000;
     // slow SwiftShader boxes: show progress once it is clear the viewpoint will take a while
@@ -314,7 +318,19 @@ export async function captureAll({
   const t0 = Date.now();
   const checksOut = { generatedAt: null, heroViewpoints, simTime: DEFAULT_SIM_TIME, settleFrames, depth: {}, probes: [], placements: {}, projections: {}, determinism: null, motion: null, layout: layout ? { stairs: layout.stairs, lanternBranch: layout.lanternBranch } : null, warnings: [...(layout?.warnings ?? [])] };
   try {
-    const { page, consoleLines } = await openWorld(browser, server.url, { width, height, quality, log });
+    let { page, consoleLines } = await openWorld(browser, server.url, { width, height, quality, log });
+    // 2026-09-22: a fresh page for every viewpoint after the first — one long session degraded from
+    // 12 s/frame to a single CDP call over 20 min by the second or third view (takes 0132/0133, the
+    // near-LOD pools + persistent lobes resident across views); the seed is fixed, so a reloaded page
+    // renders the same frames (the determinism pass below re-checks that on its own fresh page).
+    const consoleParts = [consoleLines];
+    const freshPage = async () => {
+      await page.close().catch(() => {});
+      const next = await openWorld(browser, server.url, { width, height, quality, log });
+      page = next.page;
+      consoleLines = next.consoleLines;
+      consoleParts.push(consoleLines);
+    };
     const renderer = await page.evaluate(() => {
       const c = document.createElement('canvas');
       const gl = c.getContext('webgl2');
@@ -327,7 +343,10 @@ export async function captureAll({
     const results = [];
 
     // 1. one screenshot per viewpoint (+ projection checks while the camera is there)
+    let first = true;
     for (const vp of wanted) {
+      if (!first) await freshPage();
+      first = false;
       const tv = Date.now();
       await renderAt(page, vp.id, DEFAULT_SIM_TIME, settleFrames, log);
       const file = path.join(out, `${vp.id}.png`);
@@ -346,6 +365,7 @@ export async function captureAll({
     // 2. determinism re-capture + motion pair for the determinism viewpoint
     const det = wanted.find((v) => v.id === determinismViewpoint);
     if (det) {
+      await freshPage();
       let tv = Date.now();
       await renderAt(page, det.id, DEFAULT_SIM_TIME, settleFrames, log);
       const detShot = await shoot(page, path.join(out, `${det.id}.det.png`), { viewpointId: det.id, simTime: DEFAULT_SIM_TIME, frames: settleFrames, log });
@@ -404,7 +424,7 @@ export async function captureAll({
     fs.writeFileSync(path.join(out, 'audit.json'), JSON.stringify(audit, null, 2));
     fs.writeFileSync(path.join(out, 'stats.json'), JSON.stringify(meta, null, 2));
     fs.writeFileSync(path.join(out, 'checks.json'), JSON.stringify(checksOut, null, 2));
-    fs.writeFileSync(path.join(out, 'console.log'), consoleLines.join('\n'));
+    fs.writeFileSync(path.join(out, 'console.log'), consoleParts.flat().join('\n'));
     return { meta, audit, checks: checksOut };
   } finally {
     await browser.close();
