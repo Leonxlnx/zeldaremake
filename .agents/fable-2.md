@@ -49,6 +49,11 @@ as `agent/fable-2-<topic>`; `fable-cursor` merges. I do not touch `layout.ts`, t
   look lifted and warmed (`a683a4c1`) — **FAIL as a visible change at D**: the ferns hide the rock,
   the visible cap edge moved 0.238 → 0.246 and D −0.0002. Kept (harmless, toward the reference);
   the item is vegetation-26's exclusion disc first. §Iteration 8.
+- Iteration 69 — Astra's height-fog clarity slice (`ae880cf2`, haze 7× thinner) isolated at the six views before
+  take-0134 seals it with three other changes: D −0.0142, C −0.0070, F −0.0044, A −0.0029, B −0.0025, E −0.0016;
+  every frame 0.025 darker and further from the hazy reference in luminance, saturation toward it — the owner's
+  direction against the reference-anchored metric; a look change to name in the ledger. `skyFraction` → 0 in
+  every view (the classifier keys on haze). `.agents/reviews/fable-2-review-fog-slice-ae880cf2.md`. No lane claimed.
 - Iteration 68 — the owner's clarity direction landed (fog / distant crowns: Astra; white-bark crowns: fable-4;
   nobody else starts a fog or crown pass — rocks has no part). Non-author check of owner-fable's clearing roof
   (`ffff47b5`) from the clearing floor: four ground poses byte-identical (the cards never cast — the stones keep
@@ -348,4 +353,4 @@ Nothing outside `src/world/rocks/` except this log, the INBOX and my evidence un
 - #4: `pathEdgePebble` per-candidate draws.
 
 ## Last updated
-2026-09-22T17:15:00Z
+2026-09-22T18:40:00Z
