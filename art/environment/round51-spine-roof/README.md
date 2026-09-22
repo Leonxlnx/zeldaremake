@@ -22,16 +22,26 @@
 tip, the lobe over the zenith missing; right the same six lobes as far laminae — dense masses, the
 sky a third closed.
 
-## The finding
+## The finding (resolved 2026-09-22 with a runtime probe — not a bug)
 
-Six lobes are BUILT (the audit's `giantLobeLeaves/north-east` [856, 852, 814, 856, 856, 856]) and
-visible as dense foliage from 11 m south of them (`f4-spine-lobes-near`), but from directly below,
-inside the 26 / 30 m swap radius, only the tip cluster draws: the far laminae fold for the shown
-near parts and the near parts of the zenith lobes do not appear. Not the corridors, not the build
-budget (settle 12 → 90 → 400 identical), not the hero pass (it only touches parts within 30.5 m of a hero
-camera; these are 41 m from D), not the pool cap (512 MB identical). Open: why a near part built
-for a lobe at 22 m local (under `NEAR_CANOPY_MAX_Y` 25) is not drawn from below. Whoever holds the
-near-canopy kit (lod-1's `nearCanopy.ts`) will know faster than another tick of my elimination.
+Probed in the page at the pose (`__ZR__` + the scene hooks): the six near parts are built (8.5–9.2 K
+vertices, 8.7 K non-degenerate triangles each, world positions in the right box), in the shown
+slots, drawn every frame (`onBeforeRender`), and — painted in a fog-free emissive material — they
+cover **2.5 % of the frame each** at 17 m. In the normal frame their laminae are there, pale
+grey-green (RGB 105/112/102 against the sky's 137/171/199), along the bough. Nothing hides them.
+What the far lobe has and the near part lacks is the **cluster cards**: the swap folds the far
+laminae *and cards* away and draws a laminae-only part, which from directly below at 17 m is a
+see-through cloud. Six of them take the sky 52.5 → 43 %; the same six as far lobes, cards kept,
+33 %. (My earlier read of "the zenith lobe missing" took the bounding-sphere centre for the leaf
+cloud; the laminae sit along the twigs toward the bough.)
+
+![](w19-lobe26-footprint.png) left the frame as built, right lobe-26's near part in an emissive
+marker material: the same cluster of pale laminae — present, sparse.
+
+So a roof 17 m overhead is a design choice for the near canopy, not a fix: keep such lobes far-only
+(cards + laminae; an explicit `near: false` on the CanopyLobe rather than `tone: 0.99`), or give the
+near kit cards / a higher laminae cap for high lobes (lod-1's `NEAR_CANOPY_LEAVES`). Either way the
+plateau roof worked because its lobes hang 10 m over the walker, not 17.
 
 ## Frames
 

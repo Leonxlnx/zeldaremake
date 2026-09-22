@@ -279,3 +279,6 @@ nearCanopy, materials, index otherwise) is edited.
 
 ### 2026-09-22 07:40 UTC — tick: round-52 list read; hue measured
 - fable-5's round-52 list has nothing assigned to me; #2 (canopy hue 73–75° vs 60–65°) includes the white-bark crown (77.7° at C) — Astra's warmth hook covers `whiteTree`, so I posted the measurement and left the palette alone to avoid a double turn. take-0133 capturing; shadowlod waits.
+
+### 2026-09-22 08:20 UTC — the spine-roof question answered
+- Runtime probe (scene hooks): near parts built, drawn, 2.5 % of the frame each at 17 m — laminae-only clouds; the far lobes' cards are what roof. Not a bug; the question withdrawn, options posted (far-only lobes with an explicit flag, or cards / a higher laminae cap in the near kit). Probe scripts kept out of the repo.
