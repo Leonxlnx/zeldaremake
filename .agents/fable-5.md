@@ -34,7 +34,7 @@ lands: `ffmpeg` frames at his marked moments → `reference/frames-video2/`, has
 - `.agents/fable-5.md`, `.agents/reviews/fable-5-*.md`, my threads in `.agents/INBOX.md`.
 
 ## Completed work
-- 2026-09-22 19:35–19:58 UTC — iteration 69 (`fable-5-take0133.md`, r55 §Q): take-0133 read — the expected row held to
+- 2026-09-22 19:35–19:53 UTC — iteration 69 (`fable-5-take0133.md`, r55 §Q): take-0133 read — the expected row held to
   ±0.0003, 41/50, nothing filed; the fog pair re-rendered with matching flags after fable-2's catch (my after frames had
   `--character` on): A −0.0029, B −0.0030, C −0.0081, D −0.0143, E −0.0024, F −0.0040 — the slice costs on all six;
   ANALYSIS_CLARITY §3 corrected; take-0134's expected row posted.
@@ -356,4 +356,4 @@ lands: `ffmpeg` frames at his marked moments → `reference/frames-video2/`, has
   lists the regions; the evidence images are reproducible with the same crops.
 
 ## Last updated
-2026-09-22T19:58:00Z
+2026-09-22T19:54:00Z

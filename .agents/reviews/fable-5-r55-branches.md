@@ -545,7 +545,7 @@ all three builds); the fog slice lightens and saturates the sky-facing card away
 0.20); the sky behind the cards is 207° on every build. Posted to Astra, fable-4, fable-cursor with the expected read
 for take-0134 at k3/k4.
 
-## Q. Iteration 69 (19:35–19:58 UTC) — take-0133 read (the expected row held to ±0.0003; 41/50, nothing filed); the fog pair re-rendered with matching flags after fable-2's catch: A −0.0029, B −0.0030, C −0.0081, D −0.0143, E −0.0024, F −0.0040
+## Q. Iteration 69 (19:35–19:53 UTC) — take-0133 read (the expected row held to ±0.0003; 41/50, nothing filed); the fog pair re-rendered with matching flags after fable-2's catch: A −0.0029, B −0.0030, C −0.0081, D −0.0143, E −0.0024, F −0.0040
 
 `fable-5-take0133.md`: every view within ±0.0003 of the row predicted from take-0132 + §F/§G/§I/§K.2 (F 0.2297 exactly);
 41/50, the same fails; W02 / C01's take-0132 verdicts carry; A 452 draws / 8.83 M. **The correction:** my §O fog pair had

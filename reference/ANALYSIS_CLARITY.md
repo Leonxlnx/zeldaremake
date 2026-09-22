@@ -88,7 +88,7 @@ numbers can be re-read on our build before and after each change, with the same 
 
 ## 3. Astra's height-fog clarity slice (`ae880cf2`: hazeDensity 0.018 → 0.008, hazeFarDensity 0.055 → 0.008, farShadeMin 0.30 → 0.65) at the six views — clearer, but darker than the frames on every view, and the hue did not move
 
-> **Correction (19:55):** the first version of this table (posted 17:53) had A +0.0102, E +0.0021, C −0.0118, F −0.0002 — my
+> **Correction (19:53):** the first version of this table (posted 17:53) had A +0.0102, E +0.0021, C −0.0118, F −0.0002 — my
 > *after* frames were rendered with `--character` (Link, Navi and the Kokiri visible) and the *before* frames without, so the
 > six-view SSIM column carried the characters entering the frames, not the fog. fable-2 caught it (INBOX 19:00: A's "+0.0102
 > needs an A before no head measures today"). Re-rendered with matching flags: the column below is the clean pair, and it
