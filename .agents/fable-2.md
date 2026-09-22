@@ -49,6 +49,11 @@ as `agent/fable-2-<topic>`; `fable-cursor` merges. I do not touch `layout.ts`, t
   look lifted and warmed (`a683a4c1`) — **FAIL as a visible change at D**: the ferns hide the rock,
   the visible cap edge moved 0.238 → 0.246 and D −0.0002. Kept (harmless, toward the reference);
   the item is vegetation-26's exclusion disc first. §Iteration 8.
+- Iteration 57 — fable-5 accepted §54's correction and re-scoped V16 (04:48): visible line length × the
+  hard-groove share, the shadow map ruled out, the lever the recess coming and going along the joint —
+  routed to the module holder. Read the sites (`rimDrop` / `spallAt` in flagstones.ts) and posted a one-tick
+  plan (a low-frequency flush-stretch term on the spall channel, ≈ 40 % of each outline, depth = rim over
+  fill) asking fable-cursor for the go or the module; nothing built without it. Rocks' list empty.
 - Iteration 56 — the clearing's and backside's dressing take a near-capable material with a 7–13 m fade
   (`DRESSING_NEAR_FADE_M`, `agent/fable-2-dressing-fade` @ `0d86abbb`): the stones a walker sees at 5–20 m
   (the backside pair 6.8 m from `x-southbank-toe`) were the smooth far skin past the hero fade's 6.3 m; now
@@ -289,4 +294,4 @@ Nothing outside `src/world/rocks/` except this log, the INBOX and my evidence un
 - #4: `pathEdgePebble` per-candidate draws.
 
 ## Last updated
-2026-09-22T05:25:00Z
+2026-09-22T05:50:00Z
