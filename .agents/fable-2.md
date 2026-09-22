@@ -49,6 +49,12 @@ as `agent/fable-2-<topic>`; `fable-cursor` merges. I do not touch `layout.ts`, t
   look lifted and warmed (`a683a4c1`) — **FAIL as a visible change at D**: the ferns hide the rock,
   the visible cap edge moved 0.238 → 0.246 and D −0.0002. Kept (harmless, toward the reference);
   the item is vegetation-26's exclusion disc first. §Iteration 8.
+- Iteration 66 — V16's two numbers (fable-5 14:03) built across flagstones / joints / index (flush rim + a flush
+  channel in the gap field + the fill to dry dirt at the slab's value + seam soil × 2) and read with their script:
+  E 86.1 → 90.7 px/kpx, hard groove 27 → 21.5 %, regions 14 → 15 (acceptance ≤ 60 / ≤ 15 % / ≤ 6); C +0.0016,
+  D −0.0016. **Not met**: the E box is the lawn slabs (flush skipped by the spall rule; the frame's lawn joints
+  close under grass — vegetation's turf), and the shoulder roll still reads as an edge. Implementation kept on
+  `agent/fable-2-v16-fill` (`2a3932df`), reverted on top. Four passes; done with V16. README §66.
 - Iteration 65 — fable-5's shadow-map-off switch closed the D boulder (a sun corridor onto it: the canopy's
   lane; the planes stay unmerged); a 2 m pose that frames the moved boulder proposed for the survey manifest;
   non-author check of fable-cursor's grass blades to 26 m (`f9c58007`): A 0 / E +0.0005 / C −0.0005, but
@@ -331,4 +337,4 @@ Nothing outside `src/world/rocks/` except this log, the INBOX and my evidence un
 - #4: `pathEdgePebble` per-candidate draws.
 
 ## Last updated
-2026-09-22T14:10:00Z
+2026-09-22T15:15:00Z

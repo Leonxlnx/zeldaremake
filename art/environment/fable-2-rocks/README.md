@@ -16,6 +16,33 @@ B 526 / C 393 / D 394 / E 526 / F 512; A 9.09 M tris on both (the head's number,
 change's — flagged to fable-cursor). Files: `ledge2-x-clearing-n.jpg` (+ `-crop`),
 `ledge2-x-ledge-foot.jpg`, `ledge2-x-northpath-n.jpg`.
 
+## Iteration 66 — V16, both halves as fable-5 specified (14:03): built, measured with their read — acceptance not met; the E box is the lawn slabs, whose joints are vegetation's turf — the implementation left on `agent/fable-2-v16-fill` (`2a3932df`, reverted on top)
+
+fable-5's two numbers, keyed on the flush rim's noise: seam soil at ≈ 0.40 (−0.15 below the slab) where the line shows;
+the slab's own value over ≈ 40 % of each run, with the rim flush there. Built across the module seam: one per-slab
+1.7 cycles / m noise (keyed fork) drives the rim drop in `flagstones.ts` (§64's term) and a `flush(x, z)` query on the paving
+(the nearest slab's weight), which `joints.ts` writes as a second channel of the gap field (RG) and the fill shader reads to
+mix the fill toward `FLUSH_TONE` (dry dirt at the slab's value); the seam soil and mossy earth albedos × 2 (`SEAM_FILL_LIFT`).
+Typecheck / build / 9 tests green. Measured with `seam-lines.py`, head (grass in) vs build:
+
+| box | | line px/kpx | width | depth (p90) | line > 0.12 | share > 0.12 | regions | SSIM |
+|---|---|---|---|---|---|---|---|---|
+| E | reference | 55.3 | 2.20 | 0.081 (0.125) | 12.4 % | 1.3 % | 5 | |
+| E | head | 86.1 | 2.54 | 0.097 (0.163) | 27.0 % | 5.8 % | 14 | 0.2188 |
+| E | both halves | **90.7** | 2.39 | 0.090 (0.150) | **21.5 %** | 4.7 % | 15 | +0.0006 |
+| C | head → both | 83.5 → 83.2 | | 0.103 → 0.099 | 29.3 → 26.1 % | 4.9 → 4.4 % | 25 → 25 | **+0.0016** |
+| D | head → both | 80.9 → 81.6 | | 0.097 → 0.100 | 25.1 → 27.8 % | 4.9 → 5.5 % | 10 → 9 | **−0.0016** |
+
+Acceptance (E line ≤ 60, hard groove ≤ 15 %, regions ≤ 6): not met — the hard-groove share moves a fifth of the way at E and C,
+the visible line length and the region count not at all. The crop says why (`seams66-E-triple.jpg`): **fable-5's E box is the
+lawn slabs** (B / E's pale bottom row), and the flush term follows the spall rule — none on the discs and the lawn slabs — so
+only the soil lift acted there; and the frame's lawn joints do not close under dry dirt but under **bright grass at the slab's
+value**, which is the W06 / W15 turf contract (vegetation-27's), not a hardscape tone. On the spine and plaza (C, D) the flush
+stretches exist and C gains +0.0016, D pays −0.0016 (the line count unchanged: the slab's shoulder roll against a flat fill
+still reads as an edge at > 0.04 whatever the fill's tone). What is left is not a number: the lawn slabs' joints as grass
+at the slab's value over stretches (vegetation + hardscape), and a softer shoulder where the rim is flush. Reverted on the
+branch; the implementation commit stays for the module holder. Four passes; this lane is done with V16.
+
 ## Iteration 64 — V16's flush stretches (fable-5's re-scope) built and measured with their line read: the line is the fill strip's tone, not the recess — FAIL to land, reverted (`agent/fable-2-v16-flush`)
 
 Announced 05:50 with "hold and it stays"; no hold in seven hours, so built on the rim-drop channel as planned: over ≈ 40 % of
