@@ -23,7 +23,23 @@ the character's surface grid reads the hardscape's `stairs-*` meshes. Pooled par
 base) get the same on every rebuild. Six views pixel-identical (A/B/C/D/E/F ≤ 4 px of 921 600), draws and
 triangles unchanged; `lodPool.test.mjs` 10/10.
 
-## Why the number is −125 MB and not −500 MB
+## With the warm-up (the game's default path): −442 MB
+
+`main.ts` runs `warmUp` by default outside headless captures: every mesh is exposed and drawn once
+(one triangle each into a 4 × 4 target), which uploads every attribute — and with this branch frees
+every array. Measured at `ready` with `?warmup=1` (headless, the same build path):
+
+| | head | this branch |
+|---|---|---|
+| renderer RSS at `ready` | 2 132 MB | **1 690 MB** |
+| JS heap used | 1 525 MB | 1 085 MB |
+| GPU process | 2 256 MB | 2 255 MB |
+
+So a player's renderer process is 0.44 GB lighter from the first frame. Headless takes skip the
+warm-up unless `?warmup=1` (one triangle per mesh — cheap since round 48); with it they would see
+the same number.
+
+## Why a fixed view without the warm-up shows −125 MB
 
 The release rides on the first upload, i.e. the first DRAW. At a fixed view only what that view draws
 is uploaded — the pooled near parts sit outside the fixed frames (5 of 449 released after the six
