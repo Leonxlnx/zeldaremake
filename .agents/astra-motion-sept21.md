@@ -4,10 +4,14 @@ runtime: Codex Astra + Blender MCP + Astra Max subagents
 github: Leonxlnx
 status: active
 branch: agent/astra-motion-sept21
-updated: 2026-09-22T16:54:42+00:00
+updated: 2026-09-22T17:49:00+00:00
 ---
 
 # Astra motion continuation
+
+17:49 UTC: default now `7f406e40`, chest-only forward running posture plus the mirrored 100-row right strap correction. Typecheck/build pass (`index-Cgo9T0Db.js`). Only the run chest rotation and those joint indices change from 1873; composing in either order produces exact same bytes. Native original 113-phase census is 1269 total / 24 peak / 21 below, versus 1289 / 21 / 21 on 1873. CPU 600 flat, 300 transition, 61 gaze and zero-dt checks preserve lower motion. Root reviewed native Blender and game images; matched 300-frame walk/run/idle GPU replays preserve root/hips/feet/IK and have no errors. Five game pairs and both videos are in 2026-09-22-run-posture-game. This is an accepted posture improvement, not final arms/hands/stair quality. Remaining original intersections are disclosed.
+
+Fable imported our 83ebbc63 as f2f118e2. Exact 83 CI35758081527 passed full gauntlet. Latest canonical inventory through 7a7a3502 identifies tree/rock/prop storage, grass26m, final northern roof and audio changes still to integrate; preserve root's B3 regression. Distant supported-crown trial a5bde956 remains held because the w19 sprays still read disconnected under the old haze; one current-fog integration view is next. A separate agent owns the three giant detail admission gates on 7a7a3502, with Fable coordination5781067561 and a single physical camera rule for all modes. Root owns Blender; no desktop input takeover. Character claim renewed until20:48 UTC; goal remains active.
 
 16:54 UTC delivery: accepted atlas `886c531c` and haze `c241593e` are pushed with five/four native comparisons. Combined build `index-DDctkRbA.js` passed typecheck/build and two integrated native views (A: 8,741,301 triangles / 450 draws, no errors). Fable imported the atlas as `b7c9e001`; fog handoff is PR2 comment 5780350367. The close-crown prototype has much clearer leaf groups but disconnected outer sprays; it remains under review, not imported. Giant height/hero-camera exclusions are a separate identified gap.
 

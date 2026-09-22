@@ -1,0 +1,91 @@
+{
+  "kind": "Native GPU real-player walk/run/idle comparison, identical scene and deterministic input schedule",
+  "worldCommit": "83ebbc63af853abd14ba4e79feb26e3d6b8af4fd",
+  "harnessSha256": "7838ec55ffd3e3cbfda5fd9da0ced65a92779618eae668a1d02b99e84125d1e8",
+  "measurementCoreSha256": "9edde002b066a9a05676a6127f67735b62baf399bdea529f2f7e31657da769e6",
+  "frames": 300,
+  "fpsSimulation": 60,
+  "fpsVideo": 30,
+  "protectedRootHipsFeetIkAndGaitRowsExact": true,
+  "summary": {
+    "flat-transitions": {
+      "frames": 300,
+      "gaits": [
+        "walk",
+        "run",
+        "idle"
+      ],
+      "distanceXZ": 12.416666666666627,
+      "maxRootStepM": 0.010607285565365498,
+      "reachClampedFrames": 0,
+      "measuredShoePoints": 0,
+      "minRenderedStairGapM": null,
+      "shoeSamplesBelowMinus2cm": 0
+    }
+  },
+  "comparisonVideoFrames": [
+    72,
+    84,
+    96,
+    108,
+    116
+  ],
+  "simulationFrameIndices": [
+    145,
+    169,
+    193,
+    217,
+    233
+  ],
+  "variants": {
+    "before": {
+      "assetSha256": "1873fc17861455ac7b4e9cf624301039872e9d23dd7923bac3a2dc23851853d5",
+      "rawManifestSha256": "1b87026644571b217e061d0de4e3b9f9415a47b0b6f19b8c6f0d1f54775620e5",
+      "errors": [],
+      "video": {
+        "file": "walk-run-idle.mp4",
+        "sha256": "4f5760890f7e4ffa8020fa34f1895d2961074a23faa506b8adfbdffdbc6dd0c6",
+        "frames": 150,
+        "width": 1280,
+        "height": 720,
+        "r_frame_rate": "30/1",
+        "nb_read_frames": "150"
+      },
+      "files": {
+        "run-01.png": "42c93af46e874d7c7dfb11376c93e2cdb6c62033af89d3c498afda1046b24317",
+        "run-02.png": "f82b81434583e0d0a46da0a2d9f9c71a450169f14c45fb9ec86a8ff4236a9b4d",
+        "run-03.png": "87f090247eae51bc37e9f02a84415ffcf1119687e05be0e83b8f53494c3b2c22",
+        "run-04.png": "9ac9f8ef20ba14f5f727b72ff1d947ff1dc2313901d4ba2c2032ce5daef9f09b",
+        "run-05.png": "17bea95c89d7967c54b2f34866d0307a11004dd11b1e216c414dcfed0259a2d8",
+        "walk-run-idle.mp4": "4f5760890f7e4ffa8020fa34f1895d2961074a23faa506b8adfbdffdbc6dd0c6"
+      }
+    },
+    "after": {
+      "assetSha256": "143160f1c413694865a9b3273dbbf16bc22a89a1fdc62d2b35381c980ae47e69",
+      "rawManifestSha256": "b066bbffde5495f051b0b220ac28e3ad9cb696e7bbf65144fee178c7f5a35b75",
+      "errors": [],
+      "video": {
+        "file": "walk-run-idle.mp4",
+        "sha256": "39bde3a3694f88330053e80704617c6069852c93f36e45cccffb60c02d088621",
+        "frames": 150,
+        "width": 1280,
+        "height": 720,
+        "r_frame_rate": "30/1",
+        "nb_read_frames": "150"
+      },
+      "files": {
+        "run-01.png": "1d69b45360a6f0f81bafa941d83b5789a5a04fe653d9fc9396f9d93b7abe949f",
+        "run-02.png": "2695f02f98378983dfc26ceac7538c04d405724179466057c6eb515efda28297",
+        "run-03.png": "c2d9c8488876b8d9d0c3096c6e9bf26ba143ed3e83fd59621036da05245c2588",
+        "run-04.png": "8b3ac0fc2a184c143b45a43e69b4e14c713cd7825350705c3c8c2804f89f8f59",
+        "run-05.png": "032056e6d46b005e906dc06571a5f301569b43e90a6f9c1140a98c8897b93bd4",
+        "walk-run-idle.mp4": "39bde3a3694f88330053e80704617c6069852c93f36e45cccffb60c02d088621"
+      }
+    }
+  },
+  "harnessRevision": "1de60fd0",
+  "harnessNormalizedLfSha256": "f9a26b375d7b9606bc8062fc2098abfe3b4906689e2f907d82011b1ed5b870e8",
+  "bundleFiles": {
+    "index-B-k7nJEi.js": "5bfb44117b8b62031bc58e6c213768206ef87dd7fab91f31c2b929c485de5cf4"
+  }
+}

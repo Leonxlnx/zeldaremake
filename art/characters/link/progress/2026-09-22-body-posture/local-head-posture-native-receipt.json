@@ -1,0 +1,15 @@
+{
+  "native_sha256": "24264576c028399026fe26140ffa9f731b322873cf45ae1b9a588d79b0a4991e",
+  "native_bytes": 48340,
+  "source_sha256": "1873fc17861455ac7b4e9cf624301039872e9d23dd7923bac3a2dc23851853d5",
+  "study_sha256": "e1ab160e034dac3fcde7354a87a91affed805b303b7f617e0e79c37c1d6cbee1",
+  "source_action_study_and_asset_unchanged": true,
+  "carrier_fps": 240,
+  "selected_channel": [
+    "run",
+    "chest",
+    "rotation"
+  ],
+  "selected_keys_per_curve": 113,
+  "status": "Native carrier only. Candidate patch/runtime review next; no production write."
+}
