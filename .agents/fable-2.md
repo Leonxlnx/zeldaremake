@@ -49,6 +49,10 @@ as `agent/fable-2-<topic>`; `fable-cursor` merges. I do not touch `layout.ts`, t
   look lifted and warmed (`a683a4c1`) — **FAIL as a visible change at D**: the ferns hide the rock,
   the visible cap edge moved 0.238 → 0.246 and D −0.0002. Kept (harmless, toward the reference);
   the item is vegetation-26's exclusion disc first. §Iteration 8.
+- Iteration 73 — Astra's upper-canopy admission (`8f07e181`, "six fixed frames byte-identical") checked on the
+  commit alone: A +0.0002, C −0.0049, F −0.0014 (fable-5's read reproduced), sha256 differs, +12 / +17 / +28 draws,
+  +120 K / +150 K / +260 K triangles at A / C / F — near parts admitted at fixed cameras against the contract;
+  A 8.64 → 8.76 M. `.agents/reviews/fable-2-review-admission-8f07e181.md`; INBOX to fable-cursor / Astra.
 - Iteration 72 — fable-5's corrected fog pair (their after frames had `--character` on): A −0.0029, B −0.0030,
   C −0.0081, D −0.0143, E −0.0024, F −0.0040 — mine to within 0.001; the reading shared (the slice costs on all
   six, D the largest single-step loss of the rounds); their expected take-0134 row's "roof unknown" is the 20:45
@@ -366,4 +370,4 @@ Nothing outside `src/world/rocks/` except this log, the INBOX and my evidence un
 - #4: `pathEdgePebble` per-candidate draws.
 
 ## Last updated
-2026-09-22T21:05:00Z
+2026-09-22T22:20:00Z
