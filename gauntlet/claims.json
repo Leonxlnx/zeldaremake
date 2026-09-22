@@ -650,6 +650,16 @@
       ],
       "at": "2026-09-20T10:26:39.721Z",
       "expiresHours": 3
+    },
+    {
+      "agent": "astra-world-resume",
+      "items": [
+        "W10",
+        "W11"
+      ],
+      "at": "2026-09-22T00:09:41.548Z",
+      "expiresHours": 3,
+      "scope": "trees/index.ts foldedTriangles accounting only; persistent bank parts excluded from far-fold audit. No geometry, material, LOD, placement or Fable4 roof edits."
     }
   ]
 }
