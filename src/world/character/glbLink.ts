@@ -142,7 +142,7 @@ import type { BlinkInfo, FootContact, JumpState, Locomotion, PlantInfo, Puppet, 
 /** served by Vite from public/ */
 export const LINK_GLB_FILE = 'models/link/link-runtime.glb';
 /** the delivered file's hash, recorded in public/models/link/SOURCE.md — reported, never recomputed at runtime */
-export const LINK_GLB_SHA256 = '89df38f255e47afbcbb28a60555fb4a4a20091741d427ef1d7b8ea1ac33f306b';
+export const LINK_GLB_SHA256 = '4dcf89c5c10391981289e2583152c26fb4ac93047c6fcb4bb0959e246805d850';
 /** skull top above the `head` bone (m) on Astra's rig, measured on the 409b603 asset's skin mesh (cap excluded) */
 export const HEAD_TOP_ANATOMICAL_M = 0.276;
 
@@ -175,10 +175,9 @@ const SOLE_L = new Vector3(-0.000000016, 0.05900068, 0.08564404);
 const SOLE_R = new Vector3(0.000000016, 0.05900068, 0.08564404);
 /**
  * The boot's footprint is measured on the mesh at load (`measureFootprint`): the sole's vertices
- * — those the ankle bone drives, in the lowest SOLE_BAND of the boot — give the heel / toe reach
- * behind / ahead of the marker along the rest forward (+Z) and the width either side (Astra's
- * 9189538d boots: heel 0.079, toe 0.141 / 0.135, 0.154 m wide). These are the fallbacks for an
- * asset whose sole cannot be found.
+ * — those driven mostly by the ankle and its descendants, in the lowest SOLE_BAND of the boot —
+ * give heel / toe reach along rest forward (+Z) and width either side of the marker.
+ * These constants are fallbacks for an asset whose sole cannot be found.
  */
 const SOLE_BAND = 0.012;
 const FALLBACK_FOOTPRINT: Footprint = { heel: 0.08, toe: 0.14, latMin: -0.075, latMax: 0.075 };
@@ -489,6 +488,8 @@ interface Leg {
   /** ankle-local direction of the rest forward (+Z) and the six footprint points (corners, heel / toe centres) on the sole */
   fwdLocal: Vector3;
   fpLocal: Vector3[];
+  /** Sole-plane points, raised rigid heel contour, then sole marker: final hip-turn guard only. */
+  hipContactLocal: Vector3[];
   // per-frame scratch (world space)
   hip: Vector3;
   kneeP: Vector3;
@@ -674,9 +675,9 @@ export function clipRate(gait: Gait, durationS: number): number {
 
 const mod = (a: number, n: number) => ((a % n) + n) % n;
 
-// Six ankle-local footprint points plus the sole marker: world offsets and initial gaps.
-// Shared scratch follows the other synchronous pose helpers; no per-frame allocations.
-const _hipFootprint = new Float64Array(7 * 4);
+// Sole plane, raised rigid heel contour and final sole marker: offsets and initial gaps.
+// Grow once when a larger asset loads; synchronous pose helpers allocate nothing per frame.
+let _hipFootprint = new Float64Array(7 * 4);
 const _hipLateral = new Vector3();
 const _hipForward = new Vector3();
 
@@ -1326,14 +1327,17 @@ function jumpHipLean(j: JumpState, t: number): number {
 }
 
 /**
- * Measure a boot's footprint on the rest-posed skinned meshes: the vertices the ankle bone
- * drives (its dominant skin weight) within SOLE_BAND of the lowest such vertex are the sole; its
+ * Measure a boot's footprint on the rest-posed skinned meshes: vertices with summed skin weight
+ * above 0.5 on the ankle subtree, within SOLE_BAND of its lowest vertex, form the sole. Its
  * reach behind / ahead of the sole marker along the rest forward (+Z) and either side (±X) is the
  * footprint. Call before anything animates (the meshes' world matrices are the bind pose).
  */
-function measureFootprint(meshes: SkinnedMesh[], ankle: Object3D, marker: Vector3): { fp: Footprint; soleVertices: number } {
+function measureFootprint(meshes: SkinnedMesh[], ankle: Object3D, marker: Vector3): { fp: Footprint; soleVertices: number; heelLocal: Vector3[] } {
   const m0 = ankle.localToWorld(marker.clone());
+  const footBones = new Set<Object3D>();
+  ankle.traverse((bone) => footBones.add(bone));
   const pts: Vector3[] = [];
+  const rigidAnklePts: Vector3[] = [];
   let yMin = Infinity;
   for (const mesh of meshes) {
     const g = mesh.geometry;
@@ -1341,26 +1345,25 @@ function measureFootprint(meshes: SkinnedMesh[], ankle: Object3D, marker: Vector
     const si = g.attributes.skinIndex;
     const sw = g.attributes.skinWeight;
     if (!pos || !si || !sw) continue;
-    const boneIndex = mesh.skeleton.bones.indexOf(ankle as Bone);
-    if (boneIndex < 0) continue;
+    if (!mesh.skeleton.bones.some((bone) => footBones.has(bone))) continue;
     for (let i = 0; i < pos.count; i++) {
-      let best = -1;
-      let bw = 0;
+      let footWeight = 0;
+      let ankleWeight = 0;
       for (let k = 0; k < 4; k++) {
-        const w = sw.getComponent(i, k);
-        if (w > bw) {
-          bw = w;
-          best = si.getComponent(i, k);
-        }
+        const bone = mesh.skeleton.bones[si.getComponent(i, k)];
+        const weight = sw.getComponent(i, k);
+        if (footBones.has(bone)) footWeight += weight;
+        if (bone === ankle) ankleWeight += weight;
       }
-      if (best !== boneIndex) continue;
+      if (footWeight <= 0.5) continue;
       const p = new Vector3().fromBufferAttribute(pos, i).applyMatrix4(mesh.matrixWorld);
       pts.push(p);
+      if (ankleWeight >= 1 - 1e-6) rigidAnklePts.push(p);
       if (p.y < yMin) yMin = p.y;
     }
   }
   const sole = pts.filter((p) => p.y <= yMin + SOLE_BAND);
-  if (sole.length < 8) return { fp: { ...FALLBACK_FOOTPRINT }, soleVertices: sole.length };
+  if (sole.length < 8) return { fp: { ...FALLBACK_FOOTPRINT }, soleVertices: sole.length, heelLocal: [] };
   let heel = Infinity;
   let toe = -Infinity;
   let latMin = Infinity;
@@ -1373,7 +1376,10 @@ function measureFootprint(meshes: SkinnedMesh[], ankle: Object3D, marker: Vector
     if (lat < latMin) latMin = lat;
     if (lat > latMax) latMax = lat;
   }
-  return { fp: { heel: -heel, toe, latMin, latMax }, soleVertices: sole.length };
+  // The raised back of the boot can extend behind its low sole. Preserve the actual
+  // height of each ankle-rigid point; extending the flat sole here would over-lift it.
+  const heelLocal = rigidAnklePts.filter((p) => p.z - m0.z < heel).map((p) => ankle.worldToLocal(p.clone()));
+  return { fp: { heel: -heel, toe, latMin, latMax }, soleVertices: sole.length, heelLocal };
 }
 
 function describe(e: unknown): string {
@@ -1497,6 +1503,7 @@ export async function loadGlbLink(url: string, opts: GlbLinkOptions = {}): Promi
       fp,
       fwdLocal,
       fpLocal,
+      hipContactLocal: [...fpLocal, ...footprints[side].heelLocal, sole],
       hip: new Vector3(),
       kneeP: new Vector3(),
       ankleP: new Vector3(),
@@ -1542,6 +1549,8 @@ export async function loadGlbLink(url: string, opts: GlbLinkOptions = {}): Promi
     };
   };
   const legs: [Leg, Leg] = [makeLeg('L'), makeLeg('R')];
+  const hipContactCount = Math.max(...legs.map((leg) => leg.hipContactLocal.length));
+  if (_hipFootprint.length < hipContactCount * 4) _hipFootprint = new Float64Array(hipContactCount * 4);
   /**
    * The arm chain the play-mode swing modifier works on (round 47): shoulders and elbows, their
    * cycle-mean local rotation per clip (sampled below with the tables — the pose the swing is
@@ -2545,9 +2554,9 @@ export async function loadGlbLink(url: string, opts: GlbLinkOptions = {}): Promi
             // its final footprint as well as vertical slack: a backward turn can
             // move a previously clear heel onto a higher tread.
             _q2.multiplyQuaternions(leg.qTilt, leg.qAnkle);
-            const count = leg.fpLocal.length + 1;
+            const count = leg.hipContactLocal.length;
             for (let i = 0; i < count; i++) {
-              _p.copy(i < leg.fpLocal.length ? leg.fpLocal[i] : leg.sole).applyQuaternion(_q2);
+              _p.copy(leg.hipContactLocal[i]).applyQuaternion(_q2);
               const k = i * 4;
               _hipFootprint[k] = _p.x;
               _hipFootprint[k + 1] = _p.y;

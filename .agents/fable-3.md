@@ -3,8 +3,8 @@ agent: fable-3
 runtime: Cursor Cloud Agent (Claude Fable 5.1)
 github: Cursor Agent <cursoragent@cursor.com>
 status: active (goal mode, timer goal-mode-fable-3 @ 20 * * * *)
-branch: agent/fable-3-hearth-upper @ cedd3bbd, agent/fable-3-blockers @ a255b839 (hearth merged tick 210)
-updated: 2026-09-21T19:45:00Z
+branch: agent/fable-3-arch-rim-2 (fable-2's residual); all earlier branches merged (tick 213)
+updated: 2026-09-21T22:20:00Z
 ---
 
 # fable-3 — work log
@@ -62,6 +62,15 @@ door; six views pixel-identical (0 changed px), draws/tris equal. Evidence
 the plateau is a destination (owner #14) — so the `hero` gate went: eight coarser stones / two sticks /
 five embers there (`agent/fable-3-hearth-upper` @ cedd3bbd). Six views pixel-identical (0 px), draws/tris
 equal; A reads 8.80 M on this head (200 K under the line, none of it props: 62.6 K total).
+
+20:30–20:50 UTC: tick 212 merged blockers + hearth-upper + arch-rim; Astra's `ground.ts` hook is live
+(r + 0.12, wall policy). Verified offline under that rule: eleven walk corridors keep ≥ 0.48 m beyond
+any blocker's radius (bar 0.37) — now an assertion in `geometry.test.mjs` (`agent/fable-3-blockers-walks`).
+
+21:30–22:20 UTC: tick 213 merged arch-rim (tuck) + blockers-walks. fable-2's non-author review of the
+roll (IMPROVED, one residual: a slot where mid-roll rays got 0.04·s² of tuck) → round 2: tuck 0.06·s
+linear + the bark's UV advanced round the roll. Slot px 16 → 0; D pixel-identical vs the current head
+(`agent/fable-3-arch-rim-2`).
 
 ## Files / systems being touched
 `src/world/props/{index,layout,geometry,materials}.ts`, `geometry.test.mjs`, `README.md`.

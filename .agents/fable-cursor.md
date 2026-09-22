@@ -2809,6 +2809,37 @@ Also: lantern bough still a thick plain beam across the top of B (trees pass pen
 - Gaps: Link's knee fold on stairs (168°/167° — Astra: root height alone cannot straighten it); the
   flat canopy cores (Astra's shell); the kids' visibility (owner's word pending).
 
+### 2026-09-21 21:10 UTC — tick 213: fable-3's arch-roll z-fight fix + walk test merged; take-0131 mid-capture
+- Merged `fable-3-arch-rim` (the roll's end tucked 4 cm behind the tube wall) and `fable-3-blockers-walks`
+  (every authored walk stays open under Astra's blocker hook). 14/14 props/structures tests.
+- take-0131: A 8.80 M tris / 442 draws (the plateau roof's lobes; 200 K of headroom left under W38's
+  9.0 M — flagged to fable-4), B 7.95 M, C 7.05 M so far. take-0132 queued behind it.
+- Astra: distant curved-card trial HOLD (her own call); whole-boot clearance acceptance withdrawn
+  pending a 537-point audit (production GLB unchanged).
+
+### 2026-09-21 23:05 UTC — tick 214: take-0131 sealed — 41/50; F +0.0060 with the atlas fix
+- take-0131 on 51c9e7cb (Astra's floor moss / log winding / atlas sRGB; hearth; plateau roof): 41/50.
+  F 0.2321 → 0.2381 (+0.0060), A hue 4.21 → 3.52°, F hue 2.82 → 2.26°; C −0.0023 (Astra's disclosed
+  cost), D −0.0016, A/B/E ±0.0002. A 8.80 M / 442 draws. take-0132 (Link import, prop collision,
+  timber tint, fable-3's hearth/arch rim) started.
+
+### 2026-09-21 23:20 UTC — tick 215: Astra's four (complete foot + boot tips, leaf warmth, bank cores), fable-2's pebble tiles/LOD, fable-3's deck lane + arch roll
+- Source-only imports: PR #26 `06552ded`+`5050496a` (asset `4dcf89c5`; 537-point sole; contact only),
+  PR #28 `0858f39f` (leaf warmth 0.5), PR #29 `57eea8c0` (groups 24/25/26 recessed + 7,100 leaves; scope
+  change acknowledged). Merged fable-2-pebble-lod (pebbles per 10 m tile, frustum-culled, 20-tri look
+  past 10 m — W38 headroom), fable-3-deck-lane, fable-3-arch-rim-2. tsc + 83/83.
+- take-0132 (Link import, collision, timber tint, hearth/arch rim) capturing since 22:57 under load 7;
+  take-0133 (the above) queued behind it. Astra owes the folded-triangle audit fix for persistent lobes.
+- Gaps: Link's stair knee fold (Astra: root height alone cannot fix it; cadence trial rejected); the
+  kids' visibility (owner's word); the invoice block on internal lanes.
+
+### 2026-09-22 00:10 UTC — tick 216: Astra's heel guard imported; fable-4's W38 give-back merged
+- Imported `14129340` (raised-heel guard on the final hip correction; GLB stays `4dcf89c5`) as 38c59560.
+  Merged `fable-4-lodthin` (white-bark distance laminae 8/16 at a larger scale: −22 % medium/low leaf
+  tris; A −20 K, C −70 K, F −40 K; six views ≤ −0.0004). 13/13 tree tests.
+- take-0132 on its B view (A 8.80 M / 442); take-0133 queued with tonight's imports (its A should land
+  well under 9.0 M with fable-2's pebble tiles and this thinning offsetting the bank leaves).
+
 ## Pending corrections from reference/ANALYSIS.md (apply at integration, one commit)
 - `config.ts` palette → olive/khaki low-key (reference hero frames: hue 47–51°, sat 0.16–0.19,
   lum 0.35–0.39, 0 % blue sky): grass 0x8a8c55/0x5c6233/0x3a4420, moss 0x8b8948/0x5a523b,
@@ -2847,4 +2878,4 @@ Pick anything NOT claimed in `gauntlet/claims.json`. Good self-contained candida
   my own (GAUNTLET.md D7).
 
 ## Last updated
-2026-09-21T20:15:00Z
+2026-09-22T00:10:00Z

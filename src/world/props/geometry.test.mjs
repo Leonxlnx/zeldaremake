@@ -40,6 +40,7 @@ const { LAYOUT } = loadTs(path.join(here, '../layout.ts'));
 const { WORLD } = loadTs(path.join(here, '../config.ts'));
 const { createTerrain, expansionCull } = loadTs(path.join(here, '../terrain/heightfield.ts'));
 const { southBankPoint, EXPANSION } = loadTs(path.join(here, '../layout.ts'));
+const { NPC_LOOP } = loadTs(path.join(here, '../character/placement.ts'));
 const { createRng } = loadTs(path.join(here, '../util/prng.ts'));
 const { Vector3 } = THREE;
 
@@ -332,10 +333,13 @@ for (const id of ['door-pot-large', 'sign-pot', 'saria-crate', 'saria-water-buck
   const along = rel[0] * dir[0] + rel[1] * dir[1];
   const across = -rel[0] * dir[1] + rel[1] * dir[0];
   assert.ok(Math.abs(along - 0.55) < 0.02, `deck pot 0.55 m along the deck (${along.toFixed(3)})`);
-  assert.ok(Math.abs(across - (0.475 - 0.23)) < 0.02, `deck pot 0.245 m off the centreline on the door side (${across.toFixed(3)})`);
+  const dpDef = PROP_LAYOUT.find((d) => d.id === 'west-door-pot');
+  const dpR = footprintRadius(dpDef);
+  // its rim a hand (1 cm) inside the deck's edge, whatever its size (round 52: 0.36 m → r 0.187)
+  assert.ok(Math.abs(across - (0.475 - (dpR + 0.01))) < 0.02, `deck pot's rim 1 cm inside the deck's edge on the door side (across ${across.toFixed(3)}, r ${dpR.toFixed(3)})`);
   assert.ok(Math.abs(dp.y - (a[1] + (b[1] - a[1]) * (along / L))) < 0.01, 'deck pot stands on the deck top');
   const rc = Math.hypot(dp.x - westWalk.disc.x, dp.z - westWalk.disc.z);
-  assert.ok(rc > westWalk.wall.r + westWalk.wall.half + 0.21, `deck pot (r 0.22) clear of the wall ring (centre at ${rc.toFixed(2)} m)`);
+  assert.ok(rc > westWalk.wall.r + westWalk.wall.half + dpR, `deck pot (r ${dpR.toFixed(2)}) clear of the wall ring (centre at ${rc.toFixed(2)} m)`);
   assert.ok(Math.hypot(dp.x - -19.69, dp.z - 8.235) < 1.0, 'deck pot within a metre of the door point (−19.69, 8.235)');
   const cams = LAYOUT.viewpoints.map((v) => { const cam = new THREE.PerspectiveCamera(v.fov, 1280 / 720, 0.1, 1000); cam.position.fromArray(v.position); cam.lookAt(new Vector3().fromArray(v.target)); cam.updateMatrixWorld(true); return { id: v.id, cam }; });
   for (const p of west) {
@@ -427,6 +431,76 @@ for (const id of ['door-pot-large', 'sign-pot', 'saria-crate', 'saria-water-buck
       const across = Math.abs(dx * -uz + dz * ux);
       assert.ok(across > main.width / 2 + b.r, `${owner.id} on the apron clears the flight's width (across ${across.toFixed(2)} m)`);
     }
+  }
+
+  // the walks stay open under the character's hook (ground.ts: blocked where d < r + 0.12): every
+  // path centreline, the Kokiri girl's loop, Saria's door approach, the hero flight's approach, the
+  // lookout's open side and the west deck's landing keep a body's width (0.25 m) beyond the margin
+  const WALK = 0.12 + 0.25;
+  const nearest = (x, z) => {
+    let best = { d: Infinity, b: null };
+    for (const b of bl) {
+      const d = Math.hypot(x - b.x, z - b.z) - b.r;
+      if (d < best.d) best = { d, b };
+    }
+    return best;
+  };
+  const clearances = [];
+  const corridor = (name, pts, step = 0.25) => {
+    let minD = Infinity;
+    for (let i = 0; i + 1 < pts.length; i++) {
+      const [x0, z0] = pts[i];
+      const [x1, z1] = pts[i + 1];
+      const n = Math.max(1, Math.ceil(Math.hypot(x1 - x0, z1 - z0) / step));
+      for (let k = 0; k <= n; k++) {
+        const x = x0 + ((x1 - x0) * k) / n;
+        const z = z0 + ((z1 - z0) * k) / n;
+        const { d, b } = nearest(x, z);
+        minD = Math.min(minD, d);
+        assert.ok(d >= WALK, `${name}: a blocker (${b?.x}, ${b?.z}) r ${b?.r} sits ${d.toFixed(2)} m off the walk at (${x.toFixed(2)}, ${z.toFixed(2)})`);
+      }
+    }
+    clearances.push(`${name} ${minD.toFixed(2)}`);
+  };
+  const xz = (poly) => poly.map((p) => [p[0], p[p.length - 1]]);
+  for (const key of ['pathSpine', 'pathToStairs', 'pathToHouse', 'northPath']) corridor(key, xz(LAYOUT[key]));
+  for (const key of ['pathWest', 'pathSouth']) corridor(`EXPANSION.${key}`, xz(EXPANSION[key]));
+  corridor('the girl\'s loop', [...NPC_LOOP, NPC_LOOP[0]].map((w) => [w.x, w.z]));
+  const saria = LAYOUT.houses.find((h) => h.id === 'saria');
+  const fl = Math.hypot(saria.facing[0], saria.facing[1]);
+  const door = [saria.position[0] + (saria.facing[0] / fl) * (saria.trunkRadius + 0.4), saria.position[2] + (saria.facing[1] / fl) * (saria.trunkRadius + 0.4)];
+  const toHouse = xz(LAYOUT.pathToHouse);
+  corridor("Saria's door approach", [toHouse[toHouse.length - 1], door]);
+  corridor("the flight's approach", [[main.base[0] - ux * 3, main.base[2] - uz * 3], [main.base[0] + ux * 1.5, main.base[2] + uz * 1.5]]);
+  const lk = LAYOUT.plateauLookout;
+  const open = (t) => [lk.x + Math.sin(lk.yaw) * t, lk.z + Math.cos(lk.yaw) * t];
+  corridor("the lookout's open side", [open(2.3), open(0)]);
+  const deckDir = [westWalk.deck.b[0] - westWalk.deck.a[0], westWalk.deck.b[2] - westWalk.deck.a[2]];
+  const dl = Math.hypot(deckDir[0], deckDir[1]);
+  corridor("the west deck's landing", [[westWalk.deck.b[0], westWalk.deck.b[2]], [westWalk.deck.b[0] + (deckDir[0] / dl) * 2.5, westWalk.deck.b[2] + (deckDir[1] / dl) * 2.5]]);
+  console.log(`walk clearance beyond each blocker's radius (m, hook margin 0.12 + body 0.25 = ${WALK}): ${clearances.join(' · ')}`);
+
+  // the deck itself: a prop standing on the 0.95 m walkway pinches it; the lane left for Link's
+  // centre on the far side of the blocked band (r + 0.12) must take his 0.2 m half-width plus a hand
+  {
+    const LANE = 0.42;
+    const a = westWalk.deck.a;
+    const b = westWalk.deck.b;
+    const L = Math.hypot(b[0] - a[0], b[2] - a[2]);
+    const dir = [(b[0] - a[0]) / L, (b[2] - a[2]) / L];
+    const side = [-dir[1], dir[0]];
+    let narrowest = Infinity;
+    for (const q of bl) {
+      const rx = q.x - a[0];
+      const rz = q.z - a[2];
+      const along = rx * dir[0] + rz * dir[1];
+      const lat = rx * side[0] + rz * side[1];
+      if (along < -0.5 || along > L + 0.5 || Math.abs(lat) > westWalk.deck.hw + q.r) continue;
+      const lane = lat >= 0 ? lat - (q.r + 0.12) + westWalk.deck.hw : westWalk.deck.hw - (lat + q.r + 0.12);
+      narrowest = Math.min(narrowest, lane);
+      assert.ok(lane >= LANE, `a blocker on the west deck at along ${along.toFixed(2)} leaves a ${lane.toFixed(2)} m lane (need ${LANE})`);
+    }
+    console.log(`west deck: narrowest lane for Link's centre ${narrowest === Infinity ? 'n/a (nothing on the deck)' : narrowest.toFixed(3) + ' m'}`);
   }
 }
 

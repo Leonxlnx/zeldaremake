@@ -49,6 +49,41 @@ as `agent/fable-2-<topic>`; `fable-cursor` merges. I do not touch `layout.ts`, t
   look lifted and warmed (`a683a4c1`) — **FAIL as a visible change at D**: the ferns hide the rock,
   the visible cap edge moved 0.238 → 0.246 and D −0.0002. Kept (harmless, toward the reference);
   the item is vegetation-26's exclusion disc first. §Iteration 8.
+- Iteration 50 — the pebble tiles' distance LOD (`PEBBLE_LOD_M` 10 m ± 1, 20-tri far looks swapped in
+  `nearUpdate`; `agent/fable-2-pebble-lod` @ `15fd5128`, stacked on 49): six views unchanged to 4 decimals
+  (E −0.0001; ≤ 184 changed px, ≤ 3 strong), draws as 49; triangles with 49: A 8.80 → 8.69 M (−110 K),
+  B/E −90 K, C −120 K, D −90 K, F −130 K. README §50.
+- Iteration 49 — the path pebbles merged per 10 m tile (`PEBBLE_TILE_M`, `agent/fable-2-pebble-tiles` @
+  `1e2777be`), fable-cursor's tick-213 "A at 8.80 M, nothing more without a matching cut": one InstancedMesh
+  per look spanned the whole scatter, so every camera drew all 2 042 × 80 tris. Six views pixel-identical
+  (F 2 px), SSIM equal; triangles A −30 K, B/E −30 K, C −100 K, D −40 K, F −130 K; draws +5/+4/+1/+3/+4/−4.
+  Next lever for A itself: a per-tile distance LOD in `nearUpdate`. README §49.
+- Iteration 48 — non-author review of fable-3's `agent/fable-3-arch-rim` @ `c48d6a6e` (the 4 cm tuck) at
+  `x-arch-approach` / `x-arch-tunnel-s` / D: the wall-through at the roll's end 72 → 25 px, D byte-identical,
+  a residual where the `s²` falloff is smallest; safe to merge. `.agents/reviews/fable-2-review-fable-3-arch-rim-c48d6a6e.md`.
+- Iteration 47 — fable-5's r53 §B "13–16 cm timber", measured outward on the tinted head: fable-5's box
+  39.4 → 41.6 % dark / 13.0 → 12.1 % pale / mean l 0.302 → 0.296, A −0.0016, F −0.0007 — **FAIL, reverted**
+  (`agent/fable-2-logs-thin` @ `de1d607f`). With the crown pale, a thinner log shows more dark stone behind
+  it; the remaining dark share is V17's (the treads' light). README §47.
+- Iteration 46 — the stair timbers re-tinted on outward faces (`agent/fable-2-logs-tint` @ `c1e7d115`):
+  Astra's winding fix (`27c2e3c8`) showed the logs' crowns for the first time — every §39 tint take had
+  been tuned against the tubes' inner walls, at an effective albedo ≈ 2 % (`bark_brown_02` linear mean
+  0.113 × the arch's `0x6e6258`). A's flight box: reference lips 100 / troughs 85; ours 68 / 63 (the dark
+  logs where the lit lips belong). Seven tints at A + the 2 m pose → `LOG_TINT` 1.35 / 1.5 / 2.3 and the
+  shade floor toward the frames' bark `#746d5d` (the arch's brown floor tint held the saturation at 0.36):
+  lips 94 / troughs 71, saturation 0.32 (ref 0.29). Six views: **A +0.0087, F +0.0044** vs the head, C
+  +0.0002, B / D / E cannot see the flight; vs the flight without logs A +0.0074, F +0.0005 — take-0129's
+  F −0.0104 was the inward faces. README §46.
+- Iterations 18–45 (README §18–§45, INBOX): conservative backside casters from the bodies' spheres +
+  test (18); the D boulder's form planes with the beds re-carved (19–20); the backside pair's value and
+  size (21); V21's anchor rock at the C-frame bank, three modes measured, the layout move left to
+  fable-cursor (24–26); W05's stone tier along the stair-bank contour with prop keep-outs + test (27–29);
+  near relief on the hero / strata skins (30–34); the D loaf's moss off the camera face (35); W23's layout
+  move in `layout.ts` on fable-cursor's go, the vegetation contracts' failures reported and fixed on
+  their side, W23 → pass at take-0128 (36–38, 40); the hero flight's log nosings + end stakes for
+  hardscape on fable-cursor's offer, W02 → pass at take-0129 (39, 44 test); the stairs' pitch projected
+  into A and closed as a framing difference, not a tread-depth one (42); V16's seams measured: tone and
+  rim are the frame's, the lever is the count of dark features — reverted, reported (43, 45).
 - Iteration 17 — GOAL_MODE item 0 (round-49 handoff): `expansionCull` after placement on strata / rubble /
   pebbles (`3ac0a8a1`; 3 strata culled, streams and draws unchanged) + expansion-2's listed positions in
   `backside.ts` (`9d1fc102`: west-skirt boulder, kerb stones, brace scree, disc pebble rings). A byte-identical,
@@ -226,4 +261,4 @@ Nothing outside `src/world/rocks/` except this log, the INBOX and my evidence un
 - #4: `pathEdgePebble` per-candidate draws.
 
 ## Last updated
-2026-09-20T17:25:00Z
+2026-09-21T23:25:00Z

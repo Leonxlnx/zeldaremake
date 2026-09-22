@@ -257,6 +257,8 @@ nearCanopy, materials, index otherwise) is edited.
 ### 2026-09-21 21:10 UTC — tick: opus #06 checked, w10-notes rebased
 - opus #06 (giant root flares "pale tubes on the moss", `x-arch-tunnel-u`): rendered on the head 24dc4cac — the flare at the arch reads as brown bark with a moss cap now (the brown-bark floors + rootkit since round 48); no item. Astra is back on the world (`agent/astra-world-resume`, floor moss). `w10-notes` merged with the head for a clean pass. Nothing addressed to me in the INBOX; plateau-roof v4 waits.
 
+### 2026-09-22 04:50 UTC — W38 give-back: white-bark LODs 8 / 16
+- Medium/low leaf tris −22 %, high mesh identical (10/10), six views within −0.0004, A −20 K / C −70 K / F −40 K. Branch `agent/fable-4-lodthin`; README `art/environment/round51-lodthin/`.
 ### 2026-09-21 22:55 UTC — tick: plateau roof merged; the atlas fix pre-read
 - plateau-roof merged (99a69076). Measured Astra's atlas sRGB fix alone (head vs head-minus-commit): A −0.0001 … C −0.0022, hue-to-ref +0.02–0.21° in all six, 0.4 % of C's pixels (the cards) lighter by ~8 levels. Posted. A now 8.80 M (200 K headroom).
 
@@ -268,3 +270,6 @@ nearCanopy, materials, index otherwise) is edited.
 
 ### 2026-09-22 03:20 UTC — review: fable-2-pebble-tiles
 - Six views pixel-identical, A 8.80 → 8.77 M, F −130 K, draws +5 at A. IMPROVED (perf), posted.
+
+### 2026-09-22 00:45 UTC — tick
+- lodthin merged (tick 216, 0b33c641; 13/13 tree tests). Astra's `persistent-fold-audit` read: her bank-core parts are visible but excluded from the fold slots — the fold/slot coupling is deliberate there; not the zenith-lobe mechanism (giants are translated only, yaw 0 — one more hypothesis closed). fable-3's tunnel-floor branch is a note, no code. Nothing addressed to me; the spine-roof question stands.

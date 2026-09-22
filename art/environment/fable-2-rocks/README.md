@@ -16,6 +16,118 @@ B 526 / C 393 / D 394 / E 526 / F 512; A 9.09 M tris on both (the head's number,
 change's — flagged to fable-cursor). Files: `ledge2-x-clearing-n.jpg` (+ `-crop`),
 `ledge2-x-ledge-foot.jpg`, `ledge2-x-northpath-n.jpg`.
 
+## Iteration 50 — the pebble tiles' distance LOD: A 8.80 → 8.69 M (−110 K with §49), six views unchanged — `agent/fable-2-pebble-lod` @ `15fd5128` (stacked on §49)
+
+The lever §49 named for A itself. Beyond `PEBBLE_LOD_M` = 10 m (camera to the tile's nearest point, ± 1 m band so a
+walking camera never flickers a tile) a tile shows its far looks: the same eight recipes at `PEBBLE_LOW_DETAIL` = 0 (20
+triangles, keyed forks of their own — the near looks and their streams are the geometry they were), merged per tile
+like the near set and swapped in `nearUpdate`. A 3 cm pebble at 10 m is ≈ 9 px. BEFORE = §49's capture (same head),
+AFTER captured here:
+
+| view | SSIM (head → tiles → LOD) | changed px vs tiles (> 8 / > 40) | draws | triangles head → tiles → LOD |
+|---|---|---|---|---|
+| A_stairs | 0.2291 → 0.2291 → 0.2291 | 104 / 3 | 447 | 8.80 → 8.77 → **8.69 M (−110 K)** |
+| B_house | 0.1965 = = | 184 / 1 | 428 | 7.95 → 7.92 → 7.86 M (−90 K) |
+| C_lookback | 0.2201 = = | 66 / 1 | 342 | 7.05 → 6.95 → 6.93 M (−120 K) |
+| D_log | 0.2788 = = | 99 / 0 | 393 | 8.18 → 8.14 → 8.09 M (−90 K) |
+| E_ground | 0.2182 → 0.2182 → 0.2181 | 184 / 1 | 428 | 7.95 → 7.92 → 7.86 M (−90 K) |
+| F_canopy | 0.2420 = = | 1 / 0 | 403 | 8.09 → 7.96 → 7.96 M (−130 K) |
+
+The changed pixels are the far pebbles' silhouettes (≤ 0.02 % of a frame, at most three strong); `pebbles56-A-lod-pair.jpg`
+shows A's far plaza at ×3, before | after — specks either way. Draws as §49 (one mesh visible per tile). W24's count
+untouched. Tests 28/28, typecheck / build green. Together the two commits give A 310 K of headroom under W38's ceiling
+where tick 213 had 200 K.
+
+## Iteration 49 — the path pebbles merged per 10 m tile: −30 … −130 K triangles per view, pixels identical — `agent/fable-2-pebble-tiles` @ `1e2777be`
+
+fable-cursor (tick 213): A at 8.80 M against W38's 9.0 M ceiling — "nothing more on A's side of the canopy without a
+matching cut". A cut from rocks: the path pebbles were eight `InstancedMesh`es (one per look), each with a bounding
+sphere spanning the whole scatter (radius 84 m), so every fixed camera drew all 2 042 pebbles × 80 triangles whether
+one was in its frustum or not. `PEBBLE_TILE_M` = 10: the same instances, looks baked in, merged into one static mesh
+per 10 m ground tile; three.js culls tile by tile. Positions, looks and the W24 count (`systems.rocks.pebbles` 3 151,
+main 2 042) untouched — 20 tiles replace the eight look-meshes; the north set stays under its toggle. BEFORE = head `0963c09d`, AFTER = `1e2777be`, both
+captured here (`--settle 12`):
+
+| view | SSIM (both) | changed px | draws | triangles |
+|---|---|---|---|---|
+| A_stairs | 0.2291 | **0** | 442 → 447 (+5) | 8.80 → 8.77 M (**−30 K**) |
+| B_house | 0.1965 | 0 | 424 → 428 (+4) | 7.95 → 7.92 M (−30 K) |
+| C_lookback | 0.2201 | 0 | 341 → 342 (+1) | 7.05 → 6.95 M (**−100 K**) |
+| D_log | 0.2788 | 0 | 390 → 393 (+3) | 8.18 → 8.14 M (−40 K) |
+| E_ground | 0.2182 | 0 | 424 → 428 (+4) | 7.95 → 7.92 M (−30 K) |
+| F_canopy | 0.2420 | 2 | 407 → 403 (−4) | 8.09 → 7.96 M (**−130 K**) |
+
+A keeps most of the plaza in view, so culling alone buys it 30 K; the lever for A itself is a per-tile distance LOD
+(a 20-triangle look for tiles beyond ≈ 10 m, swapped in `nearUpdate` — a 3 cm pebble is ≈ 9 px there) — the next
+iteration if fable-cursor wants A's triangles specifically. Tests 28/28 (`tiers.test` serves `BufferGeometryUtils`
+to the module loader), typecheck / build green.
+
+## Iteration 47 — the thinner timber (13–16 cm) measured on outward faces: worse on every number — FAIL, reverted (`agent/fable-2-logs-thin` @ `de1d607f`)
+
+fable-5's r53 §B named three levers for the flight's weight at A: a paler drier crown (§46, landed), the 13–16 cm timber,
+the treads' light (V17). The timber measured on the current head (`445fa453`, the grey-tan tint in): `LOG_RADIUS`
+0.08–0.1 → 0.065–0.08 (`a45b935b`), BEFORE and AFTER captured on this VM.
+
+| | fable-5's box (dark l < 0.25 / pale l > 0.45 / mean l) | lips / troughs | A | C | F |
+|---|---|---|---|---|---|
+| reference A | 15.7 % / 14.2 % / 0.345 | 100 / 85 | | | |
+| head `445fa453` (16–20 cm) | 39.4 % / 13.0 % / 0.302 | 94 / 71 | 0.2291 | 0.2201 | 0.2420 |
+| `a45b935b` (13–16 cm) | **41.6 % / 12.1 % / 0.296** | 93 / 70 | **−0.0016** | +0.0001 | −0.0007 |
+
+Draws and triangles identical (442 / 8.80 M at A). Once the crown is the flight's pale element (§46), a thinner log exposes
+more of the dark riser and tread behind it — the box gets darker, not paler; the −0.003 of §39's take 5 was the same
+effect through inward faces. So the dark share that remains (39 vs 16 %) is the stone's — the treads' and risers' light,
+V17 — and the timber's thickness is not a lever for it. Reverted by forward commit; the branch keeps the measurement.
+Files: `logs54-3rd-tread-pair.jpg` (2 m: 16–20 cm | 13–16 cm).
+
+## Iteration 46 — the stair timbers re-tinted on outward faces: A +0.0087, F's cost gone — `agent/fable-2-logs-tint` @ `c1e7d115`
+
+Astra (fable-cursor 18:10, `27c2e3c8`): the tube's 20,160 side triangles in `logNosings.ts` were wound inward — with
+FrontSide the render (and fable-5's rays) saw the far inner wall through each log, not its crown. Every tint take of §39
+(dark timber, bleached crown, thinner logs) was tuned against that inner wall, and the timber's effective albedo was never
+looked at: `bark_brown_02` has a linear mean of 0.113 / 0.091 / 0.047 and the arch's `0x6e6258` multiplies it by ≈ 0.15 —
+**≈ 2 % albedo**, near-black wood. On the head with her fix, the A frame's flight box (0.62–0.88 × 0.25–0.70, row profile
+at 200 × 120; lips = local row maxima, troughs = minima):
+
+| A flight box | mean l | dark (< 40) | saturation | lips / troughs |
+|---|---|---|---|---|
+| reference A (§6.6b: bark `#746d5d` lit, `#453e32` shadow) | 90 | 1.2 % | 0.29 | **100 / 85** |
+| head `c11f0ff4`, `LOG_FLIGHTS` emptied (no logs) | 74 | 5.9 % | 0.30 | 86 / 67 |
+| take-2 logs, faces inward (what take-0129 measured) | 71 | 7.1 % | 0.30 | 81 / 64 |
+| head `c11f0ff4`: faces outward, tint `0x6e6258` | 65 | **13.6 %** | 0.33 | **68 / 63** |
+| `c1e7d115`: `LOG_TINT` 1.35 / 1.5 / 2.3, floor tint `#746d5d` | 81 | 5.7 % | 0.32 | **94 / 71** |
+
+The reference's flight is a tan base with lit lips 15 points over the treads behind; ours with outward dark logs had the
+dark timber exactly where the lit lips belong (68 over 63 — the alternation gone, the dark share doubled). Seven tints at
+A + the 2 m head-on pose: lifting alone (×1.8 / 1.85 / 2.4) puts the lips at 100 but the flight's saturation at 0.36 whatever
+the albedo — the shade floor's light tint was the arch's `HOUSE_BARK_TINT` (a saturated brown); with the reference's own
+lit bark tone as the floor tint the saturation comes to 0.32. The landed pair is 0.8 × that lift (our whole flight runs
+≈ 15 points darker than the frame's — troughs 71 vs 85 — so lips ≈ 94 keeps the frame's lip / trough relation instead of
+its absolute), cooled so the texture's orange R/B 2.4 comes to ≈ 1.4. `LOG_TINT`, `LOG_FLOOR_TINT` in `logNosings.ts`;
+the winding line is Astra's and untouched; tests 4/4 (hers included), typecheck / build green.
+
+Six views, all captured on this VM on head `c11f0ff4` (its take-2 tint, and once more with `LOG_FLIGHTS` emptied) and on
+`c1e7d115`:
+
+| view | head, no logs | head `c11f0ff4` (take-2 tint, faces outward) | `c1e7d115` | Δ vs head | Δ vs no logs | draws / tris |
+|---|---|---|---|---|---|---|
+| A_stairs | 0.2217 | 0.2204 | **0.2291** | **+0.0087** | **+0.0074** | 442 / 8.80 M |
+| B_house | — | — | 0.1965 | 0 (flight ≈ 54° off axis, outside the 37° half-FOV) | — | 424 / 7.95 M |
+| C_lookback | 0.2216 | 0.2199 | 0.2201 | +0.0002 | −0.0015 | 341 / 7.05 M |
+| D_log | — | — | 0.2786 | 0 (flight behind the camera) | — | 390 / 8.18 M |
+| E_ground | — | — | 0.2182 | 0 (E's frame ≡ B's) | — | 424 / 7.95 M |
+| F_canopy | 0.2415 | 0.2376 | **0.2420** | **+0.0044** | +0.0005 | 407 / 8.09 M |
+
+So the logs now *pay* at A (+0.0074 over the flight without them) and are free at F (take-0129's −0.0104 was the inward
+faces: Astra's fix alone brought it to −0.0039, the tint the rest). Files: `logs50-A.jpg` (reference | inward | outward
+dark | tinted, A's flight), `logs50-3rd-tread.jpg` (the 2 m head-on pose, same three), `logs50-w23-stairs-f.jpg`.
+
+In fable-5's measure (19:00 note; flight box 0.60–0.92 × 0.25–0.70, dark l < 0.25 / pale l > 0.45 — the thresholds that
+give the frame their 15.8 / 14.0 %): reference **15.8 % dark / 14.0 % pale / mean l 0.344**; take-0129 51.8 / 8.2 / 0.268
+(theirs 52 / 8 / 0.267); head `c11f0ff4` 60.6 / 7.3 / 0.250 (theirs 61.5 / 7.3 / 0.248); the same head without logs
+46.9 / 9.9 / 0.280; **`c1e7d115` 39.4 / 12.8 / 0.302**. The timbers now sit below their own absence on the dark share;
+the 39 → 16 % that remains is the treads' light (V17), hardscape's stone tint.
+
 ## Iteration 45 — V16's seams, taken and measured: the tone and the rim are the frame's already; the lever is the COUNT of dark features (FAIL to land, the finding reported)
 
 Announced 17:40 and taken on `agent/fable-2-seams`. The hypothesis of §43 (the slab's stained flank + shaded shoulder widen
