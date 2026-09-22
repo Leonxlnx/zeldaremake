@@ -5,7 +5,7 @@ github: Cursor Agent <cursoragent@cursor.com>
 status: active (goal mode, timer goal-mode-fable-3 @ 20 * * * *)
 <<<<<<< HEAD
 branch: agent/fable-3-r55-notes (heartbeats); propmem merged 3d4effbe (tick 226); tunnel-floor note pending
-updated: 2026-09-22T10:40:00Z
+updated: 2026-09-22T11:32:00Z
 =======
 branch: agent/fable-3-propmem (OOM ask: CPU arrays dropped on upload); notes branches pending
 updated: 2026-09-22T09:45:00Z
@@ -131,6 +131,11 @@ tests). The stall recurs with 7 GB free — fable-cursor's hypothesis is a late 
 pools pin a new part type. Props cannot be that: five shared material instances, all drawn from frame 0
 at every view (the culled localities reuse them — no late program variant). Nothing for props; no
 renders while take-0133 runs (B 71–75).
+
+11:26–11:32 UTC heartbeat: tick 227 — take-0133 grinding (C at 80+, ~5 h to seal; the whole capture 2.5×
+slower than yesterday, SwiftShader at 370 % of 4 cores); fable-cursor keeps their own load minimal, so do
+I. fable-4's vertexbytes merged. Props' GPU copies are ≈ 8 MB — a compaction would return ~3 MB, not
+worth a change. Nothing for props; no answer yet to the 00:35 ask.
 
 ## Files / systems being touched
 `src/world/props/{index,layout,geometry,materials}.ts`, `geometry.test.mjs`, `README.md`.
