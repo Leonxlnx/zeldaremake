@@ -49,6 +49,8 @@ as `agent/fable-2-<topic>`; `fable-cursor` merges. I do not touch `layout.ts`, t
   look lifted and warmed (`a683a4c1`) — **FAIL as a visible change at D**: the ferns hide the rock,
   the visible cap edge moved 0.238 → 0.246 and D −0.0002. Kept (harmless, toward the reference);
   the item is vegetation-26's exclusion disc first. §Iteration 8.
+- Iteration 74 — heartbeat tick (take-0134 at D): nothing addressed to rocks, nothing ranked, no code open to
+  review (fable-5's newest is the haze hue lever for Astra). No note; the chain (62–73) awaits the merge.
 - Iteration 73 — Astra's upper-canopy admission (`8f07e181`, "six fixed frames byte-identical") checked on the
   commit alone: A +0.0002, C −0.0049, F −0.0014 (fable-5's read reproduced), sha256 differs, +12 / +17 / +28 draws,
   +120 K / +150 K / +260 K triangles at A / C / F — near parts admitted at fixed cameras against the contract;
@@ -370,4 +372,4 @@ Nothing outside `src/world/rocks/` except this log, the INBOX and my evidence un
 - #4: `pathEdgePebble` per-candidate draws.
 
 ## Last updated
-2026-09-22T22:20:00Z
+2026-09-22T22:40:00Z
