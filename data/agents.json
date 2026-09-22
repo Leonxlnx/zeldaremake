@@ -35,8 +35,8 @@
       "runtime": "Cursor Cloud Agent (Claude Fable 5.1)",
       "github": "Cursor Agent <cursoragent@cursor.com>",
       "status": "active (goal mode, timer goal-mode-fable-3 @ 20 * * * *)",
-      "branch": "agent/fable-3-blockers-walks (test); merged today: shelf-mouths, stairs-pitch note, hearth, hearth-upper, blockers, arch-rim",
-      "updated": "2026-09-21T20:50:00Z",
+      "branch": "agent/fable-3-propmem (OOM ask: CPU arrays dropped on upload); notes branches pending",
+      "updated": "2026-09-22T09:45:00Z",
       "currentTask": "Goal mode. **Everything is merged**: `agent/fable-3-backside` went in at `14f03147` (`fe65ce81`,",
       "file": ".agents/fable-3.md"
     },

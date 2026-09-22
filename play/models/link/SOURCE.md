@@ -1,6 +1,31 @@
 # Young Link runtime candidate — Blender source and validation
 
-Character art by Astra. The current asset is the reviewed native leg-alignment and run-arm
+## September 21 shorter boot tips
+
+Current delivery: **4dcf89c5c10391981289e2583152c26fb4ac93047c6fcb4bb0959e246805d850**,51,111,284bytes. A native Blender edit shortens only the distal boot tips, by at most11.39mm (about4.1% of total sole length). Width, sole height, heels, ankles and cuffs remain unchanged. The source is89df below; all original BIN bytes, rig, clips, weights, UVs, textures and morphs are preserved. Only body POSITION/NORMAL/TANGENT references change to appended arrays.
+
+The earlier ankle-only327-point footprint omitted210 low toe vertices. Runtime source06552ded fixes that shared measurement. With the complete537-point footprint, the shorter model passes1,320actual player stair frames and708,840surface queries, including transitions and endpoint terrain: no negative samples/reach clamps/page errors, minimum+1.187mmup/+1.264mmdown. Peak knees167.22/168.35degrees and thigh/tunic intrusion remain unfinished. This is an incremental shape improvement, not completed locomotion.
+
+Native pairs, exact deformation checks, provenance and fresh-clone verification: `art/characters/link/progress/2026-09-21-boot-tip/README.md`. Appended geometry adds3,286,068bytes; no added triangles or textures. Existing source/provider and CC0 animation provenance below are unchanged.
+
+## September 21 repaired run delivery
+
+Current local delivery: **89df38f255e47afbcbb28a60555fb4a4a20091741d427ef1d7b8ea1ac33f306b**, 47,825,216 bytes. It replaces only four run shoulder/elbow rotation channels on the colour-baked stairs delivery below. Historical native actions retained 32 unwanted fractional keys; the new carrier reconstructs the already-reviewed carriage from the smooth, hash-pinned `24591126` CC0-derived motion using fresh selected curves. Current calves, boot dimensions, geometry, materials, textures, morphs, hands' local channels, idle/walk/stairs, run hips/legs, stride and cycle are preserved exactly.
+
+Continuity, native contact checks, matched images and reproduction: `art/characters/link/progress/2026-09-21-run-carriage/README.md` and `art/characters/link/progress/2026-09-21-motion-integration/README.md`. Native contact totals improve1452→1316 (peak99→22); intersections are not eliminated. Actual stair testing covers327sole vertices across1320frames with no negative samples on that route; extreme knee poses remain a separate limitation.
+
+## September 21 colour/stairs base
+
+Prior local integration base: **305603e92277952f345842e526216ff066b2b5888908eef054990199b6597a69**, 47,814,836 bytes. It composes the reviewed native upright-stairs channels onto ea939 calves/arms, then bakes Fable's exact colour grade into the existing body/orbital image allocations and brow factor. The paired loader removes its canvas grading pass; the audit reports `colorGrade: null` because no runtime grade is applied. Texture decode parity is exact; rig, geometry, UVs, morphs and all animation tracks are preserved through the colour bake. Idle/walk/run clips remain those of ea939.
+
+Stairs change hips translation plus thigh/knee/ankle channels, adding the previously reviewed 40 mm mid-stance pelvis rise while retaining authored ankle paths. Phase/cycle/stride remain unchanged. Ground now reads new timber lips; curved-crown contact and natural posture are being validated separately. This is not a claim of final stair-animation acceptance or an adoption by the canonical Fable world branch. The optional torso-balanced preview remains a study because its upper-clothing contact count increased.
+
+Reproduction and exact image/animation parity: `art/characters/link/progress/2026-09-21-color-bake/README.md`; native composition and paired images: `art/characters/link/progress/2026-09-21-motion-integration/README.md`. Image replacements fit inside their original allocations, with every other binary byte preserved; no delivery-size increase.
+
+## Prior ea939 baseline
+
+
+Character art by Astra. The prior asset is the reviewed native leg-alignment and run-arm
 candidate `ea93932d`, derived from the previously adopted `382ec9ec` asset. The lower calves
 and boots sit closer to their joints; the running arms have less forward carriage, more open
 elbows and modest clearance from the side pouches. This is an incremental art improvement;
