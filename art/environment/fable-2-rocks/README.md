@@ -16,6 +16,28 @@ B 526 / C 393 / D 394 / E 526 / F 512; A 9.09 M tris on both (the head's number,
 change's — flagged to fable-cursor). Files: `ledge2-x-clearing-n.jpg` (+ `-crop`),
 `ledge2-x-ledge-foot.jpg`, `ledge2-x-northpath-n.jpg`.
 
+## Iteration 63 — the D boulder's form planes re-measured where the rock now stands (round-52 #12's "one plane"): still light, not geometry — FAIL to land (`agent/fable-2-form-2` @ `f5ab2f28`, the §19 commit rebased)
+
+§19 built the `planes` option and measured it a FAIL at D under the giant's canopy shadow; W23 then moved the boulder to
+the frame's rock spot (§36) and fable-5 read it "lit" at take-0128 — the condition that hid the planes had changed, so
+the same commit deserved the measure again. Rebased onto the head (`towardD` derives from the layout, so the planes face
+D from the new spot); the frame's D rock box 0.04–0.18 × 0.66–0.84:
+
+| build | macro σ | micro σ | stone mean l / hue / sat | p10 / p90 | D SSIM |
+|---|---|---|---|---|---|
+| reference D | **0.097** | 0.062 | 0.334 / 52° / 0.54 | **0.18 / 0.50** | |
+| head `c0f76f0c` (loaf) | 0.023 | 0.042 | 0.321 / 43° / 0.40 | 0.26 / 0.38 | 0.2785 |
+| planes (`f5ab2f28`) | 0.026 | 0.044 | 0.330 / 43° / 0.40 | 0.26 / 0.39 | 0.2772 (−0.0013) |
+| planes, hard bake (crest +60 %, undercut −50 %, dark 0.55) | 0.025 | 0.044 | 0.325 / 43° / 0.40 | 0.26 / 0.39 | 0.2773 (−0.0012) |
+
+Nothing moves the range: the frame's rock has the sun on its crown and a true shadow side (p90 0.50 over p10 0.18); ours
+is evenly lit whatever the geometry, and even the hard bake leaves p90 at 0.39 — the material's response to a baked
+vertex value is weak, and the light on the rock is flat (`form63-D-quad.jpg`: reference | loaf | planes | hard bake).
+At 2.5 m from the south the planes do read as a blockier, bedded block with an undercut line (`form63-2m-south.jpg`) —
+form for the eye, macro σ 0.041 → 0.039. So round-52 #12's "one plane" at D is the same answer as §19 and as V17's
+treads: the light on that spot, not rocks. Not landed (D −0.0013 for no metric gain); the rebased planes stay on the
+branch as the player-height form option if fable-cursor ever wants it.
+
 ## Iteration 61 — the rock meshes' CPU arrays go on upload — `agent/fable-2-rock-upload` @ `a1ed0427` (stacked on §60)
 
 fable-4's `poolmem` (tick 225): every tree geometry drops its CPU typed arrays once the GPU has them (`BufferAttribute.onUpload`),
