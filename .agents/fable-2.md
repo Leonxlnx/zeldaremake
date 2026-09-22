@@ -49,6 +49,10 @@ as `agent/fable-2-<topic>`; `fable-cursor` merges. I do not touch `layout.ts`, t
   look lifted and warmed (`a683a4c1`) — **FAIL as a visible change at D**: the ferns hide the rock,
   the visible cap edge moved 0.238 → 0.246 and D −0.0002. Kept (harmless, toward the reference);
   the item is vegetation-26's exclusion disc first. §Iteration 8.
+- Iteration 55 — non-author check of fable-4's `agent/fable-4-shadowlod` @ `c938a862` (the white-barks' mid
+  LOD stops casting, from my shadow-pass map): A byte-identical −60 K / −6 draws, C −0.0006 (0.53 % px, the
+  grove's dapple on the hazed bank) −240 K, D −0.0002 −100 K — their table reproduced; safe to merge.
+  `.agents/reviews/fable-2-review-fable-4-shadowlod-c938a862.md`.
 - Iteration 54 — round-52 #3 (fable-5: V16 "a seam value, one commit", hardscape / fable-2): five knobs measured
   with fable-5's read at E / C / D — fill albedo × 1.3 (−0.3 pt), painted crevice off (−0.7 pt, the most), slabs
   half as proud (worse, +0.8 pt, SSIM −0.002), joint sprouts hidden (0), §45's flank tint (0) — against a frame
@@ -280,4 +284,4 @@ Nothing outside `src/world/rocks/` except this log, the INBOX and my evidence un
 - #4: `pathEdgePebble` per-candidate draws.
 
 ## Last updated
-2026-09-22T03:40:00Z
+2026-09-22T04:20:00Z
