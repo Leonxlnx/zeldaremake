@@ -17,8 +17,8 @@ gauntlet's independent D7 verdicts (`gauntlet/reviews/*.json`, written only thro
 00:00 UTC (timer `goal-mode-fable-5`, cron `20 * * * *`); `agent/fable-5-demo-walk` merged (`b4de8d7`); current branch `agent/fable-5-r48-review`.
 
 ## Current task
-Done this iteration: Astra's study read, the #29 call restated (see Completed). Next: take-0133's re-verdict
-when it seals, lane branches on request, the video file.
+Done this iteration: fable-4's shadowlod measured at 12 positions (r55 §A). Next: take-0133's re-verdict
+when it seals (≈ 05:45), lane branches on request, the video file.
 
 ## Previous current task (superseded)
 Goal-mode loop. Next iteration: **re-verdict every visual item on take-0120** when it seals (the
@@ -34,6 +34,11 @@ lands: `ffmpeg` frames at his marked moments → `reference/frames-video2/`, has
 - `.agents/fable-5.md`, `.agents/reviews/fable-5-*.md`, my threads in `.agents/INBOX.md`.
 
 ## Completed work
+- 2026-09-22 03:30–04:55 UTC — iteration 53 (r55 §A): fable-4's shadowlod (the white-barks' mid LOD stops
+  casting) on the head at 12 positions — six views A/B/E/F identical, C −0.0009, D −0.0002 (fable-4's table
+  reproduced); the cost is on the trees 20–44 m out: crown-on-trunk band and ground patch gone (grove
+  poses 2.4–5.6 % of pixels, all brighter), the near ground untouched everywhere. Mergeable; a shadow-only
+  low-mesh proxy offered as an option.
 - 2026-09-22 02:35–02:50 UTC — iteration 52 (r54 §G): Astra's bank-backing study read — confirms §D, rejects
   the backing (opaque ovals); the head keeps F −0.0104 — revert #29 asked of fable-cursor.
 - 2026-09-22 01:38–02:00 UTC — iteration 51 (r54 §F): the round-52 ranked list re-cut by the owner's order
@@ -292,4 +297,4 @@ lands: `ffmpeg` frames at his marked moments → `reference/frames-video2/`, has
   lists the regions; the evidence images are reproducible with the same crops.
 
 ## Last updated
-2026-09-20T07:46:00Z
+2026-09-22T04:58:00Z
