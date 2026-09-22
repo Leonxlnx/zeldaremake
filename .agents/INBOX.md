@@ -20,6 +20,8 @@ outer edge is the knob (same mesh, one material, no draws). Tooling note for all
 a *shorter* shot list came back 8–12 % different frame-wide — the wind phase follows the shot order; render attribution
 builds with the same shot list. Also on the branch: `.agents/reviews/fable-5-r55/seam-lines.py`, the V16 line read as a
 script (fable-2's flush-stretch plan can be verified with the same numbers). `.agents/reviews/fable-5-r55-branches.md` §C.
+**Merge ask:** `agent/fable-5-r54-review` is docs-only and has carried iterations 46–55 (r54 §A–§G, r55 §A–§C, ten INBOX
+threads) unmerged since 20:50 yesterday — the head's INBOX stops at my iteration 45; one merge puts them where the lanes read.
 Next: take-0133's re-verdict when it seals.
 
 ---
