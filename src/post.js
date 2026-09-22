@@ -11,8 +11,8 @@ const GradeShader = {
   uniforms: {
     tDiffuse: { value: null },
     time: { value: 0 },
-    vignette: { value: 0.42 },
-    grain: { value: 0.055 },
+    vignette: { value: 0.5 },
+    grain: { value: 0.08 },
   },
   vertexShader: /* glsl */ `
     varying vec2 vUv;
@@ -71,7 +71,7 @@ export function createPost(renderer, scene, camera) {
   const rt = new THREE.WebGLRenderTarget(
     Math.floor(window.innerWidth * pixelRatio),
     Math.floor(window.innerHeight * pixelRatio),
-    { type: THREE.HalfFloatType, samples: 4 }
+    { type: THREE.HalfFloatType, samples: 2 }
   );
   const composer = new EffectComposer(renderer, rt);
   composer.setPixelRatio(pixelRatio);
@@ -79,14 +79,14 @@ export function createPost(renderer, scene, camera) {
 
   const gtao = new GTAOPass(scene, camera, window.innerWidth, window.innerHeight);
   gtao.output = GTAOPass.OUTPUT.Default;
-  gtao.blendIntensity = 0.72;
+  gtao.blendIntensity = 0.82;
   gtao.updateGtaoMaterial({
-    radius: 0.55,
-    distanceExponent: 1.1,
-    thickness: 0.6,
-    scale: 1.15,
-    samples: 12,
-    distanceFallOff: 0.9,
+    radius: 0.48,
+    distanceExponent: 1.05,
+    thickness: 0.55,
+    scale: 1.25,
+    samples: 10,
+    distanceFallOff: 0.85,
     screenSpaceRadius: false,
   });
   gtao.updatePdMaterial({
@@ -101,9 +101,9 @@ export function createPost(renderer, scene, camera) {
 
   const bloom = new UnrealBloomPass(
     new THREE.Vector2(window.innerWidth, window.innerHeight),
-    0.34,
-    0.48,
-    0.94
+    0.42,
+    0.55,
+    1.35
   );
   composer.addPass(bloom);
 

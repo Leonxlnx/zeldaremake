@@ -73,7 +73,7 @@ export function createInteract({ camera, dom, interactables, ship, setExposure }
       await fadeTo(false, '');
       await wait(1500);
       ship.setCycle(0);
-      setExposure(1.05);
+      setExposure(1.0);
       await wait(1700);
       setStatus('Rested.');
     } else if (id === 'galley') {

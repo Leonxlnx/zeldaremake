@@ -33,3 +33,31 @@ Fix list for iteration 2:
 - Tame the PMREM (it was built from 500-intensity lights).
 - Reframe corridor and quarters so the hall and the bunk fill the shot after exposure is sane.
 - Fix the shot script so fades, prompts, and fps are actually recorded.
+
+## Iteration 2
+
+Exposure is in range. Corridor median luminance 164, 4% near-white (the fixtures), 1.4% near-black. Cockpit median 108. Quarters median 98 with 8% near-black. Window median 43, which is space.
+
+Pointer lock engaged. Prompts `E: SLEEP` and `E: EAT` are on screen. Galley status reads `You eat. Energy restored.` Bath fade reads `REFRESHED.` Bed fade and the rest-cycle frame were shot during the opacity transition, so one is still the lit room and the other is black. Renderer is llvmpipe at about 30fps. `PCFSoftShadowMap` is removed in this Three.js version.
+
+| # | Rubric | Result |
+| --- | --- | --- |
+| 1 | Lighting intentional | fail |
+| 2 | Materials physical | fail |
+| 3 | Detail density | fail |
+| 4 | Post stack balanced | pass |
+| 5 | Space view sells motion | fail |
+| 6 | Cohesive palette | pass |
+| 7 | Tech clean, 60fps | fail |
+| 8 | Cold-look test | pass |
+| 9 | Interactions | fail |
+
+Corridor lighting, palette, and the cold-look read are in good shape: teal pools, orange guide line, grate, AO in the panel gaps, vignette. Quarters still has a large dark flat wall over the bunk. Cockpit floor is a dark band with little read. The window shows the planet and a blue rim, and the stars read as static points, not flight. 30fps is llvmpipe; that is not a 60fps pass.
+
+Fix list for iteration 3:
+
+- Dress the bunk wall and window frame so no shot has a bare plane. Add a quarters fill so the shadow side stays above crushed black.
+- Replace the near star layer with large screen-space streaks so a still frame reads as motion.
+- Lift the cockpit floor with a practical, without washing the corridor.
+- Wait on real fade opacity before interaction shots. Use `PCFShadowMap`.
+- Measure frame time again after the cheaper shadow map.

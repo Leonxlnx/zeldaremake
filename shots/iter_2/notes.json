@@ -1,0 +1,30 @@
+{
+  "perf": {
+    "fps": 29.713899417690367,
+    "triangles": 1,
+    "calls": 1,
+    "renderer": "ANGLE (Mesa, llvmpipe (LLVM 20.1.2 256 bits), OpenGL 4.5)",
+    "pose": {
+      "pos": [
+        -0.15,
+        1.7,
+        2.55
+      ],
+      "rot": [
+        -0.05083802116418733,
+        -3.0300574695159326,
+        4.342418981940974e-19,
+        "YXZ"
+      ]
+    }
+  },
+  "pointer": {
+    "locked": true,
+    "status": "Refreshed.",
+    "prompt": ""
+  },
+  "errors": [
+    "[warning] THREE.WebGLShadowMap: PCFSoftShadowMap has been removed. Using PCFShadowMap instead.",
+    "[error] Failed to load resource: the server responded with a status of 404 (Not Found)"
+  ]
+}

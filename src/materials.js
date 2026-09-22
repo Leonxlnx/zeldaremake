@@ -392,12 +392,12 @@ export function createMaterials() {
   const teal = new THREE.MeshStandardMaterial({
     color: '#06211e',
     emissive: PALETTE.teal,
-    emissiveIntensity: 2.6,
+    emissiveIntensity: 3.4,
     roughness: 0.35,
     metalness: 0.15,
     toneMapped: true,
   });
-  teal.userData.baseE = 2.6;
+  teal.userData.baseE = 3.4;
   teal.userData.restScale = 0.12;
 
   const warm = new THREE.MeshStandardMaterial({
@@ -488,16 +488,16 @@ export function createEnvironment() {
   ]);
   scene.add(room);
 
-  const key = new THREE.PointLight(0xfff0dc, 500, 40, 2);
+  const key = new THREE.PointLight(0xfff0dc, 28, 40, 2);
   key.position.set(0, 3.2, 1);
   scene.add(key);
-  const cool = new THREE.PointLight(0xc5dcff, 380, 40, 2);
+  const cool = new THREE.PointLight(0xc5dcff, 22, 40, 2);
   cool.position.set(0, 1.6, -6);
   scene.add(cool);
-  const accent = new THREE.PointLight(0xff7a32, 120, 24, 2);
+  const accent = new THREE.PointLight(0xff7a32, 8, 24, 2);
   accent.position.set(-4, 1.2, 2);
   scene.add(accent);
-  const teal = new THREE.PointLight(0x7dfff0, 90, 18, 2);
+  const teal = new THREE.PointLight(0x7dfff0, 6, 18, 2);
   teal.position.set(3, 2.4, -1);
   scene.add(teal);
 

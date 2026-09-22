@@ -466,33 +466,33 @@ export function createShip(mats) {
   tube.dispose();
 
   function practical(x, y, z, color, intensity, restScale, restColor) {
-    kit.box('dark', mats.dark, 0.72, 0.06, 0.16, x, y + 0.05, z);
-    kit.box('emitTeal', mats.teal, 0.58, 0.02, 0.08, x, y + 0.01, z);
-    const light = new THREE.PointLight(color, intensity, 6.5, 2);
-    light.position.set(x, y - 0.05, z);
+    kit.box('dark', mats.dark, 0.78, 0.07, 0.2, x, y + 0.16, z);
+    kit.box('emitTeal', mats.teal, 0.62, 0.025, 0.1, x, y + 0.11, z);
+    const light = new THREE.PointLight(color, intensity, 7.5, 2);
+    light.position.set(x, y, z);
     tagLight(light, restScale, restColor);
     root.add(light);
   }
-  practical(0, 2.28, 1.5, '#b8fff4', 48, 0.1, '#7f9eb8');
-  practical(0, 2.28, 3.7, '#b8fff4', 48, 0.1, '#7f9eb8');
-  practical(0, 2.28, 5.9, '#b8fff4', 52, 0.1, '#7f9eb8');
-  practical(0, 2.28, 8.1, '#b8fff4', 46, 0.12, '#7f9eb8');
-  practical(0, 2.26, 12.4, '#c8fff6', 36, 0.18, '#8aa8c4');
-  practical(2.7, 2.22, 6.9, '#ffe0b0', 34, 0.22, '#c4b09a');
-  practical(2.1, 2.22, 1.4, '#d8fff8', 24, 0.15, '#9eb4c4');
+  practical(0, 2.05, 1.6, '#b8fff4', 7.5, 0.1, '#7f9eb8');
+  practical(0, 2.05, 3.9, '#b8fff4', 7.5, 0.1, '#7f9eb8');
+  practical(0, 2.05, 6.15, '#b8fff4', 8.5, 0.1, '#7f9eb8');
+  practical(0, 2.05, 8.25, '#b8fff4', 7, 0.12, '#7f9eb8');
+  practical(0, 2.02, 12.55, '#c8fff6', 6, 0.18, '#8aa8c4');
+  practical(2.7, 2.0, 6.9, '#ffe0b0', 6.5, 0.22, '#c4b09a');
+  practical(2.1, 2.0, 1.4, '#d8fff8', 4.5, 0.15, '#9eb4c4');
 
-  const bunk = new THREE.PointLight('#ffb15a', 34, 5.2, 2);
+  const bunk = new THREE.PointLight('#ffb15a', 11, 4.6, 2);
   bunk.position.set(-3.3, 2.05, 1.5);
   tagLight(bunk, 0.9, '#ffb15a');
   root.add(bunk);
   kit.box('dark', mats.dark, 0.18, 0.08, 0.18, -3.55, 2.15, 1.45);
   kit.box('emitWarm', mats.warm, 0.12, 0.02, 0.12, -3.55, 2.1, 1.45);
 
-  const hemi = new THREE.HemisphereLight('#8eafc4', '#3a2a22', 0.32);
+  const hemi = new THREE.HemisphereLight('#9eb6c8', '#4a3428', 0.38);
   tagLight(hemi, 0.45, '#6e8494');
   root.add(hemi);
 
-  const sun = new THREE.DirectionalLight('#d5e4ff', 3.15);
+  const sun = new THREE.DirectionalLight('#d5e4ff', 1.85);
   sun.position.set(7, 11, 22);
   sun.target.position.set(0, 1.1, 8);
   sun.castShadow = true;
@@ -509,14 +509,14 @@ export function createShip(mats) {
   root.add(sun);
   root.add(sun.target);
 
-  const fill = new THREE.DirectionalLight('#ffd2b0', 0.42);
+  const fill = new THREE.DirectionalLight('#ffd2b0', 0.28);
   fill.position.set(-4, 3, -2);
   fill.target.position.set(0, 1, 6);
   tagLight(fill, 0.2, '#8aa0b4');
   root.add(fill);
   root.add(fill.target);
 
-  const rect = new THREE.RectAreaLight('#c5dcff', 10, 3.3, 1.25);
+  const rect = new THREE.RectAreaLight('#c5dcff', 4.5, 3.3, 1.25);
   rect.position.set(0, 1.55, 14.9);
   rect.lookAt(0, 1.35, 8);
   tagLight(rect, 0.9, '#c5dcff');

@@ -17,7 +17,7 @@ renderer.setSize(window.innerWidth, window.innerHeight);
 renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 1.25));
 renderer.outputColorSpace = THREE.SRGBColorSpace;
 renderer.toneMapping = THREE.ACESFilmicToneMapping;
-renderer.toneMappingExposure = 1.05;
+renderer.toneMappingExposure = 1.0;
 renderer.shadowMap.enabled = true;
 renderer.shadowMap.type = THREE.PCFSoftShadowMap;
 renderer.info.autoReset = true;
@@ -25,13 +25,13 @@ app.appendChild(renderer.domElement);
 
 const scene = new THREE.Scene();
 scene.background = new THREE.Color(0x070b10);
-scene.fog = new THREE.FogExp2(0x12161b, 0.011);
+scene.fog = new THREE.FogExp2(0x1a2228, 0.008);
 
 const camera = new THREE.PerspectiveCamera(68, window.innerWidth / window.innerHeight, 0.08, 900);
 
 const pmrem = new THREE.PMREMGenerator(renderer);
 scene.environment = pmrem.fromScene(createEnvironment(), 0.14).texture;
-scene.environmentIntensity = 0.58;
+scene.environmentIntensity = 0.42;
 pmrem.dispose();
 
 const mats = createMaterials();
@@ -50,10 +50,16 @@ const interact = createInteract({
 });
 
 const VIEWS = {
-  cockpit: { pos: [0, 1.7, 11.15], look: [0.05, 1.28, 15.2], time: 26 },
-  corridor: { pos: [0, 1.7, 1.4], look: [0.2, 1.46, 9.4], time: 26 },
-  quarters: { pos: [-2.65, 1.7, 2.25], look: [-4.2, 0.95, 1.5], time: 26 },
-  window: { pos: [0.12, 1.6, 14.58], look: [14, -1.2, 58], time: 26 },
+  cockpit: { pos: [0.05, 1.7, 11.45], look: [0.1, 1.22, 15.1], time: 26 },
+  corridor: { pos: [-0.15, 1.7, 2.55], look: [0.55, 1.38, 8.8], time: 26 },
+  quarters: { pos: [-3.15, 1.7, 2.65], look: [-4.2, 0.85, 1.4], time: 26 },
+  window: { pos: [0.2, 1.58, 14.62], look: [16, -2.2, 60], time: 26 },
+};
+
+const POSES = {
+  bed: { pos: [-3.15, 1.7, 2.65], look: [-4.2, 0.9, 1.45], time: 26 },
+  galley: { pos: [2.4, 1.7, 6.95], look: [3.7, 1.0, 6.7], time: 26 },
+  bath: { pos: [1.9, 1.7, 1.4], look: [2.6, 1.05, 2.05], time: 26 },
 };
 
 const perf = { fps: 0, triangles: 0, calls: 0 };
@@ -72,6 +78,17 @@ window.debugAPI = {
     space.setTime(view.time);
     interact.setSuppressed(true);
   },
+  place(name) {
+    const view = POSES[name];
+    if (!view) throw new Error(`Unknown pose: ${name}`);
+    player.setView(view.pos, view.look);
+    space.setTime(view.time);
+    interact.setSuppressed(false);
+  },
+  release() {
+    player.release();
+    space.play();
+  },
   setSuppress(value) {
     interact.setSuppressed(!!value);
   },
@@ -81,6 +98,15 @@ window.debugAPI = {
   getCycle: () => ship.getCycle(),
   setCycle: (value) => ship.setCycleImmediate(value),
   getPerf: () => ({ ...perf }),
+  getPose: () => ({
+    pos: camera.position.toArray(),
+    rot: camera.rotation.toArray(),
+  }),
+  getRenderer: () => {
+    const gl = renderer.getContext();
+    const ext = gl.getExtension('WEBGL_debug_renderer_info');
+    return ext ? gl.getParameter(ext.UNMASKED_RENDERER_WEBGL) : 'unknown';
+  },
 };
 
 let last = performance.now();
