@@ -3476,7 +3476,7 @@ export async function create(ctx: WorldContext): Promise<WorldSystem> {
           .map((nc) => [nc.id, Math.round(nc.dist * 10) / 10, Math.round(nc.inM * 10) / 10, nc.triangles, nc.leaves, Number.isFinite(nc.hero) ? Math.round(nc.hero * 10) / 10 : null, nc.center.toArray().map((v) => Math.round(v * 10) / 10)]),
         /** triangles drawn for the shown parts against the far triangles they fold away (≈ 5 per far lamina, 2 per card) */
         shownTriangles: nearCanopies.filter((nc) => nc.mesh.visible).reduce((n, nc) => n + nc.triangles, 0),
-        foldedTriangles: nearCanopies.filter((nc) => nc.mesh.visible).reduce((n, nc) => n + nc.farLeaves * 5 + nc.farCards * 2, 0),
+        foldedTriangles: nearCanopies.filter((nc) => nc.mesh.visible && !nc.persistent).reduce((n, nc) => n + nc.farLeaves * 5 + nc.farCards * 2, 0),
       },
       maxBaseGap: Math.round(maxBaseGap * 1e4) / 1e4,
       basesChecked: allBases.length,

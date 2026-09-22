@@ -276,6 +276,9 @@ function mergeTile(parts: BufferGeometry[], material: Mesh['material'], name: st
   mesh.castShadow = false;
   mesh.receiveShadow = true;
   mesh.name = name;
+  // the capture census (capture/api.ts) reads this for the B3 cross-check: the tile holds `parts.length`
+  // placed pebbles, which the audit's `pebbles` count claims
+  mesh.userData.mergedInstances = parts.length;
   return mesh;
 }
 
