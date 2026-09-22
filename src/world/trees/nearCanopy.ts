@@ -1,53 +1,39 @@
 /**
  * Near-canopy LOD (round 41, the owner: "Verdant Forest quality, especially when looking up").
  *
- * From the plaza and the landing the giants' and columns' lower crowns read as hazy leaf-cluster
- * cards / sparse laminae with soft edges and no branch structure. Every eligible lower lobe of a
- * giant or a seated column (local centre ≤ NEAR_CANOPY_MAX_Y, an ordinary lobe — not flat, not a
- * toned / shaded clump, not a compact plug or an eye-detail curtain; a lobe a hero camera frames
- * within the swap distance swaps only closer than that camera stands, see `swapRadiiFor`) is
- * built twice: its far foliage as before, tagged with the lobe's index in its tree (writer.ts
- * leafSwapGroup), and a NEAR version from its own forked stream — a third fork level of
+ * Eligible giant crowns at any height, and seated-column crowns below NEAR_CANOPY_MAX_Y,
+ * retain their far foliage tagged with the lobe's index (writer.ts leafSwapGroup). A near
+ * version uses its own forked stream — a third fork level of
  * twiglets (3-sided tapering wood off the recorded twigs, verdant-forest trees.js foliateLobe)
  * each carrying an overlapping spray of cupped laminae and a tip rosette, denser sprays on the
  * twigs and secondaries, a moss strip along the upper side of the lobe's stem — so the lobe
  * reads as wood forking into layered leaves. The trees system shows a near version only while
- * the live camera is within the part's in-radius of the lobe centre (out again past its
+ * the live camera is within the part's in-distance of the crown envelope (out again past its
  * out-radius — hysteresis, like the near-base LOD), and the tree shaders drop that group's far
  * cards and laminae from the COLOUR pass meanwhile (materials.ts uNearCanopy; the depth pass
  * keeps them, so the dapple on the ground — measured by every hero frame — never changes, and
- * the near laminae cast nothing). Big limbs below the cap get a dressing part of their own (moss
+ * the near laminae cast nothing). Big limbs get a dressing part of their own (moss
  * strip, hanging vines, epicormic shoots) with nothing to replace.
  *
  * Geometry-only, local space, metres, +Y up. The builders here are shared by giant.ts and
- * column.ts; every part is built after its whole far tree from a stream forked off the tree's
- * (`rng.fork`), so the far tree is exactly what it was with the LOD off (the near base's rule).
+ * column.ts. Ordinary giant lobes keep only records until the bounded pool requests their
+ * chunked build. Far foliage remains visible until that build is resident.
  */
-import { Box3, BufferGeometry, Color, Vector3 } from 'three';
+import { Box3, BufferGeometry, Color, Float32BufferAttribute, Sphere, Vector3 } from 'three';
 import type { Rng } from '../util/prng';
 import { Noise2D, smoothstep } from '../util/noise';
 import { GeometryWriter, TAU, UP, addLeaf, between, frame, growthPath, sample, stiffnessFor, tangent, taper, tube, type LeafOptions, type TubeDraws } from './writer';
 import { reliefBoleSteps } from './bole';
 
 /**
- * Swap radii (m, 3D to the lobe centre — a lobe 15 m up is 15 m away from under it). 22 in / 26
- * out (rounds 41–47): from the plaza's eye height the overhead lobes of the near giants stand
- * 17–24 m away, so 20 m (the first pass) left the centre of the straight-up view as cards.
- * Round 48 (lod-1): 26 / 30 — the parts are BUILT with these; the trees system draws them in at
- * the machine's tier (index.ts NEAR_LOD_TIERS: 26 / 30 with the large pools that make the wider
- * swap hitch-free, the shipped 22 / 26 under 8 GB). fable-6 measured the wider swap at +1–2 %
- * triangles and +2–5 draws per frame on the walk, and 39 synchronous builds with the shipped
- * pools against none with the large ones (docs/PERF_2026-09-19.md §5.2). The hero cut below is
- * what keeps the six fixed frames: a part a camera frames from within NEAR_CANOPY_OUT_M + 0.5 m
- * swaps only closer than that camera stands.
+ * Swap distances from the authored crown envelope, in metres. The trees system caps these
+ * by the selected memory tier (26 / 30 at 8 GB or more, 22 / 26 below it). Camera altitude and
+ * fixed-view membership do not change admission; the same bounded pool serves every mode.
  */
 export const NEAR_CANOPY_IN_M = 26;
 export const NEAR_CANOPY_OUT_M = 30;
 /**
- * A part some hero camera frames from `d` m swaps in at `d − margin` and out at `d − margin / 3`
- * (the camera itself never sees the swap); a part whose in-radius would fall under
- * NEAR_CANOPY_MIN_IN_M keeps its far foliage at every distance instead (a swap 5 m under a lobe
- * is a pop, not a LOD).
+ * Legacy exports retained for callers outside the giant path. Neither restricts admission.
  */
 export const NEAR_CANOPY_HERO_MARGIN = 1.5;
 export const NEAR_CANOPY_MIN_IN_M = 7;
@@ -60,13 +46,12 @@ export const NEAR_CANOPY_MIN_IN_M = 7;
  * hero cut, for +3 pinned parts / +1.55 MB pinned in a pool that stays at its 64 MiB cap. The
  * walker pose that sees the far version at 11 m (w02-spine-r, (0.19, 1.45, 9.55)) stands where
  * camera A stands ((0.4, 1.8, 8.6)): no distance radius shows one the near version without the
- * other. null = the hero cut.
+ * other. null now uses the ordinary physical-camera distances.
  */
 export const NEAR_CANOPY_FLAT_SWAP_M: [number, number] | null = null;
 /**
- * local height (m) of the lobe centre above which a lobe keeps its far foliage at every distance
- * (round 48: a 25 m lobe is 23.5 m over a standing eye — the top of what the 26 m NEAR_CANOPY_IN_M
- * can reach; 21 followed the 22 m radius the same way)
+ * The seated-column builder's current local-height limit. Giant crowns have no height limit:
+ * the live camera can approach them at any altitude, with the same pool and distance limits.
  */
 export const NEAR_CANOPY_MAX_Y = 25;
 /**
@@ -89,25 +74,27 @@ export interface NearCanopyPart {
   /** local centre the swap distance is measured to, and the part's reach (m) */
   center: Vector3;
   radius: number;
-  /** this part's swap radii (m): NEAR_CANOPY_IN_M / OUT_M, or less for a part a hero camera frames */
+  /** this part's swap distances (m), capped by the trees system's memory tier */
   inM: number;
   outM: number;
   /**
-   * round 45 (item 6): the radii are NEAR_CANOPY_FLAT_SWAP_M and stand — the hero pass on the
-   * built mesh (index.ts nearCanopyHeroPass) leaves them, so a hero camera inside them renders
-   * the near version
+   * The optional authored NEAR_CANOPY_FLAT_SWAP_M distances take precedence over the tier cap.
    */
   fixedSwap?: boolean;
   /**
    * wood + laminae, same attributes and material as the tree's `geometry` (leaf vertices flagged):
-   * the first build (the measurement: counts, cull sphere, bytes). The trees system keeps it only
-   * while the part is near and rebuilds it through `build` when it comes near again (lodPool.ts).
+   * the first build, or empty bounds for a deferred part. The trees system keeps built buffers
+   * only while the pool admits them and rebuilds through `build` after eviction (lodPool.ts).
    */
   geometry: BufferGeometry;
+  /** No first geometry build yet; `geometry` holds only conservative bounds. */
+  deferred?: boolean;
+  /** Conservative uncompressed buffer bound until the first build supplies its actual bytes. */
+  estimatedBytes?: number;
   /**
    * one more build of exactly this geometry, chunked: a generator yielding between the twigs (and
    * the vines / shoots of a limb dressing) so the trees system can spread it across frames. From
-   * the part's own forked stream every time, so every build is byte-identical to `geometry`.
+   * the part's own forked stream every time, so repeated builds are byte-identical.
    */
   build(): Generator<void, BufferGeometry>;
   leaves: number;
@@ -140,7 +127,7 @@ export interface NearLobeRecord {
   /** swap radii (see swapRadiiFor) */
   inM: number;
   outM: number;
-  /** the radii are NEAR_CANOPY_FLAT_SWAP_M, not the hero cut (NearCanopyPart.fixedSwap) */
+  /** the distances are NEAR_CANOPY_FLAT_SWAP_M (NearCanopyPart.fixedSwap) */
   fixedSwap?: boolean;
   /** the lobe's walk-clearance floor (giant.ts CanopyLobe.floor, local y): no near lamina or twiglet below it */
   floorY?: number;
@@ -169,25 +156,11 @@ export interface NearLimbRecord {
 export type HeroDistanceFn = (center: Vector3, radius: number) => number;
 
 /**
- * The swap radii for a part about `center` reaching `radius`: the defaults, or — when a hero
- * camera frames it from d m — d − NEAR_CANOPY_HERO_MARGIN in / d − margin / 3 out, so the
- * camera never sees the swap. Null when the in-radius would fall under NEAR_CANOPY_MIN_IN_M (the
- * part keeps its far foliage). `tally` counts the two outcomes for the audit. This is the
- * build-time pass on the lobe's own sphere (it decides the tagging); the trees system runs a
- * second pass on the BUILT mesh's cull sphere (index.ts nearCanopyHeroPass), since a part's
- * stem dressing and vines reach well past its lobe.
+ * Admission is independent of the fixed cameras. Keep the caller shape for the column kit,
+ * while the live camera and bounded pool determine whether a registered part is shown.
  */
-export function swapRadiiFor(heroDistance: HeroDistanceFn | undefined, center: Vector3, radius: number, tally: { kept: number; limited: number }): [number, number] | null {
-  const d = heroDistance ? heroDistance(center, radius) : Infinity;
-  if (!Number.isFinite(d)) return [NEAR_CANOPY_IN_M, NEAR_CANOPY_OUT_M];
-  const inM = Math.min(NEAR_CANOPY_IN_M, d - NEAR_CANOPY_HERO_MARGIN);
-  const outM = Math.min(NEAR_CANOPY_OUT_M, d - NEAR_CANOPY_HERO_MARGIN / 3);
-  if (inM < NEAR_CANOPY_MIN_IN_M) {
-    tally.kept++;
-    return null;
-  }
-  tally.limited++;
-  return [inM, outM];
+export function swapRadiiFor(_heroDistance: HeroDistanceFn | undefined, _center: Vector3, _radius: number, _tally: { kept: number; limited: number }): [number, number] {
+  return [NEAR_CANOPY_IN_M, NEAR_CANOPY_OUT_M];
 }
 
 export interface NearCanopyKitOptions {
@@ -497,12 +470,26 @@ export function createNearCanopyKit(o: NearCanopyKitOptions) {
   /**
    * The near version of a recorded lobe: sprays on its secondaries and twigs, 2–4 twiglets per
    * twig, a moss strip along its stem. The laminae budget is NEAR_CANOPY_LEAF_DENSITY × hR²
-   * within NEAR_CANOPY_LEAVES, spread over the recorded wood (leafScale). Built once here (the
-   * measurement); `build` is the same build again, chunked.
+   * within NEAR_CANOPY_LEAVES, spread over the recorded wood (leafScale). Deferred parts keep
+   * conservative bounds and a byte estimate until the first chunked build completes.
    */
-  const lobePart = (rng: Rng, rec: NearLobeRecord, idx: number): NearCanopyPart => {
-    const first = runSteps(lobeSteps(rng, rec, idx));
-    return {
+  const lobePart = (rng: Rng, rec: NearLobeRecord, idx: number, defer = false): NearCanopyPart => {
+    // Persistent recessed foliage keeps its existing first build. Ordinary giant lobes retain
+    // their branch records and enter the same chunked builder only when the pool requests them.
+    const first = defer && !rec.layeredCore ? null : runSteps(lobeSteps(rng, rec, idx));
+    const geometry = first?.geometry ?? new BufferGeometry();
+    if (!first) {
+      geometry.name = `near-canopy-${o.id}-lobe-${idx}#deferred`;
+      geometry.setAttribute('position', new Float32BufferAttribute([], 3));
+      geometry.boundingBox = new Box3().setFromPoints([...rec.stem, ...rec.secondaries.flatMap(s => s.path), ...rec.twigs.flatMap(t => t.path)]).expandByScalar(rec.hR + 1);
+      geometry.boundingSphere = geometry.boundingBox.getBoundingSphere(new Sphere());
+    }
+    // At leafScale <= 2.4: <=19 leaves/secondary, <=17 + 4*(14+10) leaves/twig.
+    // Each leaf takes <=672 raw bytes; each 3-sided twiglet <=1836. The stem strip
+    // takes <=648 bytes/row. Compaction can only lower this bound before installation.
+    const estimatedBytes = (rec.secondaries.length * 19 + rec.twigs.length * 113) * 672
+      + rec.twigs.length * 4 * 1836 + (Math.ceil(pathLength(rec.stem) / 0.15) + 4) * 648;
+    const part: NearCanopyPart = {
       kind: 'lobe',
       ...(rec.layeredCore ? { persistent: true, envelope: rec.layeredCore.bounds.clone() } : {}),
       group: rec.group,
@@ -511,16 +498,24 @@ export function createNearCanopyKit(o: NearCanopyKitOptions) {
       inM: rec.inM,
       outM: rec.outM,
       fixedSwap: rec.fixedSwap,
-      geometry: first.geometry,
+      geometry,
+      deferred: !first,
+      estimatedBytes,
       build: function* () {
-        return (yield* lobeSteps(rng, rec, idx)).geometry;
+        const built = yield* lobeSteps(rng, rec, idx);
+        part.deferred = false;
+        part.leaves = built.leaves;
+        part.triangles = built.triangles;
+        part.woodTriangles = built.triangles - built.leaves * 8;
+        return built.geometry;
       },
-      leaves: first.leaves,
-      triangles: first.triangles,
-      woodTriangles: first.triangles - first.leaves * 8,
+      leaves: first?.leaves ?? 0,
+      triangles: first?.triangles ?? 0,
+      woodTriangles: first ? first.triangles - first.leaves * 8 : 0,
       farLeaves: rec.farLeaves,
       farCards: rec.farCards,
     };
+    return part;
   };
 
   /**

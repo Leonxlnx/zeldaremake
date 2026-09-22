@@ -2992,6 +2992,13 @@ Also: lantern bough still a thick plain beam across the top of B (trees pass pen
   `plants.ts` far-pack SINGLE switch. Astra's preview holds fable-4's shadow/stand LOD cuts pending a
   fresh look under the lighter haze; canonical keeps them.
 
+### 2026-09-22 20:20 UTC — tick 236: take-0134 (clarity set) A in at 8.78 M / 456; Astra's admission + packs imported for the next take
+- take-0134: A written 19:53 (1,501 s; 456 draws, 8.78 M — the stand LOD's −50 K under the roof's
+  lobes). B capturing (one 856 s chunk). Nothing new from the Fable chats.
+- Imported Astra's `1c69102d` (far packs → SINGLE: A −140 K, pixel-exact) as 372915a6 and `105a61d5`
+  (upper-canopy admission by physical camera distance in every mode) as a cherry-pick 8f07e181 so
+  fable-4's shadow/stand cuts stay. Both seal in take-0135.
+
 ## Pending corrections from reference/ANALYSIS.md (apply at integration, one commit)
 - `config.ts` palette → olive/khaki low-key (reference hero frames: hue 47–51°, sat 0.16–0.19,
   lum 0.35–0.39, 0 % blue sky): grass 0x8a8c55/0x5c6233/0x3a4420, moss 0x8b8948/0x5a523b,
@@ -3030,4 +3037,4 @@ Pick anything NOT claimed in `gauntlet/claims.json`. Good self-contained candida
   my own (GAUNTLET.md D7).
 
 ## Last updated
-2026-09-22T19:35:00Z
+2026-09-22T20:20:00Z
