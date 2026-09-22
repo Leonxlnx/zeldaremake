@@ -1617,6 +1617,23 @@ interface GeometryBuilt extends PoolBuilt {
 /** what the audit's residentBytes counted from the start: every attribute array plus the index */
 const geometryBytes = (g: BufferGeometry) => Object.values(g.attributes).reduce((b, a) => b + a.array.byteLength, 0) + (g.index ? g.index.array.byteLength : 0);
 /**
+ * Round 51 (fable-cursor, 2026-09-22 07:15: the tab at 3.6 GB, two chrome OOM kills during the night's
+ * takes — "anything that trims resident geometry"): a pooled part's typed arrays are needed until the
+ * renderer uploads them, and then only if something reads them back — nothing does (the bounds and
+ * the byte count are taken at build, the swap folds through uniforms, the audits read counts, the
+ * character's surface grid reads the hardscape's stairs). So every attribute and the index drop their
+ * CPU copy once uploaded (three's `onUpload` fires after the buffer is created): the near-canopy and
+ * near-base pools' ≈ 257 MB of parts stop being held twice. A rebuilt part gets fresh arrays and drops
+ * them the same way; `needsUpdate` is never set on a resident part.
+ */
+const dropArray = function (this: { array: ArrayLike<number> | null }) {
+  this.array = null;
+};
+const releaseAfterUpload = (g: BufferGeometry) => {
+  for (const a of Object.values(g.attributes)) (a as BufferAttribute).onUpload(dropArray as unknown as () => void);
+  if (g.index) g.index.onUpload(dropArray as unknown as () => void);
+};
+/**
  * A translated-to-world part's roots: aRoot.xyz becomes the tree's world origin (the merged
  * shader's per-tree context) — except a 3-D moss cushion's vertices (writer.ts woodCushion,
  * isCushionRoot), whose xyz is the cushion's anchor on the bark and is translated with the
@@ -1748,7 +1765,12 @@ export async function create(ctx: WorldContext): Promise<WorldSystem> {
   const poolItem = (id: string, mesh: Mesh, steps: () => Generator<void, BufferGeometry>, finalize: (g: BufferGeometry) => void): [PoolItem<GeometryBuilt>, GeometryBuilt] => {
     const first = mesh.geometry;
     const placeholder = placeholderFor(first);
-    const wrap = (geometry: BufferGeometry): GeometryBuilt => ({ geometry, bytes: geometryBytes(geometry), dispose: () => geometry.dispose() });
+    // the bytes are read before the upload; after it the CPU copies go (releaseAfterUpload)
+    const wrap = (geometry: BufferGeometry): GeometryBuilt => {
+      const bytes = geometryBytes(geometry);
+      releaseAfterUpload(geometry);
+      return { geometry, bytes, dispose: () => geometry.dispose() };
+    };
     const item: PoolItem<GeometryBuilt> = {
       id,
       bytes: 0,
@@ -3509,6 +3531,17 @@ export async function create(ctx: WorldContext): Promise<WorldSystem> {
       submission: submission(),
       samplePositions: { bases: sampleBases },
     };
+  });
+  // Round 51 (the tab at 3.6 GB — see releaseAfterUpload): the trees' static geometry keeps
+  // ≈ 0.5 GB of typed arrays in the renderer process after the GPU has them, and every static mesh
+  // is drawn from the first frame at any view. Every geometry under this system drops its CPU
+  // copies on upload; a bounding sphere three would otherwise compute from the array later is
+  // computed here, while the array is still there (the InstancedMesh culls read it each fill).
+  group.traverse((o) => {
+    const g = (o as Mesh).geometry as BufferGeometry | undefined;
+    if (!(o as Mesh).isMesh || !g) return;
+    if (!g.boundingSphere) g.computeBoundingSphere();
+    releaseAfterUpload(g);
   });
   ctx.progress('trees', 1);
 
