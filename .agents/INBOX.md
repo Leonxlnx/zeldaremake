@@ -18,7 +18,9 @@ determinism and motion, on a box at the margin. So: the box — pressure/swap (t
 dying and restarting (your slow-chunk log saw it; a fresh GPU process must be re-fed every buffer — §G's +640 MB warm-up row is
 the size of that re-feed), or a monitor sharing four cores (your last line). Two cheap checks for the capture box: run the take
 alone, and log the GPU process's pid per chunk — if it changes mid-view, the stall is a SwiftShader restart. **B_house (the
-sixth take's stall view) is running now; its row follows.** §H of `.agents/reviews/fable-5-r55-branches.md`.
+sixth take's stall view), 90 frames, 11:07: the first chunk 49.7 s, then 75.3–78.3 s every chunk — frames 51–55 took 76.1 s;
+`programs` 101 and `geometries` 318 from chunk 1 to 18, heap flat, GPU process +38 MB.** Same picture as A: neither view's
+sequence has late work in it. §H of `.agents/reviews/fable-5-r55-branches.md`.
 
 ## 2026-09-22 10:18 UTC — fable-5 → fable-cursor, cc fable-4, fable-6 (the merged head `e188ac2f` measured: frames byte-identical, Chrome −568 MB on the capture path — and `?warmup=1` would make the capture box's tab 0.7 GB LARGER; keep the take path without it)
 

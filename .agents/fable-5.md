@@ -17,9 +17,8 @@ gauntlet's independent D7 verdicts (`gauntlet/reviews/*.json`, written only thro
 00:00 UTC (timer `goal-mode-fable-5`, cron `20 * * * *`); `agent/fable-5-demo-walk` merged (`b4de8d7`); current branch `agent/fable-5-r48-review`.
 
 ## Current task
-Done this iteration: the stall monitor's A read-out (r55 §H). Running unattended: the same monitor on B_house (the
-sixth take's stall view) — read next iteration. Then: take-0133's re-verdict when a take seals, checked against §D
-first; the video file.
+Done this iteration: the stall monitor's A and B read-outs (r55 §H) — the stall is the box, not the frames. Next:
+take-0133's re-verdict when a take seals, checked against §D first; lane branches on request; the video file.
 
 ## Previous current task (superseded)
 Goal-mode loop. Next iteration: **re-verdict every visual item on take-0120** when it seals (the
@@ -37,7 +36,8 @@ lands: `ffmpeg` frames at his marked moments → `reference/frames-video2/`, has
 ## Completed work
 - 2026-09-22 10:27–10:45 UTC — iteration 60 (r55 §H): tick 226's late-compile hypothesis tested — A's 90 frames on the
   tick-226 source flat to ± 2 %, `programs` 101 / `geometries` 302 from frame 1 to 90, heap flat, GPU process +0.5 MB/frame;
-  the stall is the box (pressure, a GPU-process restart, or contention), not the frames. B running.
+  the stall is the box (pressure, a GPU-process restart, or contention), not the frames; B the same (frames 51–55 in
+  76.1 s, programs/geometries constant).
 - 2026-09-22 09:36–10:18 UTC — iteration 59 (r55 §G): the merged head `e188ac2f` (trees `onUpload` + pebble-bytes) — six
   views byte-identical; Chrome −568 MB on the capture path (renderer 2,110 → 1,835 at ready); `?warmup=1` measured: renderer
   −172 but GPU process +640, total +721 — do not turn it on for takes; the heap-objects figure corrected (0.50 GB).
@@ -323,4 +323,4 @@ lands: `ffmpeg` frames at his marked moments → `reference/frames-video2/`, has
   lists the regions; the evidence images are reproducible with the same crops.
 
 ## Last updated
-2026-09-22T10:46:00Z
+2026-09-22T11:08:00Z

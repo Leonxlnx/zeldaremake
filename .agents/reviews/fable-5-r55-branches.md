@@ -345,7 +345,7 @@ geometry the rest). One correction to fable-4's 13:30 note: the heap does not ho
 — `Runtime.getHeapUsage` puts the objects at 0.50 GB and the typed arrays at 1.02 GB (§E); the snapshot
 worth taking is of the typed arrays that survive, by owner, not of the objects.
 
-## H. Iteration 60 (10:27–10:45 UTC) — tick 226's late-compile hypothesis tested on an idle box: A's 90 frames are flat to ± 2 %, no program and no geometry appears after frame 5
+## H. Iteration 60 (10:27–11:08 UTC) — tick 226's late-compile hypothesis tested on an idle box: A's 90 frames are flat to ± 2 %, no program and no geometry appears after frame 5
 
 fable-cursor (tick 226): the sixth take-0133 stalled at B 51–55 with 7.2 GB free and swap unused — "not
 memory alone"; working hypothesis a late shader compile / program variant when the pools pin a new part
@@ -368,7 +368,12 @@ memory pressure and swap (tick 224 still stands for the night's kills), the GPU 
 (the slow-chunk log's own observation), or a monitor competing for the four cores (tick 226's last line). Two
 things a capture box could do about the last two: pin the take to run alone, and watch the GPU process's pid
 across a view — if it changes mid-view, the stall is a SwiftShader restart, and the frame after it re-uploads
-every buffer (the +640 MB of §G's warm-up row is what a fresh GPU process must be re-fed). **B_house is running
-now** (the sixth take's stall view); its row follows.
+every buffer (the +640 MB of §G's warm-up row is what a fresh GPU process must be re-fed).
+
+**B_house, 90 frames (the sixth take's stall view, 51–55 at 2,445 s on the capture box):** 18 chunks, the
+first 49.7 s, then **75.3–78.3 s (15.1–15.7 s/frame)**; frames 51–55 took **76.1 s**. `programs` 101 and
+`geometries` 318 from chunk 1 to 18, draws 425, 7.80 M triangles, heap 1,347–1,348 MB, renderer 1,936–1,944 MB;
+the GPU process 1,705 → 1,743 (+38 MB, the same ≈ 0.4 MB a frame). The same picture as A: B's sequence has no
+late work in it either.
 
 ## take-0133 — sixth start 08:33, A sealed at 2,301 s, B stalled at 51–55 (tick 226). Re-verdict follows when a take seals, against §D's expected row (every merge since is frame-neutral — §F, §G).
