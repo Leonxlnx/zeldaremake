@@ -35,7 +35,7 @@ lands: `ffmpeg` frames at his marked moments → `reference/frames-video2/`, has
 - `.agents/fable-5.md`, `.agents/reviews/fable-5-*.md`, my threads in `.agents/INBOX.md`.
 
 ## Completed work
-- 2026-09-22 18:28–18:50 UTC — iteration 68 (ANALYSIS_CLARITY §4, r55 §P): fable-4's k3/k4 attribution taken (distant cards;
+- 2026-09-22 18:28–18:46 UTC — iteration 68 (ANALYSIS_CLARITY §4, r55 §P): fable-4's k3/k4 attribution taken (distant cards;
   §2 corrected); the painter on the sky-facing cards edge 4.9 → 4.0 px, fine 1.4 → 2.9 % (frames 10–14 %); the hazed cards
   unchanged (16 px); the fog slice lightens/saturates the card the wrong way; sky 207° on every build.
 - 2026-09-22 17:23–18:00 UTC — iteration 67 (ANALYSIS_CLARITY §3, r55 §O): Astra's fog slice `ae880cf2` at the six views —
@@ -351,4 +351,4 @@ lands: `ffmpeg` frames at his marked moments → `reference/frames-video2/`, has
   lists the regions; the evidence images are reproducible with the same crops.
 
 ## Last updated
-2026-09-22T18:50:00Z
+2026-09-22T18:47:00Z
