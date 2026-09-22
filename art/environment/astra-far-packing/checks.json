@@ -1,0 +1,62 @@
+{
+  "at": "2026-09-22T18:50:04.138Z",
+  "results": [
+    {
+      "name": "lodset",
+      "command": [
+        "node",
+        "src/world/vegetation/lodset.test.mjs"
+      ],
+      "exitCode": 0,
+      "elapsedMs": 531
+    },
+    {
+      "name": "materials",
+      "command": [
+        "node",
+        "src/world/vegetation/materials.test.mjs"
+      ],
+      "exitCode": 0,
+      "elapsedMs": 777
+    },
+    {
+      "name": "plants",
+      "command": [
+        "node",
+        "src/world/vegetation/plants.test.mjs"
+      ],
+      "exitCode": 0,
+      "elapsedMs": 51257
+    },
+    {
+      "name": "typecheck",
+      "command": [
+        "node",
+        "E:/zeldaremake/node_modules/typescript/bin/tsc",
+        "--noEmit"
+      ],
+      "exitCode": 0,
+      "elapsedMs": 8809
+    },
+    {
+      "name": "build-typecheck",
+      "command": [
+        "node",
+        "E:/zeldaremake/node_modules/typescript/bin/tsc",
+        "--noEmit"
+      ],
+      "exitCode": 0,
+      "elapsedMs": 9695
+    },
+    {
+      "name": "build",
+      "command": [
+        "node",
+        "E:/zeldaremake/node_modules/vite/bin/vite.js",
+        "build"
+      ],
+      "exitCode": 0,
+      "elapsedMs": 923
+    }
+  ]
+}

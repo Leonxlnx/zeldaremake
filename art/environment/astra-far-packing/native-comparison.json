@@ -1,0 +1,70 @@
+{
+  "beforeSource": "6231cffbfec78d405cb3e83064bf3f68c7daca8d",
+  "afterSource": "1c69102d2156a00b7dd46ae78006f438e0383764",
+  "views": {
+    "A_stairs": {
+      "before": {
+        "simTime": 12.6,
+        "drawCalls": 459,
+        "triangles": 8889627,
+        "geometries": 315,
+        "textures": 91,
+        "programs": 101,
+        "width": 1280,
+        "height": 720,
+        "pixelRatio": 1
+      },
+      "after": {
+        "simTime": 12.6,
+        "drawCalls": 467,
+        "triangles": 8750087,
+        "geometries": 323,
+        "textures": 91,
+        "programs": 101,
+        "width": 1280,
+        "height": 720,
+        "pixelRatio": 1
+      },
+      "savedTriangles": 139540,
+      "addedDraws": 8,
+      "changedPixels": 0,
+      "changedPixelsOver2": 0,
+      "maxChannelDifference": 0,
+      "meanAbsoluteChannelDifference": 0,
+      "changedBounds": null,
+      "renderer": "ANGLE (AMD, AMD Radeon 780M Graphics (0x00001900) Direct3D11 vs_5_0 ps_5_0, D3D11)"
+    },
+    "F_canopy": {
+      "before": {
+        "simTime": 12.6,
+        "drawCalls": 416,
+        "triangles": 8180156,
+        "geometries": 334,
+        "textures": 91,
+        "programs": 101,
+        "width": 1280,
+        "height": 720,
+        "pixelRatio": 1
+      },
+      "after": {
+        "simTime": 12.6,
+        "drawCalls": 421,
+        "triangles": 8060686,
+        "geometries": 342,
+        "textures": 91,
+        "programs": 101,
+        "width": 1280,
+        "height": 720,
+        "pixelRatio": 1
+      },
+      "savedTriangles": 119470,
+      "addedDraws": 5,
+      "changedPixels": 0,
+      "changedPixelsOver2": 0,
+      "maxChannelDifference": 0,
+      "meanAbsoluteChannelDifference": 0,
+      "changedBounds": null,
+      "renderer": "ANGLE (AMD, AMD Radeon 780M Graphics (0x00001900) Direct3D11 vs_5_0 ps_5_0, D3D11)"
+    }
+  }
+}

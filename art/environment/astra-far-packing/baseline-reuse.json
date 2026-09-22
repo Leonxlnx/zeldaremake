@@ -1,0 +1,12 @@
+{
+  "source": "E:/zeldaremake-astra-motion-sept21/art/environment/astra-latest-integration/native",
+  "sourceSha": "6231cffbfec78d405cb3e83064bf3f68c7daca8d",
+  "bundle": "dist/assets/index-Hs0AcnGr.js",
+  "bundleSha256": "e9abdc2c1c7c84b495d81a7bc834b9b87ce365c92baf9c73a94f40c03257acbb",
+  "captureScriptSha256": "1c12ca8459d9d1a8d5a5bb28536356443a550000272d89d8b3eab17cc9a1b6ca",
+  "images": {
+    "A_stairs": "3abc0b7089e2b983a76e8061f7a36fd6b80363e1a28cfa3249f822c6c759e632",
+    "F_canopy": "7173462c4a90986fc6e9af732125c3376a4cddb4f02a731f4bed21923c0cb7dd"
+  },
+  "note": "Reused exact root623 native A/F. Independently rebuilt pinned623 bundle is identical; no duplicate baseline GPU capture."
+}
