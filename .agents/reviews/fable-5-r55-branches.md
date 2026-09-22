@@ -132,4 +132,43 @@ head | diagnostic; red = the counted seam line, yellow = where it is a hard groo
 `fable-5-r55/seam-lines.py <view> label=image ...` (numpy / pillow / scipy) prints every column of the table
 above, so the flush-stretch work can be verified with the same numbers.
 
-## take-0133 — capturing (A written 03:12, seal ≈ 05:45); re-verdict follows when it seals.
+## C. Iteration 55 (05:35–06:30 UTC) — the head `073f5ff2` → `82b94525`: fable-2's dressing fade (V20's pair at `x-southbank-toe`, the owner's "stones under-detailed at 5–20 m") with shadowlod riding along
+
+`82b94525` merged fable-2's chain: the dressing stones (the backside's pale pair, the clearing's west-bank
+set) take their own near-capable material with `DRESSING_NEAR_FADE_M` 7–13 m (`0d86abbb`), and fable-4's
+shadowlod (`c938a862`, §A) came with it. Three builds: before = the head's source `073f5ff2`; after = the
+head `82b94525`; and, to attribute, a *dressing-only* build (`073f5ff2` + `0d86abbb`'s `rocks/index.ts`).
+Twelve poses on before/after, the six walk poses on dressing-only.
+
+**Six views: exactly §A's numbers** — A/B/E/F 0, C −0.0009, D −0.0002 — so the dressing fade adds nothing
+at the fixed views (fable-2: "off every fixed view by construction"; confirmed to the pixel).
+
+**The walk poses** (regions = components of |Δ| > 6 levels; fine σ = 2 px high-pass residual std, the same
+read fable-2 used):
+
+| pose | region | fine σ before → head | dressing-only | read |
+| --- | --- | --- | --- | --- |
+| `x-southbank-toe` (pair at 6.8 m) | the pale pair (0.51–0.75 × 0.57–0.80) | **0.0194 → 0.0247 (+27 %)**, l 0.214 → 0.224 | **+28 %** | the fade's — knapped plates and lichen flecks on the flank where the far skin was a mottled loaf; the moss cap unchanged |
+| | the left stones (0.32–0.42 × 0.63–0.70; 0.16–0.23 × 0.67–0.74) | +24 % / +12 % | +21 % / +13 % | the fade's |
+| | the right white-bark's trunk band (0.78–0.85 × 0.45–0.54) | +19 %, l 0.306 → 0.333 | 0 % | shadowlod's (§A: the crown's shade band gone) |
+| `x-southbank-toe-4m` | the pair | +1 % | +1 % | inside both fades — unchanged, as designed; one background stone +13 % |
+| `x-southbank-toe-11m` | the pair (0.36–0.64 × 0.54–0.83) | +18 % | **+5 %** | at 11 m the fade is two-thirds out — the fade alone gives +5 %; the rest is shadowlod's dapple leaving the stones |
+| `x-clearing-n` | the west-bank pair at the frame's right edge (0.85–1.00 × 0.40–0.51) | +8 % | +7 % | 0.43 % of the frame; the clearing's set sits at the edge of this pose |
+| `x-clearing-stones`, `x-clearing-back` | — | 0.04 % of the frame | — | the clearing's dressing is not in these frames' 7–13 m |
+
+fable-2's own +18 % at `x-southbank-toe` is a looser box; in the pair's own box it is +27 %, and the
+dressing-only build attributes it. **Verdict: V20's pair IMPROVED at its pose** — the stone a walker sees at
+6–8 m is a knapped stone now — **with the six views untouched.** Modest in size (the pair is 4 % of the
+frame) and honest about its range: the owner said 5–20 m and the band is 7–13 m; at 13–20 m the far skin
+still shows (the 11 m pose already gets a third of the gain). If the owner's range is meant literally, the
+outer edge of `DRESSING_NEAR_FADE_M` is the knob, and it costs nothing in draws (the same mesh, one
+material) — only fragment work on stones in the band.
+
+**A tooling note, so nobody repeats it:** the dressing-only build was rendered with a *shorter* shot list
+(the six walk poses only) and came back 8–12 % different from the before frame-wide — the wind phase
+shifts with the shot order (my r49 finding); its stone boxes are comparable (stones do not sway), the
+frame-wide counts are not. Render attribution builds with the *same* shot list, always.
+
+Sheet: `fable-5-r55/fable-5-r55-f2-dressing-toe-pair.jpg` (the pair, before | after at 6.8 m).
+
+## take-0133 — fourth start; A written 05:16 at the old pace, B running at tick 221 (05:35); re-verdict follows when it seals.

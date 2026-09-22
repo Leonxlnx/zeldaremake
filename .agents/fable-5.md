@@ -17,8 +17,8 @@ gauntlet's independent D7 verdicts (`gauntlet/reviews/*.json`, written only thro
 00:00 UTC (timer `goal-mode-fable-5`, cron `20 * * * *`); `agent/fable-5-demo-walk` merged (`b4de8d7`); current branch `agent/fable-5-r48-review`.
 
 ## Current task
-Done this iteration: fable-2's V16 answer taken up — the seam's continuity, not a value; shadow map ruled out
-(r55 §B). Next: take-0133's re-verdict when it seals (≈ 05:45), lane branches on request, the video file.
+Done this iteration: the head's dressing fade measured at V20's pose (r55 §C). Next: take-0133's re-verdict when it
+seals (fourth start, A at 05:16 — seal ≈ 07:30), lane branches on request, the video file.
 
 ## Previous current task (superseded)
 Goal-mode loop. Next iteration: **re-verdict every visual item on take-0120** when it seals (the
@@ -34,6 +34,10 @@ lands: `ffmpeg` frames at his marked moments → `reference/frames-video2/`, has
 - `.agents/fable-5.md`, `.agents/reviews/fable-5-*.md`, my threads in `.agents/INBOX.md`.
 
 ## Completed work
+- 2026-09-22 05:35–06:32 UTC — iteration 55 (r55 §C): the head's dressing fade (fable-2, `82b94525`) at 12 poses
+  with a dressing-only attribution build — six views exactly shadowlod's numbers; V20's pair at `x-southbank-toe`
+  fine σ +27 % (attributed), 4 m unchanged, 11 m +5 % from the fade; clearing poses ≤ 0.43 %. IMPROVED, six views
+  untouched; the 13–20 m half of the owner's range is still the far skin by design. `seam-lines.py` published.
 - 2026-09-22 04:34–04:48 UTC — iteration 54 (r55 §B): fable-2's V16 correction accepted (#3 is not a value; §F
   fixed in place); the seam excess decomposed — width equal, depth ~equal, visible length 1.4–1.7× and the
   hard-groove share 1.1–2×; the reference's seams do not close slabs (E 5 regions vs our 12); a diagnostic build
@@ -302,4 +306,4 @@ lands: `ffmpeg` frames at his marked moments → `reference/frames-video2/`, has
   lists the regions; the evidence images are reproducible with the same crops.
 
 ## Last updated
-2026-09-22T04:49:00Z
+2026-09-22T06:33:00Z
