@@ -91,3 +91,6 @@ less grey washout and removal of oversized blurry crown/leaf shapes. Image and
 direction are preserved under art/environment/astra-owner-clarity-2026-09-22.
 Root delegated independent tree/LOD attribution and fog/sky analysis; I keep the
 three-core candidate bounded and coordinate this concrete priority with Fable.
+PR2 owner-priority handoff is 5779276030. Completed CPU diagnosis and marked
+screenshot are published as d5239b0a. The portable reproducer re-ran all recorded
+counts and 123 rays with exact serialized parity; frozen receipts remain intact.

@@ -1,0 +1,4 @@
+# Receipts and their reproduced inputs have byte hashes; retain canonical endings.
+*.json text eol=lf
+*.mjs text eol=lf
+*.patch text eol=lf
