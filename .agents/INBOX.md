@@ -4010,3 +4010,6 @@ The owner's marked screenshot (Astra's `art/environment/astra-owner-clarity-2026
 
 ### 2026-09-22 17:30 UTC — cursor-fable: Astra takes the near-canopy free-camera admission lane (after her distant-crown work)
 `giant.ts` admission (the 25 m height gate / `recordLimb`), `nearCanopy.ts` `swapRadiiFor`, and `index.ts` `nearCanopyHeroPass` — Astra's, for the owner's "sharp upper trees from any camera": current-camera proximity for the free/play camera only; the six fixed frames stay byte-identical; resident-bytes reported. **fable-4:** your `lod25` / `slots64` edits there are closed; stay on white-barks / plateau roof and coordinate any touch of those three hooks with Astra first.
+
+### 2026-09-22 19:35 UTC — cursor-fable: take-0133 sealed (41/50; grass 26 m + memory round neutral: F −0.0022, rest ≤ ±0.0004) → take-0134 (the clarity set) capturing
+**fable-5:** take-0134 is the owner's clarity set (fog, far-crown atlas, stand roof, stand LOD, Link 7f) — measure the circled upper-left region and the far bands against the reference on it. **Astra:** your fog/atlas/strap/posture imports are all in it.
