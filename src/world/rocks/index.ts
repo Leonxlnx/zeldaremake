@@ -277,41 +277,47 @@ interface PebbleTile {
 
 /** one tile's instances merged into a static mesh (looks baked in), or null when none */
 /**
- * The merged pebble tiles' vertex storage, for the far rock material they draw with (memory: the tab
- * reached 3.6 GB in the takes, tick 223). rockgen writes 52 B per vertex — position / normal / uv /
- * colour as floats, aMoss and aWet — of which the far material reads position, normal, colour and
- * aMoss only (triplanar: no uv; aWet / aLichen are the near variant's), and a pebble's colour sits in
- * 0.47–0.76, its aMoss in 0–0.4. So: uv and aWet dropped, the normal as Int8 ×3, the colour and aMoss
- * as Uint8 (all normalised, read as the same floats by the shader) — 19 B per vertex, ≈ −63 % on the
- * 2,042 × 240 + 60 non-indexed vertices the tiles hold (≈ 32 → 12 MB).
+ * Vertex storage for the rock meshes (memory: the tab reached 3.6 GB in the takes, tick 223; rocks held
+ * 86 MB of attribute arrays, all of it rockgen's non-indexed float32 at 48–52 B per vertex). No rock
+ * material reads `uv` (the skin is triplanar), so it goes; the normal becomes Int8 ×3; and any attribute
+ * whose values all sit in 0–1 — colour, `aWet`, `aLichen`, a pebble's `aMoss` — becomes Uint8, normalised
+ * (the shader reads the same floats). An attribute outside 0–1 stays float32: the hero kits' `aMoss`
+ * carries the cushions (> 1) and the lichen plates (< 0). Idempotent — an attribute already stored as
+ * integers is left alone. `dropNearOnly` also removes `aWet`, for meshes on the far material, which
+ * never reads it.
  */
-function compactPebbleGeometry(g: BufferGeometry): void {
+function compactRockGeometry(g: BufferGeometry, dropNearOnly = false): void {
   const n = g.getAttribute('position').count;
-  const normal = g.getAttribute('normal');
-  const color = g.getAttribute('color');
-  const moss = g.getAttribute('aMoss');
-  const nrm = new Int8Array(n * 3);
-  const col = new Uint8Array(n * 3);
-  const mos = new Uint8Array(n);
-  for (let i = 0; i < n; i++) {
-    for (let k = 0; k < 3; k++) {
-      nrm[i * 3 + k] = Math.round(Math.max(-1, Math.min(1, normal.getComponent(i, k))) * 127);
-      col[i * 3 + k] = Math.round(Math.max(0, Math.min(1, color.getComponent(i, k))) * 255);
-    }
-    mos[i] = Math.round(Math.max(0, Math.min(1, moss.getX(i))) * 255);
+  const fits01 = (a: BufferAttribute) => {
+    for (let i = 0; i < a.array.length; i++) if (a.array[i] < -1e-6 || a.array[i] > 1 + 1e-6) return false;
+    return true;
+  };
+  const isFloat = (a: BufferAttribute | undefined): a is BufferAttribute => !!a && a.array instanceof Float32Array;
+  const normal = g.getAttribute('normal') as BufferAttribute | undefined;
+  if (isFloat(normal)) {
+    const out = new Int8Array(n * 3);
+    for (let i = 0; i < n * 3; i++) out[i] = Math.round(Math.max(-1, Math.min(1, normal.array[i])) * 127);
+    g.setAttribute('normal', new BufferAttribute(out, 3, true));
   }
-  g.setAttribute('normal', new BufferAttribute(nrm, 3, true));
-  g.setAttribute('color', new BufferAttribute(col, 3, true));
-  g.setAttribute('aMoss', new BufferAttribute(mos, 1, true));
-  g.deleteAttribute('uv');
-  g.deleteAttribute('aWet');
+  for (const name of ['color', 'aMoss', 'aWet', 'aLichen']) {
+    const a = g.getAttribute(name) as BufferAttribute | undefined;
+    if (!isFloat(a) || !fits01(a)) continue;
+    const out = new Uint8Array(a.array.length);
+    for (let i = 0; i < out.length; i++) out[i] = Math.round(Math.max(0, Math.min(1, a.array[i])) * 255);
+    g.setAttribute(name, new BufferAttribute(out, a.itemSize, true));
+  }
+  if (g.getAttribute('uv')) g.deleteAttribute('uv');
+  if (dropNearOnly) {
+    if (g.getAttribute('aWet')) g.deleteAttribute('aWet');
+    if (g.getAttribute('aLichen')) g.deleteAttribute('aLichen');
+  }
 }
 
 function mergeTile(parts: BufferGeometry[], material: Mesh['material'], name: string): Mesh | null {
   const merged = mergeGeometries(parts, false);
   for (const p of parts) p.dispose();
   if (!merged) return null;
-  compactPebbleGeometry(merged);
+  compactRockGeometry(merged, true);
   merged.computeBoundingSphere();
   const mesh = new Mesh(merged, material);
   mesh.castShadow = false;
@@ -1418,6 +1424,21 @@ export async function create(ctx: WorldContext): Promise<WorldSystem> {
     },
     palette: { moss: [P.mossDeep, P.mossBright] },
   }));
+
+  // the rock meshes' vertex storage compacted last, after every build-time read of their attributes
+  // (compactRockGeometry): the hero kits and far LODs, the ledge, the dressing, the strata / rubble
+  // looks; the pebble tiles came through mergeTile already and are left as they are
+  {
+    const done = new Set<string>();
+    group.traverse((o) => {
+      const m = o as Mesh;
+      const mat = m.material as { name?: string } | undefined;
+      // every rock material comes from createRockMaterial and is named `rock-triplanar…`; the boulder plants are not
+      if (!m.isMesh || !m.geometry || !mat?.name?.startsWith('rock-triplanar') || done.has(m.geometry.uuid)) return;
+      done.add(m.geometry.uuid);
+      compactRockGeometry(m.geometry);
+    });
+  }
 
   return {
     name: 'rocks',
