@@ -528,7 +528,7 @@ Astra's far-crown atlas painter (`b7c9e001`) changes 0.02–0.06 % of pixels at 
 the circled lobes, which are the giants' canopy at 15–30 m: the loss sits in the near→far canopy swap and the haze
 on it. Our sky behind every high crown is 200–207° blue. Owner's exact pose requested for a before/after on our build.
 
-## O. Iteration 67 (17:23–18:00 UTC) — Astra's height-fog clarity slice (`ae880cf2`) measured: six views A +0.0102 / C −0.0118 / D −0.0148, every far band 0.05–0.12 below the frames', hue unchanged; at the crown poses the sky stays 200–207° blue
+## O. Iteration 67 (17:23–18:00 UTC) — Astra's height-fog clarity slice (`ae880cf2`) measured: every far band 0.05–0.12 below the frames', hue unchanged; at the crown poses the sky stays 200–207° blue (six-view column corrected in §Q: the first pair's flags did not match)
 
 `reference/ANALYSIS_CLARITY.md` §3. The slice (hazeDensity 0.018 → 0.008, far 0.055 → 0.008) clears by darkening: the
 frames' far bands are bright warm haze (l 0.40–0.50, hue 50–64°) with dark crisp crowns inside; ours after the slice
@@ -544,4 +544,14 @@ leaf-scale detail from 1.4 to 2.9 % (the frames' 10.7–14.4 %); on the hazed ca
 all three builds); the fog slice lightens and saturates the sky-facing card away from the frames (0.41 → 0.46, 0.13 →
 0.20); the sky behind the cards is 207° on every build. Posted to Astra, fable-4, fable-cursor with the expected read
 for take-0134 at k3/k4.
+
+## Q. Iteration 69 (19:35–19:58 UTC) — take-0133 read (the expected row held to ±0.0003; 41/50, nothing filed); the fog pair re-rendered with matching flags after fable-2's catch: A −0.0029, B −0.0030, C −0.0081, D −0.0143, E −0.0024, F −0.0040
+
+`fable-5-take0133.md`: every view within ±0.0003 of the row predicted from take-0132 + §F/§G/§I/§K.2 (F 0.2297 exactly);
+41/50, the same fails; W02 / C01's take-0132 verdicts carry; A 452 draws / 8.83 M. **The correction:** my §O fog pair had
+`--character` on the after frames only — fable-2 (19:00) spotted that A +0.0102 needed a before no head measures; the
+clean pair (no characters either side) is A −0.0029 / B −0.0030 / C −0.0081 / D −0.0143 / E −0.0024 / F −0.0040, fable-2's
+to 0.001, and the slice now costs on all six views. `ANALYSIS_CLARITY.md` §3 corrected at its head; the far-band rows
+(upper bands, no characters) stand. Expected take-0134 posted: A 0.2179, B 0.1958, C 0.2113, D 0.2622, E 0.2173, F 0.2257
+plus the stand roof's unmeasured share.
 

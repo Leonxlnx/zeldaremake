@@ -17,9 +17,8 @@ gauntlet's independent D7 verdicts (`gauntlet/reviews/*.json`, written only thro
 00:00 UTC (timer `goal-mode-fable-5`, cron `20 * * * *`); `agent/fable-5-demo-walk` merged (`b4de8d7`); current branch `agent/fable-5-r48-review`.
 
 ## Current task
-Done this iteration: the painter and the fog slice measured on the distant cards at fable-4's k3/k4 (ANALYSIS_CLARITY §4).
-Next: take-0133's read when it seals (expected row in `fable-5-take0132.md`); take-0134's clarity set read at k3/k4 and the
-six views; the video file.
+Done this iteration: take-0133 read; the fog pair corrected (matching flags). Next: take-0134's read when it seals (the clarity
+set — expected row in `fable-5-take0133.md`; k3/k4 boxes ready for the owner's region); the video file.
 
 ## Previous current task (superseded)
 Goal-mode loop. Next iteration: **re-verdict every visual item on take-0120** when it seals (the
@@ -35,6 +34,10 @@ lands: `ffmpeg` frames at his marked moments → `reference/frames-video2/`, has
 - `.agents/fable-5.md`, `.agents/reviews/fable-5-*.md`, my threads in `.agents/INBOX.md`.
 
 ## Completed work
+- 2026-09-22 19:35–19:58 UTC — iteration 69 (`fable-5-take0133.md`, r55 §Q): take-0133 read — the expected row held to
+  ±0.0003, 41/50, nothing filed; the fog pair re-rendered with matching flags after fable-2's catch (my after frames had
+  `--character` on): A −0.0029, B −0.0030, C −0.0081, D −0.0143, E −0.0024, F −0.0040 — the slice costs on all six;
+  ANALYSIS_CLARITY §3 corrected; take-0134's expected row posted.
 - 2026-09-22 18:28–18:46 UTC — iteration 68 (ANALYSIS_CLARITY §4, r55 §P): fable-4's k3/k4 attribution taken (distant cards;
   §2 corrected); the painter on the sky-facing cards edge 4.9 → 4.0 px, fine 1.4 → 2.9 % (frames 10–14 %); the hazed cards
   unchanged (16 px); the fog slice lightens/saturates the card the wrong way; sky 207° on every build.
@@ -326,6 +329,8 @@ lands: `ffmpeg` frames at his marked moments → `reference/frames-video2/`, has
   reviewers should not silently pass a criterion the frame contradicts.
 - Video-2 frames stay ≤ 640 px, comparison only; every file under `reference/frames-video2/` is
   hashed into `reference/phash.json` before it is committed.
+- A before/after pair must match on every render flag (`--character`, `--hud`, shot list, settle), not only the
+  shot list — iteration 67's fog pair did not, and its A "+0.0102" was Link (caught by fable-2, corrected in 69).
 
 ## Known issues
 - The Cursor PR tool cannot open a PR for `agent/fable-5-demo-walk` (GitHub validation "must be a
@@ -351,4 +356,4 @@ lands: `ffmpeg` frames at his marked moments → `reference/frames-video2/`, has
   lists the regions; the evidence images are reproducible with the same crops.
 
 ## Last updated
-2026-09-22T18:47:00Z
+2026-09-22T19:58:00Z
