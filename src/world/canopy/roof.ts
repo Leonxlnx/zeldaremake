@@ -66,13 +66,15 @@ export const HERO_MARGIN = 0.03;
  * z −61…−55 (trees/index.ts DEPTH_BANDS). Those poles carry a small crown 18 m+ up and nothing
  * closes over them or over the clearing; the roof's giants list does not reach there (the
  * nearest giant is north-east at (15, 2, −37)). These authored bands give the roof support over
- * the stand: a rectangle (world x / z), the height its trees' crowns reach above the local
- * ground (a 26 m pole × 0.85–1.1 scale → 22–29 m tall, crown centre ≈ 0.86 of that), and a
- * feather (m) over which the support fades outside the rectangle — 14 m, so the clearing
- * between the flanks (10–13 m from either) keeps a fifth of the support and closes with hazy
- * gaps rather than a solid lid or open sky. Read only by the stand pass (buildRoof `stand`),
- * which draws from its own stream and writes its own sector mesh, so the plaza roof's clumps
- * and cards are byte-identical with or without it.
+ * the stand: a rectangle (world x / z), the height the roof hangs above the local ground
+ * (22 m: a 26 m pole × 0.85–1.1 scale is 22–29 m tall with its small crown centred at ≈ 0.7 of
+ * that, 15–20 m up — the roof is the layer OVER those crowns, as it is over the giants'), and a
+ * feather (m) over which the support fades outside the rectangle — 14 m: at the clearing's
+ * centre (10.5 m from the west flank) the support is 0.16, at its east edge ≈ 0.05, so about a
+ * quarter of the cells over the clearing build and it closes with hazy gaps rather than a solid
+ * lid or open sky. Read only by the stand pass (buildRoof `stand`), which draws from its own
+ * stream and writes its own sector mesh, so the plaza roof's clumps and cards are byte-identical
+ * with or without it.
  */
 export interface RoofStandBand {
   xMin: number;
@@ -90,14 +92,25 @@ export const ROOF_STAND_BANDS: readonly RoofStandBand[] = [
   { xMin: -12, xMax: 12, zMin: -90, zMax: -81, crownAbove: 22, feather: 14 },
   { xMin: -34, xMax: 48, zMin: -61, zMax: -55, crownAbove: 21, feather: 10 },
 ];
-/** the stand pass's own grid bounds (world x / z): north of the plaza roof's zMin, to the back stand */
-export const ROOF_STAND_BOUNDS = { xMin: -46, xMax: 52, zMin: -96, zMax: -70 } as const;
+/**
+ * the stand pass's own grid bounds (world x / z): from the back stand to 3 m south of the rows
+ * band. It OVERLAPS the plaza grid (zMin −70) over z −70…−52: there the plaza pass builds only
+ * where a giant supports it and the stand pass only where a band does, and a stand cell a giant
+ * already covers (support > ROOF_STAND_GIANT_SKIP) is skipped, so the two passes never stack. A
+ * first cut ended the stand grid at −70: the flanks' south third and the whole rows band were
+ * never sampled and the roof stopped in a straight seam across the clearing (found by review).
+ */
+export const ROOF_STAND_BOUNDS = { xMin: -46, xMax: 52, zMin: -96, zMax: -52 } as const;
+/** a stand cell whose giant support exceeds this is the plaza pass's (skipped here) */
+export const ROOF_STAND_GIANT_SKIP = 0.5;
 /**
  * hero-frame exclusion for the stand's clumps (m): the stand is what camera D looks at through
  * the arch (its nearest band point 54 m off; B / E 58 m; A 70 m), so the plaza roof's 120 m rule
  * would build nothing over it. A stand clump inside a hero frame nearer than this is dropped;
- * beyond it the clump stands in the frame's far haze — measured against the six views in the
- * PR (the −0.003 budget decides the value, not this comment).
+ * beyond it the clump stands in the frame's far haze. With the bands as authored the nearest
+ * in-frame stand clump is ≈ 60 m from any hero camera, so at 50 this is a floor that drops
+ * nothing (the audit's `stand.nearestHeroM` says what it sees); the six-view measurement in the
+ * PR is what holds the −0.003 budget, and the value moves up if it does not.
  */
 export const HERO_DROP_STAND_M = 50;
 
@@ -131,7 +144,15 @@ export interface RoofBuild {
   /** the sampling grid's cell count */
   cells: number;
   /** the north-stand pass (ROOF_STAND_BANDS): its own counts; zeros when the pass is off */
-  stand: { clumps: number; cards: number; cells: number; dropped: { field: number; heroFrame: number; shaft: number; opening: number }; minAboveGround: number };
+  stand: {
+    clumps: number;
+    cards: number;
+    cells: number;
+    dropped: { field: number; heroFrame: number; shaft: number; opening: number };
+    minAboveGround: number;
+    /** per hero viewpoint id: the nearest built stand clump inside that frame (view depth, m), or null when none is */
+    nearestHeroM: Record<string, number | null>;
+  };
 }
 
 export interface RoofOptions {
@@ -194,6 +215,21 @@ export function buildRoof(ctx: WorldContext, rng: Rng, o: RoofOptions): RoofBuil
   const shafts = SHAFT_COLUMNS.map((c) => ({ point: new Vector3(c.point[0], c.point[1], c.point[2]), radius: c.carve ?? c.radius }));
   const openings = CANOPY_OPENINGS.map((c) => ({ point: new Vector3(c.point[0], ctx.terrain.height(c.point[0], c.point[1]), c.point[1]), radius: c.radius, yMin: c.band[0] }));
 
+  /** the nearest built stand clump inside each hero frame (view depth), for the audit */
+  const nearestHero: Record<string, number | null> = Object.fromEntries(ctx.layout.viewpoints.map((v) => [v.id, null]));
+  const noteHeroDepth = (q: Vector3, halfSize: number) => {
+    heroCams.forEach((cam, i) => {
+      const s = cam.project(q);
+      if (!s) return;
+      const th = Math.tan((cam.fov * Math.PI) / 360);
+      const dy = halfSize / (s[2] * 2 * th);
+      const dx = dy / (16 / 9);
+      if (s[0] + dx >= 0 && s[0] - dx <= 1 && s[1] + dy >= 0 && s[1] - dy <= 1) {
+        const id = ctx.layout.viewpoints[i].id;
+        nearestHero[id] = nearestHero[id] === null ? s[2] : Math.min(nearestHero[id] as number, s[2]);
+      }
+    });
+  };
   const inHeroFrame = (q: Vector3, halfSize: number, dropM = HERO_DROP_M): boolean => {
     for (const cam of heroCams) {
       const s = cam.project(q);
@@ -311,19 +347,20 @@ export function buildRoof(ctx: WorldContext, rng: Rng, o: RoofOptions): RoofBuil
         const x = ROOF_STAND_BOUNDS.xMin + (ix + 0.5) * ROOF_GRID_M + jx;
         const z = ROOF_STAND_BOUNDS.zMin + (iz + 0.5) * ROOF_GRID_M + jz;
         const ground = ctx.terrain.height(x, z);
-        // support: the giants (none reach here today, kept for symmetry) and the stand bands; the
-        // roof's height is the support-weighted crown height over the local ground
+        // support: the stand bands only; a cell a giant covers (the north-east giant reaches the
+        // rows band's east end) belongs to the plaza pass and is skipped, so the passes never stack
+        let giantSupport = 0;
+        for (const g of giants) {
+          const d = Math.hypot(x - g.x, z - g.z);
+          giantSupport = Math.max(giantSupport, 1 - smoothstep(g.crownR * ROOF_SUPPORT.inner, g.crownR * ROOF_SUPPORT.outer + ROOF_SUPPORT.plus, d));
+        }
+        if (giantSupport > ROOF_STAND_GIANT_SKIP) {
+          standDropped.field++;
+          continue;
+        }
         let support = 0;
         let ySum = 0;
         let wSum = 0;
-        for (const g of giants) {
-          const d = Math.hypot(x - g.x, z - g.z);
-          const s = 1 - smoothstep(g.crownR * ROOF_SUPPORT.inner, g.crownR * ROOF_SUPPORT.outer + ROOF_SUPPORT.plus, d);
-          if (s <= 0) continue;
-          support = Math.max(support, s);
-          ySum += g.crownY * s;
-          wSum += s;
-        }
         for (const b of ROOF_STAND_BANDS) {
           const s = bandSupport(b, x, z);
           if (s <= 0) continue;
@@ -372,6 +409,7 @@ export function buildRoof(ctx: WorldContext, rng: Rng, o: RoofOptions): RoofBuil
           continue;
         }
         standMinAbove = Math.min(standMinAbove, y - ground);
+        noteHeroDepth(p, halfSize);
         clumps.push({ x, y, z, cards, stand: true });
       }
     }
@@ -477,6 +515,7 @@ export function buildRoof(ctx: WorldContext, rng: Rng, o: RoofOptions): RoofBuil
       cells: o.stand ?? true ? snx * snz : 0,
       dropped: standDropped,
       minAboveGround: Number.isFinite(standMinAbove) ? standMinAbove : 0,
+      nearestHeroM: nearestHero,
     },
   };
 }

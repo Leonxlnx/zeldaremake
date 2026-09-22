@@ -154,7 +154,17 @@ export function create(ctx: WorldContext): WorldSystem {
     minAboveGroundM: Math.round(built.minAboveGround * 100) / 100,
     heightsM: [Math.round(Math.min(...built.clumps.map((c) => c.y)) * 10) / 10, Math.round(Math.max(...built.clumps.map((c) => c.y)) * 10) / 10],
     /** the north-stand pass (roof.ts ROOF_STAND_BANDS): its own counts, its own hero-frame drop distance */
-    stand: { ...built.stand, minAboveGroundM: Math.round(built.stand.minAboveGround * 100) / 100, heroDropM: HERO_DROP_STAND_M, bands: ROOF_STAND_BANDS.length },
+    stand: {
+      clumps: built.stand.clumps,
+      cards: built.stand.cards,
+      cells: built.stand.cells,
+      dropped: built.stand.dropped,
+      minAboveGroundM: Math.round(built.stand.minAboveGround * 100) / 100,
+      heroDropM: HERO_DROP_STAND_M,
+      /** the nearest built stand clump inside each hero frame (view depth, m; null = none): what the drop distance is measured against */
+      nearestHeroM: Object.fromEntries(Object.entries(built.stand.nearestHeroM).map(([k, v]) => [k, v === null ? null : Math.round(v * 10) / 10])),
+      bands: ROOF_STAND_BANDS.length,
+    },
     atlas: { tiles: atlas.tiles, size: atlas.color.image.width },
     material: { alphaTest: ROOF_ALPHA_TEST, mipBias: ROOF_MIP_BIAS, sunThrough: ROOF_SUN_THROUGH, underLift: ROOF_UNDER_LIFT, wind: ROOF_WIND },
     samplePositions: { clumps: built.clumps.slice(0, 64).map((c) => [c.x, c.y, c.z]) },
