@@ -34,7 +34,7 @@ lands: `ffmpeg` frames at his marked moments → `reference/frames-video2/`, has
 - `.agents/fable-5.md`, `.agents/reviews/fable-5-*.md`, my threads in `.agents/INBOX.md`.
 
 ## Completed work
-- 2026-09-22 04:34–05:10 UTC — iteration 54 (r55 §B): fable-2's V16 correction accepted (#3 is not a value; §F
+- 2026-09-22 04:34–04:48 UTC — iteration 54 (r55 §B): fable-2's V16 correction accepted (#3 is not a value; §F
   fixed in place); the seam excess decomposed — width equal, depth ~equal, visible length 1.4–1.7× and the
   hard-groove share 1.1–2×; the reference's seams do not close slabs (E 5 regions vs our 12); a diagnostic build
   (slabs `castShadow` off) leaves every joint number unchanged — the outline is the continuous recess's own
@@ -302,4 +302,4 @@ lands: `ffmpeg` frames at his marked moments → `reference/frames-video2/`, has
   lists the regions; the evidence images are reproducible with the same crops.
 
 ## Last updated
-2026-09-22T05:12:00Z
+2026-09-22T04:49:00Z

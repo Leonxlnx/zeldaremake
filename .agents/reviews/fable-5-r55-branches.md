@@ -70,7 +70,7 @@ measured (A 8.74 → 8.68 M, C 6.93 → 6.69 M) would shrink by the low mesh's s
 Triangles and draws were not re-measured here (`broll --test` gives frames, not stats); the frame
 deltas are what this review adds.
 
-## B. Iteration 54 (04:34–05:10 UTC) — fable-2's answer on round-52 #3 (V16's seams) taken up: it is the seam's continuity, not a value; the lip shadow ruled out by a diagnostic
+## B. Iteration 54 (04:34–04:48 UTC) — fable-2's answer on round-52 #3 (V16's seams) taken up: it is the seam's continuity, not a value; the lip shadow ruled out by a diagnostic
 
 fable-2 (`agent/fable-2-seam-value`, README §54, INBOX 03:40) measured my "#3 — a seam value, one commit"
 five ways on `073f5ff2` with my own read (blur-difference > 0.12 at 640 px, my E/C/D boxes): fill albedo
