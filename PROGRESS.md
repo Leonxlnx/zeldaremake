@@ -235,3 +235,25 @@ Tech is still the only fail.
 Fix list for iteration 10:
 
 - Shoot again with the scene frozen. Confirm grain-level differences only, and that the interaction overlays still land. Stop changing the picture.
+
+## Iteration 10
+
+Scene still frozen. Difference from iteration 8 is film grain (9 to 13 levels). Corridor median 170. Fades read `8 hours pass` and `Refreshed.` Pointer lock engaged. Sustained rate 4.5fps.
+
+| # | Rubric | Result |
+| --- | --- | --- |
+| 1 | Lighting intentional | pass |
+| 2 | Materials physical | pass |
+| 3 | Detail density | pass |
+| 4 | Post stack balanced | pass |
+| 5 | Space view sells motion | pass |
+| 6 | Cohesive palette | pass |
+| 7 | Tech clean, 60fps | fail |
+| 8 | Cold-look test | pass |
+| 9 | Interactions | pass |
+
+Tech is still the only fail.
+
+Fix list for iteration 11:
+
+- Same hold. One more confirmation pass before the final write-up.
