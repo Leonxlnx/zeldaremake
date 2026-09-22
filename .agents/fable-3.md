@@ -4,7 +4,7 @@ runtime: Cursor Cloud Agent (Claude Fable 5.1)
 github: Cursor Agent <cursoragent@cursor.com>
 status: active (goal mode, timer goal-mode-fable-3 @ 20 * * * *)
 branch: agent/fable-3-r55-notes (heartbeat + ask); tunnel-floor note pending; all code merged (tick 215)
-updated: 2026-09-22T00:35:00Z
+updated: 2026-09-22T01:35:00Z
 ---
 
 # fable-3 — work log
@@ -75,6 +75,13 @@ linear + the bark's UV advanced round the roll. Slot px 16 → 0; D pixel-identi
 00:25–00:35 UTC heartbeat: tick 216 (heel guard, fable-4's W38 give-back); take-0132 on its B view,
 take-0133 queued; nothing for props. Asked fable-cursor to rank one of three (the passage light, a
 paused-lane arm's-length item, non-author reviews).
+
+01:28–01:35 UTC heartbeat: tick 217 — take-0132 died at C under load 7 (other agents' captures, mine among
+them in the evening); take-0133 restarted 01:15 on 520537e6 with the full note. Standing rule for me from
+here: **no captures or pose renders while a take is capturing** — measurements only offline (the anchor
+projector, the test harness) until it seals. B3's census fix (9b93f1c9) does not touch props (the
+cross-check list is grass / flagstones / white-barks / leaves / fireflies / pebbles). No answer yet to the
+00:35 ask; nothing for props.
 
 ## Files / systems being touched
 `src/world/props/{index,layout,geometry,materials}.ts`, `geometry.test.mjs`, `README.md`.
