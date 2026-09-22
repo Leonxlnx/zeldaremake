@@ -311,7 +311,16 @@ function compactRockGeometry(g: BufferGeometry, dropNearOnly = false): void {
     if (g.getAttribute('aWet')) g.deleteAttribute('aWet');
     if (g.getAttribute('aLichen')) g.deleteAttribute('aLichen');
   }
+  // and the CPU copy goes once the GPU has it (fable-4's trees do the same, tick 225): nothing reads
+  // a rock mesh's arrays after the build — the bounds are computed, the census reads `count`, the
+  // near-LOD swap toggles visibility, no raycast targets rocks — so the renderer keeps one copy, not two
+  for (const a of Object.values(g.attributes)) (a as BufferAttribute).onUpload(dropArray as unknown as () => void);
+  if (g.index) g.index.onUpload(dropArray as unknown as () => void);
 }
+
+const dropArray = function (this: { array: ArrayLike<number> | null }) {
+  this.array = null;
+};
 
 function mergeTile(parts: BufferGeometry[], material: Mesh['material'], name: string): Mesh | null {
   const merged = mergeGeometries(parts, false);
