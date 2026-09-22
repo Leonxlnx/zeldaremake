@@ -409,3 +409,154 @@ test('runBuild finishes a generator and returns its value', () => {
   }
   assert.equal(runBuild(g()), 42);
 });
+
+test('fixed-camera proximity cannot permanently reject a canopy part', () => {
+  const { swapRadiiFor, NEAR_CANOPY_IN_M, NEAR_CANOPY_OUT_M } = loadTs(path.join(here, 'nearCanopy.ts'));
+  const tally = { kept: 0, limited: 0 };
+  assert.deepEqual(swapRadiiFor(() => 4, new THREE.Vector3(0, 40, 0), 3, tally), [NEAR_CANOPY_IN_M, NEAR_CANOPY_OUT_M]);
+  assert.deepEqual(tally, { kept: 0, limited: 0 });
+});
+
+test('a deferred upper lobe builds only on demand and stays within its buffer/bounds estimates', () => {
+  const rng = createRng('lodPool-test/upper-deferred');
+  const rec = lobeRecord(rng.fork('record'));
+  for (const p of new Set([rec.center, ...rec.stem, ...rec.secondaries.flatMap(s => s.path), ...rec.twigs.flatMap(t => t.path)])) p.y += 31;
+  const part = kit().lobePart(rng, rec, 0, true);
+  assert.equal(part.geometry.getAttribute('position').count, 0);
+  assert.equal(part.triangles, 0);
+  assert.equal(part.deferred, true);
+  const originalBounds = part.geometry.boundingBox.clone();
+  const steps = part.build();
+  assert.equal(steps.next().done, false);
+  assert.equal(part.deferred, true);
+  const built = runSteps(steps);
+  const buffers = buffersOf(built);
+  const bytes = Object.values(buffers).reduce((n, b) => n + b.byteLength, 0);
+  assert.ok(bytes <= part.estimatedBytes, `${bytes} > ${part.estimatedBytes}`);
+  assert.ok(originalBounds.containsBox(built.boundingBox), 'the queued bounds contain the actual built geometry');
+  assert.equal(part.deferred, false);
+  assert.ok(part.leaves > 0 && part.triangles > 500);
+  assert.equal(part.geometry.getAttribute('position').count, 0, 'the descriptor does not retain another copy of pooled geometry');
+  const again = buffersOf(runSteps(part.build()));
+  for (const name of Object.keys(buffers)) assert.ok(buffers[name].equals(again[name]), name);
+});
+
+test('giants register detail above 25 m without changing far geometry or the tree random stream', () => {
+  const { createGiantTree } = loadTs(path.join(here, 'giant.ts'));
+  const def = { id: 'upper-giant', position: [0, 0, 0], trunkRadius: 1.4, height: 42 };
+  const options = { groundAt: ground, palette, leafDensity: 0.4, cardDensity: 0.4, sunDir: new THREE.Vector3(0.3, 0.8, 0.5).normalize(), pathAt: () => 0, heroDistance: Infinity,
+    boughs: [{ fromHeight: 31, to: new THREE.Vector3(8, 36, 3), radius: 0.5 }] };
+  const r1 = createRng('lodPool-test/upper-giant'), r2 = createRng('lodPool-test/upper-giant');
+  const far = createGiantTree(def, r1, options);
+  const near = createGiantTree(def, r2, { ...options, nearCanopy: { heroDistance: () => 4, defer: true } });
+  const upper = near.nearCanopy.filter(p => p.kind === 'lobe' && p.center.y > 25);
+  assert.ok(upper.length > 0, 'high ordinary lobes remain in the catalogue');
+  assert.ok(upper.every(p => p.deferred && p.geometry.getAttribute('position').count === 0));
+  assert.ok(near.nearCanopy.some(p => p.kind === 'limb' && p.center.y > 25), 'upper limbs remain eligible too');
+  const untagged = w => w >= 1000 ? 1.5 + (w % 1) : w >= 2.75 ? 1 : w;
+  for (const key of ['geometry', 'cards', 'authoredLeaves', 'authoredCards']) {
+    const a = buffersOf(far[key]), b = buffersOf(near[key]);
+    for (const name of Object.keys(a)) {
+      if (name !== 'aRoot') assert.ok(a[name].equals(b[name]), `${key}/${name} changed`);
+      else {
+        const aa = far[key].getAttribute('aRoot').array, bb = near[key].getAttribute('aRoot').array;
+        assert.equal(aa.length, bb.length);
+        for (let i = 0; i < aa.length; i++) {
+          if (i % 4 === 3) assert.ok(Math.abs(untagged(aa[i]) - untagged(bb[i])) < 0.0001, `${key} leaf class/shade changed`);
+          else assert.equal(aa[i], bb[i], `${key} root position changed`);
+        }
+      }
+    }
+  }
+  assert.deepEqual(Array.from({ length: 32 }, () => r1()), Array.from({ length: 32 }, () => r2()));
+});
+
+// Exercise the production closure itself, with real LodPool and small deterministic items.
+// Loading all of index.ts would construct browser materials unrelated to this state transition.
+const canopyUpdateFor = (parts, pool, slots = 64) => {
+  const file = path.join(here, 'index.ts'), ast = ts.createSourceFile(file, readFileSync(file, 'utf8'), ts.ScriptTarget.Latest, true);
+  let initializer;
+  const visit = node => {
+    if (ts.isVariableDeclaration(node) && node.name.getText(ast) === 'nearCanopyUpdate') initializer = node.initializer;
+    ts.forEachChild(node, visit);
+  };
+  visit(ast);
+  assert.ok(initializer);
+  const expression = ts.transpileModule(`(${initializer.getText(ast)})`, { compilerOptions: { target: ts.ScriptTarget.ES2022 } }).outputText;
+  const mats = { nearCanopy: { value: Array.from({ length: slots }, () => new THREE.Vector4()) } };
+  return { mats, update: new Function('nearCanopies', 'nearCanopyPool', 'mats', 'NEAR_CANOPY_PREFETCH_M', 'NEAR_CANOPY_SLOTS', 'NEAR_CANOPY_LIMBS_MAX', `return ${expression}`)(parts, pool, mats, 42, slots, 12) };
+};
+const canopyFixture = (item, group = 0) => ({ item, group, center: new THREE.Vector3(0, 40, 0), radius: 4, root: new THREE.Vector3(), kind: 'lobe', inM: 26, outM: 30, active: false, dist: Infinity, mesh: { visible: false } });
+
+test('walking canopy poses retain far foliage until resident and use crown-envelope hysteresis', () => {
+  const now = clock(), pool = new LodPool(1000, now), item = fakeItem('upper', 200, [], 3, now, 0.4);
+  pool.add(item);
+  const part = canopyFixture(item), { update, mats } = canopyUpdateFor([part], pool);
+  const cam = new THREE.Vector3(0, 68.5, 0); // 28.5 m to centre; 24.5 m to crown envelope.
+  update(cam, false);
+  assert.equal(part.active, true);
+  assert.equal(part.mesh.visible, false);
+  assert.equal(mats.nearCanopy.value[0].w, 0, 'far foliage stays unfolded');
+  assert.equal(pool.report().syncBuilds, 0);
+  pool.work(0.5);
+  update(cam, false);
+  assert.equal(part.mesh.visible, false);
+  assert.equal(pool.report().syncBuilds, 0, 'ordinary updates leave missing detail to the frame budget');
+  for (let i = 0; i < 10 && !pool.isResident(item); i++) { update(cam, false); pool.work(0.5); }
+  assert.equal(pool.isResident(item), true);
+  update(cam, false);
+  assert.equal(part.mesh.visible, true);
+  assert.equal(mats.nearCanopy.value[0].w, 3);
+  update(new THREE.Vector3(0, 72, 0), false); // envelope 28: retains the active part.
+  assert.equal(part.mesh.visible, true);
+  update(new THREE.Vector3(0, 75, 0), false); // envelope 31: returns to far foliage.
+  assert.equal(part.mesh.visible, false);
+  assert.equal(mats.nearCanopy.value[0].w, 0);
+  assert.ok(pool.poolBytes <= pool.capBytes);
+});
+
+test('explicit canopy re-poses finish the same selected geometry from cold and warm pools', () => {
+  const now = clock(), pool = new LodPool(1000, now), parts = [];
+  for (let i = 0; i < 3; i++) {
+    const item = fakeItem(`upper-${i}`, 200, [], 3, now, 0.4);
+    item.bytes = 280; // conservative first-build estimate becomes 200 after completion.
+    pool.add(item);
+    parts.push(canopyFixture(item, i));
+  }
+  const { update, mats } = canopyUpdateFor(parts, pool);
+  const cam = new THREE.Vector3(0, 68.5, 0);
+  const snapshot = () => ({ shown: parts.map(p => p.mesh.visible), slots: mats.nearCanopy.value.map(v => v.toArray()) });
+  update(cam, true);
+  const cold = snapshot();
+  assert.equal(pool.report().syncBuilds, 3);
+  assert.ok(parts.every(p => p.mesh.visible));
+  for (let i = 0; i < 6; i++) { update(cam, false); pool.work(0.5); }
+  update(new THREE.Vector3(0, 100, 0), true);
+  update(cam, true);
+  assert.deepEqual(snapshot(), cold, 'same explicit target after another pose and warm frames');
+  assert.equal(pool.report().syncBuilds, 3);
+  pool.dispose();
+  update(cam, true);
+  assert.deepEqual(snapshot(), cold, 'same explicit target after complete pool eviction');
+  assert.equal(pool.report().syncBuilds, 6);
+  assert.ok(pool.poolBytes <= pool.capBytes);
+});
+
+test('canopy selection retains the 64-slot limit and never pins beyond the byte cap', () => {
+  for (const cap of [10000, 300]) {
+    const pool = new LodPool(cap), parts = [];
+    for (let i = 0; i < 80; i++) {
+      const item = fakeItem(`part-${i}`, 100, []);
+      pool.add(item, { bytes: 100, dispose() {} });
+      parts.push(canopyFixture(item, i));
+    }
+    const { update, mats } = canopyUpdateFor(parts, pool);
+    update(new THREE.Vector3(0, 40, 0), true);
+    assert.equal(parts.filter(p => p.mesh.visible).length, Math.min(64, cap / 100));
+    assert.equal(mats.nearCanopy.value.filter(v => v.w > 0).length, Math.min(64, cap / 100));
+    assert.ok(pool.report().pinnedBytes <= cap);
+    assert.equal(pool.report().syncBuilds, 0);
+    pool.work(0);
+    assert.ok(pool.poolBytes <= cap);
+  }
+});
