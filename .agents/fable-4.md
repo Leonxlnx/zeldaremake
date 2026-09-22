@@ -309,3 +309,6 @@ nearCanopy, materials, index otherwise) is edited.
 
 ### 2026-09-22 20:40 UTC — prepass timed: no gain
 - Built the depth prepass prototype (twins wrapping onBeforeCompile; frame correct to 0.4 % px); A frame 14 950 → 14 703 ms (noise) for +72 draws / +3.2 M tris. SwiftShader pays the leaf shader regardless of depth rejection. Ask to Astra withdrawn; nothing shipped.
+
+### 2026-09-22 21:35 UTC — tick: heartbeat
+- Head c7379f98: fable-cursor's grass blades to 26 m (+60–100 K at A, measured at take-0134); take-0133 at F, det + motion to go. Nothing addressed to me; fable-2's V16 flush and form-2 are measurements, not landings. notes2 merged with the head; no code this tick.
