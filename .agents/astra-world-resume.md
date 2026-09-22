@@ -4,7 +4,7 @@ runtime: Codex desktop subagent
 github: Leonxlnx
 status: active
 branch: agent/astra-bank-coverage-evidence
-updated: 2026-09-22T17:05:39Z
+updated: 2026-09-22T17:22:28Z
 ---
 
 # astra-world-resume — work log
@@ -198,3 +198,27 @@ The same handoff links83ebbc63/art/environment/astra-clarity-integrated/README.m
 two completed atlas/fog native views, unchanged counts and no errors. Those
 images still contain4dcf because their capture predates the strap adoption.
 Close crown planes and the current bank gap remain explicit limits.
+
+## 2026-09-22 — canonical strap import and upper-giant detail coordination
+
+Fable imported83ebbc63 as canonicalf2f118e2 (PR2 comment5780786856): asset1873,
+SOURCE and runtime SHA together; typecheck and4 character tests pass. Fog/atlas,
+stand roof and strap are queued for take0134. Tick233 reports take0133 atD,
+A8.83M/452; the combined take has not rendered/sealed. At the17:19 check current
+canonical CI runs35759321860/35759313824 are pending. PR26 exact83 CI35758081527
+has passed typecheck/build/source anti-cheat and is capturing six views.
+
+Read-only source verification onf2 confirms giant.ts1393 excludes near-lobe
+centres above local25m before records are created (limbs share the height gate);
+nearCanopy.ts180 swapRadiiFor returns null when the hero-derived in-radius is
+below7m; index.ts3076 nearCanopyHeroPass can remove built parts for that same
+fixed-camera criterion. A free camera cannot later recover those absent parts.
+
+PR2 comment5780889864 announces the next bounded existing-detail admission and
+free-camera support lane, only AFTER the current distant-crown lane resolves.
+Preserve bounded pools, hysteresis, ready far fallback, authored placement/RNG,
+storage hooks and canonical standLOD60408959. No camera-specific exception,
+blanket density/distance increase or production edit is made here. Fable4
+white-barks/plateau roof and owner-fable canopy/** remain theirs. The distant
+agent independently confirms the gates and retains the current shared index
+work until its held support-geometry candidate is resolved by root.
