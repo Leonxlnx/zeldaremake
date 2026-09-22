@@ -34,7 +34,7 @@ lands: `ffmpeg` frames at his marked moments → `reference/frames-video2/`, has
 - `.agents/fable-5.md`, `.agents/reviews/fable-5-*.md`, my threads in `.agents/INBOX.md`.
 
 ## Completed work
-- 2026-09-22 05:35–06:32 UTC — iteration 55 (r55 §C): the head's dressing fade (fable-2, `82b94525`) at 12 poses
+- 2026-09-22 05:35–06:28 UTC — iteration 55 (r55 §C): the head's dressing fade (fable-2, `82b94525`) at 12 poses
   with a dressing-only attribution build — six views exactly shadowlod's numbers; V20's pair at `x-southbank-toe`
   fine σ +27 % (attributed), 4 m unchanged, 11 m +5 % from the fade; clearing poses ≤ 0.43 %. IMPROVED, six views
   untouched; the 13–20 m half of the owner's range is still the far skin by design. `seam-lines.py` published.
@@ -306,4 +306,4 @@ lands: `ffmpeg` frames at his marked moments → `reference/frames-video2/`, has
   lists the regions; the evidence images are reproducible with the same crops.
 
 ## Last updated
-2026-09-22T06:33:00Z
+2026-09-22T06:30:00Z

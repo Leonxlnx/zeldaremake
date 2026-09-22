@@ -132,7 +132,7 @@ head | diagnostic; red = the counted seam line, yellow = where it is a hard groo
 `fable-5-r55/seam-lines.py <view> label=image ...` (numpy / pillow / scipy) prints every column of the table
 above, so the flush-stretch work can be verified with the same numbers.
 
-## C. Iteration 55 (05:35–06:30 UTC) — the head `073f5ff2` → `82b94525`: fable-2's dressing fade (V20's pair at `x-southbank-toe`, the owner's "stones under-detailed at 5–20 m") with shadowlod riding along
+## C. Iteration 55 (05:35–06:28 UTC) — the head `073f5ff2` → `82b94525`: fable-2's dressing fade (V20's pair at `x-southbank-toe`, the owner's "stones under-detailed at 5–20 m") with shadowlod riding along
 
 `82b94525` merged fable-2's chain: the dressing stones (the backside's pale pair, the clearing's west-bank
 set) take their own near-capable material with `DRESSING_NEAR_FADE_M` 7–13 m (`0d86abbb`), and fable-4's

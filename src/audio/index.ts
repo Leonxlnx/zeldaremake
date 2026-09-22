@@ -5,7 +5,7 @@
  *
  *   ambience.ts  — wind bed following the world's gust, leaf rustle, four synthesised bird calls
  *                  on a seeded schedule, the pod lanterns' hum attenuated by distance
- *   footsteps.ts — stone / grass steps from the player's speed and the terrain mask
+ *   footsteps.ts — stone / grass / dirt / wood / hollow steps from the player's speed and the ground under him
  *   music.ts     — the music slot: `public/audio/music.ogg|mp3` if present, else the original
  *                  placeholder loop; −12 dB under the ambience
  *
@@ -16,7 +16,8 @@
 import type { Object3D, Scene, Vector3 } from 'three';
 import type { Wind } from '../world/wind/wind';
 import type { PlayerHandle } from '../world/character/player';
-import { getTerrain } from '../world/terrain/heightfield';
+import { surfaceMask } from '../world/terrain/heightfield';
+import { EXPANSION, LAYOUT } from '../world/layout';
 import { createBuses, createRng, type Buses } from './graph';
 import { createAmbience, type Ambience, type Vec3 } from './ambience';
 import { createFootsteps, type Footsteps, type Surface } from './footsteps';
@@ -75,9 +76,53 @@ function gatherPods(scene: Scene): Vec3[] {
   return pods;
 }
 
-function surfaceAt(x: number, z: number): { surface: Surface; stairs: boolean } {
-  const m = getTerrain().mask(x, z);
-  return { surface: m.path > 0.5 || m.stairs > 0.5 ? 'stone' : 'grass', stairs: m.stairs > 0.5 };
+/**
+ * What Link's boot lands on (owner, 2026-09-22: "his footsteps should correlate where he's
+ * walking — gentle stone, grass, etc."). Analytic, from the layout and the live terrain masks the
+ * paving is built from — no raycasts:
+ *  - hollow: inside the log tunnel's bore (LAYOUT.logArch axis where the path passes through, within 0.8 of its radius)
+ *  - wood:   the west house's platform disc and its walkway deck (EXPANSION.westHouse)
+ *  - stone:  the flagstone paths and the stair treads (surfaceMask path / stairs, live view — the
+ *            expansion's stepping discs count)
+ *  - dirt:   the trodden shoulders beside the paving (path influence 0.12–0.5) and the stair aprons
+ *  - grass:  everything else
+ */
+export function surfaceAt(x: number, z: number): { surface: Surface; stairs: boolean } {
+  const m = surfaceMask(x, z, 'live');
+  if (m.stairs > 0.5) return { surface: 'stone', stairs: true };
+  // the log tunnel: distance from the log's axis in its own frame
+  const la = LAYOUT.logArch;
+  {
+    const yaw = (la.yawDeg * Math.PI) / 180;
+    const dx = x - la.position[0];
+    const dz = z - la.position[2];
+    const u = dx * Math.cos(yaw) - dz * Math.sin(yaw);
+    const v = dx * Math.sin(yaw) + dz * Math.cos(yaw);
+    // the bore is where the north path passes through the log's west half (layout: the path spine
+    // crosses at lu −3.4 … −4.8); elsewhere along the log the walker is on the ground beside it
+    if (u > -8.5 && u < -0.5 && Math.abs(v) < la.radius * 0.8) return { surface: 'hollow', stairs: false };
+  }
+  // the west house's platform and deck
+  {
+    const wh = EXPANSION.westHouse;
+    const hx = wh.host[0];
+    const hz = wh.host[1];
+    if (Math.hypot(x - hx, z - hz) < wh.radius) return { surface: 'wood', stairs: false };
+    const ex = wh.deckEnd[0];
+    const ez = wh.deckEnd[2];
+    const ax = ex - hx;
+    const az = ez - hz;
+    const len = Math.hypot(ax, az) || 1;
+    const t = ((x - hx) * ax + (z - hz) * az) / (len * len);
+    if (t > 0 && t < 1) {
+      const px = hx + ax * t;
+      const pz = hz + az * t;
+      if (Math.hypot(x - px, z - pz) < 0.475) return { surface: 'wood', stairs: false };
+    }
+  }
+  if (m.path > 0.5) return { surface: 'stone', stairs: false };
+  if (m.path > 0.12) return { surface: 'dirt', stairs: false };
+  return { surface: 'grass', stairs: false };
 }
 
 export const AUDIO_SEED = 'kokiri-audio-r47';
@@ -229,11 +274,22 @@ export async function renderOffline(o: AudioOptions, seed: string, seconds: numb
   for (let t = 0; t < seconds; t += step) {
     let speed = 0;
     let surface: Surface = 'grass';
-    if (t >= 2 && t < 8) speed = 1.6;
-    else if (t >= 8 && t < 14) {
+    // a scripted walk over every surface: grass, the trodden shoulder, flagstones, the deck's
+    // planks, the log tunnel's hollow, then a run on stone
+    if (t >= 2 && t < 6) speed = 1.6;
+    else if (t >= 6 && t < 9) {
+      speed = 1.6;
+      surface = 'dirt';
+    } else if (t >= 9 && t < 13) {
       speed = 1.6;
       surface = 'stone';
-    } else if (t >= 14 && t < 18) {
+    } else if (t >= 13 && t < 16) {
+      speed = 1.6;
+      surface = 'wood';
+    } else if (t >= 16 && t < 19) {
+      speed = 1.6;
+      surface = 'hollow';
+    } else if (t >= 19 && t < 23) {
       speed = 4.2;
       surface = 'stone';
     }

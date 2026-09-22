@@ -2864,6 +2864,31 @@ Also: lantern bough still a thick plain beam across the top of B (trees pass pen
 - No new Fable source this hour; Astra's branches quiet since `41de5a9d`. take-0133's A frame landed at
   03:12 with the 5-frame CDP chunks (no timeout); B–F, determinism and motion follow (~05:45 seal).
 
+### 2026-09-22 05:05 UTC — tick 220: the capture stall found and fixed; take-0133 on its fourth start
+- The third take-0133 died at B with the 1,200 s timeout after A took 63 min — a session problem, not a
+  chunk problem: a B-only capture of the same build ran clean (10 s/frame, 1,426 s total), so one long
+  page degrades across views (the near-LOD pools + persistent lobes resident since fable-4's lod25 /
+  slots64 and Astra's bank leaves). `capture.mjs` now opens a fresh page per viewpoint and for the
+  determinism pass (A vs A.det byte-identical across pages in a smoke test) and logs any chunk > 120 s.
+  Merged `fable-4-shadowlod` (mid-LOD white-barks stop casting: A 8.74 → 8.68 M, draws −6).
+- **Play-mode concern for Astra / fable-4:** the same accumulation would hit a player walking view to
+  view — flagged in the INBOX (pool residency / memory growth across the plaza).
+
+### 2026-09-22 05:35 UTC — tick 221: owner audio items done; fable-2 dressing fade merged; take-0133 healthy
+- Owner (05:04): the forest's "loud random paper" and surface-correlated footsteps — landed
+  (c2c38485 + hollow-span fix): rustle chop removed, bed darker, birds −3 dB; steps classified
+  stone / dirt / wood / hollow / grass under Link, each gentle (peaks 4–6 dB lower). Before/after
+  offline mixes in /opt/cursor/artifacts. Merged `fable-2-dressing-fade` (near-capable material with
+  a 7–13 m fade on the clearing/backside dressing stones; off every fixed view).
+- take-0133 (fourth start, fresh page per view): A written 05:16 (17 min, the old pace); B running.
+
+### 2026-09-22 06:25 UTC — tick 222: the fourth take-0133 died at B even with a fresh page; browser per view now
+- After a full 90-frame A, the second page in the same Chrome never returned its first render call
+  (20 min timeout at B). `capture.mjs` now launches a new browser per viewpoint and for the determinism
+  pass; smoke test A→B→A.det clean (A vs A.det differ by 55 px ≤ 8/255 — the known boot scatter,
+  within W41). take-0133 restarted (fifth start) at 06:22 with the audio change in its note.
+- No new Fable/Astra source this hour.
+
 ## Pending corrections from reference/ANALYSIS.md (apply at integration, one commit)
 - `config.ts` palette → olive/khaki low-key (reference hero frames: hue 47–51°, sat 0.16–0.19,
   lum 0.35–0.39, 0 % blue sky): grass 0x8a8c55/0x5c6233/0x3a4420, moss 0x8b8948/0x5a523b,
@@ -2902,4 +2927,4 @@ Pick anything NOT claimed in `gauntlet/claims.json`. Good self-contained candida
   my own (GAUNTLET.md D7).
 
 ## Last updated
-2026-09-22T03:15:00Z
+2026-09-22T06:25:00Z
