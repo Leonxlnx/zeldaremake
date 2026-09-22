@@ -257,3 +257,25 @@ Tech is still the only fail.
 Fix list for iteration 11:
 
 - Same hold. One more confirmation pass before the final write-up.
+
+## Iteration 11
+
+Scene frozen. Grain-only difference from iteration 8 (9 to 13 levels). Corridor median 170. Fades still say `8 hours pass` and `Refreshed.` Pointer lock engaged. Sustained rate 4.7fps.
+
+| # | Rubric | Result |
+| --- | --- | --- |
+| 1 | Lighting intentional | pass |
+| 2 | Materials physical | pass |
+| 3 | Detail density | pass |
+| 4 | Post stack balanced | pass |
+| 5 | Space view sells motion | pass |
+| 6 | Cohesive palette | pass |
+| 7 | Tech clean, 60fps | fail |
+| 8 | Cold-look test | pass |
+| 9 | Interactions | pass |
+
+Tech is still the only fail. Next iteration is the last one under the cap.
+
+Fix list for iteration 12:
+
+- Final confirmation shots, then the stop summary. Do not change the scene.
