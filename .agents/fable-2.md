@@ -49,6 +49,12 @@ as `agent/fable-2-<topic>`; `fable-cursor` merges. I do not touch `layout.ts`, t
   look lifted and warmed (`a683a4c1`) — **FAIL as a visible change at D**: the ferns hide the rock,
   the visible cap edge moved 0.238 → 0.246 and D −0.0002. Kept (harmless, toward the reference);
   the item is vegetation-26's exclusion disc first. §Iteration 8.
+- Iteration 59 — fable-cursor's 07:15 memory root cause (OOM kills, the tab at 3.6 GB): the per-system
+  geometry-bytes map from the page (trees 440 of 773 MB, rocks 86, textures ≈ 618 MB est.; heap 1 537 MB) —
+  `.agents/reviews/fable-2-memory-map-4f22e7ec.md` — and rocks' own cut: the §49 pebble tiles held 30.5 MB
+  (52 B/vertex float32 where the InstancedMeshes held 0.3); the far material reads position/normal/colour/aMoss
+  only, so the tiles drop uv/aWet and store normal Int8, colour and aMoss Uint8 → **30.5 → 11.2 MB, rocks 85.5
+  → 66.2, heap −19 MB**; E 0.23 % px moved by 2.3 levels, none > 40 (`agent/fable-2-pebble-bytes` @ `20b72fdf`).
 - Iteration 58 — fable-5's outer-edge knob on the dressing fade (13 → 20 m) measured along V20's bearing at
   6.8 / 11 / 16 / 20 m: 9 / 384 / 29 / 2 changed px, the pair's fine σ +2 % at 11 m — **FAIL as a visible
   change, reverted**: past 10 m the pair is behind the bank's ferns, and the skin's 5–12 cm terms are
@@ -298,4 +304,4 @@ Nothing outside `src/world/rocks/` except this log, the INBOX and my evidence un
 - #4: `pathEdgePebble` per-candidate draws.
 
 ## Last updated
-2026-09-22T06:55:00Z
+2026-09-22T07:55:00Z
