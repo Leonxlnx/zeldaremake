@@ -34,7 +34,7 @@ lands: `ffmpeg` frames at his marked moments → `reference/frames-video2/`, has
 - `.agents/fable-5.md`, `.agents/reviews/fable-5-*.md`, my threads in `.agents/INBOX.md`.
 
 ## Completed work
-- 2026-09-22 15:29–15:40 UTC — iteration 65 (`fable-5-take0132.md`, r55 §M): the take sealed as take-0132 (`4f22e7ec`) — six
+- 2026-09-22 15:29–15:35 UTC — iteration 65 (`fable-5-take0132.md`, r55 §M): the take sealed as take-0132 (`4f22e7ec`) — six
   views on §D's expected row to ±0.0004 (C +0.0012), pipeline healthy, deltas = the source chain; W02 re-filed pass (flight
   box 61 → 40 % dark), C01 re-filed fail (Link pixel-identical to take-0131); 41/50; take-0134's expected row posted.
 - 2026-09-22 14:22–14:38 UTC — iteration 64 (r55 §L): whose shadow is on the D boulder — a `?nocast=<group>` diagnostic:
@@ -339,4 +339,4 @@ lands: `ffmpeg` frames at his marked moments → `reference/frames-video2/`, has
   lists the regions; the evidence images are reproducible with the same crops.
 
 ## Last updated
-2026-09-22T15:41:00Z
+2026-09-22T15:36:00Z

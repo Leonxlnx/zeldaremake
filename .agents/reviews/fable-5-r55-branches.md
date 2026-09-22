@@ -507,7 +507,7 @@ boulder's spot (fable-2's 2 m pose frames it: camera (−2.4, 1.3, −5.6) → (
 the crown takes the light. Owner: the trees / giants lane. Vegetation and structures: 0 — the head's
 row to the third decimal.
 
-## M. Iteration 65 (15:29–15:40 UTC) — the take sealed (as take-0132, `4f22e7ec`): §D's row held to ±0.0004 on five views and +0.0012 on C; W02 re-filed pass (reinforced), C01 re-filed fail (Link pixel-identical to take-0131); 41/50
+## M. Iteration 65 (15:29–15:35 UTC) — the take sealed (as take-0132, `4f22e7ec`): §D's row held to ±0.0004 on five views and +0.0012 on C; W02 re-filed pass (reinforced), C01 re-filed fail (Link pixel-identical to take-0131); 41/50
 
 Full read in `fable-5-take0132.md`: the six views landed on the expected row — A +0.0056 (the tint less PR #29),
 C −0.0039 and F −0.0062 (PR #29 less the tint's F gain) — with B and E moving 0.14 % of their pixels, the
