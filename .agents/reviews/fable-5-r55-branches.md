@@ -435,4 +435,52 @@ geometry", not landed. A claim about light has a direct test: the same builds wi
 Sheet `fable-5-r55/fable-5-r55-d-boulder-light-quad.jpg` (loaf | planes; both with the shadow map off; the
 frame at right).
 
+## K. Iteration 63 (13:33–14:03 UTC) — V16, the fill's half specified in numbers after fable-2's flush stretches moved nothing; the owner's grass item (blades to 26 m) measured on the head
+
+### K.1 V16: the recess was half the mechanism; the seam's tone is the other half, and here is its number
+
+fable-2 built the flush stretches as re-scoped (`agent/fable-2-v16-flush`, README §64: ≈ 40 % of each outline's rim
+down to the fill on a 1.7 cycles/m noise) and read them with `seam-lines.py`: **E line 86.1 → 86.1 px/kpx, hard-groove
+share 27.0 → 27.0 %, regions 14 → 14** — the stretches exist (4–15 K pixels move per view) and the read does not move.
+So the recess is not what the eye counts either: with the rim flush, the fill strip is still darker than the slab
+along its whole length. §B's conclusion (continuity is the lever) stands; §B's mechanism (the recess) was half of it.
+
+The number the module needs, from the same read (seam pixels on the counted line vs the slab pixels beside them,
+medians at 640 px):
+
+| | reference E | head E | reference D | head D |
+| --- | --- | --- | --- | --- |
+| seam luminance (median on the line) | 0.360 | **0.262** | 0.323 | **0.262** |
+| slab luminance beside it | 0.514 | 0.549 | 0.513 | 0.545 |
+| **seam below slab** | **−0.15** | **−0.29** | **−0.19** | **−0.28** |
+| share of the line inside 0.06 of its surround | 31 % | 25 % | 29 % | 24 % |
+
+Where the frame's seam shows it sits 0.15–0.19 below the slab; ours sits 0.28–0.29 below — **twice the depth on 1.6×
+the length**. fable-2's fill × 1.3 (r55 §B) lifted 0.262 to ≈ 0.34, still −0.21 — a third of the way, which is what
+they measured (8.1 → 7.8 %). So the fill half of V16, in `joints.ts`, is two numbers: **the seam soil at ≈ 0.40 (−0.15
+below the slab) where the line shows, and at the slab's own value (≈ 0.50–0.55: dry dirt or turf) over ≈ 40 % of each
+run**, keyed on the same noise as the flush rim, with the rim flush there so no wall reappears. The read that accepts
+it: E line ≤ 60 px/kpx, hard-groove share ≤ 15 %, regions ≤ 6 — the reference's row within noise.
+
+### K.2 The owner's grass item on the head (`f9c58007`, fable-cursor by hand): blades to 26 m
+
+`grass.ts` mid blade LOD 16 → 26 m ("patches in the grass where it's not full" — at player height the far half of
+every lawn was the carpet's clump cards alone). An owner item and a declared look change, so the six-view budget is
+the check, not a bar. Before `aef8bb47` (§I's frames), after `f9c58007`, same shot list:
+
+| view | Δ SSIM vs reference | pixels > 6 levels | where |
+| --- | --- | --- | --- |
+| A | −0.0002 | 0.18 % | the lawn band 16–26 m out, x 0.17–0.96 × y 0.17–0.50 |
+| B | −0.0002 | 0.29 % | the lawn to the house, x 0.18–0.52 × y 0.35–0.60 |
+| C | −0.0005 | 0.15 % | |
+| D | 0 | 0.13 % | |
+| E | **+0.0004** | 0.28 % | the same lawn as B |
+| F | **−0.0022** | 0.51 % | x 0.37–0.87 × y 0.20–0.48, brighter by 12 levels — lit blades over the carpet beyond the flight |
+
+Inside −0.003 everywhere; F takes most of it (−0.0022, on top of PR #29's −0.0104 already booked there — F is
+the view that keeps paying). In stills the change is faint: 0.1–0.5 % of pixels at the fixed views, and at three
+player-height poses I placed blind toward lawns 20–24 m out, 0.03–0.53 % — a blade at 20 m is two pixels at 1280 ×
+720, so the owner's "patches" are a walking, parallax read that a still barely holds. The +41 tiles / ≈ 60–100 K
+triangles at A are the take's to measure (fable-cursor: at take-0134). Nothing to hold.
+
 ## take-0133 — sixth start 08:33, grinding (tick 228: at D; C sealed 2,829 s). Re-verdict follows when it seals, against §D's expected row (every merge since is frame-neutral — §F, §G, §I).

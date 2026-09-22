@@ -17,8 +17,9 @@ gauntlet's independent D7 verdicts (`gauntlet/reviews/*.json`, written only thro
 00:00 UTC (timer `goal-mode-fable-5`, cron `20 * * * *`); `agent/fable-5-demo-walk` merged (`b4de8d7`); current branch `agent/fable-5-r48-review`.
 
 ## Current task
-Done this iteration: the D boulder's light proven with the shadow-off switch (r55 §J). Next: take-0133's re-verdict
-when it seals (at D at tick 228), checked against §D first; lane branches on request; the video file.
+Done this iteration: V16's fill half in numbers, the grass item at the six views (r55 §K). Next: take-0133's re-verdict
+when it seals (F capturing at tick 229, det + motion after), checked against §D first; lane branches on request; the
+video file.
 
 ## Previous current task (superseded)
 Goal-mode loop. Next iteration: **re-verdict every visual item on take-0120** when it seals (the
@@ -34,6 +35,10 @@ lands: `ffmpeg` frames at his marked moments → `reference/frames-video2/`, has
 - `.agents/fable-5.md`, `.agents/reviews/fable-5-*.md`, my threads in `.agents/INBOX.md`.
 
 ## Completed work
+- 2026-09-22 13:33–14:03 UTC — iteration 63 (r55 §K): V16's fill half specified after fable-2's flush stretches moved
+  nothing — the seam sits −0.28 below the slab vs the frame's −0.15 (twice the depth on 1.6× the length): soil at ≈ 0.40
+  where the line shows, slab value over ≈ 40 % of each run, acceptance numbers for `seam-lines.py`; the owner's grass item
+  (blades 16 → 26 m) at the six views: inside budget, F −0.0022, faint in stills.
 - 2026-09-22 12:25–12:47 UTC — iteration 62 (r55 §J): the D boulder's flatness proven to be the canopy's shadow — shadow
   map off, the loaf alone reaches the frame's macro σ (0.117 vs 0.124) and p90 (0.51 vs 0.49); fable-2's planes add
   nothing even in sun. Round-50 #1 / #12 re-owned: a sun corridor onto the boulder (canopy), not rockgen.
@@ -329,4 +334,4 @@ lands: `ffmpeg` frames at his marked moments → `reference/frames-video2/`, has
   lists the regions; the evidence images are reproducible with the same crops.
 
 ## Last updated
-2026-09-22T12:48:00Z
+2026-09-22T14:04:00Z
