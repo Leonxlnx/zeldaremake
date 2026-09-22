@@ -8,7 +8,7 @@
  * and loose fragments, and a material variant whose 2.6 m texture tile, wet band and crack grime
  * fade in under 6 m (material.ts). The six fixed hero cameras always render the far meshes.
  */
-import { Color, Frustum, Group, InstancedMesh, Matrix4, Mesh, PerspectiveCamera, Quaternion, Sphere, Vector3, type BufferGeometry, type Camera } from 'three';
+import { BufferAttribute, Color, Frustum, Group, InstancedMesh, Matrix4, Mesh, PerspectiveCamera, Quaternion, Sphere, Vector3, type BufferGeometry, type Camera } from 'three';
 import type { WorldContext, WorldSystem } from '../system';
 import { Noise2D, clamp, smoothstep } from '../util/noise';
 import { northBox, northVisible } from '../util/northLocality';
@@ -276,10 +276,42 @@ interface PebbleTile {
 }
 
 /** one tile's instances merged into a static mesh (looks baked in), or null when none */
+/**
+ * The merged pebble tiles' vertex storage, for the far rock material they draw with (memory: the tab
+ * reached 3.6 GB in the takes, tick 223). rockgen writes 52 B per vertex — position / normal / uv /
+ * colour as floats, aMoss and aWet — of which the far material reads position, normal, colour and
+ * aMoss only (triplanar: no uv; aWet / aLichen are the near variant's), and a pebble's colour sits in
+ * 0.47–0.76, its aMoss in 0–0.4. So: uv and aWet dropped, the normal as Int8 ×3, the colour and aMoss
+ * as Uint8 (all normalised, read as the same floats by the shader) — 19 B per vertex, ≈ −63 % on the
+ * 2,042 × 240 + 60 non-indexed vertices the tiles hold (≈ 32 → 12 MB).
+ */
+function compactPebbleGeometry(g: BufferGeometry): void {
+  const n = g.getAttribute('position').count;
+  const normal = g.getAttribute('normal');
+  const color = g.getAttribute('color');
+  const moss = g.getAttribute('aMoss');
+  const nrm = new Int8Array(n * 3);
+  const col = new Uint8Array(n * 3);
+  const mos = new Uint8Array(n);
+  for (let i = 0; i < n; i++) {
+    for (let k = 0; k < 3; k++) {
+      nrm[i * 3 + k] = Math.round(Math.max(-1, Math.min(1, normal.getComponent(i, k))) * 127);
+      col[i * 3 + k] = Math.round(Math.max(0, Math.min(1, color.getComponent(i, k))) * 255);
+    }
+    mos[i] = Math.round(Math.max(0, Math.min(1, moss.getX(i))) * 255);
+  }
+  g.setAttribute('normal', new BufferAttribute(nrm, 3, true));
+  g.setAttribute('color', new BufferAttribute(col, 3, true));
+  g.setAttribute('aMoss', new BufferAttribute(mos, 1, true));
+  g.deleteAttribute('uv');
+  g.deleteAttribute('aWet');
+}
+
 function mergeTile(parts: BufferGeometry[], material: Mesh['material'], name: string): Mesh | null {
   const merged = mergeGeometries(parts, false);
   for (const p of parts) p.dispose();
   if (!merged) return null;
+  compactPebbleGeometry(merged);
   merged.computeBoundingSphere();
   const mesh = new Mesh(merged, material);
   mesh.castShadow = false;

@@ -2897,6 +2897,23 @@ Also: lantern bough still a thick plain beam across the top of B (trees pass pen
 - The fifth take-0133 is past frame 65 of A and still running; browser-per-view keeps each view's
   processes fresh. No new Fable/Astra source this hour.
 
+### 2026-09-22 08:35 UTC — tick 224: the stall is memory thrash, not a frame — take-0133 sixth start with 10 GB free
+- The fifth start stalled at frames 61–65 in BOTH A (1,860 s) and B (2,153 s). A CDP profile of A's
+  frames 59–64 on the same build ran clean (15 s/frame, JS idle — all SwiftShader) — because by then
+  the agent daemon that had held 4 GB was gone and 10 GB was available. `dmesg` OOM kills line up with
+  the 06:18/06:22 starts; the later stalls were the box thrashing at ~3 GB free with a 3.6 GB tab.
+  Restarted take-0133 (sixth) at 08:33 with 10.3 GB available; browser-per-view stays.
+- fable-2-pebble-bytes and fable-4-shadowproxy are on the remote; merging after this take seals
+  (no more tree changes under a running capture).
+
+### 2026-09-22 09:20 UTC — tick 225: swap added; the memory branches merged; take-0133 (sixth) stalled again at A 71–75
+- The box has no swap and the agent daemon regrows to 4.3 GB within 20 min of restarting, so the
+  3.6 GB tab thrashes at ~3 GB free: A frames 71–75 took 967 s this start. Added an 8 GB swapfile
+  (`/swapfile`, `swapon`) so pressure degrades to swapping instead of stalls/OOM kills; the take runs on.
+- Merged `fable-4-poolmem` (tree geometries drop CPU arrays on upload: renderer RSS −120 MB) and
+  `fable-2-pebble-bytes` (pebble vertex storage 52 → 19 B). `fable-4-shadowproxy` is HELD by fable-4's
+  own message (draws +8…14) — not merged. 41/41 trees/rocks tests.
+
 ## Pending corrections from reference/ANALYSIS.md (apply at integration, one commit)
 - `config.ts` palette → olive/khaki low-key (reference hero frames: hue 47–51°, sat 0.16–0.19,
   lum 0.35–0.39, 0 % blue sky): grass 0x8a8c55/0x5c6233/0x3a4420, moss 0x8b8948/0x5a523b,
@@ -2935,4 +2952,4 @@ Pick anything NOT claimed in `gauntlet/claims.json`. Good self-contained candida
   my own (GAUNTLET.md D7).
 
 ## Last updated
-2026-09-22T07:20:00Z
+2026-09-22T09:20:00Z
