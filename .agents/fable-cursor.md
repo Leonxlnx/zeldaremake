@@ -2924,6 +2924,13 @@ Also: lantern bough still a thick plain beam across the top of B (trees pass pen
   into a view, after the pools fill). Next: a 90-frame monitor alone on a view, watching `programs`.
 - The take runs on (B 71–75 at 29 s/frame while my monitor competed; monitor stopped).
 
+### 2026-09-22 11:15 UTC — tick 227: take-0133 (sixth) grinding on — A 2,301 s, B 4,064 s, C stalled once; fable-4 vertexbytes merged
+- The stalls (a 30-min chunk once per view) recur at random frames with 7 GB or 3 GB free; the whole
+  capture also runs 2.5× slower than yesterday (30 s/frame vs 12) with SwiftShader at 370 % of the
+  4 cores and nothing else busy. The agent daemon regrows to 4.1 GB on every restart. I am leaving the
+  take alone (C at frame 80+; ~5 h more for D/E/F/det/motion) and keeping my own load minimal.
+- Merged `fable-4-vertexbytes` (tree arrays 318 → 228 MB, near pools 224 → 158 MB). 13/13.
+
 ## Pending corrections from reference/ANALYSIS.md (apply at integration, one commit)
 - `config.ts` palette → olive/khaki low-key (reference hero frames: hue 47–51°, sat 0.16–0.19,
   lum 0.35–0.39, 0 % blue sky): grass 0x8a8c55/0x5c6233/0x3a4420, moss 0x8b8948/0x5a523b,
@@ -2962,4 +2969,4 @@ Pick anything NOT claimed in `gauntlet/claims.json`. Good self-contained candida
   my own (GAUNTLET.md D7).
 
 ## Last updated
-2026-09-22T10:20:00Z
+2026-09-22T11:15:00Z
