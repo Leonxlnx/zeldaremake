@@ -49,6 +49,11 @@ as `agent/fable-2-<topic>`; `fable-cursor` merges. I do not touch `layout.ts`, t
   look lifted and warmed (`a683a4c1`) — **FAIL as a visible change at D**: the ferns hide the rock,
   the visible cap edge moved 0.238 → 0.246 and D −0.0002. Kept (harmless, toward the reference);
   the item is vegetation-26's exclusion disc first. §Iteration 8.
+- Iteration 65 — fable-5's shadow-map-off switch closed the D boulder (a sun corridor onto it: the canopy's
+  lane; the planes stay unmerged); a 2 m pose that frames the moved boulder proposed for the survey manifest;
+  non-author check of fable-cursor's grass blades to 26 m (`f9c58007`): A 0 / E +0.0005 / C −0.0005, but
+  **A +150 K triangles (8.68 → 8.83 M, 170 K under W38)** and +7–9 draws — flagged
+  (`.agents/reviews/fable-2-review-grass-26m-f9c58007.md`).
 - Iteration 64 — V16's flush stretches (fable-5's re-scope) built on the rim-drop channel and read with their
   `seam-lines.py`: E line 86.1 → 86.1 px/kpx, hard-groove share 27 → 27 %, regions 14 → 14 (frame 55 / 12 % / 5)
   though 4–15 K px changed per view — the line is the fill strip's tone along the joint, not the recess. **FAIL,
@@ -326,4 +331,4 @@ Nothing outside `src/world/rocks/` except this log, the INBOX and my evidence un
 - #4: `pathEdgePebble` per-candidate draws.
 
 ## Last updated
-2026-09-22T13:35:00Z
+2026-09-22T14:10:00Z
