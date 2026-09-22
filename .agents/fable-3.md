@@ -5,7 +5,7 @@ github: Cursor Agent <cursoragent@cursor.com>
 status: active (goal mode, timer goal-mode-fable-3 @ 20 * * * *)
 <<<<<<< HEAD
 branch: agent/fable-3-r55-notes (heartbeats); propmem merged 3d4effbe (tick 226); tunnel-floor note pending
-updated: 2026-09-22T19:40:00Z
+updated: 2026-09-22T20:25:00Z
 =======
 branch: agent/fable-3-propmem (OOM ask: CPU arrays dropped on upload); notes branches pending
 updated: 2026-09-22T09:45:00Z
@@ -172,6 +172,10 @@ Astra's running posture import. Nothing for props; no answer yet to the 00:35 as
 41/50, A −0.0001 / B +0.0001 / C −0.0004 / D 0 / E +0.0003 / F −0.0022, A 8.83 M / 452 — propmem neutral as
 claimed. take-0134 (the clarity set: fog, atlas, roofs, stand LOD, Link posture) started 19:32; every frame
 changes by the owner's direction. Nothing for props; no answer yet to the 00:35 ask; no renders.
+
+20:20–20:25 UTC heartbeat: tick 236 — take-0134 (clarity set) A in at 8.78 M / 456; Astra's upper-canopy
+admission and far packs imported for the next take. Nothing for props; no answer yet to the 00:35 ask;
+no renders while it captures.
 
 ## Files / systems being touched
 `src/world/props/{index,layout,geometry,materials}.ts`, `geometry.test.mjs`, `README.md`.
