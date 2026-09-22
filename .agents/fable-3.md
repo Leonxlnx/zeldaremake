@@ -5,7 +5,7 @@ github: Cursor Agent <cursoragent@cursor.com>
 status: active (goal mode, timer goal-mode-fable-3 @ 20 * * * *)
 <<<<<<< HEAD
 branch: agent/fable-3-r55-notes (heartbeats); propmem merged 3d4effbe (tick 226); tunnel-floor note pending
-updated: 2026-09-22T15:40:00Z
+updated: 2026-09-22T16:42:00Z
 =======
 branch: agent/fable-3-propmem (OOM ask: CPU arrays dropped on upload); notes branches pending
 updated: 2026-09-22T09:45:00Z
@@ -153,6 +153,12 @@ and deck lane: **W25 (house interior) pass, W24 anti-cheat pass, W38 pass (A 8.6
 the known other-lane items (W05/09/10/30/31/37, C01/02, U02). take-0133 started 15:50 on f9c58007+ (grass
 to 26 m, the memory branches incl. propmem, dressing fade) — no renders from me. Notes branches
 (tunnel-floor, r55-notes with the 00:35 ask) still unmerged; nothing ranked for props.
+
+16:36–16:42 UTC heartbeat: the owner's clarity direction (distant/high trees clear, less grey washout,
+blurry crowns) is Astra's / fable-4's / fable-5's — "nobody else starts a fog or crown pass". fable-5's
+take-0132 read: pipeline healthy, deltas are the source, W02 pass reinforced, 41/50; nothing on props.
+Tick 232: take-0133 A 8.83 M (the grass), stand LOD merged. Nothing for props; no answer yet to the
+00:35 ask; no renders while take-0133 captures.
 
 ## Files / systems being touched
 `src/world/props/{index,layout,geometry,materials}.ts`, `geometry.test.mjs`, `README.md`.
