@@ -566,9 +566,10 @@ assert.ok(lawnToward/lawnBlades<0.6,`lawn blades beyond the band keep a random y
   assert.ok(band.p95<=0.27&&band.p50<=0.9*north.p50,`lawn band turf p50 ${band.p50.toFixed(3)} / p95 ${band.p95.toFixed(3)} against the north verge's p50 ${north.p50.toFixed(3)}`);}
 // Round 39: the rubric's W15 floor (≥ 400 000 grass instances) rests on the blade tiles, the weeds and the
 // tufts alone — the always-in-the-scene-graph sets (index.ts grassInstances; the culled clump cards are not
-// counted) — with a margin over the reduced base density; the blade LODs end at 16 m under the carpet
+// counted) — with a margin over the reduced base density; the blade LODs end at 26 m under the carpet
 assert.ok(grass.count+a.plants.weeds.count+a.plants.tufts.count>=405000,`W15: blades ${grass.count} + weeds ${a.plants.weeds.count} + tufts ${a.plants.tufts.count} ≥ 405 000`);
-assert.deepEqual(grass.lodDistances,[6,16,16],'blade LOD ranges (round 39)');
+// (2026-09-22, owner: the lawn past 16 m read as sparse clumps at player height — the mid blades run to 26 m)
+assert.deepEqual(grass.lodDistances,[6,26,26],'blade LOD ranges (round 39; 2026-09-22: 26 m)');
 // Round 40 — the owner's video review ("thinner blades, rooted clusters, varied heights"): the blades
 // grow as tufts of 5–9 about a root inside 0.075 m (grass.ts scatterClusters), so a blade's mean
 // neighbour count inside that radius runs well over the uniform expectation (density × π r²) — the
