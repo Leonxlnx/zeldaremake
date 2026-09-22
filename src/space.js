@@ -1,4 +1,5 @@
 import * as THREE from 'three';
+import { mergeGeometries } from 'three/addons/utils/BufferGeometryUtils.js';
 
 function mulberry32(seed) {
   let a = seed >>> 0;
@@ -134,6 +135,27 @@ function nebulaTexture(seed, core, edge) {
   return tex;
 }
 
+function skyStarTexture() {
+  const c = document.createElement('canvas');
+  c.width = 1024;
+  c.height = 512;
+  const g = c.getContext('2d');
+  g.fillStyle = '#070b12';
+  g.fillRect(0, 0, 1024, 512);
+  const rnd = mulberry32(3);
+  for (let i = 0; i < 1400; i++) {
+    const x = rnd() * 1024;
+    const y = rnd() * 512;
+    const a = 0.4 + rnd() * 0.6;
+    g.fillStyle = `rgba(214, 226, 255, ${a})`;
+    const s = rnd() < 0.06 ? 2 : 1;
+    g.fillRect(x, y, s, s);
+  }
+  const tex = new THREE.CanvasTexture(c);
+  tex.colorSpace = THREE.SRGBColorSpace;
+  return tex;
+}
+
 function streakTexture() {
   const c = document.createElement('canvas');
   c.width = 256;
@@ -160,9 +182,28 @@ function streakTexture() {
   return tex;
 }
 
+function bakeQuads(count, material, place) {
+  const base = new THREE.PlaneGeometry(1, 1);
+  const parts = [];
+  const dummy = new THREE.Object3D();
+  for (let i = 0; i < count; i++) {
+    place(dummy, i);
+    dummy.updateMatrix();
+    const g = base.clone();
+    g.applyMatrix4(dummy.matrix);
+    parts.push(g);
+  }
+  base.dispose();
+  const geo = mergeGeometries(parts);
+  for (const g of parts) g.dispose();
+  const mesh = new THREE.Mesh(geo, material);
+  mesh.frustumCulled = false;
+  mesh.userData.skipAO = true;
+  return mesh;
+}
+
 function makeFlightStreaks() {
-  const count = 34;
-  const geo = new THREE.PlaneGeometry(1, 1);
+  const count = 18;
   const mat = new THREE.MeshBasicMaterial({
     map: streakTexture(),
     color: 0xe7f1ff,
@@ -173,33 +214,25 @@ function makeFlightStreaks() {
     fog: false,
     side: THREE.DoubleSide,
   });
-  const mesh = new THREE.InstancedMesh(geo, mat, count);
-  mesh.frustumCulled = false;
-  mesh.userData.skipAO = true;
-  mesh.userData.speed = 0;
   const cam = new THREE.Vector3(0, 1.64, 13.42);
   const dir = new THREE.Vector3(11, -0.4, 54).sub(cam).normalize();
   const right = new THREE.Vector3().crossVectors(dir, new THREE.Vector3(0, 1, 0)).normalize();
   const up = new THREE.Vector3().crossVectors(right, dir).normalize();
   const rnd = mulberry32(19);
-  const dummy = new THREE.Object3D();
-  for (let i = 0; i < count; i++) {
-    const dist = 8 + rnd() * 46;
-    const lat = (rnd() - 0.5) * 13;
-    const vert = (rnd() - 0.4) * 5.2;
+  const mesh = bakeQuads(count, mat, (dummy) => {
+    const dist = 10 + rnd() * 42;
+    const lat = (rnd() - 0.5) * 12;
+    const vert = (rnd() - 0.4) * 4.6;
     dummy.position.copy(cam).addScaledVector(dir, dist).addScaledVector(right, lat).addScaledVector(up, vert);
     dummy.up.set(0, 1, 0);
     dummy.lookAt(dummy.position.x + dir.x, dummy.position.y + dir.y, dummy.position.z + dir.z);
-    dummy.scale.set(2.4 + rnd() * 6.8, 0.16 + rnd() * 0.22, 1);
-    dummy.updateMatrix();
-    mesh.setMatrixAt(i, dummy.matrix);
-  }
-  mesh.instanceMatrix.needsUpdate = true;
+    dummy.scale.set(3.2 + rnd() * 6.2, 0.18 + rnd() * 0.16, 1);
+  });
+  mesh.userData.speed = 0;
   return mesh;
 }
 
 function makeStarShell({ count, radius, speed, length, width, color, seed }) {
-  const geo = new THREE.PlaneGeometry(1, 1);
   const mat = new THREE.MeshBasicMaterial({
     color,
     transparent: true,
@@ -209,13 +242,8 @@ function makeStarShell({ count, radius, speed, length, width, color, seed }) {
     fog: false,
     side: THREE.DoubleSide,
   });
-  const mesh = new THREE.InstancedMesh(geo, mat, count);
-  mesh.frustumCulled = false;
-  mesh.userData.skipAO = true;
-  mesh.userData.speed = speed;
   const rnd = mulberry32(seed);
-  const dummy = new THREE.Object3D();
-  for (let i = 0; i < count; i++) {
+  const mesh = bakeQuads(count, mat, (dummy) => {
     const theta = rnd() * Math.PI * 2;
     const phi = Math.acos(2 * rnd() - 1);
     const r = radius * (0.92 + rnd() * 0.16);
@@ -226,13 +254,9 @@ function makeStarShell({ count, radius, speed, length, width, color, seed }) {
     );
     dummy.lookAt(0, 0, 0);
     dummy.rotateZ(Math.PI / 2);
-    const len = length * (0.35 + rnd() * 1.4);
-    const wid = width * (0.35 + rnd());
-    dummy.scale.set(wid, len, 1);
-    dummy.updateMatrix();
-    mesh.setMatrixAt(i, dummy.matrix);
-  }
-  mesh.instanceMatrix.needsUpdate = true;
+    dummy.scale.set(width * (0.35 + rnd()), length * (0.35 + rnd() * 1.4), 1);
+  });
+  mesh.userData.speed = speed;
   return mesh;
 }
 
@@ -279,20 +303,17 @@ export function createSpace() {
 
   const sky = new THREE.Mesh(
     new THREE.SphereGeometry(520, 24, 16),
-    new THREE.MeshBasicMaterial({ color: 0x070b12, side: THREE.BackSide, fog: false })
+    new THREE.MeshBasicMaterial({ map: skyStarTexture(), side: THREE.BackSide, fog: false })
   );
   sky.userData.skipAO = true;
   sky.frustumCulled = false;
   root.add(sky);
 
-  const far = makeStarShell({
-    count: 900, radius: 340, speed: 0.012, length: 2.4, width: 1.15, color: 0xd5e4ff, seed: 3,
-  });
   const mid = makeStarShell({
-    count: 70, radius: 210, speed: 0.02, length: 34, width: 1.7, color: 0xe7f0ff, seed: 9,
+    count: 48, radius: 210, speed: 0.02, length: 28, width: 1.5, color: 0xe7f0ff, seed: 9,
   });
-  root.add(far, mid);
-  const shells = [far, mid];
+  root.add(mid);
+  const shells = [mid];
   const flight = makeFlightStreaks();
   root.add(flight);
   const streaks = [flight];

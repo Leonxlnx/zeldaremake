@@ -85,7 +85,7 @@ export function createPost(renderer, scene, camera) {
     distanceExponent: 1.05,
     thickness: 0.55,
     scale: 1.25,
-    samples: 10,
+    samples: 6,
     distanceFallOff: 0.85,
     screenSpaceRadius: false,
   });
@@ -95,7 +95,7 @@ export function createPost(renderer, scene, camera) {
     normalPhi: 3,
     radius: 6,
     rings: 2,
-    samples: 8,
+    samples: 4,
   });
   composer.addPass(gtao);
 

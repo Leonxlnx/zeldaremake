@@ -1,6 +1,5 @@
 import * as THREE from 'three';
 import { mergeGeometries } from 'three/addons/utils/BufferGeometryUtils.js';
-import { RectAreaLightUniformsLib } from 'three/addons/lights/RectAreaLightUniformsLib.js';
 import { makeLabelTexture } from './materials.js';
 
 function applyBoxMeterUV(geo, w, h, d) {
@@ -133,7 +132,6 @@ function wallPoint(axis, fixed, inward, u, y, lift) {
 }
 
 export function createShip(mats) {
-  RectAreaLightUniformsLib.init();
   const kit = new Kit();
   const root = new THREE.Group();
   root.name = 'ship';
@@ -465,21 +463,22 @@ export function createShip(mats) {
   kit.add('rubber', mats.rubber, tube, 0, 0, 0);
   tube.dispose();
 
-  function practical(x, y, z, color, intensity, restScale, restColor) {
+  function practical(x, y, z, color, intensity, restScale, restColor, lit = true) {
     kit.box('dark', mats.dark, 0.78, 0.07, 0.2, x, y + 0.16, z);
     kit.box('emitTeal', mats.teal, 0.62, 0.025, 0.1, x, y + 0.11, z);
-    const light = new THREE.PointLight(color, intensity, 7.5, 2);
+    if (!lit) return;
+    const light = new THREE.PointLight(color, intensity, 9.5, 2);
     light.position.set(x, y, z);
     tagLight(light, restScale, restColor);
     root.add(light);
   }
-  practical(0, 2.05, 1.6, '#b8fff4', 7.5, 0.1, '#7f9eb8');
-  practical(0, 2.05, 3.9, '#b8fff4', 7.5, 0.1, '#7f9eb8');
-  practical(0, 2.05, 6.15, '#b8fff4', 8.5, 0.1, '#7f9eb8');
-  practical(0, 2.05, 8.25, '#b8fff4', 7, 0.12, '#7f9eb8');
-  practical(0, 2.02, 12.55, '#c8fff6', 6, 0.18, '#8aa8c4');
-  practical(2.7, 2.0, 6.9, '#ffe0b0', 6.5, 0.22, '#c4b09a');
-  practical(2.1, 2.0, 1.4, '#d8fff8', 4.5, 0.15, '#9eb4c4');
+  practical(0, 2.05, 1.6, '#b8fff4', 10, 0.1, '#7f9eb8');
+  practical(0, 2.05, 3.9, '#b8fff4', 0, 0.1, '#7f9eb8', false);
+  practical(0, 2.05, 6.15, '#b8fff4', 10, 0.1, '#7f9eb8');
+  practical(0, 2.05, 8.25, '#b8fff4', 0, 0.12, '#7f9eb8', false);
+  practical(0, 2.02, 12.55, '#c8fff6', 7.5, 0.18, '#8aa8c4');
+  practical(2.7, 2.0, 6.9, '#ffe0b0', 7, 0.22, '#c4b09a');
+  practical(2.1, 2.0, 1.4, '#d8fff8', 5.5, 0.15, '#9eb4c4');
 
   const bunk = new THREE.PointLight('#ffb15a', 16, 5.4, 2);
   bunk.position.set(-3.15, 1.85, 1.55);
@@ -496,7 +495,7 @@ export function createShip(mats) {
   sun.position.set(7, 11, 22);
   sun.target.position.set(0, 1.1, 8);
   sun.castShadow = true;
-  sun.shadow.mapSize.set(2048, 2048);
+  sun.shadow.mapSize.set(1024, 1024);
   sun.shadow.camera.left = -10;
   sun.shadow.camera.right = 10;
   sun.shadow.camera.top = 10;
@@ -521,16 +520,10 @@ export function createShip(mats) {
   tagLight(quarterFill, 0.28, '#8ea6bc');
   root.add(quarterFill);
 
-  const deckGlow = new THREE.PointLight('#d7e4f6', 4.2, 6.2, 2);
+  const deckGlow = new THREE.PointLight('#d7e4f6', 7.2, 8.5, 2);
   deckGlow.position.set(0, 1.05, 13.35);
   tagLight(deckGlow, 0.35, '#9aafc4');
   root.add(deckGlow);
-
-  const rect = new THREE.RectAreaLight('#c5dcff', 4.5, 3.3, 1.25);
-  rect.position.set(0, 1.55, 14.9);
-  rect.lookAt(0, 1.35, 8);
-  tagLight(rect, 0.9, '#c5dcff');
-  root.add(rect);
 
   // cockpit seats, console, controls
   function seat(x, z) {

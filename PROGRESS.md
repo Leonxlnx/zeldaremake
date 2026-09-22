@@ -116,3 +116,28 @@ Fix list for iteration 5:
 
 - Spend the iteration on frame time. Remove the rect-area light (it puts an LTC path on every surface) and replace it with a cool point. Drop redundant practical points, keeping one pool per room and the emissive strips. Shrink the shadow map to 1024.
 - Reshoot all four views. If the corridor or cockpit goes flat, put a light back. Record wall-clock fps, not the submit-gap average.
+
+## Iteration 5
+
+Frame budget moved, the frame rate barely did. Rect-area light is gone, two corridor practicals are emissive-only, the shadow map is 1024 and frozen after the first frame, and the 900 instanced far-star quads are a texture on the sky sphere. Sustained corridor rate is 2.6fps (73k triangles, 60 calls) versus 1.8fps last iteration. Direct rendering of the ship alone, with space hidden, is about 8fps, so the lit surfaces are the floor on this software GL. The far-star instances were a real tax (they cut the direct rate in half) and they are gone. GTAO on top of the ship is the other large slice.
+
+The corridor is dimmer (median 117, was 167; p10 29, was 51) because two practicals no longer throw light. It still has separate pools, a warm fill down the hall, and glowing strips. Cockpit median 127, quarters 138, window 110. None are clipped. Fade text is still on the black frames. Pointer lock engaged.
+
+| # | Rubric | Result |
+| --- | --- | --- |
+| 1 | Lighting intentional | pass |
+| 2 | Materials physical | pass |
+| 3 | Detail density | pass |
+| 4 | Post stack balanced | pass |
+| 5 | Space view sells motion | pass |
+| 6 | Cohesive palette | pass |
+| 7 | Tech clean, 60fps | fail |
+| 8 | Cold-look test | pass |
+| 9 | Interactions | pass |
+
+Items 1 through 6, 8, and 9 have now passed two iterations in a row. Tech has not. 2.6fps is not 60, and a laptop-GPU inference is not a measurement.
+
+Fix list for iteration 6:
+
+- The remaining cost is the lit ship in the beauty pass plus GTAO's extra scene pass. Cut the wear noise from five octaves to two so fragment cost drops without removing the grime.
+- If that does not move sustained fps by a clear margin, put the octaves back. Do not strip lights or AO to chase a software-GL number.
