@@ -21,7 +21,7 @@
  * instances that can reach the image (see "submission culling" below). Everything is seated via
  * ctx.terrain.height; randomness only via ctx.rng.
  */
-import { BufferGeometry, Color, Frustum, Group, InstancedBufferAttribute, InstancedMesh, Matrix4, Mesh, PerspectiveCamera, Quaternion, Sphere, Vector3, type BufferAttribute, type Camera, type Material } from 'three';
+import { BufferAttribute, BufferGeometry, Color, Frustum, Group, InstancedBufferAttribute, InstancedMesh, Matrix4, Mesh, PerspectiveCamera, Quaternion, Sphere, Vector3, type Camera, type Material } from 'three';
 import type { TrunkSeat, WorldContext, WorldSystem } from '../system';
 import { BARK_DETAIL_M, BARK_DETAIL_TILES, BARK_TOUCH_M, BARK_TOUCH_TILES, CARD_EDGE_FADE, CARD_FLAT_EDGE_FADE, COLUMN_BARK_FLOOR, COLUMN_BARK_FLOOR_FAR, COLUMN_FLOOR_FADE_M, createTreeMaterials, CUSHION_FADE_M, DISTANT_BARK_M, DISTANT_NEAR_FLOOR, DISTANT_NEAR_TONE, NEAR_BASE_FLOOR, NEAR_BOLE_FLOOR, NEAR_BOLE_FLOOR_FADE, NEAR_BOLE_FLOOR_TOP, NEAR_BOLE_SLOTS, NEAR_CANOPY_LEAF_FLOOR, NEAR_CANOPY_LEAF_NEAR_M, NEAR_CANOPY_SLOTS, NEAR_CANOPY_SUN_THROUGH, TREE_BARK_FLOOR, TREE_BARK_FLOOR_NEAR, TREE_FLOOR_FADE_M, TREE_LEAF_FLOOR, TREE_LEAF_FLOOR_NEAR, TREE_NEAR_BOLE_FLOOR } from './materials';
 import type { ShadeFloor } from '../materials/shadeFloor';
@@ -1617,6 +1617,47 @@ interface GeometryBuilt extends PoolBuilt {
 /** what the audit's residentBytes counted from the start: every attribute array plus the index */
 const geometryBytes = (g: BufferGeometry) => Object.values(g.attributes).reduce((b, a) => b + a.array.byteLength, 0) + (g.index ? g.index.array.byteLength : 0);
 /**
+ * Round 51 (fable-cursor, 2026-09-22 07:15: the tab at 3.6 GB, two chrome OOM kills during the night's
+ * takes — "anything that trims resident geometry"): a pooled part's typed arrays are needed until the
+ * renderer uploads them, and then only if something reads them back — nothing does (the bounds and
+ * the byte count are taken at build, the swap folds through uniforms, the audits read counts, the
+ * character's surface grid reads the hardscape's stairs). So every attribute and the index drop their
+ * CPU copy once uploaded (three's `onUpload` fires after the buffer is created): the near-canopy and
+ * near-base pools' ≈ 257 MB of parts stop being held twice. A rebuilt part gets fresh arrays and drops
+ * them the same way; `needsUpdate` is never set on a resident part.
+ */
+/**
+ * Round 51 (the memory ask, step two — fable-2's rocks recipe, −53 % there): the writers emit every
+ * attribute as Float32; the GPU copy (and the CPU copy until upload) shrinks by a third when the
+ * attributes whose range allows it are stored normalized — normals Int8, colours Uint8 when the
+ * geometry's colours stay within 0–1, `aWind` Uint16 (stiffness / phase / flutter, all 0–1; 16 bits
+ * so the 0–0.035 flutter keeps its resolution). Positions, uv (tiling up to ×27) and `aRoot` (world
+ * anchors and the swap / cushion encodings the shaders decode) stay Float32. A normalized attribute
+ * reaches the shader as the same float; range-checked, so a geometry outside the range keeps its
+ * floats. Run once per geometry after every build-time read of the arrays (bounds, rootsToWorld).
+ */
+const compactAttributes = (g: BufferGeometry) => {
+  const to = (name: string, Ctor: typeof Int8Array | typeof Uint8Array | typeof Uint16Array, scale: number, lo: number, hi: number) => {
+    const a = g.attributes[name] as BufferAttribute | undefined;
+    if (!a || !(a.array instanceof Float32Array)) return;
+    const src = a.array;
+    for (let i = 0; i < src.length; i++) if (src[i] < lo || src[i] > hi) return;
+    const out = new Ctor(src.length);
+    for (let i = 0; i < src.length; i++) out[i] = Math.round(src[i] * scale);
+    g.setAttribute(name, new BufferAttribute(out, a.itemSize, true));
+  };
+  to('normal', Int8Array, 127, -1, 1);
+  to('color', Uint8Array, 255, 0, 1);
+  to('aWind', Uint16Array, 65535, 0, 1);
+};
+const dropArray = function (this: { array: ArrayLike<number> | null }) {
+  this.array = null;
+};
+const releaseAfterUpload = (g: BufferGeometry) => {
+  for (const a of Object.values(g.attributes)) (a as BufferAttribute).onUpload(dropArray as unknown as () => void);
+  if (g.index) g.index.onUpload(dropArray as unknown as () => void);
+};
+/**
  * A translated-to-world part's roots: aRoot.xyz becomes the tree's world origin (the merged
  * shader's per-tree context) — except a 3-D moss cushion's vertices (writer.ts woodCushion,
  * isCushionRoot), whose xyz is the cushion's anchor on the bark and is translated with the
@@ -1748,7 +1789,13 @@ export async function create(ctx: WorldContext): Promise<WorldSystem> {
   const poolItem = (id: string, mesh: Mesh, steps: () => Generator<void, BufferGeometry>, finalize: (g: BufferGeometry) => void): [PoolItem<GeometryBuilt>, GeometryBuilt] => {
     const first = mesh.geometry;
     const placeholder = placeholderFor(first);
-    const wrap = (geometry: BufferGeometry): GeometryBuilt => ({ geometry, bytes: geometryBytes(geometry), dispose: () => geometry.dispose() });
+    // the bytes are read before the upload; after it the CPU copies go (releaseAfterUpload)
+    const wrap = (geometry: BufferGeometry): GeometryBuilt => {
+      compactAttributes(geometry);
+      const bytes = geometryBytes(geometry);
+      releaseAfterUpload(geometry);
+      return { geometry, bytes, dispose: () => geometry.dispose() };
+    };
     const item: PoolItem<GeometryBuilt> = {
       id,
       bytes: 0,
@@ -3504,6 +3551,22 @@ export async function create(ctx: WorldContext): Promise<WorldSystem> {
       submission: submission(),
       samplePositions: { bases: sampleBases },
     };
+  });
+  // Round 51 (the tab at 3.6 GB — see releaseAfterUpload): the trees' static geometry keeps
+  // ≈ 0.5 GB of typed arrays in the renderer process after the GPU has them, and every static mesh
+  // is drawn from the first frame at any view. Every geometry under this system drops its CPU
+  // copies on upload; a bounding sphere three would otherwise compute from the array later is
+  // computed here, while the array is still there (the InstancedMesh culls read it each fill).
+  const compacted = new Set<BufferGeometry>();
+  group.traverse((o) => {
+    const g = (o as Mesh).geometry as BufferGeometry | undefined;
+    if (!(o as Mesh).isMesh || !g) return;
+    if (!g.boundingSphere) g.computeBoundingSphere();
+    if (!compacted.has(g)) {
+      compacted.add(g);
+      compactAttributes(g);
+    }
+    releaseAfterUpload(g);
   });
   ctx.progress('trees', 1);
 

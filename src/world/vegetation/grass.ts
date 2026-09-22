@@ -845,7 +845,11 @@ export async function buildGrass(ctx: WorldContext, field: VegField, material: M
   // triangles from camera A. The one-triangle LOD is no longer reached (a tile past the second
   // range is hidden); it stays in `bases` so the tile structure, the flags and the audit rows
   // are unchanged.
-  const lodDistances = [6 * q.distance, 16 * q.distance, 16 * q.distance];
+  // 2026-09-22 (owner: "patches in the grass where it's not full"): at player height the lawn past
+  // 16 m was the carpet's clump cards and mats alone — a walker standing on the plaza saw the far half
+  // of every lawn as sparse clumps on bare turf. The mid blades now run to 26 m (the frames' lawns
+  // stand 5–25 m from the fixed cameras, so this is a measured look change, not a free one).
+  const lodDistances = [6 * q.distance, 26 * q.distance, 26 * q.distance];
   const trisPerLod = bases.map((b) => b.index.count / 3);
   const halfDiag = TILE * 0.71;
   const visible = { drawCalls: 0, triangles: 0, lodCounts: [0, 0, 0] };
