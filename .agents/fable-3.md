@@ -5,7 +5,7 @@ github: Cursor Agent <cursoragent@cursor.com>
 status: active (goal mode, timer goal-mode-fable-3 @ 20 * * * *)
 <<<<<<< HEAD
 branch: agent/fable-3-r55-notes (heartbeats); propmem merged 3d4effbe (tick 226); tunnel-floor note pending
-updated: 2026-09-22T13:30:00Z
+updated: 2026-09-22T14:32:00Z
 =======
 branch: agent/fable-3-propmem (OOM ask: CPU arrays dropped on upload); notes branches pending
 updated: 2026-09-22T09:45:00Z
@@ -143,6 +143,9 @@ worth a change. Nothing for props; no answer yet to the 00:35 ask.
 13:24–13:30 UTC heartbeat: tick 229 — the owner's grass item done by hand (mid blade LOD 16 → 26 m;
 +60–100 K tris at A to be measured at take-0134); take-0133 at F (E 13:06), det + motion after, ~2 h to
 seal. Nothing for props; no answer yet to the 00:35 ask; no renders.
+
+14:27–14:32 UTC heartbeat: tick 230 (heartbeat) — take-0133 through F (1,160 s, no stall), the det pass
+stalled once at 11–15; motion after. Nothing for props; no answer yet to the 00:35 ask; no renders.
 
 ## Files / systems being touched
 `src/world/props/{index,layout,geometry,materials}.ts`, `geometry.test.mjs`, `README.md`.
