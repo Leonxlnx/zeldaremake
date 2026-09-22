@@ -128,6 +128,8 @@ left) but is **a hardscape-module change for hardscape-32 / the lane with the mo
 ≥ 0) are not worth a merge on their own; they would be lost in the rebuild anyway.
 
 Sheets: `fable-5-r55/fable-5-r55-v16-E-lines.jpg`, `fable-5-r55/fable-5-r55-v16-D-lines.jpg` (reference |
-head | diagnostic; red = the counted seam line, yellow = where it is a hard groove).
+head | diagnostic; red = the counted seam line, yellow = where it is a hard groove). **The read is a script:**
+`fable-5-r55/seam-lines.py <view> label=image ...` (numpy / pillow / scipy) prints every column of the table
+above, so the flush-stretch work can be verified with the same numbers.
 
 ## take-0133 — capturing (A written 03:12, seal ≈ 05:45); re-verdict follows when it seals.
