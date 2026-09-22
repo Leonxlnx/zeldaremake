@@ -16,6 +16,33 @@ B 526 / C 393 / D 394 / E 526 / F 512; A 9.09 M tris on both (the head's number,
 change's — flagged to fable-cursor). Files: `ledge2-x-clearing-n.jpg` (+ `-crop`),
 `ledge2-x-ledge-foot.jpg`, `ledge2-x-northpath-n.jpg`.
 
+## Iteration 54 — round-52 #3, V16's seams: five levers measured, none is "a seam value" — the dark area is the joints' edge length — FAIL to land, mapped (`agent/fable-2-seam-value`, all reverted)
+
+fable-5's round-52 list puts V16 at #3 as "hardscape / fable-2 — a seam value, one commit". Measured on head `073f5ff2`
+with fable-5's own read (joint-like dark pixels = blur-difference > 0.12 at 640 px, their boxes E 0.3–0.7 × 0.75–1.0,
+C 0.45–1.0 × 0.62–1.0, D 0.35–0.7 × 0.72–1.0), one knob per build, E / C / D captured for each:
+
+| build | E dark % · slab l | C | D | SSIM E / C / D vs head |
+|---|---|---|---|---|
+| reference | 3.1 · 0.491 | 1.8 · 0.425 | 2.5 · 0.474 | |
+| head `073f5ff2` | 8.1 · 0.448 | 6.2 · 0.440 | 6.3 · 0.426 | |
+| fill albedo × 1.3 (`SEAM_FILL_LIFT`, soil + mossy earth) | 7.8 · 0.448 | 6.0 · 0.440 | 6.1 · 0.427 | +0.0003 / +0.0004 / +0.0002 |
+| slabs half as proud (`SLAB_PROUD_K` 0.5, rim floor too) | **8.9** · 0.444 | **7.1** · 0.436 | **7.1** · 0.419 | **−0.0020** / +0.0006 / **−0.0021** |
+| painted crevice off (`CREVICE_STRENGTH` 0) | 7.4 · 0.448 | 5.9 · 0.440 | 5.7 · 0.427 | +0.0003 / +0.0004 / +0.0002 |
+| joint sprouts hidden (E, pose tool, diagnostic) | 8.1 (control 8.0) | | | |
+| (§45) flank stain 0.7 → 0.4, flank × 0.86, shoulder as bright as the top | 8.3 (from 8.2) | 6.3 | 6.3 | −0.0001 / +0.0001 / +0.0002 |
+
+What the mask shows (`seams54-E-darkmask.jpg`, the counted pixels in red): **in the frame they are Link's shadow edge and
+two joints — the frame's joints stay under the 0.12 contrast; in ours every slab is outlined along its full length.**
+So §45's ratio (dark px / slab, 0.52 vs 0.51) compared our joints with the frame's shadows, and the fill value is a
+lever in principle — but not in practice: the contrast curve is shifted at every threshold (share > 0.04: E 27 vs 17 %,
+> 0.12: 8.1 vs 3.1 %, > 0.20: 1.7 vs 0.4 %), and no knob moves the low end at all (crevice off: 27.6 %). The joints
+are lit as grooves (the shadow map on the proud lips and the painted recess), and there is 1.6 × as much joint edge per
+box as in the frame. Sinking the slabs made it worse (more fill and tuft base in view). The one-constant answers give
+≤ 10 % of the way; halving it is the paving's edge length and the joint's definition as a line — a hardscape rebuild,
+not a value — and not mine without the module. Everything reverted by forward commits; the branch keeps the measures.
+Files: `seams54-E-triple.jpg` (reference | head | fill × 1.3), `seams54-E-darkmask.jpg`.
+
 ## Iteration 50 — the pebble tiles' distance LOD: A 8.80 → 8.69 M (−110 K with §49), six views unchanged — `agent/fable-2-pebble-lod` @ `15fd5128` (stacked on §49)
 
 The lever §49 named for A itself. Beyond `PEBBLE_LOD_M` = 10 m (camera to the tile's nearest point, ± 1 m band so a
