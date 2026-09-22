@@ -483,4 +483,28 @@ player-height poses I placed blind toward lawns 20–24 m out, 0.03–0.53 % —
 720, so the owner's "patches" are a walking, parallax read that a still barely holds. The +41 tiles / ≈ 60–100 K
 triangles at A are the take's to measure (fable-cursor: at take-0134). Nothing to hold.
 
-## take-0133 — sixth start 08:33, grinding (tick 228: at D; C sealed 2,829 s). Re-verdict follows when it seals, against §D's expected row (every merge since is frame-neutral — §F, §G, §I).
+## L. Iteration 64 (14:22–14:38 UTC) — whose shadow is on the D boulder: the trees', entirely (a `?nocast=<group>` diagnostic)
+
+§J showed the D boulder is flat because something shades it. Which system's casters is the brief's owner question, so:
+a diagnostic build of the head with a URL switch (`?nocast=<group>` — every mesh under that top-level world group stops
+casting, re-applied each frame so pooled parts are caught too), rendered at D once per group; the frame's rock box
+0.04–0.18 × 0.66–0.84:
+
+| D rock box | mean l | macro σ | p10 / p90 |
+| --- | --- | --- | --- |
+| reference | 0.326 | 0.124 | 0.18 / 0.49 |
+| head (all casters) | 0.306 | 0.050 | 0.24 / 0.37 |
+| **`nocast=trees`** | 0.355 | **0.109** | 0.25 / **0.52** |
+| `nocast=structures` | 0.306 | 0.050 | 0.24 / 0.37 |
+| `nocast=vegetation` | 0.306 | 0.050 | 0.24 / 0.37 |
+| shadow map off (§J) | 0.333 | 0.117 | 0.22 / 0.51 |
+
+With only the trees' shadows gone the boulder has 93 % of the shadow-off gain (macro σ 0.109 of 0.117; p90 0.52) —
+**the shade is the trees system's: the giant's lobes and crowns over that spot; structures cast nothing there, and the
+canopy roof never casts (`canopy/index.ts`).** So round-50 #1 / round-52 #12 is a **sun corridor in `trees/index.ts`**,
+the same `sunCorridors` machinery that keeps crowns out of the sun's path to the flagstones, aimed at the shot-D
+boulder's spot (fable-2's 2 m pose frames it: camera (−2.4, 1.3, −5.6) → (−2.0, 0.6, −7.6)), with the bearing checked so
+the crown takes the light. Owner: the trees / giants lane. Vegetation and structures: 0 — the head's
+row to the third decimal.
+
+## take-0133 — through F at tick 230 (13:26), determinism re-capture stalled once, motion pair after (~1.5 h). Re-verdict follows when it seals, against §D's expected row (every merge since is frame-neutral — §F, §G, §I).
