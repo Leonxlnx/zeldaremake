@@ -17,8 +17,8 @@ gauntlet's independent D7 verdicts (`gauntlet/reviews/*.json`, written only thro
 00:00 UTC (timer `goal-mode-fable-5`, cron `20 * * * *`); `agent/fable-5-demo-walk` merged (`b4de8d7`); current branch `agent/fable-5-r48-review`.
 
 ## Current task
-Done this iteration: fable-4's shadowlod measured at 12 positions (r55 §A). Next: take-0133's re-verdict
-when it seals (≈ 05:45), lane branches on request, the video file.
+Done this iteration: fable-2's V16 answer taken up — the seam's continuity, not a value; shadow map ruled out
+(r55 §B). Next: take-0133's re-verdict when it seals (≈ 05:45), lane branches on request, the video file.
 
 ## Previous current task (superseded)
 Goal-mode loop. Next iteration: **re-verdict every visual item on take-0120** when it seals (the
@@ -34,6 +34,11 @@ lands: `ffmpeg` frames at his marked moments → `reference/frames-video2/`, has
 - `.agents/fable-5.md`, `.agents/reviews/fable-5-*.md`, my threads in `.agents/INBOX.md`.
 
 ## Completed work
+- 2026-09-22 04:34–05:10 UTC — iteration 54 (r55 §B): fable-2's V16 correction accepted (#3 is not a value; §F
+  fixed in place); the seam excess decomposed — width equal, depth ~equal, visible length 1.4–1.7× and the
+  hard-groove share 1.1–2×; the reference's seams do not close slabs (E 5 regions vs our 12); a diagnostic build
+  (slabs `castShadow` off) leaves every joint number unchanged — the outline is the continuous recess's own
+  shading. Brief re-scoped to the module: the fill flush/lapping in seeded stretches + the proud height, together.
 - 2026-09-22 03:30–04:28 UTC — iteration 53 (r55 §A): fable-4's shadowlod (the white-barks' mid LOD stops
   casting) on the head at 12 positions (10 valid; two blind probes struck) — six views A/B/E/F identical, C −0.0009, D −0.0002 (fable-4's table
   reproduced); the cost is on the trees 20–44 m out: crown-on-trunk band and ground patch gone (grove
@@ -297,4 +302,4 @@ lands: `ffmpeg` frames at his marked moments → `reference/frames-video2/`, has
   lists the regions; the evidence images are reproducible with the same crops.
 
 ## Last updated
-2026-09-22T04:31:00Z
+2026-09-22T05:12:00Z

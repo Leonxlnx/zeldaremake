@@ -122,7 +122,7 @@ priorities (stones, trees, distance) and then by what turns a verdict:
 | --- | --- | --- | --- | --- |
 | 1 | **PR #29's bank-core recession on the head** | pull it or back the receded lobes with a dark core — F −0.0104, C −0.0040 (§D) before the next seal books it | Astra / fable-cursor | protects W10/W11's reads |
 | 2 | **the canopy's near/mid hue** | the house cap at 69° and A/F's canopy band at 73–75° against the frames' 60–65°; the warmth reached the far crowns only (C-top 72°, D-top on the frame) | Astra (near-canopy / cluster materials) | the owner's "trees too green" |
-| 3 | **V16's seams** | joint-like dark area 2.5–3.4× the frame's at E/C/D (fable-2's re-measure agrees); slabs 0.03 dark | hardscape / fable-2 | W03's note |
+| 3 | **V16's seams** | joint-like dark area 2.5–3.4× the frame's at E/C/D (fable-2's re-measure agrees); slabs 0.03 dark. **Corrected in r55 §B (fable-2's §54 + my diagnostic): not a value — the seam's *continuity*; a hardscape-module change for the lane with the module** | hardscape-32 (module) | W03's note |
 | 4 | **the flight's treads** | the A flight box 40.7 % dark vs the frame's 15.8 % after the tint; thin logs did not help; the treads sit in canopy shade where the frame's climb into a haze gap (V17) | canopy gap / atmosphere over the flight | V17 |
 | 5 | **W09 giants** | no flare, no limbs at frame scale; the bark is brown now (take-0127) and the emergent's cushions thinned — the form is the gap | trees / giants | W09 |
 | 6 | **W10 canopy at F** | "dense, layered canopy with light breaking through": F's top still opens to haze/sky between lobes; the plateau roof closed the look-up, not F | canopy (owner-fable) | W10 |
@@ -133,7 +133,8 @@ priorities (stones, trees, distance) and then by what turns a verdict:
 | 11 | **C02, U02** | the Kokiri Sword; the equipment screen's layout | character / shell | C02, U02 |
 | 12 | V3 the right bank at D; V14 the pod posts (1 pod on a hook vs 3–4 on a bark post); W23's fern hat and one plane | terrain; structures; rocks | notes |
 
-Three of these are one commit each (#1 a revert, #9 a grade step, #3 a seam value); #4 and #8 are the
+Two of these are one commit each (#1 a revert, #9 a grade step); #3 is not (r55 §B — fable-2 measured
+five constants, none moves it a tenth of the way; the seam's continuity is the lever); #4 and #8 are the
 same light; #2 is the largest visible one left in the owner's own words.
 
 ## G. Iteration 52 (02:35–02:50 UTC) — Astra's bank-backing study answers §D; the decision is the integrator's
