@@ -21,7 +21,7 @@
  * instances that can reach the image (see "submission culling" below). Everything is seated via
  * ctx.terrain.height; randomness only via ctx.rng.
  */
-import { BufferAttribute, BufferGeometry, Color, Frustum, Group, InstancedBufferAttribute, InstancedMesh, Matrix4, Mesh, Quaternion, Sphere, Vector3, type Camera, type Material } from 'three';
+import { Box3, BufferAttribute, BufferGeometry, Color, Frustum, Group, InstancedBufferAttribute, InstancedMesh, Matrix4, Mesh, Quaternion, Sphere, Vector3, type Camera, type Material } from 'three';
 import type { TrunkSeat, WorldContext, WorldSystem } from '../system';
 import { BARK_DETAIL_M, BARK_DETAIL_TILES, BARK_TOUCH_M, BARK_TOUCH_TILES, CARD_EDGE_FADE, CARD_FLAT_EDGE_FADE, COLUMN_BARK_FLOOR, COLUMN_BARK_FLOOR_FAR, COLUMN_FLOOR_FADE_M, createTreeMaterials, CUSHION_FADE_M, DISTANT_BARK_M, DISTANT_NEAR_FLOOR, DISTANT_NEAR_TONE, NEAR_BASE_FLOOR, NEAR_BOLE_FLOOR, NEAR_BOLE_FLOOR_FADE, NEAR_BOLE_FLOOR_TOP, NEAR_BOLE_SLOTS, NEAR_CANOPY_LEAF_FLOOR, NEAR_CANOPY_LEAF_NEAR_M, NEAR_CANOPY_SLOTS, NEAR_CANOPY_SUN_THROUGH, TREE_BARK_FLOOR, TREE_BARK_FLOOR_NEAR, TREE_FLOOR_FADE_M, TREE_LEAF_FLOOR, TREE_LEAF_FLOOR_NEAR, TREE_NEAR_BOLE_FLOOR } from './materials';
 import type { ShadeFloor } from '../materials/shadeFloor';
@@ -2061,6 +2061,50 @@ export async function create(ctx: WorldContext): Promise<WorldSystem> {
   };
   // fable-4 (round 50, W08 at C): the hero stem's instance tilt — whitebark.ts HERO_WHITE_BARK_TILTS
   for (const p of whitePlacements) seatFamily(whites, p, p.variant, whiteBarkTilt(p.x, p.z));
+  /**
+   * A tree's colour-pass bound: the crown (leaf vertices, aRoot.w > 0.5) and the wood split at its
+   * mid-height as three spheres. The convex hull of the three is outside a frustum plane iff every
+   * sphere is; for a tall thin tree that hull is far tighter than the geometry's one sphere, which
+   * for a 20 m white-bark 9 m behind the camera still swallowed the camera. Computed while the
+   * CPU arrays exist (they are released after the first upload).
+   */
+  const geometryHull = (geometry: BufferGeometry): Sphere[] => {
+    const pos = geometry.attributes.position;
+    const root = geometry.attributes.aRoot;
+    if (!pos || !pos.array || !root || !root.array || root.itemSize < 4) return [geometry.boundingSphere!.clone()];
+    const box: Box3[] = [new Box3(), new Box3(), new Box3()];
+    const v = new Vector3();
+    let minY = Infinity;
+    let maxY = -Infinity;
+    for (let i = 0; i < pos.count; i++) {
+      if (root.getW(i) > 0.5) continue;
+      const y = pos.getY(i);
+      if (y < minY) minY = y;
+      if (y > maxY) maxY = y;
+    }
+    const midY = (minY + maxY) / 2;
+    for (let i = 0; i < pos.count; i++) {
+      v.fromBufferAttribute(pos, i);
+      const leaf = root.getW(i) > 0.5;
+      box[leaf ? 0 : v.y < midY ? 1 : 2].expandByPoint(v);
+    }
+    const out: Sphere[] = [];
+    for (let b = 0; b < 3; b++) {
+      if (box[b].isEmpty()) continue;
+      const sp = new Sphere();
+      box[b].getCenter(sp.center);
+      sp.radius = 0;
+      for (let i = 0; i < pos.count; i++) {
+        const leaf = root.getW(i) > 0.5;
+        if ((leaf ? 0 : pos.getY(i) < midY ? 1 : 2) !== b) continue;
+        v.fromBufferAttribute(pos, i);
+        const d = v.distanceTo(sp.center);
+        if (d > sp.radius) sp.radius = d;
+      }
+      out.push(sp);
+    }
+    return out.length ? out : [geometry.boundingSphere!.clone()];
+  };
   const familyMeshes = <P, T extends { x: number; z: number; scale: number }>(variants: FamilyVariant<P, T>[], label: string, material: Material, depth: Material, parent: Group) => {
     for (const w of variants) {
       const n = Math.max(1, w.placements.length);
@@ -2080,6 +2124,7 @@ export async function create(ctx: WorldContext): Promise<WorldSystem> {
         mesh.visible = false;
         mesh.userData.kind = label;
         mesh.userData.lodLevel = l;
+        mesh.userData.hull = geometryHull(w.lods[l].geometry);
         w.meshes.push(mesh);
         parent.add(mesh);
       }
@@ -2902,7 +2947,51 @@ export async function create(ctx: WorldContext): Promise<WorldSystem> {
     out.radius = bs.radius * w.placements[i].scale + CULL_PAD_M;
     return out;
   };
-  const fillFamily = <P, T extends { x: number; z: number; scale: number }>(w: FamilyVariant<P, T>, l: number, list: number[]) => {
+  /** wind sway + a margin for the hull test (m, before the instance scale) */
+  const HULL_PAD_M = 1.5;
+  const hullSphere = new Sphere();
+  const hullSpheres: Sphere[] = [new Sphere(), new Sphere(), new Sphere()];
+  /** the instance's colour-pass hull meets the frustum (false only when every hull sphere is outside one plane) */
+  const hullInView = <P, T extends { x: number; z: number; scale: number }>(w: FamilyVariant<P, T>, l: number, i: number) => {
+    const hull = w.meshes[l].userData.hull as Sphere[] | undefined;
+    if (!hull) return true;
+    const scale = w.placements[i].scale;
+    for (let k = 0; k < hull.length; k++) {
+      hullSpheres[k].center.copy(hull[k].center).applyMatrix4(w.matrices[i]);
+      hullSpheres[k].radius = hull[k].radius * scale + HULL_PAD_M;
+    }
+    for (const plane of frustum.planes) {
+      let outside = true;
+      for (let k = 0; k < hull.length && outside; k++) {
+        hullSphere.copy(hullSpheres[k]);
+        if (plane.distanceToPoint(hullSphere.center) >= -hullSphere.radius) outside = false;
+      }
+      if (outside) return false;
+    }
+    return true;
+  };
+  /**
+   * Round 52 (W38): a casting instance behind the camera stays submitted for its shadow, but the
+   * colour pass drew it too — at A the three high-LOD white-barks behind the stairs (99–138° off
+   * axis, 9–17 m) cost 254 K triangles for no pixel. `fillFamily` packs the in-view instances first
+   * and remembers how many there are; the colour pass draws only those (`onBeforeRender` shrinks
+   * `count`, `onAfterRender` restores it). Three renders the shadow maps before the scene and never
+   * calls `onBeforeRender` from the shadow pass, so every kept instance still casts.
+   */
+  const MAIN_COUNT = 'mainCount';
+  const FULL_COUNT = 'fullCount';
+  const installMainPassCount = (mesh: InstancedMesh) => {
+    if (mesh.userData[FULL_COUNT] !== undefined) return;
+    mesh.userData[FULL_COUNT] = mesh.count;
+    mesh.userData[MAIN_COUNT] = mesh.count;
+    mesh.onBeforeRender = () => {
+      mesh.count = mesh.userData[MAIN_COUNT] as number;
+    };
+    mesh.onAfterRender = () => {
+      mesh.count = mesh.userData[FULL_COUNT] as number;
+    };
+  };
+  const fillFamily = <P, T extends { x: number; z: number; scale: number }>(w: FamilyVariant<P, T>, l: number, list: number[], mainCount = list.length) => {
     const mesh = w.meshes[l];
     for (let k = 0; k < list.length; k++) mesh.setMatrixAt(k, w.matrices[list[k]]);
     mesh.count = list.length;
@@ -2915,6 +3004,9 @@ export async function create(ctx: WorldContext): Promise<WorldSystem> {
       mesh.computeBoundingSphere();
       mesh.boundingSphere!.radius += CULL_PAD_M;
     }
+    installMainPassCount(mesh);
+    mesh.userData[FULL_COUNT] = list.length;
+    mesh.userData[MAIN_COUNT] = mainCount;
     w.submitted[l] = list;
   };
   const submitFamily = <P, T extends { x: number; z: number; scale: number }>(variants: FamilyVariant<P, T>[]) => {
@@ -2922,11 +3014,15 @@ export async function create(ctx: WorldContext): Promise<WorldSystem> {
       for (let l = 0; l < 3; l++) {
         const casts = w.meshes[l].castShadow;
         const kept: number[] = [];
+        const shadowOnly: number[] = [];
         for (const i of w.lists[l]) {
           instanceSphere(w, l, i, sphere);
-          if (inView(sphere) || (casts && shadowReaches(sphere))) kept.push(i);
+          if (inView(sphere) && hullInView(w, l, i)) kept.push(i);
+          else if (casts && shadowReaches(sphere)) shadowOnly.push(i);
         }
-        if (!sameList(kept, w.submitted[l])) fillFamily(w, l, kept);
+        const mainCount = kept.length;
+        for (const i of shadowOnly) kept.push(i);
+        if (!sameList(kept, w.submitted[l]) || w.meshes[l].userData[MAIN_COUNT] !== mainCount) fillFamily(w, l, kept, mainCount);
       }
     }
   };
