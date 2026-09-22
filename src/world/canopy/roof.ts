@@ -107,10 +107,11 @@ export const ROOF_STAND_GIANT_SKIP = 0.5;
  * hero-frame exclusion for the stand's clumps (m): the stand is what camera D looks at through
  * the arch (its nearest band point 54 m off; B / E 58 m; A 70 m), so the plaza roof's 120 m rule
  * would build nothing over it. A stand clump inside a hero frame nearer than this is dropped;
- * beyond it the clump stands in the frame's far haze. With the bands as authored the nearest
- * in-frame stand clump is ≈ 60 m from any hero camera, so at 50 this is a floor that drops
- * nothing (the audit's `stand.nearestHeroM` says what it sees); the six-view measurement in the
- * PR is what holds the −0.003 budget, and the value moves up if it does not.
+ * beyond it the clump stands in the frame's far haze. With the bands as authored the rows band's
+ * south edge comes within 50 m of B / E / D, so at 50 this drops the handful of cells there
+ * (`stand.dropped.heroFrame`) and the nearest in-frame stand clump sits at ≈ 50 m from B / E / D,
+ * 55 from A, 61 from F, none from C (the audit's `stand.nearestHeroM`); the six-view measurement
+ * in the PR is what holds the −0.003 budget, and the value moves up if it does not.
  */
 export const HERO_DROP_STAND_M = 50;
 
