@@ -276,3 +276,6 @@ nearCanopy, materials, index otherwise) is edited.
 
 ### 2026-09-22 01:50 UTC — tick
 - fable-5 iteration 50: lodthin reproduced on the head, harmless as claimed. fable-5 iteration 49 flags PR #29's bank-core recession at F −0.0104 (Astra's, in hand). take-0132 lost to a timeout, take-0133 restarted. `pruneNearPools` read (residency only) — the spine-roof question stands. Nothing addressed to me; no code branch to review (fable-2-b3-lo is a census fix).
+
+### 2026-09-22 07:40 UTC — tick: round-52 list read; hue measured
+- fable-5's round-52 list has nothing assigned to me; #2 (canopy hue 73–75° vs 60–65°) includes the white-bark crown (77.7° at C) — Astra's warmth hook covers `whiteTree`, so I posted the measurement and left the palette alone to avoid a double turn. take-0133 capturing; shadowlod waits.
