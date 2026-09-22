@@ -290,8 +290,8 @@ const M = new Float32Array(16);
 const SINGLE = (n: number): number[][] => Array.from({ length: n }, (_, v) => [v]);
 const ALL = (n: number): number[][] => [Array.from({ length: n }, (_, v) => v)];
 const PACKS: Record<string, PackLayout> = {
-  // 965 clumps of the biggest geometry: near / mid LODs one draw per variant, far LOD in pairs
-  ferns: [SINGLE(4), SINGLE(4), [[0, 1], [2, 3]]],
+  // One draw per variant at every LOD: far pairs also submitted the unselected, collapsed fern.
+  ferns: [SINGLE(4), SINGLE(4), SINGLE(4)],
   // the two heads and the two spikes pair up at every LOD (round 39: the far draw packed all four,
   // 834 triangles an instance for 117 far violets from camera A — 98 K; in pairs 49 K, one draw more)
   // round 43: the ultra LOD (bells / graded stems inside FLOWER_ULTRA_M, 4.2–5.1 K triangles a
@@ -317,8 +317,9 @@ const PACKS: Record<string, PackLayout> = {
   // near fronds, which only the walk sees, stay one variant a draw like the disc ferns'.
   // Round 47: the north verge (vegetation-25) puts hundreds of mid-LOD fronds 20–35 m from camera A;
   // packed, each submitted all four variants (ferns-north-lod1 0 → 89 K on A, W38 9.02 M > 9.0 M) —
-  // the mid LOD draws one variant a draw again (+3 draws, ≈ −66 K); the far LOD stays packed.
-  'ferns-north': [SINGLE(4), SINGLE(4), ALL(4)],
+  // the mid LOD draws one variant a draw again (+3 draws, ≈ −66 K); the far LOD now does too,
+  // avoiding three unselected, collapsed variants per instance.
+  'ferns-north': [SINGLE(4), SINGLE(4), SINGLE(4)],
   'weeds-north': [ALL(3), ALL(3), ALL(3)],
   seedheads: [ALL(3), SINGLE(3)],
   // 428–856-triangle coils: per variant at both LODs (round 39: the one packed far draw submitted
@@ -338,9 +339,9 @@ const PACKS: Record<string, PackLayout> = {
   // one variant a draw like the high LOD it hands over to
   hedge: [SINGLE(3), SINGLE(3), ALL(3), ALL(3)],
   // round 31: 6 tuft variants (two per height class, `variant % 3` the class). Thousands of
-  // instances: one draw per variant near (130 triangles each), the far LOD (30 triangles) pairs
-  // the two variants of a class — 9 draws (round 40: the near tufts no longer cast, see `mk`)
-  tufts: [SINGLE(6), [[0, 3], [1, 4], [2, 5]]],
+  // instances: one draw per variant near (130 triangles each) and far (30 triangles), without
+  // the paired variant's collapsed triangles (round 40: near tufts no longer cast, see `mk`).
+  tufts: [SINGLE(6), SINGLE(6)],
 };
 
 /**
