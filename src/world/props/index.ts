@@ -8,7 +8,7 @@
  * a bank), weathered at the base, and merged per locality (`localityOf(cluster)`) and material
  * into one mesh each; each locality is distance-culled as one.
  */
-import { Box3, BufferGeometry, type Camera, Color, Group, Mesh, Quaternion, Sphere, Vector3 } from 'three';
+import { Box3, type BufferAttribute, BufferGeometry, type Camera, Color, Group, Mesh, Quaternion, Sphere, Vector3 } from 'three';
 import { mergeGeometries } from 'three/addons/utils/BufferGeometryUtils.js';
 import type { WorldContext, WorldSystem } from '../system';
 import { expansionCull } from '../terrain/heightfield';
@@ -124,6 +124,23 @@ const COLOUR_DOMAIN: Record<MaterialKey, [number, number, number]> = {
   iron: [1, 1, 1],
   glow: [1, 1, 1],
 };
+
+/**
+ * Round 52 (fable-cursor's OOM ask, 2026-09-22 07:15 — the tab at 3.6 GB; trees/index.ts does the same):
+ * once the renderer has uploaded a merged locality mesh nothing reads its typed arrays again — the
+ * cull reads the locality spheres taken at build, the audits and the census read counts, the
+ * character's surface grid reads the hardscape's stairs, `contactIndices` are consumed before the
+ * merge — so every attribute and the index drop their CPU copy on upload (≈ 7.9 MB across the 13
+ * meshes). Bounds are computed before the arrays go. In Node (the tests) nothing uploads, so the
+ * arrays stay and the geometry assertions still see them.
+ */
+const dropArray = function (this: { array: ArrayLike<number> | null }) {
+  this.array = null;
+};
+function releaseAfterUpload(g: BufferGeometry): void {
+  for (const a of Object.values(g.attributes)) (a as BufferAttribute).onUpload(dropArray as unknown as () => void);
+  if (g.index) g.index.onUpload(dropArray as unknown as () => void);
+}
 
 /** grime and moss where a prop meets the ground; continuous in space so shared edges stay seamless */
 function weather(geometry: BufferGeometry, material: MaterialKey, size: number): void {
@@ -532,6 +549,7 @@ export async function create(ctx: WorldContext): Promise<WorldSystem> {
         else sphere.union(merged.boundingSphere);
         first = false;
       }
+      releaseAfterUpload(merged);
       ownedGeometry.push(merged);
       const mesh = new Mesh(merged, materials[key]);
       mesh.name = `${locality}-${key}`;

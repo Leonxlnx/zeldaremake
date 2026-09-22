@@ -16,6 +16,47 @@ B 526 / C 393 / D 394 / E 526 / F 512; A 9.09 M tris on both (the head's number,
 change's — flagged to fable-cursor). Files: `ledge2-x-clearing-n.jpg` (+ `-crop`),
 `ledge2-x-ledge-foot.jpg`, `ledge2-x-northpath-n.jpg`.
 
+## Iteration 61 — the rock meshes' CPU arrays go on upload — `agent/fable-2-rock-upload` @ `a1ed0427` (stacked on §60)
+
+fable-4's `poolmem` (tick 225): every tree geometry drops its CPU typed arrays once the GPU has them (`BufferAttribute.onUpload`),
+renderer RSS at A −125 MB; fable-5's reconciliation: "`onUpload` drops the CPU copy of all static geometry — no GPU cost".
+Rocks qualify — nothing reads a rock mesh's arrays after the build: the bounds are computed before the first frame (three's
+frustum check runs before the upload on a mesh's first visible frame, from the array still present), the census reads
+`count`, the near-LOD swap toggles visibility, the rubble / strata skirt collapse writes the mesh's `instanceMatrix` (not a
+geometry attribute), and the only raycast in the tree is terrain's own sampler proof. So `compactRockGeometry` now also
+registers the drop on every attribute and index. At E after the first frames: **115 rock attributes released; live rock
+arrays 66.2 → 33.2 MB** (§60's compaction plus the drop on everything drawn — the hidden near kits keep theirs until first
+shown). The heap samples swing with GC timing (1 385 vs 1 475 MB between two runs), so the array bytes are the measure; the
+pixels cannot change (the GPU buffers are the same data). Tests 28/28 (no renderer in node: `onUpload` never fires there).
+
+## Iteration 60 — every rock mesh's vertex storage compacted: rocks 85.5 → 40.3 MB, the JS heap −45 MB — `agent/fable-2-rock-bytes` @ `59c68f32` (stacked on §59)
+
+The second memory step §59 named, generalised: `compactRockGeometry` runs once over every mesh drawn with a rock material
+(`rock-triplanar…`), after every build-time read of the attributes — the hero near kits (320 K / 230 K / 194 K vertices),
+the far LODs, the dressing meshes, the ledge, the strata / rubble looks. `uv` goes (no rock material reads it: the skin
+is triplanar); the normal becomes Int8 ×3; any attribute whose values all sit in 0–1 (colour, `aWet`, `aLichen`, a
+pebble's `aMoss`) becomes Uint8; an attribute outside 0–1 stays float32 — the kits' `aMoss` carries the cushions (> 1)
+and the lichen plates (< 0). Normalised integer attributes reach the shader as the same floats; idempotent (the §59 tiles
+are left as they are).
+
+| | rocks | of which | JS heap (A) |
+|---|---|---|---|
+| head `a1eafb17` | 85.5 MB | pebble tiles 30.4 · hero kits 34.1 · dressing 13.5 · far LODs 6.9 | 1 529 MB |
+| `59c68f32` | **40.3 MB** | tiles 11.1 · kits 18.7 · dressing 7.2 · far LODs 3.4 | **1 484 MB** |
+
+The GPU process holds the other copy, so the tab gives back ≈ 90 MB. Pixels — the quantisation's footprint, no more:
+
+| view / pose | SSIM | px > 8 | > 40 | note |
+|---|---|---|---|---|
+| D_log (capture pair) | 0.2785 → 0.2785 | 2 212 (0.24 %) | 0 | the shot-D boulder's crack and bed lines, where dark colours quantise coarsest (`bytes60-D-boulder.jpg`, ×6 difference) |
+| E_ground (capture pair) | 0.2182 → 0.2183 | 341 (0.04 %) | 1 | draws / tris identical (386 / 7.96 M, 425 / 7.80 M) |
+| `sn-shotd-2m` (the near kit at 2 m) | | 159 (0.02 %) | 0 | mean 2.2 levels |
+| `x-southbank-toe` (the dressing at 6.8 m) | | 1 184 (0.13 %) | 0 | mean 2.8 levels |
+
+Rocks tests 28/28, typecheck / build green. Rocks' bytes are done: what remains (40 MB) is the vertex count itself —
+the near kits at 200–320 K non-indexed vertices each, sized for a camera within 6 m; a lower-density kit would be a look
+change to measure at the 2 m poses, not a storage one.
+
 ## Iteration 59 — the pebble tiles' bytes: 30.5 → 11.2 MB (tick 223's OOM ask) — `agent/fable-2-pebble-bytes` @ `20b72fdf`
 
 fable-cursor (07:15): the capture stalls are OOM kills, the tab at 3.6 GB, the world's resident memory the root cause.

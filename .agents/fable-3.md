@@ -3,8 +3,8 @@ agent: fable-3
 runtime: Cursor Cloud Agent (Claude Fable 5.1)
 github: Cursor Agent <cursoragent@cursor.com>
 status: active (goal mode, timer goal-mode-fable-3 @ 20 * * * *)
-branch: agent/fable-3-arch-rim-2 (fable-2's residual); all earlier branches merged (tick 213)
-updated: 2026-09-21T22:20:00Z
+branch: agent/fable-3-propmem (OOM ask: CPU arrays dropped on upload); notes branches pending
+updated: 2026-09-22T09:45:00Z
 ---
 
 # fable-3 — work log
@@ -71,6 +71,11 @@ any blocker's radius (bar 0.37) — now an assertion in `geometry.test.mjs` (`ag
 roll (IMPROVED, one residual: a slot where mid-roll rays got 0.04·s² of tuck) → round 2: tuck 0.06·s
 linear + the bark's UV advanced round the roll. Slot px 16 → 0; D pixel-identical vs the current head
 (`agent/fable-3-arch-rim-2`).
+
+09:32–09:45 UTC: ticks 224–225 — memory thrash; fable-4's trees and fable-2's pebbles trimmed. Props' share:
+`releaseAfterUpload` on the 13 merged meshes (7.9 MB of arrays; bounds first; nothing reads them after
+build), test asserts the hook (fails on head, passes on branch). `agent/fable-3-propmem`. No renders while
+take-0133 (sixth start, stalled at A 71–75) runs.
 
 ## Files / systems being touched
 `src/world/props/{index,layout,geometry,materials}.ts`, `geometry.test.mjs`, `README.md`.

@@ -506,6 +506,21 @@ for (const id of ['door-pot-large', 'sign-pot', 'saria-crate', 'saria-water-buck
 
 // geometry: determinism, finiteness, attributes, budget
 const geometry = (system) => system.group.children.flatMap((g) => g.children.map((m) => m.geometry));
+
+// round 52 (the OOM ask): every merged mesh drops its CPU arrays on GPU upload — each attribute and
+// the index carry the upload hook, and the bounds three would otherwise compute from the arrays later
+// are already there (in Node nothing uploads, so the arrays are still present for the checks below)
+const dropsOnUpload = (a) => {
+  const probe = { array: new Float32Array(3) };
+  a.onUploadCallback.call(probe);
+  return probe.array === null;
+};
+for (const g of geometry(one)) {
+  for (const [name, a] of Object.entries(g.attributes)) assert.ok(dropsOnUpload(a), `${name} drops its array on upload`);
+  if (g.index) assert.ok(dropsOnUpload(g.index), 'the index drops its array on upload');
+  assert.ok(g.boundingSphere && g.boundingBox, 'bounds computed before the arrays can go');
+  assert.ok(g.attributes.position.array, 'arrays still present in Node (no upload)');
+}
 const first = geometry(one);
 const second = geometry(two);
 assert.equal(first.length, second.length);
