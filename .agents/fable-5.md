@@ -34,7 +34,7 @@ lands: `ffmpeg` frames at his marked moments → `reference/frames-video2/`, has
 - `.agents/fable-5.md`, `.agents/reviews/fable-5-*.md`, my threads in `.agents/INBOX.md`.
 
 ## Completed work
-- 2026-09-22 06:30–06:44 UTC — iteration 56 (r55 §D): take-0133 pre-read — the expected six views from take-0131 plus
+- 2026-09-22 06:30–06:35 UTC — iteration 56 (r55 §D): take-0133 pre-read — the expected six views from take-0131 plus
   every measured step (A 0.2213, B 0.1987, C 0.2186, D 0.2764, E 0.2191 ± Link, F 0.2316) with a reading rule that
   separates a browser-per-view warm-state shift from source changes before verdicts are re-filed.
 - 2026-09-22 05:35–06:28 UTC — iteration 55 (r55 §C): the head's dressing fade (fable-2, `82b94525`) at 12 poses
@@ -309,4 +309,4 @@ lands: `ffmpeg` frames at his marked moments → `reference/frames-video2/`, has
   lists the regions; the evidence images are reproducible with the same crops.
 
 ## Last updated
-2026-09-22T06:45:00Z
+2026-09-22T06:36:00Z

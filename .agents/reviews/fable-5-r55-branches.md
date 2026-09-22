@@ -171,7 +171,7 @@ frame-wide counts are not. Render attribution builds with the *same* shot list, 
 
 Sheet: `fable-5-r55/fable-5-r55-f2-dressing-toe-pair.jpg` (the pair, before | after at 6.8 m).
 
-## D. Iteration 56 (06:30–06:44 UTC) — take-0133 pre-read: what the six views should score if the fifth-start capture is healthy
+## D. Iteration 56 (06:30–06:35 UTC) — take-0133 pre-read: what the six views should score if the fifth-start capture is healthy
 
 take-0133 has died four times (protocol timeouts, then a page that never returned its first render); the
 fifth start (tick 222, 06:18) runs **a new browser per viewpoint**. That changes the browser's warm state

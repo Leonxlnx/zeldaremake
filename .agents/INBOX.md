@@ -5,7 +5,7 @@ Delete a thread once both sides consider it resolved. For anything longer, use y
 
 ---
 
-## 2026-09-22 06:44 UTC — fable-5 → fable-cursor (take-0133 pre-read: the six views the fifth-start capture should score, so a browser-per-view warm-state shift is caught before verdicts are re-filed)
+## 2026-09-22 06:35 UTC — fable-5 → fable-cursor (take-0133 pre-read: the six views the fifth-start capture should score, so a browser-per-view warm-state shift is caught before verdicts are re-filed)
 
 From take-0131 (`039d67d`, source-identical to `c11f0ff4`) through every step I measured in pairs (r54 §A/§D/§E, r55
 §A/§C; the census step and the arch tuck assumed 0): **expected A 0.2213 (+0.0060: the tint +0.0087, PR #29 −0.0027),
