@@ -23,9 +23,8 @@ casting (fable-4 measured the columns too and did not ship them — E −0.0032)
 | `sn-whitebark-base` (survey-2) | **2.39 %** | +17.8 | — | not measured |
 | `wb-grove-10m` (my grove pose) | **5.58 %** | +12.0 | — | not measured |
 | `wnw-south` (10, 1.5, 40 → the grove, 32 m) | **2.92 %** | +15.6 | — | not measured |
-| `wnw-plaza-east` (14, 1.5, 6 → WNW) | 0.17 % | +13.7 | — | — |
-| `wnw-northeast` (26, 1.5, −20 → WNW) | 0.06 % | +14.8 | — | — |
-| `wnw-east` (34, 1.5, 22 → WNW) | 0 | — | — | — |
+| `wnw-east` (34, 1.5, 22 → WNW, the east meadow) | 0 | — | — | — |
+| ~~`wnw-plaza-east`~~, ~~`wnw-northeast`~~ | struck | — | — | badly placed probes: the camera inside a bush / under the terrace geometry — their 0.17 % / 0.06 % mean nothing |
 
 **Six views: within budget, reproduced.** A/B/E/F pixel-identical, C −0.0009 (fable-4 −0.0006 — same
 direction, the settle's noise apart), D −0.0002. C's change is the hazed bank behind the lantern limb
@@ -44,8 +43,11 @@ LOD, which still casts. The loss is on the trees 20–44 m out and the ground at
   at ~20 m from the camera; the patch is gone (meadow under the grove: 85 → 88, 9.2 % changed). Under
   the haze the patch was faint, and so is its absence — but the trees now sit on the meadow without a
   shadow to root them.
-- Nothing at all changes east of the plaza (`wnw-east` 0 px, `wnw-northeast` 0.06 %): the white-barks
-  the fixed views frame are near LOD or columns.
+- The one valid probe east of the plaza (`wnw-east`, the meadow with a near white-bark at the frame's
+  left and trees 20–40 m out) does not change by a pixel: the mid-band trees there are columns or
+  giants, which keep casting. Two more probes I placed blind (`wnw-northeast`, `wnw-plaza-east`) landed
+  under the terrace geometry and inside a bush — struck from the evidence, kept in the table so the
+  count of positions is honest.
 
 Sheets: `fable-5-r55/fable-5-r55-f4-shadowlod-grove-crown.jpg` (the crown-on-trunk band, before |
 after), `fable-5-r55/fable-5-r55-f4-shadowlod-wnw-south.jpg` (the grove's meadow patch),

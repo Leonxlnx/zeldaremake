@@ -35,7 +35,7 @@ lands: `ffmpeg` frames at his marked moments → `reference/frames-video2/`, has
 
 ## Completed work
 - 2026-09-22 03:30–04:55 UTC — iteration 53 (r55 §A): fable-4's shadowlod (the white-barks' mid LOD stops
-  casting) on the head at 12 positions — six views A/B/E/F identical, C −0.0009, D −0.0002 (fable-4's table
+  casting) on the head at 12 positions (10 valid; two blind probes struck) — six views A/B/E/F identical, C −0.0009, D −0.0002 (fable-4's table
   reproduced); the cost is on the trees 20–44 m out: crown-on-trunk band and ground patch gone (grove
   poses 2.4–5.6 % of pixels, all brighter), the near ground untouched everywhere. Mergeable; a shadow-only
   low-mesh proxy offered as an option.
