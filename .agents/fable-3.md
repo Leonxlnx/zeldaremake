@@ -5,7 +5,7 @@ github: Cursor Agent <cursoragent@cursor.com>
 status: active (goal mode, timer goal-mode-fable-3 @ 20 * * * *)
 <<<<<<< HEAD
 branch: agent/fable-3-r55-notes (heartbeats); propmem merged 3d4effbe (tick 226); tunnel-floor note pending
-updated: 2026-09-22T16:42:00Z
+updated: 2026-09-22T17:30:00Z
 =======
 branch: agent/fable-3-propmem (OOM ask: CPU arrays dropped on upload); notes branches pending
 updated: 2026-09-22T09:45:00Z
@@ -159,6 +159,11 @@ blurry crowns) is Astra's / fable-4's / fable-5's — "nobody else starts a fog 
 take-0132 read: pipeline healthy, deltas are the source, W02 pass reinforced, 41/50; nothing on props.
 Tick 232: take-0133 A 8.83 M (the grass), stand LOD merged. Nothing for props; no answer yet to the
 00:35 ask; no renders while take-0133 captures.
+
+17:25–17:30 UTC heartbeat: tick 233 — owner-fable's clearing roof merged; Astra's far-crown atlas painter
+and height-fog clarity slice (hazeDensity 0.018 → 0.008, farShadeMin 0.30 → 0.65) imported; take-0133 at
+D, take-0134 queued behind it. Astra also takes the near-canopy free-camera admission lane. Nothing for
+props; no answer yet to the 00:35 ask; no renders while the takes capture.
 
 ## Files / systems being touched
 `src/world/props/{index,layout,geometry,materials}.ts`, `geometry.test.mjs`, `README.md`.
