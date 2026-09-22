@@ -1,0 +1,203 @@
+{
+  "baseline": "83ebbc63af853abd14ba4e79feb26e3d6b8af4fd",
+  "canonical": "7a7a350296a92f6a99f89c7cc5befdab59b04dbb",
+  "method": "Read-only Git object and name-list comparison. No source merge, geometry test or capture.",
+  "changedFiles": 14,
+  "productionFiles": 9,
+  "pairedTestFiles": 3,
+  "documentationFiles": 1,
+  "slices": [
+    {
+      "id": "trees",
+      "commits": [
+        "c938a862cbe4b934ba6be460b9a9ec26903fe8c0",
+        "79699a4fd59d47a6ed32c9b2d40cb15e60eca876",
+        "58c39fc4b5c0bba336bbc5f42ad81ea0844c7656",
+        "60408959ddb2ad2b382fa22c1a824987f0f61df4"
+      ],
+      "files": [
+        {
+          "file": "src/world/trees/index.ts",
+          "baselineBlob": "9ebfe83da80f6f1d0fafec18fb127085c5afc60f",
+          "canonicalBlob": "b0d335e98b18da1e2442acb5890629d92d6a3afb"
+        }
+      ]
+    },
+    {
+      "id": "rocks",
+      "commits": [
+        "0d86abbb99d48b81636d6af242dac6d08c7cfefe",
+        "20b72fdf783dbc0fdd295df6f6d11be1558e834e",
+        "59c68f32cbfc2a82b88a8e482fb7c2fc05ee57a5",
+        "a1ed0427f3b088a257893a1505e6055f96a1a80e"
+      ],
+      "files": [
+        {
+          "file": "src/world/rocks/index.ts",
+          "baselineBlob": "2848a45ea60fa9a1e471b502bc2cd135304d2460",
+          "canonicalBlob": "eef01efadb65826ce2aec8a094716cc108712938"
+        }
+      ]
+    },
+    {
+      "id": "props",
+      "commits": [
+        "a7739410d41a23f56526193c9097c7aa7ffd7f18"
+      ],
+      "files": [
+        {
+          "file": "src/world/props/index.ts",
+          "baselineBlob": "08e9e1e8022dac230f5be5f6068ea68f140b2e60",
+          "canonicalBlob": "b23c93fe8589def1a91cf017115e8279976a8746"
+        },
+        {
+          "file": "src/world/props/geometry.test.mjs",
+          "baselineBlob": "35cddedffc8658a3d8eac29ead52374772f837d4",
+          "canonicalBlob": "2df8c205817b99a7447189e87c44ff34271fac07"
+        },
+        {
+          "file": "src/world/props/README.md",
+          "baselineBlob": "62763a2924e4684a9fa70560e4bedab10ef1c379",
+          "canonicalBlob": "bb4583fe9c518dcb63dd0621530fbc3931f8cbbf"
+        }
+      ]
+    },
+    {
+      "id": "grass",
+      "commits": [
+        "f9c58007b84820f91c0d6b37801ce76f92113dc5"
+      ],
+      "files": [
+        {
+          "file": "src/world/vegetation/grass.ts",
+          "baselineBlob": "7f8f198374e598d569b6afbcc66dd429eb160f8f",
+          "canonicalBlob": "fc29be7201cadbf6f1a8907bc1f3c4613ae7129b"
+        },
+        {
+          "file": "src/world/vegetation/plants.test.mjs",
+          "baselineBlob": "3741b9f56b1be5d8487f93d46f4c5a6e0b72aa9e",
+          "canonicalBlob": "ec645b947ed2f25b1e3fcbdadac9c3086d44a697"
+        }
+      ]
+    },
+    {
+      "id": "roof",
+      "commits": [
+        "57cea8185b1572f7bf937baf4becb20816d73f7d",
+        "1af0d61a4534fb0859c755e00912517f56977412",
+        "4839a3c66b3408fa9e6487a059cf35651522bd38",
+        "e7f39f617cfbfceb763a6cb51d866a800f6be561",
+        "ffff47b50de1cded093f860fcc14ec7373637547"
+      ],
+      "files": [
+        {
+          "file": "src/world/canopy/index.ts",
+          "baselineBlob": "2df1f4f0ee105b61b8515e8ee5449026c2dbcee0",
+          "canonicalBlob": "a8c072c71270dfe158ff6479e255365c2a5cd81c"
+        },
+        {
+          "file": "src/world/canopy/roof.ts",
+          "baselineBlob": "07bda16b112c25a660c960cb5c6b08434926dd32",
+          "canonicalBlob": "91d406361c59e7d5ca8c11aa942b47622973e105"
+        },
+        {
+          "file": "src/world/canopy/roof.test.mjs",
+          "baselineBlob": "c6676a0531a3e9455fd1509d7bab20920b390258",
+          "canonicalBlob": "43293ed563f8fa14250add000c4fec0bc296bea1"
+        }
+      ]
+    },
+    {
+      "id": "audio",
+      "commits": [
+        "c2c3848598ab1877f94beb187d4017291d0b3742",
+        "38823a6763b83a6d0298e87f0218dbd206abf4fa"
+      ],
+      "files": [
+        {
+          "file": "src/audio/ambience.ts",
+          "baselineBlob": "2169e6b440bba59b592f2a5427471eacd9777260",
+          "canonicalBlob": "880fb81b13534cfc31387c51fbf006194f5ee6a0"
+        },
+        {
+          "file": "src/audio/footsteps.ts",
+          "baselineBlob": "6832587765dd436d789e13fe88eb1c50ed89ae32",
+          "canonicalBlob": "aa054da9bfe628e4e9ccbd26f1cc65b62076cc9c"
+        },
+        {
+          "file": "src/audio/index.ts",
+          "baselineBlob": "0aa70985bc914e8d44d84f09edc5380e17d10d8b",
+          "canonicalBlob": "ecc33aae811bbb03a877424e67e5d81a269b09e0"
+        }
+      ]
+    }
+  ],
+  "retainRoot": {
+    "file": "src/world/rocks/tiers.test.mjs",
+    "baselineBlob": "8b6d993e22cbb9976d713250d12bbb3ca84c077e",
+    "canonicalBlob": "cb85008240e34e577a4552ae04baac72ad06e6fd",
+    "reason": "Canonical lacks the additional real merged-pebble B3 regression case; no upstream hunk to import."
+  },
+  "protectedEqual": [
+    {
+      "file": "src/world/character",
+      "baselineObject": "4ae041efb892a288ac9dd591902599af79174469",
+      "canonicalObject": "4ae041efb892a288ac9dd591902599af79174469"
+    },
+    {
+      "file": "public/models",
+      "baselineObject": "986abe97efe0f606ca9d887f9465fb694a2e105d",
+      "canonicalObject": "986abe97efe0f606ca9d887f9465fb694a2e105d"
+    },
+    {
+      "file": "public/textures",
+      "baselineObject": "bbc2285479418cb44cbe0f5d2ebee932112d448f",
+      "canonicalObject": "bbc2285479418cb44cbe0f5d2ebee932112d448f"
+    },
+    {
+      "file": "src/world/atmosphere",
+      "baselineObject": "77bf0376f7acc1e909cc93995dd8f5cadbdf5cef",
+      "canonicalObject": "77bf0376f7acc1e909cc93995dd8f5cadbdf5cef"
+    },
+    {
+      "file": "src/world/structures",
+      "baselineObject": "124303f88a8c0d481bdce945c5bf675db14901a4",
+      "canonicalObject": "124303f88a8c0d481bdce945c5bf675db14901a4"
+    },
+    {
+      "file": "src/world/hardscape",
+      "baselineObject": "8b1f63c6af6fa25089ff43a18a3f09f67b19ad61",
+      "canonicalObject": "8b1f63c6af6fa25089ff43a18a3f09f67b19ad61"
+    },
+    {
+      "file": "src/world/terrain",
+      "baselineObject": "0a6dc5e90831b439687ee0396d62b521faf77f72",
+      "canonicalObject": "0a6dc5e90831b439687ee0396d62b521faf77f72"
+    },
+    {
+      "file": "src/world/trees/giant.ts",
+      "baselineObject": "03a2d8340d38e19bb9a230ff4124f8526c34f2a2",
+      "canonicalObject": "03a2d8340d38e19bb9a230ff4124f8526c34f2a2"
+    },
+    {
+      "file": "src/world/trees/nearCanopy.ts",
+      "baselineObject": "3189d3fe1a26d9a876301092711da6a8bdd749b3",
+      "canonicalObject": "3189d3fe1a26d9a876301092711da6a8bdd749b3"
+    },
+    {
+      "file": "src/world/trees/materials.ts",
+      "baselineObject": "f62474780515e7f8edb34cf83a4b23c0ac2e6fbf",
+      "canonicalObject": "f62474780515e7f8edb34cf83a4b23c0ac2e6fbf"
+    },
+    {
+      "file": "src/world/trees/leaf-cluster-texture.ts",
+      "baselineObject": "196e072c032a6c77d462281e4f272e49e92d7dc4",
+      "canonicalObject": "196e072c032a6c77d462281e4f272e49e92d7dc4"
+    },
+    {
+      "file": "src/capture/api.ts",
+      "baselineObject": "9c37c0828dcbaf1dcdf1ee21e46f942813706944",
+      "canonicalObject": "9c37c0828dcbaf1dcdf1ee21e46f942813706944"
+    }
+  ]
+}

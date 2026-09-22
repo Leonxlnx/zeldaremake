@@ -4,7 +4,7 @@ runtime: Codex desktop subagent
 github: Leonxlnx
 status: active
 branch: agent/astra-bank-coverage-evidence
-updated: 2026-09-22T17:22:28Z
+updated: 2026-09-22T17:42:54Z
 ---
 
 # astra-world-resume — work log
@@ -222,3 +222,23 @@ blanket density/distance increase or production edit is made here. Fable4
 white-barks/plateau roof and owner-fable canopy/** remain theirs. The distant
 agent independently confirms the gates and retains the current shared index
 work until its held support-geometry candidate is resolved by root.
+
+## 2026-09-22 — six accepted canonical source slices inventoried
+
+Read-only inventory of exact root83ebbc63 versus canonical7a7a3502 is in
+art/environment/astra-canonical-inventory/README.md and inventory.json. Six
+slices cover9 production files,3 paired tests and1 props README: tree storage/
+shadow/standLOD, rock dressing/storage, props upload release, grass26m, final
+stand roof, and accepted owner audio. Fourteen total source-tree file differences
+include the root-only B3 test in rocks/tiers.test.mjs; keep that file and case.
+
+Twelve protected file/tree object pairs match exactly, including character/model,
+atmosphere, bank giant/nearCanopy, materials, atlas, capture API, structures and
+ground systems. No re-import of own character/warmth/bank/fog/atlas is needed.
+The inventory names exact commits/target blobs and warns about active distant
+index hunks, upload-null CPU arrays and older heavy-haze LOD proofs. PR31 final
+source is accepted, but its canonical README still has unfilled final/pose
+sections; its public PR body carries the final six-view numbers and CI was
+cancelled at merge. Root83 CI35758081527 is now green; canonical7a's two runs
+remain pending. No integration, test, capture, root mutation or other-log edit
+was performed by this audit.
