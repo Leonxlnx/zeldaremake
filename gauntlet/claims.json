@@ -710,6 +710,15 @@
       ],
       "at": "2026-09-22T17:48:26.709Z",
       "expiresHours": 3
+    },
+    {
+      "agent": "astra-distance",
+      "items": [
+        "W10",
+        "W40"
+      ],
+      "at": "2026-09-22T19:04:04.532Z",
+      "expiresHours": 3
     }
   ]
 }

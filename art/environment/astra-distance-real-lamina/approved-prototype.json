@@ -1,0 +1,114 @@
+{
+  "source": "46ee1d0c35f0459d6c5a5177022a3e884e7bddc3",
+  "topology": "Broad: lower authored giant topology 4 leaders x 3 lobes. Slender: 2 leaders x 2 lobes. Each lobe uses the canonical 3 secondary / 4 twig forks and the unchanged nearCanopy.lobePart.",
+  "variants": [
+    {
+      "index": 0,
+      "kind": "broad",
+      "scale": 1.3944202166516333,
+      "physicalCrownRadiusM": 11.127473328880033,
+      "lobes": 12,
+      "leaves": 11460,
+      "triangles": 118205,
+      "woodTriangles": 26525,
+      "bytes": 9341268,
+      "maxParentJoinM": 0,
+      "normalLength": [
+        0.9999999571229656,
+        1.0000000460694067
+      ],
+      "hash": "8a6d46442602e4091d6d3ca99b247feb898a6b04f0940f83ed8d72e6e83433ce",
+      "buildMs": 194.18650000000002
+    },
+    {
+      "index": 1,
+      "kind": "broad",
+      "scale": 1.3725574889918788,
+      "physicalCrownRadiusM": 13.25890534366155,
+      "lobes": 12,
+      "leaves": 11892,
+      "triangles": 123791,
+      "woodTriangles": 28655,
+      "bytes": 9753396,
+      "maxParentJoinM": 0,
+      "normalLength": [
+        0.9999999540490812,
+        1.0000000455546008
+      ],
+      "hash": "ff6a46cfc78ca3a050def42937e5afb11b56e210cfd72f63e3e12f766418a573",
+      "buildMs": 140.4308000000001
+    },
+    {
+      "index": 2,
+      "kind": "broad",
+      "scale": 1.2789748960360885,
+      "physicalCrownRadiusM": 14.503575321049244,
+      "lobes": 12,
+      "leaves": 11988,
+      "triangles": 126023,
+      "woodTriangles": 30119,
+      "bytes": 9898476,
+      "maxParentJoinM": 0,
+      "normalLength": [
+        0.9999999543282357,
+        1.0000000460335563
+      ],
+      "hash": "6b7bccb87c530438c67ee868cee7bf765f6b11346b960b273f065f341a3a3a2f",
+      "buildMs": 141.3031000000001
+    },
+    {
+      "index": 3,
+      "kind": "slender",
+      "scale": 1.2757223128154873,
+      "physicalCrownRadiusM": 2.8065890881940723,
+      "lobes": 4,
+      "leaves": 2529,
+      "triangles": 27805,
+      "woodTriangles": 7573,
+      "bytes": 2015502,
+      "maxParentJoinM": 0,
+      "normalLength": [
+        0.9999999556164195,
+        1.0000000412036387
+      ],
+      "hash": "19427f0f6864aafa481718ec49dbd4eb61c22cef43fb68a473108bbbcaec6ab2",
+      "buildMs": 32.88670000000002
+    },
+    {
+      "index": 4,
+      "kind": "slender",
+      "scale": 1.2794037742167712,
+      "physicalCrownRadiusM": 3.5823305678069595,
+      "lobes": 4,
+      "leaves": 2334,
+      "triangles": 26266,
+      "woodTriangles": 7594,
+      "bytes": 1889916,
+      "maxParentJoinM": 0,
+      "normalLength": [
+        0.9999999574880478,
+        1.0000000434311813
+      ],
+      "hash": "2f6857effffacf901ce7146ef846fa911414d83c4eded8254a9f8f25109e877e",
+      "buildMs": 35.15069999999969
+    },
+    {
+      "index": 5,
+      "kind": "slender",
+      "scale": 1.328078265034128,
+      "physicalCrownRadiusM": 6.906006978177466,
+      "lobes": 4,
+      "leaves": 3924,
+      "triangles": 39832,
+      "woodTriangles": 8440,
+      "bytes": 2924448,
+      "maxParentJoinM": 0,
+      "normalLength": [
+        0.9999999545211659,
+        1.0000000452694813
+      ],
+      "hash": "793ead4ac95510954e3bc150ad307540272dd85abbf33b6d439e97c5f41565eb",
+      "buildMs": 56.67609999999968
+    }
+  ]
+}

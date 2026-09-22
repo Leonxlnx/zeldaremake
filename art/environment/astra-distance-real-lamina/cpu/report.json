@@ -1,0 +1,188 @@
+{
+  "baseline": "6231cffb",
+  "legacyPlacements": 796,
+  "legacyRngDraws": 11164,
+  "legacyRngHash": "4af7cf16befcc85bbcf0b486f8548590cb56dc65a1bb31bd94e862ac2daac479",
+  "variants": [
+    {
+      "i": 0,
+      "leaves": 11460,
+      "triangles": 118205,
+      "rawBytes": 9341268,
+      "packedBytes": 6700332,
+      "buildMs": 729.5360999999994,
+      "chunks": 597,
+      "longestChunk": 22.583999999998923,
+      "maxJoinM": 1.817778315852948e-15,
+      "maxLeafBaseToTwigM": 0.0028722836301334972,
+      "physicalLeafM": [
+        0.22000118624418977,
+        0.3599979216279462
+      ],
+      "curvedLeaves": 11460,
+      "hash": "8a6d46442602e4091d6d3ca99b247feb898a6b04f0940f83ed8d72e6e83433ce"
+    },
+    {
+      "i": 1,
+      "leaves": 11892,
+      "triangles": 123791,
+      "rawBytes": 9753396,
+      "packedBytes": 6997428,
+      "buildMs": 477.6704000000009,
+      "chunks": 615,
+      "longestChunk": 17.6903999999995,
+      "maxJoinM": 1.8607236251720842e-15,
+      "maxLeafBaseToTwigM": 0.00325657306885486,
+      "physicalLeafM": [
+        0.2200030736345798,
+        0.3599962954968214
+      ],
+      "curvedLeaves": 11892,
+      "hash": "ff6a46cfc78ca3a050def42937e5afb11b56e210cfd72f63e3e12f766418a573"
+    },
+    {
+      "i": 2,
+      "leaves": 11988,
+      "triangles": 126023,
+      "rawBytes": 9898476,
+      "packedBytes": 7103076,
+      "buildMs": 416.4796000000006,
+      "chunks": 619,
+      "longestChunk": 65.9411999999993,
+      "maxJoinM": 1.8544802480764874e-15,
+      "maxLeafBaseToTwigM": 0.003095260075581815,
+      "physicalLeafM": [
+        0.22000481831841173,
+        0.35998786009848116
+      ],
+      "curvedLeaves": 11988,
+      "hash": "6b7bccb87c530438c67ee868cee7bf765f6b11346b960b273f065f341a3a3a2f"
+    },
+    {
+      "i": 3,
+      "leaves": 2529,
+      "triangles": 27805,
+      "rawBytes": 2015502,
+      "packedBytes": 1399278,
+      "buildMs": 273.01890000000094,
+      "chunks": 215,
+      "longestChunk": 8.898700000001554,
+      "maxJoinM": 8.386468570449971e-16,
+      "maxLeafBaseToTwigM": 0.0027804759346293315,
+      "physicalLeafM": [
+        0.19222632901100883,
+        0.3159533977723868
+      ],
+      "curvedLeaves": 2529,
+      "hash": "19427f0f6864aafa481718ec49dbd4eb61c22cef43fb68a473108bbbcaec6ab2"
+    },
+    {
+      "i": 4,
+      "leaves": 2334,
+      "triangles": 26266,
+      "rawBytes": 1889916,
+      "packedBytes": 1312476,
+      "buildMs": 484.5102999999999,
+      "chunks": 202,
+      "longestChunk": 7.318699999999808,
+      "maxJoinM": 8.624803681396703e-16,
+      "maxLeafBaseToTwigM": 0.002780541717562321,
+      "physicalLeafM": [
+        0.20225526660793613,
+        0.35533275431829753
+      ],
+      "curvedLeaves": 2334,
+      "hash": "2f6857effffacf901ce7146ef846fa911414d83c4eded8254a9f8f25109e877e"
+    },
+    {
+      "i": 5,
+      "leaves": 3924,
+      "triangles": 39832,
+      "rawBytes": 2924448,
+      "packedBytes": 2029296,
+      "buildMs": 122.05840000000171,
+      "chunks": 208,
+      "longestChunk": 7.489300000001094,
+      "maxJoinM": 1.793526231022053e-15,
+      "maxLeafBaseToTwigM": 0.0027836883629439326,
+      "physicalLeafM": [
+        0.22005088848061863,
+        0.35999360799789426
+      ],
+      "curvedLeaves": 3924,
+      "hash": "793ead4ac95510954e3bc150ad307540272dd85abbf33b6d439e97c5f41565eb"
+    }
+  ],
+  "fixed": [
+    {
+      "id": "A_stairs",
+      "candidates": [
+        {
+          "id": 559,
+          "variant": 2,
+          "distance": 22.154943688816758,
+          "legacyInFrustum": false,
+          "horizontalDistance": 54.86184931397409
+        }
+      ],
+      "conservativeTriangles": 126023,
+      "submittedTriangles": 0
+    },
+    {
+      "id": "B_house",
+      "candidates": [],
+      "conservativeTriangles": 0,
+      "submittedTriangles": 0
+    },
+    {
+      "id": "C_lookback",
+      "candidates": [],
+      "conservativeTriangles": 0,
+      "submittedTriangles": 0
+    },
+    {
+      "id": "D_log",
+      "candidates": [],
+      "conservativeTriangles": 0,
+      "submittedTriangles": 0
+    },
+    {
+      "id": "E_ground",
+      "candidates": [],
+      "conservativeTriangles": 0,
+      "submittedTriangles": 0
+    },
+    {
+      "id": "F_canopy",
+      "candidates": [],
+      "conservativeTriangles": 0,
+      "submittedTriangles": 0
+    }
+  ],
+  "checks": [
+    "all original geometry/placement/RNG bytes",
+    "all six reviewed prototype hashes",
+    "deterministic yielded rebuilds",
+    "every branch reaches a prior parent",
+    "every physical lamina base meets real wood",
+    "cupped per-leaf normals and canonical UV/material path",
+    "canonical packing bytes",
+    "simulated upload releases static attributes and preserves dynamic fade",
+    "eight-slot scarcity including retiring transitions",
+    "complementary fade and installation before old coverage removal",
+    "all fixed-view candidate/frustum costs",
+    "unrelated foliage/material/giant sources unchanged"
+  ],
+  "budget": {
+    "maxSlots": 8,
+    "maxExtraTriangles": 1008184,
+    "ceiling": 1040000,
+    "rawBytes": 35823006,
+    "packedBytes": 25541886,
+    "instanceBytes": 3840,
+    "maxExtraDraws": 6,
+    "extraTextures": 0,
+    "extraShadowPasses": 0,
+    "oldSubmissions": "All original near/far geometry remains submitted; close numbers are additions, including during transitions."
+  }
+}

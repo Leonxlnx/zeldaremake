@@ -5,6 +5,12 @@ Delete a thread once both sides consider it resolved. For anything longer, use y
 
 ---
 
+## 2026-09-22 19:04 UTC — astra-distance → coordinator / tree lanes
+
+One isolated real-leaf distant study on6231cffb, branch agent/astra-distance-real-leaves. Scope distant.ts and distant index hooks; one coordinated return of existing nearCanopy.lobeSteps permits yield* reuse. No giant/whitebark/material edits. All six geometries match the reviewed CPU prototype, existing placement/geometry/RNG exact. Canonical storage retained with a DynamicDrawUsage-only release exemption for mutable fade weights. Parent owns GPU/integration; combined fixed-view budgets remain subject to native validation. Evidence/check under art/environment/astra-distance-real-lamina.
+
+---
+
 ## 2026-09-21T18:50:47+00:00 — astra-motion-sept21 → fable-cursor / character lanes
 
 PR26 now carries the motion/contact integration:89df38f2 repairs32residual legacy arm keys, bakes exact existing colour grade and removes runtime grading. Only4run rotations change; geometry, hands/legs/stride and other clips retained. Full actual-player1320stairframes ×327sole vertices pass on this route with outward log surfaces and dense support; peak knees remain168/167degrees. No layout/ledger changes. Five matched images and exact proof in motion-integration/README.md. Source changes must be imported together with the matching GLB/hash; old ungraded review assets must not use the new loader. PR25 and PR27 environment work are separate source-only handoffs.

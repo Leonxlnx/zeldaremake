@@ -21,7 +21,7 @@
  * instances that can reach the image (see "submission culling" below). Everything is seated via
  * ctx.terrain.height; randomness only via ctx.rng.
  */
-import { BufferAttribute, BufferGeometry, Color, Frustum, Group, InstancedBufferAttribute, InstancedMesh, Matrix4, Mesh, PerspectiveCamera, Quaternion, Sphere, Vector3, type Camera, type Material } from 'three';
+import { BufferAttribute, BufferGeometry, Color, DynamicDrawUsage, Frustum, Group, InstancedBufferAttribute, InstancedMesh, Matrix4, Mesh, PerspectiveCamera, Quaternion, Sphere, Vector3, Vector4, type Camera, type Material } from 'three';
 import type { TrunkSeat, WorldContext, WorldSystem } from '../system';
 import { BARK_DETAIL_M, BARK_DETAIL_TILES, BARK_TOUCH_M, BARK_TOUCH_TILES, CARD_EDGE_FADE, CARD_FLAT_EDGE_FADE, COLUMN_BARK_FLOOR, COLUMN_BARK_FLOOR_FAR, COLUMN_FLOOR_FADE_M, createTreeMaterials, CUSHION_FADE_M, DISTANT_BARK_M, DISTANT_NEAR_FLOOR, DISTANT_NEAR_TONE, NEAR_BASE_FLOOR, NEAR_BOLE_FLOOR, NEAR_BOLE_FLOOR_FADE, NEAR_BOLE_FLOOR_TOP, NEAR_BOLE_SLOTS, NEAR_CANOPY_LEAF_FLOOR, NEAR_CANOPY_LEAF_NEAR_M, NEAR_CANOPY_SLOTS, NEAR_CANOPY_SUN_THROUGH, TREE_BARK_FLOOR, TREE_BARK_FLOOR_NEAR, TREE_FLOOR_FADE_M, TREE_LEAF_FLOOR, TREE_LEAF_FLOOR_NEAR, TREE_NEAR_BOLE_FLOOR } from './materials';
 import type { ShadeFloor } from '../materials/shadeFloor';
@@ -37,6 +37,7 @@ import { LodPool, type PoolBuilt, type PoolItem } from './lodPool';
 import type { GiantTreeDef } from '../layout';
 import type { RootKitFit } from './rootkit';
 import { createDistantCrownMaterial, createDistantVariants, CROWN_ALPHA_TEST, CROWN_CORE_DARK, CROWN_JITTER, CROWN_RIM, CROWN_SPHERE_MIX, DISTANT_BOLE_BANDS, DISTANT_CORDS, DISTANT_CROWN_TOP, DISTANT_DEPTH_COOL, DISTANT_FLARE, DISTANT_FLARE_FALL, DISTANT_FOOT_GRIME, DISTANT_FURROW_SHADE, DISTANT_NEAR_GAIN, DISTANT_ROOT_ARC, DISTANT_SIDES, distantClearanceTally, FAR_CROWN_CARD_HALF, FAR_CROWN_CARDS, FAR_CROWN_LOBES, LIMB_REACH, LIMB_TINT_FROM, LIMB_TINT_TO, LIMB_TIP_TINT, placeDistantTrees, type DepthBand, type DistantClearance, type DistantPlacement, type DistantVariant } from './distant';
+import { cloneDistantCloseMaterial, createDistantCloseCrown, DISTANT_CLOSE_FADE_M, DISTANT_CLOSE_PREFETCH_M, DISTANT_CLOSE_SLOTS, DISTANT_CLOSE_TRIANGLES, updateDistantCloseSlots, type DistantCloseCrown, type DistantCloseSlot } from './distant';
 import { TAU, isCushionRoot, mergeParts, type Detail } from './writer';
 import type { ViewGap } from './placement';
 
@@ -1654,7 +1655,8 @@ const dropArray = function (this: { array: ArrayLike<number> | null }) {
   this.array = null;
 };
 const releaseAfterUpload = (g: BufferGeometry) => {
-  for (const a of Object.values(g.attributes)) (a as BufferAttribute).onUpload(dropArray as unknown as () => void);
+  // Close-crown fade weights change every frame; static attributes still release their arrays.
+  for (const a of Object.values(g.attributes)) if ((a as BufferAttribute).usage !== DynamicDrawUsage) (a as BufferAttribute).onUpload(dropArray as unknown as () => void);
   if (g.index) g.index.onUpload(dropArray as unknown as () => void);
 };
 /**
@@ -1727,6 +1729,9 @@ interface DistantSet {
   lists: [number[], number[]];
   /** placement indices actually submitted per LOD */
   submitted: [number[], number[]];
+  ids: number[];
+  inverses: Matrix4[];
+  close: { bounds: DistantCloseCrown['bounds']; mesh: InstancedMesh; fade: InstancedBufferAttribute; item: PoolItem<GeometryBuilt>; triangles: number };
 }
 
 export async function create(ctx: WorldContext): Promise<WorldSystem> {
@@ -2805,7 +2810,10 @@ export async function create(ctx: WorldContext): Promise<WorldSystem> {
   const distantPlacements = placeDistantTrees(rng, terrain, distantVariants, distantTarget, 60, 215, DEPTH_BANDS, distantClearance);
   const distantCleared = distantClearanceTally();
   // round 47: the crown cards (the geometry's second group) draw with their own material (distant.ts createDistantCrownMaterial: far-crown atlas, spherical shading, soft alpha, wind)
-  const distantCrown = createDistantCrownMaterial(ctx.wind, rng, palette, sunDir);
+  const distantCloseUniform = { value: Array.from({ length: DISTANT_CLOSE_SLOTS }, () => new Vector4()) };
+  const distantCrown = createDistantCrownMaterial(ctx.wind, rng, palette, sunDir, distantCloseUniform);
+  const distantCloseMaterial = cloneDistantCloseMaterial(mats.giantTreeNearCanopy);
+  const distantIds = new Map(distantPlacements.map((p, i) => [p, i]));
   const distantSets: DistantSet[] = distantVariants.map((variant, i) => {
     const placements = distantPlacements.filter((p) => p.variant === i);
     const n = Math.max(1, placements.length);
@@ -2830,8 +2838,31 @@ export async function create(ctx: WorldContext): Promise<WorldSystem> {
       _p.set(p.x, p.y, p.z);
       return new Matrix4().compose(_p, _q, _s);
     });
-    return { variant, near, far, placements, matrices, counts: [0, 0], lists: [[], []], submitted: [[], []] };
+    const closeAsset = createDistantCloseCrown(variant, ctx.rng, Math.max(1, ...placements.map(p => p.scale)), palette, i);
+    const fade = new InstancedBufferAttribute(new Float32Array(DISTANT_CLOSE_SLOTS), 1).setUsage(DynamicDrawUsage);
+    const closeMesh = new InstancedMesh(closeAsset.geometry, distantCloseMaterial, DISTANT_CLOSE_SLOTS);
+    closeMesh.name = `distant-${i}-close-crown`;
+    closeMesh.userData.kind = 'distant-close-crown';
+    closeMesh.instanceColor = new InstancedBufferAttribute(new Float32Array(DISTANT_CLOSE_SLOTS * 3), 3);
+    closeMesh.castShadow = false;
+    closeMesh.receiveShadow = true;
+    closeMesh.count = 0;
+    closeMesh.visible = false;
+    const finalize = (geometry: BufferGeometry) => {
+      geometry.setAttribute('aDistantClose', fade);
+      geometry.computeBoundingSphere();
+      geometry.boundingSphere!.radius += CULL_PAD_M;
+    };
+    finalize(closeAsset.geometry);
+    const [item, first] = poolItem(`distant-close/${i}`, closeMesh, closeAsset.build, finalize);
+    nearCanopyPool.add(item, first);
+    distantGroup.add(closeMesh);
+    return { variant, near, far, placements, matrices, counts: [0, 0], lists: [[], []], submitted: [[], []],
+      ids: placements.map(p => distantIds.get(p)!), inverses: matrices.map(m => m.clone().invert()),
+      close: { bounds: closeAsset.bounds, mesh: closeMesh, fade, item, triangles: closeAsset.geometry.index!.count / 3 } };
   });
+  const distantById = new Map(distantSets.flatMap(set => set.ids.map((id, index) => [id, { set, index }] as const)));
+  let distantCloseSlots: DistantCloseSlot[] = [];
   group.add(distantGroup);
   ctx.progress('trees', 0.95);
 
@@ -3123,10 +3154,53 @@ export async function create(ctx: WorldContext): Promise<WorldSystem> {
       else slots[i].set(0, 0, 0, 0);
     }
   };
+  const closeLocal = new Vector3();
+  const distantCloseUpdate = (cam: Vector3, dt: number, reset: boolean) => {
+    const candidates: { id: number; distance: number }[] = [];
+    for (const set of distantSets) {
+      let nearest = Infinity;
+      // Submission already checked the current view. The distance is to the crown's 3D
+      // envelope, including its underside, never to the tree's base or a fixed hero camera.
+      for (const index of set.submitted[0]) {
+        closeLocal.copy(cam).applyMatrix4(set.inverses[index]);
+        const distance = set.close.bounds.distanceToPoint(closeLocal) * set.placements[index].scale;
+        nearest = Math.min(nearest, distance);
+        if (distance < DISTANT_CLOSE_FADE_M[1]) candidates.push({ id: set.ids[index], distance });
+      }
+      if (nearest < DISTANT_CLOSE_PREFETCH_M) nearCanopyPool.want(set.close.item, nearest);
+    }
+    distantCloseSlots = updateDistantCloseSlots(distantCloseSlots, candidates, dt, reset);
+    for (const slot of distantCloseUniform.value) slot.set(0, 0, 0, 0);
+    for (const set of distantSets) {
+      const { mesh, fade, item } = set.close;
+      let n = 0;
+      for (let k = 0; k < distantCloseSlots.length; k++) {
+        const slot = distantCloseSlots[k], owner = distantById.get(slot.id)!;
+        if (owner.set !== set || slot.weight <= 0) continue;
+        // Finish/install the real replacement BEFORE any old crown is faded. A teleport
+        // obeys the existing pool's synchronous pin rule; ordinary motion prefetches it.
+        nearCanopyPool.pin(item);
+        const p = set.placements[owner.index];
+        mesh.setMatrixAt(n, set.matrices[owner.index]);
+        mesh.setColorAt(n, p.tint);
+        fade.setX(n, slot.weight);
+        distantCloseUniform.value[k].set(p.x, p.y, p.z, slot.weight);
+        n++;
+      }
+      mesh.count = n;
+      mesh.visible = n > 0;
+      if (n) {
+        mesh.instanceMatrix.needsUpdate = true;
+        mesh.instanceColor!.needsUpdate = true;
+        fade.needsUpdate = true;
+        mesh.computeBoundingSphere();
+      }
+    }
+  };
   // the detached boughs' gate (see detachedGroup): the casters' spheres once, tested per pose
   const detachedSpheres = detachedCasters.flatMap((c) => casterSpheres(c, sunDir));
   const detachedVisible = (camera: Camera) => detachedMeshes.length > 0 && expansionVisible(camera, detachedSpheres);
-  const rebucket = (camera: Camera, force = false) => {
+  const rebucket = (camera: Camera, force = false, dt = 0) => {
     camera.getWorldPosition(_v);
     const moved = force || _v.distanceTo(camPos) >= 1.5;
     if (moved) {
@@ -3137,6 +3211,7 @@ export async function create(ctx: WorldContext): Promise<WorldSystem> {
     nearBoleUpdate(_v, force);
     nearCanopyUpdate(_v, force);
     cull(camera, moved);
+    distantCloseUpdate(_v, dt, force);
     detachedGroup.visible = detachedVisible(camera);
   };
   rebucket(ctx.camera, true);
@@ -3387,6 +3462,10 @@ export async function create(ctx: WorldContext): Promise<WorldSystem> {
       distantNearRelief: { cords: DISTANT_CORDS, sides: DISTANT_SIDES, furrowShade: DISTANT_FURROW_SHADE, footGrime: DISTANT_FOOT_GRIME, rootArc: DISTANT_ROOT_ARC, nearGain: DISTANT_NEAR_GAIN, floor: [DISTANT_NEAR_FLOOR.lift, DISTANT_NEAR_FLOOR.texture] },
       /** round 47: the crown cards [near, far] and lobe pairs per tree, card half-size (crown radii), the crown material's sphere mix / core dark / rim / alpha test / jitter, the bole's crown-top darkening and tone bands, the depth cool (distant.ts) */
       distantCrown: { cards: FAR_CROWN_CARDS, lobes: FAR_CROWN_LOBES, cardHalf: FAR_CROWN_CARD_HALF, sphereMix: CROWN_SPHERE_MIX, coreDark: CROWN_CORE_DARK, rim: CROWN_RIM, alphaTest: CROWN_ALPHA_TEST, jitter: CROWN_JITTER, crownTop: DISTANT_CROWN_TOP, boleBands: DISTANT_BOLE_BANDS, depthCool: DISTANT_DEPTH_COOL, material: distantCrown.name || 'distant-crown' },
+      distantClose: { slots: DISTANT_CLOSE_SLOTS, active: distantCloseSlots.length, fadeM: DISTANT_CLOSE_FADE_M, prefetchM: DISTANT_CLOSE_PREFETCH_M,
+        triangleCeiling: DISTANT_CLOSE_SLOTS * DISTANT_CLOSE_TRIANGLES, triangles: distantSets.reduce((n, s) => n + s.close.mesh.count * s.close.triangles, 0),
+        draws: distantSets.filter(s => s.close.mesh.count > 0).length, sharedBytes: distantSets.reduce((n, s) => n + s.close.item.bytes, 0),
+        weights: distantCloseSlots.map(s => [s.id, s.weight]), fallback: 'Existing crown geometry retained for every tree without close detail.' },
       /** round 45: a giant lobe's fine wood reach [secondaries, twigs] as shares of hR and its outer tint toward the leaf tone (giant.ts LOBE_*) */
       lobeWood: { secondaryReach: LOBE_SECONDARY_REACH, twigReach: LOBE_TWIG_REACH, tint: LOBE_TWIG_TINT },
       lodLevels: 3,
@@ -3573,8 +3652,8 @@ export async function create(ctx: WorldContext): Promise<WorldSystem> {
   return {
     name: 'trees',
     group,
-    update(_dt, _t, c) {
-      rebucket(c.camera);
+    update(dt, _t, c) {
+      rebucket(c.camera, false, dt);
       // the near parts' pending builds, within the frame budget (the canopy first: its parts are
       // the many; the bases take what is left, at least a chunk's worth so they never starve)
       const t0 = performance.now();
@@ -3614,6 +3693,7 @@ export async function create(ctx: WorldContext): Promise<WorldSystem> {
       for (const g of detachedGeometries) g.dispose();
       for (const s of distantSets) (s.variant.near.dispose(), s.variant.far.dispose());
       (distantCrown.map?.dispose(), distantCrown.dispose());
+      distantCloseMaterial.dispose();
     },
   };
 }
