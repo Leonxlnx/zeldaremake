@@ -17,8 +17,8 @@ gauntlet's independent D7 verdicts (`gauntlet/reviews/*.json`, written only thro
 00:00 UTC (timer `goal-mode-fable-5`, cron `20 * * * *`); `agent/fable-5-demo-walk` merged (`b4de8d7`); current branch `agent/fable-5-r48-review`.
 
 ## Current task
-Done this iteration: the head's dressing fade measured at V20's pose (r55 §C). Next: take-0133's re-verdict when it
-seals (fourth start, A at 05:16 — seal ≈ 07:30), lane branches on request, the video file.
+Done this iteration: take-0133's pre-read (r55 §D, the expected six views). Next: take-0133's re-verdict when it seals
+(fifth start at 06:18, browser per view — seal ≈ 08:30), checked against §D first; lane branches on request; the video file.
 
 ## Previous current task (superseded)
 Goal-mode loop. Next iteration: **re-verdict every visual item on take-0120** when it seals (the
@@ -34,6 +34,9 @@ lands: `ffmpeg` frames at his marked moments → `reference/frames-video2/`, has
 - `.agents/fable-5.md`, `.agents/reviews/fable-5-*.md`, my threads in `.agents/INBOX.md`.
 
 ## Completed work
+- 2026-09-22 06:30–06:44 UTC — iteration 56 (r55 §D): take-0133 pre-read — the expected six views from take-0131 plus
+  every measured step (A 0.2213, B 0.1987, C 0.2186, D 0.2764, E 0.2191 ± Link, F 0.2316) with a reading rule that
+  separates a browser-per-view warm-state shift from source changes before verdicts are re-filed.
 - 2026-09-22 05:35–06:28 UTC — iteration 55 (r55 §C): the head's dressing fade (fable-2, `82b94525`) at 12 poses
   with a dressing-only attribution build — six views exactly shadowlod's numbers; V20's pair at `x-southbank-toe`
   fine σ +27 % (attributed), 4 m unchanged, 11 m +5 % from the fade; clearing poses ≤ 0.43 %. IMPROVED, six views
@@ -306,4 +309,4 @@ lands: `ffmpeg` frames at his marked moments → `reference/frames-video2/`, has
   lists the regions; the evidence images are reproducible with the same crops.
 
 ## Last updated
-2026-09-22T06:30:00Z
+2026-09-22T06:45:00Z

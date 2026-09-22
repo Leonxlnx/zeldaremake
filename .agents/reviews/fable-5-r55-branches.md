@@ -171,4 +171,36 @@ frame-wide counts are not. Render attribution builds with the *same* shot list, 
 
 Sheet: `fable-5-r55/fable-5-r55-f2-dressing-toe-pair.jpg` (the pair, before | after at 6.8 m).
 
-## take-0133 — fourth start; A written 05:16 at the old pace, B running at tick 221 (05:35); re-verdict follows when it seals.
+## D. Iteration 56 (06:30–06:44 UTC) — take-0133 pre-read: what the six views should score if the fifth-start capture is healthy
+
+take-0133 has died four times (protocol timeouts, then a page that never returned its first render); the
+fifth start (tick 222, 06:18) runs **a new browser per viewpoint**. That changes the browser's warm state
+between views, and warm state has moved frames before (r54 §D's first head render: diffuse differences
+everywhere, re-rendered). So a prediction is worth having *before* the seal, from the pieces already
+measured with one pipeline in pairs. take-0131's build is `039d67d` — its source is identical to
+`c11f0ff4` (no `src` diff), so the chain to the current source `82b94525` is:
+
+| step | what | A | B | C | D | E | F | where measured |
+| --- | --- | --- | --- | --- | --- | --- | --- | --- |
+| `c11f0ff4` → `445fa453` | timber tint, arch rim, character import, blockers, hearth | +0.0087 | −0.0002 | +0.0002 | 0 | −0.0003 | +0.0040 | r54 §A |
+| `445fa453` → `0963c09d` | the arch roll's 4 cm tuck, tests | 0 | 0 | 0 | 0 | 0 | 0 | assumed: a 4 cm tuck at the arch mouth is below the six views' resolution (r54 §B: the tunnel pose pixel-identical) |
+| `0963c09d` → `110453d4` | Astra's warmth + PR #29's bank-core recession, pebble tiles, deck lane | −0.0027 | 0 | −0.0040 | 0 | 0 | −0.0104 | r54 §D |
+| `110453d4` → `da314d7c` | lodthin, heel guard | 0 | 0 | −0.0004 | 0 | 0 | −0.0001 | r54 §E |
+| `da314d7c` → `073f5ff2` | B3 census fields only | 0 | 0 | 0 | 0 | 0 | 0 | by construction (`userData` / stats) |
+| `073f5ff2` → `82b94525` | shadowlod, dressing fade | 0 | 0 | −0.0009 | −0.0002 | 0 | 0 | r55 §A, §C |
+| **sum** | | **+0.0060** | −0.0002 | **−0.0051** | −0.0002 | −0.0003 | **−0.0065** | |
+| take-0131 sealed | | 0.2153 | 0.1989 | 0.2237 | 0.2766 | 0.2194 | 0.2381 | monitor |
+| **take-0133 expected** | | **0.2213** | 0.1987 | **0.2186** | 0.2764 | 0.2191 | **0.2316** | |
+
+Two caveats on the transfer: my pairs are `broll --test --settle 8` without the character, the capture
+is settle 90 with Link at E — the deltas are canopy, white-bark and flight changes and should carry,
+but **E carries Astra's character import (#26 colour / proportions) that none of my pairs saw**, so E may
+move by Link's pixels; and the C/F losses are PR #29's (r54 §D), booked here as the head's, not as the
+capture's. **Reading rule for the seal:** A/B/C/D/F within ±0.002 of the expected row → the fifth-start
+pipeline is healthy and the verdict pass proceeds on the frames; any view off by more than that (or a
+diffuse whole-frame difference against take-0131 at B or E, which no source step touches) → suspect the
+browser-per-view warm state before any lane's source, and say so before verdicts are re-filed. On the
+verdicts themselves: nothing in the chain turns a W-item — W02's pass is reinforced by the tint (r54 §A);
+W10 at F was already a fail; PR #29's F −0.0104 is the six-view budget's problem, not a rubric flip.
+
+## take-0133 — fifth start (browser per view) at 06:18; seal ≈ 08:30. Re-verdict follows when it seals, against §D's expected row.
