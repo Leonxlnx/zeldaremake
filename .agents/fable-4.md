@@ -306,3 +306,6 @@ nearCanopy, materials, index otherwise) is edited.
 
 ### 2026-09-22 19:10 UTC — overdraw measured; prepass proposed
 - vertexbytes merged (tick 227). Trees-only overdraw at A: 52 fragments per covered pixel (max 166), C 26.5 — fable-2's per-pixel cost explained. Proposed a depth prepass (needs three folding depth twins in materials.ts — Astra; trees side mine). README `art/environment/round51-overdraw/`.
+
+### 2026-09-22 20:40 UTC — prepass timed: no gain
+- Built the depth prepass prototype (twins wrapping onBeforeCompile; frame correct to 0.4 % px); A frame 14 950 → 14 703 ms (noise) for +72 draws / +3.2 M tris. SwiftShader pays the leaf shader regardless of depth rejection. Ask to Astra withdrawn; nothing shipped.

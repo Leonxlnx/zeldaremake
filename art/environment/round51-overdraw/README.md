@@ -37,3 +37,18 @@ side — twin meshes sharing geometry and, for the instanced families, the `inst
 `renderOrder −1`, the colour materials' `depthFunc` — is `trees/index.ts`. Expected on SwiftShader:
 the trees' 5.7 s toward ≈ 2–2.5 s (one shaded layer plus a cheap prepass), a frame of 14 → ≈ 11 s,
 takes a quarter faster; on integrated GPUs the same overdraw is paid in fill rate.
+
+## Addendum (2026-09-22 20:40 UTC) — the prepass built and timed: no gain on SwiftShader; proposal withdrawn
+
+Prototyped without touching `materials.ts`: each colour material's injected `onBeforeCompile` wrapped
+into a twin (identical vertex program — wind, cushions, fold), the fragment replaced by an alpha-test
++ `gl_FragColor = 0`, colour writes off; twins sharing geometry, `instanceMatrix` and `matrixWorld`,
+drawn at `renderOrder −1`; the colour materials at `EqualDepth`. The frame was right (A vs the head:
+0.40 % of pixels over 2 levels, 0.12 % over 40 — EqualDepth ties at coincident surfaces), so the twins
+matched. **Timed like fable-2 (`render` + a 1-px `readPixels`), A, five frames: head median 14 950 ms,
+prepass 14 703 ms (−1.7 %, noise) for +72 draws and +3.2 M twin triangles.** The depth rejection does not
+skip the leaf shader's cost on this rasteriser — either SwiftShader shades before the depth test for
+these programs or the fragment stage is not where the 5.7 s go. Not worth Astra's twins; the ask is
+withdrawn. What remains true: fifty layers per canopy pixel; the levers on this machine are the leaf
+shader's own cost per sample (`materials.ts`) or fewer fragments issued (fewer / larger laminae and
+cards through a crown's depth — a look question).
