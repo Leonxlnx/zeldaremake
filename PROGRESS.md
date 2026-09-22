@@ -279,3 +279,35 @@ Tech is still the only fail. Next iteration is the last one under the cap.
 Fix list for iteration 12:
 
 - Final confirmation shots, then the stop summary. Do not change the scene.
+
+## Iteration 12
+
+Last pass under the cap. Scene unchanged since iteration 8. Difference from that set is film grain (9 to 13 levels). Corridor median 170, p10 47, 3.7% near-white. Window median 110 with the planet, the rim, and the streaks. Quarters median 142. Cockpit median 127. Fades hold `8 hours pass` and `Refreshed.` Pointer lock engaged, closing status `Refreshed.` Sustained rate 5.0fps, 73k triangles, 60 calls, llvmpipe.
+
+| # | Rubric | Result |
+| --- | --- | --- |
+| 1 | Lighting intentional | pass |
+| 2 | Materials physical | pass |
+| 3 | Detail density | pass |
+| 4 | Post stack balanced | pass |
+| 5 | Space view sells motion | pass |
+| 6 | Cohesive palette | pass |
+| 7 | Tech clean, 60fps | fail |
+| 8 | Cold-look test | pass |
+| 9 | Interactions | pass |
+
+Stopping here. The cap is iteration 12. Item 7 has not passed, so the two-in-a-row full pass never fired. Items 1 through 6, 8, and 9 have passed together on every shot from iteration 8 through 12.
+
+## Final summary
+
+What passed, and held: lighting with a real key and glowing practicals, three material families with roughness variation and a PMREM, dense panels and grime in all four views, ACES plus bloom plus AO plus vignette and grain without clipped whites or crushed blacks, a cockpit window that reads as flight (planet, cyan rim, long streaks, a second shorter star layer), one palette, and the three interactions with fades and status text. Pointer lock engages.
+
+What is still weak: frame rate. The honest sustained number on this machine is about 5fps at 1280×720 (best shot in the series was 5.9fps). The renderer is ANGLE on llvmpipe, not a laptop GPU. An early 42fps reading only averaged the cheap command-submit gaps and ignored the stall. Direct drawing of the ship with space hidden is about 8fps, so the lit surfaces are the floor. At 320×180 the same scene reaches about 47fps, which is a resolution term plus a large fixed cost, and it is still not 60 at the resolution the shots use. No z-fighting, shadow acne, or missing faces showed up in the frames. The quarters shadows are the heaviest part of the set (about 5% near-black, p10 around 24) and still read as contact shadow rather than a crushed grade.
+
+What I would do with five more iterations, on a real mid-range GPU first:
+
+- Profile the beauty pass there. If it is already over 60, item 7 passes and the picture stays. This software rasterizer is the wrong instrument for that call.
+- If a real GPU is under 60, bake the corridor pools into the lightmaps and keep one shadow-casting sun plus the emissive strips, then reshoot. The point-light loop is the likely spike, and the strips already sell the fixtures.
+- Only then cut GTAO resolution, and only if the profile says the normal pass is the spike. On llvmpipe, half-resolution AO did not move the rate once multisampling was off.
+- Give the small greebles a cheaper material and keep the five-octave wear on floors and big panels. Two octaves on everything was measured and did nothing for the rate, so the grime should stay where it is visible.
+- Add a two-frame contact sheet of the window, a second apart, so parallax is provable even if a single still is argued. The current still already reads as flight, so this is evidence, not a new feature.
