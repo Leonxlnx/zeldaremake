@@ -6,7 +6,7 @@ way, rendered in the same session with the same settle (`broll.mjs --test --sett
 quality high), SSIM at the gauntlet's 256×144 against `reference/frames/*.jpg`, pixels counted at
 full resolution with a > 6-level luma threshold.
 
-## A. Iteration 53 (03:30–04:55 UTC) — fable-4's `agent/fable-4-shadowlod` @ `7164ff29`: the white-barks' mid LOD stops casting shadows (W38 give-back)
+## A. Iteration 53 (03:30–04:28 UTC) — fable-4's `agent/fable-4-shadowlod` @ `7164ff29`: the white-barks' mid LOD stops casting shadows (W38 give-back)
 
 One line in `trees/index.ts` (`mesh.castShadow = l < (label === 'whitebark' ? 1 : 2)`): the white-bark
 meshes standing 20–44 m from the camera no longer write the shadow map; the columns' mid LOD keeps
