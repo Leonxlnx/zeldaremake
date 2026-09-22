@@ -58,6 +58,35 @@ and around the stand the distant system is. The owner's lollipop trees put his f
 (−41, 13.58, 36), fov 50, 896×776; the region to read is the upper-left 62 % × 46 %. Eye = terrain + 1.8 m
 through `__ZR__.probe`, so it survives terrain edits.
 
+## Third pass — take-0134's clarity set read at `owner-clarity-1` with fable-5's `clarity.py`
+Head `68b3eb96` (before) vs head `3e34a3cd` (Astra's fog slice `ae880cf2`, her far-crown atlas `b7c9e001`,
+owner-fable's stand roof PR #31, my stand LOD), same seated pose, the owner's box x 100–550 / y 60–357,
+fable-5's script unchanged (`.agents/reviews/fable-5-r55/clarity.py`, `analyse` + `shape`):
+
+| region, whole | owner's screenshot | before `68b3eb96` | after `3e34a3cd` | fable-5's target |
+|---|---|---|---|---|
+| crown l | 0.39 | 0.47 | 0.44 | 0.30–0.35 |
+| crown hue | 64° | 68° | 65° | 45–60° |
+| background hue / l | 165° / 0.58 | 75° / 0.60 | **60° / 0.56** | 45–60° |
+| crown–background gap | 0.19 | 0.13 | 0.12 | do not spend |
+| edge transition | 6.6 px | 9.8 px | **6.7 px** | ≤ 4.5 px |
+| silhouette finer than 9 px | 2.7 % | 1.3 % | 2.9 % | ≥ 10 % |
+| crown blobs ≥ 30 px | 9 (median 691 px) | 3 (129) | 3 (33 215) | — |
+
+k7 (the same bole from 22 m): transition 4.3 → 4.3 px, fine 4.9 → 6.5 %, background hue 201° → 96°.
+
+Reading: the fog slice closes the **hue** half of the owner's "grey washout" at this pose (background 75° → 60°,
+in the target; the blue sky at k7 201° → 96°). The **silhouette** half does not move: the top third sharpens
+(4.6 → 3.4 px) but the whole stays at 6.7 px with 2.9 % fine detail, and the crown mass fuses into one blob
+(median 33 215 px) — the atlas repaint did not change the near-LOD cards' scale at 5–30 m, which is what this
+pose looks at. Crown l 0.44 is still 0.1 above the frames' 0.30–0.35. `k10-old-vs-new-head.jpg`.
+
+## The arch poses under the same head (stand roof + fog), for V2 / the stand
+`arch-poses-old-vs-new.jpg` (top before, bottom after): `x-arch-approach` 3.7 % of pixels, mean luminance
+0.119 → 0.115; `x-arch-tunnel-n` 8.5 %, 0.145 → 0.140; `x-northpath-n` 20.9 %, 0.499 → 0.488. The fog slice
+darkens the north path's stand a little more — fable-5's V2 read had the trunks at 0.284 against the frame's
+0.326 already; the roof does not enter these level framings.
+
 ## Method notes
 - A CPU raycast could not attribute this: 82 % "no hit" over the blobs at k3 — the cards are placed in the
   vertex shader from instance attributes, so `Mesh.raycast` sees geometry at the origin. Hide-and-diff is
