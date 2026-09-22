@@ -58,18 +58,65 @@ export const HERO_DROP_M = 120;
 /** frame margin (share of the frame) added around the hero frames for the exclusion */
 export const HERO_MARGIN = 0.03;
 
+/**
+ * The north stand (round 52, GOAL_MODE owner-fable #3; opus-review #01 "no canopy over them",
+ * the owner's "deep world through the arch"): the far forest beyond the log arch is fable-4's
+ * depth bands of 26 m poles — flanks either side of the north clearing (|x| 12–34, z −82…−64),
+ * a back stand behind the ledge terrace (|x| ≤ 12, z −90…−81) — and the two older rows at
+ * z −61…−55 (trees/index.ts DEPTH_BANDS). Those poles carry a small crown 18 m+ up and nothing
+ * closes over them or over the clearing; the roof's giants list does not reach there (the
+ * nearest giant is north-east at (15, 2, −37)). These authored bands give the roof support over
+ * the stand: a rectangle (world x / z), the height its trees' crowns reach above the local
+ * ground (a 26 m pole × 0.85–1.1 scale → 22–29 m tall, crown centre ≈ 0.86 of that), and a
+ * feather (m) over which the support fades outside the rectangle — 14 m, so the clearing
+ * between the flanks (10–13 m from either) keeps a fifth of the support and closes with hazy
+ * gaps rather than a solid lid or open sky. Read only by the stand pass (buildRoof `stand`),
+ * which draws from its own stream and writes its own sector mesh, so the plaza roof's clumps
+ * and cards are byte-identical with or without it.
+ */
+export interface RoofStandBand {
+  xMin: number;
+  xMax: number;
+  zMin: number;
+  zMax: number;
+  /** crown centre height above the local ground (m) */
+  crownAbove: number;
+  /** support fade outside the rectangle (m) */
+  feather: number;
+}
+export const ROOF_STAND_BANDS: readonly RoofStandBand[] = [
+  { xMin: -34, xMax: -12, zMin: -82, zMax: -64, crownAbove: 22, feather: 14 },
+  { xMin: 12, xMax: 34, zMin: -82, zMax: -64, crownAbove: 22, feather: 14 },
+  { xMin: -12, xMax: 12, zMin: -90, zMax: -81, crownAbove: 22, feather: 14 },
+  { xMin: -34, xMax: 48, zMin: -61, zMax: -55, crownAbove: 21, feather: 10 },
+];
+/** the stand pass's own grid bounds (world x / z): north of the plaza roof's zMin, to the back stand */
+export const ROOF_STAND_BOUNDS = { xMin: -46, xMax: 52, zMin: -96, zMax: -70 } as const;
+/**
+ * hero-frame exclusion for the stand's clumps (m): the stand is what camera D looks at through
+ * the arch (its nearest band point 54 m off; B / E 58 m; A 70 m), so the plaza roof's 120 m rule
+ * would build nothing over it. A stand clump inside a hero frame nearer than this is dropped;
+ * beyond it the clump stands in the frame's far haze — measured against the six views in the
+ * PR (the −0.003 budget decides the value, not this comment).
+ */
+export const HERO_DROP_STAND_M = 50;
+
 export interface RoofClump {
   x: number;
   y: number;
   z: number;
   /** cards in this clump */
   cards: number;
+  /** true for a clump of the north-stand pass (ROOF_STAND_BANDS); it draws into its own sector */
+  stand?: boolean;
 }
 
 export interface RoofSector {
   geometry: BufferGeometry;
   cards: number;
   triangles: number;
+  /** the north-stand pass's sector (one mesh of its own; the plaza sectors are unchanged by it) */
+  stand: boolean;
 }
 
 export interface RoofBuild {
@@ -83,6 +130,8 @@ export interface RoofBuild {
   minAboveGround: number;
   /** the sampling grid's cell count */
   cells: number;
+  /** the north-stand pass (ROOF_STAND_BANDS): its own counts; zeros when the pass is off */
+  stand: { clumps: number; cards: number; cells: number; dropped: { field: number; heroFrame: number; shaft: number; opening: number }; minAboveGround: number };
 }
 
 export interface RoofOptions {
@@ -94,6 +143,8 @@ export interface RoofOptions {
   sectors?: number;
   /** centre of the sector split (world x, z) */
   sectorCentre?: [number, number];
+  /** build the north-stand pass (default true); false = the plaza roof exactly as before the pass existed */
+  stand?: boolean;
 }
 
 /**
@@ -143,10 +194,10 @@ export function buildRoof(ctx: WorldContext, rng: Rng, o: RoofOptions): RoofBuil
   const shafts = SHAFT_COLUMNS.map((c) => ({ point: new Vector3(c.point[0], c.point[1], c.point[2]), radius: c.carve ?? c.radius }));
   const openings = CANOPY_OPENINGS.map((c) => ({ point: new Vector3(c.point[0], ctx.terrain.height(c.point[0], c.point[1]), c.point[1]), radius: c.radius, yMin: c.band[0] }));
 
-  const inHeroFrame = (q: Vector3, halfSize: number): boolean => {
+  const inHeroFrame = (q: Vector3, halfSize: number, dropM = HERO_DROP_M): boolean => {
     for (const cam of heroCams) {
       const s = cam.project(q);
-      if (!s || s[2] > HERO_DROP_M) continue;
+      if (!s || s[2] > dropM) continue;
       const th = Math.tan((cam.fov * Math.PI) / 360);
       const dy = halfSize / (s[2] * 2 * th);
       const dx = dy / (16 / 9);
@@ -234,11 +285,103 @@ export function buildRoof(ctx: WorldContext, rng: Rng, o: RoofOptions): RoofBuil
       clumps.push({ x, y, z, cards });
     }
   }
+  const plazaClumps = clumps.length;
 
-  // ---- geometry: crossed cards per clump, split into sectors around the plaza for culling ----
+  // ---- the north-stand pass (ROOF_STAND_BANDS): own stream, own grid, own sector ----
+  const standDropped = { field: 0, heroFrame: 0, shaft: 0, opening: 0 };
+  let standMinAbove = Infinity;
+  const snx = Math.floor((ROOF_STAND_BOUNDS.xMax - ROOF_STAND_BOUNDS.xMin) / ROOF_GRID_M);
+  const snz = Math.floor((ROOF_STAND_BOUNDS.zMax - ROOF_STAND_BOUNDS.zMin) / ROOF_GRID_M);
+  if (o.stand ?? true) {
+    const rs = rng.fork('roof-build-stand');
+    /** support of a band at (x, z): 1 inside its rectangle, fading to 0 `feather` m outside it */
+    const bandSupport = (b: RoofStandBand, x: number, z: number) => {
+      const dx = Math.max(b.xMin - x, 0, x - b.xMax);
+      const dz = Math.max(b.zMin - z, 0, z - b.zMax);
+      return 1 - smoothstep(0, b.feather, Math.hypot(dx, dz));
+    };
+    for (let iz = 0; iz < snz; iz++) {
+      for (let ix = 0; ix < snx; ix++) {
+        // the same draws per cell as the plaza pass, from the stand's own stream
+        const jx = rs.range(-0.45, 0.45) * ROOF_GRID_M;
+        const jz = rs.range(-0.45, 0.45) * ROOF_GRID_M;
+        const fieldDraw = rs();
+        const cards = rs.int(ROOF_CARDS_PER_CLUMP[0], ROOF_CARDS_PER_CLUMP[1] + 1);
+        const yJitter = rs.range(ROOF_BAND_M[0], ROOF_BAND_M[1]);
+        const x = ROOF_STAND_BOUNDS.xMin + (ix + 0.5) * ROOF_GRID_M + jx;
+        const z = ROOF_STAND_BOUNDS.zMin + (iz + 0.5) * ROOF_GRID_M + jz;
+        const ground = ctx.terrain.height(x, z);
+        // support: the giants (none reach here today, kept for symmetry) and the stand bands; the
+        // roof's height is the support-weighted crown height over the local ground
+        let support = 0;
+        let ySum = 0;
+        let wSum = 0;
+        for (const g of giants) {
+          const d = Math.hypot(x - g.x, z - g.z);
+          const s = 1 - smoothstep(g.crownR * ROOF_SUPPORT.inner, g.crownR * ROOF_SUPPORT.outer + ROOF_SUPPORT.plus, d);
+          if (s <= 0) continue;
+          support = Math.max(support, s);
+          ySum += g.crownY * s;
+          wSum += s;
+        }
+        for (const b of ROOF_STAND_BANDS) {
+          const s = bandSupport(b, x, z);
+          if (s <= 0) continue;
+          support = Math.max(support, s);
+          ySum += (ground + b.crownAbove) * s;
+          wSum += s;
+        }
+        if (support <= 0.02) {
+          standDropped.field++;
+          continue;
+        }
+        const n = 0.5 + 0.5 * field.fbm(x * 0.09, z * 0.09, 3);
+        const keep = n * (0.35 + 0.65 * support) * o.density;
+        if (keep < ROOF_FIELD_THRESHOLD || fieldDraw > 0.35 + 0.65 * support) {
+          standDropped.field++;
+          continue;
+        }
+        let y = ySum / wSum + yJitter;
+        if (y < ground + ROOF_MIN_ABOVE_GROUND_M) y = ground + ROOF_MIN_ABOVE_GROUND_M + Math.max(0, yJitter);
+        p.set(x, y, z);
+        const halfSize = ROOF_CARD_M[1] * 0.75;
+        if (inHeroFrame(p, halfSize, HERO_DROP_STAND_M)) {
+          standDropped.heroFrame++;
+          continue;
+        }
+        let cut = false;
+        for (const s of shafts) {
+          if (sunLineDistance(p, s.point) < s.radius + halfSize * 0.6) {
+            cut = true;
+            break;
+          }
+        }
+        if (cut) {
+          standDropped.shaft++;
+          continue;
+        }
+        for (const op of openings) {
+          if (y < op.yMin) continue;
+          if (sunLineDistance(p, op.point) < op.radius + halfSize * 0.6) {
+            cut = true;
+            break;
+          }
+        }
+        if (cut) {
+          standDropped.opening++;
+          continue;
+        }
+        standMinAbove = Math.min(standMinAbove, y - ground);
+        clumps.push({ x, y, z, cards, stand: true });
+      }
+    }
+  }
+
+  // ---- geometry: crossed cards per clump, split into sectors around the plaza for culling; the
+  // stand's clumps write their own sector (index sectorCount) so the plaza sectors never change ----
   const sectorCount = Math.max(1, o.sectors ?? 6);
   const [scx, scz] = o.sectorCentre ?? [5, -12];
-  const writers = Array.from({ length: sectorCount }, () => ({ pos: [] as number[], nor: [] as number[], uv: [] as number[], col: [] as number[], root: [] as number[], idx: [] as number[], cards: 0 }));
+  const writers = Array.from({ length: sectorCount + 1 }, () => ({ pos: [] as number[], nor: [] as number[], uv: [] as number[], col: [] as number[], root: [] as number[], idx: [] as number[], cards: 0 }));
   const canopy = new Color(ctx.config.palette.leafCanopy);
   const cool = new Color(0x3a6a44);
   const warm = new Color(0x86a040);
@@ -251,7 +394,7 @@ export function buildRoof(ctx: WorldContext, rng: Rng, o: RoofOptions): RoofBuil
   let cardsTotal = 0;
   for (const c of clumps) {
     const ang = Math.atan2(c.z - scz, c.x - scx);
-    const sector = ((Math.floor(((ang + Math.PI) / (2 * Math.PI)) * sectorCount) % sectorCount) + sectorCount) % sectorCount;
+    const sector = c.stand ? sectorCount : ((Math.floor(((ang + Math.PI) / (2 * Math.PI)) * sectorCount) % sectorCount) + sectorCount) % sectorCount;
     const w = writers[sector];
     // one tint per clump (the mass reads as one tree's leaves), cards vary a little inside it
     const tint = canopy
@@ -304,8 +447,9 @@ export function buildRoof(ctx: WorldContext, rng: Rng, o: RoofOptions): RoofBuil
     }
   }
   const sectors: RoofSector[] = writers
-    .filter((w) => w.cards > 0)
-    .map((w) => {
+    .map((w, i) => ({ w, stand: i === sectorCount }))
+    .filter(({ w }) => w.cards > 0)
+    .map(({ w, stand }) => {
       const g = new BufferGeometry();
       g.setAttribute('position', new BufferAttribute(new Float32Array(w.pos), 3));
       g.setAttribute('normal', new BufferAttribute(new Float32Array(w.nor), 3));
@@ -315,8 +459,10 @@ export function buildRoof(ctx: WorldContext, rng: Rng, o: RoofOptions): RoofBuil
       g.setIndex(w.idx);
       g.computeBoundingSphere();
       g.computeBoundingBox();
-      return { geometry: g, cards: w.cards, triangles: w.cards * 2 };
+      return { geometry: g, cards: w.cards, triangles: w.cards * 2, stand };
     });
+  const standClumps = clumps.length - plazaClumps;
+  const standCards = writers[sectorCount].cards;
   return {
     sectors,
     clumps,
@@ -325,5 +471,12 @@ export function buildRoof(ctx: WorldContext, rng: Rng, o: RoofOptions): RoofBuil
     dropped,
     minAboveGround: Number.isFinite(minAbove) ? minAbove : 0,
     cells: nx * nz,
+    stand: {
+      clumps: standClumps,
+      cards: standCards,
+      cells: o.stand ?? true ? snx * snz : 0,
+      dropped: standDropped,
+      minAboveGround: Number.isFinite(standMinAbove) ? standMinAbove : 0,
+    },
   };
 }

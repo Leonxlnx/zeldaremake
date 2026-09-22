@@ -18,7 +18,7 @@ import { Color, DoubleSide, Group, Mesh, MeshStandardMaterial, Vector2, Vector3,
 import type { WorldContext, WorldSystem } from '../system';
 import { WIND_GLSL } from '../wind/wind';
 import { createRoofAtlas, type RoofAtlas } from './atlas';
-import { buildRoof, type RoofBuild } from './roof';
+import { buildRoof, HERO_DROP_STAND_M, ROOF_STAND_BANDS, type RoofBuild } from './roof';
 
 /** alpha test of the roof cards (below 0.5 so the fine fringe keeps its coverage in the mips) */
 export const ROOF_ALPHA_TEST = 0.4;
@@ -133,7 +133,7 @@ export function create(ctx: WorldContext): WorldSystem {
   const meshes: Mesh[] = [];
   built.sectors.forEach((s, i) => {
     const mesh = new Mesh(s.geometry, material);
-    mesh.name = `canopy-roof-${i}`;
+    mesh.name = s.stand ? 'canopy-roof-stand' : `canopy-roof-${i}`;
     // no shadow casting or receiving: the ground dapple / sun pools / ray mask are measured
     // contracts of the fixed frames, and an underside facing away from the sun needs no lookup
     mesh.castShadow = false;
@@ -153,6 +153,8 @@ export function create(ctx: WorldContext): WorldSystem {
     cells: built.cells,
     minAboveGroundM: Math.round(built.minAboveGround * 100) / 100,
     heightsM: [Math.round(Math.min(...built.clumps.map((c) => c.y)) * 10) / 10, Math.round(Math.max(...built.clumps.map((c) => c.y)) * 10) / 10],
+    /** the north-stand pass (roof.ts ROOF_STAND_BANDS): its own counts, its own hero-frame drop distance */
+    stand: { ...built.stand, minAboveGroundM: Math.round(built.stand.minAboveGround * 100) / 100, heroDropM: HERO_DROP_STAND_M, bands: ROOF_STAND_BANDS.length },
     atlas: { tiles: atlas.tiles, size: atlas.color.image.width },
     material: { alphaTest: ROOF_ALPHA_TEST, mipBias: ROOF_MIP_BIAS, sunThrough: ROOF_SUN_THROUGH, underLift: ROOF_UNDER_LIFT, wind: ROOF_WIND },
     samplePositions: { clumps: built.clumps.slice(0, 64).map((c) => [c.x, c.y, c.z]) },
