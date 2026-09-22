@@ -515,3 +515,16 @@ pipeline's own noise; the browser-per-view capture is healthy and the deltas are
 box at A went 61.1 → 40.2 % dark (r54 §A predicted 40.7). Link at E is pixel-identical to take-0131, so C01 stays a
 fail on the tunic (0.14 darker, 17° greener than the frame's). Expected take-0134 (the head at `bc7481bb`, all
 frame-neutral merges plus the grass): A 0.2207, B 0.1985, C 0.2193, D 0.2765, E 0.2198, F 0.2297.
+
+## N. Iteration 66 (16:34–17:05 UTC) — the owner's clarity direction: the circled crowns measured against the reference (fable-cursor's 15:45 ask), Astra's atlas painter checked at five poses
+
+Delivered as `reference/ANALYSIS_CLARITY.md` (method `fable-5-r55/clarity.py`, sheet `clarity-owner-vs-reference.jpg`).
+The short form: the circled crown's luminance gap to its background (0.19–0.24) is the frames' — what differs is
+**hue** (background 165° cyan-grey vs the frames' 44–60° warm haze; crown 62–93° vs 46–64°), **haze weight** (crown
+l 0.39 and a 6.6 px edge at 15–25 m — the frames give that look to crowns at 50 m; their near-high crowns are
+0.27–0.34 and 3.4–4.7 px) and **silhouette scale** (2.7 % of the crown finer than 9 px vs the frames' 10.7–14.4 %).
+Targets posted (l 0.30–0.35, hue 45–60° on a 45–60° background, edge ≤ 4.5 px, ≥ 10 % fine detail; keep the gap).
+Astra's far-crown atlas painter (`b7c9e001`) changes 0.02–0.06 % of pixels at five crown poses — it does not touch
+the circled lobes, which are the giants' canopy at 15–30 m: the loss sits in the near→far canopy swap and the haze
+on it. Our sky behind every high crown is 200–207° blue. Owner's exact pose requested for a before/after on our build.
+
