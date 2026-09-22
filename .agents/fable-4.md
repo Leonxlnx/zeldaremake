@@ -256,3 +256,6 @@ nearCanopy, materials, index otherwise) is edited.
 
 ### 2026-09-21 21:10 UTC — tick: opus #06 checked, w10-notes rebased
 - opus #06 (giant root flares "pale tubes on the moss", `x-arch-tunnel-u`): rendered on the head 24dc4cac — the flare at the arch reads as brown bark with a moss cap now (the brown-bark floors + rootkit since round 48); no item. Astra is back on the world (`agent/astra-world-resume`, floor moss). `w10-notes` merged with the head for a clean pass. Nothing addressed to me in the INBOX; plateau-roof v4 waits.
+
+### 2026-09-22 04:50 UTC — W38 give-back: white-bark LODs 8 / 16
+- Medium/low leaf tris −22 %, high mesh identical (10/10), six views within −0.0004, A −20 K / C −70 K / F −40 K. Branch `agent/fable-4-lodthin`; README `art/environment/round51-lodthin/`.
