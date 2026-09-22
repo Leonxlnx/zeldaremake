@@ -106,6 +106,16 @@ export const ROOF_STAND_BOUNDS = { xMin: -46, xMax: 52, zMin: -96, zMax: -52 } a
 /** a stand cell whose giant support exceeds this is the plaza pass's (skipped here) */
 export const ROOF_STAND_GIANT_SKIP = 0.5;
 /**
+ * the stand's cards are this much larger than the plaza roof's and each clump carries one more:
+ * the stand is seen from below at 20–30 m and from the arch at 50–80 m in the haze, and at the
+ * plaza's card size a clump covered about a third of its 3.6 m cell — five clumps over the
+ * clearing left its sky mostly open (feather 14 and 20 alike: the clump count there is the
+ * noise field's, not the feather's). Read in the card loop for stand clumps only, after every
+ * plaza card has drawn, so the plaza roof's cards are byte-identical.
+ */
+export const ROOF_STAND_CARD_SCALE = 1.35;
+export const ROOF_STAND_EXTRA_CARDS = 1;
+/**
  * hero-frame exclusion for the stand's clumps (m): the stand is what camera D looks at through
  * the arch (its nearest band point 54 m off; B / E 58 m; A 70 m), so the plaza roof's 120 m rule
  * would build nothing over it. A stand clump inside a hero frame nearer than this is dropped;
@@ -442,8 +452,12 @@ export function buildRoof(ctx: WorldContext, rng: Rng, o: RoofOptions): RoofBuil
       .clone()
       .lerp(cardR.chance(0.5) ? cool : warm, cardR.range(0, 0.3))
       .multiplyScalar(cardR.range(0.8, 1.08));
-    for (let k = 0; k < c.cards; k++) {
-      const size = cardR.range(ROOF_CARD_M[0], ROOF_CARD_M[1]);
+    // stand clumps: larger cards and one more each (ROOF_STAND_CARD_SCALE); the plaza clumps come
+    // first in `clumps`, so their draws from `cardR` are what they were
+    const cardCount = c.cards + (c.stand ? ROOF_STAND_EXTRA_CARDS : 0);
+    const sizeScale = c.stand ? ROOF_STAND_CARD_SCALE : 1;
+    for (let k = 0; k < cardCount; k++) {
+      const size = cardR.range(ROOF_CARD_M[0], ROOF_CARD_M[1]) * sizeScale;
       const tile = cardR.int(0, ROOF_TILES * ROOF_TILES);
       const [u0, v0, u1, v1] = roofTileUv(tile);
       // every card lies nearly flat (a canopy is layered horizontally): a standing card seen
@@ -451,7 +465,7 @@ export function buildRoof(ctx: WorldContext, rng: Rng, o: RoofOptions): RoofBuil
       // the material fades a card edge-on anyway (index.ts ROOF_EDGE_FADE)
       const tilt = cardR.range(-0.5, 0.5);
       const spin = cardR.range(0, Math.PI * 2);
-      const lift = (k - (c.cards - 1) * 0.5) * cardR.range(0.7, 1.3);
+      const lift = (k - (cardCount - 1) * 0.5) * cardR.range(0.7, 1.3);
       const offX = cardR.range(-0.35, 0.35) * size;
       const offZ = cardR.range(-0.35, 0.35) * size;
       // normal: up, tilted by `tilt` toward a random azimuth `spin`
