@@ -400,4 +400,39 @@ expected row for take-0133 stands to the fourth decimal. With these, the head ha
 §E/§F except the textures (Link's two 4 K maps, §F) and the non-tree `onUpload` for vegetation / structures / terrain
 (terrain raycasts and must keep its arrays).
 
-## take-0133 — sixth start 08:33, grinding (tick 227: A 2,301 s, B 4,064 s, C stalled once; ~5 h to seal). Re-verdict follows when it seals, against §D's expected row (every merge since is frame-neutral — §F, §G, §I).
+## J. Iteration 62 (12:25–12:47 UTC) — the D boulder is flat because it stands in the canopy's shadow, and the proof is one switch: shadow map off, the loaf alone reaches the frame's macro σ (0.117 vs 0.124) — fable-2's "the light, not the geometry" confirmed and sharpened; the planes add nothing even in sun
+
+fable-2 (`agent/fable-2-form-2`, README §63, INBOX 12:20): the §19 planes rebased to the boulder's new spot give
+macro σ 0.023 → 0.026 against the frame's 0.097 at D −0.0013, a hard bake the same — "still the light, not the
+geometry", not landed. A claim about light has a direct test: the same builds with the shadow map off
+(`renderer.shadowMap.enabled = false`, a diagnostic build, nothing else changed). Four builds at D and at the old
+`sn-boulder-shotd` pose; the frame's D rock box 0.04–0.18 × 0.66–0.84, macro σ at 160 px wide:
+
+| D rock box | mean l | macro σ | micro σ | p10 / p90 | p99 |
+| --- | --- | --- | --- | --- | --- |
+| **reference D** | 0.326 | **0.124** | 0.037 | **0.18 / 0.49** | 0.59 |
+| head `aef8bb47` (the loaf) | 0.306 | 0.050 | 0.020 | 0.24 / 0.37 | 0.42 |
+| planes (form-2) | 0.313 | 0.049 | 0.020 | 0.25 / 0.38 | 0.42 |
+| **head, shadow map off** | 0.333 | **0.117** | 0.041 | 0.22 / **0.51** | 0.68 |
+| **planes, shadow map off** | 0.351 | **0.117** | 0.045 | 0.23 / 0.54 | 0.67 |
+
+(fable-2's box gave 0.023 / 0.026 for the same builds — a box or scale difference; the ratios agree.) Two findings:
+
+1. **It is the canopy's shadow, entirely.** With the shadow map off the loaf's box has the frame's light: macro σ
+   0.117 against 0.124, p90 0.51 against 0.49, mean 0.333 against 0.326 — a sunlit crown over a shaded flank, the
+   frame's rock. With it on, the whole boulder sits in the giant's canopy shade and no geometry can show a plane:
+   the light on that spot is diffuse, so every face renders the same value. **The D boulder is round-50 #1 and
+   round-52 #12 solved by a sun corridor onto it, not by rockgen** — the corridor machinery exists (the plaza's
+   `sunCorridors` / `plazaCorridors` in `trees/index.ts` keep crowns out of the sun's path to the flagstones); the
+   boulder wants one, or a gap in the lobe that shades it. Owner: canopy / the giant's lobes (owner-fable's
+   ranked-list #6 lane), with the sun's bearing checked so the crown, not the flank, takes it.
+2. **The planes add nothing the metric or the eye at D can find, even in sun:** 0.117 vs 0.117, p90 0.54 vs 0.51
+   (the crest plane catches a little more), micro σ 0.045 vs 0.041. fable-2's call to hold them is right; the loaf
+   already has the frame's form under the frame's light. (The `sn-boulder-shotd` pose no longer frames this
+   boulder after W23's move — 0.04 % of pixels differ between loaf and planes there; the shadow-off rows at that pose
+   show the same lighting effect on whatever it does frame: macro σ 0.082 → 0.110, p90 0.37 → 0.47.)
+
+Sheet `fable-5-r55/fable-5-r55-d-boulder-light-quad.jpg` (loaf | planes; both with the shadow map off; the
+frame at right).
+
+## take-0133 — sixth start 08:33, grinding (tick 228: at D; C sealed 2,829 s). Re-verdict follows when it seals, against §D's expected row (every merge since is frame-neutral — §F, §G, §I).
