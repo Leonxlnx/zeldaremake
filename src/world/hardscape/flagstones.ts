@@ -779,14 +779,6 @@ const BREAK_MIN_ACROSS = 0.45;
 const LAWN_SPACING = 1.15;
 /** soil stain on a slab's flank at the joint-fill line (0 = bare stone, 1 = the seam's soil tone); fades to 0 at the shoulder */
 const FLANK_STAIN_AT_FILL = 0.7;
-/**
- * Round 52 #3 (V16) experiment: the slabs' proud height over the fill, as a multiplier on `exposed`
- * and on the rim's 1.6 cm floor over the centre's ground. The seams read as shadowed grooves where
- * the frame's are soft lines, and neither the flank's tint (iteration 45) nor the fill's albedo
- * (`joints.ts` SEAM_FILL_LIFT) moved the joint-dark area — the dark is the groove's lighting, so
- * the depth is the lever to measure. 1 = the round-48 heights.
- */
-const SLAB_PROUD_K = 0.5;
 
 export function placeFlagstones(pc: PavingContext, material: Material): PavingResult {
   const { terrain, rng, bbox } = pc;
@@ -1458,7 +1450,7 @@ export function placeFlagstones(pc: PavingContext, material: Material): PavingRe
     // slab has a readable edge and thickness at 1–2 m — opus-review #16's "stickers in flat
     // orange soil" — while a metre of grazing view still projects the wall under the crevice line)
     const sink = hrng ? hollow * (0.008 + 0.008 * hrng()) : 0;
-    const exposed = SLAB_PROUD_K * (srng.range(0.011, 0.017) + 0.006 * (1 - lawn) * (disc ? 0 : 1)) * (1 - 0.15 * open) * (1 + 0.6 * fieldW) - sink;
+    const exposed = (srng.range(0.011, 0.017) + 0.006 * (1 - lawn) * (disc ? 0 : 1)) * (1 - 0.15 * open) * (1 + 0.6 * fieldW) - sink;
     if (hMaxS - hMinS > 0.28) {
       // a slab cannot sit across a step this high (terrace lips, bank feet): leave soil here
       if (!dryRun) stats.skippedSteep++;
@@ -1469,7 +1461,7 @@ export function placeFlagstones(pc: PavingContext, material: Material): PavingRe
     // never float more than 3 cm over the lowest ground under the edge — sink instead, but keep
     // the edge at least 1.6 cm clear of the joint fill at the centre; a deeper stone absorbs the rest
     rimY = Math.min(rimY, hMinS + 0.03 + (thickness - bevel));
-    rimY = Math.max(rimY, hCentre + 0.016 * SLAB_PROUD_K - sink);
+    rimY = Math.max(rimY, hCentre + 0.016 - sink);
     let bottomY = rimY - (thickness - bevel);
     if (bottomY > hMinS + 0.03) {
       thickness += bottomY - (hMinS + 0.03);
