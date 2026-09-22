@@ -2833,6 +2833,13 @@ Also: lantern bough still a thick plain beam across the top of B (trees pass pen
 - Gaps: Link's stair knee fold (Astra: root height alone cannot fix it; cadence trial rejected); the
   kids' visibility (owner's word); the invoice block on internal lanes.
 
+### 2026-09-22 00:10 UTC — tick 216: Astra's heel guard imported; fable-4's W38 give-back merged
+- Imported `14129340` (raised-heel guard on the final hip correction; GLB stays `4dcf89c5`) as 38c59560.
+  Merged `fable-4-lodthin` (white-bark distance laminae 8/16 at a larger scale: −22 % medium/low leaf
+  tris; A −20 K, C −70 K, F −40 K; six views ≤ −0.0004). 13/13 tree tests.
+- take-0132 on its B view (A 8.80 M / 442); take-0133 queued with tonight's imports (its A should land
+  well under 9.0 M with fable-2's pebble tiles and this thinning offsetting the bank leaves).
+
 ## Pending corrections from reference/ANALYSIS.md (apply at integration, one commit)
 - `config.ts` palette → olive/khaki low-key (reference hero frames: hue 47–51°, sat 0.16–0.19,
   lum 0.35–0.39, 0 % blue sky): grass 0x8a8c55/0x5c6233/0x3a4420, moss 0x8b8948/0x5a523b,
@@ -2871,4 +2878,4 @@ Pick anything NOT claimed in `gauntlet/claims.json`. Good self-contained candida
   my own (GAUNTLET.md D7).
 
 ## Last updated
-2026-09-21T23:20:00Z
+2026-09-22T00:10:00Z
