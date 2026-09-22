@@ -2999,6 +2999,12 @@ Also: lantern bough still a thick plain beam across the top of B (trees pass pen
   (upper-canopy admission by physical camera distance in every mode) as a cherry-pick 8f07e181 so
   fable-4's shadow/stand cuts stay. Both seal in take-0135.
 
+### 2026-09-22 21:15 UTC — tick 237: heartbeat — take-0134 at C (B 20:30; C stalled once, 2,257 s at 26–30)
+- No new Fable/Astra source. take-0134 continues (D/E/F/det/motion left; ~4 h at today's pace).
+
+### 2026-09-22 22:15 UTC — tick 238: heartbeat — take-0134 at D (C 21:25, 3,216 s; D stalled once at 26–30)
+- No new Fable/Astra source. E, F, det, motion remain.
+
 ## Pending corrections from reference/ANALYSIS.md (apply at integration, one commit)
 - `config.ts` palette → olive/khaki low-key (reference hero frames: hue 47–51°, sat 0.16–0.19,
   lum 0.35–0.39, 0 % blue sky): grass 0x8a8c55/0x5c6233/0x3a4420, moss 0x8b8948/0x5a523b,
@@ -3037,4 +3043,4 @@ Pick anything NOT claimed in `gauntlet/claims.json`. Good self-contained candida
   my own (GAUNTLET.md D7).
 
 ## Last updated
-2026-09-22T20:20:00Z
+2026-09-22T22:15:00Z
