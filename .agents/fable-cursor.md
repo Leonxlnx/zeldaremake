@@ -2864,6 +2864,16 @@ Also: lantern bough still a thick plain beam across the top of B (trees pass pen
 - No new Fable source this hour; Astra's branches quiet since `41de5a9d`. take-0133's A frame landed at
   03:12 with the 5-frame CDP chunks (no timeout); B–F, determinism and motion follow (~05:45 seal).
 
+### 2026-09-22 05:05 UTC — tick 220: the capture stall found and fixed; take-0133 on its fourth start
+- The third take-0133 died at B with the 1,200 s timeout after A took 63 min — a session problem, not a
+  chunk problem: a B-only capture of the same build ran clean (10 s/frame, 1,426 s total), so one long
+  page degrades across views (the near-LOD pools + persistent lobes resident since fable-4's lod25 /
+  slots64 and Astra's bank leaves). `capture.mjs` now opens a fresh page per viewpoint and for the
+  determinism pass (A vs A.det byte-identical across pages in a smoke test) and logs any chunk > 120 s.
+  Merged `fable-4-shadowlod` (mid-LOD white-barks stop casting: A 8.74 → 8.68 M, draws −6).
+- **Play-mode concern for Astra / fable-4:** the same accumulation would hit a player walking view to
+  view — flagged in the INBOX (pool residency / memory growth across the plaza).
+
 ## Pending corrections from reference/ANALYSIS.md (apply at integration, one commit)
 - `config.ts` palette → olive/khaki low-key (reference hero frames: hue 47–51°, sat 0.16–0.19,
   lum 0.35–0.39, 0 % blue sky): grass 0x8a8c55/0x5c6233/0x3a4420, moss 0x8b8948/0x5a523b,
@@ -2902,4 +2912,4 @@ Pick anything NOT claimed in `gauntlet/claims.json`. Good self-contained candida
   my own (GAUNTLET.md D7).
 
 ## Last updated
-2026-09-22T03:15:00Z
+2026-09-22T05:05:00Z
