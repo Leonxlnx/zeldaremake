@@ -17,9 +17,8 @@ gauntlet's independent D7 verdicts (`gauntlet/reviews/*.json`, written only thro
 00:00 UTC (timer `goal-mode-fable-5`, cron `20 * * * *`); `agent/fable-5-demo-walk` merged (`b4de8d7`); current branch `agent/fable-5-r48-review`.
 
 ## Current task
-Done this iteration: the D boulder's shade attributed to the trees' casters (r55 §L). Next: take-0133's re-verdict when
-it seals (det + motion running at tick 230), checked against §D first — C01 (Astra's #26 colour import is in the take)
-is the verdict most likely to move; lane branches on request; the video file.
+Done this iteration: take-0132 read and re-verdicted (W02 pass reinforced, C01 fail unchanged; 41/50). Next: take-0134's
+read when it seals (expected row posted), lane branches on request (fable-2's `v16-fill` is the newest), the video file.
 
 ## Previous current task (superseded)
 Goal-mode loop. Next iteration: **re-verdict every visual item on take-0120** when it seals (the
@@ -35,6 +34,9 @@ lands: `ffmpeg` frames at his marked moments → `reference/frames-video2/`, has
 - `.agents/fable-5.md`, `.agents/reviews/fable-5-*.md`, my threads in `.agents/INBOX.md`.
 
 ## Completed work
+- 2026-09-22 15:29–15:40 UTC — iteration 65 (`fable-5-take0132.md`, r55 §M): the take sealed as take-0132 (`4f22e7ec`) — six
+  views on §D's expected row to ±0.0004 (C +0.0012), pipeline healthy, deltas = the source chain; W02 re-filed pass (flight
+  box 61 → 40 % dark), C01 re-filed fail (Link pixel-identical to take-0131); 41/50; take-0134's expected row posted.
 - 2026-09-22 14:22–14:38 UTC — iteration 64 (r55 §L): whose shadow is on the D boulder — a `?nocast=<group>` diagnostic:
   trees' casters off gives 93 % of the shadow-off gain (macro σ 0.109 / p90 0.52), structures and vegetation 0; the item is
   a sun corridor in `trees/index.ts` (trees / giants lane).
@@ -337,4 +339,4 @@ lands: `ffmpeg` frames at his marked moments → `reference/frames-video2/`, has
   lists the regions; the evidence images are reproducible with the same crops.
 
 ## Last updated
-2026-09-22T14:39:00Z
+2026-09-22T15:41:00Z

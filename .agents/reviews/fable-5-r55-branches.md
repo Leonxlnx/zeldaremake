@@ -507,4 +507,11 @@ boulder's spot (fable-2's 2 m pose frames it: camera (−2.4, 1.3, −5.6) → (
 the crown takes the light. Owner: the trees / giants lane. Vegetation and structures: 0 — the head's
 row to the third decimal.
 
-## take-0133 — through F at tick 230 (13:26), determinism re-capture stalled once, motion pair after (~1.5 h). Re-verdict follows when it seals, against §D's expected row (every merge since is frame-neutral — §F, §G, §I).
+## M. Iteration 65 (15:29–15:40 UTC) — the take sealed (as take-0132, `4f22e7ec`): §D's row held to ±0.0004 on five views and +0.0012 on C; W02 re-filed pass (reinforced), C01 re-filed fail (Link pixel-identical to take-0131); 41/50
+
+Full read in `fable-5-take0132.md`: the six views landed on the expected row — A +0.0056 (the tint less PR #29),
+C −0.0039 and F −0.0062 (PR #29 less the tint's F gain) — with B and E moving 0.14 % of their pixels, the
+pipeline's own noise; the browser-per-view capture is healthy and the deltas are the source, as booked. The flight
+box at A went 61.1 → 40.2 % dark (r54 §A predicted 40.7). Link at E is pixel-identical to take-0131, so C01 stays a
+fail on the tunic (0.14 darker, 17° greener than the frame's). Expected take-0134 (the head at `bc7481bb`, all
+frame-neutral merges plus the grass): A 0.2207, B 0.1985, C 0.2193, D 0.2765, E 0.2198, F 0.2297.
