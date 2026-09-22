@@ -213,3 +213,25 @@ Tech is still the only fail. 5.9fps on llvmpipe at 1280×720.
 Fix list for iteration 9:
 
 - No look-safe change left that has beaten measurement noise. Re-shoot anyway and confirm the eight passing items still hold, including the interaction frames. Do not delete lights, AO, or the environment to chase 60 on software GL.
+
+## Iteration 9
+
+No scene change. Fresh shots differ from iteration 8 by film grain only (mean absolute difference 9 to 13 levels). Corridor median still 170. Fade frames still carry `8 hours pass` and `Refreshed.` Pointer lock engaged, status `Refreshed.` Sustained rate 4.6fps, inside the noise band around 5 to 6.
+
+| # | Rubric | Result |
+| --- | --- | --- |
+| 1 | Lighting intentional | pass |
+| 2 | Materials physical | pass |
+| 3 | Detail density | pass |
+| 4 | Post stack balanced | pass |
+| 5 | Space view sells motion | pass |
+| 6 | Cohesive palette | pass |
+| 7 | Tech clean, 60fps | fail |
+| 8 | Cold-look test | pass |
+| 9 | Interactions | pass |
+
+Tech is still the only fail.
+
+Fix list for iteration 10:
+
+- Shoot again with the scene frozen. Confirm grain-level differences only, and that the interaction overlays still land. Stop changing the picture.
