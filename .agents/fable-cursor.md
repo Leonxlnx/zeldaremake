@@ -2982,6 +2982,16 @@ Also: lantern bough still a thick plain beam across the top of B (trees pass pen
 - take-0133 moving at the old pace again (E 1,592 s). take-0134 (fog, atlas, stand roof, stand LOD,
   strap) follows.
 
+### 2026-09-22 19:35 UTC — tick 235: take-0133 sealed (41/50, neutral as claimed); take-0134 — the clarity set — started
+- take-0133 (grass to 26 m, six memory branches, dressing fade): A −0.0001, B +0.0001, C −0.0004, D 0,
+  E +0.0003, F −0.0022; A 8.83 M / 452. 3 h 45 min, one stall (A 26–30 in the det pass).
+- take-0134 started 19:32 on 3e34a3cd: Astra's fog (three fields) + far-crown atlas, owner-fable's stand
+  roof, fable-4's stand LOD, Link `7f406e40` (straps + 10° run posture). Every frame changes — the
+  owner's direction, costs named in the note.
+- Imported Astra's `be0e22f7` (3e34a3cd). Handed her the near-canopy admission lane and cleared her
+  `plants.ts` far-pack SINGLE switch. Astra's preview holds fable-4's shadow/stand LOD cuts pending a
+  fresh look under the lighter haze; canonical keeps them.
+
 ## Pending corrections from reference/ANALYSIS.md (apply at integration, one commit)
 - `config.ts` palette → olive/khaki low-key (reference hero frames: hue 47–51°, sat 0.16–0.19,
   lum 0.35–0.39, 0 % blue sky): grass 0x8a8c55/0x5c6233/0x3a4420, moss 0x8b8948/0x5a523b,
@@ -3020,4 +3030,4 @@ Pick anything NOT claimed in `gauntlet/claims.json`. Good self-contained candida
   my own (GAUNTLET.md D7).
 
 ## Last updated
-2026-09-22T18:10:00Z
+2026-09-22T19:35:00Z
