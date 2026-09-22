@@ -7,6 +7,7 @@ import path from 'node:path';
 import ts from 'typescript';
 import * as THREE from 'three';
 import * as BufferGeometryUtils from 'three/examples/jsm/utils/BufferGeometryUtils.js';
+import { crossCheckAudit } from '../../../gauntlet/scripts/score.mjs';
 
 const modules = new Map();
 function loadTs(file) {
@@ -14,7 +15,9 @@ function loadTs(file) {
   if (modules.has(file)) return modules.get(file).exports;
   const module = { exports: {} };
   modules.set(file, module);
-  const source = ts.transpileModule(readFileSync(file, 'utf8'), {
+  // Expose the real tile builder only in this CPU test, without extending its production API.
+  const testExport = file === path.join(here, 'index.ts') ? '\nexport { buildTiled };\n' : '';
+  const source = ts.transpileModule(readFileSync(file, 'utf8') + testExport, {
     compilerOptions: { module: ts.ModuleKind.CommonJS, target: ts.ScriptTarget.ES2022 },
   }).outputText;
   new Function('require', 'module', 'exports', source)(
@@ -38,7 +41,8 @@ const here = path.dirname(fileURLToPath(import.meta.url));
 const { getTerrain } = loadTs(path.join(here, '../terrain/heightfield.ts'));
 // rocks/index.ts pulls three.js scene classes; the contour walk and the tier list are pure, so the
 // module loads without a renderer
-const { BANK_TIERS, contourLine } = loadTs(path.join(here, 'index.ts'));
+const { BANK_TIERS, contourLine, buildTiled } = loadTs(path.join(here, 'index.ts'));
+const { installCaptureApi } = loadTs(path.join(here, '../../capture/api.ts'));
 const T = getTerrain();
 
 test('the C stair-bank tier walks the face at its mid height, off the paving and the treads', () => {
@@ -71,4 +75,35 @@ test('the contour walk is deterministic and returns nothing where the height is 
   assert.deepEqual(a, b);
   // 40 m up: no terrain near that height on the plaza's bank
   assert.equal(contourLine(T, [5.9, 4.0], [9.1, 1.1], 40, 0.5).length, 0);
+});
+
+test('merged pebble tiles back B3 once across both LODs without multiplying triangles', () => {
+  const material = new THREE.MeshBasicMaterial();
+  const hiGeo = new THREE.IcosahedronGeometry(1, 1), loGeo = new THREE.IcosahedronGeometry(1, 0);
+  const placed = [0, 1, 2, 3].map((x) => ({ x, y: 0, z: 0, scale: x === 3 ? 0 : .03, yaw: 0, variant: 0 }));
+  const [{ hi, lo }] = buildTiled(placed, [hiGeo], material, 'pebbles', 10, [loGeo]);
+  const scene = new THREE.Scene(), rocks = new THREE.Group();
+  rocks.name = 'rocks'; rocks.add(hi, lo); scene.add(rocks);
+  const previousWindow = globalThis.window;
+  globalThis.window = {};
+  try {
+    const api = installCaptureApi({ scene, audits: new Map([['rocks', () => ({ pebbles: 3 })]]), failures: [] });
+    const audit = api.audit();
+    assert.equal(crossCheckAudit(audit)[0].ok, true, 'merged geometry must back the placed pebble claim');
+    assert.equal(hi.userData.mergedInstances, 3, 'zero-scale source is excluded');
+    assert.equal(lo.userData.mergedInstances, 0, 'far geometry must not declare the same pebbles twice');
+    assert.deepEqual(audit.scene.bySystem.rocks, { meshes: 2, instances: 4, triangles: 300 });
+    assert.equal(audit.scene.instances, 4);
+    assert.equal(audit.scene.triangles, 300);
+    hi.visible = false; lo.visible = true;
+    assert.deepEqual(api.audit().scene, audit.scene, 'census counts placed geometry independently of LOD visibility');
+    hi.userData.mergedInstances = hi.geometry.attributes.position.count;
+    assert.equal(api.audit().scene.bySystem.rocks.instances, 2, 'geometry cannot support an impossible declaration');
+    assert.equal(crossCheckAudit(api.audit())[0].ok, false, 'B3 must still reject an unsupported claim');
+  } finally {
+    if (previousWindow === undefined) delete globalThis.window;
+    else globalThis.window = previousWindow;
+    for (const geometry of [hiGeo, loGeo, hi.geometry, lo.geometry]) geometry.dispose();
+    material.dispose();
+  }
 });
