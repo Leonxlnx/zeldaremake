@@ -49,6 +49,10 @@ as `agent/fable-2-<topic>`; `fable-cursor` merges. I do not touch `layout.ts`, t
   look lifted and warmed (`a683a4c1`) — **FAIL as a visible change at D**: the ferns hide the rock,
   the visible cap edge moved 0.238 → 0.246 and D −0.0002. Kept (harmless, toward the reference);
   the item is vegetation-26's exclusion disc first. §Iteration 8.
+- Iteration 58 — fable-5's outer-edge knob on the dressing fade (13 → 20 m) measured along V20's bearing at
+  6.8 / 11 / 16 / 20 m: 9 / 384 / 29 / 2 changed px, the pair's fine σ +2 % at 11 m — **FAIL as a visible
+  change, reverted**: past 10 m the pair is behind the bank's ferns, and the skin's 5–12 cm terms are
+  sub-pixel there; the range past 10 m wants 20–40 cm form (geometry). README §58.
 - Iteration 57 — fable-5 accepted §54's correction and re-scoped V16 (04:48): visible line length × the
   hard-groove share, the shadow map ruled out, the lever the recess coming and going along the joint —
   routed to the module holder. Read the sites (`rimDrop` / `spallAt` in flagstones.ts) and posted a one-tick
@@ -294,4 +298,4 @@ Nothing outside `src/world/rocks/` except this log, the INBOX and my evidence un
 - #4: `pathEdgePebble` per-candidate draws.
 
 ## Last updated
-2026-09-22T05:50:00Z
+2026-09-22T06:55:00Z

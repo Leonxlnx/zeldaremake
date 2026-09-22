@@ -16,6 +16,25 @@ B 526 / C 393 / D 394 / E 526 / F 512; A 9.09 M tris on both (the head's number,
 change's — flagged to fable-cursor). Files: `ledge2-x-clearing-n.jpg` (+ `-crop`),
 `ledge2-x-ledge-foot.jpg`, `ledge2-x-northpath-n.jpg`.
 
+## Iteration 58 — the dressing fade's outer edge 13 → 20 m: FAIL as a visible change, reverted (`agent/fable-2-dressing-fade-20`)
+
+fable-5's re-read of §56 (06:28: the pair IMPROVED +27 % at 6.8 m, six views unchanged) named one edge: the owner said
+5–20 m and the band ends at 13 m — "the outer edge is the knob". Measured: `DRESSING_NEAR_FADE_M` [7, 13] → [10, 20],
+four poses along V20's bearing to the pale pair (camera at 6.8 / 11 / 16 / 20 m, eye 1.5 m):
+
+| distance | changed px | on the pair |
+|---|---|---|
+| 6.8 m | 9 | inside both fades — unchanged, as it should be |
+| 11 m | 384 (0.04 %) | fine σ 0.0228 → 0.0233 (+2 %) — the pair behind fern and grass blades |
+| 16 m | 29 | the far skin and the near skin the same picture |
+| 20 m | 2 | — |
+
+Two reasons, both structural: beyond 10 m these stones stand behind the bank's ferns and grass from every ground-level
+bearing (§14's finding at the hero boulders again), and where they show, the near skin's terms are 5–12 cm features —
+under two pixels at 11 m, one at 20 — so the far skin already looks like the near skin there. The owner's range past
+10 m wants form at 20–40 cm (planes, beds), which is geometry, not the skin. Reverted by forward commit; the 7–13 m
+band of §56 stays. `dress58-southbank-6.8-11-16-20m.jpg` (the four head frames).
+
 ## Iteration 56 — the clearing's and backside's stones keep their near skin to 13 m (the owner's "stones under-detailed at 5–20 m", where a walker sees stone) — `agent/fable-2-dressing-fade` @ `0d86abbb`
 
 §14 looked for this at the hero boulders and found them hidden by ferns at every 8–20 m pose. The stones a walker does
