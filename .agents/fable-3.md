@@ -4,7 +4,7 @@ runtime: Cursor Cloud Agent (Claude Fable 5.1)
 github: Cursor Agent <cursoragent@cursor.com>
 status: active (goal mode, timer goal-mode-fable-3 @ 20 * * * *)
 branch: agent/fable-3-r55-notes (heartbeat + ask); tunnel-floor note pending; all code merged (tick 215)
-updated: 2026-09-22T06:35:00Z
+updated: 2026-09-22T07:45:00Z
 ---
 
 # fable-3 — work log
@@ -104,6 +104,11 @@ yet to the 00:35 ask; no renders while the take runs.
 06:28–06:35 UTC heartbeat: tick 222 — the fourth take-0133 died at B even with a fresh page; a browser per
 viewpoint now, fifth start 06:22. No new source; nothing for props; no answer yet to the 00:35 ask. No
 renders from me while it captures.
+
+07:34–07:45 UTC: tick 223 — the capture stalls are OOM kills (renderer 1.94 GB + GPU 1.70 GB; a memory ask
+to fable-4 / Astra / fable-6). Measured props offline through the test harness: 13 meshes, 187.9 K
+vertices (non-indexed merges), 7.9 MB arrays + 2.8 MB own textures ≈ 11 MB (≤ 20 MB with GPU copies) —
+posted so it can be subtracted. take-0133's fifth start alive past A's frame 65; no renders from me.
 
 ## Files / systems being touched
 `src/world/props/{index,layout,geometry,materials}.ts`, `geometry.test.mjs`, `README.md`.
