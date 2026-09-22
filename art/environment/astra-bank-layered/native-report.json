@@ -1,0 +1,118 @@
+{
+  "verdict": "PASS",
+  "nativeBuildHead": "79b7fe25a159e0e002c15684eba6b24311760136",
+  "geometrySource": "94afa311bb7cd52e07bb55418444f615c105dc86",
+  "commonWarmthSource": "0858f39f75ee14130be7ff84692cdd33422c83ab",
+  "deliverySource": "57eea8c0ec77880ef4b3ae6cba51503999600e65",
+  "deliveryParity": "delivery-proof.json: exact reviewed true-branch code and full-tree output",
+  "renderer": "ANGLE (AMD, AMD Radeon 780M Graphics (0x00001900) Direct3D11 vs_5_0 ps_5_0, D3D11)",
+  "browser": "Chrome/153.0.8010.52",
+  "settings": {
+    "views": [
+      {
+        "id": "F_canopy"
+      },
+      {
+        "id": "C_lookback"
+      }
+    ],
+    "time": 12.6,
+    "width": 1280,
+    "height": 720,
+    "quality": "high",
+    "pixelRatio": 1
+  },
+  "publicHash": "ee9be37e731df7a655cbaf22faa3d5a06a3f2bc7607312883b0197d0c8b02524",
+  "checks": [
+    "raw PNG SHA-256 bytes match receipts",
+    "native hardware both builds",
+    "same source bindings and public inputs; only frozen build flag differs",
+    "same camera/light/viewport/time",
+    "same distant LOD counts/positions",
+    "same hardscape audit",
+    "no page/shader/system errors",
+    "recorded resource deltas verified"
+  ],
+  "rows": [
+    {
+      "id": "F_canopy",
+      "beforeSha256": "1ed87745c1c9b9ed16739d15145e0bc7f219c82c823a52f59944d073421800c3",
+      "afterSha256": "fb3a095552b89096a9e214f51bfd7c898b556ea0a4dab0b88e7e4176365f46d5",
+      "before": {
+        "simTime": 12.6,
+        "drawCalls": 407,
+        "triangles": 8090816,
+        "geometries": 314,
+        "textures": 91,
+        "programs": 100,
+        "width": 1280,
+        "height": 720,
+        "pixelRatio": 1
+      },
+      "after": {
+        "simTime": 12.6,
+        "drawCalls": 410,
+        "triangles": 8156256,
+        "geometries": 317,
+        "textures": 91,
+        "programs": 101,
+        "width": 1280,
+        "height": 720,
+        "pixelRatio": 1
+      },
+      "delta": {
+        "triangles": 65440,
+        "drawCalls": 3,
+        "geometries": 3,
+        "textures": 0,
+        "programs": 1
+      },
+      "distantLod": [
+        293,
+        503
+      ]
+    },
+    {
+      "id": "C_lookback",
+      "beforeSha256": "0cefdcb0d2900bd9032c12dad647a756bfc0833f99fe5710ab660eaaff4284b0",
+      "afterSha256": "5b54422f43ae61ebc6380f0c5fd360731bbec76ea797abca163d36a7e119b929",
+      "before": {
+        "simTime": 12.6,
+        "drawCalls": 341,
+        "triangles": 7053338,
+        "geometries": 353,
+        "textures": 91,
+        "programs": 100,
+        "width": 1280,
+        "height": 720,
+        "pixelRatio": 1
+      },
+      "after": {
+        "simTime": 12.6,
+        "drawCalls": 344,
+        "triangles": 7118778,
+        "geometries": 356,
+        "textures": 91,
+        "programs": 101,
+        "width": 1280,
+        "height": 720,
+        "pixelRatio": 1
+      },
+      "delta": {
+        "triangles": 65440,
+        "drawCalls": 3,
+        "geometries": 3,
+        "textures": 0,
+        "programs": 1
+      },
+      "distantLod": [
+        295,
+        501
+      ]
+    }
+  ],
+  "limits": [
+    "CPU parity connects final source to the retained flag1 images; these are not a fresh final-merge capture.",
+    "No FPS, whole-world quality or Phase1-exit claim."
+  ]
+}

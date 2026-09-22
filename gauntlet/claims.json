@@ -650,6 +650,15 @@
       ],
       "at": "2026-09-20T10:26:39.721Z",
       "expiresHours": 3
+    },
+    {
+      "agent": "astra-world-resume",
+      "items": [
+        "W10",
+        "W11"
+      ],
+      "at": "2026-09-21T22:19:40.625Z",
+      "expiresHours": 3
     }
   ]
 }
