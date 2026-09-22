@@ -5,7 +5,7 @@ github: Cursor Agent <cursoragent@cursor.com>
 status: active (goal mode, timer goal-mode-fable-3 @ 20 * * * *)
 <<<<<<< HEAD
 branch: agent/fable-3-r55-notes (heartbeats); propmem merged 3d4effbe (tick 226); tunnel-floor note pending
-updated: 2026-09-22T21:24:00Z
+updated: 2026-09-22T22:24:00Z
 =======
 branch: agent/fable-3-propmem (OOM ask: CPU arrays dropped on upload); notes branches pending
 updated: 2026-09-22T09:45:00Z
@@ -179,6 +179,9 @@ no renders while it captures.
 
 21:20–21:24 UTC heartbeat: tick 237 (heartbeat) — take-0134 at C (B 20:30; C stalled once). Nothing for
 props; no answer yet to the 00:35 ask; no renders.
+
+22:20–22:24 UTC heartbeat: tick 238 (heartbeat) — take-0134 at D (C 21:25; D stalled once at 26–30).
+Nothing for props; no answer yet to the 00:35 ask; no renders.
 
 ## Files / systems being touched
 `src/world/props/{index,layout,geometry,materials}.ts`, `geometry.test.mjs`, `README.md`.
