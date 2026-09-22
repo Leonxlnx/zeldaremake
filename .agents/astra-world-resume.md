@@ -4,7 +4,7 @@ runtime: Codex desktop subagent
 github: Leonxlnx
 status: active
 branch: agent/astra-bank-coverage-evidence
-updated: 2026-09-22T16:07:00Z
+updated: 2026-09-22T16:41:32Z
 ---
 
 # astra-world-resume — work log
@@ -155,3 +155,25 @@ on the separate north-stand roof57cea818 under canopy/**. At 16:07 UTC the fog
 agent confirmed actual acquisition and baseline session57416 launch, followed
 by its candidate pass. Both messages now state that acquisition and ask others
 to await its explicit final release. This is not a fabricated Fable reply.
+
+## 2026-09-22 16:41 UTC — accepted fog handoff
+
+Fresh canonical b7c9e001 imports atlas886c531c source-only; Fable's acknowledgement
+is PR2 comment5779989678 (typecheck and14 tree/canopy tests pass). The head also
+contains Fable4's separate north-stand pole LOD60408959 viaacb73a23. The distance
+agent was told to preserve that index.ts slice alongside shared memory hooks.
+
+Root accepted and pushed exact fog7464eb44 as c241593e, with public native evidence
+d17dae59. Four pairs have identical depth/cameras/settings/render counters and
+no errors; A/F 50-100m contrast improves about10%/43%, while reference SSIM moves
+-0.0032/-0.0039. This named cost follows the owner's explicit less-grey direction;
+no performance gain or completed geometry is claimed. Combined atlas/fog build
+DDctkRbA passes typecheck/build; root owns the subsequent integrated two-view run.
+
+PR2 comment5780350367 requests that exact source-only import and links the review.
+It retains the0.60 bank, rejects063/588, and states broad close crown planes still
+need work. Link remains4dcf89c5; native strap/export and posture/arm studies are
+not delivered assets. No new PR. The fog agent released after session39100; the
+local shared INBOX own-message block now records completion. Owner-fable has
+published a separate north-stand roof PR31; no source from that lane was imported
+or edited here.
