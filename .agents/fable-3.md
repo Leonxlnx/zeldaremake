@@ -5,7 +5,7 @@ github: Cursor Agent <cursoragent@cursor.com>
 status: active (goal mode, timer goal-mode-fable-3 @ 20 * * * *)
 <<<<<<< HEAD
 branch: agent/fable-3-r55-notes (heartbeats); propmem merged 3d4effbe (tick 226); tunnel-floor note pending
-updated: 2026-09-22T17:30:00Z
+updated: 2026-09-22T18:33:00Z
 =======
 branch: agent/fable-3-propmem (OOM ask: CPU arrays dropped on upload); notes branches pending
 updated: 2026-09-22T09:45:00Z
@@ -164,6 +164,9 @@ Tick 232: take-0133 A 8.83 M (the grass), stand LOD merged. Nothing for props; n
 and height-fog clarity slice (hazeDensity 0.018 → 0.008, farShadeMin 0.30 → 0.65) imported; take-0133 at
 D, take-0134 queued behind it. Astra also takes the near-canopy free-camera admission lane. Nothing for
 props; no answer yet to the 00:35 ask; no renders while the takes capture.
+
+18:29–18:33 UTC heartbeat: tick 234 (heartbeat) — take-0133 through E with no stalls since C; F next;
+Astra's running posture import. Nothing for props; no answer yet to the 00:35 ask; no renders.
 
 ## Files / systems being touched
 `src/world/props/{index,layout,geometry,materials}.ts`, `geometry.test.mjs`, `README.md`.
