@@ -141,3 +141,29 @@ Fix list for iteration 6:
 
 - The remaining cost is the lit ship in the beauty pass plus GTAO's extra scene pass. Cut the wear noise from five octaves to two so fragment cost drops without removing the grime.
 - If that does not move sustained fps by a clear margin, put the octaves back. Do not strip lights or AO to chase a software-GL number.
+
+## Iteration 6
+
+Wear noise at two octaves did not move the rate (still about 2fps), so the five-octave grime is back. Turning multisampling off on the HDR buffer did: sustained corridor rate went from 2.6fps to 5.6fps at the same 73k triangles and 60 calls. Half-resolution AO did not add to that, so AO stays full resolution.
+
+The four shots match iteration 5's histograms (corridor median 118, window 111). Edges did not fall apart at 720p. Same passes as last iteration.
+
+A resolution sweep on the same machine: about 7fps at 1280×720, 10fps at 640×360, 47fps at 320×180. The cost is not a pure fill curve, and 720p on llvmpipe is still nowhere near 60.
+
+| # | Rubric | Result |
+| --- | --- | --- |
+| 1 | Lighting intentional | pass |
+| 2 | Materials physical | pass |
+| 3 | Detail density | pass |
+| 4 | Post stack balanced | pass |
+| 5 | Space view sells motion | pass |
+| 6 | Cohesive palette | pass |
+| 7 | Tech clean, 60fps | fail |
+| 8 | Cold-look test | pass |
+| 9 | Interactions | pass |
+
+Tech is the only fail, for the third iteration in a row. 5.6fps is the best sustained number that still keeps the picture.
+
+Fix list for iteration 7:
+
+- Leave the picture alone. One more pass at the fixed cost: the beauty pass is still the ship. Confirm whether dropping the second directional fill (the dim warm one) changes fps by more than noise. If it does not, put it back before the shots.

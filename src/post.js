@@ -71,7 +71,7 @@ export function createPost(renderer, scene, camera) {
   const rt = new THREE.WebGLRenderTarget(
     Math.floor(window.innerWidth * pixelRatio),
     Math.floor(window.innerHeight * pixelRatio),
-    { type: THREE.HalfFloatType, samples: 2 }
+    { type: THREE.HalfFloatType, samples: 0 }
   );
   const composer = new EffectComposer(renderer, rt);
   composer.setPixelRatio(pixelRatio);

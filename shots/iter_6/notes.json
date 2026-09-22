@@ -1,0 +1,42 @@
+{
+  "perf": {
+    "fps": 5.643765520354588,
+    "renderMs": 1.3999999999068677,
+    "triangles": 72767,
+    "calls": 60,
+    "renderer": "ANGLE (Mesa, llvmpipe (LLVM 20.1.2 256 bits), OpenGL 4.5)",
+    "pose": {
+      "pos": [
+        -0.15,
+        1.7,
+        2.55
+      ],
+      "rot": [
+        -0.05083802116418733,
+        -3.0300574695159326,
+        4.342418981940974e-19,
+        "YXZ"
+      ]
+    }
+  },
+  "pointer": {
+    "locked": true,
+    "status": "Refreshed.",
+    "prompt": ""
+  },
+  "bedFade": [
+    {
+      "opacity": "1",
+      "text": "8 hours pass"
+    }
+  ],
+  "bathFade": [
+    {
+      "opacity": "1",
+      "text": "Refreshed."
+    }
+  ],
+  "errors": [
+    "[error] Failed to load resource: the server responded with a status of 404 (Not Found)"
+  ]
+}
