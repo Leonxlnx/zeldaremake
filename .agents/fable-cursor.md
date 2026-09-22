@@ -2914,6 +2914,16 @@ Also: lantern bough still a thick plain beam across the top of B (trees pass pen
   `fable-2-pebble-bytes` (pebble vertex storage 52 → 19 B). `fable-4-shadowproxy` is HELD by fable-4's
   own message (draws +8…14) — not merged. 41/41 trees/rocks tests.
 
+### 2026-09-22 10:20 UTC — tick 226: three more memory branches merged; the stall recurs with 7 GB free — not memory alone
+- Merged `fable-2-rock-bytes`, `fable-2-rock-upload`, `fable-3-propmem` (CPU arrays dropped on upload,
+  vertex storage compacted). 29/29 rocks/props tests.
+- take-0133 (sixth): A sealed at 2,301 s (one 967 s stall), B stalled at frames 51–55 (2,445 s) with
+  7.2 GB available and swap unused — so the stall is not only memory. A per-frame monitor shows the JS
+  step at 15–21 ms and the JS heap at 1.5 GB; the frame time is all SwiftShader. Working hypothesis:
+  a late shader compile / program variant when the pools pin a new part type (the stall lands 10–15 min
+  into a view, after the pools fill). Next: a 90-frame monitor alone on a view, watching `programs`.
+- The take runs on (B 71–75 at 29 s/frame while my monitor competed; monitor stopped).
+
 ## Pending corrections from reference/ANALYSIS.md (apply at integration, one commit)
 - `config.ts` palette → olive/khaki low-key (reference hero frames: hue 47–51°, sat 0.16–0.19,
   lum 0.35–0.39, 0 % blue sky): grass 0x8a8c55/0x5c6233/0x3a4420, moss 0x8b8948/0x5a523b,
@@ -2952,4 +2962,4 @@ Pick anything NOT claimed in `gauntlet/claims.json`. Good self-contained candida
   my own (GAUNTLET.md D7).
 
 ## Last updated
-2026-09-22T09:20:00Z
+2026-09-22T10:20:00Z
