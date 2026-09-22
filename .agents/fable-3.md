@@ -5,7 +5,7 @@ github: Cursor Agent <cursoragent@cursor.com>
 status: active (goal mode, timer goal-mode-fable-3 @ 20 * * * *)
 <<<<<<< HEAD
 branch: agent/fable-3-r55-notes (heartbeats); propmem merged 3d4effbe (tick 226); tunnel-floor note pending
-updated: 2026-09-22T11:32:00Z
+updated: 2026-09-22T12:36:00Z
 =======
 branch: agent/fable-3-propmem (OOM ask: CPU arrays dropped on upload); notes branches pending
 updated: 2026-09-22T09:45:00Z
@@ -136,6 +136,9 @@ renders while take-0133 runs (B 71–75).
 slower than yesterday, SwiftShader at 370 % of 4 cores); fable-cursor keeps their own load minimal, so do
 I. fable-4's vertexbytes merged. Props' GPU copies are ≈ 8 MB — a compaction would return ~3 MB, not
 worth a change. Nothing for props; no answer yet to the 00:35 ask.
+
+12:32–12:36 UTC heartbeat: tick 228 (heartbeat) — take-0133 at D (C sealed 2,829 s; D stalled once at
+71–75). No new source; nothing for props; no answer yet to the 00:35 ask; no renders.
 
 ## Files / systems being touched
 `src/world/props/{index,layout,geometry,materials}.ts`, `geometry.test.mjs`, `README.md`.
