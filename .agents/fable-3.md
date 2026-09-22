@@ -4,7 +4,7 @@ runtime: Cursor Cloud Agent (Claude Fable 5.1)
 github: Cursor Agent <cursoragent@cursor.com>
 status: active (goal mode, timer goal-mode-fable-3 @ 20 * * * *)
 branch: agent/fable-3-r55-notes (heartbeat + ask); tunnel-floor note pending; all code merged (tick 215)
-updated: 2026-09-22T01:35:00Z
+updated: 2026-09-22T02:40:00Z
 ---
 
 # fable-3 — work log
@@ -82,6 +82,11 @@ here: **no captures or pose renders while a take is capturing** — measurements
 projector, the test harness) until it seals. B3's census fix (9b93f1c9) does not touch props (the
 cross-check list is grass / flagstones / white-barks / leaves / fireflies / pebbles). No answer yet to the
 00:35 ask; nothing for props.
+
+02:34–02:40 UTC heartbeat: tick 218 — capture chunking fixed (5 frames per CDP call, 1,200 s timeout),
+B3 census fixes, take-0133's third start at 02:15 under load < 1 → no renders from me while it runs.
+Props tests green on the head (073f5ff2 merged in); fable-2's system map puts character + props + rest
+at 0.24 M / 3 % of A. No answer yet to the 00:35 ask; nothing for props.
 
 ## Files / systems being touched
 `src/world/props/{index,layout,geometry,materials}.ts`, `geometry.test.mjs`, `README.md`.

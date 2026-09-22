@@ -2840,6 +2840,26 @@ Also: lantern bough still a thick plain beam across the top of B (trees pass pen
 - take-0132 on its B view (A 8.80 M / 442); take-0133 queued with tonight's imports (its A should land
   well under 9.0 M with fable-2's pebble tiles and this thinning offsetting the bank leaves).
 
+### 2026-09-22 01:15 UTC — tick 217: take-0132 lost to a protocol timeout; take-0133 restarted with both rounds' note
+- take-0132 (Link import etc.) died at its C view — Puppeteer `Runtime.callFunctionOn` timeout after B
+  took 52 min under load 7 (other agents' captures). The queued take-0133 had auto-started with a note
+  covering only the later imports, so I stopped it (30 min in) and restarted it on head 520537e6 with a
+  note describing everything since take-0131: Astra's five character commits (asset 4dcf89c5, 537-point
+  sole, heel guard, baked colours, timber-aware ground, prop collision), PR #28 warmth, PR #29 bank
+  cores, PR #30 audit repair, fable-2 timber tint + pebble tiles/LOD, fable-3 hearth/arch roll/deck lane,
+  fable-4 lamina thinning. Load now 4.
+- Owner's NPC-hide instruction confirmed by Astra as explicit — no longer listed as pending.
+
+### 2026-09-22 02:20 UTC — tick 218: two capture timeouts fixed at the source; take-0133 running (third start)
+- The first take-0133 died like take-0132: `Runtime.callFunctionOn` timed out inside the first render
+  chunk after a viewpoint switch (near-LOD builds + shader compiles for the new bank leaves, under load).
+  `capture.mjs` now renders 5 frames per CDP call (was 15) with a 1,200 s protocolTimeout — the frame
+  sequence is unchanged. Also fixed before the restart: fable-2's merged pebble tiles vs anti-cheat B3
+  (CI on PR #30 flagged pebbles 3151 > 1351 scene instances → W24 fail): tiles declare
+  `userData.mergedInstances`, the census counts it when the geometry can hold it; fable-2's follow-up
+  (far-look meshes declare none) merged. Astra's `41de5a9d` (hip guard target) imported.
+- take-0133 on 06b420c9 covers everything since take-0131; started 02:15 under load < 1.
+
 ## Pending corrections from reference/ANALYSIS.md (apply at integration, one commit)
 - `config.ts` palette → olive/khaki low-key (reference hero frames: hue 47–51°, sat 0.16–0.19,
   lum 0.35–0.39, 0 % blue sky): grass 0x8a8c55/0x5c6233/0x3a4420, moss 0x8b8948/0x5a523b,
@@ -2878,4 +2898,4 @@ Pick anything NOT claimed in `gauntlet/claims.json`. Good self-contained candida
   my own (GAUNTLET.md D7).
 
 ## Last updated
-2026-09-22T00:10:00Z
+2026-09-22T02:20:00Z

@@ -276,6 +276,9 @@ function mergeTile(parts: BufferGeometry[], material: Mesh['material'], name: st
   mesh.castShadow = false;
   mesh.receiveShadow = true;
   mesh.name = name;
+  // the capture census (capture/api.ts) reads this for the B3 cross-check: the tile holds `parts.length`
+  // placed pebbles, which the audit's `pebbles` count claims
+  mesh.userData.mergedInstances = parts.length;
   return mesh;
 }
 
@@ -301,7 +304,13 @@ function buildTiled(list: Instance[], geos: BufferGeometry[], material: Mesh['ma
     const hi = mergeTile(tile.parts, material, `${name}-t${tile.tx}_${tile.tz}`);
     if (!hi) continue;
     const lo = loGeos ? mergeTile(tile.loParts, material, `${name}-lo-t${tile.tx}_${tile.tz}`) : null;
-    if (lo) lo.visible = false;
+    if (lo) {
+      lo.visible = false;
+      // the far looks are the same placed pebbles the near mesh declares; the census traverses hidden
+      // meshes too, so the tile's count lives on the near mesh alone (B3 stays claimed ≤ instances,
+      // and the rocks roll-up stops reporting the pebbles twice)
+      lo.userData.mergedInstances = 0;
+    }
     const sphere = hi.geometry.boundingSphere!;
     out.push({ hi, lo, centre: sphere.center.clone(), radius: sphere.radius, low: false });
   }

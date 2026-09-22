@@ -89,7 +89,7 @@ export async function launchBrowser({ width = 1280, height = 720, deviceScaleFac
   const browser = await puppeteer.launch({
     executablePath: findChrome(),
     headless: true,
-    protocolTimeout: 600_000,
+    protocolTimeout: 1_200_000,
     args: [
       '--no-sandbox',
       '--disable-setuid-sandbox',

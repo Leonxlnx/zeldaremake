@@ -2549,7 +2549,6 @@ export async function loadGlbLink(url: string, opts: GlbLinkOptions = {}): Promi
             _n.crossVectors(_u, _down);
             if (_n.lengthSq() < 1e-10) continue;
             _n.normalize();
-            const slack = Math.max(0, leg.soleP.y + leg.delta - (leg.g + leg.hold));
             // The ankle pivot preserves qTilt * qAnkle through the hip turn. Check
             // its final footprint as well as vertical slack: a backward turn can
             // move a previously clear heel onto a higher tread.
@@ -2566,6 +2565,7 @@ export async function loadGlbLink(url: string, opts: GlbLinkOptions = {}): Promi
             _hipLateral.subVectors(leg.fpLocal[1], leg.fpLocal[0]).multiplyScalar(1 / (leg.fp.latMax - leg.fp.latMin)).applyQuaternion(_q2);
             _hipForward.subVectors(leg.fpLocal[2], leg.fpLocal[0]).multiplyScalar(1 / (leg.fp.heel + leg.fp.toe)).applyQuaternion(_q2);
             const soleIndex = (count - 1) * 4;
+            const slack = Math.max(0, leg.target.y + _hipFootprint[soleIndex + 1] - (leg.g + leg.hold));
             const planeGap = Math.min(0, leg.target.y + _hipFootprint[soleIndex + 1] - footprintSupport(surface, leg.target.x + _hipFootprint[soleIndex], leg.target.z + _hipFootprint[soleIndex + 2], leg.fp, _hipLateral, _hipForward));
             let eps = flex - HIP_FLEX_MAX;
             _v.subVectors(leg.target, leg.hip);
