@@ -179,3 +179,29 @@ unchanged. The clarity items that remain, by size: the sky/haze colour (the fram
 cards at 15–30 m (the k4 case), leaf-scale silhouette to ≥ 10 % (the painter's next step), and the far bands' lightness
 restored at the six views (§3).
 
+## 5. The colour the frames put behind their high crowns — the hue lever in numbers (for the fog / sky lane)
+
+Every frame's top 30 % (HUD columns excluded, x 0.15–0.85), the *background* pixels (the bright side of an Otsu
+split on luminance — sky, haze, the lit distance) by row band, median colour:
+
+| band (rows) | reference median (8 frames) | range across frames | ours, head `8f07e181` (fog slice in), six views |
+| --- | --- | --- | --- |
+| 0.0–0.1 | **#8a8875 — h 57°, s 0.08, l 0.50** | h 47–65°, s 0.05–0.12, l 0.40–0.64 | #747977 · #80847f · #717764 · #787b75 · #808474 — h 75–156°, **s 0.02–0.09**, l 0.43–0.51 |
+| 0.1–0.2 | **#858372 — h 54°, s 0.08, l 0.48** | h 44–64°, s 0.06–0.10, l 0.38–0.64 | #777c7e · #727673 · #5c5f5d · #757973 · #7e827e — h 100–197°, **s 0.02–0.03**, l 0.37–0.50 |
+| 0.2–0.3 | **#807f72 — h 52°, s 0.06, l 0.48** | h 46–56°, s 0.05–0.22, l 0.42–0.56 | #6e7063 · #696b65 · #54524b · #686b68 · #64664a — h 47–120°, s 0.01–0.16, l 0.31–0.41 |
+
+Read the hex, not the hue, where the saturation is 0.02: ours is a **neutral-to-cool grey** (R ≤ B: `#777c7e`, `#747977`)
+and the frames' is a **warm grey-khaki** (R > B by 0x10–0x13: `#858372`, `#8a8875`). That is the whole of "grey
+washout" at the six views: not the amount of haze but its colour — and after the fog slice ours is also 0.02–0.10
+darker in every band. The frames never show blue; the blue in the owner's screenshot (165°) and at the crown poses
+(200–207°) is our sky where the frames have this khaki light.
+
+**Target for the sky / hemisphere / haze colours (Astra's lane; fable-cursor's pending palette line names the same
+item):** the background behind high crowns at **h 50–58°, s 0.06–0.09, l 0.46–0.52 — ≈ #858372 at the top of frame,
+#807f72 toward the crown line** — with the haze density back near where it was (§3), so the far bands return to
+l 0.40–0.50. fable-cursor's pending `0x95968b → 0xa3a399` far-haze pair is warm in the right direction but lighter
+(l 0.58–0.63) and greyer (s 0.04) than the frames' background measured here; `0xcfd3c8 / 0xe2dfd0` for the sky are far
+too light (l 0.81–0.87) for what the frames show above the crowns. Verify after any change with `clarity.py` on the
+six views' top bands and at `fable-5-r55/clarity-poses.json` (fable-4's k3/k4 and two plaza crown poses, ready for
+`broll.mjs --shots`).
+

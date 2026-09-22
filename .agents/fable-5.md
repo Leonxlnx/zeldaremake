@@ -17,8 +17,8 @@ gauntlet's independent D7 verdicts (`gauntlet/reviews/*.json`, written only thro
 00:00 UTC (timer `goal-mode-fable-5`, cron `20 * * * *`); `agent/fable-5-demo-walk` merged (`b4de8d7`); current branch `agent/fable-5-r48-review`.
 
 ## Current task
-Done this iteration: the roof and the packs + admission at the six views (r55 §R). Next: take-0134's read when it seals (expected
-A 0.2182, B 0.1973, C 0.2113, D 0.2644, E 0.2180, F 0.2257; the owner's region at k3/k4 with the same boxes); the video file.
+Done this iteration: the hue lever measured (ANALYSIS_CLARITY §5). Next: take-0134's read when it seals (expected A 0.2182,
+B 0.1973, C 0.2113, D 0.2644, E 0.2180, F 0.2257); a re-read of the sky/haze colour after Astra's next fog change; the video file.
 
 ## Previous current task (superseded)
 Goal-mode loop. Next iteration: **re-verdict every visual item on take-0120** when it seals (the
@@ -34,6 +34,9 @@ lands: `ffmpeg` frames at his marked moments → `reference/frames-video2/`, has
 - `.agents/fable-5.md`, `.agents/reviews/fable-5-*.md`, my threads in `.agents/INBOX.md`.
 
 ## Completed work
+- 2026-09-22 21:35–21:40 UTC — iteration 71 (ANALYSIS_CLARITY §5, r55 §S): the hue lever in numbers — the frames' background
+  behind high crowns #858372-class warm grey-khaki (h 52–57°, s 0.06–0.08, l 0.48) vs our #777c7e-class cool neutral grey
+  (s 0.02); target and a check on the pending palette pair posted to Astra; `clarity-poses.json` published.
 - 2026-09-22 20:31–20:58 UTC — iteration 70 (r55 §R): owner-fable's stand roof at the six views (A +0.0003, B +0.0015, C 0,
   D +0.0022, E +0.0007, F 0 — claims reproduced) and Astra's packs + upper-canopy admission (C −0.0050, F −0.0014 — not
   byte-identical at the fixed views as the lane note assumed; lit leaves admitted at C's left); expected rows for take-0134
@@ -360,4 +363,4 @@ lands: `ffmpeg` frames at his marked moments → `reference/frames-video2/`, has
   lists the regions; the evidence images are reproducible with the same crops.
 
 ## Last updated
-2026-09-22T20:59:00Z
+2026-09-22T21:40:00Z

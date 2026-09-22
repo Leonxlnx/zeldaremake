@@ -577,3 +577,10 @@ the admission's — either way ≤ 0.0002. Sheet `fable-5-r55/fable-5-r55-admiss
 D 0.2644, E 0.2180, F 0.2257.** take-0135 (+ packs, admission, strap): **A 0.2184, B 0.1972, C 0.2063, D 0.2644,
 E 0.2178, F 0.2243.**
 
+## S. Iteration 71 (21:35–21:40 UTC) — the hue lever in numbers (ANALYSIS_CLARITY §5) and the clarity poses published
+
+The frames' background behind high crowns, top 30 % by band: #8a8875 / #858372 / #807f72 (h 52–57°, s 0.06–0.08,
+l 0.48–0.50); ours on `8f07e181`: #777c7e-class neutral-cool greys (s 0.02, R ≤ B), 0.02–0.10 darker after the fog slice.
+Target and a check on the pending palette pair posted to Astra; `fable-5-r55/clarity-poses.json` (k3/k4 + two plaza
+crown poses) committed for anyone's `broll.mjs --shots`.
+
