@@ -55,7 +55,14 @@ Targets, for whoever briefs it: at 15–25 m a high crown at **l 0.30–0.35, hu
 
 Sheet: `.agents/reviews/fable-5-r55/clarity-owner-vs-reference.jpg`.
 
-## 2. Astra's far-crown atlas painter (`b7c9e001`) at five crown poses, before | after — it does not touch the circled crowns
+## 2. Astra's far-crown atlas painter (`b7c9e001`) at five plaza crown poses, before | after — no distant cards in frame, so nothing to see (corrected by §4)
+
+> **Correction (18:30):** fable-4's hide-and-diff at two west-meadow poses that reproduce the owner's symptom
+> (`art/environment/round52-clarity-attrib/`, k3 (−41, 14) and k4 (−24, 30) toward the far-hut knoll) attributes
+> **100 % of the soft crown forms to `trees/distant`'s far crown cards** (29 % / 69 % of the region's pixels; the
+> white-barks are the crisp clusters at the edges, the canopy roof 1.5–12.6 %). My inference below — that the circled
+> lobes are the giants' canopy at the near→far swap — was drawn from plaza poses that frame no distant cards, and is
+> withdrawn. The painter's domain *is* the circled crowns; §4 measures it where they are.
 
 Before `f9c58007`, after `b7c9e001` (the painter: "seeded leaf shapes instead of blurred clumps" on the far-crown
 atlas), same shot list, the character on, five player-height poses looking up at giants' crowns from the plaza
@@ -123,4 +130,44 @@ blurry ones). Against §1's targets the slice moves nothing that was off: the ba
 untouched, the silhouette scale is untouched, and at the six fixed views it darkens the distance the frames keep
 bright. The clarity the owner asked for is in the sky/haze *colour* and the crown *silhouettes*; the density was the
 one knob that also moves the frames the wrong way.
+
+## 4. Where the circled crowns actually are (fable-4's k3 / k4, the west meadow): the painter and the fog slice measured on the distant cards themselves
+
+fable-4's poses reproduce the owner's symptom (large soft khaki forms, blue sky, grey haze): **k3** (−41, 1.75, 14) →
+the far-hut bole (−41, 12, 35.7) from the south; **k4** (−24, 1.9, 30) → the same from the east. Three builds, the
+character on: before the painter (`f9c58007`), the painter (`b7c9e001`), the fog slice (`ae880cf2`). Two boxes that
+hold *only* distant cards and their background (no white-bark clusters): k3 (0.30–0.62 × 0.03–0.30), the blob behind
+the hut against the sky; k4 (0.00–0.42 × 0.00–0.30), the far crown at the top-left, in haze.
+
+| box | build | crown l | sat | hue | background l · hue | gap | edge | finer than 5 / 9 px |
+| --- | --- | --- | --- | --- | --- | --- | --- | --- |
+| k3, cards against sky | before painter | 0.41 | 0.13 | 68° | 0.66 · **207°** | 0.25 | 4.9 px | 0.4 / 1.4 % |
+| | **painter** | 0.40 | 0.14 | 67° | 0.66 · 207° | 0.26 | **4.0 px** | **1.4 / 2.9 %** |
+| | fog slice | **0.46** | **0.20** | 64° | 0.66 · 207° | 0.20 | 4.5 px | 2.2 / 4.5 % |
+| k4, cards in haze | before painter | 0.22 | 0.12 | 66° | 0.49 · 65° | 0.28 | **16.1 px** | 0.2 / 0.3 % |
+| | painter | 0.21 | 0.12 | 67° | 0.47 · 63° | 0.26 | 15.8 px | 0.3 / 0.4 % |
+| | fog slice | 0.19 | 0.14 | 65° | 0.47 · 63° | 0.27 | 15.4 px | 0.3 / 0.4 % |
+| the owner's circle | | 0.39 | 0.11 | 64° | 0.58 · 165° | 0.19 | 6.6 px | 1.2 / 2.7 % |
+| **the frames' near-high crowns** | | **0.27–0.34** | 0.10–0.16 | **46–64°** | 0.42–0.58 · **44–60°** | 0.12–0.24 | **3.4–4.7 px** | 2–7 / **10.7–14.4 %** |
+
+Readings:
+
+1. **The painter does what it says, where a card stands against the sky:** k3's blob goes from a smooth lobe to a
+   ragged leafy edge — transition 4.9 → 4.0 px (the frames' 3.4–4.7 met), silhouette detail finer than 9 px
+   1.4 → 2.9 % (a fifth of the way to the frames' 10.7–14.4 %). Hue, lightness and the sky behind it do not move.
+   Sheet `.agents/reviews/fable-5-r55/clarity-k3-cards-triple.jpg`.
+2. **Where the card is in haze, nothing registers:** k4's far crown has a 16 px transition and 0.3 % fine detail on all
+   three builds — the haze at that distance blurs whatever the atlas paints. That is §1 finding 2 (the crown hazed like
+   a 50 m crown) and the fog slice does not fix it: edge 15.4 px, l 0.19.
+3. **The fog slice lightens and saturates the sky-facing card the wrong way:** k3 crown l 0.41 → **0.46**, sat 0.13 →
+   **0.20** — the `farShadeMin` 0.30 → 0.65 lift — against the frames' 0.27–0.34; at the six views the same slice
+   darkens the far bands (§3). Both moves are away from the frames.
+4. **The sky behind the cards is 207° on every build.** Nothing landed today touches the one number that the owner's
+   eye reads as "grey washout" (§1 finding 1).
+
+**For take-0134's read against the owner's region:** expect the k3-class crowns crisper at the edge (met) but still a
+third of the frames' leaf-scale detail, lighter and more saturated than the frames', on a blue sky; the k4-class crowns
+unchanged. The clarity items that remain, by size: the sky/haze colour (the frames' warm 44–60°), the haze weight on
+cards at 15–30 m (the k4 case), leaf-scale silhouette to ≥ 10 % (the painter's next step), and the far bands' lightness
+restored at the six views (§3).
 

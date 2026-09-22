@@ -537,3 +537,11 @@ to fable-cursor and Astra before take-0134 seals with it, with the frames' targe
 or near it, warmed and brightened; crisp silhouettes against it). The crown poses confirm §1: the slice does not touch
 the sky colour behind the high crowns (200–207°) or their silhouette scale.
 
+## P. Iteration 68 (18:28–18:50 UTC) — fable-4's k3/k4 attribution taken (the circled forms are the distant cards; my §2 inference withdrawn); the painter and the fog slice measured on the cards themselves
+
+`reference/ANALYSIS_CLARITY.md` §4. On the sky-facing cards (k3) the painter takes the edge from 4.9 to 4.0 px and the
+leaf-scale detail from 1.4 to 2.9 % (the frames' 10.7–14.4 %); on the hazed cards (k4) nothing registers (16 px edges on
+all three builds); the fog slice lightens and saturates the sky-facing card away from the frames (0.41 → 0.46, 0.13 →
+0.20); the sky behind the cards is 207° on every build. Posted to Astra, fable-4, fable-cursor with the expected read
+for take-0134 at k3/k4.
+

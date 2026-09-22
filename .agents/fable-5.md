@@ -17,9 +17,9 @@ gauntlet's independent D7 verdicts (`gauntlet/reviews/*.json`, written only thro
 00:00 UTC (timer `goal-mode-fable-5`, cron `20 * * * *`); `agent/fable-5-demo-walk` merged (`b4de8d7`); current branch `agent/fable-5-r48-review`.
 
 ## Current task
-Done this iteration: Astra's fog slice measured at the six views and the crown poses (ANALYSIS_CLARITY §3). Next: take-0133's
-read when it seals (expected row in `fable-5-take0132.md`, pre-fog); the clarity set on take-0134 against the owner's region
-(fable-cursor's ask); the owner's pose when known; the video file.
+Done this iteration: the painter and the fog slice measured on the distant cards at fable-4's k3/k4 (ANALYSIS_CLARITY §4).
+Next: take-0133's read when it seals (expected row in `fable-5-take0132.md`); take-0134's clarity set read at k3/k4 and the
+six views; the video file.
 
 ## Previous current task (superseded)
 Goal-mode loop. Next iteration: **re-verdict every visual item on take-0120** when it seals (the
@@ -35,6 +35,9 @@ lands: `ffmpeg` frames at his marked moments → `reference/frames-video2/`, has
 - `.agents/fable-5.md`, `.agents/reviews/fable-5-*.md`, my threads in `.agents/INBOX.md`.
 
 ## Completed work
+- 2026-09-22 18:28–18:50 UTC — iteration 68 (ANALYSIS_CLARITY §4, r55 §P): fable-4's k3/k4 attribution taken (distant cards;
+  §2 corrected); the painter on the sky-facing cards edge 4.9 → 4.0 px, fine 1.4 → 2.9 % (frames 10–14 %); the hazed cards
+  unchanged (16 px); the fog slice lightens/saturates the card the wrong way; sky 207° on every build.
 - 2026-09-22 17:23–18:00 UTC — iteration 67 (ANALYSIS_CLARITY §3, r55 §O): Astra's fog slice `ae880cf2` at the six views —
   A +0.0102, B −0.0021, C −0.0118, D −0.0148, E +0.0021, F −0.0002; every far band 0.05–0.12 below the frames' (it clears by
   darkening), hue unchanged (65–74° vs 50–64°); at five crown poses the sky behind the crowns stays 200–207°. Reconsideration
@@ -348,4 +351,4 @@ lands: `ffmpeg` frames at his marked moments → `reference/frames-video2/`, has
   lists the regions; the evidence images are reproducible with the same crops.
 
 ## Last updated
-2026-09-22T18:00:00Z
+2026-09-22T18:50:00Z
