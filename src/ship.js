@@ -473,7 +473,7 @@ export function createShip(mats) {
     root.add(light);
   }
   practical(0, 2.05, 1.6, '#b8fff4', 10, 0.1, '#7f9eb8');
-  practical(0, 2.05, 3.9, '#b8fff4', 0, 0.1, '#7f9eb8', false);
+  practical(0, 2.05, 3.9, '#b8fff4', 8, 0.1, '#7f9eb8');
   practical(0, 2.05, 6.15, '#b8fff4', 10, 0.1, '#7f9eb8');
   practical(0, 2.05, 8.25, '#b8fff4', 0, 0.12, '#7f9eb8', false);
   practical(0, 2.02, 12.55, '#c8fff6', 7.5, 0.18, '#8aa8c4');

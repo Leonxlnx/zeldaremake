@@ -189,3 +189,27 @@ Tech remains the only fail.
 Fix list for iteration 8:
 
 - Measure the PMREM. Render one corridor timing with `scene.environment` cleared, then put it back before any shot. Metals have to keep a real reflection. Only leave it off if the rate crosses 30fps and a replacement reflection still reads, which is unlikely.
+
+## Iteration 8
+
+Clearing the PMREM dropped the rate to 3.3fps and clearing fog as well stayed at 3.7fps, so both stay. The environment is back.
+
+The mid-corridor practical at z=3.9 is a real light again. Corridor median went from 118 to 170, p10 from 29 to 47, near-white still 3.7% (the fixtures, not the ceiling). That matches the healthier iteration 4 hall. Cockpit, quarters, and window histograms barely moved. Sustained rate in the shot notes is 5.9fps.
+
+| # | Rubric | Result |
+| --- | --- | --- |
+| 1 | Lighting intentional | pass |
+| 2 | Materials physical | pass |
+| 3 | Detail density | pass |
+| 4 | Post stack balanced | pass |
+| 5 | Space view sells motion | pass |
+| 6 | Cohesive palette | pass |
+| 7 | Tech clean, 60fps | fail |
+| 8 | Cold-look test | pass |
+| 9 | Interactions | pass |
+
+Tech is still the only fail. 5.9fps on llvmpipe at 1280×720.
+
+Fix list for iteration 9:
+
+- No look-safe change left that has beaten measurement noise. Re-shoot anyway and confirm the eight passing items still hold, including the interaction frames. Do not delete lights, AO, or the environment to chase 60 on software GL.
