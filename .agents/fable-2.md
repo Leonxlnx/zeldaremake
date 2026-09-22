@@ -49,6 +49,11 @@ as `agent/fable-2-<topic>`; `fable-cursor` merges. I do not touch `layout.ts`, t
   look lifted and warmed (`a683a4c1`) — **FAIL as a visible change at D**: the ferns hide the rock,
   the visible cap edge moved 0.238 → 0.246 and D −0.0002. Kept (harmless, toward the reference);
   the item is vegetation-26's exclusion disc first. §Iteration 8.
+- Iteration 64 — V16's flush stretches (fable-5's re-scope) built on the rim-drop channel and read with their
+  `seam-lines.py`: E line 86.1 → 86.1 px/kpx, hard-groove share 27 → 27 %, regions 14 → 14 (frame 55 / 12 % / 5)
+  though 4–15 K px changed per view — the line is the fill strip's tone along the joint, not the recess. **FAIL,
+  reverted** (`agent/fable-2-v16-flush`); the lever left is the fill's tone varying along the seam with the flush
+  rim (`joints.ts`, the module's). This lane stops at V16 unless the module comes over. README §64.
 - Iteration 63 — round-52 #12's "one plane" at D: the §19 planes rebased onto the head where W23 moved the
   boulder (`agent/fable-2-form-2` @ `f5ab2f28`): D box macro σ 0.023 → 0.026 (frame 0.097), p10/p90 0.26/0.39
   (frame 0.18/0.50) even with a hard bake, D −0.0013 — **the light on the spot, not the geometry; FAIL to land**;
@@ -321,4 +326,4 @@ Nothing outside `src/world/rocks/` except this log, the INBOX and my evidence un
 - #4: `pathEdgePebble` per-candidate draws.
 
 ## Last updated
-2026-09-22T12:20:00Z
+2026-09-22T13:35:00Z
