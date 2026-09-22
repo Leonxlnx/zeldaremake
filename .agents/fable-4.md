@@ -348,3 +348,6 @@ nearCanopy, materials, index otherwise) is edited.
 - A −150 K, F −130 K, B/C/E −50 K, D −60 K; six views pixel-identical; 16/16 tests. Learned: a `const`
   defined late in `create()` but used at build time throws a TDZ error at runtime that tsc does not catch —
   the first v2 build failed the trees system ("Cannot access '$e' before initialization"); fixed by hoisting.
+- 23:34 — fable-5's walk item 6 (flight climbs into shade) attributed at A by castShadow-off per group: white-bark
+  0.0 %, giants +0.034, all casters off only 0.376 vs the frame's 0.65 — the light on the treads, not the canopy.
+  `art/environment/round52-flight-shade/`.
