@@ -1,0 +1,380 @@
+{
+  "verdict": "PASS",
+  "baseline": "520537e6d72a26bddbfb151ca33b54f613576038",
+  "candidate": "063772a4bfc848733e060ded98614d04a626e3d4",
+  "sourceBindings": {
+    "src/world/config.ts": "006b20151a917217cc57383a4962d91b2a1ba636946a6a1c539b624c87d97d78",
+    "src/world/layout.ts": "a55b352707728243a70c18bce6d93e861a246c14f0237a9f21303d8c60f677e7",
+    "src/world/util/prng.ts": "99ad857879fd2ec96a3e2d82e412f10b0e47e93994eba02ef30d2f2520f96c6c",
+    "src/world/wind/wind.ts": "d9492126b6ced433505f3781b97f3fbd5f227f2059c352843180179804e0b452",
+    "src/world/terrain/heightfield.ts": "bb8df0c9ee2cfe19b70ae35b66587988bd58bec825606254a4a21a6459aacf1a",
+    "src/world/util/noise.ts": "870b7104aec5e9ea99d9b1ca4158d0ca496b17bb0b59bf608d78f8f95c17caa1",
+    "src/world/trees/index.ts": "0d18f2faf0112a827516f656addd19be5aa467c0a95b92a228c3990ed2dfe914",
+    "src/world/trees/materials.ts": "64af57b58ea6579367444b97d68c9d2ee3a35ecbb6a7e4b07459271aea6b042c",
+    "src/world/materials/shadeFloor.ts": "5779f78cb2e16f949b60edb2ec8b30e56724ab170279ca6f43d170e698451692",
+    "src/world/trees/bark-texture.ts": "53ed2fc1ebcfaab24979893f6d6088fa7caf92830b8e4e7dbc953265a0680375",
+    "src/world/trees/leaf-cluster-texture.ts": "80e0746430ff2ec73b4c96016c9f55adde01579aa1700ab6fe35da7566d784f1",
+    "src/world/trees/bole.ts": "914756806a9cbe5b868f7214b694031a30e892a383ae9d1cc31842d06ee3e29d",
+    "src/world/trees/writer.ts": "c553e80da6ac76e92fc7233d86c6974e84114926830795f14bf5457bc6d1d2f7",
+    "src/world/trees/distant.ts": "a9b72b3cd2462c84397ede689eed5f239e619b23e01ee0128add545c041ff115",
+    "src/world/trees/leaf-color.ts": "c5aa353d0e90dfa44466272c4852e40f7d3fd143f8c4ad7729dbf0db2018b0e5",
+    "src/world/trees/whitebark.ts": "8ddc1907546bcabf37a11d8ec8cde22002ee37dfab282e67fa346cac6276b84c",
+    "src/world/trees/placement.ts": "5b6a334693871e693cf282da31d7ad35f7829e3857928fcf7f365256daad4348",
+    "src/world/trees/column.ts": "2afa3ed458ee235a0df9cc30e2e39191824c37a40753f20157a87630a231c176",
+    "src/world/trees/base-plants.ts": "6f1428570179f8a7813c77b478be4e34648caf8341b25086779dac888a81624f",
+    "src/world/trees/giant.ts": "6b51132e41795050b58bc14b15b9c3b6cfbe0ef666fbf697a53529c2001cdd9a",
+    "src/world/trees/nearCanopy.ts": "2b996d1afdb1c0794a5c1f8b92caea9bb4c127d9bc747c13c10cccefe1cded3d",
+    "src/world/util/expansionLocality.ts": "e1cbea7fffb31f7cc4888f612b37148dfe9a47b562c550a6f9f469dcbf5f19e3",
+    "src/world/trees/lodPool.ts": "5ac994685912f8212b7abb5f3ac2520fd0a287a3336f2398b308d61d8bd9da33",
+    "src/world/trees/corridors.ts": "0dce63af724780bb22d7c6ea352f323d08443d16ef7243609a71167a31ccf639",
+    "src/world/trees/tubePath.ts": "563b22f427d9265b64c301ace36f6d25d72bb373c8e98dbc89eef1f7ad34a27e"
+  },
+  "rng": {
+    "exactStreams": 1034,
+    "exactDraws": 14052615,
+    "exactStreamAggregateSha256": "29e3c84bc8cbe751a5ee313fa2f7149458e3b773c5a885cdfc97d75185bdba10",
+    "changedLocalStreams": [
+      {
+        "seed": "kokiri-forest-phase1/trees/giant/stair-bank-giant/near-canopy/lobe/24",
+        "draws": 46376,
+        "sha256": "0d98982be599a18e895119324e6a8b490ef07d0e8e317f56fc6cab13256c2057"
+      },
+      {
+        "seed": "kokiri-forest-phase1/trees/giant/stair-bank-giant/near-canopy/lobe/24/layered-parents",
+        "draws": 361,
+        "sha256": "18ac916452c7aa68ee68f04ebd3c9ca706b05c2dec2c30f10d46c042807950b4"
+      },
+      {
+        "seed": "kokiri-forest-phase1/trees/giant/stair-bank-giant/near-canopy/lobe/25",
+        "draws": 36800,
+        "sha256": "1040446d9dbe3decb86e5fbc1133ea503d2c58f628940006047b7c900f0cd6c4"
+      },
+      {
+        "seed": "kokiri-forest-phase1/trees/giant/stair-bank-giant/near-canopy/lobe/25/layered-parents",
+        "draws": 289,
+        "sha256": "6e3cfee40b7ced2491750e0071097e2fe257069cb1eafc33387e1ecbed31998a"
+      },
+      {
+        "seed": "kokiri-forest-phase1/trees/giant/stair-bank-giant/near-canopy/lobe/26",
+        "draws": 38304,
+        "sha256": "ffde22241b433de321a79317fef9c2de44daca2bad6472cc55e2d8d400fd4939"
+      },
+      {
+        "seed": "kokiri-forest-phase1/trees/giant/stair-bank-giant/near-canopy/lobe/26/layered-parents",
+        "draws": 289,
+        "sha256": "8ee221c1c5f83d13e300486f4f0ea2f1b61f92fcaeb48006e105fc16b8627f30"
+      }
+    ]
+  },
+  "candidateBounds": [
+    {
+      "group": 24,
+      "allStaticWorld": {
+        "min": [
+          8.715183591842651,
+          1.279984346707352,
+          1.6257537841796879
+        ],
+        "max": [
+          13.395990705490112,
+          5.168247453053482,
+          5.94259204864502
+        ]
+      },
+      "allAnalyticWorld": {
+        "min": [
+          8.68461574039323,
+          1.2697843469353398,
+          1.594218660352265
+        ],
+        "max": [
+          13.432169325147942,
+          5.178117080484517,
+          5.973436992131187
+        ]
+      },
+      "farAnalyticWorld": {
+        "min": [
+          8.68461574039323,
+          1.2697843469353398,
+          1.677321206866412
+        ],
+        "max": [
+          13.019918825058863,
+          4.967937222798355,
+          5.485403340809077
+        ]
+      },
+      "nearAnalyticWorld": {
+        "min": [
+          8.812640541207383,
+          1.5052313202666123,
+          1.594218660352265
+        ],
+        "max": [
+          13.432169325147942,
+          5.178117080484517,
+          5.973436992131187
+        ]
+      }
+    },
+    {
+      "group": 25,
+      "allStaticWorld": {
+        "min": [
+          8.796200609207153,
+          1.7782689250307162,
+          4.116324806213379
+        ],
+        "max": [
+          12.318057751655578,
+          4.861651173909195,
+          7.651869559288025
+        ]
+      },
+      "allAnalyticWorld": {
+        "min": [
+          8.761569023982002,
+          1.7663689249800523,
+          4.082853502833222
+        ],
+        "max": [
+          12.357228814534192,
+          4.873551173959859,
+          7.683731164013773
+        ]
+      },
+      "farAnalyticWorld": {
+        "min": [
+          9.032415663148715,
+          1.9895503438310702,
+          4.297624874156532
+        ],
+        "max": [
+          12.093833981764853,
+          4.772396317799576,
+          7.454154550781349
+        ]
+      },
+      "nearAnalyticWorld": {
+        "min": [
+          8.761569023982002,
+          1.7663689249800523,
+          4.082853502833222
+        ],
+        "max": [
+          12.357228814534192,
+          4.873551173959859,
+          7.683731164013773
+        ]
+      }
+    },
+    {
+      "group": 26,
+      "allStaticWorld": {
+        "min": [
+          9.582915878295898,
+          4.750000230153091,
+          -0.7640958786010739
+        ],
+        "max": [
+          13.7781587600708,
+          6.783291093190201,
+          3.6791399955749515
+        ]
+      },
+      "allAnalyticWorld": {
+        "min": [
+          9.535110886316717,
+          4.750000230153091,
+          -0.802468784292536
+        ],
+        "max": [
+          13.826410825169624,
+          6.795191093240865,
+          3.7227493921696313
+        ]
+      },
+      "farAnalyticWorld": {
+        "min": [
+          9.56719565313494,
+          4.750000230153091,
+          -0.802468784292536
+        ],
+        "max": [
+          13.499983547893908,
+          6.645476070684381,
+          3.405449509140758
+        ]
+      },
+      "nearAnalyticWorld": {
+        "min": [
+          9.535110886316717,
+          4.820817171935923,
+          -0.6213196346552294
+        ],
+        "max": [
+          13.826410825169624,
+          6.795191093240865,
+          3.7227493921696313
+        ]
+      }
+    }
+  ],
+  "baselineBounds": [
+    {
+      "group": 24,
+      "allStaticWorld": {
+        "min": [
+          8.715183591842651,
+          1.279984346707352,
+          1.7009905815124515
+        ],
+        "max": [
+          12.87004599571228,
+          4.690057507832535,
+          5.383177423477173
+        ]
+      },
+      "allAnalyticWorld": {
+        "min": [
+          8.68461574039323,
+          1.2697843469353398,
+          1.677321206866412
+        ],
+        "max": [
+          12.906122309251934,
+          4.700257507604547,
+          5.412319108998705
+        ]
+      },
+      "farAnalyticWorld": {
+        "min": [
+          8.68461574039323,
+          1.2697843469353398,
+          1.677321206866412
+        ],
+        "max": [
+          12.623082552301227,
+          4.700257507604547,
+          5.309182081106361
+        ]
+      },
+      "nearAnalyticWorld": {
+        "min": [
+          9.21396234396515,
+          1.7362424725340684,
+          1.8616291842172084
+        ],
+        "max": [
+          12.906122309251934,
+          4.662586017404683,
+          5.412319108998705
+        ]
+      }
+    },
+    {
+      "group": 25,
+      "allStaticWorld": {
+        "min": [
+          9.127449131011963,
+          2.220497123082169,
+          4.327798748016358
+        ],
+        "max": [
+          12.062282538414001,
+          4.638553372700699,
+          7.304294490814209
+        ]
+      },
+      "allAnalyticWorld": {
+        "min": [
+          9.093469051799435,
+          2.2085971230315047,
+          4.297624874156532
+        ],
+        "max": [
+          12.093833981764853,
+          4.650453372751363,
+          7.331830434078546
+        ]
+      },
+      "farAnalyticWorld": {
+        "min": [
+          9.094240201907892,
+          2.266544357654639,
+          4.297624874156532
+        ],
+        "max": [
+          12.093833981764853,
+          4.3000409281672916,
+          7.316174337147339
+        ]
+      },
+      "nearAnalyticWorld": {
+        "min": [
+          9.093469051799435,
+          2.2085971230315047,
+          4.388155143470491
+        ],
+        "max": [
+          11.889972474169813,
+          4.650453372751363,
+          7.331830434078546
+        ]
+      }
+    },
+    {
+      "group": 26,
+      "allStaticWorld": {
+        "min": [
+          9.614740526676178,
+          4.797713509877212,
+          -0.7640958786010739
+        ],
+        "max": [
+          13.464785432815551,
+          6.635276070912369,
+          3.319134616851807
+        ]
+      },
+      "allAnalyticWorld": {
+        "min": [
+          9.56719565313494,
+          4.787513510105201,
+          -0.802468784292536
+        ],
+        "max": [
+          13.499983547893908,
+          6.645476070684381,
+          3.360574320399566
+        ]
+      },
+      "farAnalyticWorld": {
+        "min": [
+          9.56719565313494,
+          4.787513510105201,
+          -0.802468784292536
+        ],
+        "max": [
+          13.499983547893908,
+          6.645476070684381,
+          3.1181769258687817
+        ]
+      },
+      "nearAnalyticWorld": {
+        "min": [
+          9.690043701134751,
+          4.829413592224009,
+          -0.22656826965453014
+        ],
+        "max": [
+          13.321111600589642,
+          6.552301212106832,
+          3.360574320399566
+        ]
+      }
+    }
+  ],
+  "windMethod": "Per actual vertex aRoot/aWind and actual createWind strength/direction. Source assertions bind .97 stiffness, .3 flex, .06 branch scale, .5 branch height, .6/.4/.5 leaf factors, positive field weights summing to1 and gust in[0,1]. Absolute sine/product bounds cover every phase. Original far lamina/core are included. Existing alpha cards are excluded from the floor assertion: their below-floor vertices predate this candidate and are byte-exact in the geometry proof."
+}

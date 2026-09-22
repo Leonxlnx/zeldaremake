@@ -1,0 +1,856 @@
+{
+  "baseline": "520537e6d72a26bddbfb151ca33b54f613576038",
+  "candidate": "063772a4bfc848733e060ded98614d04a626e3d4",
+  "renderer": "ANGLE (AMD, AMD Radeon 780M Graphics (0x00001900) Direct3D11 vs_5_0 ps_5_0, D3D11)",
+  "browser": "Chrome/153.0.8010.52",
+  "settings": {
+    "views": [
+      {
+        "id": "F_canopy"
+      },
+      {
+        "id": "C_lookback"
+      }
+    ],
+    "time": 12.6,
+    "width": 1280,
+    "height": 720,
+    "quality": "high",
+    "pixelRatio": 1
+  },
+  "publicHash": "71f5ab095073d488366c6e84de23a07a22d009065e03fb7289530b5f74bd8b7f",
+  "checks": [
+    "native hardware both builds",
+    "same public inputs and only the proven two-file source change",
+    "same camera/light/viewport/time",
+    "same distant LOD counts/positions",
+    "same hardscape audit",
+    "no page/shader/system errors"
+  ],
+  "rows": [
+    {
+      "id": "F_canopy",
+      "beforeSha256": "f26aa09990f15ef5720558134d6940df24e8411a35f1a19bd110e283bfcffcc9",
+      "afterSha256": "9243c8d5e913e59befef4e84d8c549e44c601f295e303cf468ff34827d9bd489",
+      "before": {
+        "simTime": 12.6,
+        "drawCalls": 406,
+        "triangles": 7994522,
+        "geometries": 322,
+        "textures": 91,
+        "programs": 101,
+        "width": 1280,
+        "height": 720,
+        "pixelRatio": 1
+      },
+      "after": {
+        "simTime": 12.6,
+        "drawCalls": 406,
+        "triangles": 7995102,
+        "geometries": 322,
+        "textures": 91,
+        "programs": 101,
+        "width": 1280,
+        "height": 720,
+        "pixelRatio": 1
+      },
+      "delta": {
+        "triangles": 580,
+        "drawCalls": 0,
+        "geometries": 0,
+        "textures": 0,
+        "programs": 0
+      },
+      "distantLod": [
+        293,
+        503
+      ],
+      "submissionBefore": {
+        "drawCalls": 68,
+        "triangles": 2477940,
+        "meshes": 116,
+        "instances": 305,
+        "byFamily": {
+          "whitebark-lod0": {
+            "meshes": 3,
+            "instances": 3,
+            "calls": 4,
+            "triangles": 303992
+          },
+          "whitebark-lod1": {
+            "meshes": 7,
+            "instances": 13,
+            "calls": 12,
+            "triangles": 164227
+          },
+          "whitebark-lod2": {
+            "meshes": 6,
+            "instances": 11,
+            "calls": 6,
+            "triangles": 21519
+          },
+          "column-lod0": {
+            "meshes": 2,
+            "instances": 2,
+            "calls": 4,
+            "triangles": 147940
+          },
+          "column-lod1": {
+            "meshes": 8,
+            "instances": 8,
+            "calls": 13,
+            "triangles": 138199
+          },
+          "column-lod2": {
+            "meshes": 0,
+            "instances": 0,
+            "calls": 0,
+            "triangles": 0
+          },
+          "giant-wood": {
+            "meshes": 3,
+            "instances": 3,
+            "calls": 6,
+            "triangles": 1508970
+          },
+          "giant-cards": {
+            "meshes": 3,
+            "instances": 3,
+            "calls": 6,
+            "triangles": 23236
+          },
+          "giant-authored-leaves": {
+            "meshes": 4,
+            "instances": 4,
+            "calls": 2,
+            "triangles": 29716
+          },
+          "giant-authored-cards": {
+            "meshes": 2,
+            "instances": 2,
+            "calls": 2,
+            "triangles": 1972
+          },
+          "distant-near": {
+            "meshes": 5,
+            "instances": 58,
+            "calls": 5,
+            "triangles": 69869
+          },
+          "distant-far": {
+            "meshes": 5,
+            "instances": 130,
+            "calls": 5,
+            "triangles": 2860
+          },
+          "column-near-base": {
+            "meshes": 0,
+            "instances": 0,
+            "calls": 0,
+            "triangles": 0
+          },
+          "giant-near-base": {
+            "meshes": 0,
+            "instances": 0,
+            "calls": 0,
+            "triangles": 0
+          },
+          "column-near-canopy-lobe": {
+            "meshes": 4,
+            "instances": 4,
+            "calls": 0,
+            "triangles": 0
+          },
+          "giant-near-canopy-lobe": {
+            "meshes": 59,
+            "instances": 59,
+            "calls": 3,
+            "triangles": 65440
+          },
+          "giant-near-canopy-limb": {
+            "meshes": 5,
+            "instances": 5,
+            "calls": 0,
+            "triangles": 0
+          }
+        },
+        "whiteBarkLodSubmitted": [
+          3,
+          13,
+          11
+        ],
+        "columnLodSubmitted": [
+          2,
+          8,
+          0
+        ],
+        "distantSubmitted": [
+          58,
+          130
+        ],
+        "giantSectorsCasting": 6,
+        "detachedBoughs": [
+          {
+            "giant": "southwest-giant",
+            "boughs": 1,
+            "woodTriangles": 2428,
+            "leaves": 1051,
+            "leafTriangles": 4204,
+            "cards": 34,
+            "lobes": [
+              {
+                "center": [
+                  -21.4,
+                  4.4,
+                  12.5
+                ],
+                "hR": 1.5,
+                "vR": 1,
+                "leaves": 488
+              },
+              {
+                "center": [
+                  -22.3,
+                  5.8,
+                  11
+                ],
+                "hR": 1.6,
+                "vR": 1.2,
+                "leaves": 563
+              }
+            ],
+            "dress": [
+              {
+                "giant": "southwest-giant",
+                "relief": 0.07447035204249632,
+                "rings": 28,
+                "sides": 22,
+                "knees": 0,
+                "triangles": 1210
+              }
+            ]
+          }
+        ],
+        "detachedBoughsVisible": false,
+        "detachedBoughSpheres": 56,
+        "detachedBoughMeshes": [
+          {
+            "name": "giant-detached-wood-southwest-giant",
+            "castShadow": false,
+            "triangles": 2428
+          },
+          {
+            "name": "giant-detached-leaves-southwest-giant",
+            "castShadow": true,
+            "triangles": 4204
+          },
+          {
+            "name": "giant-detached-cards-southwest-giant",
+            "castShadow": true,
+            "triangles": 68
+          }
+        ],
+        "cullPadM": 4
+      },
+      "submissionAfter": {
+        "drawCalls": 68,
+        "triangles": 2478520,
+        "meshes": 116,
+        "instances": 305,
+        "byFamily": {
+          "whitebark-lod0": {
+            "meshes": 3,
+            "instances": 3,
+            "calls": 4,
+            "triangles": 303992
+          },
+          "whitebark-lod1": {
+            "meshes": 7,
+            "instances": 13,
+            "calls": 12,
+            "triangles": 164227
+          },
+          "whitebark-lod2": {
+            "meshes": 6,
+            "instances": 11,
+            "calls": 6,
+            "triangles": 21519
+          },
+          "column-lod0": {
+            "meshes": 2,
+            "instances": 2,
+            "calls": 4,
+            "triangles": 147940
+          },
+          "column-lod1": {
+            "meshes": 8,
+            "instances": 8,
+            "calls": 13,
+            "triangles": 138199
+          },
+          "column-lod2": {
+            "meshes": 0,
+            "instances": 0,
+            "calls": 0,
+            "triangles": 0
+          },
+          "giant-wood": {
+            "meshes": 3,
+            "instances": 3,
+            "calls": 6,
+            "triangles": 1508970
+          },
+          "giant-cards": {
+            "meshes": 3,
+            "instances": 3,
+            "calls": 6,
+            "triangles": 23236
+          },
+          "giant-authored-leaves": {
+            "meshes": 4,
+            "instances": 4,
+            "calls": 2,
+            "triangles": 29716
+          },
+          "giant-authored-cards": {
+            "meshes": 2,
+            "instances": 2,
+            "calls": 2,
+            "triangles": 1972
+          },
+          "distant-near": {
+            "meshes": 5,
+            "instances": 58,
+            "calls": 5,
+            "triangles": 69869
+          },
+          "distant-far": {
+            "meshes": 5,
+            "instances": 130,
+            "calls": 5,
+            "triangles": 2860
+          },
+          "column-near-base": {
+            "meshes": 0,
+            "instances": 0,
+            "calls": 0,
+            "triangles": 0
+          },
+          "giant-near-base": {
+            "meshes": 0,
+            "instances": 0,
+            "calls": 0,
+            "triangles": 0
+          },
+          "column-near-canopy-lobe": {
+            "meshes": 4,
+            "instances": 4,
+            "calls": 0,
+            "triangles": 0
+          },
+          "giant-near-canopy-lobe": {
+            "meshes": 59,
+            "instances": 59,
+            "calls": 3,
+            "triangles": 66020
+          },
+          "giant-near-canopy-limb": {
+            "meshes": 5,
+            "instances": 5,
+            "calls": 0,
+            "triangles": 0
+          }
+        },
+        "whiteBarkLodSubmitted": [
+          3,
+          13,
+          11
+        ],
+        "columnLodSubmitted": [
+          2,
+          8,
+          0
+        ],
+        "distantSubmitted": [
+          58,
+          130
+        ],
+        "giantSectorsCasting": 6,
+        "detachedBoughs": [
+          {
+            "giant": "southwest-giant",
+            "boughs": 1,
+            "woodTriangles": 2428,
+            "leaves": 1051,
+            "leafTriangles": 4204,
+            "cards": 34,
+            "lobes": [
+              {
+                "center": [
+                  -21.4,
+                  4.4,
+                  12.5
+                ],
+                "hR": 1.5,
+                "vR": 1,
+                "leaves": 488
+              },
+              {
+                "center": [
+                  -22.3,
+                  5.8,
+                  11
+                ],
+                "hR": 1.6,
+                "vR": 1.2,
+                "leaves": 563
+              }
+            ],
+            "dress": [
+              {
+                "giant": "southwest-giant",
+                "relief": 0.07447035204249632,
+                "rings": 28,
+                "sides": 22,
+                "knees": 0,
+                "triangles": 1210
+              }
+            ]
+          }
+        ],
+        "detachedBoughsVisible": false,
+        "detachedBoughSpheres": 56,
+        "detachedBoughMeshes": [
+          {
+            "name": "giant-detached-wood-southwest-giant",
+            "castShadow": false,
+            "triangles": 2428
+          },
+          {
+            "name": "giant-detached-leaves-southwest-giant",
+            "castShadow": true,
+            "triangles": 4204
+          },
+          {
+            "name": "giant-detached-cards-southwest-giant",
+            "castShadow": true,
+            "triangles": 68
+          }
+        ],
+        "cullPadM": 4
+      }
+    },
+    {
+      "id": "C_lookback",
+      "beforeSha256": "cbf8b4b1b33f2df66a70f21341546aef2310998b85bc1f7aac943217d4c02ad0",
+      "afterSha256": "fc9b6fbd223b36c7c64a23e78bdfecfec286b96b66c8c04a2970de17e049ff28",
+      "before": {
+        "simTime": 12.6,
+        "drawCalls": 345,
+        "triangles": 6929212,
+        "geometries": 367,
+        "textures": 91,
+        "programs": 101,
+        "width": 1280,
+        "height": 720,
+        "pixelRatio": 1
+      },
+      "after": {
+        "simTime": 12.6,
+        "drawCalls": 345,
+        "triangles": 6929792,
+        "geometries": 367,
+        "textures": 91,
+        "programs": 101,
+        "width": 1280,
+        "height": 720,
+        "pixelRatio": 1
+      },
+      "delta": {
+        "triangles": 580,
+        "drawCalls": 0,
+        "geometries": 0,
+        "textures": 0,
+        "programs": 0
+      },
+      "distantLod": [
+        295,
+        501
+      ],
+      "submissionBefore": {
+        "drawCalls": 61,
+        "triangles": 2427280,
+        "meshes": 116,
+        "instances": 315,
+        "byFamily": {
+          "whitebark-lod0": {
+            "meshes": 1,
+            "instances": 1,
+            "calls": 2,
+            "triangles": 105888
+          },
+          "whitebark-lod1": {
+            "meshes": 10,
+            "instances": 24,
+            "calls": 14,
+            "triangles": 325260
+          },
+          "whitebark-lod2": {
+            "meshes": 6,
+            "instances": 15,
+            "calls": 6,
+            "triangles": 38718
+          },
+          "column-lod0": {
+            "meshes": 3,
+            "instances": 3,
+            "calls": 5,
+            "triangles": 190669
+          },
+          "column-lod1": {
+            "meshes": 3,
+            "instances": 3,
+            "calls": 5,
+            "triangles": 49885
+          },
+          "column-lod2": {
+            "meshes": 0,
+            "instances": 0,
+            "calls": 0,
+            "triangles": 0
+          },
+          "giant-wood": {
+            "meshes": 3,
+            "instances": 3,
+            "calls": 6,
+            "triangles": 1508970
+          },
+          "giant-cards": {
+            "meshes": 3,
+            "instances": 3,
+            "calls": 6,
+            "triangles": 23236
+          },
+          "giant-authored-leaves": {
+            "meshes": 4,
+            "instances": 4,
+            "calls": 2,
+            "triangles": 29716
+          },
+          "giant-authored-cards": {
+            "meshes": 2,
+            "instances": 2,
+            "calls": 1,
+            "triangles": 1060
+          },
+          "distant-near": {
+            "meshes": 5,
+            "instances": 52,
+            "calls": 5,
+            "triangles": 59857
+          },
+          "distant-far": {
+            "meshes": 5,
+            "instances": 134,
+            "calls": 5,
+            "triangles": 2948
+          },
+          "column-near-base": {
+            "meshes": 0,
+            "instances": 0,
+            "calls": 0,
+            "triangles": 0
+          },
+          "giant-near-base": {
+            "meshes": 1,
+            "instances": 1,
+            "calls": 1,
+            "triangles": 25633
+          },
+          "column-near-canopy-lobe": {
+            "meshes": 13,
+            "instances": 13,
+            "calls": 0,
+            "triangles": 0
+          },
+          "giant-near-canopy-lobe": {
+            "meshes": 54,
+            "instances": 54,
+            "calls": 3,
+            "triangles": 65440
+          },
+          "giant-near-canopy-limb": {
+            "meshes": 3,
+            "instances": 3,
+            "calls": 0,
+            "triangles": 0
+          }
+        },
+        "whiteBarkLodSubmitted": [
+          1,
+          24,
+          15
+        ],
+        "columnLodSubmitted": [
+          3,
+          3,
+          0
+        ],
+        "distantSubmitted": [
+          52,
+          134
+        ],
+        "giantSectorsCasting": 6,
+        "detachedBoughs": [
+          {
+            "giant": "southwest-giant",
+            "boughs": 1,
+            "woodTriangles": 2428,
+            "leaves": 1051,
+            "leafTriangles": 4204,
+            "cards": 34,
+            "lobes": [
+              {
+                "center": [
+                  -21.4,
+                  4.4,
+                  12.5
+                ],
+                "hR": 1.5,
+                "vR": 1,
+                "leaves": 488
+              },
+              {
+                "center": [
+                  -22.3,
+                  5.8,
+                  11
+                ],
+                "hR": 1.6,
+                "vR": 1.2,
+                "leaves": 563
+              }
+            ],
+            "dress": [
+              {
+                "giant": "southwest-giant",
+                "relief": 0.07447035204249632,
+                "rings": 28,
+                "sides": 22,
+                "knees": 0,
+                "triangles": 1210
+              }
+            ]
+          }
+        ],
+        "detachedBoughsVisible": false,
+        "detachedBoughSpheres": 56,
+        "detachedBoughMeshes": [
+          {
+            "name": "giant-detached-wood-southwest-giant",
+            "castShadow": false,
+            "triangles": 2428
+          },
+          {
+            "name": "giant-detached-leaves-southwest-giant",
+            "castShadow": true,
+            "triangles": 4204
+          },
+          {
+            "name": "giant-detached-cards-southwest-giant",
+            "castShadow": true,
+            "triangles": 68
+          }
+        ],
+        "cullPadM": 4
+      },
+      "submissionAfter": {
+        "drawCalls": 61,
+        "triangles": 2427860,
+        "meshes": 116,
+        "instances": 315,
+        "byFamily": {
+          "whitebark-lod0": {
+            "meshes": 1,
+            "instances": 1,
+            "calls": 2,
+            "triangles": 105888
+          },
+          "whitebark-lod1": {
+            "meshes": 10,
+            "instances": 24,
+            "calls": 14,
+            "triangles": 325260
+          },
+          "whitebark-lod2": {
+            "meshes": 6,
+            "instances": 15,
+            "calls": 6,
+            "triangles": 38718
+          },
+          "column-lod0": {
+            "meshes": 3,
+            "instances": 3,
+            "calls": 5,
+            "triangles": 190669
+          },
+          "column-lod1": {
+            "meshes": 3,
+            "instances": 3,
+            "calls": 5,
+            "triangles": 49885
+          },
+          "column-lod2": {
+            "meshes": 0,
+            "instances": 0,
+            "calls": 0,
+            "triangles": 0
+          },
+          "giant-wood": {
+            "meshes": 3,
+            "instances": 3,
+            "calls": 6,
+            "triangles": 1508970
+          },
+          "giant-cards": {
+            "meshes": 3,
+            "instances": 3,
+            "calls": 6,
+            "triangles": 23236
+          },
+          "giant-authored-leaves": {
+            "meshes": 4,
+            "instances": 4,
+            "calls": 2,
+            "triangles": 29716
+          },
+          "giant-authored-cards": {
+            "meshes": 2,
+            "instances": 2,
+            "calls": 1,
+            "triangles": 1060
+          },
+          "distant-near": {
+            "meshes": 5,
+            "instances": 52,
+            "calls": 5,
+            "triangles": 59857
+          },
+          "distant-far": {
+            "meshes": 5,
+            "instances": 134,
+            "calls": 5,
+            "triangles": 2948
+          },
+          "column-near-base": {
+            "meshes": 0,
+            "instances": 0,
+            "calls": 0,
+            "triangles": 0
+          },
+          "giant-near-base": {
+            "meshes": 1,
+            "instances": 1,
+            "calls": 1,
+            "triangles": 25633
+          },
+          "column-near-canopy-lobe": {
+            "meshes": 13,
+            "instances": 13,
+            "calls": 0,
+            "triangles": 0
+          },
+          "giant-near-canopy-lobe": {
+            "meshes": 54,
+            "instances": 54,
+            "calls": 3,
+            "triangles": 66020
+          },
+          "giant-near-canopy-limb": {
+            "meshes": 3,
+            "instances": 3,
+            "calls": 0,
+            "triangles": 0
+          }
+        },
+        "whiteBarkLodSubmitted": [
+          1,
+          24,
+          15
+        ],
+        "columnLodSubmitted": [
+          3,
+          3,
+          0
+        ],
+        "distantSubmitted": [
+          52,
+          134
+        ],
+        "giantSectorsCasting": 6,
+        "detachedBoughs": [
+          {
+            "giant": "southwest-giant",
+            "boughs": 1,
+            "woodTriangles": 2428,
+            "leaves": 1051,
+            "leafTriangles": 4204,
+            "cards": 34,
+            "lobes": [
+              {
+                "center": [
+                  -21.4,
+                  4.4,
+                  12.5
+                ],
+                "hR": 1.5,
+                "vR": 1,
+                "leaves": 488
+              },
+              {
+                "center": [
+                  -22.3,
+                  5.8,
+                  11
+                ],
+                "hR": 1.6,
+                "vR": 1.2,
+                "leaves": 563
+              }
+            ],
+            "dress": [
+              {
+                "giant": "southwest-giant",
+                "relief": 0.07447035204249632,
+                "rings": 28,
+                "sides": 22,
+                "knees": 0,
+                "triangles": 1210
+              }
+            ]
+          }
+        ],
+        "detachedBoughsVisible": false,
+        "detachedBoughSpheres": 56,
+        "detachedBoughMeshes": [
+          {
+            "name": "giant-detached-wood-southwest-giant",
+            "castShadow": false,
+            "triangles": 2428
+          },
+          {
+            "name": "giant-detached-leaves-southwest-giant",
+            "castShadow": true,
+            "triangles": 4204
+          },
+          {
+            "name": "giant-detached-cards-southwest-giant",
+            "castShadow": true,
+            "triangles": 68
+          }
+        ],
+        "cullPadM": 4
+      }
+    }
+  ]
+}

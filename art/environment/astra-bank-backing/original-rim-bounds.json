@@ -1,0 +1,215 @@
+{
+  "sourceRef": "520537e6",
+  "origin": [
+    10.6,
+    0.019357434590347555,
+    9.15
+  ],
+  "groups": [
+    {
+      "group": 24,
+      "cardVertices": 480,
+      "cardQuads": 120,
+      "center": [
+        11.2,
+        3.4,
+        3.7
+      ],
+      "oldLeafCoreBounds": {
+        "min": [
+          8.715183569528595,
+          1.2799843361694025,
+          1.70099052788476
+        ],
+        "max": [
+          13.016184533083049,
+          4.967937176326201,
+          5.481824536173955
+        ]
+      },
+      "cardBounds": {
+        "min": [
+          8.838221883773803,
+          1.372604123433121,
+          1.5456227302551273
+        ],
+        "max": [
+          13.554316854476928,
+          5.260483018239029,
+          6.024380826950074
+        ]
+      },
+      "totalBounds": {
+        "min": [
+          8.715183569528595,
+          1.2799843361694025,
+          1.5456227302551273
+        ],
+        "max": [
+          13.554316854476928,
+          5.260483018239029,
+          6.024380826950074
+        ]
+      },
+      "marginBeyondOldLeafCore": {
+        "min": [
+          0,
+          0,
+          0.1553677976296326
+        ],
+        "max": [
+          0.5381323213938805,
+          0.29254584191282884,
+          0.5425562907761186
+        ]
+      },
+      "floor": null
+    },
+    {
+      "group": 25,
+      "cardVertices": 356,
+      "cardQuads": 89,
+      "center": [
+        10.4,
+        3.4,
+        5.9
+      ],
+      "oldLeafCoreBounds": {
+        "min": [
+          9.03643691866676,
+          1.9895503170654156,
+          4.327798591230798
+        ],
+        "max": [
+          12.06228259284457,
+          4.772396324024502,
+          7.450880572234976
+        ]
+      },
+      "cardBounds": {
+        "min": [
+          8.715519285202026,
+          1.6961709178285678,
+          4.035936737060547
+        ],
+        "max": [
+          12.408797717094421,
+          4.942917577107437,
+          7.732111716270447
+        ]
+      },
+      "totalBounds": {
+        "min": [
+          8.715519285202026,
+          1.6961709178285678,
+          4.035936737060547
+        ],
+        "max": [
+          12.408797717094421,
+          4.942917577107437,
+          7.732111716270447
+        ]
+      },
+      "marginBeyondOldLeafCore": {
+        "min": [
+          0.32091763346473523,
+          0.29337939923684786,
+          0.2918618541702509
+        ],
+        "max": [
+          0.34651512424985076,
+          0.17052125308293498,
+          0.28123114403547134
+        ]
+      },
+      "floor": null
+    },
+    {
+      "group": 26,
+      "cardVertices": 256,
+      "cardQuads": 64,
+      "center": [
+        11.6,
+        5.5,
+        1.5999999999999996
+      ],
+      "oldLeafCoreBounds": {
+        "min": [
+          9.61474050678113,
+          4.75,
+          -0.764095559135944
+        ],
+        "max": [
+          13.464785542007933,
+          6.635276181982501,
+          3.3996474514363575
+        ]
+      },
+      "cardBounds": {
+        "min": [
+          9.497063732147216,
+          4.6637275136308745,
+          -0.505483245849609
+        ],
+        "max": [
+          13.860566473007202,
+          6.863603345234878,
+          3.7647580146789554
+        ]
+      },
+      "totalBounds": {
+        "min": [
+          9.497063732147216,
+          4.6637275136308745,
+          -0.764095559135944
+        ],
+        "max": [
+          13.860566473007202,
+          6.863603345234878,
+          3.7647580146789554
+        ]
+      },
+      "marginBeyondOldLeafCore": {
+        "min": [
+          0.11767677463391413,
+          0.08627248636912555,
+          0
+        ],
+        "max": [
+          0.3957809309992686,
+          0.22832716325237712,
+          0.36511056324259794
+        ]
+      },
+      "floor": 4.75
+    }
+  ],
+  "sources": {
+    "src/world/config.ts": "006b20151a917217cc57383a4962d91b2a1ba636946a6a1c539b624c87d97d78",
+    "src/world/layout.ts": "a55b352707728243a70c18bce6d93e861a246c14f0237a9f21303d8c60f677e7",
+    "src/world/util/prng.ts": "99ad857879fd2ec96a3e2d82e412f10b0e47e93994eba02ef30d2f2520f96c6c",
+    "src/world/terrain/heightfield.ts": "bb8df0c9ee2cfe19b70ae35b66587988bd58bec825606254a4a21a6459aacf1a",
+    "src/world/util/noise.ts": "870b7104aec5e9ea99d9b1ca4158d0ca496b17bb0b59bf608d78f8f95c17caa1",
+    "src/world/wind/wind.ts": "d9492126b6ced433505f3781b97f3fbd5f227f2059c352843180179804e0b452",
+    "src/world/trees/index.ts": "0d18f2faf0112a827516f656addd19be5aa467c0a95b92a228c3990ed2dfe914",
+    "src/world/trees/materials.ts": "64af57b58ea6579367444b97d68c9d2ee3a35ecbb6a7e4b07459271aea6b042c",
+    "src/world/materials/shadeFloor.ts": "5779f78cb2e16f949b60edb2ec8b30e56724ab170279ca6f43d170e698451692",
+    "src/world/trees/bark-texture.ts": "53ed2fc1ebcfaab24979893f6d6088fa7caf92830b8e4e7dbc953265a0680375",
+    "src/world/trees/leaf-cluster-texture.ts": "80e0746430ff2ec73b4c96016c9f55adde01579aa1700ab6fe35da7566d784f1",
+    "src/world/trees/bole.ts": "914756806a9cbe5b868f7214b694031a30e892a383ae9d1cc31842d06ee3e29d",
+    "src/world/trees/writer.ts": "c553e80da6ac76e92fc7233d86c6974e84114926830795f14bf5457bc6d1d2f7",
+    "src/world/trees/distant.ts": "a9b72b3cd2462c84397ede689eed5f239e619b23e01ee0128add545c041ff115",
+    "src/world/trees/leaf-color.ts": "c5aa353d0e90dfa44466272c4852e40f7d3fd143f8c4ad7729dbf0db2018b0e5",
+    "src/world/trees/whitebark.ts": "8ddc1907546bcabf37a11d8ec8cde22002ee37dfab282e67fa346cac6276b84c",
+    "src/world/trees/placement.ts": "5b6a334693871e693cf282da31d7ad35f7829e3857928fcf7f365256daad4348",
+    "src/world/trees/column.ts": "2afa3ed458ee235a0df9cc30e2e39191824c37a40753f20157a87630a231c176",
+    "src/world/trees/base-plants.ts": "6f1428570179f8a7813c77b478be4e34648caf8341b25086779dac888a81624f",
+    "src/world/trees/giant.ts": "24432f508cb0f9e6ffd8bc78f128229479e4669b1b0922138f0fb522fd5bd1f8",
+    "src/world/trees/nearCanopy.ts": "87549572189ad57863451733e42ac4abe6322b907c114f0c880f6dd9ea849ca6",
+    "src/world/util/expansionLocality.ts": "e1cbea7fffb31f7cc4888f612b37148dfe9a47b562c550a6f9f469dcbf5f19e3",
+    "src/world/trees/lodPool.ts": "5ac994685912f8212b7abb5f3ac2520fd0a287a3336f2398b308d61d8bd9da33",
+    "src/world/trees/corridors.ts": "0dce63af724780bb22d7c6ea352f323d08443d16ef7243609a71167a31ccf639",
+    "src/world/trees/tubePath.ts": "563b22f427d9265b64c301ace36f6d25d72bb373c8e98dbc89eef1f7ad34a27e"
+  },
+  "rawSha256": "a3dc12da8fc1c9d9e370f2e828c136a9a85d3d21a0fc0d2242b1e727f0c7b45f"
+}

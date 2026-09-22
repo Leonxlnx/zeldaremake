@@ -1,0 +1,582 @@
+{
+  "verdict": "PASS",
+  "baseline": "520537e6d72a26bddbfb151ca33b54f613576038",
+  "candidate": "063772a4bfc848733e060ded98614d04a626e3d4",
+  "changedSources": [
+    "src/world/trees/giant.ts",
+    "src/world/trees/nearCanopy.ts"
+  ],
+  "cost": {
+    "leaves": 7051,
+    "triangles": 66020,
+    "woodTriangles": 9612,
+    "residentBytes": 4995768
+  },
+  "changedCoreVertices": 1479,
+  "maxRestorationError": 0.000001144409180753314,
+  "exactUnrelatedGeometryRecords": 560,
+  "exactOtherNearParts": 423,
+  "whiteBarkGeometryRecords": 31,
+  "baselineSummary": {
+    "assetBuilds": 76,
+    "builtGeometryRecords": 564,
+    "nearCanopyParts": 426,
+    "whiteBarkGeometryRecords": 31,
+    "sceneMeshRecords": 528,
+    "allBuiltGeometrySha256": "369af8f4dd7e5b15900210abe9802cbe909cc815d613e74ecdf175dbbe3d6281",
+    "nearCanopyGeometrySha256": "1bd205c7ce837715e2fb47fd1b5760c2d3b1d1da6960db32cd35a8354595db1b",
+    "whiteBarkGeometrySha256": "407746127b80b3377854774f29eafa43ffac7729e4c95353449f11dff3768ee6",
+    "sourceAssetAndGeometrySha256": "60be1bbde9d10e68ba2055a007f5c6a4c2582ded5b81633acafe2d38355ecac8",
+    "sceneGeometryAndPlacementSha256": "8f3f222ecb6d0cfb699675b240bf1a4bb16590cc91d489d8250bac9ddc89dc72",
+    "placementBindingSha256": "e04f32d0d8a2f3ae079b06258ac2664b7182b6ffd2a23ee8bbb84988ce95dcba"
+  },
+  "candidateSummary": {
+    "assetBuilds": 76,
+    "builtGeometryRecords": 564,
+    "nearCanopyParts": 426,
+    "whiteBarkGeometryRecords": 31,
+    "sceneMeshRecords": 528,
+    "allBuiltGeometrySha256": "c2d29c37a99d8e725d77240cc4a23dce7bf53b47510b0ccbb6a6f87b7bfcd360",
+    "nearCanopyGeometrySha256": "eff7cc42fd877d159e7c0785ac7f3a9adfe44a8b76f3ef12e3b347db79e8f376",
+    "whiteBarkGeometrySha256": "407746127b80b3377854774f29eafa43ffac7729e4c95353449f11dff3768ee6",
+    "sourceAssetAndGeometrySha256": "407d877820ad6407493575fa0f3d218398b17fd2ab73458f7f4205608f21519f",
+    "sceneGeometryAndPlacementSha256": "07b5f52a14a52628f5c1b8a1e4bd03ed64ffe4e95b411823e78639c2df0ae359",
+    "placementBindingSha256": "22ae34aa391c17af9bc058eef7ed2008209dcc1c5cd2512684401efdcedefd2e"
+  },
+  "groups": [
+    {
+      "group": 24,
+      "partIndex": 24,
+      "centerLocal": [
+        0.5999999999999996,
+        3.3806425654096524,
+        -5.45
+      ],
+      "centerWorld": [
+        11.2,
+        3.4,
+        3.7
+      ],
+      "coreWorldBounds": {
+        "min": [
+          9.324659204483032,
+          1.878011814435013,
+          1.766466045379639
+        ],
+        "max": [
+          13.016184425354004,
+          4.967937222798355,
+          5.481824541091919
+        ]
+      },
+      "farWorldBounds": {
+        "min": [
+          8.715183591842651,
+          1.279984346707352,
+          1.7009905815124515
+        ],
+        "max": [
+          13.016184425354004,
+          4.967937222798355,
+          5.481824541091919
+        ]
+      },
+      "near": {
+        "leaves": 2800,
+        "triangles": 26072,
+        "woodTriangles": 3672,
+        "vertices": 25256,
+        "bytes": 1974864
+      },
+      "authoredEnvelopeWorld": {
+        "min": [
+          8.715183569528595,
+          1.2799843361694025,
+          1.5456229023075867
+        ],
+        "max": [
+          13.554316744094727,
+          5.260483106888808,
+          6.024380783152787
+        ]
+      },
+      "physicalWorldBounds": {
+        "min": [
+          8.850850319862365,
+          1.5171313203172763,
+          1.6257537841796879
+        ],
+        "max": [
+          13.395990705490112,
+          5.168247453053482,
+          5.94259204864502
+        ]
+      },
+      "leafWorldBounds": {
+        "min": [
+          8.850850319862365,
+          1.5171313203172763,
+          1.6257537841796879
+        ],
+        "max": [
+          13.395990705490112,
+          5.168247453053482,
+          5.94259204864502
+        ]
+      },
+      "woodWorldBounds": {
+        "min": [
+          9.089951610565185,
+          1.7667137301759799,
+          1.6858161926269535
+        ],
+        "max": [
+          13.17291316986084,
+          4.992763272603042,
+          5.775624179840088
+        ]
+      },
+      "allCurrentFoliageWorldBounds": {
+        "min": [
+          8.715183591842651,
+          1.279984346707352,
+          1.6257537841796879
+        ],
+        "max": [
+          13.395990705490112,
+          5.168247453053482,
+          5.94259204864502
+        ]
+      },
+      "analyticWorldBounds": {
+        "min": [
+          8.812640541207383,
+          1.5052313202666123,
+          1.594218660352265
+        ],
+        "max": [
+          13.432169325147942,
+          5.178117080484517,
+          5.973436992131187
+        ]
+      },
+      "minStaticMargin": [
+        0.13566675033377007,
+        0.09223565383532595,
+        0.08013088187210116
+      ],
+      "minAnalyticMargin": [
+        0.09745697167878675,
+        0.0823660264042907,
+        0.048595758044678306
+      ],
+      "maxExtraWindPerAxis": 0.04033343785778357,
+      "maxFullWindPerAxis": 0.04595429732416982,
+      "maxVerticalWind": 0.011900000050663948,
+      "floorWorld": null,
+      "maxBranchAnchorGap": 9.930136612989092e-16,
+      "maxPetioleToPath": 0.002500277583001629,
+      "minTriangleArea": 9.476922638913977e-7,
+      "maxToneError": 1.4901161193847656e-8,
+      "retainedTubes": 136,
+      "addedParents": 40,
+      "deterministicRebuild": true
+    },
+    {
+      "group": 25,
+      "partIndex": 25,
+      "centerLocal": [
+        -0.1999999999999993,
+        3.3806425654096524,
+        -3.25
+      ],
+      "centerWorld": [
+        10.4,
+        3.4,
+        5.9
+      ],
+      "coreWorldBounds": {
+        "min": [
+          9.036436891555786,
+          1.9895503438310702,
+          4.423660659790039
+        ],
+        "max": [
+          11.912115550041198,
+          4.772396317799576,
+          7.450880551338196
+        ]
+      },
+      "farWorldBounds": {
+        "min": [
+          9.036436891555786,
+          1.9895503438310702,
+          4.327798748016358
+        ],
+        "max": [
+          12.062282538414001,
+          4.772396317799576,
+          7.450880551338196
+        ]
+      },
+      "near": {
+        "leaves": 2051,
+        "triangles": 19324,
+        "woodTriangles": 2916,
+        "vertices": 18676,
+        "bytes": 1460616
+      },
+      "authoredEnvelopeWorld": {
+        "min": [
+          8.715519240807065,
+          1.6961709757706105,
+          4.0359368607999055
+        ],
+        "max": [
+          12.408797667308514,
+          4.942917464638247,
+          7.73211176947806
+        ]
+      },
+      "physicalWorldBounds": {
+        "min": [
+          8.796200609207153,
+          1.7782689250307162,
+          4.116324806213379
+        ],
+        "max": [
+          12.318057751655578,
+          4.861651173909195,
+          7.651869559288025
+        ]
+      },
+      "leafWorldBounds": {
+        "min": [
+          8.796200609207153,
+          1.7782689250307162,
+          4.116324806213379
+        ],
+        "max": [
+          12.318057751655578,
+          4.861651173909195,
+          7.651869559288025
+        ]
+      },
+      "woodWorldBounds": {
+        "min": [
+          8.958203291893005,
+          1.8148196852998812,
+          4.3077787399292
+        ],
+        "max": [
+          12.150879716873169,
+          4.842477074940689,
+          7.634473109245301
+        ]
+      },
+      "allCurrentFoliageWorldBounds": {
+        "min": [
+          8.796200609207153,
+          1.7782689250307162,
+          4.116324806213379
+        ],
+        "max": [
+          12.318057751655578,
+          4.861651173909195,
+          7.651869559288025
+        ]
+      },
+      "analyticWorldBounds": {
+        "min": [
+          8.761569023982002,
+          1.7663689249800523,
+          4.082853502833222
+        ],
+        "max": [
+          12.357228814534192,
+          4.873551173959859,
+          7.683731164013773
+        ]
+      },
+      "minStaticMargin": [
+        0.08068136840008844,
+        0.08126629072905178,
+        0.08024221019003464
+      ],
+      "minAnalyticMargin": [
+        0.046049783174936465,
+        0.06936629067838762,
+        0.04691664203331669
+      ],
+      "maxExtraWindPerAxis": 0.03924600326510351,
+      "maxFullWindPerAxis": 0.044595004082306995,
+      "maxVerticalWind": 0.011900000050663948,
+      "floorWorld": null,
+      "maxBranchAnchorGap": 9.930136612989092e-16,
+      "maxPetioleToPath": 0.00250021710373379,
+      "minTriangleArea": 9.4755300848427e-7,
+      "maxToneError": 1.4901161193847656e-8,
+      "retainedTubes": 108,
+      "addedParents": 32,
+      "deterministicRebuild": true
+    },
+    {
+      "group": 26,
+      "partIndex": 26,
+      "centerLocal": [
+        1,
+        5.480642565409653,
+        -7.550000000000001
+      ],
+      "centerWorld": [
+        11.6,
+        5.5,
+        1.5999999999999996
+      ],
+      "coreWorldBounds": {
+        "min": [
+          9.859848177433014,
+          4.750000230153091,
+          -0.11560115814208949
+        ],
+        "max": [
+          13.410534477233886,
+          6.625771275837906,
+          3.3996476173400882
+        ]
+      },
+      "farWorldBounds": {
+        "min": [
+          9.614740526676178,
+          4.750000230153091,
+          -0.7640958786010739
+        ],
+        "max": [
+          13.464785432815551,
+          6.635276070912369,
+          3.3996476173400882
+        ]
+      },
+      "near": {
+        "leaves": 2200,
+        "triangles": 20624,
+        "woodTriangles": 3024,
+        "vertices": 19952,
+        "bytes": 1560288
+      },
+      "authoredEnvelopeWorld": {
+        "min": [
+          9.497063673249968,
+          4.663727621719476,
+          -0.764095559135944
+        ],
+        "max": [
+          13.860566590857719,
+          6.863603474004332,
+          3.7647579113878127
+        ]
+      },
+      "physicalWorldBounds": {
+        "min": [
+          9.582915878295898,
+          4.832717171986587,
+          -0.5773349761962887
+        ],
+        "max": [
+          13.7781587600708,
+          6.783291093190201,
+          3.6791399955749515
+        ]
+      },
+      "leafWorldBounds": {
+        "min": [
+          9.582915878295898,
+          4.832717171986587,
+          -0.5773349761962887
+        ],
+        "max": [
+          13.7781587600708,
+          6.783291093190201,
+          3.6791399955749515
+        ]
+      },
+      "woodWorldBounds": {
+        "min": [
+          9.771688258647918,
+          4.9171759999589995,
+          -0.3248125076293942
+        ],
+        "max": [
+          13.617441987991333,
+          6.693993798573501,
+          3.537495040893555
+        ]
+      },
+      "allCurrentFoliageWorldBounds": {
+        "min": [
+          9.582915878295898,
+          4.750000230153091,
+          -0.7640958786010739
+        ],
+        "max": [
+          13.7781587600708,
+          6.783291093190201,
+          3.6791399955749515
+        ]
+      },
+      "analyticWorldBounds": {
+        "min": [
+          9.535110886316717,
+          4.820817171935923,
+          -0.6213196346552294
+        ],
+        "max": [
+          13.826410825169624,
+          6.795191093240865,
+          3.7227493921696313
+        ]
+      },
+      "minStaticMargin": [
+        0.08240783078691916,
+        0.0803123808141315,
+        0.08561791581286116
+      ],
+      "minAnalyticMargin": [
+        0.034155765688096196,
+        0.06841238076346734,
+        0.042008519218181384
+      ],
+      "maxExtraWindPerAxis": 0.04764716507327486,
+      "maxFullWindPerAxis": 0.05509645635034537,
+      "maxVerticalWind": 0.011900000050663948,
+      "floorWorld": 4.75,
+      "maxBranchAnchorGap": 1.0224690323242075e-15,
+      "maxPetioleToPath": 0.002500440274877708,
+      "minTriangleArea": 9.475525581488772e-7,
+      "maxToneError": 1.9371509535348608e-8,
+      "retainedTubes": 112,
+      "addedParents": 32,
+      "deterministicRebuild": true
+    }
+  ],
+  "sourceBindings": {
+    "baseline": {
+      "src/world/config.ts": "006b20151a917217cc57383a4962d91b2a1ba636946a6a1c539b624c87d97d78",
+      "src/world/layout.ts": "a55b352707728243a70c18bce6d93e861a246c14f0237a9f21303d8c60f677e7",
+      "src/world/util/prng.ts": "99ad857879fd2ec96a3e2d82e412f10b0e47e93994eba02ef30d2f2520f96c6c",
+      "src/world/terrain/heightfield.ts": "bb8df0c9ee2cfe19b70ae35b66587988bd58bec825606254a4a21a6459aacf1a",
+      "src/world/util/noise.ts": "870b7104aec5e9ea99d9b1ca4158d0ca496b17bb0b59bf608d78f8f95c17caa1",
+      "src/world/wind/wind.ts": "d9492126b6ced433505f3781b97f3fbd5f227f2059c352843180179804e0b452",
+      "src/world/trees/index.ts": "0d18f2faf0112a827516f656addd19be5aa467c0a95b92a228c3990ed2dfe914",
+      "src/world/trees/materials.ts": "64af57b58ea6579367444b97d68c9d2ee3a35ecbb6a7e4b07459271aea6b042c",
+      "src/world/materials/shadeFloor.ts": "5779f78cb2e16f949b60edb2ec8b30e56724ab170279ca6f43d170e698451692",
+      "src/world/trees/bark-texture.ts": "53ed2fc1ebcfaab24979893f6d6088fa7caf92830b8e4e7dbc953265a0680375",
+      "src/world/trees/leaf-cluster-texture.ts": "80e0746430ff2ec73b4c96016c9f55adde01579aa1700ab6fe35da7566d784f1",
+      "src/world/trees/bole.ts": "914756806a9cbe5b868f7214b694031a30e892a383ae9d1cc31842d06ee3e29d",
+      "src/world/trees/writer.ts": "c553e80da6ac76e92fc7233d86c6974e84114926830795f14bf5457bc6d1d2f7",
+      "src/world/trees/distant.ts": "a9b72b3cd2462c84397ede689eed5f239e619b23e01ee0128add545c041ff115",
+      "src/world/trees/leaf-color.ts": "c5aa353d0e90dfa44466272c4852e40f7d3fd143f8c4ad7729dbf0db2018b0e5",
+      "src/world/trees/whitebark.ts": "8ddc1907546bcabf37a11d8ec8cde22002ee37dfab282e67fa346cac6276b84c",
+      "src/world/trees/placement.ts": "5b6a334693871e693cf282da31d7ad35f7829e3857928fcf7f365256daad4348",
+      "src/world/trees/column.ts": "2afa3ed458ee235a0df9cc30e2e39191824c37a40753f20157a87630a231c176",
+      "src/world/trees/base-plants.ts": "6f1428570179f8a7813c77b478be4e34648caf8341b25086779dac888a81624f",
+      "src/world/trees/giant.ts": "24432f508cb0f9e6ffd8bc78f128229479e4669b1b0922138f0fb522fd5bd1f8",
+      "src/world/trees/nearCanopy.ts": "87549572189ad57863451733e42ac4abe6322b907c114f0c880f6dd9ea849ca6",
+      "src/world/util/expansionLocality.ts": "e1cbea7fffb31f7cc4888f612b37148dfe9a47b562c550a6f9f469dcbf5f19e3",
+      "src/world/trees/lodPool.ts": "5ac994685912f8212b7abb5f3ac2520fd0a287a3336f2398b308d61d8bd9da33",
+      "src/world/trees/corridors.ts": "0dce63af724780bb22d7c6ea352f323d08443d16ef7243609a71167a31ccf639",
+      "src/world/trees/tubePath.ts": "563b22f427d9265b64c301ace36f6d25d72bb373c8e98dbc89eef1f7ad34a27e"
+    },
+    "candidate": {
+      "src/world/config.ts": "006b20151a917217cc57383a4962d91b2a1ba636946a6a1c539b624c87d97d78",
+      "src/world/layout.ts": "a55b352707728243a70c18bce6d93e861a246c14f0237a9f21303d8c60f677e7",
+      "src/world/util/prng.ts": "99ad857879fd2ec96a3e2d82e412f10b0e47e93994eba02ef30d2f2520f96c6c",
+      "src/world/terrain/heightfield.ts": "bb8df0c9ee2cfe19b70ae35b66587988bd58bec825606254a4a21a6459aacf1a",
+      "src/world/util/noise.ts": "870b7104aec5e9ea99d9b1ca4158d0ca496b17bb0b59bf608d78f8f95c17caa1",
+      "src/world/wind/wind.ts": "d9492126b6ced433505f3781b97f3fbd5f227f2059c352843180179804e0b452",
+      "src/world/trees/index.ts": "0d18f2faf0112a827516f656addd19be5aa467c0a95b92a228c3990ed2dfe914",
+      "src/world/trees/materials.ts": "64af57b58ea6579367444b97d68c9d2ee3a35ecbb6a7e4b07459271aea6b042c",
+      "src/world/materials/shadeFloor.ts": "5779f78cb2e16f949b60edb2ec8b30e56724ab170279ca6f43d170e698451692",
+      "src/world/trees/bark-texture.ts": "53ed2fc1ebcfaab24979893f6d6088fa7caf92830b8e4e7dbc953265a0680375",
+      "src/world/trees/leaf-cluster-texture.ts": "80e0746430ff2ec73b4c96016c9f55adde01579aa1700ab6fe35da7566d784f1",
+      "src/world/trees/bole.ts": "914756806a9cbe5b868f7214b694031a30e892a383ae9d1cc31842d06ee3e29d",
+      "src/world/trees/writer.ts": "c553e80da6ac76e92fc7233d86c6974e84114926830795f14bf5457bc6d1d2f7",
+      "src/world/trees/distant.ts": "a9b72b3cd2462c84397ede689eed5f239e619b23e01ee0128add545c041ff115",
+      "src/world/trees/leaf-color.ts": "c5aa353d0e90dfa44466272c4852e40f7d3fd143f8c4ad7729dbf0db2018b0e5",
+      "src/world/trees/whitebark.ts": "8ddc1907546bcabf37a11d8ec8cde22002ee37dfab282e67fa346cac6276b84c",
+      "src/world/trees/placement.ts": "5b6a334693871e693cf282da31d7ad35f7829e3857928fcf7f365256daad4348",
+      "src/world/trees/column.ts": "2afa3ed458ee235a0df9cc30e2e39191824c37a40753f20157a87630a231c176",
+      "src/world/trees/base-plants.ts": "6f1428570179f8a7813c77b478be4e34648caf8341b25086779dac888a81624f",
+      "src/world/trees/giant.ts": "6b51132e41795050b58bc14b15b9c3b6cfbe0ef666fbf697a53529c2001cdd9a",
+      "src/world/trees/nearCanopy.ts": "2b996d1afdb1c0794a5c1f8b92caea9bb4c127d9bc747c13c10cccefe1cded3d",
+      "src/world/util/expansionLocality.ts": "e1cbea7fffb31f7cc4888f612b37148dfe9a47b562c550a6f9f469dcbf5f19e3",
+      "src/world/trees/lodPool.ts": "5ac994685912f8212b7abb5f3ac2520fd0a287a3336f2398b308d61d8bd9da33",
+      "src/world/trees/corridors.ts": "0dce63af724780bb22d7c6ea352f323d08443d16ef7243609a71167a31ccf639",
+      "src/world/trees/tubePath.ts": "563b22f427d9265b64c301ace36f6d25d72bb373c8e98dbc89eef1f7ad34a27e"
+    }
+  },
+  "inputHashes": {
+    "before": "1f6a242b36028ff981ecbee2d02b341894b96b9c255825bea97ecaa5cf9a52cd",
+    "after": "79d7422359b9998a3b1011bb72d31556e4a172ea21433d10e9db2a652fd4d7c4"
+  },
+  "checks": [
+    "Only1479 core positions restored; all other far vertices/attributes/indices exact",
+    "560 unrelated geometry records,423 other near parts and31 current white-bark records exact",
+    "All scene placements/materials/shadows/visibility and LOD bindings exact",
+    "7051 accepted whole leaves under the unchanged7100 authored cap",
+    "Existing inspector reruns attachments, whole-leaf bounds, wind/floor/tone and chunked rebuild invariants"
+  ],
+  "originalTotalLobeBounds": [
+    {
+      "group": 24,
+      "totalBounds": {
+        "min": [
+          8.715183569528595,
+          1.2799843361694025,
+          1.5456227302551273
+        ],
+        "max": [
+          13.554316854476928,
+          5.260483018239029,
+          6.024380826950074
+        ]
+      }
+    },
+    {
+      "group": 25,
+      "totalBounds": {
+        "min": [
+          8.715519285202026,
+          1.6961709178285678,
+          4.035936737060547
+        ],
+        "max": [
+          12.408797717094421,
+          4.942917577107437,
+          7.732111716270447
+        ]
+      }
+    },
+    {
+      "group": 26,
+      "totalBounds": {
+        "min": [
+          9.497063732147216,
+          4.6637275136308745,
+          -0.764095559135944
+        ],
+        "max": [
+          13.860566473007202,
+          6.863603345234878,
+          3.7647580146789554
+        ]
+      }
+    }
+  ],
+  "existingFloorException": "Original unchanged group26 rim-card corners reachY4.663728; the4.75 floor check covers all new wood/leaves and the restored core.",
+  "limits": [
+    "CPU geometry parity only; no visual acceptance implied.",
+    "Existing alpha-card geometric extents can include transparent pixels; raw visual perimeter still requires native review.",
+    "Global RNG streams are covered by a separate candidate-author receipt."
+  ]
+}

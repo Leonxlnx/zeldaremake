@@ -1,0 +1,1163 @@
+{
+  "label": "before",
+  "sha": "520537e6d72a26bddbfb151ca33b54f613576038",
+  "root": "E:\\zeldaremake-astra-bank-delivery\\art\\environment\\astra-bank-backing\\builds\\before",
+  "coreScale": 0.6,
+  "files": [
+    {
+      "path": "assets/index-yHBGtOiG.js",
+      "sha256": "2ffeab7dcdfdc2e838e72e386aa95e287817d098201dd0656297b1eecc85f84a"
+    },
+    {
+      "path": "audio/.gitignore",
+      "sha256": "ff8b10682eb5f972aa7c112d83ebb7556a1f67d7636a1e934ecca934a837c5b4"
+    },
+    {
+      "path": "audio/README.md",
+      "sha256": "2b31b219a5bf146d49d26884f6cdfa6493712c0a7013bb219df43f1f034a571f"
+    },
+    {
+      "path": "favicon.svg",
+      "sha256": "73e2ea7e9add88bb83724dbced91d1b628bcdb1dad5e95689d177714440278a8"
+    },
+    {
+      "path": "index.html",
+      "sha256": "bc43eb0a6116b56075bb1cb6da97809cc60cb805aa053c0d512bb1dccc8d4a03"
+    },
+    {
+      "path": "models/link/link-runtime.glb",
+      "sha256": "4dcf89c5c10391981289e2583152c26fb4ac93047c6fcb4bb0959e246805d850"
+    },
+    {
+      "path": "models/link/SOURCE.md",
+      "sha256": "c17d91dc6be1cc851c2570608578f99e5495fb05ac9a960ed8debf148f344327"
+    },
+    {
+      "path": "models/trees/root-base-a-prototype.glb",
+      "sha256": "a57c6dd30307b51926e3ef4ce0ef0ffefe02acecdf97114be5715fd524861f41"
+    },
+    {
+      "path": "models/trees/SOURCE.md",
+      "sha256": "33f1b1191efd853e51e11261520bdf1745d23e4e4f2d9f97bb3557b84229caad"
+    },
+    {
+      "path": "textures/aerial_grass_rock/2k/color.jpg",
+      "sha256": "26f10ab05eeb6f5a8921c7e796bea9c9ecf93d6ad2162d2134aa5fdff6deb6cf"
+    },
+    {
+      "path": "textures/aerial_grass_rock/2k/normal.jpg",
+      "sha256": "59820a92f11679362a900085e34fa29572fca1f28b14dcc4e83de6395fcc960f"
+    },
+    {
+      "path": "textures/aerial_grass_rock/color.jpg",
+      "sha256": "f1b79d761730702e472e0bca006b70e4ec5e0d27187332df88b4369542db2511"
+    },
+    {
+      "path": "textures/aerial_grass_rock/LICENSE.txt",
+      "sha256": "4c5ee34de6e5170c476f2f72367583e698ec07959772b34fc71a0528bb310827"
+    },
+    {
+      "path": "textures/aerial_grass_rock/normal.jpg",
+      "sha256": "ed680826731749f9c915fac5f89a68df70c609ebc9c978db7649564003e1d622"
+    },
+    {
+      "path": "textures/bark_brown_02/2k/color.jpg",
+      "sha256": "5f14c38847024d845b96750ce6f6169cb9969fa70cd9cdbc36c5e26a8914ea2b"
+    },
+    {
+      "path": "textures/bark_brown_02/2k/normal.jpg",
+      "sha256": "b69f007f53583be4b5c93a589083a91cfe60e47c6609d5a3ffb86869d7a65e9a"
+    },
+    {
+      "path": "textures/bark_brown_02/2k/roughness.jpg",
+      "sha256": "726c1f28071f0912f6b2ffea45ee931a9c71d0dbae06a451c4b75b34ccfd325b"
+    },
+    {
+      "path": "textures/bark_brown_02/color.jpg",
+      "sha256": "9af49cb19627040bdf0da624763ec5f0582a5b634689678aa1f83b1ffa1e0768"
+    },
+    {
+      "path": "textures/bark_brown_02/LICENSE.txt",
+      "sha256": "6669501049279de13e37475d2cc96e587c27d6d7c282b92f872b187ac7eface4"
+    },
+    {
+      "path": "textures/bark_brown_02/normal.jpg",
+      "sha256": "ba9dfa208b2cb31721a773cb3d85fdf718169c7d1abd3f4cdda8fc2031138b43"
+    },
+    {
+      "path": "textures/bark_brown_02/roughness.jpg",
+      "sha256": "a36f19b36f11cc65b7f04425906289809c20580d00e0192bda94bb72cc51a94c"
+    },
+    {
+      "path": "textures/bark_willow_02/2k/color.jpg",
+      "sha256": "a8e51e90b488d53bf930354079c691425c91e5f477225db067cc2b8722d41298"
+    },
+    {
+      "path": "textures/bark_willow_02/2k/normal.jpg",
+      "sha256": "d889ab472f2b759bef41e1dcd3d869055eb41ad6bc002920eb192e78d14539d1"
+    },
+    {
+      "path": "textures/bark_willow_02/2k/roughness.jpg",
+      "sha256": "88392ccc4361126c1511130cba493b348af4f740e1e944e5ee28045a5494ca89"
+    },
+    {
+      "path": "textures/bark_willow_02/color.jpg",
+      "sha256": "90b12701ad7ff3265f23fd59eeafdf66d2ecfa5deba6994d73544a97da34c202"
+    },
+    {
+      "path": "textures/bark_willow_02/LICENSE.txt",
+      "sha256": "a4585906526f8d2844ba338dd1697fa580219aa385fb974ff1268d035009578b"
+    },
+    {
+      "path": "textures/bark_willow_02/normal.jpg",
+      "sha256": "ea7f64f4db49cf9436ce2f56ba400662ca59cea8fea93be4fea3c6212355b2a0"
+    },
+    {
+      "path": "textures/bark_willow_02/roughness.jpg",
+      "sha256": "0ab488428ee2e1c197d0f903ea02337ab0b8fb40106daa4516c5c76b219060f7"
+    },
+    {
+      "path": "textures/brown_mud_leaves_01/2k/color.jpg",
+      "sha256": "71f6fd6f92abea62ef2002415a729a0fbecc14d353db81e06cdefdc1074dfcb6"
+    },
+    {
+      "path": "textures/brown_mud_leaves_01/2k/normal.jpg",
+      "sha256": "fd5e1bab845401c93fc2c053ce25763b3437d7980e7f6f7b182cc013857a6fb9"
+    },
+    {
+      "path": "textures/brown_mud_leaves_01/color.jpg",
+      "sha256": "72599fd201f3d9a3896d2640dcb3cb1fd41bc13213f0d279c032c6df5cfd0e92"
+    },
+    {
+      "path": "textures/brown_mud_leaves_01/LICENSE.txt",
+      "sha256": "a20bcec87c8b3558f0fc144c337be2255c03269267f2a2ef8775a494df590752"
+    },
+    {
+      "path": "textures/brown_mud_leaves_01/normal.jpg",
+      "sha256": "4fe98c9764dc003d5f4db61ac391904088438f2b6955986ebc3f74d8f915e78e"
+    },
+    {
+      "path": "textures/CREDITS.md",
+      "sha256": "2e2213ff1ffbb8acdcefbe4a7537552ff4cf5ee353087926b41b8e2e6e44325f"
+    },
+    {
+      "path": "textures/forest_ground_04/2k/color.jpg",
+      "sha256": "5331ace94458f6ac2015302b49737afc0b4510b65787928458f497569798ced6"
+    },
+    {
+      "path": "textures/forest_ground_04/2k/normal.jpg",
+      "sha256": "9147e8f4a38b80d6d0725298208fe3b4379a03d4f1681d1beb1ca62af3aa5fbd"
+    },
+    {
+      "path": "textures/forest_ground_04/color.jpg",
+      "sha256": "e6322d665ab85787d838a4e6081906207cf22c09b806681722411dab99a3ed43"
+    },
+    {
+      "path": "textures/forest_ground_04/LICENSE.txt",
+      "sha256": "86aec82c045d3a64feac45265bb24f627bb8fe43991d2c9c65d0a3883c459fd5"
+    },
+    {
+      "path": "textures/forest_ground_04/normal.jpg",
+      "sha256": "2c0bcd6e78fc578cb4327829a2cac5e3486e09d86fbf87a6663a764401734ac3"
+    },
+    {
+      "path": "textures/leafy_grass/2k/color.jpg",
+      "sha256": "f0ffd8672de7f2fc00e33a8e9e75d7d38c9b2bc652356c858c86c30aab9d49de"
+    },
+    {
+      "path": "textures/leafy_grass/2k/normal.jpg",
+      "sha256": "278d7585db7e98f9059eea6330e39fd35757b12e227e9ede9166df24f7baec5a"
+    },
+    {
+      "path": "textures/leafy_grass/color.jpg",
+      "sha256": "c48756699537b5a1015f75da0873eaee50b02efa010072f351e0220a476426c2"
+    },
+    {
+      "path": "textures/leafy_grass/LICENSE.txt",
+      "sha256": "4390d15c9b89977c4413d88c75b4f47ec5c291a9061dd01d682e5337a1f7db5a"
+    },
+    {
+      "path": "textures/leafy_grass/normal.jpg",
+      "sha256": "a1866cc29f3a399cf434b5d7623bfb5d3b1c325feeb94a3078f4c6e0c7ec72d4"
+    },
+    {
+      "path": "textures/rock_boulder_cracked/2k/color.jpg",
+      "sha256": "c18457cfd18a165d0865a7c2cab33a3a10d3eaeb079f3b84a19938ef6761fb70"
+    },
+    {
+      "path": "textures/rock_boulder_cracked/2k/normal.jpg",
+      "sha256": "f386e681e86a54eac3fb3f184dd3d38292dd14f3d3f05c9227d332732f586d5c"
+    },
+    {
+      "path": "textures/rock_boulder_cracked/2k/roughness.jpg",
+      "sha256": "28e7114b26c6b2bedb682a361a5b3109f96de100a25265f36e6ea512533714fe"
+    },
+    {
+      "path": "textures/rock_boulder_cracked/color.jpg",
+      "sha256": "ddfa2401258ba9851fb40f59b062d002e63bdf320b134edbd88409ec29d8aa3d"
+    },
+    {
+      "path": "textures/rock_boulder_cracked/LICENSE.txt",
+      "sha256": "1a3626b7255fae0f36c93ada6e6940ac605b9462ccc2297144b5c6219f841b21"
+    },
+    {
+      "path": "textures/rock_boulder_cracked/normal.jpg",
+      "sha256": "dd324abb44bd077de3806ad39cbf5310895e80352a84fbf43447ec0480195a22"
+    },
+    {
+      "path": "textures/rock_boulder_cracked/roughness.jpg",
+      "sha256": "7976b189b158bb85bbb33ca4872c63bd1c7037fad674899b3f9c780aed1a832b"
+    },
+    {
+      "path": "textures/rock_face_03/2k/color.jpg",
+      "sha256": "092aef292c94439ef9049a48fed0040945af61463726ed851e8675eaf6ac52fe"
+    },
+    {
+      "path": "textures/rock_face_03/2k/normal.jpg",
+      "sha256": "8f60e34183379e7d4efe8f741ac74f6f6301fafa329a6136eb8066d012800e4d"
+    },
+    {
+      "path": "textures/rock_face_03/color.jpg",
+      "sha256": "24d9b1ea7fa8d03841df2e36399cd283040dd64b62bf337dd07dfb1c88d09259"
+    },
+    {
+      "path": "textures/rock_face_03/LICENSE.txt",
+      "sha256": "bc4dcc7ca20533cd6bd852892713303d849fe376e3ceed9b87f94b272e5c65d1"
+    },
+    {
+      "path": "textures/rock_face_03/normal.jpg",
+      "sha256": "265efa60470d976414913ad08ad5df85c3750bd10b9bd08008a6475051f7dfda"
+    },
+    {
+      "path": "textures/rocky_trail/2k/color.jpg",
+      "sha256": "9490910a753a5e316f147599e54691f43cb284b0c8f25b99204cc3117b2e55f4"
+    },
+    {
+      "path": "textures/rocky_trail/2k/normal.jpg",
+      "sha256": "c7208e8886bd19a746836f0db143b81cf967a5aaf68f6449b9bdfe8fd05cc7e9"
+    },
+    {
+      "path": "textures/rocky_trail/color.jpg",
+      "sha256": "0769f302f47011da5d3d0d78cd2ae54bd05d8beff0d0dfa6df4fda7d9052a416"
+    },
+    {
+      "path": "textures/rocky_trail/LICENSE.txt",
+      "sha256": "278de58b1cebdbfe4d34ca1fdb4f3f83680229cbcc959368d30339f29d90ca7d"
+    },
+    {
+      "path": "textures/rocky_trail/normal.jpg",
+      "sha256": "8536635f3c951a37accef26f1017892a5ed5aa47b5bdc71f86338fd5703c394e"
+    },
+    {
+      "path": "textures/thatch_roof_angled/2k/color.jpg",
+      "sha256": "82f66205257315a6ad12e2aeb1498ba4ed59ddd56af14229f678c8685ca10068"
+    },
+    {
+      "path": "textures/thatch_roof_angled/2k/normal.jpg",
+      "sha256": "abc1edad3322cb42a8c3a4f0a9ded1c4c501d70e3c03f24831c67c425d969a07"
+    },
+    {
+      "path": "textures/thatch_roof_angled/2k/roughness.jpg",
+      "sha256": "137887ea8219b4321f8938028d1079520ecc9c1544fd758e316c56751851ec38"
+    },
+    {
+      "path": "textures/thatch_roof_angled/color.jpg",
+      "sha256": "80d8bc22f6591e97cbfc0c02bb17f2e1f18f6be3d07136edc9a92fef38643fb0"
+    },
+    {
+      "path": "textures/thatch_roof_angled/LICENSE.txt",
+      "sha256": "14e8b146373324def44c9e895827eb2523eb18fb15337a4537ac32c8965e1d5f"
+    },
+    {
+      "path": "textures/thatch_roof_angled/normal.jpg",
+      "sha256": "d44f9e2b313960fe65a3c86950b05b67e907a693bae387d018442e5d6a66e0a7"
+    },
+    {
+      "path": "textures/thatch_roof_angled/roughness.jpg",
+      "sha256": "9190ca2176b0ac494b5fe0a4ceb30f9b1eeedd79906bb38aa326fc52bfca03e4"
+    },
+    {
+      "path": "textures/tree_bark_03/2k/color.jpg",
+      "sha256": "88d00559b80f1357eb26dba0354520fccac8eb1641126207b4e92debd75d070f"
+    },
+    {
+      "path": "textures/tree_bark_03/2k/normal.jpg",
+      "sha256": "d3e330105708c27f038eb76425b6f2c5e9c51209ba084e97d57cc0b1e4c0d29d"
+    },
+    {
+      "path": "textures/tree_bark_03/2k/roughness.jpg",
+      "sha256": "c5df39c3fc7426ec61e3567d987388c49528e8946a654a9b88d85ebb99dcff6f"
+    },
+    {
+      "path": "textures/tree_bark_03/color.jpg",
+      "sha256": "c1d5b6ec4e463983158242eaec5b7b36f5e9523aceec2e20b6a87af4ed7971cb"
+    },
+    {
+      "path": "textures/tree_bark_03/LICENSE.txt",
+      "sha256": "5a2590d86b0150cc52fb74fba2cc9b62122a3023e79fc111727bfefea77e162b"
+    },
+    {
+      "path": "textures/tree_bark_03/normal.jpg",
+      "sha256": "b7ad78428013e80c9744f6862950c4e3ac7d30d9dc0df8dc6fd55c0763f8c49c"
+    },
+    {
+      "path": "textures/tree_bark_03/roughness.jpg",
+      "sha256": "6e7741cc16c945a734b5a9aa1f9abe8d3721904ccb41f2ee33a813c55877c186"
+    },
+    {
+      "path": "textures/weathered_planks/2k/color.jpg",
+      "sha256": "cf57e382d2c490b3fa34b4db41a992db95c37205db52693eb9c71f474aaacffa"
+    },
+    {
+      "path": "textures/weathered_planks/2k/normal.jpg",
+      "sha256": "1943c8de9e5219990bf41e509ddb71a295034fdc4474b7a17138373d3395a2b6"
+    },
+    {
+      "path": "textures/weathered_planks/2k/roughness.jpg",
+      "sha256": "bae856a5746a52b7393d27c4567b881e74969be4edbefe0186667225d5f9807b"
+    },
+    {
+      "path": "textures/weathered_planks/color.jpg",
+      "sha256": "52a8296fed5dc5155b7293ed0d67a6aeefd8ad6f1f978362815907327b2ed407"
+    },
+    {
+      "path": "textures/weathered_planks/LICENSE.txt",
+      "sha256": "4c558a9bdb15b507863846ef417bb92aa3a977e52f14a1d3ef7a4a48c2857f2b"
+    },
+    {
+      "path": "textures/weathered_planks/normal.jpg",
+      "sha256": "6e1ebb09e3dc4efd41d54be62d8af8bbd7ea03320089b3c5228bc7770fee2e50"
+    },
+    {
+      "path": "textures/weathered_planks/roughness.jpg",
+      "sha256": "15ecb7247ee0635cb72bc8f18ef327f647f6c6d2b67abdde73312d17b1399673"
+    },
+    {
+      "path": "textures/worn_rock_natural_01/2k/ao.jpg",
+      "sha256": "82319894909362a725661eb1cbbd122beb579c4f33715771651f1bca33a5834c"
+    },
+    {
+      "path": "textures/worn_rock_natural_01/2k/color.jpg",
+      "sha256": "885d276b4b50fb1bf4ce1ca88acd54ad6525a145ac6cff2af832cc407f4727c2"
+    },
+    {
+      "path": "textures/worn_rock_natural_01/2k/normal.jpg",
+      "sha256": "8b22b0c9c4d26bf4c9cb3a8da6842eb64dbdf13d35172b1b01505e5988984eb3"
+    },
+    {
+      "path": "textures/worn_rock_natural_01/2k/roughness.jpg",
+      "sha256": "4ff4f3ce123c81509a2ff3ddae201e9810b0464b65b689fb612cd9c15b7ee18b"
+    },
+    {
+      "path": "textures/worn_rock_natural_01/ao.jpg",
+      "sha256": "1a47dc697664d41d3880070c4613336c4b1b8da6458c73be6dc0a3f1335df5f2"
+    },
+    {
+      "path": "textures/worn_rock_natural_01/color.jpg",
+      "sha256": "c3aeea048ef58a75fc4a47d31466c45d5ee3d6049030a1e85efd4a5bee8078e1"
+    },
+    {
+      "path": "textures/worn_rock_natural_01/LICENSE.txt",
+      "sha256": "c9d99939065b1b90803d29c6bfc2e3ad78049f6ccaf70b5417bc5e8d89612358"
+    },
+    {
+      "path": "textures/worn_rock_natural_01/normal.jpg",
+      "sha256": "949e0614b219e19aa13af12f653a7d03c764b9df2175618d33e61cbb57622ba7"
+    },
+    {
+      "path": "textures/worn_rock_natural_01/roughness.jpg",
+      "sha256": "2cf39b9a72d4516e94c10ce718026140dd79bbf5955e4144888683365498bd5d"
+    }
+  ],
+  "publicHash": "71f5ab095073d488366c6e84de23a07a22d009065e03fb7289530b5f74bd8b7f",
+  "sourceHashes": [
+    {
+      "path": "audio/ambience.ts",
+      "sha256": "f8179e24a578cea6f54d2742ecf0a7af2e71f93724496fbe9548c18771162f0d"
+    },
+    {
+      "path": "audio/footsteps.ts",
+      "sha256": "47fe3ee2f12f5eb28e1efbd199ea5a5b2a1d027767d223ad091a1bd61467b925"
+    },
+    {
+      "path": "audio/graph.ts",
+      "sha256": "e25312a102b51b09a65f0954dcba058a73b649d51cc1f4766d941af1b3fdd647"
+    },
+    {
+      "path": "audio/index.ts",
+      "sha256": "06385877569f9f2a7ee9824c6966c2638824251ca263081a7a779325031e8d90"
+    },
+    {
+      "path": "audio/music.ts",
+      "sha256": "cfb0f47e5bf22e18e990bdb8b661739782d58331f306fe31f13daf2f1e781fd9"
+    },
+    {
+      "path": "camera/follow.ts",
+      "sha256": "3de1dd687c0c3641fb75df6b2a5f43b0729d27af83551923e1337b80e0348150"
+    },
+    {
+      "path": "camera/freecam.ts",
+      "sha256": "124f18055a1971f54bef8c773dd3d252bdf9a5b2c507e923e522aa1eea0f59d8"
+    },
+    {
+      "path": "capture/api.ts",
+      "sha256": "a6b5b0a4ffd213f6c060a102ff4dbe280e0192cc90099a199ab2c3e1763f3742"
+    },
+    {
+      "path": "character/README.md",
+      "sha256": "52d9d73d191d462008ec98009a1cdb206e016e53a28e08b0a40b1284ccfcaa7f"
+    },
+    {
+      "path": "main.ts",
+      "sha256": "e52bfc88868a2ca7a6e8ea465953b1210364a901cdc705cd7acece4e97654b1a"
+    },
+    {
+      "path": "perfFlags.test.mjs",
+      "sha256": "d1b4b0348345e987f8e83bde3a66ecdefedd2cfa3cdb8373752e672cef5a614c"
+    },
+    {
+      "path": "perfFlags.ts",
+      "sha256": "ea3674473bd44591f19c5101970b685aef2cef43bee489ce04af47f95d160522"
+    },
+    {
+      "path": "ui/equipment.ts",
+      "sha256": "0b79a0a33a77e1f6d181060cde8dfc501cd84eb48db7a03b4e802d16c30062b4"
+    },
+    {
+      "path": "ui/glyphs.ts",
+      "sha256": "4c5df26e213beddb640eecc1b40a67ad3b7b6560f0869e9a9e0cbeaba964845a"
+    },
+    {
+      "path": "ui/hearts.ts",
+      "sha256": "393aec4135c12c799296225d268b5d2d20178b377b850135f33c8adc173324a3"
+    },
+    {
+      "path": "ui/hud.ts",
+      "sha256": "2bab0803366b5ad100049edcd6ddcbef21c44cf8a01352cd2aec5335721e4cd4"
+    },
+    {
+      "path": "ui/itemCard.ts",
+      "sha256": "2a14c825fd8cd1e65672c25be1e240685832b366949bcc9af8428172de58f8e6"
+    },
+    {
+      "path": "ui/items/dekuNut.ts",
+      "sha256": "54d699bb15280cf5b90dd6ce7a67c938cb95ee007b6dbde185f9cf95aac471ed"
+    },
+    {
+      "path": "ui/items/dekuShield.ts",
+      "sha256": "a64d09083fe08753bfb8b6bd936a78f498cb48a4ecd4c30a3b1796f6c11c7784"
+    },
+    {
+      "path": "ui/items/dekuStick.ts",
+      "sha256": "f17513165027ad78111dea7799f79d245aa4165490615ca535ca8566fcc695c0"
+    },
+    {
+      "path": "ui/items/index.ts",
+      "sha256": "9873a95bb7e814ebbd116684818edb6e53bef361fc0617768662f1ab5269fee0"
+    },
+    {
+      "path": "ui/items/kokiriSword.ts",
+      "sha256": "c5b550a7854910d0e00d59048e38110a652a95238eb51838f28653b783129c96"
+    },
+    {
+      "path": "ui/items/ocarina.ts",
+      "sha256": "e01b4784399153051ceea1e88010dccc29aa601ab1067aa1bcec18ae415f40be"
+    },
+    {
+      "path": "ui/items/shape.ts",
+      "sha256": "ba7d26c3c4a8e8742d531d0a2305e72c55e2fe9dba6cb00a17374c4ba34aeb70"
+    },
+    {
+      "path": "ui/items/slingshot.ts",
+      "sha256": "3ee3e321457bb5de59762285a205826e108e39f1c05de8e772f06614ddf4b242"
+    },
+    {
+      "path": "ui/itemSlot.ts",
+      "sha256": "4e5a9d7b2f361a2f2ef978ed36903c4c1f208d017f741573c7a3114804c65437"
+    },
+    {
+      "path": "ui/minimap.ts",
+      "sha256": "2e335cb4cfef9f960f73901d9014d81452c8609d2e189a5f7bfff9f2c302e510"
+    },
+    {
+      "path": "ui/README.md",
+      "sha256": "c1d23db0c19301384a720245119299e47ad6e1d0d9315babfeffb9a0de96a438"
+    },
+    {
+      "path": "ui/shell.ts",
+      "sha256": "e5ad8289637f89b0c39287600c5ea20cd3ca4581bea205460de7574f85352b03"
+    },
+    {
+      "path": "ui/speaker.ts",
+      "sha256": "4a1c827113eca2961c58fa7ede7b0e21b326417f09bbf59d499673e18556896f"
+    },
+    {
+      "path": "ui/styles.ts",
+      "sha256": "1059036c53a67a27133d6d9565344bf4a853c1f9990472dd6e0fd11bd9acc648"
+    },
+    {
+      "path": "ui/svg.ts",
+      "sha256": "b0ab53db9ea419c478d32f5439cb1dffda24017c992319d819daef4b6d8a3080"
+    },
+    {
+      "path": "world/atmosphere/fairy.ts",
+      "sha256": "908d25cc49ff6033e62d32e710a71fb911bf83169faa9c00214abae2c8dfa3f8"
+    },
+    {
+      "path": "world/atmosphere/heightfog.ts",
+      "sha256": "87ebf23bee753f8ba4ac4d99279e4274b835efdd073bbe26e3a617c4befd97a6"
+    },
+    {
+      "path": "world/atmosphere/index.ts",
+      "sha256": "b4e0cc84973649bf8062783087b7563515c95e038628571f7741ba2046819edb"
+    },
+    {
+      "path": "world/atmosphere/leaves.ts",
+      "sha256": "df22c747de3ba8fb004f5390133a81f2f7bbb00ec02cf0d717f2c2329560c524"
+    },
+    {
+      "path": "world/atmosphere/mist.ts",
+      "sha256": "6f1e7f829aa3e802c04ae7719833166abb88831787ec4c218632b447b50270a5"
+    },
+    {
+      "path": "world/atmosphere/motes.ts",
+      "sha256": "949d94a582c8ba72887870dc1b94ad9b4c250e5baa12cef7f722173d95fd2a86"
+    },
+    {
+      "path": "world/atmosphere/shafts.ts",
+      "sha256": "bb29ffe2399dc4e3a765ac25c9a2a41d3c969298c6cb202feebbba8bc24eeb4b"
+    },
+    {
+      "path": "world/atmosphere/sky.ts",
+      "sha256": "4a29b1a607785010c9c3cb3e6ab73ef147758dff86ba8dc38c688b319e3550f7"
+    },
+    {
+      "path": "world/canopy/atlas.ts",
+      "sha256": "3472f532efcb97eb17077f9759cf5d5007f52dc07444212675e8284cb39e29d4"
+    },
+    {
+      "path": "world/canopy/index.ts",
+      "sha256": "78d5e65271bfbc88573446ae8280a1db53d27d7e92dbf524177125512465355a"
+    },
+    {
+      "path": "world/canopy/roof.test.mjs",
+      "sha256": "2e55d98d5c8a2ef16407835ccf1f4c2564b7eb69332612b6959ed5952c805db5"
+    },
+    {
+      "path": "world/canopy/roof.ts",
+      "sha256": "fb3497f4e22dc7dd59fdd2099ec6d931ba5b5eba9ec8fb5a49a851c7aa593cb2"
+    },
+    {
+      "path": "world/character/animation.ts",
+      "sha256": "e9945fd02ecddb45085cc9602fb5fa4fe31ddffa94fc908c2718fb6aa6ee4026"
+    },
+    {
+      "path": "world/character/blink.test.mjs",
+      "sha256": "b41673c6287fedc87f4055526d9162a8ea37d8fc0b91f99f5092992aa1eceb44"
+    },
+    {
+      "path": "world/character/blink.ts",
+      "sha256": "e4a76faf3a62632854204a3892f535c2bda57486604324232a4d471f101de99d"
+    },
+    {
+      "path": "world/character/consolidate.ts",
+      "sha256": "32dd90ca953d4ef87ba4173c63cee6b25b29c6ee0cf4e7b9af6eb6e3f0de56e6"
+    },
+    {
+      "path": "world/character/gaitChain.test.mjs",
+      "sha256": "04f4e0c3bc159464186c74b57423d1336971bff8678388089bc9af7b0f2861ab"
+    },
+    {
+      "path": "world/character/gaitChain.ts",
+      "sha256": "e6a6e1c59459841d4a331a8703e8529ca9023a68347631634b4b13e211992ca8"
+    },
+    {
+      "path": "world/character/geometry.ts",
+      "sha256": "2cd381f4862ac963109972e6a60e38d0c7d0f5918e86f0ca08e2f88e50265275"
+    },
+    {
+      "path": "world/character/glbLink.ts",
+      "sha256": "55ce4744f04bf3a1f0d648466969175803e8c347827ff08e4cd7083c05570cef"
+    },
+    {
+      "path": "world/character/ground.ts",
+      "sha256": "2e61839bc6314039e3679e10961751ca1cb89bb2b1ee81f10d1062482505c4be"
+    },
+    {
+      "path": "world/character/index.ts",
+      "sha256": "2cc06a0e01b0dcded198f1446ba6b7365a48fd9b765887d021c2111a9910d4de"
+    },
+    {
+      "path": "world/character/kokiri.ts",
+      "sha256": "21c57a5814152884b7a64255a0f74bdf988ae56a2f12afa23e5270047130804c"
+    },
+    {
+      "path": "world/character/link.ts",
+      "sha256": "9b1978bc1fb79688b5f815a1359677db0083e035ef9ab6f2595643b912250616"
+    },
+    {
+      "path": "world/character/linkColorGrade.test.mjs",
+      "sha256": "9f15f6fe44f23c0ca871d500fac6037c5733e6d62eae9c64d47ec0ca49b123a1"
+    },
+    {
+      "path": "world/character/linkColorGrade.ts",
+      "sha256": "c24c50565c4027cbdaff8e715b0d7836c22c6d11b8de645b8edc89a7816afab1"
+    },
+    {
+      "path": "world/character/navi.ts",
+      "sha256": "44e61ed55013f77f24bf897c3f16af20798f181250e3f21f2ad089868462bd79"
+    },
+    {
+      "path": "world/character/npc.ts",
+      "sha256": "51d43fdc4aee1aadc556db7de56af74db06e87f06ce296453c76c99cac57e783"
+    },
+    {
+      "path": "world/character/palette.ts",
+      "sha256": "b18e8c84a796e801a3b0ce89f4456243fde5b6f5b98fc9a010a9db0c4be59045"
+    },
+    {
+      "path": "world/character/placement.test.mjs",
+      "sha256": "a9e631a5359ae05b4ffc45c270f4ee33aa57e66b84cf0148ee14682a61cf38d6"
+    },
+    {
+      "path": "world/character/placement.ts",
+      "sha256": "80467d859597d9652a55c58b8fa8748545734f33155a86556f4c812fb14dceb0"
+    },
+    {
+      "path": "world/character/player.ts",
+      "sha256": "e0ded3a9121beadff472aca0b7b2af412984d98be52c3a6494b6eb667f2f2a20"
+    },
+    {
+      "path": "world/character/puppet.ts",
+      "sha256": "89990ec5913dce53855788361891ff3feb084c7cad38b33527af8f5fdcc4ec82"
+    },
+    {
+      "path": "world/character/rig.ts",
+      "sha256": "17f5ffc28068632ca4b1ff20322a995271f440a4e877ee2ac4e66e3e0d0f36fe"
+    },
+    {
+      "path": "world/character/shadow.ts",
+      "sha256": "c67e3a9b71d68f7abf5d3fcd3c57bc9cd52d9dc510cd76dd94711edb10159be5"
+    },
+    {
+      "path": "world/config.ts",
+      "sha256": "9af72376d8b55bcee8ddd53a3b6b648292a19ecc6aabb75c003dabc72fe98b02"
+    },
+    {
+      "path": "world/hardscape/flagstones.ts",
+      "sha256": "6a27195ab643e75713ca374cac68919f42a0e211d164f9b4602d80ce6c9aa339"
+    },
+    {
+      "path": "world/hardscape/flowers.ts",
+      "sha256": "0f6c1d747b0e587b22b52be343016adb0bf85795c5781af114e17c663243a1a2"
+    },
+    {
+      "path": "world/hardscape/geometry.ts",
+      "sha256": "a1a05c976f3e1546abb92e5968c48a1ac254314c6186ab2163c58d8c39ae7afd"
+    },
+    {
+      "path": "world/hardscape/index.ts",
+      "sha256": "b39f00916a24d57f49a4918076a0a9644dcf476cb160a813bc5459db0a0ab39d"
+    },
+    {
+      "path": "world/hardscape/joints.ts",
+      "sha256": "51cfc9a8ecf8576c2d4f71858a12f9993d2debd3f7f38ddd675f48e5a676239b"
+    },
+    {
+      "path": "world/hardscape/logNosings.test.mjs",
+      "sha256": "f126ec4de2484cac40482bbe4cba62fb340e3b311895d14f2ad9087281eb803b"
+    },
+    {
+      "path": "world/hardscape/logNosings.ts",
+      "sha256": "a7fd2614c60b12638cbf1f51355f6d0683bfc58574bd3a9a38be15138a7c9080"
+    },
+    {
+      "path": "world/hardscape/material.ts",
+      "sha256": "20da619a2f8de4ebc93d91e4e7ead871ced902f6cd6d694a83c8ce1758800f8d"
+    },
+    {
+      "path": "world/hardscape/paving.test.mjs",
+      "sha256": "2fcb827d5401504ccc09f6f40093b62e335df6f7538d4d31458510516dc0d155"
+    },
+    {
+      "path": "world/hardscape/sprout-jitter.ts",
+      "sha256": "5bf8d54e953d334411a951e7a5bada98304aefb92e816bc61d3e7a11f558837b"
+    },
+    {
+      "path": "world/hardscape/stairs.ts",
+      "sha256": "73133a0745e2455dd6e059fb70baa14a5bbdadee72f4dd251268da1f6cf76e11"
+    },
+    {
+      "path": "world/hardscape/standing-stones.ts",
+      "sha256": "af7b693e22ee97ce2cac66703aabca668b6f43d400b4bb899e5227c7384f937b"
+    },
+    {
+      "path": "world/hardscape/zones.ts",
+      "sha256": "f7ad16c4571fc219581fe192b1e652880e349b3d26473f07c6df5897fd1cd0ac"
+    },
+    {
+      "path": "world/index.ts",
+      "sha256": "1fcc3a65b68dd464bf26abe47af1221136ae4a097d2794a66b089c81abc0b09b"
+    },
+    {
+      "path": "world/layout.ts",
+      "sha256": "790de1455bc08d36f42eee3615e43371767a42abcc585651fd051feebe3923e0"
+    },
+    {
+      "path": "world/lighting/environment.ts",
+      "sha256": "3c67a6fa79ed93d2a4b34f6305611effe3329d0ec884ea56c70a828d78b5bba8"
+    },
+    {
+      "path": "world/lighting/index.ts",
+      "sha256": "24ebcf5d63f723cd137ef26d543ba8980779ff2c7433e94e1017d0bc2eb98d00"
+    },
+    {
+      "path": "world/lighting/shadowfilter.ts",
+      "sha256": "c049f45136993ad8e1585ec02eca8929097905e961ff78c55b477f65753290a9"
+    },
+    {
+      "path": "world/lighting/shadowframe.test.mjs",
+      "sha256": "5cc1ec875b91c7d5796700e348d6801655a736f43bc73a66c7fb348f3986ca05"
+    },
+    {
+      "path": "world/lighting/shadowframe.ts",
+      "sha256": "2d151457ddd9d11d57ec9f34c8893a63f7120cfb5321215b8b42c3d67b012da3"
+    },
+    {
+      "path": "world/lighting/sun.ts",
+      "sha256": "3fa97cc360829eb6fa6ec14aa9e7c4841c5b0e4a701ee7d1fed173948d5ea34e"
+    },
+    {
+      "path": "world/materials/grit.ts",
+      "sha256": "d9511bfd222b65e0d5952c7bd18a28a915ba1aba07017b00ab37e94d6ca33505"
+    },
+    {
+      "path": "world/materials/shadeFloor.ts",
+      "sha256": "2e574acd009c34691047b035ae551ead08d4ae9892d68766639b10e864ff90a8"
+    },
+    {
+      "path": "world/materials/sprouts.test.mjs",
+      "sha256": "78572789816bb84f4a48f57f351b8aaa52639f928aabaf769e4043607be6d4b2"
+    },
+    {
+      "path": "world/materials/sprouts.ts",
+      "sha256": "a718f535b516384c173fee17f6487a135cb30f13b092aeca88730f524a410ac8"
+    },
+    {
+      "path": "world/materials/textures.ts",
+      "sha256": "c29010497e0946101bf21a8d2eaa1b6ce4d8f56bd59497a997eaf31fd8bcde8e"
+    },
+    {
+      "path": "world/postfx/composer.ts",
+      "sha256": "f050793d092bda669c0fdd58934309c44dc959c59a4d748af7f5171aa3e431d1"
+    },
+    {
+      "path": "world/postfx/shaders.ts",
+      "sha256": "01f6d37bad144685870c6bcf0395e1af8fa856d269bacde318d7f61f15b3e05b"
+    },
+    {
+      "path": "world/postfx/shadowcull.test.mjs",
+      "sha256": "eb918c447b936d999793730e3f58c1a59b784192ae55d99c34d1cd341df01954"
+    },
+    {
+      "path": "world/postfx/shadowcull.ts",
+      "sha256": "fdc308b672f999baaa4a73b4d56111141cf04bca178bd3276d6a68b74d172ba5"
+    },
+    {
+      "path": "world/props/geometry.test.mjs",
+      "sha256": "c27229a32b15bb028a8dfa8f4fbaf198f3ccdf20f0b7204e03fb037b37b2abbc"
+    },
+    {
+      "path": "world/props/geometry.ts",
+      "sha256": "57048644f4d2e9605a2584fe2c9a8cdf59e5f1e973c8611d29aa8f63313add26"
+    },
+    {
+      "path": "world/props/index.ts",
+      "sha256": "face079b879e2580e7f84cffbc678b50cb8f658d06e1498852b033a2ad103426"
+    },
+    {
+      "path": "world/props/layout.ts",
+      "sha256": "2e93734c31a4d740f6adaddc6c8cca9e2d389a902e6cdc68992992a77c4109c0"
+    },
+    {
+      "path": "world/props/materials.ts",
+      "sha256": "d1b62277636b4dacb2f01765829b5df190ea7aab58f96b096bed28b0f487bfab"
+    },
+    {
+      "path": "world/props/README.md",
+      "sha256": "b9c4f327a2c5e0900fb2784595f09f44ed9ccd737d2b56e82fbfc83dfa6d7dfb"
+    },
+    {
+      "path": "world/rocks/backside.test.mjs",
+      "sha256": "627fd9e531eae9d71fa649354383647b2ddb39eeffac258967527a47e97ec00d"
+    },
+    {
+      "path": "world/rocks/backside.ts",
+      "sha256": "cd85d1ee94761133d1cef9536e5d29168c58bc38161921dbce53b5b27257b716"
+    },
+    {
+      "path": "world/rocks/clearing.test.mjs",
+      "sha256": "bd9e13d920a946210b428b832caf19f73344b845c4028bf0cd8e43f485406ab8"
+    },
+    {
+      "path": "world/rocks/clearing.ts",
+      "sha256": "770adbafa640dfaacd125937ef7b4af6b49383a2a25152a3a2dc36ff27284e52"
+    },
+    {
+      "path": "world/rocks/dressing.ts",
+      "sha256": "b9f2cc2b8292fe0f4f7b84e195308fad83f5f485f887143f0da06fafab97a9af"
+    },
+    {
+      "path": "world/rocks/index.ts",
+      "sha256": "34ecc8a941b8108aaae846d804b8491581cb1f012eb189ad5f3e75d0765ab4cd"
+    },
+    {
+      "path": "world/rocks/ledge.test.mjs",
+      "sha256": "7367063ebcff1aeb71576d31c85841b71f41eeeea284dc304ee2c1489da3b6a1"
+    },
+    {
+      "path": "world/rocks/ledge.ts",
+      "sha256": "01d9a6b650809241453d9e9790158af4f209f8e76d4b180480e8b54b6a743092"
+    },
+    {
+      "path": "world/rocks/material.ts",
+      "sha256": "f31374da0672b9fe4e9477069c7e18e227ee2ebee29f88f27bbe9fb8c6a6ce14"
+    },
+    {
+      "path": "world/rocks/pebbles.test.mjs",
+      "sha256": "acde7f2b0922300986ccdc6bcaef9210f6b6e6ce068457180c0963a934b42a17"
+    },
+    {
+      "path": "world/rocks/pebbles.ts",
+      "sha256": "88a99f39b148772d45f9f5b18d3b09c2539e673e6332cfdc6153c492c14af5ef"
+    },
+    {
+      "path": "world/rocks/rockgen.test.mjs",
+      "sha256": "99d16b141751725a95344794a22283ad76135e8bb7e0b3c4a6ada14e858c42c2"
+    },
+    {
+      "path": "world/rocks/rockgen.ts",
+      "sha256": "6b7a24f8ebe8e1d7ed6bf84c9bddfafbe70652c9df2b932a0f1d294e29be0a74"
+    },
+    {
+      "path": "world/rocks/tiers.test.mjs",
+      "sha256": "c5077ea6cfeb69a6da97d8ca73269c2bb0a6591ad06e581fc44aacd2c4ed7621"
+    },
+    {
+      "path": "world/structures/distantHouse.ts",
+      "sha256": "58299f524913c6208a1f9e35454dc2d38afb729782aa3a9f49493d5167ecf675"
+    },
+    {
+      "path": "world/structures/endGrain.ts",
+      "sha256": "cb6d20f8d7fec7a57b3fb984f62998bac4491f36a6b0316401971585cbda4ffd"
+    },
+    {
+      "path": "world/structures/expansion.ts",
+      "sha256": "3b0bb4baacfff49bf17a8ec4a52e4a6401da257c33864f2b3f435a2d014cba56"
+    },
+    {
+      "path": "world/structures/fence.ts",
+      "sha256": "3cea8f1a83dbef94011c8e57e6407dfd3edd00550b5cf2c0de005eac628d5366"
+    },
+    {
+      "path": "world/structures/foliage.ts",
+      "sha256": "e7b29c69487eb3c78bd4835aed2314fac0d747b285cc2f6af92526102b23a8ec"
+    },
+    {
+      "path": "world/structures/geometry.ts",
+      "sha256": "05ce7f200911bcc7fbef0593f80cf2dd6032b78dd41b7444067f12b337dcd062"
+    },
+    {
+      "path": "world/structures/glyphs.ts",
+      "sha256": "34b255dadbcb00461ba8ae44137cee8df8e6d8ff694133b8f9e7d1c6f2f27f0e"
+    },
+    {
+      "path": "world/structures/house.ts",
+      "sha256": "ef8584bff5c6333ee1fa7318ae17525f6a6a58f9cd8881a254e7cbf5d596fd2d"
+    },
+    {
+      "path": "world/structures/index.ts",
+      "sha256": "3df8f4c9d60c3feb6adc63a7b0afd4b796187d4a4ae2221f80f3f7ba02b94a69"
+    },
+    {
+      "path": "world/structures/lantern.ts",
+      "sha256": "7e0659652a684c020726558c1054d1d42b10120fd2946689e8d4da275e40688e"
+    },
+    {
+      "path": "world/structures/lanternBranch.ts",
+      "sha256": "6a5b390639415cc0d9c0d1e0ff45404c855054665e9191c0c699bdcec06617ca"
+    },
+    {
+      "path": "world/structures/lanternPost.ts",
+      "sha256": "e65a762cbf3349f522e65ea77fff97ee890a9471bc566d077902b949503bdd74"
+    },
+    {
+      "path": "world/structures/logArch.ts",
+      "sha256": "083c755759c5d1a89f0050b63a00f013aa9746cc8838273a09a30599560227f5"
+    },
+    {
+      "path": "world/structures/materials.ts",
+      "sha256": "d9f12e58e3c8fe014d895539e946481e602b65c9489bdcadc440c74b0882ac8f"
+    },
+    {
+      "path": "world/structures/mossTufts.test.mjs",
+      "sha256": "d1fc37926a6b3bd1007fdfa16ecc925dc9f0aea6daaa7bff23b73fe28bdb8812"
+    },
+    {
+      "path": "world/structures/mossTufts.ts",
+      "sha256": "4367274fc3403451fc4f2589db6223983e6c0a1ad36c1f36119eb97ea8986a45"
+    },
+    {
+      "path": "world/structures/north.ts",
+      "sha256": "1e559547061e462e5f0483ed6debd62d3570f4b52027343056c8e2806fcb4efd"
+    },
+    {
+      "path": "world/structures/podSkin.test.mjs",
+      "sha256": "ab99c32832c02c47f6279207b95ff092008e06addf0f09effa7f199ba4241494"
+    },
+    {
+      "path": "world/structures/podSkin.ts",
+      "sha256": "9dfb68911b65750896e4cc139971d4c3ea34ee842dd92bed52475804ed6eea97"
+    },
+    {
+      "path": "world/structures/signpost.ts",
+      "sha256": "a950b98875a8a1bc87b222802244b7d1faf4e8c32a309226314753c87747529d"
+    },
+    {
+      "path": "world/structures/sleeveBark.ts",
+      "sha256": "a5385c2cb069ffb505fd4d075811f73e42a307c1eef82dde679b02ae3a986f9e"
+    },
+    {
+      "path": "world/structures/woodGrain.test.mjs",
+      "sha256": "78ca37ccd4cfef2feea84f6b0fffcf54edfcac9dfb18cf614f9741dd62d8cda2"
+    },
+    {
+      "path": "world/structures/woodGrain.ts",
+      "sha256": "67b7f7d7c0a38bcc7ec404d84817510d1d97d8f26d4bb8b86dc8f2b98626ff05"
+    },
+    {
+      "path": "world/system.ts",
+      "sha256": "d23c143feffa93af2a7fd7c4af5bbe84da3ff33dcf68209e4f8684994703c5d4"
+    },
+    {
+      "path": "world/terrain/chunks.ts",
+      "sha256": "d09a5fcfb1b567a81143188a4d015f267c1a1afbc63eb5097621949b29c30fc8"
+    },
+    {
+      "path": "world/terrain/expansion.test.mjs",
+      "sha256": "7e52390a018109045dd790ad535d6c173528e4ebabb1c65ac357346f21081235"
+    },
+    {
+      "path": "world/terrain/expansion2.test.mjs",
+      "sha256": "cdc54c95cda9d626a0eb90dcef24941c94d6c7ee1704a83d9dd79acc8cffeebb"
+    },
+    {
+      "path": "world/terrain/heightfield.ts",
+      "sha256": "c09159bab3d264542daaeeecead41cad7f6d679a8b09097a5f745fc8f4ce2af3"
+    },
+    {
+      "path": "world/terrain/index.ts",
+      "sha256": "ce4e4acccdeaf725e087f7577998b19e5cbf84da70b485cf0abef82fb2b4f03b"
+    },
+    {
+      "path": "world/terrain/material.ts",
+      "sha256": "e5e0e08b602e73fa88460d9b7e96e7e088af2aef1550c79b78424c3066a7c5b4"
+    },
+    {
+      "path": "world/trees/bark-texture.ts",
+      "sha256": "bc0c5605b87bed853ec0f85172410350e296c04776f428bc4ed448f92ae75d34"
+    },
+    {
+      "path": "world/trees/base-plants.ts",
+      "sha256": "f3d431b28a212688d13324cb9a243c6ea53d7929b73372474ae49d5a3167cbf1"
+    },
+    {
+      "path": "world/trees/bole.ts",
+      "sha256": "03930000a9b2417f909bbad2e6e2fde93efa6640c6bfac9cbcf296745afbffbc"
+    },
+    {
+      "path": "world/trees/column.ts",
+      "sha256": "ecf9d1012c56aaae7bffa93684079cf2461d5d0076c00af05f19e005c5382f10"
+    },
+    {
+      "path": "world/trees/corridors.ts",
+      "sha256": "d41c3e0fdd608ca8eceb5da9e202e231486f9c8b04f07923dd80895dd3efb59c"
+    },
+    {
+      "path": "world/trees/distant.ts",
+      "sha256": "c747b8f62f459d401f6c542cc003dfb0c67ff20a404cb3394fff5fe67817d71e"
+    },
+    {
+      "path": "world/trees/giant.ts",
+      "sha256": "d52764d54a76485cbfcca77c52b8dead30e0987c07129b1efbed90fec458a983"
+    },
+    {
+      "path": "world/trees/index.ts",
+      "sha256": "a6dc45f58e6f28dd7c8f7f447f39acaea80248852c176e8c465f536a6b498af7"
+    },
+    {
+      "path": "world/trees/leaf-cluster-texture.ts",
+      "sha256": "eacd815ee5e05306e65e1c9766a1f73e168ecb7e22092df1e2ddbd9990649ef7"
+    },
+    {
+      "path": "world/trees/leaf-color.test.mjs",
+      "sha256": "ffc7e3d9955f38555806e330adab01afb07cce72ce7ffc40fd2cbbb7a3f89471"
+    },
+    {
+      "path": "world/trees/leaf-color.ts",
+      "sha256": "a948b098951f1c653e8a426e5f664fd011f50f00ea201c1b8052d9f40ebf63e2"
+    },
+    {
+      "path": "world/trees/lodPool.test.mjs",
+      "sha256": "ad67176fd8bf472565ce6bfa688f518c9f52c08ceb0e1ed8c3fc08e548c493ee"
+    },
+    {
+      "path": "world/trees/lodPool.ts",
+      "sha256": "c4cbefefd1e66ccef437ae9be2d7dc793ae97dae11052468ebce72fc9c067505"
+    },
+    {
+      "path": "world/trees/materials.ts",
+      "sha256": "713a171c4545fe8b3bf9b3523a6f9f274fb9002f8d4003ce95d52ca74f10b104"
+    },
+    {
+      "path": "world/trees/nearCanopy.ts",
+      "sha256": "0b022b46fe1e6640dabd197d4d95e2e48d765c20f076450f64de8a69a47564cb"
+    },
+    {
+      "path": "world/trees/placement.ts",
+      "sha256": "abcdf6dd9961c7fb94e7d7fd36363c7ed1175163577e8446191deac79ace27a3"
+    },
+    {
+      "path": "world/trees/rootkit.ts",
+      "sha256": "504be0de7410c28fa6e2fd244ad790904591050f9dd6a93b5158940683166ea8"
+    },
+    {
+      "path": "world/trees/tubePath.ts",
+      "sha256": "143add39db6b04c02d5835868f005e8fbb4c6325210cc17b6389497f5276a19d"
+    },
+    {
+      "path": "world/trees/whitebark.ts",
+      "sha256": "1f5bdecd9ebf0146418c730e9082280d227c1d6b814effa108579bc9aa7ca9ba"
+    },
+    {
+      "path": "world/trees/writer.ts",
+      "sha256": "66757a17cf5395b10d5d1115b1cb945d5b6af2645eff9b3fd2f4b73f13230a5a"
+    },
+    {
+      "path": "world/util/expansionLocality.ts",
+      "sha256": "e4cdc8f5c37340c3b32b8106c166b4722e2fba0590a4540233aa1d40133681c7"
+    },
+    {
+      "path": "world/util/noise.ts",
+      "sha256": "18502d05e54fe9a0d7a95daa9f34cda8d69d5de05b80aa01d793c4ed5c33a94c"
+    },
+    {
+      "path": "world/util/northLocality.ts",
+      "sha256": "25ffc0e422518ef958c76f2a5739cde9b73ea11ab44574772722336ad26673c8"
+    },
+    {
+      "path": "world/util/prng.ts",
+      "sha256": "95beabffc3f533bf54b61d3596c5c8c31a92d7fb667a43439e9b730654fa14b9"
+    },
+    {
+      "path": "world/vegetation/carpet.test.mjs",
+      "sha256": "47b4f63489011b472eb128f28b10efab5ca643342f67a259935fa0017b230cdb"
+    },
+    {
+      "path": "world/vegetation/carpet.ts",
+      "sha256": "f7f51e81571fe7652b4e940f66c3dea5e3224d64bb676e5a6afdd462779c643d"
+    },
+    {
+      "path": "world/vegetation/clump-atlas.ts",
+      "sha256": "475e721e09744ebcec0252963c8e124c94f21fe8923b4ada6521b4c070e74e3f"
+    },
+    {
+      "path": "world/vegetation/coverage.test.mjs",
+      "sha256": "8d8e466ae16a8edb9d916bdf30028736602f4edb4e791ad5b63d7e05997446cd"
+    },
+    {
+      "path": "world/vegetation/coverage.ts",
+      "sha256": "c3d2586524a3a2d9c2b17b8f9105f2a1fb5f0f872ec8bb2e152e11d763a99467"
+    },
+    {
+      "path": "world/vegetation/dispose.test.mjs",
+      "sha256": "fa783134b8719263b1c151fc435af7c5e492e0a8d99d531a1cd267f7ffe83b25"
+    },
+    {
+      "path": "world/vegetation/edges.test.mjs",
+      "sha256": "3a2203252d92fab859217f7e855caeead82f6a84647b94766e7c276cfc27cb6e"
+    },
+    {
+      "path": "world/vegetation/edges.ts",
+      "sha256": "179cd264f8497cf65f631768ae70b469f5d4a8eda94e556998d9e01563639d2a"
+    },
+    {
+      "path": "world/vegetation/expansion.ts",
+      "sha256": "f6d1f4d1761ee32c7514530d66d6015b62534f8c9074ed2c33f90a07ecd4c2dd"
+    },
+    {
+      "path": "world/vegetation/field.ts",
+      "sha256": "fca35f7d7231584ae13e699c1b54d3486e69e7ca3d0ee14de047d516ee6c4b79"
+    },
+    {
+      "path": "world/vegetation/flower-lod.test.mjs",
+      "sha256": "59b84e739a4fbfeb23f360c939b56d979b36f001627cbf3f9e568d6f58c954aa"
+    },
+    {
+      "path": "world/vegetation/geometry.ts",
+      "sha256": "0526a517e937989331e9a30de9dcf4027af575644bf0052aaf8f45f6c5bbd9c1"
+    },
+    {
+      "path": "world/vegetation/grass.test.mjs",
+      "sha256": "a79df67bad527a65aea659364dcfac352ae1a0e1963ae4a7644d56e1f036bdfe"
+    },
+    {
+      "path": "world/vegetation/grass.ts",
+      "sha256": "873586bd06ef49e9293c617263277273cf9be9a7ea3ab0e2a0eef9a722da458d"
+    },
+    {
+      "path": "world/vegetation/index.ts",
+      "sha256": "ea90cf425c751077169ab709b0a22f437d7b75d66f934718e60455731fbbe469"
+    },
+    {
+      "path": "world/vegetation/litter.ts",
+      "sha256": "4e7fe38f0c22e50394c402f96445dd77a7cb07646ffff2cd21fc08b1fe62b23a"
+    },
+    {
+      "path": "world/vegetation/lodset.test.mjs",
+      "sha256": "350d0e192ed8380a4f5ee78909904382cebfdd50547b54920cc49f43fdce918d"
+    },
+    {
+      "path": "world/vegetation/lodset.ts",
+      "sha256": "f18052322cc95ae4d3d160316a77776cd0d7c112b15c75b484a100575227bbc8"
+    },
+    {
+      "path": "world/vegetation/materials.test.mjs",
+      "sha256": "f9c669e82c9fee02ecf79f1a3eb2535dc7cc1ab634698ae8ca74f9fdb212d30e"
+    },
+    {
+      "path": "world/vegetation/materials.ts",
+      "sha256": "353090e6283be6c3868a968910931df22897645edd5b37cee8fd3a8cbc2ffe06"
+    },
+    {
+      "path": "world/vegetation/plantgeo.ts",
+      "sha256": "3fad4e324ac7f7399521fb3fbd45c30aac14da0618642bf42aa4d65ae51a2549"
+    },
+    {
+      "path": "world/vegetation/plants.test.mjs",
+      "sha256": "bc11a15d904dc68bf825126b7bc5670101f3d0b04a29e92bdcb938e78b4cf25f"
+    },
+    {
+      "path": "world/vegetation/plants.ts",
+      "sha256": "0d49b6d3cb1f7c992948ef542eac029861bb2d6406555e68ba1d64c95e611dee"
+    },
+    {
+      "path": "world/vegetation/shrub.ts",
+      "sha256": "a28bd7171a87c10e77c2d5632e735af4f866cdf712fabbf94684d2d3c8e1cae0"
+    },
+    {
+      "path": "world/wind/wind.ts",
+      "sha256": "e0ef0d6fdaf04f77a4bf6f9a58df197d63c9dfff9320dbfa5962e9004b796c01"
+    }
+  ]
+}
