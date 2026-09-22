@@ -21,7 +21,7 @@
  * instances that can reach the image (see "submission culling" below). Everything is seated via
  * ctx.terrain.height; randomness only via ctx.rng.
  */
-import { BufferGeometry, Color, Frustum, Group, InstancedBufferAttribute, InstancedMesh, Matrix4, Mesh, PerspectiveCamera, Quaternion, Sphere, Vector3, type BufferAttribute, type Camera, type Material } from 'three';
+import { BufferAttribute, BufferGeometry, Color, Frustum, Group, InstancedBufferAttribute, InstancedMesh, Matrix4, Mesh, PerspectiveCamera, Quaternion, Sphere, Vector3, type Camera, type Material } from 'three';
 import type { TrunkSeat, WorldContext, WorldSystem } from '../system';
 import { BARK_DETAIL_M, BARK_DETAIL_TILES, BARK_TOUCH_M, BARK_TOUCH_TILES, CARD_EDGE_FADE, CARD_FLAT_EDGE_FADE, COLUMN_BARK_FLOOR, COLUMN_BARK_FLOOR_FAR, COLUMN_FLOOR_FADE_M, createTreeMaterials, CUSHION_FADE_M, DISTANT_BARK_M, DISTANT_NEAR_FLOOR, DISTANT_NEAR_TONE, NEAR_BASE_FLOOR, NEAR_BOLE_FLOOR, NEAR_BOLE_FLOOR_FADE, NEAR_BOLE_FLOOR_TOP, NEAR_BOLE_SLOTS, NEAR_CANOPY_LEAF_FLOOR, NEAR_CANOPY_LEAF_NEAR_M, NEAR_CANOPY_SLOTS, NEAR_CANOPY_SUN_THROUGH, TREE_BARK_FLOOR, TREE_BARK_FLOOR_NEAR, TREE_FLOOR_FADE_M, TREE_LEAF_FLOOR, TREE_LEAF_FLOOR_NEAR, TREE_NEAR_BOLE_FLOOR } from './materials';
 import type { ShadeFloor } from '../materials/shadeFloor';
@@ -1626,6 +1626,30 @@ const geometryBytes = (g: BufferGeometry) => Object.values(g.attributes).reduce(
  * near-base pools' ≈ 257 MB of parts stop being held twice. A rebuilt part gets fresh arrays and drops
  * them the same way; `needsUpdate` is never set on a resident part.
  */
+/**
+ * Round 51 (the memory ask, step two — fable-2's rocks recipe, −53 % there): the writers emit every
+ * attribute as Float32; the GPU copy (and the CPU copy until upload) shrinks by a third when the
+ * attributes whose range allows it are stored normalized — normals Int8, colours Uint8 when the
+ * geometry's colours stay within 0–1, `aWind` Uint16 (stiffness / phase / flutter, all 0–1; 16 bits
+ * so the 0–0.035 flutter keeps its resolution). Positions, uv (tiling up to ×27) and `aRoot` (world
+ * anchors and the swap / cushion encodings the shaders decode) stay Float32. A normalized attribute
+ * reaches the shader as the same float; range-checked, so a geometry outside the range keeps its
+ * floats. Run once per geometry after every build-time read of the arrays (bounds, rootsToWorld).
+ */
+const compactAttributes = (g: BufferGeometry) => {
+  const to = (name: string, Ctor: typeof Int8Array | typeof Uint8Array | typeof Uint16Array, scale: number, lo: number, hi: number) => {
+    const a = g.attributes[name] as BufferAttribute | undefined;
+    if (!a || !(a.array instanceof Float32Array)) return;
+    const src = a.array;
+    for (let i = 0; i < src.length; i++) if (src[i] < lo || src[i] > hi) return;
+    const out = new Ctor(src.length);
+    for (let i = 0; i < src.length; i++) out[i] = Math.round(src[i] * scale);
+    g.setAttribute(name, new BufferAttribute(out, a.itemSize, true));
+  };
+  to('normal', Int8Array, 127, -1, 1);
+  to('color', Uint8Array, 255, 0, 1);
+  to('aWind', Uint16Array, 65535, 0, 1);
+};
 const dropArray = function (this: { array: ArrayLike<number> | null }) {
   this.array = null;
 };
@@ -1767,6 +1791,7 @@ export async function create(ctx: WorldContext): Promise<WorldSystem> {
     const placeholder = placeholderFor(first);
     // the bytes are read before the upload; after it the CPU copies go (releaseAfterUpload)
     const wrap = (geometry: BufferGeometry): GeometryBuilt => {
+      compactAttributes(geometry);
       const bytes = geometryBytes(geometry);
       releaseAfterUpload(geometry);
       return { geometry, bytes, dispose: () => geometry.dispose() };
@@ -3537,10 +3562,15 @@ export async function create(ctx: WorldContext): Promise<WorldSystem> {
   // is drawn from the first frame at any view. Every geometry under this system drops its CPU
   // copies on upload; a bounding sphere three would otherwise compute from the array later is
   // computed here, while the array is still there (the InstancedMesh culls read it each fill).
+  const compacted = new Set<BufferGeometry>();
   group.traverse((o) => {
     const g = (o as Mesh).geometry as BufferGeometry | undefined;
     if (!(o as Mesh).isMesh || !g) return;
     if (!g.boundingSphere) g.computeBoundingSphere();
+    if (!compacted.has(g)) {
+      compacted.add(g);
+      compactAttributes(g);
+    }
     releaseAfterUpload(g);
   });
   ctx.progress('trees', 1);
