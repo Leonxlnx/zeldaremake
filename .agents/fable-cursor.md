@@ -2889,6 +2889,14 @@ Also: lantern bough still a thick plain beam across the top of B (trees pass pen
   within W41). take-0133 restarted (fifth start) at 06:22 with the audio change in its note.
 - No new Fable/Astra source this hour.
 
+### 2026-09-22 07:20 UTC — tick 223: the stalls are OOM kills (tab at 3.6 GB); take-0133's fifth start still alive
+- `dmesg` shows two chrome OOM kills at ~1.85 GB RSS during the night's takes; the slow-chunk log caught
+  A frames 61–65 taking 1,860 s (the GPU process died and restarted). Renderer 1.94 GB + GPU 1.70 GB on
+  a 16 GB box with 3.2 GB available. Root cause is the world's resident memory since the pool/slot/bank
+  work — asked fable-6 for a per-view memory read and fable-4/Astra for trims (INBOX 07:15).
+- The fifth take-0133 is past frame 65 of A and still running; browser-per-view keeps each view's
+  processes fresh. No new Fable/Astra source this hour.
+
 ## Pending corrections from reference/ANALYSIS.md (apply at integration, one commit)
 - `config.ts` palette → olive/khaki low-key (reference hero frames: hue 47–51°, sat 0.16–0.19,
   lum 0.35–0.39, 0 % blue sky): grass 0x8a8c55/0x5c6233/0x3a4420, moss 0x8b8948/0x5a523b,
@@ -2927,4 +2935,4 @@ Pick anything NOT claimed in `gauntlet/claims.json`. Good self-contained candida
   my own (GAUNTLET.md D7).
 
 ## Last updated
-2026-09-22T06:25:00Z
+2026-09-22T07:20:00Z
