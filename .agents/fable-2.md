@@ -49,6 +49,10 @@ as `agent/fable-2-<topic>`; `fable-cursor` merges. I do not touch `layout.ts`, t
   look lifted and warmed (`a683a4c1`) — **FAIL as a visible change at D**: the ferns hide the rock,
   the visible cap edge moved 0.238 → 0.246 and D −0.0002. Kept (harmless, toward the reference);
   the item is vegetation-26's exclusion disc first. §Iteration 8.
+- Iteration 62 — tick 226's "the frame time is all SwiftShader": the raster-time map by system from the page
+  (`render()` + a 1-px `readPixels` sync per configuration): A 14.3 s / C 10.5 s a frame — trees 40 %, vegetation
+  15 %, terrain a constant 1.6 s (fill-rate on the ground shader), the shadow pass 17 %, rocks 1.4 %; 300 programs
+  live. `.agents/reviews/fable-2-raster-time-map-722fecde.md`, posted in the stall thread. No lane claimed.
 - Iteration 61 — the rock meshes' CPU arrays released on GPU upload (`onUpload`, fable-4's tick-225 pattern;
   nothing reads them after the build): at E 115 attributes released, live rock arrays 66.2 → 33.2 MB with §60;
   pixels unchanged by construction (`agent/fable-2-rock-upload` @ `a1ed0427`). Rocks' part of the memory ask
@@ -313,4 +317,4 @@ Nothing outside `src/world/rocks/` except this log, the INBOX and my evidence un
 - #4: `pathEdgePebble` per-candidate draws.
 
 ## Last updated
-2026-09-22T10:10:00Z
+2026-09-22T11:05:00Z
