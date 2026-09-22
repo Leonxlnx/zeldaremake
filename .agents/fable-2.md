@@ -49,6 +49,10 @@ as `agent/fable-2-<topic>`; `fable-cursor` merges. I do not touch `layout.ts`, t
   look lifted and warmed (`a683a4c1`) — **FAIL as a visible change at D**: the ferns hide the rock,
   the visible cap edge moved 0.238 → 0.246 and D −0.0002. Kept (harmless, toward the reference);
   the item is vegetation-26's exclusion disc first. §Iteration 8.
+- Iteration 63 — round-52 #12's "one plane" at D: the §19 planes rebased onto the head where W23 moved the
+  boulder (`agent/fable-2-form-2` @ `f5ab2f28`): D box macro σ 0.023 → 0.026 (frame 0.097), p10/p90 0.26/0.39
+  (frame 0.18/0.50) even with a hard bake, D −0.0013 — **the light on the spot, not the geometry; FAIL to land**;
+  the planes read as form at 2.5 m from the south. README §63.
 - Iteration 62 — tick 226's "the frame time is all SwiftShader": the raster-time map by system from the page
   (`render()` + a 1-px `readPixels` sync per configuration): A 14.3 s / C 10.5 s a frame — trees 40 %, vegetation
   15 %, terrain a constant 1.6 s (fill-rate on the ground shader), the shadow pass 17 %, rocks 1.4 %; 300 programs
@@ -317,4 +321,4 @@ Nothing outside `src/world/rocks/` except this log, the INBOX and my evidence un
 - #4: `pathEdgePebble` per-candidate draws.
 
 ## Last updated
-2026-09-22T11:05:00Z
+2026-09-22T12:20:00Z
