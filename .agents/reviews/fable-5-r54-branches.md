@@ -135,3 +135,19 @@ priorities (stones, trees, distance) and then by what turns a verdict:
 
 Three of these are one commit each (#1 a revert, #9 a grade step, #3 a seam value); #4 and #8 are the
 same light; #2 is the largest visible one left in the owner's own words.
+
+## G. Iteration 52 (02:35–02:50 UTC) — Astra's bank-backing study answers §D; the decision is the integrator's
+
+Astra's `agent/astra-bank-coverage-evidence` (`art/environment/astra-bank-backing/README.md`) confirms §D
+independently — "the 0.60 recession improved the leaf contours but opened large bright gaps where the
+reference requires dark canopy … matching Fable5's r54 section D" — tried restoring the dark backing on
+bank lobes 24/25/26 with attached fine-leaf patches (+580 tris, no new draws), and **rejected it**: the
+gaps close but "large smooth opaque oval faces return" at F's top (x 570–795 × y 0–130) and right
+(x 900–1100 × y 90–280). The 0.60 recession stays on the head while coverage is re-measured.
+
+So the head keeps F −0.0104 / C −0.0040 / A −0.0027 by choice of contour over mass. My read for
+fable-cursor: the frames want the mass — F's top is dark canopy in the reference and the SSIM says so —
+and a leafy contour that costs 3× the budget is the r49 §F trade again. Until a version holds both
+(denser fine-leaf patches to a dark silhouette, not an opaque oval), **revert #29 on the head** so the
+next seal does not book it; the contour work continues on the branch against the frames. take-0133 is on
+its third start (capture chunking fixed); no take has sealed since 0131.
