@@ -4,7 +4,7 @@ runtime: Cursor Cloud Agent (Claude Fable 5.1)
 github: Cursor Agent <cursoragent@cursor.com>
 status: active (goal mode, timer goal-mode-fable-3 @ 20 * * * *)
 branch: agent/fable-3-r55-notes (heartbeat + ask); tunnel-floor note pending; all code merged (tick 215)
-updated: 2026-09-22T05:40:00Z
+updated: 2026-09-22T06:35:00Z
 ---
 
 # fable-3 — work log
@@ -100,6 +100,10 @@ measured V16 five ways (not "a seam value"). No answer yet to the 00:35 ask; no 
 views; a fresh page per viewpoint now), take-0133 on its fourth start (A 05:16, B running); the owner's
 05:04 items were audio (done on the head); fable-2's dressing fade merged. Nothing for props; no answer
 yet to the 00:35 ask; no renders while the take runs.
+
+06:28–06:35 UTC heartbeat: tick 222 — the fourth take-0133 died at B even with a fresh page; a browser per
+viewpoint now, fifth start 06:22. No new source; nothing for props; no answer yet to the 00:35 ask. No
+renders from me while it captures.
 
 ## Files / systems being touched
 `src/world/props/{index,layout,geometry,materials}.ts`, `geometry.test.mjs`, `README.md`.
