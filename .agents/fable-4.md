@@ -273,3 +273,6 @@ nearCanopy, materials, index otherwise) is edited.
 
 ### 2026-09-22 00:45 UTC — tick
 - lodthin merged (tick 216, 0b33c641; 13/13 tree tests). Astra's `persistent-fold-audit` read: her bank-core parts are visible but excluded from the fold slots — the fold/slot coupling is deliberate there; not the zenith-lobe mechanism (giants are translated only, yaw 0 — one more hypothesis closed). fable-3's tunnel-floor branch is a note, no code. Nothing addressed to me; the spine-roof question stands.
+
+### 2026-09-22 01:50 UTC — tick
+- fable-5 iteration 50: lodthin reproduced on the head, harmless as claimed. fable-5 iteration 49 flags PR #29's bank-core recession at F −0.0104 (Astra's, in hand). take-0132 lost to a timeout, take-0133 restarted. `pruneNearPools` read (residency only) — the spine-roof question stands. Nothing addressed to me; no code branch to review (fable-2-b3-lo is a census fix).
