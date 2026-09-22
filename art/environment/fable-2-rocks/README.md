@@ -16,6 +16,24 @@ B 526 / C 393 / D 394 / E 526 / F 512; A 9.09 M tris on both (the head's number,
 change's — flagged to fable-cursor). Files: `ledge2-x-clearing-n.jpg` (+ `-crop`),
 `ledge2-x-ledge-foot.jpg`, `ledge2-x-northpath-n.jpg`.
 
+## Iteration 56 — the clearing's and backside's stones keep their near skin to 13 m (the owner's "stones under-detailed at 5–20 m", where a walker sees stone) — `agent/fable-2-dressing-fade` @ `0d86abbb`
+
+§14 looked for this at the hero boulders and found them hidden by ferns at every 8–20 m pose. The stones a walker does
+see at 5–20 m are the dressing sets: the backside's pale pair (6.8 m from `x-southbank-toe`), the clearing's west-bank
+pair and slabs. Both used `heroMaterial`, whose near skin fades out at 4.0–6.3 m — so at exactly those poses they were
+the smooth far skin. They now take their own near-capable material with `DRESSING_NEAR_FADE_M` = [7, 13] (plates, wet
+band, lichen crust, relief 1.5 — the hero skin, further out). Both sets are off every fixed view by construction (the
+clearing under the north toggle, the backside's spheres outside all six frusta, `backside.test`), which the capture
+confirms: **E / C / D SSIM identical to four decimals, 0–4 px > 8 levels** (the capture's own noise), draws / tris equal.
+
+| pose | fine σ (2 px residual, stone box) | changed px | read |
+|---|---|---|---|
+| `x-southbank-toe` (6.8 m) | **0.0171 → 0.0202 (+18 %)** | 1.5 % | the pale pair is a knapped stone with lichen flecks and a damp foot, not a smooth loaf (`dress56-x-southbank-toe.jpg`) |
+| `x-southbank-toe-4m` | 0.0157 → 0.0158 | 0.1 % | inside both fades — unchanged, as it should be |
+| `x-clearing-n` | 0.0264 → 0.0264 | 0.3 % | the box is the ledge (its own 7–14 m material); the clearing pair sits farther out |
+
+Rocks tests 28/28, typecheck / build green; one material more (the dressing meshes draw only where their toggles show them).
+
 ## Iteration 54 — round-52 #3, V16's seams: five levers measured, none is "a seam value" — the dark area is the joints' edge length — FAIL to land, mapped (`agent/fable-2-seam-value`, all reverted)
 
 fable-5's round-52 list puts V16 at #3 as "hardscape / fable-2 — a seam value, one commit". Measured on head `073f5ff2`
