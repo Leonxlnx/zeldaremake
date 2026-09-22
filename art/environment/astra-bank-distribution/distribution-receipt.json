@@ -1,0 +1,602 @@
+{
+  "verdict": "REJECT_AS_DELIVERY_NO_NATIVE_CAPTURE",
+  "candidate": "588d3681678c17b236203d8785b60ea2e6c2bba3",
+  "canonicalBaseline": "68b3eb96dc19886154e54e8de584fadf91f5eda7",
+  "comparisonCandidate": "063772a4bfc848733e060ded98614d04a626e3d4",
+  "nativeCapture": false,
+  "reason": "Geometric distribution improves in both poses, but large contiguous bare core faces remain. The single candidate is frozen; no density sweep or further source tuning.",
+  "geometry": {
+    "leaves": 7100,
+    "triangles": 64474,
+    "woodTriangles": 7674,
+    "rawBuilderBytes": 4866396,
+    "packedRenderedBytes": 3933156,
+    "deltaFromCanonical": {
+      "triangles": -966,
+      "leaves": 0,
+      "meshes": 0,
+      "materials": 0,
+      "textures": 0
+    },
+    "exactUnrelatedGeometryRecords": 560,
+    "exactOtherNearParts": 423,
+    "restoredOriginalCoreVertices": 1479
+  },
+  "groups": [
+    {
+      "group": 24,
+      "leaves": 2800,
+      "triangles": 25640,
+      "woodTriangles": 3240,
+      "shoots": 40,
+      "surfaceAreaM2": 37.44641214486704,
+      "horizontalBottomAreaM2": 0,
+      "minSeedSpacingM": 0.7394255769070123,
+      "medianShootLengthM": 3.6481347168923817,
+      "aggregateShootLengthPerAcceptedLeafM": 0.05174143181610763,
+      "initialBuildMs": 194.30129999999917,
+      "rebuildMs": 105.61590000000069,
+      "allPhaseMinWorldY": 1.6712712639616807,
+      "additionalPackedWindErrorBoundM": [
+        0.000004103615112714935,
+        0.000002594033722438392,
+        0.000003446249826727948
+      ],
+      "floorLocal": null,
+      "originY": 0.019357434590347555,
+      "floorWorld": null
+    },
+    {
+      "group": 25,
+      "leaves": 2100,
+      "triangles": 19392,
+      "woodTriangles": 2592,
+      "shoots": 32,
+      "surfaceAreaM2": 25.850831846644184,
+      "horizontalBottomAreaM2": 0,
+      "minSeedSpacingM": 0.7074938346301045,
+      "medianShootLengthM": 3.5683382357671944,
+      "aggregateShootLengthPerAcceptedLeafM": 0.05446479255388735,
+      "initialBuildMs": 109.41960000000108,
+      "rebuildMs": 95.71529999999984,
+      "allPhaseMinWorldY": 1.8433952921675523,
+      "additionalPackedWindErrorBoundM": [
+        0.000004095134497101596,
+        0.000002594033722438392,
+        0.0000034381225700984973
+      ],
+      "floorLocal": null,
+      "originY": 0.019357434590347555,
+      "floorWorld": null
+    },
+    {
+      "group": 26,
+      "leaves": 2200,
+      "triangles": 19442,
+      "woodTriangles": 1842,
+      "shoots": 28,
+      "surfaceAreaM2": 28.643161046538744,
+      "horizontalBottomAreaM2": 3.8791655309545483,
+      "minSeedSpacingM": 0.7230078590552991,
+      "medianShootLengthM": 2.9276220803578292,
+      "aggregateShootLengthPerAcceptedLeafM": 0.03404377926919985,
+      "initialBuildMs": 108.3243999999977,
+      "rebuildMs": 73.95769999999902,
+      "allPhaseMinWorldY": 4.818208872680552,
+      "additionalPackedWindErrorBoundM": [
+        0.000004175950842625474,
+        0.000002594033722438392,
+        0.000003515571567892214
+      ],
+      "floorLocal": 4.730642565409653,
+      "originY": 0.019357434590347555,
+      "floorWorld": 4.75
+    }
+  ],
+  "views": {
+    "F_canopy": {
+      "corePixels": 96949,
+      "coreMaskSha256": "78f80fb85ded0620b9d98a6ec10ff9d923158122cecd84e4e36334e07b265767",
+      "before": {
+        "finePercent": 16.495270709342023,
+        "corePercent": 82.91369689218043,
+        "frontmostFinePixels": 15992,
+        "frontmostCorePixels": 80384,
+        "emptyProjectionPixels": 61404,
+        "projectionOnlyBehindCorePixels": 19515,
+        "overlap": 3.557330006238303,
+        "largestBareComponents": [
+          {
+            "pixels": 80153,
+            "bounds": [
+              578,
+              0,
+              1113,
+              296
+            ]
+          },
+          {
+            "pixels": 76,
+            "bounds": [
+              793,
+              56,
+              800,
+              75
+            ]
+          },
+          {
+            "pixels": 63,
+            "bounds": [
+              735,
+              0,
+              753,
+              5
+            ]
+          }
+        ],
+        "outsideCoreMask": {
+          "fineUnionPixels": 12931,
+          "fineUnoccludedPixels": 12777,
+          "summedLeafFootprints": 66089,
+          "leavesWhollyOutsideMask": 1421
+        },
+        "rayChecks": 131,
+        "floor": {
+          "group": 26,
+          "floorLocal": 4.730642565409653,
+          "originY": 0.019357434590347555,
+          "floorWorld": 4.75,
+          "frontmostGroup26FloorMaskPixels": 3173,
+          "fineInFrontOfFloorPixels": 214,
+          "floorFineInFrontByGroup": {
+            "24": 214,
+            "25": 0,
+            "26": 0
+          },
+          "floorSampleCoords": [
+            [
+              668,
+              98
+            ],
+            [
+              639,
+              105
+            ],
+            [
+              663,
+              108
+            ],
+            [
+              693,
+              111
+            ],
+            [
+              732,
+              114
+            ],
+            [
+              673,
+              118
+            ],
+            [
+              650,
+              122
+            ],
+            [
+              667,
+              126
+            ]
+          ]
+        }
+      },
+      "after": {
+        "finePercent": 31.303056246067516,
+        "corePercent": 67.16005322385998,
+        "frontmostFinePixels": 30348,
+        "frontmostCorePixels": 65111,
+        "emptyProjectionPixels": 32937,
+        "projectionOnlyBehindCorePixels": 33358,
+        "overlap": 1.7860638089645724,
+        "largestBareComponents": [
+          {
+            "pixels": 27522,
+            "bounds": [
+              795,
+              95,
+              1114,
+              294
+            ]
+          },
+          {
+            "pixels": 17536,
+            "bounds": [
+              578,
+              0,
+              786,
+              132
+            ]
+          },
+          {
+            "pixels": 4905,
+            "bounds": [
+              880,
+              198,
+              1032,
+              283
+            ]
+          }
+        ],
+        "outsideCoreMask": {
+          "fineUnionPixels": 14470,
+          "fineUnoccludedPixels": 14128,
+          "summedLeafFootprints": 49391,
+          "leavesWhollyOutsideMask": 1022
+        },
+        "rayChecks": 131,
+        "floor": {
+          "group": 26,
+          "floorLocal": 4.730642565409653,
+          "originY": 0.019357434590347555,
+          "floorWorld": 4.75,
+          "frontmostGroup26FloorMaskPixels": 3173,
+          "fineInFrontOfFloorPixels": 253,
+          "floorFineInFrontByGroup": {
+            "24": 253,
+            "25": 0,
+            "26": 0
+          },
+          "floorSampleCoords": [
+            [
+              668,
+              98
+            ],
+            [
+              639,
+              105
+            ],
+            [
+              663,
+              108
+            ],
+            [
+              693,
+              111
+            ],
+            [
+              732,
+              114
+            ],
+            [
+              673,
+              118
+            ],
+            [
+              650,
+              122
+            ],
+            [
+              667,
+              126
+            ]
+          ]
+        }
+      },
+      "outsideCoreUnoccludedPixelDelta": 1351,
+      "groups": [
+        {
+          "group": 24,
+          "corePixels": 34171,
+          "fineBefore": 20.028679289455972,
+          "fineAfter": 38.854584296625795
+        },
+        {
+          "group": 25,
+          "corePixels": 38798,
+          "fineBefore": 12.959430898499923,
+          "fineAfter": 29.960307232331562
+        },
+        {
+          "group": 26,
+          "corePixels": 23980,
+          "fineBefore": 17.180984153461218,
+          "fineAfter": 22.714762301918267
+        }
+      ]
+    },
+    "C_lookback": {
+      "corePixels": 70643,
+      "coreMaskSha256": "88b39487c0c3cf27e60e78557be87ebbb2ab6e510a1f86349866965567ff1745",
+      "before": {
+        "finePercent": 16.053961468227566,
+        "corePercent": 83.15473578415413,
+        "frontmostFinePixels": 11341,
+        "frontmostCorePixels": 58743,
+        "emptyProjectionPixels": 41078,
+        "projectionOnlyBehindCorePixels": 18179,
+        "overlap": 3.5140523449850694,
+        "largestBareComponents": [
+          {
+            "pixels": 58146,
+            "bounds": [
+              0,
+              0,
+              358,
+              278
+            ]
+          },
+          {
+            "pixels": 201,
+            "bounds": [
+              261,
+              150,
+              284,
+              171
+            ]
+          },
+          {
+            "pixels": 186,
+            "bounds": [
+              296,
+              157,
+              316,
+              174
+            ]
+          }
+        ],
+        "outsideCoreMask": {
+          "fineUnionPixels": 9369,
+          "fineUnoccludedPixels": 9236,
+          "summedLeafFootprints": 38872,
+          "leavesWhollyOutsideMask": 919
+        },
+        "rayChecks": 99,
+        "floor": {
+          "group": 26,
+          "floorLocal": 4.730642565409653,
+          "originY": 0.019357434590347555,
+          "floorWorld": 4.75,
+          "frontmostGroup26FloorMaskPixels": 3173,
+          "fineInFrontOfFloorPixels": 275,
+          "floorFineInFrontByGroup": {
+            "24": 275,
+            "25": 0,
+            "26": 0
+          },
+          "floorSampleCoords": [
+            [
+              0,
+              8
+            ],
+            [
+              41,
+              21
+            ],
+            [
+              30,
+              28
+            ],
+            [
+              46,
+              34
+            ],
+            [
+              8,
+              41
+            ],
+            [
+              69,
+              46
+            ],
+            [
+              27,
+              52
+            ],
+            [
+              81,
+              56
+            ]
+          ]
+        }
+      },
+      "after": {
+        "finePercent": 40.35785569695511,
+        "corePercent": 57.433857565505434,
+        "frontmostFinePixels": 28510,
+        "frontmostCorePixels": 40573,
+        "emptyProjectionPixels": 16171,
+        "projectionOnlyBehindCorePixels": 25605,
+        "overlap": 1.672255516679946,
+        "largestBareComponents": [
+          {
+            "pixels": 12076,
+            "bounds": [
+              40,
+              107,
+              241,
+              270
+            ]
+          },
+          {
+            "pixels": 7149,
+            "bounds": [
+              0,
+              0,
+              139,
+              62
+            ]
+          },
+          {
+            "pixels": 7024,
+            "bounds": [
+              271,
+              110,
+              358,
+              273
+            ]
+          }
+        ],
+        "outsideCoreMask": {
+          "fineUnionPixels": 7418,
+          "fineUnoccludedPixels": 7312,
+          "summedLeafFootprints": 24639,
+          "leavesWhollyOutsideMask": 555
+        },
+        "rayChecks": 99,
+        "floor": {
+          "group": 26,
+          "floorLocal": 4.730642565409653,
+          "originY": 0.019357434590347555,
+          "floorWorld": 4.75,
+          "frontmostGroup26FloorMaskPixels": 3173,
+          "fineInFrontOfFloorPixels": 270,
+          "floorFineInFrontByGroup": {
+            "24": 270,
+            "25": 0,
+            "26": 0
+          },
+          "floorSampleCoords": [
+            [
+              0,
+              8
+            ],
+            [
+              41,
+              21
+            ],
+            [
+              30,
+              28
+            ],
+            [
+              46,
+              34
+            ],
+            [
+              8,
+              41
+            ],
+            [
+              69,
+              46
+            ],
+            [
+              27,
+              52
+            ],
+            [
+              81,
+              56
+            ]
+          ]
+        }
+      },
+      "outsideCoreUnoccludedPixelDelta": -1924,
+      "groups": [
+        {
+          "group": 24,
+          "corePixels": 49645,
+          "fineBefore": 11.489575989525632,
+          "fineAfter": 45.81730285023668
+        },
+        {
+          "group": 25,
+          "corePixels": 13258,
+          "fineBefore": 39.84763916126113,
+          "fineAfter": 39.297028209383015
+        },
+        {
+          "group": 26,
+          "corePixels": 7740,
+          "fineBefore": 4.573643410852713,
+          "fineAfter": 7.1576227390180875
+        }
+      ]
+    }
+  },
+  "rng": {
+    "exactStreams": 1034,
+    "exactDraws": 14052615,
+    "exactStreamAggregateSha256": "29e3c84bc8cbe751a5ee313fa2f7149458e3b773c5a885cdfc97d75185bdba10",
+    "changedLocalStreams": [
+      "kokiri-forest-phase1/trees/giant/stair-bank-giant/near-canopy/lobe/24",
+      "kokiri-forest-phase1/trees/giant/stair-bank-giant/near-canopy/lobe/24/layered-parents",
+      "kokiri-forest-phase1/trees/giant/stair-bank-giant/near-canopy/lobe/25",
+      "kokiri-forest-phase1/trees/giant/stair-bank-giant/near-canopy/lobe/25/layered-parents",
+      "kokiri-forest-phase1/trees/giant/stair-bank-giant/near-canopy/lobe/26",
+      "kokiri-forest-phase1/trees/giant/stair-bank-giant/near-canopy/lobe/26/layered-parents"
+    ]
+  },
+  "packing": {
+    "before": {
+      "applied": false,
+      "method": "The exact Git source compactAttributes helper from trees/index.ts is exposed only inside this CPU loader and applied to the inspected geometries before reading attributes. No renderer/upload occurs.",
+      "geometries": [
+        {
+          "name": "giant-authored-leaves-stair-bank-giant",
+          "windType": "Float32Array",
+          "windNormalized": false
+        },
+        {
+          "name": "near-canopy-giant-stair-bank-giant-lobe-24",
+          "windType": "Float32Array",
+          "windNormalized": false
+        },
+        {
+          "name": "near-canopy-giant-stair-bank-giant-lobe-25",
+          "windType": "Float32Array",
+          "windNormalized": false
+        },
+        {
+          "name": "near-canopy-giant-stair-bank-giant-lobe-26",
+          "windType": "Float32Array",
+          "windNormalized": false
+        }
+      ]
+    },
+    "after": {
+      "applied": true,
+      "method": "The exact Git source compactAttributes helper from trees/index.ts is exposed only inside this CPU loader and applied to the inspected geometries before reading attributes. No renderer/upload occurs.",
+      "geometries": [
+        {
+          "name": "giant-authored-leaves-stair-bank-giant",
+          "windType": "Uint16Array",
+          "windNormalized": true
+        },
+        {
+          "name": "near-canopy-giant-stair-bank-giant-lobe-24",
+          "windType": "Uint16Array",
+          "windNormalized": true
+        },
+        {
+          "name": "near-canopy-giant-stair-bank-giant-lobe-25",
+          "windType": "Uint16Array",
+          "windNormalized": true
+        },
+        {
+          "name": "near-canopy-giant-stair-bank-giant-lobe-26",
+          "windType": "Uint16Array",
+          "windNormalized": true
+        }
+      ]
+    }
+  },
+  "constructionTiming": {
+    "method": "Single CPU runs; not a benchmark. Per-part initial/rebuild durations include complete synchronous builder consumption; the all-face lookup runs before the first yield. Its isolated chunk duration was not measured.",
+    "baselineElapsedMs": 19540.7189,
+    "candidateElapsedMs": 22222.8034
+  },
+  "sourcePatchSha256": "ccf12b1d7ebb6f39ee6d6882ec3a1ec0af535ea3ce6da838a183e0e7dc66540e",
+  "inputs": {
+    "surface-proof.json": "2618de00c0b6dc813056538795ad19c3e038ce7053d3c73c726e874c39d1466a",
+    "streams-and-floor.json": "7d424384b7e899f8e06e10f229fca6c453d5ad1bb4bc9eb149cab81735b586d2",
+    "screen-063772a4.json": "30c25daa765a124e31622ea6df0df13ad3fccadb537f8365769412c1b89198c4",
+    "screen-588d3681.json": "befb60df976e07b7a305f9fb2fd23982f68b91b68f43012972fa7b28eea5f1c2"
+  },
+  "limitations": [
+    "CPU output-pixel-centre geometry estimates, not final rendered segmentation or native acceptance.",
+    "Original alpha cards, unrelated world meshes and other original wood are omitted; visible fine area is an upper bound before these occluders.",
+    "Exact source attribute packing is applied before wind evaluation; JavaScript floating point still does not reproduce GPU float arithmetic, antialiasing or postprocessing.",
+    "No current whole-world triangle headroom inferred; canonical grass and other lanes continue independently.",
+    "Source source-588d3681.patch preserves one rejected local candidate only; no import, push or PR authorization is implied."
+  ]
+}

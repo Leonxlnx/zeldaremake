@@ -4,14 +4,20 @@ runtime: Codex desktop subagent
 github: Leonxlnx
 status: active
 branch: agent/astra-bank-coverage-evidence
-updated: 2026-09-22T15:18:00Z
+updated: 2026-09-22T16:02:00Z
 ---
 
 # astra-world-resume — work log
 
 ## Current task
 
-Read-only projected coverage diagnosis for the three owned bank cores (24/25/26).
+Completed projected coverage diagnosis and the single authorized fixed-budget
+distribution trial for the three owned bank cores (24/25/26). Root agrees that
+588d3681 is REJECTED before GPU capture: fine-leaf coverage improves in both poses,
+but large contiguous bare core faces remain. Keep current bank geometry; no new
+variant or density sweep. Evidence and the exact rejected patch are archived in
+art/environment/astra-bank-distribution. Coordinating the independent atlas and
+height-fog clarity lanes with Fable is the remaining active work.
 This evidence branch leaves production source at canonical 520537e6.
 Local source 063772a4 is REJECTED after the matched native C/F pair: restoring the
 original opaque backing closes the bright gaps but brings back broad bare ovals.
@@ -57,7 +63,7 @@ time and distant LOD. F: 406 calls, 7,994,522 → 7,995,102 triangles. C: 345 ca
 6,929,212 → 6,929,792 triangles. Both: +580 triangles, zero additional calls,
 geometries, textures or programs. No page/shader/system errors.
 
-The child measures leaf projected area, overlap and core occlusion at the frozen
+The completed child work measured leaf projected area, overlap and core occlusion at the frozen
 F pose; I compare this against the authored distribution and W38 headroom and
 handle the Fable report. Exterior roots alone were not a coverage proof. All
 work now is read-only geometry analysis; Fable4's roof remains their lane.
@@ -94,3 +100,38 @@ three-core candidate bounded and coordinate this concrete priority with Fable.
 PR2 owner-priority handoff is 5779276030. Completed CPU diagnosis and marked
 screenshot are published as d5239b0a. The portable reproducer re-ran all recorded
 counts and 123 rays with exact serialized parity; frozen receipts remain intact.
+
+## 2026-09-22 16:02 UTC — final distribution rejection and clarity coordination
+
+The one authorized 588d3681 surface-distribution trial on canonical 68b3eb96 keeps
+7,100 leaves at 64,474 near triangles (966 fewer); packed selected mesh buffers
+are 3,933,156 B (80,124 fewer). It restores all 1,479 original core vertices and
+preserves 560 unrelated geometry records, 423 other near parts, original bounds,
+floor, shadows, packing/upload hooks and unrelated RNG. Geometry/typecheck/build
+pass. No added meshes, materials or textures; no native draw-count claim.
+
+Against the already rejected original-backing 063 source, CPU frontmost fine-leaf
+coverage improves F 16.50 -> 31.30% and C 16.05 -> 40.36%. Remaining connected bare
+faces reach 27,522 pixels in F and 12,076 in C. Outside-core unoccluded leaf area
+changes +1,351 / -1,924 pixels. The G26 horizontal floor covers 3,173 pixels in
+each view and cannot receive its own above-floor leaves in front from below;
+this explains only part of the larger bare-face problem. All 460 independent
+world-space ray checks pass. These CPU estimates omit alpha cards and unrelated
+occluders; they are not rendered acceptance. Author, reviewer and root reject
+delivery. Current 0.60 bank retains its acknowledged haze-gap tradeoff.
+
+Fresh fetch is canonical 793a2fa0: no production delta since 68b3eb96. Fable's
+PR2 reply 5779352911 and GOAL_MODE explicitly assign Astra fog/haze/post, distant
+trees and far-crown atlases; Fable4 retains white-bark/bark and plateau roof.
+Fable5's latest take0132 read remains negative on the bank gap. No new roof or
+bank fix has landed. Claims are not treated as evidence of agent liveness.
+
+Independent crown source 5b3d747e restores seeded leaf-shaped far-atlas clumps;
+five native pairs preserve counters and improve leaf margins, while flat crown
+planes remain. Evidence 0b284fec is still local pending root publication/review.
+Independent fog source 7464eb44 changes only HEIGHT_FOG_DEFAULTS: hazeDensity
+0.018 -> 0.008, hazeFarDensity 0.055 -> 0.008, farShadeMin 0.30 -> 0.65. The material
+TREE_* and DISTANT_* shade-floor constants remain unchanged. Root owns review
+and adoption. Fog capture waits normally behind an owner-fable capslot job;
+this bank lane has no GPU work queued. PR2 handoffs 5779276030 and 5779456172
+carry the owner's explicit clarity priority and rejected063 correction.

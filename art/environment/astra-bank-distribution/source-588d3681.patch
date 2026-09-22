@@ -1,0 +1,236 @@
+diff --git a/src/world/trees/giant.ts b/src/world/trees/giant.ts
+index 03a2d834..b24b2d39 100644
+--- a/src/world/trees/giant.ts
++++ b/src/world/trees/giant.ts
+@@ -432,7 +432,7 @@ export interface CanopyLobe {
+    * for the haze across its depth — and only the fringe carries leaf silhouettes.
+    */
+   core?: number;
+-  /** Selected bank foliage: recess its core and reuse a bounded, persistent near part. */
++  /** Selected bank foliage: dress its core with a bounded, persistent near part. */
+   layeredCore?: { leaves: number; twigs: number };
+ }
+ 
+@@ -607,7 +607,6 @@ export function createGiantTree(def: GiantTreeDef, rng: Rng, o: GiantOptions): G
+   let leaves = new GeometryWriter('high');
+   const treeLeaves = leaves;
+   const authoredLeaves = new GeometryWriter('high');
+-  const originalCorePositions: Vector3[] = [];
+   // likewise `cards` is rebound to `authoredCards` while a flat lobe is foliated
+   let cards = new GeometryWriter('high');
+   const treeCards = cards;
+@@ -1953,6 +1952,7 @@ export function createGiantTree(def: GiantTreeDef, rng: Rng, o: GiantOptions): G
+       const lobePath = hanging || lobeSpec.compact ? stem.slice(stem.length - 3) : stem;
+       const leavesBefore = leaves.leafCount;
+       const lobeVertexStart = leaves.positions.length / 3;
++      const lobeCardVertexStart = cards.positions.length / 3;
+       const lobeRec = foliateLobe(lobePath, lobeSpec.center, lobeSpec.hR, lobeSpec.vR, stemRadius, 3, 4, 4, 0.55 * d, d, lobeSpec.compact === true);
+       if (into) builtLobes.push({ center: lobeSpec.center.clone(), hR: lobeSpec.hR, vR: lobeSpec.vR, leaves: leaves.leafCount - leavesBefore });
+       else lobeLeafCounts.push(leaves.leafCount - leavesBefore);
+@@ -1962,19 +1962,22 @@ export function createGiantTree(def: GiantTreeDef, rng: Rng, o: GiantOptions): G
+         const cardsBefore = cards.triangles;
+         if (lobeRec) leaves.leafSwapGroup = cards.leafSwapGroup = lobeRec.group;
+         const coreVertexStart = leaves.positions.length / 3;
++        const coreIndexStart = leaves.indices.length;
+         lobeCore(lobeSpec.center, lobeSpec.hR, lobeSpec.vR, lobeSpec.core);
+         if (lobeSpec.layeredCore && lobeRec) {
+           const bounds = new Box3();
+           for (let v = lobeVertexStart; v < leaves.positions.length / 3; v++) {
+             const p = new Vector3().fromArray(leaves.positions, v * 3);
+             bounds.expandByPoint(p);
+-            if (v < coreVertexStart) continue;
+-            // Save the old float32 positions for exact conservative mesh culling bounds.
+-            originalCorePositions.push(new Vector3(Math.fround(p.x), Math.fround(p.y), Math.fround(p.z)));
+-            p.sub(lobeSpec.center).multiplyScalar(0.6).add(lobeSpec.center);
+-            leaves.positions.splice(v * 3, 3, p.x, p.y, p.z);
+           }
+-          lobeRec.layeredCore = { ...lobeSpec.layeredCore, bounds, tone: lobeSpec.tone ?? 1 };
++          for (let v = lobeCardVertexStart; v < cards.positions.length / 3; v++) {
++            bounds.expandByPoint(new Vector3().fromArray(cards.positions, v * 3));
++          }
++          const vertices = Array.from({ length: leaves.positions.length / 3 - coreVertexStart }, (_, i) =>
++            new Vector3().fromArray(leaves.positions, (coreVertexStart + i) * 3));
++          for (const p of vertices) p.set(Math.fround(p.x), Math.fround(p.y), Math.fround(p.z));
++          const indices = leaves.indices.slice(coreIndexStart).map(i => i - coreVertexStart);
++          lobeRec.layeredCore = { ...lobeSpec.layeredCore, bounds, tone: lobeSpec.tone ?? 1, surface: { vertices, indices } };
+         }
+         if (lobeRec) {
+           leaves.leafSwapGroup = cards.leafSwapGroup = -1;
+@@ -2065,17 +2068,6 @@ export function createGiantTree(def: GiantTreeDef, rng: Rng, o: GiantOptions): G
+   }
+ 
+   const authoredGeometry = authoredLeaves.finish(`giant-authored-leaves-${def.id}`);
+-  if (originalCorePositions.length) {
+-    // Recession must not shrink the authored mesh's old visibility volume.
+-    for (const p of originalCorePositions) authoredGeometry.boundingBox!.expandByPoint(p);
+-    const sphere = authoredGeometry.boundingSphere!;
+-    authoredGeometry.boundingBox!.getCenter(sphere.center);
+-    let radiusSq = 0;
+-    const p = new Vector3(), position = authoredGeometry.getAttribute('position');
+-    for (let v = 0; v < position.count; v++) radiusSq = Math.max(radiusSq, p.fromBufferAttribute(position, v).distanceToSquared(sphere.center));
+-    for (const old of originalCorePositions) radiusSq = Math.max(radiusSq, old.distanceToSquared(sphere.center));
+-    sphere.radius = Math.sqrt(radiusSq);
+-  }
+   return {
+     geometry: mergeParts(`giant-${def.id}`, [treeWood.finish('wood'), treeLeaves.finish('leaves')]),
+     authoredLeaves: authoredGeometry,
+diff --git a/src/world/trees/nearCanopy.ts b/src/world/trees/nearCanopy.ts
+index 3189d3fe..a3032bfc 100644
+--- a/src/world/trees/nearCanopy.ts
++++ b/src/world/trees/nearCanopy.ts
+@@ -23,7 +23,7 @@
+  * column.ts; every part is built after its whole far tree from a stream forked off the tree's
+  * (`rng.fork`), so the far tree is exactly what it was with the LOD off (the near base's rule).
+  */
+-import { Box3, BufferGeometry, Color, Vector3 } from 'three';
++import { Box3, BufferGeometry, Color, Ray, Triangle, Vector3 } from 'three';
+ import type { Rng } from '../util/prng';
+ import { Noise2D, smoothstep } from '../util/noise';
+ import { GeometryWriter, TAU, UP, addLeaf, between, frame, growthPath, sample, stiffnessFor, tangent, taper, tube, type LeafOptions, type TubeDraws } from './writer';
+@@ -125,7 +125,7 @@ export interface NearCanopyPart {
+  */
+ export interface NearLobeRecord {
+   /** Selected bank foliage; all ordinary records retain the existing kit settings. */
+-  layeredCore?: { leaves: number; twigs: number; bounds: Box3; tone: number };
++  layeredCore?: { leaves: number; twigs: number; bounds: Box3; tone: number; surface: { vertices: Vector3[]; indices: number[] } };
+   group: number;
+   center: Vector3;
+   hR: number;
+@@ -224,26 +224,66 @@ export function createNearCanopyKit(o: NearCanopyKitOptions) {
+     const pad = radii[i] * 1.04;
+     return bounds.containsPoint(p.clone().addScalar(pad)) && bounds.containsPoint(p.clone().addScalar(-pad));
+   });
+-  /** Extra parents grow from recorded secondary wood; they do not move the existing paths. */
++  /** Connected shoots follow the selected core's real surface, independently of every camera. */
+   const layeredParents = (w: GeometryWriter, g: Rng, rec: NearLobeRecord, bounds: Box3) => {
+     const added: NearLobeRecord['twigs'] = [];
+-    const count = rec.layeredCore!.twigs - rec.twigs.length;
+-    const phase = g() * TAU;
++    const { vertices, indices } = rec.layeredCore!.surface;
++    const faces = Array.from({ length: indices.length / 3 }, (_, i) =>
++      new Triangle(...indices.slice(i * 3, i * 3 + 3).map(v => vertices[v]) as [Vector3, Vector3, Vector3]));
++    const leafLength = 0.22 + 0.07 * smoothstep(4, 15, rec.center.y);
++    const lift = leafLength * 0.62 * 0.5;
++    const ray = new Ray(rec.center), hit = new Vector3();
++    const onSurface = (direction: Vector3) => {
++      ray.direction.copy(direction).normalize();
++      let distance = Infinity, point: Vector3 | undefined;
++      for (const face of faces) {
++        if (!ray.intersectTriangle(face.a, face.b, face.c, false, hit)) continue;
++        const d = hit.distanceToSquared(rec.center);
++        if (d >= distance) continue;
++        distance = d;
++        const normal = face.getNormal(new Vector3());
++        if (normal.dot(hit.clone().sub(rec.center)) < 0) normal.negate();
++        point = hit.clone().addScaledVector(normal, lift);
++      }
++      return point!;
++    };
++    const sites = faces.filter(face => face.getArea() > 1e-8).map(face => onSurface(face.getMidpoint(new Vector3()).sub(rec.center)))
++      .filter(p => bounds.containsPoint(p));
++    const distances = sites.map(() => Infinity);
++    const count = Math.min(rec.layeredCore!.twigs, sites.length);
++    let next = Math.floor(g() * sites.length);
+     for (let i = 0; i < count; i++) {
+-      const parent = rec.secondaries[i % rec.secondaries.length];
+-      const at = 0.32 + 0.5 * ((i * 0.61803398875) % 1);
+-      const origin = sample(parent.path, at);
+-      const az = phase + i * 2.3999632297;
+-      const level = [-0.4, 0.08, 0.7][i % 3];
+-      const reach = rec.hR * Math.sqrt(1 - level * level) * between(g, 0.72, 0.9);
+-      const target = rec.center.clone().add(new Vector3(Math.cos(az) * reach, level * rec.vR, Math.sin(az) * reach));
+-      if (rec.floorY !== undefined) target.y = Math.max(target.y, rec.floorY + 0.36);
+-      const path = growthPath(origin, target, tangent(parent.path, at), g, 4, 0.7);
++      const site = sites[next];
++      let farthest = -1;
++      for (let j = 0; j < sites.length; j++) {
++        distances[j] = Math.min(distances[j], sites[j].distanceToSquared(site));
++        if (distances[j] > farthest) { farthest = distances[j]; next = j; }
++      }
++      const radial = site.clone().sub(rec.center).normalize(), [u, v] = frame(radial);
++      const angle = g() * TAU, side = u.multiplyScalar(Math.cos(angle)).addScaledVector(v, Math.sin(angle));
++      // Alternate leaves at roughly a quarter-leaf-length interval over a real woody axis.
++      const span = (rec.layeredCore!.leaves / count) * leafLength * 0.25 / rec.hR;
++      const surfacePath: Vector3[] = [];
++      for (let k = 0; k <= 12; k++) {
++        const theta = (k / 12) * span;
++        const p = onSurface(radial.clone().multiplyScalar(Math.cos(theta)).addScaledVector(side, Math.sin(theta)));
++        if (!bounds.containsPoint(p)) break;
++        surfacePath.push(p);
++      }
++      if (surfacePath.length < 3) continue;
++      let parent = rec.secondaries[0], origin = sample(parent.path, 0.5), nearest = Infinity;
++      for (const sec of rec.secondaries) for (const at of [0.32, 0.57, 0.82]) {
++        const p = sample(sec.path, at), d = p.distanceToSquared(surfacePath[0]);
++        if (d < nearest) { nearest = d; parent = sec; origin = p; }
++      }
++      const path = [origin, ...surfacePath];
+       const radius = Math.max(0.007, Math.min(0.012, parent.radius * 0.25));
+-      const radii = taper(path, radius, 0.004);
++      const radii = taper(path, radius, 0.0015);
+       if (!tubeFits(path, radii, bounds)) continue;
++      // At most 13 segments × 6 triangles + 3 tip triangles = 81 per shoot:
++      // 104 authored shoots + 7,100 eight-triangle leaves <= 65,224 triangles.
+       tube(w, path, radii, 3, g, { color: barkColor, roughness: 0.02 });
+-      added.push({ path, radius });
++      added.push({ path: surfacePath, radius });
+     }
+     return added;
+   };
+@@ -285,7 +325,7 @@ export function createNearCanopyKit(o: NearCanopyKitOptions) {
+    * 50–80° with a little roll each, pitched up a touch, so neighbours overlap 2–3 deep along the
+    * twig instead of radiating evenly (the far leafSpray's golden-angle scatter).
+    */
+-  const nearSpray = (w: GeometryWriter, g: Rng, path: Vector3[], pathRadius: number, count: number, size: [number, number], center: Vector3, hR: number, vigor: number, startT = 0.3, floorY?: number) => {
++  const nearSpray = (w: GeometryWriter, g: Rng, path: Vector3[], pathRadius: number, count: number, size: [number, number], center: Vector3, hR: number, vigor: number, startT = 0.3, floorY?: number, surfaceVR?: number) => {
+     const gb = (a: number, b: number) => between(g, a, b);
+     const opts = nearLeafOpts(pathRadius);
+     let n = 0;
+@@ -298,6 +338,10 @@ export function createNearCanopyKit(o: NearCanopyKitOptions) {
+       const roll = gb(-0.4, 0.4);
+       const outward = u.clone().multiplyScalar(side * Math.cos(roll)).addScaledVector(v, Math.sin(roll));
+       const direction = axis.clone().multiplyScalar(gb(0.5, 0.9)).addScaledVector(outward, 1).addScaledVector(UP, gb(-0.1, 0.35)).normalize();
++      if (surfaceVR !== undefined) {
++        const normal = base.clone().sub(center).divide(new Vector3(hR * hR, surfaceVR * surfaceVR, hR * hR)).normalize();
++        direction.addScaledVector(normal, -2 * Math.min(0, direction.dot(normal))).normalize();
++      }
+       // a floored lobe's laminae stop at its floor (the draws are made either way)
+       if (addLeaf(w, base, direction, gb(size[0], size[1]), o.leafColor(g, base, center, hR, vigor), g, opts, floorY === undefined || base.y >= floorY + 0.2)) n++;
+     }
+@@ -470,8 +514,20 @@ export function createNearCanopyKit(o: NearCanopyKitOptions) {
+     const gb = (a: number, b: number) => between(g, a, b);
+     // 8 cm contains the added flex/flutter at the current giant wind settings; the old core is rigid.
+     const bounds = rec.layeredCore?.bounds.clone().expandByScalar(-0.08);
+-    const twigs = bounds ? [...rec.twigs, ...layeredParents(w, g.fork('layered-parents'), rec, bounds)] : rec.twigs;
+-    const target = rec.layeredCore ? rec.layeredCore.leaves * 1.3 : Math.max(NEAR_CANOPY_LEAVES[0], Math.min(NEAR_CANOPY_LEAVES[1], NEAR_CANOPY_LEAF_DENSITY * rec.hR * rec.hR));
++    if (bounds && rec.floorY !== undefined) bounds.min.y = Math.max(bounds.min.y, rec.floorY + 0.08);
++    const twigs = bounds ? layeredParents(w, g.fork('layered-parents'), rec, bounds) : rec.twigs;
++    if (rec.layeredCore) {
++      const totalLength = twigs.reduce((sum, twig) => sum + pathLength(twig.path), 0);
++      const high = smoothstep(4, 15, rec.center.y);
++      for (const twig of twigs) {
++        const count = Math.max(3, Math.round(rec.layeredCore.leaves * 1.3 * pathLength(twig.path) / totalLength));
++        nearSpray(w, g, twig.path, twig.radius, count, [0.17 + 0.05 * high, 0.27 + 0.09 * high], rec.center, rec.hR, 0.96, 0, undefined, rec.vR);
++        yield;
++      }
++      const out = boundLayeredLeaves(w, bounds!, rec.layeredCore.leaves, rec.layeredCore.tone);
++      return { geometry: yield* out.finishSteps(`near-canopy-${o.id}-lobe-${idx}`), leaves: out.leafCount, triangles: out.triangles };
++    }
++    const target = Math.max(NEAR_CANOPY_LEAVES[0], Math.min(NEAR_CANOPY_LEAVES[1], NEAR_CANOPY_LEAF_DENSITY * rec.hR * rec.hR));
+     // what the twigs carry at scale 1: ≈ 7 on the twig + 2.5 twiglets × (6 spray + 4 rosette)
+     const leafScale = Math.max(0.6, Math.min(2.4, target / (Math.max(1, twigs.length) * 32 + rec.secondaries.length * 8)));
+     const high = smoothstep(4, 15, rec.center.y);
+@@ -487,11 +543,9 @@ export function createNearCanopyKit(o: NearCanopyKitOptions) {
+     }
+     // moss along the upper side of the stem the lobe hangs on (the plain sweep is bare)
+     const stemR = rec.stemRadii[0];
+-    if (stemR >= 0.09 && !rec.layeredCore) mossStrip(w, rec.stem, rec.stemRadii, Math.min(1, 0.55 + stemR));
++    if (stemR >= 0.09) mossStrip(w, rec.stem, rec.stemRadii, Math.min(1, 0.55 + stemR));
+     yield;
+-    const out = rec.layeredCore ? boundLayeredLeaves(w, bounds!, rec.layeredCore.leaves, rec.layeredCore.tone) : w;
+-    if (rec.layeredCore) leaves = out.leafCount;
+-    return { geometry: yield* out.finishSteps(`near-canopy-${o.id}-lobe-${idx}`), leaves, triangles: out.triangles };
++    return { geometry: yield* w.finishSteps(`near-canopy-${o.id}-lobe-${idx}`), leaves, triangles: w.triangles };
+   }
+ 
+   /**

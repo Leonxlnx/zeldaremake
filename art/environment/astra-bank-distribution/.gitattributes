@@ -1,0 +1,7 @@
+# Preserve original byte-hashed receipts and harness, including recorded line endings.
+*.json -text
+*.mjs -text
+*.patch -text
+# The frozen worker used CRLF; a patch's blank context lines contain one space.
+geometry-worker.mjs whitespace=cr-at-eol
+*.patch whitespace=-blank-at-eol

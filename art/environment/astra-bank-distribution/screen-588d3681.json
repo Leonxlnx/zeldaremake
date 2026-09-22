@@ -1,0 +1,5013 @@
+{
+  "views": {
+    "F_canopy": {
+      "view": "F_canopy",
+      "width": 1280,
+      "height": 720,
+      "time": 12.6,
+      "pose": {
+        "position": [
+          -1.96,
+          1.8,
+          4
+        ],
+        "direction": [
+          0.9721254966661625,
+          -0.06836560096623101,
+          -0.22427252024288002
+        ],
+        "fov": 46
+      },
+      "groups": [
+        {
+          "group": 24,
+          "coreTriangles": 896,
+          "oldLeafTriangles": 1840,
+          "nearWoodTriangles": 3240,
+          "coverage": {
+            "projectedCorePixels": 40041,
+            "frontmostCorePixels": 34171,
+            "anyFineProjection": 23644,
+            "fineInFrontOfCore": 13489,
+            "projectedFineBehindCore": 10155,
+            "noFineProjection": 10527,
+            "frontmostFine": 13277,
+            "frontmostCore": 20093,
+            "frontmostOldFlatLeaf": 300,
+            "frontmostWood": 501
+          },
+          "leafMetrics": {
+            "leaves": 2800,
+            "onScreenLeaves": 2799,
+            "leavesWithAnyUnoccludedPixel": 922,
+            "lengthM": {
+              "n": 2800,
+              "min": 0.17012296510763683,
+              "p10": 0.17936333860317005,
+              "p25": 0.1943736168754252,
+              "median": 0.2190259591034595,
+              "p75": 0.24549639423738132,
+              "p90": 0.26165945210667246,
+              "p99": 0.26967707600538043,
+              "max": 0.2720977620849062,
+              "mean": 0.2200092275795322
+            },
+            "worldAreaM2": {
+              "n": 2800,
+              "min": 0.009610478438065107,
+              "p10": 0.011069854227296012,
+              "p25": 0.012943574431659506,
+              "median": 0.016545317446698425,
+              "p75": 0.02070520373786863,
+              "p90": 0.023460956390053606,
+              "p99": 0.025377095535551085,
+              "max": 0.026480064986576693,
+              "mean": 0.016922953899390865
+            },
+            "clippedProjectedTriangleAreaPx2": {
+              "n": 2800,
+              "min": 2.869718429814384,
+              "p10": 9.982456973899389,
+              "p25": 15.640784502669703,
+              "median": 26.72731925718108,
+              "p75": 43.19073353807471,
+              "p90": 61.51069377866952,
+              "p99": 95.39189481754875,
+              "max": 149.41691396259557,
+              "mean": 31.984857295184558
+            },
+            "uniquePixelsPerLeaf": {
+              "n": 2800,
+              "min": 0,
+              "p10": 8,
+              "p25": 14,
+              "median": 26,
+              "p75": 43,
+              "p90": 62,
+              "p99": 96,
+              "max": 147,
+              "mean": 31.164285714285715
+            },
+            "visibleUniquePixelsPerLeaf": {
+              "n": 2800,
+              "min": 0,
+              "p10": 0,
+              "p25": 0,
+              "median": 0,
+              "p75": 5,
+              "p90": 24,
+              "p99": 64,
+              "max": 135,
+              "mean": 6.331785714285714
+            },
+            "summedProjectedTriangleAreaPx2": 89557.60042651664,
+            "summedDistinctLeafFootprintPixels": 87260,
+            "summedLeafFootprintsInsideCore": 71949,
+            "summedLeafFootprintsInFrontOfCore": 25618,
+            "summedLeafFootprintsInFrontOfBankOpaque": 39002,
+            "visiblePixelOwnership": 17729
+          }
+        },
+        {
+          "group": 25,
+          "coreTriangles": 896,
+          "oldLeafTriangles": 1840,
+          "nearWoodTriangles": 2592,
+          "coverage": {
+            "projectedCorePixels": 39910,
+            "frontmostCorePixels": 38798,
+            "anyFineProjection": 27628,
+            "fineInFrontOfCore": 11656,
+            "projectedFineBehindCore": 15972,
+            "noFineProjection": 11170,
+            "frontmostFine": 11624,
+            "frontmostCore": 26735,
+            "frontmostOldFlatLeaf": 45,
+            "frontmostWood": 394
+          },
+          "leafMetrics": {
+            "leaves": 2100,
+            "onScreenLeaves": 2099,
+            "leavesWithAnyUnoccludedPixel": 732,
+            "lengthM": {
+              "n": 2100,
+              "min": 0.17014698575303056,
+              "p10": 0.17975852313990762,
+              "p25": 0.19428328794470043,
+              "median": 0.21783322306423594,
+              "p75": 0.24409994650270614,
+              "p90": 0.2599041011701554,
+              "p99": 0.26957500920912003,
+              "max": 0.27144041606851926,
+              "mean": 0.21886490510855894
+            },
+            "worldAreaM2": {
+              "n": 2100,
+              "min": 0.009628194862681636,
+              "p10": 0.01108404233752611,
+              "p25": 0.012876444399415599,
+              "median": 0.016303831062786402,
+              "p75": 0.02033389789998557,
+              "p90": 0.023117756731442448,
+              "p99": 0.02517496148356665,
+              "max": 0.026405093269112837,
+              "mean": 0.016736367840214126
+            },
+            "clippedProjectedTriangleAreaPx2": {
+              "n": 2100,
+              "min": 2.2764107113325736,
+              "p10": 13.632674059088458,
+              "p25": 20.395170649222564,
+              "median": 33.0045222343324,
+              "p75": 53.53344173319056,
+              "p90": 77.78884686965466,
+              "p99": 128.8140371374393,
+              "max": 154.4163632756172,
+              "mean": 40.212581555153314
+            },
+            "uniquePixelsPerLeaf": {
+              "n": 2100,
+              "min": 0,
+              "p10": 11,
+              "p25": 18,
+              "median": 32,
+              "p75": 53,
+              "p90": 78,
+              "p99": 129,
+              "max": 157,
+              "mean": 39.070952380952384
+            },
+            "visibleUniquePixelsPerLeaf": {
+              "n": 2100,
+              "min": 0,
+              "p10": 0,
+              "p25": 0,
+              "median": 0,
+              "p75": 8,
+              "p90": 32,
+              "p99": 94,
+              "max": 140,
+              "mean": 8.991428571428571
+            },
+            "summedProjectedTriangleAreaPx2": 84446.42126582187,
+            "summedDistinctLeafFootprintPixels": 82049,
+            "summedLeafFootprintsInsideCore": 61792,
+            "summedLeafFootprintsInFrontOfCore": 18149,
+            "summedLeafFootprintsInFrontOfBankOpaque": 36891,
+            "visiblePixelOwnership": 18882
+          }
+        },
+        {
+          "group": 26,
+          "coreTriangles": 896,
+          "oldLeafTriangles": 1632,
+          "nearWoodTriangles": 1842,
+          "coverage": {
+            "projectedCorePixels": 24414,
+            "frontmostCorePixels": 23980,
+            "anyFineProjection": 12740,
+            "fineInFrontOfCore": 5509,
+            "projectedFineBehindCore": 7231,
+            "noFineProjection": 11240,
+            "frontmostFine": 5447,
+            "frontmostCore": 18283,
+            "frontmostOldFlatLeaf": 113,
+            "frontmostWood": 137
+          },
+          "leafMetrics": {
+            "leaves": 2200,
+            "onScreenLeaves": 1666,
+            "leavesWithAnyUnoccludedPixel": 507,
+            "lengthM": {
+              "n": 2200,
+              "min": 0.17248023455913947,
+              "p10": 0.18409805829113457,
+              "p25": 0.20000576512713536,
+              "median": 0.22468967300040638,
+              "p75": 0.2499252426928711,
+              "p90": 0.2662348985839853,
+              "p99": 0.27456048586365883,
+              "max": 0.27726439821085735,
+              "mean": 0.22478102270721617
+            },
+            "worldAreaM2": {
+              "n": 2200,
+              "min": 0.010015257392009026,
+              "p10": 0.01158873116503454,
+              "p25": 0.013697968321381006,
+              "median": 0.017306532238399747,
+              "p75": 0.021421971702086897,
+              "p90": 0.024260212030508543,
+              "p99": 0.026086769917863774,
+              "max": 0.027189352723499118,
+              "mean": 0.017622411686938812
+            },
+            "clippedProjectedTriangleAreaPx2": {
+              "n": 2200,
+              "min": 0,
+              "p10": 0,
+              "p25": 1.5331723884869177,
+              "median": 16.943381553629706,
+              "p75": 35.48064438132678,
+              "p90": 54.64313966402551,
+              "p99": 85.31840001722526,
+              "max": 117.73105621957984,
+              "mean": 22.536309354362377
+            },
+            "uniquePixelsPerLeaf": {
+              "n": 2200,
+              "min": 0,
+              "p10": 0,
+              "p25": 1,
+              "median": 16,
+              "p75": 35,
+              "p90": 54,
+              "p99": 86,
+              "max": 117,
+              "mean": 22.046363636363637
+            },
+            "visibleUniquePixelsPerLeaf": {
+              "n": 2200,
+              "min": 0,
+              "p10": 0,
+              "p25": 0,
+              "median": 0,
+              "p75": 0,
+              "p90": 12,
+              "p99": 57,
+              "max": 86,
+              "mean": 3.575
+            },
+            "summedProjectedTriangleAreaPx2": 49579.880579597295,
+            "summedDistinctLeafFootprintPixels": 48502,
+            "summedLeafFootprintsInsideCore": 34679,
+            "summedLeafFootprintsInFrontOfCore": 10983,
+            "summedLeafFootprintsInFrontOfBankOpaque": 23709,
+            "visiblePixelOwnership": 7865
+          }
+        }
+      ],
+      "overall": {
+        "projectedCorePixels": 96949,
+        "frontmostCorePixels": 96949,
+        "anyFineProjection": 64012,
+        "fineInFrontOfCore": 30654,
+        "projectedFineBehindCore": 33358,
+        "noFineProjection": 32937,
+        "frontmostFine": 30348,
+        "frontmostCore": 65111,
+        "frontmostOldFlatLeaf": 458,
+        "frontmostWood": 1032
+      },
+      "leafMetrics": {
+        "leaves": 7100,
+        "onScreenLeaves": 6564,
+        "leavesWithAnyUnoccludedPixel": 2161,
+        "lengthM": {
+          "n": 7100,
+          "min": 0.17012296510763683,
+          "p10": 0.18079295252571137,
+          "p25": 0.19559503788539764,
+          "median": 0.22027340830175854,
+          "p75": 0.24631531514965205,
+          "p90": 0.262453735485135,
+          "p99": 0.2723315432676716,
+          "max": 0.27726439821085735,
+          "mean": 0.22114935040937148
+        },
+        "worldAreaM2": {
+          "n": 7100,
+          "min": 0.009610478438065107,
+          "p10": 0.011194197189807091,
+          "p25": 0.013133348554055447,
+          "median": 0.016693912263961507,
+          "p75": 0.020791976399345956,
+          "p90": 0.02360635772014681,
+          "p99": 0.02567303601464087,
+          "max": 0.027189352723499118,
+          "mean": 0.017084499872395756
+        },
+        "clippedProjectedTriangleAreaPx2": {
+          "n": 7100,
+          "min": 0,
+          "p10": 6.104075788543639,
+          "p25": 14.135604021023028,
+          "median": 26.307809477191768,
+          "p75": 43.7653980229079,
+          "p90": 64.72818672564608,
+          "p99": 107.40601730351773,
+          "max": 154.4163632756172,
+          "mean": 31.49069046083604
+        },
+        "uniquePixelsPerLeaf": {
+          "n": 7100,
+          "min": 0,
+          "p10": 4,
+          "p25": 12,
+          "median": 25,
+          "p75": 44,
+          "p90": 64,
+          "p99": 108,
+          "max": 157,
+          "mean": 30.677605633802816
+        },
+        "visibleUniquePixelsPerLeaf": {
+          "n": 7100,
+          "min": 0,
+          "p10": 0,
+          "p25": 0,
+          "median": 0,
+          "p75": 3,
+          "p90": 23,
+          "p99": 73,
+          "max": 140,
+          "mean": 6.264225352112676
+        },
+        "summedProjectedTriangleAreaPx2": 223583.90227193537,
+        "summedDistinctLeafFootprintPixels": 217811,
+        "summedLeafFootprintsInsideCore": 168420,
+        "summedLeafFootprintsInFrontOfCore": 54750,
+        "summedLeafFootprintsInFrontOfBankOpaque": 99602,
+        "visiblePixelOwnership": 44476
+      },
+      "fineUnionPixels": 78482,
+      "fineUnoccludedByBankOpaquePixels": 44476,
+      "trianglePixelSamples": 223717,
+      "contiguous": {
+        "connectivity": 4,
+        "frontmostCore": {
+          "components": 473,
+          "largest": [
+            {
+              "pixels": 27522,
+              "bounds": [
+                795,
+                95,
+                1114,
+                294
+              ]
+            },
+            {
+              "pixels": 17536,
+              "bounds": [
+                578,
+                0,
+                786,
+                132
+              ]
+            },
+            {
+              "pixels": 4905,
+              "bounds": [
+                880,
+                198,
+                1032,
+                283
+              ]
+            },
+            {
+              "pixels": 3598,
+              "bounds": [
+                700,
+                142,
+                781,
+                238
+              ]
+            },
+            {
+              "pixels": 3153,
+              "bounds": [
+                746,
+                211,
+                816,
+                290
+              ]
+            },
+            {
+              "pixels": 2403,
+              "bounds": [
+                950,
+                76,
+                1037,
+                124
+              ]
+            },
+            {
+              "pixels": 1077,
+              "bounds": [
+                771,
+                118,
+                799,
+                188
+              ]
+            },
+            {
+              "pixels": 585,
+              "bounds": [
+                714,
+                0,
+                785,
+                36
+              ]
+            }
+          ]
+        },
+        "withoutFrontmostFine": {
+          "components": 374,
+          "largest": [
+            {
+              "pixels": 38841,
+              "bounds": [
+                699,
+                76,
+                1114,
+                295
+              ]
+            },
+            {
+              "pixels": 17874,
+              "bounds": [
+                578,
+                0,
+                786,
+                132
+              ]
+            },
+            {
+              "pixels": 5117,
+              "bounds": [
+                880,
+                198,
+                1032,
+                283
+              ]
+            },
+            {
+              "pixels": 1168,
+              "bounds": [
+                771,
+                118,
+                806,
+                188
+              ]
+            },
+            {
+              "pixels": 589,
+              "bounds": [
+                714,
+                0,
+                785,
+                36
+              ]
+            },
+            {
+              "pixels": 318,
+              "bounds": [
+                813,
+                83,
+                858,
+                101
+              ]
+            },
+            {
+              "pixels": 308,
+              "bounds": [
+                1046,
+                103,
+                1084,
+                124
+              ]
+            },
+            {
+              "pixels": 187,
+              "bounds": [
+                986,
+                260,
+                1016,
+                285
+              ]
+            }
+          ]
+        },
+        "groups": [
+          {
+            "group": 24,
+            "frontmostCore": {
+              "components": 251,
+              "largest": [
+                {
+                  "pixels": 10369,
+                  "bounds": [
+                    795,
+                    103,
+                    898,
+                    294
+                  ]
+                },
+                {
+                  "pixels": 3598,
+                  "bounds": [
+                    700,
+                    142,
+                    781,
+                    238
+                  ]
+                },
+                {
+                  "pixels": 3153,
+                  "bounds": [
+                    746,
+                    211,
+                    816,
+                    290
+                  ]
+                },
+                {
+                  "pixels": 1077,
+                  "bounds": [
+                    771,
+                    118,
+                    799,
+                    188
+                  ]
+                },
+                {
+                  "pixels": 233,
+                  "bounds": [
+                    813,
+                    83,
+                    846,
+                    99
+                  ]
+                },
+                {
+                  "pixels": 207,
+                  "bounds": [
+                    785,
+                    188,
+                    801,
+                    211
+                  ]
+                },
+                {
+                  "pixels": 138,
+                  "bounds": [
+                    731,
+                    231,
+                    746,
+                    258
+                  ]
+                },
+                {
+                  "pixels": 105,
+                  "bounds": [
+                    704,
+                    136,
+                    727,
+                    157
+                  ]
+                }
+              ]
+            }
+          },
+          {
+            "group": 25,
+            "frontmostCore": {
+              "components": 180,
+              "largest": [
+                {
+                  "pixels": 17069,
+                  "bounds": [
+                    884,
+                    95,
+                    1114,
+                    231
+                  ]
+                },
+                {
+                  "pixels": 4905,
+                  "bounds": [
+                    880,
+                    198,
+                    1032,
+                    283
+                  ]
+                },
+                {
+                  "pixels": 2403,
+                  "bounds": [
+                    950,
+                    76,
+                    1037,
+                    124
+                  ]
+                },
+                {
+                  "pixels": 297,
+                  "bounds": [
+                    1046,
+                    103,
+                    1083,
+                    124
+                  ]
+                },
+                {
+                  "pixels": 291,
+                  "bounds": [
+                    1074,
+                    221,
+                    1100,
+                    251
+                  ]
+                },
+                {
+                  "pixels": 179,
+                  "bounds": [
+                    1020,
+                    233,
+                    1049,
+                    248
+                  ]
+                },
+                {
+                  "pixels": 179,
+                  "bounds": [
+                    1020,
+                    254,
+                    1057,
+                    273
+                  ]
+                },
+                {
+                  "pixels": 177,
+                  "bounds": [
+                    986,
+                    260,
+                    1016,
+                    285
+                  ]
+                }
+              ]
+            }
+          },
+          {
+            "group": 26,
+            "frontmostCore": {
+              "components": 57,
+              "largest": [
+                {
+                  "pixels": 17536,
+                  "bounds": [
+                    578,
+                    0,
+                    786,
+                    132
+                  ]
+                },
+                {
+                  "pixels": 585,
+                  "bounds": [
+                    714,
+                    0,
+                    785,
+                    36
+                  ]
+                },
+                {
+                  "pixels": 24,
+                  "bounds": [
+                    579,
+                    33,
+                    585,
+                    41
+                  ]
+                },
+                {
+                  "pixels": 17,
+                  "bounds": [
+                    742,
+                    109,
+                    748,
+                    113
+                  ]
+                },
+                {
+                  "pixels": 16,
+                  "bounds": [
+                    595,
+                    79,
+                    600,
+                    85
+                  ]
+                },
+                {
+                  "pixels": 10,
+                  "bounds": [
+                    578,
+                    43,
+                    581,
+                    46
+                  ]
+                },
+                {
+                  "pixels": 9,
+                  "bounds": [
+                    578,
+                    63,
+                    581,
+                    66
+                  ]
+                },
+                {
+                  "pixels": 9,
+                  "bounds": [
+                    646,
+                    77,
+                    650,
+                    79
+                  ]
+                }
+              ]
+            }
+          }
+        ]
+      },
+      "outsideCoreMask": {
+        "fineUnionPixels": 14470,
+        "fineUnoccludedPixels": 14128,
+        "summedLeafFootprints": 49391,
+        "leavesWhollyOutsideMask": 1022
+      },
+      "floor": {
+        "group": 26,
+        "floorLocal": 4.730642565409653,
+        "originY": 0.019357434590347555,
+        "floorWorld": 4.75,
+        "frontmostGroup26FloorMaskPixels": 3173,
+        "fineInFrontOfFloorPixels": 253,
+        "floorFineInFrontByGroup": {
+          "24": 253,
+          "25": 0,
+          "26": 0
+        },
+        "floorSampleCoords": [
+          [
+            668,
+            98
+          ],
+          [
+            639,
+            105
+          ],
+          [
+            663,
+            108
+          ],
+          [
+            693,
+            111
+          ],
+          [
+            732,
+            114
+          ],
+          [
+            673,
+            118
+          ],
+          [
+            650,
+            122
+          ],
+          [
+            667,
+            126
+          ]
+        ]
+      },
+      "coreMaskSha256": "78f80fb85ded0620b9d98a6ec10ff9d923158122cecd84e4e36334e07b265767",
+      "overlap": {
+        "summedLeafFootprintsDividedByUnion": 2.7752987946280676,
+        "frontCoreFootprintsDividedByUniqueFrontCorePixels": 1.7860638089645724,
+        "extraFrontCoreSamplesFromOverlappingLeaves": 24096
+      },
+      "remainingCoreAreaWithoutFineLeafPixels": 66601,
+      "independentRayCheck": {
+        "sampleCount": 131,
+        "method": "Three.Ray.intersectTriangle at the same pixel centres, DoubleSide, independent world-space intersection. Nearest kind and per-kind projected depth must agree with CPU raster within 1e-9 NDC.",
+        "samples": [
+          {
+            "x": 675,
+            "y": 85,
+            "frontmost": "core",
+            "hits": {
+              "oldFlatLeaf": {
+                "distance": 14.440933549279377,
+                "group": 26,
+                "sourceTriangle": 12511,
+                "sourceGeometry": "authoredLeaves"
+              },
+              "core": {
+                "distance": 12.779481909745734,
+                "group": 26,
+                "sourceTriangle": 13218,
+                "sourceGeometry": "authoredLeaves"
+              },
+              "fineLeaf": {
+                "distance": 16.111204434946416,
+                "group": 26,
+                "leafId": 6606,
+                "sourceTriangle": 15492,
+                "sourceGeometry": "nearCanopy:lobe:26"
+              }
+            }
+          },
+          {
+            "x": 1000,
+            "y": 155,
+            "frontmost": "core",
+            "hits": {
+              "core": {
+                "distance": 11.318345519953098,
+                "group": 25,
+                "sourceTriangle": 10468,
+                "sourceGeometry": "authoredLeaves"
+              },
+              "fineLeaf": {
+                "distance": 14.06260518408248,
+                "group": 25,
+                "leafId": 3202,
+                "sourceTriangle": 5808,
+                "sourceGeometry": "nearCanopy:lobe:25"
+              }
+            }
+          },
+          {
+            "x": 733,
+            "y": 122,
+            "frontmost": "fineLeaf",
+            "hits": {
+              "core": {
+                "distance": 13.230947696908293,
+                "group": 24,
+                "sourceTriangle": 7519,
+                "sourceGeometry": "authoredLeaves"
+              },
+              "fineLeaf": {
+                "distance": 12.810599113072362,
+                "group": 24,
+                "leafId": 592,
+                "sourceTriangle": 7980,
+                "sourceGeometry": "nearCanopy:lobe:24"
+              }
+            }
+          },
+          {
+            "x": 668,
+            "y": 98,
+            "frontmost": "core",
+            "hits": {
+              "oldFlatLeaf": {
+                "distance": 13.895476315073193,
+                "group": 26,
+                "sourceTriangle": 12373,
+                "sourceGeometry": "authoredLeaves"
+              },
+              "core": {
+                "distance": 12.909832959899722,
+                "group": 26,
+                "sourceTriangle": 13276,
+                "sourceGeometry": "authoredLeaves"
+              }
+            }
+          },
+          {
+            "x": 639,
+            "y": 105,
+            "frontmost": "core",
+            "hits": {
+              "oldFlatLeaf": {
+                "distance": 15.135227043464054,
+                "group": 26,
+                "sourceTriangle": 12535,
+                "sourceGeometry": "authoredLeaves"
+              },
+              "core": {
+                "distance": 13.33243900478287,
+                "group": 26,
+                "sourceTriangle": 13281,
+                "sourceGeometry": "authoredLeaves"
+              }
+            }
+          },
+          {
+            "x": 663,
+            "y": 108,
+            "frontmost": "core",
+            "hits": {
+              "core": {
+                "distance": 13.530925741938088,
+                "group": 26,
+                "sourceTriangle": 13390,
+                "sourceGeometry": "authoredLeaves"
+              },
+              "nearWood": {
+                "distance": 15.128501654543427,
+                "group": 26,
+                "leafId": -1,
+                "sourceTriangle": 1436,
+                "sourceGeometry": "nearCanopy:lobe:26"
+              }
+            }
+          },
+          {
+            "x": 693,
+            "y": 111,
+            "frontmost": "core",
+            "hits": {
+              "oldFlatLeaf": {
+                "distance": 14.958893745976303,
+                "group": 26,
+                "sourceTriangle": 11329,
+                "sourceGeometry": "authoredLeaves"
+              },
+              "core": {
+                "distance": 13.751248872688146,
+                "group": 26,
+                "sourceTriangle": 13383,
+                "sourceGeometry": "authoredLeaves"
+              },
+              "fineLeaf": {
+                "distance": 16.06476897025218,
+                "group": 26,
+                "leafId": 6623,
+                "sourceTriangle": 15631,
+                "sourceGeometry": "nearCanopy:lobe:26"
+              }
+            }
+          },
+          {
+            "x": 732,
+            "y": 114,
+            "frontmost": "fineLeaf",
+            "hits": {
+              "core": {
+                "distance": 14.008891446310928,
+                "group": 26,
+                "sourceTriangle": 13317,
+                "sourceGeometry": "authoredLeaves"
+              },
+              "fineLeaf": {
+                "distance": 13.419109043038956,
+                "group": 24,
+                "leafId": 1116,
+                "sourceTriangle": 12171,
+                "sourceGeometry": "nearCanopy:lobe:24"
+              }
+            }
+          },
+          {
+            "x": 673,
+            "y": 118,
+            "frontmost": "core",
+            "hits": {
+              "core": {
+                "distance": 14.229000090576697,
+                "group": 26,
+                "sourceTriangle": 13462,
+                "sourceGeometry": "authoredLeaves"
+              }
+            }
+          },
+          {
+            "x": 650,
+            "y": 122,
+            "frontmost": "core",
+            "hits": {
+              "oldFlatLeaf": {
+                "distance": 15.254264605381772,
+                "group": 26,
+                "sourceTriangle": 10975,
+                "sourceGeometry": "authoredLeaves"
+              },
+              "core": {
+                "distance": 14.518915677708568,
+                "group": 26,
+                "sourceTriangle": 13350,
+                "sourceGeometry": "authoredLeaves"
+              }
+            }
+          },
+          {
+            "x": 667,
+            "y": 126,
+            "frontmost": "core",
+            "hits": {
+              "core": {
+                "distance": 14.838199122811652,
+                "group": 26,
+                "sourceTriangle": 13355,
+                "sourceGeometry": "authoredLeaves"
+              }
+            }
+          },
+          {
+            "x": 560,
+            "y": 20,
+            "frontmost": null,
+            "hits": {}
+          },
+          {
+            "x": 600,
+            "y": 20,
+            "frontmost": "fineLeaf",
+            "hits": {
+              "core": {
+                "distance": 13.195069277366684,
+                "group": 26,
+                "sourceTriangle": 12945,
+                "sourceGeometry": "authoredLeaves"
+              },
+              "fineLeaf": {
+                "distance": 12.975524805801296,
+                "group": 26,
+                "leafId": 5577,
+                "sourceTriangle": 7260,
+                "sourceGeometry": "nearCanopy:lobe:26"
+              }
+            }
+          },
+          {
+            "x": 640,
+            "y": 20,
+            "frontmost": "fineLeaf",
+            "hits": {
+              "core": {
+                "distance": 12.796769709312153,
+                "group": 26,
+                "sourceTriangle": 12941,
+                "sourceGeometry": "authoredLeaves"
+              },
+              "fineLeaf": {
+                "distance": 12.6525629098281,
+                "group": 26,
+                "leafId": 6651,
+                "sourceTriangle": 15852,
+                "sourceGeometry": "nearCanopy:lobe:26"
+              }
+            }
+          },
+          {
+            "x": 680,
+            "y": 20,
+            "frontmost": "core",
+            "hits": {
+              "core": {
+                "distance": 12.757944826572487,
+                "group": 26,
+                "sourceTriangle": 12939,
+                "sourceGeometry": "authoredLeaves"
+              },
+              "fineLeaf": {
+                "distance": 15.299953703650823,
+                "group": 26,
+                "leafId": 6601,
+                "sourceTriangle": 15451,
+                "sourceGeometry": "nearCanopy:lobe:26"
+              }
+            }
+          },
+          {
+            "x": 720,
+            "y": 20,
+            "frontmost": "core",
+            "hits": {
+              "core": {
+                "distance": 12.827803969679614,
+                "group": 26,
+                "sourceTriangle": 12935,
+                "sourceGeometry": "authoredLeaves"
+              },
+              "fineLeaf": {
+                "distance": 15.335373011448908,
+                "group": 26,
+                "leafId": 5717,
+                "sourceTriangle": 8379,
+                "sourceGeometry": "nearCanopy:lobe:26"
+              }
+            }
+          },
+          {
+            "x": 760,
+            "y": 20,
+            "frontmost": "core",
+            "hits": {
+              "core": {
+                "distance": 13.342355203245807,
+                "group": 26,
+                "sourceTriangle": 12930,
+                "sourceGeometry": "authoredLeaves"
+              }
+            }
+          },
+          {
+            "x": 800,
+            "y": 20,
+            "frontmost": null,
+            "hits": {}
+          },
+          {
+            "x": 840,
+            "y": 20,
+            "frontmost": null,
+            "hits": {}
+          },
+          {
+            "x": 880,
+            "y": 20,
+            "frontmost": null,
+            "hits": {}
+          },
+          {
+            "x": 920,
+            "y": 20,
+            "frontmost": null,
+            "hits": {}
+          },
+          {
+            "x": 960,
+            "y": 20,
+            "frontmost": null,
+            "hits": {}
+          },
+          {
+            "x": 1000,
+            "y": 20,
+            "frontmost": null,
+            "hits": {}
+          },
+          {
+            "x": 1040,
+            "y": 20,
+            "frontmost": null,
+            "hits": {}
+          },
+          {
+            "x": 1080,
+            "y": 20,
+            "frontmost": null,
+            "hits": {}
+          },
+          {
+            "x": 1120,
+            "y": 20,
+            "frontmost": null,
+            "hits": {}
+          },
+          {
+            "x": 560,
+            "y": 60,
+            "frontmost": null,
+            "hits": {}
+          },
+          {
+            "x": 600,
+            "y": 60,
+            "frontmost": "core",
+            "hits": {
+              "core": {
+                "distance": 12.963206415037632,
+                "group": 26,
+                "sourceTriangle": 13112,
+                "sourceGeometry": "authoredLeaves"
+              },
+              "fineLeaf": {
+                "distance": 15.291084352729973,
+                "group": 26,
+                "leafId": 5711,
+                "sourceTriangle": 8330,
+                "sourceGeometry": "nearCanopy:lobe:26"
+              }
+            }
+          },
+          {
+            "x": 640,
+            "y": 60,
+            "frontmost": "core",
+            "hits": {
+              "core": {
+                "distance": 12.687267534044542,
+                "group": 26,
+                "sourceTriangle": 13109,
+                "sourceGeometry": "authoredLeaves"
+              }
+            }
+          },
+          {
+            "x": 680,
+            "y": 60,
+            "frontmost": "core",
+            "hits": {
+              "core": {
+                "distance": 12.64780211428512,
+                "group": 26,
+                "sourceTriangle": 13106,
+                "sourceGeometry": "authoredLeaves"
+              }
+            }
+          },
+          {
+            "x": 720,
+            "y": 60,
+            "frontmost": "core",
+            "hits": {
+              "core": {
+                "distance": 12.692185337696017,
+                "group": 26,
+                "sourceTriangle": 13103,
+                "sourceGeometry": "authoredLeaves"
+              },
+              "nearWood": {
+                "distance": 13.546144163064453,
+                "group": 26,
+                "leafId": -1,
+                "sourceTriangle": 1352,
+                "sourceGeometry": "nearCanopy:lobe:26"
+              }
+            }
+          },
+          {
+            "x": 760,
+            "y": 60,
+            "frontmost": "core",
+            "hits": {
+              "core": {
+                "distance": 12.984112719301558,
+                "group": 26,
+                "sourceTriangle": 13100,
+                "sourceGeometry": "authoredLeaves"
+              },
+              "fineLeaf": {
+                "distance": 15.574332574366396,
+                "group": 26,
+                "leafId": 6322,
+                "sourceTriangle": 13219,
+                "sourceGeometry": "nearCanopy:lobe:26"
+              }
+            }
+          },
+          {
+            "x": 800,
+            "y": 60,
+            "frontmost": "fineLeaf",
+            "hits": {
+              "fineLeaf": {
+                "distance": 13.536560404221461,
+                "group": 26,
+                "leafId": 5043,
+                "sourceTriangle": 2993,
+                "sourceGeometry": "nearCanopy:lobe:26"
+              }
+            }
+          },
+          {
+            "x": 840,
+            "y": 60,
+            "frontmost": null,
+            "hits": {}
+          },
+          {
+            "x": 880,
+            "y": 60,
+            "frontmost": null,
+            "hits": {}
+          },
+          {
+            "x": 920,
+            "y": 60,
+            "frontmost": null,
+            "hits": {}
+          },
+          {
+            "x": 960,
+            "y": 60,
+            "frontmost": null,
+            "hits": {}
+          },
+          {
+            "x": 1000,
+            "y": 60,
+            "frontmost": null,
+            "hits": {}
+          },
+          {
+            "x": 1040,
+            "y": 60,
+            "frontmost": null,
+            "hits": {}
+          },
+          {
+            "x": 1080,
+            "y": 60,
+            "frontmost": null,
+            "hits": {}
+          },
+          {
+            "x": 1120,
+            "y": 60,
+            "frontmost": null,
+            "hits": {}
+          },
+          {
+            "x": 560,
+            "y": 100,
+            "frontmost": null,
+            "hits": {}
+          },
+          {
+            "x": 600,
+            "y": 100,
+            "frontmost": "core",
+            "hits": {
+              "core": {
+                "distance": 13.850559018329655,
+                "group": 26,
+                "sourceTriangle": 13230,
+                "sourceGeometry": "authoredLeaves"
+              }
+            }
+          },
+          {
+            "x": 640,
+            "y": 100,
+            "frontmost": "core",
+            "hits": {
+              "oldFlatLeaf": {
+                "distance": 14.99265433641749,
+                "group": 26,
+                "sourceTriangle": 11131,
+                "sourceGeometry": "authoredLeaves"
+              },
+              "core": {
+                "distance": 13.045974104966707,
+                "group": 26,
+                "sourceTriangle": 13223,
+                "sourceGeometry": "authoredLeaves"
+              },
+              "fineLeaf": {
+                "distance": 15.845333784888243,
+                "group": 26,
+                "leafId": 6001,
+                "sourceTriangle": 10651,
+                "sourceGeometry": "nearCanopy:lobe:26"
+              }
+            }
+          },
+          {
+            "x": 680,
+            "y": 100,
+            "frontmost": "core",
+            "hits": {
+              "oldFlatLeaf": {
+                "distance": 13.455582265686786,
+                "group": 26,
+                "sourceTriangle": 11878,
+                "sourceGeometry": "authoredLeaves"
+              },
+              "core": {
+                "distance": 13.038726521944207,
+                "group": 26,
+                "sourceTriangle": 13274,
+                "sourceGeometry": "authoredLeaves"
+              },
+              "fineLeaf": {
+                "distance": 16.13968702090382,
+                "group": 26,
+                "leafId": 6615,
+                "sourceTriangle": 15563,
+                "sourceGeometry": "nearCanopy:lobe:26"
+              }
+            }
+          },
+          {
+            "x": 720,
+            "y": 100,
+            "frontmost": "core",
+            "hits": {
+              "oldFlatLeaf": {
+                "distance": 14.481214926222705,
+                "group": 26,
+                "sourceTriangle": 11627,
+                "sourceGeometry": "authoredLeaves"
+              },
+              "core": {
+                "distance": 13.085421614513589,
+                "group": 26,
+                "sourceTriangle": 13270,
+                "sourceGeometry": "authoredLeaves"
+              }
+            }
+          },
+          {
+            "x": 760,
+            "y": 100,
+            "frontmost": "fineLeaf",
+            "hits": {
+              "core": {
+                "distance": 13.372035229313171,
+                "group": 26,
+                "sourceTriangle": 13209,
+                "sourceGeometry": "authoredLeaves"
+              },
+              "fineLeaf": {
+                "distance": 12.878095454223654,
+                "group": 24,
+                "leafId": 2744,
+                "sourceTriangle": 25195,
+                "sourceGeometry": "nearCanopy:lobe:24"
+              }
+            }
+          },
+          {
+            "x": 800,
+            "y": 100,
+            "frontmost": "fineLeaf",
+            "hits": {
+              "core": {
+                "distance": 12.821195437409743,
+                "group": 24,
+                "sourceTriangle": 7454,
+                "sourceGeometry": "authoredLeaves"
+              },
+              "fineLeaf": {
+                "distance": 12.16289882177404,
+                "group": 24,
+                "leafId": 850,
+                "sourceTriangle": 10040,
+                "sourceGeometry": "nearCanopy:lobe:24"
+              }
+            }
+          },
+          {
+            "x": 840,
+            "y": 100,
+            "frontmost": "fineLeaf",
+            "hits": {
+              "core": {
+                "distance": 11.967583790007028,
+                "group": 24,
+                "sourceTriangle": 7562,
+                "sourceGeometry": "authoredLeaves"
+              },
+              "fineLeaf": {
+                "distance": 11.757165616983361,
+                "group": 24,
+                "leafId": 1978,
+                "sourceTriangle": 19066,
+                "sourceGeometry": "nearCanopy:lobe:24"
+              }
+            }
+          },
+          {
+            "x": 880,
+            "y": 100,
+            "frontmost": "fineLeaf",
+            "hits": {
+              "fineLeaf": {
+                "distance": 11.998297721395794,
+                "group": 24,
+                "leafId": 2042,
+                "sourceTriangle": 19580,
+                "sourceGeometry": "nearCanopy:lobe:24"
+              }
+            }
+          },
+          {
+            "x": 920,
+            "y": 100,
+            "frontmost": "fineLeaf",
+            "hits": {
+              "fineLeaf": {
+                "distance": 12.843142625261361,
+                "group": 25,
+                "leafId": 4459,
+                "sourceTriangle": 15864,
+                "sourceGeometry": "nearCanopy:lobe:25"
+              }
+            }
+          },
+          {
+            "x": 960,
+            "y": 100,
+            "frontmost": "fineLeaf",
+            "hits": {
+              "core": {
+                "distance": 11.612820762628445,
+                "group": 25,
+                "sourceTriangle": 10303,
+                "sourceGeometry": "authoredLeaves"
+              },
+              "fineLeaf": {
+                "distance": 11.427721123774582,
+                "group": 25,
+                "leafId": 3758,
+                "sourceTriangle": 10261,
+                "sourceGeometry": "nearCanopy:lobe:25"
+              }
+            }
+          },
+          {
+            "x": 1000,
+            "y": 100,
+            "frontmost": "core",
+            "hits": {
+              "core": {
+                "distance": 11.667150840920694,
+                "group": 25,
+                "sourceTriangle": 10299,
+                "sourceGeometry": "authoredLeaves"
+              }
+            }
+          },
+          {
+            "x": 1040,
+            "y": 100,
+            "frontmost": "fineLeaf",
+            "hits": {
+              "core": {
+                "distance": 11.882598390177312,
+                "group": 25,
+                "sourceTriangle": 10295,
+                "sourceGeometry": "authoredLeaves"
+              },
+              "fineLeaf": {
+                "distance": 11.722970730147532,
+                "group": 25,
+                "leafId": 3147,
+                "sourceTriangle": 5372,
+                "sourceGeometry": "nearCanopy:lobe:25"
+              }
+            }
+          },
+          {
+            "x": 1080,
+            "y": 100,
+            "frontmost": "fineLeaf",
+            "hits": {
+              "nearWood": {
+                "distance": 12.11864211535842,
+                "group": 25,
+                "leafId": -1,
+                "sourceTriangle": 610,
+                "sourceGeometry": "nearCanopy:lobe:25"
+              },
+              "fineLeaf": {
+                "distance": 11.972816144259799,
+                "group": 25,
+                "leafId": 4282,
+                "sourceTriangle": 14452,
+                "sourceGeometry": "nearCanopy:lobe:25"
+              }
+            }
+          },
+          {
+            "x": 1120,
+            "y": 100,
+            "frontmost": null,
+            "hits": {}
+          },
+          {
+            "x": 560,
+            "y": 140,
+            "frontmost": null,
+            "hits": {}
+          },
+          {
+            "x": 600,
+            "y": 140,
+            "frontmost": null,
+            "hits": {}
+          },
+          {
+            "x": 640,
+            "y": 140,
+            "frontmost": null,
+            "hits": {}
+          },
+          {
+            "x": 680,
+            "y": 140,
+            "frontmost": null,
+            "hits": {}
+          },
+          {
+            "x": 720,
+            "y": 140,
+            "frontmost": "core",
+            "hits": {
+              "core": {
+                "distance": 12.908946524350673,
+                "group": 24,
+                "sourceTriangle": 7630,
+                "sourceGeometry": "authoredLeaves"
+              }
+            }
+          },
+          {
+            "x": 760,
+            "y": 140,
+            "frontmost": "fineLeaf",
+            "hits": {
+              "core": {
+                "distance": 12.185280644901818,
+                "group": 24,
+                "sourceTriangle": 7624,
+                "sourceGeometry": "authoredLeaves"
+              },
+              "fineLeaf": {
+                "distance": 11.883848217654911,
+                "group": 24,
+                "leafId": 2421,
+                "sourceTriangle": 22610,
+                "sourceGeometry": "nearCanopy:lobe:24"
+              }
+            }
+          },
+          {
+            "x": 800,
+            "y": 140,
+            "frontmost": "fineLeaf",
+            "hits": {
+              "core": {
+                "distance": 11.665017094263005,
+                "group": 24,
+                "sourceTriangle": 7676,
+                "sourceGeometry": "authoredLeaves"
+              },
+              "fineLeaf": {
+                "distance": 11.578745020561435,
+                "group": 24,
+                "leafId": 1226,
+                "sourceTriangle": 13048,
+                "sourceGeometry": "nearCanopy:lobe:24"
+              }
+            }
+          },
+          {
+            "x": 840,
+            "y": 140,
+            "frontmost": "core",
+            "hits": {
+              "core": {
+                "distance": 11.532561544270184,
+                "group": 24,
+                "sourceTriangle": 7674,
+                "sourceGeometry": "authoredLeaves"
+              },
+              "fineLeaf": {
+                "distance": 14.770970099141657,
+                "group": 24,
+                "leafId": 1002,
+                "sourceTriangle": 11258,
+                "sourceGeometry": "nearCanopy:lobe:24"
+              }
+            }
+          },
+          {
+            "x": 880,
+            "y": 140,
+            "frontmost": "core",
+            "hits": {
+              "core": {
+                "distance": 11.665820550190427,
+                "group": 24,
+                "sourceTriangle": 7671,
+                "sourceGeometry": "authoredLeaves"
+              },
+              "fineLeaf": {
+                "distance": 12.636121673061249,
+                "group": 25,
+                "leafId": 4805,
+                "sourceTriangle": 18633,
+                "sourceGeometry": "nearCanopy:lobe:25"
+              }
+            }
+          },
+          {
+            "x": 920,
+            "y": 140,
+            "frontmost": "core",
+            "hits": {
+              "core": {
+                "distance": 11.449786884059833,
+                "group": 25,
+                "sourceTriangle": 10418,
+                "sourceGeometry": "authoredLeaves"
+              },
+              "fineLeaf": {
+                "distance": 13.89327429106129,
+                "group": 24,
+                "leafId": 669,
+                "sourceTriangle": 8594,
+                "sourceGeometry": "nearCanopy:lobe:24"
+              }
+            }
+          },
+          {
+            "x": 960,
+            "y": 140,
+            "frontmost": "core",
+            "hits": {
+              "core": {
+                "distance": 11.299214419150685,
+                "group": 25,
+                "sourceTriangle": 10415,
+                "sourceGeometry": "authoredLeaves"
+              },
+              "nearWood": {
+                "distance": 13.7257109342837,
+                "group": 25,
+                "leafId": -1,
+                "sourceTriangle": 976,
+                "sourceGeometry": "nearCanopy:lobe:25"
+              },
+              "fineLeaf": {
+                "distance": 14.103444035058319,
+                "group": 25,
+                "leafId": 3251,
+                "sourceTriangle": 6200,
+                "sourceGeometry": "nearCanopy:lobe:25"
+              }
+            }
+          },
+          {
+            "x": 1000,
+            "y": 140,
+            "frontmost": "fineLeaf",
+            "hits": {
+              "core": {
+                "distance": 11.354666389288136,
+                "group": 25,
+                "sourceTriangle": 10412,
+                "sourceGeometry": "authoredLeaves"
+              },
+              "fineLeaf": {
+                "distance": 11.19972377588324,
+                "group": 25,
+                "leafId": 3770,
+                "sourceTriangle": 10354,
+                "sourceGeometry": "nearCanopy:lobe:25"
+              }
+            }
+          },
+          {
+            "x": 1040,
+            "y": 140,
+            "frontmost": "core",
+            "hits": {
+              "core": {
+                "distance": 11.527833157646914,
+                "group": 25,
+                "sourceTriangle": 10409,
+                "sourceGeometry": "authoredLeaves"
+              }
+            }
+          },
+          {
+            "x": 1080,
+            "y": 140,
+            "frontmost": "core",
+            "hits": {
+              "core": {
+                "distance": 11.793393357423927,
+                "group": 25,
+                "sourceTriangle": 10405,
+                "sourceGeometry": "authoredLeaves"
+              }
+            }
+          },
+          {
+            "x": 1120,
+            "y": 140,
+            "frontmost": "fineLeaf",
+            "hits": {
+              "fineLeaf": {
+                "distance": 12.24393028427726,
+                "group": 25,
+                "leafId": 4189,
+                "sourceTriangle": 13706,
+                "sourceGeometry": "nearCanopy:lobe:25"
+              }
+            }
+          },
+          {
+            "x": 560,
+            "y": 180,
+            "frontmost": null,
+            "hits": {}
+          },
+          {
+            "x": 600,
+            "y": 180,
+            "frontmost": null,
+            "hits": {}
+          },
+          {
+            "x": 640,
+            "y": 180,
+            "frontmost": null,
+            "hits": {}
+          },
+          {
+            "x": 680,
+            "y": 180,
+            "frontmost": null,
+            "hits": {}
+          },
+          {
+            "x": 720,
+            "y": 180,
+            "frontmost": "fineLeaf",
+            "hits": {
+              "core": {
+                "distance": 12.249404476607543,
+                "group": 24,
+                "sourceTriangle": 7739,
+                "sourceGeometry": "authoredLeaves"
+              },
+              "fineLeaf": {
+                "distance": 11.923245173769928,
+                "group": 24,
+                "leafId": 713,
+                "sourceTriangle": 8949,
+                "sourceGeometry": "nearCanopy:lobe:24"
+              }
+            }
+          },
+          {
+            "x": 760,
+            "y": 180,
+            "frontmost": "core",
+            "hits": {
+              "oldFlatLeaf": {
+                "distance": 11.731464383611593,
+                "group": 24,
+                "sourceTriangle": 5735,
+                "sourceGeometry": "authoredLeaves"
+              },
+              "core": {
+                "distance": 11.62987807345404,
+                "group": 24,
+                "sourceTriangle": 7735,
+                "sourceGeometry": "authoredLeaves"
+              },
+              "fineLeaf": {
+                "distance": 14.915712341387316,
+                "group": 24,
+                "leafId": 2483,
+                "sourceTriangle": 23108,
+                "sourceGeometry": "nearCanopy:lobe:24"
+              }
+            }
+          },
+          {
+            "x": 800,
+            "y": 180,
+            "frontmost": "fineLeaf",
+            "hits": {
+              "core": {
+                "distance": 11.433003368740946,
+                "group": 24,
+                "sourceTriangle": 7788,
+                "sourceGeometry": "authoredLeaves"
+              },
+              "fineLeaf": {
+                "distance": 11.208990163614928,
+                "group": 24,
+                "leafId": 152,
+                "sourceTriangle": 4463,
+                "sourceGeometry": "nearCanopy:lobe:24"
+              }
+            }
+          },
+          {
+            "x": 840,
+            "y": 180,
+            "frontmost": "core",
+            "hits": {
+              "core": {
+                "distance": 11.431524608572197,
+                "group": 24,
+                "sourceTriangle": 7786,
+                "sourceGeometry": "authoredLeaves"
+              },
+              "fineLeaf": {
+                "distance": 15.106751219876351,
+                "group": 24,
+                "leafId": 987,
+                "sourceTriangle": 11140,
+                "sourceGeometry": "nearCanopy:lobe:24"
+              }
+            }
+          },
+          {
+            "x": 880,
+            "y": 180,
+            "frontmost": "fineLeaf",
+            "hits": {
+              "oldFlatLeaf": {
+                "distance": 12.593424107528408,
+                "group": 24,
+                "sourceTriangle": 5537,
+                "sourceGeometry": "authoredLeaves"
+              },
+              "core": {
+                "distance": 11.585878965824616,
+                "group": 24,
+                "sourceTriangle": 7783,
+                "sourceGeometry": "authoredLeaves"
+              },
+              "nearWood": {
+                "distance": 12.75329759793509,
+                "group": 24,
+                "leafId": -1,
+                "sourceTriangle": 2268,
+                "sourceGeometry": "nearCanopy:lobe:24"
+              },
+              "fineLeaf": {
+                "distance": 11.395743377649623,
+                "group": 24,
+                "leafId": 2794,
+                "sourceTriangle": 25597,
+                "sourceGeometry": "nearCanopy:lobe:24"
+              }
+            }
+          },
+          {
+            "x": 920,
+            "y": 180,
+            "frontmost": "core",
+            "hits": {
+              "core": {
+                "distance": 11.30179586368267,
+                "group": 25,
+                "sourceTriangle": 10529,
+                "sourceGeometry": "authoredLeaves"
+              },
+              "oldFlatLeaf": {
+                "distance": 11.983196046141757,
+                "group": 25,
+                "sourceTriangle": 8318,
+                "sourceGeometry": "authoredLeaves"
+              },
+              "fineLeaf": {
+                "distance": 13.954113545244464,
+                "group": 25,
+                "leafId": 3235,
+                "sourceTriangle": 6074,
+                "sourceGeometry": "nearCanopy:lobe:25"
+              }
+            }
+          },
+          {
+            "x": 960,
+            "y": 180,
+            "frontmost": "core",
+            "hits": {
+              "core": {
+                "distance": 11.25201349138304,
+                "group": 25,
+                "sourceTriangle": 10526,
+                "sourceGeometry": "authoredLeaves"
+              },
+              "nearWood": {
+                "distance": 11.739455312664512,
+                "group": 25,
+                "leafId": -1,
+                "sourceTriangle": 1623,
+                "sourceGeometry": "nearCanopy:lobe:25"
+              }
+            }
+          },
+          {
+            "x": 1000,
+            "y": 180,
+            "frontmost": "core",
+            "hits": {
+              "core": {
+                "distance": 11.3133184202817,
+                "group": 25,
+                "sourceTriangle": 10523,
+                "sourceGeometry": "authoredLeaves"
+              }
+            }
+          },
+          {
+            "x": 1040,
+            "y": 180,
+            "frontmost": "fineLeaf",
+            "hits": {
+              "core": {
+                "distance": 11.461226727339739,
+                "group": 25,
+                "sourceTriangle": 10520,
+                "sourceGeometry": "authoredLeaves"
+              },
+              "fineLeaf": {
+                "distance": 11.324948643508284,
+                "group": 25,
+                "leafId": 3782,
+                "sourceTriangle": 10453,
+                "sourceGeometry": "nearCanopy:lobe:25"
+              }
+            }
+          },
+          {
+            "x": 1080,
+            "y": 180,
+            "frontmost": "core",
+            "hits": {
+              "core": {
+                "distance": 11.74993147308359,
+                "group": 25,
+                "sourceTriangle": 10517,
+                "sourceGeometry": "authoredLeaves"
+              },
+              "fineLeaf": {
+                "distance": 13.42706764694364,
+                "group": 25,
+                "leafId": 4335,
+                "sourceTriangle": 14872,
+                "sourceGeometry": "nearCanopy:lobe:25"
+              }
+            }
+          },
+          {
+            "x": 1120,
+            "y": 180,
+            "frontmost": "fineLeaf",
+            "hits": {
+              "fineLeaf": {
+                "distance": 12.417855417810765,
+                "group": 25,
+                "leafId": 2843,
+                "sourceTriangle": 2936,
+                "sourceGeometry": "nearCanopy:lobe:25"
+              }
+            }
+          },
+          {
+            "x": 560,
+            "y": 220,
+            "frontmost": null,
+            "hits": {}
+          },
+          {
+            "x": 600,
+            "y": 220,
+            "frontmost": null,
+            "hits": {}
+          },
+          {
+            "x": 640,
+            "y": 220,
+            "frontmost": null,
+            "hits": {}
+          },
+          {
+            "x": 680,
+            "y": 220,
+            "frontmost": "fineLeaf",
+            "hits": {
+              "fineLeaf": {
+                "distance": 13.090464449082425,
+                "group": 24,
+                "leafId": 739,
+                "sourceTriangle": 9159,
+                "sourceGeometry": "nearCanopy:lobe:24"
+              }
+            }
+          },
+          {
+            "x": 720,
+            "y": 220,
+            "frontmost": "core",
+            "hits": {
+              "core": {
+                "distance": 12.17554253308694,
+                "group": 24,
+                "sourceTriangle": 7851,
+                "sourceGeometry": "authoredLeaves"
+              },
+              "nearWood": {
+                "distance": 12.390761999088173,
+                "group": 24,
+                "leafId": -1,
+                "sourceTriangle": 2028,
+                "sourceGeometry": "nearCanopy:lobe:24"
+              }
+            }
+          },
+          {
+            "x": 760,
+            "y": 220,
+            "frontmost": "oldFlatLeaf",
+            "hits": {
+              "oldFlatLeaf": {
+                "distance": 11.215584280421924,
+                "group": 24,
+                "sourceTriangle": 5785,
+                "sourceGeometry": "authoredLeaves"
+              },
+              "core": {
+                "distance": 11.591154410911438,
+                "group": 24,
+                "sourceTriangle": 7847,
+                "sourceGeometry": "authoredLeaves"
+              },
+              "fineLeaf": {
+                "distance": 11.395832630027105,
+                "group": 24,
+                "leafId": 166,
+                "sourceTriangle": 4573,
+                "sourceGeometry": "nearCanopy:lobe:24"
+              }
+            }
+          },
+          {
+            "x": 800,
+            "y": 220,
+            "frontmost": "fineLeaf",
+            "hits": {
+              "core": {
+                "distance": 11.493382866130624,
+                "group": 24,
+                "sourceTriangle": 7845,
+                "sourceGeometry": "authoredLeaves"
+              },
+              "fineLeaf": {
+                "distance": 11.392986006031517,
+                "group": 24,
+                "leafId": 2399,
+                "sourceTriangle": 22433,
+                "sourceGeometry": "nearCanopy:lobe:24"
+              }
+            }
+          },
+          {
+            "x": 840,
+            "y": 220,
+            "frontmost": "core",
+            "hits": {
+              "oldFlatLeaf": {
+                "distance": 12.89761395194562,
+                "group": 24,
+                "sourceTriangle": 7027,
+                "sourceGeometry": "authoredLeaves"
+              },
+              "core": {
+                "distance": 11.580073094547263,
+                "group": 24,
+                "sourceTriangle": 7843,
+                "sourceGeometry": "authoredLeaves"
+              }
+            }
+          },
+          {
+            "x": 880,
+            "y": 220,
+            "frontmost": "fineLeaf",
+            "hits": {
+              "core": {
+                "distance": 11.759407992277163,
+                "group": 25,
+                "sourceTriangle": 10589,
+                "sourceGeometry": "authoredLeaves"
+              },
+              "nearWood": {
+                "distance": 11.64881784981973,
+                "group": 25,
+                "leafId": -1,
+                "sourceTriangle": 182,
+                "sourceGeometry": "nearCanopy:lobe:25"
+              },
+              "fineLeaf": {
+                "distance": 11.508751505194748,
+                "group": 25,
+                "leafId": 2943,
+                "sourceTriangle": 3743,
+                "sourceGeometry": "nearCanopy:lobe:25"
+              }
+            }
+          },
+          {
+            "x": 920,
+            "y": 220,
+            "frontmost": "core",
+            "hits": {
+              "core": {
+                "distance": 11.365336699978672,
+                "group": 25,
+                "sourceTriangle": 10642,
+                "sourceGeometry": "authoredLeaves"
+              },
+              "oldFlatLeaf": {
+                "distance": 13.956734564968421,
+                "group": 25,
+                "sourceTriangle": 8822,
+                "sourceGeometry": "authoredLeaves"
+              },
+              "fineLeaf": {
+                "distance": 12.187810391225618,
+                "group": 24,
+                "leafId": 2074,
+                "sourceTriangle": 19836,
+                "sourceGeometry": "nearCanopy:lobe:24"
+              }
+            }
+          },
+          {
+            "x": 960,
+            "y": 220,
+            "frontmost": "fineLeaf",
+            "hits": {
+              "core": {
+                "distance": 11.36778283289625,
+                "group": 25,
+                "sourceTriangle": 10638,
+                "sourceGeometry": "authoredLeaves"
+              },
+              "nearWood": {
+                "distance": 11.413691336564714,
+                "group": 25,
+                "leafId": -1,
+                "sourceTriangle": 813,
+                "sourceGeometry": "nearCanopy:lobe:25"
+              },
+              "fineLeaf": {
+                "distance": 11.158400091559558,
+                "group": 25,
+                "leafId": 3705,
+                "sourceTriangle": 9839,
+                "sourceGeometry": "nearCanopy:lobe:25"
+              }
+            }
+          },
+          {
+            "x": 1000,
+            "y": 220,
+            "frontmost": "fineLeaf",
+            "hits": {
+              "core": {
+                "distance": 11.416159111661239,
+                "group": 25,
+                "sourceTriangle": 10635,
+                "sourceGeometry": "authoredLeaves"
+              },
+              "fineLeaf": {
+                "distance": 11.312148396267686,
+                "group": 25,
+                "leafId": 3697,
+                "sourceTriangle": 9768,
+                "sourceGeometry": "nearCanopy:lobe:25"
+              }
+            }
+          },
+          {
+            "x": 1040,
+            "y": 220,
+            "frontmost": "fineLeaf",
+            "hits": {
+              "oldFlatLeaf": {
+                "distance": 12.891546607150538,
+                "group": 25,
+                "sourceTriangle": 8841,
+                "sourceGeometry": "authoredLeaves"
+              },
+              "core": {
+                "distance": 11.560399553383549,
+                "group": 25,
+                "sourceTriangle": 10632,
+                "sourceGeometry": "authoredLeaves"
+              },
+              "nearWood": {
+                "distance": 12.779119808613396,
+                "group": 25,
+                "leafId": -1,
+                "sourceTriangle": 1300,
+                "sourceGeometry": "nearCanopy:lobe:25"
+              },
+              "fineLeaf": {
+                "distance": 11.490683185474444,
+                "group": 25,
+                "leafId": 3100,
+                "sourceTriangle": 4992,
+                "sourceGeometry": "nearCanopy:lobe:25"
+              }
+            }
+          },
+          {
+            "x": 1080,
+            "y": 220,
+            "frontmost": "fineLeaf",
+            "hits": {
+              "core": {
+                "distance": 11.957152049724604,
+                "group": 25,
+                "sourceTriangle": 10627,
+                "sourceGeometry": "authoredLeaves"
+              },
+              "fineLeaf": {
+                "distance": 11.788157445026734,
+                "group": 25,
+                "leafId": 4057,
+                "sourceTriangle": 12652,
+                "sourceGeometry": "nearCanopy:lobe:25"
+              }
+            }
+          },
+          {
+            "x": 1120,
+            "y": 220,
+            "frontmost": null,
+            "hits": {}
+          },
+          {
+            "x": 560,
+            "y": 260,
+            "frontmost": null,
+            "hits": {}
+          },
+          {
+            "x": 600,
+            "y": 260,
+            "frontmost": null,
+            "hits": {}
+          },
+          {
+            "x": 640,
+            "y": 260,
+            "frontmost": null,
+            "hits": {}
+          },
+          {
+            "x": 680,
+            "y": 260,
+            "frontmost": null,
+            "hits": {}
+          },
+          {
+            "x": 720,
+            "y": 260,
+            "frontmost": "fineLeaf",
+            "hits": {
+              "nearWood": {
+                "distance": 12.941324399319342,
+                "group": 24,
+                "leafId": -1,
+                "sourceTriangle": 349,
+                "sourceGeometry": "nearCanopy:lobe:24"
+              },
+              "fineLeaf": {
+                "distance": 12.349846271470799,
+                "group": 24,
+                "leafId": 188,
+                "sourceTriangle": 4751,
+                "sourceGeometry": "nearCanopy:lobe:24"
+              }
+            }
+          },
+          {
+            "x": 760,
+            "y": 260,
+            "frontmost": "core",
+            "hits": {
+              "core": {
+                "distance": 12.00309370834388,
+                "group": 24,
+                "sourceTriangle": 7961,
+                "sourceGeometry": "authoredLeaves"
+              },
+              "fineLeaf": {
+                "distance": 14.25261459067632,
+                "group": 24,
+                "leafId": 107,
+                "sourceTriangle": 4101,
+                "sourceGeometry": "nearCanopy:lobe:24"
+              }
+            }
+          },
+          {
+            "x": 800,
+            "y": 260,
+            "frontmost": "core",
+            "hits": {
+              "oldFlatLeaf": {
+                "distance": 13.447197470942402,
+                "group": 24,
+                "sourceTriangle": 6026,
+                "sourceGeometry": "authoredLeaves"
+              },
+              "core": {
+                "distance": 11.875958974796369,
+                "group": 24,
+                "sourceTriangle": 7957,
+                "sourceGeometry": "authoredLeaves"
+              },
+              "nearWood": {
+                "distance": 13.847146840715592,
+                "group": 24,
+                "leafId": -1,
+                "sourceTriangle": 1057,
+                "sourceGeometry": "nearCanopy:lobe:24"
+              },
+              "fineLeaf": {
+                "distance": 14.965442690196493,
+                "group": 24,
+                "leafId": 367,
+                "sourceTriangle": 6183,
+                "sourceGeometry": "nearCanopy:lobe:24"
+              }
+            }
+          },
+          {
+            "x": 840,
+            "y": 260,
+            "frontmost": "core",
+            "hits": {
+              "core": {
+                "distance": 12.038229939249016,
+                "group": 24,
+                "sourceTriangle": 8008,
+                "sourceGeometry": "authoredLeaves"
+              },
+              "fineLeaf": {
+                "distance": 14.664187780880319,
+                "group": 24,
+                "leafId": 1139,
+                "sourceTriangle": 12355,
+                "sourceGeometry": "nearCanopy:lobe:24"
+              }
+            }
+          },
+          {
+            "x": 880,
+            "y": 260,
+            "frontmost": "core",
+            "hits": {
+              "oldFlatLeaf": {
+                "distance": 13.3283961369533,
+                "group": 24,
+                "sourceTriangle": 6998,
+                "sourceGeometry": "authoredLeaves"
+              },
+              "core": {
+                "distance": 12.243900599753275,
+                "group": 24,
+                "sourceTriangle": 8004,
+                "sourceGeometry": "authoredLeaves"
+              },
+              "fineLeaf": {
+                "distance": 14.562158505057951,
+                "group": 24,
+                "leafId": 1348,
+                "sourceTriangle": 14026,
+                "sourceGeometry": "nearCanopy:lobe:24"
+              }
+            }
+          },
+          {
+            "x": 920,
+            "y": 260,
+            "frontmost": "core",
+            "hits": {
+              "core": {
+                "distance": 11.734492505802327,
+                "group": 25,
+                "sourceTriangle": 10755,
+                "sourceGeometry": "authoredLeaves"
+              },
+              "fineLeaf": {
+                "distance": 13.304683041928964,
+                "group": 25,
+                "leafId": 3433,
+                "sourceTriangle": 7657,
+                "sourceGeometry": "nearCanopy:lobe:25"
+              }
+            }
+          },
+          {
+            "x": 960,
+            "y": 260,
+            "frontmost": "core",
+            "hits": {
+              "core": {
+                "distance": 11.70586706705992,
+                "group": 25,
+                "sourceTriangle": 10751,
+                "sourceGeometry": "authoredLeaves"
+              },
+              "fineLeaf": {
+                "distance": 13.65612970424339,
+                "group": 25,
+                "leafId": 4692,
+                "sourceTriangle": 17732,
+                "sourceGeometry": "nearCanopy:lobe:25"
+              }
+            }
+          },
+          {
+            "x": 1000,
+            "y": 260,
+            "frontmost": "core",
+            "hits": {
+              "core": {
+                "distance": 11.702294395221749,
+                "group": 25,
+                "sourceTriangle": 10747,
+                "sourceGeometry": "authoredLeaves"
+              },
+              "fineLeaf": {
+                "distance": 13.66660784679906,
+                "group": 25,
+                "leafId": 4751,
+                "sourceTriangle": 18200,
+                "sourceGeometry": "nearCanopy:lobe:25"
+              }
+            }
+          },
+          {
+            "x": 1040,
+            "y": 260,
+            "frontmost": "fineLeaf",
+            "hits": {
+              "core": {
+                "distance": 12.065186443732236,
+                "group": 25,
+                "sourceTriangle": 10740,
+                "sourceGeometry": "authoredLeaves"
+              },
+              "fineLeaf": {
+                "distance": 11.821162439294664,
+                "group": 25,
+                "leafId": 4067,
+                "sourceTriangle": 12732,
+                "sourceGeometry": "nearCanopy:lobe:25"
+              }
+            }
+          },
+          {
+            "x": 1080,
+            "y": 260,
+            "frontmost": "fineLeaf",
+            "hits": {
+              "fineLeaf": {
+                "distance": 12.425882795076891,
+                "group": 25,
+                "leafId": 2884,
+                "sourceTriangle": 3271,
+                "sourceGeometry": "nearCanopy:lobe:25"
+              }
+            }
+          },
+          {
+            "x": 1120,
+            "y": 260,
+            "frontmost": null,
+            "hits": {}
+          },
+          {
+            "x": 560,
+            "y": 300,
+            "frontmost": null,
+            "hits": {}
+          },
+          {
+            "x": 600,
+            "y": 300,
+            "frontmost": null,
+            "hits": {}
+          },
+          {
+            "x": 640,
+            "y": 300,
+            "frontmost": null,
+            "hits": {}
+          },
+          {
+            "x": 680,
+            "y": 300,
+            "frontmost": null,
+            "hits": {}
+          },
+          {
+            "x": 720,
+            "y": 300,
+            "frontmost": null,
+            "hits": {}
+          },
+          {
+            "x": 760,
+            "y": 300,
+            "frontmost": null,
+            "hits": {}
+          },
+          {
+            "x": 800,
+            "y": 300,
+            "frontmost": "oldFlatLeaf",
+            "hits": {
+              "oldFlatLeaf": {
+                "distance": 12.329660572571068,
+                "group": 24,
+                "sourceTriangle": 5929,
+                "sourceGeometry": "authoredLeaves"
+              },
+              "fineLeaf": {
+                "distance": 13.683200355766365,
+                "group": 24,
+                "leafId": 931,
+                "sourceTriangle": 10695,
+                "sourceGeometry": "nearCanopy:lobe:24"
+              }
+            }
+          },
+          {
+            "x": 840,
+            "y": 300,
+            "frontmost": "fineLeaf",
+            "hits": {
+              "fineLeaf": {
+                "distance": 12.970903207161573,
+                "group": 24,
+                "leafId": 1751,
+                "sourceTriangle": 17248,
+                "sourceGeometry": "nearCanopy:lobe:24"
+              }
+            }
+          },
+          {
+            "x": 880,
+            "y": 300,
+            "frontmost": null,
+            "hits": {}
+          },
+          {
+            "x": 920,
+            "y": 300,
+            "frontmost": null,
+            "hits": {}
+          },
+          {
+            "x": 960,
+            "y": 300,
+            "frontmost": null,
+            "hits": {}
+          },
+          {
+            "x": 1000,
+            "y": 300,
+            "frontmost": null,
+            "hits": {}
+          },
+          {
+            "x": 1040,
+            "y": 300,
+            "frontmost": null,
+            "hits": {}
+          },
+          {
+            "x": 1080,
+            "y": 300,
+            "frontmost": null,
+            "hits": {}
+          },
+          {
+            "x": 1120,
+            "y": 300,
+            "frontmost": null,
+            "hits": {}
+          }
+        ]
+      },
+      "method": "CPU output-pixel-centre triangle raster at native camera and t12.6, DoubleSide. Actual aRoot/aWind evaluated with source wind equations. Original core masks partitioned by nearest of the three cores; fine leaves from all three parts compete together. Per-leaf footprint counts each pixel once even when its own curved triangles overlap. Visible means frontmost against the selected cores, original tagged opaque flat laminae, selected near wood, and other fine leaves.",
+      "limitations": [
+        "No GPU float/postprocessing/MSAA/FXAA simulation; raster counts are geometric pixel estimates, not exact final-image segmentation.",
+        "Original alpha cards and unrelated world meshes are omitted, so unoccluded fine-leaf area is an upper bound before those objects.",
+        "Projected leaf-area sums include off-facing/back-of-core leaves where noted; area is not a guarantee of useful coverage.",
+        "No new density, geometry or rendering trial."
+      ]
+    },
+    "C_lookback": {
+      "view": "C_lookback",
+      "width": 1280,
+      "height": 720,
+      "time": 12.6,
+      "pose": {
+        "position": [
+          2.33,
+          1.45,
+          -7.67
+        ],
+        "direction": [
+          0.13040706314611447,
+          -0.06136802971581855,
+          0.9895594791675757
+        ],
+        "fov": 46
+      },
+      "groups": [
+        {
+          "group": 24,
+          "coreTriangles": 896,
+          "oldLeafTriangles": 1840,
+          "nearWoodTriangles": 3240,
+          "coverage": {
+            "projectedCorePixels": 49689,
+            "frontmostCorePixels": 49645,
+            "anyFineProjection": 39918,
+            "fineInFrontOfCore": 23027,
+            "projectedFineBehindCore": 16891,
+            "noFineProjection": 9727,
+            "frontmostFine": 22746,
+            "frontmostCore": 25645,
+            "frontmostOldFlatLeaf": 416,
+            "frontmostWood": 838
+          },
+          "leafMetrics": {
+            "leaves": 2800,
+            "onScreenLeaves": 2561,
+            "leavesWithAnyUnoccludedPixel": 1100,
+            "lengthM": {
+              "n": 2800,
+              "min": 0.17012296510763683,
+              "p10": 0.17936333860317005,
+              "p25": 0.1943736168754252,
+              "median": 0.2190259591034595,
+              "p75": 0.24549639423738132,
+              "p90": 0.26165945210667246,
+              "p99": 0.26967707600538043,
+              "max": 0.2720977620849062,
+              "mean": 0.2200092275795322
+            },
+            "worldAreaM2": {
+              "n": 2800,
+              "min": 0.009610478438065107,
+              "p10": 0.011069854227296012,
+              "p25": 0.012943574431659506,
+              "median": 0.016545317446698425,
+              "p75": 0.02070520373786863,
+              "p90": 0.023460956390053606,
+              "p99": 0.025377095535551085,
+              "max": 0.026480064986576693,
+              "mean": 0.016922953899390865
+            },
+            "clippedProjectedTriangleAreaPx2": {
+              "n": 2800,
+              "min": 0,
+              "p10": 6.680681261204882,
+              "p25": 16.341341847721196,
+              "median": 28.486466851125442,
+              "p75": 49.05617155071741,
+              "p90": 71.8534563410285,
+              "p99": 116.70599558117101,
+              "max": 177.6260448494786,
+              "mean": 35.0878124093734
+            },
+            "uniquePixelsPerLeaf": {
+              "n": 2800,
+              "min": 0,
+              "p10": 4,
+              "p25": 14,
+              "median": 27,
+              "p75": 49,
+              "p90": 72,
+              "p99": 117,
+              "max": 178,
+              "mean": 34.06071428571428
+            },
+            "visibleUniquePixelsPerLeaf": {
+              "n": 2800,
+              "min": 0,
+              "p10": 0,
+              "p25": 0,
+              "median": 0,
+              "p75": 11,
+              "p90": 36,
+              "p99": 88,
+              "max": 176,
+              "mean": 9.861428571428572
+            },
+            "summedProjectedTriangleAreaPx2": 98245.87474624533,
+            "summedDistinctLeafFootprintPixels": 95370,
+            "summedLeafFootprintsInsideCore": 84549,
+            "summedLeafFootprintsInFrontOfCore": 40388,
+            "summedLeafFootprintsInFrontOfBankOpaque": 49799,
+            "visiblePixelOwnership": 27612
+          }
+        },
+        {
+          "group": 25,
+          "coreTriangles": 896,
+          "oldLeafTriangles": 1840,
+          "nearWoodTriangles": 2592,
+          "coverage": {
+            "projectedCorePixels": 24543,
+            "frontmostCorePixels": 13258,
+            "anyFineProjection": 9486,
+            "fineInFrontOfCore": 5282,
+            "projectedFineBehindCore": 4204,
+            "noFineProjection": 3772,
+            "frontmostFine": 5210,
+            "frontmostCore": 7766,
+            "frontmostOldFlatLeaf": 65,
+            "frontmostWood": 217
+          },
+          "leafMetrics": {
+            "leaves": 2100,
+            "onScreenLeaves": 2099,
+            "leavesWithAnyUnoccludedPixel": 545,
+            "lengthM": {
+              "n": 2100,
+              "min": 0.17014698575303056,
+              "p10": 0.17975852313990762,
+              "p25": 0.19428328794470043,
+              "median": 0.21783322306423594,
+              "p75": 0.24409994650270614,
+              "p90": 0.2599041011701554,
+              "p99": 0.26957500920912003,
+              "max": 0.27144041606851926,
+              "mean": 0.21886490510855894
+            },
+            "worldAreaM2": {
+              "n": 2100,
+              "min": 0.009628194862681636,
+              "p10": 0.01108404233752611,
+              "p25": 0.012876444399415599,
+              "median": 0.016303831062786402,
+              "p75": 0.02033389789998557,
+              "p90": 0.023117756731442448,
+              "p99": 0.02517496148356665,
+              "max": 0.026405093269112837,
+              "mean": 0.016736367840214126
+            },
+            "clippedProjectedTriangleAreaPx2": {
+              "n": 2100,
+              "min": 2.4779039206405287,
+              "p10": 8.666698402215843,
+              "p25": 13.158944559720112,
+              "median": 22.605923987674032,
+              "p75": 36.20502535759442,
+              "p90": 52.31822631140676,
+              "p99": 79.90271232389387,
+              "max": 103.22659026791735,
+              "mean": 26.723728977173902
+            },
+            "uniquePixelsPerLeaf": {
+              "n": 2100,
+              "min": 0,
+              "p10": 7,
+              "p25": 12,
+              "median": 22,
+              "p75": 36,
+              "p90": 52,
+              "p99": 80,
+              "max": 105,
+              "mean": 25.993333333333332
+            },
+            "visibleUniquePixelsPerLeaf": {
+              "n": 2100,
+              "min": 0,
+              "p10": 0,
+              "p25": 0,
+              "median": 0,
+              "p75": 1,
+              "p90": 14,
+              "p99": 41,
+              "max": 80,
+              "mean": 3.4257142857142857
+            },
+            "summedProjectedTriangleAreaPx2": 56119.83085206522,
+            "summedDistinctLeafFootprintPixels": 54586,
+            "summedLeafFootprintsInsideCore": 43672,
+            "summedLeafFootprintsInFrontOfCore": 7495,
+            "summedLeafFootprintsInFrontOfBankOpaque": 17700,
+            "visiblePixelOwnership": 7194
+          }
+        },
+        {
+          "group": 26,
+          "coreTriangles": 896,
+          "oldLeafTriangles": 1632,
+          "nearWoodTriangles": 1842,
+          "coverage": {
+            "projectedCorePixels": 7745,
+            "frontmostCorePixels": 7740,
+            "anyFineProjection": 5068,
+            "fineInFrontOfCore": 558,
+            "projectedFineBehindCore": 4510,
+            "noFineProjection": 2672,
+            "frontmostFine": 554,
+            "frontmostCore": 7162,
+            "frontmostOldFlatLeaf": 0,
+            "frontmostWood": 24
+          },
+          "leafMetrics": {
+            "leaves": 2200,
+            "onScreenLeaves": 356,
+            "leavesWithAnyUnoccludedPixel": 58,
+            "lengthM": {
+              "n": 2200,
+              "min": 0.17248023455913947,
+              "p10": 0.18409805829113457,
+              "p25": 0.20000576512713536,
+              "median": 0.22468967300040638,
+              "p75": 0.2499252426928711,
+              "p90": 0.2662348985839853,
+              "p99": 0.27456048586365883,
+              "max": 0.27726439821085735,
+              "mean": 0.22478102270721617
+            },
+            "worldAreaM2": {
+              "n": 2200,
+              "min": 0.010015257392009026,
+              "p10": 0.01158873116503454,
+              "p25": 0.013697968321381006,
+              "median": 0.017306532238399747,
+              "p75": 0.021421971702086897,
+              "p90": 0.024260212030508543,
+              "p99": 0.026086769917863774,
+              "max": 0.027189352723499118,
+              "mean": 0.017622411686938812
+            },
+            "clippedProjectedTriangleAreaPx2": {
+              "n": 2200,
+              "min": 0,
+              "p10": 0,
+              "p25": 0,
+              "median": 0,
+              "p75": 0,
+              "p90": 30.612556908736792,
+              "p99": 95.52358146024324,
+              "max": 144.62100748531816,
+              "mean": 7.090070669956449
+            },
+            "uniquePixelsPerLeaf": {
+              "n": 2200,
+              "min": 0,
+              "p10": 0,
+              "p25": 0,
+              "median": 0,
+              "p75": 0,
+              "p90": 30,
+              "p99": 96,
+              "max": 144,
+              "mean": 6.933181818181819
+            },
+            "visibleUniquePixelsPerLeaf": {
+              "n": 2200,
+              "min": 0,
+              "p10": 0,
+              "p25": 0,
+              "median": 0,
+              "p75": 0,
+              "p90": 0,
+              "p99": 18,
+              "max": 67,
+              "mean": 0.4618181818181818
+            },
+            "summedProjectedTriangleAreaPx2": 15598.155473904208,
+            "summedDistinctLeafFootprintPixels": 15253,
+            "summedLeafFootprintsInsideCore": 12349,
+            "summedLeafFootprintsInFrontOfCore": 390,
+            "summedLeafFootprintsInFrontOfBankOpaque": 3073,
+            "visiblePixelOwnership": 1016
+          }
+        }
+      ],
+      "overall": {
+        "projectedCorePixels": 70643,
+        "frontmostCorePixels": 70643,
+        "anyFineProjection": 54472,
+        "fineInFrontOfCore": 28867,
+        "projectedFineBehindCore": 25605,
+        "noFineProjection": 16171,
+        "frontmostFine": 28510,
+        "frontmostCore": 40573,
+        "frontmostOldFlatLeaf": 481,
+        "frontmostWood": 1079
+      },
+      "leafMetrics": {
+        "leaves": 7100,
+        "onScreenLeaves": 5016,
+        "leavesWithAnyUnoccludedPixel": 1703,
+        "lengthM": {
+          "n": 7100,
+          "min": 0.17012296510763683,
+          "p10": 0.18079295252571137,
+          "p25": 0.19559503788539764,
+          "median": 0.22027340830175854,
+          "p75": 0.24631531514965205,
+          "p90": 0.262453735485135,
+          "p99": 0.2723315432676716,
+          "max": 0.27726439821085735,
+          "mean": 0.22114935040937148
+        },
+        "worldAreaM2": {
+          "n": 7100,
+          "min": 0.009610478438065107,
+          "p10": 0.011194197189807091,
+          "p25": 0.013133348554055447,
+          "median": 0.016693912263961507,
+          "p75": 0.020791976399345956,
+          "p90": 0.02360635772014681,
+          "p99": 0.02567303601464087,
+          "max": 0.027189352723499118,
+          "mean": 0.017084499872395756
+        },
+        "clippedProjectedTriangleAreaPx2": {
+          "n": 7100,
+          "min": 0,
+          "p10": 0,
+          "p25": 0,
+          "median": 18.120382203814643,
+          "p75": 36.559113143071954,
+          "p90": 58.05097538569862,
+          "p99": 105.74006296604482,
+          "max": 177.6260448494786,
+          "mean": 23.938571982002117
+        },
+        "uniquePixelsPerLeaf": {
+          "n": 7100,
+          "min": 0,
+          "p10": 0,
+          "p25": 0,
+          "median": 16,
+          "p75": 36,
+          "p90": 58,
+          "p99": 106,
+          "max": 178,
+          "mean": 23.26887323943662
+        },
+        "visibleUniquePixelsPerLeaf": {
+          "n": 7100,
+          "min": 0,
+          "p10": 0,
+          "p25": 0,
+          "median": 0,
+          "p75": 0,
+          "p90": 18,
+          "p99": 68,
+          "max": 176,
+          "mean": 5.045352112676056
+        },
+        "summedProjectedTriangleAreaPx2": 169963.8610722148,
+        "summedDistinctLeafFootprintPixels": 165209,
+        "summedLeafFootprintsInsideCore": 140570,
+        "summedLeafFootprintsInFrontOfCore": 48273,
+        "summedLeafFootprintsInFrontOfBankOpaque": 70572,
+        "visiblePixelOwnership": 35822
+      },
+      "fineUnionPixels": 61890,
+      "fineUnoccludedByBankOpaquePixels": 35822,
+      "trianglePixelSamples": 169835,
+      "contiguous": {
+        "connectivity": 4,
+        "frontmostCore": {
+          "components": 467,
+          "largest": [
+            {
+              "pixels": 12076,
+              "bounds": [
+                40,
+                107,
+                241,
+                270
+              ]
+            },
+            {
+              "pixels": 7149,
+              "bounds": [
+                0,
+                0,
+                139,
+                62
+              ]
+            },
+            {
+              "pixels": 7024,
+              "bounds": [
+                271,
+                110,
+                358,
+                273
+              ]
+            },
+            {
+              "pixels": 4488,
+              "bounds": [
+                4,
+                62,
+                128,
+                159
+              ]
+            },
+            {
+              "pixels": 1063,
+              "bounds": [
+                0,
+                144,
+                45,
+                182
+              ]
+            },
+            {
+              "pixels": 982,
+              "bounds": [
+                202,
+                108,
+                255,
+                175
+              ]
+            },
+            {
+              "pixels": 778,
+              "bounds": [
+                81,
+                90,
+                130,
+                134
+              ]
+            },
+            {
+              "pixels": 646,
+              "bounds": [
+                240,
+                183,
+                281,
+                244
+              ]
+            }
+          ]
+        },
+        "withoutFrontmostFine": {
+          "components": 370,
+          "largest": [
+            {
+              "pixels": 13996,
+              "bounds": [
+                32,
+                107,
+                259,
+                270
+              ]
+            },
+            {
+              "pixels": 8026,
+              "bounds": [
+                240,
+                110,
+                358,
+                273
+              ]
+            },
+            {
+              "pixels": 7893,
+              "bounds": [
+                0,
+                61,
+                153,
+                182
+              ]
+            },
+            {
+              "pixels": 7174,
+              "bounds": [
+                0,
+                0,
+                139,
+                62
+              ]
+            },
+            {
+              "pixels": 1040,
+              "bounds": [
+                202,
+                108,
+                255,
+                175
+              ]
+            },
+            {
+              "pixels": 312,
+              "bounds": [
+                156,
+                66,
+                212,
+                85
+              ]
+            },
+            {
+              "pixels": 266,
+              "bounds": [
+                48,
+                243,
+                91,
+                262
+              ]
+            },
+            {
+              "pixels": 257,
+              "bounds": [
+                93,
+                241,
+                125,
+                264
+              ]
+            }
+          ]
+        },
+        "groups": [
+          {
+            "group": 24,
+            "frontmostCore": {
+              "components": 367,
+              "largest": [
+                {
+                  "pixels": 12076,
+                  "bounds": [
+                    40,
+                    107,
+                    241,
+                    270
+                  ]
+                },
+                {
+                  "pixels": 4485,
+                  "bounds": [
+                    4,
+                    62,
+                    128,
+                    159
+                  ]
+                },
+                {
+                  "pixels": 1063,
+                  "bounds": [
+                    0,
+                    144,
+                    45,
+                    182
+                  ]
+                },
+                {
+                  "pixels": 982,
+                  "bounds": [
+                    202,
+                    108,
+                    255,
+                    175
+                  ]
+                },
+                {
+                  "pixels": 778,
+                  "bounds": [
+                    81,
+                    90,
+                    130,
+                    134
+                  ]
+                },
+                {
+                  "pixels": 581,
+                  "bounds": [
+                    89,
+                    132,
+                    136,
+                    163
+                  ]
+                },
+                {
+                  "pixels": 550,
+                  "bounds": [
+                    0,
+                    66,
+                    40,
+                    103
+                  ]
+                },
+                {
+                  "pixels": 419,
+                  "bounds": [
+                    136,
+                    213,
+                    180,
+                    245
+                  ]
+                }
+              ]
+            }
+          },
+          {
+            "group": 25,
+            "frontmostCore": {
+              "components": 105,
+              "largest": [
+                {
+                  "pixels": 7024,
+                  "bounds": [
+                    271,
+                    110,
+                    358,
+                    273
+                  ]
+                },
+                {
+                  "pixels": 256,
+                  "bounds": [
+                    244,
+                    226,
+                    269,
+                    244
+                  ]
+                },
+                {
+                  "pixels": 50,
+                  "bounds": [
+                    225,
+                    256,
+                    236,
+                    264
+                  ]
+                },
+                {
+                  "pixels": 35,
+                  "bounds": [
+                    264,
+                    203,
+                    269,
+                    213
+                  ]
+                },
+                {
+                  "pixels": 27,
+                  "bounds": [
+                    273,
+                    191,
+                    281,
+                    194
+                  ]
+                },
+                {
+                  "pixels": 26,
+                  "bounds": [
+                    329,
+                    137,
+                    337,
+                    141
+                  ]
+                },
+                {
+                  "pixels": 21,
+                  "bounds": [
+                    271,
+                    244,
+                    275,
+                    250
+                  ]
+                },
+                {
+                  "pixels": 20,
+                  "bounds": [
+                    278,
+                    227,
+                    284,
+                    232
+                  ]
+                }
+              ]
+            }
+          },
+          {
+            "group": 26,
+            "frontmostCore": {
+              "components": 8,
+              "largest": [
+                {
+                  "pixels": 7149,
+                  "bounds": [
+                    0,
+                    0,
+                    139,
+                    62
+                  ]
+                },
+                {
+                  "pixels": 4,
+                  "bounds": [
+                    75,
+                    2,
+                    77,
+                    3
+                  ]
+                },
+                {
+                  "pixels": 2,
+                  "bounds": [
+                    84,
+                    5,
+                    84,
+                    6
+                  ]
+                },
+                {
+                  "pixels": 2,
+                  "bounds": [
+                    85,
+                    7,
+                    85,
+                    8
+                  ]
+                },
+                {
+                  "pixels": 2,
+                  "bounds": [
+                    71,
+                    62,
+                    72,
+                    62
+                  ]
+                },
+                {
+                  "pixels": 1,
+                  "bounds": [
+                    91,
+                    58,
+                    91,
+                    58
+                  ]
+                },
+                {
+                  "pixels": 1,
+                  "bounds": [
+                    90,
+                    59,
+                    90,
+                    59
+                  ]
+                },
+                {
+                  "pixels": 1,
+                  "bounds": [
+                    77,
+                    62,
+                    77,
+                    62
+                  ]
+                }
+              ]
+            }
+          }
+        ]
+      },
+      "outsideCoreMask": {
+        "fineUnionPixels": 7418,
+        "fineUnoccludedPixels": 7312,
+        "summedLeafFootprints": 24639,
+        "leavesWhollyOutsideMask": 555
+      },
+      "floor": {
+        "group": 26,
+        "floorLocal": 4.730642565409653,
+        "originY": 0.019357434590347555,
+        "floorWorld": 4.75,
+        "frontmostGroup26FloorMaskPixels": 3173,
+        "fineInFrontOfFloorPixels": 270,
+        "floorFineInFrontByGroup": {
+          "24": 270,
+          "25": 0,
+          "26": 0
+        },
+        "floorSampleCoords": [
+          [
+            0,
+            8
+          ],
+          [
+            41,
+            21
+          ],
+          [
+            30,
+            28
+          ],
+          [
+            46,
+            34
+          ],
+          [
+            8,
+            41
+          ],
+          [
+            69,
+            46
+          ],
+          [
+            27,
+            52
+          ],
+          [
+            81,
+            56
+          ]
+        ]
+      },
+      "coreMaskSha256": "88b39487c0c3cf27e60e78557be87ebbb2ab6e510a1f86349866965567ff1745",
+      "overlap": {
+        "summedLeafFootprintsDividedByUnion": 2.669397317821942,
+        "frontCoreFootprintsDividedByUniqueFrontCorePixels": 1.672255516679946,
+        "extraFrontCoreSamplesFromOverlappingLeaves": 19406
+      },
+      "remainingCoreAreaWithoutFineLeafPixels": 42133,
+      "independentRayCheck": {
+        "sampleCount": 99,
+        "method": "Three.Ray.intersectTriangle at the same pixel centres, DoubleSide, independent world-space intersection. Nearest kind and per-kind projected depth must agree with CPU raster within 1e-9 NDC.",
+        "samples": [
+          {
+            "x": 52,
+            "y": 65,
+            "frontmost": "fineLeaf",
+            "hits": {
+              "core": {
+                "distance": 14.13999507789235,
+                "group": 24,
+                "sourceTriangle": 7524,
+                "sourceGeometry": "authoredLeaves"
+              },
+              "fineLeaf": {
+                "distance": 13.755469607682555,
+                "group": 24,
+                "leafId": 1120,
+                "sourceTriangle": 12200,
+                "sourceGeometry": "nearCanopy:lobe:24"
+              }
+            }
+          },
+          {
+            "x": 85,
+            "y": 205,
+            "frontmost": "core",
+            "hits": {
+              "core": {
+                "distance": 12.960061880116509,
+                "group": 24,
+                "sourceTriangle": 7910,
+                "sourceGeometry": "authoredLeaves"
+              },
+              "fineLeaf": {
+                "distance": 16.374601180258157,
+                "group": 24,
+                "leafId": 1336,
+                "sourceTriangle": 13928,
+                "sourceGeometry": "nearCanopy:lobe:24"
+              }
+            }
+          },
+          {
+            "x": 180,
+            "y": 145,
+            "frontmost": "core",
+            "hits": {
+              "core": {
+                "distance": 12.966055703533916,
+                "group": 24,
+                "sourceTriangle": 7737,
+                "sourceGeometry": "authoredLeaves"
+              },
+              "fineLeaf": {
+                "distance": 15.53500606110008,
+                "group": 25,
+                "leafId": 3527,
+                "sourceTriangle": 8415,
+                "sourceGeometry": "nearCanopy:lobe:25"
+              }
+            }
+          },
+          {
+            "x": 0,
+            "y": 8,
+            "frontmost": "core",
+            "hits": {
+              "oldFlatLeaf": {
+                "distance": 14.313149930447588,
+                "group": 26,
+                "sourceTriangle": 11602,
+                "sourceGeometry": "authoredLeaves"
+              },
+              "core": {
+                "distance": 12.35702026002171,
+                "group": 26,
+                "sourceTriangle": 13280,
+                "sourceGeometry": "authoredLeaves"
+              },
+              "fineLeaf": {
+                "distance": 15.477288669625812,
+                "group": 26,
+                "leafId": 4901,
+                "sourceTriangle": 1851,
+                "sourceGeometry": "nearCanopy:lobe:26"
+              }
+            }
+          },
+          {
+            "x": 41,
+            "y": 21,
+            "frontmost": "core",
+            "hits": {
+              "oldFlatLeaf": {
+                "distance": 14.281127918300944,
+                "group": 26,
+                "sourceTriangle": 11674,
+                "sourceGeometry": "authoredLeaves"
+              },
+              "core": {
+                "distance": 12.606056521211892,
+                "group": 26,
+                "sourceTriangle": 13277,
+                "sourceGeometry": "authoredLeaves"
+              }
+            }
+          },
+          {
+            "x": 30,
+            "y": 28,
+            "frontmost": "core",
+            "hits": {
+              "core": {
+                "distance": 12.968452574494467,
+                "group": 26,
+                "sourceTriangle": 13332,
+                "sourceGeometry": "authoredLeaves"
+              }
+            }
+          },
+          {
+            "x": 46,
+            "y": 34,
+            "frontmost": "core",
+            "hits": {
+              "oldFlatLeaf": {
+                "distance": 14.34901840922901,
+                "group": 26,
+                "sourceTriangle": 11759,
+                "sourceGeometry": "authoredLeaves"
+              },
+              "core": {
+                "distance": 13.124492358962835,
+                "group": 26,
+                "sourceTriangle": 13329,
+                "sourceGeometry": "authoredLeaves"
+              },
+              "fineLeaf": {
+                "distance": 15.35932713491526,
+                "group": 26,
+                "leafId": 6293,
+                "sourceTriangle": 12987,
+                "sourceGeometry": "nearCanopy:lobe:26"
+              }
+            }
+          },
+          {
+            "x": 8,
+            "y": 41,
+            "frontmost": "core",
+            "hits": {
+              "core": {
+                "distance": 13.707767959361865,
+                "group": 26,
+                "sourceTriangle": 13377,
+                "sourceGeometry": "authoredLeaves"
+              },
+              "fineLeaf": {
+                "distance": 15.260705530361959,
+                "group": 26,
+                "leafId": 5091,
+                "sourceTriangle": 3370,
+                "sourceGeometry": "nearCanopy:lobe:26"
+              }
+            }
+          },
+          {
+            "x": 69,
+            "y": 46,
+            "frontmost": "core",
+            "hits": {
+              "core": {
+                "distance": 13.524856014400372,
+                "group": 26,
+                "sourceTriangle": 13324,
+                "sourceGeometry": "authoredLeaves"
+              },
+              "fineLeaf": {
+                "distance": 15.296907259329972,
+                "group": 26,
+                "leafId": 5069,
+                "sourceTriangle": 3201,
+                "sourceGeometry": "nearCanopy:lobe:26"
+              }
+            }
+          },
+          {
+            "x": 27,
+            "y": 52,
+            "frontmost": "core",
+            "hits": {
+              "core": {
+                "distance": 14.118199817107833,
+                "group": 26,
+                "sourceTriangle": 13317,
+                "sourceGeometry": "authoredLeaves"
+              },
+              "fineLeaf": {
+                "distance": 15.203431525213857,
+                "group": 26,
+                "leafId": 6304,
+                "sourceTriangle": 13078,
+                "sourceGeometry": "nearCanopy:lobe:26"
+              }
+            }
+          },
+          {
+            "x": 81,
+            "y": 56,
+            "frontmost": "fineLeaf",
+            "hits": {
+              "core": {
+                "distance": 13.94110956373407,
+                "group": 26,
+                "sourceTriangle": 13265,
+                "sourceGeometry": "authoredLeaves"
+              },
+              "fineLeaf": {
+                "distance": 13.745499669847435,
+                "group": 24,
+                "leafId": 2732,
+                "sourceTriangle": 25098,
+                "sourceGeometry": "nearCanopy:lobe:24"
+              }
+            }
+          },
+          {
+            "x": 20,
+            "y": 20,
+            "frontmost": "core",
+            "hits": {
+              "core": {
+                "distance": 12.699778336598506,
+                "group": 26,
+                "sourceTriangle": 13334,
+                "sourceGeometry": "authoredLeaves"
+              },
+              "fineLeaf": {
+                "distance": 15.534959987765776,
+                "group": 26,
+                "leafId": 4905,
+                "sourceTriangle": 1885,
+                "sourceGeometry": "nearCanopy:lobe:26"
+              }
+            }
+          },
+          {
+            "x": 60,
+            "y": 20,
+            "frontmost": "core",
+            "hits": {
+              "core": {
+                "distance": 12.578132288273952,
+                "group": 26,
+                "sourceTriangle": 13221,
+                "sourceGeometry": "authoredLeaves"
+              },
+              "fineLeaf": {
+                "distance": 15.322297179695505,
+                "group": 26,
+                "leafId": 6286,
+                "sourceTriangle": 12930,
+                "sourceGeometry": "nearCanopy:lobe:26"
+              }
+            }
+          },
+          {
+            "x": 100,
+            "y": 20,
+            "frontmost": "core",
+            "hits": {
+              "core": {
+                "distance": 12.907674791189045,
+                "group": 26,
+                "sourceTriangle": 13161,
+                "sourceGeometry": "authoredLeaves"
+              },
+              "fineLeaf": {
+                "distance": 14.77717677639428,
+                "group": 26,
+                "leafId": 7033,
+                "sourceTriangle": 18906,
+                "sourceGeometry": "nearCanopy:lobe:26"
+              }
+            }
+          },
+          {
+            "x": 140,
+            "y": 20,
+            "frontmost": null,
+            "hits": {}
+          },
+          {
+            "x": 180,
+            "y": 20,
+            "frontmost": null,
+            "hits": {}
+          },
+          {
+            "x": 220,
+            "y": 20,
+            "frontmost": null,
+            "hits": {}
+          },
+          {
+            "x": 260,
+            "y": 20,
+            "frontmost": null,
+            "hits": {}
+          },
+          {
+            "x": 300,
+            "y": 20,
+            "frontmost": null,
+            "hits": {}
+          },
+          {
+            "x": 340,
+            "y": 20,
+            "frontmost": null,
+            "hits": {}
+          },
+          {
+            "x": 380,
+            "y": 20,
+            "frontmost": null,
+            "hits": {}
+          },
+          {
+            "x": 420,
+            "y": 20,
+            "frontmost": null,
+            "hits": {}
+          },
+          {
+            "x": 20,
+            "y": 60,
+            "frontmost": null,
+            "hits": {}
+          },
+          {
+            "x": 60,
+            "y": 60,
+            "frontmost": "fineLeaf",
+            "hits": {
+              "core": {
+                "distance": 14.301394190627548,
+                "group": 26,
+                "sourceTriangle": 13262,
+                "sourceGeometry": "authoredLeaves"
+              },
+              "fineLeaf": {
+                "distance": 13.857024171440091,
+                "group": 24,
+                "leafId": 1117,
+                "sourceTriangle": 12180,
+                "sourceGeometry": "nearCanopy:lobe:24"
+              }
+            }
+          },
+          {
+            "x": 100,
+            "y": 60,
+            "frontmost": "fineLeaf",
+            "hits": {
+              "fineLeaf": {
+                "distance": 13.82742967388796,
+                "group": 24,
+                "leafId": 2736,
+                "sourceTriangle": 25129,
+                "sourceGeometry": "nearCanopy:lobe:24"
+              }
+            }
+          },
+          {
+            "x": 140,
+            "y": 60,
+            "frontmost": "fineLeaf",
+            "hits": {
+              "fineLeaf": {
+                "distance": 13.802897391811738,
+                "group": 24,
+                "leafId": 2744,
+                "sourceTriangle": 25198,
+                "sourceGeometry": "nearCanopy:lobe:24"
+              }
+            }
+          },
+          {
+            "x": 180,
+            "y": 60,
+            "frontmost": null,
+            "hits": {}
+          },
+          {
+            "x": 220,
+            "y": 60,
+            "frontmost": null,
+            "hits": {}
+          },
+          {
+            "x": 260,
+            "y": 60,
+            "frontmost": null,
+            "hits": {}
+          },
+          {
+            "x": 300,
+            "y": 60,
+            "frontmost": null,
+            "hits": {}
+          },
+          {
+            "x": 340,
+            "y": 60,
+            "frontmost": null,
+            "hits": {}
+          },
+          {
+            "x": 380,
+            "y": 60,
+            "frontmost": null,
+            "hits": {}
+          },
+          {
+            "x": 420,
+            "y": 60,
+            "frontmost": null,
+            "hits": {}
+          },
+          {
+            "x": 20,
+            "y": 100,
+            "frontmost": "core",
+            "hits": {
+              "core": {
+                "distance": 13.432365315234373,
+                "group": 24,
+                "sourceTriangle": 7635,
+                "sourceGeometry": "authoredLeaves"
+              },
+              "fineLeaf": {
+                "distance": 15.105874595627597,
+                "group": 24,
+                "leafId": 1492,
+                "sourceTriangle": 15182,
+                "sourceGeometry": "nearCanopy:lobe:24"
+              }
+            }
+          },
+          {
+            "x": 60,
+            "y": 100,
+            "frontmost": "core",
+            "hits": {
+              "core": {
+                "distance": 13.214441306059335,
+                "group": 24,
+                "sourceTriangle": 7632,
+                "sourceGeometry": "authoredLeaves"
+              },
+              "fineLeaf": {
+                "distance": 15.594407236686969,
+                "group": 24,
+                "leafId": 1302,
+                "sourceTriangle": 13657,
+                "sourceGeometry": "nearCanopy:lobe:24"
+              }
+            }
+          },
+          {
+            "x": 100,
+            "y": 100,
+            "frontmost": "core",
+            "hits": {
+              "core": {
+                "distance": 13.179169956625143,
+                "group": 24,
+                "sourceTriangle": 7630,
+                "sourceGeometry": "authoredLeaves"
+              },
+              "nearWood": {
+                "distance": 14.75101470830685,
+                "group": 24,
+                "leafId": -1,
+                "sourceTriangle": 1458,
+                "sourceGeometry": "nearCanopy:lobe:24"
+              }
+            }
+          },
+          {
+            "x": 140,
+            "y": 100,
+            "frontmost": "fineLeaf",
+            "hits": {
+              "core": {
+                "distance": 13.343906906383275,
+                "group": 24,
+                "sourceTriangle": 7571,
+                "sourceGeometry": "authoredLeaves"
+              },
+              "fineLeaf": {
+                "distance": 13.096073279228667,
+                "group": 24,
+                "leafId": 824,
+                "sourceTriangle": 9837,
+                "sourceGeometry": "nearCanopy:lobe:24"
+              }
+            }
+          },
+          {
+            "x": 180,
+            "y": 100,
+            "frontmost": "fineLeaf",
+            "hits": {
+              "core": {
+                "distance": 13.664601695840409,
+                "group": 24,
+                "sourceTriangle": 7567,
+                "sourceGeometry": "authoredLeaves"
+              },
+              "fineLeaf": {
+                "distance": 13.370393713369102,
+                "group": 24,
+                "leafId": 834,
+                "sourceTriangle": 9918,
+                "sourceGeometry": "nearCanopy:lobe:24"
+              }
+            }
+          },
+          {
+            "x": 220,
+            "y": 100,
+            "frontmost": "fineLeaf",
+            "hits": {
+              "core": {
+                "distance": 13.852300925897813,
+                "group": 24,
+                "sourceTriangle": 7564,
+                "sourceGeometry": "authoredLeaves"
+              },
+              "fineLeaf": {
+                "distance": 13.615553384652213,
+                "group": 24,
+                "leafId": 1989,
+                "sourceTriangle": 19154,
+                "sourceGeometry": "nearCanopy:lobe:24"
+              }
+            }
+          },
+          {
+            "x": 260,
+            "y": 100,
+            "frontmost": "fineLeaf",
+            "hits": {
+              "fineLeaf": {
+                "distance": 14.084938076852142,
+                "group": 24,
+                "leafId": 1978,
+                "sourceTriangle": 19069,
+                "sourceGeometry": "nearCanopy:lobe:24"
+              }
+            }
+          },
+          {
+            "x": 300,
+            "y": 100,
+            "frontmost": null,
+            "hits": {}
+          },
+          {
+            "x": 340,
+            "y": 100,
+            "frontmost": null,
+            "hits": {}
+          },
+          {
+            "x": 380,
+            "y": 100,
+            "frontmost": null,
+            "hits": {}
+          },
+          {
+            "x": 420,
+            "y": 100,
+            "frontmost": null,
+            "hits": {}
+          },
+          {
+            "x": 20,
+            "y": 140,
+            "frontmost": "nearWood",
+            "hits": {
+              "core": {
+                "distance": 13.140355991891973,
+                "group": 24,
+                "sourceTriangle": 7746,
+                "sourceGeometry": "authoredLeaves"
+              },
+              "nearWood": {
+                "distance": 13.071120917964445,
+                "group": 24,
+                "leafId": -1,
+                "sourceTriangle": 2052,
+                "sourceGeometry": "nearCanopy:lobe:24"
+              }
+            }
+          },
+          {
+            "x": 60,
+            "y": 140,
+            "frontmost": "core",
+            "hits": {
+              "core": {
+                "distance": 12.930811218496322,
+                "group": 24,
+                "sourceTriangle": 7743,
+                "sourceGeometry": "authoredLeaves"
+              },
+              "fineLeaf": {
+                "distance": 16.180674711584828,
+                "group": 24,
+                "leafId": 2515,
+                "sourceTriangle": 23363,
+                "sourceGeometry": "nearCanopy:lobe:24"
+              }
+            }
+          },
+          {
+            "x": 100,
+            "y": 140,
+            "frontmost": "fineLeaf",
+            "hits": {
+              "core": {
+                "distance": 12.864549801443292,
+                "group": 24,
+                "sourceTriangle": 7741,
+                "sourceGeometry": "authoredLeaves"
+              },
+              "fineLeaf": {
+                "distance": 12.589312036911164,
+                "group": 24,
+                "leafId": 2026,
+                "sourceTriangle": 19455,
+                "sourceGeometry": "nearCanopy:lobe:24"
+              }
+            }
+          },
+          {
+            "x": 140,
+            "y": 140,
+            "frontmost": "core",
+            "hits": {
+              "core": {
+                "distance": 12.887345741042974,
+                "group": 24,
+                "sourceTriangle": 7739,
+                "sourceGeometry": "authoredLeaves"
+              },
+              "fineLeaf": {
+                "distance": 16.369524721071496,
+                "group": 24,
+                "leafId": 2235,
+                "sourceTriangle": 21126,
+                "sourceGeometry": "nearCanopy:lobe:24"
+              }
+            }
+          },
+          {
+            "x": 180,
+            "y": 140,
+            "frontmost": "core",
+            "hits": {
+              "core": {
+                "distance": 13.00797774462508,
+                "group": 24,
+                "sourceTriangle": 7736,
+                "sourceGeometry": "authoredLeaves"
+              },
+              "fineLeaf": {
+                "distance": 15.537542394693565,
+                "group": 25,
+                "leafId": 3529,
+                "sourceTriangle": 8431,
+                "sourceGeometry": "nearCanopy:lobe:25"
+              }
+            }
+          },
+          {
+            "x": 220,
+            "y": 140,
+            "frontmost": "core",
+            "hits": {
+              "core": {
+                "distance": 13.2658660390578,
+                "group": 24,
+                "sourceTriangle": 7679,
+                "sourceGeometry": "authoredLeaves"
+              },
+              "fineLeaf": {
+                "distance": 14.764328571576334,
+                "group": 25,
+                "leafId": 3043,
+                "sourceTriangle": 4541,
+                "sourceGeometry": "nearCanopy:lobe:25"
+              }
+            }
+          },
+          {
+            "x": 260,
+            "y": 140,
+            "frontmost": "core",
+            "hits": {
+              "core": {
+                "distance": 13.801809313815939,
+                "group": 24,
+                "sourceTriangle": 7674,
+                "sourceGeometry": "authoredLeaves"
+              },
+              "fineLeaf": {
+                "distance": 17.027461711729806,
+                "group": 25,
+                "leafId": 4489,
+                "sourceTriangle": 16105,
+                "sourceGeometry": "nearCanopy:lobe:25"
+              }
+            }
+          },
+          {
+            "x": 300,
+            "y": 140,
+            "frontmost": "core",
+            "hits": {
+              "core": {
+                "distance": 14.799079501398284,
+                "group": 25,
+                "sourceTriangle": 10362,
+                "sourceGeometry": "authoredLeaves"
+              },
+              "fineLeaf": {
+                "distance": 16.909256797914395,
+                "group": 25,
+                "leafId": 3875,
+                "sourceTriangle": 11197,
+                "sourceGeometry": "nearCanopy:lobe:25"
+              }
+            }
+          },
+          {
+            "x": 340,
+            "y": 140,
+            "frontmost": "fineLeaf",
+            "hits": {
+              "fineLeaf": {
+                "distance": 16.518892341269293,
+                "group": 25,
+                "leafId": 4287,
+                "sourceTriangle": 14490,
+                "sourceGeometry": "nearCanopy:lobe:25"
+              }
+            }
+          },
+          {
+            "x": 380,
+            "y": 140,
+            "frontmost": null,
+            "hits": {}
+          },
+          {
+            "x": 420,
+            "y": 140,
+            "frontmost": null,
+            "hits": {}
+          },
+          {
+            "x": 20,
+            "y": 180,
+            "frontmost": "core",
+            "hits": {
+              "core": {
+                "distance": 13.202951913870432,
+                "group": 24,
+                "sourceTriangle": 7858,
+                "sourceGeometry": "authoredLeaves"
+              }
+            }
+          },
+          {
+            "x": 60,
+            "y": 180,
+            "frontmost": "core",
+            "hits": {
+              "core": {
+                "distance": 12.926430011352428,
+                "group": 24,
+                "sourceTriangle": 7856,
+                "sourceGeometry": "authoredLeaves"
+              },
+              "fineLeaf": {
+                "distance": 16.371020850534407,
+                "group": 24,
+                "leafId": 1328,
+                "sourceTriangle": 13869,
+                "sourceGeometry": "nearCanopy:lobe:24"
+              }
+            }
+          },
+          {
+            "x": 100,
+            "y": 180,
+            "frontmost": "fineLeaf",
+            "hits": {
+              "core": {
+                "distance": 12.81299450062651,
+                "group": 24,
+                "sourceTriangle": 7854,
+                "sourceGeometry": "authoredLeaves"
+              },
+              "fineLeaf": {
+                "distance": 12.727810860016614,
+                "group": 24,
+                "leafId": 1464,
+                "sourceTriangle": 14952,
+                "sourceGeometry": "nearCanopy:lobe:24"
+              }
+            }
+          },
+          {
+            "x": 140,
+            "y": 180,
+            "frontmost": "core",
+            "hits": {
+              "oldFlatLeaf": {
+                "distance": 14.678749452536428,
+                "group": 24,
+                "sourceTriangle": 7119,
+                "sourceGeometry": "authoredLeaves"
+              },
+              "core": {
+                "distance": 12.758112736488684,
+                "group": 24,
+                "sourceTriangle": 7851,
+                "sourceGeometry": "authoredLeaves"
+              }
+            }
+          },
+          {
+            "x": 180,
+            "y": 180,
+            "frontmost": "core",
+            "hits": {
+              "core": {
+                "distance": 12.783421562409751,
+                "group": 24,
+                "sourceTriangle": 7848,
+                "sourceGeometry": "authoredLeaves"
+              },
+              "fineLeaf": {
+                "distance": 15.320288096158974,
+                "group": 25,
+                "leafId": 3349,
+                "sourceTriangle": 6987,
+                "sourceGeometry": "nearCanopy:lobe:25"
+              }
+            }
+          },
+          {
+            "x": 220,
+            "y": 180,
+            "frontmost": "core",
+            "hits": {
+              "core": {
+                "distance": 13.010730133949084,
+                "group": 24,
+                "sourceTriangle": 7791,
+                "sourceGeometry": "authoredLeaves"
+              }
+            }
+          },
+          {
+            "x": 260,
+            "y": 180,
+            "frontmost": "fineLeaf",
+            "hits": {
+              "oldFlatLeaf": {
+                "distance": 14.540221508871536,
+                "group": 24,
+                "sourceTriangle": 7267,
+                "sourceGeometry": "authoredLeaves"
+              },
+              "core": {
+                "distance": 13.65240348327833,
+                "group": 24,
+                "sourceTriangle": 7786,
+                "sourceGeometry": "authoredLeaves"
+              },
+              "fineLeaf": {
+                "distance": 13.27304501763911,
+                "group": 24,
+                "leafId": 1834,
+                "sourceTriangle": 17919,
+                "sourceGeometry": "nearCanopy:lobe:24"
+              }
+            }
+          },
+          {
+            "x": 300,
+            "y": 180,
+            "frontmost": "core",
+            "hits": {
+              "core": {
+                "distance": 14.450249915226426,
+                "group": 25,
+                "sourceTriangle": 10475,
+                "sourceGeometry": "authoredLeaves"
+              }
+            }
+          },
+          {
+            "x": 340,
+            "y": 180,
+            "frontmost": "core",
+            "hits": {
+              "core": {
+                "distance": 15.063718471258971,
+                "group": 25,
+                "sourceTriangle": 10469,
+                "sourceGeometry": "authoredLeaves"
+              },
+              "fineLeaf": {
+                "distance": 16.990931783339057,
+                "group": 25,
+                "leafId": 2833,
+                "sourceTriangle": 2859,
+                "sourceGeometry": "nearCanopy:lobe:25"
+              }
+            }
+          },
+          {
+            "x": 380,
+            "y": 180,
+            "frontmost": null,
+            "hits": {}
+          },
+          {
+            "x": 420,
+            "y": 180,
+            "frontmost": null,
+            "hits": {}
+          },
+          {
+            "x": 20,
+            "y": 220,
+            "frontmost": "fineLeaf",
+            "hits": {
+              "core": {
+                "distance": 14.22322018915563,
+                "group": 24,
+                "sourceTriangle": 7976,
+                "sourceGeometry": "authoredLeaves"
+              },
+              "fineLeaf": {
+                "distance": 13.53608946083621,
+                "group": 24,
+                "leafId": 1704,
+                "sourceTriangle": 16878,
+                "sourceGeometry": "nearCanopy:lobe:24"
+              }
+            }
+          },
+          {
+            "x": 60,
+            "y": 220,
+            "frontmost": "fineLeaf",
+            "hits": {
+              "oldFlatLeaf": {
+                "distance": 13.346639441566259,
+                "group": 24,
+                "sourceTriangle": 6038,
+                "sourceGeometry": "authoredLeaves"
+              },
+              "core": {
+                "distance": 13.19941705861442,
+                "group": 24,
+                "sourceTriangle": 7968,
+                "sourceGeometry": "authoredLeaves"
+              },
+              "fineLeaf": {
+                "distance": 13.1005066081155,
+                "group": 24,
+                "leafId": 306,
+                "sourceTriangle": 5692,
+                "sourceGeometry": "nearCanopy:lobe:24"
+              }
+            }
+          },
+          {
+            "x": 100,
+            "y": 220,
+            "frontmost": "core",
+            "hits": {
+              "core": {
+                "distance": 13.037600735636651,
+                "group": 24,
+                "sourceTriangle": 7966,
+                "sourceGeometry": "authoredLeaves"
+              }
+            }
+          },
+          {
+            "x": 140,
+            "y": 220,
+            "frontmost": "core",
+            "hits": {
+              "core": {
+                "distance": 12.926398636561517,
+                "group": 24,
+                "sourceTriangle": 7962,
+                "sourceGeometry": "authoredLeaves"
+              }
+            }
+          },
+          {
+            "x": 180,
+            "y": 220,
+            "frontmost": "fineLeaf",
+            "hits": {
+              "core": {
+                "distance": 12.919116677863991,
+                "group": 24,
+                "sourceTriangle": 7905,
+                "sourceGeometry": "authoredLeaves"
+              },
+              "fineLeaf": {
+                "distance": 12.667687792137619,
+                "group": 24,
+                "leafId": 177,
+                "sourceTriangle": 4659,
+                "sourceGeometry": "nearCanopy:lobe:24"
+              }
+            }
+          },
+          {
+            "x": 220,
+            "y": 220,
+            "frontmost": "core",
+            "hits": {
+              "core": {
+                "distance": 13.178166388465044,
+                "group": 24,
+                "sourceTriangle": 7902,
+                "sourceGeometry": "authoredLeaves"
+              },
+              "nearWood": {
+                "distance": 17.03786121948401,
+                "group": 25,
+                "leafId": -1,
+                "sourceTriangle": 2252,
+                "sourceGeometry": "nearCanopy:lobe:25"
+              },
+              "fineLeaf": {
+                "distance": 14.725086027761389,
+                "group": 25,
+                "leafId": 4088,
+                "sourceTriangle": 12901,
+                "sourceGeometry": "nearCanopy:lobe:25"
+              }
+            }
+          },
+          {
+            "x": 260,
+            "y": 220,
+            "frontmost": "core",
+            "hits": {
+              "core": {
+                "distance": 14.416148458734844,
+                "group": 25,
+                "sourceTriangle": 10646,
+                "sourceGeometry": "authoredLeaves"
+              },
+              "fineLeaf": {
+                "distance": 14.983896423775429,
+                "group": 24,
+                "leafId": 2719,
+                "sourceTriangle": 24996,
+                "sourceGeometry": "nearCanopy:lobe:24"
+              }
+            }
+          },
+          {
+            "x": 300,
+            "y": 220,
+            "frontmost": "core",
+            "hits": {
+              "core": {
+                "distance": 14.496140606539644,
+                "group": 25,
+                "sourceTriangle": 10642,
+                "sourceGeometry": "authoredLeaves"
+              },
+              "fineLeaf": {
+                "distance": 17.473073984827636,
+                "group": 25,
+                "leafId": 3576,
+                "sourceTriangle": 8803,
+                "sourceGeometry": "nearCanopy:lobe:25"
+              }
+            }
+          },
+          {
+            "x": 340,
+            "y": 220,
+            "frontmost": "core",
+            "hits": {
+              "oldFlatLeaf": {
+                "distance": 15.494362885943458,
+                "group": 25,
+                "sourceTriangle": 9570,
+                "sourceGeometry": "authoredLeaves"
+              },
+              "core": {
+                "distance": 15.28695770969321,
+                "group": 25,
+                "sourceTriangle": 10635,
+                "sourceGeometry": "authoredLeaves"
+              }
+            }
+          },
+          {
+            "x": 380,
+            "y": 220,
+            "frontmost": null,
+            "hits": {}
+          },
+          {
+            "x": 420,
+            "y": 220,
+            "frontmost": null,
+            "hits": {}
+          },
+          {
+            "x": 20,
+            "y": 260,
+            "frontmost": null,
+            "hits": {}
+          },
+          {
+            "x": 60,
+            "y": 260,
+            "frontmost": "fineLeaf",
+            "hits": {
+              "fineLeaf": {
+                "distance": 14.049543712944041,
+                "group": 24,
+                "leafId": 1718,
+                "sourceTriangle": 16991,
+                "sourceGeometry": "nearCanopy:lobe:24"
+              }
+            }
+          },
+          {
+            "x": 100,
+            "y": 260,
+            "frontmost": "nearWood",
+            "hits": {
+              "core": {
+                "distance": 13.8175053843726,
+                "group": 24,
+                "sourceTriangle": 8081,
+                "sourceGeometry": "authoredLeaves"
+              },
+              "nearWood": {
+                "distance": 13.637560718965515,
+                "group": 24,
+                "leafId": -1,
+                "sourceTriangle": 3000,
+                "sourceGeometry": "nearCanopy:lobe:24"
+              }
+            }
+          },
+          {
+            "x": 140,
+            "y": 260,
+            "frontmost": "fineLeaf",
+            "hits": {
+              "core": {
+                "distance": 13.649592430866075,
+                "group": 24,
+                "sourceTriangle": 8075,
+                "sourceGeometry": "authoredLeaves"
+              },
+              "nearWood": {
+                "distance": 13.476539103374119,
+                "group": 24,
+                "leafId": -1,
+                "sourceTriangle": 2620,
+                "sourceGeometry": "nearCanopy:lobe:24"
+              },
+              "fineLeaf": {
+                "distance": 13.355482060331092,
+                "group": 24,
+                "leafId": 1440,
+                "sourceTriangle": 14761,
+                "sourceGeometry": "nearCanopy:lobe:24"
+              }
+            }
+          },
+          {
+            "x": 180,
+            "y": 260,
+            "frontmost": "core",
+            "hits": {
+              "core": {
+                "distance": 13.72060665806476,
+                "group": 24,
+                "sourceTriangle": 8070,
+                "sourceGeometry": "authoredLeaves"
+              },
+              "fineLeaf": {
+                "distance": 15.465634409579975,
+                "group": 24,
+                "leafId": 1581,
+                "sourceTriangle": 15889,
+                "sourceGeometry": "nearCanopy:lobe:24"
+              }
+            }
+          },
+          {
+            "x": 220,
+            "y": 260,
+            "frontmost": "fineLeaf",
+            "hits": {
+              "fineLeaf": {
+                "distance": 14.012469675099306,
+                "group": 24,
+                "leafId": 1859,
+                "sourceTriangle": 18117,
+                "sourceGeometry": "nearCanopy:lobe:24"
+              },
+              "nearWood": {
+                "distance": 15.54245360392763,
+                "group": 25,
+                "leafId": -1,
+                "sourceTriangle": 1733,
+                "sourceGeometry": "nearCanopy:lobe:25"
+              }
+            }
+          },
+          {
+            "x": 260,
+            "y": 260,
+            "frontmost": "fineLeaf",
+            "hits": {
+              "core": {
+                "distance": 15.272217073157174,
+                "group": 25,
+                "sourceTriangle": 10816,
+                "sourceGeometry": "authoredLeaves"
+              },
+              "fineLeaf": {
+                "distance": 14.787625410612828,
+                "group": 25,
+                "leafId": 2958,
+                "sourceTriangle": 3863,
+                "sourceGeometry": "nearCanopy:lobe:25"
+              }
+            }
+          },
+          {
+            "x": 300,
+            "y": 260,
+            "frontmost": "core",
+            "hits": {
+              "core": {
+                "distance": 15.23134618325216,
+                "group": 25,
+                "sourceTriangle": 10807,
+                "sourceGeometry": "authoredLeaves"
+              }
+            }
+          },
+          {
+            "x": 340,
+            "y": 260,
+            "frontmost": null,
+            "hits": {}
+          },
+          {
+            "x": 380,
+            "y": 260,
+            "frontmost": null,
+            "hits": {}
+          },
+          {
+            "x": 420,
+            "y": 260,
+            "frontmost": null,
+            "hits": {}
+          },
+          {
+            "x": 20,
+            "y": 300,
+            "frontmost": null,
+            "hits": {}
+          },
+          {
+            "x": 60,
+            "y": 300,
+            "frontmost": null,
+            "hits": {}
+          },
+          {
+            "x": 100,
+            "y": 300,
+            "frontmost": null,
+            "hits": {}
+          },
+          {
+            "x": 140,
+            "y": 300,
+            "frontmost": null,
+            "hits": {}
+          },
+          {
+            "x": 180,
+            "y": 300,
+            "frontmost": null,
+            "hits": {}
+          },
+          {
+            "x": 220,
+            "y": 300,
+            "frontmost": null,
+            "hits": {}
+          },
+          {
+            "x": 260,
+            "y": 300,
+            "frontmost": null,
+            "hits": {}
+          },
+          {
+            "x": 300,
+            "y": 300,
+            "frontmost": null,
+            "hits": {}
+          },
+          {
+            "x": 340,
+            "y": 300,
+            "frontmost": null,
+            "hits": {}
+          },
+          {
+            "x": 380,
+            "y": 300,
+            "frontmost": null,
+            "hits": {}
+          },
+          {
+            "x": 420,
+            "y": 300,
+            "frontmost": null,
+            "hits": {}
+          }
+        ]
+      },
+      "method": "CPU output-pixel-centre triangle raster at native camera and t12.6, DoubleSide. Actual aRoot/aWind evaluated with source wind equations. Original core masks partitioned by nearest of the three cores; fine leaves from all three parts compete together. Per-leaf footprint counts each pixel once even when its own curved triangles overlap. Visible means frontmost against the selected cores, original tagged opaque flat laminae, selected near wood, and other fine leaves.",
+      "limitations": [
+        "No GPU float/postprocessing/MSAA/FXAA simulation; raster counts are geometric pixel estimates, not exact final-image segmentation.",
+        "Original alpha cards and unrelated world meshes are omitted, so unoccluded fine-leaf area is an upper bound before those objects.",
+        "Projected leaf-area sums include off-facing/back-of-core leaves where noted; area is not a guarantee of useful coverage.",
+        "No new density, geometry or rendering trial."
+      ]
+    }
+  },
+  "attributePacking": {
+    "applied": true,
+    "method": "The exact Git source compactAttributes helper from trees/index.ts is exposed only inside this CPU loader and applied to the inspected geometries before reading attributes. No renderer/upload occurs.",
+    "geometries": [
+      {
+        "name": "giant-authored-leaves-stair-bank-giant",
+        "windType": "Uint16Array",
+        "windNormalized": true
+      },
+      {
+        "name": "near-canopy-giant-stair-bank-giant-lobe-24",
+        "windType": "Uint16Array",
+        "windNormalized": true
+      },
+      {
+        "name": "near-canopy-giant-stair-bank-giant-lobe-25",
+        "windType": "Uint16Array",
+        "windNormalized": true
+      },
+      {
+        "name": "near-canopy-giant-stair-bank-giant-lobe-26",
+        "windType": "Uint16Array",
+        "windNormalized": true
+      }
+    ]
+  },
+  "nativeManifest": {
+    "path": "E:/zeldaremake-astra-bank-delivery/art/environment/astra-bank-backing/native-pair/after/manifest.json",
+    "sha256": "644944cf56031ad1607406dfdc39f8445e3a5456ba1c40c4aedea025d13874d5"
+  },
+  "sources": {
+    "src/world/config.ts": "006b20151a917217cc57383a4962d91b2a1ba636946a6a1c539b624c87d97d78",
+    "src/world/layout.ts": "a55b352707728243a70c18bce6d93e861a246c14f0237a9f21303d8c60f677e7",
+    "src/world/util/prng.ts": "99ad857879fd2ec96a3e2d82e412f10b0e47e93994eba02ef30d2f2520f96c6c",
+    "src/world/terrain/heightfield.ts": "bb8df0c9ee2cfe19b70ae35b66587988bd58bec825606254a4a21a6459aacf1a",
+    "src/world/util/noise.ts": "870b7104aec5e9ea99d9b1ca4158d0ca496b17bb0b59bf608d78f8f95c17caa1",
+    "src/world/wind/wind.ts": "d9492126b6ced433505f3781b97f3fbd5f227f2059c352843180179804e0b452",
+    "src/world/trees/index.ts": "937e8e37e7633522cff365411bcfd82bb83a5f1130c2427183901eea5f9d676b",
+    "src/world/trees/materials.ts": "64af57b58ea6579367444b97d68c9d2ee3a35ecbb6a7e4b07459271aea6b042c",
+    "src/world/materials/shadeFloor.ts": "5779f78cb2e16f949b60edb2ec8b30e56724ab170279ca6f43d170e698451692",
+    "src/world/trees/bark-texture.ts": "53ed2fc1ebcfaab24979893f6d6088fa7caf92830b8e4e7dbc953265a0680375",
+    "src/world/trees/leaf-cluster-texture.ts": "80e0746430ff2ec73b4c96016c9f55adde01579aa1700ab6fe35da7566d784f1",
+    "src/world/trees/bole.ts": "914756806a9cbe5b868f7214b694031a30e892a383ae9d1cc31842d06ee3e29d",
+    "src/world/trees/writer.ts": "c553e80da6ac76e92fc7233d86c6974e84114926830795f14bf5457bc6d1d2f7",
+    "src/world/trees/distant.ts": "a9b72b3cd2462c84397ede689eed5f239e619b23e01ee0128add545c041ff115",
+    "src/world/trees/leaf-color.ts": "c5aa353d0e90dfa44466272c4852e40f7d3fd143f8c4ad7729dbf0db2018b0e5",
+    "src/world/trees/whitebark.ts": "8ddc1907546bcabf37a11d8ec8cde22002ee37dfab282e67fa346cac6276b84c",
+    "src/world/trees/placement.ts": "5b6a334693871e693cf282da31d7ad35f7829e3857928fcf7f365256daad4348",
+    "src/world/trees/column.ts": "2afa3ed458ee235a0df9cc30e2e39191824c37a40753f20157a87630a231c176",
+    "src/world/trees/base-plants.ts": "6f1428570179f8a7813c77b478be4e34648caf8341b25086779dac888a81624f",
+    "src/world/trees/giant.ts": "58daaa9b8a6601970e3c188d49114d3db4fffad1aa63be802e4e8100a7799e75",
+    "src/world/trees/nearCanopy.ts": "691af0a81f5fcceacff294a62dbdb8f4bf71f3f15e93f728a4ad8b619c5d77f4",
+    "src/world/util/expansionLocality.ts": "e1cbea7fffb31f7cc4888f612b37148dfe9a47b562c550a6f9f469dcbf5f19e3",
+    "src/world/trees/lodPool.ts": "5ac994685912f8212b7abb5f3ac2520fd0a287a3336f2398b308d61d8bd9da33",
+    "src/world/trees/corridors.ts": "0dce63af724780bb22d7c6ea352f323d08443d16ef7243609a71167a31ccf639",
+    "src/world/trees/tubePath.ts": "563b22f427d9265b64c301ace36f6d25d72bb373c8e98dbc89eef1f7ad34a27e"
+  },
+  "sourceRef": "588d3681678c17b236203d8785b60ea2e6c2bba3",
+  "analysisScripts": {
+    "measure-screen.mjs": "338eee18cabc16b25f9fcee0b2c5d8f77d5e2a086dffbda03812ed8f4e1c0d53",
+    "screen-project.mjs": "d71b69da9d6e5e484812b842a5882e8ed9b116b8de3bb58bef2bd671bc1d28bd"
+  }
+}

@@ -1,0 +1,90 @@
+{
+  "verdict": "PASS",
+  "candidate": "588d3681678c17b236203d8785b60ea2e6c2bba3",
+  "cost": {
+    "leaves": 7100,
+    "triangles": 64474,
+    "woodTriangles": 7674,
+    "rawBuilderBytes": 4866396,
+    "packedRenderedBytes": 3933156
+  },
+  "delta": {
+    "triangles": -966,
+    "leaves": 0,
+    "meshes": 0,
+    "materials": 0,
+    "textures": 0
+  },
+  "exactUnrelatedGeometryRecords": 560,
+  "groups": [
+    {
+      "group": 24,
+      "near": {
+        "leaves": 2800,
+        "triangles": 25640,
+        "woodTriangles": 3240,
+        "vertices": 24680,
+        "bytes": 1930800
+      },
+      "surfaceCoverage": {
+        "leafCentroidsOutsideCore": 2798,
+        "leafRootsOutsideCore": 2800,
+        "fractionCentroidsOutside": 0.9992857142857143,
+        "minCentroidClearance": -0.024569551289416847,
+        "maxCentroidClearance": 0.21253083624385294,
+        "method": "Rest-pose radial intersection with all896 original core triangles; exterior placement, not rendered coverage or visible pixels."
+      },
+      "minAnalyticMargin": [
+        0.2362301373532767,
+        0.1849065194157653,
+        0.04852591732314249
+      ]
+    },
+    {
+      "group": 25,
+      "near": {
+        "leaves": 2100,
+        "triangles": 19392,
+        "woodTriangles": 2592,
+        "vertices": 18624,
+        "bytes": 1457280
+      },
+      "surfaceCoverage": {
+        "leafCentroidsOutsideCore": 2099,
+        "leafRootsOutsideCore": 2100,
+        "fractionCentroidsOutside": 0.9995238095238095,
+        "minCentroidClearance": -0.0025937343092790055,
+        "maxCentroidClearance": 0.21773768596905652,
+        "method": "Rest-pose radial intersection with all896 original core triangles; exterior placement, not rendered coverage or visible pixels."
+      },
+      "minAnalyticMargin": [
+        0.05315432769144279,
+        0.06859238397062395,
+        0.053745087597976804
+      ]
+    },
+    {
+      "group": 26,
+      "near": {
+        "leaves": 2200,
+        "triangles": 19442,
+        "woodTriangles": 1842,
+        "vertices": 18912,
+        "bytes": 1478316
+      },
+      "surfaceCoverage": {
+        "leafCentroidsOutsideCore": 2199,
+        "leafRootsOutsideCore": 2200,
+        "fractionCentroidsOutside": 0.9995454545454545,
+        "minCentroidClearance": -0.008117735171056628,
+        "maxCentroidClearance": 0.23063915672652713,
+        "method": "Rest-pose radial intersection with all896 original core triangles; exterior placement, not rendered coverage or visible pixels."
+      },
+      "minAnalyticMargin": [
+        0.14891701666700108,
+        0.07144458825248101,
+        0.10069694884992586
+      ]
+    }
+  ]
+}
