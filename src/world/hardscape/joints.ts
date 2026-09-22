@@ -128,9 +128,17 @@ export function jointFillLift(gap: number, soil = 1): [number, number, number] {
  * round-12 soil darkening leaves the B/E fill as tuned. `mean` is the tone at the damp noise's
  * mean (soil.lerp(mid, 0.3)) for the seam grit.
  */
+/**
+ * Round 52 #3 (fable-5, V16 "a seam value"): one multiplier on the seam fill's albedos (soil and mossy
+ * earth alike, the lawn pocket untouched), so the joint-dark area (fable-5's blur-difference read at
+ * E / C / D: 8.2 / 6.2 / 6.3 % against the frame's 3.1 / 1.8 / 2.5 %) can be traded against the seam's
+ * relative tone (dark px / slab mean: 0.52 on the head, the frame's 0.51). 1 → the round-50 fill.
+ */
+export const SEAM_FILL_LIFT = 1.3;
+
 export function jointFillTones(palette: WorldConfig['palette']): { soil: Color; soilMid: Color; turf: Color; turfMid: Color; lawn: Color; soilMean: Color; soilMeanR10: Color; turfMean: Color } {
-  const soil = new Color(JOINT_SOIL);
-  const soilMid = new Color(JOINT_SOIL_MID);
+  const soil = new Color(JOINT_SOIL).multiplyScalar(SEAM_FILL_LIFT);
+  const soilMid = new Color(JOINT_SOIL_MID).multiplyScalar(SEAM_FILL_LIFT);
   // (round 33: the mossy earth × 1.3 and browner — lerp 0.56 → 0.42 to the deep green, × 1.15:
   // frame 14 s's gaps behind Link are sRGB 86,74,43 – 98,84,56 (hue 43°, B/R 0.5) where the old
   // turf rendered 59,56,36 – 67,67,40 (hue 52°, B/R 0.61): too dark and too grey-green)
@@ -143,8 +151,8 @@ export function jointFillTones(palette: WorldConfig['palette']): { soil: Color; 
   // × 0.42 (Y 0.062 → 0.039, hue 35° → 41°, B/R 0.49); its damp lift, which sat at Y 0.18 — a
   // slab's albedo — and mottled the joints pale where the noise peaked, comes to 0.6 / × 0.5 (Y
   // 0.088). The joints read darker than the stone at every width now, as in the demo.)
-  const turf = new Color(TURF_BASE).lerp(new Color(palette.grassDeep), 0.6).multiplyScalar(0.42);
-  const turfMid = new Color(TURF_BASE_MID).lerp(new Color(palette.grassMid), 0.6).multiplyScalar(0.5);
+  const turf = new Color(TURF_BASE).lerp(new Color(palette.grassDeep), 0.6).multiplyScalar(0.42 * SEAM_FILL_LIFT);
+  const turfMid = new Color(TURF_BASE_MID).lerp(new Color(palette.grassMid), 0.6).multiplyScalar(0.5 * SEAM_FILL_LIFT);
   // the lawn pocket's ground: dark mossy earth under the lawn's tufts (round 13 — the damp seam
   // soil pulled 85 % to the deep grass green and dimmed to 0.6, sRGB ≈ 54,58,32), the shadowed
   // earth between dense grass. The pocket's warm light lifts a fill's red a fifth and drops its
