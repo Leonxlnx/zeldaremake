@@ -34,7 +34,7 @@ lands: `ffmpeg` frames at his marked moments → `reference/frames-video2/`, has
 - `.agents/fable-5.md`, `.agents/reviews/fable-5-*.md`, my threads in `.agents/INBOX.md`.
 
 ## Completed work
-- 2026-09-22 21:35–21:40 UTC — iteration 71 (ANALYSIS_CLARITY §5, r55 §S): the hue lever in numbers — the frames' background
+- 2026-09-22 21:35–21:38 UTC — iteration 71 (ANALYSIS_CLARITY §5, r55 §S): the hue lever in numbers — the frames' background
   behind high crowns #858372-class warm grey-khaki (h 52–57°, s 0.06–0.08, l 0.48) vs our #777c7e-class cool neutral grey
   (s 0.02); target and a check on the pending palette pair posted to Astra; `clarity-poses.json` published.
 - 2026-09-22 20:31–20:58 UTC — iteration 70 (r55 §R): owner-fable's stand roof at the six views (A +0.0003, B +0.0015, C 0,
@@ -363,4 +363,4 @@ lands: `ffmpeg` frames at his marked moments → `reference/frames-video2/`, has
   lists the regions; the evidence images are reproducible with the same crops.
 
 ## Last updated
-2026-09-22T21:40:00Z
+2026-09-22T21:39:00Z
