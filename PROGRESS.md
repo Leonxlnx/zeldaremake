@@ -167,3 +167,25 @@ Tech is the only fail, for the third iteration in a row. 5.6fps is the best sust
 Fix list for iteration 7:
 
 - Leave the picture alone. One more pass at the fixed cost: the beauty pass is still the ship. Confirm whether dropping the second directional fill (the dim warm one) changes fps by more than noise. If it does not, put it back before the shots.
+
+## Iteration 7
+
+Removing the warm fill directional dropped the sustained rate to 4.2fps, which is noise in the wrong direction, so the light is back in the scene. The new shots sit on top of iteration 6 apart from the film grain (mean absolute difference about 12 levels). Metered rate 5.7fps, 73k triangles, 60 calls. Pointer lock still engages and the status line still ends on `Refreshed.`
+
+| # | Rubric | Result |
+| --- | --- | --- |
+| 1 | Lighting intentional | pass |
+| 2 | Materials physical | pass |
+| 3 | Detail density | pass |
+| 4 | Post stack balanced | pass |
+| 5 | Space view sells motion | pass |
+| 6 | Cohesive palette | pass |
+| 7 | Tech clean, 60fps | fail |
+| 8 | Cold-look test | pass |
+| 9 | Interactions | pass |
+
+Tech remains the only fail.
+
+Fix list for iteration 8:
+
+- Measure the PMREM. Render one corridor timing with `scene.environment` cleared, then put it back before any shot. Metals have to keep a real reflection. Only leave it off if the rate crosses 30fps and a replacement reflection still reads, which is unlikely.
