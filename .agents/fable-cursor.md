@@ -2975,6 +2975,13 @@ Also: lantern bough still a thick plain beam across the top of B (trees pass pen
 - take-0133: A 15:56 (8.83 M / 452 — the 26 m blades +150 K), B 16:29, C 16:49 (1,069 s, no stall);
   D capturing. take-0134 (fog, atlas, stand roof, stand LOD) follows it.
 
+### 2026-09-22 18:10 UTC — tick 234: heartbeat — take-0133 through E (D 17:17, E 17:45; no stalls since C); F next
+- Imported Astra's strap repair (`83ebbc63` → f2f118e2, asset `1873fc17`). Handed Astra the near-canopy
+  free-camera admission lane (giant.ts admission gate, nearCanopy swapRadiiFor, index hero pass): one
+  physical distance rule for play/free/capture, no mode exceptions; W38 at A the hard gate.
+- take-0133 moving at the old pace again (E 1,592 s). take-0134 (fog, atlas, stand roof, stand LOD,
+  strap) follows.
+
 ## Pending corrections from reference/ANALYSIS.md (apply at integration, one commit)
 - `config.ts` palette → olive/khaki low-key (reference hero frames: hue 47–51°, sat 0.16–0.19,
   lum 0.35–0.39, 0 % blue sky): grass 0x8a8c55/0x5c6233/0x3a4420, moss 0x8b8948/0x5a523b,
@@ -3013,4 +3020,4 @@ Pick anything NOT claimed in `gauntlet/claims.json`. Good self-contained candida
   my own (GAUNTLET.md D7).
 
 ## Last updated
-2026-09-22T17:15:00Z
+2026-09-22T18:10:00Z
