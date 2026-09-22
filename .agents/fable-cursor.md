@@ -2949,6 +2949,16 @@ Also: lantern bough still a thick plain beam across the top of B (trees pass pen
 - All six views written (F 13:26); the determinism re-capture and motion pair remain (~1.5 h). No new
   Fable/Astra source this hour. Next take (0134) carries the grass 26 m blades and the memory branches.
 
+### 2026-09-22 15:55 UTC — tick 231: take-0132 sealed at last (41/50, A +0.0056, F −0.0062); take-0133 started
+- Seven hours of capture for one seal: A 2,301 s, B 4,064 s, C 2,829 s, D ~3,600 s, E 3,144 s,
+  F 1,160 s, det 3,455 s, motion 3,636 s — one 30–40 min stall in most views, at random frames, with
+  memory free or not; SwiftShader at 370 % throughout. take-0132 on 06b420c9: 41/50, A 0.2153 → 0.2209,
+  B −0.0002, C −0.0039, D −0.0001, E ±0, F 0.2381 → 0.2319 (the bank cores' leaves vs the reference's
+  dark mass — Astra's backing candidate is the follow-up). Hue to the reference better in B/C/D/E.
+- take-0133 started 15:50 on f9c58007+: grass blades to 26 m, the six memory branches, dressing fade.
+- Gaps: F's canopy mass (Astra), Link's knee fold (Astra), the capture's stalls (box-bound; the world's
+  3.6 GB tab is the lever — memory branches landing).
+
 ## Pending corrections from reference/ANALYSIS.md (apply at integration, one commit)
 - `config.ts` palette → olive/khaki low-key (reference hero frames: hue 47–51°, sat 0.16–0.19,
   lum 0.35–0.39, 0 % blue sky): grass 0x8a8c55/0x5c6233/0x3a4420, moss 0x8b8948/0x5a523b,
@@ -2987,4 +2997,4 @@ Pick anything NOT claimed in `gauntlet/claims.json`. Good self-contained candida
   my own (GAUNTLET.md D7).
 
 ## Last updated
-2026-09-22T14:10:00Z
+2026-09-22T15:55:00Z
