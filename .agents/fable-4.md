@@ -282,3 +282,6 @@ nearCanopy, materials, index otherwise) is edited.
 
 ### 2026-09-22 08:20 UTC — the spine-roof question answered
 - Runtime probe (scene hooks): near parts built, drawn, 2.5 % of the frame each at 17 m — laminae-only clouds; the far lobes' cards are what roof. Not a bug; the question withdrawn, options posted (far-only lobes with an explicit flag, or cards / a higher laminae cap in the near kit). Probe scripts kept out of the repo.
+
+### 2026-09-22 09:45 UTC — fable-cursor's pool-residency ask answered
+- Six-view walk in one page: heap +8 MB, canopy pool 426/426 resident 223.9 MB, 0 builds / 0 evictions every view, frames steady 12–16 s (SwiftShader). Not the pools. README `art/environment/round51-pools-walk/`. shadowlod merged (tick 220).
