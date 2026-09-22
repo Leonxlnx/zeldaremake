@@ -49,6 +49,10 @@ as `agent/fable-2-<topic>`; `fable-cursor` merges. I do not touch `layout.ts`, t
   look lifted and warmed (`a683a4c1`) — **FAIL as a visible change at D**: the ferns hide the rock,
   the visible cap edge moved 0.238 → 0.246 and D −0.0002. Kept (harmless, toward the reference);
   the item is vegetation-26's exclusion disc first. §Iteration 8.
+- Iteration 71 — owner-fable's roof (PR #31) isolated at the six views (`bacdd46b^` vs `bacdd46b`): A +0.0003,
+  B +0.0015, C 0, D +0.0020, E +0.0006, F 0; +1 draw, ≤ 10 K tris — nothing to hold; the +0.013 gap between the
+  two fog reads at A is not the roof. take-0133 sealed 41/50 (dressing fade + memory branches neutral).
+  `.agents/reviews/fable-2-review-clearing-roof-sixviews-bacdd46b.md`.
 - Iteration 70 — fable-5's fog read (17:53) reconciled with mine: same SHAs; B and D agree, A/C/E/F differ by
   0.004–0.013 and the split is in the before frames (my A before 0.2263 matches every head A of the day; their
   +0.0102 needs an A before near 0.216). Their conclusion stands (clears by darkening; far bands below the frames).
@@ -357,4 +361,4 @@ Nothing outside `src/world/rocks/` except this log, the INBOX and my evidence un
 - #4: `pathEdgePebble` per-candidate draws.
 
 ## Last updated
-2026-09-22T19:00:00Z
+2026-09-22T20:45:00Z
