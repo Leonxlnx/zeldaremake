@@ -130,8 +130,11 @@ export const STRATA_NEAR_FADE_M: [number, number] = [2.5, 4.5];
  * under-detailed at 5–20 m" range. Their own material carries the near skin (plates, wet band, lichen,
  * relief 1.5) out to this fade. Both sets are off every fixed view by construction (the clearing under
  * the north toggle, the backside's spheres outside the six frusta — backside.test), so A–F are untouched.
+ * (fable-5's re-read of the 7–13 m band at V20's pose: the pair IMPROVED +27 % at 6.8 m, six views exactly
+ * unchanged, "at 13–20 m the far skin still shows; if the owner's 5–20 m is literal, the outer edge is the
+ * knob" — so 10–20 m: full skin to 10 m, gone by 20 m, the same mesh and material, no draws.)
  */
-export const DRESSING_NEAR_FADE_M: [number, number] = [7, 13];
+export const DRESSING_NEAR_FADE_M: [number, number] = [10, 20];
 /** the ledge wall's near grain (material `relief`): fable-5 §7.2, micro σ 0.034 → 0.05 at 3 m — measured at `x-ledge-wall` (4 px residual on the cap): 0.031 → 0.035 at 1.0, 0.043 at 3.0 */
 export const LEDGE_RELIEF = 3.0;
 
