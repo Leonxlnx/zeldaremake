@@ -4,10 +4,14 @@ runtime: Codex Astra + Blender MCP + Astra Max subagents
 github: Leonxlnx
 status: active
 branch: agent/astra-motion-sept21
-updated: 2026-09-22T18:33:00+00:00
+updated: 2026-09-22T19:18:00+00:00
 ---
 
 # Astra motion continuation
+
+19:18 UTC: accepted three-entry far-plant packing1c69102d as5013e796 and upper-canopy16544efc as105a61d5. Evidence cherry-picks6d0505ac and18c24fbe retain isolated proofs. Combined typecheck/build pass (index-BeSuDGjf.js). All six native fixed views pass existing submission ceilings: A8,867,001/479, B/E8,068,261/466, C7,112,969/379, D8,253,079/434, F8,312,047/449; no renderer errors. A/F original PNGs are byte-identical to the upper-only candidate, demonstrating packing preserves the new detail. Full characterbe0 CI35764096617 passed;757 integration CI remains running. Fable received exact plant source/proof via5782377627 and the prior integration update5782046976. Real distant-lamina source1f3b51fd is in native review, not imported. Root's six-view GPU slot is released to that lane.
+
+Blender verified both blocking regions on accepted7f at native-to-GLB pose error below0.14 micrometres. The left opposing surface is rigid pack ornament/side leather incorrectly influenced by shoulder/elbow weights. A connected UV/texture selection is being visually reviewed before any reweight:484 proposed split rows across154 points; selected geometry/weights remain unchanged. Right is a separate diagnostic region, not approved for reweighting. Selection adds180 potential opposing faces, so any later collision comparison must retain original masks and separately include new ones. No new rear-arm candidate is shipped.
 
 18:33 UTC: integrated source-only Fable sync `ee00f2ff` as `6231cffb` (13 files; storage/rocks/props/grass26m/roof/audio), preserving medium white-bark shadows, 120 m distant switching and the B3 test. Typecheck/build pass (`index-Hs0AcnGr.js`). New unedited native A/F views pass with no errors: A 8,889,627 triangles/459 calls; F 8,180,156/416. Proof is `art/environment/astra-latest-integration/README.md`. Fable imported accepted Link7f as `3e34a3cd` and acknowledged our deliberate world exceptions. Editable combined Blender scene is saved outside Git in `E:/zeldaremake-native-checkpoints/2026-09-22-posture-both-straps.blend`, receipt published beside the right-strap proof.
 

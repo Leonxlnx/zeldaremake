@@ -1,0 +1,14 @@
+{
+  "sourceSha": "105a61d545674132e6400366b96a84d37046c08b",
+  "dist": "dist",
+  "bundle": "index-BeSuDGjf.js",
+  "out": "art/environment/astra-canopy-packed-integration/native",
+  "views": [
+    "A_stairs",
+    "B_house",
+    "C_lookback",
+    "D_log",
+    "E_ground",
+    "F_canopy"
+  ]
+}
