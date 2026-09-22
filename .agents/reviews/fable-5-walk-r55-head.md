@@ -1,4 +1,4 @@
-# fable-5 — player-height walk of the head `8f07e181` (the take-0135 candidate: the clarity set + Astra's packs and upper-canopy admission), 2026-09-22 23:05 UTC (GOAL_MODE fable-5 #3)
+# fable-5 — player-height walk of the head `8f07e181` (the take-0135 candidate: the clarity set + Astra's packs and upper-canopy admission), 2026-09-22 23:04 UTC (GOAL_MODE fable-5 #3)
 
 Rendered by me, non-author: `broll.mjs --size 1280x720 --test --settle 8`, no characters, the 17 opus / survey-2 /
 fable-5 poses of the round-48/49 walks (`fable-5-walk-r55/walk-poses.json`). Contact sheets `fable-5-walk-r55/contact-1.jpg`

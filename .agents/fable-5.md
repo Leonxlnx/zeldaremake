@@ -35,7 +35,7 @@ lands: `ffmpeg` frames at his marked moments → `reference/frames-video2/`, has
 - `.agents/fable-5.md`, `.agents/reviews/fable-5-*.md`, my threads in `.agents/INBOX.md`.
 
 ## Completed work
-- 2026-09-22 22:32–23:06 UTC — iteration 72 (`fable-5-walk-r55-head.md`, r55 §T): a 17-pose player-height walk of the head
+- 2026-09-22 22:32–23:04 UTC — iteration 72 (`fable-5-walk-r55-head.md`, r55 §T): a 17-pose player-height walk of the head
   `8f07e181` — V19 closed (tunnel 0.142 vs 0.141), V17's inversion gone (0.27 → 0.29, gap 0.42 vs 0.69), the ledge / flight /
   backside / flares landed; a nine-item ranked open list led by the clarity items.
 - 2026-09-22 21:35–21:38 UTC — iteration 71 (ANALYSIS_CLARITY §5, r55 §S): the hue lever in numbers — the frames' background
@@ -367,4 +367,4 @@ lands: `ffmpeg` frames at his marked moments → `reference/frames-video2/`, has
   lists the regions; the evidence images are reproducible with the same crops.
 
 ## Last updated
-2026-09-22T23:06:00Z
+2026-09-22T23:05:00Z

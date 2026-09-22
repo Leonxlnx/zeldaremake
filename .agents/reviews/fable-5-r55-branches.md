@@ -584,7 +584,7 @@ l 0.48–0.50); ours on `8f07e181`: #777c7e-class neutral-cool greys (s 0.02, R 
 Target and a check on the pending palette pair posted to Astra; `fable-5-r55/clarity-poses.json` (k3/k4 + two plaza
 crown poses) committed for anyone's `broll.mjs --shots`.
 
-## T. Iteration 72 (22:32–23:06 UTC) — the player-height walk of the head `8f07e181` (GOAL_MODE fable-5 #3)
+## T. Iteration 72 (22:32–23:04 UTC) — the player-height walk of the head `8f07e181` (GOAL_MODE fable-5 #3)
 
 `fable-5-walk-r55-head.md`: 17 poses; V19 closed (the tunnel's tone matches `d_121` to 0.001), V17's inversion gone, the
 ledge / flight / backside / flares landed; the ranked open list led by the three clarity items, then V16's seams, the D
