@@ -17,8 +17,8 @@ gauntlet's independent D7 verdicts (`gauntlet/reviews/*.json`, written only thro
 00:00 UTC (timer `goal-mode-fable-5`, cron `20 * * * *`); `agent/fable-5-demo-walk` merged (`b4de8d7`); current branch `agent/fable-5-r48-review`.
 
 ## Current task
-Done this iteration: take-0133 read; the fog pair corrected (matching flags). Next: take-0134's read when it seals (the clarity
-set — expected row in `fable-5-take0133.md`; k3/k4 boxes ready for the owner's region); the video file.
+Done this iteration: the roof and the packs + admission at the six views (r55 §R). Next: take-0134's read when it seals (expected
+A 0.2182, B 0.1973, C 0.2113, D 0.2644, E 0.2180, F 0.2257; the owner's region at k3/k4 with the same boxes); the video file.
 
 ## Previous current task (superseded)
 Goal-mode loop. Next iteration: **re-verdict every visual item on take-0120** when it seals (the
@@ -34,6 +34,10 @@ lands: `ffmpeg` frames at his marked moments → `reference/frames-video2/`, has
 - `.agents/fable-5.md`, `.agents/reviews/fable-5-*.md`, my threads in `.agents/INBOX.md`.
 
 ## Completed work
+- 2026-09-22 20:31–21:00 UTC — iteration 70 (r55 §R): owner-fable's stand roof at the six views (A +0.0003, B +0.0015, C 0,
+  D +0.0022, E +0.0007, F 0 — claims reproduced) and Astra's packs + upper-canopy admission (C −0.0050, F −0.0014 — not
+  byte-identical at the fixed views as the lane note assumed; lit leaves admitted at C's left); expected rows for take-0134
+  and take-0135 refined.
 - 2026-09-22 19:35–19:53 UTC — iteration 69 (`fable-5-take0133.md`, r55 §Q): take-0133 read — the expected row held to
   ±0.0003, 41/50, nothing filed; the fog pair re-rendered with matching flags after fable-2's catch (my after frames had
   `--character` on): A −0.0029, B −0.0030, C −0.0081, D −0.0143, E −0.0024, F −0.0040 — the slice costs on all six;
@@ -356,4 +360,4 @@ lands: `ffmpeg` frames at his marked moments → `reference/frames-video2/`, has
   lists the regions; the evidence images are reproducible with the same crops.
 
 ## Last updated
-2026-09-22T19:54:00Z
+2026-09-22T21:00:00Z

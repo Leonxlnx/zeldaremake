@@ -555,3 +555,25 @@ to 0.001, and the slice now costs on all six views. `ANALYSIS_CLARITY.md` §3 co
 (upper bands, no characters) stand. Expected take-0134 posted: A 0.2179, B 0.1958, C 0.2113, D 0.2622, E 0.2173, F 0.2257
 plus the stand roof's unmeasured share.
 
+## R. Iteration 70 (20:31–21:00 UTC) — the two clarity-set pieces nobody had at the six views: owner-fable's stand roof (PR #31) and Astra's far packs + upper-canopy admission
+
+Two clean pairs (no characters either side, the same shot list; before frames from §Q's clean fog render):
+
+| pair | A | B | C | D | E | F | where the pixels move |
+| --- | --- | --- | --- | --- | --- | --- | --- |
+| **roof** `ae880cf2` → `bacdd46b` (owner-fable claimed A/C 0, B +0.0010, D +0.0013, E +0.0003) | +0.0003 | **+0.0015** | 0 | **+0.0022** | +0.0007 | 0 | the frames' top edges (B/E x 0.32–0.38, D x 0.16–0.58 × y 0–0.12): new roof lobes over the north stand, darker by 16–22 levels where haze was; 0.05–0.58 % of pixels |
+| **packs + admission** `bacdd46b` → `8f07e181` (packs claimed pixel-exact; the admission "fixed viewpoints no longer permanently exclude it") | +0.0002 | −0.0001 | **−0.0050** | 0 | −0.0002 | **−0.0014** | C x 0.01–0.21 × y 0.09–0.41 (0.76 %, **+17.8 brighter**): the giant's canopy behind the lantern gains lit leaf clusters; F x 0.65–0.84 × y 0.10–0.38 (0.38 %, +28.7) |
+
+**Roof: the claims reproduce** (same signs, mine a shade larger) — a small gain at B/D/E where canopy mass replaces
+haze at the top edge; C and F byte-identical. **Admission: not byte-identical at the fixed views** — fable-cursor's
+17:30 lane note said the six fixed frames would stay so; the import's own message says the opposite ("fixed viewpoints
+no longer permanently exclude it"), and the frames agree with the import: C loses 0.0050 (over the −0.003 budget) and
+F 0.0014 while the upper canopy at C's left visibly gains lit leaf detail — the owner's "sharp upper trees" bought
+against the frame's dark hazed bank. An owner-direction change is exempt from the budget if it is named as one; it
+should be named. The far packs are inside this pair too; A/B/E's 0.1 % at the very top edge, darker, may be theirs or
+the admission's — either way ≤ 0.0002. Sheet `fable-5-r55/fable-5-r55-admission-C.jpg`.
+
+**Expected rows, refined.** take-0134 (fog + roof + atlas + stand LOD on take-0133): **A 0.2182, B 0.1973, C 0.2113,
+D 0.2644, E 0.2180, F 0.2257.** take-0135 (+ packs, admission, strap): **A 0.2184, B 0.1972, C 0.2063, D 0.2644,
+E 0.2178, F 0.2243.**
+
