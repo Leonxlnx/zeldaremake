@@ -49,6 +49,11 @@ as `agent/fable-2-<topic>`; `fable-cursor` merges. I do not touch `layout.ts`, t
   look lifted and warmed (`a683a4c1`) — **FAIL as a visible change at D**: the ferns hide the rock,
   the visible cap edge moved 0.238 → 0.246 and D −0.0002. Kept (harmless, toward the reference);
   the item is vegetation-26's exclusion disc first. §Iteration 8.
+- Iteration 68 — the owner's clarity direction landed (fog / distant crowns: Astra; white-bark crowns: fable-4;
+  nobody else starts a fog or crown pass — rocks has no part). Non-author check of owner-fable's clearing roof
+  (`ffff47b5`) from the clearing floor: four ground poses byte-identical (the cards never cast — the stones keep
+  their light), `x-clearing-up` blue sky 25.2 → 2.4 %, `x-stand-up` 38.3 → 34.5 %; nothing to hold.
+  `.agents/reviews/fable-2-review-owner-fable-clearing-roof-ffff47b5.md`.
 - Iteration 67 — take-0132 sealed 41/50 (A +0.0056 with the timber tint, F −0.0062); fable-5 attributed the
   D boulder's shade to the trees system entirely (`nocast=trees` gives 93 % of the shadow-off gain) — a sun
   corridor in `trees/index.ts` at the boulder's spot; a sun-cone probe from the crown against mesh bounds
@@ -343,4 +348,4 @@ Nothing outside `src/world/rocks/` except this log, the INBOX and my evidence un
 - #4: `pathEdgePebble` per-candidate draws.
 
 ## Last updated
-2026-09-22T15:45:00Z
+2026-09-22T17:15:00Z
