@@ -2882,6 +2882,13 @@ Also: lantern bough still a thick plain beam across the top of B (trees pass pen
   a 7–13 m fade on the clearing/backside dressing stones; off every fixed view).
 - take-0133 (fourth start, fresh page per view): A written 05:16 (17 min, the old pace); B running.
 
+### 2026-09-22 06:25 UTC — tick 222: the fourth take-0133 died at B even with a fresh page; browser per view now
+- After a full 90-frame A, the second page in the same Chrome never returned its first render call
+  (20 min timeout at B). `capture.mjs` now launches a new browser per viewpoint and for the determinism
+  pass; smoke test A→B→A.det clean (A vs A.det differ by 55 px ≤ 8/255 — the known boot scatter,
+  within W41). take-0133 restarted (fifth start) at 06:22 with the audio change in its note.
+- No new Fable/Astra source this hour.
+
 ## Pending corrections from reference/ANALYSIS.md (apply at integration, one commit)
 - `config.ts` palette → olive/khaki low-key (reference hero frames: hue 47–51°, sat 0.16–0.19,
   lum 0.35–0.39, 0 % blue sky): grass 0x8a8c55/0x5c6233/0x3a4420, moss 0x8b8948/0x5a523b,
@@ -2920,4 +2927,4 @@ Pick anything NOT claimed in `gauntlet/claims.json`. Good self-contained candida
   my own (GAUNTLET.md D7).
 
 ## Last updated
-2026-09-22T05:35:00Z
+2026-09-22T06:25:00Z
