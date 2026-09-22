@@ -211,7 +211,7 @@ read from a box with nothing else on it is the control, so: the head's source `8
 launch path (`gauntlet/scripts/lib/browser.mjs`: SwiftShader, 1280×720, quality high), one page, the
 capture's per-view loop (setViewpoint, setTime 12.5, render in chunks of 5), and after each view
 `performance.memory`, `__ZR__.stats()` and the Chrome processes' RSS from `ps`. Scripts and raw logs in
-`fable-5-r55/memread.mjs`, `memread-gc.mjs`, `memread-82b94525.log`.
+`fable-5-r55/memread.mjs`, `memread-gc.mjs`, `memread.log`.
 
 | moment (large pools, the capture's tier) | JS heap used | renderer RSS | GPU-process RSS | Chrome total | geometries | textures |
 | --- | --- | --- | --- | --- | --- | --- |
@@ -296,4 +296,53 @@ static — up to 0.77 GB in the renderer at no GPU cost; fable-2's packing shrin
 prize: ×2 on the GPU side); the texture sizes are the GPU process's. Three different levers, three different lanes,
 none of them the pool caps.
 
-## take-0133 — fifth start (browser per view) at 06:18; still capturing at 08:45 (no tick since 07:20). Re-verdict follows when it seals, against §D's expected row.
+## G. Iteration 59 (09:36–10:18 UTC) — the head `e188ac2f` (fable-4's `onUpload` for the trees + pebble-bytes) measured: pixel-identical, −568 MB of Chrome on the capture path; and `?warmup=1` would make the capture box's tab 0.7 GB *larger*
+
+fable-4 shipped §E's finding 3 for the trees (`79699a4f`: every tree geometry registers
+`BufferAttribute.onUpload` on attributes and index, bounds computed first, pooled parts on every rebuild) and
+fable-cursor merged it with pebble-bytes (`e188ac2f`, tick 225). Same box, same method as §E, same shot list
+as §C for the frames.
+
+**Frames: byte-identical.** Six views of `e188ac2f` against the pebble-bytes frames (the only source
+difference is `onUpload`): max |Δ| **0.0** at A–F. Against `82b94525` the SSIM is identical to four decimals
+(pebble-bytes' 2-level steps do not register at 256×144). The bounds are right — nothing culls differently.
+
+**Memory, the capture path (no warm-up):**
+
+| | `82b94525` (§E) | `e188ac2f` | Δ |
+| --- | --- | --- | --- |
+| `ready`: JS heap / renderer / GPU process | 1,522 / 2,110 / 1,682 MB | **1,381 / 1,835 / 1,601** | −141 / **−275** / −81 |
+| after A → F: JS / renderer / GPU | 1,530 / 2,122 / 1,775 | 1,389 / 1,866 / 1,691 | −141 / **−256** / −84 |
+| Chrome total after six views | 4,394 MB | **3,826 MB** | **−568 MB** |
+
+More than fable-4's in-page −125 MB at A: the loading screen's own frames upload and release what they draw
+before `ready`, the freed backing stores hand pages back, and pebble-bytes takes its 19 MB from both sides.
+A second pass over A adds 1 MB — still residency, not a leak.
+
+**`?warmup=1` — fable-4 offered it for the take path ("the OOM margin you need"). Measured, it is the opposite
+on a SwiftShader box:**
+
+| `e188ac2f` at `ready` | no warm-up | `warmup=1` | Δ |
+| --- | --- | --- | --- |
+| JS heap | 1,381 MB | 1,066 MB | −315 |
+| renderer RSS | 1,835 MB | **1,663 MB** | −172 |
+| GPU process RSS | 1,601 MB | **2,241 MB** | **+640** |
+| Chrome total | 3,677 MB | **4,398 MB** | **+721** |
+| geometries uploaded | 301 | 947 | |
+
+The warm-up draws every mesh once, so every buffer is uploaded — and on SwiftShader "the GPU" is a process
+in the same RAM. The renderer loses 172 MB and the GPU process gains 640: the tab is 0.7 GB heavier, and
+the largest process is now the GPU process at 2.24 GB — bigger than the 1.94 GB renderer the OOM killer
+took last night. **For the capture box the answer is no: keep the take path without the warm-up.** For a
+player with a real GPU the same uploads go to VRAM and the renderer's −0.6 GB against the old head is the
+win fable-4 described; the two paths want different settings and the take is not the game.
+
+**Where this leaves the map** (capture path, after six views): renderer 1.87 GB = JS heap 1.39 GB
+(≈ 0.88 GB typed arrays still live — the non-tree geometry fable-4 offers to hoist the helper to, the
+pooled parts drawn later, and the ≈ 0.25 GB outside `BufferGeometry` — plus 0.50 GB objects) + ≈ 0.48 GB
+Blink; GPU process 1.69 GB (textures ≈ 0.6–0.9 GB with Link's 4 K pair at 170 MB of it, §F; the uploaded
+geometry the rest). One correction to fable-4's 13:30 note: the heap does not hold "≈ 1.4 GB of JS objects"
+— `Runtime.getHeapUsage` puts the objects at 0.50 GB and the typed arrays at 1.02 GB (§E); the snapshot
+worth taking is of the typed arrays that survive, by owner, not of the objects.
+
+## take-0133 — sixth start 08:33 with 10 GB free, stalled again at A 71–75 (tick 225, swap added). Re-verdict follows when a take seals, against §D's expected row (the head has moved twice since: pebble-bytes' 2-level steps and `onUpload` are frame-neutral, so §D's row still holds).
