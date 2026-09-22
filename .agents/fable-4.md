@@ -336,3 +336,6 @@ nearCanopy, materials, index otherwise) is edited.
 - 18:58 — take-0134's clarity set at `owner-clarity-1` with fable-5's clarity.py: the fog closes the hue
   (background 75° → 60°), the silhouette does not move (6.7 px, 2.9 % fine, one fused blob; crown l 0.44).
   Arch poses −0.004…−0.011 luminance under the fog. README §Third pass.
+- 20:00 — standlod re-verified under the lighter haze (head with/without `60408959`): A 789 px (0.086 %),
+  D 1 901 px (0.206 %), no legible difference in the arch window; posted for Astra's preview. round51-standlod
+  README postscript + crop.
