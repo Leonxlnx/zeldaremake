@@ -27,7 +27,7 @@ function load(file) {
   return module.exports;
 }
 
-const { buildRoof, HERO_DROP_M, ROOF_MIN_ABOVE_GROUND_M } = load(path.join(here, 'roof.ts'));
+const { buildRoof, HERO_DROP_M, HERO_DROP_STAND_M, ROOF_MIN_ABOVE_GROUND_M } = load(path.join(here, 'roof.ts'));
 const { createRng } = load(path.join(here, '../util/prng.ts'));
 const { LAYOUT } = load(path.join(here, '../layout.ts'));
 const { SHAFT_COLUMNS } = load(path.join(here, '../trees/corridors.ts'));
@@ -50,6 +50,26 @@ assert.deepEqual(
 assert.equal(a.cards, b.cards);
 for (const s of a.sectors) assert.ok(s.geometry.getAttribute('position').count === s.cards * 4, 'four vertices a card');
 
+// the north-stand pass: with it off the build is the plaza roof exactly as before the pass existed —
+// the same clumps in the same order, and the six plaza sectors' buffers byte-identical
+const noStand = buildRoof(ctx, createRng('test/canopy-roof'), { ...opts, stand: false });
+const plaza = a.clumps.filter((c) => !c.stand);
+assert.equal(noStand.stand.clumps, 0);
+assert.deepEqual(
+  plaza.map((c) => [c.x, c.y, c.z, c.cards]),
+  noStand.clumps.map((c) => [c.x, c.y, c.z, c.cards]),
+  'the stand pass leaves the plaza clumps untouched',
+);
+const plazaSectors = a.sectors.filter((s) => !s.stand);
+assert.equal(plazaSectors.length, noStand.sectors.length, 'same plaza sector count');
+for (let i = 0; i < plazaSectors.length; i++) {
+  for (const attr of ['position', 'normal', 'uv', 'color', 'aRoot']) {
+    assert.deepEqual([...plazaSectors[i].geometry.getAttribute(attr).array], [...noStand.sectors[i].geometry.getAttribute(attr).array], `plaza sector ${i} ${attr} byte-identical with the stand pass on`);
+  }
+}
+assert.ok(a.stand.clumps > 40, `the stand pass builds a roof over the north stand (${a.stand.clumps} clumps)`);
+assert.equal(a.sectors.filter((s) => s.stand).length, 1, 'the stand draws in exactly one sector of its own');
+
 // height: never inside a walker's reach, on the plateau included
 for (const c of a.clumps) assert.ok(c.y - terrain.height(c.x, c.z) >= ROOF_MIN_ABOVE_GROUND_M - 1e-6, `clump at (${c.x.toFixed(1)}, ${c.z.toFixed(1)}) is ${(c.y - terrain.height(c.x, c.z)).toFixed(1)} m up`);
 
@@ -68,7 +88,8 @@ let inside = 0;
 for (const c of a.clumps) {
   for (const { cam, pos, id } of cams) {
     const d = pos.distanceTo(new THREE.Vector3(c.x, c.y, c.z));
-    if (d > HERO_DROP_M) continue;
+    // a stand clump (north-stand pass) has its own, shorter drop distance
+    if (d > (c.stand ? HERO_DROP_STAND_M : HERO_DROP_M)) continue;
     ndc.set(c.x, c.y, c.z).project(cam);
     const behind = ndc.z > 1 || new THREE.Vector3(c.x, c.y, c.z).sub(pos).dot(cam.getWorldDirection(new THREE.Vector3())) <= 0;
     if (!behind && Math.abs(ndc.x) <= 1 && Math.abs(ndc.y) <= 1) {
