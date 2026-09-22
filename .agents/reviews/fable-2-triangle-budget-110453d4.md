@@ -1,46 +1,77 @@
-# Where A's triangles sit, by system — head `110453d4` (fable-2, 2026-09-22 00:15 UTC)
+# Where the triangles sit, by system and by pass — head `110453d4` / `da314d7c` (fable-2, 2026-09-22 01:10 UTC)
 
 fable-cursor's tick 213: A at 8.80 M against W38's 9.0 M ceiling, "nothing more on A's side of the canopy
 without a matching cut". The pebble tiles + LOD (§49–50) gave 110 K back; this is the map of the rest, so
 the next cut is chosen where the triangles are. Measured with the capture API's `isolate(system)` (the
-scene with one system + `lighting` visible, `renderer.info` after one render) at the fixed viewpoints,
-high quality, 1280 × 720, 12 settle frames, Link visible — the head as merged at tick 215.
+scene with one system + `lighting` visible, `renderer.info` after one render) at the six fixed viewpoints,
+high quality, 1280 × 720, 12 settle frames, Link visible; the scene totals from `audit().scene.bySystem`
+(every mesh, every instance, no culling). Second pass at A and C with `renderer.shadowMap.enabled = false`,
+which removes the shadow-depth pass from the counters — W38 counts `renderer.info`, so it counts both passes.
 
-| system | A draws / tris | share of A | F draws / tris | C draws / tris |
-|---|---|---|---|---|
-| trees | 95 / 3.08 M | 35.1 % | 90 / 2.54 M | 83 / 2.52 M |
-| vegetation | 106 / 1.95 M | 22.3 % | 102 / 2.16 M | 110 / 1.92 M |
-| structures | 114 / 1.93 M | 22.1 % | 89 / 1.69 M | 55 / 1.19 M |
-| hardscape | 17 / 0.75 M | 8.6 % | 15 / 0.58 M | 16 / 0.69 M |
-| terrain | 33 / 0.63 M | 7.2 % | 34 / 0.63 M | 36 / 0.69 M |
-| rocks | 35 / 0.24 M | 2.8 % | 25 / 0.20 M | 30 / 0.21 M |
-| character | 20 / 0.14 M | 1.6 % | 20 / 0.14 M | 20 / 0.14 M |
-| props | 10 / 0.09 M | 1.0 % | 10 / 0.09 M | 8 / 0.09 M |
-| atmosphere | 4 / 0.01 M | 0.1 % | 4 / 0.01 M | 4 / 0.01 M |
-| canopy | 6 / 0.00 M | 0.0 % | 5 / 0.00 M | 3 / 0.00 M |
-| lighting | 0 / 0.00 M | 0.0 % | 0 / 0.00 M | 0 / 0.00 M |
-| **frame** | **450 / 8.76 M** | | **406 / 8.03 M** | **345 / 7.00 M** |
+## 1. Per system, six views (main + shadow pass, as W38 counts)
 
-The isolates sum to 8.82 M at A against the frame's 8.76 M: each isolate keeps `lighting` on and re-renders
-the shadow pass, so the per-system numbers carry ≈ 1 % of overlap. Draw counts per system likewise include
-the shadow pass's calls.
+| system | scene total (unculled) | A | B | C | D | E | F |
+|---|---|---|---|---|---|---|---|
+| trees | 5.57 M (540 meshes) | 3.06 M | 2.57 M | 2.45 M | 2.61 M | 2.57 M | 2.50 M |
+| vegetation | 2.05 M (383 meshes) | 1.95 M | 1.65 M | 1.92 M | 1.97 M | 1.65 M | 2.16 M |
+| structures | 1.66 M (105 meshes) | 1.93 M | 1.92 M | 1.19 M | 2.00 M | 1.92 M | 1.69 M |
+| hardscape | 0.55 M (19 meshes) | 0.75 M | 0.71 M | 0.69 M | 0.63 M | 0.71 M | 0.58 M |
+| terrain | 0.62 M (56 meshes) | 0.63 M | 0.57 M | 0.69 M | 0.51 M | 0.57 M | 0.63 M |
+| rocks | 0.74 M (66 meshes) | 0.24 M | 0.23 M | 0.21 M | 0.24 M | 0.23 M | 0.20 M |
+| character | 0.13 M (173 meshes) | 0.14 M | 0.14 M | 0.14 M | 0.14 M | 0.14 M | 0.14 M |
+| props | 0.06 M (13 meshes) | 0.09 M | 0.09 M | 0.09 M | 0.09 M | 0.09 M | 0.09 M |
+| atmosphere / canopy | 0.01 M | 0.01 M | 0.01 M | 0.01 M | 0.01 M | 0.01 M | 0.01 M |
+| **frame** | | **450 / 8.74 M** | **430 / 7.88 M** | **345 / 6.93 M** | **393 / 8.06 M** | **430 / 7.88 M** | **406 / 7.99 M** |
 
-What the map says, without claiming anyone's lane:
+(The isolates sum ≈ 1 % over the frame: each keeps `lighting` on and re-renders the shadow pass.)
 
-- **Trees are a third of A** (3.08 M) and **structures a fifth** (1.93 M at A, 1.19 M at C) — the two
-  places a 100 K cut is a few per cent, not a redesign. Structures at A is the largest *spread* between
-  views (1.93 → 1.19 M), so part of it is whatever A alone sees whole (the house side, the fence run, the
-  stair's cheeks are hardscape's).
-- **Vegetation is 2 M in every view** (1.92–2.16 M) — a constant, so a per-instance saving there pays
-  everywhere at once.
-- **Rocks are 2.8 %** after §49–50 (0.24 M: three hero far-LODs ≈ 46 K, rubble + strata 150 × 320 ≈
-  48 K, the pebble tiles in view, the ledge / clearing / backside where visible); nothing left there
-  worth a change.
-- The pebble pattern — one merged mesh per ground tile instead of one InstancedMesh per look spanning the
-  world — is the cheap check for any instanced scatter whose bounding sphere is the whole map: every fixed
-  camera pays for all of it. `vegetation`'s 100+ draws and `trees`' 90+ suggest they are already split;
-  the numbers here cannot tell what part of each is out of frustum, only `isolate` on a branch can.
+## 2. The two passes split — A and C
 
-Reproduce: `/tmp`-side, the pose tool with a shot whose `eval` sets the viewpoint, settles 12 frames and
-loops `__ZR__.isolate(name)` over `__H.scene.children` — one viewpoint per shot (three in one evaluate
-exceeds puppeteer's 180 s protocol timeout on SwiftShader).
+| A_stairs | scene total | main pass | in frustum | shadow pass | both (W38) |
+|---|---|---|---|---|---|
+| trees | 5.57 M | 1.73 M | 31 % | **1.33 M** | 3.06 M |
+| vegetation | 2.05 M | 1.72 M | **84 %** | 0.23 M | 1.95 M |
+| structures | 1.66 M | 1.25 M | **75 %** | **0.68 M** | 1.93 M |
+| hardscape | 0.55 M | 0.52 M | **95 %** | 0.23 M | 0.75 M |
+| terrain | 0.62 M | 0.28 M | 45 % | **0.35 M** | 0.63 M |
+| rocks | 0.74 M | 0.15 M | 20 % | 0.09 M | 0.24 M |
+| character | 0.13 M | 0.07 M | 56 % | 0.07 M | 0.14 M |
+| props | 0.06 M | 0.04 M | 71 % | 0.04 M | 0.09 M |
+| **frame** | | **334 / 5.77 M** | | **2.97 M (34 %)** | **450 / 8.74 M** |
+
+| C_lookback | scene total | main pass | in frustum | shadow pass | both (W38) |
+|---|---|---|---|---|---|
+| trees | 5.57 M | 1.26 M | 23 % | 1.19 M | 2.45 M |
+| vegetation | 2.05 M | 1.69 M | 83 % | 0.23 M | 1.92 M |
+| structures | 1.66 M | 0.53 M | 32 % | 0.66 M | 1.19 M |
+| hardscape | 0.55 M | 0.46 M | 84 % | 0.23 M | 0.69 M |
+| terrain | 0.62 M | 0.32 M | 51 % | 0.37 M | 0.69 M |
+| rocks | 0.74 M | 0.11 M | 15 % | 0.09 M | 0.21 M |
+| character | 0.13 M | 0.07 M | 56 % | 0.07 M | 0.14 M |
+| props | 0.06 M | 0.04 M | 67 % | 0.04 M | 0.09 M |
+| **frame** | | **265 / 4.49 M** | | **2.44 M (35 %)** | **345 / 6.93 M** |
+
+## 3. What the map says (no lane claimed)
+
+- **The shadow pass is a third of every frame** — 2.97 M at A, 2.44 M at C — and per system it is the same
+  number whichever way the camera looks (trees 1.19–1.33 M, structures 0.66–0.68 M, terrain 0.35–0.37 M,
+  hardscape 0.23 M, vegetation 0.23 M): a fixed sun frustum, so every view pays for the whole lit region's
+  casters. The largest W38 levers on this map are there, not in any system's main pass: the shadow camera's
+  coverage, the caster set (terrain casting onto itself under a canopy costs 0.35 M a frame; the trees'
+  casters 1.3 M — a lower LOD for the shadow pass alone would keep the shadows and lose most of it), and
+  which of structures' 105 meshes cast (0.68 M, more than structures' own culled main pass at C).
+- **Main pass: three systems are drawn nearly whole in every view** — hardscape 84–95 % of its scene total,
+  vegetation 83–84 %, structures 75 % at A (32 % at C, so structures do cull when the camera turns away
+  from the village) — while trees (23–31 %) and rocks (15–20 %) cull. The pebble pattern (one merged mesh
+  per ground tile instead of one mesh whose bounds are the whole map) is the cheap check for hardscape's
+  paving and vegetation's grass: 1.72 M of vegetation and 0.52 M of hardscape at A, of which whatever is
+  behind the camera is the saving.
+- **Rocks are 2.8 %** after §49–50 (0.15 M main + 0.09 M shadow at A); nothing left there worth a change.
+- Draw calls: the shadow pass is 116 of A's 450 (334 without it) — another third.
+
+## 4. Reproduce
+
+The pose tool with one shot per viewpoint whose `eval` sets the viewpoint, settles 12 frames and loops
+`__ZR__.isolate(name)` over `__H.scene.children` (`__H` = the capture hooks; `__H.renderer.shadowMap.enabled
+= false` for the main-pass-only numbers, restored after). Three viewpoints in one evaluate exceed
+puppeteer's 180 s protocol timeout on SwiftShader. Files: `/tmp`-side only; the numbers are in this note.
