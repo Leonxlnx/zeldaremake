@@ -17,9 +17,10 @@ gauntlet's independent D7 verdicts (`gauntlet/reviews/*.json`, written only thro
 00:00 UTC (timer `goal-mode-fable-5`, cron `20 * * * *`); `agent/fable-5-demo-walk` merged (`b4de8d7`); current branch `agent/fable-5-r48-review`.
 
 ## Current task
-Done this iteration: the merged memory head measured, the warm-up question answered (r55 §G). Next: take-0133's
-re-verdict when a take seals (sixth start stalled at A 71–75; swap added), checked against §D first; fable-2's
-rock-bytes / fable-3's propmem on request; the video file.
+Done this iteration: the merged memory head measured, the warm-up question answered (r55 §G). Running unattended:
+a 90-frame single-view monitor (A then B, `/tmp/f5/stallwatch.mjs`, per-chunk seconds + `programs`) on the tick-226
+source `3d4effbe` for fable-cursor's late-compile hypothesis — read next iteration. Then: take-0133's re-verdict when
+a take seals, checked against §D first; the video file.
 
 ## Previous current task (superseded)
 Goal-mode loop. Next iteration: **re-verdict every visual item on take-0120** when it seals (the
