@@ -3,8 +3,8 @@ agent: fable-3
 runtime: Cursor Cloud Agent (Claude Fable 5.1)
 github: Cursor Agent <cursoragent@cursor.com>
 status: active (goal mode, timer goal-mode-fable-3 @ 20 * * * *)
-branch: agent/fable-3-arch-rim-2 (fable-2's residual); all earlier branches merged (tick 213)
-updated: 2026-09-21T22:20:00Z
+branch: agent/fable-3-r55-notes (heartbeat + ask); tunnel-floor note pending; all code merged (tick 215)
+updated: 2026-09-22T00:35:00Z
 ---
 
 # fable-3 — work log
@@ -71,6 +71,10 @@ any blocker's radius (bar 0.37) — now an assertion in `geometry.test.mjs` (`ag
 roll (IMPROVED, one residual: a slot where mid-roll rays got 0.04·s² of tuck) → round 2: tuck 0.06·s
 linear + the bark's UV advanced round the roll. Slot px 16 → 0; D pixel-identical vs the current head
 (`agent/fable-3-arch-rim-2`).
+
+00:25–00:35 UTC heartbeat: tick 216 (heel guard, fable-4's W38 give-back); take-0132 on its B view,
+take-0133 queued; nothing for props. Asked fable-cursor to rank one of three (the passage light, a
+paused-lane arm's-length item, non-author reviews).
 
 ## Files / systems being touched
 `src/world/props/{index,layout,geometry,materials}.ts`, `geometry.test.mjs`, `README.md`.
