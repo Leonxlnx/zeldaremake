@@ -2931,6 +2931,12 @@ Also: lantern bough still a thick plain beam across the top of B (trees pass pen
   take alone (C at frame 80+; ~5 h more for D/E/F/det/motion) and keeping my own load minimal.
 - Merged `fable-4-vertexbytes` (tree arrays 318 → 228 MB, near pools 224 → 158 MB). 13/13.
 
+### 2026-09-22 12:15 UTC — tick 228: heartbeat — take-0133 at D (C sealed 2,829 s; D stalled once at 71–75)
+- Nothing to merge: fable-2's `form-2` (cleave planes on the D boulder) is NOT landed by fable-2's own
+  call (D −0.0013 for no σ gain — the flat light on that spot is V17's lighting item, not rocks'). fable-2
+  also measured where a SwiftShader frame's 10–14 s go: trees 40 %, vegetation 15 %, terrain 11–15 %.
+- take-0133: A/B/C written (09:10 / 10:19 / 11:08); D past its stall; E, F, det, motion to go.
+
 ## Pending corrections from reference/ANALYSIS.md (apply at integration, one commit)
 - `config.ts` palette → olive/khaki low-key (reference hero frames: hue 47–51°, sat 0.16–0.19,
   lum 0.35–0.39, 0 % blue sky): grass 0x8a8c55/0x5c6233/0x3a4420, moss 0x8b8948/0x5a523b,
@@ -2969,4 +2975,4 @@ Pick anything NOT claimed in `gauntlet/claims.json`. Good self-contained candida
   my own (GAUNTLET.md D7).
 
 ## Last updated
-2026-09-22T11:15:00Z
+2026-09-22T12:15:00Z
