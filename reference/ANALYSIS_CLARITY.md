@@ -78,3 +78,40 @@ manifest and my guesses from the plaza look up into the canopy instead of across
 position/heading of the owner's screenshot (the local preview logs the pose; `__ZR__.cameraPose()`), or the
 lane that reproduces it adds it to `art/environment/survey2/manifest.json` as `owner-clarity-1` — then §1's
 numbers can be re-read on our build before and after each change, with the same script.
+
+## 3. Astra's height-fog clarity slice (`ae880cf2`: hazeDensity 0.018 → 0.008, hazeFarDensity 0.055 → 0.008, farShadeMin 0.30 → 0.65) at the six views — clearer, but darker than the frames, and the hue did not move
+
+Before `b7c9e001`, after `ae880cf2`, same shot list. "Far box" = the hazed far band of each view (A/B/E 0.30–0.75 × 0.05–0.30,
+C 0–1 × 0–0.35, D 0.30–0.70 × 0.15–0.45, F 0.30–0.90 × 0–0.30); mean l, micro σ (2 px residual, local contrast), sat, and the
+hue of its coloured pixels.
+
+| view | SSIM vs reference | far band mean l: reference · before · after | far hue: ref · before · after | far micro σ: ref · before · after |
+| --- | --- | --- | --- | --- |
+| A | 0.2013 → 0.2115 (**+0.0102**) | 0.479 · 0.426 · **0.363** | 57° · 72° · 67° | 0.017 · 0.026 · 0.029 |
+| B | 0.1838 → 0.1817 (−0.0021) | 0.414 · 0.403 · **0.350** | 58° · 63° · 65° | 0.027 · 0.025 · 0.026 |
+| C | 0.2095 → 0.1977 (**−0.0118**) | 0.374 · 0.326 · **0.282** | 51° · 73° · 72° | 0.023 · 0.023 · 0.023 |
+| D | 0.2622 → 0.2474 (**−0.0148**) | 0.501 · 0.451 · **0.377** | 51° · **203°** · 68° | 0.018 · 0.013 · 0.014 |
+| E | 0.2055 → 0.2076 (+0.0021) | 0.411 · 0.403 · **0.350** | 64° · 63° · 65° | 0.021 · 0.025 · 0.026 |
+| F | 0.2118 → 0.2116 (−0.0002) | 0.399 · 0.318 · **0.280** | 50° · 72° · 74° | 0.019 · 0.028 · 0.025 |
+
+Three readings:
+
+1. **It clears by darkening.** Every far band drops 0.04–0.07 in luminance and lands **0.05–0.12 below the frames'**
+   (D 0.377 against 0.501; C 0.282 against 0.374). The frames' far bands are *bright*: aerial perspective in the
+   footage lifts the distance toward a warm light, with the crowns dark and crisp inside it (§1). Halving the haze
+   removes the veil and the light with it. C −0.0118 and D −0.0148 are the largest single-step six-view losses of these
+   rounds — larger than PR #29's F −0.0104 — and A's +0.0102 (the far left of A was a grey wall the frame has as dark
+   trunks) does not pay for them.
+2. **The hue did not move** — 65–74° after against the frames' 50–64°, the same 10–20° too green as before. The one
+   hue win is D, whose far band was blue (203°: sky through the haze) and is now 68°; that is the slice removing the
+   blue sky's contribution, not warming the haze. §1's finding stands: the owner's "grey washout" is the colour of the
+   haze and sky, and density is the wrong knob for it.
+3. **Local contrast barely changes** (micro σ +0.000–0.003; F −0.002): the far detail the owner wants "clear" is not
+   in these bands at these distances whatever the density — that is the silhouette-scale item (§1 finding 3, §2).
+
+**What the frames ask for instead** (the same numbers, as a target): far bands at **l 0.40–0.50** (not 0.28–0.38),
+**hue 50–64°** (not 65–74°), with crowns *inside* them at l 0.27–0.34 and ≤ 4.5 px edges — i.e. the haze at its old
+weight or near it, **warmed and brightened**, and the crown silhouettes made crisp against it. Density 0.018 → 0.008
+should be reconsidered before take-0134 seals with it; a warm haze colour (`ANALYSIS.md`: 0x95968b → 0xa3a399 far,
+the pending palette line) at the old density is the measured direction.
+
