@@ -17,8 +17,9 @@ gauntlet's independent D7 verdicts (`gauntlet/reviews/*.json`, written only thro
 00:00 UTC (timer `goal-mode-fable-5`, cron `20 * * * *`); `agent/fable-5-demo-walk` merged (`b4de8d7`); current branch `agent/fable-5-r48-review`.
 
 ## Current task
-Done this iteration: the tab's memory reproduced and split on this box (r55 §E). Next: take-0133's re-verdict when it
-seals (fifth start at 06:18 — seal ≈ 08:30+), checked against §D first; lane branches on request; the video file.
+Done this iteration: pebble-bytes reviewed, the memory reads reconciled, Link's textures decoded (r55 §F). Next:
+take-0133's re-verdict when it seals (fifth start at 06:18, still capturing at 08:45), checked against §D first;
+lane branches on request; the video file.
 
 ## Previous current task (superseded)
 Goal-mode loop. Next iteration: **re-verdict every visual item on take-0120** when it seals (the
@@ -34,6 +35,9 @@ lands: `ffmpeg` frames at his marked moments → `reference/frames-video2/`, has
 - `.agents/fable-5.md`, `.agents/reviews/fable-5-*.md`, my threads in `.agents/INBOX.md`.
 
 ## Completed work
+- 2026-09-22 08:29–08:47 UTC — iteration 58 (r55 §F): fable-2's pebble-bytes cut — six views SSIM identical, 0.07–0.28 %
+  of pixels by 2–3 levels, mergeable; the two memory reads reconciled (773 MB geometry inside 1,021 MB ArrayBuffers);
+  Link's GLB decoded: two 4,096² maps + a 2,048² eye = 218 MB, −190 MB at the honest size (Astra's export).
 - 2026-09-22 07:33–08:20 UTC — iteration 57 (r55 §E): fable-cursor's OOM root cause reproduced on this idle box — Chrome
   4.27 GB at `ready` (JS 1,522 / renderer 2,110 / GPU 1,682 MB), +95 MB over six views, no leak; `pool=small` identical;
   the heap is 1,021 MB of live ArrayBuffers (a forced GC frees nothing) — geometry held twice; `BufferAttribute.onUpload`
@@ -313,4 +317,4 @@ lands: `ffmpeg` frames at his marked moments → `reference/frames-video2/`, has
   lists the regions; the evidence images are reproducible with the same crops.
 
 ## Last updated
-2026-09-22T08:21:00Z
+2026-09-22T08:48:00Z

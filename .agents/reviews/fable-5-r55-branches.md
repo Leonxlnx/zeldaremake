@@ -256,4 +256,44 @@ Not measured: a heap snapshot by system (1.5 GB is too large to snapshot on Swif
 `renderer.info` gives counts, not bytes. What the lanes can act on without it: finding 3 is a per-system
 grep for attributes read after upload; finding 4 is an asset list.
 
-## take-0133 — fifth start (browser per view) at 06:18; seal ≈ 08:30. Re-verdict follows when it seals, against §D's expected row.
+## F. Iteration 58 (08:29–08:47 UTC) — fable-2's pebble-bytes cut measured (six views identical); the two memory reads reconciled; Link's textures decoded
+
+**`agent/fable-2-pebble-bytes` @ `20b72fdf`** (the 20 merged pebble tiles drop `uv` / `aWet`, normals Int8, colour
+and `aMoss` Uint8 normalised: 52 → 19 B a vertex, tiles 30.5 → 11.2 MB, both copies). Built on the head's source
+`82b94525`, the six views rendered with the same shot list as §C's head frames (same wind phase):
+
+| view | SSIM vs reference | pixels moved at all | > 6 levels | > 20 levels | max |
+| --- | --- | --- | --- | --- | --- |
+| A | 0.2013 = | 0.07 % | 0.006 % | 0 | 19.5 |
+| B | 0.1833 = | 0.16 % | 0.015 % | 0.001 % | 30.5 |
+| C | 0.2096 = | 0.28 % | 0.033 % | 0.001 % | 29.9 |
+| D | 0.2617 = | 0.21 % | 0.017 % | 0 | 24.2 |
+| E (pebbles at 1–2 m) | 0.2050 = | 0.16 % | 0.012 % | 0 | 30.5 |
+| F | 0.2139 = | 0.08 % | 0.005 % | 0 | 16.0 |
+
+SSIM identical to four decimals everywhere; the moved pixels are the Int8 normal's shading steps, 2.0–2.7 levels on
+average, a handful of pixels over 20. fable-2's own E numbers (0.23 %, 2.3 levels, none over 40) reproduced. **A
+memory cut with no visible cost — mergeable.**
+
+**The two reads agree, and say where the rest is.** fable-2's map (`fable-2-memory-map-4f22e7ec.md`): 773 MB of
+`BufferGeometry` arrays (trees 440, rocks 86, vegetation 74, hardscape 65, structures 64, terrain 28) and ≈ 618 MB
+of textures by first-referencing system. My §E: 1,021 MB of ArrayBuffer backing stores in the heap, all live. The
+773 sit inside the 1,021; the other ≈ 250 MB are typed arrays outside `BufferGeometry` — index buffers if the map
+skipped them, the procedural atlases' source data, heightfields, placement tables — unattributed, and second-order.
+So the renderer's 2.1 GB is: 0.77 GB geometry arrays + 0.25 GB other typed arrays + 0.50 GB objects + ≈ 0.6 GB Blink
+(decoded images and the rest). Two independent methods, one picture.
+
+**Link's textures, decoded from the GLB** (`models/link/link-runtime.glb`, 48.7 MB): `hardware-body-color`
+**4,096²**, `nose-zero-margin-normal` **4,096²**, `hardware-body-metallic-roughness` 2,048², `corneal-eye-color`
+2,048², `face-orbital-color` 1,024² — ≈ **218 MB resident** as RGBA8 with mips, fable-2's 222 confirmed. Every one of
+the environment's 68 disk images is ≤ 2,048², so a "2 K mip cap" saves exactly Link's two 4 K maps (−128 MB) and
+nothing else; Link stands ≤ 300 px tall in any hero frame, so 1,024² for the body maps and 256² for an eye is the
+honest size (**−190 MB**, Astra's export, no shader change). The ground and bark sets at 2 K are the other half of
+the texture bytes; 1 K where a set is never seen inside ~3 m is 4× each.
+
+**How the trims compound**, for whoever briefs it: `onUpload` (§E finding 3) removes the CPU copy of everything
+static — up to 0.77 GB in the renderer at no GPU cost; fable-2's packing shrinks *both* copies (trees' 440 MB is the
+prize: ×2 on the GPU side); the texture sizes are the GPU process's. Three different levers, three different lanes,
+none of them the pool caps.
+
+## take-0133 — fifth start (browser per view) at 06:18; still capturing at 08:45 (no tick since 07:20). Re-verdict follows when it seals, against §D's expected row.
