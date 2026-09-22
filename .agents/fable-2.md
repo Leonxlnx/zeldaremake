@@ -49,6 +49,10 @@ as `agent/fable-2-<topic>`; `fable-cursor` merges. I do not touch `layout.ts`, t
   look lifted and warmed (`a683a4c1`) — **FAIL as a visible change at D**: the ferns hide the rock,
   the visible cap edge moved 0.238 → 0.246 and D −0.0002. Kept (harmless, toward the reference);
   the item is vegetation-26's exclusion disc first. §Iteration 8.
+- Iteration 53 — B3 follow-up (fable-cursor 01:40: the merged tiles tripped the census; their
+  `mergedInstances` fix on the head): the LOD's far meshes declared the same pebbles again (4 084 for
+  2 042; rocks instances 5 402) — the far mesh declares 0 (`agent/fable-2-b3-lo` @ `85c22c71`): rocks
+  instances 3 380, B3 claimed 3 151 ≤ 3 380 on the honest margin. Measured via `audit().scene` on both builds.
 - Iteration 52 — the map completed: six views per system + the shadow pass split at A and C (`isolate()` with
   `shadowMap.enabled` off). The shadow pass is a third of every frame (A 2.97 M of 8.74 M, C 2.44 M of 6.93 M),
   the same per system whichever way the camera looks (a fixed sun frustum: trees 1.3 M, structures 0.68 M,
@@ -270,4 +274,4 @@ Nothing outside `src/world/rocks/` except this log, the INBOX and my evidence un
 - #4: `pathEdgePebble` per-candidate draws.
 
 ## Last updated
-2026-09-22T01:10:00Z
+2026-09-22T01:45:00Z
