@@ -320,3 +320,13 @@ nearCanopy, materials, index otherwise) is edited.
   the three arch poses (10–36 m from the poles) 0 pixels differ head vs branch. One file. A after: 8.78 M.
 - Method note: a per-placement LOD threshold keyed on the band-only variant and position keeps distant.ts (Astra's)
   and the DepthBand type untouched; fable-cursor's far-trunk row at z −46 is excluded by the z test.
+
+### 2026-09-22 17:05 UTC — round 52: the owner's clarity circle attributed (no code)
+- The owner's marked screenshot (via Astra): blurry crown forms at height. Reproduced the symptom on the west
+  meadow around the hut knoll (six seated candidates); hide-one-group with a frozen clock over the upper-left
+  region: `trees/distant` far crown cards 29–69 %, white-bark 12–21 % (crisp leaf clusters, not blur), canopy
+  roof 1.5–12.6 %, columns 2–3 %. Panels show hiding the cards removes every soft form. Astra's lane; no
+  white-bark crown pass. Seam: re-check the white-barks' mid LOD at k3/k4 after her change.
+  `art/environment/round52-clarity-attrib/README.md`.
+- Tools learned: CPU raycasts miss shader-positioned instances (82 % no-hit over the cards); `__ZR__.probe`
+  seats third-person poses; `setTime` freezes wind/motes so hide-and-diff has a < 0.5 % floor.
