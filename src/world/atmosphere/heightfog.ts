@@ -324,7 +324,9 @@ export const HEIGHT_FOG_DEFAULTS: HeightFogParams = {
   // already matched (±0.01). 0.028 (≈ 21 % veil at 12.5 m, 47 % at 25 m, 65 % at 40 m) puts the
   // 10–50 m medians within ±0.03 of the reference in A/B/C and halves the saturation excess;
   // 0.03 fitted a hair better but cost the W35 sharpness margin. Verified by A/B capture.
-  hazeDensity: 0.018,
+  // September 22 owner clarity: keep depth separation without the older video-fit wall.
+  // Match the thin-near density; the existing catch-up interval becomes continuous.
+  hazeDensity: 0.008,
   hazeStart: 5,
   // the thin air alone left the far tree rows (52–58 m, 80–95 m) at 67–75 % veil: the arch at 61 %
   // stood against a background only a notch brighter than itself (body 0.99× the band above it).
@@ -332,7 +334,7 @@ export const HEIGHT_FOG_DEFAULTS: HeightFogParams = {
   // 0.032/m to 60 m before): the arch and the 30–40 m trunks are silhouettes against a luminous
   // wall, the way the reference's far field reads (measured: arch body 0.89× the band above it)
   hazeFarStart: 49,
-  hazeFarDensity: 0.055,
+  hazeFarDensity: 0.008,
   // Round 8, fitted per depth bin against the reference sampled at our own pixels: in every hero
   // view the 10–18 m bins' darkest decile sat 0.03–0.06 over the reference's (B 0.269/0.290 vs
   // 0.214/0.229, A 0.259/0.283 vs 0.256/0.263, D 0.264/0.283 vs 0.189/0.244) while the 18–24 m
@@ -559,7 +561,8 @@ export const HEIGHT_FOG_DEFAULTS: HeightFogParams = {
   // reference's darker columns
   farShadeStart: 22,
   farShadeFull: 44,
-  farShadeMin: 0.3,
+  // Preserve real material/shadow contrast beyond 44 m while retaining canopy distance shade.
+  farShadeMin: 0.65,
   // [0.2, 0.18, 0.148] reads 0.348 display at a 38° hue through 55 % veil where the control's blend of
   // hazeNear / hazeClosed read 0.36–0.38 at 58–64°: a warm near air 5–8 % dimmer than the far veil.
   // B's pillar bark 0.265 → 0.246 (frame 0.247), hue 51 → 42° (frame 28°); D's bank bark 0.310 → 0.293

@@ -2966,6 +2966,15 @@ Also: lantern bough still a thick plain beam across the top of B (trees pass pen
 - Astra: fog candidate confined to `HEIGHT_FOG_DEFAULTS`; the `063772a4` backing pair REJECTED (not
   importing); the bank's `588d3681` successor waits on its F/C coverage gate.
 
+### 2026-09-22 17:15 UTC — tick 233: owner-fable's stand roof (PR #31) merged; Astra's fog + atlas imported; take-0133 at D
+- Merged PR #31 `agent/owner-fable-clearing-roof` (the canopy roof over the north stand and clearing —
+  opus #01; plaza roof byte-identical; final six-view A/C 0, B +0.0010, D +0.0013, E +0.0003).
+  Imported Astra's `886c531c` (seeded leaf-shape far-crown painter) and `c241593e` (height fog:
+  hazeDensity 0.018 → 0.008, hazeFarDensity 0.055 → 0.008, farShadeMin 0.30 → 0.65; her disclosed
+  A −0.0032 / F −0.0039 for far-band contrast +10 % / +43 %) — the owner's clarity direction.
+- take-0133: A 15:56 (8.83 M / 452 — the 26 m blades +150 K), B 16:29, C 16:49 (1,069 s, no stall);
+  D capturing. take-0134 (fog, atlas, stand roof, stand LOD) follows it.
+
 ## Pending corrections from reference/ANALYSIS.md (apply at integration, one commit)
 - `config.ts` palette → olive/khaki low-key (reference hero frames: hue 47–51°, sat 0.16–0.19,
   lum 0.35–0.39, 0 % blue sky): grass 0x8a8c55/0x5c6233/0x3a4420, moss 0x8b8948/0x5a523b,
@@ -3004,4 +3013,4 @@ Pick anything NOT claimed in `gauntlet/claims.json`. Good self-contained candida
   my own (GAUNTLET.md D7).
 
 ## Last updated
-2026-09-22T16:15:00Z
+2026-09-22T17:15:00Z
