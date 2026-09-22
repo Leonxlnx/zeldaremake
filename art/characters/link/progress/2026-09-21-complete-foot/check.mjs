@@ -19,21 +19,27 @@ assert.equal(constants.length, 6);
 const start = source.indexOf('            const count = leg.', source.indexOf('// The ankle pivot preserves'));
 const end = source.indexOf('            let eps = flex - HIP_FLEX_MAX;', start);
 assert(start > 0 && end > start, 'Final hip guard initializer not found');
+const slackExpression = source.match(/const slack = ([^\r\n]+);/)?.[1];
+assert(slackExpression, 'Final hip slack expression not found');
 const resize = source.match(/  const hipContactCount = Math.max\(\.\.\.legs.map\(\(leg\) => leg.hipContactLocal.length\)\);\r?\n  if \(_hipFootprint.length < hipContactCount \* 4\) _hipFootprint = new Float64Array\(hipContactCount \* 4\);/)?.[0] ?? '';
 const cell = fs.readFileSync('src/world/character/ground.ts', 'utf8').match(/export const STAIR_CELL = ([.\d]+);/);
 assert(cell, 'Production stair cell size not found');
 const code = [...constants, ...fn].map(n => n.getText(tree)).join('\n') + `
-function allows(leg, surface, endpoint) {
-  const legs = [leg], _q2 = new Quaternion();
+function initialize(leg, surface) {
+  const legs = [leg], _q2 = leg.qTilt.clone().multiply(leg.qAnkle);
   ${resize}
   ${source.slice(start, end)}
+  return {count, planeGap, slack: (${slackExpression})};
+}
+function allows(leg, surface, endpoint) {
+  const {count, planeGap} = initialize(leg, surface);
   return clearsHipFootprint(surface, new Vector3(), endpoint, count, leg.fp, planeGap);
 }
-return {measure: measureFootprint, allows};`;
+return {measure: measureFootprint, allows, slackAt: leg => initialize(leg, () => 0).slack};`;
 const js = ts.transpileModule(code, {
   compilerOptions: {target: ts.ScriptTarget.ES2022, module: ts.ModuleKind.CommonJS}
 }).outputText;
-const {measure, allows} = new Function('Vector3', 'Quaternion', 'MathUtils', 'STAIR_CELL', js)(
+const {measure, allows, slackAt} = new Function('Vector3', 'Quaternion', 'MathUtils', 'STAIR_CELL', js)(
   THREE.Vector3, THREE.Quaternion, THREE.MathUtils, Number(cell[1]));
 const ankle = new THREE.Bone(), toe = new THREE.Bone(), other = new THREE.Bone();
 ankle.add(toe);
@@ -81,7 +87,8 @@ const fpLocal = [[fp.latMin, -fp.heel], [fp.latMax, -fp.heel], [fp.latMin, fp.to
   [fp.latMax, fp.toe], [(fp.latMin+fp.latMax)/2, -fp.heel], [(fp.latMin+fp.latMax)/2, fp.toe]]
   .map(([x, z]) => new THREE.Vector3(x, 0, z));
 const target = new THREE.Vector3(0, .01, 0), endpoint = new THREE.Vector3(0, .01, -.02);
-const planeOnly = {fp, fpLocal, sole: marker, target, hipContactLocal: [...fpLocal, marker]};
+const planeOnly = {fp, fpLocal, sole: marker, target, hipContactLocal: [...fpLocal, marker],
+  qTilt: new THREE.Quaternion(), qAnkle: new THREE.Quaternion(), g: 0, hold: 0, soleP: target.clone(), delta: 0};
 const contour = {...planeOnly, hipContactLocal: [...fpLocal, ...result.heelLocal, marker]};
 // The endpoint's flat sole and its half-cell probes remain in front of this raised edge.
 // The real heel at y=.082 crosses it and penetrates by 18 mm.
@@ -92,5 +99,22 @@ assert(!allows(contour, step, endpoint), 'Reject a final hip turn that puts the 
 assert(allows(contour, () => 0, endpoint), 'Unobstructed flat-ground endpoint stays valid');
 const lowStep = (x, z) => z < -.126 ? .06 : 0;
 assert(allows(contour, lowStep, endpoint), 'A step below the real raised heel is safe; never flatten it');
+// A root drop bends the legs but keeps the world ankle target and foot orientation fixed.
+const sole = new THREE.Vector3(0, -.06, .08);
+const qAnkle = new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(1, 0, 0), -.12);
+const qTilt = new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(0, 0, 1), .05);
+const offsetY = sole.clone().applyQuaternion(qTilt.clone().multiply(qAnkle)).y;
+const droppedTarget = new THREE.Vector3(0, .05-offsetY, 0);
+const points = fpLocal.map(p => p.clone().add(sole));
+const dropped = {...planeOnly, sole, qAnkle, qTilt, target: droppedTarget,
+  fpLocal: points, hipContactLocal: [...points, sole], soleP: new THREE.Vector3(0, .03, 0), delta: .02};
+assert.ok(Math.abs(slackAt(dropped)-.05) < 1e-12, 'No-drop slack retains the existing value');
+dropped.soleP.y -= .04; // Same scratch translation as extraDrop; target and delta stay fixed.
+assert.ok(Math.abs(slackAt(dropped)-.05) < 1e-12, 'Root drop must not consume fixed-target foot clearance');
+const safeEndpoint = droppedTarget.clone().add(new THREE.Vector3(0, -.02, 0));
+assert(.02 <= slackAt(dropped), 'Do not falsely reject a safe 20 mm ankle lowering after root drop');
+assert(allows(dropped, () => 0, safeEndpoint), 'The safe lowering must also clear the footprint');
+const penetratingEndpoint = droppedTarget.clone().add(new THREE.Vector3(0, -.06, 0));
+assert(!allows(dropped, () => 0, penetratingEndpoint), 'Real penetration still fails the footprint guard');
 console.log(JSON.stringify({pass: true, source: file, measured: result, ankleOnly: originalAnkleOnly,
   guard: {soleOnlyAllowsCollision: true, contourRejectsCollision: true, initialAndFlatAndLowStepClear: true}}));
