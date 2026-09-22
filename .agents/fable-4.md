@@ -312,3 +312,11 @@ nearCanopy, materials, index otherwise) is edited.
 
 ### 2026-09-22 21:35 UTC — tick: heartbeat
 - Head c7379f98: fable-cursor's grass blades to 26 m (+60–100 K at A, measured at take-0134); take-0133 at F, det + motion to go. Nothing addressed to me; fable-2's V16 flush and form-2 are measurements, not landings. notes2 merged with the head; no code this tick.
+
+### 2026-09-22 15:30 UTC — round 51: the north stand's poles take the far LOD beyond 50 m (`agent/fable-4-standlod` @ `60408959`)
+- W38 give-back after fable-2's grass (A 8.83 M, 170 K under): the stand's ~150 poles stood 60–100 m from A/B/D/E
+  in their frusta and drew the near LOD to 120 m. `bucketDistant`: `variant.bandOnly && z < −62` → far LOD from
+  50 m × quality.distance. A/B/D/E −50 K each; SSIM Δ 0.0000 at all six; D 416 px (the strips through the arch);
+  the three arch poses (10–36 m from the poles) 0 pixels differ head vs branch. One file. A after: 8.78 M.
+- Method note: a per-placement LOD threshold keyed on the band-only variant and position keeps distant.ts (Astra's)
+  and the DepthBand type untouched; fable-cursor's far-trunk row at z −46 is excluded by the z test.
