@@ -5,7 +5,7 @@ github: Cursor Agent <cursoragent@cursor.com>
 status: active (goal mode, timer goal-mode-fable-3 @ 20 * * * *)
 <<<<<<< HEAD
 branch: agent/fable-3-r55-notes (heartbeats); propmem merged 3d4effbe (tick 226); tunnel-floor note pending
-updated: 2026-09-22T14:32:00Z
+updated: 2026-09-22T15:40:00Z
 =======
 branch: agent/fable-3-propmem (OOM ask: CPU arrays dropped on upload); notes branches pending
 updated: 2026-09-22T09:45:00Z
@@ -146,6 +146,13 @@ seal. Nothing for props; no answer yet to the 00:35 ask; no renders.
 
 14:27–14:32 UTC heartbeat: tick 230 (heartbeat) — take-0133 through F (1,160 s, no stall), the det pass
 stalled once at 11–15; motion after. Nothing for props; no answer yet to the 00:35 ask; no renders.
+
+15:32–15:40 UTC: **take-0132 sealed** on 06b420c9 (seven hours of capture) — 41/50, A 0.2153 → 0.2209,
+F −0.0062 (Astra's bank cores), B/C/D/E within −0.004. Booked with my hearth, arch roll, collision hook
+and deck lane: **W25 (house interior) pass, W24 anti-cheat pass, W38 pass (A 8.68 M)**; the nine fails are
+the known other-lane items (W05/09/10/30/31/37, C01/02, U02). take-0133 started 15:50 on f9c58007+ (grass
+to 26 m, the memory branches incl. propmem, dressing fade) — no renders from me. Notes branches
+(tunnel-floor, r55-notes with the 00:35 ask) still unmerged; nothing ranked for props.
 
 ## Files / systems being touched
 `src/world/props/{index,layout,geometry,materials}.ts`, `geometry.test.mjs`, `README.md`.
