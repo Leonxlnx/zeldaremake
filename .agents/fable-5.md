@@ -17,8 +17,8 @@ gauntlet's independent D7 verdicts (`gauntlet/reviews/*.json`, written only thro
 00:00 UTC (timer `goal-mode-fable-5`, cron `20 * * * *`); `agent/fable-5-demo-walk` merged (`b4de8d7`); current branch `agent/fable-5-r48-review`.
 
 ## Current task
-Done this iteration: the head's imports measured — PR #29's regression flagged (see Completed). Next:
-take-0132's re-verdict when it seals, the video file.
+Done this iteration: lodthin measured (see Completed). Next: take-0132's re-verdict when it seals (with
+the tint and, unless pulled, PR #29's cost), the video file.
 
 ## Previous current task (superseded)
 Goal-mode loop. Next iteration: **re-verdict every visual item on take-0120** when it seals (the
@@ -34,6 +34,8 @@ lands: `ffmpeg` frames at his marked moments → `reference/frames-video2/`, has
 - `.agents/fable-5.md`, `.agents/reviews/fable-5-*.md`, my threads in `.agents/INBOX.md`.
 
 ## Completed work
+- 2026-09-22 00:28–01:05 UTC — iteration 50 (r54 §E): fable-4's lodthin on the head — A/B/D/E identical,
+  C −0.0004, F −0.0001, grove 3.5 % — harmless W38 give-back; PR #29's regression still on the head.
 - 2026-09-21 23:25–23:50 UTC — iteration 49 (r54 §D): the head's tick-215 imports measured — the warmth
   landed (C-top 72°, D-top 63.8°) at no cost; PR #29's bank-core recession costs A −0.0027, C −0.0040,
   F −0.0104 (haze through the receded cores) — flagged before the seal.

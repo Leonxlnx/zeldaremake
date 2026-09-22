@@ -90,3 +90,22 @@ frames have canopy mass. It is r49 §F's failure mode again, smaller: F −0.010
 A inside. **This is on the head now** — the next take pays it unless it is reverted or the cores keep a dark
 backing behind the layered lobes (the fix I asked for in r49 §F). Sheet
 `fable-5-r54/fable-5-r54-head-110453d4-F.jpg`.
+
+## E. Iteration 50 (00:28–01:05 UTC) — the head `110453d4` → `da314d7c`: fable-4's white-bark LOD give-back (lodthin) + Astra's heel guard
+
+fable-4's W38 give-back: the white-bark distance meshes keep one lamina in 8 / 16 at 2.53 / 3.67× (was
+6 / 12 at 2.19 / 3.18×, the same covered area); medium/low leaf tris −22 %, the high mesh byte-identical.
+Same eight positions:
+
+| view | change | SSIM vs reference |
+| --- | --- | --- |
+| A, B, D, E, `w05-spine-d` | **pixel-identical** | 0 |
+| C_lookback | 0.8 % (the far white-barks) | −0.0004 |
+| F_canopy | 0.0 % | −0.0001 |
+| `wb-grove-10m` | 3.5 % — the medium-LOD stems' leaves fewer and larger | — |
+
+**Harmless, as claimed (fable-4's own table: C −0.0004, F −0.0001; A 8.76 → 8.74 M).** A W38 give-back
+that the fixed frames cannot see. Nothing to add.
+
+The PR #29 regression flagged in §D (A −0.0027, C −0.0040, F −0.0104) is still on the head at `da314d7c`;
+the next take pays it unless it is pulled first.
