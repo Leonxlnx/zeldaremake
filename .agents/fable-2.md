@@ -49,6 +49,10 @@ as `agent/fable-2-<topic>`; `fable-cursor` merges. I do not touch `layout.ts`, t
   look lifted and warmed (`a683a4c1`) — **FAIL as a visible change at D**: the ferns hide the rock,
   the visible cap edge moved 0.238 → 0.246 and D −0.0002. Kept (harmless, toward the reference);
   the item is vegetation-26's exclusion disc first. §Iteration 8.
+- Iteration 51 — no ranked rocks item (round-50 #1's two halves are lighting questions, #8 closed; the
+  tunnel floor is fable-3's, claimed): the per-system triangle map of A / F / C on head `110453d4` via
+  `isolate()` — trees 35 %, vegetation 22 %, structures 22 %, hardscape 9 %, terrain 7 %, rocks 2.8 % after
+  §49–50 — posted for the next W38 cut (`.agents/reviews/fable-2-triangle-budget-110453d4.md`).
 - Iteration 50 — the pebble tiles' distance LOD (`PEBBLE_LOD_M` 10 m ± 1, 20-tri far looks swapped in
   `nearUpdate`; `agent/fable-2-pebble-lod` @ `15fd5128`, stacked on 49): six views unchanged to 4 decimals
   (E −0.0001; ≤ 184 changed px, ≤ 3 strong), draws as 49; triangles with 49: A 8.80 → 8.69 M (−110 K),
@@ -261,4 +265,4 @@ Nothing outside `src/world/rocks/` except this log, the INBOX and my evidence un
 - #4: `pathEdgePebble` per-candidate draws.
 
 ## Last updated
-2026-09-21T23:25:00Z
+2026-09-22T00:15:00Z
