@@ -4,10 +4,14 @@ runtime: Codex Astra + Blender MCP + Astra Max subagents
 github: Leonxlnx
 status: active
 branch: agent/astra-motion-sept21
-updated: 2026-09-22T16:08:03+00:00
+updated: 2026-09-22T16:54:42+00:00
 ---
 
 # Astra motion continuation
+
+16:54 UTC delivery: accepted atlas `886c531c` and haze `c241593e` are pushed with five/four native comparisons. Combined build `index-DDctkRbA.js` passed typecheck/build and two integrated native views (A: 8,741,301 triangles / 450 draws, no errors). Fable imported the atlas as `b7c9e001`; fog handoff is PR2 comment 5780350367. The close-crown prototype has much clearer leaf groups but disconnected outer sprays; it remains under review, not imported. Giant height/hero-camera exclusions are a separate identified gap.
+
+The default asset is now locally `1873fc17`: exactly 243 shoulder-strap joint bytes changed from head to chest; all other bytes of `4dcf89c5` are preserved. Independent topology/preservation review and four-pose native correspondence pass (0.0625 micrometres max). Native 113-phase contacts improve 1316 to 1289, peak 22 to 21, below-armpit 21 unchanged. The portable checker needs no original asset; the two-scene Blender checkpoint is outside Git. The rear-only arm study fails (4262 contacts) and is rejected. A separate 10-degree chest-lean study looks more like running but raises upper contacts to 1493 against the corrected strap control; hold pending exact family diagnosis. It is not the delivered animation.
 
 Current 16:08 UTC: source `886c531c` and evidence `9926541b` are pushed. The far-crown atlas now paints leaf silhouettes instead of blurred radial blobs. Five native pairs preserve camera/time, draw calls, triangles and texture counts; root reviewed the raw close and 119 m views. Typecheck/build pass, bundle `index-BbCczJse.js`. This improves edges but does not fix nearby crossed planes: the distant-tree class has no detailed close crown. That separate bounded representation is being designed. The four-view haze comparison has acquired the shared GPU slot; Fable has the exact scope and published atlas handoff. CI for `664f3418` completed successfully in run 35746083368.
 
