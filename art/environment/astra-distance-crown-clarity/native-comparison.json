@@ -1,0 +1,152 @@
+{
+  "sourceBase": "664f3418570f51dae5fcc9c2babbd8eb5cd1d0f4",
+  "beforeBundle": "e770731c3efef1736545ac0bab146eea225bc0686b4ba2507020966fcda062a6",
+  "afterBundle": "ec04c58197fd6d995e157fbcb693af19c0cf4eeb4a8a6482fb6c26026e9aa052",
+  "views": {
+    "reconstructed-distant-up": {
+      "stats": {
+        "simTime": 12.6,
+        "drawCalls": 131,
+        "triangles": 2039386,
+        "geometries": 338,
+        "textures": 91,
+        "programs": 92,
+        "width": 1280,
+        "height": 720,
+        "pixelRatio": 1
+      },
+      "changedPixelFractionOver2": 0.4090744357638889,
+      "meanAbsDisplayDifference": 0.02189772121232212,
+      "roi": [
+        80,
+        40,
+        510,
+        330
+      ],
+      "before": {
+        "meanDisplayLuma": 0.19948351960689203,
+        "laplacianRms": 0.019221744111966903
+      },
+      "after": {
+        "meanDisplayLuma": 0.19037420582022127,
+        "laplacianRms": 0.024567482384350782
+      }
+    },
+    "w19-spine-u": {
+      "stats": {
+        "simTime": 12.6,
+        "drawCalls": 175,
+        "triangles": 3653114,
+        "geometries": 403,
+        "textures": 91,
+        "programs": 135,
+        "width": 1280,
+        "height": 720,
+        "pixelRatio": 1
+      },
+      "changedPixelFractionOver2": 0.17795464409722223,
+      "meanAbsDisplayDifference": 0.00967512311637729,
+      "roi": [
+        0,
+        0,
+        1280,
+        396
+      ],
+      "before": {
+        "meanDisplayLuma": 0.5186996139799684,
+        "laplacianRms": 0.07834221783873647
+      },
+      "after": {
+        "meanDisplayLuma": 0.5175283255645019,
+        "laplacianRms": 0.07862191755863981
+      }
+    },
+    "distance-crown-119m": {
+      "stats": {
+        "simTime": 12.6,
+        "drawCalls": 62,
+        "triangles": 194640,
+        "geometries": 403,
+        "textures": 91,
+        "programs": 135,
+        "width": 1280,
+        "height": 720,
+        "pixelRatio": 1
+      },
+      "changedPixelFractionOver2": 0.29336046006944444,
+      "meanAbsDisplayDifference": 0.007901194852941214,
+      "roi": [
+        0,
+        0,
+        1280,
+        396
+      ],
+      "before": {
+        "meanDisplayLuma": 0.39265860846522666,
+        "laplacianRms": 0.03295867640293833
+      },
+      "after": {
+        "meanDisplayLuma": 0.39353376593871364,
+        "laplacianRms": 0.03983791058258747
+      }
+    },
+    "distance-crown-121m": {
+      "stats": {
+        "simTime": 12.6,
+        "drawCalls": 62,
+        "triangles": 196717,
+        "geometries": 403,
+        "textures": 91,
+        "programs": 135,
+        "width": 1280,
+        "height": 720,
+        "pixelRatio": 1
+      },
+      "changedPixelFractionOver2": 0.29285373263888886,
+      "meanAbsDisplayDifference": 0.007868054137163986,
+      "roi": [
+        0,
+        0,
+        1280,
+        396
+      ],
+      "before": {
+        "meanDisplayLuma": 0.3959765750955331,
+        "laplacianRms": 0.03271548696916995
+      },
+      "after": {
+        "meanDisplayLuma": 0.39686171428251843,
+        "laplacianRms": 0.03964768754540524
+      }
+    },
+    "F_canopy": {
+      "stats": {
+        "simTime": 12.6,
+        "drawCalls": 406,
+        "triangles": 7994522,
+        "geometries": 415,
+        "textures": 91,
+        "programs": 141,
+        "width": 1280,
+        "height": 720,
+        "pixelRatio": 1
+      },
+      "changedPixelFractionOver2": 0.001943359375,
+      "meanAbsDisplayDifference": 0.00008024691358024646,
+      "roi": [
+        0,
+        0,
+        1280,
+        396
+      ],
+      "before": {
+        "meanDisplayLuma": 0.30637113104250324,
+        "laplacianRms": 0.07754929701551722
+      },
+      "after": {
+        "meanDisplayLuma": 0.306304021105534,
+        "laplacianRms": 0.07753919462469944
+      }
+    }
+  }
+}
