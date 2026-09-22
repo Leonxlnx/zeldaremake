@@ -1,0 +1,183 @@
+{
+  "assetSha256": "4dcf89c5c10391981289e2583152c26fb4ac93047c6fcb4bb0959e246805d850",
+  "sourceImages": [
+    "../2026-09-21-motion-integration/current-skin-review-run-0.50-front.png",
+    "../2026-09-21-boot-tip/after-run-0.53-threequarter.png"
+  ],
+  "restSections": [
+    {
+      "side": "L",
+      "restHeightM": 0.175,
+      "widthM": 0.1581070345580337,
+      "centerOutFromRigM": 0.01185253146922409,
+      "innerRadiusM": 0.06720098580979275,
+      "outerRadiusM": 0.09090604874824094
+    },
+    {
+      "side": "L",
+      "restHeightM": 0.24,
+      "widthM": 0.12020550285139622,
+      "centerOutFromRigM": 0.01654820475521089,
+      "innerRadiusM": 0.043554546670487214,
+      "outerRadiusM": 0.076650956180909
+    },
+    {
+      "side": "L",
+      "restHeightM": 0.275,
+      "widthM": 0.10126047093468737,
+      "centerOutFromRigM": 0.011824570318224537,
+      "innerRadiusM": 0.03880566514911916,
+      "outerRadiusM": 0.062454805785568224
+    },
+    {
+      "side": "L",
+      "restHeightM": 0.34,
+      "widthM": 0.09358607092209673,
+      "centerOutFromRigM": 0.004435559234490433,
+      "innerRadiusM": 0.04235747622655793,
+      "outerRadiusM": 0.051228594695538796
+    },
+    {
+      "side": "R",
+      "restHeightM": 0.175,
+      "widthM": 0.15647203086480754,
+      "centerOutFromRigM": 0.010622639661394331,
+      "innerRadiusM": 0.06761337577100943,
+      "outerRadiusM": 0.0888586550937981
+    },
+    {
+      "side": "R",
+      "restHeightM": 0.24,
+      "widthM": 0.12074959837837894,
+      "centerOutFromRigM": 0.01591572049510842,
+      "innerRadiusM": 0.04445907869408104,
+      "outerRadiusM": 0.0762905196842979
+    },
+    {
+      "side": "R",
+      "restHeightM": 0.275,
+      "widthM": 0.10067244424817913,
+      "centerOutFromRigM": 0.010546284951380991,
+      "innerRadiusM": 0.03978993717270858,
+      "outerRadiusM": 0.06088250707547055
+    },
+    {
+      "side": "R",
+      "restHeightM": 0.34,
+      "widthM": 0.0934237486007396,
+      "centerOutFromRigM": 0.00302108108120637,
+      "innerRadiusM": 0.04369079321916342,
+      "outerRadiusM": 0.04973295538157617
+    }
+  ],
+  "phaseSamples": [
+    0,
+    0.25,
+    0.5,
+    0.75
+  ],
+  "regions": [
+    {
+      "region": "cuff",
+      "vertices": [
+        {
+          "side": "L",
+          "vertices": 2782,
+          "averageBoneWeights": {
+            "kneeL": 0.8150984662137042,
+            "ankleL": 0.18490153412667046
+          },
+          "maxNonIpsilateralLegWeight": 0
+        },
+        {
+          "side": "R",
+          "vertices": 2919,
+          "averageBoneWeights": {
+            "kneeR": 0.8199531818118231,
+            "ankleR": 0.18004681766386926
+          },
+          "maxNonIpsilateralLegWeight": 0
+        }
+      ],
+      "maxCrossSectionWidthChangeM": 0.0002619308429955558,
+      "maxSurfaceLateralChangeRelativeToRigM": 0.0007527596380809132
+    },
+    {
+      "region": "exposedCalf",
+      "vertices": [
+        {
+          "side": "L",
+          "vertices": 151,
+          "averageBoneWeights": {
+            "kneeL": 0.9818647724903182,
+            "thighL": 0.018135227628795443
+          },
+          "maxNonIpsilateralLegWeight": 0
+        },
+        {
+          "side": "R",
+          "vertices": 152,
+          "averageBoneWeights": {
+            "kneeR": 0.9851777196714753,
+            "thighR": 0.014822280765225801
+          },
+          "maxNonIpsilateralLegWeight": 0
+        }
+      ],
+      "maxCrossSectionWidthChangeM": 0.00008577252825694992,
+      "maxSurfaceLateralChangeRelativeToRigM": 0.000651154546155705
+    },
+    {
+      "region": "knee",
+      "vertices": [
+        {
+          "side": "L",
+          "vertices": 134,
+          "averageBoneWeights": {
+            "thighL": 0.3994852473208709,
+            "kneeL": 0.6005147510944907
+          },
+          "maxNonIpsilateralLegWeight": 0
+        },
+        {
+          "side": "R",
+          "vertices": 134,
+          "averageBoneWeights": {
+            "thighR": 0.35579834822843326,
+            "kneeR": 0.6442016501035264
+          },
+          "maxNonIpsilateralLegWeight": 0
+        }
+      ],
+      "maxCrossSectionWidthChangeM": 0.000032669028548398815,
+      "maxSurfaceLateralChangeRelativeToRigM": 0.00039252782945022047
+    }
+  ],
+  "maxNativeLateralVertexMotionRelativeToRigM": 0.0007545103783488938,
+  "proposedField": {
+    "maxCalfInwardM": 0.00506880574261602,
+    "maxCuffWidthReductionM": 0.011138285510171257,
+    "minimumCuffScale": 0.9295522457852252,
+    "minimumSampledCuffInnerChangeM": 0
+  },
+  "limitations": "Four native poses, geometric cross-sections and lateral contour, not a full cloth collision or dynamic volume proof. Cuff folds can also stretch in sagittal direction; observed perimeter increase up to18.18%, which does not establish outward deformation.",
+  "proposedFieldStaticEvaluation": {
+    "method": "Read-only evaluation of proposed PCHIP/C1 affine field on source POSITION rows; no changed mesh or GLB saved",
+    "affectedGltfPositionRows": 5703,
+    "maxAbsLateralDisplacementM": 0.010197260533864716,
+    "minimumJacobianDeterminant": 0.9295540945434679,
+    "maxAnalyticVsCentralDifferenceDerivativeError": 1.8464235695958564e-10,
+    "restTransverseGapBelow300mmM": {
+      "source": 0.012568506877869368,
+      "proposed": 0.013553825239078965
+    },
+    "unchangedByConstruction": "restY<=.125 or>=.325, all Y/Z, rig/weights and all sole/toe geometry",
+    "note": "Global rest gap and positive determinant are not a native collision or visual acceptance check. Inner cuff bound was derived at section controls and must be rechecked after native interpolation/export.",
+    "toeWeightedGeometry": {
+      "vertices": 2970,
+      "maxRestHeightM": 0.1267114132642746,
+      "fieldIdentityThroughHeightM": 0.15,
+      "unchangedByConstruction": true
+    }
+  }
+}

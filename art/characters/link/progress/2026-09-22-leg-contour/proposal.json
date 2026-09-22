@@ -1,0 +1,326 @@
+{
+  "assetSha256": "4dcf89c5c10391981289e2583152c26fb4ac93047c6fcb4bb0959e246805d850",
+  "status": "Native-only proposal; no geometry authored or exported",
+  "axes": {
+    "gltf": "x left, y up, z forward",
+    "blender": "xB=xG, yB=-zG, zB=yG"
+  },
+  "selection": {
+    "mesh": 2,
+    "primitive": 0,
+    "restHeightM": [
+      0.125,
+      0.325
+    ],
+    "absoluteXLessThanM": 0.22
+  },
+  "formula": "For side sign s and outward u=s*x, x_new=a(h)*x+s*b(h), y_new=y,z_new=z. Interpolate a-1 and b with C1 monotone cubic Hermite per profile, zero end slopes; identity outside its interval.",
+  "cuff": {
+    "intervalM": [
+      0.125,
+      0.25
+    ],
+    "target": "Linear envelope between existing shaft section at .125m and exposed-calf section at .250m. Reduce only25%of positive width excess; this strength is a conservative art-preview choice. Move section center toward envelope, capped to half the width reduction so the inner cuff contour never moves inward at sampled controls.",
+    "L": [
+      {
+        "heightM": 0.125,
+        "a": 1,
+        "bM": 0,
+        "centerShiftM": 0,
+        "widthReductionM": 0,
+        "innerChangeM": 0,
+        "outerChangeM": 0
+      },
+      {
+        "heightM": 0.15,
+        "a": 1,
+        "bM": 0,
+        "centerShiftM": 0,
+        "widthReductionM": 0,
+        "innerChangeM": 0,
+        "outerChangeM": 0
+      },
+      {
+        "heightM": 0.175,
+        "a": 0.9295522457852252,
+        "bM": 0.0015800472660241196,
+        "centerShiftM": -0.0046196870822965,
+        "widthReductionM": 0.011138285510171257,
+        "innerChangeM": 0.0009494556727891283,
+        "outerChangeM": -0.010188829837382129
+      },
+      {
+        "heightM": 0.2,
+        "a": 0.938637769299305,
+        "bM": 0.003159916696171848,
+        "centerShiftM": -0.0021100891304530606,
+        "widthReductionM": 0.009002807657716223,
+        "innerChangeM": 0.002391314698405051,
+        "outerChangeM": -0.006611492959311172
+      },
+      {
+        "heightM": 0.225,
+        "a": 0.9396320297417141,
+        "bM": 0.0039778271529815725,
+        "centerShiftM": -0.001173709411011123,
+        "widthReductionM": 0.008583729397191295,
+        "innerChangeM": 0.003118155287584525,
+        "outerChangeM": -0.005465574109606771
+      },
+      {
+        "heightM": 0.24,
+        "a": 0.9707586233797576,
+        "bM": 0.0009284081173056161,
+        "centerShiftM": -0.0017574871903516462,
+        "widthReductionM": 0.0035149743807032924,
+        "innerChangeM": 0,
+        "outerChangeM": -0.0035149743807032924
+      },
+      {
+        "heightM": 0.25,
+        "a": 1,
+        "bM": 0,
+        "centerShiftM": 0,
+        "widthReductionM": 0,
+        "innerChangeM": 0,
+        "outerChangeM": 0
+      }
+    ],
+    "R": [
+      {
+        "heightM": 0.125,
+        "a": 1,
+        "bM": 0,
+        "centerShiftM": 0,
+        "widthReductionM": 0,
+        "innerChangeM": 0,
+        "outerChangeM": 0
+      },
+      {
+        "heightM": 0.15,
+        "a": 1,
+        "bM": 0,
+        "centerShiftM": 0,
+        "widthReductionM": 0,
+        "innerChangeM": 0,
+        "outerChangeM": 0
+      },
+      {
+        "heightM": 0.175,
+        "a": 0.9307692855265273,
+        "bM": 0.0014180786522948116,
+        "centerShiftM": -0.004589404175041986,
+        "widthReductionM": 0.0108326704918859,
+        "innerChangeM": 0.0008269310709009634,
+        "outerChangeM": -0.010005739420984936
+      },
+      {
+        "heightM": 0.2,
+        "a": 0.9389208075212482,
+        "bM": 0.0033824058446134736,
+        "centerShiftM": -0.0017739606149103082,
+        "widthReductionM": 0.008910487787763228,
+        "innerChangeM": 0.0026812832789713057,
+        "outerChangeM": -0.006229204508791922
+      },
+      {
+        "heightM": 0.225,
+        "a": 0.9389144542659857,
+        "bM": 0.004316316243875317,
+        "centerShiftM": -0.0008098945018576026,
+        "widthReductionM": 0.00867735632405775,
+        "innerChangeM": 0.0035287836601712724,
+        "outerChangeM": -0.005148572663886478
+      },
+      {
+        "heightM": 0.24,
+        "a": 0.9686417863785355,
+        "bM": 0.0009672527789727115,
+        "centerShiftM": -0.0018932458503276225,
+        "widthReductionM": 0.003786491700655245,
+        "innerChangeM": 0,
+        "outerChangeM": -0.003786491700655245
+      },
+      {
+        "heightM": 0.25,
+        "a": 1,
+        "bM": 0,
+        "centerShiftM": 0,
+        "widthReductionM": 0,
+        "innerChangeM": 0,
+        "outerChangeM": 0
+      }
+    ]
+  },
+  "calf": {
+    "intervalM": [
+      0.25,
+      0.325
+    ],
+    "target": "Translate each section toward the line connecting its existing contour midpoint at .250 and .325m, preserving its width. Negative surplus clamped to zero; no outward correction.",
+    "L": [
+      {
+        "heightM": 0.25,
+        "a": 1,
+        "bM": 0
+      },
+      {
+        "heightM": 0.255,
+        "a": 1,
+        "bM": -0.0008189978024874534
+      },
+      {
+        "heightM": 0.26,
+        "a": 1,
+        "bM": -0.0017587043910491929
+      },
+      {
+        "heightM": 0.265,
+        "a": 1,
+        "bM": -0.002630502188790629
+      },
+      {
+        "heightM": 0.27,
+        "a": 1,
+        "bM": -0.003405935843328267
+      },
+      {
+        "heightM": 0.275,
+        "a": 1,
+        "bM": -0.004181369497865878
+      },
+      {
+        "heightM": 0.28,
+        "a": 1,
+        "bM": -0.004757400695805519
+      },
+      {
+        "heightM": 0.28500000000000003,
+        "a": 1,
+        "bM": -0.004941261245899886
+      },
+      {
+        "heightM": 0.29,
+        "a": 1,
+        "bM": -0.00506880574261602
+      },
+      {
+        "heightM": 0.295,
+        "a": 1,
+        "bM": -0.004245219419594534
+      },
+      {
+        "heightM": 0.3,
+        "a": 1,
+        "bM": -0.003185957387040736
+      },
+      {
+        "heightM": 0.305,
+        "a": 1,
+        "bM": -0.002126695354486924
+      },
+      {
+        "heightM": 0.31,
+        "a": 1,
+        "bM": -0.0012620723156932384
+      },
+      {
+        "heightM": 0.315,
+        "a": 1,
+        "bM": -0.0005973329537025118
+      },
+      {
+        "heightM": 0.32,
+        "a": 1,
+        "bM": -0.0002709423247906073
+      },
+      {
+        "heightM": 0.325,
+        "a": 1,
+        "bM": 0
+      }
+    ],
+    "R": [
+      {
+        "heightM": 0.25,
+        "a": 1,
+        "bM": 0
+      },
+      {
+        "heightM": 0.255,
+        "a": 1,
+        "bM": -0.0006894746681560121
+      },
+      {
+        "heightM": 0.26,
+        "a": 1,
+        "bM": -0.0015463342825808024
+      },
+      {
+        "heightM": 0.265,
+        "a": 1,
+        "bM": -0.002427589804974664
+      },
+      {
+        "heightM": 0.27,
+        "a": 1,
+        "bM": -0.0032531984750961
+      },
+      {
+        "heightM": 0.275,
+        "a": 1,
+        "bM": -0.004018993329304707
+      },
+      {
+        "heightM": 0.28,
+        "a": 1,
+        "bM": -0.004682607038144687
+      },
+      {
+        "heightM": 0.28500000000000003,
+        "a": 1,
+        "bM": -0.004842541309289905
+      },
+      {
+        "heightM": 0.29,
+        "a": 1,
+        "bM": -0.004740580662296781
+      },
+      {
+        "heightM": 0.295,
+        "a": 1,
+        "bM": -0.0040291869316612106
+      },
+      {
+        "heightM": 0.3,
+        "a": 1,
+        "bM": -0.003025749986450957
+      },
+      {
+        "heightM": 0.305,
+        "a": 1,
+        "bM": -0.0020223130412406892
+      },
+      {
+        "heightM": 0.31,
+        "a": 1,
+        "bM": -0.001040150144839963
+      },
+      {
+        "heightM": 0.315,
+        "a": 1,
+        "bM": -0.00029943831839046586
+      },
+      {
+        "heightM": 0.32,
+        "a": 1,
+        "bM": 0
+      },
+      {
+        "heightM": 0.325,
+        "a": 1,
+        "bM": 0
+      }
+    ]
+  }
+}
