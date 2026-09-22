@@ -123,6 +123,15 @@ export const HERO_NEAR_RELIEF = 1.5;
  * the plain far stones they were. The fixed cameras' nearest slab is measured in README §31.
  */
 export const STRATA_NEAR_FADE_M: [number, number] = [2.5, 4.5];
+/**
+ * the north clearing's and the plaza backside's dressing (clearing.ts / backside.ts): the walk poses see
+ * these stones at 6–9 m — `x-southbank-toe` 6.8 m from the pale pair, `x-clearing-n` the west-bank pair —
+ * just past the hero fade's 6.3 m, so they rendered the smooth far skin at exactly the owner's "stones
+ * under-detailed at 5–20 m" range. Their own material carries the near skin (plates, wet band, lichen,
+ * relief 1.5) out to this fade. Both sets are off every fixed view by construction (the clearing under
+ * the north toggle, the backside's spheres outside the six frusta — backside.test), so A–F are untouched.
+ */
+export const DRESSING_NEAR_FADE_M: [number, number] = [7, 13];
 /** the ledge wall's near grain (material `relief`): fable-5 §7.2, micro σ 0.034 → 0.05 at 3 m — measured at `x-ledge-wall` (4 px residual on the cap): 0.031 → 0.035 at 1.0, 0.043 at 3.0 */
 export const LEDGE_RELIEF = 3.0;
 
@@ -338,6 +347,7 @@ export async function create(ctx: WorldContext): Promise<WorldSystem> {
   // rock material rendered 0.29 at exposure 1.0 — darker rock and moss for it alone, without
   // moving it
   const stairFootMaterial = await createRockMaterial(ctx.textures, ctx.config, anisotropy, 1.4, 0.9, { near: true, relief: HERO_NEAR_RELIEF });
+  const dressingMaterial = await createRockMaterial(ctx.textures, ctx.config, anisotropy, 1.4, 1, { near: true, fade: DRESSING_NEAR_FADE_M, relief: HERO_NEAR_RELIEF });
   const pebbleMaterial = await createRockMaterial(ctx.textures, ctx.config, anisotropy, 0.35);
   const density = clamp(ctx.quality.density, 0.4, 1.4);
   const detailR = ctx.config.detailRadius;
@@ -1208,7 +1218,7 @@ export async function create(ctx: WorldContext): Promise<WorldSystem> {
   // stairs.ledge / ledgeTerrace, own fork
   const clearing = buildClearingRocks(ctx.layout as unknown as ClearingLayout, T, rng.fork('north-clearing'), seed, shadeDir);
   if (clearing) {
-    const clearingMesh = new Mesh(clearing.geometry, heroMaterial);
+    const clearingMesh = new Mesh(clearing.geometry, dressingMaterial);
     clearingMesh.castShadow = true;
     clearingMesh.receiveShadow = true;
     clearingMesh.name = 'north-clearing-rocks';
@@ -1228,7 +1238,7 @@ export async function create(ctx: WorldContext): Promise<WorldSystem> {
   let backsideMesh: Mesh | null = null;
   let backsideSpheres: Sphere[] = [];
   if (backside) {
-    backsideMesh = new Mesh(backside.geometry, heroMaterial);
+    backsideMesh = new Mesh(backside.geometry, dressingMaterial);
     backsideMesh.castShadow = true;
     backsideMesh.receiveShadow = true;
     backsideMesh.name = 'backside-rocks';

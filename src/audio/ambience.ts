@@ -39,29 +39,36 @@ export function createAmbience(ctx: BaseAudioContext, out: AudioNode, reverbSend
   const nodes: AudioScheduledSourceNode[] = [];
 
   // ---- wind bed: two noise paths, a low rumble and a slow moving band ----------------------
+  // 2026-09-22 (owner: "the sound in the forest sounds like loud random paper"): the bed is
+  // lower and darker — the low path at 260 Hz, the moving band a broad soft 420 Hz (was a
+  // Q 1.1 band sweeping ±260 Hz around 760: a crinkle), both modulated slower.
   const windSrc = noiseSource(ctx, noise, startAt);
   nodes.push(windSrc);
-  const windLow = filter(ctx, 'lowpass', 380, 0.6);
-  const windBand = filter(ctx, 'bandpass', 760, 1.1);
-  const windGain = gain(ctx, 0.16);
-  const windBandGain = gain(ctx, 0.05);
+  const windLow = filter(ctx, 'lowpass', 260, 0.5);
+  const windBand = filter(ctx, 'bandpass', 420, 0.5);
+  const windGain = gain(ctx, 0.11);
+  const windBandGain = gain(ctx, 0.03);
   windSrc.connect(windLow).connect(windGain).connect(out);
   windSrc.connect(windBand).connect(windBandGain).connect(out);
   windGain.connect(reverbSend);
-  nodes.push(lfo(ctx, windBand.frequency, 0.07, 260, 'sine', startAt));
-  nodes.push(lfo(ctx, windBandGain.gain, 0.11, 0.025, 'sine', startAt));
+  nodes.push(lfo(ctx, windBand.frequency, 0.045, 120, 'sine', startAt));
+  nodes.push(lfo(ctx, windBandGain.gain, 0.08, 0.012, 'sine', startAt));
 
-  // ---- leaf rustle: high band, fluttering ------------------------------------------------
+  // ---- leaf rustle: a soft high hush that breathes with the gusts ----------------------------
+  // The old layer was 2.2–4.6 kHz noise chopped by a 6.3 Hz triangle at 45 % depth — a buzzing
+  // paper flutter. Now: a gentler 1.4–3 kHz band, no fast chop, two slow swells (0.3 / 0.75 Hz)
+  // of a few percent, and a level that lives mostly in the gust term (quiet air, a hush in a gust).
   const rustleSrc = noiseSource(ctx, noise, startAt + 1.3);
   nodes.push(rustleSrc);
-  const rustleHp = filter(ctx, 'highpass', 2200, 0.7);
-  const rustleBp = filter(ctx, 'bandpass', 4600, 0.9);
-  const rustleGain = gain(ctx, 0.012);
+  const rustleHp = filter(ctx, 'highpass', 1400, 0.5);
+  const rustleBp = filter(ctx, 'bandpass', 2600, 0.6);
+  const rustleLp = filter(ctx, 'lowpass', 3800, 0.6);
+  const rustleGain = gain(ctx, 0.004);
   const flutter = gain(ctx, 1);
-  rustleSrc.connect(rustleHp).connect(rustleBp).connect(flutter).connect(rustleGain).connect(out);
+  rustleSrc.connect(rustleHp).connect(rustleBp).connect(rustleLp).connect(flutter).connect(rustleGain).connect(out);
   rustleGain.connect(reverbSend);
-  nodes.push(lfo(ctx, flutter.gain, 6.3, 0.45, 'triangle', startAt));
-  nodes.push(lfo(ctx, flutter.gain, 0.9, 0.3, 'sine', startAt));
+  nodes.push(lfo(ctx, flutter.gain, 0.3, 0.12, 'sine', startAt));
+  nodes.push(lfo(ctx, flutter.gain, 0.75, 0.08, 'sine', startAt + 0.4));
 
   // ---- pod lantern hum -------------------------------------------------------------------
   const humGain = gain(ctx, 0);
@@ -168,7 +175,7 @@ export function createAmbience(ctx: BaseAudioContext, out: AudioNode, reverbSend
     while (nextBird < t) {
       const kind = BIRDS[Math.floor(birdRng() * BIRDS.length)];
       const pan = (birdRng() * 2 - 1) * 0.85;
-      const level = 0.035 + birdRng() * 0.07;
+      const level = 0.025 + birdRng() * 0.05;
       birdCall(kind, nextBird, pan, level);
       // sometimes a second bird answers from the other side
       if (birdRng() < 0.3) birdCall(BIRDS[Math.floor(birdRng() * BIRDS.length)], nextBird + 1.2 + birdRng() * 0.8, -pan * 0.8, level * 0.7);
@@ -178,9 +185,9 @@ export function createAmbience(ctx: BaseAudioContext, out: AudioNode, reverbSend
 
   const update = (t: number, s: AmbienceState) => {
     const gust = Math.max(0, Math.min(1, s.gust));
-    windGain.gain.setTargetAtTime(0.11 + gust * 0.2, t, 0.35);
-    windLow.frequency.setTargetAtTime(300 + gust * 320, t, 0.4);
-    rustleGain.gain.setTargetAtTime(0.008 + gust * gust * 0.075, t, 0.2);
+    windGain.gain.setTargetAtTime(0.075 + gust * 0.13, t, 0.6);
+    windLow.frequency.setTargetAtTime(220 + gust * 220, t, 0.7);
+    rustleGain.gain.setTargetAtTime(0.0025 + gust * gust * 0.022, t, 0.5);
     // pods: summed inverse-square-ish attenuation, panned toward their weighted direction
     let sum = 0;
     let px = 0;

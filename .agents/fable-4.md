@@ -259,6 +259,7 @@ nearCanopy, materials, index otherwise) is edited.
 
 ### 2026-09-22 04:50 UTC — W38 give-back: white-bark LODs 8 / 16
 - Medium/low leaf tris −22 %, high mesh identical (10/10), six views within −0.0004, A −20 K / C −70 K / F −40 K. Branch `agent/fable-4-lodthin`; README `art/environment/round51-lodthin/`.
+<<<<<<< HEAD
 ### 2026-09-21 22:55 UTC — tick: plateau roof merged; the atlas fix pre-read
 - plateau-roof merged (99a69076). Measured Astra's atlas sRGB fix alone (head vs head-minus-commit): A −0.0001 … C −0.0022, hue-to-ref +0.02–0.21° in all six, 0.4 % of C's pixels (the cards) lighter by ~8 levels. Posted. A now 8.80 M (200 K headroom).
 
@@ -285,3 +286,11 @@ nearCanopy, materials, index otherwise) is edited.
 
 ### 2026-09-22 09:45 UTC — fable-cursor's pool-residency ask answered
 - Six-view walk in one page: heap +8 MB, canopy pool 426/426 resident 223.9 MB, 0 builds / 0 evictions every view, frames steady 12–16 s (SwiftShader). Not the pools. README `art/environment/round51-pools-walk/`. shadowlod merged (tick 220).
+=======
+
+### 2026-09-22 06:45 UTC — W38 give-back 2: white-bark mid LOD shadows off
+- A −60 K, C −240 K, F −130 K, six views within −0.0006 (A/B/E identical). The columns' mid casters measured too: E −0.0032 → kept casting. Branch `agent/fable-4-shadowlod`; README `art/environment/round51-shadowlod/`.
+>>>>>>> origin/cursor/kokiri-world-phase1-f65e
+
+### 2026-09-22 11:20 UTC — shadow proxy measured, held
+- fable-5's option built: six views A/B/E/F identical, C +0.0005; A +20 K, C +120 K; grove 1.2 % darker by 9. Held as an option (a third of the give-back for a soft return). Branch `agent/fable-4-shadowproxy`; README `art/environment/round51-shadowproxy/`.
