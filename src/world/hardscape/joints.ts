@@ -90,16 +90,8 @@ const SOIL_OPEN_GATE: [number, number] = [0.1, 0.4];
 // (turf albedo 27° → 41° at the slab foot); the frames' dark class in the lit B/D foregrounds
 // sits 63–66 % in the 30–40° bin against our 26–42 %, with our surplus in the 40–70° bins — the
 // contact line stays a recess of the same hue, the open turf a hair greener at most)
-/**
- * Round 52 #3 (V16) experiment: the painted crevice occlusion's strength (1 = round 33's recess, 0 = none —
- * the fill at its lit albedo edge to edge). fable-5's joint-dark read outlines every slab of ours along
- * its full length where the frame's joints stay under the 0.12 contrast at 640 px; the fill's albedo
- * (SEAM_FILL_LIFT) and the flank's tint moved nothing, so the recess is the term left to measure.
- */
-export const CREVICE_STRENGTH = 0;
-const creviceMix = (t: [number, number, number]): [number, number, number] => [1 + (t[0] - 1) * CREVICE_STRENGTH, 1 + (t[1] - 1) * CREVICE_STRENGTH, 1 + (t[2] - 1) * CREVICE_STRENGTH];
-const CREVICE_TINT: [number, number, number] = creviceMix([0.72, 0.7, 0.5]);
-const TURF_CREVICE_TINT: [number, number, number] = creviceMix([0.72, 0.7, 0.54]);
+const CREVICE_TINT: [number, number, number] = [0.72, 0.7, 0.5];
+const TURF_CREVICE_TINT: [number, number, number] = [0.72, 0.7, 0.54];
 // (round 50, fable-5 V16: the mossy earth's open lift × 1.08–1.1 → none — at 6–10 cm the joint
 // centre is 3–5 cm from a slab, inside the open ramp, and the lift put the centre line a shade
 // above the seam soil; the demo's joints are one dark tone edge to edge, a hair greener)
