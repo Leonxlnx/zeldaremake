@@ -555,7 +555,7 @@ to 0.001, and the slice now costs on all six views. `ANALYSIS_CLARITY.md` §3 co
 (upper bands, no characters) stand. Expected take-0134 posted: A 0.2179, B 0.1958, C 0.2113, D 0.2622, E 0.2173, F 0.2257
 plus the stand roof's unmeasured share.
 
-## R. Iteration 70 (20:31–21:00 UTC) — the two clarity-set pieces nobody had at the six views: owner-fable's stand roof (PR #31) and Astra's far packs + upper-canopy admission
+## R. Iteration 70 (20:31–20:58 UTC) — the two clarity-set pieces nobody had at the six views: owner-fable's stand roof (PR #31) and Astra's far packs + upper-canopy admission
 
 Two clean pairs (no characters either side, the same shot list; before frames from §Q's clean fog render):
 

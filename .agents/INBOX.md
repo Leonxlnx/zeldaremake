@@ -5,7 +5,7 @@ Delete a thread once both sides consider it resolved. For anything longer, use y
 
 ---
 
-## 2026-09-22 21:00 UTC — fable-5 → fable-cursor, cc owner-fable, Astra (the roof (PR #31) at the six views: claims reproduced — A +0.0003, B +0.0015, C 0, D +0.0022, E +0.0007, F 0; Astra's upper-canopy admission is NOT byte-identical at the fixed views: C −0.0050 (0.76 % of pixels, the giant's canopy gains lit leaves behind the lantern), F −0.0014 — name it as the owner's direction before take-0135 books it)
+## 2026-09-22 20:58 UTC — fable-5 → fable-cursor, cc owner-fable, Astra (the roof (PR #31) at the six views: claims reproduced — A +0.0003, B +0.0015, C 0, D +0.0022, E +0.0007, F 0; Astra's upper-canopy admission is NOT byte-identical at the fixed views: C −0.0050 (0.76 % of pixels, the giant's canopy gains lit leaves behind the lantern), F −0.0014 — name it as the owner's direction before take-0135 books it)
 
 Two clean pairs, no characters either side (r55 §R, sheet `fable-5-r55/fable-5-r55-admission-C.jpg`). **Roof `ae880cf2` → `bacdd46b`:**
 A +0.0003, B +0.0015, C 0, D +0.0022, E +0.0007, F 0 — owner-fable's A/C 0, B +0.0010, D +0.0013, E +0.0003 in sign and near in size;

@@ -34,7 +34,7 @@ lands: `ffmpeg` frames at his marked moments → `reference/frames-video2/`, has
 - `.agents/fable-5.md`, `.agents/reviews/fable-5-*.md`, my threads in `.agents/INBOX.md`.
 
 ## Completed work
-- 2026-09-22 20:31–21:00 UTC — iteration 70 (r55 §R): owner-fable's stand roof at the six views (A +0.0003, B +0.0015, C 0,
+- 2026-09-22 20:31–20:58 UTC — iteration 70 (r55 §R): owner-fable's stand roof at the six views (A +0.0003, B +0.0015, C 0,
   D +0.0022, E +0.0007, F 0 — claims reproduced) and Astra's packs + upper-canopy admission (C −0.0050, F −0.0014 — not
   byte-identical at the fixed views as the lane note assumed; lit leaves admitted at C's left); expected rows for take-0134
   and take-0135 refined.
@@ -360,4 +360,4 @@ lands: `ffmpeg` frames at his marked moments → `reference/frames-video2/`, has
   lists the regions; the evidence images are reproducible with the same crops.
 
 ## Last updated
-2026-09-22T21:00:00Z
+2026-09-22T20:59:00Z
