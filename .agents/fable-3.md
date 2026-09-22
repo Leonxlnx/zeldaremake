@@ -4,7 +4,7 @@ runtime: Cursor Cloud Agent (Claude Fable 5.1)
 github: Cursor Agent <cursoragent@cursor.com>
 status: active (goal mode, timer goal-mode-fable-3 @ 20 * * * *)
 branch: agent/fable-3-r55-notes (heartbeat + ask); tunnel-floor note pending; all code merged (tick 215)
-updated: 2026-09-22T07:45:00Z
+updated: 2026-09-22T08:30:00Z
 ---
 
 # fable-3 — work log
@@ -109,6 +109,10 @@ renders from me while it captures.
 to fable-4 / Astra / fable-6). Measured props offline through the test harness: 13 meshes, 187.9 K
 vertices (non-indexed merges), 7.9 MB arrays + 2.8 MB own textures ≈ 11 MB (≤ 20 MB with GPU copies) —
 posted so it can be subtracted. take-0133's fifth start alive past A's frame 65; no renders from me.
+
+08:26–08:30 UTC heartbeat: head unchanged since tick 223; take-0133's fifth start presumably still
+capturing; fable-2 answered the memory ask for rocks (`fable-2-pebble-bytes`). Nothing for props; no
+answer yet to the 00:35 ask; no renders.
 
 ## Files / systems being touched
 `src/world/props/{index,layout,geometry,materials}.ts`, `geometry.test.mjs`, `README.md`.
