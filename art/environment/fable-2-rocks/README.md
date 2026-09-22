@@ -16,6 +16,53 @@ B 526 / C 393 / D 394 / E 526 / F 512; A 9.09 M tris on both (the head's number,
 change's — flagged to fable-cursor). Files: `ledge2-x-clearing-n.jpg` (+ `-crop`),
 `ledge2-x-ledge-foot.jpg`, `ledge2-x-northpath-n.jpg`.
 
+## Iteration 64 — V16's flush stretches (fable-5's re-scope) built and measured with their line read: the line is the fill strip's tone, not the recess — FAIL to land, reverted (`agent/fable-2-v16-flush`)
+
+Announced 05:50 with "hold and it stays"; no hold in seven hours, so built on the rim-drop channel as planned: over ≈ 40 % of
+each outline (a 1.7 cycles / m noise on its own keyed fork, none on discs and lawn slabs) the rim comes down to the fill
+(`rimY − (terrain + 0.008)`), so the wall top and shoulder meet the joint's soil and the recess comes and goes along the
+seam. E / C / D captured head vs flush and read with fable-5's `seam-lines.py` (their boxes, blur-difference > 0.04 thinned
+to lines):
+
+| E_ground | line px / kpx | width | depth (p90) | line > 0.12 | share > 0.12 | regions |
+|---|---|---|---|---|---|---|
+| reference | 55.3 | 2.20 | 0.081 (0.125) | 12.4 % | 1.3 % | 5 |
+| head `f97676d2` | 86.1 | 2.54 | 0.097 (0.163) | 27.0 % | 5.8 % | 14 |
+| flush stretches | **86.1** | 2.54 | 0.096 (0.163) | 27.0 % | 5.8 % | 14 |
+
+C 83.5 → 82.8 px/kpx, D 80.9 → 82.5; SSIM E −0.0002, C 0, D −0.0014; 4 K / 6 K / 15 K pixels changed — the stretches are
+there (rims sit flatter along them, `seams64-E-flush-pair.jpg`) and the line read does not move by a decimal. So the
+model behind the re-scope — "the outline is the paving's own shading of a continuous recess" — measures false as well:
+**with the rim flush, the joint still reads as a line because the 6–10 cm fill strip is darker than the slab along its
+whole length.** The frame's seams close where the fill is slab-toned dry dirt or grass lapping over, not where the
+groove is shallower. What would close ours is the fill's tone varying along the joint — the seam soil giving way to
+`JOINT_SOIL_DRY` / turf at the slab's own value over the same stretches (a fill attribute from the shared noise and a
+term in the joint shader, `joints.ts`) together with the flush rim. That is the module's change; three V16 passes from
+this lane have now mapped tone (§54), recess and edge geometry (§54, §64) and the tufts (§54) as non-levers, and this
+lane stops at V16 unless the module is handed over with the fill half. Reverted by forward commit.
+
+## Iteration 63 — the D boulder's form planes re-measured where the rock now stands (round-52 #12's "one plane"): still light, not geometry — FAIL to land (`agent/fable-2-form-2` @ `f5ab2f28`, the §19 commit rebased)
+
+§19 built the `planes` option and measured it a FAIL at D under the giant's canopy shadow; W23 then moved the boulder to
+the frame's rock spot (§36) and fable-5 read it "lit" at take-0128 — the condition that hid the planes had changed, so
+the same commit deserved the measure again. Rebased onto the head (`towardD` derives from the layout, so the planes face
+D from the new spot); the frame's D rock box 0.04–0.18 × 0.66–0.84:
+
+| build | macro σ | micro σ | stone mean l / hue / sat | p10 / p90 | D SSIM |
+|---|---|---|---|---|---|
+| reference D | **0.097** | 0.062 | 0.334 / 52° / 0.54 | **0.18 / 0.50** | |
+| head `c0f76f0c` (loaf) | 0.023 | 0.042 | 0.321 / 43° / 0.40 | 0.26 / 0.38 | 0.2785 |
+| planes (`f5ab2f28`) | 0.026 | 0.044 | 0.330 / 43° / 0.40 | 0.26 / 0.39 | 0.2772 (−0.0013) |
+| planes, hard bake (crest +60 %, undercut −50 %, dark 0.55) | 0.025 | 0.044 | 0.325 / 43° / 0.40 | 0.26 / 0.39 | 0.2773 (−0.0012) |
+
+Nothing moves the range: the frame's rock has the sun on its crown and a true shadow side (p90 0.50 over p10 0.18); ours
+is evenly lit whatever the geometry, and even the hard bake leaves p90 at 0.39 — the material's response to a baked
+vertex value is weak, and the light on the rock is flat (`form63-D-quad.jpg`: reference | loaf | planes | hard bake).
+At 2.5 m from the south the planes do read as a blockier, bedded block with an undercut line (`form63-2m-south.jpg`) —
+form for the eye, macro σ 0.041 → 0.039. So round-52 #12's "one plane" at D is the same answer as §19 and as V17's
+treads: the light on that spot, not rocks. Not landed (D −0.0013 for no metric gain); the rebased planes stay on the
+branch as the player-height form option if fable-cursor ever wants it.
+
 ## Iteration 61 — the rock meshes' CPU arrays go on upload — `agent/fable-2-rock-upload` @ `a1ed0427` (stacked on §60)
 
 fable-4's `poolmem` (tick 225): every tree geometry drops its CPU typed arrays once the GPU has them (`BufferAttribute.onUpload`),
