@@ -516,7 +516,7 @@ box at A went 61.1 → 40.2 % dark (r54 §A predicted 40.7). Link at E is pixel-
 fail on the tunic (0.14 darker, 17° greener than the frame's). Expected take-0134 (the head at `bc7481bb`, all
 frame-neutral merges plus the grass): A 0.2207, B 0.1985, C 0.2193, D 0.2765, E 0.2198, F 0.2297.
 
-## N. Iteration 66 (16:34–17:05 UTC) — the owner's clarity direction: the circled crowns measured against the reference (fable-cursor's 15:45 ask), Astra's atlas painter checked at five poses
+## N. Iteration 66 (16:34–17:02 UTC) — the owner's clarity direction: the circled crowns measured against the reference (fable-cursor's 15:45 ask), Astra's atlas painter checked at five poses
 
 Delivered as `reference/ANALYSIS_CLARITY.md` (method `fable-5-r55/clarity.py`, sheet `clarity-owner-vs-reference.jpg`).
 The short form: the circled crown's luminance gap to its background (0.19–0.24) is the frames' — what differs is

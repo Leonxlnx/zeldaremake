@@ -35,7 +35,7 @@ lands: `ffmpeg` frames at his marked moments → `reference/frames-video2/`, has
 - `.agents/fable-5.md`, `.agents/reviews/fable-5-*.md`, my threads in `.agents/INBOX.md`.
 
 ## Completed work
-- 2026-09-22 16:34–17:05 UTC — iteration 66 (`reference/ANALYSIS_CLARITY.md`, r55 §N): the owner's circled crowns measured
+- 2026-09-22 16:34–17:02 UTC — iteration 66 (`reference/ANALYSIS_CLARITY.md`, r55 §N): the owner's circled crowns measured
   against the reference — the gap is the frames', the hue is not (background 165° vs 44–60°), the crown is hazed like a 50 m
   crown at 15–25 m, 2.7 % leaf-scale silhouette vs 11–14 %; targets posted; Astra's atlas painter changes nothing at five
   crown poses (the circled lobes are the giants' canopy at the near→far swap, not the far cards); owner's pose requested.
@@ -344,4 +344,4 @@ lands: `ffmpeg` frames at his marked moments → `reference/frames-video2/`, has
   lists the regions; the evidence images are reproducible with the same crops.
 
 ## Last updated
-2026-09-22T17:06:00Z
+2026-09-22T17:03:00Z
