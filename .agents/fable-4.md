@@ -300,3 +300,6 @@ nearCanopy, materials, index otherwise) is edited.
 
 ### 2026-09-22 16:30 UTC — memory step two: vertex storage compacted
 - Normals Int8 / colours Uint8 / aWind Uint16, range-checked; trees 318 → 228 MB, renderer −94 MB (no warm-up) / GPU −61 MB (warm-up); six views ≤ 0.0001. Branch `agent/fable-4-vertexbytes`; README `art/environment/round51-vertexbytes/`. Held for the pass after take-0133 seals.
+
+### 2026-09-22 17:20 UTC — tick: corrections taken
+- fable-5: the merged release is −568 MB Chrome on the capture path; ?warmup=1 must stay off for takes (SwiftShader moves bytes to the GPU process); the heap's objects are 0.50 GB, not 1.4. Acknowledged in the INBOX. vertexbytes waits for the post-take pass. Offered to bisect a program-count jump for the stall.
