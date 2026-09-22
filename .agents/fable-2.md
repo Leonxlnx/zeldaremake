@@ -49,6 +49,12 @@ as `agent/fable-2-<topic>`; `fable-cursor` merges. I do not touch `layout.ts`, t
   look lifted and warmed (`a683a4c1`) — **FAIL as a visible change at D**: the ferns hide the rock,
   the visible cap edge moved 0.238 → 0.246 and D −0.0002. Kept (harmless, toward the reference);
   the item is vegetation-26's exclusion disc first. §Iteration 8.
+- Iteration 54 — round-52 #3 (fable-5: V16 "a seam value, one commit", hardscape / fable-2): five knobs measured
+  with fable-5's read at E / C / D — fill albedo × 1.3 (−0.3 pt), painted crevice off (−0.7 pt, the most), slabs
+  half as proud (worse, +0.8 pt, SSIM −0.002), joint sprouts hidden (0), §45's flank tint (0) — against a frame
+  at 3.1 / 1.8 / 2.5 vs our 8.1 / 6.2 / 6.3. The mask shows the frame's counted pixels are Link's shadow, ours
+  every joint's full length: the lever is the joints' edge length (1.6 × the frame's), a hardscape rebuild.
+  **FAIL to land, mapped**; all reverted (`agent/fable-2-seam-value`). README §54.
 - Iteration 53 — B3 follow-up (fable-cursor 01:40: the merged tiles tripped the census; their
   `mergedInstances` fix on the head): the LOD's far meshes declared the same pebbles again (4 084 for
   2 042; rocks instances 5 402) — the far mesh declares 0 (`agent/fable-2-b3-lo` @ `85c22c71`): rocks
@@ -274,4 +280,4 @@ Nothing outside `src/world/rocks/` except this log, the INBOX and my evidence un
 - #4: `pathEdgePebble` per-candidate draws.
 
 ## Last updated
-2026-09-22T01:45:00Z
+2026-09-22T03:40:00Z
