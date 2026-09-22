@@ -49,6 +49,30 @@ as `agent/fable-2-<topic>`; `fable-cursor` merges. I do not touch `layout.ts`, t
   look lifted and warmed (`a683a4c1`) — **FAIL as a visible change at D**: the ferns hide the rock,
   the visible cap edge moved 0.238 → 0.246 and D −0.0002. Kept (harmless, toward the reference);
   the item is vegetation-26's exclusion disc first. §Iteration 8.
+- Iteration 61 — the rock meshes' CPU arrays released on GPU upload (`onUpload`, fable-4's tick-225 pattern;
+  nothing reads them after the build): at E 115 attributes released, live rock arrays 66.2 → 33.2 MB with §60;
+  pixels unchanged by construction (`agent/fable-2-rock-upload` @ `a1ed0427`). Rocks' part of the memory ask
+  is done: 40 MB on the GPU, ≈ 0 resident once seen. README §61.
+- Iteration 60 — every rock mesh's vertex storage compacted once after the build-time reads
+  (`compactRockGeometry`: uv off, Int8 normals, Uint8 for any 0–1 attribute, floats kept beyond the range):
+  **rocks 85.5 → 40.3 MB, JS heap −45 MB**; D 0.2785 = , E +0.0001, 0.24 / 0.04 % px > 8, none > 40; the 2 m
+  and 6.8 m poses 0.02 / 0.13 % (`agent/fable-2-rock-bytes` @ `59c68f32`). Rocks' bytes are done; the rest is
+  vertex count. README §60.
+- Iteration 59 — fable-cursor's 07:15 memory root cause (OOM kills, the tab at 3.6 GB): the per-system
+  geometry-bytes map from the page (trees 440 of 773 MB, rocks 86, textures ≈ 618 MB est.; heap 1 537 MB) —
+  `.agents/reviews/fable-2-memory-map-4f22e7ec.md` — and rocks' own cut: the §49 pebble tiles held 30.5 MB
+  (52 B/vertex float32 where the InstancedMeshes held 0.3); the far material reads position/normal/colour/aMoss
+  only, so the tiles drop uv/aWet and store normal Int8, colour and aMoss Uint8 → **30.5 → 11.2 MB, rocks 85.5
+  → 66.2, heap −19 MB**; E 0.23 % px moved by 2.3 levels, none > 40 (`agent/fable-2-pebble-bytes` @ `20b72fdf`).
+- Iteration 58 — fable-5's outer-edge knob on the dressing fade (13 → 20 m) measured along V20's bearing at
+  6.8 / 11 / 16 / 20 m: 9 / 384 / 29 / 2 changed px, the pair's fine σ +2 % at 11 m — **FAIL as a visible
+  change, reverted**: past 10 m the pair is behind the bank's ferns, and the skin's 5–12 cm terms are
+  sub-pixel there; the range past 10 m wants 20–40 cm form (geometry). README §58.
+- Iteration 57 — fable-5 accepted §54's correction and re-scoped V16 (04:48): visible line length × the
+  hard-groove share, the shadow map ruled out, the lever the recess coming and going along the joint —
+  routed to the module holder. Read the sites (`rimDrop` / `spallAt` in flagstones.ts) and posted a one-tick
+  plan (a low-frequency flush-stretch term on the spall channel, ≈ 40 % of each outline, depth = rim over
+  fill) asking fable-cursor for the go or the module; nothing built without it. Rocks' list empty.
 - Iteration 56 — the clearing's and backside's dressing take a near-capable material with a 7–13 m fade
   (`DRESSING_NEAR_FADE_M`, `agent/fable-2-dressing-fade` @ `0d86abbb`): the stones a walker sees at 5–20 m
   (the backside pair 6.8 m from `x-southbank-toe`) were the smooth far skin past the hero fade's 6.3 m; now
@@ -289,4 +313,4 @@ Nothing outside `src/world/rocks/` except this log, the INBOX and my evidence un
 - #4: `pathEdgePebble` per-candidate draws.
 
 ## Last updated
-2026-09-22T05:25:00Z
+2026-09-22T10:10:00Z

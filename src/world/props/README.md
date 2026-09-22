@@ -70,3 +70,7 @@ vertices, compact cluster bounds, placement rules, disposal. Then `npm run typec
 
 Visual acceptance is before/after at the survey poses (`art/environment/survey2/manifest.json`)
 and the six fixed views within −0.003 SSIM of the sealed take — see PR #13 and `.agents/fable-3.md`.
+
+Round 52 (the OOM ask): every merged locality mesh drops its CPU typed arrays on GPU upload (`releaseAfterUpload`,
+the trees' pattern) — ≈ 7.9 MB across the 13 meshes; bounds are computed first and nothing reads the arrays after
+build. The test asserts the hook on every attribute and index.

@@ -8,7 +8,7 @@
  * and loose fragments, and a material variant whose 2.6 m texture tile, wet band and crack grime
  * fade in under 6 m (material.ts). The six fixed hero cameras always render the far meshes.
  */
-import { Color, Frustum, Group, InstancedMesh, Matrix4, Mesh, PerspectiveCamera, Quaternion, Sphere, Vector3, type BufferGeometry, type Camera } from 'three';
+import { BufferAttribute, Color, Frustum, Group, InstancedMesh, Matrix4, Mesh, PerspectiveCamera, Quaternion, Sphere, Vector3, type BufferGeometry, type Camera } from 'three';
 import type { WorldContext, WorldSystem } from '../system';
 import { Noise2D, clamp, smoothstep } from '../util/noise';
 import { northBox, northVisible } from '../util/northLocality';
@@ -276,10 +276,57 @@ interface PebbleTile {
 }
 
 /** one tile's instances merged into a static mesh (looks baked in), or null when none */
+/**
+ * Vertex storage for the rock meshes (memory: the tab reached 3.6 GB in the takes, tick 223; rocks held
+ * 86 MB of attribute arrays, all of it rockgen's non-indexed float32 at 48–52 B per vertex). No rock
+ * material reads `uv` (the skin is triplanar), so it goes; the normal becomes Int8 ×3; and any attribute
+ * whose values all sit in 0–1 — colour, `aWet`, `aLichen`, a pebble's `aMoss` — becomes Uint8, normalised
+ * (the shader reads the same floats). An attribute outside 0–1 stays float32: the hero kits' `aMoss`
+ * carries the cushions (> 1) and the lichen plates (< 0). Idempotent — an attribute already stored as
+ * integers is left alone. `dropNearOnly` also removes `aWet`, for meshes on the far material, which
+ * never reads it.
+ */
+function compactRockGeometry(g: BufferGeometry, dropNearOnly = false): void {
+  const n = g.getAttribute('position').count;
+  const fits01 = (a: BufferAttribute) => {
+    for (let i = 0; i < a.array.length; i++) if (a.array[i] < -1e-6 || a.array[i] > 1 + 1e-6) return false;
+    return true;
+  };
+  const isFloat = (a: BufferAttribute | undefined): a is BufferAttribute => !!a && a.array instanceof Float32Array;
+  const normal = g.getAttribute('normal') as BufferAttribute | undefined;
+  if (isFloat(normal)) {
+    const out = new Int8Array(n * 3);
+    for (let i = 0; i < n * 3; i++) out[i] = Math.round(Math.max(-1, Math.min(1, normal.array[i])) * 127);
+    g.setAttribute('normal', new BufferAttribute(out, 3, true));
+  }
+  for (const name of ['color', 'aMoss', 'aWet', 'aLichen']) {
+    const a = g.getAttribute(name) as BufferAttribute | undefined;
+    if (!isFloat(a) || !fits01(a)) continue;
+    const out = new Uint8Array(a.array.length);
+    for (let i = 0; i < out.length; i++) out[i] = Math.round(Math.max(0, Math.min(1, a.array[i])) * 255);
+    g.setAttribute(name, new BufferAttribute(out, a.itemSize, true));
+  }
+  if (g.getAttribute('uv')) g.deleteAttribute('uv');
+  if (dropNearOnly) {
+    if (g.getAttribute('aWet')) g.deleteAttribute('aWet');
+    if (g.getAttribute('aLichen')) g.deleteAttribute('aLichen');
+  }
+  // and the CPU copy goes once the GPU has it (fable-4's trees do the same, tick 225): nothing reads
+  // a rock mesh's arrays after the build — the bounds are computed, the census reads `count`, the
+  // near-LOD swap toggles visibility, no raycast targets rocks — so the renderer keeps one copy, not two
+  for (const a of Object.values(g.attributes)) (a as BufferAttribute).onUpload(dropArray as unknown as () => void);
+  if (g.index) g.index.onUpload(dropArray as unknown as () => void);
+}
+
+const dropArray = function (this: { array: ArrayLike<number> | null }) {
+  this.array = null;
+};
+
 function mergeTile(parts: BufferGeometry[], material: Mesh['material'], name: string): Mesh | null {
   const merged = mergeGeometries(parts, false);
   for (const p of parts) p.dispose();
   if (!merged) return null;
+  compactRockGeometry(merged, true);
   merged.computeBoundingSphere();
   const mesh = new Mesh(merged, material);
   mesh.castShadow = false;
@@ -1386,6 +1433,21 @@ export async function create(ctx: WorldContext): Promise<WorldSystem> {
     },
     palette: { moss: [P.mossDeep, P.mossBright] },
   }));
+
+  // the rock meshes' vertex storage compacted last, after every build-time read of their attributes
+  // (compactRockGeometry): the hero kits and far LODs, the ledge, the dressing, the strata / rubble
+  // looks; the pebble tiles came through mergeTile already and are left as they are
+  {
+    const done = new Set<string>();
+    group.traverse((o) => {
+      const m = o as Mesh;
+      const mat = m.material as { name?: string } | undefined;
+      // every rock material comes from createRockMaterial and is named `rock-triplanar…`; the boulder plants are not
+      if (!m.isMesh || !m.geometry || !mat?.name?.startsWith('rock-triplanar') || done.has(m.geometry.uuid)) return;
+      done.add(m.geometry.uuid);
+      compactRockGeometry(m.geometry);
+    });
+  }
 
   return {
     name: 'rocks',
