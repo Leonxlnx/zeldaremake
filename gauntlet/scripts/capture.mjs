@@ -314,7 +314,7 @@ export async function captureAll({
   const rubricChecks = checks && rubric ? rubric.items.flatMap((it) => (it.checks ?? []).map((c) => ({ ...c, item: it.id }))) : [];
   const layout = checks ? parseLayout(undefined, (w) => log(`warning: ${w}`)) : null;
   const server = await serveStatic(distDir);
-  const browser = await launchBrowser({ width, height });
+  let browser = await launchBrowser({ width, height });
   const t0 = Date.now();
   const checksOut = { generatedAt: null, heroViewpoints, simTime: DEFAULT_SIM_TIME, settleFrames, depth: {}, probes: [], placements: {}, projections: {}, determinism: null, motion: null, layout: layout ? { stairs: layout.stairs, lanternBranch: layout.lanternBranch } : null, warnings: [...(layout?.warnings ?? [])] };
   try {
@@ -324,8 +324,13 @@ export async function captureAll({
     // near-LOD pools + persistent lobes resident across views); the seed is fixed, so a reloaded page
     // renders the same frames (the determinism pass below re-checks that on its own fresh page).
     const consoleParts = [consoleLines];
+    // a whole new browser, not just a page: a second page in the same Chrome never returned its
+    // first render call (the shared SwiftShader GPU process after the first page closed — 20 min
+    // timeout on the B view with a fresh page, fourth take-0133 start); a new process starts clean
     const freshPage = async () => {
       await page.close().catch(() => {});
+      await browser.close().catch(() => {});
+      browser = await launchBrowser({ width, height });
       const next = await openWorld(browser, server.url, { width, height, quality, log });
       page = next.page;
       consoleLines = next.consoleLines;
