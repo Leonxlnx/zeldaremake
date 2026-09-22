@@ -339,3 +339,12 @@ nearCanopy, materials, index otherwise) is edited.
 - 19:54 — standlod re-verified under the lighter haze (head with/without `60408959`): A 789 px (0.086 %),
   D 1 901 px (0.206 %), no legible difference in the arch window; posted for Astra's preview. round51-standlod
   README postscript + crop.
+
+### 2026-09-22 23:20 UTC — round 52: the colour pass draws only in-view family instances (`agent/fable-4-mainpass` @ `06a1dca5`)
+- Triangle map of A (hide-one-group): white-bark 0.52 M, of which 402 K two high-LOD instances behind the camera
+  kept for their shadows. Split kept into in-view + shadow-only; `onBeforeRender`/`onAfterRender` swap the
+  InstancedMesh count between the colour pass and the shadow pass. A three-sphere hull (crown / lower wood /
+  upper wood) replaces the fat bounding sphere for the colour-pass test (pad 1.5 m).
+- A −150 K, F −130 K, B/C/E −50 K, D −60 K; six views pixel-identical; 16/16 tests. Learned: a `const`
+  defined late in `create()` but used at build time throws a TDZ error at runtime that tsc does not catch —
+  the first v2 build failed the trees system ("Cannot access '$e' before initialization"); fixed by hoisting.
