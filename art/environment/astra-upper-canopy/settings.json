@@ -1,0 +1,11 @@
+{
+  "views": ["upper-envelope-southwest", "A_stairs", "F_canopy"],
+  "baselineViews": ["upper-envelope-southwest"],
+  "poses": {
+    "upper-envelope-southwest": {
+      "p": [-45.96, 29, 2.87],
+      "t": [-17.96, 26.78, 2.87],
+      "fov": 46
+    }
+  }
+}
