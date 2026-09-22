@@ -150,10 +150,13 @@ export const PROP_LAYOUT: readonly PropDef[] = [
   // the wall is 0.04 R + 0.02 = 0.156 m — no pot stands there — so it stands on the walkway deck's
   // mouth beside the door instead: 0.55 m from the platform rim along the deck (structures' rail
   // posts are at its middle and end, the rail anchors to the wall), on the door's side (+wSide:
-  // the door at bearing 103° is 0.46 m off the deck's 111° line), 0.23 m in from the edge — a
-  // squat pot 0.42 m across leaves 0.5 m of the 0.95 m deck to walk. Position and height come
-  // from `ctx.shared.walkSurfaces[0].deck` at build time; the x/z here are where that lands.
-  { id: 'west-door-pot', kind: 'pot', x: -19.2, z: 7.8, size: 0.42, yaw: 0.9, cluster: 'west-house', variant: 2, onDeck: { surface: 0, along: 0.55, side: 1 } },
+  // the door at bearing 103° is 0.46 m off the deck's 111° line), its rim a hand in from the
+  // edge. Round 52: 0.36 m across (was 0.42) now that the character's ground blocks props
+  // (r + 0.12): the lane left on the 0.95 m deck is 0.45 m for Link's centre, his 0.2 m half-width
+  // brushing only the margin, never the pot (geometry.test: the deck's own corridor). Position
+  // and height come from `ctx.shared.walkSurfaces[0].deck` at build time; the x/z here are
+  // where that lands.
+  { id: 'west-door-pot', kind: 'pot', x: -19.2, z: 7.8, size: 0.36, yaw: 0.9, cluster: 'west-house', variant: 2, onDeck: { surface: 0, along: 0.55, side: 1 } },
   // a waymarker on the outer (north) side of the west path past its fork at (−8.6, 9.4), where
   // the south branch leaves for the bank: 0.9 m off the west line's discs, 2.5 m west of `cClip`'s
   // margin, 2.2 m from the bush the vegetation scatter put at (−8.83, 8.38) (a first spot at

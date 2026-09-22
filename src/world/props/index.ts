@@ -282,7 +282,8 @@ export async function create(ctx: WorldContext): Promise<WorldSystem> {
       const dir = run.clone().normalize();
       const side = new Vector3(-dir.z, 0, dir.x);
       const t = Math.min(1, Math.max(0, def.onDeck.along / Math.max(length, 1e-6)));
-      const p = a.clone().lerp(b, t).addScaledVector(side, def.onDeck.side * Math.max(0, surface.deck.hw - 0.23));
+      // inset so the piece's rim sits a hand (1 cm) inside the deck's edge, whatever its size
+      const p = a.clone().lerp(b, t).addScaledVector(side, def.onDeck.side * Math.max(0, surface.deck.hw - (footprintRadius(def) + 0.01)));
       x = p.x;
       z = p.z;
       groundY = p.y;

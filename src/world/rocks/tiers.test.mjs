@@ -6,6 +6,7 @@ import { fileURLToPath } from 'node:url';
 import path from 'node:path';
 import ts from 'typescript';
 import * as THREE from 'three';
+import * as BufferGeometryUtils from 'three/examples/jsm/utils/BufferGeometryUtils.js';
 
 const modules = new Map();
 function loadTs(file) {
@@ -19,6 +20,7 @@ function loadTs(file) {
   new Function('require', 'module', 'exports', source)(
     (name) => {
       if (name === 'three') return THREE;
+      if (name === 'three/examples/jsm/utils/BufferGeometryUtils.js') return BufferGeometryUtils;
       if (name.startsWith('.')) {
         const target = path.resolve(path.dirname(file), name);
         for (const candidate of [target, target + '.ts', path.join(target, 'index.ts')]) {

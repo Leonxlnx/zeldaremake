@@ -2723,8 +2723,10 @@ export function buildLogArch(ctx: WorldContext, mats: StructureMaterials, rng: R
           const s = Math.max(0, 1 - dist / RIM_ROLL);
           const roll = RIM_ROLL * (1 - Math.sqrt(Math.max(0, 1 - s * s)));
           // the roll's end would lie on the tube's wall (same depth, a brighter material — it
-          // z-fights through in patches); tuck it 4 cm outward along the ray, behind the wall
-          const tuck = 0.04 * s * s;
+          // z-fights through in patches); tuck it outward along the ray, behind the wall — 6 cm at
+          // the rim, linear in s so the mid-roll rays, which meet the wall at the shallowest angle,
+          // get their share (fable-2's review of c48d6a6e: the 0.04 · s² left a slot on the east face)
+          const tuck = 0.06 * s;
           const eP = e + ((o.e - rim.e) / rayLen) * tuck;
           const yP = y + ((o.y - rim.y) / rayLen) * tuck;
           // bark plates standing out of the face, the rim itself flush (it meets the tube)
@@ -2733,7 +2735,10 @@ export function buildLogArch(ctx: WorldContext, mats: StructureMaterials, rng: R
           const aP = aAt(eP) + off - outward * roll;
           fromTube(aP, eP, out.position);
           out.position.y = worldY(aP, eP, yP);
-          out.uv = [e / 1.3, y / 1.3];
+          // the bark continues round the corner: the roll's arc advances the across coordinate, so
+          // the strip carries the wall's grain instead of a stretched smooth band
+          const arc = RIM_ROLL * Math.asin(Math.min(1, s));
+          out.uv = [(e - Math.sign(e || 1) * arc) / 1.3, y / 1.3];
           // occlusion up under the belly's overhang and toward the tube's rim, into the bore's value over the roll
           const bore = lerp(0.6, 1, smoothstep(0, RIM_ROLL * 1.5, dist));
           const occl = lerp(0.55, 1, smoothstep(0, 0.35, v)) * lerp(1, 0.6, smoothstep(2.4, 3.6, y)) * bore;
