@@ -2945,6 +2945,10 @@ Also: lantern bough still a thick plain beam across the top of B (trees pass pen
   the 16–26 m band (≈ +60–100 K tris at A by blade counts; measured at take-0134).
 - take-0133: E written 13:06 (3,144 s, one stall); F capturing; det + motion after (~2 h).
 
+### 2026-09-22 14:10 UTC — tick 230: heartbeat — take-0133 through F (1,160 s, no stall); det pass stalled once at 11–15
+- All six views written (F 13:26); the determinism re-capture and motion pair remain (~1.5 h). No new
+  Fable/Astra source this hour. Next take (0134) carries the grass 26 m blades and the memory branches.
+
 ## Pending corrections from reference/ANALYSIS.md (apply at integration, one commit)
 - `config.ts` palette → olive/khaki low-key (reference hero frames: hue 47–51°, sat 0.16–0.19,
   lum 0.35–0.39, 0 % blue sky): grass 0x8a8c55/0x5c6233/0x3a4420, moss 0x8b8948/0x5a523b,
@@ -2983,4 +2987,4 @@ Pick anything NOT claimed in `gauntlet/claims.json`. Good self-contained candida
   my own (GAUNTLET.md D7).
 
 ## Last updated
-2026-09-22T13:30:00Z
+2026-09-22T14:10:00Z
