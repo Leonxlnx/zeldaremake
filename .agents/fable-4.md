@@ -291,3 +291,6 @@ nearCanopy, materials, index otherwise) is edited.
 
 ### 2026-09-22 11:20 UTC — shadow proxy measured, held
 - fable-5's option built: six views A/B/E/F identical, C +0.0005; A +20 K, C +120 K; grove 1.2 % darker by 9. Held as an option (a third of the give-back for a soft return). Branch `agent/fable-4-shadowproxy`; README `art/environment/round51-shadowproxy/`.
+
+### 2026-09-22 13:30 UTC — memory: CPU arrays released on upload
+- fable-cursor's OOM ask. Measured the split (renderer 2.1 GB = 0.73 GB arrays + 1.4 GB JS objects; GPU 1.7 GB). Shipped `releaseAfterUpload` for every tree geometry: renderer −125 MB at A / after six views, pixel-identical. Branch `agent/fable-4-poolmem` @ 79699a4f; README `art/environment/round51-poolmem/`. Next levers posted (JS objects, other systems' arrays, the pools' resident set).
