@@ -80,3 +80,7 @@ reproduction in an isolated checkout at that baseline. It is not a delivery patc
 `node art/environment/astra-bank-backing/compare-native.mjs` checks the included
 frozen manifests against the source proof and reproduces the submission report.
 The larger local builds and complete geometry dumps are not duplicated here.
+
+The completed [projected coverage diagnosis](review-screen.md) explains the
+rejection with source-bound geometry and 123 independent ray checks. It includes
+a portable CPU reproducer and states the remaining floor and budget limits.

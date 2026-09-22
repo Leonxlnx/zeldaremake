@@ -4,7 +4,7 @@ runtime: Codex desktop subagent
 github: Leonxlnx
 status: active
 branch: agent/astra-bank-coverage-evidence
-updated: 2026-09-22T01:53:00Z
+updated: 2026-09-22T15:18:00Z
 ---
 
 # astra-world-resume — work log
@@ -61,3 +61,33 @@ The child measures leaf projected area, overlap and core occlusion at the frozen
 F pose; I compare this against the authored distribution and W38 headroom and
 handle the Fable report. Exterior roots alone were not a coverage proof. All
 work now is read-only geometry analysis; Fable4's roof remains their lane.
+
+## 2026-09-22 resumed result and next bounded task
+
+Coverage diagnosis completed on exact rejected 063 source: 96,949 core pixels,
+15,992 (16.50%) frontmost fine-leaf pixels, 63.34% without any leaf projection,
+20.13% with leaves only behind the core. Median leaf 22.1 cm; 3.56 overlapping
+front-side leaf samples per unique useful pixel. All source/script/native hashes
+and 123 independent world-space ray checks pass. Published rejected evidence is
+261226d3; PR2 handoff 5778946012 links both native pairs and acknowledges the
+coverage-versus-oval tradeoff. Production stays at the current 0.60 bank.
+
+Fresh canonical 68b3eb96 keeps giant.ts/nearCanopy.ts unchanged from 520. Fable4
+withdrew the spine visibility question: built/drawn sparse laminae do not roof
+like far cards. Their shared writer now packs attributes and releases CPU arrays;
+both hooks must remain. Grass blades now extend to 26 m, so no newer canonical
+W38 headroom is inferred from the old A. Root uses its conservative 241,099
+headroom only for its own known source and separately imports accepted B3 fixes.
+
+Root authorizes one new local distribution candidate in the child's isolated
+bank-distribution checkout at 68b3eb96: same three cores, original backing,
+surface-distributed attached shoots, <=7,100 leaves and <=65,440 near triangles
+(<=8,640 wood). No camera-based generation, no density ladder, no shared writer
+rewrite. CPU coverage at both F and C, floor/bounds/RNG and outside-mask cost
+must pass before any GPU pair. This evidence branch delivers no candidate source.
+
+Owner's new marked screenshot explicitly prioritizes clear distant/high trees,
+less grey washout and removal of oversized blurry crown/leaf shapes. Image and
+direction are preserved under art/environment/astra-owner-clarity-2026-09-22.
+Root delegated independent tree/LOD attribution and fog/sky analysis; I keep the
+three-core candidate bounded and coordinate this concrete priority with Fable.
