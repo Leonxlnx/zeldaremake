@@ -109,3 +109,29 @@ that the fixed frames cannot see. Nothing to add.
 
 The PR #29 regression flagged in §D (A −0.0027, C −0.0040, F −0.0104) is still on the head at `da314d7c`;
 the next take pays it unless it is pulled first.
+
+## F. Iteration 51 (01:38–02:00 UTC) — the ranked list re-cut for round 52 (no take since 0131; take-0132 lost to a timeout, 0133 running)
+
+Where the score stands with my verdicts: **41/50, Phase 1 36/42**. Visual fails left: W05, W09, W10, W30,
+W31, C01, C02, U02 (+ W37, an auto item). Since the round-50 list: W02 (log risers), W08 (the hero
+stem), W23 (the D rock), W06 (the verge band) turned; the tunnel, the backside, the plateau roof, the
+north stand, the anchor at C, the shelf mouths, the hearth, the arch rim landed. Ordered by the owner's
+priorities (stones, trees, distance) and then by what turns a verdict:
+
+| # | item | what the frames still want | system | verdict it turns |
+| --- | --- | --- | --- | --- |
+| 1 | **PR #29's bank-core recession on the head** | pull it or back the receded lobes with a dark core — F −0.0104, C −0.0040 (§D) before the next seal books it | Astra / fable-cursor | protects W10/W11's reads |
+| 2 | **the canopy's near/mid hue** | the house cap at 69° and A/F's canopy band at 73–75° against the frames' 60–65°; the warmth reached the far crowns only (C-top 72°, D-top on the frame) | Astra (near-canopy / cluster materials) | the owner's "trees too green" |
+| 3 | **V16's seams** | joint-like dark area 2.5–3.4× the frame's at E/C/D (fable-2's re-measure agrees); slabs 0.03 dark | hardscape / fable-2 | W03's note |
+| 4 | **the flight's treads** | the A flight box 40.7 % dark vs the frame's 15.8 % after the tint; thin logs did not help; the treads sit in canopy shade where the frame's climb into a haze gap (V17) | canopy gap / atmosphere over the flight | V17 |
+| 5 | **W09 giants** | no flare, no limbs at frame scale; the bark is brown now (take-0127) and the emergent's cushions thinned — the form is the gap | trees / giants | W09 |
+| 6 | **W10 canopy at F** | "dense, layered canopy with light breaking through": F's top still opens to haze/sky between lobes; the plateau roof closed the look-up, not F | canopy (owner-fable) | W10 |
+| 7 | **V2's window** | trunks are there (the stand) but dark (0.284 vs 0.326); no lights; the ground plane shows | astra-distance / atmosphere / terrain north | V2, V19's structural half |
+| 8 | **W30 / W31 light** | sun direction and softness, god rays soft and directional — untouched since take-0116 | lighting | W30, W31 |
+| 9 | **C01 tunic** | one grade step (lighter 0.07, +0.06 sat, ~5° toward yellow); skin and hair match | npc / Astra | C01 |
+| 10 | **W05 the C mound** | the terrain has to tier; fable-2's slabs wait on the risers | terrain / vegetation | W05 |
+| 11 | **C02, U02** | the Kokiri Sword; the equipment screen's layout | character / shell | C02, U02 |
+| 12 | V3 the right bank at D; V14 the pod posts (1 pod on a hook vs 3–4 on a bark post); W23's fern hat and one plane | terrain; structures; rocks | notes |
+
+Three of these are one commit each (#1 a revert, #9 a grade step, #3 a seam value); #4 and #8 are the
+same light; #2 is the largest visible one left in the owner's own words.
