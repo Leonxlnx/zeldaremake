@@ -2937,6 +2937,14 @@ Also: lantern bough still a thick plain beam across the top of B (trees pass pen
   also measured where a SwiftShader frame's 10–14 s go: trees 40 %, vegetation 15 %, terrain 11–15 %.
 - take-0133: A/B/C written (09:10 / 10:19 / 11:08); D past its stall; E, F, det, motion to go.
 
+### 2026-09-22 13:30 UTC — tick 229: the owner's grass item, by hand — blades to 26 m; take-0133 at F
+- vegetation-28's survey (on disk) shows the sampled lawn cells dense (≥ 75 blades/m² everywhere but one
+  foot cell) — the "patches" a walker sees are the far half of every lawn past 16 m, where the blade
+  tiles were hidden and only the carpet's clump cards/mats remained. `grass.ts` mid LOD 16 → 26 m
+  (f9c58007); contract updated. Cost per fixed camera: +41 tiles at A, +31 F, +23 B/E, +13 C, +6 D in
+  the 16–26 m band (≈ +60–100 K tris at A by blade counts; measured at take-0134).
+- take-0133: E written 13:06 (3,144 s, one stall); F capturing; det + motion after (~2 h).
+
 ## Pending corrections from reference/ANALYSIS.md (apply at integration, one commit)
 - `config.ts` palette → olive/khaki low-key (reference hero frames: hue 47–51°, sat 0.16–0.19,
   lum 0.35–0.39, 0 % blue sky): grass 0x8a8c55/0x5c6233/0x3a4420, moss 0x8b8948/0x5a523b,
@@ -2975,4 +2983,4 @@ Pick anything NOT claimed in `gauntlet/claims.json`. Good self-contained candida
   my own (GAUNTLET.md D7).
 
 ## Last updated
-2026-09-22T12:15:00Z
+2026-09-22T13:30:00Z
