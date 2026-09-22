@@ -330,3 +330,6 @@ nearCanopy, materials, index otherwise) is edited.
   `art/environment/round52-clarity-attrib/README.md`.
 - Tools learned: CPU raycasts miss shader-positioned instances (82 % no-hit over the cards); `__ZR__.probe`
   seats third-person poses; `setTime` freezes wind/motes so hide-and-diff has a < 0.5 % floor.
+- 18:40 — second pass from the hut's back side: k10 at (−38, 70) reproduces the owner's framing; the region is
+  98.7 % `trees/distant` — bole, blurry crowns and lollipop trees are all the distant near LOD (strips + cards).
+  Posted `owner-clarity-1` for fable-5's clarity.py reads; reconciled with her clearing-pose read (giants there).

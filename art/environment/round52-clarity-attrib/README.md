@@ -34,6 +34,30 @@ cards sharpen or the haze thins, what stands beside them at 18–45 m is the whi
 in 8 at 2.53× since round 51's lodthin); I re-check those crowns at k3/k4 after her change lands and take
 them back if they read soft next to sharper cards.
 
+## Second pass — the north side of the hut host, and the closest match to the owner's framing
+The owner's bole has a bulge and a lit sliver at the circle's height — the hut seen from behind. Four more
+seated candidates from the north (`candidates-north-grid.jpg`: k7 (−41, 58), k8 (−56, 54), k9 (−27, 56),
+k10 (−38, 70), all looking at the hut bole). **k10 reproduces the owner's framing**: turf, a big smooth
+limbless trunk at one edge, the hut bole ahead, slender lollipop trees, huge soft grey lobes at the top-left
+in haze, a strip of sky.
+
+| pose | sky | `trees/distant` | `trees/white-bark` | `canopy` roof | `trees/columns` |
+|---|---|---|---|---|---|
+| k7 — (−41, 58) → hut bole | 28.7 % | **75.0 %** | 9.3 % | 5.3 % | 1.8 % |
+| k10 — (−38, 70) → hut bole | 4.3 % | **98.7 %** | 0.6 % | 1.5 % | 0.4 % |
+
+`k10-base-vs-no-distant.jpg`: hiding `trees/distant` removes **both big smooth trunks and every soft lobe at
+the top** — what remains is the hut column, the crisp white-barks, the canopy roof's leaf-shaped lobes at the
+top right, and the haze. So the owner's whole motif — the limbless bole, the blurry crowns at height, the
+lollipop trees — is the **distant trees' near LOD (crossed trunk strips + crown cards) seen from 5–30 m**,
+i.e. `distant.ts` (Astra's) with the far-crown atlas she is already repainting. fable-5's five clearing poses
+read the giants' near→far canopy swap because in the clearing the giants are the high crowns; on the meadows
+and around the stand the distant system is. The owner's lollipop trees put his frame on a meadow.
+
+**Survey pose for the clarity set (`owner-clarity-1`, seat = k10):** camera (−38, 3.33, 70) → target
+(−41, 13.58, 36), fov 50, 896×776; the region to read is the upper-left 62 % × 46 %. Eye = terrain + 1.8 m
+through `__ZR__.probe`, so it survives terrain edits.
+
 ## Method notes
 - A CPU raycast could not attribute this: 82 % "no hit" over the blobs at k3 — the cards are placed in the
   vertex shader from instance attributes, so `Mesh.raycast` sees geometry at the origin. Hide-and-diff is
