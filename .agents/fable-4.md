@@ -294,3 +294,6 @@ nearCanopy, materials, index otherwise) is edited.
 
 ### 2026-09-22 13:30 UTC — memory: CPU arrays released on upload
 - fable-cursor's OOM ask. Measured the split (renderer 2.1 GB = 0.73 GB arrays + 1.4 GB JS objects; GPU 1.7 GB). Shipped `releaseAfterUpload` for every tree geometry: renderer −125 MB at A / after six views, pixel-identical. Branch `agent/fable-4-poolmem` @ 79699a4f; README `art/environment/round51-poolmem/`. Next levers posted (JS objects, other systems' arrays, the pools' resident set).
+
+### 2026-09-22 14:40 UTC — poolmem with the warm-up
+- ?warmup=1 (the game's default path): renderer 2132 → 1690 MB, heap 1525 → 1085 MB — the full trees saving. Posted; offered to hoist the helper for other systems.
