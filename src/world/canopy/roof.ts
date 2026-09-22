@@ -69,12 +69,14 @@ export const HERO_MARGIN = 0.03;
  * the stand: a rectangle (world x / z), the height the roof hangs above the local ground
  * (22 m: a 26 m pole × 0.85–1.1 scale is 22–29 m tall with its small crown centred at ≈ 0.7 of
  * that, 15–20 m up — the roof is the layer OVER those crowns, as it is over the giants'), and a
- * feather (m) over which the support fades outside the rectangle — 14 m: at the clearing's
- * centre (10.5 m from the west flank) the support is 0.16, at its east edge ≈ 0.05, so about a
- * quarter of the cells over the clearing build and it closes with hazy gaps rather than a solid
- * lid or open sky. Read only by the stand pass (buildRoof `stand`), which draws from its own
- * stream and writes its own sector mesh, so the plaza roof's clumps and cards are byte-identical
- * with or without it.
+ * feather (m) over which the support fades outside the rectangle — 20 m on the flanks and the
+ * back stand: at the clearing's centre (10.5 m from the west flank) the support is 0.46, at its
+ * east edge ≈ 0.25, so about half the cells over the clearing build and it closes with hazy
+ * gaps rather than a solid lid or open sky (at 14 m — 0.16 at the centre — five clumps hung over
+ * the clearing and its sky stayed mostly open; the six views paid nothing either way: measured
+ * in the PR). Read only by the stand pass (buildRoof `stand`), which draws from its own stream
+ * and writes its own sector mesh, so the plaza roof's clumps and cards are byte-identical with
+ * or without it.
  */
 export interface RoofStandBand {
   xMin: number;
@@ -87,9 +89,9 @@ export interface RoofStandBand {
   feather: number;
 }
 export const ROOF_STAND_BANDS: readonly RoofStandBand[] = [
-  { xMin: -34, xMax: -12, zMin: -82, zMax: -64, crownAbove: 22, feather: 14 },
-  { xMin: 12, xMax: 34, zMin: -82, zMax: -64, crownAbove: 22, feather: 14 },
-  { xMin: -12, xMax: 12, zMin: -90, zMax: -81, crownAbove: 22, feather: 14 },
+  { xMin: -34, xMax: -12, zMin: -82, zMax: -64, crownAbove: 22, feather: 20 },
+  { xMin: 12, xMax: 34, zMin: -82, zMax: -64, crownAbove: 22, feather: 20 },
+  { xMin: -12, xMax: 12, zMin: -90, zMax: -81, crownAbove: 22, feather: 20 },
   { xMin: -34, xMax: 48, zMin: -61, zMax: -55, crownAbove: 21, feather: 10 },
 ];
 /**
