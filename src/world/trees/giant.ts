@@ -34,7 +34,7 @@ import { CARD_UV0 } from './leaf-cluster-texture';
 import { LEAF_FLAT_MAP_LUM } from './materials';
 import { buttressRoot, consumeTubeDraws, kneeBump, kneeStub, reliefBole, reliefBoleSteps, sweepAxisAt, type BoleKnee, type TubeDraws } from './bole';
 import { basePlants, basePlantsSteps, type BasePlantResult } from './base-plants';
-import { NEAR_CANOPY_FLAT_SWAP_M, NEAR_CANOPY_MAX_Y, createNearCanopyKit, runSteps, swapRadiiFor, type HeroDistanceFn, type NearCanopyPart, type NearLimbRecord, type NearLobeRecord } from './nearCanopy';
+import { NEAR_CANOPY_FLAT_SWAP_M, createNearCanopyKit, runSteps, swapRadiiFor, type HeroDistanceFn, type NearCanopyPart, type NearLimbRecord, type NearLobeRecord } from './nearCanopy';
 
 /**
  * Near-bole LOD (round 39, the owner's walk-down note: "the bottom of the trees need to be super
@@ -583,13 +583,11 @@ export interface GiantOptions {
   /** near-base plant colours (the palette's ferns / ground leaves / litter) */
   basePalette?: Parameters<typeof basePlants>[2]['palette'];
   /**
-   * Near-canopy LOD (see NEAR_CANOPY_IN_M). `heroDistance(center, radius)` (local): the distance
-   * (m) of the nearest hero camera that frames the part's padded sphere from within the swap
-   * distance, or Infinity when none does. A framed part swaps only closer than that camera stands
-   * (NEAR_CANOPY_HERO_MARGIN inside it), so the six fixed frames never see a swap while the same
-   * lobe still turns to laminae for a player walking under it. Undefined = no near canopy.
+   * Near-canopy LOD (see NEAR_CANOPY_IN_M). Undefined disables near-canopy registration.
+   * `defer` leaves ordinary lobes as records for the pool's chunked builder. The legacy
+   * hero-distance callback is accepted for caller compatibility but does not restrict detail.
    */
-  nearCanopy?: { heroDistance?: HeroDistanceFn };
+  nearCanopy?: { heroDistance?: HeroDistanceFn; defer?: boolean };
 }
 
 export function createGiantTree(def: GiantTreeDef, rng: Rng, o: GiantOptions): GiantAsset {
@@ -1350,15 +1348,14 @@ export function createGiantTree(def: GiantTreeDef, rng: Rng, o: GiantOptions): G
   // is written — their far wood as built, so the near versions can fork on from it
   const near = o.nearCanopy;
   const nearLobes: NearLobeRecord[] = [];
-  /** big limbs below the cap, for the limb dressing parts (moss strip, vines) */
+  /** big limbs at any altitude, for the limb dressing parts (moss strip, vines) */
   const nearLimbs: NearLimbRecord[] = [];
   let nearGroups = 0;
   const nearTally = { kept: 0, limited: 0 };
   const swapRadii = (center: Vector3, radius: number) => swapRadiiFor(near?.heroDistance, center, radius, nearTally);
   const recordLimb = (path: Vector3[], radii: number[], sleeve?: NearLimbRecord['sleeve']) => {
     if (!near || ghost) return;
-    const midY = sample(path, 0.5).y;
-    if (midY > NEAR_CANOPY_MAX_Y || path.length < 3) return;
+    if (path.length < 3) return;
     // the dressing's reach: half the limb plus the vines' drop (the same bound its part reports)
     const reach = 0.5 * path.reduce((s, p, i) => (i ? s + p.distanceTo(path[i - 1]) : 0), 0) + 3.8;
     const radii2 = swapRadii(sample(path, 0.6), reach);
@@ -1379,18 +1376,15 @@ export function createGiantTree(def: GiantTreeDef, rng: Rng, o: GiantOptions): G
   const twigTip = canopy.clone().multiplyScalar(0.55);
   function foliateLobe(bough: Vector3[], center: Vector3, hR: number, vR: number, boughRadius: number, subCount = 3, twigCount = 4, sprigCount = 4, mult = 0.55, cardMult = 1, compact = false, stemRadii?: number[]) {
     lobe = { center, hR };
-    // near-canopy eligibility (nearCanopy.ts): an ordinary lobe below the cap, its swap radii cut
-    // under any hero camera that frames it. Its far foliage is tagged with the lobe's group while
-    // it is written; nothing about the far lobe itself changes.
+    // Register eligible lobes at every height. Far foliage gets a group tag; the live camera
+    // and bounded pool decide when its detailed replacement can be shown.
     let rec: NearLobeRecord | null = null;
     // Round 44 (survey #12: "near-canopy lobes at 5–8 m = huge single-tone flat shapes"): a FLAT
     // lobe (the bank canopy's cored lobes, 3.4 m over the plaza's east edge) is eligible too. Its
-    // far foliage stays the flat, even mass the hero frames measure at 10–15 m (writer.ts writes
-    // a flat tagged leaf as 1000 + group + share, decoded as flat), and under the swap radius —
-    // 9–12 m for these, cut under A by swapRadii — a player sees the same lit, layered near
-    // version every other lobe gets, on the wood the core hid.
+    // far foliage stays available (writer.ts writes a flat tagged leaf as 1000 + group + share,
+    // decoded as flat) until its detailed version is resident inside the live swap distance.
     const flatEligible = lobeFlat && !compact && !ghost;
-    if (near && !ghost && !detachedMode && (flatEligible || (!lobeFlat && !compact && lobeTone === 1 && leaves.leafShade === 1 && eyeOverride !== 1)) && center.y <= NEAR_CANOPY_MAX_Y) {
+    if (near && !ghost && !detachedMode && (flatEligible || (!lobeFlat && !compact && lobeTone === 1 && leaves.leafShade === 1 && eyeOverride !== 1))) {
       const fixedSwap = flatEligible && NEAR_CANOPY_FLAT_SWAP_M !== null;
       const radii2 = fixedSwap ? NEAR_CANOPY_FLAT_SWAP_M : swapRadii(center, hR + 1.4);
       if (radii2) {
@@ -2026,7 +2020,7 @@ export function createGiantTree(def: GiantTreeDef, rng: Rng, o: GiantOptions): G
         .multiplyScalar(vigor * (1 - interior * 0.32) * (1 - under * 0.12));
     };
     const kit = createNearCanopyKit({ id: `giant-${def.id}`, barkColor, leafColor: nearLeafColor, canopy });
-    nearLobes.forEach((rec, idx) => nearCanopy.push(kit.lobePart(r, rec, idx)));
+    nearLobes.forEach((rec, idx) => nearCanopy.push(kit.lobePart(r, rec, idx, near.defer)));
     nearLimbs.forEach((limb, idx) => nearCanopy.push(kit.limbPart(r, limb, idx)));
   }
 
