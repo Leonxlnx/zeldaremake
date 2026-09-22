@@ -158,8 +158,11 @@ const UNIFORM_STDDEV = 2; // /255
 /** world-box mean luminance (0..1) below which the frame counts as not drawn (clear colour + HUD) */
 const DARK_MEAN = 0.12;
 
-/** Frames per CDP call — keeps every call well under puppeteer's protocolTimeout on slow SwiftShader boxes. */
-const RENDER_CHUNK = 15;
+/** Frames per CDP call — keeps every call well under puppeteer's protocolTimeout on slow SwiftShader boxes.
+ *  (2026-09-22: 15 → 5 — the first chunk after a viewpoint switch carries the near-LOD builds and shader
+ *  compiles; two takes died at the 600 s protocolTimeout inside it under load. The rendered frame sequence
+ *  is the same: render(k, 1/60) advances k frames whatever the chunking.) */
+const RENDER_CHUNK = 5;
 
 async function renderAt(page, viewpointId, simTime, frames, log = null) {
   const ok = await page.evaluate((id) => window.__ZR__.setViewpoint(id), viewpointId);
