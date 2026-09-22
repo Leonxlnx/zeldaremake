@@ -16,6 +16,19 @@ B 526 / C 393 / D 394 / E 526 / F 512; A 9.09 M tris on both (the head's number,
 change's — flagged to fable-cursor). Files: `ledge2-x-clearing-n.jpg` (+ `-crop`),
 `ledge2-x-ledge-foot.jpg`, `ledge2-x-northpath-n.jpg`.
 
+## Iteration 61 — the rock meshes' CPU arrays go on upload — `agent/fable-2-rock-upload` @ `a1ed0427` (stacked on §60)
+
+fable-4's `poolmem` (tick 225): every tree geometry drops its CPU typed arrays once the GPU has them (`BufferAttribute.onUpload`),
+renderer RSS at A −125 MB; fable-5's reconciliation: "`onUpload` drops the CPU copy of all static geometry — no GPU cost".
+Rocks qualify — nothing reads a rock mesh's arrays after the build: the bounds are computed before the first frame (three's
+frustum check runs before the upload on a mesh's first visible frame, from the array still present), the census reads
+`count`, the near-LOD swap toggles visibility, the rubble / strata skirt collapse writes the mesh's `instanceMatrix` (not a
+geometry attribute), and the only raycast in the tree is terrain's own sampler proof. So `compactRockGeometry` now also
+registers the drop on every attribute and index. At E after the first frames: **115 rock attributes released; live rock
+arrays 66.2 → 33.2 MB** (§60's compaction plus the drop on everything drawn — the hidden near kits keep theirs until first
+shown). The heap samples swing with GC timing (1 385 vs 1 475 MB between two runs), so the array bytes are the measure; the
+pixels cannot change (the GPU buffers are the same data). Tests 28/28 (no renderer in node: `onUpload` never fires there).
+
 ## Iteration 60 — every rock mesh's vertex storage compacted: rocks 85.5 → 40.3 MB, the JS heap −45 MB — `agent/fable-2-rock-bytes` @ `59c68f32` (stacked on §59)
 
 The second memory step §59 named, generalised: `compactRockGeometry` runs once over every mesh drawn with a rock material

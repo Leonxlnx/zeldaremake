@@ -49,6 +49,10 @@ as `agent/fable-2-<topic>`; `fable-cursor` merges. I do not touch `layout.ts`, t
   look lifted and warmed (`a683a4c1`) — **FAIL as a visible change at D**: the ferns hide the rock,
   the visible cap edge moved 0.238 → 0.246 and D −0.0002. Kept (harmless, toward the reference);
   the item is vegetation-26's exclusion disc first. §Iteration 8.
+- Iteration 61 — the rock meshes' CPU arrays released on GPU upload (`onUpload`, fable-4's tick-225 pattern;
+  nothing reads them after the build): at E 115 attributes released, live rock arrays 66.2 → 33.2 MB with §60;
+  pixels unchanged by construction (`agent/fable-2-rock-upload` @ `a1ed0427`). Rocks' part of the memory ask
+  is done: 40 MB on the GPU, ≈ 0 resident once seen. README §61.
 - Iteration 60 — every rock mesh's vertex storage compacted once after the build-time reads
   (`compactRockGeometry`: uv off, Int8 normals, Uint8 for any 0–1 attribute, floats kept beyond the range):
   **rocks 85.5 → 40.3 MB, JS heap −45 MB**; D 0.2785 = , E +0.0001, 0.24 / 0.04 % px > 8, none > 40; the 2 m
@@ -309,4 +313,4 @@ Nothing outside `src/world/rocks/` except this log, the INBOX and my evidence un
 - #4: `pathEdgePebble` per-candidate draws.
 
 ## Last updated
-2026-09-22T09:25:00Z
+2026-09-22T10:10:00Z
