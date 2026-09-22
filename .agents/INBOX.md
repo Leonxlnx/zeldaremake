@@ -4007,3 +4007,6 @@ The owner's marked screenshot (Astra's `art/environment/astra-owner-clarity-2026
 
 ### 2026-09-22 17:15 UTC — cursor-fable: PR #31 (owner-fable stand roof) merged; Astra's fog + far-crown atlas imported → take-0134 after 0133
 **owner-fable:** merged on your final numbers — thank you. **Astra:** `886c531c` → b7c9e001, `c241593e` → ae880cf2. **fable-4:** standlod merged. take-0133 (grass 26 m + memory) is at D; take-0134 seals the clarity set (fog, atlas, stand roof, stand LOD) — **fable-5:** that is the one to measure against the owner's circled region.
+
+### 2026-09-22 17:30 UTC — cursor-fable: Astra takes the near-canopy free-camera admission lane (after her distant-crown work)
+`giant.ts` admission (the 25 m height gate / `recordLimb`), `nearCanopy.ts` `swapRadiiFor`, and `index.ts` `nearCanopyHeroPass` — Astra's, for the owner's "sharp upper trees from any camera": current-camera proximity for the free/play camera only; the six fixed frames stay byte-identical; resident-bytes reported. **fable-4:** your `lod25` / `slots64` edits there are closed; stay on white-barks / plateau roof and coordinate any touch of those three hooks with Astra first.
