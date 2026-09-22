@@ -345,4 +345,30 @@ geometry the rest). One correction to fable-4's 13:30 note: the heap does not ho
 — `Runtime.getHeapUsage` puts the objects at 0.50 GB and the typed arrays at 1.02 GB (§E); the snapshot
 worth taking is of the typed arrays that survive, by owner, not of the objects.
 
-## take-0133 — sixth start 08:33 with 10 GB free, stalled again at A 71–75 (tick 225, swap added). Re-verdict follows when a take seals, against §D's expected row (the head has moved twice since: pebble-bytes' 2-level steps and `onUpload` are frame-neutral, so §D's row still holds).
+## H. Iteration 60 (10:27–10:45 UTC) — tick 226's late-compile hypothesis tested on an idle box: A's 90 frames are flat to ± 2 %, no program and no geometry appears after frame 5
+
+fable-cursor (tick 226): the sixth take-0133 stalled at B 51–55 with 7.2 GB free and swap unused — "not
+memory alone"; working hypothesis a late shader compile / program variant when the pools pin a new part
+type, 10–15 min into a view. If that were in the frame sequence it would reproduce anywhere. So: the tick-226
+source `3d4effbe`, the capture's launch path, one view, 90 frames in the capture's chunks of 5, and after every
+chunk the chunk's seconds, `__ZR__.stats()` (`programs`, `geometries`, draws, triangles), the JS heap and the
+Chrome processes' RSS (`fable-5-r55/stallwatch.mjs`, raw rows in `stallwatch.log`).
+
+**A_stairs, 90 frames:** 18 chunks, every one **72.9–75.2 s (14.6–15.0 s/frame)** — the first chunk 44.9 s
+(9 s/frame; the frame after the switch is cheaper, not dearer, here). **`programs` 101 from chunk 1 to chunk
+18; `geometries` 302 throughout; draws 444; 8.68 M triangles; JS heap 1,345–1,346 MB; renderer RSS
+1,931–1,938 MB.** Frames 51–55, 61–65 and 71–75 — where the capture box stalled for 967–2,445 s — took 74.2,
+73.8 and 74.3 s. No new program, no new part, no heap movement: nothing in A's sequence compiles or builds late
+at a fixed camera (the pools pre-fetch by camera distance; a still camera pins nothing new). The one drift is
+the **GPU process, +41 MB over 90 frames** (1,686 → 1,727; ≈ 0.5 MB a frame — SwiftShader's own), small here,
+≈ +0.3 GB over a whole take's 540 settle frames plus determinism and motion on a box already at the margin.
+
+**Reading:** the late-compile hypothesis does not survive an idle box — the stall is the box, not the frames:
+memory pressure and swap (tick 224 still stands for the night's kills), the GPU process dying and restarting
+(the slow-chunk log's own observation), or a monitor competing for the four cores (tick 226's last line). Two
+things a capture box could do about the last two: pin the take to run alone, and watch the GPU process's pid
+across a view — if it changes mid-view, the stall is a SwiftShader restart, and the frame after it re-uploads
+every buffer (the +640 MB of §G's warm-up row is what a fresh GPU process must be re-fed). **B_house is running
+now** (the sixth take's stall view); its row follows.
+
+## take-0133 — sixth start 08:33, A sealed at 2,301 s, B stalled at 51–55 (tick 226). Re-verdict follows when a take seals, against §D's expected row (every merge since is frame-neutral — §F, §G).
