@@ -1,0 +1,2 @@
+# Diff context includes significant spaces; preserve the standalone patch bytes.
+source-only.patch -text -diff

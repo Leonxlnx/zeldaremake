@@ -1,0 +1,289 @@
+walk clearance beyond each blocker's radius (m, hook margin 0.12 + body 0.25 = 0.37): pathSpine 4.83 · pathToStairs 2.40 · pathToHouse 0.48 · northPath 2.46 · EXPANSION.pathWest 0.60 · EXPANSION.pathSouth 2.27 · the girl's loop 0.68 · Saria's door approach 0.59 · the flight's approach 1.64 · the lookout's open side 0.50 · the west deck's landing 0.61
+west deck: narrowest lane for Link's centre 0.446 m
+{
+  "passed": true,
+  "triangles": 62644,
+  "contacts": 11030,
+  "heroProjection": {
+    "door-pot-large": [
+      0.703,
+      0.534
+    ],
+    "sign-pot": [
+      0.645,
+      0.544
+    ],
+    "saria-crate": [
+      0.804,
+      0.534
+    ],
+    "saria-water-bucket": [
+      0.694,
+      0.5
+    ]
+  },
+  "meshes": 13,
+  "clusters": 9,
+  "counts": {
+    "pots": 15,
+    "crates": 3,
+    "barrels": 1,
+    "buckets": 3,
+    "platforms": 2,
+    "ladders": 2
+  },
+  "placed": [
+    {
+      "id": "door-pot-large",
+      "kind": "pot",
+      "cluster": "saria-door",
+      "x": 9.15,
+      "y": 0.968,
+      "z": -10.3,
+      "tiltDeg": 6.04
+    },
+    {
+      "id": "door-pot-tall",
+      "kind": "pot",
+      "cluster": "saria-door",
+      "x": 8.7,
+      "y": 0.993,
+      "z": -9.75,
+      "tiltDeg": 9
+    },
+    {
+      "id": "sign-pot",
+      "kind": "pot",
+      "cluster": "signpost",
+      "x": 7.65,
+      "y": 0.863,
+      "z": -10.25,
+      "tiltDeg": 9
+    },
+    {
+      "id": "sign-pot-squat",
+      "kind": "pot",
+      "cluster": "signpost",
+      "x": 6.3,
+      "y": 0.742,
+      "z": -9.85,
+      "tiltDeg": 9
+    },
+    {
+      "id": "saria-water-bucket",
+      "kind": "bucket",
+      "cluster": "signpost",
+      "x": 7.25,
+      "y": 1.364,
+      "z": -8,
+      "tiltDeg": 9
+    },
+    {
+      "id": "saria-crate",
+      "kind": "crate",
+      "cluster": "signpost",
+      "x": 9.7,
+      "y": 1.001,
+      "z": -7.95,
+      "tiltDeg": 9
+    },
+    {
+      "id": "stair-pot",
+      "kind": "pot",
+      "cluster": "stair-foot",
+      "x": 7.95,
+      "y": 0.058,
+      "z": 1.8,
+      "tiltDeg": 9
+    },
+    {
+      "id": "stair-pot-squat",
+      "kind": "pot",
+      "cluster": "stair-foot",
+      "x": 7.55,
+      "y": 0.04,
+      "z": 2.1,
+      "tiltDeg": 9
+    },
+    {
+      "id": "terrace-bank-lights",
+      "kind": "lightString",
+      "cluster": "stair-foot",
+      "x": 6.3,
+      "y": 1.222,
+      "z": -5.95,
+      "tiltDeg": 0
+    },
+    {
+      "id": "upper-crate",
+      "kind": "crate",
+      "cluster": "plateau",
+      "x": 19.4,
+      "y": 4.93,
+      "z": -9.7,
+      "tiltDeg": 5.41
+    },
+    {
+      "id": "upper-barrel",
+      "kind": "barrel",
+      "cluster": "plateau",
+      "x": 18.55,
+      "y": 4.817,
+      "z": -9.15,
+      "tiltDeg": 5.31
+    },
+    {
+      "id": "upper-bucket",
+      "kind": "bucket",
+      "cluster": "plateau",
+      "x": 19.3,
+      "y": 4.964,
+      "z": -10.7,
+      "tiltDeg": 9
+    },
+    {
+      "id": "upper-storage-pot",
+      "kind": "pot",
+      "cluster": "plateau",
+      "x": 20.15,
+      "y": 5.02,
+      "z": -10.35,
+      "tiltDeg": 2.96
+    },
+    {
+      "id": "upper-pot-squat",
+      "kind": "pot",
+      "cluster": "plateau",
+      "x": 19.85,
+      "y": 4.916,
+      "z": -8.85,
+      "tiltDeg": 4.7
+    },
+    {
+      "id": "upper-ladder",
+      "kind": "ladder",
+      "cluster": "upper-house",
+      "x": 15.453,
+      "y": 5.268,
+      "z": -14.416,
+      "tiltDeg": 0
+    },
+    {
+      "id": "lookout-railing",
+      "kind": "platform",
+      "cluster": "plateau-lip",
+      "x": 21.6,
+      "y": 5.176,
+      "z": 2.2,
+      "tiltDeg": 0
+    },
+    {
+      "id": "west-tree-platform",
+      "kind": "platform",
+      "cluster": "west",
+      "x": -8.7,
+      "y": 2.536,
+      "z": -10,
+      "tiltDeg": 0
+    },
+    {
+      "id": "west-landing-crate",
+      "kind": "crate",
+      "cluster": "west-house",
+      "x": -15.9,
+      "y": 2.537,
+      "z": 5.2,
+      "tiltDeg": 7.71
+    },
+    {
+      "id": "west-landing-bucket",
+      "kind": "bucket",
+      "cluster": "west-house",
+      "x": -16.55,
+      "y": 2.554,
+      "z": 5.25,
+      "tiltDeg": 7.48
+    },
+    {
+      "id": "west-landing-pot",
+      "kind": "pot",
+      "cluster": "west-house",
+      "x": -17.15,
+      "y": 2.578,
+      "z": 5.55,
+      "tiltDeg": 2.05
+    },
+    {
+      "id": "west-landing-pot-squat",
+      "kind": "pot",
+      "cluster": "west-house",
+      "x": -16.8,
+      "y": 2.59,
+      "z": 4.9,
+      "tiltDeg": 4.12
+    },
+    {
+      "id": "west-door-pot",
+      "kind": "pot",
+      "cluster": "west-house",
+      "x": -19.141,
+      "y": 3.308,
+      "z": 7.839,
+      "tiltDeg": 0
+    },
+    {
+      "id": "west-fork-marker",
+      "kind": "marker",
+      "cluster": "west-house",
+      "x": -11,
+      "y": 2.055,
+      "z": 8.4,
+      "tiltDeg": 0
+    },
+    {
+      "id": "circle-marker",
+      "kind": "marker",
+      "cluster": "north-clearing",
+      "x": 0.4,
+      "y": 4.23,
+      "z": -64.4,
+      "tiltDeg": 0
+    },
+    {
+      "id": "circle-pot-marker",
+      "kind": "pot",
+      "cluster": "north-clearing",
+      "x": -0.2,
+      "y": 4.063,
+      "z": -64.9,
+      "tiltDeg": 9
+    },
+    {
+      "id": "circle-pot-marker-squat",
+      "kind": "pot",
+      "cluster": "north-clearing",
+      "x": 0.9,
+      "y": 4.167,
+      "z": -64.15,
+      "tiltDeg": 2.79
+    },
+    {
+      "id": "circle-pot-flight",
+      "kind": "pot",
+      "cluster": "north-clearing",
+      "x": 4.75,
+      "y": 4.304,
+      "z": -68.45,
+      "tiltDeg": 9
+    },
+    {
+      "id": "circle-pot-flight-squat",
+      "kind": "pot",
+      "cluster": "north-clearing",
+      "x": 4.15,
+      "y": 4.23,
+      "z": -68.7,
+      "tiltDeg": 9
+    }
+  ]
+}

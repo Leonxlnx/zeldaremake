@@ -1,0 +1,88 @@
+TAP version 13
+# Subtest: the C stair-bank tier walks the face at its mid height, off the paving and the treads
+ok 1 - the C stair-bank tier walks the face at its mid height, off the paving and the treads
+  ---
+  duration_ms: 20.1418
+  type: 'test'
+  ...
+# Subtest: the contour walk is deterministic and returns nothing where the height is not found
+ok 2 - the contour walk is deterministic and returns nothing where the height is not found
+  ---
+  duration_ms: 2.0261
+  type: 'test'
+  ...
+# Subtest: merged pebble tiles back B3 once across both LODs without multiplying triangles
+ok 3 - merged pebble tiles back B3 once across both LODs without multiplying triangles
+  ---
+  duration_ms: 12.4126
+  type: 'test'
+  ...
+# Subtest: a rebuilt near-canopy lobe part is byte-identical to its first build
+ok 4 - a rebuilt near-canopy lobe part is byte-identical to its first build
+  ---
+  duration_ms: 56.8399
+  type: 'test'
+  ...
+# Subtest: a limb dressing part rebuilds byte-identically too
+ok 5 - a limb dressing part rebuilds byte-identically too
+  ---
+  duration_ms: 7.0207
+  type: 'test'
+  ...
+# Subtest: a seated column's near base and near-canopy parts rebuild byte-identically
+ok 6 - a seated column's near base and near-canopy parts rebuild byte-identically
+  ---
+  duration_ms: 542.4658
+  type: 'test'
+  ...
+# Subtest: a giant's near base and near-canopy parts rebuild byte-identically
+ok 7 - a giant's near base and near-canopy parts rebuild byte-identically
+  ---
+  duration_ms: 906.9701
+  type: 'test'
+  ...
+# Subtest: the pool evicts least recently used first, never a pinned item, and holds the byte cap
+ok 8 - the pool evicts least recently used first, never a pinned item, and holds the byte cap
+  ---
+  duration_ms: 1.3519
+  type: 'test'
+  ...
+# Subtest: wanted parts past the cap leave farthest first: the pool holds the pinned parts and the nearest of the wanted
+ok 9 - wanted parts past the cap leave farthest first: the pool holds the pinned parts and the nearest of the wanted
+  ---
+  duration_ms: 0.5488
+  type: 'test'
+  ...
+# Subtest: a pending build that cannot fit behind nearer resident items is not started (no thrash)
+ok 10 - a pending build that cannot fit behind nearer resident items is not started (no thrash)
+  ---
+  duration_ms: 0.2632
+  type: 'test'
+  ...
+# Subtest: a chunked build spreads over frames within the budget and ends like a synchronous one
+ok 11 - a chunked build spreads over frames within the budget and ends like a synchronous one
+  ---
+  duration_ms: 0.4
+  type: 'test'
+  ...
+# Subtest: the budget is checked before a chunk with its expected cost; the first chunk of a frame always runs
+ok 12 - the budget is checked before a chunk with its expected cost; the first chunk of a frame always runs
+  ---
+  duration_ms: 0.5741
+  type: 'test'
+  ...
+# Subtest: runBuild finishes a generator and returns its value
+ok 13 - runBuild finishes a generator and returns its value
+  ---
+  duration_ms: 0.5172
+  type: 'test'
+  ...
+1..13
+# tests 13
+# suites 0
+# pass 13
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 3403.1862
