@@ -134,55 +134,68 @@ function nebulaTexture(seed, core, edge) {
   return tex;
 }
 
-function makeStreakField({ count, radius, pointScale, along, seed, color }) {
-  const positions = new Float32Array(count * 3);
-  const sizes = new Float32Array(count);
-  const rnd = mulberry32(seed);
-  for (let i = 0; i < count; i++) {
-    const theta = rnd() * Math.PI * 2;
-    const y = rnd() * 2 - 1;
-    const ring = Math.sqrt(Math.max(0.04, 1 - y * y));
-    const r = radius * (0.82 + rnd() * 0.36);
-    positions[i * 3] = Math.cos(theta) * ring * r;
-    positions[i * 3 + 1] = y * r * 0.48;
-    positions[i * 3 + 2] = Math.sin(theta) * ring * r;
-    sizes[i] = pointScale * (0.55 + rnd());
-  }
-  const geo = new THREE.BufferGeometry();
-  geo.setAttribute('position', new THREE.BufferAttribute(positions, 3));
-  geo.setAttribute('aSize', new THREE.BufferAttribute(sizes, 1));
-  const mat = new THREE.ShaderMaterial({
-    uniforms: {
-      uColor: { value: new THREE.Color(color) },
-      uAlong: { value: along },
-    },
-    vertexShader: `
-      attribute float aSize;
-      void main() {
-        vec4 mv = modelViewMatrix * vec4(position, 1.0);
-        gl_PointSize = aSize * (460.0 / max(12.0, -mv.z));
-        gl_Position = projectionMatrix * mv;
-      }
-    `,
-    fragmentShader: `
-      uniform vec3 uColor;
-      uniform float uAlong;
-      void main() {
-        vec2 p = gl_PointCoord - vec2(0.5);
-        float streak = exp(-p.y * p.y * 42.0) * exp(-p.x * p.x * uAlong);
-        if (streak < 0.05) discard;
-        gl_FragColor = vec4(uColor * streak * 1.7, streak);
-      }
-    `,
+function streakTexture() {
+  const c = document.createElement('canvas');
+  c.width = 256;
+  c.height = 32;
+  const g = c.getContext('2d');
+  const grd = g.createLinearGradient(0, 0, 256, 0);
+  grd.addColorStop(0, 'rgba(170,205,255,0)');
+  grd.addColorStop(0.18, 'rgba(186,214,255,0.25)');
+  grd.addColorStop(0.62, 'rgba(236,244,255,0.8)');
+  grd.addColorStop(0.9, 'rgba(255,255,255,1)');
+  grd.addColorStop(1, 'rgba(255,255,255,0)');
+  g.fillStyle = grd;
+  g.fillRect(0, 0, 256, 32);
+  g.globalCompositeOperation = 'destination-in';
+  const vg = g.createLinearGradient(0, 0, 0, 32);
+  vg.addColorStop(0, 'rgba(0,0,0,0)');
+  vg.addColorStop(0.28, 'rgba(0,0,0,1)');
+  vg.addColorStop(0.72, 'rgba(0,0,0,1)');
+  vg.addColorStop(1, 'rgba(0,0,0,0)');
+  g.fillStyle = vg;
+  g.fillRect(0, 0, 256, 32);
+  const tex = new THREE.CanvasTexture(c);
+  tex.colorSpace = THREE.SRGBColorSpace;
+  return tex;
+}
+
+function makeFlightStreaks() {
+  const count = 34;
+  const geo = new THREE.PlaneGeometry(1, 1);
+  const mat = new THREE.MeshBasicMaterial({
+    map: streakTexture(),
+    color: 0xe7f1ff,
     transparent: true,
-    depthWrite: false,
+    opacity: 0.92,
     blending: THREE.AdditiveBlending,
+    depthWrite: false,
     fog: false,
+    side: THREE.DoubleSide,
   });
-  const pts = new THREE.Points(geo, mat);
-  pts.frustumCulled = false;
-  pts.userData.skipAO = true;
-  return pts;
+  const mesh = new THREE.InstancedMesh(geo, mat, count);
+  mesh.frustumCulled = false;
+  mesh.userData.skipAO = true;
+  mesh.userData.speed = 0;
+  const cam = new THREE.Vector3(0, 1.64, 13.42);
+  const dir = new THREE.Vector3(11, -0.4, 54).sub(cam).normalize();
+  const right = new THREE.Vector3().crossVectors(dir, new THREE.Vector3(0, 1, 0)).normalize();
+  const up = new THREE.Vector3().crossVectors(right, dir).normalize();
+  const rnd = mulberry32(19);
+  const dummy = new THREE.Object3D();
+  for (let i = 0; i < count; i++) {
+    const dist = 8 + rnd() * 46;
+    const lat = (rnd() - 0.5) * 13;
+    const vert = (rnd() - 0.4) * 5.2;
+    dummy.position.copy(cam).addScaledVector(dir, dist).addScaledVector(right, lat).addScaledVector(up, vert);
+    dummy.up.set(0, 1, 0);
+    dummy.lookAt(dummy.position.x + dir.x, dummy.position.y + dir.y, dummy.position.z + dir.z);
+    dummy.scale.set(2.4 + rnd() * 6.8, 0.16 + rnd() * 0.22, 1);
+    dummy.updateMatrix();
+    mesh.setMatrixAt(i, dummy.matrix);
+  }
+  mesh.instanceMatrix.needsUpdate = true;
+  return mesh;
 }
 
 function makeStarShell({ count, radius, speed, length, width, color, seed }) {
@@ -273,19 +286,16 @@ export function createSpace() {
   root.add(sky);
 
   const far = makeStarShell({
-    count: 1400, radius: 340, speed: 0.012, length: 0.7, width: 0.16, color: 0xd5e4ff, seed: 3,
+    count: 900, radius: 340, speed: 0.012, length: 2.4, width: 1.15, color: 0xd5e4ff, seed: 3,
   });
   const mid = makeStarShell({
-    count: 420, radius: 220, speed: 0.028, length: 3.2, width: 0.2, color: 0xe7f0ff, seed: 9,
+    count: 70, radius: 210, speed: 0.02, length: 34, width: 1.7, color: 0xe7f0ff, seed: 9,
   });
   root.add(far, mid);
   const shells = [far, mid];
-  const streakNear = makeStreakField({ count: 420, radius: 130, pointScale: 22, along: 2.4, seed: 41, color: 0xf3f7ff });
-  const streakFar = makeStreakField({ count: 700, radius: 260, pointScale: 8, along: 18, seed: 77, color: 0xc9d8ff });
-  streakNear.userData.speed = 0.05;
-  streakFar.userData.speed = 0.018;
-  root.add(streakNear, streakFar);
-  const streaks = [streakNear, streakFar];
+  const flight = makeFlightStreaks();
+  root.add(flight);
+  const streaks = [flight];
 
   const { map, cityMap } = planetTextures();
   const sunDir = new THREE.Vector3(0.85, 0.42, 0.15).normalize();

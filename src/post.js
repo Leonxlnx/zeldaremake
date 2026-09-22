@@ -117,6 +117,7 @@ export function createPost(renderer, scene, camera) {
     renderer.setSize(width, height);
     composer.setPixelRatio(pr);
     composer.setSize(width, height);
+    gtao.setSize(Math.max(1, Math.floor(width * pr)), Math.max(1, Math.floor(height * pr)));
     camera.aspect = width / Math.max(1, height);
     camera.updateProjectionMatrix();
   }
@@ -126,5 +127,6 @@ export function createPost(renderer, scene, camera) {
     composer.render();
   }
 
+  setSize(window.innerWidth, window.innerHeight);
   return { composer, bloom, gtao, grade, setSize, render };
 }

@@ -89,3 +89,30 @@ Fix list for iteration 4:
 - Put a few dozen long streaks in the forward view, not a full shell of huge points. Pull the window camera back so the sill and bolts are in frame with the planet.
 - Half-resolution AO to buy frame time without removing the effect.
 - Capture fade text with the overlay held still, and log opacity while the real fade runs.
+
+## Iteration 4
+
+Window camera sits back at the sill. Flight streaks are instanced quads in the forward view, and the mid star shell is long dashes instead of point sprites. Fade text is held by a render-loop tween because headless Chrome freezes CSS transitions. `fade_bed` reads `8 HOURS PASS`, `fade_bath` reads `REFRESHED.`, galley shows `E: EAT` and `YOU EAT. ENERGY RESTORED.`, and the rest-cycle bunk is dimmer and warmer than the day shot.
+
+Histograms stayed in range: corridor median 167 (4% fixture white, 1.3% near-black), cockpit 134, quarters 137, window 102. Pointer lock engaged.
+
+Frame time is not 60. Wall-clock over 12 frames on llvmpipe is 1.8fps (corridor) with 106k triangles and 90 calls. The earlier 42fps figure only averaged the short command-submit gaps and ignored the stall. A rect-area light plus ten point lights is the cost.
+
+| # | Rubric | Result |
+| --- | --- | --- |
+| 1 | Lighting intentional | pass |
+| 2 | Materials physical | pass |
+| 3 | Detail density | pass |
+| 4 | Post stack balanced | pass |
+| 5 | Space view sells motion | pass |
+| 6 | Cohesive palette | pass |
+| 7 | Tech clean, 60fps | fail |
+| 8 | Cold-look test | pass |
+| 9 | Interactions | pass |
+
+Items 1, 2, 4, 6, and 8 have now passed twice in a row. Detail, motion, and interactions pass for the first time. Tech fails: sustained frame rate on this software GL is about 2fps, and there is no z-fighting or missing-face read in the shots.
+
+Fix list for iteration 5:
+
+- Spend the iteration on frame time. Remove the rect-area light (it puts an LTC path on every surface) and replace it with a cool point. Drop redundant practical points, keeping one pool per room and the emissive strips. Shrink the shadow map to 1024.
+- Reshoot all four views. If the corridor or cockpit goes flat, put a light back. Record wall-clock fps, not the submit-gap average.

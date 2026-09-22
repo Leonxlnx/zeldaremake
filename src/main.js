@@ -53,7 +53,7 @@ const VIEWS = {
   cockpit: { pos: [0.05, 1.7, 11.45], look: [0.1, 1.22, 15.1], time: 26 },
   corridor: { pos: [-0.15, 1.7, 2.55], look: [0.55, 1.38, 8.8], time: 26 },
   quarters: { pos: [-3.15, 1.7, 2.65], look: [-4.2, 0.85, 1.4], time: 26 },
-  window: { pos: [0.2, 1.58, 14.62], look: [16, -2.2, 60], time: 26 },
+  window: { pos: [0.0, 1.64, 13.42], look: [11, -0.4, 54], time: 26 },
 };
 
 const POSES = {
@@ -62,10 +62,8 @@ const POSES = {
   bath: { pos: [1.9, 1.7, 1.4], look: [2.6, 1.05, 2.05], time: 26 },
 };
 
-const perf = { fps: 0, triangles: 0, calls: 0 };
-let fpsAccum = 0;
-let fpsFrames = 0;
-let lastSample = performance.now();
+const perf = { fps: 0, renderMs: 0, triangles: 0, calls: 0 };
+const stamps = [];
 
 window.debugAPI = {
   ready: true,
@@ -93,6 +91,8 @@ window.debugAPI = {
     interact.setSuppressed(!!value);
   },
   perform: (id) => interact.perform(id),
+  holdFades: (on) => interact.holdFades(on),
+  releaseFade: () => interact.releaseFade(),
   getStatus: () => interact.getStatus(),
   getPrompt: () => interact.getPrompt(),
   getCycle: () => ship.getCycle(),
@@ -119,20 +119,18 @@ function frame(now) {
   space.update(dt);
   interact.update(dt);
   renderer.info.reset();
+  const t0 = performance.now();
   post.render(now * 0.001);
+  const renderMs = performance.now() - t0;
+  perf.renderMs = renderMs;
+  stamps.push(performance.now());
+  if (stamps.length > 16) stamps.shift();
+  if (stamps.length >= 6) {
+    const span = stamps[stamps.length - 1] - stamps[0];
+    if (span > 0) perf.fps = ((stamps.length - 1) * 1000) / span;
+  }
   perf.triangles = renderer.info.render.triangles;
   perf.calls = renderer.info.render.calls;
-  const sampleDt = now - lastSample;
-  lastSample = now;
-  if (sampleDt > 0 && sampleDt < 200) {
-    fpsAccum += 1000 / sampleDt;
-    fpsFrames += 1;
-    if (fpsFrames >= 24) {
-      perf.fps = fpsAccum / fpsFrames;
-      fpsAccum = 0;
-      fpsFrames = 0;
-    }
-  }
   window.debugAPI.frames += 1;
   requestAnimationFrame(frame);
 }

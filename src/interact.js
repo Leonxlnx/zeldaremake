@@ -46,9 +46,38 @@ export function createInteract({ camera, dom, interactables, ship, setExposure }
     statusEl.textContent = text;
   }
 
+  let pinFade = false;
+  let pinRelease = null;
+
+  function tweenFade(to) {
+    const from = parseFloat(fadeEl.style.opacity || '0') || 0;
+    const start = performance.now();
+    const dur = 520;
+    return new Promise((resolve) => {
+      const step = (now) => {
+        const k = Math.min(1, (now - start) / dur);
+        const s = k * k * (3 - 2 * k);
+        fadeEl.style.opacity = String(from + (to - from) * s);
+        if (k < 1) requestAnimationFrame(step);
+        else resolve();
+      };
+      requestAnimationFrame(step);
+    });
+  }
+
   function setFade(opacity, text) {
-    fadeEl.classList.toggle('on', opacity > 0.5);
-    fadeText.textContent = text || '';
+    fadeEl.style.opacity = String(opacity);
+    if (text != null) fadeText.textContent = text;
+  }
+
+  function holdFades(on) {
+    pinFade = !!on;
+  }
+
+  function releaseFade() {
+    const resolve = pinRelease;
+    pinRelease = null;
+    if (resolve) resolve();
   }
 
   function wait(ms) {
@@ -56,8 +85,14 @@ export function createInteract({ camera, dom, interactables, ship, setExposure }
   }
 
   async function fadeTo(on, text) {
-    setFade(on ? 1 : 0, text);
-    await wait(on ? 620 : 680);
+    if (on && text) fadeText.textContent = text;
+    const tween = tweenFade(on ? 1 : 0);
+    if (on && pinFade) {
+      await new Promise((resolve) => { pinRelease = resolve; });
+    }
+    await tween;
+    if (on && !pinFade) await wait(380);
+    if (!on) fadeText.textContent = '';
   }
 
   async function perform(id) {
@@ -126,6 +161,8 @@ export function createInteract({ camera, dom, interactables, ship, setExposure }
     update,
     tryUse,
     perform,
+    holdFades,
+    releaseFade,
     setPrompt,
     setStatus,
     setFade,

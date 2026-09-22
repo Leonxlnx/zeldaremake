@@ -34,18 +34,30 @@ for (const name of ['cockpit', 'corridor', 'quarters', 'window']) {
   await page.screenshot({ path: path.join(outDir, `${name}.png`) });
 }
 
+await page.evaluate(() => window.debugAPI.holdFades(true));
 await page.evaluate(() => window.debugAPI.place('bed'));
 await page.waitForTimeout(400);
 await page.screenshot({ path: path.join(outDir, 'prompt_bed.png') });
+const bedFade = [];
 await page.evaluate(() => { void window.debugAPI.perform('bed'); });
-await page.waitForFunction(() => parseFloat(getComputedStyle(document.getElementById('fade')).opacity) > 0.92, null, { timeout: 4000 });
+await page.waitForFunction(
+  () => parseFloat(getComputedStyle(document.getElementById('fade')).opacity) > 0.92
+    && (document.querySelector('#fade span').textContent || '').length > 2,
+  null,
+  { timeout: 8000 }
+);
+bedFade.push(await page.evaluate(() => ({
+  opacity: getComputedStyle(document.getElementById('fade')).opacity,
+  text: document.querySelector('#fade span').textContent,
+})));
 await page.screenshot({ path: path.join(outDir, 'fade_bed.png') });
+await page.evaluate(() => window.debugAPI.releaseFade());
 await page.waitForFunction(
   () => window.debugAPI.getCycle() > 0.6 && parseFloat(getComputedStyle(document.getElementById('fade')).opacity) < 0.08,
   null,
   { timeout: 8000 }
 );
-await page.waitForTimeout(250);
+await page.waitForTimeout(200);
 await page.screenshot({ path: path.join(outDir, 'rest_cycle.png') });
 await page.waitForFunction(() => (window.debugAPI.getStatus() || '').includes('Rested'), null, { timeout: 8000 });
 
@@ -59,9 +71,20 @@ await page.screenshot({ path: path.join(outDir, 'status_galley.png') });
 await page.evaluate(() => window.debugAPI.place('bath'));
 await page.waitForTimeout(300);
 await page.screenshot({ path: path.join(outDir, 'prompt_bath.png') });
+const bathFade = [];
 await page.evaluate(() => { void window.debugAPI.perform('bathroom'); });
-await page.waitForFunction(() => parseFloat(getComputedStyle(document.getElementById('fade')).opacity) > 0.92, null, { timeout: 4000 });
+await page.waitForFunction(
+  () => parseFloat(getComputedStyle(document.getElementById('fade')).opacity) > 0.92
+    && (document.querySelector('#fade span').textContent || '').includes('efresh'),
+  null,
+  { timeout: 8000 }
+);
+bathFade.push(await page.evaluate(() => ({
+  opacity: getComputedStyle(document.getElementById('fade')).opacity,
+  text: document.querySelector('#fade span').textContent,
+})));
 await page.screenshot({ path: path.join(outDir, 'fade_bath.png') });
+await page.evaluate(() => window.debugAPI.releaseFade());
 await page.waitForFunction(() => (window.debugAPI.getStatus() || '').includes('Refreshed'), null, { timeout: 6000 });
 
 await page.evaluate(() => window.debugAPI.release());
@@ -84,6 +107,8 @@ const perf = await page.evaluate(() => ({
 const notes = {
   perf,
   pointer,
+  bedFade,
+  bathFade,
   errors: logs.filter((line) => /error|Error|warning/i.test(line)).slice(-40),
 };
 fs.writeFileSync(path.join(outDir, 'notes.json'), JSON.stringify(notes, null, 2));
