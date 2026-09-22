@@ -1,0 +1,117 @@
+{
+  "at": "2026-09-22T18:06:51.312Z",
+  "base": "83ebbc63af853abd14ba4e79feb26e3d6b8af4fd",
+  "upstream": "7a7a350296a92f6a99f89c7cc5befdab59b04dbb",
+  "files": [
+    {
+      "file": "src/audio/ambience.ts",
+      "base": "2169e6b440bba59b592f2a5427471eacd9777260",
+      "target": "880fb81b13534cfc31387c51fbf006194f5ee6a0",
+      "candidate": "880fb81b13534cfc31387c51fbf006194f5ee6a0"
+    },
+    {
+      "file": "src/audio/footsteps.ts",
+      "base": "6832587765dd436d789e13fe88eb1c50ed89ae32",
+      "target": "aa054da9bfe628e4e9ccbd26f1cc65b62076cc9c",
+      "candidate": "aa054da9bfe628e4e9ccbd26f1cc65b62076cc9c"
+    },
+    {
+      "file": "src/audio/index.ts",
+      "base": "0aa70985bc914e8d44d84f09edc5380e17d10d8b",
+      "target": "ecc33aae811bbb03a877424e67e5d81a269b09e0",
+      "candidate": "ecc33aae811bbb03a877424e67e5d81a269b09e0"
+    },
+    {
+      "file": "src/world/canopy/index.ts",
+      "base": "2df1f4f0ee105b61b8515e8ee5449026c2dbcee0",
+      "target": "a8c072c71270dfe158ff6479e255365c2a5cd81c",
+      "candidate": "a8c072c71270dfe158ff6479e255365c2a5cd81c"
+    },
+    {
+      "file": "src/world/canopy/roof.test.mjs",
+      "base": "c6676a0531a3e9455fd1509d7bab20920b390258",
+      "target": "43293ed563f8fa14250add000c4fec0bc296bea1",
+      "candidate": "43293ed563f8fa14250add000c4fec0bc296bea1"
+    },
+    {
+      "file": "src/world/canopy/roof.ts",
+      "base": "07bda16b112c25a660c960cb5c6b08434926dd32",
+      "target": "91d406361c59e7d5ca8c11aa942b47622973e105",
+      "candidate": "91d406361c59e7d5ca8c11aa942b47622973e105"
+    },
+    {
+      "file": "src/world/props/README.md",
+      "base": "62763a2924e4684a9fa70560e4bedab10ef1c379",
+      "target": "bb4583fe9c518dcb63dd0621530fbc3931f8cbbf",
+      "candidate": "bb4583fe9c518dcb63dd0621530fbc3931f8cbbf"
+    },
+    {
+      "file": "src/world/props/geometry.test.mjs",
+      "base": "35cddedffc8658a3d8eac29ead52374772f837d4",
+      "target": "2df8c205817b99a7447189e87c44ff34271fac07",
+      "candidate": "2df8c205817b99a7447189e87c44ff34271fac07"
+    },
+    {
+      "file": "src/world/props/index.ts",
+      "base": "08e9e1e8022dac230f5be5f6068ea68f140b2e60",
+      "target": "b23c93fe8589def1a91cf017115e8279976a8746",
+      "candidate": "b23c93fe8589def1a91cf017115e8279976a8746"
+    },
+    {
+      "file": "src/world/rocks/index.ts",
+      "base": "2848a45ea60fa9a1e471b502bc2cd135304d2460",
+      "target": "eef01efadb65826ce2aec8a094716cc108712938",
+      "candidate": "eef01efadb65826ce2aec8a094716cc108712938"
+    },
+    {
+      "file": "src/world/trees/index.ts",
+      "base": "9ebfe83da80f6f1d0fafec18fb127085c5afc60f",
+      "target": "b0d335e98b18da1e2442acb5890629d92d6a3afb",
+      "candidate": "bc861d3192668e484c3037adcf78d9f13b3a90b9"
+    },
+    {
+      "file": "src/world/vegetation/grass.ts",
+      "base": "7f8f198374e598d569b6afbcc66dd429eb160f8f",
+      "target": "fc29be7201cadbf6f1a8907bc1f3c4613ae7129b",
+      "candidate": "fc29be7201cadbf6f1a8907bc1f3c4613ae7129b"
+    },
+    {
+      "file": "src/world/vegetation/plants.test.mjs",
+      "base": "3741b9f56b1be5d8487f93d46f4c5a6e0b72aa9e",
+      "target": "ec645b947ed2f25b1e3fcbdadac9c3086d44a697",
+      "candidate": "ec645b947ed2f25b1e3fcbdadac9c3086d44a697"
+    }
+  ],
+  "treeDerivation": {
+    "commits": [
+      "79699a4fd59d47a6ed32c9b2d40cb15e60eca876",
+      "58c39fc4b5c0bba336bbc5f42ad81ea0844c7656"
+    ],
+    "expectedBlob": "bc861d3192668e484c3037adcf78d9f13b3a90b9",
+    "method": "Independent temporary Git index: root83 + forward source-only patches for the two memory commits; equals candidate prepared as canonical7a minus the two visual reductions."
+  },
+  "excluded": [
+    "c938a862cbe4b934ba6be460b9a9ec26903fe8c0",
+    "60408959ddb2ad2b382fa22c1a824987f0f61df4"
+  ],
+  "retainedTest": {
+    "path": "src/world/rocks/tiers.test.mjs",
+    "blob": "8b6d993e22cbb9976d713250d12bbb3ca84c077e"
+  },
+  "protectedPaths": [
+    "src/world/character",
+    "public/models",
+    "public/textures",
+    "src/world/atmosphere",
+    "src/world/structures",
+    "src/world/hardscape",
+    "src/world/terrain",
+    "src/world/trees/giant.ts",
+    "src/world/trees/nearCanopy.ts",
+    "src/world/trees/materials.ts",
+    "src/world/trees/leaf-cluster-texture.ts",
+    "src/capture/api.ts"
+  ],
+  "appliesCleanlyToRoot": "be0e22f7ecc6613557e00f69a854fb1c6f3dd830",
+  "candidateCommit": "ee00f2ff38d9ee536e913741e2d344f773b1a04d"
+}

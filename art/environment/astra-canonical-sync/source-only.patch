@@ -1,0 +1,1184 @@
+diff --git a/src/audio/ambience.ts b/src/audio/ambience.ts
+index 2169e6b4..880fb81b 100644
+--- a/src/audio/ambience.ts
++++ b/src/audio/ambience.ts
+@@ -39,29 +39,36 @@ export function createAmbience(ctx: BaseAudioContext, out: AudioNode, reverbSend
+   const nodes: AudioScheduledSourceNode[] = [];
+ 
+   // ---- wind bed: two noise paths, a low rumble and a slow moving band ----------------------
++  // 2026-09-22 (owner: "the sound in the forest sounds like loud random paper"): the bed is
++  // lower and darker — the low path at 260 Hz, the moving band a broad soft 420 Hz (was a
++  // Q 1.1 band sweeping ±260 Hz around 760: a crinkle), both modulated slower.
+   const windSrc = noiseSource(ctx, noise, startAt);
+   nodes.push(windSrc);
+-  const windLow = filter(ctx, 'lowpass', 380, 0.6);
+-  const windBand = filter(ctx, 'bandpass', 760, 1.1);
+-  const windGain = gain(ctx, 0.16);
+-  const windBandGain = gain(ctx, 0.05);
++  const windLow = filter(ctx, 'lowpass', 260, 0.5);
++  const windBand = filter(ctx, 'bandpass', 420, 0.5);
++  const windGain = gain(ctx, 0.11);
++  const windBandGain = gain(ctx, 0.03);
+   windSrc.connect(windLow).connect(windGain).connect(out);
+   windSrc.connect(windBand).connect(windBandGain).connect(out);
+   windGain.connect(reverbSend);
+-  nodes.push(lfo(ctx, windBand.frequency, 0.07, 260, 'sine', startAt));
+-  nodes.push(lfo(ctx, windBandGain.gain, 0.11, 0.025, 'sine', startAt));
++  nodes.push(lfo(ctx, windBand.frequency, 0.045, 120, 'sine', startAt));
++  nodes.push(lfo(ctx, windBandGain.gain, 0.08, 0.012, 'sine', startAt));
+ 
+-  // ---- leaf rustle: high band, fluttering ------------------------------------------------
++  // ---- leaf rustle: a soft high hush that breathes with the gusts ----------------------------
++  // The old layer was 2.2–4.6 kHz noise chopped by a 6.3 Hz triangle at 45 % depth — a buzzing
++  // paper flutter. Now: a gentler 1.4–3 kHz band, no fast chop, two slow swells (0.3 / 0.75 Hz)
++  // of a few percent, and a level that lives mostly in the gust term (quiet air, a hush in a gust).
+   const rustleSrc = noiseSource(ctx, noise, startAt + 1.3);
+   nodes.push(rustleSrc);
+-  const rustleHp = filter(ctx, 'highpass', 2200, 0.7);
+-  const rustleBp = filter(ctx, 'bandpass', 4600, 0.9);
+-  const rustleGain = gain(ctx, 0.012);
++  const rustleHp = filter(ctx, 'highpass', 1400, 0.5);
++  const rustleBp = filter(ctx, 'bandpass', 2600, 0.6);
++  const rustleLp = filter(ctx, 'lowpass', 3800, 0.6);
++  const rustleGain = gain(ctx, 0.004);
+   const flutter = gain(ctx, 1);
+-  rustleSrc.connect(rustleHp).connect(rustleBp).connect(flutter).connect(rustleGain).connect(out);
++  rustleSrc.connect(rustleHp).connect(rustleBp).connect(rustleLp).connect(flutter).connect(rustleGain).connect(out);
+   rustleGain.connect(reverbSend);
+-  nodes.push(lfo(ctx, flutter.gain, 6.3, 0.45, 'triangle', startAt));
+-  nodes.push(lfo(ctx, flutter.gain, 0.9, 0.3, 'sine', startAt));
++  nodes.push(lfo(ctx, flutter.gain, 0.3, 0.12, 'sine', startAt));
++  nodes.push(lfo(ctx, flutter.gain, 0.75, 0.08, 'sine', startAt + 0.4));
+ 
+   // ---- pod lantern hum -------------------------------------------------------------------
+   const humGain = gain(ctx, 0);
+@@ -168,7 +175,7 @@ export function createAmbience(ctx: BaseAudioContext, out: AudioNode, reverbSend
+     while (nextBird < t) {
+       const kind = BIRDS[Math.floor(birdRng() * BIRDS.length)];
+       const pan = (birdRng() * 2 - 1) * 0.85;
+-      const level = 0.035 + birdRng() * 0.07;
++      const level = 0.025 + birdRng() * 0.05;
+       birdCall(kind, nextBird, pan, level);
+       // sometimes a second bird answers from the other side
+       if (birdRng() < 0.3) birdCall(BIRDS[Math.floor(birdRng() * BIRDS.length)], nextBird + 1.2 + birdRng() * 0.8, -pan * 0.8, level * 0.7);
+@@ -178,9 +185,9 @@ export function createAmbience(ctx: BaseAudioContext, out: AudioNode, reverbSend
+ 
+   const update = (t: number, s: AmbienceState) => {
+     const gust = Math.max(0, Math.min(1, s.gust));
+-    windGain.gain.setTargetAtTime(0.11 + gust * 0.2, t, 0.35);
+-    windLow.frequency.setTargetAtTime(300 + gust * 320, t, 0.4);
+-    rustleGain.gain.setTargetAtTime(0.008 + gust * gust * 0.075, t, 0.2);
++    windGain.gain.setTargetAtTime(0.075 + gust * 0.13, t, 0.6);
++    windLow.frequency.setTargetAtTime(220 + gust * 220, t, 0.7);
++    rustleGain.gain.setTargetAtTime(0.0025 + gust * gust * 0.022, t, 0.5);
+     // pods: summed inverse-square-ish attenuation, panned toward their weighted direction
+     let sum = 0;
+     let px = 0;
+diff --git a/src/audio/footsteps.ts b/src/audio/footsteps.ts
+index 68325877..aa054da9 100644
+--- a/src/audio/footsteps.ts
++++ b/src/audio/footsteps.ts
+@@ -1,13 +1,20 @@
+ /**
+- * Footsteps: synthesised stone / grass steps driven by the player's ground speed and the
+- * terrain mask under him (path / stairs = stone, everything else = grass). The character system
+- * publishes only `scene.userData.player` (position + heading), so the stride is integrated from
+- * the distance travelled: a step every `strideM` (walk 0.68 m, run 0.95 m), alternating a little
+- * left / right in the stereo field.
++ * Footsteps: synthesised steps that follow the ground under Link — stone (flagstones, treads),
++ * grass (the lawns and verges), dirt (the trodden earth beside the paving and the path shoulders),
++ * wood (the deck planks, the stair timbers) and the hollow wood inside the log tunnel — driven by
++ * the player's ground speed. The character system publishes only `scene.userData.player`
++ * (position + heading), so the stride is integrated from the distance travelled: a step every
++ * `strideM` (walk 0.68 m, run 0.95 m, stairs 0.5 m), alternating a little left / right.
++ *
++ * 2026-09-22 (owner: "his footsteps should correlate where he's walking — gentle stone, grass,
++ * etc."): every step is quiet and dull-edged. The old stone step was a bright 1.5–2 kHz click
++ * with a 4 kHz tick (a clack on every pace); it is now a soft low tock under a short grit scuff,
++ * grass a low swish, dirt a soft crunch, wood a hollow knock. Levels sit 6–9 dB under the old
++ * ones and walking steps are softer than running ones.
+  */
+ import { adEnvelope, filter, gain, noiseBuffer, noiseSource, type Rng } from './graph';
+ 
+-export type Surface = 'stone' | 'grass';
++export type Surface = 'stone' | 'grass' | 'dirt' | 'wood' | 'hollow';
+ 
+ export interface Footsteps {
+   /** one step at context time t */
+@@ -22,82 +29,117 @@ export function createFootsteps(ctx: BaseAudioContext, out: AudioNode, reverbSen
+   const src = noiseSource(ctx, noise, startAt);
+   // one always-running noise source; each step opens a short gate on its own filter chain
+   const stepRng = rng.fork('stepjitter');
++  const jitter = (spread: number) => 1 + (stepRng() * 2 - 1) * spread;
+ 
+-  const stone = (t: number, k: number, pan: number) => {
++  /** a panned output for one step, torn down once it is silent so the graph does not grow */
++  const voice = (pan: number, end: number, reverb: number) => {
+     const panner = ctx.createStereoPanner();
+     panner.pan.value = pan;
+     panner.connect(out);
+-    panner.connect(reverbSend);
+-    // heel: bright gritty click
+-    const bp = filter(ctx, 'bandpass', 1500 + stepRng() * 500, 1.1);
+-    const g1 = gain(ctx, 0);
+-    src.connect(bp).connect(g1).connect(panner);
+-    adEnvelope(g1.gain, t, 0.28 * k, 0.003, 0.06 + stepRng() * 0.02);
+-    // body: a short low tock
+-    const osc = ctx.createOscillator();
+-    osc.type = 'sine';
+-    osc.frequency.setValueAtTime(190, t);
+-    osc.frequency.exponentialRampToValueAtTime(85, t + 0.05);
+-    const g2 = gain(ctx, 0);
+-    osc.connect(g2).connect(panner);
+-    adEnvelope(g2.gain, t, 0.22 * k, 0.002, 0.07);
+-    osc.start(t);
+-    osc.stop(t + 0.15);
+-    // toe: tiny high tick a moment later
+-    const hp = filter(ctx, 'highpass', 4200, 0.7);
+-    const g3 = gain(ctx, 0);
+-    src.connect(hp).connect(g3).connect(panner);
+-    adEnvelope(g3.gain, t + 0.045 + stepRng() * 0.02, 0.07 * k, 0.002, 0.03);
+-    const end = t + 0.3;
+-    // disconnect the gates once silent so the graph does not grow
+-    setTimeoutCtx(ctx, end, () => {
+-      src.disconnect(bp);
+-      src.disconnect(hp);
+-      g1.disconnect();
+-      g2.disconnect();
+-      g3.disconnect();
+-      bp.disconnect();
+-      hp.disconnect();
+-      panner.disconnect();
+-    });
++    const send = gain(ctx, reverb);
++    panner.connect(send).connect(reverbSend);
++    const nodes: AudioNode[] = [panner, send];
++    const taps: AudioNode[] = [];
++    const cleanup = () => {
++      for (const tap of taps) {
++        try {
++          src.disconnect(tap);
++        } catch {
++          /* already gone */
++        }
++      }
++      for (const n of nodes) n.disconnect();
++    };
++    setTimeoutCtx(ctx, end, cleanup);
++    return {
++      panner,
++      /** a gated noise path: src → filters → gain → panner */
++      noise(filters: BiquadFilterNode[], t: number, peak: number, attack: number, decay: number) {
++        const g = gain(ctx, 0);
++        let head: AudioNode = filters[0];
++        for (let i = 1; i < filters.length; i++) head = head.connect(filters[i]);
++        src.connect(filters[0]);
++        head.connect(g).connect(panner);
++        adEnvelope(g.gain, t, peak, attack, decay);
++        taps.push(filters[0]);
++        nodes.push(g, ...filters);
++      },
++      /** a pitched thump: a sine gliding f0 → f1 */
++      tone(t: number, f0: number, f1: number, glide: number, peak: number, attack: number, decay: number, type: OscillatorType = 'sine') {
++        const osc = ctx.createOscillator();
++        osc.type = type;
++        osc.frequency.setValueAtTime(f0, t);
++        osc.frequency.exponentialRampToValueAtTime(Math.max(20, f1), t + glide);
++        const g = gain(ctx, 0);
++        osc.connect(g).connect(panner);
++        adEnvelope(g.gain, t, peak, attack, decay);
++        osc.start(t);
++        osc.stop(t + attack + decay + 0.05);
++        nodes.push(g);
++      },
++    };
+   };
+ 
++  // stone: a soft low tock (the sole meeting a flat slab) under a short, quiet grit scuff
++  const stone = (t: number, k: number, pan: number) => {
++    const v = voice(pan, t + 0.3, 0.55);
++    v.tone(t, 150 * jitter(0.06), 72, 0.05, 0.11 * k, 0.003, 0.07);
++    v.noise([filter(ctx, 'bandpass', 720 * jitter(0.12), 1.0), filter(ctx, 'lowpass', 2400, 0.7)], t, 0.05 * k, 0.004, 0.045 + stepRng() * 0.015);
++    // the faintest grit as the sole settles
++    v.noise([filter(ctx, 'highpass', 2600, 0.6), filter(ctx, 'lowpass', 5200, 0.7)], t + 0.03 + stepRng() * 0.015, 0.014 * k, 0.004, 0.035);
++  };
++
++  // grass: a low swish of blades under the boot, a faint thud beneath it
+   const grass = (t: number, k: number, pan: number) => {
+-    const panner = ctx.createStereoPanner();
+-    panner.pan.value = pan;
+-    panner.connect(out);
+-    panner.connect(reverbSend);
+-    const bp = filter(ctx, 'bandpass', 850 + stepRng() * 250, 0.55);
+-    const lp = filter(ctx, 'lowpass', 2600, 0.7);
+-    const g1 = gain(ctx, 0);
+-    src.connect(bp).connect(lp).connect(g1).connect(panner);
+-    adEnvelope(g1.gain, t, 0.2 * k, 0.012, 0.11 + stepRng() * 0.03);
+-    // the brush of blades springing back
+-    const hp = filter(ctx, 'highpass', 1800, 0.6);
+-    const g2 = gain(ctx, 0);
+-    src.connect(hp).connect(g2).connect(panner);
+-    adEnvelope(g2.gain, t + 0.05, 0.06 * k, 0.02, 0.09);
+-    const end = t + 0.35;
+-    setTimeoutCtx(ctx, end, () => {
+-      src.disconnect(bp);
+-      src.disconnect(hp);
+-      g1.disconnect();
+-      g2.disconnect();
+-      bp.disconnect();
+-      lp.disconnect();
+-      hp.disconnect();
+-      panner.disconnect();
+-    });
++    const v = voice(pan, t + 0.35, 0.4);
++    v.tone(t, 95 * jitter(0.08), 60, 0.05, 0.05 * k, 0.006, 0.06);
++    v.noise([filter(ctx, 'bandpass', 620 * jitter(0.15), 0.6), filter(ctx, 'lowpass', 1900, 0.7)], t, 0.09 * k, 0.014, 0.11 + stepRng() * 0.03);
++    // the blades springing back, softer and later
++    v.noise([filter(ctx, 'bandpass', 1400 * jitter(0.1), 0.8), filter(ctx, 'lowpass', 2600, 0.7)], t + 0.06, 0.025 * k, 0.02, 0.09);
++  };
++
++  // dirt: a soft crunch of trodden earth — a low body with a short granular top
++  const dirt = (t: number, k: number, pan: number) => {
++    const v = voice(pan, t + 0.32, 0.45);
++    v.tone(t, 115 * jitter(0.07), 62, 0.05, 0.07 * k, 0.004, 0.065);
++    v.noise([filter(ctx, 'lowpass', 1150 * jitter(0.1), 0.8)], t, 0.075 * k, 0.008, 0.075 + stepRng() * 0.02);
++    v.noise([filter(ctx, 'bandpass', 2100 * jitter(0.12), 1.2), filter(ctx, 'lowpass', 3600, 0.7)], t + 0.012, 0.02 * k, 0.005, 0.04);
++  };
++
++  // wood: a hollow knock — a plank's fundamental with a quieter partial, a dry tap on top
++  const wood = (t: number, k: number, pan: number, hollow: boolean) => {
++    const v = voice(pan, t + (hollow ? 0.5 : 0.32), hollow ? 0.7 : 0.5);
++    const f = (hollow ? 92 : 205) * jitter(0.05);
++    v.tone(t, f * 1.35, f, 0.03, (hollow ? 0.12 : 0.1) * k, 0.003, hollow ? 0.19 : 0.085);
++    v.tone(t, f * 2.4, f * 2.05, 0.03, 0.035 * k, 0.003, hollow ? 0.12 : 0.06, 'triangle');
++    v.noise([filter(ctx, 'bandpass', 900 * jitter(0.1), 1.4), filter(ctx, 'lowpass', 2800, 0.7)], t, 0.04 * k, 0.003, 0.03);
++    if (hollow) v.noise([filter(ctx, 'lowpass', 420, 0.9)], t + 0.01, 0.05 * k, 0.01, 0.16);
+   };
+ 
+   const step = (surface: Surface, t: number, strength: number, pan: number) => {
+-    if (surface === 'stone') stone(t, strength, pan);
+-    else grass(t, strength, pan);
++    switch (surface) {
++      case 'stone':
++        stone(t, strength, pan);
++        break;
++      case 'dirt':
++        dirt(t, strength, pan);
++        break;
++      case 'wood':
++        wood(t, strength, pan, false);
++        break;
++      case 'hollow':
++        wood(t, strength, pan, true);
++        break;
++      default:
++        grass(t, strength, pan);
++    }
+   };
+ 
+   let travelled = 0;
+   let side = 1;
+   let moving = false;
++  // walking steps are softer than running ones: 0.45 at a stroll, 1.0 at a full run
++  const strength = (speed: number) => Math.min(1, 0.35 + speed * 0.15);
+   const drive = (t: number, dt: number, speed: number, surface: Surface, onStairs: boolean) => {
+     if (speed < 0.25) {
+       // stopped: the next step starts fresh
+@@ -105,18 +147,19 @@ export function createFootsteps(ctx: BaseAudioContext, out: AudioNode, reverbSen
+       moving = false;
+       return;
+     }
++    const s = onStairs && surface !== 'wood' && surface !== 'hollow' ? 'stone' : surface;
+     if (!moving) {
+       // first step lands right away
+       moving = true;
+       travelled = 0;
+-      step(onStairs ? 'stone' : surface, t, Math.min(1, 0.55 + speed * 0.12), side * 0.12);
++      step(s, t, strength(speed), side * 0.12);
+       side = -side;
+     }
+     travelled += speed * dt;
+     const stride = onStairs ? 0.5 : speed > 2.6 ? 0.95 : 0.68;
+     if (travelled >= stride) {
+       travelled -= stride;
+-      step(onStairs ? 'stone' : surface, t, Math.min(1, 0.55 + speed * 0.12), side * 0.12);
++      step(s, t, strength(speed), side * 0.12);
+       side = -side;
+     }
+   };
+diff --git a/src/audio/index.ts b/src/audio/index.ts
+index 0aa70985..ecc33aae 100644
+--- a/src/audio/index.ts
++++ b/src/audio/index.ts
+@@ -5,7 +5,7 @@
+  *
+  *   ambience.ts  — wind bed following the world's gust, leaf rustle, four synthesised bird calls
+  *                  on a seeded schedule, the pod lanterns' hum attenuated by distance
+- *   footsteps.ts — stone / grass steps from the player's speed and the terrain mask
++ *   footsteps.ts — stone / grass / dirt / wood / hollow steps from the player's speed and the ground under him
+  *   music.ts     — the music slot: `public/audio/music.ogg|mp3` if present, else the original
+  *                  placeholder loop; −12 dB under the ambience
+  *
+@@ -16,7 +16,8 @@
+ import type { Object3D, Scene, Vector3 } from 'three';
+ import type { Wind } from '../world/wind/wind';
+ import type { PlayerHandle } from '../world/character/player';
+-import { getTerrain } from '../world/terrain/heightfield';
++import { surfaceMask } from '../world/terrain/heightfield';
++import { EXPANSION, LAYOUT } from '../world/layout';
+ import { createBuses, createRng, type Buses } from './graph';
+ import { createAmbience, type Ambience, type Vec3 } from './ambience';
+ import { createFootsteps, type Footsteps, type Surface } from './footsteps';
+@@ -75,9 +76,53 @@ function gatherPods(scene: Scene): Vec3[] {
+   return pods;
+ }
+ 
+-function surfaceAt(x: number, z: number): { surface: Surface; stairs: boolean } {
+-  const m = getTerrain().mask(x, z);
+-  return { surface: m.path > 0.5 || m.stairs > 0.5 ? 'stone' : 'grass', stairs: m.stairs > 0.5 };
++/**
++ * What Link's boot lands on (owner, 2026-09-22: "his footsteps should correlate where he's
++ * walking — gentle stone, grass, etc."). Analytic, from the layout and the live terrain masks the
++ * paving is built from — no raycasts:
++ *  - hollow: inside the log tunnel's bore (LAYOUT.logArch axis where the path passes through, within 0.8 of its radius)
++ *  - wood:   the west house's platform disc and its walkway deck (EXPANSION.westHouse)
++ *  - stone:  the flagstone paths and the stair treads (surfaceMask path / stairs, live view — the
++ *            expansion's stepping discs count)
++ *  - dirt:   the trodden shoulders beside the paving (path influence 0.12–0.5) and the stair aprons
++ *  - grass:  everything else
++ */
++export function surfaceAt(x: number, z: number): { surface: Surface; stairs: boolean } {
++  const m = surfaceMask(x, z, 'live');
++  if (m.stairs > 0.5) return { surface: 'stone', stairs: true };
++  // the log tunnel: distance from the log's axis in its own frame
++  const la = LAYOUT.logArch;
++  {
++    const yaw = (la.yawDeg * Math.PI) / 180;
++    const dx = x - la.position[0];
++    const dz = z - la.position[2];
++    const u = dx * Math.cos(yaw) - dz * Math.sin(yaw);
++    const v = dx * Math.sin(yaw) + dz * Math.cos(yaw);
++    // the bore is where the north path passes through the log's west half (layout: the path spine
++    // crosses at lu −3.4 … −4.8); elsewhere along the log the walker is on the ground beside it
++    if (u > -8.5 && u < -0.5 && Math.abs(v) < la.radius * 0.8) return { surface: 'hollow', stairs: false };
++  }
++  // the west house's platform and deck
++  {
++    const wh = EXPANSION.westHouse;
++    const hx = wh.host[0];
++    const hz = wh.host[1];
++    if (Math.hypot(x - hx, z - hz) < wh.radius) return { surface: 'wood', stairs: false };
++    const ex = wh.deckEnd[0];
++    const ez = wh.deckEnd[2];
++    const ax = ex - hx;
++    const az = ez - hz;
++    const len = Math.hypot(ax, az) || 1;
++    const t = ((x - hx) * ax + (z - hz) * az) / (len * len);
++    if (t > 0 && t < 1) {
++      const px = hx + ax * t;
++      const pz = hz + az * t;
++      if (Math.hypot(x - px, z - pz) < 0.475) return { surface: 'wood', stairs: false };
++    }
++  }
++  if (m.path > 0.5) return { surface: 'stone', stairs: false };
++  if (m.path > 0.12) return { surface: 'dirt', stairs: false };
++  return { surface: 'grass', stairs: false };
+ }
+ 
+ export const AUDIO_SEED = 'kokiri-audio-r47';
+@@ -229,11 +274,22 @@ export async function renderOffline(o: AudioOptions, seed: string, seconds: numb
+   for (let t = 0; t < seconds; t += step) {
+     let speed = 0;
+     let surface: Surface = 'grass';
+-    if (t >= 2 && t < 8) speed = 1.6;
+-    else if (t >= 8 && t < 14) {
++    // a scripted walk over every surface: grass, the trodden shoulder, flagstones, the deck's
++    // planks, the log tunnel's hollow, then a run on stone
++    if (t >= 2 && t < 6) speed = 1.6;
++    else if (t >= 6 && t < 9) {
++      speed = 1.6;
++      surface = 'dirt';
++    } else if (t >= 9 && t < 13) {
+       speed = 1.6;
+       surface = 'stone';
+-    } else if (t >= 14 && t < 18) {
++    } else if (t >= 13 && t < 16) {
++      speed = 1.6;
++      surface = 'wood';
++    } else if (t >= 16 && t < 19) {
++      speed = 1.6;
++      surface = 'hollow';
++    } else if (t >= 19 && t < 23) {
+       speed = 4.2;
+       surface = 'stone';
+     }
+diff --git a/src/world/canopy/index.ts b/src/world/canopy/index.ts
+index 2df1f4f0..a8c072c7 100644
+--- a/src/world/canopy/index.ts
++++ b/src/world/canopy/index.ts
+@@ -18,7 +18,7 @@ import { Color, DoubleSide, Group, Mesh, MeshStandardMaterial, Vector2, Vector3,
+ import type { WorldContext, WorldSystem } from '../system';
+ import { WIND_GLSL } from '../wind/wind';
+ import { createRoofAtlas, type RoofAtlas } from './atlas';
+-import { buildRoof, type RoofBuild } from './roof';
++import { buildRoof, HERO_DROP_STAND_M, ROOF_STAND_BANDS, type RoofBuild } from './roof';
+ 
+ /** alpha test of the roof cards (below 0.5 so the fine fringe keeps its coverage in the mips) */
+ export const ROOF_ALPHA_TEST = 0.4;
+@@ -133,7 +133,7 @@ export function create(ctx: WorldContext): WorldSystem {
+   const meshes: Mesh[] = [];
+   built.sectors.forEach((s, i) => {
+     const mesh = new Mesh(s.geometry, material);
+-    mesh.name = `canopy-roof-${i}`;
++    mesh.name = s.stand ? 'canopy-roof-stand' : `canopy-roof-${i}`;
+     // no shadow casting or receiving: the ground dapple / sun pools / ray mask are measured
+     // contracts of the fixed frames, and an underside facing away from the sun needs no lookup
+     mesh.castShadow = false;
+@@ -153,6 +153,18 @@ export function create(ctx: WorldContext): WorldSystem {
+     cells: built.cells,
+     minAboveGroundM: Math.round(built.minAboveGround * 100) / 100,
+     heightsM: [Math.round(Math.min(...built.clumps.map((c) => c.y)) * 10) / 10, Math.round(Math.max(...built.clumps.map((c) => c.y)) * 10) / 10],
++    /** the north-stand pass (roof.ts ROOF_STAND_BANDS): its own counts, its own hero-frame drop distance */
++    stand: {
++      clumps: built.stand.clumps,
++      cards: built.stand.cards,
++      cells: built.stand.cells,
++      dropped: built.stand.dropped,
++      minAboveGroundM: Math.round(built.stand.minAboveGround * 100) / 100,
++      heroDropM: HERO_DROP_STAND_M,
++      /** the nearest built stand clump inside each hero frame (view depth, m; null = none): what the drop distance is measured against */
++      nearestHeroM: Object.fromEntries(Object.entries(built.stand.nearestHeroM).map(([k, v]) => [k, v === null ? null : Math.round(v * 10) / 10])),
++      bands: ROOF_STAND_BANDS.length,
++    },
+     atlas: { tiles: atlas.tiles, size: atlas.color.image.width },
+     material: { alphaTest: ROOF_ALPHA_TEST, mipBias: ROOF_MIP_BIAS, sunThrough: ROOF_SUN_THROUGH, underLift: ROOF_UNDER_LIFT, wind: ROOF_WIND },
+     samplePositions: { clumps: built.clumps.slice(0, 64).map((c) => [c.x, c.y, c.z]) },
+diff --git a/src/world/canopy/roof.test.mjs b/src/world/canopy/roof.test.mjs
+index c6676a05..43293ed5 100644
+--- a/src/world/canopy/roof.test.mjs
++++ b/src/world/canopy/roof.test.mjs
+@@ -27,7 +27,7 @@ function load(file) {
+   return module.exports;
+ }
+ 
+-const { buildRoof, HERO_DROP_M, ROOF_MIN_ABOVE_GROUND_M } = load(path.join(here, 'roof.ts'));
++const { buildRoof, HERO_DROP_M, HERO_DROP_STAND_M, ROOF_MIN_ABOVE_GROUND_M } = load(path.join(here, 'roof.ts'));
+ const { createRng } = load(path.join(here, '../util/prng.ts'));
+ const { LAYOUT } = load(path.join(here, '../layout.ts'));
+ const { SHAFT_COLUMNS } = load(path.join(here, '../trees/corridors.ts'));
+@@ -50,6 +50,26 @@ assert.deepEqual(
+ assert.equal(a.cards, b.cards);
+ for (const s of a.sectors) assert.ok(s.geometry.getAttribute('position').count === s.cards * 4, 'four vertices a card');
+ 
++// the north-stand pass: with it off the build is the plaza roof exactly as before the pass existed —
++// the same clumps in the same order, and the six plaza sectors' buffers byte-identical
++const noStand = buildRoof(ctx, createRng('test/canopy-roof'), { ...opts, stand: false });
++const plaza = a.clumps.filter((c) => !c.stand);
++assert.equal(noStand.stand.clumps, 0);
++assert.deepEqual(
++  plaza.map((c) => [c.x, c.y, c.z, c.cards]),
++  noStand.clumps.map((c) => [c.x, c.y, c.z, c.cards]),
++  'the stand pass leaves the plaza clumps untouched',
++);
++const plazaSectors = a.sectors.filter((s) => !s.stand);
++assert.equal(plazaSectors.length, noStand.sectors.length, 'same plaza sector count');
++for (let i = 0; i < plazaSectors.length; i++) {
++  for (const attr of ['position', 'normal', 'uv', 'color', 'aRoot']) {
++    assert.deepEqual([...plazaSectors[i].geometry.getAttribute(attr).array], [...noStand.sectors[i].geometry.getAttribute(attr).array], `plaza sector ${i} ${attr} byte-identical with the stand pass on`);
++  }
++}
++assert.ok(a.stand.clumps > 40, `the stand pass builds a roof over the north stand (${a.stand.clumps} clumps)`);
++assert.equal(a.sectors.filter((s) => s.stand).length, 1, 'the stand draws in exactly one sector of its own');
++
+ // height: never inside a walker's reach, on the plateau included
+ for (const c of a.clumps) assert.ok(c.y - terrain.height(c.x, c.z) >= ROOF_MIN_ABOVE_GROUND_M - 1e-6, `clump at (${c.x.toFixed(1)}, ${c.z.toFixed(1)}) is ${(c.y - terrain.height(c.x, c.z)).toFixed(1)} m up`);
+ 
+@@ -68,7 +88,8 @@ let inside = 0;
+ for (const c of a.clumps) {
+   for (const { cam, pos, id } of cams) {
+     const d = pos.distanceTo(new THREE.Vector3(c.x, c.y, c.z));
+-    if (d > HERO_DROP_M) continue;
++    // a stand clump (north-stand pass) has its own, shorter drop distance
++    if (d > (c.stand ? HERO_DROP_STAND_M : HERO_DROP_M)) continue;
+     ndc.set(c.x, c.y, c.z).project(cam);
+     const behind = ndc.z > 1 || new THREE.Vector3(c.x, c.y, c.z).sub(pos).dot(cam.getWorldDirection(new THREE.Vector3())) <= 0;
+     if (!behind && Math.abs(ndc.x) <= 1 && Math.abs(ndc.y) <= 1) {
+diff --git a/src/world/canopy/roof.ts b/src/world/canopy/roof.ts
+index 07bda16b..91d40636 100644
+--- a/src/world/canopy/roof.ts
++++ b/src/world/canopy/roof.ts
+@@ -58,18 +58,91 @@ export const HERO_DROP_M = 120;
+ /** frame margin (share of the frame) added around the hero frames for the exclusion */
+ export const HERO_MARGIN = 0.03;
+ 
++/**
++ * The north stand (round 52, GOAL_MODE owner-fable #3; opus-review #01 "no canopy over them",
++ * the owner's "deep world through the arch"): the far forest beyond the log arch is fable-4's
++ * depth bands of 26 m poles — flanks either side of the north clearing (|x| 12–34, z −82…−64),
++ * a back stand behind the ledge terrace (|x| ≤ 12, z −90…−81) — and the two older rows at
++ * z −61…−55 (trees/index.ts DEPTH_BANDS). Those poles carry a small crown 18 m+ up and nothing
++ * closes over them or over the clearing; the roof's giants list does not reach there (the
++ * nearest giant is north-east at (15, 2, −37)). These authored bands give the roof support over
++ * the stand: a rectangle (world x / z), the height the roof hangs above the local ground
++ * (22 m: a 26 m pole × 0.85–1.1 scale is 22–29 m tall with its small crown centred at ≈ 0.7 of
++ * that, 15–20 m up — the roof is the layer OVER those crowns, as it is over the giants'), and a
++ * feather (m) over which the support fades outside the rectangle — 20 m on the flanks and the
++ * back stand: at the clearing's centre (10.5 m from the west flank) the support is 0.46, at its
++ * east edge ≈ 0.25, so about half the cells over the clearing build and it closes with hazy
++ * gaps rather than a solid lid or open sky (at 14 m — 0.16 at the centre — five clumps hung over
++ * the clearing and its sky stayed mostly open; the six views paid nothing either way: measured
++ * in the PR). Read only by the stand pass (buildRoof `stand`), which draws from its own stream
++ * and writes its own sector mesh, so the plaza roof's clumps and cards are byte-identical with
++ * or without it.
++ */
++export interface RoofStandBand {
++  xMin: number;
++  xMax: number;
++  zMin: number;
++  zMax: number;
++  /** crown centre height above the local ground (m) */
++  crownAbove: number;
++  /** support fade outside the rectangle (m) */
++  feather: number;
++}
++export const ROOF_STAND_BANDS: readonly RoofStandBand[] = [
++  { xMin: -34, xMax: -12, zMin: -82, zMax: -64, crownAbove: 22, feather: 20 },
++  { xMin: 12, xMax: 34, zMin: -82, zMax: -64, crownAbove: 22, feather: 20 },
++  { xMin: -12, xMax: 12, zMin: -90, zMax: -81, crownAbove: 22, feather: 20 },
++  { xMin: -34, xMax: 48, zMin: -61, zMax: -55, crownAbove: 21, feather: 10 },
++];
++/**
++ * the stand pass's own grid bounds (world x / z): from the back stand to 3 m south of the rows
++ * band. It OVERLAPS the plaza grid (zMin −70) over z −70…−52: there the plaza pass builds only
++ * where a giant supports it and the stand pass only where a band does, and a stand cell a giant
++ * already covers (support > ROOF_STAND_GIANT_SKIP) is skipped, so the two passes never stack. A
++ * first cut ended the stand grid at −70: the flanks' south third and the whole rows band were
++ * never sampled and the roof stopped in a straight seam across the clearing (found by review).
++ */
++export const ROOF_STAND_BOUNDS = { xMin: -46, xMax: 52, zMin: -96, zMax: -52 } as const;
++/** a stand cell whose giant support exceeds this is the plaza pass's (skipped here) */
++export const ROOF_STAND_GIANT_SKIP = 0.5;
++/**
++ * the stand's cards are this much larger than the plaza roof's and each clump carries one more:
++ * the stand is seen from below at 20–30 m and from the arch at 50–80 m in the haze, and at the
++ * plaza's card size a clump covered about a third of its 3.6 m cell — five clumps over the
++ * clearing left its sky mostly open (feather 14 and 20 alike: the clump count there is the
++ * noise field's, not the feather's). Read in the card loop for stand clumps only, after every
++ * plaza card has drawn, so the plaza roof's cards are byte-identical.
++ */
++export const ROOF_STAND_CARD_SCALE = 1.35;
++export const ROOF_STAND_EXTRA_CARDS = 1;
++/**
++ * hero-frame exclusion for the stand's clumps (m): the stand is what camera D looks at through
++ * the arch (its nearest band point 54 m off; B / E 58 m; A 70 m), so the plaza roof's 120 m rule
++ * would build nothing over it. A stand clump inside a hero frame nearer than this is dropped;
++ * beyond it the clump stands in the frame's far haze. With the bands as authored the rows band's
++ * south edge comes within 50 m of B / E / D, so at 50 this drops the handful of cells there
++ * (`stand.dropped.heroFrame`) and the nearest in-frame stand clump sits at ≈ 50 m from B / E / D,
++ * 55 from A, 61 from F, none from C (the audit's `stand.nearestHeroM`); the six-view measurement
++ * in the PR is what holds the −0.003 budget, and the value moves up if it does not.
++ */
++export const HERO_DROP_STAND_M = 50;
++
+ export interface RoofClump {
+   x: number;
+   y: number;
+   z: number;
+   /** cards in this clump */
+   cards: number;
++  /** true for a clump of the north-stand pass (ROOF_STAND_BANDS); it draws into its own sector */
++  stand?: boolean;
+ }
+ 
+ export interface RoofSector {
+   geometry: BufferGeometry;
+   cards: number;
+   triangles: number;
++  /** the north-stand pass's sector (one mesh of its own; the plaza sectors are unchanged by it) */
++  stand: boolean;
+ }
+ 
+ export interface RoofBuild {
+@@ -83,6 +156,16 @@ export interface RoofBuild {
+   minAboveGround: number;
+   /** the sampling grid's cell count */
+   cells: number;
++  /** the north-stand pass (ROOF_STAND_BANDS): its own counts; zeros when the pass is off */
++  stand: {
++    clumps: number;
++    cards: number;
++    cells: number;
++    dropped: { field: number; heroFrame: number; shaft: number; opening: number };
++    minAboveGround: number;
++    /** per hero viewpoint id: the nearest built stand clump inside that frame (view depth, m), or null when none is */
++    nearestHeroM: Record<string, number | null>;
++  };
+ }
+ 
+ export interface RoofOptions {
+@@ -94,6 +177,8 @@ export interface RoofOptions {
+   sectors?: number;
+   /** centre of the sector split (world x, z) */
+   sectorCentre?: [number, number];
++  /** build the north-stand pass (default true); false = the plaza roof exactly as before the pass existed */
++  stand?: boolean;
+ }
+ 
+ /**
+@@ -143,10 +228,25 @@ export function buildRoof(ctx: WorldContext, rng: Rng, o: RoofOptions): RoofBuil
+   const shafts = SHAFT_COLUMNS.map((c) => ({ point: new Vector3(c.point[0], c.point[1], c.point[2]), radius: c.carve ?? c.radius }));
+   const openings = CANOPY_OPENINGS.map((c) => ({ point: new Vector3(c.point[0], ctx.terrain.height(c.point[0], c.point[1]), c.point[1]), radius: c.radius, yMin: c.band[0] }));
+ 
+-  const inHeroFrame = (q: Vector3, halfSize: number): boolean => {
++  /** the nearest built stand clump inside each hero frame (view depth), for the audit */
++  const nearestHero: Record<string, number | null> = Object.fromEntries(ctx.layout.viewpoints.map((v) => [v.id, null]));
++  const noteHeroDepth = (q: Vector3, halfSize: number) => {
++    heroCams.forEach((cam, i) => {
++      const s = cam.project(q);
++      if (!s) return;
++      const th = Math.tan((cam.fov * Math.PI) / 360);
++      const dy = halfSize / (s[2] * 2 * th);
++      const dx = dy / (16 / 9);
++      if (s[0] + dx >= 0 && s[0] - dx <= 1 && s[1] + dy >= 0 && s[1] - dy <= 1) {
++        const id = ctx.layout.viewpoints[i].id;
++        nearestHero[id] = nearestHero[id] === null ? s[2] : Math.min(nearestHero[id] as number, s[2]);
++      }
++    });
++  };
++  const inHeroFrame = (q: Vector3, halfSize: number, dropM = HERO_DROP_M): boolean => {
+     for (const cam of heroCams) {
+       const s = cam.project(q);
+-      if (!s || s[2] > HERO_DROP_M) continue;
++      if (!s || s[2] > dropM) continue;
+       const th = Math.tan((cam.fov * Math.PI) / 360);
+       const dy = halfSize / (s[2] * 2 * th);
+       const dx = dy / (16 / 9);
+@@ -234,11 +334,105 @@ export function buildRoof(ctx: WorldContext, rng: Rng, o: RoofOptions): RoofBuil
+       clumps.push({ x, y, z, cards });
+     }
+   }
++  const plazaClumps = clumps.length;
++
++  // ---- the north-stand pass (ROOF_STAND_BANDS): own stream, own grid, own sector ----
++  const standDropped = { field: 0, heroFrame: 0, shaft: 0, opening: 0 };
++  let standMinAbove = Infinity;
++  const snx = Math.floor((ROOF_STAND_BOUNDS.xMax - ROOF_STAND_BOUNDS.xMin) / ROOF_GRID_M);
++  const snz = Math.floor((ROOF_STAND_BOUNDS.zMax - ROOF_STAND_BOUNDS.zMin) / ROOF_GRID_M);
++  if (o.stand ?? true) {
++    const rs = rng.fork('roof-build-stand');
++    /** support of a band at (x, z): 1 inside its rectangle, fading to 0 `feather` m outside it */
++    const bandSupport = (b: RoofStandBand, x: number, z: number) => {
++      const dx = Math.max(b.xMin - x, 0, x - b.xMax);
++      const dz = Math.max(b.zMin - z, 0, z - b.zMax);
++      return 1 - smoothstep(0, b.feather, Math.hypot(dx, dz));
++    };
++    for (let iz = 0; iz < snz; iz++) {
++      for (let ix = 0; ix < snx; ix++) {
++        // the same draws per cell as the plaza pass, from the stand's own stream
++        const jx = rs.range(-0.45, 0.45) * ROOF_GRID_M;
++        const jz = rs.range(-0.45, 0.45) * ROOF_GRID_M;
++        const fieldDraw = rs();
++        const cards = rs.int(ROOF_CARDS_PER_CLUMP[0], ROOF_CARDS_PER_CLUMP[1] + 1);
++        const yJitter = rs.range(ROOF_BAND_M[0], ROOF_BAND_M[1]);
++        const x = ROOF_STAND_BOUNDS.xMin + (ix + 0.5) * ROOF_GRID_M + jx;
++        const z = ROOF_STAND_BOUNDS.zMin + (iz + 0.5) * ROOF_GRID_M + jz;
++        const ground = ctx.terrain.height(x, z);
++        // support: the stand bands only; a cell a giant covers (the north-east giant reaches the
++        // rows band's east end) belongs to the plaza pass and is skipped, so the passes never stack
++        let giantSupport = 0;
++        for (const g of giants) {
++          const d = Math.hypot(x - g.x, z - g.z);
++          giantSupport = Math.max(giantSupport, 1 - smoothstep(g.crownR * ROOF_SUPPORT.inner, g.crownR * ROOF_SUPPORT.outer + ROOF_SUPPORT.plus, d));
++        }
++        if (giantSupport > ROOF_STAND_GIANT_SKIP) {
++          standDropped.field++;
++          continue;
++        }
++        let support = 0;
++        let ySum = 0;
++        let wSum = 0;
++        for (const b of ROOF_STAND_BANDS) {
++          const s = bandSupport(b, x, z);
++          if (s <= 0) continue;
++          support = Math.max(support, s);
++          ySum += (ground + b.crownAbove) * s;
++          wSum += s;
++        }
++        if (support <= 0.02) {
++          standDropped.field++;
++          continue;
++        }
++        const n = 0.5 + 0.5 * field.fbm(x * 0.09, z * 0.09, 3);
++        const keep = n * (0.35 + 0.65 * support) * o.density;
++        if (keep < ROOF_FIELD_THRESHOLD || fieldDraw > 0.35 + 0.65 * support) {
++          standDropped.field++;
++          continue;
++        }
++        let y = ySum / wSum + yJitter;
++        if (y < ground + ROOF_MIN_ABOVE_GROUND_M) y = ground + ROOF_MIN_ABOVE_GROUND_M + Math.max(0, yJitter);
++        p.set(x, y, z);
++        const halfSize = ROOF_CARD_M[1] * 0.75;
++        if (inHeroFrame(p, halfSize, HERO_DROP_STAND_M)) {
++          standDropped.heroFrame++;
++          continue;
++        }
++        let cut = false;
++        for (const s of shafts) {
++          if (sunLineDistance(p, s.point) < s.radius + halfSize * 0.6) {
++            cut = true;
++            break;
++          }
++        }
++        if (cut) {
++          standDropped.shaft++;
++          continue;
++        }
++        for (const op of openings) {
++          if (y < op.yMin) continue;
++          if (sunLineDistance(p, op.point) < op.radius + halfSize * 0.6) {
++            cut = true;
++            break;
++          }
++        }
++        if (cut) {
++          standDropped.opening++;
++          continue;
++        }
++        standMinAbove = Math.min(standMinAbove, y - ground);
++        noteHeroDepth(p, halfSize);
++        clumps.push({ x, y, z, cards, stand: true });
++      }
++    }
++  }
+ 
+-  // ---- geometry: crossed cards per clump, split into sectors around the plaza for culling ----
++  // ---- geometry: crossed cards per clump, split into sectors around the plaza for culling; the
++  // stand's clumps write their own sector (index sectorCount) so the plaza sectors never change ----
+   const sectorCount = Math.max(1, o.sectors ?? 6);
+   const [scx, scz] = o.sectorCentre ?? [5, -12];
+-  const writers = Array.from({ length: sectorCount }, () => ({ pos: [] as number[], nor: [] as number[], uv: [] as number[], col: [] as number[], root: [] as number[], idx: [] as number[], cards: 0 }));
++  const writers = Array.from({ length: sectorCount + 1 }, () => ({ pos: [] as number[], nor: [] as number[], uv: [] as number[], col: [] as number[], root: [] as number[], idx: [] as number[], cards: 0 }));
+   const canopy = new Color(ctx.config.palette.leafCanopy);
+   const cool = new Color(0x3a6a44);
+   const warm = new Color(0x86a040);
+@@ -251,15 +445,19 @@ export function buildRoof(ctx: WorldContext, rng: Rng, o: RoofOptions): RoofBuil
+   let cardsTotal = 0;
+   for (const c of clumps) {
+     const ang = Math.atan2(c.z - scz, c.x - scx);
+-    const sector = ((Math.floor(((ang + Math.PI) / (2 * Math.PI)) * sectorCount) % sectorCount) + sectorCount) % sectorCount;
++    const sector = c.stand ? sectorCount : ((Math.floor(((ang + Math.PI) / (2 * Math.PI)) * sectorCount) % sectorCount) + sectorCount) % sectorCount;
+     const w = writers[sector];
+     // one tint per clump (the mass reads as one tree's leaves), cards vary a little inside it
+     const tint = canopy
+       .clone()
+       .lerp(cardR.chance(0.5) ? cool : warm, cardR.range(0, 0.3))
+       .multiplyScalar(cardR.range(0.8, 1.08));
+-    for (let k = 0; k < c.cards; k++) {
+-      const size = cardR.range(ROOF_CARD_M[0], ROOF_CARD_M[1]);
++    // stand clumps: larger cards and one more each (ROOF_STAND_CARD_SCALE); the plaza clumps come
++    // first in `clumps`, so their draws from `cardR` are what they were
++    const cardCount = c.cards + (c.stand ? ROOF_STAND_EXTRA_CARDS : 0);
++    const sizeScale = c.stand ? ROOF_STAND_CARD_SCALE : 1;
++    for (let k = 0; k < cardCount; k++) {
++      const size = cardR.range(ROOF_CARD_M[0], ROOF_CARD_M[1]) * sizeScale;
+       const tile = cardR.int(0, ROOF_TILES * ROOF_TILES);
+       const [u0, v0, u1, v1] = roofTileUv(tile);
+       // every card lies nearly flat (a canopy is layered horizontally): a standing card seen
+@@ -267,7 +465,7 @@ export function buildRoof(ctx: WorldContext, rng: Rng, o: RoofOptions): RoofBuil
+       // the material fades a card edge-on anyway (index.ts ROOF_EDGE_FADE)
+       const tilt = cardR.range(-0.5, 0.5);
+       const spin = cardR.range(0, Math.PI * 2);
+-      const lift = (k - (c.cards - 1) * 0.5) * cardR.range(0.7, 1.3);
++      const lift = (k - (cardCount - 1) * 0.5) * cardR.range(0.7, 1.3);
+       const offX = cardR.range(-0.35, 0.35) * size;
+       const offZ = cardR.range(-0.35, 0.35) * size;
+       // normal: up, tilted by `tilt` toward a random azimuth `spin`
+@@ -304,8 +502,9 @@ export function buildRoof(ctx: WorldContext, rng: Rng, o: RoofOptions): RoofBuil
+     }
+   }
+   const sectors: RoofSector[] = writers
+-    .filter((w) => w.cards > 0)
+-    .map((w) => {
++    .map((w, i) => ({ w, stand: i === sectorCount }))
++    .filter(({ w }) => w.cards > 0)
++    .map(({ w, stand }) => {
+       const g = new BufferGeometry();
+       g.setAttribute('position', new BufferAttribute(new Float32Array(w.pos), 3));
+       g.setAttribute('normal', new BufferAttribute(new Float32Array(w.nor), 3));
+@@ -315,8 +514,10 @@ export function buildRoof(ctx: WorldContext, rng: Rng, o: RoofOptions): RoofBuil
+       g.setIndex(w.idx);
+       g.computeBoundingSphere();
+       g.computeBoundingBox();
+-      return { geometry: g, cards: w.cards, triangles: w.cards * 2 };
++      return { geometry: g, cards: w.cards, triangles: w.cards * 2, stand };
+     });
++  const standClumps = clumps.length - plazaClumps;
++  const standCards = writers[sectorCount].cards;
+   return {
+     sectors,
+     clumps,
+@@ -325,5 +526,13 @@ export function buildRoof(ctx: WorldContext, rng: Rng, o: RoofOptions): RoofBuil
+     dropped,
+     minAboveGround: Number.isFinite(minAbove) ? minAbove : 0,
+     cells: nx * nz,
++    stand: {
++      clumps: standClumps,
++      cards: standCards,
++      cells: o.stand ?? true ? snx * snz : 0,
++      dropped: standDropped,
++      minAboveGround: Number.isFinite(standMinAbove) ? standMinAbove : 0,
++      nearestHeroM: nearestHero,
++    },
+   };
+ }
+diff --git a/src/world/props/README.md b/src/world/props/README.md
+index 62763a29..bb4583fe 100644
+--- a/src/world/props/README.md
++++ b/src/world/props/README.md
+@@ -70,3 +70,7 @@ vertices, compact cluster bounds, placement rules, disposal. Then `npm run typec
+ 
+ Visual acceptance is before/after at the survey poses (`art/environment/survey2/manifest.json`)
+ and the six fixed views within −0.003 SSIM of the sealed take — see PR #13 and `.agents/fable-3.md`.
++
++Round 52 (the OOM ask): every merged locality mesh drops its CPU typed arrays on GPU upload (`releaseAfterUpload`,
++the trees' pattern) — ≈ 7.9 MB across the 13 meshes; bounds are computed first and nothing reads the arrays after
++build. The test asserts the hook on every attribute and index.
+diff --git a/src/world/props/geometry.test.mjs b/src/world/props/geometry.test.mjs
+index 35cddedf..2df8c205 100644
+--- a/src/world/props/geometry.test.mjs
++++ b/src/world/props/geometry.test.mjs
+@@ -506,6 +506,21 @@ for (const id of ['door-pot-large', 'sign-pot', 'saria-crate', 'saria-water-buck
+ 
+ // geometry: determinism, finiteness, attributes, budget
+ const geometry = (system) => system.group.children.flatMap((g) => g.children.map((m) => m.geometry));
++
++// round 52 (the OOM ask): every merged mesh drops its CPU arrays on GPU upload — each attribute and
++// the index carry the upload hook, and the bounds three would otherwise compute from the arrays later
++// are already there (in Node nothing uploads, so the arrays are still present for the checks below)
++const dropsOnUpload = (a) => {
++  const probe = { array: new Float32Array(3) };
++  a.onUploadCallback.call(probe);
++  return probe.array === null;
++};
++for (const g of geometry(one)) {
++  for (const [name, a] of Object.entries(g.attributes)) assert.ok(dropsOnUpload(a), `${name} drops its array on upload`);
++  if (g.index) assert.ok(dropsOnUpload(g.index), 'the index drops its array on upload');
++  assert.ok(g.boundingSphere && g.boundingBox, 'bounds computed before the arrays can go');
++  assert.ok(g.attributes.position.array, 'arrays still present in Node (no upload)');
++}
+ const first = geometry(one);
+ const second = geometry(two);
+ assert.equal(first.length, second.length);
+diff --git a/src/world/props/index.ts b/src/world/props/index.ts
+index 08e9e1e8..b23c93fe 100644
+--- a/src/world/props/index.ts
++++ b/src/world/props/index.ts
+@@ -8,7 +8,7 @@
+  * a bank), weathered at the base, and merged per locality (`localityOf(cluster)`) and material
+  * into one mesh each; each locality is distance-culled as one.
+  */
+-import { Box3, BufferGeometry, type Camera, Color, Group, Mesh, Quaternion, Sphere, Vector3 } from 'three';
++import { Box3, type BufferAttribute, BufferGeometry, type Camera, Color, Group, Mesh, Quaternion, Sphere, Vector3 } from 'three';
+ import { mergeGeometries } from 'three/addons/utils/BufferGeometryUtils.js';
+ import type { WorldContext, WorldSystem } from '../system';
+ import { expansionCull } from '../terrain/heightfield';
+@@ -125,6 +125,23 @@ const COLOUR_DOMAIN: Record<MaterialKey, [number, number, number]> = {
+   glow: [1, 1, 1],
+ };
+ 
++/**
++ * Round 52 (fable-cursor's OOM ask, 2026-09-22 07:15 — the tab at 3.6 GB; trees/index.ts does the same):
++ * once the renderer has uploaded a merged locality mesh nothing reads its typed arrays again — the
++ * cull reads the locality spheres taken at build, the audits and the census read counts, the
++ * character's surface grid reads the hardscape's stairs, `contactIndices` are consumed before the
++ * merge — so every attribute and the index drop their CPU copy on upload (≈ 7.9 MB across the 13
++ * meshes). Bounds are computed before the arrays go. In Node (the tests) nothing uploads, so the
++ * arrays stay and the geometry assertions still see them.
++ */
++const dropArray = function (this: { array: ArrayLike<number> | null }) {
++  this.array = null;
++};
++function releaseAfterUpload(g: BufferGeometry): void {
++  for (const a of Object.values(g.attributes)) (a as BufferAttribute).onUpload(dropArray as unknown as () => void);
++  if (g.index) g.index.onUpload(dropArray as unknown as () => void);
++}
++
+ /** grime and moss where a prop meets the ground; continuous in space so shared edges stay seamless */
+ function weather(geometry: BufferGeometry, material: MaterialKey, size: number): void {
+   if (material === 'iron' || material === 'glow') return;
+@@ -532,6 +549,7 @@ export async function create(ctx: WorldContext): Promise<WorldSystem> {
+         else sphere.union(merged.boundingSphere);
+         first = false;
+       }
++      releaseAfterUpload(merged);
+       ownedGeometry.push(merged);
+       const mesh = new Mesh(merged, materials[key]);
+       mesh.name = `${locality}-${key}`;
+diff --git a/src/world/rocks/index.ts b/src/world/rocks/index.ts
+index 2848a45e..eef01efa 100644
+--- a/src/world/rocks/index.ts
++++ b/src/world/rocks/index.ts
+@@ -8,7 +8,7 @@
+  * and loose fragments, and a material variant whose 2.6 m texture tile, wet band and crack grime
+  * fade in under 6 m (material.ts). The six fixed hero cameras always render the far meshes.
+  */
+-import { Color, Frustum, Group, InstancedMesh, Matrix4, Mesh, PerspectiveCamera, Quaternion, Sphere, Vector3, type BufferGeometry, type Camera } from 'three';
++import { BufferAttribute, Color, Frustum, Group, InstancedMesh, Matrix4, Mesh, PerspectiveCamera, Quaternion, Sphere, Vector3, type BufferGeometry, type Camera } from 'three';
+ import type { WorldContext, WorldSystem } from '../system';
+ import { Noise2D, clamp, smoothstep } from '../util/noise';
+ import { northBox, northVisible } from '../util/northLocality';
+@@ -123,6 +123,15 @@ export const HERO_NEAR_RELIEF = 1.5;
+  * the plain far stones they were. The fixed cameras' nearest slab is measured in README §31.
+  */
+ export const STRATA_NEAR_FADE_M: [number, number] = [2.5, 4.5];
++/**
++ * the north clearing's and the plaza backside's dressing (clearing.ts / backside.ts): the walk poses see
++ * these stones at 6–9 m — `x-southbank-toe` 6.8 m from the pale pair, `x-clearing-n` the west-bank pair —
++ * just past the hero fade's 6.3 m, so they rendered the smooth far skin at exactly the owner's "stones
++ * under-detailed at 5–20 m" range. Their own material carries the near skin (plates, wet band, lichen,
++ * relief 1.5) out to this fade. Both sets are off every fixed view by construction (the clearing under
++ * the north toggle, the backside's spheres outside the six frusta — backside.test), so A–F are untouched.
++ */
++export const DRESSING_NEAR_FADE_M: [number, number] = [7, 13];
+ /** the ledge wall's near grain (material `relief`): fable-5 §7.2, micro σ 0.034 → 0.05 at 3 m — measured at `x-ledge-wall` (4 px residual on the cap): 0.031 → 0.035 at 1.0, 0.043 at 3.0 */
+ export const LEDGE_RELIEF = 3.0;
+ 
+@@ -267,10 +276,57 @@ interface PebbleTile {
+ }
+ 
+ /** one tile's instances merged into a static mesh (looks baked in), or null when none */
++/**
++ * Vertex storage for the rock meshes (memory: the tab reached 3.6 GB in the takes, tick 223; rocks held
++ * 86 MB of attribute arrays, all of it rockgen's non-indexed float32 at 48–52 B per vertex). No rock
++ * material reads `uv` (the skin is triplanar), so it goes; the normal becomes Int8 ×3; and any attribute
++ * whose values all sit in 0–1 — colour, `aWet`, `aLichen`, a pebble's `aMoss` — becomes Uint8, normalised
++ * (the shader reads the same floats). An attribute outside 0–1 stays float32: the hero kits' `aMoss`
++ * carries the cushions (> 1) and the lichen plates (< 0). Idempotent — an attribute already stored as
++ * integers is left alone. `dropNearOnly` also removes `aWet`, for meshes on the far material, which
++ * never reads it.
++ */
++function compactRockGeometry(g: BufferGeometry, dropNearOnly = false): void {
++  const n = g.getAttribute('position').count;
++  const fits01 = (a: BufferAttribute) => {
++    for (let i = 0; i < a.array.length; i++) if (a.array[i] < -1e-6 || a.array[i] > 1 + 1e-6) return false;
++    return true;
++  };
++  const isFloat = (a: BufferAttribute | undefined): a is BufferAttribute => !!a && a.array instanceof Float32Array;
++  const normal = g.getAttribute('normal') as BufferAttribute | undefined;
++  if (isFloat(normal)) {
++    const out = new Int8Array(n * 3);
++    for (let i = 0; i < n * 3; i++) out[i] = Math.round(Math.max(-1, Math.min(1, normal.array[i])) * 127);
++    g.setAttribute('normal', new BufferAttribute(out, 3, true));
++  }
++  for (const name of ['color', 'aMoss', 'aWet', 'aLichen']) {
++    const a = g.getAttribute(name) as BufferAttribute | undefined;
++    if (!isFloat(a) || !fits01(a)) continue;
++    const out = new Uint8Array(a.array.length);
++    for (let i = 0; i < out.length; i++) out[i] = Math.round(Math.max(0, Math.min(1, a.array[i])) * 255);
++    g.setAttribute(name, new BufferAttribute(out, a.itemSize, true));
++  }
++  if (g.getAttribute('uv')) g.deleteAttribute('uv');
++  if (dropNearOnly) {
++    if (g.getAttribute('aWet')) g.deleteAttribute('aWet');
++    if (g.getAttribute('aLichen')) g.deleteAttribute('aLichen');
++  }
++  // and the CPU copy goes once the GPU has it (fable-4's trees do the same, tick 225): nothing reads
++  // a rock mesh's arrays after the build — the bounds are computed, the census reads `count`, the
++  // near-LOD swap toggles visibility, no raycast targets rocks — so the renderer keeps one copy, not two
++  for (const a of Object.values(g.attributes)) (a as BufferAttribute).onUpload(dropArray as unknown as () => void);
++  if (g.index) g.index.onUpload(dropArray as unknown as () => void);
++}
++
++const dropArray = function (this: { array: ArrayLike<number> | null }) {
++  this.array = null;
++};
++
+ function mergeTile(parts: BufferGeometry[], material: Mesh['material'], name: string): Mesh | null {
+   const merged = mergeGeometries(parts, false);
+   for (const p of parts) p.dispose();
+   if (!merged) return null;
++  compactRockGeometry(merged, true);
+   merged.computeBoundingSphere();
+   const mesh = new Mesh(merged, material);
+   mesh.castShadow = false;
+@@ -338,6 +394,7 @@ export async function create(ctx: WorldContext): Promise<WorldSystem> {
+   // rock material rendered 0.29 at exposure 1.0 — darker rock and moss for it alone, without
+   // moving it
+   const stairFootMaterial = await createRockMaterial(ctx.textures, ctx.config, anisotropy, 1.4, 0.9, { near: true, relief: HERO_NEAR_RELIEF });
++  const dressingMaterial = await createRockMaterial(ctx.textures, ctx.config, anisotropy, 1.4, 1, { near: true, fade: DRESSING_NEAR_FADE_M, relief: HERO_NEAR_RELIEF });
+   const pebbleMaterial = await createRockMaterial(ctx.textures, ctx.config, anisotropy, 0.35);
+   const density = clamp(ctx.quality.density, 0.4, 1.4);
+   const detailR = ctx.config.detailRadius;
+@@ -1208,7 +1265,7 @@ export async function create(ctx: WorldContext): Promise<WorldSystem> {
+   // stairs.ledge / ledgeTerrace, own fork
+   const clearing = buildClearingRocks(ctx.layout as unknown as ClearingLayout, T, rng.fork('north-clearing'), seed, shadeDir);
+   if (clearing) {
+-    const clearingMesh = new Mesh(clearing.geometry, heroMaterial);
++    const clearingMesh = new Mesh(clearing.geometry, dressingMaterial);
+     clearingMesh.castShadow = true;
+     clearingMesh.receiveShadow = true;
+     clearingMesh.name = 'north-clearing-rocks';
+@@ -1228,7 +1285,7 @@ export async function create(ctx: WorldContext): Promise<WorldSystem> {
+   let backsideMesh: Mesh | null = null;
+   let backsideSpheres: Sphere[] = [];
+   if (backside) {
+-    backsideMesh = new Mesh(backside.geometry, heroMaterial);
++    backsideMesh = new Mesh(backside.geometry, dressingMaterial);
+     backsideMesh.castShadow = true;
+     backsideMesh.receiveShadow = true;
+     backsideMesh.name = 'backside-rocks';
+@@ -1377,6 +1434,21 @@ export async function create(ctx: WorldContext): Promise<WorldSystem> {
+     palette: { moss: [P.mossDeep, P.mossBright] },
+   }));
+ 
++  // the rock meshes' vertex storage compacted last, after every build-time read of their attributes
++  // (compactRockGeometry): the hero kits and far LODs, the ledge, the dressing, the strata / rubble
++  // looks; the pebble tiles came through mergeTile already and are left as they are
++  {
++    const done = new Set<string>();
++    group.traverse((o) => {
++      const m = o as Mesh;
++      const mat = m.material as { name?: string } | undefined;
++      // every rock material comes from createRockMaterial and is named `rock-triplanar…`; the boulder plants are not
++      if (!m.isMesh || !m.geometry || !mat?.name?.startsWith('rock-triplanar') || done.has(m.geometry.uuid)) return;
++      done.add(m.geometry.uuid);
++      compactRockGeometry(m.geometry);
++    });
++  }
++
+   return {
+     name: 'rocks',
+     group,
+diff --git a/src/world/trees/index.ts b/src/world/trees/index.ts
+index 9ebfe83d..bc861d31 100644
+--- a/src/world/trees/index.ts
++++ b/src/world/trees/index.ts
+@@ -21,7 +21,7 @@
+  * instances that can reach the image (see "submission culling" below). Everything is seated via
+  * ctx.terrain.height; randomness only via ctx.rng.
+  */
+-import { BufferGeometry, Color, Frustum, Group, InstancedBufferAttribute, InstancedMesh, Matrix4, Mesh, PerspectiveCamera, Quaternion, Sphere, Vector3, type BufferAttribute, type Camera, type Material } from 'three';
++import { BufferAttribute, BufferGeometry, Color, Frustum, Group, InstancedBufferAttribute, InstancedMesh, Matrix4, Mesh, PerspectiveCamera, Quaternion, Sphere, Vector3, type Camera, type Material } from 'three';
+ import type { TrunkSeat, WorldContext, WorldSystem } from '../system';
+ import { BARK_DETAIL_M, BARK_DETAIL_TILES, BARK_TOUCH_M, BARK_TOUCH_TILES, CARD_EDGE_FADE, CARD_FLAT_EDGE_FADE, COLUMN_BARK_FLOOR, COLUMN_BARK_FLOOR_FAR, COLUMN_FLOOR_FADE_M, createTreeMaterials, CUSHION_FADE_M, DISTANT_BARK_M, DISTANT_NEAR_FLOOR, DISTANT_NEAR_TONE, NEAR_BASE_FLOOR, NEAR_BOLE_FLOOR, NEAR_BOLE_FLOOR_FADE, NEAR_BOLE_FLOOR_TOP, NEAR_BOLE_SLOTS, NEAR_CANOPY_LEAF_FLOOR, NEAR_CANOPY_LEAF_NEAR_M, NEAR_CANOPY_SLOTS, NEAR_CANOPY_SUN_THROUGH, TREE_BARK_FLOOR, TREE_BARK_FLOOR_NEAR, TREE_FLOOR_FADE_M, TREE_LEAF_FLOOR, TREE_LEAF_FLOOR_NEAR, TREE_NEAR_BOLE_FLOOR } from './materials';
+ import type { ShadeFloor } from '../materials/shadeFloor';
+@@ -1616,6 +1616,47 @@ interface GeometryBuilt extends PoolBuilt {
+ }
+ /** what the audit's residentBytes counted from the start: every attribute array plus the index */
+ const geometryBytes = (g: BufferGeometry) => Object.values(g.attributes).reduce((b, a) => b + a.array.byteLength, 0) + (g.index ? g.index.array.byteLength : 0);
++/**
++ * Round 51 (fable-cursor, 2026-09-22 07:15: the tab at 3.6 GB, two chrome OOM kills during the night's
++ * takes — "anything that trims resident geometry"): a pooled part's typed arrays are needed until the
++ * renderer uploads them, and then only if something reads them back — nothing does (the bounds and
++ * the byte count are taken at build, the swap folds through uniforms, the audits read counts, the
++ * character's surface grid reads the hardscape's stairs). So every attribute and the index drop their
++ * CPU copy once uploaded (three's `onUpload` fires after the buffer is created): the near-canopy and
++ * near-base pools' ≈ 257 MB of parts stop being held twice. A rebuilt part gets fresh arrays and drops
++ * them the same way; `needsUpdate` is never set on a resident part.
++ */
++/**
++ * Round 51 (the memory ask, step two — fable-2's rocks recipe, −53 % there): the writers emit every
++ * attribute as Float32; the GPU copy (and the CPU copy until upload) shrinks by a third when the
++ * attributes whose range allows it are stored normalized — normals Int8, colours Uint8 when the
++ * geometry's colours stay within 0–1, `aWind` Uint16 (stiffness / phase / flutter, all 0–1; 16 bits
++ * so the 0–0.035 flutter keeps its resolution). Positions, uv (tiling up to ×27) and `aRoot` (world
++ * anchors and the swap / cushion encodings the shaders decode) stay Float32. A normalized attribute
++ * reaches the shader as the same float; range-checked, so a geometry outside the range keeps its
++ * floats. Run once per geometry after every build-time read of the arrays (bounds, rootsToWorld).
++ */
++const compactAttributes = (g: BufferGeometry) => {
++  const to = (name: string, Ctor: typeof Int8Array | typeof Uint8Array | typeof Uint16Array, scale: number, lo: number, hi: number) => {
++    const a = g.attributes[name] as BufferAttribute | undefined;
++    if (!a || !(a.array instanceof Float32Array)) return;
++    const src = a.array;
++    for (let i = 0; i < src.length; i++) if (src[i] < lo || src[i] > hi) return;
++    const out = new Ctor(src.length);
++    for (let i = 0; i < src.length; i++) out[i] = Math.round(src[i] * scale);
++    g.setAttribute(name, new BufferAttribute(out, a.itemSize, true));
++  };
++  to('normal', Int8Array, 127, -1, 1);
++  to('color', Uint8Array, 255, 0, 1);
++  to('aWind', Uint16Array, 65535, 0, 1);
++};
++const dropArray = function (this: { array: ArrayLike<number> | null }) {
++  this.array = null;
++};
++const releaseAfterUpload = (g: BufferGeometry) => {
++  for (const a of Object.values(g.attributes)) (a as BufferAttribute).onUpload(dropArray as unknown as () => void);
++  if (g.index) g.index.onUpload(dropArray as unknown as () => void);
++};
+ /**
+  * A translated-to-world part's roots: aRoot.xyz becomes the tree's world origin (the merged
+  * shader's per-tree context) — except a 3-D moss cushion's vertices (writer.ts woodCushion,
+@@ -1748,7 +1789,13 @@ export async function create(ctx: WorldContext): Promise<WorldSystem> {
+   const poolItem = (id: string, mesh: Mesh, steps: () => Generator<void, BufferGeometry>, finalize: (g: BufferGeometry) => void): [PoolItem<GeometryBuilt>, GeometryBuilt] => {
+     const first = mesh.geometry;
+     const placeholder = placeholderFor(first);
+-    const wrap = (geometry: BufferGeometry): GeometryBuilt => ({ geometry, bytes: geometryBytes(geometry), dispose: () => geometry.dispose() });
++    // the bytes are read before the upload; after it the CPU copies go (releaseAfterUpload)
++    const wrap = (geometry: BufferGeometry): GeometryBuilt => {
++      compactAttributes(geometry);
++      const bytes = geometryBytes(geometry);
++      releaseAfterUpload(geometry);
++      return { geometry, bytes, dispose: () => geometry.dispose() };
++    };
+     const item: PoolItem<GeometryBuilt> = {
+       id,
+       bytes: 0,
+@@ -3505,6 +3552,22 @@ export async function create(ctx: WorldContext): Promise<WorldSystem> {
+       samplePositions: { bases: sampleBases },
+     };
+   });
++  // Round 51 (the tab at 3.6 GB — see releaseAfterUpload): the trees' static geometry keeps
++  // ≈ 0.5 GB of typed arrays in the renderer process after the GPU has them, and every static mesh
++  // is drawn from the first frame at any view. Every geometry under this system drops its CPU
++  // copies on upload; a bounding sphere three would otherwise compute from the array later is
++  // computed here, while the array is still there (the InstancedMesh culls read it each fill).
++  const compacted = new Set<BufferGeometry>();
++  group.traverse((o) => {
++    const g = (o as Mesh).geometry as BufferGeometry | undefined;
++    if (!(o as Mesh).isMesh || !g) return;
++    if (!g.boundingSphere) g.computeBoundingSphere();
++    if (!compacted.has(g)) {
++      compacted.add(g);
++      compactAttributes(g);
++    }
++    releaseAfterUpload(g);
++  });
+   ctx.progress('trees', 1);
+ 
+   return {
+diff --git a/src/world/vegetation/grass.ts b/src/world/vegetation/grass.ts
+index 7f8f1983..fc29be72 100644
+--- a/src/world/vegetation/grass.ts
++++ b/src/world/vegetation/grass.ts
+@@ -845,7 +845,11 @@ export async function buildGrass(ctx: WorldContext, field: VegField, material: M
+   // triangles from camera A. The one-triangle LOD is no longer reached (a tile past the second
+   // range is hidden); it stays in `bases` so the tile structure, the flags and the audit rows
+   // are unchanged.
+-  const lodDistances = [6 * q.distance, 16 * q.distance, 16 * q.distance];
++  // 2026-09-22 (owner: "patches in the grass where it's not full"): at player height the lawn past
++  // 16 m was the carpet's clump cards and mats alone — a walker standing on the plaza saw the far half
++  // of every lawn as sparse clumps on bare turf. The mid blades now run to 26 m (the frames' lawns
++  // stand 5–25 m from the fixed cameras, so this is a measured look change, not a free one).
++  const lodDistances = [6 * q.distance, 26 * q.distance, 26 * q.distance];
+   const trisPerLod = bases.map((b) => b.index.count / 3);
+   const halfDiag = TILE * 0.71;
+   const visible = { drawCalls: 0, triangles: 0, lodCounts: [0, 0, 0] };
+diff --git a/src/world/vegetation/plants.test.mjs b/src/world/vegetation/plants.test.mjs
+index 3741b9f5..ec645b94 100644
+--- a/src/world/vegetation/plants.test.mjs
++++ b/src/world/vegetation/plants.test.mjs
+@@ -566,9 +566,10 @@ assert.ok(lawnToward/lawnBlades<0.6,`lawn blades beyond the band keep a random y
+   assert.ok(band.p95<=0.27&&band.p50<=0.9*north.p50,`lawn band turf p50 ${band.p50.toFixed(3)} / p95 ${band.p95.toFixed(3)} against the north verge's p50 ${north.p50.toFixed(3)}`);}
+ // Round 39: the rubric's W15 floor (≥ 400 000 grass instances) rests on the blade tiles, the weeds and the
+ // tufts alone — the always-in-the-scene-graph sets (index.ts grassInstances; the culled clump cards are not
+-// counted) — with a margin over the reduced base density; the blade LODs end at 16 m under the carpet
++// counted) — with a margin over the reduced base density; the blade LODs end at 26 m under the carpet
+ assert.ok(grass.count+a.plants.weeds.count+a.plants.tufts.count>=405000,`W15: blades ${grass.count} + weeds ${a.plants.weeds.count} + tufts ${a.plants.tufts.count} ≥ 405 000`);
+-assert.deepEqual(grass.lodDistances,[6,16,16],'blade LOD ranges (round 39)');
++// (2026-09-22, owner: the lawn past 16 m read as sparse clumps at player height — the mid blades run to 26 m)
++assert.deepEqual(grass.lodDistances,[6,26,26],'blade LOD ranges (round 39; 2026-09-22: 26 m)');
+ // Round 40 — the owner's video review ("thinner blades, rooted clusters, varied heights"): the blades
+ // grow as tufts of 5–9 about a root inside 0.075 m (grass.ts scatterClusters), so a blade's mean
+ // neighbour count inside that radius runs well over the uniform expectation (density × π r²) — the

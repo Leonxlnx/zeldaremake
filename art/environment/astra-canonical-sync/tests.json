@@ -1,0 +1,44 @@
+{
+  "at": "2026-09-22T18:02:16.934Z",
+  "results": [
+    {
+      "name": "pool-rocks",
+      "command": [
+        "node",
+        "--test",
+        "--test-concurrency=1",
+        "src/world/trees/lodPool.test.mjs",
+        "src/world/rocks/tiers.test.mjs"
+      ],
+      "exitCode": 0,
+      "elapsedMs": 3481
+    },
+    {
+      "name": "roof",
+      "command": [
+        "node",
+        "src/world/canopy/roof.test.mjs"
+      ],
+      "exitCode": 0,
+      "elapsedMs": 907
+    },
+    {
+      "name": "props",
+      "command": [
+        "node",
+        "src/world/props/geometry.test.mjs"
+      ],
+      "exitCode": 0,
+      "elapsedMs": 2669
+    },
+    {
+      "name": "plants",
+      "command": [
+        "node",
+        "src/world/vegetation/plants.test.mjs"
+      ],
+      "exitCode": 0,
+      "elapsedMs": 45565
+    }
+  ]
+}

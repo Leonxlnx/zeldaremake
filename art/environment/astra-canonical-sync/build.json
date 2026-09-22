@@ -1,0 +1,35 @@
+{
+  "at": "2026-09-22T18:02:55.310Z",
+  "results": [
+    {
+      "name": "typecheck",
+      "command": [
+        "node",
+        "E:/zeldaremake/node_modules/typescript/bin/tsc",
+        "--noEmit"
+      ],
+      "exitCode": 0,
+      "elapsedMs": 8826
+    },
+    {
+      "name": "build-typecheck",
+      "command": [
+        "node",
+        "E:/zeldaremake/node_modules/typescript/bin/tsc",
+        "--noEmit"
+      ],
+      "exitCode": 0,
+      "elapsedMs": 8940
+    },
+    {
+      "name": "build",
+      "command": [
+        "node",
+        "E:/zeldaremake/node_modules/vite/bin/vite.js",
+        "build"
+      ],
+      "exitCode": 0,
+      "elapsedMs": 961
+    }
+  ]
+}
