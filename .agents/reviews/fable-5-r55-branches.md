@@ -203,4 +203,57 @@ browser-per-view warm state before any lane's source, and say so before verdicts
 verdicts themselves: nothing in the chain turns a W-item — W02's pass is reinforced by the tint (r54 §A);
 W10 at F was already a fail; PR #29's F −0.0104 is the six-view budget's problem, not a rubric flip.
 
+## E. Iteration 57 (07:33–08:20 UTC) — the tab's 3.6 GB reproduced on a second, idle box and split: 1.0 GB of typed arrays in the JS heap, 1.7 GB in the GPU process, all of it there at `ready`, none of it the pools
+
+fable-cursor's tick 223 root-caused the capture deaths as OOM kills (renderer 1.94 GB + SwiftShader GPU
+process 1.70 GB on a 16 GB box with 3.2 GB free) and asked fable-6 for a per-view read. An independent
+read from a box with nothing else on it is the control, so: the head's source `82b94525`, the capture's own
+launch path (`gauntlet/scripts/lib/browser.mjs`: SwiftShader, 1280×720, quality high), one page, the
+capture's per-view loop (setViewpoint, setTime 12.5, render in chunks of 5), and after each view
+`performance.memory`, `__ZR__.stats()` and the Chrome processes' RSS from `ps`. Scripts and raw logs in
+`fable-5-r55/memread.mjs`, `memread-gc.mjs`, `memread-82b94525.log`.
+
+| moment (large pools, the capture's tier) | JS heap used | renderer RSS | GPU-process RSS | Chrome total | geometries | textures |
+| --- | --- | --- | --- | --- | --- | --- |
+| **`ready` (no view yet)** | **1,522 MB** | **2,110 MB** | **1,682 MB** | **4,272 MB** | 301 | 91 |
+| A (8 frames) | 1,524 | 2,120 | 1,706 | 4,323 | 302 | 91 |
+| B | 1,526 | 2,119 | 1,727 | 4,343 | 318 | 91 |
+| C | 1,527 | 2,119 | 1,750 | 4,367 | 366 | 91 |
+| D | 1,529 | 2,122 | 1,768 | 4,388 | 383 | 91 |
+| E | 1,529 | 2,122 | 1,771 | 4,390 | 383 | 91 |
+| F | 1,530 | 2,122 | 1,775 | 4,394 | 387 | 91 |
+| A again | 1,530 | 2,121 | 1,777 | 4,395 | 387 | 91 |
+
+Four findings:
+
+1. **Reproduced, and it is the world, not the box.** An idle 15 GB machine with nothing else running
+   gets the same renderer (2.1 GB) and GPU process (1.7 GB) fable-cursor saw under load — 4.3 GB of
+   Chrome. The capture's stalls are what a 16 GB box with a 4 GB daemon does with that.
+2. **It is all there at `ready`.** Before any viewpoint the tab is at 4.27 GB; the six views add 95 MB
+   to the GPU process (the pool slots: geometries 301 → 387) and 8 MB to the JS heap; the second pass
+   over A adds nothing — residency, not a leak. The near-LOD pools are not the story: **`pool=small`
+   gives the identical `ready` row (1,522 / 2,112 / 1,685 MB)** and the same per-view growth; the pools
+   fill on demand and hold little at the fixed views. Trimming the pool caps will not move this number.
+3. **The JS heap is 1.0 GB of typed arrays.** `Runtime.getHeapUsage` at `ready`: **backing stores
+   (ArrayBuffers) 1,021 MB**, ordinary V8 objects 501 MB, Blink 2 MB; a forced GC
+   (`HeapProfiler.collectGarbage`) frees **nothing** — it is live. Those are the CPU-side copies three.js
+   keeps of every `BufferAttribute` after upload (the merged vegetation, terrain, hardscape, rocks,
+   canopy…), so the geometry lives twice: 1.0 GB in the JS heap and again as buffers in the GPU process.
+   three.js's own answer for static geometry is `BufferAttribute.onUpload(cb)` — the callback drops
+   `this.array` once the buffer is on the GPU (the `webgl_buffergeometry` example does exactly this) —
+   worth up to 1.0 GB in the renderer, system by system, for every attribute nothing reads back after
+   upload (raycasts and the walker's collision must be checked per system first: anything that reads
+   `geometry.attributes.position` at runtime keeps its array).
+4. **The GPU process is mostly textures and the same geometry.** The dist carries 68 image assets, 43 of
+   them 2,048² — as RGBA8 with mips that is ≈ 900 MB if all are resident (`renderer.info` says 91
+   textures at `ready`, the rest render targets and the shadow map); the other ~0.8 GB is the uploaded
+   geometry and SwiftShader's own overhead. 2k → 1k on materials never seen inside a few metres (the
+   ground sets, bark seen at 5 m+) is a 4× cut per texture; KTX2/Basis a further 4–6×. On a player's real
+   GPU these live in VRAM, not RAM — so for the "8 GB laptop" the renderer's 2.1 GB is the number that
+   matters, and its largest single piece is finding 3.
+
+Not measured: a heap snapshot by system (1.5 GB is too large to snapshot on SwiftShader in this session);
+`renderer.info` gives counts, not bytes. What the lanes can act on without it: finding 3 is a per-system
+grep for attributes read after upload; finding 4 is an asset list.
+
 ## take-0133 — fifth start (browser per view) at 06:18; seal ≈ 08:30. Re-verdict follows when it seals, against §D's expected row.
