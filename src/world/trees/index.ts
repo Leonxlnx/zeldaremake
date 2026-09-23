@@ -1723,7 +1723,7 @@ const UNDERSTORY_VARIANTS = 5;
  * Strips along the walkable paths (both verges, `min`–`max` m from the centreline) and the clearing's
  * lawn between the plaza and the tall trees. Seeded from its own stream, so nothing else re-rolls.
  */
-const UNDERSTORY_ZONES: { xMin: number; xMax: number; zMin: number; zMax: number; count: number }[] = [
+const UNDERSTORY_ZONES: { xMin: number; xMax: number; zMin: number; zMax: number; count: number; live?: boolean; spacing?: number }[] = [
   // the north path's verges, from the plaza's north end to the log arch
   { xMin: -14, xMax: 14, zMin: -50, zMax: -12, count: 26 },
   // the north clearing beyond the arch, up to the stand
@@ -1731,6 +1731,9 @@ const UNDERSTORY_ZONES: { xMin: number; xMax: number; zMin: number; zMax: number
   // the plaza's lawn edges, east and west
   { xMin: -30, xMax: -10, zMin: -12, zMax: 22, count: 10 },
   { xMin: 12, xMax: 32, zMin: -12, zMax: 22, count: 8 },
+  // (a west-meadow zone around the far hut's knoll was built and measured: squad2's mid layer
+  // already fills that meadow at 14–58 m, so it was dropped rather than double it — the `live`
+  // zone kind stays for the expansion ground, masks and slope from the rendered surface)
 ];
 const UNDERSTORY_PATH_MIN_M = 3.4;
 const UNDERSTORY_PATH_MIN_ARCH_M = 6.5;
@@ -1742,7 +1745,11 @@ const UNDERSTORY_SPACING_M = 3.2;
  * into the forest" has to read from the plaza side (fable-3, 2026-09-23 11:20: the fork's waymarker at
  * (−11.2, 7.75) vanished behind a crown at the fork pose (−6.4, 1.9, 6.6) → (−9.6, 2.6, 9.4)).
  */
-const UNDERSTORY_CLEARINGS: { x: number; z: number; r: number }[] = [{ x: -10.5, z: 8.5, r: 8.5 }];
+const UNDERSTORY_CLEARINGS: { x: number; z: number; r: number }[] = [
+  { x: -10.5, z: 8.5, r: 8.5 },
+  // the far hut's knoll (EXPANSION.farHut host at (−41, 35.7)) and its approach
+  { x: -41, z: 35.7, r: 11 },
+];
 /**
  * Screen windows of the fixed views an understory crown must not cover (the same idea as VIEW_GAPS
  * for the white-barks): F's canopy gap. Fractions of the frame; `minDistance` = the nearest a tree
@@ -2240,11 +2247,11 @@ export async function create(ctx: WorldContext): Promise<WorldSystem> {
     const placeRng = understoryRng.fork('place');
     const viewpoints = ctx.layout.viewpoints.map((v) => ({ x: v.position[0], z: v.position[2] }));
     const seats = [...COLUMN_SEATS.map((c) => ({ x: c.x, z: c.z, r: 4 })), ...[...ctx.layout.giantTrees, ...EXTRA_GIANTS].map((g) => ({ x: g.position[0], z: g.position[2], r: g.trunkRadius * 2.5 + 2.5 }))];
-    const tooClose = (x: number, z: number) => {
+    const tooClose = (x: number, z: number, spacing: number) => {
       if (viewpoints.some((v) => Math.hypot(v.x - x, v.z - z) < 7)) return true;
       if (seats.some((c) => Math.hypot(c.x - x, c.z - z) < c.r)) return true;
       if (whitePlacements.some((w) => Math.hypot(w.x - x, w.z - z) < 2.6)) return true;
-      if (understoryPlacements.some((u) => Math.hypot(u.x - x, u.z - z) < UNDERSTORY_SPACING_M)) return true;
+      if (understoryPlacements.some((u) => Math.hypot(u.x - x, u.z - z) < spacing)) return true;
       return false;
     };
     const pathDistance = (x: number, z: number) => Math.min(...walkXZ.map((poly) => (poly.length > 1 ? spineDistance(poly, x, z) : Infinity)));
@@ -2273,6 +2280,10 @@ export async function create(ctx: WorldContext): Promise<WorldSystem> {
     };
     for (const zone of UNDERSTORY_ZONES) {
       let placed = 0;
+      // masks and slope from the view the zone lives on; the seat height always from the rendered
+      // surface (`liveTerrain` = the lattice the terrain mesh draws), so every stem meets the ground
+      const t = zone.live ? liveTerrain : terrain;
+      const spacing = zone.spacing ?? UNDERSTORY_SPACING_M;
       for (let attempt = 0; attempt < zone.count * 60 && placed < zone.count; attempt++) {
         const x = zone.xMin + placeRng() * (zone.xMax - zone.xMin);
         const z = zone.zMin + placeRng() * (zone.zMax - zone.zMin);
@@ -2280,17 +2291,17 @@ export async function create(ctx: WorldContext): Promise<WorldSystem> {
         // nearer the arch the verge widens: D's window onto the arch's opening stays readable while
         // the corridor keeps its trees on both sides (the reference's D frames the arch with trees)
         const pathMin = z < UNDERSTORY_ARCH_STRETCH_Z ? UNDERSTORY_PATH_MIN_ARCH_M : UNDERSTORY_PATH_MIN_M;
-        if (d < pathMin || d > UNDERSTORY_PATH_MAX_M) continue;
-        if (expansionCull(x, z)) continue;
-        const m = terrain.mask(x, z);
+        if (d < pathMin || (!zone.live && d > UNDERSTORY_PATH_MAX_M)) continue;
+        if (!zone.live && expansionCull(x, z)) continue;
+        const m = t.mask(x, z);
         if (m.path > 0.05 || m.stairs > 0 || m.structure > 0 || m.cliff > 0.3) continue;
         // the arch's footprint and the columns' roots have their own masks; keep off steep ground too
-        if (terrain.slope(x, z) > 0.55) continue;
+        if (t.slope(x, z) > 0.55) continue;
         if (UNDERSTORY_CLEARINGS.some((c) => Math.hypot(c.x - x, c.z - z) < c.r)) continue;
-        if (tooClose(x, z)) continue;
+        if (tooClose(x, z, spacing)) continue;
         const variant = placeRng.int(0, UNDERSTORY_VARIANTS);
         const scale = placeRng.range(0.85, 1.15);
-        const y = terrain.height(x, z);
+        const y = liveTerrain.height(x, z);
         if (coversWindow(x, y, z, variant, scale)) continue;
         understoryPlacements.push({ x, y, z, yaw: placeRng() * TAU, scale, variant });
         placed++;
