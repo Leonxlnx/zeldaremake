@@ -80,12 +80,17 @@ return is an owner-approved look change: the six frames show the kids again wher
 
 | view | SSIM vs ref, head | branch | Δ | SSIM head↔branch | changed px | draws head → branch | M tris head → branch |
 | --- | --- | --- | --- | --- | --- | --- | --- |
-| A | 0.2035 | 0.1991 | −0.0044 | 0.9826 | 15 339 | 597 → 698 | 9.15 → 9.19 |
-| B | 0.1836 | 0.1773 | −0.0063 | 0.9720 | 26 880 | 589 → 690 | 8.30 → 8.33 |
+| A | 0.2035 | 0.1991 | −0.0044 | 0.9826 | 15 339 | 597 → 698 (final 692) | 9.15 → 9.19 |
+| B | 0.1836 | 0.1773 | −0.0063 | 0.9720 | 26 880 | 589 → 690 (final 684) | 8.30 → 8.33 |
 | C | 0.1794 | 0.1793 | −0.0001 | 0.9916 | 5 163 | 472 → 525 | 6.77 → 6.80 |
 | D | 0.2430 | 0.2430 | 0 | 1.0000 | 0 | 557 → 557 | 8.53 → 8.53 |
 | E | 0.1946 | 0.1901 | −0.0045 | 0.9720 | 26 880 | 589 → 690 | 8.30 → 8.33 |
 | F | 0.2159 | 0.2145 | −0.0014 | 0.9922 | 11 950 | 547 → 648 | 7.99 → 8.03 |
+
+The six frames are the branch at `b1ebee6b` (the scoping); the final (`8651fce3`: thinner brows, cuffs out of the shadow
+pass, no neck mesh) was re-captured at A and B — A 692 draws, B 684, and against `b1ebee6b`'s frames 8 px changed in A,
+30 px in B (the walker's brows; a cuff's shadow sliver). C–F's draws at the final are those minus the cuffs' and the neck's
+submissions per kid in frame.
 
 Every changed pixel is a kid, her fairy, her shadow or her fairy's light pool (`diff-A.jpg` … `diff-F.jpg`: the walker
 at A's right edge and B / E's left edge as the footage has her, beside Link in F; the boy at Saria's door in B / E / F; the
