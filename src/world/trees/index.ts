@@ -1582,10 +1582,24 @@ const nearLodTierFor = (deviceGB: number, poolParam: string | null): NearLodTier
  * `writer.ts addLeaf` keeps every 4th lamina at medium and every 8th at low, enlarged to hold the
  * crown's coverage, and `tube` drops the finest twigs — so where a rung falls inside what the player
  * looks at, the crown visibly gains leaves as he walks in.
+ *
+ * 2026-09-23 (owner 20:08, "why don't the trees immediately spawn instead of needing me to get
+ * close"). Measured with `?treelod=` at his 06:50 north pose (`diffmap.mjs`, > 8 levels): drawing
+ * every tree at its highest LOD changes 5.57 % of the frame, and ALL of it is this first rung — the
+ * medium→low rung at 44 m accounts for 0.00 %. The rung was 20 m, i.e. inside the crowns he walks
+ * toward. 28 m is what the budget pays for: a white-bark's high LOD is ≈ 150 K triangles, so each
+ * extra tree promoted is expensive, and camera A sits 0.05 M under W38's 9 M gate. The 8 m is paid
+ * for out of `DISTANT_NEAR_M` below, which was buying nothing.
  */
-const TREE_LOD_NEAR_M = 20;
-/** the distant / mid layers' near→far gate (m, × `ctx.quality.distance`) */
-const DISTANT_NEAR_M = 120;
+const TREE_LOD_NEAR_M = 28;
+/**
+ * The distant / mid layers' near→far gate (m, × `ctx.quality.distance`). 120 m through round 51; the
+ * same measurement shows the near LOD's bent trunk, cords and root toes at 72–120 m — behind 60–86 %
+ * of the height fog — are worth 0.04 % of the frame, while they cost A 15 draws and the triangles the
+ * rung above needs. The mid grove's own 40 m gate and the north stand's 50 m gate are both under this
+ * and unchanged.
+ */
+const DISTANT_NEAR_M = 72;
 const TREE_LOD_MID_M = 44;
 /**
  * Dev measurement knob, the same shape as `?pool=large|small`: `?treelod=<multiplier>` scales every
