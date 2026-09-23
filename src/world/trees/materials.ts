@@ -139,7 +139,16 @@ export const TREE_BARK_FLOOR_NEAR: ShadeFloor = { ...SHARED_BARK_FLOOR, lift: 5.
  * the bole, grime at the foot), and the shared tenth flattened all of it beyond 10 m. The survey
  * poses that found them pale (w19-spine-r, sn-arch-outside) stand 10–21 m from the north cluster.
  */
-export const COLUMN_BARK_FLOOR: ShadeFloor = { ...SHARED_BARK_FLOOR, lift: 6.2, texture: 0.45 };
+/**
+ * Round 52 (the owner's 09-23 markup, red circle 1: the column left of the north path, 15 m from
+ * his camera, is "a smooth pale cylinder in grey haze"). At 15 m the whole shaded flank sat on a
+ * flat lift-6.2 floor — above the bole's own cords, its grime and its tone bands, so the bark had
+ * one level and the haze then took the rest. Lift 4.8 with 0.62 of the bark's own textured colour
+ * puts the floor back UNDER the relief: the crests stand above it (bole.ts BARK_AO_LIFT), the
+ * furrows below, and the brown survives to the haze. Within COLUMN_FLOOR_FADE_M[0] only — the
+ * hero frames' columns stand at 22–40 m, where COLUMN_BARK_FLOOR_FAR is unchanged.
+ */
+export const COLUMN_BARK_FLOOR: ShadeFloor = { ...SHARED_BARK_FLOOR, lift: 4.8, texture: 0.62 };
 /**
  * … and from COLUMN_FLOOR_FADE_M[1] out: a fifth kept (twice the shared floor's). The hero
  * frames see the columns at 22–40 m (D's top band, B's upper left), where the reference's
@@ -650,16 +659,19 @@ const GIANT_BARK_COLOR = /* glsl */ `
   // small, sparse and only a little paler than the bark: a first cut at 10–20 cm and 0.75 blend
   // read as a plane tree's blotches from 8 m
   float lichenCluster = smoothstep(0.55, 0.75, treeNoise(vTreeWorld * 1.7 + 5.0));
+  // Round 52 (the owner's walk-up poses, 09-23): the crust fields ran at 22–95 cycles per metre —
+  // 1–3 cm speckle — over an opaque pale grey that sat 3 × over the bark, so a bole at 2–5 m read
+  // as mould-spotted wood. The plates are now 5–15 cm (7–26 cycles) and the crust is the bark's
+  // OWN colour lifted and part-desaturated toward a grey-green: pale bark, not paint.
   #ifdef NEAR_BASE_DETAIL
-  // 1–3 m (the near bases' own program): smaller crusts with a soft edge, not the 4–10 m flecks
-  // whose cluster contours read as scribbles at that range
-  float lichenFleck = smoothstep(0.56, 0.7, treeNoise(vTreeWorld * 34.0) * 0.55 + treeNoise(vTreeWorld * 95.0 + 3.0) * 0.45);
+  float lichenFleck = smoothstep(0.54, 0.72, treeNoise(vTreeWorld * 9.0) * 0.6 + treeNoise(vTreeWorld * 26.0 + 3.0) * 0.4);
   #else
-  float lichenFleck = smoothstep(0.6, 0.7, treeNoise(vTreeWorld * 22.0) * 0.7 + treeNoise(vTreeWorld * 55.0 + 3.0) * 0.3);
+  float lichenFleck = smoothstep(0.58, 0.72, treeNoise(vTreeWorld * 7.0) * 0.7 + treeNoise(vTreeWorld * 18.0 + 3.0) * 0.3);
   #endif
   float lichen = lichenCluster * lichenFleck * foot * (1.0 - moss);
-  vec3 lichenColor = mix(vec3(0.46, 0.5, 0.38), vec3(0.55, 0.56, 0.48), treeNoise(vTreeWorld * 4.0 + 9.0));
-  diffuseColor.rgb = mix(diffuseColor.rgb, lichenColor, lichen * 0.6);
+  float barkLum = dot(diffuseColor.rgb, vec3(0.2126, 0.7152, 0.0722));
+  vec3 lichenColor = mix(diffuseColor.rgb, vec3(barkLum) * vec3(1.0, 1.07, 0.9), 0.55) * mix(1.35, 1.6, treeNoise(vTreeWorld * 4.0 + 9.0));
+  diffuseColor.rgb = mix(diffuseColor.rgb, lichenColor, lichen * 0.5);
   // moss cushions and small plant tufts: 10–20 cm, rare, on the sides of the bole (not on the
   // moss sheets), a shaded rim under each so they sit in the bark instead of on it. A first cut at
   // 40 cm in a yellow-green with a hard dark outline read as leaves stuck to the trunk
@@ -695,7 +707,12 @@ const GIANT_BARK_COLOR = /* glsl */ `
     // cushions with ragged edges: the cover needs both a strong per-vertex moss AND the fine
     // noise, so bark shows between the cushions (a 0.12–0.7 threshold greened whole boles)
     // 2026-09-21 (owner): cushions where the vertex moss is strong, bark between them — 0.34→0.5
-    barkMossCover = smoothstep(0.5, 0.9, vBarkMoss * (0.5 + 0.95 * mossFine));
+    // Round 52: WHERE the moss sits is a large field (patches 25–65 cm with ragged margins) and
+    // the fine one only breaks its edge. mossField alone runs at 13 / 41 cycles per metre, so the
+    // cover was 8 cm confetti of equal-sized blobs — the "camouflage" the owner's 09-23 walk-up
+    // poses show on the emergent's foot. Mean cover is held (the factor's mean 0.98 → 0.93).
+    float mossPatch = treeNoise(vTreeWorld * 1.6 + 21.0) * 0.6 + treeNoise(vTreeWorld * 4.3 + 7.0) * 0.4;
+    barkMossCover = smoothstep(0.5, 0.9, vBarkMoss * (0.34 + 0.85 * mossPatch + 0.3 * mossFine));
     // a darker rim where a cushion meets the bark, so it sits on the bark as a volume
     float mossRim = barkMossCover * (1.0 - barkMossCover) * 4.0;
     vec3 mossCushion = mix(vec3(0.09, 0.16, 0.04), vec3(0.24, 0.36, 0.10), mossFine) * (1.0 - 0.35 * mossRim);
