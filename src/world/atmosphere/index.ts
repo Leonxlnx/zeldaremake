@@ -169,6 +169,7 @@ export function create(ctx: WorldContext): WorldSystem {
     groundMist: true,
     groundMistBillboards: mist.billboards,
     groundMistSheets: mist.sheets,
+    midMistCurtains: mist.curtains,
     godRays: composer !== null,
     fallingLeaves: leaves.count,
     fireflies: motes.count,

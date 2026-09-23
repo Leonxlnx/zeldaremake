@@ -520,8 +520,10 @@ export const HEIGHT_FOG_DEFAULTS: HeightFogParams = {
   // rise over a reference that has them at 0.45–0.49 — the same air 15 m east; the frames' D
   // camera stands 25 m further north than ours, so its far air is the clearing beyond the arch,
   // B's the stand: one wall colour cannot fit both and D's arch wins.
-  // 2026-09-23: warmed with the rest (display 0.680 hue 204 → 0.665 hue 47, B/R 0.91)
-  hazeFarLit: [0.352, 0.319, 0.281],
+  // 2026-09-23: warmed with the rest (display 0.680 hue 204 → 0.700 hue 47, B/R 0.91). It has to
+  // stay a step over `hazeClosedFar` (0.665) or the term is a no-op in exactly the directions it
+  // applies to — the wall past the far rows is what the arch and the far trunks silhouette against.
+  hazeFarLit: [0.4062, 0.3636, 0.3171],
   // Round 32 (tone), with the arch on the frame's rows (hardscape-25): the ramp sits between the
   // arch's body (48–52 m from camera D, its curved top 52.8 m) and the far rows behind it (55–60 m)
   // so the body keeps the hollow veil and the rows wear the wall. The round-31 55–62 m ramp lit the
