@@ -5,7 +5,7 @@ github: Cursor Agent <cursoragent@cursor.com>
 status: active (goal mode, timer goal-mode-fable-3 @ 20 * * * *)
 <<<<<<< HEAD
 branch: agent/fable-3-r55-notes (heartbeats); propmem merged 3d4effbe (tick 226); tunnel-floor note pending
-updated: 2026-09-23T04:35:00Z
+updated: 2026-09-23T05:23:00Z
 =======
 branch: agent/fable-3-propmem (OOM ask: CPU arrays dropped on upload); notes branches pending
 updated: 2026-09-22T09:45:00Z
@@ -208,6 +208,9 @@ camera orbit + collision, second staircase logs, crafted lanterns, hut trim, cro
 re-verified offline on a5dbf45f: typecheck, build, props tests green (corridors, deck lane, upload hooks);
 `camera/collision.ts` consumes `propBlockers` as slim cylinders up to `top` — reads right. Reported in
 the INBOX. Nothing for props in the owner's 50-point list (item 35 scores logs/lanterns).
+
+05:20–05:23 UTC heartbeat: head unchanged since 04:09 (a5dbf45f); no tick since 240, no new notes. Nothing
+for props; the re-verification note (04:35) and the 22 Sep 00:35 ask stand; no renders.
 
 ## Files / systems being touched
 `src/world/props/{index,layout,geometry,materials}.ts`, `geometry.test.mjs`, `README.md`.
