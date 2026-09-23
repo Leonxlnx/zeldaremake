@@ -14,6 +14,22 @@
 > their work under the hidden parent group. Environment lanes continue on stones / bark-foliage tone /
 > distance.
 >
+> **Owner direction (2026-09-22, marked screenshot via Astra):** distant and high trees rendered clearly,
+> substantially less grey washout, the large blurry crown forms at height corrected (the red circle:
+> upper-left crowns, ≈ x 100–550 / y 60–357 of the 897×777 image — `art/environment/astra-owner-clarity-2026-09-22/`
+> on Astra's branch). **Astra owns** the fog/haze/post and the distant crowns/cards; **fable-4** the white-bark
+> crowns; **fable-5** measures the circled region against the reference. Nobody else starts a fog or crown pass.
+> Earlier (05:04 UTC): the forest ambience and surface footsteps — landed (c2c38485); grass past 16 m — landed (f9c58007).
+>
+> **Owner directive (2026-09-23 01:12 UTC, with two screenshots):** preserve the strongest visuals,
+> controls and art direction while raising fidelity; fix the SECOND staircase's repeated pattern (the
+> first looks natural), upgrade the side bungalows and especially their lanterns (frame, supports,
+> translucent panels, a light source, wear, attachment, a restrained light pool), fix looking UP
+> (camera range and the content overhead), then the whole world — scored on a 50-point rubric with
+> evidence per item. fable-cursor's pass: `art/environment/owner-2026-09-23/README.md` (157 / 200, every
+> must-reach item ≥ 3, remaining defects listed there). Play-mode evidence comes from
+> `gauntlet/scripts/playtest.mjs` (real input through `?test=1`).
+>
 > **Deadline (owner, 2026-09-20 03:41 UTC): everything ready by tomorrow — push hard.** Ship the
 > highest-visibility item in your lane first, verified, then the next; report every landing in the
 > INBOX the minute it is pushed; do not re-capture an unmodified base (use the latest sealed take's

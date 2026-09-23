@@ -41,11 +41,13 @@ const main = LAYOUT.stairs.find((s) => s.id === 'main');
 const build = buildLogNosings(main, 'test-seed');
 const f = stairFrame(main);
 
-test('the hero flight takes the logs: one timber per riser, a stake pair every second step, one mesh', () => {
+test('the hero flight takes the logs: one timber per riser, stakes where needed (not a fence rhythm), one mesh', () => {
   assert.equal(STAIR_LOGS, true);
   assert.ok(LOG_FLIGHTS.has('main'));
   assert.equal(build.logs, main.steps);
-  assert.equal(build.stakes, Math.ceil(main.steps / 2) * 2);
+  // 2026-09-23 (owner: the flight's "odd repeated pattern"): stakes no longer stand in a pair at every
+  // second riser — most even steps and an odd one now and then, an end that sat firm gets none
+  assert.ok(build.stakes >= main.steps * 0.6 && build.stakes <= main.steps * 1.2 && build.stakes !== Math.ceil(main.steps / 2) * 2, `${build.stakes} stakes`);
   for (const name of ['position', 'normal', 'uv', 'color']) assert.ok(build.geometry.attributes[name], `attribute ${name}`);
   assert.ok(build.geometry.index, 'indexed');
   assert.ok(build.triangles > 10000 && build.triangles < 40000, `${build.triangles} triangles`);

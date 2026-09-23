@@ -80,6 +80,8 @@ export function create(ctx: WorldContext): WorldSystem {
   const sun = new DirectionalLight(sunColor, s.intensity);
   sun.name = 'sun';
   sun.position.copy(dir).multiplyScalar(SUN_DISTANCE_M);
+  // the direction update() places the sun along each frame, for lighting probes (probe-look.mjs `sun`)
+  sun.userData.sunDir = dir;
   // `?shadow=0` switches the sun's shadow map off (the receivers' materials then compile without it)
   sun.castShadow = ctx.quality.shadows && PERF.shadowMapSize > 0;
   sun.shadow.mapSize.set(SHADOW_MAP_SIZE, SHADOW_MAP_SIZE);

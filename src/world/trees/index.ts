@@ -21,7 +21,7 @@
  * instances that can reach the image (see "submission culling" below). Everything is seated via
  * ctx.terrain.height; randomness only via ctx.rng.
  */
-import { BufferAttribute, BufferGeometry, Color, Frustum, Group, InstancedBufferAttribute, InstancedMesh, Matrix4, Mesh, PerspectiveCamera, Quaternion, Sphere, Vector3, type Camera, type Material } from 'three';
+import { Box3, BufferAttribute, BufferGeometry, Color, Frustum, Group, InstancedBufferAttribute, InstancedMesh, Matrix4, Mesh, Quaternion, Sphere, Vector3, type Camera, type Material } from 'three';
 import type { TrunkSeat, WorldContext, WorldSystem } from '../system';
 import { BARK_DETAIL_M, BARK_DETAIL_TILES, BARK_TOUCH_M, BARK_TOUCH_TILES, CARD_EDGE_FADE, CARD_FLAT_EDGE_FADE, COLUMN_BARK_FLOOR, COLUMN_BARK_FLOOR_FAR, COLUMN_FLOOR_FADE_M, createTreeMaterials, CUSHION_FADE_M, DISTANT_BARK_M, DISTANT_NEAR_FLOOR, DISTANT_NEAR_TONE, NEAR_BASE_FLOOR, NEAR_BOLE_FLOOR, NEAR_BOLE_FLOOR_FADE, NEAR_BOLE_FLOOR_TOP, NEAR_BOLE_SLOTS, NEAR_CANOPY_LEAF_FLOOR, NEAR_CANOPY_LEAF_NEAR_M, NEAR_CANOPY_SLOTS, NEAR_CANOPY_SUN_THROUGH, TREE_BARK_FLOOR, TREE_BARK_FLOOR_NEAR, TREE_FLOOR_FADE_M, TREE_LEAF_FLOOR, TREE_LEAF_FLOOR_NEAR, TREE_NEAR_BOLE_FLOOR } from './materials';
 import type { ShadeFloor } from '../materials/shadeFloor';
@@ -32,7 +32,7 @@ import { expansionCull, getTerrain, type Terrain, type TerrainView } from '../te
 import { casterSpheres, expansionVisible, type Caster } from '../util/expansionLocality';
 import { EXPANSION } from '../layout';
 import { createGiantTree, LOBE_SECONDARY_REACH, LOBE_TWIG_REACH, LOBE_TWIG_TINT, NEAR_BASE_CUT_Y, NEAR_BASE_RADIUS_OVERRIDE, NEAR_BASE_RADIUS_OVERRIDE_LARGE, type CanopyBough, type GiantAsset, type GiantProfile } from './giant';
-import { NEAR_CANOPY_HERO_MARGIN, NEAR_CANOPY_IN_M, NEAR_CANOPY_MAX_Y, NEAR_CANOPY_MIN_IN_M, NEAR_CANOPY_OUT_M, type NearCanopyPart } from './nearCanopy';
+import { NEAR_CANOPY_IN_M, NEAR_CANOPY_MAX_Y, NEAR_CANOPY_OUT_M, type NearCanopyPart } from './nearCanopy';
 import { LodPool, type PoolBuilt, type PoolItem } from './lodPool';
 import type { GiantTreeDef } from '../layout';
 import type { RootKitFit } from './rootkit';
@@ -1786,7 +1786,7 @@ export async function create(ctx: WorldContext): Promise<WorldSystem> {
    * and while the buffers are out of the pool the mesh holds an empty placeholder with the same
    * cull sphere. Returns the item and the first build to register with a pool.
    */
-  const poolItem = (id: string, mesh: Mesh, steps: () => Generator<void, BufferGeometry>, finalize: (g: BufferGeometry) => void): [PoolItem<GeometryBuilt>, GeometryBuilt] => {
+  const poolItem = (id: string, mesh: Mesh, steps: () => Generator<void, BufferGeometry>, finalize: (g: BufferGeometry) => void, firstBuilt = true, estimatedBytes = 0): [PoolItem<GeometryBuilt>, GeometryBuilt | null] => {
     const first = mesh.geometry;
     const placeholder = placeholderFor(first);
     // the bytes are read before the upload; after it the CPU copies go (releaseAfterUpload)
@@ -1798,7 +1798,7 @@ export async function create(ctx: WorldContext): Promise<WorldSystem> {
     };
     const item: PoolItem<GeometryBuilt> = {
       id,
-      bytes: 0,
+      bytes: estimatedBytes,
       build: function* () {
         const g = yield* steps();
         finalize(g);
@@ -1811,10 +1811,10 @@ export async function create(ctx: WorldContext): Promise<WorldSystem> {
         mesh.geometry = placeholder;
       },
     };
-    return [item, wrap(first)];
+    return [item, firstBuilt ? wrap(first) : null];
   };
   /**
-   * Near-canopy LOD (giant.ts NEAR_CANOPY_IN_M, round 41): every eligible lower lobe of a giant
+   * Near-canopy LOD (giant.ts NEAR_CANOPY_IN_M): every eligible lobe of a giant
    * (and every big limb below the cap) has a near part of its own — twiglets forking off the far
    * twigs, dense sprays of cupped laminae, moss along the boughs, vines — shown only while the
    * live camera is within NEAR_CANOPY_IN_M of the lobe's centre (out again past
@@ -1832,14 +1832,14 @@ export async function create(ctx: WorldContext): Promise<WorldSystem> {
     group: number;
     /** world centre the swap distance is measured to */
     center: Vector3;
-    /** the part's own swap radii (giant.ts swapRadii, then `nearCanopyHeroPass` on the built mesh) */
+    /** Authored crown reach in world metres; distance is measured to this envelope. */
+    radius: number;
+    /** the part's swap distances, capped by the selected memory tier */
     inM: number;
     outM: number;
-    /** the radii are NEAR_CANOPY_FLAT_SWAP_M and the hero pass leaves them (nearCanopy.ts NearCanopyPart.fixedSwap) */
+    /** authored NEAR_CANOPY_FLAT_SWAP_M distances (nearCanopy.ts NearCanopyPart.fixedSwap) */
     fixedSwap: boolean;
     persistent?: boolean;
-    /** the nearest hero camera that frames the built part's cull sphere (m to the centre; Infinity: none) */
-    hero: number;
     mesh: Mesh;
     triangles: number;
     leaves: number;
@@ -1847,38 +1847,12 @@ export async function create(ctx: WorldContext): Promise<WorldSystem> {
     farCards: number;
     active: boolean;
     dist: number;
-    /** the part's buffers in the near-canopy pool (see NEAR_CANOPY_PREFETCH_M); a part the hero pass drops leaves the pool */
+    /** the part's buffers in the near-canopy pool (see NEAR_CANOPY_PREFETCH_M) */
     item: PoolItem<GeometryBuilt>;
   }
   const nearCanopies: NearCanopy[] = [];
   /** how many limb dressings may be shown at once (they take no slot: nothing is folded for them) */
   const NEAR_CANOPY_LIMBS_MAX = 12;
-  /**
-   * The hero cameras' frusta (the six fixed viewpoints, a little wider than they render): a lobe
-   * whose padded sphere one of them frames from within the swap distance swaps only closer than
-   * that camera stands (GiantOptions.nearCanopy.heroDistance → giant.ts swapRadii), so no fixed
-   * frame ever sees a swap while the same lobe still turns to laminae for a player under it.
-   */
-  const heroFrusta = ctx.layout.viewpoints.map((v) => {
-    const cam = new PerspectiveCamera(v.fov + 4, 1.85, 0.1, 400);
-    cam.position.set(v.position[0], v.position[1], v.position[2]);
-    cam.lookAt(v.target[0], v.target[1], v.target[2]);
-    cam.updateMatrixWorld();
-    cam.updateProjectionMatrix();
-    return { position: cam.position.clone(), frustum: new Frustum().setFromProjectionMatrix(new Matrix4().multiplyMatrices(cam.projectionMatrix, cam.matrixWorldInverse)) };
-  });
-  const heroSphere = new Sphere();
-  const nearCanopyHeroDistance = (origin: Vector3) => (center: Vector3, radius: number) => {
-    heroSphere.center.copy(center).add(origin);
-    heroSphere.radius = radius + 1.5;
-    let nearest = Infinity;
-    for (const h of heroFrusta) {
-      const d = h.position.distanceTo(heroSphere.center);
-      if (d > NEAR_CANOPY_OUT_M + 0.5 || d >= nearest) continue;
-      if (h.frustum.intersectsSphere(heroSphere)) nearest = d;
-    }
-    return nearest;
-  };
   const basePalette = {
     fern: new Color(palette.grassMid),
     fernDeep: new Color(palette.grassDeep),
@@ -2087,6 +2061,55 @@ export async function create(ctx: WorldContext): Promise<WorldSystem> {
   };
   // fable-4 (round 50, W08 at C): the hero stem's instance tilt — whitebark.ts HERO_WHITE_BARK_TILTS
   for (const p of whitePlacements) seatFamily(whites, p, p.variant, whiteBarkTilt(p.x, p.z));
+  // the play camera refuses to stand inside a white-bark's bole (camera/collision.ts)
+  ctx.shared.slimTrunks = whitePlacements.map((p) => {
+    const w = whites[p.variant];
+    return { x: p.x, z: p.z, r: w.params.trunkRadius * p.scale * 1.25, y0: p.y - 0.5, y1: p.y + w.lods[0].height * p.scale * 0.6 };
+  });
+  /**
+   * A tree's colour-pass bound: the crown (leaf vertices, aRoot.w > 0.5) and the wood split at its
+   * mid-height as three spheres. The convex hull of the three is outside a frustum plane iff every
+   * sphere is; for a tall thin tree that hull is far tighter than the geometry's one sphere, which
+   * for a 20 m white-bark 9 m behind the camera still swallowed the camera. Computed while the
+   * CPU arrays exist (they are released after the first upload).
+   */
+  const geometryHull = (geometry: BufferGeometry): Sphere[] => {
+    const pos = geometry.attributes.position;
+    const root = geometry.attributes.aRoot;
+    if (!pos || !pos.array || !root || !root.array || root.itemSize < 4) return [geometry.boundingSphere!.clone()];
+    const box: Box3[] = [new Box3(), new Box3(), new Box3()];
+    const v = new Vector3();
+    let minY = Infinity;
+    let maxY = -Infinity;
+    for (let i = 0; i < pos.count; i++) {
+      if (root.getW(i) > 0.5) continue;
+      const y = pos.getY(i);
+      if (y < minY) minY = y;
+      if (y > maxY) maxY = y;
+    }
+    const midY = (minY + maxY) / 2;
+    for (let i = 0; i < pos.count; i++) {
+      v.fromBufferAttribute(pos, i);
+      const leaf = root.getW(i) > 0.5;
+      box[leaf ? 0 : v.y < midY ? 1 : 2].expandByPoint(v);
+    }
+    const out: Sphere[] = [];
+    for (let b = 0; b < 3; b++) {
+      if (box[b].isEmpty()) continue;
+      const sp = new Sphere();
+      box[b].getCenter(sp.center);
+      sp.radius = 0;
+      for (let i = 0; i < pos.count; i++) {
+        const leaf = root.getW(i) > 0.5;
+        if ((leaf ? 0 : pos.getY(i) < midY ? 1 : 2) !== b) continue;
+        v.fromBufferAttribute(pos, i);
+        const d = v.distanceTo(sp.center);
+        if (d > sp.radius) sp.radius = d;
+      }
+      out.push(sp);
+    }
+    return out.length ? out : [geometry.boundingSphere!.clone()];
+  };
   const familyMeshes = <P, T extends { x: number; z: number; scale: number }>(variants: FamilyVariant<P, T>[], label: string, material: Material, depth: Material, parent: Group) => {
     for (const w of variants) {
       const n = Math.max(1, w.placements.length);
@@ -2106,6 +2129,7 @@ export async function create(ctx: WorldContext): Promise<WorldSystem> {
         mesh.visible = false;
         mesh.userData.kind = label;
         mesh.userData.lodLevel = l;
+        mesh.userData.hull = geometryHull(w.lods[l].geometry);
         w.meshes.push(mesh);
         parent.add(mesh);
       }
@@ -2203,11 +2227,7 @@ export async function create(ctx: WorldContext): Promise<WorldSystem> {
           return { ...k, toward: new Vector3(cos * wx - sin * wz, 0, sin * wx + cos * wz).normalize() };
         })
       : undefined;
-    // the near-canopy hero test in the seat's frame (local centre → world through yaw, scale, seat)
-    const seatOrigin = new Vector3(p.x, p.y, p.z);
-    const heroDistanceWorld = nearCanopyHeroDistance(seatOrigin);
-    const heroDistance = (center: Vector3, radius: number) => heroDistanceWorld(new Vector3(p.scale * (cos * center.x + sin * center.z), p.scale * center.y, p.scale * (-sin * center.x + cos * center.z)), radius * p.scale);
-    const lods = DETAILS.map((d) => createColumnTree(c.params, palette, d, { groundAt, nearBase: d === 'high', sunDir: localSun, pathAt, basePalette, knees, nearCanopy: { heroDistance } }));
+    const lods = DETAILS.map((d) => createColumnTree(c.params, palette, d, { groundAt, nearBase: d === 'high', sunDir: localSun, pathAt, basePalette, knees, nearCanopy: {} }));
     seatedColumns.push({ params: c.params, lods, meshes: [], placements: [p], matrices: [c.matrices[i]], counts: [0, 0, 0], lists: [[], [], []], submitted: [[], [], []] });
     await yieldFrame();
   }
@@ -2277,10 +2297,10 @@ export async function create(ctx: WorldContext): Promise<WorldSystem> {
         root: new Vector3(p.x, p.y, p.z),
         group: part.group,
         center: new Vector3(p.x + p.scale * (cos * part.center.x + sin * part.center.z), p.y + p.scale * part.center.y, p.z + p.scale * (-sin * part.center.x + cos * part.center.z)),
+        radius: part.radius * p.scale,
         inM: part.inM,
         outM: part.outM,
         fixedSwap: part.fixedSwap === true,
-        hero: Infinity,
         mesh,
         triangles: part.triangles,
         leaves: part.leaves,
@@ -2369,6 +2389,13 @@ export async function create(ctx: WorldContext): Promise<WorldSystem> {
     }
     g.asset.nearCanopy.forEach((part, i) => {
       const finalize = (geometry: BufferGeometry) => {
+        if (!geometry.getAttribute('position')?.count) {
+          // A deferred part carries conservative local bounds, not vertex buffers to transform.
+          geometry.boundingBox!.translate(g.origin);
+          geometry.boundingSphere!.center.add(g.origin);
+          geometry.boundingSphere!.radius += CULL_PAD_M;
+          return;
+        }
         giantPartToWorld(geometry, g.origin);
         geometry.computeBoundingBox();
         geometry.computeBoundingSphere();
@@ -2387,7 +2414,7 @@ export async function create(ctx: WorldContext): Promise<WorldSystem> {
       mesh.userData.kind = 'giant-near-canopy';
       mesh.userData.giants = [g.def.id];
       giantGroup.add(mesh);
-      const [item, first] = poolItem(`giant-near-canopy/${g.def.id}/${part.kind}-${i}`, mesh, part.build, finalize);
+      const [item, first] = poolItem(`giant-near-canopy/${g.def.id}/${part.kind}-${i}`, mesh, part.build, finalize, !part.deferred, part.estimatedBytes);
       nearCanopyPool.add(item, first);
       nearCanopies.push({
         id: `${g.def.id}/${part.kind}-${i}`,
@@ -2396,14 +2423,14 @@ export async function create(ctx: WorldContext): Promise<WorldSystem> {
         root: g.origin.clone(),
         group: part.group,
         center: part.center.clone().add(g.origin),
+        radius: part.radius,
         inM: part.inM,
         outM: part.outM,
         fixedSwap: part.fixedSwap === true,
         ...(part.persistent ? { persistent: true } : {}),
-        hero: Infinity,
         mesh,
-        triangles: part.triangles,
-        leaves: part.leaves,
+        get triangles() { return part.triangles; },
+        get leaves() { return part.leaves; },
         farLeaves: part.farLeaves,
         farCards: part.farCards,
         active: false,
@@ -2420,8 +2447,9 @@ export async function create(ctx: WorldContext): Promise<WorldSystem> {
     ctx.camera.getWorldPosition(_v);
     nearCanopyPool.begin();
     for (const nc of nearCanopies) {
-      const d = nc.center.distanceTo(_v);
-      if (d < NEAR_CANOPY_PREFETCH_M) nearCanopyPool.want(nc.item, d);
+      const d = Math.max(0, nc.center.distanceTo(_v) - nc.radius);
+      if (nc.persistent && nearCanopyPool.isResident(nc.item)) nearCanopyPool.pin(nc.item);
+      else if (nc.persistent || d < NEAR_CANOPY_PREFETCH_M) nearCanopyPool.want(nc.item, nc.persistent ? -1 : d);
     }
     nearCanopyPool.work(0);
     nearBasePool.begin();
@@ -2538,7 +2566,7 @@ export async function create(ctx: WorldContext): Promise<WorldSystem> {
           return fx * dx + fz * dz >= 0.5 * Math.hypot(fx, fz) * d ? d : Infinity;
         }),
       ),
-      nearCanopy: { heroDistance: nearCanopyHeroDistance(origin) },
+      nearCanopy: { defer: true },
     });
     // to world space; aRoot.xyz carries the tree origin so the merged shader keeps per-tree context
     // (the near base and the near-canopy parts get the same below, where their pooled rebuilds do)
@@ -2867,13 +2895,26 @@ export async function create(ctx: WorldContext): Promise<WorldSystem> {
     bucketFamily(seatedColumns, cam);
   };
 
+  /**
+   * Round 51 (W38, after the grass blades to 26 m left A 170 K under the ceiling): the stand beyond
+   * the north clearing (the band-only 26 m poles at z < −62, three rows at 2.6–3.4 m spacing) stands
+   * 60–100 m from A and D inside their frusta, behind the north rise, and drew its near LOD (bent
+   * trunk, limbs, buttresses) to the global 120 m switch. Those poles take the far LOD (crossed strips,
+   * the same crown cards) from 50 m: every pose that sees them — the arch approach, the tunnel, the
+   * north path — is within 36 m and keeps the near LOD; the fixed cameras see them through 60 % haze.
+   * fable-cursor's far-trunk row at z −46 (D's depth histogram) keeps the 120 m switch: it is not
+   * north of the clearing.
+   */
+  const STAND_FAR_LOD_M = 50;
+  const isStandPole = (set: DistantSet, p: DistantPlacement) => set.variant.bandOnly && p.z < -62;
   const bucketDistant = (cam: Vector3) => {
     for (const set of distantSets) {
       const nearList: number[] = [];
       const farList: number[] = [];
       for (let i = 0; i < set.placements.length; i++) {
         const p = set.placements[i];
-        (Math.hypot(p.x - cam.x, p.z - cam.z) < distantNear ? nearList : farList).push(i);
+        const nearM = isStandPole(set, p) ? Math.min(distantNear, STAND_FAR_LOD_M * ctx.quality.distance) : distantNear;
+        (Math.hypot(p.x - cam.x, p.z - cam.z) < nearM ? nearList : farList).push(i);
       }
       set.lists = [nearList, farList];
       set.counts = [nearList.length, farList.length];
@@ -2911,7 +2952,51 @@ export async function create(ctx: WorldContext): Promise<WorldSystem> {
     out.radius = bs.radius * w.placements[i].scale + CULL_PAD_M;
     return out;
   };
-  const fillFamily = <P, T extends { x: number; z: number; scale: number }>(w: FamilyVariant<P, T>, l: number, list: number[]) => {
+  /** wind sway + a margin for the hull test (m, before the instance scale) */
+  const HULL_PAD_M = 1.5;
+  const hullSphere = new Sphere();
+  const hullSpheres: Sphere[] = [new Sphere(), new Sphere(), new Sphere()];
+  /** the instance's colour-pass hull meets the frustum (false only when every hull sphere is outside one plane) */
+  const hullInView = <P, T extends { x: number; z: number; scale: number }>(w: FamilyVariant<P, T>, l: number, i: number) => {
+    const hull = w.meshes[l].userData.hull as Sphere[] | undefined;
+    if (!hull) return true;
+    const scale = w.placements[i].scale;
+    for (let k = 0; k < hull.length; k++) {
+      hullSpheres[k].center.copy(hull[k].center).applyMatrix4(w.matrices[i]);
+      hullSpheres[k].radius = hull[k].radius * scale + HULL_PAD_M;
+    }
+    for (const plane of frustum.planes) {
+      let outside = true;
+      for (let k = 0; k < hull.length && outside; k++) {
+        hullSphere.copy(hullSpheres[k]);
+        if (plane.distanceToPoint(hullSphere.center) >= -hullSphere.radius) outside = false;
+      }
+      if (outside) return false;
+    }
+    return true;
+  };
+  /**
+   * Round 52 (W38): a casting instance behind the camera stays submitted for its shadow, but the
+   * colour pass drew it too — at A the three high-LOD white-barks behind the stairs (99–138° off
+   * axis, 9–17 m) cost 254 K triangles for no pixel. `fillFamily` packs the in-view instances first
+   * and remembers how many there are; the colour pass draws only those (`onBeforeRender` shrinks
+   * `count`, `onAfterRender` restores it). Three renders the shadow maps before the scene and never
+   * calls `onBeforeRender` from the shadow pass, so every kept instance still casts.
+   */
+  const MAIN_COUNT = 'mainCount';
+  const FULL_COUNT = 'fullCount';
+  const installMainPassCount = (mesh: InstancedMesh) => {
+    if (mesh.userData[FULL_COUNT] !== undefined) return;
+    mesh.userData[FULL_COUNT] = mesh.count;
+    mesh.userData[MAIN_COUNT] = mesh.count;
+    mesh.onBeforeRender = () => {
+      mesh.count = mesh.userData[MAIN_COUNT] as number;
+    };
+    mesh.onAfterRender = () => {
+      mesh.count = mesh.userData[FULL_COUNT] as number;
+    };
+  };
+  const fillFamily = <P, T extends { x: number; z: number; scale: number }>(w: FamilyVariant<P, T>, l: number, list: number[], mainCount = list.length) => {
     const mesh = w.meshes[l];
     for (let k = 0; k < list.length; k++) mesh.setMatrixAt(k, w.matrices[list[k]]);
     mesh.count = list.length;
@@ -2924,6 +3009,9 @@ export async function create(ctx: WorldContext): Promise<WorldSystem> {
       mesh.computeBoundingSphere();
       mesh.boundingSphere!.radius += CULL_PAD_M;
     }
+    installMainPassCount(mesh);
+    mesh.userData[FULL_COUNT] = list.length;
+    mesh.userData[MAIN_COUNT] = mainCount;
     w.submitted[l] = list;
   };
   const submitFamily = <P, T extends { x: number; z: number; scale: number }>(variants: FamilyVariant<P, T>[]) => {
@@ -2931,11 +3019,15 @@ export async function create(ctx: WorldContext): Promise<WorldSystem> {
       for (let l = 0; l < 3; l++) {
         const casts = w.meshes[l].castShadow;
         const kept: number[] = [];
+        const shadowOnly: number[] = [];
         for (const i of w.lists[l]) {
           instanceSphere(w, l, i, sphere);
-          if (inView(sphere) || (casts && shadowReaches(sphere))) kept.push(i);
+          if (inView(sphere) && hullInView(w, l, i)) kept.push(i);
+          else if (casts && shadowReaches(sphere)) shadowOnly.push(i);
         }
-        if (!sameList(kept, w.submitted[l])) fillFamily(w, l, kept);
+        const mainCount = kept.length;
+        for (const i of shadowOnly) kept.push(i);
+        if (!sameList(kept, w.submitted[l]) || w.meshes[l].userData[MAIN_COUNT] !== mainCount) fillFamily(w, l, kept, mainCount);
       }
     }
   };
@@ -3041,86 +3133,55 @@ export async function create(ctx: WorldContext): Promise<WorldSystem> {
   };
   /**
    * The near-canopy LOD for the camera at `cam` (see NearCanopy): the same hysteresis as the near
-   * boles', measured to each part's centre in 3D (a lobe 14 m up is 14 m away from under it).
-   * The nearest NEAR_CANOPY_SLOTS active lobes are shown and their far foliage folded through
+   * boles', measured to each part's crown envelope in 3D.
+   * The nearest NEAR_CANOPY_SLOTS resident active lobes are shown and their far foliage folded through
    * `mats.nearCanopy` (a slot = the tree's root + 3 + the lobe's group); the nearest
    * NEAR_CANOPY_LIMBS_MAX limb dressings are shown (nothing to fold). With `reset` the state is
-   * recomputed from the distances alone, so a capture's frame never depends on the path taken.
+   * recomputed from the distances alone. Missing parts retain far foliage while queued.
    */
-  /**
-   * The hero pass on the BUILT parts. The build-time test (giant.ts / column.ts swapRadii) frames
-   * the lobe's own sphere; a part's mesh is bigger than its lobe — the moss strip runs the whole
-   * stem bough, a limb dressing the whole limb, a vine drops metres under it — and three culls by
-   * that mesh sphere, so a lobe just past a fixed frame's edge still drew its stem's dressing
-   * into the frame (round 41 cap-A: 7–10 near parts drawn at D / F from 15–19 m, −0.004 to
-   * −0.012 SSIM). Here every part's padded world cull sphere is tested against the hero frusta
-   * and its radii cut under the nearest framing camera exactly as swapRadii does; a part that
-   * would then swap under NEAR_CANOPY_MIN_IN_M never swaps (radii −1: its tagged far foliage is
-   * simply never folded) and its geometry is dropped. A flat lobe on NEAR_CANOPY_FLAT_SWAP_M
-   * (round 45, item 6; nearCanopy.ts fixedSwap) keeps those radii whatever camera frames it —
-   * that setting means the hero cameras inside them render the near version.
-   */
-  const nearCanopyHeroPass = () => {
-    const sphere = new Sphere();
-    let limited = 0;
-    let dropped = 0;
-    for (const nc of nearCanopies) {
-      if (nc.fixedSwap || nc.persistent) continue;
-      nc.mesh.updateMatrixWorld(true);
-      sphere.copy(nc.mesh.geometry.boundingSphere!).applyMatrix4(nc.mesh.matrixWorld);
-      sphere.radius += 1;
-      for (const h of heroFrusta) {
-        const d = h.position.distanceTo(nc.center);
-        if (d > NEAR_CANOPY_OUT_M + 0.5 || d >= nc.hero) continue;
-        if (!h.frustum.intersectsSphere(sphere)) continue;
-        nc.hero = d;
-      }
-      if (!Number.isFinite(nc.hero)) continue;
-      const inM = Math.min(nc.inM, nc.hero - NEAR_CANOPY_HERO_MARGIN);
-      if (inM < NEAR_CANOPY_MIN_IN_M) {
-        nc.inM = nc.outM = -1;
-        nc.mesh.visible = false;
-        nc.mesh.removeFromParent();
-        nearCanopyPool.remove(nc.item);
-        dropped++;
-        continue;
-      }
-      if (inM < nc.inM) limited++;
-      nc.inM = inM;
-      nc.outM = Math.min(nc.outM, nc.hero - NEAR_CANOPY_HERO_MARGIN / 3);
-    }
-    const kept = nearCanopies.filter((nc) => nc.inM >= 0);
-    nearCanopies.splice(0, nearCanopies.length, ...kept);
-    // the tier's cap on the swap radii (NEAR_LOD_TIERS.canopySwapM): the parts are built with
-    // the wide radii; the small tier draws them in at the shipped 22 / 26 m (a hero cut below
-    // the cap stands). Never widens: a part a camera limited keeps its cut.
-    const [capIn, capOut] = NEAR_LOD_TIER.canopySwapM;
-    for (const nc of nearCanopies) {
-      if (nc.fixedSwap || nc.persistent) continue;
-      nc.inM = Math.min(nc.inM, capIn);
-      nc.outM = Math.min(nc.outM, capOut);
-    }
-    return { limited, dropped };
-  };
-  const heroPass = nearCanopyHeroPass();
+  // Only the memory tier caps admission. Fixed views and free/play cameras use the same
+  // world-space rule; a part is never removed from the catalogue because of another camera.
+  for (const nc of nearCanopies) {
+    if (nc.fixedSwap || nc.persistent) continue;
+    nc.inM = Math.min(nc.inM, NEAR_LOD_TIER.canopySwapM[0]);
+    nc.outM = Math.min(nc.outM, NEAR_LOD_TIER.canopySwapM[1]);
+  }
   const nearCanopyUpdate = (cam: Vector3, reset: boolean) => {
+    nearCanopyPool.begin();
     for (const nc of nearCanopies) {
-      nc.dist = nc.center.distanceTo(cam);
+      nc.dist = Math.max(0, nc.center.distanceTo(cam) - nc.radius);
       if (reset) nc.active = nc.dist < nc.inM;
       else if (nc.active) nc.active = nc.dist <= nc.outM;
       else nc.active = nc.dist < nc.inM;
     }
-    const byDist = (a: NearCanopy, b: NearCanopy) => a.dist - b.dist;
-    const shownLobes = nearCanopies.filter((nc) => !nc.persistent && nc.active && nc.kind === 'lobe').sort(byDist).slice(0, NEAR_CANOPY_SLOTS);
-    const shownLimbs = nearCanopies.filter((nc) => nc.active && nc.kind === 'limb').sort(byDist).slice(0, NEAR_CANOPY_LIMBS_MAX);
-    for (const nc of nearCanopies) nc.mesh.visible = nc.persistent || (nc.kind === 'lobe' ? shownLobes.includes(nc) : shownLimbs.includes(nc));
-    // the pool: a shown part is pinned (built now if it is not resident — the frame never waits
-    // for a build), a part within the pre-fetch radius is wanted (built ahead, nearest first)
-    nearCanopyPool.begin();
-    for (const nc of nearCanopies) {
-      if (nc.mesh.visible) nearCanopyPool.pin(nc.item);
-      else if (nc.dist < NEAR_CANOPY_PREFETCH_M) nearCanopyPool.want(nc.item, nc.dist);
+    const byDist = (a: NearCanopy, b: NearCanopy) => a.dist - b.dist || a.center.distanceToSquared(cam) - b.center.distanceToSquared(cam);
+    const resident = (nc: NearCanopy) => nearCanopyPool.isResident(nc.item);
+    const persistent = nearCanopies.filter((nc) => nc.persistent);
+    const lobeCandidates = nearCanopies.filter((nc) => !nc.persistent && nc.active && nc.kind === 'lobe').sort(byDist).slice(0, NEAR_CANOPY_SLOTS);
+    const limbCandidates = nearCanopies.filter((nc) => nc.active && nc.kind === 'limb').sort(byDist).slice(0, NEAR_CANOPY_LIMBS_MAX);
+    if (reset) {
+      // Explicit re-poses retain the capture contract: the same pose draws the same parts,
+      // whether the pool was cold or warm. Ordinary updates keep their chunked prefetch.
+      // The authored maximum selected set is 41.03 MiB, below the 64 MiB minimum pool.
+      for (const nc of [...persistent, ...lobeCandidates, ...limbCandidates]) nearCanopyPool.pin(nc.item);
+      nearCanopyPool.begin();
     }
+    for (const nc of nearCanopies) {
+      if (nc.persistent || nc.dist < NEAR_CANOPY_PREFETCH_M) nearCanopyPool.want(nc.item, nc.persistent ? -1 : nc.dist);
+    }
+    let pinnedBytes = 0;
+    const fits = (nc: NearCanopy) => {
+      if (pinnedBytes + nc.item.bytes > nearCanopyPool.capBytes) return false;
+      pinnedBytes += nc.item.bytes;
+      return true;
+    };
+    const shownPersistent = persistent.filter(resident).filter(fits);
+    const shownLobes = lobeCandidates.filter(resident).filter(fits);
+    const shownLimbs = limbCandidates.filter(resident).filter(fits);
+    // A walking camera keeps far foliage for parts still queued through work()'s frame budget.
+    for (const nc of nearCanopies) nc.mesh.visible = shownPersistent.includes(nc) || shownLobes.includes(nc) || shownLimbs.includes(nc);
+    for (const nc of [...shownPersistent, ...shownLobes, ...shownLimbs]) nearCanopyPool.pin(nc.item);
+    if (reset) nearCanopyPool.work(0);
     const slots = mats.nearCanopy.value;
     for (let i = 0; i < NEAR_CANOPY_SLOTS; i++) {
       const nc = shownLobes[i];
@@ -3481,25 +3542,29 @@ export async function create(ctx: WorldContext): Promise<WorldSystem> {
         outM: Math.min(NEAR_CANOPY_OUT_M, NEAR_LOD_TIER.canopySwapM[1]),
         builtInM: NEAR_CANOPY_IN_M,
         builtOutM: NEAR_CANOPY_OUT_M,
-        heroMargin: NEAR_CANOPY_HERO_MARGIN,
-        minInM: NEAR_CANOPY_MIN_IN_M,
-        maxY: NEAR_CANOPY_MAX_Y,
+        heroMargin: 0,
+        minInM: 0,
+        maxY: null,
+        columnMaxY: NEAR_CANOPY_MAX_Y,
+        distanceTo: 'crown-envelope',
         slots: NEAR_CANOPY_SLOTS,
         limbsMax: NEAR_CANOPY_LIMBS_MAX,
         leafFloor: [NEAR_CANOPY_LEAF_FLOOR.lift, NEAR_CANOPY_LEAF_FLOOR.texture],
         leafNearM: NEAR_CANOPY_LEAF_NEAR_M,
         sunThrough: NEAR_CANOPY_SUN_THROUGH,
         parts: nearCanopies.length,
-        /** the hero pass on the built meshes (nearCanopyHeroPass): parts with radii cut further, parts dropped (would swap under minInM) */
-        heroPass,
-        /** triangles of every part (built once for its measurements) and of the parts whose buffers are in the pool now */
+        /** Retained audit keys: no camera permanently limits or drops registered parts. */
+        heroPass: { limited: 0, dropped: 0 },
+        deferredParts: giants.reduce((n, g) => n + g.asset.nearCanopy.filter(p => p.deferred).length, 0),
+        /** Actual triangles of parts built at least once, and of buffers in the pool now. */
         builtTriangles: nearCanopies.reduce((n, nc) => n + nc.triangles, 0),
         residentTriangles: nearCanopies.reduce((n, nc) => n + (nearCanopyPool.isResident(nc.item) ? nc.triangles : 0), 0),
         /** vertices and buffer bytes (position, colour, uv, wind, root, normal + the index) of the parts in the pool now */
         residentVertices: nearCanopies.reduce((n, nc) => n + (nearCanopyPool.isResident(nc.item) ? nc.mesh.geometry.getAttribute('position').count : 0), 0),
         residentBytes: nearCanopyPool.poolBytes,
-        /** the bytes one build of every part takes: what was resident before the pool (round 41: 173 MB) */
-        builtBytes: nearCanopies.reduce((n, nc) => n + nc.item.bytes, 0),
+        /** Measured bytes after a first build; deferred records retain conservative estimates. */
+        builtBytes: nearCanopies.reduce((n, nc) => n + (nc.triangles ? nc.item.bytes : 0), 0),
+        estimatedUnbuiltBytes: nearCanopies.reduce((n, nc) => n + (nc.triangles ? 0 : nc.item.bytes), 0),
         /** the pool (lodPool.ts): cap, live bytes, builds, evictions, synchronous builds, build-time percentiles */
         prefetchM: NEAR_CANOPY_PREFETCH_M,
         buildBudgetMs: NEAR_LOD_BUILD_BUDGET_MS,
@@ -3525,7 +3590,7 @@ export async function create(ctx: WorldContext): Promise<WorldSystem> {
         /** [id, distance, in-radius, triangles, laminae, nearest framing hero camera (m; null: none), world centre] */
         shown: nearCanopies
           .filter((nc) => nc.mesh.visible)
-          .map((nc) => [nc.id, Math.round(nc.dist * 10) / 10, Math.round(nc.inM * 10) / 10, nc.triangles, nc.leaves, Number.isFinite(nc.hero) ? Math.round(nc.hero * 10) / 10 : null, nc.center.toArray().map((v) => Math.round(v * 10) / 10)]),
+          .map((nc) => [nc.id, Math.round(nc.dist * 10) / 10, Math.round(nc.inM * 10) / 10, nc.triangles, nc.leaves, null, nc.center.toArray().map((v) => Math.round(v * 10) / 10)]),
         /** triangles drawn for the shown parts against the far triangles they fold away (≈ 5 per far lamina, 2 per card) */
         shownTriangles: nearCanopies.filter((nc) => nc.mesh.visible).reduce((n, nc) => n + nc.triangles, 0),
         foldedTriangles: nearCanopies.filter((nc) => nc.mesh.visible && !nc.persistent).reduce((n, nc) => n + nc.farLeaves * 5 + nc.farCards * 2, 0),

@@ -2949,6 +2949,71 @@ Also: lantern bough still a thick plain beam across the top of B (trees pass pen
 - All six views written (F 13:26); the determinism re-capture and motion pair remain (~1.5 h). No new
   Fable/Astra source this hour. Next take (0134) carries the grass 26 m blades and the memory branches.
 
+### 2026-09-22 15:55 UTC — tick 231: take-0132 sealed at last (41/50, A +0.0056, F −0.0062); take-0133 started
+- Seven hours of capture for one seal: A 2,301 s, B 4,064 s, C 2,829 s, D ~3,600 s, E 3,144 s,
+  F 1,160 s, det 3,455 s, motion 3,636 s — one 30–40 min stall in most views, at random frames, with
+  memory free or not; SwiftShader at 370 % throughout. take-0132 on 06b420c9: 41/50, A 0.2153 → 0.2209,
+  B −0.0002, C −0.0039, D −0.0001, E ±0, F 0.2381 → 0.2319 (the bank cores' leaves vs the reference's
+  dark mass — Astra's backing candidate is the follow-up). Hue to the reference better in B/C/D/E.
+- take-0133 started 15:50 on f9c58007+: grass blades to 26 m, the six memory branches, dressing fade.
+- Gaps: F's canopy mass (Astra), Link's knee fold (Astra), the capture's stalls (box-bound; the world's
+  3.6 GB tab is the lever — memory branches landing).
+
+### 2026-09-22 16:15 UTC — tick 232: take-0133 A at 8.83 M with the 26 m blades; fable-4 stand LOD merged
+- take-0133: A written 15:56 (1,489 s, no stall) — 452 draws, 8.83 M tris: the 26 m blades cost ≈ +150 K
+  at A, 170 K under W38's ceiling. B under way (one 487 s chunk). Merged `fable-4-standlod` (north
+  stand poles far LOD beyond 50 m: A/B/D/E −50 K; lands in the next take).
+- Astra: fog candidate confined to `HEIGHT_FOG_DEFAULTS`; the `063772a4` backing pair REJECTED (not
+  importing); the bank's `588d3681` successor waits on its F/C coverage gate.
+
+### 2026-09-22 17:15 UTC — tick 233: owner-fable's stand roof (PR #31) merged; Astra's fog + atlas imported; take-0133 at D
+- Merged PR #31 `agent/owner-fable-clearing-roof` (the canopy roof over the north stand and clearing —
+  opus #01; plaza roof byte-identical; final six-view A/C 0, B +0.0010, D +0.0013, E +0.0003).
+  Imported Astra's `886c531c` (seeded leaf-shape far-crown painter) and `c241593e` (height fog:
+  hazeDensity 0.018 → 0.008, hazeFarDensity 0.055 → 0.008, farShadeMin 0.30 → 0.65; her disclosed
+  A −0.0032 / F −0.0039 for far-band contrast +10 % / +43 %) — the owner's clarity direction.
+- take-0133: A 15:56 (8.83 M / 452 — the 26 m blades +150 K), B 16:29, C 16:49 (1,069 s, no stall);
+  D capturing. take-0134 (fog, atlas, stand roof, stand LOD) follows it.
+
+### 2026-09-22 18:10 UTC — tick 234: heartbeat — take-0133 through E (D 17:17, E 17:45; no stalls since C); F next
+- Imported Astra's strap repair (`83ebbc63` → f2f118e2, asset `1873fc17`). Handed Astra the near-canopy
+  free-camera admission lane (giant.ts admission gate, nearCanopy swapRadiiFor, index hero pass): one
+  physical distance rule for play/free/capture, no mode exceptions; W38 at A the hard gate.
+- take-0133 moving at the old pace again (E 1,592 s). take-0134 (fog, atlas, stand roof, stand LOD,
+  strap) follows.
+
+### 2026-09-22 19:35 UTC — tick 235: take-0133 sealed (41/50, neutral as claimed); take-0134 — the clarity set — started
+- take-0133 (grass to 26 m, six memory branches, dressing fade): A −0.0001, B +0.0001, C −0.0004, D 0,
+  E +0.0003, F −0.0022; A 8.83 M / 452. 3 h 45 min, one stall (A 26–30 in the det pass).
+- take-0134 started 19:32 on 3e34a3cd: Astra's fog (three fields) + far-crown atlas, owner-fable's stand
+  roof, fable-4's stand LOD, Link `7f406e40` (straps + 10° run posture). Every frame changes — the
+  owner's direction, costs named in the note.
+- Imported Astra's `be0e22f7` (3e34a3cd). Handed her the near-canopy admission lane and cleared her
+  `plants.ts` far-pack SINGLE switch. Astra's preview holds fable-4's shadow/stand LOD cuts pending a
+  fresh look under the lighter haze; canonical keeps them.
+
+### 2026-09-22 20:20 UTC — tick 236: take-0134 (clarity set) A in at 8.78 M / 456; Astra's admission + packs imported for the next take
+- take-0134: A written 19:53 (1,501 s; 456 draws, 8.78 M — the stand LOD's −50 K under the roof's
+  lobes). B capturing (one 856 s chunk). Nothing new from the Fable chats.
+- Imported Astra's `1c69102d` (far packs → SINGLE: A −140 K, pixel-exact) as 372915a6 and `105a61d5`
+  (upper-canopy admission by physical camera distance in every mode) as a cherry-pick 8f07e181 so
+  fable-4's shadow/stand cuts stay. Both seal in take-0135.
+
+### 2026-09-22 21:15 UTC — tick 237: heartbeat — take-0134 at C (B 20:30; C stalled once, 2,257 s at 26–30)
+- No new Fable/Astra source. take-0134 continues (D/E/F/det/motion left; ~4 h at today's pace).
+
+### 2026-09-22 22:15 UTC — tick 238: heartbeat — take-0134 at D (C 21:25, 3,216 s; D stalled once at 26–30)
+- No new Fable/Astra source. E, F, det, motion remain.
+
+### 2026-09-22 23:25 UTC — tick 239: fable-4's colour-pass culling merged (A −150 K, F −130 K, pixel-identical); take-0134 at E
+- Merged `fable-4-mainpass` (the colour pass draws only in-view family instances; shadow-only instances
+  stay for the shadow pass). 19/19 tree tests. With Astra's packs (−140 K) that is ≈ 290 K of A headroom
+  for take-0135, which carries the admission change.
+- take-0134: D written 22:12 (2,737 s); E stalled 3,139 s at 61–65. F, det, motion remain.
+
+### 2026-09-23 00:25 UTC — tick 240: heartbeat — take-0134 at F (E 23:29, 4,533 s; F stalled 2,506 s at 51–55)
+- No new Fable/Astra source. det + motion after F; seal ≈ 02:30.
+
 ## Pending corrections from reference/ANALYSIS.md (apply at integration, one commit)
 - `config.ts` palette → olive/khaki low-key (reference hero frames: hue 47–51°, sat 0.16–0.19,
   lum 0.35–0.39, 0 % blue sky): grass 0x8a8c55/0x5c6233/0x3a4420, moss 0x8b8948/0x5a523b,
@@ -2987,4 +3052,4 @@ Pick anything NOT claimed in `gauntlet/claims.json`. Good self-contained candida
   my own (GAUNTLET.md D7).
 
 ## Last updated
-2026-09-22T14:10:00Z
+2026-09-23T00:25:00Z
