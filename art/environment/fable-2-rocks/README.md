@@ -16,6 +16,22 @@ B 526 / C 393 / D 394 / E 526 / F 512; A 9.09 M tris on both (the head's number,
 change's — flagged to fable-cursor). Files: `ledge2-x-clearing-n.jpg` (+ `-crop`),
 `ledge2-x-ledge-foot.jpg`, `ledge2-x-northpath-n.jpg`.
 
+## Iteration 84 — the earth treads' tint × 1.15 and the read from the plaza (the demo's `d_010` view); re-measured on the merged head `76fef8a6` (squad lanes 1–5 in): A −0.0002, C −0.0012, F +0.0004 — and the head itself now renders A at 9.15 M triangles / 599 draws, over W38's 9.0 M
+
+`d_010` (the demo, the flight seen from the plaza) against ours from the same spot (`steps84-d010-view.jpg`): the demo's flight
+alternates pale treads and dark log risers; ours alternates lit log crowns and darker treads — the light, not the material
+(the canopy shades our upper treads; fable-5's read). The earth's albedo is the half I hold: `EARTH_TINT` × 1.15
+(2.24 / 1.98 / 1.52), still under the demo's tread value in shade and not chalky at 2 m (`steps84-tint-triple.jpg`: stone |
+earth | earth × 1.15 at `s2-top-down`, the 2 m tread pose and the plaza view). At A the flight box moves a hair toward the
+frame: dark 53.3 → 52.9 %, lips 77 → 78 (frame 15.7 % / 100).
+
+The branch carries the head `76fef8a6` merged (fable-cursor's rule for squad lanes), so the pair is re-measured there —
+`76fef8a6` (stone treads) → `55b791a1` (earth × 1.15): **A 0.2047 → 0.2045 (−0.0002, 0.22 % of pixels), C 0.1834 → 0.1822
+(−0.0012, 0.66 %: the flight's foot at C's left edge), F 0.2169 → 0.2173 (+0.0004, 0.26 %)**; B / D / E do not see the flight
+(0 / 0 / 11 px at §83's base). Draws and triangles are the head's: **A 599 draws / 9.15 M triangles** — the squad's mid-canopy
+and understory took A from 8.55 M (`73402409`) over W38's 9.0 M ceiling; C 473 / 6.77 M, F 550 / 7.99 M. Not mine to cut;
+flagged to fable-cursor. A frame here now takes ≈ 680 s to render at A (was 350).
+
 ## Iteration 83 — lane 6 (fable-cursor's 07:30 fit): the demo's log-risered steps, first half — the hero flight's treads are trodden earth between the timbers, not stone slabs (`aEarth` on the slab tops, the stone shader renders trail dirt there); six views A −0.0002, C −0.0009, the rest 0
 
 The owner's references for "the steps" (`docs/SQUAD_2026-09-23.md` lane 6): the demo's walk north, `demo61/d_094` and `d_104`
