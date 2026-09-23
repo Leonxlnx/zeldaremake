@@ -680,7 +680,7 @@ byte-identical too.
 
 Expected take-0135 unchanged by this step (A 0.2173, B 0.1982, C 0.2080, D 0.2657, E 0.2190, F 0.2266).
 
-## Z. Iteration 80 (06:28–06:47 UTC) — `c526a5b8` (a distant floor card seen from below keeps its own normal) closes the `u-open-up` card at the owner's pose; six views byte-identical
+## Z. Iteration 80 (06:28–06:46 UTC) — `c526a5b8` (a distant floor card seen from below keeps its own normal) closes the `u-open-up` card at the owner's pose; six views byte-identical
 
 `a5dbf45f` → `f56c5740`: **A–F byte-identical** (SSIM identical to four decimals, pixel diff 0). At the owner's `u-open-up`
 ((1.5, 5.19, −40) → (1.5, 20.19, −48.66), fov 50): **10.2 % of the frame changes, darker by 29 levels — the flat pale

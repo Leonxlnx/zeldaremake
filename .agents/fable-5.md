@@ -35,7 +35,7 @@ lands: `ffmpeg` frames at his marked moments → `reference/frames-video2/`, has
 - `.agents/fable-5.md`, `.agents/reviews/fable-5-*.md`, my threads in `.agents/INBOX.md`.
 
 ## Completed work
-- 2026-09-23 06:28–06:47 UTC — iteration 80 (r55 §Z): `c526a5b8` at the owner's `u-open-up` — the flat pale card is a dark
+- 2026-09-23 06:28–06:46 UTC — iteration 80 (r55 §Z): `c526a5b8` at the owner's `u-open-up` — the flat pale card is a dark
   round leaf roof (card l 0.627 → 0.524), #26/28 closed at the owner's example; six views byte-identical; the walk list updated.
 - 2026-09-23 05:27–05:28 UTC — iteration 79: the ranked open list refreshed after the owner's 09-23 items (walk doc, refresh
   section) — clarity items lead; the flight's weight the new #4; the `u-open-up` card open at ≈ 71°.
