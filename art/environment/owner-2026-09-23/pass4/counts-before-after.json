@@ -1,0 +1,35 @@
+[
+ {
+  "pose": "A_stairs",
+  "before_b51f0954": {
+   "draws": 692,
+   "triangles": 8866990
+  },
+  "after_39e63437": {
+   "draws": 695,
+   "triangles": 8952657
+  }
+ },
+ {
+  "pose": "D_log",
+  "before_b51f0954": {
+   "draws": 553,
+   "triangles": 8244027
+  },
+  "after_39e63437": {
+   "draws": 561,
+   "triangles": 8489285
+  }
+ },
+ {
+  "pose": "owner-2008b",
+  "before_b51f0954": {
+   "draws": 600,
+   "triangles": 7534248
+  },
+  "after_39e63437": {
+   "draws": 606,
+   "triangles": 7713600
+  }
+ }
+]
