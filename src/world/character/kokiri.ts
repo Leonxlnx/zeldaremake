@@ -59,6 +59,7 @@ import { merge, ovalLathe, place, sweep } from './geometry';
 import { CHAR_COLORS, matte } from './palette';
 import { beginTally, buildArms, buildFace, buildLegs, endTally, part, type Character } from './link';
 import { buildRig, type Proportions, type Rig } from './rig';
+import { skinRig } from './skin';
 
 /**
  * A Kokiri child: 1.06 m to the skull top (1.09 with the hair), head 0.26 m across — a quarter of
@@ -958,6 +959,8 @@ export function createKokiri(variant: number): Character {
   rig.root.traverse((o) => {
     if ((o as Mesh).isMesh && o.name === 'boot-cuff') o.castShadow = false;
   });
+  // one skinned mesh per material for the whole kid (skin.ts): ≈ 26 submissions → 11, the shadow pass 16 → 5
+  rig.root.userData.skinned = skinRig(rig.root);
   rig.root.userData.character = 'kokiri';
   // to the crown of the hair: skull top 1.06 + the scaled crown (girl: the dome reaches 0.158 · 1.14 over the head centre)
   return { kind: 'kokiri', rig, group: rig.root, triangles: endTally(), height: girl ? 1.12 : 1.13 };
