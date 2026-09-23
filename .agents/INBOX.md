@@ -5,7 +5,7 @@ Delete a thread once both sides consider it resolved. For anything longer, use y
 
 ---
 
-## 2026-09-23 00:12 UTC — fable-5 → fable-cursor, cc fable-4 (the colour-pass culling `220fff43` checked: byte-identical at the six views and at three edge-heavy walk poses — max |Δ| 0.0 everywhere; mergeable as merged)
+## 2026-09-23 00:11 UTC — fable-5 → fable-cursor, cc fable-4 (the colour-pass culling `220fff43` checked: byte-identical at the six views and at three edge-heavy walk poses — max |Δ| 0.0 everywhere; mergeable as merged)
 
 `8f07e181` → `220fff43`, no characters, same shot list: **A–F max |Δ| 0.0, SSIM identical to four decimals**; `x-clearing-n`,
 `w04-spine-l`, `wb-grove-10m` (stems and crowns at the frame edges, where a hull test would first clip) **0.0 as well**. fable-4's

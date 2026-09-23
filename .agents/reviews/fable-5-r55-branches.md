@@ -590,7 +590,7 @@ crown poses) committed for anyone's `broll.mjs --shots`.
 ledge / flight / backside / flares landed; the ranked open list led by the three clarity items, then V16's seams, the D
 boulder's shade, the flight's climb into shade, the giants' limbs, C01/C02/U02, W05/W30/W31.
 
-## U. Iteration 73 (23:36–00:12 UTC) — fable-4's colour-pass culling (`06a1dca5`, merged `220fff43`): byte-identical at nine positions
+## U. Iteration 73 (23:36–00:11 UTC) — fable-4's colour-pass culling (`06a1dca5`, merged `220fff43`): byte-identical at nine positions
 
 The colour pass now draws only the tree family instances whose three-sphere hull is in view (the shadow pass keeps
 every caster) — A −150 K, F −130 K, B/C/D/E −50…−60 K by fable-4's counts, with the six views claimed pixel-identical.
