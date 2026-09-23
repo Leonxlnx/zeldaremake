@@ -43,6 +43,8 @@ export interface AmbienceState {
   forward: { x: number; z: number };
   /** pod lantern positions (world) */
   pods: readonly Vec3[];
+  /** 0 out in the open, 1 with wood closed over the listener (inside the log tunnel's bore) */
+  enclosure?: number;
 }
 
 export interface Ambience {
@@ -85,6 +87,11 @@ export function swell(gust: number): number {
 /** the leaf flutters' level range (before the gust scale) and their share into the hall */
 const FLUTTER_LEVEL: [number, number] = [0.004, 0.013];
 const FLUTTER_SEND = 0.25;
+/** the bed's top in the open, and with the log tunnel's wood closed over the listener */
+const ENCLOSURE_OPEN_HZ = 18000;
+const ENCLOSURE_CLOSED_HZ = 900;
+/** how much of the forest is left when he is right inside the bore */
+const ENCLOSURE_DUCK = 0.45;
 
 type BirdKind = 'whistle' | 'trill' | 'chirps' | 'warble' | 'coo' | 'knock';
 /** how often each call is chosen, and how far away it tends to be (0 = overhead, 1 = deep in the wood) */
@@ -98,7 +105,13 @@ const BIRDS: { kind: BirdKind; weight: number; near: number; far: number }[] = [
 ];
 const BIRD_WEIGHT = BIRDS.reduce((s, b) => s + b.weight, 0);
 
-export function createAmbience(ctx: BaseAudioContext, out: AudioNode, reverbSend: AudioNode, rng: Rng, startAt = 0): Ambience {
+export function createAmbience(ctx: BaseAudioContext, outBus: AudioNode, reverbSend: AudioNode, rng: Rng, startAt = 0): Ambience {
+  // Everything the forest makes goes through here before the bus: inside the log tunnel the wood
+  // closes over the listener, so the wind, the leaves and the birds arrive muffled and quieter.
+  // Walking through the arch used to change nothing at all except what was under the boots.
+  const enclosureLp = filter(ctx, 'lowpass', ENCLOSURE_OPEN_HZ, 0.7);
+  const out = gain(ctx, 1);
+  out.connect(enclosureLp).connect(outBus);
   const pink = pinkNoiseBuffer(ctx, rng.fork('pink'), 9);
   const nodes: AudioScheduledSourceNode[] = [];
   /** one always-running pink source every layer taps (a per-layer source would cost a buffer each) */
@@ -425,6 +438,11 @@ export function createAmbience(ctx: BaseAudioContext, out: AudioNode, reverbSend
       pan = Math.max(-1, Math.min(1, ((px * rx + pz * rz) / len) * 0.8));
     }
     flamePan.pan.setTargetAtTime(pan, t, 0.3);
+    // the log tunnel closing over the forest (index.ts surfaceAt: 0 at the mouth, 1 a metre and a
+    // half in), geometric in frequency so the change is even as he walks in
+    const enc = Math.max(0, Math.min(1, s.enclosure ?? 0));
+    enclosureLp.frequency.setTargetAtTime(ENCLOSURE_OPEN_HZ * Math.pow(ENCLOSURE_CLOSED_HZ / ENCLOSURE_OPEN_HZ, enc), t, 0.12);
+    out.gain.setTargetAtTime(1 - (1 - ENCLOSURE_DUCK) * enc, t, 0.12);
   };
 
   return {

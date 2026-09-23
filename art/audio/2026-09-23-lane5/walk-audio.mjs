@@ -35,6 +35,9 @@ const ROUTES = [
   { name: 'up the main flight', at: [9.2, -1.4, 340], key: 'KeyW', seconds: 8 },
   { name: 'running the plaza', at: [0, 4, 180], key: 'KeyW', seconds: 6, shift: true },
   { name: 'jumping on the plaza', at: [0, 2, 180], key: 'KeyW', seconds: 7, jumpEvery: 1.6 },
+  // the north path crosses the log arch's bore at log-frame u ≈ −4 … −6 (layout.logArch, yaw −16°):
+  // walking north from z −51 passes right through it
+  { name: 'through the log tunnel', at: [4.84, -51, 180], key: 'KeyW', seconds: 7 },
 ];
 
 const server = await serveStatic(dist);
@@ -87,7 +90,7 @@ try {
           }
           window.__ZR_PLAY__.step(1, dt, false);
           const f = window.__ZR_PLAY__.state().feet;
-          rows.push((f ?? []).map((x) => (x.stance ? 1 : 0)));
+          rows.push([(f ?? []).map((x) => (x.stance ? 1 : 0)), window.__ZR_AUDIO__.stats()?.enclosure ?? 0]);
           await new Promise((r) => requestAnimationFrame(r));
         }
         return rows;
@@ -106,8 +109,10 @@ try {
       const d = n - (before.surfaces[s] ?? 0);
       if (d > 0) surfaces[s] = d;
     }
-    const feet = gait[0]?.length ?? 0;
-    const pattern = Array.from({ length: feet }, (_, i) => gait.map((r) => (r[i] ? '#' : '.')).join(''));
+    const stance = gait.map((r) => r[0]);
+    const enclosure = gait.map((r) => r[1]);
+    const feet = stance[0]?.length ?? 0;
+    const pattern = Array.from({ length: feet }, (_, i) => stance.map((r) => (r[i] ? '#' : '.')).join(''));
     const plants = pattern.map((p) => (p.match(/\.#/g) ?? []).length);
     const stanceShare = pattern.map((p) => Number(((p.split('#').length - 1) / p.length).toFixed(2)));
     const row = {
@@ -123,10 +128,14 @@ try {
       gaitPattern: pattern,
       gaitPlantsPerFoot: plants,
       gaitStanceShare: stanceShare,
+      /** the bed's enclosure over the route: how closed the space above the listener got */
+      enclosureMax: Number(Math.max(...enclosure).toFixed(2)),
+      enclosureTrace: enclosure.filter((_, i) => i % 6 === 0).map((v) => Number(v.toFixed(2))),
     };
     results.routes.push(row);
     log(`${route.name}: ${row.steps} steps (${row.gaitSteps} on a boot plant), ${row.landings} landings over ${route.seconds} s — ${JSON.stringify(surfaces)}; the gait planted ${plants.join(' + ')} times`);
     for (const p of pattern) log(`  gait ${p.slice(0, 120)}`);
+    if (row.enclosureMax > 0) log(`  enclosure peaks at ${row.enclosureMax}: ${row.enclosureTrace.join(' ')}`);
   }
   results.end = await page.evaluate(() => window.__ZR_AUDIO__.stats());
 } finally {

@@ -64,6 +64,26 @@ is as present as it was, but only when something is happening in it.
 `bed-before-after.jpg` shows it — the before is a wall, the after is two swells with clear air
 between them and only leaf flutters and birds in the gaps. `clips/` has 28 s of each to listen to.
 
+## Two things the world did not answer
+
+**Link now lands with a sound.** Coming down off the ledge, the stair flight or a jump was silent.
+`designLanding` folds the toe into the heel (both boots arrive together), adds a body an octave
+under the step's own that rings two and a half times longer, and settles the belt and straps after
+it; how hard it lands follows the drop (`landingStrength`, driven by the jump arc's highest point
+through `PlayerHandle.airHeight`). Play-mode probe: **5 landings over 7 s of jumping, 0 on any of
+the six walking routes** — it never fires on a stride.
+
+**The log tunnel closes over the forest.** Walking through the arch used to change nothing except
+what was under the boots. The whole bed — wind, leaves, birds, the lanterns — now passes through one
+filter that shuts from 18 kHz to 900 Hz and ducks to 45 % as the wood closes over the listener
+(`surfaceAt` returns a smooth `enclosure`, 0 at the mouth and 1 a metre and a half in). Walking the
+north path through the bore, the probe records the boots going `stone` → `hollow` at the same time
+as the enclosure ramps and releases with no step in it:
+
+```
+0 0 0 0 0 0 0 0 0 0 0 0.1 0.41 0.72 1 1 1 … 1 1 0.94 0.63 0.32 0.01 0 0 0 0
+```
+
 ## Reproduce
 
 ```bash
