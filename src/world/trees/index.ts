@@ -1553,7 +1553,7 @@ const NEAR_LOD_TIERS: Record<NearLodTier['name'], NearLodTier> = {
    * bases (≈ 1.4 MB each), so neither pool can churn on a walk. What is DRAWN in a fixed frame does not
    * depend on a pool cap; the canopy swap itself stays 26 / 30.
    */
-  large: { name: 'large', canopyPoolBytes: 256 << 20, basePoolBytes: 48 << 20, canopyPrefetchM: 42, basePrefetchM: 38, baseBand: [25, 28], canopySwapM: [NEAR_CANOPY_IN_M, NEAR_CANOPY_OUT_M] },
+  large: { name: 'large', canopyPoolBytes: 256 << 20, basePoolBytes: 48 << 20, canopyPrefetchM: 42, basePrefetchM: 54, baseBand: [25, 28], canopySwapM: [NEAR_CANOPY_IN_M, NEAR_CANOPY_OUT_M] },
   /**
    * 64 MB holds ≈ 140 of the 364 canopy parts (0.47 MB each on average): the drawn set is 41–51
    * parts / 17.5–21 MB on the plaza→stairs walk and the parts within 26 m of the camera come to
@@ -1567,9 +1567,14 @@ const deviceMemoryGB = (): number => {
   const n = typeof navigator === 'undefined' ? undefined : (navigator as Navigator & { deviceMemory?: number }).deviceMemory;
   return typeof n === 'number' && Number.isFinite(n) && n > 0 ? n : 4;
 };
+/**
+ * The large tier unless the browser reports under 4 GB: Safari and Firefox report nothing (→ 4), and
+ * on the small tier the owner walked past boles still drawn as their smooth far bases ("why don't the
+ * trees immediately spawn instead of needing me to get close", 2026-09-23 20:08).
+ */
 const nearLodTierFor = (deviceGB: number, poolParam: string | null): NearLodTier => {
   if (poolParam === 'large' || poolParam === 'small') return NEAR_LOD_TIERS[poolParam];
-  return deviceGB >= 8 ? NEAR_LOD_TIERS.large : NEAR_LOD_TIERS.small;
+  return deviceGB >= 4 ? NEAR_LOD_TIERS.large : NEAR_LOD_TIERS.small;
 };
 const NEAR_LOD_DEVICE_GB = deviceMemoryGB();
 const NEAR_LOD_TIER = nearLodTierFor(NEAR_LOD_DEVICE_GB, typeof location === 'undefined' ? null : new URLSearchParams(location.search).get('pool'));
@@ -1605,6 +1610,13 @@ const NEAR_LOD_BUILD_BUDGET_MS = 6;
  *   swap-18           C 19.4 (behind) · D 24.6 — the mature white-bark at (11.1, −25) built as a column
  * The 3 m of hysteresis never reach a camera: a capture re-poses with `reset`.
  */
+/**
+ * The large tier's floor under every near-base band: every bole within 40 m of the camera draws its
+ * bark relief, so none turns from the smooth far base into bark in front of the player. 48 MB holds
+ * all 23 bases (≈ 1.4 MB each) resident, and the pre-fetch (NEAR_LOD_TIERS.large.basePrefetchM)
+ * runs 10 m beyond the out-radius.
+ */
+const NEAR_BASE_WALK_BAND: [number, number] = [40, 44];
 const NEAR_BASE_HERO_BAND: Record<string, [number, number]> = {
   'stair-bank-giant': [12, 13.5],
   'lantern-tree': [12, 13.5],
@@ -1843,7 +1855,10 @@ export async function create(ctx: WorldContext): Promise<WorldSystem> {
    * on the large tier from round 51, 10 / 13 as shipped). Every band keeps the nearest fixed camera
    * ≥ 2 m outside its out-radius, so the six fixed frames are the same in either tier.
    */
-  const nearBand = (id: string): [number, number] => NEAR_BASE_HERO_BAND[id] ?? (NEAR_LOD_TIER.name === 'large' ? NEAR_BASE_RADIUS_OVERRIDE_LARGE[id] : undefined) ?? NEAR_BASE_RADIUS_OVERRIDE[id] ?? NEAR_LOD_TIER.baseBand;
+  const nearBand = (id: string): [number, number] => {
+    const band = NEAR_BASE_HERO_BAND[id] ?? (NEAR_LOD_TIER.name === 'large' ? NEAR_BASE_RADIUS_OVERRIDE_LARGE[id] : undefined) ?? NEAR_BASE_RADIUS_OVERRIDE[id] ?? NEAR_LOD_TIER.baseBand;
+    return NEAR_LOD_TIER.name === 'large' ? [Math.max(band[0], NEAR_BASE_WALK_BAND[0]), Math.max(band[1], NEAR_BASE_WALK_BAND[1])] : band;
+  };
   const nearBasePool = new LodPool<GeometryBuilt>(NEAR_BASE_POOL_BYTES);
   const nearCanopyPool = new LodPool<GeometryBuilt>(NEAR_CANOPY_POOL_BYTES);
   /**
