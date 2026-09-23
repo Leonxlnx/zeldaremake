@@ -1,3 +1,4 @@
 # Preserve capture and soundtrack receipt bytes across checkouts.
-*.json -text
+*.json -text whitespace=cr-at-eol
 *.mjs -text
+*.log -text -whitespace

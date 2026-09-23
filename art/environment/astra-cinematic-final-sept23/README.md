@@ -37,7 +37,7 @@ The local frozen-build gauntlet passed 104 checks with zero failures; the existi
 remaining issues include pronounced stair knee folding and some broad distant foliage
 planes. Four moving house frames exceed 9M triangles by at most 1,408; all six fixed gauntlet
 views remain below the current submission ceilings. The Link manifest retains one aborted
-duplicate model request; the accepted model then loaded with HTTP 200, the expected hash,
+model request; the accepted model loaded with HTTP 200, the expected hash,
 and no recorded runtime errors.
 
 The 2.19 GB of original world PNGs and intermediate Link MP4 remain in the capture workspace;
