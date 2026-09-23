@@ -334,7 +334,9 @@ export function buildStairway(def: StairDef, terrain: Terrain, rng: Rng, seed: s
         // (lane 6, the log flights: the band under the timber is the lower tread's earth meeting the
         // log, not a stone face in shadow — fable-5's "the log faces and shaded tread fronts are the
         // weight": earth-tinted, its shading normal a third toward the sky like the ground it is)
-        sideColor: logNosed ? [color[0] * 0.8, color[1] * 0.78, color[2] * 0.74] : [color[0] * 0.5, color[1] * 0.5, color[2] * 0.56],
+        // (cooler than the tread's earth — the frame's band under the lip is grey-beige, sat 0.30 where the
+        // first cut's warm earth read 0.43 at A: blue up, red down, the value kept)
+        sideColor: logNosed ? [color[0] * 0.72, color[1] * 0.76, color[2] * 0.86] : [color[0] * 0.5, color[1] * 0.5, color[2] * 0.56],
         earthSides: logNosed ? 1 : 0,
         sideNormalUp: logNosed ? 0.35 : 0,
         // a touch cooler than the tread top: the frame's lit lips are its palest and coolest
@@ -531,7 +533,7 @@ export function buildStairway(def: StairDef, terrain: Terrain, rng: Rng, seed: s
       // lane 6: under a timber the riser is the earth of the lower tread, not a dark stone — the
       // demo's flights (`d_104`, ref-03) show bark, cut ends and earth; its tone follows the tread's
       const pc: [number, number, number] = logNosed
-        ? [color[0] * 0.82 * piece.tone, color[1] * 0.8 * piece.tone, color[2] * 0.76 * piece.tone]
+        ? [color[0] * 0.74 * piece.tone, color[1] * 0.78 * piece.tone, color[2] * 0.88 * piece.tone]
         : [riserColor[0] * piece.tone * hwLift, riserColor[1] * piece.tone * hwLift, riserColor[2] * piece.tone * hwLift];
       placeSlab(piece.outline, piece.ax, rBottom, piece.au, yaw * 0.5, 0, 0, {
         thickness: rh,
