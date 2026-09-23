@@ -536,3 +536,14 @@ judges it on the play link, and lane 1 owns the next step (below). What the haze
 not explain — fable-5 (lane 10) measured it against the owner's recording: the corridor has no leafy
 crowns at 10–40 m over its banks, only bare column trunks, and its mist is bright and warm where ours
 is cool grey — is the trees' lane (fable-4 / squad lane 2–3) and the colour half of lane 1.
+
+### Thicker grass on the left of the north path (changed; visible effect modest)
+
+The ground left of the path from z −16 to −26 is frame D's hollow (field.ts `dHollow` 0.85–1 at every
+sampled point), cut for the old fixed frame. Now it keeps every blade, stands at 88 % height, takes the
+coverage fill and more candidates (`d19439cc`). Counted in the placed blades (the grass test's own
+build, no renderer): beside the path **180 → 237 blades / m², median height 0.12 → 0.23 m**; further
+west in the hollow **93 → 151 / m², 0.13 → 0.19 m**; the plaza lawn (control) unchanged. On screen the
+effect is small (green share of the ground band 54 → 57 %, 18 → 20 %; `pass3/grass-left-side.jpg`):
+the strip is in deep shade and the turf carpet under it already read green, so at 5–10 m the extra
+blades barely register. Looking lush there needs taller tufts, ferns and lighter blades — squad lane 4.
