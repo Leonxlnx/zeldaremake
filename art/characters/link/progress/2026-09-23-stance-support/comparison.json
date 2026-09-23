@@ -1,0 +1,312 @@
+{
+  "scope": "CPU actual character.create/update player replay on b221 world and default7f;1320 frames,537 lowsole and4701 fullyownedfoot points perframe. No GPU or fullmovement-quality acceptance.",
+  "inputEquality": {
+    "asset": "7f406e40e65430ed3c11bd045e2e9482dae8cee8122e9869ed62a2c3cfecbbda",
+    "head": "b221732b64724ee9c3a2b4c81e757ed605a41efb",
+    "controls": {
+      "framesPerScenario": 660,
+      "dt": 0.016666666666666666,
+      "resetTime": 20,
+      "upStartU": -0.35,
+      "downStartBeyondTopM": 0.15,
+      "run": false,
+      "jump": false
+    },
+    "geometry": [
+      {
+        "name": "terrain-chunk-r0-0--24",
+        "vertices": 14641,
+        "positionsSha256": "0f595d45120d556131c3a988ec8a727b165cbb46bf1eeb62e60d2feadfab84c7",
+        "indicesSha256": "8ebc16f109f4890015dbb8050a2a44c98c269053ce51941217aa4ced952319fe"
+      },
+      {
+        "name": "terrain-chunk-r0-0-0",
+        "vertices": 14641,
+        "positionsSha256": "94fbcedcbff4db9aef482f172dfbc871060c86e463707306e1424b28ceb6db0c",
+        "indicesSha256": "8ebc16f109f4890015dbb8050a2a44c98c269053ce51941217aa4ced952319fe"
+      },
+      {
+        "name": "stairs-main",
+        "vertices": 42255,
+        "positionsSha256": "0f864dc29d8f6d8d6b9b48c679a17a8752cac63c6b14e25b5b707243f5fa09e3",
+        "indicesSha256": null
+      },
+      {
+        "name": "stairs-main-logs",
+        "vertices": 12046,
+        "positionsSha256": "e26f88a0a117ea9b14a6a7dd25a9490848cba806cd31e03622e9d8ec265ed906",
+        "indicesSha256": "e3d8a1f7345faa78fdfa41c547122bcbdc31946f5b77281d3555bd407f8e3cfb"
+      },
+      {
+        "name": "stairs-house-west",
+        "vertices": 14628,
+        "positionsSha256": "089d2baec76fa30fa4ae14adfbf82d91cda638c0aba8b0c884e123e7fe9aa146",
+        "indicesSha256": null
+      },
+      {
+        "name": "stairs-ledge",
+        "vertices": 13002,
+        "positionsSha256": "1cb5ee812e788ed91a40c4606544a7eb35b4dfc49e3130b56d094dfb1bb87209",
+        "indicesSha256": null
+      },
+      {
+        "name": "stairs-ledge-logs",
+        "vertices": 3170,
+        "positionsSha256": "c89bc31b095f76d0c2549103379bb75f7cd9d7ae6618a42811d85172f621eba5",
+        "indicesSha256": "3875454d57d5116c602e321a9b2f57f312d34fd652e676b4e354fccbb2d5f2f0"
+      },
+      {
+        "name": "stairs-south-bank",
+        "vertices": 12495,
+        "positionsSha256": "8385a4139d3dab88401df3176e351cfb77fb409c8b776cb925ad5ba708260b97",
+        "indicesSha256": null
+      },
+      {
+        "name": "stairs-west-house",
+        "vertices": 6027,
+        "positionsSha256": "9b9500e59489e64c57f789f1994382d4a0dcc383c131f2751aa2d098ee06a46c",
+        "indicesSha256": null
+      },
+      {
+        "name": "flagstones-expansion",
+        "vertices": 19263,
+        "positionsSha256": "f8cabbce3b76c48ba82ad8463361859a4c591bcb3106c2cee4daf429c89ada57",
+        "indicesSha256": null
+      },
+      {
+        "name": "flagstones",
+        "vertices": 563868,
+        "positionsSha256": "23f3fa9d5dfff65c1f181e42f0dd5506f26d0c468f9b5edf87f348c05ab4335e",
+        "indicesSha256": null
+      },
+      {
+        "name": "flagstones-north",
+        "vertices": 136800,
+        "positionsSha256": "c4f682043cbacc430908b5e74593a0c3d7bbfc260389333931751fc303114016",
+        "indicesSha256": null
+      }
+    ],
+    "otherSourceHashesExact": true
+  },
+  "receipts": {
+    "before": {
+      "path": "art\\characters\\link\\progress\\2026-09-21-stair-posture\\resume-current\\player.json",
+      "sha256": "13181cdb2c0d8cbaf813618db5506175b051bc2777b06ef985a748e6619744a2",
+      "runtimeSha256": "e3ea3939c01279834961156851000f32319a626e4db55e49c64bbe53727f066b"
+    },
+    "candidate": {
+      "path": "art\\characters\\link\\progress\\2026-09-21-stair-posture\\resume-tilted-candidate\\player.json",
+      "sha256": "fe9ec2bf9c2ef131712f2e523f6c5698453c9ef7eb6fea004cdffe69ca5163e7",
+      "runtimeSha256": "796a2ec70adbc7a8c4fa2ecf2c13b9cb680e21dd9567f02c218f313705bc5277"
+    }
+  },
+  "verification": {
+    "noWebgl": true,
+    "exactRayChecks": 44,
+    "maxExactRayErrorM": 6.217248937900877e-15
+  },
+  "scenarios": {
+    "stairs-up": {
+      "before": {
+        "fullSoleMinimumM": 0.001186768505125002,
+        "fullFootMinimumM": 0.001186768505125002,
+        "negativeFrames": [],
+        "reachClamps": 0,
+        "kneePeakDeg": 164.29100372989555,
+        "rootStepPeakM": 0.030442063142782416,
+        "anklespeed": {
+          "peak": 9.469212256475338,
+          "p95": 4.441903829114613
+        },
+        "ankleacceleration": {
+          "peak": 550.3050402620258,
+          "p95": 168.08887682131214
+        },
+        "anklejerk": {
+          "peak": 54347.09158101176,
+          "p95": 14348.486992218961
+        },
+        "kneespeed": {
+          "peak": 14.664514942696927,
+          "p95": 4.041077252079833
+        },
+        "kneeacceleration": {
+          "peak": 987.5144987384577,
+          "p95": 157.90639033774016
+        },
+        "kneejerk": {
+          "peak": 114418.83851185921,
+          "p95": 13716.226642926122
+        }
+      },
+      "candidate": {
+        "fullSoleMinimumM": 0.001186768505125002,
+        "fullFootMinimumM": 0.001186768505125002,
+        "negativeFrames": [],
+        "reachClamps": 0,
+        "kneePeakDeg": 164.29100372989555,
+        "rootStepPeakM": 0.030442063142782416,
+        "anklespeed": {
+          "peak": 9.469212256475338,
+          "p95": 4.441903829114613
+        },
+        "ankleacceleration": {
+          "peak": 550.3050402620258,
+          "p95": 168.08887682131214
+        },
+        "anklejerk": {
+          "peak": 54347.09158101176,
+          "p95": 14348.486992218961
+        },
+        "kneespeed": {
+          "peak": 14.664514942696927,
+          "p95": 4.041077252079833
+        },
+        "kneeacceleration": {
+          "peak": 987.5144987384577,
+          "p95": 157.90639033774016
+        },
+        "kneejerk": {
+          "peak": 114418.83851185921,
+          "p95": 13716.226642926122
+        }
+      },
+      "exactRows": 660,
+      "rootsAndPlayerStateExact": true,
+      "maxAnkleDifferenceM": 0.0,
+      "maxKneeDifferenceM": 0.0
+    },
+    "stairs-down": {
+      "before": {
+        "fullSoleMinimumM": -0.000829366943169596,
+        "fullFootMinimumM": -0.000829366943169596,
+        "negativeFrames": [
+          146,
+          147,
+          148,
+          149,
+          150,
+          151,
+          152,
+          153,
+          154,
+          155,
+          156,
+          157,
+          158,
+          159,
+          160,
+          161,
+          162,
+          163,
+          164,
+          165,
+          166
+        ],
+        "reachClamps": 0,
+        "kneePeakDeg": 166.13071116312582,
+        "rootStepPeakM": 0.024615839212248858,
+        "anklespeed": {
+          "peak": 10.383510212959257,
+          "p95": 4.245679068890053
+        },
+        "ankleacceleration": {
+          "peak": 623.0105553324773,
+          "p95": 175.50340025276665
+        },
+        "anklejerk": {
+          "peak": 52349.28340946121,
+          "p95": 15776.720459341204
+        },
+        "kneespeed": {
+          "peak": 11.21685676852796,
+          "p95": 3.800152485778549
+        },
+        "kneeacceleration": {
+          "peak": 720.9824833513379,
+          "p95": 180.9927108079258
+        },
+        "kneejerk": {
+          "peak": 75314.30263325751,
+          "p95": 15067.852605221307
+        }
+      },
+      "candidate": {
+        "fullSoleMinimumM": 0.0012182832571285829,
+        "fullFootMinimumM": 0.0012182832571285829,
+        "negativeFrames": [],
+        "reachClamps": 0,
+        "kneePeakDeg": 166.13071116312582,
+        "rootStepPeakM": 0.024615839212248858,
+        "anklespeed": {
+          "peak": 10.383510212959257,
+          "p95": 4.245679068890053
+        },
+        "ankleacceleration": {
+          "peak": 623.0105553324773,
+          "p95": 175.50340025276665
+        },
+        "anklejerk": {
+          "peak": 52349.28340946121,
+          "p95": 15776.720459341204
+        },
+        "kneespeed": {
+          "peak": 11.21685676852796,
+          "p95": 3.800152485778549
+        },
+        "kneeacceleration": {
+          "peak": 720.9824833513379,
+          "p95": 180.9927108079258
+        },
+        "kneejerk": {
+          "peak": 75314.30263325751,
+          "p95": 15067.852605221307
+        }
+      },
+      "exactRows": 569,
+      "rootsAndPlayerStateExact": true,
+      "maxAnkleDifferenceM": 0.0045586114600041725,
+      "maxKneeDifferenceM": 0.015432155980876031
+    }
+  },
+  "pass": true,
+  "surfaceOperationCounts": {
+    "scope": "Separate actual-player counter replay, no shoe sampling; original pose fields verified exact against fullcontact reports. Existing surface-count observer; operation counts nottimings.",
+    "byScenario": {
+      "stairs-up": {
+        "beforeMean": 3682.5409090909093,
+        "candidateMean": 3694.4454545454546,
+        "meanDelta": 11.904545454545454,
+        "percentDelta": 0.32326987665384205,
+        "maxPerFrameDelta": 837,
+        "framesWithAddedQueries": 13,
+        "beforePeak": 9888,
+        "candidatePeak": 10293,
+        "poseFieldsMatchFullContactReplay": true
+      },
+      "stairs-down": {
+        "beforeMean": 3625.6621212121213,
+        "candidateMean": 3760.539393939394,
+        "meanDelta": 134.87727272727273,
+        "percentDelta": 3.720072864433957,
+        "maxPerFrameDelta": 432,
+        "framesWithAddedQueries": 210,
+        "beforePeak": 10390,
+        "candidatePeak": 10469,
+        "poseFieldsMatchFullContactReplay": true
+      }
+    },
+    "receipts": {
+      "before": {
+        "path": "art\\characters\\link\\progress\\2026-09-21-stair-posture\\resume-cost-before\\player.json",
+        "sha256": "964aec8f0322e6414908b9285dd83858dae458d31a1d14eb595c95f1a113af5f",
+        "effectiveObservedRuntimeSha256": "55ea6aa6b4a11d318bdf9389b00325b151281532552f55ef18cb9abd3aaab847"
+      },
+      "after": {
+        "path": "art\\characters\\link\\progress\\2026-09-21-stair-posture\\resume-cost-after\\player.json",
+        "sha256": "2f3a383dd2c6bb9bdd6bd98aaddf75a372dea3e39cab14df2792d67bc65b5987",
+        "effectiveObservedRuntimeSha256": "8b7c0e8a6ce791cb70106c3696774d2816eaaa590353fb213471cdc4890ea8fd"
+      }
+    }
+  }
+}

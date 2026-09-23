@@ -2328,9 +2328,9 @@ export async function loadGlbLink(url: string, opts: GlbLinkOptions = {}): Promi
             leg.tiltAngle += Math.abs(leg.pitch);
           }
         }
-        // The current swing/pin position can cross a crown between the planned contact spots.
-        // Read its fully tilted sole before IK, while leaving take-off/landing placement intact.
-        if (loco && !jump && base && leg.swingW > 0.5 && Math.abs(leg.swingRise) > STEP_MIN) {
+        // Ground tilt can change a planted sole's plane after footConfig planned its support.
+        // Read that final plane, and the current swing crossing, before IK without moving the pin.
+        if (loco && !jump && base && ((leg.stance && leg.tiltAngle > 1e-5) || (leg.swingW > 0.5 && Math.abs(leg.swingRise) > STEP_MIN))) {
           _q.multiplyQuaternions(leg.qTilt, leg.qAnkle);
           _u.subVectors(leg.fpLocal[1], leg.fpLocal[0]).multiplyScalar(1 / (leg.fp.latMax - leg.fp.latMin)).applyQuaternion(_q);
           _v.subVectors(leg.fpLocal[2], leg.fpLocal[0]).multiplyScalar(1 / (leg.fp.heel + leg.fp.toe)).applyQuaternion(_q);
