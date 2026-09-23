@@ -179,21 +179,22 @@ function barkOut(s: Site, shell: Mesh[], d: Vector3, lat: number, y: number): nu
   return hit ? reach - hit.distance : null;
 }
 
-/** drop the triangles whose centroid passes `inside` (indexed geometry); returns the count */
+/** drop the triangles whose centroid passes `inside` (an unindexed geometry gains an index); returns the count */
 function cutTriangles(mesh: Mesh, inside: (c: Vector3) => boolean): number {
   const g = mesh.geometry;
   const idx = g.index;
-  if (!idx) return 0;
   const pos = g.attributes.position;
+  const count = idx ? idx.count : pos.count;
+  const at = (i: number) => (idx ? idx.getX(i) : i);
   const keep: number[] = [];
   const a = new Vector3();
   const b = new Vector3();
   const c = new Vector3();
   let cut = 0;
-  for (let i = 0; i < idx.count; i += 3) {
-    const ia = idx.getX(i);
-    const ib = idx.getX(i + 1);
-    const ic = idx.getX(i + 2);
+  for (let i = 0; i + 2 < count; i += 3) {
+    const ia = at(i);
+    const ib = at(i + 1);
+    const ic = at(i + 2);
     a.fromBufferAttribute(pos, ia);
     b.fromBufferAttribute(pos, ib);
     c.fromBufferAttribute(pos, ic);
@@ -470,6 +471,11 @@ export function buildEast(ctx: WorldContext, mats: StructureMaterials, rng: Rng,
       const q = p.clone().sub(s.C);
       return { x: q.dot(T), y: p.y - s.floor, z: q.dot(d) };
     };
+    // (the cuts read vertex positions as world space: world-space parts only — a positioned mesh,
+    // a lantern, may share its geometry)
+    const identity = new Matrix4();
+    hb.group.updateMatrixWorld(true);
+    const worldPart = (m: Mesh) => m.isMesh && m.matrixWorld.equals(identity);
     let cut = 0;
     for (const m of shell) cut += cutTriangles(m, (c) => {
       const l = local(c);
@@ -478,7 +484,7 @@ export function buildEast(ctx: WorldContext, mats: StructureMaterials, rng: Rng,
     let cutDetail = 0;
     hb.group.traverse((o) => {
       const m = o as Mesh;
-      if (!m.isMesh) return;
+      if (!worldPart(m)) return;
       if (m.name === 'trunk-moss-tufts' || m.name === 'trunk-lichen') {
         cutDetail += cutTriangles(m, (c) => {
           const l = local(c);
@@ -504,6 +510,20 @@ export function buildEast(ctx: WorldContext, mats: StructureMaterials, rng: Rng,
     const H = y1 - y0;
     const zF = outMax + 0.02;
     const zB = outMin - 0.56;
+    // the niche is the only thing inside its own box: the house's parts that reach into the trunk
+    // wall at the counter (seen through the opening as a dark ragged blob) are cut out of it
+    let cutNiche = 0;
+    const cutNicheBy: Record<string, number> = {};
+    hb.group.traverse((o) => {
+      const m = o as Mesh;
+      if (!worldPart(m) || shell.includes(m)) return;
+      const n = cutTriangles(m, (c) => {
+        const l = local(c);
+        return l.z > zB - 0.02 && l.z < zF && Math.abs(l.x) < W / 2 + 0.02 && l.y > y0 - 0.02 && l.y < y1 + 0.02;
+      });
+      if (n) cutNicheBy[m.name || '?'] = (cutNicheBy[m.name || '?'] ?? 0) + n;
+      cutNiche += n;
+    });
     // the niche behind the opening (the room material renders its inside faces)
     const niche = new BoxGeometry(W + 0.04, H + 0.04, zF - zB);
     place(niche, 0, (y0 + y1) / 2, (zF + zB) / 2);
@@ -599,7 +619,7 @@ export function buildEast(ctx: WorldContext, mats: StructureMaterials, rng: Rng,
     tiny.push(place(pot(0.24, 0.075, rC, [0.55, 0.34, 0.2]), 0.47, onTop, zg + 0.04));
     const goodsMesh = meshOf('east-counter-goods', goods, [...tiny, ...shelfGoods]);
     if (goodsMesh) shopNear.add(goodsMesh);
-    return { angle: a, width: W, sill: y0, head: y1, barkOut: [+outMin.toFixed(3), +outMax.toFixed(3)], trunkTrianglesCut: cut, detailTrianglesCut: cutDetail, shutterBoards: nb };
+    return { angle: a, width: W, sill: y0, head: y1, barkOut: [+outMin.toFixed(3), +outMax.toFixed(3)], trunkTrianglesCut: cut, detailTrianglesCut: cutDetail, nicheTrianglesCut: cutNiche, nicheTrianglesCutBy: cutNicheBy, shutterBoards: nb };
   })();
 
   // crates, baskets and a stick bundle by the shop door (layout `shopGoods`: outside the trunk's
