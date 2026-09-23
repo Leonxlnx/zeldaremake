@@ -4,7 +4,7 @@ runtime: Cursor Cloud Agent (Claude Fable 5.1)
 github: Cursor Agent <cursoragent@cursor.com>
 status: active
 branch: agent/fable-5-r48-review
-updated: 2026-09-23T21:43:00Z
+updated: 2026-09-23T23:07:00Z
 ---
 
 # fable-5 — work log
@@ -22,9 +22,9 @@ load / pacing / hitches; fixes go to the owning lanes.
 Done this iteration: the squad branches and the merged head `6664f739` read at the owner's pose (§6–§7): populated and
 warm, darker than before; the far air's brightness (l 0.318 vs 0.474) and the crowns' colour at depth are the two open
 numbers, both posted to lanes 1 / 2; six views −0.008 … −0.033 (§7a/b); walk QA and pacing (§8); the owner's four poses
-(§10): the crowns at arm's length are the new #1 at his poses (fable-4's understory, corrected in §14); W38 at A is lane 4's blades (§11); lane 7's girl reviewed (14:24–). Next: re-read the north-path poses as lanes 1 / 2 answer; take-0135's read when it
-seals (expected on `0149f255`: A ≈ 0.197, B ≈ 0.179, C ≈ 0.190, D ≈ 0.236, E ≈ 0.188, F ≈ 0.220 — the squad batch's
-−0.02 … −0.03 is owner-directed, reported not filed); file W02 / W14 / W26 / W10 as read; the video file.
+(§10): the crowns at arm's length are the new #1 at his poses (fable-4's understory, corrected in §14); W38 at A is lane 4's blades (§11); lane 7's girl reviewed (14:24–). Next: re-read the poses as lanes 1 / 2 push; the head's next sealed take (take-0135 was `main`'s checkpoint — expected on the
+head with the cast A ≈ 0.18, B ≈ 0.175, C ≈ 0.19, D ≈ 0.24, E ≈ 0.19, F ≈ 0.21; W02 pass on kind and weight per §14); the
+video file.
 
 ## Previous current task (superseded)
 Goal-mode loop. Next iteration: **re-verdict every visual item on take-0120** when it seals (the
@@ -40,6 +40,9 @@ lands: `ffmpeg` frames at his marked moments → `reference/frames-video2/`, has
 - `.agents/fable-5.md`, `.agents/reviews/fable-5-*.md`, my threads in `.agents/INBOX.md`.
 
 ## Completed work
+- 2026-09-23 22:32–23:07 UTC — iteration 95 (lane-10 §20, `fable-5-take0135.md`): lane 1's corridor light at the north-path poses —
+  the far-centre box 0.400 → 0.438 (his 0.474), near-black 33 → 24 %, the r_020-like pose at the recording's level; `b-upper-2`
+  unchanged (§10.2 open). take-0135 read: it is `main`'s frozen checkpoint (67b801db), not the head — no verdicts filed. INBOX 23:07.
 - 2026-09-23 21:26–21:43 UTC — iteration 94 (lane-10 §19): lane 7's skinned kids −52 draws at A / B / E / F (projected head A 643 /
   8.95 M); lane 6's log joint closes the wedges at `s2-join-close` (0.275 → 0.319, 0.231 → 0.263) with `s2-owner`'s weight
   unchanged. INBOX 21:43.
@@ -446,4 +449,4 @@ lands: `ffmpeg` frames at his marked moments → `reference/frames-video2/`, has
   lists the regions; the evidence images are reproducible with the same crops.
 
 ## Last updated
-2026-09-23T21:43:00Z
+2026-09-23T23:07:00Z

@@ -626,3 +626,7 @@ dark share 50.7 → 47.4 %).
 recording's *light between the crowns* along the corridor's axis, which is brighter than its mist; and the crowns' own
 colour at depth (§7, lane 2). Lane 1: merge-ready by these reads; the six views are yours to state (a veil tint moves them
 all a little, likely toward the frames' luminance).
+
+`b-upper-2` under the same push: 0.270 → 0.271, dark 54.2 → 53.8 % (1.1 % of pixels moved) — **§10.2 stays open**: the
+upper house's ladder sits under the closed roof, where `hazeShadeVeil` back at 1.0 keeps the veil shaded; the 04:30 frame
+read 0.454. Sheet `fable-5-lane10/it95-ba-b-upper-2.jpg`.
