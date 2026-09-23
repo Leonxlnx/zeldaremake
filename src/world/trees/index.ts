@@ -1740,6 +1740,8 @@ const UNDERSTORY_PATH_MIN_ARCH_M = 6.5;
 const UNDERSTORY_ARCH_STRETCH_Z = -28;
 const UNDERSTORY_PATH_MAX_M = 11;
 const UNDERSTORY_SPACING_M = 3.2;
+/** the walk line's clearance from every understory stem (post-filter; the sampler's own minimum stays 3.4 m so the seeded draws are unchanged) */
+const UNDERSTORY_WALK_CLEAR_M = 6.5;
 /**
  * Clearings the understory keeps out of: the west fork's inner corner — the owner's "the path splits off
  * into the forest" has to read from the plaza side (fable-3, 2026-09-23 11:20: the fork's waymarker at
@@ -2243,6 +2245,7 @@ export async function create(ctx: WorldContext): Promise<WorldSystem> {
     understory.push({ params, lods, meshes: [], placements: [], matrices: [], counts: [0, 0, 0], lists: [[], [], []], submitted: [[], [], []] });
   }
   const understoryPlacements: UnderstoryPlacement[] = [];
+  const understoryPathDistance = (x: number, z: number) => Math.min(...walkXZ.map((poly) => (poly.length > 1 ? spineDistance(poly, x, z) : Infinity)));
   {
     const placeRng = understoryRng.fork('place');
     const viewpoints = ctx.layout.viewpoints.map((v) => ({ x: v.position[0], z: v.position[2] }));
@@ -2308,6 +2311,16 @@ export async function create(ctx: WorldContext): Promise<WorldSystem> {
       }
     }
   }
+  /**
+   * fable-5 (lane 10, 17:56) + fable-cursor (18:40): at `h-west-front` and the owner's 06:50 pose a
+   * walker at eye height stood inside the verge crowns seated 3.4 m from the centreline (the arch
+   * stretch's 6.5 m read right). The walk line keeps UNDERSTORY_WALK_CLEAR_M everywhere — applied as a
+   * post-filter over the sampled list, so no other stem moves (a rule inside the loop shifts every
+   * later draw).
+   */
+  const understoryKept = understoryPlacements.filter((p) => understoryPathDistance(p.x, p.z) >= UNDERSTORY_WALK_CLEAR_M);
+  understoryPlacements.length = 0;
+  understoryPlacements.push(...understoryKept);
   for (const p of understoryPlacements) seatFamily(understory, p, p.variant);
   const understoryGroup = new Group();
   understoryGroup.name = 'understory';
