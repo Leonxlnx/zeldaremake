@@ -78,4 +78,27 @@ Measured against the exact head build (`be123deb`, cast hidden — the sealed st
 return is an owner-approved look change: the six frames show the kids again where round 47–50 pinned them
 (the walker and the sitter per `VIEW_TABLE`), so the −0.003 rule does not apply to those pixels.
 
-SIX_VIEW_TABLE
+| view | SSIM vs ref, head | branch | Δ | SSIM head↔branch | changed px | draws head → branch | M tris head → branch |
+| --- | --- | --- | --- | --- | --- | --- | --- |
+| A | 0.2035 | 0.1991 | −0.0044 | 0.9826 | 15 339 | 597 → 698 | 9.15 → 9.19 |
+| B | 0.1836 | 0.1773 | −0.0063 | 0.9720 | 26 880 | 589 → 690 | 8.30 → 8.33 |
+| C | 0.1794 | 0.1793 | −0.0001 | 0.9916 | 5 163 | 472 → 525 | 6.77 → 6.80 |
+| D | 0.2430 | 0.2430 | 0 | 1.0000 | 0 | 557 → 557 | 8.53 → 8.53 |
+| E | 0.1946 | 0.1901 | −0.0045 | 0.9720 | 26 880 | 589 → 690 | 8.30 → 8.33 |
+| F | 0.2159 | 0.2145 | −0.0014 | 0.9922 | 11 950 | 547 → 648 | 7.99 → 8.03 |
+
+Every changed pixel is a kid, her fairy, her shadow or her fairy's light pool (`diff-A.jpg` … `diff-F.jpg`: the walker
+at A's right edge and B / E's left edge as the footage has her, beside Link in F; the boy at Saria's door in B / E / F; the
+sitter on the steps in C). D sees no kid and is byte-identical — with every kid inside its shadow window, that is the
+shadow-pass scoping doing its job (D drew 557 before the cast came back and 557 after). The SSIM against the reference drops
+where the kids appear (A, B, E): the frames now hold our kids where the footage holds its own — the cost of the cast being
+in the frames at all, the same as before the 09-20 hide, not of this pass.
+
+Draws: the cast costs ≈ 100 submissions where three kids are in frame (each kid is 22–25 meshes over 13 joints, drawn again
+in the shadow pass when in view, plus a contact shadow and a three-part fairy). Without the scoping A read 723. The remaining
+lever, if the perf pass needs it: one canvas atlas per kid so every joint is one submission (skin / cloth / leather share a
+joint today) — roughly half the main-pass cost.
+
+![where A changed](diff-A.jpg)
+![where B changed](diff-B.jpg)
+![where F changed](diff-F.jpg)
