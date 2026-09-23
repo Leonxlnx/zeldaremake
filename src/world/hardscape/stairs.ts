@@ -13,6 +13,9 @@ import { hash2, type Rng } from '../util/prng';
 import { Noise2D, clamp, smoothstep } from '../util/noise';
 import { MeshBuilder, buildSlab, ccw, inset, jitteredRect, type P2 } from './geometry';
 
+/** a log-nosed flight's lip at the nose, over the top colour: the tread's own shaded front face (its `sideColor` is × 0.5) */
+const LOG_SHADED_LIP = 0.5;
+
 export interface StairFrame {
   def: StairDef;
   base: Vector3;
@@ -121,7 +124,15 @@ function wornFront(outline: P2[], depth: number, wave: (ax: number) => number, c
   return { outline: out.map((p, k) => (front[k] ? { x: p.x, z: p.z + (wave(p.x + cxl) + chip(p.x + cxl)) * endTaper(p.x) } : p)), front };
 }
 
-export function buildStairway(def: StairDef, terrain: Terrain, rng: Rng, seed: string): StairBuild {
+/**
+ * `logNosed`: a round timber rides every tread's front edge (logNosings.ts). The slab's rolled
+ * lip then sits in the log's shadow, under and behind its belly: where the wavy, chipped nose
+ * reaches past the timber (or the log thins toward its tip) the lip must read as the shaded
+ * trough under the step's edge, not as a second, pale stone lip (2026-09-23: at eye height every
+ * log showed a ragged white sliver of stone beneath it). Tones only — the flight's draws, outlines
+ * and heights are the same with or without it.
+ */
+export function buildStairway(def: StairDef, terrain: Terrain, rng: Rng, seed: string, { logNosed = false }: { logNosed?: boolean } = {}): StairBuild {
   const f = stairFrame(def);
   const noise = new Noise2D(`${seed}/stairs-moss-${def.id}`);
   const wear = new Noise2D(`${seed}/stairs-wear-${def.id}`);
@@ -338,7 +349,7 @@ export function buildStairway(def: StairDef, terrain: Terrain, rng: Rng, seed: s
           // round 48: moss patches on the nosing — on 60 % of the treads, a 1.6 cycles/m noise along
           // the lip thresholded to 15–35 cm patches, full on the roll and the first 8 cm of the top,
           // spilling over the front face; the frame's lips are broken by moss, ours were clean lines
-          if (noseMossK > 0) {
+          if (noseMossK > 0 && !logNosed) {
             const front = smoothstep(-depth / 2 + 0.14, -depth / 2 + 0.03, z);
             const along = noseMossN.fbm((x + cxl) * 1.6 + noseMossPhase, i * 3.7 + 1.1, 2) * 0.5 + 0.5;
             const fine = noseMossN.noise((x + cxl) * 9 - noseMossPhase, i * 1.3) * 0.5 + 0.5;
@@ -359,14 +370,22 @@ export function buildStairway(def: StairDef, terrain: Terrain, rng: Rng, seed: s
           // foot, × 0.4 on the top treads, which are dry stone)
           const wet = smoothstep(0.2, 0.7, wear.fbm((x + cxl) * 1.7 + 31, (z + czl) * 1.7 + i * 0.61, 2)) * (0.45 + 0.55 * Math.max(back, 1 - feet(x + cxl))) * (isMain ? 1.2 - 0.8 * rise : 1);
           const damp = 1 - 0.2 * wet;
-          if (part === 'bevel') return (0.98 + (noseBright - 0.98) * front) * grime * (1 - 0.08 * wet);
+          if (part === 'bevel') return (logNosed ? 0.98 - (0.98 - LOG_SHADED_LIP) * front : 0.98 + (noseBright - 0.98) * front) * grime * (1 - 0.08 * wet);
           // the nose face under the lip: a shade lighter and greener than the riser stone below it
           // (a damp skin under the overhang), the buried sides stay dark
           if (part === 'side') return z < 0 ? [1.02 * grime, 1.06 * grime, 0.98 * grime] : 0.92 * grime;
           const m = mottle(x + cxl, z + czl);
-          const k = (1 + 0.09 * front - 0.13 * back) * grime * damp;
+          // a log flight's tread is trodden earth (earthTop below): no lit nose lip — the timber is
+          // the nose — the walked centre compacted a shade paler, the back and flanks damper
+          const k = logNosed ? (1 + 0.06 * feet(x + cxl) - 0.18 * back) * grime * damp : (1 + 0.09 * front - 0.13 * back) * grime * damp;
           return [m[0] * k, m[1] * k, m[2] * k * (1 + 0.04 * wet)];
         },
+        // fable-2 (lane 6, the demo's log-risered steps d_094 / d_104): between the timbers the
+        // demo's treads are packed earth with grass at the edges, not stone slabs — the top face
+        // and the shoulder ring render as trail dirt (geometry.ts `earthTop`, material.ts EARTH_*);
+        // the slab's walls and the riser stones under the log stay stone. Geometry unchanged, so
+        // the tread noses, the contact surface and the flight's draws are what they were.
+        earthTop: logNosed ? 1 : 0,
         uvScale,
         uvOffset: [rng() * 3, rng() * 3],
         // fine wear grain plus the feet path: a ~1.2 cm deeper dish over the centre third of the
