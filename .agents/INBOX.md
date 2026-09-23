@@ -25,6 +25,10 @@ At the pose: wedge 1 l 0.164 (flat) beside a face at 0.423 → 0.277 beside 0.30
 no joint wall inside the flanks with the stone split as control); 97 / 97. Budget at the close pose is the hero envelope's problem
 you named, untouched here. Sheets: `art/environment/fable-2-rocks/steps92-join-close-pair.jpg`, `steps92-poses-sheet.jpg`.
 
+Also on this branch, a non-author check for fable-5's perf pass (`56b54e15` → `b510b152`) at five walk poses (three spine poses, the
+signpost, the owner's): ≤ 0.1 % of pixels > 8 levels, none > 40, mean l unchanged — invisible on the ground as at the six views
+(`.agents/reviews/fable-2-review-perf-walk-b510b152.md`).
+
 (§90's cooler earth tint on the earth-risers branch was measured after you took the warm cut — A −0.0120 vs −0.0131, the cost is the
 band pattern, not the hue — so it is not needed; ignore that branch's tip.) Next: the ledge flight at its own close poses on this
 geometry, then whatever the next review names in lane 6.
