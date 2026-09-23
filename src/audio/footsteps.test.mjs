@@ -33,7 +33,7 @@ const here = path.dirname(new URL(import.meta.url).pathname);
 const { designStep, cadence, strideFor, strengthFor, RUN_SPEED, MIN_STEP_GAP } = loadTs(path.join(here, 'footsteps.ts'));
 const { createRng } = loadTs(path.join(here, '../world/util/prng.ts'));
 
-const SURFACES = ['stone', 'grass', 'dirt', 'wood', 'hollow', 'leaf'];
+const SURFACES = ['stone', 'stair', 'grass', 'dirt', 'wood', 'hollow', 'leaf'];
 const rng = (seed) => createRng(seed);
 /** every design of a surface over many seeds, so a rare branch (the plank's creak) is covered too */
 const designs = (surface, running = false, strength = 0.6, n = 40) => Array.from({ length: n }, (_, i) => designStep(surface, strength, running, rng(`step/${surface}/${i}`)));
@@ -73,6 +73,12 @@ test('the loose surfaces crinkle and the hard ones do not', () => {
   assert.ok(grass > wood, `turf should have more grains than a plank (${grass} vs ${wood})`);
   assert.ok(stone <= 4, `a flagstone is grit, not gravel (${stone})`);
   assert.ok(wood === 0, `a plank has no loose material on it (${wood})`);
+});
+
+test('a stair tread knocks on its log riser and a flagstone does not', () => {
+  const timber = (surface) => designs(surface).every((d) => d.parts.some((p) => p.kind === 'body' && p.f0 > 230 && p.f0 < 280 && p.wave === 'sine'));
+  assert.equal(timber('stair'), true, 'a stair step should carry the riser timber');
+  assert.equal(timber('stone'), false, 'a flagstone path has no timber in it');
 });
 
 test('the hollow log rings longer than anything else and sends more to the hall', () => {

@@ -1,8 +1,8 @@
 /**
- * Footsteps: synthesised steps that follow the ground under Link — stone (flagstones, treads),
- * grass (the lawns and verges), dirt (the trodden earth and path shoulders), leaf litter (the
- * forest floor), wood (the deck planks, the stair timbers) and the hollow wood inside the log
- * tunnel.
+ * Footsteps: synthesised steps that follow the ground under Link — stone (the flagstone paths),
+ * stair (the same slab with the flight's log riser knocking under the boot), grass (the lawns and
+ * verges), dirt (the trodden earth and path shoulders), leaf litter (the north forest floor), wood
+ * (the deck planks) and the hollow wood inside the log tunnel.
  *
  * 2026-09-23 (owner, 06:50, straight after "the background sound is too buzzy": "the steps need to
  * be like…"). Every step used to be ONE event — a short pitched thump with one or two gated bands
@@ -27,7 +27,7 @@
  */
 import { adEnvelope, cleanupAt, filter, gain, noiseBuffer, noiseSource, type Rng } from './graph';
 
-export type Surface = 'stone' | 'grass' | 'dirt' | 'wood' | 'hollow' | 'leaf';
+export type Surface = 'stone' | 'stair' | 'grass' | 'dirt' | 'wood' | 'hollow' | 'leaf';
 
 /** a pitched part of a step: the body of the impact */
 export interface BodyPart {
@@ -160,16 +160,24 @@ export function designStep(surface: Surface, strength: number, running: boolean,
   let end = 0.35;
 
   switch (surface) {
-    case 'stone': {
+    case 'stone':
+    case 'stair': {
       // a flagstone under a leather sole: a low tock, the slab's short ring, a dry roll, a little grit
-      parts.push(body(0, 172 * j(0.06), 84, 0.045, 0.15 * k, 0.0018, 0.075));
+      const timber = surface === 'stair';
+      parts.push(body(0, 172 * j(0.06), 84, 0.045, (timber ? 0.115 : 0.15) * k, 0.0018, 0.075));
       parts.push(body(0.001, 340 * j(0.05), 306, 0.03, 0.03 * k, 0.0015, 0.032, 'triangle'));
       parts.push(band(0, 950 * j(0.1), 780, 1.2, 3200, 0.05 * k, 0.0018, 0.03));
       parts.push(band(0.02 * j(0.3), 1600 * j(0.12), 820, 0.9, 4200, 0.032 * k, 0.012, 0.05));
       for (let i = 0; i < 3; i++) parts.push(grain(0.016 + rnd() * 0.075, 3200 + rnd() * 3400, 0.008 * k * j(0.4)));
+      if (timber) {
+        // a tread of this flight is a round log riser with earth between (hardscape/logNosings.ts):
+        // the boot meets the timber's crown first, so a short dry knock sits over the slab's tock
+        parts.push(body(0, 252 * j(0.05), 236, 0.03, 0.062 * k, 0.0018, 0.07));
+        parts.push(band(0.002, 1400 * j(0.1), 1150, 1.4, 4200, 0.022 * k, 0.0015, 0.016));
+      }
       parts.push(body(toe, 148 * j(0.06), 80, 0.04, 0.068 * k, 0.0018, 0.05));
       parts.push(band(toe, 1150 * j(0.12), 900, 1.1, 3600, 0.022 * k, 0.003, 0.028));
-      reverb = 0.34;
+      reverb = timber ? 0.3 : 0.34;
       end = 0.3;
       break;
     }
@@ -200,14 +208,14 @@ export function designStep(surface: Surface, strength: number, running: boolean,
     }
     case 'leaf': {
       // the forest floor: almost no body at all, and a long irregular crinkle that settles after
-      parts.push(body(0, 82 * j(0.08), 50, 0.05, 0.07 * k, 0.006, 0.055));
-      parts.push(band(0, 1700 * j(0.15), 2300, 0.6, 6000, 0.05 * k, 0.01, 0.085));
+      parts.push(body(0, 82 * j(0.08), 50, 0.05, 0.09 * k, 0.006, 0.055));
+      parts.push(band(0, 1700 * j(0.15), 2300, 0.6, 6000, 0.062 * k, 0.01, 0.085));
       const crinkle = 10 + Math.floor(rnd() * 5);
-      for (let i = 0; i < crinkle; i++) parts.push(grain(0.002 + rnd() * 0.16, 1500 + rnd() * 5200, 0.014 * k * j(0.6), 0.005));
-      parts.push(body(toe, 76 * j(0.08), 48, 0.05, 0.032 * k, 0.007, 0.05));
-      for (let i = 0; i < 5; i++) parts.push(grain(toe + rnd() * 0.1, 1700 + rnd() * 5000, 0.01 * k * j(0.6), 0.005));
+      for (let i = 0; i < crinkle; i++) parts.push(grain(0.002 + rnd() * 0.16, 1500 + rnd() * 5200, 0.018 * k * j(0.6), 0.005));
+      parts.push(body(toe, 76 * j(0.08), 48, 0.05, 0.04 * k, 0.007, 0.05));
+      for (let i = 0; i < 5; i++) parts.push(grain(toe + rnd() * 0.1, 1700 + rnd() * 5000, 0.013 * k * j(0.6), 0.005));
       // a few leaves settling back after the boot has gone
-      for (let i = 0; i < 3; i++) parts.push(grain(0.18 + rnd() * 0.16, 2200 + rnd() * 4200, 0.004 * k * j(0.6), 0.005));
+      for (let i = 0; i < 3; i++) parts.push(grain(0.18 + rnd() * 0.16, 2200 + rnd() * 4200, 0.005 * k * j(0.6), 0.005));
       reverb = 0.22;
       end = 0.45;
       break;
@@ -217,8 +225,9 @@ export function designStep(surface: Surface, strength: number, running: boolean,
       const f = 198 * j(0.05);
       parts.push(body(0, f * 1.12, f, 0.025, 0.135 * k, 0.0018, 0.1));
       parts.push(body(0.001, f * 2.38, f * 2.3, 0.03, 0.036 * k, 0.0018, 0.055, 'triangle'));
-      parts.push(band(0, 2100 * j(0.12), 1700, 1.6, 6000, 0.03 * k, 0.0015, 0.014));
-      parts.push(band(0.014 * j(0.4), 980 * j(0.12), 760, 1.0, 3000, 0.024 * k, 0.008, 0.035));
+      parts.push(band(0, 2100 * j(0.12), 1700, 1.6, 6000, 0.045 * k, 0.0015, 0.018));
+      parts.push(band(0, 3500 * j(0.12), 3100, 1.8, 8000, 0.018 * k, 0.0012, 0.008));
+      parts.push(band(0.014 * j(0.4), 980 * j(0.12), 760, 1.0, 3000, 0.028 * k, 0.008, 0.035));
       parts.push(body(toe, f * 0.97, f * 0.93, 0.03, 0.058 * k, 0.002, 0.07));
       if (rnd() < 0.28) parts.push(band(0.03 + rnd() * 0.04, 560 * j(0.15), 470, 6, 2000, 0.013 * k, 0.05, 0.19));
       reverb = 0.38;
@@ -231,7 +240,7 @@ export function designStep(surface: Surface, strength: number, running: boolean,
       parts.push(body(0, f * 1.2, f, 0.03, 0.12 * k, 0.0025, 0.24));
       parts.push(body(0.002, f * 1.62, f * 1.55, 0.04, 0.042 * k, 0.003, 0.17));
       parts.push(body(0.002, f * 2.7, f * 2.6, 0.04, 0.02 * k, 0.003, 0.09, 'triangle'));
-      parts.push(band(0, 1500 * j(0.12), 1150, 1.5, 4500, 0.03 * k, 0.0018, 0.013));
+      parts.push(band(0, 1500 * j(0.12), 1150, 1.5, 4500, 0.042 * k, 0.0018, 0.018));
       parts.push(band(0.006, 330 * j(0.1), 270, 0.7, 900, 0.038 * k, 0.01, 0.2));
       parts.push(body(toe, f * 0.98, f * 0.94, 0.04, 0.055 * k, 0.003, 0.19));
       reverb = 0.58;
@@ -332,7 +341,7 @@ export function createFootsteps(ctx: BaseAudioContext, out: AudioNode, reverbSen
       wasStance = d.stance ? d.stance.slice() : [];
       return;
     }
-    const surface = onStairs && d.surface !== 'wood' && d.surface !== 'hollow' ? 'stone' : d.surface;
+    const surface = onStairs && d.surface !== 'wood' && d.surface !== 'hollow' ? 'stair' : d.surface;
     const first = !moving;
     moving = true;
     // 1. the gait's own plant, when the character system reports it: the sound lands with the boot

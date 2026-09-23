@@ -45,10 +45,12 @@ LEGS = [
     ('grass', 3.0, 8.0),
     ('dirt', 8.0, 13.0),
     ('stone', 13.0, 18.0),
-    ('wood', 18.0, 22.0),
-    ('hollow', 22.0, 26.0),
-    ('run stone', 26.0, 31.0),
-    ('stand', 31.0, 35.0),
+    ('stairs', 18.0, 23.0),
+    ('wood', 23.0, 27.0),
+    ('hollow', 27.0, 31.0),
+    ('leaves', 31.0, 36.0),
+    ('run stone', 36.0, 41.0),
+    ('stand', 41.0, 45.0),
 ]
 
 
@@ -121,6 +123,10 @@ def metrics(x, sr):
     out['mod_db'] = float(np.percentile(e, 90) - np.percentile(e, 10))
     out['env_p10_db'] = float(np.percentile(e, 10))
     out['env_p90_db'] = float(np.percentile(e, 90))
+    # the same over the last third only: by then the walk is well away from the lantern pods, so
+    # this is the wind bed breathing on its own rather than the listener leaving a light behind
+    tail = e[int(len(e) * 2 / 3):]
+    out['mod_tail_db'] = float(np.percentile(tail, 90) - np.percentile(tail, 10))
     return out, mag, freqs, hop
 
 
@@ -201,7 +207,7 @@ def sheet(args):
         head = (
             f'{name} — {args.stem}: rms {m["rms_db"]:.1f} dBFS, peak {m["peak_db"]:.1f}, '
             f'strongest held tone +{m["tone_peak_db"]:.1f} dB at {m["tone_peak_hz"]:.0f} Hz, '
-            f'breathes {m["mod_db"]:.1f} dB'
+            f'breathes {m["mod_db"]:.1f} dB ({m["mod_tail_db"]:.1f} dB away from the lanterns)'
         )
         label(spec, head)
         band = '  '.join(f'{k.split("-")[0]}–{k.split("-")[1]}: {v:.0f}' for k, v in m['band_db'].items())
@@ -221,7 +227,7 @@ def sheet(args):
         with open(args.json, 'w') as f:
             json.dump(stats, f, indent=2)
         print(f'wrote {args.json}')
-    for k in ('rms_db', 'peak_db', 'tone_peak_db', 'tone_peak_hz', 'drone_db', 'drone_under_rms_db', 'mod_db', 'flatness'):
+    for k in ('rms_db', 'peak_db', 'tone_peak_db', 'tone_peak_hz', 'mod_db', 'mod_tail_db', 'drone_db', 'flatness'):
         print(f'{k:22s} before {stats["before"][k]:8.2f}   after {stats["after"][k]:8.2f}')
     print('band (dBFS)            before     after')
     for band in stats['before']['band_db']:
@@ -260,10 +266,13 @@ def find_steps(x, sr, refractory=0.14):
     return onsets
 
 
-def step_shape(x, sr, t0, window=0.25):
-    """the shape of one step: how many separate hits it contains, its level, body and tail"""
-    a = int(t0 * sr)
-    b = min(len(x), int((t0 + window) * sr))
+PRE_ROLL = 0.045
+
+
+def step_shape(x, sr, t0, window=0.30):
+    """the shape of one step: how many separate hits it holds, how far they are spread, its colour"""
+    a = max(0, int((t0 - PRE_ROLL) * sr))
+    b = min(len(x), int((t0 - PRE_ROLL + window) * sr))
     seg = x[a:b]
     if len(seg) < 64:
         return None
@@ -274,12 +283,10 @@ def step_shape(x, sr, t0, window=0.25):
     back = max(1, int(0.006 / FRAME_S))
     hits = []
     for i in range(back, len(e)):
-        if e[i] - e[i - back] > 4.0 and e[i] >= e[i - 1] and env[i] > pk * 0.06:
+        if e[i] - e[i - back] > 4.0 and e[i] >= e[i - 1] and env[i] > pk * 0.05:
             if not hits or (i - hits[-1]) * FRAME_S > 0.010:
                 hits.append(i)
-    # tail: how long the step stays within 25 dB of its peak
-    below = np.where(env < pk * 10 ** (-25 / 20))[0]
-    tail = float((below[0] if len(below) else len(env)) * FRAME_S * 1000)
+    span = float((hits[-1] - hits[0]) * FRAME_S * 1000) if len(hits) > 1 else 0.0
     spec = np.abs(np.fft.rfft(seg * np.hanning(len(seg))))
     freqs = np.fft.rfftfreq(len(seg), 1.0 / sr)
     centroid = float((spec * freqs).sum() / max(spec.sum(), 1e-9))
@@ -287,7 +294,7 @@ def step_shape(x, sr, t0, window=0.25):
     high = float(spec[(freqs >= 2000) & (freqs < 10000)].sum())
     return {
         'peak_db': float(db(pk)),
-        'dur_ms': tail,
+        'span_ms': span,
         'transients': len(hits),
         'centroid_hz': centroid,
         'low_over_high': float(low / max(high, 1e-9)),
@@ -313,7 +320,7 @@ def steps_report(args):
             per[lbl] = {
                 'steps': len(shapes),
                 'peak_db': float(np.mean([s['peak_db'] for s in shapes])),
-                'dur_ms': float(np.mean([s['dur_ms'] for s in shapes])),
+                'span_ms': float(np.mean([s['span_ms'] for s in shapes])),
                 'transients': float(np.mean([s['transients'] for s in shapes])),
                 'centroid_hz': float(np.mean([s['centroid_hz'] for s in shapes])),
                 'low_over_high': float(np.mean([s['low_over_high'] for s in shapes])),
@@ -324,7 +331,7 @@ def steps_report(args):
         with open(args.json, 'w') as f:
             json.dump(stats, f, indent=2)
         print(f'wrote {args.json}')
-    print(f'{"leg":10s} {"n":>3s} {"peak dBFS":>20s} {"dur ms":>16s} {"transients":>18s} {"centroid Hz":>20s} {"low/high":>16s}')
+    print(f'{"leg":10s} {"steps/5s":>9s} {"peak dBFS":>19s} {"spread":>14s} {"hits":>14s} {"spread ms":>16s} {"centroid Hz":>19s} {"low/high":>16s}')
     for lbl, _, _ in LEGS:
         if lbl == 'stand' or lbl not in stats['before']:
             continue
@@ -333,10 +340,11 @@ def steps_report(args):
             print(f'{lbl:10s} {b.get("steps", 0):3d}/{a.get("steps", 0)}')
             continue
         print(
-            f'{lbl:10s} {b["steps"]:3d}/{a["steps"]:<3d} '
+            f'{lbl:10s} {b["steps"]:4d}/{a["steps"]:<4d} '
             f'{b["peak_db"]:8.1f} -> {a["peak_db"]:6.1f}  '
-            f'{b["dur_ms"]:6.0f} -> {a["dur_ms"]:5.0f}  '
-            f'{b["transients"]:8.1f} -> {a["transients"]:5.1f}  '
+            f'{b["peak_spread_db"]:5.1f} ->{a["peak_spread_db"]:5.1f}  '
+            f'{b["transients"]:5.1f} ->{a["transients"]:5.1f}  '
+            f'{b["span_ms"]:7.0f} -> {a["span_ms"]:5.0f}  '
             f'{b["centroid_hz"]:9.0f} -> {a["centroid_hz"]:6.0f}  '
             f'{b["low_over_high"]:7.2f} -> {a["low_over_high"]:5.2f}'
         )
@@ -346,58 +354,81 @@ def steps_report(args):
 
 def step_sheet(args, stats):
     """
-    One column per surface, BEFORE over AFTER: 320 ms of that leg's second step as a level curve in
-    dB (−66 … −10 dBFS, same scale everywhere), so the step's shape — one band or heel, roll, toe
-    and grains — is what the eye reads.
+    One cell per surface, BEFORE and AFTER overlaid: 280 ms from that leg's second step as a 2 ms
+    RMS envelope in dBFS on one scale. A single attack and a smooth smear is a noise band; a heel,
+    a gap and a toe 80–120 ms later is a footstep. The numbers under each are from `steps`.
     """
-    cell_w, cell_h = 320, 132
-    pad = 34
-    span = 0.32
-    top_db, bot_db = -10.0, -66.0
+    cell_w, cell_h = 430, 186
+    span = 0.28
+    top_db, bot_db = -14.0, -70.0
     labels = [l for l in LEGS if l[0] != 'stand']
-    width = pad + len(labels) * (cell_w + 8)
-    height = 2 * (cell_h + 8) + 62
+    cols = 4
+    rows = (len(labels) + cols - 1) // cols
+    width = cols * (cell_w + 10) + 10
+    height = rows * (cell_h + 12) + 46
     img = Image.new('RGB', (width, height), (8, 9, 11))
     d = ImageDraw.Draw(img)
-    for row, (name, folder) in enumerate((('BEFORE', args.before), ('AFTER', args.after))):
+    curves = {}
+    for name, folder in (('before', args.before), ('after', args.after)):
         a, sr = load(os.path.join(folder, 'steps.wav'))
         x = mono(a)
         found = find_steps(x, sr)
-        y = 34 + row * (cell_h + 8)
-        d.text((5, y + cell_h // 2 - 8), name[0], fill=(220, 226, 232), font=FONT)
-        for col, (lbl, t0, t1) in enumerate(labels):
+        for lbl, t0, t1 in labels:
             mine = [s for s in found if t0 <= s < t1]
-            x0 = pad + col * (cell_w + 8)
-            cell = Image.new('RGB', (cell_w, cell_h), (14, 16, 20))
-            cd = ImageDraw.Draw(cell)
-            for level in (-20, -30, -40, -50, -60):
-                gy = int((top_db - level) / (top_db - bot_db) * (cell_h - 18)) + 16
-                cd.line((0, gy, cell_w, gy), fill=(38, 43, 50))
-                cd.text((cell_w - 26, gy - 12), str(level), fill=(86, 94, 104), font=SMALL)
-            for ms in (50, 100, 150, 200, 250, 300):
-                cx = int(ms / 1000 / span * cell_w)
-                cd.line((cx, cell_h - 8, cx, cell_h), fill=(70, 78, 88))
-            if mine:
-                s0 = mine[min(1, len(mine) - 1)]
-                seg = x[int((s0 - 0.01) * sr): int((s0 - 0.01 + span) * sr)]
-                env, win = frame_env(seg, sr)
-                e = db(env)
-                pts = []
-                for i in range(cell_w):
-                    k0 = int(i / cell_w * len(e))
-                    k1 = max(k0 + 1, int((i + 1) / cell_w * len(e)))
-                    v = float(np.max(e[k0:k1])) if k1 <= len(e) else bot_db
-                    gy = int((top_db - np.clip(v, bot_db, top_db)) / (top_db - bot_db) * (cell_h - 18)) + 16
-                    pts.append((i, gy))
-                cd.line(pts, fill=(150, 215, 165), width=2)
-            st = stats[name.lower()].get(lbl, {})
-            txt = f'{lbl}   {st.get("transients", 0):.1f} hits   peak {st.get("peak_db", -99):.0f} dB   centroid {st.get("centroid_hz", 0):.0f} Hz   low/high {st.get("low_over_high", 0):.2f}'
-            cd.text((6, 3), txt, fill=(226, 232, 238), font=SMALL)
-            img.paste(cell, (x0, y))
-            if row == 0:
-                d.text((x0 + 6, 10), lbl, fill=(200, 210, 220), font=FONT)
-    d.text((pad, height - 20), '320 ms from the second step of each leg, 2 ms RMS envelope in dBFS on the same scale; ticks every 50 ms', fill=(150, 160, 172), font=SMALL)
-    img.save(args.out, quality=92)
+            if not mine:
+                continue
+            s0 = mine[min(1, len(mine) - 1)]
+            # align on the step's own loudest frame (40 ms in), so the two curves are compared by
+            # shape rather than by how early each onset happened to trip the detector
+            wide = x[max(0, int((s0 - 0.09) * sr)): int((s0 + 0.32) * sr)]
+            env, _ = frame_env(wide, sr)
+            peak = int(np.argmax(env))
+            a0 = max(0, peak - int(0.04 / FRAME_S))
+            curves[(name, lbl)] = db(env[a0:a0 + int(span / FRAME_S)])
+    for idx, (lbl, t0, t1) in enumerate(labels):
+        cx0 = 10 + (idx % cols) * (cell_w + 10)
+        cy0 = 30 + (idx // cols) * (cell_h + 12)
+        cell = Image.new('RGB', (cell_w, cell_h), (14, 16, 20))
+        cd = ImageDraw.Draw(cell)
+        plot_top = 38
+        for level in (-20, -30, -40, -50, -60, -70):
+            gy = int((top_db - level) / (top_db - bot_db) * (cell_h - plot_top - 12)) + plot_top
+            cd.line((0, gy, cell_w - 30, gy), fill=(38, 43, 50))
+            cd.text((cell_w - 28, gy - 7), str(level), fill=(86, 94, 104), font=SMALL)
+        for ms in (0, 50, 100, 150, 200, 250):
+            gx = int(ms / 1000 / span * cell_w)
+            cd.line((gx, cell_h - 12, gx, cell_h - 6), fill=(80, 88, 98))
+            cd.text((gx + 2, cell_h - 14), f'{ms}', fill=(110, 120, 132), font=SMALL)
+        # the after goes under: where the before is louder its own curve is what the eye should read
+        for name, colour, wide in (('after', (140, 225, 155), 2), ('before', (226, 150, 66), 2)):
+            e = curves.get((name, lbl))
+            if e is None:
+                continue
+            pts = []
+            for i in range(cell_w - 30):
+                k0 = int(i / (cell_w - 30) * len(e))
+                k1 = max(k0 + 1, int((i + 1) / (cell_w - 30) * len(e)))
+                v = float(np.max(e[k0:k1])) if k1 <= len(e) else bot_db
+                gy = int((top_db - np.clip(v, bot_db, top_db)) / (top_db - bot_db) * (cell_h - plot_top - 12)) + plot_top
+                pts.append((i, gy))
+            cd.line(pts, fill=colour, width=wide)
+        b = stats['before'].get(lbl, {})
+        a = stats['after'].get(lbl, {})
+        cd.text((8, 5), lbl.upper(), fill=(232, 238, 244), font=FONT)
+        cd.text(
+            (8, 22),
+            f'centroid {b.get("centroid_hz", 0):.0f} \u2192 {a.get("centroid_hz", 0):.0f} Hz     '
+            f'low/high {b.get("low_over_high", 0):.2f} \u2192 {a.get("low_over_high", 0):.1f}     '
+            f'{b.get("steps", 0)} \u2192 {a.get("steps", 0)} steps / 5 s',
+            fill=(170, 182, 196),
+            font=SMALL,
+        )
+        img.paste(cell, (cx0, cy0))
+    d.text((10, 8), 'ONE FOOTSTEP — 280 ms, 2 ms RMS envelope (dBFS)', fill=(232, 238, 244), font=FONT)
+    d.text((width - 220, 8), 'before', fill=(226, 150, 66), font=FONT)
+    d.text((width - 150, 8), 'after', fill=(140, 225, 155), font=FONT)
+    d.text((10, height - 18), 'the second step of each leg of the scripted walk (src/audio/index.ts OFFLINE_WALK), aligned on its loudest frame at 40 ms; ms on the x axis', fill=(140, 150, 162), font=SMALL)
+    img.save(args.out, quality=93)
     print(f'wrote {args.out}')
 
 

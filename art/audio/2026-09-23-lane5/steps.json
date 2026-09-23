@@ -1,0 +1,150 @@
+{
+  "before": {
+    "grass": {
+      "steps": 11,
+      "peak_db": -31.736840725926992,
+      "span_ms": 93.27272727272727,
+      "transients": 2.4545454545454546,
+      "centroid_hz": 1825.514173822807,
+      "low_over_high": 0.4442302053593941,
+      "peak_spread_db": 0.27114317647536285
+    },
+    "dirt": {
+      "steps": 11,
+      "peak_db": -29.042064701571903,
+      "span_ms": 173.0909090909091,
+      "transients": 3.5454545454545454,
+      "centroid_hz": 2076.8490375268634,
+      "low_over_high": 0.2900658836135995,
+      "peak_spread_db": 0.8294992201960572
+    },
+    "stone": {
+      "steps": 11,
+      "peak_db": -26.17375839075311,
+      "span_ms": 219.63636363636363,
+      "transients": 3.727272727272727,
+      "centroid_hz": 2926.8848779110494,
+      "low_over_high": 0.24188013756741428,
+      "peak_spread_db": 0.7731920840468792
+    },
+    "stairs": {
+      "steps": 12,
+      "peak_db": -27.582143278108827,
+      "span_ms": 141.83333333333334,
+      "transients": 3.0,
+      "centroid_hz": 4251.398380673317,
+      "low_over_high": 0.08714991912802057,
+      "peak_spread_db": 1.2360236001541502
+    },
+    "wood": {
+      "steps": 8,
+      "peak_db": -30.700241610644163,
+      "span_ms": 91.25,
+      "transients": 2.0,
+      "centroid_hz": 4453.353643007298,
+      "low_over_high": 0.05486165232760936,
+      "peak_spread_db": 1.2097266247322864
+    },
+    "hollow": {
+      "steps": 9,
+      "peak_db": -28.186772640707616,
+      "span_ms": 117.33333333333333,
+      "transients": 2.888888888888889,
+      "centroid_hz": 4176.876044304244,
+      "low_over_high": 0.11551196051595151,
+      "peak_spread_db": 2.048451826836697
+    },
+    "leaves": {
+      "steps": 11,
+      "peak_db": -41.646926315987635,
+      "span_ms": 179.0909090909091,
+      "transients": 3.6363636363636362,
+      "centroid_hz": 3979.001132694766,
+      "low_over_high": 0.06693300167586508,
+      "peak_spread_db": 1.0207296562951194
+    },
+    "run stone": {
+      "steps": 22,
+      "peak_db": -22.209031689347594,
+      "span_ms": 128.63636363636363,
+      "transients": 3.272727272727273,
+      "centroid_hz": 2971.9037406819825,
+      "low_over_high": 0.8079395885451344,
+      "peak_spread_db": 4.021093383742149
+    }
+  },
+  "after": {
+    "grass": {
+      "steps": 10,
+      "peak_db": -28.21169390881459,
+      "span_ms": 111.6,
+      "transients": 2.3,
+      "centroid_hz": 1448.5968018140209,
+      "low_over_high": 2.186992781385619,
+      "peak_spread_db": 0.8438996010557751
+    },
+    "dirt": {
+      "steps": 9,
+      "peak_db": -27.126400664141762,
+      "span_ms": 106.66666666666667,
+      "transients": 2.0,
+      "centroid_hz": 1131.4664213848082,
+      "low_over_high": 6.208438376637954,
+      "peak_spread_db": 1.0087471868769777
+    },
+    "stone": {
+      "steps": 9,
+      "peak_db": -25.011774407842033,
+      "span_ms": 106.0,
+      "transients": 2.0,
+      "centroid_hz": 1004.4400894381712,
+      "low_over_high": 6.046387191107084,
+      "peak_spread_db": 0.5667976808077972
+    },
+    "stairs": {
+      "steps": 10,
+      "peak_db": -26.574371615193336,
+      "span_ms": 45.2,
+      "transients": 1.6,
+      "centroid_hz": 928.1605725599933,
+      "low_over_high": 6.901567727169956,
+      "peak_spread_db": 1.7778359906164731
+    },
+    "wood": {
+      "steps": 7,
+      "peak_db": -29.40289556142823,
+      "span_ms": 0.0,
+      "transients": 1.0,
+      "centroid_hz": 446.3560375008971,
+      "low_over_high": 47.52056732068006,
+      "peak_spread_db": 1.3887465715179734
+    },
+    "hollow": {
+      "steps": 12,
+      "peak_db": -31.906490863182512,
+      "span_ms": 66.66666666666667,
+      "transients": 3.6666666666666665,
+      "centroid_hz": 838.5576126043328,
+      "low_over_high": 48.295515902799984,
+      "peak_spread_db": 7.702952446223167
+    },
+    "leaves": {
+      "steps": 9,
+      "peak_db": -36.6439499908993,
+      "span_ms": 85.11111111111111,
+      "transients": 3.6666666666666665,
+      "centroid_hz": 4596.288328492821,
+      "low_over_high": 0.733408531205074,
+      "peak_spread_db": 0.7658962581396096
+    },
+    "run stone": {
+      "steps": 13,
+      "peak_db": -27.384908863155882,
+      "span_ms": 7.076923076923077,
+      "transients": 0.9230769230769231,
+      "centroid_hz": 2465.2577069891745,
+      "low_over_high": 2.6372928368980553,
+      "peak_spread_db": 1.278466017649014
+    }
+  }
+}

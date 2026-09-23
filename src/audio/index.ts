@@ -57,6 +57,7 @@ export interface WalkLeg {
   until: number;
   speed: number;
   surface: Surface;
+  stairs?: boolean;
 }
 
 /**
@@ -68,10 +69,12 @@ export const OFFLINE_WALK: readonly WalkLeg[] = [
   { until: 8, speed: 1.5, surface: 'grass' },
   { until: 13, speed: 1.5, surface: 'dirt' },
   { until: 18, speed: 1.5, surface: 'stone' },
-  { until: 22, speed: 1.5, surface: 'wood' },
-  { until: 26, speed: 1.5, surface: 'hollow' },
-  { until: 31, speed: 4.2, surface: 'stone' },
-  { until: 35, speed: 0, surface: 'grass' },
+  { until: 23, speed: 1.1, surface: 'stone', stairs: true },
+  { until: 27, speed: 1.5, surface: 'wood' },
+  { until: 31, speed: 1.5, surface: 'hollow' },
+  { until: 36, speed: 1.5, surface: 'leaf' },
+  { until: 41, speed: 4.2, surface: 'stone' },
+  { until: 45, speed: 0, surface: 'grass' },
 ];
 
 export interface AudioOptions {
@@ -320,7 +323,7 @@ export async function renderOffline(o: AudioOptions, seed: string, seconds: numb
     x += leg.speed * step * 0.6;
     z -= leg.speed * step * 0.8;
     ambience?.update(t, { gust: gust(t), listener: { x, y: 1.2, z }, forward: { x: 0.6, z: -0.8 }, pods });
-    footsteps?.drive(t, step, { speed: leg.speed, surface: leg.surface, onStairs: false });
+    footsteps?.drive(t, step, { speed: leg.speed, surface: leg.surface, onStairs: !!leg.stairs });
   }
   ambience?.scheduleUntil(seconds);
   music?.scheduleUntil(seconds);
