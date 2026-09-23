@@ -80,16 +80,37 @@ for being a verge blade; a tile past it submits none of them). The test also mat
 **stream index** now rather than by millimetre position: two blades of a tile can share a position,
 which made a dropped blade look kept.
 
-## Next lever, for whoever takes it
+## Three things I measured and did not keep
 
-The ferns' near tier is worth ~0.5 M at A on its own and the shadow pass is half of it. Cutting the
-12 m ring is a measured decision someone already made twice (11 → 12 m in round 31; 14 m was
-rejected at +1.51 M on F), so the shadow is the part to attack: a caster that uses the **mid**
-geometry (≈ 1 000 triangles) instead of the near one would be invisible through a filtered shadow
-map and give back ≈ 0.27 M at A. That needs a mechanism in `lodset.ts` — a shadow-only mesh per
-near bucket sharing the bucket's instance attributes — so it deserves its own measured pass rather
-than being folded in here.
+Each of these looked like the obvious next cut. The numbers are here so nobody spends the evening
+on them again.
 
-I tried the cheaper version first — the verge's own fronds in a separate set on a shorter ladder
-with no shadow — and **backed it out**: it saved 20 K triangles for **+7 draw calls**, and with A at
-695 of the 700 cap that is the wrong currency.
+**1. The verge's fronds in their own set, on a shorter ladder, casting nothing.** Saved 20 K
+triangles at A for **+7 draw calls**. With A at 695 of the 700 cap that is the wrong currency.
+
+**2. Thinning the verge's fronds to 55 % and giving the difference to broad leaves** (which cost
+30–350 triangles against a near frond's 3 400, and are what his verges are mostly made of). A's
+ferns 1.163 → 1.134 M — only 29 K, because `minSpacing` was already the binding constraint on that
+pass, so 45 % fewer candidates placed only 77 fewer plants, and most of those sit behind the
+cameras. 29 K of colour and about as much shadow, against thinning the verge the owner asked to
+have thickened twelve hours earlier. Not worth it.
+
+**3. Casting the ferns' near tier from the mid geometry.** This is the big one — ≈ 0.38 M of shadow
+at A from a hundred plants — and **stock three cannot do it.** The shadow pass skips an object when
+`object.visible === false` or `material.visible === false`, and both are checked in the colour pass
+too, so a shadow-only proxy is not expressible that way; the layer test in `WebGLShadowMap` uses the
+*scene* camera's layers, so layers do not separate the passes either; and `onBeforeShadow` fires
+after three has already read `objects.update(object)`, so swapping the geometry in the hook is too
+late. What is left is a second `InstancedMesh` on the mid geometry sharing the bucket's attributes
+with `colorWrite`/`depthWrite` off — it still rasterises in the colour pass, so it turns 0.38 M of
+shadow into ≈ 0.11 M of shadow plus ≈ 0.11 M of wasted colour, for extra draws. Marginal, and
+invasive; it needs a real decision, not a patch.
+
+## Still on the table
+
+The violets' **far tier** is 487 instances × 330 triangles = **161 K at A alone**, and the `flowers`
+set has no `maxDistance`, so a clump keeps drawing at 40 m where it covers a few pixels. `fernsNorth`
+and the other corridor sets already use `maxDistance` for exactly this. The reason I have not done
+it is a contract, not a doubt: `plants.test.mjs` asserts that every disc set except a named list has
+`maxDistance === undefined` ("no far cut"), and camera D's scored violet patches sit at 10–20 m, so
+a cut at ~32 m is safe but wants whoever owns that contract to agree first.
