@@ -720,6 +720,15 @@
       ],
       "at": "2026-09-23T17:20:47.914Z",
       "expiresHours": 3
+    },
+    {
+      "agent": "astra-crown-delivery",
+      "items": [
+        "W10",
+        "W40"
+      ],
+      "at": "2026-09-23T19:25:18.111Z",
+      "expiresHours": 3
     }
   ]
 }

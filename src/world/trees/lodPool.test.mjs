@@ -303,6 +303,68 @@ test('a pending build that cannot fit behind nearer resident items is not starte
   assert.equal(pool.report().pending, 1);
 });
 
+for (const pinResident of [false, true]) test(`a paused build waits when its eviction candidate ${pinResident ? 'becomes pinned' : 'gets nearer priority'}`, () => {
+  const log = [], now = clock(), pool = new LodPool(100, now);
+  const resident = fakeItem('resident', 60, log);
+  const pending = fakeItem('pending', 60, log, 1, now, 1);
+  pool.add(resident, { bytes: 60, dispose() {} });
+  pool.add(pending);
+  pool.begin();
+  pool.want(resident, 20);
+  pool.want(pending, 10);
+  pool.work(1);
+  assert.equal(pool.report().building, 1);
+
+  pool.begin();
+  if (pinResident) pool.pin(resident);
+  else pool.want(resident, 5);
+  pool.want(pending, 10);
+  pool.work(1);
+  assert.equal(pool.poolBytes, 60, 'a changed admission decision cannot overflow the cap');
+  assert.equal(pool.report().building, 1, 'the generator stays paused');
+  assert.equal(pool.report().steps, 1, 'no blocked chunk advances');
+  assert.deepEqual(log, []);
+});
+
+test('fitting pending work bypasses a blocked generator, which later resumes once', () => {
+  const log = [], now = clock(), pool = new LodPool(100, now);
+  const resident = fakeItem('resident', 60, log);
+  const paused = fakeItem('paused', 60, log, 1, now, 1);
+  const fitting = fakeItem('fitting', 40, log, 1, now, 1);
+  const build = paused.build;
+  let starts = 0;
+  paused.build = function* () { starts++; return yield* build(); };
+  pool.add(resident, { bytes: 60, dispose() {} });
+  pool.add(paused);
+  pool.add(fitting);
+  pool.begin();
+  pool.want(resident, 20);
+  pool.want(paused, 10);
+  pool.work(1);
+
+  for (let frame = 0; frame < 2; frame++) {
+    pool.begin();
+    pool.want(resident, 5);
+    pool.want(paused, 10);
+    pool.want(fitting, 2);
+    pool.work(1);
+    assert.ok(pool.poolBytes <= pool.capBytes);
+  }
+  assert.deepEqual(pool.resident().sort(), ['fitting', 'resident']);
+  assert.equal(pool.report().building, 1, 'the blocked generator survives while smaller work finishes');
+
+  pool.begin();
+  pool.want(resident, 20);
+  pool.want(paused, 10);
+  pool.want(fitting, 2);
+  pool.work(1);
+  assert.deepEqual(pool.resident().sort(), ['fitting', 'paused']);
+  assert.equal(pool.poolBytes, 100);
+  assert.equal(starts, 1, 'resuming does not restart the generator');
+  assert.equal(log.filter(entry => entry === 'install paused').length, 1);
+  assert.equal(pool.report().syncBuilds, 0);
+});
+
 test('a chunked build spreads over frames within the budget and ends like a synchronous one', () => {
   const log = [];
   const now = clock();
@@ -473,18 +535,20 @@ test('giants register detail above 25 m without changing far geometry or the tre
 
 // Exercise the production closure itself, with real LodPool and small deterministic items.
 // Loading all of index.ts would construct browser materials unrelated to this state transition.
-const canopyUpdateFor = (parts, pool, slots = 64) => {
+const productionClosure = (name) => {
   const file = path.join(here, 'index.ts'), ast = ts.createSourceFile(file, readFileSync(file, 'utf8'), ts.ScriptTarget.Latest, true);
   let initializer;
   const visit = node => {
-    if (ts.isVariableDeclaration(node) && node.name.getText(ast) === 'nearCanopyUpdate') initializer = node.initializer;
+    if (ts.isVariableDeclaration(node) && node.name.getText(ast) === name) initializer = node.initializer;
     ts.forEachChild(node, visit);
   };
   visit(ast);
-  assert.ok(initializer);
-  const expression = ts.transpileModule(`(${initializer.getText(ast)})`, { compilerOptions: { target: ts.ScriptTarget.ES2022 } }).outputText;
+  assert.ok(initializer, name);
+  return ts.transpileModule(`(${initializer.getText(ast)})`, { compilerOptions: { target: ts.ScriptTarget.ES2022 } }).outputText;
+};
+const canopyUpdateFor = (parts, pool, slots = 64) => {
   const mats = { nearCanopy: { value: Array.from({ length: slots }, () => new THREE.Vector4()) } };
-  return { mats, update: new Function('nearCanopies', 'nearCanopyPool', 'mats', 'NEAR_CANOPY_PREFETCH_M', 'NEAR_CANOPY_SLOTS', 'NEAR_CANOPY_LIMBS_MAX', `return ${expression}`)(parts, pool, mats, 42, slots, 12) };
+  return { mats, update: new Function('nearCanopies', 'nearCanopyPool', 'mats', 'NEAR_CANOPY_PREFETCH_M', 'NEAR_CANOPY_SLOTS', 'NEAR_CANOPY_LIMBS_MAX', `return ${productionClosure('nearCanopyUpdate')}`)(parts, pool, mats, 42, slots, 12) };
 };
 const canopyFixture = (item, group = 0) => ({ item, group, center: new THREE.Vector3(0, 40, 0), radius: 4, root: new THREE.Vector3(), kind: 'lobe', inM: 26, outM: 30, active: false, dist: Infinity, mesh: { visible: false } });
 
@@ -559,4 +623,89 @@ test('canopy selection retains the 64-slot limit and never pins beyond the byte 
     pool.work(0);
     assert.ok(pool.poolBytes <= cap);
   }
+});
+
+const { DISTANT_CLOSE_SLOTS, DISTANT_CLOSE_FADE_M, DISTANT_CLOSE_PREFETCH_M, updateDistantCloseSlots } = loadTs(path.join(here, 'distant.ts'));
+const distantUpdateFor = (sets, pool) => {
+  const byId = new Map(sets.flatMap(set => set.ids.map((id, index) => [id, { set, index }])));
+  const uniform = { value: Array.from({ length: DISTANT_CLOSE_SLOTS }, () => new THREE.Vector4()) };
+  return new Function('distantSets', 'nearCanopyPool', 'distantById', 'distantCloseUniform', 'closeLocal', 'updateDistantCloseSlots', 'DISTANT_CLOSE_FADE_M', 'DISTANT_CLOSE_PREFETCH_M',
+    `let distantCloseSlots = []; const update = ${productionClosure('distantCloseUpdate')};
+     return { update, uniform: distantCloseUniform, get slots() { return distantCloseSlots; } };`
+  )(sets, pool, byId, uniform, new THREE.Vector3(), updateDistantCloseSlots, DISTANT_CLOSE_FADE_M, DISTANT_CLOSE_PREFETCH_M);
+};
+const distantFixture = (item, id = 0, x = 0) => {
+  const matrix = new THREE.Matrix4().makeTranslation(x, 0, 0);
+  const mesh = new THREE.InstancedMesh(new THREE.BoxGeometry(), new THREE.MeshBasicMaterial(), DISTANT_CLOSE_SLOTS);
+  mesh.count = 0;
+  mesh.visible = false;
+  return {
+    ids: [id], submitted: [[0], []], matrices: [matrix], inverses: [matrix.clone().invert()],
+    placements: [{ x, y: 0, z: 0, scale: 1, tint: new THREE.Color(1, 1, 1) }],
+    close: { item, mesh, fade: new THREE.InstancedBufferAttribute(new Float32Array(DISTANT_CLOSE_SLOTS), 1),
+      bounds: new THREE.Box3(new THREE.Vector3(-1, -1, -1), new THREE.Vector3(1, 1, 1)) },
+  };
+};
+
+test('walking distant crowns retain the old crown until resident, then start their fade without pre-advancing', () => {
+  const now = clock(), pool = new LodPool(100, now), item = fakeItem('distant', 60, [], 3, now, 0.4);
+  pool.add(item);
+  const set = distantFixture(item), state = distantUpdateFor([set], pool), dt = 1 / 30;
+  pool.begin();
+  state.update(new THREE.Vector3(31, 0, 0), dt, false); // 30 m: prefetch before the 26 m fade threshold.
+  assert.equal(pool.report().pending, 1);
+  for (let frame = 0; frame < 4; frame++) {
+    pool.begin();
+    state.update(new THREE.Vector3(), dt, false);
+    assert.equal(set.close.mesh.visible, false);
+    assert.equal(set.close.mesh.count, 0);
+    assert.deepEqual(state.slots, [], 'waiting does not accumulate fade weight');
+    assert.ok(state.uniform.value.every(slot => slot.w === 0), 'the old crown stays fully visible');
+    assert.equal(pool.report().syncBuilds, 0);
+    pool.work(0.5);
+  }
+  assert.equal(pool.isResident(item), true);
+  pool.begin();
+  state.update(new THREE.Vector3(), dt, false);
+  assert.equal(set.close.mesh.visible, true);
+  assert.equal(set.close.mesh.count, 1);
+  assert.equal(state.slots[0].weight, dt / 0.25);
+  assert.equal(state.uniform.value[0].w, dt / 0.25);
+  assert.ok(Math.abs(set.close.fade.getX(0) - dt / 0.25) < 1e-7);
+  assert.equal(pool.report().syncBuilds, 0);
+  assert.ok(pool.poolBytes <= pool.capBytes);
+});
+
+test('explicit distant crown re-poses synchronously install the same exact weights from cold and warm pools', () => {
+  const pool = new LodPool(100, clock()), item = fakeItem('distant', 60, []);
+  pool.add(item);
+  const set = distantFixture(item), state = distantUpdateFor([set], pool);
+  for (let pass = 0; pass < 2; pass++) {
+    pool.begin();
+    state.update(new THREE.Vector3(), 0, true);
+    assert.deepEqual(state.slots, [{ id: 0, weight: 1 }]);
+    assert.equal(state.uniform.value[0].w, 1);
+    assert.equal(set.close.fade.getX(0), 1);
+    assert.equal(set.close.mesh.visible, true);
+    assert.equal(set.close.mesh.count, 1);
+    assert.equal(pool.report().syncBuilds, 1, 'only the cold reset builds synchronously');
+  }
+});
+
+test('distant reset pins resident selections before a cold earlier variant can evict them', () => {
+  const log = [], pool = new LodPool(100, clock());
+  const cold = fakeItem('cold', 40, log), resident = fakeItem('resident', 60, log), cache = fakeItem('cache', 40, log);
+  pool.add(resident, { bytes: 60, dispose() {} });
+  pool.add(cache, { bytes: 40, dispose() {} });
+  pool.add(cold);
+  const sets = [distantFixture(cold, 0), distantFixture(resident, 1, 10)], state = distantUpdateFor(sets, pool);
+  pool.begin();
+  pool.want(cache, 0); // Without the resident pre-pin, the selected 9 m variant is evicted first.
+  state.update(new THREE.Vector3(), 0, true);
+  assert.deepEqual(state.slots, [{ id: 0, weight: 1 }, { id: 1, weight: 1 }]);
+  assert.ok(sets.every(set => set.close.mesh.visible && set.close.mesh.count === 1));
+  assert.deepEqual(pool.resident().sort(), ['cold', 'resident']);
+  assert.equal(pool.report().syncBuilds, 1);
+  assert.equal(pool.poolBytes, 100);
+  assert.ok(!log.includes('uninstall resident'), 'the selected resident variant is retained');
 });

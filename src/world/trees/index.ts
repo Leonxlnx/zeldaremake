@@ -3111,17 +3111,26 @@ export async function create(ctx: WorldContext): Promise<WorldSystem> {
     const candidates: { id: number; distance: number }[] = [];
     for (const set of distantSets) {
       let nearest = Infinity;
+      const ready = reset || nearCanopyPool.isResident(set.close.item);
       // Submission already checked the current view. The distance is to the crown's 3D
       // envelope, including its underside, never to the tree's base or a fixed hero camera.
       for (const index of set.submitted[0]) {
         closeLocal.copy(cam).applyMatrix4(set.inverses[index]);
         const distance = set.close.bounds.distanceToPoint(closeLocal) * set.placements[index].scale;
         nearest = Math.min(nearest, distance);
-        if (distance < DISTANT_CLOSE_FADE_M[1]) candidates.push({ id: set.ids[index], distance });
+        if (ready && distance < DISTANT_CLOSE_FADE_M[1]) candidates.push({ id: set.ids[index], distance });
       }
       if (nearest < DISTANT_CLOSE_PREFETCH_M) nearCanopyPool.want(set.close.item, nearest);
     }
+    // Walking keeps the old crown until prefetch installs the replacement; its fade starts
+    // only after residency. Explicit re-poses retain their synchronous capture contract.
     distantCloseSlots = updateDistantCloseSlots(distantCloseSlots, candidates, dt, reset);
+    // Protect resident selections before a cold reset pin can evict a later variant.
+    for (const set of distantSets) {
+      if (nearCanopyPool.isResident(set.close.item) && distantCloseSlots.some(slot => slot.weight > 0 && distantById.get(slot.id)!.set === set)) {
+        nearCanopyPool.pin(set.close.item);
+      }
+    }
     for (const slot of distantCloseUniform.value) slot.set(0, 0, 0, 0);
     for (const set of distantSets) {
       const { mesh, fade, item } = set.close;
@@ -3129,8 +3138,7 @@ export async function create(ctx: WorldContext): Promise<WorldSystem> {
       for (let k = 0; k < distantCloseSlots.length; k++) {
         const slot = distantCloseSlots[k], owner = distantById.get(slot.id)!;
         if (owner.set !== set || slot.weight <= 0) continue;
-        // Finish/install the real replacement BEFORE any old crown is faded. A teleport
-        // obeys the existing pool's synchronous pin rule; ordinary motion prefetches it.
+        // Every walking selection is already resident; a reset may finish/install it now.
         nearCanopyPool.pin(item);
         const p = set.placements[owner.index];
         mesh.setMatrixAt(n, set.matrices[owner.index]);
