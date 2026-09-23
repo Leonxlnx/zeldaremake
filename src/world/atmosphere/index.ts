@@ -63,6 +63,7 @@ export function create(ctx: WorldContext): WorldSystem {
       sun: () => ctx.sun,
       exposure: cfg.renderer.exposure,
       headless: ctx.headless,
+      groundAt: (x, z) => ctx.terrain.height(x, z),
       overlay: {
         scene: mist.scene,
         prepare: (depth, viewport) => mist.update(lastT, ctx.camera as PerspectiveCamera, depth, viewport),
