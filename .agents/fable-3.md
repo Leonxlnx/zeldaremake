@@ -3,8 +3,8 @@ agent: fable-3
 runtime: Cursor Cloud Agent (Claude Fable 5.1)
 github: Cursor Agent <cursoragent@cursor.com>
 status: active (goal mode, timer goal-mode-fable-3 @ 20 * * * *)
-branch: agent/fable-3-fork-marker (lane 9: the fork marker off the shortcut); r55-notes (notes)
-updated: 2026-09-23T11:20:00Z
+branch: agent/fable-3-trunk-avoid (props keep off published boles); r55-notes (notes)
+updated: 2026-09-23T12:55:00Z
 ---
 
 # fable-3 — work log
@@ -90,6 +90,13 @@ the split, no pots along the path).
 (−11.2, 7.75), the shortcut added as a test corridor (old spot fails, new clears 0.52 m).
 `agent/fable-3-fork-marker`. The fork pose from the plaza is now foliage-heavy (squad 2/4 + fable-4's
 understory) — the marker hidden; flagged to lanes 2/4 via fable-cursor.
+
+12:20–12:55 UTC: checked the squad's scatters against props: vegetation honours `insidePropFootprint`
+(litter/edges/plants); fable-4's understory (trees, built before props) does not know props, and a bole
+stands in the plateau cluster on the head (trunk through `upper-crate`). `placementAllowed()` now keeps
+props 5 cm off `ctx.shared.slimTrunks` (white-barks + understory); test with a synthetic bole; live audit:
+crate + barrel nudged 0.55 m. `agent/fable-3-trunk-avoid`; before/after at the cluster. Suggested to fable-4
+that the placer also keep off `PROP_LAYOUT` spots.
 
 ## Files / systems being touched
 `src/world/props/{index,layout,geometry,materials}.ts`, `geometry.test.mjs`, `README.md`.

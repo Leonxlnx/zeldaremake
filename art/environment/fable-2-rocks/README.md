@@ -16,6 +16,41 @@ B 526 / C 393 / D 394 / E 526 / F 512; A 9.09 M tris on both (the head's number,
 change's — flagged to fable-cursor). Files: `ledge2-x-clearing-n.jpg` (+ `-crop`),
 `ledge2-x-ledge-foot.jpg`, `ledge2-x-northpath-n.jpg`.
 
+## Iteration 84 — the earth treads' tint × 1.15 and the read from the plaza (the demo's `d_010` view); re-measured on the merged head `76fef8a6` (squad lanes 1–5 in): A −0.0002, C −0.0012, F +0.0004 — and the head itself now renders A at 9.15 M triangles / 599 draws, over W38's 9.0 M
+
+`d_010` (the demo, the flight seen from the plaza) against ours from the same spot (`steps84-d010-view.jpg`): the demo's flight
+alternates pale treads and dark log risers; ours alternates lit log crowns and darker treads — the light, not the material
+(the canopy shades our upper treads; fable-5's read). The earth's albedo is the half I hold: `EARTH_TINT` × 1.15
+(2.24 / 1.98 / 1.52), still under the demo's tread value in shade and not chalky at 2 m (`steps84-tint-triple.jpg`: stone |
+earth | earth × 1.15 at `s2-top-down`, the 2 m tread pose and the plaza view). At A the flight box moves a hair toward the
+frame: dark 53.3 → 52.9 %, lips 77 → 78 (frame 15.7 % / 100).
+
+The branch carries the head `76fef8a6` merged (fable-cursor's rule for squad lanes), so the pair is re-measured there —
+`76fef8a6` (stone treads) → `55b791a1` (earth × 1.15): **A 0.2047 → 0.2045 (−0.0002, 0.22 % of pixels), C 0.1834 → 0.1822
+(−0.0012, 0.66 %: the flight's foot at C's left edge), F 0.2169 → 0.2173 (+0.0004, 0.26 %)**; B / D / E do not see the flight
+(0 / 0 / 11 px at §83's base). Draws and triangles are the head's: **A 599 draws / 9.15 M triangles** — the squad's mid-canopy
+and understory took A from 8.55 M (`73402409`) over W38's 9.0 M ceiling; C 473 / 6.77 M, F 550 / 7.99 M. Not mine to cut;
+flagged to fable-cursor. A frame here now takes ≈ 680 s to render at A (was 350).
+## Iteration 85 — lane 6: the raised stair to the north ledge is log-risered too (`LOG_FLIGHTS` + `ledge`): the owner's ref-03 right-bank steps — round timbers with cut ends and stakes, earth between; A / D byte-identical
+
+`art/environment/owner-review-2026-09-19/ref-03-marked-arch-depth-and-right-steps.png`, the owner's right-hand circle ("it should
+be raised — this part of the game"): a raised stair on the right bank beyond the arch, and at 3× the crop is unambiguous — logs
+as risers, their cut ends and dark stakes at the flank, dark earth treads between (the same construction as the hero flight's
+`d_104`). Ours was the six-step `ledge` flight in the north clearing as stone slabs. One line: the flight joins `LOG_FLIGHTS`, so
+`buildLogNosings` gives it the timbers and stakes and `buildStairway`'s `logNosed` path gives it the shaded lip and §83's earth
+treads; the character's stair grid reads `stairs-ledge-logs` like the main flight's (ground.ts merges stone + timbers per flight).
+
+Before `0149f255` → after `fbd83042` (`steps85-ledge-flight-sheet.jpg`): from the clearing floor 1.6 m off the first riser, from
+3.3 m up at 35° and from the east at eye height — mossy pale slabs become six timbers with proud cut ends and stakes over pale
+packed earth. Six views: the flight stands 75 m north of the plaza; **A and D byte-identical** (sha256 equal), A 600 → 601 draws /
+9.16 → 9.17 M (the timber mesh's sphere enters the frustum, no pixel), D 554 → 556 / 8.52 → 8.53 M. `tsc` green, hardscape tests
+9 / 9 (`logNosings.test` asserts `main`; `ledge` added).
+
+Walked (`playtest.mjs --only walk --walk-routes north-clearing-ledge`, the plaza → under the arch → the clearing → up this flight,
+82.4 m, 1 572 frames, head vs branch): 15 / 15 waypoints, 0 stuck on both, the climb trace identical to the centimetre (y 4.04 →
+5.62 over the six steps); the boots' sole gap p50 0.4 → 0.4 cm, p95 2.6 → 2.7 cm, max 4.5 → 5.6 cm (one sample on a timber's
+crown), the footprint's lowest point never below −2.1 cm on either. The timbers carry the walker as the main flight's do.
+
 ## Iteration 83 — lane 6 (fable-cursor's 07:30 fit): the demo's log-risered steps, first half — the hero flight's treads are trodden earth between the timbers, not stone slabs (`aEarth` on the slab tops, the stone shader renders trail dirt there); six views A −0.0002, C −0.0009, the rest 0
 
 The owner's references for "the steps" (`docs/SQUAD_2026-09-23.md` lane 6): the demo's walk north, `demo61/d_094` and `d_104`
