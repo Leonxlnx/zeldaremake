@@ -32,23 +32,36 @@ A frame takes 60–75 s on this VM's SwiftShader, so a four-pose pass is ≈ 5 m
 
 ## Which trunk is red circle 1?
 
+Two probes, because the answer decides whose lane it is.
+
 `gauntlet/tmp/squad3-trunk-probe.mjs` renders the owner's pose, reads `depthImage` at the screen
 columns of his pale cylinders and projects every white-bark placement, authored column seat and
-giant so a depth can be attributed:
+giant. The pale poles read 39.2 / 42.6 / 49.1 / 55.0 m; the column seat at (−3.5, −24.7) is at
+15.3 m and screen x 220.
 
-| screen px (960 × 540) | depth | what stands there |
+Then a family-tag render (`columnTree` emissive red, `whiteTree` green, `distant` blue, built to
+`dist-probe`, reverted immediately) names every trunk in that frame:
+
+| screen x (of 960) | family | notes |
 | --- | --- | --- |
-| (92, 120) | 55.0 m | a white-bark (low LOD) |
-| (128, 150) | 39.2 m | a white-bark (medium LOD) |
-| (300, 150) | 49.1 m | a white-bark |
-| (420, 170) | 42.6 m | a white-bark |
-| (220, 217) | 15.3 m | the column seat at (−3.5, −24.7) — mostly behind the bank at this pose |
+| 85–145 | **distant** (`distant.ts`) | the thin pale poles at 39–55 m |
+| 150–300 | **column** | the wide trunk left of the path at 15 m — the most prominent trunk on that side |
+| 290–350 | **distant** | more pale poles |
+| 660–830, 890–960 | **column** | the right bank's trunks |
+| — | white-bark | none in this frame |
 
-So the poles the owner circled are **white-barks at 39–55 m**, not the near columns: at that range
-the species' procedural bark map has mipped to its mean, its vertex ramp from the grey foot to the
-pale stem is over by ≈ 3 m and its moss ring ends at 1.1 m, so the whole visible run is one flat
-pale value. Both families are this lane's (`docs/SQUAD_2026-09-23.md` §Lanes row 3: "the column
-trees, the white-barks"), so both are fixed here.
+So the owner's red circle 1 is the **column at (−3.5, −24.7)** (this lane), and the thin pale
+poles beside it are the **distant family** (lane 2's `distant.ts`).
+
+### For lane 2 — why the distant poles are flat
+
+`materials.ts` `DISTANT_BARK_M = [22, 38]`: the whole near-bark treatment of a distant bole (the
+bark map on the cylindrical mapping, the tone bands, the cord stripe, the furrows, the foot grime
+and `DISTANT_NEAR_FLOOR`) fades out at **38 m**, and the near LOD's `DISTANT_NEAR_GAIN` of 4 is
+divided back out over the same blend. The poles the owner circled stand at 39–55 m — a metre past
+the edge — so they render exactly the flat far tint with no cord, band or map: a smooth pale
+cylinder. Widening that blend is not a one-constant change (the same `near` gates the gain
+division, so the boles would come out 4× too bright), which is why this lane left it alone.
 
 ## pass1 — the bark stops reading as camouflage; the columns get a silhouette
 
@@ -62,3 +75,28 @@ code comments (`column.ts` `boleKnees`, `bole.ts` `LICHEN_TINT` / `FURROW_MOSS`,
 field (no mip, no texel — 0.3–0.9 m marks that read at 40 m and at 4 m alike), the moss ring up to
 2.6 m instead of 1.1 m, and a weathered foot that keeps some grey to 7 m. Plus a narrower moss
 cover ramp on the near boles (0.5–0.9 → 0.52–0.8) so a cushion has a margin rather than a halo.
+
+## The six hero views
+
+`gauntlet/tmp/squad3-delta.mjs` against the integration head, same poses, 960 × 540:
+
+| view | mean \|Δ\| (levels) | px > 2 | px > 8 | mean rgb |
+| --- | --- | --- | --- | --- |
+| A_stairs | 0.08 | 0.71 % | 0.28 % | 91.11/87.33/67.72 → 91.09/87.32/67.71 |
+| B_house | 0.26 | 2.77 % | 0.84 % | 85.49/83.03/65.95 → 85.43/82.97/65.89 |
+| C_lookback | 0.09 | 0.96 % | 0.36 % | 85.27/81.37/62.70 → 85.19/81.30/62.62 |
+| D_log | 0.48 | 5.37 % | 1.42 % | 86.29/84.14/68.29 → 86.15/83.99/68.12 |
+| F_canopy | 0.20 | 2.49 % | 0.59 % | 87.30/82.01/58.74 → 87.12/81.80/58.54 |
+
+Measured after pass 2. The six views barely move: D is the largest (the emergent's bole and the
+far wall's columns are most of that frame's left edge) and even there 98.6 % of pixels move by
+8 levels or less, with the frame mean within 0.2 of a level. That headroom is what pass 3 spends.
+
+## pass3 — the columns stop being a rank of posts
+
+- `column.ts`: `leanDeg` 1–4° → 2–6.5° and a wider sweep wander (`boleWander` 0.22 against the
+  emergent's and the hut host's 0.14).
+- `whitebark.ts`: the pale stem was `barkWhite × 1.12` ≈ 0.62 linear — brighter than the haze it
+  stands in from 20 m out, so it read as a lit stick. `× 0.94` drawn a tenth toward the grey.
+- `materials.ts`: the moss albedos carry the hue (G/R 1.6 → 2.4) — the near bases' shade floor
+  mixes a flat grey into whatever albedo it is given, so a desaturated moss rendered as pale sage.
