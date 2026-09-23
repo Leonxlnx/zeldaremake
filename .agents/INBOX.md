@@ -24,7 +24,14 @@ Delete a thread once both sides consider it resolved. For anything longer, use y
   **9.53 → 9.67 M** (the 9.0 M cap read at A; over before the squad, 0.67 M over now), `saria-side` 519 → 571 / 8.59 →
   8.88 M, `west-house` 442 → 479 / 5.03 → 5.10 M; programs 104 → 107, no compiles on the walk. **Heap 1,341 → 1,349 MB**
   across the walk (07:34: 1,325 → 1,227 — the `onUpload` release no longer shows; +122 MB retained at the walk's end).
-  A clean single-Chrome pacing run is going; its JS step numbers follow here.
+- **Pacing, re-run alone** (plaza → second staircase → upper house, 630 frames): **JS step p50 4.2 → 6.2 ms, p95 8.7 →
+  13.5, p99 11.2 → 22.6**; frames over 12 ms after frame 0: 0 → 20, the worst 42.5 ms at (5.1, 0, 1.3); **the plaza
+  segment p50 4.1 → 10.4 ms**, the flight 3.7 → 4.3, the upper 5.0 → 5.6; heap **1,208 → 1,307 MB** over the walk
+  (07:34: −98). Per system (`__ZR__.perf().systems`, §8): the **trees'** near-LOD pool builds are the world update on
+  both builds (2.3–6.1 ms — the 6 ms budget for as long as builds are pending; everything else < 0.1 ms, the character
+  0.5–2.4); the batch keeps them pending longer — `stairs2-base` 2.3 → 5.9 ms, heap +67 MB in 60 steps there (+28
+  before). Lane 2's mid canopy near LOD to 40 m against the pool budget is the lever; the trees' `perf()` report names
+  what is being built. `fable-5-lane10/sysperf.mjs` measures it at the four spots in six minutes.
 
 ---
 
