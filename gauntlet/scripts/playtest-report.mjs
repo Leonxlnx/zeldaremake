@@ -64,11 +64,16 @@ if (A.stairs) {
   out.push('');
 }
 if (A.perf) {
-  out.push('### Frame cost (after; this VM renders with SwiftShader on 4 CPU cores)');
+  out.push('### Frame cost (this VM renders with SwiftShader on 4 CPU cores: the wall times are CPU rasterisation, not a GPU)');
   out.push('');
-  out.push('| spot | draws | triangles | JS step ms (camera / world update / render issue) | drawn frame wall ms (synced) |');
+  out.push('| spot | draws before → after | triangles before → after | after JS step ms (camera / world update / render issue) | before / after drawn frame wall s (synced, median of 4) |');
   out.push('|---|---|---|---|---|');
-  for (const p of A.perf) out.push(`| ${p.id} | ${p.draws} | ${(p.triangles / 1e6).toFixed(2)} M | ${f1(p.jsMs.step)} (${f1(p.jsMs.camera)} / ${f1(p.jsMs.update)} / ${f1(p.jsMs.render)}) | ${p.drawnFrameWallMs.map((v) => Math.round(v)).join(', ')} |`);
+  const bPerf = Object.fromEntries((B.perf ?? []).map((p) => [p.id, p]));
+  const med = (a) => [...a].sort((x, y) => x - y)[Math.floor(a.length / 2)];
+  for (const p of A.perf) {
+    const b = bPerf[p.id];
+    out.push(`| ${p.id} | ${b ? b.draws : '—'} → ${p.draws} | ${b ? (b.triangles / 1e6).toFixed(2) : '—'} → ${(p.triangles / 1e6).toFixed(2)} M | ${f1(p.jsMs.step)} (${f1(p.jsMs.camera)} / ${f1(p.jsMs.update)} / ${f1(p.jsMs.render)}) | ${b ? (med(b.drawnFrameWallMs) / 1000).toFixed(1) : '—'} / ${(med(p.drawnFrameWallMs) / 1000).toFixed(1)} |`);
+  }
   out.push('');
 }
 if (A.interact) out.push(`Interactions (after): ${JSON.stringify(A.interact)}`, '');

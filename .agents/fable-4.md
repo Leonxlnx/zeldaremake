@@ -362,3 +362,5 @@ nearCanopy, materials, index otherwise) is edited.
   test's exactness once the object is big and near.
 - 03:51 — sectorgroups re-verified on the moved head (floor cards +63 K at A): A 8.675 → 8.527 M, the same
   deltas everywhere, A 1 px / D 0 px; branch carries the head merged (`264c3d3f`).
+- 03:59 — re-verify on the owner-09-23 head: four look-ups under white-barks at 50–55° — crowns read as layered
+  leaves; the flat pale shapes are the distant floor cards (Astra's). slimTrunks fine. `round52-lookup-whitebarks/`.
