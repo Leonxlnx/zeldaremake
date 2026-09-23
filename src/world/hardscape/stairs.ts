@@ -492,11 +492,16 @@ export function buildStairway(def: StairDef, terrain: Terrain, rng: Rng, seed: s
       // straight down to the tread below. So on a log flight the riser comes forward to 3 cm
       // behind the nose line (the slab's wall wanders ± 1.4 cm and its chips hollow it 3 cm, so
       // the face sits 0–5 cm under the slab's edge and never stands proud of it by more than a
-      // chip); its back stays where it was. Same draws, same outline segments — the depth only.
+      // chip); its back stays where it was. The outline is cut at the stone depth (jitteredRect's
+      // segment count follows the aspect, so the draws are the stream's) and then stretched
+      // forward: the front edge moves by the whole extension, the ends in proportion.
       const riserFront = logNosed ? uFront + 0.03 : i * def.tread + 0.01;
-      const riserDepth = i * def.tread + 0.01 + def.tread * 0.9 - riserFront;
+      const riserExtend = i * def.tread + 0.01 - riserFront;
+      const riserDepth = def.tread * 0.9 + riserExtend;
       // more vertices along the face (segs 7) so the moss patches below can vary every 15–40 cm
-      const riserOutline = jitteredRect(rng, len - 0.015, riserDepth, { jitter: 0.012, segs: 7, chip: 0.05, chipChance: 0.3 });
+      const riserCut = jitteredRect(rng, len - 0.015, def.tread * 0.9, { jitter: 0.012, segs: 7, chip: 0.05, chipChance: 0.3 });
+      const hd0 = (def.tread * 0.9) / 2;
+      const riserOutline = riserExtend > 0 ? riserCut.map((p) => ({ x: p.x, z: p.z - riserExtend * clamp((hd0 - p.z) / (2 * hd0), 0, 1) + riserExtend / 2 })) : riserCut;
       const ac = a + len / 2;
       const uc = riserFront + riserDepth / 2;
       // the first riser stands in the plaza soil (heightfield: the approach banks up ~9 cm to the
