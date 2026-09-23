@@ -313,6 +313,12 @@ Nothing outside `src/world/rocks/` except this log, the INBOX and my evidence un
 
 ## Completed work
 (newest first)
+- `78d18fe1` (`agent/fable-2-log-joint`): lane 6 — the log flight's angular dark joins closed by geometry
+  (fable-cursor 18:10 / Astra's `s2-join-close`): split treads laid as one earth tread (outlines joined,
+  draws kept), the riser 3 cm behind the nose (was 7.5–10.5), no rolled lip and no `LOG_SHADED_LIP` on
+  log flights; `stairs.test.mjs` (4). Six views A −0.0008, F −0.0007, rest 0. README §92.
+- `3cc8ca96` (merged 17:20 as a look change): lane 6 — the band under each timber as lit earth; the
+  owner's pose flight box 63 → 42 % dark. README §89 (§90's cooler tint measured, not needed).
 - `3ac0a8a1` + `9d1fc102` (`agent/fable-2-ledge`): the expansion cull (pebbles filtered; rubble / strata
   scale 0 in place, adoption loops guarded; `expansionCulled` audit) and the listed backside positions
   (per-piece casters; discs within 1.6 m of C's edge skipped).
@@ -445,5 +451,6 @@ Nothing outside `src/world/rocks/` except this log, the INBOX and my evidence un
   a bright top — the §63 method with the light first), #34's pebble far skin at E.
 
 ## Last updated
+2026-09-23T22:30:00Z
 2026-09-23T11:35:00Z
 2026-09-23T09:00:00Z
