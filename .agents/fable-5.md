@@ -19,7 +19,7 @@ gauntlet's independent D7 verdicts (`gauntlet/reviews/*.json`, written only thro
 ## Current task
 LANE 10 (squad brief 2026-09-23): walkthrough QA and performance on the play-head build — ranked issue lists with positions,
 load / pacing / hitches; fixes go to the owning lanes.
-Done this iteration: LANE 10's first walkthrough report. Next: the pacing results appended; the north-path poses re-read as
+Done this iteration: pacing appended; the air changes re-read at the owner's pose. Next: the north-path poses re-read as
 lanes 1/2/3/4/6 land; take-0135's read at the seal; then: take-0135's read when it seals —
 file W02 / W14 / W26 / W10 as read (expected A 0.2173, B 0.1982, C 0.2080, D 0.2657, E 0.2190, F 0.2266); the sky/haze colour
 re-read after Astra's next fog change; the video file.
@@ -38,6 +38,9 @@ lands: `ffmpeg` frames at his marked moments → `reference/frames-video2/`, has
 - `.agents/fable-5.md`, `.agents/reviews/fable-5-*.md`, my threads in `.agents/INBOX.md`.
 
 ## Completed work
+- 2026-09-23 08:30–08:42 UTC — iteration 82 (lane-10 report §3 pacing, §5): the 07:50–08:29 air changes at the owner's pose darken
+  the corridor (mist 2.0 → 0.9 %, l 0.300 → 0.263 vs the recording's 22.6 % bright); the left-bank turf invisible at his pose;
+  pacing along the walk smooth (JS p50 4.2 ms, no compiles).
 - 2026-09-23 07:29–07:52 UTC — iteration 81 (LANE 10 taken, `fable-5-lane10-walk-2026-09-23.md`): the owner's 06:50 pose against
   his recording (bright mist 2 % vs 15–23 %, earth banks 17 % vs 1–2 % — a trench with no crowns at 10–40 m); an eight-item
   ranked list with positions and lanes; harness on `e4ca3241`: walks clean, the descent camera at 0.38 m, `stairs2-base` 9.53 M
@@ -395,4 +398,4 @@ lands: `ffmpeg` frames at his marked moments → `reference/frames-video2/`, has
   lists the regions; the evidence images are reproducible with the same crops.
 
 ## Last updated
-2026-09-23T07:53:00Z
+2026-09-23T08:43:00Z

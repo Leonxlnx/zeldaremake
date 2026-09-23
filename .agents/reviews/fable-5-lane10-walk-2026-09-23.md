@@ -54,8 +54,13 @@ middle distance over it.
   foot is the first place to cut (the blades to 26 m and the near giant's canopy are the likely mass).
 - JS step 18–32 ms per frame at these spots (render 13–30 ms of it) — fine on a real GPU box; the wall times here (19–33 s a
   frame) are SwiftShader's.
-- **Pacing** (per-frame JS step, synced draws, shader compiles and heap along plaza → second staircase → upper house):
-  running at the time of writing; appended below when it lands.
+- **Pacing** (plaza → second staircase → upper house, 21 simulated s, 630 frames; JS step per frame, a drawn frame every
+  12): **JS step p50 4.2 ms, p95 8.7, p99 11.2, max 46.6 (frame 0)**; 39 frames over the harness's hitch rule (> 8 ms),
+  none above 12 ms after frame 0 — the worst at (10.7, 1.9, −1.9) on the flight, 11.9 ms; **no shader compiles during the
+  walk (programs 104 → 104)**; heap 1,325 → 1,227 MB (the `onUpload` releases as the walk uploads). Drawn frames 12.5–19.9 s
+  wall here (SwiftShader), 10–22 ms of it the renderer's own issue time. **Smooth by the JS side; on a GPU box the walk
+  should be hitch-free** — the load is the only wait (see the play-head boot: fable-cursor's pass-3 evidence puts ready at
+  81 s from githack).
 
 ## 4. What this lane asks of the others (the owner's 24 h)
 
@@ -69,3 +74,24 @@ middle distance over it.
 
 Verification poses for all of the above: `fable-5-lane10/northpath-poses.json` (`broll.mjs --shots … --character`), and
 the owner's own `art/environment/owner-2026-09-23/shots.json`.
+
+## 5. Re-read at the owner's pose after the 07:50–08:29 head (`f56c5740` → `9a1be295`: "clearer air between the shafts" ×2, the left bank's full turf)
+
+| upper-middle band (0.12–0.50) | bright mist | brown bank | near-black | mean l |
+| --- | --- | --- | --- | --- |
+| owner's r_024 | **22.6 %** | 1.3 % | 12.4 % | — |
+| ours `f56c5740` (07:00) | 2.0 % | 16.6 % | 17.6 % | 0.300 |
+| ours `9a1be295` (08:29) | **0.9 %** | 17.3 % | **24.6 %** | **0.263** |
+| the r_020-like / r_026-like poses | 3.4 → 0.9 % / 2.0 → 0.7 % | | 24.9 → 30.4 / 31.5 → 38.4 % | 0.302 → 0.263 / 0.275 → 0.239 |
+
+**"Clearer air" darkened the corridor at the owner's pose.** The base air was raised (6 / 16 m) to show trees instead
+of haze; at his bearing the far trunks became darker silhouettes in a darker grey — the band lost 0.04 of luminance and
+its bright mist fell by half — while nothing new populates it (no crowns arrived; that is lane 2's). The recording's
+"clear" is the opposite reading: **bright warm mist with trees standing in it** (22.6 % of the band bright, near-black
+12 %). This is the fog slice's failure mode again (`ANALYSIS_CLARITY.md` §3): thinning the veil removes the light with it.
+What the frames ask for at this pose is the mist *brighter and warmer* (§5's #858372) and the trees *in* it, not thinner
+darker air. **The left bank's turf** (`d19439cc`, D's hollow z −16…−26 at 88 % height, coverage fill on): at the owner's
+pose the left bank region (x < 0.33, y 0.45–0.90) is unchanged — mean l 0.195 → 0.193, blade texture 0.0292 → 0.0288 —
+the change is not in this framing (the bank he sees is the shaded slope beside the path, in view but not lit; the
+hollow's blades are behind the rise). Sheet `fable-5-lane10/owner-0650-pose-f56c5740-vs-9a1be295.jpg`.
+
