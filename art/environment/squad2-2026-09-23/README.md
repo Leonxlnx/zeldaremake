@@ -135,7 +135,8 @@ clean, so it is kept. If the owner wants that ground to stay an open clearing, `
 
 `gauntlet/scripts/playtest.mjs --only look,walk,perf --shots` on the change, and `--only perf` on the
 base build (`144453ef`, built into a second worktree) so the cost comparison is the same machine and
-the same Chrome:
+the same Chrome. (The walk / perf run predates the `edgeSteepNearM` commit, which is a shader branch
+only — the same 393 placements and the same geometry; the look run below is on the shipped build.)
 
 | spot | draws before → after | submitted triangles before → after | JS step ms | render ms |
 | --- | --- | --- | --- | --- |
