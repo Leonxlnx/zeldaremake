@@ -2,7 +2,7 @@
 /**
  * pose-counts.mjs — draw calls and triangles at fixed poses, one world load per dist.
  *
- *   node gauntlet/scripts/pose-counts.mjs --dist dist --out counts.json [--shots poses.json] [--size 960x540]
+ *   node gauntlet/scripts/pose-counts.mjs --dist dist --out counts.json [--shots poses.json] [--only A_stairs,D_log] [--size 960x540]
  *
  * Poses: the six fixed viewpoints (A–F) plus any `--shots` file (broll format, the `from` pose).
  * Each pose settles `--settle` frames (default 6) before `__ZR__.stats()` is read, so the near-LOD
@@ -25,7 +25,8 @@ const browser = await launchBrowser({ width, height });
 const rows = [];
 try {
   const { page } = await openWorld(browser, server.url, { width, height, log: console.error });
-  const viewpoints = await page.evaluate(() => window.__ZR__.viewpoints().filter((v) => !v.diagnostic).map((v) => v.id));
+  const only = args.only ? String(args.only).split(",") : null;
+  const viewpoints = (await page.evaluate(() => window.__ZR__.viewpoints().filter((v) => !v.diagnostic).map((v) => v.id))).filter((id) => !only || only.includes(id));
   const poses = [...viewpoints.map((id) => ({ name: id, viewpoint: id })), ...shots.map((s) => ({ name: s.name, pose: s.from }))];
   for (const p of poses) {
     await page.evaluate(({ viewpoint, pose }) => {
