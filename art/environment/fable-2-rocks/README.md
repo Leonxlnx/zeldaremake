@@ -52,6 +52,16 @@ pixels):
 
 `tsc` green, hardscape tests 9 / 9. The joints keep their darkness (the fill's paint, not the slabs' shadow); at A the only
 pixels that move are the hairlines along the sunward edges, none by more than 40 levels.
+## Iteration 93 — the ledge flight on §92's geometry (verification only, no source change)
+
+The raised stair to the north ledge is `logNosed` too, so §92's three changes reach it. Two close poses of my own on the flight
+(`ledge-join-close` `[2.6,5.3,−72.9] → [1.5,4.9,−74.2]` fov 45; `ledge-face-low` `[1.2,5.0,−71.6] → [1.2,5.2,−74.7]` fov 46),
+head `393fce60` against `78d18fe1`: the dark slots under the second and third timbers (the overhang's ceiling and the recessed riser)
+are earth faces running down to the tread below; the split-tread joint on the face-on pose is gone. Pixels > 8 levels 13.6 % / 9.3 %
+(the flight is most of both frames), > 40 levels 2.1 % / 1.5 %. Nothing else in either frame moved.
+
+![ledge flight](steps93-ledge-sheet.jpg)
+
 ## Iteration 92 — lane 6: the log flight's angular dark joins closed by geometry (`agent/fable-2-log-joint` @ `78d18fe1`)
 
 fable-cursor 18:10 (Astra's `s2-join-close`, PR #2 18:04): "large dark angular recesses under successive log nosings — the central
