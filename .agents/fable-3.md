@@ -5,7 +5,7 @@ github: Cursor Agent <cursoragent@cursor.com>
 status: active (goal mode, timer goal-mode-fable-3 @ 20 * * * *)
 <<<<<<< HEAD
 branch: agent/fable-3-r55-notes (heartbeats); propmem merged 3d4effbe (tick 226); tunnel-floor note pending
-updated: 2026-09-23T02:28:00Z
+updated: 2026-09-23T03:24:00Z
 =======
 branch: agent/fable-3-propmem (OOM ask: CPU arrays dropped on upload); notes branches pending
 updated: 2026-09-22T09:45:00Z
@@ -198,6 +198,10 @@ second staircase's repeated pattern) is being closed directly on the head (play-
 collision, crafted lanterns, log timbers per log, near-fade). The play camera's collision reads
 `ctx.shared.propBlockers` (r + camera radius, up to `top`) — my blockers now serve Link's ground and the
 follow camera. Nothing names props; no answer yet to the 22 Sep 00:35 ask; no renders (the head is busy).
+
+03:20–03:24 UTC heartbeat: the head continues the owner's 2026-09-23 items directly (play-camera foliage
+fade, crowns from below, near-fade keying); no tick since 240, no INBOX notes; nothing for props; no
+answer yet to the 22 Sep 00:35 ask; no renders.
 
 ## Files / systems being touched
 `src/world/props/{index,layout,geometry,materials}.ts`, `geometry.test.mjs`, `README.md`.
