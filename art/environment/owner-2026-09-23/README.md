@@ -522,9 +522,13 @@ house, post and bough. Now two soft sines under 420 Hz at a third of the level, 
 Decomposed at his pose and two more (`probe-look` variants, `pass3/owner-0650-poses.json`): the far
 softening pass changes nothing there; a thinner ground fog (0.012 → 0.007, cap 0.86 → 0.72) moves the
 upper frame by under 1 level; **the god rays' in-scatter is the veil** — with the rays off the upper-left
-third falls 83.6 → 59.8 levels looking north (`pass3/haze-rays-share-north.jpg`). The air between the
-shafts is cleared (intensity 0.32 → 0.28, gap floor 0.3 → 0.15, the screen fan's floor 0.75 → 0.5, the
-base air 3 / 6.5 → 5 / 12 m): the upper frame 79.1 → 69.9 looking north, 94.1 → 77.1 looking west,
-80.2 → 73.7 toward Saria's, the shafts kept (`pass3/haze-clear-shafts.jpg`). What the haze does not
-explain — fable-5 (lane 10) measured it against the owner's recording: the corridor has no leafy crowns
-at 10–40 m over its banks, only bare column trunks — is the trees' lane (fable-4 / squad lane 2–3).
+third falls 83.6 → 59.8 levels looking north (`pass3/haze-rays-share-north.jpg`). Clearing the air
+between the shafts as well (intensity 0.32 → 0.28, gap floor 0.3 → 0.15, the screen fan's floor
+0.75 → 0.5) was tried and backed out: it dimmed the god rays themselves and the hero views read duller,
+not fuller (top thirds A −7.6, B −10.5, D −12.2 levels; `pass3/haze-clear-shafts.jpg` shows that
+variant at the owner's poses). What stays: the base air starts higher (3 / 6.5 → 6 / 16 m), so the
+glow at eye level thins and the shafts above keep their brightness — the upper frame 79.1 → 72.9
+looking north, 94.1 → 82.6 looking west, 80.2 → 75.6 toward Saria's (`9a1be295`). What the haze does
+not explain — fable-5 (lane 10) measured it against the owner's recording: the corridor has no leafy
+crowns at 10–40 m over its banks, only bare column trunks, and its mist is bright and warm where ours
+is cool grey — is the trees' lane (fable-4 / squad lane 2–3) and the colour half of lane 1.
