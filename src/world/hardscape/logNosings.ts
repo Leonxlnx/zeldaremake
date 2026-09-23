@@ -127,12 +127,15 @@ export function buildLogNosings(def: StairDef, seed: string): LogNosingBuild {
    *    timber; the first mapping ran it round the circumference, rings across every log) and u
    *    round it, one turn of the map per `uvAround` of circumference
    *  - `roll`: the log's rotation about its own axis (rad) — which side of the bark faces up
+   *  - `twist`: spiral grain, map widths turned round the log over its whole length — each repeat
+   *    of the map along the log shows another face of it on the crown (without it the map's knot
+   *    recurred every 0.8–1.3 m along the top of every log, a row of evenly spaced eyes from above)
    *  - `buttAtA` / `taper`: a felled log is thicker at the butt; laid as it came, either way round
    *  - `bow` / `bowDir`: a gentle sweep along the length (m, peak at mid-span), kept horizontal
    *  - `ridgeAt(t)`: the bark ridges' scale along the length (worn flatter where feet land)
    */
-  type TubeLook = { uvOffset: number; uvTile: number; uvAround: number; uvShift: number; roll: number; buttAtA: boolean; taper: number; bow: number; bowDir: Vector3; ridgeAt?: (t: number) => number };
-  const plainLook = (taper: number): TubeLook => ({ uvOffset: 0, uvTile: 0.9, uvAround: 0.6, uvShift: 0, roll: 0, buttAtA: true, taper, bow: 0, bowDir: new Vector3() });
+  type TubeLook = { uvOffset: number; uvTile: number; uvAround: number; uvShift: number; roll: number; twist: number; buttAtA: boolean; taper: number; bow: number; bowDir: Vector3; ridgeAt?: (t: number) => number };
+  const plainLook = (taper: number): TubeLook => ({ uvOffset: 0, uvTile: 0.9, uvAround: 0.6, uvShift: 0, roll: 0, twist: 0, buttAtA: true, taper, bow: 0, bowDir: new Vector3() });
   const tube = (a: Vector3, b: Vector3, r: number, seedK: number, wobble: number, ridges: number, colorAt: (t: number, ang: number, up: number, n: Vector3) => Color, look: TubeLook) => {
     const axis = new Vector3().subVectors(b, a);
     const len = axis.length();
@@ -165,7 +168,7 @@ export function buildLogNosings(def: StairDef, seed: string): LogNosingBuild {
         p.copy(a).addScaledVector(axis, t * len).addScaledVector(look.bowDir, sweep).addScaledVector(n, rr);
         pos.push(p.x, p.y, p.z);
         nrm.push(n.x, n.y, n.z);
-        uv.push(look.uvShift + (j / RADIAL) * turns, look.uvOffset + (t * len) / look.uvTile);
+        uv.push(look.uvShift + (j / RADIAL) * turns + look.twist * t, look.uvOffset + (t * len) / look.uvTile);
         const c = colorAt(t, ang, n.y, n);
         col.push(c.r, c.g, c.b);
       }
@@ -284,6 +287,9 @@ export function buildLogNosings(def: StairDef, seed: string): LogNosingBuild {
         uvAround: 0.55,
         uvShift: hash2(i, 63, 7),
         roll: Math.PI * 2 * hash2(i, 67, 7),
+        // 0.8–1.2 map widths (one map width is the whole girth here) over the log, either hand: a
+        // 7–12° spiral, and each of the map's 2.6–4.3 repeats along the log turned 70–165° from the last
+        twist: (hash2(i, 139, 7) < 0.5 ? -1 : 1) * (0.8 + 0.4 * hash2(i, 149, 7)),
         buttAtA: hash2(i, 71, 7) < 0.5,
         taper: 0.1 + 0.12 * hash2(i, 73, 7),
         bow: 0.05 * (hash2(i, 79, 7) - 0.5),
