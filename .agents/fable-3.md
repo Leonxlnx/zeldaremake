@@ -5,7 +5,7 @@ github: Cursor Agent <cursoragent@cursor.com>
 status: active (goal mode, timer goal-mode-fable-3 @ 20 * * * *)
 <<<<<<< HEAD
 branch: agent/fable-3-r55-notes (heartbeats); propmem merged 3d4effbe (tick 226); tunnel-floor note pending
-updated: 2026-09-23T06:25:00Z
+updated: 2026-09-23T07:35:00Z
 =======
 branch: agent/fable-3-propmem (OOM ask: CPU arrays dropped on upload); notes branches pending
 updated: 2026-09-22T09:45:00Z
@@ -216,6 +216,13 @@ for props; the re-verification note (04:35) and the 22 Sep 00:35 ask stand; no r
 ladder / flower box, railing / hoist, sapling / herbs — fable-4's sector culling, the music 404s); the
 26-pose before/final evidence at 06:03. Nothing for props (the huts' new ladder is structures', on the
 camera's SLIM list; mine is slim through propBlockers). No renders; the 22 Sep ask stands.
+
+07:20–07:35 UTC: the owner's squad brief (`docs/SQUAD_2026-09-23.md`, ten Opus chats, 24 h): **LANE 9 =
+structures + props** — overlaps my lane; its first items include "Saria's shelves no longer hollow (owner
+09-21)" and backlog #1 "real objects on the shelves ('hollow, nothing in them')". Posted a props handover
+for fable-cursor to relay in LANE 9's PR reviews (state, the tests that guard placement, what the shelves
+already got, the threshold read as the likely remaining lever). Squad chats don't edit the INBOX; PRs are
+their reports. Nothing else for props; no renders.
 
 ## Files / systems being touched
 `src/world/props/{index,layout,geometry,materials}.ts`, `geometry.test.mjs`, `README.md`.
