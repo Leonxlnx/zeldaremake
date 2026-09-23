@@ -4,7 +4,7 @@ runtime: Codex sub-agent for Astra
 github: Leonxlnx
 status: reviewed
 branch: agent/astra-safe-world-sept23
-updated: 2026-09-23T17:55:00Z
+updated: 2026-09-23T18:01:39Z
 ---
 
 # Astra squad source integration
@@ -21,6 +21,8 @@ Root's follow-up requested a matched close-pose baseline to establish whether th
 - Final bundle: `dist/assets/index-DwReWLkW.js`. Initial source validation was CPU-only. Subsequent seven-frame native review completed with no recorded page/renderer errors; no audio playback or gauntlet take was run.
 - Native evidence: `art/environment/astra-safe-world-review/`. Six fixed views remain below 9 M triangles / 700 draws, with triangles reduced by 107,508–185,398 and draw deltas -1 to +6. Camera/time/global lighting match the verified baseline exactly. The additional matched close pose records baseline 9,841,463 triangles / 437 draws versus candidate 9,723,855 / 442. The dark angular timber-to-riser join gaps and diagnostic triangle exceedance are preexisting.
 - Actual-builder CPU replay also confirms the 14,085 main-flight slab/riser/cheek/landing triangles retain byte-identical positions, normals and ordering; the separate log geometry and materials change.
+- Native proof commit `75a75d1c` is pushed on draft PR #32 separately from source `4b2fe8e6`; the original six baseline images are reused, with only one new matched baseline close frame. Root accepts the bounded batch's fixed-view direction pending CI. PR #32's check rollup is empty as of 18:01 UTC; no CI pass is claimed.
+- Stair lane 6 / the Opus coordinator received the exact paired close images, camera and source identities in PR #2 comment https://github.com/Leonxlnx/zeldaremake/pull/2#issuecomment-5800165655. Requested a root-cause geometry/shading correction for the inherited angular joins, preserving brown timber and their ownership, rather than further darkening to hide the artifact.
 - Source preservation diff confirms camera, main, terrain/layout, atmosphere, vegetation, Link model/gait/ground, capture audit/scoring and B3 test match `4ad2fb50`. Link SHA256 remains `7f406e40e65430ed3c11bd045e2e9482dae8cee8122e9869ed62a2c3cfecbbda`.
 - Music config enumerates only files present at build/server start; this worktree has no music files, so original synthesized fallback remains. No new external assets or requests. Fixed the imported audio test's Windows URL path with `fileURLToPath`.
 
@@ -41,4 +43,4 @@ Native fixed-view and matched close-pose review completed; sound and walkability
 Root may review/cherry-pick `4b2fe8e6` alone; this lane has not adopted it. Review the saved native images and close-pose limitations before that decision. Route checks and an audio listen remain. Dense mid-canopy and atmosphere stay held pending the partner's current-head response to PR #2 comment 5799312619.
 
 ## Last updated
-2026-09-23T17:55:00Z
+2026-09-23T18:01:39Z
