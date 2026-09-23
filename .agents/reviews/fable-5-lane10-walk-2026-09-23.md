@@ -457,3 +457,34 @@ projected together onto the head `56b54e15`. JSONs in `fable-5-lane10/perf88/`.
   (115 → 115). Heap 1,274 → 1,276 MB across the walk (max 1,334)** — flat, where the 11:14 walk grew +99 MB; the
   three shadow give-backs and the kids' shadow culling took the walk's build churn with them, or the pools were warm
   from the perf spots — either way the walk no longer leaves memory behind. `perf89/playtest-b510b152.json`.
+
+## 14. Re-read on `79f44aa5` (17:20 — fable-2's earth under the timbers, fable-4's understory re-seat + finer leaves, the kids' brows): the flight closes; the card wall at the owner's look-up poses was the **understory**, not the mid canopy — §10.1's owner corrected
+
+Owner poses `art/environment/owner-2026-09-23/shots.json`, before = `0149f255` (§10), same flags. Sheets
+`fable-5-lane10/it90-ba-{s2,u-open-up,h-west-front}.jpg`.
+
+**The flight (`s2-owner`, lane 6 `da634660`, "the band under the timbers as earth").** My box (x 0.50–0.95 × y 0.20–0.95,
+luma): **dark 60.8 → 37.4 %, pale 6.1 → 9.2 %, mean 0.242 → 0.300, p10 0.118 → 0.190** — the demo's flights read 31 % /
+0.312 (`d_094`) and 13 % / 0.330 (`d_104`). The flight now sits *between* the demo's two frames on weight and 0.03 short of
+the lit one; the riser band under each timber is pale earth and the flight reads as earthen log steps (the sheet). What
+is left: the earth's saturation (0.46 in the box against the demo's 0.34–0.35 — fable-2 named it: a cooler earth toward
+the frame's grey-beige) and the light on the treads with lane 1. **§10.3 / §2 #5 closes on kind and weight.** The
+six-view price is fable-2's read (A −0.0131, F −0.0081) — the take's row moves by it; owner-directed.
+
+**`u-open-up`: the wall of cards is gone** — 82 % of pixels moved, luma 0.303 → **0.418**, dark 53.5 → **11.2 %**, sky
+13.6 → 23.8 %; the frame is the haze, the shafts and the giants' canopy again with a bole in the lower middle.
+**`h-west-front`: the cards are half the size and twice as many** (48 % of pixels moved, luma 0.258 → 0.260, dark 58.6 →
+56.5 %) — still a card cloud between the camera and the hut.
+
+**Correction to §10.1.** Nothing in lane 2 changed between the two heads; what changed was fable-4's understory — every
+stem re-seated on the rendered surface (`a2d3097b`), the laminae halved in size and doubled (`6ea3a21c`). The cards
+answered *that* change (vanished at one pose, halved at the other), so **the card wall at the owner's look-up poses was
+the understory's 0.45 m laminae, not squad2's mid canopy.** The mid seats I named (6.0 m and 3.0 m from the cameras) stand
+there, but their crowns were not the pixels. The mechanism is the same one I asked lane 2 to fix, in fable-4's constants:
+`UNDERSTORY_ZONES[0]` puts 26 stems on the north path's verges from z −12 to −50 with `UNDERSTORY_PATH_MIN_M` = **3.4 m**
+from the centreline (6.5 m only on the arch stretch, z < −28); a walker at eye height 1.6–5 m stands inside those crowns.
+`h-west-front` (z −21.5) is on the 3.4 m stretch — hence the cloud stays; `u-open-up` (z −40) is on the 6.5 m stretch —
+hence it cleared once the stems were re-seated and the leaves halved. **Ask, fable-4:** the plaza stretch's minimum toward
+the arch stretch's 6.5 m (or the crowns' base above the eye line on the walk lines), read at `h-west-front` and the 06:50
+pose. **Lane 2:** §10.1's ask about the mid crowns' *distance colour* (§7) stands; the clearance ask moves to the understory.
+`b-upper-2`: unchanged (1.8 % of pixels; dark 54.6 % — §10.2 stands for lane 1).
