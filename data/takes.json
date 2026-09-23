@@ -1,6 +1,6 @@
 {
   "project": "zeldaremake",
-  "updatedAt": "2026-09-23T22:09:50.418Z",
+  "updatedAt": "2026-09-23T23:27:35.584Z",
   "monitorCadenceMinutes": 60,
   "takes": [
     {
@@ -91039,8 +91039,8 @@
     }
   ],
   "heartbeat": {
-    "at": "2026-09-20T17:11:44.533Z",
-    "reason": "round 50 mid-work; goal-mode merges + Astra NaN guard on the head"
+    "at": "2026-09-23T23:27:35.584Z",
+    "reason": "sha 67b801db unchanged since take-0135"
   },
   "play": {
     "takeId": "take-0135",
