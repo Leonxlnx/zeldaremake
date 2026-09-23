@@ -167,6 +167,8 @@ export interface ColumnParams {
    * is merged with these).
    */
   boleKnees?: { height: number; azimuthDeg: number; reach: number; halfWidth: number; stubLength: number; stubRadius: number; stubPitch: number }[];
+  /** round 52: the sweep's lateral wander (`growthPath` amount); unset = 0.14, the straight bole the emergent and the hut host keep */
+  boleWander?: number;
 }
 
 /** Deterministic architecture for variant `index` of `total`. */
@@ -192,10 +194,15 @@ export function columnParams(rng: Rng, index: number, total: number): ColumnPara
   }));
   return {
     boleKnees,
+    boleWander: 0.22,
     seed: `col-${index}-${r.int(0, 1e9)}`,
     height: 17.5 + f * 5 + r.range(-0.6, 0.6),
     trunkRadius: 0.5 + f * 0.2 + r.range(-0.03, 0.03),
-    leanDeg: r.range(1, 4),
+    // round 52: 1–4° put every column within 1.2 m of plumb over its bare run, so a stand of them
+    // read as a rank of posts. 2–6.5° with the wider sweep wander below (`boleWander`) is a tree
+    // that grew toward the light. The six hero views move 0.08–0.48 mean levels with the whole
+    // round-52 set, so the far wall's screen columns stay where they were seated.
+    leanDeg: r.range(2, 6.5),
     leanAzimuth: r.range(0, TAU),
     fork: r.range(0.54, 0.62),
     leaders: r.int(2, 4),
@@ -352,7 +359,7 @@ export function createColumnTree(p: ColumnParams, palette: Palette, detail: Deta
   const lean = Math.tan((p.leanDeg * Math.PI) / 180) * forkY;
   const top = new Vector3(Math.cos(p.leanAzimuth) * lean, forkY, Math.sin(p.leanAzimuth) * lean);
   const skirt = 0.8;
-  const trunk = growthPath(new Vector3(0, -skirt, 0), top, UP, rng, 22, 0.14);
+  const trunk = growthPath(new Vector3(0, -skirt, 0), top, UP, rng, 22, p.boleWander ?? 0.14);
   const forkRadius = R * 0.42;
   const trunkRadii = trunk.map((pt, i) => {
     const t = i / (trunk.length - 1);
