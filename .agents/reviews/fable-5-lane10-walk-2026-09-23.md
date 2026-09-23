@@ -1,0 +1,71 @@
+# fable-5 — LANE 10 (walkthrough QA and performance): the play-head build against the owner's recording, 2026-09-23 07:55 UTC
+
+Build: the head `e4ca3241` / world `f56c5740` (the play-head republish). Owner's words (06:50): "the trees do not
+populate" — the middle distance is grey haze with bare trunks where his own recording `review46/r_020–r_028` shows
+small and medium trees with round leafy crowns and dense shrubs at every depth; thicker grass on the left of the paths;
+the steps log-risered; the path splitting into the forest; the people back. His marked screenshot: play mode on the north
+path looking north from the plaza's north end, Link ≈ (1.5, −14).
+
+## 1. The owner's pose against his recording
+
+Rendered on the head with the character on at the owner's bearing — camera (1.5, 3.2, −10.5) → (1.5, 1.6, −26), fov 50 —
+and two more along the same run (`fable-5-lane10/northpath-poses.json`); his frames `r_020–r_028` beside them
+(`fable-5-lane10/owner-0650-pose-vs-r024.jpg`, `review46-r020-r028.jpg`).
+
+| upper-middle band (rows 0.12–0.50) | bright mist (l > 0.5, s < 0.22) | bark / earth brown (h 15–50°, l < 0.45) | near-black |
+| --- | --- | --- | --- |
+| owner's r_021 / r_024 / r_026 | **15 / 23 / 23 %** | 11 / 1.3 / 1.9 % | 30 / 12 / 8 % |
+| ours at the owner's pose / r_020-like / r_026-like | **2.0 / 3.3 / 2.0 %** | **16.6 / 9.8 / 10.0 %** | 18 / 25 / 32 % |
+
+What the eye sees, in order of size: **(a)** the reference's middle distance is *trees in warm mist* — trunks with round
+leafy crowns at 10–40 m stacked in depth, bright mist between them (15–23 % of the band); ours is a **trench** — the path
+runs between two steep cut earth banks (brown, 10–17 % of the band) with column trunks rising from them and no crowns at
+10–40 m over the banks; the mist behind is dark grey (2–3 % bright); **(b)** the reference path is packed dirt with a few
+slabs and ferns / purple flowers at the verges; ours is continuous stone slabs with dark joints (V16) between two mown
+banks; **(c)** the reference bends the path past Saria's mound toward the house and into the woods; ours runs straight
+into the far haze. The owner's two red circles are (a): the smooth pale column trunk left of the path and the empty grey
+middle distance over it.
+
+## 2. Ranked issue list at player height, with positions
+
+| # | issue | where (position / bearing) | owning lane | measured |
+| --- | --- | --- | --- | --- |
+| 1 | **No crowns at 10–40 m over the north path**: the banks' tops carry no small / medium trees; the column trunks rise bare into grey; the reference stacks round leafy crowns at every depth | (1.5, −14) looking north; also (0.8, −4.5) and (1.8, −17.5) | 2 (trees in the distance) + 3 (column trunks) | bright mist 2 % vs 15–23 %; brown banks 10–17 % vs 1–2 % |
+| 2 | **The mist is dark grey, the reference's bright and warm** — the "grey washout": the light behind everything is cool (#777c7e-class) where the frames' is warm khaki (#858372) | every pose looking out or up | 1 (atmosphere) | `reference/ANALYSIS_CLARITY.md` §3, §5 |
+| 3 | **The path corridor is a cut trench**: steep bare earth banks either side of the spine north of the plaza, mown lawn on top; the reference's path sits in a shallow shrubby swale (ferns, purple flowers, low shrubs) with the ground rising gently into the trees | the spine (1.5, −4) → (1.5, −30) | 4 (vegetation: the verges) + 6 (paths) + 2 (trees on the banks) | the owner's "thicker grass on the left" is the left bank of this corridor |
+| 4 | **The path is stone slabs with continuous dark joints**; the reference's north run is packed dirt with occasional slabs | the spine north of the plaza | 6 (paths / hardscape) | V16: seam −0.29 below the slab vs −0.15; the joint read r55 §K.1 |
+| 5 | **The flight's treads are in shade, the logs dark**: the frame's flight is pale packed treads climbing into light; ours 52.8 % dark vs 15.9 (weathered logs on shaded treads) | A, `s2-owner` (4.4, 1.98, 0.27) → (9.53, 2, −3.77) | 6 (steps) + 1 (the light on the slope) | r55 §W; fable-4's flight-shade 0.376 shadowless vs 0.65 |
+| 6 | **The path does not fork into the woods**; the reference's run bends past Saria's mound and splits (house / woods) | north of Saria's mound, (6, −12) … (2, −30) | 6 (paths) with fable-cursor (layout) | r_024–r_028 |
+| 7 | **No people**: the demo's kids on the path and the bank, the girl by the signpost | the plaza, the north path | 7 (people) | hidden by `backgroundCast.visible = false` |
+| 8 | **The D boulder in the giants' shadow**; V16's seams; the giants' limbs at frame scale | D; the plaza; B | 3 / 6 | r55 §J/§L, §K.1 |
+
+## 3. Walkability and performance on the head (`playtest.mjs --only walk,climb,perf,pacing`, 960 × 540, quality high, SwiftShader)
+
+- **Walk routes:** `plaza-to-upper-house` (6/6 waypoints), `plaza-to-south-bank-top` (4/4), `saria-front-arc` (3/3),
+  `west-deck` (3/3) — **all reached, no stuck points.**
+- **Climbs:** the south-bank flight up and down clean (top reached, bottom reached, no stalls). The main flight up: no
+  stalls, max rise 0.27 m/frame, but **not at the top after 255 frames (y 4.32 of 5.40)** — the route's frame budget, not
+  a block, on the trace; the descent's camera comes within **0.38 m of the ground** (`minCameraAboveGroundM 0.383`, the
+  ascent's 1.77) — worth a look by the camera owner: on the way down the flight the follow camera nearly touches the treads.
+- **Frame cost at four play spots** (draws / triangles; SwiftShader wall time is CPU rasterisation, not a GPU):
+  plaza **521 / 7.43 M**, `stairs2-base` **522 / 9.53 M**, `saria-side` 519 / 8.59 M, `west-house` 442 / 5.03 M. **A walker
+  standing at the foot of the main flight renders 9.53 M triangles — over the 9.0 M W38 cap that camera A is held to**
+  (A itself is 8.7 M). The play view is the owner's view now; the cap should be read at the play spots, and the flight's
+  foot is the first place to cut (the blades to 26 m and the near giant's canopy are the likely mass).
+- JS step 18–32 ms per frame at these spots (render 13–30 ms of it) — fine on a real GPU box; the wall times here (19–33 s a
+  frame) are SwiftShader's.
+- **Pacing** (per-frame JS step, synced draws, shader compiles and heap along plaza → second staircase → upper house):
+  running at the time of writing; appended below when it lands.
+
+## 4. What this lane asks of the others (the owner's 24 h)
+
+1. Lane 2 with lane 3: trees *on the banks* of the north corridor at 10–40 m — round-crowned small and medium trees, not
+   only the far ring — and bark on the column trunks. This is the owner's circle 1 and 2 in one.
+2. Lane 1: the mist bright and warm (`ANALYSIS_CLARITY.md` §5's #858372 at the top of frame, the far bands back to
+   l 0.40–0.50), so the trees that lane 2 adds stand *in* light rather than against grey.
+3. Lane 4 / 6: the corridor's banks as shrubby swales with ferns and flowers at the verges; the north run as dirt with
+   occasional slabs; the fork past Saria's mound.
+4. Everyone: read the triangle cap at the play spots, not only at A — `stairs2-base` is at 9.53 M today.
+
+Verification poses for all of the above: `fable-5-lane10/northpath-poses.json` (`broll.mjs --shots … --character`), and
+the owner's own `art/environment/owner-2026-09-23/shots.json`.

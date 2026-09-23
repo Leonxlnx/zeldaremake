@@ -17,7 +17,10 @@ gauntlet's independent D7 verdicts (`gauntlet/reviews/*.json`, written only thro
 00:00 UTC (timer `goal-mode-fable-5`, cron `20 * * * *`); `agent/fable-5-demo-walk` merged (`b4de8d7`); current branch `agent/fable-5-r48-review`.
 
 ## Current task
-Done this iteration: c526a5b8 checked at the owner's u-open-up (r55 §Z). Next: take-0135's read when it seals —
+LANE 10 (squad brief 2026-09-23): walkthrough QA and performance on the play-head build — ranked issue lists with positions,
+load / pacing / hitches; fixes go to the owning lanes.
+Done this iteration: LANE 10's first walkthrough report. Next: the pacing results appended; the north-path poses re-read as
+lanes 1/2/3/4/6 land; take-0135's read at the seal; then: take-0135's read when it seals —
 file W02 / W14 / W26 / W10 as read (expected A 0.2173, B 0.1982, C 0.2080, D 0.2657, E 0.2190, F 0.2266); the sky/haze colour
 re-read after Astra's next fog change; the video file.
 
@@ -35,6 +38,10 @@ lands: `ffmpeg` frames at his marked moments → `reference/frames-video2/`, has
 - `.agents/fable-5.md`, `.agents/reviews/fable-5-*.md`, my threads in `.agents/INBOX.md`.
 
 ## Completed work
+- 2026-09-23 07:29–07:55 UTC — iteration 81 (LANE 10 taken, `fable-5-lane10-walk-2026-09-23.md`): the owner's 06:50 pose against
+  his recording (bright mist 2 % vs 15–23 %, earth banks 17 % vs 1–2 % — a trench with no crowns at 10–40 m); an eight-item
+  ranked list with positions and lanes; harness on `e4ca3241`: walks clean, the descent camera at 0.38 m, `stairs2-base` 9.53 M
+  triangles over the cap.
 - 2026-09-23 06:28–06:46 UTC — iteration 80 (r55 §Z): `c526a5b8` at the owner's `u-open-up` — the flat pale card is a dark
   round leaf roof (card l 0.627 → 0.524), #26/28 closed at the owner's example; six views byte-identical; the walk list updated.
 - 2026-09-23 05:27–05:28 UTC — iteration 79: the ranked open list refreshed after the owner's 09-23 items (walk doc, refresh
@@ -388,4 +395,4 @@ lands: `ffmpeg` frames at his marked moments → `reference/frames-video2/`, has
   lists the regions; the evidence images are reproducible with the same crops.
 
 ## Last updated
-2026-09-23T06:47:00Z
+2026-09-23T07:56:00Z
