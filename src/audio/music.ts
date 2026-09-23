@@ -127,6 +127,9 @@ export function createMusic(ctx: BaseAudioContext, out: AudioNode, reverbSend: A
       bg.gain.exponentialRampToValueAtTime(0.008 * vel, t + 0.35);
       bg.gain.setValueAtTime(0.008 * vel, t + dur);
       bg.gain.exponentialRampToValueAtTime(0.0005, t + dur + 0.2);
+      // close it: the breath noise source is shared, so a gate left on the ramp's floor is a tap
+      // of it left open for the rest of the session (see graph.ts adEnvelope)
+      bg.gain.setValueAtTime(0, t + dur + 0.2);
       adsr(env.gain, t, dur, 0.22 * vel, 0.09, 0.25, 0.75, 0.35);
     };
 
