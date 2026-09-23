@@ -133,3 +133,48 @@ squad3 3.1 %).
 Sheets: `fable-5-lane10/it83-ba-sq1.jpg`, `it83-ba-sq2.jpg`, `it83-ba-sq3.jpg` (base | branch, the owner's pose, crop
 x 0–0.50 × y 0–0.70).
 
+## 7. The merged head `6664f739` (squad 1 + 2 + 4 live, play-head `a44b4a19`) at the owner's pose — populated, warm, and darker than his recording
+
+Rendered 10:08–10:23 UTC, same poses / flags as §6; sheets `fable-5-lane10/it83-ba-head-owner.jpg` (base | head, full
+frame) and `it83-head-vs-r024.jpg` (head | the owner's r_024).
+
+| pose | pixels moved vs `144453ef` > 6 / > 40 | bright mist | brown | near-black | leafy | mean l | far-centre box |
+| --- | --- | --- | --- | --- | --- | --- | --- |
+| owner's pose — r_024 | | **23.1 %** | 1.2 % | **11.6 %** | 3.4 % | **0.394** | #7f7c73 · 44° · s 0.05 · **l 0.474** · B/R 0.91 |
+| owner's pose — head | 80.4 / 14.3 % | 1.4 % | 30.4 % | **48.9 %** | 22.2 % | **0.230** | #5b5947 · 55° · s 0.12 · l 0.318 · B/R 0.79 |
+| r_020-like — r_021 | | 15.5 % | 11.3 % | 39.1 % | 1.7 % | 0.298 | #6c675f · 36° · 0.07 · 0.398 · 0.87 |
+| r_020-like — head | 69.5 / 9.6 % | 1.9 % | 22.3 % | 30.8 % | 20.2 % | 0.261 | #605e4f · 53° · 0.10 · 0.343 · 0.82 |
+| r_026-like — r_026 | | 23.2 % | 1.9 % | 6.2 % | 1.6 % | 0.410 | #7f7c72 · 45° · 0.06 · 0.474 · 0.90 |
+| r_026-like — head | 70.3 / 11.0 % | 0.7 % | 20.5 % | 49.6 % | 36.3 % | 0.221 | #585645 · 53° · 0.12 · 0.307 · 0.78 |
+
+**What landed** (the sheet): round leafy crowns stand behind the path at several depths where the base had bare trunks
+in grey — the owner's "trees populate" is answered in kind; violets mass along both verges; the far air is the recording's
+warm hue (55° / B/R 0.79 against 44° / 0.91; the base's 89° / 0.97 cool grey is gone). Nothing in the band is haze any
+more: the middle distance is *trees*.
+
+**What is still wrong, and it is one thing: the light.** The band is now **darker than before the squad** — near-black
+26 → 49 % at the owner's pose, mean l 0.263 → 0.230 — where the recording's band is 12 % near-black at l 0.394, and its
+bright mist is 23 % of the band against our 1.4 %. The crowns that populate the 14–58 m band arrive in their **local
+colour**: in the far-centre box the head's green-hued pixels are 43 % of the box with mean saturation **0.15** and
+lightness **0.29**; in r_024 the same box's green-hued pixels (26 %) have saturation **0.05** and lightness **0.42** —
+the recording's distant crowns are 80 % of the way to the mist's colour (#7f7c73), pale warm silhouettes with light
+between them; ours are saturated green shapes against a dark warm grey, and the light between them is the same dark
+grey (far box l 0.318 against 0.474 — the +0.15 that §5 and `ANALYSIS_CLARITY.md` §5 asked for has not moved: base
+0.308, squad1 0.316, head 0.318). The far box is also now more saturated than the frames (s 0.12 against 0.05): the
+warm tint is a little strong for the brightness it sits at.
+
+So the ranked list at the owner's pose after the squad's first batch:
+
+| # | issue | measured | owning lane |
+| --- | --- | --- | --- |
+| 1 | **The far air is warm but not light**: far-centre l 0.318 vs 0.474; bright-mist share 1.4 vs 23 % | §7 table | 1 |
+| 2 | **The mid-canopy crowns keep their local colour at 14–58 m**: green s 0.15 / l 0.29 in the far box vs the recording's 0.05 / 0.42 — atmospheric perspective on the crowns (toward the far air's colour, by depth) is missing or too weak; with (1) fixed they would still read as dark shapes | §7 | 2 with 1 |
+| 3 | The path: continuous stone slabs with dark joints; the recording's north run is packed dirt with a few slabs | §2 #4 | 6 (open) |
+| 4 | The right bank is still a cut earth wall (brown 30 % of the band, the recording 1 %); the verges are dressed now, the bank face is not | §2 #3 | 4 / 6 |
+| 5 | The path does not fork past Saria's mound | §2 #6 | 6 (open) |
+| 6 | No people | §2 #7 | 7 (open) |
+
+The cheapest experiment for (1)+(2) is one number each: the far air's brightness (the fog / veil colour's l toward
+0.47 at the far bands, the hue kept) and the crowns' fog weight in the 14–58 m band — both measured at this pose with
+`bands.py` before and after, the six views inside −0.003. This lane will read whatever lands within the hour it lands.
+
