@@ -91,6 +91,22 @@ This is close to the mirror of pass 3's haze change (A / B / D top thirds −6.2
 the fixed frames' upper bands land near where they were before that pass — but warm instead of
 blue, and with the far surfaces shaded so the arch and the 30–40 m trunks are silhouettes in it.
 
+## Mist soft and layered (`mist.ts`)
+
+The pools were ankle-to-waist only (`mistHeight` 2.2 m) and lived in the north hollow. In
+`r_022`/`r_025`/`r_028` the mist between the trunks at 15–45 m is a tall, very thin luminous layer
+that the crowns and boles cross — it is what separates one depth from the next. A third tier,
+**28 curtains** (3–7.5 m tall, 14–26 m wide) on the headings the walk uses: up the north path, into
+the west stand, across the plaza's south margin. They fade in only past 13 m (the air the walker
+stands in is untouched) and out by 92 m.
+
+Getting them to read took two passes, both measured: at the pools' own noise gate (0.36/0.86, which
+cuts the 3-octave fbm's ≈ 0.44 mean to ≈ 0.06) the whole tier moved the owner's north pose by
+**1 level** — invisible. With a wide low gate (0.28/0.78) and a vertical fade that thins toward the
+top instead of vanishing above the quad's first fifth, they read as bands: **+1.2 levels mean, 8 %
+of the frame over 2 levels, 55 levels at the band itself**, and nothing at all when looking up
+(0.01 levels). `compare/crop-mist-curtains.jpg`.
+
 ## The blue streak (his red circle 2)
 
 Looking up at the same spot, before: the canopy gaps are **hue 184°, B/R 1.13** — the jagged bright
