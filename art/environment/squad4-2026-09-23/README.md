@@ -80,6 +80,13 @@ the owner walks past:
 | left hollow z −18…−26 | 219 | 549 |
 | path shoulders z −4…−12 | 191 | 511 |
 | north forest floor z −30…−40 | 154 | 322 |
+| the corridor floor z −42…−54 | 62 | 133 |
+
+On the corridor floor the turf also stands taller and drier no longer: blade p50 0.152 → 0.171 m,
+`NORTH_FLOOR_DRY` +0.3 → +0.12. Its plants went with it — ferns 2 → 42, broad leaves 15 → 111,
+violets 0 → 65 over that 201 m² of open ground. The carpet's fans and mats there are **unchanged**
+(3.0 cards and 4.7 mats / m² either way): north of `NORTH_CARPET_Z` the corridor's own set rules
+them, so `NORTH_FLOOR_CLUMP_KEEP` / `NORTH_FLOOR_MAT_KEEP` stay where round 44 put them.
 
 | set | before | after |
 | --- | --- | --- |
@@ -134,6 +141,26 @@ The new verge stays out of the places the six hero frames are measured on rather
 One test number moved: `plants.test.mjs`'s "open lawn" tuft-clustering floor 1.75 → 1.70 (measured
 1.74). That box's east edge clips the new verge band, and the ratio's baseline is the **box's mean
 density**, so a denser corner lowers it while every blade in it is still a rooted cluster's.
+
+### How far the hero views moved
+
+**This change does move A–F**, so here is the measurement (`hero-diff.mjs`, the same poses rendered
+on the head and here; E is B's pose):
+
+| view | SSIM vs the head | pixels changed > 8/255 |
+| --- | --- | --- |
+| A_stairs | 0.9646 | 3.79 % |
+| B_house | 0.9725 | 2.97 % |
+| C_lookback | 0.9667 | 3.23 % |
+| D_log | 0.9490 | 5.84 % |
+| F_canopy | 0.9710 | 2.80 % |
+
+`hero/A_stairs.jpg` … `hero/F_canopy.jpg` are the strips (head left, here right). D moves most — the
+verge is the length of its frame — and what moves in it is the verge filling in; its scored
+composition does not: the boulder bed still has frame 56 s' two violet patches and no others, C's
+left third is still grass to the stair foot, A's bank face is untouched, and the low right verge is
+still under 0.55 m. The owner's 2026-09-23 directive is what this change follows, so the move is
+deliberate; a reviewer who wants A–F frozen should say so and I will put the verge behind a flag.
 
 ## Play mode: walking and frame cost
 
