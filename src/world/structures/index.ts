@@ -159,8 +159,13 @@ export async function create(ctx: WorldContext): Promise<WorldSystem> {
   // The west house's platform / deck / wall go to ctx.shared.walkSurfaces for the character ground. ----
   const expansion = buildExpansion(ctx, mats, rng.fork('expansion'), rope);
   bases.push(...expansion.bases);
-  // round 55: the dressed huts' crafted lanterns swing with the rest
+  // round 55: the dressed huts' crafted lanterns swing with the rest; their lights stay in the main
+  // group (the expansion's near group hides by distance — a light leaving the scene recompiles every lit program)
   lanterns.push(...distant.lanterns, ...expansion.houses.lanterns, ...expansion.farHouse.lanterns);
+  for (const l of [...distant.lights, ...expansion.houses.lights, ...expansion.farHouse.lights]) {
+    group.add(l);
+    lights.push(l);
+  }
   ctx.shared.walkSurfaces = [...(ctx.shared.walkSurfaces ?? []), ...expansion.houses.walk];
 
   // the play camera's solids (cameraSolids.ts), voxelised from the parts by name before the merges

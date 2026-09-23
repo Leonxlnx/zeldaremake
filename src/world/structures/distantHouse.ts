@@ -72,7 +72,7 @@
  * others sit right of the arch, above it (the arch's top projects at y ≥ 0.35, every lit point at
  * y ≤ 0.20). None is in front of the stair, Saria's house or the arch opening.
  */
-import { BoxGeometry, BufferGeometry, CatmullRomCurve3, Color, CylinderGeometry, Float32BufferAttribute, Group, LatheGeometry, Mesh, TorusGeometry, Vector2, Vector3 } from 'three';
+import { BoxGeometry, BufferGeometry, CatmullRomCurve3, Color, CylinderGeometry, Float32BufferAttribute, Group, LatheGeometry, Mesh, PointLight, TorusGeometry, Vector2, Vector3 } from 'three';
 import type { TrunkSeat, WalkSurface, WorldContext } from '../system';
 import type { Rng } from '../util/prng';
 import { FoliageBuilder } from './foliage';
@@ -283,6 +283,8 @@ export interface DistantHouseBuild {
   group: Group;
   /** round 55: the dressed huts' crafted near lanterns (their pivots are in `group`) */
   lanterns: LanternRig[];
+  /** round 55: the dressed huts' lantern lights, outside `group` (the caller adds them where nothing hides them) */
+  lights: PointLight[];
   /** round 49: every hut's platform, deck and wall for the character ground */
   walk: HutWalkSurface[];
   /** the one emissive mesh shared by all houses */
@@ -767,6 +769,8 @@ export function buildDistantHouses(ctx: WorldContext, mats: StructureMaterials, 
   const glowParts: BufferGeometry[] = [];
   /** round 55: the dressed huts' crafted lanterns (the near lanterns, swung by the structures system) */
   const lanterns: LanternRig[] = [];
+  /** round 55: their lights — NOT in `group` (the caller keeps them in the scene whatever hides the hut, so the light count never changes) */
+  const lights: PointLight[] = [];
   /** round 45 (details-1): the huts' soffit boards, one mesh in `mats.fenceWood` (see `soffit`) */
   const soffitParts: BufferGeometry[] = [];
   const audit: DistantHouseBuild['audit'] = [];
@@ -1544,6 +1548,21 @@ export function buildDistantHouses(ctx: WorldContext, mats: StructureMaterials, 
           pods.push(centre);
           dressAudit.boughPods.push([+centre.x.toFixed(2), +centre.y.toFixed(2), +centre.z.toFixed(2)]);
         }
+        // round 55: the cluster's own restrained light, like Saria's (house.ts): 0.9 m under the
+        // pods and a little out from the wall, so it pools on the platform at the door and warms the
+        // jambs, the bough's underside staying dark; 5 m of reach
+        if (dressAudit.boughPods.length) {
+          const cc = new Vector3();
+          for (const p of dressAudit.boughPods) cc.add(new Vector3(p[0], p[1], p[2]));
+          cc.divideScalar(dressAudit.boughPods.length);
+          const out = new Vector3(cc.x - c.x, 0, cc.z - c.z).normalize();
+          cc.addScaledVector(out, 0.3);
+          cc.y -= 0.9;
+          const light = new PointLight(new Color(0xffc070), 2.6, 5, 2);
+          light.position.copy(cc);
+          light.name = 'hut-lantern-light';
+          lights.push(light);
+        }
       }
       if (def.dressing.buttresses) {
         // ---- KNOTTED BARK BUTTRESSES framing the doorway: one each side, a root's foot on the
@@ -1772,6 +1791,7 @@ export function buildDistantHouses(ctx: WorldContext, mats: StructureMaterials, 
   return {
     group,
     lanterns,
+    lights,
     walk,
     glow,
     soffit,
