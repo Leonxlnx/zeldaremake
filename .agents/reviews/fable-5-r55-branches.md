@@ -644,3 +644,22 @@ The owner's exact look-up bearing is the missing input, as it was for the clarit
 
 Play-camera changes (pitch orbit, collision, near-card dither) are play-only by construction — not in these frames.
 
+## X. Iteration 77 (03:31–03:55 UTC) — the head `3b37b8b7` (the polish: repaired / checked logs, the lantern flame; the distant-crown fade tuning) and the A / B / F re-verdict fable-cursor asked for
+
+**The polish step** `f04fbf5a` → `3b37b8b7`: A −0.0002, B 0, C 0, D 0, E 0, F −0.0002 — the repaired pair and the checked
+logs change 0.02 % of A's pixels; the flame's size is inside the pods; the crowns' fade tuning is off the fixed frames.
+**Cumulative since take-0134's build (+ the culling), `220fff43` → `3b37b8b7`: A −0.0010, B −0.0001, C 0, D +0.0002,
+E +0.0003, F +0.0027.** The flight box at A is unchanged by the polish (52.8 % dark / 7.5 % pale / l 0.262).
+
+**Re-verdict at A / B / F on the head** (to be filed on take-0135 when it seals — D7 files against a take; sheet
+`fable-5-r55/fable-5-r55-owner0923-lanterns-ABF.jpg`):
+
+| item | read on `3b37b8b7` | verdict |
+| --- | --- | --- |
+| **W02** the hero flight | log-risered as before (take-0129's pass on kind); the timbers now individual — grain along the log, wear, moss, a repaired pair, checked old logs; the frames' weight regressed with the tint's removal (52.8 % dark vs the frame's 15.9, the take-0134 build 45.8) | **pass on kind, the weight noted** — the treads' albedo and light are the remaining half |
+| **W14** the lantern branch at A | the limb crosses the left of A at the frame's height; three pods on cords under it (two mid-limb, one at the frame's left edge), leaf clusters along it | **pass** (carries) |
+| **W26** glowing pod lanterns | every pod is a crafted lantern now — a ribbed calyx over the husk, a hoop, an open bottom with a flame — still Deku-nut shaped, yellow-orange, on cords; Saria's cluster 5 at the eave, the limb's 3, the west house's 3 + a 5 m pool at its door; glow restrained, no bloom | **pass, reinforced** — the owner's "crafted object" and the rubric's pod agree; nit: Saria's cluster still lime-led (3 lime : 2 orange) where the frame's door cluster is orange-led |
+| **W10** canopy at F | sky-like pixels 0.3 % (the auto half, ≤ 45 %, trivially met; the frame's own is 3.1 %); the visual half — "dense, layered canopy with light breaking through" — F's top is haze between lobes, not canopy, and the fog slice made the haze darker, not warmer | **fail** (carries) |
+
+Nothing else at A/B/F moves a verdict: W01, W15, W20, W25, W29, W32 unchanged in kind.
+
