@@ -1,9 +1,13 @@
 # Owner review 2026-09-23 — staircase, bungalows & lanterns, upward view
 
 Everything here was captured from running builds on this VM (Chrome + SwiftShader, 4 CPU cores,
-no GPU). Before = `47773f13` (the build the owner played); after = the branch head recorded in
-each run's `BASELINE_SHA` (pass 1 final: `e48d5e8e` + evidence commits; pass 2 final: `a5dbf45f`).
-**Pass 2 and the final rubric are at the end of this file.**
+no GPU). Before = `47773f13` (the branch head when the owner's directive arrived); after = the branch
+head recorded in each run's `BASELINE_SHA` (pass 1 final: `e48d5e8e` + evidence commits; pass 2
+final: `a5dbf45f`). **Correction (pass 3):** the build the owner actually played was older still —
+the live link `monitor/play/` serves the last sealed take, take-0134 (`702086ba`, 2026-09-22 19:26),
+so none of passes 1–2 reached him; he now plays the head at
+https://raw.githack.com/Leonxlnx/zeldaremake/play-head/index.html (§Pass 3).
+**Passes 2 and 3 and the current rubric are at the end of this file.**
 
 - `shots.json` — the fixed free-camera poses used for every before / after pair
   (`gauntlet/scripts/broll.mjs --shots … --test --settle 6`, 960 × 540, character hidden): the 22 of
@@ -423,3 +427,104 @@ is at 3 or 4, none is below 3. **The 185 target is not met**: 35 items are "stro
 - **Foliage between camera and Link:** outside the narrow cone, dense ferns can still cover the view.
 - **No gauntlet take sealed** (≈ 6 h here): A / B / D see the huts' new features at 23–45 m; F is
   byte-identical and C one pixel off for the ray change; a fable-5 re-verdict is welcome.
+
+## Pass 3 (2026-09-23, 06:10–) — the build the owner plays, frame pacing, the camera, the stairs up close, the owner's 06:50 items
+
+Evidence in `pass3/`. The owner's 06:50 message (marked screenshot: grey haze where his recording
+shows layered trees, a smooth pale column trunk, a blue streak; thicker grass on the left; the sound
+too buzzy; the people) is in `docs/GOAL_MODE.md`; the squad brief for his parallel chats is
+`docs/SQUAD_2026-09-23.md`.
+
+### The build the owner plays (verified)
+
+- The live link (`raw.githack.com/…/monitor/play/`) serves the last sealed take's build: take-0134,
+  `702086ba` (2026-09-22 19:26) — 35 commits behind the head, none of passes 1–2 in it. A take costs
+  ≈ 6 h here (take-0134's capture ran 35–55 min per view), so the head is now published on its own:
+  orphan branch `play-head`, `gauntlet/scripts/publish-play-head.sh` after every merge,
+  **https://raw.githack.com/Leonxlnx/zeldaremake/play-head/index.html**.
+- githack shows a browser a one-time "External Content Notice" before a proxied HTML page (one click
+  on "Open the page"; a cookie remembers it) — what stalled two headless boots of the link. With the
+  click (`gauntlet/scripts/url-check.mjs`): **ready in 80.9 s on this software renderer, 84 requests,
+  0 failed, 0 console errors**, the first frame is the plaza with the HUD (`pass3/play-link-first-frame.jpg`,
+  `pass3/play-link-url-check.json`). GitHub's raw cache can serve the previous `index.html` for minutes
+  after a publish, so the last six bundles stay on the branch.
+
+### Frame pacing: a shader compile storm walking north (verified, fixed)
+
+The north clearing's two lantern-post lights lived in the group hidden beyond 45 m of the clearing;
+a light joining the scene changes the light count every lit program is keyed on. Walk from the plaza
+up the north path into the clearing (`playtest.mjs --only pacing --routes north-clearing --warmup`,
+the normal launch path's warm-up on):
+
+| build | programs start → end | compiles during the walk | worst drawn frame's render issue | JS step p50 / p95 / p99 / max (ms) |
+|---|---|---|---|---|
+| `c526a5b8` (before) | 166 → 227 | 52 in one frame at z −30, then 7 and 2 | **13 381 ms** | 3.6 / 10.9 / 14.3 / 21.3 |
+| head (after, `a43ea516`) | 166 → 166 | **0** | 32.6 ms | 4.8 / 11.3 / 14.9 / 28.4 |
+
+The upper-house route on the same build: 166 → 166, 0 compiles, JS p99 10.4 ms; 0 page errors on both
+(`pass3/pacing-north-before.json`, `pass3/pacing-north-upper-after.json`).
+
+### Camera (verified, fixed)
+
+- **Frame-rate independence** (`src/camera/follow.test.mjs`): the heading chase was `dt × 1.6`
+  (4 % faster at 30 Hz), the pitch recentre started on the next whole frame. Now an exact exponential
+  and a sub-frame onset. The same input at 30 / 60 / 144 Hz: stick paths ≤ 1.0° apart, the walking
+  recentre ≤ 1.05° (1.9° before the onset fix), end views ≤ 0.02°; one drag in 5 or 50 events lands
+  on the identical view.
+- **Pops**: nine walk routes with per-frame camera motion found single-frame jumps of 1.5 m where the
+  follow camera ran into the lantern limb over the plaza and a house bough over the stairs from behind
+  (`slimPush` 0 → 1.5 m in one frame, 1350 m/s²). The move in along the line now eases (0.12 s in,
+  0.3 s out): a unit test walking past a bole 1.30 → 0.32 m in the worst frame; on the routes 1.53 →
+  0.41 m (upper house) and 1.55 → 0.42 m (north clearing), peak 1352 → 330 m/s²
+  (`pass3/walk-camera-*-easing.json`). The solid shells still pull in at once (no wall interiors):
+  on the west house's deck a 1.26 m pull-in remains (Unfinished).
+
+### Walking: nine routes (verified)
+
+Every flight (both staircases, the house-west flight to Saria's door, the west house's steps, the
+ledge flight in the north clearing), the plaza loop, the south approach and the north path under the
+log arch into the clearing (82 m): **all reached, 0 stuck points** (`pass3/playtest-after.json`,
+`walk-camera-after-easing.json`). The one block the first run met was the west fork's waymarker post
+on the route's straight line — a visible prop; the route now walks the path round it.
+
+### Stairs: the boots against the rendered stone and timber (verified)
+
+`state().feet` (both boots' sole gap and the footprint's lowest point over the rendered surface) on
+every climb frame: the deepest any boot corner goes into the stone or the logs is **0.1 mm (main flight
+up), 1.8 mm (main down), 0 (south bank)**; no stance sample more than 5 mm inside. The root's analytic
+riser line sits behind the log noses, but Link stands on the feet's supports, which read the rendered
+surface — collision as seen matches the visible stairs.
+
+### The second staircase up close (fixed)
+
+- At eye height a ragged pale sliver of stone showed under every log (the slab's rolled lip reaching
+  past the timber where the nose waves or the log thins): on the log flight the lip is now the shaded
+  trough under the timber (`pass3/stairs-join-close.jpg`).
+- From the top of the flight the bark map's knot recurred every 0.8–1.3 m along every log's crown (a
+  row of evenly spaced eyes): each log now has a 7–12° spiral grain (`pass3/stairs-from-top.jpg`).
+- Tones and UVs only — tread noses, heights and the support grid unchanged (paving / log tests green).
+
+### Exposure from ground to sky (measured)
+
+The look test's frames (10 spots × rest / drag up / drag down, the canvas after tone mapping): the most
+clipped share **0.24 %** (the west house's lantern glow at rest), **0 %** crushed to black anywhere,
+and looking up **0 % clipped** with 6–36 % of the frame sky (`pass3/playtest-after.json` → `look[].*.exposure`).
+
+### Sound (fixed)
+
+The pod lanterns' hum was the village's drone: a 96 Hz tone with a triangle partial at 287.5 Hz and a
+fourth partial, open to 900 Hz, at the wind bed's level within ≈ 2 m of any pod — and pods hang on every
+house, post and bough. Now two soft sines under 420 Hz at a third of the level, only near a lantern:
+−12.6 dB at 1 m from one pod, −16 dB at 3 m, −10 dB on Saria's porch (`99af9adf`).
+
+### The grey washout at the owner's pose (diagnosed, reduced)
+
+Decomposed at his pose and two more (`probe-look` variants, `pass3/owner-0650-poses.json`): the far
+softening pass changes nothing there; a thinner ground fog (0.012 → 0.007, cap 0.86 → 0.72) moves the
+upper frame by under 1 level; **the god rays' in-scatter is the veil** — with the rays off the upper-left
+third falls 83.6 → 59.8 levels looking north (`pass3/haze-rays-share-north.jpg`). The air between the
+shafts is cleared (intensity 0.32 → 0.28, gap floor 0.3 → 0.15, the screen fan's floor 0.75 → 0.5, the
+base air 3 / 6.5 → 5 / 12 m): the upper frame 79.1 → 69.9 looking north, 94.1 → 77.1 looking west,
+80.2 → 73.7 toward Saria's, the shafts kept (`pass3/haze-clear-shafts.jpg`). What the haze does not
+explain — fable-5 (lane 10) measured it against the owner's recording: the corridor has no leafy crowns
+at 10–40 m over its banks, only bare column trunks — is the trees' lane (fable-4 / squad lane 2–3).
