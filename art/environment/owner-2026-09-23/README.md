@@ -517,25 +517,31 @@ fourth partial, open to 900 Hz, at the wind bed's level within ≈ 2 m of any po
 house, post and bough. Now two soft sines under 420 Hz at a third of the level, only near a lantern:
 −12.6 dB at 1 m from one pod, −16 dB at 3 m, −10 dB on Saria's porch (`99af9adf`).
 
-### The grey washout at the owner's pose (diagnosed, reduced)
+### The grey washout at the owner's pose (diagnosed; the tried fixes backed out)
 
 Decomposed at his pose and two more (`probe-look` variants, `pass3/owner-0650-poses.json`): the far
 softening pass changes nothing there; a thinner ground fog (0.012 → 0.007, cap 0.86 → 0.72) moves the
-upper frame by under 1 level; **the god rays' in-scatter is the veil** — with the rays off the upper-left
-third falls 83.6 → 59.8 levels looking north (`pass3/haze-rays-share-north.jpg`). Clearing the air
-between the shafts as well (intensity 0.32 → 0.28, gap floor 0.3 → 0.15, the screen fan's floor
-0.75 → 0.5) was tried and backed out: it dimmed the god rays themselves and the hero views read duller,
-not fuller (top thirds A −7.6, B −10.5, D −12.2 levels; `pass3/haze-clear-shafts.jpg` shows that
-variant at the owner's poses). What stays: the base air starts higher (3 / 6.5 → 6 / 16 m), so the
-glow at eye level thins — the upper frame 79.1 → 72.9 looking north, 94.1 → 82.6 looking west,
-80.2 → 75.6 toward Saria's (`9a1be295`). It is a middle ground, not free: the shafts' lower reaches
-dim with the veil, and the hero views' top thirds fall A −6.2, B −8.5, D −8.9 levels (the backed-out
-variant −7.6 / −10.5 / −12.2) — the column trunks and the far forest read through where the milky
-veil was, the shafts stay visible but less luminous (`pass3/haze-eyelevel-hero-ABD.jpg`); the owner
-judges it on the play link, and lane 1 owns the next step (below). What the haze does
-not explain — fable-5 (lane 10) measured it against the owner's recording: the corridor has no leafy
-crowns at 10–40 m over its banks, only bare column trunks, and its mist is bright and warm where ours
-is cool grey — is the trees' lane (fable-4 / squad lane 2–3) and the colour half of lane 1.
+upper frame by under 1 level; the god rays' in-scatter is most of the veil — with the rays off the
+upper-left third falls 83.6 → 59.8 levels looking north (`pass3/haze-rays-share-north.jpg`). Two ways
+of thinning it were tried and **both backed out**: clearing the gaps between the beams (intensity 0.28,
+gap floor 0.15, the screen fan's floor 0.5) dimmed the shafts and made the hero views duller (top thirds
+A −7.6, B −10.5, D −12.2 levels; `pass3/haze-clear-shafts.jpg`); raising only the base air (3 / 6.5 →
+6 / 16 m) still took the shafts' lower reaches with it (A −6.2, B −8.5, D −8.9;
+`pass3/haze-eyelevel-hero-ABD.jpg`), and fable-5 measured it against the owner's recording at his pose:
+the corridor's bright mist fell 2.0 → 0.9 % (his r_024: 22.6 %) — darker trunks in darker grey, not
+trees in light (INBOX 08:40). The rays are as they were (`7244aab6`). His "clear" is bright warm mist
+with round crowns standing in it (`reference/ANALYSIS_CLARITY.md` §5: the frames' far light is a warm
+grey-khaki ≈ #858372 where ours is a cool grey) — the colour and brightness of the mist are squad
+lane 1's, the crowns lane 2's (fable-4). Note the sky's blue was the owner's own request of 09-16.
+
+### The pale smooth cylinder he circled (fixed)
+
+A depth pick at his pose names it: the far-trunk row (`distant-5-near`, 37–48 m) — a 1.9 m band-only
+pole given white-bark pale bark in round 31 for the old frame 56 s. His recording's far trunks are dark
+boles; the row now takes the broad distant trees' dark bark (shapes and draws unchanged, the radial
+slender trees stay pale): 15 % of the upper-left crop at his pose darkens > 5 levels, hero D 1 % of
+pixels (`pass3/far-trunk-row-dark.jpg`, `75622db9`). The nearer column beside it (col-3, 14 m) already
+carries bark cords and moss.
 
 ### Thicker grass on the left of the north path (changed; visible effect modest)
 
