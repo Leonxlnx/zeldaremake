@@ -553,3 +553,37 @@ west in the hollow **93 → 151 / m², 0.13 → 0.19 m**; the plaza lawn (contro
 effect is small (green share of the ground band 54 → 57 %, 18 → 20 %; `pass3/grass-left-side.jpg`):
 the strip is in deep shade and the turf carpet under it already read green, so at 5–10 m the extra
 blades barely register. Looking lush there needs taller tufts, ferns and lighter blades — squad lane 4.
+
+### The rubric after pass 3
+
+Only the items whose score moved are listed; every other item keeps its pass-2 score and evidence.
+
+| # | item | pass 2 | pass 3 | evidence (pass 3) |
+|---|---|---|---|---|
+| 5 | believable texture scale on treads and risers | 3 | **4** | the log bark's knot no longer recurs along each crown (7–12° spiral grain), stone and bark read at timber / slab scale from 1–3 m: `pass3/stairs-from-top.jpg`, `stairs-ends-saria-side.jpg` |
+| 7 | clean edges and joins at close range | 3 | **4** | the pale stone sliver under every log gone at eye height: `pass3/stairs-join-close.jpg` |
+| 9 | collision matches the visible stairs | 3 | **4** | the boots on every climb frame: deepest into stone / timber 0.1 mm (main up), 1.8 mm (main down), 0 (south bank); no stance sample > 5 mm inside (`pass3/playtest-after.json` → `climb.*.feet`) |
+| 18 | lantern light affects nearby surfaces | 3 | **4** | on / off at five poses: 7–27 % of the frame lifted > 3 levels, mean 7–9 levels in the pool (24 right under Saria's pods), p99 13–20, no clipping added: `pass3/lantern-pools-on-off.jpg`, `lantern-pools.json` |
+| 19 | lantern shadows / brightness stable while moving | 3 | **4** | the pools' mean over 4 s of swinging pods: spread 0.3–1.0 levels (< 0.6 %) at four poses, 4.5 (1 %) right under the pods; the light count now constant while walking (0 compiles, no light joining at the 45 m line): `pass3/lantern-steady.json`, `pacing-north-upper-after.json` |
+| 22 | smooth, predictable mouse / controller | 3 | **4** | the same input at 30 / 60 / 144 Hz: paths ≤ 1.05° apart, end views ≤ 0.02°; one drag in 5 or 50 events lands identically (`src/camera/follow.test.mjs`, 10 / 10) |
+| 29 | comfortable exposure from ground to sky | 3 | **4** | 10 spots × rest / up / down: ≤ 0.24 % clipped, 0 % crushed, 0 % of the sky clipped looking up (6–36 % of the frame): `pass3/playtest-after.json` → `look[].*.exposure` |
+| 42 | no new snags or invisible walls | 3 | **4** | nine routes (every flight, the plaza, the south approach, Saria's door, the west house, the north path through the arch into the clearing and up the ledge — 82 m): all reached, 0 stuck; the one block met was a visible waymarker post |
+| 44 | camera comfortable during movement | 3 | 3 | the slim-part pops eased (1.53 → 0.41 m, 1.55 → 0.42 m in a frame); the solid shells' 1.26 m pull-in on the west deck remains |
+| 46 | stable frame pacing in detailed areas | 3 | 3 | the compile storm walking north removed (52 programs in one frame → 0), JS p99 10–15 ms on two routes with the normal warm-up; display-rate pacing needs a GPU |
+
+**Total: 173 / 200** (pass 2: 165, pass 1: 157). Every must-reach item is at 3 or 4. **185 is not reached**:
+what separates the rest from "polished" is mostly what the owner named at 06:50 — the corridor's missing
+leafy crowns and the mist's colour (items 23, 24, 34–38), the people (not scored here; hidden since 09-20),
+the bungalows' full dressing (11–15) — now spread over the squad lanes and the Fable chats.
+
+### Unfinished after pass 3
+
+- **The corridor's crowns** (the owner's "trees do not populate"): no leafy crowns at 10–40 m over the north
+  path's banks — fable-4 / squad lane 2 (the column swap rule and Astra's PR #29 are the levers).
+- **The mist's colour and brightness** (the "grey washout"): lane 1, from `ANALYSIS_CLARITY.md` §5.
+- **The people** (hidden since the owner's 09-20 request; must come back visibly upgraded): lane 7.
+- **The footsteps** (his "the steps need to be like…" — most likely the step sounds): lane 5.
+- **The left-side grass** is thicker in geometry, barely visible at his pose: lane 4.
+- **Camera**: the 1.26 m pull-in where a wall comes between Link and the camera on the west deck.
+- **The monitor link** (`monitor/play/`) still serves take-0134 until a take seals (≈ 6 h here); the
+  play-head link is the live build.
