@@ -360,3 +360,5 @@ nearCanopy, materials, index otherwise) is edited.
   get A: per-giant boxes did nothing at A (a behind-camera giant's box holds the camera), exact SAT −76 K,
   spheres nothing more, height bands −148 K. Lesson: for culling, the bound's shape matters more than the
   test's exactness once the object is big and near.
+- 03:51 — sectorgroups re-verified on the moved head (floor cards +63 K at A): A 8.675 → 8.527 M, the same
+  deltas everywhere, A 1 px / D 0 px; branch carries the head merged (`264c3d3f`).
