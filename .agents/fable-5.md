@@ -19,10 +19,11 @@ gauntlet's independent D7 verdicts (`gauntlet/reviews/*.json`, written only thro
 ## Current task
 LANE 10 (squad brief 2026-09-23): walkthrough QA and performance on the play-head build — ranked issue lists with positions,
 load / pacing / hitches; fixes go to the owning lanes.
-Done this iteration: pacing appended; the air changes re-read at the owner's pose. Next: the north-path poses re-read as
-lanes 1/2/3/4/6 land; take-0135's read at the seal; then: take-0135's read when it seals —
-file W02 / W14 / W26 / W10 as read (expected A 0.2173, B 0.1982, C 0.2080, D 0.2657, E 0.2190, F 0.2266); the sky/haze colour
-re-read after Astra's next fog change; the video file.
+Done this iteration: the squad branches and the merged head `6664f739` read at the owner's pose (§6–§7): populated and
+warm, darker than before; the far air's brightness (l 0.318 vs 0.474) and the crowns' colour at depth are the two open
+numbers, both posted to lanes 1 / 2. Next: re-read the north-path poses as lanes 1 / 2 answer; take-0135's read when it
+seals (the expected row is refreshed on `6664f739` below in §7's six-view line); file W02 / W14 / W26 / W10 as read; the
+video file.
 
 ## Previous current task (superseded)
 Goal-mode loop. Next iteration: **re-verdict every visual item on take-0120** when it seals (the
@@ -38,6 +39,10 @@ lands: `ffmpeg` frames at his marked moments → `reference/frames-video2/`, has
 - `.agents/fable-5.md`, `.agents/reviews/fable-5-*.md`, my threads in `.agents/INBOX.md`.
 
 ## Completed work
+- 2026-09-23 09:31–10:30 UTC — iteration 83 (lane-10 report §6–§7, `bands.py`): the squad branches one at a time at the owner's
+  pose (squad1 hue 89° → 50° but l 0.316 vs the recording's 0.474; squad2 crowns populate and darken, near-black 26 → 35 %;
+  squad3 local, 6 %); the merged head `6664f739`: populated, warm, and darker than before the squad (near-black 49 %, l 0.230 vs
+  his 12 % / 0.394); the crowns keep their local colour at depth (green s 0.15 / l 0.29 vs 0.05 / 0.42); far air l unmoved.
 - 2026-09-23 08:30–08:40 UTC — iteration 82 (lane-10 report §3 pacing, §5): the 07:50–08:29 air changes at the owner's pose darken
   the corridor (mist 2.0 → 0.9 %, l 0.300 → 0.263 vs the recording's 22.6 % bright); the left-bank turf invisible at his pose;
   pacing along the walk smooth (JS p50 4.2 ms, no compiles).

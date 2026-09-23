@@ -136,38 +136,45 @@ x 0–0.50 × y 0–0.70).
 ## 7. The merged head `6664f739` (squad 1 + 2 + 4 live, play-head `a44b4a19`) at the owner's pose — populated, warm, and darker than his recording
 
 Rendered 10:08–10:23 UTC, same poses / flags as §6; sheets `fable-5-lane10/it83-ba-head-owner.jpg` (base | head, full
-frame) and `it83-head-vs-r024.jpg` (head | the owner's r_024).
+frame) and `it83-head-vs-r024.jpg` (head | the owner's r_024). Two befores: the squad merge-base `144453ef` (§6's; it
+carries the thinned air of 08:29 that `7244aab6` later backed out, so its band is the dark one of §5), and `f56c5740`
+(07:00, §1's frames — the same 3 / 6.5 m base air the head has now, so the fairer before for the squad batch itself).
 
-| pose | pixels moved vs `144453ef` > 6 / > 40 | bright mist | brown | near-black | leafy | mean l | far-centre box |
+| pose | pixels moved > 6 / > 40 | bright mist | brown | near-black | leafy | mean l | far-centre box |
 | --- | --- | --- | --- | --- | --- | --- | --- |
 | owner's pose — r_024 | | **23.1 %** | 1.2 % | **11.6 %** | 3.4 % | **0.394** | #7f7c73 · 44° · s 0.05 · **l 0.474** · B/R 0.91 |
-| owner's pose — head | 80.4 / 14.3 % | 1.4 % | 30.4 % | **48.9 %** | 22.2 % | **0.230** | #5b5947 · 55° · s 0.12 · l 0.318 · B/R 0.79 |
+| owner's pose — `f56c5740` | | 2.3 % | 16.7 % | 21.7 % | 10.9 % | 0.300 | #5d5e59 · 80° · 0.03 · 0.360 · 0.96 |
+| owner's pose — `144453ef` | | 1.1 % | 17.4 % | 26.0 % | 13.1 % | 0.263 | #4e514c · 89° · 0.03 · 0.308 · 0.97 |
+| owner's pose — head | 83.5 / 19.4 % (vs `f56c5740`) | 1.4 % | 30.4 % | **48.9 %** | 22.2 % | **0.230** | #5b5947 · 55° · s 0.12 · **l 0.318** · B/R 0.79 |
 | r_020-like — r_021 | | 15.5 % | 11.3 % | 39.1 % | 1.7 % | 0.298 | #6c675f · 36° · 0.07 · 0.398 · 0.87 |
-| r_020-like — head | 69.5 / 9.6 % | 1.9 % | 22.3 % | 30.8 % | 20.2 % | 0.261 | #605e4f · 53° · 0.10 · 0.343 · 0.82 |
+| r_020-like — `f56c5740` | | 3.7 % | 10.0 % | 21.5 % | 9.9 % | 0.302 | #5d5f5a · 83° · 0.03 · 0.362 · 0.96 |
+| r_020-like — head | 69.3 / 12.0 % | 1.9 % | 22.3 % | 30.8 % | 20.2 % | 0.261 | #605e4f · 53° · 0.10 · 0.343 · 0.82 |
 | r_026-like — r_026 | | 23.2 % | 1.9 % | 6.2 % | 1.6 % | 0.410 | #7f7c72 · 45° · 0.06 · 0.474 · 0.90 |
-| r_026-like — head | 70.3 / 11.0 % | 0.7 % | 20.5 % | 49.6 % | 36.3 % | 0.221 | #585645 · 53° · 0.12 · 0.307 · 0.78 |
+| r_026-like — `f56c5740` | | 2.2 % | 11.0 % | 33.3 % | 25.0 % | 0.275 | #5d5d55 · 61° · 0.04 · 0.350 · 0.92 |
+| r_026-like — head | 73.7 / 14.9 % | 0.7 % | 20.5 % | 49.6 % | 36.3 % | 0.221 | #585645 · 53° · 0.12 · 0.307 · 0.78 |
 
 **What landed** (the sheet): round leafy crowns stand behind the path at several depths where the base had bare trunks
 in grey — the owner's "trees populate" is answered in kind; violets mass along both verges; the far air is the recording's
 warm hue (55° / B/R 0.79 against 44° / 0.91; the base's 89° / 0.97 cool grey is gone). Nothing in the band is haze any
 more: the middle distance is *trees*.
 
-**What is still wrong, and it is one thing: the light.** The band is now **darker than before the squad** — near-black
-26 → 49 % at the owner's pose, mean l 0.263 → 0.230 — where the recording's band is 12 % near-black at l 0.394, and its
-bright mist is 23 % of the band against our 1.4 %. The crowns that populate the 14–58 m band arrive in their **local
-colour**: in the far-centre box the head's green-hued pixels are 43 % of the box with mean saturation **0.15** and
-lightness **0.29**; in r_024 the same box's green-hued pixels (26 %) have saturation **0.05** and lightness **0.42** —
-the recording's distant crowns are 80 % of the way to the mist's colour (#7f7c73), pale warm silhouettes with light
-between them; ours are saturated green shapes against a dark warm grey, and the light between them is the same dark
-grey (far box l 0.318 against 0.474 — the +0.15 that §5 and `ANALYSIS_CLARITY.md` §5 asked for has not moved: base
-0.308, squad1 0.316, head 0.318). The far box is also now more saturated than the frames (s 0.12 against 0.05): the
-warm tint is a little strong for the brightness it sits at.
+**What is still wrong, and it is one thing: the light.** Against the same-air before (`f56c5740`) the band is now
+**darker by 0.07** — mean l 0.300 → 0.230, near-black 21.7 → **48.9 %** at the owner's pose (the two other poses
+0.302 → 0.261 and 0.275 → 0.221) — where the recording's band is 12 % near-black at l 0.394, and its bright mist is
+23 % of the band against our 1.4 % (2.3 % before). The far-centre box — the grey the owner circled — went from
+l 0.360 to **0.318** (the same-air before; 0.308 on the thin-air base): the warm veil arrived *darker* than the cool
+grey it replaced, and the recording's is 0.474 — the gap widened from 0.11 to 0.16. The crowns that populate the
+14–58 m band arrive in their **local colour**: in the far-centre box the head's green-hued pixels are 43 % of the box
+with mean saturation **0.15** and lightness **0.29**; in r_024 the same box's green-hued pixels (26 %) have saturation
+**0.05** and lightness **0.42** — the recording's distant crowns are 80 % of the way to the mist's colour (#7f7c73),
+pale warm silhouettes with light between them; ours are saturated green shapes against a dark warm grey. The far box is
+also more saturated than the frames (s 0.12 against 0.05): the warm tint is strong for the brightness it sits at.
 
 So the ranked list at the owner's pose after the squad's first batch:
 
 | # | issue | measured | owning lane |
 | --- | --- | --- | --- |
-| 1 | **The far air is warm but not light**: far-centre l 0.318 vs 0.474; bright-mist share 1.4 vs 23 % | §7 table | 1 |
+| 1 | **The far air is warm but darker than the grey it replaced**: far-centre l 0.360 → 0.318 vs the recording's 0.474; bright-mist share 2.3 → 1.4 vs 23 % | §7 table | 1 |
 | 2 | **The mid-canopy crowns keep their local colour at 14–58 m**: green s 0.15 / l 0.29 in the far box vs the recording's 0.05 / 0.42 — atmospheric perspective on the crowns (toward the far air's colour, by depth) is missing or too weak; with (1) fixed they would still read as dark shapes | §7 | 2 with 1 |
 | 3 | The path: continuous stone slabs with dark joints; the recording's north run is packed dirt with a few slabs | §2 #4 | 6 (open) |
 | 4 | The right bank is still a cut earth wall (brown 30 % of the band, the recording 1 %); the verges are dressed now, the bank face is not | §2 #3 | 4 / 6 |
@@ -177,4 +184,23 @@ So the ranked list at the owner's pose after the squad's first batch:
 The cheapest experiment for (1)+(2) is one number each: the far air's brightness (the fog / veil colour's l toward
 0.47 at the far bands, the hue kept) and the crowns' fog weight in the 14–58 m band — both measured at this pose with
 `bands.py` before and after, the six views inside −0.003. This lane will read whatever lands within the hour it lands.
+
+### 7a. The six fixed views on the head (`f56c5740` → `6664f739`, `broll --test --settle 8`, no character, same list) — the squad batch costs 0.008–0.033 on every view
+
+| | A | B | C | D | E | F |
+| --- | --- | --- | --- | --- | --- | --- |
+| SSIM vs reference, `f56c5740` | 0.1979 | 0.1820 | 0.1964 | 0.2504 | 0.2041 | 0.2091 |
+| SSIM vs reference, head `6664f739` | 0.1786 | 0.1636 | 0.1752 | 0.2185 | 0.1711 | 0.2009 |
+| **Δ** | **−0.0193** | **−0.0184** | **−0.0212** | **−0.0319** | **−0.0330** | **−0.0082** |
+| pixels moved > 6 levels | 36 % | 41 % | 39 % | 51 % | 40 % | 24 % |
+| mean luma: reference / before / head | 0.422 / 0.346 / 0.339 | 0.393 / 0.333 / 0.325 | 0.383 / 0.316 / 0.317 | 0.421 / 0.340 / **0.320** | 0.388 / 0.334 / 0.325 | 0.398 / 0.318 / 0.308 |
+
+This is ten times the −0.003 rule on five of the six views — an owner-directed look change (the 06:50 brief), so it is
+fable-cursor's call, not a fail to file; but the take will show it, and the direction against the frames is the same one
+as at the owner's pose: **every view is darker** (mean luma −0.007 to −0.020; the frames are 0.07–0.10 brighter than
+ours already) and the upper halves fill with saturated crowns where the frames have pale lit canopy and bright gaps.
+Expected take-0135 row on this head, chained from take-0134's seal (0.2181 / 0.1984 / 0.2130 / 0.2655 / 0.2189 / 0.2253)
+through fable-2's `47773f13` → `f56c5740` deltas: A ≈ 0.198, B ≈ 0.180, C ≈ 0.192, D ≈ 0.234, E ≈ 0.186, F ≈ 0.219
+(± 0.003). Sheets `fable-5-lane10/it83-ba-six-A.jpg`, `it83-ba-six-D.jpg`. (A render of the
+squad merge-base `144453ef`'s six views is in progress to split the batch from the 07:00–09:15 head; numbers in 7b.)
 
