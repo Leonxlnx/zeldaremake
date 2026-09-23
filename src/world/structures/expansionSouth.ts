@@ -43,13 +43,13 @@ import {
   type Material,
   type Sphere,
 } from 'three';
-import { EXPANSION_SOUTH, southBridgeFrame } from '../layout';
+import { EXPANSION_SOUTH, southBridgeFrame, southRavineLine } from '../layout';
 import type { WalkSpan, WorldContext } from '../system';
 import type { Rng } from '../util/prng';
 import { Noise2D, clamp, lerp, smoothstep } from '../util/noise';
 import { applyShadeFloor, type ShadeFloor } from '../materials/shadeFloor';
 import { SOUTH_FLOOR_Y, SOUTH_NORTH_SILL_Y } from '../terrain/heightfield';
-import { bridgeDeckY, tunnelWorld } from '../terrain/south';
+import { bridgeDeckY, bridgeLocal, ravineHit, tunnelWorld } from '../terrain/south';
 import { casterSpheres, southVisible, sunVector, type Caster } from '../util/expansionLocality';
 import { ropeTube } from './fence';
 import { FoliageBuilder } from './foliage';
@@ -157,7 +157,9 @@ export interface SouthBuild {
     posts: [number, number, number][];
     pods: [number, number, number][];
     podClearance: number;
-    triangles: { bridge: number; log: number; foliage: number };
+    triangles: { bridge: number; log: number; foliage: number; walls: number };
+    /** the ravine walls' roots and vines near the bridge */
+    walls: { roots: number; vines: number };
     log: { mouth: [number, number, number]; floorY: number; axisY: number; glowA: number; walkEnd: number };
     pointLights: 0;
   };
@@ -910,6 +912,129 @@ export async function buildExpansionSouth(ctx: WorldContext, mats: StructureMate
     logTufts.push({ position: p, normal: n, rx: rad, rz: rad * (0.7 + mossRng() * 0.5), h: rad * (0.5 + mossRng() * 0.4), yaw: mossRng() * TAU, color: [0.36 * gain, 0.5 * gain, 0.11 * gain], uv: [(phi * T.outerRadius) / 1.6, a / 1.6], sink: rad * 0.5, seed: 1 + Math.floor(mossRng() * 1e6) });
   }
 
+  // ================= the ravine's walls =================
+  // roots out from under the lips and leafy vines down the faces, within reach of what the deck
+  // and its heads look along (the turf, ferns and moss are the vegetation's: expansionSouth.ts)
+  const wallRng = rng.fork('ravine-walls');
+  const wallNoise = new Noise2D(`${seed}/ravine-walls`);
+  const wallFoliage = new FoliageBuilder(wallRng.fork('foliage'), `${seed}/ravine`);
+  const rootParts: BufferGeometry[] = [];
+  const RV = EXPANSION_SOUTH.ravine;
+  const RL = southRavineLine();
+  const RLs: number[] = [0];
+  for (let i = 1; i < RL.length; i++) RLs.push(RLs[i - 1] + Math.hypot(RL[i][0] - RL[i - 1][0], RL[i][1] - RL[i - 1][1]));
+  const sMid = (() => {
+    const m = bw(BF.len / 2, 0, 0);
+    return ravineHit(m.x, m.z)?.s ?? 0;
+  })();
+  /** the centreline point, its unit tangent (west → east) and the top half width at arc length `s` */
+  const lineAt = (s: number) => {
+    let i = 1;
+    while (i < RL.length - 1 && RLs[i] < s) i++;
+    const f = clamp((s - RLs[i - 1]) / Math.max(RLs[i] - RLs[i - 1], 1e-6), 0, 1);
+    const tx = RL[i][0] - RL[i - 1][0];
+    const tz = RL[i][1] - RL[i - 1][1];
+    const tl = Math.hypot(tx, tz) || 1;
+    return { x: lerp(RL[i - 1][0], RL[i][0], f), z: lerp(RL[i - 1][1], RL[i][1], f), tx: tx / tl, tz: tz / tl, W: lerp(RL[i - 1][2], RL[i][2], f) };
+  };
+  /**
+   * The wall's face down the fall line from the lip at arc length `s` on `side` (+1 the south
+   * wall): a point every `step` m of drop from where the cut starts to `drop` m down, `lift` m off
+   * the face along its normal, meandering `wander(drop fraction)` m along the gorge. Marches in
+   * from outside the lip on the live ground, so every point is on the face as rendered.
+   */
+  const wallPath = (s: number, side: number, drop: number, lift: number, wander: (f: number) => number, step = 0.2) => {
+    const L = lineAt(s);
+    const ox = L.tz * side;
+    const oz = -L.tx * side;
+    const at = (d: number, w: number): [number, number] => [L.x - ox * d + L.tx * w, L.z - oz * d + L.tz * w];
+    let d = L.W + RV.lip + 1.0;
+    const [x0, z0] = at(d, wander(0));
+    const top = terrain.height(x0, z0);
+    const pts: Vector3[] = [];
+    const nrm: Vector3[] = [];
+    let next = top - 0.03;
+    let f = 0;
+    for (; d > 0.3; d -= 0.02) {
+      const [x, z] = at(d, wander(f));
+      const h = terrain.height(x, z);
+      if (h > next) continue;
+      const n = terrain.normal(x, z, new Vector3());
+      pts.push(new Vector3(x, h, z).addScaledVector(n, lift));
+      nrm.push(n);
+      f = (top - h) / drop;
+      next = h - step;
+      if (f >= 1) break;
+    }
+    // `out`: horizontal, away from the gorge (back under the lip's turf)
+    return { pts, nrm, top, out: new Vector3(-ox, 0, -oz) };
+  };
+  /** off the bridge: the deck spans the gorge within ~1.3 m of its axis, the sills and stakes sit on the lips */
+  const clearOfBridge = (p: Vector3) => Math.abs(bridgeLocal(p.x, p.z).c) > 2.1;
+  let wallRoots = 0;
+  let wallVines = 0;
+  for (let k = 0; k < 18; k++) {
+    const side = k % 2 === 0 ? -1 : 1;
+    const s = sMid + (wallRng() * 2 - 1) * 16;
+    const strands = 2 + Math.floor(wallRng() * 3);
+    for (let j = 0; j < strands; j++) {
+      const ds = (wallRng() - 0.5) * 1.1;
+      const drop = 0.9 + wallRng() * 2.4;
+      const r0 = 0.02 + wallRng() * 0.032;
+      const ph = wallRng() * 10;
+      const path = wallPath(s + ds, side, drop, r0 + 0.012, (f) => 0.22 * wallNoise.noise(ph + f * 2.2, 3.1) * f);
+      if (path.pts.length < 4 || !clearOfBridge(path.pts[0])) continue;
+      // out from under the turf: the root's butt buried a hand back from the lip
+      const head = path.pts[0];
+      const pts = [head.clone().addScaledVector(path.out, 0.4).setY(head.y - 0.16), ...path.pts];
+      // the tip lets go of the face and hangs
+      const last = path.pts[path.pts.length - 1];
+      const n = path.nrm[path.nrm.length - 1];
+      const hang = 0.18 + wallRng() * 0.42;
+      pts.push(last.clone().addScaledVector(n, 0.05).add(new Vector3(0, -hang * 0.55, 0)));
+      pts.push(last.clone().addScaledVector(n, 0.07).add(new Vector3(0, -hang, 0)));
+      const tone = 0.9 + wallRng() * 0.2;
+      rootParts.push(
+        sweepTube(new CatmullRomCurve3(pts, false, 'catmullrom', 0.5), {
+          radius: (t) => r0 * (1 - 0.72 * t) + 0.003,
+          tubularSegments: Math.min(56, pts.length * 3),
+          radialSegments: 6,
+          uvMetres: 0.35,
+          capEnd: true,
+          displace: (t, ang) => 0.18 * r0 * wallNoise.noise(ang * 1.3 + ph, t * 9),
+          color: (t) => [(0.4 + 0.1 * t) * tone, (0.34 + 0.08 * t) * tone, (0.27 + 0.06 * t) * tone],
+        }),
+      );
+      wallRoots++;
+      // a rootlet or two off the main root
+      if (wallRng() < 0.6 && pts.length > 5) {
+        const i0 = 2 + Math.floor(wallRng() * (pts.length - 4));
+        const a = pts[i0];
+        const b = a.clone().addScaledVector(path.out, -0.02).add(new Vector3(0, -(0.25 + wallRng() * 0.35), 0));
+        const m = a.clone().lerp(b, 0.5).addScaledVector(path.nrm[Math.min(path.nrm.length - 1, i0 - 1)], 0.04);
+        rootParts.push(sweepTube(new CatmullRomCurve3([a, m, b]), { radius: (t) => r0 * 0.4 * (1 - 0.7 * t) + 0.002, tubularSegments: 6, radialSegments: 5, uvMetres: 0.35, capEnd: true, color: () => [0.44 * tone, 0.37 * tone, 0.29 * tone] }));
+      }
+    }
+    // an ivy curtain beside the roots: vines down the face from under the lip turf
+    const vines = 2 + Math.floor(wallRng() * 4);
+    for (let j = 0; j < vines; j++) {
+      const ds = 0.6 + (wallRng() - 0.5) * 1.6 + j * 0.28;
+      const drop = 1.2 + wallRng() * 3.2;
+      const ph = wallRng() * 10;
+      const path = wallPath(s + ds, side, drop, 0.02, (f) => 0.12 * wallNoise.noise(ph + f * 3.1, 7.7) * f, 0.18);
+      if (path.pts.length < 4 || !clearOfBridge(path.pts[0])) continue;
+      wallFoliage.addSurfaceVine(path.pts, path.nrm, { leafSize: 0.075, leafEvery: 0.06, thickness: 0.008, amount: 0.02 });
+      wallVines++;
+      // the vine's head in a tuft of lip grass
+      if (wallRng() < 0.5) wallFoliage.addTuft(path.pts[0].clone(), path.nrm[0].clone(), 0.14 + wallRng() * 0.12, wallRng() < 0.3 ? 1 : 0, 0.05, [0.95, 1.0, 0.85]);
+    }
+    const L = lineAt(s);
+    const lx = L.x - L.tz * side * (L.W + RV.lip * 0.5);
+    const lz = L.z + L.tx * side * (L.W + RV.lip * 0.5);
+    const ly = terrain.height(L.x - L.tz * side * (L.W + RV.lip + 1), L.z + L.tx * side * (L.W + RV.lip + 1));
+    casters.push({ x: lx, z: lz, r: 2.2, y0: ly - 4.2, y1: ly + 0.4, shadow: true });
+  }
+
   // the log's casters: its mass every 1.5 m along the axis, from under the floor to over the crown
   for (let a = 0; a <= T.length + 0.01; a += 1.5) {
     const [x, z] = tunnelWorld(a, 0);
@@ -951,7 +1076,10 @@ export async function buildExpansionSouth(ctx: WorldContext, mats: StructureMate
   add(floorGeo, floorMat, 'south-log-floor', false, true);
   const bridgeFoliage = foliage.build(mats, 'south-bridge');
   const logFoliageMeshes = logFoliage.build(mats, 'south-log');
-  for (const m of [...bridgeFoliage, ...logFoliageMeshes]) group.add(m);
+  const wallFoliageMeshes = wallFoliage.build(mats, 'south-ravine');
+  for (const m of [...bridgeFoliage, ...logFoliageMeshes, ...wallFoliageMeshes]) group.add(m);
+  const rootsGeo = rootParts.length ? merge(rootParts) : null;
+  if (rootsGeo) add(rootsGeo, mats.bark, 'south-ravine-roots');
   const tufts = buildMossTufts([...tuftSpecs, ...logTufts], new Noise3D(logRng.fork('moss-noise')), { topGain: 1.4, rimGain: 0.5, topTint: [1.0, 1.05, 0.8] });
   if (tufts.count > 0) add(tufts.geometry, mats.capMoss, 'south-foot-moss', false, true);
 
@@ -1003,6 +1131,7 @@ export async function buildExpansionSouth(ctx: WorldContext, mats: StructureMate
   const bridgeTris = tri(planksGeo) + tri(ropeGeo) + tri(postGeo);
   const logTris = tri(barkGeo) + tri(endsGeo) + tri(hollow) + tri(floorGeo) + tri(disc);
   const foliageTris = [...bridgeFoliage, ...logFoliageMeshes].reduce((n, m) => n + tri(m.geometry), 0) + tufts.triangles;
+  const wallTris = wallFoliageMeshes.reduce((n, m) => n + tri(m.geometry), 0) + (rootsGeo ? tri(rootsGeo) : 0);
   const mouth = tw(0, 0, FLOOR_Y);
   return {
     group,
@@ -1019,7 +1148,8 @@ export async function buildExpansionSouth(ctx: WorldContext, mats: StructureMate
       posts: postTops.map((p) => [+p.x.toFixed(2), +p.y.toFixed(2), +p.z.toFixed(2)]),
       pods: pods.map((p) => [+p.x.toFixed(2), +p.y.toFixed(2), +p.z.toFixed(2)]),
       podClearance: +podClearance.toFixed(3),
-      triangles: { bridge: bridgeTris, log: logTris, foliage: foliageTris },
+      triangles: { bridge: bridgeTris, log: logTris, foliage: foliageTris, walls: wallTris },
+      walls: { roots: wallRoots, vines: wallVines },
       log: { mouth: [+mouth.x.toFixed(2), +mouth.y.toFixed(3), +mouth.z.toFixed(2)], floorY: +FLOOR_Y.toFixed(3), axisY: +AXIS_Y.toFixed(3), glowA: DISC_A, walkEnd: T.deadEnd - 0.2 },
       pointLights: 0,
     },
