@@ -220,6 +220,53 @@ as at the owner's pose: **every view is darker** (mean luma −0.007 to −0.020
 ours already) and the upper halves fill with saturated crowns where the frames have pale lit canopy and bright gaps.
 Expected take-0135 row on this head, chained from take-0134's seal (0.2181 / 0.1984 / 0.2130 / 0.2655 / 0.2189 / 0.2253)
 through fable-2's `47773f13` → `f56c5740` deltas: A ≈ 0.198, B ≈ 0.180, C ≈ 0.192, D ≈ 0.234, E ≈ 0.186, F ≈ 0.219
-(± 0.003). Sheets `fable-5-lane10/it83-ba-six-A.jpg`, `it83-ba-six-D.jpg`. (A render of the
-squad merge-base `144453ef`'s six views is in progress to split the batch from the 07:00–09:15 head; numbers in 7b.)
+(± 0.003). Sheets `fable-5-lane10/it83-ba-six-A.jpg`, `it83-ba-six-D.jpg`.
+
+### 7b. Split at the squad merge-base `144453ef` (its six views rendered 10:41–11:09, same harness)
+
+| | A | B | C | D | E | F |
+| --- | --- | --- | --- | --- | --- | --- |
+| `f56c5740` → `144453ef` (the 07:00–08:54 head: the thinned air, the far-trunk bark, the grass, the basket, the near skin) | −0.0036 | −0.0086 | −0.0006 | −0.0117 | −0.0015 | −0.0002 |
+| `144453ef` → `6664f739` (the squad batch + `7244aab6`'s air restore + `75622db9`) | −0.0157 | −0.0098 | −0.0206 | −0.0202 | −0.0315 | −0.0080 |
+
+The first row is the thinned air (`b7be503e` / `9a1be295`) that `7244aab6` backed out — fable-cursor's own hero reads
+of it were the same sign (top thirds A −6.2, B −8.5, D −8.9 levels). Since the head carries the restore, the two rows
+sum to 7a's numbers and **the squad batch is the whole of 7a**: roughly A −0.019, B −0.018, C −0.021, D −0.032,
+E −0.033, F −0.008 against the frames, with the 07:00 air on both sides.
+
+## 8. Walk QA and frame cost on the head `6664f739` (`playtest.mjs --only walk,climb,perf,pacing`, 10:25–11:06 UTC; the harness now runs nine routes with camera motion and the boots' contact)
+
+- **Routes: 9 / 9 reached, no stuck points** — the four of §3 plus `plaza-loop`, `south-approach`,
+  `house-west-to-saria-door`, `west-house-to-plaza`, `north-clearing-ledge` (82 m, 15 waypoints, the arch and the ledge).
+  The verge shrubs and the mid canopy block nothing on the routes. Climbs identical to §3 (the main flight's frame
+  budget still ends at y 4.32 of 5.40; the descent camera 0.383 m over the treads).
+- **Camera pops** (one-frame jumps of the follow camera, from the harness's spike list): **`west-house-to-plaza`: 1.26 m
+  in one frame** (1,128 m/s²) with Link at (−16.8, 2.9, 6.6), the camera pulling from (−18.5, 4.6, 7.1) to (−17.4, 4.4,
+  6.8) against a *solid* shell — the west house's wall behind the walker as he turns for the plaza — and **0.67 m** two
+  metres on at (−15.4, 2.6, 6.8), also solid → solid. `8ab27c48` eased the *slim* pushes (they read 0.19–0.42 m here:
+  the lantern limb at (0.8, −2.0), the house bough at (16.4, 5.4, −7.6), the south-bank post at (−13.7, 13.5)); the
+  solid shells still pull in at once by design — at the west house that is a 1.3 m pop a player sees every time he
+  leaves it. **`north-clearing-ledge`: 0.37 m** at (5.75, 4.48, −60.4) as the camera's *lowered* state (0.3) releases
+  into a solid hit — the ledge's edge, worth one look by the camera's owner. Everything else ≤ 0.3 m.
+- **Camera height**: `west-house-to-plaza` brings the camera to **0.365 m** over the ground, `plaza-loop` to 0.414 m,
+  `plaza-to-south-bank-top` 0.603 m (the flight's descent 0.383 m in §3) — with the look-up pitch range the camera skims
+  the ground on descents; a floor of ≈ 0.6 m would keep it out of the grass.
+- **The boots** (`footprintLowestM`: the boot's lowest point over the rendered surface, ≈ 0 standing, > 1 cm a whole
+  boot floating): **`saria-front-arc` p50 2.9 cm, p95 8.0 cm, max 10.8 cm** — Link floats over Saria's forecourt for
+  most of the arc; **`west-deck` p50 2.1 cm, max 4.1 cm** over the deck timber; `plaza-to-upper-house` max 13.5 cm float
+  and **−31 cm** at the other end (a boot corner 31 cm inside the surface — on the flight, the collision height against
+  the rendered treads); the plaza, the south approach and the north path are clean (p50 0, p95 ≤ 1.2 cm). Lane 8 (Link)
+  with the collision owner: the two surfaces (Saria's forecourt, the west deck) sit under the walk height.
+- **Frame cost at the four play spots**, `e4ca3241` (07:34) → `6664f739`: plaza **521 → 574 draws / 7.43 → 8.00 M**
+  triangles, `stairs2-base` **522 → 571 / 9.53 → 9.67 M** (the cap is 9.0 M at A; the flight's foot was over it before
+  the squad and is 0.67 M over now), `saria-side` 519 → 571 / 8.59 → 8.88 M, `west-house` 442 → 479 / 5.03 → 5.10 M.
+  Draws +37 … +53 (the mid canopy's near LOD to 40 m, the verge shrubs, the understory), all under 700; triangles
+  +0.06 … +0.57 M. Programs 104 → 107, still **no shader compiles on the walk**.
+- **Heap**: 1,341 MB at the walk's start, **1,349 at its end** (07:34: 1,325 → 1,227). The `onUpload` release that took
+  98 MB off during the 07:34 walk no longer shows — the batch's new geometry (`understory.ts`, `distant.ts`'s mid
+  canopy, the verge plants) either keeps its arrays or is uploaded before the walk; +122 MB retained at the walk's end
+  against the last read. The capture box's memory rule (r55 §E–§G) is the reason to look.
+- **Pacing**: the 10:37 pacing pass ran beside a second Chrome (the §7b render) on this 4-core box — JS p50 6.0 / p95
+  23.2 / p99 38.3 ms against 07:34's 4.2 / 8.7 / 11.2 are **not comparable**; a clean `--only perf,pacing` run is in
+  progress and its numbers replace these here.
 
