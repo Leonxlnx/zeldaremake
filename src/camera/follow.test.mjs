@@ -57,9 +57,10 @@ function rig({ groundAt = () => 0, shared = {}, invertY = false, heading = Math.
   const host = listeners();
   const camera = new THREE.PerspectiveCamera(46, 16 / 9, 0.08, 900);
   let input = { moveX: 0, moveZ: 0 };
+  const face = { heading };
   const player = {
     position: new THREE.Vector3(0, 0, 0),
-    heading: () => heading,
+    heading: () => face.heading,
     airHeight: () => 0,
     groundHeight: (x, z) => groundAt(x, z),
     surfaceHeight: (x, z) => groundAt(x, z),
@@ -85,8 +86,40 @@ function rig({ groundAt = () => 0, shared = {}, invertY = false, heading = Math.
     win.emit('pointerup', {});
     for (let i = 0; i < 30; i++) cam.update(1 / 30);
   };
-  return { cam, camera, player, host, elevation, drag, input: () => input };
+  return { cam, camera, player, host, face, elevation, drag, input: () => input };
 }
+
+const deg = (r) => (r * 180) / Math.PI;
+/** wrap an angle difference (rad) into (−π, π] */
+const wrap = (a) => Math.atan2(Math.sin(a), Math.cos(a));
+/** 1/6 s is a whole number of frames at 30, 60 and 144 Hz: segments and samples fall on the same instants at every rate */
+const TICK = 1 / 6;
+/**
+ * Drive a fresh rig through `script` (a list of [ticks of TICK s, gamepad axes | null, heading or
+ * undefined]) at `hz`, sampling the view every tick: [yaw, pitch] (rad).
+ */
+function runAt(hz, script) {
+  const r = rig();
+  const dt = 1 / hz;
+  const perTick = Math.round(hz * TICK);
+  const samples = [];
+  for (const [ticks, axes, heading] of script) {
+    pad.value = axes ? { connected: true, axes, buttons: [] } : null;
+    if (heading !== undefined) r.face.heading = heading;
+    for (let k = 0; k < ticks; k++) {
+      for (let f = 0; f < perTick; f++) r.cam.update(dt);
+      const s = r.cam.state();
+      samples.push([s.yaw, s.pitch]);
+    }
+  }
+  pad.value = null;
+  return { r, samples };
+}
+const worstApart = (a, b) => {
+  let worst = 0;
+  for (let i = 0; i < Math.min(a.length, b.length); i++) worst = Math.max(worst, Math.abs(wrap(a[i][0] - b[i][0])), Math.abs(a[i][1] - b[i][1]));
+  return deg(worst);
+};
 
 test('the rest pose is the reference: 4.3 m behind, 1.75 m up, 3.3° down at the aim over Link', () => {
   const { camera, elevation } = rig();
@@ -129,6 +162,58 @@ test('the right stick looks: up looks up, and the view settles back to rest whil
   for (let i = 0; i < 150; i++) r.cam.update(1 / 30);
   pad.value = null;
   assert.ok(Math.abs(r.elevation() + 3.33) < 1.5, `recentred to ${r.elevation()}`);
+});
+
+test('the same stick input gives the same view at 30, 60 and 144 frames a second', () => {
+  // right stick up-right for 1 s, released for 1 s
+  const script = [
+    [6, [0, 0, 0.7, -0.8]],
+    [6, null],
+  ];
+  const [a, b, c] = [30, 60, 144].map((hz) => runAt(hz, script).samples);
+  // after the release every rate rests at the same view (the stick integrates rate × dt exactly)
+  for (const [x, name] of [[b, '60'], [c, '144']]) {
+    const end = x[x.length - 1];
+    const ref = a[a.length - 1];
+    assert.ok(deg(Math.abs(wrap(end[0] - ref[0]))) < 0.05 && deg(Math.abs(end[1] - ref[1])) < 0.05, `${name} Hz ends ${deg(end[0]).toFixed(3)}° / ${deg(end[1]).toFixed(3)}° vs 30 Hz ${deg(ref[0]).toFixed(3)}° / ${deg(ref[1]).toFixed(3)}°`);
+  }
+  // on the way the look smoothing's lag differs by at most a frame's worth of the turn
+  assert.ok(worstApart(a, c) < 1.5, `30 vs 144 Hz trajectories ${worstApart(a, c).toFixed(2)}° apart`);
+  assert.ok(worstApart(b, c) < 0.75, `60 vs 144 Hz trajectories ${worstApart(b, c).toFixed(2)}° apart`);
+});
+
+test('walking without look input: the camera swings behind Link and the pitch recentres at the same pace at 30, 60 and 144 Hz', () => {
+  // look up with the stick for 0.5 s, then walk (left stick forward) while Link turns 90° to his left
+  const script = [
+    [3, [0, 0, 0, -1]],
+    [3, [0, -1, 0, 0]],
+    [6, [0, -1, 0, 0], Math.PI * 0.75],
+    [18, [0, -1, 0, 0], Math.PI * 0.5],
+  ];
+  const [a, b, c] = [30, 60, 144].map((hz) => runAt(hz, script).samples);
+  // the recentre starts at the same instant at every rate (sub-frame onset); what differs is the
+  // look smoothing's lag behind a 50°/s swing, about a degree at 30 Hz
+  assert.ok(worstApart(a, c) < 1.5, `30 vs 144 Hz ${worstApart(a, c).toFixed(3)}° apart`);
+  assert.ok(worstApart(b, c) < 0.75, `60 vs 144 Hz ${worstApart(b, c).toFixed(3)}° apart`);
+  const endA = a[a.length - 1];
+  const endC = c[c.length - 1];
+  assert.ok(deg(Math.abs(wrap(endA[0] - endC[0]))) < 0.05 && deg(Math.abs(endA[1] - endC[1])) < 0.05, `ends ${deg(endA[0]).toFixed(3)}° / ${deg(endA[1]).toFixed(3)}° vs ${deg(endC[0]).toFixed(3)}° / ${deg(endC[1]).toFixed(3)}°`);
+  // and it did recentre: behind the new heading, back near the rest pitch
+  assert.ok(deg(Math.abs(wrap(endC[0] - Math.PI * 0.5))) < 3, `yaw ${deg(endC[0]).toFixed(1)}° behind a 90° heading`);
+  assert.ok(Math.abs(deg(endC[1]) - deg(PITCH_REST)) < 3, `pitch ${deg(endC[1]).toFixed(1)}° after 3 s of walking`);
+});
+
+test('one mouse drag lands on the same view whether it arrives in 5 or 50 events', () => {
+  const views = [5, 50].map((steps) => {
+    const r = rig();
+    r.host.emit('pointerdown', { clientX: 400, clientY: 300 });
+    for (let k = 1; k <= steps; k++) win.emit('pointermove', { clientX: 400 + (240 * k) / steps, clientY: 300 - (180 * k) / steps });
+    win.emit('pointerup', {});
+    for (let i = 0; i < 60; i++) r.cam.update(1 / 60);
+    const s = r.cam.state();
+    return [s.yaw, s.pitch];
+  });
+  assert.ok(Math.abs(views[0][0] - views[1][0]) < 1e-9 && Math.abs(views[0][1] - views[1][1]) < 1e-9, `5 events ${views[0]} vs 50 events ${views[1]}`);
 });
 
 test('a solid wall behind Link pulls the camera in front of it at once, and never lets it stand inside', () => {
