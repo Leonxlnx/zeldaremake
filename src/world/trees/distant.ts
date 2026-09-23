@@ -374,6 +374,8 @@ export interface CrownLook {
   coreDark?: number;
   /** floor cards always end in the crown's round edge (the far layer only rounds them inside its near gate) */
   roundFloors?: boolean;
+  /** share of the sun's direct term added at the lit rim as transmission */
+  rim?: number;
 }
 
 /**
@@ -401,6 +403,7 @@ export function createDistantCrownMaterial(wind: Wind, rng: Rng, palette: Palett
   const edgeSteep = look?.edgeSteep ?? CROWN_EDGE_STEEP;
   const fogCut = look?.fogCut ?? CROWN_UNDER_FOG_CUT;
   const coreDark = look?.coreDark ?? CROWN_CORE_DARK;
+  const rimShare = look?.rim ?? CROWN_RIM;
   const material = new MeshStandardMaterial({ map: atlas, alphaTest: CROWN_ALPHA_TEST, transparent: true, depthWrite: true, vertexColors: true, roughness: 1, metalness: 0, side: DoubleSide });
   material.name = look ? `distant-crown-${look.id}` : 'distant-crown';
   const f = (x: number) => x.toFixed(3);
@@ -513,7 +516,7 @@ export function createDistantCrownMaterial(wind: Wind, rng: Rng, palette: Palett
     {
       float rr = clamp(length(vCrownOff), 0.0, 1.5);
       float rim = smoothstep(0.5, 1.05, rr) * crownSunLit;
-      totalEmissiveRadiance += directionalLights[0].color * diffuseColor.rgb * rim * ${f(CROWN_RIM)};
+      totalEmissiveRadiance += directionalLights[0].color * diffuseColor.rgb * rim * ${f(rimShare)};
     }
     #endif
     `,
@@ -981,10 +984,26 @@ function tooCloseIn(grid: Map<string, DistantPlacement[]>, cell: number, x: numb
  * (`MID_CROWN_LOOK`): the far layer's near-distance treatments exist because a far crown is only
  * ever met close overhead, and at 12 m they would darken the mass and fade its vertical cards out.
  */
-export const MID_HEIGHTS = [7.6, 9.8, 12.4, 15.4];
-/** crown centre, crown radius and trunk radius as shares of the height */
-export const MID_CROWN_Y = 0.52;
-export const MID_CROWN_R = 0.4;
+/**
+ * The variants, short to tall: [height (m), crown radius, crown centre] — the last two as shares of
+ * the height. A card is drawn 2 × FAR_CROWN_CARD_HALF × FAR_CROWN_FILL[0] ≈ 2.13 crown radii
+ * across, so 0.27 gives a crown ≈ 0.58 of the tree's height wide: a 7 m mass on a 12 m tree, what a
+ * mid-story tree in review46 r_025 reads as (the first take at 0.4 drew 16 m blobs that swallowed
+ * the frame at 15 m). The two SHORT variants are the ones that fill a walker's eye-level band: a
+ * 5 m sapling clump 25 m out sits at screen y ≈ 0.45 with a 1.8 m crown, in the strip between the
+ * ground cover and the taller crowns where review46 has bushy young trees and ours had open haze.
+ */
+export const MID_SPECS: { height: number; crownR: number; crownY: number }[] = [
+  { height: 4.8, crownR: 0.38, crownY: 0.54 },
+  { height: 6.6, crownR: 0.34, crownY: 0.55 },
+  { height: 9.0, crownR: 0.3, crownY: 0.56 },
+  { height: 11.6, crownR: 0.28, crownY: 0.57 },
+  { height: 14.6, crownR: 0.26, crownY: 0.59 },
+];
+export const MID_HEIGHTS = MID_SPECS.map((s) => s.height);
+/** the crown radius / centre a placement's crown sphere is measured with (the mid of the set) */
+export const MID_CROWN_Y = 0.56;
+export const MID_CROWN_R = 0.3;
 export const MID_TRUNK_R = 0.031;
 /** the bole's sides and its longitudinal cords [furrows around, depth share] — read at 10–40 m, not at 2 m */
 export const MID_SIDES = 12;
@@ -1003,14 +1022,21 @@ export const MID_FAR_LOD_M = 34;
 /** the crown material's overrides for the mid layer (see CrownLook) */
 export const MID_CROWN_LOOK: Omit<CrownLook, 'atlas'> = {
   id: 'mid',
-  // the near gate off: a mid crown IS met at 10–30 m, and CROWN_NEAR_DARK / CROWN_UNDER_DARK
-  // would take it to 0.27 of its albedo there (smoothstep's edges must not be equal, hence < 0)
-  underM: [-2, -1],
+  // the far layer's gate is 36–48 m and takes a crown inside it to CROWN_NEAR_DARK × CROWN_UNDER_DARK
+  // = 0.27 of its albedo: right for a crown met overhead in the hollow, far too dark for the mass a
+  // walker sees across the middle distance. A gentler gate over 10–30 m keeps the underside reading
+  // as shade without crushing the tree.
+  underM: [10, 30],
+  nearDark: 0.86,
+  underDark: 0.55,
   // never fade a vertical card by the ray's climb: a 12 m crown 14 m away sits 30° up, inside the
   // far layer's fade window, and the owner walks looking slightly up
   edgeSteep: [1.2, 1.6],
-  // the mass still shades toward its core, a little less than the far silhouettes
-  coreDark: 0.68,
+  // a mid crown stands in a tenth of the far layer's haze, so it needs far less of it back
+  fogCut: 0.3,
+  // the lit rim: 0.6 of the direct term is the far layer's silhouette read through deep haze; on a
+  // crown in open sun at 15 m it burnt the whole card's edge to a bright acid green
+  rim: 0.3,
   roundFloors: true,
 };
 
@@ -1061,22 +1087,25 @@ function midCrownCards(writer: GeometryWriter, r: Rng, centre: Vector3, R: numbe
  * white-barks, the giants or anything else in the trees system moves.
  */
 export function createMidVariants(rng: Rng, palette: Palette): DistantVariant[] {
-  // a mid crown is read in a tenth of the far layer's haze: its cards carry more of the atlas's
-  // own greens than the far tint (0.62, 0.66, 0.60) does, and the lit top more still
-  const cardTint = new Color(0.8, 0.86, 0.76);
-  const cardTopTint = new Color(1.06, 1.1, 0.86);
+  // A mid crown stands in a tenth of the far layer's haze and takes the full direct sun, so it is
+  // NOT tinted up from the far cards (0.62, 0.66, 0.60 / 0.90, 0.95, 0.72) — barely at all. The
+  // first take at 1.3 × those read as bright cardboard against the mist.
+  const cardTint = new Color(0.63, 0.68, 0.6);
+  const cardTopTint = new Color(0.88, 0.93, 0.72);
   // each variant leads with a different silhouette and crosses it with the next two
   const cellSets = [
     [0, 2, 1],
     [2, 0, 1],
     [1, 2, 0],
     [0, 1, 2],
+    [2, 1, 0],
   ];
-  return MID_HEIGHTS.map((H, index) => {
+  return MID_SPECS.map((spec, index) => {
     const r = rng.fork(`mid-${index}`);
+    const H = spec.height;
     const R = H * MID_TRUNK_R;
-    const crownY = H * MID_CROWN_Y;
-    const crownR = H * MID_CROWN_R;
+    const crownY = H * spec.crownY;
+    const crownR = H * spec.crownR;
     const cells = cellSets[index % cellSets.length];
     const bark = new Color(palette.barkDark).multiplyScalar(0.85);
     const canopy = new Color(palette.leafCanopy).multiplyScalar(0.48);
@@ -1247,14 +1276,15 @@ export function placeMidTrees(rng: Rng, terrain: Terrain, variants: DistantVaria
     if (r() > groves * (o.weight ? o.weight(x, z) : 1)) continue;
     const variant = pool[r.int(0, pool.length)];
     const v = variants[variant];
+    const spec = MID_SPECS.find((s) => s.height === v.height);
     const scale = r.range(0.82, 1.2);
     const H = v.height * scale;
-    const crownR = H * MID_CROWN_R;
+    const crownR = H * (spec?.crownR ?? MID_CROWN_R);
     const trunkR = H * MID_TRUNK_R;
     if (o.blocked(x, z, trunkR)) continue;
     if (terrain.slope(x, z) > 0.66) continue;
     const y = terrain.height(x, z);
-    if (shadesCorridor(x, z, y + H * MID_CROWN_Y, crownR)) continue;
+    if (shadesCorridor(x, z, y + H * (spec?.crownY ?? MID_CROWN_Y), crownR)) continue;
     if (o.occupied.some((d) => Math.hypot(x - d.x, z - d.z) < d.r + trunkR)) continue;
     if (tooCloseIn(grid, cell, x, z, spacing)) continue;
     // value / hue jitter per tree, then the shared depth cool so the back of the band sits behind

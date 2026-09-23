@@ -37,7 +37,7 @@ import { NEAR_CANOPY_IN_M, NEAR_CANOPY_MAX_Y, NEAR_CANOPY_OUT_M, type NearCanopy
 import { LodPool, type PoolBuilt, type PoolItem } from './lodPool';
 import type { GiantTreeDef } from '../layout';
 import type { RootKitFit } from './rootkit';
-import { createDistantCrownMaterial, createDistantVariants, createMidVariants, CROWN_ALPHA_TEST, CROWN_CORE_DARK, CROWN_JITTER, CROWN_RIM, CROWN_SPHERE_MIX, DISTANT_BOLE_BANDS, DISTANT_CORDS, DISTANT_CROWN_TOP, DISTANT_DEPTH_COOL, DISTANT_FLARE, DISTANT_FLARE_FALL, DISTANT_FOOT_GRIME, DISTANT_FURROW_SHADE, DISTANT_NEAR_GAIN, DISTANT_ROOT_ARC, DISTANT_SIDES, distantClearanceTally, FAR_CROWN_CARD_HALF, FAR_CROWN_CARDS, FAR_CROWN_LOBES, LIMB_REACH, LIMB_TINT_FROM, LIMB_TINT_TO, LIMB_TIP_TINT, MID_CROWN_LOOK, MID_CROWN_R, MID_CROWN_Y, MID_FAR_LOD_M, MID_HEIGHTS, MID_TRUNK_R, placeDistantTrees, placeMidTrees, type DepthBand, type DistantClearance, type DistantPlacement, type DistantVariant } from './distant';
+import { createDistantCrownMaterial, createDistantVariants, createMidVariants, CROWN_ALPHA_TEST, CROWN_CORE_DARK, CROWN_JITTER, CROWN_RIM, CROWN_SPHERE_MIX, DISTANT_BOLE_BANDS, DISTANT_CORDS, DISTANT_CROWN_TOP, DISTANT_DEPTH_COOL, DISTANT_FLARE, DISTANT_FLARE_FALL, DISTANT_FOOT_GRIME, DISTANT_FURROW_SHADE, DISTANT_NEAR_GAIN, DISTANT_ROOT_ARC, DISTANT_SIDES, distantClearanceTally, FAR_CROWN_CARD_HALF, FAR_CROWN_CARDS, FAR_CROWN_LOBES, LIMB_REACH, LIMB_TINT_FROM, LIMB_TINT_TO, LIMB_TIP_TINT, MID_CROWN_LOOK, MID_FAR_LOD_M, MID_HEIGHTS, MID_SPECS, MID_TRUNK_R, placeDistantTrees, placeMidTrees, type DepthBand, type DistantClearance, type DistantPlacement, type DistantVariant } from './distant';
 import { TAU, isCushionRoot, mergeParts, type Detail } from './writer';
 import type { ViewGap } from './placement';
 
@@ -2990,7 +2990,7 @@ export async function create(ctx: WorldContext): Promise<WorldSystem> {
    *   • the expansion's ground is culled like every other legacy-built stream (heightfield.ts
    *     expansionCull), so nothing floats over the west bank, the discs or the far hut's knoll.
    */
-  const midTarget = Math.round(260 * Math.max(0.7, Math.min(1.2, ctx.quality.density)));
+  const midTarget = Math.round(320 * Math.max(0.7, Math.min(1.2, ctx.quality.density)));
   const midOccupied: { x: number; z: number; r: number }[] = [
     ...giantDefsAll.map((g) => ({ x: g.position[0], z: g.position[2], r: g.trunkRadius + 4.5 })),
     ...ctx.layout.houses.map((h) => ({ x: h.position[0], z: h.position[2], r: h.trunkRadius + 4 })),
@@ -3001,20 +3001,21 @@ export async function create(ctx: WorldContext): Promise<WorldSystem> {
     ...distantPlacements.filter((p) => Math.hypot(p.x, p.z) < 74).map((p) => ({ x: p.x, z: p.z, r: 3.5 })),
   ];
   /**
-   * Where the grove is thickest. The village core stays open (nothing new inside 14 m, full weight
-   * from 21 m out) and the north — the owner's pose looks down the north path from the plaza's north
-   * end — carries twice the weight of the rest of the ring.
+   * Where the grove is thickest. The village core stays open (nothing new inside 13 m, full weight
+   * from 19 m out); the north — the owner's pose looks down the north path from the plaza's north
+   * end — carries about twice the weight of the rest of the ring, and the ring itself is thick
+   * everywhere, because the brief is "every direction you can walk shows layered trees".
    */
-  const midWeight = (x: number, z: number) => smoothstep(14, 21, Math.hypot(x, z)) * (0.5 + 0.5 * smoothstep(-6, -26, z));
+  const midWeight = (x: number, z: number) => smoothstep(13, 19, Math.hypot(x, z)) * (0.58 + 0.42 * smoothstep(-6, -26, z));
   const midSampled = placeMidTrees(rng, terrain, distantVariants, {
     target: midTarget,
-    inner: 14,
+    inner: 13,
     outer: 58,
     blocked: (x, z, treeRadius) => treeGroundBlocked(ctx, x, z, treeRadius, EXTRA_GIANTS),
     occupied: midOccupied,
     corridors: plazaCorridors.map((c) => ({ point: c.point, dir: c.dir, radius: c.radius })),
     weight: midWeight,
-    spacing: 3.4,
+    spacing: 3.2,
   });
   const midPlacements = midSampled.filter((p) => !expansionCull(p.x, p.z));
   distantPlacements.push(...midPlacements);
@@ -3517,8 +3518,9 @@ export async function create(ctx: WorldContext): Promise<WorldSystem> {
     for (const c of seatedColumns) c.meshes.forEach((m, l) => add(family(`column-lod${l}`), m));
     sectorMeshes.forEach((m) => add(family(m.userData.kind === 'giant' ? 'giant-wood' : m.userData.kind === 'giant-authored-leaves' || m.userData.kind === 'giant-authored-cards' ? m.userData.kind : 'giant-cards'), m));
     for (const d of distantSets) {
-      add(family('distant-near'), d.near);
-      add(family('distant-far'), d.far);
+      const layer = d.variant.kind === 'mid' ? 'mid' : 'distant';
+      add(family(`${layer}-near`), d.near);
+      add(family(`${layer}-far`), d.far);
     }
     for (const nb of nearBoles) add(family(nb.mesh.userData.kind as string), nb.mesh);
     for (const nc of nearCanopies) add(family(`${nc.mesh.userData.kind as string}-${nc.kind}`), nc.mesh);
@@ -3707,7 +3709,8 @@ export async function create(ctx: WorldContext): Promise<WorldSystem> {
         trees: midPlacements.length,
         culled: midSampled.length - midPlacements.length,
         heights: MID_HEIGHTS,
-        crown: { centreY: MID_CROWN_Y, radius: MID_CROWN_R, trunkRadius: MID_TRUNK_R },
+        crown: MID_SPECS.map((s) => [s.height, s.crownR, s.crownY]),
+        trunkRadius: MID_TRUNK_R,
         band: midPlacements.length ? [Math.round(Math.min(...midPlacements.map((p) => Math.hypot(p.x, p.z))) * 10) / 10, Math.round(Math.max(...midPlacements.map((p) => Math.hypot(p.x, p.z))) * 10) / 10] : [0, 0],
         farLodM: MID_FAR_LOD_M,
         material: midCrown.name,
