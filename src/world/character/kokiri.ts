@@ -18,11 +18,13 @@
  * lash, hair, band on the head; two thigh flaps are the only new meshes).
  *
  * Lane 7 (2026-09-23, "the people need to be updated" — the girl by the signpost at the follow
- * camera's 4–8 m, ref-01 / d_023–d_036): the hair is a wider bob (r × 1.16, a deeper hem flare,
- * seven soft lobes breaking the outline into locks below the band, a fuller crown, side locks
- * framing the face at the bob's cut edge) under a canvas of broad locks and fine strands on a
- * glossier surface that takes a sheen from the sun (`girlHair`); the tunic wears a drape canvas
- * (four fold valleys in step with the skirt's ridges, shade under the belt and along the hem, a
+ * camera's 4–8 m, ref-01 / d_023–d_036): the head joint is scaled ×1.14 (`HEAD_SCALE` — head and
+ * hair a third of the height, the footage's proportions); the hair is a wider bob (r × 1.16, a
+ * deeper hem flare, seven soft lobes breaking the outline into locks below the band, a fuller
+ * crown, side locks framing the face at the bob's cut edge) in the footage's maroon under a canvas
+ * of broad locks and fine strands on a glossier surface that takes a sheen from the sun
+ * (`girlHair`); the tunic's upper carries four shallow fold ridges and the whole tunic wears a
+ * drape canvas (fold valleys in step with the ridges, shade under the belt and along the hem, a
  * fine weave — `girlCloth`); the skin is the pale peach of the footage instead of the tan. Same
  * meshes, same submissions per kid.
  *
@@ -84,8 +86,9 @@ export const KOKIRI_CHILD_PROPORTIONS: Proportions = {
  * near-black boots with khaki cuffs, maroon-red hair (display ≈ #5e2226), dark leather belt and
  * wristbands. Indexed by the girl look g (0 = kokiri-a, 1 = kokiri-b, 2 = the ledge girl, 3 = the
  * girl on the south bank — round 50, a slightly bluer tunic and a darker auburn bob); the boy keeps
- * the palette's kid colours. The skin (lane 7) is the pale peach of ref-01 / d_024 — the tan of
- * rounds 47–50 read orange against the footage at the follow camera's 5 m.
+ * the palette's kid colours. Lane 7 (2026-09-23): the skin is the pale peach of ref-01 / d_024 — the
+ * tan of rounds 47–50 read orange against the footage at the follow camera's 5 m — and the hair the
+ * footage's maroon (the 0x93412f brick, low in blue, rendered as an orange-brown).
  */
 const KID = {
   tunic: [0x375f35, 0x2f522f, 0x3a5a2e, 0x335a3a],
@@ -94,7 +97,7 @@ const KID = {
   buckle: 0xb8963f,
   boot: 0x352721,
   cuff: 0x8f7f5a,
-  hair: [0x93412f, 0x7e382c, 0x9c4a30, 0x843a2a],
+  hair: [0x7e2f33, 0x6e2a2e, 0x86343a, 0x74282d],
   skin: [0xd3a98a, 0xcda385, 0xd6ad8e, 0xd0a687],
   iris: ['#4a2c1a', '#3d2818', '#3b4a24', '#46301c'],
   lash: 0x1c120e,
@@ -239,7 +242,7 @@ function girlHair(look: number): MeshStandardMaterial {
     const shade = (1 - 0.16 * sstep(0.4, 0.05, v)) * (1 + 0.06 * sstep(0.7, 0.95, v));
     const phase = u * 9 + 0.09 * Math.sin(u * Math.PI * 2 * 3 + 1.1) + 0.05 * Math.sin(v * 5.2 + u * 6);
     const core = Math.cos(phase * Math.PI * 2);
-    const lock = 1 + 0.11 * core + 0.06 * Math.max(0, core) ** 3;
+    const lock = 1 + 0.15 * core + 0.08 * Math.max(0, core) ** 3;
     const col = Math.floor(x / 6);
     const run = Math.floor((y + 23 * hash2(col, 7, 5)) / 44);
     const strand = 1 + 0.08 * (hash2(col, run, 3) - 0.5) + 0.04 * (hash2(x, y >> 2, 9) - 0.5);
@@ -267,7 +270,7 @@ function girlCloth(look: number): MeshStandardMaterial {
     const belt = 1 - 0.12 * sstep(0.82, 1, v);
     const w = 0.45 + 0.55 * (1 - v);
     const fold = Math.cos(8 * Math.PI * u + 0.7);
-    const drape = 1 + 0.09 * w * fold - 0.06 * w * Math.max(0, -fold) ** 2;
+    const drape = 1 + 0.12 * w * fold - 0.08 * w * Math.max(0, -fold) ** 2;
     const weave = 1 + 0.035 * ((((x >> 1) + (y >> 1)) & 1) * 2 - 1);
     const mottle = 1 + 0.04 * (hash2(x >> 3, y >> 3, 11) - 0.5);
     return hem * belt * drape * weave * mottle;
@@ -790,21 +793,28 @@ function buildGirlTunic(rig: Rig, tunic: MeshStandardMaterial): void {
   const p = rig.props;
   const hl = (y: number) => y - p.hipY;
   const cl = (y: number) => y - p.chestY;
-  // upper: waist → chest → shoulders → neck opening, a little barrel-chested like a child
+  // upper: waist → chest → shoulders → neck opening, a little barrel-chested like a child; four
+  // shallow fold ridges rising from the waist (lane 7), with the lathe's UVs turned to the skirt
+  // panels' convention (u = atan2(z, x) / 2π) so the cloth canvas's valleys fall in the lathe's own
+  const upper = ovalLathe(
+    [
+      [0.096, cl(0.55)],
+      [0.1, cl(0.62)],
+      [0.108, cl(0.7)],
+      [0.114, cl(0.76)],
+      [0.106, cl(0.79)],
+      [0.055, cl(0.805)],
+    ],
+    { segments: 22, scaleZ: 0.76, folds: 4, foldDepth: 0.04 },
+  );
+  {
+    const uv = upper.attributes.uv;
+    for (let i = 0; i < uv.count; i++) uv.setX(i, 0.25 - uv.getX(i));
+  }
   part(
     rig.chest,
     merge([
-      ovalLathe(
-        [
-          [0.096, cl(0.55)],
-          [0.1, cl(0.62)],
-          [0.108, cl(0.7)],
-          [0.114, cl(0.76)],
-          [0.106, cl(0.79)],
-          [0.055, cl(0.805)],
-        ],
-        { segments: 22, scaleZ: 0.76 },
-      ),
+      upper,
       // soft collar
       place(new TorusGeometry(0.066, 0.012, 8, 20), 0, cl(0.8), 0.004, [Math.PI / 2 - 0.2, 0, 0], [1, 1, 0.82]),
     ]),
@@ -897,9 +907,19 @@ function buildBoy(rig: Rig, variant: number, skin: MeshStandardMaterial): void {
   part(rig.elbowR, place(stick, 0, 0, 0, [0.1, 0, 0.05]), matte('stick'), 'deku-stick');
 }
 
+/**
+ * The kids' heads are built at the rig's radius and the head joint (pivoted at the head centre)
+ * is scaled up (lane 7): head + hair become a third of the height — the footage's chibi read
+ * (ref-01: the girl's head and bob are 34 % of her) — with the face, hair and band tuned at
+ * 0.13 m growing together. The skull's underside then meets the shoulder line, as in d_024
+ * (the neck is inside it), and the collar tucks under the bob's hem.
+ */
+const HEAD_SCALE = 1.14;
+
 export function createKokiri(variant: number): Character {
   beginTally();
   const rig = buildRig(KOKIRI_CHILD_PROPORTIONS, `kokiri-${variant}`);
+  rig.head.scale.setScalar(HEAD_SCALE);
   const p = rig.props;
   const girl = variant !== 2;
   const look = girlLook(variant);
@@ -917,5 +937,6 @@ export function createKokiri(variant: number): Character {
     buildGirlHeadband(rig, kidMat(`band-${look}`, KID.band[look]));
   } else buildBoy(rig, variant, skin);
   rig.root.userData.character = 'kokiri';
-  return { kind: 'kokiri', rig, group: rig.root, triangles: endTally(), height: girl ? 1.09 : 1.1 };
+  // to the crown of the hair: skull top 1.06 + the scaled crown (girl: the dome reaches 0.158 · 1.14 over the head centre)
+  return { kind: 'kokiri', rig, group: rig.root, triangles: endTally(), height: girl ? 1.12 : 1.13 };
 }

@@ -98,9 +98,26 @@ props 5 cm off `ctx.shared.slimTrunks` (white-barks + understory); test with a s
 crate + barrel nudged 0.55 m. `agent/fable-3-trunk-avoid`; before/after at the cluster. Suggested to fable-4
 that the placer also keep off `PROP_LAYOUT` spots.
 
+13:20– UTC: **lane 7, the people** (fable-cursor 12:55; the owner's "the people also need to be updated"
+twice). Saw the problem first: the girl by the signpost rendered at the follow camera's 5 m
+(`/tmp/props/girl-shots.json`, cast forced visible on a throwaway build) — a smooth brown helmet of hair
+hugging the skull, orange-tan skin, a flat green tunic cylinder; ref-01 / d_024 have a wide maroon bob with
+a sheen, pale peach skin, cloth with folds. `agent/fable-3-kokiri-girl`: `kokiri.ts` — bob r × 1.10 → 1.16
+with a 0.20 hem flare and seven soft lobes below the band, crown r × 1.18, side locks moved to the bob's cut
+edge (thicker, 5 mm clear of the cheek), a hair canvas (nine broad locks, fine strands, hem shade, roughness
+0.58 for a sun sheen) that every hair part carries UVs onto (spheres theirs, fringe `shell` grid, clumps
+`clumpUv`), a cloth canvas on the tunic (four drape valleys in step with the skirt's `cos(4a + 0.7)` ridges —
+`skirtPanel` u is now a / 2π — hem + belt shade, a two-texel weave), skin 0xbd8a62 → 0xd3a98a (all four
+looks paler). `npc.ts` — the four fairy point lights ride on the npc group (constant light count, the
+north-posts precedent), positioned from `anchor + offset(t)` each frame, dimmed by a `glow` factor where a
+fairy is hidden (ledge, under capture) or kept out of the six frames (bank) — no `visible` toggles.
+`character/index.ts` — `backgroundCast.visible = true`. Same meshes per kid. Six views WILL change where the
+kids stand (owner-approved: the cast returns) — measured against the exact head build below.
+
 ## Files / systems being touched
-`src/world/props/{index,layout,geometry,materials}.ts`, `geometry.test.mjs`, `README.md`.
-Evidence sheets under `art/environment/props-fable-3/`. Nothing else.
+`src/world/props/{index,layout,geometry,materials}.ts`, `geometry.test.mjs`, `README.md` (lane 9);
+`src/world/character/{kokiri,npc,index}.ts` (lane 7, from 2026-09-23 12:55).
+Evidence sheets under `art/environment/props-fable-3/` and `art/environment/people-fable-3/`.
 
 ## Completed work
 - merged `fe65ce81`: the backside branch (item 0 in full) — final six-view table on the round-50 head in `backside/README.md`.
