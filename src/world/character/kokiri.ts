@@ -17,6 +17,17 @@
  * and the waist ring. All of that costs the same submissions as the decal face did (skull, eyes,
  * lash, hair, band on the head; two thigh flaps are the only new meshes).
  *
+ * Lane 7 (2026-09-23, "the people need to be updated" — the girl by the signpost at the follow
+ * camera's 4–8 m, ref-01 / d_023–d_036): the head joint is scaled ×1.14 (`HEAD_SCALE` — head and
+ * hair a third of the height, the footage's proportions); the hair is a wider bob (r × 1.16, a
+ * deeper hem flare, seven soft lobes breaking the outline into locks below the band, a fuller
+ * crown, side locks framing the face at the bob's cut edge) in the footage's maroon under a canvas
+ * of broad locks and fine strands on a glossier surface that takes a sheen from the sun
+ * (`girlHair`); the tunic's upper carries four shallow fold ridges and the whole tunic wears a
+ * drape canvas (fold valleys in step with the ridges, shade under the belt and along the hem, a
+ * fine weave — `girlCloth`); the skin is the pale peach of the footage instead of the tan. Same
+ * meshes, same submissions per kid.
+ *
  * `variant` 0 = the girl who wanders the plaza (kokiri-a), 1 = the girl who sits on the steps
  * (kokiri-b, darker tunic and hair), 2 = the boy at Saria's door (the round-1 look), 3 = the
  * girl on the raised ledge (kokiri-ledge, ref-04), 4 = the girl on the south bank (round 50,
@@ -34,12 +45,14 @@ import {
   Group,
   Matrix4,
   MeshStandardMaterial,
+  RepeatWrapping,
   SphereGeometry,
   SRGBColorSpace,
   TorusGeometry,
   Vector3,
   type WebGLProgramParametersWithUniforms,
 } from 'three';
+import { hash2 } from '../util/prng';
 import { merge, ovalLathe, place, sweep } from './geometry';
 import { CHAR_COLORS, matte } from './palette';
 import { beginTally, buildArms, buildFace, buildHair, buildLegs, buildNeck, endTally, part, type Character } from './link';
@@ -73,7 +86,9 @@ export const KOKIRI_CHILD_PROPORTIONS: Proportions = {
  * near-black boots with khaki cuffs, maroon-red hair (display ≈ #5e2226), dark leather belt and
  * wristbands. Indexed by the girl look g (0 = kokiri-a, 1 = kokiri-b, 2 = the ledge girl, 3 = the
  * girl on the south bank — round 50, a slightly bluer tunic and a darker auburn bob); the boy keeps
- * the palette's kid colours. Looks 0–2 are pinned: the six fixed frames' kids wear them.
+ * the palette's kid colours. Lane 7 (2026-09-23): the skin is the pale peach of ref-01 / d_024 — the
+ * tan of rounds 47–50 read orange against the footage at the follow camera's 5 m — and the hair the
+ * footage's maroon (the 0x93412f brick, low in blue, rendered as an orange-brown).
  */
 const KID = {
   tunic: [0x375f35, 0x2f522f, 0x3a5a2e, 0x335a3a],
@@ -82,8 +97,8 @@ const KID = {
   buckle: 0xb8963f,
   boot: 0x352721,
   cuff: 0x8f7f5a,
-  hair: [0x93412f, 0x7e382c, 0x9c4a30, 0x843a2a],
-  skin: [0xbd8a62, 0xb6845e, 0xc08f66, 0xba8860],
+  hair: [0x7e2f33, 0x6e2a2e, 0x86343a, 0x74282d],
+  skin: [0xd3a98a, 0xcda385, 0xd6ad8e, 0xd0a687],
   iris: ['#4a2c1a', '#3d2818', '#3b4a24', '#46301c'],
   lash: 0x1c120e,
 } as const;
@@ -176,6 +191,95 @@ function canvasTex(c: HTMLCanvasElement, name: string): CanvasTexture {
 }
 
 const hex = (c: number) => `#${c.toString(16).padStart(6, '0')}`;
+
+const sstep = (e0: number, e1: number, x: number) => {
+  const t = Math.max(0, Math.min(1, (x - e0) / (e1 - e0)));
+  return t * t * (3 - 2 * t);
+};
+
+// ---- hair and cloth canvases (lane 7): shading that reads at the follow camera's 4–8 m ----
+
+/** a canvas painted per pixel as a lightness factor over one sRGB colour, wrapped in u and v (the hair and the tunic run once around) */
+function shadedCanvas(W: number, H: number, color: number, name: string, factor: (u: number, v: number, x: number, y: number) => number): CanvasTexture {
+  const [c, g] = canvas(W, H);
+  const r8 = (color >> 16) & 255;
+  const g8 = (color >> 8) & 255;
+  const b8 = color & 255;
+  const img = g.createImageData(W, H);
+  const d = img.data;
+  for (let y = 0; y < H; y++) {
+    const v = 1 - y / (H - 1);
+    for (let x = 0; x < W; x++) {
+      const k = factor(x / W, v, x, y);
+      const i = (y * W + x) * 4;
+      d[i] = Math.min(255, Math.round(r8 * k));
+      d[i + 1] = Math.min(255, Math.round(g8 * k));
+      d[i + 2] = Math.min(255, Math.round(b8 * k));
+      d[i + 3] = 255;
+    }
+  }
+  g.putImageData(img, 0, 0);
+  const tex = canvasTex(c, name);
+  tex.wrapS = RepeatWrapping;
+  tex.wrapT = RepeatWrapping;
+  return tex;
+}
+
+const hairTexCache = new Map<number, MeshStandardMaterial>();
+
+/**
+ * The girls' hair: the look's colour under nine broad locks across u (a dark valley and a lighter
+ * core each, widths uneven, so the bob reads as locks of hair rather than a helmet at 5 m), fine
+ * strands in long runs down v for the closer views, a shade toward the hem (v → 0, the underside
+ * of the bob) and a lift at the crown, on a glossier surface (roughness 0.58) so the sun leaves a
+ * sheen where the crown turns. The bob and the crown are sphere-mapped (u once around, v top → hem);
+ * the fringe and the clumps are laid onto the same canvas (`shell` grid UVs, `clumpUv`).
+ */
+function girlHair(look: number): MeshStandardMaterial {
+  let m = hairTexCache.get(look);
+  if (m) return m;
+  const map = shadedCanvas(512, 256, KID.hair[look], `char-kid-hair-${look}`, (u, v, x, y) => {
+    const shade = (1 - 0.16 * sstep(0.4, 0.05, v)) * (1 + 0.06 * sstep(0.7, 0.95, v));
+    const phase = u * 9 + 0.09 * Math.sin(u * Math.PI * 2 * 3 + 1.1) + 0.05 * Math.sin(v * 5.2 + u * 6);
+    const core = Math.cos(phase * Math.PI * 2);
+    const lock = 1 + 0.15 * core + 0.08 * Math.max(0, core) ** 3;
+    const col = Math.floor(x / 6);
+    const run = Math.floor((y + 23 * hash2(col, 7, 5)) / 44);
+    const strand = 1 + 0.08 * (hash2(col, run, 3) - 0.5) + 0.04 * (hash2(x, y >> 2, 9) - 0.5);
+    return shade * lock * strand;
+  });
+  m = new MeshStandardMaterial({ map, roughness: 0.58, metalness: 0 });
+  m.name = `char-kid-hair-${look}`;
+  hairTexCache.set(look, m);
+  return m;
+}
+
+const clothTexCache = new Map<number, MeshStandardMaterial>();
+
+/**
+ * The girls' tunic cloth: the look's green with four drape valleys around (u = azimuth / 2π — the
+ * skirt panels and the lathed upper lay their UVs out that way — dark where the skirt's fold
+ * ridges `cos(4a + 0.7)` dip), strongest toward the hem, a shade under the belt (v → 1) and along
+ * the hem (v → 0), a fine two-texel weave and a soft mottle for the closer views. Matte (0.86).
+ */
+function girlCloth(look: number): MeshStandardMaterial {
+  let m = clothTexCache.get(look);
+  if (m) return m;
+  const map = shadedCanvas(256, 128, KID.tunic[look], `char-kid-cloth-${look}`, (u, v, x, y) => {
+    const hem = 1 - 0.16 * sstep(0.2, 0, v);
+    const belt = 1 - 0.12 * sstep(0.82, 1, v);
+    const w = 0.45 + 0.55 * (1 - v);
+    const fold = Math.cos(8 * Math.PI * u + 0.7);
+    const drape = 1 + 0.12 * w * fold - 0.08 * w * Math.max(0, -fold) ** 2;
+    const weave = 1 + 0.035 * ((((x >> 1) + (y >> 1)) & 1) * 2 - 1);
+    const mottle = 1 + 0.04 * (hash2(x >> 3, y >> 3, 11) - 0.5);
+    return hem * belt * drape * weave * mottle;
+  });
+  m = new MeshStandardMaterial({ map, roughness: 0.86, metalness: 0 });
+  m.name = `char-kid-cloth-${look}`;
+  clothTexCache.set(look, m);
+  return m;
+}
 
 /** UV corners of the skull texture that carry a flat colour for the merged features */
 const SKULL_TEX_W = 512;
@@ -331,9 +435,10 @@ function flatUv(geo: BufferGeometry, uv: [number, number]): BufferGeometry {
 /**
  * A spherical shell around `centre` (radius R) over the azimuth range ±psiMax about +Z, whose
  * polar extent at each azimuth psi runs from thetaFrom(psi) to thetaTo(psi) — the eyelids (an
- * almond edge) and the fringe (a pointed hem). Normals radial, UVs flat.
+ * almond edge) and the fringe (a pointed hem). Normals radial; UVs flat (one texture point) or,
+ * given a function of the grid position (ix / ws across, iy / hs down), laid out over the shell.
  */
-function shell(centre: Vector3, R: number, psiMax: number, thetaFrom: (psi: number) => number, thetaTo: (psi: number) => number, ws: number, hs: number, uv: [number, number]): BufferGeometry {
+function shell(centre: Vector3, R: number, psiMax: number, thetaFrom: (psi: number) => number, thetaTo: (psi: number) => number, ws: number, hs: number, uv: [number, number] | ((sx: number, sy: number) => [number, number])): BufferGeometry {
   const positions: number[] = [];
   const normals: number[] = [];
   const uvs: number[] = [];
@@ -349,7 +454,8 @@ function shell(centre: Vector3, R: number, psiMax: number, thetaFrom: (psi: numb
       const nz = Math.sin(th) * Math.cos(psi);
       positions.push(centre.x + R * nx, centre.y + R * ny, centre.z + R * nz);
       normals.push(nx, ny, nz);
-      uvs.push(uv[0], uv[1]);
+      const p = typeof uv === 'function' ? uv(ix / ws, iy / hs) : uv;
+      uvs.push(p[0], p[1]);
     }
   }
   const col = hs + 1;
@@ -517,41 +623,56 @@ function buildGirlFace(rig: Rig, look: number): void {
   rig.eyes.push(eyes);
 }
 
+/** re-lay a sweep's UVs for the hair canvas: the strands run along the tube (v), a lock's width of the canvas wraps around it (u) */
+function clumpUv(geo: BufferGeometry): BufferGeometry {
+  const uv = geo.attributes.uv;
+  for (let i = 0; i < uv.count; i++) {
+    const along = uv.getX(i);
+    const around = uv.getY(i);
+    uv.setXY(i, around * 0.16, 0.85 - 0.5 * along);
+  }
+  return geo;
+}
+
 /**
- * Hair (round 48): four overlapping shells in one mesh — the bob body (open at the face, hem
- * flared for volume and cut ragged), the crown volume above the headband, a pointed fringe
- * hanging from under the band to the brows, side locks framing the face — plus the brow tubes
- * (same colour, same joint, so they ride in the same submission).
+ * Hair (round 48, widened for lane 7): four overlapping shells in one mesh — the bob body (open
+ * at the face, hem flared for volume and cut ragged, its outline below the band broken into
+ * seven soft lobes), the crown volume above the headband, a pointed fringe hanging from under the
+ * band to the brows, side locks framing the face at the bob's cut edge — plus the brow tubes
+ * (same colour, same joint, so they ride in the same submission). Every part carries UVs onto the
+ * hair canvas (`girlHair`): the spheres their own, the fringe a grid, the clumps `clumpUv`.
  */
 function buildGirlHair(rig: Rig, hair: MeshStandardMaterial): void {
   const r = rig.props.headRadius;
   const k = r / 0.125;
   const clump = (from: [number, number, number], mid: [number, number, number], to: [number, number, number], r0: number, r1: number, tip = 0.004) =>
-    sweep([new Vector3(...from).multiplyScalar(k), new Vector3(...mid).multiplyScalar(k), new Vector3(...to).multiplyScalar(k)], [r0 * k, r1 * k, tip * k], { segments: 8, radial: 7, closeTip: true, closeStart: true });
-  // bob body: back and sides down past the jaw, open at the face; the hem flares and is cut ragged
-  const bob = new SphereGeometry(r * 1.1, 26, 14, Math.PI / 2 + 0.78, Math.PI * 2 - 1.56, 0, Math.PI * 0.76);
+    clumpUv(sweep([new Vector3(...from).multiplyScalar(k), new Vector3(...mid).multiplyScalar(k), new Vector3(...to).multiplyScalar(k)], [r0 * k, r1 * k, tip * k], { segments: 8, radial: 7, closeTip: true, closeStart: true }));
+  // bob body: back and sides down past the jaw, open at the face; the hem flares and is cut ragged;
+  // below the band the radius carries seven soft lobes so the silhouette reads as locks, not a helmet
+  const bobR = r * 1.16;
+  const bob = new SphereGeometry(bobR, 28, 14, Math.PI / 2 + 0.78, Math.PI * 2 - 1.56, 0, Math.PI * 0.76);
   {
     const pos = bob.attributes.position;
     for (let i = 0; i < pos.count; i++) {
       const x = pos.getX(i);
       const y = pos.getY(i);
       const z = pos.getZ(i);
-      const th = Math.acos(Math.max(-1, Math.min(1, y / (r * 1.1))));
+      const th = Math.acos(Math.max(-1, Math.min(1, y / bobR)));
+      const a = Math.atan2(z, x);
       const hem = Math.max(0, (th - Math.PI * 0.5) / (Math.PI * 0.26));
-      const flare = 1 + 0.11 * Math.pow(hem, 1.6);
+      const flare = 1 + 0.2 * Math.pow(hem, 1.5);
+      const lobes = 1 + 0.04 * Math.cos(7 * a + 0.4) * sstep(0.33, 0.6, th / Math.PI);
       let yy = y;
-      if (th > Math.PI * 0.74) {
-        const a = Math.atan2(z, x);
-        yy -= 0.007 * (0.5 + 0.5 * Math.sin(a * 7.0 + 1.3));
-      }
-      pos.setXYZ(i, x * flare, yy, z * flare);
+      if (th > Math.PI * 0.74) yy -= 0.01 * (0.5 + 0.5 * Math.sin(a * 7.0 + 1.3));
+      pos.setXYZ(i, x * flare * lobes, yy, z * flare * lobes);
     }
     pos.needsUpdate = true;
     bob.computeVertexNormals();
   }
   const parts: BufferGeometry[] = [place(bob, 0, -0.004, -0.016, undefined, [1.04, 1, 1.02])];
-  // crown: a fuller dome above the band (its edge hides inside the band)
-  parts.push(place(new SphereGeometry(r * 1.14, 26, 9, 0, Math.PI * 2, 0, Math.PI * 0.36), 0, 0.014, -0.008, undefined, [1.0, 0.95, 1.04]));
+  // crown: a fuller dome above the band (its edge hides inside the band: at the band's height the
+  // dome is 0.14 m across against the band's 0.15, at the back too, where the band dips)
+  parts.push(place(new SphereGeometry(r * 1.18, 26, 9, 0, Math.PI * 2, 0, Math.PI * 0.36), 0, 0.012, -0.008, undefined, [1.0, 0.95, 1.04]));
   // fringe: a shell over the forehead from under the band down to the brows, its hem cut into points
   const fringeC = new Vector3(0, 0.012, 0.004);
   const fringeR = r * 1.065;
@@ -566,14 +687,16 @@ function buildGirlHair(rig: Rig, hair: MeshStandardMaterial): void {
       (psi) => Math.PI * (0.415 + 0.028 * (0.5 - 0.5 * Math.cos((psi / 0.88) * Math.PI * points + 0.6))),
       24,
       8,
-      [0.5, 0.5],
+      // its 1.76 rad of the head's circumference onto the canvas (u = 0.28 of the locks), strands running down
+      (sx, sy) => [0.36 + 0.28 * sx, 0.92 - 0.5 * sy],
     ),
   );
-  // side locks in front of the ears, to the jaw, and two tufts at the nape under the bob
-  parts.push(clump([0.098, 0.064, 0.06], [0.114, -0.03, 0.062], [0.108, -0.105, 0.05], 0.024, 0.02));
-  parts.push(clump([-0.098, 0.064, 0.06], [-0.114, -0.03, 0.062], [-0.108, -0.105, 0.05], 0.024, 0.02));
-  parts.push(clump([0.045, -0.06, -0.1], [0.05, -0.1, -0.095], [0.04, -0.13, -0.08], 0.022, 0.016));
-  parts.push(clump([-0.045, -0.06, -0.1], [-0.05, -0.1, -0.095], [-0.04, -0.13, -0.08], 0.022, 0.016));
+  // side locks: from under the band at the bob's cut edge (flush with the bob there), out past the
+  // cheek — 5 mm clear of it — and down to the jaw, framing the face; two tufts at the nape under the bob
+  parts.push(clump([0.088, 0.052, 0.077], [0.115, -0.03, 0.1], [0.112, -0.115, 0.096], 0.027, 0.026, 0.009));
+  parts.push(clump([-0.088, 0.052, 0.077], [-0.115, -0.03, 0.1], [-0.112, -0.115, 0.096], 0.027, 0.026, 0.009));
+  parts.push(clump([0.045, -0.06, -0.1], [0.052, -0.1, -0.096], [0.042, -0.135, -0.08], 0.024, 0.018));
+  parts.push(clump([-0.045, -0.06, -0.1], [-0.052, -0.1, -0.096], [-0.042, -0.135, -0.08], 0.024, 0.018));
   // brows: arched tubes just proud of the skull, thicker at the inner end, 2–3 cm over the lid line
   // (under the fringe's points, visible between them)
   for (const s of [1, -1] as const) {
@@ -615,7 +738,8 @@ function buildWristbands(rig: Rig, leather: MeshStandardMaterial): void {
 /**
  * An open skirt panel: the (radius, y) profile revolved over the angle range [a0, a1] (angle a
  * measured from +X toward +Z, so the front centre is π/2), oval in Z, with fold ridges and a
- * scalloped, ragged hem like `ovalLathe`. Rows top→bottom; UVs (u along, v up).
+ * scalloped, ragged hem like `ovalLathe`. Rows hem→top; UVs (u = a / 2π, so the cloth canvas's
+ * fold valleys land in the panel's own — whatever range the panel spans; v up).
  */
 function skirtPanel(profile: [number, number][], a0: number, a1: number, segments: number, opts: { scaleZ: number; folds: number; foldDepth: number; scallops: number; scallopDepth: number; ragged: number; seed: number; radiusScale?: number }): BufferGeometry {
   const positions: number[] = [];
@@ -638,7 +762,7 @@ function skirtPanel(profile: [number, number][], a0: number, a1: number, segment
         yy += opts.ragged * h;
       }
       positions.push(Math.cos(a) * rr, yy, Math.sin(a) * rr * opts.scaleZ);
-      uvs.push(i / segments, j / (profile.length - 1));
+      uvs.push(a / (Math.PI * 2), j / (profile.length - 1));
     }
   }
   const col = segments + 1;
@@ -669,21 +793,28 @@ function buildGirlTunic(rig: Rig, tunic: MeshStandardMaterial): void {
   const p = rig.props;
   const hl = (y: number) => y - p.hipY;
   const cl = (y: number) => y - p.chestY;
-  // upper: waist → chest → shoulders → neck opening, a little barrel-chested like a child
+  // upper: waist → chest → shoulders → neck opening, a little barrel-chested like a child; four
+  // shallow fold ridges rising from the waist (lane 7), with the lathe's UVs turned to the skirt
+  // panels' convention (u = atan2(z, x) / 2π) so the cloth canvas's valleys fall in the lathe's own
+  const upper = ovalLathe(
+    [
+      [0.096, cl(0.55)],
+      [0.1, cl(0.62)],
+      [0.108, cl(0.7)],
+      [0.114, cl(0.76)],
+      [0.106, cl(0.79)],
+      [0.055, cl(0.805)],
+    ],
+    { segments: 22, scaleZ: 0.76, folds: 4, foldDepth: 0.04 },
+  );
+  {
+    const uv = upper.attributes.uv;
+    for (let i = 0; i < uv.count; i++) uv.setX(i, 0.25 - uv.getX(i));
+  }
   part(
     rig.chest,
     merge([
-      ovalLathe(
-        [
-          [0.096, cl(0.55)],
-          [0.1, cl(0.62)],
-          [0.108, cl(0.7)],
-          [0.114, cl(0.76)],
-          [0.106, cl(0.79)],
-          [0.055, cl(0.805)],
-        ],
-        { segments: 22, scaleZ: 0.76 },
-      ),
+      upper,
       // soft collar
       place(new TorusGeometry(0.066, 0.012, 8, 20), 0, cl(0.8), 0.004, [Math.PI / 2 - 0.2, 0, 0], [1, 1, 0.82]),
     ]),
@@ -776,9 +907,19 @@ function buildBoy(rig: Rig, variant: number, skin: MeshStandardMaterial): void {
   part(rig.elbowR, place(stick, 0, 0, 0, [0.1, 0, 0.05]), matte('stick'), 'deku-stick');
 }
 
+/**
+ * The kids' heads are built at the rig's radius and the head joint (pivoted at the head centre)
+ * is scaled up (lane 7): head + hair become a third of the height — the footage's chibi read
+ * (ref-01: the girl's head and bob are 34 % of her) — with the face, hair and band tuned at
+ * 0.13 m growing together. The skull's underside then meets the shoulder line, as in d_024
+ * (the neck is inside it), and the collar tucks under the bob's hem.
+ */
+const HEAD_SCALE = 1.14;
+
 export function createKokiri(variant: number): Character {
   beginTally();
   const rig = buildRig(KOKIRI_CHILD_PROPORTIONS, `kokiri-${variant}`);
+  rig.head.scale.setScalar(HEAD_SCALE);
   const p = rig.props;
   const girl = variant !== 2;
   const look = girlLook(variant);
@@ -788,14 +929,14 @@ export function createKokiri(variant: number): Character {
   buildLegs(rig, { skin, boot, cuff: girl ? kidMat('cuff', KID.cuff) : null, shaftTop: p.kneeY - p.ankleY - 0.03 });
   buildNeck(rig, skin);
   if (girl) {
-    const tunic = kidMat(`tunic-${look}`, KID.tunic[look]);
     buildArms(rig, { skin, sleeve: null });
     buildWristbands(rig, kidMat('belt', KID.belt));
-    buildGirlTunic(rig, tunic);
+    buildGirlTunic(rig, girlCloth(look));
     buildGirlFace(rig, look);
-    buildGirlHair(rig, kidMat(`hair-${look}`, KID.hair[look]));
+    buildGirlHair(rig, girlHair(look));
     buildGirlHeadband(rig, kidMat(`band-${look}`, KID.band[look]));
   } else buildBoy(rig, variant, skin);
   rig.root.userData.character = 'kokiri';
-  return { kind: 'kokiri', rig, group: rig.root, triangles: endTally(), height: girl ? 1.09 : 1.1 };
+  // to the crown of the hair: skull top 1.06 + the scaled crown (girl: the dome reaches 0.158 · 1.14 over the head centre)
+  return { kind: 'kokiri', rig, group: rig.root, triangles: endTally(), height: girl ? 1.12 : 1.13 };
 }
