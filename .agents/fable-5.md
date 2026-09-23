@@ -38,7 +38,7 @@ lands: `ffmpeg` frames at his marked moments → `reference/frames-video2/`, has
 - `.agents/fable-5.md`, `.agents/reviews/fable-5-*.md`, my threads in `.agents/INBOX.md`.
 
 ## Completed work
-- 2026-09-23 08:30–08:42 UTC — iteration 82 (lane-10 report §3 pacing, §5): the 07:50–08:29 air changes at the owner's pose darken
+- 2026-09-23 08:30–08:40 UTC — iteration 82 (lane-10 report §3 pacing, §5): the 07:50–08:29 air changes at the owner's pose darken
   the corridor (mist 2.0 → 0.9 %, l 0.300 → 0.263 vs the recording's 22.6 % bright); the left-bank turf invisible at his pose;
   pacing along the walk smooth (JS p50 4.2 ms, no compiles).
 - 2026-09-23 07:29–07:52 UTC — iteration 81 (LANE 10 taken, `fable-5-lane10-walk-2026-09-23.md`): the owner's 06:50 pose against
@@ -398,4 +398,4 @@ lands: `ffmpeg` frames at his marked moments → `reference/frames-video2/`, has
   lists the regions; the evidence images are reproducible with the same crops.
 
 ## Last updated
-2026-09-23T08:43:00Z
+2026-09-23T08:41:00Z
