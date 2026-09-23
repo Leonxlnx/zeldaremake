@@ -3782,12 +3782,30 @@ export function buildPlants(ctx: WorldContext, field: VegField, parent: Group): 
     const vergeBox: [number, number, number, number] = [-8, -74, 10, 17];
     const vergeArea = (vergeBox[2] - vergeBox[0]) * (vergeBox[3] - vergeBox[1]);
     /**
-     * The ultra tiers cost 4–5 K triangles an instance and each fixed camera's ring is budgeted
-     * (plants.test: ≤ 40 per set inside the ring). The walked verge runs through three of those
-     * rings, so it keeps out of the ring around every viewpoint; a walker loses nothing — he never
-     * stands still on the spot a fixed camera does, and the band is there a step further on.
+     * The ultra tiers cost 4–5 K triangles an instance and every fixed camera's ring is budgeted
+     * (plants.test: ≤ 40 of a set inside its ring). Five of the six viewpoints stand on the plaza,
+     * which is the busiest stretch of the owner's walk, so the verge does not step around them —
+     * it spends what is left of each ring's budget and stops. `ULTRA_CAP` keeps a margin under the
+     * contract's 40.
      */
-    const ultraKeepOut = (x: number, z: number, ring: number) => ctx.layout.viewpoints.some((v) => Math.hypot(x - v.position[0], z - v.position[2]) < ring);
+    const ULTRA_CAP = 37;
+    const ultraBudget = (set: LodInstancedSet, ring: number) => {
+      const vps = ctx.layout.viewpoints;
+      const counts = vps.map((v) => set.items.filter((it) => Math.hypot(it.x - v.position[0], it.z - v.position[2]) < ring).length);
+      const near = (x: number, z: number, i: number) => Math.hypot(x - vps[i].position[0], z - vps[i].position[2]) < ring;
+      return {
+        ok(x: number, z: number, add = 1) {
+          for (let i = 0; i < vps.length; i++) if (near(x, z, i) && counts[i] + add > ULTRA_CAP) return false;
+          return true;
+        },
+        take(x: number, z: number) {
+          for (let i = 0; i < vps.length; i++) if (near(x, z, i)) counts[i]++;
+        },
+      };
+    };
+    const flowerBudget = ultraBudget(flowers, FLOWER_ULTRA_M);
+    const weedBudget = ultraBudget(weeds, BROADLEAF_ULTRA_M);
+    const cloverBudget = ultraBudget(clover, BROADLEAF_ULTRA_M);
     /**
      * the band's weight at (x, z) for a plant reaching `reach` m: the walked verge over `band`
      * metres off the paving, the west side VERGE_LEFT ×, and the ground rules every pass runs
@@ -3818,24 +3836,26 @@ export function buildPlants(ctx: WorldContext, field: VegField, parent: Group): 
     {
       const rng = ctx.rng.fork('plants/flowers-walk-verge');
       const s = newSample();
-      const spacing = new Spacing(1.15);
+      const spacing = new Spacing(1.3);
       let clumpsPlaced = 0;
-      for (let i = 0; i < 44000 && clumpsPlaced < 132; i++) {
+      for (let i = 0; i < 130000 && clumpsPlaced < 140; i++) {
         const cx = vergeBox[0] + rng() * (vergeBox[2] - vergeBox[0]);
         const cz = vergeBox[1] + rng() * (vergeBox[3] - vergeBox[1]);
         field.sample(cx, cz, s);
         if (!field.allowed(cx, cz, s, true) || field.insideGiantTrunk(cx, cz)) continue;
         const w = walkVerge(cx, cz, s, [0.12, 1.5], 0.32);
-        if (w <= 0 || rng() > 0.55 * w * (0.45 + field.flowerPatch(cx, cz))) continue;
+        // his violets gather — a mass at one verge, plain green for the next few steps, another
+        // mass further on — so the clumps follow the flower patches steeply instead of lining
+        // both edges evenly
+        if (w <= 0 || rng() > 1.0 * w * Math.pow(field.flowerPatch(cx, cz), 1.5)) continue;
         if (field.stoneDistance(cx, cz) < STONE_CLEARANCE || field.troddenZone(cx, cz, true) > 0.6) continue;
-        if (ultraKeepOut(cx, cz, FLOWER_ULTRA_M + 0.6)) continue;
-        if (!spacing.ok(cx, cz, 1.15)) continue;
+        if (!spacing.ok(cx, cz, 1.3)) continue;
         spacing.add(cx, cz);
         clumpsPlaced++;
-        const heads = 6 + rng.int(0, 5);
+        const heads = 8 + rng.int(0, 7);
         for (let h = 0, tries = 0; h < heads && tries < heads * 4; tries++) {
           const a = rng() * Math.PI * 2;
-          const d = Math.sqrt(rng()) * 0.34;
+          const d = Math.sqrt(rng()) * 0.42;
           const x = cx + Math.cos(a) * d;
           const z = cz + Math.sin(a) * d;
           field.sample(x, z, s);
@@ -3843,12 +3863,14 @@ export function buildPlants(ctx: WorldContext, field: VegField, parent: Group): 
           // the white clumps were seated first and keep 0.45 m off every violet (plants.test): a
           // new violet under one would break that contract from the other side
           if (whiteFlowers.items.some((w) => Math.hypot(w.x - x, w.z - z) < 0.46)) continue;
+          if (!flowerBudget.ok(x, z)) continue;
           // frame 56 s' boulder bed measures 1 % violet — two small patches, not a field — and
           // camera D's box is held to them (plants.test, round 32). The walked verge keeps out of
           // that box; everywhere else on the walk it grows.
           const dp = field.screenPoint('D_log', x, T.height(x, z) + 0.12, z);
           if (dp && dp.depth <= 21 && dp.sx >= 0.08 && dp.sx <= 0.32 && dp.sy >= 0.53 && dp.sy <= 0.87) continue;
           placeInstance(flowers, x, z, s, rng, (1.05 + rng() * 0.35) * (1 - 0.35 * field.lowZone(x, z)), 0.6, 0.012, tint.setRGB(0.95 + rng() * 0.1, 0.95 + rng() * 0.1, 0.95 + rng() * 0.1), undefined, CLUSTER_HEADS);
+          flowerBudget.take(x, z);
           h++;
         }
       }
@@ -3865,12 +3887,15 @@ export function buildPlants(ctx: WorldContext, field: VegField, parent: Group): 
         minSpacing: 0.26,
         r32: true,
         accept(x, z, s) {
-          if (ultraKeepOut(x, z, BROADLEAF_ULTRA_M + 0.5)) return 0;
+          if (!weedBudget.ok(x, z)) return 0;
           const w = walkVerge(x, z, s, [0.1, 1.8], 0.28);
           return w <= 0 ? 0 : 0.75 * w * (0.35 + field.flowerPatch(x, z)) * (0.4 + field.cluster(x, z));
         },
       },
-      (x, z, s, rng) => placeInstance(weeds, x, z, s, rng, (1.0 + rng() * 0.8) * (1 - 0.4 * field.lowZone(x, z)), 0.85, 0.012, greenVar(rng, 0.2)),
+      (x, z, s, rng) => {
+        placeInstance(weeds, x, z, s, rng, (1.0 + rng() * 0.8) * (1 - 0.4 * field.lowZone(x, z)), 0.85, 0.012, greenVar(rng, 0.2));
+        weedBudget.take(x, z);
+      },
     );
     // (c) low fronds behind them, on the band's outer half — the second layer of his verge
     scatter(
@@ -3903,12 +3928,15 @@ export function buildPlants(ctx: WorldContext, field: VegField, parent: Group): 
         low: true,
         r32: true,
         accept(x, z, s) {
-          if (ultraKeepOut(x, z, BROADLEAF_ULTRA_M + 0.5)) return 0;
+          if (!cloverBudget.ok(x, z)) return 0;
           const w = walkVerge(x, z, s, [0.06, 1.2], 0.2);
           return w <= 0 ? 0 : 0.5 * w * (0.4 + field.cluster(x, z));
         },
       },
-      (x, z, s, rng) => placeInstance(clover, x, z, s, rng, 0.8 + rng() * 0.55, 0.9, 0.008, greenVar(rng, 0.2)),
+      (x, z, s, rng) => {
+        placeInstance(clover, x, z, s, rng, 0.8 + rng() * 0.55, 0.9, 0.008, greenVar(rng, 0.2));
+        cloverBudget.take(x, z);
+      },
     );
   }
 
