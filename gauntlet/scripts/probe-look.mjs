@@ -10,7 +10,9 @@
  * A variant sets `color` / `emissive` (linear RGB) / `emissiveIntensity` / `roughness` on every
  * material whose name matches `material` (exact), `visible` on objects named `object`, or moves the
  * sun (`sun: { dir: [x, y, z], intensity }` — the shadow-casting directional light, same distance
- * from its target); each variant starts from the loaded values. Frames are <variant>-<shot>.png.
+ * from its target), or blits one composer buffer (`atmoDebug`: 'rays' | 'ao' | 'mist' | 'bloom');
+ * each variant starts from the loaded values. Frames are <variant>-<shot>.png. `--audit <file>`
+ * also writes the loaded world's `__ZR__.audit()`.
  * The character is hidden.
  */
 import fs from 'node:fs';
@@ -61,6 +63,8 @@ async function main() {
   try {
     const { page } = await openWorld(browser, server.url, { width, height, log: console.error });
     if (!(await grabHooks(page))) throw new Error('world hooks not found');
+    // --audit <file>: the loaded world's audit (every system's registered facts) as JSON
+    if (typeof args.audit === 'string') fs.writeFileSync(path.resolve(args.audit), JSON.stringify(await page.evaluate(() => window.__ZR__.audit()), null, 1));
     await page.evaluate(() => {
       for (const sel of ['.zr-hud', '.zr-equip']) {
         const el = document.querySelector(sel);
@@ -113,6 +117,8 @@ async function main() {
           else d.copy(S.dir0);
           S.light.intensity = v.sun?.intensity ?? S.intensity;
         }
+        // `atmoDebug`: 'rays' | 'ao' | 'mist' | 'bloom' blits that composer buffer (postfx/composer.ts)
+        globalThis.__ATMO_DEBUG__ = v.atmoDebug ?? undefined;
         return n;
       }, v);
       for (const shot of shots) {
