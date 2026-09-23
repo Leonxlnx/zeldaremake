@@ -483,7 +483,11 @@ export const HEIGHT_FOG_DEFAULTS: HeightFogParams = {
   // A open far 0.577 → 0.597 (p90 0.615 → 0.640, band p90 0.558 → 0.562) for −0.0024 / −0.0053 /
   // −0.0014 / −0.0002. None taken: the metric charges every radiance rise in the far cells.
   hazeLit: [0.415, 0.371, 0.323],
-  hazeLitKnee: 0.2,
+  // Round 2: 0.2 → 0.13. The lit air is the brightest veil a walker sees and the knee decided how
+  // much of a ray had to leave the under-canopy layer before it counted; at 0.2 the corridor's
+  // upper band (his mid-crown box: l 0.471) reached almost none of it. Eye-level rays along the
+  // ground (above-canopy share < 0.01) are still untouched.
+  hazeLitKnee: 0.13,
   // open side = bearing 75° (ENE: the plateau, the stair corridor, the upper tree-house). Fully open
   // within ≈ 45° of it (A's far column at 47°, F's whole upper frame at 23–97°), closed beyond 75°
   // (bearings ≤ 0° and ≥ 150°): B's forest band (−17..+12°) is ≈ 90 % closed, A's left quadrant
@@ -514,10 +518,10 @@ export const HEIGHT_FOG_DEFAULTS: HeightFogParams = {
   // This is the air of every direction the owner actually walks — north up the path, west into the
   // stand — so it is the veil his "grey haze in the middle distance" is made of.
   hazeClosed: [0.2507, 0.2317, 0.2092],
-  // display 0.665: the closed roof at depth (see hazeClosedFar). Measured at his north pose over
-  // three passes — 0.545 / 0.625 put the upper-left band at 0.441 against his 0.500 and the whole
-  // upper frame's hue on his (42.8° against 43.5°, B/R 0.898 against 0.855)
-  hazeClosedFar: [0.3518, 0.3185, 0.2813],
+  // display 0.700, B/R 0.93: the closed roof at depth (see hazeClosedFar). Round 2 takes it from
+  // 0.665 and makes it a touch greyer with it — fable-5 asks for the far bands at l 0.45–0.47 with
+  // less chroma than the first fit gave (his far-centre box: l 0.515 at s 0.055, ours 0.482/0.073)
+  hazeClosedFar: [0.3967, 0.3649, 0.3263],
   // Round 31 (tone): the D arch (48–55 m, 74–86 % veil, body ×0.3) measured 0.495 display against
   // 0.489 for the rows behind it — with the closed mix the air behind the arch was the arch's own
   // veil, and no extinction at 0.028/m can silhouette a 50 m object against its own air. The
@@ -532,10 +536,10 @@ export const HEIGHT_FOG_DEFAULTS: HeightFogParams = {
   // rise over a reference that has them at 0.45–0.49 — the same air 15 m east; the frames' D
   // camera stands 25 m further north than ours, so its far air is the clearing beyond the arch,
   // B's the stand: one wall colour cannot fit both and D's arch wins.
-  // 2026-09-23: warmed with the rest (display 0.680 hue 204 → 0.700 hue 47, B/R 0.91). It has to
-  // stay a step over `hazeClosedFar` (0.665) or the term is a no-op in exactly the directions it
+  // 2026-09-23: warmed with the rest (display 0.680 hue 204 → 0.735 hue 47, B/R 0.93). It has to
+  // stay a step over `hazeClosedFar` (0.700) or the term is a no-op in exactly the directions it
   // applies to — the wall past the far rows is what the arch and the far trunks silhouette against.
-  hazeFarLit: [0.4062, 0.3636, 0.3171],
+  hazeFarLit: [0.4619, 0.4201, 0.3708],
   // Round 32 (tone), with the arch on the frame's rows (hardscape-25): the ramp sits between the
   // arch's body (48–52 m from camera D, its curved top 52.8 m) and the far rows behind it (55–60 m)
   // so the body keeps the hollow veil and the rows wear the wall. The round-31 55–62 m ramp lit the
