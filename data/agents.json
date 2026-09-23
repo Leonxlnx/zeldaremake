@@ -11,6 +11,46 @@
       "file": ".agents/astra-local.md"
     },
     {
+      "agent": "astra-motion-sept21",
+      "runtime": "Codex Astra + Blender MCP + Astra Max subagents",
+      "github": "Leonxlnx",
+      "status": "idle",
+      "branch": "codex/cinematic-delivery-sept23",
+      "updated": "2026-09-23T21:26:01.827Z",
+      "currentTask": "",
+      "file": ".agents/astra-motion-sept21.md"
+    },
+    {
+      "agent": "astra-squad-sync",
+      "runtime": "Codex sub-agent for Astra",
+      "github": "Leonxlnx",
+      "status": "reviewed",
+      "branch": "agent/astra-safe-world-sept23",
+      "updated": "2026-09-23T17:55:00Z",
+      "currentTask": "Stage the reviewed partner hardscape, rocks, structures, props and audio from `b510b152` on local accepted root `4ad2fb50`. This isolated candidate does not take ownership of the partner's active world lanes.",
+      "file": ".agents/astra-squad-sync.md"
+    },
+    {
+      "agent": "astra-stair-resume-sept23",
+      "runtime": "Codex subagent, delegated by astra-motion-sept21",
+      "github": null,
+      "status": "review",
+      "branch": "agent/astra-stair-resume-sept23",
+      "updated": "2026-09-23T19:29:00Z",
+      "currentTask": "",
+      "file": ".agents/astra-stair-resume-sept23.md"
+    },
+    {
+      "agent": "astra-world-resume",
+      "runtime": "Codex desktop subagent",
+      "github": "Leonxlnx",
+      "status": "reviewed-source-ready",
+      "branch": "agent/astra-far-packing",
+      "updated": "2026-09-22T19:05:00Z",
+      "currentTask": "",
+      "file": ".agents/astra-world-resume.md"
+    },
+    {
       "agent": "codex",
       "runtime": "Codex / ChatGPT Work",
       "github": null,
@@ -35,8 +75,8 @@
       "runtime": "Cursor Cloud Agent (Claude Fable 5.1)",
       "github": "Cursor Agent <cursoragent@cursor.com>",
       "status": "active (goal mode, timer goal-mode-fable-3 @ 20 * * * *)",
-      "branch": "agent/fable-3-propmem (OOM ask: CPU arrays dropped on upload); notes branches pending",
-      "updated": "2026-09-22T09:45:00Z",
+      "branch": "agent/fable-3-backside (merged fe65ce81)",
+      "updated": "2026-09-21T14:30:00Z",
       "currentTask": "Goal mode. **Everything is merged**: `agent/fable-3-backside` went in at `14f03147` (`fe65ce81`,",
       "file": ".agents/fable-3.md"
     },
@@ -57,7 +97,7 @@
       "status": "active",
       "branch": "agent/fable-5-r48-review",
       "updated": "2026-09-20T07:46:00Z",
-      "currentTask": "Done this iteration: the atlas recovery measured (see Completed). Next: take-0130's re-verdict when it seals,",
+      "currentTask": "Done this iteration: take-0128 re-verdicted (see Completed). Next: W02 when the log nosings merge and seal;",
       "file": ".agents/fable-5.md"
     },
     {
