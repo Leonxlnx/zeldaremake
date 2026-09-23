@@ -86,6 +86,41 @@ test('the near options default off: explicit zeros build the far rock byte-ident
   for (const k of ['position', 'normal', 'color', 'aMoss']) assert.ok(same(arr(plain, k), arr(zeros, k)), `${k} moved with the near options at 0`);
 });
 
+test('crackWarp (fable-2): explicit 0 builds the far rock byte-identically; on, the crack lines move to other vertices at the same density', () => {
+  const far = buildRock(createRng('t/d'), 'seed/d', farOpts());
+  const farExplicit = buildRock(createRng('t/d'), 'seed/d', { ...farOpts(), crackWarp: 0 });
+  for (const k of ['position', 'normal', 'color', 'aMoss']) assert.ok(same(arr(far, k), arr(farExplicit, k)), `${k} moved with crackWarp 0`);
+  // the near build, same topology: with the warp on the network is re-drawn — the crack share
+  // (vertices on a line, the audit's `crackShare`) stays within a fifth of itself, while the set
+  // of vertices on a line changes substantially (the lattice cells no longer sit on the nodes)
+  // (bare stone: no moss, no partings, no facet or dirt darkening, so a dark vertex is a crack line)
+  const bare = { ...nearOpts(), moss: 0, mossThickness: 0, strata: 0, cutDark: 0, dirt: 0 };
+  const plain = buildRock(createRng('t/d'), 'seed/d', bare);
+  const warped = buildRock(createRng('t/d'), 'seed/d', { ...bare, crackWarp: 1 });
+  const sp = plain.userData.rockStats.crackShare, sw = warped.userData.rockStats.crackShare;
+  assert.ok(sp > 0.05, `crack share ${sp}`);
+  assert.ok(Math.abs(sw - sp) < 0.2 * sp, `crack share moved ${sp} → ${sw}`);
+  // line vertices: the bare lit skin sits at ≈ 0.76 in the vertex colour, a full line at ≈ 0.46–0.52 (cracks 0.55 blends the line half-way to the dark) — count where one build is on a line and the other is not
+  const P = plain.attributes.color, W = warped.attributes.color;
+  const lum = (a, i) => 0.2126 * a.getX(i) + 0.7152 * a.getY(i) + 0.0722 * a.getZ(i);
+  let onP = 0, onW = 0, both = 0;
+  const Y = plain.attributes.position;
+  for (let i = 0; i < P.count; i++) {
+    if (Y.getY(i) < 0.05) continue; // above the contact collar, which is dark on both
+    const p = lum(P, i) < 0.62, w = lum(W, i) < 0.62;
+    if (p) onP++;
+    if (w) onW++;
+    if (p && w) both++;
+  }
+  assert.ok(onP > 200 && onW > 200, `dark line vertices ${onP} / ${onW}`);
+  assert.ok(both < 0.6 * Math.min(onP, onW), `the lines did not move: ${both} of ${onP} / ${onW} shared`);
+  // the silhouette is untouched where no line runs: positions differ only by the furrow depths
+  const a = plain.attributes.position, b = warped.attributes.position;
+  let maxMove = 0;
+  for (let i = 0; i < a.count; i++) maxMove = Math.max(maxMove, Math.hypot(a.getX(i) - b.getX(i), a.getY(i) - b.getY(i), a.getZ(i) - b.getZ(i)));
+  assert.ok(maxMove < 0.6 * (0.045 + 0.015) + 1e-6, `a vertex moved ${maxMove} m, more than the furrows' depth`);
+});
+
 test('strataCrown (fable-2): the near build has no parting pit on the crown; the far build is byte-identical at the default', () => {
   const far = buildRock(createRng('t/d'), 'seed/d', farOpts());
   const farExplicit = buildRock(createRng('t/d'), 'seed/d', { ...farOpts(), strataCrown: 1 });

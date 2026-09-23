@@ -944,6 +944,9 @@ export async function create(ctx: WorldContext): Promise<WorldSystem> {
           crackDepth: Math.min(0.045, 0.03 / r),
           fineCracks: 0.6,
           fineCrackDepth: Math.min(0.015, 0.012 / r),
+          // fable-2 (iteration 80): the crack networks bent off their noise lattice — from above at
+          // 3–4 m the D boulder's face read as a diamond weave
+          crackWarp: 1,
           micro: Math.min(0.03, 0.025 / r) * (stairFoot ? 0.6 : 1),
           // (the stair-foot boulder's chips at a quarter depth: 0.75 cm scallops in a 9 cm roll)
           chip: Math.min(0.035, 0.03 / r) * (stairFoot ? 0.25 : 1),
@@ -1040,6 +1043,7 @@ export async function create(ctx: WorldContext): Promise<WorldSystem> {
             crackDepth: 0.02,
             fineCracks: 0.3,
             fineCrackDepth: 0.008,
+            crackWarp: 1,
             micro: 0.05,
             chip: 0.02,
             rimRound: 0.14,

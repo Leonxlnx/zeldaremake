@@ -198,9 +198,20 @@ export interface RockOptions {
    * the round-42/44 flecks that read as polka dots at 1 m.
    */
   lichen?: number;
+  /**
+   * fable-2 (iteration 80, the look-down camera): domain warp of the crack networks 0..1
+   * (default 0 — the far meshes are byte-identical with it off). Gradient noise is zero at every
+   * node of its lattice, so the zero contours `ridged` draws the cracks on run node to node:
+   * seen from above at 3–4 m the main and fine networks read as a diamond lattice — a woven
+   * basket, not fractured stone. With the warp on, each network's sample point is bent by a
+   * low-frequency noise (rms ≈ 0.3 of that network's cell at 1) so the lines wander and the
+   * cells go irregular while their density, darkness and furrow depth stay as set.
+   */
+  crackWarp?: number;
 }
 
 const _t = new Vector3();
+const _w = new Vector3();
 
 const _p = new Vector3();
 const _n = new Vector3();
@@ -255,9 +266,25 @@ export function buildRock(rng: Rng, seed: string, o: RockOptions): BufferGeometr
   const rimRound = o.rimRound ?? 0;
   const plates = o.plates ?? 0;
   const lichen = o.lichen ?? 0;
+  const crackWarp = o.crackWarp ?? 0;
   // the near relief is an absolute scale (pits ~15 cm, hairlines ~9 cm apart on every rock): its
   // noise frequencies, expressed in the rock-relative domain above, scale with the radius
   const nk = Math.max(1, r / 0.75);
+  /**
+   * the crack-noise sample point for a network of frequency `f` (cell 1 / f), bent by `crackWarp`:
+   * three low-frequency noises (one per axis, ≈ 2 cells long) move it by ≈ 0.3 cell rms at 1.
+   * With the warp off the point is returned untouched, so the far build never changes.
+   */
+  const warped = (x: number, y: number, z: number, f: number) => {
+    if (crackWarp <= 0) return _w.set(x, y, z);
+    const a = (crackWarp * 1.3) / f;
+    const wf = f * 0.45;
+    return _w.set(
+      x + a * N.noise(x * wf + 11.3, y * wf - 4.1, z * wf + 7.7),
+      y + a * N.noise(x * wf - 2.2, y * wf + 9.4, z * wf - 5.6),
+      z + a * N.noise(x * wf + 6.1, y * wf + 1.8, z * wf - 8.9),
+    );
+  };
   /**
    * the plate field at a noise-domain point: { level 0..1 (three ledges, the step between them
    * softened over 40 % of a level), step 0..1 (1 on the joint between two plates), id (the ledge) }.
@@ -284,7 +311,8 @@ export function buildRock(rng: Rng, seed: string, o: RockOptions): BufferGeometr
     // bedding partings. Two octaves of `ridged` top out at 0.825, so the value is normalised to
     // 0..1 first — against the raw value the old 0.84 threshold was never reached and the
     // "cracks" were a 13 % tint at best
-    const cr = N.ridged(x * 4.2, y * 4.2, z * 4.2, 2) / 0.825;
+    const w = warped(x, y, z, 4.2);
+    const cr = N.ridged(w.x * 4.2, w.y * 4.2, w.z * 4.2, 2) / 0.825;
     let crack = smoothstep(0.8 - 0.15 * crackAmt, 0.95, cr) * crackAmt;
     if (strata > 0) crack = Math.max(crack, 0.85 * bedding(p.x, p.y, p.z, x, y, z).groove * (1 - Math.abs(p.y / (r * squashY)) * 0.5));
     return clamp(crack, 0, 1);
@@ -297,7 +325,8 @@ export function buildRock(rng: Rng, seed: string, o: RockOptions): BufferGeometr
     const z = p.z * freq + oz;
     // thinner lines, twice as dense — hairline partings between the main cracks
     const f = 9.7 * nk;
-    const fc = N.ridged(x * f + 7.7, y * f - 3.3, z * f + 5.1, 2) / 0.825;
+    const w = warped(x, y, z, f);
+    const fc = N.ridged(w.x * f + 7.7, w.y * f - 3.3, w.z * f + 5.1, 2) / 0.825;
     return smoothstep(0.88 - 0.08 * fineCracks, 0.975, fc) * 0.8 * fineCracks;
   };
   /** crack line strength 0..1 for the colour pass: main lines, partings and the fine network */
