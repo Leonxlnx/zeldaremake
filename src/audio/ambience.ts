@@ -87,6 +87,8 @@ export function swell(gust: number): number {
 /** the leaf flutters' level range (before the gust scale) and their share into the hall */
 const FLUTTER_LEVEL: [number, number] = [0.004, 0.013];
 const FLUTTER_SEND = 0.25;
+/** the longest the wood is ever left with nothing at all in it (s) */
+export const QUIET_GAP_MAX = 3.2;
 /** the bed's top in the open, and with the log tunnel's wood closed over the listener */
 const ENCLOSURE_OPEN_HZ = 18000;
 const ENCLOSURE_CLOSED_HZ = 900;
@@ -235,8 +237,12 @@ export function createAmbience(ctx: BaseAudioContext, outBus: AudioNode, reverbS
         const level = (FLUTTER_LEVEL[0] + eventRng() * (FLUTTER_LEVEL[1] - FLUTTER_LEVEL[0])) * (0.35 + g * 0.9);
         flutter(t + i * (0.04 + eventRng() * 0.16), centre, level, pan + (eventRng() - 0.5) * 0.3, 0.07 + eventRng() * 0.16);
       }
-      // gusts crowd the flutters together; still air leaves long gaps
-      nextFlutter += (0.5 + eventRng() * 3.2) / (0.3 + g * 1.1);
+      // gusts crowd the flutters together; still air leaves long gaps — but never longer than
+      // QUIET_GAP_MAX. With the bed gated below the gust knee and the tune resting between passes,
+      // the wood could otherwise fall to nothing for five seconds at a time, which reads as the
+      // sound having broken rather than as a quiet forest. A leaf turning over is the answer to
+      // that, not a floor put back under everything.
+      nextFlutter += Math.min(QUIET_GAP_MAX, (0.5 + eventRng() * 3.2) / (0.3 + g * 1.1));
     }
   };
 
