@@ -1576,6 +1576,28 @@ const nearLodTierFor = (deviceGB: number, poolParam: string | null): NearLodTier
   if (poolParam === 'large' || poolParam === 'small') return NEAR_LOD_TIERS[poolParam];
   return deviceGB >= 4 ? NEAR_LOD_TIERS.large : NEAR_LOD_TIERS.small;
 };
+/**
+ * The white-barks' and columns' three-LOD ladder: high inside `TREE_LOD_NEAR_M`, medium inside
+ * `TREE_LOD_MID_M`, low beyond (× `ctx.quality.distance`). The detail between the rungs is large —
+ * `writer.ts addLeaf` keeps every 4th lamina at medium and every 8th at low, enlarged to hold the
+ * crown's coverage, and `tube` drops the finest twigs — so where a rung falls inside what the player
+ * looks at, the crown visibly gains leaves as he walks in.
+ */
+const TREE_LOD_NEAR_M = 20;
+const TREE_LOD_MID_M = 44;
+/**
+ * Dev measurement knob, the same shape as `?pool=large|small`: `?treelod=<multiplier>` scales every
+ * instanced tree LOD swap distance (the white-barks' and columns' ladder, the distant layer's and the
+ * mid grove's near gates). `?treelod=10` draws every tree at its highest LOD from any range, so one
+ * pose rendered with and without it measures exactly how much of the frame is detail that appears
+ * only when the player gets close — the owner's "why don't the trees immediately spawn instead of
+ * needing me to get close" (2026-09-23 20:08). 1 = shipped, and the take / CI path never sets it.
+ */
+const TREE_LOD_SCALE = (() => {
+  if (typeof location === 'undefined') return 1;
+  const n = Number(new URLSearchParams(location.search).get('treelod'));
+  return Number.isFinite(n) && n > 0 ? n : 1;
+})();
 const NEAR_LOD_DEVICE_GB = deviceMemoryGB();
 const NEAR_LOD_TIER = nearLodTierFor(NEAR_LOD_DEVICE_GB, typeof location === 'undefined' ? null : new URLSearchParams(location.search).get('pool'));
 const NEAR_CANOPY_PREFETCH_M = NEAR_LOD_TIER.canopyPrefetchM;
@@ -3268,8 +3290,8 @@ export async function create(ctx: WorldContext): Promise<WorldSystem> {
   ctx.progress('trees', 0.95);
 
   // ------------------------------------------------------------------ LOD bucketing
-  const lodDist = [20 * ctx.quality.distance, 44 * ctx.quality.distance];
-  const distantNear = 120 * ctx.quality.distance;
+  const lodDist = [TREE_LOD_NEAR_M * ctx.quality.distance * TREE_LOD_SCALE, TREE_LOD_MID_M * ctx.quality.distance * TREE_LOD_SCALE];
+  const distantNear = 120 * ctx.quality.distance * TREE_LOD_SCALE;
   const camPos = new Vector3(Infinity, Infinity, Infinity);
   const white = new Color(1, 1, 1);
 
@@ -3314,10 +3336,10 @@ export async function create(ctx: WorldContext): Promise<WorldSystem> {
       // a mid tree is 8–15 m tall and never further than 58 m from the clearing's centre: its near
       // LOD (12-sided bole, limbs, toes, the layered crown) is worth drawing to MID_FAR_LOD_M and
       // no further — past it the crossed strips carry the same silhouette for a tenth of the wood
-      const kindNear = set.variant.kind === 'mid' ? Math.min(distantNear, MID_FAR_LOD_M * ctx.quality.distance) : distantNear;
+      const kindNear = set.variant.kind === 'mid' ? Math.min(distantNear, MID_FAR_LOD_M * ctx.quality.distance * TREE_LOD_SCALE) : distantNear;
       for (let i = 0; i < set.placements.length; i++) {
         const p = set.placements[i];
-        const nearM = isStandPole(set, p) ? Math.min(distantNear, STAND_FAR_LOD_M * ctx.quality.distance) : kindNear;
+        const nearM = isStandPole(set, p) ? Math.min(distantNear, STAND_FAR_LOD_M * ctx.quality.distance * TREE_LOD_SCALE) : kindNear;
         (Math.hypot(p.x - cam.x, p.z - cam.z) < nearM ? nearList : farList).push(i);
       }
       set.lists = [nearList, farList];
@@ -3959,6 +3981,12 @@ export async function create(ctx: WorldContext): Promise<WorldSystem> {
       /** round 45: a giant lobe's fine wood reach [secondaries, twigs] as shares of hR and its outer tint toward the leaf tone (giant.ts LOBE_*) */
       lobeWood: { secondaryReach: LOBE_SECONDARY_REACH, twigReach: LOBE_TWIG_REACH, tint: LOBE_TWIG_TINT },
       lodLevels: 3,
+      /**
+       * The instanced ladders' swap distances as this build resolved them (m, quality and the
+       * `?treelod=` dev multiplier already applied): the white-barks' / columns' high→medium→low
+       * rungs, the distant layer's near gate, the mid grove's and the north stand's own gates.
+       */
+      lodSwapM: { tree: lodDist, distant: distantNear, mid: Math.min(distantNear, MID_FAR_LOD_M * ctx.quality.distance * TREE_LOD_SCALE), standPole: Math.min(distantNear, STAND_FAR_LOD_M * ctx.quality.distance * TREE_LOD_SCALE), scale: TREE_LOD_SCALE },
       windLayers: mats.windLayers,
       barkTextures: mats.barkTextureSets,
       /**
