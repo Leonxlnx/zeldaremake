@@ -780,13 +780,20 @@ const GIANT_BARK_COLOR = /* glsl */ `
     // the fine one only breaks its edge. mossField alone runs at 13 / 41 cycles per metre, so the
     // cover was 8 cm confetti of equal-sized blobs — the "camouflage" the owner's 09-23 walk-up
     // poses show on the emergent's foot. Mean cover is held (the factor's mean 0.98 → 0.93).
-    float mossPatch = treeNoise(vTreeWorld * 1.6 + 21.0) * 0.6 + treeNoise(vTreeWorld * 4.3 + 7.0) * 0.4;
+    // Round 53: both fields are EXPANDED about their mean before they are used. Trilinear value
+    // noise sits within ≈ ±0.1 of 0.5, so 0.85 mossPatch + 0.3 mossFine varied by ±0.1 on a
+    // factor whose mean is 0.91 — round 52's patch shape and the older ragged edge were both
+    // nearly inert, and what actually drew the moss was the smooth per-vertex vBarkMoss alone.
+    // That is why a sheet read as a long airbrushed smear with no bark showing through it.
+    float mossPatch = clamp(((treeNoise(vTreeWorld * 1.6 + 21.0) * 0.6 + treeNoise(vTreeWorld * 4.3 + 7.0) * 0.4) - 0.5) * 3.2 + 0.5, 0.0, 1.0);
+    float mossBreak = clamp((mossFine - 0.5) * 2.6 + 0.5, 0.0, 1.0);
     // the ramp is narrower than the old 0.5–0.9 so a patch has a margin, not a halo: at 0.5–0.9
     // over a smooth field every cushion was an airbrushed cloud with no edge anywhere
-    barkMossCover = smoothstep(0.52, 0.8, vBarkMoss * (0.34 + 0.85 * mossPatch + 0.3 * mossFine));
+    barkMossCover = smoothstep(0.52, 0.8, vBarkMoss * (0.34 + 0.85 * mossPatch + 0.3 * mossBreak));
     // a darker rim where a cushion meets the bark, so it sits on the bark as a volume
     float mossRim = barkMossCover * (1.0 - barkMossCover) * 4.0;
-    vec3 mossCushion = mix(vec3(0.055, 0.15, 0.028), vec3(0.185, 0.35, 0.072), mossFine) * (1.0 - 0.35 * mossRim);
+    // the cushion's own light and dark, on the expanded field so a sheet has internal texture
+    vec3 mossCushion = mix(vec3(0.055, 0.15, 0.028), vec3(0.185, 0.35, 0.072), mossBreak) * (1.0 - 0.35 * mossRim);
     #ifdef BARK_NEAR_DETAIL
     // round 44: a 3-D cushion's crown is lit and its flanks fall off — the fine field itself
     // (its slopes bend the normal in the near-detail normal block), plus a sub-cm sprig speckle
