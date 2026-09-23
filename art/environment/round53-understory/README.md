@@ -60,3 +60,12 @@ vegetation bush**, not a tree — hide-one-group over the fork region (`fork-att
 `vegetation` 58.6 % of the region, `trees` 64.6 % of which giants 29.1 % (the limb above), distant 19.5 %,
 **understory 12.4 %**, white-bark 5.2 %. So the fork reading as "the path splits off into the forest" is
 lane 4's bush to open (or the marker's spot, fable-3's call); the understory now stays out of that corner.
+
+## Follow-up — finer leaves (`agent/fable-4-understory-leaves`)
+A walker on the verge passes the crowns at 2–4 m, where 0.45 m laminae read as cards. Twice the laminae
+at two thirds the size (count × size² ≈ 0.95 of before): `verge-close-east_head_vs_finer-leaves.jpg`. The
+distance LODs keep their coverage through `addLeaf`'s ordinal retention.
+
+Six views, head `56b54e15` vs branch (same box, `--settle 6`): A +0.0013 (9.20 → 9.22 M), B −0.0028
+(8.33 → 8.36 M), C −0.0004, D +0.0020 (8.53 → 8.58 M), E +0.0034, F +0.0002; pixels > 6 at A / B / D / E
+8–12 % (every visible understory crown re-laid), C / F ≈ 1 %. Draws unchanged.
