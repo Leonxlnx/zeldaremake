@@ -406,7 +406,12 @@ export function createComposer(opts: ComposerOptions): Composer {
     // frames' (D 0.58 vs 0.52, A 0.53 vs 0.47); 0.5 under the fan's 0.75 floor puts it at D 0.537,
     // A 0.496 and hands the beams to the fan
     // Daylight pass: retain shafts without bleaching the near foliage or shaded flowers.
-    rayIntensity: 0.32,
+    // 2026-09-23 (owner: "the trees do not populate" — his marked screenshot, grey haze where his
+    // recording shows layered trees): at his pose the rays' in-scatter was most of the veil (off:
+    // the upper-left third 83.6 → 59.8 levels). 0.32 → 0.28 with the clearer gaps below
+    // (beamFloor, SCREEN_FAN.floor) and the higher base air (rayAirFadeLo/Hi): the upper frame
+    // 79.1 → 69.9 looking north, 80.2 → 73.7 toward Saria's (rays off 62.4 / 68.8), shafts kept.
+    rayIntensity: 0.28,
     rayContrast: 1.0,
     // warm-neutral like the reference's shafts (its hazed upper frame is (119,118,105), hue ≈ 55°);
     // (1.0, 0.9, 0.72) pulled every sun-facing view's mean hue 2–5° toward orange, (1.0, 0.975,
@@ -438,8 +443,10 @@ export function createComposer(opts: ComposerOptions): Composer {
     // Round 33: with the denser mist term carrying the hollow glow, the base air lifts to 3 / 6.5 so
     // the plaza and path (eye level, 1.5–4.5 m of air) keep their edge contrast: A's bottom band
     // p50 stays at −0.018 while the top band gains +0.03
-    rayAirFadeLo: 3,
-    rayAirFadeHi: 6.5,
+    // 2026-09-23: 3 / 6.5 → 5 / 12 — the air a walker looks through at 2–5 m up (the trunks and
+    // the understory of the middle distance) keeps less of the lit glow (see rayIntensity)
+    rayAirFadeLo: 5,
+    rayAirFadeHi: 12,
     // the mist term's ramp along the ray (0 / 0 = off; see RAY_MARCH_FRAG mistNear)
     rayMistNearStart: 0,
     rayMistNearEnd: 0,
@@ -468,7 +475,9 @@ export function createComposer(opts: ComposerOptions): Composer {
     // gaps fully open), no longer the beams themselves — the shadow map and the carved columns
     // still shape it, the screen fan below draws the beams (at floor 0.05 / 65 % the sun-plane
     // blobs printed 48–51° stripes across the 26° fan)
-    beamFloor: 0.3,
+    // 2026-09-23: 0.3 → 0.15 — leaf masses let 15 % of the lit air through, so the gaps between
+    // the beams read as clear air, not a veil (see rayIntensity)
+    beamFloor: 0.15,
     beamNoiseMax: 1.0,
     beamColumnScale: 1.0,
     beamColumnGain: 1.0,
