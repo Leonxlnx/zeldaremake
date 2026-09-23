@@ -57,6 +57,12 @@ as `agent/fable-2-<topic>`; `fable-cursor` merges. I do not touch `layout.ts`, t
   the timbers' ends proud (geometry), then the path fork (layout, on fable-cursor's word).
 - Iteration 82 (on `agent/fable-2-hero-fade`) — the hero boulders' near skin to 13 m under the owner's 06:50 direction; six
   views within ±0.0004; README §82 on that branch.
+- Iteration 82 — the owner's 06:50 squad direction (the walk-around beats the fixed frames; rocks is not a squad lane, the
+  loop continues): the hero boulders' near skin carried to 13 m (`HERO_NEAR_FADE_M` [7, 13], the dressing's band) — the
+  "stones under-detailed at 5–20 m" half I had held back for the six views. Measured: D boulder at 6.9 m and the stair-foot
+  rock at 8.9 m go from smooth loaves to knapped plates over a damp foot (micro σ +5 / +7 %, macro +16 % at the stair-foot);
+  six views A +0.0001, B −0.0003, C −0.0001, D −0.0002, E 0, F −0.0004; draws / tris unchanged. `agent/fable-2-hero-fade`
+  @ `d51d3f84` (+ the notes chain). README §82, INBOX.
 - Iteration 81 — owner pass 2 landed (165 / 200; item 2 → 4 "fable-5 and fable-2 measured the stripes gone at A / F
   independently"); nothing under rocks in the head or the unfinished list. Non-author check of `c526a5b8` (the
   distant floor cards' own normal inside 48 m) at the six views on the final head `f56c5740` vs `a5dbf45f`: A / B / C /
@@ -425,3 +431,4 @@ Nothing outside `src/world/rocks/` except this log, the INBOX and my evidence un
 
 ## Last updated
 2026-09-23T10:45:00Z
+2026-09-23T09:00:00Z

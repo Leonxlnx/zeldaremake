@@ -13,7 +13,7 @@ import { smoothstep, clamp } from '../util/noise';
 import type { Rng } from '../util/prng';
 import { rimBandPlants, terracePlants } from './edges';
 import { pruneExpansion } from './expansion';
-import { STANDING_STONE_CLEAR, VegField, composeMatrix, newSample, type FieldSample } from './field';
+import { STANDING_STONE_CLEAR, VERGE_LEFT, VegField, composeMatrix, newSample, type FieldSample } from './field';
 import { rgb } from './geometry';
 import { LodInstancedSet, type PackLayout } from './lodset';
 import { createVegMaterial, createVegShadowMaterials, type VegMaterialOptions } from './materials';
@@ -129,6 +129,14 @@ const NORTH_VERGE_FERN_PER_M2 = 6.5;
 const NORTH_VERGE_BUSH_PER_M2 = 1.6;
 const NORTH_VERGE_FERN_EDGE: readonly [number, number, number, number] = [0.5, 0.85, 2.1, 3.2];
 const NORTH_VERGE_BUSH_EDGE: readonly [number, number, number, number] = [1.15, 1.7, 2.7, 3.6];
+/**
+ * 2026-09-23 — the share of the round-47 verge band that frame 56 s' hollow (the whole WEST bank
+ * from z −20 to −50) keeps. It rejected the band outright, so the corridor's layered fern-and-shrub
+ * verge grew on the east bank alone and the owner's left side was bald turf.
+ */
+const D_HOLLOW_VERGE_KEEP = 0.8;
+/** 2026-09-23 — metres off the walked paving where the verge's shrub crowns stand: behind its fronds, in front of the middle ground */
+const VERGE_SHRUB: readonly [number, number] = [1.7, 3.6];
 /** the verge's tint: ref-04's ferns and shrubs are dark (× the sets' palette) */
 const NORTH_VERGE_FERN_TINT = 0.82;
 const NORTH_VERGE_BUSH_TINT = 0.6;
@@ -3320,13 +3328,20 @@ export function buildPlants(ctx: WorldContext, field: VegField, parent: Group): 
       const edge = field.edgeDistance(x, z);
       const w = smoothstep(band[0], band[1], edge) * (1 - smoothstep(band[2], band[3], edge));
       if (w <= 0) return 0;
-      if (s.cliff > 0.5 || field.dShoulder(x, z) > 0 || field.dHollow(x, s.h, z) > 0) return 0;
+      if (s.cliff > 0.5 || field.dShoulder(x, z) > 0) return 0;
       const clr = field.clearing(x, z);
       if (clr.insideBoulder || clr.npc > 0.2 || clr.boulder > 0.3 || field.giantDistance(x, z) < 0.6 || field.logDistance(x, z) < 1.0) return 0;
+      // 2026-09-23 (the owner, walking north: "make the grass thicker on the left side"): frame
+      // 56 s' hollow IS the whole west bank from z −20 to −50, and while it rejected this band
+      // outright the corridor grew its fern-and-shrub verge on the EAST bank alone — the walk's
+      // left side was bald turf against a layered right one. The hollow now keeps
+      // D_HOLLOW_VERGE_KEEP of the band (its ground cover stays the frame's low one: the blades'
+      // D_HOLLOW_HEIGHT and the carpet's cut are untouched).
+      const hollow = field.dHollow(x, s.h, z);
       // the path's own bank only: the plain beyond the corridor's fade is the forest floor's
       const dz = 1 - smoothstep(NORTH_VERGE_Z0 - 3, NORTH_VERGE_Z0, z);
       const dKeep = z > NORTH_VERGE_D_Z ? NORTH_VERGE_D_KEEP : 1;
-      return w * dz * dKeep * Math.max(field.falloffReach(x, z), NORTH_CARPET_REACH_FLOOR_PLANTS);
+      return w * dz * dKeep * (1 - (1 - D_HOLLOW_VERGE_KEEP) * hollow) * Math.max(field.falloffReach(x, z), NORTH_CARPET_REACH_FLOOR_PLANTS);
     };
     scatter(
       ctx,
@@ -3753,6 +3768,210 @@ export function buildPlants(ctx: WorldContext, field: VegField, parent: Group): 
         north.propRejected += before - set.count;
       }
     }
+  }
+
+  // ---- 2026-09-23 (the owner, walking north from the plaza: "make the grass thicker on the left
+  // side", and review46 `r_020`–`r_028` as the picture) — the WALKED verge. Every rule above is a
+  // fixed camera's: the violets sit in authored clumps for shot D, the broad leaves thin out at
+  // camera C's foreground, `LOW_ZONES` keeps the east verge bare for frames 46 / 56 and the round-47
+  // fern-and-shrub band takes the east bank only. His recording crowds the slabs at every step
+  // instead — violet cushions on the stones, round paddle leaves leaning over them, low fronds and
+  // clover behind — thickest on the walker's LEFT. These four passes lay that band along the spine
+  // and the north path (field.ts `pathVerge`), on their own streams after every pass above, so no
+  // plant placed anywhere else moves.
+  {
+    const R = ctx.config.detailRadius;
+    const vergeBox: [number, number, number, number] = [-8, -74, 10, 17];
+    const vergeArea = (vergeBox[2] - vergeBox[0]) * (vergeBox[3] - vergeBox[1]);
+    /**
+     * The ultra tiers cost 4–5 K triangles an instance and every fixed camera's ring is budgeted
+     * (plants.test: ≤ 40 of a set inside its ring). Five of the six viewpoints stand on the plaza,
+     * which is the busiest stretch of the owner's walk, so the verge does not step around them —
+     * it spends what is left of each ring's budget and stops. `ULTRA_CAP` keeps a margin under the
+     * contract's 40.
+     */
+    const ULTRA_CAP = 37;
+    const ultraBudget = (set: LodInstancedSet, ring: number) => {
+      const vps = ctx.layout.viewpoints;
+      const counts = vps.map((v) => set.items.filter((it) => Math.hypot(it.x - v.position[0], it.z - v.position[2]) < ring).length);
+      const near = (x: number, z: number, i: number) => Math.hypot(x - vps[i].position[0], z - vps[i].position[2]) < ring;
+      return {
+        ok(x: number, z: number, add = 1) {
+          for (let i = 0; i < vps.length; i++) if (near(x, z, i) && counts[i] + add > ULTRA_CAP) return false;
+          return true;
+        },
+        take(x: number, z: number) {
+          for (let i = 0; i < vps.length; i++) if (near(x, z, i)) counts[i]++;
+        },
+      };
+    };
+    const flowerBudget = ultraBudget(flowers, FLOWER_ULTRA_M);
+    const weedBudget = ultraBudget(weeds, BROADLEAF_ULTRA_M);
+    const cloverBudget = ultraBudget(clover, BROADLEAF_ULTRA_M);
+    /**
+     * the band's weight at (x, z) for a plant reaching `reach` m: the walked verge over `band`
+     * metres off the paving, the west side VERGE_LEFT ×, and the ground rules every pass runs
+     * (props, trunks, boulders, the Kokiri's spots, the stones' clearance).
+     */
+    const walkVerge = (x: number, z: number, s: FieldSample, band: readonly [number, number], reach: number): number => {
+      const pv = field.pathVerge(x, z);
+      if (pv.w <= 0 || pv.edge < band[0] || pv.edge > band[1] || field.reach(x, z) > R) return 0;
+      if (s.cliff > 0.45 || s.structure > 0.3 || s.stairs > 0.05) return 0;
+      const clr = field.clearing(x, z);
+      if (clr.insideBoulder || clr.npc > 0.15 || clr.boulder > 0.3) return 0;
+      if (field.giantDistance(x, z) < 0.5 || field.logDistance(x, z) < 1.0 || field.insidePropFootprint(x, z)) return 0;
+      // frame 46 s' left third is the stair foot over short turf: nothing that reaches into it
+      if (reach > 0.3 && field.sightlineC(x, z, reach) > 0) return 0;
+      // frames 46 / 56's low right verge (LOW_ZONES, a plants.test contract: nothing over 0.55 m
+      // in [1.5, −16, 7, −4]) keeps its scale rule — the verge grows there, it just stays low
+      if (reach > 0.45 && field.lowZone(x, z) > 0.4) return 0;
+      // frame 46 s' trodden bank before camera C (field.ts `cFoot`) is bare earth by design
+      if (field.cFoot(x, z) > 0.25) return 0;
+      // inside the band, thickest at the stones and fading out at its far edge
+      const across = 1 - smoothstep(band[1] - 0.7, band[1], pv.edge);
+      return pv.w * across * (pv.left ? VERGE_LEFT : 1) * Math.max(field.falloffReach(x, z), 0.75);
+    };
+    // (a) the violet cushions ON the stones' edge (r_024 / r_026 / r_028: compact clumps of
+    // five-petal heads, 0.3–0.6 m across, the single loudest colour of his recording). Clump
+    // centres along the band, then a handful of heads about each — the reference's habit, and the
+    // shape the authored shot-D clumps already use.
+    {
+      const rng = ctx.rng.fork('plants/flowers-walk-verge');
+      const s = newSample();
+      const spacing = new Spacing(1.3);
+      let clumpsPlaced = 0;
+      for (let i = 0; i < 130000 && clumpsPlaced < 140; i++) {
+        const cx = vergeBox[0] + rng() * (vergeBox[2] - vergeBox[0]);
+        const cz = vergeBox[1] + rng() * (vergeBox[3] - vergeBox[1]);
+        field.sample(cx, cz, s);
+        if (!field.allowed(cx, cz, s, true) || field.insideGiantTrunk(cx, cz)) continue;
+        const w = walkVerge(cx, cz, s, [0.12, 1.5], 0.32);
+        // his violets gather — a mass at one verge, plain green for the next few steps, another
+        // mass further on — so the clumps follow the flower patches steeply instead of lining
+        // both edges evenly
+        if (w <= 0 || rng() > 1.0 * w * Math.pow(field.flowerPatch(cx, cz), 1.5)) continue;
+        if (field.stoneDistance(cx, cz) < STONE_CLEARANCE || field.troddenZone(cx, cz, true) > 0.6) continue;
+        if (!spacing.ok(cx, cz, 1.3)) continue;
+        spacing.add(cx, cz);
+        clumpsPlaced++;
+        const heads = 8 + rng.int(0, 7);
+        for (let h = 0, tries = 0; h < heads && tries < heads * 4; tries++) {
+          const a = rng() * Math.PI * 2;
+          const d = Math.sqrt(rng()) * 0.42;
+          const x = cx + Math.cos(a) * d;
+          const z = cz + Math.sin(a) * d;
+          field.sample(x, z, s);
+          if (!field.allowed(x, z, s, true) || field.insideGiantTrunk(x, z) || walkVerge(x, z, s, [0.1, 1.7], 0.32) <= 0) continue;
+          // the white clumps were seated first and keep 0.45 m off every violet (plants.test): a
+          // new violet under one would break that contract from the other side
+          if (whiteFlowers.items.some((w) => Math.hypot(w.x - x, w.z - z) < 0.46)) continue;
+          if (!flowerBudget.ok(x, z)) continue;
+          // frame 56 s' boulder bed measures 1 % violet — two small patches, not a field — and
+          // camera D's box is held to them (plants.test, round 32). The walked verge keeps out of
+          // that box; everywhere else on the walk it grows.
+          const dp = field.screenPoint('D_log', x, T.height(x, z) + 0.12, z);
+          if (dp && dp.depth <= 21 && dp.sx >= 0.08 && dp.sx <= 0.32 && dp.sy >= 0.53 && dp.sy <= 0.87) continue;
+          placeInstance(flowers, x, z, s, rng, (1.05 + rng() * 0.35) * (1 - 0.35 * field.lowZone(x, z)), 0.6, 0.012, tint.setRGB(0.95 + rng() * 0.1, 0.95 + rng() * 0.1, 0.95 + rng() * 0.1), undefined, CLUSTER_HEADS);
+          flowerBudget.take(x, z);
+          h++;
+        }
+      }
+    }
+    // (b) the round paddle leaves leaning over the slabs (his verges are broad-leaf, not grass):
+    // the weeds set at the top of its scale range, in the first metre and a half
+    scatter(
+      ctx,
+      field,
+      {
+        label: 'weeds-walk-verge',
+        candidates: Math.round(vergeArea * 16 * q.density),
+        box: vergeBox,
+        minSpacing: 0.26,
+        r32: true,
+        accept(x, z, s) {
+          if (!weedBudget.ok(x, z)) return 0;
+          const w = walkVerge(x, z, s, [0.1, 1.8], 0.28);
+          return w <= 0 ? 0 : 0.75 * w * (0.35 + field.flowerPatch(x, z)) * (0.4 + field.cluster(x, z));
+        },
+      },
+      (x, z, s, rng) => {
+        placeInstance(weeds, x, z, s, rng, (1.0 + rng() * 0.8) * (1 - 0.4 * field.lowZone(x, z)), 0.85, 0.012, greenVar(rng, 0.2));
+        weedBudget.take(x, z);
+      },
+    );
+    // (c) low fronds behind them, on the band's outer half — the second layer of his verge
+    scatter(
+      ctx,
+      field,
+      {
+        label: 'ferns-walk-verge',
+        candidates: Math.round(vergeArea * 7 * q.density),
+        box: vergeBox,
+        minSpacing: 0.5,
+        r32: true,
+        accept(x, z, s) {
+          // frame 14 s' lawn band stays the closed short turf it is (plants.test: no fern clumps in it)
+          if (field.lawnBand(x, z) > 0.35) return 0;
+          const w = walkVerge(x, z, s, [0.55, 2.4], 1.0);
+          return w <= 0 ? 0 : 0.55 * w * (0.45 + 1.0 * field.cluster(x, z)) * (1 + 1.4 * smoothstep(0.12, 0.42, s.slope));
+        },
+      },
+      (x, z, s, rng) => placeInstance(ferns, x, z, s, rng, (0.5 + rng() * 0.38) * (1 - 0.4 * field.lowZone(x, z)), 0.7, 0.02, greenVar(rng, 0.18).multiplyScalar(0.95)),
+    );
+    // (d) the clover fringe right at the stones, under both (`low`: it may sit on the trodden strip)
+    scatter(
+      ctx,
+      field,
+      {
+        label: 'clover-walk-verge',
+        candidates: Math.round(vergeArea * 13 * q.density),
+        box: vergeBox,
+        minSpacing: 0.16,
+        low: true,
+        r32: true,
+        accept(x, z, s) {
+          if (!cloverBudget.ok(x, z)) return 0;
+          const w = walkVerge(x, z, s, [0.06, 1.2], 0.2);
+          return w <= 0 ? 0 : 0.5 * w * (0.4 + field.cluster(x, z));
+        },
+      },
+      (x, z, s, rng) => {
+        placeInstance(clover, x, z, s, rng, 0.8 + rng() * 0.55, 0.9, 0.008, greenVar(rng, 0.2));
+        cloverBudget.take(x, z);
+      },
+    );
+    // (e) leafy shrub crowns BEHIND the band (the lane's "shrubs at the path edges"): in his
+    // recording the verge is three layers — violets and leaves on the stones, fronds behind them,
+    // then dark leafy masses that break the middle distance up. Ours had the masses on the east
+    // bank only (the round-47 band), so the walker's left middle ground read as one flat slope of
+    // turf. These sit VERGE_SHRUB m off the paving, in the cluster noise's patches, never in the
+    // frames' low right verge and never inside camera C's wedge.
+    scatter(
+      ctx,
+      field,
+      {
+        label: 'bushes-walk-verge',
+        candidates: Math.round(vergeArea * 14 * q.density),
+        box: vergeBox,
+        minSpacing: 2.8,
+        r32: true,
+        accept(x, z, s) {
+          const pv = field.pathVerge(x, z);
+          if (pv.edge < VERGE_SHRUB[0] || pv.edge > VERGE_SHRUB[1] || field.reach(x, z) > R) return 0;
+          if (s.cliff > 0.45 || s.structure > 0.3 || s.stairs > 0.05) return 0;
+          // they stand 0.6–1.0 m: out of the low right verge and out of camera C's left third
+          if (field.lowZone(x, z) > 0.2 || field.sightlineC(x, z, 1.8) > 0) return 0;
+          const clr = field.clearing(x, z);
+          if (clr.insideBoulder || clr.npc > 0.1 || clr.boulder > 0.3) return 0;
+          if (field.giantDistance(x, z) < 1.0 || field.logDistance(x, z) < 1.4 || field.insidePropFootprint(x, z, 0.4)) return 0;
+          if (field.cFoot(x, z) > 0.1 || field.lawnBand(x, z) > 0.2 || field.troddenZone(x, z, true) > 0.2) return 0;
+          if (bushes.items.some((p) => Math.hypot(p.x - x, p.z - z) < 2.2)) return 0;
+          const c = field.cluster(x, z);
+          return 0.5 * (pv.left ? VERGE_LEFT : 0.65) * (0.2 + 1.1 * c) * Math.max(field.falloffReach(x, z), 0.75);
+        },
+      },
+      (x, z, s, rng) => placeInstance(bushes, x, z, s, rng, 0.52 + rng() * 0.3, 0.3, 0.04, tint.setRGB(NORTH_VERGE_BUSH_TINT + 0.08 + rng() * 0.12, NORTH_VERGE_BUSH_TINT + 0.14 + rng() * 0.12, NORTH_VERGE_BUSH_TINT + rng() * 0.12)),
+    );
   }
 
   const all = [ferns, tufts, heroFerns, fiddleheads, bushes, hedge, flowers, yellowFlowers, whiteFlowers, weeds, seedheads, clover, moss, saplings, fernsNorth, weedsNorth, bushesNorth, tuftsNorth];

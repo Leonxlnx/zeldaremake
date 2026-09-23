@@ -164,7 +164,15 @@ export interface BoleReliefResult {
  */
 const CREST_TINT = new Color(1.06, 1.01, 0.94);
 const FURROW_GRIME = new Color(0.56, 0.58, 0.48);
-const FURROW_MOSS = new Color(0.46, 0.66, 0.3);
+/**
+ * Round 52 (the owner, 09-21 and again at the 09-23 poses: "trees read brown, not green, as soon
+ * as you stand near them"): the furrow moss was a yellow-green (0.46, 0.66, 0.3) tint on the
+ * bark, so every vertex the moss mask touched — including the whole soft margin around a cushion,
+ * where the shader's 3-D cover has not started — went bright green. A darker, less yellow moss
+ * (roughly the shader cushion's own family, materials.ts) leaves the margins reading as damp bark
+ * and the cushions as the green.
+ */
+const FURROW_MOSS = new Color(0.33, 0.47, 0.22);
 /** occlusion at a furrow bottom of a NOMINAL_AMPLITUDE relief (the crests are 1) */
 const FURROW_AO = 0.45;
 /** relief amplitude (m) the occlusion, the crest lift and the grime are specified at */
@@ -225,8 +233,16 @@ function cordField(noise: Noise2D, angle: number, distance: number, rho: number,
   return { cord, tintVar, mossN, lichenN, band };
 }
 
-/** lichen crust tint (multiplier on the crest's bark): pale, a little green, matte */
-const LICHEN_TINT = new Color(1.55, 1.62, 1.42);
+/**
+ * lichen crust tint (multiplier on the crest's bark): pale, a little green, matte.
+ *
+ * Round 52 (the owner walks the boles at 2–6 m; the 09-23 renders of the emergent's foot and the
+ * north-west-near giant's roots read as mould-speckled wood): at 1.55 × the bark, over a crest
+ * tint already above 1, the crusts came out 3 × the bark around them — white plates on brown. The
+ * references' boles have pale patches but they sit within half a stop of the bark. 1.26 × at a
+ * 0.55 blend is ≈ 1.14 × the bark where the crust is full: a paler, greyer bark, still bark.
+ */
+const LICHEN_TINT = new Color(1.26, 1.3, 1.18);
 
 /**
  * The plain sweep's own frames at the coarse rings (writer.ts tube: the axis through the
@@ -427,10 +443,12 @@ export function* reliefBoleSteps(writer: GeometryWriter, points: Vector3[], radi
       // lichen plates on the crests and upper flanks, never under the moss: a clustered field
       // with a soft edge, so the crusts read as patches 20–40 cm across, not as speckle
       if (lichenBand > 0) {
-        const crust = smoothstep(0.32, 0.6, lichenN) * smoothstep(0.35, 0.75, cord) * lichenBand * (1 - Math.min(1, moss));
-        _tint.lerp(LICHEN_TINT, Math.min(1, crust) * 0.75);
+        // round 52: wider plates with softer margins (0.32–0.6 → 0.30–0.68 on the cluster field)
+        // and 0.55 of the tint, so a crust is a pale patch of bark rather than an applied plate
+        const crust = smoothstep(0.3, 0.68, lichenN) * smoothstep(0.35, 0.75, cord) * lichenBand * (1 - Math.min(1, moss));
+        _tint.lerp(LICHEN_TINT, Math.min(1, crust) * 0.55);
       }
-      _tint.lerp(FURROW_MOSS, Math.min(1, moss) * 0.85 * (0.4 + 0.6 * endShare));
+      _tint.lerp(FURROW_MOSS, Math.min(1, moss) * 0.78 * (0.4 + 0.6 * endShare));
       if (inBand) {
         mossCount++;
         if (moss > 0.5) mossHits++;
