@@ -396,3 +396,6 @@ nearCanopy, materials, index otherwise) is edited.
 - 17:27 — finer leaves six views: A +0.0013, B −0.0028, D +0.0020, E +0.0034; ready with heroshadow.
 - 18:53 — midwalk option: the mid grove keeps 11 m off the walk lines (post-filter; 393 → 372). Six views mixed (C/D +0.009,
   A −0.006). Posted as an option. Lesson: filter after sampling — a rule inside the sampler re-rolls the stream.
+- 20:20 — midwalk adopted by fable-cursor (their variant reverted). Understory walk clearance 6.5 m everywhere as a
+  post-filter (32 → 27): owner-0650 dark 48.6 → 46.3 %, six views all ≥ 0 (B +0.0071, E +0.0085). Branch
+  `agent/fable-4-understory-walk`.
