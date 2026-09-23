@@ -65,9 +65,27 @@ division, so the boles would come out 4× too bright), which is why this lane le
 
 ## pass1 — the bark stops reading as camouflage; the columns get a silhouette
 
-`pass1/` holds the before/after sheets. What changed and why is in the PR description and in the
-code comments (`column.ts` `boleKnees`, `bole.ts` `LICHEN_TINT` / `FURROW_MOSS`, `materials.ts`
-`COLUMN_BARK_FLOOR` and the `GIANT_BARK_COLOR` lichen / moss blocks).
+At 2–6 m every bole — the emergent's, the north-west-near giant's, the column seat at
+(−3.5, −24.7) — was covered in white speckle and 8 cm green blobs: mould-spotted camouflage, not
+wood.
+
+- The lichen crust fields ran at 22–95 cycles per metre (1–3 cm speckle) over an OPAQUE pale grey
+  (`vec3(0.46, 0.5, 0.38)` linear) about 3× the bark's own ≈ 0.1, with a vertex tint of 1.55× on
+  top of a crest tint already above 1. Now the crust is the bark's own colour lifted 1.35–1.6×
+  and part-desaturated toward grey-green, at 5–15 cm plates; `LICHEN_TINT` 1.55 → 1.26 at a 0.55
+  blend (was 0.75).
+- The moss cover's SHAPE came from `mossField` alone (13 / 41 cycles per metre), so it was
+  confetti of equal-sized blobs. A new 25–65 cm field decides where the moss sits and the fine
+  one only breaks its edge; the mean cover is held (the factor's mean 0.98 → 0.93).
+- `FURROW_MOSS` went from a yellow-green `(0.46, 0.66, 0.3)` tint to `(0.33, 0.47, 0.22)` at 0.78
+  (was 0.85), so the soft margin around a cushion reads as damp bark instead of going bright green.
+- Every column variant carries two knees with broken stub limbs on its bare run (3.6–4.7 m and
+  7.0–8.2 m, azimuths a third of a turn apart): `column.ts` `ColumnParams.boleKnees`, drawn from
+  their own PRNG fork so no seat, white-bark, giant or distant tree moves. The emergent keeps its
+  authored pair; the far hut's host gets none (the hut hangs on it).
+- `COLUMN_BARK_FLOOR` (the columns' floor **within 20 m** only) lift 6.2 → 4.8, texture
+  0.45 → 0.62: the floor goes back under the relief, so the crests stand above it and the furrows
+  below. `COLUMN_BARK_FLOOR_FAR`, what the hero frames' 22–40 m columns use, is untouched.
 
 ## pass2 — the white-barks stop being pipes
 
@@ -76,23 +94,26 @@ field (no mip, no texel — 0.3–0.9 m marks that read at 40 m and at 4 m alike
 2.6 m instead of 1.1 m, and a weathered foot that keeps some grey to 7 m. Plus a narrower moss
 cover ramp on the near boles (0.5–0.9 → 0.52–0.8) so a cushion has a margin rather than a halo.
 
-## The six hero views
+## The hero views
 
-`gauntlet/tmp/squad3-delta.mjs` against the integration head, same poses, 960 × 540:
+`gauntlet/tmp/squad3-delta.mjs` against the integration head at the same poses, 960 × 540 —
+after pass 2, then after the whole branch:
 
-| view | mean \|Δ\| (levels) | px > 2 | px > 8 | mean rgb |
+| view | mean \|Δ\| pass 2 | mean \|Δ\| final | px > 8 (final) | mean rgb (head → final) |
 | --- | --- | --- | --- | --- |
-| A_stairs | 0.08 | 0.71 % | 0.28 % | 91.11/87.33/67.72 → 91.09/87.32/67.71 |
-| B_house | 0.26 | 2.77 % | 0.84 % | 85.49/83.03/65.95 → 85.43/82.97/65.89 |
-| C_lookback | 0.09 | 0.96 % | 0.36 % | 85.27/81.37/62.70 → 85.19/81.30/62.62 |
-| D_log | 0.48 | 5.37 % | 1.42 % | 86.29/84.14/68.29 → 86.15/83.99/68.12 |
-| F_canopy | 0.20 | 2.49 % | 0.59 % | 87.30/82.01/58.74 → 87.12/81.80/58.54 |
+| A_stairs | 0.08 | 0.33 | 1.05 % | 91.11/87.33/67.72 → 90.98/87.22/67.62 |
+| B_house | 0.26 | 0.74 | 2.76 % | 85.49/83.03/65.95 → 85.15/82.73/65.67 |
+| C_lookback | 0.09 | 0.15 | 0.69 % | 85.27/81.37/62.70 → 85.11/81.24/62.57 |
+| D_log | 0.48 | 0.88 | 3.47 % | 86.29/84.14/68.29 → 85.90/83.78/67.93 |
+| F_canopy | 0.20 | 0.26 | 0.77 % | 87.30/82.01/58.74 → 87.12/81.80/58.54 |
 
-Measured after pass 2. The six views barely move: D is the largest (the emergent's bole and the
-far wall's columns are most of that frame's left edge) and even there 98.6 % of pixels move by
-8 levels or less, with the frame mean within 0.2 of a level. That headroom is what pass 3 spends.
+The six views do not move much: even D — where the emergent's bole and the far wall's columns
+fill the left edge — keeps 96.5 % of its pixels within 8 levels and its frame mean within 0.4 of
+a level. At the lane's own poses the same measure reads 1.2–1.9 mean levels with 4.3–6.2 % of
+pixels past 8, i.e. the change is concentrated where a walker stands, which is where it was
+aimed.
 
-## pass3 — the columns stop being a rank of posts
+## pass3 — the columns stop being a rank of posts, and a bole reads round
 
 - `column.ts`: `leanDeg` 1–4° → 2–6.5° and a wider sweep wander (`boleWander` 0.22 against the
   emergent's and the hut host's 0.14).
@@ -100,3 +121,23 @@ far wall's columns are most of that frame's left edge) and even there 98.6 % of 
   stands in from 20 m out, so it read as a lit stick. `× 0.94` drawn a tenth toward the grey.
 - `materials.ts`: the moss albedos carry the hue (G/R 1.6 → 2.4) — the near bases' shade floor
   mixes a flat grey into whatever albedo it is given, so a desaturated moss rendered as pale sage.
+- `materials.ts` `COLUMN_SHADE_SIDE` / `LeafVariant.barkShadeSide`: a shade floor is one level
+  from a bole's lit rim to its far edge, which IS the "smooth cylinder" reading. The columns'
+  floored bark now keeps 0.55 of it on faces turned from the sun and all of it at the
+  terminator — the round-shading cue a cylinder under a closed roof still shows. The distant
+  family has had exactly this term since round 48 (`DISTANT_SHADE_SIDE` 0.38); the giants and
+  white-barks are untouched (each program has its own cache key).
+
+## The sheets
+
+`final/` holds, for each pose, the integration head on the left and this branch on the right:
+
+- `l3-owner-north-before-after.jpg` — the owner's own pose, cropped on red circle 1. The trunk
+  goes from a broad flat pale shape to a round bole with a dark flank, visible grain and moss in
+  patches.
+- `l3-column-10m-before-after.jpg`, `l3-column-6m-before-after.jpg` — the same column at 10 m and
+  6.5 m.
+- `l3-emergent-foot-before-after.jpg`, `l3-giant-roots-before-after.jpg` — the bark a walker
+  passes at 3.7 m and 4.1 m: the white speckle gone, brown bark with green patches.
+- `family-tag-owner-north.jpg` — the identification render (red = column, green = white-bark,
+  blue = distant), built to `dist-probe` and reverted; it is not part of the branch's code.
