@@ -237,11 +237,26 @@ mean levels, 7.4 % of the lantern-root pose past 8 levels.
 
 | view | mean \|Δ\| | px > 8 |
 | --- | --- | --- |
-| A_stairs | 0.15 | 0.41 % |
-| B_house | 0.23 | 0.70 % |
-| C_lookback | 0.62 | 1.93 % |
-| D_log | 0.23 | 0.71 % |
-| F_canopy | 0.13 | 0.49 % |
+| A_stairs | 0.19 | 0.57 % |
+| B_house | 0.36 | 1.20 % |
+| C_lookback | 0.62 | 1.94 % |
+| D_log | 0.42 | 1.36 % |
+| F_canopy | 0.15 | 0.57 % |
+
+Darkness, which lane 10 flagged on the corridor: none of this adds any. The giant's bole at 20 m
+reads mean 78.5 → 78.4 with its share under level 40 unchanged at 1.5 %; the owner's 20:08 frame
+reads 78.1 → 77.9 with the dark share unchanged at 12.0 %, and its left third 58.3 → 58.3 at
+16.9 %.
+
+## Also in round 53 — the moss was drawn by one smooth per-vertex field
+
+The same value-noise trap, found while measuring the grain: round 52's moss patch field and the
+older ragged-edge term both entered the cover as `0.85 mossPatch + 0.3 mossFine` on a factor whose
+mean is 0.91 — a ±0.1 wobble. What actually drew a moss sheet was the smooth per-vertex
+`vBarkMoss` alone, which is why a sheet read as a long airbrushed smear with no bark through it.
+Both fields are now expanded about their mean (×3.2 and ×2.6) before use, and the cushion's own
+light and dark ride the expanded one, so a sheet has a ragged margin and internal texture.
+`round53/bole-20m-before-after.jpg`.
 
 Shader-only: no vertex, no draw call, no triangle — the change is a fragment term, so the counts
 cannot move. Measured anyway on the branch (`playtest --only walk,perf`): plaza 7,834,191 tri /
