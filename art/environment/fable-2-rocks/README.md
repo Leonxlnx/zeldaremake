@@ -31,6 +31,11 @@ packed earth. Six views: the flight stands 75 m north of the plaza; **A and D by
 9.16 → 9.17 M (the timber mesh's sphere enters the frustum, no pixel), D 554 → 556 / 8.52 → 8.53 M. `tsc` green, hardscape tests
 9 / 9 (`logNosings.test` asserts `main`; `ledge` added).
 
+Walked (`playtest.mjs --only walk --walk-routes north-clearing-ledge`, the plaza → under the arch → the clearing → up this flight,
+82.4 m, 1 572 frames, head vs branch): 15 / 15 waypoints, 0 stuck on both, the climb trace identical to the centimetre (y 4.04 →
+5.62 over the six steps); the boots' sole gap p50 0.4 → 0.4 cm, p95 2.6 → 2.7 cm, max 4.5 → 5.6 cm (one sample on a timber's
+crown), the footprint's lowest point never below −2.1 cm on either. The timbers carry the walker as the main flight's do.
+
 ## Iteration 83 — lane 6 (fable-cursor's 07:30 fit): the demo's log-risered steps, first half — the hero flight's treads are trodden earth between the timbers, not stone slabs (`aEarth` on the slab tops, the stone shader renders trail dirt there); six views A −0.0002, C −0.0009, the rest 0
 
 The owner's references for "the steps" (`docs/SQUAD_2026-09-23.md` lane 6): the demo's walk north, `demo61/d_094` and `d_104`
