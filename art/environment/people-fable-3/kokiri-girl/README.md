@@ -92,6 +92,28 @@ fable-2's paving change), settle 12:
 E shares B's camera; A, C, D do not see him. Same submissions (the wide band is one mesh like the torus was; the bob one
 mesh like the old one).
 
+## The fairies (third landing, `044fb636`)
+
+"The girl by the signpost with her fairy": in demo d_026 / d_090 her fairy is a glowing ball with wings about as wide as her
+head, a head-and-a-half above it; ours (round 47, `navi.ts createFairy` at the kids' 0.75) was a 5 cm ball, a 0.2 m halo at
+three-quarter tint and a 0.1 m wing pair — a dot at 5 m. Now a 7.5 cm ball, a 0.3 m halo at full tint, a 0.17 m wing pair;
+the light, the hover and the three submissions unchanged.
+
+![the fairies at 5 m](before-after-fairy.jpg)
+
+Poses: the 5 m follow pose on the tread girl (her fairy over the flight) and the walker's 5 m pose (her fairy by the
+boulder; the tread girl's by the lantern post at the top left). Six views against the branch before the step (`e7a01c7e`
+on the merged head), settle 12 — the walker's fairy is at A's right edge, B / E's left edge and beside Link in F:
+
+| view | SSIM vs ref, before | after | Δ | SSIM before↔after | changed px | draws | M tris |
+| --- | --- | --- | --- | --- | --- | --- | --- |
+| A | 0.1824 | 0.1826 | +0.0002 | 0.9978 | 2 630 (the fairy's box) | 692 = 692 | 8.88 = 8.88 |
+| B | 0.1732 | 0.1727 | −0.0004 | 0.9983 | 1 693 (the fairy's box) | 683 = 683 | 8.08 = 8.08 |
+| F | 0.2085 | 0.2082 | −0.0003 | 0.9993 | 826 (the fairy's box) | 642 = 642 | 7.69 = 7.69 |
+
+(The reference SSIMs differ from the first table's because the head moved under the branch between the two measurements —
+fable-2's paving and earth changes; each table is before/after on one head.)
+
 ## Play mode
 
 `kokiri-play-walk` (artifact): `?test=1` at 960 × 540, Link placed at (0.8, 6.2) facing the stair foot,

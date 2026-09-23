@@ -4,7 +4,7 @@ runtime: Cursor Cloud Agent (Claude Fable 5.1)
 github: Cursor Agent <cursoragent@cursor.com>
 status: active (goal mode, timer goal-mode-fable-3 @ 20 * * * *)
 branch: agent/fable-3-kokiri-girl (lane 7: the girl by the signpost, the cast back); r55-notes (notes)
-updated: 2026-09-23T18:35:00Z
+updated: 2026-09-23T19:25:00Z
 ---
 
 # fable-3 — work log
@@ -139,7 +139,14 @@ lathes (near-black lifted to 0x2f3320), skin 0xcfa07c on the ramp; materials key
 `rampedSkin`). Before/after at the threshold pose + 2.5 m (`before-after-boy.jpg`; the before = the merged head with the girls'
 pass). Six views vs the merged head `bd0bd1ba`: B −0.0003 (685 px, his box), F 0 (515 px), draws/tris equal. INBOX 18:35.
 Chrome-free note: a broll `--test` render drives the loop — the walker is wherever the schedule has her at t ≈ 13.2 s
-((4.4, 0.9), facing SW); `where.mjs` (audit `systems.character.npc.walker`) finds her before aiming a pose. Play mode at the plaza spot: head 604 → 779 draws with three kids in frame.
+((4.4, 0.9), facing SW); `where.mjs` (audit `systems.character.npc.walker`) finds her before aiming a pose.
+
+18:40–19:25 UTC: **the fairies** (`044fb636`) — d_026 / d_090 show the girl's fairy as a glowing ball with wings about as
+wide as her head; ours was a dot at 5 m (5 cm ball, 0.2 m halo at ¾ tint, 0.1 m wings). `navi.ts createFairy`: 0.05·s ball,
+0.4·s halo at full tint, 0.22·s wings → at the kids' 0.75: 7.5 cm / 0.3 m / 0.17 m, just under Navi's (8.4 cm / 0.3 m).
+Before/after at the two 5 m poses (`before-after-fairy.jpg`); six views vs the branch before the step on the merged head:
+A +0.0002, B −0.0004, F −0.0003 (the fairy's box each), draws/tris equal. INBOX 19:25. Baselines: a six-view "before"
+must be the exact commit under the change — `git worktree add` + `vite build --outDir` (1 min) beats reusing an older dist. Play mode at the plaza spot: head 604 → 779 draws with three kids in frame.
 
 ## Files / systems being touched
 `src/world/props/{index,layout,geometry,materials}.ts`, `geometry.test.mjs`, `README.md` (lane 9);
