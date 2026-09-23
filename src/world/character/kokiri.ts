@@ -706,7 +706,8 @@ function buildGirlHair(rig: Rig, hair: MeshStandardMaterial): void {
       new Vector3(s * 0.04, 0.03, skullZ(r, 0.04, 0.03, 0.0024)),
       new Vector3(s * 0.064, 0.026, skullZ(r, 0.064, 0.026, 0.0022)),
     ];
-    parts.push(sweep(pts, [0.0032, 0.0034, 0.0018], { segments: 8, radial: 6, closeTip: true, closeStart: true }));
+    // thinner since the head grew (lane 7): the round-48 tubes read as a frown at 5 m under the fringe's points
+    parts.push(sweep(pts, [0.0022, 0.0025, 0.0013], { segments: 8, radial: 6, closeTip: true, closeStart: true }));
   }
   part(rig.head, merge(parts), hair, 'hair');
 }
