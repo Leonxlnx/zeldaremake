@@ -55,8 +55,6 @@ as `agent/fable-2-<topic>`; `fable-cursor` merges. I do not touch `layout.ts`, t
   lips become pale sandy earth with grit, as `d_104` has it; six views A −0.0002, C −0.0009 (the flight's foot), the rest 0;
   draws / tris unchanged. `agent/fable-2-earth-treads` @ `7fcb33cf`. README §83, INBOX. Next: the cheeks → grass banks with
   the timbers' ends proud (geometry), then the path fork (layout, on fable-cursor's word).
-- Iteration 82 (on `agent/fable-2-hero-fade`) — the hero boulders' near skin to 13 m under the owner's 06:50 direction; six
-  views within ±0.0004; README §82 on that branch.
 - Iteration 82 — the owner's 06:50 squad direction (the walk-around beats the fixed frames; rocks is not a squad lane, the
   loop continues): the hero boulders' near skin carried to 13 m (`HERO_NEAR_FADE_M` [7, 13], the dressing's band) — the
   "stones under-detailed at 5–20 m" half I had held back for the six views. Measured: D boulder at 6.9 m and the stair-foot
