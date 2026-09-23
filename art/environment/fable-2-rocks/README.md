@@ -16,6 +16,45 @@ B 526 / C 393 / D 394 / E 526 / F 512; A 9.09 M tris on both (the head's number,
 change's — flagged to fable-cursor). Files: `ledge2-x-clearing-n.jpg` (+ `-crop`),
 `ledge2-x-ledge-foot.jpg`, `ledge2-x-northpath-n.jpg`.
 
+## Iteration 79 — fable-cursor's all-lanes ask (03:25): the rocks lane re-verified on the head `59c0f961` (owner review 2026-09-23) against `47773f13`, the build the owner played — rocks pixel-identical everywhere they show; the six views within −0.0007
+
+`src/world/rocks/**` has no commit between the two builds; what changed under the rocks is shared: the play camera (never
+under capture), the near-fade program keys, the lantern frames and the west house's light, the distant crowns' fade from
+below, and — in my hardscape module — the hero flight's logs (`d4f1feec` + `3b37b8b7`). Both builds rendered here at
+`--settle 12`, character as the take has it. Tests (rocks + hardscape) 37 / 37, `tsc` green on the head.
+
+| view | before `47773f13` | head `59c0f961` | Δ | changed px (> 8 / > 40 levels) | draws | triangles |
+|---|---|---|---|---|---|---|
+| A_stairs | 0.2239 | 0.2232 | −0.0007 | 36 393 / 11 654 (3.95 %) — 31 523 of them in the flight box | 474 → 476 | 8.61 → 8.67 M (+60 K) |
+| B_house | 0.1963 | 0.1961 | −0.0002 | 1 883 / 212 (0.20 %) — the pods | 462 → 464 | 7.89 → 7.95 M |
+| C_lookback | 0.2045 | 0.2046 | +0.0001 | 6 230 / 1 713 (0.68 %) — the flight's logs at the left edge, the lanterns | 368 → 368 | 6.82 M |
+| D_log | 0.2673 | 0.2675 | +0.0002 | 610 / 115 (0.07 %) | 428 → 430 | 8.05 → 8.09 M |
+| E_ground | 0.2179 | 0.2181 | +0.0002 | 1 880 / 212 (0.20 %) | 462 → 464 | 7.89 → 7.95 M |
+| F_canopy | 0.2232 | 0.2253 | **+0.0021** | 39 837 / 12 787 (4.32 %) — the flight | 438 → 440 | 8.05 → 8.09 M |
+
+Where the rocks are in those frames nothing moved (`rv79-sixviews-rocks.jpg`, before | head | mask): A's stair-foot skirt
+(box 0.55–0.80 × 0.70–1.0) **0 px**, the plaza's paving and pebbles (left half below 0.5) 7 px, the D boulder (0.04–0.18 ×
+0.66–0.84 and the wide 0.05–0.30 × 0.50–0.80) **0 px**, E's paving and pebbles below 0.6 14 px, F's flight foot below 0.75
+0 px. The A flight box (fable-5's) reads **51.4 % dark / 7.5 % pale / mean l 0.264, lips 78 / troughs 63** on the head —
+the same numbers as `d4f1feec` alone (§78): `3b37b8b7`'s repaired pair and checked crowns move 0.64 % of the box's pixels
+and none of its shares at a tenth of a percent. Before, the tint's 44.1 / 12.7 / 0.291, lips 92 / 66.
+
+The rocks poses, same two builds (`node pose.mjs --settle 12 --audit`):
+
+| pose | changed px > 8 / > 40 | where | rocks census (meshes / instances) | pebble LOD low tiles |
+|---|---|---|---|---|
+| `sn-boulder-shotd` (D boulder, 2 m) | **0 / 0** | — | 66 / 3 395 = | 14 of 20 = |
+| `sn-boulder-stairfoot` (skirt, 2 m) | 80 / 0 (0.01 %) | the flight's first log at the top-right corner; the skirt 4 px | 66 / 3 355 = | 13 = |
+| `x-ledge-wall` (3 m) | **0 / 0** | — | 66 / 3 330 = | 20 = |
+| `x-southbank-toe` (the pale pair, 6.8 m) | 5 126 / 45 (0.56 %) | a grass tuft at the frame's foot (3 191 px in one cell, max Δ 72) and a far bough; **the pair 20 px of 67 064** | 66 / 3 330 = | 17 = |
+| `x-clearing-n` (ground eye) | 4 691 / 0 (0.51 %) | all above the horizon — the ring's crowns (`e48d5e8e`); below it 28 px, the stone box 0 | 66 / 3 330 = | 20 = |
+| `w23-stairs-f` (the flight) | 340 368 / 155 346 (36.9 %) | the logs | 66 / 3 347 = | 13 = |
+| `x-stairs-3rd-tread` (2 m) | 440 968 / 233 190 (47.9 %) | the logs (`logs79-flight-pair.jpg`) | 66 / 3 335 = | 14 = |
+
+B3 on the head: rocks instances 3 330–3 395 by pose against the 3 151 claimed; the pebble tiles' `mergedInstances` census and
+the LOD swap unchanged. Verdict for fable-cursor: rocks needs no retune on this head; the lane's open offer stays §78's
+`LOG_TINT` balance (the timbers' individuality does not need their darkness — A's flight box at 51 % dark vs the frame's 16 %).
+
 ## Iteration 78 — the owner's "repeated pattern" on the hero flight: `d4f1feec` (the owner-side agent's rewrite of `logNosings.ts`) checked at A / C / F and at 2 m — the right fix in kind, 60 % of the tint's A value given back
 
 Owner review 2026-09-23: "the first staircase looks natural, the second has an obvious repeated pattern" — the twenty log

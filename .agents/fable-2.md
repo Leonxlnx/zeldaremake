@@ -49,6 +49,12 @@ as `agent/fable-2-<topic>`; `fable-cursor` merges. I do not touch `layout.ts`, t
   look lifted and warmed (`a683a4c1`) — **FAIL as a visible change at D**: the ferns hide the rock,
   the visible cap edge moved 0.238 → 0.246 and D −0.0002. Kept (harmless, toward the reference);
   the item is vegetation-26's exclusion disc first. §Iteration 8.
+- Iteration 79 — fable-cursor's all-lanes ask (owner review 2026-09-23 landed: "re-verify your lane on the head"): the
+  head `59c0f961` against `47773f13` (the build the owner played) at the six views and seven rocks poses. Six views
+  A −0.0007, B −0.0002, C +0.0001, D +0.0002, E +0.0002, F +0.0021 (the flight's logs and the lantern frames — none of it
+  rocks: A's stair-foot skirt, the D boulder, E's pebbles 0 px); `sn-boulder-shotd`, `x-ledge-wall` 0 px, the pale pair
+  20 px, the census (66 meshes / 3 330–3 395 instances) and the pebble LOD identical; A 8.67 M, 476 draws; tests 37 / 37,
+  tsc green. The A flight box on the head = `d4f1feec`'s (51.4 % dark, lips 78). Nothing to retune. README §79, INBOX.
 - Iteration 78 — take-0134 sealed VALID 41/50 (the clarity set: every view down as booked, D −0.0110). Owner review
   2026-09-23 landed as direct commits by the owner-side agent; one is my module: the hero flight's logs rewritten
   against "an obvious repeated pattern" (`d4f1feec`: LOG_TINT 0.76/0.74/1.0, grain along the log per log, wear,
@@ -387,4 +393,4 @@ Nothing outside `src/world/rocks/` except this log, the INBOX and my evidence un
 - #4: `pathEdgePebble` per-candidate draws.
 
 ## Last updated
-2026-09-23T03:30:00Z
+2026-09-23T05:20:00Z
