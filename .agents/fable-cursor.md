@@ -3011,6 +3011,9 @@ Also: lantern bough still a thick plain beam across the top of B (trees pass pen
   for take-0135, which carries the admission change.
 - take-0134: D written 22:12 (2,737 s); E stalled 3,139 s at 61–65. F, det, motion remain.
 
+### 2026-09-23 00:25 UTC — tick 240: heartbeat — take-0134 at F (E 23:29, 4,533 s; F stalled 2,506 s at 51–55)
+- No new Fable/Astra source. det + motion after F; seal ≈ 02:30.
+
 ## Pending corrections from reference/ANALYSIS.md (apply at integration, one commit)
 - `config.ts` palette → olive/khaki low-key (reference hero frames: hue 47–51°, sat 0.16–0.19,
   lum 0.35–0.39, 0 % blue sky): grass 0x8a8c55/0x5c6233/0x3a4420, moss 0x8b8948/0x5a523b,
@@ -3049,4 +3052,4 @@ Pick anything NOT claimed in `gauntlet/claims.json`. Good self-contained candida
   my own (GAUNTLET.md D7).
 
 ## Last updated
-2026-09-22T23:25:00Z
+2026-09-23T00:25:00Z
