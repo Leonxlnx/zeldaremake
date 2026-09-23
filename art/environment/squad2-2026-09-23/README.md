@@ -5,6 +5,13 @@ VM (Chrome + SwiftShader, 4 cores, no GPU) at 960 × 540 with the character hidd
 `gauntlet/scripts/broll.mjs --shots art/environment/owner-2026-09-23/pass3/owner-0650-poses.json
 --test --settle 6`.
 
+> **fable-cursor: this file IS the PR description.** The squad chat's pull-request tool is refused by
+> GitHub on this repository (`Validation Failed … "must be a collaborator"`, POST `/pulls`), on every
+> attempt, so no draft PR could be opened for `agent/squad2-midcanopy`. The branch is pushed and
+> complete; please open the PR from it (base `cursor/kokiri-world-phase1-f65e`, title
+> *"squad2: the trees do not populate — a mid-canopy layer for the 14–58 m band"*) or merge it
+> directly. Everything a reviewer needs is below.
+
 * **before** = the integration head `144453ef` (`cursor/kokiri-world-phase1-f65e`).
 * **after** = `agent/squad2-midcanopy` with the mid-canopy layer (third take: `MID_SPECS`, the tone
   and the 400-tree target).
@@ -63,22 +70,23 @@ swap (`MID_FAR_LOD_M` 40 m) and publishes `systems.trees.midCanopy`.
 
 ## Measured
 
-`systems.trees.midCanopy` at the owner's pose (`probe-look.mjs --audit`, second take):
+`systems.trees.midCanopy` on the shipped build (`probe-look.mjs --audit`, written to
+`audit-final.json`):
 
 ```
-trees 314 · culled 6 (expansionCull) · band 15.8–57.9 m · maxBaseGap 0 over 1438 bases
+trees 393 · culled 7 (expansionCull) · band 13.7–58.0 m · maxBaseGap 0 over 1517 bases
 ```
 
-Cost at the owner's pose, `systems.trees.submission.byFamily` (second take, 314 trees):
+Cost at the owner's pose, `systems.trees.submission.byFamily`:
 
 | family | meshes | instances | draw calls | triangles |
 | --- | --- | --- | --- | --- |
-| `mid-near` | 5 | 18 | 5 | 9 495 |
-| `mid-far` | 5 | 76 | 5 | 14 996 |
-| (trees, whole system) | 136 | 504 | 88 | 3 062 040 |
+| `mid-near` | 5 | 32 | 5 | 16 715 |
+| `mid-far` | 5 | 67 | 5 | 13 267 |
+| (trees, whole system) | — | — | 88 | 3 067 531 |
 
-24.5 K triangles and 10 draw calls — 0.8 % of what the trees already submit at that camera, far
-under the W38 ceiling (camera A ≤ 9.0 M) and the 700-draw budget.
+30 K triangles and 10 draw calls — 1.0 % of what the trees already submit at that camera, far under
+the W38 ceiling (camera A ≤ 9.0 M) and the 700-draw budget.
 
 **"The middle distance must show trees, not haze", measured.** `band.mjs` takes a horizontal band of
 the frame, splits it into 8-px columns and reports the standard deviation of the column means (how
@@ -101,11 +109,109 @@ The band's STRUCTURE now sits inside the reference's range on both axes (and abo
 MEAN is still ~36 levels under the reference: that is exposure and the height fog's depth, lane 1's
 work, not the trees'.
 
+## Every direction you can walk
+
+Four more player-height poses on both builds (`walk-poses.json`, 768 × 432), chosen for the headings
+the owner's three poses do not cover. `compare/walk-<name>.jpg`:
+
+| pose | before → after | band mean | across-columns sd |
+| --- | --- | --- | --- |
+| `plaza-west` — the plaza toward the west house | the pale veil behind the fence becomes layered crowns and young trees | 74.0 → 69.2 | 10.64 → **14.98** |
+| `plaza-east` — the plaza toward the east bank | the hazy band left of the giant fills with crowns and a mid trunk | 56.6 → 53.2 | 15.23 → 13.46 |
+| `plaza-south` — down the spine past the plaza-south giant | trees behind the giant's bole where there was haze | 62.3 → 55.0 | 12.91 → 12.58 |
+| `clearing-north` — the open ground north of the log arch | a mid bole 5 m off at the left edge, trees down the west flank | 39.4 → 36.2 | 13.33 → 13.37 |
+
+The band mean falls 3–7 levels in all four: the grey veil is replaced by tree mass, which is darker.
+`plaza-east` and `plaza-south` lose a little across-columns structure because what filled in there is
+a *continuous* leafy band rather than isolated silhouettes — the frames read better, the statistic
+does not distinguish the two cases. The crops are the evidence for those two.
+
+`clearing-north` puts a mid bole 4–5 m from the lens in the open ground north of the arch; at full
+resolution it reads as bark (fissures, moss, a believable brown) and the walk route through there is
+clean, so it is kept. If the owner wants that ground to stay an open clearing, `midWeight` in
+`trees/index.ts` is the one-line lever (it is already what keeps the village core clear inside 13 m).
+
+## Play mode
+
+`gauntlet/scripts/playtest.mjs --only look,walk,perf --shots` on the change, and `--only perf` on the
+base build (`144453ef`, built into a second worktree) so the cost comparison is the same machine and
+the same Chrome:
+
+| spot | draws before → after | submitted triangles before → after | JS step ms | render ms |
+| --- | --- | --- | --- | --- |
+| plaza | 523 → 551 | 7 507 102 → 7 474 812 (−0.4 %) | 25.0 → 14.0 | 10.9 → 10.8 |
+| stairs2-base | 522 → 552 | 9 525 649 → 9 561 907 (+0.4 %) | 19.6 → 15.0 | 9.2 → 9.8 |
+| saria-side | 519 → 549 | 8 587 286 → 8 619 056 (+0.4 %) | 31.6 → 33.6 | 15.3 → 24.9 |
+| west-house | 442 → 472 | 5 033 732 → 5 080 841 (+0.9 %) | 15.3 → 13.7 | 8.0 → 9.1 |
+
++28 to +30 draw calls (peak 552 of the 700 budget) and under 1 % of submitted triangles. The JS
+timings swing both ways between the two runs — on SwiftShader a drawn frame takes 14–16 s of wall
+clock and the per-frame JS figures are dominated by run-to-run noise; nothing here is a systematic
+regression, and the structural numbers (draws, triangles) are.
+
+**All nine walk routes complete with no stuck points** (`plaza-to-upper-house`,
+`plaza-to-south-bank-top`, `saria-front-arc`, `west-deck`, `plaza-loop`, `south-approach`,
+`house-west-to-saria-door`, `west-house-to-plaza`, `north-clearing-ledge`), and `pageErrors` is empty.
+
+## Where the new layer sits
+
+`probe-look.mjs` with a red emissive on the `distant-crown-mid` material marks every mid crown in a
+frame, and `--pick` names the mesh under a pixel. At the owner's pose the marked crowns fill exactly
+the band his red circle 2 covers (`compare/owner-pose-mid-marked.jpg`), and the pick at screen
+(0.30, 0.20) names `mid-7-near` at 18.8 m of depth. Every bole is listed in the audit
+(`midCanopy.seats`, `[x, z, variant]`), so a review can pose a camera at any of them.
+
+In the open north looking up 60° (`compare/open-north-up60.jpg`, the play camera's own pose from the
+`open-north` look spot) the mid crowns are the dark layered mass over the left half — the canopy roof
+the reference has, where the head showed open blue sky. The pale hard-edged quads at the bottom left
+of that frame are NOT the new layer (they stay pale under the marker): they are already on the head
+in the same place (`play/open-north-up60-base.png` beside the head's playtest shot), and the picks
+there name `column-near-base-seat-2` and `merged:distant-house-bark:hollow-column` at 4.4–5.3 m.
+Passing that on rather than fixing it: columns are lane 3 and the distant house is lane 9.
+
+## Hero views A–F
+
+This change moves them — putting crowns in the 18–45 m band is the point, and the fixed frames look
+through that band too. Rendered at 768 × 432 from `hero-poses.json` (the `LAYOUT.viewpoints` poses;
+E is B's held copy, so five frames) on the head and on this branch, same machine, same settle:
+
+| view | SSIM vs the head | pixels moved > 8 levels | what moved |
+| --- | --- | --- | --- |
+| A_stairs | 0.9366 | 10.0 % | the hazy left third and the band over the house gain crowns |
+| B_house | 0.9279 | 12.7 % | the left third's grey veil becomes layered leafy trees |
+| C_lookback | 0.9170 | 12.7 % | crowns between the giant boles in the upper half |
+| D_log | 0.9044 | 16.7 % | the plain between the path and the arch's mouth fills with trees |
+| F_canopy | 0.9278 | 9.7 % | foliage over the flight and on the right bank |
+
+Nothing hides a landmark: houses, the signpost, the log arch (its mouth and both lanterns still read
+in D), the stair runs, the fences, the NPC spots and the six viewpoints themselves are all in
+`treeGroundBlocked`'s exclusions, and the plaza's sun corridors — which carry the shafts — reject any
+candidate whose crown would fill them. `compare/hero-<id>.jpg` is each pair.
+
 ## Files
 
 * `compare/north.jpg`, `compare/plaza-fork.jpg`, `compare/west.jpg` — before | after, full frame, at
   the three poses of `art/environment/owner-2026-09-23/pass3/owner-0650-poses.json`.
 * `compare/north-band.jpg`, `compare/west-band.jpg` — the same pairs cropped to the middle-distance band.
 * `compare/north-vs-reference.jpg` — the owner's `review46/r_025` beside our north pose.
+* `compare/owner-pose-mid-marked.jpg`, `compare/open-north-up60.jpg` — the same frame with the mid
+  crowns marked red (`probe-look.mjs --variants … material distant-crown-mid, emissive red`).
+* `compare/hero-*.jpg` — the five reachable fixed views (A, B, C, D, F — E is B's held copy) on the
+  head beside this branch.
+* `compare/walk-*.jpg` — the four extra player-height headings on the head beside this branch.
+* `playtest-after.json`, `playtest-base-perf.json`, `play/` — the play-mode runs and their shots.
+* `hero-poses.json`, `mid-probe-poses.json`, `look-up-poses.json` — the pose files used here.
 * `compare.mjs` — the sheet builder (`--pair label=file`, `--crop`, `--stats`).
 * `band.mjs` — the band measurement above.
+
+## Next in this lane
+
+1. Mid trees do not cast: the whole distant family has `castShadow = false`, and the crown cards have
+   no depth material, so turning casting on would first need one (a card would otherwise cast as a
+   solid quad). The middle distance's dapple is worth it — a separate PR.
+2. The mid boles are not in `ctx.shared.slimTrunks`, so the follow camera passes through one. Every
+   look spot's camera position is byte-identical to the head's, so this is cosmetic; a push-out for
+   the two tall variants may still be worth it.
+3. Astra's PR #29 (`nearCanopy.ts` layered-core records + the `giant.ts` selection) against the head's
+   memory-tier admission, as the lane row asks.
+4. The far ring from below in the open north, re-read now that the mid layer stands in front of it.
