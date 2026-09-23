@@ -18,8 +18,8 @@
  *    EAST_VISIBLE_M of the lane's box when the frustum meets its casters or their shadows;
  *  - `base`: the houses' roots, porches, thresholds, door and window frames and rooms and the
  *    counter's niche (everything that closes an opening in a trunk), with `core` while the camera is
- *    within EAST_MID_M of the green or the terrain lets it see a house's foot (camera F on the plaza
- *    sees only the caps over the plateau's lip);
+ *    within EAST_MID_M of the green or the terrain lets it see a house's foot (`eastFootSeen`:
+ *    camera F on the plaza sees over the plateau's lip, its lee on the plain does not);
  *  - `mid`: the counter's woodwork, the sign, the deck, the posts' wood, the lookout's fence and
  *    bench, with `base` when the frustum meets them;
  *  - `near[i]`: house i's close detail (cap tufts and plants, trunk moss and lichen, the room's
@@ -1236,11 +1236,11 @@ export function buildEast(ctx: WorldContext, mats: StructureMaterials, rng: Rng,
   const laneSpheres: Sphere[] = eastSpheres(laneCasters, sunToward);
   const midSpheres: Sphere[] = eastSpheres([...laneCasters, ...houseCasters[tallI].slice(1), houseCasters[shopI][0]], sunToward);
   /**
-   * The plateau's lip hides the lane's ground-level work from below it — camera F on the plaza sees
-   * the caps over the lip and nothing under the doors' heads. Beyond EAST_MID_M of the green, `base`
-   * and `mid` draw only while the terrain lets the camera see a house's foot (eastLane.ts
-   * `eastFootSeen`, up to the head of its door or window); whatever the ground hides casts its
-   * shadow onto ground the camera cannot see either. Re-tested when the camera has moved 0.3 m.
+   * The plateau's lip hides the lane's ground-level work from its lee on the plain south of the
+   * plaza. Beyond EAST_MID_M of the green, `base` and `mid` draw only while the terrain lets the
+   * camera see a house's foot (eastLane.ts `eastFootSeen`, up to the head of its door or window —
+   * camera F sees over the lip, so they draw there); whatever the ground hides casts its shadow onto
+   * ground the camera cannot see either. Re-tested when the camera has moved 0.3 m.
    */
   const baseTops = houses.map((hb) => Math.max(hb.door.height + 0.3, hb.window.height + hb.window.radius + 0.25));
   const heightAt = (x: number, z: number) => terrain.height(x, z);

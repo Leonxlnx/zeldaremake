@@ -20,8 +20,8 @@ export const EAST_DETAIL_M = 34;
 /**
  * the houses' feet and the lane's built extras (the counter's woodwork, the sign, the deck, the
  * posts, the lookout) always draw within this distance of the green — everywhere on the plateau and
- * on the plain under its south lip — and beyond it while `eastFootSeen` (camera F is 46.5 m off,
- * under the lip, and sees only the caps)
+ * on the plain under its south lip — and beyond it while `eastFootSeen` (camera F, 46.5 m off,
+ * sees over the lip to the doors' heads; the lip's lee on the plain south of the plaza does not)
  */
 export const EAST_MID_M = 40;
 /** the green between the three houses, the centre the lane's distance rules measure from */
@@ -148,7 +148,9 @@ const FOOT_SIGHT: [number, number, boolean][] = [
  * Whether the camera at `from` sees any house's foot past the ground: a ray to its bark toward the
  * camera and 0.9 rad either side at `tops[i]` m over its floor (the head of its door or window —
  * everything lower on that side is behind the same ground), or to its roots' tips on the ground
- * toward the camera. The plateau's lip hides them all from the plaza (camera F).
+ * toward the camera. Only grows with `tops` (a higher point's sightline passes over a lower one's).
+ * The plateau's lip hides them all from its lee on the plain south of the plaza (x −2…6, z −31…−24
+ * at eye height); camera F, on the plaza, sees over it.
  */
 export function eastFootSeen(from: { x: number; y: number; z: number }, heightAt: (x: number, z: number) => number, tops: number[]): boolean {
   return EXPANSION_EAST.houses.some((h, i) => {

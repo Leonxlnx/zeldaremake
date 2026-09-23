@@ -18,8 +18,8 @@
  *   7. the east lane on the plateau (layout `EXPANSION_EAST`, round 56): its only height change is
  *      under its own discs, its masks change only inside `EAST_BOX`, its discs are paved, walkable
  *      and on natural ground, its trunks are blocked, the cull keeps it inside its box, cameras
- *      A–E never meet its casters (sun shadows included) and F, under the plateau's lip, sees no
- *      house's foot.
+ *      A–E never meet its casters (sun shadows included), F sees the houses' feet over the
+ *      plateau's lip and the lip's lee on the plain south of the plaza does not.
  */
 import assert from 'node:assert/strict';
 import { readFileSync, existsSync } from 'node:fs';
@@ -554,7 +554,7 @@ const fmt = (x, z) => `(${x.toFixed(2)}, ${z.toFixed(2)})`;
 
   // the casters the structures toggle the lane by (houses, lookout, posts — sun shadows included)
   // meet none of cameras A–E; F (≈ 40 m off, looking up over the plateau's lip) is beyond every
-  // house's detail distance, so at most the consolidated core draws there
+  // house's detail distance, so no house's detail draws there
   const L = loadTs(path.join(here, '../util/expansionLocality.ts'));
   const E = loadTs(path.join(here, '../util/eastLane.ts'));
   const { WORLD } = loadTs(path.join(here, '../config.ts'));
@@ -574,17 +574,25 @@ const fmt = (x, z) => `(${x.toFixed(2)}, ${z.toFixed(2)})`;
     c.updateProjectionMatrix();
     assert.equal(L.frustumMeets(c, spheres), false, `${v.id}: the east lane (and its shadow) is outside the frustum`);
   }
-  // F stands under the plateau's lip, beyond EAST_MID_M of the green, and the ground hides every
-  // house's foot up to 4 m over its floor (above any door's or window's head): only the trunks and
-  // caps draw there. Up on the plateau (the stairway's head, the lookout) and from high over the
-  // plaza the feet show.
-  const tops = EXPANSION_EAST.houses.map(() => 4.0);
+  // Beyond EAST_MID_M of the green the houses' feet draw only while `eastFootSeen`. F, on the plaza
+  // looking up the stair bank, sees over the plateau's lip to the doors' and windows' heads (the
+  // ground hides the small house to ≈ 1.4 m over its floor, the shop to ≈ 2.4 m, the tall house to
+  // ≈ 3.4 m), so the feet draw in F; the lip hides them all from the plain in its lee south of the
+  // plaza. From the plateau (the stairway's head, the lookout) and from high over the plaza they
+  // show. `eastFootSeen` only grows with the tops (the sightline to a higher point passes over the
+  // one to a lower point), so 2 m bounds every door's and window's head from below, 4 m from above.
   const at = (p) => ({ x: p[0], y: p[1], z: p[2] });
+  const footSeen = (p, top) => E.eastFootSeen(at(p), groundAt, EXPANSION_EAST.houses.map(() => top));
   for (const v of LAYOUT.viewpoints.filter((w) => w.id.startsWith('F_'))) {
     assert.ok(Math.hypot(v.position[0] - E.EAST_GREEN.x, v.position[2] - E.EAST_GREEN.z) > E.EAST_MID_M, `${v.id} is beyond EAST_MID_M of the green`);
-    assert.equal(E.eastFootSeen(at(v.position), groundAt, tops), false, `${v.id}: the plateau's lip hides the houses' feet`);
+    assert.equal(footSeen(v.position, 2.0), true, `${v.id}: the houses' feet show over the plateau's lip`);
   }
-  for (const p of [[17.4, 6.95, -7.5], [49.6, 7.25, 8.9], [-10, 30, 20]]) assert.equal(E.eastFootSeen(at(p), groundAt, tops), true, `the houses' feet show from ${fmt(p[0], p[2])} (${p[1]} m up)`);
+  for (const [x, z] of [[2, -28], [0, -30], [4, -26], [0, -26], [4, -30]]) {
+    const p = [x, groundAt(x, z) + 1.6, z];
+    assert.ok(Math.hypot(x - E.EAST_GREEN.x, z - E.EAST_GREEN.z) > E.EAST_MID_M, `${fmt(x, z)} is beyond EAST_MID_M of the green`);
+    assert.equal(footSeen(p, 4.0), false, `the plateau's lip hides the houses' feet from ${fmt(x, z)} (eye height)`);
+  }
+  for (const p of [[17.4, 6.95, -7.5], [49.6, 7.25, 8.9], [-10, 30, 20]]) assert.equal(footSeen(p, 2.0), true, `the houses' feet show from ${fmt(p[0], p[2])} (${p[1]} m up)`);
 }
 
 console.log('expansion2.test.mjs: ok');
