@@ -236,6 +236,8 @@ async function boot() {
   const loading = document.getElementById('loading')!;
   const params = new URLSearchParams(location.search);
   const headless = isHeadlessCapture();
+  // `?test=1` (never under capture): the play-test hook below drives play mode frame by frame
+  const playTest = !headless && params.get('test') === '1';
   // performance flags (perfFlags.ts): `?quality=auto` runs the governor over the high tier's
   // world; under a headless capture it stays fixed high unless the trace harness says `governor=1`
   const flags = perfFlags();
@@ -248,7 +250,7 @@ async function boot() {
   // itself is never rasterised with anything but a fullscreen quad: a multisampled default
   // framebuffer (`antialias: true`) only added a 4× colour buffer and a resolve per frame for an
   // identical image (FXAA is the anti-aliasing; measured byte-identical on the six fixed captures).
-  const renderer = new WebGLRenderer({ antialias: false, powerPreference: 'high-performance', alpha: false, preserveDrawingBuffer: headless });
+  const renderer = new WebGLRenderer({ antialias: false, powerPreference: 'high-performance', alpha: false, preserveDrawingBuffer: headless || playTest });
   const basePixelRatio = Math.min(devicePixelRatio, quality.pixelRatio, WORLD.renderer.maxPixelRatio);
   // `?scale=` / the governor's render scale multiply the pixel ratio (every composer target follows
   // the drawing buffer); 1 as shipped, so the product is the ratio itself
@@ -306,7 +308,7 @@ async function boot() {
   const player = scene.userData.player as PlayerHandle | undefined;
   const setPlayMode = (on: boolean) => {
     if (headless || !player) return;
-    if (on && !follow) follow = createFollowCam(host, terrain, cam.camera, player);
+    if (on && !follow) follow = createFollowCam(host, terrain, cam.camera, player, { shared: world.ctx.shared, invertY: params.get('invertY') === '1' });
     if (follow) follow.enabled = on;
     cam.enabled = !on;
     player.setPlayMode(on);
@@ -334,7 +336,7 @@ async function boot() {
     composer?.setSize(host.clientWidth, host.clientHeight);
   };
 
-  const step = (dt: number) => {
+  const step = (dt: number, render = true) => {
     const t0 = performance.now();
     simTime += dt;
     if (!headless) {
@@ -345,7 +347,9 @@ async function boot() {
     const t1 = performance.now();
     world.update(dt, simTime);
     const t2 = performance.now();
-    if (composer) composer.render(dt);
+    if (!render) {
+      /* play-test simulation step: no frame drawn */
+    } else if (composer) composer.render(dt);
     else renderer.render(scene, cam.camera);
     const t3 = performance.now();
     perf.camera = t1 - t0;
@@ -470,7 +474,44 @@ async function boot() {
 
   loading.classList.add('done');
   readyResolve();
-  if (headless) {
+  // Play-test hook (`?test=1`): the page runs no frame loop of its own; `__ZR_PLAY__.step(n, dt,
+  // render)` advances n frames at a fixed dt through the same `step` the loop runs (held keys /
+  // pointer moves → follow camera → Link → world → render), so a harness can drive play mode with
+  // real input events and read the outcome deterministically. `render: false` simulates without
+  // drawing (SwiftShader draws a frame in seconds).
+  if (playTest) {
+    (window as unknown as { __ZR_PLAY__?: unknown }).__ZR_PLAY__ = {
+      step: (n = 1, dt = 1 / 30, render = true) => {
+        for (let i = 0; i < n; i++) if (!shell.paused) step(dt, render);
+      },
+      setPlayMode,
+      /** put Link at rest at (x, z) facing `yaw` (rad, forward = (sin, cos)) and snap the camera behind him */
+      place: (x: number, z: number, yaw: number) => {
+        if (!player) return;
+        player.place(x, z, yaw);
+        follow?.snap();
+      },
+      ground: (x: number, z: number) => ({ walk: player?.groundHeight(x, z) ?? NaN, surface: player?.surfaceHeight(x, z) ?? NaN, terrain: terrain.height(x, z) }),
+      setView: (yaw: number, pitch: number) => follow?.setView?.(yaw, pitch),
+      state: () => {
+        const c = cam.camera;
+        const d = c.getWorldDirection(c.position.clone());
+        const p = player?.position;
+        return {
+          playMode: !!follow?.enabled,
+          camera: { position: c.position.toArray(), direction: d.toArray(), fov: c.fov, near: c.near, aspect: c.aspect },
+          link: p && player ? [p.x, player.groundHeight(p.x, p.z), p.z] : null,
+          heading: player ? player.heading() : null,
+          air: player ? player.airHeight() : 0,
+          groundUnderCamera: terrain.height(c.position.x, c.position.z),
+          follow: follow?.state?.() ?? null,
+          render: { calls: renderer.info.render.calls, triangles: renderer.info.render.triangles },
+          perf: { ...perf },
+        };
+      },
+    };
+  }
+  if (headless || playTest) {
     // render one frame so the canvas has content before the harness takes over
     step(1 / 60);
   } else {

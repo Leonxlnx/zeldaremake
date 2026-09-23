@@ -12,6 +12,7 @@ import type { Rng } from './util/prng';
 import type { Layout } from './layout';
 import type { WorldConfig } from './config';
 import type { TextureLibrary } from './materials/textures';
+import type { VoxelGrid } from './util/voxelGrid';
 
 export type QualityTier = 'low' | 'medium' | 'high' | 'ultra';
 
@@ -100,6 +101,14 @@ export interface SharedGeometry {
    * the character ground (character/ground.ts reads them; nothing else does).
    */
   walkSurfaces?: WalkSurface[];
+  /**
+   * The play camera's collision grids over the structures (structures/cameraSolids.ts; never built
+   * under a headless capture): `solid` shells it keeps Link in front of, `slim` parts it only
+   * refuses to stand inside.
+   */
+  cameraSolids?: { solid: VoxelGrid | null; slim: VoxelGrid | null };
+  /** the slim trees' trunks (the white-barks, as placed): base centre, radius, the bare bole's height span (world y) */
+  slimTrunks?: { x: number; z: number; r: number; y0: number; y1: number }[];
 }
 
 export interface WalkSurface {

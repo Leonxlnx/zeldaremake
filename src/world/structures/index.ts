@@ -10,6 +10,7 @@
 import { Group, type Mesh, type Object3D, type PointLight } from 'three';
 import type { WorldContext, WorldSystem } from '../system';
 import { ROPE_FENCES, LANTERN_POSTS, type FenceDef } from '../layout';
+import { buildCameraSolids, limbSpheres } from './cameraSolids';
 import { buildFence, createRopeMaterial } from './fence';
 import { buildDistantHouses, distantGlowPeak } from './distantHouse';
 import { buildExpansion, EXPANSION_VISIBLE_M } from './expansion';
@@ -160,6 +161,11 @@ export async function create(ctx: WorldContext): Promise<WorldSystem> {
   bases.push(...expansion.bases);
   ctx.shared.walkSurfaces = [...(ctx.shared.walkSurfaces ?? []), ...expansion.houses.walk];
 
+  // the play camera's solids (cameraSolids.ts), voxelised from the parts by name before the merges
+  // below rename them; never under a headless capture
+  const cameraSolids = ctx.headless ? null : buildCameraSolids([group, north, expansion.group], limbSpheres(ctx.shared.lanternLimb));
+  if (cameraSolids) ctx.shared.cameraSolids = { solid: cameraSolids.solid, slim: cameraSolids.slim };
+
   // ---- draw-call budget: fold the static parts into one mesh per material (+ shadow flags) ----
   // The pods stay separate (their pivots swing), as do the transparent glow cards and the log's
   // unique-material parts; everything else — bark, roof, boughs, fence posts and ropes, lantern
@@ -266,6 +272,8 @@ export async function create(ctx: WorldContext): Promise<WorldSystem> {
 
   ctx.audit('structures', () => ({
     ...budget(),
+    /** the play camera's collision grids (null under a headless capture) */
+    cameraSolids: cameraSolids?.report ?? null,
     meshesBeforeMerge: draws.before,
     mergedMeshes: draws.merged,
     houses: houses.length,
