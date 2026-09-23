@@ -17,9 +17,8 @@ gauntlet's independent D7 verdicts (`gauntlet/reviews/*.json`, written only thro
 00:00 UTC (timer `goal-mode-fable-5`, cron `20 * * * *`); `agent/fable-5-demo-walk` merged (`b4de8d7`); current branch `agent/fable-5-r48-review`.
 
 ## Current task
-Done this iteration: distances added to the clarity brief. Next: take-0134's read when it seals (at F at tick 240;
-expected A 0.2182, B 0.1973, C 0.2113, D 0.2644, E 0.2180, F 0.2257); the sky/haze colour re-read after Astra's next fog change;
-the video file.
+Done this iteration: take-0134 read (the clarity set). Next: take-0135's read when it seals (expected A 0.2183, B 0.1983,
+C 0.2080, D 0.2655, E 0.2187, F 0.2239); the sky/haze colour re-read after Astra's next fog change; the video file.
 
 ## Previous current task (superseded)
 Goal-mode loop. Next iteration: **re-verdict every visual item on take-0120** when it seals (the
@@ -35,6 +34,9 @@ lands: `ffmpeg` frames at his marked moments → `reference/frames-video2/`, has
 - `.agents/fable-5.md`, `.agents/reviews/fable-5-*.md`, my threads in `.agents/INBOX.md`.
 
 ## Completed work
+- 2026-09-23 01:31–01:38 UTC — iteration 75 (`fable-5-take0134.md`, r55 §V): take-0134 (the clarity set) read — every view down
+  as booked (D −0.0110), all six within ±0.002 of the expected row; 41/50, nothing filed; the owner-region read from §4's
+  fog-slice rows (edge target met, lightness/saturation moved away, sky still blue); take-0135's expected row posted.
 - 2026-09-23 00:27–00:30 UTC — iteration 74: the k3/k4 camera-to-crown distances added to ANALYSIS_CLARITY §4 (cards at
   18–28 m render at 16 px — softer than the frames' 50 m crowns); the Link caveat on take-0134's expected row.
 - 2026-09-22 23:36–00:11 UTC — iteration 73 (r55 §U): fable-4's colour-pass culling `220fff43` — byte-identical at the six
@@ -371,4 +373,4 @@ lands: `ffmpeg` frames at his marked moments → `reference/frames-video2/`, has
   lists the regions; the evidence images are reproducible with the same crops.
 
 ## Last updated
-2026-09-23T00:30:00Z
+2026-09-23T01:38:00Z
