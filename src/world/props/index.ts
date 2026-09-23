@@ -38,7 +38,7 @@ export interface PlacementOptions {
   pad?: boolean;
 }
 
-type PlacementCtx = Pick<WorldContext, 'terrain' | 'layout'>;
+type PlacementCtx = Pick<WorldContext, 'terrain' | 'layout'> & { shared?: Pick<NonNullable<WorldContext['shared']>, 'slimTrunks'> };
 
 /**
  * Footprint probes (centre + 8 around at `radius`) keep the whole prop out of paths, stairs,
@@ -75,6 +75,12 @@ export function placementAllowed(ctx: PlacementCtx, x: number, z: number, radius
   if (L.heroBoulders.some((b) => Math.hypot(x - b.position[0], z - b.position[2]) < b.radius + radius + 0.05)) return false;
   if (L.npcSpots.some((s) => Math.hypot(x - s.position[0], z - s.position[2]) < 0.8 + radius)) return false;
   if (L.signposts.some((s) => Math.hypot(x - s.position[0], z - s.position[2]) < 0.45 + radius)) return false;
+  // Round 53 (fable-4's understory, 2026-09-23): the trees build before props and scatter 44 small
+  // trees by seed along the verges and the lawn edges without knowing the props, and publish every
+  // white-bark and understory bole as `ctx.shared.slimTrunks` (the camera's list). A prop's footprint
+  // keeps a hand off every bole, so no pot or crate ever stands in a trunk however the trees re-roll.
+  const trunks = ctx.shared?.slimTrunks;
+  if (trunks && trunks.some((t) => Math.hypot(x - t.x, z - t.z) < t.r + radius + 0.05)) return false;
   return true;
 }
 
