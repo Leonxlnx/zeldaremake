@@ -680,3 +680,14 @@ byte-identical too.
 
 Expected take-0135 unchanged by this step (A 0.2173, B 0.1982, C 0.2080, D 0.2657, E 0.2190, F 0.2266).
 
+## Z. Iteration 80 (06:28–06:47 UTC) — `c526a5b8` (a distant floor card seen from below keeps its own normal) closes the `u-open-up` card at the owner's pose; six views byte-identical
+
+`a5dbf45f` → `f56c5740`: **A–F byte-identical** (SSIM identical to four decimals, pixel diff 0). At the owner's `u-open-up`
+((1.5, 5.19, −40) → (1.5, 20.19, −48.66), fov 50): **10.2 % of the frame changes, darker by 29 levels — the flat pale
+straight-edged slab at the top-left is a dark, round-edged leaf roof over the pole now.** The card box (0.03–0.33 ×
+0.15–0.42): mean l **0.627 → 0.524**, p90 **0.729 → 0.622** against a sky at 0.653 — §Y's "unchanged" is answered by the
+next commit. fable-cursor's pass-2 attribution (the far-trunk poles' floor cards at a grazing angle taking the sky's
+Fresnel sheen) and fable-4's (`distant-5-near`, the east pole) were the same object; the fix keeps the card's own normal
+inside the near gate instead of bending it toward the crown sphere. README unfinished **#26/28 closed at the owner's
+example.** Sheet `fable-5-r55/fable-5-r55-owner0923-u-open-up-fixed.jpg`. Expected take-0135 unchanged.
+

@@ -43,7 +43,7 @@ pose that looks up or out, not only from the owner's meadow.
 | the second staircase's repeated pattern (owner 09-23) | closed — per-log phase / roll / tint / moss, a repaired pair, checked logs; the flight box's weight regressed with it (52.8 % dark vs the frame's 15.9; the take-0134 build 45.8) |
 | lanterns "as crafted objects", the huts' trim (owner 09-23) | closed — ribbed calyx, hoop, open bottom, flame; W26 pass reinforced; the west house's doorway pool |
 | the shaft column's white veil over the upper house (owner README #38) | closed at `b-upper-2` — frame mean 0.454 → 0.271 |
-| the distant crown overhead as one flat pale card (owner README #26/28) | **not closed at the owner's own `u-open-up`** — the card at ≈ 71° elevation is above the 20–44° gate; l 0.627 against a 0.653 sky, identical before and after |
+| the distant crown overhead as one flat pale card (owner README #26/28) | not closed by `ba7e1eb2` (the card at ≈ 71° sat above its 20–44° gate) — **closed by `c526a5b8` at 05:47**: the floor card keeps its own normal from below; at the owner's `u-open-up` the slab is a dark round leaf roof now (card box l 0.627 → 0.524; r55 §Z) |
 | huts one design at three sizes (#15) | huts given individual features (ladder, herbs, hoist); frame-neutral at the six views |
 
 **Ranked open list, at player height, 05:28:**
@@ -51,7 +51,7 @@ pose that looks up or out, not only from the owner's meadow.
 | # | defect | owner | measured |
 | --- | --- | --- | --- |
 | 1 | the light behind every high crown is a cool neutral grey / blue sky where the frames put warm khaki (#858372) | Astra (fog / sky) | `ANALYSIS_CLARITY.md` §5 |
-| 2 | the distant crown cards are soft blobs at 15–30 m; and straight overhead in the hollow, one flat pale card (#26/28) | Astra (distant cards) + the haze weight; the near-gate rule's elevation range | §4; r55 §Y (≈ 71° vs the 20–44° gate) |
+| 2 | the distant crown cards are soft blobs at 15–30 m (the overhead flat card is closed — r55 §Z) | Astra (distant cards) + the haze weight | §4 |
 | 3 | the fog slice darkened the distance 0.05–0.12 below the frames' on all six views (take-0134: every view down, D −0.0110) | Astra (fog) | `ANALYSIS_CLARITY.md` §3, `fable-5-take0134.md` |
 | 4 | **the flight's weight**: dark 52.8 % vs the frame's 15.9 — the owner's varied dark logs and the frames' pale flight meet at the treads (albedo + the light on that slope: 0.376 shadowless vs 0.65) | hardscape (tread albedo) + lighting / the canopy over the flight | r55 §W; fable-4's flight-shade |
 | 5 | V16's seams — continuous dark outlines, −0.29 below the slab vs the frames' −0.15 | hardscape module (`joints.ts`) | r55 §B, §K.1 |

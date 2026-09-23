@@ -17,7 +17,7 @@ gauntlet's independent D7 verdicts (`gauntlet/reviews/*.json`, written only thro
 00:00 UTC (timer `goal-mode-fable-5`, cron `20 * * * *`); `agent/fable-5-demo-walk` merged (`b4de8d7`); current branch `agent/fable-5-r48-review`.
 
 ## Current task
-Done this iteration: the ranked open list refreshed (walk doc). Next: take-0135's read when it seals —
+Done this iteration: c526a5b8 checked at the owner's u-open-up (r55 §Z). Next: take-0135's read when it seals —
 file W02 / W14 / W26 / W10 as read (expected A 0.2173, B 0.1982, C 0.2080, D 0.2657, E 0.2190, F 0.2266); the sky/haze colour
 re-read after Astra's next fog change; the video file.
 
@@ -35,6 +35,8 @@ lands: `ffmpeg` frames at his marked moments → `reference/frames-video2/`, has
 - `.agents/fable-5.md`, `.agents/reviews/fable-5-*.md`, my threads in `.agents/INBOX.md`.
 
 ## Completed work
+- 2026-09-23 06:28–06:47 UTC — iteration 80 (r55 §Z): `c526a5b8` at the owner's `u-open-up` — the flat pale card is a dark
+  round leaf roof (card l 0.627 → 0.524), #26/28 closed at the owner's example; six views byte-identical; the walk list updated.
 - 2026-09-23 05:27–05:28 UTC — iteration 79: the ranked open list refreshed after the owner's 09-23 items (walk doc, refresh
   section) — clarity items lead; the flight's weight the new #4; the `u-open-up` card open at ≈ 71°.
 - 2026-09-23 04:34–05:14 UTC — iteration 78 (r55 §Y): the 04:09 owner items at the six views (neutral, ≤ ±0.0002) and at the
@@ -386,4 +388,4 @@ lands: `ffmpeg` frames at his marked moments → `reference/frames-video2/`, has
   lists the regions; the evidence images are reproducible with the same crops.
 
 ## Last updated
-2026-09-23T05:29:00Z
+2026-09-23T06:47:00Z
