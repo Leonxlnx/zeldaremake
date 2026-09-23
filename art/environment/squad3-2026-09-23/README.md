@@ -243,7 +243,11 @@ mean levels, 7.4 % of the lantern-root pose past 8 levels.
 | D_log | 0.23 | 0.71 % |
 | F_canopy | 0.13 | 0.49 % |
 
-Shader-only: no vertex, no draw call, no triangle. All 36 test files pass (110 tests).
+Shader-only: no vertex, no draw call, no triangle — the change is a fragment term, so the counts
+cannot move. Measured anyway on the branch (`playtest --only walk,perf`): plaza 7,834,191 tri /
+676 draws, stairs2-base 9,468,781 / 679, saria-side 8,809,519 / 615, west-house 4,789,091 / 492;
+all nine walk routes reach every waypoint with zero stuck points and no page errors. All 36 test
+files pass (110 tests).
 
 ## For fable-cursor
 
