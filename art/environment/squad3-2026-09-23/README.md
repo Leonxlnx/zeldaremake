@@ -173,3 +173,81 @@ integration head and on this branch:
 - `../hero/*-before-after.jpg` — the five hero views, head on the left and this branch on the right.
 - `family-tag-owner-north.jpg` — the identification render (red = column, green = white-bark,
   blue = distant), built to `dist-probe` and reverted; it is not part of the branch's code.
+
+---
+
+# Round 53 — the owner's 20:08: "why don't the trees immediately spawn instead of needing me to get close"
+
+His red circle (`art/environment/owner-2026-09-23/pass4/owner-2008-screenshot.png`) is a giant's
+**far base** at 15 m: a smooth pale grey-green ramp. fable-cursor answered it in `39e63437` by
+making the large near-LOD tier the default and flooring every near-base band at 40 / 44 m, so a
+relief base is resident wherever he walks. That works, and it costs: view A went 692 → 695 draws
+and 8.87 → 8.95 M triangles against a 9.0 M cap.
+
+This round attacks the other side of it — **why a far bole reads as a ramp at all** — so the fix
+does not have to be paid for in resident geometry.
+
+## What was wrong
+
+Rendered the owner's pose and two walk-up poses with `ZR_URL_EXTRA="pool=small"` (bands 10 / 13 m,
+i.e. exactly the far base he saw). Between the touching range, where the bark map's own fissures
+resolve (`BARK_DETAIL_M` = 1.5–6 m), and the haze, a bole has **nothing** to read:
+
+- the 1.6 m bark tile is 5–15 texels a pixel at 12–40 m, so the map mips to its mean;
+- the shade floor is a floor — it lifts a shaded face to one flat level whatever its normal — so
+  the whole shaded side of a 2 m root is a single value.
+
+## What changed (`materials.ts` only — no geometry, no draw)
+
+- **An analytic bark grain** (`BARK_GRAIN_M` = in over 5–9 m, out over 38–55 m): vertical cords
+  ≈ 30 cm across drifting ≈ 1.8 m up the bole, from a world-space field so it needs no bole frame
+  and no vertex. `#ifndef NEAR_BASE_DETAIL`, so a near base — which carries real cords in
+  geometry — never compiles it.
+- **The giants' far bark takes the sun's side** (`GIANT_SHADE_SIDE` 0.62), as the columns have
+  since round 52 and the distant family since round 48.
+
+Two measurements drove the shape of this, both worth recording because each looked like a dead end:
+
+1. Written into `diffuseColor` alone the grain measured **0.07 mean levels** — the shade floor
+   swallowed it, because a floor reconstructs a shaded face's light from a mix of a flat albedo
+   and the surface's own. The grain is now applied to the floored light after
+   `lights_fragment_end`, like the relief's own occlusion (`vBarkAO`).
+2. At a 0.30 cord amplitude it still measured only 0.28 mean levels: trilinear value noise sits
+   within about ±0.1 of 0.5, and two octaves mixed narrow it further, so "0.30" was ±3 % in
+   practice. The field is expanded ×3.4 about its mean before use.
+
+## What it buys
+
+On the shipped (large) tier, against the head at the same poses — the grain only shows on wood, so
+the frame mean understates it; the second column is the mean over the pixels that changed at all:
+
+| pose | mean \|Δ\| over the frame | changed px | mean \|Δ\| on them | max |
+| --- | --- | --- | --- | --- |
+| the owner's 20:08 pose | 0.15 | 3.2 % | 5.61 | 36 |
+| lantern root at 11 m | 0.14 | 2.7 % | 6.12 | 25 |
+| north-west-near giant at 20 m | 0.21 | 7.5 % | 3.42 | 39 |
+
+`round53/grain-where-it-lands-x12.jpg` is the difference at ×12: it is on the trunks and limbs and
+nowhere else, and the bottom 5 m of the near bole is black — the near base is correctly excluded.
+
+On the small tier (the far base the owner actually saw) the same poses move 0.30 / 1.47 / 0.74
+mean levels, 7.4 % of the lantern-root pose past 8 levels.
+
+## Cost
+
+| view | mean \|Δ\| | px > 8 |
+| --- | --- | --- |
+| A_stairs | 0.15 | 0.41 % |
+| B_house | 0.23 | 0.70 % |
+| C_lookback | 0.62 | 1.93 % |
+| D_log | 0.23 | 0.71 % |
+| F_canopy | 0.13 | 0.49 % |
+
+Shader-only: no vertex, no draw call, no triangle. All 36 test files pass (110 tests).
+
+## For fable-cursor
+
+I have **not** proposed pulling the 40 / 44 m walk band back: the far base reads much better than
+it did, but a resident near base is still visibly better at 10–20 m, and A is the frame with no
+headroom. If the 9.0 M cap becomes a problem, the boles past ≈ 25 m are now the cheapest place to
+give it back, and `BARK_GRAIN_M` is the knob.
