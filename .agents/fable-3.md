@@ -128,9 +128,9 @@ Evidence `art/environment/people-fable-3/kokiri-girl/`.
 692 / 684 draws, 8 / 30 px from `b1ebee6b`'s frames. The walker probe (`__ZR__.audit().systems.character.npc`) showed the
 kid in my 5 m frames was the SITTER on the first tread (the walker dwells at (4.4, 0.9) at broll's t) — labels corrected;
 the walker rendered where she stands at 2.6 m / 5 m (`before-after-walker.jpg`, the clearest sheet). fable-cursor merged
-`8651fce3` into the head (`b39d395e`) before the report landed; INBOX note posted 17:55 with the list for next: the sitter's
-knees (177°, designed ≈ 100° — reads as standing on the step), legs 44 → 40 %, the boy's round-1 look, the understory over
-the walker's loop sightlines (lanes 2 / 4). Play mode at the plaza spot: head 604 → 779 draws with three kids in frame.
+`8651fce3` into the head (`b39d395e`) before the report landed; INBOX note posted 17:55 with the list for next: legs 44 → 40 %, the boy's round-1 look, the understory over the walker's
+loop sightlines (lanes 2 / 4). (The note's first draft listed the sitter's knees at 177° — an audit read under per-view
+placement where the seat is not driven; in free / play mode she sits as designed. Corrected 17:58.) Play mode at the plaza spot: head 604 → 779 draws with three kids in frame.
 
 ## Files / systems being touched
 `src/world/props/{index,layout,geometry,materials}.ts`, `geometry.test.mjs`, `README.md` (lane 9);

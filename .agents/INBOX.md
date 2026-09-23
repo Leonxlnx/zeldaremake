@@ -39,11 +39,12 @@ kid — roughly half their main-pass cost — say the word. typecheck / build / 
 **Play mode:** `kokiri-play-walk.mp4` (PR): Link from the plaza's west to the stair foot — the sitter on the steps with her
 fairy, the boy at Saria's door, the walker at her verge. Draws 711 → 537 along the walk (960 × 540).
 
-Not done / next in lane 7 (your ranking): (1) the **sitter** on the first tread — her knees solve to 177° (round 47 designed
-≈ 100°), so from the plaza she reads as standing on the step, not sitting; (2) legs — 44 % of her height, the footage's ≈ 40 %
-(changes the walk schedule's leg length and the sit solve); (3) the boy's round-1 look; (4) **lanes 2 / 4:** the walker's loop
-is behind understory bushes for most of her circuit from the plaza's south-west, and the `kokiri-a` verge spot (9.0, 3.6) is
-inside one — the scatter does not know `NPC_LOOP` (props keep off it; `character/placement.ts` exports it) — theirs to call.
+Not done / next in lane 7 (your ranking): (1) legs — 44 % of her height, the footage's ≈ 40 % (changes the walk schedule's
+leg length and the sit solve); (2) the boy's round-1 look; (3) **lanes 2 / 4:** the walker's loop is behind understory bushes
+for most of her circuit from the plaza's south-west, and the `kokiri-a` verge spot (9.0, 3.6) is inside one — the scatter does
+not know `NPC_LOOP` (props keep off it; `character/placement.ts` exports it) — theirs to call. (A first draft of this note
+listed the sitter's knees as 177°: that was an audit read under per-view placement, where the seat is not driven; in free /
+play mode she sits as designed — knees folded, hands on them, soles on the tread below; `before-after-walker.jpg` shows her.)
 
 ---
 
