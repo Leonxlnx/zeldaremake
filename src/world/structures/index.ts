@@ -13,6 +13,7 @@ import { ROPE_FENCES, LANTERN_POSTS, type FenceDef } from '../layout';
 import { buildCameraSolids, limbSpheres } from './cameraSolids';
 import { buildFence, createRopeMaterial } from './fence';
 import { buildDistantHouses, distantGlowPeak } from './distantHouse';
+import { buildEast } from './east';
 import { buildExpansion, EXPANSION_VISIBLE_M } from './expansion';
 import { consolidateStaticMeshes } from './geometry';
 import { buildHouse, type HouseSharedMaterials } from './house';
@@ -173,9 +174,20 @@ export async function create(ctx: WorldContext): Promise<WorldSystem> {
   }
   ctx.shared.walkSurfaces = [...(ctx.shared.walkSurfaces ?? []), ...expansion.houses.walk];
 
+  // ---- round 56 (exp-east): the lane on the east plateau past the main stairway's head — the shop,
+  // the tall house with its deck, the small house, two pod posts, the lookout (east.ts). Own forks
+  // after every stream above; no point lights (the pods and room glow are emissive); its tiers are
+  // consolidated apart and hidden by distance / frustum like the expansion's. Its deck and steps are
+  // appended to ctx.shared.walkSurfaces after every existing surface (props index them by position). ----
+  const east = buildEast(ctx, mats, rng.fork('east'), rope, sharedHouseMats);
+  bases.push(...east.bases);
+  lanterns.push(...east.lanterns);
+  owned.push(...east.owned);
+  ctx.shared.walkSurfaces = [...(ctx.shared.walkSurfaces ?? []), ...east.walk];
+
   // the play camera's solids (cameraSolids.ts), voxelised from the parts by name before the merges
   // below rename them; never under a headless capture
-  const cameraSolids = ctx.headless ? null : buildCameraSolids([group, north, expansion.group], limbSpheres(ctx.shared.lanternLimb));
+  const cameraSolids = ctx.headless ? null : buildCameraSolids([group, north, expansion.group, east.group], limbSpheres(ctx.shared.lanternLimb));
   if (cameraSolids) ctx.shared.cameraSolids = { solid: cameraSolids.solid, slim: cameraSolids.slim };
 
   // ---- draw-call budget: fold the static parts into one mesh per material (+ shadow flags) ----
@@ -222,6 +234,12 @@ export async function create(ctx: WorldContext): Promise<WorldSystem> {
     draws.after += d.after;
     draws.merged += d.merged;
   }
+  const eastDraws = east.consolidate();
+  group.add(east.group);
+  east.update(ctx.camera);
+  draws.before += eastDraws.before;
+  draws.after += eastDraws.after;
+  draws.merged += eastDraws.merged;
   /**
    * The merged buckets' culling bounds (audit, round 20): what three.js frustum-tests each static
    * draw against — geometry bounding sphere at the identity transform — with its triangle count and
@@ -229,12 +247,12 @@ export async function create(ctx: WorldContext): Promise<WorldSystem> {
    * the village again would show here as a radius ≥ 15 m.
    */
   const mergedBuckets = () => {
-    const out: { name: string; group: 'hero' | 'distant' | 'north' | 'expansion'; centre: [number, number, number]; radius: number; triangles: number }[] = [];
-    const visit = (root: Object3D, which: 'hero' | 'distant' | 'north' | 'expansion') => {
+    const out: { name: string; group: 'hero' | 'distant' | 'north' | 'expansion' | 'east'; centre: [number, number, number]; radius: number; triangles: number }[] = [];
+    const visit = (root: Object3D, which: 'hero' | 'distant' | 'north' | 'expansion' | 'east') => {
       root.traverse((o) => {
         const m = o as Mesh;
         if (!m.isMesh) return;
-        if (which === 'hero' && (!m.name.startsWith('merged:') || distant.group.getObjectById(m.id) || north.getObjectById(m.id) || expansion.group.getObjectById(m.id))) return;
+        if (which === 'hero' && (!m.name.startsWith('merged:') || distant.group.getObjectById(m.id) || north.getObjectById(m.id) || expansion.group.getObjectById(m.id) || east.group.getObjectById(m.id))) return;
         const g = m.geometry;
         if (!g.boundingSphere) g.computeBoundingSphere();
         const s = g.boundingSphere!;
@@ -251,6 +269,7 @@ export async function create(ctx: WorldContext): Promise<WorldSystem> {
     visit(distant.group, 'distant');
     visit(north, 'north');
     visit(expansion.group, 'expansion');
+    visit(east.group, 'east');
     return out;
   };
   ctx.progress('structures', 1);
@@ -350,6 +369,8 @@ export async function create(ctx: WorldContext): Promise<WorldSystem> {
       farVisible: expansion.far.visible,
       bases: expansion.bases,
     },
+    /** round 56 (exp-east): the east plateau's lane — three houses, the deck, the shop's counter / sign / crates, pod posts, the lookout (east.ts) */
+    east: east.audit(),
     logArch: true,
     /** round 41 (structures-26): the arch's close-scale detail — grid, cushion tufts, rim splinters, skirt, plants */
     logDetail: log.detail41,
@@ -427,11 +448,13 @@ export async function create(ctx: WorldContext): Promise<WorldSystem> {
       north.visible = northVisible(c.camera.position.x, c.camera.position.z);
       expansion.near.visible = expansion.visible(c.camera);
       expansion.far.visible = expansion.farVisible(c.camera);
+      east.update(c.camera);
     },
     onCameraMove(camera) {
       north.visible = northVisible(camera.position.x, camera.position.z);
       expansion.near.visible = expansion.visible(camera);
       expansion.far.visible = expansion.farVisible(camera);
+      east.update(camera);
     },
     dispose() {
       // one-shot: every geometry, material and owned texture is released exactly once, however

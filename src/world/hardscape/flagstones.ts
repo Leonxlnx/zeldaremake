@@ -19,7 +19,7 @@
  * crack line on one slab in eight) → a single draw call.
  */
 import { Matrix4, Mesh, Quaternion, Vector3, type Material } from 'three';
-import { expansionDiscMask, legacyPathMask, standingStoneMask, surfaceMask, type Terrain } from '../terrain/heightfield';
+import { eastDiscMask, expansionDiscMask, legacyPathMask, standingStoneMask, surfaceMask, type Terrain } from '../terrain/heightfield';
 import type { Rng } from '../util/prng';
 import { Noise2D, clamp, smoothstep } from '../util/noise';
 import { MeshBuilder, buildSlab, centroid, distToPolygon, pointInPolygon, polygonArea, type P2 } from './geometry';
@@ -595,8 +595,9 @@ export interface PavingContext {
 /**
  * `expansion` (round 49): the plaza's west / south-west stepping discs — the level is the live
  * mask's expansion discs alone (heightfield `expansionDiscMask`), nothing continuous.
+ * `east`: the east lane's discs on the plateau the same way (heightfield `eastDiscMask`).
  */
-export type PavingRegion = 'legacy' | 'north' | 'live' | 'expansion';
+export type PavingRegion = 'legacy' | 'north' | 'live' | 'expansion' | 'east';
 
 /** a stepping stone that sits in grass (not inside the plaza paving): gets its own round slab */
 export interface IsolatedDisc {
@@ -663,13 +664,14 @@ function archTongueDepth(x: number, z: number): number {
 export function pavedLevel(pc: PavingContext, x: number, z: number, strict = false, region: PavingRegion = pc.region ?? 'live'): number {
   // round 49: the expansion pass reads the LIVE mask (its own flights and discs); every other pass
   // the legacy view, as before (heightfield `surfaceMask`)
-  const m = surfaceMask(x, z, region === 'expansion' ? 'live' : 'legacy');
+  const m = surfaceMask(x, z, region === 'expansion' || region === 'east' ? 'live' : 'legacy');
   if (m.stairs >= 0.5) return 0;
   // round 47: the pass's own view of the path mask (PavingContext.region)
   let path = m.path;
   if (region === 'legacy') path = legacyPathMask(x, z, m.path);
   else if (region === 'north' && legacyPathMask(x, z, m.path) >= 0.36) path = 0;
   else if (region === 'expansion') path = expansionDiscMask(x, z);
+  else if (region === 'east') path = eastDiscMask(x, z);
   // the standing stones' footprints are `structure` for the grass and the character, not for the
   // north paving: their plinth slabs run under them
   const structure = region === 'north' && standingStoneMask(x, z) >= 0.5 ? 0 : m.structure;

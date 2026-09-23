@@ -15,6 +15,10 @@
  *   4. the paths: every stepping disc is paved in the live mask and absent from the legacy mask,
  *      walkable, on natural ground (not flattened), and the run between discs never exceeds a
  *      walkable grade.
+ *   7. the east lane on the plateau (layout `EXPANSION_EAST`, round 56): its only height change is
+ *      under its own discs, its masks change only inside `EAST_BOX`, its discs are paved, walkable
+ *      and on natural ground, its trunks are blocked, the cull keeps it inside its box, and cameras
+ *      A–E never meet its casters (sun shadows included).
  */
 import assert from 'node:assert/strict';
 import { readFileSync, existsSync } from 'node:fs';
@@ -48,7 +52,11 @@ function loadTs(file) {
 
 const hf = loadTs(path.join(here, 'heightfield.ts'));
 const layout = loadTs(path.join(here, '../layout.ts'));
-const { LAYOUT, EXPANSION, EXPANSION_STAIRS, EXPANSION_ROPE_FENCES, EXPANSION_NPC_SPOTS, EXPANSION_BOX, southBankPoint, expansionSteppingStones } = layout;
+const { LAYOUT, EXPANSION, EXPANSION_STAIRS, EXPANSION_ROPE_FENCES, EXPANSION_NPC_SPOTS, EXPANSION_BOX, EXPANSION_EAST, EAST_BOX, southBankPoint, expansionSteppingStones, eastSteppingStones } = layout;
+const inEastBox = (x, z) => x >= EAST_BOX.x0 && x <= EAST_BOX.x1 && z >= EAST_BOX.z0 && z <= EAST_BOX.z1;
+const EAST_DISCS = eastSteppingStones();
+/** within `pad` m of an east disc's paved circle (eastDiscMask reaches 1.12 r) */
+const nearEastDisc = (x, z, pad) => EAST_DISCS.some((s) => Math.hypot(x - s.x, z - s.z) < s.r * 1.12 + pad);
 const { createGround } = loadTs(path.join(here, '../character/ground.ts'));
 const { NPC_SOUTH_BANK } = loadTs(path.join(here, '../character/placement.ts'));
 const live = hf.createTerrain('live');
@@ -67,11 +75,17 @@ const fmt = (x, z) => `(${x.toFixed(2)}, ${z.toFixed(2)})`;
   const c = EXPANSION.cClip;
   const rayX = (z) => c.x0 + c.dxdz * (z - c.z0);
   let latticeSame = 0;
+  let latticeEast = 0;
   for (let gj = -240; gj <= 240; gj++) {
     for (let gi = -240; gi <= 240; gi++) {
       const x = gi * 0.2;
       const z = gj * 0.2;
       if (rayX(z) - x > c.margin) continue;
+      // the east lane's discs (section 7) are the one live-only change east of C's edge
+      if (hf.eastDiscMask(x, z) > 0) {
+        latticeEast++;
+        continue;
+      }
       const a = live.latticeHeight(0, gi, gj);
       const b = legacy.latticeHeight(0, gi, gj);
       assert.equal(a, b, `lattice point ${fmt(x, z)} (${(rayX(z) - x).toFixed(2)} m west of C's edge) unchanged`);
@@ -79,20 +93,29 @@ const fmt = (x, z) => `(${x.toFixed(2)}, ${z.toFixed(2)})`;
     }
   }
   assert.ok(latticeSame > 100000, `checked the lattice east of C's edge (${latticeSame})`);
+  assert.ok(latticeEast < 0.05 * latticeSame, `the east lane's discs cover a sliver of it (${latticeEast} lattice points)`);
   let same = 0;
   let inside = 0;
   let differs = 0;
+  let eastHeld = 0;
   for (let z = -48; z <= 48; z += 0.4) {
     for (let x = -48; x <= 48; x += 0.4) {
       const westOfRay = rayX(z) - x;
       const inBox = x >= EXPANSION_BOX.x0 && x <= EXPANSION_BOX.x1 && z >= EXPANSION_BOX.z0 && z <= EXPANSION_BOX.z1;
       const farHut = Math.hypot(x - EXPANSION.farHut.host[0], z - EXPANSION.farHut.host[1]) < EXPANSION.farHutRise.radius + 0.6;
-      const pinned = westOfRay <= c.margin - 0.35 || (!inBox && !farHut);
+      const east = inEastBox(x, z);
+      const pinned = (westOfRay <= c.margin - 0.35 || (!inBox && !farHut)) && !east;
       const hl = live.height(x, z);
       const hg = legacy.height(x, z);
       const ml = hf.surfaceMask(x, z, 'live');
       const mg = hf.surfaceMask(x, z, 'legacy');
       const equal = hl === hg && ml.path === mg.path && ml.stairs === mg.stairs && ml.structure === mg.structure;
+      // inside the east box the masks gain the lane (pads, discs, posts); the height changes only
+      // on and within a sample's interpolation reach (0.3 m) of a disc
+      if (east && !nearEastDisc(x, z, 0.3)) {
+        assert.equal(hl, hg, `the east box's ground off the discs is the legacy ground at ${fmt(x, z)}`);
+        eastHeld++;
+      }
       if (pinned) {
         assert.ok(equal, `live == legacy at ${fmt(x, z)} (west of C's edge by ${westOfRay.toFixed(2)} m, in box ${inBox}): ${hl} vs ${hg}, ${JSON.stringify(ml)} vs ${JSON.stringify(mg)}`);
         same++;
@@ -104,6 +127,7 @@ const fmt = (x, z) => `(${x.toFixed(2)}, ${z.toFixed(2)})`;
   }
   assert.ok(same > 20000, `rastered the pinned ground (${same})`);
   assert.ok(differs > 200, `the expansion changes the ground somewhere inside its box (${differs} of ${inside})`);
+  assert.ok(eastHeld > 3000, `held the east box's ground off its discs (${eastHeld})`);
   // and every fixed camera stands on unchanged ground
   for (const v of LAYOUT.viewpoints) assert.equal(live.height(v.position[0], v.position[2]), legacy.height(v.position[0], v.position[2]), `viewpoint ${v.id} ground`);
   // the legacy mask has none of the expansion (the paved plaza, the spine and the houses are unchanged)
@@ -385,12 +409,15 @@ const fmt = (x, z) => `(${x.toFixed(2)}, ${z.toFixed(2)})`;
   let culled = 0;
   for (let z = -48; z <= 48; z += 1.0) {
     for (let x = -48; x <= 48; x += 1.0) {
-      const c = hf.expansionCull(x, z);
+      // the west expansion's own cull (east lane off: what a rejection loop sees, section 7)
+      const c = hf.expansionCull(x, z, 0.3, false);
       if (c) culled++;
       else kept++;
       const inBox = x >= EXPANSION_BOX.x0 && x <= EXPANSION_BOX.x1 && z >= EXPANSION_BOX.z0 && z <= EXPANSION_BOX.z1;
       const onKnoll = Math.hypot(x - F.host[0], z - F.host[1]) < EXPANSION.farHutRise.radius + 0.5;
       if (!inBox && !onKnoll) assert.equal(c, false, `nothing culled outside the box at ${fmt(x, z)}`);
+      // with the east lane on, only its box adds culls
+      if (!inEastBox(x, z)) assert.equal(hf.expansionCull(x, z), c, `the east lane culls nothing outside its box at ${fmt(x, z)}`);
     }
   }
   assert.ok(culled > 60 && culled < 900, `the cull clears the expansion's own ground only (${culled} of ${kept + culled} metre cells)`);
@@ -436,6 +463,106 @@ const fmt = (x, z) => `(${x.toFixed(2)}, ${z.toFixed(2)})`;
     const c = cam(55, [0, 1.5, 2], t);
     assert.equal(L.expansionVisible(c, nearSpheres), true, `plaza pan ${name} shows the near content`);
     assert.equal(L.frustumMeets(c, farSpheres), true, `plaza pan ${name} shows the far hut`);
+  }
+}
+
+// 7. the east lane (round 56): the plateau past the main stairway's head — set stones on natural
+//    ground, walkable between the houses, the trunks / bench / posts / deck railings solid, the cull
+//    off outside its box and off for rejection loops, and nothing of it in cameras A–E
+{
+  assert.ok(EAST_DISCS.length >= 20, `≥ 20 east discs (${EAST_DISCS.length})`);
+  let lowest = Infinity;
+  for (const s of EAST_DISCS) {
+    assert.ok(inEastBox(s.x, s.z), `east disc ${fmt(s.x, s.z)} inside EAST_BOX`);
+    assert.ok(hf.surfaceMask(s.x, s.z, 'live').path > 0.5, `live mask paves the east disc at ${fmt(s.x, s.z)}`);
+    assert.ok(hf.eastDiscMask(s.x, s.z) > 0.5, `east disc mask at ${fmt(s.x, s.z)}`);
+    assert.equal(ground.blocked(s.x, s.z), false, `east disc walkable at ${fmt(s.x, s.z)}`);
+    near(live.height(s.x, s.z), legacy.height(s.x, s.z), 0.15, `natural ground under the east disc at ${fmt(s.x, s.z)}`);
+    assert.ok(ground.height(s.x, s.z) >= live.height(s.x, s.z), 'the foot stands on or over the terrain');
+    assert.equal(hf.expansionCull(s.x, s.z), true, `cull on the east disc at ${fmt(s.x, s.z)}`);
+    assert.equal(hf.expansionCull(s.x, s.z, 0.3, false), false, `no cull on the east disc at ${fmt(s.x, s.z)} with the lane off`);
+    lowest = Math.min(lowest, live.height(s.x, s.z));
+  }
+  assert.ok(lowest > 4.4, `every east disc is up on the plateau, the stairway's head included (lowest ${lowest.toFixed(2)} m)`);
+  // the lane and its spurs: a walkable grade (≤ 0.25) between nodes and nothing solid on the way;
+  // the upper spur's last two runs climb the half-metre bank onto the upper house's yard (≤ 0.5,
+  // pathWest's ledge-climb limit)
+  for (const line of [EXPANSION_EAST.lane, ...EXPANSION_EAST.spurs]) {
+    for (let i = 0; i + 1 < line.length; i++) {
+      const a = line[i];
+      const b = line[i + 1];
+      const run = Math.hypot(b[0] - a[0], b[2] - a[2]);
+      const rise = Math.abs(live.height(b[0], b[2]) - live.height(a[0], a[2]));
+      const limit = line === EXPANSION_EAST.spurs[0] && i >= line.length - 3 ? 0.5 : 0.25;
+      assert.ok(rise / run <= limit, `east path grade ${(rise / run).toFixed(2)} between ${fmt(a[0], a[2])} and ${fmt(b[0], b[2])} (limit ${limit})`);
+      for (let u = 0; u <= 1; u += 0.1) {
+        const x = a[0] + (b[0] - a[0]) * u;
+        const z = a[2] + (b[2] - a[2]) * u;
+        assert.equal(ground.blocked(x, z), false, `east path walkable at ${fmt(x, z)}`);
+      }
+    }
+  }
+  // the trunks are solid round their flare; the door's front step (the spur's end) is open
+  for (const h of EXPANSION_EAST.houses) {
+    assert.ok(inEastBox(h.x, h.z), `${h.id} inside EAST_BOX`);
+    for (let k = 0; k < 8; k++) {
+      const a = (k / 8) * Math.PI * 2;
+      const x = h.x + Math.cos(a) * h.radius * 1.1;
+      const z = h.z + Math.sin(a) * h.radius * 1.1;
+      assert.equal(ground.blocked(x, z), true, `${h.id}'s trunk is solid at ${fmt(x, z)}`);
+    }
+    const f = (h.facingDeg * Math.PI) / 180;
+    const dx = h.x + Math.sin(f) * (h.radius * 1.2 + 0.7);
+    const dz = h.z + Math.cos(f) * (h.radius * 1.2 + 0.7);
+    assert.equal(ground.blocked(dx, dz), false, `${h.id}'s door step is open at ${fmt(dx, dz)}`);
+    assert.equal(hf.expansionCull(h.x, h.z), true, `${h.id}'s pad culls the legacy streams`);
+  }
+  // the lookout's bench, the sign post and the pod posts are solid
+  const B = EXPANSION_EAST.lookout.bench;
+  assert.equal(ground.blocked(B.x, B.z), true, 'the lookout bench is solid');
+  assert.equal(ground.blocked(EXPANSION_EAST.shopSign.x, EXPANSION_EAST.shopSign.z), true, "the shop's sign post is solid");
+  for (const p of EXPANSION_EAST.lanternPosts) assert.equal(ground.blocked(p.x, p.z), true, `${p.id} is solid`);
+  // the tall house's deck railings stop a step (off the deck strip — the built deck itself is a walk surface)
+  for (const [a, b] of layout.eastDeckPlan().rails) {
+    const x = (a[0] + b[0]) / 2;
+    const z = (a[1] + b[1]) / 2;
+    assert.equal(hf.surfaceMask(x, z, 'live').structure, 1, `deck railing wall at ${fmt(x, z)}`);
+  }
+  // nothing of the lane in the legacy mask (its trunks, bench and posts are live-only)
+  const solids = [...EXPANSION_EAST.houses.map((h) => [h.x, h.z]), [B.x, B.z], [EXPANSION_EAST.shopSign.x, EXPANSION_EAST.shopSign.z], ...EXPANSION_EAST.lanternPosts.map((p) => [p.x, p.z])];
+  for (const [x, z] of solids) assert.equal(hf.surfaceMask(x, z, 'legacy').structure, 0, `legacy mask has no east structure at ${fmt(x, z)}`);
+  // the cull stays inside the box and clears a modest share of it
+  let eastCulled = 0;
+  let eastCells = 0;
+  for (let z = Math.ceil(EAST_BOX.z0); z <= EAST_BOX.z1; z += 1.0) {
+    for (let x = Math.ceil(EAST_BOX.x0); x <= EAST_BOX.x1; x += 1.0) {
+      eastCells++;
+      if (hf.expansionCull(x, z)) eastCulled++;
+    }
+  }
+  assert.ok(eastCulled > 60 && eastCulled < 0.4 * eastCells, `the east cull clears the lane's own ground only (${eastCulled} of ${eastCells} metre cells)`);
+
+  // the casters the structures toggle the lane by (houses, lookout, posts — sun shadows included)
+  // meet none of cameras A–E; F (≈ 40 m off, looking up over the plateau's lip) is beyond every
+  // house's detail distance, so at most the consolidated core draws there
+  const L = loadTs(path.join(here, '../util/expansionLocality.ts'));
+  const E = loadTs(path.join(here, '../util/eastLane.ts'));
+  const { WORLD } = loadTs(path.join(here, '../config.ts'));
+  const sun = L.sunVector(WORLD.sun.azimuthDeg, WORLD.sun.elevationDeg);
+  const groundAt = (x, z) => live.height(x, z);
+  const casters = [...EXPANSION_EAST.houses.flatMap((h) => E.eastHouseCasters(h, groundAt(h.x, h.z))), ...E.eastLookoutCasters(groundAt), ...E.eastPostCasters(groundAt)];
+  const spheres = E.eastSpheres(casters, sun);
+  for (const v of LAYOUT.viewpoints) {
+    if (v.id.startsWith('F_')) {
+      for (const h of EXPANSION_EAST.houses) assert.ok(Math.hypot(v.position[0] - h.x, v.position[2] - h.z) > E.EAST_DETAIL_M, `${v.id} is beyond ${h.id}'s detail distance`);
+      continue;
+    }
+    const c = new THREE.PerspectiveCamera(v.fov, 1280 / 720, 0.1, 400);
+    c.position.set(...v.position);
+    c.lookAt(...v.target);
+    c.updateMatrixWorld(true);
+    c.updateProjectionMatrix();
+    assert.equal(L.frustumMeets(c, spheres), false, `${v.id}: the east lane (and its shadow) is outside the frustum`);
   }
 }
 

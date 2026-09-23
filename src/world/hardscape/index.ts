@@ -23,7 +23,8 @@ import { archNorthLip, archSeam, discField, hollowPath, jointSoil, lawnPocket, l
 import { buildFlowerHeads, type FlowerHead } from './flowers';
 import { STANDING_STONE_SKIRT, buildStandingStone } from './standing-stones';
 import { Noise2D, smoothstep } from '../util/noise';
-import { EXPANSION, EXPANSION_STAIRS, expansionSteppingStones, houseSteppingStones } from '../layout';
+import { EXPANSION, EXPANSION_STAIRS, eastSteppingStones, expansionSteppingStones, houseSteppingStones } from '../layout';
+import { EAST_VISIBLE_M, eastBoxDistance } from '../util/eastLane';
 
 /** joint-grass tint (materials/sprouts.ts `SproutSpot.jointTint`) per sprout scatter; scatters not listed keep their greens */
 const JOINT_TUFT_TINT: Record<string, number> = {
@@ -178,6 +179,19 @@ export async function create(ctx: WorldContext): Promise<WorldSystem> {
   }
   const pcE: PavingContext = { terrain: T, frames: [...frames, ...expansionFrames], rng: rng.fork('paving-expansion'), seed: ctx.config.seed, bbox: ebbox, density: ctx.quality.density, steppingStones: expansionSteppingStones(), region: 'expansion', setDiscs: true };
   const pavingE = placeFlagstones(pcE, stoneMat);
+  // --- the east lane (layout `EXPANSION_EAST`): its stepping discs across the plateau, a fourth
+  // pass on its own stream and box, laid like the expansion's (the live mask's east discs alone,
+  // set with the grade). On the 5.2–5.9 m plateau: no fixed camera (all under 2 m) sees its top.
+  const eastStones = eastSteppingStones();
+  const xbbox = { x0: Infinity, x1: -Infinity, z0: Infinity, z1: -Infinity };
+  for (const s of eastStones) {
+    xbbox.x0 = Math.min(xbbox.x0, s.x - 2.0);
+    xbbox.x1 = Math.max(xbbox.x1, s.x + 2.0);
+    xbbox.z0 = Math.min(xbbox.z0, s.z - 2.0);
+    xbbox.z1 = Math.max(xbbox.z1, s.z + 2.0);
+  }
+  const pcX: PavingContext = { terrain: T, frames, rng: rng.fork('paving-east'), seed: ctx.config.seed, bbox: xbbox, density: ctx.quality.density, steppingStones: eastStones, region: 'east', setDiscs: true };
+  const pavingX = placeFlagstones(pcX, stoneMat);
   ctx.progress('hardscape', 0.72);
 
   // --- joint fill --------------------------------------------------------------------------
@@ -888,6 +902,21 @@ export async function create(ctx: WorldContext): Promise<WorldSystem> {
   const casterSpheresE = expansionCasters().flatMap((c) => casterSpheres(c, sunToward));
   const expansionVisible = (camera: Camera) => expansionLocalityVisible(camera, casterSpheresE);
   expansionGroup.visible = expansionVisible(ctx.camera);
+  // the east lane's discs: a fourth mesh (`flagstones-east`, read by character/ground.ts with the
+  // others) in its own group, drawn only from over the plateau (flat 5 cm slabs at 5.2 m+ are not
+  // seen from under it) and within EAST_VISIBLE_M of the lane
+  const eastGroup = new Group();
+  eastGroup.name = 'hardscape-east';
+  group.add(eastGroup);
+  const eastMesh = new Mesh(pavingX.mesh.geometry, stoneMat);
+  eastMesh.name = 'flagstones-east';
+  eastMesh.castShadow = paving.mesh.castShadow;
+  eastMesh.receiveShadow = paving.mesh.receiveShadow;
+  eastMesh.frustumCulled = paving.mesh.frustumCulled;
+  eastGroup.add(eastMesh);
+  const eastMinY = pavingX.stones.reduce((m, s) => Math.min(m, s.topY), Infinity) - 0.6;
+  const eastVisible = (camera: Camera) => camera.position.y > eastMinY && eastBoxDistance(camera) < EAST_VISIBLE_M;
+  eastGroup.visible = eastVisible(ctx.camera);
   const daisTriangles = dais.vertexCount / 3;
   const monolithMesh = new Mesh(monoliths.build(), stoneMat);
   monolithMesh.castShadow = true;
@@ -1161,6 +1190,19 @@ export async function create(ctx: WorldContext): Promise<WorldSystem> {
       visible: expansionGroup.visible,
       discTops: pavingE.stones.map((s) => [round(s.x), round(s.topY), round(s.z)]),
     },
+    /** the east lane's stepping discs on the plateau (hardscape-east group; layout `EXPANSION_EAST`) */
+    east: {
+      discs: pavingX.steppingStones.length,
+      discsLaid: pavingX.stats.steppingStones,
+      discsSkippedSteep: pavingX.stats.skippedSteep,
+      seeds: pavingX.stats.seeds,
+      stones: pavingX.stones.length,
+      triangles: pavingX.triangles,
+      visibleWithinM: EAST_VISIBLE_M,
+      visibleAboveY: round(eastMinY),
+      visible: eastGroup.visible,
+      discTops: pavingX.stones.map((s) => [round(s.x), round(s.topY), round(s.z)]),
+    },
     northPaving: {
       flagstones: pavingN.stones.length,
       seeds: pavingN.stats.seeds,
@@ -1277,6 +1319,7 @@ export async function create(ctx: WorldContext): Promise<WorldSystem> {
       // 9.11 M, all collapsed to zero area by the shader or off-frame
       sprouts.cull(c.camera);
       expansionGroup.visible = expansionVisible(c.camera);
+      eastGroup.visible = eastVisible(c.camera);
     },
     onCameraMove(camera) {
       const show = northPavingVisible(camera.position.x, camera.position.z);
@@ -1285,6 +1328,7 @@ export async function create(ctx: WorldContext): Promise<WorldSystem> {
       monolithMesh.visible = show;
       sprouts.cull(camera, true);
       expansionGroup.visible = expansionVisible(camera);
+      eastGroup.visible = eastVisible(camera);
     },
     dispose() {
       if (disposed) return;

@@ -335,8 +335,10 @@ export function createGround(terrain: Terrain, layout: Layout, shared?: SharedGe
       const north = hardscape?.getObjectByName('flagstones-north') as Mesh | undefined;
       // round 49: the expansion's stepping discs are a third mesh (hidden by distance for rendering too)
       const expansion = hardscape?.getObjectByName('flagstones-expansion') as Mesh | undefined;
+      // the east lane's discs on the plateau (a fourth mesh, drawn only from over the plateau)
+      const east = hardscape?.getObjectByName('flagstones-east') as Mesh | undefined;
       let merged: BufferGeometry | null = null;
-      for (const extra of [north, expansion]) {
+      for (const extra of [north, expansion, east]) {
         if (!worldSpace(extra)) continue;
         const next = concatPositions(merged ?? slabs.geometry, extra.geometry);
         merged?.dispose();

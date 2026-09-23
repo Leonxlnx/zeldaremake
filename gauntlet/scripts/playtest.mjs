@@ -687,6 +687,13 @@ async function walkScenario(page, results) {
     ['west-house-to-plaza', [[-18.4, 7.1], [-16.28, 6.46], [-15.39 + 0.9, 7.64 - 0.4], [-12.5, 8.5], [-6, 8], [0, 4]]],
     // the north path under the log arch into the second clearing, then up the ledge flight
     ['north-clearing-ledge', [[0.5, 2], [1.5, -12], [2.0, -18], [1.8, -24], [2.5, -30], [3.5, -36], [4.5, -42], [5.2, -50], [5.8, -58], [5.4, -61.5], [3.6, -65.2], [1.0, -68.0], [-0.6, -70.2], ledge.at(-0.9), ledge.at(ledge.run * 0.5), ledge.at(ledge.run + 0.6)], 2400],
+    // round 56 (exp-east): up the main flight onto the plateau, then the east lane's stepping stones
+    // (layout EXPANSION_EAST.lane) through the trees, past the shop's door and counter, across the
+    // green between the houses to the lookout's bench on the south lip
+    ['stairs-to-east-lookout', [[1, 3], m.at(-1.6), m.at(m.run * 0.5), m.at(m.run + 1.2), [17.6, -7.35], [19.8, -6.55], [22.3, -5.7], [24.35, -4.3], [26.6, -3.95], [28.9, -4.3], [31.3, -4.5], [33.7, -4.45], [36.3, -4.25], [38.6, -2.7], [40.9, -2.2], [42.6, -0.3], [43.0, 2.3], [43.2, 4.6], [43.6, 7.2], [45.5, 7.9], [47.2, 7.25]], 2400],
+    // the tall house's side deck (layout eastDeckPlan): off the lane, up its plank steps onto the
+    // railed strip (walk surfaces east-tall-steps / east-tall-deck), to the ladder end and back down
+    ['east-tall-deck', [[42.6, -0.3], [43.8, 1.39], [44.68, 1.58], [46.39, 1.96], [48.9, 2.4], [46.45, 1.95], [44.68, 1.58], [43.2, 2.3]], 900],
   ];
   results.walk = [];
   const pickRoutes = typeof args['walk-routes'] === 'string' ? new Set(args['walk-routes'].split(',')) : null;

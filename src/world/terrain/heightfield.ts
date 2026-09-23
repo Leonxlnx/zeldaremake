@@ -7,7 +7,7 @@
  * Owner: terrain agent. Interface (`Terrain`) is frozen; implementation may be refined.
  */
 import { Vector3 } from 'three';
-import { EXPANSION, EXPANSION_BOX, EXPANSION_STAIRS, LAYOUT, expansionSteppingStones, houseSteppingStones, southBankFrameVectors, type StairDef } from '../layout';
+import { EAST_BOX, EXPANSION, EXPANSION_BOX, EXPANSION_EAST, EXPANSION_STAIRS, LAYOUT, eastDeckPlan, eastShopSpots, eastSteppingStones, expansionSteppingStones, houseSteppingStones, southBankFrameVectors, type StairDef } from '../layout';
 import { WORLD } from '../config';
 import { Noise2D, smoothstep, clamp, lerp } from '../util/noise';
 
@@ -710,6 +710,31 @@ export function expansionDiscMask(x: number, z: number): number {
   return m > 0 ? m * cClip(x, z) : 0;
 }
 
+/** the east lane's stepping discs (layout `EXPANSION_EAST`) */
+const EAST_STONES = eastSteppingStones();
+const EAST_STONES_BOX = (() => {
+  const b = { x0: Infinity, x1: -Infinity, z0: Infinity, z1: -Infinity };
+  for (const s of EAST_STONES) {
+    b.x0 = Math.min(b.x0, s.x - s.r * 1.3);
+    b.x1 = Math.max(b.x1, s.x + s.r * 1.3);
+    b.z0 = Math.min(b.z0, s.z - s.r * 1.3);
+    b.z1 = Math.max(b.z1, s.z + s.r * 1.3);
+  }
+  return b;
+})();
+
+/** 1 on an east-lane disc (set stones lying with the grade like the expansion's, soft 10 % rim). Live only. */
+export function eastDiscMask(x: number, z: number): number {
+  const b = EAST_STONES_BOX;
+  if (x < b.x0 || x > b.x1 || z < b.z0 || z > b.z1) return 0;
+  let m = 0;
+  for (const s of EAST_STONES) {
+    const d = Math.hypot(x - s.x, z - s.z);
+    if (d < s.r * 1.2) m = Math.max(m, 1 - smoothstep(s.r * 0.92, s.r * 1.12, d));
+  }
+  return m;
+}
+
 function pathInfluence(x: number, z: number, live = false) {
   const hw = LAYOUT.pathHalfWidth;
   const a = closestOnPolyline(LAYOUT.pathSpine, x, z);
@@ -812,7 +837,7 @@ function pathInfluence(x: number, z: number, live = false) {
     weight *= 1 - sb.along * smoothstep(-0.2, 0.25, sb.d);
   }
   // round 49 (live view): the expansion paths' stepping discs are paved surface (no flattening)
-  if (live) surface = Math.max(surface, expansionDiscMask(x, z));
+  if (live) surface = Math.max(surface, expansionDiscMask(x, z), eastDiscMask(x, z));
   return { weight, surface, y, dist: best.dist, toe: sb.toe, bank, bankDx, bankDz };
 }
 
@@ -1135,6 +1160,30 @@ const EXPANSION_STRUCTURES = [
 ];
 
 /**
+ * The east lane's trunks (live): no grass on the pad, and the character stops half a metre past
+ * the root flare (house.ts rings the base at 1.35 R; the pad's 0.5 level sits at 1.2 R + 0.5).
+ */
+const EAST_STRUCTURES = EXPANSION_EAST.houses.map((h) => ({ x: h.x, z: h.z, r0: h.radius * 1.2, r1: h.radius * 1.2 + 1.0 }));
+/** the lookout's log bench as an oriented box (seat axis across `yawDeg`, the direction a sitter faces) */
+const EAST_BENCH = (() => {
+  const b = EXPANSION_EAST.lookout.bench;
+  const a = (b.yawDeg * Math.PI) / 180;
+  return { x: b.x, z: b.z, fx: Math.sin(a), fz: Math.cos(a), half: b.length * 0.5 + 0.1, depth: 0.42 };
+})();
+/**
+ * The tall house's deck railings as walls 0.2 m either side of their line: off the deck's walk
+ * strip (character ground: a built surface is never blocked) the railing stops the step, so the
+ * deck is left by its plank steps only.
+ */
+const EAST_RAILS = eastDeckPlan().rails.map(([a, b]) => ({ ax: a[0], az: a[1], bx: b[0], bz: b[1], r: 0.2 }));
+/** posts and goods standing on the lane's verges (the shop's sign, the pod-lantern posts, the shop's crates and baskets) */
+const EAST_POSTS = [
+  { x: EXPANSION_EAST.shopSign.x, z: EXPANSION_EAST.shopSign.z, r: 0.22 },
+  ...EXPANSION_EAST.lanternPosts.map((p) => ({ x: p.x, z: p.z, r: 0.2 })),
+  ...eastShopSpots().map((s) => ({ x: s.x, z: s.z, r: s.foot })),
+];
+
+/**
  * Cheap subset of `Terrain.mask` (no slope evaluation): paved surface, stair footprint and
  * structure pads. Used by placement loops that call it tens of thousands of times.
  * `view` (round 49): `legacy` (the default — every caller that existed before round 49 keeps its
@@ -1178,6 +1227,25 @@ export function surfaceMask(x: number, z: number, view: TerrainView = 'legacy'):
       const d = Math.hypot(x - s.x, z - s.z);
       if (d < s.r1) structure = Math.max(structure, 1 - smoothstep(s.r0, s.r1, d));
     }
+    if (x >= EAST_BOX.x0 && x <= EAST_BOX.x1 && z >= EAST_BOX.z0 && z <= EAST_BOX.z1) {
+      for (const s of EAST_STRUCTURES) {
+        const d = Math.hypot(x - s.x, z - s.z);
+        if (d < s.r1) structure = Math.max(structure, 1 - smoothstep(s.r0, s.r1, d));
+      }
+      const B = EAST_BENCH;
+      const dx = x - B.x;
+      const dz = z - B.z;
+      const across = dx * B.fz - dz * B.fx;
+      const along = dx * B.fx + dz * B.fz;
+      if (Math.abs(across) < B.half && Math.abs(along) < B.depth) structure = 1;
+      for (const r of EAST_RAILS) {
+        const ex = r.bx - r.ax;
+        const ez = r.bz - r.az;
+        const t = clamp(((x - r.ax) * ex + (z - r.az) * ez) / (ex * ex + ez * ez), 0, 1);
+        if (Math.hypot(x - (r.ax + ex * t), z - (r.az + ez * t)) < r.r) structure = 1;
+      }
+      for (const p of EAST_POSTS) if (Math.hypot(x - p.x, z - p.z) < p.r) structure = 1;
+    }
   }
   return { path: p.surface, stairs, structure };
 }
@@ -1193,13 +1261,21 @@ export function surfaceMask(x: number, z: number, view: TerrainView = 'legacy'):
  * fixed frames keep every instance they show, and only the expansion's own ground is cleared.
  * Everything outside `EXPANSION_BOX` and the far hut's knoll returns false at the cost of a
  * bounds test.
+ *
+ * `east` (default on): the east lane's discs, trunk pads and bench (layout `EXPANSION_EAST`,
+ * inside `EAST_BOX`) cull too. Off for a test that runs INSIDE a rejection loop or whose culls
+ * cascade (the white-barks feed the understory and mid samplers): there a new true re-rolls
+ * every later draw.
  */
-export function expansionCull(x: number, z: number, lift = 0.3): boolean {
+export function expansionCull(x: number, z: number, lift = 0.3, east = true): boolean {
   const F = EXPANSION.farHut;
   const onKnoll = Math.hypot(x - F.host[0], z - F.host[1]) < EXPANSION.farHutRise.radius + 0.5;
-  if (!onKnoll && (x < EXPANSION_BOX.x0 || x > EXPANSION_BOX.x1 || z < EXPANSION_BOX.z0 || z > EXPANSION_BOX.z1)) return false;
+  const inWest = onKnoll || (x >= EXPANSION_BOX.x0 && x <= EXPANSION_BOX.x1 && z >= EXPANSION_BOX.z0 && z <= EXPANSION_BOX.z1);
+  const inEast = east && x >= EAST_BOX.x0 && x <= EAST_BOX.x1 && z >= EAST_BOX.z0 && z <= EAST_BOX.z1;
+  if (!inWest && !inEast) return false;
   // the discs by their circles (the first ones' splat is faded by `cClip`; the stones are laid whole)
-  for (const d of EXPANSION_STONES) if (Math.hypot(x - d.x, z - d.z) < d.r + 0.12) return true;
+  if (inWest) for (const d of EXPANSION_STONES) if (Math.hypot(x - d.x, z - d.z) < d.r + 0.12) return true;
+  if (inEast) for (const d of EAST_STONES) if (Math.hypot(x - d.x, z - d.z) < d.r + 0.12) return true;
   // the masks the expansion ADDED (live over legacy): the box's north-east corner holds the plaza
   // disc's south-west rim, whose own paving mask must not cull what already avoids it
   const m = surfaceMask(x, z, 'live');

@@ -806,6 +806,192 @@ export const EXPANSION_BOX = (() => {
   return box;
 })();
 
+/**
+ * The east lane (owner, 2026-09-23: "no expansion to the environment past the stuff"): the flat
+ * 5.2–5.9 m plateau the main stairway climbs to becomes a Kokiri lane — a stepping-stone path from
+ * the head of the stairs east through the gap between the plateau's tall trees, three tree-trunk
+ * houses round a small green (the shop, the bossy kid's tall house with its side deck, a small
+ * cosy one by the south lip), a spur north to the upper house's ladder and a lookout with a rope
+ * fence and a log bench on the south lip, looking back over the lane.
+ *
+ * Placed against the fixed cameras like `EXPANSION` (not in `LAYOUT.houses` / `ROPE_FENCES` for the
+ * same stream reasons): every house, its cap and its sun shadow stay outside A / B / C / D / E —
+ * A's right frustum edge runs (16, 0) → (33.7, −10) and the houses stand 5–14 m past it. F looks up
+ * the stairs from the plaza and has the plateau in its frustum; from 1.8 m it sees nothing of the
+ * plateau's top, only the tallest roofs over the lip at 37–50 m.
+ *
+ * The first 14 m of the lane threads the trees camera A sees at its right edge (mid trees at
+ * (21.8, −8.1), (22.6, −3.3), (25.0, −6.0), (26.7, −9.1), (31.7, −6.9)) ≥ 1.8 m from each trunk,
+ * and passes 1.3–2.4 m south of the upper crates and pots; the east giant's root tips (≤ 6.8 m
+ * round (27, 5)) stay south of it. Nothing that camera A shows is cleared: the houses' clearing
+ * (heightfield `eastLaneCull`, trees' mid-tree filter) only reaches trees none of A–E see.
+ *
+ * `facingDeg`: bearing of the door (atan2(x, z): 0° = +z south, 90° = east, ±180° = north).
+ */
+export const EXPANSION_EAST = {
+  houses: [
+    /** the shop: a wide stump north of the green, its counter window and awning toward the lane as it leaves the trees */
+    { id: 'east-shop', kind: 'shop' as const, x: 40.0, z: -7.0, radius: 3.0, roofHeight: 5.3, facingDeg: -53, lanterns: 2 },
+    /** the bossy kid's house at the far end of the green: the tallest dome, a side deck with plank steps and a ladder to the roof */
+    { id: 'east-tall', kind: 'tall' as const, x: 48.6, z: -1.6, radius: 3.0, roofHeight: 7.6, facingDeg: -84, lanterns: 2 },
+    /** the small cosy house by the south lip: low dome, round window, flower boxes */
+    { id: 'east-small', kind: 'small' as const, x: 37.2, z: 6.0, radius: 2.1, roofHeight: 4.1, facingDeg: 200, lanterns: 1 },
+  ],
+  /** the lane: head of the stairs → the gap in the trees → past the shop's door → across the green → east of the white-barks → the lookout */
+  lane: [
+    [17.6, 0, -7.35],
+    [19.8, 0, -6.55],
+    [22.3, 0, -5.7],
+    [24.35, 0, -4.3],
+    [26.6, 0, -3.95],
+    [28.9, 0, -4.3],
+    [31.3, 0, -4.5],
+    [33.7, 0, -4.45],
+    [36.3, 0, -4.25],
+    [38.6, 0, -2.7],
+    [40.9, 0, -2.2],
+    [42.6, 0, -0.3],
+    [43.0, 0, 2.3],
+    [43.2, 0, 4.6],
+    [43.6, 0, 7.2],
+    [45.5, 0, 7.9],
+    [47.2, 0, 7.25],
+  ] as [number, number, number][],
+  /** spurs off the lane (each starts on a lane node): the upper house's ladder, the tall house's door, the small house's door */
+  spurs: [
+    [
+      [17.6, 0, -7.35],
+      [17.2, 0, -8.5],
+      [17.05, 0, -9.7],
+      [16.9, 0, -10.9],
+      [16.7, 0, -12.1],
+      [16.6, 0, -13.0],
+      [16.25, 0, -13.75],
+      [16.05, 0, -14.55],
+    ],
+    [
+      [42.6, 0, -0.3],
+      [44.3, 0, -1.1],
+    ],
+    [
+      [38.6, 0, -2.7],
+      [38.0, 0, -0.6],
+      [37.0, 0, 1.4],
+      [36.3, 0, 2.75],
+    ],
+  ] as [number, number, number][][],
+  /** the lookout on the south lip: a rope fence where the ground starts to fall, a log bench behind it facing back over the lane */
+  lookout: {
+    fence: [
+      [45.3, 0, 8.85],
+      [46.6, 0, 8.75],
+      [47.9, 0, 8.7],
+      [49.2, 0, 8.75],
+      [50.3, 0, 8.55],
+    ] as [number, number, number][],
+    bench: { x: 48.3, z: 7.55, yawDeg: -132, length: 1.9 },
+  },
+  /**
+   * The tall house's side deck, in its trunk frame: centred `a` rad round from the door (+ = the
+   * viewer's right facing the door), `rise` m over the door's floor, from `inner` (inside the bark)
+   * to `outer` m off the trunk's axis, `half` m either side along the tangent; plank steps run
+   * `stepRun` m down from its door-side end between `stepInner` and `stepOuter`; a short ladder
+   * leans on its far end.
+   */
+  tallDeck: { a: 1.25, rise: 1.15, inner: 2.45, outer: 4.45, half: 1.5, walkHw: 0.5, stepRun: 1.65, stepInner: 3.5, stepOuter: 4.4 },
+  /** the shop's hanging sign: its post north of the lane, the arm reaching `armDeg` (bearing) over the verge */
+  shopSign: { x: 35.7, z: -6.95, armDeg: 4, height: 2.35 },
+  /**
+   * Goods standing by the shop, in its trunk frame (`a` rad round from the door, + = the viewer's
+   * right; `r` m off the axis — outside the trunk's 1.35 R foot flare), `foot` = the footprint's
+   * radius (a wall in the live structure mask; the roots keep off it): a crate stack beyond the
+   * sign, a basket beside it, an open crate and a fruit basket past the counter.
+   */
+  shopGoods: [
+    { kind: 'crate-stack' as const, a: -0.95, r: 4.6, foot: 0.42 },
+    { kind: 'basket' as const, a: -1.13, r: 4.5, foot: 0.24 },
+    { kind: 'crate' as const, a: 1.45, r: 4.55, foot: 0.38 },
+    { kind: 'basket' as const, a: 1.63, r: 4.45, foot: 0.22 },
+  ],
+  /** pod-lantern posts (their glow is emissive: no point light joins the scene) */
+  lanternPosts: [
+    { id: 'east-green', x: 41.2, z: 0.4, facingDeg: 117, height: 1.95, tint: 'orange' as const },
+    { id: 'east-lookout', x: 46.5, z: 6.95, facingDeg: 25, height: 1.8, tint: 'lime' as const },
+  ],
+  /** disc parameters (`steppingStonesAlong`): a little larger and looser than the plaza's */
+  discs: { from: 0.45, spacing: 1.0, radius: [0.4, 0.47] as [number, number], wobble: 0.17 },
+} as const;
+
+export type EastHouse = (typeof EXPANSION_EAST.houses)[number];
+
+/**
+ * The tall house's deck in plan (world XZ): the trunk frame at the deck's centre angle (`d` out
+ * of the bark, `t` along increasing angle), the walkable strip and steps (character ground), and
+ * the railing lines the live structure mask turns into walls.
+ */
+export function eastDeckPlan() {
+  const h = EXPANSION_EAST.houses.find((x) => x.kind === 'tall')!;
+  const D = EXPANSION_EAST.tallDeck;
+  const f = (h.facingDeg * Math.PI) / 180;
+  const F: [number, number] = [Math.sin(f), Math.cos(f)];
+  const R: [number, number] = [F[1], -F[0]];
+  const d: [number, number] = [F[0] * Math.cos(D.a) + R[0] * Math.sin(D.a), F[1] * Math.cos(D.a) + R[1] * Math.sin(D.a)];
+  const t: [number, number] = [d[1], -d[0]];
+  const at = (out: number, along: number): [number, number] => [h.x + d[0] * out + t[0] * along, h.z + d[1] * out + t[1] * along];
+  const walkD = D.outer - 0.12 - D.walkHw;
+  const stepD = (D.stepInner + D.stepOuter) / 2;
+  return {
+    house: h,
+    d,
+    t,
+    at,
+    walk: { a: at(walkD, -D.half + 0.02), b: at(walkD, D.half - 0.02), hw: D.walkHw },
+    steps: { bottom: at(stepD, -D.half - D.stepRun), top: at(stepD, -D.half + 0.1), hw: (D.stepOuter - D.stepInner) / 2 - 0.04 },
+    rails: [
+      [at(D.outer - 0.06, -D.half), at(D.outer - 0.06, D.half)],
+      [at(D.inner + 0.1, D.half), at(D.outer - 0.06, D.half)],
+      [at(D.inner + 0.1, -D.half), at(D.stepInner - 0.05, -D.half)],
+    ] as [number, number][][],
+  };
+}
+
+/** the shop's goods (`EXPANSION_EAST.shopGoods`) in world XZ, with their outward direction from the trunk */
+export function eastShopSpots() {
+  const h = EXPANSION_EAST.houses.find((x) => x.kind === 'shop')!;
+  const f = (h.facingDeg * Math.PI) / 180;
+  const F: [number, number] = [Math.sin(f), Math.cos(f)];
+  const R: [number, number] = [F[1], -F[0]];
+  return EXPANSION_EAST.shopGoods.map((g) => {
+    const dx = F[0] * Math.cos(g.a) + R[0] * Math.sin(g.a);
+    const dz = F[1] * Math.cos(g.a) + R[1] * Math.sin(g.a);
+    return { kind: g.kind, a: g.a, foot: g.foot, x: h.x + dx * g.r, z: h.z + dz * g.r, out: [dx, dz] as [number, number] };
+  });
+}
+
+/** the east lane's discs: the lane, then each spur from one spacing in (its first node is a lane node) */
+export function eastSteppingStones(): SteppingStone[] {
+  const d = EXPANSION_EAST.discs;
+  const none: [number, number] = [Infinity, Infinity];
+  return [
+    ...steppingStonesAlong(EXPANSION_EAST.lane, { ...d, skip: none, salt: 11 }),
+    ...EXPANSION_EAST.spurs.flatMap((s, i) => steppingStonesAlong(s, { ...d, from: d.from + d.spacing * 0.8, skip: none, salt: 23 + i * 7 })),
+  ];
+}
+
+/** the east lane's XZ box (houses with their caps, the lane and spurs, the lookout; 3.2 m margin) */
+export const EAST_BOX = (() => {
+  const box = { x0: Infinity, x1: -Infinity, z0: Infinity, z1: -Infinity };
+  const add = (x: number, z: number, m: number) => {
+    box.x0 = Math.min(box.x0, x - m);
+    box.x1 = Math.max(box.x1, x + m);
+    box.z0 = Math.min(box.z0, z - m);
+    box.z1 = Math.max(box.z1, z + m);
+  };
+  for (const p of [...EXPANSION_EAST.lane, ...EXPANSION_EAST.spurs.flat(), ...EXPANSION_EAST.lookout.fence]) add(p[0], p[2], 3.2);
+  for (const h of EXPANSION_EAST.houses) add(h.x, h.z, h.radius * 1.55 + 3.2);
+  return box;
+})();
+
 export function v3(a: readonly [number, number, number]): Vector3 {
   return new Vector3(a[0], a[1], a[2]);
 }
@@ -851,9 +1037,10 @@ export function expansionSteppingStones(): SteppingStone[] {
 
 export function steppingStonesAlong(
   pts: readonly (readonly [number, number, number])[],
-  params: { from: number; spacing: number; radius: readonly [number, number]; wobble: number; skip: readonly [number, number] },
+  params: { from: number; spacing: number; radius: readonly [number, number]; wobble: number; skip: readonly [number, number]; salt?: number },
 ): SteppingStone[] {
   const { from, spacing, radius, wobble, skip } = params;
+  const salt = (params.salt ?? 0) * 7919;
   const segs: { ax: number; ay: number; az: number; dx: number; dy: number; dz: number; len: number }[] = [];
   let total = 0;
   for (let i = 0; i < pts.length - 1; i++) {
@@ -877,14 +1064,14 @@ export function steppingStonesAlong(
     let k = 0;
     while (k < segs.length - 1 && rem > segs[k].len) rem -= segs[k++].len;
     const sg = segs[k];
-    const side = (i % 2 === 0 ? 1 : -1) * wobble * (0.6 + 0.4 * hash(i * 3 + 1));
+    const side = (i % 2 === 0 ? 1 : -1) * wobble * (0.6 + 0.4 * hash(i * 3 + 1 + salt));
     out.push({
       x: sg.ax + sg.dx * rem - sg.dz * side,
       y: sg.ay + sg.dy * rem,
       z: sg.az + sg.dz * rem + sg.dx * side,
-      r: radius[0] + (radius[1] - radius[0]) * hash(i * 3 + 2),
+      r: radius[0] + (radius[1] - radius[0]) * hash(i * 3 + 2 + salt),
     });
-    d += spacing * (0.88 + 0.24 * hash(i * 3));
+    d += spacing * (0.88 + 0.24 * hash(i * 3 + salt));
   }
   return out;
 }

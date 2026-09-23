@@ -30,6 +30,7 @@ import { createUnderstoryTree, understoryParams, type UnderstoryParams } from '.
 import { placeWhiteBark, treeGroundBlocked, viewProjector, type WhiteBarkPlacement } from './placement';
 import { columnParams, createColumnTree, emergentParams, hutHostParams, type ColumnAsset, type ColumnParams } from './column';
 import { expansionCull, getTerrain, type Terrain, type TerrainView } from '../terrain/heightfield';
+import { eastTreeCrowds, eastUnderstoryCull } from '../util/eastLane';
 import { smoothstep } from '../util/noise';
 import { casterSpheres, expansionVisible, type Caster } from '../util/expansionLocality';
 import { EXPANSION } from '../layout';
@@ -2093,7 +2094,7 @@ export async function create(ctx: WorldContext): Promise<WorldSystem> {
   // dropped rather than left buried or floating. Take-0123's 80 sampled trees: none culled (the
   // audit's whiteBarkCulled), so the six frames keep every tree they show. The authored entries
   // below are not filtered (the knoll pair is seated on the live ground on purpose).
-  const sampledWhites = whitePlaced.placements.filter((p) => !expansionCull(p.x, p.z));
+  const sampledWhites = whitePlaced.placements.filter((p) => !expansionCull(p.x, p.z, 0.3, false));
   const whiteBarkCulled = whitePlaced.placements.filter((p) => !sampledWhites.includes(p)).map((p) => [Math.round(p.x * 100) / 100, Math.round(p.z * 100) / 100]);
   const swappedWhites = sampledWhites.filter((p) => whites[p.variant].params.age === 'mature' && inFarWall(p.x, p.y, p.z));
   const whitePlacements = sampledWhites.filter((p) => !swappedWhites.includes(p));
@@ -2295,7 +2296,7 @@ export async function create(ctx: WorldContext): Promise<WorldSystem> {
         // the corridor keeps its trees on both sides (the reference's D frames the arch with trees)
         const pathMin = z < UNDERSTORY_ARCH_STRETCH_Z ? UNDERSTORY_PATH_MIN_ARCH_M : UNDERSTORY_PATH_MIN_M;
         if (d < pathMin || (!zone.live && d > UNDERSTORY_PATH_MAX_M)) continue;
-        if (!zone.live && expansionCull(x, z)) continue;
+        if (!zone.live && expansionCull(x, z, 0.3, false)) continue;
         const m = t.mask(x, z);
         if (m.path > 0.05 || m.stairs > 0 || m.structure > 0 || m.cliff > 0.3) continue;
         // the arch's footprint and the columns' roots have their own masks; keep off steep ground too
@@ -2318,7 +2319,8 @@ export async function create(ctx: WorldContext): Promise<WorldSystem> {
    * post-filter over the sampled list, so no other stem moves (a rule inside the loop shifts every
    * later draw).
    */
-  const understoryKept = understoryPlacements.filter((p) => understoryPathDistance(p.x, p.z) >= UNDERSTORY_WALK_CLEAR_M);
+  // (the east lane's discs, trunks and lookout clear the same way — util/eastLane.ts)
+  const understoryKept = understoryPlacements.filter((p) => understoryPathDistance(p.x, p.z) >= UNDERSTORY_WALK_CLEAR_M && !eastUnderstoryCull(p.x, p.z));
   understoryPlacements.length = 0;
   understoryPlacements.push(...understoryKept);
   for (const p of understoryPlacements) seatFamily(understory, p, p.variant);
@@ -3214,7 +3216,13 @@ export async function create(ctx: WorldContext): Promise<WorldSystem> {
   });
   // applied AFTER sampling, like expansionCull: a rule inside the sampler's `blocked` shifts every
   // later draw and re-rolls the whole grove (measured: 6 trees fewer, 60 % of u-open-up's pixels moved)
-  const midPlacements = midSampled.filter((p) => !expansionCull(p.x, p.z) && !nearWalk(p.x, p.z));
+  // the east lane's houses and discs clear the crowns that would crowd them (util/eastLane.ts)
+  const midSpec = (p: DistantPlacement) => MID_SPECS[Math.max(0, Math.min(MID_SPECS.length - 1, p.variant - (distantVariants.length - MID_SPECS.length)))];
+  const eastCrowded = (p: DistantPlacement) => {
+    const s = midSpec(p);
+    return eastTreeCrowds(p.x, p.z, s.height * p.scale, s.crownR, s.crownY, MID_TRUNK_R);
+  };
+  const midPlacements = midSampled.filter((p) => !expansionCull(p.x, p.z) && !nearWalk(p.x, p.z) && !eastCrowded(p));
   distantPlacements.push(...midPlacements);
   // round 47: the crown cards (the geometry's second group) draw with their own material (distant.ts createDistantCrownMaterial: far-crown atlas, spherical shading, soft alpha, wind)
   const distantCrown = createDistantCrownMaterial(ctx.wind, rng, palette, sunDir);

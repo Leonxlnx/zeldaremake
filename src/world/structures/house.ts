@@ -271,6 +271,12 @@ export interface HouseSharedMaterials {
   stone?: MeshStandardMaterial;
 }
 
+/** Per-house placement constraints beyond the layout's houses. */
+export interface HouseSiteOptions {
+  /** ground circles the buttress roots keep off (paving, a deck's posts, neighbouring trunks), at any height */
+  rootKeepOut?: { x: number; z: number; r: number }[];
+}
+
 /** Local frame: F = out of the door, Rt = viewer's right when facing the door. */
 class Frame {
   constructor(
@@ -365,6 +371,22 @@ const LANTERNS: Record<string, LanternSpec[]> = {
   upper: [
     { a: -1.9, cord: 0.3, hook: 'eave' },
     { a: 2.0, cord: 0.4, hook: 'eave' },
+  ],
+  // the east lane (layout `EXPANSION_EAST`, structures/east.ts): a pod either side of each door;
+  // the shop's third hangs past its counter window (right flank), the tall house's over its deck
+  'east-shop': [
+    { a: -0.5, cord: 0.28, hook: 'eave', tint: 'orange' },
+    { a: 0.42, cord: 0.36, hook: 'eave', tint: 'lime' },
+    { a: 1.62, cord: 0.46, hook: 'eave', tint: 'orange', scale: 0.9 },
+  ],
+  'east-tall': [
+    { a: -0.45, cord: 0.32, hook: 'eave', tint: 'lime' },
+    { a: 0.38, cord: 0.26, hook: 'eave', tint: 'orange' },
+    { a: 1.3, cord: 0.62, hook: 'eave', tint: 'orange', scale: 0.92 },
+  ],
+  'east-small': [
+    { a: 0.5, cord: 0.22, hook: 'eave', tint: 'orange', scale: 0.9 },
+    { a: -0.55, cord: 0.3, hook: 'eave', tint: 'lime', scale: 0.86 },
   ],
 };
 
@@ -906,7 +928,7 @@ function braidedRugTexture(seed: number): Texture {
   return tex;
 }
 
-export function buildHouse(def: HouseDef, ctx: WorldContext, mats: StructureMaterials, rng: Rng, shared: HouseSharedMaterials = {}): HouseBuild {
+export function buildHouse(def: HouseDef, ctx: WorldContext, mats: StructureMaterials, rng: Rng, shared: HouseSharedMaterials = {}, site: HouseSiteOptions = {}): HouseBuild {
   const group = new Group();
   group.name = `house-${def.id}`;
   const noise = new Noise2D(`${ctx.config.seed}/structures/house/${def.id}`);
@@ -3185,7 +3207,10 @@ export function buildHouse(def: HouseDef, ctx: WorldContext, mats: StructureMate
    * rng draws are still taken). Roots under another house's floor (Saria's own root climbing
    * the slope to the upper house's foot) are left alone — nothing shows there.
    */
-  const keepOut = ctx.layout.houses.filter((h) => h.id !== def.id).map((h) => ({ x: h.position[0], z: h.position[2], r: h.trunkRadius * 1.1, yMin: h.position[1] + 0.35 }));
+  const keepOut = [
+    ...ctx.layout.houses.filter((h) => h.id !== def.id).map((h) => ({ x: h.position[0], z: h.position[2], r: h.trunkRadius * 1.1, yMin: h.position[1] + 0.35 })),
+    ...(site.rootKeepOut ?? []).map((c) => ({ ...c, yMin: -Infinity })),
+  ];
   const insideOther = (p: Vector3) => keepOut.some((o) => p.y > o.yMin && Math.hypot(p.x - o.x, p.z - o.z) < o.r);
   let rootsBuilt = 0;
   for (let i = 0; i < rootCount; i++) {
