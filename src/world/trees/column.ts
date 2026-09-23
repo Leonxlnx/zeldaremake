@@ -215,8 +215,14 @@ export function columnParams(rng: Rng, index: number, total: number): ColumnPara
     rootReach: [2.4, 3.8],
     // round 45: a foot that survives distance — the flare 0.55 → 0.85 of the radius at the
     // ground and falling at 6 instead of 9 (0.47 R extra at 2 m, 0.26 R at 4 m; was 0.23 / 0.09)
-    flare: 0.85,
-    flareFall: 6,
+    // Round 52 (the owner's walk-up poses at 10 and 15 m: the bole meets the grass as a straight
+    // edge, where the references' trunks stand on a spreading foot): 1.05 falling at 5 — 0.64 R
+    // extra at 2 m and 0.39 R at 4 m, so the buttress reads to ≈ 25 m. The ground-line radius goes
+    // to 2.05 R (1.44 m on the widest variant), still inside the seats' 1.6 m probe ring; the
+    // emergent (0.3) and the far hut's host keep their own, and the root reach is unchanged —
+    // the plain roots do not read the path mask, so they must not grow.
+    flare: 1.05,
+    flareFall: 5,
     barkTile: 1.6,
     gnarl: 0.1,
     // round 44 (survey #2: "column trees are untextured grey cylinders"): the near-bole cords and
