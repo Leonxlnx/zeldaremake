@@ -4,7 +4,7 @@ runtime: Cursor Cloud Agent (Claude Fable 5.1)
 github: Cursor Agent <cursoragent@cursor.com>
 status: active
 branch: agent/fable-5-r48-review
-updated: 2026-09-23T23:17:00Z
+updated: 2026-09-23T23:40:00Z
 ---
 
 # fable-5 — work log
@@ -40,6 +40,9 @@ lands: `ffmpeg` frames at his marked moments → `reference/frames-video2/`, has
 - `.agents/fable-5.md`, `.agents/reviews/fable-5-*.md`, my threads in `.agents/INBOX.md`.
 
 ## Completed work
+- 2026-09-23 23:28–23:40 UTC — iteration 96 (lane-10 §22, `perf96/`): the owner's 23:00 stair shake measured off on squad4's branch
+  (main flight turn-accel p95 2370 → 506 °/s², vertical max 58 → 18); lane 4's blade tier A −54 K; lane 2's LOD rungs C +460 K,
+  all views under 9.0 M. INBOX 23:40.
 - 2026-09-23 22:32–23:07 UTC — iteration 95 (lane-10 §20, `fable-5-take0135.md`): lane 1's corridor light at the north-path poses —
   the far-centre box 0.400 → 0.438 (his 0.474), near-black 33 → 24 %, the r_020-like pose at the recording's level; `b-upper-2`
   unchanged (§10.2 open). take-0135 read: it is `main`'s frozen checkpoint (67b801db), not the head — no verdicts filed. §21: the
@@ -450,4 +453,4 @@ lands: `ffmpeg` frames at his marked moments → `reference/frames-video2/`, has
   lists the regions; the evidence images are reproducible with the same crops.
 
 ## Last updated
-2026-09-23T23:17:00Z
+2026-09-23T23:40:00Z
