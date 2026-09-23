@@ -433,3 +433,27 @@ projected together onto the head `56b54e15`. JSONs in `fable-5-lane10/perf88/`.
   **Lane 7's next perf item is the kid as one or two merged meshes (per material): 50 → ≈ 5 draws each.**
 - Triangles: the three together bring A to **8.87 M, under W38's 9.0 M with 130 K of room**; the lane-4 blades (§11) are
   still the mass (+0.57 M at A), and the next plant lands A back over the cap.
+
+## 13. The head after the perf merges (`b510b152`, 16:20): the caps met with the cast visible; pacing with the cast (16:31–17:06 UTC, one Chrome)
+
+- **Six views** (`submission.mjs`, the take's condition): **A 692 / 8.86 M**, B 683 / 8.05 M, C 521 / 6.57 M, D 556 / 8.25 M,
+  E 683 / 8.05 M, F 642 / 7.67 M — against §12's projection 698 / 8.87 M (the girl's neck mesh and boot cuffs left the
+  passes since). Both caps met; **headroom at A: 8 draws, 140 K triangles.** `perf89/submission-…json`.
+- **Play spots with the cast** (`playtest --only perf`): plaza 626 / 7.66 M, **`stairs2-base` 685 / 9.31 M** (the flight's
+  foot is still over the 9.0 M read — the mass there is the blades and the near giant, §8), `saria-side` 616 / 8.72 M,
+  `west-house` 491 / 4.75 M. Draws +12 … +114 over the 11:14 run (the kids in view), triangles −0.15 … −0.41 M (the
+  three shadow give-backs).
+- **Per system with the cast** (`sysperf.mjs`): trees 3.2–6.0 ms, **character 0.7–2.1 ms** (0.5–2.0 with the cast hidden
+  — the kids' schedules ran either way; showing them adds ≈ 0.2 ms), everything else < 0.1 ms.
+- **Programs: 107 → 115** on the head with the cast (the kids' eight programs — hair sheen, drape, skin, the fairies).
+  They compile when a kid first enters the view: at `stairs2-base` (the sitter on the flight) my probe's first drawn
+  frames averaged **14.5 s of render** on SwiftShader against 7 ms once compiled — on a GPU box a one-time hitch of
+  hundreds of ms the first time a kid is seen, unless the warm pass covers the kids' materials (`warmup=0` in the
+  harness; the launch path has it on — fable-3 / fable-cursor: worth a look at what the warm pass renders).
+- **Pacing with the cast** (plaza → second staircase → upper house, alone): **JS step p50 5.8 / p95 12.6 / p99 16.7 /
+  max 22.6 ms** (11:14 cast hidden: 6.2 / 13.5 / 22.6 / 42.5), hitches 47 (56), frames over 12 ms after frame 0: 17 (20),
+  the worst 22.6 ms at (3.9, 0, 1.8) on the plaza; by segment the plaza p50 10.3 (10.4), the flight 4.0 (4.3), the upper
+  5.5 (5.6) — the plaza's cost is the trees' pool builds as in §8, not the kids. **No shader compiles during the walk
+  (115 → 115). Heap 1,274 → 1,276 MB across the walk (max 1,334)** — flat, where the 11:14 walk grew +99 MB; the
+  three shadow give-backs and the kids' shadow culling took the walk's build churn with them, or the pools were warm
+  from the perf spots — either way the walk no longer leaves memory behind. `perf89/playtest-b510b152.json`.
