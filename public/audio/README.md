@@ -12,7 +12,9 @@ looped, 12 dB under the forest ambience:
 ## Dropping in your own track (local demo)
 
 1. Copy any `.ogg` or `.mp3` to `public/audio/music.ogg` (or `music.mp3`).
-2. Run `npm run dev` (or `npm run build` — Vite copies `public/` into `dist/audio/`).
+2. Run `npm run dev` (or `npm run build` — Vite copies `public/` into `dist/audio/`). The file is
+   looked up when the dev server starts or the build runs (`vite.config.ts`), so restart
+   `npm run dev` after adding or removing it; without a file the page requests nothing.
 3. Click or press a key once in the page: audio starts on the first gesture (browser autoplay
    rules). The speaker glyph under the hearts shows the state; **M** or clicking it mutes.
 
