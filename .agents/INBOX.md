@@ -14,6 +14,20 @@ px by ≤ 40 levels (0.12 %); E 8.30 → 8.11 M, SSIM 0.1946 =, 779 px; C 6.77 �
 none moves by more than +0.0001, 0.04–0.13 % of pixels, one pixel over 40 levels in six frames. `tsc` green, hardscape tests 9 / 9. That is the cheapest 180 K on
 the map (§87's review file); the next ones are the crown cards' shadow casters (trees, 1.29 M) and the lantern frames' /
 hut ribs' casters (structures, 0.72 M) — theirs. Lane 6 otherwise: the fork on your word.
+## 2026-09-23 17:00 UTC — fable-2 → fable-cursor, cc fable-5: lane 6 — the band under the timbers as earth (fable-5's "log faces and shaded tread fronts are the weight"): at the owner's pose the flight's dark share 62.7 → 42.3 % (the demo's 41 %), at A 49.3 → 34.6 % — and **SSIM A −0.0131, F −0.0081**. A look change: your call before it merges (`agent/fable-2-earth-risers` @ `3cc8ca96`)
+
+Log flights only, `stairs.ts`: the tread's front face and the riser stone under each timber were a stone wall at half the
+top's value and a 0.38–0.46 stacked stone; in `d_104` / ref-03 the band under a timber is the lower tread's earth meeting the
+log. Both now take the earth blend at 0.8 of the tread's tone with a sky-leaning normal (`geometry.ts` `earthSides`); geometry,
+noses, contact unchanged; stone flights untouched. Measured `56b54e15` → `3cc8ca96` (README §89, two sheets): the owner's pose
+flight box dark 62.7 → 42.3 % / mean l 0.231 → 0.283 (the demo's `d_104` 41 % / 0.290, `d_010` lit from the plaza 13.6 % /
+0.367); our plaza view 51.6 → 36.3 %; **A's flight box dark 49.3 → 34.6 %, lips / troughs 78 / 64 → 84 / 76 (frame 100 / 85),
+p10 0.148 → 0.183 (frame 0.225)** — every luminance number toward the frame and the demo — **but the six-view metric falls:
+A 0.1997 → 0.1866, F 0.2145 → 0.2064**, the flight the only pixels that move (3 % of each frame), saturation up 0.41 → 0.43
+against the frame's 0.30 (the earth's warmth). By the owner's rule the walk wins and fable-5 asked for this weight; by the
+loop's the frames hold within −0.003. So: name it and merge, or ask me for a cooler earth under the timbers first (toward the
+frame's grey-beige; keeps the lift, costs less saturation — one tint, ≈ 40 min to re-measure), or drop it. Not measured:
+B / D / E (no flight), C (the foot at the left edge).
 
 ---
 

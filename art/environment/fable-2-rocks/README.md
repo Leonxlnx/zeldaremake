@@ -52,6 +52,38 @@ pixels):
 
 `tsc` green, hardscape tests 9 / 9. The joints keep their darkness (the fill's paint, not the slabs' shadow); at A the only
 pixels that move are the hairlines along the sunward edges, none by more than 40 levels.
+## Iteration 89 — lane 6: under the timbers the riser band is earth, not a dark stone face — fable-5's "the log faces and shaded tread fronts are the weight": at the owner's pose the flight's dark share 62.7 → 42.3 % (the demo's `d_104` 41 %), at A 49.3 → 34.6 % — but SSIM A −0.0131, F −0.0081: a look change for fable-cursor to name, NOT claimed landed
+
+fable-5 (12:52, lane 10): with the earth treads in, the flight at the owner's angle still reads 61 % dark against the demo's
+13–31 %, and the weight is "the log faces and shaded tread fronts". The tread's front face under each timber was the stone
+slab's wall at half the top's value, and the riser under it a dark stacked stone (0.38–0.46) — in the demo (`d_104`, ref-03)
+the band under a timber is the lower tread's earth meeting the log. `stairs.ts`, log flights only: the tread walls take the
+earth blend (`geometry.ts` `earthSides`), a tint at 0.8 of the tread's own and a shading normal a third toward the sky
+(`sideNormalUp` 0.35); the riser stones render as packed earth top and walls, at 0.8 of the tread's tone, the foot stain
+× 0.4. The stone flights are untouched; geometry, noses and contact unchanged.
+
+Before `56b54e15` → after `3cc8ca96` (`steps89-earth-risers-sheet.jpg`, `steps89-AF-reference.jpg`):
+
+| pose / box | before | after | the demo |
+|---|---|---|---|
+| `s2-owner`, flight box 0.50–0.88 × 0.22–0.78: dark (l < 0.25) / mean l | 62.7 % / 0.231 | **42.3 % / 0.283** | `d_104` (from above, shade) 41.2 % / 0.290; `d_010` (from the plaza, lit) 13.6 % / 0.367 |
+| the plaza view (`w-d010-flight`) | 51.6 % / 0.260 | **36.3 % / 0.294** | 13.6 % / 0.367 |
+| A's flight box (fable-5's): dark / pale / mean l, lips / troughs | 49.3 % / 9.7 % / 0.275, 78 / 64 | **34.6 % / 10.7 % / 0.302, 84 / 76** | frame 16.1 % / 14.2 % / 0.345, 100 / 85 |
+| A's flight box hue / sat (stone pixels) | 46° / 0.405 | 45° / 0.433 | 47° / 0.298 |
+
+| view | before | after | Δ | changed px |
+|---|---|---|---|---|
+| A_stairs | 0.1997 | 0.1866 | **−0.0131** | 27 422 / 16 305 (2.98 %) — the flight only |
+| F_canopy | 0.2145 | 0.2064 | **−0.0081** | 30 002 / 17 757 (3.26 %) — the flight only |
+
+Every luminance number moves toward the frame and the demo (the dark share a third of the way to the demo's lit read at the
+plaza; A's p10 0.148 → 0.183 against the frame's 0.225), the saturation away from it (the earth's warmth, 0.43 vs the frame's
+0.30), and the SSIM falls by 0.013 at A — the metric weighs the flight's band structure, and a flight of warm earth bands
+under grey timbers is not the frame's grey stone flight however close its value. Under the owner's 06:50 rule the walk is the
+measure and fable-5 asked for exactly this weight; under the loop's the frames hold within −0.003. So this branch is a
+proposal: fable-cursor names it a look change and merges, or asks for a cooler earth under the timbers first (a tint toward
+the frame's grey-beige would keep the lift and cost less saturation), or drops it. Not measured: B / D / E (no flight in
+frame), C (the flight's foot at the left edge, expected a few thousand pixels).
 
 ## Iteration 85 — lane 6: the raised stair to the north ledge is log-risered too (`LOG_FLIGHTS` + `ledge`): the owner's ref-03 right-bank steps — round timbers with cut ends and stakes, earth between; A / D byte-identical
 
