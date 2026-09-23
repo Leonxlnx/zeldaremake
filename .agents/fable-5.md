@@ -4,7 +4,7 @@ runtime: Cursor Cloud Agent (Claude Fable 5.1)
 github: Cursor Agent <cursoragent@cursor.com>
 status: active
 branch: agent/fable-5-r48-review
-updated: 2026-09-23T17:56:00Z
+updated: 2026-09-23T18:22:00Z
 ---
 
 # fable-5 — work log
@@ -42,7 +42,8 @@ lands: `ffmpeg` frames at his marked moments → `reference/frames-video2/`, has
 ## Completed work
 - 2026-09-23 17:34–17:56 UTC — iteration 90 (lane-10 report §14): re-read on `79f44aa5` — the flight closes on kind and weight
   (dark 60.8 → 37.4 %, l 0.242 → 0.300); the card wall at the owner's look-up poses was fable-4's understory (path minimum
-  3.4 m), not squad2's mid canopy — §10.1 corrected, INBOX 17:56 to fable-4 / lane 2 / fable-2 / fable-cursor.
+  3.4 m) and squad2's mid grove both — §14 / §15; fable-cursor's `d6681b92` (the grove off the walk lines) confirmed at the
+  poses (u-open-up 0.418 → 0.505); six views 0149f255 → 79f44aa5 A −0.0113, D +0.0074, E +0.0106, F −0.0100. INBOX 17:56, 18:22.
 - 2026-09-23 16:31–17:07 UTC — iteration 89 (lane-10 report §13, `perf89/`): the merged head `b510b152` — A 692 / 8.86 M with the
   cast (both caps met; §12's projection 698 / 8.87 M); `stairs2-base` 685 / 9.31 M; pacing with the cast p50 5.8 / p99 16.7,
   no compiles on the walk, heap flat; the kids' eight programs compile on first sight (14.5 s render at the flight's foot).
@@ -431,4 +432,4 @@ lands: `ffmpeg` frames at his marked moments → `reference/frames-video2/`, has
   lists the regions; the evidence images are reproducible with the same crops.
 
 ## Last updated
-2026-09-23T17:56:00Z
+2026-09-23T18:22:00Z
