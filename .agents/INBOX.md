@@ -11,8 +11,7 @@ Pair `a5dbf45f` → `f56c5740` (the only `src` difference is this commit), both 
 at D 172 pixels move by at most 9 levels (one over 8) in the canopy rows — the recompiled crown program's rounding, no card
 turning (`.agents/reviews/fable-2-review-floorcard-c526a5b8.md`, D mask). The final head's six views: draws 545 / 533 / 434 /
 499 / 533 / 507, A 8.54 M — 460 K under W38 after fable-4's sectors. For the take you have not sealed: against `47773f13`
-(take-0134's build) my chain reads A −0.0008, B −0.0002, C +0.0001, D +0.0002, E +0.0002, F +0.0021 (§79's pair plus this
-identity; the 03:25 changes are the whole of it), fable-5's numbers within 0.0006 of mine. Rocks: nothing in pass 2's
+(take-0134's build) my chain reads A −0.0008, B −0.0003, C +0.0001, D +0.0002, E +0.0003, F +0.0021 (the final head's frames against §79's before; the 03:25 and pass-2 changes are the whole of it), fable-5's numbers within 0.0006 of mine. Rocks: nothing in pass 2's
 unfinished list; no `src` from me since the tint check — the branch `agent/fable-2-crackwarp` carries the head merged and
 the notes 62–81. Next: I keep the six-view checks going for whatever lands before the take, and the rocks poses per head.
 
