@@ -30,7 +30,7 @@ function loadTs(file) {
 }
 
 const here = path.dirname(new URL(import.meta.url).pathname);
-const { designStep, cadence, strideFor, strengthFor, RUN_SPEED, MIN_STEP_GAP } = loadTs(path.join(here, 'footsteps.ts'));
+const { designStep, designLanding, landingStrength, cadence, strideFor, strengthFor, RUN_SPEED, MIN_STEP_GAP } = loadTs(path.join(here, 'footsteps.ts'));
 const { createRng } = loadTs(path.join(here, '../world/util/prng.ts'));
 
 const SURFACES = ['stone', 'stair', 'grass', 'dirt', 'wood', 'hollow', 'leaf'];
@@ -140,6 +140,31 @@ test('the design is a pure function of its seeded stream (no Math.random in the 
   assert.notEqual(a, JSON.stringify(designStep('leaf', 0.7, false, rng('other'))), 'two seeds must differ');
   const source = readFileSync(path.join(here, 'footsteps.ts'), 'utf8') + readFileSync(path.join(here, 'ambience.ts'), 'utf8') + readFileSync(path.join(here, 'graph.ts'), 'utf8');
   assert.equal(/Math\.random\s*\(/.test(source), false, 'world audio must draw from src/world/util/prng.ts only');
+});
+
+test('a landing is both boots at once, deeper and longer than a step', () => {
+  for (const surface of SURFACES) {
+    const energy = (d) => d.parts.reduce((s, p) => s + p.peak * p.peak * p.decay, 0);
+    const steps = designs(surface, true, 0.9);
+    const lands = Array.from({ length: 40 }, (_, i) => designLanding(surface, 0.9, rng(`land/${surface}/${i}`)));
+    for (const d of lands) {
+      // no separate toe: every body arrives inside the first 45 ms
+      const late = d.parts.filter((p) => p.kind === 'body' && p.at > 0.045);
+      assert.equal(late.length, 0, `${surface}: a landing has no heel-to-toe gap, found a body at ${late[0]?.at}`);
+      // weight under the impact: a body an octave or so below the heel's own, ringing longer
+      const bodies = d.parts.filter((p) => p.kind === 'body');
+      const heel = bodies.filter((p) => p.at <= 0.004).reduce((a, b) => (a.peak > b.peak ? a : b));
+      const sub = bodies.reduce((a, b) => (a.f0 < b.f0 ? a : b));
+      assert.ok(sub.f0 < heel.f0 * 0.7, `${surface}: the landing needs weight under the heel (${sub.f0.toFixed(0)} vs ${heel.f0.toFixed(0)} Hz)`);
+      assert.ok(sub.decay > heel.decay * 1.8, `${surface}: that weight should ring on (${sub.decay.toFixed(3)} vs ${heel.decay.toFixed(3)} s)`);
+      assert.ok(d.end > steps[0].end, `${surface}: a landing rings on past a step`);
+    }
+    const mean = (a) => a.reduce((x, y) => x + y, 0) / a.length;
+    assert.ok(mean(lands.map(energy)) > mean(steps.map(energy)) * 1.4, `${surface}: a landing must carry more than a running step`);
+  }
+  // how hard it lands follows the drop, and saturates
+  assert.ok(landingStrength(0) < landingStrength(1) && landingStrength(1) < landingStrength(2), 'a longer fall lands harder');
+  assert.ok(landingStrength(0) >= 0.45 && landingStrength(99) <= 1, 'landing strength stays inside 0.45 … 1');
 });
 
 test('the wind bed is a swell, not a floor: still air is silent', () => {

@@ -187,6 +187,8 @@ export function mountAudio(o: AudioOptions): AudioHandle {
   let raf = 0;
   let pods: Vec3[] = [];
   let gaitDriven = false;
+  /** the highest point of the jump or drop in progress (m above the ground under him) */
+  let peakAir = 0;
   const emit = () => o.onState?.(!live ? 'idle' : muted ? 'muted' : 'on');
   emit();
 
@@ -217,6 +219,14 @@ export function mountAudio(o: AudioOptions): AudioHandle {
         const s = surfaceAt(p.x, p.z);
         const stance = player.feetContact?.()?.map((f) => f.stance);
         gaitDriven = !!stance;
+        // the jump's arc (`airHeight` is 0 whenever a boot is down): the drop's highest point is
+        // how hard he comes back onto whatever is under him
+        const air = player.airHeight?.() ?? 0;
+        if (air > 0.02) peakAir = Math.max(peakAir, air);
+        else if (peakAir > 0.05) {
+          footsteps.land(t, s.stairs ? 'stair' : s.surface, peakAir);
+          peakAir = 0;
+        } else peakAir = 0;
         footsteps.drive(t, dt, { speed, surface: s.surface, onStairs: s.stairs, stance });
       }
       lastPos.x = p.x;
@@ -288,7 +298,7 @@ export function mountAudio(o: AudioOptions): AudioHandle {
       music: musicSource,
       pods: pods.length,
       gaitDriven,
-      ...(live?.footsteps.stats() ?? { steps: 0, gaitSteps: 0, surfaces: {}, lastSurface: null }),
+      ...(live?.footsteps.stats() ?? { steps: 0, gaitSteps: 0, surfaces: {}, lastSurface: null, landings: 0 }),
     }),
     renderOffline: (seconds, sampleRate = 44100, options) => renderOffline(o, seed, seconds, sampleRate, options),
     dispose() {

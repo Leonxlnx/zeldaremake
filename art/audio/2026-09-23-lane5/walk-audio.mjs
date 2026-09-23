@@ -34,6 +34,7 @@ const ROUTES = [
   { name: 'the lawn west of the spine', at: [-6.5, 2, 200], key: 'KeyW', seconds: 6 },
   { name: 'up the main flight', at: [9.2, -1.4, 340], key: 'KeyW', seconds: 8 },
   { name: 'running the plaza', at: [0, 4, 180], key: 'KeyW', seconds: 6, shift: true },
+  { name: 'jumping on the plaza', at: [0, 2, 180], key: 'KeyW', seconds: 7, jumpEvery: 1.6 },
 ];
 
 const server = await serveStatic(dist);
@@ -73,10 +74,17 @@ try {
     // reads (and therefore the cadence it plays) to be the ones a player would produce. The gait's
     // stance flags are sampled on every one of those frames — a cadence that reads too fast can
     // then be told apart from a stance flag that flickers.
+    const frames = Math.round(route.seconds / DT);
+    const jumpEvery = route.jumpEvery ? Math.round(route.jumpEvery / DT) : 0;
     const gait = await page.evaluate(
-      async (n, dt) => {
+      async (n, dt, every) => {
         const rows = [];
         for (let i = 0; i < n; i++) {
+          // Space is the jump (camera/follow.ts); the harness presses it like a player would
+          if (every && i % every === 0) {
+            window.dispatchEvent(new KeyboardEvent('keydown', { code: 'Space', bubbles: true }));
+            setTimeout(() => window.dispatchEvent(new KeyboardEvent('keyup', { code: 'Space', bubbles: true })), 90);
+          }
           window.__ZR_PLAY__.step(1, dt, false);
           const f = window.__ZR_PLAY__.state().feet;
           rows.push((f ?? []).map((x) => (x.stance ? 1 : 0)));
@@ -84,8 +92,9 @@ try {
         }
         return rows;
       },
-      Math.round(route.seconds / DT),
+      frames,
       DT,
+      jumpEvery,
     );
     await page.keyboard.up(route.key);
     if (route.shift) await page.keyboard.up('ShiftLeft');
@@ -106,6 +115,7 @@ try {
       seconds: route.seconds,
       steps: diff('steps'),
       gaitSteps: diff('gaitSteps'),
+      landings: diff('landings'),
       surfaces,
       endedAt: where?.link?.map?.((v) => Number(v.toFixed(2))) ?? where?.link ?? null,
       wallMs: Date.now() - t0,
@@ -115,7 +125,7 @@ try {
       gaitStanceShare: stanceShare,
     };
     results.routes.push(row);
-    log(`${route.name}: ${row.steps} steps (${row.gaitSteps} on a boot plant) over ${route.seconds} s — ${JSON.stringify(surfaces)}; the gait planted ${plants.join(' + ')} times`);
+    log(`${route.name}: ${row.steps} steps (${row.gaitSteps} on a boot plant), ${row.landings} landings over ${route.seconds} s — ${JSON.stringify(surfaces)}; the gait planted ${plants.join(' + ')} times`);
     for (const p of pattern) log(`  gait ${p.slice(0, 120)}`);
   }
   results.end = await page.evaluate(() => window.__ZR_AUDIO__.stats());
