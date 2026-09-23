@@ -94,11 +94,14 @@ export function createUnderstoryTree(p: UnderstoryParams, palette: Palette, deta
 
   // ---------- the crown: laminae on an ellipsoid shell with an inner fill ----------
   const leafOpts = { widthRatio: 0.62, wideFirst: 0.55, wideSecond: 0.3, stiffness: 0.35, flutter: 0.05 };
-  const shellCount = Math.round(CR * CR * 34 * p.leafDensity);
+  // Round 53 follow-up (a walker passes these at 2–4 m): twice the laminae at two thirds the size —
+  // the same covered area (count × size² ≈ 0.95 of before), leaves that read as leaves instead of
+  // 0.45 m cards at arm's length. Distance LODs keep their coverage through addLeaf's retention.
+  const shellCount = Math.round(CR * CR * 72 * p.leafDensity);
   const fillCount = Math.round(shellCount * 0.32);
   const total = shellCount + fillCount;
   const golden = 2.399963229728653;
-  const leafSize = 0.3 + CR * 0.055;
+  const leafSize = 0.2 + CR * 0.038;
   const warm = sunny.clone().lerp(canopy, 0.35 - 0.2 * p.warmth);
   for (let j = 0; j < total; j++) {
     const shell = j < shellCount;
