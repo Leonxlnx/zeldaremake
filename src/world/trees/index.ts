@@ -1724,6 +1724,8 @@ const UNDERSTORY_ZONES: { xMin: number; xMax: number; zMin: number; zMax: number
   { xMin: 12, xMax: 32, zMin: -12, zMax: 22, count: 8 },
 ];
 const UNDERSTORY_PATH_MIN_M = 3.4;
+const UNDERSTORY_PATH_MIN_ARCH_M = 6.5;
+const UNDERSTORY_ARCH_STRETCH_Z = -28;
 const UNDERSTORY_PATH_MAX_M = 11;
 const UNDERSTORY_SPACING_M = 3.2;
 /**
@@ -2243,7 +2245,10 @@ export async function create(ctx: WorldContext): Promise<WorldSystem> {
         const x = zone.xMin + placeRng() * (zone.xMax - zone.xMin);
         const z = zone.zMin + placeRng() * (zone.zMax - zone.zMin);
         const d = pathDistance(x, z);
-        if (d < UNDERSTORY_PATH_MIN_M || d > UNDERSTORY_PATH_MAX_M) continue;
+        // nearer the arch the verge widens: D's window onto the arch's opening stays readable while
+        // the corridor keeps its trees on both sides (the reference's D frames the arch with trees)
+        const pathMin = z < UNDERSTORY_ARCH_STRETCH_Z ? UNDERSTORY_PATH_MIN_ARCH_M : UNDERSTORY_PATH_MIN_M;
+        if (d < pathMin || d > UNDERSTORY_PATH_MAX_M) continue;
         if (expansionCull(x, z)) continue;
         const m = terrain.mask(x, z);
         if (m.path > 0.05 || m.stairs > 0 || m.structure > 0 || m.cliff > 0.3) continue;
