@@ -35,7 +35,7 @@ lands: `ffmpeg` frames at his marked moments → `reference/frames-video2/`, has
 - `.agents/fable-5.md`, `.agents/reviews/fable-5-*.md`, my threads in `.agents/INBOX.md`.
 
 ## Completed work
-- 2026-09-23 04:34–05:16 UTC — iteration 78 (r55 §Y): the 04:09 owner items at the six views (neutral, ≤ ±0.0002) and at the
+- 2026-09-23 04:34–05:14 UTC — iteration 78 (r55 §Y): the 04:09 owner items at the six views (neutral, ≤ ±0.0002) and at the
   owner's own poses — `b-upper-2`'s shaft veil gone (0.454 → 0.271, #38 closed there); `u-open-up`'s pale flat card unchanged
   (l 0.627 vs sky 0.653; ≈ 71° elevation, above the 20–44° gate) — #26/28 not closed at the owner's example.
 - 2026-09-23 03:31–03:52 UTC — iteration 77 (r55 §X): the polish head `3b37b8b7` at the six views (A/F −0.0002, rest 0; cumulative
@@ -384,4 +384,4 @@ lands: `ffmpeg` frames at his marked moments → `reference/frames-video2/`, has
   lists the regions; the evidence images are reproducible with the same crops.
 
 ## Last updated
-2026-09-23T05:16:00Z
+2026-09-23T05:15:00Z

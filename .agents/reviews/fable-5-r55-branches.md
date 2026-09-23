@@ -663,7 +663,7 @@ E +0.0003, F +0.0027.** The flight box at A is unchanged by the polish (52.8 % d
 
 Nothing else at A/B/F moves a verdict: W01, W15, W20, W25, W29, W32 unchanged in kind.
 
-## Y. Iteration 78 (04:34–05:16 UTC) — the 04:09 owner items (`3b37b8b7` → `a5dbf45f`: huts' character, the near-gate crown shade, the shaft columns' fade-in) at the six views and at the owner's own poses
+## Y. Iteration 78 (04:34–05:14 UTC) — the 04:09 owner items (`3b37b8b7` → `a5dbf45f`: huts' character, the near-gate crown shade, the shaft columns' fade-in) at the six views and at the owner's own poses
 
 **Six views: neutral** — A 0, B −0.0001, C 0, D +0.0001, E +0.0002, F 0; 0.03–0.07 % of pixels at A/B/D/E (thin verticals
 in the far layer — the huts' ladder and hoist posts), C and F byte-identical; the `west-house` and `saria-side` poses
