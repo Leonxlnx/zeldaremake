@@ -49,6 +49,97 @@ as `agent/fable-2-<topic>`; `fable-cursor` merges. I do not touch `layout.ts`, t
   look lifted and warmed (`a683a4c1`) — **FAIL as a visible change at D**: the ferns hide the rock,
   the visible cap edge moved 0.238 → 0.246 and D −0.0002. Kept (harmless, toward the reference);
   the item is vegetation-26's exclusion disc first. §Iteration 8.
+- Iteration 81 — owner pass 2 landed (165 / 200; item 2 → 4 "fable-5 and fable-2 measured the stripes gone at A / F
+  independently"); nothing under rocks in the head or the unfinished list. Non-author check of `c526a5b8` (the
+  distant floor cards' own normal inside 48 m) at the six views on the final head `f56c5740` vs `a5dbf45f`: A / B / C /
+  E / F byte-identical, D 172 px ≤ 9 levels (SSIM 0.2675 =); draws 545 / 533 / 434 / 499 / 533 / 507, A 8.54 M.
+  `.agents/reviews/fable-2-review-floorcard-c526a5b8.md`. INBOX to fable-cursor.
+- Iteration 80 — the play camera's look-down (35°, ≈ 3 m) surveyed at six rocks poses on the head: nothing floats, no
+  pebble-LOD seam, the skirt / pair / pebbles read as stone (README §80, `lookdown80-sheet.jpg`). The D boulder's
+  "diamond weave" from above chased as a noise-lattice artifact: `crackWarp` built (far byte-identical, test), the
+  lines move (85 % of line vertices) but the regularity is the bedding bands, not a lattice (the flat-slice crack field is
+  irregular already; the ring's angular share 71 → 72 %) — no measured defect, reverted on top (`743f1454` / `a1782588`).
+  Branch `agent/fable-2-crackwarp` = head `a5dbf45f` + the r79 notes chain + these notes; `src` = head.
+- Iteration 79 — fable-cursor's all-lanes ask (owner review 2026-09-23 landed: "re-verify your lane on the head"): the
+  head `59c0f961` against `47773f13` (the build the owner played) at the six views and seven rocks poses. Six views
+  A −0.0007, B −0.0002, C +0.0001, D +0.0002, E +0.0002, F +0.0021 (the flight's logs and the lantern frames — none of it
+  rocks: A's stair-foot skirt, the D boulder, E's pebbles 0 px); `sn-boulder-shotd`, `x-ledge-wall` 0 px, the pale pair
+  20 px, the census (66 meshes / 3 330–3 395 instances) and the pebble LOD identical; A 8.67 M, 476 draws; tests 37 / 37,
+  tsc green. The A flight box on the head = `d4f1feec`'s (51.4 % dark, lips 78). Nothing to retune. README §79, INBOX.
+- Iteration 78 — take-0134 sealed VALID 41/50 (the clarity set: every view down as booked, D −0.0110). Owner review
+  2026-09-23 landed as direct commits by the owner-side agent; one is my module: the hero flight's logs rewritten
+  against "an obvious repeated pattern" (`d4f1feec`: LOG_TINT 0.76/0.74/1.0, grain along the log per log, wear,
+  irregular stakes). Checked: A −0.0006, C 0, F +0.0022; the A flight box 44 → 51 % dark, lips 92 → 78 (frame 100)
+  — the right fix in kind, ≈ 60 % of the tint's value given back; a LOG_TINT near 1.0/0.97/1.3 offered to hold
+  both. README §78.
+- Iteration 77 — quiet tick: head unchanged since tick 240 (take-0134 finishing F), no notes to rocks or all
+  lanes, nothing ranked, no code open to review. No note.
+- Iteration 76 — heartbeat tick (take-0134 at F): nothing addressed to rocks; fable-5's own read of the culling
+  (byte-identical at six views + three walk poses) agrees with §75; the open notes are the flight's canopy shade
+  and the hazed cards, other lanes'. No note.
+- Iteration 75 — fable-5's 17-pose walk of the head (23:04): the ledge wall's beds / damp band and the backside
+  pair among the closed items; no open rocks item on its ranked list. Non-author check of fable-4's main-pass
+  culling (`06a1dca5`): A / C / F byte-identical, A −150 K, C −50 K, F −130 K, draws −2 / −1 / −4 — a clean
+  give-back. `.agents/reviews/fable-2-review-fable-4-mainpass-06a1dca5.md`.
+- Iteration 74 — heartbeat tick (take-0134 at D): nothing addressed to rocks, nothing ranked, no code open to
+  review (fable-5's newest is the haze hue lever for Astra). No note; the chain (62–73) awaits the merge.
+- Iteration 73 — Astra's upper-canopy admission (`8f07e181`, "six fixed frames byte-identical") checked on the
+  commit alone: A +0.0002, C −0.0049, F −0.0014 (fable-5's read reproduced), sha256 differs, +12 / +17 / +28 draws,
+  +120 K / +150 K / +260 K triangles at A / C / F — near parts admitted at fixed cameras against the contract;
+  A 8.64 → 8.76 M. `.agents/reviews/fable-2-review-admission-8f07e181.md`; INBOX to fable-cursor / Astra.
+- Iteration 72 — fable-5's corrected fog pair (their after frames had `--character` on): A −0.0029, B −0.0030,
+  C −0.0081, D −0.0143, E −0.0024, F −0.0040 — mine to within 0.001; the reading shared (the slice costs on all
+  six, D the largest single-step loss of the rounds); their expected take-0134 row's "roof unknown" is the 20:45
+  pair. Head: Astra's admission + far packs imported (tick 236), take-0134 A in. Nothing ranked; no code open to
+  review; no INBOX note (nothing to add).
+- Iteration 71 — owner-fable's roof (PR #31) isolated at the six views (`bacdd46b^` vs `bacdd46b`): A +0.0003,
+  B +0.0015, C 0, D +0.0020, E +0.0006, F 0; +1 draw, ≤ 10 K tris — nothing to hold; the +0.013 gap between the
+  two fog reads at A is not the roof. take-0133 sealed 41/50 (dressing fade + memory branches neutral).
+  `.agents/reviews/fable-2-review-clearing-roof-sixviews-bacdd46b.md`.
+- Iteration 70 — fable-5's fog read (17:53) reconciled with mine: same SHAs; B and D agree, A/C/E/F differ by
+  0.004–0.013 and the split is in the before frames (my A before 0.2263 matches every head A of the day; their
+  +0.0102 needs an A before near 0.216). Their conclusion stands (clears by darkening; far bands below the frames).
+  Roof (PR #31) six views still unisolated — offered the pair `bacdd46b^` vs `bacdd46b`.
+- Iteration 69 — Astra's height-fog clarity slice (`ae880cf2`, haze 7× thinner) isolated at the six views before
+  take-0134 seals it with three other changes: D −0.0142, C −0.0070, F −0.0044, A −0.0029, B −0.0025, E −0.0016;
+  every frame 0.025 darker and further from the hazy reference in luminance, saturation toward it — the owner's
+  direction against the reference-anchored metric; a look change to name in the ledger. `skyFraction` → 0 in
+  every view (the classifier keys on haze). `.agents/reviews/fable-2-review-fog-slice-ae880cf2.md`. No lane claimed.
+- Iteration 68 — the owner's clarity direction landed (fog / distant crowns: Astra; white-bark crowns: fable-4;
+  nobody else starts a fog or crown pass — rocks has no part). Non-author check of owner-fable's clearing roof
+  (`ffff47b5`) from the clearing floor: four ground poses byte-identical (the cards never cast — the stones keep
+  their light), `x-clearing-up` blue sky 25.2 → 2.4 %, `x-stand-up` 38.3 → 34.5 %; nothing to hold.
+  `.agents/reviews/fable-2-review-owner-fable-clearing-roof-ffff47b5.md`.
+- Iteration 67 — take-0132 sealed 41/50 (A +0.0056 with the timber tint, F −0.0062); fable-5 attributed the
+  D boulder's shade to the trees system entirely (`nocast=trees` gives 93 % of the shadow-off gain) — a sun
+  corridor in `trees/index.ts` at the boulder's spot; a sun-cone probe from the crown against mesh bounds
+  found nothing usable (the trees are merged per sector, 30 m spheres) — the trees lane's own sun-probe is
+  the tool, the point (−2.0, 0, −7.6) and the 2 m pose are posted. No code; rocks' list empty; no reviewable
+  branches open (Astra's are character imports or evidence).
+- Iteration 66 — V16's two numbers (fable-5 14:03) built across flagstones / joints / index (flush rim + a flush
+  channel in the gap field + the fill to dry dirt at the slab's value + seam soil × 2) and read with their script:
+  E 86.1 → 90.7 px/kpx, hard groove 27 → 21.5 %, regions 14 → 15 (acceptance ≤ 60 / ≤ 15 % / ≤ 6); C +0.0016,
+  D −0.0016. **Not met**: the E box is the lawn slabs (flush skipped by the spall rule; the frame's lawn joints
+  close under grass — vegetation's turf), and the shoulder roll still reads as an edge. Implementation kept on
+  `agent/fable-2-v16-fill` (`2a3932df`), reverted on top. Four passes; done with V16. README §66.
+- Iteration 65 — fable-5's shadow-map-off switch closed the D boulder (a sun corridor onto it: the canopy's
+  lane; the planes stay unmerged); a 2 m pose that frames the moved boulder proposed for the survey manifest;
+  non-author check of fable-cursor's grass blades to 26 m (`f9c58007`): A 0 / E +0.0005 / C −0.0005, but
+  **A +150 K triangles (8.68 → 8.83 M, 170 K under W38)** and +7–9 draws — flagged
+  (`.agents/reviews/fable-2-review-grass-26m-f9c58007.md`).
+- Iteration 64 — V16's flush stretches (fable-5's re-scope) built on the rim-drop channel and read with their
+  `seam-lines.py`: E line 86.1 → 86.1 px/kpx, hard-groove share 27 → 27 %, regions 14 → 14 (frame 55 / 12 % / 5)
+  though 4–15 K px changed per view — the line is the fill strip's tone along the joint, not the recess. **FAIL,
+  reverted** (`agent/fable-2-v16-flush`); the lever left is the fill's tone varying along the seam with the flush
+  rim (`joints.ts`, the module's). This lane stops at V16 unless the module comes over. README §64.
+- Iteration 63 — round-52 #12's "one plane" at D: the §19 planes rebased onto the head where W23 moved the
+  boulder (`agent/fable-2-form-2` @ `f5ab2f28`): D box macro σ 0.023 → 0.026 (frame 0.097), p10/p90 0.26/0.39
+  (frame 0.18/0.50) even with a hard bake, D −0.0013 — **the light on the spot, not the geometry; FAIL to land**;
+  the planes read as form at 2.5 m from the south. README §63.
+- Iteration 62 — tick 226's "the frame time is all SwiftShader": the raster-time map by system from the page
+  (`render()` + a 1-px `readPixels` sync per configuration): A 14.3 s / C 10.5 s a frame — trees 40 %, vegetation
+  15 %, terrain a constant 1.6 s (fill-rate on the ground shader), the shadow pass 17 %, rocks 1.4 %; 300 programs
+  live. `.agents/reviews/fable-2-raster-time-map-722fecde.md`, posted in the stall thread. No lane claimed.
 - Iteration 61 — the rock meshes' CPU arrays released on GPU upload (`onUpload`, fable-4's tick-225 pattern;
   nothing reads them after the build): at E 115 attributes released, live rock arrays 66.2 → 33.2 MB with §60;
   pixels unchanged by construction (`agent/fable-2-rock-upload` @ `a1ed0427`). Rocks' part of the memory ask
@@ -301,16 +392,28 @@ Nothing outside `src/world/rocks/` except this log, the INBOX and my evidence un
   extension lands on the `ledge` flight's stairs mask and is dropped). The terrace lip east of the
   flight (x 2.1 … 3.5) is still the terrain's mound — a second `rockLedges` entry there is the
   layout's call (asked in the INBOX). Ferns at the foot: vegetation-26's.
-- Camera A renders 9.09 M triangles on the world head `3d50f6c8` (before this change; the loop's
-  ceiling is 9.0 M) — not mine to fix, flagged to fable-cursor.
+- Camera A: 8.67 M triangles on `59c0f961` (476 draws); fable-4's sector groups take another
+  −148 K on `a5dbf45f`. Rocks' share ≈ 0.75 M (§51's map).
 - Survey-2 #25 (bank boulders smooth dark domes at 8–15 m) and #34 (plaza joint pebbles as
-  smooth ellipsoids) are far-material instanced geometry in the six views — not attempted.
+  smooth ellipsoids) are far-material geometry inside the six views — a named look change (C / D,
+  E) before anyone builds them; not attempted.
+- The D boulder's shade at frame D is the canopy's (fable-5's `nocast=trees` switch, §65–§67): a sun
+  corridor onto (−2.0, 0, −7.6) is the trees lane's; the 2 m pose for it is in §65.
+- V16 (the joints as lines): the E box is the lawn slabs, whose joints close under grass — vegetation
+  / hardscape-32's; the flush-stretch implementation waits on `agent/fable-2-v16-fill` (`2a3932df`).
+- `logNosings.ts` is the owner-side agent's since `d4f1feec`: the timbers dark and individual; the
+  flight's remaining weight at A (51 % dark vs the frame's 16 %) is the treads' light and albedo per
+  fable-5, not the logs. fable-cursor (05:00): the pattern fix keeps its tint — the §78 `LOG_TINT` offer
+  is closed; the lever, if W02 wants value back, is the treads (hardscape `stairs.ts` tint / dryK + the
+  canopy's light on the flight), not this module.
 
 ## Recommended next work
-- GOAL_MODE fable-2 #2: opus #10, the shot-D boulder's tonal read at 2 m (`sn-boulder-shotd`).
-- #3: scree at the ledge flight's flanks, a boulder pair on the clearing's west bank, half-buried
-  strata along the terrace face (positions: `art/environment/round47-review/README.md`).
-- #4: `pathEdgePebble` per-candidate draws.
+- Each new head: re-verify rocks at the six views and the seven poses of §79 (`/tmp/f2/rv79-poses.json`
+  pattern: `sn-boulder-shotd`, `sn-boulder-stairfoot`, `x-ledge-wall`, `x-southbank-toe`,
+  `x-clearing-n`, `w23-stairs-f`, `x-stairs-3rd-tread`), census and pebble LOD from `--audit`.
+- Non-author checks of other lanes' branches at the six views (before / after on the commit alone).
+- If fable-cursor names a look change for rocks: #25's bank boulders' far form (planes, an undercut,
+  a bright top — the §63 method with the light first), #34's pebble far skin at E.
 
 ## Last updated
-2026-09-22T10:10:00Z
+2026-09-23T07:35:00Z
