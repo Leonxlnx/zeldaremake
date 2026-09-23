@@ -314,3 +314,64 @@ these sizes: +0.13 in the far air's l, the crowns toward the veil's colour, the 
 **Six views `6664f739` → `0149f255`** (same harness as 7a): A −0.0009, B −0.0007, C −0.0015, D +0.0019, E +0.0016,
 F +0.0004 — inside ±0.002, 0.3–6.6 % of pixels moved, mean luma +0.002 … +0.004 (the lit far wall, the treads' earth).
 Expected take-0135 row on this head: A ≈ 0.197, B ≈ 0.179, C ≈ 0.190, D ≈ 0.236, E ≈ 0.188, F ≈ 0.220 (± 0.003).
+
+## 10. The owner's own four 09-23 poses on `0149f255` (`art/environment/owner-2026-09-23/shots.json`; before = `a5dbf45f`, the last read of these poses, r55 §Y — `s2-owner` / `b-upper-2` / `h-west-front` were byte-identical from there to `f56c5740`; `u-open-up` carries `c526a5b8`'s card fix inside the delta)
+
+Rendered 12:31–12:43 UTC, no character, same list / order / flags as §Y. Sheets `fable-5-lane10/it85-ba-{s2,u-open-up,b-upper-2,h-west-front}.jpg`;
+numbers `fable-5-lane10/owner-poses-cmp.py`, the tree seats `fable-5-lane10/midseats.mjs` (the trees' audit `midCanopy.seats`).
+
+| pose | pixels > 6 / > 40 | mean luma | bright (> 0.6) | dark (< 0.25) | leafy |
+| --- | --- | --- | --- | --- | --- |
+| `s2-owner` (the flight, looking up it) | 34 / 10 % | 0.257 → 0.251 | 1.1 → 1.3 % | 55 → 60 % | 31 → 34 % |
+| `u-open-up` (the north hollow, straight up) | **99.9 / 81 %** | **0.550 → 0.303** | **50.5 → 13.6 %** | **0.5 → 53.5 %** | 1.0 → 31.7 % |
+| `b-upper-2` (the upper house's ladder) | **99.6 / 74 %** | **0.454 → 0.269** | 6.1 → 1.0 % | **0.5 → 54.6 %** | 3.0 → 19.6 % |
+| `h-west-front` (the west hut from the path, looking up-left) | **92 / 46 %** | **0.364 → 0.258** | 12.4 → 4.8 % | **30 → 59 %** | 9.5 → 35.6 % |
+
+**1. Mid-canopy crowns at arm's length (`u-open-up`, `h-west-front`) — the new top item at the owner's poses.** The
+mid layer was placed as a 14–58 m *radial* band from the clearing's centre (`midCanopy.band` 13.7–57.9 m, 277 trees),
+but the owner does not stand at the centre: along the north path the band's trees stand beside and over the walk line.
+The trees' audit puts an 11.6 m mid tree at (−3.9, −42.7), **6.0 m** from the `u-open-up` camera (crown radius 3.6 m,
+crown centre 6.6 m up — the camera at 5.19 m is inside the crown's height band, 2.4 m from its edge), two more at 7.4 /
+7.7 m; at `h-west-front` a 14.6 m mid tree stands at (−3.3, −19.6), **3.0 m** from the camera with a 4.2 m crown whose
+base is 4.4 m up — the camera (4.2 m) is under it, inside its radius. At that range the crown is what it is built of:
+the far layer's atlas on **crossed cards, lobe pairs and floor cards — flat, hard-edged olive quads a metre wide**
+(sheets). The look-up that the owner asked for on 09-23 (pass 1) now shows a wall of them where it showed sky and the
+giants' canopy: sky share 50.5 → 13.6 %, the frame 0.55 → 0.30. `h-west-front` loses the hut behind them (the owner's
+09-23 hut item), and the same tree is the crown that roofs the path in his 06:50 frame (§7's top band: it stands 3.3 m
+west of the spine at z −19.6, 5 m from the path's centre at z −18). Lane 2: (a) a clearance corridor for the mid seats
+along the walk lines — the spine (x ≈ 1.5, z −4 … −45) and the owner's poses — of ≈ 8–10 m, the way the verges and the
+sectors keep theirs; (b) the crowns need a *near* treatment or a fade under ≈ 10 m (the far atlas at 3 m is a card).
+Both are measurable here at these two poses.
+
+**2. `b-upper-2` went dark.** The bright veil in front of the upper house (0.454, 6 % over 0.6) is gone; the hut reads
+sharp — the bark, the lantern, the ladder — in deep shade (0.269, 55 % of the frame under 0.25). Lane 1's closed-roof
+grade / `hazeShadeVeil` is the likely lever (the hut sits under the giants' roof); the owner asked for the huts'
+*character* (04:09) and for bright warm air (06:50) — this pose has the first and lost the second. Lane 1 with the
+next brightness pass: read this pose too.
+
+**3. The flight (`s2-owner`) after lane 6's earth treads (`a0223c98`).** Earth between the logs shows on the near
+treads (the sheet's lower third) — the demo's kind — but at the owner's angle the flight box (x 0.50–0.95 × y 0.20–0.95)
+reads **60.9 → 60.8 % dark, 3.9 → 6.1 % pale, luma 0.236 → 0.242**; the demo's flights read **13–31 % dark / 7–8 %
+pale / 0.31–0.33** (`demo61/d_104` x 0.79–0.865 × y 0.03–0.28, `d_094` x 0–0.11 × y 0.24–0.58). At camera A the
+flight box is unchanged too (54.2 / 7.7 / 0.260 against 54.5 / 7.7 / 0.260 on `6664f739`). The weight is the log faces
+and the shaded tread fronts, which fill a low view; the demo's logs are thin and its treads lit. Lane 6 (fable-2) with
+lane 1: the treads' brightness on that slope is the remaining half (r55 §W), the earth is the right material for it.
+
+Six views on this head: §9 (inside ±0.002 of `6664f739`).
+
+### The ranked list at player height, as of `0149f255` (12:51 UTC)
+
+| # | issue | where | lane | measured |
+| --- | --- | --- | --- | --- |
+| 1 | **Mid-canopy crowns at 3–7 m from the walk line read as flat card piles**; they roof the path and hide the west hut | `u-open-up` (tree at (−3.9, −42.7), 6 m), `h-west-front` (tree at (−3.3, −19.6), 3 m), the 06:50 pose's top band | 2 | §10.1 |
+| 2 | **The far air is warm but not light** — far-centre l 0.342 vs the recording's 0.474; bright mist 2.8 vs 23 % | the north path, every pose looking out | 1 | §7, §9 |
+| 3 | **The mid crowns keep their local colour at 14–40 m** (s 0.15 / l 0.30 vs 0.05 / 0.42) | the 06:50 pose's far-centre box | 2 with 1 | §7, §9 |
+| 4 | **`b-upper-2` went from bright veil to deep shade** (0.454 → 0.269; 55 % of the frame under 0.25) | the upper house's ladder | 1 | §10.2 |
+| 5 | **The flight's weight** — 61 % dark / l 0.24 at the owner's angle vs the demo's 13–31 % / 0.31–0.33; the earth treads show, the light does not | `s2-owner`, camera A | 6 with 1 | §10.3 |
+| 6 | **A 1.26 m one-frame camera pop leaving the west house**; the camera at 0.37–0.41 m over the ground on descents | Link (−16.8, 2.9, 6.6); `west-house-to-plaza`, `plaza-loop` | camera (fable-cursor) | §8 |
+| 7 | **Link's boots float 3–11 cm over Saria's forecourt, 2–4 cm over the west deck**; a boot corner 31 cm inside the flight | `saria-front-arc`, `west-deck`, the main flight | 8 / collision | §8 |
+| 8 | **The plaza walk's JS step 4.1 → 10.4 ms p50** — the trees' near-LOD pool builds pending longer; heap +99 MB over the walk | the first 200 frames from the plaza | 2 / fable-cursor | §8 |
+| 9 | `stairs2-base` 9.67 M triangles (the 9.0 M cap read at A) | the flight's foot | all | §8 |
+| 10 | The path: stone slabs with dark joints where the recording's north run is packed dirt | the spine north of the plaza | 6 | §2 #4 |
+| 11 | The right bank a cut earth wall (brown 30 % of the band vs 1 %) | the spine's east side | 4 / 6 | §7 |
+| 12 | No fork past Saria's mound; no people | north of Saria's; the plaza | 6; 7 | §2 |
