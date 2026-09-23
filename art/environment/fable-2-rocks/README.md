@@ -31,6 +31,26 @@ The branch carries the head `76fef8a6` merged (fable-cursor's rule for squad lan
 (0 / 0 / 11 px at §83's base). Draws and triangles are the head's: **A 599 draws / 9.15 M triangles** — the squad's mid-canopy
 and understory took A from 8.55 M (`73402409`) over W38's 9.0 M ceiling; C 473 / 6.77 M, F 550 / 7.99 M. Not mine to cut;
 flagged to fable-cursor. A frame here now takes ≈ 680 s to render at A (was 350).
+## Iteration 88 — lane 6, the perf pass: the flagstones stop casting shadows — camera A 9.15 → 8.97 M (back under W38's 9.0 M), the frames unchanged (A +0.0001, E 0; 0.1 % of pixels by ≤ 40 levels, hairlines on the joints' sunward sides)
+
+fable-cursor's 12:55: "perf is next after the owner's visual asks"; my §87 map put the shadow pass at 3.03 M of A's 9.15 M
+and hardscape's at 0.23 M. The paving's share of that is a shadow-pass draw of the whole plaza + north + expansion meshes for
+slabs that stand 6–10 cm proud of a fill the shader already paints dark (the seam soil, the stain band, the mottle): each
+slab's own shadow bought a hairline on the sunward side of its joint. `flagstones.ts`: `mesh.castShadow = false` (the north
+and expansion meshes copy the flag; the stairs, kerbs, cheeks and the timbers keep casting).
+
+Before `be123deb` → after `ad0b3f68` (`paving88-noshadow-sheet.jpg`: E's and A's plaza foreground ×2.5, before | after | changed
+pixels):
+
+| view | before | after | Δ | changed px (> 8 / > 40) | draws / triangles |
+|---|---|---|---|---|---|
+| A_stairs | 0.2035 | 0.2036 | +0.0001 | 1 098 / 0 (0.12 %) | 597 / 9.15 M → 596 / **8.97 M** (−180 K) |
+| E_ground (≡ B) | 0.1946 | 0.1946 | 0 | 779 / 0 (0.08 %) | 589 / 8.30 M → 588 / 8.11 M (−190 K) |
+| C_lookback | see below | | | | 472 / 6.77 M → 471 / 6.59 M (−180 K) |
+
+`tsc` green, hardscape tests 9 / 9. The joints keep their darkness (the fill's paint, not the slabs' shadow); at A the only
+pixels that move are the hairlines along the sunward edges, none by more than 40 levels.
+
 ## Iteration 85 — lane 6: the raised stair to the north ledge is log-risered too (`LOG_FLIGHTS` + `ledge`): the owner's ref-03 right-bank steps — round timbers with cut ends and stakes, earth between; A / D byte-identical
 
 `art/environment/owner-review-2026-09-19/ref-03-marked-arch-depth-and-right-steps.png`, the owner's right-hand circle ("it should
