@@ -882,7 +882,9 @@ export const EXPANSION_SOUTH = {
    * between `face[0]` and `face[1]` m along the axis — behind the glow, past the last carved
    * lattice line at a ≈ 6.1 — swallows the log's end. Level to `crest`, back to the plain by
    * `back` (inside the distant forest's 60 m edge); the whole bank fades out between `halfTop`
-   * and `halfBase` m off the axis.
+   * and `halfBase` m off the axis — a broad forested rise the log burrows into (a bank ending at
+   * the shoulders read as a lone cone from the bridge), uneven past the trough and eased out
+   * before the ravine's lip (terrain/south.ts `bankHeight`).
    */
   tunnel: {
     mouth: [4.25, 46.9] as [number, number],
@@ -893,7 +895,7 @@ export const EXPANSION_SOUTH = {
     axisY: 1.28,
     deadEnd: 5.6,
     carveEnd: 6.35,
-    mound: { rise: 0.4, face: [6.2, 7.1] as [number, number], crest: 9.5, back: 13.0, shoulder: [2.3, 4.8] as [number, number], halfTop: 5.0, halfBase: 8.5, height: 4.0 },
+    mound: { rise: 0.4, face: [6.2, 7.1] as [number, number], crest: 9.5, back: 13.0, shoulder: [2.3, 4.8] as [number, number], halfTop: 8.0, halfBase: 14.0, height: 4.0 },
   },
   /**
    * The ravine's centreline (x, z, top half width W, depth D) west → east: a gorge closing to

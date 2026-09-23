@@ -21,7 +21,7 @@ import { Group, Sphere, Vector3 } from 'three';
 import { EXPANSION_SOUTH, southBridgeFrame, southPathHalfWidth, southPathLine, southRavineLine } from '../layout';
 import type { WorldContext } from '../system';
 import { getTerrain, type Terrain } from '../terrain/heightfield';
-import { RAVINE_BOX, bridgeLocal, inFarCorridor, moundHeight, ravineCut, ravineHit, ravineProfile, southOfRavine, tunnelFootprint, tunnelLocal, tunnelWorld } from '../terrain/south';
+import { RAVINE_BOX, bankHeight, bridgeLocal, inFarCorridor, ravineCut, ravineHit, ravineProfile, southOfRavine, tunnelFootprint, tunnelLocal, tunnelWorld } from '../terrain/south';
 import { casterSpheres, southPathSpheres, sunVector, type Caster } from '../util/expansionLocality';
 import { clamp, smoothstep } from '../util/noise';
 import type { Rng } from '../util/prng';
@@ -157,6 +157,30 @@ export function buildExpansionSouthVegetation(ctx: WorldContext, templates: Sout
     moss.add(M, rng.int(0, moss.variantCount), color);
   };
   const mossTint = (rng: Rng): [number, number, number] => [0.95 + rng() * 0.1, 1, 0.9 + rng() * 0.1];
+  /**
+   * A damp moss patch on the gorge's wall: 2–4 thin pads strung along the strata (across the fall
+   * line `f`), darker than the ground's cushions — one dome flush with a 75° face reads as a disc
+   * stuck on the rock from across the gorge. Returns the pads seated.
+   */
+  const wallMossPatch = (x: number, z: number, rng: Rng, fx: number, fz: number, size: number): number => {
+    const pads = 2 + rng.int(0, 3);
+    let placed = 0;
+    for (let k = 0; k < pads; k++) {
+      const off = (k - (pads - 1) / 2) * size * (1.1 + rng() * 0.5);
+      const px = mm(x - fz * off + (rng() - 0.5) * size * 0.5);
+      const pz = mm(z + fx * off + (rng() - 0.5) * size * 0.5);
+      const r = size * (0.7 + rng() * 0.6);
+      const flat = 0.1 + rng() * 0.08;
+      const yaw = rng() * Math.PI * 2;
+      const tone = 0.74 + rng() * 0.12;
+      const variant = rng.int(0, moss.variantCount);
+      if (groundOk(px, pz, 0.12) < 0) continue;
+      composeMatrix(M, 0, px, T.height(px, pz) - 0.012, pz, n.x, n.y, n.z, 0.95, yaw, r, (r * flat) / 0.45, r * 0.8);
+      moss.add(M, variant, [tone * 0.97, tone * 1.04, tone * 0.82]);
+      placed++;
+    }
+    return placed;
+  };
   /** a leaf lying on the ground (the litter's variants and tints) */
   const leaf = (x: number, z: number, rng: Rng, lift = 0.004) => {
     const scale = 0.7 + rng() * 0.7;
@@ -375,10 +399,11 @@ export function buildExpansionSouthVegetation(ctx: WorldContext, templates: Sout
           if (slope > 0.86 || crowded(ferns, x, z, 0.6)) continue;
           plant(ferns, x, z, rng, 0.4 + scaleR * 0.45, 0.4 + 0.4 * (1 - ledge), 0.05, c);
           wallFerns++;
-        } else if (kind < 0.56) {
-          cushion(x, z, rng, 0.1 + scaleR * 0.26, mossTint(rng));
-          wallMoss++;
-        } else if (kind < 0.76 && g < 0.5) {
+        } else if (kind < 0.46) {
+          // mostly on the ledges and the wall's easier pitches; the sheer face stays rock
+          if (slope > 0.9 && rng() > 0.3) continue;
+          wallMoss += wallMossPatch(x, z, rng, rp.fx, rp.fz, 0.1 + scaleR * 0.14);
+        } else if (kind < 0.7 && g < 0.5) {
           if (slope > 0.85) continue;
           n.x += rp.fx * 0.6;
           n.z += rp.fz * 0.6;
@@ -463,9 +488,7 @@ export function buildExpansionSouthVegetation(ctx: WorldContext, templates: Sout
     // turf over the bank the log burrows into, thinning on its steep flanks
     const bank = (x: number, z: number) => {
       if (!farGround(x, z)) return 0;
-      const t = tunnelLocal(x, z);
-      const rise = moundHeight(t.a, t.c);
-      return smoothstep(0.15, 0.8, rise) * (0.75 + 0.25 * hash01(x, z, 11));
+      return smoothstep(0.15, 0.8, bankHeight(x, z)) * (0.75 + 0.25 * hash01(x, z, 11));
     };
     lawn('bank', bankBox, bank, { tuftsPerM2: 2.2, tint: 1.1, dry: 0.4, height: 0.85, tuftHeight: [0.5, 0.95] });
   }
@@ -518,7 +541,7 @@ export function buildExpansionSouthVegetation(ctx: WorldContext, templates: Sout
       }
     }
     // the bank: shrubs scattered over its shoulders and top, ferns in its folds, a few blooms
-    for (let i = 0; i < 700; i++) {
+    for (let i = 0; i < 1500; i++) {
       const x = mm(bankBox[0] + rng() * (bankBox[2] - bankBox[0]));
       const z = mm(bankBox[1] + rng() * (bankBox[3] - bankBox[1]));
       const kind = rng();
@@ -526,12 +549,11 @@ export function buildExpansionSouthVegetation(ctx: WorldContext, templates: Sout
       const scale = rng();
       const c = greenVar(rng, 0.18);
       if (!farGround(x, z)) continue;
-      const t = tunnelLocal(x, z);
-      const rise = moundHeight(t.a, t.c);
+      const rise = bankHeight(x, z);
       if (rise < 0.35 || draw > smoothstep(0.35, 1.2, rise) * q.density) continue;
       const slope = groundOk(x, z, 0.25);
       if (slope < 0 || slope > 0.66) continue;
-      if (kind < 0.14) {
+      if (kind < 0.2) {
         if (crowded(bushes, x, z, 1.6)) continue;
         plant(bushes, x, z, rng, 0.6 + scale * 0.45, 0.35, 0.06, greenVar(rng, 0.12));
         bankBushes++;

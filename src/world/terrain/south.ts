@@ -200,16 +200,59 @@ export function tunnelWorld(a: number, c: number): [number, number] {
   return [TM[0] + TF.ax * a + TF.cx * c, TM[1] + TF.az * a + TF.cz * c];
 }
 
-/** the far bank's mound over the plain at tunnel-frame (a, c) (m; layout `tunnel.mound`): the shoulders beside the log's trough and the face / plateau behind it */
+const bankNoise = new Noise2D('south-bank/lumps');
+
+/**
+ * The far bank's mound over the plain at tunnel-frame (a, c) (m; layout `tunnel.mound`): the
+ * shoulders beside the log's trough and the face / plateau behind it. Past the trough the bank is
+ * uneven — broad swells (± 20 % of the body) and knobs (± 0.35 m) — and none of it reaches back
+ * within `shoulder[1] − 0.3` m of the axis, where the 1 m lattice has to keep off the shell.
+ */
 export function moundHeight(a: number, c: number): number {
   const M = EXPANSION_SOUTH.tunnel.mound;
   if (a <= M.rise || a >= M.back) return 0;
   const ac = Math.abs(c);
   const width = 1 - smoothstep(M.halfTop, M.halfBase, ac);
   if (width <= 0) return 0;
-  const plateau = a < M.face[1] ? smoothstep(M.face[0], M.face[1], a) : a > M.crest ? 1 - smoothstep(M.crest, M.back, a) : 1;
-  const shoulder = smoothstep(M.rise, M.face[0], a) * smoothstep(M.shoulder[0], M.shoulder[1], ac);
-  return M.height * Math.max(plateau, shoulder) * width;
+  const back = a > M.crest ? 1 - smoothstep(M.crest, M.back, a) : 1;
+  const plateau = a < M.face[1] ? smoothstep(M.face[0], M.face[1], a) : back;
+  const shoulder = smoothstep(M.rise, M.face[0], a) * smoothstep(M.shoulder[0], M.shoulder[1], ac) * back;
+  const body = Math.max(plateau, shoulder) * width;
+  const away = smoothstep(M.shoulder[1] - 0.3, M.shoulder[1] + 1.7, ac);
+  if (away <= 0) return M.height * body;
+  const swell = bankNoise.fbm(a * 0.16 + c * 0.05, c * 0.17 + 3.1, 2);
+  const knobs = bankNoise.noise(a * 0.3 + 11.7, c * 0.3 - 4.3);
+  return Math.max(0, M.height * body * (1 + 0.2 * away * swell) + 0.35 * away * body * knobs);
+}
+
+/**
+ * Metres from (x, z) out past the widest the ravine's lip can reach (its wall wobble included);
+ * Infinity farther than `reach` beyond that, or where the gorge has closed to nothing.
+ */
+function lipGap(x: number, z: number, reach: number): number {
+  let best = Infinity;
+  for (const g of SEGS) {
+    if (x < g.x0 - reach || x > g.x1 + reach || z < g.z0 - reach || z > g.z1 + reach) continue;
+    const t = clamp(((x - g.ax) * g.dx + (z - g.az) * g.dz) / Math.max(g.len * g.len, 1e-9), 0, 1);
+    if (g.da + (g.db - g.da) * t <= 0.01) continue;
+    const d = Math.hypot(x - g.ax - g.dx * t, z - g.az - g.dz * t);
+    best = Math.min(best, d - (g.wa + (g.wb - g.wa) * t + RV.lip + WOBBLE_OUT));
+  }
+  return best;
+}
+
+/** metres over which the far bank's rise eases out before the ravine's outermost lip */
+const BANK_LIP_FADE = 2.2;
+/**
+ * The far bank's rise at world (x, z): `moundHeight`, eased to nothing over the last
+ * `BANK_LIP_FADE` m before the ravine's outermost lip — the gorge is cut into the plain (the cut
+ * is measured from the ground it lands on, so a bank over the lip would lift the floor).
+ */
+export function bankHeight(x: number, z: number): number {
+  const t = tunnelLocal(x, z);
+  const m = moundHeight(t.a, t.c);
+  if (m <= 0) return 0;
+  return m * smoothstep(0, BANK_LIP_FADE, lipGap(x, z, BANK_LIP_FADE + 0.5));
 }
 
 /** the berm's crest under the log's axis (m): the flanks' earth meets the bark a hand under its widest girth */

@@ -29,10 +29,10 @@ import { authoredWhiteBarks, createWhiteBarkRoots, createWhiteBarkTree, whiteBar
 import { createUnderstoryTree, understoryParams, type UnderstoryParams } from './understory';
 import { placeWhiteBark, treeGroundBlocked, viewProjector, type WhiteBarkPlacement } from './placement';
 import { columnParams, createColumnTree, emergentParams, hutHostParams, type ColumnAsset, type ColumnParams } from './column';
-import { expansionCull, getTerrain, type Terrain, type TerrainView } from '../terrain/heightfield';
+import { expansionCull, getTerrain, southFooting, southTrunkSeatY, type Terrain, type TerrainView } from '../terrain/heightfield';
 import { smoothstep } from '../util/noise';
 import { casterSpheres, expansionVisible, type Caster } from '../util/expansionLocality';
-import { EXPANSION } from '../layout';
+import { EXPANSION, EXPANSION_SOUTH, southPathLine } from '../layout';
 import { createGiantTree, LOBE_SECONDARY_REACH, LOBE_TWIG_REACH, LOBE_TWIG_TINT, NEAR_BASE_CUT_Y, NEAR_BASE_RADIUS_OVERRIDE, NEAR_BASE_RADIUS_OVERRIDE_LARGE, type CanopyBough, type GiantAsset, type GiantProfile } from './giant';
 import { NEAR_CANOPY_IN_M, NEAR_CANOPY_MAX_Y, NEAR_CANOPY_OUT_M, type NearCanopyPart } from './nearCanopy';
 import { LodPool, type PoolBuilt, type PoolItem } from './lodPool';
@@ -1355,6 +1355,19 @@ function spineDistance(spine: [number, number][], x: number, z: number): number 
   }
   return best;
 }
+/** round 56: a trunk's footing ring on the south exit (heightfield `southFooting`): a bole and its flare keep this far off the paving and the log (m) … */
+const SOUTH_TRUNK_REACH_M = 1.5;
+/** … and its own rim this far off the gorge's lip (m): rim trees stay, their crowns over the ravine */
+const SOUTH_LIP_MARGIN_M = 0.3;
+/** round 56: the mid grove's crown cards keep this far off the south route's line — fable-5's 3–7 m "flat card piles" band (m) */
+const MID_SOUTH_WALK_MIN_M = 7.5;
+/** the south route's walk line: the path to the north sill, the bridge's axis, the far path to the log's mouth */
+const SOUTH_WALK_XZ: [number, number][] = [
+  ...southPathLine().map((p) => [p[0], p[2]] as [number, number]),
+  ...EXPANSION_SOUTH.farPath.map((p) => [p[0], p[2]] as [number, number]),
+  [EXPANSION_SOUTH.tunnel.mouth[0], EXPANSION_SOUTH.tunnel.mouth[1]],
+];
+const southWalkDistance = (x: number, z: number) => spineDistance(SOUTH_WALK_XZ, x, z);
 /**
  * Column trees (column.ts) — the dark boles of the mid-distance forest wall (round 13).
  *
@@ -1723,7 +1736,7 @@ const UNDERSTORY_VARIANTS = 5;
  * Strips along the walkable paths (both verges, `min`–`max` m from the centreline) and the clearing's
  * lawn between the plaza and the tall trees. Seeded from its own stream, so nothing else re-rolls.
  */
-const UNDERSTORY_ZONES: { xMin: number; xMax: number; zMin: number; zMax: number; count: number; live?: boolean; spacing?: number }[] = [
+const UNDERSTORY_ZONES: { xMin: number; xMax: number; zMin: number; zMax: number; count: number; live?: boolean; spacing?: number; south?: boolean }[] = [
   // the north path's verges, from the plaza's north end to the log arch
   { xMin: -14, xMax: 14, zMin: -50, zMax: -12, count: 26 },
   // the north clearing beyond the arch, up to the stand
@@ -1734,6 +1747,11 @@ const UNDERSTORY_ZONES: { xMin: number; xMax: number; zMin: number; zMax: number
   // (a west-meadow zone around the far hut's knoll was built and measured: squad2's mid layer
   // already fills that meadow at 14–58 m, so it was dropped rather than double it — the `live`
   // zone kind stays for the expansion ground, masks and slope from the rendered surface)
+  // round 56: the far bank either side of the log's mouth, seen from the rope bridge — `south`
+  // zones keep the footing rule of the south exit (heightfield `southFooting`: off the paving, the
+  // log and the gorge) and UNDERSTORY_WALK_CLEAR_M off the south route's line. LAST: the zones
+  // share one stream, so a zone appended here re-rolls none before it.
+  { xMin: -8, xMax: 17, zMin: 46, zMax: 57, count: 4, live: true, spacing: 4.5, south: true },
 ];
 const UNDERSTORY_PATH_MIN_M = 3.4;
 const UNDERSTORY_PATH_MIN_ARCH_M = 6.5;
@@ -2093,7 +2111,21 @@ export async function create(ctx: WorldContext): Promise<WorldSystem> {
   // dropped rather than left buried or floating. Take-0123's 80 sampled trees: none culled (the
   // audit's whiteBarkCulled), so the six frames keep every tree they show. The authored entries
   // below are not filtered (the knoll pair is seated on the live ground on purpose).
-  const sampledWhites = whitePlaced.placements.filter((p) => !expansionCull(p.x, p.z));
+  // Round 56 (expansion-south): on the south exit's ground `southFooting` decides instead — a trunk
+  // whose footing touches the paving, the log or the gorge is dropped (the stem that stood against
+  // the log's mouth), and one the far bank's mound lifted stands on the live bank (it was culled as
+  // buried, which left the bank bald).
+  const sampledWhites = whitePlaced.placements.filter((p) => {
+    const trunkR = whites[p.variant].params.trunkRadius * p.scale;
+    const south = southFooting(p.x, p.z, SOUTH_TRUNK_REACH_M, trunkR + SOUTH_LIP_MARGIN_M);
+    if (south === null) return !expansionCull(p.x, p.z);
+    if (south === 'cull') return false;
+    if (south === 'live') {
+      p.y = southTrunkSeatY(p.x, p.z, trunkR);
+      p.view = 'live';
+    }
+    return true;
+  });
   const whiteBarkCulled = whitePlaced.placements.filter((p) => !sampledWhites.includes(p)).map((p) => [Math.round(p.x * 100) / 100, Math.round(p.z * 100) / 100]);
   const swappedWhites = sampledWhites.filter((p) => whites[p.variant].params.age === 'mature' && inFarWall(p.x, p.y, p.z));
   const whitePlacements = sampledWhites.filter((p) => !swappedWhites.includes(p));
@@ -2296,6 +2328,7 @@ export async function create(ctx: WorldContext): Promise<WorldSystem> {
         const pathMin = z < UNDERSTORY_ARCH_STRETCH_Z ? UNDERSTORY_PATH_MIN_ARCH_M : UNDERSTORY_PATH_MIN_M;
         if (d < pathMin || (!zone.live && d > UNDERSTORY_PATH_MAX_M)) continue;
         if (!zone.live && expansionCull(x, z)) continue;
+        if (zone.south && (southWalkDistance(x, z) < UNDERSTORY_WALK_CLEAR_M || southFooting(x, z, SOUTH_TRUNK_REACH_M, 0.5) === 'cull')) continue;
         const m = t.mask(x, z);
         if (m.path > 0.05 || m.stairs > 0 || m.structure > 0 || m.cliff > 0.3) continue;
         // the arch's footprint and the columns' roots have their own masks; keep off steep ground too
@@ -3214,7 +3247,18 @@ export async function create(ctx: WorldContext): Promise<WorldSystem> {
   });
   // applied AFTER sampling, like expansionCull: a rule inside the sampler's `blocked` shifts every
   // later draw and re-rolls the whole grove (measured: 6 trees fewer, 60 % of u-open-up's pixels moved)
-  const midPlacements = midSampled.filter((p) => !expansionCull(p.x, p.z) && !nearWalk(p.x, p.z));
+  // round 56: the south route keeps the cards MID_SOUTH_WALK_MIN_M off its line, and the south exit's
+  // ground seats or drops a mid bole the way it does a white-bark (`southFooting`)
+  const midSpec0 = distantVariants.length - MID_SPECS.length;
+  const midPlacements = midSampled.filter((p) => {
+    if (nearWalk(p.x, p.z) || southWalkDistance(p.x, p.z) < MID_SOUTH_WALK_MIN_M) return false;
+    const trunkR = MID_TRUNK_R * (MID_SPECS[p.variant - midSpec0]?.height ?? 12) * p.scale;
+    const south = southFooting(p.x, p.z, SOUTH_TRUNK_REACH_M, trunkR + SOUTH_LIP_MARGIN_M);
+    if (south === null) return !expansionCull(p.x, p.z);
+    if (south === 'cull') return false;
+    if (south === 'live') p.y = southTrunkSeatY(p.x, p.z, trunkR);
+    return true;
+  });
   distantPlacements.push(...midPlacements);
   // round 47: the crown cards (the geometry's second group) draw with their own material (distant.ts createDistantCrownMaterial: far-crown atlas, spherical shading, soft alpha, wind)
   const distantCrown = createDistantCrownMaterial(ctx.wind, rng, palette, sunDir);

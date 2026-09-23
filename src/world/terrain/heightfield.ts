@@ -10,7 +10,7 @@ import { Vector3 } from 'three';
 import { EXPANSION, EXPANSION_BOX, EXPANSION_SOUTH, EXPANSION_SOUTH_BOXES, EXPANSION_STAIRS, LAYOUT, expansionSteppingStones, houseSteppingStones, inExpansionSouth, southBankFrameVectors, southBridgeFrame, southPathHalfWidth, southPathLine, type StairDef } from '../layout';
 import { WORLD } from '../config';
 import { Noise2D, smoothstep, clamp, lerp } from '../util/noise';
-import { BERM_BELOW_AXIS, bridgeDeckY, bridgeLocal, moundHeight, ravineProfile, tunnelBerm, tunnelCarve, tunnelFootprint, tunnelLocal } from './south';
+import { BERM_BELOW_AXIS, bankHeight, bridgeDeckY, bridgeLocal, ravineProfile, tunnelBerm, tunnelCarve, tunnelFootprint, tunnelLocal } from './south';
 
 /**
  * Round 49 (expansion-2): the heightfield has two VIEWS of the same world.
@@ -1109,7 +1109,7 @@ function macroHeight(x: number, z: number, live = false) {
   if (live && z > 10 && inExpansionSouth(x, z)) {
     if (inBox(SB_BOX, x, z)) {
       const tl = tunnelLocal(x, z);
-      h += moundHeight(tl.a, tl.c);
+      h += bankHeight(x, z);
       const berm = tunnelBerm(tl.a, tl.c);
       if (berm > 0) h = Math.max(h, lerp(h, SOUTH_ROUTE.floorY + EXPANSION_SOUTH.tunnel.axisY - BERM_BELOW_AXIS, berm));
       const carve = tunnelCarve(tl.a, tl.c, h, SOUTH_ROUTE.floorY);
@@ -1396,6 +1396,47 @@ export function expansionCull(x: number, z: number, lift = 0.3): boolean {
   const l = surfaceMask(x, z, 'legacy');
   if ((m.path > 0.5 && l.path <= 0.5) || (m.stairs > 0.5 && l.stairs <= 0.5) || (m.structure > 0.5 && l.structure <= 0.5)) return true;
   return Math.abs(getTerrain().height(x, z) - getLegacyTerrain().height(x, z)) > lift;
+}
+
+/**
+ * Round 56: a legacy-sampled trunk's footing on the south exit's LIVE ground — null outside
+ * `EXPANSION_SOUTH_BOXES` (`expansionCull` decides there). 'cull' where its point or a ring `reach`
+ * m out touches the paving or the log / sills / posts, where the gorge cuts more than
+ * `SOUTH_LIP_SINK_M` under it or a ring `lipReach` m out (the bole's own rim: a tree may stand at
+ * the gorge's edge, its base sunk that much at most), or where the live ground is steeper than 0.7;
+ * 'live' where the live ground left the legacy one (the far bank's rise, the lip's first
+ * centimetres): the trunk stands on it (`southTrunkSeatY`); 'keep' where both views agree.
+ */
+export function southFooting(x: number, z: number, reach: number, lipReach = reach): 'keep' | 'live' | 'cull' | null {
+  if (!(z > 10 && inExpansionSouth(x, z))) return null;
+  const built = (px: number, pz: number) => southRouteSurface(px, pz) > 0.5 || southStructure(px, pz) > 0.5;
+  const cut = (px: number, pz: number) => ravineProfile(px, pz)?.cut ?? 0;
+  if (built(x, z)) return 'cull';
+  let deepest = cut(x, z);
+  for (let i = 0; i < 8; i++) {
+    const t = (i / 8) * Math.PI * 2;
+    const cx = Math.cos(t);
+    const sz = Math.sin(t);
+    if (built(x + cx * reach, z + sz * reach)) return 'cull';
+    deepest = Math.max(deepest, cut(x + cx * lipReach, z + sz * lipReach));
+  }
+  const live = getTerrain();
+  if (deepest > SOUTH_LIP_SINK_M || live.slope(x, z) > 0.7) return 'cull';
+  const dh = live.height(x, z) - getLegacyTerrain().height(x, z);
+  return deepest > 0.04 || Math.abs(dh) > 0.02 ? 'live' : 'keep';
+}
+/** the deepest the gorge may cut under a trunk's rim at the lip before it is dropped (m): its base sinks that much on the low side */
+const SOUTH_LIP_SINK_M = 0.35;
+
+/** the live seat of a trunk `radius` m thick at (x, z): the lowest ground under its rim, so no side of the bole stands proud of a slope */
+export function southTrunkSeatY(x: number, z: number, radius: number): number {
+  const live = getTerrain();
+  let y = live.height(x, z);
+  for (let i = 0; i < 6; i++) {
+    const t = (i / 6) * Math.PI * 2;
+    y = Math.min(y, live.height(x + Math.cos(t) * radius, z + Math.sin(t) * radius));
+  }
+  return y;
 }
 
 const _n = new Vector3();
