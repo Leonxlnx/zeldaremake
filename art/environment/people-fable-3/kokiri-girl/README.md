@@ -129,6 +129,37 @@ their heads: **B and F byte-identical** to the branch before the step.
 `kokiri-notice-walk-in` (artifact): Link walks from the plaza to the stair foot and stops beside her; her head comes round
 to him as he closes and holds on him.
 
+## The kids skinned to their own joints (fifth landing, perf, `814af6c9`)
+
+fable-5's lane-10 read of the cast's return: a kid in view is ≈ 50 submissions (a mesh per joint per material, drawn
+again in the shadow pass), B / E sat two draws under the 700 cap, and "lane 7's next perf item is the kid as merged
+meshes". `character/skin.ts`: after a kid is built, every Mesh riding a joint becomes part of ONE `SkinnedMesh` per
+(material, shadow flags) for the whole rig, with the joint as its only bone (weight 1) — the rig's own `Group`s serve as
+the skeleton (a `Skeleton` only reads their world matrices), bound at the rest pose with the root at the identity, attached
+bind mode, so the poses keep moving the joints exactly as before and the blink's Y-squash on the eye groups rides along
+(a group with meshes is a bone too). ≈ 26 → 11 colour submissions a girl, 16 → 5 in the shadow pass; same triangles, same
+materials, same textures. The rest-pose sphere is grown 0.35 m so a swung arm at the frame's edge is never culled.
+
+![the same play still, a mesh per joint vs skinned](before-after-skinned.jpg)
+
+Play still at the stair foot (Link two metres from the sitter, the walker at the right edge, the boy at the door): **702 →
+623 draws**, triangles 10 038 277 = 10 038 277, and against the unskinned still 151 px differ by more than 8 levels, 8 by
+more than 24 — the skinning path's float noise. The first cut had the parts' vertices in joint space (the skinned mesh
+wants its bind space, the root's): the kids came apart; the joint's rest world matrix is baked in now.
+
+Six views against the same head (the branch before the step), settle 12 — the kids stand in A (the walker at the right
+edge), B / E (the walker at the left edge, the boy at the door) and F (the walker beside Link):
+
+| view | SSIM vs ref, before | after | Δ | SSIM before↔after | changed px | draws | M tris |
+| --- | --- | --- | --- | --- | --- | --- | --- |
+| A | 0.1826 | 0.1826 | 0.0000 | 1.0000 | 0 | 692 → **640** | 8.88 = 8.88 |
+| B | 0.1727 | 0.1727 | 0.0000 | 1.0000 | 8 | 683 → **631** | 8.08 = 8.08 |
+| F | 0.2082 | 0.2082 | 0.0000 | 1.0000 | 2 | 642 → **590** | 7.69 = 7.69 |
+
+E is B's camera; C sees the sitter (≈ −26); D sees no kid (557, unchanged). The cast's cost in a frame with three kids drops
+from ≈ 100 to ≈ 50 submissions; the next halving (skin / cloth / leather on one canvas atlas → three submissions a kid) is
+there if the squad's layers need it.
+
 ## Play mode
 
 `kokiri-play-walk` (artifact): `?test=1` at 960 × 540, Link placed at (0.8, 6.2) facing the stair foot,
