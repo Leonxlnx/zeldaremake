@@ -29,7 +29,8 @@ const log = (...m) => console.error('[walk-audio]', ...m);
 /** place Link, hold a key for `seconds` of simulation, and say what was underfoot and what sounded */
 const ROUTES = [
   { name: 'plaza north over the flagstones', at: [1.5, -8, 180], key: 'KeyW', seconds: 6 },
-  { name: 'the north path into the forest floor', at: [3.5, -34, 180], key: 'KeyW', seconds: 7 },
+  { name: 'the north path', at: [3.5, -34, 180], key: 'KeyW', seconds: 7 },
+  { name: 'off the path, the north forest floor', at: [12, -38, 180], key: 'KeyW', seconds: 6 },
   { name: 'the lawn west of the spine', at: [-6.5, 2, 200], key: 'KeyW', seconds: 6 },
   { name: 'up the main flight', at: [9.2, -1.4, 340], key: 'KeyW', seconds: 8 },
   { name: 'running the plaza', at: [0, 4, 180], key: 'KeyW', seconds: 6, shift: true },

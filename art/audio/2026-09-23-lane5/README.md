@@ -89,8 +89,18 @@ Measured on the offline steps stem (means over each leg of the scripted walk):
 
 The character system publishes the gait's stance flags (`PlayerHandle.feetContact`). `drive()` fires
 on a swing→stance edge and the distance-integrated stride stands down while that is happening. In
-play mode (`walk-audio.mjs`, five routes) **113 of 116 steps landed on a boot plant** — the three
-exceptions are the first step of a route, before any edge has been seen.
+play mode (`walk-audio.mjs`, six routes, `walk-audio.json`) **126 of 128 steps landed on a boot
+plant** — the two exceptions are a route's first step, before any edge has been seen — and the
+per-foot plant counts add up exactly to the steps heard:
+
+| route | steps | on a boot plant | plants per boot | heard as |
+| --- | --- | --- | --- | --- |
+| plaza north over the flagstones | 23 | 22 | 11 + 11 | stone |
+| the north path | 25 | 25 | 13 + 12 | stone |
+| off the path, the north forest floor | 21 | 21 | 10 + 11 | **leaf** |
+| the lawn west of the spine | 22 | 22 | 11 + 11 | grass |
+| up the main flight | 7 | 7 | 4 + 3 | 1 stone, 6 **stair** |
+| running the plaza | 30 | 29 | 14 + 15 | stone |
 
 That exposed something for **lane 8**, not for me to fix: sampled at 60 Hz while walking forward, the
 gait is clean and alternating (about 18 frames of stance, 17 of swing, no flicker, no overlap), but
