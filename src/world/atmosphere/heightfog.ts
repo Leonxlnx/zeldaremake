@@ -501,9 +501,11 @@ export const HEIGHT_FOG_DEFAULTS: HeightFogParams = {
   // 2026-09-23: warmed with the rest and lifted (display 0.536 hue 202 → 0.545 hue 47, B/R 0.91).
   // This is the air of every direction the owner actually walks — north up the path, west into the
   // stand — so it is the veil his "grey haze in the middle distance" is made of.
-  hazeClosed: [0.2251, 0.209, 0.1898],
-  // display 0.625: the closed roof at depth (see hazeClosedFar)
-  hazeClosedFar: [0.3014, 0.2757, 0.2463],
+  hazeClosed: [0.2507, 0.2317, 0.2092],
+  // display 0.665: the closed roof at depth (see hazeClosedFar). Measured at his north pose over
+  // three passes — 0.545 / 0.625 put the upper-left band at 0.441 against his 0.500 and the whole
+  // upper frame's hue on his (42.8° against 43.5°, B/R 0.898 against 0.855)
+  hazeClosedFar: [0.3518, 0.3185, 0.2813],
   // Round 31 (tone): the D arch (48–55 m, 74–86 % veil, body ×0.3) measured 0.495 display against
   // 0.489 for the rows behind it — with the closed mix the air behind the arch was the arch's own
   // veil, and no extinction at 0.028/m can silhouette a 50 m object against its own air. The
