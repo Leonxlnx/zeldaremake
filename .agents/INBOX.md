@@ -105,6 +105,76 @@ before `79f44aa5` (the owner's four) and `0149f255` (the 06:50 pose).
   same change.
 - Budget at that close pose was already over the hero envelope (Astra: 9.84 M / 437 → 9.72 M / 442); the six hero views
   are under 9 M / 700 on the head (A 692 / 8.88 M).
+## 2026-09-23 19:25 UTC — fable-3 → fable-cursor: lane 7, third landing — the kids' fairies read at 5 m (a glowing ball with wings and a halo, just under Navi's sizes); A +0.0002, B −0.0004, F −0.0003, draws and tris equal (`agent/fable-3-kokiri-girl` @ `044fb636`)
+
+"The girl by the signpost with her fairy": in d_026 / d_090 her fairy is a glowing ball with wings about as wide as her head,
+a head-and-a-half above it. Ours (round 47's `createFairy` at the kids' 0.75) was a 5 cm ball, a 0.2 m halo at three-quarter
+tint and a 0.1 m wing pair — a dot at 5 m (`before-after-fairy.jpg`). Now a 7.5 cm ball, a 0.3 m halo at full tint, a 0.17 m
+wing pair — sized just under Navi's (8.4 cm / 0.3 m) so Link's fairy stays the biggest; light, hover, the three submissions
+unchanged. Six views vs the branch before the step on the merged head: A +0.0002 (2 630 px, the fairy's box at the right
+edge), B −0.0004 (1 693 px), F −0.0003 (826 px); draws 692 / 683 / 642 and tris equal. typecheck / build / tests green.
+Lane 7 so far on the branch: the girls' pass (`8651fce3`, merged), the boy (`e7a01c7e`), the fairies (`044fb636`) — the
+last two are yours to merge. Next unless you rank otherwise: legs 44 → 40 % (touches the walk schedule and the sit solve, so a
+full pose re-check), then a review pass of whatever lane you point me at.
+
+---
+
+## 2026-09-23 18:35 UTC — fable-3 → fable-cursor: lane 7, second landing — the boy at Saria's door joins the pass (the lobed bob, the wide band, hair / cloth canvases, pale skin); B −0.0003, F 0, draws and tris equal (`agent/fable-3-kokiri-girl` @ `e7a01c7e`)
+
+The owner walks to Saria's door constantly and the boy beside it still wore round 1's build (a sphere-and-boxes bob, a thin
+torus band, tan skin, a flat near-black tunic) next to the girls' new look. He now shares it: `buildGirlHair` without its tube
+brows (his `buildFace` has box brows) in the palette's brown under the lock canvas, `buildGirlHeadband`, the cloth canvas with
+four fold ridges on both lathes (the near-black lifted a step to 0x2f3320 so anything reads), skin 0xb28058 → 0xcfa07c on the
+ramp. Materials are keyed by name now (`hairMaterial` / `clothMaterial` / `rampedSkin`), so a look is one line. Before / after at
+the owner's threshold pose and 2.5 m: `art/environment/people-fable-3/kokiri-girl/before-after-boy.jpg` (the before is the
+merged head with the girls' pass, so the sheet isolates him). **Six views vs the merged head `bd0bd1ba`:** B −0.0003 (685 px,
+all in his box at the door), F 0.0000 (515 px, his box), draws 683 = 683 / 642 = 642, tris equal; E is B's camera; A, C, D do
+not see him. typecheck / build / tests green. Note the 17:55 note's correction (the sitter sits as designed; the 177° was a
+per-view-placement read). Next: legs 44 → 40 % unless you rank otherwise; the fairies' read at 5 m (a small dot against the
+footage's glowing ball) is the other lane-7 candidate — your call which first.
+
+---
+
+## 2026-09-23 17:55 UTC — fable-3 → fable-cursor: lane 7, first delivery — the girls read at 2.6 / 5 m (head + hair a third of her, a maroon lock-shaded bob with a sheen, pale skin, drape on the tunic), the cast is back on its spots with the walker on her loop, fairy lights constant, kids' shadow pass scoped (`agent/fable-3-kokiri-girl` @ `8651fce3`; evidence `8b6af5dc`+)
+
+Before touching anything I rendered what the follow camera sees on the head with the cast forced visible: a smooth brown
+helmet for hair, orange-tan skin, a flat green cylinder, a head a quarter of her height — against ref-01 / d_024's wide maroon
+bob, pale peach skin, head-and-hair a third of her. Sheets + README: `art/environment/people-fable-3/kokiri-girl/`
+(`before-after-walker.jpg` is the one to look at: kokiri-a at 2.6 m and 5 m where her loop has her at broll's t).
+
+**kokiri.ts** — the head joint scaled ×1.14 (face, hair, band grow together; the skull meets the shoulder line like d_024);
+bob r × 1.10 → 1.16 with a 0.20 hem flare and seven soft lobes below the band, crown r × 1.18, side locks at the bob's cut
+edge; the footage's maroon (0x7e2f33 — the old brick rendered orange-brown) under a canvas of nine broad locks + fine strands
+at roughness 0.58 (a sun sheen on the crown); a drape canvas on the tunic (four valleys in step with the skirt's fold ridges,
+belt / hem shade, a weave) and four shallow ridges on the upper; skin 0xbd8a62 → 0xd3a98a (all looks paler in step); brows
+thinner (they read as a frown under the grown head). Same meshes per kid, less the neck (enclosed now). All four girl looks
+share the pass; the boy at Saria's door keeps his round-1 look for now.
+**npc.ts** — the four fairy point lights ride on the npc group and dim by a `glow` factor; nothing toggles `light.visible`
+any more (the free camera parking on a viewpoint used to hide the ledge fairy's light → `NUM_POINT_LIGHTS` → every lit program
+recompiled). Play walk: programs 111 → 112 over nine seconds (one material's first draw), no recompile storm.
+**index.ts** — `backgroundCast.visible = true`. And a budget lever the return needed: the sun's 92 m shadow window draws every
+kid in the village each frame, whether the camera sees them or not — A read **723** with the cast back. Kids now cast only
+while their shadow reach (2.6 m; 7 m for the ledge girl) meets the view frustum; belt / band / cuffs leave the shadow pass.
+
+**Six views** (exact head build `be123deb` vs branch, settle 12): A −0.0044, B −0.0063, C −0.0001, **D 0 (byte-identical,
+557 → 557 draws — the scoping proven: every kid is inside D's shadow window)**, E −0.0045, F −0.0014 vs the reference; every
+changed pixel is a kid, her fairy, her shadow or her light pool (`diff-*.jpg`). The cast's return is the owner's ask — the
+kids stand where rounds 47–50 pinned them (A's right edge, B / E's left edge as the footage has her, beside Link in F) — so
+those pixels are a look change, not a regression. **Draws:** A 597 → **692**, B 589 → **684**, C 472 → 525, F 547 → 648
+(the cast costs ≈ 100 where three kids are in frame); tris +0.04 M (A 9.15 → 9.19 — the squad's layers already have A over
+W38's 9.0 M). Play mode on the plaza with the house, flight and three kids in frame: 604 → 779. If the perf pass needs
+more, the kids' per-joint materials (skin / cloth / leather on one joint = 2–3 submissions) could go to one canvas atlas per
+kid — roughly half their main-pass cost — say the word. typecheck / build / 111 tests green.
+
+**Play mode:** `kokiri-play-walk.mp4` (PR): Link from the plaza's west to the stair foot — the sitter on the steps with her
+fairy, the boy at Saria's door, the walker at her verge. Draws 711 → 537 along the walk (960 × 540).
+
+Not done / next in lane 7 (your ranking): (1) legs — 44 % of her height, the footage's ≈ 40 % (changes the walk schedule's
+leg length and the sit solve); (2) the boy's round-1 look; (3) **lanes 2 / 4:** the walker's loop is behind understory bushes
+for most of her circuit from the plaza's south-west, and the `kokiri-a` verge spot (9.0, 3.6) is inside one — the scatter does
+not know `NPC_LOOP` (props keep off it; `character/placement.ts` exports it) — theirs to call. (A first draft of this note
+listed the sitter's knees as 177°: that was an audit read under per-view placement, where the seat is not driven; in free /
+play mode she sits as designed — knees folded, hands on them, soles on the tread below; `before-after-walker.jpg` shows her.)
 
 ---
 
