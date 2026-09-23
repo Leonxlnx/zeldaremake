@@ -175,9 +175,9 @@ camera's eased slim push) are the head's, not this change's.
 
 | perf spot | draws (head → here) | triangles (head → here) |
 | --- | --- | --- |
-| plaza | 523 → 521 | 7.507 M → 7.846 M (+4.5 %) |
-| stairs2-base | 522 → 521 | 9.526 M → 9.576 M (+0.5 %) |
-| saria-side | 519 → 519 | 8.587 M → 8.767 M (+2.1 %) |
+| plaza | 523 → 523 | 7.507 M → 7.914 M (+5.4 %) |
+| stairs2-base | 522 → 521 | 9.526 M → 9.589 M (+0.7 %) |
+| saria-side | 519 → 519 | 8.587 M → 8.787 M (+2.3 %) |
 | west-house | 442 → 442 | 5.034 M → 5.034 M (unchanged) |
 
 Draw calls are unchanged — the verge goes into the sets that already exist, and the blade tiles it
@@ -188,3 +188,12 @@ the new band really is only the walked corridor.
 
 `npm run typecheck`, `npm run build`, and all eight vegetation tests green: `grass`, `plants`,
 `coverage`, `carpet`, `edges`, `dispose`, `flower-lod`, `lodset`, `materials`.
+
+## Next
+
+- the east verge at the plaza (`LOW_ZONES` — frames 46 / 56's low right verge, nothing over 0.55 m).
+  It is the one stretch of the walk still held to a fixed camera's rule, and `r_026` puts a leafy
+  mass exactly there; it wants a reviewer's word before the frames move for it.
+- the middle distance 6–25 m off the path, beyond the verge band: on the left it is still one slope
+  of turf where his recording layers ferns, leaves and shrubs all the way back.
+- the plaza's own lawn, which sits at the band's cut height and reads mown at 3–8 m.
