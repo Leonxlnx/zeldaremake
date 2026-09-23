@@ -98,6 +98,93 @@ function segmentDistance(px: number, pz: number, ax: number, az: number, bx: num
   return Math.hypot(px - (ax + dx * t), pz - (az + dz * t));
 }
 
+/**
+ * Ground a TREE may not stand on: the paved surfaces and their verge (sampled on a ring so a root
+ * flare never touches them), ground where vegetation is not allowed, slopes over 0.55, and every
+ * authored landmark with its own margin — houses, giants, hero boulders, NPC spots, signposts, the
+ * fixed viewpoints, fences, stair runs, the lantern branch, the log arch, the four path polylines
+ * and the round-49 stepping-stone lines.
+ *
+ * 2026-09-23 (lane 2, the mid-canopy grove): lifted out of `placeWhiteBark`'s body unchanged, so the
+ * new layer stands off exactly what the white-barks stand off. `placeWhiteBark` calls it with the
+ * same arguments it always passed, and no draw or test moved.
+ */
+export function treeGroundBlocked(
+  ctx: WorldContext,
+  x: number,
+  z: number,
+  treeRadius: number,
+  extraGiants: { position: readonly [number, number, number]; trunkRadius: number }[] = [],
+): boolean {
+  const L = ctx.layout;
+  const terrain = ctx.terrain;
+  // ground use: sample the centre and a ring so the root flare never touches paved surfaces
+  const probes: [number, number][] = [[x, z]];
+  const ring = Math.max(1.6, treeRadius * 0.35);
+  for (let i = 0; i < 6; i++) probes.push([x + Math.cos((i / 6) * TAU) * ring, z + Math.sin((i / 6) * TAU) * ring]);
+  for (const [px, pz] of probes) {
+    const m = terrain.mask(px, pz);
+    if (m.path > 0.3 || m.stairs > 0.3 || m.structure > 0.3) return true;
+  }
+  if (!terrain.vegetationAllowed(x, z)) return true;
+  if (terrain.slope(x, z) > 0.55) return true;
+  for (const h of L.houses) if (Math.hypot(x - h.position[0], z - h.position[2]) < h.trunkRadius + 5) return true;
+  for (const g of L.giantTrees) if (Math.hypot(x - g.position[0], z - g.position[2]) < g.trunkRadius + 5.5) return true;
+  for (const g of extraGiants) if (Math.hypot(x - g.position[0], z - g.position[2]) < g.trunkRadius + 5.5) return true;
+  for (const b of L.heroBoulders) if (Math.hypot(x - b.position[0], z - b.position[2]) < b.radius + 2.2) return true;
+  for (const n of L.npcSpots) if (Math.hypot(x - n.position[0], z - n.position[2]) < 4.5) return true;
+  for (const s of L.signposts) if (Math.hypot(x - s.position[0], z - s.position[2]) < 3) return true;
+  for (const v of L.viewpoints) if (Math.hypot(x - v.position[0], z - v.position[2]) < 5) return true;
+  for (const f of L.fences) {
+    for (let i = 0; i < f.points.length - 1; i++) {
+      if (segmentDistance(x, z, f.points[i][0], f.points[i][2], f.points[i + 1][0], f.points[i + 1][2]) < 2.2) return true;
+    }
+  }
+  for (const s of L.stairs) {
+    const l = Math.hypot(s.dir[0], s.dir[1]);
+    const ex = s.base[0] + (s.dir[0] / l) * s.steps * s.tread;
+    const ez = s.base[2] + (s.dir[1] / l) * s.steps * s.tread;
+    if (segmentDistance(x, z, s.base[0], s.base[2], ex, ez) < s.width / 2 + 3) return true;
+  }
+  const lb = L.lanternBranch;
+  if (segmentDistance(x, z, lb.from[0], lb.from[2], lb.to[0], lb.to[2]) < 4) return true;
+  // log arch oriented box with margin
+  const la = L.logArch;
+  const yaw = (la.yawDeg * Math.PI) / 180;
+  const ldx = x - la.position[0];
+  const ldz = z - la.position[2];
+  const lu = ldx * Math.cos(yaw) - ldz * Math.sin(yaw);
+  const lv = ldx * Math.sin(yaw) + ldz * Math.cos(yaw);
+  if (Math.abs(lu) < la.length / 2 + 3 && Math.abs(lv) < la.radius + 3) return true;
+  // the authored path polylines with a wide margin (the mask alone is tight)
+  const polylines = [L.pathSpine, L.pathToStairs, L.pathToHouse];
+  for (const pl of polylines) {
+    for (let i = 0; i < pl.length - 1; i++) {
+      if (segmentDistance(x, z, pl[i][0], pl[i][2], pl[i + 1][0], pl[i + 1][2]) < L.pathHalfWidth + 2.5 + treeRadius * 0.3) return true;
+    }
+  }
+  // round 48 (expansion-1's ask): the paving beyond the log arch (`northPath`, its own half-width)
+  // with the same margin — no tree on the new slabs or their verge. Take-0118's 161 tree bases
+  // all stand ≥ 9 m off this polyline, so no existing placement flips.
+  const np = L.northPath;
+  for (let i = 0; i < np.length - 1; i++) {
+    if (segmentDistance(x, z, np[i][0], np[i][2], np[i + 1][0], np[i + 1][2]) < L.northPathHalfWidth + 2.5 + treeRadius * 0.3) return true;
+  }
+  // round 50 (trees-32, expansion-2's ask): the stepping-stone lines west and south-west of the
+  // plaza (layout EXPANSION.pathWest / pathSouth — isolated 0.38–0.44 m discs, no paved band), so
+  // no tree stands on the new stones. A NARROW margin, on purpose: an accepted candidate that a
+  // new rule blocks skips its yaw draw and re-rolls every tree after it, in all six frames —
+  // the nearest take-0123 tree, the white-bark at (−16.3, 13.0), is 2.51 m from the south
+  // line's end, so the clearance stays under that (disc radius + 1.4 = 1.84 m: a 0.6 m bole and
+  // its 1.6 m toe reach off the stones). The audit's whiteBarkSampled proves no flip.
+  for (const pl of EXPANSION_DISC_LINES) {
+    for (let i = 0; i < pl.length - 1; i++) {
+      if (segmentDistance(x, z, pl[i][0], pl[i][2], pl[i + 1][0], pl[i + 1][2]) < EXPANSION_DISC_CLEARANCE) return true;
+    }
+  }
+  return false;
+}
+
 export function placeWhiteBark(
   ctx: WorldContext,
   rng: Rng,
@@ -112,7 +199,6 @@ export function placeWhiteBark(
 ): WhiteBarkResult {
   const r = rng.fork('whitebark-placement');
   const clump = new Noise2D('whitebark-clumps');
-  const L = ctx.layout;
   const terrain = ctx.terrain;
   const out: WhiteBarkPlacement[] = [];
 
@@ -159,73 +245,7 @@ export function placeWhiteBark(
     return false;
   };
 
-  const blocked = (x: number, z: number, treeRadius: number): boolean => {
-    // ground use: sample the centre and a ring so the root flare never touches paved surfaces
-    const probes: [number, number][] = [[x, z]];
-    const ring = Math.max(1.6, treeRadius * 0.35);
-    for (let i = 0; i < 6; i++) probes.push([x + Math.cos((i / 6) * TAU) * ring, z + Math.sin((i / 6) * TAU) * ring]);
-    for (const [px, pz] of probes) {
-      const m = terrain.mask(px, pz);
-      if (m.path > 0.3 || m.stairs > 0.3 || m.structure > 0.3) return true;
-    }
-    if (!terrain.vegetationAllowed(x, z)) return true;
-    if (terrain.slope(x, z) > 0.55) return true;
-    for (const h of L.houses) if (Math.hypot(x - h.position[0], z - h.position[2]) < h.trunkRadius + 5) return true;
-    for (const g of L.giantTrees) if (Math.hypot(x - g.position[0], z - g.position[2]) < g.trunkRadius + 5.5) return true;
-    for (const g of extraGiants) if (Math.hypot(x - g.position[0], z - g.position[2]) < g.trunkRadius + 5.5) return true;
-    for (const b of L.heroBoulders) if (Math.hypot(x - b.position[0], z - b.position[2]) < b.radius + 2.2) return true;
-    for (const n of L.npcSpots) if (Math.hypot(x - n.position[0], z - n.position[2]) < 4.5) return true;
-    for (const s of L.signposts) if (Math.hypot(x - s.position[0], z - s.position[2]) < 3) return true;
-    for (const v of L.viewpoints) if (Math.hypot(x - v.position[0], z - v.position[2]) < 5) return true;
-    for (const f of L.fences) {
-      for (let i = 0; i < f.points.length - 1; i++) {
-        if (segmentDistance(x, z, f.points[i][0], f.points[i][2], f.points[i + 1][0], f.points[i + 1][2]) < 2.2) return true;
-      }
-    }
-    for (const s of L.stairs) {
-      const l = Math.hypot(s.dir[0], s.dir[1]);
-      const ex = s.base[0] + (s.dir[0] / l) * s.steps * s.tread;
-      const ez = s.base[2] + (s.dir[1] / l) * s.steps * s.tread;
-      if (segmentDistance(x, z, s.base[0], s.base[2], ex, ez) < s.width / 2 + 3) return true;
-    }
-    const lb = L.lanternBranch;
-    if (segmentDistance(x, z, lb.from[0], lb.from[2], lb.to[0], lb.to[2]) < 4) return true;
-    // log arch oriented box with margin
-    const la = L.logArch;
-    const yaw = (la.yawDeg * Math.PI) / 180;
-    const ldx = x - la.position[0];
-    const ldz = z - la.position[2];
-    const lu = ldx * Math.cos(yaw) - ldz * Math.sin(yaw);
-    const lv = ldx * Math.sin(yaw) + ldz * Math.cos(yaw);
-    if (Math.abs(lu) < la.length / 2 + 3 && Math.abs(lv) < la.radius + 3) return true;
-    // the authored path polylines with a wide margin (the mask alone is tight)
-    const polylines = [L.pathSpine, L.pathToStairs, L.pathToHouse];
-    for (const pl of polylines) {
-      for (let i = 0; i < pl.length - 1; i++) {
-        if (segmentDistance(x, z, pl[i][0], pl[i][2], pl[i + 1][0], pl[i + 1][2]) < L.pathHalfWidth + 2.5 + treeRadius * 0.3) return true;
-      }
-    }
-    // round 48 (expansion-1's ask): the paving beyond the log arch (`northPath`, its own half-width)
-    // with the same margin — no tree on the new slabs or their verge. Take-0118's 161 tree bases
-    // all stand ≥ 9 m off this polyline, so no existing placement flips.
-    const np = L.northPath;
-    for (let i = 0; i < np.length - 1; i++) {
-      if (segmentDistance(x, z, np[i][0], np[i][2], np[i + 1][0], np[i + 1][2]) < L.northPathHalfWidth + 2.5 + treeRadius * 0.3) return true;
-    }
-    // round 50 (trees-32, expansion-2's ask): the stepping-stone lines west and south-west of the
-    // plaza (layout EXPANSION.pathWest / pathSouth — isolated 0.38–0.44 m discs, no paved band), so
-    // no tree stands on the new stones. A NARROW margin, on purpose: an accepted candidate that a
-    // new rule blocks skips its yaw draw and re-rolls every tree after it, in all six frames —
-    // the nearest take-0123 tree, the white-bark at (−16.3, 13.0), is 2.51 m from the south
-    // line's end, so the clearance stays under that (disc radius + 1.4 = 1.84 m: a 0.6 m bole and
-    // its 1.6 m toe reach off the stones). The audit's whiteBarkSampled proves no flip.
-    for (const pl of EXPANSION_DISC_LINES) {
-      for (let i = 0; i < pl.length - 1; i++) {
-        if (segmentDistance(x, z, pl[i][0], pl[i][2], pl[i + 1][0], pl[i + 1][2]) < EXPANSION_DISC_CLEARANCE) return true;
-      }
-    }
-    return false;
-  };
+  const blocked = (x: number, z: number, treeRadius: number): boolean => treeGroundBlocked(ctx, x, z, treeRadius, extraGiants);
 
   const density = (x: number, z: number) => {
     const north = smoothstep(8, -14, z);

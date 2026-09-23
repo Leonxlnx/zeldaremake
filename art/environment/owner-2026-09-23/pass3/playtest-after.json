@@ -1,0 +1,5829 @@
+{
+ "dist": "/tmp/dist-p3",
+ "size": [
+  960,
+  540
+ ],
+ "quality": "high",
+ "started": "2026-09-23T06:40:13.387Z",
+ "baselineSha": "f56c5740+p3-wip3",
+ "stairs": {
+  "main": {
+   "id": "main",
+   "treadSpan": {
+    "samples": 3195,
+    "shareStoneOver3cmAbove": 0.0003,
+    "shareStoneOver5cmBelow": 0,
+    "maxStoneAboveWalkM": 0.12,
+    "maxStoneBelowWalkM": 0,
+    "worst": [
+     {
+      "u": 9.6,
+      "v": -1.2,
+      "d": 0.12
+     }
+    ]
+   },
+   "noseZone": {
+    "samples": 2200,
+    "shareStoneOver3cmAbove": 0.6309,
+    "shareStoneOver5cmBelow": 0,
+    "maxStoneAboveWalkM": 0.339,
+    "maxStoneBelowWalkM": 0,
+    "worst": [
+     {
+      "u": 4.32,
+      "v": -1.2,
+      "d": 0.339
+     },
+     {
+      "u": 5.39,
+      "v": -1.2,
+      "d": 0.339
+     },
+     {
+      "u": 5.4,
+      "v": -1.2,
+      "d": 0.339
+     },
+     {
+      "u": 4.31,
+      "v": -1.2,
+      "d": 0.338
+     },
+     {
+      "u": 4.32,
+      "v": -0.6,
+      "d": 0.338
+     },
+     {
+      "u": 5.38,
+      "v": -1.2,
+      "d": 0.337
+     }
+    ]
+   },
+   "centreline": [
+    {
+     "u": 0.32,
+     "walk": 0.27,
+     "surface": 0.27
+    },
+    {
+     "u": 0.86,
+     "walk": 0.54,
+     "surface": 0.54
+    },
+    {
+     "u": 1.4,
+     "walk": 0.81,
+     "surface": 0.81
+    },
+    {
+     "u": 1.94,
+     "walk": 1.08,
+     "surface": 1.08
+    },
+    {
+     "u": 2.48,
+     "walk": 1.35,
+     "surface": 1.35
+    },
+    {
+     "u": 2.49,
+     "walk": 1.35,
+     "surface": 1.35
+    },
+    {
+     "u": 3.02,
+     "walk": 1.62,
+     "surface": 1.62
+    },
+    {
+     "u": 3.03,
+     "walk": 1.62,
+     "surface": 1.62
+    },
+    {
+     "u": 3.56,
+     "walk": 1.89,
+     "surface": 1.89
+    },
+    {
+     "u": 3.57,
+     "walk": 1.89,
+     "surface": 1.89
+    },
+    {
+     "u": 4.1,
+     "walk": 2.16,
+     "surface": 2.16
+    },
+    {
+     "u": 4.11,
+     "walk": 2.16,
+     "surface": 2.16
+    },
+    {
+     "u": 4.64,
+     "walk": 2.43,
+     "surface": 2.43
+    },
+    {
+     "u": 4.65,
+     "walk": 2.43,
+     "surface": 2.43
+    },
+    {
+     "u": 5.18,
+     "walk": 2.7,
+     "surface": 2.7
+    },
+    {
+     "u": 5.19,
+     "walk": 2.7,
+     "surface": 2.7
+    },
+    {
+     "u": 5.72,
+     "walk": 2.97,
+     "surface": 2.97
+    },
+    {
+     "u": 5.73,
+     "walk": 2.97,
+     "surface": 2.97
+    },
+    {
+     "u": 6.26,
+     "walk": 3.24,
+     "surface": 3.24
+    },
+    {
+     "u": 6.27,
+     "walk": 3.24,
+     "surface": 3.24
+    },
+    {
+     "u": 6.8,
+     "walk": 3.51,
+     "surface": 3.51
+    },
+    {
+     "u": 6.81,
+     "walk": 3.51,
+     "surface": 3.51
+    },
+    {
+     "u": 7.34,
+     "walk": 3.78,
+     "surface": 3.78
+    },
+    {
+     "u": 7.35,
+     "walk": 3.78,
+     "surface": 3.78
+    },
+    {
+     "u": 7.88,
+     "walk": 4.05,
+     "surface": 4.05
+    },
+    {
+     "u": 7.89,
+     "walk": 4.05,
+     "surface": 4.05
+    },
+    {
+     "u": 8.42,
+     "walk": 4.32,
+     "surface": 4.32
+    },
+    {
+     "u": 8.43,
+     "walk": 4.32,
+     "surface": 4.32
+    },
+    {
+     "u": 8.96,
+     "walk": 4.59,
+     "surface": 4.59
+    },
+    {
+     "u": 8.97,
+     "walk": 4.59,
+     "surface": 4.59
+    },
+    {
+     "u": 9.5,
+     "walk": 4.86,
+     "surface": 4.86
+    },
+    {
+     "u": 9.51,
+     "walk": 4.86,
+     "surface": 4.86
+    },
+    {
+     "u": 10.04,
+     "walk": 5.13,
+     "surface": 5.13
+    },
+    {
+     "u": 10.05,
+     "walk": 5.13,
+     "surface": 5.13
+    },
+    {
+     "u": 10.58,
+     "walk": 5.4,
+     "surface": 5.4
+    },
+    {
+     "u": 10.59,
+     "walk": 5.4,
+     "surface": 5.4
+    }
+   ]
+  },
+  "south-bank": {
+   "id": "south-bank",
+   "treadSpan": {
+    "samples": 480,
+    "shareStoneOver3cmAbove": 0,
+    "shareStoneOver5cmBelow": 0,
+    "maxStoneAboveWalkM": 0,
+    "maxStoneBelowWalkM": 0,
+    "worst": []
+   },
+   "noseZone": {
+    "samples": 655,
+    "shareStoneOver3cmAbove": 0.3053,
+    "shareStoneOver5cmBelow": 0,
+    "maxStoneAboveWalkM": 0.263,
+    "maxStoneBelowWalkM": 0,
+    "worst": [
+     {
+      "u": 1.51,
+      "v": 0.64,
+      "d": 0.263
+     },
+     {
+      "u": 1.51,
+      "v": -0.64,
+      "d": 0.262
+     },
+     {
+      "u": 1.5,
+      "v": 0.64,
+      "d": 0.261
+     },
+     {
+      "u": 1.5,
+      "v": -0.64,
+      "d": 0.26
+     },
+     {
+      "u": 1.49,
+      "v": 0.64,
+      "d": 0.26
+     },
+     {
+      "u": 1.49,
+      "v": -0.64,
+      "d": 0.259
+     }
+    ]
+   },
+   "centreline": [
+    {
+     "u": 0.23,
+     "walk": 0.65,
+     "surface": 0.65
+    },
+    {
+     "u": 0.61,
+     "walk": 0.91,
+     "surface": 0.91
+    },
+    {
+     "u": 0.99,
+     "walk": 1.17,
+     "surface": 1.17
+    },
+    {
+     "u": 1.37,
+     "walk": 1.43,
+     "surface": 1.43
+    },
+    {
+     "u": 1.75,
+     "walk": 1.69,
+     "surface": 1.69
+    },
+    {
+     "u": 2.13,
+     "walk": 1.95,
+     "surface": 1.95
+    }
+   ]
+  }
+ },
+ "look": [
+  {
+   "id": "plaza",
+   "at": [
+    0.5,
+    1
+   ],
+   "yaw": 180,
+   "note": "open plaza facing the village",
+   "rest": {
+    "elevationDeg": -3.33,
+    "topEdgeDeg": 19.67,
+    "bottomEdgeDeg": -26.33,
+    "camera": [
+     0.5,
+     1.784,
+     5.3
+    ],
+    "cameraAboveGround": 1.774,
+    "link": [
+     0.5,
+     0.034,
+     1
+    ],
+    "cameraToLink": 4.335,
+    "follow": {
+     "yaw": 3.141592653589793,
+     "pitch": -0.05807415956295393,
+     "pitchTarget": -0.05807415956295393,
+     "keep": 1,
+     "distance": 4.307261310856354,
+     "lift": 0,
+     "lowered": 0,
+     "slimPush": 0,
+     "hit": null
+    },
+    "clearance": {
+     "nearestM": 3.201,
+     "nearShare": 0,
+     "skyShare": 0,
+     "linkHidden": false
+    },
+    "exposure": {
+     "all": {
+      "share": 1,
+      "clipped": 0.0011,
+      "crushed": 0,
+      "p05": 39.6,
+      "p50": 78.6,
+      "p95": 148.2,
+      "mean": 84
+     },
+     "sky": {
+      "share": 0
+     },
+     "scene": {
+      "share": 1,
+      "clipped": 0.0011,
+      "crushed": 0,
+      "p05": 39.6,
+      "p50": 78.6,
+      "p95": 148.2,
+      "mean": 84
+     }
+    },
+    "shot": "look-plaza-rest.jpg"
+   },
+   "dragUp": {
+    "elevationDeg": 60.16,
+    "topEdgeDeg": 83.16,
+    "bottomEdgeDeg": 37.16,
+    "camera": [
+     0.5,
+     1.245,
+     3.886
+    ],
+    "cameraAboveGround": 1.232,
+    "link": [
+     0.5,
+     0.034,
+     1
+    ],
+    "cameraToLink": 2.886,
+    "follow": {
+     "yaw": 3.141592653589793,
+     "pitch": 1.0499999999980483,
+     "pitchTarget": 1.05,
+     "keep": 1,
+     "distance": 2.9,
+     "lift": 0,
+     "lowered": 0,
+     "slimPush": 0,
+     "hit": null
+    },
+    "clearance": {
+     "nearestM": 2.658,
+     "nearShare": 0,
+     "skyShare": 0.16,
+     "linkHidden": "off-screen"
+    },
+    "exposure": {
+     "all": {
+      "share": 1,
+      "clipped": 0,
+      "crushed": 0,
+      "p05": 33.1,
+      "p50": 90.6,
+      "p95": 179.3,
+      "mean": 99.6
+     },
+     "sky": {
+      "share": 0.16,
+      "clipped": 0,
+      "crushed": 0,
+      "p05": 38.4,
+      "p50": 80.4,
+      "p95": 165.8,
+      "mean": 86.7
+     },
+     "scene": {
+      "share": 0.84,
+      "clipped": 0,
+      "crushed": 0,
+      "p05": 32,
+      "p50": 94.3,
+      "p95": 181.6,
+      "mean": 102.1
+     }
+    },
+    "shot": "look-plaza-drag-up.jpg"
+   },
+   "dragDown": {
+    "elevationDeg": -35.52,
+    "topEdgeDeg": -12.52,
+    "bottomEdgeDeg": -58.52,
+    "camera": [
+     0.5,
+     4.037,
+     4.506
+    ],
+    "cameraAboveGround": 4.015,
+    "link": [
+     0.5,
+     0.034,
+     1
+    ],
+    "cameraToLink": 4.488,
+    "follow": {
+     "yaw": 3.141592653589793,
+     "pitch": -0.6199999999999999,
+     "pitchTarget": -0.62,
+     "keep": 1,
+     "distance": 4.307261310856354,
+     "lift": 0,
+     "lowered": 0,
+     "slimPush": 0,
+     "hit": null
+    },
+    "clearance": {
+     "nearestM": 3.03,
+     "nearShare": 0,
+     "skyShare": 0,
+     "linkHidden": false
+    },
+    "exposure": {
+     "all": {
+      "share": 1,
+      "clipped": 0.0005,
+      "crushed": 0,
+      "p05": 33.2,
+      "p50": 73.7,
+      "p95": 148.2,
+      "mean": 80.6
+     },
+     "sky": {
+      "share": 0
+     },
+     "scene": {
+      "share": 1,
+      "clipped": 0.0005,
+      "crushed": 0,
+      "p05": 33.2,
+      "p50": 73.7,
+      "p95": 148.2,
+      "mean": 80.6
+     }
+    },
+    "shot": "look-plaza-drag-down.jpg"
+   },
+   "maxUpDeg": 60.16,
+   "maxDownDeg": -35.52,
+   "maxVisibleAboveHorizonDeg": 83.16
+  },
+  {
+   "id": "stairs2-base",
+   "at": [
+    6.038,
+    0.884
+   ],
+   "yaw": 127.95423087513251,
+   "note": "second staircase (main flight), foot, facing up",
+   "rest": {
+    "elevationDeg": -3.33,
+    "topEdgeDeg": 19.67,
+    "bottomEdgeDeg": -26.33,
+    "camera": [
+     2.648,
+     1.786,
+     3.529
+    ],
+    "cameraAboveGround": 1.774,
+    "link": [
+     6.038,
+     0.036,
+     0.884
+    ],
+    "cameraToLink": 4.335,
+    "follow": {
+     "yaw": 2.2332226206280477,
+     "pitch": -0.05807415956295393,
+     "pitchTarget": -0.05807415956295393,
+     "keep": 1,
+     "distance": 4.307261310856354,
+     "lift": 0,
+     "lowered": 0,
+     "slimPush": 0,
+     "hit": null
+    },
+    "clearance": {
+     "nearestM": 2.864,
+     "nearShare": 0,
+     "skyShare": 0,
+     "linkHidden": false
+    },
+    "exposure": {
+     "all": {
+      "share": 1,
+      "clipped": 0.0008,
+      "crushed": 0,
+      "p05": 34.9,
+      "p50": 66.3,
+      "p95": 140.4,
+      "mean": 73.4
+     },
+     "sky": {
+      "share": 0
+     },
+     "scene": {
+      "share": 1,
+      "clipped": 0.0008,
+      "crushed": 0,
+      "p05": 34.9,
+      "p50": 66.3,
+      "p95": 140.4,
+      "mean": 73.4
+     }
+    },
+    "shot": "look-stairs2-base-rest.jpg"
+   },
+   "dragUp": {
+    "elevationDeg": 60.16,
+    "topEdgeDeg": 83.16,
+    "bottomEdgeDeg": 37.16,
+    "camera": [
+     3.763,
+     1.247,
+     2.659
+    ],
+    "cameraAboveGround": 1.244,
+    "link": [
+     6.038,
+     0.036,
+     0.884
+    ],
+    "cameraToLink": 2.886,
+    "follow": {
+     "yaw": 2.2332226206280477,
+     "pitch": 1.0499999999980483,
+     "pitchTarget": 1.05,
+     "keep": 1,
+     "distance": 2.9,
+     "lift": 0,
+     "lowered": 0,
+     "slimPush": 0,
+     "hit": null
+    },
+    "clearance": {
+     "nearestM": 5.194,
+     "nearShare": 0,
+     "skyShare": 0.0944,
+     "linkHidden": "off-screen"
+    },
+    "exposure": {
+     "all": {
+      "share": 1,
+      "clipped": 0,
+      "crushed": 0,
+      "p05": 31.6,
+      "p50": 64.3,
+      "p95": 165.8,
+      "mean": 74.7
+     },
+     "sky": {
+      "share": 0.0944,
+      "clipped": 0,
+      "crushed": 0,
+      "p05": 30.5,
+      "p50": 66.1,
+      "p95": 166.2,
+      "mean": 75.4
+     },
+     "scene": {
+      "share": 0.9056,
+      "clipped": 0,
+      "crushed": 0,
+      "p05": 31.9,
+      "p50": 64.1,
+      "p95": 165.8,
+      "mean": 74.6
+     }
+    },
+    "shot": "look-stairs2-base-drag-up.jpg"
+   },
+   "dragDown": {
+    "elevationDeg": -35.52,
+    "topEdgeDeg": -12.52,
+    "bottomEdgeDeg": -58.52,
+    "camera": [
+     3.274,
+     4.039,
+     3.04
+    ],
+    "cameraAboveGround": 4.028,
+    "link": [
+     6.038,
+     0.036,
+     0.884
+    ],
+    "cameraToLink": 4.488,
+    "follow": {
+     "yaw": 2.2332226206280477,
+     "pitch": -0.6199999999999999,
+     "pitchTarget": -0.62,
+     "keep": 1,
+     "distance": 4.307261310856354,
+     "lift": 0,
+     "lowered": 0,
+     "slimPush": 0,
+     "hit": null
+    },
+    "clearance": {
+     "nearestM": 4.176,
+     "nearShare": 0,
+     "skyShare": 0,
+     "linkHidden": false
+    },
+    "exposure": {
+     "all": {
+      "share": 1,
+      "clipped": 0.0006,
+      "crushed": 0,
+      "p05": 32.1,
+      "p50": 71,
+      "p95": 144.4,
+      "mean": 75.8
+     },
+     "sky": {
+      "share": 0
+     },
+     "scene": {
+      "share": 1,
+      "clipped": 0.0006,
+      "crushed": 0,
+      "p05": 32.1,
+      "p50": 71,
+      "p95": 144.4,
+      "mean": 75.8
+     }
+    },
+    "shot": "look-stairs2-base-drag-down.jpg"
+   },
+   "maxUpDeg": 60.16,
+   "maxDownDeg": -35.52,
+   "maxVisibleAboveHorizonDeg": 83.16
+  },
+  {
+   "id": "stairs2-mid",
+   "at": [
+    11.558,
+    -3.421
+   ],
+   "yaw": 127.95423087513251,
+   "note": "second staircase, halfway",
+   "rest": {
+    "elevationDeg": -3.33,
+    "topEdgeDeg": 19.67,
+    "bottomEdgeDeg": -26.33,
+    "camera": [
+     8.167,
+     4.72,
+     -0.777
+    ],
+    "cameraAboveGround": 4.35,
+    "link": [
+     11.558,
+     2.97,
+     -3.421
+    ],
+    "cameraToLink": 4.335,
+    "follow": {
+     "yaw": 2.2332226206280477,
+     "pitch": -0.05807415956295393,
+     "pitchTarget": -0.05807415956295393,
+     "keep": 1,
+     "distance": 4.3072613108563536,
+     "lift": 0,
+     "lowered": 0,
+     "slimPush": 0,
+     "hit": null
+    },
+    "clearance": {
+     "nearestM": 4.01,
+     "nearShare": 0,
+     "skyShare": 0.0005,
+     "linkHidden": false
+    },
+    "exposure": {
+     "all": {
+      "share": 1,
+      "clipped": 0,
+      "crushed": 0,
+      "p05": 30.1,
+      "p50": 67,
+      "p95": 125.1,
+      "mean": 72.4
+     },
+     "sky": {
+      "share": 0.0005,
+      "clipped": 0,
+      "crushed": 0,
+      "p05": 73.9,
+      "p50": 82.6,
+      "p95": 85.7,
+      "mean": 82.2
+     },
+     "scene": {
+      "share": 0.9995,
+      "clipped": 0,
+      "crushed": 0,
+      "p05": 30.1,
+      "p50": 66.9,
+      "p95": 125.1,
+      "mean": 72.4
+     }
+    },
+    "shot": "look-stairs2-mid-rest.jpg"
+   },
+   "dragUp": {
+    "elevationDeg": 60.16,
+    "topEdgeDeg": 83.16,
+    "bottomEdgeDeg": 37.16,
+    "camera": [
+     9.283,
+     4.18,
+     -1.646
+    ],
+    "cameraAboveGround": 3.133,
+    "link": [
+     11.558,
+     2.97,
+     -3.421
+    ],
+    "cameraToLink": 2.886,
+    "follow": {
+     "yaw": 2.2332226206280477,
+     "pitch": 1.0499999999980483,
+     "pitchTarget": 1.05,
+     "keep": 1,
+     "distance": 2.9,
+     "lift": 0,
+     "lowered": 0,
+     "slimPush": 0,
+     "hit": null
+    },
+    "clearance": {
+     "nearestM": 7.068,
+     "nearShare": 0,
+     "skyShare": 0.1099,
+     "linkHidden": "off-screen"
+    },
+    "exposure": {
+     "all": {
+      "share": 1,
+      "clipped": 0,
+      "crushed": 0,
+      "p05": 29.2,
+      "p50": 63.1,
+      "p95": 166,
+      "mean": 76.4
+     },
+     "sky": {
+      "share": 0.1099,
+      "clipped": 0,
+      "crushed": 0,
+      "p05": 31.4,
+      "p50": 68.6,
+      "p95": 162.2,
+      "mean": 78.9
+     },
+     "scene": {
+      "share": 0.8901,
+      "clipped": 0,
+      "crushed": 0,
+      "p05": 29.1,
+      "p50": 62.1,
+      "p95": 166.2,
+      "mean": 76.1
+     }
+    },
+    "shot": "look-stairs2-mid-drag-up.jpg"
+   },
+   "dragDown": {
+    "elevationDeg": -35.52,
+    "topEdgeDeg": -12.52,
+    "bottomEdgeDeg": -58.52,
+    "camera": [
+     8.794,
+     6.973,
+     -1.265
+    ],
+    "cameraAboveGround": 6.221,
+    "link": [
+     11.558,
+     2.97,
+     -3.421
+    ],
+    "cameraToLink": 4.488,
+    "follow": {
+     "yaw": 2.2332226206280477,
+     "pitch": -0.6199999999999999,
+     "pitchTarget": -0.62,
+     "keep": 1,
+     "distance": 4.3072613108563536,
+     "lift": 0,
+     "lowered": 0,
+     "slimPush": 0,
+     "hit": null
+    },
+    "clearance": {
+     "nearestM": 4.362,
+     "nearShare": 0,
+     "skyShare": 0,
+     "linkHidden": false
+    },
+    "exposure": {
+     "all": {
+      "share": 1,
+      "clipped": 0,
+      "crushed": 0,
+      "p05": 31.6,
+      "p50": 57.9,
+      "p95": 110,
+      "mean": 63.2
+     },
+     "sky": {
+      "share": 0
+     },
+     "scene": {
+      "share": 1,
+      "clipped": 0,
+      "crushed": 0,
+      "p05": 31.6,
+      "p50": 57.9,
+      "p95": 110,
+      "mean": 63.2
+     }
+    },
+    "shot": "look-stairs2-mid-drag-down.jpg"
+   },
+   "maxUpDeg": 60.16,
+   "maxDownDeg": -35.52,
+   "maxVisibleAboveHorizonDeg": 83.16
+  },
+  {
+   "id": "stairs2-top",
+   "at": [
+    16.447,
+    -7.234
+   ],
+   "yaw": 307.9542308751325,
+   "note": "second staircase, top, facing down",
+   "rest": {
+    "elevationDeg": -3.33,
+    "topEdgeDeg": 19.67,
+    "bottomEdgeDeg": -26.33,
+    "camera": [
+     19.837,
+     7.15,
+     -9.879
+    ],
+    "cameraAboveGround": 2.195,
+    "link": [
+     16.447,
+     5.4,
+     -7.234
+    ],
+    "cameraToLink": 4.335,
+    "follow": {
+     "yaw": 5.374815274217841,
+     "pitch": -0.05807415956295393,
+     "pitchTarget": -0.05807415956295393,
+     "keep": 1,
+     "distance": 4.307261310856354,
+     "lift": 0,
+     "lowered": 0,
+     "slimPush": 0,
+     "hit": null
+    },
+    "clearance": {
+     "nearestM": 3.489,
+     "nearShare": 0,
+     "skyShare": 0.0037,
+     "linkHidden": false
+    },
+    "exposure": {
+     "all": {
+      "share": 1,
+      "clipped": 0,
+      "crushed": 0,
+      "p05": 39.3,
+      "p50": 73.8,
+      "p95": 115.7,
+      "mean": 75.4
+     },
+     "sky": {
+      "share": 0.0037,
+      "clipped": 0,
+      "crushed": 0,
+      "p05": 31.1,
+      "p50": 64.1,
+      "p95": 85.1,
+      "mean": 63.3
+     },
+     "scene": {
+      "share": 0.9963,
+      "clipped": 0,
+      "crushed": 0,
+      "p05": 39.4,
+      "p50": 73.8,
+      "p95": 115.8,
+      "mean": 75.4
+     }
+    },
+    "shot": "look-stairs2-top-rest.jpg"
+   },
+   "dragUp": {
+    "elevationDeg": 60.16,
+    "topEdgeDeg": 83.16,
+    "bottomEdgeDeg": 37.16,
+    "camera": [
+     18.722,
+     6.61,
+     -9.009
+    ],
+    "cameraAboveGround": 1.76,
+    "link": [
+     16.447,
+     5.4,
+     -7.234
+    ],
+    "cameraToLink": 2.886,
+    "follow": {
+     "yaw": 5.374815274217841,
+     "pitch": 1.0499999999980483,
+     "pitchTarget": 1.05,
+     "keep": 1,
+     "distance": 2.9,
+     "lift": 0,
+     "lowered": 0,
+     "slimPush": 0,
+     "hit": null
+    },
+    "clearance": {
+     "nearestM": 3.285,
+     "nearShare": 0,
+     "skyShare": 0.1274,
+     "linkHidden": "off-screen"
+    },
+    "exposure": {
+     "all": {
+      "share": 1,
+      "clipped": 0,
+      "crushed": 0,
+      "p05": 34.1,
+      "p50": 74.1,
+      "p95": 170.7,
+      "mean": 89.1
+     },
+     "sky": {
+      "share": 0.1274,
+      "clipped": 0,
+      "crushed": 0,
+      "p05": 29.8,
+      "p50": 65.9,
+      "p95": 171.8,
+      "mean": 82.8
+     },
+     "scene": {
+      "share": 0.8726,
+      "clipped": 0,
+      "crushed": 0,
+      "p05": 35.1,
+      "p50": 75.1,
+      "p95": 170.1,
+      "mean": 90.1
+     }
+    },
+    "shot": "look-stairs2-top-drag-up.jpg"
+   },
+   "dragDown": {
+    "elevationDeg": -35.52,
+    "topEdgeDeg": -12.52,
+    "bottomEdgeDeg": -58.52,
+    "camera": [
+     19.211,
+     9.403,
+     -9.39
+    ],
+    "cameraAboveGround": 4.514,
+    "link": [
+     16.447,
+     5.4,
+     -7.234
+    ],
+    "cameraToLink": 4.488,
+    "follow": {
+     "yaw": 5.374815274217841,
+     "pitch": -0.6199999999999999,
+     "pitchTarget": -0.62,
+     "keep": 1,
+     "distance": 4.307261310856356,
+     "lift": 0,
+     "lowered": 0,
+     "slimPush": 0,
+     "hit": null
+    },
+    "clearance": {
+     "nearestM": 3.006,
+     "nearShare": 0,
+     "skyShare": 0,
+     "linkHidden": false
+    },
+    "exposure": {
+     "all": {
+      "share": 1,
+      "clipped": 0.0001,
+      "crushed": 0,
+      "p05": 35.8,
+      "p50": 63.9,
+      "p95": 113.9,
+      "mean": 68
+     },
+     "sky": {
+      "share": 0
+     },
+     "scene": {
+      "share": 1,
+      "clipped": 0.0001,
+      "crushed": 0,
+      "p05": 35.8,
+      "p50": 63.9,
+      "p95": 113.9,
+      "mean": 68
+     }
+    },
+    "shot": "look-stairs2-top-drag-down.jpg"
+   },
+   "maxUpDeg": 60.16,
+   "maxDownDeg": -35.52,
+   "maxVisibleAboveHorizonDeg": 83.16
+  },
+  {
+   "id": "stairs1-base",
+   "at": [
+    -14.23,
+    14.45
+   ],
+   "yaw": -45,
+   "note": "first staircase (south bank), foot, facing up",
+   "rest": {
+    "elevationDeg": -3.33,
+    "topEdgeDeg": 19.67,
+    "bottomEdgeDeg": -26.33,
+    "camera": [
+     -11.189,
+     1.951,
+     11.409
+    ],
+    "cameraAboveGround": 1.579,
+    "link": [
+     -14.23,
+     0.201,
+     14.45
+    ],
+    "cameraToLink": 4.335,
+    "follow": {
+     "yaw": -0.7853981633974483,
+     "pitch": -0.05807415956295393,
+     "pitchTarget": -0.05807415956295393,
+     "keep": 1,
+     "distance": 4.3072613108563536,
+     "lift": 0,
+     "lowered": 0,
+     "slimPush": 0,
+     "hit": null
+    },
+    "clearance": {
+     "nearestM": 3.28,
+     "nearShare": 0,
+     "skyShare": 0.0006,
+     "linkHidden": false
+    },
+    "exposure": {
+     "all": {
+      "share": 1,
+      "clipped": 0,
+      "crushed": 0,
+      "p05": 27.5,
+      "p50": 64.4,
+      "p95": 117.7,
+      "mean": 67.2
+     },
+     "sky": {
+      "share": 0.0006,
+      "clipped": 0,
+      "crushed": 0,
+      "p05": 29,
+      "p50": 45.8,
+      "p95": 58,
+      "mean": 49.1
+     },
+     "scene": {
+      "share": 0.9994,
+      "clipped": 0,
+      "crushed": 0,
+      "p05": 27.5,
+      "p50": 64.4,
+      "p95": 117.7,
+      "mean": 67.2
+     }
+    },
+    "shot": "look-stairs1-base-rest.jpg"
+   },
+   "dragUp": {
+    "elevationDeg": 60.16,
+    "topEdgeDeg": 83.16,
+    "bottomEdgeDeg": 37.16,
+    "camera": [
+     -12.19,
+     1.411,
+     12.41
+    ],
+    "cameraAboveGround": 1.414,
+    "link": [
+     -14.23,
+     0.201,
+     14.45
+    ],
+    "cameraToLink": 2.886,
+    "follow": {
+     "yaw": -0.7853981633974483,
+     "pitch": 1.0499999999980483,
+     "pitchTarget": 1.05,
+     "keep": 1,
+     "distance": 2.8999999999999995,
+     "lift": 0,
+     "lowered": 0,
+     "slimPush": 0,
+     "hit": null
+    },
+    "clearance": {
+     "nearestM": 4.276,
+     "nearShare": 0,
+     "skyShare": 0.1491,
+     "linkHidden": "off-screen"
+    },
+    "exposure": {
+     "all": {
+      "share": 1,
+      "clipped": 0,
+      "crushed": 0,
+      "p05": 25.9,
+      "p50": 59.6,
+      "p95": 165.8,
+      "mean": 74.6
+     },
+     "sky": {
+      "share": 0.1491,
+      "clipped": 0,
+      "crushed": 0,
+      "p05": 24.6,
+      "p50": 61.6,
+      "p95": 165.8,
+      "mean": 71.4
+     },
+     "scene": {
+      "share": 0.8509,
+      "clipped": 0,
+      "crushed": 0,
+      "p05": 26.2,
+      "p50": 59.2,
+      "p95": 165.8,
+      "mean": 75.2
+     }
+    },
+    "shot": "look-stairs1-base-drag-up.jpg"
+   },
+   "dragDown": {
+    "elevationDeg": -35.52,
+    "topEdgeDeg": -12.52,
+    "bottomEdgeDeg": -58.52,
+    "camera": [
+     -11.751,
+     4.204,
+     11.971
+    ],
+    "cameraAboveGround": 4.015,
+    "link": [
+     -14.23,
+     0.201,
+     14.45
+    ],
+    "cameraToLink": 4.488,
+    "follow": {
+     "yaw": -0.7853981633974483,
+     "pitch": -0.6199999999999999,
+     "pitchTarget": -0.62,
+     "keep": 1,
+     "distance": 4.307261310856354,
+     "lift": 0,
+     "lowered": 0,
+     "slimPush": 0,
+     "hit": null
+    },
+    "clearance": {
+     "nearestM": 3.08,
+     "nearShare": 0,
+     "skyShare": 0,
+     "linkHidden": false
+    },
+    "exposure": {
+     "all": {
+      "share": 1,
+      "clipped": 0,
+      "crushed": 0,
+      "p05": 27.7,
+      "p50": 48.8,
+      "p95": 91.3,
+      "mean": 52.5
+     },
+     "sky": {
+      "share": 0
+     },
+     "scene": {
+      "share": 1,
+      "clipped": 0,
+      "crushed": 0,
+      "p05": 27.7,
+      "p50": 48.8,
+      "p95": 91.3,
+      "mean": 52.5
+     }
+    },
+    "shot": "look-stairs1-base-drag-down.jpg"
+   },
+   "maxUpDeg": 60.16,
+   "maxDownDeg": -35.52,
+   "maxVisibleAboveHorizonDeg": 83.16
+  },
+  {
+   "id": "stairs1-top",
+   "at": [
+    -17.327,
+    17.547
+   ],
+   "yaw": 135,
+   "note": "first staircase, top, facing down",
+   "rest": {
+    "elevationDeg": -3.33,
+    "topEdgeDeg": 19.67,
+    "bottomEdgeDeg": -26.33,
+    "camera": [
+     -20.368,
+     3.7,
+     20.588
+    ],
+    "cameraAboveGround": 3.134,
+    "link": [
+     -17.327,
+     1.95,
+     17.547
+    ],
+    "cameraToLink": 4.335,
+    "follow": {
+     "yaw": 2.356194490192345,
+     "pitch": -0.05807415956295393,
+     "pitchTarget": -0.05807415956295393,
+     "keep": 1,
+     "distance": 4.307261310856356,
+     "lift": 0,
+     "lowered": 0,
+     "slimPush": 0,
+     "hit": null
+    },
+    "clearance": {
+     "nearestM": 3.461,
+     "nearShare": 0,
+     "skyShare": 0.0002,
+     "linkHidden": false
+    },
+    "exposure": {
+     "all": {
+      "share": 1,
+      "clipped": 0.0001,
+      "crushed": 0,
+      "p05": 32.9,
+      "p50": 73.1,
+      "p95": 138.6,
+      "mean": 76.6
+     },
+     "sky": {
+      "share": 0.0002,
+      "clipped": 0,
+      "crushed": 0,
+      "p05": 64,
+      "p50": 87.4,
+      "p95": 87.4,
+      "mean": 79.7
+     },
+     "scene": {
+      "share": 0.9998,
+      "clipped": 0.0001,
+      "crushed": 0,
+      "p05": 32.9,
+      "p50": 73.1,
+      "p95": 138.6,
+      "mean": 76.6
+     }
+    },
+    "shot": "look-stairs1-top-rest.jpg"
+   },
+   "dragUp": {
+    "elevationDeg": 60.16,
+    "topEdgeDeg": 83.16,
+    "bottomEdgeDeg": 37.16,
+    "camera": [
+     -19.368,
+     3.16,
+     19.588
+    ],
+    "cameraAboveGround": 1.227,
+    "link": [
+     -17.327,
+     1.95,
+     17.547
+    ],
+    "cameraToLink": 2.886,
+    "follow": {
+     "yaw": 2.356194490192345,
+     "pitch": 1.0499999999980483,
+     "pitchTarget": 1.05,
+     "keep": 1,
+     "distance": 2.8999999999999995,
+     "lift": 0,
+     "lowered": 0,
+     "slimPush": 0,
+     "hit": null
+    },
+    "clearance": {
+     "nearestM": 6.878,
+     "nearShare": 0,
+     "skyShare": 0.0648,
+     "linkHidden": "off-screen"
+    },
+    "exposure": {
+     "all": {
+      "share": 1,
+      "clipped": 0,
+      "crushed": 0,
+      "p05": 27,
+      "p50": 65.6,
+      "p95": 162.9,
+      "mean": 72
+     },
+     "sky": {
+      "share": 0.0648,
+      "clipped": 0,
+      "crushed": 0,
+      "p05": 26.1,
+      "p50": 62.2,
+      "p95": 165.8,
+      "mean": 74.7
+     },
+     "scene": {
+      "share": 0.9352,
+      "clipped": 0,
+      "crushed": 0,
+      "p05": 27.1,
+      "p50": 65.8,
+      "p95": 160.3,
+      "mean": 71.8
+     }
+    },
+    "shot": "look-stairs1-top-drag-up.jpg"
+   },
+   "dragDown": {
+    "elevationDeg": -35.52,
+    "topEdgeDeg": -12.52,
+    "bottomEdgeDeg": -58.52,
+    "camera": [
+     -19.806,
+     5.953,
+     20.026
+    ],
+    "cameraAboveGround": 4.439,
+    "link": [
+     -17.327,
+     1.95,
+     17.547
+    ],
+    "cameraToLink": 4.488,
+    "follow": {
+     "yaw": 2.356194490192345,
+     "pitch": -0.6199999999999999,
+     "pitchTarget": -0.62,
+     "keep": 1,
+     "distance": 4.307261310856354,
+     "lift": 0,
+     "lowered": 0,
+     "slimPush": 0,
+     "hit": null
+    },
+    "clearance": {
+     "nearestM": 4.389,
+     "nearShare": 0,
+     "skyShare": 0,
+     "linkHidden": false
+    },
+    "exposure": {
+     "all": {
+      "share": 1,
+      "clipped": 0,
+      "crushed": 0,
+      "p05": 29.9,
+      "p50": 51.1,
+      "p95": 125.1,
+      "mean": 59.5
+     },
+     "sky": {
+      "share": 0
+     },
+     "scene": {
+      "share": 1,
+      "clipped": 0,
+      "crushed": 0,
+      "p05": 29.9,
+      "p50": 51.1,
+      "p95": 125.1,
+      "mean": 59.5
+     }
+    },
+    "shot": "look-stairs1-top-drag-down.jpg"
+   },
+   "maxUpDeg": 60.16,
+   "maxDownDeg": -35.52,
+   "maxVisibleAboveHorizonDeg": 83.16
+  },
+  {
+   "id": "saria-side",
+   "at": [
+    8.2,
+    -6.8
+   ],
+   "yaw": 137.5448043798131,
+   "note": "beside Saria's house",
+   "rest": {
+    "elevationDeg": -3.33,
+    "topEdgeDeg": 19.67,
+    "bottomEdgeDeg": -26.33,
+    "camera": [
+     5.297,
+     3.124,
+     -3.627
+    ],
+    "cameraAboveGround": 3.099,
+    "link": [
+     8.2,
+     1.374,
+     -6.8
+    ],
+    "cameraToLink": 4.335,
+    "follow": {
+     "yaw": 2.4006097054392557,
+     "pitch": -0.05807415956295393,
+     "pitchTarget": -0.05807415956295393,
+     "keep": 1,
+     "distance": 4.3072613108563536,
+     "lift": 0,
+     "lowered": 0,
+     "slimPush": 0,
+     "hit": null
+    },
+    "clearance": {
+     "nearestM": 3.449,
+     "nearShare": 0,
+     "skyShare": 0,
+     "linkHidden": false
+    },
+    "exposure": {
+     "all": {
+      "share": 1,
+      "clipped": 0.001,
+      "crushed": 0,
+      "p05": 23.3,
+      "p50": 56.1,
+      "p95": 123.1,
+      "mean": 62.7
+     },
+     "sky": {
+      "share": 0
+     },
+     "scene": {
+      "share": 1,
+      "clipped": 0.001,
+      "crushed": 0,
+      "p05": 23.3,
+      "p50": 56.1,
+      "p95": 123.1,
+      "mean": 62.7
+     }
+    },
+    "shot": "look-saria-side-rest.jpg"
+   },
+   "dragUp": {
+    "elevationDeg": 60.16,
+    "topEdgeDeg": 83.16,
+    "bottomEdgeDeg": 37.16,
+    "camera": [
+     6.252,
+     2.585,
+     -4.671
+    ],
+    "cameraAboveGround": 2.927,
+    "link": [
+     8.2,
+     1.374,
+     -6.8
+    ],
+    "cameraToLink": 2.886,
+    "follow": {
+     "yaw": 2.4006097054392557,
+     "pitch": 1.0499999999980483,
+     "pitchTarget": 1.05,
+     "keep": 1,
+     "distance": 2.8999999999999995,
+     "lift": 0,
+     "lowered": 0,
+     "slimPush": 0,
+     "hit": null
+    },
+    "clearance": {
+     "nearestM": 6.339,
+     "nearShare": 0,
+     "skyShare": 0.121,
+     "linkHidden": "off-screen"
+    },
+    "exposure": {
+     "all": {
+      "share": 1,
+      "clipped": 0,
+      "crushed": 0,
+      "p05": 37.4,
+      "p50": 92.4,
+      "p95": 167.2,
+      "mean": 96.8
+     },
+     "sky": {
+      "share": 0.121,
+      "clipped": 0,
+      "crushed": 0,
+      "p05": 54.1,
+      "p50": 96.7,
+      "p95": 169.5,
+      "mean": 104
+     },
+     "scene": {
+      "share": 0.879,
+      "clipped": 0,
+      "crushed": 0,
+      "p05": 35.6,
+      "p50": 91.3,
+      "p95": 166.9,
+      "mean": 95.8
+     }
+    },
+    "shot": "look-saria-side-drag-up.jpg"
+   },
+   "dragDown": {
+    "elevationDeg": -35.52,
+    "topEdgeDeg": -12.52,
+    "bottomEdgeDeg": -58.52,
+    "camera": [
+     5.834,
+     5.377,
+     -4.214
+    ],
+    "cameraAboveGround": 5.574,
+    "link": [
+     8.2,
+     1.374,
+     -6.8
+    ],
+    "cameraToLink": 4.488,
+    "follow": {
+     "yaw": 2.4006097054392557,
+     "pitch": -0.6199999999999999,
+     "pitchTarget": -0.62,
+     "keep": 1,
+     "distance": 4.307261310856354,
+     "lift": 0,
+     "lowered": 0,
+     "slimPush": 0,
+     "hit": null
+    },
+    "clearance": {
+     "nearestM": 4.215,
+     "nearShare": 0,
+     "skyShare": 0,
+     "linkHidden": false
+    },
+    "exposure": {
+     "all": {
+      "share": 1,
+      "clipped": 0.0011,
+      "crushed": 0,
+      "p05": 27,
+      "p50": 56.3,
+      "p95": 128.3,
+      "mean": 64.7
+     },
+     "sky": {
+      "share": 0
+     },
+     "scene": {
+      "share": 1,
+      "clipped": 0.0011,
+      "crushed": 0,
+      "p05": 27,
+      "p50": 56.3,
+      "p95": 128.3,
+      "mean": 64.7
+     }
+    },
+    "shot": "look-saria-side-drag-down.jpg"
+   },
+   "maxUpDeg": 60.16,
+   "maxDownDeg": -35.52,
+   "maxVisibleAboveHorizonDeg": 83.16
+  },
+  {
+   "id": "upper-house",
+   "at": [
+    17,
+    -15
+   ],
+   "yaw": -125.53767779197439,
+   "note": "the upper house, from the plateau",
+   "rest": {
+    "elevationDeg": -3.33,
+    "topEdgeDeg": 19.67,
+    "bottomEdgeDeg": -26.33,
+    "camera": [
+     20.499,
+     6.932,
+     -12.501
+    ],
+    "cameraAboveGround": 1.968,
+    "link": [
+     17,
+     5.182,
+     -15
+    ],
+    "cameraToLink": 4.335,
+    "follow": {
+     "yaw": -2.191045812777718,
+     "pitch": -0.05807415956295393,
+     "pitchTarget": -0.05807415956295393,
+     "keep": 1,
+     "distance": 4.3072613108563536,
+     "lift": 0,
+     "lowered": 0,
+     "slimPush": 0,
+     "hit": null
+    },
+    "clearance": {
+     "nearestM": 2.098,
+     "nearShare": 0,
+     "skyShare": 0.0044,
+     "linkHidden": false
+    },
+    "exposure": {
+     "all": {
+      "share": 1,
+      "clipped": 0.0003,
+      "crushed": 0,
+      "p05": 15.4,
+      "p50": 46.2,
+      "p95": 136.8,
+      "mean": 55.4
+     },
+     "sky": {
+      "share": 0.0044,
+      "clipped": 0,
+      "crushed": 0,
+      "p05": 36.6,
+      "p50": 47.7,
+      "p95": 69.8,
+      "mean": 50.5
+     },
+     "scene": {
+      "share": 0.9956,
+      "clipped": 0.0003,
+      "crushed": 0,
+      "p05": 15.4,
+      "p50": 46.2,
+      "p95": 136.9,
+      "mean": 55.4
+     }
+    },
+    "shot": "look-upper-house-rest.jpg"
+   },
+   "dragUp": {
+    "elevationDeg": 60.16,
+    "topEdgeDeg": 83.16,
+    "bottomEdgeDeg": 37.16,
+    "camera": [
+     19.348,
+     6.392,
+     -13.323
+    ],
+    "cameraAboveGround": 1.425,
+    "link": [
+     17,
+     5.182,
+     -15
+    ],
+    "cameraToLink": 2.886,
+    "follow": {
+     "yaw": -2.191045812777718,
+     "pitch": 1.0499999999980483,
+     "pitchTarget": 1.05,
+     "keep": 1,
+     "distance": 2.9,
+     "lift": 0,
+     "lowered": 0,
+     "slimPush": 0,
+     "hit": null
+    },
+    "clearance": {
+     "nearestM": 3.773,
+     "nearShare": 0,
+     "skyShare": 0.0602,
+     "linkHidden": "off-screen"
+    },
+    "exposure": {
+     "all": {
+      "share": 1,
+      "clipped": 0,
+      "crushed": 0,
+      "p05": 34.9,
+      "p50": 59.6,
+      "p95": 168.1,
+      "mean": 75
+     },
+     "sky": {
+      "share": 0.0602,
+      "clipped": 0,
+      "crushed": 0,
+      "p05": 43.1,
+      "p50": 103,
+      "p95": 173.7,
+      "mean": 107.4
+     },
+     "scene": {
+      "share": 0.9398,
+      "clipped": 0,
+      "crushed": 0,
+      "p05": 34.1,
+      "p50": 58.3,
+      "p95": 167.2,
+      "mean": 72.9
+     }
+    },
+    "shot": "look-upper-house-drag-up.jpg"
+   },
+   "dragDown": {
+    "elevationDeg": -35.52,
+    "topEdgeDeg": -12.52,
+    "bottomEdgeDeg": -58.52,
+    "camera": [
+     19.853,
+     9.185,
+     -12.962
+    ],
+    "cameraAboveGround": 4.272,
+    "link": [
+     17,
+     5.182,
+     -15
+    ],
+    "cameraToLink": 4.488,
+    "follow": {
+     "yaw": -2.191045812777718,
+     "pitch": -0.6199999999999999,
+     "pitchTarget": -0.62,
+     "keep": 1,
+     "distance": 4.307261310856354,
+     "lift": 0,
+     "lowered": 0,
+     "slimPush": 0,
+     "hit": null
+    },
+    "clearance": {
+     "nearestM": 3.637,
+     "nearShare": 0,
+     "skyShare": 0,
+     "linkHidden": false
+    },
+    "exposure": {
+     "all": {
+      "share": 1,
+      "clipped": 0.0004,
+      "crushed": 0,
+      "p05": 15.3,
+      "p50": 43.8,
+      "p95": 95.2,
+      "mean": 48.7
+     },
+     "sky": {
+      "share": 0
+     },
+     "scene": {
+      "share": 1,
+      "clipped": 0.0004,
+      "crushed": 0,
+      "p05": 15.3,
+      "p50": 43.8,
+      "p95": 95.2,
+      "mean": 48.7
+     }
+    },
+    "shot": "look-upper-house-drag-down.jpg"
+   },
+   "maxUpDeg": 60.16,
+   "maxDownDeg": -35.52,
+   "maxVisibleAboveHorizonDeg": 83.16
+  },
+  {
+   "id": "west-house",
+   "at": [
+    -16.3,
+    6.5
+   ],
+   "yaw": -69.5377284765778,
+   "note": "the west house deck",
+   "rest": {
+    "elevationDeg": -3.33,
+    "topEdgeDeg": 19.67,
+    "bottomEdgeDeg": -26.33,
+    "camera": [
+     -12.271,
+     4.62,
+     4.997
+    ],
+    "cameraAboveGround": 2.066,
+    "link": [
+     -16.3,
+     2.87,
+     6.5
+    ],
+    "cameraToLink": 4.335,
+    "follow": {
+     "yaw": -1.2136623162741031,
+     "pitch": -0.05807415956295393,
+     "pitchTarget": -0.05807415956295393,
+     "keep": 1,
+     "distance": 4.307261310856354,
+     "lift": 0,
+     "lowered": 0,
+     "slimPush": 0,
+     "hit": null
+    },
+    "clearance": {
+     "nearestM": 0.934,
+     "nearShare": 0,
+     "skyShare": 0,
+     "linkHidden": false
+    },
+    "exposure": {
+     "all": {
+      "share": 1,
+      "clipped": 0.0024,
+      "crushed": 0,
+      "p05": 24.1,
+      "p50": 64.1,
+      "p95": 125.8,
+      "mean": 67.8
+     },
+     "sky": {
+      "share": 0
+     },
+     "scene": {
+      "share": 1,
+      "clipped": 0.0024,
+      "crushed": 0,
+      "p05": 24.1,
+      "p50": 64.1,
+      "p95": 125.8,
+      "mean": 67.8
+     }
+    },
+    "shot": "look-west-house-rest.jpg"
+   },
+   "dragUp": {
+    "elevationDeg": 60.16,
+    "topEdgeDeg": 83.16,
+    "bottomEdgeDeg": 37.16,
+    "camera": [
+     -13.597,
+     4.08,
+     5.491
+    ],
+    "cameraAboveGround": 1.584,
+    "link": [
+     -16.3,
+     2.87,
+     6.5
+    ],
+    "cameraToLink": 2.886,
+    "follow": {
+     "yaw": -1.2136623162741031,
+     "pitch": 1.0499999999980483,
+     "pitchTarget": 1.05,
+     "keep": 1,
+     "distance": 2.900000000000001,
+     "lift": 0,
+     "lowered": 0,
+     "slimPush": 0,
+     "hit": null
+    },
+    "clearance": {
+     "nearestM": 1.063,
+     "nearShare": 0,
+     "skyShare": 0.0681,
+     "linkHidden": "off-screen"
+    },
+    "exposure": {
+     "all": {
+      "share": 1,
+      "clipped": 0,
+      "crushed": 0,
+      "p05": 37.4,
+      "p50": 82.1,
+      "p95": 174.3,
+      "mean": 90.7
+     },
+     "sky": {
+      "share": 0.0681,
+      "clipped": 0,
+      "crushed": 0,
+      "p05": 35.1,
+      "p50": 74.7,
+      "p95": 166.9,
+      "mean": 85.5
+     },
+     "scene": {
+      "share": 0.9319,
+      "clipped": 0,
+      "crushed": 0,
+      "p05": 37.4,
+      "p50": 82.6,
+      "p95": 174.5,
+      "mean": 91.1
+     }
+    },
+    "shot": "look-west-house-drag-up.jpg"
+   },
+   "dragDown": {
+    "elevationDeg": -35.52,
+    "topEdgeDeg": -12.52,
+    "bottomEdgeDeg": -58.52,
+    "camera": [
+     -13.016,
+     6.873,
+     5.274
+    ],
+    "cameraAboveGround": 4.332,
+    "link": [
+     -16.3,
+     2.87,
+     6.5
+    ],
+    "cameraToLink": 4.488,
+    "follow": {
+     "yaw": -1.2136623162741031,
+     "pitch": -0.6199999999999999,
+     "pitchTarget": -0.62,
+     "keep": 1,
+     "distance": 4.307261310856354,
+     "lift": 0,
+     "lowered": 0,
+     "slimPush": 0,
+     "hit": null
+    },
+    "clearance": {
+     "nearestM": 0.848,
+     "nearShare": 0,
+     "skyShare": 0,
+     "linkHidden": true
+    },
+    "exposure": {
+     "all": {
+      "share": 1,
+      "clipped": 0.001,
+      "crushed": 0,
+      "p05": 26.6,
+      "p50": 52.4,
+      "p95": 106.5,
+      "mean": 58.2
+     },
+     "sky": {
+      "share": 0
+     },
+     "scene": {
+      "share": 1,
+      "clipped": 0.001,
+      "crushed": 0,
+      "p05": 26.6,
+      "p50": 52.4,
+      "p95": 106.5,
+      "mean": 58.2
+     }
+    },
+    "shot": "look-west-house-drag-down.jpg"
+   },
+   "maxUpDeg": 60.16,
+   "maxDownDeg": -35.52,
+   "maxVisibleAboveHorizonDeg": 83.16
+  },
+  {
+   "id": "open-north",
+   "at": [
+    1.5,
+    -40
+   ],
+   "yaw": 180,
+   "note": "open ground north of the log arch",
+   "rest": {
+    "elevationDeg": -3.33,
+    "topEdgeDeg": 19.67,
+    "bottomEdgeDeg": -26.33,
+    "camera": [
+     1.5,
+     5.291,
+     -35.7
+    ],
+    "cameraAboveGround": 2.112,
+    "link": [
+     1.5,
+     3.541,
+     -40
+    ],
+    "cameraToLink": 4.335,
+    "follow": {
+     "yaw": 3.141592653589793,
+     "pitch": -0.05807415956295393,
+     "pitchTarget": -0.05807415956295393,
+     "keep": 1,
+     "distance": 4.307261310856352,
+     "lift": 0,
+     "lowered": 0,
+     "slimPush": 0,
+     "hit": null
+    },
+    "clearance": {
+     "nearestM": 3.602,
+     "nearShare": 0,
+     "skyShare": 0,
+     "linkHidden": false
+    },
+    "exposure": {
+     "all": {
+      "share": 1,
+      "clipped": 0.0002,
+      "crushed": 0,
+      "p05": 57.6,
+      "p50": 91,
+      "p95": 147.1,
+      "mean": 95.2
+     },
+     "sky": {
+      "share": 0
+     },
+     "scene": {
+      "share": 1,
+      "clipped": 0.0002,
+      "crushed": 0,
+      "p05": 57.6,
+      "p50": 91,
+      "p95": 147.1,
+      "mean": 95.2
+     }
+    },
+    "shot": "look-open-north-rest.jpg"
+   },
+   "dragUp": {
+    "elevationDeg": 60.16,
+    "topEdgeDeg": 83.16,
+    "bottomEdgeDeg": 37.16,
+    "camera": [
+     1.5,
+     4.751,
+     -37.114
+    ],
+    "cameraAboveGround": 1.349,
+    "link": [
+     1.5,
+     3.541,
+     -40
+    ],
+    "cameraToLink": 2.886,
+    "follow": {
+     "yaw": 3.141592653589793,
+     "pitch": 1.0499999999980483,
+     "pitchTarget": 1.05,
+     "keep": 1,
+     "distance": 2.8999999999999995,
+     "lift": 0,
+     "lowered": 0,
+     "slimPush": 0,
+     "hit": null
+    },
+    "clearance": {
+     "nearestM": 0.105,
+     "nearShare": 0.0001,
+     "skyShare": 0.3605,
+     "linkHidden": "off-screen"
+    },
+    "exposure": {
+     "all": {
+      "share": 1,
+      "clipped": 0,
+      "crushed": 0,
+      "p05": 71.4,
+      "p50": 146.6,
+      "p95": 174.3,
+      "mean": 137.5
+     },
+     "sky": {
+      "share": 0.3605,
+      "clipped": 0,
+      "crushed": 0,
+      "p05": 75.1,
+      "p50": 145.4,
+      "p95": 172,
+      "mean": 139.5
+     },
+     "scene": {
+      "share": 0.6395,
+      "clipped": 0,
+      "crushed": 0,
+      "p05": 69.9,
+      "p50": 147.8,
+      "p95": 175.2,
+      "mean": 136.4
+     }
+    },
+    "shot": "look-open-north-drag-up.jpg"
+   },
+   "dragDown": {
+    "elevationDeg": -35.52,
+    "topEdgeDeg": -12.52,
+    "bottomEdgeDeg": -58.52,
+    "camera": [
+     1.5,
+     7.544,
+     -36.494
+    ],
+    "cameraAboveGround": 4.196,
+    "link": [
+     1.5,
+     3.541,
+     -40
+    ],
+    "cameraToLink": 4.488,
+    "follow": {
+     "yaw": 3.141592653589793,
+     "pitch": -0.6199999999999999,
+     "pitchTarget": -0.62,
+     "keep": 1,
+     "distance": 4.307261310856355,
+     "lift": 0,
+     "lowered": 0,
+     "slimPush": 0,
+     "hit": null
+    },
+    "clearance": {
+     "nearestM": 4.292,
+     "nearShare": 0,
+     "skyShare": 0,
+     "linkHidden": false
+    },
+    "exposure": {
+     "all": {
+      "share": 1,
+      "clipped": 0,
+      "crushed": 0,
+      "p05": 56.8,
+      "p50": 93.5,
+      "p95": 155,
+      "mean": 96.6
+     },
+     "sky": {
+      "share": 0
+     },
+     "scene": {
+      "share": 1,
+      "clipped": 0,
+      "crushed": 0,
+      "p05": 56.8,
+      "p50": 93.5,
+      "p95": 155,
+      "mean": 96.6
+     }
+    },
+    "shot": "look-open-north-drag-down.jpg"
+   },
+   "maxUpDeg": 60.16,
+   "maxDownDeg": -35.52,
+   "maxVisibleAboveHorizonDeg": 83.16
+  }
+ ],
+ "pad": {
+  "trace": [
+   {
+    "label": "stick-up",
+    "frame": 5,
+    "elevationDeg": 8.84,
+    "cameraAboveGround": 1.102
+   },
+   {
+    "label": "stick-up",
+    "frame": 10,
+    "elevationDeg": 24.01,
+    "cameraAboveGround": 1.146
+   },
+   {
+    "label": "stick-up",
+    "frame": 15,
+    "elevationDeg": 39.29,
+    "cameraAboveGround": 1.208
+   },
+   {
+    "label": "stick-up",
+    "frame": 20,
+    "elevationDeg": 54.56,
+    "cameraAboveGround": 1.232
+   },
+   {
+    "label": "stick-up",
+    "frame": 25,
+    "elevationDeg": 59.96,
+    "cameraAboveGround": 1.232
+   },
+   {
+    "label": "stick-up",
+    "frame": 30,
+    "elevationDeg": 60.15,
+    "cameraAboveGround": 1.232
+   },
+   {
+    "label": "stick-up",
+    "frame": 35,
+    "elevationDeg": 60.16,
+    "cameraAboveGround": 1.232
+   },
+   {
+    "label": "stick-up",
+    "frame": 40,
+    "elevationDeg": 60.16,
+    "cameraAboveGround": 1.232
+   },
+   {
+    "label": "stick-up",
+    "frame": 45,
+    "elevationDeg": 60.16,
+    "cameraAboveGround": 1.232
+   },
+   {
+    "label": "stick-up",
+    "frame": 50,
+    "elevationDeg": 60.16,
+    "cameraAboveGround": 1.232
+   },
+   {
+    "label": "stick-up",
+    "frame": 55,
+    "elevationDeg": 60.16,
+    "cameraAboveGround": 1.232
+   },
+   {
+    "label": "stick-up",
+    "frame": 60,
+    "elevationDeg": 60.16,
+    "cameraAboveGround": 1.232
+   },
+   {
+    "label": "release",
+    "frame": 5,
+    "elevationDeg": 60.16,
+    "cameraAboveGround": 1.232
+   },
+   {
+    "label": "release",
+    "frame": 10,
+    "elevationDeg": 60.16,
+    "cameraAboveGround": 1.232
+   },
+   {
+    "label": "release",
+    "frame": 15,
+    "elevationDeg": 60.16,
+    "cameraAboveGround": 1.232
+   },
+   {
+    "label": "release",
+    "frame": 20,
+    "elevationDeg": 60.16,
+    "cameraAboveGround": 1.232
+   },
+   {
+    "label": "stick-down",
+    "frame": 5,
+    "elevationDeg": 47.99,
+    "cameraAboveGround": 1.23
+   },
+   {
+    "label": "stick-down",
+    "frame": 10,
+    "elevationDeg": 32.82,
+    "cameraAboveGround": 1.182
+   },
+   {
+    "label": "stick-down",
+    "frame": 15,
+    "elevationDeg": 17.55,
+    "cameraAboveGround": 1.124
+   },
+   {
+    "label": "stick-down",
+    "frame": 20,
+    "elevationDeg": 2.27,
+    "cameraAboveGround": 1.354
+   },
+   {
+    "label": "stick-down",
+    "frame": 25,
+    "elevationDeg": -13.01,
+    "cameraAboveGround": 2.491
+   },
+   {
+    "label": "stick-down",
+    "frame": 30,
+    "elevationDeg": -28.29,
+    "cameraAboveGround": 3.555
+   },
+   {
+    "label": "stick-down",
+    "frame": 35,
+    "elevationDeg": -35.23,
+    "cameraAboveGround": 3.998
+   },
+   {
+    "label": "stick-down",
+    "frame": 40,
+    "elevationDeg": -35.51,
+    "cameraAboveGround": 4.015
+   },
+   {
+    "label": "stick-down",
+    "frame": 45,
+    "elevationDeg": -35.52,
+    "cameraAboveGround": 4.015
+   },
+   {
+    "label": "stick-down",
+    "frame": 50,
+    "elevationDeg": -35.52,
+    "cameraAboveGround": 4.015
+   },
+   {
+    "label": "stick-down",
+    "frame": 55,
+    "elevationDeg": -35.52,
+    "cameraAboveGround": 4.015
+   },
+   {
+    "label": "stick-down",
+    "frame": 60,
+    "elevationDeg": -35.52,
+    "cameraAboveGround": 4.015
+   },
+   {
+    "label": "stick-down",
+    "frame": 65,
+    "elevationDeg": -35.52,
+    "cameraAboveGround": 4.015
+   },
+   {
+    "label": "stick-down",
+    "frame": 70,
+    "elevationDeg": -35.52,
+    "cameraAboveGround": 4.015
+   },
+   {
+    "label": "stick-down",
+    "frame": 75,
+    "elevationDeg": -35.52,
+    "cameraAboveGround": 4.015
+   },
+   {
+    "label": "stick-down",
+    "frame": 80,
+    "elevationDeg": -35.52,
+    "cameraAboveGround": 4.015
+   },
+   {
+    "label": "stick-down",
+    "frame": 85,
+    "elevationDeg": -35.52,
+    "cameraAboveGround": 4.015
+   },
+   {
+    "label": "stick-down",
+    "frame": 90,
+    "elevationDeg": -35.52,
+    "cameraAboveGround": 4.015
+   },
+   {
+    "label": "release",
+    "frame": 5,
+    "elevationDeg": -35.52,
+    "cameraAboveGround": 4.015
+   },
+   {
+    "label": "release",
+    "frame": 10,
+    "elevationDeg": -35.52,
+    "cameraAboveGround": 4.015
+   },
+   {
+    "label": "release",
+    "frame": 15,
+    "elevationDeg": -35.52,
+    "cameraAboveGround": 4.015
+   },
+   {
+    "label": "release",
+    "frame": 20,
+    "elevationDeg": -35.52,
+    "cameraAboveGround": 4.015
+   }
+  ],
+  "maxUpDeg": 60.16,
+  "maxDownDeg": -35.52
+ },
+ "climb": {
+  "main": {
+   "topY": 5.4,
+   "up": {
+    "frames": 255,
+    "stalledFrames": 0,
+    "maxRisePerFrameM": 0.27,
+    "maxDropPerFrameM": -0.014,
+    "minCameraAboveGroundM": 1.771,
+    "end": [
+     13.739,
+     4.32,
+     -5.123
+    ],
+    "reachedTop": false,
+    "feet": {
+     "stanceSamples": 237,
+     "soleGapAbsM": {
+      "p50": 0.008,
+      "p95": 0.0874,
+      "max": 0.0929
+     },
+     "shareOver1cm": 0.4852,
+     "shareOver2cm": 0.346,
+     "footprintMinGapM": -0.0001,
+     "shareFootprintInside5mm": 0
+    },
+    "camera": {
+     "speedMps": {
+      "p50": 1.23,
+      "p95": 1.58,
+      "max": 1.69
+     },
+     "accelMps2": {
+      "p50": 1.61,
+      "p95": 23.26,
+      "max": 23.66
+     },
+     "verticalAccelMps2": {
+      "p50": 1.45,
+      "p95": 23.26,
+      "max": 23.66
+     },
+     "turnDegPerS": {
+      "p50": 5.71,
+      "p95": 91.52,
+      "max": 93.04
+     },
+     "turnAccelDegPerS2": {
+      "p50": 19.26,
+      "p95": 2643.94,
+      "max": 2742
+     }
+    }
+   },
+   "down": {
+    "frames": 255,
+    "stalledFrames": 0,
+    "maxRisePerFrameM": 0,
+    "maxDropPerFrameM": -0.27,
+    "minCameraAboveGroundM": 0.383,
+    "end": [
+     9.271,
+     1.35,
+     -1.638
+    ],
+    "reachedTop": null,
+    "feet": {
+     "stanceSamples": 236,
+     "soleGapAbsM": {
+      "p50": 0.0099,
+      "p95": 0.0554,
+      "max": 0.0619
+     },
+     "shareOver1cm": 0.4661,
+     "shareOver2cm": 0.2966,
+     "footprintMinGapM": -0.0018,
+     "shareFootprintInside5mm": 0
+    },
+    "camera": {
+     "speedMps": {
+      "p50": 1.1,
+      "p95": 1.43,
+      "max": 8.17
+     },
+     "accelMps2": {
+      "p50": 0,
+      "p95": 23.49,
+      "max": 243
+     },
+     "verticalAccelMps2": {
+      "p50": 0,
+      "p95": 23.49,
+      "max": 243
+     },
+     "turnDegPerS": {
+      "p50": 0,
+      "p95": 98.37,
+      "max": 103.04
+     },
+     "turnAccelDegPerS2": {
+      "p50": 0.07,
+      "p95": 2951.25,
+      "max": 3091.18
+     }
+    },
+    "reachedBottom": false
+   },
+   "shot": "climb-main-top.jpg",
+   "trace": [
+    {
+     "link": [
+      6.046,
+      0.036,
+      0.878
+     ]
+    },
+    {
+     "link": [
+      6.117,
+      0.036,
+      0.823
+     ]
+    },
+    {
+     "link": [
+      6.241,
+      0.034,
+      0.726
+     ]
+    },
+    {
+     "link": [
+      6.367,
+      0.033,
+      0.628
+     ]
+    },
+    {
+     "link": [
+      6.493,
+      0.032,
+      0.529
+     ]
+    },
+    {
+     "link": [
+      6.619,
+      0.032,
+      0.431
+     ]
+    },
+    {
+     "link": [
+      6.745,
+      0.033,
+      0.333
+     ]
+    },
+    {
+     "link": [
+      6.872,
+      0.057,
+      0.234
+     ]
+    },
+    {
+     "link": [
+      6.998,
+      0.067,
+      0.136
+     ]
+    },
+    {
+     "link": [
+      7.124,
+      0.14,
+      0.037
+     ]
+    },
+    {
+     "link": [
+      7.25,
+      0.145,
+      -0.061
+     ]
+    },
+    {
+     "link": [
+      7.35,
+      0.27,
+      -0.139
+     ]
+    },
+    {
+     "link": [
+      7.437,
+      0.27,
+      -0.207
+     ]
+    },
+    {
+     "link": [
+      7.523,
+      0.27,
+      -0.274
+     ]
+    },
+    {
+     "link": [
+      7.61,
+      0.27,
+      -0.342
+     ]
+    },
+    {
+     "link": [
+      7.697,
+      0.27,
+      -0.41
+     ]
+    },
+    {
+     "link": [
+      7.784,
+      0.54,
+      -0.477
+     ]
+    },
+    {
+     "link": [
+      7.87,
+      0.54,
+      -0.545
+     ]
+    },
+    {
+     "link": [
+      7.957,
+      0.54,
+      -0.613
+     ]
+    },
+    {
+     "link": [
+      8.044,
+      0.54,
+      -0.68
+     ]
+    },
+    {
+     "link": [
+      8.131,
+      0.54,
+      -0.748
+     ]
+    },
+    {
+     "link": [
+      8.217,
+      0.81,
+      -0.815
+     ]
+    },
+    {
+     "link": [
+      8.304,
+      0.81,
+      -0.883
+     ]
+    },
+    {
+     "link": [
+      8.391,
+      0.81,
+      -0.951
+     ]
+    },
+    {
+     "link": [
+      8.477,
+      0.81,
+      -1.018
+     ]
+    },
+    {
+     "link": [
+      8.564,
+      0.81,
+      -1.086
+     ]
+    },
+    {
+     "link": [
+      8.651,
+      1.08,
+      -1.154
+     ]
+    },
+    {
+     "link": [
+      8.738,
+      1.08,
+      -1.221
+     ]
+    },
+    {
+     "link": [
+      8.824,
+      1.08,
+      -1.289
+     ]
+    },
+    {
+     "link": [
+      8.911,
+      1.08,
+      -1.357
+     ]
+    },
+    {
+     "link": [
+      8.998,
+      1.08,
+      -1.424
+     ]
+    },
+    {
+     "link": [
+      9.085,
+      1.35,
+      -1.492
+     ]
+    },
+    {
+     "link": [
+      9.171,
+      1.35,
+      -1.56
+     ]
+    },
+    {
+     "link": [
+      9.258,
+      1.35,
+      -1.627
+     ]
+    },
+    {
+     "link": [
+      9.345,
+      1.35,
+      -1.695
+     ]
+    },
+    {
+     "link": [
+      9.432,
+      1.62,
+      -1.763
+     ]
+    },
+    {
+     "link": [
+      9.518,
+      1.62,
+      -1.83
+     ]
+    },
+    {
+     "link": [
+      9.605,
+      1.62,
+      -1.898
+     ]
+    },
+    {
+     "link": [
+      9.692,
+      1.62,
+      -1.966
+     ]
+    },
+    {
+     "link": [
+      9.779,
+      1.62,
+      -2.033
+     ]
+    },
+    {
+     "link": [
+      9.865,
+      1.89,
+      -2.101
+     ]
+    },
+    {
+     "link": [
+      9.952,
+      1.89,
+      -2.169
+     ]
+    },
+    {
+     "link": [
+      10.039,
+      1.89,
+      -2.236
+     ]
+    },
+    {
+     "link": [
+      10.125,
+      1.89,
+      -2.304
+     ]
+    },
+    {
+     "link": [
+      10.212,
+      1.89,
+      -2.372
+     ]
+    },
+    {
+     "link": [
+      10.299,
+      2.16,
+      -2.439
+     ]
+    },
+    {
+     "link": [
+      10.386,
+      2.16,
+      -2.507
+     ]
+    },
+    {
+     "link": [
+      10.472,
+      2.16,
+      -2.574
+     ]
+    },
+    {
+     "link": [
+      10.559,
+      2.16,
+      -2.642
+     ]
+    },
+    {
+     "link": [
+      10.646,
+      2.16,
+      -2.71
+     ]
+    },
+    {
+     "link": [
+      10.733,
+      2.43,
+      -2.777
+     ]
+    },
+    {
+     "link": [
+      10.819,
+      2.43,
+      -2.845
+     ]
+    },
+    {
+     "link": [
+      10.906,
+      2.43,
+      -2.913
+     ]
+    },
+    {
+     "link": [
+      10.993,
+      2.43,
+      -2.98
+     ]
+    },
+    {
+     "link": [
+      11.08,
+      2.43,
+      -3.048
+     ]
+    },
+    {
+     "link": [
+      11.166,
+      2.7,
+      -3.116
+     ]
+    },
+    {
+     "link": [
+      11.253,
+      2.7,
+      -3.183
+     ]
+    },
+    {
+     "link": [
+      11.34,
+      2.7,
+      -3.251
+     ]
+    },
+    {
+     "link": [
+      11.426,
+      2.7,
+      -3.319
+     ]
+    },
+    {
+     "link": [
+      11.513,
+      2.7,
+      -3.386
+     ]
+    },
+    {
+     "link": [
+      11.6,
+      2.97,
+      -3.454
+     ]
+    },
+    {
+     "link": [
+      11.687,
+      2.97,
+      -3.522
+     ]
+    },
+    {
+     "link": [
+      11.773,
+      2.97,
+      -3.589
+     ]
+    },
+    {
+     "link": [
+      11.86,
+      2.97,
+      -3.657
+     ]
+    },
+    {
+     "link": [
+      11.947,
+      2.97,
+      -3.725
+     ]
+    },
+    {
+     "link": [
+      12.034,
+      3.24,
+      -3.792
+     ]
+    },
+    {
+     "link": [
+      12.12,
+      3.24,
+      -3.86
+     ]
+    },
+    {
+     "link": [
+      12.207,
+      3.24,
+      -3.928
+     ]
+    },
+    {
+     "link": [
+      12.294,
+      3.24,
+      -3.995
+     ]
+    },
+    {
+     "link": [
+      12.381,
+      3.24,
+      -4.063
+     ]
+    },
+    {
+     "link": [
+      12.467,
+      3.51,
+      -4.131
+     ]
+    },
+    {
+     "link": [
+      12.554,
+      3.51,
+      -4.198
+     ]
+    },
+    {
+     "link": [
+      12.641,
+      3.51,
+      -4.266
+     ]
+    },
+    {
+     "link": [
+      12.728,
+      3.51,
+      -4.333
+     ]
+    },
+    {
+     "link": [
+      12.814,
+      3.51,
+      -4.401
+     ]
+    },
+    {
+     "link": [
+      12.901,
+      3.78,
+      -4.469
+     ]
+    },
+    {
+     "link": [
+      12.988,
+      3.78,
+      -4.536
+     ]
+    },
+    {
+     "link": [
+      13.074,
+      3.78,
+      -4.604
+     ]
+    },
+    {
+     "link": [
+      13.161,
+      3.78,
+      -4.672
+     ]
+    },
+    {
+     "link": [
+      13.248,
+      3.78,
+      -4.739
+     ]
+    },
+    {
+     "link": [
+      13.335,
+      4.05,
+      -4.807
+     ]
+    },
+    {
+     "link": [
+      13.421,
+      4.05,
+      -4.875
+     ]
+    },
+    {
+     "link": [
+      13.508,
+      4.05,
+      -4.942
+     ]
+    },
+    {
+     "link": [
+      13.595,
+      4.05,
+      -5.01
+     ]
+    },
+    {
+     "link": [
+      13.682,
+      4.05,
+      -5.078
+     ]
+    }
+   ]
+  },
+  "south-bank": {
+   "topY": 1.9500000000000002,
+   "up": {
+    "frames": 96,
+    "stalledFrames": 0,
+    "maxRisePerFrameM": 0.279,
+    "maxDropPerFrameM": -0.038,
+    "minCameraAboveGroundM": 1.516,
+    "end": [
+     -16.872,
+     1.95,
+     17.092
+    ],
+    "reachedTop": true,
+    "feet": {
+     "stanceSamples": 98,
+     "soleGapAbsM": {
+      "p50": 0,
+      "p95": 0.0236,
+      "max": 0.031
+     },
+     "shareOver1cm": 0.3878,
+     "shareOver2cm": 0.2143,
+     "footprintMinGapM": 0,
+     "shareFootprintInside5mm": 0
+    },
+    "camera": {
+     "speedMps": {
+      "p50": 1.36,
+      "p95": 1.61,
+      "max": 1.87
+     },
+     "accelMps2": {
+      "p50": 2.07,
+      "p95": 21.83,
+      "max": 24.33
+     },
+     "verticalAccelMps2": {
+      "p50": 1.81,
+      "p95": 21.83,
+      "max": 24.33
+     },
+     "turnDegPerS": {
+      "p50": 7.11,
+      "p95": 85.88,
+      "max": 94.53
+     },
+     "turnAccelDegPerS2": {
+      "p50": 28.88,
+      "p95": 2419.51,
+      "max": 2789.96
+     }
+    }
+   },
+   "down": {
+    "frames": 96,
+    "stalledFrames": 0,
+    "maxRisePerFrameM": 0.001,
+    "maxDropPerFrameM": -0.279,
+    "minCameraAboveGroundM": 0.444,
+    "end": [
+     -15.055,
+     0.369,
+     15.275
+    ],
+    "reachedTop": null,
+    "feet": {
+     "stanceSamples": 99,
+     "soleGapAbsM": {
+      "p50": 0.0109,
+      "p95": 0.0269,
+      "max": 0.1135
+     },
+     "shareOver1cm": 0.5758,
+     "shareOver2cm": 0.2424,
+     "footprintMinGapM": 0,
+     "shareFootprintInside5mm": 0
+    },
+    "camera": {
+     "speedMps": {
+      "p50": 1.19,
+      "p95": 1.58,
+      "max": 2.34
+     },
+     "accelMps2": {
+      "p50": 1.66,
+      "p95": 21.95,
+      "max": 93.05
+     },
+     "verticalAccelMps2": {
+      "p50": 1.49,
+      "p95": 21.83,
+      "max": 23.75
+     },
+     "turnDegPerS": {
+      "p50": 5.71,
+      "p95": 84.84,
+      "max": 92.35
+     },
+     "turnAccelDegPerS2": {
+      "p50": 18.69,
+      "p95": 2400.86,
+      "max": 2713.91
+     }
+    },
+    "reachedBottom": true
+   },
+   "shot": "climb-south-bank-top.jpg",
+   "trace": [
+    {
+     "link": [
+      -14.096,
+      0.181,
+      14.316
+     ]
+    },
+    {
+     "link": [
+      -14.159,
+      0.183,
+      14.379
+     ]
+    },
+    {
+     "link": [
+      -14.27,
+      0.201,
+      14.49
+     ]
+    },
+    {
+     "link": [
+      -14.383,
+      0.203,
+      14.603
+     ]
+    },
+    {
+     "link": [
+      -14.496,
+      0.196,
+      14.716
+     ]
+    },
+    {
+     "link": [
+      -14.61,
+      0.276,
+      14.83
+     ]
+    },
+    {
+     "link": [
+      -14.723,
+      0.308,
+      14.943
+     ]
+    },
+    {
+     "link": [
+      -14.836,
+      0.335,
+      15.056
+     ]
+    },
+    {
+     "link": [
+      -14.949,
+      0.351,
+      15.169
+     ]
+    },
+    {
+     "link": [
+      -15.062,
+      0.369,
+      15.282
+     ]
+    },
+    {
+     "link": [
+      -15.175,
+      0.371,
+      15.395
+     ]
+    },
+    {
+     "link": [
+      -15.265,
+      0.65,
+      15.485
+     ]
+    },
+    {
+     "link": [
+      -15.343,
+      0.65,
+      15.563
+     ]
+    },
+    {
+     "link": [
+      -15.42,
+      0.65,
+      15.64
+     ]
+    },
+    {
+     "link": [
+      -15.498,
+      0.91,
+      15.718
+     ]
+    },
+    {
+     "link": [
+      -15.576,
+      0.91,
+      15.796
+     ]
+    },
+    {
+     "link": [
+      -15.654,
+      0.91,
+      15.874
+     ]
+    },
+    {
+     "link": [
+      -15.731,
+      0.91,
+      15.951
+     ]
+    },
+    {
+     "link": [
+      -15.809,
+      1.17,
+      16.029
+     ]
+    },
+    {
+     "link": [
+      -15.887,
+      1.17,
+      16.107
+     ]
+    },
+    {
+     "link": [
+      -15.965,
+      1.17,
+      16.185
+     ]
+    },
+    {
+     "link": [
+      -16.043,
+      1.43,
+      16.263
+     ]
+    },
+    {
+     "link": [
+      -16.12,
+      1.43,
+      16.34
+     ]
+    },
+    {
+     "link": [
+      -16.198,
+      1.43,
+      16.418
+     ]
+    },
+    {
+     "link": [
+      -16.276,
+      1.43,
+      16.496
+     ]
+    },
+    {
+     "link": [
+      -16.354,
+      1.69,
+      16.574
+     ]
+    },
+    {
+     "link": [
+      -16.432,
+      1.69,
+      16.652
+     ]
+    },
+    {
+     "link": [
+      -16.509,
+      1.69,
+      16.729
+     ]
+    },
+    {
+     "link": [
+      -16.587,
+      1.95,
+      16.807
+     ]
+    },
+    {
+     "link": [
+      -16.665,
+      1.95,
+      16.885
+     ]
+    },
+    {
+     "link": [
+      -16.743,
+      1.95,
+      16.963
+     ]
+    },
+    {
+     "link": [
+      -16.82,
+      1.95,
+      17.04
+     ]
+    }
+   ]
+  }
+ },
+ "walk": [
+  {
+   "name": "plaza-to-upper-house",
+   "reached": true,
+   "waypointsReached": 6,
+   "of": 6,
+   "frames": 630,
+   "stuck": [],
+   "lengthM": 27.3,
+   "camera": {
+    "speedMps": {
+     "p50": 1.55,
+     "p95": 3.34,
+     "max": 45.97
+    },
+    "accelMps2": {
+     "p50": 1.78,
+     "p95": 38.74,
+     "max": 1352.14
+    },
+    "verticalAccelMps2": {
+     "p50": 0.93,
+     "p95": 7.97,
+     "max": 75.75
+    },
+    "turnDegPerS": {
+     "p50": 4.8,
+     "p95": 62.05,
+     "max": 106
+    },
+    "turnAccelDegPerS2": {
+     "p50": 25.6,
+     "p95": 2370.38,
+     "max": 2757.09
+    }
+   },
+   "minCameraAboveGroundM": 1.128,
+   "feet": {
+    "stanceSamples": 625,
+    "soleGapAbsM": {
+     "p50": 0.0054,
+     "p95": 0.0585,
+     "max": 0.1347
+    },
+    "shareOver1cm": 0.3792,
+    "shareOver2cm": 0.2656,
+    "footprintMinGapM": -0.3109,
+    "shareFootprintInside5mm": 0.0048
+   },
+   "trace": [
+    [
+     1,
+     0.04,
+     3
+    ],
+    [
+     1.48,
+     0.04,
+     2.8
+    ],
+    [
+     2.07,
+     0.04,
+     2.55
+    ],
+    [
+     2.66,
+     0.03,
+     2.3
+    ],
+    [
+     3.25,
+     0.02,
+     2.05
+    ],
+    [
+     3.84,
+     0.02,
+     1.81
+    ],
+    [
+     4.43,
+     0.03,
+     1.56
+    ],
+    [
+     5.02,
+     0.03,
+     1.31
+    ],
+    [
+     5.61,
+     0.04,
+     1.06
+    ],
+    [
+     6.2,
+     0.04,
+     0.81
+    ],
+    [
+     6.79,
+     0.04,
+     0.57
+    ],
+    [
+     7.38,
+     0.12,
+     0.32
+    ],
+    [
+     7.84,
+     0.27,
+     0.13
+    ],
+    [
+     8.24,
+     0.54,
+     -0.04
+    ],
+    [
+     8.57,
+     0.81,
+     -0.3
+    ],
+    [
+     8.96,
+     0.81,
+     -0.51
+    ],
+    [
+     9.34,
+     1.08,
+     -0.72
+    ],
+    [
+     9.65,
+     1.35,
+     -1
+    ],
+    [
+     10.01,
+     1.62,
+     -1.26
+    ],
+    [
+     10.37,
+     1.89,
+     -1.51
+    ],
+    [
+     10.65,
+     1.89,
+     -1.83
+    ],
+    [
+     10.9,
+     2.16,
+     -2.16
+    ],
+    [
+     11.2,
+     2.43,
+     -2.48
+    ],
+    [
+     11.41,
+     2.7,
+     -2.84
+    ],
+    [
+     11.57,
+     2.7,
+     -3.22
+    ],
+    [
+     11.8,
+     2.97,
+     -3.6
+    ],
+    [
+     12.07,
+     3.24,
+     -3.91
+    ],
+    [
+     12.33,
+     3.51,
+     -4.27
+    ],
+    [
+     12.6,
+     3.51,
+     -4.62
+    ],
+    [
+     12.86,
+     3.78,
+     -4.97
+    ],
+    [
+     13.16,
+     4.05,
+     -5.26
+    ],
+    [
+     13.45,
+     4.32,
+     -5.58
+    ],
+    [
+     13.75,
+     4.59,
+     -5.91
+    ],
+    [
+     14.05,
+     4.59,
+     -6.23
+    ],
+    [
+     14.4,
+     4.86,
+     -6.46
+    ],
+    [
+     14.73,
+     5.13,
+     -6.75
+    ],
+    [
+     15.1,
+     5.4,
+     -6.95
+    ],
+    [
+     15.46,
+     5.4,
+     -7.2
+    ],
+    [
+     15.86,
+     5.4,
+     -7.35
+    ],
+    [
+     16.26,
+     5.4,
+     -7.46
+    ],
+    [
+     16.46,
+     5.4,
+     -7.82
+    ],
+    [
+     16.8,
+     5.22,
+     -8.1
+    ],
+    [
+     17.15,
+     4.88,
+     -8.58
+    ],
+    [
+     17.46,
+     4.84,
+     -9.1
+    ],
+    [
+     17.29,
+     4.72,
+     -9.71
+    ],
+    [
+     17.43,
+     4.74,
+     -10.34
+    ],
+    [
+     17.55,
+     4.82,
+     -10.97
+    ],
+    [
+     17.53,
+     4.9,
+     -11.57
+    ],
+    [
+     17.46,
+     4.85,
+     -12.17
+    ],
+    [
+     17.33,
+     4.77,
+     -12.76
+    ],
+    [
+     17.25,
+     4.86,
+     -13.4
+    ],
+    [
+     17.17,
+     4.97,
+     -14.03
+    ],
+    [
+     16.98,
+     5.16,
+     -14.61
+    ]
+   ]
+  },
+  {
+   "name": "plaza-to-south-bank-top",
+   "reached": true,
+   "waypointsReached": 4,
+   "of": 4,
+   "frames": 309,
+   "stuck": [],
+   "lengthM": 14.9,
+   "camera": {
+    "speedMps": {
+     "p50": 1.63,
+     "p95": 2.12,
+     "max": 3.5
+    },
+    "accelMps2": {
+     "p50": 1.15,
+     "p95": 29.98,
+     "max": 40.35
+    },
+    "verticalAccelMps2": {
+     "p50": 0.88,
+     "p95": 6.73,
+     "max": 40.35
+    },
+    "turnDegPerS": {
+     "p50": 3.71,
+     "p95": 39.35,
+     "max": 87.4
+    },
+    "turnAccelDegPerS2": {
+     "p50": 30.54,
+     "p95": 1034.69,
+     "max": 2501.03
+    }
+   },
+   "minCameraAboveGroundM": 0.603,
+   "feet": {
+    "stanceSamples": 312,
+    "soleGapAbsM": {
+     "p50": 0.0172,
+     "p95": 0.0689,
+     "max": 0.149
+    },
+    "shareOver1cm": 0.6827,
+    "shareOver2cm": 0.4199,
+    "footprintMinGapM": -0.0582,
+    "shareFootprintInside5mm": 0.0385
+   },
+   "trace": [
+    [
+     -6,
+     0.28,
+     8
+    ],
+    [
+     -6.43,
+     0.44,
+     8.3
+    ],
+    [
+     -6.96,
+     0.76,
+     8.66
+    ],
+    [
+     -7.48,
+     0.95,
+     9.02
+    ],
+    [
+     -8.01,
+     1.09,
+     9.39
+    ],
+    [
+     -8.54,
+     1.31,
+     9.75
+    ],
+    [
+     -9.07,
+     1.2,
+     10.11
+    ],
+    [
+     -9.59,
+     1.04,
+     10.48
+    ],
+    [
+     -10.12,
+     0.68,
+     10.84
+    ],
+    [
+     -10.65,
+     0.45,
+     11.2
+    ],
+    [
+     -11.17,
+     0.29,
+     11.57
+    ],
+    [
+     -11.7,
+     0.2,
+     11.93
+    ],
+    [
+     -12.23,
+     0.03,
+     12.29
+    ],
+    [
+     -12.75,
+     -0.12,
+     12.66
+    ],
+    [
+     -13.28,
+     -0.13,
+     13.02
+    ],
+    [
+     -13.69,
+     -0.15,
+     13.47
+    ],
+    [
+     -14.05,
+     -0.07,
+     13.96
+    ],
+    [
+     -14.34,
+     0.2,
+     14.5
+    ],
+    [
+     -14.72,
+     0.33,
+     15.01
+    ],
+    [
+     -15.11,
+     0.65,
+     15.52
+    ],
+    [
+     -15.37,
+     0.91,
+     15.87
+    ],
+    [
+     -15.7,
+     1.17,
+     16.13
+    ],
+    [
+     -16,
+     1.43,
+     16.45
+    ],
+    [
+     -16.3,
+     1.69,
+     16.78
+    ],
+    [
+     -16.6,
+     1.95,
+     17.1
+    ],
+    [
+     -16.9,
+     1.95,
+     17.42
+    ]
+   ]
+  },
+  {
+   "name": "saria-front-arc",
+   "reached": true,
+   "waypointsReached": 3,
+   "of": 3,
+   "frames": 105,
+   "stuck": [],
+   "lengthM": 5.3,
+   "camera": {
+    "speedMps": {
+     "p50": 1.65,
+     "p95": 2.71,
+     "max": 3.6
+    },
+    "accelMps2": {
+     "p50": 2.4,
+     "p95": 33.29,
+     "max": 36.93
+    },
+    "verticalAccelMps2": {
+     "p50": 1.1,
+     "p95": 3.86,
+     "max": 9.11
+    },
+    "turnDegPerS": {
+     "p50": 5.32,
+     "p95": 37.96,
+     "max": 54.25
+    },
+    "turnAccelDegPerS2": {
+     "p50": 50.11,
+     "p95": 524.22,
+     "max": 969.15
+    }
+   },
+   "minCameraAboveGroundM": 1.495,
+   "feet": {
+    "stanceSamples": 108,
+    "soleGapAbsM": {
+     "p50": 0.0429,
+     "p95": 0.1559,
+     "max": 0.1578
+    },
+    "shareOver1cm": 0.8796,
+    "shareOver2cm": 0.7037,
+    "footprintMinGapM": -0.0193,
+    "shareFootprintInside5mm": 0.0648
+   },
+   "trace": [
+    [
+     5.7,
+     -0.04,
+     -4.5
+    ],
+    [
+     6.09,
+     -0.24,
+     -4.85
+    ],
+    [
+     6.56,
+     -0.25,
+     -5.29
+    ],
+    [
+     7.03,
+     0.38,
+     -5.72
+    ],
+    [
+     7.5,
+     0.99,
+     -6.15
+    ],
+    [
+     7.86,
+     1.44,
+     -6.64
+    ],
+    [
+     8.29,
+     1.38,
+     -7.11
+    ],
+    [
+     8.44,
+     1.36,
+     -7.69
+    ],
+    [
+     8.76,
+     1.21,
+     -8.24
+    ]
+   ]
+  },
+  {
+   "name": "west-deck",
+   "reached": true,
+   "waypointsReached": 3,
+   "of": 3,
+   "frames": 129,
+   "stuck": [],
+   "lengthM": 6,
+   "camera": {
+    "speedMps": {
+     "p50": 1.62,
+     "p95": 4.13,
+     "max": 4.26
+    },
+    "accelMps2": {
+     "p50": 1.72,
+     "p95": 35.18,
+     "max": 45.09
+    },
+    "verticalAccelMps2": {
+     "p50": 0.39,
+     "p95": 2.51,
+     "max": 23.1
+    },
+    "turnDegPerS": {
+     "p50": 2.38,
+     "p95": 63.19,
+     "max": 92.95
+    },
+    "turnAccelDegPerS2": {
+     "p50": 21.77,
+     "p95": 659.27,
+     "max": 2559.71
+    }
+   },
+   "minCameraAboveGroundM": 1.992,
+   "feet": {
+    "stanceSamples": 129,
+    "soleGapAbsM": {
+     "p50": 0.0221,
+     "p95": 0.2888,
+     "max": 0.2888
+    },
+    "shareOver1cm": 0.6744,
+    "shareOver2cm": 0.5736,
+    "footprintMinGapM": -0.0099,
+    "shareFootprintInside5mm": 0.0078
+   },
+   "trace": [
+    [
+     -12.5,
+     1.82,
+     8.5
+    ],
+    [
+     -12.94,
+     1.92,
+     8.22
+    ],
+    [
+     -13.48,
+     2.21,
+     7.88
+    ],
+    [
+     -14.02,
+     2.26,
+     7.54
+    ],
+    [
+     -14.56,
+     2.41,
+     7.19
+    ],
+    [
+     -15.11,
+     2.47,
+     6.85
+    ],
+    [
+     -15.63,
+     2.87,
+     6.62
+    ],
+    [
+     -16.03,
+     2.87,
+     6.6
+    ],
+    [
+     -16.44,
+     2.87,
+     6.7
+    ],
+    [
+     -16.94,
+     3.03,
+     6.69
+    ],
+    [
+     -17.54,
+     3.1,
+     6.79
+    ]
+   ]
+  },
+  {
+   "name": "plaza-loop",
+   "reached": true,
+   "waypointsReached": 4,
+   "of": 4,
+   "frames": 513,
+   "stuck": [],
+   "lengthM": 27.1,
+   "camera": {
+    "speedMps": {
+     "p50": 1.6,
+     "p95": 4.06,
+     "max": 8.88
+    },
+    "accelMps2": {
+     "p50": 0.94,
+     "p95": 36.81,
+     "max": 158.09
+    },
+    "verticalAccelMps2": {
+     "p50": 0.09,
+     "p95": 2.08,
+     "max": 149.02
+    },
+    "turnDegPerS": {
+     "p50": 1.18,
+     "p95": 63.24,
+     "max": 135.46
+    },
+    "turnAccelDegPerS2": {
+     "p50": 23.43,
+     "p95": 599.6,
+     "max": 1221.05
+    }
+   },
+   "minCameraAboveGroundM": 0.414,
+   "feet": {
+    "stanceSamples": 516,
+    "soleGapAbsM": {
+     "p50": 0.0024,
+     "p95": 0.0145,
+     "max": 0.1036
+    },
+    "shareOver1cm": 0.1279,
+    "shareOver2cm": 0.0329,
+    "footprintMinGapM": -0.0256,
+    "shareFootprintInside5mm": 0.0019
+   },
+   "trace": [
+    [
+     0.5,
+     0.02,
+     3
+    ],
+    [
+     0.9,
+     0.02,
+     2.66
+    ],
+    [
+     1.39,
+     0.04,
+     2.25
+    ],
+    [
+     1.87,
+     0.01,
+     1.83
+    ],
+    [
+     2.36,
+     0.02,
+     1.42
+    ],
+    [
+     2.85,
+     0.02,
+     1
+    ],
+    [
+     3.34,
+     0.03,
+     0.59
+    ],
+    [
+     3.82,
+     0.03,
+     0.17
+    ],
+    [
+     4.09,
+     0.02,
+     -0.26
+    ],
+    [
+     4,
+     0.01,
+     -0.89
+    ],
+    [
+     3.77,
+     0.02,
+     -1.46
+    ],
+    [
+     3.76,
+     0.04,
+     -2.1
+    ],
+    [
+     3.74,
+     0.05,
+     -2.74
+    ],
+    [
+     3.62,
+     0.04,
+     -3.33
+    ],
+    [
+     3.55,
+     0.05,
+     -3.97
+    ],
+    [
+     3.47,
+     0.09,
+     -4.6
+    ],
+    [
+     3.39,
+     -0.03,
+     -5.24
+    ],
+    [
+     3.16,
+     -0.03,
+     -5.8
+    ],
+    [
+     3.01,
+     0.19,
+     -6.43
+    ],
+    [
+     2.74,
+     0.16,
+     -6.97
+    ],
+    [
+     2.53,
+     0.05,
+     -7.57
+    ],
+    [
+     2.19,
+     0.03,
+     -8.08
+    ],
+    [
+     1.8,
+     0.05,
+     -8.55
+    ],
+    [
+     1.42,
+     0.06,
+     -8.46
+    ],
+    [
+     1.15,
+     0.05,
+     -7.9
+    ],
+    [
+     0.91,
+     0.04,
+     -7.31
+    ],
+    [
+     0.57,
+     0.04,
+     -6.8
+    ],
+    [
+     0.14,
+     0.03,
+     -6.32
+    ],
+    [
+     -0.28,
+     0.05,
+     -5.84
+    ],
+    [
+     -0.57,
+     0.05,
+     -5.3
+    ],
+    [
+     -0.82,
+     0.04,
+     -4.75
+    ],
+    [
+     -1.14,
+     0.02,
+     -4.2
+    ],
+    [
+     -1.17,
+     0.03,
+     -3.61
+    ],
+    [
+     -1.05,
+     0.04,
+     -3.01
+    ],
+    [
+     -1.1,
+     0.05,
+     -2.37
+    ],
+    [
+     -1.03,
+     0.04,
+     -1.77
+    ],
+    [
+     -1.02,
+     0.03,
+     -1.13
+    ],
+    [
+     -1,
+     0.03,
+     -0.49
+    ],
+    [
+     -0.86,
+     0.02,
+     0.1
+    ],
+    [
+     -0.77,
+     0.02,
+     0.73
+    ],
+    [
+     -0.55,
+     0.01,
+     1.3
+    ],
+    [
+     -0.3,
+     0.02,
+     1.85
+    ],
+    [
+     -0.08,
+     0.01,
+     2.45
+    ]
+   ]
+  },
+  {
+   "name": "south-approach",
+   "reached": true,
+   "waypointsReached": 2,
+   "of": 2,
+   "frames": 264,
+   "stuck": [],
+   "lengthM": 13.8,
+   "camera": {
+    "speedMps": {
+     "p50": 1.6,
+     "p95": 2.22,
+     "max": 3.39
+    },
+    "accelMps2": {
+     "p50": 0.16,
+     "p95": 29.31,
+     "max": 36.88
+    },
+    "verticalAccelMps2": {
+     "p50": 0.06,
+     "p95": 0.56,
+     "max": 1.52
+    },
+    "turnDegPerS": {
+     "p50": 0.27,
+     "p95": 23.59,
+     "max": 53.92
+    },
+    "turnAccelDegPerS2": {
+     "p50": 7.33,
+     "p95": 439.75,
+     "max": 706.04
+    }
+   },
+   "minCameraAboveGroundM": 1.687,
+   "feet": {
+    "stanceSamples": 259,
+    "soleGapAbsM": {
+     "p50": 0.0022,
+     "p95": 0.0066,
+     "max": 0.0152
+    },
+    "shareOver1cm": 0.0386,
+    "shareOver2cm": 0,
+    "footprintMinGapM": 0,
+    "shareFootprintInside5mm": 0
+   },
+   "trace": [
+    [
+     1,
+     0.04,
+     15
+    ],
+    [
+     0.93,
+     0.03,
+     14.48
+    ],
+    [
+     0.84,
+     0.03,
+     13.85
+    ],
+    [
+     0.74,
+     0.03,
+     13.21
+    ],
+    [
+     0.65,
+     0.05,
+     12.58
+    ],
+    [
+     0.56,
+     0.04,
+     11.95
+    ],
+    [
+     0.47,
+     0.04,
+     11.31
+    ],
+    [
+     0.38,
+     0.05,
+     10.68
+    ],
+    [
+     0.29,
+     0.05,
+     10.05
+    ],
+    [
+     0.2,
+     0.04,
+     9.41
+    ],
+    [
+     0.11,
+     0.02,
+     8.78
+    ],
+    [
+     0.02,
+     0.02,
+     8.15
+    ],
+    [
+     -0.07,
+     0.02,
+     7.51
+    ],
+    [
+     -0.16,
+     0.02,
+     6.88
+    ],
+    [
+     -0.25,
+     0.03,
+     6.25
+    ],
+    [
+     -0.34,
+     0.03,
+     5.61
+    ],
+    [
+     -0.43,
+     0.04,
+     4.98
+    ],
+    [
+     -0.39,
+     0.04,
+     4.37
+    ],
+    [
+     -0.42,
+     0.04,
+     3.73
+    ],
+    [
+     -0.32,
+     0.03,
+     3.14
+    ],
+    [
+     -0.27,
+     0,
+     2.5
+    ],
+    [
+     -0.07,
+     0.02,
+     1.92
+    ]
+   ]
+  },
+  {
+   "name": "house-west-to-saria-door",
+   "reached": true,
+   "waypointsReached": 5,
+   "of": 5,
+   "frames": 207,
+   "stuck": [],
+   "lengthM": 8.9,
+   "camera": {
+    "speedMps": {
+     "p50": 1.56,
+     "p95": 3.83,
+     "max": 4.25
+    },
+    "accelMps2": {
+     "p50": 3.11,
+     "p95": 36.84,
+     "max": 45.09
+    },
+    "verticalAccelMps2": {
+     "p50": 0.61,
+     "p95": 3.47,
+     "max": 23.24
+    },
+    "turnDegPerS": {
+     "p50": 6.59,
+     "p95": 63.52,
+     "max": 94.28
+    },
+    "turnAccelDegPerS2": {
+     "p50": 39.22,
+     "p95": 1355.74,
+     "max": 2565.67
+    }
+   },
+   "minCameraAboveGroundM": 1.378,
+   "feet": {
+    "stanceSamples": 205,
+    "soleGapAbsM": {
+     "p50": 0.0008,
+     "p95": 0.0147,
+     "max": 0.1037
+    },
+    "shareOver1cm": 0.078,
+    "shareOver2cm": 0.0488,
+    "footprintMinGapM": -0.0047,
+    "shareFootprintInside5mm": 0
+   },
+   "trace": [
+    [
+     1.5,
+     0.07,
+     -9.5
+    ],
+    [
+     1.88,
+     0.05,
+     -9.14
+    ],
+    [
+     2.35,
+     0.04,
+     -8.71
+    ],
+    [
+     2.86,
+     0.22,
+     -8.39
+    ],
+    [
+     3.37,
+     0.29,
+     -8
+    ],
+    [
+     3.88,
+     0.54,
+     -7.8
+    ],
+    [
+     4.28,
+     0.81,
+     -7.68
+    ],
+    [
+     4.68,
+     1.08,
+     -7.49
+    ],
+    [
+     5.08,
+     1.35,
+     -7.31
+    ],
+    [
+     5.48,
+     1.62,
+     -7.13
+    ],
+    [
+     5.89,
+     1.62,
+     -7.04
+    ],
+    [
+     6.27,
+     1.62,
+     -7.17
+    ],
+    [
+     6.68,
+     1.62,
+     -7.28
+    ],
+    [
+     7.12,
+     1.62,
+     -7.33
+    ],
+    [
+     7.54,
+     1.47,
+     -7.49
+    ],
+    [
+     8.08,
+     1.4,
+     -7.76
+    ],
+    [
+     8.51,
+     1.23,
+     -8.17
+    ],
+    [
+     8.95,
+     1.06,
+     -8.58
+    ]
+   ]
+  },
+  {
+   "name": "west-house-to-plaza",
+   "reached": false,
+   "waypointsReached": 5,
+   "of": 5,
+   "frames": 345,
+   "stuck": [
+    {
+     "at": [
+      -11.4,
+      2.04,
+      8.25
+     ],
+     "toward": [
+      -6,
+      8
+     ],
+     "frame": 252
+    },
+    {
+     "at": [
+      -11.39,
+      2.04,
+      8.24
+     ],
+     "toward": [
+      0,
+      4
+     ],
+     "frame": 345
+    }
+   ],
+   "lengthM": 7.7,
+   "camera": {
+    "speedMps": {
+     "p50": 0.17,
+     "p95": 2.6,
+     "max": 37.78
+    },
+    "accelMps2": {
+     "p50": 1.48,
+     "p95": 83.78,
+     "max": 1128.37
+    },
+    "verticalAccelMps2": {
+     "p50": 0.08,
+     "p95": 9.14,
+     "max": 229.86
+    },
+    "turnDegPerS": {
+     "p50": 0.27,
+     "p95": 59.05,
+     "max": 86.84
+    },
+    "turnAccelDegPerS2": {
+     "p50": 1.01,
+     "p95": 550.07,
+     "max": 2600.5
+    }
+   },
+   "minCameraAboveGroundM": 1.025,
+   "feet": {
+    "stanceSamples": 344,
+    "soleGapAbsM": {
+     "p50": 0.0243,
+     "p95": 0.0379,
+     "max": 0.0711
+    },
+    "shareOver1cm": 0.8023,
+    "shareOver2cm": 0.7122,
+    "footprintMinGapM": 0,
+    "shareFootprintInside5mm": 0
+   },
+   "trace": [
+    [
+     -18.4,
+     3.2,
+     7.1
+    ],
+    [
+     -17.9,
+     3.14,
+     6.95
+    ],
+    [
+     -17.29,
+     3.07,
+     6.76
+    ],
+    [
+     -16.71,
+     2.87,
+     6.59
+    ],
+    [
+     -16.32,
+     2.87,
+     6.76
+    ],
+    [
+     -15.88,
+     2.87,
+     6.78
+    ],
+    [
+     -15.44,
+     2.62,
+     6.79
+    ],
+    [
+     -14.91,
+     2.42,
+     6.93
+    ],
+    [
+     -14.35,
+     2.39,
+     7.16
+    ],
+    [
+     -13.81,
+     2.29,
+     7.44
+    ],
+    [
+     -13.29,
+     2.2,
+     7.76
+    ],
+    [
+     -12.82,
+     1.97,
+     8.14
+    ],
+    [
+     -12.21,
+     1.96,
+     8.05
+    ],
+    [
+     -11.59,
+     2,
+     8.2
+    ],
+    [
+     -11.4,
+     2.04,
+     8.25
+    ],
+    [
+     -11.4,
+     2.04,
+     8.25
+    ],
+    [
+     -11.4,
+     2.04,
+     8.25
+    ],
+    [
+     -11.4,
+     2.04,
+     8.25
+    ],
+    [
+     -11.4,
+     2.04,
+     8.25
+    ],
+    [
+     -11.4,
+     2.04,
+     8.25
+    ],
+    [
+     -11.4,
+     2.04,
+     8.25
+    ],
+    [
+     -11.4,
+     2.04,
+     8.25
+    ],
+    [
+     -11.39,
+     2.04,
+     8.24
+    ],
+    [
+     -11.39,
+     2.04,
+     8.24
+    ],
+    [
+     -11.39,
+     2.04,
+     8.24
+    ],
+    [
+     -11.39,
+     2.04,
+     8.24
+    ],
+    [
+     -11.39,
+     2.04,
+     8.24
+    ],
+    [
+     -11.39,
+     2.04,
+     8.24
+    ],
+    [
+     -11.39,
+     2.04,
+     8.24
+    ]
+   ]
+  },
+  {
+   "name": "north-clearing-ledge",
+   "reached": true,
+   "waypointsReached": 15,
+   "of": 15,
+   "frames": 1572,
+   "stuck": [],
+   "lengthM": 82.4,
+   "camera": {
+    "speedMps": {
+     "p50": 1.6,
+     "p95": 3.16,
+     "max": 46.6
+    },
+    "accelMps2": {
+     "p50": 0.35,
+     "p95": 36.6,
+     "max": 1350
+    },
+    "verticalAccelMps2": {
+     "p50": 0.18,
+     "p95": 2.82,
+     "max": 270.27
+    },
+    "turnDegPerS": {
+     "p50": 1.01,
+     "p95": 39.5,
+     "max": 121.92
+    },
+    "turnAccelDegPerS2": {
+     "p50": 25.22,
+     "p95": 552.99,
+     "max": 3358.3
+    }
+   },
+   "minCameraAboveGroundM": 1.247,
+   "feet": {
+    "stanceSamples": 1479,
+    "soleGapAbsM": {
+     "p50": 0.0033,
+     "p95": 0.0259,
+     "max": 0.0642
+    },
+    "shareOver1cm": 0.2082,
+    "shareOver2cm": 0.0723,
+    "footprintMinGapM": -0.0164,
+    "shareFootprintInside5mm": 0.002
+   },
+   "trace": [
+    [
+     0.5,
+     0.02,
+     2
+    ],
+    [
+     0.54,
+     0.03,
+     1.48
+    ],
+    [
+     0.58,
+     0.03,
+     0.84
+    ],
+    [
+     0.63,
+     0.04,
+     0.2
+    ],
+    [
+     0.67,
+     0.05,
+     -0.44
+    ],
+    [
+     0.72,
+     0.04,
+     -1.08
+    ],
+    [
+     0.77,
+     0.03,
+     -1.71
+    ],
+    [
+     0.81,
+     0.04,
+     -2.35
+    ],
+    [
+     0.86,
+     0.04,
+     -2.99
+    ],
+    [
+     0.9,
+     0.06,
+     -3.63
+    ],
+    [
+     0.95,
+     0.07,
+     -4.27
+    ],
+    [
+     0.99,
+     0.08,
+     -4.91
+    ],
+    [
+     1.04,
+     0.09,
+     -5.54
+    ],
+    [
+     1.08,
+     0.05,
+     -6.18
+    ],
+    [
+     1.13,
+     0.04,
+     -6.82
+    ],
+    [
+     1.18,
+     0.03,
+     -7.46
+    ],
+    [
+     1.22,
+     0.05,
+     -8.1
+    ],
+    [
+     1.27,
+     0.07,
+     -8.74
+    ],
+    [
+     1.31,
+     0.07,
+     -9.37
+    ],
+    [
+     1.36,
+     0.07,
+     -10.01
+    ],
+    [
+     1.4,
+     0.06,
+     -10.65
+    ],
+    [
+     1.45,
+     0.07,
+     -11.29
+    ],
+    [
+     1.49,
+     0.05,
+     -11.93
+    ],
+    [
+     1.54,
+     0.04,
+     -12.57
+    ],
+    [
+     1.59,
+     0.04,
+     -13.2
+    ],
+    [
+     1.63,
+     0.03,
+     -13.84
+    ],
+    [
+     1.68,
+     0.02,
+     -14.48
+    ],
+    [
+     1.72,
+     -0.01,
+     -15.12
+    ],
+    [
+     1.77,
+     -0.01,
+     -15.76
+    ],
+    [
+     1.81,
+     -0.04,
+     -16.4
+    ],
+    [
+     1.86,
+     -0.05,
+     -17.03
+    ],
+    [
+     1.91,
+     -0.08,
+     -17.67
+    ],
+    [
+     1.95,
+     -0.07,
+     -18.31
+    ],
+    [
+     2,
+     -0.07,
+     -18.95
+    ],
+    [
+     2.04,
+     -0.07,
+     -19.59
+    ],
+    [
+     2.09,
+     -0.09,
+     -20.23
+    ],
+    [
+     2.13,
+     -0.09,
+     -20.87
+    ],
+    [
+     2.18,
+     -0.08,
+     -21.5
+    ],
+    [
+     2.22,
+     -0.08,
+     -22.14
+    ],
+    [
+     2.15,
+     -0.09,
+     -22.74
+    ],
+    [
+     2.14,
+     -0.1,
+     -23.38
+    ],
+    [
+     1.96,
+     -0.07,
+     -23.97
+    ],
+    [
+     1.87,
+     0.09,
+     -24.6
+    ],
+    [
+     1.78,
+     0.29,
+     -25.23
+    ],
+    [
+     1.69,
+     0.5,
+     -25.87
+    ],
+    [
+     1.6,
+     0.66,
+     -26.5
+    ],
+    [
+     1.67,
+     0.9,
+     -27.11
+    ],
+    [
+     1.64,
+     1.05,
+     -27.75
+    ],
+    [
+     1.78,
+     1.24,
+     -28.34
+    ],
+    [
+     1.94,
+     1.43,
+     -28.92
+    ],
+    [
+     2.16,
+     1.59,
+     -29.49
+    ],
+    [
+     2.34,
+     1.79,
+     -30.1
+    ],
+    [
+     2.53,
+     1.99,
+     -30.71
+    ],
+    [
+     2.71,
+     2.15,
+     -31.33
+    ],
+    [
+     2.89,
+     2.32,
+     -31.94
+    ],
+    [
+     3.07,
+     2.49,
+     -32.56
+    ],
+    [
+     3.25,
+     2.64,
+     -33.17
+    ],
+    [
+     3.43,
+     2.81,
+     -33.78
+    ],
+    [
+     3.61,
+     2.94,
+     -34.4
+    ],
+    [
+     3.64,
+     3.1,
+     -35
+    ],
+    [
+     3.63,
+     3.32,
+     -35.61
+    ],
+    [
+     3.68,
+     3.39,
+     -36.25
+    ],
+    [
+     3.72,
+     3.46,
+     -36.89
+    ],
+    [
+     3.77,
+     3.49,
+     -37.52
+    ],
+    [
+     3.81,
+     3.53,
+     -38.16
+    ],
+    [
+     3.86,
+     3.57,
+     -38.8
+    ],
+    [
+     3.9,
+     3.61,
+     -39.44
+    ],
+    [
+     3.95,
+     3.63,
+     -40.08
+    ],
+    [
+     4,
+     3.7,
+     -40.72
+    ],
+    [
+     4.16,
+     3.74,
+     -41.3
+    ],
+    [
+     4.27,
+     3.77,
+     -41.93
+    ],
+    [
+     4.39,
+     3.84,
+     -42.56
+    ],
+    [
+     4.5,
+     3.86,
+     -43.19
+    ],
+    [
+     4.61,
+     3.91,
+     -43.82
+    ],
+    [
+     4.73,
+     3.96,
+     -44.45
+    ],
+    [
+     4.84,
+     4.01,
+     -45.08
+    ],
+    [
+     4.95,
+     4.05,
+     -45.71
+    ],
+    [
+     5.07,
+     4.07,
+     -46.34
+    ],
+    [
+     5.18,
+     4.12,
+     -46.97
+    ],
+    [
+     5.3,
+     4.17,
+     -47.6
+    ],
+    [
+     5.41,
+     4.22,
+     -48.23
+    ],
+    [
+     5.4,
+     4.25,
+     -48.83
+    ],
+    [
+     5.34,
+     4.3,
+     -49.43
+    ],
+    [
+     5.33,
+     4.33,
+     -50.07
+    ],
+    [
+     5.31,
+     4.33,
+     -50.71
+    ],
+    [
+     5.28,
+     4.32,
+     -51.35
+    ],
+    [
+     5.26,
+     4.29,
+     -51.99
+    ],
+    [
+     5.24,
+     4.28,
+     -52.63
+    ],
+    [
+     5.21,
+     4.27,
+     -53.27
+    ],
+    [
+     5.19,
+     4.26,
+     -53.91
+    ],
+    [
+     5.17,
+     4.25,
+     -54.55
+    ],
+    [
+     5.14,
+     4.24,
+     -55.19
+    ],
+    [
+     5.12,
+     4.24,
+     -55.82
+    ],
+    [
+     5.22,
+     4.24,
+     -56.42
+    ],
+    [
+     5.27,
+     4.24,
+     -57.06
+    ],
+    [
+     5.57,
+     4.24,
+     -57.57
+    ],
+    [
+     5.74,
+     4.27,
+     -58.19
+    ],
+    [
+     5.77,
+     4.33,
+     -58.79
+    ],
+    [
+     5.89,
+     4.4,
+     -59.42
+    ],
+    [
+     5.84,
+     4.48,
+     -60.03
+    ],
+    [
+     5.74,
+     4.48,
+     -60.63
+    ],
+    [
+     5.58,
+     4.48,
+     -61.22
+    ],
+    [
+     5.49,
+     4.48,
+     -61.85
+    ],
+    [
+     5.29,
+     4.44,
+     -62.42
+    ],
+    [
+     5.13,
+     4.43,
+     -63.04
+    ],
+    [
+     4.86,
+     4.39,
+     -63.59
+    ],
+    [
+     4.55,
+     4.39,
+     -64.1
+    ],
+    [
+     4.27,
+     4.36,
+     -64.68
+    ],
+    [
+     3.87,
+     4.34,
+     -65.14
+    ],
+    [
+     3.52,
+     4.31,
+     -65.67
+    ],
+    [
+     3.17,
+     4.27,
+     -66.21
+    ],
+    [
+     2.82,
+     4.23,
+     -66.75
+    ],
+    [
+     2.37,
+     4.19,
+     -67.16
+    ],
+    [
+     1.91,
+     4.13,
+     -67.54
+    ],
+    [
+     1.4,
+     4.08,
+     -67.88
+    ],
+    [
+     0.9,
+     4.05,
+     -68.28
+    ],
+    [
+     0.4,
+     4.06,
+     -68.68
+    ],
+    [
+     0.01,
+     4.05,
+     -69.14
+    ],
+    [
+     -0.34,
+     4.05,
+     -69.63
+    ],
+    [
+     -0.14,
+     4.05,
+     -70.09
+    ],
+    [
+     0.24,
+     4.04,
+     -70.6
+    ],
+    [
+     0.46,
+     4.03,
+     -71.16
+    ],
+    [
+     0.73,
+     4.03,
+     -71.69
+    ],
+    [
+     0.98,
+     4.04,
+     -72.28
+    ],
+    [
+     1.11,
+     4.03,
+     -72.87
+    ],
+    [
+     1.28,
+     4.27,
+     -73.39
+    ],
+    [
+     1.31,
+     4.54,
+     -73.8
+    ],
+    [
+     1.3,
+     4.81,
+     -74.22
+    ],
+    [
+     1.34,
+     5.08,
+     -74.66
+    ],
+    [
+     1.38,
+     5.35,
+     -75.1
+    ],
+    [
+     1.42,
+     5.62,
+     -75.53
+    ]
+   ]
+  }
+ ],
+ "perf": [
+  {
+   "id": "plaza",
+   "drawnFrameWallMs": [
+    35142.699999809265,
+    38155.59999990463,
+    36642.200000047684,
+    36446.699999809265
+   ],
+   "jsMs": {
+    "step": 10.399999856948853,
+    "camera": 0.09999990463256836,
+    "update": 2.5999999046325684,
+    "render": 7.700000047683716
+   },
+   "draws": 521,
+   "triangles": 7431776
+  },
+  {
+   "id": "stairs2-base",
+   "drawnFrameWallMs": [
+    40503.699999809265,
+    43816,
+    45066.09999990463,
+    38269.800000190735
+   ],
+   "jsMs": {
+    "step": 15.400000095367432,
+    "camera": 0.10000014305114746,
+    "update": 4.3999998569488525,
+    "render": 10.900000095367432
+   },
+   "draws": 522,
+   "triangles": 9525649
+  },
+  {
+   "id": "saria-side",
+   "drawnFrameWallMs": [
+    36456.200000047684,
+    39771,
+    32519.60000014305,
+    31738.699999809265
+   ],
+   "jsMs": {
+    "step": 25,
+    "camera": 0.09999990463256836,
+    "update": 8.299999952316284,
+    "render": 16.600000143051147
+   },
+   "draws": 519,
+   "triangles": 8587859
+  },
+  {
+   "id": "west-house",
+   "drawnFrameWallMs": [
+    23186.799999952316,
+    18991.300000190735,
+    19540.900000095367,
+    19383
+   ],
+   "jsMs": {
+    "step": 12,
+    "camera": 0.20000004768371582,
+    "update": 1.2000000476837158,
+    "render": 10.599999904632568
+   },
+   "draws": 442,
+   "triangles": 5033732
+  }
+ ],
+ "pageErrors": [],
+ "finished": "2026-09-23T07:04:13.037Z"
+}

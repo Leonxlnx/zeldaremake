@@ -1,0 +1,52 @@
+{
+ "b-saria-front": {
+  "shareLiftOver3": 0.2181,
+  "shareLiftOver8": 0.0476,
+  "meanLiftInPool": 7.1,
+  "p99Lift": 17.6,
+  "maxLift": 114.9,
+  "poolClippedOn": 0.0049,
+  "poolClippedOff": 0.0046,
+  "darkened": 0.0016
+ },
+ "b-west-house": {
+  "shareLiftOver3": 0.0691,
+  "shareLiftOver8": 0.0215,
+  "meanLiftInPool": 9.3,
+  "p99Lift": 13.3,
+  "maxLift": 103.6,
+  "poolClippedOn": 0.0083,
+  "poolClippedOff": 0.0082,
+  "darkened": 0.0005
+ },
+ "l-post-fork-west": {
+  "shareLiftOver3": 0.2717,
+  "shareLiftOver8": 0.077,
+  "meanLiftInPool": 7.1,
+  "p99Lift": 14.6,
+  "maxLift": 181.8,
+  "poolClippedOn": 0.0002,
+  "poolClippedOff": 0.0001,
+  "darkened": 0.001
+ },
+ "l-post-stairfoot": {
+  "shareLiftOver3": 0.2475,
+  "shareLiftOver8": 0.0729,
+  "meanLiftInPool": 8.2,
+  "p99Lift": 19.8,
+  "maxLift": 185.6,
+  "poolClippedOn": 0.002,
+  "poolClippedOff": 0.0016,
+  "darkened": 0.0021
+ },
+ "l-saria-hanger": {
+  "shareLiftOver3": 0.2662,
+  "shareLiftOver8": 0.1549,
+  "meanLiftInPool": 23.8,
+  "p99Lift": 104.7,
+  "maxLift": 146.5,
+  "poolClippedOn": 0.2245,
+  "poolClippedOff": 0.2217,
+  "darkened": 0.0005
+ }
+}
