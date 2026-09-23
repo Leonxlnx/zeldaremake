@@ -56,7 +56,7 @@ import {
 import { hash2 } from '../util/prng';
 import { merge, ovalLathe, place, sweep } from './geometry';
 import { CHAR_COLORS, matte } from './palette';
-import { beginTally, buildArms, buildFace, buildHair, buildLegs, buildNeck, endTally, part, type Character } from './link';
+import { beginTally, buildArms, buildFace, buildHair, buildLegs, endTally, part, type Character } from './link';
 import { buildRig, type Proportions, type Rig } from './rig';
 
 /**
@@ -930,7 +930,8 @@ export function createKokiri(variant: number): Character {
   const boot = kidMat('boot', girl ? KID.boot : CHAR_COLORS.kidBoot);
   // boots to just under the knee; the girls' near-black boots have a khaki fold-over cuff
   buildLegs(rig, { skin, boot, cuff: girl ? kidMat('cuff', KID.cuff) : null, shaftTop: p.kneeY - p.ankleY - 0.03 });
-  buildNeck(rig, skin);
+  // no neck mesh (lane 7): under HEAD_SCALE the skull's underside (0.79 m) sits below the collar's top
+  // (0.81 m) and the bob's hem covers the back — the cylinder link.ts's buildNeck would add is enclosed
   if (girl) {
     buildArms(rig, { skin, sleeve: null });
     buildWristbands(rig, kidMat('belt', KID.belt));
@@ -939,10 +940,10 @@ export function createKokiri(variant: number): Character {
     buildGirlHair(rig, girlHair(look));
     buildGirlHeadband(rig, kidMat(`band-${look}`, KID.band[look]));
   } else buildBoy(rig, variant, skin);
-  // shadow pass (lane 7): the neck sits inside the scaled skull and a boot cuff's shadow falls on the
-  // shaft two centimetres under it — neither can shadow a visible pixel; three submissions per kid
+  // shadow pass (lane 7): a boot cuff's shadow falls on the shaft two centimetres under it — it cannot
+  // shadow a visible pixel; two submissions per kid
   rig.root.traverse((o) => {
-    if ((o as Mesh).isMesh && (o.name === 'neck' || o.name === 'boot-cuff')) o.castShadow = false;
+    if ((o as Mesh).isMesh && o.name === 'boot-cuff') o.castShadow = false;
   });
   rig.root.userData.character = 'kokiri';
   // to the crown of the hair: skull top 1.06 + the scaled crown (girl: the dome reaches 0.158 · 1.14 over the head centre)
