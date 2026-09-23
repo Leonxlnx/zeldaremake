@@ -51,3 +51,12 @@ empty. The 6.5 m verge on the arch stretch keeps both.
 
 ## Verification
 `npm run typecheck` green, build green, 19/19 tree tests, no system failures in the audit.
+
+## Postscript — the west fork (fable-3, 11:20: "the new understory hides the fork marker from the plaza side")
+`UNDERSTORY_CLEARINGS`: no understory within 8.5 m of (−10.5, 8.5), the fork's inner corner; 44 → 32
+trees. At fable-3's pose ((−6.4, 1.9, 6.6) → (−9.6, 2.6, 9.4)) my tree on the fork's left is gone
+(`fork-plaza-side_head_vs_clearing.jpg`), but the **dark dome on the inner corner itself stays: it is a
+vegetation bush**, not a tree — hide-one-group over the fork region (`fork-attrib_base_no-vegetation_no-giants.jpg`):
+`vegetation` 58.6 % of the region, `trees` 64.6 % of which giants 29.1 % (the limb above), distant 19.5 %,
+**understory 12.4 %**, white-bark 5.2 %. So the fork reading as "the path splits off into the forest" is
+lane 4's bush to open (or the marker's spot, fable-3's call); the understory now stays out of that corner.

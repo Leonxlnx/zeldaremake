@@ -1730,6 +1730,12 @@ const UNDERSTORY_ARCH_STRETCH_Z = -28;
 const UNDERSTORY_PATH_MAX_M = 11;
 const UNDERSTORY_SPACING_M = 3.2;
 /**
+ * Clearings the understory keeps out of: the west fork's inner corner — the owner's "the path splits off
+ * into the forest" has to read from the plaza side (fable-3, 2026-09-23 11:20: the fork's waymarker at
+ * (−11.2, 7.75) vanished behind a crown at the fork pose (−6.4, 1.9, 6.6) → (−9.6, 2.6, 9.4)).
+ */
+const UNDERSTORY_CLEARINGS: { x: number; z: number; r: number }[] = [{ x: -10.5, z: 8.5, r: 8.5 }];
+/**
  * Screen windows of the fixed views an understory crown must not cover (the same idea as VIEW_GAPS
  * for the white-barks): F's canopy gap. Fractions of the frame; `minDistance` = the nearest a tree
  * may stand to that camera and still be tested.
@@ -2255,6 +2261,7 @@ export async function create(ctx: WorldContext): Promise<WorldSystem> {
         if (m.path > 0.05 || m.stairs > 0 || m.structure > 0 || m.cliff > 0.3) continue;
         // the arch's footprint and the columns' roots have their own masks; keep off steep ground too
         if (terrain.slope(x, z) > 0.55) continue;
+        if (UNDERSTORY_CLEARINGS.some((c) => Math.hypot(c.x - x, c.z - z) < c.r)) continue;
         if (tooClose(x, z)) continue;
         const variant = placeRng.int(0, UNDERSTORY_VARIANTS);
         const scale = placeRng.range(0.85, 1.15);
