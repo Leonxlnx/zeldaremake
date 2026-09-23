@@ -89,3 +89,7 @@ six are byte-identical. Source, helpers, settings, traces and raw captures were 
 while preparing this receipt. Adoption remains the coordinator's decision.
 
 The full 255 warm JPEGs remain locally in `native-after/warm/`, with capture-time SHA256 bindings in `trace.json`; they are ignored by Git to keep this receipt compact. The eight fixed PNGs are committed at full native resolution. The unchanged helper regenerates the route frames under the shared capslot.
+
+Retiring-slot lifecycle review is resolved. Test-only commit `31d1de8c89e55b44acdbcb963ffbc7e769dc280b` exercises the actual canopy and distant closures with a 100-byte pool: a 60-byte positive-weight retiree remains protected beside 40 bytes of visible canopy while another 60-byte canopy waits. Its old-crown uniform and replacement fade agree until zero; only then can queued work evict it. There are no synchronous builds or cap violations. The reviewer retracted the hypothetical missing-retiree flag. **23/23 tests pass**; runtime source and captured bundle bytes are unchanged.
+
+Minimal source adoption order: `1d5f12801b986ed933871a13551f0d6ade6767e3` (three crown files onto accepted b221), `e7fa081152314b592bec147541944e9fbdbfd1f5` (pool admission/resident fade and tests), then `31d1de8c89e55b44acdbcb963ffbc7e769dc280b` (adversarial test only). Native evidence is commit `9afd1b14`; the earlier frozen baseline/failure receipt remains on `agent/astra-distance-combined-sept23` at `dee55ef1`. Full captures identify source e7fa; later test/documentation commits do not alter its runtime.
