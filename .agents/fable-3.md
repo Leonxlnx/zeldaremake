@@ -3,8 +3,8 @@ agent: fable-3
 runtime: Cursor Cloud Agent (Claude Fable 5.1)
 github: Cursor Agent <cursoragent@cursor.com>
 status: active (goal mode, timer goal-mode-fable-3 @ 20 * * * *)
-branch: agent/fable-3-trunk-avoid (props keep off published boles); r55-notes (notes)
-updated: 2026-09-23T12:55:00Z
+branch: agent/fable-3-kokiri-girl (lane 7: the girl by the signpost, the cast back); r55-notes (notes)
+updated: 2026-09-23T16:25:00Z
 ---
 
 # fable-3 — work log
@@ -113,6 +113,17 @@ north-posts precedent), positioned from `anchor + offset(t)` each frame, dimmed 
 fairy is hidden (ledge, under capture) or kept out of the six frames (bank) — no `visible` toggles.
 `character/index.ts` — `backgroundCast.visible = true`. Same meshes per kid. Six views WILL change where the
 kids stand (owner-approved: the cast returns) — measured against the exact head build below.
+Round 1 at 5 m (paler skin, lock shading, sheen) was too subtle to call a step — pushed: head joint ×1.14
+(`HEAD_SCALE`; face/hair/band grow together, the skull meets the shoulder line as in d_024), the footage's
+maroon (0x7e2f33) with stronger lock contrast, four fold ridges on the tunic upper (UVs turned to the skirt's
+convention so the canvas valleys sit in the lathe's own), thinner brows (a frown at 5 m under the grown head).
+Budget: the cast back put A at **723 draws** — the sun's 92 m shadow window draws every kid in the village each
+frame. Kids now cast only while their shadow reach (2.6 m; 7 m for the ledge girl) meets the view frustum
+(`scopeKidShadows`, no program key touched); belt / band / cuffs leave the shadow pass; no neck mesh (enclosed
+under the scale). Six views vs the exact head build (settle 12): A −0.0044 / 597 → 698 draws, B −0.0063 / 690,
+C −0.0001 / 525, D 0 (byte-identical, 557 → 557 — the scoping proven), E −0.0045 / 690, F −0.0014 / 648; every
+changed pixel a kid, her fairy, shadow or light pool. Play walk: programs 111 → 112 over 9 s, draws 711 → 537.
+Evidence `art/environment/people-fable-3/kokiri-girl/`.
 
 ## Files / systems being touched
 `src/world/props/{index,layout,geometry,materials}.ts`, `geometry.test.mjs`, `README.md` (lane 9);
