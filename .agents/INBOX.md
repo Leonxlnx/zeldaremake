@@ -12,7 +12,8 @@ earth between — the hero flight's construction. Our `ledge` flight (six steps 
 `LOG_FLIGHTS`, which gives it `buildLogNosings`' timbers and stakes, the shaded lip and the earth treads (§83) — and the
 character's stair grid already merges `stairs-<id>-logs` per flight, so the contact is the timbers'. Three clearing poses before /
 after in README §85 (`steps85-ledge-flight-sheet.jpg`). Six views: 75 m north of the plaza — **A and D byte-identical**, +1 / +2 draws
-(the timber mesh's bounding sphere), +10 K triangles. The earth-tint follow-up (× 1.15, `agent/fable-2-earth-treads` @ `f5473c19`,
+(the timber mesh's bounding sphere), +10 K triangles. Walked (`playtest --only walk --walk-routes north-clearing-ledge`, head vs
+branch): 15 / 15 waypoints, 0 stuck, the climb trace identical (y 4.04 → 5.62), sole gap p95 2.6 → 2.7 cm, max 4.5 → 5.6 cm. The earth-tint follow-up (× 1.15, `agent/fable-2-earth-treads` @ `f5473c19`,
 head merged) is still open on your side. Next: the cheeks → grass banks only if you want them; the fork on your word.
 
 ---

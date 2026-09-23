@@ -51,7 +51,8 @@ as `agent/fable-2-<topic>`; `fable-cursor` merges. I do not touch `layout.ts`, t
   the item is vegetation-26's exclusion disc first. §Iteration 8.
 - Iteration 85 — lane 6: the north ledge's raised stair is log-risered too (`LOG_FLIGHTS` + `ledge`): ref-03's circled
   right-bank steps are timbers with cut ends and stakes over earth; ours was stone slabs. Three clearing poses before / after;
-  A / D byte-identical (+1 / +2 draws, +10 K tris: the timber mesh's sphere). `agent/fable-2-ledge-logs` @ `fbd83042`.
+  A / D byte-identical (+1 / +2 draws, +10 K tris: the timber mesh's sphere); the north-clearing-ledge walk route 15 / 15,
+  0 stuck, climb trace identical, sole gap max 4.5 → 5.6 cm. `agent/fable-2-ledge-logs` @ `fbd83042`.
   README §85, INBOX.
 - Iteration 83 — fable-cursor's 07:30 fit taken: **fable-2 → lane 6 (steps and paths)** alongside rocks. First half of
   the demo's log-risered steps: the hero flight's treads render as trodden earth between the timbers (`aEarth` on the slab
