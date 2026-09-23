@@ -149,6 +149,7 @@ uniform vec4 uFogParams;   // baseHeight, falloff, northStartZ, northFullZ
 uniform vec2 uDensity;     // height-fog density weight, base air density
 uniform vec2 uAirFade;     // world heights (m) between which the base-air in-scatter fades in
 uniform vec2 uMistNear;    // marched distances (m) between which the mist-layer in-scatter ramps in (x >= y disables)
+uniform vec2 uColumnNear;  // marched distances (m) over which a gained column's extra gain fades in
 uniform vec2 uAltitude;    // aerosol profile: uniform height (m), scale height (m) above it
 uniform float uAnisotropy;
 uniform vec2 uBackScatter; // back-scatter lobe: min multiplier, -cos of the angle where it saturates
@@ -219,6 +220,11 @@ void main() {
     // columns are real holes and keep their full length (shot F's far column sits 29–31 m out)
     vec2 bm = beamMask( pw.xyz );
     float column = bm.y;
+    // a gained column's boost is for seeing it from outside: in its first metres along the ray (a
+    // camera standing in the shaft) it lights the air like a plain open column. Only the boost
+    // above 1 moves, and only before the ramp's end: a column first met past uColumnNear.y, and
+    // every plain column, draws exactly as before
+    if ( t < uColumnNear.y && column > 1.0 ) column = mix( 1.0, column, smoothstep( uColumnNear.x, uColumnNear.y, t ) );
     float toMean = max( smoothstep( uFarAir.x, uFarAir.y, t ), 1.0 - smoothstep( uGapHollow.y, uGapHollow.x, pw.z ) );
     float mask = max( mix( bm.x, uFarAir.z, toMean ), column );
     lit *= mix( uBeam.w, 1.0, mask );

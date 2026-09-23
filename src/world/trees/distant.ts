@@ -179,6 +179,20 @@ export const CROWN_UNDER_M: [number, number] = [36, 48];
 export const CROWN_UNDER_DARK = 0.38;
 export const CROWN_NEAR_DARK = 0.72;
 /**
+ * 2026-09-23 (owner review, looking up in the north hollow and at the west hut): a crown overhead
+ * inside the near gate stands 25–35 m up the hollow's air, where a climbing ray's haze reaches its
+ * cap in the lit far-wall airlight — the floor card read as a pale beige slab with the quad's
+ * straight edge (probe on u-open-up / b-north-west-side: hiding the distant group removes it; the
+ * crown albedo × 0.25 leaves it as it was, so it is the haze). Inside the gate, on rays climbing
+ * past CROWN_UNDER_FOG_RAY (world y of the view ray, 20°–44°), CROWN_UNDER_FOG_CUT of the haze over
+ * a crown is taken back so the leaf roof reads as its own shade against the sky, and a floor card
+ * ends in a round leafy edge (alpha falls off over CROWN_FLOOR_ROUND crown radii from the crown's
+ * axis). Zero at 48 m+: the six fixed frames see the ring from 51 m out.
+ */
+export const CROWN_UNDER_FOG_CUT = 0.6;
+export const CROWN_UNDER_FOG_RAY: [number, number] = [0.35, 0.7];
+export const CROWN_FLOOR_ROUND: [number, number] = [0.9, 1.1];
+/**
  * Round 48: the near LOD's toes DIVE — their local ground falls this much per metre out from the
  * axis, so a toe's tip is buried 0.3–0.45 m on flat ground and the toe reads as a root going
  * under, and on a bank of slope ≤ 0.1 the downhill toe still touches instead of floating (the
@@ -422,6 +436,20 @@ export function createDistantCrownMaterial(wind: Wind, rng: Rng, palette: Palett
       float flatCard = smoothstep(0.7, 0.9, abs(cardW.y));
       float steepFade = 1.0 - smoothstep(${f(CROWN_EDGE_STEEP[0])}, ${f(CROWN_EDGE_STEEP[1])}, rayW.y);
       diffuseColor.a *= mix(steepFade, smoothstep(${f(CROWN_EDGE_FADE[0])}, ${f(CROWN_EDGE_FADE[1])}, edgeOn), flatCard);
+      // CROWN_FLOOR_ROUND: inside the gate a floor card ends in the crown's round edge, not its quad's
+      diffuseColor.a *= 1.0 - roofNear * flatCard * smoothstep(${f(CROWN_FLOOR_ROUND[0])}, ${f(CROWN_FLOOR_ROUND[1])}, length(vCrownOff.xz));
+    }
+    `,
+        )
+        .replace(
+          '#include <fog_fragment>',
+          /* glsl */ `vec3 crownPreFog = gl_FragColor.rgb;
+    #include <fog_fragment>
+    {
+      // CROWN_UNDER_FOG_CUT: a crown overhead inside the gate keeps part of its own shade
+      float roofNearF = 1.0 - smoothstep(${f(CROWN_UNDER_M[0])}, ${f(CROWN_UNDER_M[1])}, length(vViewPosition));
+      float climbF = smoothstep(${f(CROWN_UNDER_FOG_RAY[0])}, ${f(CROWN_UNDER_FOG_RAY[1])}, normalize(-vViewPosition * mat3(viewMatrix)).y);
+      gl_FragColor.rgb = mix(gl_FragColor.rgb, crownPreFog, roofNearF * climbF * ${f(CROWN_UNDER_FOG_CUT)});
     }
     `,
         )
@@ -450,7 +478,7 @@ export function createDistantCrownMaterial(wind: Wind, rng: Rng, palette: Palett
         );
     injectTreeLeafWarmth(s);
   };
-  material.customProgramCacheKey = () => 'trees-distant-crown-v4-steep-fade-leaf-warmth';
+  material.customProgramCacheKey = () => 'trees-distant-crown-v5-under-fog-round-floor-leaf-warmth';
   wind.bind(material);
   return material;
 }
