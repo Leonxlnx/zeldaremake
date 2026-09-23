@@ -1,0 +1,29 @@
+{
+  "sha": "1f3b51fd19c8ae5676aa254f67f5e9b26533f213",
+  "settings": {
+    "views": [],
+    "sourceSha": "1f3b51fd19c8ae5676aa254f67f5e9b26533f213",
+    "dist": "dist",
+    "bundle": "index-DIrdUv7M.js",
+    "baseline": false,
+    "out": "art/environment/astra-distance-real-lamina/native-matched-after",
+    "transition": "matched"
+  },
+  "images": {},
+  "errors": [],
+  "evidenceKind": "Native matched views; owner view reconstructed, not the original screenshot camera",
+  "bundleSha256": "0bf022f24f690a69c8b016f5e81c31301b0bdc648c4448beb13a6b71cc44c35f",
+  "captureScriptSha256": "1cd439b20299bc238ac2c12ad1ac3152d151596b3b60db247652b8eda0b9c616",
+  "sourceDiffSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+  "renderer": "ANGLE (AMD, AMD Radeon 780M Graphics (0x00001900) Direct3D11 vs_5_0 ps_5_0, D3D11)",
+  "transition": {
+    "file": "trace.json",
+    "moduleSha256": "a620159951a0bb72cef8d7afbc44c860f8bd1a671d14f906348d1c5947c800c0",
+    "framesPerPass": 255,
+    "passes": [
+      "first",
+      "warm"
+    ]
+  },
+  "complete": true
+}

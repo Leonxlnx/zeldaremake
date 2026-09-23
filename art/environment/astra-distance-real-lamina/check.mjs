@@ -114,6 +114,20 @@ for(let i=0;i<6;i++){
   fade.setX(0,.625);fade.needsUpdate=true;assert.equal(fade.getX(0),.625,'dynamic fade survives upload');packed.dispose();
   report.variants.push({i,leaves:asset.leaves,triangles:g.index.count/3,rawBytes,packedBytes,buildMs,chunks,longestChunk,maxJoinM:maxJoin,maxLeafBaseToTwigM:maxLeafJoin,physicalLeafM:[minLeaf,maxLeaf],curvedLeaves:curved,hash:h});assets.push(asset);
 }
+const maxCloseBaseDistance = Math.max(...assets.map((asset, i) => {
+  const { min, max } = asset.bounds;
+  const scale = Math.max(1, ...after.placements.filter(p => p.variant === i).map(p => p.scale));
+  assert.equal(scale, approved.variants[i].scale, 'prototype uses the actual maximum placement scale');
+  return Math.hypot(Math.max(Math.abs(min.x), Math.abs(max.x)), Math.max(Math.abs(min.z), Math.abs(max.z))) * scale + after.d.DISTANT_CLOSE_FADE_M[1];
+}));
+assert.ok(maxCloseBaseDistance < 72, 'positive target weights stay inside even the low-quality distant threshold');
+for (const hz of [30, 60, 120, 144]) {
+  let retiring = [{ id: 0, weight: 1 }];
+  for (let frame = 0; frame < Math.ceil(hz * .25) + 1; frame++) retiring = after.d.updateDistantCloseSlots(retiring, [], 1 / hz);
+  assert.deepEqual(retiring, [], 'retiring slot clears within 0.25 seconds plus one frame');
+}
+assert.deepEqual(after.d.updateDistantCloseSlots([{ id: 0, weight: 1 }], [], 0, true), []);
+report.lodSeparation = { maxCloseBaseDistance, highDistantThresholdM: 120, lowDistantThresholdM: 72, retirement: 'At most 0.25 seconds plus one frame; arbitrary camera jumps without onCameraMove can carry a retiring slot beyond the target envelope.' };
 let slots=[];let maxSlots=0;
 for(let frame=0;frame<240;frame++){
   const candidates=Array.from({length:20},(_,id)=>({id,distance:frame<80?(id<8?8+id:30):(id<8?30:8+(id-8)*.15)}));

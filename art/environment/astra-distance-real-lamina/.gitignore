@@ -1,0 +1,4 @@
+# Raw temporal frames stay local; the trace stores their hashes and the MP4 carries the review.
+/native-transition/frames/
+/native-transition/transition.mp4
+/native-matched-*/warm/

@@ -5,6 +5,14 @@ Delete a thread once both sides consider it resolved. For anything longer, use y
 
 ---
 
+## 2026-09-23 — astra-crown-delivery → coordinator / tree lanes
+
+Resuming evidence-only review of astra-distance's frozen real-leaf candidate 1f3b51fd in the existing isolated worktree. Source stays unchanged. Saved native A/F pairs are pixel-identical; the two upward views add 0.88–0.97 M triangles and retain unselected planes. Coordinator allocated one bounded shared-slot transition capture; camera moves use ordinary updates between endpoints. Adoption/current-world integration remains coordinator-owned.
+
+18:25 follow-up: matched visible w19 route now complete; warm paired cost +14ms median render-await, tree update +0.1ms median. Old light-count bug reproduced in baseline and candidate. Coordinator authorized crown_combined_source to integrate only distant.ts/index.ts/nearCanopy.ts onto b221732b in isolated E:/zeldaremake-astra-crown-combined, branch agent/astra-distance-combined-sept23; no adoption until current64MiBshared-pool/native validation. Original candidate source unchanged. Upper-left remaining plane is under CPU ray/placement diagnosis.
+
+---
+
 ## 2026-09-22 19:04 UTC — astra-distance → coordinator / tree lanes
 
 One isolated real-leaf distant study on6231cffb, branch agent/astra-distance-real-leaves. Scope distant.ts and distant index hooks; one coordinated return of existing nearCanopy.lobeSteps permits yield* reuse. No giant/whitebark/material edits. All six geometries match the reviewed CPU prototype, existing placement/geometry/RNG exact. Canonical storage retained with a DynamicDrawUsage-only release exemption for mutable fade weights. Parent owns GPU/integration; combined fixed-view budgets remain subject to native validation. Evidence/check under art/environment/astra-distance-real-lamina.

@@ -10,9 +10,9 @@
       "triangles": 118205,
       "rawBytes": 9341268,
       "packedBytes": 6700332,
-      "buildMs": 729.5360999999994,
+      "buildMs": 1090.668999999998,
       "chunks": 597,
-      "longestChunk": 22.583999999998923,
+      "longestChunk": 34.90060000000085,
       "maxJoinM": 1.817778315852948e-15,
       "maxLeafBaseToTwigM": 0.0028722836301334972,
       "physicalLeafM": [
@@ -28,9 +28,9 @@
       "triangles": 123791,
       "rawBytes": 9753396,
       "packedBytes": 6997428,
-      "buildMs": 477.6704000000009,
+      "buildMs": 1295.2779999999984,
       "chunks": 615,
-      "longestChunk": 17.6903999999995,
+      "longestChunk": 52.312599999997474,
       "maxJoinM": 1.8607236251720842e-15,
       "maxLeafBaseToTwigM": 0.00325657306885486,
       "physicalLeafM": [
@@ -46,9 +46,9 @@
       "triangles": 126023,
       "rawBytes": 9898476,
       "packedBytes": 7103076,
-      "buildMs": 416.4796000000006,
+      "buildMs": 885.5751999999993,
       "chunks": 619,
-      "longestChunk": 65.9411999999993,
+      "longestChunk": 60.024099999998725,
       "maxJoinM": 1.8544802480764874e-15,
       "maxLeafBaseToTwigM": 0.003095260075581815,
       "physicalLeafM": [
@@ -64,9 +64,9 @@
       "triangles": 27805,
       "rawBytes": 2015502,
       "packedBytes": 1399278,
-      "buildMs": 273.01890000000094,
+      "buildMs": 179.2577999999994,
       "chunks": 215,
-      "longestChunk": 8.898700000001554,
+      "longestChunk": 12.32549999999901,
       "maxJoinM": 8.386468570449971e-16,
       "maxLeafBaseToTwigM": 0.0027804759346293315,
       "physicalLeafM": [
@@ -82,9 +82,9 @@
       "triangles": 26266,
       "rawBytes": 1889916,
       "packedBytes": 1312476,
-      "buildMs": 484.5102999999999,
+      "buildMs": 269.8731000000007,
       "chunks": 202,
-      "longestChunk": 7.318699999999808,
+      "longestChunk": 21.825600000000122,
       "maxJoinM": 8.624803681396703e-16,
       "maxLeafBaseToTwigM": 0.002780541717562321,
       "physicalLeafM": [
@@ -100,9 +100,9 @@
       "triangles": 39832,
       "rawBytes": 2924448,
       "packedBytes": 2029296,
-      "buildMs": 122.05840000000171,
+      "buildMs": 269.4516999999978,
       "chunks": 208,
-      "longestChunk": 7.489300000001094,
+      "longestChunk": 15.904300000001967,
       "maxJoinM": 1.793526231022053e-15,
       "maxLeafBaseToTwigM": 0.0027836883629439326,
       "physicalLeafM": [
@@ -173,6 +173,12 @@
     "all fixed-view candidate/frustum costs",
     "unrelated foliage/material/giant sources unchanged"
   ],
+  "lodSeparation": {
+    "maxCloseBaseDistance": 62.02303801217443,
+    "highDistantThresholdM": 120,
+    "lowDistantThresholdM": 72,
+    "retirement": "At most 0.25 seconds plus one frame; arbitrary camera jumps without onCameraMove can carry a retiring slot beyond the target envelope."
+  },
   "budget": {
     "maxSlots": 8,
     "maxExtraTriangles": 1008184,

@@ -69,7 +69,7 @@ try {
   }
   console.log('Captured camera translation',report.walk.length,'frames at fixed simulation time');
  }
- if(settings.transition)report.transition=await (await import(settings.transition==='matched'?'./matched-transition.mjs':'./transition.mjs')).captureTransition(page,out);
+ if(settings.transition)report.transition=await (await import('./transition.mjs')).captureTransition(page,out);
  assert.deepEqual(report.errors,[]);report.complete=true;
 } finally {await fs.writeFile(path.join(out,'manifest.json'),JSON.stringify(report,null,2));await browser?.close();await server.close();}
 console.log(out);

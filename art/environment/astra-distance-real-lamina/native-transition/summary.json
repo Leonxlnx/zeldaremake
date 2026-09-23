@@ -1,0 +1,230 @@
+{
+  "source": "1f3b51fd19c8ae5676aa254f67f5e9b26533f213",
+  "bundleSha256": "0bf022f24f690a69c8b016f5e81c31301b0bdc648c4448beb13a6b71cc44c35f",
+  "renderer": "ANGLE (AMD, AMD Radeon 780M Graphics (0x00001900) Direct3D11 vs_5_0 ps_5_0, D3D11)",
+  "transitionScriptSha256": "b7831912cc5135cbc36e1543a613efbb4f99b5c1e2efe716a75a649100523800",
+  "frames": 540,
+  "coverage": {
+    "distinctIds": 13,
+    "fractionalFrames": 332,
+    "maxSlots": 8,
+    "maxCloseTriangles": 973570
+  },
+  "treeUpdateMs": {
+    "min": 0.09999999403953552,
+    "median": 1.0999999940395355,
+    "p95": 2.5,
+    "max": 10.099999994039536
+  },
+  "completedRenderAwaitMs": {
+    "min": 64.29999999701977,
+    "median": 106.80000001192093,
+    "p95": 173.6000000089407,
+    "max": 80757.59999999404
+  },
+  "firstVisit": {
+    "poseMs": 30.19999998807907,
+    "completedMs": 4950.5999999940395,
+    "programsAdded": 3
+  },
+  "stalls": [
+    {
+      "k": 12,
+      "phase": "approach",
+      "completedMs": 7565.5,
+      "treeUpdateMs": 0.8999999910593033,
+      "programsAdded": 1
+    },
+    {
+      "k": 64,
+      "phase": "approach",
+      "completedMs": 80757.59999999404,
+      "treeUpdateMs": 1.1000000089406967,
+      "programsAdded": 39
+    },
+    {
+      "k": 69,
+      "phase": "approach",
+      "completedMs": 1481.1000000089407,
+      "treeUpdateMs": 0.699999988079071,
+      "programsAdded": 1
+    },
+    {
+      "k": 111,
+      "phase": "approach",
+      "completedMs": 1946.5,
+      "treeUpdateMs": 1.300000011920929,
+      "programsAdded": 1
+    },
+    {
+      "k": 126,
+      "phase": "approach",
+      "completedMs": 1344.5999999940395,
+      "treeUpdateMs": 1.2999999970197678,
+      "programsAdded": 1
+    }
+  ],
+  "canopyPool": {
+    "before": {
+      "capBytes": 268435456,
+      "poolBytes": 191336253,
+      "items": 432,
+      "resident": 432,
+      "pinned": 77,
+      "wanted": 324,
+      "pinnedBytes": 33027042,
+      "wantedBytes": 128555370,
+      "pending": 0,
+      "building": 0,
+      "built": 0,
+      "evicted": 0,
+      "syncBuilds": 0,
+      "hits": 154,
+      "buildMsP50": 0,
+      "buildMsP95": 0,
+      "buildMsMax": 0,
+      "stepMsMax": 0,
+      "workMsMax": 0.5,
+      "workMsTotal": 0.8,
+      "steps": 0,
+      "stepMsP50": 0,
+      "stepMsP95": 0,
+      "longSteps": 0,
+      "workOverBudget": 0,
+      "workMsP95": 0.1
+    },
+    "after": {
+      "capBytes": 268435456,
+      "poolBytes": 191336253,
+      "items": 432,
+      "resident": 432,
+      "pinned": 76,
+      "wanted": 405,
+      "pinnedBytes": 37612580,
+      "wantedBytes": 179582015,
+      "pending": 0,
+      "building": 0,
+      "built": 0,
+      "evicted": 0,
+      "syncBuilds": 0,
+      "hits": 39059,
+      "buildMsP50": 0,
+      "buildMsP95": 0,
+      "buildMsMax": 0,
+      "stepMsMax": 0,
+      "workMsMax": 1.1,
+      "workMsTotal": 30.3,
+      "steps": 0,
+      "stepMsP50": 0,
+      "stepMsP95": 0,
+      "longSteps": 0,
+      "workOverBudget": 0,
+      "workMsP95": 0.2
+    }
+  },
+  "basePool": {
+    "before": {
+      "capBytes": 50331648,
+      "poolBytes": 27306759,
+      "items": 23,
+      "resident": 23,
+      "pinned": 2,
+      "wanted": 16,
+      "pinnedBytes": 2810859,
+      "wantedBytes": 19318935,
+      "pending": 0,
+      "building": 0,
+      "built": 0,
+      "evicted": 0,
+      "syncBuilds": 0,
+      "hits": 4,
+      "buildMsP50": 0,
+      "buildMsP95": 0,
+      "buildMsMax": 0,
+      "stepMsMax": 0,
+      "workMsMax": 0,
+      "workMsTotal": 0,
+      "steps": 0,
+      "stepMsP50": 0,
+      "stepMsP95": 0,
+      "longSteps": 0,
+      "workOverBudget": 0,
+      "workMsP95": 0
+    },
+    "after": {
+      "capBytes": 50331648,
+      "poolBytes": 27306759,
+      "items": 23,
+      "resident": 23,
+      "pinned": 0,
+      "wanted": 22,
+      "pinnedBytes": 0,
+      "wantedBytes": 26165229,
+      "pending": 0,
+      "building": 0,
+      "built": 0,
+      "evicted": 0,
+      "syncBuilds": 0,
+      "hits": 2212,
+      "buildMsP50": 0,
+      "buildMsP95": 0,
+      "buildMsMax": 0,
+      "stepMsMax": 0,
+      "workMsMax": 0.1,
+      "workMsTotal": 2.6,
+      "steps": 0,
+      "stepMsP50": 0,
+      "stepMsP95": 0,
+      "longSteps": 0,
+      "workOverBudget": 0,
+      "workMsP95": 0
+    }
+  },
+  "distantNearBucketRange": [
+    283,
+    302
+  ],
+  "returns": {
+    "A_stairs": {
+      "changedPixels": 0,
+      "meanAbsoluteChannelError255": 0,
+      "maxChannelError255": 0,
+      "stats": {
+        "simTime": 12.6,
+        "drawCalls": 459,
+        "triangles": 8889627,
+        "geometries": 630,
+        "textures": 92,
+        "programs": 155,
+        "width": 1280,
+        "height": 720,
+        "pixelRatio": 1
+      },
+      "closeSlots": 0
+    },
+    "F_canopy": {
+      "changedPixels": 1,
+      "meanAbsoluteChannelError255": 3.616898148148148e-7,
+      "maxChannelError255": 1,
+      "stats": {
+        "simTime": 12.6,
+        "drawCalls": 416,
+        "triangles": 8180156,
+        "geometries": 640,
+        "textures": 92,
+        "programs": 155,
+        "width": 1280,
+        "height": 720,
+        "pixelRatio": 1
+      },
+      "closeSlots": 0
+    }
+  },
+  "limitations": [
+    "Unpaired camera route; does not attribute timing to candidate or test player collision.",
+    "All initial pooled geometry remained resident; cold rebuild/prefetch/eviction are untested natively.",
+    "Render-await timings include requestAnimationFrame, GPU readback, shader first use and host scheduling; they are not FPS.",
+    "Geometry is visibly sparser; unselected far planes remain. Adoption still needs current-root combined validation."
+  ],
+  "videoSha256": "27f77096d5ac451a0786a209418b3d7ed542e9a66089b8c639d1a2acbb33a342"
+}

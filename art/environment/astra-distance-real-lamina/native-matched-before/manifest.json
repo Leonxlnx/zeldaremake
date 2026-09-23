@@ -1,0 +1,29 @@
+{
+  "sha": "6231cffbfec78d405cb3e83064bf3f68c7daca8d",
+  "settings": {
+    "views": [],
+    "sourceSha": "6231cffbfec78d405cb3e83064bf3f68c7daca8d",
+    "dist": "gauntlet/tmp/lamina-baseline-dist",
+    "bundle": "index-Hs0AcnGr.js",
+    "baseline": true,
+    "out": "art/environment/astra-distance-real-lamina/native-matched-before",
+    "transition": "matched"
+  },
+  "images": {},
+  "errors": [],
+  "evidenceKind": "Native matched views; owner view reconstructed, not the original screenshot camera",
+  "bundleSha256": "e9abdc2c1c7c84b495d81a7bc834b9b87ce365c92baf9c73a94f40c03257acbb",
+  "captureScriptSha256": "1cd439b20299bc238ac2c12ad1ac3152d151596b3b60db247652b8eda0b9c616",
+  "sourceDiffSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+  "renderer": "ANGLE (AMD, AMD Radeon 780M Graphics (0x00001900) Direct3D11 vs_5_0 ps_5_0, D3D11)",
+  "transition": {
+    "file": "trace.json",
+    "moduleSha256": "a620159951a0bb72cef8d7afbc44c860f8bd1a671d14f906348d1c5947c800c0",
+    "framesPerPass": 255,
+    "passes": [
+      "first",
+      "warm"
+    ]
+  },
+  "complete": true
+}

@@ -1,0 +1,4 @@
+# Preserve exact capture-script hashes on Windows and other checkout hosts.
+*.mjs -text whitespace=blank-at-eol,blank-at-eof,space-before-tab,cr-at-eol
+native-transition/capture-script.mjs -text whitespace=blank-at-eol,blank-at-eof,space-before-tab,cr-at-eol
+*.json -text

@@ -1,0 +1,1729 @@
+{
+  "provenance": {
+    "sources": [
+      {
+        "sha": "6231cffbfec78d405cb3e83064bf3f68c7daca8d",
+        "bundleSha256": "e9abdc2c1c7c84b495d81a7bc834b9b87ce365c92baf9c73a94f40c03257acbb"
+      },
+      {
+        "sha": "1f3b51fd19c8ae5676aa254f67f5e9b26533f213",
+        "bundleSha256": "0bf022f24f690a69c8b016f5e81c31301b0bdc648c4448beb13a6b71cc44c35f"
+      }
+    ],
+    "renderer": "ANGLE (AMD, AMD Radeon 780M Graphics (0x00001900) Direct3D11 vs_5_0 ps_5_0, D3D11)",
+    "helperSha256": "1cd439b20299bc238ac2c12ad1ac3152d151596b3b60db247652b8eda0b9c616",
+    "moduleSha256": "a620159951a0bb72cef8d7afbc44c860f8bd1a671d14f906348d1c5947c800c0",
+    "traceSha256": [
+      "f763f46600a778dec99f2d7cb27918f4e4577888e7709964c89e1efd4a08b374",
+      "7078c0731ddcf970890fdf5cae58af57ac8dfec27fe20f3109b50e0a0dbff358"
+    ]
+  },
+  "sequence": {
+    "dt": 0.03333333333333333,
+    "startZ": -17.5,
+    "endZ": -44.1,
+    "travelFrames": 90,
+    "turnFrames": 60,
+    "holdFrames": 15
+  },
+  "passes": {
+    "first": {
+      "before": {
+        "frames": 255,
+        "treeUpdateMs": {
+          "median": 0.8999999910593033,
+          "p95": 1.7000000029802322,
+          "max": 2.300000011920929
+        },
+        "completedRenderAwaitMs": {
+          "median": 53.400000005960464,
+          "p95": 81.6000000089407,
+          "max": 70680.90000000596
+        },
+        "phases": {
+          "approach": {
+            "treeUpdateMs": {
+              "median": 1,
+              "p95": 1.9000000059604645,
+              "max": 2.300000011920929
+            },
+            "completedRenderAwaitMs": {
+              "median": 57.099999994039536,
+              "p95": 1404.4000000059605,
+              "max": 70680.90000000596
+            }
+          },
+          "turn": {
+            "treeUpdateMs": {
+              "median": 0.800000011920929,
+              "p95": 1.2999999970197678,
+              "max": 1.7999999970197678
+            },
+            "completedRenderAwaitMs": {
+              "median": 45.30000001192093,
+              "p95": 55.099999994039536,
+              "max": 1447.4000000059605
+            }
+          },
+          "retreat": {
+            "treeUpdateMs": {
+              "median": 0.7999999970197678,
+              "p95": 1.5,
+              "max": 1.7000000029802322
+            },
+            "completedRenderAwaitMs": {
+              "median": 55.29999999701977,
+              "p95": 62.29999999701977,
+              "max": 73.29999999701977
+            }
+          },
+          "hold": {
+            "treeUpdateMs": {
+              "median": 0.7000000029802322,
+              "p95": 2,
+              "max": 2
+            },
+            "completedRenderAwaitMs": {
+              "median": 59.29999999701977,
+              "p95": 64.30000001192093,
+              "max": 64.30000001192093
+            }
+          }
+        },
+        "programCount": [
+          90,
+          146
+        ],
+        "visiblePointLightRange": [
+          15,
+          17
+        ],
+        "totalPointLightRange": [
+          22,
+          22
+        ],
+        "drawCalls": {
+          "median": 203,
+          "p95": 280,
+          "max": 290
+        },
+        "triangles": {
+          "median": 3698223,
+          "p95": 5724441,
+          "max": 5930154
+        },
+        "pools": {
+          "nearCanopyPool": {
+            "delta": {
+              "built": 0,
+              "evicted": 0,
+              "syncBuilds": 0
+            },
+            "residentBytes": [
+              165794175,
+              165794175
+            ]
+          },
+          "nearBasePool": {
+            "delta": {
+              "built": 0,
+              "evicted": 0,
+              "syncBuilds": 0
+            },
+            "residentBytes": [
+              27306759,
+              27306759
+            ]
+          }
+        },
+        "slots": {
+          "range": [
+            0,
+            0
+          ],
+          "distinctIds": [],
+          "fractionalFrames": 0,
+          "membershipChangeFrames": 0
+        },
+        "events": [
+          {
+            "k": 0,
+            "phase": "approach",
+            "completedRenderAwaitMs": 279.79999999701977,
+            "treeUpdateMs": 1.9000000059604645,
+            "programsAdded": 8,
+            "visiblePointLights": [
+              15,
+              15
+            ],
+            "lightCountChanged": false,
+            "overOneSecond": false,
+            "drawCalls": 277,
+            "triangles": 5746855,
+            "entered": [],
+            "left": []
+          },
+          {
+            "k": 1,
+            "phase": "approach",
+            "completedRenderAwaitMs": 5709,
+            "treeUpdateMs": 2.300000011920929,
+            "programsAdded": 1,
+            "visiblePointLights": [
+              15,
+              15
+            ],
+            "lightCountChanged": false,
+            "overOneSecond": true,
+            "drawCalls": 282,
+            "triangles": 5811353,
+            "entered": [],
+            "left": []
+          },
+          {
+            "k": 26,
+            "phase": "approach",
+            "completedRenderAwaitMs": 70680.90000000596,
+            "treeUpdateMs": 0.7000000029802322,
+            "programsAdded": 33,
+            "visiblePointLights": [
+              15,
+              17
+            ],
+            "lightCountChanged": true,
+            "overOneSecond": true,
+            "drawCalls": 264,
+            "triangles": 4705753,
+            "entered": [],
+            "left": []
+          },
+          {
+            "k": 27,
+            "phase": "approach",
+            "completedRenderAwaitMs": 100.20000000298023,
+            "treeUpdateMs": 0.7000000029802322,
+            "programsAdded": 7,
+            "visiblePointLights": [
+              17,
+              17
+            ],
+            "lightCountChanged": false,
+            "overOneSecond": false,
+            "drawCalls": 260,
+            "triangles": 4639171,
+            "entered": [],
+            "left": []
+          },
+          {
+            "k": 28,
+            "phase": "approach",
+            "completedRenderAwaitMs": 2059.4000000059605,
+            "treeUpdateMs": 1.7000000029802322,
+            "programsAdded": 1,
+            "visiblePointLights": [
+              17,
+              17
+            ],
+            "lightCountChanged": false,
+            "overOneSecond": true,
+            "drawCalls": 259,
+            "triangles": 4698802,
+            "entered": [],
+            "left": []
+          },
+          {
+            "k": 30,
+            "phase": "approach",
+            "completedRenderAwaitMs": 1404.4000000059605,
+            "treeUpdateMs": 0.699999988079071,
+            "programsAdded": 1,
+            "visiblePointLights": [
+              17,
+              17
+            ],
+            "lightCountChanged": false,
+            "overOneSecond": true,
+            "drawCalls": 253,
+            "triangles": 4454377,
+            "entered": [],
+            "left": []
+          },
+          {
+            "k": 54,
+            "phase": "approach",
+            "completedRenderAwaitMs": 2325.2999999970198,
+            "treeUpdateMs": 1.1000000089406967,
+            "programsAdded": 2,
+            "visiblePointLights": [
+              17,
+              17
+            ],
+            "lightCountChanged": false,
+            "overOneSecond": true,
+            "drawCalls": 201,
+            "triangles": 3462266,
+            "entered": [],
+            "left": []
+          },
+          {
+            "k": 87,
+            "phase": "approach",
+            "completedRenderAwaitMs": 68.90000000596046,
+            "treeUpdateMs": 1.0999999940395355,
+            "programsAdded": 2,
+            "visiblePointLights": [
+              17,
+              17
+            ],
+            "lightCountChanged": false,
+            "overOneSecond": false,
+            "drawCalls": 168,
+            "triangles": 3597017,
+            "entered": [],
+            "left": []
+          },
+          {
+            "k": 99,
+            "phase": "turn",
+            "completedRenderAwaitMs": 1447.4000000059605,
+            "treeUpdateMs": 0.800000011920929,
+            "programsAdded": 1,
+            "visiblePointLights": [
+              17,
+              17
+            ],
+            "lightCountChanged": false,
+            "overOneSecond": true,
+            "drawCalls": 148,
+            "triangles": 3349372,
+            "entered": [],
+            "left": []
+          },
+          {
+            "k": 213,
+            "phase": "retreat",
+            "completedRenderAwaitMs": 58.29999999701977,
+            "treeUpdateMs": 0.800000011920929,
+            "programsAdded": 0,
+            "visiblePointLights": [
+              17,
+              15
+            ],
+            "lightCountChanged": true,
+            "overOneSecond": false,
+            "drawCalls": 257,
+            "triangles": 4521330,
+            "entered": [],
+            "left": []
+          }
+        ],
+        "slowestFrames": [
+          {
+            "k": 26,
+            "phase": "approach",
+            "completedRenderAwaitMs": 70680.90000000596,
+            "treeUpdateMs": 0.7000000029802322,
+            "programsAdded": 33,
+            "visiblePointLights": [
+              15,
+              17
+            ],
+            "lightCountChanged": true,
+            "overOneSecond": true,
+            "drawCalls": 264,
+            "triangles": 4705753,
+            "entered": [],
+            "left": []
+          },
+          {
+            "k": 1,
+            "phase": "approach",
+            "completedRenderAwaitMs": 5709,
+            "treeUpdateMs": 2.300000011920929,
+            "programsAdded": 1,
+            "visiblePointLights": [
+              15,
+              15
+            ],
+            "lightCountChanged": false,
+            "overOneSecond": true,
+            "drawCalls": 282,
+            "triangles": 5811353,
+            "entered": [],
+            "left": []
+          },
+          {
+            "k": 54,
+            "phase": "approach",
+            "completedRenderAwaitMs": 2325.2999999970198,
+            "treeUpdateMs": 1.1000000089406967,
+            "programsAdded": 2,
+            "visiblePointLights": [
+              17,
+              17
+            ],
+            "lightCountChanged": false,
+            "overOneSecond": true,
+            "drawCalls": 201,
+            "triangles": 3462266,
+            "entered": [],
+            "left": []
+          },
+          {
+            "k": 28,
+            "phase": "approach",
+            "completedRenderAwaitMs": 2059.4000000059605,
+            "treeUpdateMs": 1.7000000029802322,
+            "programsAdded": 1,
+            "visiblePointLights": [
+              17,
+              17
+            ],
+            "lightCountChanged": false,
+            "overOneSecond": true,
+            "drawCalls": 259,
+            "triangles": 4698802,
+            "entered": [],
+            "left": []
+          },
+          {
+            "k": 99,
+            "phase": "turn",
+            "completedRenderAwaitMs": 1447.4000000059605,
+            "treeUpdateMs": 0.800000011920929,
+            "programsAdded": 1,
+            "visiblePointLights": [
+              17,
+              17
+            ],
+            "lightCountChanged": false,
+            "overOneSecond": true,
+            "drawCalls": 148,
+            "triangles": 3349372,
+            "entered": [],
+            "left": []
+          },
+          {
+            "k": 30,
+            "phase": "approach",
+            "completedRenderAwaitMs": 1404.4000000059605,
+            "treeUpdateMs": 0.699999988079071,
+            "programsAdded": 1,
+            "visiblePointLights": [
+              17,
+              17
+            ],
+            "lightCountChanged": false,
+            "overOneSecond": true,
+            "drawCalls": 253,
+            "triangles": 4454377,
+            "entered": [],
+            "left": []
+          },
+          {
+            "k": 0,
+            "phase": "approach",
+            "completedRenderAwaitMs": 279.79999999701977,
+            "treeUpdateMs": 1.9000000059604645,
+            "programsAdded": 8,
+            "visiblePointLights": [
+              15,
+              15
+            ],
+            "lightCountChanged": false,
+            "overOneSecond": false,
+            "drawCalls": 277,
+            "triangles": 5746855,
+            "entered": [],
+            "left": []
+          },
+          {
+            "k": 27,
+            "phase": "approach",
+            "completedRenderAwaitMs": 100.20000000298023,
+            "treeUpdateMs": 0.7000000029802322,
+            "programsAdded": 7,
+            "visiblePointLights": [
+              17,
+              17
+            ],
+            "lightCountChanged": false,
+            "overOneSecond": false,
+            "drawCalls": 260,
+            "triangles": 4639171,
+            "entered": [],
+            "left": []
+          },
+          {
+            "k": 2,
+            "phase": "approach",
+            "completedRenderAwaitMs": 88.79999999701977,
+            "treeUpdateMs": 1.800000011920929,
+            "programsAdded": 0,
+            "visiblePointLights": [
+              15,
+              15
+            ],
+            "lightCountChanged": false,
+            "overOneSecond": false,
+            "drawCalls": 284,
+            "triangles": 5844004,
+            "entered": [],
+            "left": []
+          },
+          {
+            "k": 5,
+            "phase": "approach",
+            "completedRenderAwaitMs": 86.5,
+            "treeUpdateMs": 1.5,
+            "programsAdded": 0,
+            "visiblePointLights": [
+              15,
+              15
+            ],
+            "lightCountChanged": false,
+            "overOneSecond": false,
+            "drawCalls": 289,
+            "triangles": 5930154,
+            "entered": [],
+            "left": []
+          }
+        ]
+      },
+      "after": {
+        "frames": 255,
+        "treeUpdateMs": {
+          "median": 0.7999999970197678,
+          "p95": 1.4000000059604645,
+          "max": 3.6000000089406967
+        },
+        "completedRenderAwaitMs": {
+          "median": 63.29999999701977,
+          "p95": 87.69999998807907,
+          "max": 87057.59999999404
+        },
+        "phases": {
+          "approach": {
+            "treeUpdateMs": {
+              "median": 0.9000000059604645,
+              "p95": 1.7999999970197678,
+              "max": 3.6000000089406967
+            },
+            "completedRenderAwaitMs": {
+              "median": 68,
+              "p95": 2159.0999999940395,
+              "max": 87057.59999999404
+            }
+          },
+          "turn": {
+            "treeUpdateMs": {
+              "median": 0.7999999970197678,
+              "p95": 1.2999999970197678,
+              "max": 1.5999999940395355
+            },
+            "completedRenderAwaitMs": {
+              "median": 55.900000005960464,
+              "p95": 71.8999999910593,
+              "max": 1323.800000011921
+            }
+          },
+          "retreat": {
+            "treeUpdateMs": {
+              "median": 0.7999999970197678,
+              "p95": 1.2999999970197678,
+              "max": 1.8999999910593033
+            },
+            "completedRenderAwaitMs": {
+              "median": 63.30000001192093,
+              "p95": 73.79999999701977,
+              "max": 90.40000000596046
+            }
+          },
+          "hold": {
+            "treeUpdateMs": {
+              "median": 0.5,
+              "p95": 2,
+              "max": 2
+            },
+            "completedRenderAwaitMs": {
+              "median": 67.8999999910593,
+              "p95": 78.40000000596046,
+              "max": 78.40000000596046
+            }
+          }
+        },
+        "programCount": [
+          90,
+          148
+        ],
+        "visiblePointLightRange": [
+          15,
+          17
+        ],
+        "totalPointLightRange": [
+          22,
+          22
+        ],
+        "drawCalls": {
+          "median": 206,
+          "p95": 282,
+          "max": 292
+        },
+        "triangles": {
+          "median": 4592356,
+          "p95": 6188623,
+          "max": 6381191
+        },
+        "pools": {
+          "nearCanopyPool": {
+            "delta": {
+              "built": 0,
+              "evicted": 0,
+              "syncBuilds": 0
+            },
+            "residentBytes": [
+              191336253,
+              191336253
+            ]
+          },
+          "nearBasePool": {
+            "delta": {
+              "built": 0,
+              "evicted": 0,
+              "syncBuilds": 0
+            },
+            "residentBytes": [
+              27306759,
+              27306759
+            ]
+          }
+        },
+        "slots": {
+          "range": [
+            6,
+            8
+          ],
+          "distinctIds": [
+            3,
+            4,
+            5,
+            6,
+            7,
+            8,
+            10,
+            47,
+            48,
+            49,
+            454
+          ],
+          "fractionalFrames": 121,
+          "membershipChangeFrames": 9
+        },
+        "events": [
+          {
+            "k": 0,
+            "phase": "approach",
+            "completedRenderAwaitMs": 5026.600000008941,
+            "treeUpdateMs": 1.5,
+            "programsAdded": 9,
+            "visiblePointLights": [
+              15,
+              15
+            ],
+            "lightCountChanged": false,
+            "overOneSecond": true,
+            "drawCalls": 278,
+            "triangles": 6118228,
+            "entered": [],
+            "left": []
+          },
+          {
+            "k": 1,
+            "phase": "approach",
+            "completedRenderAwaitMs": 5912,
+            "treeUpdateMs": 3.6000000089406967,
+            "programsAdded": 1,
+            "visiblePointLights": [
+              15,
+              15
+            ],
+            "lightCountChanged": false,
+            "overOneSecond": true,
+            "drawCalls": 284,
+            "triangles": 6262390,
+            "entered": [
+              48
+            ],
+            "left": []
+          },
+          {
+            "k": 26,
+            "phase": "approach",
+            "completedRenderAwaitMs": 87057.59999999404,
+            "treeUpdateMs": 0.7999999970197678,
+            "programsAdded": 34,
+            "visiblePointLights": [
+              15,
+              17
+            ],
+            "lightCountChanged": true,
+            "overOneSecond": true,
+            "drawCalls": 267,
+            "triangles": 5393200,
+            "entered": [],
+            "left": []
+          },
+          {
+            "k": 27,
+            "phase": "approach",
+            "completedRenderAwaitMs": 107.20000000298023,
+            "treeUpdateMs": 0.7000000029802322,
+            "programsAdded": 7,
+            "visiblePointLights": [
+              17,
+              17
+            ],
+            "lightCountChanged": false,
+            "overOneSecond": false,
+            "drawCalls": 263,
+            "triangles": 5326618,
+            "entered": [],
+            "left": []
+          },
+          {
+            "k": 28,
+            "phase": "approach",
+            "completedRenderAwaitMs": 2159.0999999940395,
+            "treeUpdateMs": 3.1000000089406967,
+            "programsAdded": 1,
+            "visiblePointLights": [
+              17,
+              17
+            ],
+            "lightCountChanged": false,
+            "overOneSecond": true,
+            "drawCalls": 262,
+            "triangles": 5386249,
+            "entered": [],
+            "left": []
+          },
+          {
+            "k": 30,
+            "phase": "approach",
+            "completedRenderAwaitMs": 1275.5999999940395,
+            "treeUpdateMs": 0.7999999970197678,
+            "programsAdded": 1,
+            "visiblePointLights": [
+              17,
+              17
+            ],
+            "lightCountChanged": false,
+            "overOneSecond": true,
+            "drawCalls": 256,
+            "triangles": 5141824,
+            "entered": [],
+            "left": []
+          },
+          {
+            "k": 54,
+            "phase": "approach",
+            "completedRenderAwaitMs": 2555.3999999910593,
+            "treeUpdateMs": 0.8999999910593033,
+            "programsAdded": 2,
+            "visiblePointLights": [
+              17,
+              17
+            ],
+            "lightCountChanged": false,
+            "overOneSecond": true,
+            "drawCalls": 204,
+            "triangles": 4273504,
+            "entered": [],
+            "left": []
+          },
+          {
+            "k": 87,
+            "phase": "approach",
+            "completedRenderAwaitMs": 74.70000000298023,
+            "treeUpdateMs": 1.2999999970197678,
+            "programsAdded": 2,
+            "visiblePointLights": [
+              17,
+              17
+            ],
+            "lightCountChanged": false,
+            "overOneSecond": false,
+            "drawCalls": 171,
+            "triangles": 4492214,
+            "entered": [],
+            "left": []
+          },
+          {
+            "k": 99,
+            "phase": "turn",
+            "completedRenderAwaitMs": 1323.800000011921,
+            "treeUpdateMs": 0.5999999940395355,
+            "programsAdded": 1,
+            "visiblePointLights": [
+              17,
+              17
+            ],
+            "lightCountChanged": false,
+            "overOneSecond": true,
+            "drawCalls": 151,
+            "triangles": 4244569,
+            "entered": [],
+            "left": []
+          },
+          {
+            "k": 213,
+            "phase": "retreat",
+            "completedRenderAwaitMs": 68.5,
+            "treeUpdateMs": 1.2999999970197678,
+            "programsAdded": 0,
+            "visiblePointLights": [
+              17,
+              15
+            ],
+            "lightCountChanged": true,
+            "overOneSecond": false,
+            "drawCalls": 260,
+            "triangles": 5416527,
+            "entered": [],
+            "left": []
+          }
+        ],
+        "slowestFrames": [
+          {
+            "k": 26,
+            "phase": "approach",
+            "completedRenderAwaitMs": 87057.59999999404,
+            "treeUpdateMs": 0.7999999970197678,
+            "programsAdded": 34,
+            "visiblePointLights": [
+              15,
+              17
+            ],
+            "lightCountChanged": true,
+            "overOneSecond": true,
+            "drawCalls": 267,
+            "triangles": 5393200,
+            "entered": [],
+            "left": []
+          },
+          {
+            "k": 1,
+            "phase": "approach",
+            "completedRenderAwaitMs": 5912,
+            "treeUpdateMs": 3.6000000089406967,
+            "programsAdded": 1,
+            "visiblePointLights": [
+              15,
+              15
+            ],
+            "lightCountChanged": false,
+            "overOneSecond": true,
+            "drawCalls": 284,
+            "triangles": 6262390,
+            "entered": [
+              48
+            ],
+            "left": []
+          },
+          {
+            "k": 0,
+            "phase": "approach",
+            "completedRenderAwaitMs": 5026.600000008941,
+            "treeUpdateMs": 1.5,
+            "programsAdded": 9,
+            "visiblePointLights": [
+              15,
+              15
+            ],
+            "lightCountChanged": false,
+            "overOneSecond": true,
+            "drawCalls": 278,
+            "triangles": 6118228,
+            "entered": [],
+            "left": []
+          },
+          {
+            "k": 54,
+            "phase": "approach",
+            "completedRenderAwaitMs": 2555.3999999910593,
+            "treeUpdateMs": 0.8999999910593033,
+            "programsAdded": 2,
+            "visiblePointLights": [
+              17,
+              17
+            ],
+            "lightCountChanged": false,
+            "overOneSecond": true,
+            "drawCalls": 204,
+            "triangles": 4273504,
+            "entered": [],
+            "left": []
+          },
+          {
+            "k": 28,
+            "phase": "approach",
+            "completedRenderAwaitMs": 2159.0999999940395,
+            "treeUpdateMs": 3.1000000089406967,
+            "programsAdded": 1,
+            "visiblePointLights": [
+              17,
+              17
+            ],
+            "lightCountChanged": false,
+            "overOneSecond": true,
+            "drawCalls": 262,
+            "triangles": 5386249,
+            "entered": [],
+            "left": []
+          },
+          {
+            "k": 99,
+            "phase": "turn",
+            "completedRenderAwaitMs": 1323.800000011921,
+            "treeUpdateMs": 0.5999999940395355,
+            "programsAdded": 1,
+            "visiblePointLights": [
+              17,
+              17
+            ],
+            "lightCountChanged": false,
+            "overOneSecond": true,
+            "drawCalls": 151,
+            "triangles": 4244569,
+            "entered": [],
+            "left": []
+          },
+          {
+            "k": 30,
+            "phase": "approach",
+            "completedRenderAwaitMs": 1275.5999999940395,
+            "treeUpdateMs": 0.7999999970197678,
+            "programsAdded": 1,
+            "visiblePointLights": [
+              17,
+              17
+            ],
+            "lightCountChanged": false,
+            "overOneSecond": true,
+            "drawCalls": 256,
+            "triangles": 5141824,
+            "entered": [],
+            "left": []
+          },
+          {
+            "k": 27,
+            "phase": "approach",
+            "completedRenderAwaitMs": 107.20000000298023,
+            "treeUpdateMs": 0.7000000029802322,
+            "programsAdded": 7,
+            "visiblePointLights": [
+              17,
+              17
+            ],
+            "lightCountChanged": false,
+            "overOneSecond": false,
+            "drawCalls": 263,
+            "triangles": 5326618,
+            "entered": [],
+            "left": []
+          },
+          {
+            "k": 17,
+            "phase": "approach",
+            "completedRenderAwaitMs": 100,
+            "treeUpdateMs": 1,
+            "programsAdded": 0,
+            "visiblePointLights": [
+              15,
+              15
+            ],
+            "lightCountChanged": false,
+            "overOneSecond": false,
+            "drawCalls": 272,
+            "triangles": 5764929,
+            "entered": [
+              7
+            ],
+            "left": [
+              47
+            ]
+          },
+          {
+            "k": 236,
+            "phase": "retreat",
+            "completedRenderAwaitMs": 90.40000000596046,
+            "treeUpdateMs": 0.9000000059604645,
+            "programsAdded": 0,
+            "visiblePointLights": [
+              15,
+              15
+            ],
+            "lightCountChanged": false,
+            "overOneSecond": false,
+            "drawCalls": 277,
+            "triangles": 6111376,
+            "entered": [],
+            "left": []
+          }
+        ]
+      },
+      "pairedDelta": {
+        "treeUpdateMs": {
+          "median": -0.09999999403953552,
+          "p95": 0.6000000089406967,
+          "max": 2.5999999940395355
+        },
+        "completedMs": {
+          "median": 9.300000011920929,
+          "p95": 23.19999998807907,
+          "max": 16376.699999988079
+        },
+        "drawCalls": {
+          "median": 3,
+          "p95": 3,
+          "max": 3
+        },
+        "triangles": {
+          "median": 895197,
+          "p95": 895197,
+          "max": 895197
+        }
+      },
+      "lightCountMismatchFrames": []
+    },
+    "warm": {
+      "before": {
+        "frames": 255,
+        "treeUpdateMs": {
+          "median": 0.5,
+          "p95": 0.800000011920929,
+          "max": 1.2000000029802322
+        },
+        "completedRenderAwaitMs": {
+          "median": 50.29999999701977,
+          "p95": 64.3999999910593,
+          "max": 73.09999999403954
+        },
+        "phases": {
+          "approach": {
+            "treeUpdateMs": {
+              "median": 0.5,
+              "p95": 0.7999999970197678,
+              "max": 0.9000000059604645
+            },
+            "completedRenderAwaitMs": {
+              "median": 52.20000000298023,
+              "p95": 65.6000000089407,
+              "max": 68.29999999701977
+            }
+          },
+          "turn": {
+            "treeUpdateMs": {
+              "median": 0.5,
+              "p95": 1.1000000089406967,
+              "max": 1.2000000029802322
+            },
+            "completedRenderAwaitMs": {
+              "median": 46.5,
+              "p95": 58.5,
+              "max": 73.09999999403954
+            }
+          },
+          "retreat": {
+            "treeUpdateMs": {
+              "median": 0.5,
+              "p95": 0.7999999970197678,
+              "max": 0.8999999910593033
+            },
+            "completedRenderAwaitMs": {
+              "median": 53.70000000298023,
+              "p95": 64.20000000298023,
+              "max": 68.79999999701977
+            }
+          },
+          "hold": {
+            "treeUpdateMs": {
+              "median": 0.29999999701976776,
+              "p95": 0.699999988079071,
+              "max": 0.699999988079071
+            },
+            "completedRenderAwaitMs": {
+              "median": 58.29999999701977,
+              "p95": 65,
+              "max": 65
+            }
+          }
+        },
+        "programCount": [
+          146,
+          146
+        ],
+        "visiblePointLightRange": [
+          15,
+          17
+        ],
+        "totalPointLightRange": [
+          22,
+          22
+        ],
+        "drawCalls": {
+          "median": 203,
+          "p95": 280,
+          "max": 290
+        },
+        "triangles": {
+          "median": 3698223,
+          "p95": 5724441,
+          "max": 5930154
+        },
+        "pools": {
+          "nearCanopyPool": {
+            "delta": {
+              "built": 0,
+              "evicted": 0,
+              "syncBuilds": 0
+            },
+            "residentBytes": [
+              165794175,
+              165794175
+            ]
+          },
+          "nearBasePool": {
+            "delta": {
+              "built": 0,
+              "evicted": 0,
+              "syncBuilds": 0
+            },
+            "residentBytes": [
+              27306759,
+              27306759
+            ]
+          }
+        },
+        "slots": {
+          "range": [
+            0,
+            0
+          ],
+          "distinctIds": [],
+          "fractionalFrames": 0,
+          "membershipChangeFrames": 0
+        },
+        "events": [
+          {
+            "k": 26,
+            "phase": "approach",
+            "completedRenderAwaitMs": 59.29999999701977,
+            "treeUpdateMs": 0.5,
+            "programsAdded": 0,
+            "visiblePointLights": [
+              15,
+              17
+            ],
+            "lightCountChanged": true,
+            "overOneSecond": false,
+            "drawCalls": 262,
+            "triangles": 4707061,
+            "entered": [],
+            "left": []
+          },
+          {
+            "k": 213,
+            "phase": "retreat",
+            "completedRenderAwaitMs": 55.5,
+            "treeUpdateMs": 0.4000000059604645,
+            "programsAdded": 0,
+            "visiblePointLights": [
+              17,
+              15
+            ],
+            "lightCountChanged": true,
+            "overOneSecond": false,
+            "drawCalls": 257,
+            "triangles": 4521330,
+            "entered": [],
+            "left": []
+          }
+        ],
+        "slowestFrames": [
+          {
+            "k": 105,
+            "phase": "turn",
+            "completedRenderAwaitMs": 73.09999999403954,
+            "treeUpdateMs": 1.1000000089406967,
+            "programsAdded": 0,
+            "visiblePointLights": [
+              17,
+              17
+            ],
+            "lightCountChanged": false,
+            "overOneSecond": false,
+            "drawCalls": 158,
+            "triangles": 3462048,
+            "entered": [],
+            "left": []
+          },
+          {
+            "k": 217,
+            "phase": "retreat",
+            "completedRenderAwaitMs": 68.79999999701977,
+            "treeUpdateMs": 0.6000000089406967,
+            "programsAdded": 0,
+            "visiblePointLights": [
+              15,
+              15
+            ],
+            "lightCountChanged": false,
+            "overOneSecond": false,
+            "drawCalls": 261,
+            "triangles": 4718557,
+            "entered": [],
+            "left": []
+          },
+          {
+            "k": 137,
+            "phase": "turn",
+            "completedRenderAwaitMs": 68.3999999910593,
+            "treeUpdateMs": 0.800000011920929,
+            "programsAdded": 0,
+            "visiblePointLights": [
+              17,
+              17
+            ],
+            "lightCountChanged": false,
+            "overOneSecond": false,
+            "drawCalls": 179,
+            "triangles": 3714699,
+            "entered": [],
+            "left": []
+          },
+          {
+            "k": 0,
+            "phase": "approach",
+            "completedRenderAwaitMs": 68.29999999701977,
+            "treeUpdateMs": 0.6000000089406967,
+            "programsAdded": 0,
+            "visiblePointLights": [
+              15,
+              15
+            ],
+            "lightCountChanged": false,
+            "overOneSecond": false,
+            "drawCalls": 277,
+            "triangles": 5746855,
+            "entered": [],
+            "left": []
+          },
+          {
+            "k": 5,
+            "phase": "approach",
+            "completedRenderAwaitMs": 68,
+            "treeUpdateMs": 0.7999999970197678,
+            "programsAdded": 0,
+            "visiblePointLights": [
+              15,
+              15
+            ],
+            "lightCountChanged": false,
+            "overOneSecond": false,
+            "drawCalls": 289,
+            "triangles": 5930154,
+            "entered": [],
+            "left": []
+          },
+          {
+            "k": 12,
+            "phase": "approach",
+            "completedRenderAwaitMs": 67.70000000298023,
+            "treeUpdateMs": 0.9000000059604645,
+            "programsAdded": 0,
+            "visiblePointLights": [
+              15,
+              15
+            ],
+            "lightCountChanged": false,
+            "overOneSecond": false,
+            "drawCalls": 280,
+            "triangles": 5697754,
+            "entered": [],
+            "left": []
+          },
+          {
+            "k": 219,
+            "phase": "retreat",
+            "completedRenderAwaitMs": 67.5,
+            "treeUpdateMs": 0.5,
+            "programsAdded": 0,
+            "visiblePointLights": [
+              15,
+              15
+            ],
+            "lightCountChanged": false,
+            "overOneSecond": false,
+            "drawCalls": 265,
+            "triangles": 4876567,
+            "entered": [],
+            "left": []
+          },
+          {
+            "k": 1,
+            "phase": "approach",
+            "completedRenderAwaitMs": 65.70000000298023,
+            "treeUpdateMs": 0.5999999940395355,
+            "programsAdded": 0,
+            "visiblePointLights": [
+              15,
+              15
+            ],
+            "lightCountChanged": false,
+            "overOneSecond": false,
+            "drawCalls": 282,
+            "triangles": 5811353,
+            "entered": [],
+            "left": []
+          },
+          {
+            "k": 3,
+            "phase": "approach",
+            "completedRenderAwaitMs": 65.6000000089407,
+            "treeUpdateMs": 0.800000011920929,
+            "programsAdded": 0,
+            "visiblePointLights": [
+              15,
+              15
+            ],
+            "lightCountChanged": false,
+            "overOneSecond": false,
+            "drawCalls": 284,
+            "triangles": 5840053,
+            "entered": [],
+            "left": []
+          },
+          {
+            "k": 244,
+            "phase": "hold",
+            "completedRenderAwaitMs": 65,
+            "treeUpdateMs": 0.29999999701976776,
+            "programsAdded": 0,
+            "visiblePointLights": [
+              15,
+              15
+            ],
+            "lightCountChanged": false,
+            "overOneSecond": false,
+            "drawCalls": 275,
+            "triangles": 5712201,
+            "entered": [],
+            "left": []
+          }
+        ]
+      },
+      "after": {
+        "frames": 255,
+        "treeUpdateMs": {
+          "median": 0.5999999940395355,
+          "p95": 1.1000000089406967,
+          "max": 1.7999999970197678
+        },
+        "completedRenderAwaitMs": {
+          "median": 64.79999999701977,
+          "p95": 77.8999999910593,
+          "max": 90.79999999701977
+        },
+        "phases": {
+          "approach": {
+            "treeUpdateMs": {
+              "median": 0.5999999940395355,
+              "p95": 1.1000000089406967,
+              "max": 1.7999999970197678
+            },
+            "completedRenderAwaitMs": {
+              "median": 63.70000000298023,
+              "p95": 73.40000000596046,
+              "max": 90.79999999701977
+            }
+          },
+          "turn": {
+            "treeUpdateMs": {
+              "median": 0.6000000089406967,
+              "p95": 1.2000000029802322,
+              "max": 1.3999999910593033
+            },
+            "completedRenderAwaitMs": {
+              "median": 61.29999999701977,
+              "p95": 72.20000000298023,
+              "max": 83.79999999701977
+            }
+          },
+          "retreat": {
+            "treeUpdateMs": {
+              "median": 0.6000000089406967,
+              "p95": 0.7999999970197678,
+              "max": 1.7999999970197678
+            },
+            "completedRenderAwaitMs": {
+              "median": 67.20000000298023,
+              "p95": 79.1000000089407,
+              "max": 81.09999999403954
+            }
+          },
+          "hold": {
+            "treeUpdateMs": {
+              "median": 0.4000000059604645,
+              "p95": 0.5,
+              "max": 0.5
+            },
+            "completedRenderAwaitMs": {
+              "median": 74.5,
+              "p95": 76.80000001192093,
+              "max": 76.80000001192093
+            }
+          }
+        },
+        "programCount": [
+          148,
+          148
+        ],
+        "visiblePointLightRange": [
+          15,
+          17
+        ],
+        "totalPointLightRange": [
+          22,
+          22
+        ],
+        "drawCalls": {
+          "median": 206,
+          "p95": 282,
+          "max": 292
+        },
+        "triangles": {
+          "median": 4592356,
+          "p95": 6188623,
+          "max": 6381191
+        },
+        "pools": {
+          "nearCanopyPool": {
+            "delta": {
+              "built": 0,
+              "evicted": 0,
+              "syncBuilds": 0
+            },
+            "residentBytes": [
+              191336253,
+              191336253
+            ]
+          },
+          "nearBasePool": {
+            "delta": {
+              "built": 0,
+              "evicted": 0,
+              "syncBuilds": 0
+            },
+            "residentBytes": [
+              27306759,
+              27306759
+            ]
+          }
+        },
+        "slots": {
+          "range": [
+            6,
+            8
+          ],
+          "distinctIds": [
+            3,
+            4,
+            5,
+            6,
+            7,
+            8,
+            10,
+            47,
+            48,
+            49,
+            454
+          ],
+          "fractionalFrames": 121,
+          "membershipChangeFrames": 9
+        },
+        "events": [
+          {
+            "k": 26,
+            "phase": "approach",
+            "completedRenderAwaitMs": 66.8999999910593,
+            "treeUpdateMs": 0.8999999910593033,
+            "programsAdded": 0,
+            "visiblePointLights": [
+              15,
+              17
+            ],
+            "lightCountChanged": true,
+            "overOneSecond": false,
+            "drawCalls": 265,
+            "triangles": 5394508,
+            "entered": [],
+            "left": []
+          },
+          {
+            "k": 213,
+            "phase": "retreat",
+            "completedRenderAwaitMs": 72.40000000596046,
+            "treeUpdateMs": 0.5999999940395355,
+            "programsAdded": 0,
+            "visiblePointLights": [
+              17,
+              15
+            ],
+            "lightCountChanged": true,
+            "overOneSecond": false,
+            "drawCalls": 260,
+            "triangles": 5416527,
+            "entered": [],
+            "left": []
+          }
+        ],
+        "slowestFrames": [
+          {
+            "k": 15,
+            "phase": "approach",
+            "completedRenderAwaitMs": 90.79999999701977,
+            "treeUpdateMs": 0.5999999940395355,
+            "programsAdded": 0,
+            "visiblePointLights": [
+              15,
+              15
+            ],
+            "lightCountChanged": false,
+            "overOneSecond": false,
+            "drawCalls": 276,
+            "triangles": 5860101,
+            "entered": [],
+            "left": []
+          },
+          {
+            "k": 92,
+            "phase": "turn",
+            "completedRenderAwaitMs": 83.79999999701977,
+            "treeUpdateMs": 0.7999999970197678,
+            "programsAdded": 0,
+            "visiblePointLights": [
+              17,
+              17
+            ],
+            "lightCountChanged": false,
+            "overOneSecond": false,
+            "drawCalls": 176,
+            "triangles": 4450491,
+            "entered": [],
+            "left": []
+          },
+          {
+            "k": 2,
+            "phase": "approach",
+            "completedRenderAwaitMs": 82.5,
+            "treeUpdateMs": 0.7999999970197678,
+            "programsAdded": 0,
+            "visiblePointLights": [
+              15,
+              15
+            ],
+            "lightCountChanged": false,
+            "overOneSecond": false,
+            "drawCalls": 284,
+            "triangles": 6298893,
+            "entered": [],
+            "left": []
+          },
+          {
+            "k": 226,
+            "phase": "retreat",
+            "completedRenderAwaitMs": 81.09999999403954,
+            "treeUpdateMs": 0.7000000029802322,
+            "programsAdded": 0,
+            "visiblePointLights": [
+              15,
+              15
+            ],
+            "lightCountChanged": false,
+            "overOneSecond": false,
+            "drawCalls": 275,
+            "triangles": 6364103,
+            "entered": [],
+            "left": []
+          },
+          {
+            "k": 227,
+            "phase": "retreat",
+            "completedRenderAwaitMs": 80.1000000089407,
+            "treeUpdateMs": 0.7999999970197678,
+            "programsAdded": 0,
+            "visiblePointLights": [
+              15,
+              15
+            ],
+            "lightCountChanged": false,
+            "overOneSecond": false,
+            "drawCalls": 276,
+            "triangles": 6360942,
+            "entered": [],
+            "left": []
+          },
+          {
+            "k": 202,
+            "phase": "retreat",
+            "completedRenderAwaitMs": 79.79999999701977,
+            "treeUpdateMs": 1.2000000029802322,
+            "programsAdded": 0,
+            "visiblePointLights": [
+              17,
+              17
+            ],
+            "lightCountChanged": false,
+            "overOneSecond": false,
+            "drawCalls": 246,
+            "triangles": 5071274,
+            "entered": [],
+            "left": []
+          },
+          {
+            "k": 223,
+            "phase": "retreat",
+            "completedRenderAwaitMs": 79.29999999701977,
+            "treeUpdateMs": 0.5999999940395355,
+            "programsAdded": 0,
+            "visiblePointLights": [
+              15,
+              15
+            ],
+            "lightCountChanged": false,
+            "overOneSecond": false,
+            "drawCalls": 274,
+            "triangles": 6050862,
+            "entered": [],
+            "left": []
+          },
+          {
+            "k": 237,
+            "phase": "retreat",
+            "completedRenderAwaitMs": 79.1000000089407,
+            "treeUpdateMs": 0.5,
+            "programsAdded": 0,
+            "visiblePointLights": [
+              15,
+              15
+            ],
+            "lightCountChanged": false,
+            "overOneSecond": false,
+            "drawCalls": 277,
+            "triangles": 6096949,
+            "entered": [],
+            "left": []
+          },
+          {
+            "k": 216,
+            "phase": "retreat",
+            "completedRenderAwaitMs": 78.40000000596046,
+            "treeUpdateMs": 0.6000000089406967,
+            "programsAdded": 0,
+            "visiblePointLights": [
+              15,
+              15
+            ],
+            "lightCountChanged": false,
+            "overOneSecond": false,
+            "drawCalls": 265,
+            "triangles": 5601758,
+            "entered": [],
+            "left": []
+          },
+          {
+            "k": 238,
+            "phase": "retreat",
+            "completedRenderAwaitMs": 78.09999999403954,
+            "treeUpdateMs": 0.6000000089406967,
+            "programsAdded": 0,
+            "visiblePointLights": [
+              15,
+              15
+            ],
+            "lightCountChanged": false,
+            "overOneSecond": false,
+            "drawCalls": 269,
+            "triangles": 5966215,
+            "entered": [],
+            "left": [
+              48
+            ]
+          }
+        ]
+      },
+      "pairedDelta": {
+        "treeUpdateMs": {
+          "median": 0.10000000894069672,
+          "p95": 0.6000000089406967,
+          "max": 1.5
+        },
+        "completedMs": {
+          "median": 14,
+          "p95": 22.5,
+          "max": 43.599999994039536
+        },
+        "drawCalls": {
+          "median": 3,
+          "p95": 3,
+          "max": 3
+        },
+        "triangles": {
+          "median": 895197,
+          "p95": 895197,
+          "max": 895197
+        }
+      },
+      "lightCountMismatchFrames": []
+    }
+  },
+  "pixelChanges": {
+    "89": {
+      "phase": "approach",
+      "decodedPixels": 921600,
+      "changedPixels": 401536,
+      "changedFraction": 0.43569444444444444,
+      "meanAbsoluteChannelError255": 11.571620732060186,
+      "maxChannelError255": 176,
+      "rawJpegSha256": [
+        "145a8e9558a2c716f136e1b983576ea097f9456fca31254bc9e23548a4df3e7b",
+        "42a4373fe2812b964651c86d07360dbd915331b84efae3b58fae5b603f81fe8d"
+      ]
+    },
+    "119": {
+      "phase": "turn",
+      "decodedPixels": 921600,
+      "changedPixels": 203261,
+      "changedFraction": 0.22055230034722223,
+      "meanAbsoluteChannelError255": 5.52482494212963,
+      "maxChannelError255": 160,
+      "rawJpegSha256": [
+        "13cd7fd4d9af38eccf52d4673b1eea97d42777bc1829a45575beeb1014d56d2a",
+        "00eade415d434033deac90ae064a781784a7d4ad972c88be82a5944344d4383b"
+      ]
+    }
+  },
+  "limitations": [
+    "Completed-render-await timings include requestAnimationFrame, GPU readback, shader compilation and host scheduling; they are not FPS.",
+    "Both frozen sources predate upstream 4b2fe8e6, which fixes northLights and dressed-hut light parenting when hidden beyond 45m. Coincident light-count changes, new programs and stalls are reported; timing changes cannot be attributed solely to close crowns.",
+    "Trace digests are recorded at comparison time. The capture manifests do not contain capture-time trace hashes, so source binding relies on the adjacent capture records and distinct baseline/candidate runtime state, not independent trace attestation.",
+    "First use and warmed movement are separate passes in each page. Pool counters determine whether builds or evictions actually occurred; warmth alone is not proof of cold-rebuild coverage.",
+    "Decoded JPEG pixel changes are descriptive and include compression. They are not PNG byte-equality evidence or a visual acceptance verdict."
+  ],
+  "contactSheet": {
+    "file": "matched-contact.jpg",
+    "sha256": "f81e6239b484a5cab4ad89c9b1ff4e9737dedbf0cc2e33c7a6dac2235ad82a8f",
+    "layout": "Baseline left, candidate right; warmed endpoint above, turn below."
+  }
+}

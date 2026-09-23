@@ -1,0 +1,39 @@
+{
+  "sha": "1f3b51fd19c8ae5676aa254f67f5e9b26533f213",
+  "settings": {
+    "views": [],
+    "sourceSha": "1f3b51fd19c8ae5676aa254f67f5e9b26533f213",
+    "dist": "dist",
+    "bundle": "index-DIrdUv7M.js",
+    "baseline": false,
+    "out": "art/environment/astra-distance-real-lamina/native-transition",
+    "transition": true
+  },
+  "images": {},
+  "errors": [],
+  "evidenceKind": "Native matched views; owner view reconstructed, not the original screenshot camera",
+  "bundleSha256": "0bf022f24f690a69c8b016f5e81c31301b0bdc648c4448beb13a6b71cc44c35f",
+  "captureScriptSha256": "cb2de3c95eea3e5ffd39d25c9abcbd877d61088bc8f3dfb8e6df57d4066578f4",
+  "sourceDiffSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+  "renderer": "ANGLE (AMD, AMD Radeon 780M Graphics (0x00001900) Direct3D11 vs_5_0 ps_5_0, D3D11)",
+  "transition": {
+    "file": "transition.json",
+    "coverage": {
+      "distinctIds": 13,
+      "fractionalFrames": 332,
+      "maxSlots": 8,
+      "maxCloseTriangles": 973570
+    },
+    "returns": {
+      "A_stairs": {
+        "sha256": "3abc0b7089e2b983a76e8061f7a36fd6b80363e1a28cfa3249f822c6c759e632",
+        "pixelIdenticalToBaseline": true
+      },
+      "F_canopy": {
+        "sha256": "7173462c4a90986fc6e9af732125c3376a4cddb4f02a731f4bed21923c0cb7dd",
+        "pixelIdenticalToBaseline": false
+      }
+    }
+  },
+  "complete": true
+}

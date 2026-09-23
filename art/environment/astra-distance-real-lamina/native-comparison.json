@@ -1,0 +1,294 @@
+{
+  "sources": [
+    {
+      "sha": "6231cffbfec78d405cb3e83064bf3f68c7daca8d",
+      "bundleSha256": "e9abdc2c1c7c84b495d81a7bc834b9b87ce365c92baf9c73a94f40c03257acbb"
+    },
+    {
+      "sha": "1f3b51fd19c8ae5676aa254f67f5e9b26533f213",
+      "bundleSha256": "0bf022f24f690a69c8b016f5e81c31301b0bdc648c4448beb13a6b71cc44c35f"
+    }
+  ],
+  "renderer": "ANGLE (AMD, AMD Radeon 780M Graphics (0x00001900) Direct3D11 vs_5_0 ps_5_0, D3D11)",
+  "note": "Static setPose captures reset hysteresis; these pairs do not prove motion or cold-start stability. Pixel metrics describe change, not visual acceptance.",
+  "images": {
+    "A_stairs": {
+      "before": {
+        "simTime": 12.6,
+        "drawCalls": 459,
+        "triangles": 8889627,
+        "geometries": 315,
+        "textures": 91,
+        "programs": 101,
+        "width": 1280,
+        "height": 720,
+        "pixelRatio": 1
+      },
+      "after": {
+        "simTime": 12.6,
+        "drawCalls": 459,
+        "triangles": 8889627,
+        "geometries": 315,
+        "textures": 91,
+        "programs": 101,
+        "width": 1280,
+        "height": 720,
+        "pixelRatio": 1
+      },
+      "delta": {
+        "drawCalls": 0,
+        "triangles": 0,
+        "geometries": 0,
+        "textures": 0,
+        "programs": 0
+      },
+      "pixelIdentical": true,
+      "changedPixels": 0,
+      "changedFraction": 0,
+      "meanAbsoluteChannelError255": 0,
+      "maxPixelMeanChannelError255": 0,
+      "beforeSha256": "3abc0b7089e2b983a76e8061f7a36fd6b80363e1a28cfa3249f822c6c759e632",
+      "afterSha256": "3abc0b7089e2b983a76e8061f7a36fd6b80363e1a28cfa3249f822c6c759e632",
+      "distantClose": {
+        "slots": 8,
+        "active": 0,
+        "fadeM": [
+          18,
+          26
+        ],
+        "prefetchM": 34,
+        "triangleCeiling": 1040000,
+        "triangles": 0,
+        "draws": 0,
+        "sharedBytes": 25542078,
+        "weights": [],
+        "fallback": "Existing crown geometry retained for every tree without close detail."
+      }
+    },
+    "F_canopy": {
+      "before": {
+        "simTime": 12.6,
+        "drawCalls": 416,
+        "triangles": 8180156,
+        "geometries": 334,
+        "textures": 91,
+        "programs": 101,
+        "width": 1280,
+        "height": 720,
+        "pixelRatio": 1
+      },
+      "after": {
+        "simTime": 12.6,
+        "drawCalls": 416,
+        "triangles": 8180156,
+        "geometries": 334,
+        "textures": 91,
+        "programs": 101,
+        "width": 1280,
+        "height": 720,
+        "pixelRatio": 1
+      },
+      "delta": {
+        "drawCalls": 0,
+        "triangles": 0,
+        "geometries": 0,
+        "textures": 0,
+        "programs": 0
+      },
+      "pixelIdentical": true,
+      "changedPixels": 0,
+      "changedFraction": 0,
+      "meanAbsoluteChannelError255": 0,
+      "maxPixelMeanChannelError255": 0,
+      "beforeSha256": "06f079a4e16f77db6e1bb71e9356b1beea385b182fe56c2c6b91f4eedbf4e72c",
+      "afterSha256": "06f079a4e16f77db6e1bb71e9356b1beea385b182fe56c2c6b91f4eedbf4e72c",
+      "distantClose": {
+        "slots": 8,
+        "active": 0,
+        "fadeM": [
+          18,
+          26
+        ],
+        "prefetchM": 34,
+        "triangleCeiling": 1040000,
+        "triangles": 0,
+        "draws": 0,
+        "sharedBytes": 25542078,
+        "weights": [],
+        "fallback": "Existing crown geometry retained for every tree without close detail."
+      }
+    },
+    "reconstructed-distant-up": {
+      "before": {
+        "simTime": 12.6,
+        "drawCalls": 132,
+        "triangles": 2041978,
+        "geometries": 364,
+        "textures": 91,
+        "programs": 101,
+        "width": 1280,
+        "height": 720,
+        "pixelRatio": 1
+      },
+      "after": {
+        "simTime": 12.6,
+        "drawCalls": 136,
+        "triangles": 2924719,
+        "geometries": 368,
+        "textures": 91,
+        "programs": 102,
+        "width": 1280,
+        "height": 720,
+        "pixelRatio": 1
+      },
+      "delta": {
+        "drawCalls": 4,
+        "triangles": 882741,
+        "geometries": 4,
+        "textures": 0,
+        "programs": 1
+      },
+      "pixelIdentical": false,
+      "changedPixels": 589948,
+      "changedFraction": 0.6401345486111111,
+      "meanAbsoluteChannelError255": 33.07822591145833,
+      "maxPixelMeanChannelError255": 162.66666666666666,
+      "beforeSha256": "d08fedcb1d2c84d8ea605675d120b77ec7b971f8fa267d15db5eedd7389b4dcb",
+      "afterSha256": "7e20d7f90ce32be46f1428be026fb10a6b26f3f53b9f2f329deff19efd0d7a00",
+      "distantClose": {
+        "slots": 8,
+        "active": 8,
+        "fadeM": [
+          18,
+          26
+        ],
+        "prefetchM": 34,
+        "triangleCeiling": 1040000,
+        "triangles": 882741,
+        "draws": 4,
+        "sharedBytes": 25542078,
+        "weights": [
+          [
+            119,
+            1
+          ],
+          [
+            189,
+            1
+          ],
+          [
+            720,
+            1
+          ],
+          [
+            686,
+            1
+          ],
+          [
+            530,
+            1
+          ],
+          [
+            316,
+            1
+          ],
+          [
+            480,
+            1
+          ],
+          [
+            629,
+            1
+          ]
+        ],
+        "fallback": "Existing crown geometry retained for every tree without close detail."
+      }
+    },
+    "w19-spine-u": {
+      "before": {
+        "simTime": 12.6,
+        "drawCalls": 176,
+        "triangles": 3655706,
+        "geometries": 427,
+        "textures": 91,
+        "programs": 138,
+        "width": 1280,
+        "height": 720,
+        "pixelRatio": 1
+      },
+      "after": {
+        "simTime": 12.6,
+        "drawCalls": 178,
+        "triangles": 4629276,
+        "geometries": 431,
+        "textures": 91,
+        "programs": 140,
+        "width": 1280,
+        "height": 720,
+        "pixelRatio": 1
+      },
+      "delta": {
+        "drawCalls": 2,
+        "triangles": 973570,
+        "geometries": 4,
+        "textures": 0,
+        "programs": 2
+      },
+      "pixelIdentical": false,
+      "changedPixels": 263084,
+      "changedFraction": 0.2854644097222222,
+      "meanAbsoluteChannelError255": 8.457931857638888,
+      "maxPixelMeanChannelError255": 116,
+      "beforeSha256": "cc820bd8a6569c6ce259980e1d9defaa4ec23523648a7f289f33539c1d24a7bc",
+      "afterSha256": "8438d1e9fde9dfcea0cbab4c72470a89b11af1d89861ef03f617f18e1a055611",
+      "distantClose": {
+        "slots": 8,
+        "active": 8,
+        "fadeM": [
+          18,
+          26
+        ],
+        "prefetchM": 34,
+        "triangleCeiling": 1040000,
+        "triangles": 973570,
+        "draws": 2,
+        "sharedBytes": 25542078,
+        "weights": [
+          [
+            4,
+            1
+          ],
+          [
+            5,
+            1
+          ],
+          [
+            6,
+            1
+          ],
+          [
+            3,
+            1
+          ],
+          [
+            7,
+            1
+          ],
+          [
+            8,
+            1
+          ],
+          [
+            10,
+            1
+          ],
+          [
+            2,
+            1
+          ]
+        ],
+        "fallback": "Existing crown geometry retained for every tree without close detail."
+      }
+    }
+  }
+}
