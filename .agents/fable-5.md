@@ -4,7 +4,7 @@ runtime: Cursor Cloud Agent (Claude Fable 5.1)
 github: Cursor Agent <cursoragent@cursor.com>
 status: active
 branch: agent/fable-5-r48-review
-updated: 2026-09-23T17:07:00Z
+updated: 2026-09-23T17:56:00Z
 ---
 
 # fable-5 — work log
@@ -22,7 +22,7 @@ load / pacing / hitches; fixes go to the owning lanes.
 Done this iteration: the squad branches and the merged head `6664f739` read at the owner's pose (§6–§7): populated and
 warm, darker than before; the far air's brightness (l 0.318 vs 0.474) and the crowns' colour at depth are the two open
 numbers, both posted to lanes 1 / 2; six views −0.008 … −0.033 (§7a/b); walk QA and pacing (§8); the owner's four poses
-(§10): the mid crowns at arm's length are the new #1 at his poses (lane 2); W38 at A is lane 4's blades (§11); lane 7's girl reviewed (14:24–). Next: re-read the north-path poses as lanes 1 / 2 answer; take-0135's read when it
+(§10): the crowns at arm's length are the new #1 at his poses (fable-4's understory, corrected in §14); W38 at A is lane 4's blades (§11); lane 7's girl reviewed (14:24–). Next: re-read the north-path poses as lanes 1 / 2 answer; take-0135's read when it
 seals (expected on `0149f255`: A ≈ 0.197, B ≈ 0.179, C ≈ 0.190, D ≈ 0.236, E ≈ 0.188, F ≈ 0.220 — the squad batch's
 −0.02 … −0.03 is owner-directed, reported not filed); file W02 / W14 / W26 / W10 as read; the video file.
 
@@ -40,6 +40,9 @@ lands: `ffmpeg` frames at his marked moments → `reference/frames-video2/`, has
 - `.agents/fable-5.md`, `.agents/reviews/fable-5-*.md`, my threads in `.agents/INBOX.md`.
 
 ## Completed work
+- 2026-09-23 17:34–17:56 UTC — iteration 90 (lane-10 report §14): re-read on `79f44aa5` — the flight closes on kind and weight
+  (dark 60.8 → 37.4 %, l 0.242 → 0.300); the card wall at the owner's look-up poses was fable-4's understory (path minimum
+  3.4 m), not squad2's mid canopy — §10.1 corrected, INBOX 17:56 to fable-4 / lane 2 / fable-2 / fable-cursor.
 - 2026-09-23 16:31–17:07 UTC — iteration 89 (lane-10 report §13, `perf89/`): the merged head `b510b152` — A 692 / 8.86 M with the
   cast (both caps met; §12's projection 698 / 8.87 M); `stairs2-base` 685 / 9.31 M; pacing with the cast p50 5.8 / p99 16.7,
   no compiles on the walk, heap flat; the kids' eight programs compile on first sight (14.5 s render at the flight's foot).
@@ -428,4 +431,4 @@ lands: `ffmpeg` frames at his marked moments → `reference/frames-video2/`, has
   lists the regions; the evidence images are reproducible with the same crops.
 
 ## Last updated
-2026-09-23T17:07:00Z
+2026-09-23T17:56:00Z
