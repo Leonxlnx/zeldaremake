@@ -408,6 +408,11 @@ float barkTouch = 0.0;
 // round 47: the near bases' touching-distance share (1 at BARK_TOUCH_M[0], 0 at [1]) on every
 // surface, moss included — set in the near-base colour block, read by its normal and light blocks
 float barkTouchNear = 0.0;
+// round 53: the analytic bark grain (BARK_GRAIN_M) as a shading factor about 1 — set in the far
+// programs' colour block, applied to the floored light after lights_fragment_end, because the
+// shade floor is a floor: it lifts a shaded face to a flat level whatever its albedo, so a grain
+// written into diffuseColor alone moves a shaded bole by ≈ 2 levels (measured: mean |Δ| 0.07).
+float barkGrain = 1.0;
 uniform vec3 uLeafSun;
 uniform float uLeafRough;
 uniform float uLeafTransmit;
@@ -746,9 +751,13 @@ const GIANT_BARK_COLOR = /* glsl */ `
     if (grainNear > 0.0) {
       float cordA = treeNoise(vec3(vTreeWorld.x * 3.2, vTreeWorld.y * 0.55, vTreeWorld.z * 3.2));
       float cordB = treeNoise(vec3(vTreeWorld.x * 7.5, vTreeWorld.y * 1.3, vTreeWorld.z * 7.5));
-      float cord = cordA * 0.68 + cordB * 0.32;
+      // trilinear value noise sits within ≈ ±0.1 of 0.5 and two octaves mixed narrow it further:
+      // unexpanded, a 0.30 cord amplitude was ±3 % and measured 0.28 mean levels on the pose
+      float cord = clamp(((cordA * 0.68 + cordB * 0.32) - 0.5) * 3.4 + 0.5, 0.0, 1.0);
       float furrow = pow(1.0 - cord, 3.0);
-      diffuseColor.rgb *= mix(1.0, 1.0 + ${BARK_GRAIN_CORD.toFixed(2)} * (cord - 0.5) - ${BARK_GRAIN_FURROW.toFixed(2)} * (furrow - 0.22), grainNear);
+      barkGrain = mix(1.0, 1.0 + ${BARK_GRAIN_CORD.toFixed(2)} * (cord - 0.5) - ${BARK_GRAIN_FURROW.toFixed(2)} * (furrow - 0.22), grainNear);
+      // a third of it in the albedo as well, so a sunlit rim shows the same cords the shade does
+      diffuseColor.rgb *= mix(1.0, barkGrain, 0.34);
     }
   }
   #endif
@@ -1096,6 +1105,13 @@ interface LeafVariant {
 }
 /** the share of the floored light a column's face turned from the sun keeps (LeafVariant.barkShadeSide) */
 export const COLUMN_SHADE_SIDE = 0.55;
+/**
+ * Round 53: the same for the giants' far bark. The owner's 20:08 red circle — the lantern tree's
+ * far base at 15 m — is not only untextured, it is flat-lit: the shade floor gives its whole
+ * shaded side one level, so a 2 m root reads as a paper ramp. Gentler than the columns' 0.55
+ * because the giants fill the hero frames.
+ */
+export const GIANT_SHADE_SIDE = 0.62;
 
 /**
  * `nearDetail`: false = a far program; 'base' = a near base (its own moss / lichen / tuft
@@ -1288,6 +1304,10 @@ ${sunThrough}
       // 1.0 on every vertex the plain sweeps write, so nothing else moves.
       reflectedLight.indirectDiffuse *= vBarkAO;
       reflectedLight.directDiffuse *= mix(1.0, vBarkAO, 0.5);
+      // round 53: the analytic grain, applied like the relief's own occlusion — after the floor,
+      // fully on the ambient and by half on the sun (a cord's furrow is only part-shadowed)
+      reflectedLight.indirectDiffuse *= barkGrain;
+      reflectedLight.directDiffuse *= mix(1.0, barkGrain, 0.5);
       ${shadeSideGlsl}
       #ifdef NEAR_BASE_DETAIL
       // round 47 (sn-bole-lantern-tree / sn-bole-stair-bank: the bark and moss at 0.4–0.6 m "one
@@ -1369,7 +1389,7 @@ export async function createTreeMaterials(ctx: WorldContext): Promise<TreeMateri
     side: DoubleSide,
   });
   const giantWind = { treeStiffness: 0.97, flex: 0.3 };
-  injectWind(giantTree, wind, giantWind, colourSlots, (s) => treeFragment(s, leafSun, 0.78, GIANT_BARK_COLOR, TREE_BARK_FLOOR), 'giant-leaf-warmth');
+  injectWind(giantTree, wind, giantWind, colourSlots, (s) => treeFragment(s, leafSun, 0.78, GIANT_BARK_COLOR, TREE_BARK_FLOOR, 'uBarkFloor', undefined, false, { barkShadeSide: GIANT_SHADE_SIDE }), 'giant-leaf-warmth');
   const giantTreeDepth = new MeshDepthMaterial({ depthPacking: RGBADepthPacking, side: DoubleSide });
   injectWind(giantTreeDepth, wind, giantWind, depthSlots, undefined, 'giant-depth');
   // the near bole's copy: same maps and wind, its own floor uniforms (clone() carries no hooks)
