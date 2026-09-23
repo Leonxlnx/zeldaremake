@@ -141,10 +141,21 @@ Passing that on rather than fixing it: columns are lane 3 and the distant house 
 ## Hero views A–F
 
 This change moves them — putting crowns in the 18–45 m band is the point, and the fixed frames look
-through that band too. Nothing hides a landmark: houses, the signpost, the log arch, the stair runs,
-the fences, the NPC spots and the six viewpoints themselves are all in `treeGroundBlocked`'s
-exclusions, and the plaza's sun corridors (which carry the shafts) reject any candidate whose crown
-would fill them. `compare/hero-<id>.jpg` is each view on the head beside the same view here.
+through that band too. Rendered at 768 × 432 from `hero-poses.json` (the `LAYOUT.viewpoints` poses;
+E is B's held copy, so five frames) on the head and on this branch, same machine, same settle:
+
+| view | SSIM vs the head | pixels moved > 8 levels | what moved |
+| --- | --- | --- | --- |
+| A_stairs | 0.9366 | 10.0 % | the hazy left third and the band over the house gain crowns |
+| B_house | 0.9279 | 12.7 % | the left third's grey veil becomes layered leafy trees |
+| C_lookback | 0.9170 | 12.7 % | crowns between the giant boles in the upper half |
+| D_log | 0.9044 | 16.7 % | the plain between the path and the arch's mouth fills with trees |
+| F_canopy | 0.9278 | 9.7 % | foliage over the flight and on the right bank |
+
+Nothing hides a landmark: houses, the signpost, the log arch (its mouth and both lanterns still read
+in D), the stair runs, the fences, the NPC spots and the six viewpoints themselves are all in
+`treeGroundBlocked`'s exclusions, and the plaza's sun corridors — which carry the shafts — reject any
+candidate whose crown would fill them. `compare/hero-<id>.jpg` is each pair.
 
 ## Files
 
