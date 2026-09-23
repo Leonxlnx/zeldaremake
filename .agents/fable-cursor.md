@@ -3014,6 +3014,25 @@ Also: lantern bough still a thick plain beam across the top of B (trees pass pen
 ### 2026-09-23 00:25 UTC — tick 240: heartbeat — take-0134 at F (E 23:29, 4,533 s; F stalled 2,506 s at 51–55)
 - No new Fable/Astra source. det + motion after F; seal ≈ 02:30.
 
+### 2026-09-23 01:12–09:30 UTC — owner review 2026-09-23 (passes 1–3) and the owner's 06:50 message (now Claude Opus 5.5)
+- Evidence, measurements and the rubric: `art/environment/owner-2026-09-23/README.md` (157 → 165 → **173 / 200**).
+- **The owner played a stale build**: `monitor/play/` = take-0134 (`702086ba`, 09-22 19:26); a take is ≈ 6 h here.
+  The head is now published on the orphan `play-head` branch (`gauntlet/scripts/publish-play-head.sh`, keeps six
+  bundles for GitHub's raw cache) → https://raw.githack.com/Leonxlnx/zeldaremake/play-head/index.html; githack's one-time
+  "External Content Notice" is clicked by `url-check.mjs` (boot verified: ready 81 s, 0 failed, 0 errors).
+- Pass 3 fixes: the north posts' lights stay in the scene (walking north compiled 52 programs in one frame → 0); camera
+  frame-rate independence (tests at 30/60/144 Hz) and eased slim pushes (1.5 m → 0.4 m in a frame); the log flight's
+  lip shade + log spiral grain; the pod hum cut (−10 to −16 dB); D's hollow grass thicker (geometry +32–61 %, barely
+  visible); the far-trunk row dark (the owner's circled "smooth pale cylinder", named by a depth pick). Tried and backed
+  out: two god-ray veil cuts (duller shafts; fable-5 measured the corridor's bright mist 2.0 → 0.9 % vs his 22.6 %).
+- Harness: nine walk routes with per-frame camera motion, spikes with collision state, stuck probes; the boots' contact
+  on climbs; exposure per look; pacing routes + warm-up; probe-look `settings` / `hide` / `lights` / `time`;
+  `ZR_INIT_GLOBALS`; `light-pools.py`; `url-check.mjs`.
+- Squad: `docs/SQUAD_2026-09-23.md` (lanes 1–10, the copy-paste block the owner sends to up to ten Opus chats).
+  fable-5 took lane 10, fable-3 lane 9 (kindling basket merged), fable-2's 13 m near skin merged. Astra's #25 / #27 /
+  #28 / #26-crown-clarity are already in; #29 conflicts with the memory-tier admission (lane 2 pointer), #26's Link
+  chain is lane 8's. No squad PR yet at 09:30.
+
 ## Pending corrections from reference/ANALYSIS.md (apply at integration, one commit)
 - `config.ts` palette → olive/khaki low-key (reference hero frames: hue 47–51°, sat 0.16–0.19,
   lum 0.35–0.39, 0 % blue sky): grass 0x8a8c55/0x5c6233/0x3a4420, moss 0x8b8948/0x5a523b,
@@ -3052,4 +3071,4 @@ Pick anything NOT claimed in `gauntlet/claims.json`. Good self-contained candida
   my own (GAUNTLET.md D7).
 
 ## Last updated
-2026-09-23T00:25:00Z
+2026-09-23T09:30:00Z

@@ -27,9 +27,10 @@ import { BARK_DETAIL_M, BARK_DETAIL_TILES, BARK_TOUCH_M, BARK_TOUCH_TILES, CARD_
 import type { ShadeFloor } from '../materials/shadeFloor';
 import { authoredWhiteBarks, createWhiteBarkRoots, createWhiteBarkTree, whiteBarkParams, whiteBarkTilt, type TreeAsset, type WhiteBarkParams, CLEARING_WHITE_BARKS } from './whitebark';
 import { createUnderstoryTree, understoryParams, type UnderstoryParams } from './understory';
-import { placeWhiteBark, viewProjector, type WhiteBarkPlacement } from './placement';
+import { placeWhiteBark, treeGroundBlocked, viewProjector, type WhiteBarkPlacement } from './placement';
 import { columnParams, createColumnTree, emergentParams, hutHostParams, type ColumnAsset, type ColumnParams } from './column';
 import { expansionCull, getTerrain, type Terrain, type TerrainView } from '../terrain/heightfield';
+import { smoothstep } from '../util/noise';
 import { casterSpheres, expansionVisible, type Caster } from '../util/expansionLocality';
 import { EXPANSION } from '../layout';
 import { createGiantTree, LOBE_SECONDARY_REACH, LOBE_TWIG_REACH, LOBE_TWIG_TINT, NEAR_BASE_CUT_Y, NEAR_BASE_RADIUS_OVERRIDE, NEAR_BASE_RADIUS_OVERRIDE_LARGE, type CanopyBough, type GiantAsset, type GiantProfile } from './giant';
@@ -37,7 +38,7 @@ import { NEAR_CANOPY_IN_M, NEAR_CANOPY_MAX_Y, NEAR_CANOPY_OUT_M, type NearCanopy
 import { LodPool, type PoolBuilt, type PoolItem } from './lodPool';
 import type { GiantTreeDef } from '../layout';
 import type { RootKitFit } from './rootkit';
-import { createDistantCrownMaterial, createDistantVariants, CROWN_ALPHA_TEST, CROWN_CORE_DARK, CROWN_JITTER, CROWN_RIM, CROWN_SPHERE_MIX, DISTANT_BOLE_BANDS, DISTANT_CORDS, DISTANT_CROWN_TOP, DISTANT_DEPTH_COOL, DISTANT_FLARE, DISTANT_FLARE_FALL, DISTANT_FOOT_GRIME, DISTANT_FURROW_SHADE, DISTANT_NEAR_GAIN, DISTANT_ROOT_ARC, DISTANT_SIDES, distantClearanceTally, FAR_CROWN_CARD_HALF, FAR_CROWN_CARDS, FAR_CROWN_LOBES, LIMB_REACH, LIMB_TINT_FROM, LIMB_TINT_TO, LIMB_TIP_TINT, placeDistantTrees, type DepthBand, type DistantClearance, type DistantPlacement, type DistantVariant } from './distant';
+import { createDistantCrownMaterial, createDistantVariants, createMidVariants, CROWN_ALPHA_TEST, CROWN_CORE_DARK, CROWN_JITTER, CROWN_RIM, CROWN_SPHERE_MIX, DISTANT_BOLE_BANDS, DISTANT_CORDS, DISTANT_CROWN_TOP, DISTANT_DEPTH_COOL, DISTANT_FLARE, DISTANT_FLARE_FALL, DISTANT_FOOT_GRIME, DISTANT_FURROW_SHADE, DISTANT_NEAR_GAIN, DISTANT_ROOT_ARC, DISTANT_SIDES, distantClearanceTally, FAR_CROWN_CARD_HALF, FAR_CROWN_CARDS, FAR_CROWN_LOBES, LIMB_REACH, LIMB_TINT_FROM, LIMB_TINT_TO, LIMB_TIP_TINT, MID_CROWN_LOOK, MID_FAR_LOD_M, MID_HEIGHTS, MID_SPECS, MID_TRUNK_R, placeDistantTrees, placeMidTrees, type DepthBand, type DistantClearance, type DistantPlacement, type DistantVariant } from './distant';
 import { TAU, isCushionRoot, mergeParts, type Detail } from './writer';
 import type { ViewGap } from './placement';
 
@@ -3062,7 +3063,10 @@ export async function create(ctx: WorldContext): Promise<WorldSystem> {
   // ------------------------------------------------------------------ distant trees
   const distantGroup = new Group();
   distantGroup.name = 'distant';
-  const distantVariants = createDistantVariants(rng, palette);
+  // the 60–220 m layer, then the mid-canopy layer appended (distant.ts createMidVariants: the
+  // 14–58 m band the owner's 06:50 screenshot circles as empty grey haze). Their streams are forked
+  // by name off `rng`, so every distant / white-bark / giant / column draw is where it was.
+  const distantVariants = [...createDistantVariants(rng, palette), ...createMidVariants(rng, palette)];
   const distantTarget = Math.round(680 * Math.max(0.7, Math.min(1.2, ctx.quality.density)));
   // Round 45 (structures-28's ray pick at w21-spine-f): the first depth row ran through the log
   // arch's north mouth — its instance at (0.73, −59.8) was a hex-prism trunk 5 m off the spine,
@@ -3089,20 +3093,77 @@ export async function create(ctx: WorldContext): Promise<WorldSystem> {
   };
   const distantPlacements = placeDistantTrees(rng, terrain, distantVariants, distantTarget, 60, 215, DEPTH_BANDS, distantClearance);
   const distantCleared = distantClearanceTally();
+
+  // ------------------------------------------------------------------ mid-canopy grove (14–58 m)
+  /**
+   * The owner, 2026-09-23 06:50 (marked screenshot on the north path): "the trees do not populate" —
+   * his red circle 2 is the empty grey middle distance over the path, where his own recording
+   * (`reference/frames-dense/review46/r_020`–`r_028`) stacks small and medium trees with round leafy
+   * crowns at every depth. Everything we had in that band was a BOLE: the giants, the pale
+   * white-barks, the authored column trunks (bare to 10 m by design) and, at 42 m, the far-trunk
+   * poles whose crowns start 18 m up. The distant layer's inner radius is 60 m — that is where
+   * crowns began.
+   *
+   * The grove fills 14–58 m with understory and sub-canopy trees (distant.ts MID_HEIGHTS 7.6–15.4 m,
+   * crowns centred at half their height, so a walker meets leaves and not a pole). It is a new
+   * stream that READS the other systems' positions and adds nothing to theirs, so no existing
+   * instance moves:
+   *   • the ground rule is the white-barks' own (placement.ts treeGroundBlocked): the paved surfaces
+   *     and their verge, the four path polylines, every authored landmark, slope ≤ 0.55;
+   *   • `occupied` keeps a mid bole out of every giant, house trunk, white-bark, column seat and
+   *     distant bole that already stands there;
+   *   • the plaza's sun corridors stay open — crowns only, a thin bole shadow is welcome dapple;
+   *   • the expansion's ground is culled like every other legacy-built stream (heightfield.ts
+   *     expansionCull), so nothing floats over the west bank, the discs or the far hut's knoll.
+   */
+  const midTarget = Math.round(400 * Math.max(0.7, Math.min(1.2, ctx.quality.density)));
+  const midOccupied: { x: number; z: number; r: number }[] = [
+    ...giantDefsAll.map((g) => ({ x: g.position[0], z: g.position[2], r: g.trunkRadius + 4.5 })),
+    ...ctx.layout.houses.map((h) => ({ x: h.position[0], z: h.position[2], r: h.trunkRadius + 4 })),
+    ...whitePlacements.map((p) => ({ x: p.x, z: p.z, r: whites[p.variant].params.trunkRadius * p.scale + 2.4 })),
+    ...columnPlacements.map((p) => ({ x: p.x, z: p.z, r: 3.2 })),
+    // only the distant boles that can reach the grove's annulus (the layer starts at 60 m; the
+    // depth rows and the far-trunk poles stand inside it)
+    ...distantPlacements.filter((p) => Math.hypot(p.x, p.z) < 74).map((p) => ({ x: p.x, z: p.z, r: 3.5 })),
+  ];
+  /**
+   * Where the grove is thickest. The village core stays open (nothing new inside 13 m, full weight
+   * from 19 m out); the north — the owner's pose looks down the north path from the plaza's north
+   * end — carries about twice the weight of the rest of the ring, and the ring itself is thick
+   * everywhere, because the brief is "every direction you can walk shows layered trees".
+   */
+  const midWeight = (x: number, z: number) => smoothstep(13, 19, Math.hypot(x, z)) * (0.58 + 0.42 * smoothstep(-6, -26, z));
+  const midSampled = placeMidTrees(rng, terrain, distantVariants, {
+    target: midTarget,
+    inner: 13,
+    outer: 58,
+    blocked: (x, z, treeRadius) => treeGroundBlocked(ctx, x, z, treeRadius, EXTRA_GIANTS),
+    occupied: midOccupied,
+    corridors: plazaCorridors.map((c) => ({ point: c.point, dir: c.dir, radius: c.radius })),
+    weight: midWeight,
+    spacing: 3.2,
+  });
+  const midPlacements = midSampled.filter((p) => !expansionCull(p.x, p.z));
+  distantPlacements.push(...midPlacements);
   // round 47: the crown cards (the geometry's second group) draw with their own material (distant.ts createDistantCrownMaterial: far-crown atlas, spherical shading, soft alpha, wind)
   const distantCrown = createDistantCrownMaterial(ctx.wind, rng, palette, sunDir);
+  // the mid-canopy crowns share that atlas and turn off the treatments the far layer applies inside
+  // its 48 m gate (distant.ts MID_CROWN_LOOK) — at 12 m they would darken the mass to a quarter of
+  // its albedo and fade its vertical cards out as the view climbs to it
+  const midCrown = createDistantCrownMaterial(ctx.wind, rng, palette, sunDir, { ...MID_CROWN_LOOK, atlas: distantCrown.map ?? undefined });
   const distantSets: DistantSet[] = distantVariants.map((variant, i) => {
     const placements = distantPlacements.filter((p) => p.variant === i);
     const n = Math.max(1, placements.length);
+    const mid = variant.kind === 'mid';
     const make = (geometry: DistantVariant['near'], label: string, lodLevel: number) => {
-      const mesh = new InstancedMesh(geometry, [mats.distant, distantCrown], n);
-      mesh.name = `distant-${i}-${label}`;
+      const mesh = new InstancedMesh(geometry, [mats.distant, mid ? midCrown : distantCrown], n);
+      mesh.name = `${mid ? 'mid' : 'distant'}-${i}-${label}`;
       mesh.instanceColor = new InstancedBufferAttribute(new Float32Array(n * 3), 3);
       mesh.castShadow = false;
       mesh.receiveShadow = true;
       mesh.count = 0;
       mesh.visible = false;
-      mesh.userData.kind = 'distant-tree';
+      mesh.userData.kind = mid ? 'mid-tree' : 'distant-tree';
       mesh.userData.lodLevel = lodLevel;
       return mesh;
     };
@@ -3159,14 +3220,18 @@ export async function create(ctx: WorldContext): Promise<WorldSystem> {
    * north of the clearing.
    */
   const STAND_FAR_LOD_M = 50;
-  const isStandPole = (set: DistantSet, p: DistantPlacement) => set.variant.bandOnly && p.z < -62;
+  const isStandPole = (set: DistantSet, p: DistantPlacement) => set.variant.kind === 'slender' && set.variant.bandOnly && p.z < -62;
   const bucketDistant = (cam: Vector3) => {
     for (const set of distantSets) {
       const nearList: number[] = [];
       const farList: number[] = [];
+      // a mid tree is 8–15 m tall and never further than 58 m from the clearing's centre: its near
+      // LOD (12-sided bole, limbs, toes, the layered crown) is worth drawing to MID_FAR_LOD_M and
+      // no further — past it the crossed strips carry the same silhouette for a tenth of the wood
+      const kindNear = set.variant.kind === 'mid' ? Math.min(distantNear, MID_FAR_LOD_M * ctx.quality.distance) : distantNear;
       for (let i = 0; i < set.placements.length; i++) {
         const p = set.placements[i];
-        const nearM = isStandPole(set, p) ? Math.min(distantNear, STAND_FAR_LOD_M * ctx.quality.distance) : distantNear;
+        const nearM = isStandPole(set, p) ? Math.min(distantNear, STAND_FAR_LOD_M * ctx.quality.distance) : kindNear;
         (Math.hypot(p.x - cam.x, p.z - cam.z) < nearM ? nearList : farList).push(i);
       }
       set.lists = [nearList, farList];
@@ -3581,8 +3646,9 @@ export async function create(ctx: WorldContext): Promise<WorldSystem> {
     for (const c of seatedColumns) c.meshes.forEach((m, l) => add(family(`column-lod${l}`), m));
     sectorMeshes.forEach((m) => add(family(m.userData.kind === 'giant' ? 'giant-wood' : m.userData.kind === 'giant-authored-leaves' || m.userData.kind === 'giant-authored-cards' ? m.userData.kind : 'giant-cards'), m));
     for (const d of distantSets) {
-      add(family('distant-near'), d.near);
-      add(family('distant-far'), d.far);
+      const layer = d.variant.kind === 'mid' ? 'mid' : 'distant';
+      add(family(`${layer}-near`), d.near);
+      add(family(`${layer}-far`), d.far);
     }
     for (const nb of nearBoles) add(family(nb.mesh.userData.kind as string), nb.mesh);
     for (const nc of nearCanopies) add(family(`${nc.mesh.userData.kind as string}-${nc.kind}`), nc.mesh);
@@ -3763,6 +3829,22 @@ export async function create(ctx: WorldContext): Promise<WorldSystem> {
       /** round 45: instances slid off the path's sight line / dropped from the arch's footprint, and the spine clearance (m) */
       distantClearance: { ...distantCleared, spine: DISTANT_SPINE_CLEARANCE, minSpineDistance: Math.round(Math.min(...distantPlacements.map((p) => spineDistance(spineXZ, p.x, p.z))) * 100) / 100 },
       distantLod: [distantNearCount, distantFarCount],
+      /**
+       * 2026-09-23 (lane 2, the owner's "the trees do not populate"): the mid-canopy grove in the
+       * 14–58 m band — how many were placed (and how many the expansion's ground culled), the
+       * variants' unscaled heights, the crown geometry as shares of the height, the LOD swap and the
+       * nearest / farthest bole from the clearing's centre.
+       */
+      midCanopy: {
+        trees: midPlacements.length,
+        culled: midSampled.length - midPlacements.length,
+        heights: MID_HEIGHTS,
+        crown: MID_SPECS.map((s) => [s.height, s.crownR, s.crownY]),
+        trunkRadius: MID_TRUNK_R,
+        band: midPlacements.length ? [Math.round(Math.min(...midPlacements.map((p) => Math.hypot(p.x, p.z))) * 10) / 10, Math.round(Math.max(...midPlacements.map((p) => Math.hypot(p.x, p.z))) * 10) / 10] : [0, 0],
+        farLodM: MID_FAR_LOD_M,
+        material: midCrown.name,
+      },
       /** round 45: the near LOD bole's basal flare [share at the foot, e-folding m] and the near-bark tone [overall, band amplitude, grime at the foot] (distant.ts, materials.ts DISTANT_NEAR_TONE) */
       distantNearBark: { flare: [DISTANT_FLARE, DISTANT_FLARE_FALL], tone: DISTANT_NEAR_TONE, withinM: DISTANT_BARK_M, limbReach: LIMB_REACH, limbTint: [LIMB_TIP_TINT, LIMB_TINT_FROM, LIMB_TINT_TO] },
       /** round 46: the near LOD bole's geometric cords [furrows around a broad / a slender, depth share], sides [broad, slender], the furrow floor's vertex shade, the root buttresses' arc sides (distant.ts) */
@@ -3999,6 +4081,8 @@ export async function create(ctx: WorldContext): Promise<WorldSystem> {
       for (const g of sectorGeometries) g.dispose();
       for (const g of detachedGeometries) g.dispose();
       for (const s of distantSets) (s.variant.near.dispose(), s.variant.far.dispose());
+      // the mid crowns share the far layer's atlas: dispose the material, not the map (once, above)
+      midCrown.dispose();
       (distantCrown.map?.dispose(), distantCrown.dispose());
     },
   };

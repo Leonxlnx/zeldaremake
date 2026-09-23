@@ -1,10 +1,32 @@
 /**
- * Forest ambience bed (owner item 19): band-limited noise wind whose level follows the world's
- * wind gust, a high leaf-rustle layer fluttering on top of it, four synthesised bird calls on a
- * seeded schedule spread across the stereo field, and the pod lanterns' warm hum attenuated by
- * the listener's distance to the nearest pods. Everything is synthesised — no samples.
+ * Forest ambience bed (owner item 19).
+ *
+ * 2026-09-23 (owner, 06:50: "the background sound is too buzzy"). The bed this replaces was three
+ * continuous layers of WHITE noise — a low-pass at 260 Hz, a broad 420 Hz band and a 1.4–3.8 kHz
+ * hush — plus a 96 / 192 Hz two-sine lantern hum whose per-pod attenuations were SUMMED, so in a
+ * village with a pod on every house, post and bough the sum saturated and the hum sat at the top of
+ * the mix all the time. Measured on the offline bed (`art/audio/2026-09-23-lane5/`), 60–125 Hz was
+ * the loudest band in the whole forest and the bed's quietest tenth was only 10 dB under its
+ * average: a constant tone under a constant hiss. That is a drone, and it is what "buzzy" means.
+ *
+ * What is here now:
+ *   - PINK noise (graph.ts), not white: wind in leaves falls about −3 dB/octave, so a white bed put
+ *     through one filter is always too bright above the corner and too flat below it.
+ *   - two wind layers, not one: a far canopy roll (60–620 Hz, mostly into the hall) and a near leaf
+ *     hush (0.9–4.2 kHz) whose level lives in the gust — calm air is nearly silent, the hush comes
+ *     with the gust and leaves with it.
+ *   - no sine LFO anywhere in the bed. Every continuous level rides a seeded irregular envelope
+ *     (`controlNoiseBuffer`), so nothing beats at a rate the ear can lock onto.
+ *   - discrete LEAF FLUTTERS scheduled like the birds — short shaped grains, in clusters during a
+ *     gust — so the top of the bed reads as individual leaves rather than a band of noise.
+ *   - birds mostly FAR (the owner asked for birds at a distance): each call is filtered and sent to
+ *     the hall by its distance, the gaps between calls are long, and two quiet distant voices join
+ *     the four near ones (a dove's coo, a woodpecker's drum).
+ *   - the pod lanterns are a FLAME, not a hum: low-passed pink noise fluttering irregularly with
+ *     one soft husk resonance under it, at the NEAREST pod's distance (the rest only add a fifth
+ *     each), so walking through the village no longer walks through a tone.
  */
-import { adEnvelope, filter, gain, lfo, noiseBuffer, noiseSource, type Rng } from './graph';
+import { adEnvelope, cleanupAt, controlNoiseBuffer, controlSource, filter, gain, pinkNoiseBuffer, type Rng } from './graph';
 
 export interface Vec3 {
   x: number;
@@ -24,179 +46,338 @@ export interface AmbienceState {
 }
 
 export interface Ambience {
-  /** schedule every bird call up to time t (context seconds) */
+  /** schedule every bird call and leaf flutter up to time t (context seconds) */
   scheduleUntil(t: number): void;
   /** set the continuous parameters as of context time t */
   update(t: number, state: AmbienceState): void;
   dispose(): void;
 }
 
-/** the pod hum's distance scale (m: half level at this distance from one pod) and its peak level */
-export const HUM_REACH_M = 1.1;
-export const HUM_LEVEL = 0.035;
+/** the lantern flame's distance scale (m: half level this far from one pod) and its peak level */
+export const LANTERN_REACH_M = 1.3;
+export const LANTERN_LEVEL = 0.055;
+/** share of a non-nearest pod's attenuation that is added — a village of pods must not sum to a drone */
+export const LANTERN_CROWD_SHARE = 0.2;
 
-type BirdKind = 'whistle' | 'trill' | 'chirps' | 'warble';
-const BIRDS: BirdKind[] = ['whistle', 'trill', 'chirps', 'warble'];
+/**
+ * The wind bed's levels: the floor in still air and how much the gust adds. The gust share is six
+ * times the floor, so the wood is nearly quiet between gusts — an always-on bed is what a listener
+ * stops hearing as air and starts hearing as noise.
+ */
+export const CANOPY_FLOOR = 0.019;
+export const CANOPY_GUST = 0.115;
+export const HUSH_FLOOR = 0.0014;
+export const HUSH_GUST = 0.048;
+
+type BirdKind = 'whistle' | 'trill' | 'chirps' | 'warble' | 'coo' | 'knock';
+/** how often each call is chosen, and how far away it tends to be (0 = overhead, 1 = deep in the wood) */
+const BIRDS: { kind: BirdKind; weight: number; near: number; far: number }[] = [
+  { kind: 'whistle', weight: 3, near: 0.35, far: 0.95 },
+  { kind: 'trill', weight: 2, near: 0.45, far: 1 },
+  { kind: 'chirps', weight: 3, near: 0.25, far: 0.85 },
+  { kind: 'warble', weight: 2, near: 0.4, far: 0.95 },
+  { kind: 'coo', weight: 2, near: 0.6, far: 1 },
+  { kind: 'knock', weight: 1, near: 0.7, far: 1 },
+];
+const BIRD_WEIGHT = BIRDS.reduce((s, b) => s + b.weight, 0);
 
 export function createAmbience(ctx: BaseAudioContext, out: AudioNode, reverbSend: AudioNode, rng: Rng, startAt = 0): Ambience {
-  const noise = noiseBuffer(ctx, rng.fork('bed'), 5);
+  const pink = pinkNoiseBuffer(ctx, rng.fork('pink'), 9);
   const nodes: AudioScheduledSourceNode[] = [];
+  /** one always-running pink source every layer taps (a per-layer source would cost a buffer each) */
+  const bedSrc = ctx.createBufferSource();
+  bedSrc.buffer = pink;
+  bedSrc.loop = true;
+  bedSrc.start(startAt);
+  nodes.push(bedSrc);
+  // a second tap started a third of the loop later, so the two wind layers are not the same noise
+  const leafSrc = ctx.createBufferSource();
+  leafSrc.buffer = pink;
+  leafSrc.loop = true;
+  leafSrc.start(startAt, pink.duration / 3);
+  nodes.push(leafSrc);
 
-  // ---- wind bed: two noise paths, a low rumble and a slow moving band ----------------------
-  // 2026-09-22 (owner: "the sound in the forest sounds like loud random paper"): the bed is
-  // lower and darker — the low path at 260 Hz, the moving band a broad soft 420 Hz (was a
-  // Q 1.1 band sweeping ±260 Hz around 760: a crinkle), both modulated slower.
-  const windSrc = noiseSource(ctx, noise, startAt);
-  nodes.push(windSrc);
-  const windLow = filter(ctx, 'lowpass', 260, 0.5);
-  const windBand = filter(ctx, 'bandpass', 420, 0.5);
-  const windGain = gain(ctx, 0.11);
-  const windBandGain = gain(ctx, 0.03);
-  windSrc.connect(windLow).connect(windGain).connect(out);
-  windSrc.connect(windBand).connect(windBandGain).connect(out);
-  windGain.connect(reverbSend);
-  nodes.push(lfo(ctx, windBand.frequency, 0.045, 120, 'sine', startAt));
-  nodes.push(lfo(ctx, windBandGain.gain, 0.08, 0.012, 'sine', startAt));
+  const wander = (hz: number, shape: number, seed: string) => controlNoiseBuffer(ctx, rng.fork(seed), { hz, shape, seconds: 47 });
+  /** an irregular envelope added to a param's own value (its automation stays the floor) */
+  const rides = (target: AudioParam, hz: number, shape: number, depth: number, seed: string, rate = 120) => {
+    const cs = controlSource(ctx, wander(hz, shape, seed), depth, rate, startAt);
+    cs.out.connect(target);
+    nodes.push(cs.src);
+  };
+  /** the same envelope through a gate node, so something else (the gust) can scale the modulation */
+  const ridesGated = (gate: AudioNode, hz: number, shape: number, depth: number, seed: string) => {
+    const cs = controlSource(ctx, wander(hz, shape, seed), depth, 120, startAt);
+    cs.out.connect(gate);
+    nodes.push(cs.src);
+  };
 
-  // ---- leaf rustle: a soft high hush that breathes with the gusts ----------------------------
-  // The old layer was 2.2–4.6 kHz noise chopped by a 6.3 Hz triangle at 45 % depth — a buzzing
-  // paper flutter. Now: a gentler 1.4–3 kHz band, no fast chop, two slow swells (0.3 / 0.75 Hz)
-  // of a few percent, and a level that lives mostly in the gust term (quiet air, a hush in a gust).
-  const rustleSrc = noiseSource(ctx, noise, startAt + 1.3);
-  nodes.push(rustleSrc);
-  const rustleHp = filter(ctx, 'highpass', 1400, 0.5);
-  const rustleBp = filter(ctx, 'bandpass', 2600, 0.6);
-  const rustleLp = filter(ctx, 'lowpass', 3800, 0.6);
-  const rustleGain = gain(ctx, 0.004);
-  const flutter = gain(ctx, 1);
-  rustleSrc.connect(rustleHp).connect(rustleBp).connect(rustleLp).connect(flutter).connect(rustleGain).connect(out);
-  rustleGain.connect(reverbSend);
-  nodes.push(lfo(ctx, flutter.gain, 0.3, 0.12, 'sine', startAt));
-  nodes.push(lfo(ctx, flutter.gain, 0.75, 0.08, 'sine', startAt + 0.4));
+  // ---- far canopy: the wood breathing, mostly into the hall -----------------------------------
+  const canopyHp = filter(ctx, 'highpass', 62, 0.6);
+  const canopyLp = filter(ctx, 'lowpass', 620, 0.5);
+  const canopyTilt = filter(ctx, 'lowshelf', 140, 0.7, -5);
+  const canopyGain = gain(ctx, CANOPY_FLOOR);
+  bedSrc.connect(canopyHp).connect(canopyLp).connect(canopyTilt).connect(canopyGain).connect(out);
+  const canopySend = gain(ctx, 0.5);
+  canopyGain.connect(canopySend).connect(reverbSend);
+  rides(canopyGain.gain, 0.055, 1.4, 0.024, 'canopy-slow');
+  // the canopy's colour moves with a slower wander of its own: a gust opens the top of the roll
+  rides(canopyLp.frequency, 0.08, 1, 280, 'canopy-colour');
 
-  // ---- pod lantern hum -------------------------------------------------------------------
-  // 2026-09-23 (owner: "the sound is still a little too buzzy in the background"): the hum was a
-  // 96 Hz tone with a triangle partial at 287.5 Hz and a fourth partial, open to 900 Hz, at the
-  // wind bed's own level within ~2 m of any pod — and pods hang on every house, post and bough,
-  // so the village sat on a mains-like drone. Now two soft sines under 420 Hz, a third of the
-  // level, heard only close to a lantern (HUM_REACH_M, HUM_LEVEL).
-  const humGain = gain(ctx, 0);
-  const humPan = ctx.createStereoPanner();
-  humGain.connect(humPan).connect(out);
-  humGain.connect(reverbSend);
-  const humLp = filter(ctx, 'lowpass', 420, 0.7);
-  humLp.connect(humGain);
-  for (const [f, g, type] of [
-    [96, 0.5, 'sine'],
-    [192.4, 0.12, 'sine'],
-  ] as [number, number, OscillatorType][]) {
-    const o = ctx.createOscillator();
-    o.type = type;
-    o.frequency.value = f;
-    const og = gain(ctx, g);
-    o.connect(og).connect(humLp);
-    nodes.push(lfo(ctx, o.detune, 0.23 + f / 900, 6 + f / 60, 'sine', startAt));
-    o.start(startAt);
-    nodes.push(o);
-  }
-  // wisp: a thin whistling partial, like a flame breathing inside the husk
-  const wispSrc = noiseSource(ctx, noise, startAt + 0.7);
-  nodes.push(wispSrc);
-  const wisp = filter(ctx, 'bandpass', 1750, 9);
-  const wispGain = gain(ctx, 0.012);
-  wispSrc.connect(wisp).connect(wispGain).connect(humGain);
-  nodes.push(lfo(ctx, wisp.frequency, 0.4, 180, 'sine', startAt));
+  // ---- near leaf hush: lives in the gust, silent in still air ----------------------------------
+  const hushHp = filter(ctx, 'highpass', 900, 0.5);
+  const hushLp = filter(ctx, 'lowpass', 4200, 0.5);
+  const hushGain = gain(ctx, HUSH_FLOOR);
+  // the wander is gated by the gust, so the hush both swells and flickers only while the air moves
+  const hushMod = gain(ctx, 0);
+  hushMod.connect(hushGain.gain);
+  leafSrc.connect(hushHp).connect(hushLp).connect(hushGain).connect(out);
+  const hushSend = gain(ctx, 0.35);
+  hushGain.connect(hushSend).connect(reverbSend);
+  ridesGated(hushMod, 0.42, 1.6, 0.022, 'hush');
 
-  // ---- birds -----------------------------------------------------------------------------
-  const birdRng = rng.fork('birds');
-  let nextBird = startAt + 1.5 + birdRng() * 2;
-  const birdCall = (kind: BirdKind, t: number, pan: number, level: number) => {
+  // ---- pod lantern flame ----------------------------------------------------------------------
+  const flameGain = gain(ctx, 0);
+  const flamePan = ctx.createStereoPanner();
+  flameGain.connect(flamePan).connect(out);
+  const flameSend = gain(ctx, 0.45);
+  flameGain.connect(flameSend).connect(reverbSend);
+  const flameSrc = ctx.createBufferSource();
+  flameSrc.buffer = pink;
+  flameSrc.loop = true;
+  flameSrc.start(startAt, pink.duration * 0.66);
+  nodes.push(flameSrc);
+  const flameLp = filter(ctx, 'lowpass', 320, 0.8);
+  const flameBody = gain(ctx, 0.35);
+  flameSrc.connect(flameLp).connect(flameBody).connect(flameGain);
+  // the flutter: an irregular envelope at a few Hz, the breath of a flame inside the husk
+  rides(flameBody.gain, 2.6, 1.3, 0.9, 'flame', 240);
+  // the husk's own resonance gives a lit pod a pitch — a narrow band of the SAME noise, not an
+  // oscillator: the hum this replaced was two sines, and a sine is the drone the owner heard
+  const husk = filter(ctx, 'bandpass', 132, 5);
+  const huskGain = gain(ctx, 0.55);
+  flameSrc.connect(husk).connect(huskGain).connect(flameGain);
+  rides(husk.frequency, 0.35, 1, 14, 'husk');
+
+  // ---- scheduled events: leaf flutters and birds ------------------------------------------------
+  const eventRng = rng.fork('events');
+  /** the gust as `update` last saw it: the schedulers run ahead of the clock, so they use it as a level */
+  let gustNow = 0.4;
+
+  /**
+   * One leaf flutter: a short shaped grain of the bed's own pink noise. Several of these in a
+   * cluster read as a branch shaking; a continuous band of the same noise reads as hiss.
+   */
+  const flutter = (t: number, centre: number, level: number, pan: number, decay: number) => {
     const panner = ctx.createStereoPanner();
     panner.pan.value = pan;
+    panner.connect(out);
+    const send = gain(ctx, 0.4);
+    panner.connect(send).connect(reverbSend);
+    const bp = filter(ctx, 'bandpass', centre, 1.1);
+    const lp = filter(ctx, 'lowpass', centre * 2.6, 0.7);
     const g = gain(ctx, 0);
-    const hp = filter(ctx, 'highpass', 900, 0.7);
-    g.connect(hp).connect(panner).connect(out);
-    panner.connect(reverbSend);
+    leafSrc.connect(bp);
+    bp.connect(lp).connect(g).connect(panner);
+    adEnvelope(g.gain, t, level, 0.018 + eventRng() * 0.03, decay);
+    cleanupAt(ctx, t + decay + 0.4, () => {
+      try {
+        leafSrc.disconnect(bp);
+      } catch {
+        /* already gone */
+      }
+      for (const n of [bp, lp, g, send, panner]) n.disconnect();
+    });
+  };
+
+  let nextFlutter = startAt + 0.8 + eventRng() * 2;
+  const scheduleFlutters = (until: number) => {
+    while (nextFlutter < until) {
+      const t = nextFlutter;
+      const g = gustNow;
+      const n = 1 + Math.floor(eventRng() * (1 + g * 4));
+      const pan = (eventRng() * 2 - 1) * 0.9;
+      for (let i = 0; i < n; i++) {
+        const centre = 950 + eventRng() * 1900;
+        const level = (0.005 + eventRng() * 0.016) * (0.35 + g * 0.9);
+        flutter(t + i * (0.04 + eventRng() * 0.16), centre, level, pan + (eventRng() - 0.5) * 0.3, 0.07 + eventRng() * 0.16);
+      }
+      // gusts crowd the flutters together; still air leaves long gaps
+      nextFlutter += (0.5 + eventRng() * 3.2) / (0.35 + g * 1.9);
+    }
+  };
+
+  /**
+   * A bird heard from `distance` (0 = overhead, 1 = deep in the wood): the air takes its top off,
+   * the level falls and more of it arrives through the hall. Every call is built on this.
+   */
+  const birdVoice = (t: number, pan: number, distance: number, end: number) => {
+    const panner = ctx.createStereoPanner();
+    panner.pan.value = pan;
+    const hp = filter(ctx, 'highpass', 320, 0.5);
+    const lp = filter(ctx, 'lowpass', 7000 - 5200 * distance, 0.6);
+    const g = gain(ctx, 0);
+    g.connect(hp);
+    hp.connect(lp).connect(panner).connect(out);
+    const send = gain(ctx, 0.2 + 0.55 * distance);
+    panner.connect(send).connect(reverbSend);
+    cleanupAt(ctx, end + 0.5, () => {
+      for (const n of [g, hp, lp, panner, send]) n.disconnect();
+    });
+    // `voice` is the enveloped input for the oscillator; `air` is the same distance and space
+    // without it, for a call built out of noise (the woodpecker's taps)
+    return { voice: g, air: hp as AudioNode };
+  };
+
+  const birdCall = (kind: BirdKind, t: number, pan: number, level: number, distance: number) => {
+    // distance takes the level down; a far call is also slower to start (the air rounds its attack)
+    const lv = level * (1 - 0.66 * distance);
+    const soft = 1 + distance * 1.6;
+    let end = t + 1.6;
+    const { voice: g, air } = birdVoice(t, pan, distance, t + 2.6);
     const osc = ctx.createOscillator();
     osc.type = 'sine';
     osc.connect(g);
-    let end = t;
     switch (kind) {
       case 'whistle': {
-        // two descending notes
-        for (let i = 0; i < 2; i++) {
-          const s = t + i * 0.34;
-          const f0 = 3150 - i * 260;
+        const notes = 2 + Math.floor(eventRng() * 2);
+        for (let i = 0; i < notes; i++) {
+          const s = t + i * (0.3 + eventRng() * 0.12);
+          const f0 = (2750 + eventRng() * 500) * Math.pow(0.9, i);
           osc.frequency.setValueAtTime(f0, s);
-          osc.frequency.exponentialRampToValueAtTime(f0 * 0.78, s + 0.2);
-          adEnvelope(g.gain, s, level, 0.02, 0.2);
+          osc.frequency.exponentialRampToValueAtTime(f0 * 0.8, s + 0.22);
+          adEnvelope(g.gain, s, lv, 0.018 * soft, 0.2);
+          end = s + 0.26;
         }
-        end = t + 0.34 + 0.24;
         break;
       }
       case 'trill': {
-        const n = 7 + Math.floor(birdRng() * 4);
-        const f = 3300 + birdRng() * 400;
+        const n = 6 + Math.floor(eventRng() * 5);
+        const f = 3000 + eventRng() * 500;
         osc.frequency.setValueAtTime(f, t);
         const mod = ctx.createOscillator();
-        mod.frequency.value = 28;
-        const md = gain(ctx, 240);
+        mod.frequency.value = 24 + eventRng() * 8;
+        const md = gain(ctx, 170);
         mod.connect(md).connect(osc.frequency);
         mod.start(t);
-        mod.stop(t + n * 0.055 + 0.1);
-        for (let i = 0; i < n; i++) adEnvelope(g.gain, t + i * 0.055, level * (0.7 + 0.3 * Math.sin(i)), 0.006, 0.04);
-        end = t + n * 0.055 + 0.1;
+        mod.stop(t + n * 0.058 + 0.15);
+        // the notes share one gain, so a note's envelope has to finish inside the 58 ms spacing
+        for (let i = 0; i < n; i++) adEnvelope(g.gain, t + i * 0.058, lv * (0.6 + 0.4 * Math.sin(i * 1.7)), 0.006 * soft, 0.036);
+        end = t + n * 0.058 + 0.12;
         break;
       }
       case 'chirps': {
-        for (let i = 0; i < 3; i++) {
-          const s = t + i * 0.17;
-          osc.frequency.setValueAtTime(1900, s);
-          osc.frequency.exponentialRampToValueAtTime(3400, s + 0.085);
-          adEnvelope(g.gain, s, level, 0.008, 0.09);
+        const n = 2 + Math.floor(eventRng() * 3);
+        for (let i = 0; i < n; i++) {
+          const s = t + i * (0.15 + eventRng() * 0.09);
+          osc.frequency.setValueAtTime(1800 + eventRng() * 300, s);
+          osc.frequency.exponentialRampToValueAtTime(3100 + eventRng() * 500, s + 0.08);
+          adEnvelope(g.gain, s, lv * 0.9, 0.01 * soft, 0.085);
+          end = s + 0.12;
         }
-        end = t + 0.17 * 2 + 0.12;
         break;
       }
       case 'warble': {
-        const f = 1450 + birdRng() * 200;
+        const f = 1400 + eventRng() * 260;
         osc.frequency.setValueAtTime(f, t);
         const vib = ctx.createOscillator();
-        vib.frequency.value = 9.5;
-        const vd = gain(ctx, 95);
+        vib.frequency.value = 8 + eventRng() * 3;
+        const vd = gain(ctx, 80);
         vib.connect(vd).connect(osc.frequency);
         vib.start(t);
-        vib.stop(t + 1.6);
+        vib.stop(t + 1.7);
         g.gain.setValueAtTime(0.0005, t);
-        g.gain.linearRampToValueAtTime(level * 0.8, t + 0.12);
-        g.gain.setValueAtTime(level * 0.8, t + 1.0);
-        g.gain.exponentialRampToValueAtTime(0.0005, t + 1.45);
+        g.gain.linearRampToValueAtTime(lv * 0.75, t + 0.14 * soft);
+        g.gain.setValueAtTime(lv * 0.75, t + 0.9);
+        g.gain.exponentialRampToValueAtTime(0.0005, t + 1.4);
         end = t + 1.5;
+        break;
+      }
+      case 'coo': {
+        // a dove deep in the wood: two or three soft low notes, no edge on them at all
+        const f = 430 + eventRng() * 120;
+        const n = 2 + Math.floor(eventRng() * 2);
+        for (let i = 0; i < n; i++) {
+          const s = t + i * 0.52;
+          osc.frequency.setValueAtTime(f * (i === 0 ? 1.12 : 1), s);
+          osc.frequency.linearRampToValueAtTime(f * 0.97, s + 0.3);
+          g.gain.setValueAtTime(0.0005, s);
+          g.gain.linearRampToValueAtTime(lv * 1.5, s + 0.09 * soft);
+          g.gain.exponentialRampToValueAtTime(0.0005, s + 0.42);
+          end = s + 0.45;
+        }
+        break;
+      }
+      case 'knock': {
+        // a woodpecker's drum: a run of tiny taps of the bed's own noise, arriving through the trees
+        const n = 7 + Math.floor(eventRng() * 7);
+        const spacing = 0.045 + eventRng() * 0.02;
+        osc.frequency.setValueAtTime(1500 + eventRng() * 400, t);
+        const tap = filter(ctx, 'bandpass', 1300 + eventRng() * 500, 2.2);
+        const tg = gain(ctx, 0);
+        bedSrc.connect(tap);
+        tap.connect(tg).connect(air);
+        for (let i = 0; i < n; i++) {
+          const decay = 1 - (i / n) * 0.45;
+          adEnvelope(g.gain, t + i * spacing, lv * 0.5 * decay, 0.002, 0.016);
+          adEnvelope(tg.gain, t + i * spacing, lv * 3.2 * decay, 0.001, 0.014);
+        }
+        end = t + n * spacing + 0.1;
+        cleanupAt(ctx, end + 0.6, () => {
+          try {
+            bedSrc.disconnect(tap);
+          } catch {
+            /* already gone */
+          }
+          tap.disconnect();
+          tg.disconnect();
+        });
         break;
       }
     }
     osc.start(t);
-    osc.stop(end + 0.05);
+    osc.stop(end + 0.1);
   };
-  const scheduleUntil = (t: number) => {
-    while (nextBird < t) {
-      const kind = BIRDS[Math.floor(birdRng() * BIRDS.length)];
-      const pan = (birdRng() * 2 - 1) * 0.85;
-      const level = 0.025 + birdRng() * 0.05;
-      birdCall(kind, nextBird, pan, level);
-      // sometimes a second bird answers from the other side
-      if (birdRng() < 0.3) birdCall(BIRDS[Math.floor(birdRng() * BIRDS.length)], nextBird + 1.2 + birdRng() * 0.8, -pan * 0.8, level * 0.7);
-      nextBird += 3 + birdRng() * 6;
+
+  const pickBird = () => {
+    let r = eventRng() * BIRD_WEIGHT;
+    for (const b of BIRDS) {
+      r -= b.weight;
+      if (r <= 0) return b;
     }
+    return BIRDS[0];
+  };
+
+  let nextBird = startAt + 2 + eventRng() * 3;
+  const scheduleBirds = (until: number) => {
+    while (nextBird < until) {
+      const b = pickBird();
+      const distance = b.near + eventRng() * (b.far - b.near);
+      const pan = (eventRng() * 2 - 1) * 0.85;
+      const level = 0.02 + eventRng() * 0.035;
+      birdCall(b.kind, nextBird, pan, level, distance);
+      // sometimes one answers from the other side, always further off
+      if (eventRng() < 0.28) {
+        const a = pickBird();
+        birdCall(a.kind, nextBird + 1.1 + eventRng() * 1.4, -pan * 0.8, level * 0.6, Math.min(1, distance + 0.2));
+      }
+      nextBird += 4.5 + eventRng() * 9;
+    }
+  };
+
+  const scheduleUntil = (t: number) => {
+    scheduleFlutters(t);
+    scheduleBirds(t);
   };
 
   const update = (t: number, s: AmbienceState) => {
     const gust = Math.max(0, Math.min(1, s.gust));
-    windGain.gain.setTargetAtTime(0.075 + gust * 0.13, t, 0.6);
-    windLow.frequency.setTargetAtTime(220 + gust * 220, t, 0.7);
-    rustleGain.gain.setTargetAtTime(0.0025 + gust * gust * 0.022, t, 0.5);
-    // pods: summed inverse-square-ish attenuation, panned toward their weighted direction
+    gustNow = gust;
+    canopyGain.gain.setTargetAtTime(CANOPY_FLOOR + gust * CANOPY_GUST, t, 0.9);
+    hushGain.gain.setTargetAtTime(HUSH_FLOOR + Math.pow(gust, 1.6) * HUSH_GUST, t, 0.55);
+    hushMod.gain.setTargetAtTime(Math.pow(gust, 1.4), t, 0.55);
+    // pods: the NEAREST lantern sets the level; the rest of the village adds a fifth each
     let sum = 0;
+    let nearest = 0;
     let px = 0;
     let pz = 0;
     for (const p of s.pods) {
@@ -204,13 +385,14 @@ export function createAmbience(ctx: BaseAudioContext, out: AudioNode, reverbSend
       const dy = p.y - s.listener.y;
       const dz = p.z - s.listener.z;
       const d = Math.sqrt(dx * dx + dy * dy + dz * dz);
-      const a = 1 / (1 + (d / HUM_REACH_M) ** 2);
+      const a = 1 / (1 + (d / LANTERN_REACH_M) ** 2);
       sum += a;
+      if (a > nearest) nearest = a;
       px += dx * a;
       pz += dz * a;
     }
-    const level = Math.min(1, sum) * HUM_LEVEL;
-    humGain.gain.setTargetAtTime(level, t, 0.25);
+    const level = Math.min(1, nearest + (sum - nearest) * LANTERN_CROWD_SHARE) * LANTERN_LEVEL;
+    flameGain.gain.setTargetAtTime(level, t, 0.3);
     let pan = 0;
     if (sum > 1e-4) {
       // right = forward × up
@@ -219,7 +401,7 @@ export function createAmbience(ctx: BaseAudioContext, out: AudioNode, reverbSend
       const len = Math.hypot(px, pz) || 1;
       pan = Math.max(-1, Math.min(1, ((px * rx + pz * rz) / len) * 0.8));
     }
-    humPan.pan.setTargetAtTime(pan, t, 0.3);
+    flamePan.pan.setTargetAtTime(pan, t, 0.3);
   };
 
   return {

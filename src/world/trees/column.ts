@@ -157,6 +157,16 @@ export interface ColumnParams {
   grime?: number;
   toneBands?: number;
   flareFall?: number;
+  /**
+   * Round 52 (the owner's 09-23 markup, red circle 1: the column left of the north path is "a
+   * smooth pale cylinder in grey haze"). Knees and broken stub limbs on the bole's BARE run, in
+   * the variant's own local frame (`azimuthDeg`: 0 = local +x, turned with the seat's yaw like
+   * everything else the variant carries), so a column seen at 12–35 m has a silhouette instead of
+   * a profile: a swelling breaks its edge and the stub stands out of it against the haze. The
+   * emergent and the hut host keep the authored / no knees they had (`ColumnBuildOptions.knees`
+   * is merged with these).
+   */
+  boleKnees?: { height: number; azimuthDeg: number; reach: number; halfWidth: number; stubLength: number; stubRadius: number; stubPitch: number }[];
 }
 
 /** Deterministic architecture for variant `index` of `total`. */
@@ -164,7 +174,24 @@ export function columnParams(rng: Rng, index: number, total: number): ColumnPara
   const r = rng.fork(`variant-${index}`);
   // the taller variants are also the girthier ones (old trees), spread evenly over the set
   const f = total > 1 ? index / (total - 1) : 0.5;
+  // round 52: two knees on the bare run (see ColumnParams.boleKnees). Own fork — the draws below
+  // and every seat, white-bark and giant after them are unmoved. The lower one (3.6–4.7 m) always
+  // carries a broken stub, the upper (7.0–8.2 m, still under the lowest bough at ≈ 8.4 m) carries
+  // one on half the variants and is a burl on the rest; the azimuths are a third of a turn apart
+  // plus a jitter, so a column never shows both on the same edge.
+  const kr = r.fork('knees');
+  const kneeTurn = kr.range(0, 360);
+  const boleKnees = [0, 1].map((i) => ({
+    height: i === 0 ? 3.6 + kr.range(0, 1.1) : 7.0 + kr.range(0, 1.2),
+    azimuthDeg: kneeTurn + i * 132 + kr.range(-40, 40),
+    reach: kr.range(0.26, 0.4),
+    halfWidth: kr.range(0.5, 0.8),
+    stubLength: i === 0 ? kr.range(0.95, 1.6) : kr.chance(0.5) ? kr.range(0.7, 1.15) : 0,
+    stubRadius: kr.range(0.17, 0.25),
+    stubPitch: kr.range(0.1, 0.5),
+  }));
   return {
+    boleKnees,
     seed: `col-${index}-${r.int(0, 1e9)}`,
     height: 17.5 + f * 5 + r.range(-0.6, 0.6),
     trunkRadius: 0.5 + f * 0.2 + r.range(-0.03, 0.03),
@@ -367,7 +394,13 @@ export function createColumnTree(p: ColumnParams, palette: Palette, detail: Deta
     }
     return cumulative[cumulative.length - 1];
   };
-  const knees: BoleKnee[] = (o.knees ?? []).map((k) => {
+  // the variant's own knees (ColumnParams.boleKnees, local azimuths) and whatever the caller
+  // authored in world space (ColumnBuildOptions.knees — the emergent's pair)
+  const kneeSpecs: ColumnKnee[] = [
+    ...(p.boleKnees ?? []).map((k) => ({ ...k, toward: new Vector3(Math.cos((k.azimuthDeg * Math.PI) / 180), 0, Math.sin((k.azimuthDeg * Math.PI) / 180)) })),
+    ...(o.knees ?? []),
+  ];
+  const knees: BoleKnee[] = kneeSpecs.map((k) => {
     const distance = distanceAtHeight(k.height);
     const { u, v } = axisAt(distance);
     return { distance, azimuth: Math.atan2(k.toward.dot(v), k.toward.dot(u)), reach: k.reach, halfWidth: k.halfWidth, stubLength: k.stubLength, stubRadius: k.stubRadius, stubPitch: k.stubPitch };
