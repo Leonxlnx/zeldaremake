@@ -100,6 +100,8 @@ export interface SharedGeometry {
    * the character ground (character/ground.ts reads them; nothing else does).
    */
   walkSurfaces?: WalkSurface[];
+  /** Slim tree boles published for prop placement: base centre, radius and bare trunk height span. */
+  slimTrunks?: { x: number; z: number; r: number; y0: number; y1: number }[];
 }
 
 export interface WalkSurface {

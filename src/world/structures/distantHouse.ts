@@ -72,11 +72,12 @@
  * others sit right of the arch, above it (the arch's top projects at y ≥ 0.35, every lit point at
  * y ≤ 0.20). None is in front of the stair, Saria's house or the arch opening.
  */
-import { BoxGeometry, BufferGeometry, CatmullRomCurve3, Color, CylinderGeometry, Float32BufferAttribute, Group, LatheGeometry, Mesh, Vector2, Vector3 } from 'three';
+import { BoxGeometry, BufferGeometry, CatmullRomCurve3, Color, CylinderGeometry, Float32BufferAttribute, Group, LatheGeometry, Mesh, PointLight, TorusGeometry, Vector2, Vector3 } from 'three';
 import type { TrunkSeat, WalkSurface, WorldContext } from '../system';
 import type { Rng } from '../util/prng';
 import { FoliageBuilder } from './foliage';
-import { basisMatrix, gridSurface, merge, setColorAttribute, sweepTube, TAU } from './geometry';
+import { basisMatrix, ensureColor, faceTowards, gridSurface, merge, setColorAttribute, sweepTube, TAU } from './geometry';
+import { buildLantern, type LanternRig } from './lantern';
 import { MOSS_ALBEDO_PEAK, Noise3D, WOOD_ON_FENCE_WOOD, type StructureMaterials } from './materials';
 import { buildMossTufts, type MossTuftSpec } from './mossTufts';
 
@@ -136,6 +137,30 @@ export interface DistantHouseDef {
    *  - `fringe`: hanging moss beards and leaf clumps along the cap's lobed edge.
    */
   dressing?: { doorBough?: { length: number; pods: number }; buttresses?: boolean; interior?: boolean; fringe?: boolean };
+  /**
+   * 2026-09-23 (owner review: "repeated bungalows need purposeful variation"): what a village
+   * hut's people built for their own use, beyond its size and pods. Placed from the hut's own
+   * geometry, drawn from its own fork (no stream above re-rolls):
+   *  - `ladder`: a rope ladder from the platform rim to the ground at `deg` (relative to the
+   *    window, like `doorDeg`), staked at its foot, clear of the host bole;
+   *  - `railing`: posts round the platform rim under a bent-pole rail, open at the walkway, the
+   *    door and the ladder;
+   *  - `hoist`: a davit pole leaning out over the rim at `deg`, its rope through a block to a
+   *    basket `drop` m under the platform, the hauling end tied off on the wall;
+   *  - `flowerBox`: a planter on the window ledge;
+   *  - `sprout`: a sapling growing out of the moss cap;
+   *  - `awning`: a mossy bark brow over the window;
+   *  - `herbs`: bundles drying on a cord under the eave at `deg`.
+   */
+  character?: {
+    ladder?: { deg: number };
+    railing?: boolean;
+    hoist?: { deg: number; drop: number };
+    flowerBox?: boolean;
+    sprout?: boolean;
+    awning?: boolean;
+    herbs?: { deg: number };
+  };
 }
 
 /**
@@ -170,6 +195,9 @@ export const DISTANT_HOUSES: DistantHouseDef[] = [
     // the mid-post pod would have hung beside the clump in B.
     walkway: { deg: -4, length: 3.2 },
     pods: 2,
+    // the lowest hut: its ladder hangs on the side facing the north path (6 m west), flowers
+    // on its window ledge
+    character: { ladder: { deg: -72 }, flowerBox: true },
   },
   {
     id: 'north-east',
@@ -183,6 +211,8 @@ export const DISTANT_HOUSES: DistantHouseDef[] = [
     doorDeg: 40,
     walkway: { deg: -75, length: 3.6 },
     pods: 3,
+    // the highest hut (8 m): a railing round its platform and a hoist to haul up what it needs
+    character: { railing: true, hoist: { deg: -128, drop: 2.4 } },
   },
   {
     id: 'west-column',
@@ -201,6 +231,9 @@ export const DISTANT_HOUSES: DistantHouseDef[] = [
     // A (0.07, 0.14) see it in front of the hut, beside the clump.
     walkway: { deg: 2, length: 2.6 },
     pods: 2,
+    // the grower's hut: a sapling rooted in its cap, a brow over its window, herbs drying on the
+    // side toward the north path (8 m east)
+    character: { sprout: true, awning: true, herbs: { deg: 72 } },
   },
 ];
 
@@ -278,8 +311,23 @@ export type HostSource = 'shared' | 'constants';
 /** Round 49: a hut's walkable built surfaces for the character ground (ctx.shared.walkSurfaces) */
 export type HutWalkSurface = WalkSurface;
 
+/** 2026-09-23: a hut's `character` features as built (null / 0 where the hut has none) */
+export interface CharacterAudit {
+  ladder: { top: [number, number, number]; foot: [number, number, number]; rungs: number; reach: number } | null;
+  railingPosts: number;
+  hoist: { tip: [number, number, number]; basket: [number, number, number]; boleGap: number } | null;
+  flowers: number;
+  sprout: [number, number, number] | null;
+  awning: boolean;
+  herbs: number;
+}
+
 export interface DistantHouseBuild {
   group: Group;
+  /** round 55: the dressed huts' crafted near lanterns (their pivots are in `group`) */
+  lanterns: LanternRig[];
+  /** round 55: the dressed huts' lantern lights, outside `group` (the caller adds them where nothing hides them) */
+  lights: PointLight[];
   /** round 49: every hut's platform, deck and wall for the character ground */
   walk: HutWalkSurface[];
   /** the one emissive mesh shared by all houses */
@@ -346,6 +394,8 @@ export interface DistantHouseBuild {
     revealMouthLitShare: number;
     /** round 50: the dressing as built (null on the undressed village huts) */
     dressing: { bough: [number, number, number][] | null; boughPods: [number, number, number][]; buttresses: number; fringe: number; room: { depth: number; shallow: boolean; lamp: [number, number, number] } | null } | null;
+    /** 2026-09-23: the hut's own features (null without `character`) */
+    character: CharacterAudit | null;
   }[];
 }
 
@@ -392,6 +442,8 @@ const REVEAL_DARK: RGB = [0.02, 0.016, 0.012];
 /** dark, unlit parts riding in the glow mesh: pod caps and fins, stems */
 const POD_CAP: RGB = [0.05, 0.075, 0.025];
 const POD_STEM: RGB = [0.06, 0.045, 0.03];
+/** round 55: the pods' bent-wood frame at distant LOD */
+const POD_FRAME: RGB = [0.045, 0.032, 0.02];
 
 const lerp = (a: number, b: number, t: number) => a + (b - a) * t;
 const clamp = (v: number, a: number, b: number) => Math.min(b, Math.max(a, v));
@@ -415,6 +467,15 @@ function bar(a: Vector3, b: Vector3, t: number, color: RGB, t2 = t): BufferGeome
   const dir = b.clone().sub(a);
   const len = dir.length();
   const geo = new BoxGeometry(t, t2, len);
+  geo.applyMatrix4(basisMatrix(a.clone().lerp(b, 0.5), dir));
+  return setColorAttribute(geo, color);
+}
+
+/** a round rod from a (radius r) to b (radius r2): rungs, posts, pegs — seen from 2 m a box bar reads square */
+function rod(a: Vector3, b: Vector3, r: number, color: RGB, sides = 6, r2 = r, open = true): BufferGeometry {
+  const dir = b.clone().sub(a);
+  const geo = new CylinderGeometry(r2, r, dir.length(), sides, 1, open);
+  geo.rotateX(Math.PI / 2);
   geo.applyMatrix4(basisMatrix(a.clone().lerp(b, 0.5), dir));
   return setColorAttribute(geo, color);
 }
@@ -685,6 +746,29 @@ function distantPod(top: Vector3, s: number, body: RGB, rng: Rng): BufferGeometr
       ),
     );
   }
+  // round 55: the crafted lantern's frame at distant LOD (lantern.ts lanternFrame) — six dark ribs
+  // standing off the body between the fins and a hoop round its foot, so a hut's pod seen from
+  // under its platform reads as a framed lantern rather than a bare glow (no draw from `rng`)
+  for (let k = 0; k < 6; k++) {
+    const phi = phase + ((k + 0.5) / 6) * TAU;
+    parts.push(
+      gridSurface(
+        (u, v, out) => {
+          const y = lerp(0.03, 0.3, u);
+          const r = podBodyRadius(y) + 0.007;
+          const phiV = phi + ((v - 0.5) * 0.012) / Math.max(r, 0.02);
+          out.position.set(Math.cos(phiV) * r * s, y * s, Math.sin(phiV) * r * s);
+          out.uv = [v, u];
+          out.color = POD_FRAME;
+        },
+        { cols: 2, rows: 6 },
+      ),
+    );
+  }
+  const hoop = new TorusGeometry((podBodyRadius(0.035) + 0.005) * s, 0.008 * s, 3, 10);
+  hoop.rotateX(Math.PI / 2);
+  hoop.translate(0, 0.035 * s, 0);
+  parts.push(setColorAttribute(hoop, POD_FRAME));
   const geo = dropDegenerate(merge(parts));
   geo.translate(top.x, top.y - (POD_TOP + POD_STEM_H) * s, top.z);
   return geo;
@@ -737,6 +821,10 @@ export function buildDistantHouses(ctx: WorldContext, mats: StructureMaterials, 
   const group = new Group();
   group.name = 'distant-houses';
   const glowParts: BufferGeometry[] = [];
+  /** round 55: the dressed huts' crafted lanterns (the near lanterns, swung by the structures system) */
+  const lanterns: LanternRig[] = [];
+  /** round 55: their lights — NOT in `group` (the caller keeps them in the scene whatever hides the hut, so the light count never changes) */
+  const lights: PointLight[] = [];
   /** round 45 (details-1): the huts' soffit boards, one mesh in `mats.fenceWood` (see `soffit`) */
   const soffitParts: BufferGeometry[] = [];
   const audit: DistantHouseBuild['audit'] = [];
@@ -1255,6 +1343,71 @@ export function buildDistantHouses(ctx: WorldContext, mats: StructureMaterials, 
     // ---- planks: platform, walkway stub, window bars, pod hangers ----
     const plankParts: BufferGeometry[] = [];
     const platR = R + 0.22;
+
+    // ---- round 55 (owner review 2026-09-23: the side bungalows' "roof edges, trim, openings"): a
+    // sill band round the wall's foot (broken at the door), a wall plate under the eave (broken where
+    // the window reaches it), a ledge under the window, and a bark EAVE ROLL under the moss edge so
+    // the roof ends in a thick lip instead of a sheet. Each hut its own trim tone; own fork. ----
+    const eaveRoll: BufferGeometry[] = [];
+    {
+      const tr = r.fork('trim55');
+      const tone = tr.range(0.85, 1.2);
+      const trim: RGB = [PLANK_DARK[0] * tone * 1.2, PLANK_DARK[1] * tone * 1.15, PLANK_DARK[2] * tone * 1.1];
+      const steps = Math.max(36, Math.round((TAU * R) / 0.3));
+      const band = (yMid: number, height: number, skip: (a: number) => boolean) => {
+        const _a = new Vector3();
+        const _b = new Vector3();
+        for (let k = 0; k < steps; k++) {
+          const a0 = (k / steps) * TAU;
+          const a1 = ((k + 1) / steps) * TAU;
+          if (skip(a0) || skip(a1)) continue;
+          wallSurface(a0, yMid, _a, 0.035);
+          wallSurface(a1, yMid, _b, 0.035);
+          // a hair of overlap so the segments join
+          const d = _b.clone().sub(_a).multiplyScalar(0.04);
+          plankParts.push(bar(_a.clone().sub(d), _b.clone().add(d), 0.055, [trim[0] * tr.range(0.92, 1.08), trim[1], trim[2]], height));
+        }
+      };
+      const doorGap = (a: number) => Math.abs(dAngle(a, aDoor)) * R < doorW / 2 + 0.1;
+      band(floorY + 0.07, 0.13, doorGap);
+      const plateY = eaveY - 0.19;
+      // a hut with a window brow (character.awning) stops its plate either side of the brow's crown
+      const browSpan = def.character?.awning ? winR + COLLAR_WIDTH + 0.14 : 0;
+      band(plateY, 0.1, (a) => inWindow(a, plateY, 0.06) || inDoor(a, plateY, 0.06) || Math.abs(dAngle(a, aWin)) * R < browSpan);
+      // the ledge under the window
+      const ledgeY = winY - winR - 0.035;
+      const w = (winR + 0.1) / R;
+      plankParts.push(bar(wallSurface(aWin - w, ledgeY, new Vector3(), 0.07), wallSurface(aWin + w, ledgeY, new Vector3(), 0.07), 0.12, [trim[0] * 1.1, trim[1] * 1.08, trim[2] * 1.05], 0.05));
+      // the eave roll: a bark lip under the moss edge, following the cap rim's own wave
+      const tube = def.dressing ? 0.095 : 0.07;
+      const roll = gridSurface(
+        (u, v, out) => {
+          const a = u * TAU;
+          const ang = v * TAU;
+          const rr = eaveR * capRim(a) - 0.055 + Math.cos(ang) * tube;
+          const y = eaveY - 0.16 + Math.sin(ang) * tube * 0.8;
+          out.position.set(c.x + Math.cos(a) * rr, y, c.z + Math.sin(a) * rr);
+          out.uv = [(a * eaveR) / 1.2, v * 0.5];
+          const cord = 0.82 + 0.28 * (0.5 + 0.5 * Math.sin(23 * a + capPhase * 2));
+          const lit = lerp(0.75, 1.15, 0.5 + 0.5 * Math.sin(ang));
+          out.color = [SOFFIT[0] * cord * lit * 1.3, SOFFIT[1] * cord * lit * 1.25, SOFFIT[2] * cord * lit * 1.2];
+        },
+        { cols: Math.max(32, steps), rows: 6, closedU: true },
+      );
+      // normals out from the tube's core circle
+      faceTowards(roll, (p, o) => {
+        const a = Math.atan2(p.z - c.z, p.x - c.x);
+        const core = eaveR * capRim(a) - 0.055;
+        return o.set(p.x + (p.x - (c.x + Math.cos(a) * core)), p.y + (p.y - (eaveY - 0.16)), p.z + (p.z - (c.z + Math.sin(a) * core)));
+      });
+      eaveRoll.push(roll);
+    }
+    // the roll rides in the cap skirt's bark mesh (no draw of its own)
+    {
+      const skirtWithRoll = merge([capSkirt, ...eaveRoll]);
+      tris += triangles(skirtWithRoll) - triangles(capSkirt);
+      skirtMesh.geometry = skirtWithRoll;
+    }
     plankParts.push(ring(c, 0.02, platR, floorY + 0.01, true, () => PLANK, 24, 3));
     plankParts.push(ring(c, 0.02, platR, floorY - 0.22, false, () => PLANK, 24, 3));
     plankParts.push(
@@ -1329,6 +1482,14 @@ export function buildDistantHouses(ctx: WorldContext, mats: StructureMaterials, 
     const pods: Vector3[] = [];
     const hang = (from: Vector3, drop: number, color: RGB, bracketFrom?: Vector3) => {
       if (bracketFrom) plankParts.push(bar(bracketFrom, from, 0.045, PLANK_DARK));
+      if (def.dressing) {
+        // round 55: a hut the player walks up to hangs the crafted near lantern (own fork per pod)
+        const rig = buildLantern(from, drop, mats, r.fork(`lantern55/${pods.length}`), 1.1, color === GLOW_LIME ? 'lime' : 'orange');
+        group.add(rig.pivot);
+        lanterns.push(rig);
+        pods.push(rig.pod.clone());
+        return;
+      }
       const podTop = from.clone().setY(from.y - drop);
       plankParts.push(bar(from, podTop, 0.03, PLANK_DARK));
       // body radius 0.148 s = 0.8 podR: the lit body about the size of round 16's sphere
@@ -1426,12 +1587,37 @@ export function buildDistantHouses(ctx: WorldContext, mats: StructureMaterials, 
           const [t, drop, col] = cluster[i];
           curve.getPointAt(t, _bp);
           const hook = _bp.clone().setY(_bp.y - boughR(t) + 0.01);
-          const podTop = hook.clone().setY(hook.y - drop);
-          plankParts.push(bar(hook, podTop, 0.025, PLANK_DARK));
-          glowParts.push(distantPod(podTop, podS, col, dr.fork(`bough-pod/${i}`)));
-          const centre = podTop.clone().setY(podTop.y - (POD_STEM_H + POD_TOP - POD_BODY_MID) * podS);
+          // round 55: the crafted near lantern, its cord tied round the limb with two turns
+          const rig = buildLantern(hook, drop, mats, dr.fork(`bough-lantern55/${i}`), podS, col === GLOW_LIME ? 'lime' : 'orange');
+          group.add(rig.pivot);
+          lanterns.push(rig);
+          const tangent = curve.getTangentAt(t, new Vector3());
+          for (const off of [-0.018, 0.018]) {
+            const turn = new TorusGeometry(boughR(t) + 0.012, 0.009, 5, 14);
+            turn.lookAt(tangent);
+            const at = _bp.clone().addScaledVector(tangent, off);
+            turn.translate(at.x, at.y, at.z);
+            ensureColor(turn, [0.42, 0.32, 0.22]);
+            plankParts.push(turn);
+          }
+          const centre = rig.pod.clone();
           pods.push(centre);
           dressAudit.boughPods.push([+centre.x.toFixed(2), +centre.y.toFixed(2), +centre.z.toFixed(2)]);
+        }
+        // round 55: the cluster's own restrained light, like Saria's (house.ts): 0.9 m under the
+        // pods and a little out from the wall, so it pools on the platform at the door and warms the
+        // jambs, the bough's underside staying dark; 5 m of reach
+        if (dressAudit.boughPods.length) {
+          const cc = new Vector3();
+          for (const p of dressAudit.boughPods) cc.add(new Vector3(p[0], p[1], p[2]));
+          cc.divideScalar(dressAudit.boughPods.length);
+          const out = new Vector3(cc.x - c.x, 0, cc.z - c.z).normalize();
+          cc.addScaledVector(out, 0.3);
+          cc.y -= 0.9;
+          const light = new PointLight(new Color(0xffc070), 2.6, 5, 2);
+          light.position.copy(cc);
+          light.name = 'hut-lantern-light';
+          lights.push(light);
         }
       }
       if (def.dressing.buttresses) {
@@ -1505,6 +1691,405 @@ export function buildDistantHouses(ctx: WorldContext, mats: StructureMaterials, 
       }
       if (dressFoliage) {
         for (const m of dressFoliage.build(mats, `hut-fringe:${def.id}`)) {
+          group.add(m);
+          if (m.geometry) tris += triangles(m.geometry as BufferGeometry);
+        }
+      }
+    }
+
+    // ---- 2026-09-23 (owner review: "repeated bungalows need purposeful variation"): the hut's
+    // CHARACTER (`DistantHouseDef.character`). Own fork, after every stream above. The ladder is a
+    // mesh of its own — the play camera may stand behind a rope ladder but is not walled off by
+    // it (cameraSolids.ts SLIM) — in the planks' material, so it folds into the village's wood
+    // bucket; the rest rides in the planks, one bark mesh and one foliage builder. ----
+    const ladderParts: BufferGeometry[] = [];
+    const charBark: BufferGeometry[] = [];
+    const charLeaves: { builder: FoliageBuilder | null } = { builder: null };
+    const charAudit: CharacterAudit = { ladder: null, railingPosts: 0, hoist: null, flowers: 0, sprout: null, awning: false, herbs: 0 };
+    if (def.character) {
+      const ch = r.fork('character56');
+      const C = def.character;
+      const UPV = new Vector3(0, 1, 0);
+      const at3 = (p: Vector3): [number, number, number] => [+p.x.toFixed(2), +p.y.toFixed(2), +p.z.toFixed(2)];
+      const outAt = (a: number) => new Vector3(Math.cos(a), 0, Math.sin(a));
+      const tanAt = (a: number) => new Vector3(-Math.sin(a), 0, Math.cos(a));
+      /** wall angle of a direction given relative to the window (degrees, as `doorDeg`) */
+      const angleOf = (relDeg: number) => {
+        const d = az(def.facingDeg + relDeg);
+        return Math.atan2(d.z, d.x);
+      };
+      const foliage = () => (charLeaves.builder ??= new FoliageBuilder(ch.fork('foliage'), `${ctx.config.seed}/hut-character/${def.id}`));
+      /** how far world point p stands outside the host bole's nominal surface (m; the column fallback is 0.55 R) */
+      const boleGap = (p: Vector3) => {
+        const h = p.y - host.base.y;
+        host.axisAt(h, _axis);
+        const br = host.seat ? host.seat.radiusAt(Math.max(0, h)) : R * 0.55;
+        return Math.hypot(p.x - _axis.x, p.z - _axis.z) - br;
+      };
+      const tone = (base: RGB, lo: number, hi: number): RGB => scaleRGB(base, ch.range(lo, hi));
+      const ROPE: RGB = [0.4, 0.33, 0.23];
+
+      if (C.ladder) {
+        // ---- the ROPE LADDER: two side ropes tied round the rim beam, a round rung every 0.3 m,
+        // the bottom rung at knee height and the ropes staked out on the ground; the foot steps out
+        // from the rim until every rung clears the host bole by 0.2 m ----
+        const aL = angleOf(C.ladder.deg);
+        const out = outAt(aL);
+        const side = tanAt(aL);
+        const HALF = 0.21;
+        const top = c.clone().addScaledVector(out, platR - 0.03).setY(floorY - 0.05);
+        const footAt = (k: number) => {
+          const f = c.clone().addScaledVector(out, platR + k);
+          f.y = ctx.terrain.height(f.x, f.z);
+          return f;
+        };
+        let reach = 0.28;
+        let foot = footAt(reach);
+        for (let it = 0; it < 14; it++) {
+          let worst = Infinity;
+          for (let s = 0; s <= 1.0001; s += 0.05) {
+            const p = foot.clone().lerp(top, s);
+            for (const k of [-1, 1]) worst = Math.min(worst, boleGap(p.clone().addScaledVector(side, k * HALF)));
+          }
+          if (worst >= 0.2) break;
+          reach += 0.12;
+          foot = footAt(reach);
+        }
+        const bottom = foot.clone().setY(foot.y + 0.42);
+        const rungs = Math.max(3, Math.round(bottom.distanceTo(top) / 0.3));
+        const railPts: [Vector3[], Vector3[]] = [[], []];
+        for (let i = 0; i <= rungs; i++) {
+          const p = bottom.clone().lerp(top, i / rungs);
+          railPts[0].push(p.clone().addScaledVector(side, -HALF));
+          railPts[1].push(p.clone().addScaledVector(side, HALF));
+          // no rung at the rim: the ropes wrap the rim beam there
+          if (i < rungs) {
+            const k = ch.range(0.8, 1.15);
+            const worn = i < 4 ? 1.12 : 1;
+            ladderParts.push(rod(railPts[0][i].clone().addScaledVector(side, -0.035), railPts[1][i].clone().addScaledVector(side, 0.035), 0.021, scaleRGB(PLANK, k * worn), 6));
+          }
+        }
+        for (const rail of railPts) {
+          for (let i = 0; i + 1 < rail.length; i++) ladderParts.push(rod(rail[i], rail[i + 1], 0.012, ROPE, 5));
+          // the wrap round the rim beam, and the rope's run from the bottom rung out to its stake
+          const wrap = new TorusGeometry(0.05, 0.014, 5, 10);
+          wrap.lookAt(side);
+          const w = rail[rail.length - 1].clone().setY(floorY - 0.1);
+          wrap.translate(w.x, w.y, w.z);
+          ladderParts.push(ensureColor(wrap, ROPE));
+          const stakeTop = rail[0].clone().addScaledVector(out, 0.32).setY(foot.y + 0.14);
+          stakeTop.y = ctx.terrain.height(stakeTop.x, stakeTop.z) + 0.14;
+          ladderParts.push(rod(rail[0], stakeTop, 0.011, ROPE, 5));
+          ladderParts.push(rod(stakeTop.clone().addScaledVector(out, -0.05).setY(stakeTop.y - 0.3), stakeTop.clone().addScaledVector(out, 0.03).setY(stakeTop.y + 0.05), 0.026, tone(PLANK_DARK, 0.9, 1.1), 6, 0.022, false));
+        }
+        charAudit.ladder = { top: at3(top), foot: at3(foot), rungs, reach: +reach.toFixed(2) };
+      }
+
+      if (C.railing) {
+        // ---- the RAILING: a post every ≈ 0.7 m round the rim under a bent-pole rail, a rope
+        // midrail; open at the walkway, the door (and a ladder), each run ending on a post ----
+        const railR = platR - 0.07;
+        const aW = Math.atan2(wDir.z, wDir.x);
+        const gaps: [number, number][] = [
+          [aW, (0.95 / 2 + 0.12) / railR],
+          [aDoor, (doorW / 2 + 0.22) / railR],
+        ];
+        if (C.ladder) gaps.push([angleOf(C.ladder.deg), 0.4 / railR]);
+        const iv = gaps
+          .map(([g, h]) => {
+            const s = (((g - h) % TAU) + TAU) % TAU;
+            return [s, s + 2 * h] as [number, number];
+          })
+          .sort((p, q) => p[0] - q[0]);
+        const merged: [number, number][] = [];
+        for (const g of iv) {
+          const last = merged[merged.length - 1];
+          if (last && g[0] <= last[1]) last[1] = Math.max(last[1], g[1]);
+          else merged.push([g[0], g[1]]);
+        }
+        const arcs: [number, number][] = merged.map((g, i) => [g[1], i + 1 < merged.length ? merged[i + 1][0] : merged[0][0] + TAU]);
+        const RAIL_H = 0.86;
+        const poleTone = tone(PLANK, 0.95, 1.1);
+        for (const [a0, a1] of arcs) {
+          if (a1 - a0 < 0.3 / railR) continue;
+          const spans = Math.max(1, Math.round(((a1 - a0) * railR) / 0.7));
+          const tops: Vector3[] = [];
+          for (let k = 0; k <= spans; k++) {
+            const a = lerp(a0, a1, k / spans);
+            const base = c.clone().addScaledVector(outAt(a), railR).setY(floorY + 0.01);
+            const top = base.clone().setY(floorY + RAIL_H + 0.05 + ch.range(-0.02, 0.02));
+            plankParts.push(rod(base, top, 0.034, tone(PLANK_DARK, 0.85, 1.15), 6, 0.03, false));
+            tops.push(top);
+            charAudit.railingPosts++;
+          }
+          // the pole: sampled along the arc (it follows the rim), riding 5 cm under the post tops
+          const n = Math.max(3, Math.ceil(((a1 - a0) * railR) / 0.25));
+          const wob = ch.range(0, TAU);
+          const pts: Vector3[] = [];
+          for (let k = 0; k <= n; k++) {
+            const a = lerp(a0, a1, k / n);
+            pts.push(c.clone().addScaledVector(outAt(a), railR + 0.012 * Math.sin(k * 1.7 + wob)).setY(floorY + RAIL_H + 0.012 * Math.sin(k * 2.3 + wob)));
+          }
+          plankParts.push(
+            sweepTube(new CatmullRomCurve3(pts, false, 'catmullrom', 0.5), {
+              radius: (t) => 0.027 * (1 - 0.15 * t),
+              tubularSegments: n * 2,
+              radialSegments: 6,
+              uvMetres: 1.6,
+              color: (_t, _a, up) => scaleRGB(poleTone, 0.85 + 0.3 * Math.max(0, up)),
+              capStart: true,
+              capEnd: true,
+            }),
+          );
+          // the rope midrail, sagging a little between posts
+          for (let k = 0; k + 1 < tops.length; k++) {
+            const a = tops[k].clone().setY(floorY + 0.44);
+            const b = tops[k + 1].clone().setY(floorY + 0.44);
+            const mid = a.clone().lerp(b, 0.5);
+            mid.y -= 0.035;
+            plankParts.push(rod(a, mid, 0.01, ROPE, 4), rod(mid, b, 0.01, ROPE, 4));
+          }
+        }
+      }
+
+      if (C.hoist) {
+        // ---- the HOIST: a davit pole lashed to the wall, leaning out over the rim; a block at
+        // its head, the rope down to a basket of firewood, the hauling end tied off on a wall peg ----
+        const aH = angleOf(C.hoist.deg);
+        const out = outAt(aH);
+        const side = tanAt(aH);
+        let tipOut = platR + 0.5;
+        let drop = C.hoist.drop;
+        for (let it = 0; it < 8; it++) {
+          const basket = c.clone().addScaledVector(out, tipOut).setY(floorY - drop);
+          if (boleGap(basket) >= 0.35 && boleGap(basket.clone().setY(floorY - drop * 0.5)) >= 0.3) break;
+          tipOut += 0.1;
+        }
+        const tip = c.clone().addScaledVector(out, tipOut).setY(floorY + 1.95);
+        const ctrl = [
+          wallSurface(aH, floorY + 0.01, new Vector3(), 0.08),
+          wallSurface(aH, floorY + 1.05, new Vector3(), 0.1),
+          c.clone().addScaledVector(out, R + 0.4).setY(floorY + 1.78),
+          tip,
+        ];
+        const poleCurve = new CatmullRomCurve3(ctrl, false, 'catmullrom', 0.5);
+        const poleTone = tone(PLANK_DARK, 1.05, 1.25);
+        plankParts.push(
+          sweepTube(poleCurve, {
+            radius: (t) => lerp(0.05, 0.032, t),
+            tubularSegments: 14,
+            radialSegments: 7,
+            uvMetres: 1.6,
+            displace: (t, ang) => 0.004 * Math.sin(ang * 3 + t * 17),
+            color: (_t, _a, up) => scaleRGB(poleTone, 0.8 + 0.3 * Math.max(0, up)),
+            capStart: true,
+            capEnd: true,
+          }),
+        );
+        // lashings where the pole meets the wall
+        for (const t of [0.12, 0.33]) {
+          const p = poleCurve.getPointAt(t);
+          const lash = new TorusGeometry(0.058, 0.012, 5, 10);
+          lash.lookAt(poleCurve.getTangentAt(t, new Vector3()));
+          lash.translate(p.x, p.y, p.z);
+          plankParts.push(ensureColor(lash, ROPE));
+        }
+        // the block under the head
+        const block = new TorusGeometry(0.05, 0.02, 6, 12);
+        block.lookAt(side);
+        const blockC = tip.clone().setY(tip.y - 0.1);
+        block.translate(blockC.x, blockC.y, blockC.z);
+        plankParts.push(ensureColor(block, scaleRGB(PLANK_DARK, 0.8)));
+        plankParts.push(rod(tip.clone().setY(tip.y - 0.03), blockC.clone().setY(blockC.y + 0.04), 0.012, ROPE, 4));
+        // the basket: woven sides in bands, a rim, a bail to the rope, three sticks of firewood
+        const bTop = floorY - drop + 0.3;
+        const bC = tip.clone().setY(floorY - drop);
+        const profile = [new Vector2(0.0001, 0), new Vector2(0.12, 0), new Vector2(0.155, 0.03), new Vector2(0.175, 0.15), new Vector2(0.19, 0.27), new Vector2(0.2, 0.3), new Vector2(0.182, 0.3), new Vector2(0.17, 0.26)];
+        const basket = new LatheGeometry(profile, 12);
+        basket.translate(bC.x, bC.y, bC.z);
+        const bp = basket.attributes.position;
+        setColorAttribute(basket, (i) => {
+          const y = bp.getY(i) - bC.y;
+          const band = 0.82 + 0.22 * (0.5 + 0.5 * Math.sin(y * 70));
+          return [0.5 * band, 0.4 * band, 0.24 * band];
+        });
+        plankParts.push(basket);
+        const bail = bC.clone().setY(bTop + 0.26);
+        for (const k of [-1, 1]) plankParts.push(rod(bC.clone().addScaledVector(side, k * 0.19).setY(bTop), bail, 0.009, ROPE, 4));
+        plankParts.push(rod(bail, blockC.clone().addScaledVector(out, 0.05).setY(blockC.y - 0.04), 0.011, ROPE, 4));
+        // the hauling end: from the block back in to a peg on the wall beside the pole
+        const peg = wallSurface(aH + 0.26 / R, floorY + 0.95, new Vector3(), 0.1);
+        plankParts.push(rod(wallSurface(aH + 0.26 / R, floorY + 0.95, new Vector3(), -0.02), peg, 0.02, PLANK_DARK, 5, 0.018, false));
+        plankParts.push(rod(blockC.clone().addScaledVector(out, -0.05).setY(blockC.y - 0.03), peg, 0.011, ROPE, 4));
+        for (let s = 0; s < 3; s++) {
+          const a = ch.range(0, TAU);
+          const foot = bC.clone().add(new Vector3(Math.cos(a) * 0.06, 0.04, Math.sin(a) * 0.06));
+          const head = foot.clone().add(new Vector3(Math.cos(a) * 0.12, 0.42 + ch.range(-0.05, 0.05), Math.sin(a) * 0.12));
+          plankParts.push(rod(foot, head, 0.022, tone(PLANK_DARK, 0.9, 1.2), 5, 0.02, false));
+        }
+        charAudit.hoist = { tip: at3(tip), basket: at3(bC), boleGap: +boleGap(bC).toFixed(2) };
+      }
+
+      if (C.flowerBox) {
+        // ---- the FLOWER BOX on the window ledge: a plank box, soil, a few heads and leaves ----
+        const right = new Vector3(-facing.z, 0, facing.x);
+        const ledgeY = winY - winR - 0.035;
+        const boxY = ledgeY + 0.025 + 0.06;
+        const half = winR + 0.06;
+        const endA = wallSurface(aWin - half / R, boxY, new Vector3(), 0.1);
+        const endB = wallSurface(aWin + half / R, boxY, new Vector3(), 0.1);
+        plankParts.push(bar(endA, endB, 0.13, tone(PLANK, 0.85, 1.0), 0.12));
+        plankParts.push(bar(endA.clone().setY(boxY + 0.05), endB.clone().setY(boxY + 0.05), 0.105, [0.09, 0.07, 0.05], 0.022));
+        const f = foliage();
+        const tints: [number, number, number][] = [
+          [1.0, 0.72, 0.78],
+          [1.0, 0.95, 0.62],
+          [0.85, 0.75, 1.0],
+          [1.0, 1.0, 0.95],
+        ];
+        const heads = 7;
+        for (let i = 0; i < heads; i++) {
+          const p = endA.clone().lerp(endB, (i + 0.5) / heads + ch.range(-0.04, 0.04)).setY(boxY + 0.07);
+          const n = facing.clone().multiplyScalar(0.55).add(UPV).add(right.clone().multiplyScalar(ch.range(-0.3, 0.3))).normalize();
+          f.addFlower(p, n, ch.range(0.055, 0.075), ch.range(0.05, 0.13), 0.03, tints[ch.int(0, tints.length)]);
+          charAudit.flowers++;
+        }
+        // leaves spilling over the front edge (a cluster sphere would push half of them into the wall)
+        for (let i = 0; i < 12; i++) {
+          const p = endA.clone().lerp(endB, (i + 0.5) / 12 + ch.range(-0.03, 0.03)).setY(boxY + 0.06).addScaledVector(facing, ch.range(0, 0.05));
+          const dir = facing.clone().multiplyScalar(ch.range(0.4, 1.0)).addScaledVector(UPV, ch.range(-0.25, 0.8)).addScaledVector(right, ch.range(-0.5, 0.5));
+          f.addLeaf(p, dir, ch.range(0.06, 0.09), ch.range(0, TAU), 0.03, [0.95, 1.05, 0.8]);
+        }
+      }
+
+      if (C.sprout) {
+        // ---- the SPROUT: a sapling rooted in the cap's moss off the crown, leaning out a little;
+        // a crown of fresh leaves and two pairs lower down ----
+        const aS = ch.range(0, TAU);
+        const rootP = capPoint(aS, 0.8, new Vector3());
+        const lean = outAt(aS).multiplyScalar(0.14);
+        const hS = ch.range(0.75, 0.95);
+        const pts = [
+          rootP.clone().setY(rootP.y - 0.05),
+          rootP.clone().add(new Vector3(lean.x * 0.25, hS * 0.35, lean.z * 0.25)),
+          rootP.clone().add(new Vector3(lean.x * 0.75 + ch.range(-0.04, 0.04), hS * 0.7, lean.z * 0.75 + ch.range(-0.04, 0.04))),
+          rootP.clone().add(new Vector3(lean.x, hS, lean.z)),
+        ];
+        const curve = new CatmullRomCurve3(pts, false, 'catmullrom', 0.5);
+        charBark.push(
+          sweepTube(curve, {
+            radius: (t) => lerp(0.026, 0.008, t),
+            tubularSegments: 10,
+            radialSegments: 6,
+            uvMetres: 1.6,
+            color: (t) => mix([0.34, 0.27, 0.17], [0.3, 0.34, 0.13], t),
+            capEnd: true,
+          }),
+        );
+        const f = foliage();
+        const tip = pts[3];
+        const crown = 6;
+        for (let i = 0; i < crown; i++) {
+          const a = (i / crown) * TAU + ch.range(-0.3, 0.3);
+          f.addLeaf(tip, new Vector3(Math.cos(a), ch.range(0.15, 0.65), Math.sin(a)), ch.range(0.13, 0.19), ch.range(0, TAU), 0.07, [1.05, 1.15, 0.78]);
+        }
+        for (const t of [0.42, 0.62]) {
+          const p = curve.getPointAt(t);
+          for (const k of [-1, 1]) {
+            const a = aS + (k * Math.PI) / 2 + ch.range(-0.4, 0.4);
+            f.addLeaf(p, new Vector3(Math.cos(a), 0.3, Math.sin(a)), ch.range(0.09, 0.12), ch.range(0, TAU), 0.05, [1.0, 1.1, 0.8]);
+          }
+        }
+        charAudit.sprout = at3(tip);
+      }
+
+      if (C.awning) {
+        // ---- the WINDOW BROW: a bark roll over the window just outside its collar, standing
+        // out most at the crown, mossed on top (the wall plate stops either side of it) ----
+        const browR = winR + COLLAR_WIDTH + 0.02;
+        const pts: Vector3[] = [];
+        for (let i = 0; i <= 12; i++) {
+          const th = lerp(0.12 * Math.PI, 0.88 * Math.PI, i / 12);
+          pts.push(wallSurface(aWin + (Math.cos(th) * browR) / R, winY + Math.sin(th) * browR, new Vector3(), 0.05 + 0.11 * Math.sin(th)));
+        }
+        const bark = scaleRGB(wallColor(aWin, 0.8), 0.8);
+        const moss: RGB = [MOSS_DEEP[0] * 1.6, MOSS_DEEP[1] * 1.8, MOSS_DEEP[2] * 1.5];
+        charBark.push(
+          sweepTube(new CatmullRomCurve3(pts, false, 'catmullrom', 0.5), {
+            radius: (t) => lerp(0.035, 0.085, Math.sin(t * Math.PI)),
+            tubularSegments: 20,
+            radialSegments: 8,
+            uvMetres: 1.6,
+            displace: (t, ang) => 0.006 * Math.sin(ang * 5 + t * 21),
+            color: (_t, _a, up) => mix(bark, moss, smoothstep(0.35, 0.85, up)),
+            capStart: true,
+            capEnd: true,
+          }),
+        );
+        charAudit.awning = true;
+      }
+
+      if (C.herbs) {
+        // ---- HERBS drying under the eave: a cord between two wall pegs, bundles hung head down ----
+        const aHb = angleOf(C.herbs.deg);
+        const yCord = eaveY - 0.34;
+        const span = 0.95 / R;
+        const pegs = [aHb - span / 2, aHb + span / 2].map((a) => {
+          const tipP = wallSurface(a, yCord, new Vector3(), 0.13);
+          plankParts.push(rod(wallSurface(a, yCord, new Vector3(), -0.02), tipP, 0.018, PLANK_DARK, 5, 0.015, false));
+          return tipP;
+        });
+        const cord = (t: number) => pegs[0].clone().lerp(pegs[1], t).setY(yCord - 0.06 * 4 * t * (1 - t));
+        for (let k = 0; k < 6; k++) plankParts.push(rod(cord(k / 6), cord((k + 1) / 6), 0.009, ROPE, 4));
+        const f = foliage();
+        // dried heads on the flower cards (pale straw, lavender, cream, rust) over a little dry leaf
+        const heads: [number, number, number][] = [
+          [1.0, 0.86, 0.5],
+          [0.8, 0.66, 0.98],
+          [1.0, 0.95, 0.78],
+          [0.95, 0.6, 0.38],
+          [0.9, 0.88, 0.55],
+          [0.78, 0.64, 0.95],
+        ];
+        const out = outAt(aHb);
+        for (let k = 0; k < 6; k++) {
+          const at = cord((k + 0.5) / 6 + ch.range(-0.025, 0.025));
+          const tie = at.clone().setY(at.y - ch.range(0.05, 0.08));
+          plankParts.push(rod(at, tie, 0.007, ROPE, 4));
+          // the stalks, bound at the tie and fanning down to the heads
+          const len = ch.range(0.2, 0.28);
+          plankParts.push(rod(tie.clone().setY(tie.y + 0.02), tie.clone().setY(tie.y - len), 0.014, [0.5, 0.44, 0.25], 5, 0.04));
+          const bottom = tie.clone().setY(tie.y - len);
+          for (let h = 0; h < 7; h++) {
+            const a = ch.range(0, TAU);
+            const p = bottom.clone().add(new Vector3(Math.cos(a) * 0.045, ch.range(-0.03, 0.04), Math.sin(a) * 0.045));
+            f.addFlower(p, new Vector3(Math.cos(a) * 0.6, -1, Math.sin(a) * 0.6).addScaledVector(out, 0.5), ch.range(0.05, 0.07), 0.015, 0.015, heads[k]);
+          }
+          f.addLeafCluster(bottom.clone().setY(bottom.y + 0.06), 0.06, 5, { size: 0.07, amount: 0.015, droop: 1.3, tint: [0.85, 0.8, 0.5], tintSpread: 0.1, flatten: 1.4 });
+          charAudit.herbs++;
+        }
+      }
+
+      if (ladderParts.length) {
+        const ladderGeo = merge(ladderParts);
+        const ladderMesh = new Mesh(ladderGeo, mats.wood);
+        ladderMesh.name = `distant-house-ladder:${def.id}`;
+        ladderMesh.castShadow = ladderMesh.receiveShadow = true;
+        group.add(ladderMesh);
+        tris += triangles(ladderGeo);
+        degenerate += countDegenerate(ladderGeo);
+      }
+      if (charBark.length) {
+        const barkGeo = merge(charBark);
+        const barkMesh = new Mesh(barkGeo, mats.bark);
+        barkMesh.name = `distant-house-character:${def.id}`;
+        barkMesh.castShadow = barkMesh.receiveShadow = true;
+        group.add(barkMesh);
+        tris += triangles(barkGeo);
+        degenerate += countDegenerate(barkGeo);
+      }
+      if (charLeaves.builder) {
+        for (const m of charLeaves.builder.build(mats, `hut-character:${def.id}`)) {
           group.add(m);
           if (m.geometry) tris += triangles(m.geometry as BufferGeometry);
         }
@@ -1630,6 +2215,7 @@ export function buildDistantHouses(ctx: WorldContext, mats: StructureMaterials, 
       revealMouthPeak: +mouthPeak.toFixed(2),
       revealMouthLitShare: +mouthLit.toFixed(2),
       dressing: def.dressing ? dressAudit : null,
+      character: def.character ? charAudit : null,
     });
   }
 
@@ -1660,6 +2246,8 @@ export function buildDistantHouses(ctx: WorldContext, mats: StructureMaterials, 
   const constPeak = (t: RGB) => +(Math.max(t[0], t[1], t[2]) * peak).toFixed(2);
   return {
     group,
+    lanterns,
+    lights,
     walk,
     glow,
     soffit,

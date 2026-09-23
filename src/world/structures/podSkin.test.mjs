@@ -151,7 +151,9 @@ test('lantern: one mesh, the round-21 pod centre and rng draws, wind attributes 
   const pos = g.attributes.position;
   for (let i = 0; i < pos.count; i++) (ymax = Math.max(ymax, pos.getY(i))), (ymin = Math.min(ymin, pos.getY(i)));
   assert.ok(Math.abs(ymax) < 0.03, `top ${ymax}`);
-  assert.ok(Math.abs(ymin + 0.3 - -0.48) < 0.02, `bottom ${ymin}`);
+  // 2026-09-23 (round 55, the crafted lantern): the tip is an open hoop now, its underside 2.4 cm
+  // above the old closed tip
+  assert.ok(Math.abs(ymin + 0.3 - -0.456) < 0.02, `bottom ${ymin}`);
   // wind: some vertices move (the collar's tips), most are rigid
   const amt = g.attributes.aAmount;
   let moving = 0;
@@ -163,8 +165,9 @@ test('lantern: one mesh, the round-21 pod centre and rng draws, wind attributes 
   let dark = 0;
   for (let i = 0; i < uv.count; i++) (uv.getY(i) < POD_BODY_V ? body++ : dark++);
   assert.ok(body > 500 && dark > 200);
-  // triangles: a pod stays under 4 k
-  assert.ok(g.index.count / 3 < 4000, `${g.index.count / 3} triangles`);
+  // triangles: a pod stays under 4.5 k (2026-09-23, round 55: +≈ 1.1 k for the crafted frame — ribs,
+  // hoops, the lining seen through the opening, the wick cup and flame; was 4 k)
+  assert.ok(g.index.count / 3 < 4500, `${g.index.count / 3} triangles`);
 });
 
 test('lantern: deterministic — the same hook and stream build identical vertices', () => {

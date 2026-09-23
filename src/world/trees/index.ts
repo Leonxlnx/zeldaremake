@@ -2061,6 +2061,11 @@ export async function create(ctx: WorldContext): Promise<WorldSystem> {
   };
   // fable-4 (round 50, W08 at C): the hero stem's instance tilt — whitebark.ts HERO_WHITE_BARK_TILTS
   for (const p of whitePlacements) seatFamily(whites, p, p.variant, whiteBarkTilt(p.x, p.z));
+  // Props use the existing bole seats to stay clear of trunks; tree geometry and LODs stay unchanged.
+  ctx.shared.slimTrunks = whitePlacements.map((p) => {
+    const w = whites[p.variant];
+    return { x: p.x, z: p.z, r: w.params.trunkRadius * p.scale * 1.25, y0: p.y - 0.5, y1: p.y + w.lods[0].height * p.scale * 0.6 };
+  });
   const familyMeshes = <P, T extends { x: number; z: number; scale: number }>(variants: FamilyVariant<P, T>[], label: string, material: Material, depth: Material, parent: Group) => {
     for (const w of variants) {
       const n = Math.max(1, w.placements.length);

@@ -51,9 +51,21 @@ export interface LanternRig {
 
 type RGB = [number, number, number];
 
+/**
+ * Round 55 (owner review 2026-09-23: "believable structure — frame, supports, translucent panels, a
+ * light source, subtle internal detail, wear, convincing attachment"): the husk is a crafted
+ * lantern. Its segments are thin panels held by bent-wood RIBS over the seams, a hoop round an open
+ * bottom and a band under the calyx; through the opening (a hanging lantern is seen from below) a
+ * flame stands on a wick cup slung from the hoop on three spokes, and the panels are lined inside,
+ * lit. Frame, cup and spokes ride the atlas' cord band (no glow), the flame the body band's hottest
+ * row. The bottom opens at Y_OPEN, radius R_OPEN (scale 1).
+ */
+const Y_OPEN = 0.032;
+const R_OPEN = 0.058;
+
 const BODY_PROFILE: [number, number][] = [
-  [0.012, 0.0],
-  [0.055, 0.025],
+  [R_OPEN, Y_OPEN],
+  [0.074, 0.046],
   [0.1, 0.075],
   [0.135, 0.14],
   [0.148, 0.2],
@@ -75,8 +87,8 @@ const BODY_H = 0.315;
 /** the stem's foot (the calyx's top) and its length (scale 1) */
 const STEM_Y = 0.405;
 const STEM_H = 0.075;
-/** the husk's groove depth as a share of the body radius, on a seam mid-body */
-const GROOVE = 0.075;
+/** the husk's groove depth as a share of the body radius, on a seam mid-body (round 55: shallower — a rib covers each seam) */
+const GROOVE = 0.05;
 /** the cord's radius (m, not scaled — a cord is a cord) and its lay (m per turn of the strands) */
 const CORD_R = 0.011;
 const CORD_LAY = 0.03;
@@ -128,24 +140,146 @@ const mapped = (c: RGB, k = 1): RGB => [(c[0] * k) / POD_MAP_MEAN, (c[1] * k) / 
  * Round 43: the ribbed husk body. `ribs` segments round the pod; seam grooves at φ = k · 2π /
  * ribs, the segments bulging between; the noise gives each segment a little of its own girth.
  */
-function ribbedBody(scale: number, ribs: number, noise: Noise2D, tint: RGB): BufferGeometry {
-  const cols = ribs * 8;
+function ribbedBody(scale: number, ribs: number, noise: Noise2D, tint: RGB, opts: { inner?: boolean; freshPanel?: number } = {}): BufferGeometry {
+  // the lining is only seen through the bottom opening: a coarse copy
+  const cols = ribs * (opts.inner ? 3 : 8);
+  const inset = opts.inner ? 0.985 : 1;
   const geo = gridSurface(
     (u, vb, out) => {
       const phi = u * TAU;
-      const y = vb * BODY_H;
+      const y = Y_OPEN + vb * (BODY_H - Y_OPEN);
       const bulge = podBulge(phi, ribs);
       // each side of the pod a little of its own girth (a smooth field round φ, so no step on a seam)
       const girth = 1 + 0.03 * noise.noise(Math.cos(phi) * 1.4 + 0.5, Math.sin(phi) * 1.4 + vb * 2.1) * smoothstep(0, 0.2, vb) * smoothstep(1, 0.85, vb);
-      const r = bodyRadius(y) * girth * (1 - grooveDepth(vb) * (1 - bulge));
+      const r = bodyRadius(y) * girth * (1 - grooveDepth(vb) * (1 - bulge)) * inset;
       out.position.set(Math.cos(phi) * r * scale, y * scale, Math.sin(phi) * r * scale);
-      out.uv = [podU(phi, ribs), vb * POD_BODY_V];
+      // the lining takes the gradient's dimmer upper rows: seen through the opening, the flame is
+      // the brightest thing inside
+      out.uv = [podU(phi, ribs), (opts.inner ? 0.5 + 0.45 * vb : vb) * POD_BODY_V];
       const ao = 1 - 0.14 * (1 - bulge) * smoothstep(0, 0.15, vb);
-      out.color = [tint[0] * ao, tint[1] * ao, tint[2] * ao];
+      // one panel was replaced at some point: a paler, greener skin between two of the ribs
+      const seg = Math.floor((((phi / TAU) * ribs) % ribs + ribs) % ribs);
+      const fresh = opts.freshPanel === seg ? 1 : 0;
+      out.color = [tint[0] * ao * (1 + 0.1 * fresh), tint[1] * ao * (1 + 0.2 * fresh), tint[2] * ao * (1 + 0.05 * fresh)];
     },
-    { cols, rows: 18, closedU: true },
+    { cols, rows: opts.inner ? 6 : 18, closedU: true },
   );
-  return faceTowards(geo, (p, o) => o.set(p.x * 4, p.y, p.z * 4));
+  return opts.inner ? faceTowards(geo, (p, o) => o.set(0, p.y, 0)) : faceTowards(geo, (p, o) => o.set(p.x * 4, p.y, p.z * 4));
+}
+
+/**
+ * Round 55: the lantern's frame — a bent-wood rib over every seam from the bottom hoop to the band
+ * under the calyx, standing ≈ 7 mm off the panels, the two hoops, and the wick cup on three spokes
+ * with its flame. Returns the rigid parts (no glow but the flame).
+ */
+function lanternFrame(scale: number, ribs: number, rng: Rng, woodTint: RGB): BufferGeometry[] {
+  const parts: BufferGeometry[] = [];
+  const yTop = 0.296;
+  for (let k = 0; k < ribs; k++) {
+    const phi = (k / ribs) * TAU;
+    const tone = 0.85 + 0.3 * rng();
+    const pts: Vector3[] = [];
+    for (let i = 0; i <= 8; i++) {
+      const y = lerp(Y_OPEN - 0.004, yTop, i / 8);
+      const vb = (y - Y_OPEN) / (BODY_H - Y_OPEN);
+      const r = bodyRadius(y) * (1 - grooveDepth(clamp(vb, 0, 1))) + 0.007;
+      pts.push(new Vector3(Math.cos(phi) * r * scale, y * scale, Math.sin(phi) * r * scale));
+    }
+    const rib = sweepTube(new CatmullRomCurve3(pts, false, 'catmullrom', 0.5), {
+      radius: (t) => 0.0058 * scale * (1 - 0.2 * t),
+      tubularSegments: 8,
+      radialSegments: 4,
+      uvMetres: 0.04,
+      // soot darkens the ribs toward the top, the bottom is handled and paler
+      color: (t) => {
+        const k2 = tone * (1.08 - 0.35 * smoothstep(0.55, 1, t));
+        return [woodTint[0] * k2, woodTint[1] * k2, woodTint[2] * k2];
+      },
+    });
+    cordBandUv(rib);
+    parts.push(rib);
+  }
+  const ring = (y: number, r: number, tube: number, k2: number) => {
+    const g = new TorusGeometry(r * scale, tube * scale, 4, 14);
+    g.rotateX(Math.PI / 2);
+    g.translate(0, y * scale, 0);
+    setV(g, POD_CORD_V);
+    setColorAttribute(g, [woodTint[0] * k2, woodTint[1] * k2, woodTint[2] * k2]);
+    return g;
+  };
+  // the hoop round the opening (handled, paler) and the band under the calyx (sooted)
+  parts.push(ring(Y_OPEN, R_OPEN + 0.005, 0.0078, 1.05), ring(yTop, bodyRadius(yTop) + 0.006, 0.0065, 0.7));
+  // the wick cup: a small clay cup slung from the hoop on three spokes, the flame standing in it
+  const cupTint: RGB = [woodTint[0] * 1.3, woodTint[1] * 1.15, woodTint[2] * 1.0];
+  const cup = gridSurface(
+    (u, v, out) => {
+      const phi = u * TAU;
+      const r = lerp(0.016, 0.024, v) * scale;
+      const y = lerp(0.046, 0.064, v) * scale;
+      out.position.set(Math.cos(phi) * r, y, Math.sin(phi) * r);
+      out.uv = [u, POD_CORD_V];
+      out.color = cupTint;
+    },
+    { cols: 10, rows: 3, closedU: true },
+  );
+  faceTowards(cup, (p, o) => o.set(p.x * 4, p.y - 0.05, p.z * 4));
+  parts.push(cup);
+  const spin = rng() * TAU;
+  for (let s = 0; s < 3; s++) {
+    const a = spin + (s / 3) * TAU;
+    const from = new Vector3(Math.cos(a) * 0.023 * scale, 0.058 * scale, Math.sin(a) * 0.023 * scale);
+    const to = new Vector3(Math.cos(a) * R_OPEN * scale, Y_OPEN * scale, Math.sin(a) * R_OPEN * scale);
+    const spoke = sweepTube(new LineCurve3(from, to), { radius: () => 0.0024 * scale, tubularSegments: 2, radialSegments: 4, uvMetres: 0.02, color: () => [woodTint[0] * 0.8, woodTint[1] * 0.8, woodTint[2] * 0.8] });
+    cordBandUv(spoke);
+    parts.push(spoke);
+  }
+  // the flame: a teardrop on the cup, on the body band's hottest row (mid-segment, the core)
+  const lean = (rng() - 0.5) * 0.004;
+  const flame = gridSurface(
+    (u, v, out) => {
+      const phi = u * TAU;
+      const r = 0.016 * scale * Math.pow(Math.sin(Math.PI * Math.min(1, 0.06 + v * 0.94)), 0.75) * (1 - 0.45 * v);
+      out.position.set(Math.cos(phi) * r + lean * v * scale, (0.062 + 0.064 * v) * scale, Math.sin(phi) * r);
+      out.uv = [0.5 / POD_TEX_SEGMENTS, 0.012];
+      out.color = [1.2, 1.0, 0.7];
+    },
+    { cols: 8, rows: 6, closedU: true },
+  );
+  faceTowards(flame, (p, o) => o.set(p.x * 4, p.y, p.z * 4));
+  parts.push(flame);
+  return parts;
+}
+
+/**
+ * Round 55: what a house lantern hangs from — a wooden toggle pinned under the eave / arch (two
+ * short pins up into the wood) with the cord's two turns round it. World space, static (the pod
+ * swings from the toggle's centre, which is `hook`). `across` is the toggle's axis (horizontal).
+ */
+export function lanternHanger(hook: Vector3, across: Vector3, scale = 1): BufferGeometry {
+  const ax = across.clone().setY(0).normalize();
+  const half = 0.065 * scale;
+  const c = hook.clone().add(new Vector3(0, 0.014 * scale, 0));
+  const a = c.clone().addScaledVector(ax, -half);
+  const b = c.clone().addScaledVector(ax, half);
+  const tint: RGB = [0.62, 0.5, 0.4];
+  const toggle = sweepTube(new LineCurve3(a, b), { radius: (t) => 0.0115 * scale * (1 - 0.12 * Math.abs(2 * t - 1)), tubularSegments: 4, radialSegments: 8, uvMetres: 0.08, capStart: true, capEnd: true, color: () => tint });
+  const parts: BufferGeometry[] = [toggle];
+  for (const end of [-1, 1]) {
+    const p = c.clone().addScaledVector(ax, end * half * 0.75);
+    parts.push(sweepTube(new LineCurve3(p, p.clone().add(new Vector3(0, 0.06 * scale, 0))), { radius: () => 0.0065 * scale, tubularSegments: 2, radialSegments: 6, uvMetres: 0.05, capEnd: true, color: () => [tint[0] * 0.8, tint[1] * 0.8, tint[2] * 0.8] }));
+  }
+  // the cord's two turns round the toggle
+  for (const off of [-0.012, 0.012]) {
+    const turn = new TorusGeometry(0.0165 * scale, CORD_R * 0.85, 5, 12);
+    // the torus lies in its XY plane (axis z): turn its axis onto the toggle's
+    turn.rotateY(Math.atan2(ax.x, ax.z));
+    const p = c.clone().addScaledVector(ax, off * scale);
+    turn.translate(p.x, p.y, p.z);
+    setColorAttribute(turn, [0.42, 0.32, 0.22]);
+    parts.push(turn);
+  }
+  for (const g of parts) if (!g.attributes.color) setColorAttribute(g, tint);
+  return merge(parts);
 }
 
 /** Round 43: the scalloped calyx — the brim dips over every seam, one leaf tile per segment. */
@@ -334,9 +468,15 @@ export function buildLantern(hook: Vector3, cordLength: number, mats: StructureM
   const own = rng.fork(`husk/${hook.x.toFixed(3)}/${hook.y.toFixed(3)}/${hook.z.toFixed(3)}`);
   const noise = new Noise2D(`pod/${hook.x.toFixed(3)}/${hook.y.toFixed(3)}/${hook.z.toFixed(3)}`);
   const ribs = POD_RIBS[0] + Math.floor(own() * (POD_RIBS[1] - POD_RIBS[0] + 1));
+  // round 55: the frame, the flame and the replaced panel draw from their own fork (no stream above moves)
+  const craft = own.fork('craft');
+  const freshPanel = craft() < 0.6 ? Math.floor(craft() * ribs) : -1;
 
   // dark diffuse so sunlight does not wash the emissive gradient to cream
-  const body = ribbedBody(scale, ribs, noise, mapped(kind === 'lime' ? [0.4, 0.52, 0.12] : [0.5, 0.34, 0.12]));
+  const bodyTint = mapped(kind === 'lime' ? [0.4, 0.52, 0.12] : [0.5, 0.34, 0.12]);
+  const body = ribbedBody(scale, ribs, noise, bodyTint, { freshPanel });
+  const lining = ribbedBody(scale, ribs, noise, bodyTint, { inner: true });
+  const frame = lanternFrame(scale, ribs, craft, mapped([0.2, 0.13, 0.075]));
   const cap = scallopedCap(scale, ribs, mapped([0.28, 0.33, 0.16], capTint));
   // (dark: the fins sit in the pods' own point light, so a mid tint rendered pale grey-green)
   const fins = sepals(scale, ribs, own, mapped([0.12, 0.18, 0.06], capTint));
@@ -354,7 +494,7 @@ export function buildLantern(hook: Vector3, cordLength: number, mats: StructureM
   const collar = leafCollar(stem.top, scale, own, mapped([0.3, 0.42, 0.12], capTint));
 
   // every rigid part carries zero wind, so the merged geometry keeps the collar's attributes
-  const rigid = [body, cap, ...fins, stem.geo, cord, ...hitch, knot];
+  const rigid = [body, lining, ...frame, cap, ...fins, stem.geo, cord, ...hitch, knot];
   for (const g of rigid) windAttrs(g, 0, 0);
   const geo = merge([...rigid, ...collar]);
   // shift so the hook (top of cord) is at the origin of the pivot

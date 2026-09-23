@@ -1,0 +1,274 @@
+{
+  "baselineSource": "105a61d545674132e6400366b96a84d37046c08b",
+  "baselineRoot": "4ad2fb50",
+  "baselineIdenticalInputs": [
+    "src",
+    "public",
+    "index.html",
+    "package.json",
+    "package-lock.json",
+    "vite.config.ts",
+    "tsconfig.json",
+    "gauntlet/scripts/lib/browser.mjs"
+  ],
+  "candidateSource": "4b2fe8e6d7604d45e1f47f3be0c51c2859732a08",
+  "helperSha256": "1c12ca8459d9d1a8d5a5bb28536356443a550000272d89d8b3eab17cc9a1b6ca",
+  "errors": [],
+  "views": {
+    "A_stairs": {
+      "before": {
+        "simTime": 12.6,
+        "drawCalls": 479,
+        "triangles": 8867001,
+        "geometries": 335,
+        "textures": 91,
+        "programs": 101,
+        "width": 1280,
+        "height": 720,
+        "pixelRatio": 1
+      },
+      "after": {
+        "simTime": 12.6,
+        "drawCalls": 484,
+        "triangles": 8757903,
+        "geometries": 339,
+        "textures": 91,
+        "programs": 101,
+        "width": 1280,
+        "height": 720,
+        "pixelRatio": 1
+      },
+      "triangleDelta": -109098,
+      "drawDelta": 5,
+      "withinExistingCaps": true,
+      "changedPixels": 96206,
+      "fractionOver8": 0.04372938368055555,
+      "maxChannelDifference": 165,
+      "meanAbsoluteChannelDifference": 1.246197193287037,
+      "meanDisplayLuma": {
+        "before": 0.34997748640758497,
+        "after": 0.3459346737407383
+      }
+    },
+    "B_house": {
+      "before": {
+        "simTime": 12.6,
+        "drawCalls": 466,
+        "triangles": 8068261,
+        "geometries": 367,
+        "textures": 91,
+        "programs": 101,
+        "width": 1280,
+        "height": 720,
+        "pixelRatio": 1
+      },
+      "after": {
+        "simTime": 12.6,
+        "drawCalls": 472,
+        "triangles": 7960753,
+        "geometries": 371,
+        "textures": 91,
+        "programs": 101,
+        "width": 1280,
+        "height": 720,
+        "pixelRatio": 1
+      },
+      "triangleDelta": -107508,
+      "drawDelta": 6,
+      "withinExistingCaps": true,
+      "changedPixels": 46801,
+      "fractionOver8": 0.007278645833333333,
+      "maxChannelDifference": 184,
+      "meanAbsoluteChannelDifference": 0.15213541666666666,
+      "meanDisplayLuma": {
+        "before": 0.3363425635826255,
+        "after": 0.33643030587737244
+      }
+    },
+    "C_lookback": {
+      "before": {
+        "simTime": 12.6,
+        "drawCalls": 379,
+        "triangles": 7112969,
+        "geometries": 433,
+        "textures": 91,
+        "programs": 101,
+        "width": 1280,
+        "height": 720,
+        "pixelRatio": 1
+      },
+      "after": {
+        "simTime": 12.6,
+        "drawCalls": 378,
+        "triangles": 6927571,
+        "geometries": 437,
+        "textures": 91,
+        "programs": 101,
+        "width": 1280,
+        "height": 720,
+        "pixelRatio": 1
+      },
+      "triangleDelta": -185398,
+      "drawDelta": -1,
+      "withinExistingCaps": true,
+      "changedPixels": 36735,
+      "fractionOver8": 0.013987630208333334,
+      "maxChannelDifference": 166,
+      "meanAbsoluteChannelDifference": 0.4038914207175926,
+      "meanDisplayLuma": {
+        "before": 0.33051119086964054,
+        "after": 0.33059650342153774
+      }
+    },
+    "D_log": {
+      "before": {
+        "simTime": 12.6,
+        "drawCalls": 434,
+        "triangles": 8253079,
+        "geometries": 461,
+        "textures": 91,
+        "programs": 101,
+        "width": 1280,
+        "height": 720,
+        "pixelRatio": 1
+      },
+      "after": {
+        "simTime": 12.6,
+        "drawCalls": 440,
+        "triangles": 8122467,
+        "geometries": 465,
+        "textures": 91,
+        "programs": 101,
+        "width": 1280,
+        "height": 720,
+        "pixelRatio": 1
+      },
+      "triangleDelta": -130612,
+      "drawDelta": 6,
+      "withinExistingCaps": true,
+      "changedPixels": 62763,
+      "fractionOver8": 0.00888454861111111,
+      "maxChannelDifference": 183,
+      "meanAbsoluteChannelDifference": 0.20604998553240741,
+      "meanDisplayLuma": {
+        "before": 0.3400896780614628,
+        "after": 0.3403901405980657
+      }
+    },
+    "E_ground": {
+      "before": {
+        "simTime": 12.6,
+        "drawCalls": 466,
+        "triangles": 8068261,
+        "geometries": 461,
+        "textures": 91,
+        "programs": 101,
+        "width": 1280,
+        "height": 720,
+        "pixelRatio": 1
+      },
+      "after": {
+        "simTime": 12.6,
+        "drawCalls": 472,
+        "triangles": 7960753,
+        "geometries": 465,
+        "textures": 91,
+        "programs": 101,
+        "width": 1280,
+        "height": 720,
+        "pixelRatio": 1
+      },
+      "triangleDelta": -107508,
+      "drawDelta": 6,
+      "withinExistingCaps": true,
+      "changedPixels": 46801,
+      "fractionOver8": 0.007278645833333333,
+      "maxChannelDifference": 184,
+      "meanAbsoluteChannelDifference": 0.15213541666666666,
+      "meanDisplayLuma": {
+        "before": 0.3363425635826255,
+        "after": 0.33643030587737244
+      }
+    },
+    "F_canopy": {
+      "before": {
+        "simTime": 12.6,
+        "drawCalls": 449,
+        "triangles": 8312047,
+        "geometries": 477,
+        "textures": 91,
+        "programs": 101,
+        "width": 1280,
+        "height": 720,
+        "pixelRatio": 1
+      },
+      "after": {
+        "simTime": 12.6,
+        "drawCalls": 451,
+        "triangles": 8177841,
+        "geometries": 481,
+        "textures": 91,
+        "programs": 101,
+        "width": 1280,
+        "height": 720,
+        "pixelRatio": 1
+      },
+      "triangleDelta": -134206,
+      "drawDelta": 2,
+      "withinExistingCaps": true,
+      "changedPixels": 95597,
+      "fractionOver8": 0.048328993055555554,
+      "maxChannelDifference": 144,
+      "meanAbsoluteChannelDifference": 1.3596788194444445,
+      "meanDisplayLuma": {
+        "before": 0.3241439632967971,
+        "after": 0.31976498662962954
+      }
+    }
+  },
+  "extra": {
+    "s2-join-close": {
+      "before": {
+        "simTime": 12.6,
+        "drawCalls": 437,
+        "triangles": 9841463,
+        "geometries": 382,
+        "textures": 91,
+        "programs": 100,
+        "width": 1280,
+        "height": 720,
+        "pixelRatio": 1
+      },
+      "after": {
+        "simTime": 12.6,
+        "drawCalls": 442,
+        "triangles": 9723855,
+        "geometries": 497,
+        "textures": 91,
+        "programs": 102,
+        "width": 1280,
+        "height": 720,
+        "pixelRatio": 1
+      },
+      "camera": {
+        "position": [
+          8.194,
+          1.44,
+          -0.417
+        ],
+        "direction": [
+          0.5697120986994085,
+          -0.10238728346330814,
+          -0.8154415790113474
+        ],
+        "fov": 45
+      },
+      "baselineSource": "4ad2fb5085cdf23dc2fe627588c418f8cc4a87da",
+      "baselineSha256": "4db7fdcf2f1f3ed18df22be531f9358247ea1c24c3f3c498ede59d0820e03714",
+      "candidateSha256": "2daad66f8da90198eff656f3e5ba6386134afe7f15354da01c237189aa690ce5",
+      "triangleDelta": -117608,
+      "drawDelta": 5,
+      "note": "Root requested one exact-pose baseline after no historical source-equivalent image was found. Same saved root build; no additional six-view baseline boot. Close pose is diagnostic, not a hero rubric view."
+    }
+  }
+}
