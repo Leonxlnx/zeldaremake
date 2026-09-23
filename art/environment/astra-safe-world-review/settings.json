@@ -1,0 +1,32 @@
+{
+  "sourceSha": "4b2fe8e6d7604d45e1f47f3be0c51c2859732a08",
+  "dist": "dist",
+  "bundle": "index-DwReWLkW.js",
+  "out": "art/environment/astra-safe-world-review/native",
+  "views": [
+    "A_stairs",
+    "B_house",
+    "C_lookback",
+    "D_log",
+    "E_ground",
+    "F_canopy",
+    "s2-join-close"
+  ],
+  "poses": {
+    "s2-join-close": {
+      "p": [
+        8.194,
+        1.44,
+        -0.417
+      ],
+      "t": [
+        8.973,
+        1.3,
+        -1.532
+      ],
+      "fov": 45
+    }
+  },
+  "poseSource": "b510b152:art/environment/owner-2026-09-23/pass3/stair-close-poses.json, unchanged s2-join-close",
+  "baseline": ""
+}
