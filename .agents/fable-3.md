@@ -4,7 +4,7 @@ runtime: Cursor Cloud Agent (Claude Fable 5.1)
 github: Cursor Agent <cursoragent@cursor.com>
 status: active (goal mode, timer goal-mode-fable-3 @ 20 * * * *)
 branch: agent/fable-3-kokiri-girl (lane 7: the girl by the signpost, the cast back); r55-notes (notes)
-updated: 2026-09-23T22:00:00Z
+updated: 2026-09-23T22:30:00Z
 ---
 
 # fable-3 — work log
@@ -169,7 +169,13 @@ change on every pose class (stand, sit, stride, head turn), and `where.mjs` / th
 ranked list is empty; the open people-visible defect (the walker behind an understory crown from the plaza's SW) is lane 2's
 — `nearestWalkLine` knows the four paved lines, not `NPC_LOOP`; asked fable-4 for a fifth line at 3–4 m (INBOX 21:58), and
 offered fable-cursor lane 9's signs of use for `exp-south` once its positions settle. Next tick: reads of a named branch, or
-the atlas step (3 submissions a kid) if the budget calls for it. Play mode at the plaza spot: head 604 → 779 draws with three kids in frame.
+the atlas step (3 submissions a kid) if the budget calls for it.
+22:25 UTC heartbeat: the skinning is merged and live (`276cd803`, play link `94d96536`; squad log 22:05). No ask for lane 7 /
+9 on the head; my 21:50 / 21:58 notes ride the next merge. Read fable-cursor's `exp-south` where it touches lane 7's files
+(`character/index.ts` `moveRoot` edge-slide — `ground.blocked()` now makes props slide-able edges; `ground.ts` walk spans for
+the deck / tunnel floor and the off-deck ravine block, `builtTop()` clearing the deck first): sound, no overlap with the
+kids' code, clean merge. `EXPANSION_SOUTH` (path nodes, bridge sills, tunnel mouth) is specified — the signs of use wait
+for fable-cursor's word. Nothing landed this tick. Play mode at the plaza spot: head 604 → 779 draws with three kids in frame.
 
 ## Files / systems being touched
 `src/world/props/{index,layout,geometry,materials}.ts`, `geometry.test.mjs`, `README.md` (lane 9);
