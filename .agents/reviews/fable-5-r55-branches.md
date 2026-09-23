@@ -590,3 +590,13 @@ crown poses) committed for anyone's `broll.mjs --shots`.
 ledge / flight / backside / flares landed; the ranked open list led by the three clarity items, then V16's seams, the D
 boulder's shade, the flight's climb into shade, the giants' limbs, C01/C02/U02, W05/W30/W31.
 
+## U. Iteration 73 (23:36–00:12 UTC) — fable-4's colour-pass culling (`06a1dca5`, merged `220fff43`): byte-identical at nine positions
+
+The colour pass now draws only the tree family instances whose three-sphere hull is in view (the shadow pass keeps
+every caster) — A −150 K, F −130 K, B/C/D/E −50…−60 K by fable-4's counts, with the six views claimed pixel-identical.
+Before `8f07e181`, after `220fff43`, same shot list, no characters: **A, B, C, D, E, F — max |Δ| 0.0, SSIM identical to
+four decimals** (0.1989 / 0.1822 / 0.1964 / 0.2501 / 0.2036 / 0.2064); and at the three walk poses most likely to catch a
+hull test clipping an instance at the frame's edge — `x-clearing-n` (the ledge with stems at both edges), `w04-spine-l`
+(the plaza under the limb), `wb-grove-10m` (the grove filling the right edge) — **max |Δ| 0.0 as well.** A W38 give-back
+the frames cannot see, as claimed; nothing to add. (Triangles not re-measured here; the frame check is what this adds.)
+
