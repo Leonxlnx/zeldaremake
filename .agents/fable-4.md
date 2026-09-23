@@ -369,3 +369,5 @@ nearCanopy, materials, index otherwise) is edited.
   Posted the plateau-oak authored-leaves density (257 K in a 7 m cluster at 21 m) to Astra. sectorgroups merged.
 - 05:52 — the owner's `u-open-up` flat card attributed to `distant-5-near` (the far-trunk row's east pole, band-only
   variant 5, floor card at 68–71°); options posted for distant.ts owners. `round52-uopen-attrib/`.
+- 07:10 — the two culls under the free camera vs a no-cull build at eight poses: 0–10 px (leaf-edge order), −3…−16 %
+  triangles (most looking up). `round52-freecam-cull/`.

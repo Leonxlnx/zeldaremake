@@ -2,18 +2,23 @@
 
 Everything here was captured from running builds on this VM (Chrome + SwiftShader, 4 CPU cores,
 no GPU). Before = `47773f13` (the build the owner played); after = the branch head recorded in
-each run's `BASELINE_SHA` (final: `e48d5e8e` + evidence commits).
+each run's `BASELINE_SHA` (pass 1 final: `e48d5e8e` + evidence commits; pass 2 final: `a5dbf45f`).
+**Pass 2 and the final rubric are at the end of this file.**
 
-- `shots.json` — the 22 fixed free-camera poses used for every before / after pair
-  (`gauntlet/scripts/broll.mjs --shots … --test --settle 6`, 960 × 540, character hidden).
-- `compare/<pose>.jpg` — before | after for each pose (`gauntlet/scripts/compare-sheet.py`).
+- `shots.json` — the fixed free-camera poses used for every before / after pair
+  (`gauntlet/scripts/broll.mjs --shots … --test --settle 6`, 960 × 540, character hidden): the 22 of
+  pass 1 and four hut poses added in pass 2 (`h-ladder`, `h-west-herbs`, `h-north-east`, `h-west-front`).
+- `compare/<pose>.jpg` — pass 1: before | after for each pose (`gauntlet/scripts/compare-sheet.py`).
+- `compare-pass2/<pose>.jpg` — pass 2: before (`47773f13`) | final (`a5dbf45f`) for all 26 poses.
 - `lighting/stairs-three-suns.jpg` — both staircases under the default sun, a low raking sun from
   the east and a dim sun (`gauntlet/scripts/probe-look.mjs`, runtime sun override).
 - `play/` — play-mode captures from `gauntlet/scripts/playtest.mjs` (real key holds, mouse drags,
   an emulated gamepad; the follow camera as the player has it), before and after, and the
   measurement files `playtest-before.json` / `playtest-after.json`.
+- `play/pass2/` — pass 2's play tests on the final builds (`playtest.json`, `playtest-interact-resize.json`,
+  `playtest-final-look.json`, `normal-run.json`) and their sheets.
 - Movement clips (look sweeps beside Saria's lanterns and at the plaza, the climb up the second
-  staircase) are attached to the pull request.
+  staircase), for both passes, are attached to the pull request.
 
 ## Diagnosis — verified vs suspected
 
@@ -147,7 +152,7 @@ Link-view nose-zone "mismatch" is the next step's slab nose and timber overhangi
 riser line by up to 10 cm; the feet plant on the rendered surface there (`character/ground.ts`
 `surface`), the root climbs at the riser line.
 
-## 50-point rubric (0–4; evidence paths are in this folder)
+## 50-point rubric — pass 1 (0–4; evidence paths are in this folder)
 
 | # | item | score | evidence |
 |---|---|---|---|
@@ -205,7 +210,7 @@ riser line by up to 10 cm; the feet plant on the rendered surface there (`charac
 **Total: 157 / 200.** Every must-reach item (2, 3, 9, 16, 18, 21, 23, 24, 41, 42, 43, 50) is at 3 or
 4. The 185 target is not met: most items are "strong" (3), not "polished" (4), and three are 2.
 
-## Unfinished (exact remaining defects)
+## Unfinished after pass 1 (pass 2 below closes some of these)
 
 - **15 — hut variation:** the three village huts are one design at three sizes; no per-hut features
   (shutters, balcony, flower box) were added.
@@ -222,3 +227,199 @@ riser line by up to 10 cm; the feet plant on the rendered surface there (`charac
   (play only); vegetation outside that cone can still briefly cover the view in dense ferns.
 - The pose `b-upper` in `shots.json` stood inside a bank in both builds and was replaced by
   `b-upper-2`; no gauntlet take was sealed for this round (a take is ~6 h on this VM).
+
+## Pass 2 (2026-09-23, 03:30–06:00 UTC) — the lowest scores of pass 1
+
+Final build `c526a5b8` (renders in `compare-pass2/`; the play tests in `play/pass2/` ran on `a5dbf45f`,
+which differs from it only in the distant floor cards' shading from below — the open-north and
+upper-house look spots were re-run on `c526a5b8`). Before = `47773f13` throughout, so each sheet shows
+the whole owner review, not only this pass.
+
+### Diagnosis — verified
+
+- **The upper house from the plateau (item 38).** The veil over `b-upper-2` is the god-ray march:
+  rendered with `fx=norays` the house is crisp. The plateau path passes 0.7–1.1 m from the axis of the
+  narrow × 7.5 shaft column at (13.3, 10, −14.6) (`trees/corridors.ts`; the × 7.5 gain was tuned so shot
+  F reads the column from 18–31 m), so every ray from a camera there started inside the boost.
+- **Repeated huts (item 15).** The three village huts were one generator at three sizes; nothing told
+  them apart but scale and pod count.
+- **Load errors (item 47).** The two 404s per page load were the music slot fetching
+  `audio/music.ogg|mp3` whether or not the owner had dropped a track in.
+- **Pale straight-edged slab overhead in the north hollow / behind the west hut (items 24, 26, 38).**
+  A depth pick (`probe-look.mjs --pick`) puts it on the floor cards of the tall pale poles in the
+  far-trunk row (`distant-5-near`, x −7…−10, z −46…−49, 22–34 m from those cameras); a red emissive on
+  the crown material marks it. It is not the mist (the mist buffer is empty there), not the god rays
+  (`fx=norays` leaves it), not the haze (a 60 % haze give-back leaves it) and not the albedo (× 0.25
+  leaves it): the crown material bends every card's normal 85 % toward the crown sphere
+  (`CROWN_SPHERE_MIX`), which under the crown's centre is horizontal, so a floor card seen from below
+  met the view at a grazing angle and took the sky's Fresnel sheen — a pale slab whatever its colour.
+- **The 0.10 m "nearest surface" looking up in the open north (item 23).** 0.01 % of the depth samples
+  (one or two of 14 400): a small object at the lens — Navi's core or a falling leaf, the two things in
+  the atmosphere that write depth — not overhead geometry. Pass 1 called it a mist sheet; the mist
+  writes no depth.
+
+### What changed
+
+1. **Each village hut its own character** (`structures/distantHouse.ts` `character`, audit
+   `distantHouseDetail[].character`): the lowest hut (hollow column, on a bank 9.5 m over the north
+   path) got a staked rope ladder down the bank (7.1 m, 22 rungs, the foot stepped out until every rung
+   clears the bole by 0.2 m) and a flower box on its window ledge; the highest (north-east, platform at
+   11.8 m) a railing round its platform (22 posts under a bent-pole rail, open at the walkway and the
+   door) and a hoist — a davit lashed to the wall, a block, a basket of firewood 2.4 m under the
+   platform, the hauling end tied off on a peg; the grower's hut (west column) a sapling rooted in its
+   moss cap, a mossy bark brow over its window (the wall plate stops either side of it) and six bundles
+   of herbs drying under its eave on the side facing the path. The ladder is on the play camera's SLIM
+   list (it may stand behind a rope ladder, never be walled off by it). Cost (structures audit, `f4ed20de`
+   → `c526a5b8`): the three huts 37.8 → 42.8 K triangles and 4 → 6 draws where the village is in view
+   (its new leaf and flower buckets); the ladder, rails, hoist, sapling and brow ride in the village's
+   wood and bark buckets.
+2. **The god rays' boosted columns fade in along the ray** (`postfx/composer.ts`
+   `rayColumnNearStart/End` = 2 / 6 m, `shaders.ts`): a gained column's boost above 1 now ramps in over
+   the first 2–6 m of each ray, so a camera standing in a shaft sees ordinary lit air around it and the
+   shaft itself from outside. Plain columns and every sample past 6 m are untouched: the fixed frames
+   first meet a narrow column 7.7 m (C) to 16.6 m (A) out, and rendered at matched simulation time
+   **F is byte-identical and C differs in one pixel by one level** (the known SwiftShader scatter).
+3. **Distant crowns overhead** (`trees/distant.ts`): inside the near gate (< 48 m) a floor card seen
+   from below keeps its own normal (the slab is gone: a dark, round leaf roof over the pole,
+   `compare-pass2/u-open-up.jpg`, and dark crowns behind the west hut, `b-north-west-side`); on rays
+   climbing 20–44° a crown keeps 60 % of its shade through the haze and a floor card ends round. Zero
+   at 48 m+: the fixed frames see the ring from 51 m out.
+4. **No request for a file that is not there** (`vite.config.ts`, `audio/music.ts`): the optional
+   track is looked up when Vite starts; the play tests record **0 page errors** (was 2 per load).
+5. **Performance**: fable-4's per-giant / per-crown-band colour-pass culling merged (`084da3da`:
+   −148 K … −360 K triangles at the six fixed views, pixel-identical); a frame-pacing measurement
+   (below).
+6. **Tooling**: `playtest.mjs --only pacing`; `probe-look.mjs` composer buffers (`atmoDebug`),
+   `--audit`, `--pick` (the mesh under a pixel, from the frame's own depth).
+
+### Measurements (final build, play mode)
+
+From `play/pass2/playtest.json` (main run: look, pad, stairs, climb, walk, perf, pacing) and
+`play/pass2/playtest-interact-resize.json`, both on `a5dbf45f` at 960 × 540 through `?test=1`.
+
+**Unchanged by this pass (identical to pass 1's final numbers):** the look range at all ten spots
+(rest −3.3°, drag up +60.2°, drag down −35.5°, frame top 83.2°), every clearance reading, the right
+stick, both climbs (0 stalls, same end points), all four walk routes (reached, no stuck point), the
+stair collision table (main tread span 0.03 % > 3 cm; nose zone as before).
+
+**Interactions and resilience:** jump (0.50 m, lands), equipment bag (opens, world holds, closes,
+walks on), P free camera and back; resize 640 × 360 → 1280 × 720 → 960 × 540 correct each time;
+reload back in play mode and walking. **Page errors: 0** (pass 1: the two music 404s per load).
+
+**Normal launch** (`npm run build` + `npm run preview`, no flags, `gauntlet/scripts/normal-run.mjs`) on
+`c526a5b8`: ready in 151 s, play mode with the HUD, 517 draws, 0 errors.
+
+**Frame cost per spot** (draws, triangles, JS step split, synced drawn-frame wall time; this VM's
+SwiftShader wall times depend on what else shares the 4 cores, so they compare nothing across runs):
+
+| spot | draws pass 1 → 2 | triangles pass 1 → 2 | JS step ms (camera / update / render issue) | drawn frame wall s (median of 4) |
+|---|---|---|---|---|
+| plaza | 452 → 521 | 7.77 → 7.43 M | 10.6 (0.1 / 3.4 / 7.1) | 31.9 |
+| stairs2-base | 455 → 522 | 9.86 → 9.53 M | 15.5 (0.1 / 4.4 / 11.0) | 29.9 |
+| saria-side | 450 → 519 | 9.01 → 8.59 M | 15.7 (0.1 / 5.3 / 10.3) | 28.9 |
+| west-house | 386 → 442 | 5.40 → 5.03 M | 8.5 (0.2 / 2.1 / 6.2) | 19.2 |
+
+(+56–69 draws and −0.34 … −0.42 M triangles: fable-4's per-giant, per-crown-band groups, plus the
+village's two new buckets where it is in view.)
+
+**Frame pacing** (`--only pacing`: the walk from the plaza up the second staircase to the upper house,
+steered with held keys, 627 frames = 20.9 s simulated, route completed; every frame's JS step timed by
+the page, every 12th frame drawn and synced; the box ran two SwiftShader jobs at load ≈ 10 on 4 cores):
+
+| measure | value |
+|---|---|
+| JS step (camera + world update), all frames | p50 5.5 ms · p95 13.1 · p99 17.9 · max 21.6 · mean 6.4 |
+| … frames not next to a drawn frame | p50 5.3 ms · p95 11.8 · max 20.3 |
+| … the frame after each drawn frame | p50 10.3 ms · max 21.6 (most likely the LOD pools' builds queued by that draw — not traced) |
+| render issue (JS) of the drawn frames | p50 13.5 ms · max 23.4 |
+| synced drawn-frame wall (SwiftShader) | p50 27.6 s · max 38.1 s |
+| shader programs | 170 at the start, 170 at the end — **no compile during the walk** |
+| JS heap | 1161.6 → 1168.5 MB (max 1169.8) — flat, no GC storm |
+
+The other frames above 11 ms come in short runs late in the walk (frames 520–525 and 604–619, between
+the top of the flight and the upper house) and a few near its start (100, 112–113). What this machine
+cannot show is display-rate pacing: that needs a GPU (`playtest.mjs --only pacing` runs unchanged there).
+
+
+### 50-point rubric — final (0–4)
+
+Changed from pass 1 in **bold** (with the new evidence); every other score and its evidence is as in
+the pass-1 table above, re-checked on the final renders in `compare-pass2/`.
+
+| # | item | pass 1 | final | evidence (final) |
+|---|---|---|---|---|
+| 1 | first staircase as good as or better than baseline | 4 | 4 | `compare-pass2/s1-approach.jpg`, `s1-top-down` (builder untouched) |
+| 2 | second staircase: no obvious repeated pattern | 3 | **4** | `compare-pass2/s2-approach`, `s2-owner`, `s2-climb`, `s2-top-down`: each timber its own grain phase, tint, wear and moss, a repaired pair of newer timbers, three checked old logs, stakes where needed; fable-5 and fable-2 measured the stripes gone at A / F independently (INBOX 03:05 / 03:30) |
+| 3 | step dimensions consistent and navigable | 4 | 4 | `play/pass2/playtest.json` climbs: 0 stalls, traces identical to before |
+| 4 | materials match the construction style | 3 | 3 | `compare-pass2/s2-owner`, `w-wide` |
+| 5 | believable texture scale on treads and risers | 3 | 3 | `compare-pass2/s2-owner` |
+| 6 | wear and dirt with a plausible cause | 3 | 3 | `compare-pass2/s2-owner`, `s2-climb` |
+| 7 | clean edges and joins at close range | 3 | 3 | `compare-pass2/s2-climb` |
+| 8 | lighting reveals no new repetition | 4 | 4 | `lighting/stairs-three-suns.jpg` |
+| 9 | collision matches the visible stairs | 3 | 3 | tread span 99.97 % within 3 cm; the 10 cm nose overhang remains (Unfinished) |
+| 10 | coherent from above, below and while moving | 3 | 3 | `compare-pass2/s2-top-down`, `s2-side`; climb clip |
+| 11 | clear, appealing bungalow silhouettes | 3 | 3 | `compare-pass2/b-saria-front`, `b-west-house`, `h-north-east` (railing), `h-ladder` |
+| 12 | roofs and eaves with believable thickness | 3 | 3 | `compare-pass2/b-west-house`, `h-west-front` |
+| 13 | coherent walls, trim, foundations | 3 | 3 | `compare-pass2/b-west-house`, `h-west-front` (plate stops at the brow) |
+| 14 | buildings meet the terrain naturally | 3 | 3 | `compare-pass2/b-saria-front`, `b-upper-2`, `h-ladder` (the ladder staked at the bank's foot) |
+| 15 | repeated bungalows vary purposefully | 2 | **3** | `compare-pass2/h-ladder`, `h-north-east`, `h-west-herbs`, `h-west-front`, `b-north-east-side`, `b-north-west-side`; audit `distantHouseDetail[].character` (22 rungs, 22 railing posts, a basket 1.03 m off the bole, 7 flower heads, 6 herb bundles) |
+| 16 | lantern frames and mounts detailed and plausible | 3 | 3 | `compare-pass2/b-saria-pods`, `l-saria-under` |
+| 17 | lantern glass and inner light readable | 3 | **4** | `compare-pass2/l-saria-under`: through the open hoop the flame in its clay cup outshines the lit lining; ribs, spokes and hoop read against it |
+| 18 | lantern light affects nearby surfaces | 3 | 3 | `compare-pass2/b-west-house`, `b-saria-front` |
+| 19 | lantern shadows / brightness stable while moving | 3 | 3 | lights fixed; look-sweep clip beside Saria's |
+| 20 | detail improves without clutter | 3 | 3 | `compare-pass2/b-saria-pods`, `h-west-herbs` |
+| 21 | useful upward range | 4 | 4 | +60.2° at all ten spots, frame top 83° (`play/pass2/playtest.json`) |
+| 22 | smooth, predictable mouse / controller | 3 | 3 | `src/camera/follow.test.mjs`; pad trace; look-sweep clips |
+| 23 | no clipping through overhead geometry | 3 | **4** | every surface ≥ 0.85 m from the lens at every spot and angle; the one 0.105 m reading is 0.01 % of the samples (a particle or Navi at the lens — the mist, blamed in pass 1, writes no depth; the same look on `c526a5b8` reads 9.4 m, `play/pass2/playtest-final-look.json`); the new ladder is on the camera's SLIM list |
+| 24 | looking up reveals meaningful detail | 3 | 3 | `play/pass2/look-up-pass1-vs-pass2.jpg`; the upper house unveiled; the hollow's crowns now leaf roofs (`compare-pass2/u-open-up`) |
+| 25 | roof undersides and upper parts finished | 3 | 3 | `compare-pass2/u-saria-up`, `b-north-east-side` |
+| 26 | tall forms hold up from below | 3 | 3 | `compare-pass2/u-open-up` (the pole leads into a dark round crown; the slab is gone), `play/pass2/look-open-north-up-pass1-vs-final.jpg` (the same in play), `u-plaza-up` |
+| 27 | sky and atmosphere suit the setting | 3 | 3 | `compare-pass2/u-*.jpg` |
+| 28 | culling / LOD without sudden gaps | 3 | 3 | crown fades continuous with view angle; sector culling pixel-identical at the six views (fable-4) |
+| 29 | comfortable exposure from ground to sky | 3 | 3 | look-sweep clips |
+| 30 | looking up works at stairs, bungalows, open ground | 4 | 4 | all ten spots (`play/pass2/playtest.json`) |
+| 31 | coherent material language | 3 | 3 | `compare-pass2/w-wide`, `s2-approach` |
+| 32 | large forms read before small details | 3 | 3 | `compare-pass2/w-wide`, `u-plaza-ahead` |
+| 33 | terrain transitions without seams | 3 | 3 | `compare-pass2/w-close`, `s1-approach` |
+| 34 | credible foliage | 3 | 3 | `compare-pass2/s1-approach`, `b-west-house` |
+| 35 | repeated props without stamping | 3 | 3 | logs individual; lanterns vary; huts' features differ |
+| 36 | lighting supports depth and direction | 3 | 3 | `lighting/stairs-three-suns.jpg`, `compare-pass2/w-wide` |
+| 37 | stable, detailed shadows | 3 | 3 | shadow system unchanged; stairs under three suns |
+| 38 | atmosphere adds depth without hiding defects | 2 | **3** | `compare-pass2/b-upper-2` (the veil over the upper house gone, the shaft still seen from outside), `u-open-up` / `b-north-west-side` (the pale slab gone); F byte-identical, C one pixel by one level |
+| 39 | points of interest guide exploration | 3 | 3 | lanterns, houses, both flights, the hollow hut's ladder from the north path (`h-ladder`) |
+| 40 | new details consistent with the style | 3 | 3 | bark, moss, leaf and rope throughout the huts' features |
+| 41 | walking and climbing work | 4 | 4 | identical climb traces, all walk routes complete (`play/pass2/playtest.json`) |
+| 42 | no new snags or invisible walls | 3 | 3 | four routes, no stuck points; limited route coverage |
+| 43 | existing interactions still function | 4 | 4 | jump, bag, free camera (`play/pass2/playtest-interact-resize.json`, `interact-bag.jpg`) |
+| 44 | camera comfortable during movement | 3 | 3 | climb clip (unchanged camera) |
+| 45 | performance measured on this machine | 3 | **4** | per-spot draws / triangles / JS phases / synced walls, and a 627-frame pacing walk with per-frame JS, drawn-frame walls, program count and heap (Measurements); this machine has no GPU and says so |
+| 46 | stable frame pacing in detailed areas | 2 | **3** | no shader compile during the walk, a flat heap, JS step p99 17.9 ms / max 21.6 ms at load 10 on 4 cores; display-rate pacing needs a GPU |
+| 47 | new assets and effects load reliably | 3 | **4** | 0 page errors in every pass-2 run (`play/pass2/*.json`, `normal-run.json`) |
+| 48 | survives resizing, reloading, traversal | 4 | 4 | `play/pass2/playtest-interact-resize.json` |
+| 49 | captures and results from the current build | 4 | 4 | every run records its `BASELINE_SHA` |
+| 50 | final build launches through the normal run path | 4 | 4 | `npm run build`, `npm run preview` on `c526a5b8`: ready in 151 s, play mode with the HUD, 517 draws, 0 errors (`play/pass2/normal-run.json`, `normal-run-*.jpg`) |
+
+**Total: 165 / 200** (pass 1: 157). Every must-reach item (2, 3, 9, 16, 18, 21, 23, 24, 41, 42, 43, 50)
+is at 3 or 4, none is below 3. **The 185 target is not met**: 35 items are "strong" (3), not "polished"
+(4); the remaining gaps below are the ones I could name.
+
+### Unfinished (after pass 2)
+
+- **185 / 200 not reached (165).** The gap is breadth: most items are sound but not polished.
+- **Stair nose zone (item 9):** the collision riser sits up to 10 cm behind the visible nose / timber;
+  the feet plant on the rendered surface, but the root steps up late (`character/ground.ts`, shared
+  with Astra's stair posture — not changed here).
+- **Huts (items 11, 15):** the three village huts share one body (barrel wall, moss cap, platform)
+  under their new features; the west house and far hut share the door-bough dressing. The west
+  hut's sapling shows only from above or far off.
+- **Looking up toward the sun in the north hollow (items 24, 38):** the god-ray in-scatter still veils
+  the lower canopy (rendered with `fx=norays` it is much darker) — the hollow glow shot D wants, heavy
+  when looking straight up; Astra's call.
+- **Distant ring near playable ground (items 26, 28):** the far-trunk row at z −46 stands 6–35 m from the
+  open north; from below its crowns are now dark leaf roofs, but they are cards, not modelled crowns.
+- **Frame pacing (item 46):** display-rate pacing needs a GPU (`playtest.mjs --only pacing` runs there
+  unchanged); the JS step still spikes to ≈ 20 ms in short runs (after drawn frames and late in the
+  walk), not yet traced to a system.
+- **Foliage between camera and Link:** outside the narrow cone, dense ferns can still cover the view.
+- **No gauntlet take sealed** (≈ 6 h here): A / B / D see the huts' new features at 23–45 m; F is
+  byte-identical and C one pixel off for the ray change; a fable-5 re-verdict is welcome.

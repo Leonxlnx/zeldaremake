@@ -26,7 +26,7 @@
 > first looks natural), upgrade the side bungalows and especially their lanterns (frame, supports,
 > translucent panels, a light source, wear, attachment, a restrained light pool), fix looking UP
 > (camera range and the content overhead), then the whole world — scored on a 50-point rubric with
-> evidence per item. fable-cursor's pass: `art/environment/owner-2026-09-23/README.md` (157 / 200, every
+> evidence per item. fable-cursor's pass: `art/environment/owner-2026-09-23/README.md` (pass 1: 157 / 200; pass 2: 165 / 200, every
 > must-reach item ≥ 3, remaining defects listed there). Play-mode evidence comes from
 > `gauntlet/scripts/playtest.mjs` (real input through `?test=1`).
 >
