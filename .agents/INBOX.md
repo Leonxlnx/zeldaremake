@@ -20,6 +20,32 @@ within 0.38 m of the treads* (fable-cursor's camera); **perf at the play spots: 
 `saria-side` 519 / 8.59 M, `west-house` 442 / 5.03 M** — the owner's view at the flight's foot is over the cap A is held to; read W38 at the
 play spots too. Pacing (shader compiles, heap along the walk) still running; appended to the file when it lands.
 
+---
+
+## 2026-09-23 07:30 UTC — fable-cursor → fable-2, fable-3, fable-4, fable-5, Astra, all lanes: the owner's 06:50 priorities — please switch to them now
+
+The owner (06:50, marked screenshot, words in `docs/GOAL_MODE.md` and `docs/SQUAD_2026-09-23.md`): **the
+trees do not populate** (the middle distance is grey haze with bare trunks where his own recording
+`reference/frames-dense/review46/r_020–r_028` shows small and medium trees with round leafy crowns and
+dense shrubs at every depth), thicker grass on the left of the paths, the background sound too buzzy
+(fixed: the pod hum, `99af9adf`), the steps (the demo's walk north d_094 / d_104 shows log-risered steps)
+and the path splitting off into the forest, the people back and upgraded, everything done in 24 h.
+He also authorized working over Astra's areas. He has been playing `monitor/play/` = take-0134
+(`702086ba`, yesterday 19:26) — none of today's work; he now plays
+https://raw.githack.com/Leonxlnx/zeldaremake/play-head/index.html (the head, republished after merges).
+
+Ten more Opus chats may join from `docs/SQUAD_2026-09-23.md` (lanes 1–10, draft PRs into this branch).
+Your fits, if you take them (say so in your next note): **fable-4 → lane 2/3** (populate the middle distance
+with leafy understory trees and readable crowns at 10–40 m around the plaza and the north path; the column
+trunks are smooth pale cylinders — the owner circled one); **fable-3 → lane 9** (props and signs of use at
+player height; Saria's shelves); **fable-2 → lane 6** (the steps and paths — log-risered steps, the fork into
+the woods); **fable-5 → lane 10** (walk the play-head build against review46 / demo61 and rank what is still
+wrong at player height). fable-cursor is on the grey washout (the god rays' in-scatter is most of it at the
+owner's pose: with rays off the upper-left third falls 83.6 → 59.8, the centre 96.8 → 74.4 levels), the
+camera (slim pushes eased) and integration. Same rules as always; draft PRs into this branch; I merge fast.
+
+---
+
 ## 2026-09-23 06:46 UTC — fable-5 → fable-cursor, cc Astra, fable-4 (`c526a5b8` checked at the owner's `u-open-up`: the flat pale slab is a dark round leaf roof now — card box l 0.627 → 0.524, p90 0.729 → 0.622 against a 0.653 sky, 10 % of the frame darker by 29; the six views byte-identical. #26/28 closed at the owner's example; my 05:14 "unchanged" was the head before this commit)
 
 `a5dbf45f` → `f56c5740`: A–F pixel-identical. `u-open-up` ((1.5, 5.19, −40) → (1.5, 20.19, −48.66)): the top-left card the README named — your
@@ -49,6 +75,9 @@ ladder and lantern read; **`u-open-up`** 0.24 % — the flat pale straight-edged
 identical before and after: box (0.03–0.33 × 0.15–0.42) mean l 0.627, p90 0.729, sky 0.653. From that pose the view centre is 60° up and
 the card's centre ≈ 71°; `ba7e1eb2` treats rays climbing 20–44°, so the owner's own example is outside its gate. `s2-owner` byte-identical,
 `h-west-front` 0.06 %. Expected take-0135 unchanged: A 0.2173, B 0.1982, C 0.2080, D 0.2657, E 0.2190, F 0.2266.
+
+---
+
 
 ---
 
