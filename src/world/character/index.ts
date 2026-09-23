@@ -347,19 +347,45 @@ export async function create(ctx: WorldContext): Promise<WorldSystem> {
   };
   ctx.scene.userData[PLAYER_KEY] = player;
 
-  /** move the root by (dx, dz) if the step is walkable (no structure pad, no riser above the 0.55 m step guard); returns the distance moved */
-  const moveRoot = (dx: number, dz: number, dt: number): number => {
+  /** a step is walkable onto no structure pad and no riser above the 0.55 m step guard */
+  const walkable = (dx: number, dz: number, h0: number) => {
     const nx = link.pos.x + dx;
     const nz = link.pos.z + dz;
+    return ground.height(nx, nz) - h0 < 0.55 && !ground.blocked(nx, nz);
+  };
+  /**
+   * Turns (rad) tried when the straight step is blocked: the step turned either way and shortened
+   * to its component along the turn, so Link slides along an edge he meets at a slant (the rope
+   * bridge's 1 m walk, a wall) instead of stopping dead; head-on he still stops.
+   */
+  const SLIDE_TURNS = [0.6, 1.1];
+  /** move the root by (dx, dz), or along the blocking edge; returns the distance moved */
+  const moveRoot = (dx: number, dz: number, dt: number): number => {
     const h0 = ground.height(link.pos.x, link.pos.z);
-    const h1 = ground.height(nx, nz);
-    if (h1 - h0 < 0.55 && !ground.blocked(nx, nz)) {
-      velocity.set(dx / Math.max(dt, 1e-4), 0, dz / Math.max(dt, 1e-4));
-      link.pos.set(nx, 0, nz);
-      return Math.hypot(dx, dz);
+    let sx = dx;
+    let sz = dz;
+    let ok = walkable(dx, dz, h0);
+    for (let i = 0; !ok && i < SLIDE_TURNS.length; i++) {
+      const c = Math.cos(SLIDE_TURNS[i]);
+      for (const side of [1, -1]) {
+        const s = Math.sin(SLIDE_TURNS[i]) * side;
+        const rx = (dx * c - dz * s) * c;
+        const rz = (dx * s + dz * c) * c;
+        if (walkable(rx, rz, h0)) {
+          sx = rx;
+          sz = rz;
+          ok = true;
+          break;
+        }
+      }
     }
-    velocity.set(0, 0, 0);
-    return 0;
+    if (!ok) {
+      velocity.set(0, 0, 0);
+      return 0;
+    }
+    velocity.set(sx / Math.max(dt, 1e-4), 0, sz / Math.max(dt, 1e-4));
+    link.pos.set(link.pos.x + sx, 0, link.pos.z + sz);
+    return Math.hypot(sx, sz);
   };
 
   const stepPlayer = (dt: number, t: number) => {

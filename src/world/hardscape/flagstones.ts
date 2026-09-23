@@ -19,7 +19,7 @@
  * crack line on one slab in eight) → a single draw call.
  */
 import { Matrix4, Mesh, Quaternion, Vector3, type Material } from 'three';
-import { expansionDiscMask, legacyPathMask, standingStoneMask, surfaceMask, type Terrain } from '../terrain/heightfield';
+import { expansionDiscMask, legacyPathMask, southRouteSurface, standingStoneMask, surfaceMask, type Terrain } from '../terrain/heightfield';
 import type { Rng } from '../util/prng';
 import { Noise2D, clamp, smoothstep } from '../util/noise';
 import { MeshBuilder, buildSlab, centroid, distToPolygon, pointInPolygon, polygonArea, type P2 } from './geometry';
@@ -595,8 +595,11 @@ export interface PavingContext {
 /**
  * `expansion` (round 49): the plaza's west / south-west stepping discs — the level is the live
  * mask's expansion discs alone (heightfield `expansionDiscMask`), nothing continuous.
+ * `south` (round 56): the path on from the spine's end to the rope bridge and from the bridge to
+ * the hollow log (heightfield `southRouteSurface`), on the ground the legacy pass leaves unpaved
+ * (the north pass's rule), cut by the live structure mask (the sills, the posts, the log).
  */
-export type PavingRegion = 'legacy' | 'north' | 'live' | 'expansion';
+export type PavingRegion = 'legacy' | 'north' | 'live' | 'expansion' | 'south';
 
 /** a stepping stone that sits in grass (not inside the plaza paving): gets its own round slab */
 export interface IsolatedDisc {
@@ -663,13 +666,14 @@ function archTongueDepth(x: number, z: number): number {
 export function pavedLevel(pc: PavingContext, x: number, z: number, strict = false, region: PavingRegion = pc.region ?? 'live'): number {
   // round 49: the expansion pass reads the LIVE mask (its own flights and discs); every other pass
   // the legacy view, as before (heightfield `surfaceMask`)
-  const m = surfaceMask(x, z, region === 'expansion' ? 'live' : 'legacy');
+  const m = surfaceMask(x, z, region === 'expansion' || region === 'south' ? 'live' : 'legacy');
   if (m.stairs >= 0.5) return 0;
   // round 47: the pass's own view of the path mask (PavingContext.region)
   let path = m.path;
   if (region === 'legacy') path = legacyPathMask(x, z, m.path);
   else if (region === 'north' && legacyPathMask(x, z, m.path) >= 0.36) path = 0;
   else if (region === 'expansion') path = expansionDiscMask(x, z);
+  else if (region === 'south') path = legacyPathMask(x, z, surfaceMask(x, z, 'legacy').path) >= 0.36 ? 0 : southRouteSurface(x, z);
   // the standing stones' footprints are `structure` for the grass and the character, not for the
   // north paving: their plinth slabs run under them
   const structure = region === 'north' && standingStoneMask(x, z) >= 0.5 ? 0 : m.structure;
@@ -701,14 +705,16 @@ export function rimDistance(pc: PavingContext, x: number, z: number): number {
   // (round 47: the north pass measures its rims on the live mask, so its seam with the legacy
   // paving is not a rim — the cells there grow full-size up to the legacy cells' edges — while
   // its grass edges are)
+  // (round 56: the south pass likewise — its seam with the spine's end cap is paved either side)
   const region: PavingRegion = pc.region === 'north' ? 'live' : (pc.region ?? 'live');
+  const paved = (px: number, pz: number) => isPaved(pc, px, pz, 0.5, true, region) || (region === 'south' && isPaved(pc, px, pz, 0.5, true, 'legacy'));
   for (let k = 0; k < 8; k++) {
     const a = (k / 8) * Math.PI * 2;
     const dx = Math.cos(a);
     const dz = Math.sin(a);
     for (const s of RIM_STEPS) {
       if (s >= best) break;
-      if (!isPaved(pc, x + dx * s, z + dz * s, 0.5, true, region)) {
+      if (!paved(x + dx * s, z + dz * s)) {
         best = s;
         break;
       }
