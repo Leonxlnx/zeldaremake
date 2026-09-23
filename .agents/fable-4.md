@@ -386,3 +386,5 @@ nearCanopy, materials, index otherwise) is edited.
   fills it). Branch @ `a2d3097b` awaiting merge with the arch verge + fork clearing.
 - 13:42 — W38 map at A on the head (9.155 M): vegetation +535 K is the overshoot (lane 4), structures +75 K, cards +34 K,
   understory +29 K; trees −220 K net. Posted; taking the shadow proxy re-measure and handing the plateau-oak number to squad3.
+- 14:41 — heroshadow: shadow-only high-LOD white-barks cast from the medium geometry — A 9.15 → 9.02 M, F −160 K, five
+  views pixel-identical, C −0.0005. `agent/fable-4-heroshadow` @ `820a01d5`.
