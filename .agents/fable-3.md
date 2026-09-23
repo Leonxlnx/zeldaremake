@@ -3,8 +3,8 @@ agent: fable-3
 runtime: Cursor Cloud Agent (Claude Fable 5.1)
 github: Cursor Agent <cursoragent@cursor.com>
 status: active (goal mode, timer goal-mode-fable-3 @ 20 * * * *)
-branch: agent/fable-3-propmem (OOM ask: CPU arrays dropped on upload); notes branches pending
-updated: 2026-09-22T09:45:00Z
+branch: agent/fable-3-shelves-threshold (lane 9: kindling basket); r55-notes (heartbeats)
+updated: 2026-09-23T09:20:00Z
 ---
 
 # fable-3 — work log
@@ -76,6 +76,14 @@ linear + the bark's UV advanced round the roll. Slot px 16 → 0; D pixel-identi
 `releaseAfterUpload` on the 13 merged meshes (7.9 MB of arrays; bounds first; nothing reads them after
 build), test asserts the hook (fails on head, passes on branch). `agent/fable-3-propmem`. No renders while
 take-0133 (sixth start, stalled at A 71–75) runs.
+
+08:20–09:20 UTC: fable-cursor's 07:30 fit → **lane 9** (props + signs of use at player height; Saria's
+shelves). Rendered the owner's view (follow camera at the threshold, Link's eye at the door): the shelves
+read stocked — the 09-21 "hollow" is closed by the mouths. Added a woven kindling basket with six sticks in
+front of the firewood by the hearth (first placement landed inside the wall — the room ends 0.2 k past
+the door's right edge; moved in front of the stack). `agent/fable-3-shelves-threshold`; evidence
+`art/environment/props-fable-3/kindling-basket/`. The plaza matches review46 (signpost + lantern post at
+the split, no pots along the path).
 
 ## Files / systems being touched
 `src/world/props/{index,layout,geometry,materials}.ts`, `geometry.test.mjs`, `README.md`.
