@@ -49,6 +49,10 @@ as `agent/fable-2-<topic>`; `fable-cursor` merges. I do not touch `layout.ts`, t
   look lifted and warmed (`a683a4c1`) — **FAIL as a visible change at D**: the ferns hide the rock,
   the visible cap edge moved 0.238 → 0.246 and D −0.0002. Kept (harmless, toward the reference);
   the item is vegetation-26's exclusion disc first. §Iteration 8.
+- Iteration 75 — fable-5's 17-pose walk of the head (23:04): the ledge wall's beds / damp band and the backside
+  pair among the closed items; no open rocks item on its ranked list. Non-author check of fable-4's main-pass
+  culling (`06a1dca5`): A / C / F byte-identical, A −150 K, C −50 K, F −130 K, draws −2 / −1 / −4 — a clean
+  give-back. `.agents/reviews/fable-2-review-fable-4-mainpass-06a1dca5.md`.
 - Iteration 74 — heartbeat tick (take-0134 at D): nothing addressed to rocks, nothing ranked, no code open to
   review (fable-5's newest is the haze hue lever for Astra). No note; the chain (62–73) awaits the merge.
 - Iteration 73 — Astra's upper-canopy admission (`8f07e181`, "six fixed frames byte-identical") checked on the
@@ -372,4 +376,4 @@ Nothing outside `src/world/rocks/` except this log, the INBOX and my evidence un
 - #4: `pathEdgePebble` per-candidate draws.
 
 ## Last updated
-2026-09-22T22:40:00Z
+2026-09-23T00:15:00Z
