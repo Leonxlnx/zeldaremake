@@ -488,3 +488,32 @@ hence it cleared once the stems were re-seated and the leaves halved. **Ask, fab
 the arch stretch's 6.5 m (or the crowns' base above the eye line on the walk lines), read at `h-west-front` and the 06:50
 pose. **Lane 2:** §10.1's ask about the mid crowns' *distance colour* (§7) stands; the clearance ask moves to the understory.
 `b-upper-2`: unchanged (1.8 % of pixels; dark 54.6 % — §10.2 stands for lane 1).
+
+## 15. Re-read on `0d66fa51` (17:45 — fable-cursor's mid grove off the walk lines, `d6681b92`: a crown's edge 3 m beyond the paving, never nearer than 9 m to a centreline) — his numbers confirmed; both layers stood in the frames
+
+Same poses / flags as §10 and §7, before = `79f44aa5` (§14) for the owner's four, `0149f255` (§9) for the 06:50 pose.
+Sheets `fable-5-lane10/it90b-ba-{u-open-up,h-west-front,owner}.jpg`.
+
+| pose | pixels > 6 / > 40 | luma | dark (< 0.25) | bright (> 0.6) | fable-cursor's read (17:45) |
+| --- | --- | --- | --- | --- | --- |
+| `u-open-up` | 57 / 21 % | 0.418 → **0.505** | 11.2 → **5.4 %** | 23.8 → **39.5 %** | 0.419 → 0.507, 10.4 → 5.1 %, 23.8 → 39.9 % ✓ |
+| `h-west-front` | 14 / 4 % | 0.260 → 0.265 | 56.5 → 52.5 % | 4.3 → 3.9 % | < 0.25 54.3 → 45.3 % (his threshold reads lower; the direction and the hut agree) |
+| `s2-owner`, `b-upper-2` | 0.3 / 0.8 % | = | = | = | — |
+| the 06:50 pose (vs `0149f255`, with the character) | 38 / 5 % | band 0.237 → 0.254 | near-black 48.8 → 43.7 % | mist 2.8 → 4.3 % | top band 0.275 → 0.300 (mine 0.230 → **0.275**, his 0.418) |
+
+At `u-open-up` the close mid tree's bole and card crown are gone and the sky and the rim are back (0.505 against the
+pre-squad 0.550); at `h-west-front` the second bole beside the column is gone and the hut stands in view, while the
+understory's laminae still hang over the column (§14's ask to fable-4 stands). At the 06:50 pose the far-centre box's
+green share fell 39 → 23 % (the near crowns left the box; l 0.342 → 0.367, his 0.474) and the top band opened 0.230 →
+0.275 (his 0.418) — the roof is thinner, still there.
+
+**So §10.1 / §14, settled:** two layers stood in the owner's look-up frames — squad2's mid grove (the bole and its card
+crown at 3–6 m, taken out by `d6681b92`) *and* fable-4's understory (the 0.45 m laminae at 3.4 m from the centreline,
+halved by `6ea3a21c`, still a cloud at `h-west-front`). §14 over-corrected in saying "not the mid canopy"; both were the
+pixels, and each lane has now moved its own. Remaining on these poses: the understory's plaza-stretch minimum (fable-4),
+`b-upper-2`'s dark (lane 1), the far air's brightness and the crowns' colour at depth at the 06:50 pose (lanes 1 / 2).
+
+**Six views `0149f255` → `79f44aa5`** (no character, same list): A −0.0113, B +0.0027, C −0.0011, D **+0.0074**,
+E **+0.0106**, F −0.0100 — the earth under the timbers at A / F (fable-2's −0.0131 / −0.0081), the understory's re-seat
+and finer leaves *toward* the frames at B / D / E. Expected take-0135 on `79f44aa5` with the cast: A ≈ 0.182, B ≈ 0.175,
+C ≈ 0.189, D ≈ 0.243, E ≈ 0.194, F ≈ 0.208 (± 0.004); `d6681b92` moves it again (not rendered).
