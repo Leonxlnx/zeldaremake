@@ -1,0 +1,101 @@
+{
+  "checkpoint": "e599075ff78aa39954375c3ecdb7a74ab46aca3c",
+  "sourceRoot": "E:/zeldaremake-cinematic-e599075f",
+  "sources": {
+    "src/world/util/prng.ts": "95beabffc3f533bf54b61d3596c5c8c31a92d7fb667a43439e9b730654fa14b9",
+    "src/audio/graph.ts": "ec46653eb86ef4b9dfcad093b67751953f5ef095d4faeb872364593ea03669f1",
+    "src/audio/ambience.ts": "89cbea277446ea1e5bb5235a53dffa4205f39218ecb2c25d8ff958a87d7b1d11",
+    "src/audio/music.ts": "e73dcb907c24877a995197f910303bbbb639f4deecd387ce75206c505fa7d74c",
+    "src/audio/index.ts": "66c9f732202b7430e749066280e6e6ac1eb4d1c8e9f4f7eece96165675c138c7"
+  },
+  "seed": "kokiri-audio-r47",
+  "durationSeconds": 30,
+  "sampleRate": 48000,
+  "channels": 2,
+  "music": "Existing original procedural score: Under the Boughs. Both dry and wet music paths multiplied by 0.45.",
+  "omissions": "No footsteps: no matching final 16–21s contact trace. No positional lantern voice: no cinematic pod/listener trace. No downloaded recordings, samples, narration or external services.",
+  "engine": "Existing game graph, ambience and music modules; exact existing encodeWav function and gust envelope. OfflineAudioContext in a blank headless Chrome page, --disable-gpu --disable-webgl. No world initialization or rendering.",
+  "licensing": "Repository package.json declares MIT. music.ts documents the score as original and not a Nintendo melody; ambience and reverb are seeded procedural synthesis. No stand-alone LICENSE file was present in this frozen checkout.",
+  "renders": {
+    "bed": {
+      "musicSource": "none",
+      "duration": 30,
+      "sampleRate": 48000,
+      "channels": 2,
+      "file": "bed-raw.wav",
+      "bytes": 5760044,
+      "sha256": "40832b0df53819ef4b939cf6365bc5f4c3cf16885b359f3c387018e4dc767919"
+    },
+    "music": {
+      "musicSource": "procedural",
+      "duration": 30,
+      "sampleRate": 48000,
+      "channels": 2,
+      "file": "music-raw.wav",
+      "bytes": 5760044,
+      "sha256": "4fd91b7515c44a1828cdc7091e3037c1363845c72d80ebd460dbe771449f5eeb"
+    },
+    "mix": {
+      "musicSource": "procedural",
+      "duration": 30,
+      "sampleRate": 48000,
+      "channels": 2,
+      "file": "mix-raw.wav",
+      "bytes": 5760044,
+      "sha256": "2ee0e7f9d2cc3c801037ea960fa14c24a932da958b1cfc4bcff580cf24ca8ade"
+    }
+  },
+  "console": [
+    "info: [audio] music: original placeholder \"Under the Boughs\" (50.5 s loop)",
+    "info: [audio] music: original placeholder \"Under the Boughs\" (50.5 s loop)"
+  ],
+  "final": {
+    "file": "cinematic-30s-48k-stereo.wav",
+    "sha256": "8ff9b852ff874316a8d18d62d956f913afbe0523040b2769c4c49fe82e8ac7d9",
+    "bytes": 5760078,
+    "processingFilter": "loudnorm=I=-24:TP=-4:LRA=9:measured_I=-33.79:measured_TP=-18.69:measured_LRA=6.70:measured_thresh=-43.83:offset=1.40:linear=true:print_format=json,afade=t=in:st=0:d=1.2,afade=t=out:st=27:d=3",
+    "rawMeasurement": {
+      "input_i": "-33.79",
+      "input_tp": "-18.69",
+      "input_lra": "6.70",
+      "input_thresh": "-43.83",
+      "output_i": "-25.40",
+      "output_tp": "-11.19",
+      "output_lra": "5.40",
+      "output_thresh": "-35.42",
+      "normalization_type": "dynamic",
+      "target_offset": "1.40"
+    },
+    "measurement": {
+      "input_i": "-24.57",
+      "input_tp": "-8.90",
+      "input_lra": "7.10",
+      "input_thresh": "-34.77",
+      "output_i": "-25.87",
+      "output_tp": "-11.31",
+      "output_lra": "5.70",
+      "output_thresh": "-36.00",
+      "normalization_type": "dynamic",
+      "target_offset": "1.87"
+    },
+    "format": {
+      "programs": [],
+      "stream_groups": [],
+      "streams": [
+        {
+          "codec_name": "pcm_s16le",
+          "sample_rate": "48000",
+          "channels": 2,
+          "time_base": "1/48000",
+          "duration_ts": 1440000,
+          "duration": "30.000000"
+        }
+      ],
+      "format": {
+        "duration": "30.000000",
+        "size": "5760078"
+      }
+    },
+    "checks": "30.000s; 1,440,000 frames per channel; stereo 48kHz PCM16; first and last stereo samples exactly zero; true peak below -4dBTP; no browser errors; frozen source hashes unchanged."
+  }
+}

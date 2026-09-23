@@ -1,0 +1,271 @@
+{
+  "sourceSha": "e599075ff78aa39954375c3ecdb7a74ab46aca3c",
+  "bundle": "index-DJ-pEmhG.js",
+  "complete": true,
+  "frames": 12,
+  "retries": 0,
+  "errors": [],
+  "renderer": [
+    "ANGLE (AMD, AMD Radeon 780M Graphics (0x00001900) Direct3D11 vs_5_0 ps_5_0, D3D11)"
+  ],
+  "width": 1920,
+  "height": 1080,
+  "quality": "high",
+  "startedAt": "2026-09-23T20:30:36.199Z",
+  "closedAt": "2026-09-23T20:39:51.859Z",
+  "distHashAfter": "sha256:f23809ced6bd34d791e488ef413af10214c0bdd2ffee8de064fb4f95611979fd",
+  "framesDetail": [
+    {
+      "name": "01-arrival-start",
+      "file": "f0000.png",
+      "sha256": "b2508127b1d218edbce29ed25787a6cca0fb5734250dae4186e5f20f39da718c",
+      "simTime": 12.533333333333333,
+      "triangles": 8616441,
+      "drawCalls": 464,
+      "camera": {
+        "position": [
+          0.4,
+          1.8,
+          8.6
+        ],
+        "direction": [
+          0.4001487551488514,
+          -0.05779926463261199,
+          -0.9146257260545179
+        ],
+        "fov": 46
+      }
+    },
+    {
+      "name": "01-arrival-middle",
+      "file": "f0001.png",
+      "sha256": "4cfc16ad15036e9583ab916d7508e561b4c55008964db6aa19b68a582b0d0fcd",
+      "simTime": 12.566666666666666,
+      "triangles": 8413181,
+      "drawCalls": 463,
+      "camera": {
+        "position": [
+          0.55,
+          1.8,
+          8.2
+        ],
+        "direction": [
+          0.4071574622327169,
+          -0.049184621437712295,
+          -0.9120327154012857
+        ],
+        "fov": 46
+      }
+    },
+    {
+      "name": "01-arrival-end",
+      "file": "f0002.png",
+      "sha256": "7d2ee280c1293383a35ef5683b823871bc29f115cbb0b21789667ffaa2a73e71",
+      "simTime": 12.6,
+      "triangles": 8399426,
+      "drawCalls": 464,
+      "camera": {
+        "position": [
+          0.7,
+          1.8,
+          7.8
+        ],
+        "direction": [
+          0.4144770257352666,
+          -0.04011067990986453,
+          -0.9091754112902614
+        ],
+        "fov": 46
+      }
+    },
+    {
+      "name": "02-canopy-start",
+      "file": "f0003.png",
+      "sha256": "7477edd910030aac251e13cdd877e48963c771930375fe7c761ef355c2e5b35d",
+      "simTime": 12.633333333333333,
+      "triangles": 8405472,
+      "drawCalls": 449,
+      "camera": {
+        "position": [
+          -1.96,
+          1.8,
+          4
+        ],
+        "direction": [
+          0.9194174119669922,
+          0.3311795137445428,
+          -0.2121125933268616
+        ],
+        "fov": 46
+      }
+    },
+    {
+      "name": "02-canopy-middle",
+      "file": "f0004.png",
+      "sha256": "aed085906e83b101e4f4deaea145ea79812933c7bbcc15f7ed5b4b6f32302357",
+      "simTime": 12.666666666666666,
+      "triangles": 7983798,
+      "drawCalls": 438,
+      "camera": {
+        "position": [
+          -1.68,
+          2.1,
+          3.8
+        ],
+        "direction": [
+          0.9004717426580061,
+          0.38772509130265664,
+          -0.19702764843747234
+        ],
+        "fov": 46
+      }
+    },
+    {
+      "name": "02-canopy-end",
+      "file": "f0005.png",
+      "sha256": "ce9596b610822234d07bc9539bd186aa6ef3edf35e91e0b797e629ed4d758a74",
+      "simTime": 12.7,
+      "triangles": 7462647,
+      "drawCalls": 418,
+      "camera": {
+        "position": [
+          -1.4,
+          2.4,
+          3.6
+        ],
+        "direction": [
+          0.8780422866382901,
+          0.4429762887544526,
+          -0.18114566093708898
+        ],
+        "fov": 46
+      }
+    },
+    {
+      "name": "03-house-start",
+      "file": "f0006.png",
+      "sha256": "15fe656e4fa57b4f2151e4daadce579b9414175ff79e9b5a1b1ba08befec4648",
+      "simTime": 12.733333333333333,
+      "triangles": 8936307,
+      "drawCalls": 436,
+      "camera": {
+        "position": [
+          3.2,
+          2.2,
+          -3.5
+        ],
+        "direction": [
+          0.7480523752095128,
+          0.12177596805736271,
+          -0.6523712574501567
+        ],
+        "fov": 42
+      }
+    },
+    {
+      "name": "03-house-middle",
+      "file": "f0007.png",
+      "sha256": "45f24fdbee642a36136c095381c2631ec9787756cd57dd1885a58ed044044164",
+      "simTime": 12.766666666666666,
+      "triangles": 8905805,
+      "drawCalls": 439,
+      "camera": {
+        "position": [
+          3.7,
+          2.2750000000000004,
+          -3.925
+        ],
+        "direction": [
+          0.7446683660308946,
+          0.13394949267019124,
+          -0.6538551506612731
+        ],
+        "fov": 42
+      }
+    },
+    {
+      "name": "03-house-end",
+      "file": "f0008.png",
+      "sha256": "68f359a2f4e087f23586e693ca31a3bf7eca75029bddb32d25ad57f33d6c3b42",
+      "simTime": 12.799999999999999,
+      "triangles": 8800752,
+      "drawCalls": 432,
+      "camera": {
+        "position": [
+          4.2,
+          2.35,
+          -4.35
+        ],
+        "direction": [
+          0.7408356221814243,
+          0.14721733517707805,
+          -0.6553545888527994
+        ],
+        "fov": 42
+      }
+    },
+    {
+      "name": "06-log-start",
+      "file": "f0009.png",
+      "sha256": "0dce45d75c47381f977ca676ef318b53ee345d748e847b0ed4591dd3c388ef41",
+      "simTime": 12.833333333333332,
+      "triangles": 7981005,
+      "drawCalls": 420,
+      "camera": {
+        "position": [
+          0.2,
+          1.45,
+          -3
+        ],
+        "direction": [
+          0.10953219056304957,
+          0.03311438319348014,
+          -0.9934314958044038
+        ],
+        "fov": 48
+      }
+    },
+    {
+      "name": "06-log-middle",
+      "file": "f0010.png",
+      "sha256": "8d0bef924c02d9980c297ed39d3dc9d4c0c614f0aa542d6c781bda47166d4ee6",
+      "simTime": 12.866666666666665,
+      "triangles": 7792389,
+      "drawCalls": 410,
+      "camera": {
+        "position": [
+          0.30000000000000004,
+          1.475,
+          -3.6
+        ],
+        "direction": [
+          0.10842996291172445,
+          0.034041965100192625,
+          -0.9935210555167312
+        ],
+        "fov": 48
+      }
+    },
+    {
+      "name": "06-log-end",
+      "file": "f0011.png",
+      "sha256": "818a5e07ad1e7785a68b1d430549201a6b5d5fa3c1cb4efb0702d9f5fb1dcf09",
+      "simTime": 12.899999999999999,
+      "triangles": 7791058,
+      "drawCalls": 408,
+      "camera": {
+        "position": [
+          0.4,
+          1.5,
+          -4.2
+        ],
+        "direction": [
+          0.1073494807844311,
+          0.034950993743768435,
+          -0.9936068221442708
+        ],
+        "fov": 48
+      }
+    }
+  ]
+}

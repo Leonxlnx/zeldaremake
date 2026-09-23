@@ -1,0 +1,16 @@
+capslot: astra-cinematic-final-preflight holds the capture slot
+world: page loaded in 347.1 s — waiting for __ZR__.ready() (timeout 15 min)
+world: ready in 347.7 s
+01-arrival-start 1/1 — frame 1/12 — 164.1 s/frame
+01-arrival-middle 1/1 — frame 2/12 — 84.1 s/frame
+01-arrival-end 1/1 — frame 3/12 — 57.4 s/frame
+02-canopy-start 1/1 — frame 4/12 — 44.0 s/frame
+02-canopy-middle 1/1 — frame 5/12 — 35.9 s/frame
+02-canopy-end 1/1 — frame 6/12 — 30.4 s/frame
+03-house-start 1/1 — frame 7/12 — 26.7 s/frame
+03-house-middle 1/1 — frame 8/12 — 23.8 s/frame
+03-house-end 1/1 — frame 9/12 — 21.5 s/frame
+06-log-start 1/1 — frame 10/12 — 19.8 s/frame
+06-log-middle 1/1 — frame 11/12 — 18.3 s/frame
+06-log-end 1/1 — frame 12/12 — 17.1 s/frame
+done: 12 frames in 205 s → E:\zeldaremake-astra-motion-sept21\gauntlet\out\cinematic-final-sept23\preflight

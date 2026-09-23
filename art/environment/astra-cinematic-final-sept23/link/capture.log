@@ -1,0 +1,17 @@
+capslot: waiting for astra-cinematic-final-world (held 1.0 min, "node --import ./gauntlet/out/cinematic-final-sept23/world/observe.mjs gauntlet/scripts/broll.mjs --dist E:/zeldaremake-cinematic-e599075f/dist --out gauntlet/out/cinematic-final-sept23/world --size 1920x1080 --fps 30 --quality high --time 12.5 --settle 12 --shots gauntlet/out/cinematic-final-sept23/world/planned-shots.json")
+capslot: astra-cinematic-final-link holds the capture slot
+[world] lighting ready in 932 ms
+[world] atmosphere ready in 39 ms
+[world] terrain ready in 8116 ms
+[world] hardscape ready in 6631 ms
+[world] rocks ready in 16758 ms
+[world] trees ready in 14824 ms
+[world] canopy ready in 114 ms
+[world] structures ready in 18337 ms
+[world] props ready in 746 ms
+[world] vegetation ready in 19776 ms
+[world] character ready in 1234 ms
+flat-transitions 2 / 300
+flat-transitions 122 / 300
+flat-transitions 242 / 300
+{"output":"E:\\zeldaremake-astra-motion-sept21\\art\\characters\\link\\progress\\2026-09-23T21-08-00-874Z-play-motion","summary":{"flat-transitions":{"frames":300,"gaits":["walk","run","idle"],"distanceXZ":12.416666666666627,"maxRootStepM":0.010607285565365498,"reachClampedFrames":0,"measuredShoePoints":0,"maxHipFlexDeg":67.43633060023959,"maxKneeFlexDeg":95.30795324814844,"minRenderedStairGapM":null,"shoeSamplesBelowMinus2cm":0}}}
