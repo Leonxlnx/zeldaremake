@@ -128,7 +128,6 @@ export function buildBacksideRocks(rng: Rng, seed: string, shadeDir: [number, nu
         crackDepth: 0.02,
         fineCracks: 0.4,
         fineCrackDepth: 0.008,
-        crackWarp: 1,
         micro: 0.02,
         chip: 0.015,
         rimRound: 0.1,
