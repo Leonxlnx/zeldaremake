@@ -1,7 +1,0 @@
-Texture set: rock_face_03
-Source: https://polyhaven.com/a/rock_face_03
-Author: Poly Haven contributors (see source page)
-Licence: CC0 1.0 Universal (public domain) — https://polyhaven.com/license
-Files: color.jpg normal.jpg 
-Re-encoded to JPEG (1k) from the Poly Haven originals; nor_gl (OpenGL convention) normal map.
-2k/: color.jpg normal.jpg  — the same maps at 2048×2048 (Poly Haven 2k JPEG, md5-verified, re-encoded q86); md5s and URLs in ../CREDITS.md.

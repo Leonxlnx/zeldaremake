@@ -23,7 +23,7 @@ Render:
 ```bash
 node gauntlet/scripts/broll.mjs --dist dist --out /tmp/after --size 960x540 \
   --shots art/environment/squad3-2026-09-23/poses.json --test --settle 6
-node gauntlet/tmp/squad3-compare.mjs --before /tmp/before --after /tmp/after \
+node art/environment/squad3-2026-09-23/tools/squad3-compare.mjs --before /tmp/before --after /tmp/after \
   --out /tmp/cmp --names l3-owner-north,l3-column-6m,l3-emergent-foot,l3-giant-roots \
   [--crops /tmp/crops.json]
 ```
@@ -34,7 +34,7 @@ A frame takes 60–75 s on this VM's SwiftShader, so a four-pose pass is ≈ 5 m
 
 Two probes, because the answer decides whose lane it is.
 
-`gauntlet/tmp/squad3-trunk-probe.mjs` renders the owner's pose, reads `depthImage` at the screen
+`tools/squad3-trunk-probe.mjs` renders the owner's pose, reads `depthImage` at the screen
 columns of his pale cylinders and projects every white-bark placement, authored column seat and
 giant. The pale poles read 39.2 / 42.6 / 49.1 / 55.0 m; the column seat at (−3.5, −24.7) is at
 15.3 m and screen x 220.
@@ -96,7 +96,7 @@ cover ramp on the near boles (0.5–0.9 → 0.52–0.8) so a cushion has a margi
 
 ## The hero views
 
-`gauntlet/tmp/squad3-delta.mjs` against the integration head at the same poses, 960 × 540 —
+`tools/squad3-delta.mjs` against the integration head at the same poses, 960 × 540 —
 after pass 2, then after the whole branch:
 
 | view | mean \|Δ\| pass 2 | mean \|Δ\| final | px > 8 (final) | mean rgb (head → final) |
