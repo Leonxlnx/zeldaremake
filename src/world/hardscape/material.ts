@@ -98,7 +98,7 @@ export const STONE_NEAR = { tileK: NEAR_TILE_K, fadeM: NEAR_FADE, normalK: NEAR_
 const EARTH_SET = 'rocky_trail';
 const EARTH_TILE_K = 1.9;
 /** rocky_trail averages ≈ 0.19 linear luminance and leans orange; lifted to the demo's pale dirt and cooled a touch */
-const EARTH_TINT = new Color(1.95, 1.72, 1.32);
+const EARTH_TINT = new Color(2.24, 1.98, 1.52);
 /** the earth treatment, for the hardscape audit */
 export const STONE_EARTH = { set: EARTH_SET, tileK: EARTH_TILE_K, tint: [EARTH_TINT.r, EARTH_TINT.g, EARTH_TINT.b] as [number, number, number] };
 
