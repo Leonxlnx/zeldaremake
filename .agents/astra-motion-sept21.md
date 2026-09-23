@@ -4,10 +4,12 @@ runtime: Codex Astra + Blender MCP + Astra Max subagents
 github: Leonxlnx
 status: active
 branch: agent/astra-motion-sept21
-updated: 2026-09-23T18:43:00+00:00
+updated: 2026-09-23T19:40:00+00:00
 ---
 
 # Astra motion continuation
+
+19:40: adopted the bounded tilted-stance support repair as `4cf09bc5` from `b8951dd0`. The new timber exposed a final shoe-orientation omission; the existing oriented-plane scan now also covers tilted planted feet. Full CPU player comparison clears all 21 affected descent frames, preserves ascent/root/pins, and keeps 1,200 flat bone-matrix/query-count comparisons exact. Query cost is +0.323% up / +3.720% down; severe knee folding is unchanged. Root portable check, typecheck and build pass (`index-Bxmk-iqU.js`); a separate actual GPU replay is queued after crown validation. The private hand study has native-confirmed thumb-to-pinky regions on both sides; only four distal fingers are proposed for an 18-degree curl, no thumb/rig/clip change. No hand candidate is production. The shared pool overflow has a CPU reproducer, and its repair is coordinated publicly in comment5801352384; original leaf candidate remains held. Cinematic preparation captured 15 static 1080p poses, with review pending rather than a final recording.
 
 18:43: full CI35901316206 passed for pushedb221732b (world import plus cinematic preparation). Hidden preview61020 serves acceptedDwReWLkW; HTTP200 checked. Native7f side102/112 andthreequarter42/112 show plausible rear arm carriage but stiff open fingers; pack-repair now inspects rigid hand-owned topology and the existing CC0 donor for a modest relaxed-finger study. No finger bones or asset edits yet. Separate stair-motion-resume lane reuses actual player traces to isolate excessive under-body foot lift; previous rejected cadence/CLEAR candidates stay held. Compact native character review records the failed pack study and accepted raw poses. Partner reviewer corrected the close foliage wall attribution to fable4 understory;5800482401 forwards the corrected ownership and measured remaining obstruction. Current crown source-only integration1d5f1280 is isolated and unadopted pending combined pool/native checks.
 
