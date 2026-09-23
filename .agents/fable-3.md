@@ -4,7 +4,7 @@ runtime: Cursor Cloud Agent (Claude Fable 5.1)
 github: Cursor Agent <cursoragent@cursor.com>
 status: active (goal mode, timer goal-mode-fable-3 @ 20 * * * *)
 branch: agent/fable-3-kokiri-girl (lane 7: the girl by the signpost, the cast back); r55-notes (notes)
-updated: 2026-09-23T17:55:00Z
+updated: 2026-09-23T18:35:00Z
 ---
 
 # fable-3 — work log
@@ -130,7 +130,16 @@ kid in my 5 m frames was the SITTER on the first tread (the walker dwells at (4.
 the walker rendered where she stands at 2.6 m / 5 m (`before-after-walker.jpg`, the clearest sheet). fable-cursor merged
 `8651fce3` into the head (`b39d395e`) before the report landed; INBOX note posted 17:55 with the list for next: legs 44 → 40 %, the boy's round-1 look, the understory over the walker's
 loop sightlines (lanes 2 / 4). (The note's first draft listed the sitter's knees at 177° — an audit read under per-view
-placement where the seat is not driven; in free / play mode she sits as designed. Corrected 17:58.) Play mode at the plaza spot: head 604 → 779 draws with three kids in frame.
+placement where the seat is not driven; in free / play mode she sits as designed. Corrected 17:58.)
+
+17:55–18:35 UTC: **the boy at Saria's door** (`e7a01c7e`) — the owner's threshold approach had round 1's boy (sphere-and-boxes
+bob, thin band, tan skin, flat near-black tunic) beside the door next to the girls' new look. He shares the pass now:
+`buildGirlHair` (no tube brows — `buildFace` has box brows), `buildGirlHeadband`, the cloth canvas + four fold ridges on both
+lathes (near-black lifted to 0x2f3320), skin 0xcfa07c on the ramp; materials keyed by name (`hairMaterial` / `clothMaterial` /
+`rampedSkin`). Before/after at the threshold pose + 2.5 m (`before-after-boy.jpg`; the before = the merged head with the girls'
+pass). Six views vs the merged head `bd0bd1ba`: B −0.0003 (685 px, his box), F 0 (515 px), draws/tris equal. INBOX 18:35.
+Chrome-free note: a broll `--test` render drives the loop — the walker is wherever the schedule has her at t ≈ 13.2 s
+((4.4, 0.9), facing SW); `where.mjs` (audit `systems.character.npc.walker`) finds her before aiming a pose. Play mode at the plaza spot: head 604 → 779 draws with three kids in frame.
 
 ## Files / systems being touched
 `src/world/props/{index,layout,geometry,materials}.ts`, `geometry.test.mjs`, `README.md` (lane 9);

@@ -67,6 +67,31 @@ before is the head `be123deb` with the cast forced visible (a throwaway build, n
 Poses: (2.3, 2.2, −0.66) → (4.4, 1.45, 0.9), vfov 40; (0.6, 2.7, −2.1) → (4.4, 1.5, 0.9), vfov 46 — the walker
 (kokiri-a, look 0) where the loop has her at t ≈ 13.2 s, facing the camera.
 
+## The boy at Saria's door (second landing, `e7a01c7e`)
+
+The owner walks to Saria's door constantly, and the boy beside it still wore round 1's build: a sphere-and-boxes bob, a
+thin torus band, plain tan skin, a flat near-black tunic. He now shares the pass — the girls' lobed bob (`buildGirlHair`
+without its tube brows; `buildFace` gives him box brows) in the palette's brown under the lock canvas, the wide Kokiri band,
+the cloth canvas with four fold ridges on both lathes (the near-black lifted a step to 0x2f3320 so valleys and weave read at
+all), pale ramped skin (0xb28058 → 0xcfa07c, in step with the girls). Hair / cloth / skin materials are keyed by name now
+(`hairMaterial`, `clothMaterial`, `rampedSkin`) so a look is one line.
+
+![the boy: the owner's threshold pose and 2.5 m](before-after-boy.jpg)
+
+Poses: the threshold follow camera (6.76, 2.77, −5.59) → (9.77, 2.52, −8.69), vfov 46; (8.6, 2.1, −6.0) → (10.5, 1.55, −7.6),
+vfov 40. The before is the head with the girls' pass (`8651fce3`, cast shown), so the sheet isolates the boy.
+
+Six views — the boy stands in B / E (at the door) and F (far left); against the merged head `bd0bd1ba` (the girls' pass +
+fable-2's paving change), settle 12:
+
+| view | SSIM vs ref, head | branch | Δ | SSIM head↔branch | changed px | draws | M tris |
+| --- | --- | --- | --- | --- | --- | --- | --- |
+| B | 0.1734 | 0.1732 | −0.0003 | 0.9995 | 685 (all in the boy's box at the door) | 683 = 683 | 8.08 = 8.08 |
+| F | 0.2085 | 0.2085 | 0.0000 | 0.9998 | 515 (the boy's box) | 642 = 642 | 7.69 = 7.69 |
+
+E shares B's camera; A, C, D do not see him. Same submissions (the wide band is one mesh like the torus was; the bob one
+mesh like the old one).
+
 ## Play mode
 
 `kokiri-play-walk` (artifact): `?test=1` at 960 × 540, Link placed at (0.8, 6.2) facing the stair foot,
