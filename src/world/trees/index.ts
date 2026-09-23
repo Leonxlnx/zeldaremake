@@ -1592,6 +1592,13 @@ const NEAR_BASE_POOL_BYTES = NEAR_LOD_TIER.basePoolBytes;
  */
 const NEAR_LOD_BUILD_BUDGET_MS = 6;
 /**
+ * The first frame's build budget (ms): the parts pending inside the pre-fetch radii at the spawn
+ * are built before the walk starts (fable-5 lane 10 §18 on 39e63437: 192 of the plaza's 374 crown
+ * parts were still pending after the settle and built one per frame as the owner walked, each late
+ * one a synchronous build). Capped so a slow machine pays a bounded first frame.
+ */
+const NEAR_LOD_PREBUILD_MS = 1500;
+/**
  * The near-base bands the fixed cameras constrain (round 48; [in, out] m, key = NearBole id).
  * giant.ts NEAR_BASE_RADIUS_OVERRIDE holds the round-44 bands derived from the cameras'
  * distances (wider than the shipped 10 m where every camera stands far, narrower where one is
@@ -4143,11 +4150,19 @@ export async function create(ctx: WorldContext): Promise<WorldSystem> {
   });
   ctx.progress('trees', 1);
 
+  let prebuilt = false;
   return {
     name: 'trees',
     group,
     update(_dt, _t, c) {
       rebucket(c.camera);
+      if (!prebuilt) {
+        prebuilt = true;
+        const t0 = performance.now();
+        nearBasePool.work(NEAR_LOD_PREBUILD_MS);
+        nearCanopyPool.work(Math.max(0.5, NEAR_LOD_PREBUILD_MS - (performance.now() - t0)));
+        return;
+      }
       // the near parts' pending builds, within the frame budget (the canopy first: its parts are
       // the many; the bases take what is left, at least a chunk's worth so they never starve)
       const t0 = performance.now();
