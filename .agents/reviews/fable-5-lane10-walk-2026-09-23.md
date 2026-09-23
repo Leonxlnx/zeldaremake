@@ -95,3 +95,41 @@ pose the left bank region (x < 0.33, y 0.45–0.90) is unchanged — mean l 0.19
 the change is not in this framing (the bank he sees is the shaded slope beside the path, in view but not lit; the
 hollow's blades are behind the rise). Sheet `fable-5-lane10/owner-0650-pose-f56c5740-vs-9a1be295.jpg`.
 
+## 6. The squad branches at the owner's pose, one at a time (`squad1` `bca84c5a` haze, `squad2` `064a004b` mid canopy, `squad3` `06dd10c1` near bark — each against their merge-base `144453ef`)
+
+Same three poses (`northpath-poses.json`), same flags (`--character`, settle 8), rendered here 09:33–10:00 UTC. The band
+metrics from here on are `fable-5-lane10/bands.py` (HLS; mist l > 0.5 ∧ s < 0.22; brown h 15–50° ∧ l < 0.45 ∧ s > 0.10;
+near-black l < 0.20; leafy h 60–170° ∧ s > 0.15) — the same reads as §1/§5 within 1.5 points (base row 1.1 / 17.4 / 26.0 /
+0.263 against §5's 0.9 / 17.3 / 24.6 / 0.263). The far-centre box is x 0.30–0.70 × y 0.15–0.40 — the grey the owner circled.
+
+| owner's pose (1.5, 3.2, −10.5) → north | pixels moved > 6 / > 40 levels | bright mist | brown | near-black | leafy | mean l | far-centre box (hex · hue · sat · l · B/R) |
+| --- | --- | --- | --- | --- | --- | --- | --- |
+| owner's r_024 | — | **23.1 %** | 1.2 % | 11.6 % | 3.4 % | 0.394 | #7f7c73 · 44° · 0.05 · **0.474** · 0.91 |
+| base `144453ef` | — | 1.1 % | 17.4 % | 26.0 % | 13.1 % | 0.263 | #4e514c · 89° · 0.03 · 0.308 · 0.97 |
+| squad1 haze | 39.6 / 0.0 % | 0.7 % | 28.8 % | 30.7 % | 16.3 % | 0.260 | **#57554a · 50° · 0.08 · 0.316 · 0.86** |
+| squad2 mid canopy | 16.6 / **5.1 %** | 1.0 % | 22.5 % | **35.3 %** | **16.7 %** | 0.248 | #515449 · 74° · 0.07 · 0.308 · 0.90 |
+| squad3 near bark | 6.2 / 0.0 % | 1.1 % | 17.9 % | 29.2 % | 13.4 % | 0.259 | #4e504b · 88° · 0.03 · 0.304 · 0.97 |
+
+The other two poses read the same way (r_020-like: squad1 44 % of pixels, box 93° → 51°, l 0.310 → 0.341; squad2 14 %,
+near-black 26 → 33 %; squad3 1.7 %. r_026-like: squad1 32 %, 64° → 47°, l 0.287 → 0.272; squad2 13 %, leafy 26 → 32 %;
+squad3 3.1 %).
+
+- **squad1 fixed the hue and not the light.** The far field turns from cool grey-green (89°, B/R 0.97) to the recording's
+  warm khaki (50° against r_024's 44°, B/R 0.86 against 0.91) over 40 % of the frame — but its luminance stays at
+  0.316 where the recording's far box is 0.474, so the warm grey reads as *dark khaki* (the "brown" bucket takes it:
+  17 → 29 %) and the bright-mist share falls (1.1 → 0.7 %). §5's lever was "#858372 **at the brightness kept**": the
+  hue half landed; the far bands still need +0.15 of l (see `ANALYSIS_CLARITY.md` §3 for how the 08-08 fog slice took it).
+- **squad2 populates the band and darkens it.** Round crowns and young trees stand in the 14–58 m band where the base had
+  bare trunks (5 % of pixels moved > 40 levels — new geometry, not tint; leafy 13 → 17 %). Against the base's dark air they
+  are silhouettes: near-black 26 → 35 %, mean l 0.263 → 0.248. This is the owner's "trees populate", and it is exactly why
+  lane 1's light has to arrive with it — the recording's crowns are lit shapes in bright mist, not dark shapes in grey.
+- **squad3 is local**: bark cords, moss and knees on the near columns (6 % of the frame at the owner's pose, 0.0 % > 40
+  levels); the band composition is unchanged within 3 points. Two readings of the owner's circle 1 are now on record:
+  fable-cursor's depth pick (09:15) names the far-trunk row `distant-5-near` at 37–48 m (`75622db9` darkens it); `squad3`
+  @ `68c24262` names the column at (−3.5, −24.7), 15 m, with the thin pale poles beside it as the distant family at
+  39–55 m — a metre past `DISTANT_BARK_M` = 38 m, where the near-bark treatment switches off. Both agree the pale poles
+  in the circle are the distant family beyond 38 m; whoever owns that constant should read the circle before closing it.
+
+Sheets: `fable-5-lane10/it83-ba-sq1.jpg`, `it83-ba-sq2.jpg`, `it83-ba-sq3.jpg` (base | branch, the owner's pose, crop
+x 0–0.50 × y 0–0.70).
+
