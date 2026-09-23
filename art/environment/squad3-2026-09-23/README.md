@@ -101,17 +101,34 @@ after pass 2, then after the whole branch:
 
 | view | mean \|Δ\| pass 2 | mean \|Δ\| final | px > 8 (final) | mean rgb (head → final) |
 | --- | --- | --- | --- | --- |
-| A_stairs | 0.08 | 0.33 | 1.05 % | 91.11/87.33/67.72 → 90.98/87.22/67.62 |
-| B_house | 0.26 | 0.74 | 2.76 % | 85.49/83.03/65.95 → 85.15/82.73/65.67 |
-| C_lookback | 0.09 | 0.15 | 0.69 % | 85.27/81.37/62.70 → 85.11/81.24/62.57 |
-| D_log | 0.48 | 0.88 | 3.47 % | 86.29/84.14/68.29 → 85.90/83.78/67.93 |
-| F_canopy | 0.20 | 0.26 | 0.77 % | 87.30/82.01/58.74 → 87.12/81.80/58.54 |
+| A_stairs | 0.08 | 0.36 | 1.17 % | 91.11/87.33/67.72 → 90.94/87.18/67.59 |
+| B_house | 0.26 | 0.83 | 3.14 % | 85.49/83.03/65.95 → 85.08/82.65/65.60 |
+| C_lookback | 0.09 | 0.17 | 0.74 % | 85.27/81.37/62.70 → 85.09/81.22/62.55 |
+| D_log | 0.48 | 1.00 | 4.07 % | 86.29/84.14/68.29 → 85.78/83.65/67.81 |
+| F_canopy | 0.20 | 0.35 | 1.25 % | 87.30/82.01/58.74 → 87.02/81.68/58.43 |
 
 The six views do not move much: even D — where the emergent's bole and the far wall's columns
-fill the left edge — keeps 96.5 % of its pixels within 8 levels and its frame mean within 0.4 of
-a level. At the lane's own poses the same measure reads 1.2–1.9 mean levels with 4.3–6.2 % of
+fill the left edge — keeps 95.9 % of its pixels within 8 levels and its frame mean within 0.5 of
+a level. At the lane's own poses the same measure reads 1.3–3.8 mean levels with 4.3–12.2 % of
 pixels past 8, i.e. the change is concentrated where a walker stands, which is where it was
-aimed.
+aimed. **This is a real move on B and D and fable-cursor should look at those two frames before
+merging**, but every part of it is the bark of a column, an emergent or a giant near base.
+
+| lane pose | mean \|Δ\| | px > 8 |
+| --- | --- | --- |
+| l3-owner-north (the owner's 06:50 pose) | 1.54 | 7.25 % |
+| l3-column-6m | 3.83 | 12.19 % |
+| l3-emergent-foot | 1.58 | 5.75 % |
+| l3-giant-roots | 1.25 | 4.33 % |
+| l3-column-10m | 2.38 | 8.29 % |
+
+## pass4 — the columns stand on a foot
+
+`column.ts` `flare` 0.85 → 1.05 falling at 5 instead of 6: 0.64 R extra at 2 m and 0.39 R at 4 m
+(was 0.47 / 0.26), so the buttress reads to ≈ 25 m instead of dying at 10. The ground-line radius
+goes to 2.05 R (1.44 m on the widest variant), still inside the seats' 1.6 m probe ring; the
+emergent (0.3) and the far hut's host keep their own. The root REACH is deliberately unchanged —
+the plain roots do not read the path mask, so they must not grow.
 
 ## pass3 — the columns stop being a rank of posts, and a bole reads round
 
