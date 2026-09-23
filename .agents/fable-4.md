@@ -351,3 +351,12 @@ nearCanopy, materials, index otherwise) is edited.
 - 23:34 — fable-5's walk item 6 (flight climbs into shade) attributed at A by castShadow-off per group: white-bark
   0.0 %, giants +0.034, all casters off only 0.376 vs the frame's 0.65 — the light on the treads, not the canopy.
   `art/environment/round52-flight-shade/`.
+
+### 2026-09-23 02:47 UTC — round 52: giants' sectors per giant + crown band, colour-pass cull (`agent/fable-4-sectorgroups` @ `5000e9ae`)
+- The giants' 1.85 M at A in three sector meshes that always meet the frustum. Groups per giant (mergeParts
+  useGroups), split wood | two leaf height bands; exact bounds per group; `cull()` marks groups with sphere +
+  exact SAT box test; onBeforeRender/onAfterRender zero/restore the group count for the colour pass only.
+- A −148 K, B/E −266 K, C −351 K, D −360 K, F −309 K; six views pixel-identical; +66 draws. Four builds to
+  get A: per-giant boxes did nothing at A (a behind-camera giant's box holds the camera), exact SAT −76 K,
+  spheres nothing more, height bands −148 K. Lesson: for culling, the bound's shape matters more than the
+  test's exactness once the object is big and near.
