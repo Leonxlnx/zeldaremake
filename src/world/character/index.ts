@@ -109,10 +109,13 @@ export async function create(ctx: WorldContext): Promise<WorldSystem> {
   const link: Actor = { ...hardChain('idle'), puppet: linkLoad.puppet, pos: new Vector3(spawn[0], 0, spawn[2]), yaw: Math.PI, phase: 0, idleTurn: 0, look: 0.5, contact: new Vector3(), shadow: createContactShadow(0.36, 0.6), shadowRadius: 0.36 };
   group.add(link.puppet.group, link.shadow);
 
-  // Owner review: keep the background cast hidden while Link's movement is refined.
+  // The background cast — the Kokiri kids, their fairies and shadows. Hidden on the owner's 09-20
+  // request while Link's movement was refined; back since lane 7 (2026-09-23, "the people need to
+  // be updated"): the girl walking her plaza loop by the signpost, the sitter on the steps, the boy
+  // at Saria's door, the ledge and bank girls (demo d_090–d_104 — kids on the path and the bank).
   const backgroundCast = new Group();
   backgroundCast.name = 'background-characters';
-  backgroundCast.visible = false;
+  backgroundCast.visible = true;
   group.add(backgroundCast);
 
   // kid default spots: kokiri-a (stair-foot verge), kokiri-b (plaza west), kokiri-c beside the house door, kokiri-ledge on the raised ledge,
