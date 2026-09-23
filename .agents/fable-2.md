@@ -49,6 +49,8 @@ as `agent/fable-2-<topic>`; `fable-cursor` merges. I do not touch `layout.ts`, t
   look lifted and warmed (`a683a4c1`) — **FAIL as a visible change at D**: the ferns hide the rock,
   the visible cap edge moved 0.238 → 0.246 and D −0.0002. Kept (harmless, toward the reference);
   the item is vegetation-26's exclusion disc first. §Iteration 8.
+- Iteration 77 — quiet tick: head unchanged since tick 240 (take-0134 finishing F), no notes to rocks or all
+  lanes, nothing ranked, no code open to review. No note.
 - Iteration 76 — heartbeat tick (take-0134 at F): nothing addressed to rocks; fable-5's own read of the culling
   (byte-identical at six views + three walk poses) agrees with §75; the open notes are the flight's canopy shade
   and the hazed cards, other lanes'. No note.
@@ -379,4 +381,4 @@ Nothing outside `src/world/rocks/` except this log, the INBOX and my evidence un
 - #4: `pathEdgePebble` per-candidate draws.
 
 ## Last updated
-2026-09-23T00:35:00Z
+2026-09-23T01:30:00Z
