@@ -27,6 +27,7 @@ const dist = path.resolve(args.dist || 'dist');
 const out = path.resolve(args.out || '/tmp/audio-mix');
 const seconds = Number(args.seconds ?? 35);
 const sampleRate = Number(args.rate ?? 44100);
+/** `mix`, `bed`, `steps`, `music`; suffix a stem with `-dry` to mute the shared hall's return */
 const stems = String(args.stems ?? 'mix,bed,steps')
   .split(',')
   .map((s) => s.trim())
@@ -40,9 +41,10 @@ try {
   const { page } = await openWorld(browser, server.url, { width: 640, height: 360, quality: 'low' });
   for (const stem of stems) {
     const t0 = Date.now();
+    const dry = stem.endsWith('-dry');
     const { b64, music, peak, rms } = await page.evaluate(
-      async (secs, rate, s) => {
-        const r = await window.__ZR_AUDIO__.renderOffline(secs, rate, { stem: s });
+      async (secs, rate, s, noReverb) => {
+        const r = await window.__ZR_AUDIO__.renderOffline(secs, rate, { stem: s, ...(noReverb ? { reverb: false } : {}) });
         const bytes = r.wav;
         // 16-bit PCM levels straight off the WAV payload, so the numbers come from the shipped bytes
         let peak = 0;
@@ -62,7 +64,8 @@ try {
       },
       seconds,
       sampleRate,
-      stem,
+      dry ? stem.slice(0, -4) : stem,
+      dry,
     );
     const file = path.join(out, `${stem}.wav`);
     fs.writeFileSync(file, Buffer.from(b64, 'base64'));

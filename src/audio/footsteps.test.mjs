@@ -142,6 +142,22 @@ test('the design is a pure function of its seeded stream (no Math.random in the 
   assert.equal(/Math\.random\s*\(/.test(source), false, 'world audio must draw from src/world/util/prng.ts only');
 });
 
+test('the wind bed is a swell, not a floor: still air is silent', () => {
+  const { swell, GUST_KNEE, CANOPY_FLOOR, HUSH_FLOOR } = loadTs(path.join(here, 'ambience.ts'));
+  assert.equal(swell(0), 0, 'no wind, no bed');
+  assert.equal(swell(GUST_KNEE), 0, 'the knee is where the bed starts, not where it is already on');
+  assert.equal(swell(1), 1, 'a full gust is the full swell');
+  for (let g = 0; g <= 1.0001; g += 0.05) {
+    const v = swell(g);
+    assert.ok(v >= 0 && v <= 1, `swell(${g.toFixed(2)}) = ${v} is outside 0..1`);
+    assert.ok(v >= swell(g - 0.05), 'the swell must not fall as the wind rises');
+  }
+  // the floors are what plays when nothing is happening: they must be inaudible, not merely quiet
+  for (const [name, v] of [['canopy', CANOPY_FLOOR], ['hush', HUSH_FLOOR]]) {
+    assert.ok(20 * Math.log10(v) < -66, `the ${name} floor is ${(20 * Math.log10(v)).toFixed(0)} dB — an always-on bed is what reads as white noise`);
+  }
+});
+
 test('every step is quiet: nothing in a design can reach full scale on its own', () => {
   for (const surface of SURFACES) {
     for (const d of designs(surface, true, 1)) {

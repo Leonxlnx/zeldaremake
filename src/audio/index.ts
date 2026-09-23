@@ -57,10 +57,12 @@ export interface OfflineRender {
 
 /** what an offline render contains — the evidence path renders the parts separately */
 export interface OfflineOptions {
-  /** `mix` = what the player hears, `bed` = the ambience alone, `steps` = the footsteps alone */
-  stem?: 'mix' | 'bed' | 'steps';
+  /** `mix` = what the player hears; the others isolate one part of it */
+  stem?: 'mix' | 'bed' | 'steps' | 'music';
   /** include the music bus (default: only in `mix`) */
   music?: boolean;
+  /** mute the shared hall's return — the same stem dry, so the tail can be measured on its own */
+  reverb?: boolean;
 }
 
 /** one leg of the offline walk: seconds, ground speed (m/s) and what is underfoot */
@@ -315,18 +317,19 @@ export function mountAudio(o: AudioOptions): AudioHandle {
  */
 export async function renderOffline(o: AudioOptions, seed: string, seconds: number, sampleRate: number, options: OfflineOptions = {}): Promise<OfflineRender> {
   const stem = options.stem ?? 'mix';
-  const withMusic = options.music ?? stem === 'mix';
+  const withMusic = options.music ?? (stem === 'mix' || stem === 'music');
   const Ctor = window.OfflineAudioContext ?? (window as unknown as { webkitOfflineAudioContext?: typeof OfflineAudioContext }).webkitOfflineAudioContext;
   if (!Ctor) throw new Error('OfflineAudioContext unavailable');
   const ctx = new Ctor(2, Math.ceil(seconds * sampleRate), sampleRate);
   const rng = createRng(seed);
   const buses = createBuses(ctx, rng.fork('buses'));
+  if (options.reverb === false) buses.reverbReturn.gain.value = 0;
   // every fork is drawn whatever the stem, so one part's stream never depends on another's presence
   const ambienceRng = rng.fork('ambience');
   const footstepsRng = rng.fork('footsteps');
   const musicRng = rng.fork('music');
-  const ambience = stem === 'steps' ? null : createAmbience(ctx, buses.ambience, buses.reverb, ambienceRng, 0);
-  const footsteps = stem === 'bed' ? null : createFootsteps(ctx, buses.sfx, buses.reverb, footstepsRng, 0);
+  const ambience = stem === 'steps' || stem === 'music' ? null : createAmbience(ctx, buses.ambience, buses.reverb, ambienceRng, 0);
+  const footsteps = stem === 'bed' || stem === 'music' ? null : createFootsteps(ctx, buses.sfx, buses.reverb, footstepsRng, 0);
   const music = withMusic ? createMusic(ctx, buses.music, buses.reverb, musicRng, 0.5) : null;
   const musicSource = music ? await music.ready : 'none';
   const pods = gatherPods(o.scene);

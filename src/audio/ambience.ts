@@ -60,18 +60,30 @@ export const LANTERN_LEVEL = 0.055;
 export const LANTERN_CROWD_SHARE = 0.2;
 
 /**
- * The wind bed's levels: the floor in still air and how much the gust adds. The gust share is about
- * eight times the floor, so the wood is nearly quiet between gusts — an always-on bed is what a
- * listener stops hearing as air and starts hearing as noise. The owner still heard the 0.012 / 0.115
- * canopy and the 0.075 hush as "white noise in the background": the noise layers sit under the birds
- * and the steps, never level with them.
+ * The wind bed's levels.
+ *
+ * 2026-09-23, owner 20:08: "LOWER THE WHITE NOISE" — after the bed had already been cut 11 dB that
+ * morning. Cutting it again was the wrong lever: measured on the head's offline stems, the quietest
+ * tenth of every frame of the WHOLE MIX was the bed and nothing else (1–2 kHz: bed −73.3 dBFS,
+ * music −93.6; 2–6 kHz: bed −81.1, music −96.3). The music is louder but it has gaps; the bed never
+ * stopped, and a sound that never stops is the one a listener ends up calling white noise however
+ * quiet it is.
+ *
+ * So the bed is now a SWELL, not a floor. Below `GUST_KNEE` the wind layers are silent — not faint,
+ * silent — and what is left of the forest between gusts is its events: leaves, birds, boots. Above
+ * the knee the swell is louder than the old constant bed was, so a gust is actually wind.
  */
-export const CANOPY_FLOOR = 0.0035;
-export const CANOPY_GUST = 0.032;
-export const HUSH_FLOOR = 0.0004;
-export const HUSH_GUST = 0.012;
+export const GUST_KNEE = 0.22;
+export const CANOPY_FLOOR = 0.0003;
+export const CANOPY_GUST = 0.055;
+export const HUSH_FLOOR = 0.00008;
+export const HUSH_GUST = 0.02;
+/** 0 below the knee, 1 at a full gust — every continuous layer's level and modulation rides this */
+export function swell(gust: number): number {
+  return Math.max(0, (Math.min(1, gust) - GUST_KNEE) / (1 - GUST_KNEE));
+}
 /** the leaf flutters' level range (before the gust scale) and their share into the hall */
-const FLUTTER_LEVEL: [number, number] = [0.0028, 0.009];
+const FLUTTER_LEVEL: [number, number] = [0.004, 0.013];
 const FLUTTER_SEND = 0.25;
 
 type BirdKind = 'whistle' | 'trill' | 'chirps' | 'warble' | 'coo' | 'knock';
@@ -124,7 +136,11 @@ export function createAmbience(ctx: BaseAudioContext, out: AudioNode, reverbSend
   bedSrc.connect(canopyHp).connect(canopyLp).connect(canopyTilt).connect(canopyGain).connect(out);
   const canopySend = gain(ctx, 0.3);
   canopyGain.connect(canopySend).connect(reverbSend);
-  rides(canopyGain.gain, 0.055, 1.4, 0.03, 'canopy-slow');
+  // the irregular wander is GATED by the swell. Ungated it was its own always-on floor — up to
+  // 0.03 of gain whatever the wind was doing, as much again as the gust term itself.
+  const canopyMod = gain(ctx, 0);
+  canopyMod.connect(canopyGain.gain);
+  ridesGated(canopyMod, 0.055, 1.4, 0.03, 'canopy-slow');
   // the canopy's colour moves with a slower wander of its own: a gust opens the top of the roll
   rides(canopyLp.frequency, 0.08, 1, 280, 'canopy-colour');
 
@@ -138,7 +154,7 @@ export function createAmbience(ctx: BaseAudioContext, out: AudioNode, reverbSend
   leafSrc.connect(hushHp).connect(hushLp).connect(hushGain).connect(out);
   const hushSend = gain(ctx, 0.2);
   hushGain.connect(hushSend).connect(reverbSend);
-  ridesGated(hushMod, 0.42, 1.6, 0.005, 'hush');
+  ridesGated(hushMod, 0.42, 1.6, 0.008, 'hush');
 
   // ---- pod lantern flame ----------------------------------------------------------------------
   const flameGain = gain(ctx, 0);
@@ -377,9 +393,11 @@ export function createAmbience(ctx: BaseAudioContext, out: AudioNode, reverbSend
   const update = (t: number, s: AmbienceState) => {
     const gust = Math.max(0, Math.min(1, s.gust));
     gustNow = gust;
-    canopyGain.gain.setTargetAtTime(CANOPY_FLOOR + gust * CANOPY_GUST, t, 0.9);
-    hushGain.gain.setTargetAtTime(HUSH_FLOOR + Math.pow(gust, 1.6) * HUSH_GUST, t, 0.55);
-    hushMod.gain.setTargetAtTime(Math.pow(gust, 1.4), t, 0.55);
+    const sw = swell(gust);
+    canopyGain.gain.setTargetAtTime(CANOPY_FLOOR + sw * CANOPY_GUST, t, 0.9);
+    canopyMod.gain.setTargetAtTime(sw, t, 0.9);
+    hushGain.gain.setTargetAtTime(HUSH_FLOOR + Math.pow(sw, 1.8) * HUSH_GUST, t, 0.55);
+    hushMod.gain.setTargetAtTime(Math.pow(sw, 1.5), t, 0.55);
     // pods: the NEAREST lantern sets the level; the rest of the village adds a fifth each
     let sum = 0;
     let nearest = 0;
