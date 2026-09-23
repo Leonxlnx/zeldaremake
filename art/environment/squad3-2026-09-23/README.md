@@ -169,5 +169,6 @@ integration head and on this branch:
   6.5 m.
 - `l3-emergent-foot-before-after.jpg`, `l3-giant-roots-before-after.jpg` — the bark a walker
   passes at 3.7 m and 4.1 m: the white speckle gone, brown bark with green patches.
+- `../hero/*-before-after.jpg` — the five hero views, head on the left and this branch on the right.
 - `family-tag-owner-north.jpg` — the identification render (red = column, green = white-bark,
   blue = distant), built to `dist-probe` and reverted; it is not part of the branch's code.
