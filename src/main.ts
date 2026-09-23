@@ -517,7 +517,8 @@ async function boot() {
           air: player ? player.airHeight() : 0,
           groundUnderCamera: terrain.height(c.position.x, c.position.z),
           follow: follow?.state?.() ?? null,
-          render: { calls: renderer.info.render.calls, triangles: renderer.info.render.triangles },
+          render: { calls: renderer.info.render.calls, triangles: renderer.info.render.triangles, programs: renderer.info.programs?.length ?? null, geometries: renderer.info.memory.geometries, textures: renderer.info.memory.textures },
+          heap: (performance as unknown as { memory?: { usedJSHeapSize: number } }).memory?.usedJSHeapSize ?? null,
           perf: { ...perf },
         };
       },
