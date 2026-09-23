@@ -55,11 +55,17 @@ runs through.
   (plants.test: p95 ≤ 0.27 m, p50 under the verge north of the boulder), which is untouched;
 - `NORTH_FLOOR_KEEP` 0.45 → 0.72.
 
-`plants.ts` — four walked-verge passes, all after every existing pass on their own streams:
-violet cushions in compact masses at the stones' edge, broad paddle leaves leaning over the slabs,
-low fronds on the band's outer half and a clover fringe at the stones. The round-47 fern-and-shrub
-band now keeps `D_HOLLOW_VERGE_KEEP` = 80 % of its weight inside the hollow, so the west bank is
-layered like the east one.
+`plants.ts` — five walked-verge passes, all after every existing pass on their own streams. His
+verge is three layers deep and ours had one: violet cushions in compact masses at the stones' edge,
+broad paddle leaves leaning over the slabs, a clover fringe at the stones, low fronds on the band's
+outer half, and leafy shrub crowns 1.7–3.6 m back (the lane's *"shrubs at the path edges"*) that
+break up the middle distance. The round-47 fern-and-shrub band now keeps `D_HOLLOW_VERGE_KEEP` =
+80 % of its weight inside the hollow, so the west bank is layered like the east one.
+
+The violets **gather**: their clump centres follow the flower patches steeply (`flowerPatch^1.5`),
+1.3 m apart, 8–14 heads over 0.42 m — a mass at one verge, plain green for the next few steps,
+another mass further on, the way `r_024` / `r_026` / `r_028` grow them. An even purple ribbon down
+both edges was the first thing I rendered and it is not what his recording does.
 
 ## Measured
 
@@ -81,9 +87,29 @@ the owner walks past:
 | purple violets | 263 | 763 |
 | broad-leaf weeds | 5 333 | 6 014 |
 | ferns | 1 399 | 1 681 |
+| shrub crowns | 125 | 167 |
 | clover | 8 701 | 9 243 |
 
 Run it yourself: `node art/environment/squad4-2026-09-23/probe.mjs`.
+
+### "No bald patches" — the coverage audit
+
+`coverage.ts`'s 0.25 m grid over every lawn cell (the owner's 2026-09-19 item 12 metric), head vs
+here:
+
+| zone | uncovered, head | uncovered, here |
+| --- | --- | --- |
+| **the path shoulders** | **23.19 %** | **0.00 %** |
+| inside the walk's reach (30 m) | 0.123 % | 0.042 % |
+| D's hollow | 0.113 % | 0.057 % |
+| the north corridor's floor | 0.742 % | 0.643 % |
+| the whole detail disc | 0.195 % | 0.151 % |
+| the open lawn | 0.007 % | 0.008 % |
+| worst 8 m tile of the walk | 16 cells bare | 4 |
+
+The shoulder row is the bare strip of soil where the paving met the turf: it was a quarter bare by
+design, for camera D's 3–8 m. It is now closed, and the walk's worst tile went from 16 bare cells
+to 4.
 
 ## Before / after
 
