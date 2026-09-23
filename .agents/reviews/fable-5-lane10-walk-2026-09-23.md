@@ -517,3 +517,23 @@ pixels, and each lane has now moved its own. Remaining on these poses: the under
 E **+0.0106**, F −0.0100 — the earth under the timbers at A / F (fable-2's −0.0131 / −0.0081), the understory's re-seat
 and finer leaves *toward* the frames at B / D / E. Expected take-0135 on `79f44aa5` with the cast: A ≈ 0.182, B ≈ 0.175,
 C ≈ 0.189, D ≈ 0.243, E ≈ 0.194, F ≈ 0.208 (± 0.004); `d6681b92` moves it again (not rendered).
+
+## 16. fable-2's cooler earth under the timbers (`agent/fable-2-earth-risers` tip `7f050305`, the cut `23464406`) at the owner's pose and A — the hue lever is too small to read; the flight's warmth is the logs and treads, not the band (18:29–18:41 UTC)
+
+Rendered A and `s2-owner` on the branch and on the head `0d66fa51` (the warm cut, live), same list / flags; the branch
+lacks the head's grove move, so only the flight boxes are compared (the frames differ elsewhere by 6–15 % of pixels).
+
+| flight box | dark | pale | mean luma | p10 | saturation | mean colour · B/R |
+| --- | --- | --- | --- | --- | --- | --- |
+| `s2-owner`, head (warm) | 37.2 % | 9.3 % | 0.300 | 0.190 | 0.46 | #584c2f · 0.54 |
+| `s2-owner`, cooler cut | 38.7 % | 8.6 % | 0.296 | 0.189 | **0.45** | #564b2f · **0.55** |
+| demo `d_094` / `d_104` | 31 / 13 % | 7.5 / 8.2 % | 0.312 / 0.330 | 0.212 / 0.238 | **0.35 / 0.34** | #584f39 / #5c533e · **0.65 / 0.67** |
+| A, head (warm) | 39.2 % | 8.8 % | 0.288 | 0.148 | 0.43 | #52492f · 0.57 |
+| A, cooler cut | 40.0 % | 8.4 % | 0.286 | 0.148 | 0.42 | #51492f · 0.58 |
+| reference A | 15.9 % | 13.9 % | 0.344 | 0.223 | **0.30** | #5e5843 · **0.72** |
+
+The cooler cut moves 6.9 % of the `s2-owner` box by more than 6 levels and nothing by more than 20: saturation
+0.46 → 0.45, B/R 0.54 → 0.55, against the demo's 0.35 / 0.65 and the frame's 0.30 / 0.72. The riser band is ≈ 15 % of
+the box; the box's warmth is the logs' bark and the tread earth together (and the veil's warmth on them). **Either cut
+carries the weight (the owner's ask, §14); neither moves the hue — merge on weight, and take the flight's warmth as a
+whole-flight (or the light's) question, not the band's.** Sheet `fable-5-lane10/it91-ba-s2-cooler.jpg`.
