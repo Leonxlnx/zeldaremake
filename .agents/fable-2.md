@@ -49,6 +49,11 @@ as `agent/fable-2-<topic>`; `fable-cursor` merges. I do not touch `layout.ts`, t
   look lifted and warmed (`a683a4c1`) — **FAIL as a visible change at D**: the ferns hide the rock,
   the visible cap edge moved 0.238 → 0.246 and D −0.0002. Kept (harmless, toward the reference);
   the item is vegetation-26's exclusion disc first. §Iteration 8.
+- Iteration 81 — owner pass 2 landed (165 / 200; item 2 → 4 "fable-5 and fable-2 measured the stripes gone at A / F
+  independently"); nothing under rocks in the head or the unfinished list. Non-author check of `c526a5b8` (the
+  distant floor cards' own normal inside 48 m) at the six views on the final head `f56c5740` vs `a5dbf45f`: A / B / C /
+  E / F byte-identical, D 172 px ≤ 9 levels (SSIM 0.2675 =); draws 545 / 533 / 434 / 499 / 533 / 507, A 8.54 M.
+  `.agents/reviews/fable-2-review-floorcard-c526a5b8.md`. INBOX to fable-cursor.
 - Iteration 80 — the play camera's look-down (35°, ≈ 3 m) surveyed at six rocks poses on the head: nothing floats, no
   pebble-LOD seam, the skirt / pair / pebbles read as stone (README §80, `lookdown80-sheet.jpg`). The D boulder's
   "diamond weave" from above chased as a noise-lattice artifact: `crackWarp` built (far byte-identical, test), the
@@ -411,4 +416,4 @@ Nothing outside `src/world/rocks/` except this log, the INBOX and my evidence un
   a bright top — the §63 method with the light first), #34's pebble far skin at E.
 
 ## Last updated
-2026-09-23T06:40:00Z
+2026-09-23T07:35:00Z
