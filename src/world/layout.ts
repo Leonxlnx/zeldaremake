@@ -818,7 +818,7 @@ export const EXPANSION_BOX = (() => {
  * (x ≥ 2.33 − 0.0046 (z + 7.67) behind the bole). From Link's spawn (0, 0.5) the same trunk hides
  * only x ≥ 0.11 (z − 0.5), so the bridge's west posts and pods and the mouth's west half show
  * past its west flank — the first thing a walker sees looking south. C does see the path strip
- * between the giants (z 16–27, bearings −4° … 0°) and the ravine's far lip at 45 m.
+ * between the giants (z 16–27, bearings −7° … 0°) and the ravine's far lip at 45 m.
  *
  * Nothing here is in `LAYOUT`'s lists (the legacy streams iterate them — see `EXPANSION`): the
  * heightfield's LIVE view paves the path and cuts the ravine, `expansionCull` clears the legacy
@@ -827,22 +827,28 @@ export const EXPANSION_BOX = (() => {
  */
 export const EXPANSION_SOUTH = {
   /**
-   * Path nodes (x, 0, z): out of the spine's end cap, west of the `plaza-south` roots (the bole
-   * at (4.4, 20.5) r 2.2; its buttresses reach 5.2–8.2 m), east of `south-centre`'s (−4.5, 27),
-   * then onto the bridge axis 1.2 m short of the north sill. `southPathLine()` is the smoothed
-   * line every system reads; the heights come from the live terrain (the natural grade, smoothed).
+   * Path nodes (x, 0, z): out of the spine's end cap south-west round `plaza-south`'s foot, through
+   * the gap between it and `south-centre`'s, then south-east onto the bridge axis 0.55 m short of
+   * the north sill. The giants' flared boles meet the ground well outside their layout
+   * `trunkRadius` (trees/giant.ts: `plaza-south` 3.9 m from its axis at (4.4, 20.5),
+   * `south-centre` 3.16 m at (−4.5, 27)); the paving keeps ≥ 0.4 m off both past 0.1 m of bark
+   * relief, and their buttress roots dive under it. `southPathLine()` is the smoothed line every
+   * system reads; the heights come from the live terrain (the natural grade, smoothed).
    */
   path: [
     [1, 0, 16],
-    [0.55, 0, 19.4],
-    [0.4, 0, 22.4],
-    [1.05, 0, 25.2],
-    [2.3, 0, 27.2],
-    [3.3, 0, 28.8],
-    [3.66, 0, 29.9],
+    [-0.5, 0, 17.2],
+    [-1.2, 0, 19.4],
+    [-1.32, 0, 21.6],
+    [-0.8, 0, 23.55],
+    [0.4, 0, 25.15],
+    [2.0, 0, 26.55],
+    [3.3, 0, 27.9],
+    [3.68, 0, 28.95],
+    [3.705, 0, 29.9],
   ] as [number, number, number][],
   /** paved half width (m): `start` at the spine's end, easing to `end` over the first `taper` m */
-  pathHalfWidth: { start: 2.0, end: 1.2, taper: 6.5 },
+  pathHalfWidth: { start: 2.0, end: 1.2, taper: 3.2 },
   /**
    * The rope-and-plank bridge: sill-to-sill from `north` to `south` (xz), the deck resting on
    * the sills at the terrain + `sill`, sagging `sag` m at mid-span; planks `deckHalfWidth` either

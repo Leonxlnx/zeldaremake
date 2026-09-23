@@ -707,7 +707,7 @@ async function walkScenario(page, results) {
     ['north-clearing-ledge', [[0.5, 2], [1.5, -12], [2.0, -18], [1.8, -24], [2.5, -30], [3.5, -36], [4.5, -42], [5.2, -50], [5.8, -58], [5.4, -61.5], [3.6, -65.2], [1.0, -68.0], [-0.6, -70.2], ledge.at(-0.9), ledge.at(ledge.run * 0.5), ledge.at(ledge.run + 0.6)], 2400],
     // round 56 (expansion-south): out of the plaza down the south approach, between the giants'
     // roots to the ravine, over the rope bridge on its axis and into the hollow log to near its glow
-    ['south-bridge-to-log', [[0.5, 3], [0.8, 10], [1, 16], [0.55, 19.4], [0.4, 22.4], [1.05, 25.2], [2.3, 27.2], [3.3, 28.8], sf.bridge(-0.6), sf.bridge(1.4), sf.bridge(4.1), sf.bridge(6.9), sf.bridge(9.8), sf.bridge(12.2), sf.bridge(sf.len + 0.5), [4.14, 45.2], sf.log(0), sf.log(2), sf.log(4.8)], 2400],
+    ['south-bridge-to-log', [[0.5, 3], [0.8, 10], [1, 16], [-0.5, 17.2], [-1.2, 19.4], [-1.32, 21.6], [-0.8, 23.55], [0.4, 25.15], [2.0, 26.55], [3.3, 27.9], [3.68, 28.95], sf.bridge(-0.6), sf.bridge(1.4), sf.bridge(4.1), sf.bridge(6.9), sf.bridge(9.8), sf.bridge(12.2), sf.bridge(sf.len + 0.5), [4.14, 45.2], sf.log(0), sf.log(2), sf.log(4.8)], 2400],
   ];
   results.walk = [];
   const pickRoutes = typeof args['walk-routes'] === 'string' ? new Set(args['walk-routes'].split(',')) : null;

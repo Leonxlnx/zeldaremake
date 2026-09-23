@@ -29,10 +29,10 @@ import { authoredWhiteBarks, createWhiteBarkRoots, createWhiteBarkTree, whiteBar
 import { createUnderstoryTree, understoryParams, type UnderstoryParams } from './understory';
 import { placeWhiteBark, treeGroundBlocked, viewProjector, type WhiteBarkPlacement } from './placement';
 import { columnParams, createColumnTree, emergentParams, hutHostParams, type ColumnAsset, type ColumnParams } from './column';
-import { expansionCull, getTerrain, southFooting, southTrunkSeatY, type Terrain, type TerrainView } from '../terrain/heightfield';
+import { expansionCull, getTerrain, southFooting, southRouteSurface, southTrunkSeatY, type Terrain, type TerrainView } from '../terrain/heightfield';
 import { smoothstep } from '../util/noise';
 import { casterSpheres, expansionVisible, type Caster } from '../util/expansionLocality';
-import { EXPANSION, EXPANSION_SOUTH, southPathLine } from '../layout';
+import { EXPANSION, EXPANSION_SOUTH, inExpansionSouth, southPathLine } from '../layout';
 import { createGiantTree, LOBE_SECONDARY_REACH, LOBE_TWIG_REACH, LOBE_TWIG_TINT, NEAR_BASE_CUT_Y, NEAR_BASE_RADIUS_OVERRIDE, NEAR_BASE_RADIUS_OVERRIDE_LARGE, type CanopyBough, type GiantAsset, type GiantProfile } from './giant';
 import { NEAR_CANOPY_IN_M, NEAR_CANOPY_MAX_Y, NEAR_CANOPY_OUT_M, type NearCanopyPart } from './nearCanopy';
 import { LodPool, type PoolBuilt, type PoolItem } from './lodPool';
@@ -1368,6 +1368,16 @@ const SOUTH_WALK_XZ: [number, number][] = [
   [EXPANSION_SOUTH.tunnel.mouth[0], EXPANSION_SOUTH.tunnel.mouth[1]],
 ];
 const southWalkDistance = (x: number, z: number) => spineDistance(SOUTH_WALK_XZ, x, z);
+/** round 56: a south giant's far roots dive under the south paving from this far short of its edge (m; giant.ts `rootPressAt`) */
+const SOUTH_ROOT_PRESS_M = 0.4;
+const southRootPress = (x: number, z: number) => {
+  let m = southRouteSurface(x, z);
+  for (let i = 0; i < 8 && m < 1; i++) {
+    const t = (i / 8) * Math.PI * 2;
+    m = Math.max(m, southRouteSurface(x + Math.cos(t) * SOUTH_ROOT_PRESS_M, z + Math.sin(t) * SOUTH_ROOT_PRESS_M));
+  }
+  return m;
+};
 /**
  * Column trees (column.ts) — the dark boles of the mid-distance forest wall (round 13).
  *
@@ -2551,6 +2561,8 @@ export async function create(ctx: WorldContext): Promise<WorldSystem> {
   giantGroup.name = 'giants';
   const giants: { def: GiantTreeDef; asset: GiantAsset; origin: Vector3; angle: number }[] = [];
   const contacts: [number, number, number][] = [];
+  /** the contacts of the giants seated on the live ground (`southSeat` below), for the base-gap audit */
+  const liveContacts = new Set<[number, number, number]>();
   /**
    * The detached boughs (DETACHED_BOUGHS, giant.ts GiantOptions.detachedBoughs): their meshes,
    * gated as one by `detachedVisible` (util/expansionLocality.ts expansionVisible against
@@ -2678,7 +2690,12 @@ export async function create(ctx: WorldContext): Promise<WorldSystem> {
   };
   for (const def of giantDefs) {
     const [px, , pz] = def.position;
-    const gy = terrain.height(px, pz);
+    // round 56: a giant standing in the south exit's boxes (`plaza-south`, `south-centre`) seats its
+    // roots and fins on the LIVE ground and paving — the path runs through its roots at its own
+    // smoothed grade, up to 0.3 m off the legacy plain; both views agree at the boles' feet
+    const southSeat = pz > 10 && inExpansionSouth(px, pz);
+    const giantTerrain = southSeat ? liveTerrain : terrain;
+    const gy = giantTerrain.height(px, pz);
     const origin = new Vector3(px, gy, pz);
     let limbSpec: NonNullable<Parameters<typeof createGiantTree>[2]['limbSpec']> | undefined;
     if (def.limb && def.id === 'lantern-tree') {
@@ -2731,7 +2748,7 @@ export async function create(ctx: WorldContext): Promise<WorldSystem> {
     const detachedSpecs = DETACHED_BOUGHS.filter((b) => b.giant === def.id);
     const detachedBoughs: CanopyBough[] = detachedSpecs.map(toLocalBough);
     const asset = createGiantTree(def, rng, {
-      groundAt: (lx, lz) => terrain.height(px + lx, pz + lz) - gy,
+      groundAt: (lx, lz) => giantTerrain.height(px + lx, pz + lz) - gy,
       limbSpec,
       palette,
       // ×1.1 restores the laminae the porous sun corridors remove (W11 counts ≥ 200 k leaves)
@@ -2765,7 +2782,8 @@ export async function create(ctx: WorldContext): Promise<WorldSystem> {
       canopyBoughs,
       detachedBoughs: detachedBoughs.length ? detachedBoughs : undefined,
       sunDir,
-      pathAt: (lx, lz) => terrain.mask(px + lx, pz + lz).path,
+      pathAt: (lx, lz) => giantTerrain.mask(px + lx, pz + lz).path,
+      rootPressAt: southSeat ? (lx, lz) => southRootPress(px + lx, pz + lz) : undefined,
       basePalette,
       // the near-bole bark (bole.ts) goes on the giants within NEAR_BOLE_M of a hero camera and
       // within 60° of its axis (the frames' horizontal half-angle is 37–38°: in shot or just past
@@ -2876,7 +2894,11 @@ export async function create(ctx: WorldContext): Promise<WorldSystem> {
     giants.push({ def, asset, origin, angle: Math.atan2(pz, px) });
     attachGiantNearParts(giants[giants.length - 1]);
     pruneNearPools();
-    for (const c of asset.contacts) contacts.push([px + c.x, gy + c.y, pz + c.z]);
+    for (const c of asset.contacts) {
+      const at: [number, number, number] = [px + c.x, gy + c.y, pz + c.z];
+      contacts.push(at);
+      if (southSeat) liveContacts.add(at);
+    }
     ctx.progress('trees', 0.55 + (0.3 * giants.length) / giantDefs.length);
     await yieldFrame();
   }
@@ -3728,6 +3750,7 @@ export async function create(ctx: WorldContext): Promise<WorldSystem> {
   const liveSeated = new Set<[number, number, number]>();
   whitePlacements.forEach((p, i) => p.view === 'live' && liveSeated.add(whiteBases[i]));
   columnPlacements.forEach((p, i) => p.view === 'live' && liveSeated.add(columnBases[i]));
+  liveContacts.forEach((c) => liveSeated.add(c));
   let maxBaseGap = 0;
   for (const b of allBases) maxBaseGap = Math.max(maxBaseGap, Math.abs(b[1] - (liveSeated.has(b) ? liveTerrain : terrain).height(b[0], b[2])));
   const sampleBases = (() => {

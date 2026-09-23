@@ -172,13 +172,26 @@ const ground = createGround(live, LAYOUT, {
         steepAt = fmt(x, z);
       }
     }
-    for (const g of LAYOUT.giantTrees) {
-      const gap = Math.hypot(x - g.position[0], z - g.position[2]) - hw - g.trunkRadius;
-      assert.ok(gap >= 0.2, `the paving keeps ${gap.toFixed(2)} m off ${g.id}'s bole at ${fmt(x, z)}`);
-    }
   }
   assert.ok(maxGrade <= 0.3, `the path's steepest grade ${maxGrade.toFixed(3)} (at ${steepAt})`);
-  measured.path = `${s.toFixed(1)} m, grade ≤ ${maxGrade.toFixed(2)}`;
+  // the giants' flared boles meet the ground far outside their layout `trunkRadius` (trees/giant.ts
+  // girth × flare, measured by building each giant): the south paving (where the legacy paving pass
+  // leaves off — the spine's end cap has sat under `plaza-south`'s flare since before round 56)
+  // keeps ≥ 0.35 m off each foot past 0.1 m of bark relief
+  const BOLE_FOOT_M = { 'plaza-south': 3.9, 'south-centre': 3.16, 'south-giant': 2.47 };
+  let footGap = Infinity;
+  for (let x = -8; x <= 10; x += 0.1) {
+    for (let z = 14; z <= 31; z += 0.1) {
+      if (hf.southRouteSurface(x, z) < 0.05 || hf.legacyPathMask(x, z, hf.surfaceMask(x, z, 'legacy').path) >= 0.36) continue;
+      for (const [id, foot] of Object.entries(BOLE_FOOT_M)) {
+        const g = LAYOUT.giantTrees.find((t) => t.id === id).position;
+        const gap = Math.hypot(x - g[0], z - g[2]) - foot - 0.1;
+        footGap = Math.min(footGap, gap);
+        assert.ok(gap >= 0.35, `the south paving keeps ${gap.toFixed(2)} m off ${id}'s bole foot at ${fmt(x, z)}`);
+      }
+    }
+  }
+  measured.path = `${s.toFixed(1)} m, grade ≤ ${maxGrade.toFixed(2)}, ≥ ${footGap.toFixed(2)} m off the giants' feet`;
   assert.ok(s > 14, `the path runs ${s.toFixed(1)} m from the spine's end to the bridge`);
   // it leaves the spine's end at the spine's level
   const [x0, , z0] = line[0];

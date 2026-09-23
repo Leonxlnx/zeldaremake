@@ -678,8 +678,8 @@ grassMaterial.dispose();for(const t of grass.tiles){t.mesh.dispose();for(const g
   assert.ok(seam.filter(it=>a.field.bankFace(it.x,it.z)>0.3).length>=10,`seam litter at the bank toe: ${seam.filter(it=>a.field.bankFace(it.x,it.z)>0.3).length}`);
   // round 40: the leaf drift keeps collecting through the lawn's first 1.3 m beyond the seam (the verge transition), thinning into the lawn
   const drift=(lo,hi)=>litter.leaves.items.concat(litter.twigs.items).filter(it=>{const e=a.field.lawnEdgeDistance(it.x,it.z,true);return e>=lo&&e<=hi&&a.field.stairDistance(it.x,it.z)>0.1;}).length;
-  // round 56: the south exit's path paves the band's arc round the spine's old end cap (z 18.3–19.5); expansionCull
-  // prunes the 32 leaves and twigs there (655 → 623)
+  // round 56: the south exit's path paves the band's arc round the spine's old end cap (its west side); expansionCull
+  // prunes the 27 leaves and twigs there (655 → 628)
   assert.ok(drift(0.3,1.3)>=610,`litter in the verge band beyond the seam: ${drift(0.3,1.3)} (round 39: 554)`);
   assert.ok(drift(0.3,0.8)>drift(0.8,1.3),`the drift thins into the lawn: ${drift(0.3,0.8)} in 0.3–0.8 m against ${drift(0.8,1.3)} in 0.8–1.3 m`);
   const sample=newSample();for(const it of litter.twigs.items){a.field.sample(it.x,it.z,sample);assert.ok(a.field.allowed(it.x,it.z,sample),'twigs never lie on the paving');}
