@@ -438,6 +438,16 @@ export const BARK_DETAIL_TILES = 3.7;
  */
 export const BARK_TOUCH_M: [number, number] = [0.6, 2.0];
 export const BARK_TOUCH_TILES = 11.0;
+/**
+ * Round 53 (the owner 20:08, "why don't the trees immediately spawn instead of needing me to get
+ * close"): the analytic bark grain on the FAR programs' wood — view distances [in from, in to,
+ * out from, out to] (m). It starts where the 1.6 m bark map begins to mip away and stops where
+ * the haze has taken it; the near bases, which carry real cords, never compile it.
+ */
+export const BARK_GRAIN_M: [number, number, number, number] = [5, 9, 38, 55];
+/** the grain's cord amplitude (a symmetric factor about 1) and the extra darkening in its furrows */
+export const BARK_GRAIN_CORD = 0.3;
+export const BARK_GRAIN_FURROW = 0.26;
 /** mean LINEAR luminance of tree_bark_03/color.jpg (Rec. 709 over every texel after the sRGB
  *  transfer: 0.2538 on the 1K map, 0.2555 on the 2K) — the fine albedo term modulates around it so
  *  the bole's average colour does not shift. `texture2D(map)` on an SRGBColorSpace texture returns
@@ -721,6 +731,27 @@ const GIANT_BARK_COLOR = /* glsl */ `
   #endif
   float tone = treeNoise(vec3(vTreeWorld.x * 0.08, vTreeWorld.y * 0.15, vTreeWorld.z * 0.08));
   diffuseColor.rgb *= 0.86 + tone * 0.28;
+  #ifndef NEAR_BASE_DETAIL
+  // Round 53 — the owner, 20:08: "why don't the trees immediately spawn instead of needing me to
+  // get close". His red circle is a giant's FAR base at 15 m: a smooth grey-green ramp. Between
+  // the touching range, where the map's own fissures resolve (BARK_DETAIL_M), and the haze, a
+  // bole has nothing to read — the 1.6 m bark tile is 5–15 texels a pixel at 12–40 m and mips to
+  // its mean, and the shade floor is flat by construction. An analytic grain carries that gap:
+  // vertical cords ≈ 30 cm across drifting ≈ 1.8 m up the bole, from a world-space field so it
+  // needs no bole frame, no vertex and no draw. A factor about its own mean, so no bole's level
+  // moves. Off on the near bases (they carry real cords in geometry) and outside BARK_GRAIN_M.
+  {
+    float grainD = length(vViewPosition);
+    float grainNear = smoothstep(${BARK_GRAIN_M[0].toFixed(1)}, ${BARK_GRAIN_M[1].toFixed(1)}, grainD) * (1.0 - smoothstep(${BARK_GRAIN_M[2].toFixed(1)}, ${BARK_GRAIN_M[3].toFixed(1)}, grainD));
+    if (grainNear > 0.0) {
+      float cordA = treeNoise(vec3(vTreeWorld.x * 3.2, vTreeWorld.y * 0.55, vTreeWorld.z * 3.2));
+      float cordB = treeNoise(vec3(vTreeWorld.x * 7.5, vTreeWorld.y * 1.3, vTreeWorld.z * 7.5));
+      float cord = cordA * 0.68 + cordB * 0.32;
+      float furrow = pow(1.0 - cord, 3.0);
+      diffuseColor.rgb *= mix(1.0, 1.0 + ${BARK_GRAIN_CORD.toFixed(2)} * (cord - 0.5) - ${BARK_GRAIN_FURROW.toFixed(2)} * (furrow - 0.22), grainNear);
+    }
+  }
+  #endif
   // the near bases' moss (bole.ts, per vertex in vBarkMoss): sheets on the shaded foot, in the
   // furrows and over the root tops — laid over the bark as moss, with its own fine texture;
   // it also flattens the bark normal and roughens the surface (see the normal and roughness
