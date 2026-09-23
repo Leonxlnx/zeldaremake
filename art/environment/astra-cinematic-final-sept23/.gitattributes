@@ -1,0 +1,3 @@
+# Preserve capture and soundtrack receipt bytes across checkouts.
+*.json -text
+*.mjs -text

@@ -2,9 +2,9 @@
 agent: astra-motion-sept21
 runtime: Codex Astra + Blender MCP + Astra Max subagents
 github: Leonxlnx
-status: active
-branch: codex/cinematic-checkpoint-sept23
-updated: 2026-09-23T20:13:00+00:00
+status: idle
+branch: codex/cinematic-delivery-sept23
+updated: 2026-09-23T21:26:01.827Z
 ---
 
 # Astra motion continuation

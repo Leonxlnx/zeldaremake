@@ -1,0 +1,30 @@
+{
+  "sourceSha": "e599075ff78aa39954375c3ecdb7a74ab46aca3c",
+  "checkout": "E:/zeldaremake-cinematic-e599075f",
+  "dist": "E:/zeldaremake-cinematic-e599075f/dist",
+  "distHash": "sha256:f23809ced6bd34d791e488ef413af10214c0bdd2ffee8de064fb4f95611979fd",
+  "bundle": "index-DJ-pEmhG.js",
+  "bundleSha256": "8a47e00ca39eca45545a023b777c5ed4a1996d591215709d84b33ce38ca805d0",
+  "linkSha256": "7f406e40e65430ed3c11bd045e2e9482dae8cee8122e9869ed62a2c3cfecbbda",
+  "exporterSha256": "0431512a6007185aa5391231d1c5b0c54d038ef912d37c109b727306422e9f75",
+  "observerSha256": "0992c6a562b1016a7382c58badc61d39e91e3d42f4d2f5a1494f45de144e726e",
+  "profile": {
+    "width": 1920,
+    "height": 1080,
+    "pixelRatio": 1,
+    "quality": "high",
+    "fps": 30,
+    "simTimeStart": 12.5,
+    "settle": 12,
+    "staticTest": false,
+    "character": false,
+    "hud": false,
+    "nativeGpu": true
+  },
+  "note": "Authorized final25s world capture; starts only after12pose visual/receipt preflight passes. Offline30fps sampling, not realtimeFPS evidence.",
+  "shotSha256": "584b300817a798c6b66f642fd8edbf0be2ca2e42d57ed97619d48f1f90294ff3",
+  "expectedFrames": 750,
+  "expectedSeconds": 25,
+  "publishedMain": "c5d4aec9",
+  "freezeTag": "cinematic-2026-09-23"
+}

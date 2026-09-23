@@ -1,0 +1,24 @@
+{
+  "fps": 30,
+  "width": 1920,
+  "height": 1080,
+  "quality": "high",
+  "shots": [
+    {
+      "name": "01-arrival",
+      "frames": 180
+    },
+    {
+      "name": "02-canopy",
+      "frames": 150
+    },
+    {
+      "name": "03-house",
+      "frames": 150
+    },
+    {
+      "name": "06-log",
+      "frames": 270
+    }
+  ]
+}

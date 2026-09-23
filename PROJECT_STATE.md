@@ -9,7 +9,20 @@ Per-agent progress lives in `.agents/<agent>.md`; the live picture is the Direct
 (HUD) content landed in parallel** since take-0025 so the frames can be compared whole.
 
 ## Latest integrated milestone
-`main` = empty repository (initial commit). Everything below is on branch
+On 2026-09-23 at 20:34 UTC, PR #33 published the reviewed cinematic checkpoint on
+`main` as `c5d4aec9`. Tag `cinematic-2026-09-23` pins source `e599075f`; the merge
+has the same source tree. It combines the reviewed partner world, current Link
+`7f406e40…`, tilted-stance contact repair, and validated close-crown/pool repair.
+The exact clean build passed local capture, compare, score and anti-cheat:
+104 checks, no failures, six viewpoints below 9M triangles / 700 calls.
+The rubric remains 40/50 and Phase 1 remains 35/42. See
+[checkpoint scope and evidence](docs/CHECKPOINT_2026-09-23.md).
+Further partner work continues on its existing branches; unreviewed changes and
+rejected character studies were not included. The cinematic uses the pinned build.
+
+### Earlier foundation milestones
+
+Before that checkpoint, `main` was the initial commit. The following history describes branch
 `cursor/kokiri-world-phase1-f65e` (PR #2, draft): foundation + five content rounds on every
 world system + gauntlet tooling + Director's Monitor + walkable build. Second agent (`codex`)
 contributed via PRs #3 (props) and #4 (vegetation) targeting that branch; offline since
