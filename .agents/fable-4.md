@@ -401,3 +401,5 @@ nearCanopy, materials, index otherwise) is edited.
   `agent/fable-4-understory-walk`.
 - 20:41 — understory-walk merged; fable-5 confirmed h-west-front clears. Read Astra's real-leaves branch at owner-clarity-1:
   silhouette half closed (2.9 px, 8.4 % fine) at +0.9 M tris; hue half is lane 1's. README §Fourth pass; INBOX.
+- 21:38 — the near-canopy swap measured for pops on the head after fable-cursor's near-base fix: none (15.86 vs
+  16.84 % control). Astra's real-leaves read posted earlier this tick.
