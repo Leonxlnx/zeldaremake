@@ -403,3 +403,5 @@ nearCanopy, materials, index otherwise) is edited.
   silhouette half closed (2.9 px, 8.4 % fine) at +0.9 M tris; hue half is lane 1's. README §Fourth pass; INBOX.
 - 21:38 — the near-canopy swap measured for pops on the head after fable-cursor's near-base fix: none (15.86 vs
   16.84 % control). Astra's real-leaves read posted earlier this tick.
+- 21:41 — A at 695 / 8.95 M after fable-cursor's near-base floor; posted the remaining tree give-backs with their
+  look costs; queued understory zones for the south exit once exp-south merges.
