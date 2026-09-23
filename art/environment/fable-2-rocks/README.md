@@ -46,7 +46,9 @@ pixels):
 |---|---|---|---|---|---|
 | A_stairs | 0.2035 | 0.2036 | +0.0001 | 1 098 / 0 (0.12 %) | 597 / 9.15 M → 596 / **8.97 M** (−180 K) |
 | E_ground (≡ B) | 0.1946 | 0.1946 | 0 | 779 / 0 (0.08 %) | 589 / 8.30 M → 588 / 8.11 M (−190 K) |
-| C_lookback | see below | | | | 472 / 6.77 M → 471 / 6.59 M (−180 K) |
+| C_lookback | 0.1794 | 0.1795 | +0.0001 | 1 003 / 0 (0.11 %) | 472 / 6.77 M → 471 / 6.59 M (−180 K) |
+| D_log | 0.2430 | 0.2430 | 0 | 343 / 0 (0.04 %) | 557 / 8.53 M → 556 / 8.34 M (−190 K) |
+| F_canopy | 0.2159 | 0.2160 | +0.0001 | 1 178 / 1 (0.13 %) | 547 / 7.99 M → 546 / 7.81 M (−180 K) |
 
 `tsc` green, hardscape tests 9 / 9. The joints keep their darkness (the fill's paint, not the slabs' shadow); at A the only
 pixels that move are the hairlines along the sunward edges, none by more than 40 levels.

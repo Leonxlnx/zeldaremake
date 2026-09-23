@@ -54,7 +54,7 @@ as `agent/fable-2-<topic>`; `fable-cursor` merges. I do not touch `layout.ts`, t
   A −0.0002, C −0.0012, F +0.0004. The head after the squad merges renders A at 9.15 M / 599 draws — over W38's 9.0 M;
   flagged. `agent/fable-2-earth-treads` @ `55b791a1`. README §84, INBOX.
 - Iteration 88 — lane 6, the perf pass: the flagstones stop casting shadows (`flagstones.ts`, one flag; the north and
-  expansion meshes inherit) — A 9.15 → 8.97 M (−180 K, back under W38's 9.0 M), E −190 K, C −180 K; frames A +0.0001, E 0,
+  expansion meshes inherit) — A 9.15 → 8.97 M (−180 K, back under W38's 9.0 M), E −190 K, C / D / F −180…−190 K; frames A +0.0001, E 0, C +0.0001, D 0, F +0.0001,
   0.1 % of pixels by ≤ 40 levels (hairlines on the joints' sunward sides). `agent/fable-2-paving-noshadow` @ `ad0b3f68`.
   README §88, INBOX.
 - Iteration 85 — lane 6: the north ledge's raised stair is log-risered too (`LOG_FLIGHTS` + `ledge`): ref-03's circled
