@@ -26,6 +26,10 @@ export interface Music {
 
 export const MUSIC_FILES = ['audio/music.ogg', 'audio/music.mp3'];
 
+/** the MUSIC_FILES present in public/ when Vite started (vite.config.ts); absent outside Vite */
+declare const __ZR_MUSIC_FILES__: string[] | undefined;
+const PRESENT_MUSIC_FILES: string[] = typeof __ZR_MUSIC_FILES__ !== 'undefined' ? __ZR_MUSIC_FILES__ : MUSIC_FILES;
+
 // ---- the score --------------------------------------------------------------------------------
 const BPM = 76;
 const BEAT = 60 / BPM;
@@ -123,6 +127,9 @@ export function createMusic(ctx: BaseAudioContext, out: AudioNode, reverbSend: A
       bg.gain.exponentialRampToValueAtTime(0.008 * vel, t + 0.35);
       bg.gain.setValueAtTime(0.008 * vel, t + dur);
       bg.gain.exponentialRampToValueAtTime(0.0005, t + dur + 0.2);
+      // close it: the breath noise source is shared, so a gate left on the ramp's floor is a tap
+      // of it left open for the rest of the session (see graph.ts adEnvelope)
+      bg.gain.setValueAtTime(0, t + dur + 0.2);
       adsr(env.gain, t, dur, 0.22 * vel, 0.09, 0.25, 0.75, 0.35);
     };
 
@@ -200,7 +207,7 @@ export function createMusic(ctx: BaseAudioContext, out: AudioNode, reverbSend: A
   // ---- the file slot -------------------------------------------------------------------------
   const loadFile = async (): Promise<AudioBuffer | null> => {
     if (!tryFiles || typeof fetch !== 'function') return null;
-    for (const rel of MUSIC_FILES) {
+    for (const rel of PRESENT_MUSIC_FILES) {
       try {
         const url = new URL(rel, document.baseURI).href;
         const res = await fetch(url, { cache: 'no-store' });

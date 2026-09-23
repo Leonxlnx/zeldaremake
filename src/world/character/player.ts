@@ -25,6 +25,8 @@ export interface PlayerHandle {
   setPlayMode(on: boolean): void;
   playMode(): boolean;
   setInput(input: PlayerInput): void;
+  /** Read the last posed boot contacts so footstep audio follows the existing gait. */
+  feetContact?(): { gapM: number; minShoeGapM: number; stance: boolean }[];
 }
 
 export const PLAYER_KEY = 'player';

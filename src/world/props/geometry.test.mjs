@@ -478,6 +478,10 @@ for (const id of ['door-pot-large', 'sign-pot', 'saria-crate', 'saria-water-buck
   const deckDir = [westWalk.deck.b[0] - westWalk.deck.a[0], westWalk.deck.b[2] - westWalk.deck.a[2]];
   const dl = Math.hypot(deckDir[0], deckDir[1]);
   corridor("the west deck's landing", [[westWalk.deck.b[0], westWalk.deck.b[2]], [westWalk.deck.b[0] + (deckDir[0] / dl) * 2.5, westWalk.deck.b[2] + (deckDir[1] / dl) * 2.5]]);
+  // the corner a walker cuts: from the west path's fork node straight to the house's landing (the
+  // play-test's straight route snagged the fork marker at (−11.4, 8.25) when it stood 0.25 m off this line)
+  const pw = EXPANSION.pathWest;
+  corridor("the west fork's shortcut (fork node → landing)", [[pw[3][0], pw[3][2]], [pw[pw.length - 1][0], pw[pw.length - 1][2]]]);
   console.log(`walk clearance beyond each blocker's radius (m, hook margin 0.12 + body 0.25 = ${WALK}): ${clearances.join(' · ')}`);
 
   // the deck itself: a prop standing on the 0.95 m walkway pinches it; the lane left for Link's
@@ -502,6 +506,27 @@ for (const id of ['door-pot-large', 'sign-pot', 'saria-crate', 'saria-water-buck
     }
     console.log(`west deck: narrowest lane for Link's centre ${narrowest === Infinity ? 'n/a (nothing on the deck)' : narrowest.toFixed(3) + ' m'}`);
   }
+}
+
+// round 53: the trees' published boles (`ctx.shared.slimTrunks`: white-barks and fable-4's seeded
+// understory, built before props) are placement obstacles — a bole dropped on a pot's authored spot
+// nudges the pot clear instead of leaving it standing in the trunk; with no boles nothing moves
+{
+  const doorPot = PROP_LAYOUT.find((d) => d.id === 'door-pot-large');
+  const bole = { x: doorPot.x, z: doorPot.z, r: 0.22, y0: 0, y1: 6 };
+  const trunkAudits = [];
+  const withTrunk = await create({ ...ctx, terrain: createTerrain('legacy'), shared: { ...ctx.shared, slimTrunks: [bole] }, audit: (_, fn) => trunkAudits.push(fn) });
+  assert.ok(withTrunk, 'props build with trunks published');
+  const ta = trunkAudits[0]();
+  const moved = ta.placed.find((p) => p.id === 'door-pot-large');
+  assert.ok(moved, 'the door pot still places (nudged, not skipped)');
+  const clear = Math.hypot(moved.x - bole.x, moved.z - bole.z);
+  assert.ok(clear >= bole.r + footprintRadius(doorPot), `the door pot stands clear of the bole (${clear.toFixed(2)} m ≥ ${(bole.r + footprintRadius(doorPot)).toFixed(2)})`);
+  assert.ok(Math.hypot(moved.x - doorPot.x, moved.z - doorPot.z) <= 1.06, 'within the nudge search ring');
+  const unmoved = audit.placed.find((p) => p.id === 'door-pot-large');
+  assert.ok(Math.abs(unmoved.x - doorPot.x) < 1e-6 && Math.abs(unmoved.z - doorPot.z) < 1e-6, 'without boles the pot stays on its authored spot');
+  // every other prop is where it was without the bole
+  for (const p of ta.placed) if (p.id !== 'door-pot-large') { const q = audit.placed.find((r) => r.id === p.id); assert.ok(q && Math.abs(q.x - p.x) < 1e-6 && Math.abs(q.z - p.z) < 1e-6, `${p.id} unaffected by a bole elsewhere`); }
 }
 
 // geometry: determinism, finiteness, attributes, budget

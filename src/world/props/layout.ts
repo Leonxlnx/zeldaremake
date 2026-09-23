@@ -165,7 +165,12 @@ export const PROP_LAYOUT: readonly PropDef[] = [
   // camera C's frustum — at (−10.4, 8.7) the padded tip crossed C's edge by 4 cm and C drew the
   // whole backside. On the ledge face's slope (the post stands vertical, its foot conformed); the
   // long board points along the west line to the house, the short one back to the plaza.
-  { id: 'west-fork-marker', kind: 'marker', x: -11.0, z: 8.4, size: 1.65, yaw: -1.25, cluster: 'west-house' },
+  // Round 52 (the play-test's "snag" at (−11.4, 8.25)): a walker cutting the corner from the fork
+  // node straight to the house's landing runs the chord, not the discs' bow — at (−11.0, 8.4) the
+  // post stood 0.25 m off that chord and its blocker (r 0.3 + 0.12) stopped him. Now 0.7 m further
+  // up the shoulder (h 2.06 → 2.30, the slope gentler): 0.82 m off the chord, 1.5 m off the discs,
+  // still west of `cClip`'s margin; the shortcut is a corridor in geometry.test.
+  { id: 'west-fork-marker', kind: 'marker', x: -11.2, z: 7.75, size: 1.65, yaw: -1.25, cluster: 'west-house' },
 
   // ---- the north clearing's entrance (GOAL_MODE fable-3 #2): where the north path's band (half
   // width 2.2, from the arch at (5.8, −58) south-west) meets the paved disc at (−1.5, −69.8) r 4.6.

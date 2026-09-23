@@ -87,12 +87,29 @@ const DETAIL_ALBEDO_K = 0.24;
 /** the near-camera stone treatment, for the hardscape audit */
 export const STONE_NEAR = { tileK: NEAR_TILE_K, fadeM: NEAR_FADE, normalK: NEAR_NORMAL_K, detailNormalK: DETAIL_NORMAL_K, detailAlbedoK: DETAIL_ALBEDO_K };
 
+/**
+ * fable-2 (lane 6, the demo's log-risered steps — d_094 / d_104): where a slab carries `aEarth`
+ * (geometry.ts `earthTop`, the log flights' tread tops and shoulder rings) the stone shader
+ * renders packed trail dirt instead of stone — the terrain's `rocky_trail` set (CC0, Poly Haven)
+ * at EARTH_TILE_K × the mesh UV (≈ 0.9 m repeats on the stairs' 1.7 m tile), its albedo tinted
+ * to the demo's pale, dry, trodden earth and taking the slab's vertex tint (tone, wear, damp) like
+ * the stone does; its own normal for the small stones, a matte roughness. Off (0) everywhere else.
+ */
+const EARTH_SET = 'rocky_trail';
+const EARTH_TILE_K = 1.9;
+/** rocky_trail averages ≈ 0.19 linear luminance and leans orange; lifted to the demo's pale dirt and cooled a touch */
+const EARTH_TINT = new Color(2.24, 1.98, 1.52);
+/** the earth treatment, for the hardscape audit */
+export const STONE_EARTH = { set: EARTH_SET, tileK: EARTH_TILE_K, tint: [EARTH_TINT.r, EARTH_TINT.g, EARTH_TINT.b] as [number, number, number] };
+
 export async function createStoneMaterial(textures: TextureLibrary, config: WorldConfig, anisotropy = 8, opts: { instanced?: boolean } = {}) {
-  const [color, normal, rough, ao] = await Promise.all([
+  const [color, normal, rough, ao, earthColor, earthNormal] = await Promise.all([
     textures.load(STONE_SET, 'color', { anisotropy }),
     textures.load(STONE_SET, 'normal', { anisotropy }),
     textures.load(STONE_SET, 'roughness', { anisotropy }),
     textures.load(STONE_SET, 'ao', { anisotropy }),
+    textures.load(EARTH_SET, 'color', { anisotropy }),
+    textures.load(EARTH_SET, 'normal', { anisotropy }),
   ]);
   const P = config.palette;
   // our slabs only carry one uv set; read the AO map through it instead of uv1
@@ -142,20 +159,24 @@ export async function createStoneMaterial(textures: TextureLibrary, config: Worl
     shader.uniforms.uStainTint = { value: STAIN_TINT };
     shader.uniforms.uIndirectWarmPath = { value: INDIRECT_WARM_PATH };
     shader.uniforms.uIndirectWarmPlaza = { value: INDIRECT_WARM_PLAZA };
+    shader.uniforms.uEarthMap = { value: earthColor };
+    shader.uniforms.uEarthNormal = { value: earthNormal };
+    shader.uniforms.uEarthTint = { value: EARTH_TINT };
     shader.vertexShader = shader.vertexShader
       .replace(
         '#include <common>',
-        '#include <common>\nattribute float aMoss; attribute float aStain; attribute float aWear; attribute vec2 aCrack; attribute vec3 aMottle; attribute float aRough; varying float vMoss; varying float vStain; varying float vWear; varying vec2 vCrack; varying vec3 vMottle; varying vec3 vWPosS; varying float vRough;\n#ifdef USE_INSTANCING\nattribute float aMossScale;\n#endif',
+        '#include <common>\nattribute float aMoss; attribute float aStain; attribute float aWear; attribute vec2 aCrack; attribute vec3 aMottle; attribute float aRough; attribute float aEarth; varying float vMoss; varying float vStain; varying float vWear; varying vec2 vCrack; varying vec3 vMottle; varying vec3 vWPosS; varying float vRough; varying float vEarth;\n#ifdef USE_INSTANCING\nattribute float aMossScale;\n#endif',
       )
       .replace(
         '#include <worldpos_vertex>',
-        '#include <worldpos_vertex>\nvStain = aStain;\nvWear = aWear;\nvCrack = aCrack;\nvMottle = aMottle;\nvRough = aRough;\n#ifdef USE_INSTANCING\nvMoss = aMoss * aMossScale;\nvWPosS = (modelMatrix * instanceMatrix * vec4(transformed, 1.0)).xyz;\n#else\nvMoss = aMoss;\nvWPosS = (modelMatrix * vec4(transformed, 1.0)).xyz;\n#endif',
+        '#include <worldpos_vertex>\nvStain = aStain;\nvWear = aWear;\nvCrack = aCrack;\nvMottle = aMottle;\nvRough = aRough;\nvEarth = aEarth;\n#ifdef USE_INSTANCING\nvMoss = aMoss * aMossScale;\nvWPosS = (modelMatrix * instanceMatrix * vec4(transformed, 1.0)).xyz;\n#else\nvMoss = aMoss;\nvWPosS = (modelMatrix * vec4(transformed, 1.0)).xyz;\n#endif',
       );
     shader.fragmentShader = shader.fragmentShader
       .replace(
         '#include <common>',
         /* glsl */ `#include <common>
-        uniform vec3 uMossDeep; uniform vec3 uMossBright; uniform vec3 uMossSoil; uniform vec3 uStainTint; uniform vec3 uIndirectWarmPath; uniform vec3 uIndirectWarmPlaza; varying float vMoss; varying float vStain; varying float vWear; varying vec2 vCrack; varying vec3 vMottle; varying vec3 vWPosS; varying float vRough;
+        uniform vec3 uMossDeep; uniform vec3 uMossBright; uniform vec3 uMossSoil; uniform vec3 uStainTint; uniform vec3 uIndirectWarmPath; uniform vec3 uIndirectWarmPlaza; uniform sampler2D uEarthMap; uniform sampler2D uEarthNormal; uniform vec3 uEarthTint; varying float vMoss; varying float vStain; varying float vWear; varying vec2 vCrack; varying vec3 vMottle; varying vec3 vWPosS; varying float vRough; varying float vEarth;
+        vec2 stoneEarthUv(vec2 uv) { return uv * ${EARTH_TILE_K.toFixed(3)} + vec2(0.29, 0.53); }
         float stoneHash(vec2 p) { return fract(sin(dot(p, vec2(127.1, 311.7))) * 43758.5453); }
         float stoneVNoise(vec2 p) {
           vec2 i = floor(p); vec2 f = fract(p); f = f * f * (3.0 - 2.0 * f);
@@ -293,6 +314,17 @@ export async function createStoneMaterial(textures: TextureLibrary, config: Worl
         '#include <color_fragment>',
         /* glsl */ `
         #include <color_fragment>
+        #if defined(USE_MAP) && defined(USE_COLOR)
+        {
+          // fable-2 (lane 6): packed trail dirt where the slab says earth (a log flight's treads) —
+          // the trail texture, tinted to the demo's pale trodden earth, under the same vertex tint
+          float e = clamp(vEarth, 0.0, 1.0);
+          if (e > 0.0) {
+            vec3 earth = texture2D(uEarthMap, stoneEarthUv(vMapUv)).rgb * uEarthTint * vColor.rgb;
+            diffuseColor.rgb = mix(diffuseColor.rgb, earth, e);
+          }
+        }
+        #endif
         // joint soil creeping up a slab's flank (aStain: > 1 on the buried foot, 0 at the shoulder);
         // clamped after interpolation so the stained band ends where the caller put it
         diffuseColor.rgb *= mix(vec3(1.0), uStainTint, clamp(vStain, 0.0, 1.0));`,
@@ -325,7 +357,8 @@ export async function createStoneMaterial(textures: TextureLibrary, config: Worl
         // round 42: per-stone micro-roughness (aRough, ± a few hundredths) — neighbouring slabs
         // catch the sun differently at player height, as frame 03's do
         roughnessFactor = clamp(roughnessFactor + vRough, 0.5, 1.0);
-        roughnessFactor = mix(roughnessFactor, 0.97, clamp(vMoss, 0.0, 1.0));`,
+        roughnessFactor = mix(roughnessFactor, 0.97, clamp(vMoss, 0.0, 1.0));
+        roughnessFactor = mix(roughnessFactor, 0.96, clamp(vEarth, 0.0, 1.0));`,
       )
       .replace(
         '#include <normal_fragment_maps>',
@@ -339,6 +372,13 @@ export async function createStoneMaterial(textures: TextureLibrary, config: Worl
           vec3 mapN = mix(texture2D(normalMap, stoneNearUv(vNormalMapUv)).xyz, texture2D(normalMap, vNormalMapUv).xyz, farW) * 2.0 - 1.0;
           vec3 detN = texture2D(normalMap, stoneDetailUv(vNormalMapUv)).xyz * 2.0 - 1.0;
           mapN.xy = mapN.xy * normalScale * mix(${NEAR_NORMAL_K.toFixed(2)}, 1.0, farW) + detN.xy * (${DETAIL_NORMAL_K.toFixed(2)} * (1.0 - farW));
+          // the earth's own normal (small stones in packed dirt) where the slab says earth
+          float e = clamp(vEarth, 0.0, 1.0);
+          if (e > 0.0) {
+            vec3 earthN = texture2D(uEarthNormal, stoneEarthUv(vNormalMapUv)).xyz * 2.0 - 1.0;
+            earthN.xy *= 0.9;
+            mapN = mix(mapN, earthN, e);
+          }
           normal = normalize(tbn * mapN);
         }
         #else
@@ -346,7 +386,7 @@ export async function createStoneMaterial(textures: TextureLibrary, config: Worl
         #endif`,
       );
   };
-  mat.customProgramCacheKey = () => `stone-moss-v24-near-tile-rough-${opts.instanced ? 'i' : 's'}`;
+  mat.customProgramCacheKey = () => `stone-moss-v25-earth-treads-${opts.instanced ? 'i' : 's'}`;
   // the ao clone is ours (the library keeps the original); release it with the material, once
   mat.addEventListener('dispose', function onDispose() {
     mat.removeEventListener('dispose', onDispose);

@@ -295,6 +295,7 @@ export async function create(ctx: WorldContext): Promise<WorldSystem> {
       input.run = i.run;
       input.jump = !!i.jump;
     },
+    feetContact: () => link.puppet.feetContact().map((f) => ({ gapM: f.gapM, minShoeGapM: f.minShoeGapM, stance: f.stance })),
   };
   ctx.scene.userData[PLAYER_KEY] = player;
 
