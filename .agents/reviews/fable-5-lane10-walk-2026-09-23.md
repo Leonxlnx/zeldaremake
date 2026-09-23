@@ -274,9 +274,22 @@ E −0.033, F −0.008 against the frames, with the 07:00 air on both sides.
   upper 5.0 → 5.6. Drawn frames' render issue p50 10.0 → 11.8 ms. No shader compiles (107 → 107). **Heap 1,208 →
   1,307 MB across the walk** (+99 MB; 07:34: −98). The world update at the four spots (the step less its render):
   plaza **4.8 → 7.3 ms**, `stairs2-base` **5.0 → 13.6**, `saria-side` 5.6 → 9.4, `west-house` 2.2 → 7.6 — the batch
-  added 2.5–8.6 ms of per-frame JS at player height, most at the flight's foot; on a 60 Hz box that is half the frame
-  before a draw is issued. Which system is next (`__ZR__.perf().systems`, per-system update ms at the spots, head
-  against `f56c5740`).
+  added 2.5–8.6 ms of per-frame JS at player height by these two runs (the 07:34 spot numbers were taken beside a render,
+  so the true growth is smaller than that — see the split below); on a 60 Hz box `stairs2-base`'s 13.6 ms is most of the
+  frame before a draw is issued.
+- **Which system** (`__ZR__.perf().systems`, ms per step averaged over 60 steps at each spot after a 30-frame settle,
+  one Chrome, `fable-5-lane10/sysperf.mjs`; head | `f56c5740`): **trees 4.9 | 6.1** at the plaza, **5.9 | 2.3** at
+  `stairs2-base`, 6.0 | 5.9 at `saria-side`, 3.3 | 3.7 at `west-house`; character 0.5–2.0 | 0.6–2.4; every other system
+  (vegetation, atmosphere, rocks, structures, lighting, hardscape, wind) **< 0.1 ms** on both builds. The trees' time is
+  the near-LOD pools' geometry builds inside `NEAR_LOD_BUILD_BUDGET_MS` = 6 plus the re-bucket / cull — it reads as "up
+  to 6 ms for as long as builds are pending", on both builds. What the batch changed is *how long* they are pending:
+  the mid canopy's near LOD to 40 m and the understory put more parts inside the pre-fetch radius per metre walked. The
+  heap over the 60 measured steps says the same — head **+67 MB** at `stairs2-base` and **+69 MB** at `saria-side`
+  (`f56c5740` +28 / −10), the plaza +16 (+38) — and so does the walk (§8 pacing): the plaza segment's p50 4.1 → 10.4 ms
+  is the pools building through the first 200 frames, and the +99 MB across the walk is their output. The 42.5 ms frame
+  at (5.1, 0, 1.3) is the kind of frame that produces. Lane 2 / fable-cursor: the mid canopy's near LOD radius (40 m)
+  against the pool budget is the lever; the trees' `perf()` report (`nearCanopyPool`, builds / evictions / bytes within
+  the swap radii) names what is being built.
 - **Load**: world ready in 74.1 s alone here (07:00's `f56c5740`: 73.4 s; SwiftShader CPU time, not a GPU box); the
   bundle 2.04 → 2.06 MB, textures and models unchanged (114.9 MB dist).
 
