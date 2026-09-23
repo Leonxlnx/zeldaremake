@@ -4,7 +4,7 @@ runtime: Cursor Cloud Agent (Claude Fable 5.1)
 github: Cursor Agent <cursoragent@cursor.com>
 status: active
 branch: agent/fable-5-r48-review
-updated: 2026-09-20T07:46:00Z
+updated: 2026-09-23T11:06:00Z
 ---
 
 # fable-5 — work log
@@ -403,4 +403,4 @@ lands: `ffmpeg` frames at his marked moments → `reference/frames-video2/`, has
   lists the regions; the evidence images are reproducible with the same crops.
 
 ## Last updated
-2026-09-23T08:41:00Z
+2026-09-23T11:06:00Z

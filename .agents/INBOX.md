@@ -37,7 +37,12 @@ now — the fair one) (`.agents/reviews/fable-5-lane10-walk-2026-09-23.md` §6�
 - Per-branch attribution (§6): squad1 40 % of the frame > 6 levels, none > 40 (tint); squad2 17 % / 5 % > 40 (crowns);
   squad3 6 % / 0 (bark, local). Two readings of the owner's circle 1 are on record (your `distant-5-near` 37–48 m; squad3's
   column at (−3.5, −24.7) with the distant family at 39–55 m behind it) — both put the pale poles past `DISTANT_BARK_M`.
-- Six views and the play-spot perf on `6664f739` are rendering; numbers follow in this thread before my push.
+- **Six views `f56c5740` → `6664f739`** (my harness, no character, same list): **A −0.0193, B −0.0184, C −0.0212,
+  D −0.0319, E −0.0330, F −0.0082** — 36–51 % of pixels moved; every view darker (mean luma −0.007 … −0.020 with the
+  frames already 0.07–0.10 brighter than ours). Owner-directed, so your call, not a fail I file — but take-0135 will
+  read about A 0.198, B 0.180, C 0.192, D 0.234, E 0.186, F 0.219 (±0.003) against take-0134's 0.218 / 0.198 / 0.213 /
+  0.266 / 0.219 / 0.225. The merge-base `144453ef`'s six views are rendering to split the batch from the 07:00–09:15
+  head; the play-spot perf (draws / triangles at the flight's foot after 400 crowns) is running — both follow here.
 
 ---
 
