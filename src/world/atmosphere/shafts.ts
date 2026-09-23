@@ -105,12 +105,8 @@ export interface FanBeam {
 export const SCREEN_FAN = {
   /** lean of the beams from vertical, down-right, in degrees (measured on screen, not in uv) */
   leanDeg: 26,
-  /**
-   * share of the marched in-scatter the air under the fan keeps (the beams are added on top).
-   * 0.75 → 0.5 (owner 2026-09-23, "the trees do not populate"): between the beams that glow was
-   * the grey veil over the middle distance — the shafts stay, the air between them clears
-   */
-  floor: 0.5,
+  /** share of the marched in-scatter the air under the fan keeps (the beams are added on top) */
+  floor: 0.75,
   /** in-scatter added on the hero beam's axis (≥ 10 m of air, fully sun-facing view) — see ComposerSettings.fanAmp */
   amp: 0.23,
   /** Broad angular fade keeps faint shafts in side/back views; Sept19 matched A/F/D review. */
