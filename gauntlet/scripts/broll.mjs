@@ -12,6 +12,7 @@
  * between the two poses; the default path is the owner's teaser (aerial, the lantern pods, the house,
  * the stairs). --character keeps Link/Navi/the Kokiri visible (hidden by default for B-roll); --hud
  * keeps the HUD. --test renders one frame per shot.
+ * --check-timing runs the frame-clock regression without Chrome or output files.
  *
  * SwiftShader (this VM) renders a 3840×2160 frame in minutes; on a real GPU (Astra's laptop,
  * Chrome found via CHROME_PATH or the usual install locations) the same frame takes well under a
@@ -37,7 +38,7 @@ const keepHud = !!args.hud;
 /** frames rendered at a shot's first pose before its screenshot (on-demand LOD pools build in ~3 ms chunks per frame; 3 is the old default) */
 const settle = Math.max(1, Number(args.settle ?? 3));
 if (!Number.isFinite(width) || !Number.isFinite(height) || width < 16 || height < 16) throw new Error(`bad --size ${args.size}`);
-fs.mkdirSync(out, { recursive: true });
+if (!Number.isFinite(fps) || fps <= 0) throw new Error(`bad --fps ${args.fps}`);
 
 /** the owner's teaser path (world metres; poses = camera p, target t, vertical fov) */
 export const TEASER_SHOTS = [
@@ -91,7 +92,56 @@ const lerp = (a, b, t) => a + (b - a) * t;
 const lerp3 = (a, b, t) => [lerp(a[0], b[0], t), lerp(a[1], b[1], t), lerp(a[2], b[2], t)];
 const ease = (t) => t * t * (3 - 2 * t);
 
+async function captureFrame(page, canvas, warmFrames, dt, name) {
+  // Warm LOD pools in bounded batches without consuming unrecorded simulation time.
+  for (let left = warmFrames; left > 0; left -= 4) await page.evaluate(async ([n]) => { await window.__ZR__.render(n, 0); }, [Math.min(4, left)]);
+  await page.evaluate(async (dt) => { await window.__ZR__.render(1, dt); }, dt);
+  let buf = await canvas.screenshot({ type: 'png' });
+  let uniform = await isUniform(buf);
+  for (let retry = 0; retry < 3 && uniform; retry++) {
+    console.error(`broll: uniform frame at ${name} — re-rendering (${retry + 1}/3)`);
+    await page.evaluate(async () => { await window.__ZR__.render(2, 0); });
+    buf = await canvas.screenshot({ type: 'png' });
+    uniform = await isUniform(buf);
+  }
+  if (uniform) throw new Error(`broll: uniform frame at ${name} after 3 retries`);
+  return buf;
+}
+
+async function checkTiming() {
+  const { default: assert } = await import('node:assert/strict');
+  const { runInNewContext } = await import('node:vm');
+  const { default: sharp } = await import('sharp');
+  const blank = await sharp(Buffer.alloc(256), { raw: { width: 16, height: 16, channels: 1 } }).png().toBuffer();
+  const drawn = await sharp(Buffer.from(Array.from({ length: 256 }, (_, i) => i % 2 * 255)), { raw: { width: 16, height: 16, channels: 1 } }).png().toBuffer();
+  let time = 12.5;
+  const calls = [];
+  const window = { __ZR__: { render: async (n, dt) => { calls.push([n, dt]); time += n * dt; } } };
+  const page = { evaluate: (fn, arg) => runInNewContext(`(${fn})(arg)`, { window, arg }) };
+  for (const [warm, retries] of [[11, 0], [0, 2], [2, 3], [0, 0]]) {
+    const before = time, callStart = calls.length;
+    const captureTimes = [];
+    let screenshots = 0;
+    const canvas = { screenshot: async () => { captureTimes.push(time); return screenshots++ < retries ? blank : drawn; } };
+    assert.deepEqual(await captureFrame(page, canvas, warm, 1 / 30, 'timing-check'), drawn);
+    assert.equal(screenshots, retries + 1);
+    assert.deepEqual(captureTimes, Array(retries + 1).fill(before + 1 / 30));
+    assert.ok(Math.abs(time - before - 1 / 30) < 1e-12);
+    assert.deepEqual(calls.slice(callStart).filter(([, dt]) => dt !== 0), [[1, 1 / 30]]);
+    assert.equal(calls.slice(callStart).reduce((sum, [n]) => sum + n, 0), warm + 1 + 2 * retries);
+  }
+  const before = time, callStart = calls.length;
+  let screenshots = 0;
+  const canvas = { screenshot: async () => { screenshots++; assert.equal(time, before + 1 / 30); return blank; } };
+  await assert.rejects(captureFrame(page, canvas, 11, 1 / 30, 'always-blank'), /uniform frame at always-blank after 3 retries/);
+  assert.equal(screenshots, 4);
+  assert.deepEqual(calls.slice(callStart).filter(([, dt]) => dt !== 0), [[1, 1 / 30]]);
+  assert.ok(Math.abs(time - before - 1 / 30) < 1e-12);
+  console.log('broll timing: warm-up/retries preserve each output tick; persistent blank frames fail without extra time');
+}
+
 async function main() {
+  fs.mkdirSync(out, { recursive: true });
   const server = await serveStatic(dist);
   const browser = await launchBrowser({ width, height });
   try {
@@ -112,16 +162,8 @@ async function main() {
         const u = ease(n > 1 ? i / (n - 1) : 0);
         const p = lerp3(shot.from.p, shot.to.p, u), tg = lerp3(shot.from.t, shot.to.t, u), fov = lerp(shot.from.fov, shot.to.fov, u);
         await page.evaluate(([p, tg, fov]) => { window.__ZR__.setPose(p, tg, fov); }, [p, tg, fov]);
-        // settle in small batches: one SwiftShader frame can take seconds, and a single evaluate() must stay under the protocol timeout
-        for (let left = i === 0 ? settle : 1; left > 0; left -= 4) await page.evaluate(async ([n, dt]) => { await window.__ZR__.render(n, dt); }, [Math.min(4, left), 1 / fps]);
-        // not-drawn guard (capture.mjs has the same): SwiftShader occasionally hands back a uniform frame
-        // (a transient context loss); re-render up to three times before accepting it
-        let buf = await canvas.screenshot({ type: 'png' });
-        for (let retry = 0; retry < 3 && (await isUniform(buf)); retry++) {
-          console.error(`broll: uniform frame at ${shot.name} — re-rendering (${retry + 1}/3)`);
-          await page.evaluate(async ([dt]) => { await window.__ZR__.render(2, dt); }, [1 / fps]);
-          buf = await canvas.screenshot({ type: 'png' });
-        }
+        // The last settle render is the output tick; all earlier renders and retries hold time.
+        const buf = await captureFrame(page, canvas, i === 0 ? settle - 1 : 0, 1 / fps, shot.name);
         fs.writeFileSync(path.join(out, `f${String(frame).padStart(4, '0')}.png`), buf);
         frame++;
         console.error(`${shot.name} ${i + 1}/${n} — frame ${frame}/${total} — ${((Date.now() - t0) / frame / 1000).toFixed(1)} s/frame`);
@@ -136,4 +178,4 @@ async function main() {
 }
 
 const isMain = process.argv[1] && path.resolve(process.argv[1]) === fileURLToPath(import.meta.url);
-if (isMain) main().catch((e) => { console.error(e); process.exit(1); });
+if (isMain) (args['check-timing'] ? checkTiming() : main()).catch((e) => { console.error(e); process.exit(1); });

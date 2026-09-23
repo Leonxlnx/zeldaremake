@@ -1,4 +1,5 @@
 // Drive the actual player handle and inspect deformed shoe vertices against rendered ground.
+// Optional native capture size: --size 1920x1080 (default 1280x720; even dimensions for H.264).
 import fs from 'node:fs/promises';
 import path from 'node:path';
 import crypto from 'node:crypto';
@@ -10,10 +11,16 @@ const candidate=process.env.LINK_REVIEW_ASSET||'link-runtime.glb';assert.match(c
 const world=process.env.LINK_WORLD_ROOT||ROOT;
 const balancedRender=process.argv.includes('--balanced-render');
 const fullSole=process.argv.includes('--full-sole');
+const sizeIndex=process.argv.indexOf('--size');
+const size=sizeIndex<0?'1280x720':process.argv[sizeIndex+1];
+assert.match(size??'',/^\d+x\d+$/,'--size requires WIDTHxHEIGHT');
+const [width,height]=size.split('x').map(Number);
+assert.ok([width,height].every(n=>Number.isSafeInteger(n)&&n>=16&&n%2===0),'--size dimensions must be even integers >=16');
 const out=path.join(ROOT,'art/characters/link/progress',new Date().toISOString().replace(/[:.]/g,'-')+'-play-motion');
 await fs.mkdir(out,{recursive:true});
 const hash=b=>crypto.createHash('sha256').update(b).digest('hex');
 const report={kind:'Actual player/IK review, not a gauntlet take or animation acceptance',
+  viewport:{width,height},
   render_profile:balancedRender?'high geometry; shadow=2048,8; scale=0.75':'high defaults',
   world_commit:execFileSync('git',['rev-parse','HEAD'],{cwd:world,encoding:'utf8'}).trim(),
   world_status:execFileSync('git',['status','--short'],{cwd:world,encoding:'utf8'}).trim(),
@@ -29,7 +36,7 @@ const exactHeightCode=fullSole?await fs.readFile(new URL('./progress/2026-09-21-
 if(fullSole)report.exact_height_sha256=hash(exactHeightCode);
 const server=await serveStatic(path.join(world,'dist'));let browser,page;
 try{
-  browser=await launchBrowser();
+  browser=await launchBrowser({width,height});
   report.browserVersion=await browser.version();
   report.browserStderr='';
   browser.process()?.stderr?.on('data',b=>report.browserStderr=(report.browserStderr+b).slice(-12000));
@@ -321,6 +328,7 @@ try{
     const probe=JSON.parse(execFileSync('ffprobe',['-v','error','-count_frames','-select_streams','v:0',
       '-show_entries','stream=width,height,nb_read_frames,r_frame_rate','-of','json',file],{encoding:'utf8',windowsHide:true}));
     assert.equal(Number(probe.streams[0].nb_read_frames),videoFrames);assert.equal(probe.streams[0].r_frame_rate,'30/1');
+    assert.equal(probe.streams[0].width,width);assert.equal(probe.streams[0].height,height);
     report.video={file:path.basename(file),sha256:hash(await fs.readFile(file)),frames:videoFrames,...probe.streams[0]};
     // Keep the verified clip and representative stills; these are temporary encoder inputs.
     assert.equal(path.dirname(framesDir),out);
