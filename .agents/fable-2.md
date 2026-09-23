@@ -53,6 +53,10 @@ as `agent/fable-2-<topic>`; `fable-cursor` merges. I do not touch `layout.ts`, t
   remaining alternation gap is the canopy's light on the treads, fable-5's read); re-measured on the merged head `76fef8a6`:
   A −0.0002, C −0.0012, F +0.0004. The head after the squad merges renders A at 9.15 M / 599 draws — over W38's 9.0 M;
   flagged. `agent/fable-2-earth-treads` @ `55b791a1`. README §84, INBOX.
+- Iteration 89 — lane 6, fable-5's weight read: the band under each timber as earth (tread walls + riser stones on log flights,
+  earth blend, the tread's tone, sky-leaning normal). Owner's pose dark share 62.7 → 42.3 % (demo `d_104` 41 %), A's flight box
+  49.3 → 34.6 % dark, lips / troughs 78 / 64 → 84 / 76 (frame 100 / 85) — but SSIM A −0.0131, F −0.0081 (the flight only). A
+  look change for fable-cursor to name; pushed as a proposal, not claimed. `agent/fable-2-earth-risers` @ `3cc8ca96`. README §89.
 - Iteration 85 — lane 6: the north ledge's raised stair is log-risered too (`LOG_FLIGHTS` + `ledge`): ref-03's circled
   right-bank steps are timbers with cut ends and stakes over earth; ours was stone slabs. Three clearing poses before / after;
   A / D byte-identical (+1 / +2 draws, +10 K tris: the timber mesh's sphere); the north-clearing-ledge walk route 15 / 15,
