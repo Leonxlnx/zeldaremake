@@ -55,6 +55,32 @@ function polylineDistance(points: readonly P3[], x: number, z: number): number {
   return polylineClosest(points, x, z).dist;
 }
 
+/**
+ * Distance to a polyline and which side of it (x, z) lies on: `side` is the cross product of the
+ * closest segment's direction with the offset, so a line running north (−z) has side < 0 to its
+ * WEST — a walker's left. Used by the walked verge (`VegField.pathVerge`).
+ */
+function polylineSide(points: readonly P3[], x: number, z: number): { dist: number; side: number } {
+  let best = Infinity;
+  let side = 0;
+  for (let i = 0; i < points.length - 1; i++) {
+    const ax = points[i][0];
+    const az = points[i][2];
+    const dx = points[i + 1][0] - ax;
+    const dz = points[i + 1][2] - az;
+    const len2 = dx * dx + dz * dz;
+    const t = len2 > 0 ? clamp(((x - ax) * dx + (z - az) * dz) / len2, 0, 1) : 0;
+    const ox = x - ax - dx * t;
+    const oz = z - az - dz * t;
+    const d2 = ox * ox + oz * oz;
+    if (d2 < best) {
+      best = d2;
+      side = dx * oz - dz * ox;
+    }
+  }
+  return { dist: Math.sqrt(best), side };
+}
+
 /** parameter 0..1 of the closest point on a→b to (x, z) */
 function segmentT(seg: { ax: number; az: number; bx: number; bz: number }, x: number, z: number): number {
   const dx = seg.bx - seg.ax;
@@ -175,6 +201,22 @@ const FLANK_FEATHER = 0.5;
 const D_SHOULDER_EAST = 1.0;
 const D_SHOULDER_WEST = 0.6;
 const D_SHOULDER_FEATHER = 0.5;
+/**
+ * 2026-09-23 (the owner, walking north from the plaza: "make the grass thicker on the left side")
+ * — the WALKED verge. Every rule above is a fixed camera's screen box: `dShoulder` is camera D's
+ * lower frame (a ragged soil edge), `lawnBand` is frame 14 s' mown band, `LOW_ZONES` is frames 46 /
+ * 56's low right verge. His recording (`reference/frames-dense/review46/r_020`–`r_028`) shows the
+ * opposite from the walk: violets, broad leaves and low fronds crowd the slabs and close over the
+ * path's edge at every step. `pathVerge` is that ground — the first VERGE_BAND m of turf off the
+ * paving of the walked spine and of the north path beyond the arch — and it carries no camera's
+ * box. `left` marks its WEST half (the owner's left walking north), which the verge passes weight
+ * VERGE_LEFT ×.
+ */
+const VERGE_BAND = 2.4;
+/** the paving's own gravel rim (edges.ts) owns the first few centimetres */
+const VERGE_INNER = 0.06;
+const VERGE_FEATHER = 1.0;
+export const VERGE_LEFT = 1.5;
 /**
  * Round 32: the house-west flight's flanks (hardscape-25 re-laid it to frame 56 s: five risers
  * from a paved apron beside the spine up to the landing). The frame's right edge shows a mossy
@@ -762,6 +804,34 @@ export class VegField {
   /** Distance to the centreline of Saria's stepping-stone ramp (`pathToHouse`). */
   rampDistance(x: number, z: number): number {
     return polylineDistance(this.ctx.layout.pathToHouse, x, z);
+  }
+
+  /**
+   * The walked verge (see VERGE_BAND): `w` 0..1 across the first VERGE_BAND m of ground off the
+   * spine's and the north path's paving, `left` 1 on the west side (the owner's left walking
+   * north), `edge` the metres to that paving. Callers still run the masks — this says nothing
+   * about paving, trunks or props, only where the walker's eye is.
+   */
+  pathVerge(x: number, z: number): { w: number; left: number; edge: number } {
+    const L = this.ctx.layout;
+    const spine = polylineSide(L.pathSpine, x, z);
+    const north = polylineSide(L.northPath, x, z);
+    const se = spine.dist - L.pathHalfWidth;
+    const ne = north.dist - L.northPathHalfWidth;
+    const useNorth = ne < se;
+    const edge = useNorth ? ne : se;
+    if (edge < VERGE_INNER || edge > VERGE_BAND) return { w: 0, left: 0, edge };
+    const w = smoothstep(VERGE_INNER, VERGE_INNER + 0.12, edge) * (1 - smoothstep(VERGE_BAND - VERGE_FEATHER, VERGE_BAND, edge));
+    return { w, left: (useNorth ? north.side : spine.side) < 0 ? 1 : 0, edge };
+  }
+
+  /** true when any of the `size` m tile at (x0, z0) can hold walked verge (grass.ts's per-tile pass) */
+  tileMeetsVerge(x0: number, z0: number, size: number): boolean {
+    const L = this.ctx.layout;
+    const mx = x0 + size / 2;
+    const mz = z0 + size / 2;
+    const reach = size * 0.71 + VERGE_BAND;
+    return polylineDistance(L.pathSpine, mx, mz) - L.pathHalfWidth < reach || polylineDistance(L.northPath, mx, mz) - L.northPathHalfWidth < reach;
   }
 
   /**
