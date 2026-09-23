@@ -51,6 +51,7 @@ const field = new VegField(ctx, WORLD.detailRadius + 6, 0.5);
 const plants = read('vegetation/plants').buildPlants(ctx, field, group);
 const material = new THREE.MeshBasicMaterial();
 const grass = await read('vegetation/grass').buildGrass(ctx, field, material, new THREE.Group(), () => {});
+const carpet = read('vegetation/carpet').buildCarpet(ctx, field, new THREE.Group());
 
 /** the ground the owner walks past on the north path: left (west) verge, then the right one */
 const BOXES = {
@@ -64,6 +65,7 @@ const BOXES = {
   'R verge -12..-18': [3.2, -18.0, 6.0, -12.0],
   'path shoulders -4..-12': [-2.6, -12.0, 4.6, -4.0],
   'north floor -30..-40': [-3.0, -40.0, 8.0, -30.0],
+  'corridor floor -42..-54': [-10.0, -54.0, 14.0, -42.0],
 };
 
 const q = (a, p) => (a.length ? a.slice().sort((x, y) => x - y)[Math.min(a.length - 1, Math.floor(a.length * p))] : 0);
@@ -97,7 +99,9 @@ for (const [name, b] of Object.entries(BOXES)) {
     const n = set.items.filter((it) => inBox(it.x, it.z, b)).length;
     if (n) sets[set.opts.name ?? 'set'] = n;
   }
-  report[name] = { bladesPerM2: +(hs.length / area).toFixed(0), h50: +q(hs, 0.5).toFixed(3), h95: +q(hs, 0.95).toFixed(3), openM2: +area.toFixed(1), sets };
+  const cards = [carpet.clumps, carpet.northClumps].reduce((n, set) => n + set.items.filter((it) => inBox(it.x, it.z, b)).length, 0);
+  const mats = [carpet.mats, carpet.northMats].reduce((n, set) => n + set.items.filter((it) => inBox(it.x, it.z, b)).length, 0);
+  report[name] = { bladesPerM2: +(hs.length / area).toFixed(0), cardsPerM2: +(cards / area).toFixed(1), matsPerM2: +(mats / area).toFixed(1), h50: +q(hs, 0.5).toFixed(3), h95: +q(hs, 0.95).toFixed(3), openM2: +area.toFixed(1), sets };
 }
 report.totals = { blades: grass.count, weeds: plants.weeds.count, tufts: plants.tufts.count, ferns: plants.ferns.count, flowers: plants.flowers.count, whiteFlowers: plants.whiteFlowers.count, clover: plants.clover.count, bushes: plants.bushes.count };
 
@@ -108,6 +112,6 @@ for (const [name, r] of Object.entries(report)) {
   const sets = Object.entries(r.sets)
     .map(([k, v]) => `${k} ${v}`)
     .join(', ');
-  console.log(`${name.padEnd(24)} ${String(r.bladesPerM2).padStart(5)} blades/m²  p50 ${r.h50.toFixed(3)}  p95 ${r.h95.toFixed(3)}  open ${String(r.openM2).padStart(6)} m²  | ${sets}`);
+  console.log(`${name.padEnd(24)} ${String(r.bladesPerM2).padStart(5)} blades/m²  cards ${String(r.cardsPerM2).padStart(5)}  mats ${String(r.matsPerM2).padStart(5)}  p50 ${r.h50.toFixed(3)}  p95 ${r.h95.toFixed(3)}  open ${String(r.openM2).padStart(6)} m²  | ${sets}`);
 }
 console.log('totals', JSON.stringify(report.totals));
