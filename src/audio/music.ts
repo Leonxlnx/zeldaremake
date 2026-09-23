@@ -123,9 +123,9 @@ export function createMusic(ctx: BaseAudioContext, out: AudioNode, reverbSend: A
       const bg = gain(ctx, 0);
       breathBp.connect(bg).connect(lp);
       bg.gain.setValueAtTime(0.0005, t);
-      bg.gain.linearRampToValueAtTime(0.05 * vel, t + 0.05);
-      bg.gain.exponentialRampToValueAtTime(0.008 * vel, t + 0.35);
-      bg.gain.setValueAtTime(0.008 * vel, t + dur);
+      bg.gain.linearRampToValueAtTime(0.025 * vel, t + 0.05);
+      bg.gain.exponentialRampToValueAtTime(0.003 * vel, t + 0.35);
+      bg.gain.setValueAtTime(0.003 * vel, t + dur);
       bg.gain.exponentialRampToValueAtTime(0.0005, t + dur + 0.2);
       // close it: the breath noise source is shared, so a gate left on the ramp's floor is a tap
       // of it left open for the rest of the session (see graph.ts adEnvelope)
