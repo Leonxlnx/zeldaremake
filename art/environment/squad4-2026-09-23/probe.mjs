@@ -99,7 +99,7 @@ for (const [name, b] of Object.entries(BOXES)) {
   }
   report[name] = { bladesPerM2: +(hs.length / area).toFixed(0), h50: +q(hs, 0.5).toFixed(3), h95: +q(hs, 0.95).toFixed(3), openM2: +area.toFixed(1), sets };
 }
-report.totals = { blades: grass.count, weeds: plants.weeds.count, tufts: plants.tufts.count, ferns: plants.ferns.count, flowers: plants.flowers.count, whiteFlowers: plants.whiteFlowers.count, clover: plants.clover.count };
+report.totals = { blades: grass.count, weeds: plants.weeds.count, tufts: plants.tufts.count, ferns: plants.ferns.count, flowers: plants.flowers.count, whiteFlowers: plants.whiteFlowers.count, clover: plants.clover.count, bushes: plants.bushes.count };
 
 const json = process.argv.includes('--json') ? process.argv[process.argv.indexOf('--json') + 1] : null;
 if (json) fs.writeFileSync(json, JSON.stringify(report, null, 2));

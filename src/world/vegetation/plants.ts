@@ -135,6 +135,8 @@ const NORTH_VERGE_BUSH_EDGE: readonly [number, number, number, number] = [1.15, 
  * verge grew on the east bank alone and the owner's left side was bald turf.
  */
 const D_HOLLOW_VERGE_KEEP = 0.8;
+/** 2026-09-23 — metres off the walked paving where the verge's shrub crowns stand: behind its fronds, in front of the middle ground */
+const VERGE_SHRUB: readonly [number, number] = [1.7, 3.6];
 /** the verge's tint: ref-04's ferns and shrubs are dark (× the sets' palette) */
 const NORTH_VERGE_FERN_TINT = 0.82;
 const NORTH_VERGE_BUSH_TINT = 0.6;
@@ -3937,6 +3939,38 @@ export function buildPlants(ctx: WorldContext, field: VegField, parent: Group): 
         placeInstance(clover, x, z, s, rng, 0.8 + rng() * 0.55, 0.9, 0.008, greenVar(rng, 0.2));
         cloverBudget.take(x, z);
       },
+    );
+    // (e) leafy shrub crowns BEHIND the band (the lane's "shrubs at the path edges"): in his
+    // recording the verge is three layers — violets and leaves on the stones, fronds behind them,
+    // then dark leafy masses that break the middle distance up. Ours had the masses on the east
+    // bank only (the round-47 band), so the walker's left middle ground read as one flat slope of
+    // turf. These sit VERGE_SHRUB m off the paving, in the cluster noise's patches, never in the
+    // frames' low right verge and never inside camera C's wedge.
+    scatter(
+      ctx,
+      field,
+      {
+        label: 'bushes-walk-verge',
+        candidates: Math.round(vergeArea * 14 * q.density),
+        box: vergeBox,
+        minSpacing: 2.8,
+        r32: true,
+        accept(x, z, s) {
+          const pv = field.pathVerge(x, z);
+          if (pv.edge < VERGE_SHRUB[0] || pv.edge > VERGE_SHRUB[1] || field.reach(x, z) > R) return 0;
+          if (s.cliff > 0.45 || s.structure > 0.3 || s.stairs > 0.05) return 0;
+          // they stand 0.6–1.0 m: out of the low right verge and out of camera C's left third
+          if (field.lowZone(x, z) > 0.2 || field.sightlineC(x, z, 1.8) > 0) return 0;
+          const clr = field.clearing(x, z);
+          if (clr.insideBoulder || clr.npc > 0.1 || clr.boulder > 0.3) return 0;
+          if (field.giantDistance(x, z) < 1.0 || field.logDistance(x, z) < 1.4 || field.insidePropFootprint(x, z, 0.4)) return 0;
+          if (field.cFoot(x, z) > 0.1 || field.lawnBand(x, z) > 0.2 || field.troddenZone(x, z, true) > 0.2) return 0;
+          if (bushes.items.some((p) => Math.hypot(p.x - x, p.z - z) < 2.2)) return 0;
+          const c = field.cluster(x, z);
+          return 0.5 * (pv.left ? VERGE_LEFT : 0.65) * (0.2 + 1.1 * c) * Math.max(field.falloffReach(x, z), 0.75);
+        },
+      },
+      (x, z, s, rng) => placeInstance(bushes, x, z, s, rng, 0.52 + rng() * 0.3, 0.3, 0.04, tint.setRGB(NORTH_VERGE_BUSH_TINT + 0.08 + rng() * 0.12, NORTH_VERGE_BUSH_TINT + 0.14 + rng() * 0.12, NORTH_VERGE_BUSH_TINT + rng() * 0.12)),
     );
   }
 

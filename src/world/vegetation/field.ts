@@ -820,9 +820,10 @@ export class VegField {
     const ne = north.dist - L.northPathHalfWidth;
     const useNorth = ne < se;
     const edge = useNorth ? ne : se;
-    if (edge < VERGE_INNER || edge > VERGE_BAND) return { w: 0, left: 0, edge };
+    const left = (useNorth ? north.side : spine.side) < 0 ? 1 : 0;
+    if (edge < VERGE_INNER || edge > VERGE_BAND) return { w: 0, left, edge };
     const w = smoothstep(VERGE_INNER, VERGE_INNER + 0.12, edge) * (1 - smoothstep(VERGE_BAND - VERGE_FEATHER, VERGE_BAND, edge));
-    return { w, left: (useNorth ? north.side : spine.side) < 0 ? 1 : 0, edge };
+    return { w, left, edge };
   }
 
   /** true when any of the `size` m tile at (x0, z0) can hold walked verge (grass.ts's per-tile pass) */
