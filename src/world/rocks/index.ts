@@ -13,7 +13,7 @@ import type { WorldContext, WorldSystem } from '../system';
 import { Noise2D, clamp, smoothstep } from '../util/noise';
 import { northBox, northVisible } from '../util/northLocality';
 import { buildRock, type RockOptions } from './rockgen';
-import { createRockMaterial, NEAR_FADE_M, NEAR_TILE_M } from './material';
+import { createRockMaterial, NEAR_TILE_M } from './material';
 import { dressRock, mergeRockParts } from './dressing';
 import { buildRockLedge, type RockLedgeDef } from './ledge';
 import { buildClearingRocks, type ClearingLayout } from './clearing';
@@ -112,8 +112,8 @@ export const LEDGE_DAMP = 1.6;
 /**
  * fable-2 (the owner's "stones under-detailed", at player height): the hero boulders' near skin takes the
  * material's `relief` grain too — pits and grains at 5–12 cm over the rockgen plates and micro relief,
- * inside NEAR_FADE_M only. Every fixed camera stands ≥ 6.5 m from every hero rock (past the 6.3 m fade),
- * so the six views are untouched by construction. 1.5 (the ledge takes 3.0: its skin has no plates; at
+ * inside HERO_NEAR_FADE_M only (it was NEAR_FADE_M, past which every fixed camera stood — iteration 82
+ * carries the skin to 13 m, so the fixed views D / A / C now see it on the far meshes). 1.5 (the ledge takes 3.0: its skin has no plates; at
  * 2.0 the shot-D face in its shade turned to a dark honeycomb — the stair-foot rock read best there).
  */
 export const HERO_NEAR_RELIEF = 1.5;
@@ -132,6 +132,16 @@ export const STRATA_NEAR_FADE_M: [number, number] = [2.5, 4.5];
  * the north toggle, the backside's spheres outside the six frusta — backside.test), so A–F are untouched.
  */
 export const DRESSING_NEAR_FADE_M: [number, number] = [7, 13];
+/**
+ * fable-2 (iteration 82, the owner's 2026-09-23 06:50 direction — the walk-around beats the fixed
+ * frames): the hero boulders' own near skin (near tile, relief, wet band, crack grime) now holds to
+ * the dressing's band too. It was material.ts NEAR_FADE_M [4, 6.3], chosen so camera D (7.22 m from
+ * the D boulder) rendered the plain far look — which put every hero rock at the smooth far skin at
+ * exactly the 6–13 m a walker sees them from (the near kit's geometry stays in to NEAR_ROCK_IN_M,
+ * its skin faded). The far meshes share the material, so the six fixed views see the skin now: D at
+ * 7.2 m, A's stair-foot rock at ≈ 9 m, C's bank anchor — measured in README §82.
+ */
+export const HERO_NEAR_FADE_M: [number, number] = [7, 13];
 /** the ledge wall's near grain (material `relief`): fable-5 §7.2, micro σ 0.034 → 0.05 at 3 m — measured at `x-ledge-wall` (4 px residual on the cap): 0.031 → 0.035 at 1.0, 0.043 at 3.0 */
 export const LEDGE_RELIEF = 3.0;
 
@@ -386,14 +396,14 @@ export async function create(ctx: WorldContext): Promise<WorldSystem> {
   // they had is this one with nearW = 0 beyond the fade)
   const strataMaterial = await createRockMaterial(ctx.textures, ctx.config, anisotropy, 1.4, 1, { near: true, fade: STRATA_NEAR_FADE_M, relief: HERO_NEAR_RELIEF });
   // the hero boulders' own material: the same look with the near-detail terms (material.ts
-  // NEAR_TILE_M) that fade in under NEAR_FADE_M — the rubble, strata and pebbles keep the plain
-  // one, so the stones in a hero camera's foreground never change
-  const heroMaterial = await createRockMaterial(ctx.textures, ctx.config, anisotropy, 1.4, 1, { near: true, relief: HERO_NEAR_RELIEF });
+  // NEAR_TILE_M) that fade out over HERO_NEAR_FADE_M — the rubble, strata and pebbles keep the plain
+  // one
+  const heroMaterial = await createRockMaterial(ctx.textures, ctx.config, anisotropy, 1.4, 1, { near: true, fade: HERO_NEAR_FADE_M, relief: HERO_NEAR_RELIEF });
   // the stair-foot boulder at the right edge of shot A (the mossy rock the Kokiri kid stands
   // beside): the reference reads it at lum ≈ 0.26 (box (0.82,0.60)-(0.98,0.70)) where the shared
   // rock material rendered 0.29 at exposure 1.0 — darker rock and moss for it alone, without
   // moving it
-  const stairFootMaterial = await createRockMaterial(ctx.textures, ctx.config, anisotropy, 1.4, 0.9, { near: true, relief: HERO_NEAR_RELIEF });
+  const stairFootMaterial = await createRockMaterial(ctx.textures, ctx.config, anisotropy, 1.4, 0.9, { near: true, fade: HERO_NEAR_FADE_M, relief: HERO_NEAR_RELIEF });
   const dressingMaterial = await createRockMaterial(ctx.textures, ctx.config, anisotropy, 1.4, 1, { near: true, fade: DRESSING_NEAR_FADE_M, relief: HERO_NEAR_RELIEF });
   const pebbleMaterial = await createRockMaterial(ctx.textures, ctx.config, anisotropy, 0.35);
   const density = clamp(ctx.quality.density, 0.4, 1.4);
@@ -1389,7 +1399,7 @@ export async function create(ctx: WorldContext): Promise<WorldSystem> {
       outM: NEAR_ROCK_OUT_M,
       heroMargin: NEAR_ROCK_HERO_MARGIN,
       tileM: NEAR_TILE_M,
-      fadeM: NEAR_FADE_M,
+      fadeM: HERO_NEAR_FADE_M,
       dropped: nearDropped,
       rocks: nearRocks.map((nr) => ({ id: nr.id, inM: rnd(nr.inM), outM: rnd(nr.outM), hero: Number.isFinite(nr.hero) ? rnd(nr.hero) : null, triangles: nr.triangles, cushions: nr.cushions, creviceCushions: nr.creviceCushions, lichen: nr.lichen, lichenShare: nr.lichenShare, fragments: nr.fragments, shards: nr.shards, skirtStones: nr.skirtStones, strataSlabs: nr.strataSkirt.length, strataCompanions: nr.strataCompanions, creviceFerns: nr.creviceFerns, crevicePads: nr.crevicePads, active: nr.active, dist: Number.isFinite(nr.dist) ? rnd(nr.dist) : null })),
       active: nearRocks.filter((nr) => nr.active).map((nr) => nr.id),
