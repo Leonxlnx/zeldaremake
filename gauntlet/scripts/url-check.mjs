@@ -50,7 +50,14 @@ try {
   });
   page.on('pageerror', (e) => report.consoleErrors.push(`pageerror: ${e.message}`));
   await page.goto(url, { waitUntil: 'load', timeout: minutes * 60_000 });
-  log('page loaded; waiting for the world');
+  // raw.githack.com shows a browser a one-time "External Content Notice" before a proxied HTML page
+  // (a cookie remembers the click); the owner clicks "Open the page" once, so does the check
+  if (/External Content Notice/i.test(await page.title())) {
+    log('githack notice — clicking "Open the page"');
+    report.githackNotice = true;
+    await Promise.all([page.waitForNavigation({ waitUntil: 'load', timeout: minutes * 60_000 }), page.click('button.url-action-button')]);
+  }
+  log(`page loaded (${await page.title()}); waiting for the world`);
   await page.waitForFunction(() => !!window.__ZR__, { timeout: minutes * 60_000, polling: 1000 });
   await page.evaluate(() => {
     window.__urlReady = 'pending';

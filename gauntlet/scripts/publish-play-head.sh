@@ -32,8 +32,15 @@ if [ ! -d "$wt/.git" ] && [ ! -f "$wt/.git" ]; then
   fi
 fi
 cd "$wt"
-git rm -rq --ignore-unmatch . >/dev/null
+# GitHub's raw cache can serve the previous index.html for a few minutes after a publish; it must
+# still find its bundle, so the last KEEP bundles stay (bundles.txt, newest last) and older go
+KEEP=6
 cp -r "$out/." .
+for b in "$out"/assets/index-*.js; do echo "assets/$(basename "$b")" >> bundles.txt; done
+awk '!seen[$0]++' bundles.txt | tail -n "$KEEP" > bundles.keep && mv bundles.keep bundles.txt
+for f in assets/index-*.js; do
+  grep -qx "$f" bundles.txt || git rm -q --ignore-unmatch "$f" >/dev/null 2>&1 || rm -f "$f"
+done
 printf 'Walkable build of %s @ %s, published by gauntlet/scripts/publish-play-head.sh.\nOpen: https://raw.githack.com/Leonxlnx/zeldaremake/play-head/index.html\n' "$branch" "$sha" > README.txt
 git add -A
 if git diff --cached --quiet; then
