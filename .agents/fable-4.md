@@ -382,3 +382,5 @@ nearCanopy, materials, index otherwise) is edited.
 - 12:33 — the west fork (fable-3): understory clearing 8.5 m at (−10.5, 8.5) (44 → 32 trees); the dome hiding the
   marker attributed to vegetation (58.6 %), not trees. Branch `agent/fable-4-understory` carries the arch-stretch verge
   + the clearing, head merged.
+- 12:57 — understory: stems seated on the rendered surface; a west-meadow zone measured and dropped (squad2's mid layer
+  fills it). Branch @ `a2d3097b` awaiting merge with the arch verge + fork clearing.
