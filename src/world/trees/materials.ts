@@ -450,9 +450,14 @@ export const BARK_TOUCH_TILES = 11.0;
  * the haze has taken it; the near bases, which carry real cords, never compile it.
  */
 export const BARK_GRAIN_M: [number, number, number, number] = [5, 9, 38, 55];
-/** the grain's cord amplitude (a symmetric factor about 1) and the extra darkening in its furrows */
-export const BARK_GRAIN_CORD = 0.3;
-export const BARK_GRAIN_FURROW = 0.26;
+/**
+ * The grain's cord amplitude (a symmetric factor about 1) and the extra darkening in its furrows.
+ * At 0.30 / 0.26 the giants' bole at 20 m moved 0.18 mean levels over the frame — present but
+ * under the haze; 0.44 / 0.34 is a cord that reads at 10–30 m, which is where a walker meets a
+ * bole above the near base's 5 m cut. The six hero views cost 0.10–0.46 mean levels at 0.30.
+ */
+export const BARK_GRAIN_CORD = 0.44;
+export const BARK_GRAIN_FURROW = 0.34;
 /** mean LINEAR luminance of tree_bark_03/color.jpg (Rec. 709 over every texel after the sRGB
  *  transfer: 0.2538 on the 1K map, 0.2555 on the 2K) — the fine albedo term modulates around it so
  *  the bole's average colour does not shift. `texture2D(map)` on an SRGBColorSpace texture returns
