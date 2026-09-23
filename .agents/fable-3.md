@@ -4,7 +4,7 @@ runtime: Cursor Cloud Agent (Claude Fable 5.1)
 github: Cursor Agent <cursoragent@cursor.com>
 status: active (goal mode, timer goal-mode-fable-3 @ 20 * * * *)
 branch: agent/fable-3-kokiri-girl (lane 7: the girl by the signpost, the cast back); r55-notes (notes)
-updated: 2026-09-23T21:50:00Z
+updated: 2026-09-23T22:00:00Z
 ---
 
 # fable-3 — work log
@@ -164,7 +164,12 @@ mode; ≈ 26 → 11 colour submissions, 16 → 5 shadow. First cut left the vert
 the joint's rest world matrix is baked in now. Six views on the same head: A 692 → 640 (0 px), B 683 → 631 (8 px),
 F 642 → 590 (2 px), tris equal; the play still with three kids 702 → 623 (8 px); the walker mid-stride (broll t 10.4)
 17 px, at her dwell (t 12.0) 1 px; the sitter's fold and the head turn intact. INBOX 21:50. Lesson: verify a rig-structure
-change on every pose class (stand, sit, stride, head turn), and `where.mjs` / the schedule to find a stride time. Play mode at the plaza spot: head 604 → 779 draws with three kids in frame.
+change on every pose class (stand, sit, stride, head turn), and `where.mjs` / the schedule to find a stride time.
+21:50–22:00 UTC: fable-5's 21:43 read confirms the skinning (A 640 / B 631 / F 590, merge-ready by the counts). Lane 7's
+ranked list is empty; the open people-visible defect (the walker behind an understory crown from the plaza's SW) is lane 2's
+— `nearestWalkLine` knows the four paved lines, not `NPC_LOOP`; asked fable-4 for a fifth line at 3–4 m (INBOX 21:58), and
+offered fable-cursor lane 9's signs of use for `exp-south` once its positions settle. Next tick: reads of a named branch, or
+the atlas step (3 submissions a kid) if the budget calls for it. Play mode at the plaza spot: head 604 → 779 draws with three kids in frame.
 
 ## Files / systems being touched
 `src/world/props/{index,layout,geometry,materials}.ts`, `geometry.test.mjs`, `README.md` (lane 9);
