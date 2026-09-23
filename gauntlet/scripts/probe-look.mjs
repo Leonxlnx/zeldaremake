@@ -12,7 +12,10 @@
  * sun (`sun: { dir: [x, y, z], intensity }` — the shadow-casting directional light, same distance
  * from its target), or blits one composer buffer (`atmoDebug`: 'rays' | 'ao' | 'mist' | 'bloom'),
  * or scales the point lights whose name matches (`lights: { match: 'lantern', scale: 0 }`), or
- * sets the simulation clock (`time`, s; default 12.5); each variant starts from the loaded values. Frames are <variant>-<shot>.png. `--audit <file>`
+ * sets the simulation clock (`time`, s; default 12.5), or overrides composer settings for the frame
+ * (`settings: { rayIntensity: 0 }`) or hides named objects for it (`hide: ['mist-volume']`); each
+ * variant starts from the loaded values. Build-time atmosphere constants (the height fog) take
+ * `ZR_INIT_GLOBALS='{"__ATMO_FOG__":{…}}'` (a separate load, lib/browser.mjs). Frames are <variant>-<shot>.png. `--audit <file>`
  * also writes the loaded world's `__ZR__.audit()`; `--pick "x,y;x,y"` (frame fractions, y down)
  * names the meshes under those pixels on the first variant's frames (pick-<shot>.json).
  * The character is hidden.
@@ -215,6 +218,10 @@ async function main() {
         }
         // `atmoDebug`: 'rays' | 'ao' | 'mist' | 'bloom' blits that composer buffer (postfx/composer.ts)
         globalThis.__ATMO_DEBUG__ = v.atmoDebug ?? undefined;
+        // `settings`: composer overrides for the frame (e.g. { rayIntensity: 0 }); `hide`: scene
+        // object names hidden for the frame (postfx/composer.ts __ATMO_SETTINGS__ / __ATMO_HIDE__)
+        globalThis.__ATMO_SETTINGS__ = v.settings ?? undefined;
+        globalThis.__ATMO_HIDE__ = v.hide ?? undefined;
         // `time`: the simulation clock for this variant's frames (wind, swinging pods; default 12.5)
         window.__ZR__.setTime(v.time ?? 12.5);
         // `lights`: { match: <regexp on the light's name>, scale } — 0 switches them off without
