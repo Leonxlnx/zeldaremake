@@ -155,13 +155,16 @@ export const FAR_CROWN_FLOOR = 2;
 export const FAR_CROWN_FLOOR_SLENDER = 1;
 export const FAR_CROWN_FLOOR_FAR = 1;
 /**
- * The crown material's edge fade: a card whose plane the view ray meets at |cos| under [0] is gone,
- * over [1] whole. It acts on the vertical cards only where the view climbs steeply to them (the
- * ray's world y over CROWN_EDGE_STEEP), and on the near-horizontal floors at every view — the six
- * fixed frames look at the far forest from within 20° of level, where the vertical cards are untouched.
+ * The crown material's view fades. From below, a vertical card is not on edge but a tall trapezoid
+ * whose side-view silhouette smears up toward the zenith (probe 2026-09-23, u-open-up: hiding the
+ * distant group alone removed every streak): the vertical cards fade as the view climbs to them —
+ * whole under [0], gone over [1] of the ray's world y (25°–46° of elevation) — and the crown seen
+ * from below is its dark floor cards. The floors fade when seen on edge: gone under CROWN_EDGE_FADE[0]
+ * of |cos| between ray and plane, whole over [1]. The six fixed frames look at the far forest from
+ * within 20° of level, where the vertical cards are untouched and the floors are on edge.
  */
 export const CROWN_EDGE_FADE: [number, number] = [0.06, 0.34];
-export const CROWN_EDGE_STEEP: [number, number] = [0.35, 0.65];
+export const CROWN_EDGE_STEEP: [number, number] = [0.42, 0.72];
 export const DISTANT_CROWN_FLOOR_Y = 0.42;
 export const DISTANT_CROWN_FLOOR_HALF = 1.15;
 export const DISTANT_CROWN_FLOOR_TINT = 0.42;
@@ -411,12 +414,14 @@ export function createDistantCrownMaterial(wind: Wind, rng: Rng, palette: Palett
         float underside = smoothstep(0.3, -0.45, sw.y);
         diffuseColor.rgb *= mix(1.0, ${f(CROWN_NEAR_DARK)} * mix(1.0, ${f(CROWN_UNDER_DARK)}, underside), roofNear);
       }
-      // CROWN_EDGE_FADE: a card on edge fades — vertical cards under a steep view, floors always
+      // CROWN_EDGE_STEEP / CROWN_EDGE_FADE: vertical cards fade as the view climbs to them, floors
+      // fade on edge — from below a crown is its leaf roof, from the side its crossed silhouettes
       vec3 rayW = normalize(-vViewPosition * mat3(viewMatrix));
       vec3 cardW = normalize(vNormal * mat3(viewMatrix));
       float edgeOn = abs(dot(normalize(vViewPosition), normalize(vNormal)));
-      float edgeGate = max(smoothstep(${f(CROWN_EDGE_STEEP[0])}, ${f(CROWN_EDGE_STEEP[1])}, rayW.y), smoothstep(0.7, 0.9, abs(cardW.y)));
-      diffuseColor.a *= mix(1.0, smoothstep(${f(CROWN_EDGE_FADE[0])}, ${f(CROWN_EDGE_FADE[1])}, edgeOn), edgeGate);
+      float flatCard = smoothstep(0.7, 0.9, abs(cardW.y));
+      float steepFade = 1.0 - smoothstep(${f(CROWN_EDGE_STEEP[0])}, ${f(CROWN_EDGE_STEEP[1])}, rayW.y);
+      diffuseColor.a *= mix(steepFade, smoothstep(${f(CROWN_EDGE_FADE[0])}, ${f(CROWN_EDGE_FADE[1])}, edgeOn), flatCard);
     }
     `,
         )
@@ -445,7 +450,7 @@ export function createDistantCrownMaterial(wind: Wind, rng: Rng, palette: Palett
         );
     injectTreeLeafWarmth(s);
   };
-  material.customProgramCacheKey = () => 'trees-distant-crown-v3-edge-fade-leaf-warmth';
+  material.customProgramCacheKey = () => 'trees-distant-crown-v4-steep-fade-leaf-warmth';
   wind.bind(material);
   return material;
 }

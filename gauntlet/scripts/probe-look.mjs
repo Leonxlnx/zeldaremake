@@ -8,8 +8,10 @@
  *        --variants '[{"name":"base"},{"name":"dark","material":"stair-timber","color":[0.9,1,1.4]}]'
  *
  * A variant sets `color` / `emissive` (linear RGB) / `emissiveIntensity` / `roughness` on every
- * material whose name matches `material` (exact), or `visible` on objects named `object`; each
- * variant starts from the loaded values. Frames are <variant>-<shot>.png. The character is hidden.
+ * material whose name matches `material` (exact), `visible` on objects named `object`, or moves the
+ * sun (`sun: { dir: [x, y, z], intensity }` — the shadow-casting directional light, same distance
+ * from its target); each variant starts from the loaded values. Frames are <variant>-<shot>.png.
+ * The character is hidden.
  */
 import fs from 'node:fs';
 import path from 'node:path';
@@ -67,6 +69,10 @@ async function main() {
       const ch = window.__H.scene.getObjectByName('character');
       if (ch) ch.visible = false;
       window.__ZR__.setTime(12.5);
+      // the sun (the shadow-casting directional light) and its loaded placement
+      window.__H.scene.traverse((o) => {
+        if (o.isDirectionalLight && o.castShadow && !window.__PROBE_SUN__) window.__PROBE_SUN__ = { light: o, dir0: o.userData.sunDir?.clone() ?? null, intensity: o.intensity };
+      });
       // remember every material's loaded values once
       window.__PROBE_ORIG__ = new Map();
       window.__H.scene.traverse((o) => {
@@ -94,7 +100,19 @@ async function main() {
             n++;
           }
         }
-        if (v.object) window.__H.scene.traverse((o) => { if (o.name === v.object) { o.visible = v.visible !== false; n++; } });
+        // objects a previous variant hid or showed go back first
+        for (const [o, vis] of window.__PROBE_VIS__ ?? []) o.visible = vis;
+        window.__PROBE_VIS__ = [];
+        if (v.object) window.__H.scene.traverse((o) => { if (o.name === v.object) { window.__PROBE_VIS__.push([o, o.visible]); o.visible = v.visible !== false; n++; } });
+        // `sun`: { dir: [x, y, z] toward the sun, intensity } — a different light on the same frame
+        // (the lighting system re-places the sun along userData.sunDir every frame)
+        const S = window.__PROBE_SUN__;
+        if (S && S.dir0) {
+          const d = S.light.userData.sunDir;
+          if (v.sun?.dir) d.set(v.sun.dir[0], v.sun.dir[1], v.sun.dir[2]).normalize();
+          else d.copy(S.dir0);
+          S.light.intensity = v.sun?.intensity ?? S.intensity;
+        }
         return n;
       }, v);
       for (const shot of shots) {

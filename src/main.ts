@@ -1,4 +1,4 @@
-import { Scene, WebGLRenderer, WebGLRenderTarget, ACESFilmicToneMapping, SRGBColorSpace, BasicShadowMap, MeshDepthMaterial, FrontSide, BackSide, DoubleSide, type BufferGeometry, type Camera, type DirectionalLight, type Material, type Mesh, type ShaderMaterial, type Texture } from 'three';
+import { Scene, WebGLRenderer, WebGLRenderTarget, ACESFilmicToneMapping, SRGBColorSpace, BasicShadowMap, MeshDepthMaterial, FrontSide, BackSide, DoubleSide, Vector3, type BufferGeometry, type Camera, type DirectionalLight, type Material, type Mesh, type ShaderMaterial, type Texture } from 'three';
 import { createWorld, qualityFor } from './world';
 import { createFreeCam } from './camera/freecam';
 import { createFollowCam, type FollowCam } from './camera/follow';
@@ -289,9 +289,10 @@ async function boot() {
   // Post-processing (if the atmosphere system installed one) drives the frame; otherwise plain render.
   const composer = (scene.userData.composer as { render(dt: number): void; setSize(w: number, h: number): void } | undefined) ?? null;
 
-  // play only: cards near the lens screen-door out instead of being sliced by the near plane (before
-  // the warm-up, so every program compiles once with it)
-  if (!headless) installNearFade(scene);
+  // play only: cards near the lens, or between it and Link, screen-door out (before the warm-up, so
+  // every program compiles once with it)
+  const nearFade = headless ? null : installNearFade(scene);
+  const focusPoint = new Vector3();
 
   const warmupParam = params.get('warmup');
   let warmup: Awaited<ReturnType<typeof warmUp>> | null = null;
@@ -347,6 +348,10 @@ async function boot() {
     if (!headless) {
       if (follow?.enabled) follow.update(dt);
       else cam.update(dt);
+      if (nearFade) {
+        const p = follow?.enabled && player ? player.position : null;
+        nearFade.setFocus(cam.camera, p ? focusPoint.set(p.x, player!.groundHeight(p.x, p.z) + 0.95 + player!.airHeight(), p.z) : null);
+      }
     }
     if (governor) applyPerfState();
     const t1 = performance.now();
@@ -504,6 +509,8 @@ async function boot() {
         const p = player?.position;
         return {
           playMode: !!follow?.enabled,
+          paused: shell.paused,
+          canvas: [renderer.domElement.width, renderer.domElement.height],
           camera: { position: c.position.toArray(), direction: d.toArray(), fov: c.fov, near: c.near, aspect: c.aspect },
           link: p && player ? [p.x, player.groundHeight(p.x, p.z), p.z] : null,
           heading: player ? player.heading() : null,

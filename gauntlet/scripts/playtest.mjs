@@ -102,9 +102,15 @@ async function openPlay(browser, baseUrl) {
           : [null, null, null, null],
     });
   });
-  const url = `${baseUrl}/?test=1&dev=0&hud=0&warmup=0&quality=${encodeURIComponent(quality)}`;
+  const url = `${baseUrl}/?test=1&dev=0&hud=${args.hud ? 1 : 0}&warmup=0&quality=${encodeURIComponent(quality)}`;
   const t0 = Date.now();
   await page.goto(url, { waitUntil: 'load', timeout: READY_TIMEOUT_MS });
+  await waitReady(page);
+  log(`world ready in ${((Date.now() - t0) / 1000).toFixed(1)} s (${url})`);
+  return { page, consoleLines };
+}
+
+async function waitReady(page) {
   await page.waitForFunction(() => !!window.__ZR__, { timeout: READY_TIMEOUT_MS, polling: 250 });
   await page.evaluate(() => {
     window.__zrReadyState = 'pending';
@@ -119,8 +125,6 @@ async function openPlay(browser, baseUrl) {
     const loading = document.getElementById('loading');
     return !loading || getComputedStyle(loading).opacity === '0';
   }, { timeout: READY_TIMEOUT_MS });
-  log(`world ready in ${((Date.now() - t0) / 1000).toFixed(1)} s (${url})`);
-  return { page, consoleLines };
 }
 
 /** one rAF on the page so queued (rAF-aligned) pointer events reach the listeners */
@@ -500,6 +504,88 @@ async function walkScenario(page, results) {
 }
 
 /**
+ * The build's existing interactions still answer (run with --hud): Space jumps (Link's air height
+ * rises and he lands), the right mouse button opens the equipment bag (the world pauses: Link does
+ * not move while W is held) and Enter closes it, P hands over to the free camera and back.
+ */
+async function interactScenario(page, results) {
+  const out_ = {};
+  const spot = lookSpots().find((p) => p.id === 'plaza') ?? { at: [0.5, 1.0], yaw: 180 };
+  await page.evaluate(([x, z, yaw]) => window.__ZR_PLAY__.place(x, z, yaw), [spot.at[0], spot.at[1], rad(spot.yaw)]);
+  await sim(page, 20);
+  log('interact: jump');
+  await page.keyboard.down('Space');
+  let maxAir = 0;
+  for (let i = 0; i < 45; i++) {
+    await sim(page, 1);
+    if (i === 3) await page.keyboard.up('Space');
+    maxAir = Math.max(maxAir, (await state(page)).air);
+  }
+  const landed = (await state(page)).air === 0;
+  out_.jump = { maxAirM: +maxAir.toFixed(3), landed, ok: maxAir > 0.15 && landed };
+  log('interact: bag');
+  await page.mouse.click(Math.round(width / 2), Math.round(height / 2), { button: 'right' });
+  await flushInput(page);
+  const opened = (await state(page)).paused;
+  const before = (await state(page)).link;
+  await page.keyboard.down('KeyW');
+  await sim(page, 20);
+  await page.keyboard.up('KeyW');
+  const during = (await state(page)).link;
+  const frozen = Math.hypot(during[0] - before[0], during[2] - before[2]) < 1e-6;
+  const bagShot = shots ? await (async () => { await page.screenshot({ path: path.join(out, 'interact-bag.jpg'), type: 'jpeg', quality: 88 }); return 'interact-bag.jpg'; })() : null;
+  await page.keyboard.press('Enter');
+  await flushInput(page);
+  const closed = !(await state(page)).paused;
+  await page.keyboard.down('KeyW');
+  await sim(page, 20);
+  await page.keyboard.up('KeyW');
+  const after = (await state(page)).link;
+  const movesAgain = Math.hypot(after[0] - during[0], after[2] - during[2]) > 0.2;
+  out_.bag = { opened, worldFrozenWhileOpen: frozen, closed, walksAfterClose: movesAgain, ok: opened && frozen && closed && movesAgain, shot: bagShot };
+  log('interact: free camera toggle');
+  await page.keyboard.press('KeyP');
+  await sim(page, 2);
+  const free = !(await state(page)).playMode;
+  await page.keyboard.press('KeyP');
+  await sim(page, 2);
+  const back = (await state(page)).playMode;
+  out_.freeCamera = { toFree: free, backToPlay: back, ok: free && back };
+  results.interact = out_;
+  fs.writeFileSync(path.join(out, 'playtest.json'), JSON.stringify(results, null, 1));
+}
+
+/** resize the window mid-play (small, large) and reload the page; the world keeps drawing, no errors */
+async function resilienceScenario(page, results, reopen) {
+  const out_ = { steps: [] };
+  for (const [w, h] of [
+    [640, 360],
+    [1280, 720],
+    [width, height],
+  ]) {
+    await page.setViewport({ width: w, height: h, deviceScaleFactor: 1 });
+    await flushInput(page);
+    await sim(page, 3);
+    const ms = await draw(page);
+    const st = await state(page);
+    out_.steps.push({ viewport: [w, h], canvas: st.canvas, aspect: +st.camera.aspect.toFixed(4), drawMs: Math.round(ms), ok: st.canvas[0] === w && st.canvas[1] === h && Math.abs(st.camera.aspect - w / h) < 1e-3 });
+  }
+  log('resilience: reload');
+  const t0 = Date.now();
+  const again = await reopen();
+  await again.page.evaluate(() => window.__ZR_PLAY__.place(0.5, 1.0, Math.PI));
+  await again.page.keyboard.down('KeyW');
+  await sim(again.page, 30);
+  await again.page.keyboard.up('KeyW');
+  const st = await again.page.evaluate(() => window.__ZR_PLAY__.state());
+  out_.reload = { seconds: Math.round((Date.now() - t0) / 1000), playMode: st.playMode, walked: st.link[2] < 0.5, errors: again.consoleLines.filter((l) => l.startsWith('[pageerror]')).length };
+  out_.ok = out_.steps.every((s) => s.ok) && out_.reload.playMode && out_.reload.walked && out_.reload.errors === 0;
+  results.resilience = out_;
+  fs.writeFileSync(path.join(out, 'playtest.json'), JSON.stringify(results, null, 1));
+  return again;
+}
+
+/**
  * Movement clips (--video): every drawn frame saved as clip-<name>-NNNN.jpg for ffmpeg. A look sweep
  * (rest → drag up to the limit → hold → drag down past rest → recentre) beside Saria's lanterns and
  * at the plaza, and a climb up the second staircase with the follow camera.
@@ -588,6 +674,15 @@ async function main() {
     if (want('walk')) await walkScenario(page, results);
     if (want('perf')) await perfScenario(page, results);
     if (video && want('video')) await videoScenario(page, results);
+    if (only?.has('interact')) await interactScenario(page, results);
+    if (only?.has('resilience')) {
+      await resilienceScenario(page, results, async () => {
+        const before = consoleLines.length;
+        await page.reload({ waitUntil: 'load', timeout: READY_TIMEOUT_MS });
+        await waitReady(page);
+        return { page, consoleLines: consoleLines.slice(before) };
+      });
+    }
     results.pageErrors = consoleLines.filter((l) => l.startsWith('[pageerror]') || l.startsWith('[page:error]'));
     results.finished = new Date().toISOString();
     fs.writeFileSync(path.join(out, 'playtest.json'), JSON.stringify(results, null, 1));

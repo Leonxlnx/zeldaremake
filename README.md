@@ -14,7 +14,10 @@ iteration loop.
 
 ```bash
 npm install
-npm run dev          # world at http://localhost:5173  (WASD, drag to look, 1–6 viewpoints, H = hide HUD)
+npm run dev          # play at http://localhost:5173 — WASD / arrows walk, Shift run, Space jump, drag
+                     # (or double-click for mouse-look) to look — up looks up, to 60°; ?invertY=1
+                     # flips it — right mouse / Tab = equipment, P = free camera (1–6 viewpoints),
+                     # H = hide HUD; a gamepad works too (left stick move, right stick look)
 npm run build        # typecheck + production build → dist/
 npm run capture      # headless screenshots of every saved viewpoint → gauntlet/out/capture/
 npm run take -- --agent <id> --items W02 --note "…"   # one gauntlet iteration
