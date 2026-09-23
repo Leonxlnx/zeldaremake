@@ -1,0 +1,289 @@
+{
+  "method": "Actual buildStairway CPU output, production seed / hardscape / stairs-main RNG fork, live terrain, production logNosed setting; immutable Git sources; no GPU.",
+  "baseline": {
+    "commit": "4ad2fb50",
+    "sourceHashes": {
+      "src/world/config.ts": "006b20151a917217cc57383a4962d91b2a1ba636946a6a1c539b624c87d97d78",
+      "src/world/layout.ts": "a55b352707728243a70c18bce6d93e861a246c14f0237a9f21303d8c60f677e7",
+      "src/world/terrain/heightfield.ts": "bb8df0c9ee2cfe19b70ae35b66587988bd58bec825606254a4a21a6459aacf1a",
+      "src/world/util/noise.ts": "870b7104aec5e9ea99d9b1ca4158d0ca496b17bb0b59bf608d78f8f95c17caa1",
+      "src/world/util/prng.ts": "99ad857879fd2ec96a3e2d82e412f10b0e47e93994eba02ef30d2f2520f96c6c",
+      "src/world/hardscape/stairs.ts": "7b66437eda0120bbcccdbd4ed37fe3fab1b15396193552548e051f0509fdb557",
+      "src/world/hardscape/geometry.ts": "e028c26f720ee4be92ed09b035e5a93bba25993823cef5ddac4021c818ff1f32",
+      "src/world/hardscape/logNosings.ts": "0344b4f5e1cbf5aaa1047e561d494900b03cc197fd6839cadc42df70151210f7",
+      "src/world/materials/shadeFloor.ts": "5779f78cb2e16f949b60edb2ec8b30e56724ab170279ca6f43d170e698451692",
+      "src/world/structures/materials.ts": "574160e3f413edbd4c82cd08d21173ffa7639b8ac4656df08aafd7a56065e1b1",
+      "src/world/wind/wind.ts": "d9492126b6ced433505f3781b97f3fbd5f227f2059c352843180179804e0b452",
+      "src/world/structures/endGrain.ts": "2c47ba54947b4fcecbe8dcd91d7b7746a18e2b585d108fb4ddb00532dd350d19",
+      "src/world/structures/glyphs.ts": "0caf42c5bbf0a43c4821d5e734de4d2140b994d03803f0420f6bbacabca99d29",
+      "src/world/structures/podSkin.ts": "3d1111864bdd0b9fb2d9e443af05d020c4bf560593cdf6310d52028e28261ecd",
+      "src/world/structures/sleeveBark.ts": "f4c4ccd7501391c9de4bddb9837a1a10070cec098d8dc6e9c264effc3deab7f7"
+    },
+    "geometry": {
+      "position": {
+        "count": 42255,
+        "itemSize": 3,
+        "type": "Float32Array",
+        "sha256": "0f864dc29d8f6d8d6b9b48c679a17a8752cac63c6b14e25b5b707243f5fa09e3"
+      },
+      "normal": {
+        "count": 42255,
+        "itemSize": 3,
+        "type": "Float32Array",
+        "sha256": "96e5f700f3b31cc3afbf3b9d4afa9e629aa58d25beab5dc54f71bc960d936fd5"
+      },
+      "uv": {
+        "count": 42255,
+        "itemSize": 2,
+        "type": "Float32Array",
+        "sha256": "9fa111aded561a3ed7063f0c0410ef9eba3b68109873a88990e51c68d52d4a15"
+      },
+      "color": {
+        "count": 42255,
+        "itemSize": 3,
+        "type": "Float32Array",
+        "sha256": "04cd1de4d36a1f4e8afc05b9285aa137615a26ee20de9eb79b7257887af60d3f"
+      },
+      "aMoss": {
+        "count": 42255,
+        "itemSize": 1,
+        "type": "Float32Array",
+        "sha256": "679efded77d426b6096ae344de94669f9667dca6b1d99618334c02ec042d813f"
+      },
+      "aStain": {
+        "count": 42255,
+        "itemSize": 1,
+        "type": "Float32Array",
+        "sha256": "64c937e3924175ae4478133557dc1ba43c7aaf875ec6bf15cd84e552b72890d3"
+      },
+      "aWear": {
+        "count": 42255,
+        "itemSize": 1,
+        "type": "Float32Array",
+        "sha256": "527ad284f2e35fe22413bf80802999001f96955732756aa5ef2eb8d6367db93b"
+      },
+      "aCrack": {
+        "count": 42255,
+        "itemSize": 2,
+        "type": "Float32Array",
+        "sha256": "d37142884eb92118b407b1cf083c9363ca7ab767242c5750d10a6df9515c811d"
+      },
+      "aMottle": {
+        "count": 42255,
+        "itemSize": 3,
+        "type": "Float32Array",
+        "sha256": "c23bab37b3caa337d00edd3832a4bc1d3690b4127be51ab762653a38f49bda76"
+      },
+      "aRough": {
+        "count": 42255,
+        "itemSize": 1,
+        "type": "Float32Array",
+        "sha256": "7bef03788b8013cf446d92f8f23eab2de73bd55735bf19da35e21a8bce131c20"
+      },
+      "index": null
+    }
+  },
+  "candidate": {
+    "commit": "4b2fe8e6",
+    "sourceHashes": {
+      "src/world/config.ts": "006b20151a917217cc57383a4962d91b2a1ba636946a6a1c539b624c87d97d78",
+      "src/world/layout.ts": "a55b352707728243a70c18bce6d93e861a246c14f0237a9f21303d8c60f677e7",
+      "src/world/terrain/heightfield.ts": "bb8df0c9ee2cfe19b70ae35b66587988bd58bec825606254a4a21a6459aacf1a",
+      "src/world/util/noise.ts": "870b7104aec5e9ea99d9b1ca4158d0ca496b17bb0b59bf608d78f8f95c17caa1",
+      "src/world/util/prng.ts": "99ad857879fd2ec96a3e2d82e412f10b0e47e93994eba02ef30d2f2520f96c6c",
+      "src/world/hardscape/stairs.ts": "0fdda747e752c7a3e6ab9498032ed00fa156b34576520d78d54e9733c744c95b",
+      "src/world/hardscape/geometry.ts": "fcac87548d06214673879e37f649b55fc2c7f7f00a20c002761bb98771b8e202",
+      "src/world/hardscape/logNosings.ts": "cad5396cb1e76a6cb32c4ce02caf02b0049457b0d85420347b3d169703830c62",
+      "src/world/materials/shadeFloor.ts": "5779f78cb2e16f949b60edb2ec8b30e56724ab170279ca6f43d170e698451692",
+      "src/world/structures/materials.ts": "574160e3f413edbd4c82cd08d21173ffa7639b8ac4656df08aafd7a56065e1b1",
+      "src/world/wind/wind.ts": "d9492126b6ced433505f3781b97f3fbd5f227f2059c352843180179804e0b452",
+      "src/world/structures/endGrain.ts": "2c47ba54947b4fcecbe8dcd91d7b7746a18e2b585d108fb4ddb00532dd350d19",
+      "src/world/structures/glyphs.ts": "0caf42c5bbf0a43c4821d5e734de4d2140b994d03803f0420f6bbacabca99d29",
+      "src/world/structures/podSkin.ts": "3d1111864bdd0b9fb2d9e443af05d020c4bf560593cdf6310d52028e28261ecd",
+      "src/world/structures/sleeveBark.ts": "f4c4ccd7501391c9de4bddb9837a1a10070cec098d8dc6e9c264effc3deab7f7"
+    },
+    "geometry": {
+      "position": {
+        "count": 42255,
+        "itemSize": 3,
+        "type": "Float32Array",
+        "sha256": "0f864dc29d8f6d8d6b9b48c679a17a8752cac63c6b14e25b5b707243f5fa09e3"
+      },
+      "normal": {
+        "count": 42255,
+        "itemSize": 3,
+        "type": "Float32Array",
+        "sha256": "96e5f700f3b31cc3afbf3b9d4afa9e629aa58d25beab5dc54f71bc960d936fd5"
+      },
+      "uv": {
+        "count": 42255,
+        "itemSize": 2,
+        "type": "Float32Array",
+        "sha256": "9fa111aded561a3ed7063f0c0410ef9eba3b68109873a88990e51c68d52d4a15"
+      },
+      "color": {
+        "count": 42255,
+        "itemSize": 3,
+        "type": "Float32Array",
+        "sha256": "90f5b25a974c0a917c59c35a54b3cb34287fb473d5160e9943dc6c04374aebf9"
+      },
+      "aMoss": {
+        "count": 42255,
+        "itemSize": 1,
+        "type": "Float32Array",
+        "sha256": "eec2105f28ff553cf38b00a97c8f12cc9228f0241971f8271e2b6269bf4dd634"
+      },
+      "aStain": {
+        "count": 42255,
+        "itemSize": 1,
+        "type": "Float32Array",
+        "sha256": "64c937e3924175ae4478133557dc1ba43c7aaf875ec6bf15cd84e552b72890d3"
+      },
+      "aWear": {
+        "count": 42255,
+        "itemSize": 1,
+        "type": "Float32Array",
+        "sha256": "527ad284f2e35fe22413bf80802999001f96955732756aa5ef2eb8d6367db93b"
+      },
+      "aCrack": {
+        "count": 42255,
+        "itemSize": 2,
+        "type": "Float32Array",
+        "sha256": "d37142884eb92118b407b1cf083c9363ca7ab767242c5750d10a6df9515c811d"
+      },
+      "aMottle": {
+        "count": 42255,
+        "itemSize": 3,
+        "type": "Float32Array",
+        "sha256": "c23bab37b3caa337d00edd3832a4bc1d3690b4127be51ab762653a38f49bda76"
+      },
+      "aRough": {
+        "count": 42255,
+        "itemSize": 1,
+        "type": "Float32Array",
+        "sha256": "7bef03788b8013cf446d92f8f23eab2de73bd55735bf19da35e21a8bce131c20"
+      },
+      "aEarth": {
+        "count": 42255,
+        "itemSize": 1,
+        "type": "Float32Array",
+        "sha256": "d63c3debba458aecd522d5f43a389dc1c3a428c57812c6f13b32db3107614d52"
+      },
+      "index": null
+    }
+  },
+  "seed": "kokiri-forest-phase1",
+  "mainFlight": {
+    "id": "main",
+    "base": [
+      7.3,
+      0,
+      -0.1
+    ],
+    "dir": [
+      1,
+      -0.78
+    ],
+    "steps": 20,
+    "rise": 0.27,
+    "tread": 0.54,
+    "width": 3
+  },
+  "equal": {
+    "position": true,
+    "normal": true,
+    "uv": true,
+    "color": false,
+    "aMoss": false,
+    "aStain": true,
+    "aWear": true,
+    "aCrack": true,
+    "aMottle": true,
+    "aRough": true,
+    "index": true,
+    "aEarth": false
+  },
+  "treadNoseExact": true,
+  "outlineHashesExact": true,
+  "triangles": {
+    "baseline": 14085,
+    "candidate": 14085
+  },
+  "logs": {
+    "baseline": {
+      "geometry": {
+        "position": {
+          "count": 12680,
+          "itemSize": 3,
+          "type": "Float32Array",
+          "sha256": "d7ce71daa843b15dce38ff4527345afde5f742a0957709aa1eb9f302fa8706f7"
+        },
+        "normal": {
+          "count": 12680,
+          "itemSize": 3,
+          "type": "Float32Array",
+          "sha256": "7db54eb460b56315994c07e0f6e520edcf3f8e8b99c812cdfa9a26be0e7b17c8"
+        },
+        "uv": {
+          "count": 12680,
+          "itemSize": 2,
+          "type": "Float32Array",
+          "sha256": "495ca8540575a276c5688481788c7cc8bd62d32671d99b4a81d227d2fc1a08a9"
+        },
+        "color": {
+          "count": 12680,
+          "itemSize": 3,
+          "type": "Float32Array",
+          "sha256": "f94678379cb3555cbdae55c7c4f7b292b36f455ad9902f99947101d1f85c1252"
+        },
+        "index": {
+          "count": 63840,
+          "itemSize": 1,
+          "type": "Uint16Array",
+          "sha256": "452caf0d203b51ee61d10228162eac29ed873bc4651f2b55eabbc4ebecb8a29c"
+        }
+      },
+      "logs": 20,
+      "stakes": 20,
+      "triangles": 21280
+    },
+    "candidate": {
+      "geometry": {
+        "position": {
+          "count": 12046,
+          "itemSize": 3,
+          "type": "Float32Array",
+          "sha256": "e26f88a0a117ea9b14a6a7dd25a9490848cba806cd31e03622e9d8ec265ed906"
+        },
+        "normal": {
+          "count": 12046,
+          "itemSize": 3,
+          "type": "Float32Array",
+          "sha256": "c1d916a2f76d836aef22588f31afabc6148fd036ea9a51ec7e9097a177e1c663"
+        },
+        "uv": {
+          "count": 12046,
+          "itemSize": 2,
+          "type": "Float32Array",
+          "sha256": "96606db12f9459ddf5af550cfb417c0ff8bad8c9ed5bceb40385d3fed51057a0"
+        },
+        "color": {
+          "count": 12046,
+          "itemSize": 3,
+          "type": "Float32Array",
+          "sha256": "9fa8feba81dfa8568ae6eabd413957355a041ac72c8b33de336fd0825b695628"
+        },
+        "index": {
+          "count": 60648,
+          "itemSize": 1,
+          "type": "Uint16Array",
+          "sha256": "e3d8a1f7345faa78fdfa41c547122bcbdc31946f5b77281d3555bd407f8e3cfb"
+        }
+      },
+      "logs": 20,
+      "stakes": 18,
+      "triangles": 20216
+    }
+  },
+  "conclusion": "The combined main-flight stone mesh (treads, risers, cheeks and landing) has byte-identical position and normal arrays and identical triangle connectivity. The import cannot create a new hole by moving/removing these stone triangles. Log geometry and shading did change, so their coverage and the visibility/contrast of existing joins can change. This CPU receipt alone does not classify the visible dark pixels as empty space versus shaded faces."
+}

@@ -15,3 +15,5 @@ art/environment/astra-latest-integration/**/*.json -text whitespace=blank-at-eol
 art/environment/astra-latest-integration/settings.json -text whitespace=blank-at-eol,blank-at-eof,space-before-tab,cr-at-eol
 art/environment/astra-canopy-packed-integration/**/*.json -text whitespace=blank-at-eol,blank-at-eof,space-before-tab,cr-at-eol
 art/environment/astra-canopy-packed-integration/settings.json -text whitespace=blank-at-eol,blank-at-eof,space-before-tab,cr-at-eol
+art/environment/astra-safe-world-review/**/*.json -text whitespace=blank-at-eol,blank-at-eof,space-before-tab,cr-at-eol
+art/environment/astra-safe-world-review/*.json -text whitespace=blank-at-eol,blank-at-eof,space-before-tab,cr-at-eol
