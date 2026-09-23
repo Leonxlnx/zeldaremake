@@ -8,10 +8,12 @@ request) with the girl walking her loop, and keep the light count constant.
 
 ## What the follow camera saw (before)
 
-Rendered on the head (`be123deb`) with the cast forced visible, 5 m from kokiri-a on her verge spot: a
-smooth brown helmet of hair hugging the skull, orange-tan skin, a flat green tunic cylinder, a head a
-quarter of her height. ref-01 / d_024 have a wide maroon bob with a sheen, pale peach skin, cloth with
-folds, and a head-and-hair a third of the height.
+Rendered on the head (`be123deb`) with the cast forced visible, 5 m from the girl on the first tread of the
+hero flight (kokiri-b, the sitter — at broll's simulation time the walker, kokiri-a, is dwelling at (4.4, 0.9)
+across the plaza; the girls share every line of the build, only the look index differs): a smooth brown
+helmet of hair hugging the skull, orange-tan skin, a flat green tunic cylinder, a head a quarter of her
+height. ref-01 / d_024 have a wide maroon bob with a sheen, pale peach skin, cloth with folds, and a
+head-and-hair a third of the height.
 
 ## What changed (`agent/fable-3-kokiri-girl`)
 
@@ -55,14 +57,62 @@ is no program key; the toggle recompiles nothing. The audit reports `kidShadowCa
 
 ## Before / after
 
-![5 m, the follow camera](before-after-5m.jpg)
+![5 m, the follow camera: the girl on the first tread](before-after-5m.jpg)
 
 Pose: (5.2, 2.75, 6.3) → (9.0, 1.75, 3.6), vfov 46, high quality, 1280 × 720, `--character`, settle 8. The
 before is the head `be123deb` with the cast forced visible (a throwaway build, nothing committed).
 
-![2.6 m](before-after-close.jpg)
+![the walker at her dwell, 2.6 m and 5 m](before-after-walker.jpg)
 
-Pose: (6.9, 2.3, 5.1) → (9.0, 1.55, 3.6), vfov 40.
+Poses: (2.3, 2.2, −0.66) → (4.4, 1.45, 0.9), vfov 40; (0.6, 2.7, −2.1) → (4.4, 1.5, 0.9), vfov 46 — the walker
+(kokiri-a, look 0) where the loop has her at t ≈ 13.2 s, facing the camera.
+
+## The boy at Saria's door (second landing, `e7a01c7e`)
+
+The owner walks to Saria's door constantly, and the boy beside it still wore round 1's build: a sphere-and-boxes bob, a
+thin torus band, plain tan skin, a flat near-black tunic. He now shares the pass — the girls' lobed bob (`buildGirlHair`
+without its tube brows; `buildFace` gives him box brows) in the palette's brown under the lock canvas, the wide Kokiri band,
+the cloth canvas with four fold ridges on both lathes (the near-black lifted a step to 0x2f3320 so valleys and weave read at
+all), pale ramped skin (0xb28058 → 0xcfa07c, in step with the girls). Hair / cloth / skin materials are keyed by name now
+(`hairMaterial`, `clothMaterial`, `rampedSkin`) so a look is one line.
+
+![the boy: the owner's threshold pose and 2.5 m](before-after-boy.jpg)
+
+Poses: the threshold follow camera (6.76, 2.77, −5.59) → (9.77, 2.52, −8.69), vfov 46; (8.6, 2.1, −6.0) → (10.5, 1.55, −7.6),
+vfov 40. The before is the head with the girls' pass (`8651fce3`, cast shown), so the sheet isolates the boy.
+
+Six views — the boy stands in B / E (at the door) and F (far left); against the merged head `bd0bd1ba` (the girls' pass +
+fable-2's paving change), settle 12:
+
+| view | SSIM vs ref, head | branch | Δ | SSIM head↔branch | changed px | draws | M tris |
+| --- | --- | --- | --- | --- | --- | --- | --- |
+| B | 0.1734 | 0.1732 | −0.0003 | 0.9995 | 685 (all in the boy's box at the door) | 683 = 683 | 8.08 = 8.08 |
+| F | 0.2085 | 0.2085 | 0.0000 | 0.9998 | 515 (the boy's box) | 642 = 642 | 7.69 = 7.69 |
+
+E shares B's camera; A, C, D do not see him. Same submissions (the wide band is one mesh like the torus was; the bob one
+mesh like the old one).
+
+## The fairies (third landing, `044fb636`)
+
+"The girl by the signpost with her fairy": in demo d_026 / d_090 her fairy is a glowing ball with wings about as wide as her
+head, a head-and-a-half above it; ours (round 47, `navi.ts createFairy` at the kids' 0.75) was a 5 cm ball, a 0.2 m halo at
+three-quarter tint and a 0.1 m wing pair — a dot at 5 m. Now a 7.5 cm ball, a 0.3 m halo at full tint, a 0.17 m wing pair;
+the light, the hover and the three submissions unchanged.
+
+![the fairies at 5 m](before-after-fairy.jpg)
+
+Poses: the 5 m follow pose on the tread girl (her fairy over the flight) and the walker's 5 m pose (her fairy by the
+boulder; the tread girl's by the lantern post at the top left). Six views against the branch before the step (`e7a01c7e`
+on the merged head), settle 12 — the walker's fairy is at A's right edge, B / E's left edge and beside Link in F:
+
+| view | SSIM vs ref, before | after | Δ | SSIM before↔after | changed px | draws | M tris |
+| --- | --- | --- | --- | --- | --- | --- | --- |
+| A | 0.1824 | 0.1826 | +0.0002 | 0.9978 | 2 630 (the fairy's box) | 692 = 692 | 8.88 = 8.88 |
+| B | 0.1732 | 0.1727 | −0.0004 | 0.9983 | 1 693 (the fairy's box) | 683 = 683 | 8.08 = 8.08 |
+| F | 0.2085 | 0.2082 | −0.0003 | 0.9993 | 826 (the fairy's box) | 642 = 642 | 7.69 = 7.69 |
+
+(The reference SSIMs differ from the first table's because the head moved under the branch between the two measurements —
+fable-2's paving and earth changes; each table is before/after on one head.)
 
 ## Play mode
 
@@ -70,7 +120,11 @@ Pose: (6.9, 2.3, 5.1) → (9.0, 1.55, 3.6), vfov 40.
 two seconds standing, then W held for six — the sitter on the steps with her fairy, the walker at her verge
 spot, the boy at Saria's door. Programs 111 → 112 over the walk (one material's first draw), no light-count
 recompile. Draws 711 → 537 as the plaza leaves the frame; the walk ends in the verge's understory (the
-route, not the cast).
+route, not the cast). Standing at (3.0, 7.5) facing the stair foot (the plaza, Saria's house, the flight
+and three kids in frame): head 604 draws / 9.98 M, branch 779 / 10.05 M — the cast in play mode costs
+≈ 175 submissions where three kids and their shadow passes are in view. From that spot the walker's loop
+is behind an understory bush for most of her circuit (a sightline note for lanes 2 / 4: the scatter does
+not know `NPC_LOOP`).
 
 ## Six views
 
@@ -80,12 +134,17 @@ return is an owner-approved look change: the six frames show the kids again wher
 
 | view | SSIM vs ref, head | branch | Δ | SSIM head↔branch | changed px | draws head → branch | M tris head → branch |
 | --- | --- | --- | --- | --- | --- | --- | --- |
-| A | 0.2035 | 0.1991 | −0.0044 | 0.9826 | 15 339 | 597 → 698 | 9.15 → 9.19 |
-| B | 0.1836 | 0.1773 | −0.0063 | 0.9720 | 26 880 | 589 → 690 | 8.30 → 8.33 |
+| A | 0.2035 | 0.1991 | −0.0044 | 0.9826 | 15 339 | 597 → 698 (final 692) | 9.15 → 9.19 |
+| B | 0.1836 | 0.1773 | −0.0063 | 0.9720 | 26 880 | 589 → 690 (final 684) | 8.30 → 8.33 |
 | C | 0.1794 | 0.1793 | −0.0001 | 0.9916 | 5 163 | 472 → 525 | 6.77 → 6.80 |
 | D | 0.2430 | 0.2430 | 0 | 1.0000 | 0 | 557 → 557 | 8.53 → 8.53 |
 | E | 0.1946 | 0.1901 | −0.0045 | 0.9720 | 26 880 | 589 → 690 | 8.30 → 8.33 |
 | F | 0.2159 | 0.2145 | −0.0014 | 0.9922 | 11 950 | 547 → 648 | 7.99 → 8.03 |
+
+The six frames are the branch at `b1ebee6b` (the scoping); the final (`8651fce3`: thinner brows, cuffs out of the shadow
+pass, no neck mesh) was re-captured at A and B — A 692 draws, B 684, and against `b1ebee6b`'s frames 8 px changed in A,
+30 px in B (the walker's brows; a cuff's shadow sliver). C–F's draws at the final are those minus the cuffs' and the neck's
+submissions per kid in frame.
 
 Every changed pixel is a kid, her fairy, her shadow or her fairy's light pool (`diff-A.jpg` … `diff-F.jpg`: the walker
 at A's right edge and B / E's left edge as the footage has her, beside Link in F; the boy at Saria's door in B / E / F; the

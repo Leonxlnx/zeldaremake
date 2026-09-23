@@ -317,23 +317,27 @@ export function createFairy(opts: FairyOptions): Fairy {
 
   // the ball: blown out at its centre either way; a `coreTint` keeps its fringe (and the shading
   // toward the wings) in that colour — the demo girls' fairies read warm white with a green heart
+  // sizes (lane 7, 2026-09-23, demo d_026 / d_090: the girl's fairy is a glowing ball with wings
+  // about as wide as her head, a head-and-a-half above it): at the kids' 0.75 the ball is 7.5 cm,
+  // the halo 0.3 m, the wing pair 0.17 m — round 47's dot (5 cm / 0.2 m / 0.1 m) vanished at 5 m
   const coreColor = opts.coreTint ? opts.coreTint.clone().multiplyScalar(1.9) : new Color(1, 1, 1).lerp(tint, 0.25).multiplyScalar(2.2);
-  const core = new Mesh(new SphereGeometry(0.034 * s, 14, 10), new MeshBasicMaterial({ color: coreColor, fog: false, toneMapped: false }));
+  const core = new Mesh(new SphereGeometry(0.05 * s, 14, 10), new MeshBasicMaterial({ color: coreColor, fog: false, toneMapped: false }));
   core.name = `${opts.name}-core`;
   body.add(core);
 
-  const halo = new Sprite(new SpriteMaterial({ map: glowTexture(), color: tint.clone().multiplyScalar(0.75), blending: AdditiveBlending, depthWrite: false, fog: false, transparent: true }));
+  const halo = new Sprite(new SpriteMaterial({ map: glowTexture(), color: tint.clone(), blending: AdditiveBlending, depthWrite: false, fog: false, transparent: true }));
   halo.name = `${opts.name}-halo`;
-  halo.scale.setScalar(0.26 * s);
+  const haloS = 0.4 * s;
+  halo.scale.setScalar(haloS);
   halo.userData.depthAudit = false;
   body.add(halo);
 
   const wings = new Sprite(new SpriteMaterial({ map: wingPairTexture(), color: new Color(1, 1, 1).lerp(tint, 0.3).multiplyScalar(1.3), depthWrite: false, fog: false, transparent: true, toneMapped: false }));
   wings.name = `${opts.name}-wings`;
   wings.center.set(0.5, 0.08);
-  wings.position.set(0, 0.008 * s, 0);
-  const wingW = 0.13 * s;
-  const wingH = 0.13 * s;
+  wings.position.set(0, 0.012 * s, 0);
+  const wingW = 0.22 * s;
+  const wingH = 0.22 * s;
   wings.scale.set(wingW, wingH, 1);
   wings.userData.depthAudit = false;
   body.add(wings);
@@ -373,7 +377,7 @@ export function createFairy(opts: FairyOptions): Fairy {
       const flap = Math.sin(t * Math.PI * 2 * 11 + p2);
       wings.scale.set(wingW * (0.72 + 0.28 * Math.abs(flap)), wingH * (0.96 + 0.04 * flap), 1);
       light.intensity = 1.0 + 0.2 * Math.sin(t * 4.3 + p3);
-      halo.scale.setScalar(0.26 * s * (1 + 0.08 * Math.sin(t * 6.1 + p1)));
+      halo.scale.setScalar(haloS * (1 + 0.08 * Math.sin(t * 6.1 + p1)));
     },
   };
 }
