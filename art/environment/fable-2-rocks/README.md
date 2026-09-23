@@ -16,6 +16,21 @@ B 526 / C 393 / D 394 / E 526 / F 512; A 9.09 M tris on both (the head's number,
 change's — flagged to fable-cursor). Files: `ledge2-x-clearing-n.jpg` (+ `-crop`),
 `ledge2-x-ledge-foot.jpg`, `ledge2-x-northpath-n.jpg`.
 
+## Iteration 85 — lane 6: the raised stair to the north ledge is log-risered too (`LOG_FLIGHTS` + `ledge`): the owner's ref-03 right-bank steps — round timbers with cut ends and stakes, earth between; A / D byte-identical
+
+`art/environment/owner-review-2026-09-19/ref-03-marked-arch-depth-and-right-steps.png`, the owner's right-hand circle ("it should
+be raised — this part of the game"): a raised stair on the right bank beyond the arch, and at 3× the crop is unambiguous — logs
+as risers, their cut ends and dark stakes at the flank, dark earth treads between (the same construction as the hero flight's
+`d_104`). Ours was the six-step `ledge` flight in the north clearing as stone slabs. One line: the flight joins `LOG_FLIGHTS`, so
+`buildLogNosings` gives it the timbers and stakes and `buildStairway`'s `logNosed` path gives it the shaded lip and §83's earth
+treads; the character's stair grid reads `stairs-ledge-logs` like the main flight's (ground.ts merges stone + timbers per flight).
+
+Before `0149f255` → after `fbd83042` (`steps85-ledge-flight-sheet.jpg`): from the clearing floor 1.6 m off the first riser, from
+3.3 m up at 35° and from the east at eye height — mossy pale slabs become six timbers with proud cut ends and stakes over pale
+packed earth. Six views: the flight stands 75 m north of the plaza; **A and D byte-identical** (sha256 equal), A 600 → 601 draws /
+9.16 → 9.17 M (the timber mesh's sphere enters the frustum, no pixel), D 554 → 556 / 8.52 → 8.53 M. `tsc` green, hardscape tests
+9 / 9 (`logNosings.test` asserts `main`; `ledge` added).
+
 ## Iteration 83 — lane 6 (fable-cursor's 07:30 fit): the demo's log-risered steps, first half — the hero flight's treads are trodden earth between the timbers, not stone slabs (`aEarth` on the slab tops, the stone shader renders trail dirt there); six views A −0.0002, C −0.0009, the rest 0
 
 The owner's references for "the steps" (`docs/SQUAD_2026-09-23.md` lane 6): the demo's walk north, `demo61/d_094` and `d_104`

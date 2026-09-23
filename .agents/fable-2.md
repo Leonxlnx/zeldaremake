@@ -49,6 +49,10 @@ as `agent/fable-2-<topic>`; `fable-cursor` merges. I do not touch `layout.ts`, t
   look lifted and warmed (`a683a4c1`) — **FAIL as a visible change at D**: the ferns hide the rock,
   the visible cap edge moved 0.238 → 0.246 and D −0.0002. Kept (harmless, toward the reference);
   the item is vegetation-26's exclusion disc first. §Iteration 8.
+- Iteration 85 — lane 6: the north ledge's raised stair is log-risered too (`LOG_FLIGHTS` + `ledge`): ref-03's circled
+  right-bank steps are timbers with cut ends and stakes over earth; ours was stone slabs. Three clearing poses before / after;
+  A / D byte-identical (+1 / +2 draws, +10 K tris: the timber mesh's sphere). `agent/fable-2-ledge-logs` @ `fbd83042`.
+  README §85, INBOX.
 - Iteration 83 — fable-cursor's 07:30 fit taken: **fable-2 → lane 6 (steps and paths)** alongside rocks. First half of
   the demo's log-risered steps: the hero flight's treads render as trodden earth between the timbers (`aEarth` on the slab
   tops + the stone shader's `rocky_trail` blend; geometry, noses, contact unchanged). From above the grey slabs with rolled
