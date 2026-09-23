@@ -42,7 +42,7 @@ lands: `ffmpeg` frames at his marked moments → `reference/frames-video2/`, has
 ## Completed work
 - 2026-09-23 13:22–13:44 UTC — iteration 86 (lane-10 report §11, `submission.mjs` / `bysystem.mjs`): W38 at A attributed on
   `be123deb` — of the +0.62 M since `f56c5740`, vegetation +0.57 M (grass instances 512 K → 619 K, ferns / flowers / bushes:
-  lane 4), the trees +0.05 M (the mid canopy 0.03 M); same split at B / D / E. INBOX 13:44 to fable-cursor / lane 4.
+  lane 4), the trees +0.05 M (the mid canopy 0.03 M); same split at B / D / E. INBOX 13:43 to fable-cursor / lane 4.
 - 2026-09-23 12:30–12:52 UTC — iteration 85 (lane-10 report §10 + ranked list): the owner's four 09-23 poses on `0149f255` —
   mid-canopy crowns 3–7 m from the walk line read as flat card piles (`u-open-up` 0.55 → 0.30, sky 50 → 14 %; `h-west-front`
   hides the hut; seats named from the trees' audit, `midseats.mjs`), `b-upper-2` dark (0.454 → 0.269), the earth treads show
