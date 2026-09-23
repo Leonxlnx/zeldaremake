@@ -336,7 +336,7 @@ const ground = createGround(live, LAYOUT, {
   for (const v of LAYOUT.viewpoints) assert.equal(hf.expansionCull(v.position[0], v.position[2]), false, `viewpoint ${v.id} is kept`);
 
   assert.equal(hf.southFooting(0, 0.5, 1.5), null, 'outside the south boxes: expansionCull decides');
-  assert.equal(hf.southFooting(0.55, 19.4, 1.5), 'cull', 'a bole on the south paving');
+  assert.equal(hf.southFooting(S.path[2][0], S.path[2][2], 1.5), 'cull', 'a bole on the south paving');
   assert.equal(hf.southFooting(...south.tunnelWorld(-0.6, 0.3), 1.5), 'cull', 'a bole at the log\'s mouth');
   assert.equal(hf.southFooting(...south.tunnelWorld(-1.2, -2.6), 1.5, 0.5), 'cull', 'a bole a trunk\'s reach from the far path');
   // at the gorge's edge: kept while its rim stands on the lip, dropped once the wall cuts away under it
