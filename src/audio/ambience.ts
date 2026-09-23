@@ -88,7 +88,7 @@ export function swell(gust: number): number {
 const FLUTTER_LEVEL: [number, number] = [0.004, 0.013];
 const FLUTTER_SEND = 0.25;
 /** the longest the wood is ever left with nothing at all in it (s) */
-export const QUIET_GAP_MAX = 3.2;
+export const QUIET_GAP_MAX = 2.2;
 /** the bed's top in the open, and with the log tunnel's wood closed over the listener */
 const ENCLOSURE_OPEN_HZ = 18000;
 const ENCLOSURE_CLOSED_HZ = 900;
