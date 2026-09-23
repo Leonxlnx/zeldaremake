@@ -57,23 +57,30 @@ one colour. His recording's corridor does deepen (r_025: 0.39 over the near bank
   52–66 m (it was cutting a third off the radiance exactly up the north path).
 - Trees read against it: `farShadeMin` 0.65 → 0.52, `hazeShadeVeil` on at 0.8 (a shaded 15–35 m
   trunk wears less veil than the sunlit gap beside it).
+- `hazeFarLit` (the lit wall past the far rows) sits a step over `hazeClosedFar` — display 0.700
+  against 0.665 — or the term would be a no-op in exactly the closed directions it applies to.
 - `SKY_GAP_GLARE` back to the measured warm glare (display 0.687, hue 49°, B/R 0.92). `SKY_ENV_TINT`
   was still calibrated for a warm dome, so the IBL is back on its own calibration too.
+
+`src/world/atmosphere/hazepalette.test.mjs` locks the direction (every airlight colour warm, both
+sides of the veil deepening with distance, the closed grade reaching the fog chunk) without pinning
+the numbers — the palette has drifted cool twice now.
 
 ## Measured, at his north pose
 
 | region | before | after | his `r_025` |
 | --- | --- | --- | --- |
-| upper-left air | 0.365, hue 123° | **0.453, hue 42°** | 0.500, hue 43° |
-| path's vanishing point | 0.366, hue 59° | **0.430, hue 40°** | 0.545, hue 45° |
-| top third, mean | 0.293 | **0.332** | 0.432 |
-| top third, p90 | 0.382 | **0.478** | 0.542 |
-| lower two thirds (foreground) | 0.301 | 0.300 | 0.302 |
+| upper-left air | 0.365, hue 123° | **0.464, hue 42°** | 0.500, hue 43° |
+| upper-left air, p90 | 0.421 | **0.559** | 0.557 |
+| path's vanishing point | 0.366, hue 59° | **0.488, hue 42°** | 0.545, hue 45° |
+| top third, mean | 0.293 | **0.342** | 0.432 |
+| top third, p90 | 0.382 | **0.490** | 0.542 |
+| lower two thirds (foreground) | 0.301 | 0.302 | 0.302 |
 
 The foreground is untouched — it already matched him — and the whole upper and middle distance
-moved 0.04–0.09 toward his recording with the hue within 3° of it. What is still short of him
-there is content, not air: his 10–40 m band is full of leafy crowns and ours is bare column trunks
-(lanes 2 and 3).
+moved 0.05–0.12 toward his recording with the hue within 3° of it and the upper-left band's p90 on
+his to 0.002. What is still short of him there is content, not air: his 10–40 m band is full of
+leafy crowns and ours is bare column trunks (lanes 2 and 3). The air is now ready for them.
 
 ## The six hero views (A–F)
 
@@ -125,6 +132,21 @@ canvas after tone mapping (`play/playtest.json`):
   (`play/look-open-north-drag-up.jpg`: the overhead reads 0.679 display, hue 44°, B/R 0.91 — a
   luminous warm sky, not a blue ceiling and not a blown one);
 - nine walk routes, all reached, **0 stuck points, 0 page errors**.
+
+## Cost
+
+`playtest.mjs --only perf` at four spots, the base build and this one. SwiftShader's wall clock is
+9–30 s a frame and useless as a signal, so the deterministic counts:
+
+| spot | draws before → after | triangles before → after |
+| --- | --- | --- |
+| plaza | 523 → 522 | 7.44 M → 7.44 M |
+| stairs2-base | 523 → 523 | unchanged |
+| saria-side | 519 → 519 | unchanged |
+| west-house | 442 → 443 | unchanged |
+
+The mist tier is 28 more instances in one existing half-resolution overlay draw. Nine walk routes
+on the final build: all reached, 0 stuck points, 0 page errors.
 
 ## The god rays: measured, then left alone
 
