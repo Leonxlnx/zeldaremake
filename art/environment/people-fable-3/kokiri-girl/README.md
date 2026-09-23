@@ -144,7 +144,9 @@ materials, same textures. The rest-pose sphere is grown 0.35 m so a swung arm at
 
 Play still at the stair foot (Link two metres from the sitter, the walker at the right edge, the boy at the door): **702 →
 623 draws**, triangles 10 038 277 = 10 038 277, and against the unskinned still 151 px differ by more than 8 levels, 8 by
-more than 24 — the skinning path's float noise. The first cut had the parts' vertices in joint space (the skinned mesh
+more than 24 — the skinning path's float noise. The walker mid-stride (broll t 10.4 s, her leg toward (4.4, 0.9), facing the
+camera) and standing at her dwell (t 12.0 s): 17 px and 1 px between the two builds — the stride, the sit and the head turn
+all ride the same joints. The first cut had the parts' vertices in joint space (the skinned mesh
 wants its bind space, the root's): the kids came apart; the joint's rest world matrix is baked in now.
 
 Six views against the same head (the branch before the step), settle 12 — the kids stand in A (the walker at the right

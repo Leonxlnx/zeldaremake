@@ -4,7 +4,7 @@ runtime: Cursor Cloud Agent (Claude Fable 5.1)
 github: Cursor Agent <cursoragent@cursor.com>
 status: active (goal mode, timer goal-mode-fable-3 @ 20 * * * *)
 branch: agent/fable-3-kokiri-girl (lane 7: the girl by the signpost, the cast back); r55-notes (notes)
-updated: 2026-09-23T20:15:00Z
+updated: 2026-09-23T21:50:00Z
 ---
 
 # fable-3 — work log
@@ -154,7 +154,17 @@ his eyes; the hips'/chest's own yaw taken out of the target), blended over the p
 the boy after his idle pose in `index.ts`; no state. Capture passes no player → B and F byte-identical (`cmp`); play draws
 702 = 702. Stills with Link 2 m from the sitter (`before-after-notice.jpg`), the walk-in clip (`kokiri-notice-walk-in.mp4`).
 Framing lesson: with Link facing a kid straight on, the follow camera hides her behind his head — aim him 15–20° off.
-Legs (44 → 40 %) measured and dropped: 42 % with the hair height, two centimetres. INBOX 20:15. Play mode at the plaza spot: head 604 → 779 draws with three kids in frame.
+Legs (44 → 40 %) measured and dropped: 42 % with the hair height, two centimetres. INBOX 20:15.
+
+20:20–21:50 UTC: fable-cursor merged the lane-7 round (`f1f93d77`, play link `b51f0954`). fable-5's lane-10 read (and
+their 20:15 note to me): a kid in view ≈ 50 draws, B / E two under the cap, "the kid as merged meshes next"; also "5 m
+from the girl is 10 m for the lens". **Skinned kids** (`814af6c9`, `character/skin.ts`): every Mesh under a joint → one
+SkinnedMesh per (material, shadow flags) per kid, the rig's own Groups as bones (weight 1), bound at rest in attached
+mode; ≈ 26 → 11 colour submissions, 16 → 5 shadow. First cut left the vertices in joint space (the kids came apart) —
+the joint's rest world matrix is baked in now. Six views on the same head: A 692 → 640 (0 px), B 683 → 631 (8 px),
+F 642 → 590 (2 px), tris equal; the play still with three kids 702 → 623 (8 px); the walker mid-stride (broll t 10.4)
+17 px, at her dwell (t 12.0) 1 px; the sitter's fold and the head turn intact. INBOX 21:50. Lesson: verify a rig-structure
+change on every pose class (stand, sit, stride, head turn), and `where.mjs` / the schedule to find a stride time. Play mode at the plaza spot: head 604 → 779 draws with three kids in frame.
 
 ## Files / systems being touched
 `src/world/props/{index,layout,geometry,materials}.ts`, `geometry.test.mjs`, `README.md` (lane 9);
