@@ -527,8 +527,12 @@ between the shafts as well (intensity 0.32 → 0.28, gap floor 0.3 → 0.15, the
 0.75 → 0.5) was tried and backed out: it dimmed the god rays themselves and the hero views read duller,
 not fuller (top thirds A −7.6, B −10.5, D −12.2 levels; `pass3/haze-clear-shafts.jpg` shows that
 variant at the owner's poses). What stays: the base air starts higher (3 / 6.5 → 6 / 16 m), so the
-glow at eye level thins and the shafts above keep their brightness — the upper frame 79.1 → 72.9
-looking north, 94.1 → 82.6 looking west, 80.2 → 75.6 toward Saria's (`9a1be295`). What the haze does
+glow at eye level thins — the upper frame 79.1 → 72.9 looking north, 94.1 → 82.6 looking west,
+80.2 → 75.6 toward Saria's (`9a1be295`). It is a middle ground, not free: the shafts' lower reaches
+dim with the veil, and the hero views' top thirds fall A −6.2, B −8.5, D −8.9 levels (the backed-out
+variant −7.6 / −10.5 / −12.2) — the column trunks and the far forest read through where the milky
+veil was, the shafts stay visible but less luminous (`pass3/haze-eyelevel-hero-ABD.jpg`); the owner
+judges it on the play link, and lane 1 owns the next step (below). What the haze does
 not explain — fable-5 (lane 10) measured it against the owner's recording: the corridor has no leafy
 crowns at 10–40 m over its banks, only bare column trunks, and its mist is bright and warm where ours
 is cool grey — is the trees' lane (fable-4 / squad lane 2–3) and the colour half of lane 1.
