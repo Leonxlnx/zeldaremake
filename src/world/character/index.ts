@@ -297,6 +297,8 @@ export async function create(ctx: WorldContext): Promise<WorldSystem> {
     },
     groundHeight: (x, z) => ground.height(x, z),
     surfaceHeight: (x, z) => ground.surface(x, z),
+    feetContact: () => link.puppet.feetContact().map((f) => ({ gapM: f.gapM, minShoeGapM: f.minShoeGapM, stance: f.stance })),
+    blockedAt: (x, z) => ground.blocked(x, z),
     place(x, z, yaw) {
       link.pos.set(x, 0, z);
       link.yaw = yaw;

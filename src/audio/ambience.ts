@@ -31,6 +31,10 @@ export interface Ambience {
   dispose(): void;
 }
 
+/** the pod hum's distance scale (m: half level at this distance from one pod) and its peak level */
+export const HUM_REACH_M = 1.1;
+export const HUM_LEVEL = 0.035;
+
 type BirdKind = 'whistle' | 'trill' | 'chirps' | 'warble';
 const BIRDS: BirdKind[] = ['whistle', 'trill', 'chirps', 'warble'];
 
@@ -71,17 +75,20 @@ export function createAmbience(ctx: BaseAudioContext, out: AudioNode, reverbSend
   nodes.push(lfo(ctx, flutter.gain, 0.75, 0.08, 'sine', startAt + 0.4));
 
   // ---- pod lantern hum -------------------------------------------------------------------
+  // 2026-09-23 (owner: "the sound is still a little too buzzy in the background"): the hum was a
+  // 96 Hz tone with a triangle partial at 287.5 Hz and a fourth partial, open to 900 Hz, at the
+  // wind bed's own level within ~2 m of any pod — and pods hang on every house, post and bough,
+  // so the village sat on a mains-like drone. Now two soft sines under 420 Hz, a third of the
+  // level, heard only close to a lantern (HUM_REACH_M, HUM_LEVEL).
   const humGain = gain(ctx, 0);
   const humPan = ctx.createStereoPanner();
   humGain.connect(humPan).connect(out);
   humGain.connect(reverbSend);
-  const humLp = filter(ctx, 'lowpass', 900, 0.8);
+  const humLp = filter(ctx, 'lowpass', 420, 0.7);
   humLp.connect(humGain);
   for (const [f, g, type] of [
     [96, 0.5, 'sine'],
-    [192.4, 0.24, 'sine'],
-    [287.5, 0.09, 'triangle'],
-    [384.8, 0.05, 'sine'],
+    [192.4, 0.12, 'sine'],
   ] as [number, number, OscillatorType][]) {
     const o = ctx.createOscillator();
     o.type = type;
@@ -96,7 +103,7 @@ export function createAmbience(ctx: BaseAudioContext, out: AudioNode, reverbSend
   const wispSrc = noiseSource(ctx, noise, startAt + 0.7);
   nodes.push(wispSrc);
   const wisp = filter(ctx, 'bandpass', 1750, 9);
-  const wispGain = gain(ctx, 0.05);
+  const wispGain = gain(ctx, 0.012);
   wispSrc.connect(wisp).connect(wispGain).connect(humGain);
   nodes.push(lfo(ctx, wisp.frequency, 0.4, 180, 'sine', startAt));
 
@@ -197,12 +204,12 @@ export function createAmbience(ctx: BaseAudioContext, out: AudioNode, reverbSend
       const dy = p.y - s.listener.y;
       const dz = p.z - s.listener.z;
       const d = Math.sqrt(dx * dx + dy * dy + dz * dz);
-      const a = 1 / (1 + (d / 1.7) ** 2);
+      const a = 1 / (1 + (d / HUM_REACH_M) ** 2);
       sum += a;
       px += dx * a;
       pz += dz * a;
     }
-    const level = Math.min(1, sum) * 0.11;
+    const level = Math.min(1, sum) * HUM_LEVEL;
     humGain.gain.setTargetAtTime(level, t, 0.25);
     let pan = 0;
     if (sum > 1e-4) {

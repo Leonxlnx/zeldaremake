@@ -4,7 +4,8 @@
  *
  *   node gauntlet/scripts/playtest.mjs --dist dist --out /tmp/play [--size 960x540] [--quality high]
  *        [--only look,pad,stairs,climb,walk,perf] [--shots] [--video] [--spots plaza,stairs2-base]
- *        (opt-in, by name only: --only pacing | interact | resilience)
+ *        (opt-in, by name only: --only pacing [--routes upper-house,north-clearing] | interact | resilience)
+ *        [--warmup] (boot with the normal launch path's warm-up; default off: the first draws compile)
  *
  * Opens the build with `?test=1` (play mode; the page runs no frame loop of its own) and steps
  * frames at a fixed dt through `window.__ZR_PLAY__`, feeding REAL input: held keys
@@ -50,6 +51,11 @@ const rad = (d) => (d * Math.PI) / 180;
 const FLIGHTS = {
   main: { base: [7.3, 0, -0.1], dir: [1, -0.78], steps: 20, rise: 0.27, tread: 0.54, width: 3.0 },
   'south-bank': { base: [-15.22, 0.39, 15.44], dir: [-0.7071, 0.7071], steps: 6, rise: 0.26, tread: 0.38, width: 1.6 },
+};
+/** flights the walk routes use but the stair / climb scenarios leave out */
+const ROUTE_FLIGHTS = {
+  'house-west': { base: [3.8, 0.27, -8.0], dir: [0.9397, 0.342], steps: 5, rise: 0.27, tread: 0.4, width: 2.4 },
+  ledge: { base: [1.2, 4.0, -73.2], dir: [0, -1], steps: 6, rise: 0.27, tread: 0.42, width: 1.8 },
 };
 const flightFrame = (f) => {
   const l = Math.hypot(f.dir[0], f.dir[1]);
@@ -104,7 +110,7 @@ async function openPlay(browser, baseUrl) {
           : [null, null, null, null],
     });
   });
-  const url = `${baseUrl}/?test=1&dev=0&hud=${args.hud ? 1 : 0}&warmup=0&quality=${encodeURIComponent(quality)}`;
+  const url = `${baseUrl}/?test=1&dev=0&hud=${args.hud ? 1 : 0}&warmup=${args.warmup ? 1 : 0}&quality=${encodeURIComponent(quality)}`;
   const t0 = Date.now();
   await page.goto(url, { waitUntil: 'load', timeout: READY_TIMEOUT_MS });
   await waitReady(page);
@@ -204,6 +210,54 @@ const clearance = (page) =>
     return { nearestM: min === Infinity ? null : +min.toFixed(3), nearShare: +(near / d.length).toFixed(4), skyShare: +(sky / d.length).toFixed(4), linkHidden };
   });
 
+/**
+ * Exposure of the last drawn frame as the player sees it (the canvas after tone mapping and post):
+ * 8-bit display values on a 160 × 90 grid, split into sky (depth > 150 m or none) and scene.
+ * `clipped` = any channel ≥ 250 (blown), `crushed` = luma ≤ 6 (black), luma percentiles 0–255.
+ */
+const exposure = (page) =>
+  page.evaluate(() => {
+    const W = 160;
+    const H = 90;
+    const canvas = document.querySelector('canvas');
+    const gl = canvas.getContext('webgl2');
+    if (!gl) return null;
+    const cw = gl.drawingBufferWidth;
+    const ch = gl.drawingBufferHeight;
+    const px = new Uint8Array(cw * ch * 4);
+    gl.readPixels(0, 0, cw, ch, gl.RGBA, gl.UNSIGNED_BYTE, px);
+    const depth = window.__ZR__.depthImage(null, W, H).data;
+    const groups = { all: [], sky: [], scene: [] };
+    const tally = { all: { clipped: 0, crushed: 0 }, sky: { clipped: 0, crushed: 0 }, scene: { clipped: 0, crushed: 0 } };
+    // both readbacks run bottom-up (GL): row 0 is the bottom of the frame
+    for (let y = 0; y < H; y++) {
+      const py = Math.min(ch - 1, Math.floor(((y + 0.5) / H) * ch));
+      for (let x = 0; x < W; x++) {
+        const pxx = Math.min(cw - 1, Math.floor(((x + 0.5) / W) * cw));
+        const i = (py * cw + pxx) * 4;
+        const r = px[i];
+        const g = px[i + 1];
+        const b = px[i + 2];
+        const luma = 0.2126 * r + 0.7152 * g + 0.0722 * b;
+        const d = depth[y * W + x];
+        const where = d < 0 || d > 150 ? 'sky' : 'scene';
+        for (const k of ['all', where]) {
+          groups[k].push(luma);
+          if (Math.max(r, g, b) >= 250) tally[k].clipped++;
+          if (luma <= 6) tally[k].crushed++;
+        }
+      }
+    }
+    const stats = (k) => {
+      const v = groups[k].sort((a, b) => a - b);
+      const n = v.length;
+      if (!n) return { share: 0 };
+      const q = (p) => +v[Math.min(n - 1, Math.floor(p * (n - 1)))].toFixed(1);
+      return { share: +(n / (W * H)).toFixed(4), clipped: +(tally[k].clipped / n).toFixed(4), crushed: +(tally[k].crushed / n).toFixed(4), p05: q(0.05), p50: q(0.5), p95: q(0.95), mean: +(v.reduce((s, x) => s + x, 0) / n).toFixed(1) };
+    };
+    return { all: stats('all'), sky: stats('sky'), scene: stats('scene') };
+  });
+
 async function shot(page, name) {
   if (!shots) return null;
   const file = path.join(out, `${name}.jpg`);
@@ -237,6 +291,7 @@ async function lookScenario(page, results) {
     const rest = summarise(await state(page));
     await draw(page);
     const restClear = await clearance(page);
+    const restExposure = await exposure(page);
     const restShot = await shot(page, `look-${spot.id}-rest`);
     // drag up (the mouse moves toward the top of the screen) far enough to hit any limit
     await drag(page, 0, -Math.round(height * 0.9), 15, 2);
@@ -244,6 +299,7 @@ async function lookScenario(page, results) {
     const up = summarise(await state(page));
     await draw(page);
     const upClear = await clearance(page);
+    const upExposure = await exposure(page);
     const upShot = await shot(page, `look-${spot.id}-drag-up`);
     // drag down twice as far (through rest to the other limit)
     await drag(page, 0, Math.round(height * 1.8), 30, 2);
@@ -251,14 +307,15 @@ async function lookScenario(page, results) {
     const down = summarise(await state(page));
     await draw(page);
     const downClear = await clearance(page);
+    const downExposure = await exposure(page);
     const downShot = await shot(page, `look-${spot.id}-drag-down`);
     const els = [rest.elevationDeg, up.elevationDeg, down.elevationDeg];
     results.look.push({
       ...spot,
       at: spot.at.map((v) => +v.toFixed(3)),
-      rest: { ...rest, clearance: restClear, shot: restShot },
-      dragUp: { ...up, clearance: upClear, shot: upShot },
-      dragDown: { ...down, clearance: downClear, shot: downShot },
+      rest: { ...rest, clearance: restClear, exposure: restExposure, shot: restShot },
+      dragUp: { ...up, clearance: upClear, exposure: upExposure, shot: upShot },
+      dragDown: { ...down, clearance: downClear, exposure: downExposure, shot: downShot },
       maxUpDeg: Math.max(...els),
       maxDownDeg: Math.min(...els),
       maxVisibleAboveHorizonDeg: +Math.max(rest.topEdgeDeg, up.topEdgeDeg, down.topEdgeDeg).toFixed(2),
@@ -359,7 +416,7 @@ async function hold(page, keys, frames, { every = 0, prefix = null } = {}) {
           for (let i = 0; i < n; i++) {
             P.step(1, dt, false);
             const s = P.state();
-            rows.push({ link: s.link, heading: s.heading, cam: s.camera.position, dir: s.camera.direction, camGround: s.groundUnderCamera });
+            rows.push({ link: s.link, heading: s.heading, cam: s.camera.position, dir: s.camera.direction, camGround: s.groundUnderCamera, feet: s.feet });
           }
           return rows;
         },
@@ -375,6 +432,82 @@ async function hold(page, keys, frames, { every = 0, prefix = null } = {}) {
     for (const k of keys) await page.keyboard.up(k);
   }
   return trace;
+}
+
+const quantile = (arr, p) => {
+  const s = [...arr].sort((u, v) => u - v);
+  return s.length ? s[Math.min(s.length - 1, Math.floor(p * (s.length - 1)))] : null;
+};
+const fixed = (v, n = 3) => (v === null || v === undefined ? null : +v.toFixed(n));
+
+/**
+ * The boots against the rendered stone / timber over a trace: every stance foot's sole gap (the
+ * sole over the surface under it) and its footprint's smallest gap (negative = a boot corner
+ * inside the surface).
+ */
+function feetStats(trace) {
+  const gaps = [];
+  const shoes = [];
+  for (const r of trace) {
+    for (const f of r.feet ?? []) {
+      if (!f.stance) continue;
+      gaps.push(Math.abs(f.gapM));
+      shoes.push(f.minShoeGapM);
+    }
+  }
+  if (!gaps.length) return null;
+  return {
+    stanceSamples: gaps.length,
+    soleGapAbsM: { p50: fixed(quantile(gaps, 0.5), 4), p95: fixed(quantile(gaps, 0.95), 4), max: fixed(quantile(gaps, 1), 4) },
+    // the boot's lowest point over the surface: ≈ 0 when the foot stands on it (the sole marker
+    // above lifts with the heel at push-off); > 1 cm for a whole boot floating
+    footprintLowestM: { p50: fixed(quantile(shoes, 0.5), 4), p95: fixed(quantile(shoes, 0.95), 4), max: fixed(quantile(shoes, 1), 4) },
+    shareOver1cm: fixed(gaps.filter((g) => g > 0.01).length / gaps.length, 4),
+    shareOver2cm: fixed(gaps.filter((g) => g > 0.02).length / gaps.length, 4),
+    footprintMinGapM: fixed(quantile(shoes, 0), 4),
+    shareFootprintInside5mm: fixed(shoes.filter((g) => g < -0.005).length / shoes.length, 4),
+  };
+}
+
+/**
+ * The follow camera's motion over a trace (one row per 1/30 s frame): speed and acceleration of
+ * its position, turn rate of its view and that rate's change. A camera that pops (a collision
+ * snap, a ground step) shows as an acceleration spike far above the walk's own.
+ */
+function cameraMotion(trace) {
+  const v = [];
+  const w = [];
+  for (let i = 1; i < trace.length; i++) {
+    const p0 = trace[i - 1].cam;
+    const p1 = trace[i].cam;
+    v.push([(p1[0] - p0[0]) / DT, (p1[1] - p0[1]) / DT, (p1[2] - p0[2]) / DT]);
+    const d0 = trace[i - 1].dir;
+    const d1 = trace[i].dir;
+    const dot = Math.max(-1, Math.min(1, d0[0] * d1[0] + d0[1] * d1[1] + d0[2] * d1[2]));
+    w.push(deg(Math.acos(dot)) / DT);
+  }
+  const speed = v.map((x) => Math.hypot(x[0], x[1], x[2]));
+  const acc = [];
+  const accY = [];
+  for (let i = 1; i < v.length; i++) {
+    acc.push(Math.hypot(v[i][0] - v[i - 1][0], v[i][1] - v[i - 1][1], v[i][2] - v[i - 1][2]) / DT);
+    accY.push(Math.abs(v[i][1] - v[i - 1][1]) / DT);
+  }
+  const turnAcc = [];
+  for (let i = 1; i < w.length; i++) turnAcc.push(Math.abs(w[i] - w[i - 1]) / DT);
+  const q = (arr) => ({ p50: fixed(quantile(arr, 0.5), 2), p95: fixed(quantile(arr, 0.95), 2), max: fixed(quantile(arr, 1), 2) });
+  // the worst jumps, with where they happened and what the camera's collision was doing either side
+  // (acc[k] is the change between frames k and k + 2's velocities, centred on row k + 1)
+  const spikes = acc
+    .map((a, k) => ({ a, row: k + 1 }))
+    .filter((s) => s.a > 100)
+    .sort((u, v) => v.a - u.a)
+    .slice(0, 6)
+    .map(({ a, row }) => {
+      const pick = (r) => (r ? { link: r.link?.map((v) => fixed(v, 2)), cam: r.cam?.map((v) => fixed(v, 2)), hit: r.follow?.hit ?? null, keep: fixed(r.follow?.keep, 3), lift: fixed(r.follow?.lift, 3), lowered: fixed(r.follow?.lowered, 3), slimPush: fixed(r.follow?.slimPush, 3) } : null);
+      return { row, accelMps2: fixed(a, 1), jumpM: fixed(Math.hypot(...trace[row + 1].cam.map((v, j) => v - trace[row].cam[j])), 3), before: pick(trace[row]), after: pick(trace[row + 1]) };
+    });
+  return { speedMps: q(speed), accelMps2: q(acc), verticalAccelMps2: q(accY), turnDegPerS: q(w), turnAccelDegPerS2: q(turnAcc), spikes };
 }
 
 function analyseTrace(trace, topY) {
@@ -400,6 +533,8 @@ function analyseTrace(trace, topY) {
     minCameraAboveGroundM: +maxCamDrop.toFixed(3),
     end: last.map((v) => +v.toFixed(3)),
     reachedTop: topY === undefined ? null : Math.abs(last[1] - topY) < 0.1,
+    feet: feetStats(trace),
+    camera: cameraMotion(trace),
   };
 }
 
@@ -445,6 +580,8 @@ async function walkRoute(page, name, points, maxFrames = 900) {
   let lastProgressAt = 0;
   let best = Infinity;
   const trace = [];
+  /** every simulated frame: Link, the camera and the boots (for the camera's motion and the contact) */
+  const rows = [];
   while (wp < points.length && frames < maxFrames) {
     const st = await state(page);
     const [x, , z] = st.link;
@@ -460,7 +597,21 @@ async function walkRoute(page, name, points, maxFrames = 900) {
       best = dist;
       lastProgressAt = frames;
     } else if (frames - lastProgressAt > 90) {
-      stuck.push({ at: [+x.toFixed(2), +st.link[1].toFixed(2), +z.toFixed(2)], toward: points[wp], frame: frames });
+      // what stops him: the ground ahead toward the waypoint, every 10 cm for 1.5 m (walk height, blocked)
+      const ahead = await page.evaluate(
+        ([x, z, tx, tz]) => {
+          const P = window.__ZR_PLAY__;
+          const d = Math.hypot(tx - x, tz - z) || 1;
+          const out = [];
+          for (let s = 0; s <= 1.5001; s += 0.1) {
+            const g = P.ground(x + ((tx - x) / d) * s, z + ((tz - z) / d) * s);
+            out.push([+s.toFixed(1), +g.walk.toFixed(2), g.blocked]);
+          }
+          return out;
+        },
+        [x, z, tx, tz],
+      );
+      stuck.push({ at: [+x.toFixed(2), +st.link[1].toFixed(2), +z.toFixed(2)], toward: points[wp], frame: frames, ahead });
       wp++;
       best = Infinity;
       lastProgressAt = frames;
@@ -478,17 +629,46 @@ async function walkRoute(page, name, points, maxFrames = 900) {
     if (b > 0.38) want.add('KeyD');
     if (b < -0.38) want.add('KeyA');
     await setKeys(want);
-    await sim(page, 3);
+    rows.push(
+      ...(await page.evaluate(
+        ([n, dt]) => {
+          const P = window.__ZR_PLAY__;
+          const out = [];
+          for (let i = 0; i < n; i++) {
+            P.step(1, dt, false);
+            const s = P.state();
+            out.push({ link: s.link, cam: s.camera.position, dir: s.camera.direction, camGround: s.groundUnderCamera, feet: s.feet, follow: s.follow });
+          }
+          return out;
+        },
+        [3, DT],
+      )),
+    );
     frames += 3;
     trace.push([+x.toFixed(2), +st.link[1].toFixed(2), +z.toFixed(2)]);
   }
   await setKeys(new Set());
-  return { name, reached: wp >= points.length, waypointsReached: wp - 1, of: points.length - 1, frames, stuck, trace: trace.filter((_, i) => i % 4 === 0) };
+  const minCam = rows.length ? Math.min(...rows.map((r) => r.cam[1] - r.camGround)) : null;
+  return {
+    name,
+    reached: wp >= points.length && stuck.length === 0,
+    waypointsReached: wp - 1,
+    of: points.length - 1,
+    frames,
+    stuck,
+    lengthM: +trace.reduce((s, p, i) => (i ? s + Math.hypot(p[0] - trace[i - 1][0], p[2] - trace[i - 1][2]) : 0), 0).toFixed(1),
+    camera: rows.length > 3 ? cameraMotion(rows) : null,
+    minCameraAboveGroundM: fixed(minCam),
+    feet: feetStats(rows),
+    trace: trace.filter((_, i) => i % 4 === 0),
+  };
 }
 
 async function walkScenario(page, results) {
   const m = flightFrame(FLIGHTS.main);
   const s = flightFrame(FLIGHTS['south-bank']);
+  const hw = flightFrame(ROUTE_FLIGHTS['house-west']);
+  const ledge = flightFrame(ROUTE_FLIGHTS.ledge);
   const routes = [
     // round Saria's trunk pad (its cap reaches the plateau) to the upper house's east side
     ['plaza-to-upper-house', [[1, 3], m.at(-1.6), m.at(m.run * 0.5), m.at(m.run + 1.2), [17.6, -9.5], [17.2, -13.0], [16.6, -15.2]]],
@@ -496,11 +676,23 @@ async function walkScenario(page, results) {
     // along the lawn to the door, clear of the signpost (7.0, −9.3)
     ['saria-front-arc', [[5.7, -4.5], [8.2, -6.8], [8.6, -8.2], [9.3, -9.0]]],
     ['west-deck', [[-12.5, 8.5], [-15.39 + 0.9, 7.64 - 0.4], [-16.28, 6.46], [-18.4, 7.1]]],
+    // round the plaza on its paving: toward the second staircase, up the spine, back past the west fork
+    ['plaza-loop', [[0.5, 3], [4.5, -0.4], [1.2, -9], [-1.2, -3.2], [0.5, 3]]],
+    // the south approach from the spawn end of the spine into the plaza
+    ['south-approach', [[1, 15], [0, 8], [0.5, 1]]],
+    // Saria's door the way the layout builds it: up the spine, the house-west flight, the lawn
+    ['house-west-to-saria-door', [[1.5, -9.5], hw.at(-1.2), hw.at(hw.run * 0.5), hw.at(hw.run + 0.8), [8.6, -8.2], [9.3, -9.0]]],
+    // off the west house's deck, down its steps, back across the lawn to the plaza
+    ['west-house-to-plaza', [[-18.4, 7.1], [-16.28, 6.46], [-15.39 + 0.9, 7.64 - 0.4], [-12.5, 8.5], [-6, 8], [0, 4]]],
+    // the north path under the log arch into the second clearing, then up the ledge flight
+    ['north-clearing-ledge', [[0.5, 2], [1.5, -12], [2.0, -18], [1.8, -24], [2.5, -30], [3.5, -36], [4.5, -42], [5.2, -50], [5.8, -58], [5.4, -61.5], [3.6, -65.2], [1.0, -68.0], [-0.6, -70.2], ledge.at(-0.9), ledge.at(ledge.run * 0.5), ledge.at(ledge.run + 0.6)], 2400],
   ];
   results.walk = [];
-  for (const [name, pts] of routes) {
+  const pickRoutes = typeof args['walk-routes'] === 'string' ? new Set(args['walk-routes'].split(',')) : null;
+  for (const [name, pts, maxFrames] of routes) {
+    if (pickRoutes && !pickRoutes.has(name)) continue;
     log(`walk: ${name}`);
-    results.walk.push(await walkRoute(page, name, pts));
+    results.walk.push(await walkRoute(page, name, pts, maxFrames));
     fs.writeFileSync(path.join(out, 'playtest.json'), JSON.stringify(results, null, 1));
   }
 }
@@ -664,39 +856,76 @@ async function perfScenario(page, results) {
 }
 
 /**
- * Frame pacing along the walk from the plaza up the second staircase to the upper house, steered
- * with the movement keys like walkRoute: every simulated frame's JS step (camera + world update —
- * LOD pools, grass streaming, the character) timed by the page's own step timers, every
- * PACE_DRAW-th frame drawn with a synced wall time and its render-issue ms, and the renderer's
+ * Frame pacing along a walk (default: the plaza up the second staircase to the upper house),
+ * steered with the movement keys like walkRoute: every simulated frame's JS step (camera + world
+ * update — LOD pools, grass streaming, the character) timed by the page's own step timers, every
+ * `every`-th frame drawn with a synced wall time and its render-issue ms, and the renderer's
  * program count and the JS heap sampled throughout. A program count that grows during the walk
  * is a shader compile mid-play — a hitch on any GPU; the JS step is this machine's CPU side of a
- * frame whatever the rasteriser.
+ * frame whatever the rasteriser. `--routes a,b` picks routes from PACE_ROUTES; run with
+ * `--warmup` to measure the page as the normal launch path boots it (its warm-up compiles first).
  */
 const PACE_DRAW = 12;
-async function pacingScenario(page, results) {
-  const m = flightFrame(FLIGHTS.main);
-  const points = [[1, 3], m.at(-1.6), m.at(m.run * 0.5), m.at(m.run + 1.2), [17.6, -9.5], [17.2, -13.0], [16.6, -15.2]];
+const PACE_ROUTES = {
+  'upper-house': {
+    label: 'plaza → second staircase → upper house',
+    points: () => {
+      const m = flightFrame(FLIGHTS.main);
+      return [[1, 3], m.at(-1.6), m.at(m.run * 0.5), m.at(m.run + 1.2), [17.6, -9.5], [17.2, -13.0], [16.6, -15.2]];
+    },
+    every: PACE_DRAW,
+    maxFrames: 720,
+  },
+  // up the north path under the log arch into the second clearing: crosses the 45 m line inside
+  // which the clearing's posts, sign, rail and paving are drawn (structures/north.ts, hardscape)
+  'north-clearing': {
+    label: 'plaza → north path → under the log arch → north clearing',
+    points: () => [[0.5, 2], [0.6, -6], [1.5, -12], [2.0, -18], [1.8, -24], [2.5, -30], [3.5, -36], [4.5, -42], [5.2, -50], [5.8, -58], [5.4, -61.5], [3.6, -65.2], [1.0, -68.0], [-1.0, -69.4]],
+    every: 20,
+    maxFrames: 1500,
+  },
+};
+async function pacingScenario(page, results, routeId = 'upper-house') {
+  const route = PACE_ROUTES[routeId];
+  if (!route) throw new Error(`unknown pacing route ${routeId} (have ${Object.keys(PACE_ROUTES).join(', ')})`);
+  const points = route.points();
+  const every = route.every;
   const keysDown = new Set();
   const setKeys = async (want) => {
     for (const k of [...keysDown]) if (!want.has(k)) (await page.keyboard.up(k), keysDown.delete(k));
     for (const k of want) if (!keysDown.has(k)) (await page.keyboard.down(k), keysDown.add(k));
   };
-  log('pacing: plaza → second staircase → upper house');
+  log(`pacing: ${route.label}`);
   await page.evaluate(([x, z, yaw]) => window.__ZR_PLAY__.place(x, z, yaw), [points[0][0], points[0][1], Math.atan2(points[1][0] - points[0][0], points[1][1] - points[0][1])]);
   await sim(page, 30);
   // the spot's first drawn frame (its programs and uploads) is load, not pacing
   await draw(page);
   await draw(page);
   const frames = [];
+  const stuck = [];
   let wp = 1;
   let n = 0;
-  while (wp < points.length && n < 720) {
+  let best = Infinity;
+  let lastProgressAt = 0;
+  while (wp < points.length && n < route.maxFrames) {
     const st = await state(page);
     const [x, , z] = st.link;
     const [tx, tz] = points[wp];
     const dist = Math.hypot(tx - x, tz - z);
     if (dist < 0.5) {
       wp++;
+      best = Infinity;
+      lastProgressAt = n;
+      continue;
+    }
+    if (dist < best - 0.05) {
+      best = dist;
+      lastProgressAt = n;
+    } else if (n - lastProgressAt > 90) {
+      stuck.push({ at: st.link.map((v) => +v.toFixed(2)), toward: points[wp], frame: n });
+      wp++;
+      best = Infinity;
+      lastProgressAt = n;
       continue;
     }
     const d = st.camera.direction;
@@ -710,7 +939,7 @@ async function pacingScenario(page, results) {
     if (b < -0.38) want.add('KeyA');
     await setKeys(want);
     for (let k = 0; k < 3; k++, n++) {
-      const drawNow = n % PACE_DRAW === 0;
+      const drawNow = n % every === 0;
       const f = await page.evaluate(
         ([dt, drawNow]) => {
           const t0 = performance.now();
@@ -742,18 +971,31 @@ async function pacingScenario(page, results) {
   const compiles = [];
   for (let i = 1; i < frames.length; i++) if (frames[i].programs !== null && frames[i - 1].programs !== null && frames[i].programs > frames[i - 1].programs) compiles.push({ n: frames[i].n, programs: frames[i].programs, at: frames[i].link.map((v) => +v.toFixed(1)) });
   const heaps = frames.map((f) => f.heap).filter((v) => v !== null);
-  results.pacing = {
-    route: 'plaza → second staircase → upper house',
-    reached: wp >= points.length,
+  const report = {
+    route: route.label,
+    id: routeId,
+    warmup: !!args.warmup,
+    reached: wp >= points.length && stuck.length === 0,
+    stuck,
     frames: frames.length,
     simulatedSeconds: +(frames.length * DT).toFixed(1),
     jsStepMs: { p50, p95: q(js, 0.95), p99: q(js, 0.99), max: q(js, 1), mean: +(js.reduce((s, v) => s + v, 0) / Math.max(1, js.length)).toFixed(2) },
     hitches: { rule: 'JS step > max(8 ms, 2 × p50)', count: hitches.length, frames: hitches.slice(0, 20) },
-    drawn: { every: PACE_DRAW, count: drawn.length, wallMs: { p50: q(drawn.map((f) => f.wall), 0.5), max: q(drawn.map((f) => f.wall), 1) }, renderIssueMs: { p50: q(drawn.map((f) => f.render), 0.5), max: q(drawn.map((f) => f.render), 1) } },
+    drawn: {
+      every,
+      count: drawn.length,
+      wallMs: { p50: q(drawn.map((f) => f.wall), 0.5), max: q(drawn.map((f) => f.wall), 1) },
+      renderIssueMs: { p50: q(drawn.map((f) => f.render), 0.5), max: q(drawn.map((f) => f.render), 1) },
+      // the drawn frames' render issue in walk order, with the program count after each: a compile
+      // shows as a jump in both
+      series: drawn.map((f) => [f.n, +f.render.toFixed(1), +f.wall.toFixed(0), f.programs]),
+    },
     programs: { start: programs[0] ?? null, end: programs[programs.length - 1] ?? null, compilesDuringWalk: compiles },
     heapMB: heaps.length ? { start: +(heaps[0] / 1048576).toFixed(1), end: +(heaps[heaps.length - 1] / 1048576).toFixed(1), max: +(Math.max(...heaps) / 1048576).toFixed(1) } : null,
     series: frames.map((f) => [f.n, +f.js.toFixed(2), f.wall === null ? null : +f.wall.toFixed(0)]),
   };
+  if (routeId === 'upper-house') results.pacing = report;
+  results.pacingRoutes = { ...(results.pacingRoutes ?? {}), [routeId]: report };
   fs.writeFileSync(path.join(out, 'playtest.json'), JSON.stringify(results, null, 1));
 }
 
@@ -771,7 +1013,10 @@ async function main() {
     if (want('walk')) await walkScenario(page, results);
     if (want('perf')) await perfScenario(page, results);
     if (video && want('video')) await videoScenario(page, results);
-    if (only?.has('pacing')) await pacingScenario(page, results);
+    if (only?.has('pacing')) {
+      const routes = typeof args.routes === 'string' ? args.routes.split(',') : ['upper-house'];
+      for (const r of routes) await pacingScenario(page, results, r);
+    }
     if (only?.has('interact')) await interactScenario(page, results);
     if (only?.has('resilience')) {
       await resilienceScenario(page, results, async () => {

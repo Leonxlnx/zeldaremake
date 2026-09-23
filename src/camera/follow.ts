@@ -69,6 +69,8 @@ const RELEASE_TAU = 0.3;
 /** while Link moves with no look input for RECENTRE_AFTER s, the pitch eases back to rest */
 const RECENTRE_AFTER = 1.5;
 const RECENTRE_TAU = 0.9;
+/** while Link moves, the yaw eases behind his heading with this time constant (s) */
+const HEADING_TAU = 0.625;
 /** look rates: drag (rad/px), pointer lock (rad/px), right stick (rad/s at full deflection) */
 const DRAG_YAW = 0.0032;
 const DRAG_PITCH = 0.0028;
@@ -257,8 +259,10 @@ export function createFollowCam(host: HTMLElement, terrain: Terrain, camera: Per
       if (l > 0 && !dragging && document.pointerLockElement !== host && !stickLook) {
         let d = player.heading() - yawTarget;
         d = Math.atan2(Math.sin(d), Math.cos(d));
-        yawTarget += d * Math.min(1, dt * 1.6);
-        if (sinceLook > RECENTRE_AFTER) pitchTarget += (PITCH_REST - pitchTarget) * (1 - Math.exp(-dt / RECENTRE_TAU));
+        yawTarget += d * (1 - Math.exp(-dt / HEADING_TAU));
+        // only the part of this frame past the threshold recentres, so the swing starts at the same instant at any frame rate
+        const over = Math.min(dt, sinceLook - RECENTRE_AFTER);
+        if (over > 0) pitchTarget += (PITCH_REST - pitchTarget) * (1 - Math.exp(-over / RECENTRE_TAU));
       }
       const bLook = 1 - Math.exp(-dt / LOOK_TAU);
       yaw += (yawTarget - yaw) * bLook;

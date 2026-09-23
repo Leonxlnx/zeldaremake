@@ -132,6 +132,14 @@ export async function openWorld(browser, baseUrl, { width = 1280, height = 720, 
   });
   // ZR_URL_EXTRA="pool=small&foo=bar" appends probe params (never set by the take/CI path)
   const extra = process.env.ZR_URL_EXTRA ? `&${process.env.ZR_URL_EXTRA.replace(/^[?&]/, '')}` : '';
+  // ZR_INIT_GLOBALS='{"__ATMO_FOG__":{"density":0.006}}' sets window globals before any page script
+  // runs — the build-time tuning aids (heightfog `__ATMO_FOG__`, composer `__ATMO_SETTINGS__`) read
+  // them at world creation (never set by the take/CI path)
+  if (process.env.ZR_INIT_GLOBALS) {
+    const globals = JSON.parse(process.env.ZR_INIT_GLOBALS);
+    await page.evaluateOnNewDocument((g) => Object.assign(window, g), globals);
+    log(`world: init globals ${Object.keys(globals).join(', ')}`);
+  }
   const url = `${baseUrl}/?capture=1&dev=0&quality=${encodeURIComponent(quality)}${extra}`;
   const t0 = Date.now();
   await page.goto(url, { waitUntil: 'load', timeout: timeoutMs });

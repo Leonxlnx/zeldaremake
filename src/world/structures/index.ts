@@ -145,6 +145,11 @@ export async function create(ctx: WorldContext): Promise<WorldSystem> {
     northLeaves += pb.leaves;
   }
   lanterns.push(...northLanterns);
+  // the posts' lights stay in the scene whatever the distance (like the dressed huts' below): the
+  // group hides its meshes beyond NORTH_VISIBLE_M, and a light that leaves or joins the scene
+  // changes the light count every lit program is keyed on — the first walk north recompiled
+  // them all at the 45 m line. Out of range their 5 m reach adds exactly nothing to a pixel.
+  for (const l of northLights) group.attach(l);
   lights.push(...northLights);
   leaves += northLeaves;
   const northCentre = ctx.layout.northClearing;
