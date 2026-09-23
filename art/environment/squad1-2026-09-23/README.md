@@ -1,5 +1,11 @@
 # squad lane 1 — atmosphere and clarity (2026-09-23)
 
+> **Round 2 (from `6d145e90`) is at the end of this file.** It answers fable-5's lane-10 review
+> ("the corridor is darker than before the squad — bring the far bands toward l 0.45–0.47, hue
+> kept, less saturated") and takes the upper house's dark (`b-upper-2`), which fable-cursor left
+> with lane 1 on 09-23 17:45.
+
+
 The owner's 06:50 message and marked screenshot: *the trees do not populate* — the middle distance
 is grey haze where his recording shows layered trees — plus "a jagged bright-blue streak (sky
 through a gap)" over the north path. Lane 1's row in `docs/SQUAD_2026-09-23.md`: substantially less
@@ -164,3 +170,60 @@ from him, so `rayIntensity`, `beamFloor` and the screen fan are untouched.
 - `compare/` — before | after | his recording for each pose, and zoomed middle-distance crops.
 - `hero/` — before | after for A–F.
 - `play/` — play-mode walk and look measurements on the final build.
+
+---
+
+# Round 2 (2026-09-23 22:00–) — the corridor's light back, on `6d145e90`
+
+fable-5's lane-10 walk (10:28, quoted in `docs/SQUAD_2026-09-23.md` §Review notes) read round 1 on
+`6664f739`: *"the corridor is populated and warm now… but darker than before the squad… **Lane 1:**
+the hue landed; the brightness went the wrong way — bring the far bands toward l 0.45–0.47, hue
+kept, and less saturated."* Round 1's veil was fitted when that corridor was empty; lanes 2 and 4
+have since filled it with real trunks, crowns, ferns and violets, and two of round 1's terms were
+holding all of that new content down.
+
+Boxes are fractions of the frame at the owner's 06:50 north pose (x0,y0,x1,y1, y down), measured
+with `haze-sample.py --hsl` (mean HSL lightness, mean saturation over pixels with l > 0.06, and the
+share under l 0.12):
+
+| box | region | `6d145e90` | round 2 | his `r_025` |
+| --- | --- | --- | --- | --- |
+| corridor band | 0.20,0.30,0.80,0.62 | l 0.291 s 0.164 | **l 0.316 s 0.152** | l 0.454 s 0.067 |
+| far centre | 0.40,0.28,0.60,0.45 | l 0.463 s 0.077 | **l 0.485 s 0.073** | l 0.515 s 0.055 |
+| mid crowns | 0.25,0.05,0.75,0.30 | l 0.385 s 0.087 | **l 0.430 s 0.080** | l 0.471 s 0.067 |
+| top third | 0.00,0.00,1.00,0.33 | l 0.311 s 0.125 | **l 0.349 s 0.116** | l 0.423 s 0.057 |
+| foreground | 0.00,0.62,1.00,1.00 | l 0.243, 5.0 % near-black | l 0.254, 2.7 % | l 0.218, 22.7 % |
+
+Every band lighter and less saturated, which is the direction asked for. The far centre is past the
+0.45–0.47 fable-5 named and nearer his own 0.515.
+
+## What changed
+
+- `hazeDensity` 0.008 → 0.013 and `hazeNearDensity` 0.008 → 0.011. At 0.008/m a surface at 15 m
+  wore 8 % veil, so nothing lifted or greyed the verge foliage's own dark green; now 11 % at 15 m
+  and 23 % at 25 m, with the foreground to 8 m still under 4 % and crisp. `hazeFarDensity`
+  0.022 → 0.018 so the 55 m optical depth is where it was.
+- `hazeShadeVeil` 0.8 → 1.0 (off) and `farShadeMin` 0.52 → 0.65. Both were added in round 1 to make
+  an *empty* far field silhouette against the new bright wall. Applied to lane 2's and lane 4's
+  real foliage they are what fable-5 measured; his mid-distance foliage is a pale warm silhouette,
+  not a black one.
+- `hazeLitKnee` 0.2 → 0.13: at 0.2 the corridor's upper band reached almost none of the lit air.
+- `hazeClosedFar` display 0.665 → 0.700 and `hazeFarLit` 0.700 → 0.735, both at B/R 0.93 instead of
+  0.91 — the far bands were asked for less chroma.
+- `SKY_ENV_TINT` (1.049, 1.0, 1.0025) → (1.0, 0.98, 0.93) and `environmentIntensity` 0.22 → 0.27.
+  The tint existed to *cancel* the dome's warmth so the IBL stayed on an older calibration; with
+  the dome now the recording's warm glare, cancelling it is what keeps our shade grey. The shaded
+  flagstone it was protecting moved *toward* the reference (display B/R 0.664 → 0.681 against his
+  0.69–0.70), and the north pose's foreground near-black share fell 5.0 → 2.7 %.
+
+## For the other lanes — what is left at that pose is not air
+
+The corridor band is still 0.14 under his and the top third 0.07 under, and the veil cannot close
+either without fogging the 5–10 m field the owner walks through:
+
+- **Lane 2 / fable-4** — the top third is the canopy over the path. His recording keeps bright gaps
+  there (his top third l 0.423 at s 0.057); ours is 0.349 at s 0.116, i.e. still green rather than
+  veiled. The mid-crown band is 0.430 against his 0.471.
+- **Lane 4** — the corridor band at 4–12 m is verge foliage in shade: our p10 is 0.188 against his
+  0.233, and our saturation there is 0.152 against his 0.067. It reads as dark green where his is
+  pale and hazy.
