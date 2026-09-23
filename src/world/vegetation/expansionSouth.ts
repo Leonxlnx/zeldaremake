@@ -158,9 +158,8 @@ export function buildExpansionSouthVegetation(ctx: WorldContext, templates: Sout
   };
   const mossTint = (rng: Rng): [number, number, number] => [0.95 + rng() * 0.1, 1, 0.9 + rng() * 0.1];
   /**
-   * A damp moss patch on the gorge's wall: 2–4 thin pads strung along the strata (across the fall
-   * line `f`), darker than the ground's cushions — one dome flush with a 75° face reads as a disc
-   * stuck on the rock from across the gorge. Returns the pads seated.
+   * A damp moss patch on a ledge of the gorge's wall: 2–4 thin pads strung along the strata
+   * (across the fall line `f`), darker than the ground's cushions. Returns the pads seated.
    */
   const wallMossPatch = (x: number, z: number, rng: Rng, fx: number, fz: number, size: number): number => {
     const pads = 2 + rng.int(0, 3);
@@ -400,8 +399,9 @@ export function buildExpansionSouthVegetation(ctx: WorldContext, templates: Sout
           plant(ferns, x, z, rng, 0.4 + scaleR * 0.45, 0.4 + 0.4 * (1 - ledge), 0.05, c);
           wallFerns++;
         } else if (kind < 0.46) {
-          // mostly on the ledges and the wall's easier pitches; the sheer face stays rock
-          if (slope > 0.9 && rng() > 0.3) continue;
+          // on the strata's gentler ledges only: the face's moss is the terrain splat's
+          // (terrain/south.ts `ravineWallMoss`)
+          if (slope > 0.55) continue;
           wallMoss += wallMossPatch(x, z, rng, rp.fx, rp.fz, 0.1 + scaleR * 0.14);
         } else if (kind < 0.7 && g < 0.5) {
           if (slope > 0.85) continue;

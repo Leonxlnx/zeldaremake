@@ -161,6 +161,28 @@ export function ravineCut(x: number, z: number): number {
   return ravineProfile(x, z)?.cut ?? 0;
 }
 
+const mossNoise = new Noise2D('south-ravine/moss');
+/**
+ * The moss share of the ravine's walls (0 … 1; the terrain splat paints it over the rock): a
+ * drape just under the lip, tongues hanging from it down the fall line — ≈ 1 m wide, each
+ * reaching its own depth (a fifth to three quarters of the wall; further on the north-facing
+ * far wall, which the sun barely reaches) — and cushions on the strata's gentler ledges
+ * (`slope` as the splat reads it, 1 − n.y). Instanced pads on a 75° face read as discs stuck on
+ * the rock from across the gorge; the splat's moss takes the face's cushion relief instead.
+ */
+export function ravineWallMoss(x: number, z: number, slope: number): number {
+  const p = ravineProfile(x, z);
+  if (!p || p.cut <= 0.01 || p.g >= 0.96) return 0;
+  const h = p.hit;
+  const u = h.s + (h.side > 0 ? 57.3 : 0);
+  const reach = 0.2 + 0.55 * (mossNoise.noise(u * 0.23 + 9.1, 3.3) * 0.5 + 0.5) + (h.side > 0 ? 0.1 : 0);
+  const streak = mossNoise.fbm(u * 0.85, p.g * 1.4, 2) * 0.5 + 0.5;
+  const tongue = smoothstep(0.46, 0.6, streak) * (1 - smoothstep(reach * 0.55, reach, p.g));
+  const drape = 1 - smoothstep(0.04, 0.14 + 0.08 * streak, p.g);
+  const ledge = (1 - smoothstep(0.42, 0.62, slope)) * smoothstep(0.35, 0.6, mossNoise.noise(x * 0.9 + 3.7, z * 0.9 - 1.9) * 0.5 + 0.5) * smoothstep(0.1, 0.25, p.g);
+  return clamp(Math.max(tongue * 0.92, drape * 0.85, ledge * 0.8), 0, 1);
+}
+
 /**
  * True on the far (south) side of the ravine: south of its centreline between its ends, and
  * beyond the ends south of a 45° line from each end node (so the far bank cannot be reached by
