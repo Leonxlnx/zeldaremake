@@ -4,10 +4,12 @@ runtime: Codex Astra + Blender MCP + Astra Max subagents
 github: Leonxlnx
 status: active
 branch: agent/astra-motion-sept21
-updated: 2026-09-23T18:12:00+00:00
+updated: 2026-09-23T18:43:00+00:00
 ---
 
 # Astra motion continuation
+
+18:43: full CI35901316206 passed for pushedb221732b (world import plus cinematic preparation). Hidden preview61020 serves acceptedDwReWLkW; HTTP200 checked. Native7f side102/112 andthreequarter42/112 show plausible rear arm carriage but stiff open fingers; pack-repair now inspects rigid hand-owned topology and the existing CC0 donor for a modest relaxed-finger study. No finger bones or asset edits yet. Separate stair-motion-resume lane reuses actual player traces to isolate excessive under-body foot lift; previous rejected cadence/CLEAR candidates stay held. Compact native character review records the failed pack study and accepted raw poses. Partner reviewer corrected the close foliage wall attribution to fable4 understory;5800482401 forwards the corrected ownership and measured remaining obstruction. Current crown source-only integration1d5f1280 is isolated and unadopted pending combined pool/native checks.
 
 September23 integration: accepted partner world candidate4b2fe8e6 as86d2a682, with native proof75a75d1c as7d4da762. Root typecheck/build pass; bundleindex-DwReWLkW.js matches the reviewed candidate. All six fixed views pass9M/700 and show warmer varied timber, earth treads, local stone and lantern detail; source/geometry protections remain. The extra close stair view exposes preexisting angular join recesses, confirmed by a matched baseline and byte-identical14,085 slab triangles. Lane6 received paired evidence in5800165655 for root-cause follow-up. New native world CI pending. The import also keeps north/distant lantern lights resident to avoid distance-triggered shader recompilation; the crown lane reproduced a70.7s old-baseline stall with15→17 visible lights and33 new programs. No real-time FPS claim.
 

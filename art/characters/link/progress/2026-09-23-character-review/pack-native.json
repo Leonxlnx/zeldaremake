@@ -1,0 +1,72 @@
+{
+  "scene": "Link | September23 left pack chest study",
+  "sourceScene": "Link | September22 chest posture both straps",
+  "sourceSha256": "7f406e40e65430ed3c11bd045e2e9482dae8cee8122e9869ed62a2c3cfecbbda",
+  "candidateSha256": "d7426b4dd8c0b2ee7cecf02b0c5248d16986ec39c35b5b4bbf3d08a9e26cd6e0",
+  "selectedRows": 484,
+  "uniquePoints": 154,
+  "originalArmFaces": 9733,
+  "originalOpposingFaces": 56809,
+  "additionalOpposingFaces": 180,
+  "maskSource": "Original7f GLB; identical explicit face indices for both native scenes.",
+  "nativeRestGeometryMaxErrorM": 2.525452847976367e-06,
+  "selectedNativeWeightsExactToPortable": true,
+  "outsideNativeWeightsGeometryAndAllActionsExact": true,
+  "sourceSceneAndProductionAssetUnchanged": true,
+  "float32WeightSumMaxChange": 2.9802322387695312e-08,
+  "float32WeightSumMaxError": 1.4156103134155273e-07,
+  "contacts": {
+    "original": {
+      "original_gates": {
+        "contacts_total": true,
+        "contacts_below_armpit": true
+      },
+      "variants": [
+        {
+          "variant": "before",
+          "scene": "Link | September22 chest posture both straps",
+          "contacts_total": 1269,
+          "contacts_peak": 24,
+          "contacts_below_armpit": 21
+        },
+        {
+          "variant": "after",
+          "scene": "Link | September23 left pack chest study",
+          "contacts_total": 1269,
+          "contacts_peak": 24,
+          "contacts_below_armpit": 21
+        }
+      ]
+    },
+    "added": {
+      "original_gates": {
+        "contacts_total": false,
+        "contacts_below_armpit": false
+      },
+      "variants": [
+        {
+          "variant": "before",
+          "scene": "Link | September22 chest posture both straps",
+          "contacts_total": 705,
+          "contacts_peak": 27,
+          "contacts_below_armpit": 705
+        },
+        {
+          "variant": "after",
+          "scene": "Link | September23 left pack chest study",
+          "contacts_total": 1641,
+          "contacts_peak": 63,
+          "contacts_below_armpit": 1422
+        }
+      ]
+    }
+  },
+  "accepted": false,
+  "failedContactComparisons": {
+    "added": [
+      "contacts_total",
+      "contacts_below_armpit"
+    ]
+  },
+  "status": "HOLD: contact regression in added. Weight-only study rejected; production unchanged."
+}
