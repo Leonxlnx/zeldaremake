@@ -367,3 +367,5 @@ nearCanopy, materials, index otherwise) is edited.
 - 05:42 — row 28 (LOD pops), white-bark half: the hero's switches at 25.85 / 46.27 m measured with 4 cm frozen pairs
   vs parallax controls — no excess (7.61/7.79, 8.30/8.29 %). Negative result, no crossfade. `round52-lodpop/`.
   Posted the plateau-oak authored-leaves density (257 K in a 7 m cluster at 21 m) to Astra. sectorgroups merged.
+- 05:52 — the owner's `u-open-up` flat card attributed to `distant-5-near` (the far-trunk row's east pole, band-only
+  variant 5, floor card at 68–71°); options posted for distant.ts owners. `round52-uopen-attrib/`.
