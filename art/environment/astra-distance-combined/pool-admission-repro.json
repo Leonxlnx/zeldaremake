@@ -1,0 +1,176 @@
+{
+  "sourceSha256": "c4cbefefd1e66ccef437ae9be2d7dc793ae97dae11052468ebce72fc9c067505",
+  "observed": [
+    {
+      "change": "resident gets nearer priority",
+      "report": {
+        "capBytes": 100,
+        "poolBytes": 120,
+        "items": 2,
+        "resident": 2,
+        "pinned": 0,
+        "wanted": 2,
+        "pinnedBytes": 0,
+        "wantedBytes": 120,
+        "pending": 0,
+        "building": 0,
+        "built": 1,
+        "evicted": 0,
+        "syncBuilds": 0,
+        "hits": 0,
+        "buildMsP50": 1,
+        "buildMsP95": 1,
+        "buildMsMax": 1,
+        "stepMsMax": 1,
+        "workMsMax": 1,
+        "workMsTotal": 1,
+        "steps": 2,
+        "stepMsP50": 1,
+        "stepMsP95": 1,
+        "longSteps": 0,
+        "workOverBudget": 0,
+        "workMsP95": 1
+      },
+      "log": [
+        "start paused-build",
+        "install paused-build"
+      ]
+    },
+    {
+      "change": "resident becomes pinned",
+      "report": {
+        "capBytes": 100,
+        "poolBytes": 120,
+        "items": 2,
+        "resident": 2,
+        "pinned": 1,
+        "wanted": 2,
+        "pinnedBytes": 60,
+        "wantedBytes": 120,
+        "pending": 0,
+        "building": 0,
+        "built": 1,
+        "evicted": 0,
+        "syncBuilds": 0,
+        "hits": 1,
+        "buildMsP50": 1,
+        "buildMsP95": 1,
+        "buildMsMax": 1,
+        "stepMsMax": 1,
+        "workMsMax": 1,
+        "workMsTotal": 1,
+        "steps": 2,
+        "stepMsP50": 1,
+        "stepMsP95": 1,
+        "longSteps": 0,
+        "workOverBudget": 0,
+        "workMsP95": 1
+      },
+      "log": [
+        "start paused-build",
+        "install paused-build"
+      ]
+    }
+  ],
+  "schedulerConcept": "In-memory only; cap holds, blocked generator pauses, fitting pending work progresses, paused work resumes once priorities allow.",
+  "pinOrdering": {
+    "greedyPins": {
+      "syncBuilds": 2,
+      "log": [
+        "start cold-selected",
+        "uninstall selected-resident",
+        "install cold-selected",
+        "start selected-resident",
+        "uninstall cache",
+        "install selected-resident"
+      ]
+    },
+    "protectedPins": {
+      "syncBuilds": 1,
+      "log": [
+        "start cold-selected",
+        "uninstall cache",
+        "install cold-selected"
+      ]
+    }
+  },
+  "traceEvents": [
+    {
+      "pass": "first",
+      "rows": [
+        {
+          "k": 204,
+          "phase": "retreat",
+          "bytes": 71149313,
+          "pinnedBytes": 47428131,
+          "overflow": 4040449,
+          "builds": 1,
+          "syncBuilds": 0,
+          "evictions": 8,
+          "building": 0,
+          "variants": [
+            "distant-0-close-crown",
+            "distant-1-close-crown",
+            "distant-5-close-crown"
+          ]
+        },
+        {
+          "k": 228,
+          "phase": "retreat",
+          "bytes": 66747497,
+          "pinnedBytes": 54415001,
+          "overflow": -361367,
+          "builds": 3,
+          "syncBuilds": 2,
+          "evictions": 22,
+          "building": 1,
+          "variants": [
+            "distant-0-close-crown",
+            "distant-1-close-crown",
+            "distant-2-close-crown",
+            "distant-5-close-crown"
+          ]
+        }
+      ]
+    },
+    {
+      "pass": "warm",
+      "rows": [
+        {
+          "k": 201,
+          "phase": "retreat",
+          "bytes": 72079235,
+          "pinnedBytes": 46958865,
+          "overflow": 4970371,
+          "builds": 1,
+          "syncBuilds": 0,
+          "evictions": 5,
+          "building": 0,
+          "variants": [
+            "distant-0-close-crown",
+            "distant-1-close-crown",
+            "distant-5-close-crown"
+          ]
+        },
+        {
+          "k": 228,
+          "phase": "retreat",
+          "bytes": 67105079,
+          "pinnedBytes": 54415001,
+          "overflow": -3785,
+          "builds": 2,
+          "syncBuilds": 2,
+          "evictions": 21,
+          "building": 1,
+          "variants": [
+            "distant-0-close-crown",
+            "distant-1-close-crown",
+            "distant-2-close-crown",
+            "distant-5-close-crown"
+          ]
+        }
+      ]
+    }
+  ],
+  "limits": "Trace has aggregate pool counters, not item-level build/eviction identities. Matching failure shape establishes the generic defect, not which exact asset overflowed. Scheduler check uses known byte counts; underestimated results still require a final admission guard."
+}
