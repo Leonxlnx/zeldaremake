@@ -16,6 +16,31 @@ B 526 / C 393 / D 394 / E 526 / F 512; A 9.09 M tris on both (the head's number,
 change's — flagged to fable-cursor). Files: `ledge2-x-clearing-n.jpg` (+ `-crop`),
 `ledge2-x-ledge-foot.jpg`, `ledge2-x-northpath-n.jpg`.
 
+## Iteration 80 — the rocks from the play camera's new look-down (six poses): nothing floats, no LOD seam; the one read I chased — the D boulder's face as a "diamond weave" from above — was the beds crossing the fine network, not a lattice: `crackWarp` built, measured, NOT landed (`743f1454`, reverted by `a1782588`)
+
+The owner's camera now looks down 35° (nearest surface ≈ 3 m), so a walker sees the rocks from above at 3–5 m — a
+range no fixed frame and no survey pose covers. Six poses on `59c0f961` at eye 3.3 m over the ground, 35° down, 4.4 m to
+the aim point (`lookdown80-sheet.jpg`): the plaza fringe pebbles, the stair-foot skirt and boulder, the D boulder, the
+south-bank pair from the flight, the ledge from the terrace, the north path's pebble tiles to 13 m. Pebbles and shards sit
+on the ground, the tile LOD shows no seam at 10 m, the skirt and the pale pair read as stone; the blocky kerbs are the
+flights' cheeks (hardscape). One read: from above at 4.4 m the D boulder's lit face looked like a woven basket — regular
+diagonal lines crossing.
+
+Hypothesis: gradient noise is zero at every lattice node, so the `ridged` zero contours the cracks are drawn on run node
+to node and form a lattice. Built as `crackWarp` (rockgen option, default 0, far build byte-identical — asserted; the
+sample point of each network bent by three low-frequency noises, ≈ 0.3 of the network's cell rms), on for the hero near
+kits, the skirt shards and the dressing rocks. It works as a warp: on the D near kit 85 % of the line vertices move to
+other vertices at the same density (crack share 11.8 → 12.1 %), vertices move ≤ 2 cm (the furrows); 4–10 % of the pixels
+change at the seven poses (`warp80-shotd-triple.jpg`, before | after at 2 m, 2.4 m down and the 4.4 m look-down).
+
+Measured, the lattice is not there to remove. The crack field on a flat 60 cm slice of the D noise (`warp80-crackplane-pair.jpg`)
+is already irregular before the warp — the 3D noise is three sheared planar noises summed, and their nodes do not line up.
+On the renders the 2D spectrum's ring (the line spacing) keeps its angular concentration through the warp — 71 → 72 % of
+the ring's power in three 15° bins at `x-shotd-down`, 64 → 65 % at the look-down, the spectral peak the beds' spacing — so
+the regular diagonals are the **bedding bands** (by design: the frame's D rock is bedded) crossing the fine network at a
+glancing angle. The warp changes the cracks' course (curvier) with no measured defect behind it — a look change nobody
+asked for, the day before the deadline: reverted on top; the implementation and its test stay in the branch's history.
+
 ## Iteration 79 — fable-cursor's all-lanes ask (03:25): the rocks lane re-verified on the head `59c0f961` (owner review 2026-09-23) against `47773f13`, the build the owner played — rocks pixel-identical everywhere they show; the six views within −0.0007
 
 `src/world/rocks/**` has no commit between the two builds; what changed under the rocks is shared: the play camera (never

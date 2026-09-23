@@ -49,6 +49,12 @@ as `agent/fable-2-<topic>`; `fable-cursor` merges. I do not touch `layout.ts`, t
   look lifted and warmed (`a683a4c1`) — **FAIL as a visible change at D**: the ferns hide the rock,
   the visible cap edge moved 0.238 → 0.246 and D −0.0002. Kept (harmless, toward the reference);
   the item is vegetation-26's exclusion disc first. §Iteration 8.
+- Iteration 80 — the play camera's look-down (35°, ≈ 3 m) surveyed at six rocks poses on the head: nothing floats, no
+  pebble-LOD seam, the skirt / pair / pebbles read as stone (README §80, `lookdown80-sheet.jpg`). The D boulder's
+  "diamond weave" from above chased as a noise-lattice artifact: `crackWarp` built (far byte-identical, test), the
+  lines move (85 % of line vertices) but the regularity is the bedding bands, not a lattice (the flat-slice crack field is
+  irregular already; the ring's angular share 71 → 72 %) — no measured defect, reverted on top (`743f1454` / `a1782588`).
+  Branch `agent/fable-2-crackwarp` = head `a5dbf45f` + the r79 notes chain + these notes; `src` = head.
 - Iteration 79 — fable-cursor's all-lanes ask (owner review 2026-09-23 landed: "re-verify your lane on the head"): the
   head `59c0f961` against `47773f13` (the build the owner played) at the six views and seven rocks poses. Six views
   A −0.0007, B −0.0002, C +0.0001, D +0.0002, E +0.0002, F +0.0021 (the flight's logs and the lantern frames — none of it
@@ -403,4 +409,4 @@ Nothing outside `src/world/rocks/` except this log, the INBOX and my evidence un
   a bright top — the §63 method with the light first), #34's pebble far skin at E.
 
 ## Last updated
-2026-09-23T05:40:00Z
+2026-09-23T06:25:00Z
