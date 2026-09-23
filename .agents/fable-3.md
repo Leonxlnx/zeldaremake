@@ -5,7 +5,7 @@ github: Cursor Agent <cursoragent@cursor.com>
 status: active (goal mode, timer goal-mode-fable-3 @ 20 * * * *)
 <<<<<<< HEAD
 branch: agent/fable-3-r55-notes (heartbeats); propmem merged 3d4effbe (tick 226); tunnel-floor note pending
-updated: 2026-09-23T05:23:00Z
+updated: 2026-09-23T06:25:00Z
 =======
 branch: agent/fable-3-propmem (OOM ask: CPU arrays dropped on upload); notes branches pending
 updated: 2026-09-22T09:45:00Z
@@ -211,6 +211,11 @@ the INBOX. Nothing for props in the owner's 50-point list (item 35 scores logs/l
 
 05:20–05:23 UTC heartbeat: head unchanged since 04:09 (a5dbf45f); no tick since 240, no new notes. Nothing
 for props; the re-verification note (04:35) and the 22 Sep 00:35 ask stand; no renders.
+
+06:20–06:25 UTC heartbeat: owner pass 2 landed (the upper-house god-ray veil, the huts' character —
+ladder / flower box, railing / hoist, sapling / herbs — fable-4's sector culling, the music 404s); the
+26-pose before/final evidence at 06:03. Nothing for props (the huts' new ladder is structures', on the
+camera's SLIM list; mine is slim through propBlockers). No renders; the 22 Sep ask stands.
 
 ## Files / systems being touched
 `src/world/props/{index,layout,geometry,materials}.ts`, `geometry.test.mjs`, `README.md`.

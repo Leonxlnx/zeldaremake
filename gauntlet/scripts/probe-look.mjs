@@ -12,7 +12,8 @@
  * sun (`sun: { dir: [x, y, z], intensity }` — the shadow-casting directional light, same distance
  * from its target), or blits one composer buffer (`atmoDebug`: 'rays' | 'ao' | 'mist' | 'bloom');
  * each variant starts from the loaded values. Frames are <variant>-<shot>.png. `--audit <file>`
- * also writes the loaded world's `__ZR__.audit()`.
+ * also writes the loaded world's `__ZR__.audit()`; `--pick "x,y;x,y"` (frame fractions, y down)
+ * names the meshes under those pixels on the first variant's frames (pick-<shot>.json).
  * The character is hidden.
  */
 import fs from 'node:fs';
@@ -30,6 +31,95 @@ const shots = JSON.parse(fs.readFileSync(path.resolve(args.shots), 'utf8'));
 const only = typeof args.only === 'string' ? new Set(args.only.split(',')) : null;
 const variants = JSON.parse(typeof args.variants === 'string' && args.variants.trim().startsWith('[') ? args.variants : fs.readFileSync(path.resolve(args.variants), 'utf8'));
 fs.mkdirSync(out, { recursive: true });
+/** --pick "x,y;x,y" (or x,y/x,y — no shell quoting needed): frame fractions (0..1, y down) identified on the first variant's frame */
+const picks = typeof args.pick === 'string' ? args.pick.split(/[;/]/).map((s) => s.split(',').map(Number)) : [];
+
+/**
+ * In the page: the world point under each pick (the frame's own depth, Euclidean metres, along the
+ * pixel's ray from the camera pose) and the visible meshes — instances for an InstancedMesh —
+ * whose world bounds hold it (0.3 m slack), smallest box first.
+ */
+function pickScript(picks) {
+  const pose = window.__ZR__.cameraPose();
+  const canvas = document.querySelector('canvas');
+  const W = 320;
+  const H = Math.round((W * canvas.height) / canvas.width);
+  const depth = window.__ZR__.depthImage(null, W, H);
+  const d = pose.direction;
+  const len = Math.hypot(d[0], d[1], d[2]);
+  const f = [d[0] / len, d[1] / len, d[2] / len];
+  // right = forward × world up (setPose looks at its target with +Y up), up = right × forward
+  let r = [-f[2], 0, f[0]];
+  const rl = Math.hypot(r[0], r[2]) || 1;
+  r = [r[0] / rl, 0, r[2] / rl];
+  const u = [r[1] * f[2] - r[2] * f[1], r[2] * f[0] - r[0] * f[2], r[0] * f[1] - r[1] * f[0]];
+  const t = Math.tan(((pose.fov * Math.PI) / 180) / 2);
+  const aspect = canvas.width / canvas.height;
+  const results = [];
+  for (const [px, py] of picks) {
+    const x = Math.min(W - 1, Math.floor(px * W));
+    const y = Math.min(H - 1, Math.floor(py * H));
+    const dist = depth.data[y * W + x];
+    const nx = (2 * px - 1) * t * aspect;
+    const ny = (1 - 2 * py) * t;
+    const ray = [f[0] + r[0] * nx + u[0] * ny, f[1] + r[1] * nx + u[1] * ny, f[2] + r[2] * nx + u[2] * ny];
+    const rlen = Math.hypot(ray[0], ray[1], ray[2]);
+    if (!Number.isFinite(dist)) {
+      results.push({ pick: [px, py], sky: true });
+      continue;
+    }
+    const P = pose.position.map((c, i) => c + (ray[i] / rlen) * dist);
+    const hits = [];
+    window.__H.scene.traverse((o) => {
+      if (!o.isMesh || !o.geometry) return;
+      let vis = true;
+      for (let q = o; q; q = q.parent) if (!q.visible) vis = false;
+      if (!vis) return;
+      const g = o.geometry;
+      // merged meshes release their CPU arrays after upload (bounds computed first); skip any without
+      if (!g.boundingBox) {
+        try {
+          g.computeBoundingBox();
+        } catch {
+          return;
+        }
+      }
+      const bb = g.boundingBox;
+      if (!bb) return;
+      const test = (m) => {
+        // the box's eight corners through m, their world AABB
+        let lo = [Infinity, Infinity, Infinity];
+        let hi = [-Infinity, -Infinity, -Infinity];
+        const e = m.elements;
+        for (const cx of [bb.min.x, bb.max.x]) for (const cy of [bb.min.y, bb.max.y]) for (const cz of [bb.min.z, bb.max.z]) {
+          const w = [e[0] * cx + e[4] * cy + e[8] * cz + e[12], e[1] * cx + e[5] * cy + e[9] * cz + e[13], e[2] * cx + e[6] * cy + e[10] * cz + e[14]];
+          for (let k = 0; k < 3; k++) {
+            lo[k] = Math.min(lo[k], w[k]);
+            hi[k] = Math.max(hi[k], w[k]);
+          }
+        }
+        const inside = P.every((c, k) => c >= lo[k] - 0.3 && c <= hi[k] + 0.3);
+        return inside ? (hi[0] - lo[0]) * (hi[1] - lo[1]) * (hi[2] - lo[2]) : null;
+      };
+      const mats = (Array.isArray(o.material) ? o.material : [o.material]).map((m) => m?.name || m?.type);
+      if (o.isInstancedMesh) {
+        const im = o.instanceMatrix.array;
+        const M = o.matrixWorld.clone();
+        for (let i = 0; i < o.count; i++) {
+          const Mi = M.clone().multiply(M.clone().fromArray(im, i * 16));
+          const vol = test(Mi);
+          if (vol !== null) hits.push({ name: o.name, instance: i, materials: mats, volume: +vol.toFixed(1) });
+        }
+      } else {
+        const vol = test(o.matrixWorld);
+        if (vol !== null) hits.push({ name: o.name, materials: mats, volume: +vol.toFixed(1) });
+      }
+    });
+    hits.sort((a, b) => a.volume - b.volume);
+    results.push({ pick: [px, py], distance: +dist.toFixed(2), world: P.map((v) => +v.toFixed(2)), hits: hits.slice(0, 12) });
+  }
+  return results;
+}
 
 async function grabHooks(page) {
   const client = await page.createCDPSession();
@@ -128,6 +218,11 @@ async function main() {
         const file = path.join(out, `${v.name}-${shot.name}.png`);
         await canvas.screenshot({ path: file, type: 'png' });
         console.error(`probe: ${v.name} (${applied} material(s)) · ${shot.name} → ${file}`);
+        if (picks.length && v === variants[0]) {
+          const found = await page.evaluate(pickScript, picks);
+          fs.writeFileSync(path.join(out, `pick-${shot.name}.json`), JSON.stringify(found, null, 1));
+          console.error(`probe: picks at ${shot.name} → pick-${shot.name}.json`);
+        }
       }
     }
   } finally {
