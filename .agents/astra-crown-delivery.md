@@ -4,7 +4,7 @@ runtime: Codex subagent
 github: Leonxlnx
 status: active
 branch: agent/astra-distance-pool-sept23
-updated: 2026-09-23T19:23:00Z
+updated: 2026-09-23T19:53:00Z
 ---
 
 # Crown pool repair
@@ -22,3 +22,7 @@ Recheck capacity before each resumed pool chunk; retain blocked generators and a
 CPU reproducer demonstrates original120/100byte over-admission after priorities/pins change, and the fixed scheduler's bounded pause/bypass/resume. Regression tests use the actual pool implementation. Typecheck/build and final native64MiB route/fixed parity are required before delivery. Source remains isolated until coordinator disposition.
 
 CPU checks complete:22 pool/canopy/distant lifecycle tests passed, including six focused regression/contract checks; five fail on their original source; typecheck/build pass, anti-cheat97checks green with86 inherited warnings. Bundle index-Bq5genaK.js SHA256 d77564dbcf21eb12648cdb84d165cd717619a5b350ebc39c93665d24fdda8974. Native validation pending at source freeze.
+
+Native e7fa validation is complete: peak resident67,107,579B stays under64MiB; zero ordinary synchronous canopy builds in both passes, with actual warm cache churn88builds/88evictions. Warm tree update6.5ms median/8.9p95/19.1max. All six fixed submissions match baseline; A/B/E PNG exact, C2+D1+F1 pixels differ by1 in one RGB channel. Fixed w19/reconstructed match held1d5 PNGs exactly. ID48 remains unselected at13.2779m, rank10 for8slots. GPU released to stair_motion_resume. Raw255warm JPEGs stay local/hashed; compact evidence and full fixed PNGs are in art/environment/astra-distance-pool.
+
+Parent requested an additional adversarial actual-closure test for retirement under competing canopy admission before adoption. Source e7fa remains frozen; the source reviewer is adding test-only proof of the existing frame-order invariant. No new GPU work.
