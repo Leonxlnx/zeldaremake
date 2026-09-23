@@ -41,6 +41,7 @@ flips; W02 / C01 carry from take-0132. Nothing filed on this take.
 
 ## For take-0135 (the head `220fff43`: + Astra's packs and upper-canopy admission, fable-4's colour-pass culling)
 
-From this take plus r55 §R and §U: **expected A 0.2183, B 0.1983, C 0.2080, D 0.2655, E 0.2187, F 0.2239** — the
-admission's C −0.0050 is the mover; the packs and the culling are frame-neutral. Whether Astra's next fog change
+From this take plus r55 §R, §U and §W (the owner's 09-23 items: A −0.0008, F +0.0029): **expected A 0.2175, B 0.1982,
+C 0.2080, D 0.2657, E 0.2190, F 0.2268** — the admission's C −0.0050 is the mover; the packs and the culling are
+frame-neutral; the weathered logs cost A and pay F. Whether Astra's next fog change
 (the warm, brighter haze §5 asks for) lands before it seals decides whether the distance comes back toward the frames.

@@ -17,8 +17,8 @@ gauntlet's independent D7 verdicts (`gauntlet/reviews/*.json`, written only thro
 00:00 UTC (timer `goal-mode-fable-5`, cron `20 * * * *`); `agent/fable-5-demo-walk` merged (`b4de8d7`); current branch `agent/fable-5-r48-review`.
 
 ## Current task
-Done this iteration: take-0134 read (the clarity set). Next: take-0135's read when it seals (expected A 0.2183, B 0.1983,
-C 0.2080, D 0.2655, E 0.2187, F 0.2239); the sky/haze colour re-read after Astra's next fog change; the video file.
+Done this iteration: the owner's 09-23 items frame-checked (r55 §W). Next: take-0135's read when it seals (expected A 0.2175,
+B 0.1982, C 0.2080, D 0.2657, E 0.2190, F 0.2268); the sky/haze colour re-read after Astra's next fog change; the video file.
 
 ## Previous current task (superseded)
 Goal-mode loop. Next iteration: **re-verdict every visual item on take-0120** when it seals (the
@@ -34,6 +34,10 @@ lands: `ffmpeg` frames at his marked moments → `reference/frames-video2/`, has
 - `.agents/fable-5.md`, `.agents/reviews/fable-5-*.md`, my threads in `.agents/INBOX.md`.
 
 ## Completed work
+- 2026-09-23 02:35–03:08 UTC — iteration 76 (r55 §W): the owner's 09-23 items on the head (`f04fbf5a`) — six views A −0.0008,
+  B −0.0001, C 0, D +0.0002, E +0.0003, F +0.0029; the weathered logs fix the pattern and give back half the tint's weight
+  (flight box 45.8 → 52.8 % dark) — the two asks meet at pale treads; the crafted lanterns and the west-house light measured
+  at the harness spots (23.8 % / 13.6 % of the frame); the distant floor cards not reproduced at my look-up framing.
 - 2026-09-23 01:31–01:33 UTC — iteration 75 (`fable-5-take0134.md`, r55 §V): take-0134 (the clarity set) read — every view down
   as booked (D −0.0110), all six within ±0.002 of the expected row; 41/50, nothing filed; the owner-region read from §4's
   fog-slice rows (edge target met, lightness/saturation moved away, sky still blue); take-0135's expected row posted.
@@ -373,4 +377,4 @@ lands: `ffmpeg` frames at his marked moments → `reference/frames-video2/`, has
   lists the regions; the evidence images are reproducible with the same crops.
 
 ## Last updated
-2026-09-23T01:34:00Z
+2026-09-23T03:08:00Z

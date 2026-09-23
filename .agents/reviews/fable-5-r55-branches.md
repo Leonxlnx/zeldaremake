@@ -607,3 +607,40 @@ roof's gains, the atlas and stand LOD neutral; the capture pays a little less at
 the take meets the edge target on the sky-facing cards and moves lightness / saturation away from the frames; the sky is still
 blue; the hazed cards unchanged. W10 stands as a fail. Expected take-0135 posted.
 
+## W. Iteration 76 (02:35–03:08 UTC) — the owner's 2026-09-23 items on the head (`220fff43` → `f04fbf5a`: weathered log flight, crafted lanterns + huts' trim, the west house's doorway light, distant crowns' floor cards, play-camera changes) at the six views and three owner poses
+
+Six views (no characters, the same shot list; before = §U's frames):
+
+| view | Δ SSIM vs reference | pixels > 6 | what moved |
+| --- | --- | --- | --- |
+| A | **−0.0008** | 4.00 % | the hero flight (x 0.59–0.80 × y 0.22–0.60), **darker by 27 levels**: the weathered logs |
+| B | −0.0001 | 0.20 % | the top band — the distant crowns' floor cards entering the far layer, darker |
+| C | 0 | 0.67 % | the lantern at C's left (x 0.01–0.20 × y 0.33–0.62), darker by 23 — the crafted lantern replaces the glowing husk |
+| D | +0.0002 | 0.06 % | |
+| E | +0.0003 | 0.21 % | the top band, as B |
+| F | **+0.0029** | 4.35 % | the flight at F (x 0.23–0.44 × y 0.20–0.60), darker by 28 — the same logs, and F's frame likes them |
+
+**The flight, two asks at once.** The owner (09-23): the second staircase "has an obvious repeated pattern" — the
+twenty near-white log nosings striped against shaded treads. The fix varies each log's bark phase, roll, tint and
+moss and breaks the stake pairs; the stripes are gone and the flight reads as weathered timber (sheet
+`fable-5-r55/fable-5-r55-owner0923-A-flight.jpg`). The frames' ask (r53 §B, r54 §A): the flight box at A dark 15.9 % /
+pale 13.9 % / l 0.344 — pale packed treads between *thin* dark nosings. The tint had taken us to 45.8 / 12.6 / 0.289;
+the weathered logs give back half of it: **52.8 % dark / 7.4 % pale / l 0.262**. Both asks are right and they meet at
+the *treads*, not the logs: with pale treads (albedo + the light on that slope — fable-4's flight-shade: 0.376
+shadowless vs the frame's 0.65) the logs can be dark and varied as the owner wants and the flight pale as the frame
+wants. As it stands the owner's pattern is fixed and the frames' weight has regressed to between take-0131 (61 %) and
+take-0134 (46 %). Expected take-0135 at A moves by −0.0008 on this; F by +0.0029.
+
+**The lanterns and the west house.** `west-house` (the harness spot, (−16.3, 4.35, 6.5) → the door): 23.8 % of the
+frame changes — the huge flat glowing husks in front of the door become ribbed lanterns with a visible flame and a
+warm 5 m pool on the platform; the frame mean 0.215 → 0.189 as the husks' glow area goes (sheet
+`fable-5-r55-owner0923-west-house.jpg`). `saria-side`: 13.6 %, the pods crafted, the frame mean unchanged. Both are the
+owner's words made visible; nothing at the six views beyond C's 0.67 %.
+
+**The distant crowns' floor cards.** At my `u-open-up` framing ((1.5, 5.1, −40) looking 70° up) the view meets the
+near canopy, not the distant ring, and 2.4 % of pixels move by ±1 level — the owner's streaks are not reproduced at
+my pose, and I do not claim the fix either way; at the six views the cards enter B/E's top bands at 0.2 %, darker.
+The owner's exact look-up bearing is the missing input, as it was for the clarity circle.
+
+Play-camera changes (pitch orbit, collision, near-card dither) are play-only by construction — not in these frames.
+
