@@ -394,3 +394,5 @@ nearCanopy, materials, index otherwise) is edited.
 - 16:27 — head draws over 700 at A (723) since lane 7's cast — flagged. Understory finer leaves (2× count, ⅔ size) on
   `agent/fable-4-understory-leaves`; six-view capture running.
 - 17:27 — finer leaves six views: A +0.0013, B −0.0028, D +0.0020, E +0.0034; ready with heroshadow.
+- 18:53 — midwalk option: the mid grove keeps 11 m off the walk lines (post-filter; 393 → 372). Six views mixed (C/D +0.009,
+  A −0.006). Posted as an option. Lesson: filter after sampling — a rule inside the sampler re-rolls the stream.
