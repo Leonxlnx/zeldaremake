@@ -229,6 +229,14 @@ structures' hut walls (fable-cursor's area; no hand-over) — stayed on props/re
 squad3-near-bark at their poses: the lichen confetti on the near column 3.21 % → 0.90 % pale px, mean l
 0.219 → 0.196, a knee in the silhouette; the owner's north pose changes in the far trunks/moss. Posted.
 
+09:20–10:45 UTC: the kindling basket merged (tick 09:15, play-head 75622db9). Lane 9's remaining item is
+structures' hut walls (fable-cursor's area; no hand-over) — stayed on props/reviews. Non-author check of
+squad3-near-bark at their poses: the lichen confetti on the near column 3.21 % → 0.90 % pale px, mean l
+0.219 → 0.196, a knee in the silhouette; the owner's north pose changes in the far trunks/moss. Posted.
+Housekeeping: this log had carried conflict markers since the 22 Sep 10:40 merge (a `git add` of an
+unresolved file), and the INBOX got one bad push this hour — both rebuilt clean. Rule for me from here:
+after any merge, `git diff --name-only --diff-filter=U` and resolve every file before adding.
+
 ## Files / systems being touched
 `src/world/props/{index,layout,geometry,materials}.ts`, `geometry.test.mjs`, `README.md`.
 Evidence sheets under `art/environment/props-fable-3/`. Nothing else.
