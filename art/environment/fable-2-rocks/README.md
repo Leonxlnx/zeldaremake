@@ -16,6 +16,44 @@ B 526 / C 393 / D 394 / E 526 / F 512; A 9.09 M tris on both (the head's number,
 change's — flagged to fable-cursor). Files: `ledge2-x-clearing-n.jpg` (+ `-crop`),
 `ledge2-x-ledge-foot.jpg`, `ledge2-x-northpath-n.jpg`.
 
+## Iteration 83 — lane 6 (fable-cursor's 07:30 fit): the demo's log-risered steps, first half — the hero flight's treads are trodden earth between the timbers, not stone slabs (`aEarth` on the slab tops, the stone shader renders trail dirt there); six views A −0.0002, C −0.0009, the rest 0
+
+The owner's references for "the steps" (`docs/SQUAD_2026-09-23.md` lane 6): the demo's walk north, `demo61/d_094` and `d_104`
+— round timbers as the risers, packed pale earth with grass at the edges between them. Ours were stone slabs with a log on
+each nose: from eye level the logs hide most of the tread, but from above (the owner's camera looks down 35° while he
+climbs) the pale grey slabs with their rolled lips and split outlines were the read.
+
+Built without touching the geometry: `MeshBuilder` carries an `aEarth` weight (`geometry.ts`, `SlabOptions.earthTop` writes
+it on the top face and the shoulder ring; the walls stay 0), and the stone material (`material.ts`) blends the surface to
+the terrain's `rocky_trail` set where it is 1 — the trail texture at 0.9 m repeats, its albedo lifted to the demo's pale dry
+dirt (`EARTH_TINT`), under the same vertex tint as the stone (the tread's tone gradient, grime, damp), its own normal for the
+grit, a matte roughness. `stairs.ts` sets `earthTop: 1` on a log flight's treads and drops the lit-nose lip from their tint
+(the timber is the nose; the walked centre a shade paler, the back and flanks damper). Draws, outlines, tread noses and the
+contact surface are unchanged (`paving.test` V17 / tread-nose rows pass); `rocky_trail` is CC0 (Poly Haven), credited.
+
+Before `73402409` → after `7fcb33cf` (`steps83-earth-treads-sheet.jpg`: `s2-top-down`, the 3.3 m look-down `ld-flight-down`, the 2 m
+`x-stairs-3rd-tread`; `steps83-C-foot.jpg`: the flight's foot at C):
+
+| pose | what the eye gets |
+|---|---|
+| `s2-top-down`, `ld-flight-down` (from above) | grey slab tops with rolled lips → pale sandy earth with grit between the timbers, the tread outlines gone |
+| `x-stairs-3rd-tread` (2 m) | the band behind each log is packed dirt, not a stone lip |
+| `s2-owner`, `s2-climb` (eye level) | the timbers hide most of the tread; the bands that show turn from grey to earth |
+| tread band vs the demo (`d_104`, a tread in light) | ours sRGB 83 / 72 / 54 (R/G 1.15, B/R 0.65) against the demo's 82 / 69 / 57 (1.18 / 0.70) |
+
+| view | before | after | Δ | changed px |
+|---|---|---|---|---|
+| A_stairs | 0.2190 | 0.2188 | −0.0002 | 1 553 (0.17 %) — the flight's tread bands; the flight box's dark share 51.5 → 51.3 %, lips 78 = |
+| B_house | 0.1877 | 0.1877 | 0 | 8 |
+| C_lookback | 0.2038 | 0.2029 | −0.0009 | 6 047 (0.66 %) — the flight's foot at C's left edge, 3–4 m: the first treads now earth |
+| D_log | 0.2560 | 0.2560 | 0 | 0 |
+| E_ground | 0.2178 | 0.2178 | 0 | 11 |
+| F_canopy | 0.2252 | 0.2254 | +0.0002 | 1 881 (0.20 %) |
+
+Draws / triangles unchanged (545 / 533 / 434 / 499 / 533 / 507; A 8.55 M). `tsc` green, hardscape tests 9 / 9. Not done in
+this half: the demo's flights have no stone cheeks (grass banks meet the timbers' ends) and the timbers' cut ends stand proud
+with stakes — the cheeks are a geometry change to measure next; the path fork into the woods (lane 6's second item) needs
+fable-cursor's word on the layout before I move anything.
 ## Iteration 82 — the hero boulders' near skin holds to 13 m (`HERO_NEAR_FADE_M` [7, 13], the dressing's band): the owner's walk-around range, under his 2026-09-23 06:50 direction that the walk beats the fixed frames — six views within ±0.0004
 
 The hero material's near terms (near tile, relief grain, wet band, crack grime) faded out over material.ts `NEAR_FADE_M`
