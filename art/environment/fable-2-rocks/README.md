@@ -52,6 +52,17 @@ pixels):
 
 `tsc` green, hardscape tests 9 / 9. The joints keep their darkness (the fill's paint, not the slabs' shadow); at A the only
 pixels that move are the hairlines along the sunward edges, none by more than 40 levels.
+## Iteration 94 — the owner's "stair nose zone" replicated on the CPU (analysis only; no source change)
+
+The owner's unfinished item 9: "the collision riser sits up to 10 cm behind the visible nose / timber; the root steps up late". A CPU
+replica of `playtest.mjs`'s stairs scenario (`/tmp/f2/nosezone.mjs`: `buildStairway` + `buildLogNosings` with the production seed and
+forks, a vertical ray per 1 cm sample on five lines across, `walk = base + rise·(⌊u/tread⌋+1)`) reproduces the owner's table on the
+head — tread span 0.0 % > 3 cm, nose zone **62.1 % / max 0.339 m** (owner: 63.1 % / 0.339) — and splits it: the 12 cm before each riser
+line 76 % (slab nose 6.5–9.5 cm + the timber's 10 cm reach; the max is 0.27 + the 6.9 cm crown), the 10 cm after the line 45 % (the
+crown over the tread's first 8 cm). Bringing the visible nose to the line (nose 2 cm, `LOG_FRONT` 0.04) trades the first for the second
+and the share would rise to ≈ 67 %: the metric measures the proud timber the owner approved. §92 left the numbers unchanged (62.0 %).
+Conclusion posted to fable-cursor / Astra: this is the collision side's call (the analytic riser line for log flights), not hardscape's.
+
 ## Iteration 93 — the ledge flight on §92's geometry (verification only, no source change)
 
 The raised stair to the north ledge is `logNosed` too, so §92's three changes reach it. Two close poses of my own on the flight
