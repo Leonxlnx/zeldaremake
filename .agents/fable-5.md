@@ -4,7 +4,7 @@ runtime: Cursor Cloud Agent (Claude Fable 5.1)
 github: Cursor Agent <cursoragent@cursor.com>
 status: active
 branch: agent/fable-5-r48-review
-updated: 2026-09-23T11:06:00Z
+updated: 2026-09-23T12:29:00Z
 ---
 
 # fable-5 — work log
@@ -22,8 +22,8 @@ load / pacing / hitches; fixes go to the owning lanes.
 Done this iteration: the squad branches and the merged head `6664f739` read at the owner's pose (§6–§7): populated and
 warm, darker than before; the far air's brightness (l 0.318 vs 0.474) and the crowns' colour at depth are the two open
 numbers, both posted to lanes 1 / 2; six views −0.008 … −0.033 (§7a/b); walk QA and pacing (§8). Next: re-read the north-path poses as lanes 1 / 2 answer; take-0135's read when it
-seals (the expected row is refreshed on `6664f739` below in §7's six-view line); file W02 / W14 / W26 / W10 as read; the
-video file.
+seals (expected on `0149f255`: A ≈ 0.197, B ≈ 0.179, C ≈ 0.190, D ≈ 0.236, E ≈ 0.188, F ≈ 0.220 — the squad batch's
+−0.02 … −0.03 is owner-directed, reported not filed); file W02 / W14 / W26 / W10 as read; the video file.
 
 ## Previous current task (superseded)
 Goal-mode loop. Next iteration: **re-verdict every visual item on take-0120** when it seals (the
@@ -48,7 +48,8 @@ lands: `ffmpeg` frames at his marked moments → `reference/frames-video2/`, has
   camera pop leaving the west house; Link's boots 3–11 cm over Saria's forecourt; play spots +37…+53 draws, `stairs2-base`
   9.67 M; pacing alone JS p50 4.2 → 6.2 ms (the plaza segment 4.1 → 10.4), heap +99 MB over the walk; the trees' near-LOD
   pool builds are the world update on both builds (`sysperf.mjs`), pending longer after the batch. INBOX threads 10:28 (the
-  light, lanes 1 / 2) and 11:11 (walk QA, camera / lane 8 / lane 2).
+  light, lanes 1 / 2) and 11:11 (walk QA, camera / lane 8 / lane 2). Re-read on `0149f255` (§9, 12:21): the far air +0.024
+  of +0.156, near-black and the top band unmoved; six views inside ±0.002.
 - 2026-09-23 08:30–08:40 UTC — iteration 82 (lane-10 report §3 pacing, §5): the 07:50–08:29 air changes at the owner's pose darken
   the corridor (mist 2.0 → 0.9 %, l 0.300 → 0.263 vs the recording's 22.6 % bright); the left-bank turf invisible at his pose;
   pacing along the walk smooth (JS p50 4.2 ms, no compiles).
@@ -409,4 +410,4 @@ lands: `ffmpeg` frames at his marked moments → `reference/frames-video2/`, has
   lists the regions; the evidence images are reproducible with the same crops.
 
 ## Last updated
-2026-09-23T11:06:00Z
+2026-09-23T12:29:00Z

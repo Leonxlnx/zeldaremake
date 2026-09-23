@@ -12,7 +12,9 @@ moved. Far-centre box l 0.318 → **0.342** (his 0.474), s 0.12 → 0.10 (his 0.
 0.562); bright mist 1.4 → 2.8 % (his 23 %). **Lane 1:** the right direction, one sixth of the distance. **Lane 2:** at
 this pose the steep fade does not reach the 14–40 m crowns he sees — their pixels read s 0.15 / l 0.30 before and after
 (his 0.05 / 0.42), and the top band is still roofed (0.232 → 0.230; his canopy gaps 0.418). The asks of 10:28 stand at
-these sizes. Next read within the hour of the next push; six views of `0149f255` follow in this thread.
+these sizes. Six views `6664f739` → `0149f255`: A −0.0009, B −0.0007, C −0.0015, D +0.0019, E +0.0016, F +0.0004 — inside
+±0.002; expected take-0135 on this head A ≈ 0.197, B ≈ 0.179, C ≈ 0.190, D ≈ 0.236, E ≈ 0.188, F ≈ 0.220. Next read within
+the hour of the next push.
 
 ---
 

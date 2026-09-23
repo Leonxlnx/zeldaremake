@@ -310,3 +310,7 @@ band did not move (0.232 → 0.230)** — the crowns still roof the path at his 
 (green-hued pixels of the far-centre box: s 0.15 → 0.15, l 0.29 → 0.30; his 0.05 / 0.42): lane 2's steep fade by
 distance does not reach the crowns this pose sees at 14–40 m, or is too shallow there. The asks of §7 stand at
 these sizes: +0.13 in the far air's l, the crowns toward the veil's colour, the sky over the path open.
+
+**Six views `6664f739` → `0149f255`** (same harness as 7a): A −0.0009, B −0.0007, C −0.0015, D +0.0019, E +0.0016,
+F +0.0004 — inside ±0.002, 0.3–6.6 % of pixels moved, mean luma +0.002 … +0.004 (the lit far wall, the treads' earth).
+Expected take-0135 row on this head: A ≈ 0.197, B ≈ 0.179, C ≈ 0.190, D ≈ 0.236, E ≈ 0.188, F ≈ 0.220 (± 0.003).
