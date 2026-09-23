@@ -48,6 +48,8 @@ export interface AudioStats extends FootstepStats {
   pods: number;
   /** true while the character system is reporting the gait's boot plants */
   gaitDriven: boolean;
+  /** how closed the space over the listener is — 1 inside the log tunnel's bore, 0 in the open */
+  enclosure: number;
 }
 
 export interface OfflineRender {
@@ -57,10 +59,12 @@ export interface OfflineRender {
 
 /** what an offline render contains — the evidence path renders the parts separately */
 export interface OfflineOptions {
-  /** `mix` = what the player hears, `bed` = the ambience alone, `steps` = the footsteps alone */
-  stem?: 'mix' | 'bed' | 'steps';
+  /** `mix` = what the player hears; the others isolate one part of it */
+  stem?: 'mix' | 'bed' | 'steps' | 'music';
   /** include the music bus (default: only in `mix`) */
   music?: boolean;
+  /** mute the shared hall's return — the same stem dry, so the tail can be measured on its own */
+  reverb?: boolean;
 }
 
 /** one leg of the offline walk: seconds, ground speed (m/s) and what is underfoot */
@@ -135,9 +139,9 @@ function gatherPods(scene: Scene): Vec3[] {
  *            mouth). The owner's 09-23 list names leaves as one of the four surfaces.
  *  - grass:  everything else
  */
-export function surfaceAt(x: number, z: number): { surface: Surface; stairs: boolean } {
+export function surfaceAt(x: number, z: number): { surface: Surface; stairs: boolean; enclosure: number } {
   const m = surfaceMask(x, z, 'live');
-  if (m.stairs > 0.5) return { surface: 'stone', stairs: true };
+  if (m.stairs > 0.5) return { surface: 'stone', stairs: true, enclosure: 0 };
   // the log tunnel: distance from the log's axis in its own frame
   const la = LAYOUT.logArch;
   {
@@ -148,14 +152,19 @@ export function surfaceAt(x: number, z: number): { surface: Surface; stairs: boo
     const v = dx * Math.sin(yaw) + dz * Math.cos(yaw);
     // the bore is where the north path passes through the log's west half (layout: the path spine
     // crosses at lu −3.4 … −4.8); elsewhere along the log the walker is on the ground beside it
-    if (u > -8.5 && u < -0.5 && Math.abs(v) < la.radius * 0.8) return { surface: 'hollow', stairs: false };
+    if (u > -8.5 && u < -0.5 && Math.abs(v) < la.radius * 0.8) {
+      // how far in he is: the wood closes over the forest across the first 1.6 m of the bore
+      const fromMouth = Math.min(u + 8.5, -0.5 - u) / 1.6;
+      const fromWall = (la.radius * 0.8 - Math.abs(v)) / 0.5;
+      return { surface: 'hollow', stairs: false, enclosure: Math.max(0, Math.min(1, Math.min(fromMouth, fromWall))) };
+    }
   }
   // the west house's platform and deck
   {
     const wh = EXPANSION.westHouse;
     const hx = wh.host[0];
     const hz = wh.host[1];
-    if (Math.hypot(x - hx, z - hz) < wh.radius) return { surface: 'wood', stairs: false };
+    if (Math.hypot(x - hx, z - hz) < wh.radius) return { surface: 'wood', stairs: false, enclosure: 0 };
     const ex = wh.deckEnd[0];
     const ez = wh.deckEnd[2];
     const ax = ex - hx;
@@ -165,13 +174,13 @@ export function surfaceAt(x: number, z: number): { surface: Surface; stairs: boo
     if (t > 0 && t < 1) {
       const px = hx + ax * t;
       const pz = hz + az * t;
-      if (Math.hypot(x - px, z - pz) < 0.475) return { surface: 'wood', stairs: false };
+      if (Math.hypot(x - px, z - pz) < 0.475) return { surface: 'wood', stairs: false, enclosure: 0 };
     }
   }
-  if (m.path > 0.5) return { surface: 'stone', stairs: false };
-  if (m.path > 0.12) return { surface: 'dirt', stairs: false };
-  if (forestFloorZone(x, z) > 0.5) return { surface: 'leaf', stairs: false };
-  return { surface: 'grass', stairs: false };
+  if (m.path > 0.5) return { surface: 'stone', stairs: false, enclosure: 0 };
+  if (m.path > 0.12) return { surface: 'dirt', stairs: false, enclosure: 0 };
+  if (forestFloorZone(x, z) > 0.5) return { surface: 'leaf', stairs: false, enclosure: 0 };
+  return { surface: 'grass', stairs: false, enclosure: 0 };
 }
 
 export const AUDIO_SEED = 'kokiri-audio-r47';
@@ -185,6 +194,9 @@ export function mountAudio(o: AudioOptions): AudioHandle {
   let raf = 0;
   let pods: Vec3[] = [];
   let gaitDriven = false;
+  let enclosure = 0;
+  /** the highest point of the jump or drop in progress (m above the ground under him) */
+  let peakAir = 0;
   const emit = () => o.onState?.(!live ? 'idle' : muted ? 'muted' : 'on');
   emit();
 
@@ -204,7 +216,10 @@ export function mountAudio(o: AudioOptions): AudioHandle {
     const listener: Vec3 = p ? { x: p.x, y: p.y + 1.2, z: p.z } : { x: cam[0], y: cam[1], z: cam[2] };
     const fwd = pose?.direction ?? [0, 0, -1];
     const fl = Math.hypot(fwd[0], fwd[2]) || 1;
-    ambience.update(t, { gust: o.wind?.uniforms.uGust.value ?? 0.4, listener, forward: { x: fwd[0] / fl, z: fwd[2] / fl }, pods });
+    // one ground lookup a frame, shared by the bed's enclosure and the boots' surface
+    const s = surfaceAt(listener.x, listener.z);
+    enclosure = s.enclosure;
+    ambience.update(t, { gust: o.wind?.uniforms.uGust.value ?? 0.4, listener, forward: { x: fwd[0] / fl, z: fwd[2] / fl }, pods, enclosure: s.enclosure });
     ambience.scheduleUntil(ctx.currentTime + 4);
     music.scheduleUntil(ctx.currentTime + 6);
     // footsteps: the gait's own boot plants when the character system reports them, the ground
@@ -212,9 +227,16 @@ export function mountAudio(o: AudioOptions): AudioHandle {
     if (p && player?.playMode?.()) {
       if (Number.isFinite(lastPos.x)) {
         const speed = Math.hypot(p.x - lastPos.x, p.z - lastPos.z) / Math.max(dt, 1e-3);
-        const s = surfaceAt(p.x, p.z);
         const stance = player.feetContact?.()?.map((f) => f.stance);
         gaitDriven = !!stance;
+        // the jump's arc (`airHeight` is 0 whenever a boot is down): the drop's highest point is
+        // how hard he comes back onto whatever is under him
+        const air = player.airHeight?.() ?? 0;
+        if (air > 0.02) peakAir = Math.max(peakAir, air);
+        else if (peakAir > 0.05) {
+          footsteps.land(t, s.stairs ? 'stair' : s.surface, peakAir);
+          peakAir = 0;
+        } else peakAir = 0;
         footsteps.drive(t, dt, { speed, surface: s.surface, onStairs: s.stairs, stance });
       }
       lastPos.x = p.x;
@@ -286,7 +308,8 @@ export function mountAudio(o: AudioOptions): AudioHandle {
       music: musicSource,
       pods: pods.length,
       gaitDriven,
-      ...(live?.footsteps.stats() ?? { steps: 0, gaitSteps: 0, surfaces: {}, lastSurface: null }),
+      enclosure,
+      ...(live?.footsteps.stats() ?? { steps: 0, gaitSteps: 0, surfaces: {}, lastSurface: null, landings: 0 }),
     }),
     renderOffline: (seconds, sampleRate = 44100, options) => renderOffline(o, seed, seconds, sampleRate, options),
     dispose() {
@@ -315,18 +338,19 @@ export function mountAudio(o: AudioOptions): AudioHandle {
  */
 export async function renderOffline(o: AudioOptions, seed: string, seconds: number, sampleRate: number, options: OfflineOptions = {}): Promise<OfflineRender> {
   const stem = options.stem ?? 'mix';
-  const withMusic = options.music ?? stem === 'mix';
+  const withMusic = options.music ?? (stem === 'mix' || stem === 'music');
   const Ctor = window.OfflineAudioContext ?? (window as unknown as { webkitOfflineAudioContext?: typeof OfflineAudioContext }).webkitOfflineAudioContext;
   if (!Ctor) throw new Error('OfflineAudioContext unavailable');
   const ctx = new Ctor(2, Math.ceil(seconds * sampleRate), sampleRate);
   const rng = createRng(seed);
   const buses = createBuses(ctx, rng.fork('buses'));
+  if (options.reverb === false) buses.reverbReturn.gain.value = 0;
   // every fork is drawn whatever the stem, so one part's stream never depends on another's presence
   const ambienceRng = rng.fork('ambience');
   const footstepsRng = rng.fork('footsteps');
   const musicRng = rng.fork('music');
-  const ambience = stem === 'steps' ? null : createAmbience(ctx, buses.ambience, buses.reverb, ambienceRng, 0);
-  const footsteps = stem === 'bed' ? null : createFootsteps(ctx, buses.sfx, buses.reverb, footstepsRng, 0);
+  const ambience = stem === 'steps' || stem === 'music' ? null : createAmbience(ctx, buses.ambience, buses.reverb, ambienceRng, 0);
+  const footsteps = stem === 'bed' || stem === 'music' ? null : createFootsteps(ctx, buses.sfx, buses.reverb, footstepsRng, 0);
   const music = withMusic ? createMusic(ctx, buses.music, buses.reverb, musicRng, 0.5) : null;
   const musicSource = music ? await music.ready : 'none';
   const pods = gatherPods(o.scene);

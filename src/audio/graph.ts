@@ -42,7 +42,12 @@ export function createBuses(ctx: BaseAudioContext, rng: Rng): Buses {
   reverb.buffer = impulseResponse(ctx, rng.fork('ir'), 1.5, 0.96);
   const reverbReturn = ctx.createGain();
   reverbReturn.gain.value = 0.28;
-  reverb.connect(reverbReturn);
+  // 2026-09-23 (owner 20:08, "LOWER THE WHITE NOISE"): the hall's impulse is generated from noise,
+  // so its early part hands a little broadband hiss back to everything that uses it — the music
+  // most of all, which sends 0.55 of a continuous bus. Trunks scatter and leaves absorb: a wood
+  // returns almost nothing above 3 kHz.
+  const reverbTop = filter(ctx, 'lowpass', 3000, 0.6);
+  reverb.connect(reverbTop).connect(reverbReturn);
   reverbReturn.connect(master);
   return { master, music, ambience, sfx, reverb, reverbReturn };
 }
