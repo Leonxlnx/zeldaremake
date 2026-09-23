@@ -22,8 +22,9 @@
  *    camera F on the plaza sees over the plateau's lip, its lee on the plain does not);
  *  - `mid`: the counter's woodwork, the sign, the deck, the posts' wood, the lookout's fence and
  *    bench, with `base` when the frustum meets them;
- *  - `near[i]`: house i's close detail (cap tufts and plants, trunk moss and lichen, the room's
- *    furniture, the pods, the goods, the crates, the flowers) within EAST_DETAIL_M of its trunk;
+ *  - `near`: the houses' close detail (cap tufts and plants, trunk moss and lichen, the rooms'
+ *    furniture, the pods, the goods, the crates, the flowers) — one group across the three houses,
+ *    so one bucket per material — within EAST_DETAIL_M of any trunk when the frustum meets a house;
  *  - `lane`: the posts' pods and the lookout's moss and plants, within EAST_DETAIL_M of the green.
  *
  * Own rng forks (structures / 'east' / …), after every existing stream: nothing built before moves.
@@ -350,7 +351,7 @@ export interface EastBuild {
   core: Group;
   base: Group;
   mid: Group;
-  near: Group[];
+  near: Group;
   lane: Group;
   lanterns: LanternRig[];
   walk: WalkSurface[];
@@ -1225,6 +1226,25 @@ export function buildEast(ctx: WorldContext, mats: StructureMaterials, rng: Rng,
     }
     for (const child of [...hb.group.children]) core.add(child);
   });
+  // the three houses' close detail as one tier: the houses stand within 13 m of each other (every
+  // pose on the lane is within EAST_DETAIL_M of all three), and their shared-material buckets — cap
+  // tufts, trunk moss, hangers, foliage, goods — merge across the lane
+  const countTris = (root: Object3D) => {
+    let n = 0;
+    root.traverse((o) => {
+      const m = o as Mesh;
+      if (m.isMesh) n += tri(m.geometry);
+    });
+    return n;
+  };
+  const nearTris = near.map(countTris);
+  const detail = new Group();
+  detail.name = 'structures-east-near';
+  for (const g of near) {
+    for (const child of [...g.children]) detail.add(child);
+    g.removeFromParent();
+  }
+  group.add(detail);
 
   // ---- visibility: casters (with their sun shadows) per tier ----
   const sunToward = ctx.sun ? ctx.sun.position.clone().sub(ctx.sun.target.position).normalize() : sunVector(ctx.config.sun.azimuthDeg, ctx.config.sun.elevationDeg);
@@ -1232,7 +1252,7 @@ export function buildEast(ctx: WorldContext, mats: StructureMaterials, rng: Rng,
   const groundAt = (x: number, z: number) => terrain.height(x, z);
   const laneCasters: Caster[] = [...eastLookoutCasters(groundAt), ...eastPostCasters(groundAt)];
   const coreSpheres: Sphere[] = eastSpheres([...houseCasters.flat(), ...laneCasters], sunToward);
-  const nearSpheres: Sphere[][] = houseCasters.map((c) => eastSpheres(c, sunToward));
+  const nearSpheres: Sphere[] = eastSpheres(houseCasters.flat(), sunToward);
   const laneSpheres: Sphere[] = eastSpheres(laneCasters, sunToward);
   const midSpheres: Sphere[] = eastSpheres([...laneCasters, ...houseCasters[tallI].slice(1), houseCasters[shopI][0]], sunToward);
   /**
@@ -1264,17 +1284,14 @@ export function buildEast(ctx: WorldContext, mats: StructureMaterials, rng: Rng,
     core.visible = on;
     base.visible = low;
     mid.visible = low && frustumMeets(camera, midSpheres);
-    for (let i = 0; i < near.length; i++) {
-      const h = sites[i].h;
-      near[i].visible = on && Math.hypot(_p.x - h.x, _p.z - h.z) < EAST_DETAIL_M && frustumMeets(camera, nearSpheres[i]);
-    }
+    detail.visible = on && sites.some((s) => Math.hypot(_p.x - s.h.x, _p.z - s.h.z) < EAST_DETAIL_M) && frustumMeets(camera, nearSpheres);
     lane.visible = on && toGreen < EAST_DETAIL_M && frustumMeets(camera, laneSpheres);
   };
 
   let draws = { before: 0, after: 0, merged: 0 };
   const consolidate = () => {
     const out = { before: 0, after: 0, merged: 0 };
-    for (const g of [core, base, mid, lane, ...near]) {
+    for (const g of [core, base, mid, lane, detail]) {
       const r = consolidateStaticMeshes(g, (m) => m.name === 'pod-lantern');
       out.before += r.before;
       out.after += r.after;
@@ -1284,14 +1301,6 @@ export function buildEast(ctx: WorldContext, mats: StructureMaterials, rng: Rng,
     return out;
   };
 
-  const countTris = (root: Object3D) => {
-    let n = 0;
-    root.traverse((o) => {
-      const m = o as Mesh;
-      if (m.isMesh) n += tri(m.geometry);
-    });
-    return n;
-  };
   const audit = () => ({
     houses: EXPANSION_EAST.houses.map((h, i) => ({
       id: h.id,
@@ -1304,8 +1313,8 @@ export function buildEast(ctx: WorldContext, mats: StructureMaterials, rng: Rng,
       roots: houses[i].roots,
       window: houses[i].window,
       door: { width: houses[i].door.width, height: houses[i].door.height, sill: houses[i].door.sill },
-      nearTriangles: countTris(near[i]),
-      nearVisible: near[i].visible,
+      nearTriangles: nearTris[i],
+      nearVisible: detail.visible,
     })),
     pointLightsDropped: lightsDropped,
     partsMovedNear: movedNear,
@@ -1324,6 +1333,7 @@ export function buildEast(ctx: WorldContext, mats: StructureMaterials, rng: Rng,
     baseTriangles: countTris(base),
     midTriangles: countTris(mid),
     laneTriangles: countTris(lane),
+    nearTriangles: countTris(detail),
     draws,
     visibleWithinM: EAST_VISIBLE_M,
     detailWithinM: EAST_DETAIL_M,
@@ -1336,5 +1346,5 @@ export function buildEast(ctx: WorldContext, mats: StructureMaterials, rng: Rng,
     laneVisible: lane.visible,
   });
 
-  return { group, core, base, mid, near, lane, lanterns, walk, bases, owned, consolidate, update, audit };
+  return { group, core, base, mid, near: detail, lane, lanterns, walk, bases, owned, consolidate, update, audit };
 }
