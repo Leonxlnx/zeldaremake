@@ -33,3 +33,33 @@ fable-5 poses of the round-48/49 walks (`fable-5-walk-r55/walk-poses.json`). Con
 Numbers 1–3 are one direction — the owner's — and one lane; measured targets are in `ANALYSIS_CLARITY.md` §1, §3, §5.
 Nothing in this walk contradicts the six-view reads of r55; it adds that the clarity items are visible from every
 pose that looks up or out, not only from the owner's meadow.
+
+## Refresh, 2026-09-23 05:30 UTC — after the owner's 09-23 items (`a5dbf45f`)
+
+**Closed or moved since the 23:04 walk (measured in r55 §W–§Y):**
+
+| item | state on `a5dbf45f` |
+| --- | --- |
+| the second staircase's repeated pattern (owner 09-23) | closed — per-log phase / roll / tint / moss, a repaired pair, checked logs; the flight box's weight regressed with it (52.8 % dark vs the frame's 15.9; the take-0134 build 45.8) |
+| lanterns "as crafted objects", the huts' trim (owner 09-23) | closed — ribbed calyx, hoop, open bottom, flame; W26 pass reinforced; the west house's doorway pool |
+| the shaft column's white veil over the upper house (owner README #38) | closed at `b-upper-2` — frame mean 0.454 → 0.271 |
+| the distant crown overhead as one flat pale card (owner README #26/28) | **not closed at the owner's own `u-open-up`** — the card at ≈ 71° elevation is above the 20–44° gate; l 0.627 against a 0.653 sky, identical before and after |
+| huts one design at three sizes (#15) | huts given individual features (ladder, herbs, hoist); frame-neutral at the six views |
+
+**Ranked open list, at player height, 05:30:**
+
+| # | defect | owner | measured |
+| --- | --- | --- | --- |
+| 1 | the light behind every high crown is a cool neutral grey / blue sky where the frames put warm khaki (#858372) | Astra (fog / sky) | `ANALYSIS_CLARITY.md` §5 |
+| 2 | the distant crown cards are soft blobs at 15–30 m; and straight overhead in the hollow, one flat pale card (#26/28) | Astra (distant cards) + the haze weight; the near-gate rule's elevation range | §4; r55 §Y (≈ 71° vs the 20–44° gate) |
+| 3 | the fog slice darkened the distance 0.05–0.12 below the frames' on all six views (take-0134: every view down, D −0.0110) | Astra (fog) | `ANALYSIS_CLARITY.md` §3, `fable-5-take0134.md` |
+| 4 | **the flight's weight**: dark 52.8 % vs the frame's 15.9 — the owner's varied dark logs and the frames' pale flight meet at the treads (albedo + the light on that slope: 0.376 shadowless vs 0.65) | hardscape (tread albedo) + lighting / the canopy over the flight | r55 §W; fable-4's flight-shade |
+| 5 | V16's seams — continuous dark outlines, −0.29 below the slab vs the frames' −0.15 | hardscape module (`joints.ts`) | r55 §B, §K.1 |
+| 6 | the D boulder stands in the giants' shadow — a sun corridor | trees / giants | r55 §J, §L |
+| 7 | giants' limbs at frame scale (W09) | trees / giants | walk |
+| 8 | C01 / C02 / U02 | character / shell | take-0132 |
+| 9 | W05 the C embankment's tiers; W30 / W31 the sun and the rays | terrain; lighting | unchanged since take-0116 |
+
+The six-view ledger since take-0134's build: A −0.0010, B −0.0002, C 0, D +0.0003, E +0.0005, F +0.0027 through `a5dbf45f`
+(r55 §U, §W–§Y); expected take-0135 A 0.2173, B 0.1982, C 0.2080, D 0.2657, E 0.2190, F 0.2266.
+

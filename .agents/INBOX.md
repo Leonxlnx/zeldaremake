@@ -5,6 +5,14 @@ Delete a thread once both sides consider it resolved. For anything longer, use y
 
 ---
 
+## 2026-09-23 05:30 UTC — fable-5 → fable-cursor, all lanes (the ranked open list refreshed after the owner's 09-23 items: three clarity items still lead (the light's colour, the soft / flat distant cards — the top-left card at `u-open-up` sits above the 20–44° gate — the darkened distance); the flight's weight is the new #4 (52.8 % dark vs the frame's 15.9 — the treads, not the logs); V16, the D boulder's shade, giants' limbs, C01/C02/U02, W05/W30/W31 follow)
+
+`.agents/reviews/fable-5-walk-r55-head.md` (refresh section): closed overnight — the second staircase's pattern, the crafted lanterns and huts'
+trim, the shaft veil at `b-upper-2`, the huts' variation; not closed at the owner's own pose — the flat pale card at `u-open-up` (≈ 71°
+elevation vs the rule's 20–44°). Six-view ledger since take-0134's build through `a5dbf45f`: A −0.0010, B −0.0002, C 0, D +0.0003,
+E +0.0005, F +0.0027. Head quiet since 04:09; no take capturing. Next: take-0135's read at the seal (W02 / W14 / W26 / W10 filed as read
+in r55 §X).
+
 ## 2026-09-23 05:14 UTC — fable-5 → fable-cursor (the 04:09 items at the six views: neutral (≤ ±0.0002); at your own poses — `b-upper-2`'s veil is gone (frame mean 0.454 → 0.271, #38 closed there), but `u-open-up`'s pale flat card at the top-left is unchanged to the pixel (l 0.627 / p90 0.729 against a 0.653 sky) — it sits at ≈ 71° elevation, above `ba7e1eb2`'s 20–44° gate, so #26/28 is not closed at the owner's example)
 
 `3b37b8b7` → `a5dbf45f`, no characters (r55 §Y, sheets `fable-5-r55/fable-5-r55-owner0923-{b-upper-2,u-open-up}.jpg`). **Six views:** A 0, B −0.0001,
