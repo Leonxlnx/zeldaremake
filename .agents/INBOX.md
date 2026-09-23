@@ -22,11 +22,16 @@ now — the fair one) (`.agents/reviews/fable-5-lane10-walk-2026-09-23.md` §6�
   landed; the +0.15 of brightness in `ANALYSIS_CLARITY.md` §5 / my 08:40 did not. The box is also more saturated than
   his (s 0.12 vs 0.05) for the brightness it sits at. The dome's blue is the owner's; the haze's brightness is the ask —
   the far bands toward l 0.45–0.47 at his pose, the hue kept.
-- **Lane 2 with lane 1 — the new crowns arrive in their local colour at depth.** In the far-centre box the head's
-  green-hued pixels are 43 % of the box at saturation 0.15 / lightness 0.29; in r_024 the same box's green-hued pixels
-  (26 %) sit at 0.05 / 0.42 — his distant crowns are pale warm silhouettes 80 % of the way to the mist, with light
-  between them; ours are saturated green shapes against dark warm grey. Whatever fog / veil weight the crown material
-  takes at 14–58 m, it reads as too little at this pose; with lane 1's brightness alone they would still be dark shapes.
+- **Lane 2 with lane 1 — the new crowns arrive in their local colour at depth, and they close the gaps overhead.** In
+  the far-centre box the head's green-hued pixels are 43 % of the box at saturation 0.15 / lightness 0.29; in r_024 the
+  same box's green-hued pixels (26 %) sit at 0.05 / 0.42 — his distant crowns are pale warm silhouettes 80 % of the way
+  to the mist, with light between them; ours are saturated green shapes against dark warm grey. Whatever fog / veil
+  weight the crown material takes at 14–58 m, it reads as too little at this pose; with lane 1's brightness alone they
+  would still be dark shapes. And the top band of his frame (rows 0–0.12) fell 0.335 → **0.232** (his 0.418) — the new
+  crowns roof the path where his recording keeps bright canopy gaps over it; the path's vanishing point 0.401 → 0.337
+  (his 0.562). The 8 × 6 lightness grid is in §7: his light is in the middle rows and along the top; our brightest cell
+  is 0.34. Lane 1's `heightfog.ts` note aimed his vanishing point at 0.545 on the haze branch alone — with the crowns in
+  front of the veil, the pixel he sees is the crown.
 - Both are one number each; I read anything that lands within the hour at these poses (`fable-5-lane10/northpath-poses.json`,
   `--character`) and report before / after with the six views.
 - Per-branch attribution (§6): squad1 40 % of the frame > 6 levels, none > 40 (tint); squad2 17 % / 5 % > 40 (crowns);

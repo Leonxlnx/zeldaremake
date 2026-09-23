@@ -170,12 +170,31 @@ with mean saturation **0.15** and lightness **0.29**; in r_024 the same box's gr
 pale warm silhouettes with light between them; ours are saturated green shapes against a dark warm grey. The far box is
 also more saturated than the frames (s 0.12 against 0.05): the warm tint is strong for the brightness it sits at.
 
+Where the light sits — mean HLS lightness on an 8 × 6 grid of the owner's pose (`f56c5740` → head, r_024 for the target):
+
+```
+f56c5740 (07:00)                                  head 6664f739                                     r_024 (the owner)
+0.38 0.42 0.40 0.35 0.32 0.32 0.26 0.24           0.15 0.21 0.33 0.28 0.30 0.23 0.17 0.18           0.43 0.40 0.55 0.53 0.47 0.39 0.29 0.32
+0.37 0.37 0.39 0.37 0.32 0.30 0.21 0.21           0.18 0.17 0.29 0.30 0.34 0.26 0.18 0.18           0.27 0.47 0.45 0.49 0.51 0.42 0.33 0.36
+0.25 0.25 0.30 0.40 0.39 0.23 0.19 0.18           0.19 0.15 0.25 0.33 0.34 0.19 0.17 0.17           0.12 0.22 0.32 0.49 0.56 0.50 0.39 0.32
+0.18 0.18 0.20 0.34 0.29 0.22 0.19 0.17           0.19 0.19 0.18 0.29 0.25 0.20 0.18 0.16           0.07 0.12 0.19 0.40 0.63 0.54 0.34 0.29
+0.17 0.17 0.19 0.29 0.30 0.21 0.21 0.17           0.15 0.21 0.21 0.26 0.25 0.19 0.18 0.15           0.07 0.13 0.15 0.23 0.38 0.32 0.20 0.12
+0.18 0.15 0.23 0.40 0.41 0.32 0.22 0.23           0.18 0.19 0.19 0.27 0.24 0.21 0.18 0.21           0.10 0.12 0.19 0.28 0.25 0.16 0.10 0.11
+```
+
+The recording's light is in the **middle rows** (the vanishing point 0.40–0.63, mist between lit crowns) and along the
+**top** (canopy gaps 0.40–0.55). The head's brightest cell is 0.34. The top band (rows 0–0.12) fell 0.335 → **0.232**
+(the recording 0.418): the new mid-canopy crowns **closed the gaps over the path** at this pose; the vanishing-point box
+(x 0.42–0.58, y 0.40–0.50) fell 0.401 → **0.337** (the recording 0.562). Lane 1's own note in `heightfog.ts` aimed the
+far veil at display 0.645 and his vanishing point at 0.545 — measured on the haze branch alone; with the crowns in front
+of the veil the pixel a walker sees is the crown, and the crown is dark.
+
 So the ranked list at the owner's pose after the squad's first batch:
 
 | # | issue | measured | owning lane |
 | --- | --- | --- | --- |
 | 1 | **The far air is warm but darker than the grey it replaced**: far-centre l 0.360 → 0.318 vs the recording's 0.474; bright-mist share 2.3 → 1.4 vs 23 % | §7 table | 1 |
-| 2 | **The mid-canopy crowns keep their local colour at 14–58 m**: green s 0.15 / l 0.29 in the far box vs the recording's 0.05 / 0.42 — atmospheric perspective on the crowns (toward the far air's colour, by depth) is missing or too weak; with (1) fixed they would still read as dark shapes | §7 | 2 with 1 |
+| 2 | **The mid-canopy crowns keep their local colour at 14–58 m and close the gaps overhead**: green s 0.15 / l 0.29 in the far box vs the recording's 0.05 / 0.42 — atmospheric perspective on the crowns (toward the far air's colour, by depth) is missing or too weak; the top band 0.335 → 0.232 (his 0.418) — the recording keeps bright gaps over the path between the crowns | §7 grid | 2 with 1 |
 | 3 | The path: continuous stone slabs with dark joints; the recording's north run is packed dirt with a few slabs | §2 #4 | 6 (open) |
 | 4 | The right bank is still a cut earth wall (brown 30 % of the band, the recording 1 %); the verges are dressed now, the bank face is not | §2 #3 | 4 / 6 |
 | 5 | The path does not fork past Saria's mound | §2 #6 | 6 (open) |
