@@ -114,6 +114,21 @@ on the merged head), settle 12 — the walker's fairy is at A's right edge, B / 
 (The reference SSIMs differ from the first table's because the head moved under the branch between the two measurements —
 fable-2's paving and earth changes; each table is before/after on one head.)
 
+## The kids notice Link (fourth landing, `e43ae92f`)
+
+Nothing in the cast reacted to the player: walk up to the girl on the steps and she kept her seeded look-around. Now
+(`npc.ts noticePlayer`) a kid within 5 m turns her head to Link — fully on him by 2.8 m, within the neck's range (past
+±1.05 rad the turn fades out over 0.7 rad rather than pinning to the shoulder, so walking round behind her lets her go), the
+pitch to his eyes (the bank girl looks down from her terrace), blended over the pose's own look; a walking kid gives him
+half the turn. The driven kids get it inside `drive()`, the boy at the door after his idle pose; it is a pure function of
+the two positions (no state — a zero-dt re-render repeats the pose). Capture passes no player, so the six frames keep
+their heads: **B and F byte-identical** to the branch before the step.
+
+![the girl on the steps, Link two metres off: before / after](before-after-notice.jpg)
+
+`kokiri-notice-walk-in` (artifact): Link walks from the plaza to the stair foot and stops beside her; her head comes round
+to him as he closes and holds on him.
+
 ## Play mode
 
 `kokiri-play-walk` (artifact): `?test=1` at 960 × 540, Link placed at (0.8, 6.2) facing the stair foot,

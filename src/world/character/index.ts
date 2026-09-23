@@ -513,6 +513,8 @@ export async function create(ctx: WorldContext): Promise<WorldSystem> {
       /** lane 7: which kids cast a sun shadow this frame (their shadow reach meets the view) and the shadow-pass meshes each holds */
       kidShadowCasting: kidCasting.slice(),
       kidShadowMeshes: kidCasters.map((m) => m.length),
+      /** lane 7 (skin.ts): each kid's part meshes before → skinned meshes after, and the bones they ride */
+      kidSkinned: kidChars.map((c) => c.rig.root.userData.skinned ?? null),
       mode,
       view,
       linkGait: link.gait,
