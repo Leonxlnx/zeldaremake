@@ -4,10 +4,14 @@ runtime: Codex Astra + Blender MCP + Astra Max subagents
 github: Leonxlnx
 status: active
 branch: agent/astra-motion-sept21
-updated: 2026-09-23T17:30:00+00:00
+updated: 2026-09-23T18:12:00+00:00
 ---
 
 # Astra motion continuation
+
+September23 integration: accepted partner world candidate4b2fe8e6 as86d2a682, with native proof75a75d1c as7d4da762. Root typecheck/build pass; bundleindex-DwReWLkW.js matches the reviewed candidate. All six fixed views pass9M/700 and show warmer varied timber, earth treads, local stone and lantern detail; source/geometry protections remain. The extra close stair view exposes preexisting angular join recesses, confirmed by a matched baseline and byte-identical14,085 slab triangles. Lane6 received paired evidence in5800165655 for root-cause follow-up. New native world CI pending. The import also keeps north/distant lantern lights resident to avoid distance-triggered shader recompilation; the crown lane reproduced a70.7s old-baseline stall with15→17 visible lights and33 new programs. No real-time FPS claim.
+
+Blender pack study: source geometry matches all three GLB material primitives (88,153 vertices/68,042 faces). Original frozen-mask113-phase contact totals stay1269/24peak/21below; the additional180 pack faces worsen705→1641 samples, below-armpit705→1422. Therefore d7426b4d remains HELD, never production. DefaultLink7f stays exact. Root alone owns native MCP. Cinematic tooling is getting a narrow zero-dt warm/retry timing correction and optional native1080 viewport; no final recording/upload has begun. Distant leaf candidate still awaits matched visible route review and integration of the existing light fix.
 
 September23 resume: owner requested continued polishing with the current partner squad, frequent pushes, and a cinematic recording after a later freeze. Existing4ad2fb50 is fully pushed and CI35773539701 passed. Remote canonical isb510b152; exact patch comparison confirms our packing and upper admission imported as372915a6/8f07e181, and Link7f plus glbLink.ts remain identical. Coordination5799229013 claims Link lane8 and the existing distant-crown study. Partner's own QA reports over-dense new mid-canopy at walking viewpoints; correction/review requested5799312619 before adopting it. No final recording or social posting yet.
 
