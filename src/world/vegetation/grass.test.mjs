@@ -77,19 +77,46 @@ for (const t of grass.tiles) {
     for (let q = 0; q < 4; q++) assert.equal(dat[j * 4 + q], p.data[i * 4 + q]);
     last = i;
   }
-  // every dropped blade's own root sphere (blade reach + pad) misses the frustum
-  const kept = new Set();
-  for (let j = 0; j < t.mesh.count; j++) kept.add(`${mat[j * 16 + 12]},${mat[j * 16 + 14]}`);
+  // Every dropped blade either misses the frustum (the cell cull is lossless: its blades can reach
+  // no pixel) or is a walked-verge blade of a tile past the verge's near tier (2026-09-23,
+  // grass.ts VERGE_NEAR_M — a distance LOD the same rewrite applies, not a cull). The kept stream
+  // is a subsequence of the pristine one in order, so the walk above already names which pristine
+  // index each kept blade is: `keptIdx` is that mapping (two blades of a tile can share a
+  // millimetre position, so matching by coordinate would call a dropped blade kept).
+  const keptIdx = new Set();
+  {
+    let k = -1;
+    for (let j = 0; j < t.mesh.count; j++) {
+      let i = k + 1;
+      while (i < t.count && !(p.mat[i * 16 + 12] === mat[j * 16 + 12] && p.mat[i * 16 + 13] === mat[j * 16 + 13] && p.mat[i * 16 + 14] === mat[j * 16 + 14])) i++;
+      keptIdx.add(i);
+      k = i;
+    }
+  }
   const sphere = new THREE.Sphere();
   let dropped = 0;
+  let vergeDropped = 0;
   for (let i = 0; i < t.count; i++) {
-    if (kept.has(`${p.mat[i * 16 + 12]},${p.mat[i * 16 + 14]}`)) continue;
+    if (keptIdx.has(i)) continue;
     dropped++;
+    if (!t.wantVerge && t.vergeOf[i]) { vergeDropped++; continue; }
     sphere.center.set(p.mat[i * 16 + 12], p.mat[i * 16 + 13] + 0.5, p.mat[i * 16 + 14]);
     sphere.radius = 1.0;
     assert.ok(!frustum.intersectsSphere(sphere), `${t.mesh.name}: dropped blade ${i} at ${sphere.center.toArray().map((v) => v.toFixed(2))} is outside the frustum`);
   }
   assert.ok(dropped > 0);
+  // the tier is all-or-nothing per tile: a near tile drops no blade for being a verge blade …
+  if (t.wantVerge) assert.equal(vergeDropped, 0, `${t.mesh.name}: a tile inside the verge tier keeps its verge blades`);
+  // … and a far tile submits none of them
+  else for (let i = 0; i < t.count; i++) if (t.vergeOf[i]) assert.ok(!keptIdx.has(i), `${t.mesh.name}: a far tile submits no verge blade`);
+}
+// the verge tier at A (VERGE_NEAR_M = 14 m from the tile's near edge): the tiles carrying walked-verge
+// blades split into the near ones that submit them and the far ones that do not
+{
+  const withVerge = grass.tiles.filter((t) => t.vergeBlades > 0);
+  assert.ok(withVerge.length >= 10, `tiles with walked-verge blades: ${withVerge.length}`);
+  const near = withVerge.filter((t) => t.wantVerge).length;
+  assert.ok(near > 0 && near < withVerge.length, `the verge tier splits the verge tiles at A (near ${near} of ${withVerge.length})`);
 }
 // the same pose: nothing rewritten
 const rewrites = grass.culled.rewrites;
@@ -107,6 +134,10 @@ for (const t of grass.tiles) {
   // a tile still trimmed under the top view must be one the 150° cone actually cuts
   assert.ok(new THREE.Frustum().setFromProjectionMatrix(new THREE.Matrix4().multiplyMatrices(top.projectionMatrix, top.matrixWorldInverse)).intersectsSphere(t.mesh.boundingSphere), `${t.mesh.name} is cut by the frustum`);
 }
-const restored = grass.tiles.filter((t) => t.mesh.visible && t.mesh.count === t.count && pristine.get(t).mat.every((v, i) => v === t.mesh.instanceMatrix.array[i]));
-assert.ok(restored.length >= visible.length - 2, `the tiles under the camera are back to their pristine streams (${restored.length} of ${visible.length})`);
+// (2026-09-23: a tile past the verge's near tier keeps its verge blades trimmed under any view —
+// the tier is a distance LOD, not a frustum test — so "pristine" here means pristine for its tier)
+const tierFull = (t) => t.wantVerge || t.vergeBlades === 0;
+const restored = grass.tiles.filter((t) => t.mesh.visible && tierFull(t) && t.mesh.count === t.count && pristine.get(t).mat.every((v, i) => v === t.mesh.instanceMatrix.array[i]));
+const restorable = grass.tiles.filter((t) => t.mesh.visible && tierFull(t)).length;
+assert.ok(restored.length >= restorable - 2, `the tiles under the camera are back to their pristine streams (${restored.length} of ${restorable})`);
 console.log(`grass.test: ${grass.tiles.length} tiles / ${grass.count} blades; at A ${visible.length} in range, trimmed ${atA.trimmedTiles} tiles / ${atA.trimmed} blades; restored under the top view — ok`);
