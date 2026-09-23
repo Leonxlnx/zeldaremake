@@ -4,7 +4,7 @@ runtime: Cursor Cloud Agent (Claude Fable 5.1)
 github: Cursor Agent <cursoragent@cursor.com>
 status: active
 branch: agent/fable-5-r48-review
-updated: 2026-09-23T13:43:00Z
+updated: 2026-09-23T15:31:00Z
 ---
 
 # fable-5 — work log
@@ -22,7 +22,7 @@ load / pacing / hitches; fixes go to the owning lanes.
 Done this iteration: the squad branches and the merged head `6664f739` read at the owner's pose (§6–§7): populated and
 warm, darker than before; the far air's brightness (l 0.318 vs 0.474) and the crowns' colour at depth are the two open
 numbers, both posted to lanes 1 / 2; six views −0.008 … −0.033 (§7a/b); walk QA and pacing (§8); the owner's four poses
-(§10): the mid crowns at arm's length are the new #1 at his poses (lane 2); W38 at A is lane 4's blades (§11). Next: re-read the north-path poses as lanes 1 / 2 answer; take-0135's read when it
+(§10): the mid crowns at arm's length are the new #1 at his poses (lane 2); W38 at A is lane 4's blades (§11); lane 7's girl reviewed (14:24–). Next: re-read the north-path poses as lanes 1 / 2 answer; take-0135's read when it
 seals (expected on `0149f255`: A ≈ 0.197, B ≈ 0.179, C ≈ 0.190, D ≈ 0.236, E ≈ 0.188, F ≈ 0.220 — the squad batch's
 −0.02 … −0.03 is owner-directed, reported not filed); file W02 / W14 / W26 / W10 as read; the video file.
 
@@ -40,6 +40,10 @@ lands: `ffmpeg` frames at his marked moments → `reference/frames-video2/`, has
 - `.agents/fable-5.md`, `.agents/reviews/fable-5-*.md`, my threads in `.agents/INBOX.md`.
 
 ## Completed work
+- 2026-09-23 14:24–15:31 UTC — iteration 87 (`fable-5-review-lane7-kokiri-4b1759f9.md`, `fable-5-lane7-review/`): non-author
+  read of lane 7's first landing — six views with the character A −0.0034, B −0.0069, C −0.0001, D 0, E −0.0050, F −0.0014
+  (expected take-0135 A ≈ 0.194 … F ≈ 0.219); play-mode before / after at the follow camera (`people-play.mjs`, the head with
+  the cast forced visible as the before): helmet hair → maroon lobed bob, paler skin; the face / fairy / hem next; routes 9 / 9.
 - 2026-09-23 13:22–13:44 UTC — iteration 86 (lane-10 report §11, `submission.mjs` / `bysystem.mjs`): W38 at A attributed on
   `be123deb` — of the +0.62 M since `f56c5740`, vegetation +0.57 M (grass instances 512 K → 619 K, ferns / flowers / bushes:
   lane 4), the trees +0.05 M (the mid canopy 0.03 M); same split at B / D / E. INBOX 13:43 to fable-cursor / lane 4.
@@ -418,4 +422,4 @@ lands: `ffmpeg` frames at his marked moments → `reference/frames-video2/`, has
   lists the regions; the evidence images are reproducible with the same crops.
 
 ## Last updated
-2026-09-23T13:43:00Z
+2026-09-23T15:31:00Z
