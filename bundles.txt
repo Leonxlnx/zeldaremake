@@ -3,3 +3,4 @@ assets/index-CPEFybHH.js
 assets/index-CyKcY1Gr.js
 assets/index-Cx9KihTI.js
 assets/index-Dptfjurh.js
+assets/index-BpDJW_FW.js
