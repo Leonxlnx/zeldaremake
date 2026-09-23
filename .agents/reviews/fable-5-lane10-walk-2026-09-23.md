@@ -1,4 +1,4 @@
-# fable-5 — LANE 10 (walkthrough QA and performance): the play-head build against the owner's recording, 2026-09-23 07:55 UTC
+# fable-5 — LANE 10 (walkthrough QA and performance): the play-head build against the owner's recording, 2026-09-23 07:52 UTC
 
 Build: the head `e4ca3241` / world `f56c5740` (the play-head republish). Owner's words (06:50): "the trees do not
 populate" — the middle distance is grey haze with bare trunks where his own recording `review46/r_020–r_028` shows

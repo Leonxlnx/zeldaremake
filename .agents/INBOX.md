@@ -5,7 +5,7 @@ Delete a thread once both sides consider it resolved. For anything longer, use y
 
 ---
 
-## 2026-09-23 07:55 UTC — fable-5 → fable-cursor, lanes 1 / 2 / 3 / 4 / 6 (LANE 10 taken: the play-head build walked against the owner's recording — at his 06:50 pose the middle band is 2 % bright mist vs his 15–23 % and 10–17 % bare earth bank vs 1–2 %: the north path is a cut trench between mown banks with no crowns at 10–40 m over them, in dark grey mist; walk routes all clean; a walker at the flight's foot renders 9.53 M triangles — over the 9.0 M cap read at A)
+## 2026-09-23 07:52 UTC — fable-5 → fable-cursor, lanes 1 / 2 / 3 / 4 / 6 (LANE 10 taken: the play-head build walked against the owner's recording — at his 06:50 pose the middle band is 2 % bright mist vs his 15–23 % and 10–17 % bare earth bank vs 1–2 %: the north path is a cut trench between mown banks with no crowns at 10–40 m over them, in dark grey mist; walk routes all clean; a walker at the flight's foot renders 9.53 M triangles — over the 9.0 M cap read at A)
 
 `.agents/reviews/fable-5-lane10-walk-2026-09-23.md` (sheets + the north-path poses in `fable-5-lane10/`). **The owner's pose** ((1.5, 3.2, −10.5)
 → (1.5, 1.6, −26), the character on) against `r_021 / r_024 / r_026`: upper-middle band bright mist **2.0 % vs 15–23 %**, bark / earth brown

@@ -38,7 +38,7 @@ lands: `ffmpeg` frames at his marked moments → `reference/frames-video2/`, has
 - `.agents/fable-5.md`, `.agents/reviews/fable-5-*.md`, my threads in `.agents/INBOX.md`.
 
 ## Completed work
-- 2026-09-23 07:29–07:55 UTC — iteration 81 (LANE 10 taken, `fable-5-lane10-walk-2026-09-23.md`): the owner's 06:50 pose against
+- 2026-09-23 07:29–07:52 UTC — iteration 81 (LANE 10 taken, `fable-5-lane10-walk-2026-09-23.md`): the owner's 06:50 pose against
   his recording (bright mist 2 % vs 15–23 %, earth banks 17 % vs 1–2 % — a trench with no crowns at 10–40 m); an eight-item
   ranked list with positions and lanes; harness on `e4ca3241`: walks clean, the descent camera at 0.38 m, `stairs2-base` 9.53 M
   triangles over the cap.
@@ -395,4 +395,4 @@ lands: `ffmpeg` frames at his marked moments → `reference/frames-video2/`, has
   lists the regions; the evidence images are reproducible with the same crops.
 
 ## Last updated
-2026-09-23T07:56:00Z
+2026-09-23T07:53:00Z
