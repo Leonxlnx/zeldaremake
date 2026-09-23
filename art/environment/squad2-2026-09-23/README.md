@@ -123,11 +123,52 @@ regression, and the structural numbers (draws, triangles) are.
 `plaza-to-south-bank-top`, `saria-front-arc`, `west-deck`, `plaza-loop`, `south-approach`,
 `house-west-to-saria-door`, `west-house-to-plaza`, `north-clearing-ledge`), and `pageErrors` is empty.
 
+## Where the new layer sits
+
+`probe-look.mjs` with a red emissive on the `distant-crown-mid` material marks every mid crown in a
+frame, and `--pick` names the mesh under a pixel. At the owner's pose the marked crowns fill exactly
+the band his red circle 2 covers (`compare/owner-pose-mid-marked.jpg`), and the pick at screen
+(0.30, 0.20) names `mid-7-near` at 18.8 m of depth.
+
+In the open north looking up 60° (`compare/open-north-up60.jpg`, the play camera's own pose from the
+`open-north` look spot) the mid crowns are the dark layered mass over the left half — the canopy roof
+the reference has, where the head showed open blue sky. The pale hard-edged quads at the bottom left
+of that frame are NOT the new layer (they stay pale under the marker): they are already on the head
+in the same place (`play/open-north-up60-base.png` beside the head's playtest shot), and the picks
+there name `column-near-base-seat-2` and `merged:distant-house-bark:hollow-column` at 4.4–5.3 m.
+Passing that on rather than fixing it: columns are lane 3 and the distant house is lane 9.
+
+## Hero views A–F
+
+This change moves them — putting crowns in the 18–45 m band is the point, and the fixed frames look
+through that band too. Nothing hides a landmark: houses, the signpost, the log arch, the stair runs,
+the fences, the NPC spots and the six viewpoints themselves are all in `treeGroundBlocked`'s
+exclusions, and the plaza's sun corridors (which carry the shafts) reject any candidate whose crown
+would fill them. `compare/hero-<id>.jpg` is each view on the head beside the same view here.
+
 ## Files
 
 * `compare/north.jpg`, `compare/plaza-fork.jpg`, `compare/west.jpg` — before | after, full frame, at
   the three poses of `art/environment/owner-2026-09-23/pass3/owner-0650-poses.json`.
 * `compare/north-band.jpg`, `compare/west-band.jpg` — the same pairs cropped to the middle-distance band.
 * `compare/north-vs-reference.jpg` — the owner's `review46/r_025` beside our north pose.
+* `compare/owner-pose-mid-marked.jpg`, `compare/open-north-up60.jpg` — the same frame with the mid
+  crowns marked red (`probe-look.mjs --variants … material distant-crown-mid, emissive red`).
+* `compare/hero-*.jpg` — the five reachable fixed views (A, B, C, D, F — E is B's held copy) on the
+  head beside this branch.
+* `playtest-after.json`, `playtest-base-perf.json`, `play/` — the play-mode runs and their shots.
+* `hero-poses.json`, `mid-probe-poses.json`, `look-up-poses.json` — the pose files used here.
 * `compare.mjs` — the sheet builder (`--pair label=file`, `--crop`, `--stats`).
 * `band.mjs` — the band measurement above.
+
+## Next in this lane
+
+1. Mid trees do not cast: the whole distant family has `castShadow = false`, and the crown cards have
+   no depth material, so turning casting on would first need one (a card would otherwise cast as a
+   solid quad). The middle distance's dapple is worth it — a separate PR.
+2. The mid boles are not in `ctx.shared.slimTrunks`, so the follow camera passes through one. Every
+   look spot's camera position is byte-identical to the head's, so this is cosmetic; a push-out for
+   the two tall variants may still be worth it.
+3. Astra's PR #29 (`nearCanopy.ts` layered-core records + the `giant.ts` selection) against the head's
+   memory-tier admission, as the lane row asks.
+4. The far ring from below in the open north, re-read now that the mid layer stands in front of it.
