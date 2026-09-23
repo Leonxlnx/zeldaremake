@@ -72,11 +72,12 @@
  * others sit right of the arch, above it (the arch's top projects at y ≥ 0.35, every lit point at
  * y ≤ 0.20). None is in front of the stair, Saria's house or the arch opening.
  */
-import { BoxGeometry, BufferGeometry, CatmullRomCurve3, Color, CylinderGeometry, Float32BufferAttribute, Group, LatheGeometry, Mesh, Vector2, Vector3 } from 'three';
+import { BoxGeometry, BufferGeometry, CatmullRomCurve3, Color, CylinderGeometry, Float32BufferAttribute, Group, LatheGeometry, Mesh, TorusGeometry, Vector2, Vector3 } from 'three';
 import type { TrunkSeat, WalkSurface, WorldContext } from '../system';
 import type { Rng } from '../util/prng';
 import { FoliageBuilder } from './foliage';
-import { basisMatrix, gridSurface, merge, setColorAttribute, sweepTube, TAU } from './geometry';
+import { basisMatrix, ensureColor, faceTowards, gridSurface, merge, setColorAttribute, sweepTube, TAU } from './geometry';
+import { buildLantern, type LanternRig } from './lantern';
 import { MOSS_ALBEDO_PEAK, Noise3D, WOOD_ON_FENCE_WOOD, type StructureMaterials } from './materials';
 import { buildMossTufts, type MossTuftSpec } from './mossTufts';
 
@@ -280,6 +281,8 @@ export type HutWalkSurface = WalkSurface;
 
 export interface DistantHouseBuild {
   group: Group;
+  /** round 55: the dressed huts' crafted near lanterns (their pivots are in `group`) */
+  lanterns: LanternRig[];
   /** round 49: every hut's platform, deck and wall for the character ground */
   walk: HutWalkSurface[];
   /** the one emissive mesh shared by all houses */
@@ -392,6 +395,8 @@ const REVEAL_DARK: RGB = [0.02, 0.016, 0.012];
 /** dark, unlit parts riding in the glow mesh: pod caps and fins, stems */
 const POD_CAP: RGB = [0.05, 0.075, 0.025];
 const POD_STEM: RGB = [0.06, 0.045, 0.03];
+/** round 55: the pods' bent-wood frame at distant LOD */
+const POD_FRAME: RGB = [0.045, 0.032, 0.02];
 
 const lerp = (a: number, b: number, t: number) => a + (b - a) * t;
 const clamp = (v: number, a: number, b: number) => Math.min(b, Math.max(a, v));
@@ -685,6 +690,29 @@ function distantPod(top: Vector3, s: number, body: RGB, rng: Rng): BufferGeometr
       ),
     );
   }
+  // round 55: the crafted lantern's frame at distant LOD (lantern.ts lanternFrame) — six dark ribs
+  // standing off the body between the fins and a hoop round its foot, so a hut's pod seen from
+  // under its platform reads as a framed lantern rather than a bare glow (no draw from `rng`)
+  for (let k = 0; k < 6; k++) {
+    const phi = phase + ((k + 0.5) / 6) * TAU;
+    parts.push(
+      gridSurface(
+        (u, v, out) => {
+          const y = lerp(0.03, 0.3, u);
+          const r = podBodyRadius(y) + 0.007;
+          const phiV = phi + ((v - 0.5) * 0.012) / Math.max(r, 0.02);
+          out.position.set(Math.cos(phiV) * r * s, y * s, Math.sin(phiV) * r * s);
+          out.uv = [v, u];
+          out.color = POD_FRAME;
+        },
+        { cols: 2, rows: 6 },
+      ),
+    );
+  }
+  const hoop = new TorusGeometry((podBodyRadius(0.035) + 0.005) * s, 0.008 * s, 3, 10);
+  hoop.rotateX(Math.PI / 2);
+  hoop.translate(0, 0.035 * s, 0);
+  parts.push(setColorAttribute(hoop, POD_FRAME));
   const geo = dropDegenerate(merge(parts));
   geo.translate(top.x, top.y - (POD_TOP + POD_STEM_H) * s, top.z);
   return geo;
@@ -737,6 +765,8 @@ export function buildDistantHouses(ctx: WorldContext, mats: StructureMaterials, 
   const group = new Group();
   group.name = 'distant-houses';
   const glowParts: BufferGeometry[] = [];
+  /** round 55: the dressed huts' crafted lanterns (the near lanterns, swung by the structures system) */
+  const lanterns: LanternRig[] = [];
   /** round 45 (details-1): the huts' soffit boards, one mesh in `mats.fenceWood` (see `soffit`) */
   const soffitParts: BufferGeometry[] = [];
   const audit: DistantHouseBuild['audit'] = [];
@@ -1255,6 +1285,69 @@ export function buildDistantHouses(ctx: WorldContext, mats: StructureMaterials, 
     // ---- planks: platform, walkway stub, window bars, pod hangers ----
     const plankParts: BufferGeometry[] = [];
     const platR = R + 0.22;
+
+    // ---- round 55 (owner review 2026-09-23: the side bungalows' "roof edges, trim, openings"): a
+    // sill band round the wall's foot (broken at the door), a wall plate under the eave (broken where
+    // the window reaches it), a ledge under the window, and a bark EAVE ROLL under the moss edge so
+    // the roof ends in a thick lip instead of a sheet. Each hut its own trim tone; own fork. ----
+    const eaveRoll: BufferGeometry[] = [];
+    {
+      const tr = r.fork('trim55');
+      const tone = tr.range(0.85, 1.2);
+      const trim: RGB = [PLANK_DARK[0] * tone * 1.2, PLANK_DARK[1] * tone * 1.15, PLANK_DARK[2] * tone * 1.1];
+      const steps = Math.max(36, Math.round((TAU * R) / 0.3));
+      const band = (yMid: number, height: number, skip: (a: number) => boolean) => {
+        const _a = new Vector3();
+        const _b = new Vector3();
+        for (let k = 0; k < steps; k++) {
+          const a0 = (k / steps) * TAU;
+          const a1 = ((k + 1) / steps) * TAU;
+          if (skip(a0) || skip(a1)) continue;
+          wallSurface(a0, yMid, _a, 0.035);
+          wallSurface(a1, yMid, _b, 0.035);
+          // a hair of overlap so the segments join
+          const d = _b.clone().sub(_a).multiplyScalar(0.04);
+          plankParts.push(bar(_a.clone().sub(d), _b.clone().add(d), 0.055, [trim[0] * tr.range(0.92, 1.08), trim[1], trim[2]], height));
+        }
+      };
+      const doorGap = (a: number) => Math.abs(dAngle(a, aDoor)) * R < doorW / 2 + 0.1;
+      band(floorY + 0.07, 0.13, doorGap);
+      const plateY = eaveY - 0.19;
+      band(plateY, 0.1, (a) => inWindow(a, plateY, 0.06) || inDoor(a, plateY, 0.06));
+      // the ledge under the window
+      const ledgeY = winY - winR - 0.035;
+      const w = (winR + 0.1) / R;
+      plankParts.push(bar(wallSurface(aWin - w, ledgeY, new Vector3(), 0.07), wallSurface(aWin + w, ledgeY, new Vector3(), 0.07), 0.12, [trim[0] * 1.1, trim[1] * 1.08, trim[2] * 1.05], 0.05));
+      // the eave roll: a bark lip under the moss edge, following the cap rim's own wave
+      const tube = def.dressing ? 0.095 : 0.07;
+      const roll = gridSurface(
+        (u, v, out) => {
+          const a = u * TAU;
+          const ang = v * TAU;
+          const rr = eaveR * capRim(a) - 0.055 + Math.cos(ang) * tube;
+          const y = eaveY - 0.16 + Math.sin(ang) * tube * 0.8;
+          out.position.set(c.x + Math.cos(a) * rr, y, c.z + Math.sin(a) * rr);
+          out.uv = [(a * eaveR) / 1.2, v * 0.5];
+          const cord = 0.82 + 0.28 * (0.5 + 0.5 * Math.sin(23 * a + capPhase * 2));
+          const lit = lerp(0.75, 1.15, 0.5 + 0.5 * Math.sin(ang));
+          out.color = [SOFFIT[0] * cord * lit * 1.3, SOFFIT[1] * cord * lit * 1.25, SOFFIT[2] * cord * lit * 1.2];
+        },
+        { cols: Math.max(32, steps), rows: 6, closedU: true },
+      );
+      // normals out from the tube's core circle
+      faceTowards(roll, (p, o) => {
+        const a = Math.atan2(p.z - c.z, p.x - c.x);
+        const core = eaveR * capRim(a) - 0.055;
+        return o.set(p.x + (p.x - (c.x + Math.cos(a) * core)), p.y + (p.y - (eaveY - 0.16)), p.z + (p.z - (c.z + Math.sin(a) * core)));
+      });
+      eaveRoll.push(roll);
+    }
+    // the roll rides in the cap skirt's bark mesh (no draw of its own)
+    {
+      const skirtWithRoll = merge([capSkirt, ...eaveRoll]);
+      tris += triangles(skirtWithRoll) - triangles(capSkirt);
+      skirtMesh.geometry = skirtWithRoll;
+    }
     plankParts.push(ring(c, 0.02, platR, floorY + 0.01, true, () => PLANK, 24, 3));
     plankParts.push(ring(c, 0.02, platR, floorY - 0.22, false, () => PLANK, 24, 3));
     plankParts.push(
@@ -1329,6 +1422,14 @@ export function buildDistantHouses(ctx: WorldContext, mats: StructureMaterials, 
     const pods: Vector3[] = [];
     const hang = (from: Vector3, drop: number, color: RGB, bracketFrom?: Vector3) => {
       if (bracketFrom) plankParts.push(bar(bracketFrom, from, 0.045, PLANK_DARK));
+      if (def.dressing) {
+        // round 55: a hut the player walks up to hangs the crafted near lantern (own fork per pod)
+        const rig = buildLantern(from, drop, mats, r.fork(`lantern55/${pods.length}`), 1.1, color === GLOW_LIME ? 'lime' : 'orange');
+        group.add(rig.pivot);
+        lanterns.push(rig);
+        pods.push(rig.pod.clone());
+        return;
+      }
       const podTop = from.clone().setY(from.y - drop);
       plankParts.push(bar(from, podTop, 0.03, PLANK_DARK));
       // body radius 0.148 s = 0.8 podR: the lit body about the size of round 16's sphere
@@ -1426,10 +1527,20 @@ export function buildDistantHouses(ctx: WorldContext, mats: StructureMaterials, 
           const [t, drop, col] = cluster[i];
           curve.getPointAt(t, _bp);
           const hook = _bp.clone().setY(_bp.y - boughR(t) + 0.01);
-          const podTop = hook.clone().setY(hook.y - drop);
-          plankParts.push(bar(hook, podTop, 0.025, PLANK_DARK));
-          glowParts.push(distantPod(podTop, podS, col, dr.fork(`bough-pod/${i}`)));
-          const centre = podTop.clone().setY(podTop.y - (POD_STEM_H + POD_TOP - POD_BODY_MID) * podS);
+          // round 55: the crafted near lantern, its cord tied round the limb with two turns
+          const rig = buildLantern(hook, drop, mats, dr.fork(`bough-lantern55/${i}`), podS, col === GLOW_LIME ? 'lime' : 'orange');
+          group.add(rig.pivot);
+          lanterns.push(rig);
+          const tangent = curve.getTangentAt(t, new Vector3());
+          for (const off of [-0.018, 0.018]) {
+            const turn = new TorusGeometry(boughR(t) + 0.012, 0.009, 5, 14);
+            turn.lookAt(tangent);
+            const at = _bp.clone().addScaledVector(tangent, off);
+            turn.translate(at.x, at.y, at.z);
+            ensureColor(turn, [0.42, 0.32, 0.22]);
+            plankParts.push(turn);
+          }
+          const centre = rig.pod.clone();
           pods.push(centre);
           dressAudit.boughPods.push([+centre.x.toFixed(2), +centre.y.toFixed(2), +centre.z.toFixed(2)]);
         }
@@ -1660,6 +1771,7 @@ export function buildDistantHouses(ctx: WorldContext, mats: StructureMaterials, 
   const constPeak = (t: RGB) => +(Math.max(t[0], t[1], t[2]) * peak).toFixed(2);
   return {
     group,
+    lanterns,
     walk,
     glow,
     soffit,

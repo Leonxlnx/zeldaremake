@@ -159,6 +159,8 @@ export async function create(ctx: WorldContext): Promise<WorldSystem> {
   // The west house's platform / deck / wall go to ctx.shared.walkSurfaces for the character ground. ----
   const expansion = buildExpansion(ctx, mats, rng.fork('expansion'), rope);
   bases.push(...expansion.bases);
+  // round 55: the dressed huts' crafted lanterns swing with the rest
+  lanterns.push(...distant.lanterns, ...expansion.houses.lanterns, ...expansion.farHouse.lanterns);
   ctx.shared.walkSurfaces = [...(ctx.shared.walkSurfaces ?? []), ...expansion.houses.walk];
 
   // the play camera's solids (cameraSolids.ts), voxelised from the parts by name before the merges
