@@ -95,3 +95,26 @@ darkens the north path's stand a little more — fable-5's V2 read had the trunk
   numbers above use `__ZR__.setTime(100)` before every render, noise floor < 0.5 %.
 - Scratch scripts (not committed): `_f4poses.mjs` (seat N third-person poses through `__ZR__.probe`),
   `_f4attrib.mjs` (hide-one-group tally), `_f4panels.mjs` (frames with a named group hidden).
+
+## Fourth pass — Astra's `astra-distance-real-leaves` (0cf52076) at `owner-clarity-1`, fable-5's `clarity.py`
+Her branch built from source as is (it diverges from the head in 36 source files — audio, character,
+canopy roof, fog — so this reads her branch's distance look, not one commit). Head `746f1d39` for the
+comparison; the owner's box; `analyse` + `shape` unchanged.
+
+| whole region | head `746f1d39` | Astra real leaves | fable-5's target |
+|---|---|---|---|
+| edge transition | 5.0 px | **2.9 px** | ≤ 4.5 px |
+| silhouette finer than 9 px | 1.8 % | **8.4 %** | ≥ 10 % |
+| crown blobs ≥ 30 px | 4 (median 21 526 px) | **14 (median 82 px)** | leaf-scale |
+| crown l / sat / hue | 0.46 / 0.05 / 54° | 0.53 / 0.03 / 82° | 0.30–0.35, 45–60° |
+| background hue / l | **49° / 0.61** (lane 1's warm veil) | 207° / 0.68 (blue sky — her base predates the veil) | 45–60° |
+| triangles / draws at the pose | 3.61 M / 437 | 4.51 M / 262 | |
+
+`owner-clarity-1_head-746f1d39_vs_astra-real-leaves.jpg` (the circled region, ×1.1): the head is warm
+haze with soft card shapes; her build is leaf-scale foliage. Reading: her real distant leaves close the
+**silhouette half** of the owner's circle (the "big blurry shapes") — the edge under the 4.5 px target,
+the fine share from 1.8 to 8.4 %, one 21 K-pixel mass into fourteen leaf-scale blobs — at **+0.9 M
+triangles** at this pose (the eight close crowns). The hue half is lane 1's and already on the head
+(49°); her branch lacks it, so her crowns read pale (l 0.53) against blue — on the head they would sit in
+the warm haze. The head's own numbers moved since the morning's 6.7 px / 75° through lane 1 and the
+floor-card work. The draws (262 vs 437) are not comparable — her base lacks today's cast and layers.

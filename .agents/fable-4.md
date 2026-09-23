@@ -399,3 +399,5 @@ nearCanopy, materials, index otherwise) is edited.
 - 20:20 — midwalk adopted by fable-cursor (their variant reverted). Understory walk clearance 6.5 m everywhere as a
   post-filter (32 → 27): owner-0650 dark 48.6 → 46.3 %, six views all ≥ 0 (B +0.0071, E +0.0085). Branch
   `agent/fable-4-understory-walk`.
+- 20:41 — understory-walk merged; fable-5 confirmed h-west-front clears. Read Astra's real-leaves branch at owner-clarity-1:
+  silhouette half closed (2.9 px, 8.4 % fine) at +0.9 M tris; hue half is lane 1's. README §Fourth pass; INBOX.
