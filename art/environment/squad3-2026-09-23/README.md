@@ -128,6 +128,19 @@ aimed.
   family has had exactly this term since round 48 (`DISTANT_SHADE_SIDE` 0.38); the giants and
   white-barks are untouched (each program has its own cache key).
 
+## Play mode
+
+`node gauntlet/scripts/playtest.mjs --dist dist --out … --only look,walk,perf --shots`, run on the
+integration head and on this branch:
+
+- all nine walk routes reach every waypoint on both, with zero stuck points and no page errors;
+- draw calls are identical at every perf spot (plaza 521, stairs2-base 522, saria-side 519,
+  west-house 442);
+- triangles move by the knee stubs alone: plaza 7,440,719 → 7,442,995, stairs2-base
+  9,525,649 → 9,528,105, saria-side 8,587,286 → 8,589,022, west-house 5,033,732 → 5,033,520
+  (+0.03 % at worst). stairs2-base already sat over the 9 M note in `trees/index.ts` on the head;
+  this branch does not change that either way.
+
 ## The sheets
 
 `final/` holds, for each pose, the integration head on the left and this branch on the right:
