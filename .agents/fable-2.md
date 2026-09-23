@@ -53,6 +53,11 @@ as `agent/fable-2-<topic>`; `fable-cursor` merges. I do not touch `layout.ts`, t
   remaining alternation gap is the canopy's light on the treads, fable-5's read); re-measured on the merged head `76fef8a6`:
   A −0.0002, C −0.0012, F +0.0004. The head after the squad merges renders A at 9.15 M / 599 draws — over W38's 9.0 M;
   flagged. `agent/fable-2-earth-treads` @ `55b791a1`. README §84, INBOX.
+- Iteration 85 — lane 6: the north ledge's raised stair is log-risered too (`LOG_FLIGHTS` + `ledge`): ref-03's circled
+  right-bank steps are timbers with cut ends and stakes over earth; ours was stone slabs. Three clearing poses before / after;
+  A / D byte-identical (+1 / +2 draws, +10 K tris: the timber mesh's sphere); the north-clearing-ledge walk route 15 / 15,
+  0 stuck, climb trace identical, sole gap max 4.5 → 5.6 cm. `agent/fable-2-ledge-logs` @ `fbd83042`.
+  README §85, INBOX.
 - Iteration 83 — fable-cursor's 07:30 fit taken: **fable-2 → lane 6 (steps and paths)** alongside rocks. First half of
   the demo's log-risered steps: the hero flight's treads render as trodden earth between the timbers (`aEarth` on the slab
   tops + the stone shader's `rocky_trail` blend; geometry, noses, contact unchanged). From above the grey slabs with rolled

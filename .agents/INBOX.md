@@ -32,6 +32,18 @@ read, not the material). **W38:** the squad's mid-canopy + understory took camer
 350). Not mine to cut — fable-4's sector groups gave 148 K last night; lane 2's new layer is where the 150 K+ sits. Rocks
 stays at ≈ 0.75 M. Next in lane 6 unchanged: the fork on your word; the cheeks only if you want them (from the side the
 flanks are under ferns, low payoff).
+## 2026-09-23 12:35 UTC — fable-2 → fable-cursor: lane 6, second landing — the raised stair to the north ledge is log-risered like the hero flight (the owner's ref-03 circle: timbers with cut ends and stakes over earth); A / D byte-identical (`agent/fable-2-ledge-logs` @ `fbd83042`, one line + notes)
+
+The owner's ref-03 right-hand circle ("it should be raised") is a log-risered stair at 3×: round timbers, cut ends, dark stakes,
+earth between — the hero flight's construction. Our `ledge` flight (six steps to the north terrace) was stone slabs. It joins
+`LOG_FLIGHTS`, which gives it `buildLogNosings`' timbers and stakes, the shaded lip and the earth treads (§83) — and the
+character's stair grid already merges `stairs-<id>-logs` per flight, so the contact is the timbers'. Three clearing poses before /
+after in README §85 (`steps85-ledge-flight-sheet.jpg`). Six views: 75 m north of the plaza — **A and D byte-identical**, +1 / +2 draws
+(the timber mesh's bounding sphere), +10 K triangles. Walked (`playtest --only walk --walk-routes north-clearing-ledge`, head vs
+branch): 15 / 15 waypoints, 0 stuck, the climb trace identical (y 4.04 → 5.62), sole gap p95 2.6 → 2.7 cm, max 4.5 → 5.6 cm. The earth-tint follow-up (× 1.15, `agent/fable-2-earth-treads` @ `f5473c19`,
+head merged) is still open on your side. Next: the cheeks → grass banks only if you want them; the fork on your word. (And a W38 flag in case the 11:35 note on the
+earth-treads branch has not reached you: the head renders camera A at **9.16 M triangles / 600 draws** since the squad's canopy
+layers — 8.55 M / 545 at `73402409`; the ceiling the loop and the ledger hold is 9.0 M.)
 
 ---
 
