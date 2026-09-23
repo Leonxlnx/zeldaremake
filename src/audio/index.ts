@@ -17,6 +17,7 @@ import type { Object3D, Scene, Vector3 } from 'three';
 import type { Wind } from '../world/wind/wind';
 import type { PlayerHandle } from '../world/character/player';
 import { surfaceMask } from '../world/terrain/heightfield';
+import { forestFloorZone } from '../world/terrain/material';
 import { EXPANSION, LAYOUT } from '../world/layout';
 import { createBuses, createRng, type Buses } from './graph';
 import { createAmbience, type Ambience, type Vec3 } from './ambience';
@@ -34,7 +35,7 @@ export interface AudioHandle {
   setMuted(muted: boolean): void;
   music(): MusicSource;
   /** render `seconds` of the mix offline: 16-bit stereo WAV bytes + the music source it used */
-  renderOffline(seconds: number, sampleRate?: number): Promise<OfflineRender>;
+  renderOffline(seconds: number, sampleRate?: number, options?: OfflineOptions): Promise<OfflineRender>;
   dispose(): void;
 }
 
@@ -42,6 +43,36 @@ export interface OfflineRender {
   wav: Uint8Array;
   music: MusicSource;
 }
+
+/** what an offline render contains — the evidence path renders the parts separately */
+export interface OfflineOptions {
+  /** `mix` = what the player hears, `bed` = the ambience alone, `steps` = the footsteps alone */
+  stem?: 'mix' | 'bed' | 'steps';
+  /** include the music bus (default: only in `mix`) */
+  music?: boolean;
+}
+
+/** one leg of the offline walk: seconds, ground speed (m/s) and what is underfoot */
+export interface WalkLeg {
+  until: number;
+  speed: number;
+  surface: Surface;
+}
+
+/**
+ * The scripted walk the offline render uses, so a before / after pair is the same journey and the
+ * analysis can label each surface's steps: stand, walk every surface in turn, run, stand.
+ */
+export const OFFLINE_WALK: readonly WalkLeg[] = [
+  { until: 3, speed: 0, surface: 'grass' },
+  { until: 8, speed: 1.5, surface: 'grass' },
+  { until: 13, speed: 1.5, surface: 'dirt' },
+  { until: 18, speed: 1.5, surface: 'stone' },
+  { until: 22, speed: 1.5, surface: 'wood' },
+  { until: 26, speed: 1.5, surface: 'hollow' },
+  { until: 31, speed: 4.2, surface: 'stone' },
+  { until: 35, speed: 0, surface: 'grass' },
+];
 
 export interface AudioOptions {
   scene: Scene;
@@ -85,6 +116,9 @@ function gatherPods(scene: Scene): Vec3[] {
  *  - stone:  the flagstone paths and the stair treads (surfaceMask path / stairs, live view — the
  *            expansion's stepping discs count)
  *  - dirt:   the trodden shoulders beside the paving (path influence 0.12–0.5) and the stair aprons
+ *  - leaf:   the north forest floor (the terrain's own `forestFloorZone` — the ground the litter
+ *            and humus patch covers, north of the log arch and off the path past the hollow's
+ *            mouth). The owner's 09-23 list names leaves as one of the four surfaces.
  *  - grass:  everything else
  */
 export function surfaceAt(x: number, z: number): { surface: Surface; stairs: boolean } {
@@ -122,6 +156,7 @@ export function surfaceAt(x: number, z: number): { surface: Surface; stairs: boo
   }
   if (m.path > 0.5) return { surface: 'stone', stairs: false };
   if (m.path > 0.12) return { surface: 'dirt', stairs: false };
+  if (forestFloorZone(x, z) > 0.5) return { surface: 'leaf', stairs: false };
   return { surface: 'grass', stairs: false };
 }
 
@@ -157,18 +192,19 @@ export function mountAudio(o: AudioOptions): AudioHandle {
     ambience.update(t, { gust: o.wind?.uniforms.uGust.value ?? 0.4, listener, forward: { x: fwd[0] / fl, z: fwd[2] / fl }, pods });
     ambience.scheduleUntil(ctx.currentTime + 4);
     music.scheduleUntil(ctx.currentTime + 6);
-    // footsteps from the player's ground speed
+    // footsteps: the gait's own boot plants when the character system reports them, the ground
+    // speed otherwise (see footsteps.ts — a step is heard when a boot lands, not on a stride timer)
     if (p && player?.playMode?.()) {
       if (Number.isFinite(lastPos.x)) {
         const speed = Math.hypot(p.x - lastPos.x, p.z - lastPos.z) / Math.max(dt, 1e-3);
         const s = surfaceAt(p.x, p.z);
-        footsteps.drive(t, dt, speed, s.surface, s.stairs);
+        footsteps.drive(t, dt, { speed, surface: s.surface, onStairs: s.stairs, stance: player.feetContact?.()?.map((f) => f.stance) });
       }
       lastPos.x = p.x;
       lastPos.z = p.z;
     } else {
       lastPos.x = NaN;
-      footsteps.drive(t, dt, 0, 'grass', false);
+      footsteps.drive(t, dt, { speed: 0, surface: 'grass', onStairs: false });
     }
     raf = requestAnimationFrame(tick);
   };
@@ -228,7 +264,7 @@ export function mountAudio(o: AudioOptions): AudioHandle {
     toggleMute: () => setMuted(!muted),
     setMuted,
     music: () => musicSource,
-    renderOffline: (seconds, sampleRate = 44100) => renderOffline(o, seed, seconds, sampleRate),
+    renderOffline: (seconds, sampleRate = 44100, options) => renderOffline(o, seed, seconds, sampleRate, options),
     dispose() {
       cancelAnimationFrame(raf);
       window.removeEventListener('pointerdown', onGesture, true);
@@ -246,21 +282,29 @@ export function mountAudio(o: AudioOptions): AudioHandle {
 
 /**
  * Offline evidence render: the same graph in an OfflineAudioContext with the wind's gust
- * envelope (wind.ts) evaluated from time, the pods gathered from the scene, and a scripted walk:
- * Link stands 2 s, walks on grass 6 s, on stone 6 s, runs 4 s, stops. Exposed as
- * `window.__ZR_AUDIO__.renderOffline(seconds)` by the shell so a headless page (no gesture, no
- * output device) can still produce the WAV.
+ * envelope (wind.ts) evaluated from time, the pods gathered from the scene, and the scripted walk
+ * in `OFFLINE_WALK` — Link stands, crosses grass, trodden earth, flagstones, deck planks and the
+ * log tunnel at a walk, runs on stone, stops. Exposed as
+ * `window.__ZR_AUDIO__.renderOffline(seconds, rate, options)` by the shell so a headless page
+ * (no gesture, no output device) can still produce the WAV; `options.stem` renders the ambience
+ * bed or the footsteps alone so each can be measured without the other masking it.
  */
-export async function renderOffline(o: AudioOptions, seed: string, seconds: number, sampleRate: number): Promise<OfflineRender> {
+export async function renderOffline(o: AudioOptions, seed: string, seconds: number, sampleRate: number, options: OfflineOptions = {}): Promise<OfflineRender> {
+  const stem = options.stem ?? 'mix';
+  const withMusic = options.music ?? stem === 'mix';
   const Ctor = window.OfflineAudioContext ?? (window as unknown as { webkitOfflineAudioContext?: typeof OfflineAudioContext }).webkitOfflineAudioContext;
   if (!Ctor) throw new Error('OfflineAudioContext unavailable');
   const ctx = new Ctor(2, Math.ceil(seconds * sampleRate), sampleRate);
   const rng = createRng(seed);
   const buses = createBuses(ctx, rng.fork('buses'));
-  const ambience = createAmbience(ctx, buses.ambience, buses.reverb, rng.fork('ambience'), 0);
-  const footsteps = createFootsteps(ctx, buses.sfx, buses.reverb, rng.fork('footsteps'), 0);
-  const music = createMusic(ctx, buses.music, buses.reverb, rng.fork('music'), 0.5);
-  const musicSource = await music.ready;
+  // every fork is drawn whatever the stem, so one part's stream never depends on another's presence
+  const ambienceRng = rng.fork('ambience');
+  const footstepsRng = rng.fork('footsteps');
+  const musicRng = rng.fork('music');
+  const ambience = stem === 'steps' ? null : createAmbience(ctx, buses.ambience, buses.reverb, ambienceRng, 0);
+  const footsteps = stem === 'bed' ? null : createFootsteps(ctx, buses.sfx, buses.reverb, footstepsRng, 0);
+  const music = withMusic ? createMusic(ctx, buses.music, buses.reverb, musicRng, 0.5) : null;
+  const musicSource = music ? await music.ready : 'none';
   const pods = gatherPods(o.scene);
   // listener path: starts under the lantern bough (the plaza) and walks north-east
   const gust = (t: number) => {
@@ -272,34 +316,14 @@ export async function renderOffline(o: AudioOptions, seed: string, seconds: numb
   let x = 0;
   let z = 2;
   for (let t = 0; t < seconds; t += step) {
-    let speed = 0;
-    let surface: Surface = 'grass';
-    // a scripted walk over every surface: grass, the trodden shoulder, flagstones, the deck's
-    // planks, the log tunnel's hollow, then a run on stone
-    if (t >= 2 && t < 6) speed = 1.6;
-    else if (t >= 6 && t < 9) {
-      speed = 1.6;
-      surface = 'dirt';
-    } else if (t >= 9 && t < 13) {
-      speed = 1.6;
-      surface = 'stone';
-    } else if (t >= 13 && t < 16) {
-      speed = 1.6;
-      surface = 'wood';
-    } else if (t >= 16 && t < 19) {
-      speed = 1.6;
-      surface = 'hollow';
-    } else if (t >= 19 && t < 23) {
-      speed = 4.2;
-      surface = 'stone';
-    }
-    x += speed * step * 0.6;
-    z -= speed * step * 0.8;
-    ambience.update(t, { gust: gust(t), listener: { x, y: 1.2, z }, forward: { x: 0.6, z: -0.8 }, pods });
-    footsteps.drive(t, step, speed, surface, false);
+    const leg = OFFLINE_WALK.find((l) => t < l.until) ?? OFFLINE_WALK[OFFLINE_WALK.length - 1];
+    x += leg.speed * step * 0.6;
+    z -= leg.speed * step * 0.8;
+    ambience?.update(t, { gust: gust(t), listener: { x, y: 1.2, z }, forward: { x: 0.6, z: -0.8 }, pods });
+    footsteps?.drive(t, step, { speed: leg.speed, surface: leg.surface, onStairs: false });
   }
-  ambience.scheduleUntil(seconds);
-  music.scheduleUntil(seconds);
+  ambience?.scheduleUntil(seconds);
+  music?.scheduleUntil(seconds);
   const buffer = await ctx.startRendering();
   return { wav: encodeWav(buffer), music: musicSource };
 }
