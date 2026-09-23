@@ -513,6 +513,7 @@ async function boot() {
           canvas: [renderer.domElement.width, renderer.domElement.height],
           camera: { position: c.position.toArray(), direction: d.toArray(), fov: c.fov, near: c.near, aspect: c.aspect },
           link: p && player ? [p.x, player.groundHeight(p.x, p.z), p.z] : null,
+          feet: player?.feetContact?.() ?? null,
           heading: player ? player.heading() : null,
           air: player ? player.airHeight() : 0,
           groundUnderCamera: terrain.height(c.position.x, c.position.z),

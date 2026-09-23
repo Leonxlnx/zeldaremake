@@ -29,6 +29,12 @@ export interface PlayerHandle {
   groundHeight(x: number, z: number): number;
   /** the rendered walking surface under (x, z): `groundHeight` raised to the rendered stair stones / timbers */
   surfaceHeight(x: number, z: number): number;
+  /**
+   * both boots against the rendered surface as last posed: the sole's gap over the stone / timber
+   * under it and the smallest gap over the boot's footprint (m, negative = inside), and whether
+   * the gait calls the foot a stance foot (play-test harness)
+   */
+  feetContact?(): { gapM: number; minShoeGapM: number; stance: boolean }[];
   /** put Link at rest at (x, z) facing `yaw` (play-test harness and authoring) */
   place(x: number, z: number, yaw: number): void;
 }
