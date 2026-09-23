@@ -379,3 +379,6 @@ nearCanopy, materials, index otherwise) is edited.
 - 12:01 — fable-cursor merged the 44-tree understory (e4c02b82) alongside squad2's mid-canopy cards; reviewed the
   combined corridor at 7 poses (complementary depths, no doubling; +1.18 M at the owner's pose mostly squad2's).
   The arch-stretch commit (34 trees, D −0.0033) offered as the D lever; branch carries the head merged.
+- 12:33 — the west fork (fable-3): understory clearing 8.5 m at (−10.5, 8.5) (44 → 32 trees); the dome hiding the
+  marker attributed to vegetation (58.6 %), not trees. Branch `agent/fable-4-understory` carries the arch-stretch verge
+  + the clearing, head merged.
