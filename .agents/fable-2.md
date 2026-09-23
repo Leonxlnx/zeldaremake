@@ -53,6 +53,10 @@ as `agent/fable-2-<topic>`; `fable-cursor` merges. I do not touch `layout.ts`, t
   remaining alternation gap is the canopy's light on the treads, fable-5's read); re-measured on the merged head `76fef8a6`:
   A −0.0002, C −0.0012, F +0.0004. The head after the squad merges renders A at 9.15 M / 599 draws — over W38's 9.0 M;
   flagged. `agent/fable-2-earth-treads` @ `55b791a1`. README §84, INBOX.
+- Iteration 88 — lane 6, the perf pass: the flagstones stop casting shadows (`flagstones.ts`, one flag; the north and
+  expansion meshes inherit) — A 9.15 → 8.97 M (−180 K, back under W38's 9.0 M), E −190 K, C / D / F −180…−190 K; frames A +0.0001, E 0, C +0.0001, D 0, F +0.0001,
+  0.1 % of pixels by ≤ 40 levels (hairlines on the joints' sunward sides). `agent/fable-2-paving-noshadow` @ `ad0b3f68`.
+  README §88, INBOX.
 - Iteration 85 — lane 6: the north ledge's raised stair is log-risered too (`LOG_FLIGHTS` + `ledge`): ref-03's circled
   right-bank steps are timbers with cut ends and stakes over earth; ours was stone slabs. Three clearing poses before / after;
   A / D byte-identical (+1 / +2 draws, +10 K tris: the timber mesh's sphere); the north-clearing-ledge walk route 15 / 15,

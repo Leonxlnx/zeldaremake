@@ -1,0 +1,81 @@
+# The girl by the signpost, and the cast comes back (fable-3, lane 7, 2026-09-23)
+
+The owner asked twice for "the people" (06:50); fable-cursor handed lane 7 to fable-3 at 12:55: the kids
+stay procedural (`character/kokiri.ts` — no Kokiri asset exists), so the promise is a clear visible step at
+the follow camera's 4–8 m, not Link's sculpt. Start with the girl by the signpost with her fairy (ref-01,
+demo d_023–d_036), then bring the cast back (`backgroundCast.visible = false` since the owner's 09-20
+request) with the girl walking her loop, and keep the light count constant.
+
+## What the follow camera saw (before)
+
+Rendered on the head (`be123deb`) with the cast forced visible, 5 m from kokiri-a on her verge spot: a
+smooth brown helmet of hair hugging the skull, orange-tan skin, a flat green tunic cylinder, a head a
+quarter of her height. ref-01 / d_024 have a wide maroon bob with a sheen, pale peach skin, cloth with
+folds, and a head-and-hair a third of the height.
+
+## What changed (`agent/fable-3-kokiri-girl`)
+
+`character/kokiri.ts`
+- **Proportions** — the head joint (pivoted at the head centre) is scaled ×1.14 (`HEAD_SCALE`): head and
+  hair become a third of the height, with the face, hair and band tuned at r 0.13 growing together. The
+  skull's underside meets the shoulder line as in d_024; the collar tucks under the bob's hem.
+- **Hair volume** — the bob r × 1.10 → 1.16 with a 0.20 hem flare (was 0.11) and seven soft lobes below the
+  band so the outline reads as locks; the crown dome r × 1.14 → 1.18 (its edge still inside the band, at
+  the back too where the band dips); the side locks moved to the bob's cut edge, thicker, 5 mm clear of
+  the cheek; the nape tufts a little bigger.
+- **Hair material** (`girlHair`) — the footage's maroon (0x7e2f33; the old 0x93412f brick rendered
+  orange-brown) under a 512 × 256 canvas: nine broad locks across u (a dark valley and a lighter core
+  each, widths uneven), fine strands in long runs, a shade toward the hem, a lift at the crown; roughness
+  0.9 → 0.58 so the sun leaves a sheen where the crown turns. Every hair part carries UVs onto it: the
+  spheres their own, the fringe a grid (`shell` takes a UV function now), the clumps re-laid (`clumpUv`).
+- **Cloth** (`girlCloth`) — a 256 × 128 canvas on the tunic: four drape valleys in step with the skirt's
+  `cos(4a + 0.7)` fold ridges (`skirtPanel` lays u out as a / 2π now, the lathed upper's UVs are turned to
+  the same convention), shade under the belt and along the hem, a two-texel weave, a soft mottle; the
+  upper carries four shallow geometric fold ridges (`ovalLathe` folds) it never had.
+- **Skin** — 0xbd8a62 → 0xd3a98a (all four looks paler in step): the pale peach of the footage.
+- Same meshes per kid; the belt torus and the headband leave the shadow pass (their shadows fall on the
+  skirt and the hair a centimetre under them).
+
+`character/npc.ts` — the four fairy point lights ride on the npc group, not inside the fairy bodies
+(`structures/index.ts` keeps the north posts' lights in the scene for the same reason): a light that
+leaves or joins the scene changes `NUM_POINT_LIGHTS`, the key every lit program is compiled on — the free
+camera parking on a viewpoint hid the ledge girl's fairy, capture toggled the bank fairy's `light.visible`.
+Now the lights are positioned from `anchor + offset(t)` each frame and dimmed by a `glow` factor (0 for the
+ledge fairy under capture, 0 for the bank fairy under capture, as round 50 had it). The audit reports
+`glow` and `lightInScene` per fairy.
+
+`character/index.ts` — `backgroundCast.visible = true`: the walker on her plaza loop by the signpost, the
+sitter on the steps, the boy at Saria's door, the ledge and bank girls, on their round 47–50 spots (the
+demo's d_090–d_104: kids on the path and the bank). **Shadow-pass scoping**: the sun's shadow window is a
+92 m box fitted ahead of the camera, so every kid in the village was drawn into it each frame — a full
+set of shadow submissions per kid whether the camera saw them or not (camera A read 723 draws with the
+cast back). A kid whose shadow reach (2.6 m; 7 m for the ledge girl, whose shadow can fall down the ledge
+face) misses the view frustum cannot shadow a visible pixel, and stops casting until it can. `castShadow`
+is no program key; the toggle recompiles nothing. The audit reports `kidShadowCasting` / `kidShadowMeshes`.
+
+## Before / after
+
+![5 m, the follow camera](before-after-5m.jpg)
+
+Pose: (5.2, 2.75, 6.3) → (9.0, 1.75, 3.6), vfov 46, high quality, 1280 × 720, `--character`, settle 8. The
+before is the head `be123deb` with the cast forced visible (a throwaway build, nothing committed).
+
+![2.6 m](before-after-close.jpg)
+
+Pose: (6.9, 2.3, 5.1) → (9.0, 1.55, 3.6), vfov 40.
+
+## Play mode
+
+`kokiri-play-walk` (artifact): `?test=1` at 960 × 540, Link placed at (0.8, 6.2) facing the stair foot,
+two seconds standing, then W held for six — the sitter on the steps with her fairy, the walker at her verge
+spot, the boy at Saria's door. Programs 111 → 112 over the walk (one material's first draw), no light-count
+recompile. Draws 711 → 537 as the plaza leaves the frame; the walk ends in the verge's understory (the
+route, not the cast).
+
+## Six views
+
+Measured against the exact head build (`be123deb`, cast hidden — the sealed state) at settle 12. The cast's
+return is an owner-approved look change: the six frames show the kids again where round 47–50 pinned them
+(the walker and the sitter per `VIEW_TABLE`), so the −0.003 rule does not apply to those pixels.
+
+SIX_VIEW_TABLE
