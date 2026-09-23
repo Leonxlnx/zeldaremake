@@ -381,16 +381,26 @@ Nothing outside `src/world/rocks/` except this log, the INBOX and my evidence un
   extension lands on the `ledge` flight's stairs mask and is dropped). The terrace lip east of the
   flight (x 2.1 … 3.5) is still the terrain's mound — a second `rockLedges` entry there is the
   layout's call (asked in the INBOX). Ferns at the foot: vegetation-26's.
-- Camera A renders 9.09 M triangles on the world head `3d50f6c8` (before this change; the loop's
-  ceiling is 9.0 M) — not mine to fix, flagged to fable-cursor.
+- Camera A: 8.67 M triangles on `59c0f961` (476 draws); fable-4's sector groups take another
+  −148 K on `a5dbf45f`. Rocks' share ≈ 0.75 M (§51's map).
 - Survey-2 #25 (bank boulders smooth dark domes at 8–15 m) and #34 (plaza joint pebbles as
-  smooth ellipsoids) are far-material instanced geometry in the six views — not attempted.
+  smooth ellipsoids) are far-material geometry inside the six views — a named look change (C / D,
+  E) before anyone builds them; not attempted.
+- The D boulder's shade at frame D is the canopy's (fable-5's `nocast=trees` switch, §65–§67): a sun
+  corridor onto (−2.0, 0, −7.6) is the trees lane's; the 2 m pose for it is in §65.
+- V16 (the joints as lines): the E box is the lawn slabs, whose joints close under grass — vegetation
+  / hardscape-32's; the flush-stretch implementation waits on `agent/fable-2-v16-fill` (`2a3932df`).
+- `logNosings.ts` is the owner-side agent's since `d4f1feec`: the timbers dark and individual; the
+  flight's remaining weight at A (51 % dark vs the frame's 16 %) is the treads' light and albedo per
+  fable-5, not the logs — the §78 `LOG_TINT` offer stands only on fable-cursor's word.
 
 ## Recommended next work
-- GOAL_MODE fable-2 #2: opus #10, the shot-D boulder's tonal read at 2 m (`sn-boulder-shotd`).
-- #3: scree at the ledge flight's flanks, a boulder pair on the clearing's west bank, half-buried
-  strata along the terrace face (positions: `art/environment/round47-review/README.md`).
-- #4: `pathEdgePebble` per-candidate draws.
+- Each new head: re-verify rocks at the six views and the seven poses of §79 (`/tmp/f2/rv79-poses.json`
+  pattern: `sn-boulder-shotd`, `sn-boulder-stairfoot`, `x-ledge-wall`, `x-southbank-toe`,
+  `x-clearing-n`, `w23-stairs-f`, `x-stairs-3rd-tread`), census and pebble LOD from `--audit`.
+- Non-author checks of other lanes' branches at the six views (before / after on the commit alone).
+- If fable-cursor names a look change for rocks: #25's bank boulders' far form (planes, an undercut,
+  a bright top — the §63 method with the light first), #34's pebble far skin at E.
 
 ## Last updated
-2026-09-23T05:20:00Z
+2026-09-23T05:40:00Z
