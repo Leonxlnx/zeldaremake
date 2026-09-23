@@ -60,14 +60,19 @@ export const LANTERN_LEVEL = 0.055;
 export const LANTERN_CROWD_SHARE = 0.2;
 
 /**
- * The wind bed's levels: the floor in still air and how much the gust adds. The gust share is six
- * times the floor, so the wood is nearly quiet between gusts — an always-on bed is what a listener
- * stops hearing as air and starts hearing as noise.
+ * The wind bed's levels: the floor in still air and how much the gust adds. The gust share is about
+ * eight times the floor, so the wood is nearly quiet between gusts — an always-on bed is what a
+ * listener stops hearing as air and starts hearing as noise. The owner still heard the 0.012 / 0.115
+ * canopy and the 0.075 hush as "white noise in the background": the noise layers sit under the birds
+ * and the steps, never level with them.
  */
-export const CANOPY_FLOOR = 0.012;
-export const CANOPY_GUST = 0.115;
-export const HUSH_FLOOR = 0.0018;
-export const HUSH_GUST = 0.075;
+export const CANOPY_FLOOR = 0.0035;
+export const CANOPY_GUST = 0.032;
+export const HUSH_FLOOR = 0.0004;
+export const HUSH_GUST = 0.012;
+/** the leaf flutters' level range (before the gust scale) and their share into the hall */
+const FLUTTER_LEVEL: [number, number] = [0.0028, 0.009];
+const FLUTTER_SEND = 0.25;
 
 type BirdKind = 'whistle' | 'trill' | 'chirps' | 'warble' | 'coo' | 'knock';
 /** how often each call is chosen, and how far away it tends to be (0 = overhead, 1 = deep in the wood) */
@@ -117,7 +122,7 @@ export function createAmbience(ctx: BaseAudioContext, out: AudioNode, reverbSend
   const canopyTilt = filter(ctx, 'lowshelf', 140, 0.7, -5);
   const canopyGain = gain(ctx, CANOPY_FLOOR);
   bedSrc.connect(canopyHp).connect(canopyLp).connect(canopyTilt).connect(canopyGain).connect(out);
-  const canopySend = gain(ctx, 0.5);
+  const canopySend = gain(ctx, 0.3);
   canopyGain.connect(canopySend).connect(reverbSend);
   rides(canopyGain.gain, 0.055, 1.4, 0.03, 'canopy-slow');
   // the canopy's colour moves with a slower wander of its own: a gust opens the top of the roll
@@ -125,15 +130,15 @@ export function createAmbience(ctx: BaseAudioContext, out: AudioNode, reverbSend
 
   // ---- near leaf hush: lives in the gust, silent in still air ----------------------------------
   const hushHp = filter(ctx, 'highpass', 900, 0.5);
-  const hushLp = filter(ctx, 'lowpass', 4200, 0.5);
+  const hushLp = filter(ctx, 'lowpass', 2600, 0.5);
   const hushGain = gain(ctx, HUSH_FLOOR);
   // the wander is gated by the gust, so the hush both swells and flickers only while the air moves
   const hushMod = gain(ctx, 0);
   hushMod.connect(hushGain.gain);
   leafSrc.connect(hushHp).connect(hushLp).connect(hushGain).connect(out);
-  const hushSend = gain(ctx, 0.35);
+  const hushSend = gain(ctx, 0.2);
   hushGain.connect(hushSend).connect(reverbSend);
-  ridesGated(hushMod, 0.42, 1.6, 0.022, 'hush');
+  ridesGated(hushMod, 0.42, 1.6, 0.005, 'hush');
 
   // ---- pod lantern flame ----------------------------------------------------------------------
   const flameGain = gain(ctx, 0);
@@ -171,7 +176,7 @@ export function createAmbience(ctx: BaseAudioContext, out: AudioNode, reverbSend
     const panner = ctx.createStereoPanner();
     panner.pan.value = pan;
     panner.connect(out);
-    const send = gain(ctx, 0.4);
+    const send = gain(ctx, FLUTTER_SEND);
     panner.connect(send).connect(reverbSend);
     const bp = filter(ctx, 'bandpass', centre, 1.1);
     const lp = filter(ctx, 'lowpass', centre * 2.6, 0.7);
@@ -194,15 +199,15 @@ export function createAmbience(ctx: BaseAudioContext, out: AudioNode, reverbSend
     while (nextFlutter < until) {
       const t = nextFlutter;
       const g = gustNow;
-      const n = 1 + Math.floor(eventRng() * (1 + g * 4));
+      const n = 1 + Math.floor(eventRng() * (1 + g * 2));
       const pan = (eventRng() * 2 - 1) * 0.9;
       for (let i = 0; i < n; i++) {
         const centre = 950 + eventRng() * 1900;
-        const level = (0.0065 + eventRng() * 0.021) * (0.35 + g * 0.9);
+        const level = (FLUTTER_LEVEL[0] + eventRng() * (FLUTTER_LEVEL[1] - FLUTTER_LEVEL[0])) * (0.35 + g * 0.9);
         flutter(t + i * (0.04 + eventRng() * 0.16), centre, level, pan + (eventRng() - 0.5) * 0.3, 0.07 + eventRng() * 0.16);
       }
       // gusts crowd the flutters together; still air leaves long gaps
-      nextFlutter += (0.5 + eventRng() * 3.2) / (0.35 + g * 1.9);
+      nextFlutter += (0.5 + eventRng() * 3.2) / (0.3 + g * 1.1);
     }
   };
 
