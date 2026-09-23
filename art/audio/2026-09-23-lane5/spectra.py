@@ -92,10 +92,15 @@ def metrics(x, sr):
     out['rms_db'] = float(db(np.sqrt(np.mean(x ** 2))))
     out['peak_db'] = float(db(np.max(np.abs(x))))
     bands = {}
+    always = {}
     for lo, hi in BANDS:
         sel = (freqs >= lo) & (freqs < hi)
         bands[f'{lo}-{hi}'] = float(db(np.sqrt(np.mean(power[:, sel].sum(axis=1)))) if sel.any() else -120.0)
+        # the level present in nine frames out of ten: what never stops, which is what a listener
+        # ends up calling white noise however quiet it is
+        always[f'{lo}-{hi}'] = float(db(np.sqrt(np.percentile(power[:, sel], 10, axis=0).sum())) if sel.any() else -120.0)
     out['band_db'] = bands
+    out['always_db'] = always
     # spectral flatness of the whole stem (geometric / arithmetic mean of the mean spectrum)
     sel = (freqs >= 100) & (freqs <= 10000)
     spec = power[:, sel].mean(axis=0) + 1e-12
@@ -204,10 +209,10 @@ def sheet(args):
         spec = spectrogram_image(mag, freqs, hop, sr, width, sh)
         axes(spec, secs)
         env = envelope_image(x, sr, width, 74)
+        always = max(m['always_db'][b] for b in ('1000-2000', '2000-4000', '4000-8000'))
         head = (
             f'{name} — {args.stem}: rms {m["rms_db"]:.1f} dBFS   peak {m["peak_db"]:.1f}   '
-            f'strongest held tone +{m["tone_peak_db"]:.1f} dB at {m["tone_peak_hz"]:.0f} Hz   '
-            f'breathes {m["mod_db"]:.1f} dB'
+            f'never stops (worst of 1–8 kHz) {always:.1f} dBFS   breathes {m["mod_db"]:.1f} dB'
         )
         label(spec, head)
         band = '  '.join(f'{k.split("-")[0]}–{k.split("-")[1]}: {v:.0f}' for k, v in m['band_db'].items())
@@ -229,9 +234,10 @@ def sheet(args):
         print(f'wrote {args.json}')
     for k in ('rms_db', 'peak_db', 'tone_peak_db', 'tone_peak_hz', 'mod_db', 'mod_tail_db', 'drone_db', 'flatness'):
         print(f'{k:22s} before {stats["before"][k]:8.2f}   after {stats["after"][k]:8.2f}')
-    print('band (dBFS)            before     after')
+    print('band (dBFS)         mean before   mean after   always before  always after')
     for band in stats['before']['band_db']:
-        print(f'  {band:18s} {stats["before"]["band_db"][band]:8.1f}  {stats["after"]["band_db"][band]:8.1f}')
+        b, a = stats['before'], stats['after']
+        print(f'  {band:18s} {b["band_db"][band]:8.1f} {a["band_db"][band]:12.1f} {b["always_db"][band]:15.1f} {a["always_db"][band]:13.1f}')
 
 
 FRAME_S = 0.002
