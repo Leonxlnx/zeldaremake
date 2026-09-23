@@ -555,3 +555,29 @@ The 06:50 pose's corridor keeps opening — on the head `393fce60` the band alre
 0.394), the top band 0.288 (0.230, his 0.418), the far-centre box 0.378 (0.342, his 0.474); this branch adds 0.01–0.02
 more on each. What is left there is not the trees: the far air's brightness and the crowns' colour at depth (§7, lanes
 1 / 2 — no push since 11:08). Sheets `fable-5-lane10/it92-ba-h-west-front.jpg`, `it92-ba-owner.jpg`.
+
+## 18. The owner's 20:08 "why don't the trees immediately spawn instead of needing me to get close" — the head `39e63437` measured (20:38–21:18 UTC): the bases are answered, the crowns still build as he walks
+
+fable-cursor's `39e63437`: the large near-LOD tier for any browser reporting ≥ 4 GB (or nothing), every near-base band on
+it ≥ 40 / 44 m, the base pre-fetch 54 m. Measured here against `393fce60` / `b510b152` (`submission.mjs`, `playtest
+--only perf,pacing`, `sysperf.mjs` now printing the near-LOD pools' reports; JSONs `fable-5-lane10/perf93/`).
+
+- **Caps:** A **695 / 8.95 M** (b510b152: 692 / 8.86 M — `column-near-base` +86 K, `giant-near-base` +72 K: the boles
+  within 40 m now draw their near bark), B / E 685 / 8.19 M, C 527 / 6.77 M, D 561 / 8.49 M, F 648 / 7.89 M. **Both caps
+  met; A's headroom is now 5 draws and 50 K** — the next plant or prop at A breaks W38 again.
+- **Play spots:** plaza 633 / 7.84 M, `stairs2-base` **686 / 9.47 M** (over the 9.0 M read since the squad; +160 K here),
+  `saria-side` 615 / 8.81 M, `west-house` 492 / 4.79 M.
+- **Pacing (alone):** JS p50 5.8 / p95 12.9 / p99 18.5 / max 21.9 ms (16:51: 5.8 / 12.6 / 16.7 / 22.6); hitches 55 (47);
+  the plaza segment p50 10.2 (10.3); programs 115 → 115; heap 1,276 → 1,272 MB — **the base-band floor costs the walk
+  nothing measurable.**
+- **What "spawn" is, in the pools' own numbers.** The near-**base** pool holds all 23 bases resident from load on both
+  heads (26.7 / 48 MB, 0 runtime builds); what `39e63437` changed is how many are *wanted* at a spot — plaza 17 → 23 —
+  i.e. every bole within 40 m now uses its near base. The owner's circled root (the lantern tree at 15 m) is that. **The
+  near-canopy pool is the part that still builds as he walks:** at the plaza 374 crown parts wanted, 197 resident,
+  **192 pending** after the settle (built 87 so far); at the flight's foot 159 pending, beside Saria's 116, at the west
+  house 8 — the builds run inside the 6 ms/frame budget at **p50 6.8 ms each (p95 12, max 60 ms)**, so a crown coming
+  into its swap radius waits for its turn and pops in when built; 63 synchronous builds at load on both heads; the pool
+  at 68 → 137 MB across the four spots (cap 256). This is §8's plaza-segment 10 ms JS and the owner's "trees spawn"
+  in one mechanism. Lane 2 / fable-cursor: the levers are (a) the crowns pre-built for the plaza's first radius at load
+  the way the bases are, (b) a bigger build budget while the frame has room, (c) a cross-fade at the swap so a late build
+  does not pop. The single 60 ms builds are hitch frames on any box.

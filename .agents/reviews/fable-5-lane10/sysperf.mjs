@@ -52,13 +52,17 @@ try {
         if (drawNow) { ren += st.perf.render; drawn++; }
       }
       const heap1 = performance.memory ? performance.memory.usedJSHeapSize / 1048576 : null;
+      const tp = (window.__ZR__.perf().systemPerf || {}).trees || {};
+      const pools = {};
+      for (const k of ['nearCanopyPool', 'nearBasePool']) { const r = tp[k]; if (r) pools[k] = { tier: tp.tier, poolMB: +(r.poolBytes / 1048576).toFixed(1), capMB: +(r.capBytes / 1048576).toFixed(0), resident: r.resident, wanted: r.wanted, pending: r.pending, building: r.building, built: r.built, evicted: r.evicted, syncBuilds: r.syncBuilds, buildMsP50: r.buildMsP50, buildMsP95: r.buildMsP95, buildMsMax: r.buildMsMax, workMsTotal: +r.workMsTotal.toFixed(0), steps: r.steps }; }
       const systems = Object.fromEntries(Object.entries(sums).map(([k, v]) => [k, +(v / steps).toFixed(3)]));
       const p = window.__ZR__.perf();
-      return { systems, updateMs: +(upd / steps).toFixed(2), renderMs: +(ren / Math.max(1, drawn)).toFixed(2), draws: p.draws ?? p.calls ?? null, triangles: p.triangles ?? null, heapMB: [heap0, heap1].map((v) => (v == null ? null : +v.toFixed(1))), systemPerfKeys: Object.keys(p.systemPerf ?? {}) };
+      return { pools, systems, updateMs: +(upd / steps).toFixed(2), renderMs: +(ren / Math.max(1, drawn)).toFixed(2), draws: p.draws ?? p.calls ?? null, triangles: p.triangles ?? null, heapMB: [heap0, heap1].map((v) => (v == null ? null : +v.toFixed(1))), systemPerfKeys: Object.keys(p.systemPerf ?? {}) };
     }, [DT, 60]);
     result.spots[s.id] = r;
     const top = Object.entries(r.systems).sort((a, b) => b[1] - a[1]).slice(0, 8).map(([k, v]) => `${k} ${v}`).join(', ');
     console.error(`${s.id}: update ${r.updateMs} ms, render ${r.renderMs} ms, heap ${r.heapMB.join('→')} | ${top}`);
+    for (const [k, v] of Object.entries(r.pools || {})) console.error(`   ${k} (${v.tier}): pool ${v.poolMB}/${v.capMB} MB, resident ${v.resident}, wanted ${v.wanted}, pending ${v.pending}, building ${v.building}, built ${v.built}, evicted ${v.evicted}, sync ${v.syncBuilds}, build ms p50/p95/max ${v.buildMsP50}/${v.buildMsP95}/${v.buildMsMax}, work total ${v.workMsTotal} ms over ${v.steps} steps`);
   }
   fs.writeFileSync(out, JSON.stringify(result, null, 1));
 } finally {

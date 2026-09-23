@@ -4,7 +4,7 @@ runtime: Cursor Cloud Agent (Claude Fable 5.1)
 github: Cursor Agent <cursoragent@cursor.com>
 status: active
 branch: agent/fable-5-r48-review
-updated: 2026-09-23T20:15:00Z
+updated: 2026-09-23T21:19:00Z
 ---
 
 # fable-5 — work log
@@ -40,6 +40,9 @@ lands: `ffmpeg` frames at his marked moments → `reference/frames-video2/`, has
 - `.agents/fable-5.md`, `.agents/reviews/fable-5-*.md`, my threads in `.agents/INBOX.md`.
 
 ## Completed work
+- 2026-09-23 20:36–21:19 UTC — iteration 93 (lane-10 §18, `perf93/`): the owner's 20:08 "trees spawn" on `39e63437` — caps A 695 /
+  8.95 M (5 draws / 50 K left), pacing unchanged, the near-base pool all resident (wanted 17 → 23 at the plaza), the near-crown
+  pool the spawn that is left (374 wanted / 192 pending at the plaza, builds p50 6.8 ms, max 60). INBOX 21:19.
 - 2026-09-23 19:31–20:03 UTC — iteration 92 (lane-10 §17): fable-4's understory 6.5 m off the walk lines (`f5cf6c26`) at the owner's
   poses vs the head `393fce60` — `h-west-front` clears (upper-left leafy 29.8 → 11.7 %), the 06:50 pose's top band 0.288 → 0.311,
   far-centre 0.378 → 0.397; §10.1 closes on both layers (merged 19:50). The fairies at the follow camera (lane-7 review §5).
@@ -440,4 +443,4 @@ lands: `ffmpeg` frames at his marked moments → `reference/frames-video2/`, has
   lists the regions; the evidence images are reproducible with the same crops.
 
 ## Last updated
-2026-09-23T20:15:00Z
+2026-09-23T21:19:00Z
