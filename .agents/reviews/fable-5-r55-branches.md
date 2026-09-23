@@ -663,3 +663,20 @@ E +0.0003, F +0.0027.** The flight box at A is unchanged by the polish (52.8 % d
 
 Nothing else at A/B/F moves a verdict: W01, W15, W20, W25, W29, W32 unchanged in kind.
 
+## Y. Iteration 78 (04:34–05:16 UTC) — the 04:09 owner items (`3b37b8b7` → `a5dbf45f`: huts' character, the near-gate crown shade, the shaft columns' fade-in) at the six views and at the owner's own poses
+
+**Six views: neutral** — A 0, B −0.0001, C 0, D +0.0001, E +0.0002, F 0; 0.03–0.07 % of pixels at A/B/D/E (thin verticals
+in the far layer — the huts' ladder and hoist posts), C and F byte-identical; the `west-house` and `saria-side` poses
+byte-identical too.
+
+**The owner's poses** (`art/environment/owner-2026-09-23/shots.json`, rendered before / after on my box):
+
+| pose | change | read |
+| --- | --- | --- |
+| `b-upper-2` (the upper house from the plateau) | **98.7 % of pixels, frame mean l 0.454 → 0.271** | the white veil over the house — the × 7.5 shaft column a walker stood in — is gone; the trunk, ladder and lantern read (README unfinished #38 **closed at this pose**). Sheet `fable-5-r55-owner0923-b-upper-2.jpg` |
+| `u-open-up` (the misty hollow, looking up) | 0.24 % (small patches at the frame's lower left) | **the flat pale straight-edged card at the top-left is unchanged: box (0.03–0.33 × 0.15–0.42) mean l 0.627 / p90 0.729 before and after, against a sky at 0.653.** From this pose the view centre is 60° up and the card's centre sits at ≈ 71° — above the 20–44° ray-elevation gate `ba7e1eb2` treats. README unfinished #26/28 **not closed at the owner's own pose**; the fix's gate misses his example. Sheet `fable-5-r55-owner0923-u-open-up.jpg` |
+| `s2-owner` (the second staircase) | byte-identical | the 04:09 items do not touch the flight |
+| `h-west-front` (the west hut) | 0.06 % | the hut's new features are in a different band than this framing shows |
+
+Expected take-0135 unchanged by this step (A 0.2173, B 0.1982, C 0.2080, D 0.2657, E 0.2190, F 0.2266).
+
