@@ -245,6 +245,29 @@ test('a solid wall behind Link pulls the camera in front of it at once, and neve
   win.emit('pointerup', {});
 });
 
+/** Link walks 4 m forward past a slim bole 2 m behind him: the camera, following, runs into it from its far side */
+function walkPastBole() {
+  const r = rig({ shared: { slimTrunks: [{ x: 0, z: 2.0, r: 0.35, y0: -1, y1: 8 }] }, heading: Math.PI });
+  let prev = r.camera.position.clone();
+  let worst = 0;
+  let deepest = 0;
+  for (let i = 0; i < 80; i++) {
+    r.player.position.z -= 1.5 / 30;
+    r.cam.update(1 / 30);
+    worst = Math.max(worst, r.camera.position.distanceTo(prev) - 1.5 / 30);
+    deepest = Math.max(deepest, r.cam.state().slimPush);
+    prev = r.camera.position.clone();
+  }
+  return { worst, deepest };
+}
+
+test('walking past a slim bole, the camera eases in along its line and back out — no jump in a frame', () => {
+  const { worst, deepest } = walkPastBole();
+  // entering the 0.65 m cylinder from its far side asks for the whole 1.3 m chord at once
+  assert.ok(deepest > 0.5, `the camera did move in past the bole (${deepest.toFixed(2)} m)`);
+  assert.ok(worst < 0.35, `largest extra camera step in one frame ${worst.toFixed(3)} m (the chord is 1.3 m)`);
+});
+
 test('a slim post at the camera moves it in along the line; a ridge behind Link lifts it over', () => {
   const r = rig({ shared: { slimTrunks: [{ x: 0, z: 4.3, r: 0.25, y0: -1, y1: 8 }] } });
   const d = Math.hypot(r.camera.position.x, r.camera.position.z);

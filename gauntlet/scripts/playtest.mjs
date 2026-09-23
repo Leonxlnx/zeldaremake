@@ -682,8 +682,9 @@ async function walkScenario(page, results) {
     ['south-approach', [[1, 15], [0, 8], [0.5, 1]]],
     // Saria's door the way the layout builds it: up the spine, the house-west flight, the lawn
     ['house-west-to-saria-door', [[1.5, -9.5], hw.at(-1.2), hw.at(hw.run * 0.5), hw.at(hw.run + 0.8), [8.6, -8.2], [9.3, -9.0]]],
-    // off the west house's deck, down its steps, back across the lawn to the plaza
-    ['west-house-to-plaza', [[-18.4, 7.1], [-16.28, 6.46], [-15.39 + 0.9, 7.64 - 0.4], [-12.5, 8.5], [-6, 8], [0, 4]]],
+    // off the west house's deck, down its steps, along the west path (south of the fork's waymarker
+    // post at (−11.0, 8.4), props/layout.ts) and back across the lawn to the plaza
+    ['west-house-to-plaza', [[-18.4, 7.1], [-16.28, 6.46], [-15.39 + 0.9, 7.64 - 0.4], [-12.6, 7.7], [-10.9, 7.6], [-8.6, 9.1], [-6, 8], [0, 4]]],
     // the north path under the log arch into the second clearing, then up the ledge flight
     ['north-clearing-ledge', [[0.5, 2], [1.5, -12], [2.0, -18], [1.8, -24], [2.5, -30], [3.5, -36], [4.5, -42], [5.2, -50], [5.8, -58], [5.4, -61.5], [3.6, -65.2], [1.0, -68.0], [-0.6, -70.2], ledge.at(-0.9), ledge.at(ledge.run * 0.5), ledge.at(ledge.run + 0.6)], 2400],
   ];

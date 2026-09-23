@@ -66,6 +66,11 @@ const AIM_AIR = 0.35;
 /** look smoothing (s) and the collision's ease back out (s) */
 const LOOK_TAU = 0.05;
 const RELEASE_TAU = 0.3;
+/**
+ * how fast the camera moves in along its line when it would stand inside a slim part (s): a
+ * crossing of the lantern limb or a house bough asked for 1.5 m in one frame, then 1.5 m back out
+ */
+const SLIM_IN_TAU = 0.12;
 /** while Link moves with no look input for RECENTRE_AFTER s, the pitch eases back to rest */
 const RECENTRE_AFTER = 1.5;
 const RECENTRE_TAU = 0.9;
@@ -108,6 +113,8 @@ export function createFollowCam(host: HTMLElement, terrain: Terrain, camera: Per
   let lastLift = 0;
   let lastLowered = 0;
   let lastPush = 0;
+  /** the eased slim push (m along the line toward the aim) */
+  let push = 0;
   const ground = (x: number, z: number) => Math.max(player.groundHeight(x, z), terrain.height(x, z));
   let collider: CameraCollider | null = null;
   const colliderFor = () => (collider ??= createCameraCollider(ground, options.shared ?? {}));
@@ -118,6 +125,7 @@ export function createFollowCam(host: HTMLElement, terrain: Terrain, camera: Per
   const desired = new Vector3();
   const aimPoint = new Vector3();
   const pos = new Vector3();
+  const probe = new Vector3();
 
   /** the first connected gamepad's left stick (x, y), right stick and A button, or null */
   const readGamepad = (): { lx: number; ly: number; rx: number; ry: number; a: boolean; run: boolean } | null => {
@@ -213,7 +221,13 @@ export function createFollowCam(host: HTMLElement, terrain: Terrain, camera: Per
     const t = Math.max(minT, r.t);
     keep = instant || t < keep ? t : keep + (t - keep) * (1 - Math.exp(-dt / RELEASE_TAU));
     pos.copy(aimP).lerp(desired, keep);
-    lastPush = c.slimPush(aimP, pos);
+    // a slim part may pass between; the camera eases in along the line out of one, and back out
+    probe.copy(pos);
+    const need = c.slimPush(aimP, probe);
+    push = instant ? need : push + (need - push) * (1 - Math.exp(-dt / (need > push ? SLIM_IN_TAU : RELEASE_TAU)));
+    const lineLen = pos.distanceTo(aimP);
+    if (push > 1e-4 && lineLen > MIN_DISTANCE) pos.lerp(aimP, Math.min(push, lineLen - MIN_DISTANCE) / lineLen);
+    lastPush = push;
     const floor = ground(pos.x, pos.z) + CLEARANCE;
     if (pos.y < floor) pos.y = floor;
     camera.position.copy(pos);
