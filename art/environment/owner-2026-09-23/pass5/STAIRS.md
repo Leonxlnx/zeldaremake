@@ -65,9 +65,36 @@ tracks the flight; what went away is the alternation.
 `stair-chart.mjs` draws all four quantities with the **pre-fix** `follow.ts` on one side and this one
 on the other (it loads the old file straight out of git, so both lines are the real code).
 
+## In the running build
+
+`playtest.mjs --only walk,climb`, the camera's vertical acceleration on the flights:
+
+| flight | before | after |
+| --- | --- | --- |
+| main, climbing | p95 23.26, max 23.66 m/s² | **p95 4.47, max 4.95** |
+| south bank, climbing | p95 21.83, max 24.33 | **p95 3.87, max 5.25** |
+| south bank, descending | p95 21.83, max 23.75 | **p95 3.89, max 5.26** |
+| main, descending | p95 38.31, max 47.58 | p95 38.31, max 47.58 — **unchanged, and it is the harness** |
+
+That last row does not move on any build, to two decimals. The harness drives a descent by
+`place()`-ing the player at the **top** of the flight and then holding W, so the first frames of
+that trace are the camera converging after a teleport, not a walk. The south bank's descent, whose
+teleport lands the camera near where it already was, drops with everything else. The continuous
+walk is what `stair-cam.mjs` measures, and it has the descent improving six-fold.
+
+Nine walk routes reach every waypoint with no stuck points and no stalls on either flight.
+
+## One change with no measurement behind it
+
+The ceiling duck (`collision.ts resolve`) drops the camera in whole 0.15 m steps and `desired.y -=
+r.lowered` applied a step inside one frame. It is now ramped in over `LOWER_IN_TAU` 0.08 s and
+released on `RELEASE_TAU`. **The harness shows no difference** — its descent is the teleport above —
+so this is kept on the argument alone: a quantised 0.15 m jump in one frame is the same class of
+defect as the four above, and it costs nothing. If a reviewer wants only measured changes, this one
+is the one to drop.
+
 ## Tests
 
 `node --test src/camera/follow.test.mjs` — 12/12, with two new ones that pin the flight in both
 directions at the numbers above, so this cannot quietly come back. `npm run typecheck` and
-`npm run build` green. `playtest.mjs --only walk,climb`: nine routes reach every waypoint, no stuck
-points, no stalls on either flight.
+`npm run build` green.

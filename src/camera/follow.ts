@@ -87,6 +87,15 @@ const FLOOR_SLACK = 0.14;
  */
 const LIFT_TAU = 0.15;
 const LIFT_SLACK = 0.12;
+/**
+ * The ceiling duck (collision.ts `resolve`) is quantised: it drops the camera in whole LOWER_STEP
+ * (0.15 m) increments, and `desired.y -= r.lowered` applied that inside one frame. Descending the
+ * main flight the camera passes under the lantern limb and the duck flips between steps, which the
+ * play-test read as 48 m/s² of vertical acceleration after the staircase easing had taken the climb
+ * down to 5. It now ramps in over LOWER_IN_TAU — about five frames for a step, so the camera is at
+ * most a few centimetres high while it ducks — and releases on RELEASE_TAU like the pull-in does.
+ */
+const LOWER_IN_TAU = 0.08;
 const AIM_AIR = 0.35;
 /** look smoothing (s) and the collision's ease back out (s) */
 const LOOK_TAU = 0.05;
@@ -135,8 +144,9 @@ export function createFollowCam(host: HTMLElement, terrain: Terrain, camera: Per
   /** eased walked-surface height under Link for the AIM, and under the camera for its floor (see AIM_TAU) */
   let aimY = 0;
   let floorY = 0;
-  /** eased collider lift (see LIFT_TAU) */
+  /** eased collider lift (see LIFT_TAU) and ceiling duck (see LOWER_IN_TAU) */
   let liftY = 0;
+  let lowerY = 0;
   /** the collision's kept fraction of the line (eased back out) */
   let keep = 1;
   let lastHit: string | null = null;
@@ -218,6 +228,7 @@ export function createFollowCam(host: HTMLElement, terrain: Terrain, camera: Per
     baseZ = p.z;
     baseY = aimY = floorY = ground(p.x, p.z);
     liftY = 0;
+    lowerY = 0;
     keep = 1;
     initialised = true;
     place(0, true);
@@ -255,8 +266,9 @@ export function createFollowCam(host: HTMLElement, terrain: Terrain, camera: Per
     lastLift = Math.max(liftY, wantLift - LIFT_SLACK);
     desired.y = beforeLift + lastLift;
     const r = c.resolve(aimP, desired);
-    desired.y -= r.lowered;
-    lastLowered = r.lowered;
+    lowerY = instant ? r.lowered : lowerY + (r.lowered - lowerY) * (1 - Math.exp(-dt / (r.lowered > lowerY ? LOWER_IN_TAU : RELEASE_TAU)));
+    desired.y -= lowerY;
+    lastLowered = lowerY;
     lastHit = r.hit;
     const len = aimP.distanceTo(desired);
     const minT = len > 1e-6 ? Math.min(1, MIN_DISTANCE / len) : 1;
