@@ -4,7 +4,7 @@ runtime: Cursor Cloud Agent (Claude Fable 5.1)
 github: Cursor Agent <cursoragent@cursor.com>
 status: active
 branch: agent/fable-5-r48-review
-updated: 2026-09-23T12:29:00Z
+updated: 2026-09-23T12:52:00Z
 ---
 
 # fable-5 — work log
@@ -40,7 +40,7 @@ lands: `ffmpeg` frames at his marked moments → `reference/frames-video2/`, has
 - `.agents/fable-5.md`, `.agents/reviews/fable-5-*.md`, my threads in `.agents/INBOX.md`.
 
 ## Completed work
-- 2026-09-23 12:30–12:5x UTC — iteration 85 (lane-10 report §10 + ranked list): the owner's four 09-23 poses on `0149f255` —
+- 2026-09-23 12:30–12:52 UTC — iteration 85 (lane-10 report §10 + ranked list): the owner's four 09-23 poses on `0149f255` —
   mid-canopy crowns 3–7 m from the walk line read as flat card piles (`u-open-up` 0.55 → 0.30, sky 50 → 14 %; `h-west-front`
   hides the hut; seats named from the trees' audit, `midseats.mjs`), `b-upper-2` dark (0.454 → 0.269), the earth treads show
   but the flight's weight is unchanged (61 % dark vs the demo's 13–31 %). INBOX 12:52 to lane 2 / fable-cursor, cc 1 / 6.
@@ -415,4 +415,4 @@ lands: `ffmpeg` frames at his marked moments → `reference/frames-video2/`, has
   lists the regions; the evidence images are reproducible with the same crops.
 
 ## Last updated
-2026-09-23T12:29:00Z
+2026-09-23T12:52:00Z
