@@ -1,0 +1,40 @@
+{
+ "url": "http://127.0.0.1:4173/",
+ "readySeconds": 150.758,
+ "walkedSeconds": 20,
+ "state": {
+  "playMode": true,
+  "hud": true,
+  "title": "Kokiri Forest — Three.js World (Phase 1)",
+  "frames": {
+   "simTime": 1.613599999904633,
+   "drawCalls": 517,
+   "triangles": 7389767,
+   "geometries": 977,
+   "textures": 106,
+   "programs": 166,
+   "width": 960,
+   "height": 540,
+   "pixelRatio": 1
+  }
+ },
+ "errors": [],
+ "console": [
+  "[info] [world] lighting ready in 89 ms",
+  "[info] [world] atmosphere ready in 1162 ms",
+  "[info] [world] terrain ready in 4565 ms",
+  "[info] [world] hardscape ready in 4136 ms",
+  "[info] [world] rocks ready in 9162 ms",
+  "[info] [world] trees ready in 15310 ms",
+  "[info] [world] canopy ready in 58 ms",
+  "[info] [world] structures ready in 11096 ms",
+  "[info] [world] props ready in 506 ms",
+  "[warn] Canvas2D: Multiple readback operations using getImageData are faster with the willReadFrequently attribute set to true. See: https://html.spec.whatwg.org/multipage/canvas.html#concept-canvas-will-read-frequently",
+  "[info] [world] vegetation ready in 13634 ms",
+  "[info] [world] character ready in 994 ms",
+  "[warn] THREE.WebGLRenderer: KHR_parallel_shader_compile extension not supported.",
+  "[info] [warmup] 166 programs (colour 79, depth 78, warm pass 0, composer 9), 73 textures, 970 geometries (1222 meshes exposed, 360 casters) in 16895 ms (compile 189, depth compile 136, textures 14837, warm pass 1381, composer 352)",
+  "[info] [audio] music: original placeholder \"Under the Boughs\" (50.5 s loop)",
+  "[info] [audio] started (44100 Hz, 39 pod lanterns)"
+ ]
+}

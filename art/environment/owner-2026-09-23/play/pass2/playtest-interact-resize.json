@@ -1,0 +1,82 @@
+{
+ "dist": "/tmp/after9-dist",
+ "size": [
+  960,
+  540
+ ],
+ "quality": "high",
+ "started": "2026-09-23T04:37:39.862Z",
+ "baselineSha": "a5dbf45f",
+ "interact": {
+  "jump": {
+   "maxAirM": 0.499,
+   "landed": true,
+   "ok": true
+  },
+  "bag": {
+   "opened": true,
+   "worldFrozenWhileOpen": true,
+   "closed": true,
+   "walksAfterClose": true,
+   "ok": true,
+   "shot": "interact-bag.jpg"
+  },
+  "freeCamera": {
+   "toFree": true,
+   "backToPlay": true,
+   "ok": true
+  }
+ },
+ "resilience": {
+  "steps": [
+   {
+    "viewport": [
+     640,
+     360
+    ],
+    "canvas": [
+     640,
+     360
+    ],
+    "aspect": 1.7778,
+    "drawMs": 11361,
+    "ok": true
+   },
+   {
+    "viewport": [
+     1280,
+     720
+    ],
+    "canvas": [
+     1280,
+     720
+    ],
+    "aspect": 1.7778,
+    "drawMs": 21698,
+    "ok": true
+   },
+   {
+    "viewport": [
+     960,
+     540
+    ],
+    "canvas": [
+     960,
+     540
+    ],
+    "aspect": 1.7778,
+    "drawMs": 16788,
+    "ok": true
+   }
+  ],
+  "reload": {
+   "seconds": 91,
+   "playMode": true,
+   "walked": true,
+   "errors": 0
+  },
+  "ok": true
+ },
+ "pageErrors": [],
+ "finished": "2026-09-23T04:41:47.193Z"
+}
