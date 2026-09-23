@@ -642,3 +642,32 @@ moves through the first radius; what remains of "spawn" is the swap itself at 26
 fable-4) and any crown beyond the pre-fetch radius on a long walk (the west house read 8 pending before). Pacing on this
 head is the next pass (the 25-minute run did not fit this hour); by these pool numbers the plaza segment's p50 10 ms
 (§8) should fall to the flight's 4 ms.
+
+## 22. Three squad branches read (23:28–23:38 UTC): the stair shake measured off, lane 4's blade tier, lane 2's LOD rungs
+
+**The owner's 23:00 — "whenever I walk up or down the stairs, it glitches the frames up and forth every each step" —
+`agent/squad4-owner-2300-stairs` @ `e3475dd8` (the camera's aim eased against the staircase like the pivot; the orbit's
+height follows the eased aim).** `playtest --only walk,climb` on the head `61db16c8` and the branch, the same nine routes
+(deterministic, no drawing), the harness's per-frame camera motion:
+
+| route (climbs) | camera vertical accel p95 / max (m/s²) | turn rate p95 (°/s) | turn accel p95 (°/s²) |
+| --- | --- | --- | --- |
+| `plaza-to-upper-house` (the main flight) | 3.0 / **57.6 → 2.9 / 18.3** | 62 → 52 | **2370 → 506** |
+| `plaza-to-south-bank-top` (the south-bank flight) | **6.7 / 40.4 → 2.3 / 4.7** | 39 → 23 | **1035 → 439** |
+| `house-west-to-saria-door` (the house-west flight) | 3.5 / 23.2 → 2.4 / 4.6 | 64 → 59 | **1356 → 556** |
+| the six other routes | p95 down on every one (0.6–13 → 0.2–3.7) | ≈ | 440–660 → 440–560 |
+
+The per-tread pitch pulse is the turn-acceleration column: 2370 → 506 °/s² on the main flight, to the level of the flat
+routes (440–560). The west-house pull-in pop stays (1.26 → 1.28 m, the solid shell — not this fix), the ledge's solid hit
+too (vertical max 270). All routes reached, no stuck; the descents' camera minimum rises a little (0.383 → 0.391, 0.444 →
+0.535 m). **Measured off**, by the harness's own numbers, on the owner's exact complaint. `perf96/walk-*.json`.
+
+**`agent/squad4-verge-budget-2026-09-23` @ `6457b723` (the walked verge's blades a near tier past `VERGE_NEAR_M` = 14 m —
+on §11):** A **8.95 → 8.90 M** (−54 K), B / E −65 K, C −42 K, D −29 K, F 0; draws unchanged. A gets ≈ 100 K of room under
+W38. Small against the +0.57 M the verges brought, but the right direction and free at the frames' distance.
+
+**`agent/squad2-treepop` @ `5f25f401` (the white-barks' first LOD rung 20 → 28 m, paid by the distant layer's near gate
+120 → 72 m — the owner's "trees spawn"):** A 8.95 → 8.94 M (−15 K: `distant-near` −77 K, `column-lod0` +81 K), B / E
+**+155 K** (8.35 M), **C +460 K (6.77 → 7.23 M — `whitebark-lod0` +402 K)**, D +110 K, F +121 K; draws −4 … +4. Every
+view stays under 9.0 M; the near rungs arrive 8 m sooner for a walker. With the verge tier merged as well the head would
+read A ≈ 8.89 M, B / E 8.28, C 7.19, D 8.57, F 8.01 — all under both caps. `perf96/submission-*.json`.
