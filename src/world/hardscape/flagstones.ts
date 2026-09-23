@@ -1816,7 +1816,10 @@ export function placeFlagstones(pc: PavingContext, material: Material): PavingRe
 
   const geometry = all.build();
   const mesh = new Mesh(geometry, material);
-  mesh.castShadow = true;
+  // fable-2 (lane 6, the perf pass): the slabs stand 6–10 cm proud of a fill that is already painted
+  // dark — their own shadow bought a hairline on the joint's sunward side for a full shadow-pass
+  // draw of the paving (the north and expansion meshes copy this flag)
+  mesh.castShadow = false;
   mesh.receiveShadow = true;
   mesh.name = 'flagstones';
 

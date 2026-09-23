@@ -21,13 +21,13 @@
  * instances that can reach the image (see "submission culling" below). Everything is seated via
  * ctx.terrain.height; randomness only via ctx.rng.
  */
-import { Box3, BufferAttribute, BufferGeometry, Color, Frustum, Group, InstancedBufferAttribute, InstancedMesh, Matrix4, Mesh, Quaternion, Sphere, Vector3, type Camera, type Material } from 'three';
+import { Box3, BufferAttribute, BufferGeometry, Color, Frustum, MeshBasicMaterial, Group, InstancedBufferAttribute, InstancedMesh, Matrix4, Mesh, Quaternion, Sphere, Vector3, type Camera, type Material } from 'three';
 import type { TrunkSeat, WorldContext, WorldSystem } from '../system';
 import { BARK_DETAIL_M, BARK_DETAIL_TILES, BARK_TOUCH_M, BARK_TOUCH_TILES, CARD_EDGE_FADE, CARD_FLAT_EDGE_FADE, COLUMN_BARK_FLOOR, COLUMN_BARK_FLOOR_FAR, COLUMN_FLOOR_FADE_M, createTreeMaterials, CUSHION_FADE_M, DISTANT_BARK_M, DISTANT_NEAR_FLOOR, DISTANT_NEAR_TONE, NEAR_BASE_FLOOR, NEAR_BOLE_FLOOR, NEAR_BOLE_FLOOR_FADE, NEAR_BOLE_FLOOR_TOP, NEAR_BOLE_SLOTS, NEAR_CANOPY_LEAF_FLOOR, NEAR_CANOPY_LEAF_NEAR_M, NEAR_CANOPY_SLOTS, NEAR_CANOPY_SUN_THROUGH, TREE_BARK_FLOOR, TREE_BARK_FLOOR_NEAR, TREE_FLOOR_FADE_M, TREE_LEAF_FLOOR, TREE_LEAF_FLOOR_NEAR, TREE_NEAR_BOLE_FLOOR } from './materials';
 import type { ShadeFloor } from '../materials/shadeFloor';
 import { authoredWhiteBarks, createWhiteBarkRoots, createWhiteBarkTree, whiteBarkParams, whiteBarkTilt, type TreeAsset, type WhiteBarkParams, CLEARING_WHITE_BARKS } from './whitebark';
 import { createUnderstoryTree, understoryParams, type UnderstoryParams } from './understory';
-import { placeWhiteBark, treeGroundBlocked, viewProjector, type WhiteBarkPlacement } from './placement';
+import { nearestWalkLine, placeWhiteBark, treeGroundBlocked, viewProjector, type WhiteBarkPlacement } from './placement';
 import { columnParams, createColumnTree, emergentParams, hutHostParams, type ColumnAsset, type ColumnParams } from './column';
 import { expansionCull, getTerrain, type Terrain, type TerrainView } from '../terrain/heightfield';
 import { smoothstep } from '../util/noise';
@@ -1500,6 +1500,9 @@ const COLUMN_CLEARANCE = { whiteBark: 2.5, giant: 4, house: 4 };
  * measured 710–714 calls / 9.08–9.13 M before.
  */
 const CULL_PAD_M = 4;
+/** the mid-canopy grove's crowns keep this much air beyond a walked line's paving (m), and a bole never stands nearer than MID_WALK_MIN_M to its centreline */
+const MID_WALK_GAP_M = 3;
+const MID_WALK_MIN_M = 9;
 /** lowest world height a shadow receiver can have (the capsule is swept down to it) */
 const SHADOW_FLOOR_Y = -20;
 /**
@@ -1698,6 +1701,14 @@ interface FamilyVariant<P, T extends { x: number; z: number; scale: number }, A 
   lists: number[][];
   /** placement indices actually submitted per LOD (the bucket minus the culled instances) */
   submitted: number[][];
+  /**
+   * Round 53 (W38, A over the ceiling with the squad's layers): the high bucket's shadow-only
+   * instances — behind the camera, kept for the shade they throw into the frame — cast from this
+   * twin on the MEDIUM geometry instead of the 100 K high mesh (a no-op colour pass: neither colour
+   * nor depth is written). White-barks only; the in-view instances keep the high mesh in both passes.
+   */
+  shadowProxy?: InstancedMesh;
+  submittedShadow?: number[];
 }
 type WhiteVariant = FamilyVariant<WhiteBarkParams, WhiteBarkPlacement>;
 interface UnderstoryPlacement {
@@ -1715,7 +1726,7 @@ const UNDERSTORY_VARIANTS = 5;
  * Strips along the walkable paths (both verges, `min`–`max` m from the centreline) and the clearing's
  * lawn between the plaza and the tall trees. Seeded from its own stream, so nothing else re-rolls.
  */
-const UNDERSTORY_ZONES: { xMin: number; xMax: number; zMin: number; zMax: number; count: number }[] = [
+const UNDERSTORY_ZONES: { xMin: number; xMax: number; zMin: number; zMax: number; count: number; live?: boolean; spacing?: number }[] = [
   // the north path's verges, from the plaza's north end to the log arch
   { xMin: -14, xMax: 14, zMin: -50, zMax: -12, count: 26 },
   // the north clearing beyond the arch, up to the stand
@@ -1723,6 +1734,9 @@ const UNDERSTORY_ZONES: { xMin: number; xMax: number; zMin: number; zMax: number
   // the plaza's lawn edges, east and west
   { xMin: -30, xMax: -10, zMin: -12, zMax: 22, count: 10 },
   { xMin: 12, xMax: 32, zMin: -12, zMax: 22, count: 8 },
+  // (a west-meadow zone around the far hut's knoll was built and measured: squad2's mid layer
+  // already fills that meadow at 14–58 m, so it was dropped rather than double it — the `live`
+  // zone kind stays for the expansion ground, masks and slope from the rendered surface)
 ];
 const UNDERSTORY_PATH_MIN_M = 3.4;
 const UNDERSTORY_PATH_MIN_ARCH_M = 6.5;
@@ -1734,7 +1748,11 @@ const UNDERSTORY_SPACING_M = 3.2;
  * into the forest" has to read from the plaza side (fable-3, 2026-09-23 11:20: the fork's waymarker at
  * (−11.2, 7.75) vanished behind a crown at the fork pose (−6.4, 1.9, 6.6) → (−9.6, 2.6, 9.4)).
  */
-const UNDERSTORY_CLEARINGS: { x: number; z: number; r: number }[] = [{ x: -10.5, z: 8.5, r: 8.5 }];
+const UNDERSTORY_CLEARINGS: { x: number; z: number; r: number }[] = [
+  { x: -10.5, z: 8.5, r: 8.5 },
+  // the far hut's knoll (EXPANSION.farHut host at (−41, 35.7)) and its approach
+  { x: -41, z: 35.7, r: 11 },
+];
 /**
  * Screen windows of the fixed views an understory crown must not cover (the same idea as VIEW_GAPS
  * for the white-barks): F's canopy gap. Fractions of the frame; `minDistance` = the nearest a tree
@@ -2159,6 +2177,8 @@ export async function create(ctx: WorldContext): Promise<WorldSystem> {
     }
     return out.length ? out : [geometry.boundingSphere!.clone()];
   };
+  /** the shadow proxies' colour-pass material: writes neither colour nor depth — only the shadow pass sees them */
+  const shadowOnlyMaterial = new MeshBasicMaterial({ colorWrite: false, depthWrite: false });
   const familyMeshes = <P, T extends { x: number; z: number; scale: number }>(variants: FamilyVariant<P, T>[], label: string, material: Material, depth: Material, parent: Group) => {
     for (const w of variants) {
       const n = Math.max(1, w.placements.length);
@@ -2181,6 +2201,21 @@ export async function create(ctx: WorldContext): Promise<WorldSystem> {
         mesh.userData.hull = geometryHull(w.lods[l].geometry);
         w.meshes.push(mesh);
         parent.add(mesh);
+        if (label === 'whitebark' && l === 0 && ctx.quality.shadows) {
+          const proxy = new InstancedMesh(w.lods[1].geometry, shadowOnlyMaterial, n);
+          proxy.name = `${label}-${(w.params as { seed: string }).seed}-high-shadow`;
+          proxy.customDepthMaterial = depth;
+          proxy.castShadow = true;
+          proxy.receiveShadow = false;
+          proxy.count = 0;
+          proxy.visible = false;
+          proxy.userData.kind = label;
+          proxy.userData.lodLevel = 0;
+          proxy.userData.shadowProxy = true;
+          parent.add(proxy);
+          w.shadowProxy = proxy;
+          w.submittedShadow = [];
+        }
       }
     }
   };
@@ -2215,11 +2250,11 @@ export async function create(ctx: WorldContext): Promise<WorldSystem> {
     const placeRng = understoryRng.fork('place');
     const viewpoints = ctx.layout.viewpoints.map((v) => ({ x: v.position[0], z: v.position[2] }));
     const seats = [...COLUMN_SEATS.map((c) => ({ x: c.x, z: c.z, r: 4 })), ...[...ctx.layout.giantTrees, ...EXTRA_GIANTS].map((g) => ({ x: g.position[0], z: g.position[2], r: g.trunkRadius * 2.5 + 2.5 }))];
-    const tooClose = (x: number, z: number) => {
+    const tooClose = (x: number, z: number, spacing: number) => {
       if (viewpoints.some((v) => Math.hypot(v.x - x, v.z - z) < 7)) return true;
       if (seats.some((c) => Math.hypot(c.x - x, c.z - z) < c.r)) return true;
       if (whitePlacements.some((w) => Math.hypot(w.x - x, w.z - z) < 2.6)) return true;
-      if (understoryPlacements.some((u) => Math.hypot(u.x - x, u.z - z) < UNDERSTORY_SPACING_M)) return true;
+      if (understoryPlacements.some((u) => Math.hypot(u.x - x, u.z - z) < spacing)) return true;
       return false;
     };
     const pathDistance = (x: number, z: number) => Math.min(...walkXZ.map((poly) => (poly.length > 1 ? spineDistance(poly, x, z) : Infinity)));
@@ -2248,6 +2283,10 @@ export async function create(ctx: WorldContext): Promise<WorldSystem> {
     };
     for (const zone of UNDERSTORY_ZONES) {
       let placed = 0;
+      // masks and slope from the view the zone lives on; the seat height always from the rendered
+      // surface (`liveTerrain` = the lattice the terrain mesh draws), so every stem meets the ground
+      const t = zone.live ? liveTerrain : terrain;
+      const spacing = zone.spacing ?? UNDERSTORY_SPACING_M;
       for (let attempt = 0; attempt < zone.count * 60 && placed < zone.count; attempt++) {
         const x = zone.xMin + placeRng() * (zone.xMax - zone.xMin);
         const z = zone.zMin + placeRng() * (zone.zMax - zone.zMin);
@@ -2255,17 +2294,17 @@ export async function create(ctx: WorldContext): Promise<WorldSystem> {
         // nearer the arch the verge widens: D's window onto the arch's opening stays readable while
         // the corridor keeps its trees on both sides (the reference's D frames the arch with trees)
         const pathMin = z < UNDERSTORY_ARCH_STRETCH_Z ? UNDERSTORY_PATH_MIN_ARCH_M : UNDERSTORY_PATH_MIN_M;
-        if (d < pathMin || d > UNDERSTORY_PATH_MAX_M) continue;
-        if (expansionCull(x, z)) continue;
-        const m = terrain.mask(x, z);
+        if (d < pathMin || (!zone.live && d > UNDERSTORY_PATH_MAX_M)) continue;
+        if (!zone.live && expansionCull(x, z)) continue;
+        const m = t.mask(x, z);
         if (m.path > 0.05 || m.stairs > 0 || m.structure > 0 || m.cliff > 0.3) continue;
         // the arch's footprint and the columns' roots have their own masks; keep off steep ground too
-        if (terrain.slope(x, z) > 0.55) continue;
+        if (t.slope(x, z) > 0.55) continue;
         if (UNDERSTORY_CLEARINGS.some((c) => Math.hypot(c.x - x, c.z - z) < c.r)) continue;
-        if (tooClose(x, z)) continue;
+        if (tooClose(x, z, spacing)) continue;
         const variant = placeRng.int(0, UNDERSTORY_VARIANTS);
         const scale = placeRng.range(0.85, 1.15);
-        const y = terrain.height(x, z);
+        const y = liveTerrain.height(x, z);
         if (coversWindow(x, y, z, variant, scale)) continue;
         understoryPlacements.push({ x, y, z, yaw: placeRng() * TAU, scale, variant });
         placed++;
@@ -3149,6 +3188,15 @@ export async function create(ctx: WorldContext): Promise<WorldSystem> {
     corridors: plazaCorridors.map((c) => ({ point: c.point, dir: c.dir, radius: c.radius })),
     weight: midWeight,
     spacing: 3.2,
+    // the owner walks the paths, not the ring's centre: a crown of the far atlas's cards reads as
+    // flat quads within a few metres, and one at (−3.3, −19.6) stood 3 m from his north-path camera
+    // (hiding the west hut, roofing the path) and another 6 m from his look-up in the north hollow
+    // (fable-5 lane 10, 12:51). The crown's edge keeps MID_WALK_GAP_M beyond the paving's edge, never
+    // nearer than MID_WALK_MIN_M to a centreline; the understory's real trees own the verges.
+    clear: (x, z, crownR) => {
+      const w = nearestWalkLine(ctx, x, z);
+      return w.distance < Math.max(MID_WALK_MIN_M, w.halfWidth + crownR + MID_WALK_GAP_M);
+    },
   });
   const midPlacements = midSampled.filter((p) => !expansionCull(p.x, p.z));
   distantPlacements.push(...midPlacements);
@@ -3349,6 +3397,23 @@ export async function create(ctx: WorldContext): Promise<WorldSystem> {
           instanceSphere(w, l, i, sphere);
           if (inView(sphere) && hullInView(w, l, i)) kept.push(i);
           else if (casts && shadowReaches(sphere)) shadowOnly.push(i);
+        }
+        if (l === 0 && w.shadowProxy) {
+          // the high bucket's shadow-only instances cast from the medium-geometry twin
+          if (!sameList(kept, w.submitted[l]) || w.meshes[l].userData[MAIN_COUNT] !== kept.length) fillFamily(w, l, kept, kept.length);
+          if (!sameList(shadowOnly, w.submittedShadow!)) {
+            const proxy = w.shadowProxy;
+            for (let k = 0; k < shadowOnly.length; k++) proxy.setMatrixAt(k, w.matrices[shadowOnly[k]]);
+            proxy.count = shadowOnly.length;
+            proxy.visible = shadowOnly.length > 0;
+            proxy.instanceMatrix.needsUpdate = true;
+            if (shadowOnly.length) {
+              proxy.computeBoundingSphere();
+              proxy.boundingSphere!.radius += CULL_PAD_M;
+            }
+            w.submittedShadow = shadowOnly;
+          }
+          continue;
         }
         const mainCount = kept.length;
         for (const i of shadowOnly) kept.push(i);

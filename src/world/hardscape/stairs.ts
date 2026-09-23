@@ -331,7 +331,12 @@ export function buildStairway(def: StairDef, terrain: Terrain, rng: Rng, seed: s
         // normal — in the giant's shade the × 0.5 band under each nose renders at lum 0.09 — and
         // D lost 0.002 on it: its bottom-right corner sees exactly these five bands, where frame
         // 56 s is shadow. The bands stay the control's; the riser faces below them carry w29.)
-        sideColor: [color[0] * 0.5, color[1] * 0.5, color[2] * 0.56],
+        // (lane 6, the log flights: the band under the timber is the lower tread's earth meeting the
+        // log, not a stone face in shadow — fable-5's "the log faces and shaded tread fronts are the
+        // weight": earth-tinted, its shading normal a third toward the sky like the ground it is)
+        sideColor: logNosed ? [color[0] * 0.8, color[1] * 0.78, color[2] * 0.74] : [color[0] * 0.5, color[1] * 0.5, color[2] * 0.56],
+        earthSides: logNosed ? 1 : 0,
+        sideNormalUp: logNosed ? 0.35 : 0,
         // a touch cooler than the tread top: the frame's lit lips are its palest and coolest
         // stone (A lit-20 % B/G 0.84, F 0.87; ours read 0.80 / 0.75 with the lip at the top colour)
         bevelColor: [color[0] * 0.95, color[1], color[2] * 1.15],
@@ -523,7 +528,11 @@ export function buildStairway(def: StairDef, terrain: Terrain, rng: Rng, seed: s
       // at lum 0.08–0.10 under the 0.43 tread tops — black. × 1.35, the normal near half up,
       // the foot stain and the moss film halved: the face is a stone in shade, not a hole.)
       const hwLift = isHouseWest ? 1.35 : 1;
-      const pc: [number, number, number] = [riserColor[0] * piece.tone * hwLift, riserColor[1] * piece.tone * hwLift, riserColor[2] * piece.tone * hwLift];
+      // lane 6: under a timber the riser is the earth of the lower tread, not a dark stone — the
+      // demo's flights (`d_104`, ref-03) show bark, cut ends and earth; its tone follows the tread's
+      const pc: [number, number, number] = logNosed
+        ? [color[0] * 0.82 * piece.tone, color[1] * 0.8 * piece.tone, color[2] * 0.76 * piece.tone]
+        : [riserColor[0] * piece.tone * hwLift, riserColor[1] * piece.tone * hwLift, riserColor[2] * piece.tone * hwLift];
       placeSlab(piece.outline, piece.ax, rBottom, piece.au, yaw * 0.5, 0, 0, {
         thickness: rh,
         bevel: isHouseWest ? 0.014 : 0.012,
@@ -537,9 +546,12 @@ export function buildStairway(def: StairDef, terrain: Terrain, rng: Rng, seed: s
         // 0.2 with the cheeks at 0.3 / × 0.78 still −0.0032)
         // round 46: 0.1 → 0.2 with the backing behind (the face stones are 14 cm deep now and
         // the joints show the backing's soil, so the flank D sees is the backing's, not theirs)
-        sideNormalUp: isHouseWest ? 0.4 : 0,
+        sideNormalUp: isHouseWest ? 0.4 : logNosed ? 0.35 : 0,
         sideWear: isHouseWest ? 0.7 : 0,
-        sideGrime: isHouseWest ? 1 : undefined,
+        sideGrime: isHouseWest ? 1 : logNosed ? 0.9 : undefined,
+        // lane 6: the whole riser under a timber renders as packed earth (top and walls)
+        earthTop: logNosed ? 1 : 0,
+        earthSides: logNosed ? 1 : 0,
         // across: the horizontal distance from the leaning line x = fissA + lean · y; along: the
         // height over the fissure's half-length (the shader fades it out toward its top). Affine
         // over every wall, so it is exact on the front face; the back face is under the tread
@@ -547,7 +559,7 @@ export function buildStairway(def: StairDef, terrain: Terrain, rng: Rng, seed: s
         sideCrackFn: fissured ? (x, y) => [x + piece.ax - ac - fissA - fissLean * y, (y - fissTop * 0.5) / (fissTop * 0.5)] : undefined,
         // soil stain at the foot fading to none under the nosing: the face is not one flat band
         // but darker and browner where it meets the tread below, lighter under the overhang
-        sideStain: isHouseWest ? footStain * 0.5 : footStain,
+        sideStain: isHouseWest ? footStain * 0.5 : logNosed ? footStain * 0.4 : footStain,
         // mossy risers (sheet 01 / 04): a moss skin creeps up the face from the tread below —
         // strongest toward the flanks — broken into patches by the noise so it reads as
         // cushions of moss between bare dark stone, not a green wash. Round 23: the general
