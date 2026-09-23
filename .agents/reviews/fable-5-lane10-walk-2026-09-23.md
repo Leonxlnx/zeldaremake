@@ -375,3 +375,34 @@ Six views on this head: §9 (inside ±0.002 of `6664f739`).
 | 10 | The path: stone slabs with dark joints where the recording's north run is packed dirt | the spine north of the plaza | 6 | §2 #4 |
 | 11 | The right bank a cut earth wall (brown 30 % of the band vs 1 %) | the spine's east side | 4 / 6 | §7 |
 | 12 | No fork past Saria's mound; no people | north of Saria's; the plaza | 6; 7 | §2 |
+
+## 11. W38 at camera A — who carries the +0.62 M since `f56c5740` (head `be123deb`, 13:23–13:42 UTC)
+
+fable-2 (11:35) flagged A at 9.15 M / 599 draws against the 9.0 M cap and guessed lane 2's layer. Measured on my box:
+`fable-5-lane10/submission.mjs` poses the six fixed views and reads the trees' per-family submission tally
+(`audit().systems.trees.submission.byFamily`, three's culling replayed) beside the renderer's total;
+`fable-5-lane10/bysystem.mjs` reads the scene's static triangles per top-level system (`audit().scene.bySystem`) and
+the vegetation audit. Three builds: `f56c5740` (07:00), `144453ef` (the squad merge-base, carries `d19439cc`'s
+D-hollow turf), `be123deb` (the head).
+
+| view | renderer triangles | the trees system (submitted) | of which the mid canopy | everything else |
+| --- | --- | --- | --- | --- |
+| A | 8.54 → 9.15 M (**+0.62**) | 3.04 → 3.08 M (+0.05) | 0.03 M | 5.50 → 6.07 M (**+0.57**) |
+| B | 7.70 → 8.30 M (**+0.60**) | 2.57 → 2.62 M (+0.04) | 0.03 M | 5.12 → 5.68 M (**+0.56**) |
+| C | 6.47 → 6.77 M (**+0.31**) | 2.34 → 2.39 M (+0.05) | 0.04 M | 4.13 → 4.39 M (**+0.25**) |
+| D | 7.74 → 8.53 M (**+0.78**) | 2.65 → 2.70 M (+0.04) | 0.03 M | 5.09 → 5.83 M (**+0.74**) |
+| E | 7.70 → 8.30 M (**+0.60**) | 2.57 → 2.62 M (+0.04) | 0.03 M | 5.12 → 5.68 M (**+0.56**) |
+| F | 7.79 → 7.99 M (**+0.20**) | 2.59 → 2.64 M (+0.05) | 0.04 M | 5.20 → 5.35 M (**+0.15**) |
+
+**At A the trees system grew 0.05 M (the mid canopy submits 0.03 M — `mid-near` +17 K, `mid-far` +13 K, +10 calls; the
+columns +15 K) and everything else grew 0.57 M.** The static split names it: **vegetation 2.45 → 3.02 M (+0.57 M;
+instances 504,659 → 635,865)**, trees 3.67 → 3.75 M (+0.08 M; +131 instances). Inside vegetation, between `144453ef`
+and the head: grass instances 512,554 → 619,457 (turf +95 K, meadow +11 K, sedge +10.6 K blades), ferns 2,366 → 2,834,
+flowers 274 → 774, bushes 125 → 167, weeds +678, clover +538 — lane 4's verges and the "corridor's forest floor closed".
+`d19439cc` (the D-hollow turf, fable-cursor) is +9 K at A (8.536 → 8.545 M; +23.7 K grass instances) — not the cause.
+Draws at A 545 → 597: +10 the trees', the rest vegetation.
+
+So **the 9.0 M cap at A is broken by lane 4's blades, not lane 2's crowns** — and the same split holds at B / D / E
+(+0.56 / +0.74 / +0.56 M outside the trees against +0.04). The first cut is the turf's density or reach where A does not
+resolve it (at A the corridor's floor is 20–40 m out); the crowns are 0.03 M and can stay. The play spots (§8) carry
+the same growth (`stairs2-base` 9.53 → 9.67 M is lane 4's too, by this split).
