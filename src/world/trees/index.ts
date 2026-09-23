@@ -2061,6 +2061,11 @@ export async function create(ctx: WorldContext): Promise<WorldSystem> {
   };
   // fable-4 (round 50, W08 at C): the hero stem's instance tilt — whitebark.ts HERO_WHITE_BARK_TILTS
   for (const p of whitePlacements) seatFamily(whites, p, p.variant, whiteBarkTilt(p.x, p.z));
+  // the play camera refuses to stand inside a white-bark's bole (camera/collision.ts)
+  ctx.shared.slimTrunks = whitePlacements.map((p) => {
+    const w = whites[p.variant];
+    return { x: p.x, z: p.z, r: w.params.trunkRadius * p.scale * 1.25, y0: p.y - 0.5, y1: p.y + w.lods[0].height * p.scale * 0.6 };
+  });
   /**
    * A tree's colour-pass bound: the crown (leaf vertices, aRoot.w > 0.5) and the wood split at its
    * mid-height as three spheres. The convex hull of the three is outside a frustum plane iff every

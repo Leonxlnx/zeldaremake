@@ -132,7 +132,7 @@ import {
   type SurfaceSample,
 } from './geometry';
 import { FoliageBuilder } from './foliage';
-import { buildLantern, type LanternKind, type LanternRig } from './lantern';
+import { buildLantern, lanternHanger, type LanternKind, type LanternRig } from './lantern';
 import { LIME_POD_GLOW, MOSS_ALBEDO_PEAK, Noise3D, type StructureMaterials } from './materials';
 import { buildMossTufts, type MossTuftSpec } from './mossTufts';
 import { woodFibre, woodGrain } from './woodGrain';
@@ -5074,6 +5074,7 @@ export function buildHouse(def: HouseDef, ctx: WorldContext, mats: StructureMate
   const lanternRng = rng.fork('lanterns');
   const specs = LANTERNS[def.id] ?? LANTERNS.upper;
   const podPositions: Vector3[] = [];
+  const hangers: BufferGeometry[] = [];
   let limeCount = 0;
   for (const spec of specs.slice(0, Math.max(def.lanterns, specs.length))) {
     let hook: Vector3;
@@ -5124,11 +5125,22 @@ export function buildHouse(def: HouseDef, ctx: WorldContext, mats: StructureMate
       // a hanging vine trails off the peg too
       foliage.addHangingVine(end.clone().add(new Vector3(0, 0.02, 0)), 0.5, { amount: 0.08 });
     }
+    // round 55: a cord tied to the soffit / arch now hangs from a pinned toggle (the pegs carry their own)
+    if (spec.hook === 'bough' || spec.hook === 'eave') {
+      const d = frame.dir(spec.a);
+      hangers.push(lanternHanger(hook, new Vector3(-d.z, 0, d.x), k));
+    }
     const rig = buildLantern(hook, cord, mats, lanternRng, spec.scale ?? 1.0, spec.tint ?? 'orange');
     if (spec.tint === 'lime') limeCount++;
     group.add(rig.pivot);
     lanterns.push(rig);
     podPositions.push(rig.pod);
+  }
+  if (hangers.length) {
+    const hangerMesh = new Mesh(merge(hangers), mats.woodDark);
+    hangerMesh.name = 'lantern-hanger';
+    hangerMesh.castShadow = true;
+    group.add(hangerMesh);
   }
   if (podPositions.length) {
     const c = new Vector3();

@@ -45,12 +45,16 @@ export const STAKE_HEIGHT: [number, number] = [0.22, 0.34];
  * and were tuned with the tube's side triangles wound inward (Astra's fix, 27c2e3c8): what read as
  * "the timber" then was the far inner wall. With the faces outward the A frame's flight measured
  * lips l 68 over troughs 63 where the reference has l 100 over 85 (§6.6b: bark `#746d5d` lit, shadow
- * `#453e32`) — the dark logs sat exactly where the lit lips belong. The tint lifts the bark to a
- * lit grey-tan and cools the texture's orange (R/B 2.4 → 1.4); the pair below pins the A-frame lips
- * ≈ 15 points over the treads behind, as the reference's, with the flight's saturation at 0.32
- * (reference 0.29, the flight without logs 0.30).
+ * `#453e32`) — the dark logs sat exactly where the lit lips belong. The tint lifted the bark to a
+ * lit grey-tan and cooled the texture's orange (R/B 2.4 → 1.4) at [1.35, 1.5, 2.3], pinning the
+ * A-frame lips ≈ 15 points over the treads behind.
+ * 2026-09-23 (owner review: this flight's "odd repeated pattern"): at the player's distance that
+ * tint read as twenty identical silver-white birch poles striped against their shaded treads.
+ * Swept at runtime on the owner's pose (gauntlet/scripts/probe-look.mjs, ×1.0 / 0.7 / 0.52 / 0.4):
+ * at ≈ half the old lift the timber sits in the stone's value range as weathered grey-brown wood
+ * (R/B 1.8), the steps read as stone treads with timber edges, and the lit crowns still lead.
  */
-export const LOG_TINT: [number, number, number] = [1.35, 1.5, 2.3];
+export const LOG_TINT: [number, number, number] = [0.76, 0.74, 1.0];
 /**
  * The shade floor's light tint (the tone the shaded side is lifted toward). The arch's
  * `HOUSE_BARK_TINT` (0x70553f, a saturated brown) put the flight's saturation at 0.36 whatever the
@@ -114,35 +118,55 @@ export function buildLogNosings(def: StairDef, seed: string): LogNosingBuild {
 
   /**
    * a cylinder along `axis` from `a` to `b` (world), radius `r` with a per-ring wobble and bark
-   * ridges; `colorAt(t, angle, upness)` gives the vertex colour
+   * ridges; `colorAt(t, angle, upness)` gives the vertex colour. `look` makes each timber its own
+   * piece of wood (2026-09-23, the owner's "odd repeated pattern" on this flight: every log's bark
+   * started at u = 0 at the same end, tiled every 0.6 m and began its roll at the same angle, so
+   * the map's features lined up in columns down all twenty risers):
+   *  - `uvOffset` / `uvTile`: where along the bark map this log starts, and its repeat (m). The
+   *    map's fissures run up the image, so the image's v runs ALONG the log (the grain follows the
+   *    timber; the first mapping ran it round the circumference, rings across every log) and u
+   *    round it, one turn of the map per `uvAround` of circumference
+   *  - `roll`: the log's rotation about its own axis (rad) — which side of the bark faces up
+   *  - `buttAtA` / `taper`: a felled log is thicker at the butt; laid as it came, either way round
+   *  - `bow` / `bowDir`: a gentle sweep along the length (m, peak at mid-span), kept horizontal
+   *  - `ridgeAt(t)`: the bark ridges' scale along the length (worn flatter where feet land)
    */
-  const tube = (a: Vector3, b: Vector3, r: number, seedK: number, wobble: number, ridges: number, colorAt: (t: number, ang: number, up: number) => Color, taper = 0) => {
+  type TubeLook = { uvOffset: number; uvTile: number; uvAround: number; uvShift: number; roll: number; buttAtA: boolean; taper: number; bow: number; bowDir: Vector3; ridgeAt?: (t: number) => number };
+  const plainLook = (taper: number): TubeLook => ({ uvOffset: 0, uvTile: 0.9, uvAround: 0.6, uvShift: 0, roll: 0, buttAtA: true, taper, bow: 0, bowDir: new Vector3() });
+  const tube = (a: Vector3, b: Vector3, r: number, seedK: number, wobble: number, ridges: number, colorAt: (t: number, ang: number, up: number, n: Vector3) => Color, look: TubeLook) => {
     const axis = new Vector3().subVectors(b, a);
     const len = axis.length();
     axis.normalize();
-    // a stable radial frame around the axis
+    // a stable radial frame around the axis, turned by the log's own roll
     const ref = Math.abs(axis.y) < 0.9 ? new Vector3(0, 1, 0) : new Vector3(1, 0, 0);
-    const n1 = new Vector3().crossVectors(axis, ref).normalize();
+    const f1 = new Vector3().crossVectors(axis, ref).normalize();
+    const f2 = new Vector3().crossVectors(axis, f1).normalize();
+    const n1 = f1.clone().multiplyScalar(Math.cos(look.roll)).addScaledVector(f2, Math.sin(look.roll));
     const n2 = new Vector3().crossVectors(axis, n1).normalize();
     const base = pos.length / 3;
     const p = new Vector3();
     const n = new Vector3();
+    // whole turns of the (tiling) map round the circumference, so the wrap has no seam
+    const turns = Math.max(1, Math.round((Math.PI * 2 * r) / look.uvAround));
     for (let i = 0; i <= ALONG; i++) {
       const t = i / ALONG;
-      // the log swells and pinches along its length, and thins toward a tapered end
+      // the log swells and pinches along its length and tapers from its butt to its tip
       const swell = 1 + wobble * bark.noise(t * 6.3 + seedK * 0.37, seedK * 1.7);
-      const tap = 1 - taper * smoothstep(0.7, 1, t);
+      const fromButt = look.buttAtA ? t : 1 - t;
+      const tap = 1 - look.taper * fromButt;
+      const sweep = look.bow * Math.sin(Math.PI * t);
+      const ridgeK = look.ridgeAt ? look.ridgeAt(t) : 1;
       for (let j = 0; j <= RADIAL; j++) {
         const ang = (j / RADIAL) * Math.PI * 2;
         // bark ridges: angular noise ± `ridges`, running along the length
-        const ridge = ridges * bark.noise(ang * 1.9 + seedK * 3.1, t * 14 + seedK);
+        const ridge = ridges * ridgeK * bark.noise(ang * 1.9 + seedK * 3.1, t * 14 + seedK);
         const rr = r * swell * tap + ridge;
         n.copy(n1).multiplyScalar(Math.cos(ang)).addScaledVector(n2, Math.sin(ang));
-        p.copy(a).addScaledVector(axis, t * len).addScaledVector(n, rr);
+        p.copy(a).addScaledVector(axis, t * len).addScaledVector(look.bowDir, sweep).addScaledVector(n, rr);
         pos.push(p.x, p.y, p.z);
         nrm.push(n.x, n.y, n.z);
-        uv.push((t * len) / 0.6, j / RADIAL);
-        const c = colorAt(t, ang, n.y);
+        uv.push(look.uvShift + (j / RADIAL) * turns, look.uvOffset + (t * len) / look.uvTile);
+        const c = colorAt(t, ang, n.y, n);
         col.push(c.r, c.g, c.b);
       }
     }
@@ -166,7 +190,8 @@ export function buildLogNosings(def: StairDef, seed: string): LogNosingBuild {
       nrm.push(axis.x * dir, axis.y * dir, axis.z * dir);
       uv.push(0.5, 0.5);
       col.push(cap.r, cap.g, cap.b);
-      const rEnd = r * (dir > 0 ? 1 - taper : 1);
+      const endFromButt = look.buttAtA === (dir > 0) ? 1 : 0;
+      const rEnd = r * (1 - look.taper * endFromButt);
       for (let j = 0; j <= RADIAL; j++) {
         const ang = (j / RADIAL) * Math.PI * 2;
         n.copy(n1).multiplyScalar(Math.cos(ang)).addScaledVector(n2, Math.sin(ang));
@@ -186,6 +211,16 @@ export function buildLogNosings(def: StairDef, seed: string): LogNosingBuild {
     }
   };
 
+  // the run's along axis in world xz: the logs' bow stays horizontal so a crown's height holds
+  const [ax0, az0] = stairToWorld(f, 0, 0);
+  const [ax1, az1] = stairToWorld(f, 0, 1);
+  const alongDir = new Vector3(ax1 - ax0, 0, az1 - az0).normalize();
+  // where feet land across the flight — the stone treads' own `feet` band: the centre third
+  const walked = (across: number) => 1 - smoothstep(0.3 * hw, 0.85 * hw, Math.abs(across));
+  // boots rub the bark off the crown: smoother, darker, polished with trodden dirt (not paler)
+  const wornCol = new Color(0.8, 0.72, 0.62);
+  const soilCol = new Color(0.46, 0.4, 0.33);
+
   let logs = 0;
   let stakes = 0;
   for (let i = 0; i < def.steps; i++) {
@@ -199,11 +234,16 @@ export function buildLogNosings(def: StairDef, seed: string): LogNosingBuild {
     const along = i * def.tread - LOG_FRONT + r;
     const overL = 0.08 + 0.1 * h2;
     const overR = 0.08 + 0.1 * hash2(i, 29, 7);
+    const span = 2 * hw + overL + overR;
     const a = new Vector3(...worldOf(-hw - overL, along, cy));
     const b = new Vector3(...worldOf(hw + overR, along, cy));
     // a slight sag / tilt across (a few mm), so the run is not ruled
     a.y += 0.01 * (hash2(i, 31, 7) - 0.5);
     b.y += 0.01 * (hash2(i, 37, 7) - 0.5);
+    // the timber's age: 0 a newer log (warm brown bark), 1 an old one (silvered, mossier)
+    const age = hash2(i, 83, 7);
+    const logTone = 0.9 + 0.2 * hash2(i, 89, 7);
+    const acrossAt = (t: number) => -hw - overL + t * span;
     tube(
       a,
       b,
@@ -211,24 +251,46 @@ export function buildLogNosings(def: StairDef, seed: string): LogNosingBuild {
       i * 1.13,
       0.07,
       0.006,
-      (t, ang, up) => {
-        // bark tone: a dark weathered timber, the underside damp and darker, the crown taking moss
-        // in patches (the demo's logs are mossy on top)
-        const tone = 0.82 + 0.28 * (bark.noise(t * 9 + i * 2.3, ang * 1.3) * 0.5 + 0.5);
-        tmpC.setRGB(tone, tone * 0.97, tone * 0.93);
+      (t, ang, up, n) => {
+        const across = acrossAt(t);
+        const w = walked(across);
+        const tone = (0.82 + 0.28 * (bark.noise(t * 9 + i * 2.3, ang * 1.3) * 0.5 + 0.5)) * logTone;
+        tmpC.setRGB(tone * (1.04 - 0.1 * age), tone * (0.97 - 0.02 * age), tone * (0.9 + 0.07 * age));
+        // the crown where boots land: bark rubbed smooth and dark with trodden dirt
+        tmpC.lerp(wornCol, 0.5 * w * smoothstep(0.35, 0.9, up));
         const under = smoothstep(0.1, -0.6, up);
         tmpC.lerp(dampCol, 0.55 * under);
+        // soil and grit packed into the crease against the tread behind the log
+        const back = n.x * alongDir.x + n.z * alongDir.z;
+        tmpC.lerp(soilCol, 0.6 * smoothstep(0.2, 0.8, back) * smoothstep(0.3, -0.2, up));
+        // moss on the upper side where nobody steps: the ends and flanks, more on the older logs
         const mossField = mossN.fbm(t * 4.2 + i * 1.7, ang * 0.8 + 0.5, 2) * 0.5 + 0.5;
-        const moss = smoothstep(0.25, 0.85, up) * smoothstep(0.42, 0.62, mossField);
+        const moss = smoothstep(0.1, 0.8, up) * smoothstep(0.42, 0.62, mossField) * (1 - 0.85 * w) * (0.6 + 0.4 * age);
         tmpC.lerp(mossCol, 0.85 * moss);
         return tmpC;
       },
-      0.12 * hash2(i, 41, 7),
+      {
+        uvOffset: 7.3 * hash2(i, 59, 7),
+        // the map covers ≈ 0.6 m of bark; a 0.8–1.3 m repeat along keeps its two knots from
+        // recurring down the flight in step
+        uvTile: 0.8 + 0.5 * hash2(i, 61, 7),
+        uvAround: 0.55,
+        uvShift: hash2(i, 63, 7),
+        roll: Math.PI * 2 * hash2(i, 67, 7),
+        buttAtA: hash2(i, 71, 7) < 0.5,
+        taper: 0.1 + 0.12 * hash2(i, 73, 7),
+        bow: 0.05 * (hash2(i, 79, 7) - 0.5),
+        bowDir: alongDir,
+        ridgeAt: (t) => 1 - 0.7 * walked(acrossAt(t)),
+      },
     );
     logs++;
-    // end stakes every second step: a short post driven in at each log end, leaning a little
-    if (i % 2 === 0) {
+    // end stakes where a builder needed them: most even steps and an odd one now and then, and
+    // an end that sat firm got none — not a post pair every second riser like a fence
+    const stakeStep = i % 2 === 0 ? hash2(i, 97, 7) < 0.8 : hash2(i, 101, 7) < 0.25;
+    if (stakeStep) {
       for (const side of [-1, 1] as const) {
+        if (hash2(i, side < 0 ? 103 : 107, 7) < 0.18) continue;
         const over = side < 0 ? overL : overR;
         const across = side * (hw + over - 0.04);
         const hs = hash2(i, side < 0 ? 43 : 47, 7);
@@ -250,7 +312,7 @@ export function buildLogNosings(def: StairDef, seed: string): LogNosingBuild {
             tmpC.multiplyScalar(1 + 0.12 * smoothstep(0.8, 1, t));
             return tmpC;
           },
-          0.15,
+          { ...plainLook(0.15), uvOffset: 3.1 * hs, roll: Math.PI * 2 * hash2(i, side < 0 ? 109 : 113, 7) },
         );
         stakes++;
       }
