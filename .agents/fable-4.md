@@ -364,3 +364,6 @@ nearCanopy, materials, index otherwise) is edited.
   deltas everywhere, A 1 px / D 0 px; branch carries the head merged (`264c3d3f`).
 - 03:59 — re-verify on the owner-09-23 head: four look-ups under white-barks at 50–55° — crowns read as layered
   leaves; the flat pale shapes are the distant floor cards (Astra's). slimTrunks fine. `round52-lookup-whitebarks/`.
+- 05:42 — row 28 (LOD pops), white-bark half: the hero's switches at 25.85 / 46.27 m measured with 4 cm frozen pairs
+  vs parallax controls — no excess (7.61/7.79, 8.30/8.29 %). Negative result, no crossfade. `round52-lodpop/`.
+  Posted the plateau-oak authored-leaves density (257 K in a 7 m cluster at 21 m) to Astra. sectorgroups merged.
