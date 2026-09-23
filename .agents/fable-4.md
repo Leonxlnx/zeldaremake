@@ -388,3 +388,6 @@ nearCanopy, materials, index otherwise) is edited.
   understory +29 K; trees −220 K net. Posted; taking the shadow proxy re-measure and handing the plateau-oak number to squad3.
 - 14:41 — heroshadow: shadow-only high-LOD white-barks cast from the medium geometry — A 9.15 → 9.02 M, F −160 K, five
   views pixel-identical, C −0.0005. `agent/fable-4-heroshadow` @ `820a01d5`.
+- 15:17 — heroshadow generalised to the columns and dropped (+127 draws, +30 K); branch @ `852245f7` white-barks only,
+  head merged, ready. Lesson: per-variant twin meshes multiply draws — the twin pays only where a heavy high mesh casts
+  out-of-frame shade.
