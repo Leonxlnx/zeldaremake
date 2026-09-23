@@ -34,7 +34,7 @@ lands: `ffmpeg` frames at his marked moments → `reference/frames-video2/`, has
 - `.agents/fable-5.md`, `.agents/reviews/fable-5-*.md`, my threads in `.agents/INBOX.md`.
 
 ## Completed work
-- 2026-09-23 01:31–01:38 UTC — iteration 75 (`fable-5-take0134.md`, r55 §V): take-0134 (the clarity set) read — every view down
+- 2026-09-23 01:31–01:33 UTC — iteration 75 (`fable-5-take0134.md`, r55 §V): take-0134 (the clarity set) read — every view down
   as booked (D −0.0110), all six within ±0.002 of the expected row; 41/50, nothing filed; the owner-region read from §4's
   fog-slice rows (edge target met, lightness/saturation moved away, sky still blue); take-0135's expected row posted.
 - 2026-09-23 00:27–00:30 UTC — iteration 74: the k3/k4 camera-to-crown distances added to ANALYSIS_CLARITY §4 (cards at
@@ -373,4 +373,4 @@ lands: `ffmpeg` frames at his marked moments → `reference/frames-video2/`, has
   lists the regions; the evidence images are reproducible with the same crops.
 
 ## Last updated
-2026-09-23T01:38:00Z
+2026-09-23T01:34:00Z

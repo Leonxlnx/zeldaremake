@@ -600,7 +600,7 @@ hull test clipping an instance at the frame's edge — `x-clearing-n` (the ledge
 (the plaza under the limb), `wb-grove-10m` (the grove filling the right edge) — **max |Δ| 0.0 as well.** A W38 give-back
 the frames cannot see, as claimed; nothing to add. (Triangles not re-measured here; the frame check is what this adds.)
 
-## V. Iteration 75 (01:31–01:38 UTC) — take-0134 (the clarity set) read: the expected row held to ±0.002, every view down, 41/50, nothing to file
+## V. Iteration 75 (01:31–01:33 UTC) — take-0134 (the clarity set) read: the expected row held to ±0.002, every view down, 41/50, nothing to file
 
 `fable-5-take0134.md`. A −0.0027, B −0.0004, C −0.0064, D −0.0110, E −0.0008, F −0.0044 vs take-0133 — the fog slice less the
 roof's gains, the atlas and stand LOD neutral; the capture pays a little less at C/D than my pairs. Against the owner's circle
