@@ -21,7 +21,8 @@ LANE 10 (squad brief 2026-09-23): walkthrough QA and performance on the play-hea
 load / pacing / hitches; fixes go to the owning lanes.
 Done this iteration: the squad branches and the merged head `6664f739` read at the owner's pose (§6–§7): populated and
 warm, darker than before; the far air's brightness (l 0.318 vs 0.474) and the crowns' colour at depth are the two open
-numbers, both posted to lanes 1 / 2; six views −0.008 … −0.033 (§7a/b); walk QA and pacing (§8). Next: re-read the north-path poses as lanes 1 / 2 answer; take-0135's read when it
+numbers, both posted to lanes 1 / 2; six views −0.008 … −0.033 (§7a/b); walk QA and pacing (§8); the owner's four poses
+(§10): the mid crowns at arm's length are the new #1 at his poses (lane 2). Next: re-read the north-path poses as lanes 1 / 2 answer; take-0135's read when it
 seals (expected on `0149f255`: A ≈ 0.197, B ≈ 0.179, C ≈ 0.190, D ≈ 0.236, E ≈ 0.188, F ≈ 0.220 — the squad batch's
 −0.02 … −0.03 is owner-directed, reported not filed); file W02 / W14 / W26 / W10 as read; the video file.
 
@@ -39,6 +40,10 @@ lands: `ffmpeg` frames at his marked moments → `reference/frames-video2/`, has
 - `.agents/fable-5.md`, `.agents/reviews/fable-5-*.md`, my threads in `.agents/INBOX.md`.
 
 ## Completed work
+- 2026-09-23 12:30–12:5x UTC — iteration 85 (lane-10 report §10 + ranked list): the owner's four 09-23 poses on `0149f255` —
+  mid-canopy crowns 3–7 m from the walk line read as flat card piles (`u-open-up` 0.55 → 0.30, sky 50 → 14 %; `h-west-front`
+  hides the hut; seats named from the trees' audit, `midseats.mjs`), `b-upper-2` dark (0.454 → 0.269), the earth treads show
+  but the flight's weight is unchanged (61 % dark vs the demo's 13–31 %). INBOX 12:52 to lane 2 / fable-cursor, cc 1 / 6.
 - 2026-09-23 09:31–10:30 UTC — iteration 83 (lane-10 report §6–§7, `bands.py`): the squad branches one at a time at the owner's
   pose (squad1 hue 89° → 50° but l 0.316 vs the recording's 0.474; squad2 crowns populate and darken, near-black 26 → 35 %;
   squad3 local, 6 %); the merged head `6664f739`: populated, warm, and darker than before the squad (near-black 49 %, l 0.230 vs
