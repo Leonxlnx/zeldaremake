@@ -28,7 +28,10 @@
  *  - each girl has a FAIRY (navi.ts `createFairy`) hovering above and to the LEFT of her head
  *    (round 50, demo d_011 / d_024: ≈ 0.4 m up, 0.3 m out, never in front of the face); it
  *    follows the walker with a short delayed-average lag (a spring-like trail that is still a
- *    pure function of t).
+ *    pure function of t). The fairies' point lights stay in the scene in every mode (lane 7:
+ *    a constant light count — no program recompiles when a fairy hides or capture begins) and
+ *    dim to zero by intensity where the fairy is hidden (the ledge girl's under capture) or was
+ *    kept out of the six frames (the bank girl's).
  *
  * The walk cycle is driven by the distance walked (phase = steps × 2π × dist / legLength), so the
  * stance foot's speed over the ground matches her actual speed: the thigh follows a smoothed
@@ -361,6 +364,7 @@ function twoBone(l1: number, l2: number, reach: number, drop: number, midBehind 
 
 const _tmp = new Vector3();
 const _tmp2 = new Vector3();
+const _off = new Vector3();
 const _fwd = new Vector3();
 const _up = new Vector3(0, 1, 0);
 /** seated pelvis roll (rad): the pelvis tips back a little under a rounded lower back */
@@ -605,6 +609,7 @@ export function createNpcs(opts: NpcOptions): Npcs {
     ledgeShown = on;
     ledgeChar.rig.root.visible = on;
     for (const f of fairies) if (f.slot === LEDGE_SLOT) f.fairy.group.visible = on;
+    setGlow(LEDGE_SLOT, on);
   };
 
   // -- kokiri-south-bank: the stand on the south bank's terrace (round 50), facing the plaza centre --
@@ -631,14 +636,23 @@ export function createNpcs(opts: NpcOptions): Npcs {
   const bankPhase = bankRng.range(0, bankLookPeriod);
   const bankSt: WanderState = { ...wander };
 
-  // -- fairies: one per girl --
-  const fairies: { fairy: Fairy; slot: number }[] = [];
+  // -- fairies: one per girl. Their point lights ride on `group` itself, not in the fairy's body
+  // (lane 7): a light that leaves or joins the scene changes the light count every lit program
+  // is keyed on and recompiles them all (the free camera parking on a viewpoint hid the ledge
+  // girl's fairy; capture toggled the bank fairy's light — structures/index.ts keeps the north
+  // posts' lights in the scene for the same reason). A hidden or captured-off fairy dims its light
+  // to zero by `glow` instead; the light follows the body from `anchor` + `offset(t)` every frame. --
+  const fairies: { fairy: Fairy; slot: number; glow: number }[] = [];
   for (const slot of [0, 1, LEDGE_SLOT, BANK_SLOT]) {
     if (!chars[slot]) continue;
     const fairy = createFairy({ name: `kokiri-fairy-${slot}`, tint: KID_FAIRY_TINT, coreTint: KID_FAIRY_CORE, lightColor: KID_FAIRY_LIGHT, seed: `${opts.seed}/fairy/${slot}`, scale: 0.75 });
-    fairies.push({ fairy, slot });
+    fairies.push({ fairy, slot, glow: 1 });
     group.add(fairy.group);
+    group.add(fairy.light);
   }
+  const setGlow = (slot: number, on: boolean) => {
+    for (const f of fairies) if (f.slot === slot) f.glow = on ? 1 : 0;
+  };
 
   const driven = new Set<number>();
   const face = new Vector3();
@@ -689,10 +703,10 @@ export function createNpcs(opts: NpcOptions): Npcs {
         poseLedgeIdle(bankChar.rig, bank.x, bank.z, bank.y, bank.yaw, t, 7.9, hy, hp, bankSt);
         plantFeet(bankChar.rig, ground.height, actor.contact);
         actor.shadow.position.set(bank.x, ground.decalHeight(bank.x, bank.z, actor.shadowRadius), bank.z);
-        // her fairy's point light is off under capture: a visible light joins every lit material's
-        // light loop (NUM_POINT_LIGHTS) and would recompile the six frames' shaders; the fairy
-        // itself stays (it is outside the frustums like her)
-        for (const f of fairies) if (f.slot === BANK_SLOT) f.fairy.light.visible = !view;
+        // her fairy's light is dimmed to nothing under capture (round 50 kept it out of the six
+        // frames' light loop; the light itself stays in the scene — see the fairies above); the
+        // fairy is shown (it is outside the frustums like her)
+        setGlow(BANK_SLOT, !view);
         driven.add(BANK_SLOT);
         return true;
       }
@@ -728,7 +742,7 @@ export function createNpcs(opts: NpcOptions): Npcs {
     },
     updateFairies(t) {
       lastT = t;
-      for (const { fairy, slot } of fairies) {
+      for (const { fairy, slot, glow } of fairies) {
         const c = chars[slot];
         if (slot === 0 && driven.has(0)) {
           acc.set(0, 0, 0);
@@ -736,6 +750,9 @@ export function createNpcs(opts: NpcOptions): Npcs {
           fairy.anchor.copy(acc);
         } else fairy.anchor.copy(rigFace(c, face));
         fairy.update(t, c.rig.root.rotation.y + Math.PI);
+        // the light rides on `group` (world = local here): put it where the body is, breathing × glow
+        fairy.light.position.copy(fairy.anchor).add(fairy.offset(t, _off));
+        fairy.light.intensity *= glow;
       }
       driven.clear();
     },
@@ -766,7 +783,7 @@ export function createNpcs(opts: NpcOptions): Npcs {
           ledge: ledgeChar ? { x: ledge.x, z: ledge.z, y: Number(ledge.y.toFixed(3)), yaw: ledge.yaw, shown: ledgeShown } : null,
           /** the south-bank girl (round 50): her spot on the LIVE ground, facing the plaza centre, always shown */
           bank: bankChar ? { x: bank.x, z: bank.z, y: Number(bank.y.toFixed(3)), yaw: Number(bank.yaw.toFixed(3)), shown: bankChar.rig.root.visible } : null,
-          fairies: fairies.map(({ fairy, slot }) => ({ slot, anchor: [Number(fairy.anchor.x.toFixed(3)), Number(fairy.anchor.y.toFixed(3)), Number(fairy.anchor.z.toFixed(3))], draws: fairy.draws, shown: fairy.group.visible })),
+          fairies: fairies.map(({ fairy, slot, glow }) => ({ slot, anchor: [Number(fairy.anchor.x.toFixed(3)), Number(fairy.anchor.y.toFixed(3)), Number(fairy.anchor.z.toFixed(3))], draws: fairy.draws, shown: fairy.group.visible, glow, lightInScene: fairy.light.parent === group })),
         },
       };
     },
