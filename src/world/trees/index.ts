@@ -1584,6 +1584,8 @@ const nearLodTierFor = (deviceGB: number, poolParam: string | null): NearLodTier
  * looks at, the crown visibly gains leaves as he walks in.
  */
 const TREE_LOD_NEAR_M = 20;
+/** the distant / mid layers' near→far gate (m, × `ctx.quality.distance`) */
+const DISTANT_NEAR_M = 120;
 const TREE_LOD_MID_M = 44;
 /**
  * Dev measurement knob, the same shape as `?pool=large|small`: `?treelod=<multiplier>` scales every
@@ -1593,15 +1595,15 @@ const TREE_LOD_MID_M = 44;
  * only when the player gets close — the owner's "why don't the trees immediately spawn instead of
  * needing me to get close" (2026-09-23 20:08). 1 = shipped, and the take / CI path never sets it.
  */
-const TREE_LOD_SCALE: [number, number] = (() => {
-  if (typeof location === 'undefined') return [1, 1];
+const TREE_LOD_SCALE: [number, number, number] = (() => {
+  if (typeof location === 'undefined') return [1, 1, 1];
   const raw = new URLSearchParams(location.search).get('treelod');
-  if (!raw) return [1, 1];
-  // "1.8" scales both rungs; "1.8,2.6" scales the high→medium and medium→low rungs separately, so
-  // each can be priced on its own
-  const parts = raw.split(',').map(Number);
+  if (!raw) return [1, 1, 1];
+  // "1.8" scales every gate; "1.8,2.6,0.6" scales the high→medium rung, the medium→low rung and the
+  // distant / mid layers' near gate separately, so each can be priced and read on its own
   const ok = (n: number) => (Number.isFinite(n) && n > 0 ? n : 1);
-  return parts.length > 1 ? [ok(parts[0]), ok(parts[1])] : [ok(parts[0]), ok(parts[0])];
+  const parts = raw.split(',').map(Number);
+  return parts.length > 1 ? [ok(parts[0]), ok(parts[1]), ok(parts[2] ?? parts[1])] : [ok(parts[0]), ok(parts[0]), ok(parts[0])];
 })();
 const NEAR_LOD_DEVICE_GB = deviceMemoryGB();
 const NEAR_LOD_TIER = nearLodTierFor(NEAR_LOD_DEVICE_GB, typeof location === 'undefined' ? null : new URLSearchParams(location.search).get('pool'));
@@ -3296,7 +3298,7 @@ export async function create(ctx: WorldContext): Promise<WorldSystem> {
 
   // ------------------------------------------------------------------ LOD bucketing
   const lodDist = [TREE_LOD_NEAR_M * ctx.quality.distance * TREE_LOD_SCALE[0], TREE_LOD_MID_M * ctx.quality.distance * TREE_LOD_SCALE[1]];
-  const distantNear = 120 * ctx.quality.distance * TREE_LOD_SCALE[1];
+  const distantNear = DISTANT_NEAR_M * ctx.quality.distance * TREE_LOD_SCALE[2];
   const camPos = new Vector3(Infinity, Infinity, Infinity);
   const white = new Color(1, 1, 1);
 
@@ -3341,10 +3343,10 @@ export async function create(ctx: WorldContext): Promise<WorldSystem> {
       // a mid tree is 8–15 m tall and never further than 58 m from the clearing's centre: its near
       // LOD (12-sided bole, limbs, toes, the layered crown) is worth drawing to MID_FAR_LOD_M and
       // no further — past it the crossed strips carry the same silhouette for a tenth of the wood
-      const kindNear = set.variant.kind === 'mid' ? Math.min(distantNear, MID_FAR_LOD_M * ctx.quality.distance * TREE_LOD_SCALE[0]) : distantNear;
+      const kindNear = set.variant.kind === 'mid' ? Math.min(distantNear, MID_FAR_LOD_M * ctx.quality.distance * TREE_LOD_SCALE[2]) : distantNear;
       for (let i = 0; i < set.placements.length; i++) {
         const p = set.placements[i];
-        const nearM = isStandPole(set, p) ? Math.min(distantNear, STAND_FAR_LOD_M * ctx.quality.distance * TREE_LOD_SCALE[0]) : kindNear;
+        const nearM = isStandPole(set, p) ? Math.min(distantNear, STAND_FAR_LOD_M * ctx.quality.distance * TREE_LOD_SCALE[2]) : kindNear;
         (Math.hypot(p.x - cam.x, p.z - cam.z) < nearM ? nearList : farList).push(i);
       }
       set.lists = [nearList, farList];
@@ -3998,7 +4000,7 @@ export async function create(ctx: WorldContext): Promise<WorldSystem> {
        * `?treelod=` dev multiplier already applied): the white-barks' / columns' high→medium→low
        * rungs, the distant layer's near gate, the mid grove's and the north stand's own gates.
        */
-      lodSwapM: { tree: lodDist, distant: distantNear, mid: Math.min(distantNear, MID_FAR_LOD_M * ctx.quality.distance * TREE_LOD_SCALE[0]), standPole: Math.min(distantNear, STAND_FAR_LOD_M * ctx.quality.distance * TREE_LOD_SCALE[0]), scale: TREE_LOD_SCALE },
+      lodSwapM: { tree: lodDist, distant: distantNear, mid: Math.min(distantNear, MID_FAR_LOD_M * ctx.quality.distance * TREE_LOD_SCALE[2]), standPole: Math.min(distantNear, STAND_FAR_LOD_M * ctx.quality.distance * TREE_LOD_SCALE[2]), scale: TREE_LOD_SCALE },
       windLayers: mats.windLayers,
       barkTextures: mats.barkTextureSets,
       /**
