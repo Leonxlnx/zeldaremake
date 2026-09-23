@@ -60,6 +60,7 @@ export function mountShell(o: ShellOptions): ShellHandle {
   (window as unknown as { __ZR_AUDIO__?: unknown }).__ZR_AUDIO__ = {
     renderOffline: (seconds = 20, sampleRate = 44100, options = {}) => renderOffline({ scene: o.scene, wind: o.wind ?? null }, AUDIO_SEED, seconds, sampleRate, options),
     music: () => audio?.music() ?? 'none',
+    stats: () => audio?.stats() ?? null,
   };
 
   if (!headless && hud) {

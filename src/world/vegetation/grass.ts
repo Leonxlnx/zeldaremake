@@ -386,9 +386,10 @@ const SEED_HEIGHT: readonly [number, number] = [0.3, 0.44];
 const SEED_WIDTH: readonly [number, number] = [0.011, 0.017];
 const BROAD_SHARE = 0.08;
 const BROAD_WIDTH = 1.7;
-const NORTH_FLOOR_HEIGHT = 0.75;
+// 2026-09-23: the same as carpet.ts' — the corridor's floor closes up and loses its straw
+const NORTH_FLOOR_HEIGHT = 0.85;
 const NORTH_FLOOR_TINT = 0.5;
-const NORTH_FLOOR_DRY = 0.3;
+const NORTH_FLOOR_DRY = 0.12;
 /** the drawn share of a tile can fall below 1: an explicit density flag, or the governor's ladder */
 const THIN_ENABLED = perfFlags().grassDensity < 1 || perfFlags().governor;
 

@@ -55,11 +55,17 @@ runs through.
   (plants.test: p95 ≤ 0.27 m, p50 under the verge north of the boulder), which is untouched;
 - `NORTH_FLOOR_KEEP` 0.45 → 0.72.
 
-`plants.ts` — four walked-verge passes, all after every existing pass on their own streams:
-violet cushions in compact masses at the stones' edge, broad paddle leaves leaning over the slabs,
-low fronds on the band's outer half and a clover fringe at the stones. The round-47 fern-and-shrub
-band now keeps `D_HOLLOW_VERGE_KEEP` = 80 % of its weight inside the hollow, so the west bank is
-layered like the east one.
+`plants.ts` — five walked-verge passes, all after every existing pass on their own streams. His
+verge is three layers deep and ours had one: violet cushions in compact masses at the stones' edge,
+broad paddle leaves leaning over the slabs, a clover fringe at the stones, low fronds on the band's
+outer half, and leafy shrub crowns 1.7–3.6 m back (the lane's *"shrubs at the path edges"*) that
+break up the middle distance. The round-47 fern-and-shrub band now keeps `D_HOLLOW_VERGE_KEEP` =
+80 % of its weight inside the hollow, so the west bank is layered like the east one.
+
+The violets **gather**: their clump centres follow the flower patches steeply (`flowerPatch^1.5`),
+1.3 m apart, 8–14 heads over 0.42 m — a mass at one verge, plain green for the next few steps,
+another mass further on, the way `r_024` / `r_026` / `r_028` grow them. An even purple ribbon down
+both edges was the first thing I rendered and it is not what his recording does.
 
 ## Measured
 
@@ -74,6 +80,13 @@ the owner walks past:
 | left hollow z −18…−26 | 219 | 549 |
 | path shoulders z −4…−12 | 191 | 511 |
 | north forest floor z −30…−40 | 154 | 322 |
+| the corridor floor z −42…−54 | 62 | 133 |
+
+On the corridor floor the turf also stands taller and drier no longer: blade p50 0.152 → 0.171 m,
+`NORTH_FLOOR_DRY` +0.3 → +0.12. Its plants went with it — ferns 2 → 42, broad leaves 15 → 111,
+violets 0 → 65 over that 201 m² of open ground. The carpet's fans and mats there are **unchanged**
+(3.0 cards and 4.7 mats / m² either way): north of `NORTH_CARPET_Z` the corridor's own set rules
+them, so `NORTH_FLOOR_CLUMP_KEEP` / `NORTH_FLOOR_MAT_KEEP` stay where round 44 put them.
 
 | set | before | after |
 | --- | --- | --- |
@@ -81,9 +94,29 @@ the owner walks past:
 | purple violets | 263 | 763 |
 | broad-leaf weeds | 5 333 | 6 014 |
 | ferns | 1 399 | 1 681 |
+| shrub crowns | 125 | 167 |
 | clover | 8 701 | 9 243 |
 
 Run it yourself: `node art/environment/squad4-2026-09-23/probe.mjs`.
+
+### "No bald patches" — the coverage audit
+
+`coverage.ts`'s 0.25 m grid over every lawn cell (the owner's 2026-09-19 item 12 metric), head vs
+here:
+
+| zone | uncovered, head | uncovered, here |
+| --- | --- | --- |
+| **the path shoulders** | **23.19 %** | **0.00 %** |
+| inside the walk's reach (30 m) | 0.123 % | 0.042 % |
+| D's hollow | 0.113 % | 0.057 % |
+| the north corridor's floor | 0.742 % | 0.643 % |
+| the whole detail disc | 0.195 % | 0.151 % |
+| the open lawn | 0.007 % | 0.008 % |
+| worst 8 m tile of the walk | 16 cells bare | 4 |
+
+The shoulder row is the bare strip of soil where the paving met the turf: it was a quarter bare by
+design, for camera D's 3–8 m. It is now closed, and the walk's worst tile went from 16 bare cells
+to 4.
 
 ## Before / after
 
@@ -109,6 +142,26 @@ One test number moved: `plants.test.mjs`'s "open lawn" tuft-clustering floor 1.7
 1.74). That box's east edge clips the new verge band, and the ratio's baseline is the **box's mean
 density**, so a denser corner lowers it while every blade in it is still a rooted cluster's.
 
+### How far the hero views moved
+
+**This change does move A–F**, so here is the measurement (`hero-diff.mjs`, the same poses rendered
+on the head and here; E is B's pose):
+
+| view | SSIM vs the head | pixels changed > 8/255 |
+| --- | --- | --- |
+| A_stairs | 0.9646 | 3.79 % |
+| B_house | 0.9725 | 2.97 % |
+| C_lookback | 0.9667 | 3.23 % |
+| D_log | 0.9490 | 5.84 % |
+| F_canopy | 0.9710 | 2.80 % |
+
+`hero/A_stairs.jpg` … `hero/F_canopy.jpg` are the strips (head left, here right). D moves most — the
+verge is the length of its frame — and what moves in it is the verge filling in; its scored
+composition does not: the boulder bed still has frame 56 s' two violet patches and no others, C's
+left third is still grass to the stair foot, A's bank face is untouched, and the low right verge is
+still under 0.55 m. The owner's 2026-09-23 directive is what this change follows, so the move is
+deliberate; a reviewer who wants A–F frozen should say so and I will put the verge behind a flag.
+
 ## Play mode: walking and frame cost
 
 `node gauntlet/scripts/playtest.mjs --dist dist --out /tmp/play --only walk,perf --shots`, against
@@ -122,9 +175,9 @@ camera's eased slim push) are the head's, not this change's.
 
 | perf spot | draws (head → here) | triangles (head → here) |
 | --- | --- | --- |
-| plaza | 523 → 521 | 7.507 M → 7.846 M (+4.5 %) |
-| stairs2-base | 522 → 521 | 9.526 M → 9.576 M (+0.5 %) |
-| saria-side | 519 → 519 | 8.587 M → 8.767 M (+2.1 %) |
+| plaza | 523 → 523 | 7.507 M → 7.914 M (+5.4 %) |
+| stairs2-base | 522 → 521 | 9.526 M → 9.589 M (+0.7 %) |
+| saria-side | 519 → 519 | 8.587 M → 8.787 M (+2.3 %) |
 | west-house | 442 → 442 | 5.034 M → 5.034 M (unchanged) |
 
 Draw calls are unchanged — the verge goes into the sets that already exist, and the blade tiles it
@@ -135,3 +188,12 @@ the new band really is only the walked corridor.
 
 `npm run typecheck`, `npm run build`, and all eight vegetation tests green: `grass`, `plants`,
 `coverage`, `carpet`, `edges`, `dispose`, `flower-lod`, `lodset`, `materials`.
+
+## Next
+
+- the east verge at the plaza (`LOW_ZONES` — frames 46 / 56's low right verge, nothing over 0.55 m).
+  It is the one stretch of the walk still held to a fixed camera's rule, and `r_026` puts a leafy
+  mass exactly there; it wants a reviewer's word before the frames move for it.
+- the middle distance 6–25 m off the path, beyond the verge band: on the left it is still one slope
+  of turf where his recording layers ferns, leaves and shrubs all the way back.
+- the plaza's own lawn, which sits at the band's cut height and reads mown at 3–8 m.

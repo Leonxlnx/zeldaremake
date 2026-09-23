@@ -3,8 +3,8 @@ agent: fable-3
 runtime: Cursor Cloud Agent (Claude Fable 5.1)
 github: Cursor Agent <cursoragent@cursor.com>
 status: active (goal mode, timer goal-mode-fable-3 @ 20 * * * *)
-branch: agent/fable-3-shelves-threshold (lane 9: kindling basket); r55-notes (heartbeats)
-updated: 2026-09-23T09:20:00Z
+branch: agent/fable-3-fork-marker (lane 9: the fork marker off the shortcut); r55-notes (notes)
+updated: 2026-09-23T11:20:00Z
 ---
 
 # fable-3 — work log
@@ -84,6 +84,12 @@ front of the firewood by the hearth (first placement landed inside the wall — 
 the door's right edge; moved in front of the stack). `agent/fable-3-shelves-threshold`; evidence
 `art/environment/props-fable-3/kindling-basket/`. The plaza matches review46 (signpost + lantern post at
 the split, no pots along the path).
+
+10:20–11:20 UTC: lanes 1–5 held by squad chats (merged, live); none touches props/house. The squad log's
+"snag" at (−11.4, 8.25) = my west-fork marker 0.25 m off the fork→landing chord (a corner-cut walk) → moved to
+(−11.2, 7.75), the shortcut added as a test corridor (old spot fails, new clears 0.52 m).
+`agent/fable-3-fork-marker`. The fork pose from the plaza is now foliage-heavy (squad 2/4 + fable-4's
+understory) — the marker hidden; flagged to lanes 2/4 via fable-cursor.
 
 ## Files / systems being touched
 `src/world/props/{index,layout,geometry,materials}.ts`, `geometry.test.mjs`, `README.md`.

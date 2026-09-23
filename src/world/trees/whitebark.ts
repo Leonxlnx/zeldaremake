@@ -160,7 +160,14 @@ export function createWhiteBarkTree(p: WhiteBarkParams, palette: Palette, detail
   const leaves = new GeometryWriter(detail);
   const H = p.height;
   const R = p.trunkRadius;
-  const white = new Color(palette.barkWhite).multiplyScalar(1.12);
+  /**
+   * Round 52 (the owner's 09-23 markup: pale poles in grey haze). `barkWhite` × 1.12 put the stem
+   * at ≈ 0.62 linear — brighter than the haze it stands in from 20 m out, so a white-bark read as
+   * a lit stick rather than a tree. × 0.94 with a tenth drawn back toward the grey keeps the
+   * species pale (it is still the palest bark in the world by a wide margin) without the glow;
+   * the marks in `WHITE_BARK_COLOR` carry the reading that the brightness used to.
+   */
+  const white = new Color(palette.barkWhite).multiplyScalar(0.94).lerp(new Color(palette.barkGrey), 0.1);
   const grey = new Color(palette.barkGrey);
   const dark = new Color(palette.barkDark);
   const canopy = new Color(palette.leafCanopy);
