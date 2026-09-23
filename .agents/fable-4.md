@@ -376,3 +376,6 @@ nearCanopy, materials, index otherwise) is edited.
 - `understory.ts`: 4.5–9 m round-crowned trees, brown stems, 5 variants × 3 LODs; 44 seeded placements along the
   north path verges, the clearing, the plaza lawn edges. Family pipeline, slimTrunks, audit. A +64 K, D +83 K.
 - D window protection tried and dropped (emptied the corridor). Six-view capture running; crops at the owner's pose.
+- 12:01 — fable-cursor merged the 44-tree understory (e4c02b82) alongside squad2's mid-canopy cards; reviewed the
+  combined corridor at 7 poses (complementary depths, no doubling; +1.18 M at the owner's pose mostly squad2's).
+  The arch-stretch commit (34 trees, D −0.0033) offered as the D lever; branch carries the head merged.
