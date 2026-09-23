@@ -726,7 +726,8 @@ function buildGirlHeadband(rig: Rig, bandMat: MeshStandardMaterial): void {
     place(new TorusGeometry(R * 1.01, 0.006, 6, 28), 0, 0.023 * k, 0, [Math.PI / 2, 0, 0]),
     place(new TorusGeometry(R * 1.035, 0.006, 6, 28), 0, -0.023 * k, 0, [Math.PI / 2, 0, 0]),
   ]);
-  part(rig.head, place(geo, 0, 0.073 * k, -0.005, [-0.1, 0, 0], [1, 1, 0.97]), bandMat, 'kid-headband');
+  // no shadow pass: the band's shadow falls on the hair a centimetre under it (a submission saved per girl, like the belt's)
+  part(rig.head, place(geo, 0, 0.073 * k, -0.005, [-0.1, 0, 0], [1, 1, 0.97]), bandMat, 'kid-headband', false);
 }
 
 /** dark leather wristbands on the bare forearms (both wrists, like the demo girl) */
@@ -847,7 +848,7 @@ function buildGirlTunic(rig: Rig, tunic: MeshStandardMaterial): void {
   }
   // leather belt at the waist with a small square buckle at the front
   const y = hl(0.555);
-  part(rig.hips, place(new TorusGeometry(0.104, 0.015, 8, 26), 0, y, 0, [Math.PI / 2, 0, 0], [1, 1, 0.8]), kidMat('belt', KID.belt), 'kid-belt');
+  part(rig.hips, place(new TorusGeometry(0.104, 0.015, 8, 26), 0, y, 0, [Math.PI / 2, 0, 0], [1, 1, 0.8]), kidMat('belt', KID.belt), 'kid-belt', false);
   part(rig.hips, merge([place(new BoxGeometry(0.036, 0.03, 0.008), 0, y, 0.088), place(new BoxGeometry(0.006, 0.03, 0.01), 0, y, 0.09)]), kidMat('buckle', KID.buckle, 0.6), 'kid-buckle', false);
 }
 
