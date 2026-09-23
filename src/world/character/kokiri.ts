@@ -44,6 +44,7 @@ import {
   Float32BufferAttribute,
   Group,
   Matrix4,
+  Mesh,
   MeshStandardMaterial,
   RepeatWrapping,
   SphereGeometry,
@@ -937,6 +938,11 @@ export function createKokiri(variant: number): Character {
     buildGirlHair(rig, girlHair(look));
     buildGirlHeadband(rig, kidMat(`band-${look}`, KID.band[look]));
   } else buildBoy(rig, variant, skin);
+  // shadow pass (lane 7): the neck sits inside the scaled skull and a boot cuff's shadow falls on the
+  // shaft two centimetres under it — neither can shadow a visible pixel; three submissions per kid
+  rig.root.traverse((o) => {
+    if ((o as Mesh).isMesh && (o.name === 'neck' || o.name === 'boot-cuff')) o.castShadow = false;
+  });
   rig.root.userData.character = 'kokiri';
   // to the crown of the hair: skull top 1.06 + the scaled crown (girl: the dome reaches 0.158 · 1.14 over the head centre)
   return { kind: 'kokiri', rig, group: rig.root, triangles: endTally(), height: girl ? 1.12 : 1.13 };
