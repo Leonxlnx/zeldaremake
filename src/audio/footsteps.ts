@@ -83,7 +83,19 @@ export interface Footsteps {
   step(surface: Surface, t: number, strength: number, pan: number): void;
   /** integrate the player's motion; `t` is the context time the step would sound at */
   drive(t: number, dt: number, d: StepDrive): void;
+  /** what has been heard so far, for the play-mode evidence (`__ZR_AUDIO__.stats()`) */
+  stats(): FootstepStats;
   dispose(): void;
+}
+
+export interface FootstepStats {
+  /** steps sounded since the context started */
+  steps: number;
+  /** of those, how many landed on a boot plant the gait reported rather than on the stride timer */
+  gaitSteps: number;
+  /** how many surfaces have been heard, and the last one */
+  surfaces: Partial<Record<Surface, number>>;
+  lastSurface: Surface | null;
 }
 
 /** above this ground speed the gait is a run: shorter contact, harder heel, the toe close behind */
@@ -322,11 +334,16 @@ export function createFootsteps(ctx: BaseAudioContext, out: AudioNode, reverbSen
   /** while the gait's stance flags are driving the steps the distance integrator stays out of the way */
   let gaitUntil = -1e9;
   let wasStance: boolean[] = [];
+  const counts: FootstepStats = { steps: 0, gaitSteps: 0, surfaces: {}, lastSurface: null };
 
-  const fire = (t: number, speed: number, surface: Surface, pan: number) => {
+  const fire = (t: number, speed: number, surface: Surface, pan: number, fromGait = false) => {
     if (t - lastStepAt < MIN_STEP_GAP) return false;
     lastStepAt = t;
     travelled = 0;
+    counts.steps++;
+    if (fromGait) counts.gaitSteps++;
+    counts.surfaces[surface] = (counts.surfaces[surface] ?? 0) + 1;
+    counts.lastSurface = surface;
     // the two boots never land identically: one is a little heavier than the other
     const asymmetry = pan > 0 ? 1.06 : 0.94;
     step(surface, t, Math.min(1, strengthFor(speed) * asymmetry * (1 + (stepRng() * 2 - 1) * 0.1)), pan, speed > RUN_SPEED);
@@ -347,7 +364,7 @@ export function createFootsteps(ctx: BaseAudioContext, out: AudioNode, reverbSen
     // 1. the gait's own plant, when the character system reports it: the sound lands with the boot
     if (d.stance) {
       for (let i = 0; i < d.stance.length; i++) {
-        if (d.stance[i] && !wasStance[i] && fire(t, speed, surface, (i === 0 ? -1 : 1) * 0.12)) gaitUntil = t + 1.2;
+        if (d.stance[i] && !wasStance[i] && fire(t, speed, surface, (i === 0 ? -1 : 1) * 0.12, true)) gaitUntil = t + 1.2;
       }
       wasStance = d.stance.slice();
       if (t < gaitUntil) return;
@@ -368,6 +385,7 @@ export function createFootsteps(ctx: BaseAudioContext, out: AudioNode, reverbSen
   return {
     step,
     drive,
+    stats: () => ({ ...counts, surfaces: { ...counts.surfaces } }),
     dispose() {
       try {
         src.stop();
