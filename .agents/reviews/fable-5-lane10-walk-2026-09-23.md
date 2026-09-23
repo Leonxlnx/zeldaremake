@@ -293,3 +293,20 @@ E −0.033, F −0.008 against the frames, with the 07:00 air on both sides.
 - **Load**: world ready in 74.1 s alone here (07:00's `f56c5740`: 73.4 s; SwiftShader CPU time, not a GPU box); the
   bundle 2.04 → 2.06 MB, textures and models unchanged (114.9 MB dist).
 
+## 9. Re-read on `0149f255` (11:20 — lanes 1–5's next pushes: lane 1's third mist tier and lit far wall, lane 2's steep crown fade by distance, lane 4's closed forest floor; play link `d49ecc9d`)
+
+Same poses / flags, before = `6664f739` (§7). Sheet `fable-5-lane10/it84-ba-owner.jpg`.
+
+| owner's pose | pixels > 6 / > 40 | bright mist | near-black | mean l | far-centre box (l · s) | vanishing box l | top band l |
+| --- | --- | --- | --- | --- | --- | --- | --- |
+| r_024 | | 23.1 % | 11.6 % | 0.394 | 0.474 · 0.05 | 0.562 | 0.418 |
+| `6664f739` | | 1.4 % | 48.9 % | 0.230 | 0.318 · 0.12 | 0.337 | 0.232 |
+| `0149f255` | 8.6 / 0.5 % | 2.8 % | 48.8 % | 0.237 | **0.342** · 0.10 | **0.362** | **0.230** |
+
+A step in the right direction and a small one: the far-centre box +0.024 (of the +0.156 to the recording), the
+vanishing point +0.025 (of +0.225), the saturation 0.12 → 0.10 (his 0.05); the two other poses the same (+0.022 /
++0.044 in the far box, mist 1.9 → 3.3 % / 0.7 → 2.3 %). **The near-black share did not move (48.9 → 48.8 %) and the top
+band did not move (0.232 → 0.230)** — the crowns still roof the path at his pose, and their colour at depth is the same
+(green-hued pixels of the far-centre box: s 0.15 → 0.15, l 0.29 → 0.30; his 0.05 / 0.42): lane 2's steep fade by
+distance does not reach the crowns this pose sees at 14–40 m, or is too shallow there. The asks of §7 stand at
+these sizes: +0.13 in the far air's l, the crowns toward the veil's colour, the sky over the path open.
