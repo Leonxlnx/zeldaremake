@@ -336,7 +336,14 @@ export const HEIGHT_FOG_DEFAULTS: HeightFogParams = {
   // 0.03 fitted a hair better but cost the W35 sharpness margin. Verified by A/B capture.
   // September 22 owner clarity: keep depth separation without the older video-fit wall.
   // Match the thin-near density; the existing catch-up interval becomes continuous.
-  hazeDensity: 0.008,
+  // 2026-09-23 round 2 (fable-5 lane 10, 10:28: at the owner's north pose the corridor "is darker
+  // than before the squad" — bring the bands toward l 0.45–0.47, hue kept, less saturated). With
+  // the corridor now full of real trees, ferns and violets the far air was on target (far-centre
+  // l 0.463 against his 0.515) but the 5–25 m band was not: l 0.291 against his 0.454 at s 0.164
+  // against his 0.067. At 0.008/m a 15 m surface wore 8 % veil, so nothing lifted or greyed the
+  // verge foliage's own dark green. 0.013 puts 11 % at 15 m and 23 % at 25 m; the foreground to
+  // 8 m still wears under 4 % and stays crisp.
+  hazeDensity: 0.013,
   hazeStart: 5,
   // the thin air alone left the far tree rows (52–58 m, 80–95 m) at 67–75 % veil: the arch at 61 %
   // stood against a background only a notch brighter than itself (body 0.99× the band above it).
@@ -349,8 +356,11 @@ export const HEIGHT_FOG_DEFAULTS: HeightFogParams = {
   // 0.545) — a grey soup with nothing bright behind the trees to read them against. 34 / 0.022
   // puts 39 % of the air at 45 m, 56 % at 55 m and the cap at ~80 m: the 10–35 m trees keep their
   // own tone and stand against light.
+  // Round 2: the base air carries more of the total now, so the far step is smaller (0.022 → 0.018)
+  // and the 55 m optical depth is where it was — the far-centre box was already in the band
+  // fable-5 asked for (l 0.463 against 0.45–0.47) and must not overshoot.
   hazeFarStart: 34,
-  hazeFarDensity: 0.022,
+  hazeFarDensity: 0.018,
   // Round 8, fitted per depth bin against the reference sampled at our own pixels: in every hero
   // view the 10–18 m bins' darkest decile sat 0.03–0.06 over the reference's (B 0.269/0.290 vs
   // 0.214/0.229, A 0.259/0.283 vs 0.256/0.263, D 0.264/0.283 vs 0.189/0.244) while the 18–24 m
@@ -363,7 +373,7 @@ export const HEIGHT_FOG_DEFAULTS: HeightFogParams = {
   // 0.276 → 0.259; starting at 8 m leaves them at 0.264 / 0.274.
   hazeNearStart: 8,
   // Keep the 8–15 m air thinner than the daylight base density; catch-up preserves the far veil.
-  hazeNearDensity: 0.008,
+  hazeNearDensity: 0.011,
   hazeNearEnd: 15,
   hazeCatchUpEnd: 22,
   hazeUniformHeight: 8.0,
@@ -383,10 +393,12 @@ export const HEIGHT_FOG_DEFAULTS: HeightFogParams = {
   hazeDensityProfileOpen: 1.0,
   hazeOpenDensity: 1.0,
   maxFogOpen: 0.86,
-  // 2026-09-23: on at 0.8 (was 1.0, off). With the wall brighter the veil laid over a *shaded*
-  // 15–35 m trunk would lift it as much as it lifts the sunlit gap beside it and the middle
-  // distance flattens again; the canopy that shades the trunk shades the air in front of it.
-  hazeShadeVeil: 0.8,
+  // 2026-09-23: on at 0.8 when the corridor was empty and its far surfaces had to silhouette
+  // against the new bright wall. Round 2: off again. Lanes 2 and 4 have since filled the 3–58 m
+  // band with real trunks, crowns, ferns and violets, and holding the veil off everything dark in
+  // it is what fable-5 measured as "darker than before the squad" — his recording's mid-distance
+  // foliage is a pale warm silhouette, not a black one.
+  hazeShadeVeil: 1.0,
   hazeShadeVeilKnee: 0.3,
   hazeShadeVeilOut: [40, 50],
   // bearing 57° (the air over the plateau lip north of the stair top as frame F sees it, 20° left
@@ -602,11 +614,12 @@ export const HEIGHT_FOG_DEFAULTS: HeightFogParams = {
   farShadeStart: 22,
   farShadeFull: 44,
   // Preserve real material/shadow contrast beyond 44 m while retaining canopy distance shade.
-  // 2026-09-23: 0.65 → 0.52. A tree at 30–45 m is under the same roof as the one at 10 m, and the
-  // shadow map does not reach it, so ours were lit at mid grey and dissolved into the veil — the
-  // owner's "the trees do not populate". Darker far surfaces against the brighter wall above is
-  // what makes his recording's crowns read at every depth.
-  farShadeMin: 0.52,
+  // 2026-09-23: 0.65 → 0.52, when the far field was empty geometry that read as pale ghosts.
+  // Round 2: 0.65 again. With lane 2's crowns and lane 4's understory in the 22–58 m band the
+  // shade is applied to real foliage, and his recording has that foliage pale and warm (its
+  // mid-crown band l 0.471 / s 0.067 against ours at 0.52 of 0.385 / 0.087). The veil, not the
+  // shade, is what should be separating the depths now.
+  farShadeMin: 0.65,
   // [0.2, 0.18, 0.148] reads 0.348 display at a 38° hue through 55 % veil where the control's blend of
   // hazeNear / hazeClosed read 0.36–0.38 at 58–64°: a warm near air 5–8 % dimmer than the far veil.
   // B's pillar bark 0.265 → 0.246 (frame 0.247), hue 51 → 42° (frame 28°); D's bank bark 0.310 → 0.293
