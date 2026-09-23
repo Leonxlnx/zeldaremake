@@ -607,12 +607,33 @@ const LEAF_NEAR_NORMAL = /* glsl */ `
     }
 `;
 
-/** white bark: procedural tile × vertex colour, with a soft moss/soil ring at the very base */
+/**
+ * white bark: procedural tile × vertex colour, with a soft moss/soil ring at the very base.
+ *
+ * Round 52 — the owner's 09-23 markup, red circle 1 ("a smooth pale cylinder in grey haze"). A
+ * depth read of his pose names the poles left of the north path: white-barks at 39–55 m. At that
+ * range the procedural bark map has mipped to its mean, the vertex ramp from the grey foot to the
+ * pale stem is over by ≈ 3 m, the moss ring ends at 1.1 m and the tone field varies by ±10 % over
+ * tens of metres — so the whole visible run of the stem is ONE value and the trunk is a pipe.
+ * Real birch bark is dark at scale: lenticel bands, chevrons under old branch scars, a weathered
+ * foot. These marks are procedural in world space (no mip, no texel), 0.3–0.9 m across, so they
+ * read at 40 m as well as at 4 m; the second octave only shows close up.
+ */
 const WHITE_BARK_COLOR = /* glsl */ `
   float n = treeNoise(vTreeWorld * 3.1);
   float upY = inverseTransformDirection(normalize(vNormal), viewMatrix).y;
-  float moss = (1.0 - smoothstep(0.05, 1.1, vTreeLocalY)) * smoothstep(0.35, 0.75, n * 0.7 + 0.3 * (1.0 - upY));
+  // the moss ring runs further up the shaded side (1.1 → 2.6 m): a stem standing in the wet
+  // middle distance is not clean to the ankle
+  float moss = (1.0 - smoothstep(0.05, 2.6, vTreeLocalY)) * smoothstep(0.35, 0.75, n * 0.7 + 0.3 * (1.0 - upY));
   diffuseColor.rgb = mix(diffuseColor.rgb, vec3(0.16, 0.22, 0.07), moss * 0.7);
+  // lenticel bands and branch scars: the coarse field (0.8 m around, 0.45 m up) carries the
+  // reading at distance, the fine one (0.3 m / 0.14 m) the texture within arm's reach
+  float markA = treeNoise(vec3(vTreeWorld.x * 1.3, vTreeLocalY * 2.2, vTreeWorld.z * 1.3));
+  float markB = treeNoise(vec3(vTreeWorld.x * 3.4, vTreeLocalY * 7.0, vTreeWorld.z * 3.4));
+  float marks = smoothstep(0.52, 0.88, markA * 0.7 + markB * 0.3);
+  // and a weathered foot that keeps some of the grey up the stem, where the vertex ramp stops
+  float weathered = 1.0 - smoothstep(1.5, 7.0, vTreeLocalY);
+  diffuseColor.rgb *= 1.0 - 0.44 * marks - 0.14 * weathered;
   // subtle large-scale tone variation so identical variants do not read as clones
   float tone = treeNoise(vec3(vTreeWorld.x * 0.05, vTreeWorld.y * 0.3, vTreeWorld.z * 0.05));
   diffuseColor.rgb *= 0.9 + tone * 0.2;
@@ -712,7 +733,9 @@ const GIANT_BARK_COLOR = /* glsl */ `
     // cover was 8 cm confetti of equal-sized blobs — the "camouflage" the owner's 09-23 walk-up
     // poses show on the emergent's foot. Mean cover is held (the factor's mean 0.98 → 0.93).
     float mossPatch = treeNoise(vTreeWorld * 1.6 + 21.0) * 0.6 + treeNoise(vTreeWorld * 4.3 + 7.0) * 0.4;
-    barkMossCover = smoothstep(0.5, 0.9, vBarkMoss * (0.34 + 0.85 * mossPatch + 0.3 * mossFine));
+    // the ramp is narrower than the old 0.5–0.9 so a patch has a margin, not a halo: at 0.5–0.9
+    // over a smooth field every cushion was an airbrushed cloud with no edge anywhere
+    barkMossCover = smoothstep(0.52, 0.8, vBarkMoss * (0.34 + 0.85 * mossPatch + 0.3 * mossFine));
     // a darker rim where a cushion meets the bark, so it sits on the bark as a volume
     float mossRim = barkMossCover * (1.0 - barkMossCover) * 4.0;
     vec3 mossCushion = mix(vec3(0.09, 0.16, 0.04), vec3(0.24, 0.36, 0.10), mossFine) * (1.0 - 0.35 * mossRim);
