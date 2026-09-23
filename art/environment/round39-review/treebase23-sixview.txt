@@ -1,0 +1,11 @@
+trees-23 six-view gate: cap-0 = 78a0ca1 (dist-0), cap-final = r39/trees 1692967 (dist-c7); SSIM vs reference frames, compare.mjs --previous cap-0
+view        ssim cap-0 ssim final    delta    draws 0->f      Mtris 0->f
+A_stairs        0.3083     0.3083  +0.0000    539 -> 539     8.64 -> 8.64  
+B_house         0.2885     0.2885  +0.0000    497 -> 497     7.58 -> 7.58  
+C_lookback      0.3318     0.3318  +0.0000    383 -> 384     7.45 -> 7.47  
+D_log           0.3686     0.3684  -0.0002    358 -> 358     7.22 -> 7.22  
+E_ground        0.3010     0.3010  +0.0000    497 -> 497     7.58 -> 7.58  
+F_canopy        0.3152     0.3152  +0.0000    484 -> 484     8.22 -> 8.22  
+
+near-base LOD at the fixed cameras (probe-final.json): A none (stair-bank-giant 10.2 m, plaza-south 12.6 m — both outside the 10 m in-radius); B/E none (seat-7 10.4 m, stair-bank-giant 12.8 m); C_lookback: north-west-near ON at 9.8 m (+1 draw, +0.02 M tris; pixels identical to cap-0), seat-7 at 5.4 m stays off (its band is 5/7 m); D none (seat-7 5.9 m off via the 5/7 band, north-west-near 11.6 m); F none (seat-7 12.0 m, stair-bank-giant 13.6 m)
+determinism: cap-final A_stairs.png == A_stairs.det.png (sha256 7e00ec78…, determinismDiff 0); cap-final-det (dist-c7, A+E, separate session) A_stairs/E_ground bit-identical to cap-0 (3bbc9f52… / 1368c194…)

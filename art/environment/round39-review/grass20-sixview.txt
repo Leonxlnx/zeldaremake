@@ -1,0 +1,34 @@
+r39/veg final f359b23 vs baseline 36ac68a (cap-0) — six fixed views
+view        ssim cap-0 -> cap-14   Δ        sharp b->n        scene draws/tris b -> n            veg draws/tris b -> n
+A_stairs    0.3066 -> 0.3107  +0.0041  0.883 -> 0.859   536/8.62M -> 513/7.51M   121/3.29M -> 98/2.18M
+B_house     0.2885 -> 0.2884  -0.0001  0.774 -> 0.771   496/7.57M -> 477/6.72M   115/2.65M -> 96/1.79M
+C_lookback  0.3289 -> 0.3282  -0.0007  1.102 -> 1.106   382/7.72M -> 358/6.88M   122/3.01M -> 98/2.18M
+D_log       0.3686 -> 0.3683  -0.0003  0.922 -> 0.909   357/7.22M -> 346/6.73M   104/2.41M -> 93/1.92M
+E_ground    0.3010 -> 0.3009  -0.0001  0.724 -> 0.722   496/7.57M -> 477/6.72M   115/2.65M -> 96/1.79M
+F_canopy    0.2993 -> 0.3019  +0.0026  1.112 -> 1.073   482/8.20M -> 463/7.25M   116/3.34M -> 97/2.39M
+mean Δ ssim 0.0009   determinism(A) 0
+audit: grassInstances 411589  grassBlades 401471  clumps 17939  mats -  scene.vegetation {"meshes":197,"instances":419289,"triangles":2063723}
+
+carpet audit:
+{
+ "clumps": 17939,
+ "turfMats": 20068,
+ "clumpCellM": 0.42,
+ "matCellM": 0.42,
+ "clumpsPerM2": 2.83,
+ "atlas": "procedural:grass-clump-atlas",
+ "atlasSize": 2048,
+ "atlasTiles": {
+  "clumps": 6,
+  "mats": 4
+ },
+ "atlasCoverage": {
+  "clumpLowerHalf": 0.66522216796875,
+  "matInner": 0.9998779296875
+ },
+ "clumpLodDistances": [
+  12
+ ],
+ "alphaTested": true,
+ "castsShadows": false
+}

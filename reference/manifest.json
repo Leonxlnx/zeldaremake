@@ -1,0 +1,22 @@
+{
+  "tweet": {
+    "user": "DiscussingFilm",
+    "id": "2097327973351272627",
+    "url": "https://x.com/DiscussingFilm/status/2097327973351272627",
+    "text": "First look at gameplay for 'THE LEGEND OF ZELDA: OCARINA OF TIME' remake.",
+    "postedAt": "2026-09-08T14:15:29Z",
+    "durationSeconds": 60.95,
+    "sourceResolution": "1280x716",
+    "directVideoUrl": "https://video.twimg.com/amplify_video/2097327908037574656/vid/avc1/1280x716/3ELE9fIIVxrgnI6s.mp4?tag=29"
+  },
+  "usage": "Comparison only. Frames are downscaled to 640 px. Never load these as textures, backgrounds, or scenery (GAUNTLET.md §4.C).",
+  "shots": [
+    { "id": "A_stairs", "seconds": 1, "label": "The Stairs", "notes": "Link at bottom centre on flagstones; 18-step stairway rising to the upper-right ledge with fences; lantern branch left; shafts upper-left." },
+    { "id": "B_house", "seconds": 14, "label": "Saria's House", "notes": "Kokiri trunk house with mossy dome and 3 pod lanterns on the right; signpost; path north to mossy boulder terrace with small steps." },
+    { "id": "C_lookback", "seconds": 46, "label": "Look Back", "notes": "Stairs on the left climbing left; Kokiri kid on the grass; giant tree centre distance; heavy haze." },
+    { "id": "D_log", "seconds": 56, "label": "The Log Arch", "notes": "Short stairs right; giant hollow log across the far path in mist with lanterns; purple flowers + mossy boulder left foreground; falling leaves." },
+    { "id": "E_ground", "seconds": 24, "label": "Ground Close-up", "notes": "Use the plaza flagstones + verge in frame 24 as the ground-material reference." },
+    { "id": "F_canopy", "seconds": 8, "label": "Canopy & Shafts", "notes": "Upper half of frame 8: canopy silhouettes with shafts breaking through." },
+    { "id": "UI_inventory", "seconds": 34, "label": "Equipment Screen (Phase 3)", "notes": "Collection/Equipment/Items/System tabs, 16/200 rupees, hex slots, Kokiri Sword description." }
+  ]
+}

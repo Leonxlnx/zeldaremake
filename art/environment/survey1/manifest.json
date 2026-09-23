@@ -1,0 +1,3670 @@
+{
+ "generated": "2026-09-17T20:03:42.164Z",
+ "world": "take-0113 (HEAD 4907d4d, world tree 18cd211)",
+ "size": "1280x720",
+ "renderer": "gauntlet/scripts/broll.mjs --test (HUD+character hidden), quality high, time 12.5",
+ "frames": 183,
+ "missing": [],
+ "shots": [
+  {
+   "name": "w00-spine-f",
+   "file": "/tmp/survey1/frames/w00-spine-f.png",
+   "exists": true,
+   "batch": "b1",
+   "index": 0,
+   "p": [
+    0.94,
+    1.46,
+    15.5
+   ],
+   "t": [
+    -0.3,
+    1.31,
+    5.58
+   ],
+   "fov": 46,
+   "eye_above_ground": 1.45,
+   "view": "forward along path"
+  },
+  {
+   "name": "w00-spine-l",
+   "file": "/tmp/survey1/frames/w00-spine-l.png",
+   "exists": true,
+   "batch": "b1",
+   "index": 1,
+   "p": [
+    0.94,
+    1.46,
+    15.5
+   ],
+   "t": [
+    -6.96,
+    1.31,
+    9.36
+   ],
+   "fov": 46,
+   "eye_above_ground": 1.45,
+   "view": "45° left"
+  },
+  {
+   "name": "w00-spine-r",
+   "file": "/tmp/survey1/frames/w00-spine-r.png",
+   "exists": true,
+   "batch": "b1",
+   "index": 2,
+   "p": [
+    0.94,
+    1.46,
+    15.5
+   ],
+   "t": [
+    7.08,
+    1.31,
+    7.61
+   ],
+   "fov": 46,
+   "eye_above_ground": 1.45,
+   "view": "45° right"
+  },
+  {
+   "name": "w00-spine-d",
+   "file": "/tmp/survey1/frames/w00-spine-d.png",
+   "exists": true,
+   "batch": "b1",
+   "index": 3,
+   "p": [
+    0.94,
+    1.46,
+    15.5
+   ],
+   "t": [
+    0.63,
+    0.01,
+    13.02
+   ],
+   "fov": 46,
+   "eye_above_ground": 1.45,
+   "view": "30° down at ground ahead"
+  },
+  {
+   "name": "w00-spine-u",
+   "file": "/tmp/survey1/frames/w00-spine-u.png",
+   "exists": true,
+   "batch": "b1",
+   "index": 4,
+   "p": [
+    0.94,
+    1.46,
+    15.5
+   ],
+   "t": [
+    0.81,
+    11.46,
+    14.51
+   ],
+   "fov": 46,
+   "eye_above_ground": 1.45,
+   "view": "straight up"
+  },
+  {
+   "name": "w01-spine-f",
+   "file": "/tmp/survey1/frames/w01-spine-f.png",
+   "exists": true,
+   "batch": "b1",
+   "index": 5,
+   "p": [
+    0.57,
+    1.46,
+    12.53
+   ],
+   "t": [
+    -0.67,
+    1.31,
+    2.6
+   ],
+   "fov": 46,
+   "eye_above_ground": 1.45,
+   "view": "forward along path"
+  },
+  {
+   "name": "w01-spine-l",
+   "file": "/tmp/survey1/frames/w01-spine-l.png",
+   "exists": true,
+   "batch": "b1",
+   "index": 6,
+   "p": [
+    0.57,
+    1.46,
+    12.53
+   ],
+   "t": [
+    -7.33,
+    1.31,
+    6.39
+   ],
+   "fov": 46,
+   "eye_above_ground": 1.45,
+   "view": "45° left"
+  },
+  {
+   "name": "w01-spine-r",
+   "file": "/tmp/survey1/frames/w01-spine-r.png",
+   "exists": true,
+   "batch": "b1",
+   "index": 7,
+   "p": [
+    0.57,
+    1.46,
+    12.53
+   ],
+   "t": [
+    6.71,
+    1.31,
+    4.63
+   ],
+   "fov": 46,
+   "eye_above_ground": 1.45,
+   "view": "45° right"
+  },
+  {
+   "name": "w01-spine-d",
+   "file": "/tmp/survey1/frames/w01-spine-d.png",
+   "exists": true,
+   "batch": "b1",
+   "index": 8,
+   "p": [
+    0.57,
+    1.46,
+    12.53
+   ],
+   "t": [
+    0.26,
+    0.02,
+    10.05
+   ],
+   "fov": 46,
+   "eye_above_ground": 1.45,
+   "view": "30° down at ground ahead"
+  },
+  {
+   "name": "w01-spine-u",
+   "file": "/tmp/survey1/frames/w01-spine-u.png",
+   "exists": true,
+   "batch": "b1",
+   "index": 9,
+   "p": [
+    0.57,
+    1.46,
+    12.53
+   ],
+   "t": [
+    0.44,
+    11.46,
+    11.53
+   ],
+   "fov": 46,
+   "eye_above_ground": 1.45,
+   "view": "straight up"
+  },
+  {
+   "name": "w02-spine-f",
+   "file": "/tmp/survey1/frames/w02-spine-f.png",
+   "exists": true,
+   "batch": "b1",
+   "index": 10,
+   "p": [
+    0.19,
+    1.45,
+    9.55
+   ],
+   "t": [
+    -1.05,
+    1.3,
+    -0.37
+   ],
+   "fov": 46,
+   "eye_above_ground": 1.45,
+   "view": "forward along path"
+  },
+  {
+   "name": "w02-spine-l",
+   "file": "/tmp/survey1/frames/w02-spine-l.png",
+   "exists": true,
+   "batch": "b1",
+   "index": 11,
+   "p": [
+    0.19,
+    1.45,
+    9.55
+   ],
+   "t": [
+    -7.7,
+    1.3,
+    3.41
+   ],
+   "fov": 46,
+   "eye_above_ground": 1.45,
+   "view": "45° left"
+  },
+  {
+   "name": "w02-spine-r",
+   "file": "/tmp/survey1/frames/w02-spine-r.png",
+   "exists": true,
+   "batch": "b1",
+   "index": 12,
+   "p": [
+    0.19,
+    1.45,
+    9.55
+   ],
+   "t": [
+    6.33,
+    1.3,
+    1.66
+   ],
+   "fov": 46,
+   "eye_above_ground": 1.45,
+   "view": "45° right"
+  },
+  {
+   "name": "w02-spine-d",
+   "file": "/tmp/survey1/frames/w02-spine-d.png",
+   "exists": true,
+   "batch": "b1",
+   "index": 13,
+   "p": [
+    0.19,
+    1.45,
+    9.55
+   ],
+   "t": [
+    -0.12,
+    0,
+    7.07
+   ],
+   "fov": 46,
+   "eye_above_ground": 1.45,
+   "view": "30° down at ground ahead"
+  },
+  {
+   "name": "w02-spine-u",
+   "file": "/tmp/survey1/frames/w02-spine-u.png",
+   "exists": true,
+   "batch": "b1",
+   "index": 14,
+   "p": [
+    0.19,
+    1.45,
+    9.55
+   ],
+   "t": [
+    0.07,
+    11.45,
+    8.56
+   ],
+   "fov": 46,
+   "eye_above_ground": 1.45,
+   "view": "straight up"
+  },
+  {
+   "name": "w03-spine-f",
+   "file": "/tmp/survey1/frames/w03-spine-f.png",
+   "exists": true,
+   "batch": "b1",
+   "index": 15,
+   "p": [
+    0,
+    1.45,
+    6.56
+   ],
+   "t": [
+    0,
+    1.3,
+    -3.44
+   ],
+   "fov": 46,
+   "eye_above_ground": 1.45,
+   "view": "forward along path"
+  },
+  {
+   "name": "w03-spine-l",
+   "file": "/tmp/survey1/frames/w03-spine-l.png",
+   "exists": true,
+   "batch": "b1",
+   "index": 16,
+   "p": [
+    0,
+    1.45,
+    6.56
+   ],
+   "t": [
+    -7.07,
+    1.3,
+    -0.51
+   ],
+   "fov": 46,
+   "eye_above_ground": 1.45,
+   "view": "45° left"
+  },
+  {
+   "name": "w03-spine-r",
+   "file": "/tmp/survey1/frames/w03-spine-r.png",
+   "exists": true,
+   "batch": "b1",
+   "index": 17,
+   "p": [
+    0,
+    1.45,
+    6.56
+   ],
+   "t": [
+    7.07,
+    1.3,
+    -0.51
+   ],
+   "fov": 46,
+   "eye_above_ground": 1.45,
+   "view": "45° right"
+  },
+  {
+   "name": "w03-spine-d",
+   "file": "/tmp/survey1/frames/w03-spine-d.png",
+   "exists": true,
+   "batch": "b1",
+   "index": 18,
+   "p": [
+    0,
+    1.45,
+    6.56
+   ],
+   "t": [
+    0,
+    0.01,
+    4.06
+   ],
+   "fov": 46,
+   "eye_above_ground": 1.45,
+   "view": "30° down at ground ahead"
+  },
+  {
+   "name": "w03-spine-u",
+   "file": "/tmp/survey1/frames/w03-spine-u.png",
+   "exists": true,
+   "batch": "b1",
+   "index": 19,
+   "p": [
+    0,
+    1.45,
+    6.56
+   ],
+   "t": [
+    0,
+    11.45,
+    5.56
+   ],
+   "fov": 46,
+   "eye_above_ground": 1.45,
+   "view": "straight up"
+  },
+  {
+   "name": "w04-spine-f",
+   "file": "/tmp/survey1/frames/w04-spine-f.png",
+   "exists": true,
+   "batch": "b1",
+   "index": 20,
+   "p": [
+    0,
+    1.45,
+    3.56
+   ],
+   "t": [
+    0,
+    1.3,
+    -6.44
+   ],
+   "fov": 46,
+   "eye_above_ground": 1.45,
+   "view": "forward along path"
+  },
+  {
+   "name": "w04-spine-l",
+   "file": "/tmp/survey1/frames/w04-spine-l.png",
+   "exists": true,
+   "batch": "b1",
+   "index": 21,
+   "p": [
+    0,
+    1.45,
+    3.56
+   ],
+   "t": [
+    -7.07,
+    1.3,
+    -3.51
+   ],
+   "fov": 46,
+   "eye_above_ground": 1.45,
+   "view": "45° left"
+  },
+  {
+   "name": "w04-spine-r",
+   "file": "/tmp/survey1/frames/w04-spine-r.png",
+   "exists": true,
+   "batch": "b1",
+   "index": 22,
+   "p": [
+    0,
+    1.45,
+    3.56
+   ],
+   "t": [
+    7.07,
+    1.3,
+    -3.51
+   ],
+   "fov": 46,
+   "eye_above_ground": 1.45,
+   "view": "45° right"
+  },
+  {
+   "name": "w04-spine-d",
+   "file": "/tmp/survey1/frames/w04-spine-d.png",
+   "exists": true,
+   "batch": "b1",
+   "index": 23,
+   "p": [
+    0,
+    1.45,
+    3.56
+   ],
+   "t": [
+    0,
+    0,
+    1.06
+   ],
+   "fov": 46,
+   "eye_above_ground": 1.45,
+   "view": "30° down at ground ahead"
+  },
+  {
+   "name": "w04-spine-u",
+   "file": "/tmp/survey1/frames/w04-spine-u.png",
+   "exists": true,
+   "batch": "b1",
+   "index": 24,
+   "p": [
+    0,
+    1.45,
+    3.56
+   ],
+   "t": [
+    0,
+    11.45,
+    2.56
+   ],
+   "fov": 46,
+   "eye_above_ground": 1.45,
+   "view": "straight up"
+  },
+  {
+   "name": "w05-spine-f",
+   "file": "/tmp/survey1/frames/w05-spine-f.png",
+   "exists": true,
+   "batch": "b1",
+   "index": 25,
+   "p": [
+    0,
+    1.45,
+    0.56
+   ],
+   "t": [
+    0,
+    1.3,
+    -9.44
+   ],
+   "fov": 46,
+   "eye_above_ground": 1.45,
+   "view": "forward along path"
+  },
+  {
+   "name": "w05-spine-l",
+   "file": "/tmp/survey1/frames/w05-spine-l.png",
+   "exists": true,
+   "batch": "b1",
+   "index": 26,
+   "p": [
+    0,
+    1.45,
+    0.56
+   ],
+   "t": [
+    -7.07,
+    1.3,
+    -6.51
+   ],
+   "fov": 46,
+   "eye_above_ground": 1.45,
+   "view": "45° left"
+  },
+  {
+   "name": "w05-spine-r",
+   "file": "/tmp/survey1/frames/w05-spine-r.png",
+   "exists": true,
+   "batch": "b1",
+   "index": 27,
+   "p": [
+    0,
+    1.45,
+    0.56
+   ],
+   "t": [
+    7.07,
+    1.3,
+    -6.51
+   ],
+   "fov": 46,
+   "eye_above_ground": 1.45,
+   "view": "45° right"
+  },
+  {
+   "name": "w05-spine-d",
+   "file": "/tmp/survey1/frames/w05-spine-d.png",
+   "exists": true,
+   "batch": "b1",
+   "index": 28,
+   "p": [
+    0,
+    1.45,
+    0.56
+   ],
+   "t": [
+    0,
+    0.01,
+    -1.94
+   ],
+   "fov": 46,
+   "eye_above_ground": 1.45,
+   "view": "30° down at ground ahead"
+  },
+  {
+   "name": "w05-spine-u",
+   "file": "/tmp/survey1/frames/w05-spine-u.png",
+   "exists": true,
+   "batch": "b1",
+   "index": 29,
+   "p": [
+    0,
+    1.45,
+    0.56
+   ],
+   "t": [
+    0,
+    11.45,
+    -0.44
+   ],
+   "fov": 46,
+   "eye_above_ground": 1.45,
+   "view": "straight up"
+  },
+  {
+   "name": "w06-spine-f",
+   "file": "/tmp/survey1/frames/w06-spine-f.png",
+   "exists": true,
+   "batch": "b2",
+   "index": 0,
+   "p": [
+    0.24,
+    1.46,
+    -2.43
+   ],
+   "t": [
+    1.24,
+    1.31,
+    -12.38
+   ],
+   "fov": 46,
+   "eye_above_ground": 1.45,
+   "view": "forward along path"
+  },
+  {
+   "name": "w06-spine-l",
+   "file": "/tmp/survey1/frames/w06-spine-l.png",
+   "exists": true,
+   "batch": "b2",
+   "index": 1,
+   "p": [
+    0.24,
+    1.46,
+    -2.43
+   ],
+   "t": [
+    -6.09,
+    1.31,
+    -10.17
+   ],
+   "fov": 46,
+   "eye_above_ground": 1.45,
+   "view": "45° left"
+  },
+  {
+   "name": "w06-spine-r",
+   "file": "/tmp/survey1/frames/w06-spine-r.png",
+   "exists": true,
+   "batch": "b2",
+   "index": 2,
+   "p": [
+    0.24,
+    1.46,
+    -2.43
+   ],
+   "t": [
+    7.98,
+    1.31,
+    -8.76
+   ],
+   "fov": 46,
+   "eye_above_ground": 1.45,
+   "view": "45° right"
+  },
+  {
+   "name": "w06-spine-d",
+   "file": "/tmp/survey1/frames/w06-spine-d.png",
+   "exists": true,
+   "batch": "b2",
+   "index": 3,
+   "p": [
+    0.24,
+    1.46,
+    -2.43
+   ],
+   "t": [
+    0.49,
+    0.02,
+    -4.91
+   ],
+   "fov": 46,
+   "eye_above_ground": 1.45,
+   "view": "30° down at ground ahead"
+  },
+  {
+   "name": "w06-spine-u",
+   "file": "/tmp/survey1/frames/w06-spine-u.png",
+   "exists": true,
+   "batch": "b2",
+   "index": 4,
+   "p": [
+    0.24,
+    1.46,
+    -2.43
+   ],
+   "t": [
+    0.34,
+    11.46,
+    -3.42
+   ],
+   "fov": 46,
+   "eye_above_ground": 1.45,
+   "view": "straight up"
+  },
+  {
+   "name": "w07-spine-f",
+   "file": "/tmp/survey1/frames/w07-spine-f.png",
+   "exists": true,
+   "batch": "b2",
+   "index": 5,
+   "p": [
+    0.54,
+    1.47,
+    -5.41
+   ],
+   "t": [
+    1.54,
+    1.32,
+    -15.36
+   ],
+   "fov": 46,
+   "eye_above_ground": 1.45,
+   "view": "forward along path"
+  },
+  {
+   "name": "w07-spine-l",
+   "file": "/tmp/survey1/frames/w07-spine-l.png",
+   "exists": true,
+   "batch": "b2",
+   "index": 6,
+   "p": [
+    0.54,
+    1.47,
+    -5.41
+   ],
+   "t": [
+    -5.79,
+    1.32,
+    -13.15
+   ],
+   "fov": 46,
+   "eye_above_ground": 1.45,
+   "view": "45° left"
+  },
+  {
+   "name": "w07-spine-r",
+   "file": "/tmp/survey1/frames/w07-spine-r.png",
+   "exists": true,
+   "batch": "b2",
+   "index": 7,
+   "p": [
+    0.54,
+    1.47,
+    -5.41
+   ],
+   "t": [
+    8.28,
+    1.32,
+    -11.74
+   ],
+   "fov": 46,
+   "eye_above_ground": 1.45,
+   "view": "45° right"
+  },
+  {
+   "name": "w07-spine-d",
+   "file": "/tmp/survey1/frames/w07-spine-d.png",
+   "exists": true,
+   "batch": "b2",
+   "index": 8,
+   "p": [
+    0.54,
+    1.47,
+    -5.41
+   ],
+   "t": [
+    0.79,
+    -0.01,
+    -7.9
+   ],
+   "fov": 46,
+   "eye_above_ground": 1.45,
+   "view": "30° down at ground ahead"
+  },
+  {
+   "name": "w07-spine-u",
+   "file": "/tmp/survey1/frames/w07-spine-u.png",
+   "exists": true,
+   "batch": "b2",
+   "index": 9,
+   "p": [
+    0.54,
+    1.47,
+    -5.41
+   ],
+   "t": [
+    0.64,
+    11.47,
+    -6.41
+   ],
+   "fov": 46,
+   "eye_above_ground": 1.45,
+   "view": "straight up"
+  },
+  {
+   "name": "w08-spine-f",
+   "file": "/tmp/survey1/frames/w08-spine-f.png",
+   "exists": true,
+   "batch": "b2",
+   "index": 10,
+   "p": [
+    0.96,
+    1.45,
+    -8.38
+   ],
+   "t": [
+    2.44,
+    1.3,
+    -18.27
+   ],
+   "fov": 46,
+   "eye_above_ground": 1.45,
+   "view": "forward along path"
+  },
+  {
+   "name": "w08-spine-l",
+   "file": "/tmp/survey1/frames/w08-spine-l.png",
+   "exists": true,
+   "batch": "b2",
+   "index": 11,
+   "p": [
+    0.96,
+    1.45,
+    -8.38
+   ],
+   "t": [
+    -4.99,
+    1.3,
+    -16.42
+   ],
+   "fov": 46,
+   "eye_above_ground": 1.45,
+   "view": "45° left"
+  },
+  {
+   "name": "w08-spine-r",
+   "file": "/tmp/survey1/frames/w08-spine-r.png",
+   "exists": true,
+   "batch": "b2",
+   "index": 12,
+   "p": [
+    0.96,
+    1.45,
+    -8.38
+   ],
+   "t": [
+    9,
+    1.3,
+    -14.33
+   ],
+   "fov": 46,
+   "eye_above_ground": 1.45,
+   "view": "45° right"
+  },
+  {
+   "name": "w08-spine-d",
+   "file": "/tmp/survey1/frames/w08-spine-d.png",
+   "exists": true,
+   "batch": "b2",
+   "index": 13,
+   "p": [
+    0.96,
+    1.45,
+    -8.38
+   ],
+   "t": [
+    1.33,
+    0.02,
+    -10.85
+   ],
+   "fov": 46,
+   "eye_above_ground": 1.45,
+   "view": "30° down at ground ahead"
+  },
+  {
+   "name": "w08-spine-u",
+   "file": "/tmp/survey1/frames/w08-spine-u.png",
+   "exists": true,
+   "batch": "b2",
+   "index": 14,
+   "p": [
+    0.96,
+    1.45,
+    -8.38
+   ],
+   "t": [
+    1.11,
+    11.45,
+    -9.37
+   ],
+   "fov": 46,
+   "eye_above_ground": 1.45,
+   "view": "straight up"
+  },
+  {
+   "name": "w09-spine-f",
+   "file": "/tmp/survey1/frames/w09-spine-f.png",
+   "exists": true,
+   "batch": "b2",
+   "index": 15,
+   "p": [
+    1.4,
+    1.46,
+    -11.35
+   ],
+   "t": [
+    2.89,
+    1.31,
+    -21.24
+   ],
+   "fov": 46,
+   "eye_above_ground": 1.45,
+   "view": "forward along path"
+  },
+  {
+   "name": "w09-spine-l",
+   "file": "/tmp/survey1/frames/w09-spine-l.png",
+   "exists": true,
+   "batch": "b2",
+   "index": 16,
+   "p": [
+    1.4,
+    1.46,
+    -11.35
+   ],
+   "t": [
+    -4.54,
+    1.31,
+    -19.39
+   ],
+   "fov": 46,
+   "eye_above_ground": 1.45,
+   "view": "45° left"
+  },
+  {
+   "name": "w09-spine-r",
+   "file": "/tmp/survey1/frames/w09-spine-r.png",
+   "exists": true,
+   "batch": "b2",
+   "index": 17,
+   "p": [
+    1.4,
+    1.46,
+    -11.35
+   ],
+   "t": [
+    9.44,
+    1.31,
+    -17.29
+   ],
+   "fov": 46,
+   "eye_above_ground": 1.45,
+   "view": "45° right"
+  },
+  {
+   "name": "w09-spine-d",
+   "file": "/tmp/survey1/frames/w09-spine-d.png",
+   "exists": true,
+   "batch": "b2",
+   "index": 18,
+   "p": [
+    1.4,
+    1.46,
+    -11.35
+   ],
+   "t": [
+    1.77,
+    -0.01,
+    -13.82
+   ],
+   "fov": 46,
+   "eye_above_ground": 1.45,
+   "view": "30° down at ground ahead"
+  },
+  {
+   "name": "w09-spine-u",
+   "file": "/tmp/survey1/frames/w09-spine-u.png",
+   "exists": true,
+   "batch": "b2",
+   "index": 19,
+   "p": [
+    1.4,
+    1.46,
+    -11.35
+   ],
+   "t": [
+    1.55,
+    11.46,
+    -12.34
+   ],
+   "fov": 46,
+   "eye_above_ground": 1.45,
+   "view": "straight up"
+  },
+  {
+   "name": "w10-spine-f",
+   "file": "/tmp/survey1/frames/w10-spine-f.png",
+   "exists": true,
+   "batch": "b2",
+   "index": 20,
+   "p": [
+    1.69,
+    1.43,
+    -14.33
+   ],
+   "t": [
+    2.52,
+    1.28,
+    -24.3
+   ],
+   "fov": 46,
+   "eye_above_ground": 1.45,
+   "view": "forward along path"
+  },
+  {
+   "name": "w10-spine-l",
+   "file": "/tmp/survey1/frames/w10-spine-l.png",
+   "exists": true,
+   "batch": "b2",
+   "index": 21,
+   "p": [
+    1.69,
+    1.43,
+    -14.33
+   ],
+   "t": [
+    -4.77,
+    1.28,
+    -21.97
+   ],
+   "fov": 46,
+   "eye_above_ground": 1.45,
+   "view": "45° left"
+  },
+  {
+   "name": "w10-spine-r",
+   "file": "/tmp/survey1/frames/w10-spine-r.png",
+   "exists": true,
+   "batch": "b2",
+   "index": 22,
+   "p": [
+    1.69,
+    1.43,
+    -14.33
+   ],
+   "t": [
+    9.33,
+    1.28,
+    -20.79
+   ],
+   "fov": 46,
+   "eye_above_ground": 1.45,
+   "view": "45° right"
+  },
+  {
+   "name": "w10-spine-d",
+   "file": "/tmp/survey1/frames/w10-spine-d.png",
+   "exists": true,
+   "batch": "b2",
+   "index": 23,
+   "p": [
+    1.69,
+    1.43,
+    -14.33
+   ],
+   "t": [
+    1.9,
+    -0.08,
+    -16.82
+   ],
+   "fov": 46,
+   "eye_above_ground": 1.45,
+   "view": "30° down at ground ahead"
+  },
+  {
+   "name": "w10-spine-u",
+   "file": "/tmp/survey1/frames/w10-spine-u.png",
+   "exists": true,
+   "batch": "b2",
+   "index": 24,
+   "p": [
+    1.69,
+    1.43,
+    -14.33
+   ],
+   "t": [
+    1.78,
+    11.43,
+    -15.33
+   ],
+   "fov": 46,
+   "eye_above_ground": 1.45,
+   "view": "straight up"
+  },
+  {
+   "name": "w11-spine-f",
+   "file": "/tmp/survey1/frames/w11-spine-f.png",
+   "exists": true,
+   "batch": "b2",
+   "index": 25,
+   "p": [
+    1.94,
+    1.35,
+    -17.32
+   ],
+   "t": [
+    2.77,
+    1.2,
+    -27.29
+   ],
+   "fov": 46,
+   "eye_above_ground": 1.45,
+   "view": "forward along path"
+  },
+  {
+   "name": "w11-spine-l",
+   "file": "/tmp/survey1/frames/w11-spine-l.png",
+   "exists": true,
+   "batch": "b2",
+   "index": 26,
+   "p": [
+    1.94,
+    1.35,
+    -17.32
+   ],
+   "t": [
+    -4.52,
+    1.2,
+    -24.96
+   ],
+   "fov": 46,
+   "eye_above_ground": 1.45,
+   "view": "45° left"
+  },
+  {
+   "name": "w11-spine-r",
+   "file": "/tmp/survey1/frames/w11-spine-r.png",
+   "exists": true,
+   "batch": "b2",
+   "index": 27,
+   "p": [
+    1.94,
+    1.35,
+    -17.32
+   ],
+   "t": [
+    9.58,
+    1.2,
+    -23.78
+   ],
+   "fov": 46,
+   "eye_above_ground": 1.45,
+   "view": "45° right"
+  },
+  {
+   "name": "w11-spine-d",
+   "file": "/tmp/survey1/frames/w11-spine-d.png",
+   "exists": true,
+   "batch": "b2",
+   "index": 28,
+   "p": [
+    1.94,
+    1.35,
+    -17.32
+   ],
+   "t": [
+    2.15,
+    -0.11,
+    -19.81
+   ],
+   "fov": 46,
+   "eye_above_ground": 1.45,
+   "view": "30° down at ground ahead"
+  },
+  {
+   "name": "w11-spine-u",
+   "file": "/tmp/survey1/frames/w11-spine-u.png",
+   "exists": true,
+   "batch": "b2",
+   "index": 29,
+   "p": [
+    1.94,
+    1.35,
+    -17.32
+   ],
+   "t": [
+    2.03,
+    11.35,
+    -18.32
+   ],
+   "fov": 46,
+   "eye_above_ground": 1.45,
+   "view": "straight up"
+  },
+  {
+   "name": "w12-spine-f",
+   "file": "/tmp/survey1/frames/w12-spine-f.png",
+   "exists": true,
+   "batch": "b3",
+   "index": 0,
+   "p": [
+    1.92,
+    1.33,
+    -20.32
+   ],
+   "t": [
+    1.59,
+    1.18,
+    -30.31
+   ],
+   "fov": 46,
+   "eye_above_ground": 1.45,
+   "view": "forward along path"
+  },
+  {
+   "name": "w12-spine-l",
+   "file": "/tmp/survey1/frames/w12-spine-l.png",
+   "exists": true,
+   "batch": "b3",
+   "index": 1,
+   "p": [
+    1.92,
+    1.33,
+    -20.32
+   ],
+   "t": [
+    -5.38,
+    1.18,
+    -27.15
+   ],
+   "fov": 46,
+   "eye_above_ground": 1.45,
+   "view": "45° left"
+  },
+  {
+   "name": "w12-spine-r",
+   "file": "/tmp/survey1/frames/w12-spine-r.png",
+   "exists": true,
+   "batch": "b3",
+   "index": 2,
+   "p": [
+    1.92,
+    1.33,
+    -20.32
+   ],
+   "t": [
+    8.75,
+    1.18,
+    -27.62
+   ],
+   "fov": 46,
+   "eye_above_ground": 1.45,
+   "view": "45° right"
+  },
+  {
+   "name": "w12-spine-d",
+   "file": "/tmp/survey1/frames/w12-spine-d.png",
+   "exists": true,
+   "batch": "b3",
+   "index": 3,
+   "p": [
+    1.92,
+    1.33,
+    -20.32
+   ],
+   "t": [
+    1.84,
+    -0.12,
+    -22.82
+   ],
+   "fov": 46,
+   "eye_above_ground": 1.45,
+   "view": "30° down at ground ahead"
+  },
+  {
+   "name": "w12-spine-u",
+   "file": "/tmp/survey1/frames/w12-spine-u.png",
+   "exists": true,
+   "batch": "b3",
+   "index": 4,
+   "p": [
+    1.92,
+    1.33,
+    -20.32
+   ],
+   "t": [
+    1.89,
+    11.33,
+    -21.32
+   ],
+   "fov": 46,
+   "eye_above_ground": 1.45,
+   "view": "straight up"
+  },
+  {
+   "name": "w13-spine-f",
+   "file": "/tmp/survey1/frames/w13-spine-f.png",
+   "exists": true,
+   "batch": "b3",
+   "index": 5,
+   "p": [
+    1.82,
+    1.32,
+    -23.32
+   ],
+   "t": [
+    1.49,
+    1.17,
+    -33.31
+   ],
+   "fov": 46,
+   "eye_above_ground": 1.45,
+   "view": "forward along path"
+  },
+  {
+   "name": "w13-spine-l",
+   "file": "/tmp/survey1/frames/w13-spine-l.png",
+   "exists": true,
+   "batch": "b3",
+   "index": 6,
+   "p": [
+    1.82,
+    1.32,
+    -23.32
+   ],
+   "t": [
+    -5.48,
+    1.17,
+    -30.15
+   ],
+   "fov": 46,
+   "eye_above_ground": 1.45,
+   "view": "45° left"
+  },
+  {
+   "name": "w13-spine-r",
+   "file": "/tmp/survey1/frames/w13-spine-r.png",
+   "exists": true,
+   "batch": "b3",
+   "index": 7,
+   "p": [
+    1.82,
+    1.32,
+    -23.32
+   ],
+   "t": [
+    8.65,
+    1.17,
+    -30.62
+   ],
+   "fov": 46,
+   "eye_above_ground": 1.45,
+   "view": "45° right"
+  },
+  {
+   "name": "w13-spine-d",
+   "file": "/tmp/survey1/frames/w13-spine-d.png",
+   "exists": true,
+   "batch": "b3",
+   "index": 8,
+   "p": [
+    1.82,
+    1.32,
+    -23.32
+   ],
+   "t": [
+    1.74,
+    0.42,
+    -25.82
+   ],
+   "fov": 46,
+   "eye_above_ground": 1.45,
+   "view": "30° down at ground ahead"
+  },
+  {
+   "name": "w13-spine-u",
+   "file": "/tmp/survey1/frames/w13-spine-u.png",
+   "exists": true,
+   "batch": "b3",
+   "index": 9,
+   "p": [
+    1.82,
+    1.32,
+    -23.32
+   ],
+   "t": [
+    1.79,
+    11.32,
+    -24.32
+   ],
+   "fov": 46,
+   "eye_above_ground": 1.45,
+   "view": "straight up"
+  },
+  {
+   "name": "w14-spine-f",
+   "file": "/tmp/survey1/frames/w14-spine-f.png",
+   "exists": true,
+   "batch": "b3",
+   "index": 10,
+   "p": [
+    2.07,
+    2.03,
+    -26.3
+   ],
+   "t": [
+    3.23,
+    1.88,
+    -36.23
+   ],
+   "fov": 46,
+   "eye_above_ground": 1.45,
+   "view": "forward along path"
+  },
+  {
+   "name": "w14-spine-l",
+   "file": "/tmp/survey1/frames/w14-spine-l.png",
+   "exists": true,
+   "batch": "b3",
+   "index": 11,
+   "p": [
+    2.07,
+    2.03,
+    -26.3
+   ],
+   "t": [
+    -4.14,
+    1.88,
+    -34.14
+   ],
+   "fov": 46,
+   "eye_above_ground": 1.45,
+   "view": "45° left"
+  },
+  {
+   "name": "w14-spine-r",
+   "file": "/tmp/survey1/frames/w14-spine-r.png",
+   "exists": true,
+   "batch": "b3",
+   "index": 12,
+   "p": [
+    2.07,
+    2.03,
+    -26.3
+   ],
+   "t": [
+    9.91,
+    1.88,
+    -32.5
+   ],
+   "fov": 46,
+   "eye_above_ground": 1.45,
+   "view": "45° right"
+  },
+  {
+   "name": "w14-spine-d",
+   "file": "/tmp/survey1/frames/w14-spine-d.png",
+   "exists": true,
+   "batch": "b3",
+   "index": 13,
+   "p": [
+    2.07,
+    2.03,
+    -26.3
+   ],
+   "t": [
+    2.36,
+    1.31,
+    -28.78
+   ],
+   "fov": 46,
+   "eye_above_ground": 1.45,
+   "view": "30° down at ground ahead"
+  },
+  {
+   "name": "w14-spine-u",
+   "file": "/tmp/survey1/frames/w14-spine-u.png",
+   "exists": true,
+   "batch": "b3",
+   "index": 14,
+   "p": [
+    2.07,
+    2.03,
+    -26.3
+   ],
+   "t": [
+    2.18,
+    12.03,
+    -27.29
+   ],
+   "fov": 46,
+   "eye_above_ground": 1.45,
+   "view": "straight up"
+  },
+  {
+   "name": "w15-spine-f",
+   "file": "/tmp/survey1/frames/w15-spine-f.png",
+   "exists": true,
+   "batch": "b3",
+   "index": 15,
+   "p": [
+    2.42,
+    2.91,
+    -29.28
+   ],
+   "t": [
+    3.57,
+    2.76,
+    -39.21
+   ],
+   "fov": 46,
+   "eye_above_ground": 1.45,
+   "view": "forward along path"
+  },
+  {
+   "name": "w15-spine-l",
+   "file": "/tmp/survey1/frames/w15-spine-l.png",
+   "exists": true,
+   "batch": "b3",
+   "index": 16,
+   "p": [
+    2.42,
+    2.91,
+    -29.28
+   ],
+   "t": [
+    -3.79,
+    2.76,
+    -37.12
+   ],
+   "fov": 46,
+   "eye_above_ground": 1.45,
+   "view": "45° left"
+  },
+  {
+   "name": "w15-spine-r",
+   "file": "/tmp/survey1/frames/w15-spine-r.png",
+   "exists": true,
+   "batch": "b3",
+   "index": 17,
+   "p": [
+    2.42,
+    2.91,
+    -29.28
+   ],
+   "t": [
+    10.26,
+    2.76,
+    -35.48
+   ],
+   "fov": 46,
+   "eye_above_ground": 1.45,
+   "view": "45° right"
+  },
+  {
+   "name": "w15-spine-d",
+   "file": "/tmp/survey1/frames/w15-spine-d.png",
+   "exists": true,
+   "batch": "b3",
+   "index": 18,
+   "p": [
+    2.42,
+    2.91,
+    -29.28
+   ],
+   "t": [
+    2.71,
+    2.2,
+    -31.76
+   ],
+   "fov": 46,
+   "eye_above_ground": 1.45,
+   "view": "30° down at ground ahead"
+  },
+  {
+   "name": "w15-spine-u",
+   "file": "/tmp/survey1/frames/w15-spine-u.png",
+   "exists": true,
+   "batch": "b3",
+   "index": 19,
+   "p": [
+    2.42,
+    2.91,
+    -29.28
+   ],
+   "t": [
+    2.53,
+    12.91,
+    -30.27
+   ],
+   "fov": 46,
+   "eye_above_ground": 1.45,
+   "view": "straight up"
+  },
+  {
+   "name": "w16-spine-f",
+   "file": "/tmp/survey1/frames/w16-spine-f.png",
+   "exists": true,
+   "batch": "b3",
+   "index": 20,
+   "p": [
+    2.87,
+    3.78,
+    -32.24
+   ],
+   "t": [
+    4.52,
+    3.63,
+    -42.11
+   ],
+   "fov": 46,
+   "eye_above_ground": 1.45,
+   "view": "forward along path"
+  },
+  {
+   "name": "w16-spine-l",
+   "file": "/tmp/survey1/frames/w16-spine-l.png",
+   "exists": true,
+   "batch": "b3",
+   "index": 21,
+   "p": [
+    2.87,
+    3.78,
+    -32.24
+   ],
+   "t": [
+    -2.94,
+    3.63,
+    -40.38
+   ],
+   "fov": 46,
+   "eye_above_ground": 1.45,
+   "view": "45° left"
+  },
+  {
+   "name": "w16-spine-r",
+   "file": "/tmp/survey1/frames/w16-spine-r.png",
+   "exists": true,
+   "batch": "b3",
+   "index": 22,
+   "p": [
+    2.87,
+    3.78,
+    -32.24
+   ],
+   "t": [
+    11.01,
+    3.63,
+    -38.06
+   ],
+   "fov": 46,
+   "eye_above_ground": 1.45,
+   "view": "45° right"
+  },
+  {
+   "name": "w16-spine-d",
+   "file": "/tmp/survey1/frames/w16-spine-d.png",
+   "exists": true,
+   "batch": "b3",
+   "index": 23,
+   "p": [
+    2.87,
+    3.78,
+    -32.24
+   ],
+   "t": [
+    3.29,
+    2.98,
+    -34.71
+   ],
+   "fov": 46,
+   "eye_above_ground": 1.45,
+   "view": "30° down at ground ahead"
+  },
+  {
+   "name": "w16-spine-u",
+   "file": "/tmp/survey1/frames/w16-spine-u.png",
+   "exists": true,
+   "batch": "b3",
+   "index": 24,
+   "p": [
+    2.87,
+    3.78,
+    -32.24
+   ],
+   "t": [
+    3.04,
+    13.78,
+    -33.23
+   ],
+   "fov": 46,
+   "eye_above_ground": 1.45,
+   "view": "straight up"
+  },
+  {
+   "name": "w17-spine-f",
+   "file": "/tmp/survey1/frames/w17-spine-f.png",
+   "exists": true,
+   "batch": "b3",
+   "index": 25,
+   "p": [
+    3.37,
+    4.56,
+    -35.2
+   ],
+   "t": [
+    5.01,
+    4.41,
+    -45.07
+   ],
+   "fov": 46,
+   "eye_above_ground": 1.45,
+   "view": "forward along path"
+  },
+  {
+   "name": "w17-spine-l",
+   "file": "/tmp/survey1/frames/w17-spine-l.png",
+   "exists": true,
+   "batch": "b3",
+   "index": 26,
+   "p": [
+    3.37,
+    4.56,
+    -35.2
+   ],
+   "t": [
+    -2.45,
+    4.41,
+    -43.34
+   ],
+   "fov": 46,
+   "eye_above_ground": 1.45,
+   "view": "45° left"
+  },
+  {
+   "name": "w17-spine-r",
+   "file": "/tmp/survey1/frames/w17-spine-r.png",
+   "exists": true,
+   "batch": "b3",
+   "index": 27,
+   "p": [
+    3.37,
+    4.56,
+    -35.2
+   ],
+   "t": [
+    11.5,
+    4.41,
+    -41.02
+   ],
+   "fov": 46,
+   "eye_above_ground": 1.45,
+   "view": "45° right"
+  },
+  {
+   "name": "w17-spine-d",
+   "file": "/tmp/survey1/frames/w17-spine-d.png",
+   "exists": true,
+   "batch": "b3",
+   "index": 28,
+   "p": [
+    3.37,
+    4.56,
+    -35.2
+   ],
+   "t": [
+    3.78,
+    3.47,
+    -37.67
+   ],
+   "fov": 46,
+   "eye_above_ground": 1.45,
+   "view": "30° down at ground ahead"
+  },
+  {
+   "name": "w17-spine-u",
+   "file": "/tmp/survey1/frames/w17-spine-u.png",
+   "exists": true,
+   "batch": "b3",
+   "index": 29,
+   "p": [
+    3.37,
+    4.56,
+    -35.2
+   ],
+   "t": [
+    3.53,
+    14.56,
+    -36.19
+   ],
+   "fov": 46,
+   "eye_above_ground": 1.45,
+   "view": "straight up"
+  },
+  {
+   "name": "w18-spine-f",
+   "file": "/tmp/survey1/frames/w18-spine-f.png",
+   "exists": true,
+   "batch": "b4",
+   "index": 0,
+   "p": [
+    3.86,
+    4.94,
+    -38.16
+   ],
+   "t": [
+    5.5,
+    4.79,
+    -48.03
+   ],
+   "fov": 46,
+   "eye_above_ground": 1.45,
+   "view": "forward along path"
+  },
+  {
+   "name": "w18-spine-l",
+   "file": "/tmp/survey1/frames/w18-spine-l.png",
+   "exists": true,
+   "batch": "b4",
+   "index": 1,
+   "p": [
+    3.86,
+    4.94,
+    -38.16
+   ],
+   "t": [
+    -1.95,
+    4.79,
+    -46.3
+   ],
+   "fov": 46,
+   "eye_above_ground": 1.45,
+   "view": "45° left"
+  },
+  {
+   "name": "w18-spine-r",
+   "file": "/tmp/survey1/frames/w18-spine-r.png",
+   "exists": true,
+   "batch": "b4",
+   "index": 2,
+   "p": [
+    3.86,
+    4.94,
+    -38.16
+   ],
+   "t": [
+    12,
+    4.79,
+    -43.98
+   ],
+   "fov": 46,
+   "eye_above_ground": 1.45,
+   "view": "45° right"
+  },
+  {
+   "name": "w18-spine-d",
+   "file": "/tmp/survey1/frames/w18-spine-d.png",
+   "exists": true,
+   "batch": "b4",
+   "index": 3,
+   "p": [
+    3.86,
+    4.94,
+    -38.16
+   ],
+   "t": [
+    4.27,
+    3.65,
+    -40.63
+   ],
+   "fov": 46,
+   "eye_above_ground": 1.45,
+   "view": "30° down at ground ahead"
+  },
+  {
+   "name": "w18-spine-u",
+   "file": "/tmp/survey1/frames/w18-spine-u.png",
+   "exists": true,
+   "batch": "b4",
+   "index": 4,
+   "p": [
+    3.86,
+    4.94,
+    -38.16
+   ],
+   "t": [
+    4.02,
+    14.94,
+    -39.15
+   ],
+   "fov": 46,
+   "eye_above_ground": 1.45,
+   "view": "straight up"
+  },
+  {
+   "name": "w19-spine-f",
+   "file": "/tmp/survey1/frames/w19-spine-f.png",
+   "exists": true,
+   "batch": "b4",
+   "index": 5,
+   "p": [
+    4.68,
+    5.34,
+    -44.1
+   ],
+   "t": [
+    5.56,
+    5.19,
+    -54.06
+   ],
+   "fov": 46,
+   "eye_above_ground": 1.45,
+   "view": "forward along path"
+  },
+  {
+   "name": "w19-spine-l",
+   "file": "/tmp/survey1/frames/w19-spine-l.png",
+   "exists": true,
+   "batch": "b4",
+   "index": 6,
+   "p": [
+    4.68,
+    5.34,
+    -44.1
+   ],
+   "t": [
+    -1.74,
+    5.19,
+    -51.76
+   ],
+   "fov": 46,
+   "eye_above_ground": 1.45,
+   "view": "45° left"
+  },
+  {
+   "name": "w19-spine-r",
+   "file": "/tmp/survey1/frames/w19-spine-r.png",
+   "exists": true,
+   "batch": "b4",
+   "index": 7,
+   "p": [
+    4.68,
+    5.34,
+    -44.1
+   ],
+   "t": [
+    12.34,
+    5.19,
+    -50.53
+   ],
+   "fov": 46,
+   "eye_above_ground": 1.45,
+   "view": "45° right"
+  },
+  {
+   "name": "w19-spine-d",
+   "file": "/tmp/survey1/frames/w19-spine-d.png",
+   "exists": true,
+   "batch": "b4",
+   "index": 8,
+   "p": [
+    4.68,
+    5.34,
+    -44.1
+   ],
+   "t": [
+    4.9,
+    4.07,
+    -46.59
+   ],
+   "fov": 46,
+   "eye_above_ground": 1.45,
+   "view": "30° down at ground ahead"
+  },
+  {
+   "name": "w19-spine-u",
+   "file": "/tmp/survey1/frames/w19-spine-u.png",
+   "exists": true,
+   "batch": "b4",
+   "index": 9,
+   "p": [
+    4.68,
+    5.34,
+    -44.1
+   ],
+   "t": [
+    4.77,
+    15.34,
+    -45.1
+   ],
+   "fov": 46,
+   "eye_above_ground": 1.45,
+   "view": "straight up"
+  },
+  {
+   "name": "w20-spine-f",
+   "file": "/tmp/survey1/frames/w20-spine-f.png",
+   "exists": true,
+   "batch": "b4",
+   "index": 10,
+   "p": [
+    5.21,
+    5.75,
+    -50.08
+   ],
+   "t": [
+    5.95,
+    5.6,
+    -60.05
+   ],
+   "fov": 46,
+   "eye_above_ground": 1.45,
+   "view": "forward along path"
+  },
+  {
+   "name": "w20-spine-l",
+   "file": "/tmp/survey1/frames/w20-spine-l.png",
+   "exists": true,
+   "batch": "b4",
+   "index": 11,
+   "p": [
+    5.21,
+    5.75,
+    -50.08
+   ],
+   "t": [
+    -1.32,
+    5.6,
+    -57.66
+   ],
+   "fov": 46,
+   "eye_above_ground": 1.45,
+   "view": "45° left"
+  },
+  {
+   "name": "w20-spine-r",
+   "file": "/tmp/survey1/frames/w20-spine-r.png",
+   "exists": true,
+   "batch": "b4",
+   "index": 12,
+   "p": [
+    5.21,
+    5.75,
+    -50.08
+   ],
+   "t": [
+    12.79,
+    5.6,
+    -56.6
+   ],
+   "fov": 46,
+   "eye_above_ground": 1.45,
+   "view": "45° right"
+  },
+  {
+   "name": "w20-spine-d",
+   "file": "/tmp/survey1/frames/w20-spine-d.png",
+   "exists": true,
+   "batch": "b4",
+   "index": 13,
+   "p": [
+    5.21,
+    5.75,
+    -50.08
+   ],
+   "t": [
+    5.39,
+    4.26,
+    -52.57
+   ],
+   "fov": 46,
+   "eye_above_ground": 1.45,
+   "view": "30° down at ground ahead"
+  },
+  {
+   "name": "w20-spine-u",
+   "file": "/tmp/survey1/frames/w20-spine-u.png",
+   "exists": true,
+   "batch": "b4",
+   "index": 14,
+   "p": [
+    5.21,
+    5.75,
+    -50.08
+   ],
+   "t": [
+    5.28,
+    15.75,
+    -51.08
+   ],
+   "fov": 46,
+   "eye_above_ground": 1.45,
+   "view": "straight up"
+  },
+  {
+   "name": "w21-spine-f",
+   "file": "/tmp/survey1/frames/w21-spine-f.png",
+   "exists": true,
+   "batch": "b4",
+   "index": 15,
+   "p": [
+    5.65,
+    5.69,
+    -56.06
+   ],
+   "t": [
+    6.4,
+    5.54,
+    -66.03
+   ],
+   "fov": 46,
+   "eye_above_ground": 1.45,
+   "view": "forward along path"
+  },
+  {
+   "name": "w21-spine-l",
+   "file": "/tmp/survey1/frames/w21-spine-l.png",
+   "exists": true,
+   "batch": "b4",
+   "index": 16,
+   "p": [
+    5.65,
+    5.69,
+    -56.06
+   ],
+   "t": [
+    -0.87,
+    5.54,
+    -63.64
+   ],
+   "fov": 46,
+   "eye_above_ground": 1.45,
+   "view": "45° left"
+  },
+  {
+   "name": "w21-spine-r",
+   "file": "/tmp/survey1/frames/w21-spine-r.png",
+   "exists": true,
+   "batch": "b4",
+   "index": 17,
+   "p": [
+    5.65,
+    5.69,
+    -56.06
+   ],
+   "t": [
+    13.23,
+    5.54,
+    -62.59
+   ],
+   "fov": 46,
+   "eye_above_ground": 1.45,
+   "view": "45° right"
+  },
+  {
+   "name": "w21-spine-d",
+   "file": "/tmp/survey1/frames/w21-spine-d.png",
+   "exists": true,
+   "batch": "b4",
+   "index": 18,
+   "p": [
+    5.65,
+    5.69,
+    -56.06
+   ],
+   "t": [
+    5.84,
+    4.26,
+    -58.56
+   ],
+   "fov": 46,
+   "eye_above_ground": 1.45,
+   "view": "30° down at ground ahead"
+  },
+  {
+   "name": "w21-spine-u",
+   "file": "/tmp/survey1/frames/w21-spine-u.png",
+   "exists": true,
+   "batch": "b4",
+   "index": 19,
+   "p": [
+    5.65,
+    5.69,
+    -56.06
+   ],
+   "t": [
+    5.73,
+    15.69,
+    -57.06
+   ],
+   "fov": 46,
+   "eye_above_ground": 1.45,
+   "view": "straight up"
+  },
+  {
+   "name": "w29-house-f",
+   "file": "/tmp/survey1/frames/w29-house-f.png",
+   "exists": true,
+   "batch": "b4",
+   "index": 20,
+   "p": [
+    3.2,
+    1.37,
+    -5
+   ],
+   "t": [
+    3.7,
+    1.22,
+    -14.99
+   ],
+   "fov": 46,
+   "eye_above_ground": 1.45,
+   "view": "forward along path"
+  },
+  {
+   "name": "w29-house-l",
+   "file": "/tmp/survey1/frames/w29-house-l.png",
+   "exists": true,
+   "batch": "b4",
+   "index": 21,
+   "p": [
+    3.2,
+    1.37,
+    -5
+   ],
+   "t": [
+    -3.51,
+    1.22,
+    -12.42
+   ],
+   "fov": 46,
+   "eye_above_ground": 1.45,
+   "view": "45° left"
+  },
+  {
+   "name": "w29-house-r",
+   "file": "/tmp/survey1/frames/w29-house-r.png",
+   "exists": true,
+   "batch": "b4",
+   "index": 22,
+   "p": [
+    3.2,
+    1.37,
+    -5
+   ],
+   "t": [
+    10.62,
+    1.22,
+    -11.71
+   ],
+   "fov": 46,
+   "eye_above_ground": 1.45,
+   "view": "45° right"
+  },
+  {
+   "name": "w29-house-d",
+   "file": "/tmp/survey1/frames/w29-house-d.png",
+   "exists": true,
+   "batch": "b4",
+   "index": 23,
+   "p": [
+    3.2,
+    1.37,
+    -5
+   ],
+   "t": [
+    3.32,
+    0.27,
+    -7.5
+   ],
+   "fov": 46,
+   "eye_above_ground": 1.45,
+   "view": "30° down at ground ahead"
+  },
+  {
+   "name": "w29-house-u",
+   "file": "/tmp/survey1/frames/w29-house-u.png",
+   "exists": true,
+   "batch": "b4",
+   "index": 24,
+   "p": [
+    3.2,
+    1.37,
+    -5
+   ],
+   "t": [
+    3.25,
+    11.37,
+    -6
+   ],
+   "fov": 46,
+   "eye_above_ground": 1.45,
+   "view": "straight up"
+  },
+  {
+   "name": "w30-house-f",
+   "file": "/tmp/survey1/frames/w30-house-f.png",
+   "exists": true,
+   "batch": "b4",
+   "index": 25,
+   "p": [
+    6.1,
+    3,
+    -7.2
+   ],
+   "t": [
+    14.13,
+    2.85,
+    -13.16
+   ],
+   "fov": 46,
+   "eye_above_ground": 1.45,
+   "view": "forward along path"
+  },
+  {
+   "name": "w30-house-l",
+   "file": "/tmp/survey1/frames/w30-house-l.png",
+   "exists": true,
+   "batch": "b4",
+   "index": 26,
+   "p": [
+    6.1,
+    3,
+    -7.2
+   ],
+   "t": [
+    7.57,
+    2.85,
+    -17.09
+   ],
+   "fov": 46,
+   "eye_above_ground": 1.45,
+   "view": "45° left"
+  },
+  {
+   "name": "w30-house-r",
+   "file": "/tmp/survey1/frames/w30-house-r.png",
+   "exists": true,
+   "batch": "b4",
+   "index": 27,
+   "p": [
+    6.1,
+    3,
+    -7.2
+   ],
+   "t": [
+    15.99,
+    2.85,
+    -5.73
+   ],
+   "fov": 46,
+   "eye_above_ground": 1.45,
+   "view": "45° right"
+  },
+  {
+   "name": "w30-house-d",
+   "file": "/tmp/survey1/frames/w30-house-d.png",
+   "exists": true,
+   "batch": "b4",
+   "index": 28,
+   "p": [
+    6.1,
+    3,
+    -7.2
+   ],
+   "t": [
+    8.11,
+    1.1,
+    -8.69
+   ],
+   "fov": 46,
+   "eye_above_ground": 1.45,
+   "view": "30° down at ground ahead"
+  },
+  {
+   "name": "w30-house-u",
+   "file": "/tmp/survey1/frames/w30-house-u.png",
+   "exists": true,
+   "batch": "b4",
+   "index": 29,
+   "p": [
+    6.1,
+    3,
+    -7.2
+   ],
+   "t": [
+    6.9,
+    13,
+    -7.8
+   ],
+   "fov": 46,
+   "eye_above_ground": 1.45,
+   "view": "straight up"
+  },
+  {
+   "name": "w31-house-f",
+   "file": "/tmp/survey1/frames/w31-house-f.png",
+   "exists": true,
+   "batch": "b4",
+   "index": 30,
+   "p": [
+    8.9,
+    2.5,
+    -8.7
+   ],
+   "t": [
+    18.29,
+    2.35,
+    -12.15
+   ],
+   "fov": 46,
+   "eye_above_ground": 1.45,
+   "view": "forward along path"
+  },
+  {
+   "name": "w31-house-l",
+   "file": "/tmp/survey1/frames/w31-house-l.png",
+   "exists": true,
+   "batch": "b4",
+   "index": 31,
+   "p": [
+    8.9,
+    2.5,
+    -8.7
+   ],
+   "t": [
+    13.1,
+    2.35,
+    -17.78
+   ],
+   "fov": 46,
+   "eye_above_ground": 1.45,
+   "view": "45° left"
+  },
+  {
+   "name": "w31-house-r",
+   "file": "/tmp/survey1/frames/w31-house-r.png",
+   "exists": true,
+   "batch": "b4",
+   "index": 32,
+   "p": [
+    8.9,
+    2.5,
+    -8.7
+   ],
+   "t": [
+    17.98,
+    2.35,
+    -4.5
+   ],
+   "fov": 46,
+   "eye_above_ground": 1.45,
+   "view": "45° right"
+  },
+  {
+   "name": "w31-house-d",
+   "file": "/tmp/survey1/frames/w31-house-d.png",
+   "exists": true,
+   "batch": "b4",
+   "index": 33,
+   "p": [
+    8.9,
+    2.5,
+    -8.7
+   ],
+   "t": [
+    11.25,
+    1.03,
+    -9.56
+   ],
+   "fov": 46,
+   "eye_above_ground": 1.45,
+   "view": "30° down at ground ahead"
+  },
+  {
+   "name": "w31-house-u",
+   "file": "/tmp/survey1/frames/w31-house-u.png",
+   "exists": true,
+   "batch": "b4",
+   "index": 34,
+   "p": [
+    8.9,
+    2.5,
+    -8.7
+   ],
+   "t": [
+    9.84,
+    12.5,
+    -9.05
+   ],
+   "fov": 46,
+   "eye_above_ground": 1.45,
+   "view": "straight up"
+  },
+  {
+   "name": "sn-house-door",
+   "file": "/tmp/survey1/frames/sn-house-door.png",
+   "exists": true,
+   "batch": "b4",
+   "index": 35,
+   "p": [
+    8.95,
+    2.61,
+    -7.85
+   ],
+   "t": [
+    10.35,
+    2.34,
+    -9.25
+   ],
+   "fov": 46,
+   "eye_above_ground": 1.45,
+   "view": "stand-next / re-render"
+  },
+  {
+   "name": "sn-house-trunk",
+   "file": "/tmp/survey1/frames/sn-house-trunk.png",
+   "exists": true,
+   "batch": "b4",
+   "index": 36,
+   "p": [
+    8.6,
+    2.43,
+    -12.6
+   ],
+   "t": [
+    10.4,
+    3.45,
+    -12.3
+   ],
+   "fov": 46,
+   "eye_above_ground": 1.45,
+   "view": "stand-next / re-render"
+  },
+  {
+   "name": "w22-stairs-f",
+   "file": "/tmp/survey1/frames/w22-stairs-f.png",
+   "exists": true,
+   "batch": "b5",
+   "index": 0,
+   "p": [
+    3.6,
+    1.44,
+    -0.4
+   ],
+   "t": [
+    13.57,
+    1.29,
+    -1.2
+   ],
+   "fov": 46,
+   "eye_above_ground": 1.45,
+   "view": "forward along path"
+  },
+  {
+   "name": "w22-stairs-l",
+   "file": "/tmp/survey1/frames/w22-stairs-l.png",
+   "exists": true,
+   "batch": "b5",
+   "index": 1,
+   "p": [
+    3.6,
+    1.44,
+    -0.4
+   ],
+   "t": [
+    10.08,
+    1.29,
+    -8.01
+   ],
+   "fov": 46,
+   "eye_above_ground": 1.45,
+   "view": "45° left"
+  },
+  {
+   "name": "w22-stairs-r",
+   "file": "/tmp/survey1/frames/w22-stairs-r.png",
+   "exists": true,
+   "batch": "b5",
+   "index": 2,
+   "p": [
+    3.6,
+    1.44,
+    -0.4
+   ],
+   "t": [
+    11.21,
+    1.29,
+    6.08
+   ],
+   "fov": 46,
+   "eye_above_ground": 1.45,
+   "view": "45° right"
+  },
+  {
+   "name": "w22-stairs-d",
+   "file": "/tmp/survey1/frames/w22-stairs-d.png",
+   "exists": true,
+   "batch": "b5",
+   "index": 3,
+   "p": [
+    3.6,
+    1.44,
+    -0.4
+   ],
+   "t": [
+    6.09,
+    -0.01,
+    -0.6
+   ],
+   "fov": 46,
+   "eye_above_ground": 1.45,
+   "view": "30° down at ground ahead"
+  },
+  {
+   "name": "w22-stairs-u",
+   "file": "/tmp/survey1/frames/w22-stairs-u.png",
+   "exists": true,
+   "batch": "b5",
+   "index": 4,
+   "p": [
+    3.6,
+    1.44,
+    -0.4
+   ],
+   "t": [
+    4.6,
+    11.44,
+    -0.48
+   ],
+   "fov": 46,
+   "eye_above_ground": 1.45,
+   "view": "straight up"
+  },
+  {
+   "name": "w23-stairs-f",
+   "file": "/tmp/survey1/frames/w23-stairs-f.png",
+   "exists": true,
+   "batch": "b5",
+   "index": 5,
+   "p": [
+    6.4,
+    1.45,
+    -0.3
+   ],
+   "t": [
+    14.29,
+    1.3,
+    -6.45
+   ],
+   "fov": 46,
+   "eye_above_ground": 1.45,
+   "view": "forward along path"
+  },
+  {
+   "name": "w23-stairs-l",
+   "file": "/tmp/survey1/frames/w23-stairs-l.png",
+   "exists": true,
+   "batch": "b5",
+   "index": 6,
+   "p": [
+    6.4,
+    1.45,
+    -0.3
+   ],
+   "t": [
+    7.63,
+    1.3,
+    -10.22
+   ],
+   "fov": 46,
+   "eye_above_ground": 1.45,
+   "view": "45° left"
+  },
+  {
+   "name": "w23-stairs-r",
+   "file": "/tmp/survey1/frames/w23-stairs-r.png",
+   "exists": true,
+   "batch": "b5",
+   "index": 7,
+   "p": [
+    6.4,
+    1.45,
+    -0.3
+   ],
+   "t": [
+    16.32,
+    1.3,
+    0.93
+   ],
+   "fov": 46,
+   "eye_above_ground": 1.45,
+   "view": "45° right"
+  },
+  {
+   "name": "w23-stairs-d",
+   "file": "/tmp/survey1/frames/w23-stairs-d.png",
+   "exists": true,
+   "batch": "b5",
+   "index": 8,
+   "p": [
+    6.4,
+    1.45,
+    -0.3
+   ],
+   "t": [
+    8.37,
+    0.73,
+    -1.84
+   ],
+   "fov": 46,
+   "eye_above_ground": 1.45,
+   "view": "30° down at ground ahead"
+  },
+  {
+   "name": "w23-stairs-u",
+   "file": "/tmp/survey1/frames/w23-stairs-u.png",
+   "exists": true,
+   "batch": "b5",
+   "index": 9,
+   "p": [
+    6.4,
+    1.45,
+    -0.3
+   ],
+   "t": [
+    7.19,
+    11.45,
+    -0.92
+   ],
+   "fov": 46,
+   "eye_above_ground": 1.45,
+   "view": "straight up"
+  },
+  {
+   "name": "w24-stairs-f",
+   "file": "/tmp/survey1/frames/w24-stairs-f.png",
+   "exists": true,
+   "batch": "b5",
+   "index": 10,
+   "p": [
+    9.82,
+    3.07,
+    -2.07
+   ],
+   "t": [
+    17.71,
+    2.92,
+    -8.22
+   ],
+   "fov": 46,
+   "eye_above_ground": 1.45,
+   "view": "forward along path"
+  },
+  {
+   "name": "w24-stairs-l",
+   "file": "/tmp/survey1/frames/w24-stairs-l.png",
+   "exists": true,
+   "batch": "b5",
+   "index": 11,
+   "p": [
+    9.82,
+    3.07,
+    -2.07
+   ],
+   "t": [
+    11.05,
+    2.92,
+    -11.99
+   ],
+   "fov": 46,
+   "eye_above_ground": 1.45,
+   "view": "45° left"
+  },
+  {
+   "name": "w24-stairs-r",
+   "file": "/tmp/survey1/frames/w24-stairs-r.png",
+   "exists": true,
+   "batch": "b5",
+   "index": 12,
+   "p": [
+    9.82,
+    3.07,
+    -2.07
+   ],
+   "t": [
+    19.75,
+    2.92,
+    -0.84
+   ],
+   "fov": 46,
+   "eye_above_ground": 1.45,
+   "view": "45° right"
+  },
+  {
+   "name": "w24-stairs-d",
+   "file": "/tmp/survey1/frames/w24-stairs-d.png",
+   "exists": true,
+   "batch": "b5",
+   "index": 13,
+   "p": [
+    9.82,
+    3.07,
+    -2.07
+   ],
+   "t": [
+    11.79,
+    2.97,
+    -3.61
+   ],
+   "fov": 46,
+   "eye_above_ground": 1.45,
+   "view": "30° down at ground ahead"
+  },
+  {
+   "name": "w24-stairs-u",
+   "file": "/tmp/survey1/frames/w24-stairs-u.png",
+   "exists": true,
+   "batch": "b5",
+   "index": 14,
+   "p": [
+    9.82,
+    3.07,
+    -2.07
+   ],
+   "t": [
+    10.61,
+    13.07,
+    -2.68
+   ],
+   "fov": 46,
+   "eye_above_ground": 1.45,
+   "view": "straight up"
+  },
+  {
+   "name": "w25-stairs-f",
+   "file": "/tmp/survey1/frames/w25-stairs-f.png",
+   "exists": true,
+   "batch": "b5",
+   "index": 15,
+   "p": [
+    13.29,
+    5.5,
+    -4.77
+   ],
+   "t": [
+    21.18,
+    5.35,
+    -10.92
+   ],
+   "fov": 46,
+   "eye_above_ground": 1.45,
+   "view": "forward along path"
+  },
+  {
+   "name": "w25-stairs-l",
+   "file": "/tmp/survey1/frames/w25-stairs-l.png",
+   "exists": true,
+   "batch": "b5",
+   "index": 16,
+   "p": [
+    13.29,
+    5.5,
+    -4.77
+   ],
+   "t": [
+    14.52,
+    5.35,
+    -14.7
+   ],
+   "fov": 46,
+   "eye_above_ground": 1.45,
+   "view": "45° left"
+  },
+  {
+   "name": "w25-stairs-r",
+   "file": "/tmp/survey1/frames/w25-stairs-r.png",
+   "exists": true,
+   "batch": "b5",
+   "index": 17,
+   "p": [
+    13.29,
+    5.5,
+    -4.77
+   ],
+   "t": [
+    23.22,
+    5.35,
+    -3.55
+   ],
+   "fov": 46,
+   "eye_above_ground": 1.45,
+   "view": "45° right"
+  },
+  {
+   "name": "w25-stairs-d",
+   "file": "/tmp/survey1/frames/w25-stairs-d.png",
+   "exists": true,
+   "batch": "b5",
+   "index": 18,
+   "p": [
+    13.29,
+    5.5,
+    -4.77
+   ],
+   "t": [
+    15.26,
+    5.13,
+    -6.31
+   ],
+   "fov": 46,
+   "eye_above_ground": 1.45,
+   "view": "30° down at ground ahead"
+  },
+  {
+   "name": "w25-stairs-u",
+   "file": "/tmp/survey1/frames/w25-stairs-u.png",
+   "exists": true,
+   "batch": "b5",
+   "index": 19,
+   "p": [
+    13.29,
+    5.5,
+    -4.77
+   ],
+   "t": [
+    14.08,
+    15.5,
+    -5.39
+   ],
+   "fov": 46,
+   "eye_above_ground": 1.45,
+   "view": "straight up"
+  },
+  {
+   "name": "w26-stairs-f",
+   "file": "/tmp/survey1/frames/w26-stairs-f.png",
+   "exists": true,
+   "batch": "b5",
+   "index": 20,
+   "p": [
+    16.45,
+    6.8,
+    -7.23
+   ],
+   "t": [
+    24.33,
+    6.65,
+    -13.38
+   ],
+   "fov": 46,
+   "eye_above_ground": 1.45,
+   "view": "forward along path"
+  },
+  {
+   "name": "w26-stairs-l",
+   "file": "/tmp/survey1/frames/w26-stairs-l.png",
+   "exists": true,
+   "batch": "b5",
+   "index": 21,
+   "p": [
+    16.45,
+    6.8,
+    -7.23
+   ],
+   "t": [
+    17.67,
+    6.65,
+    -17.16
+   ],
+   "fov": 46,
+   "eye_above_ground": 1.45,
+   "view": "45° left"
+  },
+  {
+   "name": "w26-stairs-r",
+   "file": "/tmp/survey1/frames/w26-stairs-r.png",
+   "exists": true,
+   "batch": "b5",
+   "index": 22,
+   "p": [
+    16.45,
+    6.8,
+    -7.23
+   ],
+   "t": [
+    26.37,
+    6.65,
+    -6.01
+   ],
+   "fov": 46,
+   "eye_above_ground": 1.45,
+   "view": "45° right"
+  },
+  {
+   "name": "w26-stairs-d",
+   "file": "/tmp/survey1/frames/w26-stairs-d.png",
+   "exists": true,
+   "batch": "b5",
+   "index": 23,
+   "p": [
+    16.45,
+    6.8,
+    -7.23
+   ],
+   "t": [
+    18.42,
+    4.82,
+    -8.77
+   ],
+   "fov": 46,
+   "eye_above_ground": 1.45,
+   "view": "30° down at ground ahead"
+  },
+  {
+   "name": "w26-stairs-u",
+   "file": "/tmp/survey1/frames/w26-stairs-u.png",
+   "exists": true,
+   "batch": "b5",
+   "index": 24,
+   "p": [
+    16.45,
+    6.8,
+    -7.23
+   ],
+   "t": [
+    17.24,
+    16.8,
+    -7.85
+   ],
+   "fov": 46,
+   "eye_above_ground": 1.45,
+   "view": "straight up"
+  },
+  {
+   "name": "w27-plateau-f",
+   "file": "/tmp/survey1/frames/w27-plateau-f.png",
+   "exists": true,
+   "batch": "b5",
+   "index": 25,
+   "p": [
+    19.4,
+    6.56,
+    -3.6
+   ],
+   "t": [
+    25.11,
+    6.41,
+    4.61
+   ],
+   "fov": 46,
+   "eye_above_ground": 1.45,
+   "view": "forward along path"
+  },
+  {
+   "name": "w27-plateau-l",
+   "file": "/tmp/survey1/frames/w27-plateau-l.png",
+   "exists": true,
+   "batch": "b5",
+   "index": 26,
+   "p": [
+    19.4,
+    6.56,
+    -3.6
+   ],
+   "t": [
+    29.24,
+    6.41,
+    -1.83
+   ],
+   "fov": 46,
+   "eye_above_ground": 1.45,
+   "view": "45° left"
+  },
+  {
+   "name": "w27-plateau-r",
+   "file": "/tmp/survey1/frames/w27-plateau-r.png",
+   "exists": true,
+   "batch": "b5",
+   "index": 27,
+   "p": [
+    19.4,
+    6.56,
+    -3.6
+   ],
+   "t": [
+    17.63,
+    6.41,
+    6.24
+   ],
+   "fov": 46,
+   "eye_above_ground": 1.45,
+   "view": "45° right"
+  },
+  {
+   "name": "w27-plateau-d",
+   "file": "/tmp/survey1/frames/w27-plateau-d.png",
+   "exists": true,
+   "batch": "b5",
+   "index": 28,
+   "p": [
+    19.4,
+    6.56,
+    -3.6
+   ],
+   "t": [
+    20.83,
+    5.39,
+    -1.55
+   ],
+   "fov": 46,
+   "eye_above_ground": 1.45,
+   "view": "30° down at ground ahead"
+  },
+  {
+   "name": "w27-plateau-u",
+   "file": "/tmp/survey1/frames/w27-plateau-u.png",
+   "exists": true,
+   "batch": "b5",
+   "index": 29,
+   "p": [
+    19.4,
+    6.56,
+    -3.6
+   ],
+   "t": [
+    19.97,
+    16.56,
+    -2.78
+   ],
+   "fov": 46,
+   "eye_above_ground": 1.45,
+   "view": "straight up"
+  },
+  {
+   "name": "w28-plateau-f",
+   "file": "/tmp/survey1/frames/w28-plateau-f.png",
+   "exists": true,
+   "batch": "b5",
+   "index": 30,
+   "p": [
+    18.3,
+    6.27,
+    -8.5
+   ],
+   "t": [
+    20.26,
+    6.12,
+    -18.31
+   ],
+   "fov": 46,
+   "eye_above_ground": 1.45,
+   "view": "forward along path"
+  },
+  {
+   "name": "w28-plateau-l",
+   "file": "/tmp/survey1/frames/w28-plateau-l.png",
+   "exists": true,
+   "batch": "b5",
+   "index": 31,
+   "p": [
+    18.3,
+    6.27,
+    -8.5
+   ],
+   "t": [
+    12.75,
+    6.12,
+    -16.82
+   ],
+   "fov": 46,
+   "eye_above_ground": 1.45,
+   "view": "45° left"
+  },
+  {
+   "name": "w28-plateau-r",
+   "file": "/tmp/survey1/frames/w28-plateau-r.png",
+   "exists": true,
+   "batch": "b5",
+   "index": 32,
+   "p": [
+    18.3,
+    6.27,
+    -8.5
+   ],
+   "t": [
+    26.62,
+    6.12,
+    -14.05
+   ],
+   "fov": 46,
+   "eye_above_ground": 1.45,
+   "view": "45° right"
+  },
+  {
+   "name": "w28-plateau-d",
+   "file": "/tmp/survey1/frames/w28-plateau-d.png",
+   "exists": true,
+   "batch": "b5",
+   "index": 33,
+   "p": [
+    18.3,
+    6.27,
+    -8.5
+   ],
+   "t": [
+    18.79,
+    4.95,
+    -10.95
+   ],
+   "fov": 46,
+   "eye_above_ground": 1.45,
+   "view": "30° down at ground ahead"
+  },
+  {
+   "name": "w28-plateau-u",
+   "file": "/tmp/survey1/frames/w28-plateau-u.png",
+   "exists": true,
+   "batch": "b5",
+   "index": 34,
+   "p": [
+    18.3,
+    6.27,
+    -8.5
+   ],
+   "t": [
+    18.5,
+    16.27,
+    -9.48
+   ],
+   "fov": 46,
+   "eye_above_ground": 1.45,
+   "view": "straight up"
+  },
+  {
+   "name": "sn-boulder-terrace",
+   "file": "/tmp/survey1/frames/sn-boulder-terrace.png",
+   "exists": true,
+   "batch": "b6",
+   "index": 0,
+   "p": [
+    -10.6,
+    4.32,
+    -20.2
+   ],
+   "t": [
+    -15,
+    3.96,
+    -20
+   ],
+   "fov": 46,
+   "eye_above_ground": 1.45,
+   "view": "stand-next / re-render"
+  },
+  {
+   "name": "sn-boulder-shotd",
+   "file": "/tmp/survey1/frames/sn-boulder-shotd.png",
+   "exists": true,
+   "batch": "b6",
+   "index": 1,
+   "p": [
+    -0.6,
+    1.46,
+    -9.4
+   ],
+   "t": [
+    -2.6,
+    0.84,
+    -9.6
+   ],
+   "fov": 46,
+   "eye_above_ground": 1.45,
+   "view": "stand-next / re-render"
+  },
+  {
+   "name": "sn-boulder-stairfoot",
+   "file": "/tmp/survey1/frames/sn-boulder-stairfoot.png",
+   "exists": true,
+   "batch": "b6",
+   "index": 2,
+   "p": [
+    6.9,
+    1.45,
+    2.1
+   ],
+   "t": [
+    9.1,
+    1.2,
+    2.5
+   ],
+   "fov": 46,
+   "eye_above_ground": 1.45,
+   "view": "stand-next / re-render"
+  },
+  {
+   "name": "sn-bole-lantern-tree",
+   "file": "/tmp/survey1/frames/sn-bole-lantern-tree.png",
+   "exists": true,
+   "batch": "b6",
+   "index": 3,
+   "p": [
+    -8.2,
+    3.35,
+    -7
+   ],
+   "t": [
+    -11.5,
+    5.78,
+    -7.2
+   ],
+   "fov": 46,
+   "eye_above_ground": 1.45,
+   "view": "stand-next / re-render"
+  },
+  {
+   "name": "sn-bole-nw-near",
+   "file": "/tmp/survey1/frames/sn-bole-nw-near.png",
+   "exists": true,
+   "batch": "b6",
+   "index": 4,
+   "p": [
+    -4.2,
+    1.76,
+    -12.6
+   ],
+   "t": [
+    -6,
+    3.17,
+    -12.8
+   ],
+   "fov": 46,
+   "eye_above_ground": 1.45,
+   "view": "stand-next / re-render"
+  },
+  {
+   "name": "sn-bole-stair-bank",
+   "file": "/tmp/survey1/frames/sn-bole-stair-bank.png",
+   "exists": true,
+   "batch": "b6",
+   "index": 5,
+   "p": [
+    8.9,
+    1.25,
+    9
+   ],
+   "t": [
+    10.6,
+    2.62,
+    9.15
+   ],
+   "fov": 46,
+   "eye_above_ground": 1.45,
+   "view": "stand-next / re-render"
+  },
+  {
+   "name": "sn-lantern-limb",
+   "file": "/tmp/survey1/frames/sn-lantern-limb.png",
+   "exists": true,
+   "batch": "b6",
+   "index": 6,
+   "p": [
+    0.1,
+    1.44,
+    3.1
+   ],
+   "t": [
+    0,
+    2.15,
+    1.5
+   ],
+   "fov": 46,
+   "eye_above_ground": 1.45,
+   "view": "stand-next / re-render"
+  },
+  {
+   "name": "sn-house-door",
+   "file": "/tmp/survey1/frames/sn-house-door.png",
+   "exists": true,
+   "batch": "b6",
+   "index": 7,
+   "p": [
+    8.95,
+    2.61,
+    -7.85
+   ],
+   "t": [
+    10.35,
+    2.34,
+    -9.25
+   ],
+   "fov": 46,
+   "eye_above_ground": 1.45,
+   "view": "stand-next / re-render"
+  },
+  {
+   "name": "sn-house-trunk",
+   "file": "/tmp/survey1/frames/sn-house-trunk.png",
+   "exists": true,
+   "batch": "b6",
+   "index": 8,
+   "p": [
+    8.6,
+    2.43,
+    -12.6
+   ],
+   "t": [
+    10.4,
+    3.45,
+    -12.3
+   ],
+   "fov": 46,
+   "eye_above_ground": 1.45,
+   "view": "stand-next / re-render"
+  },
+  {
+   "name": "sn-arch-outside",
+   "file": "/tmp/survey1/frames/sn-arch-outside.png",
+   "exists": true,
+   "batch": "b6",
+   "index": 9,
+   "p": [
+    4.7,
+    5.45,
+    -45.5
+   ],
+   "t": [
+    7.5,
+    8.39,
+    -54
+   ],
+   "fov": 46,
+   "eye_above_ground": 1.45,
+   "view": "stand-next / re-render"
+  },
+  {
+   "name": "sn-arch-inside",
+   "file": "/tmp/survey1/frames/sn-arch-inside.png",
+   "exists": true,
+   "batch": "b6",
+   "index": 10,
+   "p": [
+    5.4,
+    5.71,
+    -52.8
+   ],
+   "t": [
+    6.2,
+    9.79,
+    -55.5
+   ],
+   "fov": 46,
+   "eye_above_ground": 1.45,
+   "view": "stand-next / re-render"
+  },
+  {
+   "name": "sn-fence-post",
+   "file": "/tmp/survey1/frames/sn-fence-post.png",
+   "exists": true,
+   "batch": "b6",
+   "index": 11,
+   "p": [
+    19.7,
+    6.4,
+    -6.3
+   ],
+   "t": [
+    18.25,
+    5.92,
+    -5.5
+   ],
+   "fov": 46,
+   "eye_above_ground": 1.45,
+   "view": "stand-next / re-render"
+  },
+  {
+   "name": "sn-signpost",
+   "file": "/tmp/survey1/frames/sn-signpost.png",
+   "exists": true,
+   "batch": "b6",
+   "index": 12,
+   "p": [
+    5.95,
+    2.99,
+    -7.85
+   ],
+   "t": [
+    7,
+    2.04,
+    -9.3
+   ],
+   "fov": 46,
+   "eye_above_ground": 1.45,
+   "view": "stand-next / re-render"
+  },
+  {
+   "name": "sn-far-huts",
+   "file": "/tmp/survey1/frames/sn-far-huts.png",
+   "exists": true,
+   "batch": "b6",
+   "index": 13,
+   "p": [
+    16.2,
+    6.79,
+    -7.6
+   ],
+   "t": [
+    12.5,
+    5,
+    -30
+   ],
+   "fov": 46,
+   "eye_above_ground": 1.45,
+   "view": "stand-next / re-render"
+  },
+  {
+   "name": "sn-whitebark-base",
+   "file": "/tmp/survey1/frames/sn-whitebark-base.png",
+   "exists": true,
+   "batch": "b6",
+   "index": 14,
+   "p": [
+    -5.4,
+    1.45,
+    12.5
+   ],
+   "t": [
+    -7.39,
+    1.1,
+    12.87
+   ],
+   "fov": 46,
+   "eye_above_ground": 1.45,
+   "view": "stand-next / re-render"
+  },
+  {
+   "name": "x04d-same",
+   "file": "/tmp/survey1/frames/x04d-same.png",
+   "exists": true,
+   "batch": "x1",
+   "index": 0,
+   "p": [
+    0,
+    1.45,
+    3.56
+   ],
+   "t": [
+    0,
+    0,
+    1.06
+   ],
+   "fov": 46,
+   "eye_above_ground": 1.45,
+   "view": "stand-next / re-render"
+  },
+  {
+   "name": "x04d-pitch20",
+   "file": "/tmp/survey1/frames/x04d-pitch20.png",
+   "exists": true,
+   "batch": "x1",
+   "index": 1,
+   "p": [
+    0,
+    1.45,
+    3.56
+   ],
+   "t": [
+    0,
+    0.54,
+    1.06
+   ],
+   "fov": 46,
+   "eye_above_ground": 1.45,
+   "view": "stand-next / re-render"
+  },
+  {
+   "name": "x04d-pitch45",
+   "file": "/tmp/survey1/frames/x04d-pitch45.png",
+   "exists": true,
+   "batch": "x1",
+   "index": 2,
+   "p": [
+    0,
+    1.45,
+    3.56
+   ],
+   "t": [
+    0,
+    -1.05,
+    1.06
+   ],
+   "fov": 46,
+   "eye_above_ground": 1.45,
+   "view": "stand-next / re-render"
+  },
+  {
+   "name": "x04d-east05",
+   "file": "/tmp/survey1/frames/x04d-east05.png",
+   "exists": true,
+   "batch": "x1",
+   "index": 3,
+   "p": [
+    0.5,
+    1.45,
+    3.56
+   ],
+   "t": [
+    0.5,
+    0,
+    1.06
+   ],
+   "fov": 46,
+   "eye_above_ground": 1.45,
+   "view": "stand-next / re-render"
+  },
+  {
+   "name": "x04d-back1",
+   "file": "/tmp/survey1/frames/x04d-back1.png",
+   "exists": true,
+   "batch": "x1",
+   "index": 4,
+   "p": [
+    0,
+    1.45,
+    4.56
+   ],
+   "t": [
+    0,
+    0,
+    2.06
+   ],
+   "fov": 46,
+   "eye_above_ground": 1.45,
+   "view": "stand-next / re-render"
+  },
+  {
+   "name": "x03d-same",
+   "file": "/tmp/survey1/frames/x03d-same.png",
+   "exists": true,
+   "batch": "x1",
+   "index": 5,
+   "p": [
+    0,
+    1.45,
+    6.56
+   ],
+   "t": [
+    0,
+    0.01,
+    4.06
+   ],
+   "fov": 46,
+   "eye_above_ground": 1.45,
+   "view": "stand-next / re-render"
+  }
+ ]
+}

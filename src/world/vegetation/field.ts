@@ -1,0 +1,1645 @@
+/**
+ * Vegetation placement field. A coarse grid caches the expensive terrain mask/normal queries so
+ * a million grass candidates can be tested quickly; anything near a path/stair edge is
+ * re-checked exactly against `terrain.vegetationAllowed` so no blade lands on flagstones.
+ * Also owns the authored-layout influences (path verges, stair flanks, giant trunks, hero
+ * boulders, NPC spots) and the clustering noise that keeps the grass from being a carpet.
+ */
+import { Vector3 } from 'three';
+import { houseSteppingStones, type SteppingStone } from '../layout';
+import type { WorldContext } from '../system';
+import { STONE_CIRCLE_STONES } from '../terrain/heightfield';
+import { Noise2D, smoothstep, clamp, lerp } from '../util/noise';
+
+export interface FieldSample {
+  /** soft 0..1 “vegetation may grow here” (1 = certainly) */
+  allow: number;
+  path: number;
+  stairs: number;
+  structure: number;
+  cliff: number;
+  plateau: number;
+  slope: number;
+  nx: number;
+  ny: number;
+  nz: number;
+  h: number;
+}
+
+type P3 = readonly [number, number, number];
+
+/** distance to a polyline, and whether the closest point is one of its two end vertices (its round end cap) */
+function polylineClosest(points: readonly P3[], x: number, z: number): { dist: number; cap: boolean } {
+  let best = Infinity;
+  let cap = false;
+  for (let i = 0; i < points.length - 1; i++) {
+    const ax = points[i][0];
+    const az = points[i][2];
+    const dx = points[i + 1][0] - ax;
+    const dz = points[i + 1][2] - az;
+    const len2 = dx * dx + dz * dz;
+    let t = len2 > 0 ? ((x - ax) * dx + (z - az) * dz) / len2 : 0;
+    t = clamp(t, 0, 1);
+    const px = ax + dx * t;
+    const pz = az + dz * t;
+    const d2 = (x - px) ** 2 + (z - pz) ** 2;
+    if (d2 < best) {
+      best = d2;
+      cap = (i === 0 && t === 0) || (i === points.length - 2 && t === 1);
+    }
+  }
+  return { dist: Math.sqrt(best), cap };
+}
+
+function polylineDistance(points: readonly P3[], x: number, z: number): number {
+  return polylineClosest(points, x, z).dist;
+}
+
+/**
+ * Distance to a polyline and which side of it (x, z) lies on: `side` is the cross product of the
+ * closest segment's direction with the offset, so a line running north (−z) has side < 0 to its
+ * WEST — a walker's left. Used by the walked verge (`VegField.pathVerge`).
+ */
+function polylineSide(points: readonly P3[], x: number, z: number): { dist: number; side: number } {
+  let best = Infinity;
+  let side = 0;
+  for (let i = 0; i < points.length - 1; i++) {
+    const ax = points[i][0];
+    const az = points[i][2];
+    const dx = points[i + 1][0] - ax;
+    const dz = points[i + 1][2] - az;
+    const len2 = dx * dx + dz * dz;
+    const t = len2 > 0 ? clamp(((x - ax) * dx + (z - az) * dz) / len2, 0, 1) : 0;
+    const ox = x - ax - dx * t;
+    const oz = z - az - dz * t;
+    const d2 = ox * ox + oz * oz;
+    if (d2 < best) {
+      best = d2;
+      side = dx * oz - dz * ox;
+    }
+  }
+  return { dist: Math.sqrt(best), side };
+}
+
+/** parameter 0..1 of the closest point on a→b to (x, z) */
+function segmentT(seg: { ax: number; az: number; bx: number; bz: number }, x: number, z: number): number {
+  const dx = seg.bx - seg.ax;
+  const dz = seg.bz - seg.az;
+  const len2 = dx * dx + dz * dz;
+  return len2 > 0 ? clamp(((x - seg.ax) * dx + (z - seg.az) * dz) / len2, 0, 1) : 0;
+}
+
+function segmentDistance(seg: { ax: number; az: number; bx: number; bz: number }, x: number, z: number): number {
+  const t = segmentT(seg, x, z);
+  return Math.hypot(x - seg.ax - (seg.bx - seg.ax) * t, z - seg.az - (seg.bz - seg.az) * t);
+}
+
+interface StairRect {
+  ox: number;
+  oz: number;
+  dx: number;
+  dz: number;
+  run: number;
+  halfWidth: number;
+}
+
+/** Soft-edged axis-aligned world box [x0, z0, x1, z1] → 1 inside, fading to 0 over `feather` metres. */
+function softBox(x: number, z: number, box: readonly [number, number, number, number], feather: number): number {
+  const dx = Math.max(box[0] - x, x - box[2], 0);
+  const dz = Math.max(box[1] - z, z - box[3], 0);
+  return 1 - smoothstep(0, feather, Math.hypot(dx, dz));
+}
+
+/**
+ * Reference-driven "keep it low" areas (world boxes; see reference/ANALYSIS.md §2):
+ *  - the slope east of the north path between camera C and the main stairs, which the reference
+ *    shows as low grass (frame 46: the stair foot is visible over it; frame 56: low verge with a
+ *    few ferns right of the path, nothing above ~0.5 m).
+ *  - the plaza end of the main stair's south bank (terrain S_BANK), camera A's right foreground
+ *    3–6 m out (frame 1: x 0.78–1.0 × 0.7–1.0): the reference shows the Kokiri kid standing in
+ *    lit grass tufts on the bank's face, no fronds — without this the ferns' slope boost fills
+ *    the ~50° face with fronds.
+ */
+const LOW_ZONES: readonly [number, number, number, number][] = [
+  [1.5, -16, 8, -4],
+  [3.0, 4.6, 6.0, 7.2],
+];
+/**
+ * Frame 14 s' left third (B 0–0.3 × 0.62–0.9): a low green LAWN band with white dots meets the
+ * flagstones at a soft grass edge. The paving's lawn pocket is hardscape's; the turf this side of
+ * it — the spine's west verge from the pocket's north end to the shot-D boulder, also frame 56's
+ * bottom-left grass strip — reads as dense short turf with clover and white clumps, no fern clumps
+ * or tall herbs (in take 65 a dozen 0.6–1.1 m fern clumps stood in it, hiding the far dots).
+ */
+const LAWN_BAND: readonly [number, number, number, number] = [-3.3, -10.5, -1.6, -6.4];
+/**
+ * Camera C stands IN the grass at (3.2, −9.5): anything 1–3 m to its left/front is in frame at
+ * frond scale, so the ground around the camera is grass only (≤ 0.4 m). The sight line itself
+ * (frame 46's left third, where the stair foot shows at (0.12, 0.67) and the stair-foot rock at
+ * (0.28, 0.5)) is a wedge computed from the viewpoint, see `VegField.sightlineC`.
+ */
+const C_GRASS_BOX: readonly [number, number, number, number] = [1.5, -12, 7.5, -4];
+/** screen-x span of frame 46 that must stay clear (the box is x 0–0.3; ±margin for frond reach) */
+const C_FRAME_SX: readonly [number, number] = [-0.02, 0.34];
+/** view depth of the wedge: up to the stair-foot rock's near face (centre 12.7 m); beyond it the rock, the stairs and the plaza fill the view */
+const C_FRAME_DEPTH = 12;
+/**
+ * Verge south-east of the plaza, the right foreground of frames 1 and 8: tidy short tufts. The
+ * plaza end of the south bank's face (the low zone above) is left out: there the reference's tufts
+ * are the untrimmed lit grass the kid stands in, and the low zone already keeps them short.
+ */
+const TRIM_ZONES: readonly [number, number, number, number][] = [
+  [4, 0, 12, 4.6],
+  [6.0, 4.6, 12, 8],
+];
+/**
+ * Round 40 — the owner's video review circled frame 1's right foreground (A 0.75–0.95 ×
+ * 0.66–0.95: the plaza end of the south bank's face, 3–7 m before camera A, LOW_ZONES[1] with the
+ * trim zone's feather over it) as sparse wide blades. The face is `bankFace` inside this box; the
+ * blade tiles thicken it, drop the broad sedge there and give back part of the low zone's height
+ * cut (A_FACE_HEIGHT, the carpet's cards follow), while the zone keeps the fronds off it.
+ */
+const A_FACE_BOX: readonly [number, number, number, number] = [3.0, 1.8, 8.4, 7.0];
+const A_FACE_FEATHER = 0.6;
+/** the face's blades stand this much taller than the low / trim zones' cut leaves them (fraction) */
+export const A_FACE_HEIGHT = 0.6;
+/**
+ * The plateau flank right of the stairs in frame 8 (0.55–1 × 0.3–0.6, world x ≳ 11): shaded
+ * olive moss/grass. The reference box measures ≈ 0.30 luminance with visible blade texture, so it
+ * is a tint bias, not a blackout; its 2 m feather starts past the shot-A right foreground (x ≤ 10.5).
+ */
+const SHADE_ZONES: readonly [number, number, number, number][] = [[12.5, -3, 22, 10]];
+/**
+ * Saria's branch (frames 14 / 24): isolated stepping stones climb a grassy ramp, and between them
+ * the footage shows a trodden strip — short sparse grass over bare dirt and litter, clover at the
+ * stone rims — while the lawn either side of it is ordinary sunlit turf. The strip follows
+ * `pathToHouse` at this half-width (plus each stone's disc × STONE_TRODDEN), feathered outward.
+ */
+const TRODDEN_HALF_WIDTH = 0.9;
+const TRODDEN_FEATHER = 0.6;
+const STONE_TRODDEN = 1.4;
+/**
+ * Round 14: the two flank banks of the main flight (frames 1 s / 8 s: leaves, ferns and turf right
+ * up to the tread ends, no soil). In stair-local metres from the axis: the south-east lip that laps
+ * the step ends (mask allows growth from 5 cm past them) and the north-west face that falls from
+ * the kerb stones toward Saria's terrace; along the run from just before the foot to the landing.
+ * The south-east strip reaches 3.6 m: camera F sees the plateau shelf 3–4 m beyond the upper
+ * tread ends right against the flight's edge (0.50–0.55 × 0.30–0.37 of frame 8 s), and its turf
+ * alone left the cluster gaps as soil there.
+ */
+const FLANK_SE: readonly [number, number] = [0.05, 3.6];
+const FLANK_NW: readonly [number, number] = [0.25, 2.5];
+const FLANK_ALONG: readonly [number, number] = [-0.5, 1.7];
+const FLANK_FEATHER = 0.5;
+/**
+ * Round 14: the north path's shoulders in camera D's lower frame (`dShoulder`): the first
+ * D_SHOULDER_* metres of turf outside the spine's paving are a thinned, trodden edge, feathered
+ * out over D_SHOULDER_FEATHER (frame 56 s: bare paving to a ragged soil edge, a few tufts). The
+ * west shoulder is the narrower: beyond it lies frame 14 s' lawn band (LAWN_BAND — closed short
+ * turf, clover and white dots, a plants.test contract), which keeps its turf.
+ */
+const D_SHOULDER_EAST = 1.0;
+const D_SHOULDER_WEST = 0.6;
+const D_SHOULDER_FEATHER = 0.5;
+/**
+ * 2026-09-23 (the owner, walking north from the plaza: "make the grass thicker on the left side")
+ * — the WALKED verge. Every rule above is a fixed camera's screen box: `dShoulder` is camera D's
+ * lower frame (a ragged soil edge), `lawnBand` is frame 14 s' mown band, `LOW_ZONES` is frames 46 /
+ * 56's low right verge. His recording (`reference/frames-dense/review46/r_020`–`r_028`) shows the
+ * opposite from the walk: violets, broad leaves and low fronds crowd the slabs and close over the
+ * path's edge at every step. `pathVerge` is that ground — the first VERGE_BAND m of turf off the
+ * paving of the walked spine and of the north path beyond the arch — and it carries no camera's
+ * box. `left` marks its WEST half (the owner's left walking north), which the verge passes weight
+ * VERGE_LEFT ×.
+ */
+const VERGE_BAND = 2.4;
+/** the paving's own gravel rim (edges.ts) owns the first few centimetres */
+const VERGE_INNER = 0.06;
+const VERGE_FEATHER = 1.0;
+export const VERGE_LEFT = 1.5;
+/**
+ * Round 32: the house-west flight's flanks (hardscape-25 re-laid it to frame 56 s: five risers
+ * from a paved apron beside the spine up to the landing). The frame's right edge shows a mossy
+ * grass bank climbing beside the risers on the north side, tufts creeping over the tread ends,
+ * and trodden earth with a few tufts in front of the first riser; frame 14 s sees the south lip
+ * beside Link. Stair-local metres beyond the tread ends (north / south), along the run from the
+ * apron sliver before the foot to the landing's sides, feathered over HOUSE_FLANK_FEATHER.
+ * The south flank stops 0.8 m out: the ground beyond it (v > 2.1 m, u 1–3.5 m) is camera C's
+ * bottom-left foreground at 2.4–3.5 m (frame 46 s: trodden earth with a low fringe), which the
+ * spine's trodden strip already reads right; D frames the south side only before the foot.
+ */
+const HOUSE_FLIGHT_ID = 'house-west';
+const HOUSE_FLANK_N: readonly [number, number] = [0.05, 2.4];
+const HOUSE_FLANK_S: readonly [number, number] = [0.05, 0.8];
+const HOUSE_FLANK_ALONG: readonly [number, number] = [-1.2, 3.0];
+const HOUSE_FLANK_FEATHER = 0.5;
+/** the flight and its landing (stair-local, from the foot) where Saria's ramp is paving now, not a trodden strip */
+const HOUSE_FLIGHT_TRODDEN_ALONG: readonly [number, number] = [-1.6, 1.9];
+/**
+ * Round 32: frame 56 s' hollow — the open verge where the old north steps stood, D 0.25–0.45 ×
+ * 0.45–0.65 beyond ≈ 9 m: mist, far trunks and a low dark-green ground cover with almost no edge
+ * energy (lum p50 0.47 / edge 0.025 against our 0.38 / 0.044). Screen-space wedge of camera D,
+ * feathered over D_HOLLOW_FEATHER of frame width.
+ */
+const D_HOLLOW_BOX: readonly [number, number, number, number] = [0.24, 0.44, 0.46, 0.66];
+const D_HOLLOW_DEPTH = 9;
+const D_HOLLOW_FEATHER = 0.03;
+/**
+ * Round 35: camera C's bottom-left foreground (frame 46 s, C 0.06–0.30 × 0.74–1.0) — the ground
+ * 2.5–6 m before the camera between Saria's flight and the plaza's north-east lobe, the slope
+ * that climbs from the paving (h 0.1) to the terrace (h 0.7). The frame has trodden earth with
+ * pale stones and a fine dusty fringe there: lum p50 0.43–0.52 with 0–4 % green over x 0.1–0.35,
+ * dark leaves only in the very corner; ours carried a closed lit turf (green 67–85 %, p50
+ * 0.29–0.35, blades to 0.5 m at 3–8 m). Camera B sees the same ground at (0.55–0.96, 0.67–0.83)
+ * as frame 14 s' lit lawn (p50 0.46–0.6 against our 0.24–0.31), camera A hazed at 12–15 m
+ * ((0.37–0.53, 0.55–0.61): 0.35 against our 0.40) — every frame wants it lighter and less green.
+ */
+export const C_FOOT: readonly [number, number, number, number] = [3.5, -6.3, 5.7, -2.1];
+export const C_FOOT_FEATHER = 0.5;
+/**
+ * Round 35: the frames' dark bank masses beside the main flight. (a) The north-west flank
+ * (stair-local v < 0) from NW_DARK_OUT metres beyond the tread ends out to the terrace slope:
+ * frame 8 s' left mass (F 0–0.15 × 0.46–0.62: dark green, p50 0.19–0.24 against our 0.30–0.32)
+ * and frame 46 s' dark earth under the stair foot (C 0–0.15 × 0.55–0.72: p50 0.23 against our
+ * 0.32); frame 1 s sees the same ground hazed at 16 m (A 0.45–0.6 × 0.5–0.65: 0.33 against our
+ * 0.33, so the ramp is moderate). The first cut left frame 14 s' right mass out (a B_MASS box at
+ * x 8–9.6 / z −6.2…−3.4) — but that box is exactly the turf frame 8 s reads darkest (F 0.1–0.25 ×
+ * 0.45–0.6: 0.21–0.27 against our 0.31–0.36, unchanged by the cut) and camera B's own right edge
+ * measures the same ground brighter than its frame (B 0.84–1.0 × 0.35–0.56: ours 0.29–0.38, frame
+ * 0.21–0.32), so the exemption is gone and the ramp starts at the tread ends. Frame 8 s' left
+ * mass measured after that: F 0.1–0.2 × 0.5 SSIM +0.06…+0.09 per cell. (b) A box over the
+ * plateau shelf right of the flight (frame 8 s' right mass) was tried and dropped: that turf is
+ * the shade zone's (frame 8's right embankment, `shadeZone`), whose flat fill-lit blades are F's
+ * best-scoring cells (SSIM 0.52–0.73), and the darkening replaced their shade encoding — F
+ * 0.65–0.75 × 0.17–0.33 fell 0.726 → 0.698; the crest behind the hedge row F cannot see at all.
+ */
+const NW_DARK_OUT: readonly [number, number] = [0.0, 0.7];
+const NW_DARK_FAR: readonly [number, number] = [3.6, 4.8];
+const NW_DARK_ALONG: readonly [number, number] = [-1.0, 7.5];
+/**
+ * Round 44 — the north corridor (survey-1 #4, 17 frames: the plain beyond the log arch, the floor
+ * under the white-barks east of the north path and the hollow's far end were flat pale terrain
+ * with a few tufts). Every placement pass measured its reach as the distance to the plaza origin,
+ * so nothing grew past the detail disc (45 m) and the disc's last ten metres had thinned to a
+ * third (`falloff`). `reach` is the radius the turf, carpet and litter passes measure against
+ * instead: the plain distance, or the distance to NORTH_CORRIDOR — the north path's spine from
+ * the hollow's mouth to the plain beyond the arch — plus NORTH_REACH_BASE, whichever is smaller.
+ * On the walk itself that is 22 m "from the plaza" (density 0.98), 10 m off it 0.72, and the
+ * corridor's reach runs out 23 m off the path — the same density rules as the plaza's lawn, the
+ * falloff included; nothing grows thinner than it did, and past NORTH_FADE_Z the reach grows
+ * twice as fast as the distance so the cover fades out in the haze instead of ending on a line.
+ * `northFloor` marks where that ground is forest floor rather than lawn (litter and moss beds
+ * over sparse, darker turf; the frames north of the arch show no mown lawn there): everything
+ * north of the arch's south face, and the ground more than ≈ 10 m off the path north of the
+ * hollow's mouth.
+ */
+const NORTH_CORRIDOR: readonly (readonly [number, number])[] = [
+  [3.0, -18],
+  [3.5, -36],
+  [4.5, -42],
+  [5.2, -50],
+  [5.8, -58],
+  [6.2, -68],
+];
+const NORTH_REACH_BASE = 22;
+const NORTH_FADE_Z = -80;
+/**
+ * the forest-floor blend runs from the log arch's south face (z) north over this band …
+ * round 46 (survey-2 #06): drawn 4 m further south and 1.5–3 m nearer the path — the survey's
+ * hollow floor box (x −12…−2, z −20…−45) and the white-barks' floor east of the path (x 8…18,
+ * z −30…−45) were a third inside the round-44 zone; terrain/material.ts FOREST_FLOOR_* follows
+ */
+const NORTH_FLOOR_Z: readonly [number, number] = [-40, -50];
+/** … and, north of the hollow's mouth (z band), across this distance band off the path (m) */
+const NORTH_FLOOR_OFF_Z: readonly [number, number] = [-22, -29];
+const NORTH_FLOOR_OFF_PATH: readonly [number, number] = [5.5, 10];
+/**
+ * Round 48 (vegetation-26; the round-47 reviews read expansion-1's ground north of the log arch
+ * as "a flat plane" with "nothing growing at the trees' feet") — the zones of that ground. Every
+ * one is gated on NORTH_ZONE_Z (0 south of the first value, 1 north of the second): no fixed
+ * camera sees ground past the arch's north lip (layout.ts `northClearing`: hidden by the north
+ * rise from A / B / E, under the arch approach's ground line from D), so the tiles and streams
+ * these zones touch are the walk's alone. The per-tile passes (grass.ts, carpet.ts) read them
+ * directly — a tile wholly north of the gate re-seats, nothing south of it moves; the corridor
+ * passes over one shared stream (plants.ts, litter.ts) never read them: the new ground takes
+ * new passes with their own streams after every existing one.
+ *
+ * - `clearingLawn`: the second clearing's banks (CLEARING_BOX around `northClearing`, feathered
+ *   over CLEARING_FEATHER m) and the `ledgeTerrace` pad (TERRACE_PAD_FEATHER) are lawn again, not
+ *   forest floor — turf rises up the banks and closes over the pad a Kokiri stands on. Returns
+ *   the pad and bank weights separately: the pad takes full turf, the banks keep a share of the
+ *   forest floor's darkening (BANK_FLOOR_SHARE) so they read as shaded ground under the far trees.
+ * - `farFloor`: the forest floor beyond the tunnel — within FAR_FLOOR_REACH m of `layout.northPath`
+ *   (feathered over the last FAR_FLOOR_FEATHER m), off the clearing lawn. Litter, humus (the
+ *   terrain's albedo patch follows it: terrain/material.ts FF_FAR_*), dark ferns and a low herb
+ *   carpet grow there.
+ */
+const NORTH_ZONE_Z: readonly [number, number] = [-59, -62];
+/** [x0, z0, x1, z1] of the clearing's banks (expansion-1's brief: x −9…9, z −62…−82) */
+const CLEARING_BOX: readonly [number, number, number, number] = [-9, -82, 9, -62];
+const CLEARING_FEATHER = 2.0;
+const TERRACE_PAD_FEATHER: readonly [number, number] = [0.15, 0.6];
+export const BANK_FLOOR_SHARE = 0.35;
+const FAR_FLOOR_REACH = 25;
+const FAR_FLOOR_FEATHER = 6;
+/** the standing stones' block half-width (m) the herb layer keeps off (heightfield `standingStoneMask` is 1 inside 0.26) */
+export const STANDING_STONE_CLEAR = 0.3;
+
+/**
+ * The paved rim the layout polylines do not describe (`buildPavedRim`): the plaza discs of the
+ * heightfield and the cut where the stair's south bank meets the flagstones. Straight pieces of
+ * the terrain mask's 0.5 path contour, each with its outward (grass-side) unit normal.
+ */
+interface RimSegment {
+  ax: number;
+  az: number;
+  bx: number;
+  bz: number;
+  nx: number;
+  nz: number;
+  len: number;
+  /** the turf climbs steeply straight off this rim (frame 1's bank face beside the kid) */
+  bank: boolean;
+}
+/** the paving mask level hardscape lays slabs to (flagstones.ts `isPaved`) */
+const RIM_ISO = 0.5;
+/**
+ * The polylines put edge 0 at their half-width, 0.1 m outside the slab edge (mask 0.5 sits at
+ * 0.95 × half-width); the mask-derived rim takes the same offset so one band fits every rim.
+ */
+const RIM_OFFSET = 0.1;
+/** mask contour pieces this close to a polyline rim are that rim (already exact) and are dropped */
+const RIM_DUPLICATE = 0.35;
+/** lookup grid (m) and the reach within which segment distances are exact (beyond: no verge anyway) */
+const RIM_GRID = 1;
+const RIM_REACH = 3.5;
+/** cached path-mask levels below / above which a point is certainly grass / certainly paving (round 32, `nearestRim`) */
+const RIM_SIDE_GRASS = 0.2;
+const RIM_SIDE_PAVED = 0.8;
+/** ground rise across the half metre outside a rim that marks it as the foot of a turf bank */
+const BANK_RISE = 0.22;
+/** metres of that bank face (from its rim) that stay grass only, and the fade beyond */
+const BANK_FACE = 0.85;
+const BANK_FEATHER = 0.3;
+
+interface Frame {
+  px: number;
+  pz: number;
+  fwx: number;
+  fwz: number;
+  rx: number;
+  rz: number;
+  /** tan(fov/2) × aspect: screen-x half extent as a view-space slope */
+  halfSlope: number;
+}
+
+/** Full pinhole of a layout viewpoint (vertical fov, 16:9, +Y up): position, forward, right, up. */
+interface View {
+  p: readonly [number, number, number];
+  f: readonly [number, number, number];
+  r: readonly [number, number, number];
+  u: readonly [number, number, number];
+  th: number;
+  aspect: number;
+}
+
+function makeView(vp: { position: readonly number[]; target: readonly number[]; fov: number }, aspect = 16 / 9): View {
+  let f: [number, number, number] = [vp.target[0] - vp.position[0], vp.target[1] - vp.position[1], vp.target[2] - vp.position[2]];
+  const fl = Math.hypot(f[0], f[1], f[2]) || 1;
+  f = [f[0] / fl, f[1] / fl, f[2] / fl];
+  const rl = Math.hypot(f[2], f[0]) || 1;
+  const r: [number, number, number] = [-f[2] / rl, 0, f[0] / rl];
+  const u: [number, number, number] = [r[1] * f[2] - r[2] * f[1], r[2] * f[0] - r[0] * f[2], r[0] * f[1] - r[1] * f[0]];
+  return { p: [vp.position[0], vp.position[1], vp.position[2]], f, r, u, th: Math.tan((vp.fov * Math.PI) / 360), aspect };
+}
+
+/** Horizontal pinhole frame of a layout viewpoint (16:9), the same maths as the gauntlet cameras. */
+function makeFrame(vp: { position: readonly number[]; target: readonly number[]; fov: number }, aspect = 16 / 9): Frame {
+  let fwx = vp.target[0] - vp.position[0];
+  let fwz = vp.target[2] - vp.position[2];
+  const l = Math.hypot(fwx, fwz) || 1;
+  fwx /= l;
+  fwz /= l;
+  // screen-right = forward × up
+  return { px: vp.position[0], pz: vp.position[2], fwx, fwz, rx: -fwz, rz: fwx, halfSlope: Math.tan((vp.fov * Math.PI) / 360) * aspect };
+}
+
+/** view angle (radians, screen-right positive) of a screen-x fraction */
+const frameAngle = (f: Frame, sx: number) => Math.atan((sx - 0.5) * 2 * f.halfSlope);
+
+export class VegField {
+  readonly cell: number;
+  readonly extent: number;
+  /** the grid's north (−z) extent: `extent` grown to hold the north corridor (round 44, `reach`) */
+  readonly northExtent: number;
+  /** grid nodes along x / along z (the grid is a rectangle since round 44: x ± extent, z −northExtent … extent) */
+  private readonly n: number;
+  private readonly nz: number;
+  private readonly data: Float32Array; // 11 floats per cell
+  private readonly stairs: StairRect[];
+  private readonly stones: SteppingStone[] = houseSteppingStones();
+  private readonly clusterNoise: Noise2D;
+  private readonly tuftNoise: Noise2D;
+  private readonly meadowNoise: Noise2D;
+  private readonly sedgeNoise: Noise2D;
+  private readonly tintNoise: Noise2D;
+  private readonly dryNoise: Noise2D;
+  private readonly flowerNoise: Noise2D;
+  private readonly frames = new Map<string, Frame | null>();
+  private readonly views = new Map<string, View | null>();
+  private readonly tmpN = new Vector3();
+  private readonly tmpS: FieldSample = newSample();
+  /** the house-west flight (round 32), null in a layout without it */
+  private readonly houseFlight: StairRect | null;
+  /** mask-derived paved rim (plaza discs, bank toe) and its lookup grid: cell key → segment indices */
+  private readonly rim: RimSegment[] = [];
+  private readonly rimCells = new Map<number, number[]>();
+
+  constructor(
+    private readonly ctx: WorldContext,
+    extent = 52,
+    cell = 0.5,
+  ) {
+    this.cell = cell;
+    this.extent = extent;
+    // the corridor's coverage: reach ≤ extent means corridor distance ≤ extent − base (past
+    // NORTH_FADE_Z the reach grows 3 × as fast as the distance, so a third of the rest)
+    const spare = Math.max(0, extent - NORTH_REACH_BASE);
+    const endZ = NORTH_CORRIDOR[NORTH_CORRIDOR.length - 1][1];
+    const fadeFree = Math.max(0, endZ - NORTH_FADE_Z);
+    // snapped to the cell so the disc's original nodes keep their exact z (a fractional offset
+    // would move every bilinear sample inside the disc by a fraction of a cell)
+    this.northExtent = Math.ceil(Math.max(extent, -endZ + (spare <= fadeFree ? spare : fadeFree + (spare - fadeFree) / 3)) / cell) * cell;
+    this.n = Math.round((extent * 2) / cell) + 1;
+    this.nz = Math.round((extent + this.northExtent) / cell) + 1;
+    this.data = new Float32Array(this.n * this.nz * 11);
+    const seed = ctx.config.seed;
+    this.clusterNoise = new Noise2D(`${seed}/veg-cluster`);
+    this.tuftNoise = new Noise2D(`${seed}/veg-tuft`);
+    this.meadowNoise = new Noise2D(`${seed}/veg-meadow`);
+    this.sedgeNoise = new Noise2D(`${seed}/veg-sedge`);
+    this.tintNoise = new Noise2D(`${seed}/veg-tint`);
+    this.dryNoise = new Noise2D(`${seed}/veg-dry`);
+    this.flowerNoise = new Noise2D(`${seed}/veg-flower`);
+    this.stairs = ctx.layout.stairs.map((s) => {
+      const l = Math.hypot(s.dir[0], s.dir[1]);
+      return { ox: s.base[0], oz: s.base[2], dx: s.dir[0] / l, dz: s.dir[1] / l, run: s.steps * s.tread, halfWidth: s.width / 2 };
+    });
+    const hf = ctx.layout.stairs.findIndex((s) => s.id === HOUSE_FLIGHT_ID);
+    this.houseFlight = hf >= 0 ? this.stairs[hf] : null;
+    this.fill();
+    this.buildPavedRim();
+  }
+
+  private fill() {
+    const T = this.ctx.terrain;
+    const n = this.n;
+    const nrm = this.tmpN;
+    for (let j = 0; j < this.nz; j++) {
+      const z = -this.northExtent + j * this.cell;
+      for (let i = 0; i < n; i++) {
+        const x = -this.extent + i * this.cell;
+        const m = T.mask(x, z);
+        T.normal(x, z, nrm);
+        const slope = 1 - clamp(nrm.y, 0, 1);
+        const o = (j * n + i) * 11;
+        const d = this.data;
+        d[o] = m.path < 0.5 && m.stairs < 0.5 && m.structure < 0.5 && m.cliff < 0.8 ? 1 : 0;
+        d[o + 1] = m.path;
+        d[o + 2] = m.stairs;
+        d[o + 3] = m.structure;
+        d[o + 4] = m.cliff;
+        d[o + 5] = m.plateau;
+        d[o + 6] = slope;
+        d[o + 7] = nrm.x;
+        d[o + 8] = nrm.y;
+        d[o + 9] = nrm.z;
+        d[o + 10] = T.height(x, z);
+      }
+    }
+  }
+
+  /** cached path-mask value at grid node (i, j) */
+  private nodePath(i: number, j: number): number {
+    return this.data[(j * this.n + i) * 11 + 1];
+  }
+
+  /**
+   * The paved rim the polylines miss. The heightfield paves more than the spine and the stair
+   * branch: the plaza discs (the plaza, its eastern lobe, the small disc at the bank's toe) and it
+   * cuts that paving along the stair's south bank. Those rims are taken from the mask itself —
+   * marching squares over the cached 0.5 m path grid at hardscape's slab level, each crossing then
+   * bisected on the exact terrain mask (≈ 2 mm) — so the turf's rim treatment (lean, moss cushions,
+   * seam litter) follows wherever the flagstones really end, the toe line included. Pieces that
+   * the polylines or the stair footprints already describe, and the stepping stones of the house
+   * ramp (a grassy ramp, no rim), are dropped. Each piece keeps its outward normal and whether the
+   * ground climbs steeply straight off it (`bank`), and goes into a coarse lookup grid.
+   */
+  private buildPavedRim() {
+    const T = this.ctx.terrain;
+    const R = this.ctx.config.detailRadius + 2;
+    const L = this.ctx.layout;
+    const hw = L.pathHalfWidth;
+    const n = this.n;
+    const at = (i: number, j: number): [number, number] => [-this.extent + i * this.cell, -this.northExtent + j * this.cell];
+    const pathAt = (x: number, z: number) => T.mask(x, z).path;
+    // crossing of the iso level on the grid edge (i, j) → (i + di, j + dj): linear in the node
+    // values for the pass that decides which pieces to keep, bisected on the exact mask (8 steps,
+    // ≈ 2 mm) for the kept ones only — the exact mask is the expensive call. Cached per edge.
+    type Edge = { i: number; j: number; horizontal: boolean };
+    const refined = new Map<number, [number, number]>();
+    const edgeKey = (e: Edge) => (e.i * n + e.j) * 2 + (e.horizontal ? 1 : 0);
+    const ends = (e: Edge): [number, number, number, number] => {
+      const [ax, az] = at(e.i, e.j);
+      const [bx, bz] = at(e.horizontal ? e.i + 1 : e.i, e.horizontal ? e.j : e.j + 1);
+      return [ax, az, bx, bz];
+    };
+    const coarse = (e: Edge): [number, number] => {
+      const [ax, az, bx, bz] = ends(e);
+      const pa = this.nodePath(e.i, e.j);
+      const pb = this.nodePath(e.horizontal ? e.i + 1 : e.i, e.horizontal ? e.j : e.j + 1);
+      const t = clamp((RIM_ISO - pa) / (pb - pa || 1e-6), 0, 1);
+      return [ax + (bx - ax) * t, az + (bz - az) * t];
+    };
+    const refine = (e: Edge): [number, number] => {
+      const key = edgeKey(e);
+      let c = refined.get(key);
+      if (c) return c;
+      let [ax, az, bx, bz] = ends(e);
+      const aIn = this.nodePath(e.i, e.j) >= RIM_ISO;
+      for (let k = 0; k < 8; k++) {
+        const mx = (ax + bx) / 2;
+        const mz = (az + bz) / 2;
+        if ((pathAt(mx, mz) >= RIM_ISO) === aIn) {
+          ax = mx;
+          az = mz;
+        } else {
+          bx = mx;
+          bz = mz;
+        }
+      }
+      c = [(ax + bx) / 2, (az + bz) / 2];
+      refined.set(key, c);
+      return c;
+    };
+    // marching squares: corners 0 (i,j) 1 (i+1,j) 2 (i+1,j+1) 3 (i,j+1); edges 0 bottom 1 right 2 top 3 left
+    const EDGES: number[][][] = [[], [[3, 0]], [[0, 1]], [[3, 1]], [[1, 2]], [], [[0, 2]], [[3, 2]], [[2, 3]], [[0, 2]], [], [[1, 2]], [[1, 3]], [[0, 1]], [[3, 0]], []];
+    const edgeOf = (i: number, j: number, e: number): Edge => (e === 0 ? { i, j, horizontal: true } : e === 1 ? { i: i + 1, j, horizontal: false } : e === 2 ? { i, j: j + 1, horizontal: true } : { i, j, horizontal: false });
+    const s = newSample();
+    for (let j = 0; j < this.nz - 1; j++) {
+      for (let i = 0; i < n - 1; i++) {
+        const c0 = this.nodePath(i, j);
+        const c1 = this.nodePath(i + 1, j);
+        const c2 = this.nodePath(i + 1, j + 1);
+        const c3 = this.nodePath(i, j + 1);
+        const idx = (c0 >= RIM_ISO ? 1 : 0) | (c1 >= RIM_ISO ? 2 : 0) | (c2 >= RIM_ISO ? 4 : 0) | (c3 >= RIM_ISO ? 8 : 0);
+        if (idx === 0 || idx === 15) continue;
+        const [cx, cz] = at(i, j);
+        if (this.reach(cx + this.cell / 2, cz + this.cell / 2) > R) continue;
+        let pairs = EDGES[idx];
+        if (idx === 5 || idx === 10) {
+          // saddle: the centre decides which diagonal pair of corners is joined
+          const centreIn = (c0 + c1 + c2 + c3) / 4 >= RIM_ISO;
+          pairs = (idx === 5) === centreIn ? [[0, 1], [2, 3]] : [[3, 0], [1, 2]];
+        }
+        for (const [e0, e1] of pairs) {
+          const ea = edgeOf(i, j, e0);
+          const eb = edgeOf(i, j, e1);
+          {
+            const [ax, az] = coarse(ea);
+            const [bx, bz] = coarse(eb);
+            const mx = (ax + bx) / 2;
+            const mz = (az + bz) / 2;
+            if (this.stairDistance(mx, mz) < RIM_DUPLICATE || this.stoneDistance(mx, mz) < 1.0) continue;
+            // the polyline walk offsets perpendicular to its segments, so it never reaches the
+            // round end caps (the stair branch's, north of the foot): pieces there are kept
+            const spine = polylineClosest(L.pathSpine, mx, mz);
+            const branch = polylineClosest(L.pathToStairs, mx, mz);
+            if ((!spine.cap && Math.abs(spine.dist - hw) < RIM_DUPLICATE) || (!branch.cap && Math.abs(branch.dist - hw * 0.8) < RIM_DUPLICATE)) continue;
+          }
+          const [ax, az] = refine(ea);
+          const [bx, bz] = refine(eb);
+          const len = Math.hypot(bx - ax, bz - az);
+          if (len < 1e-3) continue;
+          const mx = (ax + bx) / 2;
+          const mz = (az + bz) / 2;
+          // outward = toward falling path mask (the grass side)
+          let nx = -(bz - az) / len;
+          let nz = (bx - ax) / len;
+          const outer = this.sample(mx + nx * 0.2, mz + nz * 0.2, s).path;
+          const inner = this.sample(mx - nx * 0.2, mz - nz * 0.2, s).path;
+          if (outer > inner) {
+            nx = -nx;
+            nz = -nz;
+          }
+          const rise = T.height(mx + nx * 0.65, mz + nz * 0.65) - T.height(mx + nx * 0.15, mz + nz * 0.15);
+          this.rim.push({ ax, az, bx, bz, nx, nz, len, bank: rise > BANK_RISE });
+        }
+      }
+    }
+    // lookup grid: every cell whose centre lies within reach of the segment lists it
+    const pad = RIM_REACH + RIM_GRID * 0.71;
+    for (let k = 0; k < this.rim.length; k++) {
+      const seg = this.rim[k];
+      const x0 = Math.floor((Math.min(seg.ax, seg.bx) - pad) / RIM_GRID);
+      const x1 = Math.floor((Math.max(seg.ax, seg.bx) + pad) / RIM_GRID);
+      const z0 = Math.floor((Math.min(seg.az, seg.bz) - pad) / RIM_GRID);
+      const z1 = Math.floor((Math.max(seg.az, seg.bz) + pad) / RIM_GRID);
+      for (let gz = z0; gz <= z1; gz++) {
+        for (let gx = x0; gx <= x1; gx++) {
+          if (segmentDistance(seg, (gx + 0.5) * RIM_GRID, (gz + 0.5) * RIM_GRID) > pad) continue;
+          const key = gx * 65536 + gz;
+          let arr = this.rimCells.get(key);
+          if (!arr) this.rimCells.set(key, (arr = []));
+          arr.push(k);
+        }
+      }
+    }
+  }
+
+  /** nearest mask-derived rim piece within reach: signed distance (negative on the paving) and the piece */
+  private nearestRim(x: number, z: number, maskSide: boolean): { dist: number; seg: RimSegment } | null {
+    const arr = this.rimCells.get(Math.floor(x / RIM_GRID) * 65536 + Math.floor(z / RIM_GRID));
+    if (!arr) return null;
+    let best = Infinity;
+    let bestSeg: RimSegment | null = null;
+    for (const k of arr) {
+      const seg = this.rim[k];
+      const d = segmentDistance(seg, x, z);
+      if (d < best) {
+        best = d;
+        bestSeg = seg;
+      }
+    }
+    if (!bestSeg || best > RIM_REACH) return null;
+    // Side of the piece. Round 32 (`maskSide`): the cached path mask decides wherever it is
+    // unambiguous — a 0.3 m piece's normal, sampled 0.2 m either side, cannot classify ground
+    // 2–3 m away (the pieces of the sliver between the spine and the house flight's apron read
+    // both sides as grass, kept an arbitrary normal, and put the flight's whole south lip "on
+    // the paving": lawnEdgeDistance −1.5 m over turf, so the lip grew no verge, no lean, no
+    // tufts). The normal's half-space only settles the transition band itself. The turf and the
+    // round-32 streams ask for it; the earlier plant streams keep the old answer so their
+    // candidate sequences (and every placed instance) stay where they were.
+    if (maskSide) {
+      const path = this.sample(x, z, this.tmpS).path;
+      if (path <= RIM_SIDE_GRASS) return { dist: best, seg: bestSeg };
+      if (path >= RIM_SIDE_PAVED) return { dist: -best, seg: bestSeg };
+    }
+    // the closest point's offset along the outward normal
+    const t = segmentT(bestSeg, x, z);
+    const px = bestSeg.ax + (bestSeg.bx - bestSeg.ax) * t;
+    const pz = bestSeg.az + (bestSeg.bz - bestSeg.az) * t;
+    const side = (x - px) * bestSeg.nx + (z - pz) * bestSeg.nz;
+    return { dist: side < 0 ? -best : best, seg: bestSeg };
+  }
+
+  /**
+   * Signed distance to the mask-derived paved rim (plaza discs, bank toe; see `buildPavedRim`),
+   * with the polylines' 0.1 m rim offset; +Infinity where no such rim is within reach.
+   */
+  pavedRimDistance(x: number, z: number, r32 = false): number {
+    const near = this.nearestRim(x, z, r32);
+    return near ? near.dist - RIM_OFFSET : Infinity;
+  }
+
+  /**
+   * 0..1 on the turf face that climbs straight off a paved rim (reference frame 1: the Kokiri kid
+   * stands in lit grass tufts on the stair's south bank, no herbs or broad leaves) — the first
+   * `BANK_FACE` metres outside a rim piece flagged `bank`, feathered out beyond.
+   */
+  bankFace(x: number, z: number): number {
+    const near = this.nearestRim(x, z, false);
+    if (!near || !near.seg.bank || near.dist < -0.05) return 0;
+    return 1 - smoothstep(BANK_FACE, BANK_FACE + BANK_FEATHER, near.dist);
+  }
+
+  /** Bilinear sample of the cached field. Outside the grid → not allowed. */
+  sample(x: number, z: number, out: FieldSample): FieldSample {
+    const fx = (x + this.extent) / this.cell;
+    const fz = (z + this.northExtent) / this.cell;
+    const i0 = Math.floor(fx);
+    const j0 = Math.floor(fz);
+    if (i0 < 0 || j0 < 0 || i0 >= this.n - 1 || j0 >= this.nz - 1) {
+      out.allow = 0;
+      out.path = out.stairs = out.structure = 0;
+      out.cliff = 1;
+      out.plateau = out.slope = 0;
+      out.nx = out.nz = 0;
+      out.ny = 1;
+      out.h = 0;
+      return out;
+    }
+    const tx = fx - i0;
+    const tz = fz - j0;
+    const d = this.data;
+    const o00 = (j0 * this.n + i0) * 11;
+    const o10 = o00 + 11;
+    const o01 = o00 + this.n * 11;
+    const o11 = o01 + 11;
+    const w00 = (1 - tx) * (1 - tz);
+    const w10 = tx * (1 - tz);
+    const w01 = (1 - tx) * tz;
+    const w11 = tx * tz;
+    const at = (k: number) => d[o00 + k] * w00 + d[o10 + k] * w10 + d[o01 + k] * w01 + d[o11 + k] * w11;
+    out.allow = at(0);
+    out.path = at(1);
+    out.stairs = at(2);
+    out.structure = at(3);
+    out.cliff = at(4);
+    out.plateau = at(5);
+    out.slope = at(6);
+    out.nx = at(7);
+    out.ny = at(8);
+    out.nz = at(9);
+    out.h = at(10);
+    return out;
+  }
+
+  /**
+   * True if vegetation may grow at (x, z). Uses the coarse grid where the answer is certain and
+   * the exact terrain mask in the transition band around paths, stairs, pads and cliffs.
+   */
+  allowed(x: number, z: number, s: FieldSample, r32 = false): boolean {
+    // Round 32 (`r32`): a cell whose four nodes all sit on paving rejected without the exact
+    // test, which lost every sliver of turf narrower than the 0.5 m grid — the strip between the
+    // house flight's apron and its first riser, the gap between the spine and the apron (frame
+    // 14 s: turf and moss beside Link, frame 56 s: tufts in front of the riser). Only a cell the
+    // cached masks put wholly under one kind of paving is certain; a mixed one goes to the exact
+    // mask. The turf and the round-32 streams ask for it; the earlier streams keep the old test so
+    // their candidate sequences stay as they were.
+    if (s.allow <= 0.02 && (!r32 || s.path >= 0.98 || s.stairs >= 0.98 || s.structure >= 0.98 || s.cliff >= 0.98)) return false;
+    if (s.allow >= 0.98 && s.path < 0.05 && s.stairs < 0.05 && s.structure < 0.05 && s.cliff < 0.4) return true;
+    return this.ctx.terrain.vegetationAllowed(x, z);
+  }
+
+  /**
+   * Distance from the nearest path edge (negative inside). The house branch counts with its old
+   * 0.7 × half-width so the plant scatters keep their corridor clear (and their candidate streams)
+   * now that it is a grassy ramp; the turf uses `lawnEdgeDistance`, which ignores it.
+   */
+  pathEdgeDistance(x: number, z: number): number {
+    const L = this.ctx.layout;
+    const hw = L.pathHalfWidth;
+    const a = polylineDistance(L.pathSpine, x, z) - hw;
+    const b = polylineDistance(L.pathToStairs, x, z) - hw * 0.8;
+    const c = polylineDistance(L.pathToHouse, x, z) - hw * 0.7;
+    return Math.min(a, b, c);
+  }
+
+  /**
+   * Hard-edge distance for the turf: flagstone paving and stairs only — the spine and stair-branch
+   * polylines, the stair footprints, and the mask-derived rim of the plaza discs and the bank toe
+   * (`pavedRimDistance`), since the flagstones end there, not at the branch's half-width. Saria's
+   * branch is a grassy ramp with stepping stones, not paving, so it grows ordinary lawn with no
+   * verge; the trodden strip between its stones is `troddenZone` / `stoneDistance`.
+   */
+  lawnEdgeDistance(x: number, z: number, r32 = false): number {
+    const L = this.ctx.layout;
+    const hw = L.pathHalfWidth;
+    const a = polylineDistance(L.pathSpine, x, z) - hw;
+    const b = polylineDistance(L.pathToStairs, x, z) - hw * 0.8;
+    return Math.min(a, b, this.stairDistance(x, z), this.pavedRimDistance(x, z, r32));
+  }
+
+  /** Distance to the centreline of Saria's stepping-stone ramp (`pathToHouse`). */
+  rampDistance(x: number, z: number): number {
+    return polylineDistance(this.ctx.layout.pathToHouse, x, z);
+  }
+
+  /**
+   * The walked verge (see VERGE_BAND): `w` 0..1 across the first VERGE_BAND m of ground off the
+   * spine's and the north path's paving, `left` 1 on the west side (the owner's left walking
+   * north), `edge` the metres to that paving. Callers still run the masks — this says nothing
+   * about paving, trunks or props, only where the walker's eye is.
+   */
+  pathVerge(x: number, z: number): { w: number; left: number; edge: number } {
+    const L = this.ctx.layout;
+    const spine = polylineSide(L.pathSpine, x, z);
+    const north = polylineSide(L.northPath, x, z);
+    const se = spine.dist - L.pathHalfWidth;
+    const ne = north.dist - L.northPathHalfWidth;
+    const useNorth = ne < se;
+    const edge = useNorth ? ne : se;
+    const left = (useNorth ? north.side : spine.side) < 0 ? 1 : 0;
+    if (edge < VERGE_INNER || edge > VERGE_BAND) return { w: 0, left, edge };
+    const w = smoothstep(VERGE_INNER, VERGE_INNER + 0.12, edge) * (1 - smoothstep(VERGE_BAND - VERGE_FEATHER, VERGE_BAND, edge));
+    return { w, left, edge };
+  }
+
+  /** true when any of the `size` m tile at (x0, z0) can hold walked verge (grass.ts's per-tile pass) */
+  tileMeetsVerge(x0: number, z0: number, size: number): boolean {
+    const L = this.ctx.layout;
+    const mx = x0 + size / 2;
+    const mz = z0 + size / 2;
+    const reach = size * 0.71 + VERGE_BAND;
+    return polylineDistance(L.pathSpine, mx, mz) - L.pathHalfWidth < reach || polylineDistance(L.northPath, mx, mz) - L.northPathHalfWidth < reach;
+  }
+
+  /**
+   * Candidate points in the lawn band just outside the flagstone rim of the spine, the stair
+   * branch and the plaza (the house branch is a grassy ramp with no rim), for the path-edge
+   * softening of concept sheet 02. Walks the layout polylines within the detail radius, drawing
+   * `perMetre` points per metre of rim per side from `rng` (t, side, offset — three draws each, so
+   * callers can keep their acceptance draws stable), then the mask-derived rim pieces of the plaza
+   * discs and the bank toe (`buildPavedRim`; two draws each, one grass side), and visits those the
+   * terrain mask puts in 0..`band` m of grass beyond the paving (the mask, not the polyline, says
+   * where the plaza, pads and corners really end).
+   */
+  rimCandidates(rng: () => number, perMetre: number, band: number, visit: (x: number, z: number, edge: number) => void, corridor = false) {
+    const L = this.ctx.layout;
+    const R = this.ctx.config.detailRadius;
+    const rims: [readonly P3[], number][] = [
+      [L.pathSpine, L.pathHalfWidth],
+      [L.pathToStairs, L.pathHalfWidth * 0.8],
+    ];
+    // round 44 (`corridor`): the north corridor's rim pieces are the ones the disc walk skips —
+    // beyond the detail disc but inside `reach` — walked by their own streams, so the disc walk's
+    // candidate sequence (and every rim plant / leaf it seated) stays as it was
+    const inWalk = (x: number, z: number) => (corridor ? Math.hypot(x, z) > R && this.reach(x, z) <= R : Math.hypot(x, z) <= R);
+    const offer = (x: number, z: number) => {
+      const edge = this.lawnEdgeDistance(x, z);
+      if (edge < -0.05 || edge > band || this.stairDistance(x, z) < 0.1) return;
+      visit(x, z, Math.max(0, edge));
+    };
+    for (const [line, hw] of rims) {
+      for (let i = 0; i < line.length - 1; i++) {
+        const [ax, , az] = line[i];
+        const [bx, , bz] = line[i + 1];
+        if (!inWalk((ax + bx) / 2, (az + bz) / 2)) continue;
+        const len = Math.hypot(bx - ax, bz - az);
+        const dx = (bx - ax) / len;
+        const dz = (bz - az) / len;
+        const n = Math.round(len * perMetre * 2);
+        for (let k = 0; k < n; k++) {
+          const t = rng();
+          const side = rng() < 0.5 ? -1 : 1;
+          const off = hw + rng() * band;
+          offer(ax + dx * t * len - dz * side * off, az + dz * t * len + dx * side * off);
+        }
+      }
+    }
+    // the pieces are 0.1–0.7 m long: carry the fractional count so short ones are not starved
+    let carry = 0;
+    for (const seg of this.rim) {
+      if (!inWalk((seg.ax + seg.bx) / 2, (seg.az + seg.bz) / 2)) continue;
+      carry += seg.len * perMetre;
+      const n = Math.floor(carry);
+      carry -= n;
+      for (let k = 0; k < n; k++) {
+        const t = rng();
+        const off = RIM_OFFSET + rng() * band;
+        offer(seg.ax + (seg.bx - seg.ax) * t + seg.nx * off, seg.az + (seg.bz - seg.az) * t + seg.nz * off);
+      }
+    }
+  }
+
+  /** total length (m) of the mask-derived rim pieces and how many are bank feet — for audits and tests */
+  pavedRimStats(): { pieces: number; metres: number; bankMetres: number } {
+    let metres = 0;
+    let bankMetres = 0;
+    for (const seg of this.rim) {
+      metres += seg.len;
+      if (seg.bank) bankMetres += seg.len;
+    }
+    return { pieces: this.rim.length, metres, bankMetres };
+  }
+
+  /** Distance to the nearest stepping-stone rim of the house branch (negative on the stone). */
+  stoneDistance(x: number, z: number): number {
+    let best = Infinity;
+    for (const s of this.stones) best = Math.min(best, Math.hypot(x - s.x, z - s.z) - s.r);
+    return best;
+  }
+
+  /** 0..1 inside the trodden strip between Saria's stepping stones (1 = strip core). */
+  troddenZone(x: number, z: number, r32 = false): number {
+    const along = polylineDistance(this.ctx.layout.pathToHouse, x, z);
+    let v = 1 - smoothstep(TRODDEN_HALF_WIDTH, TRODDEN_HALF_WIDTH + TRODDEN_FEATHER, along);
+    // round 32 (`r32`): the ramp's polyline now runs along the house flight and its landing —
+    // paving, not a trodden strip; the flanks beside the risers grow their bank turf at full height
+    if (r32) {
+      const hl = this.houseFlightLocal(x, z);
+      // each flank's own span: the south exemption stops short of the verge stones' strip (x ≈ 3)
+      const span = hl && hl.v < 0 ? HOUSE_FLANK_N : HOUSE_FLANK_S;
+      if (hl && hl.u >= HOUSE_FLIGHT_TRODDEN_ALONG[0] && hl.u <= hl.run + HOUSE_FLIGHT_TRODDEN_ALONG[1] && Math.abs(hl.v) <= hl.halfWidth + span[1] + HOUSE_FLANK_FEATHER) v = 0;
+    }
+    for (const s of this.stones) {
+      const d = Math.hypot(x - s.x, z - s.z);
+      v = Math.max(v, 1 - smoothstep(s.r * STONE_TRODDEN, s.r * STONE_TRODDEN + TRODDEN_FEATHER, d));
+    }
+    return v;
+  }
+
+  /** Distance from the nearest stair footprint (0 inside). */
+  stairDistance(x: number, z: number): number {
+    let best = Infinity;
+    for (const f of this.stairs) {
+      const rx = x - f.ox;
+      const rz = z - f.oz;
+      const u = rx * f.dx + rz * f.dz;
+      const v = -rx * f.dz + rz * f.dx;
+      const du = Math.max(0, -u, u - f.run);
+      const dv = Math.max(0, Math.abs(v) - f.halfWidth);
+      best = Math.min(best, Math.hypot(du, dv));
+    }
+    return best;
+  }
+
+  /** Distance to the nearest hard edge (path or stair). Verges live in 0..2.5 m. */
+  edgeDistance(x: number, z: number): number {
+    return Math.min(this.pathEdgeDistance(x, z), this.stairDistance(x, z));
+  }
+
+  /** 1 at a giant trunk centre, 0 beyond trunkRadius + reach. */
+  giantProximity(x: number, z: number, reach = 2.5): number {
+    let best = 0;
+    for (const g of this.ctx.layout.giantTrees) {
+      const d = Math.hypot(x - g.position[0], z - g.position[2]);
+      best = Math.max(best, 1 - smoothstep(g.trunkRadius * 0.9, g.trunkRadius + reach, d));
+    }
+    return best;
+  }
+
+  /** Inside a giant trunk footprint (no plants at all). */
+  insideGiantTrunk(x: number, z: number, margin = 0.2): boolean {
+    for (const g of this.ctx.layout.giantTrees) {
+      if (Math.hypot(x - g.position[0], z - g.position[2]) < g.trunkRadius + margin) return true;
+    }
+    return false;
+  }
+
+  /** Distance to the nearest giant trunk surface (for litter/roots under canopy). */
+  giantDistance(x: number, z: number): number {
+    let best = Infinity;
+    for (const g of this.ctx.layout.giantTrees) {
+      best = Math.min(best, Math.hypot(x - g.position[0], z - g.position[2]) - g.trunkRadius);
+    }
+    return best;
+  }
+
+  /** 1 inside the “keep short” clearings: NPC spots and a ring around hero boulders. */
+  clearing(x: number, z: number): { npc: number; boulder: number; insideBoulder: boolean } {
+    let npc = 0;
+    for (const s of this.ctx.layout.npcSpots) {
+      const d = Math.hypot(x - s.position[0], z - s.position[2]);
+      npc = Math.max(npc, 1 - smoothstep(0.9, 1.6, d));
+    }
+    let boulder = 0;
+    let insideBoulder = false;
+    for (const b of this.ctx.layout.heroBoulders) {
+      const d = Math.hypot(x - b.position[0], z - b.position[2]);
+      const r = b.clearRadius ?? b.radius;
+      if (d < r * 0.95) insideBoulder = true;
+      boulder = Math.max(boulder, 1 - smoothstep(r + 0.6, r + 0.9, d));
+    }
+    return { npc, boulder, insideBoulder };
+  }
+
+  /**
+   * Distance to the nearest hero boulder's clearance ring (`clearRadius`, the rock's radius by
+   * default — the shot-D rock renders at 0.6 m inside its 0.9 m ring so the scatters' streams hold).
+   */
+  boulderDistance(x: number, z: number): number {
+    let best = Infinity;
+    for (const b of this.ctx.layout.heroBoulders) best = Math.min(best, Math.hypot(x - b.position[0], z - b.position[2]) - (b.clearRadius ?? b.radius));
+    return best;
+  }
+
+  /** Distance to the nearest house trunk surface, and whether the point is on its shaded side. */
+  houseInfo(x: number, z: number): { dist: number; shade: number } {
+    let dist = Infinity;
+    let shade = 0;
+    const sunAz = (this.ctx.config.sun.azimuthDeg * Math.PI) / 180;
+    // vector pointing away from the sun (toward where shadows fall)
+    const sx = -Math.sin(sunAz);
+    const sz = -Math.cos(sunAz);
+    for (const h of this.ctx.layout.houses) {
+      const dx = x - h.position[0];
+      const dz = z - h.position[2];
+      const d = Math.hypot(dx, dz) - h.trunkRadius;
+      if (d < dist) {
+        dist = d;
+        const l = Math.hypot(dx, dz) || 1;
+        shade = clamp((dx / l) * sx + (dz / l) * sz, 0, 1);
+      }
+    }
+    return { dist, shade };
+  }
+
+  /** Distance to the log arch axis minus its radius (negative inside the log). */
+  logDistance(x: number, z: number): number {
+    const la = this.ctx.layout.logArch;
+    const yaw = (la.yawDeg * Math.PI) / 180;
+    const dx = x - la.position[0];
+    const dz = z - la.position[2];
+    const u = dx * Math.cos(yaw) - dz * Math.sin(yaw);
+    const v = dx * Math.sin(yaw) + dz * Math.cos(yaw);
+    const du = Math.max(0, Math.abs(u) - la.length / 2);
+    return Math.hypot(du, Math.abs(v)) - la.radius;
+  }
+
+  /** Clustered coverage 0.2..1.3: fbm clumps × fine tufts. Never uniform. */
+  cluster(x: number, z: number): number {
+    const c = this.clusterNoise.fbm(x * 0.21, z * 0.21, 3);
+    const t = this.tuftNoise.noise(x * 0.85, z * 0.85);
+    const clumps = 0.25 + 0.85 * smoothstep(-0.55, 0.5, c);
+    const tufts = 0.6 + 0.4 * (0.5 + 0.5 * t);
+    return clumps * tufts;
+  }
+
+  /** 0..1 patches where tall meadow grass dominates. */
+  meadow(x: number, z: number): number {
+    return smoothstep(0.02, 0.45, this.meadowNoise.fbm(x * 0.17 + 3.1, z * 0.17 - 1.4, 2));
+  }
+
+  /** 0..1 patches of broad sedge-like blades. */
+  sedge(x: number, z: number): number {
+    return smoothstep(0.12, 0.5, this.sedgeNoise.noise(x * 0.23 - 7.3, z * 0.23 + 2.2));
+  }
+
+  /** -1..1 slow colour drift for tint choice. */
+  tint(x: number, z: number): number {
+    return this.tintNoise.fbm(x * 0.13 + 11, z * 0.13 + 5, 2);
+  }
+
+  /** 0..1 dry/straw-tipped patches. */
+  dry(x: number, z: number): number {
+    return smoothstep(0.25, 0.65, this.dryNoise.noise(x * 0.16 + 21, z * 0.16 - 9));
+  }
+
+  /** 0..1 patches where flowers/weeds like to grow. */
+  flowerPatch(x: number, z: number): number {
+    return smoothstep(0.05, 0.55, this.flowerNoise.fbm(x * 0.27 - 4, z * 0.27 + 8, 2));
+  }
+
+  /** 0..1 on the shot-A south bank's face (A_FACE_BOX ∩ bankFace): frame 1's circled right foreground turf. */
+  aFace(x: number, z: number): number {
+    const box = softBox(x, z, A_FACE_BOX, A_FACE_FEATHER);
+    return box > 0 ? box * this.bankFace(x, z) : 0;
+  }
+
+  /** world box [x0, z0, x1, z1] outside which `aFace` is 0 (the face pass's candidate box, grass.ts) */
+  aFaceBox(): [number, number, number, number] {
+    return [A_FACE_BOX[0] - A_FACE_FEATHER, A_FACE_BOX[1] - A_FACE_FEATHER, A_FACE_BOX[2] + A_FACE_FEATHER, A_FACE_BOX[3] + A_FACE_FEATHER];
+  }
+
+  /** 0..1 inside the reference's low-verge areas (short grass, no tall plants). */
+  lowZone(x: number, z: number): number {
+    let v = 0;
+    for (const b of LOW_ZONES) v = Math.max(v, softBox(x, z, b, 0.8));
+    return v;
+  }
+
+  /** 0..1 in frame 14 s' lawn band west of the spine (dense short turf, clover and white dots; no fern clumps). */
+  lawnBand(x: number, z: number): number {
+    return softBox(x, z, LAWN_BAND, 0.5);
+  }
+
+  /** the lawn band's world box [x0, z0, x1, z1] grown by `pad` metres (its feather is 0.5 m) */
+  lawnBandBox(pad = 0): [number, number, number, number] {
+    return [LAWN_BAND[0] - pad, LAWN_BAND[1] - pad, LAWN_BAND[2] + pad, LAWN_BAND[3] + pad];
+  }
+
+  /**
+   * Stair-local coordinates of (x, z) on the main flight (layout stairs[0]): `u` metres along the
+   * run from the bottom riser (negative before the foot), `v` metres across from the axis, positive
+   * on the south-east side (the bank the shot-A kid stands on, cameras A / F's right flank).
+   */
+  mainStairLocal(x: number, z: number): { u: number; v: number; halfWidth: number; run: number } {
+    const f = this.stairs[0];
+    const rx = x - f.ox;
+    const rz = z - f.oz;
+    return { u: rx * f.dx + rz * f.dz, v: -rx * f.dz + rz * f.dx, halfWidth: f.halfWidth, run: f.run };
+  }
+
+  /**
+   * 0..1 on the main flight's two flank banks (round 14; FLANK_SE / FLANK_NW metres beyond the
+   * tread ends, FLANK_ALONG beyond the foot and the top step), feathered out over FLANK_FEATHER.
+   * Zero on the treads themselves.
+   */
+  flankZone(x: number, z: number): number {
+    const { u, v, halfWidth, run } = this.mainStairLocal(x, z);
+    const out = Math.abs(v) - halfWidth;
+    const span = v > 0 ? FLANK_SE : FLANK_NW;
+    if (out < span[0]) return 0;
+    const across = 1 - smoothstep(span[1], span[1] + FLANK_FEATHER, out);
+    const along = smoothstep(FLANK_ALONG[0] - FLANK_FEATHER, FLANK_ALONG[0], u) * (1 - smoothstep(run + FLANK_ALONG[1], run + FLANK_ALONG[1] + FLANK_FEATHER, u));
+    return across * along;
+  }
+
+  /** axis-aligned world box [x0, z0, x1, z1] enclosing both flank strips (plus their feather) */
+  flankBox(): [number, number, number, number] {
+    const f = this.stairs[0];
+    const reach = f.halfWidth + Math.max(FLANK_SE[1], FLANK_NW[1]) + FLANK_FEATHER;
+    const u0 = FLANK_ALONG[0] - FLANK_FEATHER;
+    const u1 = f.run + FLANK_ALONG[1] + FLANK_FEATHER;
+    let x0 = Infinity;
+    let z0 = Infinity;
+    let x1 = -Infinity;
+    let z1 = -Infinity;
+    for (const u of [u0, u1]) {
+      for (const v of [-reach, reach]) {
+        const x = f.ox + f.dx * u - f.dz * v;
+        const z = f.oz + f.dz * u + f.dx * v;
+        x0 = Math.min(x0, x);
+        z0 = Math.min(z0, z);
+        x1 = Math.max(x1, x);
+        z1 = Math.max(z1, z);
+      }
+    }
+    return [x0, z0, x1, z1];
+  }
+
+  /**
+   * Stair-local coordinates of (x, z) on the house-west flight (round 32): `u` metres along the
+   * run from the first riser (negative before the foot: the apron), `v` across from the axis,
+   * positive on the south side (the lip beside the spine, camera B's side). Null without the flight.
+   */
+  houseFlightLocal(x: number, z: number): { u: number; v: number; halfWidth: number; run: number } | null {
+    const f = this.houseFlight;
+    if (!f) return null;
+    const rx = x - f.ox;
+    const rz = z - f.oz;
+    return { u: rx * f.dx + rz * f.dz, v: -rx * f.dz + rz * f.dx, halfWidth: f.halfWidth, run: f.run };
+  }
+
+  /**
+   * 0..1 on the house-west flight's two flanks (round 32; HOUSE_FLANK_N / HOUSE_FLANK_S metres
+   * beyond the tread ends, HOUSE_FLANK_ALONG before the foot and past the top step), feathered
+   * out over HOUSE_FLANK_FEATHER; zero on the treads, the apron and the landing themselves (the
+   * masks keep those bare anyway) and without the flight.
+   */
+  houseFlankZone(x: number, z: number): number {
+    const l = this.houseFlightLocal(x, z);
+    if (!l) return 0;
+    const out = Math.abs(l.v) - l.halfWidth;
+    const span = l.v < 0 ? HOUSE_FLANK_N : HOUSE_FLANK_S;
+    if (out < span[0]) return 0;
+    const across = 1 - smoothstep(span[1], span[1] + HOUSE_FLANK_FEATHER, out);
+    const along = smoothstep(HOUSE_FLANK_ALONG[0] - HOUSE_FLANK_FEATHER, HOUSE_FLANK_ALONG[0], l.u) * (1 - smoothstep(l.run + HOUSE_FLANK_ALONG[1], l.run + HOUSE_FLANK_ALONG[1] + HOUSE_FLANK_FEATHER, l.u));
+    return across * along;
+  }
+
+  /** axis-aligned world box [x0, z0, x1, z1] enclosing both house-flight flanks (plus their feather); null without the flight */
+  houseFlankBox(): [number, number, number, number] | null {
+    const f = this.houseFlight;
+    if (!f) return null;
+    const reach = f.halfWidth + Math.max(HOUSE_FLANK_N[1], HOUSE_FLANK_S[1]) + HOUSE_FLANK_FEATHER;
+    const u0 = HOUSE_FLANK_ALONG[0] - HOUSE_FLANK_FEATHER;
+    const u1 = f.run + HOUSE_FLANK_ALONG[1] + HOUSE_FLANK_FEATHER;
+    let x0 = Infinity;
+    let z0 = Infinity;
+    let x1 = -Infinity;
+    let z1 = -Infinity;
+    for (const u of [u0, u1]) {
+      for (const v of [-reach, reach]) {
+        const x = f.ox + f.dx * u - f.dz * v;
+        const z = f.oz + f.dz * u + f.dx * v;
+        x0 = Math.min(x0, x);
+        z0 = Math.min(z0, z);
+        x1 = Math.max(x1, x);
+        z1 = Math.max(z1, z);
+      }
+    }
+    return [x0, z0, x1, z1];
+  }
+
+  /**
+   * 0..1 in frame 56 s' hollow (round 32, D_HOLLOW_BOX beyond D_HOLLOW_DEPTH): the open dark verge
+   * where the old north steps stood, which the footage shows as low ground cover under mist with
+   * far trunks — no tall tufts, seed heads or fronds. `y` is the ground height at (x, z).
+   */
+  dHollow(x: number, y: number, z: number): number {
+    const p = this.screenPoint('D_log', x, y, z);
+    if (!p || p.depth < D_HOLLOW_DEPTH) return 0;
+    const b = D_HOLLOW_BOX;
+    const f = D_HOLLOW_FEATHER;
+    const inX = smoothstep(b[0] - f, b[0], p.sx) * (1 - smoothstep(b[2], b[2] + f, p.sx));
+    const inY = smoothstep(b[1] - f, b[1], p.sy) * (1 - smoothstep(b[3], b[3] + f, p.sy));
+    return inX * inY * smoothstep(D_HOLLOW_DEPTH, D_HOLLOW_DEPTH + 2, p.depth);
+  }
+
+  /**
+   * Round 14: the north path's shoulders as camera D sees them. In frame 56 s the paving fills
+   * the lower third of the frame (0.15–0.85 × 0.66–1.0 is 0.9 % green) and its verges are a
+   * ragged soil edge with a few tufts; our spine is ≈ 4.3 m wide where the frame's paving spans
+   * ≈ 6 m, so 1–1.5 m of verge turf, herbs and clover stood inside the frame's paving 3–8 m from
+   * the camera and the same box measured 11 % green. 0..1 in the first D_SHOULDER metres of turf
+   * outside the spine's paving (`lawnEdgeDistance`) wherever that ground projects into D's lower
+   * frame, feathered out over D_SHOULDER_FEATHER; zero elsewhere. Frame 14 s (camera B) shows the
+   * same verge edge as soil between the slabs and the turf, so B's lower left agrees.
+   */
+  dShoulder(x: number, z: number): number {
+    if (z > -3.2 || z < -12 || Math.abs(x) > 4.5) return 0;
+    const edge = this.lawnEdgeDistance(x, z);
+    // the spine runs (0, 0) → (0.6, −6) → (1.5, −12) here; west of it lies the lawn band
+    const spineX = z > -6 ? -z * 0.1 : 0.6 + (-6 - z) * 0.15;
+    const width = x < spineX ? D_SHOULDER_WEST : D_SHOULDER_EAST;
+    if (edge < -0.1 || edge > width + D_SHOULDER_FEATHER) return 0;
+    const p = this.screenPoint('D_log', x, this.ctx.terrain.height(x, z), z);
+    if (!p || p.depth > 9 || p.sx < 0.05 || p.sx > 0.95 || p.sy < 0.58) return 0;
+    return (1 - smoothstep(width, width + D_SHOULDER_FEATHER, edge)) * smoothstep(0.58, 0.66, p.sy);
+  }
+
+  private frame(viewpointId: string): Frame | null {
+    let f = this.frames.get(viewpointId);
+    if (f === undefined) {
+      const vp = this.ctx.layout.viewpoints.find((v) => v.id === viewpointId);
+      f = vp ? makeFrame(vp) : null;
+      this.frames.set(viewpointId, f);
+    }
+    return f;
+  }
+
+  /**
+   * Horizontal screen-x of (x, z) in a layout viewpoint's frame (0 = left edge, 1 = right edge)
+   * and its depth along the view axis; null behind the camera or for unknown viewpoints. A
+   * ground-level approximation (the hero cameras are pitched ≤ 4°), used to keep frame 46's stair
+   * foot clear and to seat shot-B's edge plants just off camera C's left edge.
+   */
+  screenX(viewpointId: string, x: number, z: number): { sx: number; depth: number } | null {
+    const f = this.frame(viewpointId);
+    if (!f) return null;
+    const dx = x - f.px;
+    const dz = z - f.pz;
+    const depth = dx * f.fwx + dz * f.fwz;
+    if (depth <= 0.05) return null;
+    return { sx: 0.5 + (0.5 * ((dx * f.rx + dz * f.rz) / depth)) / f.halfSlope, depth };
+  }
+
+  /**
+   * Full pinhole projection of a world point into a layout viewpoint (0..1, y down; the
+   * gauntlet's camera maths): screen x / y and view depth, null behind the camera. For placements
+   * that must land in a reference frame's box on rising ground, where `screenX` cannot say how
+   * high they sit.
+   */
+  screenPoint(viewpointId: string, x: number, y: number, z: number): { sx: number; sy: number; depth: number } | null {
+    let v = this.views.get(viewpointId);
+    if (v === undefined) {
+      const vp = this.ctx.layout.viewpoints.find((p) => p.id === viewpointId);
+      v = vp ? makeView(vp) : null;
+      this.views.set(viewpointId, v);
+    }
+    if (!v) return null;
+    const dx = x - v.p[0];
+    const dy = y - v.p[1];
+    const dz = z - v.p[2];
+    const depth = dx * v.f[0] + dy * v.f[1] + dz * v.f[2];
+    if (depth <= 0.05) return null;
+    const sx = 0.5 + (0.5 * ((dx * v.r[0] + dy * v.r[1] + dz * v.r[2]) / depth)) / (v.th * v.aspect);
+    const sy = 0.5 - (0.5 * ((dx * v.u[0] + dy * v.u[1] + dz * v.u[2]) / depth)) / v.th;
+    return { sx, sy, depth };
+  }
+
+  /**
+   * 0..1 where a plant of horizontal reach `margin` (metres) would show in camera C's left third
+   * (frame 46: the stair foot and its mossy rock over short grass). 1 inside the grass box around
+   * the camera and inside the frame wedge out to the stair-foot rock; fades to 0 over `margin`
+   * outside them, so callers reject while > 0 with their own frond/crown reach.
+   */
+  sightlineC(x: number, z: number, margin = 0.6): number {
+    // the box is a hard "grass around the camera" rule; only the wedge needs the plant's reach,
+    // since everything east of the box that could lean into frame is inside the wedge already
+    const v = softBox(x, z, C_GRASS_BOX, 0.5);
+    const f = this.frame('C_lookback');
+    if (!f || v >= 1) return v;
+    const dx = x - f.px;
+    const dz = z - f.pz;
+    const depth = dx * f.fwx + dz * f.fwz;
+    if (depth <= 0) return v;
+    const d = Math.hypot(dx, dz);
+    const ang = Math.atan2(dx * f.rx + dz * f.rz, depth);
+    const angMin = frameAngle(f, C_FRAME_SX[0]);
+    const angMax = frameAngle(f, C_FRAME_SX[1]);
+    // metres outside the wedge: angular miss × distance, or view depth past the far limit
+    const angular = ang < angMin ? Math.sin(angMin - ang) * d : ang > angMax ? Math.sin(ang - angMax) * d : 0;
+    const outside = Math.max(angular, depth - C_FRAME_DEPTH);
+    return Math.max(v, 1 - smoothstep(0, Math.max(margin, 0.05), outside));
+  }
+
+  /**
+   * 0..1 on camera C's bottom-left foreground ground (round 35, C_FOOT): frame 46 s' trodden
+   * earth with a fine dusty fringe — short, thinned, straw-tipped turf lit by the zone fill, no
+   * meadow stalks, the standing plants a shade paler (materials.ts LIFT_ZONE_C_FOOT).
+   */
+  cFoot(x: number, z: number): number {
+    return softBox(x, z, C_FOOT, C_FOOT_FEATHER);
+  }
+
+  /** the C-foot world box grown by `pad` metres (its feather is C_FOOT_FEATHER) */
+  cFootBox(pad = 0): [number, number, number, number] {
+    return [C_FOOT[0] - pad, C_FOOT[1] - pad, C_FOOT[2] + pad, C_FOOT[3] + pad];
+  }
+
+  /**
+   * 0..1 where the turf on the main flight's north-west flank reads as frames 8 / 46's dark bank
+   * mass (round 35): from the tread ends out to the terrace slope, along the flight. Grass
+   * encodes it as the blade darkening and a flatter blade-to-blade spread (materials.ts,
+   * grass.ts), the standing plants take it as a colour multiplier.
+   */
+  bankDark(x: number, z: number): number {
+    const { u, v, halfWidth } = this.mainStairLocal(x, z);
+    if (v >= 0) return 0;
+    const out = -v - halfWidth;
+    const across = smoothstep(NW_DARK_OUT[0], NW_DARK_OUT[1], out) * (1 - smoothstep(NW_DARK_FAR[0], NW_DARK_FAR[1], out));
+    const along = smoothstep(NW_DARK_ALONG[0] - 0.8, NW_DARK_ALONG[0], u) * (1 - smoothstep(NW_DARK_ALONG[1], NW_DARK_ALONG[1] + 1.5, u));
+    // camera C's lit foreground slope (cFoot) lies inside the flank's far ramp: frames 14 / 46
+    // both want that ground lit (B 0.55–0.96 × 0.67–0.83: 0.46–0.6 against our 0.24–0.31), so
+    // the C-foot rule wins there
+    return across * along * (1 - this.cFoot(x, z));
+  }
+
+  /** 0..1 where the foreground tufts of frames 1 / 8 must stay short. */
+  trimZone(x: number, z: number): number {
+    let v = 0;
+    for (const b of TRIM_ZONES) v = Math.max(v, softBox(x, z, b, 1.5));
+    return v;
+  }
+
+  /** 0..1 where grass reads as shaded, desaturated moss/turf (frame 8's plateau flank). */
+  shadeZone(x: number, z: number): number {
+    let v = 0;
+    for (const b of SHADE_ZONES) v = Math.max(v, softBox(x, z, b, 2));
+    return v;
+  }
+
+  /**
+   * Hero-area falloff: full detail near the plaza, thinning toward the detail radius. The plain
+   * distance to the origin: the round-43 streams (every plant scatter, the litter's disc passes)
+   * read it, and their candidate sequences must stay as they were — the corridor passes read
+   * `falloffReach`.
+   */
+  falloff(x: number, z: number): number {
+    const r = Math.hypot(x, z);
+    const R = this.ctx.config.detailRadius;
+    return lerp(1, 0.32, smoothstep(18, R, r));
+  }
+
+  /**
+   * Placement radius of (x, z) (round 44): the distance to the origin, or — around the north
+   * corridor's anchor under the log arch — the anchor distance + NORTH_REACH_BASE, whichever is
+   * smaller. Every per-tile pass (blade tiles, carpet) and the corridor passes measure their
+   * "inside the detail disc" against it instead of the plain distance.
+   */
+  reach(x: number, z: number): number {
+    const plain = Math.hypot(x, z);
+    // south of the corridor's mouth the plain distance is the smaller one already
+    if (z > NORTH_CORRIDOR[0][1] + 2) return plain;
+    return Math.min(plain, this.corridorDistance(x, z) + NORTH_REACH_BASE + 2 * Math.max(0, NORTH_FADE_Z - z));
+  }
+
+  /**
+   * The smallest `reach` over a square tile (its centre and four corners; round 47). The tile passes
+   * (grass.ts, carpet.ts) admit a tile by this, not by its centre alone: `reach` grows with the
+   * corridor's fade north of NORTH_FADE_Z, so a tile at the corridor's end held ground the masks
+   * call turf inside the detail radius (its south edge) while its centre stood past the cull —
+   * the audit's bare cells at z < −80 (coverage.ts).
+   */
+  tileReach(x0: number, z0: number, size: number): number {
+    return Math.min(this.reach(x0 + size / 2, z0 + size / 2), this.reach(x0, z0), this.reach(x0 + size, z0), this.reach(x0, z0 + size), this.reach(x0 + size, z0 + size));
+  }
+
+  /** distance (m) of (x, z) to the north corridor's polyline (the north path's spine), for the forest-floor rules */
+  private corridorDistance(x: number, z: number): number {
+    let d = Infinity;
+    for (let i = 0; i < NORTH_CORRIDOR.length - 1; i++) {
+      const [ax, az] = NORTH_CORRIDOR[i];
+      const [bx, bz] = NORTH_CORRIDOR[i + 1];
+      const dx = bx - ax;
+      const dz = bz - az;
+      const t = clamp(((x - ax) * dx + (z - az) * dz) / (dx * dx + dz * dz), 0, 1);
+      d = Math.min(d, Math.hypot(x - ax - dx * t, z - az - dz * t));
+    }
+    return d;
+  }
+
+  /** `falloff` over `reach`: the per-tile passes' density, full again along the north path and over the plain */
+  falloffReach(x: number, z: number): number {
+    const R = this.ctx.config.detailRadius;
+    return lerp(1, 0.32, smoothstep(18, R, this.reach(x, z)));
+  }
+
+  /**
+   * 0..1 where the north corridor's ground is forest floor rather than lawn (round 44): from the
+   * log arch's south face northward. The turf thins and darkens there, the litter, moss beds and
+   * small ferns thicken (grass.ts, carpet.ts, litter.ts, plants.ts).
+   */
+  northFloor(x: number, z: number): number {
+    if (z > NORTH_FLOOR_OFF_Z[0]) return 0;
+    const north = 1 - smoothstep(NORTH_FLOOR_Z[1], NORTH_FLOOR_Z[0], z);
+    const off = (1 - smoothstep(NORTH_FLOOR_OFF_Z[1], NORTH_FLOOR_OFF_Z[0], z)) * smoothstep(NORTH_FLOOR_OFF_PATH[0], NORTH_FLOOR_OFF_PATH[1], this.corridorDistance(x, z));
+    return Math.max(north, off);
+  }
+
+  /** world box [x0, z0, x1, z1] holding every point the corridor adds beyond the disc (reach ≤ `R`, distance > `R`) */
+  corridorBox(R = this.ctx.config.detailRadius): [number, number, number, number] {
+    const r = Math.max(0, R - NORTH_REACH_BASE);
+    let x0 = Infinity;
+    let x1 = -Infinity;
+    let z0 = Infinity;
+    let z1 = -Infinity;
+    for (const [cx, cz] of NORTH_CORRIDOR) {
+      x0 = Math.min(x0, cx - r);
+      x1 = Math.max(x1, cx + r);
+      z0 = Math.min(z0, cz - r);
+      z1 = Math.max(z1, cz + r);
+    }
+    return [x0, Math.max(z0, -this.northExtent), x1, Math.min(z1, -R * 0.4)];
+  }
+
+  /** true where the corridor grows ground the detail disc did not (round 44): reach ≤ `R`, plain distance > `R` */
+  inCorridor(x: number, z: number, R = this.ctx.config.detailRadius): boolean {
+    return Math.hypot(x, z) > R && this.reach(x, z) <= R;
+  }
+
+  // ---- round 48: the ground north of the log arch (NORTH_ZONE_Z and the zones under it)
+
+  /** 0 south of the arch's north lip, 1 from NORTH_ZONE_Z[1] north: every round-48 zone is gated on it */
+  northGate(z: number): number {
+    return 1 - smoothstep(NORTH_ZONE_Z[1], NORTH_ZONE_Z[0], z);
+  }
+
+  /** signed distance (m) from the north path's paving edge (`layout.northPath`, its own half width; negative on the paving) */
+  northPathEdgeDistance(x: number, z: number): number {
+    return polylineDistance(this.ctx.layout.northPath, x, z) - this.ctx.layout.northPathHalfWidth;
+  }
+
+  /** the ledge terrace's flat pad (`layout.ledgeTerrace`): 1 on the top, feathered out over TERRACE_PAD_FEATHER past its half extents */
+  terracePad(x: number, z: number): number {
+    const t = this.ctx.layout.ledgeTerrace;
+    const yaw = (t.yawDeg * Math.PI) / 180;
+    const dx = x - t.x;
+    const dz = z - t.z;
+    const u = dx * Math.cos(yaw) - dz * Math.sin(yaw);
+    const v = dx * Math.sin(yaw) + dz * Math.cos(yaw);
+    const out = Math.max(Math.abs(u) - t.halfLength, Math.abs(v) - t.halfDepth);
+    return 1 - smoothstep(TERRACE_PAD_FEATHER[0], TERRACE_PAD_FEATHER[1], out);
+  }
+
+  /**
+   * The second clearing's lawn (round 48): `pad` 0..1 on the ledge terrace's top, `bank` 0..1 on
+   * the clearing's banks (CLEARING_BOX off the pad), both gated on NORTH_ZONE_Z. Off the paving
+   * by the masks as usual (the callers' `allowed`); the terrace's rock face (cliff) grows nothing.
+   */
+  clearingLawn(x: number, z: number): { pad: number; bank: number } {
+    const gate = this.northGate(z);
+    if (gate <= 0) return { pad: 0, bank: 0 };
+    const pad = this.terracePad(x, z) * gate;
+    const inBox = softBox(x, z, CLEARING_BOX, CLEARING_FEATHER) * gate;
+    return { pad, bank: inBox * (1 - pad) };
+  }
+
+  /**
+   * The forest floor beyond the tunnel (round 48): 1 within FAR_FLOOR_REACH − FAR_FLOOR_FEATHER m
+   * of the north path's centreline north of the gate, fading to 0 at FAR_FLOOR_REACH (z ≈ −95 at
+   * the clearing's meridian); the clearing lawn (pad and banks) takes none of it. It runs past the
+   * field grid's north edge — the passes over it sample the terrain exactly (`sampleExact`).
+   */
+  farFloor(x: number, z: number): number {
+    const gate = this.northGate(z);
+    if (gate <= 0) return 0;
+    const d = polylineDistance(this.ctx.layout.northPath, x, z);
+    const reach = 1 - smoothstep(FAR_FLOOR_REACH - FAR_FLOOR_FEATHER, FAR_FLOOR_REACH, d);
+    if (reach <= 0) return 0;
+    const lawn = this.clearingLawn(x, z);
+    return gate * reach * (1 - Math.max(lawn.pad, lawn.bank));
+  }
+
+  /** distance (m) from the nearest standing stone's axis (heightfield STONE_CIRCLE_STONES); +Infinity far from the clearing */
+  standingStoneDistance(x: number, z: number): number {
+    const nc = this.ctx.layout.northClearing;
+    if (Math.abs(x - nc.x) > nc.radius + 2 || Math.abs(z - nc.z) > nc.radius + 2) return Infinity;
+    let best = Infinity;
+    for (const s of STONE_CIRCLE_STONES) best = Math.min(best, Math.hypot(x - s.x, z - s.z));
+    return best;
+  }
+
+  /**
+   * True inside a village prop's ground footprint (`ctx.shared.propFootprints`, published by the
+   * props system before vegetation builds — fable-3's fern-through-the-pot) grown by `pad` m. The
+   * array is undefined until props publishes; nothing is rejected then.
+   */
+  insidePropFootprint(x: number, z: number, pad = 0): boolean {
+    const fp = this.ctx.shared?.propFootprints;
+    if (!fp) return false;
+    for (const f of fp) {
+      const r = f.r + pad;
+      if ((x - f.x) * (x - f.x) + (z - f.z) * (z - f.z) < r * r) return true;
+    }
+    return false;
+  }
+
+  /** the published prop footprints' count (audit) */
+  propFootprintCount(): number {
+    return this.ctx.shared?.propFootprints?.length ?? 0;
+  }
+
+  /**
+   * Distance (m) from the nearest paving north of the arch: the north path's edge, the second
+   * clearing's paved rim (`northClearing`), the `ledge` flight — negative on any of them. The
+   * disc-era `edgeDistance` knows the spine only, which ends at the arch.
+   */
+  northPavingDistance(x: number, z: number): number {
+    const nc = this.ctx.layout.northClearing;
+    return Math.min(this.northPathEdgeDistance(x, z), Math.hypot(x - nc.x, z - nc.z) - nc.radius, this.stairDistance(x, z));
+  }
+
+  /** true inside the field grid (the far floor runs past its north edge, `northExtent`) */
+  inGrid(x: number, z: number): boolean {
+    return Math.abs(x) < this.extent - this.cell && z < this.extent - this.cell && z > -this.northExtent + this.cell;
+  }
+
+  /**
+   * The exact terrain masks, normal and height at (x, z) as a FieldSample (round 48), for the far
+   * floor's ground past the grid's north edge — where `sample` answers "not allowed". Inside the
+   * grid the bilinear `sample` is the one every earlier pass reads; the far passes take this one
+   * everywhere so a pass does not change rule at the grid's edge.
+   */
+  sampleExact(x: number, z: number, out: FieldSample): FieldSample {
+    const T = this.ctx.terrain;
+    const m = T.mask(x, z);
+    T.normal(x, z, this.tmpN);
+    out.allow = m.path < 0.5 && m.stairs < 0.5 && m.structure < 0.5 && m.cliff < 0.8 ? 1 : 0;
+    out.path = m.path;
+    out.stairs = m.stairs;
+    out.structure = m.structure;
+    out.cliff = m.cliff;
+    out.plateau = m.plateau;
+    out.slope = 1 - clamp(this.tmpN.y, 0, 1);
+    out.nx = this.tmpN.x;
+    out.ny = this.tmpN.y;
+    out.nz = this.tmpN.z;
+    out.h = T.height(x, z);
+    return out;
+  }
+}
+
+export function newSample(): FieldSample {
+  return { allow: 0, path: 0, stairs: 0, structure: 0, cliff: 0, plateau: 0, slope: 0, nx: 0, ny: 1, nz: 0, h: 0 };
+}
+
+/** Compose a placement matrix: tilt toward `normal` (partially), yaw, non-uniform scale. */
+export function composeMatrix(out: Float32Array, offset: number, x: number, y: number, z: number, nx: number, ny: number, nz: number, tiltAmount: number, yaw: number, sx: number, sy: number, sz: number) {
+  // blended up vector
+  let ux = nx * tiltAmount;
+  let uy = 1 - tiltAmount + ny * tiltAmount;
+  let uz = nz * tiltAmount;
+  const ul = Math.hypot(ux, uy, uz) || 1;
+  ux /= ul;
+  uy /= ul;
+  uz /= ul;
+  // rotation from (0,1,0) to u via Rodrigues: axis = up × u = (uz, 0, -ux)
+  const c = uy;
+  const s = Math.hypot(ux, uz);
+  let r00 = 1;
+  let r01 = 0;
+  let r02 = 0;
+  let r10 = 0;
+  let r11 = 1;
+  let r12 = 0;
+  let r20 = 0;
+  let r21 = 0;
+  let r22 = 1;
+  if (s > 1e-6) {
+    const ax = uz / s;
+    const az = -ux / s;
+    const t = 1 - c;
+    r00 = c + ax * ax * t;
+    r01 = -az * s;
+    r02 = ax * az * t;
+    r10 = az * s;
+    r11 = c;
+    r12 = -ax * s;
+    r20 = ax * az * t;
+    r21 = ax * s;
+    r22 = c + az * az * t;
+  }
+  const cy = Math.cos(yaw);
+  const sy_ = Math.sin(yaw);
+  // R * Yaw: yaw matrix columns: (cy,0,-sy), (0,1,0), (sy,0,cy)
+  const m00 = r00 * cy - r02 * sy_;
+  const m10 = r10 * cy - r12 * sy_;
+  const m20 = r20 * cy - r22 * sy_;
+  const m01 = r01;
+  const m11 = r11;
+  const m21 = r21;
+  const m02 = r00 * sy_ + r02 * cy;
+  const m12 = r10 * sy_ + r12 * cy;
+  const m22 = r20 * sy_ + r22 * cy;
+  out[offset] = m00 * sx;
+  out[offset + 1] = m10 * sx;
+  out[offset + 2] = m20 * sx;
+  out[offset + 3] = 0;
+  out[offset + 4] = m01 * sy;
+  out[offset + 5] = m11 * sy;
+  out[offset + 6] = m21 * sy;
+  out[offset + 7] = 0;
+  out[offset + 8] = m02 * sz;
+  out[offset + 9] = m12 * sz;
+  out[offset + 10] = m22 * sz;
+  out[offset + 11] = 0;
+  out[offset + 12] = x;
+  out[offset + 13] = y;
+  out[offset + 14] = z;
+  out[offset + 15] = 1;
+}

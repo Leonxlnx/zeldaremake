@@ -1,0 +1,205 @@
+{
+  "worktree": ".wt\\w0116",
+  "sha": "973a21e5b045177f66da3d04dc4e67e387270620",
+  "generatedAt": "2026-09-19T20:16:43.999Z",
+  "variants": [
+    {
+      "name": "lod18",
+      "title": "near-base swap 18 / 21 m on every bole (seat-7 kept at 5 / 7), near-canopy 26 / 30 m (lobes to 25 m up), pre-fetch 30 / 42 m, pools unchanged",
+      "dist": ".wt\\w0116\\dist-lod18",
+      "sha": "973a21e5b045177f66da3d04dc4e67e387270620",
+      "patches": [
+        [
+          "src/world/trees/giant.ts",
+          "export const NEAR_BASE_IN_M = 10;",
+          "export const NEAR_BASE_IN_M = 18;"
+        ],
+        [
+          "src/world/trees/giant.ts",
+          "export const NEAR_BASE_OUT_M = 13;",
+          "export const NEAR_BASE_OUT_M = 21;"
+        ],
+        [
+          "src/world/trees/giant.ts",
+          "/export const NEAR_BASE_RADIUS_OVERRIDE: Record<string, \\[number, number\\]> = \\{[\\s\\S]*?\\n\\};/",
+          "export const NEAR_BASE_RADIUS_OVERRIDE: Record<string, [number, number]> = {\n  // build-variants.mjs: every other bole takes the variant's default band; seat-7 keeps its hero protection\n  'seat-7': [5, 7],\n};"
+        ],
+        [
+          "src/world/trees/nearCanopy.ts",
+          "export const NEAR_CANOPY_IN_M = 22;",
+          "export const NEAR_CANOPY_IN_M = 26;"
+        ],
+        [
+          "src/world/trees/nearCanopy.ts",
+          "export const NEAR_CANOPY_OUT_M = 26;",
+          "export const NEAR_CANOPY_OUT_M = 30;"
+        ],
+        [
+          "src/world/trees/nearCanopy.ts",
+          "export const NEAR_CANOPY_MAX_Y = 21;",
+          "export const NEAR_CANOPY_MAX_Y = 25;"
+        ],
+        [
+          "src/world/trees/index.ts",
+          "const NEAR_CANOPY_PREFETCH_M = 34;",
+          "const NEAR_CANOPY_PREFETCH_M = 42;"
+        ],
+        [
+          "src/world/trees/index.ts",
+          "const NEAR_BASE_PREFETCH_M = 22;",
+          "const NEAR_BASE_PREFETCH_M = 30;"
+        ]
+      ],
+      "diff": "diff --git a/src/world/trees/giant.ts b/src/world/trees/giant.ts\nindex 934c98fe..630964ba 100644\n--- a/src/world/trees/giant.ts\n+++ b/src/world/trees/giant.ts\n@@ -55,8 +55,8 @@ import { NEAR_CANOPY_FLAT_SWAP_M, NEAR_CANOPY_MAX_Y, createNearCanopyKit, runSte\n  * a walker on the path beside it still does.\n  */\n export const NEAR_BASE_CUT_Y = 5;\n-export const NEAR_BASE_IN_M = 10;\n-export const NEAR_BASE_OUT_M = 13;\n+export const NEAR_BASE_IN_M = 18;\n+export const NEAR_BASE_OUT_M = 21;\n /**\n  * per-bole [in, out] bands (m) where the default would put a fixed camera inside, or — round 44,\n  * survey #1 / #4: the north-east giant read as a smooth orange cylinder with a lime root skirt\n@@ -66,25 +66,8 @@ export const NEAR_BASE_OUT_M = 13;\n  * measures ever sees the swap); key = NearBole id\n  */\n export const NEAR_BASE_RADIUS_OVERRIDE: Record<string, [number, number]> = {\n+  // build-variants.mjs: every other bole takes the variant's default band; seat-7 keeps its hero protection\n   'seat-7': [5, 7],\n-  // giants (nearest fixed camera, m): north-east 31.9, far-plateau 36.3, north-west 29.6, east 26.8\n-  'north-east': [18, 22],\n-  'far-plateau': [18, 22],\n-  'north-west': [18, 22],\n-  'east-giant': [18, 22],\n-  // plateau-oak 21.3 (C, off-frame), southwest 21.6, south-centre 19.0, south 17.7 (A, off-frame)\n-  'plateau-oak': [16, 19],\n-  'southwest-giant': [16, 19],\n-  'south-centre': [15, 17],\n-  'south-giant': [14, 15.5],\n-  // the hollow's and the plateau's column seats (index.ts COLUMN_SEATS): nearest camera 18–28 m\n-  'seat-0': [14, 16],\n-  'seat-1': [18, 22],\n-  'seat-2': [18, 22],\n-  'seat-3': [16, 18],\n-  'seat-4': [16, 18.5],\n-  'seat-5': [18, 21],\n-  'seat-6': [12, 13.5],\n };\n /** relief amplitude (m) of the near base at bole radius ρ: 5 cm at r 1.1, 10 cm at r 2.2 (concept 05) */\n export const nearBaseAmplitude = (refRadius: number) => Math.max(0.035, Math.min(0.12, 0.05 * refRadius));\ndiff --git a/src/world/trees/index.ts b/src/world/trees/index.ts\nindex 98e263e3..666c176b 100644\n--- a/src/world/trees/index.ts\n+++ b/src/world/trees/index.ts\n@@ -1399,8 +1399,8 @@ const SHADOW_FLOOR_Y = -20;\n  * radius the pre-fetch is ordered by; how far it reaches in this hollow is set by the cap (see\n  * NEAR_CANOPY_POOL_BYTES). 22 m ahead of the 10 m base swap is likewise 7.5 s.\n  */\n-const NEAR_CANOPY_PREFETCH_M = 34;\n-const NEAR_BASE_PREFETCH_M = 22;\n+const NEAR_CANOPY_PREFETCH_M = 42;\n+const NEAR_BASE_PREFETCH_M = 30;\n /**\n  * 64 MB holds ≈ 140 of the 364 canopy parts (0.47 MB each on average): the drawn set is 41–51\n  * parts / 17.5–21 MB on the plaza→stairs walk and the parts within 26 m of the camera come to\ndiff --git a/src/world/trees/nearCanopy.ts b/src/world/trees/nearCanopy.ts\nindex 07fb0b21..360e1a8a 100644\n--- a/src/world/trees/nearCanopy.ts\n+++ b/src/world/trees/nearCanopy.ts\n@@ -34,8 +34,8 @@ import { reliefBoleSteps } from './bole';\n  * out: from the plaza's eye height the overhead lobes of the near giants stand 17–24 m away, so\n  * 20 m (the first pass) left the centre of the straight-up view as cards.\n  */\n-export const NEAR_CANOPY_IN_M = 22;\n-export const NEAR_CANOPY_OUT_M = 26;\n+export const NEAR_CANOPY_IN_M = 26;\n+export const NEAR_CANOPY_OUT_M = 30;\n /**\n  * A part some hero camera frames from `d` m swaps in at `d − margin` and out at `d − margin / 3`\n  * (the camera itself never sees the swap); a part whose in-radius would fall under\n@@ -60,7 +60,7 @@ export const NEAR_CANOPY_FLAT_SWAP_M: [number, number] | null = null;\n  * local height (m) of the lobe centre above which a lobe keeps its far foliage at every distance\n  * (a 21 m lobe is 19.5 m over a standing eye — the top of what NEAR_CANOPY_IN_M can reach)\n  */\n-export const NEAR_CANOPY_MAX_Y = 21;\n+export const NEAR_CANOPY_MAX_Y = 25;\n /**\n  * laminae per near lobe: this × hR² (m²), clamped to NEAR_CANOPY_LEAVES. 240 / m² of lobe\n  * section: a 2.4 m lobe carries ≈ 1400 laminae of 18–34 cm — the sprays overlap 2–3 deep along",
+      "builtAt": "2026-09-19T20:16:35.520Z",
+      "buildMs": 2642,
+      "ok": true
+    },
+    {
+      "name": "lod25",
+      "title": "near-base swap 25 / 28 m on every bole (seat-7 kept), near-canopy 30 / 34 m (lobes to 29 m up), pre-fetch 37 / 46 m, pools unchanged",
+      "dist": ".wt\\w0116\\dist-lod25",
+      "sha": "973a21e5b045177f66da3d04dc4e67e387270620",
+      "patches": [
+        [
+          "src/world/trees/giant.ts",
+          "export const NEAR_BASE_IN_M = 10;",
+          "export const NEAR_BASE_IN_M = 25;"
+        ],
+        [
+          "src/world/trees/giant.ts",
+          "export const NEAR_BASE_OUT_M = 13;",
+          "export const NEAR_BASE_OUT_M = 28;"
+        ],
+        [
+          "src/world/trees/giant.ts",
+          "/export const NEAR_BASE_RADIUS_OVERRIDE: Record<string, \\[number, number\\]> = \\{[\\s\\S]*?\\n\\};/",
+          "export const NEAR_BASE_RADIUS_OVERRIDE: Record<string, [number, number]> = {\n  // build-variants.mjs: every other bole takes the variant's default band; seat-7 keeps its hero protection\n  'seat-7': [5, 7],\n};"
+        ],
+        [
+          "src/world/trees/nearCanopy.ts",
+          "export const NEAR_CANOPY_IN_M = 22;",
+          "export const NEAR_CANOPY_IN_M = 30;"
+        ],
+        [
+          "src/world/trees/nearCanopy.ts",
+          "export const NEAR_CANOPY_OUT_M = 26;",
+          "export const NEAR_CANOPY_OUT_M = 34;"
+        ],
+        [
+          "src/world/trees/nearCanopy.ts",
+          "export const NEAR_CANOPY_MAX_Y = 21;",
+          "export const NEAR_CANOPY_MAX_Y = 29;"
+        ],
+        [
+          "src/world/trees/index.ts",
+          "const NEAR_CANOPY_PREFETCH_M = 34;",
+          "const NEAR_CANOPY_PREFETCH_M = 46;"
+        ],
+        [
+          "src/world/trees/index.ts",
+          "const NEAR_BASE_PREFETCH_M = 22;",
+          "const NEAR_BASE_PREFETCH_M = 37;"
+        ]
+      ],
+      "diff": "diff --git a/src/world/trees/giant.ts b/src/world/trees/giant.ts\nindex 934c98fe..5cf44583 100644\n--- a/src/world/trees/giant.ts\n+++ b/src/world/trees/giant.ts\n@@ -55,8 +55,8 @@ import { NEAR_CANOPY_FLAT_SWAP_M, NEAR_CANOPY_MAX_Y, createNearCanopyKit, runSte\n  * a walker on the path beside it still does.\n  */\n export const NEAR_BASE_CUT_Y = 5;\n-export const NEAR_BASE_IN_M = 10;\n-export const NEAR_BASE_OUT_M = 13;\n+export const NEAR_BASE_IN_M = 25;\n+export const NEAR_BASE_OUT_M = 28;\n /**\n  * per-bole [in, out] bands (m) where the default would put a fixed camera inside, or — round 44,\n  * survey #1 / #4: the north-east giant read as a smooth orange cylinder with a lime root skirt\n@@ -66,25 +66,8 @@ export const NEAR_BASE_OUT_M = 13;\n  * measures ever sees the swap); key = NearBole id\n  */\n export const NEAR_BASE_RADIUS_OVERRIDE: Record<string, [number, number]> = {\n+  // build-variants.mjs: every other bole takes the variant's default band; seat-7 keeps its hero protection\n   'seat-7': [5, 7],\n-  // giants (nearest fixed camera, m): north-east 31.9, far-plateau 36.3, north-west 29.6, east 26.8\n-  'north-east': [18, 22],\n-  'far-plateau': [18, 22],\n-  'north-west': [18, 22],\n-  'east-giant': [18, 22],\n-  // plateau-oak 21.3 (C, off-frame), southwest 21.6, south-centre 19.0, south 17.7 (A, off-frame)\n-  'plateau-oak': [16, 19],\n-  'southwest-giant': [16, 19],\n-  'south-centre': [15, 17],\n-  'south-giant': [14, 15.5],\n-  // the hollow's and the plateau's column seats (index.ts COLUMN_SEATS): nearest camera 18–28 m\n-  'seat-0': [14, 16],\n-  'seat-1': [18, 22],\n-  'seat-2': [18, 22],\n-  'seat-3': [16, 18],\n-  'seat-4': [16, 18.5],\n-  'seat-5': [18, 21],\n-  'seat-6': [12, 13.5],\n };\n /** relief amplitude (m) of the near base at bole radius ρ: 5 cm at r 1.1, 10 cm at r 2.2 (concept 05) */\n export const nearBaseAmplitude = (refRadius: number) => Math.max(0.035, Math.min(0.12, 0.05 * refRadius));\ndiff --git a/src/world/trees/index.ts b/src/world/trees/index.ts\nindex 98e263e3..4770cd3e 100644\n--- a/src/world/trees/index.ts\n+++ b/src/world/trees/index.ts\n@@ -1399,8 +1399,8 @@ const SHADOW_FLOOR_Y = -20;\n  * radius the pre-fetch is ordered by; how far it reaches in this hollow is set by the cap (see\n  * NEAR_CANOPY_POOL_BYTES). 22 m ahead of the 10 m base swap is likewise 7.5 s.\n  */\n-const NEAR_CANOPY_PREFETCH_M = 34;\n-const NEAR_BASE_PREFETCH_M = 22;\n+const NEAR_CANOPY_PREFETCH_M = 46;\n+const NEAR_BASE_PREFETCH_M = 37;\n /**\n  * 64 MB holds ≈ 140 of the 364 canopy parts (0.47 MB each on average): the drawn set is 41–51\n  * parts / 17.5–21 MB on the plaza→stairs walk and the parts within 26 m of the camera come to\ndiff --git a/src/world/trees/nearCanopy.ts b/src/world/trees/nearCanopy.ts\nindex 07fb0b21..4505bb0c 100644\n--- a/src/world/trees/nearCanopy.ts\n+++ b/src/world/trees/nearCanopy.ts\n@@ -34,8 +34,8 @@ import { reliefBoleSteps } from './bole';\n  * out: from the plaza's eye height the overhead lobes of the near giants stand 17–24 m away, so\n  * 20 m (the first pass) left the centre of the straight-up view as cards.\n  */\n-export const NEAR_CANOPY_IN_M = 22;\n-export const NEAR_CANOPY_OUT_M = 26;\n+export const NEAR_CANOPY_IN_M = 30;\n+export const NEAR_CANOPY_OUT_M = 34;\n /**\n  * A part some hero camera frames from `d` m swaps in at `d − margin` and out at `d − margin / 3`\n  * (the camera itself never sees the swap); a part whose in-radius would fall under\n@@ -60,7 +60,7 @@ export const NEAR_CANOPY_FLAT_SWAP_M: [number, number] | null = null;\n  * local height (m) of the lobe centre above which a lobe keeps its far foliage at every distance\n  * (a 21 m lobe is 19.5 m over a standing eye — the top of what NEAR_CANOPY_IN_M can reach)\n  */\n-export const NEAR_CANOPY_MAX_Y = 21;\n+export const NEAR_CANOPY_MAX_Y = 29;\n /**\n  * laminae per near lobe: this × hR² (m²), clamped to NEAR_CANOPY_LEAVES. 240 / m² of lobe\n  * section: a 2.4 m lobe carries ≈ 1400 laminae of 18–34 cm — the sprays overlap 2–3 deep along",
+      "builtAt": "2026-09-19T20:16:38.578Z",
+      "buildMs": 3008,
+      "ok": true
+    },
+    {
+      "name": "prewarm",
+      "title": "pools 192 / 32 MB (the pre-fetch radius fits), build budget 6 ms, swap distances as shipped",
+      "dist": ".wt\\w0116\\dist-prewarm",
+      "sha": "973a21e5b045177f66da3d04dc4e67e387270620",
+      "patches": [
+        [
+          "src/world/trees/index.ts",
+          "const NEAR_CANOPY_POOL_BYTES = 64 << 20;",
+          "const NEAR_CANOPY_POOL_BYTES = 192 << 20;"
+        ],
+        [
+          "src/world/trees/index.ts",
+          "const NEAR_BASE_POOL_BYTES = 12 << 20;",
+          "const NEAR_BASE_POOL_BYTES = 32 << 20;"
+        ],
+        [
+          "src/world/trees/index.ts",
+          "const NEAR_LOD_BUILD_BUDGET_MS = 3;",
+          "const NEAR_LOD_BUILD_BUDGET_MS = 6;"
+        ]
+      ],
+      "diff": "diff --git a/src/world/trees/index.ts b/src/world/trees/index.ts\nindex 98e263e3..3231d0b3 100644\n--- a/src/world/trees/index.ts\n+++ b/src/world/trees/index.ts\n@@ -1408,9 +1408,9 @@ const NEAR_BASE_PREFETCH_M = 22;\n  * synchronous build (a 40 MB cap: 28 synchronous builds, trees update to 27 ms). 12 MB ≈ 9 of\n  * the 22 bases (0.7–1.4 MB each; ≤ 6 are shown).\n  */\n-const NEAR_CANOPY_POOL_BYTES = 64 << 20;\n-const NEAR_BASE_POOL_BYTES = 12 << 20;\n-const NEAR_LOD_BUILD_BUDGET_MS = 3;\n+const NEAR_CANOPY_POOL_BYTES = 192 << 20;\n+const NEAR_BASE_POOL_BYTES = 32 << 20;\n+const NEAR_LOD_BUILD_BUDGET_MS = 6;\n /** the built buffers a pool holds: one BufferGeometry */\n interface GeometryBuilt extends PoolBuilt {\n   geometry: BufferGeometry;",
+      "builtAt": "2026-09-19T20:16:41.069Z",
+      "buildMs": 2448,
+      "ok": true
+    },
+    {
+      "name": "lod18prewarm",
+      "title": "lod18 swap distances + pools 192 / 32 MB + build budget 6 ms",
+      "dist": ".wt\\w0116\\dist-lod18prewarm",
+      "sha": "973a21e5b045177f66da3d04dc4e67e387270620",
+      "patches": [
+        [
+          "src/world/trees/giant.ts",
+          "export const NEAR_BASE_IN_M = 10;",
+          "export const NEAR_BASE_IN_M = 18;"
+        ],
+        [
+          "src/world/trees/giant.ts",
+          "export const NEAR_BASE_OUT_M = 13;",
+          "export const NEAR_BASE_OUT_M = 21;"
+        ],
+        [
+          "src/world/trees/giant.ts",
+          "/export const NEAR_BASE_RADIUS_OVERRIDE: Record<string, \\[number, number\\]> = \\{[\\s\\S]*?\\n\\};/",
+          "export const NEAR_BASE_RADIUS_OVERRIDE: Record<string, [number, number]> = {\n  // build-variants.mjs: every other bole takes the variant's default band; seat-7 keeps its hero protection\n  'seat-7': [5, 7],\n};"
+        ],
+        [
+          "src/world/trees/nearCanopy.ts",
+          "export const NEAR_CANOPY_IN_M = 22;",
+          "export const NEAR_CANOPY_IN_M = 26;"
+        ],
+        [
+          "src/world/trees/nearCanopy.ts",
+          "export const NEAR_CANOPY_OUT_M = 26;",
+          "export const NEAR_CANOPY_OUT_M = 30;"
+        ],
+        [
+          "src/world/trees/nearCanopy.ts",
+          "export const NEAR_CANOPY_MAX_Y = 21;",
+          "export const NEAR_CANOPY_MAX_Y = 25;"
+        ],
+        [
+          "src/world/trees/index.ts",
+          "const NEAR_CANOPY_PREFETCH_M = 34;",
+          "const NEAR_CANOPY_PREFETCH_M = 42;"
+        ],
+        [
+          "src/world/trees/index.ts",
+          "const NEAR_BASE_PREFETCH_M = 22;",
+          "const NEAR_BASE_PREFETCH_M = 30;"
+        ],
+        [
+          "src/world/trees/index.ts",
+          "const NEAR_CANOPY_POOL_BYTES = 64 << 20;",
+          "const NEAR_CANOPY_POOL_BYTES = 192 << 20;"
+        ],
+        [
+          "src/world/trees/index.ts",
+          "const NEAR_BASE_POOL_BYTES = 12 << 20;",
+          "const NEAR_BASE_POOL_BYTES = 32 << 20;"
+        ],
+        [
+          "src/world/trees/index.ts",
+          "const NEAR_LOD_BUILD_BUDGET_MS = 3;",
+          "const NEAR_LOD_BUILD_BUDGET_MS = 6;"
+        ]
+      ],
+      "diff": "diff --git a/src/world/trees/giant.ts b/src/world/trees/giant.ts\nindex 934c98fe..630964ba 100644\n--- a/src/world/trees/giant.ts\n+++ b/src/world/trees/giant.ts\n@@ -55,8 +55,8 @@ import { NEAR_CANOPY_FLAT_SWAP_M, NEAR_CANOPY_MAX_Y, createNearCanopyKit, runSte\n  * a walker on the path beside it still does.\n  */\n export const NEAR_BASE_CUT_Y = 5;\n-export const NEAR_BASE_IN_M = 10;\n-export const NEAR_BASE_OUT_M = 13;\n+export const NEAR_BASE_IN_M = 18;\n+export const NEAR_BASE_OUT_M = 21;\n /**\n  * per-bole [in, out] bands (m) where the default would put a fixed camera inside, or — round 44,\n  * survey #1 / #4: the north-east giant read as a smooth orange cylinder with a lime root skirt\n@@ -66,25 +66,8 @@ export const NEAR_BASE_OUT_M = 13;\n  * measures ever sees the swap); key = NearBole id\n  */\n export const NEAR_BASE_RADIUS_OVERRIDE: Record<string, [number, number]> = {\n+  // build-variants.mjs: every other bole takes the variant's default band; seat-7 keeps its hero protection\n   'seat-7': [5, 7],\n-  // giants (nearest fixed camera, m): north-east 31.9, far-plateau 36.3, north-west 29.6, east 26.8\n-  'north-east': [18, 22],\n-  'far-plateau': [18, 22],\n-  'north-west': [18, 22],\n-  'east-giant': [18, 22],\n-  // plateau-oak 21.3 (C, off-frame), southwest 21.6, south-centre 19.0, south 17.7 (A, off-frame)\n-  'plateau-oak': [16, 19],\n-  'southwest-giant': [16, 19],\n-  'south-centre': [15, 17],\n-  'south-giant': [14, 15.5],\n-  // the hollow's and the plateau's column seats (index.ts COLUMN_SEATS): nearest camera 18–28 m\n-  'seat-0': [14, 16],\n-  'seat-1': [18, 22],\n-  'seat-2': [18, 22],\n-  'seat-3': [16, 18],\n-  'seat-4': [16, 18.5],\n-  'seat-5': [18, 21],\n-  'seat-6': [12, 13.5],\n };\n /** relief amplitude (m) of the near base at bole radius ρ: 5 cm at r 1.1, 10 cm at r 2.2 (concept 05) */\n export const nearBaseAmplitude = (refRadius: number) => Math.max(0.035, Math.min(0.12, 0.05 * refRadius));\ndiff --git a/src/world/trees/index.ts b/src/world/trees/index.ts\nindex 98e263e3..a26c3ab5 100644\n--- a/src/world/trees/index.ts\n+++ b/src/world/trees/index.ts\n@@ -1399,8 +1399,8 @@ const SHADOW_FLOOR_Y = -20;\n  * radius the pre-fetch is ordered by; how far it reaches in this hollow is set by the cap (see\n  * NEAR_CANOPY_POOL_BYTES). 22 m ahead of the 10 m base swap is likewise 7.5 s.\n  */\n-const NEAR_CANOPY_PREFETCH_M = 34;\n-const NEAR_BASE_PREFETCH_M = 22;\n+const NEAR_CANOPY_PREFETCH_M = 42;\n+const NEAR_BASE_PREFETCH_M = 30;\n /**\n  * 64 MB holds ≈ 140 of the 364 canopy parts (0.47 MB each on average): the drawn set is 41–51\n  * parts / 17.5–21 MB on the plaza→stairs walk and the parts within 26 m of the camera come to\n@@ -1408,9 +1408,9 @@ const NEAR_BASE_PREFETCH_M = 22;\n  * synchronous build (a 40 MB cap: 28 synchronous builds, trees update to 27 ms). 12 MB ≈ 9 of\n  * the 22 bases (0.7–1.4 MB each; ≤ 6 are shown).\n  */\n-const NEAR_CANOPY_POOL_BYTES = 64 << 20;\n-const NEAR_BASE_POOL_BYTES = 12 << 20;\n-const NEAR_LOD_BUILD_BUDGET_MS = 3;\n+const NEAR_CANOPY_POOL_BYTES = 192 << 20;\n+const NEAR_BASE_POOL_BYTES = 32 << 20;\n+const NEAR_LOD_BUILD_BUDGET_MS = 6;\n /** the built buffers a pool holds: one BufferGeometry */\n interface GeometryBuilt extends PoolBuilt {\n   geometry: BufferGeometry;\ndiff --git a/src/world/trees/nearCanopy.ts b/src/world/trees/nearCanopy.ts\nindex 07fb0b21..360e1a8a 100644\n--- a/src/world/trees/nearCanopy.ts\n+++ b/src/world/trees/nearCanopy.ts\n@@ -34,8 +34,8 @@ import { reliefBoleSteps } from './bole';\n  * out: from the plaza's eye height the overhead lobes of the near giants stand 17–24 m away, so\n  * 20 m (the first pass) left the centre of the straight-up view as cards.\n  */\n-export const NEAR_CANOPY_IN_M = 22;\n-export const NEAR_CANOPY_OUT_M = 26;\n+export const NEAR_CANOPY_IN_M = 26;\n+export const NEAR_CANOPY_OUT_M = 30;\n /**\n  * A part some hero camera frames from `d` m swaps in at `d − margin` and out at `d − margin / 3`\n  * (the camera itself never sees the swap); a part whose in-radius would fall under\n@@ -60,7 +60,7 @@ export const NEAR_CANOPY_FLAT_SWAP_M: [number, number] | null = null;\n  * local height (m) of the lobe centre above which a lobe keeps its far foliage at every distance\n  * (a 21 m lobe is 19.5 m over a standing eye — the top of what NEAR_CANOPY_IN_M can reach)\n  */\n-export const NEAR_CANOPY_MAX_Y = 21;\n+export const NEAR_CANOPY_MAX_Y = 25;\n /**\n  * laminae per near lobe: this × hR² (m²), clamped to NEAR_CANOPY_LEAVES. 240 / m² of lobe\n  * section: a 2.4 m lobe carries ≈ 1400 laminae of 18–34 cm — the sprays overlap 2–3 deep along",
+      "builtAt": "2026-09-19T20:16:43.949Z",
+      "buildMs": 2820,
+      "ok": true
+    }
+  ]
+}

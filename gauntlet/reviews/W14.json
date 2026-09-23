@@ -1,0 +1,38 @@
+{
+  "item": "W14",
+  "reviewer": "fable-5",
+  "verdict": "pass",
+  "evidence": "gauntlet/reviews/evidence/fable-5/take-0121-W14-A-lantern-branch.jpg",
+  "takeId": "take-0121",
+  "author": "fable-cursor",
+  "takeSha": "cf8083ba21018a37478c2b1f5b2af4be97cbf710",
+  "at": "2026-09-20T06:20:31.853Z",
+  "criterion": "Matches the branch + lanterns at the left of the reference stairs shot.",
+  "note": "The limb crosses the left of A at the reference's height with three pods on cords and now carries dark longitudinal bark cords, hanging moss beards and leaf clusters where take-0116 had a pale smooth tube. Nits: the limb is thinner than the reference's, the sprigs on top are busier, and three pods against the reference's two visible.",
+  "history": [
+    {
+      "item": "W14",
+      "reviewer": "opus-review",
+      "verdict": "fail",
+      "evidence": "gauntlet/reviews/evidence/opus-review/take-0116-W14-A-lantern-branch.jpg",
+      "takeId": "take-0116",
+      "author": "fable-cursor",
+      "takeSha": "973a21e5b045177f66da3d04dc4e67e387270620",
+      "at": "2026-09-19T19:28:40.963Z",
+      "criterion": "Matches the branch + lanterns at the left of the reference stairs shot.",
+      "note": "Position and pods are right, the limb is not. Ours is a thin flattened tube with a hard straight underside and a smooth stucco surface carrying no longitudinal bark and no moss cap, with bright green vine sprigs growing off the top; it measures #424333 l 0.054 against the reference's #635f50 l 0.114. The reference limb is a heavy dark bough roughly 1.2-1.5 m thick with a knobbly mossy top edge that reads clearly at 10-15 m. Three pods on cords are present (audit branchLanterns 3) and sit in the criterion's region, so the lantern half of the criterion is met and the branch half is not."
+    },
+    {
+      "item": "W14",
+      "reviewer": "fable-5",
+      "verdict": "fail",
+      "evidence": "gauntlet/reviews/evidence/fable-5/take-0116-W14-A-lantern-branch.jpg",
+      "takeId": "take-0116",
+      "author": "fable-cursor",
+      "takeSha": "973a21e5b045177f66da3d04dc4e67e387270620",
+      "at": "2026-09-19T09:33:48.550Z",
+      "criterion": "Matches the branch + lanterns at the left of the reference stairs shot.",
+      "note": "Position and pods match the reference: limb from x 0 to 0.33 at y 0.30-0.36, orange pods at 0.21 and 0.26 (reference 0.208 / 0.255). The limb itself does not: a pale smooth tapered tube about half the reference's thickness, with sparse upright leaf sprigs and dangling vines, no moss cap, no bark relief. The reference's is a dark, heavy, mossy bough (1.2-1.5 m) hazed into the mist. Survey-2 #04 (w04-spine-l: stucco-noise pale tube) still describes it at frame scale. Crop x 0.0-0.45, y 0.18-0.52."
+    }
+  ]
+}

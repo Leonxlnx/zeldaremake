@@ -1,0 +1,119 @@
+{
+  "dist": "E:\\zeldaremake-daylight\\dist",
+  "viewpoint": "A_stairs",
+  "params": "shadow=2048,8",
+  "width": 1280,
+  "height": 720,
+  "settle": 8,
+  "simTime": 12.5,
+  "readyMs": 39444,
+  "renderMs": 190,
+  "timing": {
+    "frames": 20,
+    "medianMs": 34.7,
+    "minMs": 33.4,
+    "maxMs": 58.7,
+    "issueMedianMs": 8.6,
+    "perFrame": [
+      58.7,
+      44.8,
+      40.6,
+      37,
+      35.5,
+      34.7,
+      34.8,
+      34.9,
+      34.3,
+      33.5,
+      33.9,
+      34.2,
+      34.1,
+      34.9,
+      33.4,
+      33.7,
+      34.4,
+      34.3,
+      35.1,
+      33.6
+    ]
+  },
+  "ab": null,
+  "png": null,
+  "stats": {
+    "simTime": 12.63333333333334,
+    "drawCalls": 539,
+    "triangles": 8637165,
+    "geometries": 364,
+    "textures": 82,
+    "programs": 88,
+    "width": 1280,
+    "height": 720,
+    "pixelRatio": 1
+  },
+  "flags": {
+    "shadow": "2048,8"
+  },
+  "tier": "high",
+  "perfState": {
+    "flags": {
+      "shadow": "2048,8"
+    },
+    "tier": "high",
+    "version": 0,
+    "fx": {
+      "ao": true,
+      "rays": true,
+      "bloom": true,
+      "soft": true
+    },
+    "shadowMapSize": 2048,
+    "shadowTaps": 8,
+    "vegLodScale": 1,
+    "grassDensity": 1,
+    "renderScale": 1
+  },
+  "stepMs": {
+    "step": 8.599999994039536,
+    "update": 1.3999999985098839,
+    "render": 7.199999995529652
+  },
+  "lighting": {
+    "shadows": true,
+    "shadowMapSize": 2048,
+    "filterTaps": 8,
+    "searchTaps": 5,
+    "dynamic": false
+  },
+  "postfx": {
+    "resolution": [
+      1280,
+      720
+    ],
+    "stagesEnabled": {
+      "ao": true,
+      "rays": true,
+      "bloom": true,
+      "soft": true
+    },
+    "aoResolution": [
+      640,
+      360
+    ],
+    "godRayResolution": [
+      320,
+      180
+    ],
+    "softeningGrid": [
+      640,
+      360
+    ],
+    "shadowCasterCull": true,
+    "shadowCastersTested": 181,
+    "shadowCastersCulled": 4
+  },
+  "vegetation": {
+    "drawCalls": 121,
+    "triangles": 3286736
+  },
+  "sceneTriangles": 7174900
+}

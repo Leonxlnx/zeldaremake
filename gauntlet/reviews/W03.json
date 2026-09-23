@@ -1,0 +1,86 @@
+{
+  "item": "W03",
+  "reviewer": "fable-5",
+  "verdict": "pass",
+  "evidence": "gauntlet/reviews/evidence/fable-5/take-0125-ground-W03-W06-W36.jpg",
+  "takeId": "take-0125",
+  "author": "cursor-fable",
+  "takeSha": "c4d12f6cd364c0cd0a645a9a4b33ec1e989c8e8f",
+  "at": "2026-09-21T04:25:29.299Z",
+  "criterion": "At viewpoint E the stones have visible thickness, edge bevels and joints with greenery, matching the plaza in the reference.",
+  "note": "take-0125 re-check after hardscape-32's demo-scale paving (span p50 1.06 m, joints 9.5 cm): the stones keep visible thickness at the near edge, bevelled arrises and joints with moss/greenery at E and C; the count now matches the frame. Pass stands. Note for hardscape-32 (ANALYSIS_VIDEO2 / fable-5-r49-branches T): the seams read about twice as dark/wide as the frame's (joint-like dark px E 12.0 % vs 5.4 %) and the slab mean sits 0.03 darker (0.44 vs 0.48) - the scale is right, the seam contrast is the next pass.",
+  "history": [
+    {
+      "item": "W03",
+      "reviewer": "fable-5",
+      "verdict": "pass",
+      "evidence": "gauntlet/reviews/evidence/fable-5/take-0123-W36-W03-ground.jpg",
+      "takeId": "take-0125",
+      "author": "cursor-fable",
+      "takeSha": "c4d12f6cd364c0cd0a645a9a4b33ec1e989c8e8f",
+      "at": "2026-09-21T04:25:05.196Z",
+      "criterion": "At viewpoint E the stones have visible thickness, edge bevels and joints with greenery, matching the plaza in the reference.",
+      "note": "take-0123 re-check: the D path's slabs keep their thickness, bevel and grass-green dark joints through the pebble re-roll; slab detail matches the reference at both scales (ANALYSIS_VIDEO2.md 7.2: micro sigma 0.065 vs 0.059 at D). Pass stands; the 2x slab scale (V16) remains the open note, outside W03's criterion."
+    },
+    {
+      "item": "W03",
+      "reviewer": "fable-5",
+      "verdict": "pass",
+      "evidence": "gauntlet/reviews/evidence/fable-5/take-0123-W36-W03-ground.jpg",
+      "takeId": "take-0123",
+      "author": "fable-cursor",
+      "takeSha": "97c83227ef56560ca782c1f8e56e78f672ffe075",
+      "at": "2026-09-20T16:02:53.396Z",
+      "criterion": "At viewpoint E the stones have visible thickness, edge bevels and joints with greenery, matching the plaza in the reference.",
+      "note": "take-0123 re-check: the D path's slabs keep their thickness, bevel and grass-green dark joints through the pebble re-roll; slab detail matches the reference at both scales (ANALYSIS_VIDEO2.md 7.2: micro sigma 0.065 vs 0.059 at D). Pass stands; the 2x slab scale (V16) remains the open note, outside W03's criterion."
+    },
+    {
+      "item": "W03",
+      "reviewer": "fable-5",
+      "verdict": "pass",
+      "evidence": "gauntlet/reviews/evidence/fable-5/take-0121-W03-B-flagstones.jpg",
+      "takeId": "take-0121",
+      "author": "fable-cursor",
+      "takeSha": "cf8083ba21018a37478c2b1f5b2af4be97cbf710",
+      "at": "2026-09-20T06:20:30.634Z",
+      "criterion": "At viewpoint E the stones have visible thickness, edge bevels and joints with greenery, matching the plaza in the reference.",
+      "note": "The three take-0116 fail reasons are gone: the joints are grass-green and dark (the continuous orange grout is gone), the near slabs show thickness and a bevelled side at E, greenery sits in the joints. Passes the criterion as written. Nits (V16): slabs 1.5-2 m where the reference's stones are 0.5-0.9 m, and the surface is cooler and paler than the reference's warm tan."
+    },
+    {
+      "item": "W03",
+      "reviewer": "opus-review",
+      "verdict": "fail",
+      "evidence": "gauntlet/reviews/evidence/opus-review/take-0116-W03-E-flagstones.jpg",
+      "takeId": "take-0116",
+      "author": "fable-cursor",
+      "takeSha": "973a21e5b045177f66da3d04dc4e67e387270620",
+      "at": "2026-09-19T19:26:58.562Z",
+      "criterion": "At viewpoint E the stones have visible thickness, edge bevels and joints with greenery, matching the plaza in the reference.",
+      "note": "At E the paving is a small number of very large angular tiles (the foreground stones span 0.25-0.30 of the frame width, roughly 1.5-2 m, against the reference's 0.5-0.9 m rounded stones) separated by wide bare soil bands. Thickness and a bevel do read on two foreground slabs, so the first half of the criterion is partly met, but the joints carry no greenery at all: the band at the bottom centre left measures #b09f86 l 0.356 where the reference's joint soil is #837050 l 0.169, i.e. a pale dry band twice as bright as the reference, with no moss, no sprouts and no litter in it. Several slab faces read cool lavender-grey against the reference's warm #ac9b74. The auto gates (555 flagstones, 555 shapes) are met."
+    },
+    {
+      "item": "W03",
+      "reviewer": "fable-5",
+      "verdict": "fail",
+      "evidence": "gauntlet/reviews/evidence/fable-5/take-0116-W03-E-flagstones.jpg",
+      "takeId": "take-0116",
+      "author": "fable-cursor",
+      "takeSha": "973a21e5b045177f66da3d04dc4e67e387270620",
+      "at": "2026-09-19T09:41:44.645Z",
+      "criterion": "At viewpoint E the stones have visible thickness, edge bevels and joints with greenery, matching the plaza in the reference.",
+      "note": "At E the plaza reads as 1-1.5 m pale blue-grey flat tiles separated by continuous orange soil grout; thickness shows on one slab edge at the right only, and the joints carry no greenery. At 1.5 m (own render, w09-spine-d, appended) the slabs do show thickness, bevels, a crack and joint pebbles - but the joints are 10-15 cm bands of saturated orange soil with sparse sprouts (reference 3-8 cm dark soil #575026 with moss and sprouts every 0.3-0.6 m), the stone is cool lavender-grey (reference warm #a79774 / #958663) and the shapes are angular polygons (reference rounded). None of the relief survives to E. 555 stones / 555 shapes pass the gate; the criterion does not."
+    },
+    {
+      "item": "W03",
+      "reviewer": "fable-5",
+      "verdict": "fail",
+      "evidence": "gauntlet/reviews/evidence/fable-5/take-0116-W03-E-flagstones.jpg",
+      "takeId": "take-0116",
+      "author": "fable-cursor",
+      "takeSha": "973a21e5b045177f66da3d04dc4e67e387270620",
+      "at": "2026-09-19T09:33:46.736Z",
+      "criterion": "At viewpoint E the stones have visible thickness, edge bevels and joints with greenery, matching the plaza in the reference.",
+      "note": "At E the plaza reads as 1-1.5 m pale blue-grey flat tiles separated by continuous orange soil grout; thickness shows on one slab edge at the right only, and the joints carry no greenery (bare orange bands with a hard edge). The reference's stones are 0.5-0.9 m, rounded, warm (#95815d lit / #777253 shade), visibly raised with a soft shadow into dark soil joints that carry grass sprouts and a moss halo. 555 stones and 555 shapes pass the gate; the criterion - visible thickness, edge bevels, joints with greenery matching the reference plaza - does not. Crops x 0.25-0.75 y 0.62-1.0 and x 0.55-0.95 y 0.66-1.0."
+    }
+  ]
+}

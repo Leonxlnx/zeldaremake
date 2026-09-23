@@ -1,0 +1,74 @@
+{
+  "item": "W02",
+  "reviewer": "fable-5",
+  "verdict": "pass",
+  "evidence": "gauntlet/reviews/evidence/fable-5/take-0129-W02-A-F.jpg",
+  "takeId": "take-0129",
+  "author": "cursor-fable",
+  "takeSha": "93fdff4a927657a8a94ae44b99404de94c63e387",
+  "at": "2026-09-21T16:47:31.144Z",
+  "criterion": "Steps read as individually cut, weathered stone with soft mossy edges like the reference, not extruded boxes.",
+  "note": "take-0129 (93fdff4): the hero flight at A is log-risered now - fable-2's bark timbers 0.16-0.20 m along every riser's top edge, crown 6 cm proud, moss on the upper side, a stake at the log ends every second step (20 logs, 20 stakes) - and the pale cut-slab faces sit under the crowns. That is the reference's flight in kind: ANALYSIS_VIDEO2 6.6b / 9 measured the frame's stair as round bark-and-moss timber nosings with end stakes and packed treads, not cut stone (the criterion's letter 'individually cut, weathered stone' is the rubric text RUBRIC_PROPOSALS asks to change; the frame it names is timber-nosed). The pitch is the layout's 26.6 deg, which fable-3's anchor projection puts on the frame's logs in A and F. Pass. Still open beside it: the treads darken upward into canopy shade where the frame's brighten into a haze gap (V17 - a light, not albedo); F pays -0.0104 for the darker nosings where its pale slabs matched the frame's brightness - the owner-approved cost of the demo's stairs.",
+  "history": [
+    {
+      "item": "W02",
+      "reviewer": "fable-5",
+      "verdict": "fail",
+      "evidence": "gauntlet/reviews/evidence/fable-5/take-0125-W05-W29-W32-W02-W15.jpg",
+      "takeId": "take-0125",
+      "author": "cursor-fable",
+      "takeSha": "c4d12f6cd364c0cd0a645a9a4b33ec1e989c8e8f",
+      "at": "2026-09-21T04:25:30.199Z",
+      "criterion": "Steps read as individually cut, weathered stone with soft mossy edges like the reference, not extruded boxes.",
+      "note": "take-0125 (c4d12f6): the flight at A is still cut stone slabs with moss on the nosings; hardscape-32 dried and lightened the lower treads, but the reference's flight is log-risered (round bark timbers, packed treads, end stakes - ANALYSIS_VIDEO2 6.6b / V18') and its treads brighten foot -> top into a haze gap (0.37 -> 0.40 -> 0.65) where ours darken into canopy shade (0.31 -> 0.18 -> 0.17 at w23-stairs-f). Fail; RUBRIC_PROPOSALS carries the log-riser criterion."
+    },
+    {
+      "item": "W02",
+      "reviewer": "fable-5",
+      "verdict": "fail",
+      "evidence": "gauntlet/reviews/evidence/fable-5/take-0121-W02-A-stairs.jpg",
+      "takeId": "take-0121",
+      "author": "fable-cursor",
+      "takeSha": "cf8083ba21018a37478c2b1f5b2af4be97cbf710",
+      "at": "2026-09-20T06:20:30.461Z",
+      "criterion": "Steps read as individually cut, weathered stone with soft mossy edges like the reference, not extruded boxes.",
+      "note": "Improved from take-0116: per-tread tone now varies, a few nosings carry green, the flanks are softer. Still fails the criterion at A: the treads are parallel cut slabs with straight square nosings and dark box risers - 'individually cut, weathered stone with soft mossy edges like the reference' is not what the side-by-side shows at first glance. And the reference's nosings are not stone at all: d_105/d_013/d_107 show round log risers with end stakes (ANALYSIS_VIDEO2 6.6b, V18'); the wavy rolls at A are those logs. The item can only close as timber."
+    },
+    {
+      "item": "W02",
+      "reviewer": "opus-review",
+      "verdict": "fail",
+      "evidence": "gauntlet/reviews/evidence/opus-review/take-0116-W02-A-stairway.jpg",
+      "takeId": "take-0116",
+      "author": "fable-cursor",
+      "takeSha": "973a21e5b045177f66da3d04dc4e67e387270620",
+      "at": "2026-09-19T19:26:49.335Z",
+      "criterion": "Steps read as individually cut, weathered stone with soft mossy edges like the reference, not extruded boxes.",
+      "note": "At A the flight reads as a stack of parallel machined bands, not individually cut weathered stone. Every tread is one straight-edged slab of even depth with a clean square nosing and an even dark riser; there is no chipping, no outline variation between treads, no moss on any nosing and no grass or weed in any joint (the companion crop take-0116-W20b-A-stair-nosings.jpg shows the whole visible flight at 2x). Tone is cool and flat: tread #333230 l 0.031 against the reference's warm #544e42 l 0.078 at the same region, and the reference's treads carry moss patches, grass over the nosings and irregular slab ends on both flanks. The auto gates are met (20 steps, uniqueStepShapes 33, stairGeometry procedural-v2, mossJoints true) but the per-step detail does not survive to the criterion's viewpoint."
+    },
+    {
+      "item": "W02",
+      "reviewer": "fable-5",
+      "verdict": "fail",
+      "evidence": "gauntlet/reviews/evidence/fable-5/take-0116-W02-A-stairs.jpg",
+      "takeId": "take-0116",
+      "author": "fable-cursor",
+      "takeSha": "973a21e5b045177f66da3d04dc4e67e387270620",
+      "at": "2026-09-19T09:41:44.270Z",
+      "criterion": "Steps read as individually cut, weathered stone with soft mossy edges like the reference, not extruded boxes.",
+      "note": "At A (the criterion's frame) the 20 treads read as parallel, straight-edged bands of even depth in one cool blue-grey tone: clean nosings, no moss or grass spilling over any edge, the flanks a hard straight line - a machined flight. At 2 m (own render of 973a21e, survey pose w23-stairs-f, appended to the evidence) the treads ARE individually cut and worn with offset slabs and chipped edges, so the geometry exists; what fails is the read at A's 10 m: uniform tone, even spacing and bare nosings collapse it into bands, where the reference's flight at the same distance shows irregular warm treads (#746d5d) with moss and grass over every nosing. Fix is tone/edge variation and moss on the nosings that survive distance, not more geometry. Auto gate (20 steps, 33 shapes, mossJoints) passes."
+    },
+    {
+      "item": "W02",
+      "reviewer": "fable-5",
+      "verdict": "fail",
+      "evidence": "gauntlet/reviews/evidence/fable-5/take-0116-W02-A-stairs.jpg",
+      "takeId": "take-0116",
+      "author": "fable-cursor",
+      "takeSha": "973a21e5b045177f66da3d04dc4e67e387270620",
+      "at": "2026-09-19T09:33:46.386Z",
+      "criterion": "Steps read as individually cut, weathered stone with soft mossy edges like the reference, not extruded boxes.",
+      "note": "At A the 20 treads are parallel, straight-edged slabs of even depth in one cool blue-grey tone: clean nosings, no moss or grass spilling over any edge, the flanks a hard straight line - a machined flight, not individually cut weathered stone. The reference's treads are irregular and chipped, warm (#746d5d), with grass and moss creeping over every nosing and the flanks eating into the treads. The auto gate (20 steps, 33 unique shapes, mossJoints) passes but none of that variation reads at 1280 px. Crop x 0.55-0.90, y 0.10-0.70."
+    }
+  ]
+}

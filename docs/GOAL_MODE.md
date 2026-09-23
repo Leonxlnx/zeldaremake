@@ -1,0 +1,153 @@
+# Goal mode — how a Fable chat keeps working without being re-prompted
+
+> **The owner's standing priority (2026-09-20 00:02 UTC), verbatim:** "make the game look like the
+> screenshots I sent you, work with the other agents, make all the trees load in ASAP so it doesn't
+> look bad, and make everything look much higher quality." The screenshots are
+> `art/environment/owner-review-2026-09-19/ref-0[1-4]*.png` and the demo frames in
+> `reference/frames-dense/demo61/`; "trees load in ASAP" is lane lod-1's pool/LOD work (fable-6's
+> `docs/PERF_2026-09-19.md`); "higher quality" is judged at player height and at 5–20 m, not at
+> touching distance. Every lane's next item is read against this sentence.
+>
+> **Owner priority change (2026-09-20 ~21:00 UTC, via Astra):** hide the other characters (NPCs)
+> temporarily — including in captures — and focus on **Link**: splayed legs, exaggerated forward arm
+> swing, running torso/posture. Astra owns the Link asset/runtime pass (PR #24); npc lanes preserve
+> their work under the hidden parent group. Environment lanes continue on stones / bark-foliage tone /
+> distance.
+>
+> **Owner direction (2026-09-22, marked screenshot via Astra):** distant and high trees rendered clearly,
+> substantially less grey washout, the large blurry crown forms at height corrected (the red circle:
+> upper-left crowns, ≈ x 100–550 / y 60–357 of the 897×777 image — `art/environment/astra-owner-clarity-2026-09-22/`
+> on Astra's branch). **Astra owns** the fog/haze/post and the distant crowns/cards; **fable-4** the white-bark
+> crowns; **fable-5** measures the circled region against the reference. Nobody else starts a fog or crown pass.
+> Earlier (05:04 UTC): the forest ambience and surface footsteps — landed (c2c38485); grass past 16 m — landed (f9c58007).
+>
+> **Owner directive (2026-09-23 06:50 UTC, marked screenshot):** the trees do not populate (grey haze
+> in the middle distance where his recording `reference/frames-dense/review46/r_020–r_028` shows layered
+> trees), thicker grass on the left side, the background sound too buzzy, the steps and the path splitting
+> off into the forest as in the real game, the people updated, done in 24 hours so he can walk around a lot.
+> **He authorized fable-cursor to work over Astra's areas** (atmosphere, lighting, post, distant crowns,
+> Link). Ten parallel Opus chats work from `docs/SQUAD_2026-09-23.md` (lanes, rules, backlog); he plays
+> https://raw.githack.com/Leonxlnx/zeldaremake/play-head/index.html (the integration head, republished after
+> merges — `monitor/play/` only moves when a take seals).
+>
+> **Owner directive (2026-09-23 01:12 UTC, with two screenshots):** preserve the strongest visuals,
+> controls and art direction while raising fidelity; fix the SECOND staircase's repeated pattern (the
+> first looks natural), upgrade the side bungalows and especially their lanterns (frame, supports,
+> translucent panels, a light source, wear, attachment, a restrained light pool), fix looking UP
+> (camera range and the content overhead), then the whole world — scored on a 50-point rubric with
+> evidence per item. fable-cursor's pass: `art/environment/owner-2026-09-23/README.md` (pass 1: 157 / 200; pass 2: 165 / 200, every
+> must-reach item ≥ 3, remaining defects listed there). Play-mode evidence comes from
+> `gauntlet/scripts/playtest.mjs` (real input through `?test=1`).
+>
+> **Deadline (owner, 2026-09-20 03:41 UTC): everything ready by tomorrow — push hard.** Ship the
+> highest-visibility item in your lane first, verified, then the next; report every landing in the
+> INBOX the minute it is pushed; do not re-capture an unmodified base (use the latest sealed take's
+> capture as the before); one Chrome at a time through the slot wrapper so nine agents do not stall
+> each other.
+
+A Cursor Cloud Agent chat ends its turn when the task it was given is done. That is why the
+`fable-2/3/4/5/6` chats went quiet after their first lane landed: each finished, reported on its
+PR, and stopped. To keep working they need (a) a standing loop instead of a single task and (b) a
+self-renewing timer that re-delivers the loop every hour — the same mechanism `fable-cursor` runs
+on. Paste the block below into EACH chat (`fable-2`, `fable-3`, `fable-4`, `fable-5`, `fable-6`, and
+`opus-review` if it is a Cursor chat); it reads its own id from its log.
+
+```
+GOAL MODE. You are the agent whose log is `.agents/<your-id>.md` in https://github.com/Leonxlnx/zeldaremake
+(you announced yourself there earlier; if you have no log, take the first unclaimed lane in
+docs/ONBOARDING_FABLE_CHATS.md and announce). From now on you run a standing loop; the owner does
+not want to re-prompt you.
+
+THE LOOP (one iteration = one bounded, verified change):
+1. `git fetch --all --prune`. Rebase or branch afresh from `origin/cursor/kokiri-world-phase1-f65e`
+   (never commit to it, never force-push). If your previous PR was merged, start a new branch
+   `agent/<your-id>-<topic>` and a new draft PR targeting that branch.
+2. Read `.agents/INBOX.md` (newest thread first) for anything addressed to you or to "all lanes",
+   then `docs/GOAL_MODE.md` §Next items for your id, then the newest of `art/environment/round*-review/README.md`,
+   `.agents/reviews/opus-review-*.md`, `reference/ANALYSIS_VIDEO2.md`, and the owner's fix list
+   `art/environment/owner-review-2026-09-19/README.md`. Pick the highest-ranked open item in YOUR lane.
+3. Do it: before/after at the exact pose where the defect was seen (poses in
+   art/environment/survey2/manifest.json, the round READMEs and opus-review's walk manifest), six
+   fixed views A–F within −0.003 SSIM of the latest sealed take unless the item is an owner-approved
+   look change (the INBOX says so), draws ≤ 700, camera A ≤ 9.0 M triangles, seeded PRNG only,
+   `npm run typecheck && npm run build` green, tests green. An after that looks like its before is
+   a FAIL you report, not a claim.
+4. Commit small, push, keep the PR description current with SHAs + crops + the six-view table, and
+   post a short INBOX note "<your-id> → fable-cursor" saying what landed and what you take next.
+   fable-cursor merges; do not merge.
+5. Go back to 1. Never stop because a lane "feels done" — when your list is empty, take the
+   highest-ranked open defect from the newest review that no other agent has claimed in the INBOX,
+   or ask fable-cursor in the INBOX for one and keep the loop alive with reviews of other lanes'
+   PRs in the meantime (before/after crops at their poses are always useful).
+
+STANDING TIMER: at the start of this session, subscribe a timer for yourself (cron `20 * * * *`,
+name `goal-mode-<your-id>`) whose prompt is exactly this block, so the loop re-runs every hour
+even after a turn ends. If a timer named `goal-mode-<your-id>` already exists, do not create another.
+
+RULES THAT DO NOT BEND: stay in your lane's files (ask in the INBOX before touching others');
+never edit gauntlet/rubric.json or gauntlet/ledger.json by hand; no Nintendo assets, no reference
+frames as scenery; CC0/original textures credited; never kill processes you did not start; on a
+shared machine serialise heavy captures (fable-cursor's capslot.sh / owner-fable's capslot.mjs).
+Deliver, report, repeat.
+```
+
+## Next items per id (fable-cursor updates this list; the INBOX overrides it)
+
+### fable-2 — rocks (`src/world/rocks/**`)
+0. **Round-49 handoff (do first):** apply `heightfield.expansionCull(x, z)` after placement to every
+   sampled rock/pebble stream (expansion-2 built the west/south bank + knoll on a LIVE terrain view; the
+   legacy-built streams can now sit inside them). Then the new positions expansion-2 listed: boulder at
+   the bank's west skirt (−18.93, 13.92), kerb stones at the flight foot (−14.13, 15.75), scree under the
+   west-house braces (−21.5, 12.5), pebbles beside the west/south discs (`expansionSteppingStones()`).
+   Boulder FORM per fable-5 §7: lit planes, an undercut shadow, a bright top (macro σ 0.11–0.14).
+1. opus #03: the raised ledge is a flat olive mound — `LAYOUT.rockLedges.north-terrace` is live;
+   dress it as ref-04's near-black damp rock-and-root wall (3–3.5 m), ferns only at the foot.
+2. opus #10: the shot-D hero boulder is an unreadable dark mass with two black cavities at 2 m.
+3. expansion-1's positions (`art/environment/round47-review/README.md`): scree at the ledge flight's
+   flanks, a boulder pair on the clearing's west bank, half-buried strata along the terrace face.
+4. `pathEdgePebble`: per-candidate draws so path edits stop moving pebbles world-wide.
+
+### fable-3 — props (`src/world/props/**`)
+0. **Round-49 handoff (do first):** `heightfield.expansionCull(x, z)` on any sampled prop placement; then
+   expansion-2's positions: a pot by the west-house door (−19.6, 8.2) on the platform (`ctx.shared.walkSurfaces[0].disc.y`),
+   a crate on the deck landing (−16.6, 6.7), a signpost at the path fork (−8.9, 9.9), a rope railing along the deck.
+1. The plaza as the demo shows it (`reference/frames-dense/demo61/d_023–d_036`): pots by Saria's
+   door and the signpost, a bucket, a crate; keep out of the six frames' foregrounds unless the
+   frame shows one.
+2. Props for the north clearing: pots and a wooden marker at the stone circle's entrance
+   (positions in expansion-1's brief); everything seated on `ctx.terrain.height`.
+3. Prop LODs and per-locality merges (≤ 20 draws for the system).
+
+### fable-4 — white-bark trees (`src/world/trees/whitebark.ts`, `bark-texture.ts`)
+1. Young white-barks on the clearing's banks at (−7.6, −66.0), (6.2, −71.5), (−6.0, −75.5),
+   (7.5, −64.5) — coordinate with trees-31 (far forest) in the INBOX.
+2. Crowns at 3–10 m: layered leaf silhouettes with lit rims, not flat cards (fable-5 #6, opus #05).
+3. Trunk read at 5–20 m: bark banding that survives the haze (the owner's "detail at longer range").
+
+### fable-5 — reference analysis + D7 reviews (`reference/`, `gauntlet/reviews/`)
+1. Re-verdict every visual item on each new sealed take (next: the one after take-0118) — strict,
+   with reference|ours crops; U02/U03 on the shipped bag screen.
+2. `reference/ANALYSIS_VIDEO2.md` from the owner's 15-minute video when the file reaches your
+   chat; until then, extend the three-screenshot analysis with the dense demo frames
+   (`reference/frames-dense/demo61/`): per shot, what we have / lack, measured.
+3. A player-height walk of each new round (the way opus-review did) with a ranked defect list.
+
+### fable-6 — monitor + perf (`site/**`, `gauntlet/perf/**`, `docs/PERF_*.md`)
+1. Native re-measure of `lod-1` when it merges (pool caps, 18 m swaps, warm pass) on the 780M.
+2. The monitor's evidence gallery for rounds 47/48 and the player strip for each new take.
+3. The `[warmup]` 121 s warm pass: what it renders and a plan to cut it.
+
+### owner-fable — canopy (`src/world/canopy/**`) + decision cards
+1. The layered-lobe swap as a bounded PR (Astra and fable-cursor both want it; the owner's
+   priority is visible foliage over the −0.003 budget): `NEAR_CANOPY_FLAT_SWAP_M` with a distance,
+   transition evaluated in motion, SSIM cost stated.
+2. The near shade floors at every distance, same treatment, as a separate PR.
+3. The roof over the north clearing (trees-31 dresses the far trunks; hand off by distance).
+
+### astra-local — environment (owner's 13:00 UTC re-priority: stones under-detailed, trees too green, weak distant detail, wider render distance) + character (deferred; PR #21 reviewed separately)
+0. Owner (23:52 UTC): natural running legs and especially arms, slightly smaller boots — reserved:
+   Link animation/mesh + `glbLink.ts` arm-swing and root/contact-floor blocks.
+1. Authored clips per character-9's contract (walk heel strike, run flight/plant, stairs, arms,
+   jump_start/air/land); PR #21's runtime fix + candidate review with fable-cursor.
+2. The Kokiri girl's model per npc-1's rig/clip spec.
+3. W31 shafts at A/F (three to four distinct beams), the mist veil at B, sky-gap glow.

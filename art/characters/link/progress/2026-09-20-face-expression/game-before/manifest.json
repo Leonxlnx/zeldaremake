@@ -1,0 +1,3009 @@
+{
+  "kind": "Actual player/IK review, not a gauntlet take or animation acceptance",
+  "render_profile": "high defaults",
+  "world_commit": "b4319286091274df97d5ffe65e2f1890614a714a",
+  "world_status": "?? art/characters/link/progress/2026-09-19-run-contact/fable-canopy-review.txt\n?? art/characters/link/progress/2026-09-19-run-contact/fable-capslot-reply.txt\n?? art/characters/link/progress/2026-09-19-run-contact/fable-high-result.txt\n?? art/characters/link/progress/2026-09-19-run-contact/fable-pr21.txt\n?? art/characters/link/progress/2026-09-19-run-contact/fable-root-floor.txt\n?? art/characters/link/progress/2026-09-19-run-contact/fable-root-result.txt\n?? art/characters/link/progress/2026-09-19-run-contact/fable-scope.txt\n?? art/characters/link/progress/2026-09-19-run-contact/fable-stair-baseline.txt\n?? art/characters/link/progress/2026-09-19-run-contact/fable-stair-result.txt\n?? art/characters/link/progress/2026-09-19-run-contact/fable-studio-result.txt\n?? art/characters/link/progress/2026-09-19-run-contact/fable-takeoff-gauntlet.txt\n?? art/characters/link/progress/2026-09-19-run-contact/fable-takeoff-result.txt\n?? art/characters/link/progress/2026-09-19-run-contact/fable-takeoff-scope.txt\n?? art/characters/link/progress/2026-09-19-run-contact/fable-update.txt\n?? art/characters/link/progress/2026-09-19-run-contact/local-capture-coordination.txt\n?? art/characters/link/progress/2026-09-19-run-contact/opus-motion-request.md\n?? art/characters/link/progress/2026-09-19-run-contact/pr-body.txt\n?? art/characters/link/progress/2026-09-19-run-contact/pr21-body-current.md\n?? art/characters/link/progress/2026-09-19-run-contact/run-flight-retained-candidate.glb\n?? art/characters/link/progress/2026-09-19-stair-contact/rejected-phase-lift.patch\n?? art/characters/link/progress/2026-09-19-stair-contact/rejected-reactive-lift.patch\n?? art/characters/link/progress/2026-09-19-stair-contact/rig-before.json\n?? art/characters/link/progress/2026-09-19-stair-contact/rig-climb-lift.json\n?? art/characters/link/progress/2026-09-19-stair-contact/rig-debug.json\n?? art/characters/link/progress/2026-09-19-stair-contact/rig-early-forward.json\n?? art/characters/link/progress/2026-09-19-stair-contact/rig-held-lift.json\n?? art/characters/link/progress/2026-09-19-stair-contact/rig-held-takeoff.json\n?? art/characters/link/progress/2026-09-19-stair-contact/rig-phase-lift.json\n?? art/characters/link/progress/2026-09-19-stair-contact/rig-root-lift.json\n?? art/characters/link/progress/2026-09-19-stair-contact/rig-upper-support.json\n?? art/characters/link/progress/2026-09-19T20-13-47-250Z-play-motion/\n?? art/characters/link/progress/2026-09-19T20-18-39-244Z-play-motion/\n?? art/characters/link/progress/2026-09-19T20-29-09-305Z-play-motion/\n?? art/characters/link/progress/2026-09-19T20-37-23-189Z-play-motion/\n?? art/characters/link/progress/2026-09-19T20-46-24-483Z-play-motion/\n?? art/characters/link/progress/2026-09-19T20-53-33-251Z-play-motion/\n?? art/characters/link/progress/2026-09-19T21-00-32-348Z-play-motion/\n?? art/characters/link/progress/2026-09-19T21-11-00-122Z-play-motion/\n?? art/characters/link/progress/2026-09-19T21-29-32-143Z-play-motion/\n?? art/characters/link/progress/2026-09-19T21-45-54-714Z-play-motion/\n?? art/characters/link/progress/2026-09-19T22-14-51-139Z-play-motion/\n?? art/characters/link/progress/2026-09-19T22-21-30-035Z-play-motion/\n?? public/models/link/face-expression-candidate.glb\n?? public/models/link/run-contact-low-candidate.glb\n?? public/models/link/run-flight-retained-candidate.glb\n?? public/models/link/stairs-early-forward-candidate.glb\n?? public/models/link/stairs-lower-swing-candidate.glb",
+  "glb_sha256": "2459112603a935a038dd06a67de85d5c5e28c72188f50ebd4d6e304af236bfa4",
+  "capture_script_sha256": "8e1f341406d8f5f19376ee9f6f22193b3a3f8138f5e1cecb87a6c349e70c5cac",
+  "character_source_sha256": "8162ec8c5a3324061ff19aec535d5b69d61b75c1e303f62995729c5bbc38e1c1",
+  "samples": [
+    {
+      "scenario": "flat-transitions",
+      "frame": 0,
+      "gait": "walk",
+      "root": [
+        0,
+        0.01116006924090876,
+        0.4975
+      ],
+      "placement": [
+        0,
+        0.0183,
+        0.4975
+      ],
+      "feet": [
+        {
+          "foot": "L",
+          "soleY": 0.0172,
+          "groundY": 0.0151,
+          "gapM": 0.002,
+          "supportY": 0.0172,
+          "minShoeGapM": 0,
+          "shiftM": 0,
+          "pitchRad": 0,
+          "correctionM": 0,
+          "pinM": -0.0025,
+          "holdM": 0,
+          "soleX": -0.077,
+          "soleZ": 0.5,
+          "stance": true,
+          "pinLatM": 0
+        },
+        {
+          "foot": "R",
+          "soleY": 0.0192,
+          "groundY": 0.0183,
+          "gapM": 0.0009,
+          "supportY": 0.0192,
+          "minShoeGapM": -0.0033,
+          "shiftM": 0,
+          "pitchRad": 0,
+          "correctionM": 0.002,
+          "pinM": -0.0025,
+          "holdM": 0,
+          "soleX": 0.077,
+          "soleZ": 0.5,
+          "stance": true,
+          "pinLatM": 0
+        }
+      ],
+      "ik": {
+        "mode": "two-bone",
+        "maxCorrectionM": 0.002,
+        "rootShiftM": -0.0071,
+        "maxShiftM": 0,
+        "planted": "R",
+        "reachClamped": false,
+        "reachClampedLeg": null,
+        "reachExcessM": 0,
+        "extraDropM": 0,
+        "attackDropM": 0,
+        "maxPinM": 0.0025,
+        "maxHoldM": 0,
+        "blendClips": 1,
+        "hipClampRad": 0,
+        "kneeOutRad": 0
+      },
+      "locomotion": {
+        "speed": 0.15,
+        "clipShift": [
+          0.4237,
+          0,
+          0
+        ],
+        "pins": [
+          null,
+          null
+        ],
+        "jump": "ground",
+        "jumpAir": 0,
+        "jumpY": null,
+        "airHeight": 0
+      },
+      "rootStepY": null,
+      "bodyPoints": {
+        "hips": [
+          0,
+          0.5291548307078888,
+          0.4975
+        ],
+        "chest": [
+          0,
+          0.6191548640864899,
+          0.4975
+        ],
+        "head": [
+          0.000472908425240262,
+          0.8949512193154534,
+          0.4957606052449658
+        ],
+        "handL": [
+          -0.21623597545559878,
+          0.5423378206000316,
+          0.45726632651671184
+        ],
+        "handR": [
+          0.22036157129826905,
+          0.5419978875685653,
+          0.4701670762110111
+        ],
+        "thighL": [
+          -0.07400000095367432,
+          0.5291548307078888,
+          0.4975
+        ],
+        "kneeL": [
+          -0.0753163508733615,
+          0.35013150662838866,
+          0.472904829215309
+        ],
+        "ankleL": [
+          -0.07700000830289125,
+          0.12115982666393421,
+          0.5000008298458387
+        ],
+        "thighR": [
+          0.07400000095367432,
+          0.5291548307078888,
+          0.4975
+        ],
+        "kneeR": [
+          0.07531480646074194,
+          0.35122091610941825,
+          0.46597548384386284
+        ],
+        "ankleR": [
+          0.07700000875788732,
+          0.12317588117850489,
+          0.5000010622595152
+        ]
+      },
+      "legAngles": {
+        "L": {
+          "hipFlexDeg": 7.833682692476562,
+          "kneeFlexDeg": 14.57110508918249
+        },
+        "R": {
+          "hipFlexDeg": 10.05538343082149,
+          "kneeFlexDeg": 18.532571966311544
+        }
+      },
+      "blink": {
+        "phase": 0,
+        "weights": {
+          "blink": 0,
+          "blinkHalf": 0
+        },
+        "applied": [
+          {
+            "blink": 0,
+            "blinkHalf": 0
+          },
+          {
+            "blink": 0,
+            "blinkHalf": 0
+          },
+          {
+            "blink": 0,
+            "blinkHalf": 0
+          }
+        ]
+      },
+      "shoeSurface": []
+    },
+    {
+      "scenario": "flat-transitions",
+      "frame": 1,
+      "gait": "walk",
+      "root": [
+        0,
+        0.012185553171851944,
+        0.4925
+      ],
+      "placement": [
+        0,
+        0.0183,
+        0.4925
+      ],
+      "feet": [
+        {
+          "foot": "L",
+          "soleY": 0.0176,
+          "groundY": 0.0156,
+          "gapM": 0.0019,
+          "supportY": 0.0172,
+          "minShoeGapM": 0.0005,
+          "shiftM": 0,
+          "pitchRad": 0,
+          "correctionM": 0,
+          "pinM": -0.0073,
+          "holdM": 0,
+          "soleX": -0.077,
+          "soleZ": 0.4992,
+          "stance": true,
+          "pinLatM": 0
+        },
+        {
+          "foot": "R",
+          "soleY": 0.0192,
+          "groundY": 0.0183,
+          "gapM": 0.0009,
+          "supportY": 0.0192,
+          "minShoeGapM": -0.0033,
+          "shiftM": 0,
+          "pitchRad": 0,
+          "correctionM": 0.0019,
+          "pinM": -0.0073,
+          "holdM": 0,
+          "soleX": 0.077,
+          "soleZ": 0.4999,
+          "stance": true,
+          "pinLatM": 0
+        }
+      ],
+      "ik": {
+        "mode": "two-bone",
+        "maxCorrectionM": 0.0019,
+        "rootShiftM": -0.0061,
+        "maxShiftM": 0,
+        "planted": "R",
+        "reachClamped": false,
+        "reachClampedLeg": null,
+        "reachExcessM": 0,
+        "extraDropM": 0,
+        "attackDropM": 0,
+        "maxPinM": 0.0073,
+        "maxHoldM": 0,
+        "blendClips": 2,
+        "hipClampRad": 0,
+        "kneeOutRad": 0
+      },
+      "locomotion": {
+        "speed": 0.3,
+        "clipShift": [
+          0.4101,
+          0,
+          0
+        ],
+        "pins": [
+          null,
+          [
+            0.077,
+            0.4999
+          ]
+        ],
+        "jump": "ground",
+        "jumpAir": 0,
+        "jumpY": null,
+        "airHeight": 0
+      },
+      "rootStepY": 0.0010254839309431843,
+      "bodyPoints": {
+        "hips": [
+          0,
+          0.5286873706423781,
+          0.4925
+        ],
+        "chest": [
+          0,
+          0.6186874040209792,
+          0.4925
+        ],
+        "head": [
+          0.00017446309536680237,
+          0.8944850357407303,
+          0.49091449834590756
+        ],
+        "handL": [
+          -0.2163685481648342,
+          0.5420679498632729,
+          0.45173909389758243
+        ],
+        "handR": [
+          0.22039559126501787,
+          0.5416304733645867,
+          0.4646900924832631
+        ],
+        "thighL": [
+          -0.07400000095368738,
+          0.5286873706406194,
+          0.49249999991046844
+        ],
+        "kneeL": [
+          -0.07531838119865607,
+          0.34982835230362047,
+          0.4667374423006355
+        ],
+        "ankleL": [
+          -0.07702195764784939,
+          0.1215666975586247,
+          0.4992765311415382
+        ],
+        "thighR": [
+          0.07400000095366399,
+          0.528687370643759,
+          0.4924999999104618
+        ],
+        "kneeR": [
+          0.07531777130299518,
+          0.35059328115855404,
+          0.4618935222073697
+        ],
+        "ankleR": [
+          0.0770100886713071,
+          0.1231758905450066,
+          0.4998879762163196
+        ]
+      },
+      "legAngles": {
+        "L": {
+          "hipFlexDeg": 8.206995278330973,
+          "kneeFlexDeg": 16.308925698008622
+        },
+        "R": {
+          "hipFlexDeg": 9.760209210581195,
+          "kneeFlexDeg": 19.2355932063021
+        }
+      },
+      "blink": {
+        "phase": 0,
+        "weights": {
+          "blink": 0,
+          "blinkHalf": 0
+        },
+        "applied": [
+          {
+            "blink": 0,
+            "blinkHalf": 0
+          },
+          {
+            "blink": 0,
+            "blinkHalf": 0
+          },
+          {
+            "blink": 0,
+            "blinkHalf": 0
+          }
+        ]
+      }
+    },
+    {
+      "scenario": "flat-transitions",
+      "frame": 2,
+      "gait": "walk",
+      "root": [
+        0,
+        0.014771773539017811,
+        0.485
+      ],
+      "placement": [
+        0,
+        0.0183,
+        0.485
+      ],
+      "feet": [
+        {
+          "foot": "L",
+          "soleY": 0.019,
+          "groundY": 0.0156,
+          "gapM": 0.0034,
+          "supportY": 0.0175,
+          "minShoeGapM": 0.0024,
+          "shiftM": 0,
+          "pitchRad": 0,
+          "correctionM": -0.0001,
+          "pinM": -0.0136,
+          "holdM": 0,
+          "soleX": -0.0771,
+          "soleZ": 0.4947,
+          "stance": true,
+          "pinLatM": 0
+        },
+        {
+          "foot": "R",
+          "soleY": 0.0192,
+          "groundY": 0.0183,
+          "gapM": 0.0009,
+          "supportY": 0.0192,
+          "minShoeGapM": -0.0033,
+          "shiftM": 0,
+          "pitchRad": 0,
+          "correctionM": 0.0016,
+          "pinM": -0.0138,
+          "holdM": 0,
+          "soleX": 0.077,
+          "soleZ": 0.4999,
+          "stance": true,
+          "pinLatM": 0
+        }
+      ],
+      "ik": {
+        "mode": "two-bone",
+        "maxCorrectionM": 0.0016,
+        "rootShiftM": -0.0035,
+        "maxShiftM": 0,
+        "planted": "R",
+        "reachClamped": false,
+        "reachClampedLeg": null,
+        "reachExcessM": 0,
+        "extraDropM": 0,
+        "attackDropM": 0,
+        "maxPinM": 0.0138,
+        "maxHoldM": 0,
+        "blendClips": 2,
+        "hipClampRad": 0,
+        "kneeOutRad": 0
+      },
+      "locomotion": {
+        "speed": 0.45,
+        "clipShift": [
+          0.3982,
+          0,
+          0
+        ],
+        "pins": [
+          null,
+          [
+            0.077,
+            0.4999
+          ]
+        ],
+        "jump": "ground",
+        "jumpAir": 0,
+        "jumpY": null,
+        "airHeight": 0
+      },
+      "rootStepY": 0.0025862203671658673,
+      "bodyPoints": {
+        "hips": [
+          0,
+          0.5271812518733459,
+          0.485
+        ],
+        "chest": [
+          0,
+          0.6171812852519469,
+          0.485
+        ],
+        "head": [
+          0.00017947048783158485,
+          0.8929801616650421,
+          0.4836496843703092
+        ],
+        "handL": [
+          -0.21674896742808625,
+          0.5410215515504515,
+          0.4433432960728578
+        ],
+        "handR": [
+          0.22047776393625582,
+          0.5404479318066484,
+          0.455420317569946
+        ],
+        "thighL": [
+          -0.07400000095376859,
+          0.5271812518609451,
+          0.48499999966559987
+        ],
+        "kneeL": [
+          -0.07531642504610916,
+          0.3495190932399338,
+          0.4519788933633048
+        ],
+        "ankleL": [
+          -0.0770724386367516,
+          0.12302050000268425,
+          0.49511193514851126
+        ],
+        "thighR": [
+          0.07400000095370834,
+          0.5271812518688452,
+          0.4849999996654003
+        ],
+        "kneeR": [
+          0.07531167321809044,
+          0.3491448980095836,
+          0.45405938582344624
+        ],
+        "ankleR": [
+          0.07700619301885346,
+          0.12317591720857524,
+          0.4998878870274955
+        ]
+      },
+      "legAngles": {
+        "L": {
+          "hipFlexDeg": 10.537285844005682,
+          "kneeFlexDeg": 21.31048664255983
+        },
+        "R": {
+          "hipFlexDeg": 9.867543794297616,
+          "kneeFlexDeg": 21.322879923480894
+        }
+      },
+      "blink": {
+        "phase": 0,
+        "weights": {
+          "blink": 0,
+          "blinkHalf": 0
+        },
+        "applied": [
+          {
+            "blink": 0,
+            "blinkHalf": 0
+          },
+          {
+            "blink": 0,
+            "blinkHalf": 0
+          },
+          {
+            "blink": 0,
+            "blinkHalf": 0
+          }
+        ]
+      }
+    },
+    {
+      "scenario": "flat-transitions",
+      "frame": 3,
+      "gait": "walk",
+      "root": [
+        0,
+        0.01801282987563302,
+        0.475
+      ],
+      "placement": [
+        0,
+        0.0183,
+        0.475
+      ],
+      "feet": [
+        {
+          "foot": "L",
+          "soleY": 0.022,
+          "groundY": 0.0156,
+          "gapM": 0.0064,
+          "supportY": 0.0179,
+          "minShoeGapM": 0.0058,
+          "shiftM": 0,
+          "pitchRad": 0,
+          "correctionM": -0.0002,
+          "pinM": -0.0203,
+          "holdM": 0,
+          "soleX": -0.0771,
+          "soleZ": 0.4827,
+          "stance": true,
+          "pinLatM": 0
+        },
+        {
+          "foot": "R",
+          "soleY": 0.0192,
+          "groundY": 0.0183,
+          "gapM": 0.0009,
+          "supportY": 0.0192,
+          "minShoeGapM": -0.0033,
+          "shiftM": 0,
+          "pitchRad": 0,
+          "correctionM": 0.0011,
+          "pinM": -0.0205,
+          "holdM": 0,
+          "soleX": 0.077,
+          "soleZ": 0.4999,
+          "stance": true,
+          "pinLatM": -0.0001
+        }
+      ],
+      "ik": {
+        "mode": "two-bone",
+        "maxCorrectionM": 0.0011,
+        "rootShiftM": -0.0003,
+        "maxShiftM": 0,
+        "planted": "R",
+        "reachClamped": false,
+        "reachClampedLeg": null,
+        "reachExcessM": 0,
+        "extraDropM": 0,
+        "attackDropM": 0,
+        "maxPinM": 0.0205,
+        "maxHoldM": 0,
+        "blendClips": 2,
+        "hipClampRad": 0,
+        "kneeOutRad": 0
+      },
+      "locomotion": {
+        "speed": 0.6,
+        "clipShift": [
+          0.3877,
+          0,
+          0
+        ],
+        "pins": [
+          null,
+          [
+            0.077,
+            0.4999
+          ]
+        ],
+        "jump": "ground",
+        "jumpAir": 0,
+        "jumpY": null,
+        "airHeight": 0
+      },
+      "rootStepY": 0.003241056336615207,
+      "bodyPoints": {
+        "hips": [
+          0,
+          0.5243577300386443,
+          0.475
+        ],
+        "chest": [
+          0,
+          0.6143577634172454,
+          0.475
+        ],
+        "head": [
+          0.0001845530987173668,
+          0.8901579324072544,
+          0.4739486415012193
+        ],
+        "handL": [
+          -0.21728534345097145,
+          0.5387704299779509,
+          0.4327253140955357
+        ],
+        "handR": [
+          0.22064188819548444,
+          0.5382509007085605,
+          0.44211208331617746
+        ],
+        "thighL": [
+          -0.07400000095396449,
+          0.5243577300016314,
+          0.4749999993010843
+        ],
+        "kneeL": [
+          -0.07530083604596909,
+          0.3497552727093791,
+          0.42843586841418546
+        ],
+        "ankleL": [
+          -0.0771229711760314,
+          0.12601601485855507,
+          0.48413826235499663
+        ],
+        "thighR": [
+          0.074000000953922,
+          0.5243577300061083,
+          0.47499999930086156
+        ],
+        "kneeR": [
+          0.07530866345418705,
+          0.3465537498524116,
+          0.4427510214684424
+        ],
+        "ankleR": [
+          0.07700153664689294,
+          0.12317597359254323,
+          0.49988776950229286
+        ]
+      },
+      "legAngles": {
+        "L": {
+          "hipFlexDeg": 14.938047426887248,
+          "kneeFlexDeg": 28.911879400918465
+        },
+        "R": {
+          "hipFlexDeg": 10.288476573254744,
+          "kneeFlexDeg": 24.62732225322157
+        }
+      },
+      "blink": {
+        "phase": 0,
+        "weights": {
+          "blink": 0,
+          "blinkHalf": 0
+        },
+        "applied": [
+          {
+            "blink": 0,
+            "blinkHalf": 0
+          },
+          {
+            "blink": 0,
+            "blinkHalf": 0
+          },
+          {
+            "blink": 0,
+            "blinkHalf": 0
+          }
+        ]
+      }
+    },
+    {
+      "scenario": "flat-transitions",
+      "frame": 4,
+      "gait": "walk",
+      "root": [
+        0,
+        0.02098745680520546,
+        0.46249999999999997
+      ],
+      "placement": [
+        0,
+        0.0183,
+        0.46249999999999997
+      ],
+      "feet": [
+        {
+          "foot": "L",
+          "soleY": 0.027,
+          "groundY": 0.0156,
+          "gapM": 0.0114,
+          "supportY": 0.0184,
+          "minShoeGapM": 0.0093,
+          "shiftM": 0,
+          "pitchRad": 0,
+          "correctionM": -0.0004,
+          "pinM": -0.0259,
+          "holdM": 0,
+          "soleX": -0.0772,
+          "soleZ": 0.4596,
+          "stance": true,
+          "pinLatM": 0
+        },
+        {
+          "foot": "R",
+          "soleY": 0.0192,
+          "groundY": 0.0183,
+          "gapM": 0.0009,
+          "supportY": 0.0192,
+          "minShoeGapM": -0.0033,
+          "shiftM": 0,
+          "pitchRad": 0,
+          "correctionM": 0.0004,
+          "pinM": -0.0257,
+          "holdM": 0,
+          "soleX": 0.077,
+          "soleZ": 0.4999,
+          "stance": true,
+          "pinLatM": -0.0001
+        }
+      ],
+      "ik": {
+        "mode": "two-bone",
+        "maxCorrectionM": 0.0004,
+        "rootShiftM": 0.0027,
+        "maxShiftM": 0,
+        "planted": "R",
+        "reachClamped": false,
+        "reachClampedLeg": null,
+        "reachExcessM": 0,
+        "extraDropM": 0,
+        "attackDropM": 0,
+        "maxPinM": 0.0259,
+        "maxHoldM": 0,
+        "blendClips": 2,
+        "hipClampRad": 0,
+        "kneeOutRad": 0
+      },
+      "locomotion": {
+        "speed": 0.75,
+        "clipShift": [
+          0.3789,
+          0,
+          0
+        ],
+        "pins": [
+          null,
+          [
+            0.077,
+            0.4999
+          ]
+        ],
+        "jump": "ground",
+        "jumpAir": 0,
+        "jumpY": null,
+        "airHeight": 0
+      },
+      "rootStepY": 0.002974626929572441,
+      "bodyPoints": {
+        "hips": [
+          0,
+          0.5199487932394892,
+          0.46249999999999997
+        ],
+        "chest": [
+          0,
+          0.6099488266180902,
+          0.46249999999999997
+        ],
+        "head": [
+          0.0001897184414047235,
+          0.8857500410683931,
+          0.4617769189638186
+        ],
+        "handL": [
+          -0.21792469999746386,
+          0.534950001983503,
+          0.42026414828502495
+        ],
+        "handR": [
+          0.2208806818442609,
+          0.5348315354170566,
+          0.42479117959367524
+        ],
+        "thighL": [
+          -0.0740000009542552,
+          0.5199487931676327,
+          0.46249999885225124
+        ],
+        "kneeL": [
+          -0.07525870472999122,
+          0.3517199617801052,
+          0.3965200562578545
+        ],
+        "ankleL": [
+          -0.07714722539042686,
+          0.13094550554141476,
+          0.46300845118086453
+        ],
+        "thighR": [
+          0.07400000095436168,
+          0.5199487931506721,
+          0.46249999885343906
+        ],
+        "kneeR": [
+          0.07531448528086937,
+          0.3424508770131242,
+          0.428607554848954
+        ],
+        "ankleR": [
+          0.07699788256464614,
+          0.1231760664084389,
+          0.4998876542358216
+        ]
+      },
+      "legAngles": {
+        "L": {
+          "hipFlexDeg": 21.41883074423113,
+          "kneeFlexDeg": 38.174401259642
+        },
+        "R": {
+          "hipFlexDeg": 10.818184137858701,
+          "kneeFlexDeg": 28.817359076109973
+        }
+      },
+      "blink": {
+        "phase": 0,
+        "weights": {
+          "blink": 0,
+          "blinkHalf": 0
+        },
+        "applied": [
+          {
+            "blink": 0,
+            "blinkHalf": 0
+          },
+          {
+            "blink": 0,
+            "blinkHalf": 0
+          },
+          {
+            "blink": 0,
+            "blinkHalf": 0
+          }
+        ]
+      }
+    },
+    {
+      "scenario": "flat-transitions",
+      "frame": 5,
+      "gait": "walk",
+      "root": [
+        0,
+        0.022531492409952475,
+        0.44749999999999995
+      ],
+      "placement": [
+        0,
+        0.0183,
+        0.44749999999999995
+      ],
+      "feet": [
+        {
+          "foot": "L",
+          "soleY": 0.0342,
+          "groundY": 0.0156,
+          "gapM": 0.0186,
+          "supportY": 0.0196,
+          "minShoeGapM": 0.0143,
+          "shiftM": 0,
+          "pitchRad": 0,
+          "correctionM": 0.0005,
+          "pinM": -0.0292,
+          "holdM": 0,
+          "soleX": -0.0771,
+          "soleZ": 0.4239,
+          "stance": true,
+          "pinLatM": 0
+        },
+        {
+          "foot": "R",
+          "soleY": 0.0192,
+          "groundY": 0.0183,
+          "gapM": 0.0009,
+          "supportY": 0.0192,
+          "minShoeGapM": -0.0033,
+          "shiftM": 0,
+          "pitchRad": 0,
+          "correctionM": 0.0001,
+          "pinM": -0.0284,
+          "holdM": 0,
+          "soleX": 0.077,
+          "soleZ": 0.4999,
+          "stance": true,
+          "pinLatM": -0.0001
+        }
+      ],
+      "ik": {
+        "mode": "two-bone",
+        "maxCorrectionM": 0.0005,
+        "rootShiftM": 0.0043,
+        "maxShiftM": 0,
+        "planted": "R",
+        "reachClamped": false,
+        "reachClampedLeg": null,
+        "reachExcessM": 0,
+        "extraDropM": 0,
+        "attackDropM": 0,
+        "maxPinM": 0.0292,
+        "maxHoldM": 0,
+        "blendClips": 2,
+        "hipClampRad": 0,
+        "kneeOutRad": 0
+      },
+      "locomotion": {
+        "speed": 0.9,
+        "clipShift": [
+          0.3716,
+          0,
+          0
+        ],
+        "pins": [
+          null,
+          [
+            0.077,
+            0.4999
+          ]
+        ],
+        "jump": "ground",
+        "jumpAir": 0,
+        "jumpY": null,
+        "airHeight": 0
+      },
+      "rootStepY": 0.0015440356047470155,
+      "bodyPoints": {
+        "hips": [
+          0,
+          0.5135281509184483,
+          0.44749999999999995
+        ],
+        "chest": [
+          0,
+          0.6035281842970494,
+          0.44749999999999995
+        ],
+        "head": [
+          0.00019497929019766144,
+          0.8793300385905247,
+          0.447095578946063
+        ],
+        "handL": [
+          -0.21862523452278868,
+          0.5290492154245904,
+          0.4062462781412195
+        ],
+        "handR": [
+          0.2211719531742609,
+          0.5298242131028708,
+          0.40358133515676203
+        ],
+        "thighL": [
+          -0.0740000009544402,
+          0.5135281508264381,
+          0.44749999835298376
+        ],
+        "kneeL": [
+          -0.07518285452539825,
+          0.35686156947901543,
+          0.35744447154639364
+        ],
+        "ankleL": [
+          -0.0771356223450289,
+          0.1380536087454288,
+          0.430144620536436
+        ],
+        "thighR": [
+          0.07400000095494429,
+          0.5135281507588467,
+          0.4474999983581551
+        ],
+        "kneeR": [
+          0.07533368782583671,
+          0.3363428841503068,
+          0.4120104975366673
+        ],
+        "ankleR": [
+          0.07699694502692349,
+          0.12317616548838897,
+          0.49988752549400406
+        ]
+      },
+      "legAngles": {
+        "L": {
+          "hipFlexDeg": 29.893407464385483,
+          "kneeFlexDeg": 48.269294823480664
+        },
+        "R": {
+          "hipFlexDeg": 11.334026994202894,
+          "kneeFlexDeg": 33.72900215965373
+        }
+      },
+      "blink": {
+        "phase": 0.1075,
+        "weights": {
+          "blink": 0,
+          "blinkHalf": 0.215
+        },
+        "applied": [
+          {
+            "blink": 0,
+            "blinkHalf": 0.2149583359380155
+          },
+          {
+            "blink": 0,
+            "blinkHalf": 0.2149583359380155
+          },
+          {
+            "blink": 0,
+            "blinkHalf": 0.2149583359380155
+          }
+        ]
+      }
+    },
+    {
+      "scenario": "flat-transitions",
+      "frame": 6,
+      "gait": "walk",
+      "root": [
+        0,
+        0.022299519098286275,
+        0.42999999999999994
+      ],
+      "placement": [
+        0,
+        0.0183,
+        0.42999999999999994
+      ],
+      "feet": [
+        {
+          "foot": "L",
+          "soleY": 0.0414,
+          "groundY": 0.0172,
+          "gapM": 0.0242,
+          "supportY": 0.0203,
+          "minShoeGapM": 0.0184,
+          "shiftM": 0,
+          "pitchRad": 0,
+          "correctionM": 0.0011,
+          "pinM": -0.0292,
+          "holdM": 0,
+          "soleX": -0.0771,
+          "soleZ": 0.3754,
+          "stance": false,
+          "pinLatM": 0
+        },
+        {
+          "foot": "R",
+          "soleY": 0.0192,
+          "groundY": 0.0183,
+          "gapM": 0.0009,
+          "supportY": 0.0192,
+          "minShoeGapM": -0.0033,
+          "shiftM": 0,
+          "pitchRad": 0,
+          "correctionM": 0,
+          "pinM": -0.0278,
+          "holdM": 0,
+          "soleX": 0.077,
+          "soleZ": 0.4999,
+          "stance": true,
+          "pinLatM": -0.0001
+        }
+      ],
+      "ik": {
+        "mode": "two-bone",
+        "maxCorrectionM": 0.0011,
+        "rootShiftM": 0.004,
+        "maxShiftM": 0,
+        "planted": "R",
+        "reachClamped": false,
+        "reachClampedLeg": null,
+        "reachExcessM": 0,
+        "extraDropM": 0,
+        "attackDropM": 0,
+        "maxPinM": 0.0292,
+        "maxHoldM": 0,
+        "blendClips": 2,
+        "hipClampRad": 0,
+        "kneeOutRad": 0
+      },
+      "locomotion": {
+        "speed": 1.05,
+        "clipShift": [
+          0.3659,
+          0,
+          0
+        ],
+        "pins": [
+          null,
+          [
+            0.077,
+            0.4999
+          ]
+        ],
+        "jump": "ground",
+        "jumpAir": 0,
+        "jumpY": null,
+        "airHeight": 0
+      },
+      "rootStepY": -0.0002319733116661997,
+      "bodyPoints": {
+        "hips": [
+          0,
+          0.5055148169931402,
+          0.42999999999999994
+        ],
+        "chest": [
+          0,
+          0.5955148503717412,
+          0.42999999999999994
+        ],
+        "head": [
+          0.00020035199600825144,
+          0.8713169568318341,
+          0.42986625649627114
+        ],
+        "handL": [
+          -0.21934425860191728,
+          0.5214130798975606,
+          0.3908885058576857
+        ],
+        "handR": [
+          0.22148963017712464,
+          0.5236989865175629,
+          0.37867671172133427
+        ],
+        "thighL": [
+          -0.07400000095444262,
+          0.5055148169027425,
+          0.42999999783857745
+        ],
+        "kneeL": [
+          -0.07508035236905358,
+          0.3650257208251959,
+          0.31634527502403115
+        ],
+        "ankleL": [
+          -0.07709166574875763,
+          0.14492152485210325,
+          0.3850222890533402
+        ],
+        "thighR": [
+          0.07400000095552689,
+          0.5055148167684097,
+          0.429999997848393
+        ],
+        "kneeR": [
+          0.07536869100338625,
+          0.3283095940857649,
+          0.39461213625938074
+        ],
+        "ankleR": [
+          0.07699916513357136,
+          0.1231762518351292,
+          0.4998875747159226
+        ]
+      },
+      "legAngles": {
+        "L": {
+          "hipFlexDeg": 38.973888838760146,
+          "kneeFlexDeg": 56.3001586916911
+        },
+        "R": {
+          "hipFlexDeg": 11.301623723335043,
+          "kneeFlexDeg": 38.45945321117717
+        }
+      },
+      "blink": {
+        "phase": 0.3456,
+        "weights": {
+          "blink": 0,
+          "blinkHalf": 0.6911
+        },
+        "applied": [
+          {
+            "blink": 0,
+            "blinkHalf": 0.6911488121284646
+          },
+          {
+            "blink": 0,
+            "blinkHalf": 0.6911488121284646
+          },
+          {
+            "blink": 0,
+            "blinkHalf": 0.6911488121284646
+          }
+        ]
+      }
+    },
+    {
+      "scenario": "flat-transitions",
+      "frame": 7,
+      "gait": "walk",
+      "root": [
+        0,
+        0.020811229393456275,
+        0.4099999999999999
+      ],
+      "placement": [
+        0,
+        0.0183,
+        0.4099999999999999
+      ],
+      "feet": [
+        {
+          "foot": "L",
+          "soleY": 0.0465,
+          "groundY": 0.0172,
+          "gapM": 0.0294,
+          "supportY": 0.0217,
+          "minShoeGapM": 0.0206,
+          "shiftM": 0,
+          "pitchRad": 0,
+          "correctionM": 0.0025,
+          "pinM": -0.0256,
+          "holdM": 0,
+          "soleX": -0.0771,
+          "soleZ": 0.3188,
+          "stance": false,
+          "pinLatM": 0
+        },
+        {
+          "foot": "R",
+          "soleY": 0.0192,
+          "groundY": 0.0183,
+          "gapM": 0.0009,
+          "supportY": 0.0192,
+          "minShoeGapM": -0.0033,
+          "shiftM": 0,
+          "pitchRad": 0,
+          "correctionM": 0,
+          "pinM": -0.0242,
+          "holdM": 0,
+          "soleX": 0.077,
+          "soleZ": 0.4999,
+          "stance": true,
+          "pinLatM": -0.0001
+        }
+      ],
+      "ik": {
+        "mode": "two-bone",
+        "maxCorrectionM": 0.0025,
+        "rootShiftM": 0.0025,
+        "maxShiftM": 0,
+        "planted": "R",
+        "reachClamped": false,
+        "reachClampedLeg": null,
+        "reachExcessM": 0,
+        "extraDropM": 0,
+        "attackDropM": 0,
+        "maxPinM": 0.0256,
+        "maxHoldM": 0,
+        "blendClips": 2,
+        "hipClampRad": 0,
+        "kneeOutRad": 0
+      },
+      "locomotion": {
+        "speed": 1.2,
+        "clipShift": [
+          0.3617,
+          0,
+          0
+        ],
+        "pins": [
+          null,
+          [
+            0.077,
+            0.4999
+          ]
+        ],
+        "jump": "ground",
+        "jumpAir": 0,
+        "jumpY": null,
+        "airHeight": 0
+      },
+      "rootStepY": -0.0014882897048300002,
+      "bodyPoints": {
+        "hips": [
+          0,
+          0.4973175606905318,
+          0.4099999999999999
+        ],
+        "chest": [
+          0,
+          0.5873175940691329,
+          0.4099999999999999
+        ],
+        "head": [
+          0.0002058664006019329,
+          0.8631197189610146,
+          0.410034855735905
+        ],
+        "handL": [
+          -0.22003798026730081,
+          0.5134091278409458,
+          0.37423165465820535
+        ],
+        "handR": [
+          0.22180385361744528,
+          0.5178563734935263,
+          0.3504514190030139
+        ],
+        "thighL": [
+          -0.07400000095399818,
+          0.49731756065441773,
+          0.40999999734441456
+        ],
+        "kneeL": [
+          -0.07498622691579873,
+          0.37435994893933944,
+          0.27757592060020564
+        ],
+        "ankleL": [
+          -0.07705149801542198,
+          0.14990205733592613,
+          0.3303117409208886
+        ],
+        "thighR": [
+          0.07400000095592048,
+          0.4973175604266393,
+          0.4099999973573131
+        ],
+        "kneeR": [
+          0.07541605221815635,
+          0.3193419403645259,
+          0.378718885630371
+        ],
+        "ankleR": [
+          0.077004380939303,
+          0.12317630547246022,
+          0.49988754113191924
+        ]
+      },
+      "legAngles": {
+        "L": {
+          "hipFlexDeg": 47.12365504358364,
+          "kneeFlexDeg": 60.34313474709083
+        },
+        "R": {
+          "hipFlexDeg": 9.978531029883912,
+          "kneeFlexDeg": 41.6704004591732
+        }
+      },
+      "blink": {
+        "phase": 0.5837,
+        "weights": {
+          "blink": 0.1673,
+          "blinkHalf": 0.8327
+        },
+        "applied": [
+          {
+            "blink": 0.16733928831891354,
+            "blinkHalf": 0.8326607116810865
+          },
+          {
+            "blink": 0.16733928831891354,
+            "blinkHalf": 0.8326607116810865
+          },
+          {
+            "blink": 0.16733928831891354,
+            "blinkHalf": 0.8326607116810865
+          }
+        ]
+      }
+    },
+    {
+      "scenario": "flat-transitions",
+      "frame": 8,
+      "gait": "walk",
+      "root": [
+        0,
+        0.01849821678671379,
+        0.3874999999999999
+      ],
+      "placement": [
+        0,
+        0.0192,
+        0.3874999999999999
+      ],
+      "feet": [
+        {
+          "foot": "L",
+          "soleY": 0.0467,
+          "groundY": 0.0196,
+          "gapM": 0.0271,
+          "supportY": 0.0222,
+          "minShoeGapM": 0.0209,
+          "shiftM": 0,
+          "pitchRad": 0,
+          "correctionM": 0.003,
+          "pinM": -0.0188,
+          "holdM": 0,
+          "soleX": -0.077,
+          "soleZ": 0.2556,
+          "stance": false,
+          "pinLatM": 0
+        },
+        {
+          "foot": "R",
+          "soleY": 0.0192,
+          "groundY": 0.0183,
+          "gapM": 0.0009,
+          "supportY": 0.0192,
+          "minShoeGapM": -0.0033,
+          "shiftM": 0,
+          "pitchRad": 0,
+          "correctionM": 0,
+          "pinM": -0.0183,
+          "holdM": 0,
+          "soleX": 0.077,
+          "soleZ": 0.4999,
+          "stance": true,
+          "pinLatM": -0.0001
+        }
+      ],
+      "ik": {
+        "mode": "two-bone",
+        "maxCorrectionM": 0.003,
+        "rootShiftM": -0.0007,
+        "maxShiftM": 0,
+        "planted": "R",
+        "reachClamped": false,
+        "reachClampedLeg": null,
+        "reachExcessM": 0,
+        "extraDropM": 0,
+        "attackDropM": 0,
+        "maxPinM": 0.0188,
+        "maxHoldM": 0,
+        "blendClips": 2,
+        "hipClampRad": 0,
+        "kneeOutRad": 0
+      },
+      "locomotion": {
+        "speed": 1.35,
+        "clipShift": [
+          0.3591,
+          0,
+          0
+        ],
+        "pins": [
+          null,
+          [
+            0.077,
+            0.4999
+          ]
+        ],
+        "jump": "ground",
+        "jumpAir": 0,
+        "jumpY": null,
+        "airHeight": 0
+      },
+      "rootStepY": -0.002313012606742486,
+      "bodyPoints": {
+        "hips": [
+          0,
+          0.4899564319249059,
+          0.3874999999999999
+        ],
+        "chest": [
+          0,
+          0.579956465303507,
+          0.3874999999999999
+        ],
+        "head": [
+          0.00021154372922273256,
+          0.8557585721537432,
+          0.3875708624373073
+        ],
+        "handL": [
+          -0.22066242639757694,
+          0.5060398432905708,
+          0.3562734032542485
+        ],
+        "handR": [
+          0.22208155953488562,
+          0.513249830517538,
+          0.31929745139093985
+        ],
+        "thighL": [
+          -0.07400000095370389,
+          0.489956431967054,
+          0.3874999969084946
+        ],
+        "kneeL": [
+          -0.07498756924351856,
+          0.3795805673793646,
+          0.24442021627996538
+        ],
+        "ankleL": [
+          -0.0771585416460036,
+          0.1501144586586038,
+          0.2669424866987225
+        ],
+        "thighR": [
+          0.07400000095589886,
+          0.4899564316683949,
+          0.3874999969188673
+        ],
+        "kneeR": [
+          0.0754660384577687,
+          0.31058816474761586,
+          0.3655755140306782
+        ],
+        "ankleR": [
+          0.07700956337581781,
+          0.12317629794490417,
+          0.4998875419036731
+        ]
+      },
+      "legAngles": {
+        "L": {
+          "hipFlexDeg": 52.35303090373059,
+          "kneeFlexDeg": 57.95668673543802
+        },
+        "R": {
+          "hipFlexDeg": 6.9841988961749415,
+          "kneeFlexDeg": 42.595585397070806
+        }
+      },
+      "blink": {
+        "phase": 0.8218,
+        "weights": {
+          "blink": 0.6435,
+          "blinkHalf": 0.3565
+        },
+        "applied": [
+          {
+            "blink": 0.6435297645093627,
+            "blinkHalf": 0.3564702354906373
+          },
+          {
+            "blink": 0.6435297645093627,
+            "blinkHalf": 0.3564702354906373
+          },
+          {
+            "blink": 0.6435297645093627,
+            "blinkHalf": 0.3564702354906373
+          }
+        ]
+      }
+    },
+    {
+      "scenario": "flat-transitions",
+      "frame": 9,
+      "gait": "walk",
+      "root": [
+        0,
+        0.016126411617235076,
+        0.36249999999999993
+      ],
+      "placement": [
+        0,
+        0.0192,
+        0.36249999999999993
+      ],
+      "feet": [
+        {
+          "foot": "L",
+          "soleY": 0.042,
+          "groundY": 0.0215,
+          "gapM": 0.0205,
+          "supportY": 0.0226,
+          "minShoeGapM": 0.0161,
+          "shiftM": 0,
+          "pitchRad": 0,
+          "correctionM": 0.0035,
+          "pinM": -0.003,
+          "holdM": 0,
+          "soleX": -0.077,
+          "soleZ": 0.1833,
+          "stance": false,
+          "pinLatM": 0
+        },
+        {
+          "foot": "R",
+          "soleY": 0.0192,
+          "groundY": 0.0183,
+          "gapM": 0.0009,
+          "supportY": 0.0192,
+          "minShoeGapM": -0.0033,
+          "shiftM": 0,
+          "pitchRad": 0,
+          "correctionM": 0,
+          "pinM": -0.0111,
+          "holdM": 0,
+          "soleX": 0.077,
+          "soleZ": 0.4999,
+          "stance": true,
+          "pinLatM": 0
+        }
+      ],
+      "ik": {
+        "mode": "two-bone",
+        "maxCorrectionM": 0.0035,
+        "rootShiftM": -0.003,
+        "maxShiftM": 0,
+        "planted": "R",
+        "reachClamped": false,
+        "reachClampedLeg": null,
+        "reachExcessM": 0,
+        "extraDropM": 0,
+        "attackDropM": 0,
+        "maxPinM": 0.0111,
+        "maxHoldM": 0,
+        "blendClips": 2,
+        "hipClampRad": 0,
+        "kneeOutRad": 0
+      },
+      "locomotion": {
+        "speed": 1.5,
+        "clipShift": [
+          0.3581,
+          0,
+          0
+        ],
+        "pins": [
+          null,
+          [
+            0.077,
+            0.4999
+          ]
+        ],
+        "jump": "ground",
+        "jumpAir": 0,
+        "jumpY": null,
+        "airHeight": 0
+      },
+      "rootStepY": -0.0023718051694787134,
+      "bodyPoints": {
+        "hips": [
+          0,
+          0.48466117192146985,
+          0.36249999999999993
+        ],
+        "chest": [
+          0,
+          0.5746612053000709,
+          0.36249999999999993
+        ],
+        "head": [
+          0.00021740760717340983,
+          0.8504633057193112,
+          0.3624445569499266
+        ],
+        "handL": [
+          -0.2211740498327189,
+          0.5005461717824107,
+          0.33690937836274804
+        ],
+        "handR": [
+          0.22228715429384496,
+          0.510948926615231,
+          0.28568480328471046
+        ],
+        "thighL": [
+          -0.07400000095285006,
+          0.48466117202612147,
+          0.36249999656574544
+        ],
+        "kneeL": [
+          -0.07496262013014232,
+          0.374632738585285,
+          0.21915277328523283
+        ],
+        "ankleL": [
+          -0.07701574561754074,
+          0.14571120452449454,
+          0.19164214790520345
+        ],
+        "thighR": [
+          0.07400000095536387,
+          0.48466117172545725,
+          0.36249999656974735
+        ],
+        "kneeR": [
+          0.07550309259534345,
+          0.30404549692776445,
+          0.3568868015300563
+        ],
+        "ankleR": [
+          0.07701230962603663,
+          0.12317621213405736,
+          0.4998875196100951
+        ]
+      },
+      "legAngles": {
+        "L": {
+          "hipFlexDeg": 52.49201095577938,
+          "kneeFlexDeg": 45.63794934978711
+        },
+        "R": {
+          "hipFlexDeg": 1.8427448937409696,
+          "kneeFlexDeg": 40.11000112612656
+        }
+      },
+      "blink": {
+        "phase": 1,
+        "weights": {
+          "blink": 1,
+          "blinkHalf": 0
+        },
+        "applied": [
+          {
+            "blink": 1,
+            "blinkHalf": 0
+          },
+          {
+            "blink": 1,
+            "blinkHalf": 0
+          },
+          {
+            "blink": 1,
+            "blinkHalf": 0
+          }
+        ]
+      }
+    },
+    {
+      "scenario": "flat-transitions",
+      "frame": 10,
+      "gait": "walk",
+      "root": [
+        0,
+        0.014405548993237871,
+        0.33583333333333326
+      ],
+      "placement": [
+        0,
+        0.0192,
+        0.33583333333333326
+      ],
+      "feet": [
+        {
+          "foot": "L",
+          "soleY": 0.0342,
+          "groundY": 0.0215,
+          "gapM": 0.0127,
+          "supportY": 0.0227,
+          "minShoeGapM": 0.0094,
+          "shiftM": 0,
+          "pitchRad": 0,
+          "correctionM": 0.0036,
+          "pinM": 0.0205,
+          "holdM": 0,
+          "soleX": -0.077,
+          "soleZ": 0.1089,
+          "stance": false,
+          "pinLatM": 0
+        },
+        {
+          "foot": "R",
+          "soleY": 0.0192,
+          "groundY": 0.0183,
+          "gapM": 0.0009,
+          "supportY": 0.0192,
+          "minShoeGapM": -0.0033,
+          "shiftM": 0,
+          "pitchRad": 0,
+          "correctionM": 0,
+          "pinM": -0.0045,
+          "holdM": 0,
+          "soleX": 0.077,
+          "soleZ": 0.4999,
+          "stance": true,
+          "pinLatM": 0
+        }
+      ],
+      "ik": {
+        "mode": "two-bone",
+        "maxCorrectionM": 0.0036,
+        "rootShiftM": -0.0048,
+        "maxShiftM": 0,
+        "planted": "R",
+        "reachClamped": false,
+        "reachClampedLeg": null,
+        "reachExcessM": 0,
+        "extraDropM": 0,
+        "attackDropM": 0,
+        "maxPinM": 0.0205,
+        "maxHoldM": 0,
+        "blendClips": 2,
+        "hipClampRad": 0,
+        "kneeOutRad": 0
+      },
+      "locomotion": {
+        "speed": 1.6,
+        "clipShift": [
+          0.3581,
+          0,
+          0
+        ],
+        "pins": [
+          null,
+          [
+            0.077,
+            0.4999
+          ]
+        ],
+        "jump": "ground",
+        "jumpAir": 0,
+        "jumpY": null,
+        "airHeight": 0
+      },
+      "rootStepY": -0.0017208626239972047,
+      "bodyPoints": {
+        "hips": [
+          0,
+          0.4814281753397216,
+          0.33583333333333326
+        ],
+        "chest": [
+          0,
+          0.5714282087183227,
+          0.33583333333333326
+        ],
+        "head": [
+          0.0002234633545149772,
+          0.8472300994850928,
+          0.3354954402928547
+        ],
+        "handL": [
+          -0.22153009133500165,
+          0.4969660088919933,
+          0.31670254401899467
+        ],
+        "handR": [
+          0.22238393801848938,
+          0.5106714677217499,
+          0.2510265670178058
+        ],
+        "thighL": [
+          -0.07400000095661435,
+          0.48142817502433977,
+          0.3358333296943242
+        ],
+        "kneeL": [
+          -0.0752222233742543,
+          0.3418792797774159,
+          0.22102770584519893
+        ],
+        "ankleL": [
+          -0.07701323743307989,
+          0.13810104412033014,
+          0.11315766943581022
+        ],
+        "thighR": [
+          0.07400000095452813,
+          0.4814281752366628,
+          0.33583332968213625
+        ],
+        "kneeR": [
+          0.07550981511931186,
+          0.3016291282938739,
+          0.3538836256737278
+        ],
+        "ankleR": [
+          0.07701195130130073,
+          0.12317607622039292,
+          0.4998876377872571
+        ]
+      },
+      "legAngles": {
+        "L": {
+          "hipFlexDeg": 39.4454175096318,
+          "kneeFlexDeg": 11.549148696551862
+        },
+        "R": {
+          "hipFlexDeg": 5.752687131947486,
+          "kneeFlexDeg": 33.5552285469803
+        }
+      },
+      "blink": {
+        "phase": 1,
+        "weights": {
+          "blink": 1,
+          "blinkHalf": 0
+        },
+        "applied": [
+          {
+            "blink": 1,
+            "blinkHalf": 0
+          },
+          {
+            "blink": 1,
+            "blinkHalf": 0
+          },
+          {
+            "blink": 1,
+            "blinkHalf": 0
+          }
+        ]
+      },
+      "shoeSurface": []
+    },
+    {
+      "scenario": "flat-transitions",
+      "frame": 11,
+      "gait": "walk",
+      "root": [
+        0,
+        0.013525177260756818,
+        0.3091666666666666
+      ],
+      "placement": [
+        0,
+        0.0192,
+        0.3091666666666666
+      ],
+      "feet": [
+        {
+          "foot": "L",
+          "soleY": 0.0282,
+          "groundY": 0.0226,
+          "gapM": 0.0056,
+          "supportY": 0.0227,
+          "minShoeGapM": 0.0056,
+          "shiftM": 0,
+          "pitchRad": 0,
+          "correctionM": 0.0036,
+          "pinM": 0.0079,
+          "holdM": 0,
+          "soleX": -0.077,
+          "soleZ": 0.0854,
+          "stance": false,
+          "pinLatM": 0
+        },
+        {
+          "foot": "R",
+          "soleY": 0.0192,
+          "groundY": 0.0183,
+          "gapM": 0.0009,
+          "supportY": 0.0192,
+          "minShoeGapM": -0.0033,
+          "shiftM": 0,
+          "pitchRad": 0,
+          "correctionM": 0,
+          "pinM": -0.0023,
+          "holdM": 0,
+          "soleX": 0.077,
+          "soleZ": 0.4999,
+          "stance": true,
+          "pinLatM": 0
+        }
+      ],
+      "ik": {
+        "mode": "two-bone",
+        "maxCorrectionM": 0.0036,
+        "rootShiftM": -0.0057,
+        "maxShiftM": 0,
+        "planted": "R",
+        "reachClamped": false,
+        "reachClampedLeg": null,
+        "reachExcessM": 0,
+        "extraDropM": 0,
+        "attackDropM": 0,
+        "maxPinM": 0.0079,
+        "maxHoldM": 0,
+        "blendClips": 1,
+        "hipClampRad": 0,
+        "kneeOutRad": 0
+      },
+      "locomotion": {
+        "speed": 1.6,
+        "clipShift": [
+          0.3581,
+          0,
+          0
+        ],
+        "pins": [
+          null,
+          [
+            0.077,
+            0.4999
+          ]
+        ],
+        "jump": "ground",
+        "jumpAir": 0,
+        "jumpY": null,
+        "airHeight": 0
+      },
+      "rootStepY": -0.0008803717324810528,
+      "bodyPoints": {
+        "hips": [
+          0,
+          0.4756278904448101,
+          0.3091666666666666
+        ],
+        "chest": [
+          0,
+          0.5656279238234112,
+          0.3091666666666666
+        ],
+        "head": [
+          0.00022969591164588338,
+          0.8414290875931313,
+          0.30845122393922125
+        ],
+        "handL": [
+          -0.22169273008771734,
+          0.4907237556863028,
+          0.2968738659009342
+        ],
+        "handR": [
+          0.22234025927747855,
+          0.5074104132263755,
+          0.21763515493884988
+        ],
+        "thighL": [
+          -0.07400000095411022,
+          0.4756278904122955,
+          0.30916666295609246
+        ],
+        "kneeL": [
+          -0.07522050123911739,
+          0.33601302559774704,
+          0.19444165423141685
+        ],
+        "ankleL": [
+          -0.07700003644219029,
+          0.1321721141471053,
+          0.08668980068678764
+        ],
+        "thighR": [
+          0.07400000095419505,
+          0.47562789037830794,
+          0.309166662956546
+        ],
+        "kneeR": [
+          0.07549909426715327,
+          0.3000767840585903,
+          0.3520076772058606
+        ],
+        "ankleR": [
+          0.07701177998586316,
+          0.12317601447872237,
+          0.4998876703425644
+        ]
+      },
+      "legAngles": {
+        "L": {
+          "hipFlexDeg": 39.412386872090856,
+          "kneeFlexDeg": 11.549354520820854
+        },
+        "R": {
+          "hipFlexDeg": 13.722329091929788,
+          "kneeFlexDeg": 26.17909555256677
+        }
+      },
+      "blink": {
+        "phase": 0.9373,
+        "weights": {
+          "blink": 0.8746,
+          "blinkHalf": 0.1254
+        },
+        "applied": [
+          {
+            "blink": 0.8746076373695857,
+            "blinkHalf": 0.1253923626304143
+          },
+          {
+            "blink": 0.8746076373695857,
+            "blinkHalf": 0.1253923626304143
+          },
+          {
+            "blink": 0.8746076373695857,
+            "blinkHalf": 0.1253923626304143
+          }
+        ]
+      }
+    }
+  ],
+  "images": [
+    "flat-transitions-12.png"
+  ],
+  "errors": [],
+  "bundles": {
+    "index-BjbkTnJJ.js": "2ff757fe717e3c35e844396b51d3520e835106522159dae554104b362fe242a3"
+  },
+  "measurement_core_sha256": "9edde002b066a9a05676a6127f67735b62baf399bdea529f2f7e31657da769e6",
+  "browserVersion": "Chrome/153.0.8010.52",
+  "browserStderr": "[32336:464:0920/010215.783:ERROR:chrome\\updater\\ipc\\update_service_dialer_win.cc:75] Failed to open named pipe server process 26408: Zugriff verweigert (0x5)\r\n[32336:9728:0920/010215.788:ERROR:chrome\\updater\\ipc\\update_service_dialer_win.cc:75] Failed to open named pipe server process 26408: Zugriff verweigert (0x5)\r\n[32336:464:0920/010218.025:ERROR:chrome\\updater\\ipc\\update_service_dialer_win.cc:75] Failed to open named pipe server process 27680: Zugriff verweigert (0x5)\r\n[32336:9728:0920/010218.237:ERROR:chrome\\updater\\ipc\\update_service_dialer_win.cc:75] Failed to open named pipe server process 23528: Zugriff verweigert (0x5)\r\n[32336:464:0920/010220.521:ERROR:chrome\\updater\\ipc\\update_service_dialer_win.cc:75] Failed to open named pipe server process 27408: Zugriff verweigert (0x5)\r\n[32336:9728:0920/010220.740:ERROR:chrome\\updater\\ipc\\update_service_dialer_win.cc:75] Failed to open named pipe server process 42916: Zugriff verweigert (0x5)\r\n[32336:50136:0920/010347.990:ERROR:google_apis\\gcm\\engine\\registration_request.cc:291] Registration response error message: DEPRECATED_ENDPOINT\r\n[32336:50136:0920/010348.018:ERROR:google_apis\\gcm\\engine\\registration_request.cc:291] Registration response error message: PHONE_REGISTRATION_ERROR\r\n[32336:50136:0920/010348.079:ERROR:google_apis\\gcm\\engine\\mcs_client.cc:702]   Error code: 401  Error message: Authentication Failed: wrong_secret\r\n[32336:50136:0920/010348.079:ERROR:google_apis\\gcm\\engine\\mcs_client.cc:704] Failed to log in to GCM, resetting connection.\r\n[32336:50136:0920/010414.649:ERROR:google_apis\\gcm\\engine\\registration_request.cc:291] Registration response error message: DEPRECATED_ENDPOINT\r\n[32336:50136:0920/010456.470:ERROR:google_apis\\gcm\\engine\\registration_request.cc:291] Registration response error message: DEPRECATED_ENDPOINT\r\n[32336:50136:0920/010655.032:ERROR:google_apis\\gcm\\engine\\registration_request.cc:291] Registration response error message: DEPRECATED_ENDPOINT\r\n",
+  "console": [
+    {
+      "type": "warn",
+      "text": "THREE.WebGLProgram: Program Info Log: (210,81-129): warning X4122: sum of 0.996094 and -2.98545e-017 cannot be represented accurately in double precision\n(209,37-61): warning X4122: sum of 1 and -1.49272e-017 cannot be represented accurately in double precision\n(210,82-106): warning X4122: sum of 1 and -1.49272e-017 cannot be represented accurately in double precision\n(209,37-61): warning X4122: sum of 1 and -1.66644e-018 cannot be represented accurately in double precision\n(210,82-106): warning X4122: sum of 1 and -1.66644e-018 cannot be represented accurately in double precision"
+    },
+    {
+      "type": "info",
+      "text": "[world] lighting ready in 1597 ms"
+    },
+    {
+      "type": "info",
+      "text": "[world] atmosphere ready in 83 ms"
+    },
+    {
+      "type": "info",
+      "text": "[world] terrain ready in 18052 ms"
+    },
+    {
+      "type": "info",
+      "text": "[world] hardscape ready in 11257 ms"
+    },
+    {
+      "type": "info",
+      "text": "[world] rocks ready in 17701 ms"
+    },
+    {
+      "type": "info",
+      "text": "[world] trees ready in 19143 ms"
+    },
+    {
+      "type": "info",
+      "text": "[world] canopy ready in 143 ms"
+    },
+    {
+      "type": "info",
+      "text": "[world] structures ready in 27064 ms"
+    },
+    {
+      "type": "info",
+      "text": "[world] props ready in 129 ms"
+    },
+    {
+      "type": "warn",
+      "text": "Canvas2D: Multiple readback operations using getImageData are faster with the willReadFrequently attribute set to true. See: https://html.spec.whatwg.org/multipage/canvas.html#concept-canvas-will-read-frequently"
+    },
+    {
+      "type": "info",
+      "text": "[world] vegetation ready in 44113 ms"
+    },
+    {
+      "type": "info",
+      "text": "[world] character ready in 2519 ms"
+    },
+    {
+      "type": "warn",
+      "text": "THREE.WebGLProgram: Program Info Log: (490,12-86): warning X3595: gradient instruction used in a loop with varying iteration; partial derivatives may have undefined value\n(490,12-86): warning X3595: gradient instruction used in a loop with varying iteration; partial derivatives may have undefined value\n(1019,1): warning X4000: use of potentially uninitialized variable (f_getShadow_float4)"
+    },
+    {
+      "type": "warn",
+      "text": "THREE.WebGLProgram: Program Info Log: (546,12-86): warning X3595: gradient instruction used in a loop with varying iteration; partial derivatives may have undefined value\n(546,12-86): warning X3595: gradient instruction used in a loop with varying iteration; partial derivatives may have undefined value\n(1502,1): warning X4000: use of potentially uninitialized variable (f_getShadow_float4)"
+    },
+    {
+      "type": "warn",
+      "text": "THREE.WebGLProgram: Program Info Log: (531,12-86): warning X3595: gradient instruction used in a loop with varying iteration; partial derivatives may have undefined value\n(531,12-86): warning X3595: gradient instruction used in a loop with varying iteration; partial derivatives may have undefined value\n(1086,1): warning X4000: use of potentially uninitialized variable (f_getShadow_float4)"
+    },
+    {
+      "type": "warn",
+      "text": "THREE.WebGLProgram: Program Info Log: (513,12-86): warning X3595: gradient instruction used in a loop with varying iteration; partial derivatives may have undefined value\n(513,12-86): warning X3595: gradient instruction used in a loop with varying iteration; partial derivatives may have undefined value\n(1041,1): warning X4000: use of potentially uninitialized variable (f_getShadow_float4)"
+    },
+    {
+      "type": "warn",
+      "text": "THREE.WebGLProgram: Program Info Log: (489,12-86): warning X3595: gradient instruction used in a loop with varying iteration; partial derivatives may have undefined value\n(489,12-86): warning X3595: gradient instruction used in a loop with varying iteration; partial derivatives may have undefined value\n(1017,1): warning X4000: use of potentially uninitialized variable (f_getShadow_float4)"
+    },
+    {
+      "type": "warn",
+      "text": "THREE.WebGLProgram: Program Info Log: (492,12-86): warning X3595: gradient instruction used in a loop with varying iteration; partial derivatives may have undefined value\n(492,12-86): warning X3595: gradient instruction used in a loop with varying iteration; partial derivatives may have undefined value\n(1021,1): warning X4000: use of potentially uninitialized variable (f_getShadow_float4)"
+    },
+    {
+      "type": "warn",
+      "text": "THREE.WebGLProgram: Program Info Log: (514,12-86): warning X3595: gradient instruction used in a loop with varying iteration; partial derivatives may have undefined value\n(514,12-86): warning X3595: gradient instruction used in a loop with varying iteration; partial derivatives may have undefined value\n(1058,1): warning X4000: use of potentially uninitialized variable (f_getShadow_float4)"
+    },
+    {
+      "type": "warn",
+      "text": "THREE.WebGLProgram: Program Info Log: (519,12-86): warning X3595: gradient instruction used in a loop with varying iteration; partial derivatives may have undefined value\n(519,12-86): warning X3595: gradient instruction used in a loop with varying iteration; partial derivatives may have undefined value\n(1063,1): warning X4000: use of potentially uninitialized variable (f_getShadow_float4)"
+    },
+    {
+      "type": "warn",
+      "text": "THREE.WebGLProgram: Program Info Log: (546,12-86): warning X3595: gradient instruction used in a loop with varying iteration; partial derivatives may have undefined value\n(546,12-86): warning X3595: gradient instruction used in a loop with varying iteration; partial derivatives may have undefined value\n(1116,1): warning X4000: use of potentially uninitialized variable (f_getShadow_float4)"
+    },
+    {
+      "type": "warn",
+      "text": "THREE.WebGLProgram: Program Info Log: (548,12-86): warning X3595: gradient instruction used in a loop with varying iteration; partial derivatives may have undefined value\n(548,12-86): warning X3595: gradient instruction used in a loop with varying iteration; partial derivatives may have undefined value\n(1122,1): warning X4000: use of potentially uninitialized variable (f_getShadow_float4)"
+    },
+    {
+      "type": "warn",
+      "text": "THREE.WebGLProgram: Program Info Log: (548,12-86): warning X3595: gradient instruction used in a loop with varying iteration; partial derivatives may have undefined value\n(548,12-86): warning X3595: gradient instruction used in a loop with varying iteration; partial derivatives may have undefined value\n(1122,1): warning X4000: use of potentially uninitialized variable (f_getShadow_float4)"
+    },
+    {
+      "type": "warn",
+      "text": "THREE.WebGLProgram: Program Info Log: (549,12-86): warning X3595: gradient instruction used in a loop with varying iteration; partial derivatives may have undefined value\n(549,12-86): warning X3595: gradient instruction used in a loop with varying iteration; partial derivatives may have undefined value\n(1123,1): warning X4000: use of potentially uninitialized variable (f_getShadow_float4)"
+    },
+    {
+      "type": "warn",
+      "text": "THREE.WebGLProgram: Program Info Log: (525,12-86): warning X3595: gradient instruction used in a loop with varying iteration; partial derivatives may have undefined value\n(525,12-86): warning X3595: gradient instruction used in a loop with varying iteration; partial derivatives may have undefined value\n(1086,1): warning X4000: use of potentially uninitialized variable (f_getShadow_float4)"
+    },
+    {
+      "type": "warn",
+      "text": "THREE.WebGLProgram: Program Info Log: (516,12-86): warning X3595: gradient instruction used in a loop with varying iteration; partial derivatives may have undefined value\n(516,12-86): warning X3595: gradient instruction used in a loop with varying iteration; partial derivatives may have undefined value\n(1057,1): warning X4000: use of potentially uninitialized variable (f_getShadow_float4)"
+    },
+    {
+      "type": "warn",
+      "text": "THREE.WebGLProgram: Program Info Log: (505,12-86): warning X3595: gradient instruction used in a loop with varying iteration; partial derivatives may have undefined value\n(505,12-86): warning X3595: gradient instruction used in a loop with varying iteration; partial derivatives may have undefined value\n(1039,1): warning X4000: use of potentially uninitialized variable (f_getShadow_float4)"
+    },
+    {
+      "type": "warn",
+      "text": "THREE.WebGLProgram: Program Info Log: (513,12-86): warning X3595: gradient instruction used in a loop with varying iteration; partial derivatives may have undefined value\n(513,12-86): warning X3595: gradient instruction used in a loop with varying iteration; partial derivatives may have undefined value\n(1041,1): warning X4000: use of potentially uninitialized variable (f_getShadow_float4)"
+    },
+    {
+      "type": "warn",
+      "text": "THREE.WebGLProgram: Program Info Log: (510,12-86): warning X3595: gradient instruction used in a loop with varying iteration; partial derivatives may have undefined value\n(510,12-86): warning X3595: gradient instruction used in a loop with varying iteration; partial derivatives may have undefined value\n(1038,1): warning X4000: use of potentially uninitialized variable (f_getShadow_float4)"
+    },
+    {
+      "type": "warn",
+      "text": "THREE.WebGLProgram: Program Info Log: (503,12-86): warning X3595: gradient instruction used in a loop with varying iteration; partial derivatives may have undefined value\n(503,12-86): warning X3595: gradient instruction used in a loop with varying iteration; partial derivatives may have undefined value\n(1031,1): warning X4000: use of potentially uninitialized variable (f_getShadow_float4)"
+    },
+    {
+      "type": "warn",
+      "text": "THREE.WebGLProgram: Program Info Log: (501,12-86): warning X3595: gradient instruction used in a loop with varying iteration; partial derivatives may have undefined value\n(501,12-86): warning X3595: gradient instruction used in a loop with varying iteration; partial derivatives may have undefined value\n(1029,1): warning X4000: use of potentially uninitialized variable (f_getShadow_float4)"
+    },
+    {
+      "type": "warn",
+      "text": "THREE.WebGLProgram: Program Info Log: (504,12-86): warning X3595: gradient instruction used in a loop with varying iteration; partial derivatives may have undefined value\n(504,12-86): warning X3595: gradient instruction used in a loop with varying iteration; partial derivatives may have undefined value\n(1033,1): warning X4000: use of potentially uninitialized variable (f_getShadow_float4)"
+    },
+    {
+      "type": "warn",
+      "text": "THREE.WebGLProgram: Program Info Log: (508,12-86): warning X3595: gradient instruction used in a loop with varying iteration; partial derivatives may have undefined value\n(508,12-86): warning X3595: gradient instruction used in a loop with varying iteration; partial derivatives may have undefined value\n(1037,1): warning X4000: use of potentially uninitialized variable (f_getShadow_float4)"
+    },
+    {
+      "type": "warn",
+      "text": "THREE.WebGLProgram: Program Info Log: (495,12-86): warning X3595: gradient instruction used in a loop with varying iteration; partial derivatives may have undefined value\n(495,12-86): warning X3595: gradient instruction used in a loop with varying iteration; partial derivatives may have undefined value\n(1024,1): warning X4000: use of potentially uninitialized variable (f_getShadow_float4)"
+    },
+    {
+      "type": "warn",
+      "text": "THREE.WebGLProgram: Program Info Log: (487,12-86): warning X3595: gradient instruction used in a loop with varying iteration; partial derivatives may have undefined value\n(487,12-86): warning X3595: gradient instruction used in a loop with varying iteration; partial derivatives may have undefined value\n(1015,1): warning X4000: use of potentially uninitialized variable (f_getShadow_float4)"
+    },
+    {
+      "type": "warn",
+      "text": "THREE.WebGLProgram: Program Info Log: (497,12-86): warning X3595: gradient instruction used in a loop with varying iteration; partial derivatives may have undefined value\n(497,12-86): warning X3595: gradient instruction used in a loop with varying iteration; partial derivatives may have undefined value\n(1025,1): warning X4000: use of potentially uninitialized variable (f_getShadow_float4)"
+    },
+    {
+      "type": "warn",
+      "text": "THREE.WebGLProgram: Program Info Log: (510,12-86): warning X3595: gradient instruction used in a loop with varying iteration; partial derivatives may have undefined value\n(510,12-86): warning X3595: gradient instruction used in a loop with varying iteration; partial derivatives may have undefined value\n(1038,1): warning X4000: use of potentially uninitialized variable (f_getShadow_float4)"
+    },
+    {
+      "type": "warn",
+      "text": "THREE.WebGLProgram: Program Info Log: (500,12-86): warning X3595: gradient instruction used in a loop with varying iteration; partial derivatives may have undefined value\n(500,12-86): warning X3595: gradient instruction used in a loop with varying iteration; partial derivatives may have undefined value\n(1028,1): warning X4000: use of potentially uninitialized variable (f_getShadow_float4)"
+    },
+    {
+      "type": "warn",
+      "text": "THREE.WebGLProgram: Program Info Log: (501,12-86): warning X3595: gradient instruction used in a loop with varying iteration; partial derivatives may have undefined value\n(501,12-86): warning X3595: gradient instruction used in a loop with varying iteration; partial derivatives may have undefined value\n(1029,1): warning X4000: use of potentially uninitialized variable (f_getShadow_float4)"
+    },
+    {
+      "type": "warn",
+      "text": "THREE.WebGLProgram: Program Info Log: (503,12-86): warning X3595: gradient instruction used in a loop with varying iteration; partial derivatives may have undefined value\n(503,12-86): warning X3595: gradient instruction used in a loop with varying iteration; partial derivatives may have undefined value\n(1032,1): warning X4000: use of potentially uninitialized variable (f_getShadow_float4)"
+    },
+    {
+      "type": "warn",
+      "text": "THREE.WebGLProgram: Program Info Log: (500,12-86): warning X3595: gradient instruction used in a loop with varying iteration; partial derivatives may have undefined value\n(500,12-86): warning X3595: gradient instruction used in a loop with varying iteration; partial derivatives may have undefined value\n(1029,1): warning X4000: use of potentially uninitialized variable (f_getShadow_float4)"
+    },
+    {
+      "type": "warn",
+      "text": "THREE.WebGLProgram: Program Info Log: (504,12-86): warning X3595: gradient instruction used in a loop with varying iteration; partial derivatives may have undefined value\n(504,12-86): warning X3595: gradient instruction used in a loop with varying iteration; partial derivatives may have undefined value\n(1033,1): warning X4000: use of potentially uninitialized variable (f_getShadow_float4)"
+    },
+    {
+      "type": "warn",
+      "text": "THREE.WebGLProgram: Program Info Log: (495,12-86): warning X3595: gradient instruction used in a loop with varying iteration; partial derivatives may have undefined value\n(495,12-86): warning X3595: gradient instruction used in a loop with varying iteration; partial derivatives may have undefined value\n(1024,1): warning X4000: use of potentially uninitialized variable (f_getShadow_float4)"
+    },
+    {
+      "type": "warn",
+      "text": "THREE.WebGLProgram: Program Info Log: (487,12-86): warning X3595: gradient instruction used in a loop with varying iteration; partial derivatives may have undefined value\n(487,12-86): warning X3595: gradient instruction used in a loop with varying iteration; partial derivatives may have undefined value\n(1015,1): warning X4000: use of potentially uninitialized variable (f_getShadow_float4)"
+    },
+    {
+      "type": "warn",
+      "text": "THREE.WebGLProgram: Program Info Log: (520,12-86): warning X3595: gradient instruction used in a loop with varying iteration; partial derivatives may have undefined value\n(520,12-86): warning X3595: gradient instruction used in a loop with varying iteration; partial derivatives may have undefined value\n(1050,1): warning X4000: use of potentially uninitialized variable (f_getShadow_float4)"
+    },
+    {
+      "type": "warn",
+      "text": "THREE.WebGLProgram: Program Info Log: (495,12-86): warning X3595: gradient instruction used in a loop with varying iteration; partial derivatives may have undefined value\n(495,12-86): warning X3595: gradient instruction used in a loop with varying iteration; partial derivatives may have undefined value\n(1024,1): warning X4000: use of potentially uninitialized variable (f_getShadow_float4)"
+    },
+    {
+      "type": "warn",
+      "text": "THREE.WebGLProgram: Program Info Log: (487,12-86): warning X3595: gradient instruction used in a loop with varying iteration; partial derivatives may have undefined value\n(487,12-86): warning X3595: gradient instruction used in a loop with varying iteration; partial derivatives may have undefined value\n(1015,1): warning X4000: use of potentially uninitialized variable (f_getShadow_float4)"
+    },
+    {
+      "type": "warn",
+      "text": "THREE.WebGLProgram: Program Info Log: (500,12-86): warning X3595: gradient instruction used in a loop with varying iteration; partial derivatives may have undefined value\n(500,12-86): warning X3595: gradient instruction used in a loop with varying iteration; partial derivatives may have undefined value\n(1029,1): warning X4000: use of potentially uninitialized variable (f_getShadow_float4)"
+    },
+    {
+      "type": "warn",
+      "text": "THREE.WebGLProgram: Program Info Log: (498,12-86): warning X3595: gradient instruction used in a loop with varying iteration; partial derivatives may have undefined value\n(498,12-86): warning X3595: gradient instruction used in a loop with varying iteration; partial derivatives may have undefined value\n(1027,1): warning X4000: use of potentially uninitialized variable (f_getShadow_float4)"
+    },
+    {
+      "type": "warn",
+      "text": "THREE.WebGLProgram: Program Info Log: (509,12-86): warning X3595: gradient instruction used in a loop with varying iteration; partial derivatives may have undefined value\n(509,12-86): warning X3595: gradient instruction used in a loop with varying iteration; partial derivatives may have undefined value\n(1038,1): warning X4000: use of potentially uninitialized variable (f_getShadow_float4)"
+    },
+    {
+      "type": "warn",
+      "text": "THREE.WebGLProgram: Program Info Log: (509,12-86): warning X3595: gradient instruction used in a loop with varying iteration; partial derivatives may have undefined value\n(509,12-86): warning X3595: gradient instruction used in a loop with varying iteration; partial derivatives may have undefined value\n(1038,1): warning X4000: use of potentially uninitialized variable (f_getShadow_float4)"
+    },
+    {
+      "type": "warn",
+      "text": "THREE.WebGLProgram: Program Info Log: (498,12-86): warning X3595: gradient instruction used in a loop with varying iteration; partial derivatives may have undefined value\n(498,12-86): warning X3595: gradient instruction used in a loop with varying iteration; partial derivatives may have undefined value\n(1027,1): warning X4000: use of potentially uninitialized variable (f_getShadow_float4)"
+    },
+    {
+      "type": "warn",
+      "text": "THREE.WebGLProgram: Program Info Log: (499,12-86): warning X3595: gradient instruction used in a loop with varying iteration; partial derivatives may have undefined value\n(499,12-86): warning X3595: gradient instruction used in a loop with varying iteration; partial derivatives may have undefined value\n(1028,1): warning X4000: use of potentially uninitialized variable (f_getShadow_float4)"
+    },
+    {
+      "type": "warn",
+      "text": "THREE.WebGLProgram: Program Info Log: (498,12-86): warning X3595: gradient instruction used in a loop with varying iteration; partial derivatives may have undefined value\n(498,12-86): warning X3595: gradient instruction used in a loop with varying iteration; partial derivatives may have undefined value\n(1027,1): warning X4000: use of potentially uninitialized variable (f_getShadow_float4)"
+    },
+    {
+      "type": "warn",
+      "text": "THREE.WebGLProgram: Program Info Log: (499,12-86): warning X3595: gradient instruction used in a loop with varying iteration; partial derivatives may have undefined value\n(499,12-86): warning X3595: gradient instruction used in a loop with varying iteration; partial derivatives may have undefined value\n(1028,1): warning X4000: use of potentially uninitialized variable (f_getShadow_float4)"
+    },
+    {
+      "type": "warn",
+      "text": "THREE.WebGLProgram: Program Info Log: (503,12-86): warning X3595: gradient instruction used in a loop with varying iteration; partial derivatives may have undefined value\n(503,12-86): warning X3595: gradient instruction used in a loop with varying iteration; partial derivatives may have undefined value\n(1045,1): warning X4000: use of potentially uninitialized variable (f_getShadow_float4)"
+    },
+    {
+      "type": "warn",
+      "text": "THREE.WebGLProgram: Program Info Log: (498,12-86): warning X3595: gradient instruction used in a loop with varying iteration; partial derivatives may have undefined value\n(498,12-86): warning X3595: gradient instruction used in a loop with varying iteration; partial derivatives may have undefined value\n(1027,1): warning X4000: use of potentially uninitialized variable (f_getShadow_float4)"
+    },
+    {
+      "type": "warn",
+      "text": "THREE.WebGLProgram: Program Info Log: (488,12-86): warning X3595: gradient instruction used in a loop with varying iteration; partial derivatives may have undefined value\n(488,12-86): warning X3595: gradient instruction used in a loop with varying iteration; partial derivatives may have undefined value\n(1017,1): warning X4000: use of potentially uninitialized variable (f_getShadow_float4)"
+    },
+    {
+      "type": "warn",
+      "text": "THREE.WebGLProgram: Program Info Log: (491,12-86): warning X3595: gradient instruction used in a loop with varying iteration; partial derivatives may have undefined value\n(491,12-86): warning X3595: gradient instruction used in a loop with varying iteration; partial derivatives may have undefined value\n(1020,1): warning X4000: use of potentially uninitialized variable (f_getShadow_float4)"
+    },
+    {
+      "type": "warn",
+      "text": "THREE.WebGLProgram: Program Info Log: (542,12-86): warning X3595: gradient instruction used in a loop with varying iteration; partial derivatives may have undefined value\n(542,12-86): warning X3595: gradient instruction used in a loop with varying iteration; partial derivatives may have undefined value\n(1099,1): warning X4000: use of potentially uninitialized variable (f_getShadow_float4)"
+    },
+    {
+      "type": "warn",
+      "text": "THREE.WebGLProgram: Program Info Log: (509,12-86): warning X3595: gradient instruction used in a loop with varying iteration; partial derivatives may have undefined value\n(509,12-86): warning X3595: gradient instruction used in a loop with varying iteration; partial derivatives may have undefined value\n(1038,1): warning X4000: use of potentially uninitialized variable (f_getShadow_float4)"
+    },
+    {
+      "type": "warn",
+      "text": "THREE.WebGLProgram: Program Info Log: (492,12-86): warning X3595: gradient instruction used in a loop with varying iteration; partial derivatives may have undefined value\n(492,12-86): warning X3595: gradient instruction used in a loop with varying iteration; partial derivatives may have undefined value\n(1020,1): warning X4000: use of potentially uninitialized variable (f_getShadow_float4)"
+    },
+    {
+      "type": "warn",
+      "text": "THREE.WebGLProgram: Program Info Log: (503,12-86): warning X3595: gradient instruction used in a loop with varying iteration; partial derivatives may have undefined value\n(503,12-86): warning X3595: gradient instruction used in a loop with varying iteration; partial derivatives may have undefined value\n(1037,1): warning X4000: use of potentially uninitialized variable (f_getShadow_float4)"
+    },
+    {
+      "type": "warn",
+      "text": "THREE.WebGLProgram: Program Info Log: (503,12-86): warning X3595: gradient instruction used in a loop with varying iteration; partial derivatives may have undefined value\n(503,12-86): warning X3595: gradient instruction used in a loop with varying iteration; partial derivatives may have undefined value\n(1037,1): warning X4000: use of potentially uninitialized variable (f_getShadow_float4)"
+    },
+    {
+      "type": "warn",
+      "text": "THREE.WebGLProgram: Program Info Log: (61,12-86): warning X3595: gradient instruction used in a loop with varying iteration; partial derivatives may have undefined value\n(61,12-86): warning X3595: gradient instruction used in a loop with varying iteration; partial derivatives may have undefined value\n(61,12-86): warning X3595: gradient instruction used in a loop with varying iteration; partial derivatives may have undefined value\n(61,12-86): warning X3595: gradient instruction used in a loop with varying iteration; partial derivatives may have undefined value\n(61,12-86): warning X3595: gradient instruction used in a loop with varying iteration; partial derivatives may have undefined value\n(61,12-86): warning X3595: gradient instruction used in a loop with varying iteration; partial derivatives may have undefined value\n(61,12-86): warning X3595: gradient instruction used in a loop with varying iteration; partial derivatives may have undefined value\n(61,12-86): warning X3595: gradient instruction used in a loop with varying iteration; partial derivatives may have undefined value"
+    },
+    {
+      "type": "warn",
+      "text": "THREE.WebGLProgram: Program Info Log: (198,12-86): warning X3595: gradient instruction used in a loop with varying iteration; partial derivatives may have undefined value\n(198,12-86): warning X3595: gradient instruction used in a loop with varying iteration; partial derivatives may have undefined value\n(419,1): warning X4000: use of potentially uninitialized variable (f_ApplyFXAA)"
+    },
+    {
+      "type": "warn",
+      "text": "THREE.WARNING: Multiple instances of Three.js being imported."
+    },
+    {
+      "type": "warn",
+      "text": "THREE.WebGLProgram: Program Info Log: (555,12-86): warning X3595: gradient instruction used in a loop with varying iteration; partial derivatives may have undefined value\n(555,12-86): warning X3595: gradient instruction used in a loop with varying iteration; partial derivatives may have undefined value\n(1132,1): warning X4000: use of potentially uninitialized variable (f_getShadow_float4)"
+    }
+  ],
+  "failedRequests": [
+    {
+      "url": "http://127.0.0.1:62934/models/link/link-runtime.glb",
+      "error": "net::ERR_ABORTED"
+    }
+  ],
+  "glbResponse": {
+    "status": 200,
+    "headers": {
+      "cache-control": "no-store",
+      "connection": "close",
+      "content-length": "41177288",
+      "content-type": "model/gltf-binary",
+      "date": "Sat, 19 Sep 2026 23:04:17 GMT"
+    }
+  },
+  "pendingRequests": [],
+  "setup": {
+    "markers": {
+      "L": [
+        55951,
+        56668,
+        56513,
+        56659
+      ],
+      "R": [
+        49727,
+        49527,
+        49742,
+        49776
+      ]
+    },
+    "stairMeshes": [
+      "stairs-main",
+      "stairs-house-west",
+      "stairs-ledge"
+    ],
+    "character": {
+      "link": true,
+      "linkSource": "glb",
+      "linkAsset": {
+        "file": "models/link/link-runtime.glb",
+        "sha256": "2459112603a935a038dd06a67de85d5c5e28c72188f50ebd4d6e304af236bfa4",
+        "triangles": 70442,
+        "materials": 4,
+        "bones": 19,
+        "clips": [
+          {
+            "name": "idle",
+            "durationS": 3,
+            "strideM": 0,
+            "rate": 1,
+            "swings": {
+              "L": [],
+              "R": []
+            },
+            "plantedS": {
+              "L": 0,
+              "R": 0
+            },
+            "leadS": {
+              "L": 0,
+              "R": 0
+            },
+            "startPhase": 0.5
+          },
+          {
+            "name": "walk",
+            "durationS": 0.55,
+            "strideM": 0.88,
+            "rate": 1,
+            "swings": {
+              "L": [
+                [
+                  0.2635,
+                  0.55
+                ]
+              ],
+              "R": [
+                [
+                  0.5443,
+                  0.8193
+                ]
+              ]
+            },
+            "plantedS": {
+              "L": 0.2693,
+              "R": 0.2635
+            },
+            "leadS": {
+              "L": 0.0688,
+              "R": 0.0688
+            },
+            "startPhase": 0.5009
+          },
+          {
+            "name": "run",
+            "durationS": 0.466667,
+            "strideM": 1.82,
+            "rate": 1,
+            "swings": {
+              "L": [
+                [
+                  0.0875,
+                  0.4715
+                ]
+              ],
+              "R": [
+                [
+                  0.3208,
+                  0.7049
+                ]
+              ]
+            },
+            "plantedS": {
+              "L": 0.0875,
+              "R": 0.0875
+            },
+            "leadS": {
+              "L": 0.0438,
+              "R": 0.0438
+            },
+            "startPhase": 0.5013
+          },
+          {
+            "name": "stairs",
+            "durationS": 0.733333,
+            "strideM": 0.8066667,
+            "rate": 1,
+            "swings": {
+              "L": [
+                [
+                  0.3514,
+                  0.7333
+                ]
+              ],
+              "R": [
+                [
+                  0.7181,
+                  1.1
+                ]
+              ]
+            },
+            "plantedS": {
+              "L": 0.359,
+              "R": 0.359
+            },
+            "leadS": {
+              "L": 0.0611,
+              "R": 0.0611
+            },
+            "startPhase": 0.5008
+          }
+        ],
+        "loadMs": 2116,
+        "headTopOffsetM": 0.276,
+        "headAnchor": "anatomical-constant",
+        "skinTopM": 0.1122,
+        "footprint": {
+          "L": {
+            "heel": 0.0793,
+            "toe": 0.1407,
+            "latMin": -0.0138,
+            "latMax": 0.1396,
+            "soleVertices": 163
+          },
+          "R": {
+            "heel": 0.079,
+            "toe": 0.1346,
+            "latMin": -0.1392,
+            "latMax": 0.0154,
+            "soleVertices": 164
+          }
+        },
+        "morphTargets": [
+          "blink",
+          "blinkHalf"
+        ]
+      },
+      "linkFallbackReason": null,
+      "animations": 4,
+      "animationNames": [
+        "idle",
+        "walk",
+        "run",
+        "stairs"
+      ],
+      "fairy": true,
+      "fairyTrail": 16,
+      "npcs": 3,
+      "npcCount": 3,
+      "npcWaypoints": 6,
+      "npcSitting": 1,
+      "npc": {
+        "loop": {
+          "periodS": 30.872,
+          "lengthM": 15.043,
+          "segments": 18,
+          "offLimits": [],
+          "strideM": 0.7573,
+          "speedRange": [
+            1,
+            1.15
+          ]
+        },
+        "walker": {
+          "segment": "walk",
+          "segmentIndex": 17,
+          "x": 6.987,
+          "z": 4.37,
+          "yaw": 1.855,
+          "speed": 1.022,
+          "phi": 7.212
+        },
+        "seat": {
+          "stair": "main",
+          "tread": 1,
+          "hips": [
+            8.443,
+            0.62,
+            0.276
+          ],
+          "feet": [
+            [
+              8.386,
+              0.52,
+              0.489
+            ],
+            [
+              8.224,
+              0.27,
+              0.393
+            ]
+          ],
+          "yaw": -0.699
+        },
+        "fairies": [
+          {
+            "slot": 0,
+            "anchor": [
+              4.6,
+              1.719,
+              5.084
+            ],
+            "draws": 3
+          },
+          {
+            "slot": 1,
+            "anchor": [
+              -6.251,
+              1.207,
+              -1.658
+            ],
+            "draws": 3
+          }
+        ]
+      },
+      "geometry": "glb-link+procedural-npcs-v1",
+      "triangles": 93048,
+      "linkTriangles": 70442,
+      "linkHeight": 1.1998,
+      "rigMeshesBeforeMerge": 110,
+      "rigMeshes": 81,
+      "rigMergedMeshes": 23,
+      "mode": "play",
+      "view": null,
+      "linkGait": "idle",
+      "linkFeetContact": [
+        {
+          "foot": "L",
+          "soleY": 0.0675,
+          "groundY": 0.037,
+          "gapM": 0.0305,
+          "supportY": 0.0372,
+          "minShoeGapM": 0.0138,
+          "shiftM": 0,
+          "pitchRad": 0,
+          "correctionM": 0.004,
+          "pinM": 0,
+          "holdM": 0,
+          "soleX": 2.0544,
+          "soleZ": 4.5367,
+          "stance": false,
+          "pinLatM": 0
+        },
+        {
+          "foot": "R",
+          "soleY": 0.0387,
+          "groundY": 0.0387,
+          "gapM": 0,
+          "supportY": 0.0387,
+          "minShoeGapM": 0,
+          "shiftM": 0,
+          "pitchRad": 0,
+          "correctionM": 0.0054,
+          "pinM": 0,
+          "holdM": 0,
+          "soleX": 2.3537,
+          "soleZ": 4.3835,
+          "stance": true,
+          "pinLatM": 0
+        }
+      ],
+      "linkIk": {
+        "mode": "two-bone",
+        "maxCorrectionM": 0.0054,
+        "rootShiftM": -0.0098,
+        "maxShiftM": 0,
+        "planted": "R",
+        "reachClamped": false,
+        "reachClampedLeg": null,
+        "reachExcessM": 0,
+        "extraDropM": 0,
+        "attackDropM": 0,
+        "maxPinM": 0,
+        "maxHoldM": 0,
+        "blendClips": 1,
+        "hipClampRad": 0,
+        "kneeOutRad": 0
+      },
+      "linkGaitChain": [
+        "idle",
+        "idle",
+        "idle"
+      ],
+      "linkLocomotion": {
+        "speed": 0,
+        "clipShift": [
+          0,
+          0,
+          0
+        ],
+        "pins": [
+          null,
+          null
+        ],
+        "jump": "ground",
+        "jumpAir": 0,
+        "jumpY": null,
+        "airHeight": 0
+      },
+      "blinkMorphs": 3,
+      "blinkPhase": 0,
+      "blinkWeights": {
+        "blink": 0,
+        "blinkHalf": 0
+      },
+      "blinkApplied": {
+        "blink": 0,
+        "blinkHalf": 0
+      },
+      "blinkNextT": 1.4412,
+      "blinkRunT": null,
+      "blinkSchedule": {
+        "seed": "kokiri-forest-phase1/link-blink",
+        "hash": 713345753,
+        "slotS": 4.75,
+        "jitterS": 0.625,
+        "originS": 1.3
+      },
+      "samplePositions": {
+        "feet": [
+          [
+            2.3536913407937394,
+            0.03865353268885899,
+            4.383466233511634
+          ],
+          [
+            4.954741168064175,
+            0.6944600311357855,
+            5.376978816342124
+          ],
+          [
+            -6.550201539270818,
+            0.18866964533138317,
+            -1.9334517936898281
+          ],
+          [
+            10.555131515504165,
+            0.9892218679740368,
+            -7.518406018430695
+          ]
+        ]
+      },
+      "contactShadows": 4,
+      "pavingSurface": {
+        "cells": 270339,
+        "covered": 41722,
+        "cellSize": 0.1,
+        "triangles": 166056,
+        "stairs": {
+          "flights": 3,
+          "cells": 1488298,
+          "covered": 568601,
+          "cellSize": 0.01,
+          "triangles": 16558
+        }
+      },
+      "world": {
+        "link": [
+          2.3536913407937394,
+          0.03865353268885899,
+          4.383466233511634
+        ],
+        "linkRoot": [
+          2.2224454721998947,
+          0.02726215046830309,
+          4.434410349257381
+        ],
+        "linkPlacementY": 0.0183,
+        "navi": [
+          -0.32621368008852925,
+          1.35,
+          0.3731747859331643
+        ],
+        "kids": [
+          [
+            4.954741168064175,
+            0.6944600311357855,
+            5.376978816342124
+          ],
+          [
+            -6.550201539270818,
+            0.18866964533138317,
+            -1.9334517936898281
+          ],
+          [
+            10.555131515504165,
+            0.9892218679740368,
+            -7.518406018430695
+          ]
+        ]
+      },
+      "screen": {
+        "linkFeet": [
+          0.514,
+          0.87
+        ],
+        "linkRoot": [
+          0.5,
+          0.882
+        ],
+        "linkHead": [
+          0.5,
+          0.606
+        ],
+        "navi": [
+          0.138,
+          0.505
+        ],
+        "kids": [
+          {
+            "feet": [
+              0.895,
+              0.702
+            ],
+            "head": [
+              0.891,
+              0.438
+            ]
+          },
+          {
+            "feet": [
+              -0.51,
+              0.706
+            ],
+            "head": [
+              -0.506,
+              0.523
+            ]
+          },
+          {
+            "feet": [
+              0.6,
+              0.483
+            ],
+            "head": [
+              0.597,
+              0.416
+            ]
+          }
+        ]
+      }
+    }
+  },
+  "blinkCloseup": [
+    {
+      "time": 24.859499999999997,
+      "phase": 0,
+      "applied": [
+        [
+          0,
+          0
+        ],
+        [
+          0,
+          0
+        ],
+        [
+          0,
+          0
+        ]
+      ],
+      "file": "blink-game--0.001.png"
+    },
+    {
+      "time": 24.8955,
+      "phase": 0.5002,
+      "applied": [
+        [
+          0.0003849017034025515,
+          0.9996150982965974
+        ],
+        [
+          0.0003849017034025515,
+          0.9996150982965974
+        ],
+        [
+          0.0003849017034025515,
+          0.9996150982965974
+        ]
+      ],
+      "file": "blink-game-0.035.png"
+    },
+    {
+      "time": 24.9455,
+      "phase": 1,
+      "applied": [
+        [
+          1,
+          0
+        ],
+        [
+          1,
+          0
+        ],
+        [
+          1,
+          0
+        ]
+      ],
+      "file": "blink-game-0.085.png"
+    },
+    {
+      "time": 25.0205,
+      "phase": 0.4999,
+      "applied": [
+        [
+          0,
+          0.9997754740063485
+        ],
+        [
+          0,
+          0.9997754740063485
+        ],
+        [
+          0,
+          0.9997754740063485
+        ]
+      ],
+      "file": "blink-game-0.16.png"
+    },
+    {
+      "time": 25.100499999999997,
+      "phase": 0,
+      "applied": [
+        [
+          0,
+          0
+        ],
+        [
+          0,
+          0
+        ],
+        [
+          0,
+          0
+        ]
+      ],
+      "file": "blink-game-0.24.png"
+    }
+  ],
+  "summary": {
+    "flat-transitions": {
+      "frames": 12,
+      "gaits": [
+        "walk"
+      ],
+      "distanceXZ": 0.1883333333333334,
+      "maxRootStepM": 0.003241056336615207,
+      "reachClampedFrames": 0,
+      "measuredShoePoints": 0,
+      "maxHipFlexDeg": 52.49201095577938,
+      "maxKneeFlexDeg": 60.34313474709083,
+      "minRenderedStairGapM": null,
+      "shoeSamplesBelowMinus2cm": 0
+    }
+  },
+  "complete": true
+}

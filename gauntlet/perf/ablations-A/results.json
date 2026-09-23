@@ -1,0 +1,1245 @@
+{
+  "git": {
+    "sha": "2d7d9a0",
+    "branch": "r38/perf"
+  },
+  "startedAt": "2026-09-16T03:07:15.955Z",
+  "dist": "/tmp/r38-perf/dist-r2",
+  "width": 640,
+  "height": 360,
+  "settle": 8,
+  "timed": 3,
+  "simTime": 12.5,
+  "configs": [
+    "cull=off",
+    "baseline",
+    "fx=off",
+    "fx=noao",
+    "fx=norays",
+    "fx=nobloom",
+    "fx=nosoft",
+    "shadow=1024",
+    "shadow=0",
+    "veg=0.5,0.5",
+    "scale=0.5"
+  ],
+  "ref": "cull=off",
+  "views": [
+    "A_stairs"
+  ],
+  "results": [
+    {
+      "viewpoint": "A_stairs",
+      "params": "",
+      "width": 640,
+      "height": 360,
+      "settle": 8,
+      "simTime": 12.5,
+      "readyMs": 41028,
+      "renderMs": 89393,
+      "timing": {
+        "frames": 3,
+        "medianMs": 13907,
+        "minMs": 11017.6,
+        "maxMs": 14651.1,
+        "issueMedianMs": 14,
+        "perFrame": [
+          13907,
+          14651.1,
+          11017.6
+        ]
+      },
+      "png": {
+        "file": "/tmp/r38-perf/out/ablate-A2/A_stairs.cull_off.png",
+        "bytes": 350806
+      },
+      "stats": {
+        "simTime": 12.63333333333334,
+        "drawCalls": 539,
+        "triangles": 8655399,
+        "geometries": 364,
+        "textures": 82,
+        "programs": 88,
+        "width": 640,
+        "height": 360,
+        "pixelRatio": 1
+      },
+      "flags": {},
+      "tier": "high",
+      "perfState": {
+        "flags": {},
+        "tier": "high",
+        "version": 0,
+        "fx": {
+          "ao": true,
+          "rays": true,
+          "bloom": true,
+          "soft": true
+        },
+        "shadowMapSize": 4096,
+        "shadowTaps": 12,
+        "vegLodScale": 1,
+        "grassDensity": 1,
+        "renderScale": 1
+      },
+      "stepMs": {
+        "step": 20.800000071525574,
+        "update": 5.800000071525574,
+        "render": 15
+      },
+      "lighting": {
+        "shadows": true,
+        "shadowMapSize": 4096,
+        "filterTaps": 12,
+        "searchTaps": 8,
+        "dynamic": false
+      },
+      "postfx": {
+        "resolution": [
+          640,
+          360
+        ],
+        "stagesEnabled": {
+          "ao": true,
+          "rays": true,
+          "bloom": true,
+          "soft": true
+        },
+        "aoResolution": [
+          320,
+          180
+        ],
+        "godRayResolution": [
+          160,
+          90
+        ],
+        "softeningGrid": [
+          640,
+          360
+        ],
+        "shadowCasterCull": true,
+        "shadowCastersTested": 0,
+        "shadowCastersCulled": 0
+      },
+      "vegetation": {
+        "drawCalls": 120,
+        "triangles": 3205730
+      },
+      "sceneTriangles": 7087934,
+      "isolate": {
+        "terrain": {
+          "system": "terrain",
+          "drawCalls": 37,
+          "triangles": 743474,
+          "found": true
+        },
+        "hardscape": {
+          "system": "hardscape",
+          "drawCalls": 12,
+          "triangles": 640996,
+          "found": true
+        },
+        "rocks": {
+          "system": "rocks",
+          "drawCalls": 26,
+          "triangles": 407716,
+          "found": true
+        },
+        "trees": {
+          "system": "trees",
+          "drawCalls": 61,
+          "triangles": 2624125,
+          "found": true
+        },
+        "structures": {
+          "system": "structures",
+          "drawCalls": 100,
+          "triangles": 832260,
+          "found": true
+        },
+        "vegetation": {
+          "system": "vegetation",
+          "drawCalls": 120,
+          "triangles": 3205730,
+          "found": true
+        },
+        "props": {
+          "system": "props",
+          "drawCalls": 28,
+          "triangles": 28724,
+          "found": true
+        },
+        "character": {
+          "system": "character",
+          "drawCalls": 129,
+          "triangles": 165436,
+          "found": true
+        },
+        "atmosphere": {
+          "system": "atmosphere",
+          "drawCalls": 4,
+          "triangles": 6816,
+          "found": true
+        }
+      },
+      "config": "cull=off",
+      "wallMs": 219554
+    },
+    {
+      "viewpoint": "A_stairs",
+      "params": "",
+      "width": 640,
+      "height": 360,
+      "settle": 8,
+      "simTime": 12.5,
+      "readyMs": 37571,
+      "renderMs": 92053,
+      "timing": {
+        "frames": 3,
+        "medianMs": 16104,
+        "minMs": 12196.6,
+        "maxMs": 16749.2,
+        "issueMedianMs": 12.1,
+        "perFrame": [
+          12196.6,
+          16104,
+          16749.2
+        ]
+      },
+      "png": {
+        "file": "/tmp/r38-perf/out/ablate-A2/A_stairs.baseline.png",
+        "bytes": 350806
+      },
+      "stats": {
+        "simTime": 12.63333333333334,
+        "drawCalls": 535,
+        "triangles": 8540199,
+        "geometries": 360,
+        "textures": 82,
+        "programs": 88,
+        "width": 640,
+        "height": 360,
+        "pixelRatio": 1
+      },
+      "flags": {},
+      "tier": "high",
+      "perfState": {
+        "flags": {},
+        "tier": "high",
+        "version": 0,
+        "fx": {
+          "ao": true,
+          "rays": true,
+          "bloom": true,
+          "soft": true
+        },
+        "shadowMapSize": 4096,
+        "shadowTaps": 12,
+        "vegLodScale": 1,
+        "grassDensity": 1,
+        "renderScale": 1
+      },
+      "stepMs": {
+        "step": 11.600000023841858,
+        "update": 2.600000023841858,
+        "render": 9
+      },
+      "lighting": {
+        "shadows": true,
+        "shadowMapSize": 4096,
+        "filterTaps": 12,
+        "searchTaps": 8,
+        "dynamic": false
+      },
+      "postfx": {
+        "resolution": [
+          640,
+          360
+        ],
+        "stagesEnabled": {
+          "ao": true,
+          "rays": true,
+          "bloom": true,
+          "soft": true
+        },
+        "aoResolution": [
+          320,
+          180
+        ],
+        "godRayResolution": [
+          160,
+          90
+        ],
+        "softeningGrid": [
+          640,
+          360
+        ],
+        "shadowCasterCull": true,
+        "shadowCastersTested": 181,
+        "shadowCastersCulled": 4
+      },
+      "vegetation": {
+        "drawCalls": 120,
+        "triangles": 3205730
+      },
+      "sceneTriangles": 7087934,
+      "config": "baseline",
+      "wallMs": 202307,
+      "pngIdentical": true
+    },
+    {
+      "viewpoint": "A_stairs",
+      "params": "fx=off",
+      "width": 640,
+      "height": 360,
+      "settle": 8,
+      "simTime": 12.5,
+      "readyMs": 37692,
+      "renderMs": 99445,
+      "timing": {
+        "frames": 3,
+        "medianMs": 10035.6,
+        "minMs": 9498.3,
+        "maxMs": 15384.7,
+        "issueMedianMs": 11.4,
+        "perFrame": [
+          10035.6,
+          9498.3,
+          15384.7
+        ]
+      },
+      "png": {
+        "file": "/tmp/r38-perf/out/ablate-A2/A_stairs.fx_off.png",
+        "bytes": 347042
+      },
+      "stats": {
+        "simTime": 12.63333333333334,
+        "drawCalls": 517,
+        "triangles": 8540163,
+        "geometries": 360,
+        "textures": 69,
+        "programs": 77,
+        "width": 640,
+        "height": 360,
+        "pixelRatio": 1
+      },
+      "flags": {
+        "fx": "off"
+      },
+      "tier": "high",
+      "perfState": {
+        "flags": {
+          "fx": "off"
+        },
+        "tier": "high",
+        "version": 0,
+        "fx": {
+          "ao": false,
+          "rays": false,
+          "bloom": false,
+          "soft": false
+        },
+        "shadowMapSize": 4096,
+        "shadowTaps": 12,
+        "vegLodScale": 1,
+        "grassDensity": 1,
+        "renderScale": 1
+      },
+      "stepMs": {
+        "step": 13.700000047683716,
+        "update": 3,
+        "render": 10.700000047683716
+      },
+      "lighting": {
+        "shadows": true,
+        "shadowMapSize": 4096,
+        "filterTaps": 12,
+        "searchTaps": 8,
+        "dynamic": false
+      },
+      "postfx": {
+        "resolution": [
+          640,
+          360
+        ],
+        "stagesEnabled": {
+          "ao": false,
+          "rays": false,
+          "bloom": false,
+          "soft": false
+        },
+        "aoResolution": [
+          320,
+          180
+        ],
+        "godRayResolution": [
+          160,
+          90
+        ],
+        "softeningGrid": [
+          640,
+          360
+        ],
+        "shadowCasterCull": true,
+        "shadowCastersTested": 181,
+        "shadowCastersCulled": 4
+      },
+      "vegetation": {
+        "drawCalls": 120,
+        "triangles": 3205730
+      },
+      "sceneTriangles": 7087934,
+      "config": "fx=off",
+      "wallMs": 202125,
+      "pngIdentical": false
+    },
+    {
+      "viewpoint": "A_stairs",
+      "params": "fx=noao",
+      "width": 640,
+      "height": 360,
+      "settle": 8,
+      "simTime": 12.5,
+      "readyMs": 35460,
+      "renderMs": 82405,
+      "timing": {
+        "frames": 3,
+        "medianMs": 15350.6,
+        "minMs": 14214.8,
+        "maxMs": 15469.2,
+        "issueMedianMs": 21.4,
+        "perFrame": [
+          14214.8,
+          15469.2,
+          15350.6
+        ]
+      },
+      "png": {
+        "file": "/tmp/r38-perf/out/ablate-A2/A_stairs.fx_noao.png",
+        "bytes": 349775
+      },
+      "stats": {
+        "simTime": 12.63333333333334,
+        "drawCalls": 533,
+        "triangles": 8540195,
+        "geometries": 360,
+        "textures": 80,
+        "programs": 86,
+        "width": 640,
+        "height": 360,
+        "pixelRatio": 1
+      },
+      "flags": {
+        "fx": "noao"
+      },
+      "tier": "high",
+      "perfState": {
+        "flags": {
+          "fx": "noao"
+        },
+        "tier": "high",
+        "version": 0,
+        "fx": {
+          "ao": false,
+          "rays": true,
+          "bloom": true,
+          "soft": true
+        },
+        "shadowMapSize": 4096,
+        "shadowTaps": 12,
+        "vegLodScale": 1,
+        "grassDensity": 1,
+        "renderScale": 1
+      },
+      "stepMs": {
+        "step": 9.700000047683716,
+        "update": 1.7000000476837158,
+        "render": 8
+      },
+      "lighting": {
+        "shadows": true,
+        "shadowMapSize": 4096,
+        "filterTaps": 12,
+        "searchTaps": 8,
+        "dynamic": false
+      },
+      "postfx": {
+        "resolution": [
+          640,
+          360
+        ],
+        "stagesEnabled": {
+          "ao": false,
+          "rays": true,
+          "bloom": true,
+          "soft": true
+        },
+        "aoResolution": [
+          320,
+          180
+        ],
+        "godRayResolution": [
+          160,
+          90
+        ],
+        "softeningGrid": [
+          640,
+          360
+        ],
+        "shadowCasterCull": true,
+        "shadowCastersTested": 181,
+        "shadowCastersCulled": 4
+      },
+      "vegetation": {
+        "drawCalls": 120,
+        "triangles": 3205730
+      },
+      "sceneTriangles": 7087934,
+      "config": "fx=noao",
+      "wallMs": 187737,
+      "pngIdentical": false
+    },
+    {
+      "viewpoint": "A_stairs",
+      "params": "fx=norays",
+      "width": 640,
+      "height": 360,
+      "settle": 8,
+      "simTime": 12.5,
+      "readyMs": 36117,
+      "renderMs": 95707,
+      "timing": {
+        "frames": 3,
+        "medianMs": 14471.2,
+        "minMs": 10914.6,
+        "maxMs": 15061.3,
+        "issueMedianMs": 17.5,
+        "perFrame": [
+          14471.2,
+          10914.6,
+          15061.3
+        ]
+      },
+      "png": {
+        "file": "/tmp/r38-perf/out/ablate-A2/A_stairs.fx_norays.png",
+        "bytes": 352758
+      },
+      "stats": {
+        "simTime": 12.63333333333334,
+        "drawCalls": 532,
+        "triangles": 8540193,
+        "geometries": 360,
+        "textures": 81,
+        "programs": 86,
+        "width": 640,
+        "height": 360,
+        "pixelRatio": 1
+      },
+      "flags": {
+        "fx": "norays"
+      },
+      "tier": "high",
+      "perfState": {
+        "flags": {
+          "fx": "norays"
+        },
+        "tier": "high",
+        "version": 0,
+        "fx": {
+          "ao": true,
+          "rays": false,
+          "bloom": true,
+          "soft": true
+        },
+        "shadowMapSize": 4096,
+        "shadowTaps": 12,
+        "vegLodScale": 1,
+        "grassDensity": 1,
+        "renderScale": 1
+      },
+      "stepMs": {
+        "step": 10.100000023841858,
+        "update": 3.700000047683716,
+        "render": 6.399999976158142
+      },
+      "lighting": {
+        "shadows": true,
+        "shadowMapSize": 4096,
+        "filterTaps": 12,
+        "searchTaps": 8,
+        "dynamic": false
+      },
+      "postfx": {
+        "resolution": [
+          640,
+          360
+        ],
+        "stagesEnabled": {
+          "ao": true,
+          "rays": false,
+          "bloom": true,
+          "soft": true
+        },
+        "aoResolution": [
+          320,
+          180
+        ],
+        "godRayResolution": [
+          160,
+          90
+        ],
+        "softeningGrid": [
+          640,
+          360
+        ],
+        "shadowCasterCull": true,
+        "shadowCastersTested": 181,
+        "shadowCastersCulled": 4
+      },
+      "vegetation": {
+        "drawCalls": 120,
+        "triangles": 3205730
+      },
+      "sceneTriangles": 7087934,
+      "config": "fx=norays",
+      "wallMs": 201979,
+      "pngIdentical": false
+    },
+    {
+      "viewpoint": "A_stairs",
+      "params": "fx=nobloom",
+      "width": 640,
+      "height": 360,
+      "settle": 8,
+      "simTime": 12.5,
+      "readyMs": 40273,
+      "renderMs": 119635,
+      "timing": {
+        "frames": 3,
+        "medianMs": 13797.9,
+        "minMs": 10610.3,
+        "maxMs": 15605.3,
+        "issueMedianMs": 16.2,
+        "perFrame": [
+          15605.3,
+          10610.3,
+          13797.9
+        ]
+      },
+      "png": {
+        "file": "/tmp/r38-perf/out/ablate-A2/A_stairs.fx_nobloom.png",
+        "bytes": 350861
+      },
+      "stats": {
+        "simTime": 12.63333333333334,
+        "drawCalls": 532,
+        "triangles": 8540193,
+        "geometries": 360,
+        "textures": 80,
+        "programs": 86,
+        "width": 640,
+        "height": 360,
+        "pixelRatio": 1
+      },
+      "flags": {
+        "fx": "nobloom"
+      },
+      "tier": "high",
+      "perfState": {
+        "flags": {
+          "fx": "nobloom"
+        },
+        "tier": "high",
+        "version": 0,
+        "fx": {
+          "ao": true,
+          "rays": true,
+          "bloom": false,
+          "soft": true
+        },
+        "shadowMapSize": 4096,
+        "shadowTaps": 12,
+        "vegLodScale": 1,
+        "grassDensity": 1,
+        "renderScale": 1
+      },
+      "stepMs": {
+        "step": 31.399999976158142,
+        "update": 11,
+        "render": 20.399999976158142
+      },
+      "lighting": {
+        "shadows": true,
+        "shadowMapSize": 4096,
+        "filterTaps": 12,
+        "searchTaps": 8,
+        "dynamic": false
+      },
+      "postfx": {
+        "resolution": [
+          640,
+          360
+        ],
+        "stagesEnabled": {
+          "ao": true,
+          "rays": true,
+          "bloom": false,
+          "soft": true
+        },
+        "aoResolution": [
+          320,
+          180
+        ],
+        "godRayResolution": [
+          160,
+          90
+        ],
+        "softeningGrid": [
+          640,
+          360
+        ],
+        "shadowCasterCull": true,
+        "shadowCastersTested": 181,
+        "shadowCastersCulled": 4
+      },
+      "vegetation": {
+        "drawCalls": 120,
+        "triangles": 3205730
+      },
+      "sceneTriangles": 7087934,
+      "config": "fx=nobloom",
+      "wallMs": 236445,
+      "pngIdentical": false
+    },
+    {
+      "viewpoint": "A_stairs",
+      "params": "fx=nosoft",
+      "width": 640,
+      "height": 360,
+      "settle": 8,
+      "simTime": 12.5,
+      "readyMs": 38907,
+      "renderMs": 98479,
+      "timing": {
+        "frames": 3,
+        "medianMs": 15108.3,
+        "minMs": 14102.9,
+        "maxMs": 16209.4,
+        "issueMedianMs": 19,
+        "perFrame": [
+          14102.9,
+          16209.4,
+          15108.3
+        ]
+      },
+      "png": {
+        "file": "/tmp/r38-perf/out/ablate-A2/A_stairs.fx_nosoft.png",
+        "bytes": 349048
+      },
+      "stats": {
+        "simTime": 12.63333333333334,
+        "drawCalls": 525,
+        "triangles": 8540179,
+        "geometries": 360,
+        "textures": 74,
+        "programs": 83,
+        "width": 640,
+        "height": 360,
+        "pixelRatio": 1
+      },
+      "flags": {
+        "fx": "nosoft"
+      },
+      "tier": "high",
+      "perfState": {
+        "flags": {
+          "fx": "nosoft"
+        },
+        "tier": "high",
+        "version": 0,
+        "fx": {
+          "ao": true,
+          "rays": true,
+          "bloom": true,
+          "soft": false
+        },
+        "shadowMapSize": 4096,
+        "shadowTaps": 12,
+        "vegLodScale": 1,
+        "grassDensity": 1,
+        "renderScale": 1
+      },
+      "stepMs": {
+        "step": 11,
+        "update": 2.5,
+        "render": 8.5
+      },
+      "lighting": {
+        "shadows": true,
+        "shadowMapSize": 4096,
+        "filterTaps": 12,
+        "searchTaps": 8,
+        "dynamic": false
+      },
+      "postfx": {
+        "resolution": [
+          640,
+          360
+        ],
+        "stagesEnabled": {
+          "ao": true,
+          "rays": true,
+          "bloom": true,
+          "soft": false
+        },
+        "aoResolution": [
+          320,
+          180
+        ],
+        "godRayResolution": [
+          160,
+          90
+        ],
+        "softeningGrid": [
+          640,
+          360
+        ],
+        "shadowCasterCull": true,
+        "shadowCastersTested": 181,
+        "shadowCastersCulled": 4
+      },
+      "vegetation": {
+        "drawCalls": 120,
+        "triangles": 3205730
+      },
+      "sceneTriangles": 7087934,
+      "config": "fx=nosoft",
+      "wallMs": 215211,
+      "pngIdentical": false
+    },
+    {
+      "viewpoint": "A_stairs",
+      "params": "shadow=1024",
+      "width": 640,
+      "height": 360,
+      "settle": 8,
+      "simTime": 12.5,
+      "readyMs": 33883,
+      "renderMs": 77277,
+      "timing": {
+        "frames": 3,
+        "medianMs": 12937.4,
+        "minMs": 12337.8,
+        "maxMs": 13022.2,
+        "issueMedianMs": 19,
+        "perFrame": [
+          12337.8,
+          13022.2,
+          12937.4
+        ]
+      },
+      "png": {
+        "file": "/tmp/r38-perf/out/ablate-A2/A_stairs.shadow_1024.png",
+        "bytes": 350997
+      },
+      "stats": {
+        "simTime": 12.63333333333334,
+        "drawCalls": 535,
+        "triangles": 8540199,
+        "geometries": 360,
+        "textures": 82,
+        "programs": 88,
+        "width": 640,
+        "height": 360,
+        "pixelRatio": 1
+      },
+      "flags": {
+        "shadow": "1024"
+      },
+      "tier": "high",
+      "perfState": {
+        "flags": {
+          "shadow": "1024"
+        },
+        "tier": "high",
+        "version": 0,
+        "fx": {
+          "ao": true,
+          "rays": true,
+          "bloom": true,
+          "soft": true
+        },
+        "shadowMapSize": 1024,
+        "shadowTaps": 12,
+        "vegLodScale": 1,
+        "grassDensity": 1,
+        "renderScale": 1
+      },
+      "stepMs": {
+        "step": 18.5,
+        "update": 1.600000023841858,
+        "render": 16.899999976158142
+      },
+      "lighting": {
+        "shadows": true,
+        "shadowMapSize": 1024,
+        "filterTaps": 12,
+        "searchTaps": 8,
+        "dynamic": false
+      },
+      "postfx": {
+        "resolution": [
+          640,
+          360
+        ],
+        "stagesEnabled": {
+          "ao": true,
+          "rays": true,
+          "bloom": true,
+          "soft": true
+        },
+        "aoResolution": [
+          320,
+          180
+        ],
+        "godRayResolution": [
+          160,
+          90
+        ],
+        "softeningGrid": [
+          640,
+          360
+        ],
+        "shadowCasterCull": true,
+        "shadowCastersTested": 181,
+        "shadowCastersCulled": 4
+      },
+      "vegetation": {
+        "drawCalls": 120,
+        "triangles": 3205730
+      },
+      "sceneTriangles": 7087934,
+      "config": "shadow=1024",
+      "wallMs": 172367,
+      "pngIdentical": false
+    },
+    {
+      "viewpoint": "A_stairs",
+      "params": "shadow=0",
+      "width": 640,
+      "height": 360,
+      "settle": 8,
+      "simTime": 12.5,
+      "readyMs": 36142,
+      "renderMs": 93261,
+      "timing": {
+        "frames": 3,
+        "medianMs": 11766.1,
+        "minMs": 10032.5,
+        "maxMs": 12289.5,
+        "issueMedianMs": 17.4,
+        "perFrame": [
+          11766.1,
+          10032.5,
+          12289.5
+        ]
+      },
+      "png": {
+        "file": "/tmp/r38-perf/out/ablate-A2/A_stairs.shadow_0.png",
+        "bytes": 364987
+      },
+      "stats": {
+        "simTime": 12.63333333333334,
+        "drawCalls": 353,
+        "triangles": 5796158,
+        "geometries": 330,
+        "textures": 79,
+        "programs": 64,
+        "width": 640,
+        "height": 360,
+        "pixelRatio": 1
+      },
+      "flags": {
+        "shadow": "0"
+      },
+      "tier": "high",
+      "perfState": {
+        "flags": {
+          "shadow": "0"
+        },
+        "tier": "high",
+        "version": 0,
+        "fx": {
+          "ao": true,
+          "rays": true,
+          "bloom": true,
+          "soft": true
+        },
+        "shadowMapSize": 0,
+        "shadowTaps": 12,
+        "vegLodScale": 1,
+        "grassDensity": 1,
+        "renderScale": 1
+      },
+      "stepMs": {
+        "step": 13.899999976158142,
+        "update": 1.6999999284744263,
+        "render": 12.200000047683716
+      },
+      "lighting": {
+        "shadows": false,
+        "shadowMapSize": 4096,
+        "filterTaps": 12,
+        "searchTaps": 8,
+        "dynamic": false
+      },
+      "postfx": {
+        "resolution": [
+          640,
+          360
+        ],
+        "stagesEnabled": {
+          "ao": true,
+          "rays": true,
+          "bloom": true,
+          "soft": true
+        },
+        "aoResolution": [
+          320,
+          180
+        ],
+        "godRayResolution": [
+          160,
+          90
+        ],
+        "softeningGrid": [
+          640,
+          360
+        ],
+        "shadowCasterCull": true,
+        "shadowCastersTested": 181,
+        "shadowCastersCulled": 4
+      },
+      "vegetation": {
+        "drawCalls": 103,
+        "triangles": 2751007
+      },
+      "sceneTriangles": 7087934,
+      "config": "shadow=0",
+      "wallMs": 187984,
+      "pngIdentical": false
+    },
+    {
+      "viewpoint": "A_stairs",
+      "params": "veg=0.5,0.5",
+      "width": 640,
+      "height": 360,
+      "settle": 8,
+      "simTime": 12.5,
+      "readyMs": 38920,
+      "renderMs": 70717,
+      "timing": {
+        "frames": 3,
+        "medianMs": 13816.1,
+        "minMs": 9504.1,
+        "maxMs": 13933.7,
+        "issueMedianMs": 16.6,
+        "perFrame": [
+          13816.1,
+          13933.7,
+          9504.1
+        ]
+      },
+      "png": {
+        "file": "/tmp/r38-perf/out/ablate-A2/A_stairs.veg_0.5_0.5.png",
+        "bytes": 349578
+      },
+      "stats": {
+        "simTime": 12.63333333333334,
+        "drawCalls": 506,
+        "triangles": 7039213,
+        "geometries": 335,
+        "textures": 82,
+        "programs": 88,
+        "width": 640,
+        "height": 360,
+        "pixelRatio": 1
+      },
+      "flags": {
+        "veg": "0.5,0.5"
+      },
+      "tier": "high",
+      "perfState": {
+        "flags": {
+          "veg": "0.5,0.5"
+        },
+        "tier": "high",
+        "version": 0,
+        "fx": {
+          "ao": true,
+          "rays": true,
+          "bloom": true,
+          "soft": true
+        },
+        "shadowMapSize": 4096,
+        "shadowTaps": 12,
+        "vegLodScale": 0.5,
+        "grassDensity": 0.5,
+        "renderScale": 1
+      },
+      "stepMs": {
+        "step": 27.699999928474426,
+        "update": 8.299999952316284,
+        "render": 19.399999976158142
+      },
+      "lighting": {
+        "shadows": true,
+        "shadowMapSize": 4096,
+        "filterTaps": 12,
+        "searchTaps": 8,
+        "dynamic": false
+      },
+      "postfx": {
+        "resolution": [
+          640,
+          360
+        ],
+        "stagesEnabled": {
+          "ao": true,
+          "rays": true,
+          "bloom": true,
+          "soft": true
+        },
+        "aoResolution": [
+          320,
+          180
+        ],
+        "godRayResolution": [
+          160,
+          90
+        ],
+        "softeningGrid": [
+          640,
+          360
+        ],
+        "shadowCasterCull": true,
+        "shadowCastersTested": 177,
+        "shadowCastersCulled": 4
+      },
+      "vegetation": {
+        "drawCalls": 91,
+        "triangles": 1704744
+      },
+      "sceneTriangles": 5401634,
+      "config": "veg=0.5,0.5",
+      "wallMs": 170395,
+      "pngIdentical": false
+    },
+    {
+      "viewpoint": "A_stairs",
+      "params": "scale=0.5",
+      "width": 640,
+      "height": 360,
+      "settle": 8,
+      "simTime": 12.5,
+      "readyMs": 37673,
+      "renderMs": 67189,
+      "timing": {
+        "frames": 3,
+        "medianMs": 9384.3,
+        "minMs": 9234.5,
+        "maxMs": 9387.7,
+        "issueMedianMs": 22.5,
+        "perFrame": [
+          9387.7,
+          9384.3,
+          9234.5
+        ]
+      },
+      "png": {
+        "file": "/tmp/r38-perf/out/ablate-A2/A_stairs.scale_0.5.png",
+        "bytes": 246314
+      },
+      "stats": {
+        "simTime": 12.63333333333334,
+        "drawCalls": 535,
+        "triangles": 8540199,
+        "geometries": 360,
+        "textures": 82,
+        "programs": 88,
+        "width": 320,
+        "height": 180,
+        "pixelRatio": 0.5
+      },
+      "flags": {
+        "scale": "0.5"
+      },
+      "tier": "high",
+      "perfState": {
+        "flags": {
+          "scale": "0.5"
+        },
+        "tier": "high",
+        "version": 0,
+        "fx": {
+          "ao": true,
+          "rays": true,
+          "bloom": true,
+          "soft": true
+        },
+        "shadowMapSize": 4096,
+        "shadowTaps": 12,
+        "vegLodScale": 1,
+        "grassDensity": 1,
+        "renderScale": 0.5
+      },
+      "stepMs": {
+        "step": 12.399999976158142,
+        "update": 4.200000047683716,
+        "render": 8.199999928474426
+      },
+      "lighting": {
+        "shadows": true,
+        "shadowMapSize": 4096,
+        "filterTaps": 12,
+        "searchTaps": 8,
+        "dynamic": false
+      },
+      "postfx": {
+        "resolution": [
+          320,
+          180
+        ],
+        "stagesEnabled": {
+          "ao": true,
+          "rays": true,
+          "bloom": true,
+          "soft": true
+        },
+        "aoResolution": [
+          160,
+          90
+        ],
+        "godRayResolution": [
+          80,
+          45
+        ],
+        "softeningGrid": [
+          320,
+          180
+        ],
+        "shadowCasterCull": true,
+        "shadowCastersTested": 181,
+        "shadowCastersCulled": 4
+      },
+      "vegetation": {
+        "drawCalls": 120,
+        "triangles": 3205730
+      },
+      "sceneTriangles": 7087934,
+      "config": "scale=0.5",
+      "wallMs": 151219,
+      "pngIdentical": false
+    }
+  ]
+}
