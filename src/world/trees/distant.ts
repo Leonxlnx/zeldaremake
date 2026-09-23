@@ -994,11 +994,11 @@ function tooCloseIn(grid: Map<string, DistantPlacement[]>, cell: number, x: numb
  * ground cover and the taller crowns where review46 has bushy young trees and ours had open haze.
  */
 export const MID_SPECS: { height: number; crownR: number; crownY: number }[] = [
-  { height: 4.8, crownR: 0.38, crownY: 0.54 },
-  { height: 6.6, crownR: 0.34, crownY: 0.55 },
-  { height: 9.0, crownR: 0.3, crownY: 0.56 },
-  { height: 11.6, crownR: 0.28, crownY: 0.57 },
-  { height: 14.6, crownR: 0.26, crownY: 0.59 },
+  { height: 4.8, crownR: 0.42, crownY: 0.54 },
+  { height: 6.6, crownR: 0.38, crownY: 0.55 },
+  { height: 9.0, crownR: 0.34, crownY: 0.56 },
+  { height: 11.6, crownR: 0.31, crownY: 0.57 },
+  { height: 14.6, crownR: 0.29, crownY: 0.59 },
 ];
 export const MID_HEIGHTS = MID_SPECS.map((s) => s.height);
 /** the crown radius / centre a placement's crown sphere is measured with (the mid of the set) */
@@ -1017,8 +1017,8 @@ export const MID_LOBE_R: [number, number] = [0.46, 0.58];
 export const MID_LOBE_OFF: [number, number] = [0.4, 0.6];
 /** root toes on the near LOD [count, length share of R, collar height share] */
 export const MID_TOES = 3;
-/** the far LOD (crossed strips + the crown without its lobes) takes over at this view distance (m) */
-export const MID_FAR_LOD_M = 34;
+/** the far LOD (the same skeleton, 5-sided, and the same crown) takes over at this view distance (m) */
+export const MID_FAR_LOD_M = 40;
 /** the crown material's overrides for the mid layer (see CrownLook) */
 export const MID_CROWN_LOOK: Omit<CrownLook, 'atlas'> = {
   id: 'mid',
@@ -1027,16 +1027,17 @@ export const MID_CROWN_LOOK: Omit<CrownLook, 'atlas'> = {
   // walker sees across the middle distance. A gentler gate over 10–30 m keeps the underside reading
   // as shade without crushing the tree.
   underM: [10, 30],
-  nearDark: 0.86,
-  underDark: 0.55,
+  nearDark: 0.92,
+  underDark: 0.6,
   // never fade a vertical card by the ray's climb: a 12 m crown 14 m away sits 30° up, inside the
   // far layer's fade window, and the owner walks looking slightly up
   edgeSteep: [1.2, 1.6],
   // a mid crown stands in a tenth of the far layer's haze, so it needs far less of it back
   fogCut: 0.3,
-  // the lit rim: 0.6 of the direct term is the far layer's silhouette read through deep haze; on a
-  // crown in open sun at 15 m it burnt the whole card's edge to a bright acid green
-  rim: 0.3,
+  // the lit rim: 0.6 of the direct term burnt a card's whole edge to an acid green on a crown in
+  // open sun at 15 m; 0.3 lost the lit top the reference's mid crowns read by (band mean 74.8 → 74.3,
+  // across-column sd 18.9 → 15.4 at the owner's pose — see art/environment/squad2-2026-09-23)
+  rim: 0.38,
   roundFloors: true,
 };
 
@@ -1088,10 +1089,11 @@ function midCrownCards(writer: GeometryWriter, r: Rng, centre: Vector3, R: numbe
  */
 export function createMidVariants(rng: Rng, palette: Palette): DistantVariant[] {
   // A mid crown stands in a tenth of the far layer's haze and takes the full direct sun, so it is
-  // NOT tinted up from the far cards (0.62, 0.66, 0.60 / 0.90, 0.95, 0.72) — barely at all. The
-  // first take at 1.3 × those read as bright cardboard against the mist.
-  const cardTint = new Color(0.63, 0.68, 0.6);
-  const cardTopTint = new Color(0.88, 0.93, 0.72);
+  // tinted only a little over the far cards (0.62, 0.66, 0.60 / 0.90, 0.95, 0.72): 1.3 × those read
+  // as bright cardboard against the mist, and the far cards' own tone read as more haze (the band
+  // measurements in art/environment/squad2-2026-09-23/README.md).
+  const cardTint = new Color(0.72, 0.77, 0.68);
+  const cardTopTint = new Color(0.99, 1.03, 0.79);
   // each variant leads with a different silhouette and crosses it with the next two
   const cellSets = [
     [0, 2, 1],
@@ -1268,8 +1270,10 @@ export function placeMidTrees(rng: Rng, terrain: Terrain, variants: DistantVaria
   while (out.length < o.target && attempts < o.target * 90) {
     attempts++;
     const a = r() * TAU;
-    // area-uniform in the annulus, biased inward so the near half of the band is the denser one
-    const rad = Math.sqrt(o.inner * o.inner + (o.outer * o.outer - o.inner * o.inner) * Math.pow(r(), 1.35));
+    // area-uniform in the annulus, biased inward: the 15–32 m ring is where the height fog still
+    // lets a crown read (at 45 m+ the veil is most of what the frame shows) and where a walker's
+    // "middle distance" actually is
+    const rad = Math.sqrt(o.inner * o.inner + (o.outer * o.outer - o.inner * o.inner) * Math.pow(r(), 1.7));
     const x = Math.cos(a) * rad;
     const z = Math.sin(a) * rad;
     const groves = 0.3 + 0.7 * (clump.fbm(x * 0.035, z * 0.035, 3) * 0.5 + 0.5);

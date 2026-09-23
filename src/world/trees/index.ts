@@ -2990,7 +2990,7 @@ export async function create(ctx: WorldContext): Promise<WorldSystem> {
    *   • the expansion's ground is culled like every other legacy-built stream (heightfield.ts
    *     expansionCull), so nothing floats over the west bank, the discs or the far hut's knoll.
    */
-  const midTarget = Math.round(320 * Math.max(0.7, Math.min(1.2, ctx.quality.density)));
+  const midTarget = Math.round(400 * Math.max(0.7, Math.min(1.2, ctx.quality.density)));
   const midOccupied: { x: number; z: number; r: number }[] = [
     ...giantDefsAll.map((g) => ({ x: g.position[0], z: g.position[2], r: g.trunkRadius + 4.5 })),
     ...ctx.layout.houses.map((h) => ({ x: h.position[0], z: h.position[2], r: h.trunkRadius + 4 })),
