@@ -122,6 +122,42 @@ function wornFront(outline: P2[], depth: number, wave: (ax: number) => number, c
 }
 
 /**
+ * Two slab outlines (each in its own centred frame, `cx` apart across the run) joined into one
+ * across the joint at `joinX` (in the joined frame): each outline's points within `zone` of the
+ * joint — its end toward the other, with that end's corner chips — are dropped, and the two
+ * remaining runs are chained. Both run the same way round, so the chain is the union's boundary.
+ * (lane 6: a log flight's split tread is one earth tread — the 2–4 cm joint under the timber,
+ * with the pieces' chipped corners either side of it, read as a black slot at eye height.)
+ */
+function joinOutlines(a: { outline: P2[]; front: boolean[]; cx: number }, b: { outline: P2[]; front: boolean[]; cx: number }, cx: number, joinX: number, zone: number): { outline: P2[]; front: boolean[] } {
+  const run = (o: { outline: P2[]; front: boolean[]; cx: number }, side: 1 | -1) => {
+    const pts = o.outline.map((p) => ({ x: p.x + o.cx - cx, z: p.z }));
+    const joint = (p: P2) => side * (p.x - joinX) > -zone;
+    const n = pts.length;
+    let start = -1;
+    for (let k = 0; k < n; k++) {
+      if (joint(pts[k]) && !joint(pts[(k + 1) % n])) {
+        start = (k + 1) % n;
+        break;
+      }
+    }
+    const outline: P2[] = [];
+    const front: boolean[] = [];
+    if (start < 0) return { outline, front };
+    for (let k = 0; k < n; k++) {
+      const idx = (start + k) % n;
+      if (joint(pts[idx])) break;
+      outline.push(pts[idx]);
+      front.push(o.front[idx]);
+    }
+    return { outline, front };
+  };
+  const left = run(a, 1);
+  const right = run(b, -1);
+  return { outline: [...right.outline, ...left.outline], front: [...right.front, ...left.front] };
+}
+
+/**
  * `logNosed`: a round timber rides every tread's front edge (logNosings.ts) and the treads are
  * earth (`earthTop`). The step's edge is then the timber, and the stone flight's two nose devices
  * are wrong in kind under it (2026-09-23; fable-cursor's pass 3 hid the first with a tone, the
@@ -248,9 +284,17 @@ export function buildStairway(def: StairDef, terrain: Terrain, rng: Rng, seed: s
     } else {
       pieces.push({ a0: -hw + rng.range(-0.03, 0.03), a1: hw + rng.range(-0.03, 0.03) });
     }
+    // lane 6 (fable-cursor 2026-09-23 18:10, the owner's `s2-join-close`): a log flight's split
+    // tread is laid as ONE earth tread — the 2–4 cm joint between the stones, with their chipped
+    // corners either side, opened a black slot under the timber (the "central wedges": a ray
+    // through them lands on the far piece's joint wall, in the dark). Both pieces are still cut
+    // and every draw is taken in the stream's order; the two outlines are joined across the joint
+    // and the slab is placed once, with the second piece's draws.
+    const joinPieces = logNosed && pieces.length === 2;
+    let firstCut: { outline: P2[]; front: boolean[]; cx: number } | null = null;
     for (const pc of pieces) {
-      const pw = pc.a1 - pc.a0;
-      const cxl = (pc.a0 + pc.a1) / 2;
+      let pw = pc.a1 - pc.a0;
+      let cxl = (pc.a0 + pc.a1) / 2;
       const czl = (uFront + uBack) / 2;
       const cut = jitteredRect(rng, pw, depth, { jitter: 0.014, segs: 5, chip: 0.09, chipChance: 0.5 });
       // worn front edge (frame 1 s / 8 s: wavy, chipped lips, no two alike): ±2 cm over ~1 m plus
@@ -258,16 +302,40 @@ export function buildStairway(def: StairDef, terrain: Terrain, rng: Rng, seed: s
       // stone). Kept gentle — local slopes ≲ 0.15 and tapered toward the slab ends — so a long
       // tread stays star-shaped from its centroid and the top keeps its centred dish (a sharper
       // notch far from the centre made `slabFanCentre` drag the fan centre 0.7–0.9 m off)
-      const endTaper = (x: number) => 1 - 0.6 * smoothstep(0.55, 1, Math.abs(x) / (pw / 2));
+      const pieceTaper = (x: number) => 1 - 0.6 * smoothstep(0.55, 1, Math.abs(x) / (pw / 2));
       const chipAt = (ax: number) => Math.max(0, nosing.noise(ax * 4.2 + 11.3, i * 3.9 + 4.2) - 0.5) / 0.5;
-      const { outline, front: isFront } = wornFront(
+      const worn = wornFront(
         cut,
         depth,
         (ax) => 0.02 * nosing.noise(ax * 1.0 + i * 5.1, i * 2.7 + 0.5),
         (ax) => 0.03 * chipAt(ax),
         cxl,
-        endTaper,
+        pieceTaper,
       );
+      let outline = worn.outline;
+      let isFront = worn.front;
+      if (joinPieces && !firstCut) {
+        firstCut = { outline, front: isFront, cx: cxl };
+        // the first piece's remaining draws, in the loop's order: dip, noseBright, bevel, noseRound, uv
+        rng.range(0.01, 0.026);
+        rng.range(1.35, 1.5);
+        rng.range(0.05, 0.07);
+        rng.range(0.04, 0.06);
+        rng();
+        rng();
+        continue;
+      }
+      if (joinPieces && firstCut) {
+        const a0 = pieces[0].a0;
+        const a1 = pieces[1].a1;
+        const joinX = (pieces[0].a1 + pieces[1].a0) / 2;
+        const joined = joinOutlines(firstCut, { outline, front: isFront, cx: cxl }, (a0 + a1) / 2, joinX - (a0 + a1) / 2, 0.13);
+        outline = joined.outline;
+        isFront = joined.front;
+        pw = a1 - a0;
+        cxl = (a0 + a1) / 2;
+      }
+      const endTaper = (x: number) => 1 - 0.6 * smoothstep(0.55, 1, Math.abs(x) / (pw / 2));
       shapeHashes.push(outlineHash(outline));
       const dip = rng.range(0.01, 0.026);
       // the nose catches the light. Round 31: back up from round 23's 1.2–1.36 — measured along

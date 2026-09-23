@@ -101,16 +101,58 @@ function riserSetback(build, i) {
   return front - nose;
 }
 
-test('the main flight is log-nosed, and the log build takes the stone build\'s draws: same outlines, noses and tones', () => {
+test('the main flight is log-nosed, and the log build takes the stone build\'s draws: same tones, the same noses (a split tread laid as one), same outlines where the stone is unsplit', () => {
   assert.ok(LOG_FLIGHTS.has('main'));
   assert.equal(logged.steps, stone.steps);
-  assert.equal(logged.treadSlabs, stone.treadSlabs);
-  assert.deepEqual(logged.shapeHashes, stone.shapeHashes);
   assert.deepEqual(logged.treadTone, stone.treadTone);
-  assert.equal(logged.treadNose.length, stone.treadNose.length);
-  for (let i = 0; i < stone.treadNose.length; i++) {
-    for (let k = 0; k < 3; k++) assert.ok(Math.abs(logged.treadNose[i][k] - stone.treadNose[i][k]) < 1e-9, `nose ${i} moved`);
+  // the stone flight splits a tread in five into two stones; the log flight lays those as one earth tread
+  assert.ok(stone.treadSlabs > main.steps, `${stone.treadSlabs} stone slabs`);
+  assert.equal(logged.treadSlabs, main.steps);
+  assert.equal(logged.treadNose.length, main.steps);
+  // every log-tread nose is a stone-tread nose (same height, same line along the run)
+  for (const [x, y, z] of logged.treadNose) {
+    const [, along] = worldToStair(f, x, z);
+    const match = stone.treadNose.some(([sx, sy, sz]) => { const [, sa] = worldToStair(f, sx, sz); return Math.abs(sa - along) < 1e-9 && Math.abs(sy - y) < 1e-9; });
+    assert.ok(match, `nose at ${along.toFixed(3)} / ${y.toFixed(3)} is not the stone flight's`);
   }
+  // an unsplit tread's outline is the same cut on both flights
+  const stoneHashes = new Set(stone.shapeHashes);
+  const shared = logged.shapeHashes.filter((h) => stoneHashes.has(h)).length;
+  assert.ok(shared >= main.steps - Math.ceil(main.steps * 0.5), `${shared} of ${main.steps} log-tread outlines are stone cuts`);
+  assert.ok(shared < main.steps, 'no tread was joined — the split draws did not happen');
+});
+
+test('a joined earth tread spans the flight in one piece: no joint wall inside the flanks (the stone split has two)', () => {
+  const hw = main.width / 2;
+  const acrossDir = { x: f.dz, z: -f.dx };
+  // walls facing across the run, within the slab's height band, inside the flanks, at step i
+  const jointWalls = (build, i) => {
+    const P = build.geometry.attributes.position;
+    const N = build.geometry.attributes.normal;
+    const topY = main.base[1] + (i + 1) * main.rise;
+    let n = 0;
+    for (let t = 0; t < P.count; t += 3) {
+      let ok = true;
+      for (let k = 0; k < 3 && ok; k++) {
+        const y = P.getY(t + k);
+        const [across, along] = worldToStair(f, P.getX(t + k), P.getZ(t + k));
+        if (y < topY - 0.17 || y > topY + 0.01 || Math.abs(across) > hw - 0.2 || along < i * main.tread - 0.15 || along > (i + 1) * main.tread) ok = false;
+      }
+      if (!ok) continue;
+      const facing = Math.abs(N.getX(t) * acrossDir.x + N.getZ(t) * acrossDir.z);
+      if (facing > 0.9) n++;
+    }
+    return n;
+  };
+  const stoneHashes = new Set(stone.shapeHashes);
+  let joined = 0;
+  for (let i = 0; i < main.steps; i++) {
+    const isJoined = !stoneHashes.has(logged.shapeHashes[i]);
+    if (isJoined) joined++;
+    assert.equal(jointWalls(logged, i), 0, `step ${i}: joint walls on the log flight`);
+    if (isJoined) assert.ok(jointWalls(stone, i) > 0, `step ${i}: the stone flight's split tread shows no joint wall (control)`);
+  }
+  assert.ok(joined >= 1, 'no joined tread on the main flight with this seed');
 });
 
 test('under a timber the riser face stands at the nose; on the stone flight it stands a hand\'s width behind it', () => {
