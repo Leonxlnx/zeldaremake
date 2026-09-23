@@ -10,8 +10,9 @@
  * A variant sets `color` / `emissive` (linear RGB) / `emissiveIntensity` / `roughness` on every
  * material whose name matches `material` (exact), `visible` on objects named `object`, or moves the
  * sun (`sun: { dir: [x, y, z], intensity }` — the shadow-casting directional light, same distance
- * from its target), or blits one composer buffer (`atmoDebug`: 'rays' | 'ao' | 'mist' | 'bloom');
- * each variant starts from the loaded values. Frames are <variant>-<shot>.png. `--audit <file>`
+ * from its target), or blits one composer buffer (`atmoDebug`: 'rays' | 'ao' | 'mist' | 'bloom'),
+ * or scales the point lights whose name matches (`lights: { match: 'lantern', scale: 0 }`), or
+ * sets the simulation clock (`time`, s; default 12.5); each variant starts from the loaded values. Frames are <variant>-<shot>.png. `--audit <file>`
  * also writes the loaded world's `__ZR__.audit()`; `--pick "x,y;x,y"` (frame fractions, y down)
  * names the meshes under those pixels on the first variant's frames (pick-<shot>.json).
  * The character is hidden.
@@ -167,6 +168,11 @@ async function main() {
       window.__H.scene.traverse((o) => {
         if (o.isDirectionalLight && o.castShadow && !window.__PROBE_SUN__) window.__PROBE_SUN__ = { light: o, dir0: o.userData.sunDir?.clone() ?? null, intensity: o.intensity };
       });
+      // every point light's loaded intensity (a `lights` variant scales the ones it names)
+      window.__PROBE_LIGHTS__ = [];
+      window.__H.scene.traverse((o) => {
+        if (o.isPointLight) window.__PROBE_LIGHTS__.push([o, o.intensity]);
+      });
       // remember every material's loaded values once
       window.__PROBE_ORIG__ = new Map();
       window.__H.scene.traverse((o) => {
@@ -209,6 +215,16 @@ async function main() {
         }
         // `atmoDebug`: 'rays' | 'ao' | 'mist' | 'bloom' blits that composer buffer (postfx/composer.ts)
         globalThis.__ATMO_DEBUG__ = v.atmoDebug ?? undefined;
+        // `time`: the simulation clock for this variant's frames (wind, swinging pods; default 12.5)
+        window.__ZR__.setTime(v.time ?? 12.5);
+        // `lights`: { match: <regexp on the light's name>, scale } — 0 switches them off without
+        // changing the light count (no program recompiles between variants)
+        const lightRe = v.lights ? new RegExp(v.lights.match) : null;
+        for (const [l, i0] of window.__PROBE_LIGHTS__ ?? []) {
+          const hit = !!lightRe && lightRe.test(l.name);
+          l.intensity = hit ? i0 * (v.lights.scale ?? 0) : i0;
+          if (hit) n++;
+        }
         return n;
       }, v);
       for (const shot of shots) {
