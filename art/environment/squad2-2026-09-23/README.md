@@ -108,6 +108,28 @@ The band's STRUCTURE now sits inside the reference's range on both axes (and abo
 MEAN is still ~36 levels under the reference: that is exposure and the height fog's depth, lane 1's
 work, not the trees'.
 
+## Every direction you can walk
+
+Four more player-height poses on both builds (`walk-poses.json`, 768 × 432), chosen for the headings
+the owner's three poses do not cover. `compare/walk-<name>.jpg`:
+
+| pose | before → after | band mean | across-columns sd |
+| --- | --- | --- | --- |
+| `plaza-west` — the plaza toward the west house | the pale veil behind the fence becomes layered crowns and young trees | 74.0 → 69.2 | 10.64 → **14.98** |
+| `plaza-east` — the plaza toward the east bank | the hazy band left of the giant fills with crowns and a mid trunk | 56.6 → 53.2 | 15.23 → 13.46 |
+| `plaza-south` — down the spine past the plaza-south giant | trees behind the giant's bole where there was haze | 62.3 → 55.0 | 12.91 → 12.58 |
+| `clearing-north` — the open ground north of the log arch | a mid bole 5 m off at the left edge, trees down the west flank | 39.4 → 36.2 | 13.33 → 13.37 |
+
+The band mean falls 3–7 levels in all four: the grey veil is replaced by tree mass, which is darker.
+`plaza-east` and `plaza-south` lose a little across-columns structure because what filled in there is
+a *continuous* leafy band rather than isolated silhouettes — the frames read better, the statistic
+does not distinguish the two cases. The crops are the evidence for those two.
+
+`clearing-north` puts a mid bole 4–5 m from the lens in the open ground north of the arch; at full
+resolution it reads as bark (fissures, moss, a believable brown) and the walk route through there is
+clean, so it is kept. If the owner wants that ground to stay an open clearing, `midWeight` in
+`trees/index.ts` is the one-line lever (it is already what keeps the village core clear inside 13 m).
+
 ## Play mode
 
 `gauntlet/scripts/playtest.mjs --only look,walk,perf --shots` on the change, and `--only perf` on the
@@ -174,6 +196,7 @@ candidate whose crown would fill them. `compare/hero-<id>.jpg` is each pair.
   crowns marked red (`probe-look.mjs --variants … material distant-crown-mid, emissive red`).
 * `compare/hero-*.jpg` — the five reachable fixed views (A, B, C, D, F — E is B's held copy) on the
   head beside this branch.
+* `compare/walk-*.jpg` — the four extra player-height headings on the head beside this branch.
 * `playtest-after.json`, `playtest-base-perf.json`, `play/` — the play-mode runs and their shots.
 * `hero-poses.json`, `mid-probe-poses.json`, `look-up-poses.json` — the pose files used here.
 * `compare.mjs` — the sheet builder (`--pair label=file`, `--crop`, `--stats`).
