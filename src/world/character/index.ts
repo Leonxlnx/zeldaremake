@@ -615,7 +615,14 @@ export async function create(ctx: WorldContext): Promise<WorldSystem> {
       navi.velocity.copy(mode === 'play' ? velocity : tmpD.set(0, 0, 0));
       navi.position(t, naviPos);
       poseActor(link, t, naviPos);
-      for (let i = 0; i < kids.length; i++) if (!npcs.drive(i, kids[i], t, mode === 'view')) poseActor(kids[i], t, null);
+      // the kids notice Link off the fixed views (npc.ts noticePlayer): the driven kids inside drive(),
+      // the boy at the door after his idle pose here
+      const player = mode === 'view' ? null : link.pos;
+      for (let i = 0; i < kids.length; i++) {
+        if (npcs.drive(i, kids[i], t, mode === 'view', player)) continue;
+        poseActor(kids[i], t, null);
+        if (player) npcs.notice(kidChars[i].rig, kids[i], player);
+      }
       npcs.updateFairies(t);
       scopeKidShadows(c.camera);
       navi.update(t, c.renderer.getPixelRatio());

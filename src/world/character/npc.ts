@@ -83,9 +83,12 @@ export interface Npcs {
    * ledge idle / bank idle); writes the actor's pos, yaw, contact and shadow. False = no
    * behaviour, the caller poses it as before. Under capture (`view` true) the wander and the
    * seat stand aside for the per-view placement (false), the ledge girl is posed on her spot but
-   * hidden, and the bank girl stays (she is outside every fixed frustum).
+   * hidden, and the bank girl stays (she is outside every fixed frustum). With `player` (Link's
+   * root, ground-relative x / z) the posed kid notices him (`noticePlayer`); capture passes none.
    */
-  drive(slot: number, actor: NpcActor, t: number, view?: boolean): boolean;
+  drive(slot: number, actor: NpcActor, t: number, view?: boolean, player?: Vector3 | null): boolean;
+  /** the notice for a kid the caller posed itself (the boy at the door): after its pose, before the fairies */
+  notice(rig: Rig, actor: NpcActor, player: Vector3, walk?: number): void;
   /** after every kid is posed: move the fairies to their faces (the walker's with a lag) */
   updateFairies(t: number): void;
   /** audit fields (`npcCount`, `npcWaypoints`, `npcSitting`, `npc` details) */
@@ -365,6 +368,7 @@ function twoBone(l1: number, l2: number, reach: number, drop: number, midBehind 
 const _tmp = new Vector3();
 const _tmp2 = new Vector3();
 const _off = new Vector3();
+const _head = new Vector3();
 const _fwd = new Vector3();
 const _up = new Vector3(0, 1, 0);
 /** seated pelvis roll (rad): the pelvis tips back a little under a rounded lower back */
@@ -482,6 +486,41 @@ function seatedLook(t: number, phase: number, keys: [number, number, number][], 
     }
   }
   return [0, 0];
+}
+
+// ---- noticing Link (lane 7, 2026-09-23) ----
+
+/** Link within this of a kid: her head starts turning to him; fully on him by NOTICE_NEAR_M */
+const NOTICE_FAR_M = 5.0;
+const NOTICE_NEAR_M = 2.8;
+/** how far the neck turns (rad); past it the turn fades out over 0.7 rad rather than pinning to the shoulder */
+const NOTICE_YAW_MAX = 1.05;
+/** Link's eyes over his root (the GLB's 1.25 m to the cap) */
+const PLAYER_EYE_M = 1.1;
+
+/**
+ * The kids notice Link: within NOTICE_FAR_M the posed head turns toward him — fully by
+ * NOTICE_NEAR_M, within the neck's range (a fade past NOTICE_YAW_MAX, so someone walking round
+ * behind her is let go, never snapped to), the pitch to his eyes (the bank girl looks down at
+ * him from her terrace) — blended over the pose's own look. A pure function of his position
+ * and hers, so a zero-dt re-render repeats the pose and the play state carries nothing; a
+ * walking kid gives him half the turn. Capture never calls it: the six frames keep their heads.
+ */
+function noticePlayer(rig: Rig, kidX: number, kidZ: number, kidYaw: number, headY: number, playerX: number, playerY: number, playerZ: number, walk = 0): void {
+  const dx = playerX - kidX;
+  const dz = playerZ - kidZ;
+  const dist = Math.hypot(dx, dz);
+  if (dist >= NOTICE_FAR_M) return;
+  const rel = angleTo(kidYaw, Math.atan2(dx, dz));
+  const reach = 1 - smooth((Math.abs(rel) - NOTICE_YAW_MAX) / 0.7);
+  const w = smooth((NOTICE_FAR_M - dist) / (NOTICE_FAR_M - NOTICE_NEAR_M)) * reach * (1 - 0.5 * walk);
+  if (w <= 0) return;
+  const pitch = Math.atan2(playerY + PLAYER_EYE_M - headY, dist);
+  // the neck turns relative to the chest: take the pose's own hips / chest yaw (the idle turn, the walk's counter-rotation) out of the target
+  const body = rig.hips.rotation.y + rig.chest.rotation.y;
+  const n = rig.neck.rotation;
+  n.y += (MathUtils.clamp(rel - body, -NOTICE_YAW_MAX, NOTICE_YAW_MAX) - n.y) * w;
+  n.x += (MathUtils.clamp(-pitch, -0.35, 0.5) - n.x) * w;
 }
 
 // ---- the system ----
@@ -677,10 +716,18 @@ export function createNpcs(opts: NpcOptions): Npcs {
     return hoverAt(_tmp.x, _tmp.y, _tmp.z, c.rig.root.rotation.y, out);
   };
 
+  /** the notice for a posed kid: head height read off the rig, Link's root on the walkable ground */
+  const noticeFor = (rig: Rig, actor: NpcActor, player: Vector3 | null | undefined, walk = 0) => {
+    if (!player) return;
+    rig.root.updateMatrixWorld(true);
+    rig.head.getWorldPosition(_head);
+    noticePlayer(rig, actor.pos.x, actor.pos.z, actor.yaw, _head.y, player.x, ground.height(player.x, player.z), player.z, walk);
+  };
+
   let lastT = 0;
   return {
     group,
-    drive(slot, actor, t, view = false) {
+    drive(slot, actor, t, view = false, player = null) {
       lastT = t;
       if (slot === LEDGE_SLOT && ledgeChar) {
         // posed on her spot in every mode (the audit's contact stays true); shown only off the fixed views
@@ -689,6 +736,7 @@ export function createNpcs(opts: NpcOptions): Npcs {
         const [hy, hp] = seatedLook(t, ledgePhase, ledgeKeys, ledgeLookPeriod);
         poseLedgeIdle(ledgeChar.rig, ledge.x, ledge.z, ledge.y, ledge.yaw, t, 5.1, hy, hp, ledgeSt);
         plantFeet(ledgeChar.rig, ground.height, actor.contact);
+        noticeFor(ledgeChar.rig, actor, player);
         actor.shadow.position.set(ledge.x, ground.decalHeight(ledge.x, ledge.z, actor.shadowRadius), ledge.z);
         showLedge(!view);
         actor.shadow.visible = !view;
@@ -702,6 +750,7 @@ export function createNpcs(opts: NpcOptions): Npcs {
         const [hy, hp] = seatedLook(t, bankPhase, bankKeys, bankLookPeriod);
         poseLedgeIdle(bankChar.rig, bank.x, bank.z, bank.y, bank.yaw, t, 7.9, hy, hp, bankSt);
         plantFeet(bankChar.rig, ground.height, actor.contact);
+        noticeFor(bankChar.rig, actor, player);
         actor.shadow.position.set(bank.x, ground.decalHeight(bank.x, bank.z, actor.shadowRadius), bank.z);
         // her fairy's light is dimmed to nothing under capture (round 50 kept it out of the six
         // frames' light loop; the light itself stays in the scene — see the fairies above); the
@@ -720,6 +769,7 @@ export function createNpcs(opts: NpcOptions): Npcs {
         rig.root.rotation.y = wander.yaw;
         poseWander(rig, wander, t, 1.3);
         plantFeet(rig, ground.height, actor.contact);
+        noticeFor(rig, actor, player, wander.walk);
         actor.shadow.position.set(wander.x, ground.decalHeight(wander.x, wander.z, actor.shadowRadius), wander.z);
         driven.add(0);
         return true;
@@ -734,11 +784,15 @@ export function createNpcs(opts: NpcOptions): Npcs {
         sitter.rig.ankleL.localToWorld(_tmp.copy(sitter.rig.sole));
         sitter.rig.ankleR.localToWorld(_tmp2.copy(sitter.rig.sole));
         actor.contact.copy(_tmp.y <= _tmp2.y ? _tmp : _tmp2);
+        noticeFor(sitter.rig, actor, player);
         actor.shadow.position.set(feetMid.x, ground.decalHeight(feetMid.x, feetMid.z, actor.shadowRadius), feetMid.z);
         driven.add(1);
         return true;
       }
       return false;
+    },
+    notice(rig, actor, player, walk = 0) {
+      noticeFor(rig, actor, player, walk);
     },
     updateFairies(t) {
       lastT = t;
