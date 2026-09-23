@@ -603,17 +603,17 @@ async function videoScenario(page, results) {
     await page.evaluate(([x, z, yaw]) => window.__ZR_PLAY__.place(x, z, yaw), [spot.at[0], spot.at[1], rad(spot.yaw)]);
     await sim(page, 40);
     let k = 0;
-    for (let i = 0; i < 6; i++) await save(`look-${id}`, k++);
+    for (let i = 0; i < 3; i++) await save(`look-${id}`, k++);
     const t0 = Date.now();
-    await drag(page, 0, -Math.round(height * 0.8), 24, 1, async () => {
+    await drag(page, 0, -Math.round(height * 0.8), 14, 1, async () => {
       await sim(page, 1);
       await save(`look-${id}`, k++);
     });
-    for (let i = 0; i < 10; i++) {
+    for (let i = 0; i < 5; i++) {
       await sim(page, 1);
       await save(`look-${id}`, k++);
     }
-    await drag(page, 0, Math.round(height * 1.0), 24, 1, async () => {
+    await drag(page, 0, Math.round(height * 1.0), 14, 1, async () => {
       await sim(page, 1);
       await save(`look-${id}`, k++);
     });
@@ -629,8 +629,9 @@ async function videoScenario(page, results) {
   await page.keyboard.down('KeyW');
   let k = 0;
   try {
-    for (let i = 0; i < 150; i++) {
-      await sim(page, 1);
+    // a drawn frame every second simulated one (15 fps of a 30 fps walk, 5 s)
+    for (let i = 0; i < 75; i++) {
+      await sim(page, 2);
       await save('climb-main', k++);
     }
   } finally {
