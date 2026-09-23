@@ -7,7 +7,7 @@
  * `onBeforeCompile`, its program cache key extended so a compiled program is not reused. Never
  * installed under a headless capture, so the fixed frames are untouched.
  */
-import { Vector2, type Material, type Object3D, type WebGLProgramParametersWithUniforms } from 'three';
+import { Material, Vector2, type Object3D, type WebGLProgramParametersWithUniforms } from 'three';
 
 /** fully gone at [0] m from the camera, whole beyond [1] m */
 export const NEAR_FADE_M: [number, number] = [0.2, 0.7];
@@ -46,8 +46,11 @@ export function installNearFade(root: Object3D): { materials: number } {
         shader.uniforms.uZrNearFade = uniform;
         shader.fragmentShader = 'uniform vec2 uZrNearFade;\n' + shader.fragmentShader.replace('#include <alphatest_fragment>', `${DITHER}\n#include <alphatest_fragment>`);
       };
-      const prevKey = m.customProgramCacheKey.bind(m);
-      m.customProgramCacheKey = () => `${prevKey()}|zr-near-fade`;
+      // three's default key IS the onBeforeCompile source: keep keying by the material's own hook,
+      // not by this wrapper (every wrapped material would share one program otherwise)
+      const ownKey = m.customProgramCacheKey;
+      const keyOf = ownKey === Material.prototype.customProgramCacheKey ? () => prev.toString() : () => ownKey.call(m);
+      m.customProgramCacheKey = () => `${keyOf()}|zr-near-fade`;
       m.needsUpdate = true;
     }
   });

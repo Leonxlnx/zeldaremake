@@ -504,6 +504,8 @@ async function boot() {
         const p = player?.position;
         return {
           playMode: !!follow?.enabled,
+          paused: shell.paused,
+          canvas: [renderer.domElement.width, renderer.domElement.height],
           camera: { position: c.position.toArray(), direction: d.toArray(), fov: c.fov, near: c.near, aspect: c.aspect },
           link: p && player ? [p.x, player.groundHeight(p.x, p.z), p.z] : null,
           heading: player ? player.heading() : null,
