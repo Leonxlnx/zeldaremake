@@ -1,2 +1,2 @@
-Walkable build of the integration branch head (cursor/kokiri-world-phase1-f65e @ 3b3a956a), published by fable-cursor so the owner can play the current state without waiting for a gauntlet take (a take re-publishes monitor/play/ when it seals).
+Walkable build of cursor/kokiri-world-phase1-f65e @ 69580d8c, published by gauntlet/scripts/publish-play-head.sh.
 Open: https://raw.githack.com/Leonxlnx/zeldaremake/play-head/index.html
