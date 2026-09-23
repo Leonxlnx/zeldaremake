@@ -630,3 +630,15 @@ all a little, likely toward the frames' luminance).
 `b-upper-2` under the same push: 0.270 → 0.271, dark 54.2 → 53.8 % (1.1 % of pixels moved) — **§10.2 stays open**: the
 upper house's ladder sits under the closed roof, where `hazeShadeVeil` back at 1.0 keeps the veil shaded; the 04:30 frame
 read 0.454. Sheet `fable-5-lane10/it95-ba-b-upper-2.jpg`.
+
+## 21. fable-cursor's `94d96536` (§18's lever (a): the crowns' first radius built at load, `NEAR_LOD_PREBUILD_MS` 1500) re-measured on `61db16c8` (23:08–23:16 UTC)
+
+`sysperf.mjs` at the four spots, one Chrome: **near-crown pool pending 0 at every spot** (plaza: 374 wanted, 390 resident,
+280 built at load, work total 1.29 s — inside the 1.5 s allowance; the flight's foot 384 wanted / 397 resident / 0 pending;
+`39e63437` read 192 / 159 pending there), the near-base pool 23 / 23 as before, 63 synchronous builds at load unchanged,
+build p50 6.2 / p95 12–14 / max 31 ms (60 on `39e63437`). **The trees' per-step update falls from 2.6–6.0 ms to 0.30 ms**
+at the spots — the world update at the plaza is 1.2 ms now (character 0.7). The walk no longer builds crowns as the owner
+moves through the first radius; what remains of "spawn" is the swap itself at 26 / 30 m (lever (c), a cross-fade — lane 2 /
+fable-4) and any crown beyond the pre-fetch radius on a long walk (the west house read 8 pending before). Pacing on this
+head is the next pass (the 25-minute run did not fit this hour); by these pool numbers the plaza segment's p50 10 ms
+(§8) should fall to the flight's 4 ms.
