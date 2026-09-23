@@ -3176,6 +3176,19 @@ export async function create(ctx: WorldContext): Promise<WorldSystem> {
    * everywhere, because the brief is "every direction you can walk shows layered trees".
    */
   const midWeight = (x: number, z: number) => smoothstep(13, 19, Math.hypot(x, z)) * (0.58 + 0.42 * smoothstep(-6, -26, z));
+  /**
+   * fable-5 (lane 10, 2026-09-23 12:52): mid crowns 3–7 m from the walk line read as flat card piles
+   * at `u-open-up` and `h-west-front`. The band 3.4–11 m off the walk polylines is the understory's
+   * (real laminae, `UNDERSTORY_PATH_MIN_M`…`UNDERSTORY_PATH_MAX_M`); the card grove starts where the
+   * cards hold — MID_WALK_MIN_M from the path centrelines (a post-filter, so no other tree moves).
+   */
+  const MID_WALK_MIN_M = 11;
+  const midWalkXZ: [number, number][][] = [
+    ctx.layout.pathSpine.map((p) => [p[0], p[2]] as [number, number]),
+    ctx.layout.pathToHouse.map((p) => [p[0], p[2]] as [number, number]),
+    ctx.layout.northPath.map((p) => [p[0], p[2]] as [number, number]),
+  ];
+  const nearWalk = (x: number, z: number) => midWalkXZ.some((poly) => poly.length > 1 && spineDistance(poly, x, z) < MID_WALK_MIN_M);
   const midSampled = placeMidTrees(rng, terrain, distantVariants, {
     target: midTarget,
     inner: 13,
@@ -3186,7 +3199,9 @@ export async function create(ctx: WorldContext): Promise<WorldSystem> {
     weight: midWeight,
     spacing: 3.2,
   });
-  const midPlacements = midSampled.filter((p) => !expansionCull(p.x, p.z));
+  // applied AFTER sampling, like expansionCull: a rule inside the sampler's `blocked` shifts every
+  // later draw and re-rolls the whole grove (measured: 6 trees fewer, 60 % of u-open-up's pixels moved)
+  const midPlacements = midSampled.filter((p) => !expansionCull(p.x, p.z) && !nearWalk(p.x, p.z));
   distantPlacements.push(...midPlacements);
   // round 47: the crown cards (the geometry's second group) draw with their own material (distant.ts createDistantCrownMaterial: far-crown atlas, spherical shading, soft alpha, wind)
   const distantCrown = createDistantCrownMaterial(ctx.wind, rng, palette, sunDir);
