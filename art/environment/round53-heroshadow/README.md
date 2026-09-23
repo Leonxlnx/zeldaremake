@@ -35,3 +35,10 @@ frame at one lamina in 8 instead of every lamina — 0.21 % of pixels, −0.0005
 
 ## Verification
 `npm run typecheck` green, build green, 19/19 tree tests.
+
+## Tried and dropped — the same twin for the seated columns' high LOD
+Generalised to every family whose high mesh is ≥ 20 K triangles (white-barks + the seated columns): A
+9.02 → **9.05 M** and draws **598 → 725** (over the ≤ 700 rule) — every column variant gained a twin
+draw in both passes while the columns' shadow-only instances behind A were few and light. The twin is
+worth it only where a heavy high mesh casts for shade that is out of the frame: the white-bark heroes.
+Reverted to white-barks only.
