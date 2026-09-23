@@ -3837,6 +3837,8 @@ export async function create(ctx: WorldContext): Promise<WorldSystem> {
         crown: MID_SPECS.map((s) => [s.height, s.crownR, s.crownY]),
         trunkRadius: MID_TRUNK_R,
         band: midPlacements.length ? [Math.round(Math.min(...midPlacements.map((p) => Math.hypot(p.x, p.z))) * 10) / 10, Math.round(Math.max(...midPlacements.map((p) => Math.hypot(p.x, p.z))) * 10) / 10] : [0, 0],
+        /** every bole as [x, z, variant] (dm): a review can pose a camera at one, and a diff names what moved */
+        seats: midPlacements.map((p) => [Math.round(p.x * 10) / 10, Math.round(p.z * 10) / 10, p.variant - (distantVariants.length - MID_SPECS.length)]),
         farLodM: MID_FAR_LOD_M,
         material: midCrown.name,
       },

@@ -64,10 +64,10 @@ export const LANTERN_CROWD_SHARE = 0.2;
  * times the floor, so the wood is nearly quiet between gusts — an always-on bed is what a listener
  * stops hearing as air and starts hearing as noise.
  */
-export const CANOPY_FLOOR = 0.019;
+export const CANOPY_FLOOR = 0.012;
 export const CANOPY_GUST = 0.115;
-export const HUSH_FLOOR = 0.0014;
-export const HUSH_GUST = 0.048;
+export const HUSH_FLOOR = 0.0018;
+export const HUSH_GUST = 0.075;
 
 type BirdKind = 'whistle' | 'trill' | 'chirps' | 'warble' | 'coo' | 'knock';
 /** how often each call is chosen, and how far away it tends to be (0 = overhead, 1 = deep in the wood) */
@@ -119,7 +119,7 @@ export function createAmbience(ctx: BaseAudioContext, out: AudioNode, reverbSend
   bedSrc.connect(canopyHp).connect(canopyLp).connect(canopyTilt).connect(canopyGain).connect(out);
   const canopySend = gain(ctx, 0.5);
   canopyGain.connect(canopySend).connect(reverbSend);
-  rides(canopyGain.gain, 0.055, 1.4, 0.024, 'canopy-slow');
+  rides(canopyGain.gain, 0.055, 1.4, 0.03, 'canopy-slow');
   // the canopy's colour moves with a slower wander of its own: a gust opens the top of the roll
   rides(canopyLp.frequency, 0.08, 1, 280, 'canopy-colour');
 
@@ -198,7 +198,7 @@ export function createAmbience(ctx: BaseAudioContext, out: AudioNode, reverbSend
       const pan = (eventRng() * 2 - 1) * 0.9;
       for (let i = 0; i < n; i++) {
         const centre = 950 + eventRng() * 1900;
-        const level = (0.005 + eventRng() * 0.016) * (0.35 + g * 0.9);
+        const level = (0.0065 + eventRng() * 0.021) * (0.35 + g * 0.9);
         flutter(t + i * (0.04 + eventRng() * 0.16), centre, level, pan + (eventRng() - 0.5) * 0.3, 0.07 + eventRng() * 0.16);
       }
       // gusts crowd the flutters together; still air leaves long gaps
@@ -353,14 +353,14 @@ export function createAmbience(ctx: BaseAudioContext, out: AudioNode, reverbSend
       const b = pickBird();
       const distance = b.near + eventRng() * (b.far - b.near);
       const pan = (eventRng() * 2 - 1) * 0.85;
-      const level = 0.02 + eventRng() * 0.035;
+      const level = 0.03 + eventRng() * 0.045;
       birdCall(b.kind, nextBird, pan, level, distance);
       // sometimes one answers from the other side, always further off
-      if (eventRng() < 0.28) {
+      if (eventRng() < 0.3) {
         const a = pickBird();
         birdCall(a.kind, nextBird + 1.1 + eventRng() * 1.4, -pan * 0.8, level * 0.6, Math.min(1, distance + 0.2));
       }
-      nextBird += 4.5 + eventRng() * 9;
+      nextBird += 3.5 + eventRng() * 8;
     }
   };
 

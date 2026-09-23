@@ -368,6 +368,14 @@ export interface CrownLook {
   underDark?: number;
   /** vertical cards fade as the view ray's world y climbs over this range */
   edgeSteep?: [number, number];
+  /**
+   * …and that fade only applies to crowns within this view distance [full, none] (m). Unset = every
+   * distance, which is what the 60–220 m layer wants. The mid layer needs the fade — a vertical card
+   * seen from below is a tall trapezoid that smears toward the zenith — but ONLY when the crown is
+   * genuinely overhead: at 15 m a 12 m tree's crown already sits 30° up, inside the far layer's fade
+   * window, and that is simply a walker looking at a tree.
+   */
+  edgeSteepNearM?: [number, number];
   /** share of the haze over a crown given back on a climbing ray inside the gate */
   fogCut?: number;
   /** albedo at the crown's core (1 at its shell) */
@@ -473,7 +481,8 @@ export function createDistantCrownMaterial(wind: Wind, rng: Rng, palette: Palett
       vec3 cardW = normalize(vNormal * mat3(viewMatrix));
       float edgeOn = abs(dot(normalize(vViewPosition), normalize(vNormal)));
       float flatCard = smoothstep(0.7, 0.9, abs(cardW.y));
-      float steepFade = 1.0 - smoothstep(${f(edgeSteep[0])}, ${f(edgeSteep[1])}, rayW.y);
+      float steepNear = ${look?.edgeSteepNearM ? `1.0 - smoothstep(${f(look.edgeSteepNearM[0])}, ${f(look.edgeSteepNearM[1])}, length(vViewPosition))` : '1.0'};
+      float steepFade = 1.0 - steepNear * smoothstep(${f(edgeSteep[0])}, ${f(edgeSteep[1])}, rayW.y);
       diffuseColor.a *= mix(steepFade, smoothstep(${f(CROWN_EDGE_FADE[0])}, ${f(CROWN_EDGE_FADE[1])}, edgeOn), flatCard);
       // CROWN_FLOOR_ROUND: inside the gate a floor card ends in the crown's round edge, not its quad's
       diffuseColor.a *= 1.0 - max(roofNear, ${f(look?.roundFloors ? 1 : 0)}) * flatCard * smoothstep(${f(CROWN_FLOOR_ROUND[0])}, ${f(CROWN_FLOOR_ROUND[1])}, length(vCrownOff.xz));
@@ -974,29 +983,31 @@ function tooCloseIn(grid: Map<string, DistantPlacement[]>, cell: number, x: numb
 
 /* ------------------------------------------------------------------ mid-canopy trees (14–58 m) */
 
-/**
+/*
  * 2026-09-23 — the owner's "the trees do not populate". The 14–58 m band held only the giants'
  * boles, the pale white-barks and the authored column trunks: at his pose on the north path the
  * middle distance is a trench of bare trunks in grey haze, while his own recording
- * (`reference/frames-dense/review46/r_020`–`r_028`) stacks SMALL AND MEDIUM trees with round leafy
+ * (reference/frames-dense/review46/r_020–r_028) stacks SMALL AND MEDIUM trees with round leafy
  * crowns at every depth between the big trunks, their crowns overlapping into layers.
  *
- * These are that layer: the same two-LOD machinery as the 60–220 m trees (the same wood material,
- * the same far-crown atlas, the same instanced pools) at understory size — 7–16 m tall, the crown
- * centred at half the height so a walker meets LEAVES and not a bare pole at 10–30 m, and the
- * crown built as a core plus two tiers of lobes so its silhouette is a round mass with bumps
- * rather than one crossed shape. Their crowns are drawn with their own material
- * (`MID_CROWN_LOOK`): the far layer's near-distance treatments exist because a far crown is only
- * ever met close overhead, and at 12 m they would darken the mass and fade its vertical cards out.
+ * This is that layer: the same two-LOD machinery as the 60–220 m trees (the same wood material, the
+ * same far-crown atlas, the same instanced pools) at understory size, with the crown centred at
+ * about half the height so a walker meets LEAVES and not a bare pole at 10–30 m, and the crown built
+ * as a core plus two tiers of lobes so its silhouette is a round mass with bumps rather than one
+ * crossed shape. Their crowns are drawn with their own material (MID_CROWN_LOOK): the far layer's
+ * near-distance treatments exist because a far crown is only ever met close overhead, and at 12 m
+ * they would darken the mass and fade its vertical cards out.
  */
+
 /**
- * The variants, short to tall: [height (m), crown radius, crown centre] — the last two as shares of
- * the height. A card is drawn 2 × FAR_CROWN_CARD_HALF × FAR_CROWN_FILL[0] ≈ 2.13 crown radii
- * across, so 0.27 gives a crown ≈ 0.58 of the tree's height wide: a 7 m mass on a 12 m tree, what a
- * mid-story tree in review46 r_025 reads as (the first take at 0.4 drew 16 m blobs that swallowed
- * the frame at 15 m). The two SHORT variants are the ones that fill a walker's eye-level band: a
- * 5 m sapling clump 25 m out sits at screen y ≈ 0.45 with a 1.8 m crown, in the strip between the
- * ground cover and the taller crowns where review46 has bushy young trees and ours had open haze.
+ * The variants, short to tall: height (m), then crown radius and crown centre as shares of it. A
+ * card is drawn 2 × FAR_CROWN_CARD_HALF × FAR_CROWN_FILL[0] ≈ 2.13 crown radii across, so these
+ * radii give a crown 0.62–0.89 of the tree's height wide: a 7.7 m mass on an 11.6 m tree, what a
+ * mid-story tree in review46 r_025 reads as, and proportionally wider on the short ones, which are
+ * bushy young trees. (0.4 on every variant drew 16 m blobs that swallowed the frame at 15 m.) The
+ * two SHORT variants fill a walker's eye-level band: a 5 m sapling clump 25 m out sits at screen
+ * y ≈ 0.45 with a 2 m crown, in the strip between the ground cover and the taller crowns where
+ * review46 has young trees and ours had open haze.
  */
 export const MID_SPECS: { height: number; crownR: number; crownY: number }[] = [
   { height: 4.8, crownR: 0.42, crownY: 0.54 },
@@ -1020,7 +1031,7 @@ export const MID_CROWN_FLOORS = 2;
 /** lobe radius and offset as shares of the crown radius: [upper tier, lower tier] */
 export const MID_LOBE_R: [number, number] = [0.46, 0.58];
 export const MID_LOBE_OFF: [number, number] = [0.4, 0.6];
-/** root toes on the near LOD [count, length share of R, collar height share] */
+/** root toes at the foot of the bole (writer.ts rootButtress), both LODs */
 export const MID_TOES = 3;
 /** the far LOD (the same skeleton, 5-sided, and the same crown) takes over at this view distance (m) */
 export const MID_FAR_LOD_M = 40;
@@ -1034,9 +1045,13 @@ export const MID_CROWN_LOOK: Omit<CrownLook, 'atlas'> = {
   underM: [10, 30],
   nearDark: 0.92,
   underDark: 0.6,
-  // never fade a vertical card by the ray's climb: a 12 m crown 14 m away sits 30° up, inside the
-  // far layer's fade window, and the owner walks looking slightly up
-  edgeSteep: [1.2, 1.6],
+  // the far layer fades a vertical card once the view ray climbs 25–46° to it, at any distance — at
+  // 15 m a 12 m tree's crown is already 30° up, so that window would empty the middle distance the
+  // moment the owner looked slightly up. The fade is kept (a vertical card seen from below smears
+  // toward the zenith) but only 33–58° and only within 16 m, where the crown really is overhead and
+  // its two floor cards are what should read.
+  edgeSteep: [0.55, 0.85],
+  edgeSteepNearM: [10, 16],
   // a mid crown stands in a tenth of the far layer's haze, so it needs far less of it back
   fogCut: 0.3,
   // the lit rim: 0.6 of the direct term burnt a card's whole edge to an acid green on a crown in

@@ -21,7 +21,7 @@ import { forestFloorZone } from '../world/terrain/material';
 import { EXPANSION, LAYOUT } from '../world/layout';
 import { createBuses, createRng, type Buses } from './graph';
 import { createAmbience, type Ambience, type Vec3 } from './ambience';
-import { createFootsteps, type Footsteps, type Surface } from './footsteps';
+import { createFootsteps, type Footsteps, type FootstepStats, type Surface } from './footsteps';
 import { createMusic, type Music, type MusicSource } from './music';
 
 export type AudioState = 'idle' | 'on' | 'muted';
@@ -34,9 +34,20 @@ export interface AudioHandle {
   toggleMute(): void;
   setMuted(muted: boolean): void;
   music(): MusicSource;
+  /** what the system has done so far — the play-mode evidence path (`__ZR_AUDIO__.stats()`) */
+  stats(): AudioStats;
   /** render `seconds` of the mix offline: 16-bit stereo WAV bytes + the music source it used */
   renderOffline(seconds: number, sampleRate?: number, options?: OfflineOptions): Promise<OfflineRender>;
   dispose(): void;
+}
+
+export interface AudioStats extends FootstepStats {
+  state: AudioState;
+  music: MusicSource;
+  /** pod lanterns found in the scene (the flame's distance sources) */
+  pods: number;
+  /** true while the character system is reporting the gait's boot plants */
+  gaitDriven: boolean;
 }
 
 export interface OfflineRender {
@@ -57,6 +68,7 @@ export interface WalkLeg {
   until: number;
   speed: number;
   surface: Surface;
+  stairs?: boolean;
 }
 
 /**
@@ -68,10 +80,12 @@ export const OFFLINE_WALK: readonly WalkLeg[] = [
   { until: 8, speed: 1.5, surface: 'grass' },
   { until: 13, speed: 1.5, surface: 'dirt' },
   { until: 18, speed: 1.5, surface: 'stone' },
-  { until: 22, speed: 1.5, surface: 'wood' },
-  { until: 26, speed: 1.5, surface: 'hollow' },
-  { until: 31, speed: 4.2, surface: 'stone' },
-  { until: 35, speed: 0, surface: 'grass' },
+  { until: 23, speed: 1.1, surface: 'stone', stairs: true },
+  { until: 27, speed: 1.5, surface: 'wood' },
+  { until: 31, speed: 1.5, surface: 'hollow' },
+  { until: 36, speed: 1.5, surface: 'leaf' },
+  { until: 41, speed: 4.2, surface: 'stone' },
+  { until: 45, speed: 0, surface: 'grass' },
 ];
 
 export interface AudioOptions {
@@ -170,6 +184,7 @@ export function mountAudio(o: AudioOptions): AudioHandle {
   let starting: Promise<void> | null = null;
   let raf = 0;
   let pods: Vec3[] = [];
+  let gaitDriven = false;
   const emit = () => o.onState?.(!live ? 'idle' : muted ? 'muted' : 'on');
   emit();
 
@@ -198,7 +213,9 @@ export function mountAudio(o: AudioOptions): AudioHandle {
       if (Number.isFinite(lastPos.x)) {
         const speed = Math.hypot(p.x - lastPos.x, p.z - lastPos.z) / Math.max(dt, 1e-3);
         const s = surfaceAt(p.x, p.z);
-        footsteps.drive(t, dt, { speed, surface: s.surface, onStairs: s.stairs, stance: player.feetContact?.()?.map((f) => f.stance) });
+        const stance = player.feetContact?.()?.map((f) => f.stance);
+        gaitDriven = !!stance;
+        footsteps.drive(t, dt, { speed, surface: s.surface, onStairs: s.stairs, stance });
       }
       lastPos.x = p.x;
       lastPos.z = p.z;
@@ -264,6 +281,13 @@ export function mountAudio(o: AudioOptions): AudioHandle {
     toggleMute: () => setMuted(!muted),
     setMuted,
     music: () => musicSource,
+    stats: () => ({
+      state: !live ? 'idle' : muted ? 'muted' : 'on',
+      music: musicSource,
+      pods: pods.length,
+      gaitDriven,
+      ...(live?.footsteps.stats() ?? { steps: 0, gaitSteps: 0, surfaces: {}, lastSurface: null }),
+    }),
     renderOffline: (seconds, sampleRate = 44100, options) => renderOffline(o, seed, seconds, sampleRate, options),
     dispose() {
       cancelAnimationFrame(raf);
@@ -320,7 +344,7 @@ export async function renderOffline(o: AudioOptions, seed: string, seconds: numb
     x += leg.speed * step * 0.6;
     z -= leg.speed * step * 0.8;
     ambience?.update(t, { gust: gust(t), listener: { x, y: 1.2, z }, forward: { x: 0.6, z: -0.8 }, pods });
-    footsteps?.drive(t, step, { speed: leg.speed, surface: leg.surface, onStairs: false });
+    footsteps?.drive(t, step, { speed: leg.speed, surface: leg.surface, onStairs: !!leg.stairs });
   }
   ambience?.scheduleUntil(seconds);
   music?.scheduleUntil(seconds);

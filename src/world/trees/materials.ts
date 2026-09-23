@@ -659,7 +659,10 @@ const GIANT_BARK_COLOR = /* glsl */ `
   // the foot, not half the low bole — threshold 0.5→0.62, the foot's weight 0.22→0.12 (was: coarse
   // > 0.51 anywhere below 4.5 m greened the bark between the sheets)
   float moss = smoothstep(0.62, 0.9, up * 0.5 + coarse * 0.55 + lowBand * 0.12);
-  vec3 mossColor = mix(vec3(0.12, 0.19, 0.05), vec3(0.28, 0.4, 0.11), coarse);
+  // Round 52: the moss albedos are more saturated (G/R 1.6 → 2.4). The near bases' shade floor
+  // (NEAR_BASE_FLOOR, texture 0.7 over a flat 0.08) mixes a grey term into whatever albedo it is
+  // given, so a desaturated moss came out of it as pale sage; the hue has to be in the albedo.
+  vec3 mossColor = mix(vec3(0.085, 0.185, 0.035), vec3(0.2, 0.39, 0.085), coarse);
   // root sheets: the upward faces of the roots and the foot of the bole, under a soft-edged
   // cover that follows the coarse noise so the sheets still have ragged margins
   float sheet = smoothstep(0.45, 0.85, up) * (1.0 - smoothstep(0.6, 2.2, vTreeLocalY)) * smoothstep(0.3, 0.65, coarse);
@@ -671,7 +674,7 @@ const GIANT_BARK_COLOR = /* glsl */ `
   #else
   moss = max(moss, sheet);
   #endif
-  mossColor = mix(mossColor, vec3(0.26, 0.38, 0.11), sheet * 0.6);
+  mossColor = mix(mossColor, vec3(0.175, 0.37, 0.08), sheet * 0.6);
   diffuseColor.rgb = mix(diffuseColor.rgb, mossColor, moss * 0.75);
   // close-range detail only: past 4–10 m the flecks are 1–3 px of speckle on boles the reference
   // frames show as smooth hazed columns (F's stair-bank giant at 10 m, D's north-west-near at 11 m)
@@ -738,7 +741,7 @@ const GIANT_BARK_COLOR = /* glsl */ `
     barkMossCover = smoothstep(0.52, 0.8, vBarkMoss * (0.34 + 0.85 * mossPatch + 0.3 * mossFine));
     // a darker rim where a cushion meets the bark, so it sits on the bark as a volume
     float mossRim = barkMossCover * (1.0 - barkMossCover) * 4.0;
-    vec3 mossCushion = mix(vec3(0.09, 0.16, 0.04), vec3(0.24, 0.36, 0.10), mossFine) * (1.0 - 0.35 * mossRim);
+    vec3 mossCushion = mix(vec3(0.055, 0.15, 0.028), vec3(0.185, 0.35, 0.072), mossFine) * (1.0 - 0.35 * mossRim);
     #ifdef BARK_NEAR_DETAIL
     // round 44: a 3-D cushion's crown is lit and its flanks fall off — the fine field itself
     // (its slopes bend the normal in the near-detail normal block), plus a sub-cm sprig speckle
@@ -1051,7 +1054,17 @@ interface LeafVariant {
    */
   barkNear?: ShadeFloor;
   barkFade?: [number, number];
+  /**
+   * Round 52 (the owner's red circle 1, the column at 15 m). A shade floor is one level all round
+   * a bole: from the lit rim to the far edge the shaded side is flat, which is exactly the
+   * "smooth cylinder" reading — a cylinder under a closed roof still shows round shading. As the
+   * distant family already does (`DISTANT_SHADE_SIDE`), the faces turned FROM the sun keep this
+   * share of their floored light and the terminator side all of it. Unset = flat, as before.
+   */
+  barkShadeSide?: number;
 }
+/** the share of the floored light a column's face turned from the sun keeps (LeafVariant.barkShadeSide) */
+export const COLUMN_SHADE_SIDE = 0.55;
 
 /**
  * `nearDetail`: false = a far program; 'base' = a near base (its own moss / lichen / tuft
@@ -1111,6 +1124,19 @@ function treeFragment(shader: WebGLProgramParametersWithUniforms, sun: Color, le
       float woodNear = 1.0 - smoothstep(uLeafNear.x, uLeafNear.y, length(vViewPosition));
       ${barkFadeGlsl}
       ${floorBlock.replace(textureRead, `mix(${textureHere}, max(${textureHere}, 0.5), woodNear))`)}
+`;
+  // round shading on a floored bole (LeafVariant.barkShadeSide): the floor is flat by
+  // construction, so without this a column is one level from its lit rim to its far edge
+  const shadeSideGlsl =
+    variant.barkShadeSide === undefined
+      ? ''
+      : /* glsl */ `
+      #if NUM_DIR_LIGHTS > 0
+      {
+        float sunFace = dot(normal, directionalLights[0].direction);
+        reflectedLight.indirectDiffuse *= mix(1.0, ${variant.barkShadeSide.toFixed(2)}, 1.0 - smoothstep(-0.5, 0.3, sunFace));
+      }
+      #endif
 `;
   let detailPars = '';
   if (nearDetail) {
@@ -1231,6 +1257,7 @@ ${sunThrough}
       // 1.0 on every vertex the plain sweeps write, so nothing else moves.
       reflectedLight.indirectDiffuse *= vBarkAO;
       reflectedLight.directDiffuse *= mix(1.0, vBarkAO, 0.5);
+      ${shadeSideGlsl}
       #ifdef NEAR_BASE_DETAIL
       // round 47 (sn-bole-lantern-tree / sn-bole-stair-bank: the bark and moss at 0.4–0.6 m "one
       // smooth surface"): the floor is the only light on a shaded near base and it is flat by
@@ -1319,7 +1346,7 @@ export async function createTreeMaterials(ctx: WorldContext): Promise<TreeMateri
   injectWind(giantTreeNear, wind, giantWind, colourSlots, (s) => treeFragment(s, leafSun, 0.78, GIANT_BARK_COLOR, TREE_NEAR_BOLE_FLOOR, 'uNearBoleFloor', { top: NEAR_BOLE_FLOOR_TOP, fade: NEAR_BOLE_FLOOR_FADE }), 'giant-near-leaf-warmth');
   // the columns' copy (round 45): same maps and wind, the bark floor at COLUMN_BARK_FLOOR
   const columnTree = giantTree.clone();
-  injectWind(columnTree, wind, giantWind, colourSlots, (s) => treeFragment(s, leafSun, 0.78, GIANT_BARK_COLOR, COLUMN_BARK_FLOOR_FAR, 'uColumnFloor', undefined, false, { barkNear: COLUMN_BARK_FLOOR, barkFade: COLUMN_FLOOR_FADE_M }), 'column-leaf-warmth');
+  injectWind(columnTree, wind, giantWind, colourSlots, (s) => treeFragment(s, leafSun, 0.78, GIANT_BARK_COLOR, COLUMN_BARK_FLOOR_FAR, 'uColumnFloor', undefined, false, { barkNear: COLUMN_BARK_FLOOR, barkFade: COLUMN_FLOOR_FADE_M, barkShadeSide: COLUMN_SHADE_SIDE }), 'column-leaf-warmth');
   // the near bases' copy: same maps and wind, the bark floor at NEAR_BASE_FLOOR
   const giantTreeNearBase = giantTree.clone();
   giantTreeNearBase.normalScale.set(2.0, 2.0);

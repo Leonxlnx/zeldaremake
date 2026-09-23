@@ -245,6 +245,14 @@ export class MeshBuilder {
    */
   rough: number[] = [];
   currentRough = 0;
+  /**
+   * earth weight per vertex (`aEarth`, 0..1; fable-2, lane 6 — the demo's log-risered steps): the
+   * stone shader blends the surface to packed trail dirt where it is 1 — a log flight's treads are
+   * trodden earth between the timbers, not slabs. `currentEarth` is written on every triangle
+   * pushed until it is changed (0 = stone).
+   */
+  earth: number[] = [];
+  currentEarth = 0;
   private groupStart = 0;
 
   get vertexCount() {
@@ -297,6 +305,7 @@ export class MeshBuilder {
     if (mottle) this.mottle.push(mottle[0], mottle[1], mottle[2], mottle[3], mottle[4], mottle[5], mottle[6], mottle[7], mottle[8]);
     else this.mottle.push(0, 0, 0, 0, 0, 0, 0, 0, 0);
     this.rough.push(this.currentRough, this.currentRough, this.currentRough);
+    this.earth.push(this.currentEarth, this.currentEarth, this.currentEarth);
   }
 
   /** average normals of coincident vertices inside the current group (smooth shading) */
@@ -353,6 +362,7 @@ export class MeshBuilder {
     cat(this.crack, other.crack);
     cat(this.mottle, other.mottle);
     cat(this.rough, other.rough);
+    cat(this.earth, other.earth);
   }
 
   build(): BufferGeometry {
@@ -367,6 +377,7 @@ export class MeshBuilder {
     g.setAttribute('aCrack', new Float32BufferAttribute(this.crack, 2));
     g.setAttribute('aMottle', new Float32BufferAttribute(this.mottle, 3));
     g.setAttribute('aRough', new Float32BufferAttribute(this.rough, 1));
+    g.setAttribute('aEarth', new Float32BufferAttribute(this.earth, 1));
     g.computeBoundingSphere();
     g.computeBoundingBox();
     return g;
@@ -441,6 +452,12 @@ export interface SlabOptions {
   bevelRings?: number;
   /** weathering gate (`aWear`) written on the top face and shoulder ring: the stone shader's lichen/grime mottling (0 = none) */
   wear?: number;
+  /**
+   * earth weight (`aEarth`, 0..1) written on the top face and the shoulder ring (fable-2, lane 6):
+   * the stone shader renders those faces as packed trail dirt — a log-risered flight's treads. The
+   * side walls stay stone (they are the riser band under the timber). Default 0.
+   */
+  earthTop?: number;
   /**
    * weathering gate on the side walls (round 44; default 0 — a buried flank shows a centimetre or
    * two and stays clean): a kerb or cheek stone whose face stands 20–40 cm over the ground takes
@@ -647,6 +664,9 @@ export function buildSlab(mb: MeshBuilder, outline: P2[], o: SlabOptions) {
   }
 
   // --- bevel ring (smooth): one chamfer band, or `bevelRings` bands on a quarter-round ---
+  // (the shoulder ring and the top face carry the slab's earth weight; the walls above stay stone)
+  const earthBefore = mb.currentEarth;
+  mb.currentEarth = o.earthTop ?? earthBefore;
   mb.beginGroup();
   const bands = Math.max(1, Math.round(o.bevelRings ?? 1));
   // ring j of the roll: horizontal blend outer → top ring by 1 − cos, height by sin (convex);
@@ -757,6 +777,7 @@ export function buildSlab(mb: MeshBuilder, outline: P2[], o: SlabOptions) {
     }
   }
   mb.smoothGroup();
+  mb.currentEarth = earthBefore;
 
   // --- bottom cap ---
   if (o.bottom) {
