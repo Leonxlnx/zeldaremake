@@ -31,7 +31,8 @@ to node and form a lattice. Built as `crackWarp` (rockgen option, default 0, far
 sample point of each network bent by three low-frequency noises, ≈ 0.3 of the network's cell rms), on for the hero near
 kits, the skirt shards and the dressing rocks. It works as a warp: on the D near kit 85 % of the line vertices move to
 other vertices at the same density (crack share 11.8 → 12.1 %), vertices move ≤ 2 cm (the furrows); 4–10 % of the pixels
-change at the seven poses (`warp80-shotd-triple.jpg`, before | after at 2 m, 2.4 m down and the 4.4 m look-down).
+change at the seven poses (`warp80-shotd-triple.jpg`, before | after at 2 m, 2.4 m down and the 4.4 m look-down). At A the
+warped build moves 193 px (0.02 %) — the skirt shards' near kit is inside A's range; the hero far meshes are identical.
 
 Measured, the lattice is not there to remove. The crack field on a flat 60 cm slice of the D noise (`warp80-crackplane-pair.jpg`)
 is already irregular before the warp — the 3D noise is three sheared planar noises summed, and their nodes do not line up.
