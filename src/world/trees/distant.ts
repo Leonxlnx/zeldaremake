@@ -368,6 +368,14 @@ export interface CrownLook {
   underDark?: number;
   /** vertical cards fade as the view ray's world y climbs over this range */
   edgeSteep?: [number, number];
+  /**
+   * …and that fade only applies to crowns within this view distance [full, none] (m). Unset = every
+   * distance, which is what the 60–220 m layer wants. The mid layer needs the fade — a vertical card
+   * seen from below is a tall trapezoid that smears toward the zenith — but ONLY when the crown is
+   * genuinely overhead: at 15 m a 12 m tree's crown already sits 30° up, inside the far layer's fade
+   * window, and that is simply a walker looking at a tree.
+   */
+  edgeSteepNearM?: [number, number];
   /** share of the haze over a crown given back on a climbing ray inside the gate */
   fogCut?: number;
   /** albedo at the crown's core (1 at its shell) */
@@ -473,7 +481,8 @@ export function createDistantCrownMaterial(wind: Wind, rng: Rng, palette: Palett
       vec3 cardW = normalize(vNormal * mat3(viewMatrix));
       float edgeOn = abs(dot(normalize(vViewPosition), normalize(vNormal)));
       float flatCard = smoothstep(0.7, 0.9, abs(cardW.y));
-      float steepFade = 1.0 - smoothstep(${f(edgeSteep[0])}, ${f(edgeSteep[1])}, rayW.y);
+      float steepNear = ${look?.edgeSteepNearM ? `1.0 - smoothstep(${f(look.edgeSteepNearM[0])}, ${f(look.edgeSteepNearM[1])}, length(vViewPosition))` : '1.0'};
+      float steepFade = 1.0 - steepNear * smoothstep(${f(edgeSteep[0])}, ${f(edgeSteep[1])}, rayW.y);
       diffuseColor.a *= mix(steepFade, smoothstep(${f(CROWN_EDGE_FADE[0])}, ${f(CROWN_EDGE_FADE[1])}, edgeOn), flatCard);
       // CROWN_FLOOR_ROUND: inside the gate a floor card ends in the crown's round edge, not its quad's
       diffuseColor.a *= 1.0 - max(roofNear, ${f(look?.roundFloors ? 1 : 0)}) * flatCard * smoothstep(${f(CROWN_FLOOR_ROUND[0])}, ${f(CROWN_FLOOR_ROUND[1])}, length(vCrownOff.xz));
@@ -1029,9 +1038,13 @@ export const MID_CROWN_LOOK: Omit<CrownLook, 'atlas'> = {
   underM: [10, 30],
   nearDark: 0.92,
   underDark: 0.6,
-  // never fade a vertical card by the ray's climb: a 12 m crown 14 m away sits 30° up, inside the
-  // far layer's fade window, and the owner walks looking slightly up
-  edgeSteep: [1.2, 1.6],
+  // the far layer fades a vertical card once the view ray climbs 25–46° to it, at any distance — at
+  // 15 m a 12 m tree's crown is already 30° up, so that window would empty the middle distance the
+  // moment the owner looked slightly up. The fade is kept (a vertical card seen from below smears
+  // toward the zenith) but only 33–58° and only within 16 m, where the crown really is overhead and
+  // its two floor cards are what should read.
+  edgeSteep: [0.55, 0.85],
+  edgeSteepNearM: [10, 16],
   // a mid crown stands in a tenth of the far layer's haze, so it needs far less of it back
   fogCut: 0.3,
   // the lit rim: 0.6 of the direct term burnt a card's whole edge to an acid green on a crown in

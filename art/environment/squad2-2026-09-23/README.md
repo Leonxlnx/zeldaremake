@@ -101,6 +101,28 @@ The band's STRUCTURE now sits inside the reference's range on both axes (and abo
 MEAN is still ~36 levels under the reference: that is exposure and the height fog's depth, lane 1's
 work, not the trees'.
 
+## Play mode
+
+`gauntlet/scripts/playtest.mjs --only look,walk,perf --shots` on the change, and `--only perf` on the
+base build (`144453ef`, built into a second worktree) so the cost comparison is the same machine and
+the same Chrome:
+
+| spot | draws before → after | submitted triangles before → after | JS step ms | render ms |
+| --- | --- | --- | --- | --- |
+| plaza | 523 → 551 | 7 507 102 → 7 474 812 (−0.4 %) | 25.0 → 14.0 | 10.9 → 10.8 |
+| stairs2-base | 522 → 552 | 9 525 649 → 9 561 907 (+0.4 %) | 19.6 → 15.0 | 9.2 → 9.8 |
+| saria-side | 519 → 549 | 8 587 286 → 8 619 056 (+0.4 %) | 31.6 → 33.6 | 15.3 → 24.9 |
+| west-house | 442 → 472 | 5 033 732 → 5 080 841 (+0.9 %) | 15.3 → 13.7 | 8.0 → 9.1 |
+
++28 to +30 draw calls (peak 552 of the 700 budget) and under 1 % of submitted triangles. The JS
+timings swing both ways between the two runs — on SwiftShader a drawn frame takes 14–16 s of wall
+clock and the per-frame JS figures are dominated by run-to-run noise; nothing here is a systematic
+regression, and the structural numbers (draws, triangles) are.
+
+**All nine walk routes complete with no stuck points** (`plaza-to-upper-house`,
+`plaza-to-south-bank-top`, `saria-front-arc`, `west-deck`, `plaza-loop`, `south-approach`,
+`house-west-to-saria-door`, `west-house-to-plaza`, `north-clearing-ledge`), and `pageErrors` is empty.
+
 ## Files
 
 * `compare/north.jpg`, `compare/plaza-fork.jpg`, `compare/west.jpg` — before | after, full frame, at
