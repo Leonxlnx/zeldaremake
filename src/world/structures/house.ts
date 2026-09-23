@@ -2789,6 +2789,48 @@ export function buildHouse(def: HouseDef, ctx: WorldContext, mats: StructureMate
         parts.push(log(a, bpt, 0.05 * k, 0.045 * k, [0.42, 0.33, 0.24], true));
       }
       furnish47.pieces += 4;
+      // Round 52 (fable-3, squad lane 9 "signs of use"): a KINDLING BASKET beside the firewood — a woven
+      // straw basket (courses ridged, over/under weave in the tint, a darker binding at the rim, a real
+      // mouth) with six split sticks standing in it at their own leans. Its own fork, so the plants'
+      // rolls after it are untouched. It stands in front of the stack (the room ends 0.2 k past the
+      // door's right edge, so nothing fits beside the wood) — visible from the threshold, right of the
+      // hearth, clear of the kerb's stones by a hand.
+      if (hero) {
+        const bRng = fRng.fork('kindling52');
+        const bW = woodW + 0.02 * k;
+        const bD = woodD + 0.27 * k;
+        const bR = 0.125 * k;
+        const bH = 0.2 * k;
+        const straw: [number, number, number] = [0.74, 0.6, 0.36];
+        const basket = turned(
+          (t) => bR * (0.8 + 0.2 * t),
+          bH,
+          20,
+          14,
+          (t, up, th) => {
+            const course = Math.floor(t * 12);
+            const weave = 0.5 + 0.5 * Math.sign(Math.sin(th * 11 + course * Math.PI));
+            const fleck = 0.94 + 0.12 * fNoise.noise(th * 3 + 5, t * 6);
+            const rim = 1 - 0.3 * smoothstep(0.9, 0.96, t);
+            const s = (0.8 + 0.2 * weave) * fleck * rim * (up ? 0.75 : 1);
+            return [straw[0] * s, straw[1] * s, straw[2] * s * 0.95];
+          },
+          (t) => 0.025 * Math.sin(t * 12 * Math.PI * 2) * (1 - smoothstep(0.9, 1, t)),
+          { depth: 0.72, wall: 0.08, shade: 0.35 },
+        );
+        parts.push(stand(basket, bW, roomFloorY, bD));
+        for (let i = 0; i < 6; i++) {
+          const a = bRng.range(0, TAU);
+          const rr = bR * bRng.range(0.15, 0.55);
+          const lean = bRng.range(-0.18, 0.18);
+          const lean2 = bRng.range(-0.18, 0.18);
+          const len = k * bRng.range(0.26, 0.36);
+          const foot = frame.door(bW + Math.cos(a) * rr, roomFloorY + 0.03 * k, bD + Math.sin(a) * rr);
+          const tip = frame.door(bW + Math.cos(a) * rr + lean * len, roomFloorY + 0.03 * k + len, bD + Math.sin(a) * rr + lean2 * len);
+          parts.push(log(foot, tip, 0.014 * k, 0.01 * k, [0.44, 0.34, 0.22], bRng() < 0.5));
+        }
+        furnish47.pieces += 2;
+      }
     }
 
     // ---- plants: a hanging pot on three cords, a potted plant by the jamb, herb bunches ----

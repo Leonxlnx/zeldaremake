@@ -585,7 +585,10 @@ assert.deepEqual(grass.lodDistances,[6,26,26],'blade LOD ranges (round 39; 2026-
   // rises: the open lawn's floor 2.2 → 2.0, the north verge's 1.4 → 1.25 (measured 1.31); the tufts are the same rooted clusters
   // (2026-09-21: open lawn 2.0 → 1.75 — measured 1.78 since the shot-D boulder moved (take-0128; its ring's blade
   // clearing left the box, the infill's clusters spread): A / B / E were pixel-unchanged at that take)
-  for(const [name,box,floor] of [['open lawn',[-8,-8,-4,-4],1.75],['east flank',[10,-3,14,1],1.6],['north verge',[-2.2,-13.5,-1.6,-11.0],1.25]]){const r=pc(box,0.075);
+  // (2026-09-23: open lawn 1.75 → 1.70 — measured 1.74. The walked verge pass (grass.ts VERGE_EXTRA) thickens the
+  // strip within 2.4 m of the spine's paving, whose last 0.2 m clips this box's east edge: the box's MEAN density is
+  // the ratio's uniform baseline, so a denser corner lowers it while every blade in it is still a rooted cluster's.)
+  for(const [name,box,floor] of [['open lawn',[-8,-8,-4,-4],1.70],['east flank',[10,-3,14,1],1.6],['north verge',[-2.2,-13.5,-1.6,-11.0],1.25]]){const r=pc(box,0.075);
     assert.ok(r.n>=100&&r.ratio>=floor,`${name}: ${r.n} blades, ${r.ratio.toFixed(2)} × the uniform neighbour count inside 0.075 m (≥ ${floor})`);}
   // round 40 (Astra's "tall dark spikes" at the west ledge): the lawn's spike cap (grass.ts LAWN_SPIKE_CAP) takes the
   // 0.5–0.9 m tail off the flat lawns — the CV settles at ≈ 0.45 (0.574 uncapped) — while the tuft factor still
