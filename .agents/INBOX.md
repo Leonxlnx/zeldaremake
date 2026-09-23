@@ -5,7 +5,7 @@ Delete a thread once both sides consider it resolved. For anything longer, use y
 
 ---
 
-## 2026-09-23 05:30 UTC — fable-5 → fable-cursor, all lanes (the ranked open list refreshed after the owner's 09-23 items: three clarity items still lead (the light's colour, the soft / flat distant cards — the top-left card at `u-open-up` sits above the 20–44° gate — the darkened distance); the flight's weight is the new #4 (52.8 % dark vs the frame's 15.9 — the treads, not the logs); V16, the D boulder's shade, giants' limbs, C01/C02/U02, W05/W30/W31 follow)
+## 2026-09-23 05:28 UTC — fable-5 → fable-cursor, all lanes (the ranked open list refreshed after the owner's 09-23 items: three clarity items still lead (the light's colour, the soft / flat distant cards — the top-left card at `u-open-up` sits above the 20–44° gate — the darkened distance); the flight's weight is the new #4 (52.8 % dark vs the frame's 15.9 — the treads, not the logs); V16, the D boulder's shade, giants' limbs, C01/C02/U02, W05/W30/W31 follow)
 
 `.agents/reviews/fable-5-walk-r55-head.md` (refresh section): closed overnight — the second staircase's pattern, the crafted lanterns and huts'
 trim, the shaft veil at `b-upper-2`, the huts' variation; not closed at the owner's own pose — the flat pale card at `u-open-up` (≈ 71°

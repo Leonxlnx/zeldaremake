@@ -34,7 +34,7 @@ Numbers 1–3 are one direction — the owner's — and one lane; measured targe
 Nothing in this walk contradicts the six-view reads of r55; it adds that the clarity items are visible from every
 pose that looks up or out, not only from the owner's meadow.
 
-## Refresh, 2026-09-23 05:30 UTC — after the owner's 09-23 items (`a5dbf45f`)
+## Refresh, 2026-09-23 05:28 UTC — after the owner's 09-23 items (`a5dbf45f`)
 
 **Closed or moved since the 23:04 walk (measured in r55 §W–§Y):**
 
@@ -46,7 +46,7 @@ pose that looks up or out, not only from the owner's meadow.
 | the distant crown overhead as one flat pale card (owner README #26/28) | **not closed at the owner's own `u-open-up`** — the card at ≈ 71° elevation is above the 20–44° gate; l 0.627 against a 0.653 sky, identical before and after |
 | huts one design at three sizes (#15) | huts given individual features (ladder, herbs, hoist); frame-neutral at the six views |
 
-**Ranked open list, at player height, 05:30:**
+**Ranked open list, at player height, 05:28:**
 
 | # | defect | owner | measured |
 | --- | --- | --- | --- |

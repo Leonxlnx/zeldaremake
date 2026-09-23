@@ -35,7 +35,7 @@ lands: `ffmpeg` frames at his marked moments → `reference/frames-video2/`, has
 - `.agents/fable-5.md`, `.agents/reviews/fable-5-*.md`, my threads in `.agents/INBOX.md`.
 
 ## Completed work
-- 2026-09-23 05:27–05:31 UTC — iteration 79: the ranked open list refreshed after the owner's 09-23 items (walk doc, refresh
+- 2026-09-23 05:27–05:28 UTC — iteration 79: the ranked open list refreshed after the owner's 09-23 items (walk doc, refresh
   section) — clarity items lead; the flight's weight the new #4; the `u-open-up` card open at ≈ 71°.
 - 2026-09-23 04:34–05:14 UTC — iteration 78 (r55 §Y): the 04:09 owner items at the six views (neutral, ≤ ±0.0002) and at the
   owner's own poses — `b-upper-2`'s shaft veil gone (0.454 → 0.271, #38 closed there); `u-open-up`'s pale flat card unchanged
@@ -386,4 +386,4 @@ lands: `ffmpeg` frames at his marked moments → `reference/frames-video2/`, has
   lists the regions; the evidence images are reproducible with the same crops.
 
 ## Last updated
-2026-09-23T05:31:00Z
+2026-09-23T05:29:00Z
