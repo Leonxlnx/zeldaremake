@@ -1593,10 +1593,15 @@ const TREE_LOD_MID_M = 44;
  * only when the player gets close — the owner's "why don't the trees immediately spawn instead of
  * needing me to get close" (2026-09-23 20:08). 1 = shipped, and the take / CI path never sets it.
  */
-const TREE_LOD_SCALE = (() => {
-  if (typeof location === 'undefined') return 1;
-  const n = Number(new URLSearchParams(location.search).get('treelod'));
-  return Number.isFinite(n) && n > 0 ? n : 1;
+const TREE_LOD_SCALE: [number, number] = (() => {
+  if (typeof location === 'undefined') return [1, 1];
+  const raw = new URLSearchParams(location.search).get('treelod');
+  if (!raw) return [1, 1];
+  // "1.8" scales both rungs; "1.8,2.6" scales the high→medium and medium→low rungs separately, so
+  // each can be priced on its own
+  const parts = raw.split(',').map(Number);
+  const ok = (n: number) => (Number.isFinite(n) && n > 0 ? n : 1);
+  return parts.length > 1 ? [ok(parts[0]), ok(parts[1])] : [ok(parts[0]), ok(parts[0])];
 })();
 const NEAR_LOD_DEVICE_GB = deviceMemoryGB();
 const NEAR_LOD_TIER = nearLodTierFor(NEAR_LOD_DEVICE_GB, typeof location === 'undefined' ? null : new URLSearchParams(location.search).get('pool'));
@@ -3290,8 +3295,8 @@ export async function create(ctx: WorldContext): Promise<WorldSystem> {
   ctx.progress('trees', 0.95);
 
   // ------------------------------------------------------------------ LOD bucketing
-  const lodDist = [TREE_LOD_NEAR_M * ctx.quality.distance * TREE_LOD_SCALE, TREE_LOD_MID_M * ctx.quality.distance * TREE_LOD_SCALE];
-  const distantNear = 120 * ctx.quality.distance * TREE_LOD_SCALE;
+  const lodDist = [TREE_LOD_NEAR_M * ctx.quality.distance * TREE_LOD_SCALE[0], TREE_LOD_MID_M * ctx.quality.distance * TREE_LOD_SCALE[1]];
+  const distantNear = 120 * ctx.quality.distance * TREE_LOD_SCALE[1];
   const camPos = new Vector3(Infinity, Infinity, Infinity);
   const white = new Color(1, 1, 1);
 
@@ -3336,10 +3341,10 @@ export async function create(ctx: WorldContext): Promise<WorldSystem> {
       // a mid tree is 8–15 m tall and never further than 58 m from the clearing's centre: its near
       // LOD (12-sided bole, limbs, toes, the layered crown) is worth drawing to MID_FAR_LOD_M and
       // no further — past it the crossed strips carry the same silhouette for a tenth of the wood
-      const kindNear = set.variant.kind === 'mid' ? Math.min(distantNear, MID_FAR_LOD_M * ctx.quality.distance * TREE_LOD_SCALE) : distantNear;
+      const kindNear = set.variant.kind === 'mid' ? Math.min(distantNear, MID_FAR_LOD_M * ctx.quality.distance * TREE_LOD_SCALE[0]) : distantNear;
       for (let i = 0; i < set.placements.length; i++) {
         const p = set.placements[i];
-        const nearM = isStandPole(set, p) ? Math.min(distantNear, STAND_FAR_LOD_M * ctx.quality.distance * TREE_LOD_SCALE) : kindNear;
+        const nearM = isStandPole(set, p) ? Math.min(distantNear, STAND_FAR_LOD_M * ctx.quality.distance * TREE_LOD_SCALE[0]) : kindNear;
         (Math.hypot(p.x - cam.x, p.z - cam.z) < nearM ? nearList : farList).push(i);
       }
       set.lists = [nearList, farList];
@@ -3921,6 +3926,11 @@ export async function create(ctx: WorldContext): Promise<WorldSystem> {
       whiteBarkReseated: whitePlaced.reseated,
       whiteBarkAges: whites.map((w) => w.params.age),
       whiteBarkLodInstances: lodInstances,
+      /**
+       * Mean per-instance triangles of each rung [high, medium, low], so the cost of moving a rung is
+       * arithmetic rather than a guess: the ladder's steps are what a walker sees change (`lodSwapM`).
+       */
+      whiteBarkLodTriangles: [0, 1, 2].map((l) => Math.round(whites.reduce((n, w) => n + w.lods[l].woodTriangles + w.lods[l].leafTriangles, 0) / Math.max(1, whites.length))),
       /** mature white-barks built as dark columns because their bole stood in a hero far wall */
       whiteBarkSwappedToColumns: swappedWhites.length,
       /** column trees (column.ts): the dark boles of the mid-distance forest wall */
@@ -3946,6 +3956,8 @@ export async function create(ctx: WorldContext): Promise<WorldSystem> {
           height: Math.round((seatedColumns.find((c) => c.placements[0] === p)?.params.height ?? 0) * 10) / 10,
         })),
       columnLodInstances,
+      /** the same per-rung cost for the seated columns (one family per seat, so this is the mean seat) */
+      columnLodTriangles: [0, 1, 2].map((l) => Math.round(seatedColumns.reduce((n, c) => n + c.lods[l].woodTriangles + c.lods[l].leafTriangles, 0) / Math.max(1, seatedColumns.length))),
       columnLeafCount: columnLeaves,
       leafGeometry: 'laminae',
       leafCount: leafCount + columnLeaves + giantLeaves,
@@ -3986,7 +3998,7 @@ export async function create(ctx: WorldContext): Promise<WorldSystem> {
        * `?treelod=` dev multiplier already applied): the white-barks' / columns' high→medium→low
        * rungs, the distant layer's near gate, the mid grove's and the north stand's own gates.
        */
-      lodSwapM: { tree: lodDist, distant: distantNear, mid: Math.min(distantNear, MID_FAR_LOD_M * ctx.quality.distance * TREE_LOD_SCALE), standPole: Math.min(distantNear, STAND_FAR_LOD_M * ctx.quality.distance * TREE_LOD_SCALE), scale: TREE_LOD_SCALE },
+      lodSwapM: { tree: lodDist, distant: distantNear, mid: Math.min(distantNear, MID_FAR_LOD_M * ctx.quality.distance * TREE_LOD_SCALE[0]), standPole: Math.min(distantNear, STAND_FAR_LOD_M * ctx.quality.distance * TREE_LOD_SCALE[0]), scale: TREE_LOD_SCALE },
       windLayers: mats.windLayers,
       barkTextures: mats.barkTextureSets,
       /**
