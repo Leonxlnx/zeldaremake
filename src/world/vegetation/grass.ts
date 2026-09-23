@@ -288,8 +288,13 @@ const HOUSE_FOOT_DRY = 0.45;
  * dark earth between the blades and the box's edge energy rose (67.7 → 84.7 at 256 × 144): the
  * cover stays closed and lies lower instead.
  */
-const D_HOLLOW_CUT = 0.08;
-const D_HOLLOW_HEIGHT = 0.45;
+// 2026-09-23 (owner, walking the north path: "make the grass thicker on the left side"): the
+// hollow is the ground left of the path from z −16 to −26 (field.ts `dHollow` 0.85–1 there). It
+// now keeps every blade, stands at 88 % height, takes the coverage fill and D_HOLLOW_THICKEN more
+// candidates, with half the meadow share of the free lawn — a full turf, not the frame's cut cover.
+const D_HOLLOW_CUT = 0;
+const D_HOLLOW_HEIGHT = 0.12;
+const D_HOLLOW_THICKEN = 0.5;
 /**
  * Round 35: camera C's bottom-left foreground (field.ts `cFoot`; frame 46 s: trodden earth with
  * a fine dusty fringe, lum p50 0.43–0.52 and 0–4 % green at x 0.1–0.35, where control carried a
@@ -498,23 +503,23 @@ export async function buildGrass(ctx: WorldContext, field: VegField, material: M
       // the shaded bank of frame 8 is a closed turf mass in the reference: cluster gaps close there
       const clusterK = flankPass ? FLANK_CLUSTER_FLOOR + (1 - FLANK_CLUSTER_FLOOR) * cluster : housePass ? HOUSE_FLANK_CLUSTER_FLOOR + (1 - HOUSE_FLANK_CLUSTER_FLOOR) * cluster : cluster;
       // frame 1's circled right foreground (round 40): the south bank's face fills in
-      const density = clusterK * verge * slopeBoost * cliffCut * (1 - 0.75 * giant) * (1 - 0.5 * clr.npc) * (1 - 0.35 * low) * (facePass ? face : 1 + A_FACE_DENSITY * face) * (1 + 0.6 * shade) * (1 - 0.35 * trod - 0.5 * bare) * (bandPass ? band : 1) * (flankPass ? flank : 1) * (housePass ? house : 1);
+      const density = clusterK * verge * slopeBoost * cliffCut * (1 - 0.75 * giant) * (1 - 0.5 * clr.npc) * (1 - 0.35 * low) * (facePass ? face : 1 + A_FACE_DENSITY * face) * (1 + 0.6 * shade) * (1 - 0.35 * trod - 0.5 * bare) * (bandPass ? band : 1) * (flankPass ? flank : 1) * (housePass ? house : 1) * (1 + D_HOLLOW_THICKEN * hollow);
       // round 47: an infill blade skips the density draw (it stands where the passes left a gap)
       // but never on the frames' bare-by-design grounds
       if (infill) {
-        if (density <= 0 || trod > 0.5 || foot > 0.5 || hollow > 0.5 || nfloor > 0.5 || field.dShoulder(x, z) > 0.5 || clr.npc > 0.5) return;
+        if (density <= 0 || trod > 0.5 || foot > 0.5 || nfloor > 0.5 || field.dShoulder(x, z) > 0.5 || clr.npc > 0.5) return;
       } else if (rng() * DNORM > density) return;
 
       // type: tall meadow blades are rare in the low verges, the tidy foreground and the lawn band
       const meadow = field.meadow(x, z);
       const sedge = field.sedge(x, z);
-      const meadowP = 0.78 * meadow * (edge < 3 ? 1.15 : 1) * (1 - clr.npc) * (1 - clr.boulder) * (1 - 0.85 * low) * (1 - 0.9 * sight) * (1 - 0.7 * trim) * (1 - 0.9 * trod) * (1 - 0.85 * band) * (1 - hollow) * (1 - foot) * (1 - nfloor) * (housePass ? 0.3 : 1);
+      const meadowP = 0.78 * meadow * (edge < 3 ? 1.15 : 1) * (1 - clr.npc) * (1 - clr.boulder) * (1 - 0.85 * low) * (1 - 0.9 * sight) * (1 - 0.7 * trim) * (1 - 0.9 * trod) * (1 - 0.85 * band) * (1 - 0.5 * hollow) * (1 - foot) * (1 - nfloor) * (housePass ? 0.3 : 1);
       const sedgeP = 0.42 * sedge * (0.6 + 0.6 * s.plateau) * (1 - clr.npc) * (1 - A_FACE_SEDGE_CUT * face);
       const tr = rng();
       let type = tr < meadowP ? 1 : tr < meadowP + sedgeP ? 2 : 0;
       // the tuft's height (round 40) is damped to 1 where a frame fixed the turf's height — the
       // trodden strip, the lawn band, D's hollow, C's foreground
-      const flat = Math.max(trod, band, hollow, foot);
+      const flat = Math.max(trod, band, 0.5 * hollow, foot);
       // round 47: seed stalks (a position hash — no draw) on the free lawn only
       const freeLawn = !flankPass && !housePass && !infill && flat < 0.5 && nfloor < 0.5 && sight <= 0 && low < 0.5;
       if (type === 0 && freeLawn && hash01(x + 0.125, z + 0.375) < SEED_SHARE) type = SEED_TYPE;
