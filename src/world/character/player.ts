@@ -35,6 +35,8 @@ export interface PlayerHandle {
    * the gait calls the foot a stance foot (play-test harness)
    */
   feetContact?(): { gapM: number; minShoeGapM: number; stance: boolean }[];
+  /** true where props, structure pads or walls stop walking at (x, z) (play-test harness) */
+  blockedAt?(x: number, z: number): boolean;
   /** put Link at rest at (x, z) facing `yaw` (play-test harness and authoring) */
   place(x: number, z: number, yaw: number): void;
 }

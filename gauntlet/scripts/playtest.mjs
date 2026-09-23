@@ -459,6 +459,9 @@ function feetStats(trace) {
   return {
     stanceSamples: gaps.length,
     soleGapAbsM: { p50: fixed(quantile(gaps, 0.5), 4), p95: fixed(quantile(gaps, 0.95), 4), max: fixed(quantile(gaps, 1), 4) },
+    // the boot's lowest point over the surface: ≈ 0 when the foot stands on it (the sole marker
+    // above lifts with the heel at push-off); > 1 cm for a whole boot floating
+    footprintLowestM: { p50: fixed(quantile(shoes, 0.5), 4), p95: fixed(quantile(shoes, 0.95), 4), max: fixed(quantile(shoes, 1), 4) },
     shareOver1cm: fixed(gaps.filter((g) => g > 0.01).length / gaps.length, 4),
     shareOver2cm: fixed(gaps.filter((g) => g > 0.02).length / gaps.length, 4),
     footprintMinGapM: fixed(quantile(shoes, 0), 4),
@@ -493,7 +496,18 @@ function cameraMotion(trace) {
   const turnAcc = [];
   for (let i = 1; i < w.length; i++) turnAcc.push(Math.abs(w[i] - w[i - 1]) / DT);
   const q = (arr) => ({ p50: fixed(quantile(arr, 0.5), 2), p95: fixed(quantile(arr, 0.95), 2), max: fixed(quantile(arr, 1), 2) });
-  return { speedMps: q(speed), accelMps2: q(acc), verticalAccelMps2: q(accY), turnDegPerS: q(w), turnAccelDegPerS2: q(turnAcc) };
+  // the worst jumps, with where they happened and what the camera's collision was doing either side
+  // (acc[k] is the change between frames k and k + 2's velocities, centred on row k + 1)
+  const spikes = acc
+    .map((a, k) => ({ a, row: k + 1 }))
+    .filter((s) => s.a > 100)
+    .sort((u, v) => v.a - u.a)
+    .slice(0, 6)
+    .map(({ a, row }) => {
+      const pick = (r) => (r ? { link: r.link?.map((v) => fixed(v, 2)), cam: r.cam?.map((v) => fixed(v, 2)), hit: r.follow?.hit ?? null, keep: fixed(r.follow?.keep, 3), lift: fixed(r.follow?.lift, 3), lowered: fixed(r.follow?.lowered, 3), slimPush: fixed(r.follow?.slimPush, 3) } : null);
+      return { row, accelMps2: fixed(a, 1), jumpM: fixed(Math.hypot(...trace[row + 1].cam.map((v, j) => v - trace[row].cam[j])), 3), before: pick(trace[row]), after: pick(trace[row + 1]) };
+    });
+  return { speedMps: q(speed), accelMps2: q(acc), verticalAccelMps2: q(accY), turnDegPerS: q(w), turnAccelDegPerS2: q(turnAcc), spikes };
 }
 
 function analyseTrace(trace, topY) {
@@ -583,7 +597,21 @@ async function walkRoute(page, name, points, maxFrames = 900) {
       best = dist;
       lastProgressAt = frames;
     } else if (frames - lastProgressAt > 90) {
-      stuck.push({ at: [+x.toFixed(2), +st.link[1].toFixed(2), +z.toFixed(2)], toward: points[wp], frame: frames });
+      // what stops him: the ground ahead toward the waypoint, every 10 cm for 1.5 m (walk height, blocked)
+      const ahead = await page.evaluate(
+        ([x, z, tx, tz]) => {
+          const P = window.__ZR_PLAY__;
+          const d = Math.hypot(tx - x, tz - z) || 1;
+          const out = [];
+          for (let s = 0; s <= 1.5001; s += 0.1) {
+            const g = P.ground(x + ((tx - x) / d) * s, z + ((tz - z) / d) * s);
+            out.push([+s.toFixed(1), +g.walk.toFixed(2), g.blocked]);
+          }
+          return out;
+        },
+        [x, z, tx, tz],
+      );
+      stuck.push({ at: [+x.toFixed(2), +st.link[1].toFixed(2), +z.toFixed(2)], toward: points[wp], frame: frames, ahead });
       wp++;
       best = Infinity;
       lastProgressAt = frames;
@@ -609,7 +637,7 @@ async function walkRoute(page, name, points, maxFrames = 900) {
           for (let i = 0; i < n; i++) {
             P.step(1, dt, false);
             const s = P.state();
-            out.push({ link: s.link, cam: s.camera.position, dir: s.camera.direction, camGround: s.groundUnderCamera, feet: s.feet });
+            out.push({ link: s.link, cam: s.camera.position, dir: s.camera.direction, camGround: s.groundUnderCamera, feet: s.feet, follow: s.follow });
           }
           return out;
         },
@@ -660,7 +688,9 @@ async function walkScenario(page, results) {
     ['north-clearing-ledge', [[0.5, 2], [1.5, -12], [2.0, -18], [1.8, -24], [2.5, -30], [3.5, -36], [4.5, -42], [5.2, -50], [5.8, -58], [5.4, -61.5], [3.6, -65.2], [1.0, -68.0], [-0.6, -70.2], ledge.at(-0.9), ledge.at(ledge.run * 0.5), ledge.at(ledge.run + 0.6)], 2400],
   ];
   results.walk = [];
+  const pickRoutes = typeof args['walk-routes'] === 'string' ? new Set(args['walk-routes'].split(',')) : null;
   for (const [name, pts, maxFrames] of routes) {
+    if (pickRoutes && !pickRoutes.has(name)) continue;
     log(`walk: ${name}`);
     results.walk.push(await walkRoute(page, name, pts, maxFrames));
     fs.writeFileSync(path.join(out, 'playtest.json'), JSON.stringify(results, null, 1));

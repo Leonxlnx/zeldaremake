@@ -501,7 +501,7 @@ async function boot() {
         player.place(x, z, yaw);
         follow?.snap();
       },
-      ground: (x: number, z: number) => ({ walk: player?.groundHeight(x, z) ?? NaN, surface: player?.surfaceHeight(x, z) ?? NaN, terrain: terrain.height(x, z) }),
+      ground: (x: number, z: number) => ({ walk: player?.groundHeight(x, z) ?? NaN, surface: player?.surfaceHeight(x, z) ?? NaN, terrain: terrain.height(x, z), blocked: player?.blockedAt?.(x, z) ?? null }),
       setView: (yaw: number, pitch: number) => follow?.setView?.(yaw, pitch),
       state: () => {
         const c = cam.camera;
