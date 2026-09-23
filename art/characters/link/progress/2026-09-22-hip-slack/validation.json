@@ -1,0 +1,83 @@
+{
+  "scope": "Compact selection from retained local full comparison; portable source regression is tracked separately",
+  "comparisonSha256": "009bfe5dd7936254b2a07d989a269c02cccc4d43ad4e77703e0a9af0bf505c92",
+  "sameControls": true,
+  "sameReferenceGeometry": true,
+  "sameEffectiveBaseSource": true,
+  "sameAsset": true,
+  "effectiveBaselineSourceHashes": {
+    "src/world/character/glbLink.ts": "9eacc0538670e1fa75e13d08e0c0793ba5a7e38c1869b1621e428edfcca4e052",
+    "src/world/character/index.ts": "2cc06a0e01b0dcded198f1446ba6b7365a48fd9b765887d021c2111a9910d4de",
+    "src/world/character/ground.ts": "2e61839bc6314039e3679e10961751ca1cb89bb2b1ee81f10d1062482505c4be",
+    "src/world/character/animation.ts": "e9945fd02ecddb45085cc9602fb5fa4fe31ddffa94fc908c2718fb6aa6ee4026",
+    "src/world/character/gaitChain.ts": "e6a6e1c59459841d4a331a8703e8529ca9023a68347631634b4b13e211992ca8",
+    "src/world/character/puppet.ts": "89990ec5913dce53855788361891ff3feb084c7cad38b33527af8f5fdcc4ec82",
+    "src/world/hardscape/index.ts": "ab2b9f8398eb9d5c0b86999eeab34cbe85be83a0603da9611d7097223ca41eb8",
+    "src/world/hardscape/stairs.ts": "73133a0745e2455dd6e059fb70baa14a5bbdadee72f4dd251268da1f6cf76e11",
+    "src/world/hardscape/logNosings.ts": "a5def33b461fe07c3fefab06c0da0466fb085fa870e38d53876997f85cc72e3a",
+    "src/world/hardscape/flagstones.ts": "6a27195ab643e75713ca374cac68919f42a0e211d164f9b4602d80ce6c9aa339",
+    "src/world/terrain/heightfield.ts": "c09159bab3d264542daaeeecead41cad7f6d679a8b09097a5f745fc8f4ce2af3",
+    "src/world/terrain/chunks.ts": "d09a5fcfb1b567a81143188a4d015f267c1a1afbc63eb5097621949b29c30fc8",
+    "src/world/layout.ts": "790de1455bc08d36f42eee3615e43371767a42abcc585651fd051feebe3923e0",
+    "src/world/props/index.ts": "07365939eff71eee15a43dac28f46e5226fb75fabd0328f05d020d1d4b93cfd1",
+    "src/world/props/layout.ts": "e86a75f10adad37b109ccb62e45351da9615504f30881c978aad7f8f349c8cc9",
+    "art/characters/link/progress/2026-09-21-stair-clearance/knee-peaks/exact-mesh-height.mjs": "11f193399b4d1872da2b79f412ede7bbabf63fa2eb018a2ed4555206dfe4d73a"
+  },
+  "candidateSourceSha256": "439ad6a48b8740fdbe6407ee6a782ffaa61cce86af43d4ee55f4d5b3007ae72b",
+  "playerReportSha256": {
+    "baseline": "741d124b67862cd030d6ad27a8c911095baba9ce0c0a64c7fd7e264e9c04710a",
+    "candidate": "ea41a48deb3c81004f6b86999ef88c403e707b58440758acde419b7d85ece1f8"
+  },
+  "routes": {
+    "stairs-up": {
+      "allOriginalRecordedFieldsExactlyEqual": true,
+      "changedFrames": [],
+      "maxAllJointPositionM": 0,
+      "maxRootPositionM": 0,
+      "maxFootWorldQDeg": 0,
+      "beforeHipExactlyEqual": true,
+      "queryCountChanges": {
+        "poseSurface": {
+          "n": 660,
+          "min": 0,
+          "max": 0,
+          "p95": 0,
+          "mean": 0
+        },
+        "hipGuard": {
+          "n": 660,
+          "min": 0,
+          "max": 0,
+          "p95": 0,
+          "mean": 0
+        },
+        "changedFrames": []
+      }
+    },
+    "stairs-down": {
+      "allOriginalRecordedFieldsExactlyEqual": true,
+      "changedFrames": [],
+      "maxAllJointPositionM": 0,
+      "maxRootPositionM": 0,
+      "maxFootWorldQDeg": 0,
+      "beforeHipExactlyEqual": true,
+      "queryCountChanges": {
+        "poseSurface": {
+          "n": 660,
+          "min": 0,
+          "max": 0,
+          "p95": 0,
+          "mean": 0
+        },
+        "hipGuard": {
+          "n": 660,
+          "min": 0,
+          "max": 0,
+          "p95": 0,
+          "mean": 0
+        },
+        "changedFrames": []
+      }
+    }
+  }
+}

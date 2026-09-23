@@ -1,0 +1,100 @@
+{
+  "pass": true,
+  "candidate_sha256": "a70ef7144fbb075b31103256f71f673c9b3a74b31e8c30f9ac117c0d765bcde8",
+  "source_sha256": "4dcf89c5c10391981289e2583152c26fb4ac93047c6fcb4bb0959e246805d850",
+  "source_bytes": 51111284,
+  "candidate_bytes": 54397352,
+  "appended_bytes": 3286068,
+  "original_binary_prefix_bytes_exact": 50984104,
+  "original_accessors_preserved": 695,
+  "semantic_json_allowed_changes": [
+    [
+      2,
+      0,
+      "POSITION"
+    ],
+    [
+      2,
+      0,
+      "NORMAL"
+    ],
+    [
+      2,
+      0,
+      "TANGENT"
+    ]
+  ],
+  "authoring_field_vertices": 5703,
+  "float32_position_rows_changed": 5703,
+  "identity_position_normal_tangent_rows_exact": 76430,
+  "errors": {
+    "position_float32_m": 7.449789785063388e-09,
+    "normal": 4.640107846351756e-08,
+    "tangent": 4.747043121530364e-08,
+    "orthogonality": 7.195311202412569e-08,
+    "squared_unit": 9.058410910256498e-08
+  },
+  "minimum_jacobian_determinant": 0.9295540945434679,
+  "field_self_check": {
+    "pass": true,
+    "declared_source_sha256": "4dcf89c5c10391981289e2583152c26fb4ac93047c6fcb4bb0959e246805d850",
+    "identity_boundaries_join_and_controls_pass": true,
+    "profile_endpoint_slopes_zero": true,
+    "minimum_sampled_jacobian_determinant": 0.9295523015089028,
+    "maximum_analytic_vs_fd_error": 1.8464235695958564e-10,
+    "native_or_export_executed": false
+  },
+  "affected_triangles": 4083,
+  "minimum_face_normal_cosine": 0.8136181823166027,
+  "toe_weighted_vertices_exact": 2970,
+  "sole": {
+    "L": {
+      "vertices": 269,
+      "rest_bounds": {
+        "min": [
+          0.019554900005459785,
+          0.006968902889639139,
+          -0.06982620805501938
+        ],
+        "max": [
+          0.16021202504634857,
+          0.018899939954280853,
+          0.18966327607631683
+        ]
+      },
+      "position_normal_tangent_exact": true
+    },
+    "R": {
+      "vertices": 268,
+      "rest_bounds": {
+        "min": [
+          -0.15797404944896698,
+          0.006968902889639139,
+          -0.06954021006822586
+        ],
+        "max": [
+          -0.01810796745121479,
+          0.0187588632106781,
+          0.18968138098716736
+        ]
+      },
+      "position_normal_tangent_exact": true
+    }
+  },
+  "native_correspondence": {
+    "correspondence": "raw one-to-one nearest source; no registration or fitted transform",
+    "raw_native_source_error_m": 1.6019441345658151e-06,
+    "raw_native_after_error_m": 1.601944444207713e-06,
+    "deformation_delta_error_m": 4.2526987792390614e-08,
+    "one_to_one_vertices": 5703,
+    "raw_source_tolerance_m": 3e-06,
+    "deformation_delta_tolerance_m": 1e-06
+  },
+  "negative_controls_rejected": {
+    "protected_metadata": true,
+    "original_binary_prefix": true,
+    "source_100um": true,
+    "deformation_100um": true
+  },
+  "scope": "Raw preservation, deformation, normals/tangents and source/native correspondence when requested. Posed calf/cuff self-contact and actual-player replay remain separate."
+}

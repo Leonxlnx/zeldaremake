@@ -1,0 +1,115 @@
+{
+  "dist": "E:\\zeldaremake-daylight\\dist",
+  "viewpoint": "A_stairs",
+  "params": "",
+  "width": 1280,
+  "height": 720,
+  "settle": 8,
+  "simTime": 12.5,
+  "readyMs": 38626,
+  "renderMs": 171,
+  "timing": {
+    "frames": 20,
+    "medianMs": 41.3,
+    "minMs": 39.5,
+    "maxMs": 63.3,
+    "issueMedianMs": 8.6,
+    "perFrame": [
+      63.3,
+      49.3,
+      45,
+      44,
+      41.7,
+      40,
+      41.5,
+      40.1,
+      41.3,
+      40.6,
+      40.2,
+      41.2,
+      41.4,
+      40.3,
+      42.5,
+      41.1,
+      40.6,
+      40.2,
+      39.5,
+      42.4
+    ]
+  },
+  "ab": null,
+  "png": null,
+  "stats": {
+    "simTime": 12.63333333333334,
+    "drawCalls": 539,
+    "triangles": 8637165,
+    "geometries": 364,
+    "textures": 82,
+    "programs": 88,
+    "width": 1280,
+    "height": 720,
+    "pixelRatio": 1
+  },
+  "flags": {},
+  "tier": "high",
+  "perfState": {
+    "flags": {},
+    "tier": "high",
+    "version": 0,
+    "fx": {
+      "ao": true,
+      "rays": true,
+      "bloom": true,
+      "soft": true
+    },
+    "shadowMapSize": 4096,
+    "shadowTaps": 12,
+    "vegLodScale": 1,
+    "grassDensity": 1,
+    "renderScale": 1
+  },
+  "stepMs": {
+    "step": 9.699999995529652,
+    "update": 2.5,
+    "render": 7.199999995529652
+  },
+  "lighting": {
+    "shadows": true,
+    "shadowMapSize": 4096,
+    "filterTaps": 12,
+    "searchTaps": 8,
+    "dynamic": false
+  },
+  "postfx": {
+    "resolution": [
+      1280,
+      720
+    ],
+    "stagesEnabled": {
+      "ao": true,
+      "rays": true,
+      "bloom": true,
+      "soft": true
+    },
+    "aoResolution": [
+      640,
+      360
+    ],
+    "godRayResolution": [
+      320,
+      180
+    ],
+    "softeningGrid": [
+      640,
+      360
+    ],
+    "shadowCasterCull": true,
+    "shadowCastersTested": 181,
+    "shadowCastersCulled": 4
+  },
+  "vegetation": {
+    "drawCalls": 121,
+    "triangles": 3286736
+  },
+  "sceneTriangles": 7174900
+}

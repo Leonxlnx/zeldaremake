@@ -1,0 +1,1006 @@
+{
+  "kind": "CPU-only exported-native and production-puppet comparison; +Z forward, +Y up",
+  "baseSha256": "305603e92277952f345842e526216ff066b2b5888908eef054990199b6597a69",
+  "candidateSha256": "89df38f255e47afbcbb28a60555fb4a4a20091741d427ef1d7b8ea1ac33f306b",
+  "runtimeSha256": "34681bb92593e3e536234fd33dcd60d0fe404201124a6341d6331a1a2484323c",
+  "channels": {
+    "changed": [
+      [
+        "shoulderL",
+        "rotation"
+      ],
+      [
+        "elbowL",
+        "rotation"
+      ],
+      [
+        "shoulderR",
+        "rotation"
+      ],
+      [
+        "elbowR",
+        "rotation"
+      ]
+    ],
+    "originalBinaryPrefixExact": true,
+    "otherClipsAndRestDataExact": true
+  },
+  "errors": [],
+  "results": {
+    "native": {
+      "base": {
+        "samples": 113,
+        "metrics": {
+          "shoulderYawDeg": {
+            "min": 0,
+            "max": 0,
+            "mean": 0
+          },
+          "torsoLeanDeg": {
+            "min": 4.930294825549274,
+            "max": 5.574422467118159,
+            "mean": 5.252347542740325
+          },
+          "chestLeanDeg": {
+            "min": 6.992039492927035,
+            "max": 7.904866177028681,
+            "mean": 7.448451522235357
+          },
+          "upperArmPitchL": {
+            "min": -42.23570788795445,
+            "max": 20.595409901547576,
+            "mean": -12.855028327089785
+          },
+          "elbowFlexL": {
+            "min": 71.88882804621966,
+            "max": 87.12741211914418,
+            "mean": 80.99136329370688
+          },
+          "handForwardML": {
+            "min": -0.05071337915915353,
+            "max": 0.1538133708555147,
+            "mean": 0.06446948708958276
+          },
+          "handLateralML": {
+            "min": 0.03966151591280617,
+            "max": 0.10708736343913111,
+            "mean": 0.08488322489882048
+          },
+          "thighPitchL": {
+            "min": -21.00251414415456,
+            "max": 60.35811250035988,
+            "mean": 31.87033575708739
+          },
+          "upperArmPitchR": {
+            "min": -42.72167845993108,
+            "max": 20.439409145997583,
+            "mean": -14.094802622112526
+          },
+          "elbowFlexR": {
+            "min": 71.28775319751112,
+            "max": 87.36745739992014,
+            "mean": 80.81604684878428
+          },
+          "handForwardMR": {
+            "min": -0.05260460225845516,
+            "max": 0.14901911747130975,
+            "mean": 0.05909661573985523
+          },
+          "handLateralMR": {
+            "min": 0.047342333774098605,
+            "max": 0.11484825838743495,
+            "mean": 0.09375686699882935
+          },
+          "thighPitchR": {
+            "min": -21.0024129041433,
+            "max": 60.35819366026681,
+            "mean": 31.797415536460605
+          }
+        },
+        "armOppositeThigh": {
+          "L": 0.6058386658616024,
+          "R": 0.621744573448158
+        },
+        "temporal": {
+          "dtS": 0.004166666684406144,
+          "angularSteps": {
+            "shoulderL": {
+              "peakStepDeg": 29.572369502175917,
+              "peakSpeedDegPerS": 7097.368650305353,
+              "meanSpeedDegPerS": 2269.828894827905
+            },
+            "elbowL": {
+              "peakStepDeg": 2.4251526586674026,
+              "peakSpeedDegPerS": 582.0366356021705,
+              "meanSpeedDegPerS": 265.1365163009356
+            },
+            "shoulderR": {
+              "peakStepDeg": 31.675890564014324,
+              "peakSpeedDegPerS": 7602.213702997206,
+              "meanSpeedDegPerS": 2271.69268132542
+            },
+            "elbowR": {
+              "peakStepDeg": 2.3614616808822246,
+              "peakSpeedDegPerS": 566.7508009988068,
+              "meanSpeedDegPerS": 273.2545480860004
+            }
+          },
+          "hands": {
+            "L": {
+              "peakRelativeSpeedMps": 22.85114975553461,
+              "meanRelativeSpeedMps": 7.326298714610473,
+              "peakRelativeAccelerationMps2": 10603.253423468715
+            },
+            "R": {
+              "peakRelativeSpeedMps": 24.227942572700776,
+              "meanRelativeSpeedMps": 7.20071544395649,
+              "peakRelativeAccelerationMps2": 11298.466444309994
+            }
+          }
+        }
+      },
+      "candidate": {
+        "samples": 113,
+        "metrics": {
+          "shoulderYawDeg": {
+            "min": 0,
+            "max": 0,
+            "mean": 0
+          },
+          "torsoLeanDeg": {
+            "min": 4.930294825549274,
+            "max": 5.574422467118159,
+            "mean": 5.252347542740325
+          },
+          "chestLeanDeg": {
+            "min": 6.992039492927035,
+            "max": 7.904866177028681,
+            "mean": 7.448451522235357
+          },
+          "upperArmPitchL": {
+            "min": -28.625178185578836,
+            "max": 5.800988157488998,
+            "mean": -13.424295409954278
+          },
+          "elbowFlexL": {
+            "min": 72.19250887298983,
+            "max": 87.12740236362428,
+            "mean": 81.09075785484657
+          },
+          "handForwardML": {
+            "min": 0.008159106122055712,
+            "max": 0.12067495874317388,
+            "mean": 0.06508628124974132
+          },
+          "handLateralML": {
+            "min": 0.0805882089108517,
+            "max": 0.10708739235951459,
+            "mean": 0.09180259085786907
+          },
+          "thighPitchL": {
+            "min": -21.00251414415456,
+            "max": 60.35811250035988,
+            "mean": 31.87033575708739
+          },
+          "upperArmPitchR": {
+            "min": -29.73590155210504,
+            "max": 6.100953428617573,
+            "mean": -15.038735872406914
+          },
+          "elbowFlexR": {
+            "min": 71.68115088568622,
+            "max": 87.36747992627988,
+            "mean": 80.92424641993834
+          },
+          "handForwardMR": {
+            "min": 0.005024783756717149,
+            "max": 0.11782527003390819,
+            "mean": 0.0585334242962031
+          },
+          "handLateralMR": {
+            "min": 0.09078227743484016,
+            "max": 0.11484826425108968,
+            "mean": 0.10071914204329771
+          },
+          "thighPitchR": {
+            "min": -21.0024129041433,
+            "max": 60.35819366026681,
+            "mean": 31.797415536460605
+          }
+        },
+        "armOppositeThigh": {
+          "L": 0.8317550318303205,
+          "R": 0.8305093246216395
+        },
+        "temporal": {
+          "dtS": 0.004166666684406144,
+          "angularSteps": {
+            "shoulderL": {
+              "peakStepDeg": 1.343076347004073,
+              "peakSpeedDegPerS": 322.3383219086303,
+              "meanSpeedDegPerS": 139.53622805094602
+            },
+            "elbowL": {
+              "peakStepDeg": 1.3973685844968193,
+              "peakSpeedDegPerS": 335.36845885141395,
+              "meanSpeedDegPerS": 168.22854634495184
+            },
+            "shoulderR": {
+              "peakStepDeg": 1.426317380912369,
+              "peakSpeedDegPerS": 342.3161699615662,
+              "meanSpeedDegPerS": 141.90750847447987
+            },
+            "elbowR": {
+              "peakStepDeg": 1.3545524334019012,
+              "peakSpeedDegPerS": 325.0925826323829,
+              "meanSpeedDegPerS": 177.47398421435668
+            }
+          },
+          "hands": {
+            "L": {
+              "peakRelativeSpeedMps": 1.16460675953249,
+              "meanRelativeSpeedMps": 0.6374748232998383,
+              "peakRelativeAccelerationMps2": 121.63158453830411
+            },
+            "R": {
+              "peakRelativeSpeedMps": 1.2071527486128963,
+              "meanRelativeSpeedMps": 0.6421813613263234,
+              "peakRelativeAccelerationMps2": 126.81191155774037
+            }
+          }
+        }
+      },
+      "specs": [
+        {
+          "durationS": 0.46666666865348816,
+          "samples": 113
+        },
+        {
+          "durationS": 0.46666666865348816,
+          "samples": 113
+        }
+      ],
+      "zeroDt": [],
+      "maxHeadOrientationDifferenceDeg": 0,
+      "headOrientationWithinNativeSampleTolerance": true,
+      "headAimDisplacementAt12cmM": 0,
+      "maxProtectedMatrixDifference": 0,
+      "pointDisplacementsM": {
+        "head": {
+          "min": 0,
+          "max": 0,
+          "mean": 0
+        },
+        "handL": {
+          "min": 4.259941887878473e-9,
+          "max": 0.09203756406396002,
+          "mean": 0.014542762294298925
+        },
+        "handR": {
+          "min": 5.627600790026627e-9,
+          "max": 0.09807881347820536,
+          "mean": 0.014284033163124193
+        }
+      },
+      "protectedTraceSha256": [
+        "203f910f37d1c04083a1aeac6ea35aa0c7dc0dc3251bae781572310408021315",
+        "203f910f37d1c04083a1aeac6ea35aa0c7dc0dc3251bae781572310408021315"
+      ],
+      "loop": {
+        "baseHeadDeg": 0,
+        "candidateHeadDeg": 0,
+        "baseHandM": {
+          "L": 6.40115514696266e-8,
+          "R": 9.628190745440955e-8
+        },
+        "candidateHandM": {
+          "L": 8.27095907521199e-9,
+          "R": 9.164773392902096e-8
+        }
+      }
+    },
+    "capture": {
+      "base": {
+        "samples": 600,
+        "metrics": {
+          "shoulderYawDeg": {
+            "min": 0,
+            "max": 0,
+            "mean": 0
+          },
+          "torsoLeanDeg": {
+            "min": 4.930294825549254,
+            "max": 5.574422467118358,
+            "mean": 5.2501789415389
+          },
+          "chestLeanDeg": {
+            "min": 6.992039492927004,
+            "max": 7.904866177028962,
+            "mean": 7.445378184531233
+          },
+          "upperArmPitchL": {
+            "min": -35.56763899782036,
+            "max": 13.481666513598933,
+            "mean": -12.866063452959445
+          },
+          "elbowFlexL": {
+            "min": 72.06815197346901,
+            "max": 87.02801445889202,
+            "mean": 80.93890630053363
+          },
+          "handForwardML": {
+            "min": -0.022247712297719602,
+            "max": 0.13769148556745847,
+            "mean": 0.0642331875613492
+          },
+          "handLateralML": {
+            "min": 0.05960952830968652,
+            "max": 0.10669497289226743,
+            "mean": 0.08350888851254315
+          },
+          "thighPitchL": {
+            "min": -11.07303558935264,
+            "max": 60.311668709033775,
+            "mean": 32.297594327043385
+          },
+          "upperArmPitchR": {
+            "min": -36.51084071539182,
+            "max": 13.188304803890905,
+            "mean": -13.66074936902008
+          },
+          "elbowFlexR": {
+            "min": 71.45590208371323,
+            "max": 87.25099449988774,
+            "mean": 80.83784607049182
+          },
+          "handForwardMR": {
+            "min": -0.026040649415129735,
+            "max": 0.13254624913348323,
+            "mean": 0.06025211088017127
+          },
+          "handLateralMR": {
+            "min": 0.06738472549964328,
+            "max": 0.11423545956281644,
+            "mean": 0.09262292313425748
+          },
+          "thighPitchR": {
+            "min": -11.07295834467628,
+            "max": 60.31174986894611,
+            "mean": 31.651945167149478
+          }
+        },
+        "armOppositeThigh": {
+          "L": 0.624986473688704,
+          "R": 0.648983193760468
+        },
+        "temporal": {
+          "dtS": 0.016666666666666666,
+          "angularSteps": {
+            "shoulderL": {
+              "peakStepDeg": 14.634612641340924,
+              "peakSpeedDegPerS": 878.0767584804555,
+              "meanSpeedDegPerS": 342.81070091211166
+            },
+            "elbowL": {
+              "peakStepDeg": 5.270042415721196,
+              "peakSpeedDegPerS": 316.2025449432718,
+              "meanSpeedDegPerS": 171.04789806401178
+            },
+            "shoulderR": {
+              "peakStepDeg": 15.610909873536295,
+              "peakSpeedDegPerS": 936.6545924121777,
+              "meanSpeedDegPerS": 346.3511075535593
+            },
+            "elbowR": {
+              "peakStepDeg": 5.112194998584196,
+              "peakSpeedDegPerS": 306.73169991505176,
+              "meanSpeedDegPerS": 179.62766032522498
+            }
+          },
+          "hands": {
+            "L": {
+              "peakRelativeSpeedMps": 3.165590570619571,
+              "meanRelativeSpeedMps": 1.1975340400258323,
+              "peakRelativeAccelerationMps2": 201.43969865117134
+            },
+            "R": {
+              "peakRelativeSpeedMps": 3.0880081607532444,
+              "meanRelativeSpeedMps": 1.1858344646470944,
+              "peakRelativeAccelerationMps2": 190.03915319452344
+            }
+          }
+        },
+        "flightFraction": 0,
+        "minShoeGapM": -0.01052626533630771,
+        "rootY": {
+          "min": -0.04741579761781772,
+          "max": -0.00564663758809375,
+          "mean": -0.023321378038964027
+        },
+        "reachClamps": 0
+      },
+      "candidate": {
+        "samples": 600,
+        "metrics": {
+          "shoulderYawDeg": {
+            "min": 0,
+            "max": 0,
+            "mean": 0
+          },
+          "torsoLeanDeg": {
+            "min": 4.930294825549254,
+            "max": 5.574422467118358,
+            "mean": 5.2501789415389
+          },
+          "chestLeanDeg": {
+            "min": 6.992039492927004,
+            "max": 7.904866177028962,
+            "mean": 7.445378184531233
+          },
+          "upperArmPitchL": {
+            "min": -28.61137737375868,
+            "max": 5.635592350409807,
+            "mean": -13.545342491395646
+          },
+          "elbowFlexL": {
+            "min": 72.2832224541632,
+            "max": 87.11467241896128,
+            "mean": 81.05691475359542
+          },
+          "handForwardML": {
+            "min": 0.00850199852040845,
+            "max": 0.12044057535869968,
+            "mean": 0.06471143416999556
+          },
+          "handLateralML": {
+            "min": 0.08063164069937684,
+            "max": 0.1067746520847061,
+            "mean": 0.09173878865188993
+          },
+          "thighPitchL": {
+            "min": -11.07303558935264,
+            "max": 60.311668709033775,
+            "mean": 32.297594327043385
+          },
+          "upperArmPitchR": {
+            "min": -29.71831657419876,
+            "max": 5.888524872487525,
+            "mean": -14.91895180968303
+          },
+          "elbowFlexR": {
+            "min": 71.6896568078263,
+            "max": 87.35556131851354,
+            "mean": 80.96625147867424
+          },
+          "handForwardMR": {
+            "min": 0.005190853846247734,
+            "max": 0.11762394606902049,
+            "mean": 0.05892886273296626
+          },
+          "handLateralMR": {
+            "min": 0.09084940755854734,
+            "max": 0.11447400670750618,
+            "mean": 0.10079072049978106
+          },
+          "thighPitchR": {
+            "min": -11.07295834467628,
+            "max": 60.31174986894611,
+            "mean": 31.651945167149478
+          }
+        },
+        "armOppositeThigh": {
+          "L": 0.8388556525013087,
+          "R": 0.8403088469375738
+        },
+        "temporal": {
+          "dtS": 0.016666666666666666,
+          "angularSteps": {
+            "shoulderL": {
+              "peakStepDeg": 5.282653362650895,
+              "peakSpeedDegPerS": 316.9592017590537,
+              "meanSpeedDegPerS": 137.94067960202045
+            },
+            "elbowL": {
+              "peakStepDeg": 5.490271498600928,
+              "peakSpeedDegPerS": 329.41628991605563,
+              "meanSpeedDegPerS": 165.8359031062083
+            },
+            "shoulderR": {
+              "peakStepDeg": 5.678623904968751,
+              "peakSpeedDegPerS": 340.71743429812506,
+              "meanSpeedDegPerS": 141.37213849128588
+            },
+            "elbowR": {
+              "peakStepDeg": 5.219873664522756,
+              "peakSpeedDegPerS": 313.19241987136536,
+              "meanSpeedDegPerS": 176.11859790525696
+            }
+          },
+          "hands": {
+            "L": {
+              "peakRelativeSpeedMps": 1.1421434015585155,
+              "meanRelativeSpeedMps": 0.628900701205979,
+              "peakRelativeAccelerationMps2": 27.11060878547909
+            },
+            "R": {
+              "peakRelativeSpeedMps": 1.1940107557701545,
+              "meanRelativeSpeedMps": 0.6362134445145838,
+              "peakRelativeAccelerationMps2": 30.226950695676123
+            }
+          }
+        },
+        "flightFraction": 0,
+        "minShoeGapM": -0.01052626533630771,
+        "rootY": {
+          "min": -0.04741579761781772,
+          "max": -0.00564663758809375,
+          "mean": -0.023321378038964027
+        },
+        "reachClamps": 0
+      },
+      "specs": [
+        {
+          "clip": {
+            "name": "run",
+            "durationS": 0.466667,
+            "strideM": 1.82,
+            "rate": 1,
+            "swings": {
+              "L": [
+                [
+                  0.0924,
+                  0.4667
+                ]
+              ],
+              "R": [
+                [
+                  0.3257,
+                  0.7
+                ]
+              ]
+            },
+            "plantedS": {
+              "L": 0.0972,
+              "R": 0.0972
+            },
+            "leadS": {
+              "L": 0.0389,
+              "R": 0.0389
+            },
+            "startPhase": 0.5013
+          },
+          "speedMps": 3.9,
+          "cycleS": 0.4666666666666667,
+          "cadenceStepsPerMinute": 257.1428571428571,
+          "dt": 0.016666666666666666
+        },
+        {
+          "clip": {
+            "name": "run",
+            "durationS": 0.466667,
+            "strideM": 1.82,
+            "rate": 1,
+            "swings": {
+              "L": [
+                [
+                  0.0924,
+                  0.4667
+                ]
+              ],
+              "R": [
+                [
+                  0.3257,
+                  0.7
+                ]
+              ]
+            },
+            "plantedS": {
+              "L": 0.0972,
+              "R": 0.0972
+            },
+            "leadS": {
+              "L": 0.0389,
+              "R": 0.0389
+            },
+            "startPhase": 0.5013
+          },
+          "speedMps": 3.9,
+          "cycleS": 0.4666666666666667,
+          "cadenceStepsPerMinute": 257.1428571428571,
+          "dt": 0.016666666666666666
+        }
+      ],
+      "zeroDt": [],
+      "maxHeadOrientationDifferenceDeg": 0,
+      "headOrientationWithinNativeSampleTolerance": true,
+      "headAimDisplacementAt12cmM": 0,
+      "maxProtectedMatrixDifference": 0,
+      "pointDisplacementsM": {
+        "head": {
+          "min": 0,
+          "max": 0,
+          "mean": 0
+        },
+        "handL": {
+          "min": 5.781611532880596e-9,
+          "max": 0.05460737823595018,
+          "mean": 0.017376011896819293
+        },
+        "handR": {
+          "min": 5.152142065502558e-9,
+          "max": 0.05823614601400521,
+          "mean": 0.016985817242101818
+        }
+      },
+      "protectedTraceSha256": [
+        "309752e17e989945aeee2fba9a08f1851947530465d866538a25efe588e6ef8e",
+        "309752e17e989945aeee2fba9a08f1851947530465d866538a25efe588e6ef8e"
+      ],
+      "rootFootIkTraceSha256": [
+        "4d77e055c2f96d6ac87c4f6fb992f74afa4ab7d6c3b14b7c3860858956a434ff",
+        "4d77e055c2f96d6ac87c4f6fb992f74afa4ab7d6c3b14b7c3860858956a434ff"
+      ],
+      "maxRootDifferenceM": 0
+    },
+    "play": {
+      "base": {
+        "samples": 600,
+        "metrics": {
+          "shoulderYawDeg": {
+            "min": 0,
+            "max": 0,
+            "mean": 0
+          },
+          "torsoLeanDeg": {
+            "min": 4.9302948255492565,
+            "max": 5.5744224671183575,
+            "mean": 5.250244825576087
+          },
+          "chestLeanDeg": {
+            "min": 6.992039492927008,
+            "max": 7.904866177028962,
+            "mean": 7.445471530991737
+          },
+          "upperArmPitchL": {
+            "min": -41.05123809549398,
+            "max": 19.502038387065966,
+            "mean": -12.592804628874358
+          },
+          "elbowFlexL": {
+            "min": 71.61702616729016,
+            "max": 88.03956460776865,
+            "mean": 81.23542676517488
+          },
+          "handForwardML": {
+            "min": -0.04612238264309809,
+            "max": 0.14777013793926486,
+            "mean": 0.06434549280252554
+          },
+          "handLateralML": {
+            "min": 0.05347605729290625,
+            "max": 0.10723781002861921,
+            "mean": 0.08442630430338548
+          },
+          "thighPitchL": {
+            "min": -31.19020336923165,
+            "max": 60.35215944180543,
+            "mean": 28.915772296352607
+          },
+          "upperArmPitchR": {
+            "min": -41.405950582902356,
+            "max": 19.535040317099345,
+            "mean": -14.289089507938828
+          },
+          "elbowFlexR": {
+            "min": 70.9661863295779,
+            "max": 88.30870542541882,
+            "mean": 80.82710589521535
+          },
+          "handForwardMR": {
+            "min": -0.04747940981839349,
+            "max": 0.14354701712932894,
+            "mean": 0.057399302214934333
+          },
+          "handLateralMR": {
+            "min": 0.06021756185354549,
+            "max": 0.11464364703337127,
+            "mean": 0.09302256061156586
+          },
+          "thighPitchR": {
+            "min": -31.189431675522318,
+            "max": 60.35224060171241,
+            "mean": 28.58345681752413
+          }
+        },
+        "armOppositeThigh": {
+          "L": 0.4956445676856103,
+          "R": 0.5179241772691323
+        },
+        "temporal": {
+          "dtS": 0.016666666666666666,
+          "angularSteps": {
+            "shoulderL": {
+              "peakStepDeg": 16.213814223797986,
+              "peakSpeedDegPerS": 972.8288534278792,
+              "meanSpeedDegPerS": 301.633969802675
+            },
+            "elbowL": {
+              "peakStepDeg": 6.965145410478555,
+              "peakSpeedDegPerS": 417.9087246287133,
+              "meanSpeedDegPerS": 216.3166322530015
+            },
+            "shoulderR": {
+              "peakStepDeg": 17.416604744523454,
+              "peakSpeedDegPerS": 1044.9962846714072,
+              "meanSpeedDegPerS": 302.8246762488643
+            },
+            "elbowR": {
+              "peakStepDeg": 6.687918531134509,
+              "peakSpeedDegPerS": 401.2751118680705,
+              "meanSpeedDegPerS": 228.32523166784657
+            }
+          },
+          "hands": {
+            "L": {
+              "peakRelativeSpeedMps": 3.1275791157268893,
+              "meanRelativeSpeedMps": 1.1605931211310636,
+              "peakRelativeAccelerationMps2": 274.0474854088604
+            },
+            "R": {
+              "peakRelativeSpeedMps": 3.188652765224055,
+              "meanRelativeSpeedMps": 1.1467589206919149,
+              "peakRelativeAccelerationMps2": 268.4238832454283
+            }
+          }
+        },
+        "flightFraction": 0.5683333333333334,
+        "minShoeGapM": -0.0000027291400251372444,
+        "rootY": {
+          "min": -0.006531416555900366,
+          "max": -0.005556290647540485,
+          "mean": -0.0058189930071153445
+        },
+        "reachClamps": 0
+      },
+      "candidate": {
+        "samples": 600,
+        "metrics": {
+          "shoulderYawDeg": {
+            "min": 0,
+            "max": 0,
+            "mean": 0
+          },
+          "torsoLeanDeg": {
+            "min": 4.9302948255492565,
+            "max": 5.5744224671183575,
+            "mean": 5.250244825576087
+          },
+          "chestLeanDeg": {
+            "min": 6.992039492927008,
+            "max": 7.904866177028962,
+            "mean": 7.445471530991737
+          },
+          "upperArmPitchL": {
+            "min": -30.61413902167601,
+            "max": 7.737012447152172,
+            "mean": -13.282004844076157
+          },
+          "elbowFlexL": {
+            "min": 71.89181215410171,
+            "max": 88.02906658644874,
+            "mean": 81.33180015723283
+          },
+          "handForwardML": {
+            "min": 0.001050106966449249,
+            "max": 0.12454579966655643,
+            "mean": 0.06470711293073321
+          },
+          "handLateralML": {
+            "min": 0.07945250889494757,
+            "max": 0.10651860864039148,
+            "mean": 0.09133820325759101
+          },
+          "thighPitchL": {
+            "min": -31.19020336923165,
+            "max": 60.35215944180543,
+            "mean": 28.915772296352607
+          },
+          "upperArmPitchR": {
+            "min": -31.481356442765577,
+            "max": 7.946792472882664,
+            "mean": -15.194742360411059
+          },
+          "elbowFlexR": {
+            "min": 71.27438799594991,
+            "max": 88.30015299792672,
+            "mean": 80.9308016947993
+          },
+          "handForwardMR": {
+            "min": -0.0018995891387447728,
+            "max": 0.12141601548888659,
+            "mean": 0.05710277082920975
+          },
+          "handLateralMR": {
+            "min": 0.08876275580242513,
+            "max": 0.11386101165599904,
+            "mean": 0.09989274421819205
+          },
+          "thighPitchR": {
+            "min": -31.189431675522318,
+            "max": 60.35224060171241,
+            "mean": 28.58345681752413
+          }
+        },
+        "armOppositeThigh": {
+          "L": 0.7147899450861874,
+          "R": 0.7240732707356603
+        },
+        "temporal": {
+          "dtS": 0.016666666666666666,
+          "angularSteps": {
+            "shoulderL": {
+              "peakStepDeg": 6.385282669066,
+              "peakSpeedDegPerS": 383.11696014396,
+              "meanSpeedDegPerS": 181.8786145648367
+            },
+            "elbowL": {
+              "peakStepDeg": 6.629019153699434,
+              "peakSpeedDegPerS": 397.74114922196605,
+              "meanSpeedDegPerS": 213.7734160206532
+            },
+            "shoulderR": {
+              "peakStepDeg": 6.904969601093032,
+              "peakSpeedDegPerS": 414.2981760655819,
+              "meanSpeedDegPerS": 183.03918122363848
+            },
+            "elbowR": {
+              "peakStepDeg": 6.354142272040841,
+              "peakSpeedDegPerS": 381.24853632245043,
+              "meanSpeedDegPerS": 225.64102633348705
+            }
+          },
+          "hands": {
+            "L": {
+              "peakRelativeSpeedMps": 1.372808275088624,
+              "meanRelativeSpeedMps": 0.8187916348117842,
+              "peakRelativeAccelerationMps2": 37.54576863923714
+            },
+            "R": {
+              "peakRelativeSpeedMps": 1.4374131112211566,
+              "meanRelativeSpeedMps": 0.817530972241556,
+              "peakRelativeAccelerationMps2": 38.66203086136446
+            }
+          }
+        },
+        "flightFraction": 0.5683333333333334,
+        "minShoeGapM": -0.0000027291400251372444,
+        "rootY": {
+          "min": -0.006531416555900366,
+          "max": -0.005556290647540485,
+          "mean": -0.0058189930071153445
+        },
+        "reachClamps": 0
+      },
+      "specs": [
+        {
+          "clip": {
+            "name": "run",
+            "durationS": 0.466667,
+            "strideM": 1.82,
+            "rate": 1,
+            "swings": {
+              "L": [
+                [
+                  0.0924,
+                  0.4667
+                ]
+              ],
+              "R": [
+                [
+                  0.3257,
+                  0.7
+                ]
+              ]
+            },
+            "plantedS": {
+              "L": 0.0972,
+              "R": 0.0972
+            },
+            "leadS": {
+              "L": 0.0389,
+              "R": 0.0389
+            },
+            "startPhase": 0.5013
+          },
+          "speedMps": 4.6,
+          "cycleS": 0.3956521739130435,
+          "cadenceStepsPerMinute": 303.2967032967033,
+          "dt": 0.016666666666666666
+        },
+        {
+          "clip": {
+            "name": "run",
+            "durationS": 0.466667,
+            "strideM": 1.82,
+            "rate": 1,
+            "swings": {
+              "L": [
+                [
+                  0.0924,
+                  0.4667
+                ]
+              ],
+              "R": [
+                [
+                  0.3257,
+                  0.7
+                ]
+              ]
+            },
+            "plantedS": {
+              "L": 0.0972,
+              "R": 0.0972
+            },
+            "leadS": {
+              "L": 0.0389,
+              "R": 0.0389
+            },
+            "startPhase": 0.5013
+          },
+          "speedMps": 4.6,
+          "cycleS": 0.3956521739130435,
+          "cadenceStepsPerMinute": 303.2967032967033,
+          "dt": 0.016666666666666666
+        }
+      ],
+      "zeroDt": [
+        {
+          "headOrientationDeg": 0,
+          "handTranslationM": {
+            "L": 2.237726045655905e-16,
+            "R": 0
+          }
+        },
+        {
+          "headOrientationDeg": 0,
+          "handTranslationM": {
+            "L": 2.237726045655905e-16,
+            "R": 2.237726045655905e-16
+          }
+        }
+      ],
+      "maxHeadOrientationDifferenceDeg": 0.0000017075472925031877,
+      "headOrientationWithinNativeSampleTolerance": true,
+      "headAimDisplacementAt12cmM": 3.5762786865234374e-9,
+      "maxProtectedMatrixDifference": 0,
+      "pointDisplacementsM": {
+        "head": {
+          "min": 0,
+          "max": 0,
+          "mean": 0
+        },
+        "handL": {
+          "min": 0.00032200869230103175,
+          "max": 0.06618725203781875,
+          "mean": 0.01592132342825965
+        },
+        "handR": {
+          "min": 0.0003146785086423448,
+          "max": 0.07030173181757916,
+          "mean": 0.015529433041494069
+        }
+      },
+      "protectedTraceSha256": [
+        "96f374a948464fe5df533125367fa3c5884d411c62337e08f1e57b536251aafa",
+        "96f374a948464fe5df533125367fa3c5884d411c62337e08f1e57b536251aafa"
+      ],
+      "rootFootIkTraceSha256": [
+        "764a3465fad5cfab514743d3f4b4810929cf2d6c2a579c63ed11ddbb81706d88",
+        "764a3465fad5cfab514743d3f4b4810929cf2d6c2a579c63ed11ddbb81706d88"
+      ],
+      "maxRootDifferenceM": 0
+    }
+  },
+  "structuralChecksPass": true,
+  "headOrientationWithinNativeToleranceBetweenBakedSamples": true
+}

@@ -1,0 +1,192 @@
+/**
+ * Village props — WHERE the domestic details stand. Own authored positions (the shared
+ * `src/world/layout.ts` is read, never written, for the houses / stairs / boulders / npc spots
+ * the placement rules keep clear of). Every prop names a `cluster` (a place); clusters belong to
+ * a merge locality (`localityOf`), and each locality is one mesh per material, so the whole
+ * dressing costs a handful of draw calls.
+ *
+ * Placement (index.ts) seats each prop on `ctx.terrain.height`, probes its footprint against the
+ * terrain masks and the layout's obstacles, and skips a prop rather than relocating it across the
+ * village. Projections quoted below are pinhole into the six fixed cameras (1280×720).
+ */
+export type PropKind = 'pot' | 'crate' | 'barrel' | 'bucket' | 'ladder' | 'platform' | 'marker' | 'lightString';
+
+/**
+ * Merge localities: a cluster is a place (its props are placed and audited together); a locality
+ * is what draws together — every cluster of one locality merges into ONE mesh per material and
+ * is distance-culled as one. The village's seven clusters span ~30 m and every fixed camera holds
+ * most of them, so per-cluster meshes bought no culling there, only draw calls (up to 16 meshes,
+ * 32 draws with the shadow pass); the north clearing is 60–75 m away and draws on its own; the
+ * backside (round 49) is 8–25 m from every plaza camera but behind them all, and follows
+ * `util/expansionLocality.ts` (frustum + swept shadow footprints) like the house and its stair.
+ */
+const CLUSTER_LOCALITY: Record<string, string> = { 'north-clearing': 'clearing', 'west-house': 'backside' };
+export function localityOf(cluster: string): string {
+  return CLUSTER_LOCALITY[cluster] ?? 'village';
+}
+
+export interface PropDef {
+  id: string;
+  kind: PropKind;
+  /** authored foot position (y is sampled from the terrain) */
+  x: number;
+  z: number;
+  /** pots / barrel / bucket / marker: height (m); crate: width (m); platform: unused (see `deck`) */
+  size: number;
+  yaw: number;
+  cluster: string;
+  /** pot profile: 0 classic belly, 1 tall neck, 2 squat wide mouth */
+  variant?: number;
+  /** may stand on the flagstone paving (`path` mask) — Kokiri pots beside a stair foot */
+  paving?: boolean;
+  /** may stand on a house pad (`structure` mask); the trunk itself still keeps its clearance */
+  pad?: boolean;
+  /** ladder: the house it leans on, the angle around the trunk (rad, 0 = the door, + = viewer's right) and the peg height */
+  lean?: { house: string; angle: number; top: number };
+  /**
+   * platform: deck height above the ground (m), footprint, railing, ladder, block steps.
+   * `dais: true` binds the platform to `LAYOUT.plateauLookout` (fable-cursor's hook): position,
+   * yaw and width come from the hook, the depth from the `lookout` slab, and the wooden part
+   * is a rope railing set into hardscape's stone dais — posts from the turf up through the
+   * slab, ropes on its lip and short sides, a step block on the fence side — instead of a deck
+   * of its own (the character ground learns the slab top, so wood over the stone would swallow
+   * the player's feet).
+   */
+  platform?: { deck: number; width: number; depth: number; rail: boolean; ladder: boolean; steps?: number; dais?: boolean };
+  /**
+   * lightString: the peg line (x, z) in order — each peg seated on the terrain, the cord `lift` m
+   * over the pegs' feet drooping `sag` mid-span, a glowing pod every `spacing` m. Authored lines
+   * are placed as drawn (no footprint probe); `x`/`z` of the def are the first peg.
+   */
+  string?: { points: [number, number][]; lift: number; sag: number; spacing: number };
+  /**
+   * on a published walk deck (`ctx.shared.walkSurfaces[surface].deck`, structures' walkway of the
+   * west tree-house): `along` m from the deck's platform end along its top line, `side` × (half
+   * width − 0.23 m) off the centreline; the prop stands level on the deck's top. `x`/`z` here are
+   * the fallback / documentation of where that lands. Skipped when no surface is published.
+   */
+  onDeck?: { surface: number; along: number; side: -1 | 1 };
+}
+
+export const PROP_LAYOUT: readonly PropDef[] = [
+  // ---- Saria's door: two pots on the pad, viewer's left of the porch mouth (the right side is a
+  // 60° bank). Door space w ≈ −1.6 / −1.45, d ≈ 3.15 / 3.7 from the trunk centre: between the
+  // left root lip (w ≈ −2.0) and the doorway (w ≥ −1.15), off the threshold slabs and 0.8 m
+  // from the walk's last stone (9.6, −9.3). B/E (0.69, 0.53) at 15 m, A (0.51, 0.46) at 21 m.
+  { id: 'door-pot-large', kind: 'pot', x: 9.15, z: -10.3, size: 0.8, yaw: 0.4, cluster: 'saria-door', variant: 0, pad: true },
+  { id: 'door-pot-tall', kind: 'pot', x: 8.7, z: -9.75, size: 0.5, yaw: -1.1, cluster: 'saria-door', variant: 1, pad: true },
+
+  // ---- the signpost (7.0, −9.3, facing (−0.6, 0.8)): a pot behind its post and a squat one on
+  // its west side; the bucket and the crate stay by the walk to the door (B (0.69, 0.50) /
+  // (0.76, 0.55)). The pots replace the round-31 pair at (8.0, −10.0) / (7.5, −9.5).
+  { id: 'sign-pot', kind: 'pot', x: 7.65, z: -10.25, size: 0.62, yaw: 2.1, cluster: 'signpost', variant: 0 },
+  { id: 'sign-pot-squat', kind: 'pot', x: 6.3, z: -9.85, size: 0.46, yaw: 0.7, cluster: 'signpost', variant: 2 },
+  { id: 'saria-water-bucket', kind: 'bucket', x: 7.25, z: -8.0, size: 0.58, yaw: 0.5, cluster: 'signpost' },
+  // round 31's (8.75, −8.0) is on the walk's stepping-stone mask and was being nudged onto the
+  // 55° bank at (9.5, −7.25); now a smaller crate in the flat pocket right of the walk's end,
+  // under the door's right root lip (the mirror of the pots on the left; B (0.76, 0.55))
+  { id: 'saria-crate', kind: 'crate', x: 9.7, z: -7.95, size: 0.58, yaw: 0.6, cluster: 'signpost', pad: true },
+
+  // ---- the hero stair's foot: two pots on the paved apron at the bottom riser's SOUTH corner
+  // (0.45 m south of the tread ends, 0.5–1.1 m in front of the riser), between the stair, the
+  // stair-foot boulder (9.1, 2.5) r 1.0 and the lantern post (9.3, 1.6). A (0.78–0.80, 0.61–0.62)
+  // at the riser's right end, C (0.20–0.25, 0.56) just above the protected stair-foot box
+  // (0.10–0.20 × 0.60–0.66), F (0.48, 0.59) behind Link.
+  { id: 'stair-pot', kind: 'pot', x: 7.95, z: 1.8, size: 0.56, yaw: -0.3, cluster: 'stair-foot', variant: 0, paving: true },
+  { id: 'stair-pot-squat', kind: 'pot', x: 7.55, z: 2.1, size: 0.42, yaw: 1.9, cluster: 'stair-foot', variant: 2, paving: true },
+
+  // ---- the demo's string of small lights along the bank left of the hero flight. Reference
+  // frame A has two: a near-horizontal one at (0.49–0.54, 0.47) — measured on the frame's own
+  // pixels; fable-5's (0.50–0.60, 0.55–0.62) was approximate — which unprojects onto the house
+  // terrace's steep south bank above the lawn pocket left of the flight (the ray meets the face
+  // at (6.5–8.2, 1.2, −6.0…−6.6), 16–17 m), and one at (0.28–0.31, 0.57–0.62) on a bank at the
+  // plaza's left that our plaza does not have (flat paving there — V15's closure), so it is not
+  // built. The pegs sit on the face just under its brow (h 1.13–1.24, tilt 52–63°), the cord
+  // hangs in front of the bank, a pod every 0.3 m. C does not hold the bank (59° off its axis);
+  // B/E see it at the right at 11 m, F at its top-left edge.
+  { id: 'terrace-bank-lights', kind: 'lightString', x: 6.3, z: -5.95, size: 1, yaw: 0, cluster: 'stair-foot', string: { points: [[6.3, -5.95], [6.9, -6.1], [7.45, -6.25], [8.0, -6.5], [8.6, -6.8]], lift: 0.3, sag: 0.08, spacing: 0.3 } },
+
+  // ---- the plateau's storage corner by the plateau-north fence (survey-2 w28-plateau-d looks
+  // straight at it): crate (#32), bucket, a barrel and two pots. The storage pot that stood at
+  // (16.4, −8.45) — on the stair bank, where the fern scatter is dense (#37) — joins this corner.
+  { id: 'upper-crate', kind: 'crate', x: 19.4, z: -9.7, size: 0.72, yaw: -0.12, cluster: 'plateau' },
+  { id: 'upper-barrel', kind: 'barrel', x: 18.55, z: -9.15, size: 0.8, yaw: 0.9, cluster: 'plateau' },
+  { id: 'upper-bucket', kind: 'bucket', x: 19.3, z: -10.7, size: 0.51, yaw: -0.4, cluster: 'plateau' },
+  { id: 'upper-storage-pot', kind: 'pot', x: 20.15, z: -10.35, size: 0.66, yaw: 0.8, cluster: 'plateau', variant: 1 },
+  { id: 'upper-pot-squat', kind: 'pot', x: 19.85, z: -8.85, size: 0.44, yaw: -2.0, cluster: 'plateau', variant: 2 },
+
+  // ---- a rope-and-plank ladder against the upper house's trunk, viewer's right of its door
+  // (between the roots at a ≈ 0.8 and 1.97 rad), the crossbar pegged 3.4 m up
+  { id: 'upper-ladder', kind: 'ladder', x: 0, z: 0, size: 0.44, yaw: 0, cluster: 'upper-house', lean: { house: 'upper', angle: 1.35, top: 3.4 } },
+
+  // ---- the plateau lookout: the rope railing on hardscape's stone dais at LAYOUT.plateauLookout
+  // (21.6, 2.2, yaw 124°, 2.2 × 1.6 m, top 0.35 m over the highest turf), 1.7 m past the last
+  // post of the plateau-west fence, looking south-west over the stair bank and the plaza. x, z,
+  // yaw, width, depth and the deck height are all taken from the hook at build time (the values
+  // here are the fallback); the railing is the −z side (the plaza) and both short sides, open on
+  // +z where one step block stands on the turf. Only camera F sees it — (0.58–0.63, 0.22) at
+  // 23 m among the reference's fence posts on the wall top; A/B/C/D/E: outside.
+  { id: 'lookout-railing', kind: 'platform', x: 21.6, z: 2.2, size: 1, yaw: (124 * Math.PI) / 180, cluster: 'plateau-lip', platform: { deck: 0.35, width: 2.2, depth: 1.6, rail: true, ladder: false, steps: 1, dais: true } },
+
+  // ---- the west platform under the lantern tree (round 31): tall deck with its ladder, kept
+  { id: 'west-tree-platform', kind: 'platform', x: -8.7, z: -10.0, size: 1, yaw: 0, cluster: 'west', platform: { deck: 1.28, width: 1.8, depth: 1.4, rail: true, ladder: true } },
+
+  // ---- the plaza's backside (round 49, expansion-2): the west tree-house's landing. The
+  // `west-house` flight (EXPANSION_STAIRS: base (−15.39, 7.64), 3 risers NNW, 1.0 m wide) tops out
+  // on the ledge's 2.75 m shoulder at the walkway deck's end (−16.28, 6.46); the deck runs WNW to
+  // the house on the southwest giant. The shoulder SOUTH of the landing is natural, near-level
+  // ground (2.6–2.9 m, tilt 10–15°; the flight's own bank is 21–37°), identical in the live and
+  // legacy heightfield views (props build against the legacy one; only the south bank and the far
+  // hut's knoll are live-only). Stores where the walker steps off the deck: a crate, a bucket and
+  // a pot pair, all ≥ 0.9 m off the landing slabs and clear of the deck's line. Every fixed
+  // camera looks north-east to north (C looks SSE with its west edge at x ≈ −6.4 here, 9 m east
+  // of the group; `cClip` margin included); pinhole: outside all six, and sun shadows (1.27 m ESE
+  // per m of height) reach x ≈ −15.3 at most.
+  { id: 'west-landing-crate', kind: 'crate', x: -15.9, z: 5.2, size: 0.6, yaw: -0.5, cluster: 'west-house' },
+  { id: 'west-landing-bucket', kind: 'bucket', x: -16.55, z: 5.25, size: 0.54, yaw: 0.9, cluster: 'west-house' },
+  { id: 'west-landing-pot', kind: 'pot', x: -17.15, z: 5.55, size: 0.62, yaw: 1.7, cluster: 'west-house', variant: 0 },
+  { id: 'west-landing-pot-squat', kind: 'pot', x: -16.8, z: 4.9, size: 0.44, yaw: -2.2, cluster: 'west-house', variant: 2 },
+  // the pot by the west-house door (fable-cursor's item 0): the platform's walkable ring outside
+  // the wall is 0.04 R + 0.02 = 0.156 m — no pot stands there — so it stands on the walkway deck's
+  // mouth beside the door instead: 0.55 m from the platform rim along the deck (structures' rail
+  // posts are at its middle and end, the rail anchors to the wall), on the door's side (+wSide:
+  // the door at bearing 103° is 0.46 m off the deck's 111° line), its rim a hand in from the
+  // edge. Round 52: 0.36 m across (was 0.42) now that the character's ground blocks props
+  // (r + 0.12): the lane left on the 0.95 m deck is 0.45 m for Link's centre, his 0.2 m half-width
+  // brushing only the margin, never the pot (geometry.test: the deck's own corridor). Position
+  // and height come from `ctx.shared.walkSurfaces[0].deck` at build time; the x/z here are
+  // where that lands.
+  { id: 'west-door-pot', kind: 'pot', x: -19.2, z: 7.8, size: 0.36, yaw: 0.9, cluster: 'west-house', variant: 2, onDeck: { surface: 0, along: 0.55, side: 1 } },
+  // a waymarker on the outer (north) side of the west path past its fork at (−8.6, 9.4), where
+  // the south branch leaves for the bank: 0.9 m off the west line's discs, 2.5 m west of `cClip`'s
+  // margin, 2.2 m from the bush the vegetation scatter put at (−8.83, 8.38) (a first spot at
+  // (−9.2, 8.6) stood inside its crown), and far enough west that even its swept sun-shadow
+  // footprint (2.4 m ESE, `util/expansionLocality.ts` with its 0.75 m padding) stays outside
+  // camera C's frustum — at (−10.4, 8.7) the padded tip crossed C's edge by 4 cm and C drew the
+  // whole backside. On the ledge face's slope (the post stands vertical, its foot conformed); the
+  // long board points along the west line to the house, the short one back to the plaza.
+  // Round 52 (the play-test's "snag" at (−11.4, 8.25)): a walker cutting the corner from the fork
+  // node straight to the house's landing runs the chord, not the discs' bow — at (−11.0, 8.4) the
+  // post stood 0.25 m off that chord and its blocker (r 0.3 + 0.12) stopped him. Now 0.7 m further
+  // up the shoulder (h 2.06 → 2.30, the slope gentler): 0.82 m off the chord, 1.5 m off the discs,
+  // still west of `cClip`'s margin; the shortcut is a corridor in geometry.test.
+  { id: 'west-fork-marker', kind: 'marker', x: -11.2, z: 7.75, size: 1.65, yaw: -1.25, cluster: 'west-house' },
+
+  // ---- the north clearing's entrance (GOAL_MODE fable-3 #2): where the north path's band (half
+  // width 2.2, from the arch at (5.8, −58) south-west) meets the paved disc at (−1.5, −69.8) r 4.6.
+  // The mask's skirt is wide, so the two flank corners are (0.4, −64.4) — the walker's LEFT
+  // entering from the arch, the disc's north-east rim — and (4.3, −67.7) on the right toward the
+  // ledge flight. The waymarker stands on the left corner, its long board pointing into the
+  // circle (yaw so +z → the centre), a pot pair at its foot; a second, low pair on the right
+  // corner. Ground 4.16–4.34 m, tilt ≤ 11° (pots set level, the post vertical). Fixed frames: C/F
+  // do not hold the direction; in D the left corner projects at x 0.43, inside the log's west
+  // root mass (x 0.39–0.47, y 0.27–0.46) with the ground line at 0.47; A/B/E's rays to it pass
+  // the log's west end at z −54 inside the bark (x ≈ 0.4, y ≈ 5.5). The tall post therefore
+  // stands on that corner; the flight-side corner (D x 0.47, A's ray under the belly at x ≈ 3.8)
+  // takes only pots below the far ground line — verified by the six-view capture, not the pinhole.
+  { id: 'circle-marker', kind: 'marker', x: 0.4, z: -64.4, size: 1.75, yaw: -2.8, cluster: 'north-clearing' },
+  { id: 'circle-pot-marker', kind: 'pot', x: -0.2, z: -64.9, size: 0.58, yaw: 2.4, cluster: 'north-clearing', variant: 1 },
+  { id: 'circle-pot-marker-squat', kind: 'pot', x: 0.9, z: -64.15, size: 0.46, yaw: 0.3, cluster: 'north-clearing', variant: 2 },
+  { id: 'circle-pot-flight', kind: 'pot', x: 4.75, z: -68.45, size: 0.66, yaw: 0.6, cluster: 'north-clearing', variant: 0 },
+  { id: 'circle-pot-flight-squat', kind: 'pot', x: 4.15, z: -68.7, size: 0.44, yaw: -1.4, cluster: 'north-clearing', variant: 2 },
+];

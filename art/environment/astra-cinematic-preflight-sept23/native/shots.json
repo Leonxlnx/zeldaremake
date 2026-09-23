@@ -1,0 +1,68 @@
+{
+  "fps": 30,
+  "width": 1920,
+  "height": 1080,
+  "quality": "high",
+  "shots": [
+    {
+      "name": "01-arrival-start",
+      "frames": 1
+    },
+    {
+      "name": "01-arrival-middle",
+      "frames": 1
+    },
+    {
+      "name": "01-arrival-end",
+      "frames": 1
+    },
+    {
+      "name": "02-canopy-start",
+      "frames": 1
+    },
+    {
+      "name": "02-canopy-middle",
+      "frames": 1
+    },
+    {
+      "name": "02-canopy-end",
+      "frames": 1
+    },
+    {
+      "name": "03-house-start",
+      "frames": 1
+    },
+    {
+      "name": "03-house-middle",
+      "frames": 1
+    },
+    {
+      "name": "03-house-end",
+      "frames": 1
+    },
+    {
+      "name": "05-stairs-start",
+      "frames": 1
+    },
+    {
+      "name": "05-stairs-middle",
+      "frames": 1
+    },
+    {
+      "name": "05-stairs-end",
+      "frames": 1
+    },
+    {
+      "name": "06-log-start",
+      "frames": 1
+    },
+    {
+      "name": "06-log-middle",
+      "frames": 1
+    },
+    {
+      "name": "06-log-end",
+      "frames": 1
+    }
+  ]
+}

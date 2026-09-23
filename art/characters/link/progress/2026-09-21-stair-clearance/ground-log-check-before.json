@@ -1,0 +1,59 @@
+{
+  "stoneTriangles": 14085,
+  "timberTriangles": 21280,
+  "stoneGrid": {
+    "flights": 1,
+    "cells": 1202728,
+    "covered": 390936,
+    "cellSize": 0.01,
+    "triangles": 10025
+  },
+  "fullGrid": {
+    "flights": 1,
+    "cells": 1202728,
+    "covered": 390936,
+    "cellSize": 0.01,
+    "triangles": 10025
+  },
+  "queries": 1260,
+  "timberSamples": 1046,
+  "shoulderSamples": 116,
+  "steepestNormalY": 0.06763352427357945,
+  "minTimberNormalDot": 0.9317659489948892,
+  "heightMaxDeltaM": 0,
+  "maxTimberUnderestimateM": 0.33302488283212317,
+  "worst": {
+    "step": 4,
+    "x": 9.005,
+    "z": -1.425,
+    "actual": 1.4130248828321232,
+    "sampled": 1.08,
+    "normalY": 0.9986131278002743,
+    "faceIndex": 4528
+  },
+  "geometry": {
+    "stonePositionsSha256": "0f864dc29d8f6d8d6b9b48c679a17a8752cac63c6b14e25b5b707243f5fa09e3",
+    "stoneIndicesSha256": null,
+    "timberPositionsSha256": "d7ce71daa843b15dce38ff4527345afde5f742a0957709aa1eb9f302fa8706f7",
+    "timberIndicesSha256": "452caf0d203b51ee61d10228162eac29ed873bc4651f2b55eabbc4ebecb8a29c"
+  },
+  "stoneSurfaceSha256": "d2c60ae95d75039ca663e24a954aa23c38a375cae4239f8ef3c9bb65a5d0d963",
+  "placementHeightSha256": "10fbece7045c2c344261a8f9e69f8a1c89591c392ddf9d2eb8619248928ee09c",
+  "pageErrors": [],
+  "inputs": {
+    "negative": true,
+    "sourceSha256": "e4f42855f69b921c30c744977cee3cad110f071a10a1808a16e8864cac8ca77f",
+    "fixture": {
+      "version": 1,
+      "baselineGroundRef": "6c13f70c",
+      "baselineGroundSha256": "e4f42855f69b921c30c744977cee3cad110f071a10a1808a16e8864cac8ca77f",
+      "quantizationM": 0.000001,
+      "queries": 1260,
+      "stoneSurfaceSha256": "d2c60ae95d75039ca663e24a954aa23c38a375cae4239f8ef3c9bb65a5d0d963",
+      "placementHeightSha256": "10fbece7045c2c344261a8f9e69f8a1c89591c392ddf9d2eb8619248928ee09c",
+      "provenance": "Historical stone-only sampler queried against current deterministic production stone meshes, 20 main-flight steps × 3 lanes × 21 offsets, snapped to 1 cm cell centres; captured 2026-09-21."
+    },
+    "logSourceSha256": "a5def33b461fe07c3fefab06c0da0466fb085fa870e38d53876997f85cc72e3a",
+    "createdAt": "2026-09-21T18:35:26.913Z"
+  }
+}

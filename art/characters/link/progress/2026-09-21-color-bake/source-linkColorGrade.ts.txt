@@ -1,0 +1,418 @@
+/**
+ * Link's colour grade (round 50, npc-3; rubric C01 — fable-5 on take-0121: "Astra's model passes
+ * on silhouette outright; skin (125,107,93) s 0.14 vs tan (117,79,37) s 0.52 and dark hair vs
+ * golden — colour only").
+ *
+ * The GLB (`382ec9ec`, pinned) is untouched: glbLink.ts re-colours the LOADED base-colour maps once
+ * (a canvas pass at load) by the table below, so the runtime shows the reference's tan skin, golden
+ * hair and olive-leaning tunic while Astra bakes the same numbers into the source textures in
+ * Blender. Everything here is dependency-free (node-testable; see linkColorGrade.test.mjs).
+ *
+ * How a texel is graded: its sRGB value goes to HSL; each entry's membership is the product of soft
+ * boxes in hue / saturation / lightness (`match`, feathered by `feather`) — and, for an entry with a
+ * `region`, of the body-part mask the loader rasterises from the skinned mesh's UVs and joint weights
+ * (`rasterizeRegionMask`: the hair and the boots' brass knots share the ochre band, but only the hair
+ * rides on the head / cap bones). Entries in `exclude` subtract their membership first (the hair band
+ * touches the skin band around hue 27°, L 0.5). The graded HSL is the original with the hue shifted,
+ * the saturation and the lightness scaled by the membership-weighted factors.
+ *
+ * Reference readings (display, hazed) and the deltas they ask for — take-0121 / cap-r49b vs
+ * reference B_house / d_024 / d_033 / A_stairs, measured by npc-3 with the same boxes:
+ *   skin   ours (92, 76, 60) h30 s0.21 L0.30   ref (117–127, 85–92, 50–56) h30–32 s0.39–0.45 L0.33–0.36 → sat ×1.9, L ×0.95
+ *   hair   ours (85, 78, 58) h43 s0.19 L0.28   ref (123–147, 93–108, 45–51) h36–44 s0.40–0.49 L0.33–0.39 → sat ×1.7, L ×1.28, hue +5
+ *   tunic  ours h60–78 s0.15–0.22 (A)          ref h57–83 s0.27–0.33 (A_stairs)                            → sat ×1.6, hue −4
+ * Texture clusters the bands were cut on (hardware-body-color.png, 4096²): skin peach h22–28 L0.53–0.68
+ * s≈0.36; hair ochre h28–34 L0.38–0.53 s≈0.43; tunic green h70–110 L0.2–0.4 s≈0.21; leather h20–30 L≤0.3.
+ */
+
+/** the skinned mesh's bone groups a region mask distinguishes (index = mask value − 1; 0 = no group) */
+export const REGION_GROUPS = ['head', 'torso', 'arms', 'legs'] as const;
+export type Region = (typeof REGION_GROUPS)[number];
+
+/** bone name → region (Astra's nineteen-bone rig; a bone not listed belongs to no region) */
+export const BONE_REGION: Record<string, Region> = {
+  head: 'head',
+  cap: 'head',
+  neck: 'torso',
+  chest: 'torso',
+  hips: 'torso',
+  shoulderL: 'arms',
+  elbowL: 'arms',
+  handL: 'arms',
+  shoulderR: 'arms',
+  elbowR: 'arms',
+  handR: 'arms',
+  thighL: 'legs',
+  kneeL: 'legs',
+  ankleL: 'legs',
+  toeL: 'legs',
+  thighR: 'legs',
+  kneeR: 'legs',
+  ankleR: 'legs',
+  toeR: 'legs',
+};
+
+export interface GradeMatch {
+  /** hue band (deg, 0–360; may wrap) */
+  hue: [number, number];
+  /** saturation band (0–1, HSL) */
+  sat: [number, number];
+  /** lightness band (0–1, HSL) */
+  lum: [number, number];
+}
+
+export interface GradeEntry {
+  id: string;
+  /** what the band is meant to catch (for Astra's Blender pass) */
+  note: string;
+  /** limit the entry to texels of this body part (see REGION_GROUPS); undefined = anywhere on the map */
+  region?: Region;
+  match: GradeMatch;
+  /** soft edge outside each band (deg for hue, HSL units for sat / lum) */
+  feather: { hue: number; sat: number; lum: number };
+  /** entries whose membership is subtracted from this one's */
+  exclude?: string[];
+  /** the grade at full membership: hue shift (deg), saturation factor, lightness factor */
+  grade: { hue: number; sat: number; lum: number };
+}
+
+/**
+ * The table. Order matters only through `exclude`. `region` applies to the body map (the one
+ * with the rig's UVs); the orbital-skin map (the face around the eyes) is graded with every
+ * region-free entry — it is skin end to end.
+ */
+export const LINK_COLOR_GRADE: GradeEntry[] = [
+  {
+    id: 'skin',
+    note: 'the peach skin (face, ears, arms, hands, legs) → the reference tan: hue +4°, chroma nearly doubled, a touch darker',
+    match: { hue: [8, 46], sat: [0.16, 0.75], lum: [0.5, 0.8] },
+    feather: { hue: 6, sat: 0.08, lum: 0.05 },
+    grade: { hue: 4, sat: 1.9, lum: 0.95 },
+  },
+  {
+    id: 'hair',
+    note: 'the ochre hair on the head / cap bones (the fringe, the sideburns, the tail) → golden: hue +5°, chroma ×1.7, lighter by a quarter',
+    region: 'head',
+    match: { hue: [22, 46], sat: [0.25, 0.9], lum: [0.28, 0.56] },
+    feather: { hue: 5, sat: 0.08, lum: 0.04 },
+    exclude: ['skin'],
+    grade: { hue: 5, sat: 1.7, lum: 1.28 },
+  },
+  {
+    id: 'tunic',
+    note: 'the green tunic and cap → the reference olive: hue −4°, chroma ×1.6 (A_stairs reads s 0.27–0.33 against our 0.15–0.22), lightness kept',
+    match: { hue: [62, 150], sat: [0.08, 0.9], lum: [0.1, 0.8] },
+    feather: { hue: 10, sat: 0.05, lum: 0.05 },
+    grade: { hue: -4, sat: 1.6, lum: 1.05 },
+  },
+];
+
+/**
+ * The brow material's base colour (linear RGB) — Astra's export has a flat dark-brown factor
+ * (0.16, 0.065, 0.016); with golden hair the brows read golden-brown in the reference (d_033).
+ */
+export const LINK_BROW_COLOR: [number, number, number] = [0.3, 0.155, 0.04];
+
+// ---- colour maths (sRGB-encoded 0..1 in, same out) ----
+
+/** rgb (0..1) → h (deg), s, l (HSL) written to `out[0..2]` (no allocation: the 16.7 M-texel pass runs this) */
+function rgbToHslInto(r: number, g: number, b: number, out: Float32Array): void {
+  const mx = r > g ? (r > b ? r : b) : g > b ? g : b;
+  const mn = r < g ? (r < b ? r : b) : g < b ? g : b;
+  const l = (mx + mn) / 2;
+  const d = mx - mn;
+  out[2] = l;
+  if (d < 1e-6) {
+    out[0] = 0;
+    out[1] = 0;
+    return;
+  }
+  out[1] = d / (1 - Math.abs(2 * l - 1));
+  let h: number;
+  if (mx === r) h = ((g - b) / d) % 6;
+  else if (mx === g) h = (b - r) / d + 2;
+  else h = (r - g) / d + 4;
+  h *= 60;
+  if (h < 0) h += 360;
+  out[0] = h;
+}
+
+/** h (deg), s, l → rgb (0..1) written to `out[0..2]` */
+function hslToRgbInto(h: number, s: number, l: number, out: Float32Array): void {
+  const c = (1 - Math.abs(2 * l - 1)) * s;
+  const hp = (((h % 360) + 360) % 360) / 60;
+  const x = c * (1 - Math.abs((hp % 2) - 1));
+  let r = 0;
+  let g = 0;
+  let b = 0;
+  if (hp < 1) {
+    r = c;
+    g = x;
+  } else if (hp < 2) {
+    r = x;
+    g = c;
+  } else if (hp < 3) {
+    g = c;
+    b = x;
+  } else if (hp < 4) {
+    g = x;
+    b = c;
+  } else if (hp < 5) {
+    r = x;
+    b = c;
+  } else {
+    r = c;
+    b = x;
+  }
+  const m = l - c / 2;
+  out[0] = r + m;
+  out[1] = g + m;
+  out[2] = b + m;
+}
+
+const _hsl = new Float32Array(3);
+const _rgb = new Float32Array(3);
+
+/** rgb (0..1) → [h (deg), s, l] (HSL) */
+export function rgbToHsl(r: number, g: number, b: number): [number, number, number] {
+  rgbToHslInto(r, g, b, _hsl);
+  return [_hsl[0], _hsl[1], _hsl[2]];
+}
+
+/** [h (deg), s, l] → rgb (0..1) */
+export function hslToRgb(h: number, s: number, l: number): [number, number, number] {
+  hslToRgbInto(h, s, l, _rgb);
+  return [_rgb[0], _rgb[1], _rgb[2]];
+}
+
+const clamp01 = (v: number) => (v < 0 ? 0 : v > 1 ? 1 : v);
+
+/** soft box membership: 1 inside [lo, hi], falling to 0 over `f` outside */
+function box(v: number, lo: number, hi: number, f: number): number {
+  return clamp01((v - (lo - f)) / f) * clamp01((hi + f - v) / f);
+}
+
+/** soft hue band with wrap-around */
+function hueBox(h: number, lo: number, hi: number, f: number): number {
+  const c = (lo + hi) / 2;
+  let d = ((h - c + 540) % 360) - 180;
+  d = Math.abs(d);
+  const half = (hi - lo) / 2;
+  return clamp01((half + f - d) / f);
+}
+
+/** membership of one entry for an HSL texel (region weight applied by the caller) */
+export function membership(e: GradeEntry, h: number, s: number, l: number): number {
+  return hueBox(h, e.match.hue[0], e.match.hue[1], e.feather.hue) * box(s, e.match.sat[0], e.match.sat[1], e.feather.sat) * box(l, e.match.lum[0], e.match.lum[1], e.feather.lum);
+}
+
+export interface RegionMask {
+  /** one byte per cell: 0 = no region, i + 1 = REGION_GROUPS[i] */
+  data: Uint8Array;
+  size: number;
+}
+
+/** an entry with its region byte and the indices of the earlier entries it excludes, resolved once */
+interface Compiled {
+  e: GradeEntry;
+  regionByte: number;
+  excludes: number[];
+}
+
+function compile(entries: GradeEntry[]): Compiled[] {
+  return entries.map((e, i) => ({
+    e,
+    regionByte: e.region ? REGION_GROUPS.indexOf(e.region) + 1 : 0,
+    excludes: (e.exclude ?? []).map((id) => entries.findIndex((k) => k.id === id)).filter((j) => j >= 0 && j < i),
+  }));
+}
+
+/**
+ * Grade one texel (rgb 0..1) into `out[0..2]` and write the per-entry memberships into `w`
+ * (`w[i]` for `entries[i]`). `regionAt` is the region byte under the texel (0 = none / no mask).
+ * Returns true when any entry had membership (else `out` is the input).
+ */
+function gradeTexelInto(c: Compiled[], r: number, g: number, b: number, regionAt: number, w: Float32Array, out: Float32Array): boolean {
+  rgbToHslInto(r, g, b, _hsl);
+  const h = _hsl[0];
+  const s = _hsl[1];
+  const l = _hsl[2];
+  let any = 0;
+  for (let i = 0; i < c.length; i++) {
+    const k = c[i];
+    let m = membership(k.e, h, s, l);
+    if (m > 0 && k.regionByte && regionAt !== k.regionByte) m = 0;
+    if (m > 0) for (const j of k.excludes) m *= 1 - w[j];
+    w[i] = m;
+    any += m;
+  }
+  if (any <= 0) {
+    out[0] = r;
+    out[1] = g;
+    out[2] = b;
+    return false;
+  }
+  let hh = h;
+  let ss = s;
+  let ll = l;
+  for (let i = 0; i < c.length; i++) {
+    const m = w[i];
+    if (m <= 0) continue;
+    const e = c[i].e;
+    hh += m * e.grade.hue;
+    ss *= 1 + m * (e.grade.sat - 1);
+    ll *= 1 + m * (e.grade.lum - 1);
+  }
+  hslToRgbInto(hh, clamp01(ss), clamp01(ll), out);
+  return true;
+}
+
+/**
+ * Grade one texel: returns the new rgb (0..1) and writes the per-entry memberships into `w`
+ * (`w[i]` for `entries[i]`). `regionAt` is the region byte under the texel (0 = none / no mask).
+ */
+export function gradeTexel(entries: GradeEntry[], r: number, g: number, b: number, regionAt: number, w: Float32Array): [number, number, number] {
+  gradeTexelInto(compile(entries), r, g, b, regionAt, w, _rgb);
+  return [_rgb[0], _rgb[1], _rgb[2]];
+}
+
+export interface GradeStats {
+  /** texels whose colour changed */
+  touched: number;
+  /** texels with any membership, per entry id */
+  perEntry: Record<string, number>;
+  /** mean sRGB (0..255) of the texels each entry owns (membership > 0.5), before / after */
+  meanBefore: Record<string, [number, number, number]>;
+  meanAfter: Record<string, [number, number, number]>;
+}
+
+/**
+ * Grade an RGBA8 image in place. `mask` (optional) is the body-part region mask sampled by the
+ * texel's normalised position (the map and the mask share the UV space); without it every entry
+ * with a `region` is skipped.
+ */
+export function gradeImage(data: Uint8ClampedArray | Uint8Array, width: number, height: number, entries: GradeEntry[], mask: RegionMask | null): GradeStats {
+  const use = mask ? entries : entries.filter((e) => !e.region);
+  const c = compile(use);
+  const w = new Float32Array(use.length);
+  const out = new Float32Array(3);
+  const stats: GradeStats = { touched: 0, perEntry: {}, meanBefore: {}, meanAfter: {} };
+  // per entry: texel count, and the sums of the owned (membership > 0.5) texels before / after
+  const count = new Float64Array(use.length);
+  const sum = new Float64Array(use.length * 7);
+  const ms = mask ? mask.size : 0;
+  // column → mask cell, once
+  const col = new Int32Array(width);
+  if (mask) for (let x = 0; x < width; x++) col[x] = Math.min(ms - 1, Math.floor((x / width) * ms));
+  for (let y = 0; y < height; y++) {
+    const my = mask ? Math.min(ms - 1, Math.floor((y / height) * ms)) * ms : 0;
+    for (let x = 0; x < width; x++) {
+      const i = (y * width + x) * 4;
+      const r = data[i];
+      const g = data[i + 1];
+      const b = data[i + 2];
+      // black padding and near-black leather never match a band with a saturation floor; skip the maths
+      if (r + g + b < 24) continue;
+      const region = mask ? mask.data[my + col[x]] : 0;
+      if (!gradeTexelInto(c, r / 255, g / 255, b / 255, region, w, out)) continue;
+      const R = Math.round(out[0] * 255);
+      const G = Math.round(out[1] * 255);
+      const B = Math.round(out[2] * 255);
+      for (let k = 0; k < use.length; k++) {
+        if (w[k] <= 0) continue;
+        count[k]++;
+        if (w[k] > 0.5) {
+          const o = k * 7;
+          sum[o] += r;
+          sum[o + 1] += g;
+          sum[o + 2] += b;
+          sum[o + 3] += R;
+          sum[o + 4] += G;
+          sum[o + 5] += B;
+          sum[o + 6]++;
+        }
+      }
+      if (R !== r || G !== g || B !== b) {
+        data[i] = R;
+        data[i + 1] = G;
+        data[i + 2] = B;
+        stats.touched++;
+      }
+    }
+  }
+  use.forEach((e, k) => {
+    const o = k * 7;
+    const n = Math.max(1, sum[o + 6]);
+    stats.perEntry[e.id] = count[k];
+    stats.meanBefore[e.id] = [Math.round(sum[o] / n), Math.round(sum[o + 1] / n), Math.round(sum[o + 2] / n)];
+    stats.meanAfter[e.id] = [Math.round(sum[o + 3] / n), Math.round(sum[o + 4] / n), Math.round(sum[o + 5] / n)];
+  });
+  return stats;
+}
+
+/**
+ * Rasterise the body-part region mask of a skinned primitive into a `size`² byte grid in UV space:
+ * every triangle is painted with the region of its vertices' dominant joints (majority of the
+ * three; `jointRegion[j]` = region byte of joint j, 0 = none). `uv` is the TEXCOORD_0 stream
+ * (2 per vertex, glTF orientation: v down the image), `joints` / `weights` the 4-per-vertex skin
+ * streams, `index` the triangle list. Triangles straddling two regions paint the majority one —
+ * a texel or two of feather at the seams, far below the bands' own softness.
+ */
+export function rasterizeRegionMask(uv: ArrayLike<number>, joints: ArrayLike<number>, weights: ArrayLike<number>, index: ArrayLike<number>, jointRegion: Uint8Array, size: number): RegionMask {
+  const data = new Uint8Array(size * size);
+  const vertexRegion = (v: number): number => {
+    let best = 0;
+    let bw = -1;
+    for (let k = 0; k < 4; k++) {
+      const wgt = weights[v * 4 + k];
+      if (wgt > bw) {
+        bw = wgt;
+        best = joints[v * 4 + k];
+      }
+    }
+    return jointRegion[best] ?? 0;
+  };
+  const counts = [0, 0, 0, 0, 0];
+  for (let t = 0; t + 2 < index.length; t += 3) {
+    const a = index[t];
+    const b = index[t + 1];
+    const c = index[t + 2];
+    counts.fill(0);
+    counts[vertexRegion(a)]++;
+    counts[vertexRegion(b)]++;
+    counts[vertexRegion(c)]++;
+    let region = 0;
+    let bestN = 0;
+    for (let k = 1; k < counts.length; k++) if (counts[k] > bestN) {
+      bestN = counts[k];
+      region = k;
+    }
+    if (!region) continue;
+    const ax = uv[a * 2] * size;
+    const ay = uv[a * 2 + 1] * size;
+    const bx = uv[b * 2] * size;
+    const by = uv[b * 2 + 1] * size;
+    const cx = uv[c * 2] * size;
+    const cy = uv[c * 2 + 1] * size;
+    const x0 = Math.max(0, Math.floor(Math.min(ax, bx, cx)) - 1);
+    const x1 = Math.min(size - 1, Math.ceil(Math.max(ax, bx, cx)) + 1);
+    const y0 = Math.max(0, Math.floor(Math.min(ay, by, cy)) - 1);
+    const y1 = Math.min(size - 1, Math.ceil(Math.max(ay, by, cy)) + 1);
+    const area = (bx - ax) * (cy - ay) - (cx - ax) * (by - ay);
+    if (Math.abs(area) < 1e-12) continue;
+    const inv = 1 / area;
+    // a one-cell tolerance on the edges so thin triangles and seams are covered
+    const tol = -1.2 / Math.sqrt(Math.abs(area));
+    for (let y = y0; y <= y1; y++) {
+      const py = y + 0.5;
+      for (let x = x0; x <= x1; x++) {
+        const px = x + 0.5;
+        const w0 = ((bx - px) * (cy - py) - (cx - px) * (by - py)) * inv;
+        const w1 = ((cx - px) * (ay - py) - (ax - px) * (cy - py)) * inv;
+        const w2 = 1 - w0 - w1;
+        if (w0 >= tol && w1 >= tol && w2 >= tol) data[y * size + x] = region;
+      }
+    }
+  }
+  return { data, size };
+}

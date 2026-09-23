@@ -1,0 +1,4 @@
+# Full placement audit stays local; receipt.json retains the raw manifest hash and capture metadata.
+/after/manifest.json
+/after/source.diff
+/before/source.diff

@@ -1,0 +1,859 @@
+{
+  "baseSha": "664f3418570f51dae5fcc9c2babbd8eb5cd1d0f4",
+  "sourceFile": "src/world/atmosphere/heightfog.ts",
+  "changes": {
+    "hazeDensity": [
+      0.018,
+      0.008
+    ],
+    "hazeFarDensity": [
+      0.055,
+      0.008
+    ],
+    "farShadeMin": [
+      0.3,
+      0.65
+    ]
+  },
+  "note": "Exact existing optical-depth and non-emissive shade equations, before postfx. Peak radiance >=1.3 is progressively exempt from distance shade; no output-pixel brightness is predicted here. Low horizontal north ray includes retained height fog; source changes no colour, shaft, sky, shadow or geometry.",
+  "curves": [
+    {
+      "elevation": 0,
+      "distance": 5,
+      "before": {
+        "distance": 5,
+        "distFog": 0,
+        "heightFog": 0.0024544203571057466,
+        "totalFog": 0.0024544203571057466,
+        "shade": 1,
+        "ownSurfaceCoefficient": 0.9975455796428943
+      },
+      "after": {
+        "distance": 5,
+        "distFog": 0,
+        "heightFog": 0.0024544203571057466,
+        "totalFog": 0.0024544203571057466,
+        "shade": 1,
+        "ownSurfaceCoefficient": 0.9975455796428943
+      }
+    },
+    {
+      "elevation": 0,
+      "distance": 10,
+      "before": {
+        "distance": 10,
+        "distFog": 0.06760618009405173,
+        "heightFog": 0.010052896495176933,
+        "totalFog": 0.07697943865830892,
+        "shade": 1,
+        "ownSurfaceCoefficient": 0.9230205613416911
+      },
+      "after": {
+        "distance": 10,
+        "distFog": 0.03921056084767682,
+        "heightFog": 0.010052896495176933,
+        "totalFog": 0.0488692776331342,
+        "shade": 1,
+        "ownSurfaceCoefficient": 0.9511307223668658
+      }
+    },
+    {
+      "elevation": 0,
+      "distance": 15,
+      "before": {
+        "distance": 15,
+        "distFog": 0.10416586470347178,
+        "heightFog": 0.028128622780569712,
+        "totalFog": 0.12936444516918566,
+        "shade": 1,
+        "ownSurfaceCoefficient": 0.8706355548308143
+      },
+      "after": {
+        "distance": 15,
+        "distFog": 0.07688365361336424,
+        "heightFog": 0.028128622780569712,
+        "totalFog": 0.10284964510345163,
+        "shade": 1,
+        "ownSurfaceCoefficient": 0.8971503548965484
+      }
+    },
+    {
+      "elevation": 0,
+      "distance": 22,
+      "before": {
+        "distance": 22,
+        "distFog": 0.2636133805438998,
+        "heightFog": 0.061591955288893496,
+        "totalFog": 0.30896887228477943,
+        "shade": 1,
+        "ownSurfaceCoefficient": 0.6910311277152206
+      },
+      "after": {
+        "distance": 22,
+        "distFog": 0.1271573675112807,
+        "heightFog": 0.061591955288893496,
+        "totalFog": 0.18091745190576602,
+        "shade": 1,
+        "ownSurfaceCoefficient": 0.819082548094234
+      }
+    },
+    {
+      "elevation": 0,
+      "distance": 30,
+      "before": {
+        "distance": 30,
+        "distFog": 0.36237184837822667,
+        "heightFog": 0.08494847793030691,
+        "totalFog": 0.4165373893440113,
+        "shade": 0.7896318557475582,
+        "ownSurfaceCoefficient": 0.4607206640116034
+      },
+      "after": {
+        "distance": 30,
+        "distFog": 0.18126924692201818,
+        "heightFog": 0.08494847793030691,
+        "totalFog": 0.25081917823072664,
+        "shade": 0.8948159278737792,
+        "ownSurfaceCoefficient": 0.6703789321767127
+      }
+    },
+    {
+      "elevation": 0,
+      "distance": 44,
+      "before": {
+        "distance": 44,
+        "distFog": 0.5044068743073485,
+        "heightFog": 0.12208297727600192,
+        "totalFog": 0.5649103586094273,
+        "shade": 0.30000000000000004,
+        "ownSurfaceCoefficient": 0.13052689241717183
+      },
+      "after": {
+        "distance": 44,
+        "distFog": 0.26801847177168736,
+        "heightFog": 0.12208297727600192,
+        "totalFog": 0.3573809560488376,
+        "shade": 0.65,
+        "ownSurfaceCoefficient": 0.4177023785682556
+      }
+    },
+    {
+      "elevation": 0,
+      "distance": 49,
+      "before": {
+        "distance": 49,
+        "distFog": 0.5470619872234422,
+        "heightFog": 0.1349768546668556,
+        "totalFog": 0.608198135547078,
+        "shade": 0.30000000000000004,
+        "ownSurfaceCoefficient": 0.11754055933587661
+      },
+      "after": {
+        "distance": 49,
+        "distFog": 0.29671987802365907,
+        "heightFog": 0.1349768546668556,
+        "totalFog": 0.39164641683774815,
+        "shade": 0.65,
+        "ownSurfaceCoefficient": 0.3954298290554637
+      }
+    },
+    {
+      "elevation": 0,
+      "distance": 60,
+      "before": {
+        "distance": 60,
+        "distFog": 0.797091471497456,
+        "heightFog": 0.16268071195793787,
+        "totalFog": 0.8301007753765873,
+        "shade": 0.30000000000000004,
+        "ownSurfaceCoefficient": 0.05096976738702381
+      },
+      "after": {
+        "distance": 60,
+        "distFog": 0.4102166423871496,
+        "heightFog": 0.16268071195793787,
+        "totalFog": 0.5061630189045512,
+        "shade": 0.65,
+        "ownSurfaceCoefficient": 0.32099403771204177
+      }
+    },
+    {
+      "elevation": 0,
+      "distance": 80,
+      "before": {
+        "distance": 80,
+        "distFog": 0.952877279229672,
+        "heightFog": 0.21079809056795962,
+        "totalFog": 0.86,
+        "shade": 0.30000000000000004,
+        "ownSurfaceCoefficient": 0.04200000000000001
+      },
+      "after": {
+        "distance": 80,
+        "distFog": 0.5717293827873403,
+        "heightFog": 0.21079809056795962,
+        "totalFog": 0.6620080111421305,
+        "shade": 0.65,
+        "ownSurfaceCoefficient": 0.2196947927576152
+      }
+    },
+    {
+      "elevation": 0,
+      "distance": 120,
+      "before": {
+        "distance": 120,
+        "distFog": 0.9974584979132312,
+        "heightFog": 0.29889640987273425,
+        "totalFog": 0.86,
+        "shade": 0.30000000000000004,
+        "ownSurfaceCoefficient": 0.04200000000000001
+      },
+      "after": {
+        "distance": 120,
+        "distFog": 0.7741761481035241,
+        "heightFog": 0.29889640987273425,
+        "totalFog": 0.8416740866990128,
+        "shade": 0.65,
+        "ownSurfaceCoefficient": 0.1029118436456417
+      }
+    },
+    {
+      "elevation": 0,
+      "distance": 190,
+      "before": {
+        "distance": 190,
+        "distFog": 0.9999846592826538,
+        "heightFog": 0.4300696267381183,
+        "totalFog": 0.86,
+        "shade": 0.30000000000000004,
+        "ownSurfaceCoefficient": 0.04200000000000001
+      },
+      "after": {
+        "distance": 190,
+        "distFog": 0.9263182399822342,
+        "heightFog": 0.4300696267381183,
+        "totalFog": 0.86,
+        "shade": 0.65,
+        "ownSurfaceCoefficient": 0.09100000000000001
+      }
+    },
+    {
+      "elevation": 15,
+      "distance": 5,
+      "before": {
+        "distance": 5,
+        "distFog": 0,
+        "heightFog": 0.001361891298415685,
+        "totalFog": 0.001361891298415685,
+        "shade": 1,
+        "ownSurfaceCoefficient": 0.9986381087015843
+      },
+      "after": {
+        "distance": 5,
+        "distFog": 0,
+        "heightFog": 0.001361891298415685,
+        "totalFog": 0.001361891298415685,
+        "shade": 1,
+        "ownSurfaceCoefficient": 0.9986381087015843
+      }
+    },
+    {
+      "elevation": 15,
+      "distance": 10,
+      "before": {
+        "distance": 10,
+        "distFog": 0.0653556776923464,
+        "heightFog": 0.003417061214162964,
+        "totalFog": 0.06854941455514152,
+        "shade": 1,
+        "ownSurfaceCoefficient": 0.9314505854448585
+      },
+      "after": {
+        "distance": 10,
+        "distFog": 0.03788607951536638,
+        "heightFog": 0.003417061214162964,
+        "totalFog": 0.04117368167666069,
+        "shade": 1,
+        "ownSurfaceCoefficient": 0.9588263183233393
+      }
+    },
+    {
+      "elevation": 15,
+      "distance": 15,
+      "before": {
+        "distance": 15,
+        "distFog": 0.09633895795485448,
+        "heightFog": 0.006815981937994153,
+        "totalFog": 0.10249829529550314,
+        "shade": 1,
+        "ownSurfaceCoefficient": 0.8975017047044969
+      },
+      "after": {
+        "distance": 15,
+        "distFog": 0.07102496419921622,
+        "heightFog": 0.006815981937994153,
+        "totalFog": 0.07735684126408182,
+        "shade": 1,
+        "ownSurfaceCoefficient": 0.9226431587359182
+      }
+    },
+    {
+      "elevation": 15,
+      "distance": 22,
+      "before": {
+        "distance": 21.999999999999996,
+        "distFog": 0.23232383884433405,
+        "heightFog": 0.010842632741845049,
+        "totalFog": 0.2406474695244144,
+        "shade": 1,
+        "ownSurfaceCoefficient": 0.7593525304755856
+      },
+      "after": {
+        "distance": 21.999999999999996,
+        "distFog": 0.11086434884428442,
+        "heightFog": 0.010842632741845049,
+        "totalFog": 0.12050492016744707,
+        "shade": 1,
+        "ownSurfaceCoefficient": 0.8794950798325529
+      }
+    },
+    {
+      "elevation": 15,
+      "distance": 30,
+      "before": {
+        "distance": 30,
+        "distFog": 0.3022994980655531,
+        "heightFog": 0.011363419507441797,
+        "totalFog": 0.310227761559587,
+        "shade": 0.7896318557475582,
+        "ownSurfaceCoefficient": 0.5446661326828506
+      },
+      "after": {
+        "distance": 30,
+        "distFog": 0.14784308739732888,
+        "heightFog": 0.011363419507441797,
+        "totalFog": 0.15752650388139944,
+        "shade": 0.8948159278737792,
+        "ownSurfaceCoefficient": 0.7538587031384323
+      }
+    },
+    {
+      "elevation": 15,
+      "distance": 44,
+      "before": {
+        "distance": 43.99999999999999,
+        "distFog": 0.3770898965838221,
+        "heightFog": 0.011368089853772134,
+        "totalFog": 0.3841711946102797,
+        "shade": 0.30000000000000004,
+        "ownSurfaceCoefficient": 0.18474864161691612
+      },
+      "after": {
+        "distance": 43.99999999999999,
+        "distFog": 0.18972302136874175,
+        "heightFog": 0.011368089853772134,
+        "totalFog": 0.19893432286826485,
+        "shade": 0.65,
+        "ownSurfaceCoefficient": 0.5206926901356279
+      }
+    },
+    {
+      "elevation": 15,
+      "distance": 49,
+      "before": {
+        "distance": 48.99999999999999,
+        "distFog": 0.3944415258899543,
+        "heightFog": 0.01136818281346641,
+        "totalFog": 0.4013256253278811,
+        "shade": 0.30000000000000004,
+        "ownSurfaceCoefficient": 0.1796023124016357
+      },
+      "after": {
+        "distance": 48.99999999999999,
+        "distFog": 0.19983328346093376,
+        "heightFog": 0.01136818281346641,
+        "totalFog": 0.20892972497580098,
+        "shade": 0.65,
+        "ownSurfaceCoefficient": 0.5141956787657294
+      }
+    },
+    {
+      "elevation": 15,
+      "distance": 60,
+      "before": {
+        "distance": 60,
+        "distFog": 0.6286447530074188,
+        "heightFog": 0.011368215886166322,
+        "totalFog": 0.6328663996256911,
+        "shade": 0.30000000000000004,
+        "ownSurfaceCoefficient": 0.11014008011229268
+      },
+      "after": {
+        "distance": 60,
+        "distFog": 0.2650941642612006,
+        "heightFog": 0.011368215886166322,
+        "totalFog": 0.2734487324578827,
+        "shade": 0.65,
+        "ownSurfaceCoefficient": 0.47225832390237626
+      }
+    },
+    {
+      "elevation": 15,
+      "distance": 80,
+      "before": {
+        "distance": 80,
+        "distFog": 0.8005573864476316,
+        "heightFog": 0.011368217911638556,
+        "totalFog": 0.8028246935393617,
+        "shade": 0.30000000000000004,
+        "ownSurfaceCoefficient": 0.0591525919381915
+      },
+      "after": {
+        "distance": 80,
+        "distFog": 0.33850718423558146,
+        "heightFog": 0.011368217911638556,
+        "totalFog": 0.3460271787121747,
+        "shade": 0.65,
+        "ownSurfaceCoefficient": 0.42508233383708643
+      }
+    },
+    {
+      "elevation": 15,
+      "distance": 120,
+      "before": {
+        "distance": 120,
+        "distFog": 0.896781470068669,
+        "heightFog": 0.011368217923143908,
+        "totalFog": 0.86,
+        "shade": 0.30000000000000004,
+        "ownSurfaceCoefficient": 0.04200000000000001
+      },
+      "after": {
+        "distance": 120,
+        "distFog": 0.4058491869670172,
+        "heightFog": 0.011368217923143908,
+        "totalFog": 0.41260362288878927,
+        "shade": 0.65,
+        "ownSurfaceCoefficient": 0.381807645122287
+      }
+    },
+    {
+      "elevation": 15,
+      "distance": 190,
+      "before": {
+        "distance": 190,
+        "distFog": 0.9349497904279049,
+        "heightFog": 0.011368217923144242,
+        "totalFog": 0.86,
+        "shade": 0.30000000000000004,
+        "ownSurfaceCoefficient": 0.04200000000000001
+      },
+      "after": {
+        "distance": 190,
+        "distFog": 0.4472276377591644,
+        "heightFog": 0.011368217923144242,
+        "totalFog": 0.4535116744350095,
+        "shade": 0.65,
+        "ownSurfaceCoefficient": 0.35521741161724385
+      }
+    },
+    {
+      "elevation": 30,
+      "distance": 5,
+      "before": {
+        "distance": 5,
+        "distFog": 0,
+        "heightFog": 0.000872511456133318,
+        "totalFog": 0.000872511456133318,
+        "shade": 1,
+        "ownSurfaceCoefficient": 0.9991274885438667
+      },
+      "after": {
+        "distance": 5,
+        "distFog": 0,
+        "heightFog": 0.000872511456133318,
+        "totalFog": 0.000872511456133318,
+        "shade": 1,
+        "ownSurfaceCoefficient": 0.9991274885438667
+      }
+    },
+    {
+      "elevation": 30,
+      "distance": 10,
+      "before": {
+        "distance": 10,
+        "distFog": 0.03776829526018255,
+        "heightFog": 0.0016186061919469807,
+        "totalFog": 0.0393257694555621,
+        "shade": 1,
+        "ownSurfaceCoefficient": 0.9606742305444379
+      },
+      "after": {
+        "distance": 10,
+        "distFog": 0.02175976494878995,
+        "heightFog": 0.0016186061919469807,
+        "totalFog": 0.023343150650455557,
+        "shade": 1,
+        "ownSurfaceCoefficient": 0.9766568493495444
+      }
+    },
+    {
+      "elevation": 30,
+      "distance": 15,
+      "before": {
+        "distance": 15,
+        "distFog": 0.05784344191782331,
+        "heightFog": 0.003051112549604995,
+        "totalFog": 0.0607180676158805,
+        "shade": 1,
+        "ownSurfaceCoefficient": 0.9392819323841195
+      },
+      "after": {
+        "distance": 15,
+        "distFog": 0.04240819991829392,
+        "heightFog": 0.003051112549604995,
+        "totalFog": 0.045329920276922064,
+        "shade": 1,
+        "ownSurfaceCoefficient": 0.9546700797230779
+      }
+    },
+    {
+      "elevation": 30,
+      "distance": 22,
+      "before": {
+        "distance": 22.000000000000004,
+        "distFog": 0.13757792807159597,
+        "heightFog": 0.0051428366172034945,
+        "totalFog": 0.14201322388259385,
+        "shade": 1,
+        "ownSurfaceCoefficient": 0.8579867761174061
+      },
+      "after": {
+        "distance": 22.000000000000004,
+        "distFog": 0.0636654470677378,
+        "heightFog": 0.0051428366172034945,
+        "totalFog": 0.06848086269251075,
+        "shade": 1,
+        "ownSurfaceCoefficient": 0.9315191373074893
+      }
+    },
+    {
+      "elevation": 30,
+      "distance": 30,
+      "before": {
+        "distance": 30,
+        "distFog": 0.1688493560744373,
+        "heightFog": 0.0059008465355657735,
+        "totalFog": 0.17375384847217867,
+        "shade": 0.7896318557475582,
+        "ownSurfaceCoefficient": 0.6524302819351917
+      },
+      "after": {
+        "distance": 30,
+        "distFog": 0.07890991120275481,
+        "heightFog": 0.0059008465355657735,
+        "totalFog": 0.08434512246217796,
+        "shade": 0.8948159278737792,
+        "ownSurfaceCoefficient": 0.8193425688561579
+      }
+    },
+    {
+      "elevation": 30,
+      "distance": 44,
+      "before": {
+        "distance": 44.00000000000001,
+        "distFog": 0.19652070572651037,
+        "heightFog": 0.005900848333671549,
+        "totalFog": 0.20126191518126368,
+        "shade": 0.30000000000000004,
+        "ownSurfaceCoefficient": 0.23962142544562093
+      },
+      "after": {
+        "distance": 44.00000000000001,
+        "distFog": 0.09266737179188966,
+        "heightFog": 0.005900848333671549,
+        "totalFog": 0.09802140401913728,
+        "shade": 0.65,
+        "ownSurfaceCoefficient": 0.5862860873875608
+      }
+    },
+    {
+      "elevation": 30,
+      "distance": 49,
+      "before": {
+        "distance": 49,
+        "distFog": 0.20194507176298093,
+        "heightFog": 0.0059008483351778995,
+        "totalFog": 0.2066542728576488,
+        "shade": 0.30000000000000004,
+        "ownSurfaceCoefficient": 0.23800371814270538
+      },
+      "after": {
+        "distance": 49,
+        "distFog": 0.09539493509526742,
+        "heightFog": 0.0059008483351778995,
+        "totalFog": 0.10073287238650397,
+        "shade": 0.65,
+        "ownSurfaceCoefficient": 0.5845236329487724
+      }
+    },
+    {
+      "elevation": 30,
+      "distance": 60,
+      "before": {
+        "distance": 60,
+        "distFog": 0.31556306384180677,
+        "heightFog": 0.0059008483353121255,
+        "totalFog": 0.31960182239716195,
+        "shade": 0.30000000000000004,
+        "ownSurfaceCoefficient": 0.20411945328085143
+      },
+      "after": {
+        "distance": 60,
+        "distFog": 0.11795713750893089,
+        "heightFog": 0.0059008483353121255,
+        "totalFog": 0.12316193866573522,
+        "shade": 0.65,
+        "ownSurfaceCoefficient": 0.5699447398672721
+      }
+    },
+    {
+      "elevation": 30,
+      "distance": 80,
+      "before": {
+        "distance": 80,
+        "distFog": 0.4242782201670978,
+        "heightFog": 0.005900848335312681,
+        "totalFog": 0.427675467073228,
+        "shade": 0.30000000000000004,
+        "ownSurfaceCoefficient": 0.1716973598780316
+      },
+      "after": {
+        "distance": 80,
+        "distFog": 0.14209268365793282,
+        "heightFog": 0.005900848335312681,
+        "totalFog": 0.14715506461742245,
+        "shade": 0.65,
+        "ownSurfaceCoefficient": 0.5543492079986754
+      }
+    },
+    {
+      "elevation": 30,
+      "distance": 120,
+      "before": {
+        "distance": 120,
+        "distFog": 0.5146082052695342,
+        "heightFog": 0.005900848335312681,
+        "totalFog": 0.5174724286334439,
+        "shade": 0.30000000000000004,
+        "ownSurfaceCoefficient": 0.14475827140996686
+      },
+      "after": {
+        "distance": 120,
+        "distFog": 0.1647332482468784,
+        "heightFog": 0.005900848335312681,
+        "totalFog": 0.16966203066850283,
+        "shade": 0.65,
+        "ownSurfaceCoefficient": 0.5397196800654732
+      }
+    },
+    {
+      "elevation": 30,
+      "distance": 190,
+      "before": {
+        "distance": 190,
+        "distFog": 0.5713549012298788,
+        "heightFog": 0.005900848335312681,
+        "totalFog": 0.5738842709473964,
+        "shade": 0.30000000000000004,
+        "ownSurfaceCoefficient": 0.12783471871578111
+      },
+      "after": {
+        "distance": 190,
+        "distFog": 0.18070066880034585,
+        "heightFog": 0.005900848335312681,
+        "totalFog": 0.18553522989497817,
+        "shade": 0.65,
+        "ownSurfaceCoefficient": 0.5294021005682642
+      }
+    }
+  ],
+  "nativeDepth": {
+    "reconstructed-distant-up": {
+      "upper/0-20": {
+        "n": 27565,
+        "beforeVeil": 0.0015656325786875356,
+        "afterVeil": 0.0008914758250672243,
+        "beforeSurface": 0.9984343674213159,
+        "afterSurface": 0.9991085241749278
+      },
+      "upper/20-50": {
+        "n": 1235,
+        "beforeVeil": 0.022557841835924547,
+        "afterVeil": 0.010111295551888676,
+        "beforeSurface": 0.8197767149202849,
+        "afterSurface": 0.9100422544823429
+      },
+      "lower/0-20": {
+        "n": 10640,
+        "beforeVeil": 0.005837948667813584,
+        "afterVeil": 0.003233247829705429,
+        "beforeSurface": 0.9941620513321896,
+        "afterSurface": 0.9967667521702945
+      },
+      "lower/20-50": {
+        "n": 12921,
+        "beforeVeil": 0.016152386861144973,
+        "afterVeil": 0.007308518520142518,
+        "beforeSurface": 0.7833156478234793,
+        "afterSurface": 0.8913114410579985
+      },
+      "lower/50-100": {
+        "n": 4161,
+        "beforeVeil": 0.10386761605153731,
+        "afterVeil": 0.021336083607278768,
+        "beforeSurface": 0.2688397151845395,
+        "afterSurface": 0.6361315456552687
+      },
+      "lower/100+": {
+        "n": 1052,
+        "beforeVeil": 0.2530778177695431,
+        "afterVeil": 0.04767463056165064,
+        "beforeSurface": 0.2240766546691373,
+        "afterSurface": 0.619011490134928
+      }
+    },
+    "A_stairs": {
+      "upper/0-20": {
+        "n": 13144,
+        "beforeVeil": 0.11946269905633397,
+        "afterVeil": 0.07295309973609869,
+        "beforeSurface": 0.8805373009436634,
+        "afterSurface": 0.9270469002639038
+      },
+      "upper/20-50": {
+        "n": 10017,
+        "beforeVeil": 0.3512862444584126,
+        "afterVeil": 0.19168863882610382,
+        "beforeSurface": 0.49520454820959536,
+        "afterSurface": 0.7067870447652183
+      },
+      "upper/50-100": {
+        "n": 5604,
+        "beforeVeil": 0.7399400966288927,
+        "afterVeil": 0.34437679341924843,
+        "beforeSurface": 0.07801797101133155,
+        "afterSurface": 0.42615508427748866
+      },
+      "upper/100+": {
+        "n": 35,
+        "beforeVeil": 0.8599999999999997,
+        "afterVeil": 0.53246697625282,
+        "beforeSurface": 0.04200000000000003,
+        "afterSurface": 0.30389646543566695
+      },
+      "lower/0-20": {
+        "n": 28164,
+        "beforeVeil": 0.04495466737612815,
+        "afterVeil": 0.030155840184481014,
+        "beforeSurface": 0.9550453326238667,
+        "afterSurface": 0.9698441598155115
+      },
+      "lower/20-50": {
+        "n": 636,
+        "beforeVeil": 0.39987855415063833,
+        "afterVeil": 0.2696704184445343,
+        "beforeSurface": 0.5560654286801892,
+        "afterSurface": 0.701949401747363
+      }
+    },
+    "F_canopy": {
+      "upper/20-50": {
+        "n": 4147,
+        "beforeVeil": 0.3204415802340025,
+        "afterVeil": 0.16260712078286413,
+        "beforeSurface": 0.5985752262960635,
+        "afterSurface": 0.7842348339062787
+      },
+      "upper/50-100": {
+        "n": 3045,
+        "beforeVeil": 0.7933343262416773,
+        "afterVeil": 0.3906608397032586,
+        "beforeSurface": 0.06199970212749546,
+        "afterSurface": 0.39607045419288267
+      },
+      "upper/0-20": {
+        "n": 21540,
+        "beforeVeil": 0.09747170427165582,
+        "afterVeil": 0.06364900471312165,
+        "beforeSurface": 0.9025282957283466,
+        "afterSurface": 0.9363509952868838
+      },
+      "upper/100+": {
+        "n": 68,
+        "beforeVeil": 0.8599999999999995,
+        "afterVeil": 0.6850196782624887,
+        "beforeSurface": 0.04199999999999997,
+        "afterSurface": 0.20473720912938234
+      },
+      "lower/0-20": {
+        "n": 28800,
+        "beforeVeil": 0.039776226216805446,
+        "afterVeil": 0.025463924631761607,
+        "beforeSurface": 0.960223773783189,
+        "afterSurface": 0.9745360753682337
+      }
+    },
+    "sky-opening": {
+      "upper/20-50": {
+        "n": 12502,
+        "beforeVeil": 0.030555608956703215,
+        "afterVeil": 0.01473731343574266,
+        "beforeSurface": 0.8664535022475249,
+        "afterSurface": 0.9323927136522755
+      },
+      "upper/0-20": {
+        "n": 13600,
+        "beforeVeil": 0.01915924612039045,
+        "afterVeil": 0.011544484273695485,
+        "beforeSurface": 0.9808407538796063,
+        "afterSurface": 0.9884555157263059
+      },
+      "upper/50-100": {
+        "n": 46,
+        "beforeVeil": 0.3147782978921123,
+        "afterVeil": 0.13899483589800726,
+        "beforeSurface": 0.20556651063236628,
+        "afterSurface": 0.5596533566662953
+      },
+      "lower/0-20": {
+        "n": 10808,
+        "beforeVeil": 0.09537235710654474,
+        "afterVeil": 0.061040958237316006,
+        "beforeSurface": 0.9046276428934531,
+        "afterSurface": 0.9389590417626836
+      },
+      "lower/20-50": {
+        "n": 11990,
+        "beforeVeil": 0.23470787374444316,
+        "afterVeil": 0.1184077454710717,
+        "beforeSurface": 0.5462759777483611,
+        "afterSurface": 0.7493699551734747
+      },
+      "lower/50-100": {
+        "n": 4639,
+        "beforeVeil": 0.6512002944813323,
+        "afterVeil": 0.28486576143978243,
+        "beforeSurface": 0.10463991165560081,
+        "afterSurface": 0.4648372550641413
+      },
+      "lower/100+": {
+        "n": 34,
+        "beforeVeil": 0.8551867175846221,
+        "afterVeil": 0.5140702632495403,
+        "beforeSurface": 0.043443984724613284,
+        "afterSurface": 0.31585432888779896
+      }
+    }
+  }
+}

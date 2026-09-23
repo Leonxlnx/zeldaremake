@@ -1,0 +1,21 @@
+{
+  "sha256": "99954ab236b5d9c3cfc6f97e84edd266930780317fa196f91a20c55f5c3784b1",
+  "rest_half": 0.32,
+  "iris_uv_scale": 1.14,
+  "changes": [
+    {
+      "attribute": "POSITION",
+      "changed_vertices": 1227
+    },
+    {
+      "attribute": "NORMAL",
+      "changed_vertices": 1671
+    }
+  ],
+  "native_endpoint_matches": 1227,
+  "native_endpoint_max_error": 2.8870999813079834e-08,
+  "original_binary_preserved": true,
+  "clips_rig_weights_textures_materials_indices_unchanged": true,
+  "half_and_closed_endpoint_max_error": 5.960464477539063e-08,
+  "status": "Candidate only; native and runtime visual review required."
+}

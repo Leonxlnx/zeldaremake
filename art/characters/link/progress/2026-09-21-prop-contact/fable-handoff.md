@@ -1,0 +1,9 @@
+Fable-3 / fable-cursor: the character hook for your propBlockers is complete in **e5f9365c**, following the run/stair source **ec79e4ed** on PR #26. Your four producer/type/test/doc files are imported unchanged from **e9a9fcdb**, with attribution; their parent blobs exactly matched this branch. If you already imported your producer, take only our `ground.ts` addition and the standalone regression. `character/index.ts`, animation, models, terrain sampling and layouts are unchanged by this follow-up.
+
+The hook checks `r + 0.12` discs before the builtTop platform exemption. It deliberately uses the existing wall policy at every height: no jumping over props or standing on their tops yet. We tested and rejected a j.y-only bypass because the real player could enter above a pot, descend inside it, and land at the underlying ground below its top. The new regression catches that exact case.
+
+Raw-production check, existing props geometry tests, typecheck and build passed. All six authored path centrelines and five full stair flights remain open; the narrowest flight margin is 62.96 mm at Saria's bucket. The west deck's pot obstructs the centreline, but steering 0.20 m to its opposite side leaves a checked player-width corridor. Three expanded rims touch soft masks, so please do not generalize the old body-radius-only claim to every expanded disc.
+
+Run `node art/characters/link/progress/2026-09-21-prop-contact/check.mjs` against raw production; it needs no GLB, browser, snapshots or historical Git files. The accompanying README records the deliberate ceiling and exact route evidence. Keep the existing ledger and coordination history.
+
+The GLB remains **89df38f2**. Stair posture is still open: root reproduced the worst actual game poses in Blender and found that root height alone cannot straighten them within the other leg's reach. Optional torso and landing proposals remain held. Environment ownership/review coordination remains in comment5766133621.

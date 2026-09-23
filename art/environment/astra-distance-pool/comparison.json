@@ -1,0 +1,4166 @@
+{
+  "sources": [
+    {
+      "source": "b221732b64724ee9c3a2b4c81e757ed605a41efb",
+      "bundle": "index-DwReWLkW.js",
+      "sha256": "c76ed18510d9a07180fec9abccaadc9f4a585ea3b096dfec441e04e7b8fa0346"
+    },
+    {
+      "source": "e7fa081152314b592bec147541944e9fbdbfd1f5",
+      "bundle": "index-Bq5genaK.js",
+      "sha256": "d77564dbcf21eb12648cdb84d165cd717619a5b350ebc39c93665d24fdda8974"
+    }
+  ],
+  "captureScriptSha256": "2341953b5a1ebbdb0c898a4a21c194d763435ce6354f1000d69b127feb2095af",
+  "pairs": [
+    {
+      "directories": [
+        "E:\\zeldaremake-astra-crown-combined\\art\\environment\\astra-distance-combined\\native-before",
+        "E:\\zeldaremake-astra-crown-pool\\art\\environment\\astra-distance-pool\\native-after"
+      ],
+      "manifestSha256": [
+        "e7d2e3f8a22dca49dcd62f44d8a601f3bccf466f0142896ca3ebd7335d12e690",
+        "e0280934751e65c60f47c5fc27e634535eded8dcfc51af5c8ffa6e43e0574885"
+      ],
+      "renderer": "ANGLE (AMD, AMD Radeon 780M Graphics (0x00001900) Direct3D11 vs_5_0 ps_5_0, D3D11)",
+      "bootReadyMs": [
+        186634.56889999998,
+        147580.9303
+      ],
+      "images": {
+        "A_stairs": {
+          "before": {
+            "simTime": 12.6,
+            "drawCalls": 484,
+            "triangles": 8757903,
+            "geometries": 457,
+            "textures": 91,
+            "programs": 103,
+            "width": 1280,
+            "height": 720,
+            "pixelRatio": 1
+          },
+          "after": {
+            "simTime": 12.6,
+            "drawCalls": 484,
+            "triangles": 8757903,
+            "geometries": 444,
+            "textures": 91,
+            "programs": 104,
+            "width": 1280,
+            "height": 720,
+            "pixelRatio": 1
+          },
+          "delta": {
+            "drawCalls": 0,
+            "triangles": 0,
+            "geometries": -13,
+            "textures": 0,
+            "programs": 1
+          },
+          "pixelIdentical": true,
+          "pngByteIdentical": true,
+          "changedPixels": 0,
+          "changedFraction": 0,
+          "meanAbsoluteChannelError255": 0,
+          "maxChannelError255": 0,
+          "sha256": [
+            "db8bc9f60b8430b4e06926f31f91a4f7306094e54f3e0039f875460245a2c6cf",
+            "db8bc9f60b8430b4e06926f31f91a4f7306094e54f3e0039f875460245a2c6cf"
+          ],
+          "distantClose": {
+            "slots": 8,
+            "active": 0,
+            "fadeM": [
+              18,
+              26
+            ],
+            "prefetchM": 34,
+            "triangleCeiling": 1040000,
+            "triangles": 0,
+            "draws": 0,
+            "sharedBytes": 25542078,
+            "weights": [],
+            "fallback": "Existing crown geometry retained for every tree without close detail."
+          },
+          "canopyPools": [
+            {
+              "observations": 1,
+              "capBytes": [
+                67108864,
+                67108864
+              ],
+              "residentBytes": [
+                66879519,
+                66879519
+              ],
+              "pinnedBytes": [
+                35281374,
+                35281374
+              ],
+              "residentItems": [
+                152,
+                152
+              ],
+              "pinnedItems": [
+                79,
+                79
+              ],
+              "peakResidentMiB": 63.78127956390381,
+              "peakPinnedMiB": 33.64694023132324,
+              "counters": {
+                "built": {
+                  "start": 375,
+                  "end": 375,
+                  "delta": 0
+                },
+                "evicted": {
+                  "start": 333,
+                  "end": 333,
+                  "delta": 0
+                },
+                "syncBuilds": {
+                  "start": 183,
+                  "end": 183,
+                  "delta": 0
+                }
+              },
+              "exceedsConfiguredCap": false,
+              "exceeds64MiB": false,
+              "overflowObservations": []
+            },
+            {
+              "observations": 1,
+              "capBytes": [
+                67108864,
+                67108864
+              ],
+              "residentBytes": [
+                66951861,
+                66951861
+              ],
+              "pinnedBytes": [
+                35281374,
+                35281374
+              ],
+              "residentItems": [
+                119,
+                119
+              ],
+              "pinnedItems": [
+                79,
+                79
+              ],
+              "peakResidentMiB": 63.85027027130127,
+              "peakPinnedMiB": 33.64694023132324,
+              "counters": {
+                "built": {
+                  "start": 408,
+                  "end": 408,
+                  "delta": 0
+                },
+                "evicted": {
+                  "start": 405,
+                  "end": 405,
+                  "delta": 0
+                },
+                "syncBuilds": {
+                  "start": 200,
+                  "end": 200,
+                  "delta": 0
+                }
+              },
+              "exceedsConfiguredCap": false,
+              "exceeds64MiB": false,
+              "overflowObservations": []
+            }
+          ],
+          "observedEquality": {
+            "pixels": true,
+            "pngBytes": true,
+            "submittedCosts": true,
+            "closeSlotsZero": true
+          }
+        },
+        "B_house": {
+          "before": {
+            "simTime": 12.6,
+            "drawCalls": 472,
+            "triangles": 7960753,
+            "geometries": 479,
+            "textures": 91,
+            "programs": 103,
+            "width": 1280,
+            "height": 720,
+            "pixelRatio": 1
+          },
+          "after": {
+            "simTime": 12.6,
+            "drawCalls": 472,
+            "triangles": 7960753,
+            "geometries": 461,
+            "textures": 91,
+            "programs": 104,
+            "width": 1280,
+            "height": 720,
+            "pixelRatio": 1
+          },
+          "delta": {
+            "drawCalls": 0,
+            "triangles": 0,
+            "geometries": -18,
+            "textures": 0,
+            "programs": 1
+          },
+          "pixelIdentical": true,
+          "pngByteIdentical": true,
+          "changedPixels": 0,
+          "changedFraction": 0,
+          "meanAbsoluteChannelError255": 0,
+          "maxChannelError255": 0,
+          "sha256": [
+            "a27baae17fd63f4c4051fd8451acb59374a5ba11bb026408665227bd78c9fa27",
+            "a27baae17fd63f4c4051fd8451acb59374a5ba11bb026408665227bd78c9fa27"
+          ],
+          "distantClose": {
+            "slots": 8,
+            "active": 0,
+            "fadeM": [
+              18,
+              26
+            ],
+            "prefetchM": 34,
+            "triangleCeiling": 1040000,
+            "triangles": 0,
+            "draws": 0,
+            "sharedBytes": 25542078,
+            "weights": [],
+            "fallback": "Existing crown geometry retained for every tree without close detail."
+          },
+          "canopyPools": [
+            {
+              "observations": 1,
+              "capBytes": [
+                67108864,
+                67108864
+              ],
+              "residentBytes": [
+                66971031,
+                66971031
+              ],
+              "pinnedBytes": [
+                36015954,
+                36015954
+              ],
+              "residentItems": [
+                156,
+                156
+              ],
+              "pinnedItems": [
+                79,
+                79
+              ],
+              "peakResidentMiB": 63.86855220794678,
+              "peakPinnedMiB": 34.347490310668945,
+              "counters": {
+                "built": {
+                  "start": 387,
+                  "end": 387,
+                  "delta": 0
+                },
+                "evicted": {
+                  "start": 341,
+                  "end": 341,
+                  "delta": 0
+                },
+                "syncBuilds": {
+                  "start": 195,
+                  "end": 195,
+                  "delta": 0
+                }
+              },
+              "exceedsConfiguredCap": false,
+              "exceeds64MiB": false,
+              "overflowObservations": []
+            },
+            {
+              "observations": 1,
+              "capBytes": [
+                67108864,
+                67108864
+              ],
+              "residentBytes": [
+                63556348,
+                63556348
+              ],
+              "pinnedBytes": [
+                36015954,
+                36015954
+              ],
+              "residentItems": [
+                131,
+                131
+              ],
+              "pinnedItems": [
+                79,
+                79
+              ],
+              "peakResidentMiB": 60.612056732177734,
+              "peakPinnedMiB": 34.347490310668945,
+              "counters": {
+                "built": {
+                  "start": 433,
+                  "end": 433,
+                  "delta": 0
+                },
+                "evicted": {
+                  "start": 418,
+                  "end": 418,
+                  "delta": 0
+                },
+                "syncBuilds": {
+                  "start": 219,
+                  "end": 219,
+                  "delta": 0
+                }
+              },
+              "exceedsConfiguredCap": false,
+              "exceeds64MiB": false,
+              "overflowObservations": []
+            }
+          ]
+        },
+        "C_lookback": {
+          "before": {
+            "simTime": 12.6,
+            "drawCalls": 378,
+            "triangles": 6927571,
+            "geometries": 530,
+            "textures": 91,
+            "programs": 103,
+            "width": 1280,
+            "height": 720,
+            "pixelRatio": 1
+          },
+          "after": {
+            "simTime": 12.6,
+            "drawCalls": 378,
+            "triangles": 6927571,
+            "geometries": 520,
+            "textures": 91,
+            "programs": 104,
+            "width": 1280,
+            "height": 720,
+            "pixelRatio": 1
+          },
+          "delta": {
+            "drawCalls": 0,
+            "triangles": 0,
+            "geometries": -10,
+            "textures": 0,
+            "programs": 1
+          },
+          "pixelIdentical": false,
+          "pngByteIdentical": false,
+          "changedPixels": 2,
+          "changedFraction": 0.000002170138888888889,
+          "meanAbsoluteChannelError255": 7.233796296296296e-7,
+          "maxChannelError255": 1,
+          "sha256": [
+            "43b7337124f5a688b227d75ad48d433beec4335160017ed39af889e705183311",
+            "243fd4702234c66c899331461416012b71454930c003c6c385e77b44c310e851"
+          ],
+          "distantClose": {
+            "slots": 8,
+            "active": 0,
+            "fadeM": [
+              18,
+              26
+            ],
+            "prefetchM": 34,
+            "triangleCeiling": 1040000,
+            "triangles": 0,
+            "draws": 0,
+            "sharedBytes": 25542078,
+            "weights": [],
+            "fallback": "Existing crown geometry retained for every tree without close detail."
+          },
+          "canopyPools": [
+            {
+              "observations": 1,
+              "capBytes": [
+                67108864,
+                67108864
+              ],
+              "residentBytes": [
+                66992301,
+                66992301
+              ],
+              "pinnedBytes": [
+                33395511,
+                33395511
+              ],
+              "residentItems": [
+                163,
+                163
+              ],
+              "pinnedItems": [
+                79,
+                79
+              ],
+              "peakResidentMiB": 63.88883686065674,
+              "peakPinnedMiB": 31.848441123962402,
+              "counters": {
+                "built": {
+                  "start": 406,
+                  "end": 406,
+                  "delta": 0
+                },
+                "evicted": {
+                  "start": 353,
+                  "end": 353,
+                  "delta": 0
+                },
+                "syncBuilds": {
+                  "start": 211,
+                  "end": 211,
+                  "delta": 0
+                }
+              },
+              "exceedsConfiguredCap": false,
+              "exceeds64MiB": false,
+              "overflowObservations": []
+            },
+            {
+              "observations": 1,
+              "capBytes": [
+                67108864,
+                67108864
+              ],
+              "residentBytes": [
+                63074900,
+                63074900
+              ],
+              "pinnedBytes": [
+                33395511,
+                33395511
+              ],
+              "residentItems": [
+                150,
+                150
+              ],
+              "pinnedItems": [
+                79,
+                79
+              ],
+              "peakResidentMiB": 60.15291213989258,
+              "peakPinnedMiB": 31.848441123962402,
+              "counters": {
+                "built": {
+                  "start": 453,
+                  "end": 453,
+                  "delta": 0
+                },
+                "evicted": {
+                  "start": 419,
+                  "end": 419,
+                  "delta": 0
+                },
+                "syncBuilds": {
+                  "start": 235,
+                  "end": 235,
+                  "delta": 0
+                }
+              },
+              "exceedsConfiguredCap": false,
+              "exceeds64MiB": false,
+              "overflowObservations": []
+            }
+          ]
+        },
+        "D_log": {
+          "before": {
+            "simTime": 12.6,
+            "drawCalls": 440,
+            "triangles": 8122467,
+            "geometries": 546,
+            "textures": 91,
+            "programs": 103,
+            "width": 1280,
+            "height": 720,
+            "pixelRatio": 1
+          },
+          "after": {
+            "simTime": 12.6,
+            "drawCalls": 440,
+            "triangles": 8122467,
+            "geometries": 538,
+            "textures": 91,
+            "programs": 104,
+            "width": 1280,
+            "height": 720,
+            "pixelRatio": 1
+          },
+          "delta": {
+            "drawCalls": 0,
+            "triangles": 0,
+            "geometries": -8,
+            "textures": 0,
+            "programs": 1
+          },
+          "pixelIdentical": false,
+          "pngByteIdentical": false,
+          "changedPixels": 1,
+          "changedFraction": 0.0000010850694444444444,
+          "meanAbsoluteChannelError255": 3.616898148148148e-7,
+          "maxChannelError255": 1,
+          "sha256": [
+            "0e3abae73579756ca9494c0ec07399b31671bb8e42a92a11d4d7a6d589ef19ea",
+            "044994c4800844a639ab6dc26beff58d12e30131f403743a564ea3fa78ab5106"
+          ],
+          "distantClose": {
+            "slots": 8,
+            "active": 0,
+            "fadeM": [
+              18,
+              26
+            ],
+            "prefetchM": 34,
+            "triangleCeiling": 1040000,
+            "triangles": 0,
+            "draws": 0,
+            "sharedBytes": 25542078,
+            "weights": [],
+            "fallback": "Existing crown geometry retained for every tree without close detail."
+          },
+          "canopyPools": [
+            {
+              "observations": 1,
+              "capBytes": [
+                67108864,
+                67108864
+              ],
+              "residentBytes": [
+                67028073,
+                67028073
+              ],
+              "pinnedBytes": [
+                34808541,
+                34808541
+              ],
+              "residentItems": [
+                163,
+                163
+              ],
+              "pinnedItems": [
+                79,
+                79
+              ],
+              "peakResidentMiB": 63.92295169830322,
+              "peakPinnedMiB": 33.196011543273926,
+              "counters": {
+                "built": {
+                  "start": 409,
+                  "end": 409,
+                  "delta": 0
+                },
+                "evicted": {
+                  "start": 356,
+                  "end": 356,
+                  "delta": 0
+                },
+                "syncBuilds": {
+                  "start": 212,
+                  "end": 212,
+                  "delta": 0
+                }
+              },
+              "exceedsConfiguredCap": false,
+              "exceeds64MiB": false,
+              "overflowObservations": []
+            },
+            {
+              "observations": 1,
+              "capBytes": [
+                67108864,
+                67108864
+              ],
+              "residentBytes": [
+                65634374,
+                65634374
+              ],
+              "pinnedBytes": [
+                34808541,
+                34808541
+              ],
+              "residentItems": [
+                158,
+                158
+              ],
+              "pinnedItems": [
+                79,
+                79
+              ],
+              "peakResidentMiB": 62.59381675720215,
+              "peakPinnedMiB": 33.196011543273926,
+              "counters": {
+                "built": {
+                  "start": 461,
+                  "end": 461,
+                  "delta": 0
+                },
+                "evicted": {
+                  "start": 419,
+                  "end": 419,
+                  "delta": 0
+                },
+                "syncBuilds": {
+                  "start": 237,
+                  "end": 237,
+                  "delta": 0
+                }
+              },
+              "exceedsConfiguredCap": false,
+              "exceeds64MiB": false,
+              "overflowObservations": []
+            }
+          ]
+        },
+        "E_ground": {
+          "before": {
+            "simTime": 12.6,
+            "drawCalls": 472,
+            "triangles": 7960753,
+            "geometries": 546,
+            "textures": 91,
+            "programs": 103,
+            "width": 1280,
+            "height": 720,
+            "pixelRatio": 1
+          },
+          "after": {
+            "simTime": 12.6,
+            "drawCalls": 472,
+            "triangles": 7960753,
+            "geometries": 537,
+            "textures": 91,
+            "programs": 104,
+            "width": 1280,
+            "height": 720,
+            "pixelRatio": 1
+          },
+          "delta": {
+            "drawCalls": 0,
+            "triangles": 0,
+            "geometries": -9,
+            "textures": 0,
+            "programs": 1
+          },
+          "pixelIdentical": true,
+          "pngByteIdentical": true,
+          "changedPixels": 0,
+          "changedFraction": 0,
+          "meanAbsoluteChannelError255": 0,
+          "maxChannelError255": 0,
+          "sha256": [
+            "a27baae17fd63f4c4051fd8451acb59374a5ba11bb026408665227bd78c9fa27",
+            "a27baae17fd63f4c4051fd8451acb59374a5ba11bb026408665227bd78c9fa27"
+          ],
+          "distantClose": {
+            "slots": 8,
+            "active": 0,
+            "fadeM": [
+              18,
+              26
+            ],
+            "prefetchM": 34,
+            "triangleCeiling": 1040000,
+            "triangles": 0,
+            "draws": 0,
+            "sharedBytes": 25542078,
+            "weights": [],
+            "fallback": "Existing crown geometry retained for every tree without close detail."
+          },
+          "canopyPools": [
+            {
+              "observations": 1,
+              "capBytes": [
+                67108864,
+                67108864
+              ],
+              "residentBytes": [
+                66683967,
+                66683967
+              ],
+              "pinnedBytes": [
+                36015954,
+                36015954
+              ],
+              "residentItems": [
+                162,
+                162
+              ],
+              "pinnedItems": [
+                79,
+                79
+              ],
+              "peakResidentMiB": 63.594786643981934,
+              "peakPinnedMiB": 34.347490310668945,
+              "counters": {
+                "built": {
+                  "start": 410,
+                  "end": 410,
+                  "delta": 0
+                },
+                "evicted": {
+                  "start": 358,
+                  "end": 358,
+                  "delta": 0
+                },
+                "syncBuilds": {
+                  "start": 212,
+                  "end": 212,
+                  "delta": 0
+                }
+              },
+              "exceedsConfiguredCap": false,
+              "exceeds64MiB": false,
+              "overflowObservations": []
+            },
+            {
+              "observations": 1,
+              "capBytes": [
+                67108864,
+                67108864
+              ],
+              "residentBytes": [
+                65840040,
+                65840040
+              ],
+              "pinnedBytes": [
+                36015954,
+                36015954
+              ],
+              "residentItems": [
+                163,
+                163
+              ],
+              "pinnedItems": [
+                79,
+                79
+              ],
+              "peakResidentMiB": 62.789955139160156,
+              "peakPinnedMiB": 34.347490310668945,
+              "counters": {
+                "built": {
+                  "start": 467,
+                  "end": 467,
+                  "delta": 0
+                },
+                "evicted": {
+                  "start": 420,
+                  "end": 420,
+                  "delta": 0
+                },
+                "syncBuilds": {
+                  "start": 237,
+                  "end": 237,
+                  "delta": 0
+                }
+              },
+              "exceedsConfiguredCap": false,
+              "exceeds64MiB": false,
+              "overflowObservations": []
+            }
+          ]
+        },
+        "F_canopy": {
+          "before": {
+            "simTime": 12.6,
+            "drawCalls": 451,
+            "triangles": 8177841,
+            "geometries": 561,
+            "textures": 91,
+            "programs": 103,
+            "width": 1280,
+            "height": 720,
+            "pixelRatio": 1
+          },
+          "after": {
+            "simTime": 12.6,
+            "drawCalls": 451,
+            "triangles": 8177841,
+            "geometries": 553,
+            "textures": 91,
+            "programs": 104,
+            "width": 1280,
+            "height": 720,
+            "pixelRatio": 1
+          },
+          "delta": {
+            "drawCalls": 0,
+            "triangles": 0,
+            "geometries": -8,
+            "textures": 0,
+            "programs": 1
+          },
+          "pixelIdentical": false,
+          "pngByteIdentical": false,
+          "changedPixels": 1,
+          "changedFraction": 0.0000010850694444444444,
+          "meanAbsoluteChannelError255": 3.616898148148148e-7,
+          "maxChannelError255": 1,
+          "sha256": [
+            "eeb1516f4272777e04311f35a4c39fa437767c41d248a9346069bd8b1f1ad96b",
+            "7f24d749c25143fdc466ec04f65b1b40be156531b6e4b97bfdd4200d111f7a28"
+          ],
+          "distantClose": {
+            "slots": 8,
+            "active": 0,
+            "fadeM": [
+              18,
+              26
+            ],
+            "prefetchM": 34,
+            "triangleCeiling": 1040000,
+            "triangles": 0,
+            "draws": 0,
+            "sharedBytes": 25542078,
+            "weights": [],
+            "fallback": "Existing crown geometry retained for every tree without close detail."
+          },
+          "canopyPools": [
+            {
+              "observations": 1,
+              "capBytes": [
+                67108864,
+                67108864
+              ],
+              "residentBytes": [
+                67017270,
+                67017270
+              ],
+              "pinnedBytes": [
+                35485578,
+                35485578
+              ],
+              "residentItems": [
+                162,
+                162
+              ],
+              "pinnedItems": [
+                79,
+                79
+              ],
+              "peakResidentMiB": 63.912649154663086,
+              "peakPinnedMiB": 33.841684341430664,
+              "counters": {
+                "built": {
+                  "start": 414,
+                  "end": 414,
+                  "delta": 0
+                },
+                "evicted": {
+                  "start": 362,
+                  "end": 362,
+                  "delta": 0
+                },
+                "syncBuilds": {
+                  "start": 214,
+                  "end": 214,
+                  "delta": 0
+                }
+              },
+              "exceedsConfiguredCap": false,
+              "exceeds64MiB": false,
+              "overflowObservations": []
+            },
+            {
+              "observations": 1,
+              "capBytes": [
+                67108864,
+                67108864
+              ],
+              "residentBytes": [
+                67052628,
+                67052628
+              ],
+              "pinnedBytes": [
+                35485578,
+                35485578
+              ],
+              "residentItems": [
+                165,
+                165
+              ],
+              "pinnedItems": [
+                79,
+                79
+              ],
+              "peakResidentMiB": 63.94636917114258,
+              "peakPinnedMiB": 33.841684341430664,
+              "counters": {
+                "built": {
+                  "start": 471,
+                  "end": 471,
+                  "delta": 0
+                },
+                "evicted": {
+                  "start": 422,
+                  "end": 422,
+                  "delta": 0
+                },
+                "syncBuilds": {
+                  "start": 237,
+                  "end": 237,
+                  "delta": 0
+                }
+              },
+              "exceedsConfiguredCap": false,
+              "exceeds64MiB": false,
+              "overflowObservations": []
+            }
+          ],
+          "observedEquality": {
+            "pixels": false,
+            "pngBytes": false,
+            "submittedCosts": true,
+            "closeSlotsZero": true
+          }
+        },
+        "w19-spine-u": {
+          "before": {
+            "simTime": 12.6,
+            "drawCalls": 177,
+            "triangles": 3469533,
+            "geometries": 561,
+            "textures": 91,
+            "programs": 103,
+            "width": 1280,
+            "height": 720,
+            "pixelRatio": 1
+          },
+          "after": {
+            "simTime": 12.6,
+            "drawCalls": 179,
+            "triangles": 4443103,
+            "geometries": 554,
+            "textures": 91,
+            "programs": 104,
+            "width": 1280,
+            "height": 720,
+            "pixelRatio": 1
+          },
+          "delta": {
+            "drawCalls": 2,
+            "triangles": 973570,
+            "geometries": -7,
+            "textures": 0,
+            "programs": 1
+          },
+          "pixelIdentical": false,
+          "pngByteIdentical": false,
+          "changedPixels": 263084,
+          "changedFraction": 0.2854644097222222,
+          "meanAbsoluteChannelError255": 8.457931857638888,
+          "maxChannelError255": 152,
+          "sha256": [
+            "ea77dca86ef3fe0128eea448446f54b7ea82fd1b7b2ec7de2b9c2cde6f3b0179",
+            "2bedc764f39da35317efe1f059a500e710839cb6c482034108010e3f51480bcb"
+          ],
+          "distantClose": {
+            "slots": 8,
+            "active": 8,
+            "fadeM": [
+              18,
+              26
+            ],
+            "prefetchM": 34,
+            "triangleCeiling": 1040000,
+            "triangles": 973570,
+            "draws": 2,
+            "sharedBytes": 25542078,
+            "weights": [
+              [
+                4,
+                1
+              ],
+              [
+                5,
+                1
+              ],
+              [
+                6,
+                1
+              ],
+              [
+                3,
+                1
+              ],
+              [
+                7,
+                1
+              ],
+              [
+                8,
+                1
+              ],
+              [
+                10,
+                1
+              ],
+              [
+                2,
+                1
+              ]
+            ],
+            "fallback": "Existing crown geometry retained for every tree without close detail."
+          },
+          "canopyPools": [
+            {
+              "observations": 1,
+              "capBytes": [
+                67108864,
+                67108864
+              ],
+              "residentBytes": [
+                66972318,
+                66972318
+              ],
+              "pinnedBytes": [
+                30318588,
+                30318588
+              ],
+              "residentItems": [
+                165,
+                165
+              ],
+              "pinnedItems": [
+                76,
+                76
+              ],
+              "peakResidentMiB": 63.86977958679199,
+              "peakPinnedMiB": 28.914058685302734,
+              "counters": {
+                "built": {
+                  "start": 482,
+                  "end": 482,
+                  "delta": 0
+                },
+                "evicted": {
+                  "start": 427,
+                  "end": 427,
+                  "delta": 0
+                },
+                "syncBuilds": {
+                  "start": 278,
+                  "end": 278,
+                  "delta": 0
+                }
+              },
+              "exceedsConfiguredCap": false,
+              "exceeds64MiB": false,
+              "overflowObservations": []
+            },
+            {
+              "observations": 1,
+              "capBytes": [
+                67108864,
+                67108864
+              ],
+              "residentBytes": [
+                66879994,
+                66879994
+              ],
+              "pinnedBytes": [
+                44016412,
+                44016412
+              ],
+              "residentItems": [
+                133,
+                133
+              ],
+              "pinnedItems": [
+                78,
+                78
+              ],
+              "peakResidentMiB": 63.7817325592041,
+              "peakPinnedMiB": 41.97732162475586,
+              "counters": {
+                "built": {
+                  "start": 542,
+                  "end": 542,
+                  "delta": 0
+                },
+                "evicted": {
+                  "start": 525,
+                  "end": 525,
+                  "delta": 0
+                },
+                "syncBuilds": {
+                  "start": 308,
+                  "end": 308,
+                  "delta": 0
+                }
+              },
+              "exceedsConfiguredCap": false,
+              "exceeds64MiB": false,
+              "overflowObservations": []
+            }
+          ]
+        },
+        "reconstructed-distant-up": {
+          "before": {
+            "simTime": 12.6,
+            "drawCalls": 131,
+            "triangles": 2042624,
+            "geometries": 581,
+            "textures": 91,
+            "programs": 103,
+            "width": 1280,
+            "height": 720,
+            "pixelRatio": 1
+          },
+          "after": {
+            "simTime": 12.6,
+            "drawCalls": 135,
+            "triangles": 2925365,
+            "geometries": 571,
+            "textures": 91,
+            "programs": 104,
+            "width": 1280,
+            "height": 720,
+            "pixelRatio": 1
+          },
+          "delta": {
+            "drawCalls": 4,
+            "triangles": 882741,
+            "geometries": -10,
+            "textures": 0,
+            "programs": 1
+          },
+          "pixelIdentical": false,
+          "pngByteIdentical": false,
+          "changedPixels": 589948,
+          "changedFraction": 0.6401345486111111,
+          "meanAbsoluteChannelError255": 33.07822554976852,
+          "maxChannelError255": 194,
+          "sha256": [
+            "b9bc81c08ac68ccbd94e75f0f2963d6b78f8d22566c5582d9443cd7ccae9df31",
+            "7e20d7f90ce32be46f1428be026fb10a6b26f3f53b9f2f329deff19efd0d7a00"
+          ],
+          "distantClose": {
+            "slots": 8,
+            "active": 8,
+            "fadeM": [
+              18,
+              26
+            ],
+            "prefetchM": 34,
+            "triangleCeiling": 1040000,
+            "triangles": 882741,
+            "draws": 4,
+            "sharedBytes": 25542078,
+            "weights": [
+              [
+                119,
+                1
+              ],
+              [
+                189,
+                1
+              ],
+              [
+                720,
+                1
+              ],
+              [
+                686,
+                1
+              ],
+              [
+                530,
+                1
+              ],
+              [
+                316,
+                1
+              ],
+              [
+                480,
+                1
+              ],
+              [
+                629,
+                1
+              ]
+            ],
+            "fallback": "Existing crown geometry retained for every tree without close detail."
+          },
+          "canopyPools": [
+            {
+              "observations": 1,
+              "capBytes": [
+                67108864,
+                67108864
+              ],
+              "residentBytes": [
+                66972318,
+                66972318
+              ],
+              "pinnedBytes": [
+                4013280,
+                4013280
+              ],
+              "residentItems": [
+                165,
+                165
+              ],
+              "pinnedItems": [
+                3,
+                3
+              ],
+              "peakResidentMiB": 63.86977958679199,
+              "peakPinnedMiB": 3.827362060546875,
+              "counters": {
+                "built": {
+                  "start": 482,
+                  "end": 482,
+                  "delta": 0
+                },
+                "evicted": {
+                  "start": 427,
+                  "end": 427,
+                  "delta": 0
+                },
+                "syncBuilds": {
+                  "start": 278,
+                  "end": 278,
+                  "delta": 0
+                }
+              },
+              "exceedsConfiguredCap": false,
+              "exceeds64MiB": false,
+              "overflowObservations": []
+            },
+            {
+              "observations": 1,
+              "capBytes": [
+                67108864,
+                67108864
+              ],
+              "residentBytes": [
+                67075934,
+                67075934
+              ],
+              "pinnedBytes": [
+                26126720,
+                26126720
+              ],
+              "residentItems": [
+                117,
+                117
+              ],
+              "pinnedItems": [
+                7,
+                7
+              ],
+              "peakResidentMiB": 63.96859550476074,
+              "peakPinnedMiB": 24.9163818359375,
+              "counters": {
+                "built": {
+                  "start": 544,
+                  "end": 544,
+                  "delta": 0
+                },
+                "evicted": {
+                  "start": 543,
+                  "end": 543,
+                  "delta": 0
+                },
+                "syncBuilds": {
+                  "start": 310,
+                  "end": 310,
+                  "delta": 0
+                }
+              },
+              "exceedsConfiguredCap": false,
+              "exceeds64MiB": false,
+              "overflowObservations": []
+            }
+          ]
+        }
+      },
+      "route": {
+        "sequence": {
+          "dt": 0.03333333333333333,
+          "startZ": -17.5,
+          "endZ": -44.1,
+          "travelFrames": 90,
+          "turnFrames": 60,
+          "holdFrames": 15
+        },
+        "moduleSha256": "d3b02f09c60d2dcea2186aa7abcb7237a4f63828082a2feb7902a3ddda47a813",
+        "traceSha256": [
+          "9faedd71a8c15e0c9f47f29bb5d98680a3388bba3c44ca36ef99f6a712c0ddf5",
+          "026e7b94bcb58e867aa4e5b9cc0f43b0bb8b9fc2413d07fa8ba96fc0d21145ac"
+        ],
+        "captureTimeTraceHash": [
+          true,
+          true
+        ],
+        "passes": {
+          "first": {
+            "before": {
+              "frames": 255,
+              "treeUpdateMs": {
+                "median": 7.300000011920929,
+                "p95": 11,
+                "max": 84.59999999403954
+              },
+              "completedRenderAwaitMs": {
+                "median": 66.20000000298023,
+                "p95": 82.79999999701977,
+                "max": 5576.4000000059605
+              },
+              "phases": {
+                "approach": {
+                  "treeUpdateMs": {
+                    "median": 8.200000002980232,
+                    "p95": 15,
+                    "max": 84.59999999403954
+                  },
+                  "completedRenderAwaitMs": {
+                    "median": 73.20000000298023,
+                    "p95": 96.40000000596046,
+                    "max": 5576.4000000059605
+                  }
+                },
+                "turn": {
+                  "treeUpdateMs": {
+                    "median": 6.799999997019768,
+                    "p95": 8.799999997019768,
+                    "max": 13.800000011920929
+                  },
+                  "completedRenderAwaitMs": {
+                    "median": 53.20000000298023,
+                    "p95": 72.5,
+                    "max": 1512.7000000029802
+                  }
+                },
+                "retreat": {
+                  "treeUpdateMs": {
+                    "median": 6.799999997019768,
+                    "p95": 9.100000008940697,
+                    "max": 12.799999997019768
+                  },
+                  "completedRenderAwaitMs": {
+                    "median": 65.09999999403954,
+                    "p95": 78.5,
+                    "max": 92.29999999701977
+                  }
+                },
+                "hold": {
+                  "treeUpdateMs": {
+                    "median": 8.100000008940697,
+                    "p95": 14,
+                    "max": 14
+                  },
+                  "completedRenderAwaitMs": {
+                    "median": 71.79999999701977,
+                    "p95": 78,
+                    "max": 78
+                  }
+                }
+              },
+              "costs": {
+                "drawCalls": [
+                  145,
+                  286
+                ],
+                "triangles": [
+                  3130056,
+                  5713430
+                ],
+                "geometries": [
+                  425,
+                  521
+                ],
+                "textures": [
+                  91,
+                  91
+                ],
+                "programs": [
+                  98,
+                  100
+                ]
+              },
+              "programs": [
+                90,
+                100
+              ],
+              "visiblePointLights": [
+                19,
+                19
+              ],
+              "totalPointLights": [
+                24,
+                24
+              ],
+              "pools": {
+                "nearCanopyPool": {
+                  "observations": 256,
+                  "capBytes": [
+                    67108864,
+                    67108864
+                  ],
+                  "residentBytes": [
+                    66627036,
+                    67107879
+                  ],
+                  "pinnedBytes": [
+                    25926954,
+                    32212935
+                  ],
+                  "residentItems": [
+                    171,
+                    177
+                  ],
+                  "pinnedItems": [
+                    63,
+                    79
+                  ],
+                  "peakResidentMiB": 63.99906063079834,
+                  "peakPinnedMiB": 30.720648765563965,
+                  "counters": {
+                    "built": {
+                      "start": 117,
+                      "end": 232,
+                      "delta": 115
+                    },
+                    "evicted": {
+                      "start": 55,
+                      "end": 171,
+                      "delta": 116
+                    },
+                    "syncBuilds": {
+                      "start": 117,
+                      "end": 117,
+                      "delta": 0
+                    }
+                  },
+                  "exceedsConfiguredCap": false,
+                  "exceeds64MiB": false,
+                  "overflowObservations": []
+                },
+                "nearBasePool": {
+                  "observations": 256,
+                  "capBytes": [
+                    12582912,
+                    12582912
+                  ],
+                  "residentBytes": [
+                    11306502,
+                    12581436
+                  ],
+                  "pinnedBytes": [
+                    5527200,
+                    6711162
+                  ],
+                  "residentItems": [
+                    10,
+                    11
+                  ],
+                  "pinnedItems": [
+                    5,
+                    6
+                  ],
+                  "peakResidentMiB": 11.998592376708984,
+                  "peakPinnedMiB": 6.400262832641602,
+                  "counters": {
+                    "built": {
+                      "start": 5,
+                      "end": 11,
+                      "delta": 6
+                    },
+                    "evicted": {
+                      "start": 18,
+                      "end": 23,
+                      "delta": 5
+                    },
+                    "syncBuilds": {
+                      "start": 5,
+                      "end": 7,
+                      "delta": 2
+                    }
+                  },
+                  "exceedsConfiguredCap": false,
+                  "exceeds64MiB": null,
+                  "overflowObservations": []
+                }
+              },
+              "events": [
+                {
+                  "k": 0,
+                  "phase": "approach",
+                  "completedRenderAwaitMs": 224.69999998807907,
+                  "treeUpdateMs": 9,
+                  "programsDelta": 8,
+                  "visiblePointLights": [
+                    19,
+                    19
+                  ],
+                  "lightCountChanged": false,
+                  "drawCalls": 274,
+                  "triangles": 5502994
+                },
+                {
+                  "k": 1,
+                  "phase": "approach",
+                  "completedRenderAwaitMs": 5576.4000000059605,
+                  "treeUpdateMs": 8.700000002980232,
+                  "programsDelta": 1,
+                  "visiblePointLights": [
+                    19,
+                    19
+                  ],
+                  "lightCountChanged": false,
+                  "drawCalls": 279,
+                  "triangles": 5572309
+                },
+                {
+                  "k": 99,
+                  "phase": "turn",
+                  "completedRenderAwaitMs": 1512.7000000029802,
+                  "treeUpdateMs": 6.899999991059303,
+                  "programsDelta": 1,
+                  "visiblePointLights": [
+                    19,
+                    19
+                  ],
+                  "lightCountChanged": false,
+                  "drawCalls": 145,
+                  "triangles": 3167093
+                }
+              ],
+              "slowestFrames": [
+                {
+                  "k": 1,
+                  "phase": "approach",
+                  "completedRenderAwaitMs": 5576.4000000059605,
+                  "treeUpdateMs": 8.700000002980232,
+                  "programsDelta": 1,
+                  "visiblePointLights": [
+                    19,
+                    19
+                  ],
+                  "lightCountChanged": false,
+                  "drawCalls": 279,
+                  "triangles": 5572309
+                },
+                {
+                  "k": 99,
+                  "phase": "turn",
+                  "completedRenderAwaitMs": 1512.7000000029802,
+                  "treeUpdateMs": 6.899999991059303,
+                  "programsDelta": 1,
+                  "visiblePointLights": [
+                    19,
+                    19
+                  ],
+                  "lightCountChanged": false,
+                  "drawCalls": 145,
+                  "triangles": 3167093
+                },
+                {
+                  "k": 0,
+                  "phase": "approach",
+                  "completedRenderAwaitMs": 224.69999998807907,
+                  "treeUpdateMs": 9,
+                  "programsDelta": 8,
+                  "visiblePointLights": [
+                    19,
+                    19
+                  ],
+                  "lightCountChanged": false,
+                  "drawCalls": 274,
+                  "triangles": 5502994
+                },
+                {
+                  "k": 3,
+                  "phase": "approach",
+                  "completedRenderAwaitMs": 147.40000000596046,
+                  "treeUpdateMs": 76.29999999701977,
+                  "programsDelta": 0,
+                  "visiblePointLights": [
+                    19,
+                    19
+                  ],
+                  "lightCountChanged": false,
+                  "drawCalls": 282,
+                  "triangles": 5619856
+                },
+                {
+                  "k": 28,
+                  "phase": "approach",
+                  "completedRenderAwaitMs": 144.90000000596046,
+                  "treeUpdateMs": 84.59999999403954,
+                  "programsDelta": 0,
+                  "visiblePointLights": [
+                    19,
+                    19
+                  ],
+                  "lightCountChanged": false,
+                  "drawCalls": 253,
+                  "triangles": 4497441
+                },
+                {
+                  "k": 59,
+                  "phase": "approach",
+                  "completedRenderAwaitMs": 96.40000000596046,
+                  "treeUpdateMs": 15,
+                  "programsDelta": 0,
+                  "visiblePointLights": [
+                    19,
+                    19
+                  ],
+                  "lightCountChanged": false,
+                  "drawCalls": 186,
+                  "triangles": 3434290
+                },
+                {
+                  "k": 217,
+                  "phase": "retreat",
+                  "completedRenderAwaitMs": 92.29999999701977,
+                  "treeUpdateMs": 5.700000002980232,
+                  "programsDelta": 0,
+                  "visiblePointLights": [
+                    19,
+                    19
+                  ],
+                  "lightCountChanged": false,
+                  "drawCalls": 265,
+                  "triangles": 4558501
+                },
+                {
+                  "k": 11,
+                  "phase": "approach",
+                  "completedRenderAwaitMs": 91.8999999910593,
+                  "treeUpdateMs": 9.800000011920929,
+                  "programsDelta": 0,
+                  "visiblePointLights": [
+                    19,
+                    19
+                  ],
+                  "lightCountChanged": false,
+                  "drawCalls": 278,
+                  "triangles": 5492163
+                }
+              ]
+            },
+            "after": {
+              "frames": 255,
+              "treeUpdateMs": {
+                "median": 6.9000000059604645,
+                "p95": 9.700000002980232,
+                "max": 65.5
+              },
+              "completedRenderAwaitMs": {
+                "median": 54.79999999701977,
+                "p95": 69.8999999910593,
+                "max": 3278.199999988079
+              },
+              "phases": {
+                "approach": {
+                  "treeUpdateMs": {
+                    "median": 8.099999994039536,
+                    "p95": 11.600000008940697,
+                    "max": 65.5
+                  },
+                  "completedRenderAwaitMs": {
+                    "median": 60.400000005960464,
+                    "p95": 85.20000000298023,
+                    "max": 3278.199999988079
+                  }
+                },
+                "turn": {
+                  "treeUpdateMs": {
+                    "median": 6.5999999940395355,
+                    "p95": 7.899999991059303,
+                    "max": 11.600000008940697
+                  },
+                  "completedRenderAwaitMs": {
+                    "median": 46.69999998807907,
+                    "p95": 52.19999998807907,
+                    "max": 1222.199999988079
+                  }
+                },
+                "retreat": {
+                  "treeUpdateMs": {
+                    "median": 6.600000008940697,
+                    "p95": 9.5,
+                    "max": 11.700000002980232
+                  },
+                  "completedRenderAwaitMs": {
+                    "median": 58.30000001192093,
+                    "p95": 66.8999999910593,
+                    "max": 69.8999999910593
+                  }
+                },
+                "hold": {
+                  "treeUpdateMs": {
+                    "median": 4.899999991059303,
+                    "p95": 9.5,
+                    "max": 9.5
+                  },
+                  "completedRenderAwaitMs": {
+                    "median": 60.400000005960464,
+                    "p95": 65.6000000089407,
+                    "max": 65.6000000089407
+                  }
+                }
+              },
+              "costs": {
+                "drawCalls": [
+                  152,
+                  289
+                ],
+                "triangles": [
+                  4020037,
+                  6195917
+                ],
+                "geometries": [
+                  426,
+                  507
+                ],
+                "textures": [
+                  91,
+                  91
+                ],
+                "programs": [
+                  99,
+                  101
+                ]
+              },
+              "programs": [
+                90,
+                101
+              ],
+              "visiblePointLights": [
+                19,
+                19
+              ],
+              "totalPointLights": [
+                24,
+                24
+              ],
+              "pools": {
+                "nearCanopyPool": {
+                  "observations": 256,
+                  "capBytes": [
+                    67108864,
+                    67108864
+                  ],
+                  "residentBytes": [
+                    60330027,
+                    67106741
+                  ],
+                  "pinnedBytes": [
+                    43783368,
+                    54872345
+                  ],
+                  "residentItems": [
+                    111,
+                    139
+                  ],
+                  "pinnedItems": [
+                    71,
+                    83
+                  ],
+                  "peakResidentMiB": 63.99797534942627,
+                  "peakPinnedMiB": 52.33034610748291,
+                  "counters": {
+                    "built": {
+                      "start": 127,
+                      "end": 245,
+                      "delta": 118
+                    },
+                    "evicted": {
+                      "start": 132,
+                      "end": 225,
+                      "delta": 93
+                    },
+                    "syncBuilds": {
+                      "start": 127,
+                      "end": 127,
+                      "delta": 0
+                    }
+                  },
+                  "exceedsConfiguredCap": false,
+                  "exceeds64MiB": false,
+                  "overflowObservations": []
+                },
+                "nearBasePool": {
+                  "observations": 256,
+                  "capBytes": [
+                    12582912,
+                    12582912
+                  ],
+                  "residentBytes": [
+                    11306502,
+                    12581436
+                  ],
+                  "pinnedBytes": [
+                    5527200,
+                    6711162
+                  ],
+                  "residentItems": [
+                    10,
+                    11
+                  ],
+                  "pinnedItems": [
+                    5,
+                    6
+                  ],
+                  "peakResidentMiB": 11.998592376708984,
+                  "peakPinnedMiB": 6.400262832641602,
+                  "counters": {
+                    "built": {
+                      "start": 5,
+                      "end": 10,
+                      "delta": 5
+                    },
+                    "evicted": {
+                      "start": 18,
+                      "end": 22,
+                      "delta": 4
+                    },
+                    "syncBuilds": {
+                      "start": 5,
+                      "end": 7,
+                      "delta": 2
+                    }
+                  },
+                  "exceedsConfiguredCap": false,
+                  "exceeds64MiB": null,
+                  "overflowObservations": []
+                }
+              },
+              "events": [
+                {
+                  "k": 0,
+                  "phase": "approach",
+                  "completedRenderAwaitMs": 2721.5,
+                  "treeUpdateMs": 10.099999994039536,
+                  "programsDelta": 9,
+                  "visiblePointLights": [
+                    19,
+                    19
+                  ],
+                  "lightCountChanged": false,
+                  "drawCalls": 275,
+                  "triangles": 5874367
+                },
+                {
+                  "k": 1,
+                  "phase": "approach",
+                  "completedRenderAwaitMs": 3278.199999988079,
+                  "treeUpdateMs": 8.900000005960464,
+                  "programsDelta": 1,
+                  "visiblePointLights": [
+                    19,
+                    19
+                  ],
+                  "lightCountChanged": false,
+                  "drawCalls": 281,
+                  "triangles": 6023346
+                },
+                {
+                  "k": 99,
+                  "phase": "turn",
+                  "completedRenderAwaitMs": 1222.199999988079,
+                  "treeUpdateMs": 6.600000008940697,
+                  "programsDelta": 1,
+                  "visiblePointLights": [
+                    19,
+                    19
+                  ],
+                  "lightCountChanged": false,
+                  "drawCalls": 153,
+                  "triangles": 4103352
+                }
+              ],
+              "slowestFrames": [
+                {
+                  "k": 1,
+                  "phase": "approach",
+                  "completedRenderAwaitMs": 3278.199999988079,
+                  "treeUpdateMs": 8.900000005960464,
+                  "programsDelta": 1,
+                  "visiblePointLights": [
+                    19,
+                    19
+                  ],
+                  "lightCountChanged": false,
+                  "drawCalls": 281,
+                  "triangles": 6023346
+                },
+                {
+                  "k": 0,
+                  "phase": "approach",
+                  "completedRenderAwaitMs": 2721.5,
+                  "treeUpdateMs": 10.099999994039536,
+                  "programsDelta": 9,
+                  "visiblePointLights": [
+                    19,
+                    19
+                  ],
+                  "lightCountChanged": false,
+                  "drawCalls": 275,
+                  "triangles": 5874367
+                },
+                {
+                  "k": 99,
+                  "phase": "turn",
+                  "completedRenderAwaitMs": 1222.199999988079,
+                  "treeUpdateMs": 6.600000008940697,
+                  "programsDelta": 1,
+                  "visiblePointLights": [
+                    19,
+                    19
+                  ],
+                  "lightCountChanged": false,
+                  "drawCalls": 153,
+                  "triangles": 4103352
+                },
+                {
+                  "k": 28,
+                  "phase": "approach",
+                  "completedRenderAwaitMs": 120.40000000596046,
+                  "treeUpdateMs": 65.5,
+                  "programsDelta": 0,
+                  "visiblePointLights": [
+                    19,
+                    19
+                  ],
+                  "lightCountChanged": false,
+                  "drawCalls": 259,
+                  "triangles": 5199702
+                },
+                {
+                  "k": 3,
+                  "phase": "approach",
+                  "completedRenderAwaitMs": 116.5,
+                  "treeUpdateMs": 60.19999998807907,
+                  "programsDelta": 0,
+                  "visiblePointLights": [
+                    19,
+                    19
+                  ],
+                  "lightCountChanged": false,
+                  "drawCalls": 284,
+                  "triangles": 6070893
+                },
+                {
+                  "k": 17,
+                  "phase": "approach",
+                  "completedRenderAwaitMs": 85.20000000298023,
+                  "treeUpdateMs": 9.199999988079071,
+                  "programsDelta": 0,
+                  "visiblePointLights": [
+                    19,
+                    19
+                  ],
+                  "lightCountChanged": false,
+                  "drawCalls": 272,
+                  "triangles": 5585930
+                },
+                {
+                  "k": 59,
+                  "phase": "approach",
+                  "completedRenderAwaitMs": 80.40000000596046,
+                  "treeUpdateMs": 15.100000008940697,
+                  "programsDelta": 0,
+                  "visiblePointLights": [
+                    19,
+                    19
+                  ],
+                  "lightCountChanged": false,
+                  "drawCalls": 193,
+                  "triangles": 4269438
+                },
+                {
+                  "k": 55,
+                  "phase": "approach",
+                  "completedRenderAwaitMs": 75,
+                  "treeUpdateMs": 7.700000002980232,
+                  "programsDelta": 0,
+                  "visiblePointLights": [
+                    19,
+                    19
+                  ],
+                  "lightCountChanged": false,
+                  "drawCalls": 199,
+                  "triangles": 4179322
+                }
+              ]
+            },
+            "pairedDelta": {
+              "treeUpdateMs": {
+                "median": -0.29999999701976776,
+                "p95": 2.1000000089406967,
+                "max": 5.9000000059604645
+              },
+              "completedMs": {
+                "median": -8.299999997019768,
+                "p95": 5.5,
+                "max": 2496.800000011921
+              },
+              "drawCalls": {
+                "median": 3,
+                "p95": 9,
+                "max": 11
+              },
+              "triangles": {
+                "median": 895197,
+                "p95": 943120,
+                "max": 958139
+              },
+              "geometries": {
+                "median": -10,
+                "p95": 5,
+                "max": 7
+              },
+              "textures": {
+                "median": 0,
+                "p95": 0,
+                "max": 0
+              },
+              "programs": {
+                "median": 1,
+                "p95": 1,
+                "max": 1
+              }
+            },
+            "lightCountMismatchFrames": []
+          },
+          "warm": {
+            "before": {
+              "frames": 255,
+              "treeUpdateMs": {
+                "median": 6.299999997019768,
+                "p95": 8.900000005960464,
+                "max": 15.099999994039536
+              },
+              "completedRenderAwaitMs": {
+                "median": 59.80000001192093,
+                "p95": 78.5,
+                "max": 88
+              },
+              "phases": {
+                "approach": {
+                  "treeUpdateMs": {
+                    "median": 6.799999997019768,
+                    "p95": 9.799999997019768,
+                    "max": 15.099999994039536
+                  },
+                  "completedRenderAwaitMs": {
+                    "median": 62.8999999910593,
+                    "p95": 80.70000000298023,
+                    "max": 87.59999999403954
+                  }
+                },
+                "turn": {
+                  "treeUpdateMs": {
+                    "median": 0.7999999970197678,
+                    "p95": 1.7000000029802322,
+                    "max": 7.199999988079071
+                  },
+                  "completedRenderAwaitMs": {
+                    "median": 49.1000000089407,
+                    "p95": 60.599999994039536,
+                    "max": 69.20000000298023
+                  }
+                },
+                "retreat": {
+                  "treeUpdateMs": {
+                    "median": 6.399999991059303,
+                    "p95": 8.900000005960464,
+                    "max": 10.299999997019768
+                  },
+                  "completedRenderAwaitMs": {
+                    "median": 62.1000000089407,
+                    "p95": 74.79999999701977,
+                    "max": 81.09999999403954
+                  }
+                },
+                "hold": {
+                  "treeUpdateMs": {
+                    "median": 8.100000008940697,
+                    "p95": 10.200000002980232,
+                    "max": 10.200000002980232
+                  },
+                  "completedRenderAwaitMs": {
+                    "median": 74.5,
+                    "p95": 88,
+                    "max": 88
+                  }
+                }
+              },
+              "costs": {
+                "drawCalls": [
+                  149,
+                  290
+                ],
+                "triangles": [
+                  3146335,
+                  5737896
+                ],
+                "geometries": [
+                  501,
+                  513
+                ],
+                "textures": [
+                  91,
+                  91
+                ],
+                "programs": [
+                  100,
+                  100
+                ]
+              },
+              "programs": [
+                100,
+                100
+              ],
+              "visiblePointLights": [
+                19,
+                19
+              ],
+              "totalPointLights": [
+                24,
+                24
+              ],
+              "pools": {
+                "nearCanopyPool": {
+                  "observations": 256,
+                  "capBytes": [
+                    67108864,
+                    67108864
+                  ],
+                  "residentBytes": [
+                    66610962,
+                    67097439
+                  ],
+                  "pinnedBytes": [
+                    30668310,
+                    32212935
+                  ],
+                  "residentItems": [
+                    170,
+                    176
+                  ],
+                  "pinnedItems": [
+                    77,
+                    79
+                  ],
+                  "peakResidentMiB": 63.98910427093506,
+                  "peakPinnedMiB": 30.720648765563965,
+                  "counters": {
+                    "built": {
+                      "start": 232,
+                      "end": 307,
+                      "delta": 75
+                    },
+                    "evicted": {
+                      "start": 171,
+                      "end": 246,
+                      "delta": 75
+                    },
+                    "syncBuilds": {
+                      "start": 117,
+                      "end": 117,
+                      "delta": 0
+                    }
+                  },
+                  "exceedsConfiguredCap": false,
+                  "exceeds64MiB": false,
+                  "overflowObservations": []
+                },
+                "nearBasePool": {
+                  "observations": 256,
+                  "capBytes": [
+                    12582912,
+                    12582912
+                  ],
+                  "residentBytes": [
+                    12218772,
+                    12581436
+                  ],
+                  "pinnedBytes": [
+                    5527200,
+                    6711162
+                  ],
+                  "residentItems": [
+                    11,
+                    11
+                  ],
+                  "pinnedItems": [
+                    5,
+                    6
+                  ],
+                  "peakResidentMiB": 11.998592376708984,
+                  "peakPinnedMiB": 6.400262832641602,
+                  "counters": {
+                    "built": {
+                      "start": 11,
+                      "end": 12,
+                      "delta": 1
+                    },
+                    "evicted": {
+                      "start": 23,
+                      "end": 24,
+                      "delta": 1
+                    },
+                    "syncBuilds": {
+                      "start": 7,
+                      "end": 7,
+                      "delta": 0
+                    }
+                  },
+                  "exceedsConfiguredCap": false,
+                  "exceeds64MiB": null,
+                  "overflowObservations": []
+                }
+              },
+              "events": [],
+              "slowestFrames": [
+                {
+                  "k": 250,
+                  "phase": "hold",
+                  "completedRenderAwaitMs": 88,
+                  "treeUpdateMs": 6.9000000059604645,
+                  "programsDelta": 0,
+                  "visiblePointLights": [
+                    19,
+                    19
+                  ],
+                  "lightCountChanged": false,
+                  "drawCalls": 277,
+                  "triangles": 5527952
+                },
+                {
+                  "k": 23,
+                  "phase": "approach",
+                  "completedRenderAwaitMs": 87.59999999403954,
+                  "treeUpdateMs": 10.099999994039536,
+                  "programsDelta": 0,
+                  "visiblePointLights": [
+                    19,
+                    19
+                  ],
+                  "lightCountChanged": false,
+                  "drawCalls": 263,
+                  "triangles": 4709128
+                },
+                {
+                  "k": 24,
+                  "phase": "approach",
+                  "completedRenderAwaitMs": 85.79999999701977,
+                  "treeUpdateMs": 6.799999997019768,
+                  "programsDelta": 0,
+                  "visiblePointLights": [
+                    19,
+                    19
+                  ],
+                  "lightCountChanged": false,
+                  "drawCalls": 261,
+                  "triangles": 4569119
+                },
+                {
+                  "k": 248,
+                  "phase": "hold",
+                  "completedRenderAwaitMs": 85.79999999701977,
+                  "treeUpdateMs": 9.899999991059303,
+                  "programsDelta": 0,
+                  "visiblePointLights": [
+                    19,
+                    19
+                  ],
+                  "lightCountChanged": false,
+                  "drawCalls": 277,
+                  "triangles": 5515868
+                },
+                {
+                  "k": 249,
+                  "phase": "hold",
+                  "completedRenderAwaitMs": 85.79999999701977,
+                  "treeUpdateMs": 7.200000002980232,
+                  "programsDelta": 0,
+                  "visiblePointLights": [
+                    19,
+                    19
+                  ],
+                  "lightCountChanged": false,
+                  "drawCalls": 277,
+                  "triangles": 5527952
+                },
+                {
+                  "k": 19,
+                  "phase": "approach",
+                  "completedRenderAwaitMs": 82.30000001192093,
+                  "treeUpdateMs": 8.700000002980232,
+                  "programsDelta": 0,
+                  "visiblePointLights": [
+                    19,
+                    19
+                  ],
+                  "lightCountChanged": false,
+                  "drawCalls": 271,
+                  "triangles": 4909718
+                },
+                {
+                  "k": 4,
+                  "phase": "approach",
+                  "completedRenderAwaitMs": 82.09999999403954,
+                  "treeUpdateMs": 8.800000011920929,
+                  "programsDelta": 0,
+                  "visiblePointLights": [
+                    19,
+                    19
+                  ],
+                  "lightCountChanged": false,
+                  "drawCalls": 285,
+                  "triangles": 5697337
+                },
+                {
+                  "k": 252,
+                  "phase": "hold",
+                  "completedRenderAwaitMs": 81.90000000596046,
+                  "treeUpdateMs": 8.200000002980232,
+                  "programsDelta": 0,
+                  "visiblePointLights": [
+                    19,
+                    19
+                  ],
+                  "lightCountChanged": false,
+                  "drawCalls": 277,
+                  "triangles": 5527952
+                }
+              ]
+            },
+            "after": {
+              "frames": 255,
+              "treeUpdateMs": {
+                "median": 6.5,
+                "p95": 8.900000005960464,
+                "max": 19.099999994039536
+              },
+              "completedRenderAwaitMs": {
+                "median": 51.599999994039536,
+                "p95": 64.3999999910593,
+                "max": 80.40000000596046
+              },
+              "phases": {
+                "approach": {
+                  "treeUpdateMs": {
+                    "median": 6.799999997019768,
+                    "p95": 10.200000002980232,
+                    "max": 19.099999994039536
+                  },
+                  "completedRenderAwaitMs": {
+                    "median": 55.20000000298023,
+                    "p95": 65.20000000298023,
+                    "max": 80.40000000596046
+                  }
+                },
+                "turn": {
+                  "treeUpdateMs": {
+                    "median": 3.7000000029802322,
+                    "p95": 7.299999997019768,
+                    "max": 7.399999991059303
+                  },
+                  "completedRenderAwaitMs": {
+                    "median": 44.6000000089407,
+                    "p95": 51.3999999910593,
+                    "max": 56
+                  }
+                },
+                "retreat": {
+                  "treeUpdateMs": {
+                    "median": 6.700000002980232,
+                    "p95": 9,
+                    "max": 9.299999997019768
+                  },
+                  "completedRenderAwaitMs": {
+                    "median": 55.30000001192093,
+                    "p95": 65.09999999403954,
+                    "max": 67.40000000596046
+                  }
+                },
+                "hold": {
+                  "treeUpdateMs": {
+                    "median": 4.200000002980232,
+                    "p95": 7.299999997019768,
+                    "max": 7.299999997019768
+                  },
+                  "completedRenderAwaitMs": {
+                    "median": 57.1000000089407,
+                    "p95": 67.8999999910593,
+                    "max": 67.8999999910593
+                  }
+                }
+              },
+              "costs": {
+                "drawCalls": [
+                  152,
+                  292
+                ],
+                "triangles": [
+                  4041532,
+                  6195917
+                ],
+                "geometries": [
+                  489,
+                  504
+                ],
+                "textures": [
+                  91,
+                  91
+                ],
+                "programs": [
+                  101,
+                  101
+                ]
+              },
+              "programs": [
+                101,
+                101
+              ],
+              "visiblePointLights": [
+                19,
+                19
+              ],
+              "totalPointLights": [
+                24,
+                24
+              ],
+              "pools": {
+                "nearCanopyPool": {
+                  "observations": 256,
+                  "capBytes": [
+                    67108864,
+                    67108864
+                  ],
+                  "residentBytes": [
+                    66617517,
+                    67107579
+                  ],
+                  "pinnedBytes": [
+                    46365666,
+                    47940087
+                  ],
+                  "residentItems": [
+                    135,
+                    140
+                  ],
+                  "pinnedItems": [
+                    79,
+                    82
+                  ],
+                  "peakResidentMiB": 63.99877452850342,
+                  "peakPinnedMiB": 45.71922969818115,
+                  "counters": {
+                    "built": {
+                      "start": 245,
+                      "end": 333,
+                      "delta": 88
+                    },
+                    "evicted": {
+                      "start": 225,
+                      "end": 313,
+                      "delta": 88
+                    },
+                    "syncBuilds": {
+                      "start": 127,
+                      "end": 127,
+                      "delta": 0
+                    }
+                  },
+                  "exceedsConfiguredCap": false,
+                  "exceeds64MiB": false,
+                  "overflowObservations": []
+                },
+                "nearBasePool": {
+                  "observations": 256,
+                  "capBytes": [
+                    12582912,
+                    12582912
+                  ],
+                  "residentBytes": [
+                    12218772,
+                    12581436
+                  ],
+                  "pinnedBytes": [
+                    5527200,
+                    6711162
+                  ],
+                  "residentItems": [
+                    11,
+                    11
+                  ],
+                  "pinnedItems": [
+                    5,
+                    6
+                  ],
+                  "peakResidentMiB": 11.998592376708984,
+                  "peakPinnedMiB": 6.400262832641602,
+                  "counters": {
+                    "built": {
+                      "start": 10,
+                      "end": 12,
+                      "delta": 2
+                    },
+                    "evicted": {
+                      "start": 22,
+                      "end": 24,
+                      "delta": 2
+                    },
+                    "syncBuilds": {
+                      "start": 7,
+                      "end": 7,
+                      "delta": 0
+                    }
+                  },
+                  "exceedsConfiguredCap": false,
+                  "exceeds64MiB": null,
+                  "overflowObservations": []
+                }
+              },
+              "events": [],
+              "slowestFrames": [
+                {
+                  "k": 2,
+                  "phase": "approach",
+                  "completedRenderAwaitMs": 80.40000000596046,
+                  "treeUpdateMs": 19.099999994039536,
+                  "programsDelta": 0,
+                  "visiblePointLights": [
+                    19,
+                    19
+                  ],
+                  "lightCountChanged": false,
+                  "drawCalls": 285,
+                  "triangles": 6107675
+                },
+                {
+                  "k": 6,
+                  "phase": "approach",
+                  "completedRenderAwaitMs": 70.40000000596046,
+                  "treeUpdateMs": 9.100000008940697,
+                  "programsDelta": 0,
+                  "visiblePointLights": [
+                    19,
+                    19
+                  ],
+                  "lightCountChanged": false,
+                  "drawCalls": 292,
+                  "triangles": 6187985
+                },
+                {
+                  "k": 1,
+                  "phase": "approach",
+                  "completedRenderAwaitMs": 70.29999999701977,
+                  "treeUpdateMs": 16.700000002980232,
+                  "programsDelta": 0,
+                  "visiblePointLights": [
+                    19,
+                    19
+                  ],
+                  "lightCountChanged": false,
+                  "drawCalls": 284,
+                  "triangles": 6065942
+                },
+                {
+                  "k": 249,
+                  "phase": "hold",
+                  "completedRenderAwaitMs": 67.8999999910593,
+                  "treeUpdateMs": 4.799999997019768,
+                  "programsDelta": 0,
+                  "visiblePointLights": [
+                    19,
+                    19
+                  ],
+                  "lightCountChanged": false,
+                  "drawCalls": 278,
+                  "triangles": 5899325
+                },
+                {
+                  "k": 217,
+                  "phase": "retreat",
+                  "completedRenderAwaitMs": 67.40000000596046,
+                  "treeUpdateMs": 8.099999994039536,
+                  "programsDelta": 0,
+                  "visiblePointLights": [
+                    19,
+                    19
+                  ],
+                  "lightCountChanged": false,
+                  "drawCalls": 268,
+                  "triangles": 5453698
+                },
+                {
+                  "k": 20,
+                  "phase": "approach",
+                  "completedRenderAwaitMs": 66.8999999910593,
+                  "treeUpdateMs": 8.300000011920929,
+                  "programsDelta": 0,
+                  "visiblePointLights": [
+                    19,
+                    19
+                  ],
+                  "lightCountChanged": false,
+                  "drawCalls": 273,
+                  "triangles": 5708702
+                },
+                {
+                  "k": 220,
+                  "phase": "retreat",
+                  "completedRenderAwaitMs": 66.8999999910593,
+                  "treeUpdateMs": 6.899999991059303,
+                  "programsDelta": 0,
+                  "visiblePointLights": [
+                    19,
+                    19
+                  ],
+                  "lightCountChanged": false,
+                  "drawCalls": 274,
+                  "triangles": 5615063
+                },
+                {
+                  "k": 224,
+                  "phase": "retreat",
+                  "completedRenderAwaitMs": 66.1000000089407,
+                  "treeUpdateMs": 6.700000002980232,
+                  "programsDelta": 0,
+                  "visiblePointLights": [
+                    19,
+                    19
+                  ],
+                  "lightCountChanged": false,
+                  "drawCalls": 277,
+                  "triangles": 5886516
+                }
+              ]
+            },
+            "pairedDelta": {
+              "treeUpdateMs": {
+                "median": 0.3999999910593033,
+                "p95": 6.100000008940697,
+                "max": 12.699999988079071
+              },
+              "completedMs": {
+                "median": -6.799999997019768,
+                "p95": 2.300000011920929,
+                "max": 13.5
+              },
+              "drawCalls": {
+                "median": 3,
+                "p95": 3,
+                "max": 3
+              },
+              "triangles": {
+                "median": 895197,
+                "p95": 895197,
+                "max": 895197
+              },
+              "geometries": {
+                "median": -13,
+                "p95": -1,
+                "max": 1
+              },
+              "textures": {
+                "median": 0,
+                "p95": 0,
+                "max": 0
+              },
+              "programs": {
+                "median": 1,
+                "p95": 1,
+                "max": 1
+              }
+            },
+            "lightCountMismatchFrames": []
+          }
+        },
+        "firstPose": [
+          {
+            "firstPoseMs": 1036,
+            "pools": {
+              "nearCanopyPool": {
+                "observations": 2,
+                "capBytes": [
+                  67108864,
+                  67108864
+                ],
+                "residentBytes": [
+                  63112017,
+                  66891804
+                ],
+                "pinnedBytes": [
+                  32042085,
+                  35281374
+                ],
+                "residentItems": [
+                  172,
+                  173
+                ],
+                "pinnedItems": [
+                  79,
+                  79
+                ],
+                "peakResidentMiB": 63.79299545288086,
+                "peakPinnedMiB": 33.64694023132324,
+                "counters": {
+                  "built": {
+                    "start": 63,
+                    "end": 117,
+                    "delta": 54
+                  },
+                  "evicted": {
+                    "start": 0,
+                    "end": 55,
+                    "delta": 55
+                  },
+                  "syncBuilds": {
+                    "start": 63,
+                    "end": 117,
+                    "delta": 54
+                  }
+                },
+                "exceedsConfiguredCap": false,
+                "exceeds64MiB": false,
+                "overflowObservations": []
+              },
+              "nearBasePool": {
+                "observations": 2,
+                "capBytes": [
+                  12582912,
+                  12582912
+                ],
+                "residentBytes": [
+                  12344613,
+                  12396141
+                ],
+                "pinnedBytes": [
+                  2810859,
+                  5709186
+                ],
+                "residentItems": [
+                  10,
+                  10
+                ],
+                "pinnedItems": [
+                  2,
+                  5
+                ],
+                "peakResidentMiB": 11.821881294250488,
+                "peakPinnedMiB": 5.444704055786133,
+                "counters": {
+                  "built": {
+                    "start": 0,
+                    "end": 5,
+                    "delta": 5
+                  },
+                  "evicted": {
+                    "start": 13,
+                    "end": 18,
+                    "delta": 5
+                  },
+                  "syncBuilds": {
+                    "start": 0,
+                    "end": 5,
+                    "delta": 5
+                  }
+                },
+                "exceedsConfiguredCap": false,
+                "exceeds64MiB": null,
+                "overflowObservations": []
+              }
+            }
+          },
+          {
+            "firstPoseMs": 1553.5,
+            "pools": {
+              "nearCanopyPool": {
+                "observations": 2,
+                "capBytes": [
+                  67108864,
+                  67108864
+                ],
+                "residentBytes": [
+                  66958524,
+                  67003688
+                ],
+                "pinnedBytes": [
+                  35281374,
+                  54872345
+                ],
+                "residentItems": [
+                  99,
+                  111
+                ],
+                "pinnedItems": [
+                  79,
+                  83
+                ],
+                "peakResidentMiB": 63.899696350097656,
+                "peakPinnedMiB": 52.33034610748291,
+                "counters": {
+                  "built": {
+                    "start": 63,
+                    "end": 127,
+                    "delta": 64
+                  },
+                  "evicted": {
+                    "start": 80,
+                    "end": 132,
+                    "delta": 52
+                  },
+                  "syncBuilds": {
+                    "start": 63,
+                    "end": 127,
+                    "delta": 64
+                  }
+                },
+                "exceedsConfiguredCap": false,
+                "exceeds64MiB": false,
+                "overflowObservations": []
+              },
+              "nearBasePool": {
+                "observations": 2,
+                "capBytes": [
+                  12582912,
+                  12582912
+                ],
+                "residentBytes": [
+                  12344613,
+                  12396141
+                ],
+                "pinnedBytes": [
+                  2810859,
+                  5709186
+                ],
+                "residentItems": [
+                  10,
+                  10
+                ],
+                "pinnedItems": [
+                  2,
+                  5
+                ],
+                "peakResidentMiB": 11.821881294250488,
+                "peakPinnedMiB": 5.444704055786133,
+                "counters": {
+                  "built": {
+                    "start": 0,
+                    "end": 5,
+                    "delta": 5
+                  },
+                  "evicted": {
+                    "start": 13,
+                    "end": 18,
+                    "delta": 5
+                  },
+                  "syncBuilds": {
+                    "start": 0,
+                    "end": 5,
+                    "delta": 5
+                  }
+                },
+                "exceedsConfiguredCap": false,
+                "exceeds64MiB": null,
+                "overflowObservations": []
+              }
+            }
+          }
+        ]
+      }
+    }
+  ],
+  "fixedViews": {
+    "A_stairs": {
+      "before": {
+        "simTime": 12.6,
+        "drawCalls": 484,
+        "triangles": 8757903,
+        "geometries": 457,
+        "textures": 91,
+        "programs": 103,
+        "width": 1280,
+        "height": 720,
+        "pixelRatio": 1
+      },
+      "after": {
+        "simTime": 12.6,
+        "drawCalls": 484,
+        "triangles": 8757903,
+        "geometries": 444,
+        "textures": 91,
+        "programs": 104,
+        "width": 1280,
+        "height": 720,
+        "pixelRatio": 1
+      },
+      "delta": {
+        "drawCalls": 0,
+        "triangles": 0,
+        "geometries": -13,
+        "textures": 0,
+        "programs": 1
+      },
+      "pixelIdentical": true,
+      "pngByteIdentical": true,
+      "changedPixels": 0,
+      "changedFraction": 0,
+      "meanAbsoluteChannelError255": 0,
+      "maxChannelError255": 0,
+      "sha256": [
+        "db8bc9f60b8430b4e06926f31f91a4f7306094e54f3e0039f875460245a2c6cf",
+        "db8bc9f60b8430b4e06926f31f91a4f7306094e54f3e0039f875460245a2c6cf"
+      ],
+      "distantClose": {
+        "slots": 8,
+        "active": 0,
+        "fadeM": [
+          18,
+          26
+        ],
+        "prefetchM": 34,
+        "triangleCeiling": 1040000,
+        "triangles": 0,
+        "draws": 0,
+        "sharedBytes": 25542078,
+        "weights": [],
+        "fallback": "Existing crown geometry retained for every tree without close detail."
+      },
+      "canopyPools": [
+        {
+          "observations": 1,
+          "capBytes": [
+            67108864,
+            67108864
+          ],
+          "residentBytes": [
+            66879519,
+            66879519
+          ],
+          "pinnedBytes": [
+            35281374,
+            35281374
+          ],
+          "residentItems": [
+            152,
+            152
+          ],
+          "pinnedItems": [
+            79,
+            79
+          ],
+          "peakResidentMiB": 63.78127956390381,
+          "peakPinnedMiB": 33.64694023132324,
+          "counters": {
+            "built": {
+              "start": 375,
+              "end": 375,
+              "delta": 0
+            },
+            "evicted": {
+              "start": 333,
+              "end": 333,
+              "delta": 0
+            },
+            "syncBuilds": {
+              "start": 183,
+              "end": 183,
+              "delta": 0
+            }
+          },
+          "exceedsConfiguredCap": false,
+          "exceeds64MiB": false,
+          "overflowObservations": []
+        },
+        {
+          "observations": 1,
+          "capBytes": [
+            67108864,
+            67108864
+          ],
+          "residentBytes": [
+            66951861,
+            66951861
+          ],
+          "pinnedBytes": [
+            35281374,
+            35281374
+          ],
+          "residentItems": [
+            119,
+            119
+          ],
+          "pinnedItems": [
+            79,
+            79
+          ],
+          "peakResidentMiB": 63.85027027130127,
+          "peakPinnedMiB": 33.64694023132324,
+          "counters": {
+            "built": {
+              "start": 408,
+              "end": 408,
+              "delta": 0
+            },
+            "evicted": {
+              "start": 405,
+              "end": 405,
+              "delta": 0
+            },
+            "syncBuilds": {
+              "start": 200,
+              "end": 200,
+              "delta": 0
+            }
+          },
+          "exceedsConfiguredCap": false,
+          "exceeds64MiB": false,
+          "overflowObservations": []
+        }
+      ],
+      "observedEquality": {
+        "pixels": true,
+        "pngBytes": true,
+        "submittedCosts": true,
+        "closeSlotsZero": true
+      }
+    },
+    "B_house": {
+      "before": {
+        "simTime": 12.6,
+        "drawCalls": 472,
+        "triangles": 7960753,
+        "geometries": 479,
+        "textures": 91,
+        "programs": 103,
+        "width": 1280,
+        "height": 720,
+        "pixelRatio": 1
+      },
+      "after": {
+        "simTime": 12.6,
+        "drawCalls": 472,
+        "triangles": 7960753,
+        "geometries": 461,
+        "textures": 91,
+        "programs": 104,
+        "width": 1280,
+        "height": 720,
+        "pixelRatio": 1
+      },
+      "delta": {
+        "drawCalls": 0,
+        "triangles": 0,
+        "geometries": -18,
+        "textures": 0,
+        "programs": 1
+      },
+      "pixelIdentical": true,
+      "pngByteIdentical": true,
+      "changedPixels": 0,
+      "changedFraction": 0,
+      "meanAbsoluteChannelError255": 0,
+      "maxChannelError255": 0,
+      "sha256": [
+        "a27baae17fd63f4c4051fd8451acb59374a5ba11bb026408665227bd78c9fa27",
+        "a27baae17fd63f4c4051fd8451acb59374a5ba11bb026408665227bd78c9fa27"
+      ],
+      "distantClose": {
+        "slots": 8,
+        "active": 0,
+        "fadeM": [
+          18,
+          26
+        ],
+        "prefetchM": 34,
+        "triangleCeiling": 1040000,
+        "triangles": 0,
+        "draws": 0,
+        "sharedBytes": 25542078,
+        "weights": [],
+        "fallback": "Existing crown geometry retained for every tree without close detail."
+      },
+      "canopyPools": [
+        {
+          "observations": 1,
+          "capBytes": [
+            67108864,
+            67108864
+          ],
+          "residentBytes": [
+            66971031,
+            66971031
+          ],
+          "pinnedBytes": [
+            36015954,
+            36015954
+          ],
+          "residentItems": [
+            156,
+            156
+          ],
+          "pinnedItems": [
+            79,
+            79
+          ],
+          "peakResidentMiB": 63.86855220794678,
+          "peakPinnedMiB": 34.347490310668945,
+          "counters": {
+            "built": {
+              "start": 387,
+              "end": 387,
+              "delta": 0
+            },
+            "evicted": {
+              "start": 341,
+              "end": 341,
+              "delta": 0
+            },
+            "syncBuilds": {
+              "start": 195,
+              "end": 195,
+              "delta": 0
+            }
+          },
+          "exceedsConfiguredCap": false,
+          "exceeds64MiB": false,
+          "overflowObservations": []
+        },
+        {
+          "observations": 1,
+          "capBytes": [
+            67108864,
+            67108864
+          ],
+          "residentBytes": [
+            63556348,
+            63556348
+          ],
+          "pinnedBytes": [
+            36015954,
+            36015954
+          ],
+          "residentItems": [
+            131,
+            131
+          ],
+          "pinnedItems": [
+            79,
+            79
+          ],
+          "peakResidentMiB": 60.612056732177734,
+          "peakPinnedMiB": 34.347490310668945,
+          "counters": {
+            "built": {
+              "start": 433,
+              "end": 433,
+              "delta": 0
+            },
+            "evicted": {
+              "start": 418,
+              "end": 418,
+              "delta": 0
+            },
+            "syncBuilds": {
+              "start": 219,
+              "end": 219,
+              "delta": 0
+            }
+          },
+          "exceedsConfiguredCap": false,
+          "exceeds64MiB": false,
+          "overflowObservations": []
+        }
+      ]
+    },
+    "C_lookback": {
+      "before": {
+        "simTime": 12.6,
+        "drawCalls": 378,
+        "triangles": 6927571,
+        "geometries": 530,
+        "textures": 91,
+        "programs": 103,
+        "width": 1280,
+        "height": 720,
+        "pixelRatio": 1
+      },
+      "after": {
+        "simTime": 12.6,
+        "drawCalls": 378,
+        "triangles": 6927571,
+        "geometries": 520,
+        "textures": 91,
+        "programs": 104,
+        "width": 1280,
+        "height": 720,
+        "pixelRatio": 1
+      },
+      "delta": {
+        "drawCalls": 0,
+        "triangles": 0,
+        "geometries": -10,
+        "textures": 0,
+        "programs": 1
+      },
+      "pixelIdentical": false,
+      "pngByteIdentical": false,
+      "changedPixels": 2,
+      "changedFraction": 0.000002170138888888889,
+      "meanAbsoluteChannelError255": 7.233796296296296e-7,
+      "maxChannelError255": 1,
+      "sha256": [
+        "43b7337124f5a688b227d75ad48d433beec4335160017ed39af889e705183311",
+        "243fd4702234c66c899331461416012b71454930c003c6c385e77b44c310e851"
+      ],
+      "distantClose": {
+        "slots": 8,
+        "active": 0,
+        "fadeM": [
+          18,
+          26
+        ],
+        "prefetchM": 34,
+        "triangleCeiling": 1040000,
+        "triangles": 0,
+        "draws": 0,
+        "sharedBytes": 25542078,
+        "weights": [],
+        "fallback": "Existing crown geometry retained for every tree without close detail."
+      },
+      "canopyPools": [
+        {
+          "observations": 1,
+          "capBytes": [
+            67108864,
+            67108864
+          ],
+          "residentBytes": [
+            66992301,
+            66992301
+          ],
+          "pinnedBytes": [
+            33395511,
+            33395511
+          ],
+          "residentItems": [
+            163,
+            163
+          ],
+          "pinnedItems": [
+            79,
+            79
+          ],
+          "peakResidentMiB": 63.88883686065674,
+          "peakPinnedMiB": 31.848441123962402,
+          "counters": {
+            "built": {
+              "start": 406,
+              "end": 406,
+              "delta": 0
+            },
+            "evicted": {
+              "start": 353,
+              "end": 353,
+              "delta": 0
+            },
+            "syncBuilds": {
+              "start": 211,
+              "end": 211,
+              "delta": 0
+            }
+          },
+          "exceedsConfiguredCap": false,
+          "exceeds64MiB": false,
+          "overflowObservations": []
+        },
+        {
+          "observations": 1,
+          "capBytes": [
+            67108864,
+            67108864
+          ],
+          "residentBytes": [
+            63074900,
+            63074900
+          ],
+          "pinnedBytes": [
+            33395511,
+            33395511
+          ],
+          "residentItems": [
+            150,
+            150
+          ],
+          "pinnedItems": [
+            79,
+            79
+          ],
+          "peakResidentMiB": 60.15291213989258,
+          "peakPinnedMiB": 31.848441123962402,
+          "counters": {
+            "built": {
+              "start": 453,
+              "end": 453,
+              "delta": 0
+            },
+            "evicted": {
+              "start": 419,
+              "end": 419,
+              "delta": 0
+            },
+            "syncBuilds": {
+              "start": 235,
+              "end": 235,
+              "delta": 0
+            }
+          },
+          "exceedsConfiguredCap": false,
+          "exceeds64MiB": false,
+          "overflowObservations": []
+        }
+      ]
+    },
+    "D_log": {
+      "before": {
+        "simTime": 12.6,
+        "drawCalls": 440,
+        "triangles": 8122467,
+        "geometries": 546,
+        "textures": 91,
+        "programs": 103,
+        "width": 1280,
+        "height": 720,
+        "pixelRatio": 1
+      },
+      "after": {
+        "simTime": 12.6,
+        "drawCalls": 440,
+        "triangles": 8122467,
+        "geometries": 538,
+        "textures": 91,
+        "programs": 104,
+        "width": 1280,
+        "height": 720,
+        "pixelRatio": 1
+      },
+      "delta": {
+        "drawCalls": 0,
+        "triangles": 0,
+        "geometries": -8,
+        "textures": 0,
+        "programs": 1
+      },
+      "pixelIdentical": false,
+      "pngByteIdentical": false,
+      "changedPixels": 1,
+      "changedFraction": 0.0000010850694444444444,
+      "meanAbsoluteChannelError255": 3.616898148148148e-7,
+      "maxChannelError255": 1,
+      "sha256": [
+        "0e3abae73579756ca9494c0ec07399b31671bb8e42a92a11d4d7a6d589ef19ea",
+        "044994c4800844a639ab6dc26beff58d12e30131f403743a564ea3fa78ab5106"
+      ],
+      "distantClose": {
+        "slots": 8,
+        "active": 0,
+        "fadeM": [
+          18,
+          26
+        ],
+        "prefetchM": 34,
+        "triangleCeiling": 1040000,
+        "triangles": 0,
+        "draws": 0,
+        "sharedBytes": 25542078,
+        "weights": [],
+        "fallback": "Existing crown geometry retained for every tree without close detail."
+      },
+      "canopyPools": [
+        {
+          "observations": 1,
+          "capBytes": [
+            67108864,
+            67108864
+          ],
+          "residentBytes": [
+            67028073,
+            67028073
+          ],
+          "pinnedBytes": [
+            34808541,
+            34808541
+          ],
+          "residentItems": [
+            163,
+            163
+          ],
+          "pinnedItems": [
+            79,
+            79
+          ],
+          "peakResidentMiB": 63.92295169830322,
+          "peakPinnedMiB": 33.196011543273926,
+          "counters": {
+            "built": {
+              "start": 409,
+              "end": 409,
+              "delta": 0
+            },
+            "evicted": {
+              "start": 356,
+              "end": 356,
+              "delta": 0
+            },
+            "syncBuilds": {
+              "start": 212,
+              "end": 212,
+              "delta": 0
+            }
+          },
+          "exceedsConfiguredCap": false,
+          "exceeds64MiB": false,
+          "overflowObservations": []
+        },
+        {
+          "observations": 1,
+          "capBytes": [
+            67108864,
+            67108864
+          ],
+          "residentBytes": [
+            65634374,
+            65634374
+          ],
+          "pinnedBytes": [
+            34808541,
+            34808541
+          ],
+          "residentItems": [
+            158,
+            158
+          ],
+          "pinnedItems": [
+            79,
+            79
+          ],
+          "peakResidentMiB": 62.59381675720215,
+          "peakPinnedMiB": 33.196011543273926,
+          "counters": {
+            "built": {
+              "start": 461,
+              "end": 461,
+              "delta": 0
+            },
+            "evicted": {
+              "start": 419,
+              "end": 419,
+              "delta": 0
+            },
+            "syncBuilds": {
+              "start": 237,
+              "end": 237,
+              "delta": 0
+            }
+          },
+          "exceedsConfiguredCap": false,
+          "exceeds64MiB": false,
+          "overflowObservations": []
+        }
+      ]
+    },
+    "E_ground": {
+      "before": {
+        "simTime": 12.6,
+        "drawCalls": 472,
+        "triangles": 7960753,
+        "geometries": 546,
+        "textures": 91,
+        "programs": 103,
+        "width": 1280,
+        "height": 720,
+        "pixelRatio": 1
+      },
+      "after": {
+        "simTime": 12.6,
+        "drawCalls": 472,
+        "triangles": 7960753,
+        "geometries": 537,
+        "textures": 91,
+        "programs": 104,
+        "width": 1280,
+        "height": 720,
+        "pixelRatio": 1
+      },
+      "delta": {
+        "drawCalls": 0,
+        "triangles": 0,
+        "geometries": -9,
+        "textures": 0,
+        "programs": 1
+      },
+      "pixelIdentical": true,
+      "pngByteIdentical": true,
+      "changedPixels": 0,
+      "changedFraction": 0,
+      "meanAbsoluteChannelError255": 0,
+      "maxChannelError255": 0,
+      "sha256": [
+        "a27baae17fd63f4c4051fd8451acb59374a5ba11bb026408665227bd78c9fa27",
+        "a27baae17fd63f4c4051fd8451acb59374a5ba11bb026408665227bd78c9fa27"
+      ],
+      "distantClose": {
+        "slots": 8,
+        "active": 0,
+        "fadeM": [
+          18,
+          26
+        ],
+        "prefetchM": 34,
+        "triangleCeiling": 1040000,
+        "triangles": 0,
+        "draws": 0,
+        "sharedBytes": 25542078,
+        "weights": [],
+        "fallback": "Existing crown geometry retained for every tree without close detail."
+      },
+      "canopyPools": [
+        {
+          "observations": 1,
+          "capBytes": [
+            67108864,
+            67108864
+          ],
+          "residentBytes": [
+            66683967,
+            66683967
+          ],
+          "pinnedBytes": [
+            36015954,
+            36015954
+          ],
+          "residentItems": [
+            162,
+            162
+          ],
+          "pinnedItems": [
+            79,
+            79
+          ],
+          "peakResidentMiB": 63.594786643981934,
+          "peakPinnedMiB": 34.347490310668945,
+          "counters": {
+            "built": {
+              "start": 410,
+              "end": 410,
+              "delta": 0
+            },
+            "evicted": {
+              "start": 358,
+              "end": 358,
+              "delta": 0
+            },
+            "syncBuilds": {
+              "start": 212,
+              "end": 212,
+              "delta": 0
+            }
+          },
+          "exceedsConfiguredCap": false,
+          "exceeds64MiB": false,
+          "overflowObservations": []
+        },
+        {
+          "observations": 1,
+          "capBytes": [
+            67108864,
+            67108864
+          ],
+          "residentBytes": [
+            65840040,
+            65840040
+          ],
+          "pinnedBytes": [
+            36015954,
+            36015954
+          ],
+          "residentItems": [
+            163,
+            163
+          ],
+          "pinnedItems": [
+            79,
+            79
+          ],
+          "peakResidentMiB": 62.789955139160156,
+          "peakPinnedMiB": 34.347490310668945,
+          "counters": {
+            "built": {
+              "start": 467,
+              "end": 467,
+              "delta": 0
+            },
+            "evicted": {
+              "start": 420,
+              "end": 420,
+              "delta": 0
+            },
+            "syncBuilds": {
+              "start": 237,
+              "end": 237,
+              "delta": 0
+            }
+          },
+          "exceedsConfiguredCap": false,
+          "exceeds64MiB": false,
+          "overflowObservations": []
+        }
+      ]
+    },
+    "F_canopy": {
+      "before": {
+        "simTime": 12.6,
+        "drawCalls": 451,
+        "triangles": 8177841,
+        "geometries": 561,
+        "textures": 91,
+        "programs": 103,
+        "width": 1280,
+        "height": 720,
+        "pixelRatio": 1
+      },
+      "after": {
+        "simTime": 12.6,
+        "drawCalls": 451,
+        "triangles": 8177841,
+        "geometries": 553,
+        "textures": 91,
+        "programs": 104,
+        "width": 1280,
+        "height": 720,
+        "pixelRatio": 1
+      },
+      "delta": {
+        "drawCalls": 0,
+        "triangles": 0,
+        "geometries": -8,
+        "textures": 0,
+        "programs": 1
+      },
+      "pixelIdentical": false,
+      "pngByteIdentical": false,
+      "changedPixels": 1,
+      "changedFraction": 0.0000010850694444444444,
+      "meanAbsoluteChannelError255": 3.616898148148148e-7,
+      "maxChannelError255": 1,
+      "sha256": [
+        "eeb1516f4272777e04311f35a4c39fa437767c41d248a9346069bd8b1f1ad96b",
+        "7f24d749c25143fdc466ec04f65b1b40be156531b6e4b97bfdd4200d111f7a28"
+      ],
+      "distantClose": {
+        "slots": 8,
+        "active": 0,
+        "fadeM": [
+          18,
+          26
+        ],
+        "prefetchM": 34,
+        "triangleCeiling": 1040000,
+        "triangles": 0,
+        "draws": 0,
+        "sharedBytes": 25542078,
+        "weights": [],
+        "fallback": "Existing crown geometry retained for every tree without close detail."
+      },
+      "canopyPools": [
+        {
+          "observations": 1,
+          "capBytes": [
+            67108864,
+            67108864
+          ],
+          "residentBytes": [
+            67017270,
+            67017270
+          ],
+          "pinnedBytes": [
+            35485578,
+            35485578
+          ],
+          "residentItems": [
+            162,
+            162
+          ],
+          "pinnedItems": [
+            79,
+            79
+          ],
+          "peakResidentMiB": 63.912649154663086,
+          "peakPinnedMiB": 33.841684341430664,
+          "counters": {
+            "built": {
+              "start": 414,
+              "end": 414,
+              "delta": 0
+            },
+            "evicted": {
+              "start": 362,
+              "end": 362,
+              "delta": 0
+            },
+            "syncBuilds": {
+              "start": 214,
+              "end": 214,
+              "delta": 0
+            }
+          },
+          "exceedsConfiguredCap": false,
+          "exceeds64MiB": false,
+          "overflowObservations": []
+        },
+        {
+          "observations": 1,
+          "capBytes": [
+            67108864,
+            67108864
+          ],
+          "residentBytes": [
+            67052628,
+            67052628
+          ],
+          "pinnedBytes": [
+            35485578,
+            35485578
+          ],
+          "residentItems": [
+            165,
+            165
+          ],
+          "pinnedItems": [
+            79,
+            79
+          ],
+          "peakResidentMiB": 63.94636917114258,
+          "peakPinnedMiB": 33.841684341430664,
+          "counters": {
+            "built": {
+              "start": 471,
+              "end": 471,
+              "delta": 0
+            },
+            "evicted": {
+              "start": 422,
+              "end": 422,
+              "delta": 0
+            },
+            "syncBuilds": {
+              "start": 237,
+              "end": 237,
+              "delta": 0
+            }
+          },
+          "exceedsConfiguredCap": false,
+          "exceeds64MiB": false,
+          "overflowObservations": []
+        }
+      ],
+      "observedEquality": {
+        "pixels": false,
+        "pngBytes": false,
+        "submittedCosts": true,
+        "closeSlotsZero": true
+      }
+    },
+    "w19-spine-u": {
+      "before": {
+        "simTime": 12.6,
+        "drawCalls": 177,
+        "triangles": 3469533,
+        "geometries": 561,
+        "textures": 91,
+        "programs": 103,
+        "width": 1280,
+        "height": 720,
+        "pixelRatio": 1
+      },
+      "after": {
+        "simTime": 12.6,
+        "drawCalls": 179,
+        "triangles": 4443103,
+        "geometries": 554,
+        "textures": 91,
+        "programs": 104,
+        "width": 1280,
+        "height": 720,
+        "pixelRatio": 1
+      },
+      "delta": {
+        "drawCalls": 2,
+        "triangles": 973570,
+        "geometries": -7,
+        "textures": 0,
+        "programs": 1
+      },
+      "pixelIdentical": false,
+      "pngByteIdentical": false,
+      "changedPixels": 263084,
+      "changedFraction": 0.2854644097222222,
+      "meanAbsoluteChannelError255": 8.457931857638888,
+      "maxChannelError255": 152,
+      "sha256": [
+        "ea77dca86ef3fe0128eea448446f54b7ea82fd1b7b2ec7de2b9c2cde6f3b0179",
+        "2bedc764f39da35317efe1f059a500e710839cb6c482034108010e3f51480bcb"
+      ],
+      "distantClose": {
+        "slots": 8,
+        "active": 8,
+        "fadeM": [
+          18,
+          26
+        ],
+        "prefetchM": 34,
+        "triangleCeiling": 1040000,
+        "triangles": 973570,
+        "draws": 2,
+        "sharedBytes": 25542078,
+        "weights": [
+          [
+            4,
+            1
+          ],
+          [
+            5,
+            1
+          ],
+          [
+            6,
+            1
+          ],
+          [
+            3,
+            1
+          ],
+          [
+            7,
+            1
+          ],
+          [
+            8,
+            1
+          ],
+          [
+            10,
+            1
+          ],
+          [
+            2,
+            1
+          ]
+        ],
+        "fallback": "Existing crown geometry retained for every tree without close detail."
+      },
+      "canopyPools": [
+        {
+          "observations": 1,
+          "capBytes": [
+            67108864,
+            67108864
+          ],
+          "residentBytes": [
+            66972318,
+            66972318
+          ],
+          "pinnedBytes": [
+            30318588,
+            30318588
+          ],
+          "residentItems": [
+            165,
+            165
+          ],
+          "pinnedItems": [
+            76,
+            76
+          ],
+          "peakResidentMiB": 63.86977958679199,
+          "peakPinnedMiB": 28.914058685302734,
+          "counters": {
+            "built": {
+              "start": 482,
+              "end": 482,
+              "delta": 0
+            },
+            "evicted": {
+              "start": 427,
+              "end": 427,
+              "delta": 0
+            },
+            "syncBuilds": {
+              "start": 278,
+              "end": 278,
+              "delta": 0
+            }
+          },
+          "exceedsConfiguredCap": false,
+          "exceeds64MiB": false,
+          "overflowObservations": []
+        },
+        {
+          "observations": 1,
+          "capBytes": [
+            67108864,
+            67108864
+          ],
+          "residentBytes": [
+            66879994,
+            66879994
+          ],
+          "pinnedBytes": [
+            44016412,
+            44016412
+          ],
+          "residentItems": [
+            133,
+            133
+          ],
+          "pinnedItems": [
+            78,
+            78
+          ],
+          "peakResidentMiB": 63.7817325592041,
+          "peakPinnedMiB": 41.97732162475586,
+          "counters": {
+            "built": {
+              "start": 542,
+              "end": 542,
+              "delta": 0
+            },
+            "evicted": {
+              "start": 525,
+              "end": 525,
+              "delta": 0
+            },
+            "syncBuilds": {
+              "start": 308,
+              "end": 308,
+              "delta": 0
+            }
+          },
+          "exceedsConfiguredCap": false,
+          "exceeds64MiB": false,
+          "overflowObservations": []
+        }
+      ]
+    },
+    "reconstructed-distant-up": {
+      "before": {
+        "simTime": 12.6,
+        "drawCalls": 131,
+        "triangles": 2042624,
+        "geometries": 581,
+        "textures": 91,
+        "programs": 103,
+        "width": 1280,
+        "height": 720,
+        "pixelRatio": 1
+      },
+      "after": {
+        "simTime": 12.6,
+        "drawCalls": 135,
+        "triangles": 2925365,
+        "geometries": 571,
+        "textures": 91,
+        "programs": 104,
+        "width": 1280,
+        "height": 720,
+        "pixelRatio": 1
+      },
+      "delta": {
+        "drawCalls": 4,
+        "triangles": 882741,
+        "geometries": -10,
+        "textures": 0,
+        "programs": 1
+      },
+      "pixelIdentical": false,
+      "pngByteIdentical": false,
+      "changedPixels": 589948,
+      "changedFraction": 0.6401345486111111,
+      "meanAbsoluteChannelError255": 33.07822554976852,
+      "maxChannelError255": 194,
+      "sha256": [
+        "b9bc81c08ac68ccbd94e75f0f2963d6b78f8d22566c5582d9443cd7ccae9df31",
+        "7e20d7f90ce32be46f1428be026fb10a6b26f3f53b9f2f329deff19efd0d7a00"
+      ],
+      "distantClose": {
+        "slots": 8,
+        "active": 8,
+        "fadeM": [
+          18,
+          26
+        ],
+        "prefetchM": 34,
+        "triangleCeiling": 1040000,
+        "triangles": 882741,
+        "draws": 4,
+        "sharedBytes": 25542078,
+        "weights": [
+          [
+            119,
+            1
+          ],
+          [
+            189,
+            1
+          ],
+          [
+            720,
+            1
+          ],
+          [
+            686,
+            1
+          ],
+          [
+            530,
+            1
+          ],
+          [
+            316,
+            1
+          ],
+          [
+            480,
+            1
+          ],
+          [
+            629,
+            1
+          ]
+        ],
+        "fallback": "Existing crown geometry retained for every tree without close detail."
+      },
+      "canopyPools": [
+        {
+          "observations": 1,
+          "capBytes": [
+            67108864,
+            67108864
+          ],
+          "residentBytes": [
+            66972318,
+            66972318
+          ],
+          "pinnedBytes": [
+            4013280,
+            4013280
+          ],
+          "residentItems": [
+            165,
+            165
+          ],
+          "pinnedItems": [
+            3,
+            3
+          ],
+          "peakResidentMiB": 63.86977958679199,
+          "peakPinnedMiB": 3.827362060546875,
+          "counters": {
+            "built": {
+              "start": 482,
+              "end": 482,
+              "delta": 0
+            },
+            "evicted": {
+              "start": 427,
+              "end": 427,
+              "delta": 0
+            },
+            "syncBuilds": {
+              "start": 278,
+              "end": 278,
+              "delta": 0
+            }
+          },
+          "exceedsConfiguredCap": false,
+          "exceeds64MiB": false,
+          "overflowObservations": []
+        },
+        {
+          "observations": 1,
+          "capBytes": [
+            67108864,
+            67108864
+          ],
+          "residentBytes": [
+            67075934,
+            67075934
+          ],
+          "pinnedBytes": [
+            26126720,
+            26126720
+          ],
+          "residentItems": [
+            117,
+            117
+          ],
+          "pinnedItems": [
+            7,
+            7
+          ],
+          "peakResidentMiB": 63.96859550476074,
+          "peakPinnedMiB": 24.9163818359375,
+          "counters": {
+            "built": {
+              "start": 544,
+              "end": 544,
+              "delta": 0
+            },
+            "evicted": {
+              "start": 543,
+              "end": 543,
+              "delta": 0
+            },
+            "syncBuilds": {
+              "start": 310,
+              "end": 310,
+              "delta": 0
+            }
+          },
+          "exceedsConfiguredCap": false,
+          "exceeds64MiB": false,
+          "overflowObservations": []
+        }
+      ]
+    }
+  },
+  "warnings": [],
+  "coverage": {
+    "allSixFixedViews": true,
+    "firstAndWarmRoute": true,
+    "allRouteCanopyCaps64MiB": true
+  },
+  "limitations": [
+    "Completed-render-await timings include GPU readback, shader compilation, requestAnimationFrame and host scheduling; they are not FPS.",
+    "Pool bounds apply only to the recorded frames. A first pass is not evidence of a cold rebuild unless the recorded counters show builds.",
+    "Fixed captures reset camera state. Pixel and cost deltas describe observed changes; they do not establish visual acceptance."
+  ]
+}

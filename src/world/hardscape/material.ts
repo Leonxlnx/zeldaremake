@@ -1,0 +1,396 @@
+/**
+ * Cut-stone material for stairs, flagstones and landing slabs: warm grey-beige worn stone
+ * with Poly Haven micro detail (worn_rock_natural_01, desaturated), vertex colours for
+ * per-stone tint / grime, and an `aMoss` attribute that blends toward moss in the joints.
+ */
+import { Color, MeshStandardMaterial, Vector2, type WebGLProgramParametersWithUniforms } from 'three';
+import type { TextureLibrary } from '../materials/textures';
+import type { WorldConfig } from '../config';
+
+export const STONE_SET = 'worn_rock_natural_01';
+
+/**
+ * the soil stain as a multiplier on the stone flank colour: the round-8 soil-stained side colour
+ * over the plain stone side colour was ≈ (0.95, 0.92, 0.88); this keeps its luminance and leans
+ * browner, toward the damp seam soil (the reference's dark quantile is a saturated brown)
+ */
+const STAIN_TINT = new Color(0.97, 0.93, 0.85);
+
+/**
+ * multiplier on the stone's indirect diffuse light (round 34): the bounce onto the paving is off
+ * warm soil and slabs, so the shaded stone leans brown where the near-neutral hemisphere fill
+ * left it yellow-grey (frame 14 s's dark stone class: mean sRGB 122,102,72, hue 36°; ours
+ * 117,103,75, 40°, with the 30° / 40° hue bins 51 / 46 against the frame's 78 / 17). A cut of
+ * green at constant chroma: a red-up / blue-down tint of the same hue effect (1.14 / 0.97 / 0.88)
+ * took every lit window's sat p50 0.03–0.05 over the frames' 0.33–0.35, and at −6° of linear hue
+ * on the shade both it and a 1.07 / 0.965 / 0.985 cut overshot camera D (dark class 74–76 % in the
+ * 30° bin against the frame's 61 %) while B's field window landed; this is 0.6 of that. Unit
+ * luminance so the dark class keeps its level.
+ */
+// (r, g, r): equal red and blue keep (R − B) / R, the chroma, where the stone is R > G > B; the
+// green cut alone moves the hue. Solved for unit luminance.
+const indirectTint = (g: number) => {
+  const k = (1 - 0.7152 * g) / (0.2126 + 0.0722);
+  return new Color(k, g, k);
+};
+/**
+ * Round 35: zoned by world z in the shader (`smoothstep(−1, 1, z)`, zones.ts `southPlaza`).
+ * Attributed by part on the control's captures (hardscape isolate, parts hidden in
+ * turn), the shaded slabs are 63–66 % of the lit windows' dark class in frames 14 s / 56 s and
+ * split 28 / 28 (B) and 31 / 26 (D) between the 30° and 40° hue bins where the frames' dark class
+ * sits 68 / 24 and 61 / 27 — the path's shade wants a fuller cut than round 34's 0.985 (0.965
+ * overshot camera D at 74–76 %). 0.976 landed D's bottom quarter on the frame (61 / 26) but put
+ * 11 % of B's foreground dark class in the 20° bin against the frame's 3 % (the control's 9):
+ * 0.98 splits the difference. Camera A's plaza is the other way: frame 1 s's dark class is 37 %
+ * in the 30° bin and 32 % in the 50–70° (an olive film over the shaded slab halves) against our
+ * 54 / 17 — but a green lift there moves the shade into the 40° bin, not the 50s (1.012: 33 / 43 /
+ * 21; 1.004: 26 / 52 / 14 / 5; 0.993: 33 / 47 / 13 / 4, each with camera A −0.001 SSIM), so the
+ * plaza keeps round 34's 0.985: the zoning only takes the path's shade browner.
+ */
+const INDIRECT_WARM_PATH = indirectTint(0.98);
+const INDIRECT_WARM_PLAZA = indirectTint(0.985);
+
+/**
+ * linear multiplier on the stone albedo. Round 9: with the lighting settled, the sunlit paving
+ * measured 0.05–0.09 over the reference in sRGB (A plaza p50 0.625 vs 0.553, D path 0.579 vs
+ * 0.490) and the excess was flat across the tonal range (Q-Q ratio p50 1.13, p95 1.06 in A), i.e.
+ * diffuse albedo, not sun specular. The post chain passes only ~0.32 of a linear albedo change
+ * into sRGB, so −28 % linear brings the A p50 to 0.56 and D to 0.51; the stone lands at a linear
+ * albedo of ≈ 0.32 (was 0.45 — whiter than limestone).
+ */
+const STONE_ALBEDO_SCALE = 0.72;
+
+/**
+ * Round 42 — the stone at player height (1.45 m eye, 1–4 m, frame 03 of the owner's recording:
+ * slabs with pitted, grainy tops and chipped edges). textures-2k measured a 1K texel at 0.7–1.6 mm
+ * with the 1.6–1.7 m UV tiles, so at 2 m a texel is a pixel and the surface reads as fine sand,
+ * not stone; its call was a ≈ 3 m tile near the camera and a stronger normal. The maps are sampled
+ * twice — the near tile (`NEAR_TILE_K` × the mesh UVs: 1.61 → 2.9 m on the flagstones, 1.7 → 3.1 m
+ * on the stairs) and the mesh tile — and blended by the fragment's camera distance, 0 within
+ * `NEAR_FADE[0]` m and the mesh tile alone beyond `NEAR_FADE[1]`, so the fixed cameras' mid and
+ * far ground keep round 41's look exactly. The normal reads `NEAR_NORMAL_K` × its far scale near
+ * the camera (0.55 → 1.1: pitting is a shading feature, not a texture stripe) with a detail
+ * normal from a 1.3 m tile at `DETAIL_NORMAL_K` for 1–3 cm pits, and the albedo takes the same
+ * detail tile's luminance at `DETAIL_ALBEDO_K` so pits read dark where the normal dips — in the
+ * canopy shade, where most of the walked paving lies, the albedo term is what the eye gets (a
+ * normal only tilts the hemisphere light there). Measured at the player poses (broll, 1280×720,
+ * high-pass luminance std of the shaded half of the stone region): ×1.7 / 0.32 / 0.16 gave
+ * +11–17 % on the plaza slabs at 2–2.5 m and +13 % on the treads seen from the third step, +3 %
+ * at 4–5 m; the fixed cameras' SSIM moved only where their foreground is inside NEAR_FADE (A's
+ * bottom band −0.0023, D's path +0.0012).
+ */
+const NEAR_TILE_K = 0.55;
+const NEAR_FADE: [number, number] = [4.0, 7.0];
+const NEAR_NORMAL_K = 2.0;
+const DETAIL_NORMAL_K = 0.42;
+const DETAIL_ALBEDO_K = 0.24;
+/** the near-camera stone treatment, for the hardscape audit */
+export const STONE_NEAR = { tileK: NEAR_TILE_K, fadeM: NEAR_FADE, normalK: NEAR_NORMAL_K, detailNormalK: DETAIL_NORMAL_K, detailAlbedoK: DETAIL_ALBEDO_K };
+
+/**
+ * fable-2 (lane 6, the demo's log-risered steps — d_094 / d_104): where a slab carries `aEarth`
+ * (geometry.ts `earthTop`, the log flights' tread tops and shoulder rings) the stone shader
+ * renders packed trail dirt instead of stone — the terrain's `rocky_trail` set (CC0, Poly Haven)
+ * at EARTH_TILE_K × the mesh UV (≈ 0.9 m repeats on the stairs' 1.7 m tile), its albedo tinted
+ * to the demo's pale, dry, trodden earth and taking the slab's vertex tint (tone, wear, damp) like
+ * the stone does; its own normal for the small stones, a matte roughness. Off (0) everywhere else.
+ */
+const EARTH_SET = 'rocky_trail';
+const EARTH_TILE_K = 1.9;
+/** rocky_trail averages ≈ 0.19 linear luminance and leans orange; lifted to the demo's pale dirt and cooled a touch */
+const EARTH_TINT = new Color(2.24, 1.98, 1.52);
+/** the earth treatment, for the hardscape audit */
+export const STONE_EARTH = { set: EARTH_SET, tileK: EARTH_TILE_K, tint: [EARTH_TINT.r, EARTH_TINT.g, EARTH_TINT.b] as [number, number, number] };
+
+export async function createStoneMaterial(textures: TextureLibrary, config: WorldConfig, anisotropy = 8, opts: { instanced?: boolean } = {}) {
+  const [color, normal, rough, ao, earthColor, earthNormal] = await Promise.all([
+    textures.load(STONE_SET, 'color', { anisotropy }),
+    textures.load(STONE_SET, 'normal', { anisotropy }),
+    textures.load(STONE_SET, 'roughness', { anisotropy }),
+    textures.load(STONE_SET, 'ao', { anisotropy }),
+    textures.load(EARTH_SET, 'color', { anisotropy }),
+    textures.load(EARTH_SET, 'normal', { anisotropy }),
+  ]);
+  const P = config.palette;
+  // our slabs only carry one uv set; read the AO map through it instead of uv1
+  const aoT = ao.clone();
+  aoT.channel = 0;
+  aoT.needsUpdate = true;
+  const mat = new MeshStandardMaterial({
+    map: color,
+    normalMap: normal,
+    // dusty, low-relief surfaces: the reference slabs read almost flat, pitting is a 1–3 cm hint
+    normalScale: new Vector2(0.55, 0.55),
+    roughnessMap: rough,
+    aoMap: aoT,
+    aoMapIntensity: 0.35,
+    roughness: 0.92,
+    metalness: 0,
+    vertexColors: true,
+    // worn_rock_natural_01 averages ~0.30 linear luminance and leans orange; the shader
+    // desaturates it, this lift (× STONE_ALBEDO_SCALE) sets the sunlit slabs' luminance — the
+    // pale warm grey-beige of the reference (A plaza p50 0.55, D path 0.49 in sRGB). Warmth (R−B)
+    // is set by the blue channel: the reference slab tops are sRGB B/R ≈ 0.66–0.69.
+    // Hue: worn_rock_natural_01 is orange (linear R/G 1.44); the desat/lift targets below set most
+    // of the final hue. Measured on the pure-stone boxes of A/E/F/D (gauntlet/tmp/hard/bands.mjs)
+    // the reference's sunlit slabs are sRGB R/G 1.11 / B/R 0.68 (hue ≈ 41°, a grey-beige) where
+    // ours rendered 1.08 / 0.65 (hue ≈ 47°, yellower). The near-neutral hemisphere fill means
+    // the shaded slabs only get their warmth from the albedo, so the simulated mean albedo
+    // (texture × base → desat → lift, gauntlet/tmp/hard/albedo-sim2.mjs) is now linear R/G 1.21
+    // / B/R 0.51 at the same luminance (was 1.08 / 0.55). The post chain (warm channel mix,
+    // ACES, saturation) compresses the rendered R/G to roughly a fifth of the albedo change, so
+    // the albedo has to lean further red than the target itself.
+    // (blue up a notch from 0.911: with the wider soil joints the plaza boxes measured sat 0.43
+    // against the reference's 0.38 — the stone tops themselves were a shade too warm)
+    color: new Color(1.586, 1.497, 0.95).multiplyScalar(STONE_ALBEDO_SCALE),
+  });
+  mat.name = opts.instanced ? 'stone-instanced' : 'stone';
+  const mossDeep = new Color(P.mossDeep);
+  const mossBright = new Color(P.mossBright);
+  // the growth on slab rims is as much damp soil and dead moss as living green (reference joints
+  // are dark warm brown with green only in patches), so the moss blend is pulled toward soil
+  // (round 33: 0.5 → 0.7 toward the moss — the shoulder film rendered as a second dark line
+  // beside the seam; the frames' slab rims carry green-grey grime at the joint's own tone)
+  const mossSoil = new Color(P.soilDark).lerp(new Color(0x3a2c1c), 0.5).lerp(mossDeep, 0.7);
+  mat.onBeforeCompile = (shader: WebGLProgramParametersWithUniforms) => {
+    shader.uniforms.uMossDeep = { value: mossDeep };
+    shader.uniforms.uMossBright = { value: mossBright };
+    shader.uniforms.uMossSoil = { value: mossSoil };
+    shader.uniforms.uStainTint = { value: STAIN_TINT };
+    shader.uniforms.uIndirectWarmPath = { value: INDIRECT_WARM_PATH };
+    shader.uniforms.uIndirectWarmPlaza = { value: INDIRECT_WARM_PLAZA };
+    shader.uniforms.uEarthMap = { value: earthColor };
+    shader.uniforms.uEarthNormal = { value: earthNormal };
+    shader.uniforms.uEarthTint = { value: EARTH_TINT };
+    shader.vertexShader = shader.vertexShader
+      .replace(
+        '#include <common>',
+        '#include <common>\nattribute float aMoss; attribute float aStain; attribute float aWear; attribute vec2 aCrack; attribute vec3 aMottle; attribute float aRough; attribute float aEarth; varying float vMoss; varying float vStain; varying float vWear; varying vec2 vCrack; varying vec3 vMottle; varying vec3 vWPosS; varying float vRough; varying float vEarth;\n#ifdef USE_INSTANCING\nattribute float aMossScale;\n#endif',
+      )
+      .replace(
+        '#include <worldpos_vertex>',
+        '#include <worldpos_vertex>\nvStain = aStain;\nvWear = aWear;\nvCrack = aCrack;\nvMottle = aMottle;\nvRough = aRough;\nvEarth = aEarth;\n#ifdef USE_INSTANCING\nvMoss = aMoss * aMossScale;\nvWPosS = (modelMatrix * instanceMatrix * vec4(transformed, 1.0)).xyz;\n#else\nvMoss = aMoss;\nvWPosS = (modelMatrix * vec4(transformed, 1.0)).xyz;\n#endif',
+      );
+    shader.fragmentShader = shader.fragmentShader
+      .replace(
+        '#include <common>',
+        /* glsl */ `#include <common>
+        uniform vec3 uMossDeep; uniform vec3 uMossBright; uniform vec3 uMossSoil; uniform vec3 uStainTint; uniform vec3 uIndirectWarmPath; uniform vec3 uIndirectWarmPlaza; uniform sampler2D uEarthMap; uniform sampler2D uEarthNormal; uniform vec3 uEarthTint; varying float vMoss; varying float vStain; varying float vWear; varying vec2 vCrack; varying vec3 vMottle; varying vec3 vWPosS; varying float vRough; varying float vEarth;
+        vec2 stoneEarthUv(vec2 uv) { return uv * ${EARTH_TILE_K.toFixed(3)} + vec2(0.29, 0.53); }
+        float stoneHash(vec2 p) { return fract(sin(dot(p, vec2(127.1, 311.7))) * 43758.5453); }
+        float stoneVNoise(vec2 p) {
+          vec2 i = floor(p); vec2 f = fract(p); f = f * f * (3.0 - 2.0 * f);
+          return mix(mix(stoneHash(i), stoneHash(i + vec2(1.0, 0.0)), f.x), mix(stoneHash(i + vec2(0.0, 1.0)), stoneHash(i + vec2(1.0, 1.0)), f.x), f.y);
+        }
+        // round 42: the near-camera tile blend (see NEAR_TILE_K / NEAR_FADE in material.ts)
+        float stoneFarW() { return smoothstep(${NEAR_FADE[0].toFixed(2)}, ${NEAR_FADE[1].toFixed(2)}, length(vViewPosition)); }
+        vec2 stoneNearUv(vec2 uv) { return uv * ${NEAR_TILE_K.toFixed(3)} + vec2(0.13, 0.71); }
+        vec2 stoneDetailUv(vec2 uv) { return vec2(uv.y, -uv.x) * ${(NEAR_TILE_K * 2.2).toFixed(3)} + vec2(0.71, 0.23); }`,
+      )
+      .replace(
+        '#include <map_fragment>',
+        /* glsl */ `
+        #ifdef USE_MAP
+        {
+          // round 42: the mesh tile beyond NEAR_FADE, the ≈ 3 m tile within it (both the same
+          // map), plus the detail tile's luminance for the pits the detail normal shades
+          float farW = stoneFarW();
+          vec4 sampledDiffuseColor = mix(texture2D(map, stoneNearUv(vMapUv)), texture2D(map, vMapUv), farW);
+          diffuseColor *= sampledDiffuseColor;
+          vec3 pit = texture2D(map, stoneDetailUv(vMapUv)).rgb;
+          float lp = dot(pit, vec3(0.299, 0.587, 0.114));
+          diffuseColor.rgb *= mix(1.0, clamp(lp / 0.32, 0.6, 1.35), ${DETAIL_ALBEDO_K.toFixed(3)} * (1.0 - farW));
+        }
+        #endif
+        {
+          // second, finer sample (rotated 90°, 3.1× tighter) so the 0.55 m close-up shows real grain
+          vec3 fine = texture2D(map, vec2(-vMapUv.y, vMapUv.x) * 3.1 + vec2(0.37, 0.61)).rgb;
+          float lf = dot(fine, vec3(0.299, 0.587, 0.114));
+          float wear = clamp(vWear, 0.0, 1.0);
+          // (round 23: the flagstone tops - aWear - take the fine grain at 0.1, half the stairs',
+          // and only half of the pit lift below: frame 1 s at 4× shows soft 10–30 cm blotches of
+          // grime and lichen on the slabs and no sand-fine grain - the aWear mottling below is
+          // that; 0.35 rendered as sand in the A foreground)
+          diffuseColor.rgb *= mix(1.0, clamp(lf / 0.32, 0.55, 1.5), mix(0.2, 0.1, wear));
+          // desaturate the orange-leaning rock texture toward the warm grey-beige of the reference
+          float l = dot(diffuseColor.rgb, vec3(0.299, 0.587, 0.114));
+          // (reference plaza box sat 0.38 against our 0.44 once the joints widened: a little less
+          // blue-starved than before)
+          diffuseColor.rgb = mix(diffuseColor.rgb, vec3(l) * vec3(1.12, 1.0, 0.74), 0.7);
+          // lift the darkest pits so the slab tops stay pale and low-contrast (dusty, not pitted)
+          diffuseColor.rgb = mix(diffuseColor.rgb, vec3(l * 0.5 + 0.17) * vec3(1.09, 1.0, 0.76), 0.24 * (1.0 - 0.5 * wear));
+          // fine grain breakup so distant slabs don't read as a single flat tone
+          float grain = fract(sin(dot(floor(vWPosS.xz * 40.0), vec2(12.9898, 78.233))) * 43758.5453);
+          diffuseColor.rgb *= 0.975 + 0.05 * grain;
+          // weathering on the flagstone tops (aWear, round 23 - frame 1 s / 56 s: the slab tops are
+          // mottled with grime and lichen, not one flat tone; the band masks of take 76 put the
+          // frame's variation WITHIN a slab - pale worn spots over 0.6 beside grime under 0.45):
+          // two octaves of 0.4 m / 0.18 m patches swing the albedo +-12 % and the hue with it
+          // (grime darker and warmer, lichen paler and grey-green); where the patch noise peaks a
+          // grime film takes a further 28 % off, brown; 1-3 cm pale lichen flecks cluster on the
+          // lichen side. Nothing on the stairs (aWear = 0 there). (+-20 % and a 35 % film spread
+          // A's tops both ways - 22 % of the box over 0.6 and 8 % under 0.25 against the frame's
+          // 14 / 6 - where the frame keeps 43 % in 0.45–0.6)
+          if (wear > 0.001) {
+            float p1 = stoneVNoise(vWPosS.xz * 2.4 + vec2(17.3, 5.1));
+            float p2 = stoneVNoise(vWPosS.xz * 5.7 + vec2(-3.7, 29.0));
+            float mot = (p1 - 0.5) * 1.3 + (p2 - 0.5) * 0.7;
+            vec3 tintK = mix(vec3(1.03, 0.995, 0.945), vec3(0.98, 1.005, 1.04), smoothstep(-0.7, 0.7, mot));
+            diffuseColor.rgb *= mix(vec3(1.0), (1.0 + 0.12 * mot) * tintK, wear);
+            float grime = smoothstep(0.5, 0.18, p1 * 0.65 + p2 * 0.35);
+            diffuseColor.rgb *= mix(vec3(1.0), vec3(0.73, 0.69, 0.62), grime * wear);
+            float fl = stoneVNoise(vWPosS.xz * 19.0 + vec2(7.0, -11.0)) * 0.65 + stoneVNoise(vWPosS.xz * 47.0 + vec2(-2.0, 3.0)) * 0.35;
+            float fleck = smoothstep(0.64, 0.8, fl) * smoothstep(0.45, 0.7, p1);
+            diffuseColor.rgb = mix(diffuseColor.rgb, diffuseColor.rgb * vec3(1.14, 1.17, 1.08), fleck * 0.75 * wear);
+          }
+          // round 34: within-stone mottle (aMottle = moss-cushion weight, grey-lichen weight, set per
+          // vertex in flagstones.ts). Frames 1 s / 56 s at 2× carry two or three tone regions on a
+          // slab: olive moss cushions creeping in from the shaded side and the joints at 0.6–0.75 of
+          // the top's luminance, grey lichen patches (desaturated, ≈ 0.85), and the pale worn top
+          // between them; ours read one tone with grain (within-stone lum sd 0.033–0.037 against the
+          // frames' 0.037–0.050 in D / A; the px-weighted spread 0.09 / 0.12 against 0.125 / 0.15).
+          // Lobed patches: a 3.6 + 9.5 cycles/m noise thresholded by the weight, so a heavier weight
+          // (the shaded rim) grows bigger cushions and the centre keeps a few spots. The cushion
+          // tone is the slab's own colour at 0.6 pulled a sixth toward the seam moss — frame 56 s's
+          // patches are grey-brown khaki, a step darker than the top (its dark share, > 0.06 under
+          // the slab median, is 12.6 % of the slab pixels; in frame 14 s's dark class the shaded
+          // slab pixels sit under 40° of hue), not green paint; the lichen is the slab's grey at 0.8.
+          // The cushion multiplier is a grey step down, not a khaki one (0.64 / 0.59 / 0.49 took
+          // frame 56 s's window from the control's matched stone hue 40° / sat 0.31 to 37° / 0.36,
+          // and 0.62 / 0.60 / 0.53 still held it at 36° / 0.37 — the cushions sit on the lit tops
+          // too, and the stone's own colour supplies the warmth). Camera A's plaza is the exception (aMottle.z, flagstones.ts
+          // mottleGreen): frame 1 s's slabs wear a low-saturation olive film over their shaded
+          // halves (its dark stone pixels: 31 % in the 50–70° hue bins, yet under 1 % pass the
+          // vegetation's green classifier), so its cushions are 0.7 seam moss at the deep green.
+          if (wear > 0.001 && (vMottle.x > 0.001 || vMottle.y > 0.001)) {
+            float mw = clamp(vMottle.x, 0.0, 1.0);
+            float gw = clamp(vMottle.y, 0.0, 1.0);
+            float green = clamp(vMottle.z, 0.0, 1.0);
+            float c1 = stoneVNoise(vWPosS.xz * 3.6 + vec2(41.0, -7.0));
+            float c2 = stoneVNoise(vWPosS.xz * 9.5 + vec2(-13.0, 23.0));
+            float cushion = smoothstep(0.66 - 0.36 * mw, 0.8 - 0.3 * mw, c1 * 0.65 + c2 * 0.35) * step(0.001, mw);
+            float lc = clamp(l / 0.4, 0.0, 1.6);
+            vec3 mossTone = mix(uMossSoil, uMossDeep, mix(0.55, 1.0, green)) * (0.95 + 0.45 * lc);
+            vec3 cushionTone = mix(diffuseColor.rgb * vec3(0.60, 0.60, 0.585), mossTone, mix(0.15, 0.7, green));
+            diffuseColor.rgb = mix(diffuseColor.rgb, cushionTone, cushion * wear * 0.9);
+            float g1 = stoneVNoise(vWPosS.xz * 2.2 + vec2(-29.0, 61.0));
+            float g2 = stoneVNoise(vWPosS.xz * 6.8 + vec2(7.0, -47.0));
+            float lichen = smoothstep(0.64 - 0.3 * gw, 0.76 - 0.2 * gw, g1 * 0.7 + g2 * 0.3) * step(0.001, gw);
+            vec3 lichenTone = vec3(dot(diffuseColor.rgb, vec3(0.299, 0.587, 0.114)) * 0.80) * vec3(1.01, 1.0, 0.97);
+            diffuseColor.rgb = mix(diffuseColor.rgb, lichenTone, lichen * wear * 0.8);
+          }
+          // a crack across the slab (aCrack: signed distance across the line / position along it in
+          // half-lengths; (9, 9) = none): a 7-13 mm dirt-filled line wandering +-1.2 cm, fading out
+          // over the last quarter of its length, with a hair-paler chipped lip beside it
+          if (vCrack.x < 8.0) {
+            // (round 42: the wobble's noise coordinate takes the height in too, so a riser's
+            // vertical fissure — aCrack on the side walls, geometry.ts sideCrackFn — wanders
+            // up the face instead of running dead straight; on a slab top y is a constant)
+            vec2 crackP = vWPosS.xz + vWPosS.y * vec2(0.9, 0.7);
+            float wob = (stoneVNoise(crackP * 11.0 + vec2(3.0, 8.0)) - 0.5) * 0.024;
+            float d = abs(vCrack.x + wob);
+            float hw = 0.0035 + 0.003 * stoneVNoise(crackP * 31.0);
+            float ends = 1.0 - smoothstep(0.75, 1.0, abs(vCrack.y));
+            float line = (1.0 - smoothstep(hw * 0.6, hw * 1.6, d)) * ends;
+            float lip = smoothstep(hw * 1.2, hw * 2.2, d) * (1.0 - smoothstep(hw * 2.5, hw * 5.0, d)) * ends;
+            diffuseColor.rgb = mix(diffuseColor.rgb, uMossSoil * 0.55, 0.8 * line);
+            diffuseColor.rgb *= 1.0 + 0.05 * lip;
+          }
+          // moss: bright to deep green with the stone's luminance as detail, pulled toward damp
+          // soil where the coverage is thin (rim grime) and green only where it is full
+          float ln = clamp(l / 0.4, 0.0, 1.6);
+          vec3 moss = mix(uMossDeep, uMossBright, smoothstep(0.25, 1.1, ln)) * (0.85 + 0.5 * ln);
+          // ragged inner boundary: a 6–10 cm world-space noise scales the interpolated coverage,
+          // so a moss film ends in a feathered, lobed edge (sheet 02 'Moss edges') rather than
+          // along the mesh rings; clean tops (vMoss = 0) stay clean
+          float rag = stoneVNoise(vWPosS.xz * 13.0) * 0.6 + stoneVNoise(vWPosS.xz * 31.0 + 5.7) * 0.4;
+          float m = clamp(vMoss * (0.62 + 0.76 * rag), 0.0, 1.0);
+          // thin coverage is damp soil grime on the shoulder; real green needs a solid film
+          moss = mix(uMossSoil * (0.8 + 0.4 * ln), moss, smoothstep(0.28, 0.72, m));
+          diffuseColor.rgb = mix(diffuseColor.rgb, moss, smoothstep(0.07, 0.72, m));
+        }`,
+      )
+      .replace(
+        '#include <color_fragment>',
+        /* glsl */ `
+        #include <color_fragment>
+        #if defined(USE_MAP) && defined(USE_COLOR)
+        {
+          // fable-2 (lane 6): packed trail dirt where the slab says earth (a log flight's treads) —
+          // the trail texture, tinted to the demo's pale trodden earth, under the same vertex tint
+          float e = clamp(vEarth, 0.0, 1.0);
+          if (e > 0.0) {
+            vec3 earth = texture2D(uEarthMap, stoneEarthUv(vMapUv)).rgb * uEarthTint * vColor.rgb;
+            diffuseColor.rgb = mix(diffuseColor.rgb, earth, e);
+          }
+        }
+        #endif
+        // joint soil creeping up a slab's flank (aStain: > 1 on the buried foot, 0 at the shoulder);
+        // clamped after interpolation so the stained band ends where the caller put it
+        diffuseColor.rgb *= mix(vec3(1.0), uStainTint, clamp(vStain, 0.0, 1.0));`,
+      )
+      .replace(
+        '#include <lights_fragment_end>',
+        /* glsl */ `
+        #include <lights_fragment_end>
+        // the bounce onto the stone is off the paving's own soil and slabs, not the sky: the frames'
+        // shaded stone is browner than their sunlit tops (frame 14 s's dark stone class sits 78 %
+        // in the 30° hue bin, its lit class 48 %; ours the other way round, 51 / 62, with the
+        // near-neutral hemisphere fill) — so the stone's indirect light is warmed at constant
+        // luminance; the sunlit tops, direct light, are untouched
+        // (round 35: zoned — the path north of the plaza takes the fuller brown cut, the plaza
+        // south of z 1 a slight olive lift; see INDIRECT_WARM_PATH / _PLAZA)
+        reflectedLight.indirectDiffuse *= mix(uIndirectWarmPath, uIndirectWarmPlaza, smoothstep(-1.0, 1.0, vWPosS.z));`,
+      )
+      .replace(
+        '#include <roughnessmap_fragment>',
+        /* glsl */ `
+        float roughnessFactor = roughness;
+        #ifdef USE_ROUGHNESSMAP
+        {
+          // the roughness map through the same near / far tile blend as the colour
+          float farW = stoneFarW();
+          vec4 texelRoughness = mix(texture2D(roughnessMap, stoneNearUv(vRoughnessMapUv)), texture2D(roughnessMap, vRoughnessMapUv), farW);
+          roughnessFactor *= texelRoughness.g;
+        }
+        #endif
+        // round 42: per-stone micro-roughness (aRough, ± a few hundredths) — neighbouring slabs
+        // catch the sun differently at player height, as frame 03's do
+        roughnessFactor = clamp(roughnessFactor + vRough, 0.5, 1.0);
+        roughnessFactor = mix(roughnessFactor, 0.97, clamp(vMoss, 0.0, 1.0));
+        roughnessFactor = mix(roughnessFactor, 0.96, clamp(vEarth, 0.0, 1.0));`,
+      )
+      .replace(
+        '#include <normal_fragment_maps>',
+        /* glsl */ `
+        #ifdef USE_NORMALMAP_TANGENTSPACE
+        {
+          // round 42: near / far tile blend of the normal, NEAR_NORMAL_K × the far scale within
+          // NEAR_FADE (0.55 → 0.94 at the player's feet), plus the detail tile's normal for the
+          // 1–3 cm pits; beyond NEAR_FADE this is three's own normal_fragment_maps
+          float farW = stoneFarW();
+          vec3 mapN = mix(texture2D(normalMap, stoneNearUv(vNormalMapUv)).xyz, texture2D(normalMap, vNormalMapUv).xyz, farW) * 2.0 - 1.0;
+          vec3 detN = texture2D(normalMap, stoneDetailUv(vNormalMapUv)).xyz * 2.0 - 1.0;
+          mapN.xy = mapN.xy * normalScale * mix(${NEAR_NORMAL_K.toFixed(2)}, 1.0, farW) + detN.xy * (${DETAIL_NORMAL_K.toFixed(2)} * (1.0 - farW));
+          // the earth's own normal (small stones in packed dirt) where the slab says earth
+          float e = clamp(vEarth, 0.0, 1.0);
+          if (e > 0.0) {
+            vec3 earthN = texture2D(uEarthNormal, stoneEarthUv(vNormalMapUv)).xyz * 2.0 - 1.0;
+            earthN.xy *= 0.9;
+            mapN = mix(mapN, earthN, e);
+          }
+          normal = normalize(tbn * mapN);
+        }
+        #else
+        #include <normal_fragment_maps>
+        #endif`,
+      );
+  };
+  mat.customProgramCacheKey = () => `stone-moss-v25-earth-treads-${opts.instanced ? 'i' : 's'}`;
+  // the ao clone is ours (the library keeps the original); release it with the material, once
+  mat.addEventListener('dispose', function onDispose() {
+    mat.removeEventListener('dispose', onDispose);
+    aoT.dispose();
+  });
+  return mat;
+}

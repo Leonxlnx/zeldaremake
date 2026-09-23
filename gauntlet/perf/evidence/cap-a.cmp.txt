@@ -1,0 +1,6 @@
+A_stairs identical
+B_house identical
+C_lookback identical
+D_log identical
+E_ground identical
+F_canopy identical

@@ -1,0 +1,15 @@
+{
+  "scene": "Link | September20 early stair placement",
+  "gait": "stairs",
+  "frames": 176,
+  "fps": 240,
+  "cycle_s": 0.7333333333333333,
+  "stride_m": 0.8066667,
+  "preserve_hips": true,
+  "lift_scale": 1,
+  "forward_advance": 0.2,
+  "bone_error_m": 3.873174675428359e-08,
+  "loop_error": 0.0,
+  "other_curves_exact_at_normalized_phase": true,
+  "status": "Native candidate; actual shoe and world checks required"
+}

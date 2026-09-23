@@ -1,0 +1,828 @@
+{
+  "decision": "HOLD: do not replace production89df with candidate4dcf; ascent knee and support-sequence regression despite positive contacts.",
+  "scope": "Existing CPU fixture, frames120\u2013589 each direction, warmup80. Raw current glbLink/ground; production file untouched. Native Blender art comparison and raw export correspondence are separate reviews. No arbitrary-route/transition/collision-free claim.",
+  "primaryRegression": "Ascent peak knee increases168.264\u2192170.941 degrees; at the candidate peak419 the same-frame right knee increases107.771\u2192170.941 degrees. Root selects a lower support sequence over386\u2013443, with largest difference\u2212272.740mm at429.",
+  "genericAssertionCaveat": "The existing --assert-curved passes because its knee threshold uses the older174.670-degree baseline. This report compares against fresh current89df control and holds the candidate.",
+  "inputs": {
+    "baseline": {
+      "baselineRef": "working-source",
+      "runtimeSha256": "f2baad2be18367f305125bda53351c7a0920ec5fbdd869c914a679a28cd6a818",
+      "candidateSha256": "226a538ed548ddfb9d8f346ab93369ec7ad8744b6c5623d85cf19aef77d04fa3",
+      "groundRef": "working-source",
+      "groundSha256": "4683ac00dd98e0a055655773e61f4df608df289d67ec30d25edb8cc02c7fd292",
+      "assetFile": "public/models/link/link-runtime.glb",
+      "assetSha256": "89df38f255e47afbcbb28a60555fb4a4a20091741d427ef1d7b8ea1ac33f306b",
+      "sourceManifest": "art/characters/link/progress/2026-09-21-stair-clearance/motion-input.json",
+      "manifestSha256": "c08e57df3aa930580c9d6f1b3ba52e5d3498169c94493c55021c463302f25990",
+      "phaseFile": "art/characters/link/progress/2026-09-21-stair-clearance/phase-reference.json",
+      "includeLogs": true,
+      "dependencies": {
+        "src/world/hardscape/stairs.ts": "73133a0745e2455dd6e059fb70baa14a5bbdadee72f4dd251268da1f6cf76e11",
+        "src/world/terrain/heightfield.ts": "c09159bab3d264542daaeeecead41cad7f6d679a8b09097a5f745fc8f4ce2af3",
+        "src/world/layout.ts": "790de1455bc08d36f42eee3615e43371767a42abcc585651fd051feebe3923e0",
+        "src/world/config.ts": "9af72376d8b55bcee8ddd53a3b6b648292a19ecc6aabb75c003dabc72fe98b02",
+        "src/world/util/prng.ts": "95beabffc3f533bf54b61d3596c5c8c31a92d7fb667a43439e9b730654fa14b9",
+        "src/world/hardscape/logNosings.ts": "a5def33b461fe07c3fefab06c0da0466fb085fa870e38d53876997f85cc72e3a",
+        "src/world/hardscape/index.ts": "ab2b9f8398eb9d5c0b86999eeab34cbe85be83a0603da9611d7097223ca41eb8"
+      },
+      "gitHead": "def7c88503c85a5369f3f2ff76a7a39279b6adbb",
+      "createdAt": "2026-09-21T20:03:29.329Z"
+    },
+    "candidate": {
+      "baselineRef": "working-source",
+      "runtimeSha256": "f2baad2be18367f305125bda53351c7a0920ec5fbdd869c914a679a28cd6a818",
+      "candidateSha256": "226a538ed548ddfb9d8f346ab93369ec7ad8744b6c5623d85cf19aef77d04fa3",
+      "groundRef": "working-source",
+      "groundSha256": "4683ac00dd98e0a055655773e61f4df608df289d67ec30d25edb8cc02c7fd292",
+      "assetFile": "art/characters/link/progress/2026-09-21-boot-tip/candidate.glb",
+      "assetSha256": "4dcf89c5c10391981289e2583152c26fb4ac93047c6fcb4bb0959e246805d850",
+      "sourceManifest": "art/characters/link/progress/2026-09-21-stair-clearance/motion-input.json",
+      "manifestSha256": "c08e57df3aa930580c9d6f1b3ba52e5d3498169c94493c55021c463302f25990",
+      "phaseFile": "art/characters/link/progress/2026-09-21-stair-clearance/phase-reference.json",
+      "includeLogs": true,
+      "dependencies": {
+        "src/world/hardscape/stairs.ts": "73133a0745e2455dd6e059fb70baa14a5bbdadee72f4dd251268da1f6cf76e11",
+        "src/world/terrain/heightfield.ts": "c09159bab3d264542daaeeecead41cad7f6d679a8b09097a5f745fc8f4ce2af3",
+        "src/world/layout.ts": "790de1455bc08d36f42eee3615e43371767a42abcc585651fd051feebe3923e0",
+        "src/world/config.ts": "9af72376d8b55bcee8ddd53a3b6b648292a19ecc6aabb75c003dabc72fe98b02",
+        "src/world/util/prng.ts": "95beabffc3f533bf54b61d3596c5c8c31a92d7fb667a43439e9b730654fa14b9",
+        "src/world/hardscape/logNosings.ts": "a5def33b461fe07c3fefab06c0da0466fb085fa870e38d53876997f85cc72e3a",
+        "src/world/hardscape/index.ts": "ab2b9f8398eb9d5c0b86999eeab34cbe85be83a0603da9611d7097223ca41eb8"
+      },
+      "gitHead": "def7c88503c85a5369f3f2ff76a7a39279b6adbb",
+      "createdAt": "2026-09-21T20:14:01.677Z"
+    }
+  },
+  "rawEvidence": [
+    {
+      "file": "art/characters/link/progress/2026-09-21-boot-tip/baseline-cpu/stair-swing-working.json",
+      "sha256": "bb5ef7a74942e0b5185c5a2fecd540693c3ec058b9bb104c38856fed8fe9c29d"
+    },
+    {
+      "file": "art/characters/link/progress/2026-09-21-boot-tip/candidate-cpu/stair-swing-working.json",
+      "sha256": "6ff6f571d71e89d38aeaf97e992a289f564df38d0ace10bb1aa5e4adf7d3e6e7"
+    }
+  ],
+  "geometry": {
+    "positionsSha256": "0f864dc29d8f6d8d6b9b48c679a17a8752cac63c6b14e25b5b707243f5fa09e3",
+    "indicesSha256": null,
+    "vertices": 42255,
+    "triangles": 14085,
+    "surface": {
+      "cells": 0,
+      "covered": 0,
+      "cellSize": 0.1,
+      "triangles": 0,
+      "stairs": {
+        "flights": 1,
+        "cells": 1218224,
+        "covered": 401184,
+        "cellSize": 0.01,
+        "triangles": 21151
+      }
+    },
+    "meshes": [
+      {
+        "name": "stairs-main",
+        "positionsSha256": "0f864dc29d8f6d8d6b9b48c679a17a8752cac63c6b14e25b5b707243f5fa09e3",
+        "indicesSha256": null,
+        "vertices": 42255,
+        "triangles": 14085
+      },
+      {
+        "name": "stairs-main-logs",
+        "positionsSha256": "d7ce71daa843b15dce38ff4527345afde5f742a0957709aa1eb9f302fa8706f7",
+        "indicesSha256": "452caf0d203b51ee61d10228162eac29ed873bc4651f2b55eabbc4ebecb8a29c",
+        "vertices": 12680,
+        "triangles": 21280
+      }
+    ]
+  },
+  "extraction": {
+    "method": "Each loaded asset recomputes dominant-ankle vertices in the12mm rest-height sole band. Production footConfig dimensions are read from knee diagnostic leg.fp, not inherited from the baseline. Export preserves Y and skin weights.",
+    "vertices": 327,
+    "leftVertices": 163,
+    "rightVertices": 164,
+    "nativeMarkerRays": 7520,
+    "selectedAdditionalFullSoleRays": 3924,
+    "exactQueries": 307380
+  },
+  "exactCrossChecks": {
+    "count": 7520,
+    "maxErrorM": 1.7763568394002505e-15,
+    "triangles": 22744,
+    "buckets": 4664
+  },
+  "flat": {
+    "idleWalkRunHashesIdentical": true,
+    "hashes": {
+      "idle": "1471f111422376d1c2f7ca9ac3114ebb862a2bc21cd129290f84912fd2ecff84",
+      "walk": "d436df87777f8314cd21de31547618ea65c341359a9bb969358e00899048ddcb",
+      "run": "38eb9b527fbfce83b4f187ed254292d82e8768a7a55e7b6dd217b9944c524dde"
+    }
+  },
+  "scenarios": {
+    "stairs-up": {
+      "beforeSummary": {
+        "maxRootStep": 0.031105019267852363,
+        "maxKnee": 168.26447198222724,
+        "maxPlantedDrift": 1.6379863033504008e-06,
+        "minSoleGap": 0.0026613720932522344
+      },
+      "afterSummary": {
+        "maxRootStep": 0.031105019267852363,
+        "maxKnee": 170.94075477301493,
+        "maxPlantedDrift": 1.6380733706512887e-06,
+        "minSoleGap": 0.0026613720932522344
+      },
+      "beforeFootprint": {
+        "L": {
+          "heel": 0.0698262114630868,
+          "toe": 0.12385616110695104,
+          "latMin": -0.05744510002532567,
+          "latMax": 0.08064944252273475
+        },
+        "R": {
+          "heel": 0.06954021347629329,
+          "toe": 0.11841791527403096,
+          "latMin": -0.08027367994090949,
+          "latMax": 0.058892032579570666
+        }
+      },
+      "afterFootprint": {
+        "L": {
+          "heel": 0.0698262114630868,
+          "toe": 0.12183875994814138,
+          "latMin": -0.05744510002532567,
+          "latMax": 0.08064944252273475
+        },
+        "R": {
+          "heel": 0.06954021347629329,
+          "toe": 0.11710931019914846,
+          "latMin": -0.08027367994090949,
+          "latMax": 0.058892032579570666
+        }
+      },
+      "footprintChangesM": {
+        "L": {
+          "heel": 0.0,
+          "toe": -0.002017401158809662,
+          "latMin": 0.0,
+          "latMax": 0.0
+        },
+        "R": {
+          "heel": 0.0,
+          "toe": -0.0013086050748825073,
+          "latMin": 0.0,
+          "latMax": 0.0
+        }
+      },
+      "fullSoleBefore": {
+        "frame": 168,
+        "vertices": 327,
+        "hits": 327,
+        "minGap": 0.0011875730105130877,
+        "worst": {
+          "side": "R",
+          "vertex": 49755,
+          "point": [
+            9.600075491000526,
+            1.621090697338313,
+            -1.8142464030430419
+          ],
+          "mesh": "stairs-main"
+        }
+      },
+      "fullSoleAfter": {
+        "frame": 168,
+        "vertices": 327,
+        "hits": 327,
+        "minGap": 0.0011875730105130877,
+        "worst": {
+          "side": "R",
+          "vertex": 49755,
+          "point": [
+            9.600075491000526,
+            1.621090697338313,
+            -1.8142464030430419
+          ],
+          "mesh": "stairs-main"
+        }
+      },
+      "peakKneeBefore": {
+        "frame": 507,
+        "kneesDeg": {
+          "L": 65.87203670688824,
+          "R": 168.26447198222724
+        }
+      },
+      "peakKneeAfter": {
+        "frame": 419,
+        "kneesDeg": {
+          "L": 65.93794175498525,
+          "R": 170.94075477301493
+        },
+        "sameFrameBaselineKneesDeg": {
+          "L": 78.25843302391513,
+          "R": 107.7707507249079
+        },
+        "baselineRootY": 4.019582680984568,
+        "candidateRootY": 3.7741086744090473,
+        "baselineHipClampRad": 0,
+        "candidateHipClampRad": 1.3743317828008028
+      },
+      "largestRootDifference": {
+        "frame": 429,
+        "deltaM": -0.2727404969885421,
+        "baselineRootY": 4.042985829766138,
+        "candidateRootY": 3.770245332777596
+      },
+      "rootDifferenceAbove1mmSpans": [
+        [
+          386,
+          443
+        ]
+      ],
+      "negativeFullSoleFrames": 0,
+      "reachClampedFrames": 0,
+      "plantedDriftMaxChangeM": 8.706730088791155e-11,
+      "rootStepMaximumChangeM": 0.0
+    },
+    "stairs-down": {
+      "beforeSummary": {
+        "maxRootStep": 0.023889548786931947,
+        "maxKnee": 166.7017716578768,
+        "maxPlantedDrift": 1.2537657555758748e-06,
+        "minSoleGap": 0.005380821554553883
+      },
+      "afterSummary": {
+        "maxRootStep": 0.023889548786931947,
+        "maxKnee": 166.67137852425753,
+        "maxPlantedDrift": 1.2537657555758748e-06,
+        "minSoleGap": 0.005380821554553883
+      },
+      "beforeFootprint": {
+        "L": {
+          "heel": 0.0698262114630868,
+          "toe": 0.12385616110695104,
+          "latMin": -0.05744510002532567,
+          "latMax": 0.08064944252273475
+        },
+        "R": {
+          "heel": 0.06954021347629329,
+          "toe": 0.11841791527403096,
+          "latMin": -0.08027367994090949,
+          "latMax": 0.058892032579570666
+        }
+      },
+      "afterFootprint": {
+        "L": {
+          "heel": 0.0698262114630868,
+          "toe": 0.12183875994814138,
+          "latMin": -0.05744510002532567,
+          "latMax": 0.08064944252273475
+        },
+        "R": {
+          "heel": 0.06954021347629329,
+          "toe": 0.11710931019914846,
+          "latMin": -0.08027367994090949,
+          "latMax": 0.058892032579570666
+        }
+      },
+      "footprintChangesM": {
+        "L": {
+          "heel": 0.0,
+          "toe": -0.002017401158809662,
+          "latMin": 0.0,
+          "latMax": 0.0
+        },
+        "R": {
+          "heel": 0.0,
+          "toe": -0.0013086050748825073,
+          "latMin": 0.0,
+          "latMax": 0.0
+        }
+      },
+      "fullSoleBefore": {
+        "frame": 194,
+        "vertices": 327,
+        "hits": 327,
+        "minGap": 0.00206587635491573,
+        "worst": {
+          "side": "R",
+          "vertex": 49868,
+          "point": [
+            13.159409801811128,
+            4.114500086742645,
+            -4.82909126039473
+          ],
+          "mesh": "stairs-main-logs"
+        }
+      },
+      "fullSoleAfter": {
+        "frame": 282,
+        "vertices": 327,
+        "hits": 327,
+        "minGap": 0.0019623001987243427,
+        "worst": {
+          "side": "R",
+          "vertex": 49779,
+          "point": [
+            11.932262046594978,
+            3.309164156348767,
+            -3.776989054094746
+          ],
+          "mesh": "stairs-main-logs"
+        }
+      },
+      "peakKneeBefore": {
+        "frame": 375,
+        "kneesDeg": {
+          "L": 43.661799347890124,
+          "R": 166.7017716578768
+        }
+      },
+      "peakKneeAfter": {
+        "frame": 375,
+        "kneesDeg": {
+          "L": 43.661799347890124,
+          "R": 166.67137852425753
+        },
+        "sameFrameBaselineKneesDeg": {
+          "L": 43.661799347890124,
+          "R": 166.7017716578768
+        },
+        "baselineRootY": 2.154092714174249,
+        "candidateRootY": 2.154092714174249,
+        "baselineHipClampRad": 0,
+        "candidateHipClampRad": 0
+      },
+      "largestRootDifference": {
+        "frame": 342,
+        "deltaM": -0.0029070377349853516,
+        "baselineRootY": 2.4808223502578226,
+        "candidateRootY": 2.4779153125228373
+      },
+      "rootDifferenceAbove1mmSpans": [
+        [
+          156,
+          168
+        ],
+        [
+          329,
+          344
+        ],
+        [
+          433,
+          442
+        ]
+      ],
+      "negativeFullSoleFrames": 0,
+      "reachClampedFrames": 0,
+      "plantedDriftMaxChangeM": 0.0,
+      "rootStepMaximumChangeM": 0.0
+    }
+  },
+  "reproduction": {
+    "fixture": "art/characters/link/progress/2026-09-21-curved-support/replay.mjs",
+    "flags": "--working-source --with-logs --assert-curved",
+    "phaseReference": "art/characters/link/progress/2026-09-21-stair-clearance/phase-reference.json",
+    "manifest": "art/characters/link/progress/2026-09-21-stair-clearance/motion-input.json",
+    "baselineAsset": "public/models/link/link-runtime.glb",
+    "baselineAssetSha256": "89df38f255e47afbcbb28a60555fb4a4a20091741d427ef1d7b8ea1ac33f306b",
+    "candidateAsset": "art/characters/link/progress/2026-09-21-boot-tip/candidate.glb",
+    "candidateAssetSha256": "4dcf89c5c10391981289e2583152c26fb4ac93047c6fcb4bb0959e246805d850",
+    "note": "Set ZR_NATIVE_GPU=0 and explicit --asset/--asset-sha/--phase-reference/--manifest/--output-dir. Compare against the paired current baseline; the historical --assert-curved alone does not detect this posture regression."
+  },
+  "firstConsequentialSelectionDivergence": {
+    "frame": 385,
+    "foot": "L",
+    "call": "cfgLand, second of four footConfig calls; first swing sample of the left foot",
+    "cause": "Same edge/rise/input marker and same pin/off history. A2.017mm ankle-only proxy toe reduction moves the existing upper/lower tie argument by2.017mm, changing upperWeight0.394192\u21920.131450. Blending the two candidate marker positions moves the chosen marker backward28.163mm, across the physical riser, so support changes4.088048\u21923.780m. It is tie-blend sensitivity, not nearest-edge/candidate-order switching.",
+    "notNewlyFittingProxy": "Both old and new measured rectangles fit the already available lower chosen location. At the original location both require upper timber support. The toe edit did not newly make that lower proxy placement feasible.",
+    "importantCoverageLimit": "These are ankle-dominant production proxy rectangles. A new independent finding identifies omitted toe-dominant geometry; the fixed-location comparison is not a claim that the complete animated boot fits. Expanded raw-production negative control follows separately.",
+    "callOrder": [
+      "L off",
+      "L land",
+      "R off",
+      "R land"
+    ],
+    "before": {
+      "configs": [
+        {
+          "x": 12.408864212262525,
+          "z": -4.182567505157114,
+          "fx": 0.7885023060177917,
+          "fz": -0.6150317986938763,
+          "yawRel": -1.6980436974470623e-08,
+          "fp": {
+            "heel": 0.0698262114630868,
+            "toe": 0.12385616110695104,
+            "latMin": -0.05744510002532567,
+            "latMax": 0.08064944252273475
+          },
+          "e": null,
+          "rise": 0,
+          "shift": 0,
+          "pitch": 0,
+          "sx": 12.408864212262525,
+          "sz": -4.182567505157114,
+          "centerSupport": 3.563070058822632,
+          "support": 3.5644397735595703,
+          "placed": false
+        },
+        {
+          "x": 13.044998755605077,
+          "z": -4.678752469480645,
+          "fx": 0.7885023060177917,
+          "fz": -0.6150317986938763,
+          "yawRel": 2.6136534684660554e-08,
+          "fp": {
+            "heel": 0.0698262114630868,
+            "toe": 0.12385616110695104,
+            "latMin": -0.05744510002532567,
+            "latMax": 0.08064944252273475
+          },
+          "e": 0.1072831614290163,
+          "rise": 0.27556917190551733,
+          "shift": 0.008308217938801703,
+          "pitch": 0,
+          "sx": 13.05154980460872,
+          "sz": -4.683862287703486,
+          "centerSupport": 3.99884765625,
+          "support": 4.088048458099365,
+          "placed": false
+        },
+        {
+          "x": 12.185551977282419,
+          "z": -3.8130771154968524,
+          "fx": 0.7885023060177917,
+          "fz": -0.6150317986938763,
+          "yawRel": -4.922435328007433e-09,
+          "fp": {
+            "heel": 0.06954021347629329,
+            "toe": 0.11841791527403096,
+            "latMin": -0.08027367994090949,
+            "latMax": 0.058892032579570666
+          },
+          "e": null,
+          "rise": 0,
+          "shift": 0,
+          "pitch": 0,
+          "sx": 12.185551977282419,
+          "sz": -3.8130771154968524,
+          "centerSupport": 3.24,
+          "support": 3.24,
+          "placed": false
+        },
+        {
+          "x": 12.821686862052312,
+          "z": -4.309262331525703,
+          "fx": 0.7885023060177917,
+          "fz": -0.6150317986938763,
+          "yawRel": -2.4704069017417697e-08,
+          "fp": {
+            "heel": 0.06954021347629329,
+            "toe": 0.11841791527403096,
+            "latMin": -0.08027367994090949,
+            "latMax": 0.058892032579570666
+          },
+          "e": -0.015087090459379782,
+          "rise": 0.16380023956298828,
+          "shift": 0,
+          "pitch": 0,
+          "sx": 12.821686862052312,
+          "sz": -4.309262331525703,
+          "centerSupport": 3.824397325515747,
+          "support": 3.8441405296325684,
+          "placed": false
+        }
+      ],
+      "planning": [
+        {
+          "side": "L",
+          "rootOff": 3.5644397735595703,
+          "rootLand": 4.088048458099365,
+          "phase": 0.025627914740636,
+          "swingW": 1,
+          "gRoot": 3.5655355897033667,
+          "g": 3.565689301200706,
+          "soleP": [
+            12.414804369582837,
+            3.5173713152496555,
+            -4.187201100288702
+          ],
+          "pinX": -0.005953360838526933,
+          "pinZ": 0.004643872226981038,
+          "shift": 1.60905732457919e-05,
+          "pitch": 0
+        },
+        {
+          "side": "R",
+          "rootOff": 3.24,
+          "rootLand": 3.8441405296325684,
+          "phase": 0.9856279147406362,
+          "swingW": 1,
+          "gRoot": 3.5654538494965258,
+          "g": 3.8441405296325684,
+          "soleP": [
+            12.818322317609098,
+            3.5168878241369126,
+            -4.3066379372273325
+          ],
+          "pinX": 0.003287979720054809,
+          "pinZ": -0.0025646726848491184,
+          "shift": 0,
+          "pitch": 0
+        }
+      ],
+      "pins": {
+        "pinX": [
+          null,
+          null
+        ],
+        "pinZ": [
+          null,
+          null
+        ],
+        "offX": [
+          12.408864212262525,
+          12.185551977282419
+        ],
+        "offZ": [
+          -4.182567505157114,
+          -3.8130771154968524
+        ]
+      },
+      "choice": {
+        "ahead": 0.12385616260836685,
+        "upperShift": 0.0772831614290163,
+        "lowerShift": -0.03657300117935054,
+        "tieArgument": 0.0007101602496657547,
+        "upperWeight": 0.39419226935068075,
+        "reconstructedShift": 0.008308217938801703,
+        "toeVsEdgeAtChosenShift": 0.024881219118152262
+      }
+    },
+    "after": {
+      "configs": [
+        {
+          "x": 12.408864212262525,
+          "z": -4.182567505157114,
+          "fx": 0.7885023060177917,
+          "fz": -0.6150317986938763,
+          "yawRel": -1.6980436974470623e-08,
+          "fp": {
+            "heel": 0.0698262114630868,
+            "toe": 0.12183875994814138,
+            "latMin": -0.05744510002532567,
+            "latMax": 0.08064944252273475
+          },
+          "e": null,
+          "rise": 0,
+          "shift": 0,
+          "pitch": 0,
+          "sx": 12.408864212262525,
+          "sz": -4.182567505157114,
+          "centerSupport": 3.563070058822632,
+          "support": 3.5644397735595703,
+          "placed": false
+        },
+        {
+          "x": 13.044998755605077,
+          "z": -4.678752469480645,
+          "fx": 0.7885023060177917,
+          "fz": -0.6150317986938763,
+          "yawRel": 2.6136534684660554e-08,
+          "fp": {
+            "heel": 0.0698262114630868,
+            "toe": 0.12183875994814138,
+            "latMin": -0.05744510002532567,
+            "latMax": 0.08064944252273475
+          },
+          "e": 0.1072831614290163,
+          "rise": 0.27556917190551733,
+          "shift": -0.019854431440153378,
+          "pitch": 0,
+          "sx": 13.029343490629843,
+          "sz": -4.666541362799963,
+          "centerSupport": 3.7800000000000002,
+          "support": 3.7800000000000002,
+          "placed": false
+        },
+        {
+          "x": 12.185551977282419,
+          "z": -3.8130771154968524,
+          "fx": 0.7885023060177917,
+          "fz": -0.6150317986938763,
+          "yawRel": -4.922435328007433e-09,
+          "fp": {
+            "heel": 0.06954021347629329,
+            "toe": 0.11710931019914846,
+            "latMin": -0.08027367994090949,
+            "latMax": 0.058892032579570666
+          },
+          "e": null,
+          "rise": 0,
+          "shift": 0,
+          "pitch": 0,
+          "sx": 12.185551977282419,
+          "sz": -3.8130771154968524,
+          "centerSupport": 3.24,
+          "support": 3.24,
+          "placed": false
+        },
+        {
+          "x": 12.821686862052312,
+          "z": -4.309262331525703,
+          "fx": 0.7885023060177917,
+          "fz": -0.6150317986938763,
+          "yawRel": -2.4704069017417697e-08,
+          "fp": {
+            "heel": 0.06954021347629329,
+            "toe": 0.11710931019914846,
+            "latMin": -0.08027367994090949,
+            "latMax": 0.058892032579570666
+          },
+          "e": -0.015087090459379782,
+          "rise": 0.16380023956298828,
+          "shift": 0,
+          "pitch": 0,
+          "sx": 12.821686862052312,
+          "sz": -4.309262331525703,
+          "centerSupport": 3.824397325515747,
+          "support": 3.8436007499694824,
+          "placed": false
+        }
+      ],
+      "planning": [
+        {
+          "side": "L",
+          "rootOff": 3.5644397735595703,
+          "rootLand": 3.7800000000000002,
+          "phase": 0.025627914740636,
+          "swingW": 1,
+          "gRoot": 3.5652854199178488,
+          "g": 3.5649541814928605,
+          "soleP": [
+            12.414804369582837,
+            3.5173713152496555,
+            -4.187201100288702
+          ],
+          "pinX": -0.005910353743114882,
+          "pinZ": 0.004610326692559674,
+          "shift": -3.845219103477425e-05,
+          "pitch": 0
+        },
+        {
+          "side": "R",
+          "rootOff": 3.24,
+          "rootLand": 3.8436007499694824,
+          "phase": 0.9856279147406362,
+          "swingW": 1,
+          "gRoot": 3.564857250284178,
+          "g": 3.8436007499694824,
+          "soleP": [
+            12.818322317609098,
+            3.5168878241369126,
+            -4.3066379372273325
+          ],
+          "pinX": 0.003287979720054809,
+          "pinZ": -0.0025646726848491184,
+          "shift": 0,
+          "pitch": 0
+        }
+      ],
+      "pins": {
+        "pinX": [
+          null,
+          null
+        ],
+        "pinZ": [
+          null,
+          null
+        ],
+        "offX": [
+          12.408864212262525,
+          12.185551977282419
+        ],
+        "offZ": [
+          -4.182567505157114,
+          -3.8130771154968524
+        ]
+      },
+      "choice": {
+        "ahead": 0.12183876144955719,
+        "upperShift": 0.0772831614290163,
+        "lowerShift": -0.03455560002054088,
+        "tieArgument": 0.0027275614084754166,
+        "upperWeight": 0.13144967263445773,
+        "reconstructedShift": -0.019854431440153378,
+        "toeVsEdgeAtChosenShift": -0.0052988314196124875
+      }
+    },
+    "sameEdge": true,
+    "sameRise": true,
+    "markerShiftChangeM": -0.02816264937895508,
+    "plannedSupportChangeM": -0.308048458099365,
+    "fixedLocationCrossChecks": {
+      "scope": "Four fixed marker/footprint combinations; rectangle-plane support on exact rendered meshes. Not a full animated boot coverage test.",
+      "rows": [
+        {
+          "location": "before",
+          "footprint": "before",
+          "x": 13.05154980460872,
+          "z": -4.683862287703486,
+          "placedConfig": {
+            "shift": 0,
+            "support": 4.088048458099365,
+            "pitch": 0,
+            "back": 0.06982621357098373,
+            "ahead": 0.12385616260836685
+          },
+          "gridPlaneSupport": 4.088048458099365,
+          "exactPlaneSupport": 4.084175814471495,
+          "exactHighestPoint": {
+            "x": 13.105675307743109,
+            "z": -4.815852333410748,
+            "y": 4.084175814471495,
+            "mesh": "stairs-main-logs"
+          }
+        },
+        {
+          "location": "before",
+          "footprint": "after",
+          "x": 13.05154980460872,
+          "z": -4.683862287703486,
+          "placedConfig": {
+            "shift": 0,
+            "support": 4.0864763259887695,
+            "pitch": 0,
+            "back": 0.06982621357098373,
+            "ahead": 0.12183876144955719
+          },
+          "gridPlaneSupport": 4.0864763259887695,
+          "exactPlaneSupport": 4.081844927199684,
+          "exactHighestPoint": {
+            "x": 13.104084582309653,
+            "z": -4.814611567505782,
+            "y": 4.081844927199684,
+            "mesh": "stairs-main-logs"
+          }
+        },
+        {
+          "location": "after",
+          "footprint": "before",
+          "x": 13.029343490629843,
+          "z": -4.666541362799963,
+          "placedConfig": {
+            "shift": 0,
+            "support": 3.7800000000000002,
+            "pitch": 0,
+            "back": 0.06982621357098373,
+            "ahead": 0.12385616260836685
+          },
+          "gridPlaneSupport": 3.7800000000000002,
+          "exactPlaneSupport": 3.77348439993512,
+          "exactHighestPoint": {
+            "x": 13.009615927371751,
+            "z": -4.57830042801284,
+            "y": 3.77348439993512,
+            "mesh": "stairs-main"
+          }
+        },
+        {
+          "location": "after",
+          "footprint": "after",
+          "x": 13.029343490629843,
+          "z": -4.666541362799963,
+          "placedConfig": {
+            "shift": 0,
+            "support": 3.7800000000000002,
+            "pitch": 0,
+            "back": 0.06982621357098373,
+            "ahead": 0.12183876144955719
+          },
+          "gridPlaneSupport": 3.7800000000000002,
+          "exactPlaneSupport": 3.77348439993512,
+          "exactHighestPoint": {
+            "x": 13.009615927371751,
+            "z": -4.57830042801284,
+            "y": 3.77348439993512,
+            "mesh": "stairs-main"
+          }
+        }
+      ]
+    },
+    "rawEvidence": [
+      {
+        "file": "art/characters/link/progress/2026-09-21-boot-tip/selection-baseline/stair-swing-working.json",
+        "sha256": "748cb3347c78462fed1202073ffc2596bbee325a7ef4454f8dd1dd1fe69c9b41"
+      },
+      {
+        "file": "art/characters/link/progress/2026-09-21-boot-tip/selection-candidate/stair-swing-working.json",
+        "sha256": "f773dd4a5389c9ffa19e35c7a22c6c1f9e73ae84019076b4236286ea6fbdb40f"
+      }
+    ]
+  }
+}

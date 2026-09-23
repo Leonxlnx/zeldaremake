@@ -1,0 +1,50 @@
+{
+  "item": "W06",
+  "reviewer": "fable-5",
+  "verdict": "pass",
+  "evidence": "gauntlet/reviews/evidence/fable-5/take-0125-W06-verge-zoom.jpg",
+  "takeId": "take-0125",
+  "author": "cursor-fable",
+  "takeSha": "c4d12f6cd364c0cd0a645a9a4b33ec1e989c8e8f",
+  "at": "2026-09-21T04:25:29.127Z",
+  "criterion": "Ground at viewpoint E shows soil/moss/grass transitions with fine roughness like the reference plaza edges.",
+  "note": "take-0125 (c4d12f6): at E the lawn no longer meets the slabs on a hard line - vegetation-27's rim band puts a dark soil/moss strip with small soil mats along the slab edges (E's left verge, 0-0.35 x 0.62-0.95), and the new seams carry moss; the reference plaza edge has the same grass -> trodden soil -> stone order. The reference's soil strip is wider (0.3-0.5 m of bare earth vs our ~0.1 m band) and its slabs pale where ours darkened 0.03 - noted, not a fail. Pass; take-0121's fail (a hard grass/slab line, no soil) is answered.",
+  "history": [
+    {
+      "item": "W06",
+      "reviewer": "fable-5",
+      "verdict": "fail",
+      "evidence": "gauntlet/reviews/evidence/fable-5/take-0121-W06-E-ground-transitions.jpg",
+      "takeId": "take-0121",
+      "author": "fable-cursor",
+      "takeSha": "cf8083ba21018a37478c2b1f5b2af4be97cbf710",
+      "at": "2026-09-20T06:20:30.990Z",
+      "criterion": "Ground at viewpoint E shows soil/moss/grass transitions with fine roughness like the reference plaza edges.",
+      "note": "Improved: the flat orange band between grass and slab is gone. Still a two-material hard edge - grass tufts stop at the slab edge, no soil band, no moss gradient, no litter; the reference plaza edge grades stone -> soil -> moss -> grass over 20-40 cm. The criterion asks for soil/moss/grass transitions with fine roughness; E shows grass/slab."
+    },
+    {
+      "item": "W06",
+      "reviewer": "opus-review",
+      "verdict": "fail",
+      "evidence": "gauntlet/reviews/evidence/opus-review/take-0116-W06-E-ground-layers.jpg",
+      "takeId": "take-0116",
+      "author": "fable-cursor",
+      "takeSha": "973a21e5b045177f66da3d04dc4e67e387270620",
+      "at": "2026-09-19T19:27:27.167Z",
+      "criterion": "Ground at viewpoint E shows soil/moss/grass transitions with fine roughness like the reference plaza edges.",
+      "note": "The ground transition at E is two hard steps, not a blend: dense green grass, then a uniform pale soil band, then stone, with a sharp mask edge at each boundary and no moss halo, no litter and no roughness modulation across the band. The band measures #b09f86 l 0.356 against the reference's #837050 l 0.169 at the same region, so it reads as a dry pale strip rather than damp joint soil. The reference at the same place grades stone into a 10-30 cm moss and soil halo and then into grass, with fine grain visible on every part of it. The six-layer splat and the detail normal are present in the audit; what is missing is the transition between them at frame scale."
+    },
+    {
+      "item": "W06",
+      "reviewer": "fable-5",
+      "verdict": "fail",
+      "evidence": "gauntlet/reviews/evidence/fable-5/take-0116-W06-E-ground-transitions.jpg",
+      "takeId": "take-0116",
+      "author": "fable-cursor",
+      "takeSha": "973a21e5b045177f66da3d04dc4e67e387270620",
+      "at": "2026-09-19T09:33:47.235Z",
+      "criterion": "Ground at viewpoint E shows soil/moss/grass transitions with fine roughness like the reference plaza edges.",
+      "note": "At E the ground transition is grass -> a flat orange soil band -> slab, a two-tone hard edge along the whole left verge (x 0.0-0.55, y 0.58-1.0): no moss halo, no soil roughness, no shade, the verge itself a uniform pale hay carpet. At the house base the ground is a green mound with a pile of identical grey pebbles. The reference shows dark shaded soil, grass tufts, broadleaf weeds and moss grading into the stone edges with fine roughness. Layers/detailNormal pass the gate; the visual transition does not."
+    }
+  ]
+}

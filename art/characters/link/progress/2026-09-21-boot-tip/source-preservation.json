@@ -1,0 +1,19 @@
+{
+  "source_sha256": "89df38f255e47afbcbb28a60555fb4a4a20091741d427ef1d7b8ea1ac33f306b",
+  "source_bytes": 47825216,
+  "canonical_json_sha256": "d4a70e88059a46abc8d4db14a6a68f01fb317c7180e14e5e76fe9f96acbcf4b2",
+  "original_binary_bytes": 47698784,
+  "original_binary_sha256": "5e3fcd13b3990cd780f91519b3ea304441b69ae5b845a2cdac237714d1c7bf4e",
+  "accessor_count": 692,
+  "buffer_view_count": 709,
+  "buffers": [
+    {
+      "byteLength": 47698784
+    }
+  ],
+  "body_attributes": {
+    "POSITION": 635,
+    "NORMAL": 636,
+    "TANGENT": 637
+  }
+}

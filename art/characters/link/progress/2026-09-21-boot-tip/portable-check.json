@@ -1,0 +1,106 @@
+{
+  "source_sha256": "89df38f255e47afbcbb28a60555fb4a4a20091741d427ef1d7b8ea1ac33f306b",
+  "candidate_sha256": "4dcf89c5c10391981289e2583152c26fb4ac93047c6fcb4bb0959e246805d850",
+  "source_bytes": 47825216,
+  "mode": "candidate-only preservation contract",
+  "native_correspondence_checked": false,
+  "candidate_bytes": 51111284,
+  "appended_bytes": 3286068,
+  "original_binary_prefix_preserved_bytes": 47698784,
+  "semantic_json_allowed_changes": [
+    [
+      2,
+      0,
+      "POSITION"
+    ],
+    [
+      2,
+      0,
+      "NORMAL"
+    ],
+    [
+      2,
+      0,
+      "TANGENT"
+    ]
+  ],
+  "all_original_accessors_byte_identical": 692,
+  "authoring_field_vertices": 1664,
+  "float32_position_rows_changed": 1650,
+  "untouched_position_normal_tangent_rows_exact": 80469,
+  "all_lateral_and_height_coordinates_exact": true,
+  "maximum_position_float32_error_m": 7.442638255694689e-09,
+  "minimum_forward_jacobian": 0.8312500016491864,
+  "maximum_finite_jacobian_error": 1.4015066884809357e-10,
+  "maximum_normal_error": 4.321691118626343e-08,
+  "maximum_tangent_error": 4.6508385953596034e-08,
+  "maximum_normal_tangent_dot": 5.769144095779666e-08,
+  "maximum_squared_unit_error": 8.888632407888508e-08,
+  "nondegenerate_affected_triangles": 1687,
+  "minimum_face_normal_cosine": 0.9962241745057356,
+  "sole_rest_bounds": {
+    "L": {
+      "vertices_below_65mm": 1090,
+      "before": {
+        "min": [
+          0.01736309938132763,
+          0.006968902889639139,
+          -0.07368133217096329
+        ],
+        "max": [
+          0.1613326221704483,
+          0.06489485502243042,
+          0.2038709819316864
+        ]
+      },
+      "after": {
+        "min": [
+          0.01736309938132763,
+          0.006968902889639139,
+          -0.07368133217096329
+        ],
+        "max": [
+          0.1613326221704483,
+          0.06489485502243042,
+          0.19248388707637787
+        ]
+      },
+      "length_before_m": 0.2775523141026497,
+      "length_after_m": 0.26616521924734116,
+      "max_retraction_m": 0.011387094855308533
+    },
+    "R": {
+      "vertices_below_65mm": 1085,
+      "before": {
+        "min": [
+          -0.15962614119052887,
+          0.006968902889639139,
+          -0.07529668509960175
+        ],
+        "max": [
+          -0.01655477099120617,
+          0.06493127346038818,
+          0.2037944793701172
+        ]
+      },
+      "after": {
+        "min": [
+          -0.15962614119052887,
+          0.006968902889639139,
+          -0.07529668509960175
+        ],
+        "max": [
+          -0.01655477099120617,
+          0.06493127346038818,
+          0.1924150288105011
+        ]
+      },
+      "length_before_m": 0.27909116446971893,
+      "length_after_m": 0.26771171391010284,
+      "max_retraction_m": 0.011379450559616089
+    }
+  },
+  "native_correspondence": null,
+  "negative_controls": {},
+  "status": "PASS preservation and deformation; native correspondence not rerun; runtime pitched-sole replay is a separate check"
+}

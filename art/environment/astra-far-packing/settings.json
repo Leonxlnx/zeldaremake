@@ -1,0 +1,10 @@
+{
+  "sourceSha": "1c69102d2156a00b7dd46ae78006f438e0383764",
+  "dist": "dist",
+  "bundle": "index-tB-Xa4Qn.js",
+  "out": "art/environment/astra-far-packing/after",
+  "views": [
+    "A_stairs",
+    "F_canopy"
+  ]
+}

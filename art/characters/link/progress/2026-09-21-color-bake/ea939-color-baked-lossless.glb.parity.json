@@ -1,0 +1,210 @@
+{
+  "kind": "Independent raw GLTFLoader versus captured production grade",
+  "input": "E:\\zeldaremake-astra-motion-sept21\\art\\characters\\link\\progress\\2026-09-21-color-bake\\ea939-color-baked-lossless.glb",
+  "inputSha256": "3cb51f3653c0519f33fe32653d7351c5ff3d7c38944cb7f00001fcb673f704c7",
+  "sourceSha256": "ea93932d8afe02ec4bbcf3487fb20ce3f55272fb60f20998dc728cb637ae575f",
+  "capturedRuntimeSha256": "63904e225810b56337bfaecde9fd4aef1e809248ea952e9461dcf771a9272107",
+  "capturedGradeSha256": "c24c50565c4027cbdaff8e715b0d7836c22c6d11b8de645b8edc89a7816afab1",
+  "browserGradeInvocations": 0,
+  "rendererCreated": false,
+  "errors": [],
+  "browser": "Chrome/153.0.8010.52",
+  "materials": {
+    "Link | generated study living eyes.034": {
+      "color": [
+        1,
+        1,
+        1
+      ],
+      "opacity": 1,
+      "roughness": 0.23999999463558197,
+      "metalness": 0,
+      "normalScale": [
+        1,
+        1
+      ],
+      "clearcoat": 0.6499999761581421,
+      "clearcoatRoughness": 0.07000000029802322,
+      "side": 2,
+      "maps": {
+        "map": {
+          "rgbaSha256": "fd4bd4a2acb305e3a3925d71edee7a01159ea02c59d2ffd8708b75edcc8b3af5",
+          "width": 2048,
+          "height": 2048,
+          "colorSpace": "srgb",
+          "flipY": false,
+          "channel": 0,
+          "wrapS": 1000,
+          "wrapT": 1000,
+          "minFilter": 1008,
+          "magFilter": 1006,
+          "offset": [
+            0,
+            0
+          ],
+          "repeat": [
+            1,
+            1
+          ],
+          "rotation": 0
+        }
+      }
+    },
+    "model.036": {
+      "color": [
+        1,
+        1,
+        1
+      ],
+      "opacity": 1,
+      "roughness": 1,
+      "metalness": 1,
+      "normalScale": [
+        1,
+        1
+      ],
+      "side": 2,
+      "maps": {
+        "map": {
+          "rgbaSha256": "2e024fb6b314b23b06a2b31ae3ff101648f9d37e23b71c82126aab72cf63c117",
+          "width": 4096,
+          "height": 4096,
+          "colorSpace": "srgb",
+          "flipY": false,
+          "channel": 0,
+          "wrapS": 1000,
+          "wrapT": 1000,
+          "minFilter": 1008,
+          "magFilter": 1006,
+          "offset": [
+            0,
+            0
+          ],
+          "repeat": [
+            1,
+            1
+          ],
+          "rotation": 0
+        },
+        "normalMap": {
+          "rgbaSha256": "6eacf5d152782346b8434574b2ebf93319d1052406832eefa3d57ef85b2d7f47",
+          "width": 4096,
+          "height": 4096,
+          "colorSpace": "",
+          "flipY": false,
+          "channel": 0,
+          "wrapS": 1000,
+          "wrapT": 1000,
+          "minFilter": 1008,
+          "magFilter": 1006,
+          "offset": [
+            0,
+            0
+          ],
+          "repeat": [
+            1,
+            1
+          ],
+          "rotation": 0
+        },
+        "metalnessMap": {
+          "rgbaSha256": "feeea558070127cc83d65c24f06a501d977edf6588a7757b10ecf725a39b549b",
+          "width": 2048,
+          "height": 2048,
+          "colorSpace": "",
+          "flipY": false,
+          "channel": 0,
+          "wrapS": 1000,
+          "wrapT": 1000,
+          "minFilter": 1008,
+          "magFilter": 1006,
+          "offset": [
+            0,
+            0
+          ],
+          "repeat": [
+            1,
+            1
+          ],
+          "rotation": 0
+        },
+        "roughnessMap": {
+          "rgbaSha256": "feeea558070127cc83d65c24f06a501d977edf6588a7757b10ecf725a39b549b",
+          "width": 2048,
+          "height": 2048,
+          "colorSpace": "",
+          "flipY": false,
+          "channel": 0,
+          "wrapS": 1000,
+          "wrapT": 1000,
+          "minFilter": 1008,
+          "magFilter": 1006,
+          "offset": [
+            0,
+            0
+          ],
+          "repeat": [
+            1,
+            1
+          ],
+          "rotation": 0
+        }
+      }
+    },
+    "Link | orbital skin.034": {
+      "color": [
+        1,
+        1,
+        1
+      ],
+      "opacity": 1,
+      "roughness": 0.6000000238418579,
+      "metalness": 0,
+      "normalScale": [
+        1,
+        1
+      ],
+      "side": 2,
+      "maps": {
+        "map": {
+          "rgbaSha256": "aaf44bb77f90693791202d65f2ef8822399cd42a99548b338ebb0ded35415a4a",
+          "width": 1024,
+          "height": 1024,
+          "colorSpace": "srgb",
+          "flipY": false,
+          "channel": 0,
+          "wrapS": 1000,
+          "wrapT": 1000,
+          "minFilter": 1008,
+          "magFilter": 1006,
+          "offset": [
+            0,
+            0
+          ],
+          "repeat": [
+            1,
+            1
+          ],
+          "rotation": 0
+        }
+      }
+    },
+    "Original warm brow fibres.034": {
+      "color": [
+        0.3,
+        0.155,
+        0.04
+      ],
+      "opacity": 1,
+      "roughness": 0.6200000047683716,
+      "metalness": 0,
+      "normalScale": [
+        1,
+        1
+      ],
+      "side": 2,
+      "maps": {}
+    }
+  },
+  "exactPixelAndMaterialParity": true
+}

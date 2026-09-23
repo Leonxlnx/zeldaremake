@@ -1,0 +1,4726 @@
+{
+  "before": "6231cffbfec78d405cb3e83064bf3f68c7daca8d",
+  "after": "16544efcf6723f6e16de1c46c56975417084b334",
+  "renderer": "ANGLE (AMD, AMD Radeon 780M Graphics (0x00001900) Direct3D11 vs_5_0 ps_5_0, D3D11)",
+  "assetDifferences": {
+    "onlyBefore": [
+      "assets/index-Hs0AcnGr.js",
+      "models/link/posture-review.glb",
+      "models/link/shorter-tip-candidate.glb",
+      "models/link/stairs-combined-candidate.glb",
+      "models/link/torso-balanced-candidate.glb",
+      "models/link/torso-balanced-preview.glb",
+      "__diag/three.core.js",
+      "__diag/three.module.js"
+    ],
+    "onlyAfter": [
+      "assets/index-BfmOWOHI.js"
+    ],
+    "changed": [
+      "index.html",
+      "models/link/SOURCE.md"
+    ]
+  },
+  "assetNote": "Changed entry/bundle expected. Baseline also serves unused Link trial GLBs and Three diagnostic modules; Link SOURCE.md is documentation. Every common render asset is byte-identical.",
+  "views": {
+    "A_stairs": {
+      "beforeStats": {
+        "simTime": 12.6,
+        "drawCalls": 459,
+        "triangles": 8889627,
+        "geometries": 315,
+        "textures": 91,
+        "programs": 101,
+        "width": 1280,
+        "height": 720,
+        "pixelRatio": 1
+      },
+      "afterStats": {
+        "simTime": 12.6,
+        "drawCalls": 471,
+        "triangles": 9006541,
+        "geometries": 386,
+        "textures": 91,
+        "programs": 101,
+        "width": 1280,
+        "height": 720,
+        "pixelRatio": 1
+      },
+      "delta": {
+        "triangles": 116914,
+        "calls": 12
+      },
+      "changedFractionTolerance8": 0.00094,
+      "pool": {
+        "residentBytes": 76405953,
+        "pinnedBytes": 35281374,
+        "capBytes": 268435456,
+        "newSyncBuilds": 0,
+        "workMsMax": 8.4,
+        "stepMsMax": 5.7
+      },
+      "nearSubmission": {
+        "whitebark-lod0": {
+          "meshes": 2,
+          "instances": 3,
+          "calls": 3,
+          "triangles": 455256
+        },
+        "whitebark-lod1": {
+          "meshes": 6,
+          "instances": 10,
+          "calls": 8,
+          "triangles": 64532
+        },
+        "whitebark-lod2": {
+          "meshes": 7,
+          "instances": 16,
+          "calls": 7,
+          "triangles": 36592
+        },
+        "column-lod0": {
+          "meshes": 3,
+          "instances": 3,
+          "calls": 6,
+          "triangles": 204166
+        },
+        "column-lod1": {
+          "meshes": 6,
+          "instances": 6,
+          "calls": 12,
+          "triangles": 136156
+        },
+        "column-lod2": {
+          "meshes": 1,
+          "instances": 1,
+          "calls": 1,
+          "triangles": 5216
+        },
+        "giant-wood": {
+          "meshes": 3,
+          "instances": 3,
+          "calls": 6,
+          "triangles": 1508970
+        },
+        "giant-cards": {
+          "meshes": 3,
+          "instances": 3,
+          "calls": 6,
+          "triangles": 23236
+        },
+        "giant-authored-leaves": {
+          "meshes": 4,
+          "instances": 4,
+          "calls": 4,
+          "triangles": 315588
+        },
+        "giant-authored-cards": {
+          "meshes": 2,
+          "instances": 2,
+          "calls": 2,
+          "triangles": 1972
+        },
+        "distant-near": {
+          "meshes": 6,
+          "instances": 146,
+          "calls": 6,
+          "triangles": 145975
+        },
+        "distant-far": {
+          "meshes": 5,
+          "instances": 141,
+          "calls": 5,
+          "triangles": 3102
+        },
+        "column-near-base": {
+          "meshes": 0,
+          "instances": 0,
+          "calls": 0,
+          "triangles": 0
+        },
+        "giant-near-base": {
+          "meshes": 2,
+          "instances": 2,
+          "calls": 2,
+          "triangles": 68239
+        },
+        "column-near-canopy-lobe": {
+          "meshes": 1,
+          "instances": 1,
+          "calls": 0,
+          "triangles": 0
+        },
+        "giant-near-canopy-lobe": {
+          "meshes": 66,
+          "instances": 66,
+          "calls": 12,
+          "triangles": 138112
+        },
+        "giant-near-canopy-limb": {
+          "meshes": 12,
+          "instances": 12,
+          "calls": 3,
+          "triangles": 44242
+        }
+      },
+      "foldedTriangles": 119166,
+      "referenceSSIM": {
+        "before": 0.2135,
+        "after": 0.2136,
+        "delta": 0.00010000000000001674
+      }
+    },
+    "F_canopy": {
+      "beforeStats": {
+        "simTime": 12.6,
+        "drawCalls": 416,
+        "triangles": 8180156,
+        "geometries": 334,
+        "textures": 91,
+        "programs": 101,
+        "width": 1280,
+        "height": 720,
+        "pixelRatio": 1
+      },
+      "afterStats": {
+        "simTime": 12.6,
+        "drawCalls": 444,
+        "triangles": 8431517,
+        "geometries": 415,
+        "textures": 91,
+        "programs": 101,
+        "width": 1280,
+        "height": 720,
+        "pixelRatio": 1
+      },
+      "delta": {
+        "triangles": 251361,
+        "calls": 28
+      },
+      "changedFractionTolerance8": 0.00411,
+      "pool": {
+        "residentBytes": 84782661,
+        "pinnedBytes": 35485578,
+        "capBytes": 268435456,
+        "newSyncBuilds": 2,
+        "workMsMax": 8.4,
+        "stepMsMax": 6.9
+      },
+      "nearSubmission": {
+        "whitebark-lod0": {
+          "meshes": 3,
+          "instances": 3,
+          "calls": 4,
+          "triangles": 303992
+        },
+        "whitebark-lod1": {
+          "meshes": 7,
+          "instances": 13,
+          "calls": 12,
+          "triangles": 164227
+        },
+        "whitebark-lod2": {
+          "meshes": 6,
+          "instances": 11,
+          "calls": 6,
+          "triangles": 21519
+        },
+        "column-lod0": {
+          "meshes": 2,
+          "instances": 2,
+          "calls": 4,
+          "triangles": 147940
+        },
+        "column-lod1": {
+          "meshes": 8,
+          "instances": 8,
+          "calls": 13,
+          "triangles": 138199
+        },
+        "column-lod2": {
+          "meshes": 0,
+          "instances": 0,
+          "calls": 0,
+          "triangles": 0
+        },
+        "giant-wood": {
+          "meshes": 3,
+          "instances": 3,
+          "calls": 6,
+          "triangles": 1508970
+        },
+        "giant-cards": {
+          "meshes": 3,
+          "instances": 3,
+          "calls": 6,
+          "triangles": 23236
+        },
+        "giant-authored-leaves": {
+          "meshes": 4,
+          "instances": 4,
+          "calls": 2,
+          "triangles": 29716
+        },
+        "giant-authored-cards": {
+          "meshes": 2,
+          "instances": 2,
+          "calls": 2,
+          "triangles": 1972
+        },
+        "distant-near": {
+          "meshes": 5,
+          "instances": 58,
+          "calls": 5,
+          "triangles": 69869
+        },
+        "distant-far": {
+          "meshes": 5,
+          "instances": 130,
+          "calls": 5,
+          "triangles": 2860
+        },
+        "column-near-base": {
+          "meshes": 0,
+          "instances": 0,
+          "calls": 0,
+          "triangles": 0
+        },
+        "giant-near-base": {
+          "meshes": 0,
+          "instances": 0,
+          "calls": 0,
+          "triangles": 0
+        },
+        "column-near-canopy-lobe": {
+          "meshes": 1,
+          "instances": 1,
+          "calls": 1,
+          "triangles": 4840
+        },
+        "giant-near-canopy-lobe": {
+          "meshes": 66,
+          "instances": 66,
+          "calls": 23,
+          "triangles": 223723
+        },
+        "giant-near-canopy-limb": {
+          "meshes": 12,
+          "instances": 12,
+          "calls": 7,
+          "triangles": 88238
+        }
+      },
+      "foldedTriangles": 129038,
+      "referenceSSIM": {
+        "before": 0.2147,
+        "after": 0.2131,
+        "delta": -0.0015999999999999903
+      }
+    },
+    "upper-envelope-southwest": {
+      "beforeStats": {
+        "simTime": 12.6,
+        "drawCalls": 337,
+        "triangles": 6522457,
+        "geometries": 358,
+        "textures": 91,
+        "programs": 99,
+        "width": 1280,
+        "height": 720,
+        "pixelRatio": 1
+      },
+      "afterStats": {
+        "simTime": 12.6,
+        "drawCalls": 353,
+        "triangles": 6669883,
+        "geometries": 386,
+        "textures": 91,
+        "programs": 99,
+        "width": 1280,
+        "height": 720,
+        "pixelRatio": 1
+      },
+      "delta": {
+        "triangles": 147426,
+        "calls": 16
+      },
+      "changedFractionTolerance8": 0.03323,
+      "pool": {
+        "residentBytes": 74199651,
+        "pinnedBytes": 15423624,
+        "capBytes": 268435456,
+        "newSyncBuilds": 24,
+        "workMsMax": 8.4,
+        "stepMsMax": 5.7
+      },
+      "nearSubmission": {
+        "whitebark-lod0": {
+          "meshes": 1,
+          "instances": 1,
+          "calls": 2,
+          "triangles": 137384
+        },
+        "whitebark-lod1": {
+          "meshes": 5,
+          "instances": 9,
+          "calls": 9,
+          "triangles": 168953
+        },
+        "whitebark-lod2": {
+          "meshes": 9,
+          "instances": 29,
+          "calls": 9,
+          "triangles": 62790
+        },
+        "column-lod0": {
+          "meshes": 0,
+          "instances": 0,
+          "calls": 0,
+          "triangles": 0
+        },
+        "column-lod1": {
+          "meshes": 1,
+          "instances": 1,
+          "calls": 2,
+          "triangles": 20952
+        },
+        "column-lod2": {
+          "meshes": 9,
+          "instances": 9,
+          "calls": 9,
+          "triangles": 57175
+        },
+        "giant-wood": {
+          "meshes": 3,
+          "instances": 3,
+          "calls": 6,
+          "triangles": 1508970
+        },
+        "giant-cards": {
+          "meshes": 3,
+          "instances": 3,
+          "calls": 6,
+          "triangles": 23236
+        },
+        "giant-authored-leaves": {
+          "meshes": 4,
+          "instances": 4,
+          "calls": 3,
+          "triangles": 286692
+        },
+        "giant-authored-cards": {
+          "meshes": 2,
+          "instances": 2,
+          "calls": 2,
+          "triangles": 1972
+        },
+        "distant-near": {
+          "meshes": 6,
+          "instances": 63,
+          "calls": 6,
+          "triangles": 66691
+        },
+        "distant-far": {
+          "meshes": 5,
+          "instances": 193,
+          "calls": 5,
+          "triangles": 4246
+        },
+        "column-near-base": {
+          "meshes": 0,
+          "instances": 0,
+          "calls": 0,
+          "triangles": 0
+        },
+        "giant-near-base": {
+          "meshes": 0,
+          "instances": 0,
+          "calls": 0,
+          "triangles": 0
+        },
+        "column-near-canopy-lobe": {
+          "meshes": 0,
+          "instances": 0,
+          "calls": 0,
+          "triangles": 0
+        },
+        "giant-near-canopy-lobe": {
+          "meshes": 27,
+          "instances": 27,
+          "calls": 24,
+          "triangles": 237741
+        },
+        "giant-near-canopy-limb": {
+          "meshes": 4,
+          "instances": 4,
+          "calls": 3,
+          "triangles": 35056
+        }
+      },
+      "foldedTriangles": 46356
+    }
+  },
+  "repeat": {
+    "file": "upper-envelope-southwest-warm.png",
+    "sha256": "d19fcc2d0b15be609cc02e9f3717248d79c10d551874d9129d1494f1c2e15ed6",
+    "identical": true,
+    "camera": {
+      "position": [
+        -45.96,
+        29,
+        2.87
+      ],
+      "direction": [
+        0.996871629283337,
+        -0.07903767917889253,
+        -2.2204460492503136e-16
+      ],
+      "fov": 46
+    },
+    "stats": {
+      "simTime": 12.6,
+      "drawCalls": 353,
+      "triangles": 6669883,
+      "geometries": 415,
+      "textures": 91,
+      "programs": 101,
+      "width": 1280,
+      "height": 720,
+      "pixelRatio": 1
+    },
+    "trees": {
+      "geometry": "procedural-v1",
+      "giants": 12,
+      "giantRoots": true,
+      "giantRootsMin": 6,
+      "giantLimbsMin": 2,
+      "giantWildLimbs": {
+        "lantern-tree": [
+          "136",
+          "262"
+        ],
+        "plateau-oak": [
+          "197",
+          "317"
+        ],
+        "southwest-giant": [
+          "80",
+          "138",
+          "247"
+        ],
+        "east-giant": [
+          "101",
+          "207"
+        ],
+        "north-west": [
+          "242",
+          "5g"
+        ],
+        "north-east": [
+          "145g",
+          "269"
+        ],
+        "far-plateau": [
+          "7",
+          "113"
+        ],
+        "south-giant": [
+          "270",
+          "28"
+        ],
+        "south-centre": [
+          "322",
+          "74",
+          "170"
+        ],
+        "plaza-south": [],
+        "north-west-near": [
+          "168",
+          "259g",
+          "335g"
+        ],
+        "stair-bank-giant": []
+      },
+      "giantLeaves": 158053,
+      "giantAuthoredLeaves": 41595,
+      "giantAuthoredLeavesCast": false,
+      "giantLobeLeaves": {
+        "lantern-tree": [
+          1369,
+          1363,
+          0,
+          3612,
+          12,
+          39,
+          0
+        ],
+        "plateau-oak": [
+          7740,
+          7068,
+          3790,
+          6732,
+          2264,
+          2264,
+          2264
+        ],
+        "east-giant": [
+          433,
+          444,
+          456,
+          456,
+          456,
+          456,
+          456,
+          456
+        ],
+        "north-west-near": [
+          112,
+          138,
+          1052,
+          1849,
+          1816,
+          1523,
+          1920,
+          1760,
+          1347,
+          1276,
+          876
+        ],
+        "stair-bank-giant": [
+          460,
+          460,
+          460,
+          460,
+          408
+        ]
+      },
+      "giantCanopyCards": 6795,
+      "giantFlatCards": 986,
+      "giantFlatCardsCast": false,
+      "giantFlatCores": 7,
+      "giantCoreRimCards": 872,
+      "cardEdgeFade": {
+        "cards": [
+          0.1,
+          0.22
+        ],
+        "flat": [
+          0.15,
+          0.4
+        ]
+      },
+      "giantMeshes": 373,
+      "giantCrownRadii": [
+        13,
+        11.1,
+        13.8,
+        10.6,
+        10.3,
+        11.9,
+        11.8,
+        11.3,
+        12.5,
+        12.9,
+        11.1,
+        9.6
+      ],
+      "giantNearBark": [],
+      "columnNearBark": [
+        [
+          "swap-8",
+          0.056,
+          67,
+          53,
+          0.124,
+          7049
+        ],
+        [
+          "seat-4",
+          0.056,
+          67,
+          53,
+          0.171,
+          7049
+        ],
+        [
+          "seat-1",
+          0.06,
+          67,
+          62,
+          0.122,
+          8246
+        ],
+        [
+          "swap-18",
+          0.065,
+          67,
+          73,
+          0.141,
+          9709
+        ],
+        [
+          "seat-2",
+          0.065,
+          67,
+          73,
+          0.152,
+          9709
+        ],
+        [
+          "seat-5",
+          0.065,
+          67,
+          73,
+          0.13,
+          9709
+        ],
+        [
+          "seat-0",
+          0.07,
+          89,
+          83,
+          0.146,
+          14691
+        ],
+        [
+          "seat-3",
+          0.07,
+          89,
+          83,
+          0.149,
+          14691
+        ],
+        [
+          "seat-6",
+          0.07,
+          89,
+          83,
+          0.149,
+          14691
+        ],
+        [
+          "seat-7",
+          0.07,
+          91,
+          57,
+          0.143,
+          10317
+        ],
+        [
+          "seat-8",
+          0.067,
+          67,
+          75,
+          0.14,
+          9975
+        ]
+      ],
+      "whiteBarkVariants": 10,
+      "whiteBarkInstances": 83,
+      "whiteBarkSampled": [
+        [
+          -39.42,
+          -12.28
+        ],
+        [
+          39.71,
+          1.52
+        ],
+        [
+          -16.94,
+          -52.02
+        ],
+        [
+          30.33,
+          21.43
+        ],
+        [
+          -33.75,
+          -47.37
+        ],
+        [
+          57.64,
+          -15.82
+        ],
+        [
+          -49.68,
+          -15.72
+        ],
+        [
+          -37.96,
+          -4.79
+        ],
+        [
+          22.19,
+          -34.94
+        ],
+        [
+          -20.59,
+          -0.38
+        ],
+        [
+          -51.63,
+          -12.15
+        ],
+        [
+          -4.85,
+          55.6
+        ],
+        [
+          -32.4,
+          -26.07
+        ],
+        [
+          -46.71,
+          -4.86
+        ],
+        [
+          -39.72,
+          31.12
+        ],
+        [
+          41.87,
+          -36.37
+        ],
+        [
+          -13.8,
+          4.88
+        ],
+        [
+          -34.38,
+          24.85
+        ],
+        [
+          11.1,
+          -25
+        ],
+        [
+          -52.92,
+          6.06
+        ],
+        [
+          -21.07,
+          21.19
+        ],
+        [
+          -26.75,
+          -32.49
+        ],
+        [
+          43.58,
+          36.99
+        ],
+        [
+          -36.18,
+          0.29
+        ],
+        [
+          -32.35,
+          17.86
+        ],
+        [
+          2.55,
+          45.58
+        ],
+        [
+          -43.16,
+          0.8
+        ],
+        [
+          -10.68,
+          -58.45
+        ],
+        [
+          36.28,
+          20.74
+        ],
+        [
+          -7.39,
+          12.87
+        ],
+        [
+          -11.53,
+          -51.96
+        ],
+        [
+          -40.45,
+          -18.44
+        ],
+        [
+          9.82,
+          57.65
+        ],
+        [
+          22.96,
+          -30.27
+        ],
+        [
+          15.14,
+          34.04
+        ],
+        [
+          -31.83,
+          31.3
+        ],
+        [
+          -55.79,
+          18.43
+        ],
+        [
+          39.69,
+          -14.76
+        ],
+        [
+          -20.38,
+          -34.25
+        ],
+        [
+          -34.09,
+          -32
+        ],
+        [
+          -47.14,
+          27.21
+        ],
+        [
+          -57.72,
+          11.67
+        ],
+        [
+          57.05,
+          15.45
+        ],
+        [
+          28.54,
+          -49.43
+        ],
+        [
+          -14.02,
+          29.96
+        ],
+        [
+          8.68,
+          37.61
+        ],
+        [
+          28.79,
+          -44.83
+        ],
+        [
+          43.88,
+          24.54
+        ],
+        [
+          -11.27,
+          52.02
+        ],
+        [
+          41.17,
+          31.52
+        ],
+        [
+          -54.58,
+          -22.93
+        ],
+        [
+          52.44,
+          15.81
+        ],
+        [
+          -33.02,
+          8.77
+        ],
+        [
+          -13.5,
+          55.95
+        ],
+        [
+          45.25,
+          5.89
+        ],
+        [
+          8.73,
+          49.47
+        ],
+        [
+          -29.66,
+          25.85
+        ],
+        [
+          -26.11,
+          -47.97
+        ],
+        [
+          -28.09,
+          -0.91
+        ],
+        [
+          -15.18,
+          42.02
+        ],
+        [
+          16.49,
+          -27.94
+        ],
+        [
+          -38.08,
+          45.43
+        ],
+        [
+          -49.09,
+          -1.22
+        ],
+        [
+          -33.78,
+          -5.59
+        ],
+        [
+          -42.91,
+          -31.74
+        ],
+        [
+          -38.54,
+          5.99
+        ],
+        [
+          21.14,
+          32
+        ],
+        [
+          27.56,
+          46.54
+        ],
+        [
+          -19.3,
+          29.86
+        ],
+        [
+          -24.14,
+          -12.02
+        ],
+        [
+          36,
+          -12.05
+        ],
+        [
+          -54.09,
+          2.2
+        ],
+        [
+          19.09,
+          -43.58
+        ],
+        [
+          -7.85,
+          41.48
+        ],
+        [
+          -16.29,
+          13.03
+        ],
+        [
+          43.24,
+          -12.42
+        ],
+        [
+          52.2,
+          4.8
+        ],
+        [
+          55.31,
+          9.85
+        ],
+        [
+          -15.61,
+          46.9
+        ],
+        [
+          -35.21,
+          -41.63
+        ]
+      ],
+      "whiteBarkCulled": [
+        [
+          -39.72,
+          31.12
+        ]
+      ],
+      "whiteBarkLiveSeated": [
+        [
+          -50,
+          -0.14,
+          39,
+          7
+        ],
+        [
+          -34,
+          0.34,
+          45,
+          9
+        ]
+      ],
+      "whiteBarkReseated": 9,
+      "whiteBarkAges": [
+        "sapling",
+        "sapling",
+        "young",
+        "young",
+        "young",
+        "mature",
+        "mature",
+        "mature",
+        "mature",
+        "mature"
+      ],
+      "whiteBarkLodInstances": [
+        17,
+        23,
+        43
+      ],
+      "whiteBarkSwappedToColumns": 2,
+      "columnTrees": 11,
+      "columnVariants": 6,
+      "columnHeights": [
+        18.1,
+        18.7,
+        20.3,
+        23.1,
+        28,
+        13.8
+      ],
+      "columnTrunkRadii": [
+        0.49,
+        0.58,
+        0.66,
+        0.72,
+        0.63,
+        0.78
+      ],
+      "columnSeats": [
+        [
+          22.2,
+          -34.9,
+          "swap"
+        ],
+        [
+          21.2,
+          6.8,
+          "seat"
+        ],
+        [
+          -5.7,
+          -31.9,
+          "seat"
+        ],
+        [
+          11.1,
+          -25,
+          "swap"
+        ],
+        [
+          -1,
+          -35.5,
+          "seat"
+        ],
+        [
+          24.2,
+          11,
+          "seat"
+        ],
+        [
+          -3.5,
+          -24.7,
+          "seat"
+        ],
+        [
+          8.8,
+          -26.9,
+          "seat"
+        ],
+        [
+          15.7,
+          5.2,
+          "seat"
+        ],
+        [
+          -3.1,
+          -7.9,
+          "seat"
+        ],
+        [
+          -41,
+          35.7,
+          "seat"
+        ]
+      ],
+      "columnSeatsSkipped": [],
+      "columnLiveSeats": [
+        {
+          "id": "seat-8",
+          "position": [
+            -41,
+            1.61,
+            35.7
+          ],
+          "liveGap": 0,
+          "legacyRise": 1.4,
+          "casts": false,
+          "height": 13.8
+        }
+      ],
+      "columnLodInstances": [
+        0,
+        2,
+        9
+      ],
+      "columnLeafCount": 5670,
+      "leafGeometry": "laminae",
+      "leafCount": 354662,
+      "whiteBarkLeafCount": 190939,
+      "distantTrees": 796,
+      "distantClearance": {
+        "moved": 2,
+        "dropped": 1,
+        "spine": 6,
+        "minSpineDistance": 6.5
+      },
+      "distantLod": [
+        298,
+        498
+      ],
+      "distantNearBark": {
+        "flare": [
+          0.7,
+          2
+        ],
+        "tone": [
+          1,
+          0.55,
+          0.45
+        ],
+        "withinM": [
+          22,
+          38
+        ],
+        "limbReach": [
+          0.45,
+          0.75
+        ],
+        "limbTint": [
+          0.8,
+          0.08,
+          0.5
+        ]
+      },
+      "distantNearRelief": {
+        "cords": [
+          9,
+          5,
+          0.09
+        ],
+        "sides": [
+          36,
+          15
+        ],
+        "furrowShade": 0.42,
+        "footGrime": 0.6,
+        "rootArc": 10,
+        "nearGain": 4,
+        "floor": [
+          6.2,
+          0.8
+        ]
+      },
+      "distantCrown": {
+        "cards": [
+          3,
+          3
+        ],
+        "lobes": [
+          2,
+          1
+        ],
+        "cardHalf": 1.4,
+        "sphereMix": 0.85,
+        "coreDark": 0.6,
+        "rim": 0.6,
+        "alphaTest": 0.3,
+        "jitter": [
+          0.55,
+          0.14
+        ],
+        "crownTop": [
+          0.55,
+          0.05,
+          0.85
+        ],
+        "boleBands": 0.09,
+        "depthCool": [
+          55,
+          100,
+          0.25
+        ],
+        "material": "distant-crown"
+      },
+      "lobeWood": {
+        "secondaryReach": [
+          0.58,
+          0.95
+        ],
+        "twigReach": [
+          0.57,
+          1.04
+        ],
+        "tint": 0.7
+      },
+      "lodLevels": 3,
+      "windLayers": 3,
+      "barkTextures": [
+        "tree_bark_03",
+        "procedural:whitebark",
+        "procedural:leaf-cluster",
+        "procedural:leaf-cluster-near"
+      ],
+      "shadeFloors": {
+        "giantBark": [
+          7,
+          0.45
+        ],
+        "giantBarkNear": [
+          5.5,
+          0.55
+        ],
+        "leaf": [
+          6,
+          0.4
+        ],
+        "leafNear": [
+          4.5,
+          0.6
+        ],
+        "nearBole": [
+          13,
+          0.45
+        ],
+        "column": [
+          6.2,
+          0.45
+        ],
+        "columnFar": [
+          6.6,
+          0.2
+        ],
+        "nearBase": [
+          5,
+          0.7
+        ],
+        "nearCanopyLeaf": [
+          3.2,
+          0.75
+        ]
+      },
+      "shadeFloorFadeM": [
+        5,
+        10
+      ],
+      "columnFloorFadeM": [
+        20,
+        32
+      ],
+      "nearBoleFloorProfile": [
+        13,
+        5,
+        1.8,
+        3.2
+      ],
+      "nearBase": {
+        "inM": 25,
+        "outM": 28,
+        "bands": {
+          "seat-7": [
+            5,
+            7
+          ],
+          "north-east": [
+            18,
+            22
+          ],
+          "far-plateau": [
+            18,
+            22
+          ],
+          "north-west": [
+            18,
+            22
+          ],
+          "east-giant": [
+            18,
+            22
+          ],
+          "plateau-oak": [
+            16,
+            19
+          ],
+          "southwest-giant": [
+            16,
+            19
+          ],
+          "south-centre": [
+            15,
+            17
+          ],
+          "south-giant": [
+            14,
+            15.5
+          ],
+          "seat-0": [
+            14,
+            16
+          ],
+          "seat-1": [
+            18,
+            22
+          ],
+          "seat-2": [
+            18,
+            22
+          ],
+          "seat-3": [
+            16,
+            18
+          ],
+          "seat-4": [
+            16,
+            18.5
+          ],
+          "seat-5": [
+            18,
+            21
+          ],
+          "seat-6": [
+            12,
+            13.5
+          ],
+          "stair-bank-giant": [
+            12,
+            13.5
+          ],
+          "lantern-tree": [
+            12,
+            13.5
+          ],
+          "north-west-near": [
+            10,
+            13
+          ],
+          "plaza-south": [
+            15,
+            17
+          ],
+          "swap-18": [
+            15,
+            17
+          ]
+        },
+        "boleBands": {
+          "swap-8": [
+            25,
+            28
+          ],
+          "seat-4": [
+            16,
+            18.5
+          ],
+          "seat-1": [
+            20.5,
+            23.5
+          ],
+          "swap-18": [
+            15,
+            17
+          ],
+          "seat-2": [
+            23,
+            26
+          ],
+          "seat-5": [
+            18.5,
+            21.5
+          ],
+          "seat-0": [
+            14,
+            16
+          ],
+          "seat-3": [
+            16,
+            18
+          ],
+          "seat-6": [
+            12,
+            13.5
+          ],
+          "seat-7": [
+            5,
+            7
+          ],
+          "seat-8": [
+            25,
+            28
+          ],
+          "lantern-tree": [
+            12,
+            13.5
+          ],
+          "plateau-oak": [
+            16,
+            19
+          ],
+          "southwest-giant": [
+            16,
+            19
+          ],
+          "east-giant": [
+            21.5,
+            24.5
+          ],
+          "north-west": [
+            24.5,
+            27.5
+          ],
+          "north-east": [
+            25,
+            28
+          ],
+          "far-plateau": [
+            25,
+            28
+          ],
+          "south-giant": [
+            14,
+            15.5
+          ],
+          "south-centre": [
+            15,
+            17
+          ],
+          "plaza-south": [
+            15,
+            17
+          ],
+          "north-west-near": [
+            10,
+            13
+          ],
+          "stair-bank-giant": [
+            12,
+            13.5
+          ]
+        },
+        "cutY": 5,
+        "slots": 6,
+        "floor": [
+          5,
+          0.7
+        ],
+        "boles": [
+          [
+            "swap-8",
+            27146,
+            77.9,
+            false
+          ],
+          [
+            "seat-4",
+            27546,
+            67.3,
+            false
+          ],
+          [
+            "seat-1",
+            25180,
+            53.2,
+            false
+          ],
+          [
+            "swap-18",
+            28949,
+            63.5,
+            false
+          ],
+          [
+            "seat-2",
+            27658,
+            59.1,
+            false
+          ],
+          [
+            "seat-5",
+            28629,
+            70.6,
+            false
+          ],
+          [
+            "seat-0",
+            30357,
+            50.6,
+            false
+          ],
+          [
+            "seat-3",
+            30113,
+            62.3,
+            false
+          ],
+          [
+            "seat-6",
+            29953,
+            61.7,
+            false
+          ],
+          [
+            "seat-7",
+            26439,
+            44.2,
+            false
+          ],
+          [
+            "seat-8",
+            30037,
+            33.2,
+            false
+          ],
+          [
+            "lantern-tree",
+            37604,
+            35.9,
+            false
+          ],
+          [
+            "plateau-oak",
+            38965,
+            69.2,
+            false
+          ],
+          [
+            "southwest-giant",
+            34552,
+            23.8,
+            false
+          ],
+          [
+            "east-giant",
+            30890,
+            73,
+            false
+          ],
+          [
+            "north-west",
+            33533,
+            48.7,
+            false
+          ],
+          [
+            "north-east",
+            31850,
+            72.8,
+            false
+          ],
+          [
+            "far-plateau",
+            35913,
+            83.7,
+            false
+          ],
+          [
+            "south-giant",
+            33999,
+            61,
+            false
+          ],
+          [
+            "south-centre",
+            37615,
+            48,
+            false
+          ],
+          [
+            "plaza-south",
+            35715,
+            53.4,
+            false
+          ],
+          [
+            "north-west-near",
+            25633,
+            42.9,
+            false
+          ],
+          [
+            "stair-bank-giant",
+            32524,
+            56.9,
+            false
+          ]
+        ],
+        "shown": [],
+        "rootKit": null,
+        "builtBytes": 27306759,
+        "residentBytes": 27306759,
+        "prefetchM": 38,
+        "tier": "large",
+        "deviceMemoryGB": 32,
+        "pool": {
+          "capBytes": 50331648,
+          "poolBytes": 27306759,
+          "items": 23,
+          "resident": 23,
+          "pinned": 0,
+          "wanted": 3,
+          "pinnedBytes": 0,
+          "wantedBytes": 3827508,
+          "pending": 0,
+          "building": 0,
+          "built": 0,
+          "evicted": 0,
+          "syncBuilds": 0,
+          "hits": 106,
+          "buildMsP50": 0,
+          "buildMsP95": 0,
+          "buildMsMax": 0,
+          "stepMsMax": 0,
+          "workMsMax": 0.1,
+          "workMsTotal": 0.9,
+          "steps": 0,
+          "stepMsP50": 0,
+          "stepMsP95": 0,
+          "longSteps": 0,
+          "workOverBudget": 0,
+          "workMsP95": 0.1
+        },
+        "giants": [
+          [
+            "lantern-tree",
+            0.118,
+            53,
+            200,
+            0.115,
+            8,
+            4,
+            18,
+            34944,
+            3,
+            4,
+            40,
+            2660
+          ],
+          [
+            "plateau-oak",
+            0.098,
+            57,
+            200,
+            0.139,
+            7,
+            3,
+            17,
+            36376,
+            3,
+            4,
+            65,
+            2589
+          ],
+          [
+            "southwest-giant",
+            0.12,
+            49,
+            200,
+            0.124,
+            8,
+            4,
+            19,
+            33472,
+            2,
+            0,
+            56,
+            1080
+          ],
+          [
+            "east-giant",
+            0.093,
+            43,
+            200,
+            0.117,
+            6,
+            5,
+            15,
+            28480,
+            3,
+            4,
+            44,
+            2410
+          ],
+          [
+            "north-west",
+            0.082,
+            46,
+            200,
+            0.124,
+            7,
+            4,
+            19,
+            30952,
+            3,
+            5,
+            57,
+            2581
+          ],
+          [
+            "north-east",
+            0.101,
+            46,
+            200,
+            0.121,
+            6,
+            3,
+            14,
+            29312,
+            3,
+            5,
+            76,
+            2538
+          ],
+          [
+            "far-plateau",
+            0.113,
+            53,
+            200,
+            0.125,
+            6,
+            3,
+            13,
+            32944,
+            4,
+            7,
+            78,
+            2969
+          ],
+          [
+            "south-giant",
+            0.089,
+            46,
+            200,
+            0.116,
+            8,
+            4,
+            21,
+            32688,
+            2,
+            3,
+            51,
+            1311
+          ],
+          [
+            "south-centre",
+            0.119,
+            53,
+            200,
+            0.114,
+            8,
+            4,
+            20,
+            35360,
+            4,
+            1,
+            83,
+            2255
+          ],
+          [
+            "plaza-south",
+            0.12,
+            53,
+            200,
+            0.119,
+            6,
+            3,
+            15,
+            32880,
+            4,
+            5,
+            55,
+            2835
+          ],
+          [
+            "north-west-near",
+            0.044,
+            52,
+            110,
+            0.103,
+            8,
+            4,
+            21,
+            24148,
+            2,
+            2,
+            45,
+            1485
+          ],
+          [
+            "stair-bank-giant",
+            0.063,
+            49,
+            158,
+            0.113,
+            8,
+            4,
+            20,
+            28768,
+            5,
+            5,
+            80,
+            3756
+          ]
+        ],
+        "columns": [
+          [
+            "swap-8",
+            0.089,
+            67,
+            99,
+            0.126,
+            7,
+            18,
+            24292,
+            2854,
+            38,
+            false
+          ],
+          [
+            "seat-4",
+            0.089,
+            67,
+            99,
+            0.172,
+            7,
+            18,
+            24692,
+            2854,
+            43,
+            false
+          ],
+          [
+            "seat-1",
+            0.097,
+            67,
+            116,
+            0.123,
+            5,
+            12,
+            23528,
+            1652,
+            31,
+            false
+          ],
+          [
+            "swap-18",
+            0.105,
+            67,
+            136,
+            0.145,
+            5,
+            10,
+            26712,
+            2237,
+            41,
+            false
+          ],
+          [
+            "seat-2",
+            0.105,
+            67,
+            136,
+            0.153,
+            5,
+            10,
+            26792,
+            866,
+            42,
+            false
+          ],
+          [
+            "seat-5",
+            0.105,
+            67,
+            136,
+            0.133,
+            5,
+            10,
+            26392,
+            2237,
+            37,
+            false
+          ],
+          [
+            "seat-0",
+            0.112,
+            64,
+            156,
+            0.145,
+            5,
+            13,
+            28560,
+            1797,
+            38,
+            false
+          ],
+          [
+            "seat-3",
+            0.112,
+            64,
+            156,
+            0.149,
+            5,
+            13,
+            28800,
+            1313,
+            41,
+            false
+          ],
+          [
+            "seat-6",
+            0.112,
+            64,
+            156,
+            0.15,
+            5,
+            13,
+            28640,
+            1313,
+            39,
+            false
+          ],
+          [
+            "seat-7",
+            0.113,
+            64,
+            107,
+            0.146,
+            7,
+            15,
+            24642,
+            1797,
+            42,
+            false
+          ],
+          [
+            "seat-8",
+            0.107,
+            61,
+            141,
+            0.14,
+            6,
+            14,
+            27512,
+            2525,
+            47,
+            false
+          ]
+        ],
+        "cushionFadeM": [
+          0.35,
+          1.3
+        ],
+        "barkOctaves": {
+          "fine": [
+            1.5,
+            6,
+            3.7
+          ],
+          "touch": [
+            0.6,
+            2,
+            11
+          ]
+        }
+      },
+      "nearCanopy": {
+        "inM": 26,
+        "outM": 30,
+        "builtInM": 26,
+        "builtOutM": 30,
+        "heroMargin": 0,
+        "minInM": 0,
+        "maxY": null,
+        "columnMaxY": 25,
+        "distanceTo": "crown-envelope",
+        "slots": 64,
+        "limbsMax": 12,
+        "leafFloor": [
+          3.2,
+          0.75
+        ],
+        "leafNearM": [
+          7,
+          18
+        ],
+        "sunThrough": 0.3,
+        "parts": 426,
+        "heroPass": {
+          "limited": 0,
+          "dropped": 0
+        },
+        "deferredParts": 195,
+        "builtTriangles": 1715987,
+        "residentTriangles": 1715987,
+        "residentVertices": 1518549,
+        "residentBytes": 85966491,
+        "builtBytes": 85966491,
+        "estimatedUnbuiltBytes": 180417984,
+        "prefetchM": 42,
+        "buildBudgetMs": 6,
+        "pool": {
+          "capBytes": 268435456,
+          "poolBytes": 85966491,
+          "items": 426,
+          "resident": 231,
+          "pinned": 31,
+          "wanted": 100,
+          "pinnedBytes": 15423624,
+          "wantedBytes": 57657216,
+          "pending": 26,
+          "building": 1,
+          "built": 121,
+          "evicted": 0,
+          "syncBuilds": 89,
+          "hits": 6515,
+          "buildMsP50": 14.9,
+          "buildMsP95": 20.9,
+          "buildMsMax": 45.5,
+          "stepMsMax": 6.9,
+          "workMsMax": 8.4,
+          "workMsTotal": 534,
+          "steps": 1432,
+          "stepMsP50": 0.2,
+          "stepMsP95": 1.2,
+          "longSteps": 0,
+          "workOverBudget": 6,
+          "workMsP95": 7.2
+        },
+        "built": 121,
+        "evicted": 0,
+        "poolBytes": 85966491,
+        "buildMsP95": 20.9,
+        "giants": [
+          [
+            "lantern-tree",
+            27,
+            0,
+            0,
+            3,
+            175896,
+            14328,
+            14974
+          ],
+          [
+            "plateau-oak",
+            31,
+            0,
+            0,
+            4,
+            61969,
+            1837,
+            14267
+          ],
+          [
+            "southwest-giant",
+            28,
+            0,
+            0,
+            3,
+            254800,
+            23627,
+            10810
+          ],
+          [
+            "east-giant",
+            32,
+            0,
+            0,
+            4,
+            68033,
+            3281,
+            12037
+          ],
+          [
+            "north-west",
+            21,
+            0,
+            0,
+            2,
+            16185,
+            183,
+            4248
+          ],
+          [
+            "north-east",
+            24,
+            0,
+            0,
+            2,
+            17420,
+            198,
+            5649
+          ],
+          [
+            "far-plateau",
+            23,
+            0,
+            0,
+            2,
+            21848,
+            202,
+            5364
+          ],
+          [
+            "south-giant",
+            26,
+            0,
+            0,
+            2,
+            115734,
+            10532,
+            10712
+          ],
+          [
+            "south-centre",
+            28,
+            0,
+            0,
+            3,
+            97138,
+            6756,
+            10699
+          ],
+          [
+            "plaza-south",
+            23,
+            0,
+            0,
+            2,
+            159245,
+            14805,
+            9068
+          ],
+          [
+            "north-west-near",
+            29,
+            0,
+            0,
+            1,
+            58352,
+            5345,
+            19378
+          ],
+          [
+            "stair-bank-giant",
+            27,
+            0,
+            0,
+            2,
+            271817,
+            27984,
+            11560
+          ]
+        ],
+        "columns": [
+          [
+            "swap-8",
+            6,
+            0,
+            0,
+            31437,
+            3282,
+            2184
+          ],
+          [
+            "seat-4",
+            6,
+            0,
+            0,
+            31437,
+            3282,
+            2184
+          ],
+          [
+            "seat-1",
+            6,
+            0,
+            0,
+            30408,
+            3210,
+            2310
+          ],
+          [
+            "swap-18",
+            8,
+            0,
+            0,
+            42416,
+            4408,
+            3136
+          ],
+          [
+            "seat-2",
+            8,
+            0,
+            0,
+            42416,
+            4408,
+            3136
+          ],
+          [
+            "seat-5",
+            8,
+            0,
+            0,
+            42416,
+            4408,
+            3136
+          ],
+          [
+            "seat-0",
+            8,
+            0,
+            0,
+            40553,
+            4192,
+            2968
+          ],
+          [
+            "seat-3",
+            8,
+            0,
+            0,
+            40553,
+            4192,
+            2968
+          ],
+          [
+            "seat-6",
+            8,
+            0,
+            0,
+            40553,
+            4192,
+            2968
+          ],
+          [
+            "seat-7",
+            4,
+            0,
+            0,
+            20785,
+            2180,
+            1176
+          ],
+          [
+            "seat-8",
+            7,
+            0,
+            0,
+            34576,
+            3713,
+            2450
+          ]
+        ],
+        "shown": [
+          [
+            "lantern-tree/lobe-6",
+            25.4,
+            26,
+            4405,
+            500,
+            null,
+            [
+              -20.2,
+              12.8,
+              3
+            ]
+          ],
+          [
+            "lantern-tree/lobe-15",
+            23.9,
+            26,
+            9660,
+            1029,
+            null,
+            [
+              -18.5,
+              22.3,
+              -7.2
+            ]
+          ],
+          [
+            "lantern-tree/lobe-17",
+            22.9,
+            26,
+            9039,
+            957,
+            null,
+            [
+              -18.2,
+              23.2,
+              -0.5
+            ]
+          ],
+          [
+            "lantern-tree/limb-28",
+            25.8,
+            26,
+            10517,
+            90,
+            null,
+            [
+              -17.3,
+              9.6,
+              -0.8
+            ]
+          ],
+          [
+            "southwest-giant/lobe-0",
+            25.2,
+            26,
+            4414,
+            476,
+            null,
+            [
+              -22.3,
+              13.8,
+              14.5
+            ]
+          ],
+          [
+            "southwest-giant/lobe-3",
+            19.5,
+            26,
+            5083,
+            548,
+            null,
+            [
+              -28.9,
+              14.4,
+              13.5
+            ]
+          ],
+          [
+            "southwest-giant/lobe-4",
+            18.3,
+            26,
+            4624,
+            524,
+            null,
+            [
+              -31.7,
+              14.9,
+              15.3
+            ]
+          ],
+          [
+            "southwest-giant/lobe-5",
+            20,
+            26,
+            4405,
+            500,
+            null,
+            [
+              -32.3,
+              15.3,
+              19.2
+            ]
+          ],
+          [
+            "southwest-giant/lobe-6",
+            22.3,
+            26,
+            4378,
+            476,
+            null,
+            [
+              -26.1,
+              9.9,
+              4.1
+            ]
+          ],
+          [
+            "southwest-giant/lobe-7",
+            22.1,
+            26,
+            4624,
+            524,
+            null,
+            [
+              -26.4,
+              10.1,
+              0.3
+            ]
+          ],
+          [
+            "southwest-giant/lobe-8",
+            21.9,
+            26,
+            4405,
+            500,
+            null,
+            [
+              -27.1,
+              10.1,
+              -1.9
+            ]
+          ],
+          [
+            "southwest-giant/lobe-9",
+            20.8,
+            26,
+            9690,
+            981,
+            null,
+            [
+              -21.7,
+              20.7,
+              -3.8
+            ]
+          ],
+          [
+            "southwest-giant/lobe-11",
+            22.4,
+            26,
+            9066,
+            981,
+            null,
+            [
+              -18,
+              25.4,
+              10.4
+            ]
+          ],
+          [
+            "southwest-giant/lobe-12",
+            24.7,
+            26,
+            9357,
+            1005,
+            null,
+            [
+              -15.4,
+              22.7,
+              0.4
+            ]
+          ],
+          [
+            "southwest-giant/lobe-14",
+            21.9,
+            26,
+            8661,
+            909,
+            null,
+            [
+              -23,
+              22.2,
+              16.4
+            ]
+          ],
+          [
+            "southwest-giant/lobe-15",
+            19.8,
+            26,
+            8664,
+            933,
+            null,
+            [
+              -21.3,
+              26.5,
+              10.4
+            ]
+          ],
+          [
+            "southwest-giant/lobe-18",
+            16.4,
+            26,
+            8967,
+            957,
+            null,
+            [
+              -27.2,
+              22.3,
+              13.2
+            ]
+          ],
+          [
+            "southwest-giant/lobe-19",
+            18.1,
+            26,
+            9066,
+            981,
+            null,
+            [
+              -21.3,
+              26.1,
+              6.6
+            ]
+          ],
+          [
+            "southwest-giant/lobe-20",
+            22.2,
+            26,
+            9219,
+            957,
+            null,
+            [
+              -24.3,
+              23,
+              19.6
+            ]
+          ],
+          [
+            "southwest-giant/lobe-21",
+            23.8,
+            26,
+            10167,
+            1053,
+            null,
+            [
+              -22.5,
+              18.6,
+              17.6
+            ]
+          ],
+          [
+            "southwest-giant/lobe-22",
+            11.8,
+            26,
+            9840,
+            1029,
+            null,
+            [
+              -29.6,
+              22.2,
+              2.3
+            ]
+          ],
+          [
+            "southwest-giant/lobe-23",
+            21,
+            26,
+            9582,
+            981,
+            null,
+            [
+              -18,
+              26.8,
+              2.9
+            ]
+          ],
+          [
+            "southwest-giant/lobe-24",
+            13.7,
+            26,
+            9282,
+            981,
+            null,
+            [
+              -27.9,
+              19.7,
+              2.6
+            ]
+          ],
+          [
+            "southwest-giant/lobe-26",
+            24,
+            26,
+            9330,
+            981,
+            null,
+            [
+              -17,
+              26,
+              9.1
+            ]
+          ],
+          [
+            "southwest-giant/lobe-27",
+            23.5,
+            26,
+            9780,
+            1029,
+            null,
+            [
+              -18.3,
+              22.3,
+              -5
+            ]
+          ],
+          [
+            "southwest-giant/limb-28",
+            23.3,
+            26,
+            11294,
+            121,
+            null,
+            [
+              -21.4,
+              11.5,
+              14.7
+            ]
+          ],
+          [
+            "southwest-giant/limb-29",
+            15.8,
+            26,
+            13245,
+            102,
+            null,
+            [
+              -28.8,
+              12,
+              13.6
+            ]
+          ],
+          [
+            "southwest-giant/limb-30",
+            20.5,
+            26,
+            10580,
+            121,
+            null,
+            [
+              -25.3,
+              8.1,
+              3.5
+            ]
+          ],
+          [
+            "stair-bank-giant/lobe-24",
+            59.5,
+            26,
+            25829,
+            2800,
+            null,
+            [
+              11.2,
+              3.4,
+              3.7
+            ]
+          ],
+          [
+            "stair-bank-giant/lobe-25",
+            59.4,
+            26,
+            19446,
+            2100,
+            null,
+            [
+              10.4,
+              3.4,
+              5.9
+            ]
+          ],
+          [
+            "stair-bank-giant/lobe-26",
+            59.2,
+            26,
+            20165,
+            2200,
+            null,
+            [
+              11.6,
+              5.5,
+              1.6
+            ]
+          ]
+        ],
+        "shownTriangles": 296784,
+        "foldedTriangles": 46356
+      },
+      "maxBaseGap": 0,
+      "basesChecked": 1124,
+      "lanternLimbPublished": true,
+      "lanternLimbSamples": 37,
+      "lanternLimbRange": [
+        -6.4578,
+        1.1357
+      ],
+      "lanternLimbEnds": [
+        [
+          -1.15,
+          2.22,
+          1.5
+        ],
+        [
+          1.06,
+          2.21,
+          1.5
+        ]
+      ],
+      "lanternLimbOffsets": {
+        "side": [
+          -0.0957,
+          0.1108
+        ],
+        "vertical": [
+          -0.0981,
+          0
+        ]
+      },
+      "lanternLimbRings": [
+        [
+          -6.4578,
+          -12.386,
+          5.585,
+          -5.97,
+          0.195
+        ],
+        [
+          -6.0984,
+          -11.751,
+          5.629,
+          -5.494,
+          0.189
+        ],
+        [
+          -5.7287,
+          -11.113,
+          5.614,
+          -4.984,
+          0.185
+        ],
+        [
+          -5.3481,
+          -10.463,
+          5.543,
+          -4.455,
+          0.182
+        ],
+        [
+          -4.9558,
+          -9.798,
+          5.402,
+          -3.916,
+          0.179
+        ],
+        [
+          -4.5506,
+          -9.123,
+          5.18,
+          -3.371,
+          0.176
+        ],
+        [
+          -4.1333,
+          -8.446,
+          4.882,
+          -2.821,
+          0.173
+        ],
+        [
+          -3.7091,
+          -7.777,
+          4.535,
+          -2.263,
+          0.171
+        ],
+        [
+          -3.2866,
+          -7.123,
+          4.179,
+          -1.701,
+          0.168
+        ],
+        [
+          -2.8738,
+          -6.484,
+          3.849,
+          -1.138,
+          0.166
+        ],
+        [
+          -2.474,
+          -5.856,
+          3.561,
+          -0.588,
+          0.164
+        ],
+        [
+          -2.0871,
+          -5.228,
+          3.307,
+          -0.066,
+          0.162
+        ],
+        [
+          -1.7112,
+          -4.589,
+          3.067,
+          0.408,
+          0.16
+        ],
+        [
+          -1.3453,
+          -3.931,
+          2.828,
+          0.812,
+          0.158
+        ],
+        [
+          -0.9901,
+          -3.252,
+          2.596,
+          1.131,
+          0.156
+        ],
+        [
+          -0.648,
+          -2.557,
+          2.396,
+          1.352,
+          0.154
+        ],
+        [
+          -0.3197,
+          -1.855,
+          2.262,
+          1.474,
+          0.152
+        ],
+        [
+          0,
+          -1.15,
+          2.22,
+          1.5,
+          0.15
+        ],
+        [
+          0.0625,
+          -1.012,
+          2.208,
+          1.509,
+          0.142
+        ],
+        [
+          0.125,
+          -0.874,
+          2.212,
+          1.492,
+          0.136
+        ],
+        [
+          0.1875,
+          -0.736,
+          2.218,
+          1.455,
+          0.131
+        ],
+        [
+          0.25,
+          -0.598,
+          2.209,
+          1.418,
+          0.125
+        ],
+        [
+          0.3125,
+          -0.459,
+          2.177,
+          1.404,
+          0.12
+        ],
+        [
+          0.375,
+          -0.321,
+          2.138,
+          1.427,
+          0.115
+        ],
+        [
+          0.4375,
+          -0.183,
+          2.118,
+          1.481,
+          0.11
+        ],
+        [
+          0.5,
+          -0.045,
+          2.131,
+          1.547,
+          0.106
+        ],
+        [
+          0.5625,
+          0.093,
+          2.169,
+          1.597,
+          0.101
+        ],
+        [
+          0.625,
+          0.231,
+          2.203,
+          1.611,
+          0.096
+        ],
+        [
+          0.6875,
+          0.369,
+          2.213,
+          1.587,
+          0.092
+        ],
+        [
+          0.75,
+          0.508,
+          2.198,
+          1.54,
+          0.087
+        ],
+        [
+          0.8125,
+          0.646,
+          2.179,
+          1.495,
+          0.083
+        ],
+        [
+          0.875,
+          0.784,
+          2.176,
+          1.473,
+          0.079
+        ],
+        [
+          0.9375,
+          0.922,
+          2.191,
+          1.478,
+          0.074
+        ],
+        [
+          1,
+          1.06,
+          2.21,
+          1.5,
+          0.07
+        ],
+        [
+          1.0452,
+          1.16,
+          2.214,
+          1.522,
+          0.053
+        ],
+        [
+          1.0905,
+          1.26,
+          2.228,
+          1.544,
+          0.036
+        ],
+        [
+          1.1357,
+          1.36,
+          2.251,
+          1.566,
+          0.02
+        ]
+      ],
+      "trunkSeatsPublished": 23,
+      "trunkSeats": [
+        [
+          "swap-8",
+          22.191,
+          -34.941,
+          3.052,
+          0.824,
+          0.308,
+          7.407
+        ],
+        [
+          "seat-4",
+          21.2,
+          6.8,
+          3.613,
+          0.895,
+          0.335,
+          8.042
+        ],
+        [
+          "seat-1",
+          -5.7,
+          -31.9,
+          2.719,
+          0.996,
+          0.364,
+          8.109
+        ],
+        [
+          "swap-18",
+          11.097,
+          -25,
+          5.459,
+          1.188,
+          0.455,
+          7.954
+        ],
+        [
+          "seat-2",
+          -1,
+          -35.5,
+          3.419,
+          1.134,
+          0.434,
+          7.59
+        ],
+        [
+          "seat-5",
+          24.2,
+          11,
+          2.502,
+          1.211,
+          0.464,
+          8.106
+        ],
+        [
+          "seat-0",
+          -3.5,
+          -24.7,
+          2.754,
+          1.306,
+          0.481,
+          10.172
+        ],
+        [
+          "seat-3",
+          8.8,
+          -26.9,
+          5.313,
+          1.262,
+          0.465,
+          9.831
+        ],
+        [
+          "seat-6",
+          15.7,
+          5.2,
+          1.631,
+          1.282,
+          0.472,
+          9.987
+        ],
+        [
+          "seat-7",
+          -3.1,
+          -7.9,
+          0.46,
+          0.833,
+          0.334,
+          17.634
+        ],
+        [
+          "seat-8",
+          -41,
+          35.7,
+          1.608,
+          1.42,
+          0.368,
+          10.042
+        ],
+        [
+          "lantern-tree",
+          -11.5,
+          -7.2,
+          2.985,
+          2.982,
+          2.142,
+          2.6
+        ],
+        [
+          "plateau-oak",
+          19,
+          -21,
+          5.721,
+          2.63,
+          1.526,
+          4.321
+        ],
+        [
+          "southwest-giant",
+          -23,
+          9,
+          1.865,
+          3.347,
+          1.842,
+          5.681
+        ],
+        [
+          "east-giant",
+          27,
+          5,
+          5.738,
+          2.463,
+          1.458,
+          3.97
+        ],
+        [
+          "north-west",
+          -13,
+          -33,
+          2.96,
+          2.286,
+          1.014,
+          6.473
+        ],
+        [
+          "north-east",
+          15,
+          -37,
+          3.794,
+          2.644,
+          1.339,
+          5.462
+        ],
+        [
+          "far-plateau",
+          31,
+          -30,
+          3.643,
+          2.983,
+          1.578,
+          5.577
+        ],
+        [
+          "south-giant",
+          12,
+          22,
+          0.091,
+          2.469,
+          1.483,
+          3.597
+        ],
+        [
+          "south-centre",
+          -4.5,
+          27,
+          0.2,
+          3.159,
+          1.9,
+          4.325
+        ],
+        [
+          "plaza-south",
+          4.4,
+          20.5,
+          0.273,
+          3.899,
+          2.212,
+          5.6
+        ],
+        [
+          "north-west-near",
+          -6,
+          -12.8,
+          0.566,
+          0.964,
+          0.694,
+          6.825
+        ],
+        [
+          "stair-bank-giant",
+          10.6,
+          9.15,
+          0.019,
+          1.614,
+          0.897,
+          5.381
+        ]
+      ],
+      "triangles": {
+        "wood": 616622,
+        "leaves": 1660432,
+        "canopyCards": 13590,
+        "distant": 335414
+      },
+      "submission": {
+        "drawCalls": 86,
+        "triangles": 2611858,
+        "meshes": 79,
+        "instances": 348,
+        "byFamily": {
+          "whitebark-lod0": {
+            "meshes": 1,
+            "instances": 1,
+            "calls": 2,
+            "triangles": 137384
+          },
+          "whitebark-lod1": {
+            "meshes": 5,
+            "instances": 9,
+            "calls": 9,
+            "triangles": 168953
+          },
+          "whitebark-lod2": {
+            "meshes": 9,
+            "instances": 29,
+            "calls": 9,
+            "triangles": 62790
+          },
+          "column-lod0": {
+            "meshes": 0,
+            "instances": 0,
+            "calls": 0,
+            "triangles": 0
+          },
+          "column-lod1": {
+            "meshes": 1,
+            "instances": 1,
+            "calls": 2,
+            "triangles": 20952
+          },
+          "column-lod2": {
+            "meshes": 9,
+            "instances": 9,
+            "calls": 9,
+            "triangles": 57175
+          },
+          "giant-wood": {
+            "meshes": 3,
+            "instances": 3,
+            "calls": 6,
+            "triangles": 1508970
+          },
+          "giant-cards": {
+            "meshes": 3,
+            "instances": 3,
+            "calls": 6,
+            "triangles": 23236
+          },
+          "giant-authored-leaves": {
+            "meshes": 4,
+            "instances": 4,
+            "calls": 3,
+            "triangles": 286692
+          },
+          "giant-authored-cards": {
+            "meshes": 2,
+            "instances": 2,
+            "calls": 2,
+            "triangles": 1972
+          },
+          "distant-near": {
+            "meshes": 6,
+            "instances": 63,
+            "calls": 6,
+            "triangles": 66691
+          },
+          "distant-far": {
+            "meshes": 5,
+            "instances": 193,
+            "calls": 5,
+            "triangles": 4246
+          },
+          "column-near-base": {
+            "meshes": 0,
+            "instances": 0,
+            "calls": 0,
+            "triangles": 0
+          },
+          "giant-near-base": {
+            "meshes": 0,
+            "instances": 0,
+            "calls": 0,
+            "triangles": 0
+          },
+          "column-near-canopy-lobe": {
+            "meshes": 0,
+            "instances": 0,
+            "calls": 0,
+            "triangles": 0
+          },
+          "giant-near-canopy-lobe": {
+            "meshes": 27,
+            "instances": 27,
+            "calls": 24,
+            "triangles": 237741
+          },
+          "giant-near-canopy-limb": {
+            "meshes": 4,
+            "instances": 4,
+            "calls": 3,
+            "triangles": 35056
+          }
+        },
+        "whiteBarkLodSubmitted": [
+          1,
+          9,
+          29
+        ],
+        "columnLodSubmitted": [
+          0,
+          1,
+          9
+        ],
+        "distantSubmitted": [
+          63,
+          193
+        ],
+        "giantSectorsCasting": 6,
+        "detachedBoughs": [
+          {
+            "giant": "southwest-giant",
+            "boughs": 1,
+            "woodTriangles": 2428,
+            "leaves": 1051,
+            "leafTriangles": 4204,
+            "cards": 34,
+            "lobes": [
+              {
+                "center": [
+                  -21.4,
+                  4.4,
+                  12.5
+                ],
+                "hR": 1.5,
+                "vR": 1,
+                "leaves": 488
+              },
+              {
+                "center": [
+                  -22.3,
+                  5.8,
+                  11
+                ],
+                "hR": 1.6,
+                "vR": 1.2,
+                "leaves": 563
+              }
+            ],
+            "dress": [
+              {
+                "giant": "southwest-giant",
+                "relief": 0.07447035204249632,
+                "rings": 28,
+                "sides": 22,
+                "knees": 0,
+                "triangles": 1210
+              }
+            ]
+          }
+        ],
+        "detachedBoughsVisible": false,
+        "detachedBoughSpheres": 56,
+        "detachedBoughMeshes": [
+          {
+            "name": "giant-detached-wood-southwest-giant",
+            "castShadow": false,
+            "triangles": 2428
+          },
+          {
+            "name": "giant-detached-leaves-southwest-giant",
+            "castShadow": true,
+            "triangles": 4204
+          },
+          {
+            "name": "giant-detached-cards-southwest-giant",
+            "castShadow": true,
+            "triangles": 68
+          }
+        ],
+        "cullPadM": 4
+      },
+      "samplePositions": {
+        "bases": [
+          [
+            -39.423088970196744,
+            2.6723049290731544,
+            -12.284326197078197
+          ],
+          [
+            -16.94284842174366,
+            4.372986337649592,
+            -52.016336711311496
+          ],
+          [
+            -33.74865298961595,
+            4.176378151080665,
+            -47.367712361018384
+          ],
+          [
+            -49.68494099742981,
+            2.140432225218494,
+            -15.716978836825032
+          ],
+          [
+            -20.586431817256578,
+            2.6586592568266534,
+            -0.3834503878897119
+          ],
+          [
+            -4.849816496759536,
+            -0.2805135216957624,
+            55.599785506455234
+          ],
+          [
+            -46.71012412726854,
+            2.652952582044161,
+            -4.860003326198523
+          ],
+          [
+            -13.799176186450165,
+            2.5637852696590504,
+            4.877021085688162
+          ],
+          [
+            -52.91631717017929,
+            2.76102195083849,
+            6.059221125036081
+          ],
+          [
+            -26.74604316677008,
+            2.7510299477936218,
+            -32.493742568177865
+          ],
+          [
+            -36.17588796739335,
+            2.363551278907926,
+            0.2947082826799796
+          ],
+          [
+            2.550975360009451,
+            -0.4193508522285103,
+            45.57948120015906
+          ],
+          [
+            -10.677872406791687,
+            4.353822054161841,
+            -58.44996581169211
+          ],
+          [
+            -7.393568085691133,
+            0.3016284485071546,
+            12.869496811910635
+          ],
+          [
+            -40.45417324379027,
+            2.3765842857893094,
+            -18.43970144787405
+          ],
+          [
+            22.955047870727103,
+            3.228668136643437,
+            -30.271552140305285
+          ],
+          [
+            -31.831108106493183,
+            0.1701562592373833,
+            31.30043189697031
+          ],
+          [
+            39.69406935263481,
+            5.031876292903776,
+            -14.764350492503231
+          ],
+          [
+            -34.0855695303305,
+            2.2400837773178046,
+            -32.00459435313526
+          ],
+          [
+            -57.71947908862144,
+            0.3061124733830839,
+            11.673659391647252
+          ],
+          [
+            28.53571253755181,
+            4.444034002404323,
+            -49.43397933801685
+          ],
+          [
+            8.679058279043971,
+            -0.21941664004280856,
+            37.60740972376949
+          ],
+          [
+            43.882271299687204,
+            0.15739645681216266,
+            24.541692416056588
+          ],
+          [
+            41.17370392222804,
+            0.3086473094119831,
+            31.52352907375124
+          ],
+          [
+            52.442028378925144,
+            0.10998751300943371,
+            15.807978205118653
+          ],
+          [
+            -13.498971618306436,
+            0.1742416568354943,
+            55.946940019267316
+          ],
+          [
+            8.727732811649956,
+            -0.23109573368833541,
+            49.47446879732145
+          ],
+          [
+            -26.10849247880724,
+            4.159298632529204,
+            -47.969857566690926
+          ],
+          [
+            -15.183436104695417,
+            -0.4242708459686494,
+            42.01750814269946
+          ],
+          [
+            -38.07842820266671,
+            0.3435552832014626,
+            45.4266423688145
+          ],
+          [
+            -33.77974625555876,
+            2.2301417772083405,
+            -5.592752042172856
+          ],
+          [
+            -38.53631902666187,
+            2.472390180685737,
+            5.985935626195619
+          ],
+          [
+            27.564674676596827,
+            -0.3552377876413964,
+            46.540335498031055
+          ],
+          [
+            -24.13994485334927,
+            2.526312622822811,
+            -12.017554348996761
+          ],
+          [
+            -54.09205671264342,
+            2.583062002542867,
+            2.2036726990787976
+          ],
+          [
+            -7.854741065886578,
+            -0.17098619559652706,
+            41.47936814247299
+          ],
+          [
+            43.23564602274563,
+            5.26193464697195,
+            -12.417925918223053
+          ],
+          [
+            55.30764409425575,
+            4.516508881242269,
+            9.849887002102639
+          ],
+          [
+            -35.206949503345214,
+            3.49081904120686,
+            -41.6310825836453
+          ],
+          [
+            6.2,
+            4.925283527374267,
+            -71.5
+          ],
+          [
+            8,
+            4.459919071197509,
+            -64.8
+          ],
+          [
+            -34,
+            0.3360343277454376,
+            45
+          ],
+          [
+            21.2,
+            3.6134579181671134,
+            6.8
+          ],
+          [
+            11.097325739865616,
+            5.459361374135999,
+            -24.999745877954485
+          ],
+          [
+            24.2,
+            2.5023553371429434,
+            11
+          ],
+          [
+            8.8,
+            5.312550067901613,
+            -26.9
+          ],
+          [
+            -3.1,
+            0.45997193455696106,
+            -7.9
+          ],
+          [
+            -11.5,
+            2.9846290349960327,
+            -7.2
+          ],
+          [
+            -7.876809882515822,
+            1.623370080474261,
+            -4.693230907065344
+          ],
+          [
+            -9.674177503189938,
+            2.8121349101896964,
+            -4.123489655323308
+          ],
+          [
+            -11.113505304483178,
+            2.8041525306652986,
+            -2.4880020296759406
+          ],
+          [
+            -15.475384936785417,
+            2.7727845618087996,
+            -1.3280261841627405
+          ],
+          [
+            -18.914623739890004,
+            2.8542876863500983,
+            -5.724121416407958
+          ],
+          [
+            -15.809436425954637,
+            2.9126690387675076,
+            -4.956371058591552
+          ],
+          [
+            -13.331977257779933,
+            2.7830934216162233,
+            -11.819961068651049
+          ],
+          [
+            -12.920749038958414,
+            2.878052533026258,
+            -14.128023169860203
+          ],
+          [
+            -13.810957273355964,
+            2.8079079450789535,
+            -12.589702736168384
+          ],
+          [
+            -7.9886498285442995,
+            1.790357357133203,
+            -9.760065021947554
+          ],
+          [
+            26.30459444628233,
+            5.202121229017914,
+            -19.854608378184377
+          ],
+          [
+            22.0650148784779,
+            5.092854688488253,
+            -16.968295813945595
+          ],
+          [
+            23.280160887950082,
+            5.247296977701362,
+            -18.235196098801133
+          ],
+          [
+            17.562475480848292,
+            5.312094047077786,
+            -17.05228489040129
+          ],
+          [
+            13.794553009748336,
+            5.364612104877578,
+            -20.803408545099675
+          ],
+          [
+            14.945453399741801,
+            5.636052228339325,
+            -23.084491542833263
+          ],
+          [
+            13.7930546117951,
+            5.457726894770278,
+            -21.627796023244926
+          ],
+          [
+            18.543517085143847,
+            5.5327646561325095,
+            -24.83848662719261
+          ],
+          [
+            21.60744013453394,
+            5.344501115557101,
+            -25.120249858517376
+          ],
+          [
+            -23,
+            1.865370750427246,
+            9
+          ],
+          [
+            -18.0068098996448,
+            0.7852595508552407,
+            10.342944322673874
+          ],
+          [
+            -19.865225779210167,
+            0.07317970633736737,
+            13.504477912885049
+          ],
+          [
+            -22.943900100906948,
+            -0.260321011584967,
+            13.47737557483914
+          ],
+          [
+            -26.28050409029584,
+            0.40828362968724075,
+            10.837500793870847
+          ],
+          [
+            -30.335130198445203,
+            0.32494199971999893,
+            10.410494578855399
+          ],
+          [
+            -28.621166417912818,
+            0.12179390533384193,
+            11.273169759258359
+          ],
+          [
+            -26.570633249120093,
+            2.4895943712563895,
+            4.851407217119533
+          ],
+          [
+            -22.20259439265455,
+            2.659404360164507,
+            3.5231612774487697
+          ],
+          [
+            -19.239558571167784,
+            2.73468915155387,
+            5.4528722069075055
+          ],
+          [
+            -20.553286871758825,
+            2.6418154919319967,
+            4.3964586400991905
+          ],
+          [
+            33.65336761245305,
+            5.218381014954403,
+            3.6762738090309828
+          ],
+          [
+            30.60915288292149,
+            5.318104098566516,
+            2.6349124749371047
+          ],
+          [
+            27.227903237172857,
+            4.790039953971001,
+            9.28242654317225
+          ],
+          [
+            22.60130869753721,
+            3.627174680797893,
+            8.556323399634561
+          ],
+          [
+            22.1870323337502,
+            4.9937493657682035,
+            3.836469477858551
+          ],
+          [
+            24.092139531080342,
+            5.4350675775900905,
+            0.08134329853761457
+          ],
+          [
+            30.00402035430913,
+            5.460629808250132,
+            0.5016366034731101
+          ],
+          [
+            28.421835151977696,
+            5.5014497968784255,
+            -0.2764497138627391
+          ],
+          [
+            -6.252182465409304,
+            2.9449258730599044,
+            -32.84024405188822
+          ],
+          [
+            -8.77627817980557,
+            3.3175265242267957,
+            -34.51693328676032
+          ],
+          [
+            -10.831471172132941,
+            1.5684182067584784,
+            -28.51715610582761
+          ],
+          [
+            -14.030423610045368,
+            1.5673038940288944,
+            -28.586755268512746
+          ],
+          [
+            -17.2522641742829,
+            2.5174013213269997,
+            -31.87272669401125
+          ],
+          [
+            -17.37278251918684,
+            3.3070838272509406,
+            -35.50510071550656
+          ],
+          [
+            -17.43623007213676,
+            3.125885315825971,
+            -34.31170923126914
+          ],
+          [
+            -11.816717715899731,
+            3.4343049065027986,
+            -37.81582314648166
+          ],
+          [
+            -8.431414222027358,
+            3.4149252434523185,
+            -35.38708363887377
+          ],
+          [
+            15,
+            3.794323205947876,
+            -37
+          ],
+          [
+            19.236156440084738,
+            3.4543665329631312,
+            -35.645143862474214
+          ],
+          [
+            17.9518683662021,
+            2.5187226218507157,
+            -31.839403986449845
+          ],
+          [
+            18.219253011978925,
+            3.0745353378734395,
+            -33.425743171410076
+          ],
+          [
+            12.34295469327,
+            3.2572189401710565,
+            -34.12820754721481
+          ],
+          [
+            9.598239285453245,
+            3.437632719751629,
+            -36.12732604542481
+          ],
+          [
+            10.780024235704529,
+            3.3669699302451526,
+            -34.39834096109938
+          ],
+          [
+            14.173185613664113,
+            3.583601685006242,
+            -42.30009368617759
+          ],
+          [
+            17.728346984215523,
+            3.6675186560184687,
+            -40.47516246392071
+          ],
+          [
+            37.393929524925326,
+            2.8193125706664057,
+            -30.802322931148954
+          ],
+          [
+            35.549001084773344,
+            2.460896280338924,
+            -31.31483386698149
+          ],
+          [
+            33.45374711321612,
+            4.9950923822651365,
+            -26.245795915358975
+          ],
+          [
+            28.153220001133928,
+            5.055649220899242,
+            -23.655872784993708
+          ],
+          [
+            29.94416871926324,
+            4.972212488286077,
+            -25.735139255296694
+          ],
+          [
+            26.54434861318365,
+            2.3799701576142533,
+            -31.59566685313963
+          ],
+          [
+            28.401915276415817,
+            3.3134564039059975,
+            -37.0918297429762
+          ],
+          [
+            27.66006591266614,
+            2.9700931730140057,
+            -34.41999492083138
+          ],
+          [
+            33.76686863140217,
+            2.7475739165925646,
+            -33.86702950673099
+          ],
+          [
+            12,
+            0.09128259867429733,
+            22
+          ],
+          [
+            16.923811827234243,
+            -0.20051569809476,
+            23.3001421010688
+          ],
+          [
+            15.825772570445272,
+            -0.20529192015520803,
+            26.614844414064862
+          ],
+          [
+            12.195672554878179,
+            -0.517279278946456,
+            28.354827461378072
+          ],
+          [
+            8.654381894489253,
+            -0.31106839767154704,
+            25.458326929802986
+          ],
+          [
+            6.358219136785153,
+            0.12676176258315702,
+            20.91007786466455
+          ],
+          [
+            8.55830697699567,
+            -0.20185469567556802,
+            18.486793849079774
+          ],
+          [
+            8.001811564726331,
+            -0.19929056262781153,
+            19.4065110496135
+          ],
+          [
+            13.531675418105776,
+            -0.146497937762965,
+            18.636655486376185
+          ],
+          [
+            16.31426688243782,
+            -0.18134811153320407,
+            17.712742584728012
+          ],
+          [
+            -4.5,
+            0.2002611607313156,
+            27
+          ],
+          [
+            1.4201647120309193,
+            -0.40826850238652224,
+            27.13757349642917
+          ],
+          [
+            -1.038777167074489,
+            -0.07248285051153042,
+            31.481390767260812
+          ],
+          [
+            -4.184825772102231,
+            0.1282697070451596,
+            32.8748080544605
+          ],
+          [
+            -2.2881013972927144,
+            0.052634898522052415,
+            32.03843881172069
+          ],
+          [
+            -9.084041996050106,
+            0.26536152222262943,
+            28.321560877668986
+          ],
+          [
+            -9.055463726232462,
+            0.015979015604754343,
+            25.57934631546694
+          ],
+          [
+            -6.520204696006585,
+            -0.12176999379931175,
+            22.7995539242263
+          ],
+          [
+            -4.605777856985076,
+            -0.042174798725649304,
+            21.408569929213467
+          ],
+          [
+            -5.711981675408295,
+            0.044451122707406865,
+            22.484680923148733
+          ],
+          [
+            -0.29116932550589336,
+            -0.30899668657379564,
+            25.07347925692451
+          ],
+          [
+            11.11890699880983,
+            -0.013192536940738797,
+            21.734284219242717
+          ],
+          [
+            10.603694857232789,
+            -0.17982766144878604,
+            19.83692931863665
+          ],
+          [
+            6.264684180519528,
+            -0.07728749246961042,
+            24.961879751920222
+          ],
+          [
+            0.47172210812746895,
+            -0.4417117444227714,
+            26.326979416145456
+          ],
+          [
+            2.334078735581702,
+            -0.5164769357498986,
+            26.70831460121827
+          ],
+          [
+            -1.033207116077378,
+            0.09366339840617305,
+            20.054024551608745
+          ],
+          [
+            1.8370236387698333,
+            0.009882527725981971,
+            15.126567599360468
+          ],
+          [
+            9.480146778000117,
+            -0.18985522347272055,
+            16.733232259205174
+          ],
+          [
+            -6,
+            0.5662257671356201,
+            -12.8
+          ],
+          [
+            -3.1973489509721116,
+            0.18581784487282355,
+            -12.343858488135597
+          ],
+          [
+            -5.598797002028915,
+            0.4304010951861947,
+            -10.409090007508285
+          ],
+          [
+            -6.219785816140596,
+            0.6655263872708966,
+            -9.94973163980007
+          ],
+          [
+            -5.624749201756053,
+            0.47134682198150224,
+            -10.051464005128205
+          ],
+          [
+            -8.373601415195248,
+            2.3391935830419106,
+            -12.282746289644956
+          ],
+          [
+            -8.518066540782831,
+            2.2451593452361256,
+            -13.834963724794697
+          ],
+          [
+            -8.549683655182278,
+            2.221274044783709,
+            -15.409599111708813
+          ],
+          [
+            -6.686062586995627,
+            1.8170633997450023,
+            -16.25485831644342
+          ],
+          [
+            -7.113984355996502,
+            0.8687096239706351,
+            -15.161557996059127
+          ],
+          [
+            -3.9625988516553434,
+            0.15826503915097795,
+            -14.192471628538456
+          ],
+          [
+            13.01183088744024,
+            -0.035385587699786426,
+            8.367810715402493
+          ],
+          [
+            12.139317293188396,
+            0.017799716081374442,
+            8.297978372647698
+          ],
+          [
+            11.61957930803879,
+            -0.014973023883180003,
+            10.915338464566346
+          ],
+          [
+            9.998573816897935,
+            -0.13809519659989913,
+            11.16115265341523
+          ],
+          [
+            8.740350595892282,
+            -0.23255919457555135,
+            10.730009563067341
+          ],
+          [
+            9.175956644185234,
+            -0.19389212536746148,
+            10.76527417464768
+          ],
+          [
+            8.497651205865626,
+            -0.321704633432589,
+            8.452639593155977
+          ],
+          [
+            9.214219168419664,
+            0.07562147041181863,
+            7.340535648651432
+          ],
+          [
+            9.137126922093627,
+            -0.10269501869667416,
+            7.720061616172048
+          ],
+          [
+            10.922861079221894,
+            0.3216075324582168,
+            6.921402853129292
+          ],
+          [
+            12.79617924789152,
+            0.0403739111801601,
+            7.768872850731139
+          ]
+        ]
+      }
+    },
+    "perf": {
+      "step": 35.10000002384186,
+      "camera": 0,
+      "update": 10.800000071525574,
+      "render": 24.299999952316284,
+      "systems": {
+        "wind": 0,
+        "lighting": 0,
+        "atmosphere": 0.20000004768371582,
+        "terrain": 0,
+        "hardscape": 0.10000002384185791,
+        "rocks": 0.09999990463256836,
+        "trees": 6.800000071525574,
+        "canopy": 0,
+        "structures": 0.10000002384185791,
+        "props": 0,
+        "vegetation": 0.3999999761581421,
+        "character": 3.100000023841858
+      },
+      "systemPerf": {
+        "trees": {
+          "tier": "large",
+          "deviceMemoryGB": 32,
+          "poolBytesCap": {
+            "nearCanopy": 268435456,
+            "nearBase": 50331648
+          },
+          "swapM": {
+            "nearCanopy": [
+              26,
+              30
+            ],
+            "nearBase": [
+              25,
+              28
+            ]
+          },
+          "nearCanopyPool": {
+            "capBytes": 268435456,
+            "poolBytes": 85966491,
+            "items": 426,
+            "resident": 231,
+            "pinned": 31,
+            "wanted": 100,
+            "pinnedBytes": 15423624,
+            "wantedBytes": 57657216,
+            "pending": 26,
+            "building": 1,
+            "built": 121,
+            "evicted": 0,
+            "syncBuilds": 89,
+            "hits": 6515,
+            "buildMsP50": 14.9,
+            "buildMsP95": 20.9,
+            "buildMsMax": 45.5,
+            "stepMsMax": 6.9,
+            "workMsMax": 8.4,
+            "workMsTotal": 534,
+            "steps": 1432,
+            "stepMsP50": 0.2,
+            "stepMsP95": 1.2,
+            "longSteps": 0,
+            "workOverBudget": 6,
+            "workMsP95": 7.2
+          },
+          "nearBasePool": {
+            "capBytes": 50331648,
+            "poolBytes": 27306759,
+            "items": 23,
+            "resident": 23,
+            "pinned": 0,
+            "wanted": 3,
+            "pinnedBytes": 0,
+            "wantedBytes": 3827508,
+            "pending": 0,
+            "building": 0,
+            "built": 0,
+            "evicted": 0,
+            "syncBuilds": 0,
+            "hits": 106,
+            "buildMsP50": 0,
+            "buildMsP95": 0,
+            "buildMsMax": 0,
+            "stepMsMax": 0,
+            "workMsMax": 0.1,
+            "workMsTotal": 0.9,
+            "steps": 0,
+            "stepMsP50": 0,
+            "stepMsP95": 0,
+            "longSteps": 0,
+            "workOverBudget": 0,
+            "workMsP95": 0.1
+          },
+          "prefetchM": {
+            "nearCanopy": 42,
+            "nearBase": 38
+          },
+          "buildBudgetMs": 6,
+          "bytesWithinM": {
+            "nearCanopy": {
+              "26": 11410344,
+              "30": 15734034,
+              "34": 22623126,
+              "42": 53643936
+            },
+            "nearBase": {
+              "25": 1270248,
+              "28": 1270248,
+              "38": 3827508
+            }
+          }
+        },
+        "vegetation": {
+          "rebucketBudget": 8000,
+          "frame": {
+            "listed": 0,
+            "listedMax": 109076,
+            "swaps": 0,
+            "refreshMs": 0.30000007152557373,
+            "refreshMsMax": 40.699999928474426,
+            "frames": 98,
+            "jobsOpen": 0
+          },
+          "sets": {
+            "ferns": {
+              "updateMs": 0,
+              "cullMs": 0,
+              "updateMsMax": 1.7999999523162842,
+              "cullMsMax": 1.5,
+              "swaps": 5,
+              "count": 1394
+            },
+            "tufts": {
+              "updateMs": 0,
+              "cullMs": 0,
+              "updateMsMax": 2.299999952316284,
+              "cullMsMax": 1.100000023841858,
+              "swaps": 5,
+              "count": 5537
+            },
+            "hero-ferns": {
+              "updateMs": 0,
+              "cullMs": 0,
+              "updateMsMax": 0.10000002384185791,
+              "cullMsMax": 0.10000002384185791,
+              "swaps": 5,
+              "count": 18
+            },
+            "fiddleheads": {
+              "updateMs": 0,
+              "cullMs": 0.10000002384185791,
+              "updateMsMax": 0.40000009536743164,
+              "cullMsMax": 0.2999999523162842,
+              "swaps": 5,
+              "count": 612
+            },
+            "bushes": {
+              "updateMs": 0,
+              "cullMs": 0,
+              "updateMsMax": 0.20000004768371582,
+              "cullMsMax": 0.10000002384185791,
+              "swaps": 5,
+              "count": 125
+            },
+            "hedge": {
+              "updateMs": 0,
+              "cullMs": 0,
+              "updateMsMax": 0,
+              "cullMsMax": 0.10000002384185791,
+              "swaps": 5,
+              "count": 31
+            },
+            "flowers": {
+              "updateMs": 0,
+              "cullMs": 0,
+              "updateMsMax": 0.10000002384185791,
+              "cullMsMax": 0.19999992847442627,
+              "swaps": 5,
+              "count": 263
+            },
+            "flowers-yellow": {
+              "updateMs": 0,
+              "cullMs": 0,
+              "updateMsMax": 0,
+              "cullMsMax": 0.10000002384185791,
+              "swaps": 5,
+              "count": 11
+            },
+            "flowers-white": {
+              "updateMs": 0,
+              "cullMs": 0,
+              "updateMsMax": 0.10000002384185791,
+              "cullMsMax": 0.10000002384185791,
+              "swaps": 5,
+              "count": 63
+            },
+            "weeds": {
+              "updateMs": 0,
+              "cullMs": 0,
+              "updateMsMax": 2,
+              "cullMsMax": 2.399999976158142,
+              "swaps": 5,
+              "count": 5315
+            },
+            "seedheads": {
+              "updateMs": 0,
+              "cullMs": 0,
+              "updateMsMax": 0.5,
+              "cullMsMax": 0.20000004768371582,
+              "swaps": 5,
+              "count": 987
+            },
+            "clover": {
+              "updateMs": 0,
+              "cullMs": 0,
+              "updateMsMax": 1.100000023841858,
+              "cullMsMax": 0.5,
+              "swaps": 5,
+              "count": 8701
+            },
+            "moss": {
+              "updateMs": 0,
+              "cullMs": 0,
+              "updateMsMax": 0.7000000476837158,
+              "cullMsMax": 0.20000004768371582,
+              "swaps": 5,
+              "count": 2068
+            },
+            "saplings": {
+              "updateMs": 0,
+              "cullMs": 0,
+              "updateMsMax": 0,
+              "cullMsMax": 0.10000002384185791,
+              "swaps": 5,
+              "count": 22
+            },
+            "ferns-north": {
+              "updateMs": 0,
+              "cullMs": 0,
+              "updateMsMax": 0.20000004768371582,
+              "cullMsMax": 0.10000002384185791,
+              "swaps": 5,
+              "count": 954
+            },
+            "weeds-north": {
+              "updateMs": 0,
+              "cullMs": 0,
+              "updateMsMax": 0.30000007152557373,
+              "cullMsMax": 0,
+              "swaps": 5,
+              "count": 2004
+            },
+            "bushes-north": {
+              "updateMs": 0,
+              "cullMs": 0,
+              "updateMsMax": 0,
+              "cullMsMax": 0.10000002384185791,
+              "swaps": 5,
+              "count": 32
+            },
+            "tufts-north": {
+              "updateMs": 0,
+              "cullMs": 0,
+              "updateMsMax": 0.10000002384185791,
+              "cullMsMax": 0.10000002384185791,
+              "swaps": 5,
+              "count": 93
+            },
+            "turf-mats": {
+              "updateMs": 0,
+              "cullMs": 0,
+              "updateMsMax": 6.100000023841858,
+              "cullMsMax": 2.899999976158142,
+              "swaps": 5,
+              "count": 29531
+            },
+            "turf-mats-north": {
+              "updateMs": 0,
+              "cullMs": 0,
+              "updateMsMax": 0.3999999761581421,
+              "cullMsMax": 0.10000002384185791,
+              "swaps": 5,
+              "count": 5052
+            },
+            "grass-clumps": {
+              "updateMs": 0,
+              "cullMs": 0,
+              "updateMsMax": 1.2000000476837158,
+              "cullMsMax": 0.20000004768371582,
+              "swaps": 5,
+              "count": 15138
+            },
+            "grass-clumps-north": {
+              "updateMs": 0,
+              "cullMs": 0,
+              "updateMsMax": 1,
+              "cullMsMax": 0.10000002384185791,
+              "swaps": 5,
+              "count": 8851
+            },
+            "litter-leaves": {
+              "updateMs": 0,
+              "cullMs": 0,
+              "updateMsMax": 2,
+              "cullMsMax": 4,
+              "swaps": 5,
+              "count": 8859
+            },
+            "litter-leaves-north": {
+              "updateMs": 0,
+              "cullMs": 0,
+              "updateMsMax": 0.8999999761581421,
+              "cullMsMax": 0.20000004768371582,
+              "swaps": 5,
+              "count": 8349
+            },
+            "litter-twigs": {
+              "updateMs": 0,
+              "cullMs": 0,
+              "updateMsMax": 0.5,
+              "cullMsMax": 0.20000004768371582,
+              "swaps": 5,
+              "count": 1213
+            },
+            "litter-twigs-north": {
+              "updateMs": 0,
+              "cullMs": 0,
+              "updateMsMax": 0.19999992847442627,
+              "cullMsMax": 0.10000002384185791,
+              "swaps": 5,
+              "count": 945
+            },
+            "litter-roots": {
+              "updateMs": 0,
+              "cullMs": 0,
+              "updateMsMax": 0.10000002384185791,
+              "cullMsMax": 0.10000002384185791,
+              "swaps": 5,
+              "count": 131
+            },
+            "turf-mats-expansion": {
+              "updateMs": 0,
+              "cullMs": 0,
+              "updateMsMax": 0.8999999761581421,
+              "cullMsMax": 0.10000002384185791,
+              "swaps": 5,
+              "count": 923
+            },
+            "grass-clumps-expansion": {
+              "updateMs": 0,
+              "cullMs": 0,
+              "updateMsMax": 0.10000002384185791,
+              "cullMsMax": 0.10000002384185791,
+              "swaps": 5,
+              "count": 839
+            },
+            "tufts-expansion": {
+              "updateMs": 0,
+              "cullMs": 0,
+              "updateMsMax": 0.10000002384185791,
+              "cullMsMax": 0.10000002384185791,
+              "swaps": 5,
+              "count": 727
+            },
+            "weeds-expansion": {
+              "updateMs": 0,
+              "cullMs": 0,
+              "updateMsMax": 0,
+              "cullMsMax": 0.10000002384185791,
+              "swaps": 5,
+              "count": 7
+            },
+            "moss-expansion": {
+              "updateMs": 0,
+              "cullMs": 0,
+              "updateMsMax": 0,
+              "cullMsMax": 0.10000002384185791,
+              "swaps": 5,
+              "count": 77
+            },
+            "ferns-expansion": {
+              "updateMs": 0,
+              "cullMs": 0,
+              "updateMsMax": 0.10000002384185791,
+              "cullMsMax": 0.09999990463256836,
+              "swaps": 5,
+              "count": 92
+            },
+            "flowers-expansion": {
+              "updateMs": 0,
+              "cullMs": 0,
+              "updateMsMax": 0.09999990463256836,
+              "cullMsMax": 0.09999990463256836,
+              "swaps": 5,
+              "count": 18
+            },
+            "flowers-white-expansion": {
+              "updateMs": 0,
+              "cullMs": 0,
+              "updateMsMax": 0,
+              "cullMsMax": 0,
+              "swaps": 5,
+              "count": 22
+            },
+            "bushes-expansion": {
+              "updateMs": 0,
+              "cullMs": 0,
+              "updateMsMax": 0.10000002384185791,
+              "cullMsMax": 0,
+              "swaps": 5,
+              "count": 7
+            },
+            "litter-leaves-expansion": {
+              "updateMs": 0,
+              "cullMs": 0,
+              "updateMsMax": 0.09999990463256836,
+              "cullMsMax": 0,
+              "swaps": 5,
+              "count": 65
+            }
+          }
+        }
+      },
+      "buildMs": {
+        "lighting": 561.6000000238419,
+        "atmosphere": 25.199999928474426,
+        "terrain": 5554.799999952316,
+        "hardscape": 6067.100000023842,
+        "rocks": 17887.600000023842,
+        "trees": 13305.299999952316,
+        "canopy": 101.20000004768372,
+        "structures": 17770.900000095367,
+        "props": 778.6000000238419,
+        "vegetation": 20227.899999976158,
+        "character": 1200.6999999284744
+      },
+      "warmup": null,
+      "flags": {},
+      "tier": "high",
+      "perfState": {
+        "flags": {},
+        "tier": "high",
+        "version": 0,
+        "fx": {
+          "ao": true,
+          "rays": true,
+          "bloom": true,
+          "soft": true
+        },
+        "shadowMapSize": 4096,
+        "shadowTaps": 12,
+        "vegLodScale": 1,
+        "grassDensity": 1,
+        "renderScale": 1
+      },
+      "governor": null
+    }
+  },
+  "limits": [
+    "A/F baseline originals are reused from the exact parent6231 capture; provenance and original manifest retained.",
+    "Upper pose contains intervening foliage; it is not an isolated giant or an original owner viewpoint.",
+    "This trial exceeds W38 at A; no rubric change or quality/camera exception.",
+    "Static timing has no matched baseline samples, so no frame-time claim.",
+    "Finer detail is limited to admitted existing parts; foreground oversized leaves and broad flat crown masses remain."
+  ]
+}

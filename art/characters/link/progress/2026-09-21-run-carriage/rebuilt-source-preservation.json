@@ -1,0 +1,51 @@
+{
+  "sourceSha256": "305603e92277952f345842e526216ff066b2b5888908eef054990199b6597a69",
+  "sourceFileBytes": 47814836,
+  "originalBinBytes": 47689744,
+  "originalBinSha256": "d2a68a880471f76cdb152ae711d025034fe4788f7aa1258f8519ed7709dde43c",
+  "fixedMetadata": {
+    "asset": "171880ac16335a8d13306fdb6b701906e251f507e7ba2c8c9c37c02a58c11051",
+    "extensionsUsed": "c3e05de0caabac098acf9286030c8e39b6154d1d69b43dccf12b83c92f5866db",
+    "scene": "5feceb66ffc86f38d952786c6d696c79c2dbc239dd4e91b46729d73a27fb57e9",
+    "scenes": "166869d8f8ed2d400e23167ba90cac92dec153795d683f331b9aa03a6ae7ec6f",
+    "nodes": "3ee6efabd1e83f5f525d61147c327c6d0b9ff02d923a21caa11a022072060827",
+    "materials": "60596002e483266c74c2f54c354d363476ea7c1995e61983821d74ffb823d7a8",
+    "meshes": "56aaf1811e8c9f3e3ae1ec7a1239e09bd8787e0f58536398972412466a86292d",
+    "textures": "7d110bbf4d9807d0270536b87a94db1ab869a9885af8380686f8e5d2c35e9f35",
+    "images": "5d4d5016028bf89701c7ba8a6515777d0d27172c83d2c40684c1b74096de1b40",
+    "skins": "dd188021c7b88883e7beb46456e7dbd249f849d0f6e3eb2bfa35d35e6d5dd8de",
+    "samplers": "0f3273e4b92d4e98e3ee78749a96168498f4fee421d1a0c06c987583d57064e5"
+  },
+  "accessors": {
+    "count": 684,
+    "sha256": "6a6d949f5ce334edb12ae40c265ec12f76701b1e95de41a8f35ea264db2658d1"
+  },
+  "bufferViews": {
+    "count": 701,
+    "sha256": "d0c3318f1e77346aeab0c4fc03d1e459a690e34666ea87a73af5f0942ff9c163"
+  },
+  "animations": [
+    {
+      "name": "idle",
+      "sha256": "ad401ddf9b5abb1adba420e7ca915d96abb634a3b563dabab8cd659908216bc2"
+    },
+    {
+      "name": "walk",
+      "sha256": "4598c03dc440175897f2ce5c5fa73e4ec0b033dd15c72a9de7819795178cf741"
+    },
+    {
+      "name": "run",
+      "channelCount": 57,
+      "channelTargetsSha256": "0b31957d0945dd4ef7fca6efb8b45cacbd8a6f45042a73472ac291429b7f084e",
+      "unselectedChannelsSha256": "f59427014e87656fd05598a881c50a0cbf10b9c4beb1b6ee17fdcbb98cffefe7",
+      "originalSamplers": {
+        "count": 81,
+        "sha256": "b42d41d4e69c594cd099c7203ff08d65d5143787aed62314a44b665e7bada659"
+      }
+    },
+    {
+      "name": "stairs",
+      "sha256": "7a0794219d59bd31c88d47335a0364da41e6ac0a65cf928131ad68e2821c31e9"
+    }
+  ]
+}

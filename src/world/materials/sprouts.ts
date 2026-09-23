@@ -1,0 +1,793 @@
+/**
+ * Shared small-plant instancing (tufts, clover, moss cushions, fern fronds, seam grit) with variant
+ * packs: one InstancedMesh per pack, non-selected variants collapsed in the vertex shader. Lives in
+ * materials/ because hardscape (joint sprouts) and rocks (boulder cap plants) both build with it —
+ * systems must not import each other's internals (AGENTS.md rule 1).
+ *
+ * Joint sprouts (W21): small grass / weed tufts growing out of flagstone and stair joints, plus
+ * the moss cushions and the seam grit that live in the same joints. Geometry blades (no alpha
+ * cards), GPU instanced, animated with the shared wind model's `windGrass` so they ripple with
+ * the rest of the vegetation. Variants can be packed several to an InstancedMesh (see
+ * `HARDSCAPE_PACKS`) so a set costs few draw calls.
+ */
+import {
+  BufferGeometry,
+  Color,
+  DoubleSide,
+  DynamicDrawUsage,
+  Float32BufferAttribute,
+  Frustum,
+  InstancedBufferAttribute,
+  InstancedMesh,
+  Matrix4,
+  MeshStandardMaterial,
+  Quaternion,
+  Sphere,
+  Uint8BufferAttribute,
+  Vector3,
+  type Camera,
+  type WebGLProgramParametersWithUniforms,
+} from 'three';
+import type { Rng } from '../util/prng';
+import type { Wind } from '../wind/wind';
+import { WIND_GLSL } from '../wind/wind';
+import type { WorldConfig } from '../config';
+import { DEFAULT_GRIT_TONE, buildGritGeometry } from './grit';
+
+export interface SproutSpot {
+  x: number;
+  y: number;
+  z: number;
+  /** 0..1 size factor (picks the tuft / clover variant; cushion radius); for 'grit' the pebble radius in metres */
+  size: number;
+  /**
+   * 'cushion' = low moss dome (seam junctions, tread/riser corners); 'fern' = small frond
+   * (boulder cracks); 'grit' = a small stone packed into the dirt seam
+   */
+  kind?: 'tuft' | 'cushion' | 'fern' | 'grit';
+  /** overall scale multiplier (default 1) */
+  scale?: number;
+  /**
+   * albedo multiplier. 'grit': the fill under the pebble (joints.ts `jointFillLift`); tufts and
+   * clover (round 35): a flat multiplier on the instance colour — the grass standing in camera D's
+   * shaded slab gaps is dimmed into the gap with it (frame 56 s's gap grass is 0.3–0.45 lum, ours
+   * lit straw at 0.55 broke the gaps' dark runs). Default 1 (byte-identical instances).
+   */
+  tint?: [number, number, number];
+  /**
+   * The scatter that sowed this spot (e.g. 'joints', 'seam-grit'). With `buildSproutMeshes`'s
+   * `jitter` option, the instance's rotation / scale / tint randoms come from the stream of
+   * (source, variant), so spots added to or removed from another source leave it byte-identical.
+   */
+  source?: string;
+  /**
+   * 0..1: how far this sprout's greens are pulled onto the joint-grass ramp (`JOINT_TUFT_DEEP` →
+   * `JOINT_TUFT_TIP`, olive-brown blade bases with straw tips) instead of the lawn greens the
+   * geometry carries. Round 34: measured in the lit paving windows of frames 14 s / 56 s, the
+   * dark class (below Otsu) sits 61–68 % in the 30° hue bin and 1–4 % in the 60–70° bins; with
+   * our joint sprouts hidden ours read 57–64 % / 0–4 % (the frames'), with them 41–43 % / 10–18 %:
+   * the surplus was the tufts' grass green, rendered at 60–70°. The frames' joint grass is
+   * yellow-olive khaki (B fg greenish pixels: sRGB 127,119,60, hue 55°, lum 0.3–0.6). Per
+   * instance (an instanced attribute), so the lawn pocket's turf and the boulder plants keep
+   * their green with the same geometry. Default 0.
+   */
+  jointTint?: number;
+}
+
+/**
+ * the joint-grass ramp (sRGB): blade base olive-brown (hue 37°), tip straw (37°, paler) — the
+ * frames' khaki blades over dark soil. Measured on round 34's takes the tufts render within ± 3°
+ * of the albedo hue (a 48–51° ramp landed in the 50° bin, 42° in the 40° bin, 39° at the 40°
+ * bin's low edge), so the ramp sits where the frames' dark-class mass is: 30–45°.
+ */
+export const JOINT_TUFT_DEEP = 0x6a5430;
+export const JOINT_TUFT_TIP = 0xb3925a;
+
+/**
+ * Per-(source, variant) jitter streams for `buildSproutMeshes`: called once for each pair on first
+ * use; the returned stream is drawn in the spots' list order for that pair only.
+ */
+export type SproutJitterStreams = (source: string | undefined, variant: number) => Rng;
+
+/**
+ * Moss cushion: a low dome (unit radius, 0.3 high) in deep→bright moss green with a faintly
+ * lumpy top — the pads that sit in wide seam junctions and at the stair tread/riser corners
+ * (concept sheet 02 'Moss edges', sheet 04 stairs inset). No wind (heightFactor 0).
+ */
+function buildCushion(rng: Rng, deep: Color, light: Color, floorMoss = false): BufferGeometry {
+  const pos: number[] = [];
+  const nrm: number[] = [];
+  const col: number[] = [];
+  const wind: number[] = [];
+  const uv: number[] = [];
+  const segs = 10;
+  const rings = 3;
+  const tmp = new Color();
+  const phase = rng();
+  const bump = Array.from({ length: segs * (rings + 1) }, () => rng.range(0.9, 1.1));
+  const pt = (r: number, s: number): number[] => {
+    // r = 0 is the crown, r = rings the rim; profile: cos dome squashed to 0.3 of the radius
+    const t = r / rings;
+    const a = (s / segs) * Math.PI * 2 + (r & 1 ? Math.PI / segs : 0);
+    const rad = Math.sin((t * Math.PI) / 2) * (0.92 + 0.12 * bump[r * segs + (s % segs)]);
+    const h = (floorMoss ? 0.065 : 0.3) * Math.cos((t * Math.PI) / 2) * bump[r * segs + (s % segs)];
+    return [Math.cos(a) * rad, h, Math.sin(a) * rad, t];
+  };
+  const push = (p: number[]) => {
+    pos.push(p[0], p[1], p[2]);
+    // dome normal ≈ direction from a point below the centre
+    const ny = floorMoss ? p[1] / (0.065 * 0.065) : p[1] + 0.35;
+    const l = Math.hypot(p[0], ny, p[2]) || 1;
+    nrm.push(p[0] / l, ny / l, p[2] / l);
+    tmp.copy(light).lerp(deep, 0.25 + 0.7 * p[3]);
+    col.push(tmp.r, tmp.g, tmp.b);
+    wind.push(0, phase);
+    // Negative U tags floor moss with a relative albedo factor applied after the joint tint.
+    // The substrate stays shaded beneath its living tips; other sprouts retain their UVs.
+    uv.push(floorMoss ? -0.55 : 0, p[3]);
+  };
+  for (let r = 0; r < rings; r++) {
+    for (let s = 0; s < segs; s++) {
+      const a = pt(r, s);
+      const b = pt(r, s + 1);
+      const c = pt(r + 1, s);
+      const d = pt(r + 1, s + 1);
+      if (r === 0) {
+        // crown fan
+        push([0, floorMoss ? 0.065 : 0.3, 0, 0]);
+        push(d);
+        push(c);
+      } else {
+        push(a);
+        push(d);
+        push(c);
+        push(a);
+        push(b);
+        push(d);
+      }
+    }
+  }
+  if (floorMoss) {
+    // A cushion is a colony of leafy shoots. Keep the original seated rim and instance
+    // stream; small lanceolate leaves break the smooth pebble silhouette without an atlas.
+    const shoots = rng.fork('floor-shoots');
+    const normal = new Vector3();
+    for (let i = 0; i < 96; i++) {
+      const a = i * 2.3999632297 + shoots.range(-0.2, 0.2);
+      const r = Math.sqrt((i + 0.5) / 96) * 0.86;
+      const x = Math.cos(a) * r, z = Math.sin(a) * r;
+      const y = 0.065 * Math.sqrt(1 - r * r) * 0.7;
+      for (let leaf = 0; leaf < 3; leaf++) {
+        const angle = a + leaf * Math.PI * 2 / 3;
+        const reach = shoots.range(0.09, 0.16), width = shoots.range(0.045, 0.07);
+        const tip = new Vector3(x + Math.cos(angle) * reach, y + shoots.range(0.045, 0.09), z + Math.sin(angle) * reach);
+        const left = new Vector3(x - Math.sin(angle) * width, y, z + Math.cos(angle) * width);
+        const right = new Vector3(x + Math.sin(angle) * width, y, z - Math.cos(angle) * width);
+        normal.copy(left).sub(right).cross(tip.clone().sub(right)).normalize();
+        for (const [p, shade] of [[right, 0.8], [left, 0.8], [tip, 0.24]] as const) {
+          pos.push(p.x, p.y, p.z);
+          nrm.push(normal.x, normal.y, normal.z);
+          tmp.copy(light).lerp(deep, shade);
+          col.push(tmp.r, tmp.g, tmp.b);
+          wind.push(0, phase);
+          uv.push(shade > 0.5 ? -0.75 : -1, shade);
+        }
+      }
+    }
+  }
+  const g = new BufferGeometry();
+  g.setAttribute('position', new Float32BufferAttribute(pos, 3));
+  g.setAttribute('normal', new Float32BufferAttribute(nrm, 3));
+  g.setAttribute('color', new Float32BufferAttribute(col, 3));
+  g.setAttribute('uv', new Float32BufferAttribute(uv, 2));
+  g.setAttribute('aWind', new Float32BufferAttribute(wind, 2));
+  g.computeBoundingSphere();
+  return g;
+}
+
+/** small fern frond: an arching midrib with paired leaflets (the plants in the hero boulders' cracks) */
+function buildFrond(rng: Rng, length: number, deep: Color, light: Color): BufferGeometry {
+  const pos: number[] = [];
+  const nrm: number[] = [];
+  const col: number[] = [];
+  const wind: number[] = [];
+  const uv: number[] = [];
+  const tmp = new Color();
+  const push = (p: number[], n: number[], c: Color, wf: number, phase: number) => {
+    pos.push(p[0], p[1], p[2]);
+    nrm.push(n[0], n[1], n[2]);
+    col.push(c.r, c.g, c.b);
+    wind.push(wf, phase);
+    uv.push(0, wf);
+  };
+  const fronds = 3;
+  for (let f = 0; f < fronds; f++) {
+    const ang = (f / fronds) * Math.PI * 2 + rng.range(-0.5, 0.5);
+    const L = length * rng.range(0.75, 1.15);
+    const dx = Math.cos(ang);
+    const dz = Math.sin(ang);
+    const px = -dz;
+    const pz = dx;
+    const phase = rng();
+    const rise = rng.range(0.55, 0.8); // how steeply the frond climbs before arching over
+    const pairs = 6;
+    const rib = (t: number): number[] => {
+      // parabola: up then over
+      const y = L * (rise * t - 0.45 * t * t);
+      const out = L * (0.25 * t + 0.6 * t * t);
+      return [dx * out, y, dz * out];
+    };
+    // midrib: a thin quad strip
+    for (let s = 0; s < pairs; s++) {
+      const a = rib(s / pairs);
+      const b = rib((s + 1) / pairs);
+      const w = 0.003 * (1 - s / pairs) + 0.001;
+      tmp.copy(deep).lerp(light, 0.3);
+      const n = [0, 1, 0];
+      push([a[0] - px * w, a[1], a[2] - pz * w], n, tmp, s / pairs, phase);
+      push([a[0] + px * w, a[1], a[2] + pz * w], n, tmp, s / pairs, phase);
+      push([b[0] + px * w, b[1], b[2] + pz * w], n, tmp, (s + 1) / pairs, phase);
+      push([a[0] - px * w, a[1], a[2] - pz * w], n, tmp, s / pairs, phase);
+      push([b[0] + px * w, b[1], b[2] + pz * w], n, tmp, (s + 1) / pairs, phase);
+      push([b[0] - px * w, b[1], b[2] - pz * w], n, tmp, (s + 1) / pairs, phase);
+    }
+    // leaflets: pairs of tapered quads, longest a third of the way out
+    for (let s = 1; s <= pairs; s++) {
+      const t = (s - 0.5) / pairs;
+      const a = rib(t);
+      const b = rib(t + 0.07);
+      const len = L * 0.42 * Math.sin(Math.PI * Math.min(1, t * 1.1)) * (0.7 + 0.3 * (1 - t)) + 0.01;
+      for (const side of [-1, 1]) {
+        const sx = px * side;
+        const sz = pz * side;
+        // droop the leaflet tip a little
+        const tip = [a[0] + sx * len + dx * len * 0.35, a[1] - len * 0.25, a[2] + sz * len + dz * len * 0.35];
+        const n = [sx * 0.3, 0.9, sz * 0.3];
+        tmp.copy(light).lerp(deep, 0.2 + 0.4 * t);
+        const c2 = new Color().copy(deep).lerp(light, 0.35);
+        push(a, n, c2, t, phase);
+        push(b, n, c2, t, phase);
+        push(tip, n, tmp, t + 0.1, phase);
+      }
+    }
+  }
+  const g = new BufferGeometry();
+  g.setAttribute('position', new Float32BufferAttribute(pos, 3));
+  g.setAttribute('normal', new Float32BufferAttribute(nrm, 3));
+  g.setAttribute('color', new Float32BufferAttribute(col, 3));
+  g.setAttribute('uv', new Float32BufferAttribute(uv, 2));
+  g.setAttribute('aWind', new Float32BufferAttribute(wind, 2));
+  g.computeBoundingSphere();
+  return g;
+}
+
+function buildTuft(rng: Rng, blades: number, height: number, spread: number, deep: Color, light: Color): BufferGeometry {
+  const pos: number[] = [];
+  const nrm: number[] = [];
+  const col: number[] = [];
+  const wind: number[] = []; // (heightFactor, phase)
+  const uv: number[] = [];
+  const tmp = new Color();
+  for (let b = 0; b < blades; b++) {
+    const ang = (b / blades) * Math.PI * 2 + rng.range(-0.4, 0.4);
+    const lean = rng.range(0.25, 0.75) * spread;
+    const h = height * rng.range(0.55, 1.15);
+    const wBase = rng.range(0.006, 0.013);
+    const segs = 3;
+    const dx = Math.cos(ang);
+    const dz = Math.sin(ang);
+    const phase = rng();
+    const t0 = rng.range(0.1, 0.6);
+    const pts: number[][] = [];
+    for (let s = 0; s <= segs; s++) {
+      const t = s / segs;
+      // curve outward with height (quadratic), taper to a point
+      const bend = lean * t * t;
+      const y = h * t;
+      const w = wBase * (1 - t * 0.92);
+      pts.push([dx * bend, y, dz * bend, w, t]);
+    }
+    const ox = rng.range(-0.02, 0.02);
+    const oz = rng.range(-0.02, 0.02);
+    for (let s = 0; s < segs; s++) {
+      const a = pts[s];
+      const c = pts[s + 1];
+      // blade lies in the plane perpendicular to its lean direction
+      const px = -dz;
+      const pz = dx;
+      const quad = [
+        [a[0] - px * a[3] + ox, a[1], a[2] - pz * a[3] + oz, a[4]],
+        [a[0] + px * a[3] + ox, a[1], a[2] + pz * a[3] + oz, a[4]],
+        [c[0] + px * c[3] + ox, c[1], c[2] + pz * c[3] + oz, c[4]],
+        [c[0] - px * c[3] + ox, c[1], c[2] - pz * c[3] + oz, c[4]],
+      ];
+      const tri = (i: number, j: number, k: number) => {
+        for (const q of [quad[i], quad[j], quad[k]]) {
+          pos.push(q[0], q[1], q[2]);
+          // normal: mostly up with a tilt toward the blade face
+          nrm.push(dx * 0.35, 0.85, dz * 0.35);
+          const t = q[3];
+          tmp.copy(deep).lerp(light, t0 + t * 0.5);
+          col.push(tmp.r, tmp.g, tmp.b);
+          wind.push(t, phase);
+          uv.push(0, t);
+        }
+      };
+      tri(0, 1, 2);
+      tri(0, 2, 3);
+    }
+  }
+  const g = new BufferGeometry();
+  g.setAttribute('position', new Float32BufferAttribute(pos, 3));
+  g.setAttribute('normal', new Float32BufferAttribute(nrm, 3));
+  g.setAttribute('color', new Float32BufferAttribute(col, 3));
+  g.setAttribute('uv', new Float32BufferAttribute(uv, 2));
+  g.setAttribute('aWind', new Float32BufferAttribute(wind, 2));
+  g.computeBoundingSphere();
+  return g;
+}
+
+/** clover: three short stalks, each carrying three round leaflets (reference joints show clover among the grass tufts) */
+function buildClover(rng: Rng, height: number, deep: Color, light: Color): BufferGeometry {
+  const pos: number[] = [];
+  const nrm: number[] = [];
+  const col: number[] = [];
+  const wind: number[] = [];
+  const uv: number[] = [];
+  const tmp = new Color();
+  const push = (p: number[], n: number[], c: Color, wf: number, phase: number) => {
+    pos.push(p[0], p[1], p[2]);
+    nrm.push(n[0], n[1], n[2]);
+    col.push(c.r, c.g, c.b);
+    wind.push(wf, phase);
+    uv.push(0, wf);
+  };
+  const stalks = 3;
+  for (let s = 0; s < stalks; s++) {
+    const ang = (s / stalks) * Math.PI * 2 + rng.range(-0.5, 0.5);
+    const h = height * rng.range(0.7, 1.15);
+    const lean = rng.range(0.008, 0.02);
+    const phase = rng();
+    const bx = rng.range(-0.015, 0.015);
+    const bz = rng.range(-0.015, 0.015);
+    const tx = bx + Math.cos(ang) * lean;
+    const tz = bz + Math.sin(ang) * lean;
+    // stem: one thin quad
+    const sw = 0.0025;
+    const px = -Math.sin(ang) * sw;
+    const pz = Math.cos(ang) * sw;
+    tmp.copy(deep);
+    const stem = [
+      [bx - px, 0, bz - pz],
+      [bx + px, 0, bz + pz],
+      [tx + px, h, tz + pz],
+      [tx - px, h, tz - pz],
+    ];
+    const sn = [0, 0.7, 0];
+    push(stem[0], sn, tmp, 0, phase);
+    push(stem[1], sn, tmp, 0, phase);
+    push(stem[2], sn, tmp, 1, phase);
+    push(stem[0], sn, tmp, 0, phase);
+    push(stem[2], sn, tmp, 1, phase);
+    push(stem[3], sn, tmp, 1, phase);
+    // three leaflets, slightly cupped, around the stalk top
+    const r = height * rng.range(0.28, 0.4);
+    for (let l = 0; l < 3; l++) {
+      const la = ang + (l / 3) * Math.PI * 2 + rng.range(-0.3, 0.3);
+      const cx = tx + Math.cos(la) * r * 0.9;
+      const cz = tz + Math.sin(la) * r * 0.9;
+      const cy = h + 0.004 + rng.range(-0.002, 0.002);
+      const ux = Math.cos(la) * r * 0.55;
+      const uz = Math.sin(la) * r * 0.55;
+      const vx = -Math.sin(la) * r * 0.5;
+      const vz = Math.cos(la) * r * 0.5;
+      const droop = 0.004;
+      const n = [Math.cos(la) * 0.25, 0.95, Math.sin(la) * 0.25];
+      // diamond leaflet: centre + four rim points, rim drooping a little
+      const c0 = [cx, cy, cz];
+      const rim = [
+        [cx - ux, cy - droop, cz - uz],
+        [cx + vx, cy - droop, cz + vz],
+        [cx + ux, cy - droop, cz + uz],
+        [cx - vx, cy - droop, cz - vz],
+      ];
+      for (let k = 0; k < 4; k++) {
+        tmp.copy(light).lerp(deep, 0.15);
+        push(c0, n, tmp, 1, phase);
+        tmp.copy(deep).lerp(light, 0.35);
+        push(rim[k], n, tmp, 1, phase);
+        push(rim[(k + 1) % 4], n, tmp, 1, phase);
+      }
+    }
+  }
+  const g = new BufferGeometry();
+  g.setAttribute('position', new Float32BufferAttribute(pos, 3));
+  g.setAttribute('normal', new Float32BufferAttribute(nrm, 3));
+  g.setAttribute('color', new Float32BufferAttribute(col, 3));
+  g.setAttribute('uv', new Float32BufferAttribute(uv, 2));
+  g.setAttribute('aWind', new Float32BufferAttribute(wind, 2));
+  g.computeBoundingSphere();
+  return g;
+}
+
+/** sprouts collapse to their base beyond this camera distance (a LOD cull without extra draw calls) */
+export const SPROUT_LOD_FAR = 25;
+
+export function createSproutMaterial(wind: Wind, _config: WorldConfig): MeshStandardMaterial {
+  const mat = new MeshStandardMaterial({ vertexColors: true, roughness: 0.85, metalness: 0, side: DoubleSide });
+  mat.name = 'joint-sprouts';
+  const jointDeep = new Color(JOINT_TUFT_DEEP);
+  const jointTip = new Color(JOINT_TUFT_TIP);
+  mat.onBeforeCompile = (shader: WebGLProgramParametersWithUniforms) => {
+    shader.uniforms.uSproutLodFar = { value: SPROUT_LOD_FAR };
+    shader.uniforms.uJointDeep = { value: jointDeep };
+    shader.uniforms.uJointTip = { value: jointTip };
+    shader.vertexShader = shader.vertexShader
+      .replace('#include <common>', `#include <common>\n${WIND_GLSL}\nattribute vec2 aWind; attribute float aVariant; attribute float aSproutVariant; attribute float aTuftLighting; attribute float aJointTint; varying vec4 vTuftLighting; uniform float uSproutLodFar; uniform vec3 uJointDeep; uniform vec3 uJointTip;`)
+      .replace(
+        '#include <color_vertex>',
+        /* glsl */ `#include <color_vertex>
+        #if defined(USE_COLOR) && defined(USE_INSTANCING_COLOR)
+        {
+          // joint grass (aJointTint, see SproutSpot.jointTint): the blade's green is replaced by
+          // the olive-brown → straw ramp along its length (uv.y = 0 at the root, 1 at the tip);
+          // clover, pads and grit take the ramp's lower third flat. The instance's own jitter
+          // (instanceColor) still scales it, so no two tufts are the same khaki.
+          float tipK = aTuftLighting > 0.5 ? smoothstep(0.05, 0.95, uv.y) : 0.35;
+          vec3 jointRamp = mix(uJointDeep, uJointTip, tipK) * instanceColor.rgb;
+          vColor.rgb = mix(vColor.rgb, jointRamp, clamp(aJointTint, 0.0, 1.0));
+          // Only floor-moss geometry authors negative U; retain its darker interstices
+          // after the hue-matching tint so the leafy layer does not become a flat olive mass.
+          if (uv.x < 0.0) vColor.rgb *= -uv.x;
+        }
+        #endif`,
+      )
+      .replace(
+        '#include <defaultnormal_vertex>',
+        /* glsl */ `#include <defaultnormal_vertex>
+        // buildTuft authors an upward-biased blade normal. Preserve that axis across the
+        // standard two-sided normal flip; the semantic mask excludes every other variant.
+        vec3 sproutAuthoredUp = vec3(0.0, 1.0, 0.0);
+        #ifdef USE_INSTANCING
+          sproutAuthoredUp = normalize(instanceMatrix[1].xyz);
+        #endif
+        vTuftLighting = vec4(normalMatrix * sproutAuthoredUp, aTuftLighting);`,
+      )
+      .replace(
+        '#include <project_vertex>',
+        /* glsl */ `
+        // Variant packs: one InstancedMesh carries several sprout variants in one geometry; an
+        // instance shows only the variant it was assigned (aSproutVariant) and collapses the
+        // others' vertices onto its base point (zero-area triangles, no fill), so tufts, moss
+        // cushions and seam grit share draw calls.
+        float sproutKeep = 1.0 - step(0.5, abs(aVariant - aSproutVariant));
+        // LOD: tufts further than uSproutLodFar from the camera shrink onto their base point over
+        // the last 4 m, so distant joints cost no fill and the near ones keep their blades
+        vec3 sproutBase = (modelMatrix * instanceMatrix * vec4(0.0, 0.0, 0.0, 1.0)).xyz;
+        float sproutLod = (1.0 - smoothstep(uSproutLodFar - 4.0, uSproutLodFar, distance(sproutBase, cameraPosition))) * sproutKeep;
+        vec4 wp = modelMatrix * instanceMatrix * vec4(transformed * sproutLod, 1.0);
+        wp.xyz += windGrass(wp.xyz, aWind.x, aWind.y, 0.3) * sproutLod;
+        vec4 mvPosition = viewMatrix * wp;
+        gl_Position = projectionMatrix * mvPosition;`,
+      );
+    shader.fragmentShader = shader.fragmentShader
+      .replace('#include <common>', '#include <common>\nvarying vec4 vTuftLighting;')
+      .replace(
+        '#include <normal_fragment_begin>',
+        /* glsl */ `#include <normal_fragment_begin>
+        #ifdef DOUBLE_SIDED
+          if (vTuftLighting.w > 0.5) {
+            vec3 sproutUp = normalize(vTuftLighting.xyz);
+            float upComponent = dot(normal, sproutUp);
+            if (upComponent < 0.0) {
+              // Reflect only the downward component, retaining the horizontal face direction.
+              normal = normalize(normal - 2.0 * upComponent * sproutUp);
+              nonPerturbedNormal = normal;
+            }
+          }
+        #endif`,
+      );
+  };
+  mat.customProgramCacheKey = () => 'joint-sprouts-wind-v4-variant-packs-tuft-up-v1-joint-tint-floor-moss';
+  return wind.bind(mat);
+}
+
+/** sprout variant indices */
+export const TUFT_A = 0;
+export const TUFT_B = 1;
+export const TUFT_C = 2;
+export const CLOVER = 3;
+export const CUSHION = 4;
+export const FERN = 5;
+export const GRIT = 6;
+
+/**
+ * Which variants share an InstancedMesh (= one draw call). Every instance of a pack processes the
+ * vertices of all its variants (the others collapse), so the pairs are chosen to keep that
+ * overhead small: the 2 000+ seam pebbles (60 vertices) ride with the smallest tuft (90), the
+ * moss cushions (150) with the clover (126). Four draws for the whole joint flora + grit — the
+ * same count the four tuft/clover variants alone used before the cushions and grit existed.
+ *
+ * Round 49 (perf-3, W38): the two pairs are unpacked — one variant a draw, six draws. Packed, every
+ * pebble submitted the tuft's 30 collapsed triangles on top of its own 20 and every clover the
+ * cushion's 50: from camera A, after the submission cull above, the 2 252 tuft-C / grit and 912
+ * clover / cushion instances still in the frame carried ≈ 97 K collapsed triangles for two draws
+ * saved; the hero views sit at 576 of W38's 700 draws. The instances, their order within a
+ * variant and their jitter streams (per source × variant) are what they were.
+ */
+export const HARDSCAPE_PACKS: number[][] = [[TUFT_B], [TUFT_A], [TUFT_C], [GRIT], [CLOVER], [CUSHION]];
+/** the boulder cap plants: a few dozen instances, all variants in one draw */
+export const BOULDER_PACKS: number[][] = [[TUFT_A, TUFT_B, FERN]];
+
+const NO_TINT: [number, number, number] = [1, 1, 1];
+
+export interface SproutBuild {
+  meshes: InstancedMesh[];
+  /** tufts + clover + cushions + ferns (not grit) */
+  count: number;
+  variants: number;
+  cushions: number;
+  ferns: number;
+  grit: number;
+  /** triangles actually shown (each instance's own variant), flora + grit */
+  triangles: number;
+  /** the grit's share of `triangles` */
+  gritTriangles: number;
+  /** triangles submitted to the GPU per frame, including the collapsed other-variant triangles (every instance; before `cull`) */
+  submittedTriangles: number;
+  /**
+   * Submission culling (round 49, perf-3; the trees' / vegetation's pattern): trim every mesh to
+   * the instances that can reach the frame — those whose base is nearer than SPROUT_LOD_FAR (the
+   * vertex shader collapses every vertex of a farther instance onto its base point: zero-area
+   * triangles, no fill, so dropping them changes no pixel) AND whose padded sphere meets the view
+   * frustum (conservative plane separation). The kept instances keep their order, so the frame is
+   * identical to the untrimmed one; only the triangle count changes. Skipped while the camera's
+   * view-projection is unchanged unless `force`. Nothing casts a shadow here, so no sweep test.
+   */
+  cull(camera: Camera, force?: boolean): void;
+  /** instances submitted per mesh after the last `cull` (every instance before the first) */
+  submitted: number[];
+  /** triangles submitted per frame after the last `cull` */
+  submittedNow(): number;
+}
+
+/**
+ * Culling pad (m) on every instance sphere: a sprout's blades bend ≤ 0.35 × the wind strength
+ * (wind.ts windGrass at stiffness 0.3) and the largest pad is a 2.6 × cushion; 1.5 m matches the
+ * vegetation's CULL_PAD_M and leaves the rest as slack.
+ */
+export const SPROUT_CULL_PAD_M = 1.5;
+/** slack (m) on the shader's SPROUT_LOD_FAR collapse distance, so float rounding between CPU and GPU cannot drop a live instance */
+const SPROUT_LOD_SLACK_M = 0.05;
+
+/** concatenate non-indexed variant geometries (same attribute set) and tag each vertex with its variant slot */
+function packGeometries(geos: BufferGeometry[], variantIds: number[]): BufferGeometry {
+  const names = ['position', 'normal', 'color', 'uv', 'aWind'];
+  const sizes: Record<string, number> = { position: 3, normal: 3, color: 3, uv: 2, aWind: 2 };
+  const out: Record<string, number[]> = Object.fromEntries(names.map((n) => [n, []]));
+  const variant: number[] = [];
+  const tuftLighting: number[] = [];
+  geos.forEach((g, slot) => {
+    for (const n of names) {
+      const arr = g.getAttribute(n).array as Float32Array;
+      for (let i = 0; i < arr.length; i++) out[n].push(arr[i]);
+    }
+    const count = g.getAttribute('position').count;
+    const id = variantIds[slot];
+    const isTuft = id === TUFT_A || id === TUFT_B || id === TUFT_C;
+    for (let i = 0; i < count; i++) {
+      variant.push(slot);
+      tuftLighting.push(isTuft ? 255 : 0);
+    }
+  });
+  const g = new BufferGeometry();
+  for (const n of names) g.setAttribute(n, new Float32BufferAttribute(out[n], sizes[n]));
+  g.setAttribute('aVariant', new Float32BufferAttribute(variant, 1));
+  g.setAttribute('aTuftLighting', new Uint8BufferAttribute(tuftLighting, 1, true));
+  g.computeBoundingSphere();
+  return g;
+}
+
+/**
+ * Instance jitter (the per-instance rotation, scale and tint randoms) is drawn from `rng` in pack →
+ * variant → list order, so by default every spot appended to the list shifts the draws of all the
+ * instances after it. `opts.jitter` replaces that with one stream per (spot.source, variant), each
+ * consumed in list order by its own instances only: a scatter can then grow or shrink without
+ * re-rolling any other scatter's instances. Without the option the behaviour is exactly the old one.
+ */
+export function buildSproutMeshes(spots: SproutSpot[], rng: Rng, material: MeshStandardMaterial, config: WorldConfig, packs: number[][] = HARDSCAPE_PACKS, opts: { gritTone?: Color; jitter?: SproutJitterStreams; floorMoss?: boolean } = {}): SproutBuild {
+  // Reference (B/E/D): small dark-green grass tufts and clover growing from the joints across
+  // the whole plaza, 6–12 cm tall — the deep/mid grass greens, not lime blades.
+  const deep = new Color(config.palette.grassDeep).lerp(new Color(config.palette.grassMid), 0.3);
+  const light = new Color(config.palette.grassMid).lerp(new Color(config.palette.grassLight), 0.45);
+  // cushions: the palette moss greens (deep→bright), a touch yellower on the crown like the
+  // sheet's pads; the stone material's moss uses the same two colours so films and pads agree
+  const mossDeep = new Color(config.palette.mossDeep).lerp(new Color(config.palette.grassDeep), 0.3);
+  const mossBright = new Color(config.palette.mossBright).lerp(new Color(config.palette.grassLight), 0.25);
+  const variants = [
+    buildTuft(rng.fork('tuft-a'), 7, 0.08, 0.035, deep, light),
+    buildTuft(rng.fork('tuft-b'), 9, 0.11, 0.05, deep, light),
+    buildTuft(rng.fork('tuft-c'), 5, 0.065, 0.03, deep, light),
+    buildClover(rng.fork('clover'), 0.05, deep, light),
+    buildCushion(rng.fork('cushion'), mossDeep, mossBright, opts.floorMoss),
+    buildFrond(rng.fork('fern'), 0.2, new Color(config.palette.grassDeep), new Color(config.palette.grassMid).lerp(new Color(config.palette.grassLight), 0.3)),
+    buildGritGeometry(rng.fork('grit-geo'), opts.gritTone ?? DEFAULT_GRIT_TONE),
+  ];
+  const variantOf = (s: SproutSpot) => (s.kind === 'cushion' ? CUSHION : s.kind === 'fern' ? FERN : s.kind === 'grit' ? GRIT : s.size > 0.7 ? TUFT_B : s.size > 0.42 ? TUFT_A : s.size > 0.2 ? TUFT_C : CLOVER);
+  const lists: SproutSpot[][] = variants.map(() => []);
+  for (const s of spots) lists[variantOf(s)].push(s);
+  const packOf = new Map<number, [number, number]>(); // variant → [pack, slot]
+  packs.forEach((pack, pi) => pack.forEach((v, slot) => packOf.set(v, [pi, slot])));
+  for (let v = 0; v < variants.length; v++) if (lists[v].length && !packOf.has(v)) throw new Error(`sprout variant ${v} has instances but no pack`);
+
+  const meshes: InstancedMesh[] = [];
+  /** per mesh: the full instance streams and each instance's cull sphere (base xyz + radius), for `cull` */
+  const sources: { im: InstancedMesh; n: number; tris: number; matrices: Float32Array; colors: Float32Array; slots: Float32Array; tints: Float32Array; sphere: Float32Array; kept: number[] }[] = [];
+  const m = new Matrix4();
+  const p = new Vector3();
+  const q = new Quaternion();
+  const sc = new Vector3();
+  const axis = new Vector3();
+  const up = new Vector3(0, 1, 0);
+  const c = new Color();
+  let count = 0;
+  let triangles = 0;
+  let gritTriangles = 0;
+  let submittedTriangles = 0;
+  const streams = new Map<string, Rng>();
+  const jitterOf = (s: SproutSpot, v: number): Rng => {
+    if (!opts.jitter) return rng;
+    const key = `${s.source ?? ''}\u0000${v}`;
+    let r = streams.get(key);
+    if (!r) {
+      r = opts.jitter(s.source, v);
+      streams.set(key, r);
+    }
+    return r;
+  };
+  packs.forEach((pack, pi) => {
+    const n = pack.reduce((a, v) => a + lists[v].length, 0);
+    if (!n) return;
+    const geo = packGeometries(pack.map((v) => variants[v]), pack);
+    const slotOf = new Float32Array(n);
+    const jointTint = new Float32Array(n);
+    const im = new InstancedMesh(geo, material, n);
+    // the packed geometry's sphere about the instance origin, whatever the instance's yaw / tumble
+    const geoReach = geo.boundingSphere!.center.length() + geo.boundingSphere!.radius;
+    const cullSphere = new Float32Array(n * 4);
+    let i = 0;
+    for (const v of pack) {
+      const slot = packOf.get(v)![1];
+      const triCount = variants[v].attributes.position.count / 3;
+      for (const s of lists[v]) {
+        const jr = jitterOf(s, v);
+        const k = (0.9 + jr.range(0, 0.2)) * (s.scale ?? 1);
+        if (v === GRIT) {
+          // the pebble sits in the dirt: its centre a little below the fill so only the crown
+          // shows; tumbled about a near-vertical axis, squashed unevenly
+          p.set(s.x, s.y - s.size * 0.12, s.z);
+          axis.set(jr.range(-0.25, 0.25), 1, jr.range(-0.25, 0.25)).normalize();
+          q.setFromAxisAngle(axis, jr.range(0, Math.PI * 2));
+          sc.set(s.size * jr.range(0.8, 1.25), s.size * jr.range(0.7, 1.05), s.size * jr.range(0.8, 1.25));
+          // the fill's tone at this spot (vertex colours × the joint-width lift), then within
+          // ± 15 % of it with a hint of warm / cool drift — no pale specks
+          const t = s.tint ?? NO_TINT;
+          const l = jr.range(0.87, 1.13);
+          const w = jr.range(-0.02, 0.02);
+          c.setRGB(t[0] * l * (1 + w), t[1] * l, t[2] * l * (1 - w));
+        } else {
+          q.setFromAxisAngle(up, jr.range(0, Math.PI * 2));
+          if (v === CUSHION) {
+            // the unit dome becomes a 4–7.5 cm radius, 1.2–2.5 cm high pad, sunk a few mm
+            const r = (0.04 + 0.035 * s.size) * (s.scale ?? 1);
+            p.set(s.x, s.y - 0.004, s.z);
+            sc.set(r * jr.range(0.85, 1.2), r * jr.range(0.85, 1.15), r * jr.range(0.85, 1.2));
+            c.setRGB(0.85 + jr.range(0, 0.3), 0.85 + jr.range(0, 0.3), 0.8 + jr.range(0, 0.2));
+          } else {
+            p.set(s.x, s.y - 0.01, s.z);
+            sc.set(k, k * jr.range(0.9, 1.1), k);
+            c.setRGB(0.78 + jr.range(0, 0.25), 0.8 + jr.range(0, 0.25), 0.75 + jr.range(0, 0.2));
+            if (s.tint) c.setRGB(c.r * s.tint[0], c.g * s.tint[1], c.b * s.tint[2]);
+          }
+        }
+        im.setMatrixAt(i, m.compose(p, q, sc));
+        im.setColorAt(i, c);
+        slotOf[i] = slot;
+        jointTint[i] = s.jointTint ?? 0;
+        cullSphere[i * 4] = p.x;
+        cullSphere[i * 4 + 1] = p.y;
+        cullSphere[i * 4 + 2] = p.z;
+        cullSphere[i * 4 + 3] = geoReach * Math.max(sc.x, sc.y, sc.z) + SPROUT_CULL_PAD_M;
+        i++;
+      }
+      triangles += triCount * lists[v].length;
+      if (v === GRIT) gritTriangles += triCount * lists[v].length;
+      else count += lists[v].length;
+    }
+    // the GPU streams are compacted by `cull`; the full streams are kept aside (a copy each)
+    geo.setAttribute('aSproutVariant', new InstancedBufferAttribute(slotOf.slice(), 1));
+    geo.setAttribute('aJointTint', new InstancedBufferAttribute(jointTint.slice(), 1));
+    const packTris = geo.attributes.position.count / 3;
+    submittedTriangles += packTris * n;
+    im.instanceMatrix.needsUpdate = true;
+    if (im.instanceColor) im.instanceColor.needsUpdate = true;
+    // the streams are rewritten whenever the culled set changes (a walking camera: most frames)
+    im.instanceMatrix.setUsage(DynamicDrawUsage);
+    im.instanceColor?.setUsage(DynamicDrawUsage);
+    im.castShadow = false;
+    im.receiveShadow = true;
+    im.name = `joint-sprouts-p${pi}-v${pack.join('')}`;
+    im.computeBoundingSphere();
+    meshes.push(im);
+    sources.push({
+      im,
+      n,
+      tris: packTris,
+      matrices: (im.instanceMatrix.array as Float32Array).slice(),
+      colors: (im.instanceColor!.array as Float32Array).slice(),
+      slots: slotOf,
+      tints: jointTint,
+      sphere: cullSphere,
+      kept: Array.from({ length: n }, (_, k) => k),
+    });
+  });
+
+  // ---- submission culling (see SproutBuild.cull) ----
+  const frustum = new Frustum();
+  const viewProj = new Matrix4();
+  const lastViewProj = new Matrix4().makeScale(0, 0, 0);
+  const camPos = new Vector3();
+  const sphere = new Sphere();
+  const lodFar = SPROUT_LOD_FAR + SPROUT_LOD_SLACK_M;
+  const submitted = sources.map((s) => s.n);
+  const sameList = (a: number[], b: number[]) => a.length === b.length && a.every((v, i) => v === b[i]);
+  const compact = (s: (typeof sources)[number], kept: number[]) => {
+    const im = s.im;
+    const mat = im.instanceMatrix.array as Float32Array;
+    const col = im.instanceColor!.array as Float32Array;
+    const slot = im.geometry.getAttribute('aSproutVariant').array as Float32Array;
+    const tint = im.geometry.getAttribute('aJointTint').array as Float32Array;
+    for (let j = 0; j < kept.length; j++) {
+      const i = kept[j];
+      mat.set(s.matrices.subarray(i * 16, i * 16 + 16), j * 16);
+      col[j * 3] = s.colors[i * 3];
+      col[j * 3 + 1] = s.colors[i * 3 + 1];
+      col[j * 3 + 2] = s.colors[i * 3 + 2];
+      slot[j] = s.slots[i];
+      tint[j] = s.tints[i];
+    }
+    im.count = kept.length;
+    im.instanceMatrix.needsUpdate = true;
+    im.instanceColor!.needsUpdate = true;
+    im.geometry.getAttribute('aSproutVariant').needsUpdate = true;
+    im.geometry.getAttribute('aJointTint').needsUpdate = true;
+    s.kept = kept;
+  };
+  const cull = (camera: Camera, force = false) => {
+    camera.updateMatrixWorld();
+    viewProj.multiplyMatrices(camera.projectionMatrix, camera.matrixWorldInverse);
+    if (!force && viewProj.equals(lastViewProj)) return;
+    lastViewProj.copy(viewProj);
+    frustum.setFromProjectionMatrix(viewProj);
+    camPos.setFromMatrixPosition(camera.matrixWorld);
+    for (let k = 0; k < sources.length; k++) {
+      const s = sources[k];
+      // the shader measures the collapse from the instance base in WORLD space (modelMatrix × instanceMatrix × origin)
+      const world = s.im.matrixWorld;
+      const identity = world.elements[0] === 1 && world.elements[5] === 1 && world.elements[10] === 1 && world.elements[12] === 0 && world.elements[13] === 0 && world.elements[14] === 0;
+      const kept: number[] = [];
+      const sp = s.sphere;
+      for (let i = 0; i < s.n; i++) {
+        sphere.center.set(sp[i * 4], sp[i * 4 + 1], sp[i * 4 + 2]);
+        if (!identity) sphere.center.applyMatrix4(world);
+        if (sphere.center.distanceTo(camPos) >= lodFar) continue;
+        sphere.radius = sp[i * 4 + 3];
+        if (frustum.intersectsSphere(sphere)) kept.push(i);
+      }
+      if (!sameList(kept, s.kept)) compact(s, kept);
+      submitted[k] = kept.length;
+    }
+  };
+  const submittedNow = () => sources.reduce((t, s, k) => t + s.tris * submitted[k], 0);
+  return { meshes, count, variants: variants.length, cushions: lists[CUSHION].length, ferns: lists[FERN].length, grit: lists[GRIT].length, triangles, gritTriangles, submittedTriangles, cull, submitted, submittedNow };
+}

@@ -1,0 +1,11 @@
+Astra character import is ready: **ec79e4ed**, PR #26, branch `agent/astra-motion-sept21`. Import `glbLink.ts`, `ground.ts`, `link-runtime.glb` and `SOURCE.md` together. Default SHA: `89df38f255e47afbcbb28a60555fb4a4a20091741d427ef1d7b8ea1ac33f306b` (47,825,216 bytes). After fetching your c11f0ff4, character source/model still matched our base. Your existing 59cba21b winding import is required.
+
+The run jerk came from 32 old fractional Blender keys left alongside 57 intended keys. Rebuilding four shoulder/elbow rotations from the smooth 24591126 source, with the same reviewed carriage, reduces adjacent 240 Hz shoulder jumps from 29.57/31.68 degrees to 1.34/1.43 degrees. Intended poses are preserved within 0.000083 degrees. All other channels, geometry, textures, stride and cycle remain exact. Native contacts improve 1452 to 1316, peak 99 to 22; they are not eliminated. The final 300-frame walk/run/idle video and five matched comparisons are in the integration README.
+
+The body/orbital grade and brow factor are baked exactly; runtime canvas grading is removed. Actual-loader pixel/material parity passes with `colorGrade: null`. Old ungraded query assets must not use this loader.
+
+Stair support now includes the outward timber crowns and their steep upper shoulders, with dense oriented sole support and a guarded final hip correction. Stone-only sampling and analytic heights are unchanged. Actual player testing: 1,320 frames, 327 sole vertices, 403,488 surface hits, minima +1.182 mm up / +1.257 mm down, no negative samples, page errors or reach clamps on this route. Knees still reach 168.26/166.70 degrees; general approaches are not proven. Sampler queries increase 61-63%; no FPS claim.
+
+Portable checks are `run-carriage/check-rebuild.mjs`, `curved-support/check.mjs`, and `stair-clearance/ground-log-contact-check.mjs` under `art/characters/link/progress/2026-09-21-*`. Build/typecheck passed. Keep the native carrier and reports for reproduction; preserve your coordination/claims and sealed ledger. The optional torso and landing trials remain held.
+
+Thanks for importing PR #25/#27 and winding. The flat bank-canopy cores remain the main visible defect in our F view; the atlas fix does not change those shapes. Root continues Link posture/face while the environment lanes continue.

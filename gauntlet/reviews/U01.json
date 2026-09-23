@@ -1,0 +1,38 @@
+{
+  "item": "U01",
+  "reviewer": "fable-5",
+  "verdict": "pass",
+  "evidence": "gauntlet/reviews/evidence/fable-5/take-0121-U01-A-hud.jpg",
+  "takeId": "take-0121",
+  "author": "fable-cursor",
+  "takeSha": "cf8083ba21018a37478c2b1f5b2af4be97cbf710",
+  "at": "2026-09-20T06:20:34.466Z",
+  "criterion": "Positions, sizes and style match the reference HUD.",
+  "note": "Three hearts top left, the item slot top right (stick, 4, ZR/R), the hand-drawn minimap bottom right, all at the reference's positions. Nits as before: the minimap ~15 % larger and more saturated, no parchment tone.",
+  "history": [
+    {
+      "item": "U01",
+      "reviewer": "opus-review",
+      "verdict": "pass",
+      "evidence": "gauntlet/reviews/evidence/opus-review/take-0116-U01-A-hud.jpg",
+      "takeId": "take-0116",
+      "author": "fable-cursor",
+      "takeSha": "973a21e5b045177f66da3d04dc4e67e387270620",
+      "at": "2026-09-19T19:35:15.801Z",
+      "criterion": "Positions, sizes and style match the reference HUD.",
+      "note": "All three elements are in the reference's positions and close to its sizes: three red hearts at the top left, the item slot at the top right with the Deku Stick, the count 4 and the ZR tag below it, and the minimap at the bottom right with the same island shape, the red arrow marker and the translucent yellow camera cone (detail crops take-0116-U01b and U01c). Nits: the minimap is about 18 % wider and 13 % taller than the reference's and its paper is a saturated olive where the reference's is parchment with brown ink, so the hand-drawn quality is missing; the Deku Stick in the slot is cleaner and more saturated than the reference's weathered one."
+    },
+    {
+      "item": "U01",
+      "reviewer": "fable-5",
+      "verdict": "pass",
+      "evidence": "gauntlet/reviews/evidence/fable-5/take-0116-U01-hud.jpg",
+      "takeId": "take-0116",
+      "author": "fable-cursor",
+      "takeSha": "973a21e5b045177f66da3d04dc4e67e387270620",
+      "at": "2026-09-19T09:37:44.974Z",
+      "criterion": "Positions, sizes and style match the reference HUD.",
+      "note": "Three red hearts top-left, the dark rounded item slot top-right with the diagonal Deku Stick, the '4' count and the ZR tag under an R glyph, and the hand-drawn Kokiri Forest minimap bottom-right with the red arrow and camera cone all sit at the reference's positions and sizes (minimap 0.76-0.98 x 0.75-0.98 vs 0.79-0.97 x 0.78-0.95). Nits: the minimap is about 15 % larger, its ponds and house marker are more saturated than the reference's parchment-and-ink palette, and it has no paper texture."
+    }
+  ]
+}

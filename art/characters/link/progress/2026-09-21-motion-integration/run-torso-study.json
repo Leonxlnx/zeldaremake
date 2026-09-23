@@ -1,0 +1,479 @@
+{
+  "scene": "Link | September20 running torso",
+  "cycle_s": 0.4666666666666667,
+  "stride_m": 1.82,
+  "gait": "run",
+  "source_sha256": "e3ef74a02336b5f6952ed340e8191369284dacc92da9b5782dd9f3cb7dceb552",
+  "edited_bones": [
+    "chest",
+    "head"
+  ],
+  "rotation_only_bones": [
+    "chest",
+    "head"
+  ],
+  "preserve_hips": true,
+  "source": "Quaternius Jog_Fwd_Loop",
+  "source_phase_offset": 0.078125,
+  "source_yaw_gain": 0.15,
+  "protected_curves_exact": true,
+  "leg_matrix_error": 0,
+  "head_orientation_error": 2.384185791015625e-07,
+  "status": "Native study; visual and runtime acceptance pending",
+  "rows": [
+    {
+      "frame": 0,
+      "chest_yaw_rad": 0.06121632571043652
+    },
+    {
+      "frame": 1,
+      "chest_yaw_rad": 0.05488770269617571
+    },
+    {
+      "frame": 2,
+      "chest_yaw_rad": 0.04768305197897376
+    },
+    {
+      "frame": 3,
+      "chest_yaw_rad": 0.03984760765460382
+    },
+    {
+      "frame": 4,
+      "chest_yaw_rad": 0.03205705463893153
+    },
+    {
+      "frame": 5,
+      "chest_yaw_rad": 0.024303771619262952
+    },
+    {
+      "frame": 6,
+      "chest_yaw_rad": 0.0165800154117823
+    },
+    {
+      "frame": 7,
+      "chest_yaw_rad": 0.009043356420878555
+    },
+    {
+      "frame": 8,
+      "chest_yaw_rad": 0.0017267878247639837
+    },
+    {
+      "frame": 9,
+      "chest_yaw_rad": -0.005544589705371263
+    },
+    {
+      "frame": 10,
+      "chest_yaw_rad": -0.012773013289707574
+    },
+    {
+      "frame": 11,
+      "chest_yaw_rad": -0.019961473754853593
+    },
+    {
+      "frame": 12,
+      "chest_yaw_rad": -0.026423485657578252
+    },
+    {
+      "frame": 13,
+      "chest_yaw_rad": -0.031763334698016184
+    },
+    {
+      "frame": 14,
+      "chest_yaw_rad": -0.03707952021973116
+    },
+    {
+      "frame": 15,
+      "chest_yaw_rad": -0.042370603063626895
+    },
+    {
+      "frame": 16,
+      "chest_yaw_rad": -0.04763549079210804
+    },
+    {
+      "frame": 17,
+      "chest_yaw_rad": -0.05248688248266886
+    },
+    {
+      "frame": 18,
+      "chest_yaw_rad": -0.05640216799176844
+    },
+    {
+      "frame": 19,
+      "chest_yaw_rad": -0.06030991081182114
+    },
+    {
+      "frame": 20,
+      "chest_yaw_rad": -0.06420976314585551
+    },
+    {
+      "frame": 21,
+      "chest_yaw_rad": -0.06810151635879934
+    },
+    {
+      "frame": 22,
+      "chest_yaw_rad": -0.071744540733643
+    },
+    {
+      "frame": 23,
+      "chest_yaw_rad": -0.07445211874831534
+    },
+    {
+      "frame": 24,
+      "chest_yaw_rad": -0.07716453858937818
+    },
+    {
+      "frame": 25,
+      "chest_yaw_rad": -0.07988186937117758
+    },
+    {
+      "frame": 26,
+      "chest_yaw_rad": -0.0826042588907056
+    },
+    {
+      "frame": 27,
+      "chest_yaw_rad": -0.08521699170414955
+    },
+    {
+      "frame": 28,
+      "chest_yaw_rad": -0.08694110755789783
+    },
+    {
+      "frame": 29,
+      "chest_yaw_rad": -0.08867238310061754
+    },
+    {
+      "frame": 30,
+      "chest_yaw_rad": -0.0904107692310219
+    },
+    {
+      "frame": 31,
+      "chest_yaw_rad": -0.09215617631329348
+    },
+    {
+      "frame": 32,
+      "chest_yaw_rad": -0.093887977667608
+    },
+    {
+      "frame": 33,
+      "chest_yaw_rad": -0.09474484243205691
+    },
+    {
+      "frame": 34,
+      "chest_yaw_rad": -0.095606699581626
+    },
+    {
+      "frame": 35,
+      "chest_yaw_rad": -0.09647358981197925
+    },
+    {
+      "frame": 36,
+      "chest_yaw_rad": -0.0973453223153509
+    },
+    {
+      "frame": 37,
+      "chest_yaw_rad": -0.09822182557730938
+    },
+    {
+      "frame": 38,
+      "chest_yaw_rad": -0.09862077061274957
+    },
+    {
+      "frame": 39,
+      "chest_yaw_rad": -0.09898740413156092
+    },
+    {
+      "frame": 40,
+      "chest_yaw_rad": -0.09935684921771523
+    },
+    {
+      "frame": 41,
+      "chest_yaw_rad": -0.09972908584572751
+    },
+    {
+      "frame": 42,
+      "chest_yaw_rad": -0.10010402592495564
+    },
+    {
+      "frame": 43,
+      "chest_yaw_rad": -0.10023639687166898
+    },
+    {
+      "frame": 44,
+      "chest_yaw_rad": -0.1003237515056853
+    },
+    {
+      "frame": 45,
+      "chest_yaw_rad": -0.10041247336369517
+    },
+    {
+      "frame": 46,
+      "chest_yaw_rad": -0.10050251893256379
+    },
+    {
+      "frame": 47,
+      "chest_yaw_rad": -0.10059393943010035
+    },
+    {
+      "frame": 48,
+      "chest_yaw_rad": -0.09881296886620838
+    },
+    {
+      "frame": 49,
+      "chest_yaw_rad": -0.09640537247362876
+    },
+    {
+      "frame": 50,
+      "chest_yaw_rad": -0.09399506877408761
+    },
+    {
+      "frame": 51,
+      "chest_yaw_rad": -0.09158175459355197
+    },
+    {
+      "frame": 52,
+      "chest_yaw_rad": -0.08916532182937742
+    },
+    {
+      "frame": 53,
+      "chest_yaw_rad": -0.08328204704532584
+    },
+    {
+      "frame": 54,
+      "chest_yaw_rad": -0.07565634669342179
+    },
+    {
+      "frame": 55,
+      "chest_yaw_rad": -0.06808221413359669
+    },
+    {
+      "frame": 56,
+      "chest_yaw_rad": -0.06055043299751514
+    },
+    {
+      "frame": 57,
+      "chest_yaw_rad": -0.05305173486230523
+    },
+    {
+      "frame": 58,
+      "chest_yaw_rad": -0.04501436232868622
+    },
+    {
+      "frame": 59,
+      "chest_yaw_rad": -0.03657551101046659
+    },
+    {
+      "frame": 60,
+      "chest_yaw_rad": -0.028157158623744682
+    },
+    {
+      "frame": 61,
+      "chest_yaw_rad": -0.019750411940273067
+    },
+    {
+      "frame": 62,
+      "chest_yaw_rad": -0.011346056178059614
+    },
+    {
+      "frame": 63,
+      "chest_yaw_rad": -0.0037601838659503065
+    },
+    {
+      "frame": 64,
+      "chest_yaw_rad": 0.002931740650965207
+    },
+    {
+      "frame": 65,
+      "chest_yaw_rad": 0.009634683409448397
+    },
+    {
+      "frame": 66,
+      "chest_yaw_rad": 0.01635073317413362
+    },
+    {
+      "frame": 67,
+      "chest_yaw_rad": 0.02308212052080086
+    },
+    {
+      "frame": 68,
+      "chest_yaw_rad": 0.0291481567112888
+    },
+    {
+      "frame": 69,
+      "chest_yaw_rad": 0.03414342738667658
+    },
+    {
+      "frame": 70,
+      "chest_yaw_rad": 0.03915085612348314
+    },
+    {
+      "frame": 71,
+      "chest_yaw_rad": 0.04417104274323189
+    },
+    {
+      "frame": 72,
+      "chest_yaw_rad": 0.04920460601619466
+    },
+    {
+      "frame": 73,
+      "chest_yaw_rad": 0.0538041853997032
+    },
+    {
+      "frame": 74,
+      "chest_yaw_rad": 0.05734585126140093
+    },
+    {
+      "frame": 75,
+      "chest_yaw_rad": 0.060895639983966666
+    },
+    {
+      "frame": 76,
+      "chest_yaw_rad": 0.06445376464256747
+    },
+    {
+      "frame": 77,
+      "chest_yaw_rad": 0.06802045137823919
+    },
+    {
+      "frame": 78,
+      "chest_yaw_rad": 0.0713744712398082
+    },
+    {
+      "frame": 79,
+      "chest_yaw_rad": 0.07387361971737827
+    },
+    {
+      "frame": 80,
+      "chest_yaw_rad": 0.07637764587660249
+    },
+    {
+      "frame": 81,
+      "chest_yaw_rad": 0.0788866523376674
+    },
+    {
+      "frame": 82,
+      "chest_yaw_rad": 0.08140062777366151
+    },
+    {
+      "frame": 83,
+      "chest_yaw_rad": 0.08381816491304678
+    },
+    {
+      "frame": 84,
+      "chest_yaw_rad": 0.08544722610237014
+    },
+    {
+      "frame": 85,
+      "chest_yaw_rad": 0.08707857002208802
+    },
+    {
+      "frame": 86,
+      "chest_yaw_rad": 0.0887122237997413
+    },
+    {
+      "frame": 87,
+      "chest_yaw_rad": 0.0903481560225455
+    },
+    {
+      "frame": 88,
+      "chest_yaw_rad": 0.09197050080871619
+    },
+    {
+      "frame": 89,
+      "chest_yaw_rad": 0.09290690502739582
+    },
+    {
+      "frame": 90,
+      "chest_yaw_rad": 0.09384412884407067
+    },
+    {
+      "frame": 91,
+      "chest_yaw_rad": 0.09478217718826572
+    },
+    {
+      "frame": 92,
+      "chest_yaw_rad": 0.09572103347780446
+    },
+    {
+      "frame": 93,
+      "chest_yaw_rad": 0.09666070400966732
+    },
+    {
+      "frame": 94,
+      "chest_yaw_rad": 0.09707202076658462
+    },
+    {
+      "frame": 95,
+      "chest_yaw_rad": 0.09744479986429926
+    },
+    {
+      "frame": 96,
+      "chest_yaw_rad": 0.0978177579785984
+    },
+    {
+      "frame": 97,
+      "chest_yaw_rad": 0.09819089605041238
+    },
+    {
+      "frame": 98,
+      "chest_yaw_rad": 0.09856418405581503
+    },
+    {
+      "frame": 99,
+      "chest_yaw_rad": 0.09871050011237466
+    },
+    {
+      "frame": 100,
+      "chest_yaw_rad": 0.09881390189572507
+    },
+    {
+      "frame": 101,
+      "chest_yaw_rad": 0.0989173331062589
+    },
+    {
+      "frame": 102,
+      "chest_yaw_rad": 0.09902077006678939
+    },
+    {
+      "frame": 103,
+      "chest_yaw_rad": 0.09912423440364106
+    },
+    {
+      "frame": 104,
+      "chest_yaw_rad": 0.09702799453339285
+    },
+    {
+      "frame": 105,
+      "chest_yaw_rad": 0.09414101640948329
+    },
+    {
+      "frame": 106,
+      "chest_yaw_rad": 0.09125772320256541
+    },
+    {
+      "frame": 107,
+      "chest_yaw_rad": 0.08837764762508547
+    },
+    {
+      "frame": 108,
+      "chest_yaw_rad": 0.08550038510408299
+    },
+    {
+      "frame": 109,
+      "chest_yaw_rad": 0.0802989535316699
+    },
+    {
+      "frame": 110,
+      "chest_yaw_rad": 0.07391713814251744
+    },
+    {
+      "frame": 111,
+      "chest_yaw_rad": 0.06755792828262283
+    },
+    {
+      "frame": 112,
+      "chest_yaw_rad": 0.06121632571043652
+    }
+  ],
+  "native_authored_source_sha256": "1e81bb6ca08c1c01008ad7fecad311d4419dbb691589c7ac5df95c8026c6ae37",
+  "integration_note": "Existing reviewed native channels applied to the later compatible rig; meshes and unselected clips preserved."
+}

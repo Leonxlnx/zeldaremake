@@ -1,0 +1,3 @@
+{
+  "diff": "diff --git a/src/world/lighting/shadowfilter.ts b/src/world/lighting/shadowfilter.ts\nindex 271c268c..e3322cc0 100644\n--- a/src/world/lighting/shadowfilter.ts\n+++ b/src/world/lighting/shadowfilter.ts\n@@ -69,7 +69,8 @@ export const SHADOW_FILTER_DEFAULTS: ShadowFilterParams = {\n   // from anywhere inside his shadow, small enough that a boulder 1 m away does not soften a\n   // slab's own contact shadow\n   searchRadiusM: 0.3,\n-  penumbraPerM: 0.016,\n+  // Daylight: use the sun's angular diameter instead of the wider reference-matching dapple.\n+  penumbraPerM: 0.0093,\n   penumbraMinM: 0.04,\n   penumbraMaxM: 0.45,\n   // Measured against the reference in linear light: its canopy-shaded path keeps ≈ 0.35 of a lit\n"
+}

@@ -1,0 +1,1 @@
+Vegetation shader contracts passed: identical color/depth/distance wind, live uniform references, instancing guards, and Three.js encoding chunks. No GPU compile or visual verdict claimed.

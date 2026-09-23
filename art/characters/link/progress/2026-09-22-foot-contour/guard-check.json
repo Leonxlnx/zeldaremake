@@ -1,0 +1,189 @@
+{
+  "scope": "Saved six failing descent poses only; rigid geometry and isolated raw/patched final-hip-guard predicates. No production change, player replay or motion acceptance.",
+  "inputs": {
+    "sourceSha256": "4dcf89c5c10391981289e2583152c26fb4ac93047c6fcb4bb0959e246805d850",
+    "candidateSha256": "110c168fbd1f14dcbc6d6fdab7e67c02e82b2aba386c82219591fb3dab616cda",
+    "playerJsonSha256": "c077bca7144771771a2197b18cfaa1cc8ff4e49ebb150ab5d49a0706930df30b",
+    "pelvisTrialJsonSha256": "da2f43bce5dab6dc13a2b96180437a75e1803c4697de9d9256734f941625225b",
+    "scriptSha256": "2fdd081564ea2dc14edcf351c8d9a14a97c8428a05be53ba8f5f1105a1c35e1d",
+    "productionGlbLinkLfSha256": "c16bbcc64f9622c5cb62b26d09806c6d954ab3ac08d2a421d6f6d04ba2be53d2",
+    "patchedGlbLinkLfSha256": "9eacc0538670e1fa75e13d08e0c0793ba5a7e38c1869b1621e428edfcca4e052",
+    "historicalPlayerGlbLinkRawSha256": "aa8130e51472d69d25de7ea4dc33a5d60f4e4ae8e57355d8970c82c170982649",
+    "sourceHashEncoding": "LfSha256 hashes UTF-8 after CRLF to LF normalization; RawSha256 and all asset/report hashes use the original file bytes."
+  },
+  "fixtureProvenance": "Exact pre-guard targets/q from the separate OSS pelvis trial, with bit-identical saved original trace/phase/pins and pre-raise hip. The original candidate did not record its own pre-guard target; this is a static predicate fixture, not a claim of an observed original pre-IK target.",
+  "soleBoundsAndAllSixPlanePointsExact": true,
+  "heelCounts": {
+    "L": 29,
+    "R": 38
+  },
+  "bufferDoubles": {
+    "production": 28,
+    "candidate": 180
+  },
+  "negativeVertexSamplesRecovered": 33,
+  "allRecoveredNegativesBehindSoleHeel": true,
+  "maxSavedWorstReconstructionErrorM": 0.0000011156721102024464,
+  "positiveAssertionsPass": true,
+  "beforeModeExpectedExitCode": 1,
+  "isolatedProjectTypecheckDiagnostics": 0,
+  "patchApplyCheckPassed": true,
+  "cases": [
+    {
+      "frame": 69,
+      "side": "L",
+      "observedWorstVertex": 55237,
+      "observedWorstGapM": -0.01133412609245621,
+      "negativeVertices": 5,
+      "trialInitializerHeelGapM": 0.2722720557625866,
+      "guard": {
+        "production": {
+          "initialClear": true,
+          "acceptsFailedEndpoint": true,
+          "contactPoints": 7,
+          "initializeCalls": 495,
+          "initialQueryCalls": 495,
+          "failedEndpointQueryCalls": 495
+        },
+        "candidate": {
+          "initialClear": true,
+          "acceptsFailedEndpoint": false,
+          "contactPoints": 36,
+          "initializeCalls": 756,
+          "initialQueryCalls": 756,
+          "failedEndpointQueryCalls": 63
+        }
+      }
+    },
+    {
+      "frame": 128,
+      "side": "L",
+      "observedWorstVertex": 55236,
+      "observedWorstGapM": -0.004561626803745611,
+      "negativeVertices": 3,
+      "trialInitializerHeelGapM": 0.28993692093454193,
+      "guard": {
+        "production": {
+          "initialClear": true,
+          "acceptsFailedEndpoint": true,
+          "contactPoints": 7,
+          "initializeCalls": 495,
+          "initialQueryCalls": 495,
+          "failedEndpointQueryCalls": 495
+        },
+        "candidate": {
+          "initialClear": true,
+          "acceptsFailedEndpoint": false,
+          "contactPoints": 36,
+          "initializeCalls": 756,
+          "initialQueryCalls": 756,
+          "failedEndpointQueryCalls": 63
+        }
+      }
+    },
+    {
+      "frame": 187,
+      "side": "L",
+      "observedWorstVertex": 55236,
+      "observedWorstGapM": -0.012330112819133987,
+      "negativeVertices": 6,
+      "trialInitializerHeelGapM": 0.2546829777455306,
+      "guard": {
+        "production": {
+          "initialClear": true,
+          "acceptsFailedEndpoint": true,
+          "contactPoints": 7,
+          "initializeCalls": 495,
+          "initialQueryCalls": 495,
+          "failedEndpointQueryCalls": 495
+        },
+        "candidate": {
+          "initialClear": true,
+          "acceptsFailedEndpoint": false,
+          "contactPoints": 36,
+          "initializeCalls": 756,
+          "initialQueryCalls": 756,
+          "failedEndpointQueryCalls": 63
+        }
+      }
+    },
+    {
+      "frame": 393,
+      "side": "R",
+      "observedWorstVertex": 48696,
+      "observedWorstGapM": -0.016160635591782047,
+      "negativeVertices": 8,
+      "trialInitializerHeelGapM": 0.2704966437510081,
+      "guard": {
+        "production": {
+          "initialClear": true,
+          "acceptsFailedEndpoint": true,
+          "contactPoints": 7,
+          "initializeCalls": 468,
+          "initialQueryCalls": 468,
+          "failedEndpointQueryCalls": 468
+        },
+        "candidate": {
+          "initialClear": true,
+          "acceptsFailedEndpoint": false,
+          "contactPoints": 45,
+          "initializeCalls": 810,
+          "initialQueryCalls": 810,
+          "failedEndpointQueryCalls": 63
+        }
+      }
+    },
+    {
+      "frame": 452,
+      "side": "R",
+      "observedWorstVertex": 48696,
+      "observedWorstGapM": -0.010127785591830252,
+      "negativeVertices": 6,
+      "trialInitializerHeelGapM": 0.26932500451196506,
+      "guard": {
+        "production": {
+          "initialClear": true,
+          "acceptsFailedEndpoint": true,
+          "contactPoints": 7,
+          "initializeCalls": 468,
+          "initialQueryCalls": 468,
+          "failedEndpointQueryCalls": 468
+        },
+        "candidate": {
+          "initialClear": true,
+          "acceptsFailedEndpoint": false,
+          "contactPoints": 45,
+          "initializeCalls": 810,
+          "initialQueryCalls": 810,
+          "failedEndpointQueryCalls": 63
+        }
+      }
+    },
+    {
+      "frame": 511,
+      "side": "R",
+      "observedWorstVertex": 48909,
+      "observedWorstGapM": -0.008551943308026111,
+      "negativeVertices": 5,
+      "trialInitializerHeelGapM": 0.27115807226192357,
+      "guard": {
+        "production": {
+          "initialClear": true,
+          "acceptsFailedEndpoint": true,
+          "contactPoints": 7,
+          "initializeCalls": 468,
+          "initialQueryCalls": 468,
+          "failedEndpointQueryCalls": 468
+        },
+        "candidate": {
+          "initialClear": true,
+          "acceptsFailedEndpoint": false,
+          "contactPoints": 45,
+          "initializeCalls": 810,
+          "initialQueryCalls": 810,
+          "failedEndpointQueryCalls": 63
+        }
+      }
+    }
+  ]
+}

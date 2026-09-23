@@ -1,0 +1,38 @@
+{
+  "sourceSha256": "1873fc17861455ac7b4e9cf624301039872e9d23dd7923bac3a2dc23851853d5",
+  "candidateSha256": "6ea975df1d3b70be38fc5154ad11f905ff5846b9e154e9178d369447653fa60c",
+  "bytes": 51111284,
+  "changedJointEntries": 100,
+  "fullOriginalRecoveredSha256": "1873fc17861455ac7b4e9cf624301039872e9d23dd7923bac3a2dc23851853d5",
+  "jsonWeightsGeometryActionsTexturesAndOtherBytesExact": true,
+  "census": {
+    "bodyPrimitiveArmFaces": 9733,
+    "bodyPrimitiveOpposingFaces": 47859,
+    "everyVertexArmWeightExact": true,
+    "allOtherPrimitivesExact": true
+  },
+  "status": "Prepared and byte-verified; native correspondence pending",
+  "protectedLeftRows": 243,
+  "protectedLeftRowsAllChest": true,
+  "negativeControls": [
+    {
+      "case": "one right joint omitted",
+      "rejected": true,
+      "reason": "Selected active joint was not reassigned to chest"
+    },
+    {
+      "case": "accepted left joint altered",
+      "rejected": true,
+      "reason": "Bytes outside the allowed joint entries changed"
+    },
+    {
+      "case": "protected POSITION byte altered",
+      "rejected": true,
+      "reason": "Bytes outside the allowed joint entries changed"
+    }
+  ],
+  "binaryChangedOffsetRange": [
+    4620852,
+    4638848
+  ]
+}

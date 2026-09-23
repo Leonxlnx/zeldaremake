@@ -1,0 +1,32 @@
+{
+  "generatedAt": "2026-09-22T00:10:52.979Z",
+  "heroViewpoints": [
+    "A_stairs",
+    "B_house",
+    "C_lookback",
+    "D_log"
+  ],
+  "simTime": 12.5,
+  "settleFrames": 8,
+  "depth": {},
+  "probes": [],
+  "placements": {},
+  "projections": {},
+  "determinism": {
+    "viewpoint": "A_stairs",
+    "file": "A_stairs.det.png",
+    "sha256": "sha256:bfd61cd9b50189a76f16e39ee66196fa9a05ca969135374d1647e406537101a4",
+    "simTime": 12.5,
+    "captureMs": 2447
+  },
+  "motion": {
+    "viewpoint": "A_stairs",
+    "file": "A_stairs.motion.png",
+    "sha256": "sha256:c1af02a042193bfd9552a595204523d7447fb0d9b7e80ae9858e59c868c61797",
+    "t0": 12.5,
+    "t1": 13,
+    "captureMs": 2325
+  },
+  "layout": null,
+  "warnings": []
+}

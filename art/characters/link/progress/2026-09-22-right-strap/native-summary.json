@@ -1,0 +1,100 @@
+{
+  "sourceSha256": "1873fc17861455ac7b4e9cf624301039872e9d23dd7923bac3a2dc23851853d5",
+  "candidateSha256": "6ea975df1d3b70be38fc5154ad11f905ff5846b9e154e9178d369447653fa60c",
+  "selectedRows": 100,
+  "mixedSelectedRows": 0,
+  "outsideWeightsExact": true,
+  "sourceExact": true,
+  "candidateLookMaxPointChangeM": 0.0,
+  "candidateLookMaxBoundaryLengthChangeM": 0.0,
+  "boundaryUniqueWeightSums": {
+    "chest": 37.0,
+    "shoulderR": 2.0
+  },
+  "lookPoses": [
+    {
+      "pose": "neutral",
+      "outsideIslandVertexMaxChangeM": 0.0,
+      "selectedMaxChangeM": 0.000958724634313213,
+      "nativeLookErrorBeforeM": 5.972094663188382e-08,
+      "nativeLookErrorAfterM": 6.006850114687196e-08,
+      "boundary": {
+        "chest": {
+          "edges": 66,
+          "beforeMaxRestLengthErrorM": 0.0009103449326487382,
+          "afterMaxRestLengthErrorM": 5.8921486974228277e-08,
+          "maxLengthChangeM": 0.0009103158253819495
+        },
+        "shoulderR": {
+          "edges": 3,
+          "beforeMaxRestLengthErrorM": 0.0009605108835719928,
+          "afterMaxRestLengthErrorM": 0.0013382424729046945,
+          "maxLengthChangeM": 0.00043694488134397337
+        }
+      }
+    },
+    {
+      "pose": "target-left30-default",
+      "outsideIslandVertexMaxChangeM": 0.0,
+      "selectedMaxChangeM": 0.03587264942360264,
+      "nativeLookErrorBeforeM": 6.143906154658885e-08,
+      "nativeLookErrorAfterM": 6.006850114687196e-08,
+      "boundary": {
+        "chest": {
+          "edges": 66,
+          "beforeMaxRestLengthErrorM": 0.03427304370262095,
+          "afterMaxRestLengthErrorM": 5.8921486974228277e-08,
+          "maxLengthChangeM": 0.03427304199975114
+        },
+        "shoulderR": {
+          "edges": 3,
+          "beforeMaxRestLengthErrorM": 0.0341797213369175,
+          "afterMaxRestLengthErrorM": 0.0013382424729046945,
+          "maxLengthChangeM": 0.03542918143500903
+        }
+      }
+    },
+    {
+      "pose": "target-right30-default",
+      "outsideIslandVertexMaxChangeM": 0.0,
+      "selectedMaxChangeM": 0.03554482409995679,
+      "nativeLookErrorBeforeM": 6.161527673536201e-08,
+      "nativeLookErrorAfterM": 6.006850114687196e-08,
+      "boundary": {
+        "chest": {
+          "edges": 66,
+          "beforeMaxRestLengthErrorM": 0.035021040912743336,
+          "afterMaxRestLengthErrorM": 5.8921486974228277e-08,
+          "maxLengthChangeM": 0.035021028377641754
+        },
+        "shoulderR": {
+          "edges": 3,
+          "beforeMaxRestLengthErrorM": 0.01809077540662799,
+          "afterMaxRestLengthErrorM": 0.0013382424729046945,
+          "maxLengthChangeM": 0.019301554067626243
+        }
+      }
+    }
+  ],
+  "native113ContactGate": [
+    {
+      "variant": "before",
+      "scene": "Link | September22 corrected strap full-body control",
+      "phases": 113,
+      "contactsTotal": 1289,
+      "contactsPeak": 21,
+      "contactsBelowArmpit": 21
+    },
+    {
+      "variant": "after",
+      "scene": "Link | September22 right strap chest preview",
+      "phases": 113,
+      "contactsTotal": 1289,
+      "contactsPeak": 21,
+      "contactsBelowArmpit": 21
+    }
+  ],
+  "nativePreviewSha256": "fe0d2b36152b9e277d139c6c8f271e3259306c38fcd183409efe6abe47e3da06",
+  "native113GateSha256": "c9edb952ecb42421328584eaaeba132eb26684e0c8439d26da496cb2d10dc779",
+  "limitation": "The shoulderR seam is not rigidly chest-owned: neutral maximum rest-edge error increases 0.961 to 1.338 mm, while either normal gaze improves. Existing contacts remain; no collision-free claim."
+}

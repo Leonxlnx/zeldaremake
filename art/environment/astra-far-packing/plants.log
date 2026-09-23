@@ -1,0 +1,1 @@
+{"passed":true,"checkedVertices":278734,"checkedBases":28325,"shadowMeshes":34,"bushes":125,"stripBlades":647,"stripHeightRatio":0.308,"note":"CPU geometry/placement contracts only; GPU capture and foliage appearance still require review."}

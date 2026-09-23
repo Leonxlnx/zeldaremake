@@ -1,0 +1,1 @@
+PASS: forced LOD refresh, interactive gate, conserved matrices/colors/counts, shadow bindings, consistent estimates, variant packs (slots, hidden empty LODs, layout validation), submission culling (frustum, shadow sweep, pad, no-op re-cull) and incremental re-bucketing (bounded listing, exact accounting, forced cancel, same result as one-shot)

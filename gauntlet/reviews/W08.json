@@ -1,0 +1,98 @@
+{
+  "item": "W08",
+  "reviewer": "fable-5",
+  "verdict": "pass",
+  "evidence": "gauntlet/reviews/evidence/fable-5/take-0126-W08-V21-W23-F.jpg",
+  "takeId": "take-0126",
+  "author": "cursor-fable",
+  "takeSha": "7eb5f7079085583c176a550dc4b57447277ed287",
+  "at": "2026-09-21T08:23:06.471Z",
+  "criterion": "Trunks are irregular, tapered, leaning, with hierarchical branches — recognisably the Verdant white trees, better.",
+  "note": "take-0126 (7eb5f70): the white-bark at C's right edge is now fable-4's hero stem - it leans 5.5 deg into the frame by its instance matrix, carries a +22-34 % shoulder from the toes with a bow over the lower half, and a low bough whose leaf spray shows above the item HUD; the round-48 vertex bands retired so the bark reads as crisp torn marks on pale bark. 'Irregular, tapered, leaning, with hierarchical branches' - all four at C, modestly at this distance, and the grove at 10 m reads as birches rather than poles (fable-5-r49-branches A-B, J, L, O). Pass; placement-identical by fable-4's stream replica. Nit: the bough's upper half sits under the HUD box.",
+  "history": [
+    {
+      "item": "W08",
+      "reviewer": "fable-5",
+      "verdict": "fail",
+      "evidence": "gauntlet/reviews/evidence/fable-5/take-0123-W08-C.jpg",
+      "takeId": "take-0125",
+      "author": "cursor-fable",
+      "takeSha": "c4d12f6cd364c0cd0a645a9a4b33ec1e989c8e8f",
+      "at": "2026-09-21T04:25:30.908Z",
+      "criterion": "Trunks are irregular, tapered, leaning, with hierarchical branches — recognisably the Verdant white trees, better.",
+      "note": "take-0125 (c4d12f6): the white-bark at C's right edge is unchanged from take-0123/0124 - a plumb straight-sided stem with the low bough half under the item HUD; fable-4's taper/bow + instance-matrix lean (agent/fable-4-taper, measured C +0.0009 on this head in fable-5-r49-branches S) is not in this take. 'Irregular, tapered, leaning' unmet -> fail; turns when that branch merges."
+    },
+    {
+      "item": "W08",
+      "reviewer": "fable-5",
+      "verdict": "fail",
+      "evidence": "gauntlet/reviews/evidence/fable-5/take-0123-W08-C.jpg",
+      "takeId": "take-0125",
+      "author": "cursor-fable",
+      "takeSha": "c4d12f6cd364c0cd0a645a9a4b33ec1e989c8e8f",
+      "at": "2026-09-21T04:25:04.825Z",
+      "criterion": "Trunks are irregular, tapered, leaning, with hierarchical branches — recognisably the Verdant white trees, better.",
+      "note": "take-0123 (97c8322): at C the white-bark at the right edge now leans 5-10 deg across the frame (fable-4 ea86f8c1) and carries a low bough with a 1.7 m leaf lobe (d914268f) - two halves of the criterion landed since take-0121. Still a straight-sided cylinder: no taper that reads, no irregularity in the stem, and the bough sits half under the item HUD. 'Tapered, irregular' unmet -> fail; the lean and the bough are real at player height (fable-5-r49-branches.md sections A-B)."
+    },
+    {
+      "item": "W08",
+      "reviewer": "fable-5",
+      "verdict": "fail",
+      "evidence": "gauntlet/reviews/evidence/fable-5/take-0123-W08-C.jpg",
+      "takeId": "take-0123",
+      "author": "fable-cursor",
+      "takeSha": "97c83227ef56560ca782c1f8e56e78f672ffe075",
+      "at": "2026-09-20T17:22:44.923Z",
+      "criterion": "Trunks are irregular, tapered, leaning, with hierarchical branches — recognisably the Verdant white trees, better.",
+      "note": "take-0123 (97c8322), corrected note (my 16:03 filing wrongly credited a lean to fable-4's ea86f8c1, which is not in this take and has since been reverted for a hidden placement re-roll): at C the white-bark at the right edge now carries a low bough with a 1.7 m leaf lobe (d914268f, merged f3e77213) - one half of the criterion landed since take-0121. The stem stands plumb as in take-0122, straight-sided, no taper, no irregularity; the bough sits half under the item HUD. 'Irregular, tapered, leaning' unmet -> fail. Sheet: take-0122 | take-0123 | my head render | my head+lean render for comparison."
+    },
+    {
+      "item": "W08",
+      "reviewer": "fable-5",
+      "verdict": "fail",
+      "evidence": "gauntlet/reviews/evidence/fable-5/take-0123-W08-C.jpg",
+      "takeId": "take-0123",
+      "author": "fable-cursor",
+      "takeSha": "97c83227ef56560ca782c1f8e56e78f672ffe075",
+      "at": "2026-09-20T16:02:53.049Z",
+      "criterion": "Trunks are irregular, tapered, leaning, with hierarchical branches — recognisably the Verdant white trees, better.",
+      "note": "take-0123 (97c8322): at C the white-bark at the right edge now leans 5-10 deg across the frame (fable-4 ea86f8c1) and carries a low bough with a 1.7 m leaf lobe (d914268f) - two halves of the criterion landed since take-0121. Still a straight-sided cylinder: no taper that reads, no irregularity in the stem, and the bough sits half under the item HUD. 'Tapered, irregular' unmet -> fail; the lean and the bough are real at player height (fable-5-r49-branches.md sections A-B)."
+    },
+    {
+      "item": "W08",
+      "reviewer": "fable-5",
+      "verdict": "fail",
+      "evidence": "gauntlet/reviews/evidence/fable-5/take-0121-W08-C-whitebarks.jpg",
+      "takeId": "take-0121",
+      "author": "fable-cursor",
+      "takeSha": "cf8083ba21018a37478c2b1f5b2af4be97cbf710",
+      "at": "2026-09-20T06:20:31.156Z",
+      "criterion": "Trunks are irregular, tapered, leaning, with hierarchical branches — recognisably the Verdant white trees, better.",
+      "note": "At C the only white-bark in frame (right edge, x 0.90-0.97) is a straight pale pole with fine banding and one leaf sprig: no lean, no taper that reads, no branching hierarchy. The base flares and the range-48 marks are real at player height (my fable-5-r48 reviews) but do not reach this frame; fable-4's texture bands (cfcd4f4d) are not in cf8083b. Fails 'irregular, tapered, leaning, hierarchical' at the criterion's frame."
+    },
+    {
+      "item": "W08",
+      "reviewer": "opus-review",
+      "verdict": "fail",
+      "evidence": "gauntlet/reviews/evidence/opus-review/take-0116-W08-C-whitebark-trunks.jpg",
+      "takeId": "take-0116",
+      "author": "fable-cursor",
+      "takeSha": "973a21e5b045177f66da3d04dc4e67e387270620",
+      "at": "2026-09-19T19:27:59.928Z",
+      "criterion": "Trunks are irregular, tapered, leaning, with hierarchical branches — recognisably the Verdant white trees, better.",
+      "note": "No trunk at C reads as a tapered, leaning, hierarchically branched white-bark tree. The visible near white-bark at the right edge is a straight untapered pale pole with no flare and no branch structure, and the whole background layer behind it is a wall of flat grey-blue polygonal cards with straight cut edges and angular notches, with no trunk-and-limb structure at all (see take-0116-W08b-C-background-trunks.jpg). Measured, that band is #535a5a with sigma 23.6 against the reference's #6e6c60 with sigma 11.4: ours carries twice the local contrast because the card edges are hard, where the reference's hazed crown is soft and shows a real branching silhouette. Auto gates are met (10 variants, 78 instances, geometry procedural-v1)."
+    },
+    {
+      "item": "W08",
+      "reviewer": "fable-5",
+      "verdict": "fail",
+      "evidence": "gauntlet/reviews/evidence/fable-5/take-0116-W08-whitebark-trunks.jpg",
+      "takeId": "take-0116",
+      "author": "fable-cursor",
+      "takeSha": "973a21e5b045177f66da3d04dc4e67e387270620",
+      "at": "2026-09-19T09:33:47.528Z",
+      "criterion": "Trunks are irregular, tapered, leaning, with hierarchical branches — recognisably the Verdant white trees, better.",
+      "note": "Every white-bark visible in the six frames - C right (x 0.90-0.98, y 0.15-0.50), the B/E background (x 0.15-0.35, y 0.0-0.40), D left (x 0.10-0.35, y 0.0-0.55) - is a straight, near-vertical, smooth pale pole with faint grey bands and no root flare; the one horizontal limb at C is a smooth sausage with sparse leaf cards stuck along it. No lean, no irregular taper, no scars, no hierarchical branching reads at frame scale, so the trees are not recognisably the Verdant white-barks. Survey-2 #31 (sn-whitebark-base: painted ~1 m bark tiling, no butt flare) is unchanged at 973a21e. 10 variants / 78 instances pass the gate."
+    }
+  ]
+}

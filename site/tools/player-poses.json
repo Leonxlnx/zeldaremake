@@ -1,0 +1,217 @@
+{
+  "note": "player-height poses for the Director's Monitor player strip — a curated subset of art/environment/survey2/manifest.json (name/p/t/fov copied verbatim); edit here, not in the manifest",
+  "source": "art/environment/survey2/manifest.json",
+  "eyeHeightM": 1.45,
+  "poses": [
+    {
+      "name": "w00-spine-f",
+      "label": "Plaza, up the spine",
+      "p": [
+        0.94,
+        1.46,
+        15.5
+      ],
+      "t": [
+        -0.3,
+        1.31,
+        5.58
+      ],
+      "fov": 46
+    },
+    {
+      "name": "w04-spine-l",
+      "label": "Under the lantern limb",
+      "p": [
+        0,
+        1.45,
+        3.56
+      ],
+      "t": [
+        -7.07,
+        1.3,
+        -3.51
+      ],
+      "fov": 46
+    },
+    {
+      "name": "w07-spine-u",
+      "label": "Looking up, the canopy",
+      "p": [
+        0.54,
+        1.47,
+        -5.41
+      ],
+      "t": [
+        0.64,
+        11.47,
+        -6.41
+      ],
+      "fov": 46
+    },
+    {
+      "name": "w13-spine-f",
+      "label": "Toward the log arch",
+      "p": [
+        1.82,
+        1.32,
+        -23.32
+      ],
+      "t": [
+        1.49,
+        1.17,
+        -33.31
+      ],
+      "fov": 46
+    },
+    {
+      "name": "w18-spine-f",
+      "label": "The arch belly",
+      "p": [
+        3.86,
+        4.94,
+        -38.16
+      ],
+      "t": [
+        5.5,
+        4.79,
+        -48.03
+      ],
+      "fov": 46
+    },
+    {
+      "name": "w19-spine-r",
+      "label": "Columns by the arch",
+      "p": [
+        4.68,
+        5.34,
+        -44.1
+      ],
+      "t": [
+        12.34,
+        5.19,
+        -50.53
+      ],
+      "fov": 46
+    },
+    {
+      "name": "w22-stairs-u",
+      "label": "Up from the stair foot",
+      "p": [
+        3.6,
+        1.44,
+        -0.4
+      ],
+      "t": [
+        4.6,
+        11.44,
+        -0.48
+      ],
+      "fov": 46
+    },
+    {
+      "name": "w23-stairs-f",
+      "label": "Stair treads",
+      "p": [
+        6.4,
+        1.45,
+        -0.3
+      ],
+      "t": [
+        14.29,
+        1.3,
+        -6.45
+      ],
+      "fov": 46
+    },
+    {
+      "name": "w26-stairs-f",
+      "label": "Distant trees from the stairs",
+      "p": [
+        16.45,
+        6.8,
+        -7.23
+      ],
+      "t": [
+        24.33,
+        6.65,
+        -13.38
+      ],
+      "fov": 46
+    },
+    {
+      "name": "w27-plateau-r",
+      "label": "Plateau canopy",
+      "p": [
+        19.4,
+        6.56,
+        -3.6
+      ],
+      "t": [
+        17.63,
+        6.41,
+        6.24
+      ],
+      "fov": 46
+    },
+    {
+      "name": "w29-house-d",
+      "label": "House-west flight",
+      "p": [
+        3.2,
+        1.37,
+        -5
+      ],
+      "t": [
+        3.32,
+        0.27,
+        -7.5
+      ],
+      "fov": 46
+    },
+    {
+      "name": "sn-house-door",
+      "label": "Saria's door",
+      "p": [
+        8.95,
+        2.61,
+        -7.85
+      ],
+      "t": [
+        10.35,
+        2.34,
+        -9.25
+      ],
+      "fov": 46
+    },
+    {
+      "name": "sn-boulder-shotd",
+      "label": "The shot-D boulder",
+      "p": [
+        -0.6,
+        1.46,
+        -9.4
+      ],
+      "t": [
+        -2.6,
+        0.84,
+        -9.6
+      ],
+      "fov": 46
+    },
+    {
+      "name": "sn-whitebark-base",
+      "label": "A white-bark base",
+      "p": [
+        -5.4,
+        1.45,
+        12.5
+      ],
+      "t": [
+        -7.39,
+        1.1,
+        12.87
+      ],
+      "fov": 46
+    }
+  ]
+}

@@ -1,0 +1,65 @@
+{
+  "capturedAt": "2026-09-22T00:10:52.980Z",
+  "durationMs": 373933,
+  "width": 1280,
+  "height": 720,
+  "quality": "high",
+  "settleFrames": 8,
+  "simTime": 12.5,
+  "git": {
+    "source": "workspace",
+    "sha": "ce2887c89b8032315127cabef3ea0fb2f9266713",
+    "shortSha": "ce2887c8",
+    "branch": "agent/astra-motion-sept21",
+    "subject": "Sync accepted pebble LOD, deck clearance and arch roll fixes",
+    "author": "Leonxlnx",
+    "committedAt": "2026-09-22T02:04:35+02:00",
+    "dirty": true
+  },
+  "distHash": "sha256:0db53de374a23728a8d44cac869979eda2271f55e2b473d74fea9e83de174c59",
+  "viewpoints": [
+    {
+      "id": "A_stairs",
+      "label": "The Stairs",
+      "refSeconds": 1,
+      "file": "A_stairs.png",
+      "sha256": "sha256:bfd61cd9b50189a76f16e39ee66196fa9a05ca969135374d1647e406537101a4",
+      "bytes": 1390599,
+      "stdev": 37.33,
+      "worldMean": 0.386,
+      "retries": 0,
+      "stats": {
+        "simTime": 12.63333333333334,
+        "drawCalls": 450,
+        "triangles": 8758901,
+        "geometries": 306,
+        "textures": 91,
+        "programs": 101,
+        "width": 1280,
+        "height": 720,
+        "pixelRatio": 1
+      },
+      "pose": {
+        "position": [
+          0.4,
+          1.8,
+          8.6
+        ],
+        "direction": [
+          0.4001487551488514,
+          -0.05779926463261199,
+          -0.9146257260545179
+        ],
+        "fov": 46
+      },
+      "renderer": "ANGLE (AMD, AMD Radeon 780M Graphics (0x00001900) Direct3D11 vs_5_0 ps_5_0, D3D11)",
+      "captureMs": 2569,
+      "ms": 2569
+    }
+  ],
+  "renderer": "ANGLE (AMD, AMD Radeon 780M Graphics (0x00001900) Direct3D11 vs_5_0 ps_5_0, D3D11)",
+  "extra": {
+    "determinism": "A_stairs.det.png",
+    "motion": "A_stairs.motion.png"
+  }
+}

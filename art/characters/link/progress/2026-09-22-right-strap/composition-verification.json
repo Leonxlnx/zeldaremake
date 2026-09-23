@@ -1,0 +1,24 @@
+{
+  "sourceSha256": "143160f1c413694865a9b3273dbbf16bc22a89a1fdc62d2b35381c980ae47e69",
+  "candidateSha256": "7f406e40e65430ed3c11bd045e2e9482dae8cee8122e9869ed62a2c3cfecbbda",
+  "bytes": 51113876,
+  "changedJointEntries": 100,
+  "reversedSha256": "143160f1c413694865a9b3273dbbf16bc22a89a1fdc62d2b35381c980ae47e69",
+  "postureClipAndEveryOtherByteExact": true,
+  "oppositeOrder": {
+    "sameBytes": true,
+    "sha256": "7f406e40e65430ed3c11bd045e2e9482dae8cee8122e9869ed62a2c3cfecbbda",
+    "inputSha256": "6ea975df1d3b70be38fc5154ad11f905ff5846b9e154e9178d369447653fa60c",
+    "exporter": "art/characters/link/progress/2026-09-19-run-contact/export_candidate.py",
+    "exporterRawSha256": "ae6dda4ab9425feaf599857502f5e7a926bcba3a4b2ed870e653739a7f0c887f",
+    "nativeCarrierSha256": "24264576c028399026fe26140ffa9f731b322873cf45ae1b9a588d79b0a4991e",
+    "originalStudySha256": "e1ab160e034dac3fcde7354a87a91affed805b303b7f617e0e79c37c1d6cbee1",
+    "copiedStudyOnlyChange": "source_sha256: 1873 -> 6ea",
+    "changedChannels": [
+      [
+        "chest",
+        "rotation"
+      ]
+    ]
+  }
+}

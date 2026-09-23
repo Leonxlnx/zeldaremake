@@ -1,0 +1,19 @@
+# These files are verified byte-for-byte; keep their canonical Git line endings.
+gauntlet/rubric.json text eol=lf
+gauntlet/RUBRIC.md text eol=lf
+# Preserve the recorded source receipt and upstream license hashes on every host.
+reference/animations/quaternius-standard/SOURCE.json -text
+reference/animations/quaternius-standard/LICENSE text eol=lf
+# Native evidence receipts record raw file hashes; retain those bytes across hosts.
+art/characters/link/progress/2026-09-22-body-posture/*.json -text whitespace=blank-at-eol,blank-at-eof,space-before-tab,cr-at-eol
+art/characters/link/progress/2026-09-22-right-strap/*.json -text whitespace=blank-at-eol,blank-at-eof,space-before-tab,cr-at-eol
+art/characters/link/progress/2026-09-22-run-posture-game/*.json -text whitespace=blank-at-eol,blank-at-eof,space-before-tab,cr-at-eol
+art/characters/link/progress/2026-09-21-motion-integration/local-head-posture-native-contacts.json -text whitespace=blank-at-eol,blank-at-eof,space-before-tab,cr-at-eol
+art/characters/link/progress/2026-09-21-motion-integration/right-strap-native-contacts.json -text whitespace=blank-at-eol,blank-at-eof,space-before-tab,cr-at-eol
+art/characters/link/progress/2026-09-21-motion-integration/posture-both-straps-native-contacts.json -text whitespace=blank-at-eol,blank-at-eof,space-before-tab,cr-at-eol
+art/environment/astra-latest-integration/**/*.json -text whitespace=blank-at-eol,blank-at-eof,space-before-tab,cr-at-eol
+art/environment/astra-latest-integration/settings.json -text whitespace=blank-at-eol,blank-at-eof,space-before-tab,cr-at-eol
+art/environment/astra-canopy-packed-integration/**/*.json -text whitespace=blank-at-eol,blank-at-eof,space-before-tab,cr-at-eol
+art/environment/astra-canopy-packed-integration/settings.json -text whitespace=blank-at-eol,blank-at-eof,space-before-tab,cr-at-eol
+art/environment/astra-safe-world-review/**/*.json -text whitespace=blank-at-eol,blank-at-eof,space-before-tab,cr-at-eol
+art/environment/astra-safe-world-review/*.json -text whitespace=blank-at-eol,blank-at-eof,space-before-tab,cr-at-eol

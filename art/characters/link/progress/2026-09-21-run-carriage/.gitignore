@@ -1,0 +1,4 @@
+# Large authoring inputs/candidates are hash-pinned; the native carrier is retained.
+source-*.glb
+*-candidate.glb
+*.blend

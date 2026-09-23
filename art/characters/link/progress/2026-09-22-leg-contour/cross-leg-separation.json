@@ -1,0 +1,72 @@
+{
+  "source_sha256": "4dcf89c5c10391981289e2583152c26fb4ac93047c6fcb4bb0959e246805d850",
+  "candidate_sha256": "a70ef7144fbb075b31103256f71f673c9b3a74b31e8c30f9ac117c0d765bcde8",
+  "errors": [],
+  "sourceGeometrySelection": "Same mask as existing run-shape sampler: source restY<.4m andabsX<.25m; left/right fixed from source rest X. Triangle X ranges are bounded by their vertices.",
+  "lowerLegVertices": 13492,
+  "changedVertices": 5703,
+  "changedTriangleVertices": 6039,
+  "changedTriangles": 4083,
+  "allChangedTriangleVerticesIncluded": true,
+  "results": [
+    {
+      "variant": "source",
+      "rows": [
+        {
+          "phase": 0,
+          "allLowerLegXGapM": 0.012892100664441637,
+          "editedLeftToRightLegXGapM": 0.012892100664441637,
+          "leftLegToEditedRightXGapM": 0.012892100664441637
+        },
+        {
+          "phase": 0.25,
+          "allLowerLegXGapM": 0.012807686738562668,
+          "editedLeftToRightLegXGapM": 0.012807686738562668,
+          "leftLegToEditedRightXGapM": 0.012807686738562668
+        },
+        {
+          "phase": 0.5,
+          "allLowerLegXGapM": 0.012867304555842249,
+          "editedLeftToRightLegXGapM": 0.012867304555842249,
+          "leftLegToEditedRightXGapM": 0.012867304555842249
+        },
+        {
+          "phase": 0.75,
+          "allLowerLegXGapM": 0.012823692906802818,
+          "editedLeftToRightLegXGapM": 0.012823692906802818,
+          "leftLegToEditedRightXGapM": 0.012823692906802818
+        }
+      ]
+    },
+    {
+      "variant": "candidate",
+      "rows": [
+        {
+          "phase": 0,
+          "allLowerLegXGapM": 0.01387740116300146,
+          "editedLeftToRightLegXGapM": 0.01387740116300146,
+          "leftLegToEditedRightXGapM": 0.01387740116300146
+        },
+        {
+          "phase": 0.25,
+          "allLowerLegXGapM": 0.013792987640136714,
+          "editedLeftToRightLegXGapM": 0.013792987640136714,
+          "leftLegToEditedRightXGapM": 0.013792987640136714
+        },
+        {
+          "phase": 0.5,
+          "allLowerLegXGapM": 0.013852603704076333,
+          "editedLeftToRightLegXGapM": 0.013852603704076333,
+          "leftLegToEditedRightXGapM": 0.013852603704076333
+        },
+        {
+          "phase": 0.75,
+          "allLowerLegXGapM": 0.013808996358696299,
+          "editedLeftToRightLegXGapM": 0.013808996358696299,
+          "leftLegToEditedRightXGapM": 0.013808996358696299
+        }
+      ]
+    }
+  ],
+  "scope": "Positive transverse gaps prove separation between the two measured lower-leg surfaces and changed patches at these four poses. They do not test same-leg cuff/calf self-intersections, unmeasured poses or all body contacts; the old arm/torso BVH helper has no shared-face/UV-seam adjacency exclusion for that task."
+}

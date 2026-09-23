@@ -1,0 +1,466 @@
+{
+  "scope": "Native D3D11 actual-player main-flight contact acceptance. No gait, knee-posture or cinematic acceptance.",
+  "sourceCommit": "b8951dd0390856ae0a8a5305269bd552532b7788",
+  "adoptedSourceCommit": "4cf09bc5",
+  "viewport": {
+    "width": 1280,
+    "height": 720
+  },
+  "renderProfile": "high defaults",
+  "gpu": "ANGLE (AMD, AMD Radeon 780M Graphics (0x00001900) Direct3D11 vs_5_0 ps_5_0, D3D11)",
+  "browser": "Chrome/153.0.8010.53",
+  "assetSha256": "7f406e40e65430ed3c11bd045e2e9482dae8cee8122e9869ed62a2c3cfecbbda",
+  "bundles": {
+    "index-Bxmk-iqU.js": "cb6340e0bb6df724b8d94ec3c2c4d702a794707a1190700399ea106d94df6715"
+  },
+  "characterSourceSha256": "796a2ec70adbc7a8c4fa2ecf2c13b9cb680e21dd9567f02c218f313705bc5277",
+  "captureScriptSha256": "bb69da9114faddd9247f3d3c090c648f188d8ec91ced5beb6a71c8e8feb8c8a4",
+  "measurementCoreSha256": "9edde002b066a9a05676a6127f67735b62baf399bdea529f2f7e31657da769e6",
+  "exactHeightSha256": "d66efea7105489a17bfa1dae99700b209198ae2c55f2d52998eadcda6d90a304",
+  "rawManifest": {
+    "path": "art/characters/link/progress/2026-09-23T19-48-44-896Z-play-motion/manifest.json",
+    "sha256": "07576ac4084fdb24afa0354401d796030b813a1fbe89b436320a5c8157acabb5",
+    "bytes": 10609597
+  },
+  "geometryMatchesCpuExactly": true,
+  "geometry": [
+    {
+      "name": "stairs-main",
+      "vertices": 42255,
+      "positionsSha256": "0f864dc29d8f6d8d6b9b48c679a17a8752cac63c6b14e25b5b707243f5fa09e3",
+      "indicesSha256": null
+    },
+    {
+      "name": "stairs-main-logs",
+      "vertices": 12046,
+      "positionsSha256": "e26f88a0a117ea9b14a6a7dd25a9490848cba806cd31e03622e9d8ec265ed906",
+      "indicesSha256": "e3d8a1f7345faa78fdfa41c547122bcbdc31946f5b77281d3555bd407f8e3cfb"
+    },
+    {
+      "name": "stairs-house-west",
+      "vertices": 14628,
+      "positionsSha256": "089d2baec76fa30fa4ae14adfbf82d91cda638c0aba8b0c884e123e7fe9aa146",
+      "indicesSha256": null
+    },
+    {
+      "name": "stairs-ledge",
+      "vertices": 13002,
+      "positionsSha256": "1cb5ee812e788ed91a40c4606544a7eb35b4dfc49e3130b56d094dfb1bb87209",
+      "indicesSha256": null
+    },
+    {
+      "name": "stairs-ledge-logs",
+      "vertices": 3170,
+      "positionsSha256": "c89bc31b095f76d0c2549103379bb75f7cd9d7ae6618a42811d85172f621eba5",
+      "indicesSha256": "3875454d57d5116c602e321a9b2f57f312d34fd652e676b4e354fccbb2d5f2f0"
+    },
+    {
+      "name": "stairs-south-bank",
+      "vertices": 12495,
+      "positionsSha256": "8385a4139d3dab88401df3176e351cfb77fb409c8b776cb925ad5ba708260b97",
+      "indicesSha256": null
+    },
+    {
+      "name": "stairs-west-house",
+      "vertices": 6027,
+      "positionsSha256": "9b9500e59489e64c57f789f1994382d4a0dcc383c131f2751aa2d098ee06a46c",
+      "indicesSha256": null
+    },
+    {
+      "name": "terrain-chunk-r0-0--24",
+      "vertices": 14641,
+      "positionsSha256": "0f595d45120d556131c3a988ec8a727b165cbb46bf1eeb62e60d2feadfab84c7",
+      "indicesSha256": "8ebc16f109f4890015dbb8050a2a44c98c269053ce51941217aa4ced952319fe"
+    },
+    {
+      "name": "terrain-chunk-r0-0-0",
+      "vertices": 14641,
+      "positionsSha256": "94fbcedcbff4db9aef482f172dfbc871060c86e463707306e1424b28ceb6db0c",
+      "indicesSha256": "8ebc16f109f4890015dbb8050a2a44c98c269053ce51941217aa4ced952319fe"
+    },
+    {
+      "name": "flagstones-expansion",
+      "vertices": 19263,
+      "positionsSha256": "f8cabbce3b76c48ba82ad8463361859a4c591bcb3106c2cee4daf429c89ada57",
+      "indicesSha256": null
+    },
+    {
+      "name": "flagstones",
+      "vertices": 563868,
+      "positionsSha256": "23f3fa9d5dfff65c1f181e42f0dd5506f26d0c468f9b5edf87f348c05ab4335e",
+      "indicesSha256": null
+    },
+    {
+      "name": "flagstones-north",
+      "vertices": 136800,
+      "positionsSha256": "c4f682043cbacc430908b5e74593a0c3d7bbfc260389333931751fc303114016",
+      "indicesSha256": null
+    }
+  ],
+  "coverage": {
+    "sole": {
+      "L": 269,
+      "R": 268
+    },
+    "fullyOwnedFoot": {
+      "L": 2387,
+      "R": 2314
+    },
+    "soleQueries": 708840,
+    "fullFootQueries": 6205320
+  },
+  "errors": [],
+  "consoleErrors": [],
+  "warningCount": 59,
+  "warningCategories": [
+    "D3D11 shader precision/derivative/potentially-uninitialized compiler warnings",
+    "Canvas2D willReadFrequently performance hint",
+    "Multiple Three.js instances from diagnostic core import"
+  ],
+  "failedRequests": [
+    {
+      "url": "http://127.0.0.1:62542/models/link/link-runtime.glb",
+      "error": "net::ERR_ABORTED"
+    }
+  ],
+  "assetResponse": {
+    "status": 200,
+    "headers": {
+      "cache-control": "no-store",
+      "connection": "close",
+      "content-length": "51113876",
+      "content-type": "model/gltf-binary",
+      "date": "Wed, 23 Sep 2026 19:50:04 GMT"
+    }
+  },
+  "scenarios": {
+    "stairs-up": {
+      "frames": 660,
+      "gaits": [
+        "walk",
+        "stairs"
+      ],
+      "distanceXZ": 12.11388888888864,
+      "maxRootStepM": 0.030442063142777087,
+      "reachClampedFrames": 0,
+      "measuredShoePoints": 5280,
+      "maxHipFlexDeg": 144.78491280773122,
+      "maxKneeFlexDeg": 164.29100372996183,
+      "minRenderedStairGapM": 0.0038155431942099582,
+      "fullSoleQueries": 354420,
+      "minFullSoleGapM": 0.0011867685051232257,
+      "fullSoleFeetBelowZero": 0,
+      "fullFootQueries": 3102660,
+      "minFullFootGapM": 0.0011867685051232257,
+      "fullFootFeetBelowZero": 0,
+      "shoeSamplesBelowMinus2cm": 0,
+      "cpuMaximumDifferenceM": {
+        "root": 9.521272659185342e-13,
+        "joints": 2.333244708552229e-12,
+        "shoeGap": 9.814815626896234e-12
+      }
+    },
+    "stairs-down": {
+      "frames": 660,
+      "gaits": [
+        "stairs",
+        "walk"
+      ],
+      "distanceXZ": 12.495833333333042,
+      "maxRootStepM": 0.024615839212246637,
+      "reachClampedFrames": 0,
+      "measuredShoePoints": 5280,
+      "maxHipFlexDeg": 138.46039861713166,
+      "maxKneeFlexDeg": 166.1307111630274,
+      "minRenderedStairGapM": 0.004082406029534802,
+      "fullSoleQueries": 354420,
+      "minFullSoleGapM": 0.0012182832571259183,
+      "fullSoleFeetBelowZero": 0,
+      "fullFootQueries": 3102660,
+      "minFullFootGapM": 0.0012182832571259183,
+      "fullFootFeetBelowZero": 0,
+      "shoeSamplesBelowMinus2cm": 0,
+      "cpuMaximumDifferenceM": {
+        "root": 6.924461004587101e-13,
+        "joints": 8.188227873517917e-12,
+        "shoeGap": 8.189560141147467e-12
+      }
+    }
+  },
+  "representativeDescent": [
+    {
+      "frame": 145,
+      "root": [
+        13.869538379638326,
+        4.36582771829627,
+        -5.224239936117813
+      ],
+      "leftSole": {
+        "vertices": 269,
+        "hits": 269,
+        "belowZero": 0,
+        "worst": {
+          "mesh": "Link_|_Rodin_Gen25_multiview_trial034",
+          "vertex": 56491,
+          "point": [
+            13.710662554130943,
+            4.375574679308973,
+            -4.97376049186872
+          ],
+          "stair": "stairs-main-logs",
+          "gapM": 0.004666062736241372
+        }
+      },
+      "leftFoot": {
+        "vertices": 2387,
+        "hits": 2387,
+        "belowZero": 0,
+        "worst": {
+          "mesh": "Link_|_Rodin_Gen25_multiview_trial034",
+          "vertex": 56491,
+          "point": [
+            13.710662554130943,
+            4.375574679308973,
+            -4.97376049186872
+          ],
+          "stair": "stairs-main-logs",
+          "gapM": 0.004666062736241372
+        }
+      },
+      "legAngles": {
+        "L": {
+          "hipFlexDeg": 41.08729008762678,
+          "kneeFlexDeg": 19.346346713119736
+        },
+        "R": {
+          "hipFlexDeg": 7.04086476673969,
+          "kneeFlexDeg": 108.32235994363944
+        }
+      }
+    },
+    {
+      "frame": 146,
+      "root": [
+        13.855082504028001,
+        4.369303782572467,
+        -5.212964353141759
+      ],
+      "leftSole": {
+        "vertices": 269,
+        "hits": 269,
+        "belowZero": 0,
+        "worst": {
+          "mesh": "Link_|_Rodin_Gen25_multiview_trial034",
+          "vertex": 56492,
+          "point": [
+            13.7290279427347,
+            4.374897310953073,
+            -4.951575030435
+          ],
+          "stair": "stairs-main-logs",
+          "gapM": 0.0037239420887242858
+        }
+      },
+      "leftFoot": {
+        "vertices": 2387,
+        "hits": 2387,
+        "belowZero": 0,
+        "worst": {
+          "mesh": "Link_|_Rodin_Gen25_multiview_trial034",
+          "vertex": 56492,
+          "point": [
+            13.7290279427347,
+            4.374897310953073,
+            -4.951575030435
+          ],
+          "stair": "stairs-main-logs",
+          "gapM": 0.0037239420887242858
+        }
+      },
+      "legAngles": {
+        "L": {
+          "hipFlexDeg": 41.03233595017218,
+          "kneeFlexDeg": 19.861044828974077
+        },
+        "R": {
+          "hipFlexDeg": 11.669334966233473,
+          "kneeFlexDeg": 101.01710806275977
+        }
+      }
+    },
+    {
+      "frame": 150,
+      "root": [
+        13.7972590015867,
+        4.3294913743535535,
+        -5.167862021237541
+      ],
+      "leftSole": {
+        "vertices": 269,
+        "hits": 269,
+        "belowZero": 0,
+        "worst": {
+          "mesh": "Link_|_Rodin_Gen25_multiview_trial034",
+          "vertex": 56492,
+          "point": [
+            13.729014409401573,
+            4.3749013489395665,
+            -4.951564474437745
+          ],
+          "stair": "stairs-main-logs",
+          "gapM": 0.0037386845281668357
+        }
+      },
+      "leftFoot": {
+        "vertices": 2387,
+        "hits": 2387,
+        "belowZero": 0,
+        "worst": {
+          "mesh": "Link_|_Rodin_Gen25_multiview_trial034",
+          "vertex": 56492,
+          "point": [
+            13.729014409401573,
+            4.3749013489395665,
+            -4.951564474437745
+          ],
+          "stair": "stairs-main-logs",
+          "gapM": 0.0037386845281668357
+        }
+      },
+      "legAngles": {
+        "L": {
+          "hipFlexDeg": 59.69258471628871,
+          "kneeFlexDeg": 66.59531368867799
+        },
+        "R": {
+          "hipFlexDeg": 17.456022158366082,
+          "kneeFlexDeg": 121.18427589749653
+        }
+      }
+    },
+    {
+      "frame": 166,
+      "root": [
+        13.565964991821492,
+        4.104176167116438,
+        -4.98745269362067
+      ],
+      "leftSole": {
+        "vertices": 269,
+        "hits": 269,
+        "belowZero": 0,
+        "worst": {
+          "mesh": "Link_|_Rodin_Gen25_multiview_trial034",
+          "vertex": 56492,
+          "point": [
+            13.729016294367653,
+            4.374903150172862,
+            -4.9515650345203035
+          ],
+          "stair": "stairs-main-logs",
+          "gapM": 0.003739350349371229
+        }
+      },
+      "leftFoot": {
+        "vertices": 2387,
+        "hits": 2387,
+        "belowZero": 0,
+        "worst": {
+          "mesh": "Link_|_Rodin_Gen25_multiview_trial034",
+          "vertex": 56492,
+          "point": [
+            13.729016294367653,
+            4.374903150172862,
+            -4.9515650345203035
+          ],
+          "stair": "stairs-main-logs",
+          "gapM": 0.003739350349371229
+        }
+      },
+      "legAngles": {
+        "L": {
+          "hipFlexDeg": 15.690671410944855,
+          "kneeFlexDeg": 127.58987907147713
+        },
+        "R": {
+          "hipFlexDeg": 37.6637423593242,
+          "kneeFlexDeg": 11.549223099391249
+        }
+      }
+    },
+    {
+      "frame": 167,
+      "root": [
+        13.551509116211166,
+        4.10330142718419,
+        -4.976177110644615
+      ],
+      "leftSole": {
+        "vertices": 269,
+        "hits": 269,
+        "belowZero": 0,
+        "worst": {
+          "mesh": "Link_|_Rodin_Gen25_multiview_trial034",
+          "vertex": 56492,
+          "point": [
+            13.729017133532404,
+            4.374903589880923,
+            -4.951566049443074
+          ],
+          "stair": "stairs-main-logs",
+          "gapM": 0.0037389855343734624
+        }
+      },
+      "leftFoot": {
+        "vertices": 2387,
+        "hits": 2387,
+        "belowZero": 0,
+        "worst": {
+          "mesh": "Link_|_Rodin_Gen25_multiview_trial034",
+          "vertex": 56492,
+          "point": [
+            13.729017133532404,
+            4.374903589880923,
+            -4.951566049443074
+          ],
+          "stair": "stairs-main-logs",
+          "gapM": 0.0037389855343734624
+        }
+      },
+      "legAngles": {
+        "L": {
+          "hipFlexDeg": 8.827207030387981,
+          "kneeFlexDeg": 122.54666492471858
+        },
+        "R": {
+          "hipFlexDeg": 36.252529620775675,
+          "kneeFlexDeg": 11.549317707235945
+        }
+      }
+    }
+  ],
+  "images": [
+    {
+      "file": "stairs-down-146.png",
+      "zeroBasedFrame": 145,
+      "sha256": "bbd6a238d07c87502f3edc7797741556afbce1196c1a6a0dba51764a7f593ea8"
+    },
+    {
+      "file": "stairs-down-147.png",
+      "zeroBasedFrame": 146,
+      "sha256": "ea69e7183f2113451201a7bbc5b66d81d1be8a994b15fc3544243b32140a6220"
+    },
+    {
+      "file": "stairs-down-168.png",
+      "zeroBasedFrame": 167,
+      "sha256": "410eaeb02b4a8766b7742ce3a248a6d662c45f5b69894e5ec5c7adf66e8f93fc"
+    }
+  ],
+  "limits": [
+    "No old-source native rerun; paired CPU negative control is in sibling stance-support evidence.",
+    "Knee folding remains164.291deg ascent/166.131deg descent.",
+    "One GLB request was aborted, while completed model response was HTTP200 and current model was loaded and checked.",
+    "Warnings are recorded, not treated as clean-console proof.",
+    "Saved stills show the candidate only and are not before/after images."
+  ]
+}

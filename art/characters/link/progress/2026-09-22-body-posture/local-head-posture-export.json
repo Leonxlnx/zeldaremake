@@ -1,0 +1,18 @@
+{
+  "sha256": "143160f1c413694865a9b3273dbbf16bc22a89a1fdc62d2b35381c980ae47e69",
+  "source_sha256": "1873fc17861455ac7b4e9cf624301039872e9d23dd7923bac3a2dc23851853d5",
+  "original_binary_preserved": true,
+  "rest_nodes_and_assets_exact": true,
+  "other_clips_and_unselected_channels_exact": true,
+  "gait": "run",
+  "hips_preserved": true,
+  "changed": [
+    [
+      "chest",
+      "rotation"
+    ]
+  ],
+  "cycle_s": 0.4666666666666667,
+  "stride_m": 1.82,
+  "status": "Export checked; game and visual acceptance pending"
+}

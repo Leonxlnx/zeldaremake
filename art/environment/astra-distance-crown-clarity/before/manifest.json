@@ -1,0 +1,2884 @@
+{
+  "sha": "664f3418570f51dae5fcc9c2babbd8eb5cd1d0f4",
+  "settings": {
+    "views": [
+      "reconstructed-distant-up",
+      "w19-spine-u",
+      "distance-crown-119m",
+      "distance-crown-121m",
+      "F_canopy"
+    ],
+    "poses": {
+      "w19-spine-u": {
+        "p": [
+          4.68,
+          5.34,
+          -44.1
+        ],
+        "t": [
+          4.77,
+          15.34,
+          -45.1
+        ],
+        "fov": 46
+      },
+      "distance-crown-119m": {
+        "p": [
+          7.585529095665297,
+          105.51479429090838,
+          -31.297034236974483
+        ],
+        "t": [
+          35.616240619813254,
+          37.51479429090839,
+          -146.9485764292427
+        ],
+        "fov": 46
+      },
+      "distance-crown-121m": {
+        "p": [
+          7.114424700301466,
+          105.51479429090838,
+          -29.35331083878509
+        ],
+        "t": [
+          35.616240619813254,
+          37.51479429090839,
+          -146.9485764292427
+        ],
+        "fov": 46
+      },
+      "reconstructed-distant-up": {
+        "p": [
+          54.00101693066348,
+          21.992752345655013,
+          -165.33335274009295
+        ],
+        "t": [
+          35.616240619813254,
+          37.51479429090839,
+          -146.9485764292427
+        ],
+        "fov": 60
+      }
+    },
+    "variants": [
+      {
+        "name": "default"
+      }
+    ],
+    "probeViews": [
+      "reconstructed-distant-up",
+      "w19-spine-u"
+    ],
+    "sourceSha": "664f3418570f51dae5fcc9c2babbd8eb5cd1d0f4",
+    "baseline": true,
+    "dist": "gauntlet/tmp/crown-clarity-before-dist",
+    "bundle": "index-B1aAZhde.js",
+    "out": "art/environment/astra-distance-crown-clarity/before"
+  },
+  "images": {
+    "reconstructed-distant-up": {
+      "variant": {
+        "name": "default"
+      },
+      "sha256": "c3e27b38e3aa2674c3d278e72b9c8d8445037555e278515489662652935d5be7",
+      "stats": {
+        "simTime": 12.6,
+        "drawCalls": 131,
+        "triangles": 2039386,
+        "geometries": 338,
+        "textures": 91,
+        "programs": 92,
+        "width": 1280,
+        "height": 720,
+        "pixelRatio": 1
+      },
+      "camera": {
+        "position": [
+          54.00101693066348,
+          21.992752345655013,
+          -165.33335274009295
+        ],
+        "direction": [
+          -0.607140721553532,
+          0.5126014908902387,
+          0.6071407215535465
+        ],
+        "fov": 60
+      },
+      "lighting": {
+        "sunAzimuthDeg": -128,
+        "sunElevationDeg": 38,
+        "sunIntensity": 4.4,
+        "sunColor": "#ffe7bf",
+        "shadows": true,
+        "shadowMapSize": 4096,
+        "shadowType": "pcss-vogel+canopy-transmission",
+        "shadowFilterTaps": 12,
+        "shadowSearchTaps": 8,
+        "shadowFilterDynamic": false,
+        "shadowWindowRadiusM": 46,
+        "shadowSnapSpace": "light-camera-texel",
+        "shadowSnapMetres": 0.0224609375,
+        "shadowTexelCm": 2.2,
+        "shadowBias": -0.00012,
+        "shadowNormalBias": 0.028,
+        "shadowRadiusTexels": 1.5,
+        "shadowPenumbraPerM": 0.0093,
+        "shadowPenumbraRangeM": [
+          0.04,
+          0.45
+        ],
+        "shadowCanopyLeak": 0.1,
+        "shadowCanopyLeakRangeM": [
+          5,
+          11
+        ],
+        "cascades": 1,
+        "hemiIntensity": 0.55,
+        "hemiSkyLinear": [
+          0.479,
+          0.638,
+          0.745
+        ],
+        "hemiGroundLinear": [
+          0.407,
+          0.381,
+          0.242
+        ],
+        "environmentMap": true,
+        "environmentIntensity": 0.22,
+        "environmentTint": [
+          1.049,
+          1,
+          1.0025
+        ]
+      },
+      "crownProbe": {
+        "note": "CPU ray intersections ignore alpha discard and wind; alpha and affine mip estimate are provided for interpretation, not asserted GPU-selected LOD.",
+        "renderer": "ANGLE (AMD, AMD Radeon 780M Graphics (0x00001900) Direct3D11 vs_5_0 ps_5_0, D3D11)",
+        "rays": [
+          {
+            "screen": [
+              0.25,
+              0.25
+            ],
+            "hits": [
+              {
+                "name": "distant-0-near",
+                "geometry": "distant-near-0",
+                "material": "distant-crown",
+                "distance": 7.222374690450759,
+                "point": [
+                  53.132080746891184,
+                  26.725604389898958,
+                  -159.9474677055707
+                ],
+                "uv": [
+                  0.14710430552896922,
+                  0.6430880109212054
+                ],
+                "instanceId": 20,
+                "map": "procedural:far-crown",
+                "texture": {
+                  "width": 1024,
+                  "height": 1024,
+                  "minFilter": 1008,
+                  "magFilter": 1006,
+                  "anisotropy": 4,
+                  "mipmaps": true
+                },
+                "baseAlpha": 0.6509803921568628,
+                "affineTexelsPerPixel": 0.5235683326821348,
+                "affineMipBeforeBias": -0.9335502544110285,
+                "projectedTriangle": [
+                  [
+                    -1637.7400892177968,
+                    936.5629933195164
+                  ],
+                  [
+                    1687.4950325080251,
+                    809.3258505067148
+                  ],
+                  [
+                    1041.1872429506002,
+                    -112.33858717895919
+                  ]
+                ]
+              },
+              {
+                "name": "distant-0-near",
+                "geometry": "distant-near-0",
+                "material": "distant-crown",
+                "distance": 7.98756114730783,
+                "point": [
+                  53.04001986273701,
+                  27.227034243898657,
+                  -159.37685118908692
+                ],
+                "uv": [
+                  0.2199278808905889,
+                  0.11225816523001081
+                ],
+                "instanceId": 20,
+                "map": "procedural:far-crown",
+                "texture": {
+                  "width": 1024,
+                  "height": 1024,
+                  "minFilter": 1008,
+                  "magFilter": 1006,
+                  "anisotropy": 4,
+                  "mipmaps": true
+                },
+                "baseAlpha": 0.4627450980392157,
+                "affineTexelsPerPixel": 0.684159470304411,
+                "affineMipBeforeBias": -0.5475954536911446,
+                "projectedTriangle": [
+                  [
+                    3354.8236880422237,
+                    3089.286951835635
+                  ],
+                  [
+                    256.6398152107556,
+                    471.39805272807814
+                  ],
+                  [
+                    935.3014226894231,
+                    317.04799440385466
+                  ]
+                ]
+              },
+              {
+                "name": "distant-4-near",
+                "geometry": "distant-near-4",
+                "material": "distant-crown",
+                "distance": 8.290947279531066,
+                "point": [
+                  53.003518961130226,
+                  27.425844432739524,
+                  -159.15060941968895
+                ],
+                "uv": [
+                  0.5302105971658726,
+                  0.1119188569711559
+                ],
+                "instanceId": 6,
+                "map": "procedural:far-crown",
+                "texture": {
+                  "width": 1024,
+                  "height": 1024,
+                  "minFilter": 1008,
+                  "magFilter": 1006,
+                  "anisotropy": 4,
+                  "mipmaps": true
+                },
+                "baseAlpha": 0,
+                "affineTexelsPerPixel": 1.4145200548081467,
+                "affineMipBeforeBias": 0.5003126311471421,
+                "projectedTriangle": [
+                  [
+                    539.1538351720703,
+                    546.3306614170963
+                  ],
+                  [
+                    244.0783164885768,
+                    298.503855820494
+                  ],
+                  [
+                    420.85457084122845,
+                    -140.37811241459545
+                  ]
+                ]
+              },
+              {
+                "name": "distant-0-near",
+                "geometry": "distant-near-0",
+                "material": "distant-crown",
+                "distance": 8.445891139020203,
+                "point": [
+                  52.984877401846205,
+                  27.527379785522555,
+                  -159.03506434624973
+                ],
+                "uv": [
+                  0.46927346157800054,
+                  0.6616835924251535
+                ],
+                "instanceId": 23,
+                "map": "procedural:far-crown",
+                "texture": {
+                  "width": 1024,
+                  "height": 1024,
+                  "minFilter": 1008,
+                  "magFilter": 1006,
+                  "anisotropy": 4,
+                  "mipmaps": true
+                },
+                "baseAlpha": 0,
+                "affineTexelsPerPixel": 0.2949713577141488,
+                "affineMipBeforeBias": -1.7613532220736265,
+                "projectedTriangle": [
+                  [
+                    -6085.3087307542855,
+                    1456.5475045838093
+                  ],
+                  [
+                    88.4044458816448,
+                    1359.1577414692008
+                  ],
+                  [
+                    536.5626344660299,
+                    -301.22458671913233
+                  ]
+                ]
+              },
+              {
+                "name": "distant-0-near",
+                "geometry": "distant-near-0",
+                "material": "distant-crown",
+                "distance": 9.194487500182799,
+                "point": [
+                  52.894812500323646,
+                  28.017938081110074,
+                  -158.47681943217538
+                ],
+                "uv": [
+                  0.415510831413109,
+                  0.6670388926560125
+                ],
+                "instanceId": 20,
+                "map": "procedural:far-crown",
+                "texture": {
+                  "width": 1024,
+                  "height": 1024,
+                  "minFilter": 1008,
+                  "magFilter": 1006,
+                  "anisotropy": 4,
+                  "mipmaps": true
+                },
+                "baseAlpha": 0.9137254901960784,
+                "affineTexelsPerPixel": 0.9340559740619083,
+                "affineMipBeforeBias": -0.09841908769131627,
+                "projectedTriangle": [
+                  [
+                    26.89722798360883,
+                    373.45306248370855
+                  ],
+                  [
+                    757.195753901101,
+                    139.9794769890958
+                  ],
+                  [
+                    329.4137637574249,
+                    -148.53633607110592
+                  ]
+                ]
+              },
+              {
+                "name": "distant-4-near",
+                "geometry": "distant-near-4",
+                "material": "distant-crown",
+                "distance": 10.864748634668338,
+                "point": [
+                  52.69386054223402,
+                  29.112467119491747,
+                  -157.23126864956868
+                ],
+                "uv": [
+                  0.8854993874679505,
+                  0.17019740136999206
+                ],
+                "instanceId": 6,
+                "map": "procedural:far-crown",
+                "texture": {
+                  "width": 1024,
+                  "height": 1024,
+                  "minFilter": 1008,
+                  "magFilter": 1006,
+                  "anisotropy": 4,
+                  "mipmaps": true
+                },
+                "baseAlpha": 0,
+                "affineTexelsPerPixel": 1.714653629183743,
+                "affineMipBeforeBias": 0.7779171723587005,
+                "projectedTriangle": [
+                  [
+                    471.2071053514551,
+                    406.7415918785731
+                  ],
+                  [
+                    204.30070755796714,
+                    218.26818090675093
+                  ],
+                  [
+                    322.57294270656234,
+                    -26.778093089839086
+                  ]
+                ]
+              },
+              {
+                "name": "distant-0-near",
+                "geometry": "distant-near-0",
+                "material": "distant-crown",
+                "distance": 11.03462135655824,
+                "point": [
+                  52.67342286612159,
+                  29.223785417630005,
+                  -157.10459079224148
+                ],
+                "uv": [
+                  0.38002292540595856,
+                  0.5837729493212621
+                ],
+                "instanceId": 20,
+                "map": "procedural:far-crown",
+                "texture": {
+                  "width": 1024,
+                  "height": 1024,
+                  "minFilter": 1008,
+                  "magFilter": 1006,
+                  "anisotropy": 4,
+                  "mipmaps": true
+                },
+                "baseAlpha": 0,
+                "affineTexelsPerPixel": 0.779511386041759,
+                "affineMipBeforeBias": -0.3593579988841076,
+                "projectedTriangle": [
+                  [
+                    1648.904141142486,
+                    9381.241259244174
+                  ],
+                  [
+                    168.75704299219927,
+                    248.47918849207466
+                  ],
+                  [
+                    837.5761370312028,
+                    523.3961041938603
+                  ]
+                ]
+              },
+              {
+                "name": "distant-4-near",
+                "geometry": "distant-near-4",
+                "material": "distant-crown",
+                "distance": 13.291528687903467,
+                "point": [
+                  52.401890506242815,
+                  30.7027461382569,
+                  -155.42156492593364
+                ],
+                "uv": [
+                  0.603180700145891,
+                  0.2717960785411511
+                ],
+                "instanceId": 6,
+                "map": "procedural:far-crown",
+                "texture": {
+                  "width": 1024,
+                  "height": 1024,
+                  "minFilter": 1008,
+                  "magFilter": 1006,
+                  "anisotropy": 4,
+                  "mipmaps": true
+                },
+                "baseAlpha": 0,
+                "affineTexelsPerPixel": 1.1013221389642223,
+                "affineMipBeforeBias": 0.13923652186288438,
+                "projectedTriangle": [
+                  [
+                    737.1062463376395,
+                    521.3932792995882
+                  ],
+                  [
+                    46.43316677617101,
+                    441.74175143484683
+                  ],
+                  [
+                    277.86147904121947,
+                    2.646059806216887
+                  ]
+                ]
+              },
+              {
+                "name": "distant-4-near",
+                "geometry": "distant-near-4",
+                "material": "distant-crown",
+                "distance": 14.723954371421055,
+                "point": [
+                  52.22955293580094,
+                  31.64142062068543,
+                  -154.35337331547578
+                ],
+                "uv": [
+                  0.9647697751986639,
+                  0.3904997706677395
+                ],
+                "instanceId": 6,
+                "map": "procedural:far-crown",
+                "texture": {
+                  "width": 1024,
+                  "height": 1024,
+                  "minFilter": 1008,
+                  "magFilter": 1006,
+                  "anisotropy": 4,
+                  "mipmaps": true
+                },
+                "baseAlpha": 0,
+                "affineTexelsPerPixel": 2.7712302685276087,
+                "affineMipBeforeBias": 1.4705265929775764,
+                "projectedTriangle": [
+                  [
+                    240.74113551986437,
+                    366.6830197181482
+                  ],
+                  [
+                    548.8562559599601,
+                    58.19179461085996
+                  ],
+                  [
+                    324.3823761434255,
+                    146.47985968925752
+                  ]
+                ]
+              },
+              {
+                "name": "distant-0-near",
+                "geometry": "distant-near-0",
+                "material": "distant-crown",
+                "distance": 14.913507529130978,
+                "point": [
+                  52.206747472979934,
+                  31.765635589917967,
+                  -154.21201932054856
+                ],
+                "uv": [
+                  0.09844277122202089,
+                  0.46749470084101863
+                ],
+                "instanceId": 23,
+                "map": "procedural:far-crown",
+                "texture": {
+                  "width": 1024,
+                  "height": 1024,
+                  "minFilter": 1008,
+                  "magFilter": 1006,
+                  "anisotropy": 4,
+                  "mipmaps": true
+                },
+                "baseAlpha": 0,
+                "affineTexelsPerPixel": 0.10988552876106973,
+                "affineMipBeforeBias": -3.1859266900315535,
+                "projectedTriangle": [
+                  [
+                    6858.04297430277,
+                    1770.2911301487943
+                  ],
+                  [
+                    432.12007643577135,
+                    279.09978331770594
+                  ],
+                  [
+                    3925.2060059375294,
+                    5746.781112269364
+                  ]
+                ]
+              },
+              {
+                "name": "distant-1-near",
+                "geometry": "distant-near-1",
+                "material": "distant-crown",
+                "distance": 15.524083832255826,
+                "point": [
+                  52.13328799940256,
+                  32.16574876989908,
+                  -153.75669902571784
+                ],
+                "uv": [
+                  0.9051952937297837,
+                  0.8018059679320233
+                ],
+                "instanceId": 44,
+                "map": "procedural:far-crown",
+                "texture": {
+                  "width": 1024,
+                  "height": 1024,
+                  "minFilter": 1008,
+                  "magFilter": 1006,
+                  "anisotropy": 4,
+                  "mipmaps": true
+                },
+                "baseAlpha": 0,
+                "affineTexelsPerPixel": 0.7464374916058125,
+                "affineMipBeforeBias": -0.42190664407364925,
+                "projectedTriangle": [
+                  [
+                    -59.78811453020242,
+                    567.2137807614371
+                  ],
+                  [
+                    590.8886333608664,
+                    561.5013802015386
+                  ],
+                  [
+                    374.3977802124531,
+                    -729.0696239669014
+                  ]
+                ]
+              },
+              {
+                "name": "distant-1-near",
+                "geometry": "distant-near-1",
+                "material": "distant-crown",
+                "distance": 16.404579209609448,
+                "point": [
+                  52.02735410289088,
+                  32.74274103702214,
+                  -153.10009408909983
+                ],
+                "uv": [
+                  0.4718541427882723,
+                  0.13315290256777093
+                ],
+                "instanceId": 44,
+                "map": "procedural:far-crown",
+                "texture": {
+                  "width": 1024,
+                  "height": 1024,
+                  "minFilter": 1008,
+                  "magFilter": 1006,
+                  "anisotropy": 4,
+                  "mipmaps": true
+                },
+                "baseAlpha": 0,
+                "affineTexelsPerPixel": 1.071559311079548,
+                "affineMipBeforeBias": 0.0997117057607884,
+                "projectedTriangle": [
+                  [
+                    -945.4724374246848,
+                    249.27601806183972
+                  ],
+                  [
+                    290.6415990962247,
+                    349.67361311015316
+                  ],
+                  [
+                    440.99362025244307,
+                    -95.37812689801696
+                  ]
+                ]
+              },
+              {
+                "name": "distant-1-near",
+                "geometry": "distant-near-1",
+                "material": "distant-crown",
+                "distance": 18.565850016942978,
+                "point": [
+                  51.767327935887124,
+                  34.159030747410306,
+                  -151.48838650043677
+                ],
+                "uv": [
+                  0.8583940087291282,
+                  0.7208779377506285
+                ],
+                "instanceId": 44,
+                "map": "procedural:far-crown",
+                "texture": {
+                  "width": 1024,
+                  "height": 1024,
+                  "minFilter": 1008,
+                  "magFilter": 1006,
+                  "anisotropy": 4,
+                  "mipmaps": true
+                },
+                "baseAlpha": 1,
+                "affineTexelsPerPixel": 0.8832049965614243,
+                "affineMipBeforeBias": -0.179179760980069,
+                "projectedTriangle": [
+                  [
+                    675.6112229961303,
+                    1166.5582878617197
+                  ],
+                  [
+                    87.20292991665801,
+                    77.57195693038784
+                  ],
+                  [
+                    647.7363325299585,
+                    -282.329081576773
+                  ]
+                ]
+              },
+              {
+                "name": "distant-1-near",
+                "geometry": "distant-near-1",
+                "material": "distant-crown",
+                "distance": 18.598320516549546,
+                "point": [
+                  51.76342135484935,
+                  34.18030880027064,
+                  -151.4641725285245
+                ],
+                "uv": [
+                  0.05683469126914076,
+                  0.7654369688564255
+                ],
+                "instanceId": 22,
+                "map": "procedural:far-crown",
+                "texture": {
+                  "width": 1024,
+                  "height": 1024,
+                  "minFilter": 1008,
+                  "magFilter": 1006,
+                  "anisotropy": 4,
+                  "mipmaps": true
+                },
+                "baseAlpha": 0,
+                "affineTexelsPerPixel": 0.9778149709361476,
+                "affineMipBeforeBias": -0.03236660084219806,
+                "projectedTriangle": [
+                  [
+                    604.7779061106082,
+                    600.3746920730578
+                  ],
+                  [
+                    122.72898253186796,
+                    461.0897080090785
+                  ],
+                  [
+                    340.8104809363377,
+                    -21.869884541978408
+                  ]
+                ]
+              },
+              {
+                "name": "distant-2-near",
+                "geometry": "distant-near-2",
+                "material": "distant-crown",
+                "distance": 18.830005819070273,
+                "point": [
+                  51.73554690202226,
+                  34.33213313847706,
+                  -151.29139965851334
+                ],
+                "uv": [
+                  0.1221192701727139,
+                  0.03618586565511807
+                ],
+                "instanceId": 9,
+                "map": "procedural:far-crown",
+                "texture": {
+                  "width": 1024,
+                  "height": 1024,
+                  "minFilter": 1008,
+                  "magFilter": 1006,
+                  "anisotropy": 4,
+                  "mipmaps": true
+                },
+                "baseAlpha": 0,
+                "affineTexelsPerPixel": 1.0681562295803357,
+                "affineMipBeforeBias": 0.09512267245335582,
+                "projectedTriangle": [
+                  [
+                    286.4834006696071,
+                    -102.82475810023307
+                  ],
+                  [
+                    233.69364581030703,
+                    445.5897867120197
+                  ],
+                  [
+                    689.8720263447542,
+                    582.6671372404933
+                  ]
+                ]
+              },
+              {
+                "name": "distant-1-near",
+                "geometry": "distant-near-1",
+                "material": "distant-crown",
+                "distance": 22.904914236997175,
+                "point": [
+                  51.245287739121665,
+                  37.00243749992089,
+                  -148.25265004972067
+                ],
+                "uv": [
+                  0.04847861467467377,
+                  0.7402524037918785
+                ],
+                "instanceId": 44,
+                "map": "procedural:far-crown",
+                "texture": {
+                  "width": 1024,
+                  "height": 1024,
+                  "minFilter": 1008,
+                  "magFilter": 1006,
+                  "anisotropy": 4,
+                  "mipmaps": true
+                },
+                "baseAlpha": 0,
+                "affineTexelsPerPixel": 5.949225022969274,
+                "affineMipBeforeBias": 2.57270174769155,
+                "projectedTriangle": [
+                  [
+                    243.5413478527301,
+                    429.5347554242098
+                  ],
+                  [
+                    227.69794462762036,
+                    214.76223829962714
+                  ],
+                  [
+                    403.9100488589726,
+                    -21.07535312074834
+                  ]
+                ]
+              },
+              {
+                "name": "distant-0-near",
+                "geometry": "distant-near-0",
+                "material": "distant-crown",
+                "distance": 24.81906762664549,
+                "point": [
+                  51.01499268896938,
+                  38.25679014312725,
+                  -146.8252234017073
+                ],
+                "uv": [
+                  0.54551134270453,
+                  0.8617336681346425
+                ],
+                "instanceId": 23,
+                "map": "procedural:far-crown",
+                "texture": {
+                  "width": 1024,
+                  "height": 1024,
+                  "minFilter": 1008,
+                  "magFilter": 1006,
+                  "anisotropy": 4,
+                  "mipmaps": true
+                },
+                "baseAlpha": 0,
+                "affineTexelsPerPixel": 0.5774980520077365,
+                "affineMipBeforeBias": -0.7921120147890015,
+                "projectedTriangle": [
+                  [
+                    158.9927992865163,
+                    848.9254473693536
+                  ],
+                  [
+                    -1319.274341701712,
+                    -1834.4035679081182
+                  ],
+                  [
+                    394.99928398822,
+                    96.57385881485017
+                  ]
+                ]
+              },
+              {
+                "name": "distant-1-near",
+                "geometry": "distant-near-1",
+                "material": "distant-crown",
+                "distance": 26.19226496374853,
+                "point": [
+                  50.84978098162801,
+                  39.15665204487148,
+                  -145.80119968314727
+                ],
+                "uv": [
+                  0.3049026596407087,
+                  0.29475992168601267
+                ],
+                "instanceId": 44,
+                "map": "procedural:far-crown",
+                "texture": {
+                  "width": 1024,
+                  "height": 1024,
+                  "minFilter": 1008,
+                  "magFilter": 1006,
+                  "anisotropy": 4,
+                  "mipmaps": true
+                },
+                "baseAlpha": 1,
+                "affineTexelsPerPixel": 0.6733466447243436,
+                "affineMipBeforeBias": -0.5705786868213556,
+                "projectedTriangle": [
+                  [
+                    -2818.5770774385087,
+                    990.0434801067673
+                  ],
+                  [
+                    620.1420088436757,
+                    809.8043810008269
+                  ],
+                  [
+                    629.7486150566477,
+                    86.93606088709156
+                  ]
+                ]
+              }
+            ]
+          },
+          {
+            "screen": [
+              0.45,
+              0.3
+            ],
+            "hits": [
+              {
+                "name": "distant-0-near",
+                "geometry": "distant-near-0",
+                "material": "distant-crown",
+                "distance": 6.98839803813342,
+                "point": [
+                  50.94629746083771,
+                  26.809321768599307,
+                  -161.29515325343897
+                ],
+                "uv": [
+                  0.20925322475688363,
+                  0.6451141900957935
+                ],
+                "instanceId": 20,
+                "map": "procedural:far-crown",
+                "texture": {
+                  "width": 1024,
+                  "height": 1024,
+                  "minFilter": 1008,
+                  "magFilter": 1006,
+                  "anisotropy": 4,
+                  "mipmaps": true
+                },
+                "baseAlpha": 1,
+                "affineTexelsPerPixel": 0.5235683326821348,
+                "affineMipBeforeBias": -0.9335502544110285,
+                "projectedTriangle": [
+                  [
+                    -1637.7400892177968,
+                    936.5629933195164
+                  ],
+                  [
+                    1687.4950325080251,
+                    809.3258505067148
+                  ],
+                  [
+                    1041.1872429506002,
+                    -112.33858717895919
+                  ]
+                ]
+              },
+              {
+                "name": "distant-0-near",
+                "geometry": "distant-near-0",
+                "material": "distant-crown",
+                "distance": 8.86126410766422,
+                "point": [
+                  50.127643397953236,
+                  28.100145415814083,
+                  -160.21293000867215
+                ],
+                "uv": [
+                  0.18333375145216166,
+                  0.20210510795627146
+                ],
+                "instanceId": 20,
+                "map": "procedural:far-crown",
+                "texture": {
+                  "width": 1024,
+                  "height": 1024,
+                  "minFilter": 1008,
+                  "magFilter": 1006,
+                  "anisotropy": 4,
+                  "mipmaps": true
+                },
+                "baseAlpha": 1,
+                "affineTexelsPerPixel": 0.684159470304411,
+                "affineMipBeforeBias": -0.5475954536911446,
+                "projectedTriangle": [
+                  [
+                    3354.8236880422237,
+                    3089.286951835635
+                  ],
+                  [
+                    256.6398152107556,
+                    471.39805272807814
+                  ],
+                  [
+                    935.3014226894231,
+                    317.04799440385466
+                  ]
+                ]
+              },
+              {
+                "name": "distant-0-near",
+                "geometry": "distant-near-0",
+                "material": "distant-crown",
+                "distance": 9.550664022881959,
+                "point": [
+                  49.826297748775765,
+                  28.57529616333863,
+                  -159.81456483706336
+                ],
+                "uv": [
+                  0.32738052975859877,
+                  0.6888581756971822
+                ],
+                "instanceId": 20,
+                "map": "procedural:far-crown",
+                "texture": {
+                  "width": 1024,
+                  "height": 1024,
+                  "minFilter": 1008,
+                  "magFilter": 1006,
+                  "anisotropy": 4,
+                  "mipmaps": true
+                },
+                "baseAlpha": 1,
+                "affineTexelsPerPixel": 0.779511386041759,
+                "affineMipBeforeBias": -0.3593579988841076,
+                "projectedTriangle": [
+                  [
+                    1648.904141142486,
+                    9381.241259244174
+                  ],
+                  [
+                    168.75704299219927,
+                    248.47918849207466
+                  ],
+                  [
+                    837.5761370312028,
+                    523.3961041938603
+                  ]
+                ]
+              },
+              {
+                "name": "distant-4-near",
+                "geometry": "distant-near-4",
+                "material": "distant-crown",
+                "distance": 9.98367683618068,
+                "point": [
+                  49.63702222894276,
+                  28.87373884861458,
+                  -159.5643512529435
+                ],
+                "uv": [
+                  0.8711484998185679,
+                  0.18954252977467856
+                ],
+                "instanceId": 6,
+                "map": "procedural:far-crown",
+                "texture": {
+                  "width": 1024,
+                  "height": 1024,
+                  "minFilter": 1008,
+                  "magFilter": 1006,
+                  "anisotropy": 4,
+                  "mipmaps": true
+                },
+                "baseAlpha": 0,
+                "affineTexelsPerPixel": 1.9867487747672206,
+                "affineMipBeforeBias": 0.9904094547154411,
+                "projectedTriangle": [
+                  [
+                    716.6496220652028,
+                    372.5728543976695
+                  ],
+                  [
+                    415.28899299508765,
+                    187.29815084138994
+                  ],
+                  [
+                    681.3900894924861,
+                    -113.667366313837
+                  ]
+                ]
+              },
+              {
+                "name": "distant-0-near",
+                "geometry": "distant-near-0",
+                "material": "distant-crown",
+                "distance": 10.082835014967737,
+                "point": [
+                  49.593678902234636,
+                  28.942081013639296,
+                  -159.50705335656002
+                ],
+                "uv": [
+                  0.9814868385083964,
+                  0.6511048673108796
+                ],
+                "instanceId": 20,
+                "map": "procedural:far-crown",
+                "texture": {
+                  "width": 1024,
+                  "height": 1024,
+                  "minFilter": 1008,
+                  "magFilter": 1006,
+                  "anisotropy": 4,
+                  "mipmaps": true
+                },
+                "baseAlpha": 0,
+                "affineTexelsPerPixel": 1.0950263365358766,
+                "affineMipBeforeBias": 0.1309655685778484,
+                "projectedTriangle": [
+                  [
+                    552.5972259953343,
+                    419.9321893019561
+                  ],
+                  [
+                    1284.1587641959973,
+                    -570.3040095798127
+                  ],
+                  [
+                    590.3079168176931,
+                    -56.56312756544538
+                  ]
+                ]
+              },
+              {
+                "name": "distant-0-near",
+                "geometry": "distant-near-0",
+                "material": "distant-crown",
+                "distance": 10.567045556016312,
+                "point": [
+                  49.3820241912172,
+                  29.275810385314422,
+                  -159.2272555048027
+                ],
+                "uv": [
+                  0.25917507000429396,
+                  0.7250868090833646
+                ],
+                "instanceId": 20,
+                "map": "procedural:far-crown",
+                "texture": {
+                  "width": 1024,
+                  "height": 1024,
+                  "minFilter": 1008,
+                  "magFilter": 1006,
+                  "anisotropy": 4,
+                  "mipmaps": true
+                },
+                "baseAlpha": 1,
+                "affineTexelsPerPixel": 0.975341554678382,
+                "affineMipBeforeBias": -0.03602057043435773,
+                "projectedTriangle": [
+                  [
+                    413.9556790254105,
+                    564.5747756235232
+                  ],
+                  [
+                    901.1735792824403,
+                    295.64948596316685
+                  ],
+                  [
+                    759.5178008013016,
+                    -235.93853129155013
+                  ]
+                ]
+              },
+              {
+                "name": "distant-0-near",
+                "geometry": "distant-near-0",
+                "material": "distant-crown",
+                "distance": 10.878465998078944,
+                "point": [
+                  49.24589827473684,
+                  29.490448728856638,
+                  -159.04730326647731
+                ],
+                "uv": [
+                  0.24507625358891064,
+                  0.7349918754294473
+                ],
+                "instanceId": 20,
+                "map": "procedural:far-crown",
+                "texture": {
+                  "width": 1024,
+                  "height": 1024,
+                  "minFilter": 1008,
+                  "magFilter": 1006,
+                  "anisotropy": 4,
+                  "mipmaps": true
+                },
+                "baseAlpha": 1,
+                "affineTexelsPerPixel": 1.230437838943683,
+                "affineMipBeforeBias": 0.2991717754613101,
+                "projectedTriangle": [
+                  [
+                    26.89722798360883,
+                    373.45306248370855
+                  ],
+                  [
+                    815.3881909861923,
+                    549.3420567683518
+                  ],
+                  [
+                    757.195753901101,
+                    139.9794769890958
+                  ]
+                ]
+              },
+              {
+                "name": "distant-1-near",
+                "geometry": "distant-near-1",
+                "material": "distant-crown",
+                "distance": 11.280645550838813,
+                "point": [
+                  49.070100373203815,
+                  29.767640400794377,
+                  -158.81490647759443
+                ],
+                "uv": [
+                  0.9661783631167113,
+                  0.6602517211417589
+                ],
+                "instanceId": 44,
+                "map": "procedural:far-crown",
+                "texture": {
+                  "width": 1024,
+                  "height": 1024,
+                  "minFilter": 1008,
+                  "magFilter": 1006,
+                  "anisotropy": 4,
+                  "mipmaps": true
+                },
+                "baseAlpha": 0,
+                "affineTexelsPerPixel": 0.8832049965614243,
+                "affineMipBeforeBias": -0.179179760980069,
+                "projectedTriangle": [
+                  [
+                    675.6112229961303,
+                    1166.5582878617197
+                  ],
+                  [
+                    87.20292991665801,
+                    77.57195693038784
+                  ],
+                  [
+                    647.7363325299585,
+                    -282.329081576773
+                  ]
+                ]
+              },
+              {
+                "name": "distant-0-near",
+                "geometry": "distant-near-0",
+                "material": "distant-crown",
+                "distance": 11.547970087892145,
+                "point": [
+                  48.95324934902873,
+                  29.951886802351332,
+                  -158.66043476570735
+                ],
+                "uv": [
+                  0.1729722221155064,
+                  0.22315033294758024
+                ],
+                "instanceId": 20,
+                "map": "procedural:far-crown",
+                "texture": {
+                  "width": 1024,
+                  "height": 1024,
+                  "minFilter": 1008,
+                  "magFilter": 1006,
+                  "anisotropy": 4,
+                  "mipmaps": true
+                },
+                "baseAlpha": 0.9215686274509803,
+                "affineTexelsPerPixel": 1.4410985481335226,
+                "affineMipBeforeBias": 0.5271689961942457,
+                "projectedTriangle": [
+                  [
+                    287.8531421048114,
+                    828.6751629214767
+                  ],
+                  [
+                    1264.633339816227,
+                    -944.7251214391586
+                  ],
+                  [
+                    464.306145906325,
+                    70.48163923658001
+                  ]
+                ]
+              },
+              {
+                "name": "distant-4-near",
+                "geometry": "distant-near-4",
+                "material": "distant-crown",
+                "distance": 13.71308481541691,
+                "point": [
+                  48.00684960526958,
+                  31.444135145513478,
+                  -157.40933757096704
+                ],
+                "uv": [
+                  0.8311907423238274,
+                  0.30684091892113763
+                ],
+                "instanceId": 6,
+                "map": "procedural:far-crown",
+                "texture": {
+                  "width": 1024,
+                  "height": 1024,
+                  "minFilter": 1008,
+                  "magFilter": 1006,
+                  "anisotropy": 4,
+                  "mipmaps": true
+                },
+                "baseAlpha": 1,
+                "affineTexelsPerPixel": 1.3099117751764888,
+                "affineMipBeforeBias": 0.38946964702869374,
+                "projectedTriangle": [
+                  [
+                    737.1062463376395,
+                    521.3932792995882
+                  ],
+                  [
+                    277.86147904121947,
+                    2.646059806216887
+                  ],
+                  [
+                    706.3364379044422,
+                    139.30082054999
+                  ]
+                ]
+              },
+              {
+                "name": "distant-2-near",
+                "geometry": "distant-near-2",
+                "material": "distant-crown",
+                "distance": 16.713060178477118,
+                "point": [
+                  46.695521443860876,
+                  33.5117892093569,
+                  -155.67582169150805
+                ],
+                "uv": [
+                  0.07140219605779385,
+                  0.13719113388463677
+                ],
+                "instanceId": 9,
+                "map": "procedural:far-crown",
+                "texture": {
+                  "width": 1024,
+                  "height": 1024,
+                  "minFilter": 1008,
+                  "magFilter": 1006,
+                  "anisotropy": 4,
+                  "mipmaps": true
+                },
+                "baseAlpha": 0,
+                "affineTexelsPerPixel": 1.262646680014931,
+                "affineMipBeforeBias": 0.3364509935976369,
+                "projectedTriangle": [
+                  [
+                    286.4834006696071,
+                    -102.82475810023307
+                  ],
+                  [
+                    689.8720263447542,
+                    582.6671372404933
+                  ],
+                  [
+                    1164.2661311383376,
+                    435.9807204165024
+                  ]
+                ]
+              },
+              {
+                "name": "distant-1-near",
+                "geometry": "distant-near-1",
+                "material": "distant-crown",
+                "distance": 20.948084902964922,
+                "point": [
+                  44.84433717952814,
+                  36.43066854079656,
+                  -153.22864072455766
+                ],
+                "uv": [
+                  0.35792479672705446,
+                  0.8351710791476172
+                ],
+                "instanceId": 22,
+                "map": "procedural:far-crown",
+                "texture": {
+                  "width": 1024,
+                  "height": 1024,
+                  "minFilter": 1008,
+                  "magFilter": 1006,
+                  "anisotropy": 4,
+                  "mipmaps": true
+                },
+                "baseAlpha": 0.5764705882352941,
+                "affineTexelsPerPixel": 1.1034016170934633,
+                "affineMipBeforeBias": 0.14195799993112554,
+                "projectedTriangle": [
+                  [
+                    270.20384636874746,
+                    584.4289817318878
+                  ],
+                  [
+                    712.5548780457016,
+                    510.3148869986173
+                  ],
+                  [
+                    685.4437444500503,
+                    63.87449140913961
+                  ]
+                ]
+              },
+              {
+                "name": "distant-2-near",
+                "geometry": "distant-near-2",
+                "material": "distant-crown",
+                "distance": 25.223078846532225,
+                "point": [
+                  42.97568185086137,
+                  39.37709560455294,
+                  -150.7583638092815
+                ],
+                "uv": [
+                  0.3068541719529194,
+                  0.2530555927150432
+                ],
+                "instanceId": 9,
+                "map": "procedural:far-crown",
+                "texture": {
+                  "width": 1024,
+                  "height": 1024,
+                  "minFilter": 1008,
+                  "magFilter": 1006,
+                  "anisotropy": 4,
+                  "mipmaps": true
+                },
+                "baseAlpha": 0.9333333333333333,
+                "affineTexelsPerPixel": 1.2285224423658507,
+                "affineMipBeforeBias": 0.2969242127624991,
+                "projectedTriangle": [
+                  [
+                    746.1101501622561,
+                    510.0624097595887
+                  ],
+                  [
+                    359.49378907614545,
+                    338.3629362156081
+                  ],
+                  [
+                    464.79682637998445,
+                    -45.604679384712846
+                  ]
+                ]
+              },
+              {
+                "name": "distant-2-near",
+                "geometry": "distant-near-2",
+                "material": "distant-crown",
+                "distance": 26.19585791432753,
+                "point": [
+                  42.550467496724934,
+                  40.047557974849546,
+                  -150.19624987261625
+                ],
+                "uv": [
+                  0.8518362740805174,
+                  0.7859638959250309
+                ],
+                "instanceId": 9,
+                "map": "procedural:far-crown",
+                "texture": {
+                  "width": 1024,
+                  "height": 1024,
+                  "minFilter": 1008,
+                  "magFilter": 1006,
+                  "anisotropy": 4,
+                  "mipmaps": true
+                },
+                "baseAlpha": 1,
+                "affineTexelsPerPixel": 1.4296172924724813,
+                "affineMipBeforeBias": 0.5156289902568777,
+                "projectedTriangle": [
+                  [
+                    179.40685402997127,
+                    796.8027004304212
+                  ],
+                  [
+                    717.3658572766925,
+                    277.89750483368175
+                  ],
+                  [
+                    486.5192139639668,
+                    -190.86069338542683
+                  ]
+                ]
+              },
+              {
+                "name": "distant-1-near",
+                "geometry": "distant-near-1",
+                "material": "distant-crown",
+                "distance": 27.290028464664832,
+                "point": [
+                  42.07219135029095,
+                  40.8016862296346,
+                  -149.56399067235694
+                ],
+                "uv": [
+                  0.6842357827137389,
+                  0.8866972403400193
+                ],
+                "instanceId": 22,
+                "map": "procedural:far-crown",
+                "texture": {
+                  "width": 1024,
+                  "height": 1024,
+                  "minFilter": 1008,
+                  "magFilter": 1006,
+                  "anisotropy": 4,
+                  "mipmaps": true
+                },
+                "baseAlpha": 1,
+                "affineTexelsPerPixel": 0.9901336123619917,
+                "affineMipBeforeBias": -0.014304873851222482,
+                "projectedTriangle": [
+                  [
+                    -36.04094524677265,
+                    856.4666767336511
+                  ],
+                  [
+                    801.030336237871,
+                    81.54141071979187
+                  ],
+                  [
+                    258.3885171672125,
+                    185.3664273848797
+                  ]
+                ]
+              },
+              {
+                "name": "distant-1-near",
+                "geometry": "distant-near-1",
+                "material": "distant-crown",
+                "distance": 28.418192951291363,
+                "point": [
+                  41.5790560131709,
+                  41.57924391033424,
+                  -148.91208830132751
+                ],
+                "uv": [
+                  0.4499057898548138,
+                  0.33068305928140346
+                ],
+                "instanceId": 44,
+                "map": "procedural:far-crown",
+                "texture": {
+                  "width": 1024,
+                  "height": 1024,
+                  "minFilter": 1008,
+                  "magFilter": 1006,
+                  "anisotropy": 4,
+                  "mipmaps": true
+                },
+                "baseAlpha": 0,
+                "affineTexelsPerPixel": 0.6733466447243436,
+                "affineMipBeforeBias": -0.5705786868213556,
+                "projectedTriangle": [
+                  [
+                    -2818.5770774385087,
+                    990.0434801067673
+                  ],
+                  [
+                    620.1420088436757,
+                    809.8043810008269
+                  ],
+                  [
+                    629.7486150566477,
+                    86.93606088709156
+                  ]
+                ]
+              },
+              {
+                "name": "distant-2-near",
+                "geometry": "distant-near-2",
+                "material": "distant-crown",
+                "distance": 29.631501786526734,
+                "point": [
+                  41.0487029763689,
+                  42.41548509243265,
+                  -148.2109858327983
+                ],
+                "uv": [
+                  0.3126085827042178,
+                  0.3335032544883712
+                ],
+                "instanceId": 9,
+                "map": "procedural:far-crown",
+                "texture": {
+                  "width": 1024,
+                  "height": 1024,
+                  "minFilter": 1008,
+                  "magFilter": 1006,
+                  "anisotropy": 4,
+                  "mipmaps": true
+                },
+                "baseAlpha": 1,
+                "affineTexelsPerPixel": 2.363099112631291,
+                "affineMipBeforeBias": 1.2406801398081613,
+                "projectedTriangle": [
+                  [
+                    448.7862985808972,
+                    501.7765521885067
+                  ],
+                  [
+                    780.7946016354493,
+                    -15.825918236762222
+                  ],
+                  [
+                    498.5365251562861,
+                    193.14262264042318
+                  ]
+                ]
+              },
+              {
+                "name": "distant-1-near",
+                "geometry": "distant-near-1",
+                "material": "distant-crown",
+                "distance": 31.592768629196875,
+                "point": [
+                  40.191407788382094,
+                  43.76723664594929,
+                  -147.07768078720053
+                ],
+                "uv": [
+                  0.5542791552156351,
+                  0.7734154835137051
+                ],
+                "instanceId": 31,
+                "map": "procedural:far-crown",
+                "texture": {
+                  "width": 1024,
+                  "height": 1024,
+                  "minFilter": 1008,
+                  "magFilter": 1006,
+                  "anisotropy": 4,
+                  "mipmaps": true
+                },
+                "baseAlpha": 0,
+                "affineTexelsPerPixel": 1.0499619040128692,
+                "affineMipBeforeBias": 0.07033698323541876,
+                "projectedTriangle": [
+                  [
+                    925.9472735107903,
+                    681.9018156212676
+                  ],
+                  [
+                    468.2728796142867,
+                    625.0488006996477
+                  ],
+                  [
+                    551.0528882191386,
+                    -6.18705540040291
+                  ]
+                ]
+              }
+            ]
+          },
+          {
+            "screen": [
+              0.6,
+              0.35
+            ],
+            "hits": [
+              {
+                "name": "distant-0-near",
+                "geometry": "distant-near-0",
+                "material": "distant-crown",
+                "distance": 1.2982247557234379,
+                "point": [
+                  53.136511128178206,
+                  22.82190749569606,
+                  -164.83283403814178
+                ],
+                "uv": [
+                  0.8735986693385788,
+                  0.5401676111788358
+                ],
+                "instanceId": 20,
+                "map": "procedural:far-crown",
+                "texture": {
+                  "width": 1024,
+                  "height": 1024,
+                  "minFilter": 1008,
+                  "magFilter": 1006,
+                  "anisotropy": 4,
+                  "mipmaps": true
+                },
+                "baseAlpha": 0,
+                "affineTexelsPerPixel": 30.140351272413376,
+                "affineMipBeforeBias": 4.913624325891302,
+                "projectedTriangle": [
+                  [
+                    791.764431391349,
+                    747.4666239666567
+                  ],
+                  [
+                    768.2660854914539,
+                    669.8774880515051
+                  ],
+                  [
+                    579.1137674142714,
+                    -1327.3314296015046
+                  ]
+                ]
+              },
+              {
+                "name": "distant-0-near",
+                "geometry": "distant-near-0",
+                "material": "",
+                "distance": 5.7296133528312065,
+                "point": [
+                  50.18558823260306,
+                  25.652163705898698,
+                  -163.12435262251077
+                ],
+                "uv": [
+                  0.05000000074505805,
+                  0.05000000074505805
+                ],
+                "instanceId": 20,
+                "map": "procedural:leaf-cluster",
+                "texture": {
+                  "width": 512,
+                  "height": 512,
+                  "minFilter": 1008,
+                  "magFilter": 1006,
+                  "anisotropy": 4,
+                  "mipmaps": true
+                },
+                "affineTexelsPerPixel": 0,
+                "affineMipBeforeBias": null,
+                "projectedTriangle": [
+                  [
+                    765.2861607175136,
+                    259.6972883072973
+                  ],
+                  [
+                    779.8179694355283,
+                    257.1036470966657
+                  ],
+                  [
+                    740.8305150801056,
+                    69.76918269402634
+                  ]
+                ]
+              },
+              {
+                "name": "distant-0-near",
+                "geometry": "distant-near-0",
+                "material": "distant-crown",
+                "distance": 6.050397194997972,
+                "point": [
+                  49.971973839814694,
+                  25.857043156556152,
+                  -163.00067734087685
+                ],
+                "uv": [
+                  0.43542519196103385,
+                  0.567318557317094
+                ],
+                "instanceId": 20,
+                "map": "procedural:far-crown",
+                "texture": {
+                  "width": 1024,
+                  "height": 1024,
+                  "minFilter": 1008,
+                  "magFilter": 1006,
+                  "anisotropy": 4,
+                  "mipmaps": true
+                },
+                "baseAlpha": 0,
+                "affineTexelsPerPixel": 0.975341554678382,
+                "affineMipBeforeBias": -0.03602057043435773,
+                "projectedTriangle": [
+                  [
+                    413.9556790254105,
+                    564.5747756235232
+                  ],
+                  [
+                    901.1735792824403,
+                    295.64948596316685
+                  ],
+                  [
+                    759.5178008013016,
+                    -235.93853129155013
+                  ]
+                ]
+              },
+              {
+                "name": "distant-0-near",
+                "geometry": "distant-near-0",
+                "material": "",
+                "distance": 6.754265055723108,
+                "point": [
+                  49.503258505973534,
+                  26.30659217269966,
+                  -162.72930751339348
+                ],
+                "uv": [
+                  0.05000000074505806,
+                  0.05000000074505806
+                ],
+                "instanceId": 20,
+                "map": "procedural:leaf-cluster",
+                "texture": {
+                  "width": 512,
+                  "height": 512,
+                  "minFilter": 1008,
+                  "magFilter": 1006,
+                  "anisotropy": 4,
+                  "mipmaps": true
+                },
+                "affineTexelsPerPixel": 0,
+                "affineMipBeforeBias": null,
+                "projectedTriangle": [
+                  [
+                    781.757867236838,
+                    278.19155579550215
+                  ],
+                  [
+                    777.8616791957561,
+                    259.23051682412313
+                  ],
+                  [
+                    758.4413639115676,
+                    238.47705291251864
+                  ]
+                ]
+              },
+              {
+                "name": "distant-0-near",
+                "geometry": "distant-near-0",
+                "material": "",
+                "distance": 6.79042130846999,
+                "point": [
+                  49.47918155769628,
+                  26.329684586427785,
+                  -162.71536780024866
+                ],
+                "uv": [
+                  0.05000000074505806,
+                  0.05000000074505806
+                ],
+                "instanceId": 20,
+                "map": "procedural:leaf-cluster",
+                "texture": {
+                  "width": 512,
+                  "height": 512,
+                  "minFilter": 1008,
+                  "magFilter": 1006,
+                  "anisotropy": 4,
+                  "mipmaps": true
+                },
+                "affineTexelsPerPixel": 0,
+                "affineMipBeforeBias": null,
+                "projectedTriangle": [
+                  [
+                    784.6601522643988,
+                    304.6146331224363
+                  ],
+                  [
+                    771.7948386873707,
+                    305.8527507694647
+                  ],
+                  [
+                    757.5095173203754,
+                    122.95506073306832
+                  ]
+                ]
+              },
+              {
+                "name": "distant-0-near",
+                "geometry": "distant-near-0",
+                "material": "",
+                "distance": 7.03737946555218,
+                "point": [
+                  49.31472870865963,
+                  26.48741276630311,
+                  -162.6201553374805
+                ],
+                "uv": [
+                  0.05000000074505806,
+                  0.05000000074505806
+                ],
+                "instanceId": 20,
+                "map": "procedural:leaf-cluster",
+                "texture": {
+                  "width": 512,
+                  "height": 512,
+                  "minFilter": 1008,
+                  "magFilter": 1006,
+                  "anisotropy": 4,
+                  "mipmaps": true
+                },
+                "affineTexelsPerPixel": 0,
+                "affineMipBeforeBias": null,
+                "projectedTriangle": [
+                  [
+                    758.4413639115676,
+                    238.47705291251864
+                  ],
+                  [
+                    777.8616791957561,
+                    259.23051682412313
+                  ],
+                  [
+                    770.6717621595076,
+                    293.50620119794587
+                  ]
+                ]
+              },
+              {
+                "name": "distant-0-near",
+                "geometry": "distant-near-0",
+                "material": "distant-crown",
+                "distance": 7.438106583198462,
+                "point": [
+                  49.04787898414843,
+                  26.743350693763418,
+                  -162.46565865585686
+                ],
+                "uv": [
+                  0.2632314289646616,
+                  0.6435175178154047
+                ],
+                "instanceId": 20,
+                "map": "procedural:far-crown",
+                "texture": {
+                  "width": 1024,
+                  "height": 1024,
+                  "minFilter": 1008,
+                  "magFilter": 1006,
+                  "anisotropy": 4,
+                  "mipmaps": true
+                },
+                "baseAlpha": 0.9058823529411765,
+                "affineTexelsPerPixel": 0.5235683326821348,
+                "affineMipBeforeBias": -0.9335502544110285,
+                "projectedTriangle": [
+                  [
+                    -1637.7400892177968,
+                    936.5629933195164
+                  ],
+                  [
+                    1687.4950325080251,
+                    809.3258505067148
+                  ],
+                  [
+                    1041.1872429506002,
+                    -112.33858717895919
+                  ]
+                ]
+              },
+              {
+                "name": "distant-0-near",
+                "geometry": "distant-near-0",
+                "material": "distant-crown",
+                "distance": 7.46488331005957,
+                "point": [
+                  49.030047991755985,
+                  26.760452556041308,
+                  -162.45533513328348
+                ],
+                "uv": [
+                  0.2580793246983203,
+                  0.15159164099799244
+                ],
+                "instanceId": 20,
+                "map": "procedural:far-crown",
+                "texture": {
+                  "width": 1024,
+                  "height": 1024,
+                  "minFilter": 1008,
+                  "magFilter": 1006,
+                  "anisotropy": 4,
+                  "mipmaps": true
+                },
+                "baseAlpha": 0.996078431372549,
+                "affineTexelsPerPixel": 0.42804592342803044,
+                "affineMipBeforeBias": -1.2241625086634886,
+                "projectedTriangle": [
+                  [
+                    287.8531421048114,
+                    828.6751629214767
+                  ],
+                  [
+                    -1675.4427895510637,
+                    280.3598057074624
+                  ],
+                  [
+                    1264.633339816227,
+                    -944.7251214391586
+                  ]
+                ]
+              },
+              {
+                "name": "distant-0-near",
+                "geometry": "distant-near-0",
+                "material": "distant-crown",
+                "distance": 7.543844318716891,
+                "point": [
+                  48.977466765082106,
+                  26.810883674914994,
+                  -162.42489243729906
+                ],
+                "uv": [
+                  0.8627915826968735,
+                  0.5662805078839077
+                ],
+                "instanceId": 20,
+                "map": "procedural:far-crown",
+                "texture": {
+                  "width": 1024,
+                  "height": 1024,
+                  "minFilter": 1008,
+                  "magFilter": 1006,
+                  "anisotropy": 4,
+                  "mipmaps": true
+                },
+                "baseAlpha": 0,
+                "affineTexelsPerPixel": 0.7680241685278963,
+                "affineMipBeforeBias": -0.3807763838540586,
+                "projectedTriangle": [
+                  [
+                    552.5972259953343,
+                    419.9321893019561
+                  ],
+                  [
+                    2880.2362544308244,
+                    -287.47664201750086
+                  ],
+                  [
+                    1284.1587641959973,
+                    -570.3040095798127
+                  ]
+                ]
+              },
+              {
+                "name": "distant-0-near",
+                "geometry": "distant-near-0",
+                "material": "distant-crown",
+                "distance": 9.547716553944255,
+                "point": [
+                  47.64306055602177,
+                  28.09072445482459,
+                  -161.65231779209205
+                ],
+                "uv": [
+                  0.2938080550850772,
+                  0.7673811849029528
+                ],
+                "instanceId": 20,
+                "map": "procedural:far-crown",
+                "texture": {
+                  "width": 1024,
+                  "height": 1024,
+                  "minFilter": 1008,
+                  "magFilter": 1006,
+                  "anisotropy": 4,
+                  "mipmaps": true
+                },
+                "baseAlpha": 1,
+                "affineTexelsPerPixel": 0.779511386041759,
+                "affineMipBeforeBias": -0.3593579988841076,
+                "projectedTriangle": [
+                  [
+                    1648.904141142486,
+                    9381.241259244174
+                  ],
+                  [
+                    168.75704299219927,
+                    248.47918849207466
+                  ],
+                  [
+                    837.5761370312028,
+                    523.3961041938603
+                  ]
+                ]
+              },
+              {
+                "name": "distant-0-near",
+                "geometry": "distant-near-0",
+                "material": "distant-crown",
+                "distance": 11.171095996970708,
+                "point": [
+                  46.562029754579676,
+                  29.127550643604252,
+                  -161.0264386690699
+                ],
+                "uv": [
+                  0.1335176205756255,
+                  0.3078295811128988
+                ],
+                "instanceId": 20,
+                "map": "procedural:far-crown",
+                "texture": {
+                  "width": 1024,
+                  "height": 1024,
+                  "minFilter": 1008,
+                  "magFilter": 1006,
+                  "anisotropy": 4,
+                  "mipmaps": true
+                },
+                "baseAlpha": 0.984313725490196,
+                "affineTexelsPerPixel": 0.684159470304411,
+                "affineMipBeforeBias": -0.5475954536911446,
+                "projectedTriangle": [
+                  [
+                    3354.8236880422237,
+                    3089.286951835635
+                  ],
+                  [
+                    256.6398152107556,
+                    471.39805272807814
+                  ],
+                  [
+                    935.3014226894231,
+                    317.04799440385466
+                  ]
+                ]
+              },
+              {
+                "name": "distant-0-near",
+                "geometry": "distant-near-0",
+                "material": "distant-crown",
+                "distance": 14.356071691722267,
+                "point": [
+                  44.441110432445086,
+                  31.161743096348843,
+                  -159.7985003683596
+                ],
+                "uv": [
+                  0.02065278490511594,
+                  0.8121182700924237
+                ],
+                "instanceId": 20,
+                "map": "procedural:far-crown",
+                "texture": {
+                  "width": 1024,
+                  "height": 1024,
+                  "minFilter": 1008,
+                  "magFilter": 1006,
+                  "anisotropy": 4,
+                  "mipmaps": true
+                },
+                "baseAlpha": 0,
+                "affineTexelsPerPixel": 1.230437838943683,
+                "affineMipBeforeBias": 0.2991717754613101,
+                "projectedTriangle": [
+                  [
+                    26.89722798360883,
+                    373.45306248370855
+                  ],
+                  [
+                    815.3881909861923,
+                    549.3420567683518
+                  ],
+                  [
+                    757.195753901101,
+                    139.9794769890958
+                  ]
+                ]
+              },
+              {
+                "name": "distant-2-near",
+                "geometry": "distant-near-2",
+                "material": "distant-crown",
+                "distance": 17.02938676384035,
+                "point": [
+                  42.66091298856754,
+                  32.86914618657404,
+                  -158.76782814931275
+                ],
+                "uv": [
+                  0.03760570002588881,
+                  0.21631688661816334
+                ],
+                "instanceId": 9,
+                "map": "procedural:far-crown",
+                "texture": {
+                  "width": 1024,
+                  "height": 1024,
+                  "minFilter": 1008,
+                  "magFilter": 1006,
+                  "anisotropy": 4,
+                  "mipmaps": true
+                },
+                "baseAlpha": 0,
+                "affineTexelsPerPixel": 1.262646680014931,
+                "affineMipBeforeBias": 0.3364509935976369,
+                "projectedTriangle": [
+                  [
+                    286.4834006696071,
+                    -102.82475810023307
+                  ],
+                  [
+                    689.8720263447542,
+                    582.6671372404933
+                  ],
+                  [
+                    1164.2661311383376,
+                    435.9807204165024
+                  ]
+                ]
+              },
+              {
+                "name": "distant-2-near",
+                "geometry": "distant-near-2",
+                "material": "distant-crown",
+                "distance": 20.68518067937669,
+                "point": [
+                  40.22646930788888,
+                  35.204042620486604,
+                  -157.3583701820861
+                ],
+                "uv": [
+                  0.06943614212446243,
+                  0.14256536216246918
+                ],
+                "instanceId": 9,
+                "map": "procedural:far-crown",
+                "texture": {
+                  "width": 1024,
+                  "height": 1024,
+                  "minFilter": 1008,
+                  "magFilter": 1006,
+                  "anisotropy": 4,
+                  "mipmaps": true
+                },
+                "baseAlpha": 0,
+                "affineTexelsPerPixel": 1.2237812139751276,
+                "affineMipBeforeBias": 0.29134565792728945,
+                "projectedTriangle": [
+                  [
+                    448.7862985808972,
+                    501.7765521885067
+                  ],
+                  [
+                    860.3468742160989,
+                    361.9624251385737
+                  ],
+                  [
+                    780.7946016354493,
+                    -15.825918236762222
+                  ]
+                ]
+              },
+              {
+                "name": "distant-1-near",
+                "geometry": "distant-near-1",
+                "material": "distant-crown",
+                "distance": 24.084538356191878,
+                "point": [
+                  37.96279006176947,
+                  37.37515737710841,
+                  -156.04777886546995
+                ],
+                "uv": [
+                  0.5535470237795626,
+                  0.8283612467499176
+                ],
+                "instanceId": 22,
+                "map": "procedural:far-crown",
+                "texture": {
+                  "width": 1024,
+                  "height": 1024,
+                  "minFilter": 1008,
+                  "magFilter": 1006,
+                  "anisotropy": 4,
+                  "mipmaps": true
+                },
+                "baseAlpha": 0,
+                "affineTexelsPerPixel": 0.6051608398995725,
+                "affineMipBeforeBias": -0.724609461448022,
+                "projectedTriangle": [
+                  [
+                    -36.04094524677265,
+                    856.4666767336511
+                  ],
+                  [
+                    974.2282492215772,
+                    905.4116450988217
+                  ],
+                  [
+                    801.030336237871,
+                    81.54141071979187
+                  ]
+                ]
+              },
+              {
+                "name": "distant-2-near",
+                "geometry": "distant-near-2",
+                "material": "distant-crown",
+                "distance": 26.287737160068797,
+                "point": [
+                  36.49564953653828,
+                  38.78230481189971,
+                  -155.19835568154494
+                ],
+                "uv": [
+                  0.36685488681128864,
+                  0.2773316559550021
+                ],
+                "instanceId": 9,
+                "map": "procedural:far-crown",
+                "texture": {
+                  "width": 1024,
+                  "height": 1024,
+                  "minFilter": 1008,
+                  "magFilter": 1006,
+                  "anisotropy": 4,
+                  "mipmaps": true
+                },
+                "baseAlpha": 1,
+                "affineTexelsPerPixel": 1.0032068918603583,
+                "affineMipBeforeBias": 0.004619164355668139,
+                "projectedTriangle": [
+                  [
+                    1235.1862405074828,
+                    794.6478561287116
+                  ],
+                  [
+                    499.8315356951598,
+                    262.42923750661794
+                  ],
+                  [
+                    881.5506218277833,
+                    -84.17229061014422
+                  ]
+                ]
+              },
+              {
+                "name": "distant-1-near",
+                "geometry": "distant-near-1",
+                "material": "distant-crown",
+                "distance": 27.2167030171353,
+                "point": [
+                  35.87703833674093,
+                  39.37562027688617,
+                  -154.8402013766867
+                ],
+                "uv": [
+                  0.3757445918005403,
+                  0.561236163226821
+                ],
+                "instanceId": 31,
+                "map": "procedural:far-crown",
+                "texture": {
+                  "width": 1024,
+                  "height": 1024,
+                  "minFilter": 1008,
+                  "magFilter": 1006,
+                  "anisotropy": 4,
+                  "mipmaps": true
+                },
+                "baseAlpha": 0,
+                "affineTexelsPerPixel": 1.7502639065240093,
+                "affineMipBeforeBias": 0.8075724694450787,
+                "projectedTriangle": [
+                  [
+                    880.8981617342056,
+                    125.17279708234742
+                  ],
+                  [
+                    445.3445719598785,
+                    371.22752739184995
+                  ],
+                  [
+                    707.7573170195549,
+                    547.4249274117685
+                  ]
+                ]
+              },
+              {
+                "name": "distant-1-near",
+                "geometry": "distant-near-1",
+                "material": "distant-crown",
+                "distance": 29.005239027571008,
+                "point": [
+                  34.686027495082826,
+                  40.517929293525,
+                  -154.15064764695728
+                ],
+                "uv": [
+                  0.5364298047885351,
+                  0.9210795730007636
+                ],
+                "instanceId": 43,
+                "map": "procedural:far-crown",
+                "texture": {
+                  "width": 1024,
+                  "height": 1024,
+                  "minFilter": 1008,
+                  "magFilter": 1006,
+                  "anisotropy": 4,
+                  "mipmaps": true
+                },
+                "baseAlpha": 0,
+                "affineTexelsPerPixel": 1.4372050840590196,
+                "affineMipBeforeBias": 0.5232659439412772,
+                "projectedTriangle": [
+                  [
+                    724.4073070746613,
+                    521.1552156913439
+                  ],
+                  [
+                    1375.8474555304679,
+                    153.30541127558425
+                  ],
+                  [
+                    744.375246946897,
+                    181.65494214656326
+                  ]
+                ]
+              }
+            ]
+          }
+        ]
+      }
+    },
+    "w19-spine-u": {
+      "variant": {
+        "name": "default"
+      },
+      "sha256": "bd5f96989aeb1162add4118b5523d9f305dd0e658a61c4893eb7eb131e270a08",
+      "stats": {
+        "simTime": 12.6,
+        "drawCalls": 175,
+        "triangles": 3653114,
+        "geometries": 403,
+        "textures": 91,
+        "programs": 135,
+        "width": 1280,
+        "height": 720,
+        "pixelRatio": 1
+      },
+      "camera": {
+        "position": [
+          4.68,
+          5.34,
+          -44.1
+        ],
+        "direction": [
+          0.008954975633432833,
+          0.9949972926036132,
+          -0.09949972926035858
+        ],
+        "fov": 46
+      },
+      "lighting": {
+        "sunAzimuthDeg": -128,
+        "sunElevationDeg": 38,
+        "sunIntensity": 4.4,
+        "sunColor": "#ffe7bf",
+        "shadows": true,
+        "shadowMapSize": 4096,
+        "shadowType": "pcss-vogel+canopy-transmission",
+        "shadowFilterTaps": 12,
+        "shadowSearchTaps": 8,
+        "shadowFilterDynamic": false,
+        "shadowWindowRadiusM": 46,
+        "shadowSnapSpace": "light-camera-texel",
+        "shadowSnapMetres": 0.0224609375,
+        "shadowTexelCm": 2.2,
+        "shadowBias": -0.00012,
+        "shadowNormalBias": 0.028,
+        "shadowRadiusTexels": 1.5,
+        "shadowPenumbraPerM": 0.0093,
+        "shadowPenumbraRangeM": [
+          0.04,
+          0.45
+        ],
+        "shadowCanopyLeak": 0.1,
+        "shadowCanopyLeakRangeM": [
+          5,
+          11
+        ],
+        "cascades": 1,
+        "hemiIntensity": 0.55,
+        "hemiSkyLinear": [
+          0.479,
+          0.638,
+          0.745
+        ],
+        "hemiGroundLinear": [
+          0.407,
+          0.381,
+          0.242
+        ],
+        "environmentMap": true,
+        "environmentIntensity": 0.22,
+        "environmentTint": [
+          1.049,
+          1,
+          1.0025
+        ]
+      },
+      "crownProbe": {
+        "note": "CPU ray intersections ignore alpha discard and wind; alpha and affine mip estimate are provided for interpretation, not asserted GPU-selected LOD.",
+        "renderer": "ANGLE (AMD, AMD Radeon 780M Graphics (0x00001900) Direct3D11 vs_5_0 ps_5_0, D3D11)",
+        "rays": [
+          {
+            "screen": [
+              0.25,
+              0.25
+            ],
+            "hits": [
+              {
+                "name": "distant-5-near",
+                "geometry": "distant-near-5",
+                "material": "distant-crown",
+                "distance": 25.606877942519883,
+                "point": [
+                  -4.385274848685807,
+                  29.22008551334503,
+                  -42.29044045242368
+                ],
+                "uv": [
+                  0.9304774848639203,
+                  0.30014434008929597
+                ],
+                "instanceId": 3,
+                "map": "procedural:far-crown",
+                "texture": {
+                  "width": 1024,
+                  "height": 1024,
+                  "minFilter": 1008,
+                  "magFilter": 1006,
+                  "anisotropy": 4,
+                  "mipmaps": true
+                },
+                "baseAlpha": 0,
+                "affineTexelsPerPixel": 1.9960828095299095,
+                "affineMipBeforeBias": 0.9971715735909851,
+                "projectedTriangle": [
+                  [
+                    -804.1181316465545,
+                    495.49352345068604
+                  ],
+                  [
+                    182.15147268109916,
+                    45.859196847281225
+                  ],
+                  [
+                    445.99863924853116,
+                    177.81912229181654
+                  ]
+                ]
+              },
+              {
+                "name": "distant-5-near",
+                "geometry": "distant-near-5",
+                "material": "distant-crown",
+                "distance": 30.839766914601945,
+                "point": [
+                  -6.237807472579458,
+                  34.100096126730364,
+                  -41.92064823401683
+                ],
+                "uv": [
+                  0.6360484796910111,
+                  0.4496028627707652
+                ],
+                "instanceId": 4,
+                "map": "procedural:far-crown",
+                "texture": {
+                  "width": 1024,
+                  "height": 1024,
+                  "minFilter": 1008,
+                  "magFilter": 1006,
+                  "anisotropy": 4,
+                  "mipmaps": true
+                },
+                "baseAlpha": 0,
+                "affineTexelsPerPixel": 1.1170409383080706,
+                "affineMipBeforeBias": 0.15968205995887652,
+                "projectedTriangle": [
+                  [
+                    7.232501378940768,
+                    -267.85965144882886
+                  ],
+                  [
+                    181.37038770618182,
+                    513.8467972825861
+                  ],
+                  [
+                    392.3891180265272,
+                    62.47791320656959
+                  ]
+                ]
+              }
+            ]
+          },
+          {
+            "screen": [
+              0.45,
+              0.3
+            ],
+            "hits": []
+          },
+          {
+            "screen": [
+              0.6,
+              0.35
+            ],
+            "hits": []
+          }
+        ]
+      }
+    },
+    "distance-crown-119m": {
+      "variant": {
+        "name": "default"
+      },
+      "sha256": "e8b31353a64e9e0fd9968f0808132b0449a21ce74e75ae001c073cb51b002b14",
+      "stats": {
+        "simTime": 12.6,
+        "drawCalls": 62,
+        "triangles": 194640,
+        "geometries": 403,
+        "textures": 91,
+        "programs": 135,
+        "width": 1280,
+        "height": 720,
+        "pixelRatio": 1
+      },
+      "camera": {
+        "position": [
+          7.585529095665297,
+          105.51479429090838,
+          -31.297034236974483
+        ],
+        "direction": [
+          0.20451658024966798,
+          -0.49613893835683653,
+          -0.8438122553323887
+        ],
+        "fov": 46
+      },
+      "lighting": {
+        "sunAzimuthDeg": -128,
+        "sunElevationDeg": 38,
+        "sunIntensity": 4.4,
+        "sunColor": "#ffe7bf",
+        "shadows": true,
+        "shadowMapSize": 4096,
+        "shadowType": "pcss-vogel+canopy-transmission",
+        "shadowFilterTaps": 12,
+        "shadowSearchTaps": 8,
+        "shadowFilterDynamic": false,
+        "shadowWindowRadiusM": 46,
+        "shadowSnapSpace": "light-camera-texel",
+        "shadowSnapMetres": 0.0224609375,
+        "shadowTexelCm": 2.2,
+        "shadowBias": -0.00012,
+        "shadowNormalBias": 0.028,
+        "shadowRadiusTexels": 1.5,
+        "shadowPenumbraPerM": 0.0093,
+        "shadowPenumbraRangeM": [
+          0.04,
+          0.45
+        ],
+        "shadowCanopyLeak": 0.1,
+        "shadowCanopyLeakRangeM": [
+          5,
+          11
+        ],
+        "cascades": 1,
+        "hemiIntensity": 0.55,
+        "hemiSkyLinear": [
+          0.479,
+          0.638,
+          0.745
+        ],
+        "hemiGroundLinear": [
+          0.407,
+          0.381,
+          0.242
+        ],
+        "environmentMap": true,
+        "environmentIntensity": 0.22,
+        "environmentTint": [
+          1.049,
+          1,
+          1.0025
+        ]
+      }
+    },
+    "distance-crown-121m": {
+      "variant": {
+        "name": "default"
+      },
+      "sha256": "c150c118c465d66010b8189fb4ed7124c81cb9610d602fe9ee206786755965fa",
+      "stats": {
+        "simTime": 12.6,
+        "drawCalls": 62,
+        "triangles": 196717,
+        "geometries": 403,
+        "textures": 91,
+        "programs": 135,
+        "width": 1280,
+        "height": 720,
+        "pixelRatio": 1
+      },
+      "camera": {
+        "position": [
+          7.114424700301466,
+          105.51479429090838,
+          -29.35331083878509
+        ],
+        "direction": [
+          0.2053468400509402,
+          -0.48991913928911346,
+          -0.8472378132728188
+        ],
+        "fov": 46
+      },
+      "lighting": {
+        "sunAzimuthDeg": -128,
+        "sunElevationDeg": 38,
+        "sunIntensity": 4.4,
+        "sunColor": "#ffe7bf",
+        "shadows": true,
+        "shadowMapSize": 4096,
+        "shadowType": "pcss-vogel+canopy-transmission",
+        "shadowFilterTaps": 12,
+        "shadowSearchTaps": 8,
+        "shadowFilterDynamic": false,
+        "shadowWindowRadiusM": 46,
+        "shadowSnapSpace": "light-camera-texel",
+        "shadowSnapMetres": 0.0224609375,
+        "shadowTexelCm": 2.2,
+        "shadowBias": -0.00012,
+        "shadowNormalBias": 0.028,
+        "shadowRadiusTexels": 1.5,
+        "shadowPenumbraPerM": 0.0093,
+        "shadowPenumbraRangeM": [
+          0.04,
+          0.45
+        ],
+        "shadowCanopyLeak": 0.1,
+        "shadowCanopyLeakRangeM": [
+          5,
+          11
+        ],
+        "cascades": 1,
+        "hemiIntensity": 0.55,
+        "hemiSkyLinear": [
+          0.479,
+          0.638,
+          0.745
+        ],
+        "hemiGroundLinear": [
+          0.407,
+          0.381,
+          0.242
+        ],
+        "environmentMap": true,
+        "environmentIntensity": 0.22,
+        "environmentTint": [
+          1.049,
+          1,
+          1.0025
+        ]
+      }
+    },
+    "F_canopy": {
+      "variant": {
+        "name": "default"
+      },
+      "sha256": "4ade7fd3b0af8937ce684bb5eacaec4e7097fa688f8a8c83af1ad36e829fd718",
+      "stats": {
+        "simTime": 12.6,
+        "drawCalls": 406,
+        "triangles": 7994522,
+        "geometries": 415,
+        "textures": 91,
+        "programs": 141,
+        "width": 1280,
+        "height": 720,
+        "pixelRatio": 1
+      },
+      "camera": {
+        "position": [
+          -1.96,
+          1.8,
+          4
+        ],
+        "direction": [
+          0.9721254966661625,
+          -0.06836560096623101,
+          -0.22427252024288002
+        ],
+        "fov": 46
+      },
+      "lighting": {
+        "sunAzimuthDeg": -128,
+        "sunElevationDeg": 38,
+        "sunIntensity": 4.4,
+        "sunColor": "#ffe7bf",
+        "shadows": true,
+        "shadowMapSize": 4096,
+        "shadowType": "pcss-vogel+canopy-transmission",
+        "shadowFilterTaps": 12,
+        "shadowSearchTaps": 8,
+        "shadowFilterDynamic": false,
+        "shadowWindowRadiusM": 46,
+        "shadowSnapSpace": "light-camera-texel",
+        "shadowSnapMetres": 0.0224609375,
+        "shadowTexelCm": 2.2,
+        "shadowBias": -0.00012,
+        "shadowNormalBias": 0.028,
+        "shadowRadiusTexels": 1.5,
+        "shadowPenumbraPerM": 0.0093,
+        "shadowPenumbraRangeM": [
+          0.04,
+          0.45
+        ],
+        "shadowCanopyLeak": 0.1,
+        "shadowCanopyLeakRangeM": [
+          5,
+          11
+        ],
+        "cascades": 1,
+        "hemiIntensity": 0.55,
+        "hemiSkyLinear": [
+          0.479,
+          0.638,
+          0.745
+        ],
+        "hemiGroundLinear": [
+          0.407,
+          0.381,
+          0.242
+        ],
+        "environmentMap": true,
+        "environmentIntensity": 0.22,
+        "environmentTint": [
+          1.049,
+          1,
+          1.0025
+        ]
+      }
+    }
+  },
+  "errors": [],
+  "evidenceKind": "Native matched views; owner view reconstructed, not the original screenshot camera",
+  "bundleSha256": "e770731c3efef1736545ac0bab146eea225bc0686b4ba2507020966fcda062a6",
+  "captureScriptSha256": "85a36aad1140123d4f9b0612f8977ff170a3c49451ea74e73af65642d6db7c82",
+  "sourceDiffSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+  "complete": true
+}

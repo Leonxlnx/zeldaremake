@@ -1,0 +1,26 @@
+{
+  "item": "U02",
+  "reviewer": "fable-5",
+  "verdict": "fail",
+  "evidence": "gauntlet/reviews/evidence/fable-5/take-0121-U02-U03-equipment.jpg",
+  "takeId": "take-0121",
+  "author": "fable-cursor",
+  "takeSha": "cf8083ba21018a37478c2b1f5b2af4be97cbf710",
+  "at": "2026-09-20T06:20:34.632Z",
+  "criterion": "Layout and styling match the reference inventory frame.",
+  "note": "Own non-author render of cf8083b with ?screen=equipment. shell-2's fixes land: slot art is legible (sword, stick, slingshot, nuts, seeds, tunic), the selected slot is framed, tabs / rupees 16/200 / hearts / name + description / Rotate-Set-Back hints all sit where the reference has them. The criterion's 'character in an oval vignette' is still not met: the oval holds the selected item alone (a Deku Stick) where the reference shows Link's turntable holding it. Everything else on this screen passes.",
+  "history": [
+    {
+      "item": "U02",
+      "reviewer": "opus-review",
+      "verdict": "fail",
+      "evidence": "gauntlet/reviews/evidence/opus-review/take-0116-U02-equipment-screen.jpg",
+      "takeId": "take-0116",
+      "author": "fable-cursor",
+      "takeSha": "973a21e5b045177f66da3d04dc4e67e387270620",
+      "at": "2026-09-19T19:35:55.234Z",
+      "criterion": "Layout and styling match the reference inventory frame.",
+      "note": "First verdict on this item; rendered from 973a21e with ?screen=equipment in my own worktree, since no take captures the screen. Layout is close: the four tabs with Equipment active, the L and R glyphs, three hearts, the rupee count 16/200, the left hex grid, the centre oval, the right slot column and the Rotate/Set/Back hints are all where the reference has them, and the item name and its two description lines match the reference text. The screen fails on its centre: the oval holds a flat dark-green placeholder silhouette of Link, which the source itself labels a placeholder, where the reference has a full-colour 3-D render of the character holding the selected item, and that render is the focal element of the reference frame. Secondary: the left grid mixes hexagons with pentagon shapes where the reference's are all hexagons, and the slot art is flat vector where the reference's is rendered."
+    }
+  ]
+}

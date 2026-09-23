@@ -1,0 +1,473 @@
+{
+  "status": "CPU correctness and aggregate motion checks pass; candidate held for parent native visual acceptance. No production asset changed.",
+  "whyReassessed": "The previous art HOLD used an ankle-only327 proxy that omitted210 low toe vertices. This pair uses the corrected537 family measurement and does not combine new source/shape tuning.",
+  "inputs": {
+    "normalizedSourceSha256": "a9e2005ea405ce1ffaa05d5093cf608407868b45d878cb1acc2dd25ca9653b37",
+    "normalizedGroundSha256": "4683ac00dd98e0a055655773e61f4df608df289d67ec30d25edb8cc02c7fd292",
+    "manifestSha256": "c08e57df3aa930580c9d6f1b3ba52e5d3498169c94493c55021c463302f25990",
+    "meshReferenceIdentical": true,
+    "geometry": {
+      "positionsSha256": "0f864dc29d8f6d8d6b9b48c679a17a8752cac63c6b14e25b5b707243f5fa09e3",
+      "indicesSha256": null,
+      "vertices": 42255,
+      "triangles": 14085,
+      "surface": {
+        "cells": 0,
+        "covered": 0,
+        "cellSize": 0.1,
+        "triangles": 0,
+        "stairs": {
+          "flights": 1,
+          "cells": 1218224,
+          "covered": 401184,
+          "cellSize": 0.01,
+          "triangles": 21151
+        }
+      },
+      "meshes": [
+        {
+          "name": "stairs-main",
+          "positionsSha256": "0f864dc29d8f6d8d6b9b48c679a17a8752cac63c6b14e25b5b707243f5fa09e3",
+          "indicesSha256": null,
+          "vertices": 42255,
+          "triangles": 14085
+        },
+        {
+          "name": "stairs-main-logs",
+          "positionsSha256": "d7ce71daa843b15dce38ff4527345afde5f742a0957709aa1eb9f302fa8706f7",
+          "indicesSha256": "452caf0d203b51ee61d10228162eac29ed873bc4651f2b55eabbc4ebecb8a29c",
+          "vertices": 12680,
+          "triangles": 21280
+        }
+      ],
+      "referenceTerrain": [
+        {
+          "name": "terrain-chunk-r0-0--24",
+          "positionsSha256": "0f595d45120d556131c3a988ec8a727b165cbb46bf1eeb62e60d2feadfab84c7",
+          "indicesSha256": "8ebc16f109f4890015dbb8050a2a44c98c269053ce51941217aa4ced952319fe",
+          "vertices": 14641,
+          "triangles": 28800
+        },
+        {
+          "name": "terrain-chunk-r0-0-0",
+          "positionsSha256": "94fbcedcbff4db9aef482f172dfbc871060c86e463707306e1424b28ceb6db0c",
+          "indicesSha256": "8ebc16f109f4890015dbb8050a2a44c98c269053ce51941217aa4ced952319fe",
+          "vertices": 14641,
+          "triangles": 28800
+        }
+      ]
+    },
+    "raw": {
+      "current": {
+        "path": "art/characters/link/progress/2026-09-21-complete-foot/family-terrain/stair-swing-working.json",
+        "sha256": "8c6eb1bf16566fb62ddc142a404d7c27f27273807addc9327e0e6bcf8b4b0c51",
+        "assetSha256": "89df38f255e47afbcbb28a60555fb4a4a20091741d427ef1d7b8ea1ac33f306b",
+        "createdAt": "2026-09-21T20:48:36.666Z"
+      },
+      "shorter": {
+        "path": "art/characters/link/progress/2026-09-21-boot-tip/family-candidate-cpu/stair-swing-working.json",
+        "sha256": "c09eb60e66c62838b8b679fea9940f07e1fc624edebb694655dbd259b09577fe",
+        "assetSha256": "4dcf89c5c10391981289e2583152c26fb4ac93047c6fcb4bb0959e246805d850",
+        "createdAt": "2026-09-21T20:58:27.131Z"
+      }
+    }
+  },
+  "flat": {
+    "exactMotionHashes": true,
+    "posesPerGait": 180,
+    "hashes": {
+      "idle": "1471f111422376d1c2f7ca9ac3114ebb862a2bc21cd129290f84912fd2ecff84",
+      "walk": "d436df87777f8314cd21de31547618ea65c341359a9bb969358e00899048ddcb",
+      "run": "38eb9b527fbfce83b4f187ed254292d82e8768a7a55e7b6dd217b9944c524dde"
+    }
+  },
+  "scenarios": {
+    "stairs-up": {
+      "clipShift": 0.09451097170527767,
+      "stanceTimingExact": true,
+      "current": {
+        "footprintAudit": {
+          "L": {
+            "heel": 0.0698,
+            "toe": 0.2007,
+            "latMin": -0.0574,
+            "latMax": 0.0832,
+            "soleVertices": 269
+          },
+          "R": {
+            "heel": 0.0695,
+            "toe": 0.2008,
+            "latMin": -0.081,
+            "latMax": 0.0589,
+            "soleVertices": 268
+          }
+        },
+        "selection": {
+          "total": 537,
+          "bySide": {
+            "L": 269,
+            "R": 268
+          },
+          "dominantAndSummedFamilyMatch": true,
+          "independentIndexFixtureMatch": true
+        },
+        "all537HitAndNonnegativeEveryPose": true,
+        "minimum": {
+          "frame": 168,
+          "gapM": 0.0011875730105130877,
+          "side": "R",
+          "vertex": 49755,
+          "point": [
+            9.600075491000526,
+            1.621090697338313,
+            -1.8142464030430419
+          ],
+          "mesh": "stairs-main"
+        },
+        "maxKnee": {
+          "frame": 177,
+          "degrees": 169.0895149855279,
+          "bySide": {
+            "L": 169.0895149855279,
+            "R": 42.70835468913839
+          }
+        },
+        "maxRootStepM": 0.031105019267852363,
+        "maxPlantedDriftM": 1.6380579777027133e-06,
+        "reachClamps": 0,
+        "surfaceCalls": 1802737,
+        "maxCallsPerPose": 6934,
+        "targetSpeedDiagnostic": {
+          "maxMPerS": 11.381197585292533,
+          "frame": 188,
+          "side": "R"
+        },
+        "kneeSpeedDiagnostic": {
+          "maxDegPerS": 3613.0517699808092,
+          "frame": 188,
+          "side": "R"
+        },
+        "posesWithEitherKneeAbove150Deg": 16,
+        "posesWithEitherKneeAbove160Deg": 10,
+        "nativeAll537Critical": {
+          "poses": 7,
+          "rays": 3759,
+          "maxMinimumErrorM": 8.881784197001252e-16
+        },
+        "terrainReferences": {
+          "queries": 0,
+          "minGapM": null
+        }
+      },
+      "shorter": {
+        "footprintAudit": {
+          "L": {
+            "heel": 0.0698,
+            "toe": 0.1897,
+            "latMin": -0.0574,
+            "latMax": 0.0832,
+            "soleVertices": 269
+          },
+          "R": {
+            "heel": 0.0695,
+            "toe": 0.1897,
+            "latMin": -0.081,
+            "latMax": 0.0589,
+            "soleVertices": 268
+          }
+        },
+        "selection": {
+          "total": 537,
+          "bySide": {
+            "L": 269,
+            "R": 268
+          },
+          "dominantAndSummedFamilyMatch": true,
+          "independentIndexFixtureMatch": true
+        },
+        "all537HitAndNonnegativeEveryPose": true,
+        "minimum": {
+          "frame": 168,
+          "gapM": 0.0011875730105130877,
+          "side": "R",
+          "vertex": 49755,
+          "point": [
+            9.600075491000526,
+            1.621090697338313,
+            -1.8142464030430419
+          ],
+          "mesh": "stairs-main"
+        },
+        "maxKnee": {
+          "frame": 353,
+          "degrees": 167.22430299822673,
+          "bySide": {
+            "L": 167.22430299822673,
+            "R": 42.7083548054898
+          }
+        },
+        "maxRootStepM": 0.031105019267852363,
+        "maxPlantedDriftM": 1.6380579777027133e-06,
+        "reachClamps": 0,
+        "surfaceCalls": 1707166,
+        "maxCallsPerPose": 6614,
+        "targetSpeedDiagnostic": {
+          "maxMPerS": 9.401849729035781,
+          "frame": 276,
+          "side": "R"
+        },
+        "kneeSpeedDiagnostic": {
+          "maxDegPerS": 3405.899824225762,
+          "frame": 276,
+          "side": "R"
+        },
+        "posesWithEitherKneeAbove150Deg": 15,
+        "posesWithEitherKneeAbove160Deg": 10,
+        "nativeAll537Critical": {
+          "poses": 7,
+          "rays": 3759,
+          "maxMinimumErrorM": 4.440892098500626e-16
+        },
+        "terrainReferences": {
+          "queries": 0,
+          "minGapM": null
+        }
+      },
+      "paired": {
+        "maxAbsoluteRootHeightDifference": {
+          "frame": 225,
+          "signedM": -0.00017952919006347656,
+          "currentM": 2.219882673900012,
+          "shorterM": 2.2197031447099485
+        },
+        "maxSamePoseKneeIncrease": {
+          "degrees": 12.220494744248967,
+          "frame": 287,
+          "side": "R",
+          "currentDeg": 119.82340161738618,
+          "shorterDeg": 132.04389636163515
+        },
+        "maxTargetDifference": {
+          "distanceM": 0.06585309362736201,
+          "frame": 441,
+          "side": "L",
+          "current": [
+            13.350295375230404,
+            4.465517533845692,
+            -4.9226926267322755
+          ],
+          "shorter": [
+            13.404796074602409,
+            4.461204214045792,
+            -4.959403646611329
+          ]
+        },
+        "callsPercentChange": -5.3014388676773105
+      }
+    },
+    "stairs-down": {
+      "clipShift": 0.05401469562928973,
+      "stanceTimingExact": true,
+      "current": {
+        "footprintAudit": {
+          "L": {
+            "heel": 0.0698,
+            "toe": 0.2007,
+            "latMin": -0.0574,
+            "latMax": 0.0832,
+            "soleVertices": 269
+          },
+          "R": {
+            "heel": 0.0695,
+            "toe": 0.2008,
+            "latMin": -0.081,
+            "latMax": 0.0589,
+            "soleVertices": 268
+          }
+        },
+        "selection": {
+          "total": 537,
+          "bySide": {
+            "L": 269,
+            "R": 268
+          },
+          "dominantAndSummedFamilyMatch": true,
+          "independentIndexFixtureMatch": true
+        },
+        "all537HitAndNonnegativeEveryPose": true,
+        "minimum": {
+          "frame": 191,
+          "gapM": 0.002091818433695103,
+          "side": "R",
+          "vertex": 50036,
+          "point": [
+            13.199557582671105,
+            4.115368129199563,
+            -4.835679686371796
+          ],
+          "mesh": "stairs-main-logs"
+        },
+        "maxKnee": {
+          "frame": 375,
+          "degrees": 168.60362432147687,
+          "bySide": {
+            "L": 43.661799347890124,
+            "R": 168.60362432147687
+          }
+        },
+        "maxRootStepM": 0.025100727391514255,
+        "maxPlantedDriftM": 1.431949205278771e-06,
+        "reachClamps": 0,
+        "surfaceCalls": 1776388,
+        "maxCallsPerPose": 8199,
+        "targetSpeedDiagnostic": {
+          "maxMPerS": 9.192065265674863,
+          "frame": 542,
+          "side": "L"
+        },
+        "kneeSpeedDiagnostic": {
+          "maxDegPerS": 4182.505665138998,
+          "frame": 542,
+          "side": "L"
+        },
+        "posesWithEitherKneeAbove150Deg": 20,
+        "posesWithEitherKneeAbove160Deg": 10,
+        "nativeAll537Critical": {
+          "poses": 11,
+          "rays": 5907,
+          "maxMinimumErrorM": 4.440892098500626e-16
+        },
+        "terrainReferences": {
+          "queries": 314,
+          "minGapM": 0.20387365193188833
+        }
+      },
+      "shorter": {
+        "footprintAudit": {
+          "L": {
+            "heel": 0.0698,
+            "toe": 0.1897,
+            "latMin": -0.0574,
+            "latMax": 0.0832,
+            "soleVertices": 269
+          },
+          "R": {
+            "heel": 0.0695,
+            "toe": 0.1897,
+            "latMin": -0.081,
+            "latMax": 0.0589,
+            "soleVertices": 268
+          }
+        },
+        "selection": {
+          "total": 537,
+          "bySide": {
+            "L": 269,
+            "R": 268
+          },
+          "dominantAndSummedFamilyMatch": true,
+          "independentIndexFixtureMatch": true
+        },
+        "all537HitAndNonnegativeEveryPose": true,
+        "minimum": {
+          "frame": 457,
+          "gapM": 0.0020679048368565933,
+          "side": "R",
+          "vertex": 49780,
+          "point": [
+            9.412196400722202,
+            1.6850393583377947,
+            -1.7960286546846658
+          ],
+          "mesh": "stairs-main-logs"
+        },
+        "maxKnee": {
+          "frame": 375,
+          "degrees": 168.3491385256088,
+          "bySide": {
+            "L": 43.661799347890124,
+            "R": 168.3491385256088
+          }
+        },
+        "maxRootStepM": 0.025100727391514255,
+        "maxPlantedDriftM": 1.431949205278771e-06,
+        "reachClamps": 0,
+        "surfaceCalls": 1711291,
+        "maxCallsPerPose": 7809,
+        "targetSpeedDiagnostic": {
+          "maxMPerS": 9.192065265674863,
+          "frame": 542,
+          "side": "L"
+        },
+        "kneeSpeedDiagnostic": {
+          "maxDegPerS": 4182.505665138998,
+          "frame": 542,
+          "side": "L"
+        },
+        "posesWithEitherKneeAbove150Deg": 20,
+        "posesWithEitherKneeAbove160Deg": 10,
+        "nativeAll537Critical": {
+          "poses": 11,
+          "rays": 5907,
+          "maxMinimumErrorM": 4.440892098500626e-16
+        },
+        "terrainReferences": {
+          "queries": 268,
+          "minGapM": 0.20508607813882124
+        }
+      },
+      "paired": {
+        "maxAbsoluteRootHeightDifference": {
+          "frame": 322,
+          "signedM": -0.0020895205153741436,
+          "currentM": 2.753455345099164,
+          "shorterM": 2.75136582458379
+        },
+        "maxSamePoseKneeIncrease": {
+          "degrees": 4.674574958925021,
+          "frame": 130,
+          "side": "L",
+          "currentDeg": 113.26150062399556,
+          "shorterDeg": 117.93607558292058
+        },
+        "maxTargetDifference": {
+          "distanceM": 0.01606337229410837,
+          "frame": 130,
+          "side": "L",
+          "current": [
+            14.228067901455205,
+            4.814374576536886,
+            -5.4062347604869645
+          ],
+          "shorter": [
+            14.228067901455205,
+            4.830437948830994,
+            -5.4062347604869645
+          ]
+        },
+        "callsPercentChange": -3.664571028401453
+      }
+    }
+  },
+  "limits": [
+    "Fixed 470 poses per direction (frames120\u2013589 afterwarmup80), same recorded route and phases.",
+    "Actual537 ankle/toe-family low-band vertices are checked; upper boot triangle/side collisions and arbitrary routes are not proved.",
+    "Flat proof is skeleton/root motion, not an independent vertex-to-ground sweep.",
+    "Local target/pose changes remain despite improved global peaks; native appearance and motion require parent review.",
+    "Instrumented surface-call totals are work counts, not FPS."
+  ],
+  "nativeExactCrossChecks": {
+    "current": {
+      "count": 7834,
+      "maxErrorM": 1.7763568394002505e-15,
+      "triangles": 80344,
+      "buckets": 115921
+    },
+    "shorter": {
+      "count": 7788,
+      "maxErrorM": 1.7763568394002505e-15,
+      "triangles": 80344,
+      "buckets": 115921
+    }
+  }
+}

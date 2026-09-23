@@ -1,0 +1,77 @@
+{
+  "views": [
+    "reconstructed-distant-up",
+    "w19-spine-u",
+    "distance-crown-119m",
+    "distance-crown-121m",
+    "F_canopy"
+  ],
+  "poses": {
+    "w19-spine-u": {
+      "p": [
+        4.68,
+        5.34,
+        -44.1
+      ],
+      "t": [
+        4.77,
+        15.34,
+        -45.1
+      ],
+      "fov": 46
+    },
+    "distance-crown-119m": {
+      "p": [
+        7.585529095665297,
+        105.51479429090838,
+        -31.297034236974483
+      ],
+      "t": [
+        35.616240619813254,
+        37.51479429090839,
+        -146.9485764292427
+      ],
+      "fov": 46
+    },
+    "distance-crown-121m": {
+      "p": [
+        7.114424700301466,
+        105.51479429090838,
+        -29.35331083878509
+      ],
+      "t": [
+        35.616240619813254,
+        37.51479429090839,
+        -146.9485764292427
+      ],
+      "fov": 46
+    },
+    "reconstructed-distant-up": {
+      "p": [
+        54.00101693066348,
+        21.992752345655013,
+        -165.33335274009295
+      ],
+      "t": [
+        35.616240619813254,
+        37.51479429090839,
+        -146.9485764292427
+      ],
+      "fov": 60
+    }
+  },
+  "variants": [
+    {
+      "name": "default"
+    }
+  ],
+  "probeViews": [
+    "reconstructed-distant-up",
+    "w19-spine-u"
+  ],
+  "sourceSha": "664f3418570f51dae5fcc9c2babbd8eb5cd1d0f4",
+  "baseline": true,
+  "dist": "gauntlet/tmp/crown-clarity-before-dist",
+  "bundle": "index-B1aAZhde.js",
+  "out": "art/environment/astra-distance-crown-clarity/before"
+}

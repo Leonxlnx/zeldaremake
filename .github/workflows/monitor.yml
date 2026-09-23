@@ -1,0 +1,133 @@
+# Director's Monitor — hourly CI-attested take + GitHub Pages deploy (GAUNTLET.md §1, §6; site/SCHEMA.md).
+#
+# Every hour (and on every push to main) this workflow builds main, captures the six hero viewpoints,
+# scores them, appends a `ci-monitor` entry to the ledger and publishes the take to the orphan
+# `monitor` branch (takes.json, agents.json, ledger.json, rubric.json, JPEGs), then builds the static
+# site from that data and deploys it to GitHub Pages.
+#
+# Notes
+# - `schedule` only fires on the DEFAULT branch (main). Feature branches get monitored once merged.
+# - The ledger on the `monitor` branch is the canonical hash chain (take.mjs merges the checkout's
+#   gauntlet/ledger.json into it on publish). This job does not commit back to main.
+# - Only entries written by this workflow carry `attestation.source: "ci"` and count toward the exit
+#   criteria (rules B2, D4). `npm run gauntlet:verify-exit` reads them from the monitor branch.
+# - GitHub Pages: `actions/configure-pages` tries to enable Pages with the job token
+#   (`enablement: true`). If the repository owner has not enabled Pages and the token lacks the
+#   permission, enable it ONCE by hand: Settings → Pages → Build and deployment → Source: "GitHub Actions".
+# - The monitor push uses the job token; `permissions.contents: write` is required for it.
+
+name: monitor
+
+on:
+  schedule:
+    - cron: '0 * * * *' # hourly, default branch only
+  workflow_dispatch:
+  push:
+    branches: [main]
+
+permissions:
+  contents: write
+  pages: write
+  id-token: write
+
+concurrency:
+  group: monitor
+  cancel-in-progress: false
+
+jobs:
+  take:
+    name: hourly take → monitor branch
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0 # verify-exit D5 diffs consecutive take SHAs; A3 walks rubric history
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+
+      - run: npm ci
+
+      - name: Locate the runner's Chrome
+        id: chrome
+        shell: bash
+        run: |
+          CHROME="$(command -v google-chrome || command -v google-chrome-stable || command -v chromium-browser || command -v chromium || true)"
+          echo "path=$CHROME" >> "$GITHUB_OUTPUT"
+
+      - name: Install Chrome (fallback)
+        if: steps.chrome.outputs.path == ''
+        id: setup-chrome
+        uses: browser-actions/setup-chrome@v1
+        with:
+          chrome-version: stable
+
+      - name: Export CHROME_PATH
+        shell: bash
+        run: |
+          CHROME="${{ steps.chrome.outputs.path }}"
+          if [ -z "$CHROME" ]; then CHROME="${{ steps.setup-chrome.outputs.chrome-path }}"; fi
+          echo "CHROME_PATH=$CHROME" >> "$GITHUB_ENV"
+          "$CHROME" --version
+
+      - name: Git identity for the monitor push
+        run: |
+          git config --global user.name gauntlet-bot
+          git config --global user.email gauntlet@zeldaremake
+
+      - run: npm run build
+
+      # --auto-note writes a ≥ 200-character note with the sha, date, changed files and the top 3
+      # metric deltas vs the previous take (rule D6). When main's sha is unchanged since the last
+      # monitor take, take.mjs only refreshes takes.json.updatedAt (heartbeat) so E3 stays green
+      # without inflating the ledger with duplicate SHAs.
+      # --settle 8 matches gauntlet.yml (local captures default to 90).
+      - name: Take (ci-monitor → monitor branch)
+        env:
+          GITHUB_TOKEN: ${{ github.token }} # take.mjs pushes .monitor/ with this token
+        run: node gauntlet/scripts/take.mjs --agent ci-monitor --items W37 --publish --auto-note --no-build --settle 8
+
+      - name: Upload the take
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: monitor-take-${{ github.run_number }}
+          path: gauntlet/out/last
+          if-no-files-found: ignore
+          retention-days: 14
+
+      - name: Build the Director's Monitor site
+        run: |
+          if [ ! -f site/build.mjs ]; then
+            echo "::error file=site/build.mjs::site/build.mjs is missing — the site agent must provide 'node site/build.mjs --data <monitorDir> --out <dir>' (see site/SCHEMA.md)"
+            exit 1
+          fi
+          node site/build.mjs --data .monitor/data --out site/dist
+          test -f site/dist/index.html || { echo "::error::site/build.mjs produced no site/dist/index.html"; exit 1; }
+          test -f site/dist/data/takes.json || echo "::warning::site/dist/data/takes.json missing — the site will show its waiting state"
+
+      - name: Configure Pages
+        id: pages
+        uses: actions/configure-pages@v5
+        with:
+          enablement: true
+        continue-on-error: true # fails when the token may not enable Pages — enable it once by hand (see header)
+
+      - uses: actions/upload-pages-artifact@v3
+        with:
+          path: site/dist
+
+  deploy:
+    name: deploy to GitHub Pages
+    needs: take
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - id: deployment
+        uses: actions/deploy-pages@v4

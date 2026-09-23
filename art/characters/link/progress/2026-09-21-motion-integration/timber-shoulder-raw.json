@@ -1,0 +1,54 @@
+{
+  "stoneTriangles": 14085,
+  "timberTriangles": 21280,
+  "stoneGrid": {
+    "flights": 1,
+    "cells": 1202728,
+    "covered": 390936,
+    "cellSize": 0.01,
+    "triangles": 10025
+  },
+  "fullGrid": {
+    "flights": 1,
+    "cells": 1218224,
+    "covered": 400089,
+    "cellSize": 0.01,
+    "triangles": 17570
+  },
+  "queries": 540,
+  "timberSamples": 491,
+  "stoneOnlyMaxDeltaM": 0,
+  "heightMaxDeltaM": 0,
+  "maxTimberUnderestimateM": 0.10871279444343829,
+  "worst": {
+    "step": 10,
+    "x": 11.495000000000001,
+    "z": -3.375,
+    "actual": 2.999342324396441,
+    "sampled": 2.890629529953003,
+    "normalY": 0.4675839654300394,
+    "faceIndex": 10881
+  },
+  "normalBands": {
+    "crownAtLeastHalf": {
+      "samples": 462,
+      "misses": 0,
+      "maxUnderestimateM": 2.3795944059656904e-7
+    },
+    "shoulderBelowHalf": {
+      "samples": 29,
+      "misses": 16,
+      "maxUnderestimateM": 0.10871279444343829
+    }
+  },
+  "misses": 16,
+  "inputs": {
+    "negative": false,
+    "candidate": false,
+    "rawSourceSha256": "68b85283fc864eb74143fceeece94a0600e3941cc1183bfb472a3bbedf80e27f",
+    "sourceSha256": "68b85283fc864eb74143fceeece94a0600e3941cc1183bfb472a3bbedf80e27f",
+    "baselineSha256": "e4f42855f69b921c30c744977cee3cad110f071a10a1808a16e8864cac8ca77f",
+    "gitHead": "59cba21b439a4a74e3d6f75a7989926c21d2bb74",
+    "createdAt": "2026-09-21T18:27:05.385Z"
+  }
+}

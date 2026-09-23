@@ -1,0 +1,476 @@
+{
+  "scene": "Link | September21 balanced torso",
+  "source_sha256": "e3ef74a02336b5f6952ed340e8191369284dacc92da9b5782dd9f3cb7dceb552",
+  "gait": "run",
+  "cycle_s": 0.4666666666666667,
+  "stride_m": 1.82,
+  "edited_bones": [
+    "chest",
+    "head"
+  ],
+  "rotation_only_bones": [
+    "chest",
+    "head"
+  ],
+  "shoulder_clearance_rad": 0.0,
+  "preserve_hips": true,
+  "source": "Quaternius Jog_Fwd_Loop",
+  "source_phase_offset": 0.078125,
+  "source_yaw_gain": 0.0525,
+  "leg_matrix_error": 0,
+  "head_orientation_error": 1.7881393432617188e-07,
+  "rows": [
+    {
+      "frame": 0,
+      "chest_yaw_rad": 0.02142571399865278
+    },
+    {
+      "frame": 1,
+      "chest_yaw_rad": 0.019210695943661496
+    },
+    {
+      "frame": 2,
+      "chest_yaw_rad": 0.016689068192640814
+    },
+    {
+      "frame": 3,
+      "chest_yaw_rad": 0.013946662679111337
+    },
+    {
+      "frame": 4,
+      "chest_yaw_rad": 0.011219969123626035
+    },
+    {
+      "frame": 5,
+      "chest_yaw_rad": 0.008506320066742033
+    },
+    {
+      "frame": 6,
+      "chest_yaw_rad": 0.005803005394123805
+    },
+    {
+      "frame": 7,
+      "chest_yaw_rad": 0.003165174747307494
+    },
+    {
+      "frame": 8,
+      "chest_yaw_rad": 0.0006043757386673943
+    },
+    {
+      "frame": 9,
+      "chest_yaw_rad": -0.001940606396879942
+    },
+    {
+      "frame": 10,
+      "chest_yaw_rad": -0.00447055465139765
+    },
+    {
+      "frame": 11,
+      "chest_yaw_rad": -0.0069865158141987575
+    },
+    {
+      "frame": 12,
+      "chest_yaw_rad": -0.009248219980152388
+    },
+    {
+      "frame": 13,
+      "chest_yaw_rad": -0.011117167144305664
+    },
+    {
+      "frame": 14,
+      "chest_yaw_rad": -0.012977832076905905
+    },
+    {
+      "frame": 15,
+      "chest_yaw_rad": -0.014829711072269412
+    },
+    {
+      "frame": 16,
+      "chest_yaw_rad": -0.016672421777237812
+    },
+    {
+      "frame": 17,
+      "chest_yaw_rad": -0.0183704088689341
+    },
+    {
+      "frame": 18,
+      "chest_yaw_rad": -0.019740758797118955
+    },
+    {
+      "frame": 19,
+      "chest_yaw_rad": -0.0211084687841374
+    },
+    {
+      "frame": 20,
+      "chest_yaw_rad": -0.022473417101049428
+    },
+    {
+      "frame": 21,
+      "chest_yaw_rad": -0.023835530725579767
+    },
+    {
+      "frame": 22,
+      "chest_yaw_rad": -0.02511058925677505
+    },
+    {
+      "frame": 23,
+      "chest_yaw_rad": -0.02605824156191037
+    },
+    {
+      "frame": 24,
+      "chest_yaw_rad": -0.02700758850628236
+    },
+    {
+      "frame": 25,
+      "chest_yaw_rad": -0.027958654279912152
+    },
+    {
+      "frame": 26,
+      "chest_yaw_rad": -0.02891149061174696
+    },
+    {
+      "frame": 27,
+      "chest_yaw_rad": -0.02982594709645234
+    },
+    {
+      "frame": 28,
+      "chest_yaw_rad": -0.030429387645264237
+    },
+    {
+      "frame": 29,
+      "chest_yaw_rad": -0.031035334085216134
+    },
+    {
+      "frame": 30,
+      "chest_yaw_rad": -0.03164376923085766
+    },
+    {
+      "frame": 31,
+      "chest_yaw_rad": -0.032254661709652716
+    },
+    {
+      "frame": 32,
+      "chest_yaw_rad": -0.03286079218366279
+    },
+    {
+      "frame": 33,
+      "chest_yaw_rad": -0.03316069485121992
+    },
+    {
+      "frame": 34,
+      "chest_yaw_rad": -0.033462344853569095
+    },
+    {
+      "frame": 35,
+      "chest_yaw_rad": -0.03376575643419273
+    },
+    {
+      "frame": 36,
+      "chest_yaw_rad": -0.03407086281037281
+    },
+    {
+      "frame": 37,
+      "chest_yaw_rad": -0.03437763895205828
+    },
+    {
+      "frame": 38,
+      "chest_yaw_rad": -0.03451726971446235
+    },
+    {
+      "frame": 39,
+      "chest_yaw_rad": -0.03464559144604632
+    },
+    {
+      "frame": 40,
+      "chest_yaw_rad": -0.03477489722620033
+    },
+    {
+      "frame": 41,
+      "chest_yaw_rad": -0.034905180046004625
+    },
+    {
+      "frame": 42,
+      "chest_yaw_rad": -0.035036409073734474
+    },
+    {
+      "frame": 43,
+      "chest_yaw_rad": -0.03508273890508414
+    },
+    {
+      "frame": 44,
+      "chest_yaw_rad": -0.035113313026989855
+    },
+    {
+      "frame": 45,
+      "chest_yaw_rad": -0.03514436567729331
+    },
+    {
+      "frame": 46,
+      "chest_yaw_rad": -0.03517588162639732
+    },
+    {
+      "frame": 47,
+      "chest_yaw_rad": -0.03520787880053512
+    },
+    {
+      "frame": 48,
+      "chest_yaw_rad": -0.03458453910317293
+    },
+    {
+      "frame": 49,
+      "chest_yaw_rad": -0.03374188036577006
+    },
+    {
+      "frame": 50,
+      "chest_yaw_rad": -0.03289827407093066
+    },
+    {
+      "frame": 51,
+      "chest_yaw_rad": -0.03205361410774319
+    },
+    {
+      "frame": 52,
+      "chest_yaw_rad": -0.031207862640282094
+    },
+    {
+      "frame": 53,
+      "chest_yaw_rad": -0.02914871646586404
+    },
+    {
+      "frame": 54,
+      "chest_yaw_rad": -0.026479721342697625
+    },
+    {
+      "frame": 55,
+      "chest_yaw_rad": -0.023828774946758842
+    },
+    {
+      "frame": 56,
+      "chest_yaw_rad": -0.021192651549130297
+    },
+    {
+      "frame": 57,
+      "chest_yaw_rad": -0.01856810720180683
+    },
+    {
+      "frame": 58,
+      "chest_yaw_rad": -0.015755026815040176
+    },
+    {
+      "frame": 59,
+      "chest_yaw_rad": -0.012801428853663307
+    },
+    {
+      "frame": 60,
+      "chest_yaw_rad": -0.009855005518310637
+    },
+    {
+      "frame": 61,
+      "chest_yaw_rad": -0.0069126441790955725
+    },
+    {
+      "frame": 62,
+      "chest_yaw_rad": -0.003971119662320864
+    },
+    {
+      "frame": 63,
+      "chest_yaw_rad": -0.0013160643530826072
+    },
+    {
+      "frame": 64,
+      "chest_yaw_rad": 0.0010261092278378225
+    },
+    {
+      "frame": 65,
+      "chest_yaw_rad": 0.0033721391933069387
+    },
+    {
+      "frame": 66,
+      "chest_yaw_rad": 0.005722756610946767
+    },
+    {
+      "frame": 67,
+      "chest_yaw_rad": 0.0080787421822803
+    },
+    {
+      "frame": 68,
+      "chest_yaw_rad": 0.01020185484895108
+    },
+    {
+      "frame": 69,
+      "chest_yaw_rad": 0.011950199585336801
+    },
+    {
+      "frame": 70,
+      "chest_yaw_rad": 0.013702799643219098
+    },
+    {
+      "frame": 71,
+      "chest_yaw_rad": 0.015459864960131162
+    },
+    {
+      "frame": 72,
+      "chest_yaw_rad": 0.01722161210566813
+    },
+    {
+      "frame": 73,
+      "chest_yaw_rad": 0.018831464889896118
+    },
+    {
+      "frame": 74,
+      "chest_yaw_rad": 0.020071047941490325
+    },
+    {
+      "frame": 75,
+      "chest_yaw_rad": 0.02131347399438833
+    },
+    {
+      "frame": 76,
+      "chest_yaw_rad": 0.022558817624898614
+    },
+    {
+      "frame": 77,
+      "chest_yaw_rad": 0.023807157982383715
+    },
+    {
+      "frame": 78,
+      "chest_yaw_rad": 0.024981064933932866
+    },
+    {
+      "frame": 79,
+      "chest_yaw_rad": 0.02585576690108239
+    },
+    {
+      "frame": 80,
+      "chest_yaw_rad": 0.026732176056810872
+    },
+    {
+      "frame": 81,
+      "chest_yaw_rad": 0.027610328318183587
+    },
+    {
+      "frame": 82,
+      "chest_yaw_rad": 0.02849021972078153
+    },
+    {
+      "frame": 83,
+      "chest_yaw_rad": 0.02933635771956637
+    },
+    {
+      "frame": 84,
+      "chest_yaw_rad": 0.029906529135829547
+    },
+    {
+      "frame": 85,
+      "chest_yaw_rad": 0.030477499507730803
+    },
+    {
+      "frame": 86,
+      "chest_yaw_rad": 0.03104927832990945
+    },
+    {
+      "frame": 87,
+      "chest_yaw_rad": 0.03162185460789092
+    },
+    {
+      "frame": 88,
+      "chest_yaw_rad": 0.03218967528305067
+    },
+    {
+      "frame": 89,
+      "chest_yaw_rad": 0.03251741675958854
+    },
+    {
+      "frame": 90,
+      "chest_yaw_rad": 0.03284544509542473
+    },
+    {
+      "frame": 91,
+      "chest_yaw_rad": 0.033173762015893
+    },
+    {
+      "frame": 92,
+      "chest_yaw_rad": 0.03350236171723156
+    },
+    {
+      "frame": 93,
+      "chest_yaw_rad": 0.03383124640338356
+    },
+    {
+      "frame": 94,
+      "chest_yaw_rad": 0.033975207268304615
+    },
+    {
+      "frame": 95,
+      "chest_yaw_rad": 0.034105679952504735
+    },
+    {
+      "frame": 96,
+      "chest_yaw_rad": 0.03423621529250944
+    },
+    {
+      "frame": 97,
+      "chest_yaw_rad": 0.034366813617644335
+    },
+    {
+      "frame": 98,
+      "chest_yaw_rad": 0.03449746441953526
+    },
+    {
+      "frame": 99,
+      "chest_yaw_rad": 0.03454867503933113
+    },
+    {
+      "frame": 100,
+      "chest_yaw_rad": 0.03458486566350377
+    },
+    {
+      "frame": 101,
+      "chest_yaw_rad": 0.034621066587190615
+    },
+    {
+      "frame": 102,
+      "chest_yaw_rad": 0.034657269523376284
+    },
+    {
+      "frame": 103,
+      "chest_yaw_rad": 0.03469348204127437
+    },
+    {
+      "frame": 104,
+      "chest_yaw_rad": 0.0339597980866875
+    },
+    {
+      "frame": 105,
+      "chest_yaw_rad": 0.03294935574331915
+    },
+    {
+      "frame": 106,
+      "chest_yaw_rad": 0.03194020312089789
+    },
+    {
+      "frame": 107,
+      "chest_yaw_rad": 0.030932176668779912
+    },
+    {
+      "frame": 108,
+      "chest_yaw_rad": 0.029925134786429046
+    },
+    {
+      "frame": 109,
+      "chest_yaw_rad": 0.02810463373608446
+    },
+    {
+      "frame": 110,
+      "chest_yaw_rad": 0.025870998349881102
+    },
+    {
+      "frame": 111,
+      "chest_yaw_rad": 0.02364527489891799
+    },
+    {
+      "frame": 112,
+      "chest_yaw_rad": 0.02142571399865278
+    }
+  ]
+}

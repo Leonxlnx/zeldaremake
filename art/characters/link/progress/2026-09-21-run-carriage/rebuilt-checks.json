@@ -1,0 +1,80 @@
+{
+  "hashes": {
+    "clean": "2459112603a935a038dd06a67de85d5c5e28c72188f50ebd4d6e304af236bfa4",
+    "before": "305603e92277952f345842e526216ff066b2b5888908eef054990199b6597a69",
+    "after": "89df38f255e47afbcbb28a60555fb4a4a20091741d427ef1d7b8ea1ac33f306b"
+  },
+  "maxStepBoundDeg": 2.9034433302205733,
+  "method": "113 uniformly spaced samples / 240 Hz; quaternion shortest-arc angles",
+  "bones": {
+    "shoulderL": {
+      "beforeMaxStepDeg": 29.5723779060996,
+      "afterMaxStepDeg": 1.3430763412824696,
+      "beforeStepsOver5Deg": 64,
+      "afterStepsOver5Deg": 0,
+      "maximumOriginalGridPoseDifferenceDeg": 0.00008229952823377434,
+      "rawLoopComponentsExact": true,
+      "rawLoopMaxComponentDifference": 0,
+      "rawLoopOrientationDifferenceDeg": 0
+    },
+    "elbowL": {
+      "beforeMaxStepDeg": 2.425152386489465,
+      "afterMaxStepDeg": 1.397368578952646,
+      "beforeStepsOver5Deg": 0,
+      "afterStepsOver5Deg": 0,
+      "maximumOriginalGridPoseDifferenceDeg": 0.000036262773032641635,
+      "rawLoopComponentsExact": false,
+      "rawLoopMaxComponentDifference": 9.313225746154785e-9,
+      "rawLoopOrientationDifferenceDeg": 0
+    },
+    "shoulderR": {
+      "beforeMaxStepDeg": 31.675887018479504,
+      "afterMaxStepDeg": 1.4263173748408555,
+      "beforeStepsOver5Deg": 64,
+      "afterStepsOver5Deg": 0,
+      "maximumOriginalGridPoseDifferenceDeg": 0.00006750753182304242,
+      "rawLoopComponentsExact": true,
+      "rawLoopMaxComponentDifference": 0,
+      "rawLoopOrientationDifferenceDeg": 0
+    },
+    "elbowR": {
+      "beforeMaxStepDeg": 2.3614616427233144,
+      "afterMaxStepDeg": 1.3545524255708064,
+      "beforeStepsOver5Deg": 0,
+      "afterStepsOver5Deg": 0,
+      "maximumOriginalGridPoseDifferenceDeg": 0.00004925319454719998,
+      "rawLoopComponentsExact": false,
+      "rawLoopMaxComponentDifference": 8.940696716308594e-8,
+      "rawLoopOrientationDifferenceDeg": 0.000014589290462454057
+    }
+  },
+  "invariants": {
+    "originalBinAndAccessorSpansExact": true,
+    "restRigMeshesMaterialsImagesExact": true,
+    "unchangedOtherClipsAndUnselectedRunChannels": true,
+    "changed": [
+      [
+        "shoulderL",
+        "rotation"
+      ],
+      [
+        "elbowL",
+        "rotation"
+      ],
+      [
+        "shoulderR",
+        "rotation"
+      ],
+      [
+        "elbowR",
+        "rotation"
+      ]
+    ],
+    "residual32FractionalKeysProven": true,
+    "cacheUpdateDoesNotFixHistoricalCurves": true,
+    "negativeControlRejected": true,
+    "candidatePass": true,
+    "inputBytes": 47814836,
+    "candidateBytes": 47825216
+  }
+}

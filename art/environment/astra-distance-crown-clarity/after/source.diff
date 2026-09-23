@@ -1,0 +1,98 @@
+diff --git a/src/world/trees/leaf-cluster-texture.ts b/src/world/trees/leaf-cluster-texture.ts
+index adc26c4d..196e072c 100644
+--- a/src/world/trees/leaf-cluster-texture.ts
++++ b/src/world/trees/leaf-cluster-texture.ts
+@@ -424,6 +424,27 @@ export function createFarCrownAtlas(rng: Rng, palette: LeafClusterPalette, size
+     const t = Math.min(1, Math.max(0, (x - a) / (b - a)));
+     return t * t * (3 - 2 * t);
+   };
++  // Use the existing leaf painter's silhouette for each clump. The old radial blobs became
++  // metre-wide blurred ovals when a walker stood under a depth-row crown. This small canvas
++  // never reaches the GPU; it is only a reusable alpha stamp in the same four-cell atlas.
++  // Its own fork leaves all established clump and leaflet draws below unchanged.
++  const tuft = createLeafClusterTexture(rng.fork('far-crown-tuft'), palette, 128);
++  const tuftCanvas = tuft.image as HTMLCanvasElement;
++  const stamp = document.createElement('canvas');
++  stamp.width = stamp.height = 128;
++  const sc = stamp.getContext('2d')!;
++  const paintTuft = (base: Color, alpha: number) => {
++    sc.globalCompositeOperation = 'source-over';
++    sc.clearRect(0, 0, 128, 128);
++    const tone = sc.createLinearGradient(0, 0, 0, 128);
++    tone.addColorStop(0, css(base.clone().multiplyScalar(1.1), alpha));
++    tone.addColorStop(1, css(base, alpha));
++    sc.fillStyle = tone;
++    sc.fillRect(0, 0, 128, 128);
++    sc.globalCompositeOperation = 'destination-in';
++    // Same card UV crop as the giant cluster: exclude the solid wood patch in its corner.
++    sc.drawImage(tuftCanvas, 128 * CARD_UV0, 0, 128 * (1 - CARD_UV0), 128 * (1 - CARD_UV0), 0, 0, 128, 128);
++  };
+ 
+   interface Clump {
+     x: number;
+@@ -443,8 +464,8 @@ export function createFarCrownAtlas(rng: Rng, palette: LeafClusterPalette, size
+     const oy = Math.floor(i / 2) * cell;
+     const columnar = i === 3;
+     const clumps: Clump[] = [];
+-    // body clumps: rejection-sampled inside the lobe union, denser toward the core; each is a
+-    // soft radial blob of 1–2 m (on a 20 m crown) with a few lighter leaflets on its upper half
++    // Body clumps keep the established centres/radii and are denser toward the core. Their
++    // margins now resolve into overlapping leaf blades and small gaps at close range.
+     const body = columnar ? 220 : 300;
+     let guard = 0;
+     while (clumps.length < body && guard++ < body * 60) {
+@@ -486,21 +507,14 @@ export function createFarCrownAtlas(rng: Rng, palette: LeafClusterPalette, size
+       const px = ox + c.x * cell;
+       const py = oy + c.y * cell;
+       const pr = c.r * cell;
+-      // shadow under the clump: a darker soft blob offset down (the leaf mass over the one below)
+-      const under = ctx.createRadialGradient(px, py + pr * 0.45, 0, px, py + pr * 0.45, pr * 0.95);
+       const dark = base.clone().multiplyScalar(0.62);
+-      under.addColorStop(0, css(dark, c.alpha * 0.55));
+-      under.addColorStop(1, css(dark, 0));
+-      ctx.fillStyle = under;
+-      ctx.fillRect(px - pr, py - pr * 0.5, pr * 2, pr * 2);
+-      // the clump body
+-      const g = ctx.createRadialGradient(px, py, 0, px, py, pr);
+-      g.addColorStop(0, css(base, c.alpha));
+-      g.addColorStop(0.5, css(base.clone().multiplyScalar(0.96), c.alpha * 0.85));
+-      g.addColorStop(1, css(base, 0));
+-      ctx.fillStyle = g;
+-      ctx.fillRect(px - pr, py - pr, pr * 2, pr * 2);
+-      // leaflets over the upper half: small lighter dabs (leaf clumps catching the sky)
++      // The offset leaf mass below supplies self-shade without a circular blurred halo.
++      paintTuft(dark, c.alpha * 0.55);
++      ctx.drawImage(stamp, px - pr * 0.95, py - pr * 0.5, pr * 1.9, pr * 1.9);
++      paintTuft(base, c.alpha);
++      ctx.drawImage(stamp, px - pr, py - pr, pr * 2, pr * 2);
++      // Small lit blades use the same teardrop outline as createLeafClusterTexture. Keep the
++      // original leaflet stream and footprint, but let the margins end at a leaf edge.
+       const leaflets = 4 + r.int(0, 5);
+       const lit = base.clone().lerp(sun, 0.2).multiplyScalar(1.1);
+       for (let k = 0; k < leaflets; k++) {
+@@ -513,18 +527,19 @@ export function createFarCrownAtlas(rng: Rng, palette: LeafClusterPalette, size
+         ctx.save();
+         ctx.translate(lx, ly);
+         ctx.rotate(r() * Math.PI);
+-        const lg = ctx.createRadialGradient(0, 0, 0, 0, 0, ll);
+-        lg.addColorStop(0, css(lit, c.alpha * 0.6));
+-        lg.addColorStop(1, css(lit, 0));
+-        ctx.fillStyle = lg;
+-        ctx.scale(1, lw / ll);
++        ctx.translate(0, -ll * 0.5);
+         ctx.beginPath();
+-        ctx.arc(0, 0, ll, 0, Math.PI * 2);
++        ctx.moveTo(0, 0);
++        ctx.quadraticCurveTo(lw * 0.62, ll * 0.28, lw * 0.1, ll);
++        ctx.quadraticCurveTo(-lw * 0.62, ll * 0.28, 0, 0);
++        ctx.closePath();
++        ctx.fillStyle = css(lit, c.alpha * 0.8);
+         ctx.fill();
+         ctx.restore();
+       }
+     }
+   }
++  tuft.dispose();
+ 
+   // alpha bleed: the RGB under transparent and near-transparent texels becomes the cell's mean
+   // leaf colour, so bilinear / mip filtering across the fringe never pulls toward black; rows

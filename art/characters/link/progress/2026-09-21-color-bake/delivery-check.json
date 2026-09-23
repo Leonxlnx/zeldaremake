@@ -1,0 +1,10 @@
+{
+  "rejectsWrongHash": true,
+  "rejectsAlreadyBakedInput": true,
+  "rejectsInputOverwrite": true,
+  "rejectsExistingOutputWithoutChangingIt": true,
+  "rejectedInvocationsCreatedNoOutput": true,
+  "sourceAndDeliveryHashesStillExact": true,
+  "appendOnlyArchivesPreserved": true,
+  "sharedSerializerByteExact": true
+}

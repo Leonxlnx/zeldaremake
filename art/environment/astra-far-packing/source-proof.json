@@ -1,0 +1,14 @@
+{
+  "base": "6231cffbfec78d405cb3e83064bf3f68c7daca8d",
+  "changed": [
+    "src/world/vegetation/plants.ts"
+  ],
+  "executableChange": "Only ferns far, ferns-north far and tufts far PACKS entries change to existing SINGLE helpers; compared with TypeScript printer removing comments.",
+  "unchanged": "All other production paths, source geometries, placement, materials, wind, culling helper, LOD ranges and shadows.",
+  "checks": [
+    "Existing lodset.test copies all selected source position/normal/UV data and indices verbatim, preserves transforms/colors/instance counts through forced LOD switches, validates slots/bounds/shadow bindings.",
+    "Existing materials.test verifies collapse/wind preservation.",
+    "Existing plants.test builds real source geometry and placement contracts."
+  ],
+  "remainingRisk": "Opaque pack centres can change sort order at equal-depth ties. Completed native A/F comparison found zero changed RGB pixels; other cameras and the combined tree integration remain separate validation."
+}

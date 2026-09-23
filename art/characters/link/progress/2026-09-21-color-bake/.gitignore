@@ -1,0 +1,5 @@
+# Full derivative archives stay local; reproduce from the hashed source and saved PNGs.
+*.glb
+source-*-color.png
+baked-hardware-body-color.png
+baked-face-orbital-color.png

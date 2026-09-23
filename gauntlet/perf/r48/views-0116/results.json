@@ -1,0 +1,1077 @@
+{
+  "git": {
+    "sha": "941597c1",
+    "branch": "agent/fable-6-monitor-perf"
+  },
+  "startedAt": "2026-09-19T21:04:27.996Z",
+  "dist": "E:\\zeldaremake-fable-6\\.wt\\w0116\\dist",
+  "width": 1280,
+  "height": 720,
+  "settle": 8,
+  "timed": 20,
+  "simTime": 12.5,
+  "configs": [
+    "baseline"
+  ],
+  "ref": "baseline",
+  "views": [
+    "A_stairs",
+    "B_house",
+    "C_lookback",
+    "D_log",
+    "E_ground",
+    "F_canopy"
+  ],
+  "results": [
+    {
+      "viewpoint": "A_stairs",
+      "params": "",
+      "width": 1280,
+      "height": 720,
+      "settle": 8,
+      "simTime": 12.5,
+      "readyMs": 131786,
+      "renderMs": 1025,
+      "timing": {
+        "frames": 20,
+        "medianMs": 154,
+        "minMs": 121.5,
+        "maxMs": 193.5,
+        "issueMedianMs": 43.4,
+        "perFrame": [
+          174.2,
+          139,
+          130.7,
+          178.9,
+          193.5,
+          149.7,
+          156.1,
+          138.5,
+          146,
+          148.8,
+          154,
+          133,
+          151.7,
+          179.2,
+          152.4,
+          179.8,
+          158.8,
+          181.1,
+          121.5,
+          164.3
+        ]
+      },
+      "ab": null,
+      "png": {
+        "file": "E:\\zeldaremake-fable-6\\gauntlet\\perf\\r48\\views-0116\\A_stairs.baseline.png",
+        "bytes": 1360780
+      },
+      "stats": {
+        "simTime": 12.63333333333334,
+        "drawCalls": 521,
+        "triangles": 8796924,
+        "geometries": 359,
+        "textures": 82,
+        "programs": 91,
+        "width": 1280,
+        "height": 720,
+        "pixelRatio": 1
+      },
+      "flags": {},
+      "tier": "high",
+      "perfState": {
+        "flags": {},
+        "tier": "high",
+        "version": 0,
+        "fx": {
+          "ao": true,
+          "rays": true,
+          "bloom": true,
+          "soft": true
+        },
+        "shadowMapSize": 4096,
+        "shadowTaps": 12,
+        "vegLodScale": 1,
+        "grassDensity": 1,
+        "renderScale": 1
+      },
+      "stepMs": {
+        "step": 47.80000001192093,
+        "update": 6.600000023841858,
+        "render": 41.19999998807907
+      },
+      "lighting": {
+        "shadows": true,
+        "shadowMapSize": 4096,
+        "filterTaps": 12,
+        "searchTaps": 8,
+        "dynamic": false
+      },
+      "postfx": {
+        "resolution": [
+          1280,
+          720
+        ],
+        "stagesEnabled": {
+          "ao": true,
+          "rays": true,
+          "bloom": true,
+          "soft": false
+        },
+        "aoResolution": [
+          640,
+          360
+        ],
+        "godRayResolution": [
+          320,
+          180
+        ],
+        "softeningGrid": [
+          640,
+          360
+        ],
+        "shadowCasterCull": true,
+        "shadowCastersTested": 178,
+        "shadowCastersCulled": 4
+      },
+      "vegetation": {
+        "drawCalls": 108,
+        "triangles": 2112359
+      },
+      "sceneTriangles": 8467925,
+      "isolate": {
+        "terrain": {
+          "system": "terrain",
+          "drawCalls": 37,
+          "triangles": 743474,
+          "found": true
+        },
+        "hardscape": {
+          "system": "hardscape",
+          "drawCalls": 12,
+          "triangles": 776338,
+          "found": true
+        },
+        "rocks": {
+          "system": "rocks",
+          "drawCalls": 26,
+          "triangles": 415240,
+          "found": true
+        },
+        "trees": {
+          "system": "trees",
+          "drawCalls": 66,
+          "triangles": 2853083,
+          "found": true
+        },
+        "structures": {
+          "system": "structures",
+          "drawCalls": 103,
+          "triangles": 1810552,
+          "found": true
+        },
+        "vegetation": {
+          "system": "vegetation",
+          "drawCalls": 108,
+          "triangles": 2112359,
+          "found": true
+        },
+        "props": {
+          "system": "props",
+          "drawCalls": 28,
+          "triangles": 28724,
+          "found": true
+        },
+        "character": {
+          "system": "character",
+          "drawCalls": 129,
+          "triangles": 165436,
+          "found": true
+        },
+        "atmosphere": {
+          "system": "atmosphere",
+          "drawCalls": 4,
+          "triangles": 6816,
+          "found": true
+        }
+      },
+      "config": "baseline",
+      "wallMs": 196950
+    },
+    {
+      "viewpoint": "B_house",
+      "params": "",
+      "width": 1280,
+      "height": 720,
+      "settle": 8,
+      "simTime": 12.5,
+      "readyMs": 69432,
+      "renderMs": 625,
+      "timing": {
+        "frames": 20,
+        "medianMs": 99.6,
+        "minMs": 88.4,
+        "maxMs": 118.5,
+        "issueMedianMs": 30.4,
+        "perFrame": [
+          118.5,
+          103.4,
+          98.6,
+          96.4,
+          90.6,
+          88.4,
+          91.5,
+          90.1,
+          91.3,
+          97,
+          101.8,
+          99.6,
+          98.3,
+          99.3,
+          100.1,
+          103,
+          101.7,
+          101,
+          101.4,
+          102.6
+        ]
+      },
+      "ab": null,
+      "png": {
+        "file": "E:\\zeldaremake-fable-6\\gauntlet\\perf\\r48\\views-0116\\B_house.baseline.png",
+        "bytes": 1348364
+      },
+      "stats": {
+        "simTime": 12.63333333333334,
+        "drawCalls": 479,
+        "triangles": 7943574,
+        "geometries": 385,
+        "textures": 82,
+        "programs": 91,
+        "width": 1280,
+        "height": 720,
+        "pixelRatio": 1
+      },
+      "flags": {},
+      "tier": "high",
+      "perfState": {
+        "flags": {},
+        "tier": "high",
+        "version": 0,
+        "fx": {
+          "ao": true,
+          "rays": true,
+          "bloom": true,
+          "soft": true
+        },
+        "shadowMapSize": 4096,
+        "shadowTaps": 12,
+        "vegLodScale": 1,
+        "grassDensity": 1,
+        "renderScale": 1
+      },
+      "stepMs": {
+        "step": 62.19999998807907,
+        "update": 12,
+        "render": 50.19999998807907
+      },
+      "lighting": {
+        "shadows": true,
+        "shadowMapSize": 4096,
+        "filterTaps": 12,
+        "searchTaps": 8,
+        "dynamic": false
+      },
+      "postfx": {
+        "resolution": [
+          1280,
+          720
+        ],
+        "stagesEnabled": {
+          "ao": true,
+          "rays": true,
+          "bloom": true,
+          "soft": false
+        },
+        "aoResolution": [
+          640,
+          360
+        ],
+        "godRayResolution": [
+          320,
+          180
+        ],
+        "softeningGrid": [
+          640,
+          360
+        ],
+        "shadowCasterCull": true,
+        "shadowCastersTested": 175,
+        "shadowCastersCulled": 25
+      },
+      "vegetation": {
+        "drawCalls": 104,
+        "triangles": 1730737
+      },
+      "sceneTriangles": 8105021,
+      "isolate": {
+        "terrain": {
+          "system": "terrain",
+          "drawCalls": 36,
+          "triangles": 714674,
+          "found": true
+        },
+        "hardscape": {
+          "system": "hardscape",
+          "drawCalls": 12,
+          "triangles": 776338,
+          "found": true
+        },
+        "rocks": {
+          "system": "rocks",
+          "drawCalls": 25,
+          "triangles": 463100,
+          "found": true
+        },
+        "trees": {
+          "system": "trees",
+          "drawCalls": 56,
+          "triangles": 2460621,
+          "found": true
+        },
+        "structures": {
+          "system": "structures",
+          "drawCalls": 100,
+          "triangles": 1799992,
+          "found": true
+        },
+        "vegetation": {
+          "system": "vegetation",
+          "drawCalls": 104,
+          "triangles": 1730737,
+          "found": true
+        },
+        "props": {
+          "system": "props",
+          "drawCalls": 25,
+          "triangles": 25668,
+          "found": true
+        },
+        "character": {
+          "system": "character",
+          "drawCalls": 129,
+          "triangles": 165392,
+          "found": true
+        },
+        "atmosphere": {
+          "system": "atmosphere",
+          "drawCalls": 4,
+          "triangles": 6816,
+          "found": true
+        }
+      },
+      "config": "baseline",
+      "wallMs": 75767
+    },
+    {
+      "viewpoint": "C_lookback",
+      "params": "",
+      "width": 1280,
+      "height": 720,
+      "settle": 8,
+      "simTime": 12.5,
+      "readyMs": 76345,
+      "renderMs": 414,
+      "timing": {
+        "frames": 20,
+        "medianMs": 84.8,
+        "minMs": 79.6,
+        "maxMs": 95.3,
+        "issueMedianMs": 18,
+        "perFrame": [
+          95.3,
+          87.3,
+          94.5,
+          87.6,
+          86.8,
+          84.6,
+          84,
+          87.4,
+          80.3,
+          82.9,
+          81.1,
+          86.5,
+          79.6,
+          85.4,
+          82.1,
+          81.2,
+          82.7,
+          84.4,
+          86.3,
+          84.8
+        ]
+      },
+      "ab": null,
+      "png": {
+        "file": "E:\\zeldaremake-fable-6\\gauntlet\\perf\\r48\\views-0116\\C_lookback.baseline.png",
+        "bytes": 1238607
+      },
+      "stats": {
+        "simTime": 12.63333333333334,
+        "drawCalls": 363,
+        "triangles": 7372192,
+        "geometries": 399,
+        "textures": 82,
+        "programs": 91,
+        "width": 1280,
+        "height": 720,
+        "pixelRatio": 1
+      },
+      "flags": {},
+      "tier": "high",
+      "perfState": {
+        "flags": {},
+        "tier": "high",
+        "version": 0,
+        "fx": {
+          "ao": true,
+          "rays": true,
+          "bloom": true,
+          "soft": true
+        },
+        "shadowMapSize": 4096,
+        "shadowTaps": 12,
+        "vegLodScale": 1,
+        "grassDensity": 1,
+        "renderScale": 1
+      },
+      "stepMs": {
+        "step": 49.299999952316284,
+        "update": 21.899999976158142,
+        "render": 27.399999976158142
+      },
+      "lighting": {
+        "shadows": true,
+        "shadowMapSize": 4096,
+        "filterTaps": 12,
+        "searchTaps": 8,
+        "dynamic": false
+      },
+      "postfx": {
+        "resolution": [
+          1280,
+          720
+        ],
+        "stagesEnabled": {
+          "ao": true,
+          "rays": true,
+          "bloom": true,
+          "soft": false
+        },
+        "aoResolution": [
+          640,
+          360
+        ],
+        "godRayResolution": [
+          320,
+          180
+        ],
+        "softeningGrid": [
+          640,
+          360
+        ],
+        "shadowCasterCull": true,
+        "shadowCastersTested": 179,
+        "shadowCastersCulled": 64
+      },
+      "vegetation": {
+        "drawCalls": 106,
+        "triangles": 2151380
+      },
+      "sceneTriangles": 8463547,
+      "isolate": {
+        "terrain": {
+          "system": "terrain",
+          "drawCalls": 39,
+          "triangles": 776882,
+          "found": true
+        },
+        "hardscape": {
+          "system": "hardscape",
+          "drawCalls": 12,
+          "triangles": 776338,
+          "found": true
+        },
+        "rocks": {
+          "system": "rocks",
+          "drawCalls": 25,
+          "triangles": 437460,
+          "found": true
+        },
+        "trees": {
+          "system": "trees",
+          "drawCalls": 57,
+          "triangles": 2458313,
+          "found": true
+        },
+        "structures": {
+          "system": "structures",
+          "drawCalls": 51,
+          "triangles": 1123970,
+          "found": true
+        },
+        "vegetation": {
+          "system": "vegetation",
+          "drawCalls": 106,
+          "triangles": 2151380,
+          "found": true
+        },
+        "props": {
+          "system": "props",
+          "drawCalls": 15,
+          "triangles": 16508,
+          "found": true
+        },
+        "character": {
+          "system": "character",
+          "drawCalls": 101,
+          "triangles": 159298,
+          "found": true
+        },
+        "atmosphere": {
+          "system": "atmosphere",
+          "drawCalls": 4,
+          "triangles": 6816,
+          "found": true
+        }
+      },
+      "config": "baseline",
+      "wallMs": 82757
+    },
+    {
+      "viewpoint": "D_log",
+      "params": "",
+      "width": 1280,
+      "height": 720,
+      "settle": 8,
+      "simTime": 12.5,
+      "readyMs": 73902,
+      "renderMs": 473,
+      "timing": {
+        "frames": 20,
+        "medianMs": 91.2,
+        "minMs": 82.6,
+        "maxMs": 100.6,
+        "issueMedianMs": 17.8,
+        "perFrame": [
+          90.3,
+          82.6,
+          83.5,
+          87.8,
+          88.2,
+          86.4,
+          88.8,
+          88.6,
+          88.5,
+          95.8,
+          94.6,
+          93.8,
+          100.6,
+          92,
+          85.1,
+          92.8,
+          91.2,
+          95.4,
+          93.7,
+          95
+        ]
+      },
+      "ab": null,
+      "png": {
+        "file": "E:\\zeldaremake-fable-6\\gauntlet\\perf\\r48\\views-0116\\D_log.baseline.png",
+        "bytes": 1299612
+      },
+      "stats": {
+        "simTime": 12.63333333333334,
+        "drawCalls": 354,
+        "triangles": 8123365,
+        "geometries": 388,
+        "textures": 82,
+        "programs": 91,
+        "width": 1280,
+        "height": 720,
+        "pixelRatio": 1
+      },
+      "flags": {},
+      "tier": "high",
+      "perfState": {
+        "flags": {},
+        "tier": "high",
+        "version": 0,
+        "fx": {
+          "ao": true,
+          "rays": true,
+          "bloom": true,
+          "soft": true
+        },
+        "shadowMapSize": 4096,
+        "shadowTaps": 12,
+        "vegLodScale": 1,
+        "grassDensity": 1,
+        "renderScale": 1
+      },
+      "stepMs": {
+        "step": 40.39999997615814,
+        "update": 12.5,
+        "render": 27.80000001192093
+      },
+      "lighting": {
+        "shadows": true,
+        "shadowMapSize": 4096,
+        "filterTaps": 12,
+        "searchTaps": 8,
+        "dynamic": false
+      },
+      "postfx": {
+        "resolution": [
+          1280,
+          720
+        ],
+        "stagesEnabled": {
+          "ao": true,
+          "rays": true,
+          "bloom": true,
+          "soft": false
+        },
+        "aoResolution": [
+          640,
+          360
+        ],
+        "godRayResolution": [
+          320,
+          180
+        ],
+        "softeningGrid": [
+          640,
+          360
+        ],
+        "shadowCasterCull": true,
+        "shadowCastersTested": 175,
+        "shadowCastersCulled": 71
+      },
+      "vegetation": {
+        "drawCalls": 106,
+        "triangles": 1876316
+      },
+      "sceneTriangles": 8243897,
+      "isolate": {
+        "terrain": {
+          "system": "terrain",
+          "drawCalls": 33,
+          "triangles": 652466,
+          "found": true
+        },
+        "hardscape": {
+          "system": "hardscape",
+          "drawCalls": 11,
+          "triangles": 762253,
+          "found": true
+        },
+        "rocks": {
+          "system": "rocks",
+          "drawCalls": 25,
+          "triangles": 400660,
+          "found": true
+        },
+        "trees": {
+          "system": "trees",
+          "drawCalls": 60,
+          "triangles": 2580902,
+          "found": true
+        },
+        "structures": {
+          "system": "structures",
+          "drawCalls": 87,
+          "triangles": 1910304,
+          "found": true
+        },
+        "vegetation": {
+          "system": "vegetation",
+          "drawCalls": 106,
+          "triangles": 1876316,
+          "found": true
+        },
+        "props": {
+          "system": "props",
+          "drawCalls": 15,
+          "triangles": 16508,
+          "found": true
+        },
+        "character": {
+          "system": "character",
+          "drawCalls": 72,
+          "triangles": 153104,
+          "found": true
+        },
+        "atmosphere": {
+          "system": "atmosphere",
+          "drawCalls": 4,
+          "triangles": 6816,
+          "found": true
+        }
+      },
+      "config": "baseline",
+      "wallMs": 79341
+    },
+    {
+      "viewpoint": "E_ground",
+      "params": "",
+      "width": 1280,
+      "height": 720,
+      "settle": 8,
+      "simTime": 12.5,
+      "readyMs": 73242,
+      "renderMs": 530,
+      "timing": {
+        "frames": 20,
+        "medianMs": 98,
+        "minMs": 87.8,
+        "maxMs": 108,
+        "issueMedianMs": 30.8,
+        "perFrame": [
+          99.9,
+          89.5,
+          90.3,
+          87.8,
+          92.9,
+          88.9,
+          88.2,
+          100.5,
+          104.2,
+          108,
+          98.6,
+          94.8,
+          100.2,
+          96.2,
+          97,
+          97.4,
+          101.2,
+          105.4,
+          98.4,
+          98
+        ]
+      },
+      "ab": null,
+      "png": {
+        "file": "E:\\zeldaremake-fable-6\\gauntlet\\perf\\r48\\views-0116\\E_ground.baseline.png",
+        "bytes": 1348364
+      },
+      "stats": {
+        "simTime": 12.63333333333334,
+        "drawCalls": 479,
+        "triangles": 7943574,
+        "geometries": 385,
+        "textures": 82,
+        "programs": 91,
+        "width": 1280,
+        "height": 720,
+        "pixelRatio": 1
+      },
+      "flags": {},
+      "tier": "high",
+      "perfState": {
+        "flags": {},
+        "tier": "high",
+        "version": 0,
+        "fx": {
+          "ao": true,
+          "rays": true,
+          "bloom": true,
+          "soft": true
+        },
+        "shadowMapSize": 4096,
+        "shadowTaps": 12,
+        "vegLodScale": 1,
+        "grassDensity": 1,
+        "renderScale": 1
+      },
+      "stepMs": {
+        "step": 38.69999998807907,
+        "update": 8.5,
+        "render": 30.19999998807907
+      },
+      "lighting": {
+        "shadows": true,
+        "shadowMapSize": 4096,
+        "filterTaps": 12,
+        "searchTaps": 8,
+        "dynamic": false
+      },
+      "postfx": {
+        "resolution": [
+          1280,
+          720
+        ],
+        "stagesEnabled": {
+          "ao": true,
+          "rays": true,
+          "bloom": true,
+          "soft": false
+        },
+        "aoResolution": [
+          640,
+          360
+        ],
+        "godRayResolution": [
+          320,
+          180
+        ],
+        "softeningGrid": [
+          640,
+          360
+        ],
+        "shadowCasterCull": true,
+        "shadowCastersTested": 175,
+        "shadowCastersCulled": 25
+      },
+      "vegetation": {
+        "drawCalls": 104,
+        "triangles": 1730737
+      },
+      "sceneTriangles": 8105351,
+      "isolate": {
+        "terrain": {
+          "system": "terrain",
+          "drawCalls": 36,
+          "triangles": 714674,
+          "found": true
+        },
+        "hardscape": {
+          "system": "hardscape",
+          "drawCalls": 12,
+          "triangles": 776338,
+          "found": true
+        },
+        "rocks": {
+          "system": "rocks",
+          "drawCalls": 25,
+          "triangles": 463100,
+          "found": true
+        },
+        "trees": {
+          "system": "trees",
+          "drawCalls": 56,
+          "triangles": 2460621,
+          "found": true
+        },
+        "structures": {
+          "system": "structures",
+          "drawCalls": 100,
+          "triangles": 1799992,
+          "found": true
+        },
+        "vegetation": {
+          "system": "vegetation",
+          "drawCalls": 104,
+          "triangles": 1730737,
+          "found": true
+        },
+        "props": {
+          "system": "props",
+          "drawCalls": 25,
+          "triangles": 25668,
+          "found": true
+        },
+        "character": {
+          "system": "character",
+          "drawCalls": 129,
+          "triangles": 165392,
+          "found": true
+        },
+        "atmosphere": {
+          "system": "atmosphere",
+          "drawCalls": 4,
+          "triangles": 6816,
+          "found": true
+        }
+      },
+      "config": "baseline",
+      "wallMs": 79071
+    },
+    {
+      "viewpoint": "F_canopy",
+      "params": "",
+      "width": 1280,
+      "height": 720,
+      "settle": 8,
+      "simTime": 12.5,
+      "readyMs": 74723,
+      "renderMs": 490,
+      "timing": {
+        "frames": 20,
+        "medianMs": 78.9,
+        "minMs": 72.2,
+        "maxMs": 86.9,
+        "issueMedianMs": 20.8,
+        "perFrame": [
+          86.9,
+          83.5,
+          78.9,
+          74.6,
+          76.3,
+          79.2,
+          86,
+          85.8,
+          79.2,
+          76,
+          78.6,
+          72.2,
+          73,
+          83,
+          80.8,
+          75.8,
+          76.9,
+          74.9,
+          78.9,
+          78.5
+        ]
+      },
+      "ab": null,
+      "png": {
+        "file": "E:\\zeldaremake-fable-6\\gauntlet\\perf\\r48\\views-0116\\F_canopy.baseline.png",
+        "bytes": 1318324
+      },
+      "stats": {
+        "simTime": 12.63333333333334,
+        "drawCalls": 468,
+        "triangles": 8258703,
+        "geometries": 375,
+        "textures": 82,
+        "programs": 91,
+        "width": 1280,
+        "height": 720,
+        "pixelRatio": 1
+      },
+      "flags": {},
+      "tier": "high",
+      "perfState": {
+        "flags": {},
+        "tier": "high",
+        "version": 0,
+        "fx": {
+          "ao": true,
+          "rays": true,
+          "bloom": true,
+          "soft": true
+        },
+        "shadowMapSize": 4096,
+        "shadowTaps": 12,
+        "vegLodScale": 1,
+        "grassDensity": 1,
+        "renderScale": 1
+      },
+      "stepMs": {
+        "step": 55.40000003576279,
+        "update": 18.900000035762787,
+        "render": 36.5
+      },
+      "lighting": {
+        "shadows": true,
+        "shadowMapSize": 4096,
+        "filterTaps": 12,
+        "searchTaps": 8,
+        "dynamic": false
+      },
+      "postfx": {
+        "resolution": [
+          1280,
+          720
+        ],
+        "stagesEnabled": {
+          "ao": true,
+          "rays": true,
+          "bloom": true,
+          "soft": false
+        },
+        "aoResolution": [
+          640,
+          360
+        ],
+        "godRayResolution": [
+          320,
+          180
+        ],
+        "softeningGrid": [
+          640,
+          360
+        ],
+        "shadowCasterCull": true,
+        "shadowCastersTested": 181,
+        "shadowCastersCulled": 21
+      },
+      "vegetation": {
+        "drawCalls": 104,
+        "triangles": 2229406
+      },
+      "sceneTriangles": 8618451,
+      "isolate": {
+        "terrain": {
+          "system": "terrain",
+          "drawCalls": 38,
+          "triangles": 748082,
+          "found": true
+        },
+        "hardscape": {
+          "system": "hardscape",
+          "drawCalls": 11,
+          "triangles": 775190,
+          "found": true
+        },
+        "rocks": {
+          "system": "rocks",
+          "drawCalls": 25,
+          "triangles": 400660,
+          "found": true
+        },
+        "trees": {
+          "system": "trees",
+          "drawCalls": 65,
+          "triangles": 2455661,
+          "found": true
+        },
+        "structures": {
+          "system": "structures",
+          "drawCalls": 78,
+          "triangles": 1574388,
+          "found": true
+        },
+        "vegetation": {
+          "system": "vegetation",
+          "drawCalls": 104,
+          "triangles": 2229406,
+          "found": true
+        },
+        "props": {
+          "system": "props",
+          "drawCalls": 23,
+          "triangles": 22024,
+          "found": true
+        },
+        "character": {
+          "system": "character",
+          "drawCalls": 129,
+          "triangles": 165436,
+          "found": true
+        },
+        "atmosphere": {
+          "system": "atmosphere",
+          "drawCalls": 4,
+          "triangles": 6816,
+          "found": true
+        }
+      },
+      "config": "baseline",
+      "wallMs": 79935
+    }
+  ]
+}

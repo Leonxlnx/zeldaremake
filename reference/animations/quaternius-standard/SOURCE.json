@@ -1,0 +1,24 @@
+{
+  "mirrorCommit": "e24c23cf2a1323488a3faa226ea7ea21f644b73e",
+  "official": "https://quaternius.com/packs/universalanimationlibrary.html",
+  "mirror": "https://github.com/J-Ponzo/gltf-universal-animation-library",
+  "retrievedUTC": "2026-09-16T05:00:21.9312494Z",
+  "files": [
+    {
+      "name": "AnimationLibrary_Godot_Standard.bin",
+      "sha256": "6E65377D81558333C4093DBB144A48FD19019343D82B1A3A7992A98EC0E0543C"
+    },
+    {
+      "name": "AnimationLibrary_Godot_Standard.gltf",
+      "sha256": "0FF075C7AD6855C5C2C37A171592EE8F0D6AB2F58259E2BE77A9B63DD8027765"
+    },
+    {
+      "name": "LICENSE",
+      "sha256": "A2010F343487D3F7618AFFE54F789F5487602331C0A8D03F49E9A7C547CF0499"
+    },
+    {
+      "name": "README.md",
+      "sha256": "370E6FF244EF43B269F936BE7D630A77A3EB7ED8BBC3315FFCAE5B327B814FCB"
+    }
+  ]
+}

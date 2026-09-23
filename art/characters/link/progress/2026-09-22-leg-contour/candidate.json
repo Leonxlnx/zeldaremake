@@ -1,0 +1,32 @@
+{
+  "source_sha256": "4dcf89c5c10391981289e2583152c26fb4ac93047c6fcb4bb0959e246805d850",
+  "sha256": "a70ef7144fbb075b31103256f71f673c9b3a74b31e8c30f9ac117c0d765bcde8",
+  "changed_vertices": 5703,
+  "native_error_m": 4.2526987792390614e-08,
+  "rest_height_preserved": true,
+  "rig_clips_weights_uvs_textures_morphs_unchanged": true,
+  "native_correspondence": {
+    "correspondence": "raw one-to-one nearest source; no registration or fitted transform",
+    "raw_native_source_error_m": 1.6019441345658151e-06,
+    "raw_native_after_error_m": 1.601944444207713e-06,
+    "deformation_delta_error_m": 4.2526987792390614e-08,
+    "one_to_one_vertices": 5703,
+    "raw_source_tolerance_m": 3e-06,
+    "deformation_delta_tolerance_m": 1e-06,
+    "original_native_rows_sha256": "4e36ec4f98bbc4b070db930d60843a88ee06f69798448f92a0d7b1560d4996ec"
+  },
+  "untouched_normal_tangent_rows_preserved": true,
+  "field": "C1 calf/cuff X contour; glTF Y and Z preserved",
+  "support_height_m": [
+    0.125,
+    0.325
+  ],
+  "identity_through_height_m": 0.15,
+  "field_sha256": "9892810689008c8f9173d932ba96d13ccce0f4172380f07f78157d36cbc50c8f",
+  "profile_sha256": "23ffad6141adf831f753223120fc37fa3d1922bc032c2819bd37ae8e9b676d41",
+  "native_rows_sha256": "4e36ec4f98bbc4b070db930d60843a88ee06f69798448f92a0d7b1560d4996ec",
+  "source_bytes": 51111284,
+  "candidate_bytes": 54397352,
+  "appended_bytes": 3286068,
+  "status": "Local export; independent preservation and native visual review still required"
+}
