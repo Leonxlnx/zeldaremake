@@ -146,6 +146,22 @@ export const DISTANT_TAPER_TOP = 0.36;
  * the 86 % veil. Far LOD: none.
  */
 export const FAR_CROWN_FLOOR = 2;
+/**
+ * 2026-09-23 (owner review, looking up in the open north): the slender crowns and the far LOD had
+ * no floor, so from under the depth rows their vertical cards were all there was — streaks of
+ * planes on edge. One floor card each now; the crown material fades a card seen edge-on
+ * (CROWN_EDGE_FADE), so from below a crown is its leaf roof.
+ */
+export const FAR_CROWN_FLOOR_SLENDER = 1;
+export const FAR_CROWN_FLOOR_FAR = 1;
+/**
+ * The crown material's edge fade: a card whose plane the view ray meets at |cos| under [0] is gone,
+ * over [1] whole. It acts on the vertical cards only where the view climbs steeply to them (the
+ * ray's world y over CROWN_EDGE_STEEP), and on the near-horizontal floors at every view — the six
+ * fixed frames look at the far forest from within 20° of level, where the vertical cards are untouched.
+ */
+export const CROWN_EDGE_FADE: [number, number] = [0.06, 0.34];
+export const CROWN_EDGE_STEEP: [number, number] = [0.35, 0.65];
 export const DISTANT_CROWN_FLOOR_Y = 0.42;
 export const DISTANT_CROWN_FLOOR_HALF = 1.15;
 export const DISTANT_CROWN_FLOOR_TINT = 0.42;
@@ -395,6 +411,12 @@ export function createDistantCrownMaterial(wind: Wind, rng: Rng, palette: Palett
         float underside = smoothstep(0.3, -0.45, sw.y);
         diffuseColor.rgb *= mix(1.0, ${f(CROWN_NEAR_DARK)} * mix(1.0, ${f(CROWN_UNDER_DARK)}, underside), roofNear);
       }
+      // CROWN_EDGE_FADE: a card on edge fades — vertical cards under a steep view, floors always
+      vec3 rayW = normalize(-vViewPosition * mat3(viewMatrix));
+      vec3 cardW = normalize(vNormal * mat3(viewMatrix));
+      float edgeOn = abs(dot(normalize(vViewPosition), normalize(vNormal)));
+      float edgeGate = max(smoothstep(${f(CROWN_EDGE_STEEP[0])}, ${f(CROWN_EDGE_STEEP[1])}, rayW.y), smoothstep(0.7, 0.9, abs(cardW.y)));
+      diffuseColor.a *= mix(1.0, smoothstep(${f(CROWN_EDGE_FADE[0])}, ${f(CROWN_EDGE_FADE[1])}, edgeOn), edgeGate);
     }
     `,
         )
@@ -423,7 +445,7 @@ export function createDistantCrownMaterial(wind: Wind, rng: Rng, palette: Palett
         );
     injectTreeLeafWarmth(s);
   };
-  material.customProgramCacheKey = () => 'trees-distant-crown-v2-leaf-warmth';
+  material.customProgramCacheKey = () => 'trees-distant-crown-v3-edge-fade-leaf-warmth';
   wind.bind(material);
   return material;
 }
@@ -589,7 +611,7 @@ export function createDistantVariants(rng: Rng, palette: Palette): DistantVarian
     const crownCentre = new Vector3(0, crownY + crownR * 0.1, 0);
     const cells = slender ? [3] : broadCells[index % broadCells.length];
     // round 48: + FAR_CROWN_FLOOR dark near-horizontal cards under the broad crowns (their own fork inside crownCards)
-    crownCards(near, rng.fork(`distant-crown-${index}`), crownCentre, crownR, cells, FAR_CROWN_CARDS[0], slender ? FAR_CROWN_LOBES[1] : FAR_CROWN_LOBES[0], cardTint, cardTopTint, slender ? 0 : FAR_CROWN_FLOOR);
+    crownCards(near, rng.fork(`distant-crown-${index}`), crownCentre, crownR, cells, FAR_CROWN_CARDS[0], slender ? FAR_CROWN_LOBES[1] : FAR_CROWN_LOBES[0], cardTint, cardTopTint, slender ? FAR_CROWN_FLOOR_SLENDER : FAR_CROWN_FLOOR);
 
     // ---- far LOD: two crossed tapering trunk strips (foot grime, tone bands, darkening into the
     // crown — round 47; the round-40 silhouette fans and their rim cards are replaced by the same
@@ -632,7 +654,7 @@ export function createDistantVariants(rng: Rng, palette: Palette): DistantVarian
     solidUv(far);
     const farWood = far.indices.length;
     // the same stream as the near LOD's main cards: the far LOD's crown is the near one's without its lobes, so the switch at 120 m never turns a crown
-    crownCards(far, rng.fork(`distant-crown-${index}`), crownCentre, crownR, cells, FAR_CROWN_CARDS[1], 0, cardTint, cardTopTint);
+    crownCards(far, rng.fork(`distant-crown-${index}`), crownCentre, crownR, cells, FAR_CROWN_CARDS[1], 0, cardTint, cardTopTint, FAR_CROWN_FLOOR_FAR);
 
     const nearGeometry = near.finish(`distant-near-${index}`);
     nearGeometry.addGroup(0, nearWood, 0);
