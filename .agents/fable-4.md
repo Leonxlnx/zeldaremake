@@ -384,3 +384,5 @@ nearCanopy, materials, index otherwise) is edited.
   + the clearing, head merged.
 - 12:57 — understory: stems seated on the rendered surface; a west-meadow zone measured and dropped (squad2's mid layer
   fills it). Branch @ `a2d3097b` awaiting merge with the arch verge + fork clearing.
+- 13:42 — W38 map at A on the head (9.155 M): vegetation +535 K is the overshoot (lane 4), structures +75 K, cards +34 K,
+  understory +29 K; trees −220 K net. Posted; taking the shadow proxy re-measure and handing the plateau-oak number to squad3.
