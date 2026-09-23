@@ -8,10 +8,12 @@ request) with the girl walking her loop, and keep the light count constant.
 
 ## What the follow camera saw (before)
 
-Rendered on the head (`be123deb`) with the cast forced visible, 5 m from kokiri-a on her verge spot: a
-smooth brown helmet of hair hugging the skull, orange-tan skin, a flat green tunic cylinder, a head a
-quarter of her height. ref-01 / d_024 have a wide maroon bob with a sheen, pale peach skin, cloth with
-folds, and a head-and-hair a third of the height.
+Rendered on the head (`be123deb`) with the cast forced visible, 5 m from the girl on the first tread of the
+hero flight (kokiri-b, the sitter — at broll's simulation time the walker, kokiri-a, is dwelling at (4.4, 0.9)
+across the plaza; the girls share every line of the build, only the look index differs): a smooth brown
+helmet of hair hugging the skull, orange-tan skin, a flat green tunic cylinder, a head a quarter of her
+height. ref-01 / d_024 have a wide maroon bob with a sheen, pale peach skin, cloth with folds, and a
+head-and-hair a third of the height.
 
 ## What changed (`agent/fable-3-kokiri-girl`)
 
@@ -55,14 +57,15 @@ is no program key; the toggle recompiles nothing. The audit reports `kidShadowCa
 
 ## Before / after
 
-![5 m, the follow camera](before-after-5m.jpg)
+![5 m, the follow camera: the girl on the first tread](before-after-5m.jpg)
 
 Pose: (5.2, 2.75, 6.3) → (9.0, 1.75, 3.6), vfov 46, high quality, 1280 × 720, `--character`, settle 8. The
 before is the head `be123deb` with the cast forced visible (a throwaway build, nothing committed).
 
-![2.6 m](before-after-close.jpg)
+![the walker at her dwell, 2.6 m and 5 m](before-after-walker.jpg)
 
-Pose: (6.9, 2.3, 5.1) → (9.0, 1.55, 3.6), vfov 40.
+Poses: (2.3, 2.2, −0.66) → (4.4, 1.45, 0.9), vfov 40; (0.6, 2.7, −2.1) → (4.4, 1.5, 0.9), vfov 46 — the walker
+(kokiri-a, look 0) where the loop has her at t ≈ 13.2 s, facing the camera.
 
 ## Play mode
 
@@ -70,7 +73,11 @@ Pose: (6.9, 2.3, 5.1) → (9.0, 1.55, 3.6), vfov 40.
 two seconds standing, then W held for six — the sitter on the steps with her fairy, the walker at her verge
 spot, the boy at Saria's door. Programs 111 → 112 over the walk (one material's first draw), no light-count
 recompile. Draws 711 → 537 as the plaza leaves the frame; the walk ends in the verge's understory (the
-route, not the cast).
+route, not the cast). Standing at (3.0, 7.5) facing the stair foot (the plaza, Saria's house, the flight
+and three kids in frame): head 604 draws / 9.98 M, branch 779 / 10.05 M — the cast in play mode costs
+≈ 175 submissions where three kids and their shadow passes are in view. From that spot the walker's loop
+is behind an understory bush for most of her circuit (a sightline note for lanes 2 / 4: the scatter does
+not know `NPC_LOOP`).
 
 ## Six views
 
