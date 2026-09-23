@@ -1,0 +1,248 @@
+{
+ "dist": "/tmp/final-dist",
+ "size": [
+  960,
+  540
+ ],
+ "quality": "high",
+ "started": "2026-09-23T05:47:29.750Z",
+ "baselineSha": "c526a5b8",
+ "look": [
+  {
+   "id": "upper-house",
+   "at": [
+    17,
+    -15
+   ],
+   "yaw": -125.53767779197439,
+   "note": "the upper house, from the plateau",
+   "rest": {
+    "elevationDeg": -3.33,
+    "topEdgeDeg": 19.67,
+    "bottomEdgeDeg": -26.33,
+    "camera": [
+     20.499,
+     6.932,
+     -12.501
+    ],
+    "cameraAboveGround": 1.968,
+    "link": [
+     17,
+     5.182,
+     -15
+    ],
+    "cameraToLink": 4.335,
+    "follow": {
+     "yaw": -2.191045812777718,
+     "pitch": -0.05807415956295393,
+     "pitchTarget": -0.05807415956295393,
+     "keep": 1,
+     "distance": 4.3072613108563536,
+     "lift": 0,
+     "lowered": 0,
+     "slimPush": 0,
+     "hit": null
+    },
+    "clearance": {
+     "nearestM": 2.098,
+     "nearShare": 0,
+     "skyShare": 0.005,
+     "linkHidden": false
+    },
+    "shot": "look-upper-house-rest.jpg"
+   },
+   "dragUp": {
+    "elevationDeg": 60.16,
+    "topEdgeDeg": 83.16,
+    "bottomEdgeDeg": 37.16,
+    "camera": [
+     19.348,
+     6.392,
+     -13.323
+    ],
+    "cameraAboveGround": 1.425,
+    "link": [
+     17,
+     5.182,
+     -15
+    ],
+    "cameraToLink": 2.886,
+    "follow": {
+     "yaw": -2.191045812777718,
+     "pitch": 1.0499999999980483,
+     "pitchTarget": 1.05,
+     "keep": 1,
+     "distance": 2.9,
+     "lift": 0,
+     "lowered": 0,
+     "slimPush": 0,
+     "hit": null
+    },
+    "clearance": {
+     "nearestM": 3.773,
+     "nearShare": 0,
+     "skyShare": 0.0576,
+     "linkHidden": "off-screen"
+    },
+    "shot": "look-upper-house-drag-up.jpg"
+   },
+   "dragDown": {
+    "elevationDeg": -35.52,
+    "topEdgeDeg": -12.52,
+    "bottomEdgeDeg": -58.52,
+    "camera": [
+     19.853,
+     9.185,
+     -12.962
+    ],
+    "cameraAboveGround": 4.272,
+    "link": [
+     17,
+     5.182,
+     -15
+    ],
+    "cameraToLink": 4.488,
+    "follow": {
+     "yaw": -2.191045812777718,
+     "pitch": -0.6199999999999999,
+     "pitchTarget": -0.62,
+     "keep": 1,
+     "distance": 4.307261310856354,
+     "lift": 0,
+     "lowered": 0,
+     "slimPush": 0,
+     "hit": null
+    },
+    "clearance": {
+     "nearestM": 3.636,
+     "nearShare": 0,
+     "skyShare": 0,
+     "linkHidden": false
+    },
+    "shot": "look-upper-house-drag-down.jpg"
+   },
+   "maxUpDeg": 60.16,
+   "maxDownDeg": -35.52,
+   "maxVisibleAboveHorizonDeg": 83.16
+  },
+  {
+   "id": "open-north",
+   "at": [
+    1.5,
+    -40
+   ],
+   "yaw": 180,
+   "note": "open ground north of the log arch",
+   "rest": {
+    "elevationDeg": -3.33,
+    "topEdgeDeg": 19.67,
+    "bottomEdgeDeg": -26.33,
+    "camera": [
+     1.5,
+     5.291,
+     -35.7
+    ],
+    "cameraAboveGround": 2.112,
+    "link": [
+     1.5,
+     3.541,
+     -40
+    ],
+    "cameraToLink": 4.335,
+    "follow": {
+     "yaw": 3.141592653589793,
+     "pitch": -0.05807415956295393,
+     "pitchTarget": -0.05807415956295393,
+     "keep": 1,
+     "distance": 4.307261310856352,
+     "lift": 0,
+     "lowered": 0,
+     "slimPush": 0,
+     "hit": null
+    },
+    "clearance": {
+     "nearestM": 3.686,
+     "nearShare": 0,
+     "skyShare": 0,
+     "linkHidden": false
+    },
+    "shot": "look-open-north-rest.jpg"
+   },
+   "dragUp": {
+    "elevationDeg": 60.16,
+    "topEdgeDeg": 83.16,
+    "bottomEdgeDeg": 37.16,
+    "camera": [
+     1.5,
+     4.751,
+     -37.114
+    ],
+    "cameraAboveGround": 1.349,
+    "link": [
+     1.5,
+     3.541,
+     -40
+    ],
+    "cameraToLink": 2.886,
+    "follow": {
+     "yaw": 3.141592653589793,
+     "pitch": 1.0499999999980483,
+     "pitchTarget": 1.05,
+     "keep": 1,
+     "distance": 2.8999999999999995,
+     "lift": 0,
+     "lowered": 0,
+     "slimPush": 0,
+     "hit": null
+    },
+    "clearance": {
+     "nearestM": 9.437,
+     "nearShare": 0,
+     "skyShare": 0.3594,
+     "linkHidden": "off-screen"
+    },
+    "shot": "look-open-north-drag-up.jpg"
+   },
+   "dragDown": {
+    "elevationDeg": -35.52,
+    "topEdgeDeg": -12.52,
+    "bottomEdgeDeg": -58.52,
+    "camera": [
+     1.5,
+     7.544,
+     -36.494
+    ],
+    "cameraAboveGround": 4.196,
+    "link": [
+     1.5,
+     3.541,
+     -40
+    ],
+    "cameraToLink": 4.488,
+    "follow": {
+     "yaw": 3.141592653589793,
+     "pitch": -0.6199999999999999,
+     "pitchTarget": -0.62,
+     "keep": 1,
+     "distance": 4.307261310856355,
+     "lift": 0,
+     "lowered": 0,
+     "slimPush": 0,
+     "hit": null
+    },
+    "clearance": {
+     "nearestM": 3.94,
+     "nearShare": 0,
+     "skyShare": 0,
+     "linkHidden": false
+    },
+    "shot": "look-open-north-drag-down.jpg"
+   },
+   "maxUpDeg": 60.16,
+   "maxDownDeg": -35.52,
+   "maxVisibleAboveHorizonDeg": 83.16
+  }
+ ],
+ "pageErrors": [],
+ "finished": "2026-09-23T05:50:40.879Z"
+}

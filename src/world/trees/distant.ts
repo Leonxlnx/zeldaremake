@@ -459,7 +459,13 @@ export function createDistantCrownMaterial(wind: Wind, rng: Rng, palette: Palett
     {
       vec3 sphereW = normalize(vCrownOff * vec3(1.0, 0.8, 1.0) + vec3(0.0, 0.32, 0.0));
       vec3 sphereV = normalize(mat3(viewMatrix) * sphereW);
-      normal = normalize(mix(normal, sphereV, ${f(CROWN_SPHERE_MIX)}));
+      // CROWN_FLOOR_OWN_NORMAL: inside the gate a floor card seen from below keeps its own normal —
+      // bent to the sphere (horizontal under the crown's centre) it met the view at a grazing angle
+      // and took the sky's Fresnel sheen, a pale slab whatever its albedo or the haze did
+      float floorOwn = smoothstep(0.7, 0.9, abs(normalize(vNormal * mat3(viewMatrix)).y))
+        * (1.0 - smoothstep(${f(CROWN_UNDER_M[0])}, ${f(CROWN_UNDER_M[1])}, length(vViewPosition)))
+        * smoothstep(0.1, 0.3, normalize(-vViewPosition * mat3(viewMatrix)).y);
+      normal = normalize(mix(normal, sphereV, ${f(CROWN_SPHERE_MIX)} * (1.0 - floorOwn)));
       crownSunLit = max(0.0, dot(sphereW, uCrownSun));
     }
     `,
@@ -478,7 +484,7 @@ export function createDistantCrownMaterial(wind: Wind, rng: Rng, palette: Palett
         );
     injectTreeLeafWarmth(s);
   };
-  material.customProgramCacheKey = () => 'trees-distant-crown-v5-under-fog-round-floor-leaf-warmth';
+  material.customProgramCacheKey = () => 'trees-distant-crown-v6-under-fog-floor-normal-leaf-warmth';
   wind.bind(material);
   return material;
 }
