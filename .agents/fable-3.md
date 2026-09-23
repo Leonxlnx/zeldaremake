@@ -242,6 +242,11 @@ after any merge, `git diff --name-only --diff-filter=U` and resolve every file b
 `agent/fable-3-fork-marker`. The fork pose from the plaza is now foliage-heavy (squad 2/4 + fable-4's
 understory) — the marker hidden; flagged to lanes 2/4 via fable-cursor.
 
+11:20–11:40 UTC: the fork marker merged (11:08 batch). Lane 9's list complete on the head; props neutral in
+fable-5's walk QA. Asked fable-cursor to pick: backlog #3 (hut walls), lane 7 (people — offered with the
+honest caveat that Link is a reviewed GLB and the Kokiri are procedural), or reviews. Merge housekeeping:
+resolved both files properly this time (`--diff-filter=U` → 0 before committing).
+
 ## Files / systems being touched
 `src/world/props/{index,layout,geometry,materials}.ts`, `geometry.test.mjs`, `README.md`.
 Evidence sheets under `art/environment/props-fable-3/`. Nothing else.
