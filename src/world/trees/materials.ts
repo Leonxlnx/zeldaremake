@@ -1054,7 +1054,17 @@ interface LeafVariant {
    */
   barkNear?: ShadeFloor;
   barkFade?: [number, number];
+  /**
+   * Round 52 (the owner's red circle 1, the column at 15 m). A shade floor is one level all round
+   * a bole: from the lit rim to the far edge the shaded side is flat, which is exactly the
+   * "smooth cylinder" reading — a cylinder under a closed roof still shows round shading. As the
+   * distant family already does (`DISTANT_SHADE_SIDE`), the faces turned FROM the sun keep this
+   * share of their floored light and the terminator side all of it. Unset = flat, as before.
+   */
+  barkShadeSide?: number;
 }
+/** the share of the floored light a column's face turned from the sun keeps (LeafVariant.barkShadeSide) */
+export const COLUMN_SHADE_SIDE = 0.55;
 
 /**
  * `nearDetail`: false = a far program; 'base' = a near base (its own moss / lichen / tuft
@@ -1114,6 +1124,19 @@ function treeFragment(shader: WebGLProgramParametersWithUniforms, sun: Color, le
       float woodNear = 1.0 - smoothstep(uLeafNear.x, uLeafNear.y, length(vViewPosition));
       ${barkFadeGlsl}
       ${floorBlock.replace(textureRead, `mix(${textureHere}, max(${textureHere}, 0.5), woodNear))`)}
+`;
+  // round shading on a floored bole (LeafVariant.barkShadeSide): the floor is flat by
+  // construction, so without this a column is one level from its lit rim to its far edge
+  const shadeSideGlsl =
+    variant.barkShadeSide === undefined
+      ? ''
+      : /* glsl */ `
+      #if NUM_DIR_LIGHTS > 0
+      {
+        float sunFace = dot(normal, directionalLights[0].direction);
+        reflectedLight.indirectDiffuse *= mix(1.0, ${variant.barkShadeSide.toFixed(2)}, 1.0 - smoothstep(-0.5, 0.3, sunFace));
+      }
+      #endif
 `;
   let detailPars = '';
   if (nearDetail) {
@@ -1234,6 +1257,7 @@ ${sunThrough}
       // 1.0 on every vertex the plain sweeps write, so nothing else moves.
       reflectedLight.indirectDiffuse *= vBarkAO;
       reflectedLight.directDiffuse *= mix(1.0, vBarkAO, 0.5);
+      ${shadeSideGlsl}
       #ifdef NEAR_BASE_DETAIL
       // round 47 (sn-bole-lantern-tree / sn-bole-stair-bank: the bark and moss at 0.4–0.6 m "one
       // smooth surface"): the floor is the only light on a shaded near base and it is flat by
@@ -1322,7 +1346,7 @@ export async function createTreeMaterials(ctx: WorldContext): Promise<TreeMateri
   injectWind(giantTreeNear, wind, giantWind, colourSlots, (s) => treeFragment(s, leafSun, 0.78, GIANT_BARK_COLOR, TREE_NEAR_BOLE_FLOOR, 'uNearBoleFloor', { top: NEAR_BOLE_FLOOR_TOP, fade: NEAR_BOLE_FLOOR_FADE }), 'giant-near-leaf-warmth');
   // the columns' copy (round 45): same maps and wind, the bark floor at COLUMN_BARK_FLOOR
   const columnTree = giantTree.clone();
-  injectWind(columnTree, wind, giantWind, colourSlots, (s) => treeFragment(s, leafSun, 0.78, GIANT_BARK_COLOR, COLUMN_BARK_FLOOR_FAR, 'uColumnFloor', undefined, false, { barkNear: COLUMN_BARK_FLOOR, barkFade: COLUMN_FLOOR_FADE_M }), 'column-leaf-warmth');
+  injectWind(columnTree, wind, giantWind, colourSlots, (s) => treeFragment(s, leafSun, 0.78, GIANT_BARK_COLOR, COLUMN_BARK_FLOOR_FAR, 'uColumnFloor', undefined, false, { barkNear: COLUMN_BARK_FLOOR, barkFade: COLUMN_FLOOR_FADE_M, barkShadeSide: COLUMN_SHADE_SIDE }), 'column-leaf-warmth');
   // the near bases' copy: same maps and wind, the bark floor at NEAR_BASE_FLOOR
   const giantTreeNearBase = giantTree.clone();
   giantTreeNearBase.normalScale.set(2.0, 2.0);
