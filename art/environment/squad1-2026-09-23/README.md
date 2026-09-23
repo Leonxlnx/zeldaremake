@@ -227,3 +227,26 @@ either without fogging the 5–10 m field the owner walks through:
 - **Lane 4** — the corridor band at 4–12 m is verge foliage in shade: our p10 is 0.188 against his
   0.233, and our saturation there is 0.152 against his 0.067. It reads as dark green where his is
   pale and hazy.
+
+## `b-upper-2` — the upper house's dark is not the air, and not the fill
+
+fable-cursor left "the upper house's dark" with lane 1 (squad log 17:45) because pass 2 had
+diagnosed it as a heavy light-shaft veil. Measured on the head at that pose, the dark region is
+the trunk face filling the middle of the frame:
+
+| | l | s | hue | p10 | near-black |
+| --- | --- | --- | --- | --- | --- |
+| ours, `b-upper-2` trunk face | 0.227 | 0.094 | 50° | 0.131 | 4.4 % |
+| the demo's shaded house trunk (`demo61/d_030`, same kind of surface and distance) | 0.331 | 0.164 | 36° | 0.263 | 0.0 % |
+
+Dimmer, greyer and cooler, all three. Two lane-1 candidates were tested and both are ruled out:
+
+- **The IBL fill.** `environmentIntensity` 0.22 → 0.27 with the tint no longer subtracting the
+  dome's warmth moved that trunk face by **0.002** (l 0.226 → 0.228, s 0.094 → 0.095). It is not
+  what holds it down. (The change is kept: it helps the shaded verges and the flagstone's B/R.)
+- **The veil.** The whole round-2 haze change moves the frame by 0.004 — at 3.6 m there is no air.
+
+`probe-look --pick` names the surface: **`giant-near-base-plateau-oak`** at 3.62 m and 3.75 m — the
+plateau oak's near bole base, not a house wall. So this is **lane 3's** (`trees/giant.ts`,
+`bole.ts`): the near bole's albedo and its shaded-side response, against the demo's warm brown bark
+at l 0.331 / s 0.164 / hue 36°. `round2/b-upper-2-trunk-vs-demo.jpg` is the pair.
