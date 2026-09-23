@@ -709,3 +709,61 @@ test('distant reset pins resident selections before a cold earlier variant can e
   assert.equal(pool.poolBytes, 100);
   assert.ok(!log.includes('uninstall resident'), 'the selected resident variant is retained');
 });
+
+test('a retiring distant crown stays resident under nearer canopy pressure until its fade reaches zero', () => {
+  const log = [], now = clock(), pool = new LodPool(100, now), cam = new THREE.Vector3(), dt = 1 / 30;
+  const distant = fakeItem('distant', 60, log), resident = fakeItem('resident-canopy', 40, log);
+  const queued = fakeItem('queued-canopy', 60, log, 2, now, 0.4);
+  pool.add(distant, { bytes: 60, dispose() {} });
+  pool.add(resident, { bytes: 40, dispose() {} });
+  pool.add(queued);
+  const parts = [canopyFixture(resident, 0), canopyFixture(queued, 1)];
+  parts[0].center.set(15, 0, 0);
+  parts[1].center.set(5, 0, 0); // The queued canopy outranks the resident one.
+  const canopy = canopyUpdateFor(parts, pool), set = distantFixture(distant), close = distantUpdateFor([set], pool);
+  canopy.update(cam, false);
+  close.update(cam, 0, true);
+  assert.equal(close.slots[0].weight, 1);
+  assert.equal(pool.report().syncBuilds, 0);
+  set.submitted[0] = []; // Frustum/LOD submission loss retires the existing slot.
+
+  let previousWeight = 1, retiringFrames = 0;
+  for (let frame = 0; frame < 12 && !pool.isResident(queued); frame++) {
+    // Match index.ts: rebucket calls nearCanopyUpdate then distantCloseUpdate (3172–3174),
+    // and ordinary update calls work only afterward (3620–3624). Canopy's ordinary pins
+    // are already-resident parts (3095–3100), so they cannot evict a previous close pin.
+    canopy.update(cam, false);
+    close.update(cam, dt, false);
+    const weight = close.slots[0]?.weight ?? 0;
+    assert.ok(weight >= 0 && weight <= previousWeight);
+    assert.ok(previousWeight - weight <= dt / 0.25 + 1e-12, 'retirement stays within the temporal fade step');
+    assert.equal(close.uniform.value[0].w, weight, 'old-crown suppression follows the live close weight');
+    assert.equal(set.close.mesh.visible, weight > 0);
+    assert.equal(set.close.mesh.count, weight > 0 ? 1 : 0);
+    if (weight > 0) {
+      retiringFrames++;
+      assert.ok(Math.abs(set.close.fade.getX(0) - weight) < 1e-7, 'the visible replacement has matching coverage');
+    }
+    pool.work(0.5);
+    assert.equal(pool.report().syncBuilds, 0, 'ordinary pressure never synchronously rebuilds a retiree');
+    assert.ok(pool.poolBytes <= pool.capBytes);
+    if (weight > 0) {
+      assert.equal(pool.isResident(distant), true, 'positive retirement remains pinned through work');
+      assert.equal(pool.report().building, 0, 'the replacement waits while all 100 bytes are pinned');
+      assert.ok(!log.includes('uninstall distant'));
+    }
+    previousWeight = weight;
+  }
+  assert.ok(retiringFrames > 0);
+  assert.equal(previousWeight, 0);
+  assert.deepEqual(close.slots, []);
+  assert.ok(close.uniform.value.every(slot => slot.w === 0), 'the old crown is fully restored before eviction');
+  assert.equal(pool.isResident(queued), true, 'queued work finishes once retirement releases its bytes');
+  assert.equal(pool.isResident(distant), false);
+  assert.ok(log.includes('uninstall distant'));
+  assert.equal(pool.report().built, 1);
+  canopy.update(cam, false);
+  close.update(cam, dt, false);
+  assert.equal(parts[1].mesh.visible, true, 'the completed nearer canopy becomes visible next frame');
+  assert.equal(pool.report().syncBuilds, 0);
+});
