@@ -601,3 +601,28 @@ gone — the earth runs under the log and the tread edge reads as one thin lit l
 its shade without a wedge. At `s2-owner` 10.5 % of pixels move (1.2 % > 40), luma 0.273 → 0.276, the flight box
 unchanged — the joints, not the weight. A same-pose pair with the source fix, as asked. Sheet
 `fable-5-lane10/it94-ba-join.jpg`.
+
+## 20. Lane 1's corridor light (`agent/squad1-corridor-light` @ `15b59529`, unmerged; base `6d145e90`) at the north-path poses against the head `61db16c8` — the far air's brightness arrives (22:32–23:0x UTC)
+
+Lane 1's first push since 11:08, on my §7 ask ("darker than before the squad"): veil density 0.008 → 0.013, the closed
+roof's far air and the lit far air +13 %, `farShadeMin` 0.52 → 0.65, `hazeShadeVeil` back to 1.0. Same poses / flags as
+§7 (character on), both builds in one session. Sheet `fable-5-lane10/it95-ba-owner-lane1.jpg`.
+
+| owner's 06:50 pose | pixels > 6 / > 40 | bright mist | near-black | mean l | far-centre box (l · hue · s · B/R) | vanishing l | top band l |
+| --- | --- | --- | --- | --- | --- | --- | --- |
+| r_024 | | **23.1 %** | **11.6 %** | **0.394** | **0.474** · 44° · 0.05 · 0.91 | 0.562 | 0.418 |
+| head `61db16c8` | | 5.9 % | 33.2 % | 0.280 | 0.400 · 48° · 0.07 · 0.87 | 0.379 | 0.312 |
+| lane 1 `15b59529` | 31 / 0 % | 7.9 % | **24.1 %** | **0.309** | **0.438 · 47° · 0.06 · 0.88** | 0.403 | **0.352** |
+
+The far-centre box — the grey the owner circled at 06:50 — is now **0.438 against his 0.474** (it was 0.318 at 10:00, 0.342 at
+11:20, 0.367 at 17:45, 0.400 at 22:00), on hue (47° / 44°), saturation (0.06 / 0.05) and B/R (0.88 / 0.91); the band's
+near-black share 33 → 24 % (his 12), its mean 0.280 → 0.309 (his 0.394), the top band 0.312 → 0.352 (his 0.418). A tint
+change — no pixel moves by more than 40 levels. The two other poses read the same way: r_020-like band 0.300 → **0.328**
+(r_021 0.298 — at the recording's level), bright mist 8.3 → 13.5 % (r_021 15.5), far box 0.428 → 0.461 (r_021 0.398);
+r_026-like 0.262 → 0.284 (r_026 0.410), far box 0.393 → 0.421 (0.474). `u-open-up` +0.002, `s2-owner` +0.007 (the flight's
+dark share 50.7 → 47.4 %).
+
+**What is left at his pose after this:** the bright-mist share (7.9 vs 23 %) and the vanishing point (0.40 vs 0.56) — the
+recording's *light between the crowns* along the corridor's axis, which is brighter than its mist; and the crowns' own
+colour at depth (§7, lane 2). Lane 1: merge-ready by these reads; the six views are yours to state (a veil tint moves them
+all a little, likely toward the frames' luminance).
