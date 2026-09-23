@@ -495,10 +495,19 @@ const fmt = (x, z) => `(${x.toFixed(2)}, ${z.toFixed(2)})`;
       const rise = Math.abs(live.height(b[0], b[2]) - live.height(a[0], a[2]));
       const limit = line === EXPANSION_EAST.spurs[0] && i >= line.length - 3 ? 0.5 : 0.25;
       assert.ok(rise / run <= limit, `east path grade ${(rise / run).toFixed(2)} between ${fmt(a[0], a[2])} and ${fmt(b[0], b[2])} (limit ${limit})`);
+      const end = line[line.length - 1];
       for (let u = 0; u <= 1; u += 0.1) {
         const x = a[0] + (b[0] - a[0]) * u;
         const z = a[2] + (b[2] - a[2]) * u;
         assert.equal(ground.blocked(x, z), false, `east path walkable at ${fmt(x, z)}`);
+        // half a metre clear either side (the character's root is a point with no slide, and the play
+        // test's eight-way keys wander ± 0.3 m off the line), except the last metre of a spur, which
+        // stops at a door's pad
+        if (line !== EXPANSION_EAST.lane && Math.hypot(x - end[0], z - end[2]) < 1.0) continue;
+        for (let k = 0; k < 16; k++) {
+          const t = (k / 16) * Math.PI * 2;
+          assert.equal(ground.blocked(x + Math.cos(t) * 0.5, z + Math.sin(t) * 0.5), false, `east path 0.5 m clear round ${fmt(x, z)}`);
+        }
       }
     }
   }

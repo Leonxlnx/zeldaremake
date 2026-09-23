@@ -847,8 +847,8 @@ export const EXPANSION_EAST = {
     [28.9, 0, -4.3],
     [31.3, 0, -4.5],
     [33.7, 0, -4.45],
-    [36.3, 0, -4.25],
-    [38.6, 0, -2.7],
+    [36.1, 0, -3.75],
+    [38.75, 0, -2.4],
     [40.9, 0, -2.2],
     [42.6, 0, -0.3],
     [43.0, 0, 2.3],
@@ -862,11 +862,11 @@ export const EXPANSION_EAST = {
     [
       [17.6, 0, -7.35],
       [17.2, 0, -8.5],
-      [17.05, 0, -9.7],
-      [16.9, 0, -10.9],
-      [16.7, 0, -12.1],
-      [16.6, 0, -13.0],
-      [16.25, 0, -13.75],
+      [17.1, 0, -9.7],
+      [17.15, 0, -10.9],
+      [17.0, 0, -12.1],
+      [16.85, 0, -13.0],
+      [16.45, 0, -13.8],
       [16.05, 0, -14.55],
     ],
     [
@@ -874,7 +874,7 @@ export const EXPANSION_EAST = {
       [44.3, 0, -1.1],
     ],
     [
-      [38.6, 0, -2.7],
+      [38.75, 0, -2.4],
       [38.0, 0, -0.6],
       [37.0, 0, 1.4],
       [36.3, 0, 2.75],
@@ -916,7 +916,7 @@ export const EXPANSION_EAST = {
   /** pod-lantern posts (their glow is emissive: no point light joins the scene) */
   lanternPosts: [
     { id: 'east-green', x: 41.2, z: 0.4, facingDeg: 117, height: 1.95, tint: 'orange' as const },
-    { id: 'east-lookout', x: 46.5, z: 6.95, facingDeg: 25, height: 1.8, tint: 'lime' as const },
+    { id: 'east-lookout', x: 46.4, z: 6.55, facingDeg: 25, height: 1.8, tint: 'lime' as const },
   ],
   /** disc parameters (`steppingStonesAlong`): a little larger and looser than the plaza's */
   discs: { from: 0.45, spacing: 1.0, radius: [0.4, 0.47] as [number, number], wobble: 0.17 },
