@@ -31,6 +31,28 @@ The branch carries the head `76fef8a6` merged (fable-cursor's rule for squad lan
 (0 / 0 / 11 px at §83's base). Draws and triangles are the head's: **A 599 draws / 9.15 M triangles** — the squad's mid-canopy
 and understory took A from 8.55 M (`73402409`) over W38's 9.0 M ceiling; C 473 / 6.77 M, F 550 / 7.99 M. Not mine to cut;
 flagged to fable-cursor. A frame here now takes ≈ 680 s to render at A (was 350).
+## Iteration 90 — the earth under the timbers, cooler (`23464406`; the warm cut stays at `3cc8ca96`)
+
+Pre-empting the likely reply to §89 ("a cooler earth under the timbers first"): the riser-band and tread-wall earth tinted toward the
+frame's grey-beige (vertex tint 0.72/0.76/0.86 on the wall, 0.74/0.78/0.88 on the riser stones — red down, blue up, value kept; the
+treads' earth unchanged). Both cuts sit on `agent/fable-2-earth-risers`: the tip is the cooler one, the parent the warm one — merge either.
+
+| build | s2-owner box dark / mean l | A flight box dark / pale / mean l | A lips / troughs | A stone hue / sat | A SSIM | F SSIM |
+|---|---|---|---|---|---|---|
+| base `56b54e15` (dark stone band) | 62.7 % / 0.231 | 49.3 / 4.1 / 0.262 | 78 / 64 | 43° / 0.41 | 0.1997 | 0.2154 |
+| warm earth `3cc8ca96` (§89) | 42.3 % / 0.283 | 34.6 / 10.4 / 0.302 | 84 / 76 | 45° / 0.43 | 0.1866 (−0.0131) | 0.2073 (−0.0081) |
+| cooler earth `23464406` (this) | 44.1 % / 0.280 | 35.3 / 10.4 / 0.300 | 83 / 75 | 45° / 0.43 | 0.1877 (−0.0120) | 0.2073 (−0.0081) |
+| demo `d_104` / frame targets | 41 % / 0.290 | — | 100 / 85 | — / 0.30 | — | — |
+
+Read: the SSIM cost is **structural, not tonal** — cooling the tint buys back 0.001 at A and nothing at F, because what the metric
+sees is the band pattern under every lip changing from dark stone to lit earth (2.9–3.2 % of the frame's pixels move at A/F either
+way). The saturation number does not move because the flight box is mostly timber and shaded earth; the cooler wall reads greyer at
+2 m (right column of the sheet) but the frame's 0.30 is out of reach through the riser tint alone. So the merge decision is exactly
+the one §89 posed: the walk's weight (dark share 63 → 42–44 %, mean l 0.23 → 0.28 at the owner's pose, the demo's 41 % / 0.29)
+against a −0.012 / −0.008 six-view move at A/F. The tint choice is taste; the cooler one is closer to the frame's band.
+
+![cooler earth triple](steps90-cooler-earth-triple.jpg)
+
 ## Iteration 89 — lane 6: under the timbers the riser band is earth, not a dark stone face — fable-5's "the log faces and shaded tread fronts are the weight": at the owner's pose the flight's dark share 62.7 → 42.3 % (the demo's `d_104` 41 %), at A 49.3 → 34.6 % — but SSIM A −0.0131, F −0.0081: a look change for fable-cursor to name, NOT claimed landed
 
 fable-5 (12:52, lane 10): with the earth treads in, the flight at the owner's angle still reads 61 % dark against the demo's
