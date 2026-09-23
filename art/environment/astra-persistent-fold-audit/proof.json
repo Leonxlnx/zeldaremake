@@ -1,0 +1,63 @@
+{
+  "verdict": "PASS",
+  "candidate": "a7b8270cf7dd0f9bedaa533575db0b9d06a2a3c2",
+  "base": "110453d4e46254d696f7eaeed99cdeb607b1003d",
+  "sourcePath": "src/world/trees/index.ts",
+  "productionDiff": "one audit predicate; no visual code",
+  "fullTreeSummary": {
+    "assetBuilds": 76,
+    "builtGeometryRecords": 564,
+    "nearCanopyParts": 426,
+    "whiteBarkGeometryRecords": 31,
+    "sceneMeshRecords": 528,
+    "allBuiltGeometrySha256": "651f2753080a01816747decb331172088d5e37e3eaebd277e38e7f4c89530d43",
+    "nearCanopyGeometrySha256": "1bd205c7ce837715e2fb47fd1b5760c2d3b1d1da6960db32cd35a8354595db1b",
+    "whiteBarkGeometrySha256": "04acca048bdccef6415a9e28b6601fdc245181104148e839544e1b239d90a330",
+    "sourceAssetAndGeometrySha256": "72de4f93ef4b728734a8f6c8b6688a631657dd4211c26dc73a0d64bc5c0181a9",
+    "sceneGeometryAndPlacementSha256": "353b0bdecefffef519ba3861c1cbff5e3ec635fb81af874d4ed59c48ed29745d",
+    "placementBindingSha256": "e04f32d0d8a2f3ae079b06258ac2664b7182b6ffd2a23ee8bbb84988ce95dcba"
+  },
+  "cases": {
+    "F_canopy": {
+      "capturedBeforeAuditFix": 139421,
+      "correctedOnRecordedVisibility": 132235,
+      "removedOvercount": 7186,
+      "shownTrianglesUnchanged": 575620
+    },
+    "C_lookback": {
+      "capturedBeforeAuditFix": 190568,
+      "correctedOnRecordedVisibility": 183382,
+      "removedOvercount": 7186,
+      "shownTrianglesUnchanged": 548670
+    }
+  },
+  "persistent": [
+    {
+      "id": "stair-bank-giant/lobe-24",
+      "farLeaves": 460,
+      "farCards": 120
+    },
+    {
+      "id": "stair-bank-giant/lobe-25",
+      "farLeaves": 460,
+      "farCards": 89
+    },
+    {
+      "id": "stair-bank-giant/lobe-26",
+      "farLeaves": 408,
+      "farCards": 64
+    }
+  ],
+  "inputs": {
+    "geometryWorkerOutputSha256": "a101ddcca0fa3bbcd0eb4e694bb13c03975ed06315162c4a0e7aa17b14397289",
+    "reviewedFixtureSha256": "3a0963260e3540d63fa07c5ccdf3519c6d4bb219ecf2782c113b5a572a645580",
+    "nativeManifestHashes": {
+      "before": "c70f0fb425552ea92557b96d53193fd3d322c1131dfd9f13e668468ba0228bc3",
+      "after": "c7c648b83d34aab0c29952abd9ebb5a3a82f383b24d7e54dfdc49029ab31c34a"
+    }
+  },
+  "limits": [
+    "CPU source/geometry parity and audit reevaluation on existing matched native visibility only; no new GPU capture.",
+    "Existing bank gap/coverage feedback remains separate and unresolved by this accounting change."
+  ]
+}
