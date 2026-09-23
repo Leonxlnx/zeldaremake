@@ -160,7 +160,7 @@ export interface SouthBuild {
     triangles: { bridge: number; log: number; foliage: number; walls: number };
     /** the ravine walls' roots and vines near the bridge */
     walls: { roots: number; vines: number };
-    log: { mouth: [number, number, number]; floorY: number; axisY: number; glowA: number; walkEnd: number };
+    log: { mouth: [number, number, number]; floorY: number; axisY: number; glowA: number; walkEnd: number; endRoots: number };
     pointLights: 0;
   };
 }
@@ -650,13 +650,14 @@ export async function buildExpansionSouth(ctx: WorldContext, mats: StructureMate
       const arc = phi * T.outerRadius;
       out.uv = [arc / 1.6, a / 1.6];
       const relief = barkN.ridged(arc * 1.9, a * 0.2 + 7.7, 3) - 0.45 + 0.4 * barkN.noise(arc * 7 + 3.3, a * 1.3) * 0.2;
-      const ao = clamp(0.55 + 2.0 * relief, 0.15, 1.35);
+      // floors: the flanks by the mouth sit in the bank's shade, and darker vertex tones there read as a black outline round the glow
+      const ao = clamp(0.62 + 1.6 * relief, 0.4, 1.3);
       const vari = 0.85 + 0.3 * barkN.noise(arc * 0.9, a * 0.9 + 7);
       const up = upness(phi);
-      const belly = lerp(0.45, 1, smoothstep(-0.9, 0.3, up));
+      const belly = lerp(0.62, 1, smoothstep(-0.9, 0.3, up));
       const shade = ao * vari * belly;
       const m = moss(phi, a);
-      const rimDamp = 1 - 0.2 * (1 - smoothstep(0, 0.6, a - r0));
+      const rimDamp = 1 - 0.08 * (1 - smoothstep(0, 0.6, a - r0));
       const barkC: RGB = [0.78 * shade * rimDamp, 0.74 * shade * rimDamp, 0.68 * shade * rimDamp];
       const mossC: RGB = [1.3 + 0.8 * shade, 2.3 + 1.3 * shade, 0.5 + 0.3 * shade];
       out.color = [lerp(barkC[0], mossC[0], m), lerp(barkC[1], mossC[1], m), lerp(barkC[2], mossC[2], m)];
@@ -783,9 +784,11 @@ export async function buildExpansionSouth(ctx: WorldContext, mats: StructureMate
       const rho = v;
       ring(DISC_A + 0.5 * (1 - rho * rho), phi, rho * (T.innerRadius + 0.14), out.position);
       out.uv = [u, v];
-      const wisp = 0.9 + 0.2 * barkN.noise(Math.cos(phi) * 2 * rho + glowPhase, Math.sin(phi) * 2 * rho);
-      const k = Math.pow(1 - rho, 1.4) * wisp;
-      out.color = [lerp(1.25, 3.0, k), lerp(0.74, 2.35, k), lerp(0.34, 1.55, k)];
+      // a hot pale core over an amber ring that deepens toward the bore (the whole disc used to tone-map to one flat cream)
+      const wisp = 0.88 + 0.24 * barkN.noise(Math.cos(phi) * 2.4 * rho + glowPhase, Math.sin(phi) * 2.4 * rho);
+      const k = Math.pow(1 - rho, 2.1) * wisp;
+      const edge = smoothstep(0.55, 1, rho);
+      out.color = [lerp(1.35, 3.2, k) * (1 - 0.45 * edge), lerp(0.66, 2.6, k) * (1 - 0.55 * edge), lerp(0.24, 1.75, k) * (1 - 0.65 * edge)];
     },
     { cols: 40, rows: 10, closedU: true },
   );
@@ -910,6 +913,36 @@ export async function buildExpansionSouth(ctx: WorldContext, mats: StructureMate
     const rad = 0.04 + mossRng() * 0.09;
     const gain = 0.8 + mossRng() * 0.4;
     logTufts.push({ position: p, normal: n, rx: rad, rz: rad * (0.7 + mossRng() * 0.5), h: rad * (0.5 + mossRng() * 0.4), yaw: mossRng() * TAU, color: [0.36 * gain, 0.5 * gain, 0.11 * gain], uv: [(phi * T.outerRadius) / 1.6, a / 1.6], sink: rad * 0.5, seed: 1 + Math.floor(mossRng() * 1e6) });
+  }
+  // the glow's foreground, past the walk's end: rootlets and a few leafy strands hanging from the
+  // bore's roof, dark against the light — they give the far end a depth the bare disc lacked
+  const endRng = logRng.fork('end-roots');
+  let endRoots = 0;
+  for (let k = 0; k < 8; k++) {
+    const side = k % 2 === 0 ? -1 : 1;
+    const phi = side * (0.22 + endRng() * 0.8);
+    const a0 = T.deadEnd + 0.04 + endRng() * (DISC_A - T.deadEnd - 0.16);
+    const top = ring(a0, phi, innerR(phi, a0) - 0.02);
+    const len = Math.min(top.y - (FLOOR_Y + 0.35), 0.3 + endRng() * 1.05);
+    const sx = (endRng() - 0.5) * 0.14;
+    const sz = (endRng() - 0.5) * 0.1;
+    const r0 = 0.011 + endRng() * 0.016;
+    if (len < 0.2) continue;
+    logParts.push(
+      sweepTube(new CatmullRomCurve3([top.clone().add(new Vector3(0, 0.05, 0)), top.clone().add(new Vector3(sx * 0.4, -len * 0.45, sz * 0.4)), top.clone().add(new Vector3(sx, -len, sz))]), {
+        radius: (t) => r0 * (1 - 0.8 * t) + 0.002,
+        tubularSegments: 6,
+        radialSegments: 5,
+        uvMetres: 0.5,
+        color: (t) => [0.34 - 0.08 * t, 0.27 - 0.06 * t, 0.2 - 0.05 * t],
+      }),
+    );
+    endRoots++;
+  }
+  for (let k = 0; k < 3; k++) {
+    const phi = (k - 1) * 0.6 + (endRng() - 0.5) * 0.24;
+    const a0 = T.deadEnd + 0.1 + endRng() * 0.18;
+    logFoliage.addHangingVine(ring(a0, phi, innerR(phi, a0) - 0.03), 0.35 + endRng() * 0.6, { drift: new Vector3(0, 0, 0), leafSize: 0.075, thickness: 0.008, amount: 0.12 });
   }
 
   // ================= the ravine's walls =================
@@ -1150,7 +1183,7 @@ export async function buildExpansionSouth(ctx: WorldContext, mats: StructureMate
       podClearance: +podClearance.toFixed(3),
       triangles: { bridge: bridgeTris, log: logTris, foliage: foliageTris, walls: wallTris },
       walls: { roots: wallRoots, vines: wallVines },
-      log: { mouth: [+mouth.x.toFixed(2), +mouth.y.toFixed(3), +mouth.z.toFixed(2)], floorY: +FLOOR_Y.toFixed(3), axisY: +AXIS_Y.toFixed(3), glowA: DISC_A, walkEnd: T.deadEnd - 0.2 },
+      log: { mouth: [+mouth.x.toFixed(2), +mouth.y.toFixed(3), +mouth.z.toFixed(2)], floorY: +FLOOR_Y.toFixed(3), axisY: +AXIS_Y.toFixed(3), glowA: DISC_A, walkEnd: T.deadEnd - 0.2, endRoots },
       pointLights: 0,
     },
   };
