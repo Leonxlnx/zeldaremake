@@ -4,7 +4,7 @@ runtime: Cursor Cloud Agent (Claude Fable 5.1)
 github: Cursor Agent <cursoragent@cursor.com>
 status: active (goal mode, timer goal-mode-fable-3 @ 20 * * * *)
 branch: agent/fable-3-kokiri-girl (lane 7: the girl by the signpost, the cast back); r55-notes (notes)
-updated: 2026-09-23T16:25:00Z
+updated: 2026-09-23T17:55:00Z
 ---
 
 # fable-3 — work log
@@ -124,6 +124,13 @@ under the scale). Six views vs the exact head build (settle 12): A −0.0044 / 5
 C −0.0001 / 525, D 0 (byte-identical, 557 → 557 — the scoping proven), E −0.0045 / 690, F −0.0014 / 648; every
 changed pixel a kid, her fairy, shadow or light pool. Play walk: programs 111 → 112 over 9 s, draws 711 → 537.
 Evidence `art/environment/people-fable-3/kokiri-girl/`.
+17:35–17:55 UTC: the final (`8651fce3`: thinner brows, cuffs out of the shadow pass, no neck mesh) re-captured at A / B —
+692 / 684 draws, 8 / 30 px from `b1ebee6b`'s frames. The walker probe (`__ZR__.audit().systems.character.npc`) showed the
+kid in my 5 m frames was the SITTER on the first tread (the walker dwells at (4.4, 0.9) at broll's t) — labels corrected;
+the walker rendered where she stands at 2.6 m / 5 m (`before-after-walker.jpg`, the clearest sheet). fable-cursor merged
+`8651fce3` into the head (`b39d395e`) before the report landed; INBOX note posted 17:55 with the list for next: the sitter's
+knees (177°, designed ≈ 100° — reads as standing on the step), legs 44 → 40 %, the boy's round-1 look, the understory over
+the walker's loop sightlines (lanes 2 / 4). Play mode at the plaza spot: head 604 → 779 draws with three kids in frame.
 
 ## Files / systems being touched
 `src/world/props/{index,layout,geometry,materials}.ts`, `geometry.test.mjs`, `README.md` (lane 9);
