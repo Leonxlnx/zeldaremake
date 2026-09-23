@@ -257,7 +257,9 @@ export function createSkyDome(cfg: WorldConfig, sunDir: Vector3): SkyDome {
     uOpenDir: { value: new Vector2(...HEIGHT_FOG_DEFAULTS.openDir) },
     uOpenEdges: { value: new Vector2(HEIGHT_FOG_DEFAULTS.openLo, HEIGHT_FOG_DEFAULTS.openHi) },
     uOpenUpEdges: { value: new Vector2(HEIGHT_FOG_DEFAULTS.openUpLo, HEIGHT_FOG_DEFAULTS.openUpHi) },
-    uClosed: { value: new Color(...HEIGHT_FOG_DEFAULTS.hazeClosed) },
+    // the dome is the far end of every ray, so it takes the closed roof's FAR colour (heightfog's
+    // hazeClosedFar) — with the flat `hazeClosed` the horizon sat a step under the air in front of it
+    uClosed: { value: new Color(...HEIGHT_FOG_DEFAULTS.hazeClosedFar) },
     uFarLit: { value: new Color(...HEIGHT_FOG_DEFAULTS.hazeFarLit) },
     uFarLitAmount: { value: HEIGHT_FOG_DEFAULTS.hazeFarLitAmount },
     uFarLitUp: { value: new Vector2(...(o?.farLitUp ?? SKY_FAR_LIT_UP)) },

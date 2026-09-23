@@ -185,6 +185,16 @@ export interface HeightFogParams {
   openUpHi: number;
   hazeClosed: [number, number, number];
   /**
+   * The closed roof's own depth grade (2026-09-23, lane 1). `hazeClosed` alone was one flat colour
+   * at every distance, so the whole north hollow — the direction the owner walks and photographed
+   * — was pinned to it and none of the far / lit air ever reached him: brightening `hazeFar` moved
+   * his pose by 0.003 display. His recording's corridor air does deepen with distance (r_025:
+   * 0.39 over the near banks, 0.50 at 25–40 m, 0.55 at the vanishing point), just less than the
+   * open side does. The closed veil now grades `hazeClosed` → `hazeClosedFar` over the same
+   * `hazeGradeNear`..`hazeGradeFar` metres the open side uses.
+   */
+  hazeClosedFar: [number, number, number];
+  /**
    * Lit far wall: past the far tree rows the stand opens and their light arrives through the rows,
    * so from `hazeFarLitStart` (m) to `hazeFarLitEnd` (m) the closed-direction veil (mist share
    * included) grades to `hazeFarLit` — after the closed-roof mix and the deep-hollow shade, which
@@ -413,10 +423,12 @@ export const HEIGHT_FOG_DEFAULTS: HeightFogParams = {
   // near veil (5–~30 m under-canopy air) display 0.505 (was 0.545, hue 205): the reference's
   // mid-ground air behind the near foliage, dim enough that the 10–25 m trunks keep their bark
   hazeNear: [0.19, 0.184, 0.163],
-  // far veil display 0.588 (was 0.654, hue 204): what the 40 m+ air converges to. His recording's
-  // brightest mist bands read 0.50–0.58 (r_022 0.526, r_025 0.545, r_028 0.526 at the path's
-  // vanishing point, p90 0.576–0.583) — bright enough to be light, not a grey ceiling
-  hazeFar: [0.255, 0.245, 0.213],
+  // far veil display 0.645 (was 0.654 at hue 204): what the 30 m+ air converges to. His recording's
+  // mist bands read 0.50–0.58 (r_022 0.526, r_025 0.545, r_028 0.526 at the path's vanishing point,
+  // p90 0.576–0.583) and the veil has to sit a step over them, because at 30–60 m it is only ever
+  // 30–60 % of the pixel. A first pass at display 0.588 left the owner's north pose at 0.381
+  // against his 0.545 and the whole upper frame 0.12 under his.
+  hazeFar: [0.325, 0.296, 0.263],
   // the ground mist keeps its warmth and gains the frames' brightness (display 0.531 → 0.545)
   mistColor: [0.222, 0.211, 0.181],
   // the grade used to run 20 → 55 m, so the 47 m arch already wore 87 % of the far colour and the
@@ -439,7 +451,7 @@ export const HEIGHT_FOG_DEFAULTS: HeightFogParams = {
   // untouched. Display ≈ 0.64 — a step under the dome's 0.67 glare: the reference's hazed crowns at
   // 30–50 m sit at its top band's median 0.49 (a dark crown through ≈ 50 % veil of ≈ 0.31 linear),
   // while a veil at the glare's own value pushed that median to 0.54
-  // 2026-09-23: warmed with the rest (display 0.704 hue 208 → 0.658 hue 46, B/R 0.91). The lit air
+  // 2026-09-23: warmed with the rest (display 0.704 hue 208 → 0.705 hue 46, B/R 0.91). The lit air
   // stays the brightest veil a walker sees — the gaps his recording shows over the path.
   // Round 37 (tone): the air's share of A's under-bright top band (y 0.08–0.33: frame p50/p90
   // 0.468/0.612, ours 0.432/0.558), measured with every surface black (veilOnly) and split by the
@@ -458,7 +470,7 @@ export const HEIGHT_FOG_DEFAULTS: HeightFogParams = {
   // above 10°, and the dome horizon feeds the IBL), −0.0004 / −0.0005 / 0 / −0.0002; hazeLit 0.36 —
   // A open far 0.577 → 0.597 (p90 0.615 → 0.640, band p90 0.558 → 0.562) for −0.0024 / −0.0053 /
   // −0.0014 / −0.0002. None taken: the metric charges every radiance rise in the far cells.
-  hazeLit: [0.331, 0.314, 0.266],
+  hazeLit: [0.415, 0.371, 0.323],
   hazeLitKnee: 0.2,
   // open side = bearing 75° (ENE: the plateau, the stair corridor, the upper tree-house). Fully open
   // within ≈ 45° of it (A's far column at 47°, F's whole upper frame at 23–97°), closed beyond 75°
@@ -486,8 +498,12 @@ export const HEIGHT_FOG_DEFAULTS: HeightFogParams = {
   // B forest bank is 0.434 median / 0.51 p90 with the god rays' wash on top) at every distance, so
   // the far rows and the dome behind them converge on it instead of the 0.58–0.68 lit air. A hair
   // greener than hazeNear: the reference's forest haze is grey-green (hue 56–65°), ours read yellow
-  // 2026-09-23: warmed with the rest (display 0.536 hue 202 → 0.482 hue 48, B/R 0.91)
-  hazeClosed: [0.176, 0.17, 0.151],
+  // 2026-09-23: warmed with the rest and lifted (display 0.536 hue 202 → 0.545 hue 47, B/R 0.91).
+  // This is the air of every direction the owner actually walks — north up the path, west into the
+  // stand — so it is the veil his "grey haze in the middle distance" is made of.
+  hazeClosed: [0.2251, 0.209, 0.1898],
+  // display 0.625: the closed roof at depth (see hazeClosedFar)
+  hazeClosedFar: [0.3014, 0.2757, 0.2463],
   // Round 31 (tone): the D arch (48–55 m, 74–86 % veil, body ×0.3) measured 0.495 display against
   // 0.489 for the rows behind it — with the closed mix the air behind the arch was the arch's own
   // veil, and no extinction at 0.028/m can silhouette a 50 m object against its own air. The
@@ -502,8 +518,8 @@ export const HEIGHT_FOG_DEFAULTS: HeightFogParams = {
   // rise over a reference that has them at 0.45–0.49 — the same air 15 m east; the frames' D
   // camera stands 25 m further north than ours, so its far air is the clearing beyond the arch,
   // B's the stand: one wall colour cannot fit both and D's arch wins.
-  // 2026-09-23: warmed with the rest (display 0.680 hue 204 → 0.618 hue 47, B/R 0.91)
-  hazeFarLit: [0.286, 0.272, 0.234],
+  // 2026-09-23: warmed with the rest (display 0.680 hue 204 → 0.665 hue 47, B/R 0.91)
+  hazeFarLit: [0.352, 0.319, 0.281],
   // Round 32 (tone), with the arch on the frame's rows (hardscape-25): the ramp sits between the
   // arch's body (48–52 m from camera D, its curved top 52.8 m) and the far rows behind it (55–60 m)
   // so the body keeps the hollow veil and the rows wear the wall. The round-31 55–62 m ramp lit the
@@ -723,6 +739,7 @@ export function installHeightFog(config: WorldConfig, params: HeightFogParams = 
 	const float KF_OPEN_UP_LO = ${f(params.openUpLo)};
 	const float KF_OPEN_UP_HI = ${f(params.openUpHi)};
 	const vec3 KF_HAZE_CLOSED = vec3( ${params.hazeClosed.map(f).join(', ')} );
+	const vec3 KF_HAZE_CLOSED_FAR = vec3( ${params.hazeClosedFar.map(f).join(', ')} );
 	const vec3 KF_HAZE_FAR_LIT = vec3( ${params.hazeFarLit.map(f).join(', ')} );
 	const float KF_FAR_LIT_START = ${f(params.hazeFarLitStart)};
 	const float KF_FAR_LIT_END = ${f(params.hazeFarLitEnd)};
@@ -866,9 +883,12 @@ export function installHeightFog(config: WorldConfig, params: HeightFogParams = 
 	// the far rows (no far / lit brightening), dimmer still deep under the roof (hollowDim); past
 	// the rows the rays that climb out of the layer see the lit wall (see hazeFarLit, hazeFarLitKnee)
 	vec3 kfHazeColor( float dist, float distFog, float heightFog, float mu, float rayY, float openShare, float open, float nearGate, float hotFar ) {
-		vec3 haze = mix( KF_HAZE_NEAR, KF_HAZE_FAR, smoothstep( KF_GRADE_NEAR, KF_GRADE_FAR, dist ) );
+		float grade = smoothstep( KF_GRADE_NEAR, KF_GRADE_FAR, dist );
+		vec3 haze = mix( KF_HAZE_NEAR, KF_HAZE_FAR, grade );
 		haze = mix( haze, KF_HAZE_LIT, smoothstep( 0.0, KF_LIT_KNEE, openShare ) );
-		haze = mix( KF_HAZE_CLOSED, haze, open );
+		// the closed roof has its own, shallower depth grade (see hazeClosedFar): the north hollow
+		// is the direction the walk spends most of its time in and it must still read as air
+		haze = mix( mix( KF_HAZE_CLOSED, KF_HAZE_CLOSED_FAR, grade ), haze, open );
 		float mistShare = heightFog / max( distFog + heightFog, 1e-3 );
 		vec3 col = mix( haze, KF_MIST, mistShare );
 		// near-field airlight: the air the camera stands in is dimmer and warmer than the veil the
