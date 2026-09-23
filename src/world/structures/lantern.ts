@@ -153,7 +153,9 @@ function ribbedBody(scale: number, ribs: number, noise: Noise2D, tint: RGB, opts
       const girth = 1 + 0.03 * noise.noise(Math.cos(phi) * 1.4 + 0.5, Math.sin(phi) * 1.4 + vb * 2.1) * smoothstep(0, 0.2, vb) * smoothstep(1, 0.85, vb);
       const r = bodyRadius(y) * girth * (1 - grooveDepth(vb) * (1 - bulge)) * inset;
       out.position.set(Math.cos(phi) * r * scale, y * scale, Math.sin(phi) * r * scale);
-      out.uv = [podU(phi, ribs), vb * POD_BODY_V];
+      // the lining takes the gradient's dimmer upper rows: seen through the opening, the flame is
+      // the brightest thing inside
+      out.uv = [podU(phi, ribs), (opts.inner ? 0.5 + 0.45 * vb : vb) * POD_BODY_V];
       const ao = 1 - 0.14 * (1 - bulge) * smoothstep(0, 0.15, vb);
       // one panel was replaced at some point: a paler, greener skin between two of the ribs
       const seg = Math.floor((((phi / TAU) * ribs) % ribs + ribs) % ribs);
@@ -236,8 +238,8 @@ function lanternFrame(scale: number, ribs: number, rng: Rng, woodTint: RGB): Buf
   const flame = gridSurface(
     (u, v, out) => {
       const phi = u * TAU;
-      const r = 0.0125 * scale * Math.pow(Math.sin(Math.PI * Math.min(1, 0.06 + v * 0.94)), 0.75) * (1 - 0.45 * v);
-      out.position.set(Math.cos(phi) * r + lean * v * scale, (0.062 + 0.05 * v) * scale, Math.sin(phi) * r);
+      const r = 0.016 * scale * Math.pow(Math.sin(Math.PI * Math.min(1, 0.06 + v * 0.94)), 0.75) * (1 - 0.45 * v);
+      out.position.set(Math.cos(phi) * r + lean * v * scale, (0.062 + 0.064 * v) * scale, Math.sin(phi) * r);
       out.uv = [0.5 / POD_TEX_SEGMENTS, 0.012];
       out.color = [1.2, 1.0, 0.7];
     },
