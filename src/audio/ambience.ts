@@ -353,14 +353,14 @@ export function createAmbience(ctx: BaseAudioContext, out: AudioNode, reverbSend
       const b = pickBird();
       const distance = b.near + eventRng() * (b.far - b.near);
       const pan = (eventRng() * 2 - 1) * 0.85;
-      const level = 0.02 + eventRng() * 0.035;
+      const level = 0.03 + eventRng() * 0.045;
       birdCall(b.kind, nextBird, pan, level, distance);
       // sometimes one answers from the other side, always further off
-      if (eventRng() < 0.28) {
+      if (eventRng() < 0.3) {
         const a = pickBird();
         birdCall(a.kind, nextBird + 1.1 + eventRng() * 1.4, -pan * 0.8, level * 0.6, Math.min(1, distance + 0.2));
       }
-      nextBird += 4.5 + eventRng() * 9;
+      nextBird += 3.5 + eventRng() * 8;
     }
   };
 

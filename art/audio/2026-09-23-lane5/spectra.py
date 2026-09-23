@@ -205,9 +205,9 @@ def sheet(args):
         axes(spec, secs)
         env = envelope_image(x, sr, width, 74)
         head = (
-            f'{name} — {args.stem}: rms {m["rms_db"]:.1f} dBFS, peak {m["peak_db"]:.1f}, '
-            f'strongest held tone +{m["tone_peak_db"]:.1f} dB at {m["tone_peak_hz"]:.0f} Hz, '
-            f'breathes {m["mod_db"]:.1f} dB ({m["mod_tail_db"]:.1f} dB away from the lanterns)'
+            f'{name} — {args.stem}: rms {m["rms_db"]:.1f} dBFS   peak {m["peak_db"]:.1f}   '
+            f'strongest held tone +{m["tone_peak_db"]:.1f} dB at {m["tone_peak_hz"]:.0f} Hz   '
+            f'breathes {m["mod_db"]:.1f} dB'
         )
         label(spec, head)
         band = '  '.join(f'{k.split("-")[0]}–{k.split("-")[1]}: {v:.0f}' for k, v in m['band_db'].items())
@@ -441,7 +441,7 @@ def main():
     s.add_argument('--stem', default='bed')
     s.add_argument('--out', required=True)
     s.add_argument('--json')
-    s.add_argument('--width', type=int, default=1100)
+    s.add_argument('--width', type=int, default=1240)
     s.add_argument('--spec-height', type=int, default=250)
     s.set_defaults(func=sheet)
     t = sub.add_parser('steps')
