@@ -533,8 +533,13 @@ export function createDistantVariants(rng: Rng, palette: Palette): DistantVarian
     const r = rng.fork(`distant-${index}`);
     const H = spec.height;
     const slender = spec.kind === 'slender';
+    // 2026-09-23 (owner, marked screenshot: "a smooth pale cylinder" left of the north path — the
+    // pick named this far-trunk row at 37–48 m): the band-only pole was pale white-bark for the old
+    // frame 56 s; his recording's far trunks are dark boles in bright mist, so it takes the broad
+    // kind's dark bark, near gain and tag. The radial slender trees stay pale (distant white-barks).
+    const pale = slender && !spec.bandOnly;
     const R = spec.radius ?? (slender ? H * 0.014 : H * 0.05);
-    const bark = slender ? new Color(palette.barkWhite).multiplyScalar(0.7) : new Color(palette.barkDark).multiplyScalar(0.85);
+    const bark = pale ? new Color(palette.barkWhite).multiplyScalar(0.7) : new Color(palette.barkDark).multiplyScalar(0.85);
     const crownY = slender ? H * 0.68 : H * 0.66;
     const crownR = slender ? H * 0.2 : H * 0.42;
 
@@ -572,8 +577,8 @@ export function createDistantVariants(rng: Rng, palette: Palette): DistantVarian
     const flare = (angle: number, distance: number) => (1 + DISTANT_FLARE * Math.exp(-distance / DISTANT_FLARE_FALL)) * distantCord(angle, cordCount, DISTANT_CORDS[2], cordPhase);
     // the bark parts at DISTANT_NEAR_GAIN over the far tint, tagged for the material to divide out
     // at range (see the constant); the lobe cores below are written untagged at the far tint
-    // the slender kind is pale already (barkWhite × 0.7 ≈ 0.48 linear): no gain, untagged
-    const gain = slender ? 1 : DISTANT_NEAR_GAIN;
+    // the pale slender kind is pale already (barkWhite × 0.7 ≈ 0.48 linear): no gain, untagged
+    const gain = pale ? 1 : DISTANT_NEAR_GAIN;
     const nearBark = bark.clone().multiplyScalar(gain);
     const footGrime = nearBark.clone().multiplyScalar(DISTANT_FOOT_GRIME);
     // the crown's dark the limbs run to and the bole darkens into (round 47 DISTANT_CROWN_TOP)
@@ -589,7 +594,7 @@ export function createDistantVariants(rng: Rng, palette: Palette): DistantVarian
       // sample it); every ring at 2.5 m+ — the far LOD's second ring included — is `base` as before
       return foot.clone().lerp(base, smoothstep(-0.6, 2.5, pt.y)).multiplyScalar(band).lerp(top, into * DISTANT_CROWN_TOP[2]);
     };
-    near.woodMoss = slender ? 0 : 1;
+    near.woodMoss = pale ? 0 : 1;
     // round 48: the sweep runs on `trunk` with DISTANT_BASE_RINGS rings interpolated into its
     // lowest segment (the butt's curve; no draw — the limbs below still attach to `trunk`'s own
     // points), its radii by arc-length share so the inserted rings sit on the same taper curve;
@@ -636,7 +641,7 @@ export function createDistantVariants(rng: Rng, palette: Palette): DistantVarian
     // round 48 (DISTANT_TOES): 4–6 toes, 2.2–3.4 R long, 0.55–0.85 R tall at the collar; 8 segments
     // along so the fillet into the ground curves. The slender kind keeps its four short roots.
     const rootCount = slender ? 4 : rootRng.int(DISTANT_TOES[0], DISTANT_TOES[1] + 1);
-    near.woodMoss = slender ? 0 : 1;
+    near.woodMoss = pale ? 0 : 1;
     for (let i = 0; i < rootCount; i++) {
       const a = (i / rootCount) * TAU + rootRng.range(-0.3, 0.3);
       // round 46: DISTANT_ROOT_ARC arc sides and a fillet into the ground (writer.ts RootButtressShape)
