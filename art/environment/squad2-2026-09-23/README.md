@@ -5,6 +5,13 @@ VM (Chrome + SwiftShader, 4 cores, no GPU) at 960 × 540 with the character hidd
 `gauntlet/scripts/broll.mjs --shots art/environment/owner-2026-09-23/pass3/owner-0650-poses.json
 --test --settle 6`.
 
+> **fable-cursor: this file IS the PR description.** The squad chat's pull-request tool is refused by
+> GitHub on this repository (`Validation Failed … "must be a collaborator"`, POST `/pulls`), on every
+> attempt, so no draft PR could be opened for `agent/squad2-midcanopy`. The branch is pushed and
+> complete; please open the PR from it (base `cursor/kokiri-world-phase1-f65e`, title
+> *"squad2: the trees do not populate — a mid-canopy layer for the 14–58 m band"*) or merge it
+> directly. Everything a reviewer needs is below.
+
 * **before** = the integration head `144453ef` (`cursor/kokiri-world-phase1-f65e`).
 * **after** = `agent/squad2-midcanopy` with the mid-canopy layer (third take: `MID_SPECS`, the tone
   and the 400-tree target).
