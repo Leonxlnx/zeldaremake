@@ -537,3 +537,21 @@ The cooler cut moves 6.9 % of the `s2-owner` box by more than 6 levels and nothi
 the box; the box's warmth is the logs' bark and the tread earth together (and the veil's warmth on them). **Either cut
 carries the weight (the owner's ask, §14); neither moves the hue — merge on weight, and take the flight's warmth as a
 whole-flight (or the light's) question, not the band's.** Sheet `fable-5-lane10/it91-ba-s2-cooler.jpg`.
+
+## 17. fable-4's understory 6.5 m off the walk lines (`agent/fable-4-understory-walk` @ `f5cf6c26`, unmerged; base = the head `393fce60`) at the owner's poses — the look-up item closes on the second layer (19:32–20:02 UTC)
+
+Same poses / flags as §10 and §7, both builds rendered here in the same session; the branch differs from the head by
+`understory.ts` only (32 → 27 stems, a post-filter, no other stem moves).
+
+| pose | pixels > 6 / > 40 | luma | dark (< 0.25) | bright (> 0.6) | note |
+| --- | --- | --- | --- | --- | --- |
+| `h-west-front` | **30 / 5 %** | 0.289 → **0.309** | 43.7 → **39.1 %** | 4.5 → 7.1 % | the card cloud over the column is gone: the upper-left quadrant's leafy share **29.8 → 11.7 %**, its mean l 0.263 → 0.301; the column, the hut and the haze read clean |
+| `u-open-up` | 0.0 % | 0.509 = | 5.4 = | 40.3 = | already clear (§15) — the arch stretch had 6.5 m |
+| `s2-owner`, `b-upper-2` | 2.0 / 1.8 % | = | = | = | untouched |
+| the 06:50 pose (with the character) | 21 / 2 % | band 0.268 → **0.279** | near-black 35.5 → 33.5 % | mist 4.9 → 5.9 % | far-centre l 0.378 → **0.397** (his 0.474), the top band 0.288 → **0.311** (his 0.418), brown 21 → 26 % (more of the warm air and the bank show) |
+
+**§10.1 is closed on both layers once this merges**: the mid grove by `87bc2a64` (live), the understory by `f5cf6c26`.
+The 06:50 pose's corridor keeps opening — on the head `393fce60` the band already reads 0.268 (0.230 at 11:20, his
+0.394), the top band 0.288 (0.230, his 0.418), the far-centre box 0.378 (0.342, his 0.474); this branch adds 0.01–0.02
+more on each. What is left there is not the trees: the far air's brightness and the crowns' colour at depth (§7, lanes
+1 / 2 — no push since 11:08). Sheets `fable-5-lane10/it92-ba-h-west-front.jpg`, `it92-ba-owner.jpg`.
