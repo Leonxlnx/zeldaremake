@@ -371,3 +371,8 @@ nearCanopy, materials, index otherwise) is edited.
   variant 5, floor card at 68–71°); options posted for distant.ts owners. `round52-uopen-attrib/`.
 - 07:10 — the two culls under the free camera vs a no-cull build at eight poses: 0–10 px (leaf-edge order), −3…−16 %
   triangles (most looking up). `round52-freecam-cull/`.
+
+### 2026-09-23 09:37 UTC — round 53: lanes 2/3 (the owner's 06:50 priorities) — understory trees (`agent/fable-4-understory` @ `c1988edc`)
+- `understory.ts`: 4.5–9 m round-crowned trees, brown stems, 5 variants × 3 LODs; 44 seeded placements along the
+  north path verges, the clearing, the plaza lawn edges. Family pipeline, slimTrunks, audit. A +64 K, D +83 K.
+- D window protection tried and dropped (emptied the corridor). Six-view capture running; crops at the owner's pose.
