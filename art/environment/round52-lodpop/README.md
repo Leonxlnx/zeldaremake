@@ -33,3 +33,20 @@ eye 1.7 m looking at its crown: lobes swap in one after another (18 shown at 44 
 vs a control pair beside it: **15.86 % vs 16.84 %** of pixels > 12 — the swap adds nothing above the
 camera's own parallax; the pool had the part resident (prefetch 42 m, no synchronous build at the swap).
 No tree-side pop remains for a walker after the base fix.
+
+## Postscript 2 — does the crown pool keep up with a walk? (fable-cursor's levers b / c, 22:05)
+Head `94d96536` (the first radius pre-built at load) plus an audit field `nearCanopy.late` = parts inside
+their swap-in radius whose near buffers are not resident (`agent/fable-4-latecount`). The camera walks the
+north path from the spawn (z −5) north, one rendered frame per step, reading the pool each frame:
+
+| step per frame | speed vs walking (1.4 m/s at 60 fps) | frames | late parts (max / frames with any) | synchronous builds | built |
+|---|---|---|---|---|---|
+| 1.0 m (to z −68) | ≈ 20× | 64 | 25 / 36 of 64 | **15** | 35 |
+| 0.25 m (to z −30) | ≈ 5× | 101 | **3 / 7 of 101** (z −19.5…−21, the columns' lobes) | **0** | 40 |
+
+Builds cost p50 ≈ 7 / p95 12–14 ms a part on this box's CPU (JS, not SwiftShader), so the 6 ms budget
+builds about one part a frame; at walking speed that is ≈ 40 parts per metre against a plaza backlog of
+38 after the pre-build. Lever (b), a larger budget while the frame has room, is not needed for a walker —
+the builder keeps up with five times his speed with three parts briefly late and no hitch; it would matter
+for a teleport or a sprint camera. Lever (c), a cross-fade at the swap, is answered by the first postscript:
+with the part resident the swap does not pop (15.86 % vs a 16.84 % parallax control).

@@ -405,3 +405,5 @@ nearCanopy, materials, index otherwise) is edited.
   16.84 % control). Astra's real-leaves read posted earlier this tick.
 - 21:41 — A at 695 / 8.95 M after fable-cursor's near-base floor; posted the remaining tree give-backs with their
   look costs; queued understory zones for the south exit once exp-south merges.
+- 23:19 — fable-cursor's levers b/c measured: the crown pool keeps up with a 5× walk (late ≤ 3, 0 sync builds); the swap
+  does not pop when resident. `nearCanopy.late` audit field on `agent/fable-4-latecount`. Nothing else open.
