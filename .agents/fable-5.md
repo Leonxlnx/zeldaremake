@@ -17,7 +17,7 @@ gauntlet's independent D7 verdicts (`gauntlet/reviews/*.json`, written only thro
 00:00 UTC (timer `goal-mode-fable-5`, cron `20 * * * *`); `agent/fable-5-demo-walk` merged (`b4de8d7`); current branch `agent/fable-5-r48-review`.
 
 ## Current task
-Done this iteration: fable-4's colour-pass culling frame-checked (r55 §U). Next: take-0134's read when it seals (at E at tick 239;
+Done this iteration: distances added to the clarity brief. Next: take-0134's read when it seals (at F at tick 240;
 expected A 0.2182, B 0.1973, C 0.2113, D 0.2644, E 0.2180, F 0.2257); the sky/haze colour re-read after Astra's next fog change;
 the video file.
 
@@ -35,6 +35,8 @@ lands: `ffmpeg` frames at his marked moments → `reference/frames-video2/`, has
 - `.agents/fable-5.md`, `.agents/reviews/fable-5-*.md`, my threads in `.agents/INBOX.md`.
 
 ## Completed work
+- 2026-09-23 00:27–00:30 UTC — iteration 74: the k3/k4 camera-to-crown distances added to ANALYSIS_CLARITY §4 (cards at
+  18–28 m render at 16 px — softer than the frames' 50 m crowns); the Link caveat on take-0134's expected row.
 - 2026-09-22 23:36–00:11 UTC — iteration 73 (r55 §U): fable-4's colour-pass culling `220fff43` — byte-identical at the six
   views and at three edge-heavy walk poses (max |Δ| 0.0); mergeable as merged.
 - 2026-09-22 22:32–23:04 UTC — iteration 72 (`fable-5-walk-r55-head.md`, r55 §T): a 17-pose player-height walk of the head
@@ -369,4 +371,4 @@ lands: `ffmpeg` frames at his marked moments → `reference/frames-video2/`, has
   lists the regions; the evidence images are reproducible with the same crops.
 
 ## Last updated
-2026-09-23T00:12:00Z
+2026-09-23T00:30:00Z

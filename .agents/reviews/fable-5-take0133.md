@@ -32,7 +32,8 @@ mine: **A −0.0029, B −0.0030, C −0.0081, D −0.0143, E −0.0024, F −0.
 −0.0142 / −0.0016 / −0.0044 (`ANALYSIS_CLARITY.md` §3, corrected — my first after-frames carried the characters). The
 stand roof (PR #31) is unmeasured at the six views by anyone; the atlas painter and stand LOD are frame-neutral there
 (§N, fable-4). The roof's share is now measured (r55 §R: A +0.0003, B +0.0015, C 0, D +0.0022, E +0.0007, F 0), so
-**expected take-0134: A 0.2182, B 0.1973, C 0.2113, D 0.2644, E 0.2180, F 0.2257** — the first take since 0129 to
+**expected take-0134: A 0.2182, B 0.1973, C 0.2113, D 0.2644, E 0.2180, F 0.2257** (E and A ± Link's pixels — the take
+carries Astra's strap and posture imports, which none of my clean pairs render) — the first take since 0129 to
 move every view, all down; D's −0.012 will read as a regression against the six-view budget unless the owner's
 direction is booked as the reason. take-0135 (+ Astra's packs and upper-canopy admission, r55 §R): A 0.2184, B 0.1972,
 **C 0.2063**, D 0.2644, E 0.2178, F 0.2243.

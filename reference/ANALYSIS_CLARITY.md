@@ -165,8 +165,12 @@ Readings:
    1.4 → 2.9 % (a fifth of the way to the frames' 10.7–14.4 %). Hue, lightness and the sky behind it do not move.
    Sheet `.agents/reviews/fable-5-r55/clarity-k3-cards-triple.jpg`.
 2. **Where the card is in haze, nothing registers:** k4's far crown has a 16 px transition and 0.3 % fine detail on all
-   three builds — the haze at that distance blurs whatever the atlas paints. That is §1 finding 2 (the crown hazed like
-   a 50 m crown) and the fog slice does not fix it: edge 15.4 px, l 0.19.
+   three builds — the haze at that distance blurs whatever the atlas paints. And "that distance" is short: from k4's
+   camera (−24, 30) the knoll's white-barks stand **18 m** and **28 m** away, the hut host **18 m**; from k3 (−41, 14) they
+   are **27–32 m** and **22 m**. So a crown card at 18–28 m renders softer (16 px) than the frames' crowns at ≈ 50 m
+   (`d_107`, 9.6 px), while the frames' crowns at that range (F, B, d_020: ≤ 25 m) are 3.4–4.7 px. That is §1 finding 2
+   (the crown hazed like a far one) with its distance attached — the haze weight the cards take between 15 and 30 m is
+   the item, and the fog slice does not fix it: edge 15.4 px, l 0.19 at k4.
 3. **The fog slice lightens and saturates the sky-facing card the wrong way:** k3 crown l 0.41 → **0.46**, sat 0.13 →
    **0.20** — the `farShadeMin` 0.30 → 0.65 lift — against the frames' 0.27–0.34; at the six views the same slice
    darkens the far bands (§3). Both moves are away from the frames.
