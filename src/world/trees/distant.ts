@@ -1251,6 +1251,8 @@ export interface MidGroveOptions {
   weight?: (x: number, z: number) => number;
   /** spacing floor between two mid boles (m) — crowns are meant to overlap, boles are not */
   spacing?: number;
+  /** true where a crown of radius `crownR` at (x, z) would stand over or beside a walked line */
+  clear?: (x: number, z: number, crownR: number) => boolean;
 }
 
 /**
@@ -1305,6 +1307,7 @@ export function placeMidTrees(rng: Rng, terrain: Terrain, variants: DistantVaria
     const H = v.height * scale;
     const crownR = H * (spec?.crownR ?? MID_CROWN_R);
     const trunkR = H * MID_TRUNK_R;
+    if (o.clear?.(x, z, crownR)) continue;
     if (o.blocked(x, z, trunkR)) continue;
     if (terrain.slope(x, z) > 0.66) continue;
     const y = terrain.height(x, z);
