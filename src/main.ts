@@ -2,6 +2,7 @@ import { Scene, WebGLRenderer, WebGLRenderTarget, ACESFilmicToneMapping, SRGBCol
 import { createWorld, qualityFor } from './world';
 import { createFreeCam } from './camera/freecam';
 import { createFollowCam, type FollowCam } from './camera/follow';
+import { installNearFade } from './camera/nearFade';
 import type { PlayerHandle } from './world/character/player';
 import { getTerrain } from './world/terrain/heightfield';
 import { installCaptureApi, isHeadlessCapture } from './capture/api';
@@ -287,6 +288,10 @@ async function boot() {
 
   // Post-processing (if the atmosphere system installed one) drives the frame; otherwise plain render.
   const composer = (scene.userData.composer as { render(dt: number): void; setSize(w: number, h: number): void } | undefined) ?? null;
+
+  // play only: cards near the lens screen-door out instead of being sliced by the near plane (before
+  // the warm-up, so every program compiles once with it)
+  if (!headless) installNearFade(scene);
 
   const warmupParam = params.get('warmup');
   let warmup: Awaited<ReturnType<typeof warmUp>> | null = null;

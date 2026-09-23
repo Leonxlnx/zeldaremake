@@ -69,7 +69,8 @@ function lookSpots() {
     { id: 'stairs1-base', at: s.at(-1.4), yaw: deg(s.yawUp), note: 'first staircase (south bank), foot, facing up' },
     { id: 'stairs1-top', at: s.at(s.run + 0.7), yaw: deg(s.yawUp) + 180, note: 'first staircase, top, facing down' },
     { id: 'saria-side', at: [8.2, -6.8], yaw: deg(Math.atan2(4.3, -4.7)), note: "beside Saria's house" },
-    { id: 'upper-house', at: [14.8, -11.2], yaw: deg(Math.atan2(-1.3, -6.3)), note: 'the upper house' },
+    // on the plateau east of the upper house, clear of its pad and of Saria's (whose cap reaches the plateau)
+    { id: 'upper-house', at: [17.0, -15.0], yaw: deg(Math.atan2(-3.5, -2.5)), note: 'the upper house, from the plateau' },
     { id: 'west-house', at: [-16.3, 6.5], yaw: deg(Math.atan2(-6.7, 2.5)), note: 'the west house deck' },
     { id: 'open-north', at: [1.5, -40], yaw: 180, note: 'open ground north of the log arch' },
   ];
@@ -125,11 +126,19 @@ async function openPlay(browser, baseUrl) {
 /** one rAF on the page so queued (rAF-aligned) pointer events reach the listeners */
 const flushInput = (page) => page.evaluate(() => new Promise((r) => requestAnimationFrame(() => r())));
 const sim = (page, n) => page.evaluate(([n, dt]) => window.__ZR_PLAY__.step(n, dt, false), [n, DT]);
-const draw = async (page) => {
-  const t0 = Date.now();
-  await page.evaluate((dt) => window.__ZR_PLAY__.step(1, dt, true), DT);
-  return Date.now() - t0;
-};
+/**
+ * Draw one frame; returns its wall time (ms). WebGL returns before the frame is drawn, so the time
+ * is taken after a one-pixel readback of the canvas (the synchronous round trip) — what this
+ * machine's renderer actually spent.
+ */
+const draw = async (page) =>
+  page.evaluate((dt) => {
+    const t0 = performance.now();
+    window.__ZR_PLAY__.step(1, dt, true);
+    const gl = document.querySelector('canvas').getContext('webgl2');
+    if (gl) gl.readPixels(0, 0, 1, 1, gl.RGBA, gl.UNSIGNED_BYTE, new Uint8Array(4));
+    return performance.now() - t0;
+  }, DT);
 const state = (page) => page.evaluate(() => window.__ZR_PLAY__.state());
 const elevationOf = (st) => deg(Math.asin(Math.max(-1, Math.min(1, st.camera.direction[1]))));
 const summarise = (st) => {
@@ -475,9 +484,11 @@ async function walkScenario(page, results) {
   const m = flightFrame(FLIGHTS.main);
   const s = flightFrame(FLIGHTS['south-bank']);
   const routes = [
-    ['plaza-to-upper-house', [[1, 3], m.at(-1.6), m.at(m.run * 0.5), m.at(m.run + 1.2), [15.2, -9.8], [14.6, -12.2]]],
+    // round Saria's trunk pad (its cap reaches the plateau) to the upper house's east side
+    ['plaza-to-upper-house', [[1, 3], m.at(-1.6), m.at(m.run * 0.5), m.at(m.run + 1.2), [17.6, -9.5], [17.2, -13.0], [16.6, -15.2]]],
     ['plaza-to-south-bank-top', [[-6, 8], [-11.8, 12.0], s.at(-1.4), s.at(s.run * 0.5), s.at(s.run + 1.0)]],
-    ['saria-front-arc', [[5.7, -4.5], [8.2, -6.8], [7.2, -10.4], [6.4, -13.2]]],
+    // along the lawn to the door, clear of the signpost (7.0, −9.3)
+    ['saria-front-arc', [[5.7, -4.5], [8.2, -6.8], [8.6, -8.2], [9.3, -9.0]]],
     ['west-deck', [[-12.5, 8.5], [-15.39 + 0.9, 7.64 - 0.4], [-16.28, 6.46], [-18.4, 7.1]]],
   ];
   results.walk = [];
@@ -486,6 +497,61 @@ async function walkScenario(page, results) {
     results.walk.push(await walkRoute(page, name, pts));
     fs.writeFileSync(path.join(out, 'playtest.json'), JSON.stringify(results, null, 1));
   }
+}
+
+/**
+ * Movement clips (--video): every drawn frame saved as clip-<name>-NNNN.jpg for ffmpeg. A look sweep
+ * (rest → drag up to the limit → hold → drag down past rest → recentre) beside Saria's lanterns and
+ * at the plaza, and a climb up the second staircase with the follow camera.
+ */
+async function videoScenario(page, results) {
+  results.video = [];
+  const save = async (name, k) => {
+    await draw(page);
+    await page.screenshot({ path: path.join(out, `clip-${name}-${String(k).padStart(4, '0')}.jpg`), type: 'jpeg', quality: 88 });
+  };
+  for (const id of ['saria-side', 'plaza']) {
+    const spot = lookSpots().find((p) => p.id === id);
+    if (!spot) continue;
+    log(`video: look sweep at ${id}`);
+    await page.evaluate(([x, z, yaw]) => window.__ZR_PLAY__.place(x, z, yaw), [spot.at[0], spot.at[1], rad(spot.yaw)]);
+    await sim(page, 40);
+    let k = 0;
+    for (let i = 0; i < 6; i++) await save(`look-${id}`, k++);
+    const t0 = Date.now();
+    await drag(page, 0, -Math.round(height * 0.8), 24, 1, async () => {
+      await sim(page, 1);
+      await save(`look-${id}`, k++);
+    });
+    for (let i = 0; i < 10; i++) {
+      await sim(page, 1);
+      await save(`look-${id}`, k++);
+    }
+    await drag(page, 0, Math.round(height * 1.0), 24, 1, async () => {
+      await sim(page, 1);
+      await save(`look-${id}`, k++);
+    });
+    results.video.push({ name: `look-${id}`, frames: k, seconds: Math.round((Date.now() - t0) / 1000) });
+    fs.writeFileSync(path.join(out, 'playtest.json'), JSON.stringify(results, null, 1));
+  }
+  const f = FLIGHTS.main;
+  const fr = flightFrame(f);
+  log('video: climb the second staircase');
+  const start = fr.at(-2.2);
+  await page.evaluate(([x, z, yaw]) => window.__ZR_PLAY__.place(x, z, yaw), [start[0], start[1], fr.yawUp]);
+  await sim(page, 20);
+  await page.keyboard.down('KeyW');
+  let k = 0;
+  try {
+    for (let i = 0; i < 150; i++) {
+      await sim(page, 1);
+      await save('climb-main', k++);
+    }
+  } finally {
+    await page.keyboard.up('KeyW');
+  }
+  results.video.push({ name: 'climb-main', frames: k });
+  fs.writeFileSync(path.join(out, 'playtest.json'), JSON.stringify(results, null, 1));
 }
 
 /** frame cost at a few spots: JS phases from the page's own timers, draw calls/triangles, the drawn frame's wall time */
@@ -521,6 +587,7 @@ async function main() {
     if (want('climb')) await climbScenario(page, results);
     if (want('walk')) await walkScenario(page, results);
     if (want('perf')) await perfScenario(page, results);
+    if (video && want('video')) await videoScenario(page, results);
     results.pageErrors = consoleLines.filter((l) => l.startsWith('[pageerror]') || l.startsWith('[page:error]'));
     results.finished = new Date().toISOString();
     fs.writeFileSync(path.join(out, 'playtest.json'), JSON.stringify(results, null, 1));
