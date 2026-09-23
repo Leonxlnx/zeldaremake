@@ -4,7 +4,7 @@ runtime: Cursor Cloud Agent (Claude Fable 5.1)
 github: Cursor Agent <cursoragent@cursor.com>
 status: active (goal mode, timer goal-mode-fable-3 @ 20 * * * *)
 branch: agent/fable-3-kokiri-girl (lane 7: the girl by the signpost, the cast back); r55-notes (notes)
-updated: 2026-09-23T22:30:00Z
+updated: 2026-09-23T23:40:00Z
 ---
 
 # fable-3 — work log
@@ -175,7 +175,10 @@ the atlas step (3 submissions a kid) if the budget calls for it.
 (`character/index.ts` `moveRoot` edge-slide — `ground.blocked()` now makes props slide-able edges; `ground.ts` walk spans for
 the deck / tunnel floor and the off-deck ravine block, `builtTop()` clearing the deck first): sound, no overlap with the
 kids' code, clean merge. `EXPANSION_SOUTH` (path nodes, bridge sills, tunnel mouth) is specified — the signs of use wait
-for fable-cursor's word. Nothing landed this tick. Play mode at the plaza spot: head 604 → 779 draws with three kids in frame.
+for fable-cursor's word. Nothing landed this tick.
+23:25 UTC: the head merged my notes (`77c4a7bc`) and lanes 1 / 5 (corridor air, gust-gated wind). Read the people on
+`81430baf` at the walker's 5 m and a 10 m pose (the follow lens's distance): unchanged at 5 m, the Kokiri read holds at
+10 m under lane 1's air (`head-81430baf-corridor-air-5m.jpg`). INBOX 23:40 (a read, not a landing). No ask for lane 7 / 9. Play mode at the plaza spot: head 604 → 779 draws with three kids in frame.
 
 ## Files / systems being touched
 `src/world/props/{index,layout,geometry,materials}.ts`, `geometry.test.mjs`, `README.md` (lane 9);
