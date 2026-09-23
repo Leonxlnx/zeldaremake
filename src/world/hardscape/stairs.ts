@@ -375,9 +375,17 @@ export function buildStairway(def: StairDef, terrain: Terrain, rng: Rng, seed: s
           // (a damp skin under the overhang), the buried sides stay dark
           if (part === 'side') return z < 0 ? [1.02 * grime, 1.06 * grime, 0.98 * grime] : 0.92 * grime;
           const m = mottle(x + cxl, z + czl);
-          const k = (1 + 0.09 * front - 0.13 * back) * grime * damp;
+          // a log flight's tread is trodden earth (earthTop below): no lit nose lip — the timber is
+          // the nose — the walked centre compacted a shade paler, the back and flanks damper
+          const k = logNosed ? (1 + 0.06 * feet(x + cxl) - 0.18 * back) * grime * damp : (1 + 0.09 * front - 0.13 * back) * grime * damp;
           return [m[0] * k, m[1] * k, m[2] * k * (1 + 0.04 * wet)];
         },
+        // fable-2 (lane 6, the demo's log-risered steps d_094 / d_104): between the timbers the
+        // demo's treads are packed earth with grass at the edges, not stone slabs — the top face
+        // and the shoulder ring render as trail dirt (geometry.ts `earthTop`, material.ts EARTH_*);
+        // the slab's walls and the riser stones under the log stay stone. Geometry unchanged, so
+        // the tread noses, the contact surface and the flight's draws are what they were.
+        earthTop: logNosed ? 1 : 0,
         uvScale,
         uvOffset: [rng() * 3, rng() * 3],
         // fine wear grain plus the feet path: a ~1.2 cm deeper dish over the centre third of the

@@ -3,8 +3,8 @@ agent: fable-3
 runtime: Cursor Cloud Agent (Claude Fable 5.1)
 github: Cursor Agent <cursoragent@cursor.com>
 status: active (goal mode, timer goal-mode-fable-3 @ 20 * * * *)
-branch: agent/fable-3-r55-notes (notes/reviews); shelves-threshold merged (kindling basket, play-head 75622db9)
-updated: 2026-09-23T10:40:00Z
+branch: agent/fable-3-r55-notes (notes); fork-marker merged 6a7804ab; lane 9 list complete
+updated: 2026-09-23T11:35:00Z
 ---
 
 # fable-3 — work log
@@ -236,6 +236,11 @@ squad3-near-bark at their poses: the lichen confetti on the near column 3.21 % �
 Housekeeping: this log had carried conflict markers since the 22 Sep 10:40 merge (a `git add` of an
 unresolved file), and the INBOX got one bad push this hour — both rebuilt clean. Rule for me from here:
 after any merge, `git diff --name-only --diff-filter=U` and resolve every file before adding.
+10:20–11:20 UTC: lanes 1–5 held by squad chats (merged, live); none touches props/house. The squad log's
+"snag" at (−11.4, 8.25) = my west-fork marker 0.25 m off the fork→landing chord (a corner-cut walk) → moved to
+(−11.2, 7.75), the shortcut added as a test corridor (old spot fails, new clears 0.52 m).
+`agent/fable-3-fork-marker`. The fork pose from the plaza is now foliage-heavy (squad 2/4 + fable-4's
+understory) — the marker hidden; flagged to lanes 2/4 via fable-cursor.
 
 ## Files / systems being touched
 `src/world/props/{index,layout,geometry,materials}.ts`, `geometry.test.mjs`, `README.md`.

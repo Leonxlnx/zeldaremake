@@ -130,6 +130,7 @@ export function create(ctx: WorldContext): WorldSystem {
     canopyOpenBearingDeg: Math.round((Math.atan2(HEIGHT_FOG_DEFAULTS.openDir[0], -HEIGHT_FOG_DEFAULTS.openDir[1]) * 180) / Math.PI),
     canopyOpenEdges: [HEIGHT_FOG_DEFAULTS.openLo, HEIGHT_FOG_DEFAULTS.openHi],
     hazeClosedDisplay: displayHex(HEIGHT_FOG_DEFAULTS.hazeClosed),
+    hazeClosedFarDisplay: displayHex(HEIGHT_FOG_DEFAULTS.hazeClosedFar),
     // past the far tree rows the wall is lit in every direction (the dome's horizon takes the same
     // colour): the log arch keeps the hollow veil and reads as a silhouette against it
     hazeFarLitDisplay: displayHex(HEIGHT_FOG_DEFAULTS.hazeFarLit),
@@ -168,6 +169,7 @@ export function create(ctx: WorldContext): WorldSystem {
     groundMist: true,
     groundMistBillboards: mist.billboards,
     groundMistSheets: mist.sheets,
+    midMistCurtains: mist.curtains,
     godRays: composer !== null,
     fallingLeaves: leaves.count,
     fireflies: motes.count,

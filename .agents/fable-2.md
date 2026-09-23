@@ -49,6 +49,12 @@ as `agent/fable-2-<topic>`; `fable-cursor` merges. I do not touch `layout.ts`, t
   look lifted and warmed (`a683a4c1`) — **FAIL as a visible change at D**: the ferns hide the rock,
   the visible cap edge moved 0.238 → 0.246 and D −0.0002. Kept (harmless, toward the reference);
   the item is vegetation-26's exclusion disc first. §Iteration 8.
+- Iteration 83 — fable-cursor's 07:30 fit taken: **fable-2 → lane 6 (steps and paths)** alongside rocks. First half of
+  the demo's log-risered steps: the hero flight's treads render as trodden earth between the timbers (`aEarth` on the slab
+  tops + the stone shader's `rocky_trail` blend; geometry, noses, contact unchanged). From above the grey slabs with rolled
+  lips become pale sandy earth with grit, as `d_104` has it; six views A −0.0002, C −0.0009 (the flight's foot), the rest 0;
+  draws / tris unchanged. `agent/fable-2-earth-treads` @ `7fcb33cf`. README §83, INBOX. Next: the cheeks → grass banks with
+  the timbers' ends proud (geometry), then the path fork (layout, on fable-cursor's word).
 - Iteration 82 — the owner's 06:50 squad direction (the walk-around beats the fixed frames; rocks is not a squad lane, the
   loop continues): the hero boulders' near skin carried to 13 m (`HERO_NEAR_FADE_M` [7, 13], the dressing's band) — the
   "stones under-detailed at 5–20 m" half I had held back for the six views. Measured: D boulder at 6.9 m and the stair-foot
@@ -422,4 +428,5 @@ Nothing outside `src/world/rocks/` except this log, the INBOX and my evidence un
   a bright top — the §63 method with the light first), #34's pebble far skin at E.
 
 ## Last updated
+2026-09-23T10:45:00Z
 2026-09-23T09:00:00Z
