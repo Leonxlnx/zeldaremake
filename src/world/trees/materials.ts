@@ -659,7 +659,10 @@ const GIANT_BARK_COLOR = /* glsl */ `
   // the foot, not half the low bole — threshold 0.5→0.62, the foot's weight 0.22→0.12 (was: coarse
   // > 0.51 anywhere below 4.5 m greened the bark between the sheets)
   float moss = smoothstep(0.62, 0.9, up * 0.5 + coarse * 0.55 + lowBand * 0.12);
-  vec3 mossColor = mix(vec3(0.12, 0.19, 0.05), vec3(0.28, 0.4, 0.11), coarse);
+  // Round 52: the moss albedos are more saturated (G/R 1.6 → 2.4). The near bases' shade floor
+  // (NEAR_BASE_FLOOR, texture 0.7 over a flat 0.08) mixes a grey term into whatever albedo it is
+  // given, so a desaturated moss came out of it as pale sage; the hue has to be in the albedo.
+  vec3 mossColor = mix(vec3(0.085, 0.185, 0.035), vec3(0.2, 0.39, 0.085), coarse);
   // root sheets: the upward faces of the roots and the foot of the bole, under a soft-edged
   // cover that follows the coarse noise so the sheets still have ragged margins
   float sheet = smoothstep(0.45, 0.85, up) * (1.0 - smoothstep(0.6, 2.2, vTreeLocalY)) * smoothstep(0.3, 0.65, coarse);
@@ -671,7 +674,7 @@ const GIANT_BARK_COLOR = /* glsl */ `
   #else
   moss = max(moss, sheet);
   #endif
-  mossColor = mix(mossColor, vec3(0.26, 0.38, 0.11), sheet * 0.6);
+  mossColor = mix(mossColor, vec3(0.175, 0.37, 0.08), sheet * 0.6);
   diffuseColor.rgb = mix(diffuseColor.rgb, mossColor, moss * 0.75);
   // close-range detail only: past 4–10 m the flecks are 1–3 px of speckle on boles the reference
   // frames show as smooth hazed columns (F's stair-bank giant at 10 m, D's north-west-near at 11 m)
@@ -738,7 +741,7 @@ const GIANT_BARK_COLOR = /* glsl */ `
     barkMossCover = smoothstep(0.52, 0.8, vBarkMoss * (0.34 + 0.85 * mossPatch + 0.3 * mossFine));
     // a darker rim where a cushion meets the bark, so it sits on the bark as a volume
     float mossRim = barkMossCover * (1.0 - barkMossCover) * 4.0;
-    vec3 mossCushion = mix(vec3(0.09, 0.16, 0.04), vec3(0.24, 0.36, 0.10), mossFine) * (1.0 - 0.35 * mossRim);
+    vec3 mossCushion = mix(vec3(0.055, 0.15, 0.028), vec3(0.185, 0.35, 0.072), mossFine) * (1.0 - 0.35 * mossRim);
     #ifdef BARK_NEAR_DETAIL
     // round 44: a 3-D cushion's crown is lit and its flanks fall off — the fine field itself
     // (its slopes bend the normal in the near-detail normal block), plus a sub-cm sprig speckle
