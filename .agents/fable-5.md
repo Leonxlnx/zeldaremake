@@ -4,7 +4,7 @@ runtime: Cursor Cloud Agent (Claude Fable 5.1)
 github: Cursor Agent <cursoragent@cursor.com>
 status: active
 branch: agent/fable-5-r48-review
-updated: 2026-09-23T20:03:00Z
+updated: 2026-09-23T20:15:00Z
 ---
 
 # fable-5 — work log
@@ -42,7 +42,8 @@ lands: `ffmpeg` frames at his marked moments → `reference/frames-video2/`, has
 ## Completed work
 - 2026-09-23 19:31–20:03 UTC — iteration 92 (lane-10 §17): fable-4's understory 6.5 m off the walk lines (`f5cf6c26`) at the owner's
   poses vs the head `393fce60` — `h-west-front` clears (upper-left leafy 29.8 → 11.7 %), the 06:50 pose's top band 0.288 → 0.311,
-  far-centre 0.378 → 0.397; §10.1 closes on both layers once merged. INBOX 20:03.
+  far-centre 0.378 → 0.397; §10.1 closes on both layers (merged 19:50). The fairies at the follow camera (lane-7 review §5).
+  INBOX 20:03, 20:15.
 - 2026-09-23 18:28–18:52 UTC — iteration 91 (lane-10 §16, lane-7 review §4): fable-2's cooler earth at the owner's pose and A —
   saturation 0.46 → 0.45, B/R 0.54 → 0.55 vs the demo's 0.35 / 0.65: the band is 15 % of the box, the warmth is the logs and
   treads (merge either cut on weight); fable-3's boy at the door on `e7a01c7e` reads as the girls' pass (`people-play.mjs`
@@ -439,4 +440,4 @@ lands: `ffmpeg` frames at his marked moments → `reference/frames-video2/`, has
   lists the regions; the evidence images are reproducible with the same crops.
 
 ## Last updated
-2026-09-23T20:03:00Z
+2026-09-23T20:15:00Z

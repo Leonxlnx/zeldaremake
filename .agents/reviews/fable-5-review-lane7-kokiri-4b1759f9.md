@@ -65,3 +65,13 @@ wide green band, paler skin, a slightly larger head and a mouth** — the girl's
 unchanged; he still stands half behind the door bush from the plaza side. The other four kids' frames are pixel-identical
 (0–0.1 %). Kind matches the girls; the face at 10 m is still two dark patches. Sheet
 `fable-5-lane7-review/it91-ba-boy-door.jpg`.
+
+## 5. Follow-up, 20:07–20:14 UTC — the fairies at 5 m (`044fb636`) and the heads that turn (`e43ae92f`), merged `f1f93d77`; before = the head `393fce60`
+
+Same probe, Link 5.5–6 m from each kid, the camera ≈ 10 m. **The kids' fairies now read as a glow with wings** at that
+range: the walker's went from a 3 × 4 px dot to a 5 × 7 px glow with a wing pair (12 → 30 pixels over 215), the sitter's
+the same step; Navi (Link's) stays the largest by design. Against the demo (`d_090`: a fairy about as wide as the girl's
+head, a head and a half above it) ours at 10 m is about half a head's width — right in kind, a notch under in size at the
+follow camera's real distance (fable-3 sized them at 5 m; the camera sits ≈ 4 m behind Link). The heads did not turn in
+these shots — Link stood 5.5–6 m off, outside the 5 m window — so that step is unmeasured here. Sheet
+`fable-5-lane7-review/it92-ba-fairies.jpg` (the sitter and the walker, head | lane 7).
