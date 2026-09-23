@@ -24,8 +24,13 @@ import { stairFrame, stairToWorld } from './stairs';
 
 /** the log nosings on the main flight (false: the cut-stone flight as it was) */
 export const STAIR_LOGS = true;
-/** flights that take the logs (the demo shows them on the hero flight; the house-west and expansion flights stay stone) */
-export const LOG_FLIGHTS = new Set(['main']);
+/**
+ * flights that take the logs — and, with them, the earth treads (stairs.ts `logNosed`): the hero
+ * flight (the demo's `d_010` / `d_104`) and the raised stair to the north ledge (the owner's ref-03
+ * right-bank steps: round timbers with cut ends and stakes, dark earth between — fable-2, lane 6).
+ * The house-west and expansion flights stay stone.
+ */
+export const LOG_FLIGHTS = new Set(['main', 'ledge']);
 /** log radius range (m): ≈ 0.16–0.20 m across, §9 */
 export const LOG_RADIUS: [number, number] = [0.08, 0.1];
 /**
