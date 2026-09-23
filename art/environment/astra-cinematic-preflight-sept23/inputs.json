@@ -1,0 +1,26 @@
+{
+  "sourceSha": "cd834342e4f72ca194ef1dc119d5b80e0ac402a1",
+  "bundle": "index-DwReWLkW.js",
+  "bundleSha256": "c76ed18510d9a07180fec9abccaadc9f4a585ea3b096dfec441e04e7b8fa0346",
+  "dist": "E:\\zeldaremake-astra-motion-sept21\\gauntlet\\out\\cinematic-preflight-cd834342\\dist",
+  "distHash": "sha256:7ded4fe9dc4e20564aaa022083f217c78ce0a04ab03697a92487b0a39c5fbe57",
+  "exporterSha256": "0431512a6007185aa5391231d1c5b0c54d038ef912d37c109b727306422e9f75",
+  "observerSha256": "a3ad545afc76172810fb3f677485e766633c1a26e2d52dd805fe2b4043f70859",
+  "poseSha256": "b48427c0a184334599158d01ad977f043613c7e3f5a4a04345fffda154a7f3f9",
+  "linkSha256": "7f406e40e65430ed3c11bd045e2e9482dae8cee8122e9869ed62a2c3cfecbbda",
+  "sourceDiff": "",
+  "profile": {
+    "width": 1920,
+    "height": 1080,
+    "pixelRatio": 1,
+    "quality": "high",
+    "fps": 30,
+    "simTimeStart": 12.5,
+    "settle": 12,
+    "staticTest": true,
+    "character": false,
+    "hud": false,
+    "nativeGpu": true
+  },
+  "note": "Fifteen static composition checkpoints, not cinematic recording or FPS evidence"
+}

@@ -10,15 +10,18 @@
  * wood (the distant material) and crown (the crown material). Fog does the atmospheric tinting.
  * Placement is seeded, clumped by noise, spaced by a hash grid, and seated on the terrain.
  */
-import { BufferGeometry, Color, DoubleSide, MeshStandardMaterial, Vector3, type Texture } from 'three';
+import { Box3, BufferGeometry, Color, DoubleSide, MeshStandardMaterial, Vector3, type IUniform, type Texture, type Vector4 } from 'three';
+import { mergeGeometries } from 'three/examples/jsm/utils/BufferGeometryUtils.js';
 import type { Rng } from '../util/prng';
 import { Noise2D, smoothstep } from '../util/noise';
 import type { Terrain } from '../terrain/heightfield';
 import { WIND_GLSL, type Wind } from '../wind/wind';
-import { GeometryWriter, TAU, UP, growthPath, rootButtress, taper, tube } from './writer';
+import { GeometryWriter, TAU, UP, divergingLeaderPath, growthPath, rootButtress, sample, tangent, taper, tube } from './writer';
+import { createNearCanopyKit, type NearLobeRecord } from './nearCanopy';
+import { runBuild } from './lodPool';
 import { consumeTubeDraws } from './bole';
 import type { Palette } from './whitebark';
-import { createFarCrownAtlas, FAR_CROWN_CELLS, farCrownCellUv, SOLID_UV } from './leaf-cluster-texture';
+import { CARD_UV0, createFarCrownAtlas, FAR_CROWN_CELLS, farCrownCellUv, SOLID_UV } from './leaf-cluster-texture';
 import { injectTreeLeafWarmth } from './leaf-color';
 
 export type DistantKind = 'broad' | 'slender';
@@ -32,6 +35,190 @@ export interface DistantVariant {
   farTriangles: number;
   /** authored depth bands only — never drawn from the radial 60–215 m pool */
   bandOnly: boolean;
+  /** Existing bough paths, retained for the close foliage's small terminal shoots. No new legacy draws. */
+  crownBranches: Vector3[][];
+  /** Existing centreline: the close crown's leaders attach to this same wood. */
+  crownStem: Vector3[];
+}
+
+/** Close detail is a bounded addition; every tree without a slot keeps its original crown. */
+export const DISTANT_CLOSE_SLOTS = 8;
+export const DISTANT_CLOSE_FADE_M = [18, 26] as const;
+export const DISTANT_CLOSE_PREFETCH_M = 34;
+export const DISTANT_CLOSE_TRIANGLES = 130000;
+export interface DistantCloseCandidate { id: number; distance: number }
+export interface DistantCloseSlot { id: number; weight: number }
+export const distantCloseWeight = (distance: number) => 1 - smoothstep(DISTANT_CLOSE_FADE_M[0], DISTANT_CLOSE_FADE_M[1], distance);
+
+/** Eight slots INCLUDING retiring crowns. A newcomer retains its old crown until a slot opens. */
+export function updateDistantCloseSlots(slots: DistantCloseSlot[], candidates: DistantCloseCandidate[], dt: number, reset = false): DistantCloseSlot[] {
+  const existing = new Set(slots.map(s => s.id));
+  const eligible = candidates.filter(c => c.distance < DISTANT_CLOSE_FADE_M[1]);
+  const ranked = eligible.slice().sort((a, b) =>
+    (a.distance - (!reset && existing.has(a.id) ? 2 : 0)) - (b.distance - (!reset && existing.has(b.id) ? 2 : 0)) || a.id - b.id);
+  const desired = new Map(ranked.slice(0, DISTANT_CLOSE_SLOTS).map(c => [c.id, distantCloseWeight(c.distance)]));
+  if (reset) return [...desired].map(([id, weight]) => ({ id, weight }));
+  const step = Math.min(1, Math.max(0, dt) / 0.25);
+  const next = slots.map(s => {
+    const target = desired.get(s.id) ?? 0;
+    return { id: s.id, weight: s.weight + Math.max(-step, Math.min(step, target - s.weight)) };
+  }).filter(s => s.weight > 0 || desired.has(s.id));
+  for (const [id, target] of desired) {
+    if (next.length >= DISTANT_CLOSE_SLOTS) break;
+    if (!next.some(s => s.id === id)) next.push({ id, weight: Math.min(step, target) });
+  }
+  return next;
+}
+
+// Complementary screen-door coverage only during a LOD transition. It does not sharpen,
+// recolour or perturb either source; at weight 0 the original far shader is unchanged.
+const DISTANT_CLOSE_DITHER = /* glsl */ `
+varying float vDistantClose;
+float distantCloseDither() {
+  vec2 q = mod(floor(gl_FragCoord.xy), 4.0);
+  vec2 lo = mod(q, 2.0), hi = floor(q * 0.5);
+  float a = 2.0 * lo.x + 3.0 * lo.y - 4.0 * lo.x * lo.y;
+  float b = 2.0 * hi.x + 3.0 * hi.y - 4.0 * hi.x * hi.y;
+  return (4.0 * a + b + 0.5) / 16.0;
+}`;
+function injectDistantCloseBlend(material: MeshStandardMaterial, slots?: IUniform<Vector4[]>) {
+  const compile = material.onBeforeCompile;
+  const key = material.customProgramCacheKey();
+  material.onBeforeCompile = (s, renderer) => {
+    compile.call(material, s, renderer);
+    if (slots) s.uniforms.uDistantClose = slots;
+    const pars = slots ? `uniform vec4 uDistantClose[${DISTANT_CLOSE_SLOTS}];` : 'attribute float aDistantClose;';
+    const body = slots ? /* glsl */ `
+      vDistantClose = 0.0;
+      vec4 closeRoot = vec4(0.0, 0.0, 0.0, 1.0);
+      #ifdef USE_INSTANCING
+        closeRoot = instanceMatrix * closeRoot;
+      #endif
+      closeRoot = modelMatrix * closeRoot;
+      for (int ci = 0; ci < ${DISTANT_CLOSE_SLOTS}; ci++) {
+        if (uDistantClose[ci].w > 0.0 && distance(closeRoot.xyz, uDistantClose[ci].xyz) < 0.05) vDistantClose = uDistantClose[ci].w;
+      }
+    ` : 'vDistantClose = aDistantClose;';
+    s.vertexShader = `${pars}\nvarying float vDistantClose;\n` + s.vertexShader.replace('#include <begin_vertex>', `#include <begin_vertex>\n${body}`);
+    s.fragmentShader = DISTANT_CLOSE_DITHER + s.fragmentShader.replace('#include <alphatest_fragment>',
+      `#include <alphatest_fragment>\nif (${slots ? 'vDistantClose > 0.0 && distantCloseDither() < vDistantClose' : 'distantCloseDither() >= vDistantClose'}) discard;`);
+  };
+  material.customProgramCacheKey = () => `${key}/distant-close-${slots ? 'far' : 'near'}`;
+}
+
+/** Preserve the existing material's hooks/maps/floors; only add this crown's LOD coverage. */
+export function cloneDistantCloseMaterial(source: MeshStandardMaterial): MeshStandardMaterial {
+  const material = source.clone();
+  material.name = `${source.name || 'tree'}-distant-close`;
+  material.onBeforeCompile = source.onBeforeCompile;
+  material.customProgramCacheKey = source.customProgramCacheKey.bind(source);
+  injectDistantCloseBlend(material);
+  return material;
+}
+
+export interface DistantCloseCrown {
+  geometry: BufferGeometry;
+  build(): Generator<void, BufferGeometry>;
+  bounds: Box3;
+  leaves: number;
+}
+
+/**
+ * Real branch-led close foliage. The minimum authored giant crown topology (4 leaders × 3
+ * lobes, 2 × 2 for slender trees) grows from the existing stem. Each lobe reuses the canonical
+ * secondary/twig paths and the unchanged near-canopy lamina generator/material: physical
+ * 22–36 cm cupped leaves, no multi-leaf planes or atlas occupancy sampling. Build in metres at
+ * the largest placed scale and map back to variant space; smaller instances get smaller leaves.
+ * The old crown remains installed and supplies every unselected tree and every transition.
+ */
+export function createDistantCloseCrown(variant: DistantVariant, rng: Rng, maxScale: number, palette: Palette, index: number): DistantCloseCrown {
+  const H = variant.height * maxScale, crownR = H * (variant.kind === 'broad' ? 0.42 : 0.2);
+  const trunk = variant.crownStem.map(p => p.clone().multiplyScalar(maxScale));
+  const bark = new Color(palette.barkDark), canopy = new Color(palette.leafCanopy), sunny = new Color(palette.leafSun);
+  const cool = new Color(0x3f7a4a), warm = new Color(0x8fa83c);
+  // Same near-lamina albedo rule as giant.ts, evaluated per physical leaf, not per cluster card.
+  const leafColor = (g: Rng, base: Vector3, center: Vector3, hR: number, vigor: number) => {
+    const heightF = base.y / H, outF = Math.hypot(base.x, base.z) / crownR;
+    const sun = Math.min(1, Math.max(0, (heightF - 0.55) * 2.0 + outF * 0.3)) * g.range(0.3, 1);
+    const interior = smoothstep(0.85, 0.3, base.distanceTo(center) / Math.max(0.5, hR));
+    const under = smoothstep(0.1, -0.6, (base.y - center.y) / Math.max(0.4, hR * 0.5));
+    const coolWarm = g.range(0, 1) < 0.5 ? cool : warm;
+    return canopy.clone().multiplyScalar(0.92).lerp(sunny, sun * (1 - interior * 0.7))
+      .lerp(coolWarm, g.range(0, 0.3)).lerp(cool, under * 0.25)
+      .multiplyScalar(vigor * (1 - interior * 0.32) * (1 - under * 0.12));
+  };
+  const kit = createNearCanopyKit({ id: `distant-cpu-${index}`, barkColor: bark, canopy, leafColor });
+  function* build(): Generator<void, BufferGeometry> {
+    const g = rng.fork(`distant-real-lamina/${index}`), wood = new GeometryWriter('high');
+    const parts: BufferGeometry[] = [];
+    const leaders = variant.kind === 'broad' ? 4 : 2, boughs = variant.kind === 'broad' ? 3 : 2;
+    const weights = Array.from({ length: leaders }, () => g.range(0.65, 1.2)), totalWeight = weights.reduce((a, b) => a + b, 0);
+    const topRadius = H * (variant.kind === 'broad' ? 0.05 * 0.28 : 0.014 * 0.25);
+    let leaves = 0, lobeIndex = 0;
+    for (let i = 0; i < leaders; i++) {
+      const parentT = i === 0 ? 1 : g.range(0.93, 0.995), origin = sample(trunk, parentT);
+      const angle = i / leaders * TAU + g.range(-0.35, 0.35), radial = crownR * g.range(0.35, 0.58);
+      const target = new Vector3(Math.cos(angle) * radial, H * g.range(0.76, 0.92), Math.sin(angle) * radial);
+      const leader = divergingLeaderPath(origin, target, g, 14);
+      const radius = topRadius * Math.sqrt(weights[i] / totalWeight) * 1.15;
+      tube(wood, leader, taper(leader, radius, 0.06, 0.88), 10, g, { color: bark, roughness: 0.05, structural: true });
+      yield;
+      for (let j = 0; j < boughs; j++) {
+        const t = 0.3 + j / Math.max(1, boughs - 1) * 0.62 + g.range(-0.03, 0.03), inward = j >= 2 && j % 2 === 0;
+        const ba = angle + (j === 0 ? -0.9 : j === 1 ? 0.85 : 1.6) + g.range(-0.3, 0.3);
+        const radial = crownR * (inward ? g.range(0.15, 0.35) : g.range(0.6, 0.95));
+        const center = new Vector3(Math.cos(ba) * radial, H * (j === 0 ? g.range(0.58, 0.68) : j === 1 ? g.range(0.66, 0.76) : g.range(0.82, 0.92)), Math.sin(ba) * radial);
+        const end = center.clone().add(new Vector3(g.range(-0.5, 0.5), g.range(-0.6, 0.1), g.range(-0.5, 0.5)));
+        const bough = growthPath(sample(leader, t), end, tangent(leader, t), g, 10, 0.7);
+        const bRadius = Math.max(0.09, radius * Math.pow(1 - t, 0.7) * g.range(0.5, 0.7));
+        const stemRadii = taper(bough, bRadius, 0.03, 1);
+        tube(wood, bough, stemRadii, 6, g, { color: bark, roughness: 0.04 });
+        const hR = crownR * g.range(0.27, 0.36), vR = H * g.range(0.08, 0.11);
+        const rec: NearLobeRecord = { group: lobeIndex, center, hR, vR, stem: bough, stemRadii, secondaries: [], twigs: [], farLeaves: 0, farCards: 0, inM: 18, outM: 26 };
+        const phase = g() * TAU;
+        for (let s = 0; s < 3; s++) {
+          const at = 0.4 + s / 3 * 0.48 + g.range(-0.035, 0.035), origin = sample(bough, at);
+          const a = phase + s * 2.39996 + g.range(-0.45, 0.45), elevation = g.range(-0.55, 0.8);
+          const reach = hR * Math.sqrt(1 - elevation * elevation) * g.range(0.58, 0.95);
+          const target = center.clone().add(new Vector3(Math.cos(a) * reach, elevation * vR, Math.sin(a) * reach));
+          const secondary = growthPath(origin, target, tangent(bough, at), g, 6, 0.85);
+          const sr = Math.max(0.03, bRadius * Math.pow(1 - at, 0.9) * 0.5);
+          tube(wood, secondary, taper(secondary, sr, 0.008), 5, g, { color: bark, roughness: 0.04 });
+          rec.secondaries.push({ path: secondary, radius: sr });
+          for (let k = 0; k < 4; k++) {
+            const tt = 0.18 + k / 4 * 0.72 + g.range(-0.025, 0.025), origin = sample(secondary, tt);
+            const a2 = a - 1.08 + k / 3 * 2.16 + g.range(-0.23, 0.23), elev = g.range(-0.75, 0.82);
+            const reach2 = hR * (k === 2 ? g.range(0.16, 0.36) : g.range(0.57, 1.04));
+            const target = center.clone().add(new Vector3(Math.cos(a2) * reach2, elev * vR, Math.sin(a2) * reach2));
+            target.y -= g.range(0.1, 0.6) * reach;
+            const twig = growthPath(origin, target, tangent(secondary, tt), g, 4, 0.64), tr = Math.max(0.012, sr * (1 - tt) * 0.4);
+            tube(wood, twig, taper(twig, tr, 0.004), 3, g, { color: bark, roughness: 0.02 });
+            rec.twigs.push({ path: twig, radius: tr });
+          }
+          yield;
+        }
+        // Directly delegate to the existing generator, including its between-twig yields.
+        const part = yield* kit.lobeSteps(g, rec, lobeIndex++);
+        parts.push(part.geometry); leaves += part.leaves;
+      }
+    }
+    parts.unshift(yield* wood.finishSteps(`distant-close-support-${index}`));
+    const geometry = mergeGeometries(parts, false)!;
+    parts.forEach(part => part.dispose());
+    yield;
+    geometry.name = `distant-close-lamina-${index}`;
+    geometry.scale(1 / maxScale, 1 / maxScale, 1 / maxScale);
+    yield;
+    geometry.computeBoundingBox(); geometry.computeBoundingSphere();
+    if (geometry.index!.count / 3 > DISTANT_CLOSE_TRIANGLES) throw new Error('Distant close crown exceeds its triangle ceiling');
+    geometry.userData.distantCloseLeaves = leaves;
+    return geometry;
+  }
+  const geometry = runBuild(build());
+  const bounds = geometry.boundingBox!.clone(), source = variant.near, group = source.groups[1];
+  const point = new Vector3();
+  for (let i = group.start; i < group.start + group.count; i++) bounds.expandByPoint(point.fromBufferAttribute(source.getAttribute('position'), source.index!.getX(i)));
+  return { geometry, build, bounds, leaves: geometry.userData.distantCloseLeaves as number };
 }
 
 export interface DistantPlacement {
@@ -330,7 +517,7 @@ function crownCards(writer: GeometryWriter, r: Rng, centre: Vector3, R: number, 
  *     one simulation time, so identical run to run.
  * The instance colour (the placement's tint) multiplies as it does for the wood.
  */
-export function createDistantCrownMaterial(wind: Wind, rng: Rng, palette: Palette, sunDir: Vector3): MeshStandardMaterial {
+export function createDistantCrownMaterial(wind: Wind, rng: Rng, palette: Palette, sunDir: Vector3, closeSlots?: IUniform<Vector4[]>): MeshStandardMaterial {
   const atlas: Texture = createFarCrownAtlas(rng, palette);
   const material = new MeshStandardMaterial({ map: atlas, alphaTest: CROWN_ALPHA_TEST, transparent: true, depthWrite: true, vertexColors: true, roughness: 1, metalness: 0, side: DoubleSide });
   material.name = 'distant-crown';
@@ -424,6 +611,7 @@ export function createDistantCrownMaterial(wind: Wind, rng: Rng, palette: Palett
     injectTreeLeafWarmth(s);
   };
   material.customProgramCacheKey = () => 'trees-distant-crown-v2-leaf-warmth';
+  if (closeSlots) injectDistantCloseBlend(material, closeSlots);
   wind.bind(material);
   return material;
 }
@@ -543,6 +731,7 @@ export function createDistantVariants(rng: Rng, palette: Palette): DistantVarian
     // the ring colour by height (boleColor reads pt.y; the skirt ring alone takes the foot grime)
     tube(near, sweep, sweepRadii, sides, r, { color: (pt, t) => boleColor(pt, t, nearBark, limbTip, footGrime), roughness: 0.1, flatBase: true, structural: true, stiffness: () => 1, draws: trunkDraws, bump: flare });
     const limbs = slender ? 1 : r.int(2, 4);
+    const crownBranches: Vector3[][] = [];
     // round 45 (trees-28 item 4, survey pose w19-spine-u: the "pale twig tips spiking the crown
     // rim" straight overhead on the north spine are a depth-row tree's limbs — 4-sided bark-
     // coloured tubes 0.3–0.5 m thick running to 0.6–1.0 crown radii, past the lobe shells, pale
@@ -557,6 +746,7 @@ export function createDistantVariants(rng: Rng, palette: Palette): DistantVarian
       const len = crownR * r.range(LIMB_REACH[0], LIMB_REACH[1]);
       const target = o.clone().add(new Vector3(Math.cos(a) * len, len * r.range(0.25, 0.6), Math.sin(a) * len));
       const path = growthPath(o, target, UP, r, 4, 0.5);
+      crownBranches.push(path);
       const limbDraws = consumeTubeDraws(r, 4);
       limbDraws.grain = Array.from({ length: 6 }, (_, j) => limbDraws.grain[Math.floor((j / 6) * 4)]);
       const limbLength = Math.max(0.5, o.distanceTo(target));
@@ -648,6 +838,8 @@ export function createDistantVariants(rng: Rng, palette: Palette): DistantVarian
       nearTriangles: near.triangles,
       farTriangles: far.triangles,
       bandOnly: spec.bandOnly ?? false,
+      crownBranches,
+      crownStem: trunk,
     });
   });
   return variants;

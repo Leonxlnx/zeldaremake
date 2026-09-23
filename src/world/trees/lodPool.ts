@@ -240,10 +240,6 @@ export class LodPool<B extends PoolBuilt = PoolBuilt> {
       const s = this.next();
       if (!s) break;
       if (!s.gen) {
-        if (!this.canFit(s)) {
-          // nothing nearer can be made room for either: the pending list is ordered by priority
-          break;
-        }
         s.gen = s.item.build();
         s.genMs = 0;
         s.stepMs = 0;
@@ -368,15 +364,16 @@ export class LodPool<B extends PoolBuilt = PoolBuilt> {
     return s;
   }
 
-  /** the build to advance: the in-progress one with the best priority, else the best pending */
+  /** the fitting build to advance: prefer in-progress work, then priority; blocked generators stay paused */
   private next(): Slot<B> | null {
     let best: Slot<B> | null = null;
     for (const s of this.slots.values()) {
       if (s.built || !s.wanted) continue;
-      if (!best) best = s;
-      else if (!!s.gen !== !!best.gen) {
-        if (s.gen) best = s;
-      } else if (s.priority < best.priority) best = s;
+      // Recheck admission after frame-to-frame pin/priority changes, before every resumed chunk.
+      // Only a candidate that could replace the current best needs the eviction scan.
+      if (!best || (!!s.gen !== !!best.gen ? !!s.gen : s.priority < best.priority)) {
+        if (this.canFit(s)) best = s;
+      }
     }
     return best;
   }

@@ -3,11 +3,13 @@ agent: astra-motion-sept21
 runtime: Codex Astra + Blender MCP + Astra Max subagents
 github: Leonxlnx
 status: active
-branch: agent/astra-motion-sept21
-updated: 2026-09-23T19:40:00+00:00
+branch: codex/cinematic-checkpoint-sept23
+updated: 2026-09-23T20:13:00+00:00
 ---
 
 # Astra motion continuation
+
+20:13 checkpoint freeze requested by owner: end new polish, publish a tested main checkpoint, then record the cinematic. Root accepts the final crown files from `31d1de8c` (runtime `e7fa0811`), retaining eight slots, resident-first fades and bounded pool admission. All 23 pool tests, typecheck/build (`index-DJ-pEmhG.js`) and source anti-cheat pass. Native crown receipt and current stance replay are included; the latter checks 6,914,160 shoe points over 1,320 frames with no penetrations. Canonical-only unreviewed camera, atmosphere, NPC and recent understory studies remain separate. Partner agents were notified in PR2 comment5802014093 and may continue on their branches after the pin. No new hand candidate is adopted: the 18-degree distal study is too subtle and remains local. Final cut is 30 seconds at native 1080p/30, four world shots plus five seconds of actual walk/run/idle. Recording and main promotion still await the frozen-build check.
 
 19:40: adopted the bounded tilted-stance support repair as `4cf09bc5` from `b8951dd0`. The new timber exposed a final shoe-orientation omission; the existing oriented-plane scan now also covers tilted planted feet. Full CPU player comparison clears all 21 affected descent frames, preserves ascent/root/pins, and keeps 1,200 flat bone-matrix/query-count comparisons exact. Query cost is +0.323% up / +3.720% down; severe knee folding is unchanged. Root portable check, typecheck and build pass (`index-Bxmk-iqU.js`); a separate actual GPU replay is queued after crown validation. The private hand study has native-confirmed thumb-to-pinky regions on both sides; only four distal fingers are proposed for an 18-degree curl, no thumb/rig/clip change. No hand candidate is production. The shared pool overflow has a CPU reproducer, and its repair is coordinated publicly in comment5801352384; original leaf candidate remains held. Cinematic preparation captured 15 static 1080p poses, with review pending rather than a final recording.
 
