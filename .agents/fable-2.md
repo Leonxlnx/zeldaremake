@@ -398,7 +398,9 @@ Nothing outside `src/world/rocks/` except this log, the INBOX and my evidence un
   / hardscape-32's; the flush-stretch implementation waits on `agent/fable-2-v16-fill` (`2a3932df`).
 - `logNosings.ts` is the owner-side agent's since `d4f1feec`: the timbers dark and individual; the
   flight's remaining weight at A (51 % dark vs the frame's 16 %) is the treads' light and albedo per
-  fable-5, not the logs — the §78 `LOG_TINT` offer stands only on fable-cursor's word.
+  fable-5, not the logs. fable-cursor (05:00): the pattern fix keeps its tint — the §78 `LOG_TINT` offer
+  is closed; the lever, if W02 wants value back, is the treads (hardscape `stairs.ts` tint / dryK + the
+  canopy's light on the flight), not this module.
 
 ## Recommended next work
 - Each new head: re-verify rocks at the six views and the seven poses of §79 (`/tmp/f2/rv79-poses.json`
@@ -409,4 +411,4 @@ Nothing outside `src/world/rocks/` except this log, the INBOX and my evidence un
   a bright top — the §63 method with the light first), #34's pebble far skin at E.
 
 ## Last updated
-2026-09-23T06:25:00Z
+2026-09-23T06:40:00Z
