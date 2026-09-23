@@ -25,6 +25,12 @@ export interface PlayerHandle {
   setPlayMode(on: boolean): void;
   playMode(): boolean;
   setInput(input: PlayerInput): void;
+  /** the walkable ground under (x, z) as Link stands on it: terrain, stair treads, built decks, paving slabs */
+  groundHeight(x: number, z: number): number;
+  /** the rendered walking surface under (x, z): `groundHeight` raised to the rendered stair stones / timbers */
+  surfaceHeight(x: number, z: number): number;
+  /** put Link at rest at (x, z) facing `yaw` (play-test harness and authoring) */
+  place(x: number, z: number, yaw: number): void;
 }
 
 export const PLAYER_KEY = 'player';

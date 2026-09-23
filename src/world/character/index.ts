@@ -295,6 +295,13 @@ export async function create(ctx: WorldContext): Promise<WorldSystem> {
       input.run = i.run;
       input.jump = !!i.jump;
     },
+    groundHeight: (x, z) => ground.height(x, z),
+    surfaceHeight: (x, z) => ground.surface(x, z),
+    place(x, z, yaw) {
+      link.pos.set(x, 0, z);
+      link.yaw = yaw;
+      resetLocomotion();
+    },
   };
   ctx.scene.userData[PLAYER_KEY] = player;
 

@@ -10,6 +10,7 @@
 import { Group, type Mesh, type Object3D, type PointLight } from 'three';
 import type { WorldContext, WorldSystem } from '../system';
 import { ROPE_FENCES, LANTERN_POSTS, type FenceDef } from '../layout';
+import { buildCameraSolids, limbSpheres } from './cameraSolids';
 import { buildFence, createRopeMaterial } from './fence';
 import { buildDistantHouses, distantGlowPeak } from './distantHouse';
 import { buildExpansion, EXPANSION_VISIBLE_M } from './expansion';
@@ -158,7 +159,19 @@ export async function create(ctx: WorldContext): Promise<WorldSystem> {
   // The west house's platform / deck / wall go to ctx.shared.walkSurfaces for the character ground. ----
   const expansion = buildExpansion(ctx, mats, rng.fork('expansion'), rope);
   bases.push(...expansion.bases);
+  // round 55: the dressed huts' crafted lanterns swing with the rest; their lights stay in the main
+  // group (the expansion's near group hides by distance — a light leaving the scene recompiles every lit program)
+  lanterns.push(...distant.lanterns, ...expansion.houses.lanterns, ...expansion.farHouse.lanterns);
+  for (const l of [...distant.lights, ...expansion.houses.lights, ...expansion.farHouse.lights]) {
+    group.add(l);
+    lights.push(l);
+  }
   ctx.shared.walkSurfaces = [...(ctx.shared.walkSurfaces ?? []), ...expansion.houses.walk];
+
+  // the play camera's solids (cameraSolids.ts), voxelised from the parts by name before the merges
+  // below rename them; never under a headless capture
+  const cameraSolids = ctx.headless ? null : buildCameraSolids([group, north, expansion.group], limbSpheres(ctx.shared.lanternLimb));
+  if (cameraSolids) ctx.shared.cameraSolids = { solid: cameraSolids.solid, slim: cameraSolids.slim };
 
   // ---- draw-call budget: fold the static parts into one mesh per material (+ shadow flags) ----
   // The pods stay separate (their pivots swing), as do the transparent glow cards and the log's
@@ -266,6 +279,8 @@ export async function create(ctx: WorldContext): Promise<WorldSystem> {
 
   ctx.audit('structures', () => ({
     ...budget(),
+    /** the play camera's collision grids (null under a headless capture) */
+    cameraSolids: cameraSolids?.report ?? null,
     meshesBeforeMerge: draws.before,
     mergedMeshes: draws.merged,
     houses: houses.length,
