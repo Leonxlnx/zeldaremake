@@ -438,15 +438,13 @@ export function createComposer(opts: ComposerOptions): Composer {
     // Round 33: with the denser mist term carrying the hollow glow, the base air lifts to 3 / 6.5 so
     // the plaza and path (eye level, 1.5–4.5 m of air) keep their edge contrast: A's bottom band
     // p50 stays at −0.018 while the top band gains +0.03
-    // 2026-09-23 (owner: "the trees do not populate" — his marked screenshot, grey haze where his
-    // recording shows layered trees): at his pose the rays' in-scatter was most of the veil (rays
-    // off: the upper-left third 83.6 → 59.8 levels). 3 / 6.5 → 6 / 16: the air a walker looks
-    // through at eye level to 6 m up keeps less of the lit glow, the shafts above keep their
-    // brightness — the upper frame 79.1 → 72.9 looking north, 94.1 → 82.6 west, 80.2 → 75.6 toward
-    // Saria's. (Clearing the gaps between the beams as well — intensity 0.28, beamFloor 0.15, the
-    // fan's floor 0.5 — dimmed the shafts and read duller at B / D: top thirds −10 / −12 levels.)
-    rayAirFadeLo: 6,
-    rayAirFadeHi: 16,
+    // 2026-09-23: thinning this air for the owner's "grey washout" (3 / 6.5 → 6 / 16, and the
+    // beams' gaps with it) was measured against his recording and backed out — at his pose the
+    // corridor's bright mist fell 2.0 → 0.9 % (his r_024: 22.6 %) and its luminance 0.300 → 0.263:
+    // darker trunks in darker grey, not trees in light. His "clear" is bright warm mist with
+    // crowns standing in it (reference/ANALYSIS_CLARITY.md §5, fable-5 lane 10, INBOX 08:40).
+    rayAirFadeLo: 3,
+    rayAirFadeHi: 6.5,
     // the mist term's ramp along the ray (0 / 0 = off; see RAY_MARCH_FRAG mistNear)
     rayMistNearStart: 0,
     rayMistNearEnd: 0,
