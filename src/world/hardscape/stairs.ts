@@ -13,9 +13,6 @@ import { hash2, type Rng } from '../util/prng';
 import { Noise2D, clamp, smoothstep } from '../util/noise';
 import { MeshBuilder, buildSlab, ccw, inset, jitteredRect, type P2 } from './geometry';
 
-/** a log-nosed flight's lip at the nose, over the top colour: the tread's own shaded front face (its `sideColor` is × 0.5) */
-const LOG_SHADED_LIP = 0.5;
-
 export interface StairFrame {
   def: StairDef;
   base: Vector3;
@@ -125,12 +122,17 @@ function wornFront(outline: P2[], depth: number, wave: (ax: number) => number, c
 }
 
 /**
- * `logNosed`: a round timber rides every tread's front edge (logNosings.ts). The slab's rolled
- * lip then sits in the log's shadow, under and behind its belly: where the wavy, chipped nose
- * reaches past the timber (or the log thins toward its tip) the lip must read as the shaded
- * trough under the step's edge, not as a second, pale stone lip (2026-09-23: at eye height every
- * log showed a ragged white sliver of stone beneath it). Tones only — the flight's draws, outlines
- * and heights are the same with or without it.
+ * `logNosed`: a round timber rides every tread's front edge (logNosings.ts) and the treads are
+ * earth (`earthTop`). The step's edge is then the timber, and the stone flight's two nose devices
+ * are wrong in kind under it (2026-09-23; fable-cursor's pass 3 hid the first with a tone, the
+ * owner's `s2-join-close` showed the second):
+ *  - the 5–7 cm rolled lip (its lower band peeked out under the thinner logs as a ragged sliver) —
+ *    a log tread has a 1.2 cm edge instead, and no tone on it;
+ *  - the riser stone 7.5–10.5 cm behind the nose ("a lit lip over a deep shadow line") — under a
+ *    log that recess showed as a black slot with the slab's chipped outline for an edge, a notch
+ *    under every timber; the riser comes forward to 3 cm behind the nose so the face under the
+ *    log runs straight down to the tread below, as earth retained by a timber does.
+ * Same draws in the same order as the stone flight — the geometry differs, the stream does not.
  */
 export function buildStairway(def: StairDef, terrain: Terrain, rng: Rng, seed: string, { logNosed = false }: { logNosed?: boolean } = {}): StairBuild {
   const f = stairFrame(def);
@@ -275,13 +277,19 @@ export function buildStairway(def: StairDef, terrain: Terrain, rng: Rng, seed: s
       const noseBright = rng.range(1.35, 1.5);
       // the roll's drop (bevel) is 5–7 cm of the 13–16 cm slab, in three bands (bevelRings) on a
       // quarter-round: a bulging, log-like lip like the frame's rather than a cut chamfer
-      const bevel = rng.range(0.05, 0.07);
+      // (a log flight's tread has no rolled stone lip: earth retained behind a timber meets the
+      // timber flat, so the roll is a 1.2 cm edge and the shoulder is not pushed back — the
+      // whole nose then sits inside the log's girth, where the stone roll's lower band peeked
+      // out under the thinner logs as a ragged sliver that a tone had to hide. The draws stay.)
+      const bevelDraw = rng.range(0.05, 0.07);
+      const bevel = logNosed ? 0.012 : bevelDraw;
       // worn, rounded nose (sheet 01 / 04 stairs insets): the shoulder ring is pushed a further
       // 4–6 cm back along the front edge, so the nose roll is 9–13 cm wide for the same drop
       // and, smoothed as one group with the top (softBevel), rolls over instead of showing a
       // cut crease; the back and flanks keep the plain roll. The roll varies along the edge
       // (0.6–1.4×, chips widening it) so the lip's highlight is a worn, broken line
-      const noseRound = rng.range(0.04, 0.06);
+      const noseRoundDraw = rng.range(0.04, 0.06);
+      const noseRound = logNosed ? 0 : noseRoundDraw;
       const topRing = inset(outline, bevel).map((p, k) => {
         if (!isFront[k]) return p;
         const ax = p.x + cxl;
@@ -312,9 +320,9 @@ export function buildStairway(def: StairDef, terrain: Terrain, rng: Rng, seed: s
       placeSlab(outline, cxl, topY - ts, czl, yaw, 0, 0, {
         thickness: ts,
         bevel,
-        bevelRings: 3,
+        bevelRings: logNosed ? 1 : 3,
         topRing,
-        softBevel: true,
+        softBevel: !logNosed,
         notchedTop: true,
         rimDrop: noseSpall,
         // the overhang's underside is visible from below the flight (camera F looks up at the
@@ -375,7 +383,8 @@ export function buildStairway(def: StairDef, terrain: Terrain, rng: Rng, seed: s
           // foot, × 0.4 on the top treads, which are dry stone)
           const wet = smoothstep(0.2, 0.7, wear.fbm((x + cxl) * 1.7 + 31, (z + czl) * 1.7 + i * 0.61, 2)) * (0.45 + 0.55 * Math.max(back, 1 - feet(x + cxl))) * (isMain ? 1.2 - 0.8 * rise : 1);
           const damp = 1 - 0.2 * wet;
-          if (part === 'bevel') return (logNosed ? 0.98 - (0.98 - LOG_SHADED_LIP) * front : 0.98 + (noseBright - 0.98) * front) * grime * (1 - 0.08 * wet);
+          // (a log flight's 1.2 cm edge is the tread's earth, neither lit nor shaded — the lip is the timber)
+          if (part === 'bevel') return (logNosed ? 0.98 : 0.98 + (noseBright - 0.98) * front) * grime * (1 - 0.08 * wet);
           // the nose face under the lip: a shade lighter and greener than the riser stone below it
           // (a damp skin under the overhang), the buried sides stay dark
           if (part === 'side') return z < 0 ? [1.02 * grime, 1.06 * grime, 0.98 * grime] : 0.92 * grime;
@@ -474,10 +483,22 @@ export function buildStairway(def: StairDef, terrain: Terrain, rng: Rng, seed: s
       // shadow, and frame 8 s reads its riser band at 0.31 (p10 of the flight box) against our
       // 0.23, frame 1 s' mid-flight troughs at 0.29–0.36 against our 0.26–0.27
       const rc = 0.38 + rng.range(0, 0.08);
+      // the stone flights' riser stands 7.5–10.5 cm behind the slab's nose (round 31: "a lit rolled
+      // lip over a deep shadow line"). Under a timber that recess is wrong in kind (fable-cursor
+      // 2026-09-23 18:10, Astra's `s2-join-close`): the log covers the lip, and what showed under
+      // its belly was the unlit ceiling of the overhang and the riser face 8–10 cm back in the
+      // dark — a black slot with the slab's chipped outline for an edge, a notch under every log.
+      // The demo's log steps are earth retained by the timber: the face under the log runs
+      // straight down to the tread below. So on a log flight the riser comes forward to 3 cm
+      // behind the nose line (the slab's wall wanders ± 1.4 cm and its chips hollow it 3 cm, so
+      // the face sits 0–5 cm under the slab's edge and never stands proud of it by more than a
+      // chip); its back stays where it was. Same draws, same outline segments — the depth only.
+      const riserFront = logNosed ? uFront + 0.03 : i * def.tread + 0.01;
+      const riserDepth = i * def.tread + 0.01 + def.tread * 0.9 - riserFront;
       // more vertices along the face (segs 7) so the moss patches below can vary every 15–40 cm
-      const riserOutline = jitteredRect(rng, len - 0.015, def.tread * 0.9, { jitter: 0.012, segs: 7, chip: 0.05, chipChance: 0.3 });
+      const riserOutline = jitteredRect(rng, len - 0.015, riserDepth, { jitter: 0.012, segs: 7, chip: 0.05, chipChance: 0.3 });
       const ac = a + len / 2;
-      const uc = i * def.tread + 0.01 + (def.tread * 0.9) / 2;
+      const uc = riserFront + riserDepth / 2;
       // the first riser stands in the plaza soil (heightfield: the approach banks up ~9 cm to the
       // foot): its face carries the soil stain higher, like a stone half sunk into the ground
       const footStain = i === 0 ? 2.0 : 1.0;
