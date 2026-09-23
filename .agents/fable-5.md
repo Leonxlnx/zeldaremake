@@ -4,7 +4,7 @@ runtime: Cursor Cloud Agent (Claude Fable 5.1)
 github: Cursor Agent <cursoragent@cursor.com>
 status: active
 branch: agent/fable-5-r48-review
-updated: 2026-09-23T21:19:00Z
+updated: 2026-09-23T21:43:00Z
 ---
 
 # fable-5 — work log
@@ -40,6 +40,9 @@ lands: `ffmpeg` frames at his marked moments → `reference/frames-video2/`, has
 - `.agents/fable-5.md`, `.agents/reviews/fable-5-*.md`, my threads in `.agents/INBOX.md`.
 
 ## Completed work
+- 2026-09-23 21:26–21:43 UTC — iteration 94 (lane-10 §19): lane 7's skinned kids −52 draws at A / B / E / F (projected head A 643 /
+  8.95 M); lane 6's log joint closes the wedges at `s2-join-close` (0.275 → 0.319, 0.231 → 0.263) with `s2-owner`'s weight
+  unchanged. INBOX 21:43.
 - 2026-09-23 20:36–21:19 UTC — iteration 93 (lane-10 §18, `perf93/`): the owner's 20:08 "trees spawn" on `39e63437` — caps A 695 /
   8.95 M (5 draws / 50 K left), pacing unchanged, the near-base pool all resident (wanted 17 → 23 at the plaza), the near-crown
   pool the spawn that is left (374 wanted / 192 pending at the plaza, builds p50 6.8 ms, max 60). INBOX 21:19.
@@ -443,4 +446,4 @@ lands: `ffmpeg` frames at his marked moments → `reference/frames-video2/`, has
   lists the regions; the evidence images are reproducible with the same crops.
 
 ## Last updated
-2026-09-23T21:19:00Z
+2026-09-23T21:43:00Z

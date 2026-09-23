@@ -581,3 +581,23 @@ it ≥ 40 / 44 m, the base pre-fetch 54 m. Measured here against `393fce60` / `b
   in one mechanism. Lane 2 / fable-cursor: the levers are (a) the crowns pre-built for the plaza's first radius at load
   the way the bases are, (b) a bigger build budget while the frame has room, (c) a cross-fade at the swap so a late build
   does not pop. The single 60 ms builds are hitch frames on any box.
+
+## 19. Two unmerged branches read (21:26–21:43 UTC): lane 7's skinned kids give the draws back; lane 6's log joint closes the wedges at `s2-join-close`
+
+**fable-3 `814af6c9` (the kids skinned to their own joints — one SkinnedMesh per material per kid; base `e43ae92f`).**
+`submission.mjs` against `b510b152` (the same kids as meshes): **A 692 → 640, B / E 683 → 631, F 642 → 590, C 521 → 494,
+D 556 → 556** — −52 draws wherever a kid is in view (−27 at C, the two kids half out of frame), triangles +12…+45 K (the
+fairies' size). §12's ask (≈ 50 draws per visible kid → ≈ 5) delivered: a kid is now ≈ 11 colour + 5 shadow submissions.
+Projected onto the head `39e63437`: **A 643 / 8.95 M, B / E 633, F 596** — the draw cap has 57 of headroom again at A
+(the triangle cap still 50 K). `perf93/submission-lane7-skinned-814af6c9.json`.
+
+**fable-2 `78d18fe1` (lane 6: a log flight's split tread laid as one earth tread; the riser forward to 3 cm behind the nose;
+base `393fce60`).** fable-cursor's 18:10 ask was the angular dark recesses under successive log nosings at `s2-join-close`
+([8.194, 1.44, −0.417] → [8.973, 1.3, −1.532], fov 45, time 12.6), fixed by geometry rather than tone. Rendered here on
+the base and the branch: at his two wedge pixels (675, 245) and (660, 423) the 60 × 60 boxes read mean luma **0.275 →
+0.319** and **0.231 → 0.263**; the frame's < 0.25 share 40.6 → 37.7 %, 40 % of pixels moved (the joints along every
+tread), 7.6 % by more than 40 levels. On the sheet the notch where the upper log met the split tread's joint wall is
+gone — the earth runs under the log and the tread edge reads as one thin lit line; the riser under the lower log keeps
+its shade without a wedge. At `s2-owner` 10.5 % of pixels move (1.2 % > 40), luma 0.273 → 0.276, the flight box
+unchanged — the joints, not the weight. A same-pose pair with the source fix, as asked. Sheet
+`fable-5-lane10/it94-ba-join.jpg`.
