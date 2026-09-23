@@ -16,7 +16,7 @@ Lane 3 of `docs/SQUAD_2026-09-23.md`. The owner's 09-23 items for this lane:
 | `l3-column-6m` | (0.8, 1.75, −19.8) → (−3.5, 2.4, −24.7) | the column seat at (−3.5, −24.7) from 6.5 m — a walker beside a column |
 | `l3-emergent-foot` | (0.2, 1.7, −6.3) → (−3.1, 2.0, −8.0) | the emergent's bole at 3.7 m — the bark a walker on the north path passes |
 | `l3-giant-roots` | (−2.2, 1.7, −11.2) → (−6.0, 1.0, −12.8) | the north-west-near giant's roots at 4.1 m |
-| `l3-whitebark-stand` | (3.6, 1.75, −19.5) → (13.5, 3.4, −25.5) | the white-barks east of the north path at 11–25 m |
+| `l3-column-10m` | (1.5, 1.9, −16.0) → (−3.5, 4.2, −24.7) | the same column at 10 m, the range the owner walks past it |
 
 Render:
 
@@ -28,7 +28,8 @@ node art/environment/squad3-2026-09-23/tools/squad3-compare.mjs --before /tmp/be
   [--crops /tmp/crops.json]
 ```
 
-A frame takes 60–75 s on this VM's SwiftShader, so a four-pose pass is ≈ 5 min.
+A frame takes 60–105 s on this VM's SwiftShader, so a five-pose pass is 5–9 min (two Chrome
+jobs in parallel is the limit when other lanes share the machine).
 
 ## Which trunk is red circle 1?
 
@@ -122,14 +123,6 @@ merging**, but every part of it is the bark of a column, an emergent or a giant 
 | l3-giant-roots | 1.25 | 4.33 % |
 | l3-column-10m | 2.38 | 8.29 % |
 
-## pass4 — the columns stand on a foot
-
-`column.ts` `flare` 0.85 → 1.05 falling at 5 instead of 6: 0.64 R extra at 2 m and 0.39 R at 4 m
-(was 0.47 / 0.26), so the buttress reads to ≈ 25 m instead of dying at 10. The ground-line radius
-goes to 2.05 R (1.44 m on the widest variant), still inside the seats' 1.6 m probe ring; the
-emergent (0.3) and the far hut's host keep their own. The root REACH is deliberately unchanged —
-the plain roots do not read the path mask, so they must not grow.
-
 ## pass3 — the columns stop being a rank of posts, and a bole reads round
 
 - `column.ts`: `leanDeg` 1–4° → 2–6.5° and a wider sweep wander (`boleWander` 0.22 against the
@@ -144,6 +137,14 @@ the plain roots do not read the path mask, so they must not grow.
   terminator — the round-shading cue a cylinder under a closed roof still shows. The distant
   family has had exactly this term since round 48 (`DISTANT_SHADE_SIDE` 0.38); the giants and
   white-barks are untouched (each program has its own cache key).
+
+## pass4 — the columns stand on a foot
+
+`column.ts` `flare` 0.85 → 1.05 falling at 5 instead of 6: 0.64 R extra at 2 m and 0.39 R at 4 m
+(was 0.47 / 0.26), so the buttress reads to ≈ 25 m instead of dying at 10. The ground-line radius
+goes to 2.05 R (1.44 m on the widest variant), still inside the seats' 1.6 m probe ring; the
+emergent (0.3) and the far hut's host keep their own. The root REACH is deliberately unchanged —
+the plain roots do not read the path mask, so they must not grow.
 
 ## Play mode
 
