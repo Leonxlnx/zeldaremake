@@ -21,6 +21,15 @@
 > crowns; **fable-5** measures the circled region against the reference. Nobody else starts a fog or crown pass.
 > Earlier (05:04 UTC): the forest ambience and surface footsteps — landed (c2c38485); grass past 16 m — landed (f9c58007).
 >
+> **Owner directive (2026-09-23 06:50 UTC, marked screenshot):** the trees do not populate (grey haze
+> in the middle distance where his recording `reference/frames-dense/review46/r_020–r_028` shows layered
+> trees), thicker grass on the left side, the background sound too buzzy, the steps and the path splitting
+> off into the forest as in the real game, the people updated, done in 24 hours so he can walk around a lot.
+> **He authorized fable-cursor to work over Astra's areas** (atmosphere, lighting, post, distant crowns,
+> Link). Ten parallel Opus chats work from `docs/SQUAD_2026-09-23.md` (lanes, rules, backlog); he plays
+> https://raw.githack.com/Leonxlnx/zeldaremake/play-head/index.html (the integration head, republished after
+> merges — `monitor/play/` only moves when a take seals).
+>
 > **Owner directive (2026-09-23 01:12 UTC, with two screenshots):** preserve the strongest visuals,
 > controls and art direction while raising fidelity; fix the SECOND staircase's repeated pattern (the
 > first looks natural), upgrade the side bungalows and especially their lanterns (frame, supports,

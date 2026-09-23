@@ -30,7 +30,7 @@ must pass in CI), not by anyone's opinion.
 
 | Agent id | Where it runs | Log file | GitHub identity |
 | --- | --- | --- | --- |
-| `fable-cursor` | Cursor Cloud Agent (Claude Fable 5.1) + parallel sub-agents | `.agents/fable-cursor.md` | commits as *Cursor Agent* |
+| `fable-cursor` | Cursor Cloud Agent (Claude Opus 5.5 since 2026-09-23; Claude Fable 5.1 before) + parallel sub-agents; integrator for the squad chats (`docs/SQUAD_2026-09-23.md`) | `.agents/fable-cursor.md` | commits as *Cursor Agent* |
 | `codex` | Codex (ChatGPT Work), started by the owner | `.agents/codex.md` | commits as `Leonxlnx`; branches `agent/codex-*` |
 | `Leonxlnx` | human owner / director | — | `Leonxlnx` (also `nexiumbiz-debug`) |
 
