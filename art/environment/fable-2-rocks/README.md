@@ -16,6 +16,38 @@ B 526 / C 393 / D 394 / E 526 / F 512; A 9.09 M tris on both (the head's number,
 change's — flagged to fable-cursor). Files: `ledge2-x-clearing-n.jpg` (+ `-crop`),
 `ledge2-x-ledge-foot.jpg`, `ledge2-x-northpath-n.jpg`.
 
+## Iteration 82 — the hero boulders' near skin holds to 13 m (`HERO_NEAR_FADE_M` [7, 13], the dressing's band): the owner's walk-around range, under his 2026-09-23 06:50 direction that the walk beats the fixed frames — six views within ±0.0004
+
+The hero material's near terms (near tile, relief grain, wet band, crack grime) faded out over material.ts `NEAR_FADE_M`
+[4, 6.3] — set so camera D (7.22 m from the D boulder) rendered the plain far look. The far meshes share the material, so
+that bound also put every hero rock at the smooth far skin at exactly the 6–13 m a walker sees them from (the near kit's
+geometry stays in to `NEAR_ROCK_IN_M` 12 m, its skin faded): the owner's "stones under-detailed at 5–20 m", answered in
+§56 for the dressing sets only. With the walk now the owner's measure (`docs/SQUAD_2026-09-23.md`: "the owner's walk-around
+quality now beats the old fixed-frame gauntlet scores … say if a change moves the six hero views a lot"), the heroes take the
+dressing's band. One constant, two materials (`heroMaterial`, `stairFootMaterial`), the audit's `fadeM`.
+
+Before `1394d49d` → after `d51d3f84`, both rendered here (`--settle 10` poses, `--settle 12` views):
+
+| pose | distance | changed px (> 8 / > 40) | box read (mean l / macro σ / micro σ) |
+|---|---|---|---|
+| `w-shotd-7m` (the D boulder from the path) | 6.9 m | 9 250 / 334 (1.00 %) | 0.295 / 0.053 / 0.058 → 0.305 / 0.052 / **0.061**; the loaf becomes knapped plates over a damp foot |
+| `w-stairfoot-9m` (from the plaza) | 8.9 m | 10 390 / 1 450 (1.13 %) | 0.370 / 0.070 / 0.094 → 0.385 / **0.081** / **0.101**; plates and pale crust where a smooth pale blob stood |
+| `w-shotd-10m` | 10.2 m (skin weight ≈ 0.4) | 2 104 / 0 (0.23 %) | 0.290 / 0.032 / 0.032 → 0.303 / 0.035 / 0.032 |
+| `w-terrace-10m` (the terrace boulder from the north path) | 10.8 m | 86 / 0 | the bank's ferns hide it from that path — no read |
+| `x-southbank-toe` (control: the dressing pair) | 6.8 m | **0** | unchanged by construction |
+
+| view | before | after | Δ | changed px | what |
+|---|---|---|---|---|---|
+| A_stairs | 0.2266 | 0.2267 | +0.0001 | 2 710 (0.29 %) | the stair-foot rock at ≈ 9 m |
+| B_house | 0.1960 | 0.1957 | −0.0003 | 3 724 (0.40 %) | the D boulder at the left edge |
+| C_lookback | 0.2047 | 0.2046 | −0.0001 | 289 (0.03 %) | the bank anchor |
+| D_log | 0.2675 | 0.2673 | −0.0002 | 9 887 (1.07 %, one > 40) | the D boulder at 7.2 m |
+| E_ground | 0.2183 | 0.2183 | 0 | 3 724 | B's frame |
+| F_canopy | 0.2261 | 0.2257 | −0.0004 | 3 510 (0.38 %) | the stair-foot rock at F's foot |
+
+Draws and triangles unchanged (545 / 533 / 434 / 499 / 533 / 507; A 8.54 M). Tests 28 / 28, `tsc` green. `herofade82-sheet.jpg`:
+the three walk poses and the A / B crops, before | after.
+
 ## Iteration 80 — the rocks from the play camera's new look-down (six poses): nothing floats, no LOD seam; the one read I chased — the D boulder's face as a "diamond weave" from above — was the beds crossing the fine network, not a lattice: `crackWarp` built, measured, NOT landed (`743f1454`, reverted by `a1782588`)
 
 The owner's camera now looks down 35° (nearest surface ≈ 3 m), so a walker sees the rocks from above at 3–5 m — a
