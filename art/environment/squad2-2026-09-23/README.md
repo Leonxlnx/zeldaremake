@@ -70,22 +70,23 @@ swap (`MID_FAR_LOD_M` 40 m) and publishes `systems.trees.midCanopy`.
 
 ## Measured
 
-`systems.trees.midCanopy` at the owner's pose (`probe-look.mjs --audit`, second take):
+`systems.trees.midCanopy` on the shipped build (`probe-look.mjs --audit`, written to
+`audit-final.json`):
 
 ```
-trees 314 · culled 6 (expansionCull) · band 15.8–57.9 m · maxBaseGap 0 over 1438 bases
+trees 393 · culled 7 (expansionCull) · band 13.7–58.0 m · maxBaseGap 0 over 1517 bases
 ```
 
-Cost at the owner's pose, `systems.trees.submission.byFamily` (second take, 314 trees):
+Cost at the owner's pose, `systems.trees.submission.byFamily`:
 
 | family | meshes | instances | draw calls | triangles |
 | --- | --- | --- | --- | --- |
-| `mid-near` | 5 | 18 | 5 | 9 495 |
-| `mid-far` | 5 | 76 | 5 | 14 996 |
-| (trees, whole system) | 136 | 504 | 88 | 3 062 040 |
+| `mid-near` | 5 | 32 | 5 | 16 715 |
+| `mid-far` | 5 | 67 | 5 | 13 267 |
+| (trees, whole system) | — | — | 88 | 3 067 531 |
 
-24.5 K triangles and 10 draw calls — 0.8 % of what the trees already submit at that camera, far
-under the W38 ceiling (camera A ≤ 9.0 M) and the 700-draw budget.
+30 K triangles and 10 draw calls — 1.0 % of what the trees already submit at that camera, far under
+the W38 ceiling (camera A ≤ 9.0 M) and the 700-draw budget.
 
 **"The middle distance must show trees, not haze", measured.** `band.mjs` takes a horizontal band of
 the frame, splits it into 8-px columns and reports the standard deviation of the column means (how
@@ -157,7 +158,8 @@ regression, and the structural numbers (draws, triangles) are.
 `probe-look.mjs` with a red emissive on the `distant-crown-mid` material marks every mid crown in a
 frame, and `--pick` names the mesh under a pixel. At the owner's pose the marked crowns fill exactly
 the band his red circle 2 covers (`compare/owner-pose-mid-marked.jpg`), and the pick at screen
-(0.30, 0.20) names `mid-7-near` at 18.8 m of depth.
+(0.30, 0.20) names `mid-7-near` at 18.8 m of depth. Every bole is listed in the audit
+(`midCanopy.seats`, `[x, z, variant]`), so a review can pose a camera at any of them.
 
 In the open north looking up 60° (`compare/open-north-up60.jpg`, the play camera's own pose from the
 `open-north` look spot) the mid crowns are the dark layered mass over the left half — the canopy roof
