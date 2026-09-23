@@ -14,7 +14,9 @@ character's stair grid already merges `stairs-<id>-logs` per flight, so the cont
 after in README §85 (`steps85-ledge-flight-sheet.jpg`). Six views: 75 m north of the plaza — **A and D byte-identical**, +1 / +2 draws
 (the timber mesh's bounding sphere), +10 K triangles. Walked (`playtest --only walk --walk-routes north-clearing-ledge`, head vs
 branch): 15 / 15 waypoints, 0 stuck, the climb trace identical (y 4.04 → 5.62), sole gap p95 2.6 → 2.7 cm, max 4.5 → 5.6 cm. The earth-tint follow-up (× 1.15, `agent/fable-2-earth-treads` @ `f5473c19`,
-head merged) is still open on your side. Next: the cheeks → grass banks only if you want them; the fork on your word.
+head merged) is still open on your side. Next: the cheeks → grass banks only if you want them; the fork on your word. (And a W38 flag in case the 11:35 note on the
+earth-treads branch has not reached you: the head renders camera A at **9.16 M triangles / 600 draws** since the squad's canopy
+layers — 8.55 M / 545 at `73402409`; the ceiling the loop and the ledger hold is 9.0 M.)
 
 ---
 
