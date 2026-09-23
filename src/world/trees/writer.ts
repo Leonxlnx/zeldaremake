@@ -209,8 +209,8 @@ export class GeometryWriter {
 }
 
 /** Merge finished parts (wood + leaves) into one geometry; the parts are disposed. */
-export function mergeParts(name: string, parts: BufferGeometry[]): BufferGeometry {
-  const merged = mergeGeometries(parts.filter((p) => p.getAttribute('position').count > 0), false);
+export function mergeParts(name: string, parts: BufferGeometry[], useGroups = false): BufferGeometry {
+  const merged = mergeGeometries(parts.filter((p) => p.getAttribute('position').count > 0), useGroups);
   if (!merged) throw new Error(`trees: nothing to merge for ${name}`);
   merged.name = name;
   merged.computeBoundingBox();

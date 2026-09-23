@@ -2659,6 +2659,119 @@ export async function create(ctx: WorldContext): Promise<WorldSystem> {
     ctx.progress('trees', 0.55 + (0.3 * giants.length) / giantDefs.length);
     await yieldFrame();
   }
+  /**
+   * Per-group colour-pass culling for a merged world-space mesh: `groupBoxes[i]` bounds group i
+   * (materialIndex i). `cull()` marks each box against the camera frustum (GROUP_PAD_M for wind);
+   * the colour pass draws a marked-out group with count 0 (onBeforeRender / onAfterRender run per
+   * group), the shadow pass — rendered first, hook-free — draws them all.
+   */
+  const GROUP_PAD_M = 1.5;
+  /** height bands a giant's leaves split into for the colour-pass cull (draws: 1 wood + bands per giant) */
+  const GIANT_LEAF_BANDS = 2;
+  const installGroupCulling = (mesh: Mesh, bounds: { boxes: Box3[]; spheres: Sphere[] }) => {
+    mesh.userData.groupBoxes = bounds.boxes.map((b) => b.clone().expandByScalar(GROUP_PAD_M));
+    mesh.userData.groupSpheres = bounds.spheres.map((sp) => {
+      const out = sp.clone();
+      out.radius += GROUP_PAD_M;
+      return out;
+    });
+    mesh.userData.groupInView = bounds.boxes.map(() => true);
+    // three types the hook's last argument as an Object3D Group; at runtime it is the geometry
+    // group record ({ start, count, materialIndex }) of the draw being issued
+    type GeometryGroup = { start: number; count: number; materialIndex: number };
+    const saved: (number | undefined)[] = [];
+    mesh.onBeforeRender = (_r, _s, _c, _g, _m, group) => {
+      const g = group as unknown as GeometryGroup | null;
+      if (!g) return;
+      const inView = mesh.userData.groupInView as boolean[];
+      if (inView[g.materialIndex] === false) {
+        saved[g.materialIndex] = g.count;
+        g.count = 0;
+      }
+    };
+    mesh.onAfterRender = (_r, _s, _c, _g, _m, group) => {
+      const g = group as unknown as GeometryGroup | null;
+      if (!g) return;
+      const count = saved[g.materialIndex];
+      if (count === undefined) return;
+      g.count = count;
+      saved[g.materialIndex] = undefined;
+    };
+  };
+  /**
+   * Split every merged group (one per giant, `mergeParts(…, true)`) at its first leaf triangle
+   * (`aRoot.w > 0.5`; a giant's geometry is wood then leaves), re-register the groups and return
+   * one bounding box per final group — the colour-pass test above works on these. Arrays are still
+   * on the CPU here (released after the first upload).
+   */
+  const splitGroupsAtLeaves = (geometry: BufferGeometry, leafChunks = 1): { boxes: Box3[]; spheres: Sphere[] } => {
+    const index = geometry.index;
+    const pos = geometry.attributes.position;
+    const root = geometry.attributes.aRoot;
+    const boxes: Box3[] = [];
+    const spheres: Sphere[] = [];
+    const ranges: [number, number][] = [];
+    const v = new Vector3();
+    const vertexIndex = (t: number) => (index ? index.getX(t) : t);
+    const boundsOf = (a: number, b: number) => {
+      const box = new Box3();
+      for (let t = a; t < b; t++) box.expandByPoint(v.fromBufferAttribute(pos, vertexIndex(t)));
+      const sphere = new Sphere();
+      box.getCenter(sphere.center);
+      for (let t = a; t < b; t++) sphere.radius = Math.max(sphere.radius, v.fromBufferAttribute(pos, vertexIndex(t)).distanceTo(sphere.center));
+      ranges.push([a, b]);
+      boxes.push(box);
+      spheres.push(sphere);
+    };
+    for (const g of geometry.groups) {
+      const end = g.start + g.count;
+      let split = end;
+      if (root && root.itemSize >= 4) {
+        for (let t = g.start; t < end; t += 3) {
+          if (root.getW(vertexIndex(t)) > 0.5) {
+            split = t;
+            break;
+          }
+        }
+      }
+      if (split > g.start) boundsOf(g.start, split);
+      if (split >= end) continue;
+      if (leafChunks <= 1 || !index) {
+        boundsOf(split, end);
+        continue;
+      }
+      // the leaves in height bands of equal triangle count: sort the range's triangles by centroid y
+      // and rewrite that slice of the index in band order (a giant's crown mass sits high; the upper
+      // bands of a giant behind the camera clear the frustum's top plane while its lower limbs do not)
+      const triCount = (end - split) / 3;
+      const order = new Array<number>(triCount);
+      const heights = new Float32Array(triCount);
+      for (let k = 0; k < triCount; k++) {
+        const t = split + k * 3;
+        heights[k] = (pos.getY(index.getX(t)) + pos.getY(index.getX(t + 1)) + pos.getY(index.getX(t + 2))) / 3;
+        order[k] = k;
+      }
+      order.sort((a, b) => heights[a] - heights[b]);
+      const sorted = new Uint32Array((end - split));
+      for (let k = 0; k < triCount; k++) {
+        const t = split + order[k] * 3;
+        sorted[k * 3] = index.getX(t);
+        sorted[k * 3 + 1] = index.getX(t + 1);
+        sorted[k * 3 + 2] = index.getX(t + 2);
+      }
+      for (let k = 0; k < sorted.length; k++) index.setX(split + k, sorted[k]);
+      index.needsUpdate = true;
+      for (let c = 0; c < leafChunks; c++) {
+        const a = split + Math.floor((triCount * c) / leafChunks) * 3;
+        const b = split + Math.floor((triCount * (c + 1)) / leafChunks) * 3;
+        if (b > a) boundsOf(a, b);
+      }
+    }
+    geometry.clearGroups();
+    ranges.forEach(([a, b], i) => geometry.addGroup(a, b - a, i));
+    return { boxes, spheres };
+  };
+  const groupMeshes: Mesh[] = [];
   // three angular sectors around the plaza → three meshes, each frustum-culled as a unit
   const byAngle = [...giants].sort((a, b) => a.angle - b.angle);
   const sectorGeometries: BufferGeometry[] = [];
@@ -2668,22 +2781,35 @@ export async function create(ctx: WorldContext): Promise<WorldSystem> {
     const members = byAngle.slice(s * perSector, (s + 1) * perSector);
     if (!members.length) continue;
     const label = members.map((m) => m.def.id).join('+');
+    // Round 52 (W38): one geometry group per giant, so the colour pass can skip a member whose own
+    // box is outside the frustum while the sector's other members draw (a sector spans ~50 × 30 ×
+    // 55 m and always meets the frustum; at A the south sector's four giants all stand behind the
+    // camera and drew 488 K triangles for no pixel). The shadow pass still draws every group —
+    // three renders the shadow maps before the scene and never calls onBeforeRender from them.
     const geometry = mergeParts(
       `giants-sector-${s}`,
       members.map((m) => m.asset.geometry),
+      true,
     );
     const cardGeometry = mergeParts(
       `giants-canopy-${s}`,
       members.map((m) => m.asset.cards),
     );
     sectorGeometries.push(geometry, cardGeometry);
-    const mesh = new Mesh(geometry, mats.giantTree);
+    // a giant's box holds the camera whenever it stands within its limbs' reach (A: the south
+    // sector's boles are 12–19 m behind the stairs and reach 13 m), so each giant splits into its
+    // wood and its crown: the crown, 12–26 m up, is what a behind-the-camera giant mostly is, and
+    // its box clears the frustum's top plane
+    const woodBounds = splitGroupsAtLeaves(geometry, GIANT_LEAF_BANDS);
+    const mesh = new Mesh(geometry, woodBounds.boxes.map(() => mats.giantTree));
     mesh.name = `giants-sector-${s}-${label}`;
     mesh.customDepthMaterial = mats.giantTreeDepth;
     mesh.castShadow = ctx.quality.shadows;
     mesh.receiveShadow = true;
     mesh.userData.kind = 'giant';
     mesh.userData.giants = members.map((m) => m.def.id);
+    installGroupCulling(mesh, woodBounds);
+    groupMeshes.push(mesh);
     const canopy = new Mesh(cardGeometry, mats.giantCanopy);
     canopy.name = `giants-canopy-${s}-${label}`;
     canopy.customDepthMaterial = mats.giantCanopyDepth;
@@ -3060,7 +3186,66 @@ export async function create(ctx: WorldContext): Promise<WorldSystem> {
     }
   };
   // giant sectors: world-space geometry; three culls the colour pass by the same sphere itself
+  /**
+   * Exact box-vs-frustum (separating axes): `Frustum.intersectsBox` only asks whether the box is
+   * wholly behind one plane, and a 26 m crown that starts a metre from the camera straddles two
+   * planes without meeting the frustum's volume. Axes tried: the box's three, the frustum's six
+   * plane normals, and the 18 cross products of the box axes with the frustum's edge directions.
+   */
+  const frustumCorners = Array.from({ length: 8 }, () => new Vector3());
+  const frustumEdges = Array.from({ length: 6 }, () => new Vector3());
+  const invViewProj = new Matrix4();
+  const satAxis = new Vector3();
+  const boxCenter = new Vector3();
+  const boxHalf = new Vector3();
+  const frustumCornersFor = (camera: Camera) => {
+    invViewProj.copy(viewProj).invert();
+    let k = 0;
+    for (const z of [-1, 1]) for (const y of [-1, 1]) for (const x of [-1, 1]) frustumCorners[k++].set(x, y, z).applyMatrix4(invViewProj);
+    // edge directions: near-plane right (0→1) and up (0→2), and the four side edges near→far
+    frustumEdges[0].subVectors(frustumCorners[1], frustumCorners[0]).normalize();
+    frustumEdges[1].subVectors(frustumCorners[2], frustumCorners[0]).normalize();
+    for (let i = 0; i < 4; i++) frustumEdges[2 + i].subVectors(frustumCorners[4 + i], frustumCorners[i]).normalize();
+    void camera;
+  };
+  const separatedOn = (axis: Vector3, box: Box3) => {
+    const len = axis.length();
+    if (len < 1e-6) return false;
+    const r = boxHalf.x * Math.abs(axis.x) + boxHalf.y * Math.abs(axis.y) + boxHalf.z * Math.abs(axis.z);
+    const c = boxCenter.dot(axis);
+    let lo = Infinity;
+    let hi = -Infinity;
+    for (const p of frustumCorners) {
+      const d = p.dot(axis);
+      if (d < lo) lo = d;
+      if (d > hi) hi = d;
+    }
+    return hi < c - r || lo > c + r;
+  };
+  const boxMeetsFrustum = (box: Box3) => {
+    if (!frustum.intersectsBox(box)) return false;
+    box.getCenter(boxCenter);
+    box.getSize(boxHalf).multiplyScalar(0.5);
+    for (const axis of [satAxis.set(1, 0, 0), satAxis.set(0, 1, 0), satAxis.set(0, 0, 1)]) if (separatedOn(axis, box)) return false;
+    for (let b = 0; b < 3; b++) {
+      for (const e of frustumEdges) {
+        satAxis.set(b === 0 ? 1 : 0, b === 1 ? 1 : 0, b === 2 ? 1 : 0).cross(e);
+        if (separatedOn(satAxis, box)) return false;
+      }
+    }
+    return true;
+  };
+  const markGroups = () => {
+    for (const mesh of groupMeshes) {
+      const boxes = mesh.userData.groupBoxes as Box3[];
+      const spheres = mesh.userData.groupSpheres as Sphere[];
+      const inView = mesh.userData.groupInView as boolean[];
+      // a round crown's sphere is tighter than its box against the frustum's top plane; both must meet
+      for (let i = 0; i < boxes.length; i++) inView[i] = frustum.intersectsSphere(spheres[i]) && boxMeetsFrustum(boxes[i]);
+    }
+  };
   const submitGiants = () => {
+    markGroups();
     if (!ctx.quality.shadows) return;
     for (const mesh of sectorMeshes) {
       if (mesh.userData.kind === 'giant-authored-leaves' || mesh.userData.kind === 'giant-authored-cards') continue; // never cast
@@ -3076,6 +3261,7 @@ export async function create(ctx: WorldContext): Promise<WorldSystem> {
     if (!force && viewProj.equals(lastViewProj)) return;
     lastViewProj.copy(viewProj);
     frustum.setFromProjectionMatrix(viewProj);
+    frustumCornersFor(camera);
     if (ctx.sun) {
       sunNow.subVectors(ctx.sun.position, ctx.sun.target.position);
       if (sunNow.lengthSq() > 1e-6) sunNow.normalize();
