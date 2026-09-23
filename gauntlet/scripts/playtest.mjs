@@ -737,15 +737,20 @@ async function southProbes(page) {
     for (const c of [0, 0.45, -0.45]) probes.push({ where: 'deck', a, c, at: sf.bridge(a, c), expect: 'walk' });
     for (const c of [0.7, -0.7, 1.0, -1.0, 2.5, -2.5]) probes.push({ where: 'deck-side', a, c, at: sf.bridge(a, c), expect: 'blocked' });
   }
-  for (const c of [3.0, -3.0]) probes.push({ where: 'ravine-by-north-head', a: 1.5, c, at: sf.bridge(1.5, c), expect: 'blocked' });
+  // 1.5 m past a sill the gorge's slant can leave a probe 3 m off the axis on the rounded lip: walkable
+  // there only while the ground is within 0.5 m of grade ('rim'); 3 m past a sill it is the wall
+  for (const c of [3.0, -3.0]) probes.push({ where: 'rim-by-north-head', a: 1.5, c, at: sf.bridge(1.5, c), expect: 'rim' });
+  for (const c of [3.0, -3.0]) probes.push({ where: 'ravine-by-north-head', a: 3.0, c, at: sf.bridge(3.0, c), expect: 'blocked' });
   for (const c of [3.0, -3.0]) probes.push({ where: 'ravine-by-south-head', a: sf.len - 1.5, c, at: sf.bridge(sf.len - 1.5, c), expect: 'blocked' });
+  for (const c of [3.0, -3.0]) probes.push({ where: 'ravine-by-south-head', a: sf.len - 3.0, c, at: sf.bridge(sf.len - 3.0, c), expect: 'blocked' });
   for (const a of [1, 3, SOUTH.deadEnd - 0.4]) probes.push({ where: 'log-floor', a, c: 0, at: sf.log(a), expect: 'walk' });
   for (const c of [1.2, -1.2]) probes.push({ where: 'log-wall', a: 3, c, at: sf.log(3, c), expect: 'blocked' });
   probes.push({ where: 'log-past-dead-end', a: SOUTH.deadEnd + 0.3, c: 0, at: sf.log(SOUTH.deadEnd + 0.3), expect: 'blocked' });
   const got = await page.evaluate((pts) => pts.map(([x, z]) => window.__ZR_PLAY__.ground(x, z)), probes.map((p) => p.at));
   const rows = probes.map((p, i) => {
     const g = got[i];
-    const ok = p.expect === 'blocked' ? g.blocked === true : g.blocked === false && (p.where !== 'deck' || g.walk - g.terrain > 2);
+    const ok =
+      p.expect === 'blocked' ? g.blocked === true : p.expect === 'rim' ? g.blocked === true || g.terrain > -0.5 : g.blocked === false && (p.where !== 'deck' || g.walk - g.terrain > 2);
     return { where: p.where, a: +p.a.toFixed(2), c: p.c, x: +p.at[0].toFixed(2), z: +p.at[1].toFixed(2), walk: +g.walk.toFixed(3), terrain: +g.terrain.toFixed(3), blocked: g.blocked, expect: p.expect, ok };
   });
   return { ok: rows.every((r) => r.ok), failed: rows.filter((r) => !r.ok).length, rows };
