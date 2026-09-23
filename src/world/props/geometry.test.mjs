@@ -478,6 +478,10 @@ for (const id of ['door-pot-large', 'sign-pot', 'saria-crate', 'saria-water-buck
   const deckDir = [westWalk.deck.b[0] - westWalk.deck.a[0], westWalk.deck.b[2] - westWalk.deck.a[2]];
   const dl = Math.hypot(deckDir[0], deckDir[1]);
   corridor("the west deck's landing", [[westWalk.deck.b[0], westWalk.deck.b[2]], [westWalk.deck.b[0] + (deckDir[0] / dl) * 2.5, westWalk.deck.b[2] + (deckDir[1] / dl) * 2.5]]);
+  // the corner a walker cuts: from the west path's fork node straight to the house's landing (the
+  // play-test's straight route snagged the fork marker at (−11.4, 8.25) when it stood 0.25 m off this line)
+  const pw = EXPANSION.pathWest;
+  corridor("the west fork's shortcut (fork node → landing)", [[pw[3][0], pw[3][2]], [pw[pw.length - 1][0], pw[pw.length - 1][2]]]);
   console.log(`walk clearance beyond each blocker's radius (m, hook margin 0.12 + body 0.25 = ${WALK}): ${clearances.join(' · ')}`);
 
   // the deck itself: a prop standing on the 0.95 m walkway pinches it; the lane left for Link's
