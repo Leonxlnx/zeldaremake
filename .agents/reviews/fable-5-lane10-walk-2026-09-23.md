@@ -266,7 +266,17 @@ E −0.033, F −0.008 against the frames, with the 07:00 air on both sides.
   98 MB off during the 07:34 walk no longer shows — the batch's new geometry (`understory.ts`, `distant.ts`'s mid
   canopy, the verge plants) either keeps its arrays or is uploaded before the walk; +122 MB retained at the walk's end
   against the last read. The capture box's memory rule (r55 §E–§G) is the reason to look.
-- **Pacing**: the 10:37 pacing pass ran beside a second Chrome (the §7b render) on this 4-core box — JS p50 6.0 / p95
-  23.2 / p99 38.3 ms against 07:34's 4.2 / 8.7 / 11.2 are **not comparable**; a clean `--only perf,pacing` run is in
-  progress and its numbers replace these here.
+- **Pacing** (`--only perf,pacing` re-run **alone** 11:11–11:29 — the 10:37 pass ran beside a second Chrome and is
+  discarded; the 07:34 run itself had a render beside it, so the comparison below flatters the head if anything):
+  plaza → second staircase → upper house, 630 frames — **JS step p50 4.2 → 6.2 ms, p95 8.7 → 13.5, p99 11.2 → 22.6**,
+  hitches 39 → 56; frames over 12 ms after frame 0: **0 → 20**, the worst 42.5 ms at frame 85, Link at (5.1, 0, 1.3)
+  on the plaza. By segment: **the plaza (frames 1–200) p50 4.1 → 10.4 ms, p95 8.6 → 18.9**; the flight 3.7 → 4.3; the
+  upper 5.0 → 5.6. Drawn frames' render issue p50 10.0 → 11.8 ms. No shader compiles (107 → 107). **Heap 1,208 →
+  1,307 MB across the walk** (+99 MB; 07:34: −98). The world update at the four spots (the step less its render):
+  plaza **4.8 → 7.3 ms**, `stairs2-base` **5.0 → 13.6**, `saria-side` 5.6 → 9.4, `west-house` 2.2 → 7.6 — the batch
+  added 2.5–8.6 ms of per-frame JS at player height, most at the flight's foot; on a 60 Hz box that is half the frame
+  before a draw is issued. Which system is next (`__ZR__.perf().systems`, per-system update ms at the spots, head
+  against `f56c5740`).
+- **Load**: world ready in 74.1 s alone here (07:00's `f56c5740`: 73.4 s; SwiftShader CPU time, not a GPU box); the
+  bundle 2.04 → 2.06 MB, textures and models unchanged (114.9 MB dist).
 
