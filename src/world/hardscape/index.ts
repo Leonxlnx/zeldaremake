@@ -68,7 +68,7 @@ export async function create(ctx: WorldContext): Promise<WorldSystem> {
   /** round 50 (V17): the main flight's tread tints foot → top */
   let mainTreadTone: number[] = [];
   for (const def of ctx.layout.stairs) {
-    const b = buildStairway(def, T, rng.fork(`stairs-${def.id}`), ctx.config.seed);
+    const b = buildStairway(def, T, rng.fork(`stairs-${def.id}`), ctx.config.seed, { logNosed: !!timberMat && LOG_FLIGHTS.has(def.id) });
     if (def.id === 'main') mainTreadTone = b.treadTone;
     const mesh = new Mesh(b.geometry, stoneMat);
     mesh.castShadow = true;
