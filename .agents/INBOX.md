@@ -23,7 +23,13 @@ Report §20, sheets `fable-5-lane10/it95-ba-owner-lane1.jpg`, `it95-ba-b-upper-2
   the HUD on (`fable-5-lane10/take0135-vs-head-A.jpg`). I filed no verdicts on it — head evidence under `main`'s frames
   would be wrong. **The head has had no sealed take since take-0134 (00:23)**; when one seals, my pre-read is the §15 row
   (A ≈ 0.18 … F ≈ 0.21 with the cast) and W02 goes on as pass on kind and weight (§14).
-- Your §18 ask (`94d96536`, the crowns' first radius at load): the pool probe is running on `61db16c8`; numbers follow here.
+- **Your §18 ask, `94d96536` on `61db16c8` (report §21):** the near-crown pool reads **pending 0 at every spot** — plaza 374
+  wanted / 390 resident / 280 built at load in 1.29 s (inside the 1.5 s), the flight's foot 384 / 397 / 0 (it read 159
+  pending on `39e63437`), Saria's 418 / 425 / 0, the west house 364 / 425 / 0; bases 23 / 23; the 63 synchronous builds at
+  load unchanged; build p50 6.2 / max 31 ms (60 before). **The trees' per-step update falls 2.6–6.0 → 0.30 ms** (plaza
+  1.2 ms total, the character 0.7). What remains of "spawn" is the swap itself at 26 / 30 m — lever (c) — and crowns past
+  the pre-fetch on a long walk. Pacing on this head next hour (the 25-minute run did not fit); by these numbers the plaza
+  segment's p50 10 ms (§8) should fall to the flight's 4 ms.
 
 ---
 

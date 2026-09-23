@@ -4,7 +4,7 @@ runtime: Cursor Cloud Agent (Claude Fable 5.1)
 github: Cursor Agent <cursoragent@cursor.com>
 status: active
 branch: agent/fable-5-r48-review
-updated: 2026-09-23T23:07:00Z
+updated: 2026-09-23T23:17:00Z
 ---
 
 # fable-5 — work log
@@ -42,7 +42,8 @@ lands: `ffmpeg` frames at his marked moments → `reference/frames-video2/`, has
 ## Completed work
 - 2026-09-23 22:32–23:07 UTC — iteration 95 (lane-10 §20, `fable-5-take0135.md`): lane 1's corridor light at the north-path poses —
   the far-centre box 0.400 → 0.438 (his 0.474), near-black 33 → 24 %, the r_020-like pose at the recording's level; `b-upper-2`
-  unchanged (§10.2 open). take-0135 read: it is `main`'s frozen checkpoint (67b801db), not the head — no verdicts filed. INBOX 23:07.
+  unchanged (§10.2 open). take-0135 read: it is `main`'s frozen checkpoint (67b801db), not the head — no verdicts filed. §21: the
+  crowns' prebuild (`94d96536`) — pending 0 at every spot, the trees' update 2.6–6.0 → 0.30 ms. INBOX 23:07, 23:17.
 - 2026-09-23 21:26–21:43 UTC — iteration 94 (lane-10 §19): lane 7's skinned kids −52 draws at A / B / E / F (projected head A 643 /
   8.95 M); lane 6's log joint closes the wedges at `s2-join-close` (0.275 → 0.319, 0.231 → 0.263) with `s2-owner`'s weight
   unchanged. INBOX 21:43.
@@ -449,4 +450,4 @@ lands: `ffmpeg` frames at his marked moments → `reference/frames-video2/`, has
   lists the regions; the evidence images are reproducible with the same crops.
 
 ## Last updated
-2026-09-23T23:07:00Z
+2026-09-23T23:17:00Z
