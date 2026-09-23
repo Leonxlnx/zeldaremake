@@ -27,7 +27,7 @@ import { BARK_DETAIL_M, BARK_DETAIL_TILES, BARK_TOUCH_M, BARK_TOUCH_TILES, CARD_
 import type { ShadeFloor } from '../materials/shadeFloor';
 import { authoredWhiteBarks, createWhiteBarkRoots, createWhiteBarkTree, whiteBarkParams, whiteBarkTilt, type TreeAsset, type WhiteBarkParams, CLEARING_WHITE_BARKS } from './whitebark';
 import { createUnderstoryTree, understoryParams, type UnderstoryParams } from './understory';
-import { nearestWalkLine, placeWhiteBark, treeGroundBlocked, viewProjector, type WhiteBarkPlacement } from './placement';
+import { placeWhiteBark, treeGroundBlocked, viewProjector, type WhiteBarkPlacement } from './placement';
 import { columnParams, createColumnTree, emergentParams, hutHostParams, type ColumnAsset, type ColumnParams } from './column';
 import { expansionCull, getTerrain, type Terrain, type TerrainView } from '../terrain/heightfield';
 import { smoothstep } from '../util/noise';
@@ -1500,9 +1500,6 @@ const COLUMN_CLEARANCE = { whiteBark: 2.5, giant: 4, house: 4 };
  * measured 710–714 calls / 9.08–9.13 M before.
  */
 const CULL_PAD_M = 4;
-/** the mid-canopy grove's crowns keep this much air beyond a walked line's paving (m), and a bole never stands nearer than MID_WALK_MIN_M to its centreline */
-const MID_WALK_GAP_M = 3;
-const MID_WALK_MIN_M = 9;
 /** lowest world height a shadow receiver can have (the capsule is swept down to it) */
 const SHADOW_FLOOR_Y = -20;
 /**
@@ -3179,6 +3176,19 @@ export async function create(ctx: WorldContext): Promise<WorldSystem> {
    * everywhere, because the brief is "every direction you can walk shows layered trees".
    */
   const midWeight = (x: number, z: number) => smoothstep(13, 19, Math.hypot(x, z)) * (0.58 + 0.42 * smoothstep(-6, -26, z));
+  /**
+   * fable-5 (lane 10, 2026-09-23 12:52): mid crowns 3–7 m from the walk line read as flat card piles
+   * at `u-open-up` and `h-west-front`. The band 3.4–11 m off the walk polylines is the understory's
+   * (real laminae, `UNDERSTORY_PATH_MIN_M`…`UNDERSTORY_PATH_MAX_M`); the card grove starts where the
+   * cards hold — MID_WALK_MIN_M from the path centrelines (a post-filter, so no other tree moves).
+   */
+  const MID_WALK_MIN_M = 11;
+  const midWalkXZ: [number, number][][] = [
+    ctx.layout.pathSpine.map((p) => [p[0], p[2]] as [number, number]),
+    ctx.layout.pathToHouse.map((p) => [p[0], p[2]] as [number, number]),
+    ctx.layout.northPath.map((p) => [p[0], p[2]] as [number, number]),
+  ];
+  const nearWalk = (x: number, z: number) => midWalkXZ.some((poly) => poly.length > 1 && spineDistance(poly, x, z) < MID_WALK_MIN_M);
   const midSampled = placeMidTrees(rng, terrain, distantVariants, {
     target: midTarget,
     inner: 13,
@@ -3188,17 +3198,10 @@ export async function create(ctx: WorldContext): Promise<WorldSystem> {
     corridors: plazaCorridors.map((c) => ({ point: c.point, dir: c.dir, radius: c.radius })),
     weight: midWeight,
     spacing: 3.2,
-    // the owner walks the paths, not the ring's centre: a crown of the far atlas's cards reads as
-    // flat quads within a few metres, and one at (−3.3, −19.6) stood 3 m from his north-path camera
-    // (hiding the west hut, roofing the path) and another 6 m from his look-up in the north hollow
-    // (fable-5 lane 10, 12:51). The crown's edge keeps MID_WALK_GAP_M beyond the paving's edge, never
-    // nearer than MID_WALK_MIN_M to a centreline; the understory's real trees own the verges.
-    clear: (x, z, crownR) => {
-      const w = nearestWalkLine(ctx, x, z);
-      return w.distance < Math.max(MID_WALK_MIN_M, w.halfWidth + crownR + MID_WALK_GAP_M);
-    },
   });
-  const midPlacements = midSampled.filter((p) => !expansionCull(p.x, p.z));
+  // applied AFTER sampling, like expansionCull: a rule inside the sampler's `blocked` shifts every
+  // later draw and re-rolls the whole grove (measured: 6 trees fewer, 60 % of u-open-up's pixels moved)
+  const midPlacements = midSampled.filter((p) => !expansionCull(p.x, p.z) && !nearWalk(p.x, p.z));
   distantPlacements.push(...midPlacements);
   // round 47: the crown cards (the geometry's second group) draw with their own material (distant.ts createDistantCrownMaterial: far-crown atlas, spherical shading, soft alpha, wind)
   const distantCrown = createDistantCrownMaterial(ctx.wind, rng, palette, sunDir);
