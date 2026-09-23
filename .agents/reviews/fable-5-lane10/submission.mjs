@@ -14,7 +14,7 @@ try {
       const a = window.__ZR__.audit();
       const t = a.systems.trees;
       const flat = (o, prefix = '') => Object.entries(o || {}).flatMap(([k, v]) => (v && typeof v === 'object' && !('calls' in v) ? flat(v, prefix + k + '/') : [[prefix + k, v]]));
-      return { draws: st.draws ?? st.calls ?? st.render?.calls ?? null, triangles: st.triangles ?? st.render?.triangles ?? null, statsKeys: Object.keys(st), submission: t.submission, sceneTriangles: a.scene?.triangles, sceneInstances: a.scene?.instances };
+      return { draws: st.drawCalls ?? st.draws ?? null, triangles: st.triangles ?? st.render?.triangles ?? null, statsKeys: Object.keys(st), submission: t.submission, sceneTriangles: a.scene?.triangles, sceneInstances: a.scene?.instances };
     }, id);
     result[id] = r;
     const sub = r.submission || {};

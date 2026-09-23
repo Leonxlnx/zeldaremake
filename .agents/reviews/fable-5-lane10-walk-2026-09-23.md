@@ -406,3 +406,30 @@ So **the 9.0 M cap at A is broken by lane 4's blades, not lane 2's crowns** — 
 (+0.56 / +0.74 / +0.56 M outside the trees against +0.04). The first cut is the turf's density or reach where A does not
 resolve it (at A the corridor's floor is 20–40 m out); the crowns are 0.03 M and can stay. The play spots (§8) carry
 the same growth (`stairs2-base` 9.53 → 9.67 M is lane 4's too, by this split).
+
+## 12. The perf branches against the caps, measured together (15:33–15:55 UTC, `fable-5-lane10/submission.mjs`, capture mode = the take's condition, character group visible)
+
+The cast's return (`f6efd6e2`) put camera A over **both** caps: 597 → **723 draws**, 9.15 → **9.20 M**. Three branches answer
+W38 / the draw cap; each is measured here against *its own* base (the branches were cut from different heads), then
+projected together onto the head `56b54e15`. JSONs in `fable-5-lane10/perf88/`.
+
+| build | A | B | C | D | E | F |
+| --- | --- | --- | --- | --- | --- | --- |
+| `be123deb` (the head before the cast) | 597 / 9.15 M | 589 / 8.30 M | 472 / 6.77 M | 557 / 8.53 M | 589 / 8.30 M | 547 / 7.99 M |
+| head `56b54e15` (cast back) | **723 / 9.20 M** | 692 / 8.33 M | 573 / 6.82 M | 562 / 8.53 M | 692 / 8.33 M | 650 / 8.03 M |
+| fable-2 `930ad3d9` flagstones stop casting (vs `be123deb`) | −1 / **−188 K** | −1 / −188 K | −1 / −188 K | −1 / −188 K | −1 / −188 K | −1 / −188 K |
+| fable-4 `852245f7` white-bark shadow proxy (vs the head) | +1 / **−134 K** | 0 / −90 K | +1 / −39 K | 0 / −90 K | 0 / −90 K | +1 / −166 K |
+| fable-3 `b1ebee6b` kids' shadows only in reach (vs `4b1759f9`) | **−25** / −12 K | −2 / −1 K | **−48** / −23 K | −5 / −7 K | −2 / −1 K | −2 / −1 K |
+| **projected head + all three** | **698 / 8.87 M** | 689 / 8.05 M | 525 / 6.57 M | 556 / 8.25 M | 689 / 8.05 M | 648 / 7.67 M |
+
+- fable-2's and fable-4's numbers reproduce here to the K (−188 K on every view; A −134 / F −166 / B, D, E −90 / C −39 K);
+  the frames are their measurement (A +0.0001 with 0.12 % of pixels ≤ 40 levels; five views pixel-identical, C −0.0005) —
+  shadow-only changes, so I take them without re-rendering.
+- **The cast costs draws, not triangles: +126 at A, +101–103 at B / C / E / F** for one or two kids in view (+34–45 K
+  triangles). fable-3's `b1ebee6b` takes back the *off-view* kids' shadow passes (A −25, C −48) and lands A at **698 —
+  under the 700 cap by two**, with B / E at 689. The rest is the visible kids' own meshes: a kid in view is ≈ 50 colour
+  draws plus her shadow pass (hair lobes, locks, fringe, band, tunic, belt, limbs, boots, face, eyes, the fairy). With
+  all three branches merged the head sits at 698 / 689 / 689 draws at A / B / E — no headroom for the next prop or plant.
+  **Lane 7's next perf item is the kid as one or two merged meshes (per material): 50 → ≈ 5 draws each.**
+- Triangles: the three together bring A to **8.87 M, under W38's 9.0 M with 130 K of room**; the lane-4 blades (§11) are
+  still the mass (+0.57 M at A), and the next plant lands A back over the cap.
