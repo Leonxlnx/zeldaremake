@@ -438,6 +438,11 @@ export function createComposer(opts: ComposerOptions): Composer {
     // Round 33: with the denser mist term carrying the hollow glow, the base air lifts to 3 / 6.5 so
     // the plaza and path (eye level, 1.5–4.5 m of air) keep their edge contrast: A's bottom band
     // p50 stays at −0.018 while the top band gains +0.03
+    // 2026-09-23: thinning this air for the owner's "grey washout" (3 / 6.5 → 6 / 16, and the
+    // beams' gaps with it) was measured against his recording and backed out — at his pose the
+    // corridor's bright mist fell 2.0 → 0.9 % (his r_024: 22.6 %) and its luminance 0.300 → 0.263:
+    // darker trunks in darker grey, not trees in light. His "clear" is bright warm mist with
+    // crowns standing in it (reference/ANALYSIS_CLARITY.md §5, fable-5 lane 10, INBOX 08:40).
     rayAirFadeLo: 3,
     rayAirFadeHi: 6.5,
     // the mist term's ramp along the ray (0 / 0 = off; see RAY_MARCH_FRAG mistNear)

@@ -4,11 +4,16 @@ runtime: Cursor Cloud Agent (Claude Fable 5.1)
 github: Cursor Agent <cursoragent@cursor.com>
 status: active (goal mode, timer goal-mode-fable-3 @ 20 * * * *)
 <<<<<<< HEAD
-branch: agent/fable-3-r55-notes (heartbeats); propmem merged 3d4effbe (tick 226); tunnel-floor note pending
-updated: 2026-09-23T07:35:00Z
+<<<<<<< HEAD
+branch: agent/fable-3-r55-notes (notes/reviews); shelves-threshold merged (kindling basket, play-head 75622db9)
+updated: 2026-09-23T10:25:00Z
 =======
 branch: agent/fable-3-propmem (OOM ask: CPU arrays dropped on upload); notes branches pending
 updated: 2026-09-22T09:45:00Z
+>>>>>>> origin/cursor/kokiri-world-phase1-f65e
+=======
+branch: agent/fable-3-shelves-threshold (lane 9: kindling basket); r55-notes (heartbeats)
+updated: 2026-09-23T09:20:00Z
 >>>>>>> origin/cursor/kokiri-world-phase1-f65e
 ---
 
@@ -223,6 +228,19 @@ structures + props** — overlaps my lane; its first items include "Saria's shel
 for fable-cursor to relay in LANE 9's PR reviews (state, the tests that guard placement, what the shelves
 already got, the threshold read as the likely remaining lever). Squad chats don't edit the INBOX; PRs are
 their reports. Nothing else for props; no renders.
+
+08:20–09:20 UTC: fable-cursor's 07:30 fit → **lane 9** (props + signs of use at player height; Saria's
+shelves). Rendered the owner's view (follow camera at the threshold, Link's eye at the door): the shelves
+read stocked — the 09-21 "hollow" is closed by the mouths. Added a woven kindling basket with six sticks in
+front of the firewood by the hearth (first placement landed inside the wall — the room ends 0.2 k past
+the door's right edge; moved in front of the stack). `agent/fable-3-shelves-threshold`; evidence
+`art/environment/props-fable-3/kindling-basket/`. The plaza matches review46 (signpost + lantern post at
+the split, no pots along the path).
+
+09:20–10:25 UTC: the kindling basket merged (tick at 09:15, play-head 75622db9). Lane 9's remaining item is
+structures' hut walls (fable-cursor's area; no hand-over) — stayed on props/reviews. Non-author check of
+squad3-near-bark at their poses: the lichen confetti on the near column 3.21 % → 0.90 % pale px, mean l
+0.219 → 0.196, a knee in the silhouette; the owner's north pose changes in the far trunks/moss. Posted.
 
 ## Files / systems being touched
 `src/world/props/{index,layout,geometry,materials}.ts`, `geometry.test.mjs`, `README.md`.
