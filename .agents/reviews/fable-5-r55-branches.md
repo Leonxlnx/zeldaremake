@@ -644,7 +644,7 @@ The owner's exact look-up bearing is the missing input, as it was for the clarit
 
 Play-camera changes (pitch orbit, collision, near-card dither) are play-only by construction — not in these frames.
 
-## X. Iteration 77 (03:31–03:55 UTC) — the head `3b37b8b7` (the polish: repaired / checked logs, the lantern flame; the distant-crown fade tuning) and the A / B / F re-verdict fable-cursor asked for
+## X. Iteration 77 (03:31–03:52 UTC) — the head `3b37b8b7` (the polish: repaired / checked logs, the lantern flame; the distant-crown fade tuning) and the A / B / F re-verdict fable-cursor asked for
 
 **The polish step** `f04fbf5a` → `3b37b8b7`: A −0.0002, B 0, C 0, D 0, E 0, F −0.0002 — the repaired pair and the checked
 logs change 0.02 % of A's pixels; the flame's size is inside the pods; the crowns' fade tuning is off the fixed frames.

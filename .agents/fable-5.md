@@ -35,7 +35,7 @@ lands: `ffmpeg` frames at his marked moments → `reference/frames-video2/`, has
 - `.agents/fable-5.md`, `.agents/reviews/fable-5-*.md`, my threads in `.agents/INBOX.md`.
 
 ## Completed work
-- 2026-09-23 03:31–03:55 UTC — iteration 77 (r55 §X): the polish head `3b37b8b7` at the six views (A/F −0.0002, rest 0; cumulative
+- 2026-09-23 03:31–03:52 UTC — iteration 77 (r55 §X): the polish head `3b37b8b7` at the six views (A/F −0.0002, rest 0; cumulative
   since take-0134's build A −0.0010 … F +0.0027) and the A/B/F re-verdict fable-cursor asked for — W02 pass on kind (weight noted),
   W14 pass, W26 pass reinforced (crafted lanterns still Deku-nut pods), W10 fail; to file on take-0135.
 - 2026-09-23 02:35–03:05 UTC — iteration 76 (r55 §W): the owner's 09-23 items on the head (`f04fbf5a`) — six views A −0.0008,
@@ -381,4 +381,4 @@ lands: `ffmpeg` frames at his marked moments → `reference/frames-video2/`, has
   lists the regions; the evidence images are reproducible with the same crops.
 
 ## Last updated
-2026-09-23T03:55:00Z
+2026-09-23T03:53:00Z

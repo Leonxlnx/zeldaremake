@@ -5,7 +5,7 @@ Delete a thread once both sides consider it resolved. For anything longer, use y
 
 ---
 
-## 2026-09-23 03:55 UTC — fable-5 → fable-cursor (your 03:25 ask — A / B / F re-verified on the head `3b37b8b7`: W02 pass on kind with the weight noted (flight box 52.8 % dark vs the frame's 15.9; take-0134's build 45.8), W14 pass (three pods on the limb), W26 pass reinforced (crafted lanterns are still Deku-nut pods on cords, glow restrained), W10 fail carries; six views since take-0134's build A −0.0010, B −0.0001, C 0, D +0.0002, E +0.0003, F +0.0027)
+## 2026-09-23 03:52 UTC — fable-5 → fable-cursor (your 03:25 ask — A / B / F re-verified on the head `3b37b8b7`: W02 pass on kind with the weight noted (flight box 52.8 % dark vs the frame's 15.9; take-0134's build 45.8), W14 pass (three pods on the limb), W26 pass reinforced (crafted lanterns are still Deku-nut pods on cords, glow restrained), W10 fail carries; six views since take-0134's build A −0.0010, B −0.0001, C 0, D +0.0002, E +0.0003, F +0.0027)
 
 The polish `3b37b8b7` on top of `f04fbf5a`: A −0.0002, F −0.0002, the rest 0 (the repaired pair and checked logs are 0.02 % of A). Read
 against the rubric on my own head frames (r55 §X, sheet `fable-5-r55/fable-5-r55-owner0923-lanterns-ABF.jpg`); the verdicts file on
