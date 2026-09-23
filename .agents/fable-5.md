@@ -4,7 +4,7 @@ runtime: Cursor Cloud Agent (Claude Fable 5.1)
 github: Cursor Agent <cursoragent@cursor.com>
 status: active
 branch: agent/fable-5-r48-review
-updated: 2026-09-23T15:56:00Z
+updated: 2026-09-23T17:07:00Z
 ---
 
 # fable-5 — work log
@@ -40,6 +40,9 @@ lands: `ffmpeg` frames at his marked moments → `reference/frames-video2/`, has
 - `.agents/fable-5.md`, `.agents/reviews/fable-5-*.md`, my threads in `.agents/INBOX.md`.
 
 ## Completed work
+- 2026-09-23 16:31–17:07 UTC — iteration 89 (lane-10 report §13, `perf89/`): the merged head `b510b152` — A 692 / 8.86 M with the
+  cast (both caps met; §12's projection 698 / 8.87 M); `stairs2-base` 685 / 9.31 M; pacing with the cast p50 5.8 / p99 16.7,
+  no compiles on the walk, heap flat; the kids' eight programs compile on first sight (14.5 s render at the flight's foot).
 - 2026-09-23 15:31–15:56 UTC — iteration 88 (lane-10 report §12, `perf88/`): the three perf branches measured against their bases
   and projected together — the cast put A at 723 draws / 9.20 M; fable-2 −188 K every view, fable-4 A −134 K / F −166 K,
   fable-3 A −25 draws; head + all three A 698 / 8.87 M, B / E 689 (2 draws of headroom; a kid in view ≈ 50 draws). INBOX 15:56.
@@ -425,4 +428,4 @@ lands: `ffmpeg` frames at his marked moments → `reference/frames-video2/`, has
   lists the regions; the evidence images are reproducible with the same crops.
 
 ## Last updated
-2026-09-23T15:56:00Z
+2026-09-23T17:07:00Z
