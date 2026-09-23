@@ -21,7 +21,7 @@
  * instances that can reach the image (see "submission culling" below). Everything is seated via
  * ctx.terrain.height; randomness only via ctx.rng.
  */
-import { Box3, BufferAttribute, BufferGeometry, Color, Frustum, Group, InstancedBufferAttribute, InstancedMesh, Matrix4, Mesh, Quaternion, Sphere, Vector3, type Camera, type Material } from 'three';
+import { Box3, BufferAttribute, BufferGeometry, Color, Frustum, MeshBasicMaterial, Group, InstancedBufferAttribute, InstancedMesh, Matrix4, Mesh, Quaternion, Sphere, Vector3, type Camera, type Material } from 'three';
 import type { TrunkSeat, WorldContext, WorldSystem } from '../system';
 import { BARK_DETAIL_M, BARK_DETAIL_TILES, BARK_TOUCH_M, BARK_TOUCH_TILES, CARD_EDGE_FADE, CARD_FLAT_EDGE_FADE, COLUMN_BARK_FLOOR, COLUMN_BARK_FLOOR_FAR, COLUMN_FLOOR_FADE_M, createTreeMaterials, CUSHION_FADE_M, DISTANT_BARK_M, DISTANT_NEAR_FLOOR, DISTANT_NEAR_TONE, NEAR_BASE_FLOOR, NEAR_BOLE_FLOOR, NEAR_BOLE_FLOOR_FADE, NEAR_BOLE_FLOOR_TOP, NEAR_BOLE_SLOTS, NEAR_CANOPY_LEAF_FLOOR, NEAR_CANOPY_LEAF_NEAR_M, NEAR_CANOPY_SLOTS, NEAR_CANOPY_SUN_THROUGH, TREE_BARK_FLOOR, TREE_BARK_FLOOR_NEAR, TREE_FLOOR_FADE_M, TREE_LEAF_FLOOR, TREE_LEAF_FLOOR_NEAR, TREE_NEAR_BOLE_FLOOR } from './materials';
 import type { ShadeFloor } from '../materials/shadeFloor';
@@ -1698,6 +1698,14 @@ interface FamilyVariant<P, T extends { x: number; z: number; scale: number }, A 
   lists: number[][];
   /** placement indices actually submitted per LOD (the bucket minus the culled instances) */
   submitted: number[][];
+  /**
+   * Round 53 (W38, A over the ceiling with the squad's layers): the high bucket's shadow-only
+   * instances — behind the camera, kept for the shade they throw into the frame — cast from this
+   * twin on the MEDIUM geometry instead of the 100 K high mesh (a no-op colour pass: neither colour
+   * nor depth is written). White-barks only; the in-view instances keep the high mesh in both passes.
+   */
+  shadowProxy?: InstancedMesh;
+  submittedShadow?: number[];
 }
 type WhiteVariant = FamilyVariant<WhiteBarkParams, WhiteBarkPlacement>;
 interface UnderstoryPlacement {
@@ -2159,6 +2167,8 @@ export async function create(ctx: WorldContext): Promise<WorldSystem> {
     }
     return out.length ? out : [geometry.boundingSphere!.clone()];
   };
+  /** the shadow proxies' colour-pass material: writes neither colour nor depth — only the shadow pass sees them */
+  const shadowOnlyMaterial = new MeshBasicMaterial({ colorWrite: false, depthWrite: false });
   const familyMeshes = <P, T extends { x: number; z: number; scale: number }>(variants: FamilyVariant<P, T>[], label: string, material: Material, depth: Material, parent: Group) => {
     for (const w of variants) {
       const n = Math.max(1, w.placements.length);
@@ -2181,6 +2191,21 @@ export async function create(ctx: WorldContext): Promise<WorldSystem> {
         mesh.userData.hull = geometryHull(w.lods[l].geometry);
         w.meshes.push(mesh);
         parent.add(mesh);
+        if (label === 'whitebark' && l === 0 && ctx.quality.shadows) {
+          const proxy = new InstancedMesh(w.lods[1].geometry, shadowOnlyMaterial, n);
+          proxy.name = `${label}-${(w.params as { seed: string }).seed}-high-shadow`;
+          proxy.customDepthMaterial = depth;
+          proxy.castShadow = true;
+          proxy.receiveShadow = false;
+          proxy.count = 0;
+          proxy.visible = false;
+          proxy.userData.kind = label;
+          proxy.userData.lodLevel = 0;
+          proxy.userData.shadowProxy = true;
+          parent.add(proxy);
+          w.shadowProxy = proxy;
+          w.submittedShadow = [];
+        }
       }
     }
   };
@@ -3349,6 +3374,23 @@ export async function create(ctx: WorldContext): Promise<WorldSystem> {
           instanceSphere(w, l, i, sphere);
           if (inView(sphere) && hullInView(w, l, i)) kept.push(i);
           else if (casts && shadowReaches(sphere)) shadowOnly.push(i);
+        }
+        if (l === 0 && w.shadowProxy) {
+          // the high bucket's shadow-only instances cast from the medium-geometry twin
+          if (!sameList(kept, w.submitted[l]) || w.meshes[l].userData[MAIN_COUNT] !== kept.length) fillFamily(w, l, kept, kept.length);
+          if (!sameList(shadowOnly, w.submittedShadow!)) {
+            const proxy = w.shadowProxy;
+            for (let k = 0; k < shadowOnly.length; k++) proxy.setMatrixAt(k, w.matrices[shadowOnly[k]]);
+            proxy.count = shadowOnly.length;
+            proxy.visible = shadowOnly.length > 0;
+            proxy.instanceMatrix.needsUpdate = true;
+            if (shadowOnly.length) {
+              proxy.computeBoundingSphere();
+              proxy.boundingSphere!.radius += CULL_PAD_M;
+            }
+            w.submittedShadow = shadowOnly;
+          }
+          continue;
         }
         const mainCount = kept.length;
         for (const i of shadowOnly) kept.push(i);
