@@ -100,7 +100,10 @@ async function main() {
             n++;
           }
         }
-        if (v.object) window.__H.scene.traverse((o) => { if (o.name === v.object) { o.visible = v.visible !== false; n++; } });
+        // objects a previous variant hid or showed go back first
+        for (const [o, vis] of window.__PROBE_VIS__ ?? []) o.visible = vis;
+        window.__PROBE_VIS__ = [];
+        if (v.object) window.__H.scene.traverse((o) => { if (o.name === v.object) { window.__PROBE_VIS__.push([o, o.visible]); o.visible = v.visible !== false; n++; } });
         // `sun`: { dir: [x, y, z] toward the sun, intensity } — a different light on the same frame
         // (the lighting system re-places the sun along userData.sunDir every frame)
         const S = window.__PROBE_SUN__;
