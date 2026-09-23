@@ -26,6 +26,7 @@ import type { TrunkSeat, WorldContext, WorldSystem } from '../system';
 import { BARK_DETAIL_M, BARK_DETAIL_TILES, BARK_TOUCH_M, BARK_TOUCH_TILES, CARD_EDGE_FADE, CARD_FLAT_EDGE_FADE, COLUMN_BARK_FLOOR, COLUMN_BARK_FLOOR_FAR, COLUMN_FLOOR_FADE_M, createTreeMaterials, CUSHION_FADE_M, DISTANT_BARK_M, DISTANT_NEAR_FLOOR, DISTANT_NEAR_TONE, NEAR_BASE_FLOOR, NEAR_BOLE_FLOOR, NEAR_BOLE_FLOOR_FADE, NEAR_BOLE_FLOOR_TOP, NEAR_BOLE_SLOTS, NEAR_CANOPY_LEAF_FLOOR, NEAR_CANOPY_LEAF_NEAR_M, NEAR_CANOPY_SLOTS, NEAR_CANOPY_SUN_THROUGH, TREE_BARK_FLOOR, TREE_BARK_FLOOR_NEAR, TREE_FLOOR_FADE_M, TREE_LEAF_FLOOR, TREE_LEAF_FLOOR_NEAR, TREE_NEAR_BOLE_FLOOR } from './materials';
 import type { ShadeFloor } from '../materials/shadeFloor';
 import { authoredWhiteBarks, createWhiteBarkRoots, createWhiteBarkTree, whiteBarkParams, whiteBarkTilt, type TreeAsset, type WhiteBarkParams, CLEARING_WHITE_BARKS } from './whitebark';
+import { createUnderstoryTree, understoryParams, type UnderstoryParams } from './understory';
 import { placeWhiteBark, treeGroundBlocked, viewProjector, type WhiteBarkPlacement } from './placement';
 import { columnParams, createColumnTree, emergentParams, hutHostParams, type ColumnAsset, type ColumnParams } from './column';
 import { expansionCull, getTerrain, type Terrain, type TerrainView } from '../terrain/heightfield';
@@ -1699,6 +1700,45 @@ interface FamilyVariant<P, T extends { x: number; z: number; scale: number }, A 
   submitted: number[][];
 }
 type WhiteVariant = FamilyVariant<WhiteBarkParams, WhiteBarkPlacement>;
+interface UnderstoryPlacement {
+  x: number;
+  y: number;
+  z: number;
+  yaw: number;
+  scale: number;
+  variant: number;
+}
+type UnderstoryVariant = FamilyVariant<UnderstoryParams, UnderstoryPlacement>;
+const UNDERSTORY_VARIANTS = 5;
+/**
+ * Round 53 (fable-4; the owner's 2026-09-23 "the trees do not populate"): where the understory grows.
+ * Strips along the walkable paths (both verges, `min`–`max` m from the centreline) and the clearing's
+ * lawn between the plaza and the tall trees. Seeded from its own stream, so nothing else re-rolls.
+ */
+const UNDERSTORY_ZONES: { xMin: number; xMax: number; zMin: number; zMax: number; count: number }[] = [
+  // the north path's verges, from the plaza's north end to the log arch
+  { xMin: -14, xMax: 14, zMin: -50, zMax: -12, count: 26 },
+  // the north clearing beyond the arch, up to the stand
+  { xMin: -16, xMax: 16, zMin: -66, zMax: -52, count: 12 },
+  // the plaza's lawn edges, east and west
+  { xMin: -30, xMax: -10, zMin: -12, zMax: 22, count: 10 },
+  { xMin: 12, xMax: 32, zMin: -12, zMax: 22, count: 8 },
+];
+const UNDERSTORY_PATH_MIN_M = 3.4;
+const UNDERSTORY_PATH_MAX_M = 11;
+const UNDERSTORY_SPACING_M = 3.2;
+/**
+ * Screen windows of the fixed views an understory crown must not cover (the same idea as VIEW_GAPS
+ * for the white-barks): F's canopy gap. Fractions of the frame; `minDistance` = the nearest a tree
+ * may stand to that camera and still be tested.
+ */
+const UNDERSTORY_VIEW_WINDOWS: { viewpoint: string; xMin: number; xMax: number; yMin: number; yMax: number; minDistance: number }[] = [
+  // D's window onto the arch was tried here (x 0.30–0.58, y 0.10–0.45): a verge tree 6 m off the
+  // path at 30 m still projects onto it, so protecting it empties the very corridor the owner asked
+  // to fill (48 → 16 trees). The owner's walk wins over the old fixed frame (SQUAD brief, lane 4);
+  // D's change is reported with the round.
+  ...VIEW_GAPS,
+];
 interface ColumnPlacement {
   /** stable id published with the seat: 'seat-<COLUMN_SEATS index>' / 'swap-<white-bark placement index>' */
   id: string;
@@ -2152,6 +2192,87 @@ export async function create(ctx: WorldContext): Promise<WorldSystem> {
   whiteGroup.add(createWhiteBarkRoots(whites.map((w) => w.params), rootPlacements, terrain, palette, mats.whiteTree, mats.whiteTreeDepth, ctx.quality.shadows));
   group.add(whiteGroup);
   ctx.progress('trees', 0.5);
+  await yieldFrame();
+
+  // ------------------------------------------------------------------ understory (round 53)
+  const understoryRng = rng.fork('understory');
+  const understory: UnderstoryVariant[] = [];
+  for (let i = 0; i < UNDERSTORY_VARIANTS; i++) {
+    const params = understoryParams(understoryRng, i, UNDERSTORY_VARIANTS);
+    const lods = DETAILS.map((d) => createUnderstoryTree(params, palette, d));
+    understory.push({ params, lods, meshes: [], placements: [], matrices: [], counts: [0, 0, 0], lists: [[], [], []], submitted: [[], [], []] });
+  }
+  const understoryPlacements: UnderstoryPlacement[] = [];
+  {
+    const placeRng = understoryRng.fork('place');
+    const viewpoints = ctx.layout.viewpoints.map((v) => ({ x: v.position[0], z: v.position[2] }));
+    const seats = [...COLUMN_SEATS.map((c) => ({ x: c.x, z: c.z, r: 4 })), ...[...ctx.layout.giantTrees, ...EXTRA_GIANTS].map((g) => ({ x: g.position[0], z: g.position[2], r: g.trunkRadius * 2.5 + 2.5 }))];
+    const tooClose = (x: number, z: number) => {
+      if (viewpoints.some((v) => Math.hypot(v.x - x, v.z - z) < 7)) return true;
+      if (seats.some((c) => Math.hypot(c.x - x, c.z - z) < c.r)) return true;
+      if (whitePlacements.some((w) => Math.hypot(w.x - x, w.z - z) < 2.6)) return true;
+      if (understoryPlacements.some((u) => Math.hypot(u.x - x, u.z - z) < UNDERSTORY_SPACING_M)) return true;
+      return false;
+    };
+    const pathDistance = (x: number, z: number) => Math.min(...walkXZ.map((poly) => (poly.length > 1 ? spineDistance(poly, x, z) : Infinity)));
+    const windows = UNDERSTORY_VIEW_WINDOWS.map((w) => {
+      const view = ctx.layout.viewpoints.find((v) => v.id === w.viewpoint);
+      if (!view) return null;
+      const position = new Vector3(view.position[0], view.position[1], view.position[2]);
+      const project = viewProjector(position, new Vector3(view.target[0], view.target[1], view.target[2]), view.fov, 16 / 9);
+      const th = Math.tan((view.fov * Math.PI) / 360);
+      return { w, position, project, th };
+    }).filter((w): w is NonNullable<typeof w> => w !== null);
+    const coversWindow = (x: number, y: number, z: number, variant: number, scale: number) => {
+      const u = understory[variant];
+      const cr = u.params.crownRadius * scale;
+      const centre = new Vector3(x, y + u.lods[0].height * scale - cr * 0.85, z);
+      for (const { w, position, project, th } of windows) {
+        if (position.distanceTo(centre) < w.minDistance) continue;
+        const pr = project(centre);
+        if (!pr) continue;
+        const [sx, sy, depth] = pr;
+        const rx = (0.5 * (cr / depth)) / (th * (16 / 9));
+        const ry = (0.5 * (cr / depth)) / th;
+        if (sx + rx > w.xMin && sx - rx < w.xMax && sy + ry > w.yMin && sy - ry < w.yMax) return true;
+      }
+      return false;
+    };
+    for (const zone of UNDERSTORY_ZONES) {
+      let placed = 0;
+      for (let attempt = 0; attempt < zone.count * 60 && placed < zone.count; attempt++) {
+        const x = zone.xMin + placeRng() * (zone.xMax - zone.xMin);
+        const z = zone.zMin + placeRng() * (zone.zMax - zone.zMin);
+        const d = pathDistance(x, z);
+        if (d < UNDERSTORY_PATH_MIN_M || d > UNDERSTORY_PATH_MAX_M) continue;
+        if (expansionCull(x, z)) continue;
+        const m = terrain.mask(x, z);
+        if (m.path > 0.05 || m.stairs > 0 || m.structure > 0 || m.cliff > 0.3) continue;
+        // the arch's footprint and the columns' roots have their own masks; keep off steep ground too
+        if (terrain.slope(x, z) > 0.55) continue;
+        if (tooClose(x, z)) continue;
+        const variant = placeRng.int(0, UNDERSTORY_VARIANTS);
+        const scale = placeRng.range(0.85, 1.15);
+        const y = terrain.height(x, z);
+        if (coversWindow(x, y, z, variant, scale)) continue;
+        understoryPlacements.push({ x, y, z, yaw: placeRng() * TAU, scale, variant });
+        placed++;
+      }
+    }
+  }
+  for (const p of understoryPlacements) seatFamily(understory, p, p.variant);
+  const understoryGroup = new Group();
+  understoryGroup.name = 'understory';
+  familyMeshes(understory, 'understory', mats.giantTree, mats.giantTreeDepth, understoryGroup);
+  group.add(understoryGroup);
+  ctx.shared.slimTrunks = [
+    ...(ctx.shared.slimTrunks ?? []),
+    ...understoryPlacements.map((p) => {
+      const u = understory[p.variant];
+      return { x: p.x, z: p.z, r: u.params.trunkRadius * p.scale * 1.4, y0: p.y - 0.5, y1: p.y + u.lods[0].height * p.scale * 0.5 };
+    }),
+  ];
+  ctx.progress('trees', 0.52);
   await yieldFrame();
 
   // ------------------------------------------------------------------ column trees
@@ -3080,6 +3201,7 @@ export async function create(ctx: WorldContext): Promise<WorldSystem> {
   const bucketWhite = (cam: Vector3) => {
     bucketFamily(whites, cam);
     bucketFamily(seatedColumns, cam);
+    bucketFamily(understory, cam);
   };
 
   /**
@@ -3338,6 +3460,7 @@ export async function create(ctx: WorldContext): Promise<WorldSystem> {
       else sunNow.copy(sunDir);
     }
     submitFamily(whites);
+    submitFamily(understory);
     submitFamily(seatedColumns);
     submitDistant();
     submitGiants();
@@ -3651,6 +3774,8 @@ export async function create(ctx: WorldContext): Promise<WorldSystem> {
         }),
       whiteBarkVariants: whites.length,
       whiteBarkInstances: whitePlacements.length,
+      understoryInstances: understoryPlacements.length,
+      understoryLodInstances: [0, 1, 2].map((l) => understory.reduce((n, u) => n + u.counts[l], 0)),
       /**
        * round 50 (trees-32): every SAMPLED white-bark placement as drawn ([x, z] cm, the swapped-to-column
        * ones included) — the stream every fixed frame was tuned against. A placement-rule change is
