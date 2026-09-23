@@ -391,3 +391,5 @@ nearCanopy, materials, index otherwise) is edited.
 - 15:17 — heroshadow generalised to the columns and dropped (+127 draws, +30 K); branch @ `852245f7` white-barks only,
   head merged, ready. Lesson: per-variant twin meshes multiply draws — the twin pays only where a heavy high mesh casts
   out-of-frame shade.
+- 16:27 — head draws over 700 at A (723) since lane 7's cast — flagged. Understory finer leaves (2× count, ⅔ size) on
+  `agent/fable-4-understory-leaves`; six-view capture running.
