@@ -16,6 +16,27 @@ B 526 / C 393 / D 394 / E 526 / F 512; A 9.09 M tris on both (the head's number,
 change's — flagged to fable-cursor). Files: `ledge2-x-clearing-n.jpg` (+ `-crop`),
 `ledge2-x-ledge-foot.jpg`, `ledge2-x-northpath-n.jpg`.
 
+## Iteration 78 — the owner's "repeated pattern" on the hero flight: `d4f1feec` (the owner-side agent's rewrite of `logNosings.ts`) checked at A / C / F and at 2 m — the right fix in kind, 60 % of the tint's A value given back
+
+Owner review 2026-09-23: "the first staircase looks natural, the second has an obvious repeated pattern" — the twenty log
+nosings: near-white (`LOG_TINT` 1.35 / 1.5 / 2.3, §46), the bark map at the same phase with its fissures running round every
+log, the same pale crown and moss band, stakes in pairs like a fence. The owner-side agent rewrote the module directly:
+`LOG_TINT` → 0.76 / 0.74 / 1.0, the grain along the log with its own offset and roll per log, wear where boots land (rubbed
+smooth and dark), soil in the crease, moss where nobody steps, stakes irregular. Pair `d4f1feec^` vs `d4f1feec` here:
+
+| | A | C | F | A flight box (fable-5's; frame 15.7 % / 14.2 % / 0.345) | lips / troughs (frame 100 / 85) |
+|---|---|---|---|---|---|
+| before | 0.2239 | 0.2045 | 0.2232 | 44.1 % dark / 12.7 % pale / 0.291 | 92 / 66 |
+| after | 0.2233 (−0.0006) | 0.2046 | **0.2254 (+0.0022)** | **51.4 % / 7.5 % / 0.264** | **78 / 63** |
+
+Draws / triangles unchanged. At 2 m (`logs78-3rd-tread-pair.jpg`) the new timbers are the better logs — weathered grey-brown,
+grain along, worn crowns, each its own tone — where mine read as birch poles with rings: the owner was right and the fix
+answers him in kind. The cost is the flight's value at A, the half of W02 the tint had bought (§46: lips 68 → 94 against the
+frame's 100): the darker tint gives back ≈ 60 % of it (lips 78, dark share 51 % — the pre-tint head was 60.6 % / 7.3 % /
+0.250). The two are separate knobs — the individuality (phase, wear, stakes) does not need the darkness; a `LOG_TINT`
+near 1.0 / 0.97 / 1.3 would hold the lips at ≈ 90 with the grain and the wear as they now are. Offered to the owner-side
+agent / fable-cursor as the next tick's measure, not taken: the module's last word is theirs today.
+
 ## Iteration 66 — V16, both halves as fable-5 specified (14:03): built, measured with their read — acceptance not met; the E box is the lawn slabs, whose joints are vegetation's turf — the implementation left on `agent/fable-2-v16-fill` (`2a3932df`, reverted on top)
 
 fable-5's two numbers, keyed on the flush rim's noise: seam soil at ≈ 0.40 (−0.15 below the slab) where the line shows;

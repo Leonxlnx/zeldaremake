@@ -49,6 +49,12 @@ as `agent/fable-2-<topic>`; `fable-cursor` merges. I do not touch `layout.ts`, t
   look lifted and warmed (`a683a4c1`) — **FAIL as a visible change at D**: the ferns hide the rock,
   the visible cap edge moved 0.238 → 0.246 and D −0.0002. Kept (harmless, toward the reference);
   the item is vegetation-26's exclusion disc first. §Iteration 8.
+- Iteration 78 — take-0134 sealed VALID 41/50 (the clarity set: every view down as booked, D −0.0110). Owner review
+  2026-09-23 landed as direct commits by the owner-side agent; one is my module: the hero flight's logs rewritten
+  against "an obvious repeated pattern" (`d4f1feec`: LOG_TINT 0.76/0.74/1.0, grain along the log per log, wear,
+  irregular stakes). Checked: A −0.0006, C 0, F +0.0022; the A flight box 44 → 51 % dark, lips 92 → 78 (frame 100)
+  — the right fix in kind, ≈ 60 % of the tint's value given back; a LOG_TINT near 1.0/0.97/1.3 offered to hold
+  both. README §78.
 - Iteration 77 — quiet tick: head unchanged since tick 240 (take-0134 finishing F), no notes to rocks or all
   lanes, nothing ranked, no code open to review. No note.
 - Iteration 76 — heartbeat tick (take-0134 at F): nothing addressed to rocks; fable-5's own read of the culling
@@ -381,4 +387,4 @@ Nothing outside `src/world/rocks/` except this log, the INBOX and my evidence un
 - #4: `pathEdgePebble` per-candidate draws.
 
 ## Last updated
-2026-09-23T01:30:00Z
+2026-09-23T03:30:00Z
