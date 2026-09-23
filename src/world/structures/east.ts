@@ -14,11 +14,14 @@
  * railing, the posts and the bench are walls in the live structure mask (heightfield.ts).
  *
  * Tiers (structures/index.ts consolidates each group on its own and calls `update`):
- *  - `core`: the houses' trunks, caps, roots, porches, rooms and frames and the counter's niche
- *    (everything that closes an opening in a trunk) — one bucket per material across the lane,
- *    drawn within EAST_VISIBLE_M of the lane's box when the frustum meets its casters or their shadows;
+ *  - `core`: the houses' trunks and caps — one bucket per material across the lane, drawn within
+ *    EAST_VISIBLE_M of the lane's box when the frustum meets its casters or their shadows;
+ *  - `base`: the houses' roots, porches, thresholds, door and window frames and rooms and the
+ *    counter's niche (everything that closes an opening in a trunk), with `core` while the camera is
+ *    within EAST_MID_M of the green or the terrain lets it see a house's foot (camera F on the plaza
+ *    sees only the caps over the plateau's lip);
  *  - `mid`: the counter's woodwork, the sign, the deck, the posts' wood, the lookout's fence and
- *    bench, within EAST_MID_M of the green (camera F sees only the caps over the plateau's lip);
+ *    bench, with `base` when the frustum meets them;
  *  - `near[i]`: house i's close detail (cap tufts and plants, trunk moss and lichen, the room's
  *    furniture, the pods, the goods, the crates, the flowers) within EAST_DETAIL_M of its trunk;
  *  - `lane`: the posts' pods and the lookout's moss and plants, within EAST_DETAIL_M of the green.
@@ -50,7 +53,7 @@ import {
 import { EXPANSION_EAST, eastDeckPlan, eastShopSpots, eastSteppingStones, type EastHouse, type LanternPostDef } from '../layout';
 import { applyShadeFloor } from '../materials/shadeFloor';
 import type { WalkSurface, WorldContext } from '../system';
-import { EAST_DETAIL_M, EAST_GREEN, EAST_MID_M, EAST_VISIBLE_M, eastBoxDistance, eastHouseCasters, eastLookoutCasters, eastPostCasters, eastSpheres } from '../util/eastLane';
+import { EAST_DETAIL_M, EAST_GREEN, EAST_MID_M, EAST_VISIBLE_M, eastBoxDistance, eastFootSeen, eastHouseCasters, eastLookoutCasters, eastPostCasters, eastSpheres } from '../util/eastLane';
 import { frustumMeets, sunVector, type Caster } from '../util/expansionLocality';
 import { Noise2D, clamp, lerp, smoothstep } from '../util/noise';
 import type { Rng } from '../util/prng';
@@ -73,6 +76,8 @@ const UP = new Vector3(0, 1, 0);
 
 /** a house's parts that draw only near it (names from house.ts; foliage builders by prefix) */
 const HOUSE_NEAR = /^(roof-tufts|trunk-moss-tufts|trunk-lichen|interior-props|interior-furnishing|interior-rug|door-lamp|door-lamp-cord|door-embers|door-ember-glow|lantern-peg|lantern-hanger)$|^house-.+-(tufts|flowers)$|^house(21|40|41)-.+$/;
+/** a house's parts at the foot of its trunk, no higher than its window's head (names from house.ts) */
+const HOUSE_BASE = /^(roots|roots-arch|porch|threshold|door-frame|window-frame|window-socket|interior)$/;
 
 /** the shop's counter window: angle round the trunk from the door, clear width, sill and head over the floor */
 const COUNTER = { a: 1.02, w: 1.25, y0: 0.92, y1: 1.72 };
@@ -343,6 +348,7 @@ const FRUIT: RGB[] = [
 export interface EastBuild {
   group: Group;
   core: Group;
+  base: Group;
   mid: Group;
   near: Group[];
   lane: Group;
@@ -363,11 +369,13 @@ export function buildEast(ctx: WorldContext, mats: StructureMaterials, rng: Rng,
   group.name = 'structures-east';
   const core = new Group();
   core.name = 'structures-east-core';
+  const base = new Group();
+  base.name = 'structures-east-base';
   const mid = new Group();
   mid.name = 'structures-east-mid';
   const lane = new Group();
   lane.name = 'structures-east-lane';
-  group.add(core, mid, lane);
+  group.add(core, base, mid, lane);
   const lanterns: LanternRig[] = [];
   const walk: WalkSurface[] = [];
   const bases: P3[] = [];
@@ -499,7 +507,7 @@ export function buildEast(ctx: WorldContext, mats: StructureMaterials, rng: Rng,
     const niche = new BoxGeometry(W + 0.04, H + 0.04, zF - zB);
     place(niche, 0, (y0 + y1) / 2, (zF + zB) / 2);
     const nicheMesh = meshOf('east-counter-niche', mats.interior, [niche], false);
-    if (nicheMesh) core.add(nicheMesh);
+    if (nicheMesh) base.add(nicheMesh);
     // its back wall lit by an unseen lamp (dim, warm, brightest low left behind the goods)
     const back = new PlaneGeometry(W * 0.96, H * 0.94, 16, 10);
     const bp = back.attributes.position;
@@ -511,7 +519,7 @@ export function buildEast(ctx: WorldContext, mats: StructureMaterials, rng: Rng,
     });
     place(back, 0, (y0 + y1) / 2, zB + 0.014);
     const backMesh = meshOf('east-counter-glow', glow, [back], false);
-    if (backMesh) core.add(backMesh);
+    if (backMesh) base.add(backMesh);
     // a shelf across the niche with jars dark against the glow
     wood.push(place(board(W - 0.02, 0.24, 0.03, rC.fork('shelf'), noise, [0.55, 0.48, 0.38]), 0, y0 + 0.4, zB + 0.13));
     const shelfGoods: BufferGeometry[] = [];
@@ -1202,13 +1210,17 @@ export function buildEast(ctx: WorldContext, mats: StructureMaterials, rng: Rng,
     return { centre: [B.x, +gy.toFixed(3), B.z] as P3, seatY, length: len, legs };
   })();
 
-  // ---- sort each house's parts into core and near ----
+  // ---- sort each house's parts into core, base and near ----
+  let movedBase = 0;
   houses.forEach((hb, i) => {
     for (const child of [...hb.group.children]) {
       const m = child as Mesh;
       if (!m.isMesh || HOUSE_NEAR.test(m.name)) {
         near[i].add(child);
         movedNear++;
+      } else if (HOUSE_BASE.test(m.name)) {
+        base.add(child);
+        movedBase++;
       }
     }
     for (const child of [...hb.group.children]) core.add(child);
@@ -1223,13 +1235,35 @@ export function buildEast(ctx: WorldContext, mats: StructureMaterials, rng: Rng,
   const nearSpheres: Sphere[][] = houseCasters.map((c) => eastSpheres(c, sunToward));
   const laneSpheres: Sphere[] = eastSpheres(laneCasters, sunToward);
   const midSpheres: Sphere[] = eastSpheres([...laneCasters, ...houseCasters[tallI].slice(1), houseCasters[shopI][0]], sunToward);
+  /**
+   * The plateau's lip hides the lane's ground-level work from below it — camera F on the plaza sees
+   * the caps over the lip and nothing under the doors' heads. Beyond EAST_MID_M of the green, `base`
+   * and `mid` draw only while the terrain lets the camera see a house's foot (eastLane.ts
+   * `eastFootSeen`, up to the head of its door or window); whatever the ground hides casts its
+   * shadow onto ground the camera cannot see either. Re-tested when the camera has moved 0.3 m.
+   */
+  const baseTops = houses.map((hb) => Math.max(hb.door.height + 0.3, hb.window.height + hb.window.radius + 0.25));
+  const heightAt = (x: number, z: number) => terrain.height(x, z);
+  let seenFrom: Vector3 | null = null;
+  let seen = true;
+  let sightTests = 0;
   const _p = new Vector3();
   const update = (camera: Camera) => {
     camera.getWorldPosition(_p);
     const on = eastBoxDistance(camera) < EAST_VISIBLE_M && frustumMeets(camera, coreSpheres);
     const toGreen = Math.hypot(_p.x - EAST_GREEN.x, _p.z - EAST_GREEN.z);
+    let low = on && toGreen < EAST_MID_M;
+    if (on && !low) {
+      if (!seenFrom || seenFrom.distanceToSquared(_p) > 0.09) {
+        seen = eastFootSeen(_p, heightAt, baseTops);
+        seenFrom = (seenFrom ?? new Vector3()).copy(_p);
+        sightTests++;
+      }
+      low = seen;
+    }
     core.visible = on;
-    mid.visible = on && toGreen < EAST_MID_M && frustumMeets(camera, midSpheres);
+    base.visible = low;
+    mid.visible = low && frustumMeets(camera, midSpheres);
     for (let i = 0; i < near.length; i++) {
       const h = sites[i].h;
       near[i].visible = on && Math.hypot(_p.x - h.x, _p.z - h.z) < EAST_DETAIL_M && frustumMeets(camera, nearSpheres[i]);
@@ -1240,7 +1274,7 @@ export function buildEast(ctx: WorldContext, mats: StructureMaterials, rng: Rng,
   let draws = { before: 0, after: 0, merged: 0 };
   const consolidate = () => {
     const out = { before: 0, after: 0, merged: 0 };
-    for (const g of [core, mid, lane, ...near]) {
+    for (const g of [core, base, mid, lane, ...near]) {
       const r = consolidateStaticMeshes(g, (m) => m.name === 'pod-lantern');
       out.before += r.before;
       out.after += r.after;
@@ -1275,6 +1309,8 @@ export function buildEast(ctx: WorldContext, mats: StructureMaterials, rng: Rng,
     })),
     pointLightsDropped: lightsDropped,
     partsMovedNear: movedNear,
+    partsMovedBase: movedBase,
+    baseTops: baseTops.map((t) => +t.toFixed(2)),
     counter: counterAudit,
     crates: crateAudit,
     sign: signAudit,
@@ -1285,6 +1321,7 @@ export function buildEast(ctx: WorldContext, mats: StructureMaterials, rng: Rng,
     walkSurfaces: walk,
     pods: lanterns.length,
     coreTriangles: countTris(core),
+    baseTriangles: countTris(base),
     midTriangles: countTris(mid),
     laneTriangles: countTris(lane),
     draws,
@@ -1292,9 +1329,12 @@ export function buildEast(ctx: WorldContext, mats: StructureMaterials, rng: Rng,
     detailWithinM: EAST_DETAIL_M,
     midWithinM: EAST_MID_M,
     coreVisible: core.visible,
+    baseVisible: base.visible,
+    baseSeenByTerrain: seen,
+    sightTests,
     midVisible: mid.visible,
     laneVisible: lane.visible,
   });
 
-  return { group, core, mid, near, lane, lanterns, walk, bases, owned, consolidate, update, audit };
+  return { group, core, base, mid, near, lane, lanterns, walk, bases, owned, consolidate, update, audit };
 }
