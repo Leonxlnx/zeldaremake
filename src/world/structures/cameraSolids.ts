@@ -17,7 +17,7 @@ import { VoxelGrid, worldBounds } from '../util/voxelGrid';
 export const CAMERA_SOLID_CELL = 0.25;
 
 const SOLID = /^(trunk|trunk-eave-band|porch|roof|roof-straw|roof-eave|roof-eave-bark|roots-arch|door-frame|window-frame|window-socket|log-bark|log-ends|log-tunnel|log-tunnel-cheeks|log-bark-plates|far-hut-column)$|^distant-house-(bark|cap|cap-skirt|planks):/;
-const SLIM = /^(roots|support-boughs|roof-branches|signpost-wood|lantern-post|lantern-peg|lantern-hanger|pod-lantern|lantern-branch-bark|fence-.+)$/;
+const SLIM = /^(roots|support-boughs|roof-branches|signpost-wood|lantern-post|lantern-peg|lantern-hanger|pod-lantern|lantern-branch-bark|fence-.+|distant-house-ladder:.+)$/;
 const NOT_SLIM = /-(rope|foot-moss)$/;
 
 export interface CameraSolids {

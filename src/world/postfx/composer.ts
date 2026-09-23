@@ -179,6 +179,12 @@ export interface ComposerSettings {
   /** marched distances (m) between which the mist-layer in-scatter ramps in (start >= end disables the ramp) */
   rayMistNearStart: number;
   rayMistNearEnd: number;
+  /**
+   * marched distances (m) over which a gained column's extra gain (shafts.ts, > 1) fades in: nearer
+   * than the first it lights the air like a plain open column, past the second at full gain
+   */
+  rayColumnNearStart: number;
+  rayColumnNearEnd: number;
   /** march length (m) */
   rayMaxDist: number;
   /** Henyey–Greenstein g of the shaft in-scatter: how much the fan brightens toward the sun's side of the frame */
@@ -437,6 +443,13 @@ export function createComposer(opts: ComposerOptions): Composer {
     // the mist term's ramp along the ray (0 / 0 = off; see RAY_MARCH_FRAG mistNear)
     rayMistNearStart: 0,
     rayMistNearEnd: 0,
+    // 2026-09-23 (owner review, the upper house from the plateau): the narrow × 7.5 columns were
+    // tuned to read from shot F at 18–31 m; a walker standing in one (the plateau path passes
+    // 0.7–1.1 m from the (13.3, 10, −14.6) axis) had that gain on every ray from its first step —
+    // a white veil over the house. The gain now fades in over the first metres of the ray. The six
+    // fixed cameras first reach a narrow column 7.7 m (C) to 16.6 m (A) out, past the ramp.
+    rayColumnNearStart: 2,
+    rayColumnNearEnd: 6,
     // and the march stops where the veil has taken over (75 % fog at 40 m)
     rayMaxDist: 40,
     // the frames' beams are strongest looking toward the sun: D (58° off) reads +0.10 in-beam,
@@ -709,6 +722,7 @@ export function createComposer(opts: ComposerOptions): Composer {
       uDensity: { value: new Vector2(settings.rayMistDensity, settings.rayBaseDensity) },
       uAirFade: { value: new Vector2(settings.rayAirFadeLo, settings.rayAirFadeHi) },
       uMistNear: { value: new Vector2(settings.rayMistNearStart, settings.rayMistNearEnd) },
+      uColumnNear: { value: new Vector2(settings.rayColumnNearStart, settings.rayColumnNearEnd) },
       // the base air clears above the canopy like the distance haze (same profile as heightfog.ts):
       // a column climbing 30 m into the open air (shot F) carries ≈ half the aerosol of an
       // eye-level column, so the sun-facing upper frame is shafts, not a wash over the crowns
@@ -1085,6 +1099,7 @@ export function createComposer(opts: ComposerOptions): Composer {
       (rayMarchMat.uniforms.uDensity.value as Vector2).set(s.rayMistDensity, s.rayBaseDensity);
       (rayMarchMat.uniforms.uAirFade.value as Vector2).set(s.rayAirFadeLo, s.rayAirFadeHi);
       (rayMarchMat.uniforms.uMistNear.value as Vector2).set(s.rayMistNearStart, s.rayMistNearEnd);
+      (rayMarchMat.uniforms.uColumnNear.value as Vector2).set(s.rayColumnNearStart, s.rayColumnNearEnd);
       rayMarchMat.uniforms.uExtinction.value = s.rayExtinction;
       rayMarchMat.uniforms.uMaxDist.value = s.rayMaxDist;
       rayMarchMat.uniforms.uAnisotropy.value = s.rayAnisotropy;
@@ -1280,6 +1295,7 @@ export function createComposer(opts: ComposerOptions): Composer {
       godRayMaxDistM: settings.rayMaxDist,
       godRayAirFadeM: [settings.rayAirFadeLo, settings.rayAirFadeHi],
       godRayMistNearM: [settings.rayMistNearStart, settings.rayMistNearEnd],
+      godRayColumnNearM: [settings.rayColumnNearStart, settings.rayColumnNearEnd],
       godRayAnisotropy: settings.rayAnisotropy,
       godRayContrastPow: settings.rayContrast,
       godRayGapFrequencyPerM: settings.beamFrequency,

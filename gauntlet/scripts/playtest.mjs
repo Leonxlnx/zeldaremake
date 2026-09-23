@@ -4,6 +4,7 @@
  *
  *   node gauntlet/scripts/playtest.mjs --dist dist --out /tmp/play [--size 960x540] [--quality high]
  *        [--only look,pad,stairs,climb,walk,perf] [--shots] [--video] [--spots plaza,stairs2-base]
+ *        (opt-in, by name only: --only pacing | interact | resilience)
  *
  * Opens the build with `?test=1` (play mode; the page runs no frame loop of its own) and steps
  * frames at a fixed dt through `window.__ZR_PLAY__`, feeding REAL input: held keys
@@ -15,7 +16,8 @@
  * dragging down (and the view's upper edge above the horizon), the near-geometry clearance read
  * from the frame's own depth buffer, whether Link stays visible; the stair collision against the
  * rendered stones; the climb traces (stalls, final height); the walk routes (stuck points); the
- * frame cost. --shots saves JPEGs at the checkpoints; --video saves every drawn frame of the
+ * frame cost; with `pacing`, the per-frame JS step along a walk, synced drawn frames, shader
+ * compiles and heap. --shots saves JPEGs at the checkpoints; --video saves every drawn frame of the
  * movement clips (climb, look sweep) for ffmpeg.
  *
  * `navigator.webdriver` is masked before the page loads: the game treats a webdriver page as a
@@ -603,17 +605,17 @@ async function videoScenario(page, results) {
     await page.evaluate(([x, z, yaw]) => window.__ZR_PLAY__.place(x, z, yaw), [spot.at[0], spot.at[1], rad(spot.yaw)]);
     await sim(page, 40);
     let k = 0;
-    for (let i = 0; i < 6; i++) await save(`look-${id}`, k++);
+    for (let i = 0; i < 3; i++) await save(`look-${id}`, k++);
     const t0 = Date.now();
-    await drag(page, 0, -Math.round(height * 0.8), 24, 1, async () => {
+    await drag(page, 0, -Math.round(height * 0.8), 14, 1, async () => {
       await sim(page, 1);
       await save(`look-${id}`, k++);
     });
-    for (let i = 0; i < 10; i++) {
+    for (let i = 0; i < 5; i++) {
       await sim(page, 1);
       await save(`look-${id}`, k++);
     }
-    await drag(page, 0, Math.round(height * 1.0), 24, 1, async () => {
+    await drag(page, 0, Math.round(height * 1.0), 14, 1, async () => {
       await sim(page, 1);
       await save(`look-${id}`, k++);
     });
@@ -629,8 +631,9 @@ async function videoScenario(page, results) {
   await page.keyboard.down('KeyW');
   let k = 0;
   try {
-    for (let i = 0; i < 150; i++) {
-      await sim(page, 1);
+    // a drawn frame every second simulated one (15 fps of a 30 fps walk, 5 s)
+    for (let i = 0; i < 75; i++) {
+      await sim(page, 2);
       await save('climb-main', k++);
     }
   } finally {
@@ -660,6 +663,100 @@ async function perfScenario(page, results) {
   }
 }
 
+/**
+ * Frame pacing along the walk from the plaza up the second staircase to the upper house, steered
+ * with the movement keys like walkRoute: every simulated frame's JS step (camera + world update —
+ * LOD pools, grass streaming, the character) timed by the page's own step timers, every
+ * PACE_DRAW-th frame drawn with a synced wall time and its render-issue ms, and the renderer's
+ * program count and the JS heap sampled throughout. A program count that grows during the walk
+ * is a shader compile mid-play — a hitch on any GPU; the JS step is this machine's CPU side of a
+ * frame whatever the rasteriser.
+ */
+const PACE_DRAW = 12;
+async function pacingScenario(page, results) {
+  const m = flightFrame(FLIGHTS.main);
+  const points = [[1, 3], m.at(-1.6), m.at(m.run * 0.5), m.at(m.run + 1.2), [17.6, -9.5], [17.2, -13.0], [16.6, -15.2]];
+  const keysDown = new Set();
+  const setKeys = async (want) => {
+    for (const k of [...keysDown]) if (!want.has(k)) (await page.keyboard.up(k), keysDown.delete(k));
+    for (const k of want) if (!keysDown.has(k)) (await page.keyboard.down(k), keysDown.add(k));
+  };
+  log('pacing: plaza → second staircase → upper house');
+  await page.evaluate(([x, z, yaw]) => window.__ZR_PLAY__.place(x, z, yaw), [points[0][0], points[0][1], Math.atan2(points[1][0] - points[0][0], points[1][1] - points[0][1])]);
+  await sim(page, 30);
+  // the spot's first drawn frame (its programs and uploads) is load, not pacing
+  await draw(page);
+  await draw(page);
+  const frames = [];
+  let wp = 1;
+  let n = 0;
+  while (wp < points.length && n < 720) {
+    const st = await state(page);
+    const [x, , z] = st.link;
+    const [tx, tz] = points[wp];
+    const dist = Math.hypot(tx - x, tz - z);
+    if (dist < 0.5) {
+      wp++;
+      continue;
+    }
+    const d = st.camera.direction;
+    const c = Math.atan2(d[0], d[2]);
+    const a = ((tx - x) / dist) * Math.sin(c) + ((tz - z) / dist) * Math.cos(c);
+    const b = ((tx - x) / dist) * -Math.cos(c) + ((tz - z) / dist) * Math.sin(c);
+    const want = new Set();
+    if (a > 0.38) want.add('KeyW');
+    if (a < -0.38) want.add('KeyS');
+    if (b > 0.38) want.add('KeyD');
+    if (b < -0.38) want.add('KeyA');
+    await setKeys(want);
+    for (let k = 0; k < 3; k++, n++) {
+      const drawNow = n % PACE_DRAW === 0;
+      const f = await page.evaluate(
+        ([dt, drawNow]) => {
+          const t0 = performance.now();
+          window.__ZR_PLAY__.step(1, dt, drawNow);
+          let wall = null;
+          if (drawNow) {
+            const gl = document.querySelector('canvas').getContext('webgl2');
+            if (gl) gl.readPixels(0, 0, 1, 1, gl.RGBA, gl.UNSIGNED_BYTE, new Uint8Array(4));
+            wall = performance.now() - t0;
+          }
+          const s = window.__ZR_PLAY__.state();
+          return { js: s.perf.camera + s.perf.update, update: s.perf.update, render: drawNow ? s.perf.render : null, wall, programs: s.render.programs, heap: s.heap, link: s.link };
+        },
+        [DT, drawNow],
+      );
+      frames.push({ n, ...f });
+    }
+  }
+  await setKeys(new Set());
+  const q = (arr, p) => {
+    const s = [...arr].sort((u, v) => u - v);
+    return s.length ? +s[Math.min(s.length - 1, Math.floor(p * (s.length - 1)))].toFixed(2) : null;
+  };
+  const js = frames.map((f) => f.js);
+  const p50 = q(js, 0.5);
+  const hitches = frames.filter((f) => f.js > Math.max(8, 2 * p50)).map((f) => ({ n: f.n, js: +f.js.toFixed(2), at: f.link.map((v) => +v.toFixed(1)) }));
+  const drawn = frames.filter((f) => f.wall !== null);
+  const programs = frames.map((f) => f.programs).filter((v) => v !== null);
+  const compiles = [];
+  for (let i = 1; i < frames.length; i++) if (frames[i].programs !== null && frames[i - 1].programs !== null && frames[i].programs > frames[i - 1].programs) compiles.push({ n: frames[i].n, programs: frames[i].programs, at: frames[i].link.map((v) => +v.toFixed(1)) });
+  const heaps = frames.map((f) => f.heap).filter((v) => v !== null);
+  results.pacing = {
+    route: 'plaza → second staircase → upper house',
+    reached: wp >= points.length,
+    frames: frames.length,
+    simulatedSeconds: +(frames.length * DT).toFixed(1),
+    jsStepMs: { p50, p95: q(js, 0.95), p99: q(js, 0.99), max: q(js, 1), mean: +(js.reduce((s, v) => s + v, 0) / Math.max(1, js.length)).toFixed(2) },
+    hitches: { rule: 'JS step > max(8 ms, 2 × p50)', count: hitches.length, frames: hitches.slice(0, 20) },
+    drawn: { every: PACE_DRAW, count: drawn.length, wallMs: { p50: q(drawn.map((f) => f.wall), 0.5), max: q(drawn.map((f) => f.wall), 1) }, renderIssueMs: { p50: q(drawn.map((f) => f.render), 0.5), max: q(drawn.map((f) => f.render), 1) } },
+    programs: { start: programs[0] ?? null, end: programs[programs.length - 1] ?? null, compilesDuringWalk: compiles },
+    heapMB: heaps.length ? { start: +(heaps[0] / 1048576).toFixed(1), end: +(heaps[heaps.length - 1] / 1048576).toFixed(1), max: +(Math.max(...heaps) / 1048576).toFixed(1) } : null,
+    series: frames.map((f) => [f.n, +f.js.toFixed(2), f.wall === null ? null : +f.wall.toFixed(0)]),
+  };
+  fs.writeFileSync(path.join(out, 'playtest.json'), JSON.stringify(results, null, 1));
+}
+
 async function main() {
   const server = await serveStatic(dist);
   const browser = await launchBrowser({ width, height });
@@ -674,6 +771,7 @@ async function main() {
     if (want('walk')) await walkScenario(page, results);
     if (want('perf')) await perfScenario(page, results);
     if (video && want('video')) await videoScenario(page, results);
+    if (only?.has('pacing')) await pacingScenario(page, results);
     if (only?.has('interact')) await interactScenario(page, results);
     if (only?.has('resilience')) {
       await resilienceScenario(page, results, async () => {

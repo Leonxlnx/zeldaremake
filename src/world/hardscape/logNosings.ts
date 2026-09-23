@@ -240,9 +240,14 @@ export function buildLogNosings(def: StairDef, seed: string): LogNosingBuild {
     // a slight sag / tilt across (a few mm), so the run is not ruled
     a.y += 0.01 * (hash2(i, 31, 7) - 0.5);
     b.y += 0.01 * (hash2(i, 37, 7) - 0.5);
-    // the timber's age: 0 a newer log (warm brown bark), 1 an old one (silvered, mossier)
-    const age = hash2(i, 83, 7);
-    const logTone = 0.9 + 0.2 * hash2(i, 89, 7);
+    // the timber's age: 0 a newer log (warm brown bark), 1 an old one (silvered, mossier). A step
+    // or two was repaired: a newer, warmer log, hardly worn yet; an old log may have checked (a
+    // dark split along its crown)
+    const replaced = hash2(i, 131, 7) > 0.88;
+    const age = replaced ? 0.04 : hash2(i, 83, 7);
+    const logTone = (replaced ? 1.07 : 1) * (0.9 + 0.2 * hash2(i, 89, 7));
+    const wearK = replaced ? 0.3 : 1;
+    const checked = !replaced && hash2(i, 137, 7) > 0.8;
     const acrossAt = (t: number) => -hw - overL + t * span;
     tube(
       a,
@@ -255,9 +260,11 @@ export function buildLogNosings(def: StairDef, seed: string): LogNosingBuild {
         const across = acrossAt(t);
         const w = walked(across);
         const tone = (0.82 + 0.28 * (bark.noise(t * 9 + i * 2.3, ang * 1.3) * 0.5 + 0.5)) * logTone;
-        tmpC.setRGB(tone * (1.04 - 0.1 * age), tone * (0.97 - 0.02 * age), tone * (0.9 + 0.07 * age));
+        tmpC.setRGB(tone * (1.04 - 0.1 * age) * (replaced ? 1.05 : 1), tone * (0.97 - 0.02 * age), tone * (0.9 + 0.07 * age) * (replaced ? 0.93 : 1));
         // the crown where boots land: bark rubbed smooth and dark with trodden dirt
-        tmpC.lerp(wornCol, 0.5 * w * smoothstep(0.35, 0.9, up));
+        tmpC.lerp(wornCol, 0.5 * w * wearK * smoothstep(0.35, 0.9, up));
+        // an old log's check: a thin dark split along the crown, broken where the wood held
+        if (checked && up > 0.88 && Math.abs(n.x * alongDir.x + n.z * alongDir.z) < 0.07 && bark.noise(t * 11 + i * 1.9, 4.7) > -0.25) tmpC.multiplyScalar(0.38);
         const under = smoothstep(0.1, -0.6, up);
         tmpC.lerp(dampCol, 0.55 * under);
         // soil and grit packed into the crease against the tread behind the log
@@ -265,7 +272,7 @@ export function buildLogNosings(def: StairDef, seed: string): LogNosingBuild {
         tmpC.lerp(soilCol, 0.6 * smoothstep(0.2, 0.8, back) * smoothstep(0.3, -0.2, up));
         // moss on the upper side where nobody steps: the ends and flanks, more on the older logs
         const mossField = mossN.fbm(t * 4.2 + i * 1.7, ang * 0.8 + 0.5, 2) * 0.5 + 0.5;
-        const moss = smoothstep(0.1, 0.8, up) * smoothstep(0.42, 0.62, mossField) * (1 - 0.85 * w) * (0.6 + 0.4 * age);
+        const moss = smoothstep(0.1, 0.8, up) * smoothstep(0.42, 0.62, mossField) * (1 - 0.85 * w) * (replaced ? 0.25 : 0.6 + 0.4 * age);
         tmpC.lerp(mossCol, 0.85 * moss);
         return tmpC;
       },
@@ -281,7 +288,7 @@ export function buildLogNosings(def: StairDef, seed: string): LogNosingBuild {
         taper: 0.1 + 0.12 * hash2(i, 73, 7),
         bow: 0.05 * (hash2(i, 79, 7) - 0.5),
         bowDir: alongDir,
-        ridgeAt: (t) => 1 - 0.7 * walked(acrossAt(t)),
+        ridgeAt: (t) => 1 - 0.7 * wearK * walked(acrossAt(t)),
       },
     );
     logs++;

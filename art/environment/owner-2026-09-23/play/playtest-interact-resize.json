@@ -1,0 +1,87 @@
+{
+ "dist": "/tmp/after6-dist",
+ "size": [
+  960,
+  540
+ ],
+ "quality": "high",
+ "started": "2026-09-23T03:04:55.705Z",
+ "baselineSha": "e48d5e8e",
+ "interact": {
+  "jump": {
+   "maxAirM": 0.499,
+   "landed": true,
+   "ok": true
+  },
+  "bag": {
+   "opened": true,
+   "worldFrozenWhileOpen": true,
+   "closed": true,
+   "walksAfterClose": true,
+   "ok": true,
+   "shot": "interact-bag.jpg"
+  },
+  "freeCamera": {
+   "toFree": true,
+   "backToPlay": true,
+   "ok": true
+  }
+ },
+ "resilience": {
+  "steps": [
+   {
+    "viewport": [
+     640,
+     360
+    ],
+    "canvas": [
+     640,
+     360
+    ],
+    "aspect": 1.7778,
+    "drawMs": 13360,
+    "ok": true
+   },
+   {
+    "viewport": [
+     1280,
+     720
+    ],
+    "canvas": [
+     1280,
+     720
+    ],
+    "aspect": 1.7778,
+    "drawMs": 33743,
+    "ok": true
+   },
+   {
+    "viewport": [
+     960,
+     540
+    ],
+    "canvas": [
+     960,
+     540
+    ],
+    "aspect": 1.7778,
+    "drawMs": 22115,
+    "ok": true
+   }
+  ],
+  "reload": {
+   "seconds": 93,
+   "playMode": true,
+   "walked": true,
+   "errors": 0
+  },
+  "ok": true
+ },
+ "pageErrors": [
+  "[page:error] Failed to load resource: the server responded with a status of 404 (Not Found)",
+  "[page:error] Failed to load resource: the server responded with a status of 404 (Not Found)",
+  "[page:error] Failed to load resource: the server responded with a status of 404 (Not Found)",
+  "[page:error] Failed to load resource: the server responded with a status of 404 (Not Found)"
+ ],
+ "finished": "2026-09-23T03:09:25.236Z"
+}
