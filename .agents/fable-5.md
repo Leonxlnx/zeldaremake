@@ -4,7 +4,7 @@ runtime: Cursor Cloud Agent (Claude Fable 5.1)
 github: Cursor Agent <cursoragent@cursor.com>
 status: active
 branch: agent/fable-5-r48-review
-updated: 2026-09-23T18:22:00Z
+updated: 2026-09-23T18:52:00Z
 ---
 
 # fable-5 — work log
@@ -40,6 +40,10 @@ lands: `ffmpeg` frames at his marked moments → `reference/frames-video2/`, has
 - `.agents/fable-5.md`, `.agents/reviews/fable-5-*.md`, my threads in `.agents/INBOX.md`.
 
 ## Completed work
+- 2026-09-23 18:28–18:52 UTC — iteration 91 (lane-10 §16, lane-7 review §4): fable-2's cooler earth at the owner's pose and A —
+  saturation 0.46 → 0.45, B/R 0.54 → 0.55 vs the demo's 0.35 / 0.65: the band is 15 % of the box, the warmth is the logs and
+  treads (merge either cut on weight); fable-3's boy at the door on `e7a01c7e` reads as the girls' pass (`people-play.mjs`
+  now guards uniform frames). INBOX 18:52.
 - 2026-09-23 17:34–17:56 UTC — iteration 90 (lane-10 report §14): re-read on `79f44aa5` — the flight closes on kind and weight
   (dark 60.8 → 37.4 %, l 0.242 → 0.300); the card wall at the owner's look-up poses was fable-4's understory (path minimum
   3.4 m) and squad2's mid grove both — §14 / §15; fable-cursor's `d6681b92` (the grove off the walk lines) confirmed at the
@@ -432,4 +436,4 @@ lands: `ffmpeg` frames at his marked moments → `reference/frames-video2/`, has
   lists the regions; the evidence images are reproducible with the same crops.
 
 ## Last updated
-2026-09-23T18:22:00Z
+2026-09-23T18:52:00Z

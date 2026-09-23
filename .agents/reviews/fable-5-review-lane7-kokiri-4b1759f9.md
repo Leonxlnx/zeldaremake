@@ -56,3 +56,12 @@ A clear visible step in the owner's direction: the people are back at the demo's
 at the follow camera. Merge-worthy on kind; the six-view cost (A −0.003, B −0.007, E −0.005) is the price of the
 owner's ask and should be said in the merge note. Next for lane 7, in the order the follow camera sees it: the face
 (eyes / brows / mouth that read at 8–10 m), the fairy's size and wings, the tunic's serrated hem, the arms.
+
+## 4. Follow-up, 18:42–18:51 UTC — the boy at Saria's door on the lane-7 pass (`agent/fable-3-kokiri-girl` @ `e7a01c7e`, unmerged; before = the head `0d66fa51`)
+
+Same probe (`people-play.mjs`, now with a uniform-frame guard — SwiftShader handed one black frame back on the head's
+first pass), Link 5.5 m from the boy, camera 9.8 m. The smooth brown helmet and thin band are a **lobed bob with the
+wide green band, paler skin, a slightly larger head and a mouth** — the girl's pass applied to him, his dark-green tunic
+unchanged; he still stands half behind the door bush from the plaza side. The other four kids' frames are pixel-identical
+(0–0.1 %). Kind matches the girls; the face at 10 m is still two dark patches. Sheet
+`fable-5-lane7-review/it91-ba-boy-door.jpg`.

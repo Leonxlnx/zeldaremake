@@ -48,7 +48,18 @@ try {
       const st = await page.evaluate(() => window.__ZR_PLAY__.state());
       const canvas = await page.$('canvas');
       const file = path.join(out, `${label}.png`);
-      await canvas.screenshot({ path: file, type: 'png' });
+      // SwiftShader occasionally hands back a uniform (black) frame — a transient context loss; re-draw up to three times
+      let buf = await canvas.screenshot({ type: 'png' });
+      for (let retry = 0; retry < 3; retry++) {
+        const { data } = await import('node:zlib').then(() => ({ data: null }));
+        const sample = await page.evaluate(() => { const c = document.querySelector('canvas'); const g = c.getContext('webgl2'); const px = new Uint8Array(4 * 64); const out = []; for (let i = 0; i < 16; i++) { g.readPixels(Math.floor((i % 4 + 0.5) * c.width / 4), Math.floor((Math.floor(i / 4) + 0.5) * c.height / 4), 1, 1, g.RGBA, g.UNSIGNED_BYTE, px); out.push(px[0] + px[1] + px[2]); } return out; });
+        const spread = Math.max(...sample) - Math.min(...sample);
+        if (spread > 24) break;
+        console.error(`${label}: uniform frame (spread ${spread}) — re-drawing (${retry + 1}/3)`);
+        await page.evaluate((dt) => window.__ZR_PLAY__.step(1, dt, true), DT);
+        buf = await canvas.screenshot({ type: 'png' });
+      }
+      fs.writeFileSync(file, buf);
       const k3 = (await page.evaluate(() => window.__ZR__.audit().systems.character.world.kids))[i];
       meta.kids.push({ label, kid: k3, link: st.link, camera: st.camera.position, distM: Math.hypot(k3[0] - st.link[0], k3[2] - st.link[2]) });
       console.error(`${label}: kid ${k3.map((v) => v.toFixed(2))} link ${st.link.map((v) => v.toFixed(2))} cam ${st.camera.position.map((v) => v.toFixed(2))} — ${((Date.now() - t0) / 1000).toFixed(0)} s`);
