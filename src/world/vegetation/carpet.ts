@@ -117,11 +117,17 @@ const hashAt = (x: number, z: number, salt: number) => hash2(Math.round(x * 1000
  * NORTH_FLOOR_MAT_KEEP of the lawn's (the litter and the moss beds close the rest), both in the
  * deep palette (−NORTH_FLOOR_TINT) with more straw, the fans cut to NORTH_FLOOR_HEIGHT.
  */
+// (2026-09-23: the two keeps stay as round 44 set them. North of NORTH_CARPET_Z the corridor's own
+// set rules the fans and mats at NORTH_CARPET_KEEP, so moving these changes nothing a walker sees —
+// measured, the cards and mats per m² over the corridor floor are identical either way. What DID
+// read as pale stubble there is the turf: its straw, its height and its count, all below.)
 const NORTH_FLOOR_CLUMP_KEEP = 0.5;
 const NORTH_FLOOR_MAT_KEEP = 0.7;
 const NORTH_FLOOR_TINT = 0.5;
-const NORTH_FLOOR_DRY = 0.3;
-const NORTH_FLOOR_HEIGHT = 0.75;
+// 2026-09-23 (the owner, walking the corridor): the floor read as pale stubble, and a third of that
+// palette was straw tips on turf his recording (review46 r_022 / r_024) has damp and dark.
+const NORTH_FLOOR_DRY = 0.12;
+const NORTH_FLOOR_HEIGHT = 0.8;
 /**
  * Round 46 (survey-2 #06 after the first pass: the corridor's carpet ran to 25 m but the floor still
  * read as a pale-olive lawn — the cards themselves are most of what the eye sees there): the forest
