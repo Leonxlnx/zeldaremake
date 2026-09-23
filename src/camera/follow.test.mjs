@@ -327,8 +327,10 @@ test('climbing a flight at run speed, the camera glides — no per-riser step in
   const up = climbFlight();
   assert.ok(up.frames > 60, `frames sampled ${up.frames}`);
   assert.ok(up.climb > 0.02, `the camera still climbs with the flight (${up.climb.toFixed(4)} m/frame)`);
-  // before the easing: 0.0034 m and 1.217 deg
-  assert.ok(up.yRipple < 0.006, `height ripple ${up.yRipple.toFixed(5)} m/frame`);
+  // before the easing: 0.0034 m of height ripple and 1.217 deg of pitch ripple. The orbit height
+  // follows the eased AIM rather than the raw surface, so two lags in series make the climb rate
+  // itself smooth: 0.00051 m.
+  assert.ok(up.yRipple < 0.0015, `height ripple ${up.yRipple.toFixed(5)} m/frame (was 0.0034)`);
   assert.ok(up.pitchRipple < 0.25, `pitch ripple ${up.pitchRipple.toFixed(5)} deg/frame (was 1.22)`);
   assert.ok(up.pitchSpan < 0.8, `pitch peak-to-peak ${up.pitchSpan.toFixed(4)} deg/frame (was 2.26)`);
 });

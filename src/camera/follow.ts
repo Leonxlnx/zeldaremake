@@ -230,10 +230,14 @@ export function createFollowCam(host: HTMLElement, terrain: Terrain, camera: Per
     const bY = instant ? 1 : 1 - Math.exp(-dt / Y_TAU);
     baseX += (p.x - baseX) * bXZ;
     baseZ += (p.z - baseZ) * bXZ;
-    baseY += (g - baseY) * bY;
     // the aim rides the surface on its own, shorter constant: unsmoothed it pitched the view a
     // riser's worth on every tread (see AIM_TAU). The jump stays instant so Link keeps his frame.
     aimY = instant ? g : aimY + (g - aimY) * (1 - Math.exp(-dt / AIM_TAU));
+    // and the orbit's height follows the AIM, not the raw surface: one lag on a staircase still
+    // steps its RATE once per tread (the treads arrive three times faster than Y_TAU decays, so
+    // the climb pulsed between a stand-still and twice its speed); two in series is a critically
+    // damped climb, which is what a glide looks like.
+    baseY += ((instant ? g : aimY) - baseY) * bY;
     const po = Math.min(pitch, ORBIT_UP);
     const dist = pitch > 0 ? MathUtils.lerp(DIST_REST, DIST_UP, smooth01(0, 0.9, pitch)) : DIST_REST;
     dirOf(yaw, po, dirPos);
