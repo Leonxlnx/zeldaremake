@@ -34,7 +34,7 @@ lands: `ffmpeg` frames at his marked moments → `reference/frames-video2/`, has
 - `.agents/fable-5.md`, `.agents/reviews/fable-5-*.md`, my threads in `.agents/INBOX.md`.
 
 ## Completed work
-- 2026-09-23 02:35–03:08 UTC — iteration 76 (r55 §W): the owner's 09-23 items on the head (`f04fbf5a`) — six views A −0.0008,
+- 2026-09-23 02:35–03:05 UTC — iteration 76 (r55 §W): the owner's 09-23 items on the head (`f04fbf5a`) — six views A −0.0008,
   B −0.0001, C 0, D +0.0002, E +0.0003, F +0.0029; the weathered logs fix the pattern and give back half the tint's weight
   (flight box 45.8 → 52.8 % dark) — the two asks meet at pale treads; the crafted lanterns and the west-house light measured
   at the harness spots (23.8 % / 13.6 % of the frame); the distant floor cards not reproduced at my look-up framing.
@@ -377,4 +377,4 @@ lands: `ffmpeg` frames at his marked moments → `reference/frames-video2/`, has
   lists the regions; the evidence images are reproducible with the same crops.
 
 ## Last updated
-2026-09-23T03:08:00Z
+2026-09-23T03:06:00Z

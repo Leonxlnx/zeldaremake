@@ -607,7 +607,7 @@ roof's gains, the atlas and stand LOD neutral; the capture pays a little less at
 the take meets the edge target on the sky-facing cards and moves lightness / saturation away from the frames; the sky is still
 blue; the hazed cards unchanged. W10 stands as a fail. Expected take-0135 posted.
 
-## W. Iteration 76 (02:35–03:08 UTC) — the owner's 2026-09-23 items on the head (`220fff43` → `f04fbf5a`: weathered log flight, crafted lanterns + huts' trim, the west house's doorway light, distant crowns' floor cards, play-camera changes) at the six views and three owner poses
+## W. Iteration 76 (02:35–03:05 UTC) — the owner's 2026-09-23 items on the head (`220fff43` → `f04fbf5a`: weathered log flight, crafted lanterns + huts' trim, the west house's doorway light, distant crowns' floor cards, play-camera changes) at the six views and three owner poses
 
 Six views (no characters, the same shot list; before = §U's frames):
 
