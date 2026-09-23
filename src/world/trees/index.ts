@@ -21,7 +21,7 @@
  * instances that can reach the image (see "submission culling" below). Everything is seated via
  * ctx.terrain.height; randomness only via ctx.rng.
  */
-import { Box3, BufferAttribute, BufferGeometry, Color, Frustum, MeshBasicMaterial, Group, InstancedBufferAttribute, InstancedMesh, Matrix4, Mesh, Quaternion, Sphere, Vector3, type Camera, type Material } from 'three';
+import { Box3, BufferAttribute, BufferGeometry, Color, Frustum, MeshBasicMaterial, Group, InstancedBufferAttribute, InstancedMesh, Matrix4, Mesh, PerspectiveCamera, Quaternion, Sphere, Vector3, type Camera, type Material } from 'three';
 import type { TrunkSeat, WorldContext, WorldSystem } from '../system';
 import { BARK_DETAIL_M, BARK_DETAIL_TILES, BARK_TOUCH_M, BARK_TOUCH_TILES, CARD_EDGE_FADE, CARD_FLAT_EDGE_FADE, COLUMN_BARK_FLOOR, COLUMN_BARK_FLOOR_FAR, COLUMN_FLOOR_FADE_M, createTreeMaterials, CUSHION_FADE_M, DISTANT_BARK_M, DISTANT_NEAR_FLOOR, DISTANT_NEAR_TONE, NEAR_BASE_FLOOR, NEAR_BOLE_FLOOR, NEAR_BOLE_FLOOR_FADE, NEAR_BOLE_FLOOR_TOP, NEAR_BOLE_SLOTS, NEAR_CANOPY_LEAF_FLOOR, NEAR_CANOPY_LEAF_NEAR_M, NEAR_CANOPY_SLOTS, NEAR_CANOPY_SUN_THROUGH, TREE_BARK_FLOOR, TREE_BARK_FLOOR_NEAR, TREE_FLOOR_FADE_M, TREE_LEAF_FLOOR, TREE_LEAF_FLOOR_NEAR, TREE_NEAR_BOLE_FLOOR } from './materials';
 import type { ShadeFloor } from '../materials/shadeFloor';
@@ -30,7 +30,7 @@ import { createUnderstoryTree, understoryParams, type UnderstoryParams } from '.
 import { placeWhiteBark, treeGroundBlocked, viewProjector, type WhiteBarkPlacement } from './placement';
 import { columnParams, createColumnTree, emergentParams, hutHostParams, type ColumnAsset, type ColumnParams } from './column';
 import { expansionCull, getTerrain, type Terrain, type TerrainView } from '../terrain/heightfield';
-import { eastTreeCrowds, eastUnderstoryCull } from '../util/eastLane';
+import { eastCardCrowds, eastTreeCrowds, eastUnderstoryCull } from '../util/eastLane';
 import { smoothstep } from '../util/noise';
 import { casterSpheres, expansionVisible, type Caster } from '../util/expansionLocality';
 import { EXPANSION } from '../layout';
@@ -3218,9 +3218,22 @@ export async function create(ctx: WorldContext): Promise<WorldSystem> {
   // later draw and re-rolls the whole grove (measured: 6 trees fewer, 60 % of u-open-up's pixels moved)
   // the east lane's houses and discs clear the crowns that would crowd them (util/eastLane.ts)
   const midSpec = (p: DistantPlacement) => MID_SPECS[Math.max(0, Math.min(MID_SPECS.length - 1, p.variant - (distantVariants.length - MID_SPECS.length)))];
+  // the east lane is a walk line like the three above (eastCardCrowds): its card crowns keep
+  // MID_WALK_MIN_M off it too, except the ones cameras A–E frame. F is not spared: it looks up the
+  // stair bank at the whole plateau grove, so sparing it would keep every crown over the lane.
+  const heroCameras = ctx.layout.viewpoints
+    .filter((v) => /^[A-E]_/.test(v.id))
+    .map((v) => {
+      const c = new PerspectiveCamera(v.fov, 1280 / 716, 0.1, 400);
+      c.position.set(v.position[0], v.position[1], v.position[2]);
+      c.lookAt(v.target[0], v.target[1], v.target[2]);
+      c.updateMatrixWorld(true);
+      return c;
+    });
   const eastCrowded = (p: DistantPlacement) => {
     const s = midSpec(p);
-    return eastTreeCrowds(p.x, p.z, s.height * p.scale, s.crownR, s.crownY, MID_TRUNK_R);
+    const h = s.height * p.scale;
+    return eastTreeCrowds(p.x, p.z, h, s.crownR, s.crownY, MID_TRUNK_R) || eastCardCrowds(p.x, p.z, h, s.crownR, s.crownY, p.y, MID_WALK_MIN_M, sunDir, heroCameras);
   };
   const midPlacements = midSampled.filter((p) => !expansionCull(p.x, p.z) && !nearWalk(p.x, p.z) && !eastCrowded(p));
   distantPlacements.push(...midPlacements);

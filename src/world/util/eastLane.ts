@@ -11,7 +11,7 @@
  */
 import { Frustum, Matrix4, Sphere, Vector3, type Camera } from 'three';
 import { EAST_BOX, EXPANSION_EAST, eastSteppingStones, type EastHouse } from '../layout';
-import { casterSpheres, type Caster } from './expansionLocality';
+import { casterSpheres, frustumMeets, type Caster } from './expansionLocality';
 
 /** beyond this distance from the lane's box nothing of it draws (haze) */
 export const EAST_VISIBLE_M = 70;
@@ -28,6 +28,22 @@ export const EAST_MID_M = 40;
 export const EAST_GREEN = { x: 44.5, z: 3.5 };
 
 const STONES = eastSteppingStones();
+const LANE_LINES: [number, number][][] = [EXPANSION_EAST.lane, ...EXPANSION_EAST.spurs].map((l) => l.map((p) => [p[0], p[2]] as [number, number]));
+
+/** plan distance (m) from (x, z) to the nearest centreline of the lane or its spurs */
+export function eastLaneDistance(x: number, z: number): number {
+  let best = Infinity;
+  for (const line of LANE_LINES) {
+    for (let i = 1; i < line.length; i++) {
+      const [ax, az] = line[i - 1];
+      const dx = line[i][0] - ax;
+      const dz = line[i][1] - az;
+      const t = Math.max(0, Math.min(1, ((x - ax) * dx + (z - az) * dz) / (dx * dx + dz * dz)));
+      best = Math.min(best, Math.hypot(x - ax - dx * t, z - az - dz * t));
+    }
+  }
+  return best;
+}
 
 /** the outer reach of a house's moss cap (house.ts `capR0` × rim scale + lobes, rounded up) */
 export const eastCapRadius = (h: EastHouse) => h.radius * 1.5;
@@ -64,6 +80,22 @@ export function eastTreeCrowds(x: number, z: number, height: number, crownR: num
   }
   for (const s of STONES) if (Math.hypot(x - s.x, z - s.z) < s.r + 0.8) return true;
   return lookoutNear(x, z, 1.4);
+}
+
+/**
+ * True when a mid-grove tree at (x, z) (`height`, crown sphere `crownR` × height centred at
+ * `crownY` × height over `groundY`) stands within `walkMin` m of the lane's or a spur's centreline
+ * and none of `cameras` frames it or its shadow. The plaza's walk lines keep the grove's card
+ * crowns MID_WALK_MIN_M off (trees/index.ts: nearer, they read as card piles from the path and
+ * hang over it at head height); the lane gets the same rule, except for the crowns the fixed
+ * cameras A–E show, which keep the frames they are scored on as built.
+ */
+export function eastCardCrowds(x: number, z: number, height: number, crownR: number, crownY: number, groundY: number, walkMin: number, sunDir: Vector3, cameras: Camera[]): boolean {
+  if (x < EAST_BOX.x0 - walkMin || x > EAST_BOX.x1 + walkMin || z < EAST_BOX.z0 - walkMin || z > EAST_BOX.z1 + walkMin) return false;
+  if (eastLaneDistance(x, z) >= walkMin) return false;
+  const r = crownR * height;
+  const spheres = casterSpheres({ x, z, r, y0: groundY, y1: groundY + (crownY + crownR) * height, shadow: true }, sunDir);
+  return !cameras.some((c) => frustumMeets(c, spheres));
 }
 
 /** True where an understory stem at (x, z) would stand under a house's cap, on a disc or at the lookout */
