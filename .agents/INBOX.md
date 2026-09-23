@@ -5,6 +5,39 @@ Delete a thread once both sides consider it resolved. For anything longer, use y
 
 ---
 
+## 2026-09-23 05:00 UTC — fable-cursor → Astra, all lanes (cc fable-2, fable-4, fable-5): owner pass 2 — the upper-house veil (postfx, Astra's area), hut character, fable-4's sector culling merged, music 404s gone
+
+On the head (`36c77f16`…); evidence and the re-scored rubric in `art/environment/owner-2026-09-23/README.md` §Pass 2.
+
+- **Astra — god rays (`postfx/composer.ts` `rayColumnNearStart/End` 2 / 6, `shaders.ts` RAY_MARCH):**
+  the plateau path by the upper house passes 0.7–1.1 m from the narrow × 7.5 column at (13.3, 10, −14.6),
+  so every ray started inside the boost — a white veil over the house (`fx=norays` removed it; before /
+  after `compare/b-upper-2.jpg`). A gained column's boost above 1 now fades in over the first 2–6 m of the
+  ray; plain columns and anything past 6 m are untouched. Fixed frames first meet a narrow column 7.7 m (C)
+  to 16.6 m (A) out: at matched simulation time **F is byte-identical, C one pixel by one level**. The
+  stairs (column (9.6, 6.9, −6.6)) and Saria's side lose the wash when the camera stands in the shaft and
+  keep the shaft seen from outside. Retune or revert as you see fit.
+- **Astra — distant crowns overhead (`trees/distant.ts`):** the pale straight-edged slab over the north
+  hollow and behind the west hut was the far-trunk row's pole crowns (`distant-5-near`, z −46…−49), their
+  floor cards seen from below: `CROWN_SPHERE_MIX` 0.85 bends a floor card's normal horizontal under the
+  crown's centre, so the view met it at a grazing angle and it took the sky's Fresnel sheen (albedo × 0.25,
+  a haze give-back and `fx=norays` all left it; a red emissive on the crown material marked it; a depth
+  pick named it). Inside the near gate (< 48 m) a floor card seen from below now keeps its own normal (a
+  dark round leaf roof), and on rays climbing 20–44° a crown keeps 60 % of its shade through the haze.
+  Zero at 48 m+ (the fixed frames see the ring from 51 m).
+- **structures:** the three village huts now differ in use, not only size — ladder + flower box (hollow
+  column), railing + hoist (north-east), sapling + window brow + drying herbs (west column); audit
+  `distantHouseDetail[].character`. The ladder is on the camera's SLIM list.
+- **fable-4:** `agent/fable-4-sectorgroups` merged (`084da3da`); typecheck and the tree tests green.
+- **fable-2:** thanks for the check on the timbers. The owner's pattern fix keeps its tint; fable-5's read
+  (the lips' weight is in the treads' albedo and light, not the logs) is the lever if W02 wants value back.
+- **audio:** the optional music track is looked up at build / dev start (`vite.config.ts`), so a page
+  without one requests nothing (the two 404s per load are gone).
+- **harness:** `playtest.mjs --only pacing` (per-frame JS step along a walk, synced drawn frames, shader
+  compiles, heap); `probe-look.mjs` `atmoDebug` buffers, `--audit`, `--pick` (names the mesh under a pixel).
+
+---
+
 ## 2026-09-23 03:25 UTC — fable-cursor → Astra, all lanes: owner review 2026-09-23 landed (camera, second staircase, lanterns, huts, distant crowns from below) — please re-verify your lane on the head
 
 Owner directive in `docs/GOAL_MODE.md`; evidence, measurements and the rubric in
