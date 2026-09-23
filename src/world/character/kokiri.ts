@@ -44,6 +44,7 @@ import {
   Float32BufferAttribute,
   Group,
   Matrix4,
+  Mesh,
   MeshStandardMaterial,
   RepeatWrapping,
   SphereGeometry,
@@ -55,7 +56,7 @@ import {
 import { hash2 } from '../util/prng';
 import { merge, ovalLathe, place, sweep } from './geometry';
 import { CHAR_COLORS, matte } from './palette';
-import { beginTally, buildArms, buildFace, buildHair, buildLegs, buildNeck, endTally, part, type Character } from './link';
+import { beginTally, buildArms, buildFace, buildHair, buildLegs, endTally, part, type Character } from './link';
 import { buildRig, type Proportions, type Rig } from './rig';
 
 /**
@@ -705,7 +706,8 @@ function buildGirlHair(rig: Rig, hair: MeshStandardMaterial): void {
       new Vector3(s * 0.04, 0.03, skullZ(r, 0.04, 0.03, 0.0024)),
       new Vector3(s * 0.064, 0.026, skullZ(r, 0.064, 0.026, 0.0022)),
     ];
-    parts.push(sweep(pts, [0.0032, 0.0034, 0.0018], { segments: 8, radial: 6, closeTip: true, closeStart: true }));
+    // thinner since the head grew (lane 7): the round-48 tubes read as a frown at 5 m under the fringe's points
+    parts.push(sweep(pts, [0.0022, 0.0025, 0.0013], { segments: 8, radial: 6, closeTip: true, closeStart: true }));
   }
   part(rig.head, merge(parts), hair, 'hair');
 }
@@ -726,7 +728,8 @@ function buildGirlHeadband(rig: Rig, bandMat: MeshStandardMaterial): void {
     place(new TorusGeometry(R * 1.01, 0.006, 6, 28), 0, 0.023 * k, 0, [Math.PI / 2, 0, 0]),
     place(new TorusGeometry(R * 1.035, 0.006, 6, 28), 0, -0.023 * k, 0, [Math.PI / 2, 0, 0]),
   ]);
-  part(rig.head, place(geo, 0, 0.073 * k, -0.005, [-0.1, 0, 0], [1, 1, 0.97]), bandMat, 'kid-headband');
+  // no shadow pass: the band's shadow falls on the hair a centimetre under it (a submission saved per girl, like the belt's)
+  part(rig.head, place(geo, 0, 0.073 * k, -0.005, [-0.1, 0, 0], [1, 1, 0.97]), bandMat, 'kid-headband', false);
 }
 
 /** dark leather wristbands on the bare forearms (both wrists, like the demo girl) */
@@ -847,7 +850,7 @@ function buildGirlTunic(rig: Rig, tunic: MeshStandardMaterial): void {
   }
   // leather belt at the waist with a small square buckle at the front
   const y = hl(0.555);
-  part(rig.hips, place(new TorusGeometry(0.104, 0.015, 8, 26), 0, y, 0, [Math.PI / 2, 0, 0], [1, 1, 0.8]), kidMat('belt', KID.belt), 'kid-belt');
+  part(rig.hips, place(new TorusGeometry(0.104, 0.015, 8, 26), 0, y, 0, [Math.PI / 2, 0, 0], [1, 1, 0.8]), kidMat('belt', KID.belt), 'kid-belt', false);
   part(rig.hips, merge([place(new BoxGeometry(0.036, 0.03, 0.008), 0, y, 0.088), place(new BoxGeometry(0.006, 0.03, 0.01), 0, y, 0.09)]), kidMat('buckle', KID.buckle, 0.6), 'kid-buckle', false);
 }
 
@@ -927,7 +930,8 @@ export function createKokiri(variant: number): Character {
   const boot = kidMat('boot', girl ? KID.boot : CHAR_COLORS.kidBoot);
   // boots to just under the knee; the girls' near-black boots have a khaki fold-over cuff
   buildLegs(rig, { skin, boot, cuff: girl ? kidMat('cuff', KID.cuff) : null, shaftTop: p.kneeY - p.ankleY - 0.03 });
-  buildNeck(rig, skin);
+  // no neck mesh (lane 7): under HEAD_SCALE the skull's underside (0.79 m) sits below the collar's top
+  // (0.81 m) and the bob's hem covers the back — the cylinder link.ts's buildNeck would add is enclosed
   if (girl) {
     buildArms(rig, { skin, sleeve: null });
     buildWristbands(rig, kidMat('belt', KID.belt));
@@ -936,6 +940,11 @@ export function createKokiri(variant: number): Character {
     buildGirlHair(rig, girlHair(look));
     buildGirlHeadband(rig, kidMat(`band-${look}`, KID.band[look]));
   } else buildBoy(rig, variant, skin);
+  // shadow pass (lane 7): a boot cuff's shadow falls on the shaft two centimetres under it — it cannot
+  // shadow a visible pixel; two submissions per kid
+  rig.root.traverse((o) => {
+    if ((o as Mesh).isMesh && o.name === 'boot-cuff') o.castShadow = false;
+  });
   rig.root.userData.character = 'kokiri';
   // to the crown of the hair: skull top 1.06 + the scaled crown (girl: the dome reaches 0.158 · 1.14 over the head centre)
   return { kind: 'kokiri', rig, group: rig.root, triangles: endTally(), height: girl ? 1.12 : 1.13 };

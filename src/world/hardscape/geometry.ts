@@ -458,6 +458,8 @@ export interface SlabOptions {
    * side walls stay stone (they are the riser band under the timber). Default 0.
    */
   earthTop?: number;
+  /** earth weight (`aEarth`) on the side walls too (a log flight's riser band is packed earth under the timber). Default 0. */
+  earthSides?: number;
   /**
    * weathering gate on the side walls (round 44; default 0 — a buried flank shows a centimetre or
    * two and stays clean): a kerb or cheek stone whose face stands 20–40 cm over the ground takes
@@ -634,6 +636,8 @@ export function buildSlab(mb: MeshBuilder, outline: P2[], o: SlabOptions) {
   // --- side walls (flat) ---
   const sideUp = o.sideNormalUp ?? 0;
   const sideWear = o.sideWear ?? 0;
+  const earthBefore = mb.currentEarth;
+  mb.currentEarth = o.earthSides ?? earthBefore;
   for (let i = 0; i < n; i++) {
     const p = outer[i];
     const q = outer[(i + 1) % n];
@@ -664,8 +668,7 @@ export function buildSlab(mb: MeshBuilder, outline: P2[], o: SlabOptions) {
   }
 
   // --- bevel ring (smooth): one chamfer band, or `bevelRings` bands on a quarter-round ---
-  // (the shoulder ring and the top face carry the slab's earth weight; the walls above stay stone)
-  const earthBefore = mb.currentEarth;
+  // (the shoulder ring and the top face carry the slab's `earthTop`; the walls carry `earthSides`)
   mb.currentEarth = o.earthTop ?? earthBefore;
   mb.beginGroup();
   const bands = Math.max(1, Math.round(o.bevelRings ?? 1));
