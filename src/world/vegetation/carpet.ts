@@ -117,11 +117,16 @@ const hashAt = (x: number, z: number, salt: number) => hash2(Math.round(x * 1000
  * NORTH_FLOOR_MAT_KEEP of the lawn's (the litter and the moss beds close the rest), both in the
  * deep palette (−NORTH_FLOOR_TINT) with more straw, the fans cut to NORTH_FLOOR_HEIGHT.
  */
-const NORTH_FLOOR_CLUMP_KEEP = 0.5;
-const NORTH_FLOOR_MAT_KEEP = 0.7;
+// 2026-09-23 (the owner, walking the corridor): the floor's cover is most of what the eye sees at
+// 10–25 m off the path, and at half the fans and 30 % more straw it read as pale stubble with the
+// cards' silhouettes showing between — the one ground of the walk still answering "bald". His
+// recording (review46 r_022 / r_024) has a closed, damp, dark floor there. The fans and mats close
+// up and the straw comes off; the deep palette, the darkening and the height cut stay.
+const NORTH_FLOOR_CLUMP_KEEP = 0.78;
+const NORTH_FLOOR_MAT_KEEP = 0.92;
 const NORTH_FLOOR_TINT = 0.5;
-const NORTH_FLOOR_DRY = 0.3;
-const NORTH_FLOOR_HEIGHT = 0.75;
+const NORTH_FLOOR_DRY = 0.12;
+const NORTH_FLOOR_HEIGHT = 0.8;
 /**
  * Round 46 (survey-2 #06 after the first pass: the corridor's carpet ran to 25 m but the floor still
  * read as a pale-olive lawn — the cards themselves are most of what the eye sees there): the forest
