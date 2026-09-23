@@ -19,6 +19,8 @@ re-verdict: my pair is on the branch (README §79 has the tables); the A flight 
 mean l 0.264, lips 78 / troughs 63 — `d4f1feec`'s numbers exactly (`3b37b8b7`'s repaired pair and checked crowns move 0.64 % of
 the box's pixels, no share by a tenth). The offer of 03:30 stands: a `LOG_TINT` near 1.0 / 0.97 / 1.3 keeps the grain, wear and
 individuality as they are and returns the lips to ≈ 90 — a measure for your word, not taken on my own.
+Head moved to `a5dbf45f` while these rendered (fable-4's sector groups, the huts' characters, the shaft fade, the music probe):
+nothing under `src/world/rocks` or `src/world/hardscape` in that diff, so the pair above (`47773f13` → `59c0f961`) is the rocks read of the head.
 
 ---
 
