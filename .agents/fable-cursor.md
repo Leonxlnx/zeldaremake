@@ -3033,7 +3033,7 @@ Also: lantern bough still a thick plain beam across the top of B (trees pass pen
   #28 / #26-crown-clarity are already in; #29 conflicts with the memory-tier admission (lane 2 pointer), #26's Link
   chain is lane 8's. No squad PR yet at 09:30.
 
-### 2026-09-23 20:15 – 09-24 00:40 UTC — round 56: expansion south, the village exit (`agent/fable-cursor-exp-south`, sub-agent)
+### 2026-09-23 20:15 – 09-24 03:00 UTC — round 56: expansion south, the village exit (`agent/fable-cursor-exp-south`, sub-agent)
 - The owner 20:08: "why for the love of God has there been no expansion to the environment past the stuff". Built on the
   pinned checkpoint `746f1d39` in a scratch worktree; evidence, coordinates and numbers in
   `art/environment/exp-south-2026-09-23/README.md` (four before/after sheets).
@@ -3052,11 +3052,22 @@ Also: lantern bough still a thick plain beam across the top of B (trees pass pen
   giant), their contacts count as live-seated for W12; legacy instances culled off the new ground; `playtest.mjs`
   route `south-bridge-to-log` + `southProbes`; tests (`terrain/expansionSouth.test.mjs`, expansion2 exemptions, the
   plants litter floor re-based 655 → 628, floor 610).
-- Commits: `653c1711` `e5d4b0f9` `d57c421c` `465197ff` `2b819a55` `3b5adb5e` `6010ab08` `1bffea1e` `300b8d9f`.
-- Verified: tests 93/93 world + 30/30 other; the walk reaches the log (21/21 waypoints, 51.7 m, max camera 8.9 m/s)
-  and 41/41 probes pass, including all 18 off either side of the deck blocked. Camera C: 2.75 % of pixels change by
-  > 16/255, all in the backdrop between the trunks (reference SSIM 0.1791 → 0.1771; W37 already fails at 0.42).
-  Merging this branch into `81430baf` is conflict-free, typechecks and passes 97/97.
+- Commits: `653c1711` `e5d4b0f9` `d57c421c` `465197ff` `2b819a55` `3b5adb5e` `6010ab08` `1bffea1e` `300b8d9f`
+  `8b64880f`.
+- W12 regression caught and fixed in `8b64880f`: the rubric's scene checks on `300b8d9f` failed
+  `systems.trees.maxBaseGap` (4.08 m: south white-barks seated by a sink rule, the south mid-grove audited against
+  the pre-carve ground). Now every south tree stands on the live ground at its centre, `southFooting` culls one
+  whose ground falls > 0.45 m within its roots' reach (inside the 0.5 m skirt), live-seated mids are audited
+  live, and the culls feed no in-loop rejection (`whiteClearance` / `drawnSwaps`, per-tree `toeStream`) so no
+  later stream re-rolls (`F_canopy` was 3.1 % changed by a mid-grove re-roll; now bit-identical).
+  `westExpansionCull` = the round-49 rules alone, so trees in the overlap of both boxes obey both.
+- Verified on `8b64880f`: tests 93/93 world (32/32 trees + structures) + 30/30 other; all 71 audits and 4 probes
+  pass, tree bases 159/160 (the miss is the southwest giant's round-49 root contact, 3.1 cm), litter 373/374
+  (pre-existing miss); the walk reaches the log (21/21 waypoints, 51.7 m, max camera 8.9 m/s) and 41/41 probes
+  pass, including all 18 off either side of the deck blocked. Hero cameras at 1280×716: A, B, E within 1/255, D and
+  F bit-identical, C 2.25 % of pixels > 16/255, all in the backdrop between the trunks (452 → 511 draws, 6.41 →
+  6.94 M; reference SSIM 0.1796 → 0.1768; W37 already fails at 0.42). Merged onto `81430baf` (scratch, not
+  pushed): conflict-free, typechecks, 129/129.
 - For the integrator: on the head, `39e63437`'s 40/44 m near-base band draws the south giants' bark bases from the
   bridge (on this branch their far roots still show the lime moss sheets past 13 m, pre-existing, lane 3's shading);
   the south structures keep their pods separate (six swinging pivots, 12 draws with shadows) like every village pod.
@@ -3099,4 +3110,4 @@ Pick anything NOT claimed in `gauntlet/claims.json`. Good self-contained candida
   my own (GAUNTLET.md D7).
 
 ## Last updated
-2026-09-24T00:40:00Z
+2026-09-24T03:00:00Z
