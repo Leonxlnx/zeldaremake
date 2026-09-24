@@ -11,7 +11,7 @@
 import { Box3, type BufferAttribute, BufferGeometry, type Camera, Color, Group, Mesh, Quaternion, Sphere, Vector3 } from 'three';
 import { mergeGeometries } from 'three/addons/utils/BufferGeometryUtils.js';
 import type { WorldContext, WorldSystem } from '../system';
-import { expansionCull } from '../terrain/heightfield';
+import { expansionCull, getTerrain, type TerrainMask } from '../terrain/heightfield';
 import { type Caster, casterSpheres, expansionVisible, sunVector } from '../util/expansionLocality';
 import { createRng } from '../util/prng';
 import { barrelGeometry, bucketGeometry, crateGeometry, ladderGeometry, lightStringGeometry, markerGeometry, type Part, platformGeometry, potGeometry } from './geometry';
@@ -148,32 +148,55 @@ function releaseAfterUpload(g: BufferGeometry): void {
   if (g.index) g.index.onUpload(dropArray as unknown as () => void);
 }
 
-/** grime and moss where a prop meets the ground; continuous in space so shared edges stay seamless */
-function weather(geometry: BufferGeometry, material: MaterialKey, size: number): void {
+/**
+ * Grime and moss where a prop meets the ground; continuous in space so shared edges stay seamless.
+ * Round 56 (the owner's rubric, ★16 "weathering follows exposure"): `sunLocal` is the direction
+ * toward the sun in the prop's own frame — the moss band climbs on the side facing away from it
+ * (3× the height in full shade, the round-52 band on the sun side) and the tops (normals within
+ * ≈ 35° of up) take a sun-bleach: dry wood goes a little grey-silver, clay a dusty lighter tone.
+ */
+function weather(geometry: BufferGeometry, material: MaterialKey, size: number, sunLocal: { x: number; z: number }): void {
   if (material === 'iron' || material === 'glow') return;
   const p = geometry.attributes.position;
+  const n = geometry.attributes.normal;
   const colors = geometry.attributes.color;
   const [dr, dg, db] = COLOUR_DOMAIN[material];
   const soil = new Color(0x4f4436);
   const moss = new Color(0x55573a);
+  const bleach = new Color(material === 'clay' ? 0xd9c9a8 : 0xb8b0a0);
   soil.setRGB(soil.r / dr, soil.g / dg, soil.b / db);
   moss.setRGB(moss.r / dr, moss.g / dg, moss.b / db);
+  bleach.setRGB(bleach.r / dr, bleach.g / dg, bleach.b / db);
   const c = new Color();
   const falloff = (h: number, extent: number) => {
     const t = Math.min(1, Math.max(0, h / extent));
     return 1 - t * t * (3 - 2 * t);
   };
+  const smooth = (e0: number, e1: number, x: number) => {
+    const t = Math.min(1, Math.max(0, (x - e0) / (e1 - e0)));
+    return t * t * (3 - 2 * t);
+  };
   for (let i = 0; i < p.count; i++) {
     const px = p.getX(i);
     const py = p.getY(i);
     const pz = p.getZ(i);
+    const nx = n ? n.getX(i) : 0;
+    const ny = n ? n.getY(i) : 0;
+    const nz = n ? n.getZ(i) : 0;
+    // how much this face looks away from the sun (its horizontal normal against the sun's direction; the
+    // radial direction from the prop's axis stands in where a normal is missing)
+    const rad = Math.hypot(px, pz) || 1;
+    const facing = n ? nx * sunLocal.x + nz * sunLocal.z : (px * sunLocal.x + pz * sunLocal.z) / rad;
+    const shade = smooth(0.2, -0.6, facing);
+    const up = n ? smooth(0.55, 0.85, ny) : 0;
     const patch = 0.5 + 0.5 * Math.sin(px * 9 + pz * 13) * Math.cos(pz * 7 - px * 5);
     const damp = falloff(py, size * 0.3);
-    const contact = falloff(py, size * (0.07 + patch * 0.06));
+    const contact = falloff(py, size * (0.07 + patch * 0.06) * (1 + 2 * shade));
     c.fromBufferAttribute(colors, i);
     if (material === 'clay') c.lerp(soil, damp * 0.38);
     else c.multiplyScalar(1 - damp * 0.3);
-    c.lerp(moss, contact * (0.1 + patch * 0.18));
+    c.lerp(moss, contact * (0.1 + patch * 0.18) + shade * 0.09 * (1 - damp));
+    c.lerp(bleach, up * (material === 'clay' ? 0.12 : 0.18) * (1 - damp));
     colors.setXYZ(i, c.r, c.g, c.b);
   }
 }
@@ -183,6 +206,24 @@ export async function create(ctx: WorldContext): Promise<WorldSystem> {
   root.name = 'props';
   const materials = await createPropMaterials(ctx);
   const terrain = ctx.terrain;
+  /**
+   * Round 56: the live view for `live` props (the south exit's verges) — its height / normal for the
+   * seating, and a mask that is the LIVE mask over the system's own (max per channel): the live one
+   * knows the south paving and the bridge / log, the system's whatever ground it was told is closed
+   */
+  const liveTerrain = getTerrain();
+  const liveCtx: PlacementCtx = {
+    terrain: {
+      ...liveTerrain,
+      mask: (x: number, z: number): TerrainMask => {
+        const a = terrain.mask(x, z);
+        const b = liveTerrain.mask(x, z);
+        return { path: Math.max(a.path, b.path), stairs: Math.max(a.stairs, b.stairs), cliff: Math.max(a.cliff, b.cliff), structure: Math.max(a.structure, b.structure), plateau: Math.max(a.plateau, b.plateau) };
+      },
+    },
+    layout: ctx.layout,
+    shared: ctx.shared,
+  };
   const ownedGeometry: BufferGeometry[] = [];
   const bases: number[][] = [];
   const counts = { pots: 0, crates: 0, barrels: 0, buckets: 0, platforms: 0, ladders: 0, markers: 0, lightStrings: 0, lightPods: 0, ropeRailings: 0 };
@@ -223,9 +264,13 @@ export async function create(ctx: WorldContext): Promise<WorldSystem> {
    */
   const blockers: { x: number; z: number; r: number; top: number }[] = [];
   const tmp = new Vector3();
+  /** toward the sun (world), for the exposure weathering and the backside's shadow footprints */
+  const sunToward = ctx.sun ? ctx.sun.position.clone().sub(ctx.sun.target.position).normalize() : sunVector(ctx.config.sun.azimuthDeg, ctx.config.sun.elevationDeg);
 
   for (const def of PROP_LAYOUT) {
     const rng = createRng(`${ctx.config.seed}/props/${def.id}`);
+    /** the heightfield view this prop stands on: the legacy one, or the live one for the south exit's props */
+    const T = def.live ? liveTerrain : terrain;
     let x = def.x;
     let z = def.z;
     let yaw = def.yaw;
@@ -382,7 +427,7 @@ export async function create(ctx: WorldContext): Promise<WorldSystem> {
       }
     } else {
       const radius = footprintRadius(def);
-      const spot = findSpot(ctx, def, radius, taken);
+      const spot = findSpot(def.live ? liveCtx : ctx, def, radius, taken);
       if (!spot) {
         skipped.push(def.id);
         continue;
@@ -390,19 +435,21 @@ export async function create(ctx: WorldContext): Promise<WorldSystem> {
       [x, z] = spot;
       // round 49: props build on the LEGACY heightfield view; a spot that the expansion's live-only
       // ground has since raised, paved or built on (the south bank, the far hut's knoll, the west
-      // discs and flights) is dropped here — a filter after placement, so no stream re-rolls
-      if (expansionCull(x, z)) {
+      // discs and flights) is dropped here — a filter after placement, so no stream re-rolls.
+      // Round 56: a `live` prop was placed against the live masks (the route's paving and the
+      // bridge / log are structure there) and takes its height from the live ground, so it is exempt
+      if (!def.live && expansionCull(x, z)) {
         skipped.push(def.id);
         culledByExpansion.push(def.id);
         continue;
       }
-      groundY = terrain.height(x, z);
+      groundY = T.height(x, z);
       if (def.kind === 'platform') {
         const spec = def.platform ?? { deck: 1.2, width: 1.8, depth: 1.4, rail: true, ladder: true };
         const q = new Quaternion().setFromAxisAngle(UP, yaw);
         const groundAt = (lx: number, lz: number) => {
           tmp.set(lx, 0, lz).applyQuaternion(q);
-          return terrain.height(x + tmp.x, z + tmp.z) - groundY;
+          return T.height(x + tmp.x, z + tmp.z) - groundY;
         };
         parts = platformGeometry(rng, { ...spec, groundAt });
         orientation = new Quaternion();
@@ -419,7 +466,7 @@ export async function create(ctx: WorldContext): Promise<WorldSystem> {
       } else {
         // small prop: follow the terrain normal, but only so far — beyond MAX_TILT the prop is
         // set level into the slope and the underside conform below closes the gap
-        const n = terrain.normal(x, z, new Vector3());
+        const n = T.normal(x, z, new Vector3());
         const tilt = Math.acos(Math.min(1, n.y));
         tiltUsed = Math.min(tilt, MAX_TILT);
         if (tilt > MAX_TILT) {
@@ -448,7 +495,7 @@ export async function create(ctx: WorldContext): Promise<WorldSystem> {
     const world = new Quaternion().setFromAxisAngle(UP, yaw).premultiply(orientation);
     const position = new Vector3(x, groundY, z);
     // (a prop on a published walk deck meets a built surface, not the ground — no terrain base for it)
-    if (!def.onDeck) bases.push([x, terrain.height(x, z), z]);
+    if (!def.onDeck) bases.push([x, T.height(x, z), z]);
     placed.push({ id: def.id, kind: def.kind, cluster: def.cluster, x: +x.toFixed(3), y: +groundY.toFixed(3), z: +z.toFixed(3), tiltDeg: +((tiltUsed * 180) / Math.PI).toFixed(2) });
     footprints.push({ x: +x.toFixed(3), z: +z.toFixed(3), r: +footR.toFixed(3) });
     if (def.kind === 'pot' || def.kind === 'barrel' || def.kind === 'marker') solidTop = def.size;
@@ -463,9 +510,11 @@ export async function create(ctx: WorldContext): Promise<WorldSystem> {
       bounds = {};
       clusterBounds.set(def.cluster, bounds);
     }
+    // the sun's horizontal direction in the prop's frame (its yaw undone; the tilt is a few degrees and ignored)
+    const sunLocal = { x: sunToward.x * Math.cos(yaw) - sunToward.z * Math.sin(yaw), z: sunToward.x * Math.sin(yaw) + sunToward.z * Math.cos(yaw) };
     for (const part of parts) {
       const g = part.geometry;
-      weather(g, part.material, def.kind === 'platform' || def.kind === 'ladder' ? 0.9 : def.size);
+      weather(g, part.material, def.kind === 'platform' || def.kind === 'ladder' ? 0.9 : def.size, sunLocal);
       const p = g.attributes.position;
       const contact: number[] = [];
       const feet = new Set<number>((g.userData.contactIndices as number[] | undefined) ?? []);
@@ -478,12 +527,12 @@ export async function create(ctx: WorldContext): Promise<WorldSystem> {
           // conform the underside to the sampled heightfield: a rigid tangent-plane seat leaves
           // gaps on curved ground; above the band the silhouette stays rigid
           const w = Math.min(1, Math.max(0, (contactBand - localY) / (contactBand * 0.75)));
-          const seated = terrain.height(v.x, v.z) - EMBED;
+          const seated = T.height(v.x, v.z) - EMBED;
           v.y += (seated - v.y) * w;
           if (w >= 0.99999) contact.push(i);
         } else if (feet.has(i)) {
           // platform posts / ladder rails: the builder's foot vertices, re-seated on the world heightfield
-          v.y = terrain.height(v.x, v.z) - EMBED;
+          v.y = T.height(v.x, v.z) - EMBED;
           contact.push(i);
         }
         p.setXYZ(i, v.x, v.y, v.z);
@@ -570,7 +619,6 @@ export async function create(ctx: WorldContext): Promise<WorldSystem> {
   // the backside locality follows util/expansionLocality.ts: hidden beyond 60 m of the expansion
   // box, or when neither the props nor their sun-shadow footprints meet the camera's frustum —
   // so the six fixed frames, which look away from it, draw none of it in either pass
-  const sunToward = ctx.sun ? ctx.sun.position.clone().sub(ctx.sun.target.position).normalize() : sunVector(ctx.config.sun.azimuthDeg, ctx.config.sun.elevationDeg);
   const backsideSpheres = backsideCasters.flatMap((c) => casterSpheres(c, sunToward));
   /** cull per locality: pose jumps come through onCameraMove, the walk through update */
   const cull = (camera: Camera) => {
