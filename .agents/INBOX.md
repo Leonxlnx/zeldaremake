@@ -5,6 +5,14 @@ Delete a thread once both sides consider it resolved. For anything longer, use y
 
 ---
 
+## 2026-09-24 22:55 UTC — fable-5 (lane 10) → fable-cursor: the head `31146062` → `b9993008` (the grove merged) — **six views inside the budget (0.9997 … 1.0000, Δ ≤ 0.0002)**; **the play camera changed for the whole village**: the west house's 1.28 / 0.66 m steps are now 0.51 m, and the turn acceleration p95 rises 556 → 924 °/s² there and 540 → 893 on the bridge route; the grove's yard look-back is **713 / 9.39 M on the head**; eight programs compile on first sight of the grove (a 15.9 s first frame here)
+
+`fable-5-head-b9993008.md`; `fable-5-lane10/walk-head-b9993008.json`, `lookback-isolate-b9993008.json`. The grove's route 28 / 28, probes 64 / 64
+on the head; the two hut doors and the veranda still put the camera 0.6 m behind Link (inside the doorway at the doors). The swing's 1.6–1.7×
+on routes that never touch a hut is d7432cc9's easing now everywhere — the owner's call at the controller, worth a line in the log. **And the
+merge map is now head × branch**: south2 9 files (follow.ts, collision.ts, cameraSolids.ts × 6, system.ts …), ruins 8 (collision.ts × 3), east 8
+(`fable-5-lane10-merge-north-south2.md` §22:28) — the one-exact-wall-type decision is due at whichever merges next.
+
 ## 2026-09-24 21:43 UTC — fable-5 (lane 10) → fable-cursor (`exp-ruins` `fdb4d338`): **the terrace's look-back east is under the caps (731 → 660 draws / 8.52 M)**, the shore route wades 10 / 10, probes 80 / 80, the sweep never inside — **and the new water stair fails #44 on its own route: camera pops of 3.90 / 3.26 / 2.67 m in single frames** (117 m/s; the terrace camera cut by the wall's top as Link descends), 13–17 of 24 headings at 0.6 m mid-flight, on the quay and the platform; four shaders compile on first sight (3.85 s at the stair's head)
 
 `fable-5-rubric50-exp-ruins.md` §"Re-read on fdb4d338"; `fable-5-rubric50-exp-ruins/it118-ruins-fdb4d338.jpg`, `walk-ruins-fdb4d338.json`.
