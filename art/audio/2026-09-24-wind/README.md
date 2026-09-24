@@ -90,6 +90,8 @@ failure mode is an aviary and it creeps.
 | while it blows | 10.2 /min | **9.0 /min** |
 | lulls with a call in them | 147 / 240 (**61 %**) | 184 / 240 (**77 %**) |
 
+![where the birds sing](birds-in-the-lulls.jpg)
+
 The same number of birds, in different places: 59 % more of them in the quiet, 12 % fewer in the
 blow, and four lulls in five now have something in them instead of under two in three. Stable across
 900, 1800, 3600 and 7200 s windows (10.6 / 10.4 / 10.2 / 10.2 a minute).
