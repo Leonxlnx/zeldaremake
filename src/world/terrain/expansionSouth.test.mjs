@@ -374,10 +374,10 @@ const ground = createGround(live, LAYOUT, {
     }
   }
   assert.ok(liveFootings > 50, `boles stand on the far bank's live ground (${liveFootings} half-metre cells)`);
-  // outside the south boxes the round-49 rules alone decide, exactly as `expansionCull` does
+  // outside the south boxes (and round 57's ruins boxes) the round-49 rules alone decide, exactly as `expansionCull` does
   for (let z = -60; z <= 60; z += 1.5) {
     for (let x = -60; x <= 60; x += 1.5) {
-      if (z > 10 && inExpansionSouth(x, z)) continue;
+      if ((z > 10 && inExpansionSouth(x, z)) || layout.inExpansionRuins(x, z)) continue;
       assert.equal(hf.westExpansionCull(x, z), hf.expansionCull(x, z), `westExpansionCull = expansionCull at ${fmt(x, z)}`);
     }
   }
