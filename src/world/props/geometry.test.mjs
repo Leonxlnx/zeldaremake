@@ -39,7 +39,7 @@ const { PROP_LAYOUT } = loadTs(path.join(here, 'layout.ts'));
 const { LAYOUT } = loadTs(path.join(here, '../layout.ts'));
 const { WORLD } = loadTs(path.join(here, '../config.ts'));
 const { createTerrain, expansionCull } = loadTs(path.join(here, '../terrain/heightfield.ts'));
-const { southBankPoint, EXPANSION } = loadTs(path.join(here, '../layout.ts'));
+const { southBankPoint, EXPANSION, EXPANSION_SOUTH, southPathLine } = loadTs(path.join(here, '../layout.ts'));
 const { NPC_LOOP } = loadTs(path.join(here, '../character/placement.ts'));
 const { createRng } = loadTs(path.join(here, '../util/prng.ts'));
 const { Vector3 } = THREE;
@@ -167,9 +167,9 @@ assert.ok(audit.pots >= 8, 'three sizes of pot in four clusters');
 assert.ok(audit.meshes <= 24, `bounded draw calls (${audit.meshes} meshes)`);
 assert.equal(audit.meshes, one.group.children.reduce((n, g) => n + g.children.length, 0));
 assert.equal(audit.clusters, new Set(PROP_LAYOUT.map((d) => d.cluster)).size, 'every authored cluster placed');
-assert.equal(audit.localities, 3, 'three merge localities: the village, the clearing and the backside');
-assert.equal(one.group.children.length, 3, 'one group per locality');
-assert.ok(audit.meshes <= 14, `≤ 14 meshes for the whole system (${audit.meshes})`);
+assert.equal(audit.localities, 4, 'four merge localities: the village, the clearing, the backside and the south exit');
+assert.equal(one.group.children.length, 4, 'one group per locality');
+assert.ok(audit.meshes <= 17, `≤ 17 meshes for the whole system (${audit.meshes}; round 56: the south exit's locality adds three, drawn only within its cull distance)`);
 // small props never tip more than 9° off level; the marker post stands vertical
 for (const p of audit.placed) if (['pot', 'crate', 'barrel', 'bucket'].includes(p.kind)) assert.ok(p.tiltDeg <= 9.01, `${p.id} tilt ${p.tiltDeg}°`);
 for (const p of audit.placed) if (p.kind === 'marker') assert.equal(p.tiltDeg, 0, `${p.id} vertical`);
@@ -233,8 +233,12 @@ for (const p of audit.placed) if (p.kind === 'marker') assert.equal(p.tiltDeg, 0
   assert.equal(groups()['clearing'], true, 'at the clearing the clearing draws');
   one.update(0.016, 1, { ...ctx, camera: camAt([-13.2, 3.8, 7.9], [-16.6, 2.9, 5.4], 50) });
   assert.equal(groups()['backside'], true, 'at the deck landing the backside draws');
+  // round 56: the south exit's locality draws at the bridge head and is culled from the six fixed cameras
+  // (its sphere's near edge is ≥ CLUSTER_VISIBLE_M from each) — checked with the others below
+  one.update(0.016, 1, { ...ctx, camera: camAt([3.7, 2.6, 26.5], [3.7, 1.2, 30.5], 50) });
+  assert.equal(groups()['south'], true, 'at the bridge head the south exit draws');
   one.update(0.016, 1, { ...ctx, camera: camAt([5, 6, -120], [5, 5, -119], 46) });
-  assert.deepEqual(groups(), { village: false, clearing: false, backside: false }, 'far north of the clearing every locality is culled');
+  assert.deepEqual(groups(), { village: false, clearing: false, backside: false, south: false }, 'far north of the clearing every locality is culled');
   one.onCameraMove(camAt(LAYOUT.viewpoints[0].position, LAYOUT.viewpoints[0].target, LAYOUT.viewpoints[0].fov), ctx);
 }
 
@@ -356,6 +360,53 @@ for (const id of ['door-pot-large', 'sign-pot', 'saria-crate', 'saria-water-buck
     const live = createTerrain('live');
     assert.ok(Math.abs(live.height(p.x, p.z) - ctx.terrain.height(p.x, p.z)) < 0.02, `${p.id}: live and legacy ground agree (${live.height(p.x, p.z).toFixed(3)} vs ${ctx.terrain.height(p.x, p.z).toFixed(3)})`);
   }
+}
+
+// round 56: the south exit's props (`live`) stand on the LIVE ground — placed where authored, their y the
+// live height (the far bank's mound is 0.3 m+ over the legacy ground there), off the route's paving and
+// the bridge / log in the live mask, each publishing a blocker; and none of them is culled
+{
+  const live = createTerrain('live');
+  const south = PROP_LAYOUT.filter((d) => d.cluster === 'south');
+  assert.equal(south.length, 5, 'five south props authored');
+  for (const def of south) {
+    assert.ok(def.live, `${def.id} is a live-ground prop`);
+    const p = audit.placed.find((q) => q.id === def.id);
+    assert.ok(p, `${def.id} placed (not skipped: ${audit.skipped.join(', ')})`);
+    assert.ok(Math.hypot(def.x - p.x, def.z - p.z) < 1e-9, `${def.id} placed where authored (${p.x}, ${p.z})`);
+    assert.ok(Math.abs(p.y - live.height(p.x, p.z)) < 0.01, `${def.id}: y is the live ground (${p.y} vs ${live.height(p.x, p.z).toFixed(3)})`);
+    const m = live.mask(p.x, p.z);
+    assert.ok(m.path <= 0.18 && m.structure <= 0.12, `${def.id} off the route's paving and the bridge / log (path ${m.path.toFixed(2)}, structure ${m.structure.toFixed(2)})`);
+    assert.ok(audit.blockers.some((b) => Math.abs(b.x - p.x) < 1e-6 && Math.abs(b.z - p.z) < 1e-6), `${def.id} publishes a blocker`);
+  }
+  // why the live view: the legacy mask knows neither the south paving nor the log — placed against it a
+  // prop could stand on the route; against the live one the far path and the log's mouth are refused
+  // the six fixed frames: the five cameras that look north never hold a south prop in their frustum (three
+  // culls the meshes), and camera C — the one looking south — has every south prop inside the wedge
+  // `plaza-south`'s trunk hides from it (x ≥ 0.11 (z − 0.5), fable-cursor's round-56 composition): the
+  // locality's three meshes may be submitted in C, but no pixel of them shows
+  const southPlaced = audit.placed.filter((q) => south.some((d) => d.id === q.id));
+  for (const v of LAYOUT.viewpoints) {
+    const cam = new THREE.PerspectiveCamera(v.fov, 1280 / 720, 0.1, 1000);
+    cam.position.fromArray(v.position);
+    cam.lookAt(new Vector3().fromArray(v.target));
+    cam.updateMatrixWorld();
+    cam.updateProjectionMatrix();
+    for (const q of southPlaced) {
+      if (v.id === 'C_lookback') {
+        assert.ok(q.x >= 0.11 * (q.z - 0.5) + 0.2, `${q.id} inside the wedge plaza-south hides from C (x ${q.x} ≥ ${(0.11 * (q.z - 0.5)).toFixed(2)})`);
+        continue;
+      }
+      for (const h of [0, 1.8]) {
+        const c = new Vector3(q.x, q.y + h, q.z).project(cam);
+        assert.ok(!(Math.abs(c.x) < 1 && Math.abs(c.y) < 1 && c.z > -1 && c.z < 1), `${q.id} outside ${v.id}`);
+      }
+    }
+  }
+  const liveCtx = { terrain: live, layout: ctx.layout, shared: ctx.shared };
+  assert.equal(placementAllowed(liveCtx, 4.14, 45.2, 0.3), false, 'the far path is paving in the live mask');
+  assert.equal(placementAllowed(liveCtx, 4.25, 46.9, 0.3), false, "the log's mouth is structure in the live mask");
+  assert.equal(placementAllowed(ctx, 4.14, 45.2, 0.3), true, 'the legacy mask would have allowed the far path (the reason `live` exists)');
 }
 
 // round 49's expansionCull runs after placement: the bank's top would be culled, nothing placed is
@@ -482,6 +533,9 @@ for (const id of ['door-pot-large', 'sign-pot', 'saria-crate', 'saria-water-buck
   // play-test's straight route snagged the fork marker at (−11.4, 8.25) when it stood 0.25 m off this line)
   const pw = EXPANSION.pathWest;
   corridor("the west fork's shortcut (fork node → landing)", [[pw[3][0], pw[3][2]], [pw[pw.length - 1][0], pw[pw.length - 1][2]]]);
+  // round 56: the south exit — the path to the bridge's north sill (its smoothed line) and the far path to the log's mouth
+  corridor('the south path (spine end → north sill)', xz(southPathLine()));
+  corridor('the far path (south sill → the log)', xz(EXPANSION_SOUTH.farPath));
   console.log(`walk clearance beyond each blocker's radius (m, hook margin 0.12 + body 0.25 = ${WALK}): ${clearances.join(' · ')}`);
 
   // the deck itself: a prop standing on the 0.95 m walkway pinches it; the lane left for Link's
@@ -561,21 +615,28 @@ for (let i = 0; i < first.length; i++) {
 assert.ok(triangles < 200000, `props stay a small part of the scene (${triangles} tris)`);
 assert.equal(audit.triangles, triangles);
 
-// contact: the recorded underside / foot vertices sit EMBED below the sampled ground
+// contact: the recorded underside / foot vertices sit EMBED below the sampled ground — the legacy view
+// for the village, the clearing and the backside; the LIVE view for the south exit's locality (round 56)
 let contacts = 0;
+const liveForContact = createTerrain('live');
 for (const g of one.group.children) {
+  const groundOf = g.name === 'south' ? liveForContact : ctx.terrain;
   for (const mesh of g.children) {
     const p = mesh.geometry.attributes.position;
     for (const i of mesh.geometry.userData.contactIndices ?? []) {
       const v = new Vector3().fromBufferAttribute(p, i);
-      const gap = v.y - ctx.terrain.height(v.x, v.z);
+      const gap = v.y - groundOf.height(v.x, v.z);
       assert.ok(Math.abs(gap + EMBED) < 0.006, `underside contact gap ${gap.toFixed(4)} on ${mesh.name}`);
       contacts++;
     }
   }
 }
 assert.ok(contacts > 300, `real underside geometry is seated (${contacts} contact vertices)`);
-for (const [x, y, z] of audit.samplePositions.bases) assert.ok(Math.abs(ctx.terrain.height(x, z) - y) < 1e-8, 'audited bases touch the terrain');
+for (const [x, y, z] of audit.samplePositions.bases) {
+  // a south exit prop's base is on the live ground (round 56), everything else's on the legacy view
+  const onSouth = PROP_LAYOUT.some((d) => d.live && Math.abs(d.x - x) < 1.1 && Math.abs(d.z - z) < 1.1);
+  assert.ok(Math.abs((onSouth ? liveForContact : ctx.terrain).height(x, z) - y) < 1e-8, `audited bases touch the terrain (${x}, ${z})`);
+}
 // each cluster mesh is compact (frustum culling works per locality)
 for (const g of one.group.children) for (const m of g.children) assert.ok(m.geometry.boundingSphere.radius < (g.name === 'clearing' ? 4.5 : g.name === 'backside' ? 5 : 26), `${m.name} bounding radius ${m.geometry.boundingSphere.radius.toFixed(2)}`);
 

@@ -170,6 +170,8 @@ export function create(ctx: WorldContext): WorldSystem {
     groundMistBillboards: mist.billboards,
     groundMistSheets: mist.sheets,
     midMistCurtains: mist.curtains,
+    /** round 56 (mist.ts): the ravine's pools, on the live ground, drawn only while the camera can see the south locality */
+    south: { mistSheets: mist.south.sheets, mistBillboards: mist.south.billboards, visible: mist.south.visible() },
     godRays: composer !== null,
     fallingLeaves: leaves.count,
     fireflies: motes.count,

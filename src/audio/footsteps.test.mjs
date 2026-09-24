@@ -30,10 +30,10 @@ function loadTs(file) {
 }
 
 const here = path.dirname(new URL(import.meta.url).pathname);
-const { designStep, cadence, strideFor, strengthFor, RUN_SPEED, MIN_STEP_GAP } = loadTs(path.join(here, 'footsteps.ts'));
+const { designStep, designLanding, landingStrength, cadence, strideFor, strengthFor, RUN_SPEED, MIN_STEP_GAP } = loadTs(path.join(here, 'footsteps.ts'));
 const { createRng } = loadTs(path.join(here, '../world/util/prng.ts'));
 
-const SURFACES = ['stone', 'stair', 'grass', 'dirt', 'wood', 'hollow', 'leaf'];
+const SURFACES = ['stone', 'stair', 'grass', 'dirt', 'wood', 'hollow', 'leaf', 'bridge'];
 const rng = (seed) => createRng(seed);
 /** every design of a surface over many seeds, so a rare branch (the plank's creak) is covered too */
 const designs = (surface, running = false, strength = 0.6, n = 40) => Array.from({ length: n }, (_, i) => designStep(surface, strength, running, rng(`step/${surface}/${i}`)));
@@ -79,6 +79,17 @@ test('a stair tread knocks on its log riser and a flagstone does not', () => {
   const timber = (surface) => designs(surface).every((d) => d.parts.some((p) => p.kind === 'body' && p.f0 > 230 && p.f0 < 280 && p.wave === 'sine'));
   assert.equal(timber('stair'), true, 'a stair step should carry the riser timber');
   assert.equal(timber('stone'), false, 'a flagstone path has no timber in it');
+});
+
+test('a plank over a ravine answers lower and longer than a deck on the ground', () => {
+  const low = (surface) => Math.min(...designs(surface).flatMap((d) => d.parts.filter((p) => p.kind === 'body').map((p) => p.f0)));
+  const ring = (surface) => Math.max(...designs(surface).flatMap((d) => d.parts.filter((p) => p.kind === 'body').map((p) => p.decay)));
+  assert.ok(low('bridge') < low('wood') * 0.8, `the bridge's lowest body is ${low('bridge').toFixed(0)} Hz against the deck's ${low('wood').toFixed(0)} — nothing holds it up`);
+  assert.ok(ring('bridge') > ring('wood'), 'and it rings longer');
+  // the rope lashings answer on most steps but not all
+  const rope = designs('bridge').filter((d) => d.parts.some((p) => p.kind === 'noise' && p.q >= 6)).length;
+  assert.ok(rope > 12 && rope < 38, `the rope creaks on ${rope} of 40 steps — it should be most, not all`);
+  assert.equal(designs('wood').filter((d) => d.parts.some((p) => p.kind === 'noise' && p.q >= 6 && p.freq < 500)).length > 0, true, 'a deck plank keeps its own creak');
 });
 
 test('the hollow log rings longer than anything else and sends more to the hall', () => {
@@ -140,6 +151,71 @@ test('the design is a pure function of its seeded stream (no Math.random in the 
   assert.notEqual(a, JSON.stringify(designStep('leaf', 0.7, false, rng('other'))), 'two seeds must differ');
   const source = readFileSync(path.join(here, 'footsteps.ts'), 'utf8') + readFileSync(path.join(here, 'ambience.ts'), 'utf8') + readFileSync(path.join(here, 'graph.ts'), 'utf8');
   assert.equal(/Math\.random\s*\(/.test(source), false, 'world audio must draw from src/world/util/prng.ts only');
+});
+
+test('a landing is both boots at once, deeper and longer than a step', () => {
+  for (const surface of SURFACES) {
+    const energy = (d) => d.parts.reduce((s, p) => s + p.peak * p.peak * p.decay, 0);
+    const steps = designs(surface, true, 0.9);
+    const lands = Array.from({ length: 40 }, (_, i) => designLanding(surface, 0.9, rng(`land/${surface}/${i}`)));
+    for (const d of lands) {
+      // no separate toe: every body arrives inside the first 45 ms
+      const late = d.parts.filter((p) => p.kind === 'body' && p.at > 0.045);
+      assert.equal(late.length, 0, `${surface}: a landing has no heel-to-toe gap, found a body at ${late[0]?.at}`);
+      // Weight under the impact: a body well below the heel's own, ringing much longer. Looked up
+      // by that relationship rather than by "the lowest body in the design" — a surface can already
+      // own a deep one (the bridge's plank over the ravine does), and then the lowest body is not
+      // the one the landing added.
+      const bodies = d.parts.filter((p) => p.kind === 'body');
+      const heel = bodies.filter((p) => p.at <= 0.004).reduce((a, b) => (a.peak > b.peak ? a : b));
+      const sub = bodies.find((p) => Math.abs(p.f0 - heel.f0 * 0.6) < heel.f0 * 0.01 && p.decay > heel.decay * 1.8);
+      assert.ok(sub, `${surface}: no body an octave or so under the heel (${heel.f0.toFixed(0)} Hz, ${heel.decay.toFixed(3)} s) ringing on past it`);
+      assert.ok(d.end > steps[0].end, `${surface}: a landing rings on past a step`);
+    }
+    const mean = (a) => a.reduce((x, y) => x + y, 0) / a.length;
+    assert.ok(mean(lands.map(energy)) > mean(steps.map(energy)) * 1.4, `${surface}: a landing must carry more than a running step`);
+  }
+  // how hard it lands follows the drop, and saturates
+  assert.ok(landingStrength(0) < landingStrength(1) && landingStrength(1) < landingStrength(2), 'a longer fall lands harder');
+  assert.ok(landingStrength(0) >= 0.45 && landingStrength(99) <= 1, 'landing strength stays inside 0.45 … 1');
+});
+
+test('the wind bed is a swell, not a floor: still air is silent', () => {
+  const { swell, GUST_KNEE, CANOPY_FLOOR, HUSH_FLOOR } = loadTs(path.join(here, 'ambience.ts'));
+  assert.equal(swell(0), 0, 'no wind, no bed');
+  assert.equal(swell(GUST_KNEE), 0, 'the knee is where the bed starts, not where it is already on');
+  assert.equal(swell(1), 1, 'a full gust is the full swell');
+  for (let g = 0; g <= 1.0001; g += 0.05) {
+    const v = swell(g);
+    assert.ok(v >= 0 && v <= 1, `swell(${g.toFixed(2)}) = ${v} is outside 0..1`);
+    assert.ok(v >= swell(g - 0.05), 'the swell must not fall as the wind rises');
+  }
+  // the floors are what plays when nothing is happening: they must be inaudible, not merely quiet
+  for (const [name, v] of [['canopy', CANOPY_FLOOR], ['hush', HUSH_FLOOR]]) {
+    assert.ok(20 * Math.log10(v) < -66, `the ${name} floor is ${(20 * Math.log10(v)).toFixed(0)} dB — an always-on bed is what reads as white noise`);
+  }
+});
+
+test('the canopy roll leans upwind, and only leans', () => {
+  const { windLeanFor, WIND_LEAN } = loadTs(path.join(here, 'ambience.ts'));
+  const north = { x: 0, z: -1 };
+  // wind travelling east (+x): it comes from the west, so facing north it arrives on your left
+  assert.ok(windLeanFor(north, { x: 1, z: 0 }) < -0.3, 'facing north, an easterly-travelling wind should lean left');
+  assert.ok(windLeanFor(north, { x: -1, z: 0 }) > 0.3, 'and the other way round');
+  // straight into it or straight away from it: no side at all
+  for (const dir of [north, { x: 0, z: 1 }]) assert.ok(Math.abs(windLeanFor(north, dir)) < 1e-9, 'head-on or from behind the wind has no side');
+  // turning through a full circle traces one cycle and never exceeds the lean
+  const seen = [];
+  for (let a = 0; a < Math.PI * 2; a += Math.PI / 32) {
+    const v = windLeanFor({ x: Math.sin(a), z: Math.cos(a) }, { x: 1, z: 0 });
+    assert.ok(Math.abs(v) <= WIND_LEAN + 1e-9, `|lean| ${Math.abs(v).toFixed(3)} exceeds ${WIND_LEAN} — it is a lean, not a pan`);
+    seen.push(v);
+  }
+  assert.ok(Math.max(...seen) > WIND_LEAN * 0.99 && Math.min(...seen) < -WIND_LEAN * 0.99, 'a full turn should reach both extremes');
+  // it is a lean: the bed never collapses to one side
+  assert.ok(WIND_LEAN <= 0.5, 'wind in a wood is not a point source');
+  // a zero-length direction must not produce NaN
+  assert.equal(Number.isFinite(windLeanFor(north, { x: 0, z: 0 })), true);
 });
 
 test('every step is quiet: nothing in a design can reach full scale on its own', () => {

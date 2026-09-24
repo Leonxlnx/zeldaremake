@@ -18,6 +18,7 @@ import { dressRock, mergeRockParts } from './dressing';
 import { buildRockLedge, type RockLedgeDef } from './ledge';
 import { buildClearingRocks, type ClearingLayout } from './clearing';
 import { buildBacksideRocks } from './backside';
+import { buildRavineRocks } from './ravine';
 import { expansionVisible, sunVector } from '../util/expansionLocality';
 import { PEBBLE_DEFAULTS, PEBBLE_LOOKS, scatterPathPebbles, stairFootPebbles } from './pebbles';
 import { mergeGeometries } from 'three/examples/jsm/utils/BufferGeometryUtils.js';
@@ -1305,6 +1306,24 @@ export async function create(ctx: WorldContext): Promise<WorldSystem> {
     backsideSpheres = backside.spheres(sunDir);
   }
 
+  // --- the south ravine's rock (ravine.ts, the owner's 06:07 rubric for the new area): bedded
+  // outcrops half-sunk into both walls and moss-capped boulders on the floor — seated on the LIVE
+  // terrain (the gorge exists only there), one mesh under the near material, toggled with the same
+  // frustum + shadow-sweep spheres as the backside so the six hero cameras never draw it; own fork
+  const ravine = buildRavineRocks(rng.fork('ravine'), seed, shadeDir);
+  let ravineMesh: Mesh | null = null;
+  let ravineSpheres: Sphere[] = [];
+  if (ravine) {
+    ravineMesh = new Mesh(ravine.geometry, dressingMaterial);
+    ravineMesh.castShadow = true;
+    ravineMesh.receiveShadow = true;
+    ravineMesh.name = 'ravine-rocks';
+    ravineMesh.visible = false;
+    group.add(ravineMesh);
+    const sunDir = sunVector(ctx.config.sun.azimuthDeg, ctx.config.sun.elevationDeg);
+    ravineSpheres = ravine.spheres(sunDir);
+  }
+
   const rubbleSlots: InstanceSlot[] = [];
   const rubbleMeshes = buildInstanced(rubble, rubbleGeos, strataMaterial, 'rubble', true, rubbleSlots);
   const strataSlots: InstanceSlot[] = [];
@@ -1413,6 +1432,8 @@ export async function create(ctx: WorldContext): Promise<WorldSystem> {
     northClearing: clearing ? clearing.stats : null,
     /** the plaza's backside (backside.ts): the south bank's pair / toe step / flight scree, one mesh */
     backside: backside ? backside.stats : null,
+    /** the south ravine's rock (ravine.ts): wall outcrops + floor boulders, one mesh */
+    ravine: ravine ? ravine.stats : null,
     ledgeSource: ledgeInfo.length ? ((ctx.layout as unknown as { rockLedges?: unknown[] }).rockLedges?.length ? 'layout' : 'preview') : 'none',
     rubble: rubble.length,
     strata: strata.length,
@@ -1440,6 +1461,7 @@ export async function create(ctx: WorldContext): Promise<WorldSystem> {
       ledgeFeet: ledgeContacts.map((p) => p.map(rnd)),
       northClearingSeats: clearing ? clearing.contacts.map((p) => p.map(rnd)) : [],
       backsideSeats: backside ? backside.contacts.map((p) => p.map(rnd)) : [],
+      ravineSeats: ravine ? ravine.contacts.map((p) => p.map(rnd)) : [],
     },
     palette: { moss: [P.mossDeep, P.mossBright] },
   }));
@@ -1467,6 +1489,7 @@ export async function create(ctx: WorldContext): Promise<WorldSystem> {
       const show = northVisible(nBox, c.camera.position.x, c.camera.position.z);
       for (const m of ledgeMeshes) m.visible = show;
       if (backsideMesh) backsideMesh.visible = expansionVisible(c.camera, backsideSpheres);
+      if (ravineMesh) ravineMesh.visible = expansionVisible(c.camera, ravineSpheres);
       // round 49 (perf-3): the cap / crevice plants submit only the instances that can reach the frame (materials/sprouts.ts `cull`)
       plants.cull(c.camera);
     },
@@ -1475,6 +1498,7 @@ export async function create(ctx: WorldContext): Promise<WorldSystem> {
       const show = northVisible(nBox, camera.position.x, camera.position.z);
       for (const m of ledgeMeshes) m.visible = show;
       if (backsideMesh) backsideMesh.visible = expansionVisible(camera, backsideSpheres);
+      if (ravineMesh) ravineMesh.visible = expansionVisible(camera, ravineSpheres);
       plants.cull(camera, true);
     },
     dispose() {

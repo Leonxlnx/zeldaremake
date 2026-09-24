@@ -6,9 +6,9 @@
 import { Group, InstancedMesh, Matrix4, Mesh, type Camera } from 'three';
 import { mergeGeometries } from 'three/examples/jsm/utils/BufferGeometryUtils.js';
 import type { WorldContext, WorldSystem } from '../system';
-import { STONE_CIRCLE_STONES } from '../terrain/heightfield';
+import { STONE_CIRCLE_STONES, southRouteSurface, surfaceMask } from '../terrain/heightfield';
 import { northVisible } from '../util/northLocality';
-import { EXPANSION_VISIBLE_M, casterSpheres, expansionCasters, expansionVisible as expansionLocalityVisible, sunVector } from '../util/expansionLocality';
+import { EXPANSION_VISIBLE_M, SOUTH_VISIBLE_M, casterSpheres, expansionCasters, expansionVisible as expansionLocalityVisible, southPathSpheres, southVisible, sunVector } from '../util/expansionLocality';
 import { STONE_NEAR, createStoneMaterial } from './material';
 import { buildStairway, stairFrame, stairToWorld, type StairFrame } from './stairs';
 import { buildLogNosings, createStairTimberMaterial, LOG_FLIGHTS, STAIR_LOGS } from './logNosings';
@@ -23,7 +23,7 @@ import { archNorthLip, archSeam, discField, hollowPath, jointSoil, lawnPocket, l
 import { buildFlowerHeads, type FlowerHead } from './flowers';
 import { STANDING_STONE_SKIRT, buildStandingStone } from './standing-stones';
 import { Noise2D, smoothstep } from '../util/noise';
-import { EXPANSION, EXPANSION_STAIRS, eastSteppingStones, expansionSteppingStones, houseSteppingStones } from '../layout';
+import { EXPANSION, EXPANSION_SOUTH, EXPANSION_STAIRS, eastSteppingStones, expansionSteppingStones, houseSteppingStones, southPathLine } from '../layout';
 import { EAST_VISIBLE_M, eastBoxDistance } from '../util/eastLane';
 
 /** joint-grass tint (materials/sprouts.ts `SproutSpot.jointTint`) per sprout scatter; scatters not listed keep their greens */
@@ -194,6 +194,28 @@ export async function create(ctx: WorldContext): Promise<WorldSystem> {
   const pavingX = placeFlagstones(pcX, stoneMat);
   ctx.progress('hardscape', 0.72);
 
+  // --- round 56 (expansion-south): the path on to the rope bridge, and from it to the log --------
+  // layout `EXPANSION_SOUTH`: out of the spine's end cap between the giants' roots to the north
+  // sill, and the few metres from the south sill to the hollow log's mouth. A fourth pass on its
+  // own stream and box (flagstones.ts region 'south'): its level is the live south route wherever
+  // the legacy mask is under 0.36, so its cells stop at the end cap's pulled edges with a joint
+  // between and every legacy stone stays; the live structure mask cuts it at the sills, round the
+  // posts and at the log's rim. Its mesh and fill are a group of their own, drawn within
+  // SOUTH_VISIBLE_M of the south boxes when the path's spheres meet the frustum.
+  const southGroup = new Group();
+  southGroup.name = 'hardscape-south';
+  group.add(southGroup);
+  const sbbox = { x0: Infinity, x1: -Infinity, z0: Infinity, z1: -Infinity };
+  for (const [x, , z] of [...southPathLine(), ...EXPANSION_SOUTH.farPath]) {
+    sbbox.x0 = Math.min(sbbox.x0, x - 2.6);
+    sbbox.x1 = Math.max(sbbox.x1, x + 2.6);
+    sbbox.z0 = Math.min(sbbox.z0, z - 2.6);
+    sbbox.z1 = Math.max(sbbox.z1, z + 2.6);
+  }
+  const pcS: PavingContext = { terrain: T, frames, rng: rng.fork('paving-south'), seed: ctx.config.seed, bbox: sbbox, density: ctx.quality.density, steppingStones: [], region: 'south' };
+  const pavingS = placeFlagstones(pcS, stoneMat);
+  ctx.progress('hardscape', 0.74);
+
   // --- joint fill --------------------------------------------------------------------------
   // the stepping stones on Saria's grassy ramp are paved discs with no joints: grass and clover
   // run up to each stone's edge in the reference, so neither the soil fill nor the joint sprouts
@@ -214,6 +236,21 @@ export async function create(ctx: WorldContext): Promise<WorldSystem> {
   const jointsN = await buildJointMesh(T, pavedLevelN, nbbox, ctx.textures, ctx.config, ctx.config.seed, { edgeGap: edgeGapAll, onStone: onStoneAll });
   jointsN.mesh.name = 'joint-fill-north';
   group.add(jointsN.mesh);
+  // round 56: the south paving's fill — the south route capped by (1 − legacy level) like the
+  // north's, so the two fills meet edge to edge at the spine's end cap; cut where the structure
+  // mask stands (the sills, the posts, the log's rim)
+  const pavedLevelS = (x: number, z: number) => {
+    const s = southRouteSurface(x, z);
+    if (s <= 0) return 0;
+    const m = surfaceMask(x, z, 'live');
+    if (m.stairs >= 0.5 || m.structure >= 0.5) return 0;
+    return Math.min(s, 1 - pavedLevel(pc, x, z));
+  };
+  const edgeGapS = (x: number, z: number) => Math.min(paving.edgeGap(x, z), pavingS.edgeGap(x, z));
+  const onStoneS = (x: number, z: number) => paving.onStone(x, z) || pavingS.onStone(x, z);
+  const jointsS = await buildJointMesh(T, pavedLevelS, sbbox, ctx.textures, ctx.config, ctx.config.seed, { edgeGap: edgeGapS, onStone: onStoneS });
+  jointsS.mesh.name = 'joint-fill-south';
+  southGroup.add(jointsS.mesh);
 
   // --- sprouts in the joints ---------------------------------------------------------------
   const spots: SproutSpot[] = [];
@@ -902,7 +939,18 @@ export async function create(ctx: WorldContext): Promise<WorldSystem> {
   const casterSpheresE = expansionCasters().flatMap((c) => casterSpheres(c, sunToward));
   const expansionVisible = (camera: Camera) => expansionLocalityVisible(camera, casterSpheresE);
   expansionGroup.visible = expansionVisible(ctx.camera);
-  // the east lane's discs: a fourth mesh (`flagstones-east`, read by character/ground.ts with the
+  // round 56: the south paving, a fourth mesh (`flagstones-south`; character/ground.ts reads it with
+  // the others), with its fill in the south group (util/expansionLocality.ts `southVisible`)
+  const southMesh = new Mesh(pavingS.mesh.geometry, stoneMat);
+  southMesh.name = 'flagstones-south';
+  southMesh.castShadow = paving.mesh.castShadow;
+  southMesh.receiveShadow = paving.mesh.receiveShadow;
+  southMesh.frustumCulled = paving.mesh.frustumCulled;
+  southGroup.add(southMesh);
+  const southSpheres = southPathSpheres((x, z) => T.height(x, z));
+  const southPavingVisible = (camera: Camera) => southVisible(camera, southSpheres);
+  southGroup.visible = southPavingVisible(ctx.camera);
+  // the east lane's discs: a fifth mesh (`flagstones-east`, read by character/ground.ts with the
   // others) in its own group, drawn only from over the plateau (flat 5 cm slabs at 5.2 m+ are not
   // seen from under it) and within EAST_VISIBLE_M of the lane
   const eastGroup = new Group();
@@ -1190,6 +1238,20 @@ export async function create(ctx: WorldContext): Promise<WorldSystem> {
       visible: expansionGroup.visible,
       discTops: pavingE.stones.map((s) => [round(s.x), round(s.topY), round(s.z)]),
     },
+    /** round 56 (expansion-south): the path on to the rope bridge and from it to the log's mouth (hardscape-south group) */
+    south: {
+      flagstones: pavingS.stones.length,
+      seeds: pavingS.stats.seeds,
+      rimStones: pavingS.stats.rim,
+      skippedSteep: pavingS.stats.skippedSteep,
+      triangles: pavingS.triangles,
+      jointFillVertices: jointsS.vertices,
+      bbox: [round(sbbox.x0), round(sbbox.z0), round(sbbox.x1), round(sbbox.z1)],
+      visibleWithinM: SOUTH_VISIBLE_M,
+      spheres: southSpheres.length,
+      visible: southGroup.visible,
+      tops: pavingS.stones.filter((_, i) => i % 6 === 0).map((s) => [round(s.x), round(s.topY), round(s.z)]),
+    },
     /** the east lane's stepping discs on the plateau (hardscape-east group; layout `EXPANSION_EAST`) */
     east: {
       discs: pavingX.steppingStones.length,
@@ -1319,6 +1381,7 @@ export async function create(ctx: WorldContext): Promise<WorldSystem> {
       // 9.11 M, all collapsed to zero area by the shader or off-frame
       sprouts.cull(c.camera);
       expansionGroup.visible = expansionVisible(c.camera);
+      southGroup.visible = southPavingVisible(c.camera);
       eastGroup.visible = eastVisible(c.camera);
     },
     onCameraMove(camera) {
@@ -1328,6 +1391,7 @@ export async function create(ctx: WorldContext): Promise<WorldSystem> {
       monolithMesh.visible = show;
       sprouts.cull(camera, true);
       expansionGroup.visible = expansionVisible(camera);
+      southGroup.visible = southPavingVisible(camera);
       eastGroup.visible = eastVisible(camera);
     },
     dispose() {
@@ -1339,11 +1403,12 @@ export async function create(ctx: WorldContext): Promise<WorldSystem> {
       group.traverse((object) => {
         if (object instanceof InstancedMesh) object.dispose();
         // the joint fills and the flower heads release their own geometry below
-        if (object instanceof Mesh && object !== joints.mesh && object !== jointsN.mesh && object !== flowers.mesh) object.geometry.dispose();
+        if (object instanceof Mesh && object !== joints.mesh && object !== jointsN.mesh && object !== jointsS.mesh && object !== flowers.mesh) object.geometry.dispose();
       });
       stoneMat.dispose();
       joints.dispose();
       jointsN.dispose();
+      jointsS.dispose();
       sproutMat.dispose();
       flowers.dispose();
       group.removeFromParent();

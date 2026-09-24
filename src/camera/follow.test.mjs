@@ -279,3 +279,69 @@ test('a slim post at the camera moves it in along the line; a ridge behind Link 
   assert.ok(st.lift > 0.2, `lift ${st.lift}`);
   assert.ok(ridge.camera.position.y > FOLLOW.eyeHeight + 0.2, `camera y ${ridge.camera.position.y}`);
 });
+
+/**
+ * The owner, 2026-09-23 23:00: "whenever I walk up or down the stairs, it glitches the frames like
+ * up and forth every each step." The walked surface is a staircase, so every input that reads it
+ * raw steps once per tread; the camera's aim, its floor and the collider's lift are eased against
+ * that (follow.ts AIM_TAU / FLOOR_TAU / LIFT_TAU). This walks a flight at run speed and measures
+ * the per-frame ripple — the rms SECOND difference, which is ~0 for a steady glide and large for a
+ * saw-tooth. Before the easing: climbing 1.22°/frame of pitch ripple and 2.26° peak-to-peak;
+ * descending 1.40°, 4.62° peak-to-peak and 237 mm of height in a single frame.
+ */
+function climbFlight({ down = false, tread = 0.3, riser = 0.17, steps = 22, speed = 3.4 } = {}) {
+  const groundAt = (x, z) => {
+    const u = -z;
+    return u <= 0 ? 0 : Math.min(steps, Math.floor(u / tread)) * riser;
+  };
+  const r = rig({ groundAt, heading: down ? 0 : Math.PI });
+  const dt = 1 / 60;
+  const start = down ? -(steps * tread) : 0;
+  r.player.position.set(0, groundAt(0, start), start);
+  r.cam.snap();
+  const ys = [];
+  const pitches = [];
+  for (let i = 0; i < 260; i++) {
+    const z = start + (down ? 1 : -1) * speed * dt * i;
+    r.player.position.set(0, groundAt(0, z), z);
+    r.cam.update(dt);
+    const u = -z;
+    if (u < tread * 2 || u > (steps - 2) * tread) continue;
+    ys.push(r.camera.position.y);
+    const d = r.camera.getWorldDirection(new THREE.Vector3());
+    pitches.push((Math.asin(d.y) * 180) / Math.PI);
+  }
+  const diffs = (a) => a.slice(1).map((v, i) => v - a[i]);
+  const ripple = (a) => {
+    const dd = diffs(diffs(a));
+    return Math.sqrt(dd.reduce((s, v) => s + v * v, 0) / dd.length);
+  };
+  const span = (a) => {
+    const d = diffs(a);
+    return Math.max(...d) - Math.min(...d);
+  };
+  return { frames: ys.length, climb: (ys.at(-1) - ys[0]) / ys.length, yRipple: ripple(ys), ySpan: span(ys), pitchRipple: ripple(pitches), pitchSpan: span(pitches) };
+}
+
+test('climbing a flight at run speed, the camera glides — no per-riser step in height or pitch', () => {
+  const up = climbFlight();
+  assert.ok(up.frames > 60, `frames sampled ${up.frames}`);
+  assert.ok(up.climb > 0.02, `the camera still climbs with the flight (${up.climb.toFixed(4)} m/frame)`);
+  // before the easing: 0.0034 m of height ripple and 1.217 deg of pitch ripple. The orbit height
+  // follows the eased AIM rather than the raw surface, so two lags in series make the climb rate
+  // itself smooth: 0.00051 m.
+  assert.ok(up.yRipple < 0.0015, `height ripple ${up.yRipple.toFixed(5)} m/frame (was 0.0034)`);
+  assert.ok(up.pitchRipple < 0.25, `pitch ripple ${up.pitchRipple.toFixed(5)} deg/frame (was 1.22)`);
+  assert.ok(up.pitchSpan < 0.8, `pitch peak-to-peak ${up.pitchSpan.toFixed(4)} deg/frame (was 2.26)`);
+});
+
+test('descending a flight at run speed, the camera never drops a riser in one frame', () => {
+  const dn = climbFlight({ down: true });
+  assert.ok(dn.frames > 60, `frames sampled ${dn.frames}`);
+  assert.ok(dn.climb < -0.01, `the camera still descends with the flight (${dn.climb.toFixed(4)} m/frame)`);
+  // before the easing: 0.0564 m ripple, 0.2365 m peak-to-peak — a whole 0.17 m riser inside a frame
+  assert.ok(dn.yRipple < 0.012, `height ripple ${dn.yRipple.toFixed(5)} m/frame (was 0.056)`);
+  assert.ok(dn.ySpan < 0.09, `height peak-to-peak ${dn.ySpan.toFixed(4)} m/frame (was 0.237, the riser is 0.17)`);
+  assert.ok(dn.pitchRipple < 0.3, `pitch ripple ${dn.pitchRipple.toFixed(5)} deg/frame (was 1.40)`);
+  assert.ok(dn.pitchSpan < 1.4, `pitch peak-to-peak ${dn.pitchSpan.toFixed(4)} deg/frame (was 4.62)`);
+});

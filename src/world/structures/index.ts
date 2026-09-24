@@ -15,6 +15,8 @@ import { buildFence, createRopeMaterial } from './fence';
 import { buildDistantHouses, distantGlowPeak } from './distantHouse';
 import { buildEast } from './east';
 import { buildExpansion, EXPANSION_VISIBLE_M } from './expansion';
+import { buildExpansionSouth } from './expansionSouth';
+import { SOUTH_VISIBLE_M } from '../util/expansionLocality';
 import { consolidateStaticMeshes } from './geometry';
 import { buildHouse, type HouseSharedMaterials } from './house';
 import { swingLanterns, type LanternRig } from './lantern';
@@ -174,6 +176,18 @@ export async function create(ctx: WorldContext): Promise<WorldSystem> {
   }
   ctx.shared.walkSurfaces = [...(ctx.shared.walkSurfaces ?? []), ...expansion.houses.walk];
 
+  // ---- round 56 (expansion-south): the village's way out — the rope bridge over the ravine and the
+  // glowing hollow log in the far bank (expansionSouth.ts). Own fork after every stream above; its
+  // group is consolidated apart and hidden beyond SOUTH_VISIBLE_M of the south boxes or when
+  // neither it nor its shadow footprint meets the camera frustum (util/expansionLocality.ts). No
+  // lights: the pods and the log's inside glow are emissive. The deck and the log's floor go to
+  // ctx.shared.walkSpans for the character ground. ----
+  const south = await buildExpansionSouth(ctx, mats, rng.fork('expansion-south'), rope);
+  lanterns.push(...south.lanterns);
+  bases.push(...south.bases);
+  owned.push(...south.owned);
+  ctx.shared.walkSpans = [...(ctx.shared.walkSpans ?? []), ...south.walkSpans];
+
   // ---- round 56 (exp-east): the lane on the east plateau past the main stairway's head — the shop,
   // the tall house with its deck, the small house, two pod posts, the lookout (east.ts). Own forks
   // after every stream above; no point lights (the pods and room glow are emissive); its tiers are
@@ -187,7 +201,7 @@ export async function create(ctx: WorldContext): Promise<WorldSystem> {
 
   // the play camera's solids (cameraSolids.ts), voxelised from the parts by name before the merges
   // below rename them; never under a headless capture
-  const cameraSolids = ctx.headless ? null : buildCameraSolids([group, north, expansion.group, east.group], limbSpheres(ctx.shared.lanternLimb));
+  const cameraSolids = ctx.headless ? null : buildCameraSolids([group, north, expansion.group, south.group, east.group], limbSpheres(ctx.shared.lanternLimb));
   if (cameraSolids) ctx.shared.cameraSolids = { solid: cameraSolids.solid, slim: cameraSolids.slim };
 
   // ---- draw-call budget: fold the static parts into one mesh per material (+ shadow flags) ----
@@ -229,7 +243,11 @@ export async function create(ctx: WorldContext): Promise<WorldSystem> {
   group.add(expansion.group);
   expansion.near.visible = expansion.visible(ctx.camera);
   expansion.far.visible = expansion.farVisible(ctx.camera);
-  for (const d of [expansionNearDraws, expansionFarDraws]) {
+  // round 56: the south group merged on its own too (its buckets span the bridge and the log, 30–55 m south)
+  const southDraws = consolidateStaticMeshes(south.group, (m) => m.name === 'pod-lantern');
+  group.add(south.group);
+  south.group.visible = south.visible(ctx.camera);
+  for (const d of [expansionNearDraws, expansionFarDraws, southDraws]) {
     draws.before += d.before;
     draws.after += d.after;
     draws.merged += d.merged;
@@ -247,12 +265,12 @@ export async function create(ctx: WorldContext): Promise<WorldSystem> {
    * the village again would show here as a radius ≥ 15 m.
    */
   const mergedBuckets = () => {
-    const out: { name: string; group: 'hero' | 'distant' | 'north' | 'expansion' | 'east'; centre: [number, number, number]; radius: number; triangles: number }[] = [];
-    const visit = (root: Object3D, which: 'hero' | 'distant' | 'north' | 'expansion' | 'east') => {
+    const out: { name: string; group: 'hero' | 'distant' | 'north' | 'expansion' | 'south' | 'east'; centre: [number, number, number]; radius: number; triangles: number }[] = [];
+    const visit = (root: Object3D, which: 'hero' | 'distant' | 'north' | 'expansion' | 'south' | 'east') => {
       root.traverse((o) => {
         const m = o as Mesh;
         if (!m.isMesh) return;
-        if (which === 'hero' && (!m.name.startsWith('merged:') || distant.group.getObjectById(m.id) || north.getObjectById(m.id) || expansion.group.getObjectById(m.id) || east.group.getObjectById(m.id))) return;
+        if (which === 'hero' && (!m.name.startsWith('merged:') || distant.group.getObjectById(m.id) || north.getObjectById(m.id) || expansion.group.getObjectById(m.id) || south.group.getObjectById(m.id) || east.group.getObjectById(m.id))) return;
         const g = m.geometry;
         if (!g.boundingSphere) g.computeBoundingSphere();
         const s = g.boundingSphere!;
@@ -269,6 +287,7 @@ export async function create(ctx: WorldContext): Promise<WorldSystem> {
     visit(distant.group, 'distant');
     visit(north, 'north');
     visit(expansion.group, 'expansion');
+    visit(south.group, 'south');
     visit(east.group, 'east');
     return out;
   };
@@ -369,6 +388,8 @@ export async function create(ctx: WorldContext): Promise<WorldSystem> {
       farVisible: expansion.far.visible,
       bases: expansion.bases,
     },
+    /** round 56 (expansion-south): the rope bridge over the ravine and the hollow log in the far bank (expansionSouth.ts); drawn only within `visibleWithinM` of the south boxes, in the frustum */
+    south: { ...south.audit, draws: southDraws.after, visibleWithinM: SOUTH_VISIBLE_M, visible: south.group.visible },
     /** round 56 (exp-east): the east plateau's lane — three houses, the deck, the shop's counter / sign / crates, pod posts, the lookout (east.ts) */
     east: east.audit(),
     logArch: true,
@@ -448,12 +469,14 @@ export async function create(ctx: WorldContext): Promise<WorldSystem> {
       north.visible = northVisible(c.camera.position.x, c.camera.position.z);
       expansion.near.visible = expansion.visible(c.camera);
       expansion.far.visible = expansion.farVisible(c.camera);
+      south.group.visible = south.visible(c.camera);
       east.update(c.camera);
     },
     onCameraMove(camera) {
       north.visible = northVisible(camera.position.x, camera.position.z);
       expansion.near.visible = expansion.visible(camera);
       expansion.far.visible = expansion.farVisible(camera);
+      south.group.visible = south.visible(camera);
       east.update(camera);
     },
     dispose() {

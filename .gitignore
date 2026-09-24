@@ -1,4 +1,6 @@
 node_modules/
+# worktrees link node_modules; a trailing-slash pattern does not match the link itself
+/node_modules
 dist/
 .vite/
 *.log

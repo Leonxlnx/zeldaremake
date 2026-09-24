@@ -1,0 +1,21 @@
+{
+ "pose": "play-mode spawn after 5 s wall time (pool-check.mjs)",
+ "before_907aca4e": {
+  "wanted": 374,
+  "resident": 173,
+  "pending": 216,
+  "built": 63,
+  "syncBuilds": 63,
+  "workMsMax": 6.9,
+  "workMsTotal": 7
+ },
+ "after_94d96536": {
+  "wanted": 374,
+  "resident": 390,
+  "pending": 0,
+  "built": 280,
+  "syncBuilds": 63,
+  "workMsMax": 1440.3,
+  "workMsTotal": 1440.4
+ }
+}

@@ -7,9 +7,10 @@
  * Owner: terrain agent. Interface (`Terrain`) is frozen; implementation may be refined.
  */
 import { Vector3 } from 'three';
-import { EAST_BOX, EXPANSION, EXPANSION_BOX, EXPANSION_EAST, EXPANSION_STAIRS, LAYOUT, eastDeckPlan, eastHouseBlocks, eastShopSpots, eastSteppingStones, expansionSteppingStones, houseSteppingStones, southBankFrameVectors, type StairDef } from '../layout';
+import { EAST_BOX, EXPANSION, EXPANSION_BOX, EXPANSION_EAST, EXPANSION_SOUTH, EXPANSION_SOUTH_BOXES, EXPANSION_STAIRS, LAYOUT, eastDeckPlan, eastHouseBlocks, eastShopSpots, eastSteppingStones, expansionSteppingStones, houseSteppingStones, inExpansionSouth, southBankFrameVectors, southBridgeFrame, southPathHalfWidth, southPathLine, type StairDef } from '../layout';
 import { WORLD } from '../config';
 import { Noise2D, smoothstep, clamp, lerp } from '../util/noise';
+import { BERM_BELOW_AXIS, bankHeight, bridgeDeckY, bridgeLocal, ravineProfile, tunnelBerm, tunnelCarve, tunnelFootprint, tunnelLocal } from './south';
 
 /**
  * Round 49 (expansion-2): the heightfield has two VIEWS of the same world.
@@ -710,6 +711,88 @@ export function expansionDiscMask(x: number, z: number): number {
   return m > 0 ? m * cClip(x, z) : 0;
 }
 
+/**
+ * Round 56 (expansion-south, live view only): the south route's height profiles. The path from
+ * the spine's end to the bridge follows the landform along its line smoothed over ± 3 m, eased
+ * out of the spine's end level (0) over its first 5 m; the far route (south sill → the log's
+ * mouth) is level at the landform's mean along it — the tunnel floor's height (`SOUTH_FLOOR_Y`).
+ */
+const SOUTH_ROUTE = (() => {
+  const line = southPathLine();
+  const s: number[] = [0];
+  for (let i = 1; i < line.length; i++) s.push(s[i - 1] + Math.hypot(line[i][0] - line[i - 1][0], line[i][2] - line[i - 1][2]));
+  const raw = line.map((p) => landform(p[0], p[2]).h);
+  const pts: P3[] = line.map((p, i) => {
+    let sum = 0;
+    let n = 0;
+    for (let j = 0; j < line.length; j++) {
+      if (Math.abs(s[j] - s[i]) <= 3) {
+        sum += raw[j];
+        n++;
+      }
+    }
+    return [p[0], lerp(0, sum / n, smoothstep(0, 5, s[i])), p[2]] as P3;
+  });
+  const S = EXPANSION_SOUTH;
+  const far: [number, number][] = [...S.farPath.map((p) => [p[0], p[2]] as [number, number]), [S.tunnel.mouth[0], S.tunnel.mouth[1]]];
+  let sum = 0;
+  let n = 0;
+  for (let i = 0; i + 1 < far.length; i++) {
+    const len = Math.hypot(far[i + 1][0] - far[i][0], far[i + 1][1] - far[i][1]);
+    const k = Math.max(1, Math.ceil(len / 0.3));
+    for (let j = 0; j < k; j++) {
+      const t = j / k;
+      sum += landform(far[i][0] + (far[i + 1][0] - far[i][0]) * t, far[i][1] + (far[i + 1][1] - far[i][1]) * t).h;
+      n++;
+    }
+  }
+  const floorY = sum / n;
+  const farPts: P3[] = far.map(([x, z]) => [x, floorY, z] as P3);
+  return { pts, total: s[s.length - 1], farPts, floorY };
+})();
+/** the south route's ground levels: the path's end at the north sill, the far route / tunnel floor (live view) */
+export const SOUTH_FLOOR_Y = SOUTH_ROUTE.floorY;
+export const SOUTH_NORTH_SILL_Y = SOUTH_ROUTE.pts[SOUTH_ROUTE.pts.length - 1][1];
+const SOUTH_BRIDGE_LEN = southBridgeFrame().len;
+const [SP_BOX, , SB_BOX] = EXPANSION_SOUTH_BOXES;
+const inBox = (b: { x0: number; x1: number; z0: number; z1: number }, x: number, z: number) => x >= b.x0 && x <= b.x1 && z >= b.z0 && z <= b.z1;
+
+/**
+ * The south route's paved surface and flattening (live view only; `pathInfluence`): the strip from
+ * the spine's end to the north sill (half width `southPathHalfWidth`), the far route to the mouth,
+ * and the level apron in front of the log. The paving stops at each sill (the deck starts there).
+ */
+function southRoute(x: number, z: number) {
+  let dist = Infinity;
+  let hw = 1;
+  let y = 0;
+  let clip = 1;
+  if (inBox(SP_BOX, x, z)) {
+    const sp = closestOnPolyline(SOUTH_ROUTE.pts, x, z);
+    dist = sp.dist;
+    hw = southPathHalfWidth(sp.t * SOUTH_ROUTE.total);
+    y = sp.y;
+    clip = 1 - smoothstep(0.1, 0.5, bridgeLocal(x, z).a);
+  }
+  let apron = 0;
+  if (inBox(SB_BOX, x, z)) {
+    const fp = closestOnPolyline(SOUTH_ROUTE.farPts, x, z);
+    const fhw = EXPANSION_SOUTH.farPathHalfWidth;
+    if (fp.dist - fhw < dist - hw) {
+      dist = fp.dist;
+      hw = fhw;
+      y = SOUTH_ROUTE.floorY;
+      // stops at the south sill, and at the log's rim (the built floor carries on inside)
+      const tl = tunnelLocal(x, z);
+      clip = smoothstep(SOUTH_BRIDGE_LEN - 0.5, SOUTH_BRIDGE_LEN - 0.1, bridgeLocal(x, z).a) * (1 - smoothstep(-0.55, -0.25, tl.a));
+    }
+    // the level apron in front of the mouth (and a little under the rim)
+    const tl = tunnelLocal(x, z);
+    if (tl.a < 1.2 && tl.a > -4) apron = (1 - smoothstep(1.9, 3.1, Math.hypot(Math.min(tl.a + 0.6, 0) * 1.3, tl.c))) * (1 - smoothstep(0.6, 1.2, tl.a));
+  }
+  return { dist, hw, y, clip, apron };
+}
+
 /** the east lane's stepping discs (layout `EXPANSION_EAST`) */
 const EAST_STONES = eastSteppingStones();
 const EAST_STONES_BOX = (() => {
@@ -766,9 +849,26 @@ function pathInfluence(x: number, z: number, live = false) {
       paved = true;
     }
   }
+  // round 56 (live view): the south route — the nearest branch wherever its margin beats the spine's
+  let southClip = 1;
+  let southApron = 0;
+  if (live && z > 10 && inExpansionSouth(x, z)) {
+    const sr = southRoute(x, z);
+    southApron = sr.apron;
+    if (sr.dist - sr.hw < best.dist - bhw) {
+      best = { dist: sr.dist, y: sr.y, t: 0 };
+      bhw = sr.hw;
+      paved = true;
+      southClip = sr.clip;
+    }
+  }
   let weight = 1 - smoothstep(bhw * 0.8, bhw * 1.9, best.dist);
-  let surface = paved ? 1 - smoothstep(bhw * 0.85, bhw * 1.05, best.dist) : steppingStoneMask(x, z);
+  let surface = paved ? (1 - smoothstep(bhw * 0.85, bhw * 1.05, best.dist)) * southClip : steppingStoneMask(x, z);
   let y = best.y;
+  if (southApron > weight) {
+    y = lerp(y, SOUTH_ROUTE.floorY, (southApron - weight) / Math.max(southApron, 1e-6));
+    weight = southApron;
+  }
   // plaza discs: paved surface out to each radius, flattened (to y = 0) a little beyond it
   let plazaSurface = 0;
   let plazaWeight = 0;
@@ -1024,6 +1124,48 @@ function macroHeight(x: number, z: number, live = false) {
     }
   }
 
+  // Round 56 (live view only): the south exit (layout `EXPANSION_SOUTH`, terrain/south.ts) — the
+  // far bank's mound the log burrows into, the hollow carved under the log's floor deck, and the
+  // ravine cut into everything (the paths stop short of its lip). The ravine's walls are an
+  // embankment for the detail passes (gullies down the fall line toward the centreline, ledges).
+  let ravineBank = 0;
+  let ravineFx = 0;
+  let ravineFz = 0;
+  if (live && z > 10 && inExpansionSouth(x, z)) {
+    if (inBox(SB_BOX, x, z)) {
+      const tl = tunnelLocal(x, z);
+      h += bankHeight(x, z);
+      const berm = tunnelBerm(tl.a, tl.c);
+      if (berm > 0) h = Math.max(h, lerp(h, SOUTH_ROUTE.floorY + EXPANSION_SOUTH.tunnel.axisY - BERM_BELOW_AXIS, berm));
+      const carve = tunnelCarve(tl.a, tl.c, h, SOUTH_ROUTE.floorY);
+      if (carve.w > 0) {
+        h = lerp(h, carve.y, carve.w);
+        logW = Math.max(logW, carve.w);
+      }
+      // the mouth's threshold, from the paving's end to past the rim: no breakup or detail pass —
+      // the log's floor deck starts level with the apron here (the breakup left it ± 20 cm)
+      logW = Math.max(logW, smoothstep(-1.4, -0.8, tl.a) * (1 - smoothstep(0.9, 1.4, tl.a)) * (1 - smoothstep(1.35, 1.95, Math.abs(tl.c))));
+    }
+    const rp = ravineProfile(x, z);
+    if (rp && rp.cut > 0) {
+      // the floor: boulder lumps and a stony bed, strongest where the walls meet it
+      const floorLumps = rp.g * rp.g * (0.22 * medium.fbm(x * 0.5 + 13, z * 0.5 - 6, 2) + 0.12 * fine.noise(x * 1.3, z * 1.3));
+      h -= rp.cut - floorLumps;
+      ravineBank = rp.wall * 0.55 * clamp(rp.hit.D / 8, 0.4, 1);
+      ravineFx = rp.fx;
+      ravineFz = rp.fz;
+    }
+    // under the deck's first metres the lip's rounded shoulder falls slower than the deck sags:
+    // the ground there is held 0.16 m under the deck line (planks 5.5 cm), fading out past the deck's edge
+    const bl = bridgeLocal(x, z);
+    if (bl.a > 0.1 && bl.a < SOUTH_BRIDGE_LEN - 0.1 && Math.abs(bl.c) < 1.25) {
+      const w = (1 - smoothstep(0.75, 1.25, Math.abs(bl.c))) * smoothstep(0.1, 0.45, bl.a) * (1 - smoothstep(SOUTH_BRIDGE_LEN - 0.45, SOUTH_BRIDGE_LEN - 0.1, bl.a));
+      const B = EXPANSION_SOUTH.bridge;
+      const ny = bridgeDeckY(bl.a, SOUTH_NORTH_SILL_Y + B.sill, SOUTH_FLOOR_Y + B.sill) - 0.16;
+      if (w > 0 && h > ny) h = lerp(h, ny, w);
+    }
+  }
+
   // how much authored flat surface is here (detail passes fade out on it); the south bank's toe
   // strip counts as one so the paving edge and the foot of the bank stay at plaza level
   const suppress = clamp(Math.max(p.surface, stairW, padW, logW, p.toe), 0, 1);
@@ -1039,6 +1181,10 @@ function macroHeight(x: number, z: number, live = false) {
       const pt = { ...p, bankDx: SOUTH_TERRACE.faceX, bankDz: SOUTH_TERRACE.faceZ };
       return { h, land, p: pt, suppress, logW, embank: Math.max(land.embank, terraceBank) * (1 - suppress), discBank: terraceBank, hwBank };
     }
+  }
+  if (ravineBank > discBank) {
+    const pr = { ...p, bankDx: ravineFx, bankDz: ravineFz };
+    return { h, land, p: pr, suppress, logW, embank: Math.max(land.embank, ravineBank) * (1 - suppress), discBank: ravineBank, hwBank };
   }
   return { h, land, p, suppress, logW, embank: Math.max(land.embank, discBank) * (1 - suppress), discBank, hwBank };
 }
@@ -1228,6 +1374,8 @@ export function surfaceMask(x: number, z: number, view: TerrainView = 'legacy'):
       const d = Math.hypot(x - s.x, z - s.z);
       if (d < s.r1) structure = Math.max(structure, 1 - smoothstep(s.r0, s.r1, d));
     }
+    // round 56: the log's shell, the bridge's sill beams and its four end posts
+    if (z > 10 && inExpansionSouth(x, z)) structure = Math.max(structure, southStructure(x, z));
     if (x >= EAST_BOX.x0 && x <= EAST_BOX.x1 && z >= EAST_BOX.z0 && z <= EAST_BOX.z1) {
       for (const s of EAST_STRUCTURES) {
         const d = Math.hypot(x - s.x, z - s.z);
@@ -1251,6 +1399,37 @@ export function surfaceMask(x: number, z: number, view: TerrainView = 'legacy'):
   return { path: p.surface, stairs, structure };
 }
 
+/** round 56 (live): 1 on the log tunnel's shell footprint, the bridge's sill beams and end posts */
+function southStructure(x: number, z: number): number {
+  if (inBox(SB_BOX, x, z)) {
+    const tl = tunnelLocal(x, z);
+    if (tunnelFootprint(tl.a, tl.c) > 0) return 1;
+  }
+  const B = EXPANSION_SOUTH.bridge;
+  const bl = bridgeLocal(x, z);
+  if (Math.abs(bl.c) > B.postOut + 0.4 || bl.a < -1 || bl.a > SOUTH_BRIDGE_LEN + 1) return 0;
+  for (const [a0, ap] of [
+    [0, -B.postBack],
+    [SOUTH_BRIDGE_LEN, SOUTH_BRIDGE_LEN + B.postBack],
+  ]) {
+    if (Math.abs(bl.a - a0) < 0.32 && Math.abs(bl.c) < B.deckHalfWidth + 0.3) return 1;
+    for (const cs of [-1, 1]) if (Math.hypot(bl.a - ap, bl.c - cs * B.postOut) < 0.24) return 1;
+  }
+  return 0;
+}
+
+/**
+ * Round 56: the south route's paved level alone (live view) — the strip from the spine's end to
+ * the north sill and the far route to the log's mouth, 0 elsewhere (hardscape's `south` paving
+ * pass lays exactly this, joined to the legacy paving at the spine's end cap).
+ */
+export function southRouteSurface(x: number, z: number): number {
+  if (z <= 10 || !inExpansionSouth(x, z)) return 0;
+  const sr = southRoute(x, z);
+  if (!Number.isFinite(sr.dist)) return 0;
+  return (1 - smoothstep(sr.hw * 0.85, sr.hw * 1.05, sr.dist)) * sr.clip;
+}
+
 /**
  * Round 49 — for the streams that build against the LEGACY view (trees, vegetation, rocks, props;
  * src/world/index.ts): true where a legacy-placed instance would now stand IN the expansion —
@@ -1269,6 +1448,28 @@ export function surfaceMask(x: number, z: number, view: TerrainView = 'legacy'):
  * every later draw.
  */
 export function expansionCull(x: number, z: number, lift = 0.3, east = true): boolean {
+  // round 56: the south exit (`EXPANSION_SOUTH_BOXES`) — its paving, the log / sills / posts, and
+  // wherever its live ground left the legacy ground (the ravine, the mound, the carve)
+  // (an instance left FLOATING over lowered ground reads worse than one sunk a little: 4 cm down
+  // culls — a leaf or a pebble that far up casts a detached shadow, and W07's litter gap is 5 cm —
+  // `lift` up)
+  if (z > 10 && inExpansionSouth(x, z)) {
+    if (southRouteSurface(x, z) > 0.5 || southStructure(x, z) > 0.5) return true;
+    const rp = ravineProfile(x, z);
+    if (rp && rp.cut > 0.04) return true;
+    const dh = getTerrain().height(x, z) - getLegacyTerrain().height(x, z);
+    if (dh < -0.04 || dh > lift) return true;
+  }
+  return westExpansionCull(x, z, lift, east);
+}
+
+/**
+ * `expansionCull` without the south exit's rules: the round-49 expansion alone (the west bank, the
+ * stepping discs, the far hut's knoll), and the east lane with `east`. Its box overlaps the south
+ * exit's first box (x −6.6…−2.7, z 10.8…25.7), so a stream that must keep the set it drew before
+ * round 56 filters by this.
+ */
+export function westExpansionCull(x: number, z: number, lift = 0.3, east = true): boolean {
   const F = EXPANSION.farHut;
   const onKnoll = Math.hypot(x - F.host[0], z - F.host[1]) < EXPANSION.farHutRise.radius + 0.5;
   const inWest = onKnoll || (x >= EXPANSION_BOX.x0 && x <= EXPANSION_BOX.x1 && z >= EXPANSION_BOX.z0 && z <= EXPANSION_BOX.z1);
@@ -1284,6 +1485,44 @@ export function expansionCull(x: number, z: number, lift = 0.3, east = true): bo
   if ((m.path > 0.5 && l.path <= 0.5) || (m.stairs > 0.5 && l.stairs <= 0.5) || (m.structure > 0.5 && l.structure <= 0.5)) return true;
   return Math.abs(getTerrain().height(x, z) - getLegacyTerrain().height(x, z)) > lift;
 }
+
+/**
+ * Round 56: a legacy-sampled trunk's footing on the south exit's LIVE ground — null outside
+ * `EXPANSION_SOUTH_BOXES` (`expansionCull` decides there). 'cull' where its point or a ring `reach`
+ * m out touches the paving or the log / sills / posts, where the gorge cuts more than
+ * `SOUTH_LIP_SINK_M` under it or a ring `lipReach` m out (the bole's own rim: a tree may stand at
+ * the gorge's edge, its base sunk that much at most), or where the live ground is steeper than
+ * 0.55 (the white-barks' own rule, trees/placement.ts); 'keep' where both views agree; 'live'
+ * where the live ground left the legacy one (the far bank's rise, the lip's first centimetres):
+ * the trunk stands on it at its centre's height, like every sampled stem (W12 audits the base
+ * there), and is dropped instead where the ground under its rim ring falls further than its
+ * below-ground skirt reaches (`SOUTH_RIM_FALL_M`).
+ */
+export function southFooting(x: number, z: number, reach: number, lipReach = reach): 'keep' | 'live' | 'cull' | null {
+  if (!(z > 10 && inExpansionSouth(x, z))) return null;
+  const built = (px: number, pz: number) => southRouteSurface(px, pz) > 0.5 || southStructure(px, pz) > 0.5;
+  const cut = (px: number, pz: number) => ravineProfile(px, pz)?.cut ?? 0;
+  if (built(x, z)) return 'cull';
+  const live = getTerrain();
+  const y = live.height(x, z);
+  let deepest = cut(x, z);
+  let fall = 0;
+  for (let i = 0; i < 8; i++) {
+    const t = (i / 8) * Math.PI * 2;
+    const cx = Math.cos(t);
+    const sz = Math.sin(t);
+    if (built(x + cx * reach, z + sz * reach)) return 'cull';
+    deepest = Math.max(deepest, cut(x + cx * lipReach, z + sz * lipReach));
+    fall = Math.max(fall, y - live.height(x + cx * lipReach, z + sz * lipReach));
+  }
+  if (deepest > SOUTH_LIP_SINK_M || live.slope(x, z) > 0.55) return 'cull';
+  if (deepest <= 0.04 && Math.abs(y - getLegacyTerrain().height(x, z)) <= 0.02) return 'keep';
+  return fall > SOUTH_RIM_FALL_M ? 'cull' : 'live';
+}
+/** the deepest the gorge may cut under a trunk's rim at the lip before it is dropped (m) */
+const SOUTH_LIP_SINK_M = 0.35;
+/** the furthest the live ground may fall under a live-seated trunk's rim ring (`lipReach`) (m) — inside the boles' 0.5–0.6 m below-ground skirts */
+const SOUTH_RIM_FALL_M = 0.45;
 
 const _n = new Vector3();
 

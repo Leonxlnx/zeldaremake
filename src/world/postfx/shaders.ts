@@ -148,6 +148,7 @@ uniform float uMaxDist;
 uniform vec4 uFogParams;   // baseHeight, falloff, northStartZ, northFullZ
 uniform vec2 uDensity;     // height-fog density weight, base air density
 uniform vec2 uAirFade;     // world heights (m) between which the base-air in-scatter fades in
+uniform vec2 uAirNear;     // marched distances (m) over which the AMBIENT base air ramps in (x >= y disables)
 uniform vec2 uMistNear;    // marched distances (m) between which the mist-layer in-scatter ramps in (x >= y disables)
 uniform vec2 uColumnNear;  // marched distances (m) over which a gained column's extra gain fades in
 uniform vec2 uAltitude;    // aerosol profile: uniform height (m), scale height (m) above it
@@ -238,7 +239,16 @@ void main() {
     // stays lit down to the ground — the reference's F shafts land on the stairs. The plain plaza
     // columns keep the fade: shot D's rays to the arch cross their 2.5–4 m air, and lighting it
     // striped the arch body
-    float upperAir = max( smoothstep( uAirFade.x, uAirFade.y, pw.y ), clamp( column - 1.0, 0.0, 1.0 ) );
+    // 2026-09-24 (the owner, 23:00: the lantern bough "just looks like a dead branch", the trunks
+    // "cut in half, the top blurry and the bottom alright", the canopy "strange" when he looks up).
+    // Isolated at his pose: with the rays off the bough band drops 17-18 levels and reads as wood,
+    // while the ground mist is worth 0.8 and the height fog almost nothing there — the AMBIENT base
+    // air is what washes the near field. The 09-15 attempt cut uRayIntensity and was backed out
+    // because it dimmed the shafts too. This ramps the ambient air in with marched distance the way
+    // the mist layer already can, and leaves a gained column (a real shaft, shafts.ts) alone at
+    // every distance, so the beams are untouched and only the air between them thins near the eye.
+    float airNear = uAirNear.y > uAirNear.x ? smoothstep( uAirNear.x, uAirNear.y, t ) : 1.0;
+    float upperAir = max( smoothstep( uAirFade.x, uAirFade.y, pw.y ) * airNear, clamp( column - 1.0, 0.0, 1.0 ) );
     // optional ramp of the mist-layer in-scatter along the ray (see ComposerSettings.rayMistNearStart;
     // off in production): with every surface black the rays + mist add 0.05 display to D's 9–17 m
     // floor (0.209 → 0.260) and 0.02 to B's, but ramping the mist in over 6–18 m cost −0.006 SSIM

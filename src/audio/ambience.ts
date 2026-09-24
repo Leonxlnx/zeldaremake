@@ -43,6 +43,14 @@ export interface AmbienceState {
   forward: { x: number; z: number };
   /** pod lantern positions (world) */
   pods: readonly Vec3[];
+  /** fairy positions (world) — they move, so this is read fresh every frame */
+  fairies?: readonly Vec3[];
+  /** 0 out in the open, 1 with wood closed over the listener (inside the log tunnel's bore) */
+  enclosure?: number;
+  /** 0 under open sky, 1 under a closed canopy (index.ts `surfaceAt`) */
+  canopy?: number;
+  /** the direction the wind travels (unit xz, `wind.direction`) — the canopy roll comes from upwind */
+  windDir?: { x: number; z: number };
 }
 
 export interface Ambience {
@@ -50,7 +58,20 @@ export interface Ambience {
   scheduleUntil(t: number): void;
   /** set the continuous parameters as of context time t */
   update(t: number, state: AmbienceState): void;
+  /** what the forest has done so far, for the play-mode evidence (`__ZR_AUDIO__.stats()`) */
+  stats(): AmbienceStats;
   dispose(): void;
+}
+
+export interface AmbienceStats {
+  /** bird calls, leaf flutters and fairy glints sounded since the context started */
+  birds: number;
+  flutters: number;
+  glints: number;
+  /** fairies the listener can currently hear */
+  fairiesNear: number;
+  /** where the canopy roll is sitting: −1 hard left, +1 hard right (the wind's lean) */
+  windLean: number;
 }
 
 /** the lantern flame's distance scale (m: half level this far from one pod) and its peak level */
@@ -60,14 +81,75 @@ export const LANTERN_LEVEL = 0.055;
 export const LANTERN_CROWD_SHARE = 0.2;
 
 /**
- * The wind bed's levels: the floor in still air and how much the gust adds. The gust share is six
- * times the floor, so the wood is nearly quiet between gusts — an always-on bed is what a listener
- * stops hearing as air and starts hearing as noise.
+ * The wind bed's levels.
+ *
+ * 2026-09-23, owner 20:08: "LOWER THE WHITE NOISE" — after the bed had already been cut 11 dB that
+ * morning. Cutting it again was the wrong lever: measured on the head's offline stems, the quietest
+ * tenth of every frame of the WHOLE MIX was the bed and nothing else (1–2 kHz: bed −73.3 dBFS,
+ * music −93.6; 2–6 kHz: bed −81.1, music −96.3). The music is louder but it has gaps; the bed never
+ * stopped, and a sound that never stops is the one a listener ends up calling white noise however
+ * quiet it is.
+ *
+ * So the bed is now a SWELL, not a floor. Below `GUST_KNEE` the wind layers are silent — not faint,
+ * silent — and what is left of the forest between gusts is its events: leaves, birds, boots. Above
+ * the knee the swell is louder than the old constant bed was, so a gust is actually wind.
  */
-export const CANOPY_FLOOR = 0.012;
-export const CANOPY_GUST = 0.115;
-export const HUSH_FLOOR = 0.0018;
-export const HUSH_GUST = 0.075;
+export const GUST_KNEE = 0.22;
+export const CANOPY_FLOOR = 0.0003;
+export const CANOPY_GUST = 0.055;
+export const HUSH_FLOOR = 0.00008;
+export const HUSH_GUST = 0.02;
+/** 0 below the knee, 1 at a full gust — every continuous layer's level and modulation rides this */
+export function swell(gust: number): number {
+  return Math.max(0, (Math.min(1, gust) - GUST_KNEE) / (1 - GUST_KNEE));
+}
+/** the leaf flutters' level range (before the gust scale) and their share into the hall */
+const FLUTTER_LEVEL: [number, number] = [0.004, 0.013];
+const FLUTTER_SEND = 0.25;
+/** the longest the wood is ever left with nothing at all in it (s) */
+export const QUIET_GAP_MAX = 2.2;
+/**
+ * A fairy's glint: how close you have to be for half level, its peak, and the gap between glints.
+ * Events only, and small ones — the owner's standing complaint is that there is too much sound, so
+ * a fairy is a few grains of light every couple of seconds, never a shimmer laid over the forest.
+ */
+export const FAIRY_REACH_M = 2.5;
+export const FAIRY_LEVEL = 0.014;
+export const FAIRY_GAP: [number, number] = [1.4, 4];
+/** past this she is not heard at all (the inverse-square reach alone runs on to eleven metres) */
+export const FAIRY_AUDIBLE_M = FAIRY_REACH_M * Math.sqrt(1 / 0.25 - 1);
+/** the bed's top in the open, and with the log tunnel's wood closed over the listener */
+const ENCLOSURE_OPEN_HZ = 18000;
+const ENCLOSURE_CLOSED_HZ = 900;
+/** how much of the forest is left when he is right inside the bore */
+const ENCLOSURE_DUCK = 0.45;
+/**
+ * How far a closed canopy shuts the same filter (a share of the tunnel's travel, so a roof of
+ * leaves is a hint of the tunnel's wood, not the same thing): at 1 the bed's top sits near 4 kHz.
+ * Under the crowns the air is also more reverberant and the leaves overhead move more often — in
+ * the open plaza you hear the sky, in the north corridor you hear the wood close above you.
+ */
+const CANOPY_CLOSE = 0.5;
+const CANOPY_HALL = 0.8;
+const CANOPY_FLUTTER = 0.7;
+/**
+ * How far the canopy roll leans toward upwind. Wind in a wood is not a point source, so this is a
+ * lean and not a pan: turn to face into it and the weight of the air moves across you, but the bed
+ * never collapses to one side. Only the far roll leans — the leaf hush is in the trees all around.
+ */
+export const WIND_LEAN = 0.35;
+
+/**
+ * Where the canopy roll sits for a listener facing `forward` while the wind travels along `dir`
+ * (both unit xz): −1 hard left … +1 hard right. The air arrives from where the wind comes FROM, so
+ * the source is upwind — behind its direction of travel — projected onto the listener's right.
+ */
+export function windLeanFor(forward: { x: number; z: number }, dir: { x: number; z: number }): number {
+  const rx = -forward.z;
+  const rz = forward.x;
+  const len = Math.hypot(dir.x, dir.z) || 1;
+  return Math.max(-1, Math.min(1, ((-dir.x * rx - dir.z * rz) / len) * WIND_LEAN));
+}
 
 type BirdKind = 'whistle' | 'trill' | 'chirps' | 'warble' | 'coo' | 'knock';
 /** how often each call is chosen, and how far away it tends to be (0 = overhead, 1 = deep in the wood) */
@@ -81,7 +163,13 @@ const BIRDS: { kind: BirdKind; weight: number; near: number; far: number }[] = [
 ];
 const BIRD_WEIGHT = BIRDS.reduce((s, b) => s + b.weight, 0);
 
-export function createAmbience(ctx: BaseAudioContext, out: AudioNode, reverbSend: AudioNode, rng: Rng, startAt = 0): Ambience {
+export function createAmbience(ctx: BaseAudioContext, outBus: AudioNode, reverbSend: AudioNode, rng: Rng, startAt = 0): Ambience {
+  // Everything the forest makes goes through here before the bus: inside the log tunnel the wood
+  // closes over the listener, so the wind, the leaves and the birds arrive muffled and quieter.
+  // Walking through the arch used to change nothing at all except what was under the boots.
+  const enclosureLp = filter(ctx, 'lowpass', ENCLOSURE_OPEN_HZ, 0.7);
+  const out = gain(ctx, 1);
+  out.connect(enclosureLp).connect(outBus);
   const pink = pinkNoiseBuffer(ctx, rng.fork('pink'), 9);
   const nodes: AudioScheduledSourceNode[] = [];
   /** one always-running pink source every layer taps (a per-layer source would cost a buffer each) */
@@ -116,24 +204,29 @@ export function createAmbience(ctx: BaseAudioContext, out: AudioNode, reverbSend
   const canopyLp = filter(ctx, 'lowpass', 620, 0.5);
   const canopyTilt = filter(ctx, 'lowshelf', 140, 0.7, -5);
   const canopyGain = gain(ctx, CANOPY_FLOOR);
-  bedSrc.connect(canopyHp).connect(canopyLp).connect(canopyTilt).connect(canopyGain).connect(out);
-  const canopySend = gain(ctx, 0.5);
+  const canopyPan = ctx.createStereoPanner();
+  bedSrc.connect(canopyHp).connect(canopyLp).connect(canopyTilt).connect(canopyGain).connect(canopyPan).connect(out);
+  const canopySend = gain(ctx, 0.3);
   canopyGain.connect(canopySend).connect(reverbSend);
-  rides(canopyGain.gain, 0.055, 1.4, 0.03, 'canopy-slow');
+  // the irregular wander is GATED by the swell. Ungated it was its own always-on floor — up to
+  // 0.03 of gain whatever the wind was doing, as much again as the gust term itself.
+  const canopyMod = gain(ctx, 0);
+  canopyMod.connect(canopyGain.gain);
+  ridesGated(canopyMod, 0.055, 1.4, 0.03, 'canopy-slow');
   // the canopy's colour moves with a slower wander of its own: a gust opens the top of the roll
   rides(canopyLp.frequency, 0.08, 1, 280, 'canopy-colour');
 
   // ---- near leaf hush: lives in the gust, silent in still air ----------------------------------
   const hushHp = filter(ctx, 'highpass', 900, 0.5);
-  const hushLp = filter(ctx, 'lowpass', 4200, 0.5);
+  const hushLp = filter(ctx, 'lowpass', 2600, 0.5);
   const hushGain = gain(ctx, HUSH_FLOOR);
   // the wander is gated by the gust, so the hush both swells and flickers only while the air moves
   const hushMod = gain(ctx, 0);
   hushMod.connect(hushGain.gain);
   leafSrc.connect(hushHp).connect(hushLp).connect(hushGain).connect(out);
-  const hushSend = gain(ctx, 0.35);
+  const hushSend = gain(ctx, 0.2);
   hushGain.connect(hushSend).connect(reverbSend);
-  ridesGated(hushMod, 0.42, 1.6, 0.022, 'hush');
+  ridesGated(hushMod, 0.42, 1.6, 0.008, 'hush');
 
   // ---- pod lantern flame ----------------------------------------------------------------------
   const flameGain = gain(ctx, 0);
@@ -160,18 +253,22 @@ export function createAmbience(ctx: BaseAudioContext, out: AudioNode, reverbSend
 
   // ---- scheduled events: leaf flutters and birds ------------------------------------------------
   const eventRng = rng.fork('events');
+  const counts: AmbienceStats = { birds: 0, flutters: 0, glints: 0, fairiesNear: 0, windLean: 0 };
   /** the gust as `update` last saw it: the schedulers run ahead of the clock, so they use it as a level */
   let gustNow = 0.4;
+  /** how closed the canopy was over the listener, likewise (leaves overhead move more often) */
+  let canopyNow = 0;
 
   /**
    * One leaf flutter: a short shaped grain of the bed's own pink noise. Several of these in a
    * cluster read as a branch shaking; a continuous band of the same noise reads as hiss.
    */
   const flutter = (t: number, centre: number, level: number, pan: number, decay: number) => {
+    counts.flutters++;
     const panner = ctx.createStereoPanner();
     panner.pan.value = pan;
     panner.connect(out);
-    const send = gain(ctx, 0.4);
+    const send = gain(ctx, FLUTTER_SEND);
     panner.connect(send).connect(reverbSend);
     const bp = filter(ctx, 'bandpass', centre, 1.1);
     const lp = filter(ctx, 'lowpass', centre * 2.6, 0.7);
@@ -194,15 +291,19 @@ export function createAmbience(ctx: BaseAudioContext, out: AudioNode, reverbSend
     while (nextFlutter < until) {
       const t = nextFlutter;
       const g = gustNow;
-      const n = 1 + Math.floor(eventRng() * (1 + g * 4));
+      const n = 1 + Math.floor(eventRng() * (1 + g * 2));
       const pan = (eventRng() * 2 - 1) * 0.9;
       for (let i = 0; i < n; i++) {
         const centre = 950 + eventRng() * 1900;
-        const level = (0.0065 + eventRng() * 0.021) * (0.35 + g * 0.9);
+        const level = (FLUTTER_LEVEL[0] + eventRng() * (FLUTTER_LEVEL[1] - FLUTTER_LEVEL[0])) * (0.35 + g * 0.9);
         flutter(t + i * (0.04 + eventRng() * 0.16), centre, level, pan + (eventRng() - 0.5) * 0.3, 0.07 + eventRng() * 0.16);
       }
-      // gusts crowd the flutters together; still air leaves long gaps
-      nextFlutter += (0.5 + eventRng() * 3.2) / (0.35 + g * 1.9);
+      // gusts crowd the flutters together; still air leaves long gaps — but never longer than
+      // QUIET_GAP_MAX. With the bed gated below the gust knee and the tune resting between passes,
+      // the wood could otherwise fall to nothing for five seconds at a time, which reads as the
+      // sound having broken rather than as a quiet forest. A leaf turning over is the answer to
+      // that, not a floor put back under everything.
+      nextFlutter += Math.min(QUIET_GAP_MAX, (0.5 + eventRng() * 3.2) / ((0.3 + g * 1.1) * (1 + canopyNow * CANOPY_FLUTTER)));
     }
   };
 
@@ -229,6 +330,7 @@ export function createAmbience(ctx: BaseAudioContext, out: AudioNode, reverbSend
   };
 
   const birdCall = (kind: BirdKind, t: number, pan: number, level: number, distance: number) => {
+    counts.birds++;
     // distance takes the level down; a far call is also slower to start (the air rounds its attack)
     const lv = level * (1 - 0.66 * distance);
     const soft = 1 + distance * 1.6;
@@ -338,6 +440,50 @@ export function createAmbience(ctx: BaseAudioContext, out: AudioNode, reverbSend
     osc.stop(end + 0.1);
   };
 
+  /**
+   * A fairy at `pan`, `level` loud: two or three tiny bell partials climbing over about 120 ms.
+   * Short and sparse on purpose — the ear should catch a glint of light beside it, not a chime.
+   */
+  const glint = (t: number, pan: number, level: number) => {
+    counts.glints++;
+    const panner = ctx.createStereoPanner();
+    panner.pan.value = pan;
+    const hp = filter(ctx, 'highpass', 1200, 0.6);
+    hp.connect(panner).connect(out);
+    const send = gain(ctx, 0.3);
+    panner.connect(send).connect(reverbSend);
+    const notes = 2 + Math.floor(eventRng() * 2);
+    let end = t;
+    const nodes: AudioNode[] = [hp, panner, send];
+    for (let i = 0; i < notes; i++) {
+      const at = t + i * (0.045 + eventRng() * 0.05);
+      const f = 2600 * (1 + i * 0.26) * (0.92 + eventRng() * 0.18);
+      const g = gain(ctx, 0);
+      g.connect(hp);
+      for (const [mult, share, wave] of [
+        [1, 1, 'sine'],
+        [2.74, 0.22, 'triangle'],
+      ] as [number, number, OscillatorType][]) {
+        const osc = ctx.createOscillator();
+        osc.type = wave;
+        osc.frequency.value = f * mult;
+        const og = gain(ctx, share);
+        osc.connect(og).connect(g);
+        osc.start(at);
+        osc.stop(at + 0.24);
+        nodes.push(og);
+      }
+      adEnvelope(g.gain, at, level * (1 - i * 0.15), 0.004, 0.09 + eventRng() * 0.06);
+      nodes.push(g);
+      end = at + 0.16;
+    }
+    cleanupAt(ctx, end + 0.4, () => {
+      for (const n of nodes) n.disconnect();
+    });
+  };
+
+  let nextGlint = startAt + 1;
+
   const pickBird = () => {
     let r = eventRng() * BIRD_WEIGHT;
     for (const b of BIRDS) {
@@ -372,9 +518,11 @@ export function createAmbience(ctx: BaseAudioContext, out: AudioNode, reverbSend
   const update = (t: number, s: AmbienceState) => {
     const gust = Math.max(0, Math.min(1, s.gust));
     gustNow = gust;
-    canopyGain.gain.setTargetAtTime(CANOPY_FLOOR + gust * CANOPY_GUST, t, 0.9);
-    hushGain.gain.setTargetAtTime(HUSH_FLOOR + Math.pow(gust, 1.6) * HUSH_GUST, t, 0.55);
-    hushMod.gain.setTargetAtTime(Math.pow(gust, 1.4), t, 0.55);
+    const sw = swell(gust);
+    canopyGain.gain.setTargetAtTime(CANOPY_FLOOR + sw * CANOPY_GUST, t, 0.9);
+    canopyMod.gain.setTargetAtTime(sw, t, 0.9);
+    hushGain.gain.setTargetAtTime(HUSH_FLOOR + Math.pow(sw, 1.8) * HUSH_GUST, t, 0.55);
+    hushMod.gain.setTargetAtTime(Math.pow(sw, 1.5), t, 0.55);
     // pods: the NEAREST lantern sets the level; the rest of the village adds a fifth each
     let sum = 0;
     let nearest = 0;
@@ -402,11 +550,58 @@ export function createAmbience(ctx: BaseAudioContext, out: AudioNode, reverbSend
       pan = Math.max(-1, Math.min(1, ((px * rx + pz * rz) / len) * 0.8));
     }
     flamePan.pan.setTargetAtTime(pan, t, 0.3);
+    // the nearest fairy: a glint every second or three while one is within a couple of metres
+    if (t >= nextGlint && s.fairies?.length) {
+      let best = 0;
+      let bx = 0;
+      let bz = 0;
+      for (const f of s.fairies) {
+        const dx = f.x - s.listener.x;
+        const dy = f.y - s.listener.y;
+        const dz = f.z - s.listener.z;
+        const a = 1 / (1 + (Math.sqrt(dx * dx + dy * dy + dz * dz) / FAIRY_REACH_M) ** 2);
+        if (a > best) {
+          best = a;
+          bx = dx;
+          bz = dz;
+        }
+      }
+      counts.fairiesNear = s.fairies.filter((f) => Math.hypot(f.x - s.listener.x, f.y - s.listener.y, f.z - s.listener.z) < FAIRY_AUDIBLE_M).length;
+      // only when she is close enough to be heard: the attenuation runs on for ten metres, and a
+      // glint out there is −63 dBFS, which is not a sound, just a scheduled event
+      if (best > 0.25) {
+        const rx = -s.forward.z;
+        const rz = s.forward.x;
+        const len = Math.hypot(bx, bz) || 1;
+        glint(t, Math.max(-1, Math.min(1, ((bx * rx + bz * rz) / len) * 0.85)), best * FAIRY_LEVEL);
+        nextGlint = t + FAIRY_GAP[0] + eventRng() * (FAIRY_GAP[1] - FAIRY_GAP[0]);
+      } else {
+        nextGlint = t + 0.5;
+      }
+    }
+    // the log tunnel closing over the forest (index.ts surfaceAt: 0 at the mouth, 1 a metre and a
+    // half in), geometric in frequency so the change is even as he walks in
+    const enc = Math.max(0, Math.min(1, s.enclosure ?? 0));
+    canopyNow = Math.max(0, Math.min(1, s.canopy ?? 0));
+    // the crowns close the same filter part of the way and hand more of the bed to the hall; only
+    // the tunnel's wood ducks the level, because only the tunnel puts something between him and it
+    const closed = Math.max(enc, canopyNow * CANOPY_CLOSE);
+    enclosureLp.frequency.setTargetAtTime(ENCLOSURE_OPEN_HZ * Math.pow(ENCLOSURE_CLOSED_HZ / ENCLOSURE_OPEN_HZ, closed), t, 0.35);
+    out.gain.setTargetAtTime(1 - (1 - ENCLOSURE_DUCK) * enc, t, 0.12);
+    canopySend.gain.setTargetAtTime(0.3 * (1 + canopyNow * CANOPY_HALL), t, 0.6);
+    // the roll leans upwind: the air arrives from where the wind comes FROM, which is behind its
+    // direction of travel. Slow (1.2 s) — turning your head should move the weather, not flick it.
+    if (s.windDir) {
+      counts.windLean = windLeanFor(s.forward, s.windDir);
+      canopyPan.pan.setTargetAtTime(counts.windLean, t, 1.2);
+    }
+    hushSend.gain.setTargetAtTime(0.2 * (1 + canopyNow * CANOPY_HALL), t, 0.6);
   };
 
   return {
     scheduleUntil,
     update,
+    stats: () => ({ ...counts }),
     dispose() {
       for (const n of nodes) {
         try {

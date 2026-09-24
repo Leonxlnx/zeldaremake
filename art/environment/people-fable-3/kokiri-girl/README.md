@@ -114,6 +114,90 @@ on the merged head), settle 12 — the walker's fairy is at A's right edge, B / 
 (The reference SSIMs differ from the first table's because the head moved under the branch between the two measurements —
 fable-2's paving and earth changes; each table is before/after on one head.)
 
+## The kids notice Link (fourth landing, `e43ae92f`)
+
+Nothing in the cast reacted to the player: walk up to the girl on the steps and she kept her seeded look-around. Now
+(`npc.ts noticePlayer`) a kid within 5 m turns her head to Link — fully on him by 2.8 m, within the neck's range (past
+±1.05 rad the turn fades out over 0.7 rad rather than pinning to the shoulder, so walking round behind her lets her go), the
+pitch to his eyes (the bank girl looks down from her terrace), blended over the pose's own look; a walking kid gives him
+half the turn. The driven kids get it inside `drive()`, the boy at the door after his idle pose; it is a pure function of
+the two positions (no state — a zero-dt re-render repeats the pose). Capture passes no player, so the six frames keep
+their heads: **B and F byte-identical** to the branch before the step.
+
+![the girl on the steps, Link two metres off: before / after](before-after-notice.jpg)
+
+`kokiri-notice-walk-in` (artifact): Link walks from the plaza to the stair foot and stops beside her; her head comes round
+to him as he closes and holds on him.
+
+## The kids skinned to their own joints (fifth landing, perf, `814af6c9`)
+
+fable-5's lane-10 read of the cast's return: a kid in view is ≈ 50 submissions (a mesh per joint per material, drawn
+again in the shadow pass), B / E sat two draws under the 700 cap, and "lane 7's next perf item is the kid as merged
+meshes". `character/skin.ts`: after a kid is built, every Mesh riding a joint becomes part of ONE `SkinnedMesh` per
+(material, shadow flags) for the whole rig, with the joint as its only bone (weight 1) — the rig's own `Group`s serve as
+the skeleton (a `Skeleton` only reads their world matrices), bound at the rest pose with the root at the identity, attached
+bind mode, so the poses keep moving the joints exactly as before and the blink's Y-squash on the eye groups rides along
+(a group with meshes is a bone too). ≈ 26 → 11 colour submissions a girl, 16 → 5 in the shadow pass; same triangles, same
+materials, same textures. The rest-pose sphere is grown 0.35 m so a swung arm at the frame's edge is never culled.
+
+![the same play still, a mesh per joint vs skinned](before-after-skinned.jpg)
+
+Play still at the stair foot (Link two metres from the sitter, the walker at the right edge, the boy at the door): **702 →
+623 draws**, triangles 10 038 277 = 10 038 277, and against the unskinned still 151 px differ by more than 8 levels, 8 by
+more than 24 — the skinning path's float noise. The walker mid-stride (broll t 10.4 s, her leg toward (4.4, 0.9), facing the
+camera) and standing at her dwell (t 12.0 s): 17 px and 1 px between the two builds — the stride, the sit and the head turn
+all ride the same joints. The first cut had the parts' vertices in joint space (the skinned mesh
+wants its bind space, the root's): the kids came apart; the joint's rest world matrix is baked in now.
+
+Six views against the same head (the branch before the step), settle 12 — the kids stand in A (the walker at the right
+edge), B / E (the walker at the left edge, the boy at the door) and F (the walker beside Link):
+
+| view | SSIM vs ref, before | after | Δ | SSIM before↔after | changed px | draws | M tris |
+| --- | --- | --- | --- | --- | --- | --- | --- |
+| A | 0.1826 | 0.1826 | 0.0000 | 1.0000 | 0 | 692 → **640** | 8.88 = 8.88 |
+| B | 0.1727 | 0.1727 | 0.0000 | 1.0000 | 8 | 683 → **631** | 8.08 = 8.08 |
+| F | 0.2082 | 0.2082 | 0.0000 | 1.0000 | 2 | 642 → **590** | 7.69 = 7.69 |
+
+E is B's camera; C sees the sitter (≈ −26); D sees no kid (557, unchanged). The cast's cost in a frame with three kids drops
+from ≈ 100 to ≈ 50 submissions; the next halving (skin / cloth / leather on one canvas atlas → three submissions a kid) is
+there if the squad's layers need it.
+
+## Hands and standing arms (owner 23:00, `a0262ae1`)
+
+"I wish you could make the other characters look a bit better" (23:00, recording at 01:00): the quickest visible step at
+2–6 m without touching the six frames — a thumb on each mitten hand (`buildThumbs`, a skin ellipsoid on the palm's inner
+side, angled forward; it rides in the skin's skinned submission) and the standing arms: upper arm a touch back, elbow bent
+−0.46 rad with a slow breathe, so the hand rests forward by the hip instead of a straight doll arm (`poseWander` idle — the
+walker's dwells and the ledge / bank idles; the sitter keeps her hands on her knees; the plaza kids under capture pose
+through the puppet idle, so A–F are untouched by construction).
+
+![the walker at 2.6 m, hands and arms before / after](before-after-hands-arms.jpg)
+
+Pose: (2.3, 2.2, −0.66) → (4.4, 1.35, 0.9), vfov 40, broll t 12.0 (her dwell at (4.4, 0.9)); the before is the merged head
+`81430baf`. Modest, and meant to be: a safe landing an hour before the recording; the deeper JOB 7 items follow it.
+
+## The standing idle moves (owner 23:00, `437b7166`)
+
+JOB 7's "they should breathe and shift weight, not hold a pose": round 47's idle shifted the hips 1 cm and leaned 0.025 rad —
+a pixel at 4 m. Now the weight shift is 2.5 cm with a 0.05 rad lean, a slow yaw sway runs through hips and chest, the
+breath is 8 mm; and the thighs tilt back by the shift over the leg and cancel the pelvis' lean, so the soles stay planted
+while the body moves (before, the whole kid slid with the hips). `poseWander`'s idle: the walker's dwells and the ledge /
+bank idles; the sitter keeps her own sway; the plaza kids under capture pose through the puppet idle, so A–F are untouched.
+
+![the walker at her dwell, the same instant, before / after](before-after-idle-sway.jpg)
+
+Pose (1.2, 2.4, −1.6) → (4.4, 1.2, 0.9), vfov 42, broll t 14.8 inside her dwell at (4.4, 0.9): the after has her weight over
+one leg, hips and shoulders turned a touch; the boots are in the same pixels in both frames.
+
+## Tried and reverted: the girls' modelled face on the boy (`ed5b43c6` → reverted)
+
+JOB 7's "faces as geometry" for the boy: he got `buildKidFace` with his skin, a light blush, skin-coloured lips and thin
+lashes without the flick. At 2.5 m by the door it read worse — the recessed sockets and the heavy lids made his eyes
+smaller and darker (squinty under the fringe's points) where round 1's link.ts face has big bright eyes with catch-lights.
+An after that is not better is not a landing: reverted the same tick, the pair kept as the record.
+
+![the boy: link.ts face vs the modelled face, 2.5 m](tried-boy-modelled-face.jpg)
+
 ## Play mode
 
 `kokiri-play-walk` (artifact): `?test=1` at 960 × 540, Link placed at (0.8, 6.2) facing the stair foot,

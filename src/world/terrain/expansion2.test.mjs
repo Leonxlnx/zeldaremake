@@ -6,7 +6,8 @@
  *   1. the LIVE and LEGACY terrain views agree everywhere camera C's frustum reaches (east of its
  *      west edge + the clip margin) and everywhere outside the expansion box — the six fixed
  *      frames' ground is untouched and the legacy streams (trees, vegetation, rocks, props) read
- *      the same numbers as before;
+ *      the same numbers as before (round 56's south exit, `EXPANSION_SOUTH_BOXES`, is exempt: C
+ *      looks down its path by design; expansionSouth.test.mjs holds it);
  *   2. the south bank: a flat top at its height, a face that falls to the plain, the fences' posts
  *      and the `kokiri-south-bank` spot on the top (walkable), the `south-bank` flight climbing the
  *      face from the plain to the lip;
@@ -65,6 +66,8 @@ const legacy = hf.createTerrain('legacy');
 const ground = createGround(live, LAYOUT);
 const near = (a, b, tol, msg) => assert.ok(Math.abs(a - b) <= tol, `${msg}: ${a} vs ${b} (tol ${tol})`);
 const fmt = (x, z) => `(${x.toFixed(2)}, ${z.toFixed(2)})`;
+// round 56: within `pad` m of one of the south exit's boxes (its live ground is its own test's)
+const southNear = (x, z, pad = 0) => z > 10 - pad && layout.EXPANSION_SOUTH_BOXES.some((b) => x >= b.x0 - pad && x <= b.x1 + pad && z >= b.z0 - pad && z <= b.z1 + pad);
 
 // 1. live == legacy where the fixed frames look. Camera C's west edge on the ground is the ray
 // x = x0 + dxdz · (z − z0); every live-only feature is zero within `margin` of it (east side
@@ -81,7 +84,7 @@ const fmt = (x, z) => `(${x.toFixed(2)}, ${z.toFixed(2)})`;
     for (let gi = -240; gi <= 240; gi++) {
       const x = gi * 0.2;
       const z = gj * 0.2;
-      if (rayX(z) - x > c.margin) continue;
+      if (rayX(z) - x > c.margin || southNear(x, z)) continue;
       // the east lane's discs (section 7) are the one live-only change east of C's edge
       if (hf.eastDiscMask(x, z) > 0) {
         latticeEast++;
@@ -93,7 +96,7 @@ const fmt = (x, z) => `(${x.toFixed(2)}, ${z.toFixed(2)})`;
       latticeSame++;
     }
   }
-  assert.ok(latticeSame > 100000, `checked the lattice east of C's edge (${latticeSame})`);
+  assert.ok(latticeSame > 80000, `checked the lattice east of C's edge (${latticeSame})`);
   assert.ok(latticeEast < 0.05 * latticeSame, `the east lane's discs cover a sliver of it (${latticeEast} lattice points)`);
   let same = 0;
   let inside = 0;
@@ -101,6 +104,7 @@ const fmt = (x, z) => `(${x.toFixed(2)}, ${z.toFixed(2)})`;
   let eastHeld = 0;
   for (let z = -48; z <= 48; z += 0.4) {
     for (let x = -48; x <= 48; x += 0.4) {
+      if (southNear(x, z, 0.35)) continue;
       const westOfRay = rayX(z) - x;
       const inBox = x >= EXPANSION_BOX.x0 && x <= EXPANSION_BOX.x1 && z >= EXPANSION_BOX.z0 && z <= EXPANSION_BOX.z1;
       const farHut = Math.hypot(x - EXPANSION.farHut.host[0], z - EXPANSION.farHut.host[1]) < EXPANSION.farHutRise.radius + 0.6;
@@ -150,14 +154,19 @@ const fmt = (x, z) => `(${x.toFixed(2)}, ${z.toFixed(2)})`;
     return false;
   };
   let marched = 0;
+  const rayMeetsSouth = (x, z) => {
+    for (let t = 0; t < 12; t += 0.05) if (southNear(x + sun.x * t, z + sun.z * t, 0.35)) return true;
+    return false;
+  };
   for (let z = 6; z <= 36; z += 0.25) {
     for (let inside = -0.5; inside <= 1.5; inside += 0.1) {
       const x = rayX(z) + inside / cosEdge;
+      if (rayMeetsSouth(x, z)) continue;
       assert.equal(shaded(live, x, z), shaded(legacy, x, z), `the live terrain's self-shadow at ${fmt(x, z)} (${inside.toFixed(1)} m inside C's edge) is the legacy one`);
       marched++;
     }
   }
-  assert.ok(marched > 2000, `marched the sun ray along C's edge (${marched})`);
+  assert.ok(marched > 1500, `marched the sun ray along C's edge (${marched})`);
 }
 
 // 2. the south bank
@@ -410,6 +419,7 @@ const fmt = (x, z) => `(${x.toFixed(2)}, ${z.toFixed(2)})`;
   let culled = 0;
   for (let z = -48; z <= 48; z += 1.0) {
     for (let x = -48; x <= 48; x += 1.0) {
+      if (southNear(x, z)) continue;
       // the west expansion's own cull (east lane off: what a rejection loop sees, section 7)
       const c = hf.expansionCull(x, z, 0.3, false);
       if (c) culled++;

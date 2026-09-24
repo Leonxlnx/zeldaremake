@@ -11,6 +11,9 @@ export { createRng };
 
 export const dB = (v: number) => Math.pow(10, v / 20);
 
+/** undoes the step compressor's built-in makeup gain (see `createBuses`) and 2 dB besides */
+export const SFX_TRIM = dB(-10.1);
+
 export interface Buses {
   master: GainNode;
   music: GainNode;
@@ -34,7 +37,35 @@ export function createBuses(ctx: BaseAudioContext, rng: Rng): Buses {
   sfx.gain.value = 1;
   music.connect(master);
   ambience.connect(master);
-  sfx.connect(master);
+  /**
+   * 2026-09-24, owner 23:00: "the music kind of still shakes whenever I run".
+   *
+   * The music is steady — measured on the offline stems its own 1.2 Hz beat (76 bpm) stands 17×
+   * over the background of its envelope spectrum whether he is standing, walking or running. What
+   * changes when he runs is the FOOTSTEPS: they are the loudest transients in the game (peak
+   * −14.3 dBFS against the music's −19.1, about 16 dB over the music's average), and at a running
+   * cadence they arrive two to five times a second. In the mix's envelope the strongest rhythm then
+   * stops being the music's beat and becomes the step rate — a pulse at a few Hz laid over sustained
+   * notes, which is what shaking sounds like.
+   *
+   * So the steps get a compressor of their own. It is on the sfx bus, NOT the master: the music is
+   * never touched, ducked or side-chained — only the crest of the thing that was punching through
+   * it comes down. Quiet steps pass untouched (the threshold is below a walk's peak); a run's are
+   * held.
+   */
+  const sfxLimit = ctx.createDynamicsCompressor();
+  sfxLimit.threshold.value = -30;
+  sfxLimit.knee.value = 12;
+  sfxLimit.ratio.value = 4;
+  sfxLimit.attack.value = 0.003;
+  sfxLimit.release.value = 0.12;
+  // DynamicsCompressorNode applies its own makeup gain, which is not optional and not documented
+  // as a number: with these settings it put the footsteps stem 8.1 dB LOUDER than before it was
+  // added (peak −14.3 → −10.1 dBFS). SFX_TRIM takes that back and a little more, measured on the
+  // offline steps stem rather than guessed.
+  const sfxTrim = ctx.createGain();
+  sfxTrim.gain.value = SFX_TRIM;
+  sfx.connect(sfxLimit).connect(sfxTrim).connect(master);
   const reverb = ctx.createConvolver();
   // 2026-09-23: 2.6 s was a stone hall — every footstep grew an indoor tail (the offline steps stem
   // stayed within 25 dB of its peak for the whole 250 ms window on four of five surfaces). A wood
@@ -42,7 +73,12 @@ export function createBuses(ctx: BaseAudioContext, rng: Rng): Buses {
   reverb.buffer = impulseResponse(ctx, rng.fork('ir'), 1.5, 0.96);
   const reverbReturn = ctx.createGain();
   reverbReturn.gain.value = 0.28;
-  reverb.connect(reverbReturn);
+  // 2026-09-23 (owner 20:08, "LOWER THE WHITE NOISE"): the hall's impulse is generated from noise,
+  // so its early part hands a little broadband hiss back to everything that uses it — the music
+  // most of all, which sends 0.55 of a continuous bus. Trunks scatter and leaves absorb: a wood
+  // returns almost nothing above 3 kHz.
+  const reverbTop = filter(ctx, 'lowpass', 3000, 0.6);
+  reverb.connect(reverbTop).connect(reverbReturn);
   reverbReturn.connect(master);
   return { master, music, ambience, sfx, reverb, reverbReturn };
 }
@@ -186,8 +222,20 @@ export function controlSource(ctx: BaseAudioContext, buffer: AudioBuffer, depth:
  */
 export function cleanupAt(ctx: BaseAudioContext, when: number, fn: () => void): void {
   if (typeof (ctx as OfflineAudioContext).startRendering === 'function') return;
-  setTimeout(fn, Math.max(0, (when - ctx.currentTime) * 1000 + 50));
+  liveVoices++;
+  setTimeout(() => {
+    liveVoices--;
+    fn();
+  }, Math.max(0, (when - ctx.currentTime) * 1000 + 50));
 }
+
+/**
+ * Voices alive in the live graph — every event (a step, a leaf, a bird, a note) builds its own
+ * little chain and tears it down through `cleanupAt`. Running lights several a second, so this is
+ * the number to look at when the audio thread starts missing its deadline.
+ */
+let liveVoices = 0;
+export const voices = (): number => liveVoices;
 
 /**
  * Generated hall: stereo-decorrelated exponentially decaying noise with the highs rolling off
