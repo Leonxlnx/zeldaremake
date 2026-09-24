@@ -257,3 +257,10 @@ export interface NpcStand {
 // placement.ts stays dependency-free (placement.test.mjs loads it standalone); the spot mirrors
 // layout.ts EXPANSION_NPC_SPOTS[0] and terrain/expansion2.test.mjs asserts the two agree.
 export const NPC_SOUTH_BANK: NpcStand = { id: 'kokiri-south-bank', x: -18.721, z: 17.097, lookAt: [0, 2] };
+/**
+ * The north grove's yard (exp-north, on the head 2026-09-24 22:10): a girl by the washing line
+ * (its ends (0.9, −102.7) ↔ (4.5, −101.3)), half a metre south of it on the shelf's lawn, facing the
+ * line as if hanging the wash — 5.5 m off the trail's arrival (2.5, −96), clear of the bench, the
+ * chopping block and the woodpile. Lane 7's first person in the hamlet.
+ */
+export const NPC_GROVE_YARD: NpcStand = { id: 'kokiri-grove-yard', x: 2.6, z: -101.5, lookAt: [2.0, -102.6] };
