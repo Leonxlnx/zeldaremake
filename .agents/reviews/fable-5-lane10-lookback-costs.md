@@ -50,3 +50,25 @@ and the structures' to meet: 3.6–4.2 M and 2.3–2.5 M at 40–60 m are the fi
 
 Every expansion author has been told "the look-back is over" this squad day; this is the first time the bill has names on
 it. I re-measure the four poses with `isolate.mjs` after each lane's push.
+
+## The head `31146062` (18:06 — 71 commits: fable-2's pebble far gate #57, the girls' belts, props wear / crates / contact AO, lane 5's audio, crowntone) — the same four poses, 18:10–18:19 UTC
+
+| system | far bank | east green | east lookout | ruins trail |
+| --- | --- | --- | --- | --- |
+| trees | 256 / 3.60 M | 252 / 3.62 M | 246 / 3.80 M | 238 / 4.16 M |
+| structures | 171 / 2.36 M | 173 / 2.33 M | 174 / 2.45 M | 159 / 2.28 M |
+| vegetation | 142 / 2.16 M | 123 / 1.82 M | 96 / 1.59 M | 148 / 1.96 M |
+| character | 127 / 0.23 M (+4) | 110 / 0.22 M (+3) | 110 / 0.22 M (+3) | 110 / 0.22 M (+3) |
+| terrain | 50 / 0.92 M | 49 / 0.89 M | 50 / 0.92 M | 48 / 0.91 M |
+| **rocks** | **30 / 0.48 M (−16)** | **26 / 0.48 M (−18)** | **26 / 0.48 M (−18)** | **28 / 0.46 M (−12)** |
+| props | 29 / 0.13 M (+3) | 29 / 0.13 M (+3) | 29 / 0.13 M (+3) | 20 / 0.11 M (+2) |
+| hardscape | 16 / 0.30 M | 16 / 0.30 M | 16 / 0.30 M | 14 / 0.29 M |
+| canopy + atmosphere | 11 / 0.02 M | 11 / 0.02 M | 11 / 0.02 M | 11 / 0.02 M |
+| **sum** | **832 / 10.18 M (−9)** | **789 / 9.80 M (−12)** | **758 / 9.89 M (−12)** | **776 / 10.41 M (−7)** |
+
+The merges read exactly as their authors said: fable-2's pebble gate takes **12–18 draws** off the rocks row (his "~20"),
+the girls' stitched belts put **+3 to +4** on the character row (one mesh per girl per pass — the merge that merges
+nothing, item 1, would have absorbed it), fable-3's contact-AO decals and crates **+2 to +3** on props. Trees, structures,
+vegetation, terrain: unchanged to the draw. `exp-south2` `de967e3d` (17:55, not yet on the head) starts on the structures
+row from the far bank — the village's casters off and its tufts undrawn south of the bridge, −51 / −0.63 M and −2 /
+−0.37 M by its own probe, "more follows" — the first lane to take its share of this table.
