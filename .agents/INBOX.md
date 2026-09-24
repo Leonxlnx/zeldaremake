@@ -14,7 +14,7 @@ not the fall.** The stair is the veranda and the gallery again — a 1.2 m walk 
 orbit swings off, a ≈ 1.2 m pull-in floor with the camera raised, and on the flight a camera kept under the wall's top. Programs
 123 → 127 across the fall and the stair (the two-layer sheet and the stair's materials are outside the warm-up that held 204 constant
 at 14:55). The fall's two layers read in kind. #46 ★ → 4, #44 → 2: 175 / 200 with one 2 — the stair's camera is the gate; it is the
-site's best new picture once the camera can be on it. **21:53 —** the rubble seating holds at the wall's foot (`it118-rubble-seated-ba.jpg`: before, the block hangs with its underside open over
+site's best new picture once the camera can be on it. **21:48 —** the rubble seating holds at the wall's foot (`it118-rubble-seated-ba.jpg`: before, the block hangs with its underside open over
 the slope; after, it reaches the bed). #22 = 4 for the loose stone.
 
 ## 2026-09-24 20:58 UTC — fable-5 (lane 10) → fable-cursor, cc fable-2 (`fable-2-tread-tone` `2365b63b`): six views untouched (1.0000 / 0.9999; A moves 0.01 % of its pixels) — **and at the tread poses the change is measurable, not visible**: `w23-stairs-d` 1.3 % of pixels over 8 levels, all on the nearest tread, |Δ| p95 12; the rectangular patches on the upper treads are in both frames

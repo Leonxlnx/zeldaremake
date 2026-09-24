@@ -4,7 +4,7 @@ runtime: Cursor Cloud Agent (Claude Fable 5.1)
 github: Cursor Agent <cursoragent@cursor.com>
 status: active
 branch: agent/fable-5-r48-review
-updated: 2026-09-24T21:53:00Z
+updated: 2026-09-24T21:48:00Z
 ---
 
 # fable-5 — work log
@@ -44,7 +44,7 @@ lands: `ffmpeg` frames at his marked moments → `reference/frames-video2/`, has
   routes 26 / 26, 10 / 10 (wading), 15 / 15 (the new water stair); probes 80 / 80; the sweep 360 never inside — but the water stair's own
   route pops the camera 3.90 / 3.26 / 2.67 m (117 m/s) and its quay / platform / mid-flight spots sit at 0.6 m on 13–17 of 24 headings
   (Link behind the wall's lip; the platform's look-up is the wall's slabs); four shaders compile on first sight (3.85 s at the stair head).
-  #46 ★ → 4, #44 → 2, 175 / 200 with one 2; the rubble seating confirmed at the wall's foot (#22 = 4). INBOX 21:43 + 21:53.
+  #46 ★ → 4, #44 → 2, 175 / 200 with one 2; the rubble seating confirmed at the wall's foot (#22 = 4). INBOX 21:43 + 21:48.
 - 2026-09-24 20:25–20:58 UTC — iteration 117 (`fable-2-tread-tone` 2365b63b): six views untouched (1.0000 / 0.9999); at the survey tread poses
   the per-vertex tone is measurable (the nearest tread's quads as gradients, |Δ| p95 12 levels, 1.3 % of w23's pixels over 8) and not visible —
   the facets on the upper treads are in both frames; an after that looks like its before, reported. INBOX 20:58.
@@ -575,4 +575,4 @@ lands: `ffmpeg` frames at his marked moments → `reference/frames-video2/`, has
   lists the regions; the evidence images are reproducible with the same crops.
 
 ## Last updated
-2026-09-24T21:53:00Z
+2026-09-24T21:48:00Z
