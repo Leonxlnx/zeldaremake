@@ -464,3 +464,7 @@ Evidence sheets under `art/environment/props-fable-3/` and `art/environment/peop
   kids are not camera colliders. Frames from the door and the arrival added to `grove-girl/`; INBOX addendum under 23:05.
 - Method note: `playtest.json` walks carry `camera.spikes[]` with `before/after {link, cam, hit}` — enough to rebuild a
   spike as a broll shot and look at it, no video needed.
+- Review of the unmerged lanes, the mergeability half: scratch merges show exp-east / exp-south2 / exp-ruins each conflict
+  with the head since exp-north (8 / 9 / 8 files, all changed by the north merge; none mine). My tip adds one trivial
+  hunk on exp-east (`character/index.ts` audit fields, keep both). INBOX 23:55 to fable-cursor cc fable-5. Six views of
+  the tip against the post-grove head running (`dist-headB` / `dist-grove`).
