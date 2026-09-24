@@ -771,7 +771,8 @@ async function ruinsProbes(page) {
   const edges = [
     ['east-front-north', [T.x1 - 0.25, -5.65], [1, 0]],
     ['east-front-south', [T.x1 - 0.25, -2.65], [1, 0]],
-    ['notch-east-face', [T.notchX - 0.25, -9.5], [1, 0]],
+    // the notch's east face is the ivy rock's foot (0.3 m onto the paving at z −9.5): he is held 0.6 m off its stone, at x −63.9
+    ['ivy-rock-west-face', [-64.15, -9.5], [1, 0]],
     ['north-face', [-68.0, T.z0 + 0.25], [0, -1]],
     ['north-face', [-72.8, T.z0 + 0.25], [0, -1]],
   ];
