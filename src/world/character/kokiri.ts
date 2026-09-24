@@ -742,10 +742,21 @@ function buildGirlHeadband(rig: Rig, bandMat: MeshStandardMaterial): void {
   part(rig.head, place(geo, 0, 0.073 * k, -0.005, [-0.1, 0, 0], [1, 1, 0.97]), bandMat, 'kid-headband', false);
 }
 
-/** dark leather wristbands on the bare forearms (both wrists, like the demo girl) */
+/**
+ * Dark leather wristbands on the bare forearms (both wrists, like the demo girl). Lane 7: cuffs on
+ * the belt's strap canvas — an open tube whose v is folded onto the canvas's leather face (its
+ * stitch rows a few millimetres inside each edge) and whose u carries two repeats (twelve stitches
+ * round a 23 cm cuff) — so the cuffs and the strap share one material, and the girls' skinned
+ * meshes count one fewer per material.
+ */
 function buildWristbands(rig: Rig, leather: MeshStandardMaterial): void {
   const p = rig.props;
-  for (const elbow of [rig.elbowL, rig.elbowR]) part(elbow, place(new CylinderGeometry(0.037, 0.036, 0.024, 10), 0, -p.forearm + 0.016, 0), leather, 'wristband', false);
+  for (const elbow of [rig.elbowL, rig.elbowR]) {
+    const cuff = new CylinderGeometry(0.037, 0.036, 0.024, 12, 1, true);
+    const uv = cuff.attributes.uv;
+    for (let i = 0; i < uv.count; i++) uv.setXY(i, uv.getX(i) / 3, uv.getY(i) * 0.33);
+    part(elbow, place(cuff, 0, -p.forearm + 0.016, 0), leather, 'wristband', false);
+  }
 }
 
 /**
@@ -1050,7 +1061,7 @@ export function createKokiri(variant: number): Character {
   if (girl) {
     buildArms(rig, { skin, sleeve: null });
     buildThumbs(rig, skin);
-    buildWristbands(rig, kidMat('belt', KID.belt));
+    buildWristbands(rig, beltMaterial());
     buildGirlTunic(rig, girlCloth(look));
     buildGirlFace(rig, look);
     buildGirlHair(rig, girlHair(look));
