@@ -71,10 +71,10 @@ moves.
 
 - `npx tsc --noEmit`, `npx vite build`, and every `*.test.mjs` under `src/` and `gauntlet/` (39 files): pass
   at `9a97df4b`.
-- Merge onto the canonical head `5cbe6ac8`, which carries `EXPANSION_SOUTH`, the owner-23:00 merges (stone
-  hero flight, kids, near veil, tree LOD) and the 05:35 squad merges. The code at `9a97df4b` conflicts in 10
-  files (34 hunks), every one a place where the east and south expansions add side by side: `layout.ts`,
-  `heightfield.ts`, `character/ground.ts`, `hardscape/index.ts`, `hardscape/flagstones.ts`,
+- Merge onto the canonical head `92a4fd66`, which carries `EXPANSION_SOUTH`, the owner-23:00 merges (stone
+  hero flight, kids, near veil, tree LOD), the 05:35 squad merges and the south exit's props. The branch
+  conflicts in 10 files (34 hunks), every one a place where the east and south expansions add side by side:
+  `layout.ts`, `heightfield.ts`, `character/ground.ts`, `hardscape/index.ts`, `hardscape/flagstones.ts`,
   `structures/index.ts`, `trees/index.ts`, `vegetation/expansion.ts`, `expansion2.test.mjs` and
   `playtest.mjs`. Resolved in a scratch worktree (not pushed), keeping both sides. The only non-mechanical
   choice: `expansionCull` keeps its `east` flag and passes it on to canonical's new `westExpansionCull`, and
@@ -84,8 +84,8 @@ moves.
   `east-tall-deck` 8/8, `east-small-door` 5/5, canonical's `south-bridge-to-log` 21/21 (51.7 m) and
   `plaza-to-upper-house` 6/6. The deck, doorstep and plaza routes' camera numbers are identical to this
   branch's. On `stairs-to-east-lookout` the camera's p95 is 3.45 m/s (3.56 here), because canonical rebuilt
-  the main flight, and the door spur's pulls are 0.43, 0.55 and 0.32 m. The merge onto the previous head
-  `03e1127a` gave the same numbers.
+  the main flight, and the door spur's pulls are 0.43, 0.55 and 0.32 m. The merges onto the earlier heads
+  `03e1127a` and `5cbe6ac8` gave the same conflicts, the same test results and the same numbers.
 - Wall pushes: a scratch probe (not committed) opens the same play page, places Link a few metres from each
   solid, and holds the keys that steer him straight at it for 180 frames (6 s) at the same fixed 1/30 s step.
   It records his closest approach, where he ends up, and the ground height there.
@@ -142,8 +142,8 @@ fence, and on `c710389f`). No page errors on either build.
 | Lookout bench, from the lane's end | stops 0.48 m from its centre (the seat's box) | same |
 | Green lantern post | stops 0.21 m from its centre | same |
 
-On the merged build (canonical `5cbe6ac8`, see the merge check), the pushes give the same numbers with two
-exceptions. Canonical's movement now slides along an edge that Link meets at a slant (`SLIDE_TURNS` in
+On the merged builds (canonical `5cbe6ac8` and `92a4fd66`, see the merge check), the pushes give the same
+numbers with two exceptions. Canonical's movement now slides along an edge that Link meets at a slant (`SLIDE_TURNS` in
 `character/index.ts`, added for the south bank's rope bridge); head-on he still stops. So the diagonal push at
 the fence's east end post slides round the post, 0.25 m from it, and on down the bank to (51.27, 4.29, 10.33),
 1.2 m below the lookout. The bench push slides to 0.42 m from the bench's centre instead of 0.48 m. The other two
@@ -243,7 +243,15 @@ Sheet 4 shows each hero before, after and |after − before| × 4.
   merge a walker who presses along the rope at a slant slides to its end and round it, as the merged wall
   push shows. Closing the ends would need the fence to run on to something solid, such as a boulder or a
   trunk. That is a change to what is drawn, and it was not made here.
+- Footsteps on the tall deck and its steps play grass. The audio's `surfaceAt` (`src/audio/index.ts`, another
+  lane's file) gives wood only to the west house's platform and deck. The east strip and steps need the same
+  test, read from `eastDeckPlan()`. The lane's stepping stones play stone, from the live path mask.
 - The houses cannot be entered, and there are no NPCs on the lane.
+- Not scored against the owner's 50-point rubric (`docs/RUBRIC_50_STRUCTURES.md`), which reached canonical at
+  06:07, after this work. The numbers above already put four checks low. Check 46 (★, needs 3) would fail: on
+  the merge F is at 9.05 M triangles, and the lane's own views `green_wide` and `lookout_back` go over both
+  9.0 M triangles and 700 draws. Checks 42, 44 and 45 would score low on, in turn, the lookout fence's open
+  ends and the plateau's open lip, the 1.3–1.9 m camera pulls at turn-arounds, and the deck's footsteps.
 
 ## Sheets
 
