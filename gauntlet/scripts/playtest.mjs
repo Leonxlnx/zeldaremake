@@ -771,8 +771,9 @@ async function ruinsProbes(page) {
   const edges = [
     ['east-front-north', [T.x1 - 0.25, -5.65], [1, 0]],
     ['east-front-south', [T.x1 - 0.25, -2.65], [1, 0]],
-    // the notch's east face is the ivy rock's foot (0.3 m onto the paving at z −9.5): he is held 0.6 m off its stone, at x −63.9
-    ['ivy-rock-west-face', [-64.15, -9.5], [1, 0]],
+    // the notch's east face is the ivy rock's foot (0.3 m onto the paving at z −9.5): he is held off
+    // its stone at x −64.1, where the follow camera still has room between him and the rock
+    ['ivy-rock-west-face', [-64.35, -9.5], [1, 0]],
     ['north-face', [-68.0, T.z0 + 0.25], [0, -1]],
     ['north-face', [-72.8, T.z0 + 0.25], [0, -1]],
   ];
@@ -834,12 +835,12 @@ async function ruinsProbes(page) {
  */
 async function ruinsCamera(page) {
   const spots = [
-    ['terrace-west-by-cliff', [-73.8, -2.9]],
-    ['terrace-northwest-by-cliff', [-73.9, -8.9]],
+    ['terrace-west-by-cliff', [-73.62, -2.9]],
+    ['terrace-northwest-by-cliff', [-73.43, -8.9]],
     ['colonnade', [-68.0, -8.6]],
     ['arch-passage', [-64.75, -4.2]],
     ['stair-mid', [-62.4, -4.2]],
-    ['outcrop-by-ivy-rock', [-58.2, -6.6]],
+    ['outcrop-by-ivy-rock', [-58.27, -6.67]],
     ['parapet', [-57.5, -2.6]],
     ['gate', [-53.0, -4.2]],
     ['terrace-south-by-wall', [-68.5, -2.6]],

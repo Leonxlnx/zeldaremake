@@ -468,13 +468,22 @@ function builtBlocked(x: number, z: number): boolean {
 
 /** how far the walker's centre keeps off the rock's surface (m): the body's radius */
 const BODY_M = 0.3;
+/**
+ * …and off the rock at the follow camera's height (m over the feet): the camera never comes nearer
+ * its aim, 1.5 m over the feet, than 0.6 m (camera/collision.ts MIN_DISTANCE) and its near plane is
+ * 0.08 m, so with the body's radius alone a view swung toward the cliff or the ivy rock stood the
+ * camera up to 0.3 m inside the stone. Checked ±0.5 m to either side for the views swung at an angle.
+ */
+const CAMERA_ROOM_M = 0.75;
+const CAMERA_BAND: readonly [number, number] = [1.1, 1.9];
 
 /**
  * `ruinsBlocked` over the live ground (character/ground.ts): the cliff and the ivy rock held off by
  * their surfaces as built rather than their design lines — the face's furthest reach from the
  * walker's feet to 2 m over them (on the terrace's paving along its west end, else the foot's
  * ground), over the whole mesh including its slumped ends, and the ivy rock's widest radius over
- * the same heights (the mesh stays within 10 % of `pillarRadius`), each plus the body's radius.
+ * the same heights (the mesh stays within 10 % of `pillarRadius`), each plus the body's radius —
+ * and at the follow camera's height plus `CAMERA_ROOM_M`, whichever holds him further off.
  * Tabled per 0.1 m of z and per 5° round the rock, filled at first use.
  */
 export function createRuinsBlocked(ground: Ground): (x: number, z: number) => boolean {
@@ -492,7 +501,9 @@ export function createRuinsBlocked(ground: Ground): (x: number, z: number) => bo
     if (Number.isNaN(reach[i])) {
       const z = z0 + i * STEP;
       const feet = z > T.z0 && z < W.z - W.half ? T.y : ground(cliffFaceX(z, 2) + 0.9, z);
-      reach[i] = cliffReach(z, feet - 0.2, feet + 2.0, ground) + BODY_M;
+      let cam = -Infinity;
+      for (let j = -5; j <= 5; j++) cam = Math.max(cam, cliffReach(z + j * STEP, feet + CAMERA_BAND[0], feet + CAMERA_BAND[1], ground));
+      reach[i] = Math.max(cliffReach(z, feet - 0.2, feet + 2.0, ground) + BODY_M, cam + CAMERA_ROOM_M);
     }
     return reach[i];
   };
@@ -516,7 +527,16 @@ export function createRuinsBlocked(ground: Ground): (x: number, z: number) => bo
       let r = 0;
       // the rock's mesh measures `pillarRadius` from its lowest ground (ruins/rock.ts)
       for (let y = foot; y <= head + 1e-6; y += 0.2) r = Math.max(r, pillarRadius(a, y - foot));
-      radius[k] = r * 1.1 + BODY_M;
+      // the camera's band over the ground walked on this side (the terrace's paving or the live
+      // ground 1.4 radii out), ±10° of bearing
+      const px = Pl.x + Math.cos(a) * Pl.r * 1.4;
+      const pz = Pl.z + Math.sin(a) * Pl.r * 1.4;
+      const feet = inTerrace(px, pz) ? T.y : ground(px, pz);
+      let rc = 0;
+      for (let j = -2; j <= 2; j++) {
+        for (let y = feet + CAMERA_BAND[0]; y <= feet + CAMERA_BAND[1] + 1e-6; y += 0.1) rc = Math.max(rc, pillarRadius(a + (j * Math.PI * 2) / BINS, y - foot));
+      }
+      radius[k] = Math.max(r * 1.1 + BODY_M, rc + CAMERA_ROOM_M);
     }
     return radius[k];
   };

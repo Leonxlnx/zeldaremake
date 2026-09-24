@@ -11,11 +11,13 @@
  *   2. the holds: the wall, the parapet, the cliff, the ivy rock (its foot over the notch too), the
  *      gate boulders, the columns, the piers, the plunge, the lantern posts, the offering, a step
  *      off each of the terrace's open edges, and the pool past a paddle of at most a metre;
- *   3. the arch's ivy: no vertex inside the ring, the keystone, an abacus or the pendant, none more
+ *   3. the follow camera: with Link at the last walkable point by the cliff or the ivy rock, the
+ *      camera as near him as it comes is outside their stone and clear of it by its near plane;
+ *   4. the arch's ivy: no vertex inside the ring, the keystone, an abacus or the pendant, none more
  *      than 0.1 m under the springing, most of it on the approach's (east) face;
- *   4. the offering: finite, on the paving and clear of the arch's plinth and the flight, its
+ *   5. the offering: finite, on the paving and clear of the arch's plinth and the flight, its
  *      blocker round every stone of it over the paving;
- *   5. determinism: the same seed builds the same stone, bit for bit.
+ *   6. determinism: the same seed builds the same stone, bit for bit.
  * (The gauntlet's playtest walks the same route and probes in the browser, over every system's
  * blockers; this is the ruins' share of it, without one.)
  */
@@ -129,7 +131,7 @@ test('the ruins hold Link off their stone, their edges and the deep water', asyn
   for (const [id, [x, z], [dx, dz]] of [
     ['east front (north)', [T.x1 - 0.25, -5.65], [1, 0]],
     ['east front (south)', [T.x1 - 0.25, -2.65], [1, 0]],
-    ['ivy rock west face', [-64.15, -9.5], [1, 0]],
+    ['ivy rock west face', [-64.35, -9.5], [1, 0]],
     ['north face', [-68.0, T.z0 + 0.25], [0, -1]],
     ['north face', [-72.8, T.z0 + 0.25], [0, -1]],
   ]) {
@@ -156,6 +158,88 @@ test('the ruins hold Link off their stone, their edges and the deep water', asyn
     assert.notEqual(hold, null, `the pool at ${deg}° never holds him`);
     assert.ok(hold - wet <= 1.0, `the pool at ${deg}° lets him paddle ${(hold - wet).toFixed(2)} m`);
   }
+});
+
+test('the follow camera stays out of the cliff and the ivy rock wherever Link can stand', async () => {
+  const walker = await built;
+  // the rock's surface as built, in 0.5 m cells: by (y, z) for the inside test (a ray east crosses
+  // it an odd number of times) and by (x, y, z) for the clearance
+  const g = buildRock(seed().fork('rock'), ground, sun).cliff.build();
+  const pos = g.getAttribute('position');
+  const idx = g.getIndex();
+  const C = 0.5;
+  const cell = (v) => Math.floor(v / C);
+  const rays = new Map();
+  const space = new Map();
+  const put = (map, key, t) => (map.get(key) ?? map.set(key, []).get(key)).push(t);
+  for (let i = 0; i < idx.count; i += 3) {
+    const t = [0, 1, 2].map((j) => new THREE.Vector3().fromBufferAttribute(pos, idx.getX(i + j)));
+    const lo = t[0].clone().min(t[1]).min(t[2]);
+    const hi = t[0].clone().max(t[1]).max(t[2]);
+    t.x1 = hi.x;
+    for (let y = cell(lo.y); y <= cell(hi.y); y++) {
+      for (let z = cell(lo.z); z <= cell(hi.z); z++) {
+        put(rays, `${y},${z}`, t);
+        for (let x = cell(lo.x); x <= cell(hi.x); x++) put(space, `${x},${y},${z}`, t);
+      }
+    }
+  }
+  const ray = new THREE.Ray();
+  const hit = new THREE.Vector3();
+  const east = new THREE.Vector3(1, 0, 0);
+  const inside = (p) => {
+    ray.set(p, east);
+    let n = 0;
+    for (const t of rays.get(`${cell(p.y)},${cell(p.z)}`) ?? []) if (t.x1 >= p.x && ray.intersectTriangle(t[0], t[1], t[2], false, hit)) n++;
+    return n % 2 === 1;
+  };
+  const tri = new THREE.Triangle();
+  const near = new THREE.Vector3();
+  const clearance = (p) => {
+    let best = C;
+    for (let x = cell(p.x) - 1; x <= cell(p.x) + 1; x++) {
+      for (let y = cell(p.y) - 1; y <= cell(p.y) + 1; y++) {
+        for (let z = cell(p.z) - 1; z <= cell(p.z) + 1; z++) {
+          for (const t of space.get(`${x},${y},${z}`) ?? []) best = Math.min(best, tri.set(t[0], t[1], t[2]).closestPointToPoint(p, near).distanceTo(p));
+        }
+      }
+    }
+    return best;
+  };
+  // the camera as near its aim as it ever comes (camera/collision.ts: 0.6 m off the pivot 1.5 m over
+  // the feet), every 15° round him, from 0.1 rad under the pivot (it stops orbiting lower) to 0.62 rad
+  // over it (the look-down limit); inside the stone counts negative, the near plane is 0.08 m
+  let worst = { d: Infinity };
+  let spots = 0;
+  const look = (where, x, z) => {
+    const pivot = new THREE.Vector3(x, walker.height(x, z) + 1.5, z);
+    for (let deg = 0; deg < 360; deg += 15) {
+      for (const up of [-0.1, 0.25, 0.62]) {
+        const a = (deg * Math.PI) / 180;
+        const cam = new THREE.Vector3(Math.cos(a) * Math.cos(up), Math.sin(up), Math.sin(a) * Math.cos(up)).multiplyScalar(0.6).add(pivot);
+        const d = inside(cam) ? -clearance(cam) : clearance(cam);
+        if (d < worst.d) worst = { d, where, at: [x, z] };
+      }
+    }
+    spots++;
+  };
+  // Link at the last walkable point west along every 0.25 m of the cliff, and out along every 5° of
+  // bearing from the ivy rock
+  for (let z = R.cliff.z0; z <= R.cliff.z1; z += 0.25) {
+    if (walker.blocked(-71, z)) continue;
+    let x = -71;
+    while (x > -77 && !walker.blocked(x - 0.02, z)) x -= 0.02;
+    look('cliff', x, z);
+  }
+  const P = R.pillar;
+  for (let deg = 0; deg < 360; deg += 5) {
+    const a = (deg * Math.PI) / 180;
+    let r = 1.5;
+    while (r < 5 && walker.blocked(P.x + Math.cos(a) * r, P.z + Math.sin(a) * r)) r += 0.02;
+    if (r < 5) look('ivy rock', P.x + Math.cos(a) * r, P.z + Math.sin(a) * r);
+  }
+  assert.ok(spots >= 100, `${spots} spots`);
+  assert.ok(worst.d >= 0.08, `the camera ${Math.abs(worst.d).toFixed(3)} m ${worst.d < 0 ? 'inside' : 'off'} the ${worst.where} with Link at ${fmt(worst.at)}`);
 });
 
 test('the arch ivy keeps out of the ring, the keystone, the abaci and the pendant', () => {
