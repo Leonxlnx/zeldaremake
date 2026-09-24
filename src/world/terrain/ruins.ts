@@ -12,6 +12,7 @@
  */
 import { EXPANSION_RUINS, EXPANSION_RUINS_BOXES, ruinsTrailLine } from '../layout';
 import { Noise2D, clamp, lerp, smoothstep } from '../util/noise';
+import { cliffBed, type CliffBed } from '../rocks/cliffBeds';
 
 const R = EXPANSION_RUINS;
 export const [RUINS_TRAIL_BOX, RUINS_SITE_BOX] = EXPANSION_RUINS_BOXES;
@@ -237,7 +238,7 @@ const rockC = new Noise2D('ruins-rock-c');
 /** a cheap 3D value from 2D simplex slices, in about [-1, 1] (the rock's own) */
 export const rockNoise3 = (x: number, y: number, z: number) => (rockA.noise(x + 0.31 * y, z - 0.17 * y) + rockB.noise(y + 0.29 * z, x - 0.23 * z) + rockC.noise(z + 0.37 * x, y - 0.19 * x)) / 2.2;
 
-export const CLIFF_FACE_ROWS = 30;
+export const CLIFF_FACE_ROWS = 60;
 export const CLIFF_TOP_ROWS = 12;
 export const CLIFF_ROWS = CLIFF_FACE_ROWS + CLIFF_TOP_ROWS;
 /** the v of the face's top row (the lip) */
@@ -266,7 +267,7 @@ function cliffRunAt(z: number): number {
 export const cliffStrata = (z: number, y: number) => Math.sin(y * 2.3 + 1.7 * rockA.noise(z * 0.3, y * 0.2));
 
 /** the cliff's surface point at (z, v): x, y, the foot's ground `g`, the lip's `top`, and how much of a ledge it is */
-export function cliffSurface(z: number, v: number, ground: Ground): { x: number; y: number; g: number; top: number; ledge: number } {
+export function cliffSurface(z: number, v: number, ground: Ground): { x: number; y: number; g: number; top: number; ledge: number; bed: CliffBed | null } {
   const C = R.cliff;
   const back = C.x - CLIFF_DEPTH_M;
   const r = cliffRunAt(z);
@@ -277,15 +278,19 @@ export function cliffSurface(z: number, v: number, ground: Ground): { x: number;
   let x: number;
   let y: number;
   let ledge = 1;
+  let bed: CliffBed | null = null;
   if (v <= CLIFF_FACE_V) {
-    // up the face: strata ledges and fissures on the wandering face line, a flared foot
+    // up the face: the beds (rocks/cliffBeds.ts — steps proud and recessed of the wandering face
+    // line, so the face keeps lines of light and shade at 10 m), the old undulation and fissures
+    // under them at half strength, a flared foot
     const s = v / CLIFF_FACE_V;
     y = lerp(g - 0.6, top - 0.35, s);
-    const strata = 0.22 * cliffStrata(z, y) + 0.12 * Math.sin(y * 5.1 + z * 0.4);
+    bed = cliffBed(z, y, { seed: 57 });
+    const strata = 0.11 * cliffStrata(z, y) + 0.06 * Math.sin(y * 5.1 + z * 0.4);
     const fiss = 0.3 * Math.pow(Math.abs(rockB.noise(z * 0.55, y * 0.08)), 0.5) - 0.18;
-    x = cliffFaceX(z, y) + (strata + fiss + 0.25 * rockNoise3(z * 0.9, y * 0.6, 1.3)) * r * worn - (1 - r) * 1.5 * s;
+    x = cliffFaceX(z, y) + (bed.out + strata + fiss + 0.12 * rockNoise3(z * 0.9, y * 0.6, 1.3)) * r * worn - (1 - r) * 1.5 * s;
     if (s < 0.06) x += 0.35 * (1 - s / 0.06);
-    ledge = smoothstep(0.08, 0.2, cliffStrata(z, y) * 0.2 + 0.1);
+    ledge = Math.max(0.5 * smoothstep(0.08, 0.2, cliffStrata(z, y) * 0.2 + 0.1), bed.shelf);
   } else {
     // over the brow and down the back
     const s = (v - CLIFF_FACE_V) / (1 - CLIFF_FACE_V);
@@ -296,7 +301,7 @@ export function cliffSurface(z: number, v: number, ground: Ground): { x: number;
     y = s < 0.35 ? top - 0.35 + 0.35 * brow + 0.3 * knobs * rockNoise3(z * 0.6, s * 3, 7.1) : lerp(top + 0.25 * rockNoise3(z * 0.4, 2.2, s), gy - 0.4, smoothstep(0.35, 1, s));
     x = lerp(fx - 0.3, back, s) + 0.3 * knobs * rockNoise3(z * 0.5, y * 0.4, 4.4);
   }
-  return { x, y, g, top, ledge };
+  return { x, y, g, top, ledge, bed };
 }
 
 /** the x of the cliff's face at height y — the point `cliffSurface` gives the face's row at that height */
