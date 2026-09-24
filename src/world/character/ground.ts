@@ -11,9 +11,34 @@
  * tread tops with their nosing overhangs, for the character's footprint planting (glbLink.ts).
  */
 import { Box3, BufferAttribute, BufferGeometry, Mesh, type Object3D } from 'three';
-import { EXPANSION_STAIRS, type Layout } from '../layout';
+import { EXPANSION_EAST, EXPANSION_STAIRS, type Layout } from '../layout';
 import type { SharedGeometry, WalkSurface } from '../system';
 import { archTunnel, surfaceMask, type Terrain } from '../terrain/heightfield';
+
+/**
+ * The east lookout's rope fence (layout `EXPANSION_EAST.lookout`), where the plateau's south lip
+ * falls 5 m in 6 m: the character stops FENCE_STOP_M short of the rope. It is no structure pad, so
+ * the grass under the rope stays.
+ */
+const LOOKOUT_FENCE = EXPANSION_EAST.lookout.fence.slice(1).map((b, i) => {
+  const a = EXPANSION_EAST.lookout.fence[i];
+  return { ax: a[0], az: a[2], ex: b[0] - a[0], ez: b[2] - a[2] };
+});
+const FENCE_STOP_M = 0.25;
+const LOOKOUT_FENCE_BOX = (() => {
+  const xs = EXPANSION_EAST.lookout.fence.map((p) => p[0]);
+  const zs = EXPANSION_EAST.lookout.fence.map((p) => p[2]);
+  return { x0: Math.min(...xs) - FENCE_STOP_M, x1: Math.max(...xs) + FENCE_STOP_M, z0: Math.min(...zs) - FENCE_STOP_M, z1: Math.max(...zs) + FENCE_STOP_M };
+})();
+const lookoutFenceBlocked = (x: number, z: number): boolean => {
+  const B = LOOKOUT_FENCE_BOX;
+  if (x < B.x0 || x > B.x1 || z < B.z0 || z > B.z1) return false;
+  for (const s of LOOKOUT_FENCE) {
+    const t = Math.min(1, Math.max(0, ((x - s.ax) * s.ex + (z - s.az) * s.ez) / (s.ex * s.ex + s.ez * s.ez)));
+    if (Math.hypot(x - (s.ax + s.ex * t), z - (s.az + s.ez * t)) < FENCE_STOP_M) return true;
+  }
+  return false;
+};
 
 export interface Ground {
   height(x: number, z: number): number;
@@ -306,6 +331,7 @@ export function createGround(terrain: Terrain, layout: Layout, shared?: SharedGe
       if (builtTop(x, z) !== null) return false;
       // a deck's skirt is the air round its strip at the planks' height: nobody walks or lands there
       if (builtTop(x, z, true) !== null) return true;
+      if (lookoutFenceBlocked(x, z)) return true;
       // the log arch's structure band is walkable where the path runs under its raised belly
       // (heightfield `archTunnel`, round 47); its grounded walls and root masses stay blocked
       return surfaceMask(x, z, 'live').structure > 0.5 && archTunnel(x, z) < 0.5;

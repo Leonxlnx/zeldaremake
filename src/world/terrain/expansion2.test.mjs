@@ -558,6 +558,39 @@ const fmt = (x, z) => `(${x.toFixed(2)}, ${z.toFixed(2)})`;
   assert.equal(ground.blocked(B.x, B.z), true, 'the lookout bench is solid');
   assert.equal(ground.blocked(EXPANSION_EAST.shopSign.x, EXPANSION_EAST.shopSign.z), true, "the shop's sign post is solid");
   for (const p of EXPANSION_EAST.lanternPosts) assert.equal(ground.blocked(p.x, p.z), true, `${p.id} is solid`);
+  // the lookout's rope fence stops a step short of its rope (character ground only: no structure
+  // pad, the grass under the rope stays); half a metre in, on the bench's side, is open ground
+  // wherever the bench itself does not stand
+  {
+    const LF = EXPANSION_EAST.lookout.fence;
+    const by = (B.yawDeg * Math.PI) / 180;
+    const inBench = (x, z) => {
+      const dx = x - B.x;
+      const dz = z - B.z;
+      return Math.abs(dx * Math.cos(by) - dz * Math.sin(by)) < B.length * 0.5 + 0.25 && Math.abs(dx * Math.sin(by) + dz * Math.cos(by)) < 0.55;
+    };
+    let open = 0;
+    for (let i = 0; i + 1 < LF.length; i++) {
+      const [ax, , az] = LF[i];
+      const [bx, , bz] = LF[i + 1];
+      const l = Math.hypot(bx - ax, bz - az);
+      let nx = (bz - az) / l;
+      let nz = -(bx - ax) / l;
+      if ((B.x - ax) * nx + (B.z - az) * nz < 0) (nx = -nx), (nz = -nz);
+      for (let u = 0; u <= 1.0001; u += 0.1) {
+        const x = ax + (bx - ax) * u;
+        const z = az + (bz - az) * u;
+        assert.equal(ground.blocked(x, z), true, `the lookout fence is a wall at ${fmt(x, z)}`);
+        assert.equal(ground.blocked(x + nx * 0.2, z + nz * 0.2), true, `the lookout fence stops a step 0.2 m short at ${fmt(x, z)}`);
+        assert.equal(hf.surfaceMask(x, z, 'live').structure, 0, `the lookout fence is no structure pad at ${fmt(x, z)}`);
+        const [ox, oz] = [x + nx * 0.5, z + nz * 0.5];
+        if (inBench(ox, oz)) continue;
+        assert.equal(ground.blocked(ox, oz), false, `half a metre in from the lookout fence is open at ${fmt(ox, oz)}`);
+        open++;
+      }
+    }
+    assert.ok(open >= 30, `the lookout fence's inner side is open ground along most of it (${open} samples)`);
+  }
   // the tall house's deck railings stop a step (off the deck strip — the built deck itself is a walk surface)
   for (const [a, b] of layout.eastDeckPlan().rails) {
     const x = (a[0] + b[0]) / 2;
