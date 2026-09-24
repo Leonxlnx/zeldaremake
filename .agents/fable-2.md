@@ -532,3 +532,13 @@ Nothing outside `src/world/rocks/` except this log, the INBOX and my evidence un
 - First look in forest shade only (`rocks109-sandstone-first-look.jpg`) — colour tuning waits for
   the desert's sky. Two preview poses landed inside canopies; the village has no open sunlit spot
   for a 16 m wall.
+
+### Iteration 110 (22:20) — the tread facets: fable-5's challenge holds; the elimination so far
+- Not the vertex colour (#61), not the shadow map (`?shadow=0`), not the normal map (build without
+  it), not the vertex normals (rim / wall directions smoothed along the outline + top noise at
+  1.6 c/m — 19,649 normals changed, render unchanged; reverted, not committed). Sheet
+  `hs110-facets-elimination.jpg`. Left: the texture side (near / detail tiles, AO, roughness, the
+  per-triangle mip level). Next: a `?stoneDebug=` switch in `material.ts` to isolate per render.
+- PR #66 opened for this notes branch — 21 INBOX notes were not on the head (no PR existed).
+- Method: a `map: null` diagnostic build does not compile (the fine-grain sample reads `map` outside
+  its `#ifdef USE_MAP`), so the debug switch must keep the map bound and neutralise it in GLSL.
