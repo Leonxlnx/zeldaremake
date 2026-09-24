@@ -148,6 +148,7 @@ export const GROVE_HUTS: DistantHouseDef[] = [
     wall: SH.wall,
     doorSize: [0.76, 1.55],
     seamlessRings: true,
+    postPodsOutboard: true,
     capHeight: SH.capHeight,
     capOverhang: SH.capOverhang,
     facingDeg: SH.facingDeg,
@@ -169,6 +170,7 @@ export const GROVE_HUTS: DistantHouseDef[] = [
     wall: TH.wall,
     doorSize: [0.72, 1.5],
     seamlessRings: true,
+    postPodsOutboard: true,
     capHeight: TH.capHeight,
     capOverhang: TH.capOverhang,
     facingDeg: TH.facingDeg,
@@ -884,6 +886,7 @@ export function buildExpansionNorth(ctx: WorldContext, mats: StructureMaterials,
   let treads = 0;
   let cleats = 0;
   const trestleFeet: Vector3[] = [];
+  const gangwayPods: Vector3[] = [];
   {
     // treads: across the stringers, laid on the slope
     let d = 0.03;
@@ -975,20 +978,24 @@ export function buildExpansionNorth(ctx: WorldContext, mats: StructureMaterials,
       const mids = pts.map((p) => p.clone().setY(p.y - RAIL_H * 0.52));
       ropeParts.push(ropeTube(new CatmullRomCurve3([mids[0], mids[0].clone().lerp(mids[1], 0.5).add(new Vector3(0, -0.04, 0)), mids[1], mids[1].clone().lerp(mids[2], 0.5).add(new Vector3(0, -0.04, 0)), mids[2]]), 0.012, gr() * 10, ropeTint(gr), noise, s * 3.3));
     }
-    // a pod on an arm off the east trestle leg's head, over the treads
+    // a pod on a bracket rising off the trestle's right-hand leg (going up), outboard of the hand
+    // rail: over the treads it hung at Link's hip, and at rail height out here at his head's height
+    // from the slope under it
     {
       const li = gSide.dot(new Vector3(feet[1][0] - tTop.x, 0, feet[1][1] - tTop.z)) > 0 ? 1 : 0;
       const legTop = legTops[li];
-      const inward = new Vector3(tTop.x - legTop.x, 0, tTop.z - legTop.z).normalize();
+      const outward = new Vector3(legTop.x - tTop.x, 0, legTop.z - tTop.z).normalize();
       const armFrom = legTop.clone().add(new Vector3(0, -0.1, 0));
-      const armTip = armFrom.clone().addScaledVector(inward, 0.32).addScaledVector(dH, -0.1).add(new Vector3(0, 0.1, 0));
-      railParts.push(sweepTube(new CatmullRomCurve3([armFrom.clone().addScaledVector(inward, -0.04), armFrom.clone().lerp(armTip, 0.5).add(new Vector3(0, -0.01, 0)), armTip]), { radius: (t) => 0.035 - 0.012 * t, tubularSegments: 6, radialSegments: 8, uvMetres: 0.5, capEnd: true, color: (t) => scaleRGB(PLANK, 1 + 0.1 * t) }));
+      const armTip = armFrom.clone().addScaledVector(outward, 0.34).addScaledVector(dH, -0.1).add(new Vector3(0, 0.3, 0));
+      const armMid = armFrom.clone().lerp(armTip, 0.5).addScaledVector(outward, 0.04).add(new Vector3(0, -0.05, 0));
+      railParts.push(sweepTube(new CatmullRomCurve3([armFrom.clone().addScaledVector(outward, -0.04), armMid, armTip]), { radius: (t) => 0.035 - 0.012 * t, tubularSegments: 8, radialSegments: 8, uvMetres: 0.5, capEnd: true, color: (t) => scaleRGB(PLANK, 1 + 0.1 * t) }));
       const hook = armTip.clone().add(new Vector3(0, -0.035, 0));
-      hangers.push(lanternHanger(hook, inward, 0.9));
-      const rig = buildLantern(hook, 0.16, mats, gr.fork('pod'), 0.9, 'lime');
+      hangers.push(lanternHanger(hook, outward, 0.9));
+      const rig = buildLantern(hook, 0.14, mats, gr.fork('pod'), 0.9, 'lime');
       group.add(rig.pivot);
       lanterns.push(rig);
       pods.push(rig.pod.clone());
+      gangwayPods.push(rig.pod.clone());
       foliage.addLeafCluster(legTop.clone().add(new Vector3(0, 0.02, 0)), 0.12, 8, { size: 0.08, droop: 0.4, flatten: 0.5 });
     }
     // vines hanging under the treads
@@ -1553,9 +1560,9 @@ export function buildExpansionNorth(ctx: WorldContext, mats: StructureMaterials,
   {
     const glow = new Color(ctx.config.palette.lanternGlow);
     const tint: RGB = [glow.r, glow.g, glow.b];
-    const pool = (pod: Vector3, top: number, surfaceY: (x: number, z: number) => number | null) => {
+    const pool = (pod: Vector3, top: number, surfaceY: (x: number, z: number) => number | null, rings?: number, sectors?: number) => {
       const h = Math.max(0.3, pod.y - top);
-      const g = lightPool(pod, clamp(0.55 + 0.45 * h, 0.8, 1.5), POOL_PEAK * clamp((1.3 / h) ** 2, 0.35, 1), tint, surfaceY);
+      const g = lightPool(pod, clamp(0.55 + 0.45 * h, 0.8, 1.5), POOL_PEAK * clamp((1.3 / h) ** 2, 0.35, 1), tint, surfaceY, rings, sectors);
       if (g) poolParts.push(g);
     };
     // the trunk house's two pods outside its wall and the posts' pods on the ground under them;
@@ -1568,6 +1575,29 @@ export function buildExpansionNorth(ctx: WorldContext, mats: StructureMaterials,
       pool(l.pod, T.height(l.pod.x, l.pod.z), onGround);
     }
     for (const p of postPods) pool(p, T.height(p.x, p.z), onGround);
+    // the gangway's pod, beside it: on the treads (a narrow strip, so a finer disc) and on the slope
+    // under the pod, kept out from under the treads
+    const gx = gHead.x - gFoot.x;
+    const gz = gHead.z - gFoot.z;
+    const gl = Math.hypot(gx, gz);
+    /** (x, z) on the gangway's plan: s along it (0 foot, 1 head) and the distance off its centre line */
+    const onGangway = (x: number, z: number) => {
+      const dx = x - gFoot.x;
+      const dz = z - gFoot.z;
+      return { s: (dx * gx + dz * gz) / (gl * gl), off: Math.abs(dx * gz - dz * gx) / gl };
+    };
+    const treadsAt = (x: number, z: number): number | null => {
+      const { s, off } = onGangway(x, z);
+      return s >= 0 && s <= 1 && off <= 0.4 ? gTop(s).y + 0.012 : null;
+    };
+    const besideGangway = (x: number, z: number): number | null => {
+      const { s, off } = onGangway(x, z);
+      return s > -0.05 && s < 1.05 && off < 0.55 ? null : T.height(x, z) + 0.03;
+    };
+    for (const p of gangwayPods) {
+      pool(p, gTop(clamp(onGangway(p.x, p.z).s, 0, 1)).y, treadsAt, 14, 48);
+      pool(p, T.height(p.x, p.z), besideGangway);
+    }
     // the huts' pods on their platforms, the veranda and the walkway stubs — never inside the wall
     for (const a of huts.audit) {
       const ws = walkSurfaces.find((w) => w.id === a.id);

@@ -112,6 +112,13 @@ export interface DistantHouseDef {
    * ring's last quad. Opt-in: the village's huts keep their uvs exactly.
    */
   seamlessRings?: boolean;
+  /**
+   * 2026-09-24 (the north grove): the walkway's post pods hang from brackets `POST_POD_OUTBOARD`
+   * outboard of their posts (the end post's no longer past the deck's end), clear of a walker
+   * hugging the rail — his centre 0.34 m off the walkway's line, his arms 0.19 m further. Opt-in:
+   * the far huts and the expansion's houses keep theirs.
+   */
+  postPodsOutboard?: boolean;
   /** cap rise above the eave (m) */
   capHeight: number;
   /**
@@ -251,6 +258,8 @@ export const DISTANT_HOUSES: DistantHouseDef[] = [
 
 /** a published seat counts as a hut's host when its base is within this of the constants (m) */
 export const HOST_MATCH_M = 1.5;
+/** `postPodsOutboard`: the bracket's reach beyond its post (m), the pod 0.70 m off the walkway's line */
+const POST_POD_OUTBOARD = 0.28;
 /** wall clearance over the bole's radius (+ its axis drift) across the hut's height band (m) */
 export const BOLE_CLEARANCE = 0.06;
 /** the wall's radius factor at the eave (it tapers in a little) */
@@ -1545,7 +1554,7 @@ export function buildDistantHouses(ctx: WorldContext, mats: StructureMaterials, 
     // the post pods hang short (0.22 / 0.2 m cords): the pod is 0.48 s tall against the sphere's
     // 2 podR, so a round-16 drop would have set its tip on the deck
     const endPostTop = postTops[1][1];
-    const endHook = endPostTop.clone().addScaledVector(wDir, 0.12).setY(endPostTop.y + 0.02);
+    const endHook = (def.postPodsOutboard ? endPostTop.clone().addScaledVector(wSide, POST_POD_OUTBOARD) : endPostTop.clone().addScaledVector(wDir, 0.12)).setY(endPostTop.y + 0.02);
     hang(endHook, 0.22, GLOW_AMBER, endPostTop.clone().setY(endPostTop.y + 0.02));
     if (def.pods >= 2) {
       const eaveDir = az(def.facingDeg + def.doorDeg * 0.5);
@@ -1554,7 +1563,7 @@ export function buildDistantHouses(ctx: WorldContext, mats: StructureMaterials, 
     }
     if (def.pods >= 3) {
       const midPostTop = postTops[0][0];
-      const midHook = midPostTop.clone().addScaledVector(wSide, -0.12).setY(midPostTop.y + 0.02);
+      const midHook = midPostTop.clone().addScaledVector(wSide, def.postPodsOutboard ? -POST_POD_OUTBOARD : -0.12).setY(midPostTop.y + 0.02);
       hang(midHook, 0.2, GLOW_AMBER, midPostTop.clone().setY(midPostTop.y + 0.02));
     }
 
