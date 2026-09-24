@@ -8,6 +8,7 @@
 import { BufferAttribute, BufferGeometry, Float32BufferAttribute, Vector3 } from 'three';
 import type { Terrain, TerrainMask } from './heightfield';
 import { LATTICE, isLatticeTerrain, terrainDetail, type TerrainDetail } from './heightfield';
+import { ravineWallMoss } from './south';
 import { Noise2D, clamp, smoothstep } from '../util/noise';
 import type { Layout } from '../layout';
 
@@ -211,6 +212,8 @@ export function layerWeights(
   const rockN = N.rock.fbm(x * 0.31, z * 0.31 + 3.3, 2) * 0.5 + 0.5;
   const rockA = smoothstep(0.4 + bankSlope, 0.72 + bankSlope, slope) * (0.65 + 0.35 * rockN) + cliff * 0.85 + terrace * smoothstep(0.3 + bankSlope, 0.5 + bankSlope, slope) * 0.6;
   rock += cover(rockA);
+  // round 56: the south ravine's walls — moss hanging from the lip over the rock (south.ts)
+  moss += cover(ravineWallMoss(x, z, slope));
 
   // 5. path gravel under/around the flagstones
   gravel += cover(smoothstep(0.3, 0.85, path));

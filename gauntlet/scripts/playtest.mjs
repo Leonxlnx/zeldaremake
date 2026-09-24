@@ -57,6 +57,23 @@ const ROUTE_FLIGHTS = {
   'house-west': { base: [3.8, 0.27, -8.0], dir: [0.9397, 0.342], steps: 5, rise: 0.27, tread: 0.4, width: 2.4 },
   ledge: { base: [1.2, 4.0, -73.2], dir: [0, -1], steps: 6, rise: 0.27, tread: 0.42, width: 1.8 },
 };
+/** layout.ts EXPANSION_SOUTH: the rope bridge sill to sill and its walk's half width; the log's mouth, axis and dead end */
+const SOUTH = { north: [3.72, 30.45], south: [4.08, 43.7], walkHalfWidth: 0.5, mouth: [4.25, 46.9], dir: [0.03, 1], deadEnd: 5.6 };
+const southFrames = () => {
+  const len = Math.hypot(SOUTH.south[0] - SOUTH.north[0], SOUTH.south[1] - SOUTH.north[1]);
+  const bx = (SOUTH.south[0] - SOUTH.north[0]) / len;
+  const bz = (SOUTH.south[1] - SOUTH.north[1]) / len;
+  const tl = Math.hypot(SOUTH.dir[0], SOUTH.dir[1]);
+  const tx = SOUTH.dir[0] / tl;
+  const tz = SOUTH.dir[1] / tl;
+  return {
+    len,
+    /** along the deck from the north sill (a), across it (c) */
+    bridge: (a, c = 0) => [SOUTH.north[0] + bx * a - bz * c, SOUTH.north[1] + bz * a + bx * c],
+    /** into the log from its mouth (a), across it (c) */
+    log: (a, c = 0) => [SOUTH.mouth[0] + tx * a - tz * c, SOUTH.mouth[1] + tz * a + tx * c],
+  };
+};
 const flightFrame = (f) => {
   const l = Math.hypot(f.dir[0], f.dir[1]);
   const dx = f.dir[0] / l;
@@ -669,6 +686,7 @@ async function walkScenario(page, results) {
   const s = flightFrame(FLIGHTS['south-bank']);
   const hw = flightFrame(ROUTE_FLIGHTS['house-west']);
   const ledge = flightFrame(ROUTE_FLIGHTS.ledge);
+  const sf = southFrames();
   const routes = [
     // round Saria's trunk pad (its cap reaches the plateau) to the upper house's east side
     ['plaza-to-upper-house', [[1, 3], m.at(-1.6), m.at(m.run * 0.5), m.at(m.run + 1.2), [17.6, -9.5], [17.2, -13.0], [16.6, -15.2]]],
@@ -687,6 +705,9 @@ async function walkScenario(page, results) {
     ['west-house-to-plaza', [[-18.4, 7.1], [-16.28, 6.46], [-15.39 + 0.9, 7.64 - 0.4], [-12.5, 8.5], [-6, 8], [0, 4]]],
     // the north path under the log arch into the second clearing, then up the ledge flight
     ['north-clearing-ledge', [[0.5, 2], [1.5, -12], [2.0, -18], [1.8, -24], [2.5, -30], [3.5, -36], [4.5, -42], [5.2, -50], [5.8, -58], [5.4, -61.5], [3.6, -65.2], [1.0, -68.0], [-0.6, -70.2], ledge.at(-0.9), ledge.at(ledge.run * 0.5), ledge.at(ledge.run + 0.6)], 2400],
+    // round 56 (expansion-south): out of the plaza down the south approach, between the giants'
+    // roots to the ravine, over the rope bridge on its axis and into the hollow log to near its glow
+    ['south-bridge-to-log', [[0.5, 3], [0.8, 10], [1, 16], [-0.5, 17.2], [-1.2, 19.4], [-1.32, 21.6], [-0.8, 23.55], [0.4, 25.15], [2.0, 26.55], [3.3, 27.9], [3.68, 28.95], sf.bridge(-0.6), sf.bridge(1.4), sf.bridge(4.1), sf.bridge(6.9), sf.bridge(9.8), sf.bridge(12.2), sf.bridge(sf.len + 0.5), [4.14, 45.2], sf.log(0), sf.log(2), sf.log(4.8)], 2400],
   ];
   results.walk = [];
   const pickRoutes = typeof args['walk-routes'] === 'string' ? new Set(args['walk-routes'].split(',')) : null;
@@ -696,6 +717,43 @@ async function walkScenario(page, results) {
     results.walk.push(await walkRoute(page, name, pts, maxFrames));
     fs.writeFileSync(path.join(out, 'playtest.json'), JSON.stringify(results, null, 1));
   }
+  if (!pickRoutes || pickRoutes.has('south-bridge-to-log')) {
+    results.southProbes = await southProbes(page);
+    fs.writeFileSync(path.join(out, 'playtest.json'), JSON.stringify(results, null, 1));
+  }
+}
+
+/**
+ * The rope bridge holds Link on its deck: the play hook's ground across the deck at its quarter
+ * spans (on the walk: not blocked, at deck height far over the ravine floor; beside it: blocked),
+ * off its heads into the ravine, and in the log (its floor walks, its walls and the glow past the
+ * dead end block).
+ */
+async function southProbes(page) {
+  const sf = southFrames();
+  const probes = [];
+  for (const u of [0.25, 0.5, 0.75]) {
+    const a = sf.len * u;
+    for (const c of [0, 0.45, -0.45]) probes.push({ where: 'deck', a, c, at: sf.bridge(a, c), expect: 'walk' });
+    for (const c of [0.7, -0.7, 1.0, -1.0, 2.5, -2.5]) probes.push({ where: 'deck-side', a, c, at: sf.bridge(a, c), expect: 'blocked' });
+  }
+  // 1.5 m past a sill the gorge's slant can leave a probe 3 m off the axis on the rounded lip: walkable
+  // there only while the ground is within 0.5 m of grade ('rim'); 3 m past a sill it is the wall
+  for (const c of [3.0, -3.0]) probes.push({ where: 'rim-by-north-head', a: 1.5, c, at: sf.bridge(1.5, c), expect: 'rim' });
+  for (const c of [3.0, -3.0]) probes.push({ where: 'ravine-by-north-head', a: 3.0, c, at: sf.bridge(3.0, c), expect: 'blocked' });
+  for (const c of [3.0, -3.0]) probes.push({ where: 'ravine-by-south-head', a: sf.len - 1.5, c, at: sf.bridge(sf.len - 1.5, c), expect: 'blocked' });
+  for (const c of [3.0, -3.0]) probes.push({ where: 'ravine-by-south-head', a: sf.len - 3.0, c, at: sf.bridge(sf.len - 3.0, c), expect: 'blocked' });
+  for (const a of [1, 3, SOUTH.deadEnd - 0.4]) probes.push({ where: 'log-floor', a, c: 0, at: sf.log(a), expect: 'walk' });
+  for (const c of [1.2, -1.2]) probes.push({ where: 'log-wall', a: 3, c, at: sf.log(3, c), expect: 'blocked' });
+  probes.push({ where: 'log-past-dead-end', a: SOUTH.deadEnd + 0.3, c: 0, at: sf.log(SOUTH.deadEnd + 0.3), expect: 'blocked' });
+  const got = await page.evaluate((pts) => pts.map(([x, z]) => window.__ZR_PLAY__.ground(x, z)), probes.map((p) => p.at));
+  const rows = probes.map((p, i) => {
+    const g = got[i];
+    const ok =
+      p.expect === 'blocked' ? g.blocked === true : p.expect === 'rim' ? g.blocked === true || g.terrain > -0.5 : g.blocked === false && (p.where !== 'deck' || g.walk - g.terrain > 2);
+    return { where: p.where, a: +p.a.toFixed(2), c: p.c, x: +p.at[0].toFixed(2), z: +p.at[1].toFixed(2), walk: +g.walk.toFixed(3), terrain: +g.terrain.toFixed(3), blocked: g.blocked, expect: p.expect, ok };
+  });
+  return { ok: rows.every((r) => r.ok), failed: rows.filter((r) => !r.ok).length, rows };
 }
 
 /**

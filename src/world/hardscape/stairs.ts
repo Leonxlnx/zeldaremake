@@ -268,10 +268,18 @@ export function buildStairway(def: StairDef, terrain: Terrain, rng: Rng, seed: s
     const noseMossy = toneRng.chance(0.6);
     const noseMossK = noseMossy ? toneRng.range(0.7, 1.0) : 0;
     const noseMossPhase = toneRng.range(0, 100);
-    const tint = (tint0 + toneSwing) * dampTread * dryK;
+    // 2026-09-24 (fable-5 §24 on the owner's 23:00 reference, the real game's main stairway `demo61/d_014`: inside
+    // his circle dark < 0.25 7 %, luma 0.363, p10 0.264, sat 0.27 — ours at `s2-owner` 51.5 % / 0.278 / 0.125 / 0.39):
+    // the hero stone flight's value comes up into that band and cools — the tops a tenth, the fronts to the
+    // tops' value (below) — with the nosings still the brightest line and the foot → top gradient kept.
+    const stoneHero = isMain && !logNosed;
+    // (the tenth is the flight's, not the stone's: a log build of the same flight carries the same tone stream)
+    const tint = (tint0 + toneSwing) * dampTread * dryK * (isMain ? 1.15 : 1);
     treadTone.push(tint);
     const hue = hue0 + hueSwing;
-    const color: [number, number, number] = [tint * (1 + hue) * 0.9, tint, tint * (1 - hue * 0.6) * 1.12];
+    const color: [number, number, number] = stoneHero
+      ? [tint * (1 + hue) * 0.85, tint, tint * (1 - hue * 0.6) * 1.26]
+      : [tint * (1 + hue) * 0.9, tint, tint * (1 - hue * 0.6) * 1.12];
 
     // split the tread into two stones sometimes (round 31: 0.36 → 0.2 — frame 8 s reads the
     // flight with a third of our vertical joint energy, 0.037 against 0.068 in its box)
@@ -307,7 +315,17 @@ export function buildStairway(def: StairDef, terrain: Terrain, rng: Rng, seed: s
       const worn = wornFront(
         cut,
         depth,
-        (ax) => 0.02 * nosing.noise(ax * 1.0 + i * 5.1, i * 2.7 + 0.5),
+        // 2026-09-23: the owner's reference (`pass5/owner-2300-reference-stairs.png`, `demo61/d_014`)
+        // shows the lit lip of every tread WANDERING several centimetres along its length — a slow
+        // S over the flight's width with a shorter ripple on it — and no two alike. At ±2 cm on one
+        // octave ours read as ruled lines. Two octaves to ±4.5 cm; still a smooth, low-slope curve,
+        // so the tread stays star-shaped from its centroid (see the note above).
+        // Biased toward the front (+z pulls the edge back into the stone), so the wander is
+        // −4.3 … +2.1 cm against a 6.5–9.5 cm overhang: the lit lip moves 6.4 cm peak to peak
+        // along a tread — three times the old ±2 cm — and can never be eaten by its own riser.
+        (ax) =>
+          0.016 * (nosing.noise(ax * 0.9 + i * 5.1, i * 2.7 + 0.5) - 0.2) +
+          0.009 * (nosing.noise(ax * 2.6 + i * 3.3 + 17.4, i * 1.9 + 9.2) - 0.2),
         (ax) => 0.03 * chipAt(ax),
         cxl,
         pieceTaper,
@@ -410,9 +428,11 @@ export function buildStairway(def: StairDef, terrain: Terrain, rng: Rng, seed: s
         // (lane 6, the log flights: the band under the timber is the lower tread's earth meeting the
         // log, not a stone face in shadow — fable-5's "the log faces and shaded tread fronts are the
         // weight": earth-tinted, its shading normal a third toward the sky like the ground it is)
-        sideColor: logNosed ? [color[0] * 0.8, color[1] * 0.78, color[2] * 0.74] : [color[0] * 0.5, color[1] * 0.5, color[2] * 0.56],
+        // (the hero stone flight: the reference's tread fronts are the same pale stone as the tops with only a
+        // thin shadow line under the lip — the × 0.5 band read as a black bar on every one of 26 shallow steps)
+        sideColor: logNosed ? [color[0] * 0.8, color[1] * 0.78, color[2] * 0.74] : stoneHero ? [color[0] * 0.9, color[1] * 0.92, color[2] * 0.98] : [color[0] * 0.5, color[1] * 0.5, color[2] * 0.56],
         earthSides: logNosed ? 1 : 0,
-        sideNormalUp: logNosed ? 0.35 : 0,
+        sideNormalUp: logNosed ? 0.35 : stoneHero ? 0.6 : 0,
         // a touch cooler than the tread top: the frame's lit lips are its palest and coolest
         // stone (A lit-20 % B/G 0.84, F 0.87; ours read 0.80 / 0.75 with the lip at the top colour)
         bevelColor: [color[0] * 0.95, color[1], color[2] * 1.15],
@@ -550,7 +570,9 @@ export function buildStairway(def: StairDef, terrain: Terrain, rng: Rng, seed: s
       // (0.31–0.39 → 0.38–0.46) — with the deep nose overhang the whole face sits in the tread's
       // shadow, and frame 8 s reads its riser band at 0.31 (p10 of the flight box) against our
       // 0.23, frame 1 s' mid-flight troughs at 0.29–0.36 against our 0.26–0.27
-      const rc = 0.38 + rng.range(0, 0.08);
+      // (the hero stone flight: the riser is the tread's own stone in the sky's light, not a shadow band — the
+      // reference's flight sits between 0.26 and 0.49; same draw, × 1.75)
+      const rc = (0.38 + rng.range(0, 0.08)) * (stoneHero ? 2.0 : 1);
       // the stone flights' riser stands 7.5–10.5 cm behind the slab's nose (round 31: "a lit rolled
       // lip over a deep shadow line"). Under a timber that recess is wrong in kind (fable-cursor
       // 2026-09-23 18:10, Astra's `s2-join-close`): the log covers the lip, and what showed under
@@ -577,7 +599,7 @@ export function buildStairway(def: StairDef, terrain: Terrain, rng: Rng, seed: s
       const footStain = i === 0 ? 2.0 : 1.0;
       // a touch cooler than neutral: frame 8 s reads the risers at sat 0.17 / B/R 0.71 face-on
       // where ours rendered 0.20 / 0.67 (the post chain passes ~1/4 of an albedo shift)
-      const riserColor: [number, number, number] = [rc * 0.99, rc, rc * 1.1];
+      const riserColor: [number, number, number] = stoneHero ? [rc * 0.93, rc, rc * 1.18] : [rc * 0.99, rc, rc * 1.1];
       // round 42: a fissure up two riser faces in five (hash fork on the step, so the stream is
       // untouched) — the stone shader's dirt-filled crack (`aCrack`) on the side walls: it starts
       // at the foot at a random point along the face, leans up to ± 20° and peters out between
@@ -640,9 +662,9 @@ export function buildStairway(def: StairDef, terrain: Terrain, rng: Rng, seed: s
         // 0.2 with the cheeks at 0.3 / × 0.78 still −0.0032)
         // round 46: 0.1 → 0.2 with the backing behind (the face stones are 14 cm deep now and
         // the joints show the backing's soil, so the flank D sees is the backing's, not theirs)
-        sideNormalUp: isHouseWest ? 0.4 : logNosed ? 0.35 : 0,
+        sideNormalUp: isHouseWest ? 0.4 : logNosed ? 0.35 : stoneHero ? 0.6 : 0,
         sideWear: isHouseWest ? 0.7 : 0,
-        sideGrime: isHouseWest ? 1 : logNosed ? 0.9 : undefined,
+        sideGrime: isHouseWest ? 1 : logNosed ? 0.9 : stoneHero ? 0.75 : undefined,
         // lane 6: the whole riser under a timber renders as packed earth (top and walls)
         earthTop: logNosed ? 1 : 0,
         earthSides: logNosed ? 1 : 0,
@@ -653,7 +675,7 @@ export function buildStairway(def: StairDef, terrain: Terrain, rng: Rng, seed: s
         sideCrackFn: fissured ? (x, y) => [x + piece.ax - ac - fissA - fissLean * y, (y - fissTop * 0.5) / (fissTop * 0.5)] : undefined,
         // soil stain at the foot fading to none under the nosing: the face is not one flat band
         // but darker and browner where it meets the tread below, lighter under the overhang
-        sideStain: isHouseWest ? footStain * 0.5 : logNosed ? footStain * 0.4 : footStain,
+        sideStain: isHouseWest ? footStain * 0.5 : logNosed ? footStain * 0.4 : stoneHero ? footStain * 0.5 : footStain,
         // mossy risers (sheet 01 / 04): a moss skin creeps up the face from the tread below —
         // strongest toward the flanks — broken into patches by the noise so it reads as
         // cushions of moss between bare dark stone, not a green wash. Round 23: the general

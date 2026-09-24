@@ -132,6 +132,16 @@ def metrics(x, sr):
     # this is the wind bed breathing on its own rather than the listener leaving a light behind
     tail = e[int(len(e) * 2 / 3):]
     out['mod_tail_db'] = float(np.percentile(tail, 90) - np.percentile(tail, 10))
+    # how much of the time something is actually sounding, and the longest gap: a score that never
+    # rests leaves no room for the forest under it
+    gate = np.percentile(e, 95) - 25.0
+    on = e > gate
+    out['duty_pct'] = float(100.0 * on.mean())
+    longest = run = 0
+    for v in on:
+        run = 0 if v else run + 1
+        longest = max(longest, run)
+    out['longest_quiet_s'] = float(longest * 0.04)
     return out, mag, freqs, hop
 
 
@@ -169,6 +179,51 @@ def envelope_image(x, sr, width, height):
         d.line((i, mid - h, i, mid + h), fill=(150, 205, 160))
     d.line((0, mid, width, mid), fill=(60, 66, 74))
     return img
+
+
+def level_image(x, sr, width, height, top_db=-14.0, bot_db=-74.0, win=0.08):
+    """level over time in dBFS — the picture for a score that rests and a forest that does not"""
+    n = int(win * sr)
+    m = len(x) // n
+    e = db(np.sqrt((x[: m * n].reshape(m, n) ** 2).mean(axis=1)))
+    img = Image.new('RGB', (width, height), (14, 16, 20))
+    d = ImageDraw.Draw(img)
+    for level in (-20, -30, -40, -50, -60, -70):
+        gy = int((top_db - level) / (top_db - bot_db) * (height - 16)) + 4
+        d.line((0, gy, width - 28, gy), fill=(38, 43, 50))
+        d.text((width - 26, gy - 7), str(level), fill=(86, 94, 104), font=SMALL)
+    secs = len(x) / sr
+    for t0 in range(0, int(secs) + 1, 10):
+        gx = int(t0 / secs * (width - 28))
+        d.line((gx, height - 10, gx, height - 4), fill=(80, 88, 98))
+        if t0:
+            d.text((gx + 2, height - 14), f'{t0}s', fill=(110, 120, 132), font=SMALL)
+    pts = []
+    for i in range(width - 28):
+        k0 = int(i / (width - 28) * len(e))
+        k1 = max(k0 + 1, int((i + 1) / (width - 28) * len(e)))
+        v = float(np.max(e[k0:k1])) if k1 <= len(e) else bot_db
+        pts.append((i, int((top_db - np.clip(v, bot_db, top_db)) / (top_db - bot_db) * (height - 16)) + 4))
+    d.line(pts, fill=(150, 215, 165), width=2)
+    return img
+
+
+def levels(args):
+    """before over after: the level of one stem over the whole render, on one scale"""
+    width, cell = args.width, args.height
+    rows = []
+    for name, folder in (('BEFORE', args.before), ('AFTER', args.after)):
+        a, sr = load(os.path.join(folder, f'{args.stem}.wav'))
+        x = mono(a)
+        img = level_image(x, sr, width, cell)
+        m, _, _, _ = metrics(x, sr)
+        label(img, f'{name} — {args.stem}: plays {m["duty_pct"]:.0f} % of the time, longest gap {m["longest_quiet_s"]:.1f} s, rms {m["rms_db"]:.1f} dBFS', xy=(8, 6), font=SMALL)
+        rows.append(img)
+    out = Image.new('RGB', (width, cell * 2 + 6), (8, 9, 11))
+    out.paste(rows[0], (0, 0))
+    out.paste(rows[1], (0, cell + 6))
+    out.save(args.out, quality=93)
+    print(f'wrote {args.out}')
 
 
 def label(im, text, xy=(8, 6), font=FONT):
@@ -232,7 +287,7 @@ def sheet(args):
         with open(args.json, 'w') as f:
             json.dump(stats, f, indent=2)
         print(f'wrote {args.json}')
-    for k in ('rms_db', 'peak_db', 'tone_peak_db', 'tone_peak_hz', 'mod_db', 'mod_tail_db', 'drone_db', 'flatness'):
+    for k in ('rms_db', 'peak_db', 'tone_peak_db', 'tone_peak_hz', 'mod_db', 'mod_tail_db', 'duty_pct', 'longest_quiet_s', 'drone_db', 'flatness'):
         print(f'{k:22s} before {stats["before"][k]:8.2f}   after {stats["after"][k]:8.2f}')
     print('band (dBFS)         mean before   mean after   always before  always after')
     for band in stats['before']['band_db']:
@@ -450,6 +505,14 @@ def main():
     s.add_argument('--width', type=int, default=1240)
     s.add_argument('--spec-height', type=int, default=250)
     s.set_defaults(func=sheet)
+    l = sub.add_parser('levels')
+    l.add_argument('--before', required=True)
+    l.add_argument('--after', required=True)
+    l.add_argument('--stem', default='mix')
+    l.add_argument('--out', required=True)
+    l.add_argument('--width', type=int, default=1240)
+    l.add_argument('--height', type=int, default=150)
+    l.set_defaults(func=levels)
     t = sub.add_parser('steps')
     t.add_argument('--before', required=True)
     t.add_argument('--after', required=True)

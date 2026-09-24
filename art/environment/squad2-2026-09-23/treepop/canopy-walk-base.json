@@ -1,0 +1,515 @@
+{
+ "from": [
+  1.4,
+  6
+ ],
+ "to": [
+  1.5,
+  -38
+ ],
+ "steps": 45,
+ "settle": 2,
+ "rows": [
+  {
+   "step": 0,
+   "at": [
+    1.4,
+    6
+   ],
+   "slots": 64,
+   "shown": 79,
+   "entered": 0,
+   "left": 0
+  },
+  {
+   "step": 1,
+   "at": [
+    1.4,
+    5
+   ],
+   "slots": 64,
+   "shown": 79,
+   "entered": 1,
+   "left": 1
+  },
+  {
+   "step": 2,
+   "at": [
+    1.4,
+    4
+   ],
+   "slots": 64,
+   "shown": 79,
+   "entered": 2,
+   "left": 2
+  },
+  {
+   "step": 3,
+   "at": [
+    1.4,
+    3
+   ],
+   "slots": 64,
+   "shown": 79,
+   "entered": 6,
+   "left": 6
+  },
+  {
+   "step": 4,
+   "at": [
+    1.4,
+    2
+   ],
+   "slots": 64,
+   "shown": 79,
+   "entered": 5,
+   "left": 5
+  },
+  {
+   "step": 5,
+   "at": [
+    1.4,
+    1
+   ],
+   "slots": 64,
+   "shown": 79,
+   "entered": 3,
+   "left": 3
+  },
+  {
+   "step": 6,
+   "at": [
+    1.4,
+    0
+   ],
+   "slots": 64,
+   "shown": 79,
+   "entered": 3,
+   "left": 3
+  },
+  {
+   "step": 7,
+   "at": [
+    1.4,
+    -1
+   ],
+   "slots": 64,
+   "shown": 79,
+   "entered": 3,
+   "left": 3
+  },
+  {
+   "step": 8,
+   "at": [
+    1.4,
+    -2
+   ],
+   "slots": 64,
+   "shown": 79,
+   "entered": 3,
+   "left": 3
+  },
+  {
+   "step": 9,
+   "at": [
+    1.4,
+    -3
+   ],
+   "slots": 64,
+   "shown": 79,
+   "entered": 4,
+   "left": 4
+  },
+  {
+   "step": 10,
+   "at": [
+    1.4,
+    -4
+   ],
+   "slots": 64,
+   "shown": 79,
+   "entered": 3,
+   "left": 3
+  },
+  {
+   "step": 11,
+   "at": [
+    1.4,
+    -5
+   ],
+   "slots": 64,
+   "shown": 79,
+   "entered": 8,
+   "left": 8
+  },
+  {
+   "step": 12,
+   "at": [
+    1.4,
+    -6
+   ],
+   "slots": 64,
+   "shown": 79,
+   "entered": 5,
+   "left": 5
+  },
+  {
+   "step": 13,
+   "at": [
+    1.4,
+    -7
+   ],
+   "slots": 64,
+   "shown": 79,
+   "entered": 5,
+   "left": 5
+  },
+  {
+   "step": 14,
+   "at": [
+    1.4,
+    -8
+   ],
+   "slots": 64,
+   "shown": 79,
+   "entered": 6,
+   "left": 6
+  },
+  {
+   "step": 15,
+   "at": [
+    1.4,
+    -9
+   ],
+   "slots": 64,
+   "shown": 79,
+   "entered": 2,
+   "left": 2
+  },
+  {
+   "step": 16,
+   "at": [
+    1.4,
+    -10
+   ],
+   "slots": 64,
+   "shown": 79,
+   "entered": 2,
+   "left": 2
+  },
+  {
+   "step": 17,
+   "at": [
+    1.4,
+    -11
+   ],
+   "slots": 64,
+   "shown": 79,
+   "entered": 5,
+   "left": 5
+  },
+  {
+   "step": 18,
+   "at": [
+    1.4,
+    -12
+   ],
+   "slots": 64,
+   "shown": 79,
+   "entered": 3,
+   "left": 3
+  },
+  {
+   "step": 19,
+   "at": [
+    1.4,
+    -13
+   ],
+   "slots": 64,
+   "shown": 79,
+   "entered": 2,
+   "left": 2
+  },
+  {
+   "step": 20,
+   "at": [
+    1.4,
+    -14
+   ],
+   "slots": 64,
+   "shown": 79,
+   "entered": 1,
+   "left": 1
+  },
+  {
+   "step": 21,
+   "at": [
+    1.4,
+    -15
+   ],
+   "slots": 64,
+   "shown": 79,
+   "entered": 2,
+   "left": 2
+  },
+  {
+   "step": 22,
+   "at": [
+    1.5,
+    -16
+   ],
+   "slots": 64,
+   "shown": 79,
+   "entered": 5,
+   "left": 5
+  },
+  {
+   "step": 23,
+   "at": [
+    1.5,
+    -17
+   ],
+   "slots": 64,
+   "shown": 79,
+   "entered": 4,
+   "left": 4
+  },
+  {
+   "step": 24,
+   "at": [
+    1.5,
+    -18
+   ],
+   "slots": 64,
+   "shown": 79,
+   "entered": 3,
+   "left": 3
+  },
+  {
+   "step": 25,
+   "at": [
+    1.5,
+    -19
+   ],
+   "slots": 64,
+   "shown": 79,
+   "entered": 1,
+   "left": 1
+  },
+  {
+   "step": 26,
+   "at": [
+    1.5,
+    -20
+   ],
+   "slots": 64,
+   "shown": 79,
+   "entered": 2,
+   "left": 2
+  },
+  {
+   "step": 27,
+   "at": [
+    1.5,
+    -21
+   ],
+   "slots": 64,
+   "shown": 79,
+   "entered": 4,
+   "left": 4
+  },
+  {
+   "step": 28,
+   "at": [
+    1.5,
+    -22
+   ],
+   "slots": 64,
+   "shown": 79,
+   "entered": 2,
+   "left": 2
+  },
+  {
+   "step": 29,
+   "at": [
+    1.5,
+    -23
+   ],
+   "slots": 64,
+   "shown": 79,
+   "entered": 3,
+   "left": 3
+  },
+  {
+   "step": 30,
+   "at": [
+    1.5,
+    -24
+   ],
+   "slots": 64,
+   "shown": 79,
+   "entered": 3,
+   "left": 3
+  },
+  {
+   "step": 31,
+   "at": [
+    1.5,
+    -25
+   ],
+   "slots": 64,
+   "shown": 79,
+   "entered": 1,
+   "left": 1
+  },
+  {
+   "step": 32,
+   "at": [
+    1.5,
+    -26
+   ],
+   "slots": 64,
+   "shown": 79,
+   "entered": 4,
+   "left": 4
+  },
+  {
+   "step": 33,
+   "at": [
+    1.5,
+    -27
+   ],
+   "slots": 64,
+   "shown": 79,
+   "entered": 2,
+   "left": 2
+  },
+  {
+   "step": 34,
+   "at": [
+    1.5,
+    -28
+   ],
+   "slots": 64,
+   "shown": 79,
+   "entered": 2,
+   "left": 2
+  },
+  {
+   "step": 35,
+   "at": [
+    1.5,
+    -29
+   ],
+   "slots": 64,
+   "shown": 79,
+   "entered": 2,
+   "left": 2
+  },
+  {
+   "step": 36,
+   "at": [
+    1.5,
+    -30
+   ],
+   "slots": 64,
+   "shown": 79,
+   "entered": 3,
+   "left": 3
+  },
+  {
+   "step": 37,
+   "at": [
+    1.5,
+    -31
+   ],
+   "slots": 64,
+   "shown": 79,
+   "entered": 3,
+   "left": 3
+  },
+  {
+   "step": 38,
+   "at": [
+    1.5,
+    -32
+   ],
+   "slots": 64,
+   "shown": 79,
+   "entered": 2,
+   "left": 2
+  },
+  {
+   "step": 39,
+   "at": [
+    1.5,
+    -33
+   ],
+   "slots": 64,
+   "shown": 79,
+   "entered": 3,
+   "left": 3
+  },
+  {
+   "step": 40,
+   "at": [
+    1.5,
+    -34
+   ],
+   "slots": 64,
+   "shown": 79,
+   "entered": 3,
+   "left": 3
+  },
+  {
+   "step": 41,
+   "at": [
+    1.5,
+    -35
+   ],
+   "slots": 64,
+   "shown": 79,
+   "entered": 3,
+   "left": 3
+  },
+  {
+   "step": 42,
+   "at": [
+    1.5,
+    -36
+   ],
+   "slots": 64,
+   "shown": 79,
+   "entered": 3,
+   "left": 3
+  },
+  {
+   "step": 43,
+   "at": [
+    1.5,
+    -37
+   ],
+   "slots": 64,
+   "shown": 79,
+   "entered": 1,
+   "left": 1
+  },
+  {
+   "step": 44,
+   "at": [
+    1.5,
+    -38
+   ],
+   "slots": 64,
+   "shown": 79,
+   "entered": 2,
+   "left": 2
+  }
+ ],
+ "summary": {
+  "overflowSteps": 0,
+  "churn": 270,
+  "perStep": 6.136363636363637,
+  "perMetre": 6.136347788378449
+ }
+}

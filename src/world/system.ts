@@ -102,6 +102,12 @@ export interface SharedGeometry {
    */
   walkSurfaces?: WalkSurface[];
   /**
+   * Round 56 (expansion-south): walkable polylines over the ground — the rope bridge's deck (its
+   * plank tops as built) and the log tunnel's floor deck — published by structures for the
+   * character ground (character/ground.ts reads them; nothing else does).
+   */
+  walkSpans?: WalkSpan[];
+  /**
    * The play camera's collision grids over the structures (structures/cameraSolids.ts; never built
    * under a headless capture): `solid` shells it keeps Link in front of, `slim` parts it only
    * refuses to stand inside.
@@ -109,6 +115,13 @@ export interface SharedGeometry {
   cameraSolids?: { solid: VoxelGrid | null; slim: VoxelGrid | null };
   /** the slim trees' trunks (the white-barks, as placed): base centre, radius, the bare bole's height span (world y) */
   slimTrunks?: { x: number; z: number; r: number; y0: number; y1: number }[];
+}
+
+/** a walkable polyline: (x, top y, z) along its centre line, walkable within `hw` m of it */
+export interface WalkSpan {
+  id: string;
+  pts: [number, number, number][];
+  hw: number;
 }
 
 export interface WalkSurface {

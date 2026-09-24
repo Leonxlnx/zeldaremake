@@ -180,6 +180,15 @@ export interface ComposerSettings {
   rayMistNearStart: number;
   rayMistNearEnd: number;
   /**
+   * 2026-09-24 — the same ramp for the AMBIENT base air (`rayBaseDensity` under `rayAirFade*`),
+   * which had none: it was full strength at every marched distance, so the air a walker stands in
+   * washed everything within ~15 m (the owner's 23:00 shots — the bough as "a dead branch", the
+   * trunk "cut in half", the canopy "strange" looking up). A gained shaft column is exempt at every
+   * distance, so the beams themselves are untouched. start >= end disables it.
+   */
+  rayAirNearStart: number;
+  rayAirNearEnd: number;
+  /**
    * marched distances (m) over which a gained column's extra gain (shafts.ts, > 1) fades in: nearer
    * than the first it lights the air like a plain open column, past the second at full gain
    */
@@ -448,6 +457,8 @@ export function createComposer(opts: ComposerOptions): Composer {
     // the mist term's ramp along the ray (0 / 0 = off; see RAY_MARCH_FRAG mistNear)
     rayMistNearStart: 0,
     rayMistNearEnd: 0,
+    rayAirNearStart: 4,
+    rayAirNearEnd: 16,
     // 2026-09-23 (owner review, the upper house from the plateau): the narrow × 7.5 columns were
     // tuned to read from shot F at 18–31 m; a walker standing in one (the plateau path passes
     // 0.7–1.1 m from the (13.3, 10, −14.6) axis) had that gain on every ray from its first step —
@@ -727,6 +738,7 @@ export function createComposer(opts: ComposerOptions): Composer {
       uDensity: { value: new Vector2(settings.rayMistDensity, settings.rayBaseDensity) },
       uAirFade: { value: new Vector2(settings.rayAirFadeLo, settings.rayAirFadeHi) },
       uMistNear: { value: new Vector2(settings.rayMistNearStart, settings.rayMistNearEnd) },
+      uAirNear: { value: new Vector2(settings.rayAirNearStart, settings.rayAirNearEnd) },
       uColumnNear: { value: new Vector2(settings.rayColumnNearStart, settings.rayColumnNearEnd) },
       // the base air clears above the canopy like the distance haze (same profile as heightfog.ts):
       // a column climbing 30 m into the open air (shot F) carries ≈ half the aerosol of an
@@ -1104,6 +1116,7 @@ export function createComposer(opts: ComposerOptions): Composer {
       (rayMarchMat.uniforms.uDensity.value as Vector2).set(s.rayMistDensity, s.rayBaseDensity);
       (rayMarchMat.uniforms.uAirFade.value as Vector2).set(s.rayAirFadeLo, s.rayAirFadeHi);
       (rayMarchMat.uniforms.uMistNear.value as Vector2).set(s.rayMistNearStart, s.rayMistNearEnd);
+      (rayMarchMat.uniforms.uAirNear.value as Vector2).set(s.rayAirNearStart, s.rayAirNearEnd);
       (rayMarchMat.uniforms.uColumnNear.value as Vector2).set(s.rayColumnNearStart, s.rayColumnNearEnd);
       rayMarchMat.uniforms.uExtinction.value = s.rayExtinction;
       rayMarchMat.uniforms.uMaxDist.value = s.rayMaxDist;
@@ -1300,6 +1313,7 @@ export function createComposer(opts: ComposerOptions): Composer {
       godRayMaxDistM: settings.rayMaxDist,
       godRayAirFadeM: [settings.rayAirFadeLo, settings.rayAirFadeHi],
       godRayMistNearM: [settings.rayMistNearStart, settings.rayMistNearEnd],
+      godRayAirNearM: [settings.rayAirNearStart, settings.rayAirNearEnd],
       godRayColumnNearM: [settings.rayColumnNearStart, settings.rayColumnNearEnd],
       godRayAnisotropy: settings.rayAnisotropy,
       godRayContrastPow: settings.rayContrast,
