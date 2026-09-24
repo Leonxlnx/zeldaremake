@@ -170,22 +170,26 @@ export function createGround(terrain: Terrain, layout: Layout, shared?: SharedGe
   });
   const walkSurfaces: WalkSurface[] = shared?.walkSurfaces ?? [];
   const propBlockers = shared?.propBlockers ?? [];
-  /** the built surface (platform / deck top) under (x, z), or null off every walk surface */
-  const builtTop = (x: number, z: number): number | null => {
+  /**
+   * the built surface (platform / deck top) under (x, z), or null off every walk surface;
+   * `skirted` also reads a deck's `skirt` round its strip (heights; `blocked()` closes it)
+   */
+  const builtTop = (x: number, z: number, skirted = false): number | null => {
     let best: number | null = null;
     for (const w of walkSurfaces) {
       const d = Math.hypot(x - w.disc.x, z - w.disc.z);
       if (d <= w.disc.r) best = Math.max(best ?? -Infinity, w.disc.y);
       const { a, b, hw } = w.deck;
+      const skirt = skirted ? w.deck.skirt : undefined;
       const dx = b[0] - a[0];
       const dz = b[2] - a[2];
       const len2 = dx * dx + dz * dz;
       if (len2 > 1e-9) {
         const t = ((x - a[0]) * dx + (z - a[2]) * dz) / len2;
-        if (t >= -0.02 && t <= 1.02) {
+        if (t >= -0.02 && t <= 1.02 + (skirt ? skirt.end / Math.sqrt(len2) : 0)) {
           const px = a[0] + dx * t;
           const pz = a[2] + dz * t;
-          if (Math.hypot(x - px, z - pz) <= hw) best = Math.max(best ?? -Infinity, a[1] + (b[1] - a[1]) * Math.min(Math.max(t, 0), 1));
+          if (Math.hypot(x - px, z - pz) <= hw + (skirt ? skirt.side : 0)) best = Math.max(best ?? -Infinity, a[1] + (b[1] - a[1]) * Math.min(Math.max(t, 0), 1));
         }
       }
     }
@@ -265,7 +269,7 @@ export function createGround(terrain: Terrain, layout: Layout, shared?: SharedGe
     const s = stairAt(x, z);
     if (s !== null) return Math.max(h, s);
     // round 49: a built surface (the west house's platform / deck) over the ground
-    const built = builtTop(x, z);
+    const built = builtTop(x, z, true);
     if (built !== null) return Math.max(h, built);
     // the foot stands on the slab under it (one cell of slack for the sole's footprint)
     const slab = slabTop(x, z, 0.05);
@@ -300,6 +304,8 @@ export function createGround(terrain: Terrain, layout: Layout, shared?: SharedGe
       // ground's structure pad (the bole under the floor) does not
       if (wallBlocked(x, z)) return true;
       if (builtTop(x, z) !== null) return false;
+      // a deck's skirt is the air round its strip at the planks' height: nobody walks or lands there
+      if (builtTop(x, z, true) !== null) return true;
       // the log arch's structure band is walkable where the path runs under its raised belly
       // (heightfield `archTunnel`, round 47); its grounded walls and root masses stay blocked
       return surfaceMask(x, z, 'live').structure > 0.5 && archTunnel(x, z) < 0.5;

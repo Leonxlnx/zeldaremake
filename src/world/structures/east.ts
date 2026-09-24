@@ -1058,10 +1058,12 @@ export function buildEast(ctx: WorldContext, mats: StructureMaterials, rng: Rng,
     // the character's ground: the strip along the deck and the flight
     const deckY = s.floor + top;
     const bottomY = terrain.height(plan.steps.bottom[0], plan.steps.bottom[1]) + 0.03;
+    // the skirt: a walker turning toward the railing or the bark has his next foothold predicted a
+    // stride ahead, past the 1 m strip; the ground there, 1 m below, sank his hips into the planks
     walk.push({
       id: 'east-tall-deck',
       disc: { x: s.h.x, z: s.h.z, r: -1, y: deckY },
-      deck: { a: [plan.walk.a[0], deckY, plan.walk.a[1]], b: [plan.walk.b[0], deckY, plan.walk.b[1]], hw: plan.walk.hw },
+      deck: { a: [plan.walk.a[0], deckY, plan.walk.a[1]], b: [plan.walk.b[0], deckY, plan.walk.b[1]], hw: plan.walk.hw, skirt: { side: 0.9, end: 0.9 } },
       wall: { r: 0, half: -1, gap: [0, 0] },
     });
     walk.push({

@@ -564,6 +564,94 @@ const fmt = (x, z) => `(${x.toFixed(2)}, ${z.toFixed(2)})`;
     const z = (a[1] + b[1]) / 2;
     assert.equal(hf.surfaceMask(x, z, 'live').structure, 1, `deck railing wall at ${fmt(x, z)}`);
   }
+  // the deck's walk surfaces as structures/east.ts publishes them: the strip's skirt answers the
+  // deck's top round the strip (toward the bark, past the railing and the far end) for the feet's
+  // landing prediction, and blocked() closes it — a walk and a jump (character index.ts) both refuse
+  // a blocked cell, so nobody stands on the air round the deck
+  {
+    const plan = layout.eastDeckPlan();
+    const D = EXPANSION_EAST.tallDeck;
+    const h = plan.house;
+    const f = (h.facingDeg * Math.PI) / 180;
+    const deckY = live.height(h.x + Math.sin(f) * h.radius * 1.15, h.z + Math.cos(f) * h.radius * 1.15) + D.rise;
+    const bottomY = live.height(plan.steps.bottom[0], plan.steps.bottom[1]) + 0.03;
+    const skirt = { side: 0.9, end: 0.9 };
+    const surfaces = (withSkirt) => [
+      { id: 'east-tall-deck', disc: { x: h.x, z: h.z, r: -1, y: deckY }, deck: { a: [plan.walk.a[0], deckY, plan.walk.a[1]], b: [plan.walk.b[0], deckY, plan.walk.b[1]], hw: plan.walk.hw, ...(withSkirt ? { skirt } : {}) }, wall: { r: 0, half: -1, gap: [0, 0] } },
+      { id: 'east-tall-steps', disc: { x: h.x, z: h.z, r: -1, y: deckY }, deck: { a: [plan.steps.bottom[0], bottomY, plan.steps.bottom[1]], b: [plan.steps.top[0], deckY, plan.steps.top[1]], hw: plan.steps.hw }, wall: { r: 0, half: -1, gap: [0, 0] } },
+    ];
+    const skirted = createGround(live, LAYOUT, { walkSurfaces: surfaces(true) });
+    const bare = createGround(live, LAYOUT, { walkSurfaces: surfaces(false) });
+    const walkD = D.outer - 0.12 - D.walkHw;
+    for (const along of [-D.half + 0.1, 0, D.half - 0.1]) {
+      const [x, z] = plan.at(walkD, along);
+      near(skirted.height(x, z), deckY, 1e-6, `deck top on the strip at ${fmt(x, z)}`);
+      assert.equal(skirted.blocked(x, z), false, `deck strip walkable at ${fmt(x, z)}`);
+      // a stride toward the railing, past it, or toward the bark still reads the planks' height
+      for (const out of [D.outer + 0.3, D.outer + 0.7, walkD - D.walkHw - 0.7]) {
+        const [px, pz] = plan.at(out, along);
+        near(skirted.height(px, pz), deckY, 1e-6, `skirt reads the deck's top at ${fmt(px, pz)}`);
+      }
+    }
+    for (const out of [walkD - 0.3, walkD, walkD + 0.3]) {
+      const [x, z] = plan.at(out, D.half + 0.6);
+      near(skirted.height(x, z), deckY, 1e-6, `skirt past the far end at ${fmt(x, z)}`);
+    }
+    // the steps keep their own slope (the skirt stops at the strip's door-side end)
+    const [mx, mz] = [(plan.steps.bottom[0] + plan.steps.top[0]) / 2, (plan.steps.bottom[1] + plan.steps.top[1]) / 2];
+    near(skirted.height(mx, mz), bare.height(mx, mz), 1e-9, `the steps' slope is unchanged at ${fmt(mx, mz)}`);
+    assert.ok(skirted.height(mx, mz) < deckY - 0.3, `mid-flight is below the deck (${skirted.height(mx, mz).toFixed(2)} < ${deckY.toFixed(2)})`);
+    // the skirt only closes cells, and only cells it lifts off the ground; an open cell it lifts is
+    // the steps' last few cm flattened into the planks
+    let closed = 0;
+    for (let out = walkD - D.walkHw - 1.2; out <= D.outer + 1.4; out += 0.1) {
+      for (let along = -D.half - D.stepRun - 0.4; along <= D.half + 1.4; along += 0.1) {
+        const [x, z] = plan.at(out, along);
+        const lift = skirted.height(x, z) - bare.height(x, z);
+        assert.ok(lift >= 0, `the skirt never lowers the ground (${lift.toFixed(3)} at ${fmt(x, z)})`);
+        if (bare.blocked(x, z)) {
+          assert.equal(skirted.blocked(x, z), true, `the skirt opens nothing at ${fmt(x, z)}`);
+        } else if (skirted.blocked(x, z)) {
+          assert.ok(lift >= 0.55, `the skirt closes only the air over the ground (lift ${lift.toFixed(2)} at ${fmt(x, z)})`);
+          closed++;
+        } else {
+          assert.ok(lift < 0.1, `an open cell the skirt lifts ${lift.toFixed(2)} m at ${fmt(x, z)}`);
+        }
+      }
+    }
+    assert.ok(closed > 100, `the skirt closes the air round the strip (${closed} cells)`);
+    // walked from the deck by moveRoot's rule (not blocked, rising < 0.55 m; the steps' sides drop
+    // to the ground): down the flight onto the ground, never onto the skirt
+    const C = 0.1;
+    const o0 = walkD - D.walkHw - 1.4;
+    const a0 = -D.half - D.stepRun - 1.0;
+    const no = Math.round((D.outer + 1.8 - o0) / C);
+    const na = Math.round((D.half + 1.8 - a0) / C);
+    const cell = (i, j) => plan.at(o0 + i * C, a0 + j * C);
+    const seen = new Uint8Array(no * na);
+    const start = [Math.round((walkD - o0) / C), Math.round((0 - a0) / C)];
+    const queue = [start];
+    seen[start[0] * na + start[1]] = 1;
+    let reached = 0;
+    while (queue.length) {
+      const [i, j] = queue.pop();
+      const [x, z] = cell(i, j);
+      const h0 = skirted.height(x, z);
+      reached++;
+      assert.ok(h0 - bare.height(x, z) < 0.1, `walked onto the skirt at ${fmt(x, z)}`);
+      for (const [di, dj] of [[1, 0], [-1, 0], [0, 1], [0, -1]]) {
+        const [ni, nj] = [i + di, j + dj];
+        if (ni < 0 || nj < 0 || ni >= no || nj >= na || seen[ni * na + nj]) continue;
+        const [nx, nz] = cell(ni, nj);
+        if (skirted.blocked(nx, nz) || skirted.height(nx, nz) - h0 >= 0.55) continue;
+        seen[ni * na + nj] = 1;
+        queue.push([ni, nj]);
+      }
+    }
+    const foot = [Math.round(((D.stepInner + D.stepOuter) / 2 - o0) / C), Math.round((-D.half - D.stepRun - 0.5 - a0) / C)];
+    assert.equal(seen[foot[0] * na + foot[1]], 1, `walked from the deck down the flight to the ground at its foot`);
+    assert.ok(reached > 300, `walked the deck, its steps and the ground round them (${reached} cells)`);
+  }
   // nothing of the lane in the legacy mask (its trunks, bench and posts are live-only)
   const solids = [...EXPANSION_EAST.houses.map((h) => [h.x, h.z]), [B.x, B.z], [EXPANSION_EAST.shopSign.x, EXPANSION_EAST.shopSign.z], ...EXPANSION_EAST.lanternPosts.map((p) => [p.x, p.z])];
   for (const [x, z] of solids) assert.equal(hf.surfaceMask(x, z, 'legacy').structure, 0, `legacy mask has no east structure at ${fmt(x, z)}`);

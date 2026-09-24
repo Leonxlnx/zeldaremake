@@ -115,8 +115,13 @@ export interface WalkSurface {
   id: string;
   /** a flat disc: centre, radius, top height */
   disc: { x: number; z: number; r: number; y: number };
-  /** a deck: from `a` to `b` (world, heights = its top), half width */
-  deck: { a: [number, number, number]; b: [number, number, number]; hw: number };
+  /**
+   * a deck: from `a` to `b` (world, heights = its top), half width. `skirt`: the top's height also
+   * answers `side` m beyond `hw` either side and `end` m past `b`, where the feet's landing
+   * prediction reads the ground a stride ahead of a walker turning at the railing; the character
+   * ground blocks the skirt (nobody walks or lands on the air round the strip)
+   */
+  deck: { a: [number, number, number]; b: [number, number, number]; hw: number; skirt?: { side: number; end: number } };
   /** the wall ring about the disc's centre: radius, half thickness; the door's angular gap [from, to] (rad, from +x toward +z) */
   wall: { r: number; half: number; gap: [number, number] };
 }
