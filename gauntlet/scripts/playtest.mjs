@@ -726,9 +726,11 @@ async function walkScenario(page, results) {
     // lantern posts to the outcrop through the gate boulders, up the worn stair, through the arch,
     // onto the terrace toward the broken arch
     ['plaza-to-ruins-terrace', [[0, 4], [-6, 8], [-12.5, 8.5], ...RUINS.trail, [-59.6, -4.2], [-60.7, -4.2], [-62.6, -4.2], [-64.3, -4.2], RUINS.arch, [-67.5, -4.6], [-70.5, -5.6]], 3000, { cams: true }],
-    // the pool's shore: off the trail east of the south gate boulder, down the east shore, round the
-    // south bank to the middle of the south shore and a step into the shallows (0.16 m deep)
-    ['ruins-trail-to-shore', [RUINS.trail[14], [-50.6, -1.2], [-51.6, 1.8], [-52.8, 3.35], [-53.5, 7.5], [-57.5, 10.0], [-62.0, 10.3], [-64.9, 9.3], [-64.9, 8.35]], 2400, { cams: true }],
+    // the pool's shore: off the trail east of the south gate boulder, down the east shore and 0.8 m
+    // out into the east shallows (the ground 0.38 m under the water; he is held 0.3 m further on), back
+    // up the bank, round the south bank to the middle of the south shore, down to the water's edge (the
+    // waypoint lies in its 0.25 m paddle, so the 0.5 m arrival leaves him on the bank's foot)
+    ['ruins-trail-to-shore', [RUINS.trail[14], [-50.6, -1.2], [-51.6, 1.8], [-52.8, 3.35], [-55.9, 4.55], [-54.2, 5.0], [-53.5, 7.5], [-57.5, 10.0], [-62.0, 10.3], [-64.9, 9.3], [-64.9, 8.35]], 2600, { cams: true }],
   ];
   results.walk = [];
   const pickRoutes = typeof args['walk-routes'] === 'string' ? new Set(args['walk-routes'].split(',')) : null;
