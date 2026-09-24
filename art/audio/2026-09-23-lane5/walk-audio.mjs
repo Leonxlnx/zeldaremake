@@ -38,6 +38,8 @@ const ROUTES = [
   // the north path crosses the log arch's bore at log-frame u ≈ −4 … −6 (layout.logArch, yaw −16°):
   // walking north from z −51 passes right through it
   { name: 'through the log tunnel', at: [4.84, -51, 180], key: 'KeyW', seconds: 7 },
+  // `at: 'fairy'` is resolved from the world audit's Kokiri fairy anchors (character/npc.ts)
+  { name: 'standing beside a Kokiri fairy', at: 'fairy', key: null, seconds: 10 },
 ];
 
 const server = await serveStatic(dist);
@@ -66,11 +68,23 @@ try {
   results.start = started;
 
   for (const route of ROUTES) {
+    if (route.at === 'fairy') {
+      // where the audio itself thinks the fairies are (the audit's anchors are in the NPC group's
+      // own space, which is not where the listener is measured)
+      const spot = await page.evaluate(() => window.__ZR_AUDIO__.stats()?.fairySpots?.[0] ?? null);
+      if (!spot) {
+        log('no fairy anchor in the audit — skipping the fairy route');
+        continue;
+      }
+      // a step and a half away, facing her
+      route.at = [spot[0] + 1.1, spot[2] + 0.7, 225];
+      log(`fairy at ${spot.join(', ')} — standing at ${route.at[0].toFixed(2)}, ${route.at[1].toFixed(2)}`);
+    }
     await page.evaluate((r) => window.__ZR_PLAY__.place(r.at[0], r.at[1], (r.at[2] * Math.PI) / 180), route);
     await new Promise((r) => setTimeout(r, 400));
     const before = await page.evaluate(() => window.__ZR_AUDIO__.stats());
     if (route.shift) await page.keyboard.down('ShiftLeft');
-    await page.keyboard.down(route.key);
+    if (route.key) await page.keyboard.down(route.key);
     const t0 = Date.now();
     // one simulation frame per animation frame, undrawn: the audio system runs on its own rAF
     // against the wall clock, so the walk has to advance at wall-clock rate for the speeds it
@@ -80,7 +94,7 @@ try {
     const frames = Math.round(route.seconds / DT);
     const jumpEvery = route.jumpEvery ? Math.round(route.jumpEvery / DT) : 0;
     const gait = await page.evaluate(
-      async (n, dt, every) => {
+      async (n, dt, every, turn) => {
         const rows = [];
         for (let i = 0; i < n; i++) {
           // Space is the jump (camera/follow.ts); the harness presses it like a player would
@@ -90,7 +104,8 @@ try {
           }
           window.__ZR_PLAY__.step(1, dt, false);
           const f = window.__ZR_PLAY__.state().feet;
-          rows.push([(f ?? []).map((x) => (x.stance ? 1 : 0)), window.__ZR_AUDIO__.stats()?.enclosure ?? 0]);
+          const st = window.__ZR_AUDIO__.stats();
+          rows.push([(f ?? []).map((x) => (x.stance ? 1 : 0)), st?.enclosure ?? 0, st?.canopy ?? 0, st?.windLean ?? 0, window.__ZR_PLAY__.state().heading ?? 0, !!window.__ZR_PLAY__.state().playMode]);
           await new Promise((r) => requestAnimationFrame(r));
         }
         return rows;
@@ -99,7 +114,7 @@ try {
       DT,
       jumpEvery,
     );
-    await page.keyboard.up(route.key);
+    if (route.key) await page.keyboard.up(route.key);
     if (route.shift) await page.keyboard.up('ShiftLeft');
     const after = await page.evaluate(() => window.__ZR_AUDIO__.stats());
     const where = await page.evaluate(() => window.__ZR_PLAY__.state());
@@ -111,6 +126,8 @@ try {
     }
     const stance = gait.map((r) => r[0]);
     const enclosure = gait.map((r) => r[1]);
+    const canopy = gait.map((r) => r[2]);
+    const lean = gait.map((r) => r[3]);
     const feet = stance[0]?.length ?? 0;
     const pattern = Array.from({ length: feet }, (_, i) => stance.map((r) => (r[i] ? '#' : '.')).join(''));
     const plants = pattern.map((p) => (p.match(/\.#/g) ?? []).length);
@@ -121,6 +138,10 @@ try {
       steps: diff('steps'),
       gaitSteps: diff('gaitSteps'),
       landings: diff('landings'),
+      glints: diff('glints'),
+      birds: diff('birds'),
+      flutters: diff('flutters'),
+      fairiesNear: after.fairiesNear,
       surfaces,
       endedAt: where?.link?.map?.((v) => Number(v.toFixed(2))) ?? where?.link ?? null,
       wallMs: Date.now() - t0,
@@ -131,11 +152,25 @@ try {
       /** the bed's enclosure over the route: how closed the space above the listener got */
       enclosureMax: Number(Math.max(...enclosure).toFixed(2)),
       enclosureTrace: enclosure.filter((_, i) => i % 6 === 0).map((v) => Number(v.toFixed(2))),
+      /** how closed the canopy got over the route: 0 open sky, 1 deep under the crowns */
+      canopyMax: Number(Math.max(...canopy).toFixed(2)),
+      canopyTrace: canopy.filter((_, i) => i % 6 === 0).map((v) => Number(v.toFixed(2))),
+      /** where the canopy roll sat over the route: −1 hard left … +1 hard right */
+      windLeanRange: [Number(Math.min(...lean).toFixed(2)), Number(Math.max(...lean).toFixed(2))],
+      windLeanTrace: lean.filter((_, i) => i % 12 === 0).map((v) => Number(v.toFixed(2))),
     };
     results.routes.push(row);
-    log(`${route.name}: ${row.steps} steps (${row.gaitSteps} on a boot plant), ${row.landings} landings over ${route.seconds} s — ${JSON.stringify(surfaces)}; the gait planted ${plants.join(' + ')} times`);
+    log(
+      `${route.name}: ${row.steps} steps (${row.gaitSteps} on a boot plant), ${row.landings} landings, ${row.glints} fairy glints (${row.fairiesNear} near), ${row.birds} birds, ${row.flutters} leaf flutters over ${route.seconds} s — ${JSON.stringify(surfaces)}; the gait planted ${plants.join(' + ')} times`,
+    );
     for (const p of pattern) log(`  gait ${p.slice(0, 120)}`);
     if (row.enclosureMax > 0) log(`  enclosure peaks at ${row.enclosureMax}: ${row.enclosureTrace.join(' ')}`);
+    if (row.canopyMax > 0) log(`  canopy peaks at ${row.canopyMax}: ${row.canopyTrace.join(' ')}`);
+    if (route.turn) {
+      const head = gait.map((r) => r[4]);
+      log(`  wind lean ${row.windLeanRange[0]} … ${row.windLeanRange[1]}: ${row.windLeanTrace.join(' ')}`);
+      log(`  link heading ${Math.min(...head).toFixed(2)} … ${Math.max(...head).toFixed(2)} rad, playMode ${gait[0][5]}`);
+    }
   }
   results.end = await page.evaluate(() => window.__ZR_AUDIO__.stats());
 } finally {
