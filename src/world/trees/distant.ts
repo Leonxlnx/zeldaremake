@@ -214,8 +214,12 @@ export const CROWN_SHADE_M: [number, number] = [12, 26];
  * mist's colour over `m` metres on top of whatever the height fog laid, so a crown pales with depth
  * wherever it stands in the sky, the layers separate by value, and the gaps of sky between them stay
  * bright. Laid after `<fog_fragment>` so the deep-forest shade in it (kfShade, which darkens with
- * distance) cannot take it back. `fogColor` is the mist's own colour (config fog.color, the uniform
- * three.js declares for every fogged material).
+ * distance) cannot take it back. The colour mixed toward is `kfColor`, the air colour that chunk
+ * computed for this fragment's own ray and distance — the exact hue the pixels around the leaf are
+ * painted with, which is what "the leaf takes the air's colour" means. The plain `fogColor` uniform
+ * was tried first and moved nothing: `<fog_fragment>` sits after `<colorspace_fragment>`, so
+ * gl_FragColor is encoded there while that uniform is linear (≈ 0.22 against the mist's 0.53 on
+ * screen), and a leaf at 0.226 mixed toward 0.22 stays where it was — the measured non-result.
  *
  * `ray` is why this is a repair and not a second fog: it is the world y of the view ray, and the
  * veil comes in over it. On a level ray the height fog already dissolves the middle distance (the
@@ -247,7 +251,7 @@ export function canopyVeilGlsl(veil: { share: number; m: [number, number]; ray?:
     {
       float veilClimb = smoothstep(${ray[0].toFixed(3)}, ${ray[1].toFixed(3)}, normalize(-vViewPosition * mat3(viewMatrix)).y);
       float veilDepth = smoothstep(${veil.m[0].toFixed(1)}, ${veil.m[1].toFixed(1)}, length(vViewPosition));
-      gl_FragColor.rgb = mix(gl_FragColor.rgb, fogColor * vec3(${t}), ${veil.share.toFixed(3)} * veilClimb * veilDepth);
+      gl_FragColor.rgb = mix(gl_FragColor.rgb, kfColor * vec3(${t}), ${veil.share.toFixed(3)} * veilClimb * veilDepth);
     }
     #endif
   `;
