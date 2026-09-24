@@ -375,7 +375,11 @@ function padStone(p: Vector3, rx: number, ry: number, rz: number, yaw: number, n
   return g;
 }
 
-/** a clay pot standing at `base`: belly, shoulder, neck and a rolled lip (LatheGeometry), a damp foot, a paler lip */
+/**
+ * a clay pot standing at `base`: belly, shoulder, neck and a rolled lip (LatheGeometry), a damp foot, a paler lip, and
+ * its inside down to a floor, darkening with depth (the material is one-sided: an open inside showed the ground
+ * through the mouth of the pot knocked over by the trunk house's door)
+ */
 function clayPot(base: Vector3, h: number, r: number, tint: RGB, noise: Noise2D, seed: number): BufferGeometry {
   const prof: [number, number][] = [
     [0.001, 0],
@@ -391,7 +395,12 @@ function clayPot(base: Vector3, h: number, r: number, tint: RGB, noise: Noise2D,
     [0.62, 1.0],
     [0.55, 0.92],
     [0.52, 0.86],
+    [0.8, 0.5],
+    [0.62, 0.14],
+    [0.001, 0.1],
   ];
+  /** the first profile point below the lip's inner roll */
+  const INSIDE = 12;
   const pts = prof.map(([x, y]) => new Vector2(x * r, y * h));
   const g = new LatheGeometry(pts, 16);
   const pos = g.attributes.position;
@@ -405,7 +414,8 @@ function clayPot(base: Vector3, h: number, r: number, tint: RGB, noise: Noise2D,
     const damp = lerp(0.62, 1, smoothstep(0, 0.35, v));
     const lip = v > 0.9 ? 1.12 : 1;
     const mottle = 0.9 + 0.2 * noise.noise(a * 1.5 + seed, v * 3 + seed);
-    const k = damp * lip * mottle;
+    const inside = i % prof.length >= INSIDE ? lerp(0.22, 0.7, smoothstep(0.1, 0.86, v)) : 1;
+    const k = damp * lip * mottle * inside;
     col[i * 3] = tint[0] * k;
     col[i * 3 + 1] = tint[1] * k;
     col[i * 3 + 2] = tint[2] * k;
