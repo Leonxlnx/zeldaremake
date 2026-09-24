@@ -116,6 +116,41 @@ the roof-only build and to fable-cursor's 11:20 full check — A 639 / 8,875,355
 C 572 / 7.93 M, D 562 / 8.63 M, E 628 / 8.29 M, F 599 / 8.01 M. Both branches together cost nothing in the
 scored budget.
 
+## The same defect on the newest content: the south exit (16:20–17:00)
+
+Rendered before changing anything, from two look-up poses authored off the layout's own bridge
+coordinates: **at the log's mouth the forest's crowns end in a line with bare pale sky over them.** The
+plaza grid stops at `ROOF_BOUNDS.zMax = 40` and no giant reaches the far bank — the nearest is 14 m north
+of the bridge's north sill — so nothing closed over lane 5's new exit. The bridge's own look-up was already
+canopied by the trees on the lips, so this is the roof's edge and not a hole in the trees.
+
+Three bands in `ROOF_STAND_BANDS` (the far bank either side of the path, the mouth, then the top of the
+ravine's airspace) and the stand pass now samples a **list** of grids, `ROOF_STAND_GRIDS`, with the north's
+rectangle first so every north clump draws exactly what it drew before the south existed. Everything else
+about that pass — the band support, the giant skip, the shaft and opening carves, its own 50 m hero drop —
+applies unchanged.
+
+| `s-logmouth-up` | mean | top third |
+| --- | --- | --- |
+| head | 119.3 | 172.2 |
+| + the bank and mouth bands | 103.4 | 125.7 |
+| **+ the ravine band** | **98.4** | **120.3** |
+
+![the log-mouth look-up: head, two bands, three](south-logmouth-three.jpg)
+
+`s-bridge-up` does not move at all (76.5 → 76.5): the gorge's own canopy was never the problem. A pale
+opening remains high overhead at the mouth, which is either a genuine gap over the gorge or wants a wider
+band — the next measurement, not a claim.
+
+**Cost:** the roof is now 814 clumps / 3588 cards / **7176 triangles**, so the whole of this branch's roof
+work adds about **1,290 triangles** over the head — 0.014 % of the 9 M cap.
+
+**Camera C** is the only fixed camera that looks south (fable-3's note), so it is the one that can see these
+bands. Its after frame is `hero-C-after.png`; its before was not rendered in this hour, and what bounds the
+risk meanwhile is the test: no clump centre may sit below the kept top band inside any hero frame within its
+drop distance, so C's frame body cannot have gained roof by construction, only its top 18 %. Rendering C's
+pair is the first thing for the next hour.
+
 ## The test
 
 `roof.test.mjs` pinned the old rule exactly (it failed with 111 offenders the moment this changed), so it
