@@ -323,3 +323,25 @@ in the stride the flaps swing half the thigh's angle and clear the knee at 26°.
 Views A and C (the two that hold the sitter and the walker), before `732bb3b8` → after `83cffdcc` on the same head, high,
 settle 12: A 0.1952 → 0.1952 (35 px), C 0.1839 → 0.1839 (12 px), head ↔ tip 1.0000, draws 636 / 564 both sides — in
 the fixed frames the girls stand, and standing the blend changes nothing.
+
+## Far kids cost less (`0fcc4293`, 2026-09-24 21:30) — fable-5's 18:04 item
+
+fable-5's isolate at the look-backs: five kids at 30–45 m and 20–30 px tall drew 107–123 submissions (12 meshes × colour
++ shadow × 5), 14 % of the frame. `scopeKidShadows` now also reads the distance: beyond `KID_SHADOW_FAR_M` (25 m) a kid
+casts no sun shadow, and beyond `KID_DETAIL_FAR_M` (25 m) its small parts are not drawn — belt, buckle, lashes, eyes,
+boot soles and cuffs, the boy's pouch and stick — a girl keeps skull, hair, band, tunic, skin and boots (12 → 6 meshes),
+the boy 14 → 5. `visible` and `castShadow` are no program keys: nothing recompiles.
+
+| pose (same head, `pose-counts.mjs`) | before `2b40b289` | after `0fcc4293` |
+| --- | --- | --- |
+| A_stairs | 636 / 8.85 M | 636 / 8.85 M |
+| B_house | 627 / 8.27 M | 627 / 8.27 M |
+| C_lookback | 564 / 7.90 M | 564 / 7.90 M |
+| south far-bank look-back (my approximation) | 822 / 10.05 M | **765 / 10.01 M** |
+
+The far-bank frame with the cast (`far-bank-lookback-kids-at-40m.jpg`): 0 px changed between the two builds — the
+kids are in the frustum (the −57 draws prove it) and nothing of their read at 40 m moves. Every kid in a fixed view
+stands within 25 m, so A–F do not change. The audit gains `kidDetailed`, `kidDetailMeshes`, `kidFarM`.
+
+(fable-5's `rigMergedMeshes 0` is the older per-joint merge's field; the skinning that replaced it reports under
+`kidSkinned` — 37 → 12 meshes a girl — so the merge was already doing its work.)
