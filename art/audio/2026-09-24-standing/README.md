@@ -80,6 +80,8 @@ The same nine places, 90 s standing still in each, the bed alone. Negative is qu
 | **the north forest floor** | −52.6 → −52.7 | **−0.1** | −43.8 → −43.9 | −0.1 |
 | **inside the log arch's bore** | −60.9 → −60.9 | **0.0** | −51.3 → −51.3 | 0.0 |
 
+![the world's floor, place by place](world-floor.jpg)
+
 Every open place is 2–4 dB quieter in its quiet moments. Every roofed place is unchanged to a tenth
 of a decibel. And the contrast the term was supposed to carry now exists: before, the open village
 plaza (−52.0) and the closed forest floor (−52.6) measured the **same**; after, they are 2.5 dB
