@@ -20,8 +20,9 @@
  *      far from the grove;
  *   7. the legacy streams' filters: `expansionCull` on the discs, the treads and the built feet, not
  *      at Link's spawn or any fixed camera; `northGroveClear` on every walk, not in the woods;
- *   8. the footsteps: wood on the veranda, the gangway, the rope walk and the hut's platform,
- *      stone on the discs and the flight;
+ *   8. the footsteps: wood on the veranda, the gangway and the hut's platform, BRIDGE on the rope
+ *      walk (planks over air, 11 m up — see src/audio/index.ts onGrovePlanks), stone on the discs
+ *      and the flight;
  *   9. the lawn: `groveGroundDistance` / `groveDeckDistance`, `groveLawn` full round the walkable
  *      ground and gone in the woods and on the terrace, the terrain's forest floor bare under it and
  *      kept off it, its mask covering the grove on the round-46 texel lattice.
@@ -266,10 +267,14 @@ const measured = {};
     ['veranda (south)', N.stilt.host[0], N.stilt.host[1] - 2.4],
     ['gangway foot', g.foot[0], g.foot[2]],
     ['gangway', (g.foot[0] + g.head[0]) / 2, (g.foot[2] + g.head[2]) / 2],
-    ['rope walk', (rw.stilt[0] + rw.hut[0]) / 2, (rw.stilt[2] + rw.hut[2]) / 2],
     ['hut platform', N.hut.host[0] + N.hut.radius + 0.1, N.hut.host[1]],
   ];
   for (const [id, x, z] of wood) assert.equal(surfaceAt(x, z).surface, 'wood', `wood underfoot on the ${id}`);
+  // The walkway is not a deck. Lane 5 split `bridge` off from `wood` for the ravine's crossing —
+  // a bridge knocks hollow with a deep body and the ropes answering, because a plank with nothing
+  // under it is not a plank on a joist — and the grove's two floors are at 11.6 and 11.3 m with a
+  // 0.12 m sag between them, which is the same object higher up.
+  assert.equal(surfaceAt((rw.stilt[0] + rw.hut[0]) / 2, (rw.stilt[2] + rw.hut[2]) / 2).surface, 'bridge', 'bridge underfoot on the rope walk');
   for (const s of north.NORTH_STONES) assert.equal(surfaceAt(s.x, s.z).surface, 'stone', `stone underfoot on the disc at ${fmt(s.x, s.z)}`);
   const f = NORTH_STAIRS[0];
   const l = Math.hypot(f.dir[0], f.dir[1]);

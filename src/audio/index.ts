@@ -263,24 +263,37 @@ const GROVE_PLANKS = (() => {
       { x: N.hut.host[0], z: N.hut.host[1], r: N.hut.radius + 0.22 },
     ],
     segs: [
-      { ax: g.foot[0] - (g.head[0] - g.foot[0]) * lead, az: g.foot[2] - (g.head[2] - g.foot[2]) * lead, bx: g.head[0], bz: g.head[2], hw: N.gangway.halfWidth },
+      { ax: g.foot[0] - (g.head[0] - g.foot[0]) * lead, az: g.foot[2] - (g.head[2] - g.foot[2]) * lead, bx: g.head[0], bz: g.head[2], hw: N.gangway.halfWidth, surface: 'wood' as Surface },
       // the stubs and the rope walk between them lie on the line joining the two huts
-      { ax: N.stilt.host[0], az: N.stilt.host[1], bx: N.hut.host[0], bz: N.hut.host[1], hw: N.ropeWalk.halfWidth },
+      { ax: N.stilt.host[0], az: N.stilt.host[1], bx: N.hut.host[0], bz: N.hut.host[1], hw: N.ropeWalk.halfWidth, surface: 'bridge' as Surface },
     ],
   };
 })();
 
-/** true over the north grove's planking (GROVE_PLANKS: the two decks, the gangway, the stubs and the rope walk) */
-export function onGrovePlanks(x: number, z: number): boolean {
-  for (const d of GROVE_PLANKS.discs) if (Math.hypot(x - d.x, z - d.z) < d.r) return true;
+/**
+ * What the north grove's planking is underfoot, or null off it.
+ *
+ * The decks and the gangway are `wood`; **the rope walk is a `bridge`**. This lane split those two
+ * apart for the south exit and the reason holds here more strongly than it did there: a `bridge`
+ * knocks hollow with a deep body and the ropes and lashings answering, because a plank with nothing
+ * under it is not a plank on a joist. The ravine's bridge hangs over 8 m of air; the grove's
+ * walkway runs between two floors at **11.6 and 11.3 m** with a 0.12 m sag in it
+ * (`EXPANSION_NORTH.ropeWalk`), which is the same object higher up.
+ *
+ * The stubs go with the walkway rather than the decks — they are its first 0.7 m, cantilevered out
+ * past each rim — and the discs are tested first, so a plank still over its own veranda stays wood.
+ * exp-north scored its own check 45 at 3 of 4 for calling all of it wood; this is that point.
+ */
+export function onGrovePlanks(x: number, z: number): Surface | null {
+  for (const d of GROVE_PLANKS.discs) if (Math.hypot(x - d.x, z - d.z) < d.r) return 'wood';
   for (const s of GROVE_PLANKS.segs) {
     const dx = s.bx - s.ax;
     const dz = s.bz - s.az;
     const t = ((x - s.ax) * dx + (z - s.az) * dz) / (dx * dx + dz * dz);
     if (t < 0 || t > 1) continue;
-    if (Math.hypot(x - s.ax - dx * t, z - s.az - dz * t) < s.hw) return true;
+    if (Math.hypot(x - s.ax - dx * t, z - s.az - dz * t) < s.hw) return s.surface;
   }
-  return false;
+  return null;
 }
 
 export function surfaceAt(x: number, z: number): { surface: Surface; stairs: boolean; enclosure: number; canopy: number; gorge: number } {
@@ -348,7 +361,10 @@ export function surfaceAt(x: number, z: number): { surface: Surface; stairs: boo
       if (Math.hypot(x - px, z - pz) < 0.475) return { surface: 'wood', stairs: false, enclosure: 0, canopy, gorge };
     }
   }
-  if (onGrovePlanks(x, z)) return { surface: 'wood', stairs: false, enclosure: 0, canopy, gorge };
+  {
+    const plank = onGrovePlanks(x, z);
+    if (plank) return { surface: plank, stairs: false, enclosure: 0, canopy, gorge };
+  }
   if (m.path > 0.5) return { surface: 'stone', stairs: false, enclosure: 0, canopy, gorge };
   if (m.path > 0.12) return { surface: 'dirt', stairs: false, enclosure: 0, canopy, gorge };
   if (canopy > 0.5) return { surface: 'leaf', stairs: false, enclosure: 0, canopy, gorge };
