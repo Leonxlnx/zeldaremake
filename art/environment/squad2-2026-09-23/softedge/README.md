@@ -135,10 +135,62 @@ it. That is a change to be made with A–F rendered before and after, not in the
 experiment is backed out (nothing unproven ships) and the finding is recorded at `FAR_CROWN_LOBES` in
 `distant.ts`, where the next person will be standing when they try the same thing.
 
+## 4. A correction, and the veil the level view actually needed (09:20–10:10)
+
+**First, a correction to §2 and §3 of this report.** The headline there — the reference carrying 4.6 ×
+our boundary density at a quarter of our step — compared a box in `r_025` with the same box in our
+`u-open-up`, and `r_025` is an eye-level forward view: that box is its **near foreground ferns**, a metre
+from the camera, against our distant canopy. Unlike content, and the conclusion drawn from it (that our
+crowns are too coarse) does not follow. Measured like for like instead — the distant-canopy band of a
+level view, which is how the owner walks (x 0.3–0.7, y 0.05–0.35):
+
+| frame | foliage L | saturation | outline step | boundary density |
+| --- | --- | --- | --- | --- |
+| `r_025` | 0.436 | 0.060 | 2.6 % | 3.11 % |
+| `r_026` | 0.435 | 0.058 | 2.7 % | 3.05 % |
+| ours, hero A | 0.298 | 0.149 | 6.4 % | **6.31 %** |
+| ours, hero D | 0.390 | 0.093 | 5.3 % | **3.87 %** |
+
+Our granularity is **at or above** theirs in a level view. The deficit is tone — too dark, too saturated
+— which is exactly what fable-5 measured for this lane in the squad log at 10:28. The hour spent on lobes
+and on clustering the main cards was aimed at a gap that does not exist there, and the cluster experiment
+is backed out with the rest (in the corner where crowns are seen side-on it made both figures worse:
+boundary density 1.36 % → 1.17 %, step 14.1 % → 14.7 %).
+
+**Then the fix that follows from it.** The veil the earlier hours built is gated to *climbing* rays, so it
+never reaches a level view. `CROWN_VEIL` puts it back on the crown cards with the gate **falling** — full
+on the level, gone by 26° — the opposite of the giants' cards. The two are not in conflict: a crown seen
+on the level shows its upright cards, the mass the reference pales into the mist, while a crown seen from
+below shows its floor cards, which is where paling printed geometry and got the 05:20 merge reverted.
+
+At hero A's crown box (x 0.72–1, y 0.08–0.32), before | share 0.55 | share 0.85:
+
+| | foliage L | saturation | leaf-to-sky | outline step | boundary density |
+| --- | --- | --- | --- | --- | --- |
+| before | 0.273 | 0.173 | 0.198 | 7.5 % | 3.89 % |
+| share 0.55 | 0.282 | 0.169 | 0.187 | 7.3 % | 4.29 % |
+| **share 0.85** | **0.284** | **0.168** | **0.181** | **6.6 %** | **4.84 %** |
+| `r_025` | 0.436 | 0.060 | 0.103 | 2.6 % | 3.11 % |
+
+Every statistic moves toward the reference and none away, so 0.85 stays. The look-ups are untouched —
+0.00 % of either look-up frame changes, since the gate is shut above 26° whatever the share — and the
+level frames move where they should: hero A by 18.4 % of its pixels and hero D by 15.4 %, in their canopy
+bands and nowhere else (`hero-A-veil-pair.jpg`, `hero-D-veil-pair.jpg`).
+
+![hero A before and after](hero-A-veil-pair.jpg)
+
+![hero D before and after](hero-D-veil-pair.jpg)
+
+**What is still open.** 0.284 against the reference's 0.436 is most of the gap still there, and it is the
+depth ramp rather than the share: the crowns in that box stand at 20–30 m, where `m = [14, 52]` is a
+quarter in. Shortening it pulls nearer crowns in with it, so it wants a pass of its own with the near
+poses checked — the next item, with these numbers as its brief.
+
 ## What is in the branch
 
-- `src/world/trees/distant.ts` — the veil off the crown cards, `CANOPY_DEPTH_VEIL.lift` (the relative
-  floor), `CROWN_SHADE_M` as before, `CROWN_FLOOR_FAR`, and the recorded finding where the dissolve was.
+- `src/world/trees/distant.ts` — `CANOPY_DEPTH_VEIL` (the giants' cards, gate rising) and `CROWN_VEIL`
+  (the crown cards, gate falling), the relative `lift` floor, `CROWN_SHADE_M`, `CROWN_FLOOR_FAR`, and the
+  recorded findings where the dissolve and the lobe experiment were.
 - `art/environment/squad2-2026-09-23/lookup/cutout.mjs` — the `lace` column (boundary density) beside
   `edges` (the step across one), because a slab and lace differ in the first and not the second.
 - `src/world/trees/materials.ts` (lane 3, declared) — two lines: the veil on the `giant-canopy` leaf
