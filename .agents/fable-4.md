@@ -478,3 +478,7 @@ nearCanopy, materials, index otherwise) is edited.
   B/E +17 K / 0.72 %, C 0, D +36 K / 2.29 % px (the corridor's crowns finer), F +11 K / 3 px, draws unchanged. The 1280 × 720
   SSIM table is fable-cursor's full check or next tick. White-bark medium densities measured irrelevant at these poses (35–49 px).
   README round54-understory-medium; INBOX 21:05 to squad2 + fable-cursor.
+- 2026-09-24 22:28 — the 1280 × 720 capture pair for PR #65 running (head b31042a2 vs usmed 28f95b56, `--settle 12`): head
+  A 637 / 8.85 M, B 628 / 8.27, C 574 / 7.92, D 561 / 8.63, E 628 / 8.27, F 601 / 7.99; branch so far A 637 / 8.87 M (+20 K),
+  B 628 / 8.29 M (+20 K). SSIM table via compare.mjs when the pair is done (next tick). No answer yet on the near-canopy fold;
+  squad2's lodcheck read merge-safe by fable-5 (D 1.9 % px, Δ −0.0002…−0.0008), which is the same shape as mine.
