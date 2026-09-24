@@ -320,7 +320,7 @@ export const CROWN_SHADE_M: [number, number] = [12, 26];
  * floor cards, which is where paling printed geometry and got the merge reverted at 05:30.
  */
 export const CROWN_VEIL: { share: number; m: [number, number]; ray: [number, number]; tint: [number, number, number]; lift: [number, number] } = {
-  share: 0.55,
+  share: 0.85,
   m: [14, 52],
   ray: [0.45, 0.06],
   tint: [1.02, 1.0, 0.96],
