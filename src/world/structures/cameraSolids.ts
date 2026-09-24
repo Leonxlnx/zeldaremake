@@ -16,7 +16,11 @@
  * triangles wholly outside it are SLIM. The bridge keeper's eave hangs 1.7 m over its gallery,
  * where Link's aim (1.43 m) sits inside the eave's grown cells; as a shell the camera would snap
  * to its minimum distance on the walk. So its soffit, skirt and cap overhang are slim and only
- * the wall and the dome over the room stay solid.
+ * the wall and the dome over the room stay solid — and those not as cells either: grown by one,
+ * the 1.23 m wall reached 1.93 m from the axis on the diagonals, over the gallery (Link walks
+ * 1.30–1.99 m out), and stopped the camera at its minimum distance there. A shell marked `exact`
+ * leaves its inside to a published cylinder (shared.cameraCylinders, swept exactly by the
+ * collider); its outside stays slim.
  * Built for play only (never under a headless capture): ~0.1–0.3 s once at load.
  */
 import { Box3, BufferGeometry, Float32BufferAttribute, InstancedMesh, Matrix4, type Mesh, type Object3D, Vector3 } from 'three';
@@ -32,8 +36,8 @@ const NOT_SLIM = /-(rope|foot-moss)$/;
 export interface CameraSolids {
   solid: VoxelGrid | null;
   slim: VoxelGrid | null;
-  /** part names per class and the build time (audit) */
-  report: { solidParts: Record<string, number>; slimParts: Record<string, number>; ms: number; solidCells: number; slimCells: number; bytes: number };
+  /** part names per class (`exactParts`: solid parts whose inside is a published cylinder) and the build time (audit) */
+  report: { solidParts: Record<string, number>; slimParts: Record<string, number>; exactParts: Record<string, number>; ms: number; solidCells: number; slimCells: number; bytes: number };
 }
 
 interface Part {
@@ -46,6 +50,8 @@ interface Shell {
   x: number;
   z: number;
   r: number;
+  /** the inside is a published exact cylinder, not voxelised */
+  exact?: boolean;
 }
 
 const _tri = [new Vector3(), new Vector3(), new Vector3()];
@@ -70,9 +76,10 @@ function splitShell(geometry: BufferGeometry, matrix: Matrix4, shell: Shell): { 
   return { inside: geo(inside), outside: geo(outside) };
 }
 
-function collect(roots: Object3D[]): { solid: Part[]; slim: Part[] } {
+function collect(roots: Object3D[]): { solid: Part[]; slim: Part[]; exact: Part[] } {
   const solid: Part[] = [];
   const slim: Part[] = [];
+  const exact: Part[] = [];
   const inst = new Matrix4();
   for (const root of roots) {
     root.updateMatrixWorld(true);
@@ -84,7 +91,7 @@ function collect(roots: Object3D[]): { solid: Part[]; slim: Part[] } {
       const shell = m.userData.cameraShell as Shell | undefined;
       if (shell && cls === solid && !(m instanceof InstancedMesh)) {
         const { inside, outside } = splitShell(m.geometry, m.matrixWorld, shell);
-        if (inside.attributes.position.count) solid.push({ geometry: inside, matrix: new Matrix4(), name: m.name });
+        if (inside.attributes.position.count) (shell.exact ? exact : solid).push({ geometry: inside, matrix: new Matrix4(), name: m.name });
         if (outside.attributes.position.count) slim.push({ geometry: outside, matrix: new Matrix4(), name: m.name });
         return;
       }
@@ -96,7 +103,7 @@ function collect(roots: Object3D[]): { solid: Part[]; slim: Part[] } {
       } else cls.push({ geometry: m.geometry, matrix: m.matrixWorld.clone(), name: m.name });
     });
   }
-  return { solid, slim };
+  return { solid, slim, exact };
 }
 
 function tally(parts: Part[]): Record<string, number> {
@@ -138,7 +145,7 @@ export function limbSpheres(limb: TubePath | undefined): { x: number; y: number;
 
 export function buildCameraSolids(roots: Object3D[], slimSpheres: { x: number; y: number; z: number; r: number }[] = []): CameraSolids {
   const t0 = performance.now();
-  const { solid, slim } = collect(roots);
+  const { solid, slim, exact } = collect(roots);
   const solidGrid = voxelise(solid, []);
   const slimGrid = voxelise(slim, slimSpheres);
   const ms = performance.now() - t0;
@@ -148,6 +155,7 @@ export function buildCameraSolids(roots: Object3D[], slimSpheres: { x: number; y
     report: {
       solidParts: tally(solid),
       slimParts: tally(slim),
+      exactParts: tally(exact),
       ms: Math.round(ms),
       solidCells: solidGrid?.count() ?? 0,
       slimCells: slimGrid?.count() ?? 0,

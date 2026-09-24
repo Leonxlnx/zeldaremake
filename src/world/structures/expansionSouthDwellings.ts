@@ -23,7 +23,7 @@
  * scene. The walk surfaces are appended to ctx.shared.walkSurfaces. Own rng fork, appended after
  * every existing stream.
  */
-import { AdditiveBlending, BoxGeometry, BufferGeometry, CatmullRomCurve3, Color, DoubleSide, Float32BufferAttribute, Group, LineCurve3, Matrix4, Mesh, MeshBasicMaterial, Vector3, type Camera, type Material, type Sphere } from 'three';
+import { AdditiveBlending, Box3, BoxGeometry, type BufferAttribute, BufferGeometry, CatmullRomCurve3, Color, DoubleSide, Float32BufferAttribute, Group, LineCurve3, Matrix4, Mesh, MeshBasicMaterial, Vector3, type Camera, type Material, type Sphere } from 'three';
 import { EXPANSION_SOUTH_DWELLINGS } from '../layout';
 import type { TrunkSeat, WalkSurface, WorldContext } from '../system';
 import type { Rng } from '../util/prng';
@@ -98,6 +98,8 @@ export interface SouthDwellingsBuild {
   /** every mesh, at the identity transform (structures/index.ts moves them into the south group) */
   group: Group;
   walkSurfaces: WalkSurface[];
+  /** the keeper hut's wall and dome for the play camera, exact (appended to ctx.shared.cameraCylinders) */
+  cameraCylinders: { x: number; z: number; r: number; y0: number; y1: number }[];
   bases: [number, number, number][];
   /** the dwellings' own casters against the camera (util/expansionLocality.ts `southVisible`) */
   visible(camera: Camera): boolean;
@@ -122,6 +124,8 @@ export interface SouthDwellingsBuild {
       mastTop: [number, number, number];
       pods: [number, number, number][];
       steps: { west: { top: number[]; deckRiser: number[]; groundRiser: number[] }; east: { top: number[]; deckRiser: number[]; groundRiser: number[] } };
+      /** the exact camera cylinder of its wall and dome: radius, height span (m) */
+      cameraWall: { r: number; y0: number; y1: number };
       triangles: number;
     };
     waystation: {
@@ -499,8 +503,10 @@ export function buildSouthDwellings(ctx: WorldContext, mats: StructureMaterials,
     keeperPods.push(rig.pod.clone());
   }
   // to the play camera the hut is solid only inside its wall (the wobble's +6.5 %, the cords and
-  // collars): the eave over the gallery's walk is slim (cameraSolids.ts `cameraShell`)
-  const cameraShell = { x: hutAudit.centre[0], z: hutAudit.centre[2], r: hutAudit.radius * 1.07 + 0.06 };
+  // collars): the eave over the gallery's walk is slim (cameraSolids.ts `cameraShell`), and the
+  // wall and the dome over the room are one exact cylinder (shared.cameraCylinders), not cells
+  const cameraShell = { x: hutAudit.centre[0], z: hutAudit.centre[2], r: hutAudit.radius * 1.07 + 0.06, exact: true };
+  let wallTop: number = K.floorY;
   for (const child of [...hut.group.children]) {
     const m = child as Mesh;
     if (!m.isMesh) continue;
@@ -510,8 +516,13 @@ export function buildSouthDwellings(ctx: WorldContext, mats: StructureMaterials,
       m.material = mats.fenceWood;
     }
     m.userData.cameraShell = cameraShell;
+    if (/^distant-house-(bark|cap|planks):/.test(m.name)) {
+      m.updateMatrix();
+      wallTop = Math.max(wallTop, new Box3().setFromBufferAttribute(m.geometry.attributes.position as BufferAttribute).applyMatrix4(m.matrix).max.y);
+    }
     group.add(m);
   }
+  const cameraCylinders = [{ x: cameraShell.x, z: cameraShell.z, r: cameraShell.r, y0: K.floorY - 0.1, y1: wallTop }];
   if (hut.soffit) group.add(hut.soffit);
   walkSurfaces.push(...hut.walk);
   const hutTris = hut.triangles;
@@ -1600,6 +1611,7 @@ export function buildSouthDwellings(ctx: WorldContext, mats: StructureMaterials,
   return {
     group,
     walkSurfaces,
+    cameraCylinders,
     bases,
     visible: (camera: Camera) => southVisible(camera, spheres),
     owned,
@@ -1620,6 +1632,7 @@ export function buildSouthDwellings(ctx: WorldContext, mats: StructureMaterials,
         mastTop: p3(mastTop),
         pods: keeperPods.map((p) => p3(p)),
         steps: keeperSteps,
+        cameraWall: { r: +cameraCylinders[0].r.toFixed(3), y0: +cameraCylinders[0].y0.toFixed(2), y1: +cameraCylinders[0].y1.toFixed(2) },
         triangles: keeperTris,
       },
       waystation: {

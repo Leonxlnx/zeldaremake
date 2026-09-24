@@ -50,7 +50,7 @@ Object.defineProperty(globalThis, 'navigator', { value: { getGamepads: () => [pa
 
 const here = path.dirname(fileURLToPath(import.meta.url));
 const { createFollowCam, PITCH_REST, PITCH_UP, PITCH_DOWN, FOLLOW } = loadTs(path.join(here, 'follow.ts'));
-const { CLEARANCE } = loadTs(path.join(here, 'collision.ts'));
+const { CLEARANCE, CAMERA_RADIUS, MIN_DISTANCE } = loadTs(path.join(here, 'collision.ts'));
 const { VoxelGrid } = loadTs(path.join(here, '../world/util/voxelGrid.ts'));
 
 function rig({ groundAt = () => 0, shared = {}, invertY = false, heading = Math.PI } = {}) {
@@ -278,6 +278,38 @@ test('a slim post at the camera moves it in along the line; a ridge behind Link 
   const st = ridge.cam.state();
   assert.ok(st.lift > 0.2, `lift ${st.lift}`);
   assert.ok(ridge.camera.position.y > FOLLOW.eyeHeight + 0.2, `camera y ${ridge.camera.position.y}`);
+});
+
+/**
+ * exp-south2: an exact wall (shared.cameraCylinders — the bridge keeper's hut, 1.29 m, whose gallery
+ * Link walks 1.30–1.99 m from its axis). Link faces −z, the camera stands at +z.
+ */
+const HUT = { r: 1.29, y0: -0.1, y1: 3 };
+
+test('an exact wall: walking its gallery (Link 1.7 m out, facing along it) the camera keeps its whole line', () => {
+  const r = rig({ shared: { cameraCylinders: [{ ...HUT, x: -1.7, z: 0 }] } });
+  const p = r.camera.position;
+  assert.ok(p.z > FOLLOW.distance - 0.05, `camera ${p.z.toFixed(3)} m back (the rest is ${FOLLOW.distance})`);
+  assert.equal(r.cam.state().hit, null);
+});
+
+test('an exact wall across the line stops the camera outside its camera radius', () => {
+  const wall = { ...HUT, r: 0.8, x: -0.8, z: 2.2 };
+  const r = rig({ shared: { cameraCylinders: [wall] } });
+  const p = r.camera.position;
+  const fromAxis = Math.hypot(p.x - wall.x, p.z - wall.z);
+  assert.ok(fromAxis >= wall.r + CAMERA_RADIUS - 1e-3, `camera ${fromAxis.toFixed(3)} m from the axis (wall ${wall.r} + ${CAMERA_RADIUS})`);
+  assert.ok(p.z < 2.2, `camera z ${p.z.toFixed(3)} stays on Link's side`);
+  assert.equal(r.cam.state().hit, 'solid');
+});
+
+test('Link against an exact wall, facing away from it: the line into it is refused — the camera does not pass through', () => {
+  // 1.35 m from the axis: inside the wall's camera radius (1.59 m), where a bole's cylinder is skipped
+  const r = rig({ shared: { cameraCylinders: [{ ...HUT, x: 0, z: 1.35 }] } });
+  const aim = new THREE.Vector3(0, FOLLOW.aimHeight, 0);
+  const d = r.camera.position.distanceTo(aim);
+  assert.ok(d < MIN_DISTANCE + 0.05, `camera ${d.toFixed(3)} m from the aim: at its minimum (${MIN_DISTANCE}), not through the hut`);
+  assert.equal(r.cam.state().hit, 'solid');
 });
 
 /**

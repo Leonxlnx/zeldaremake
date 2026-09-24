@@ -195,6 +195,7 @@ export async function create(ctx: WorldContext): Promise<WorldSystem> {
   bases.push(...dwellings.bases);
   owned.push(...dwellings.owned);
   ctx.shared.walkSurfaces = [...(ctx.shared.walkSurfaces ?? []), ...dwellings.walkSurfaces];
+  ctx.shared.cameraCylinders = [...(ctx.shared.cameraCylinders ?? []), ...dwellings.cameraCylinders];
   const southShown = (camera: Camera) => south.visible(camera) || dwellings.visible(camera);
 
   // the play camera's solids (cameraSolids.ts), voxelised from the parts by name before the merges

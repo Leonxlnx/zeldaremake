@@ -3,9 +3,10 @@
  *  - the ground Link walks (terrain, stair treads, decks — the character's walk height): the camera
  *    keeps CLEARANCE above it and is lifted where a ridge or a flight would cut the line;
  *  - SOLID shells (the structures' voxelised trunks, roofs, eaves, porches, the log arch, the huts —
- *    structures/cameraSolids.ts) and the big boles (the giants' and columns' seats as built): the
- *    camera stays in front of the first one on the line, so Link is never behind a wall or a bole;
- *    under a low ceiling (the log arch's passage, a hut's cap) it first tries standing lower;
+ *    structures/cameraSolids.ts), the exact walls published beside them (shared.cameraCylinders)
+ *    and the big boles (the giants' and columns' seats as built): the camera stays in front of the
+ *    first one on the line, so Link is never behind a wall or a bole; under a low ceiling (the log
+ *    arch's passage, a hut's cap) it first tries standing lower;
  *  - SLIM parts (posts, pods, boughs, the white-barks' boles, the village props): the camera only
  *    refuses to stand inside one and moves in along the line until clear — a post may pass between.
  */
@@ -63,6 +64,7 @@ export function createCameraCollider(ground: (x: number, z: number) => number, s
     y0: s.y - 1,
     y1: s.y + Math.max(4, s.bareHeight),
   }));
+  const walls: Cylinder[] = (shared.cameraCylinders ?? []).map((c) => ({ ...c, r: c.r + CAMERA_RADIUS }));
   const slimCylinders: Cylinder[] = [
     ...(shared.slimTrunks ?? []).map((t) => ({ ...t, r: t.r + CAMERA_RADIUS })),
     ...(shared.propBlockers ?? []).map((b) => ({ x: b.x, z: b.z, r: b.r + CAMERA_RADIUS, y0: -Infinity, y1: b.top + CAMERA_RADIUS })),
@@ -77,7 +79,22 @@ export function createCameraCollider(ground: (x: number, z: number) => number, s
     return false;
   };
 
-  /** first blocked fraction of the line a → b against the solid grid and the boles (1 when clear) */
+  /** where the line a + u·_d (u ≥ 0) enters the vertical cylinder (c.x, c.z, r) inside its height span; -1 if it does not or starts inside */
+  const enter = (a: Vector3, ax: number, c: Cylinder, r: number): number => {
+    const ox = a.x - c.x;
+    const oz = a.z - c.z;
+    const c0 = ox * ox + oz * oz - r * r;
+    if (c0 < 0) return -1;
+    const bq = 2 * (ox * _d.x + oz * _d.z);
+    const disc = bq * bq - 4 * ax * c0;
+    if (disc < 0) return -1;
+    const u = (-bq - Math.sqrt(disc)) / (2 * ax);
+    if (u < 0) return -1;
+    const y = a.y + _d.y * u;
+    return y < c.y0 || y > c.y1 ? -1 : u;
+  };
+
+  /** first blocked fraction of the line a → b against the solid grid, the exact walls and the boles (1 when clear) */
   const sweep = (a: Vector3, b: Vector3): { t: number; hit: Resolved['hit'] } => {
     _d.subVectors(b, a);
     const len = _d.length();
@@ -106,19 +123,20 @@ export function createCameraCollider(ground: (x: number, z: number) => number, s
     const ax = _d.x * _d.x + _d.z * _d.z;
     if (ax > 1e-9) {
       for (const c of trunks) {
-        const ox = a.x - c.x;
-        const oz = a.z - c.z;
-        const c0 = ox * ox + oz * oz - c.r * c.r;
-        if (c0 < 0) continue;
-        const bq = 2 * (ox * _d.x + oz * _d.z);
-        const disc = bq * bq - 4 * ax * c0;
-        if (disc < 0) continue;
-        const u = (-bq - Math.sqrt(disc)) / (2 * ax);
+        const u = enter(a, ax, c, c.r);
         if (u < 0 || u >= t) continue;
-        const y = a.y + _d.y * u;
-        if (y < c.y0 || y > c.y1) continue;
         t = u;
         hit = 'trunk';
+      }
+      for (const w of walls) {
+        // Link against a wall stands inside its camera radius: the wall then begins just behind
+        // him, so a line into it is refused (the camera at its minimum distance), one away is free
+        const d = Math.hypot(a.x - w.x, a.z - w.z);
+        if (d <= w.r - CAMERA_RADIUS) continue;
+        const u = enter(a, ax, w, Math.min(w.r, d - 0.02));
+        if (u < 0 || u >= t) continue;
+        t = u;
+        hit = 'solid';
       }
     }
     return { t, hit };
@@ -176,6 +194,6 @@ export function createCameraCollider(ground: (x: number, z: number) => number, s
       cam.set(pivot.x + (_d.x * s) / len, pivot.y + (_d.y * s) / len, pivot.z + (_d.z * s) / len);
       return len - s;
     },
-    info: () => ({ solidGrid: !!solid, slimGrid: !!slim, trunks: trunks.length, slimCylinders: slimCylinders.length }),
+    info: () => ({ solidGrid: !!solid, slimGrid: !!slim, trunks: trunks.length, walls: walls.length, slimCylinders: slimCylinders.length }),
   };
 }

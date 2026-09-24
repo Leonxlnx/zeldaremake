@@ -113,6 +113,12 @@ export interface SharedGeometry {
    * refuses to stand inside.
    */
   cameraSolids?: { solid: VoxelGrid | null; slim: VoxelGrid | null };
+  /**
+   * exp-south2: solid walls the play camera sweeps as exact vertical cylinders (base centre, wall
+   * radius, height span — world), not as grown cells: the bridge keeper's hut, whose cells reached
+   * over the gallery Link walks round it. Their parts carry `cameraShell.exact` (cameraSolids.ts).
+   */
+  cameraCylinders?: { x: number; z: number; r: number; y0: number; y1: number }[];
   /** the slim trees' trunks (the white-barks, as placed): base centre, radius, the bare bole's height span (world y) */
   slimTrunks?: { x: number; z: number; r: number; y0: number; y1: number }[];
 }
