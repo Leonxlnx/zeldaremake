@@ -18,7 +18,7 @@ import type { Wind } from '../world/wind/wind';
 import type { PlayerHandle } from '../world/character/player';
 import { surfaceMask } from '../world/terrain/heightfield';
 import { forestFloorZone } from '../world/terrain/material';
-import { EXPANSION, EXPANSION_SOUTH, LAYOUT } from '../world/layout';
+import { EXPANSION, EXPANSION_SOUTH, EXPANSION_SOUTH_DWELLINGS, LAYOUT } from '../world/layout';
 import { createBuses, createRng, voices as liveVoices, type Buses } from './graph';
 import { createAmbience, type Ambience, type AmbienceStats, type Vec3 } from './ambience';
 import { createFootsteps, type Footsteps, type FootstepStats, type Surface } from './footsteps';
@@ -274,6 +274,9 @@ export function surfaceAt(x: number, z: number): { surface: Surface; stairs: boo
  *    ravine are not the same sound.
  *  - the hollow log at the far bank: the same bore sound as the arch by the plaza, with the same
  *    smooth enclosure as the wood closes over the listener.
+ *  - exp-south2 (`EXPANSION_SOUTH_DWELLINGS`): the keeper's gallery knocks like the bridge where
+ *    its boards hang over the gorge and like a deck where the lip is still under them; the
+ *    waystation's floor and its step are a deck on the ground.
  */
 function southSurfaceAt(x: number, z: number, canopy: number): { surface: Surface; stairs: boolean; enclosure: number; canopy: number } | null {
   const b = EXPANSION_SOUTH.bridge;
@@ -299,6 +302,25 @@ function southSurfaceAt(x: number, z: number, canopy: number): { surface: Surfac
     if (u > -0.3 && u < tn.deadEnd && v < tn.innerRadius * 0.8) {
       return { surface: 'hollow', stairs: false, enclosure: Math.max(0, Math.min(1, Math.min(u / 1.6, (tn.innerRadius * 0.8 - v) / 0.5))), canopy };
     }
+  }
+  const K = EXPANSION_SOUTH_DWELLINGS.keeper;
+  {
+    const r = Math.hypot(x - K.centre[0], z - K.centre[1]);
+    // wall angle (deg, 0 east, 90 south) measured from the gallery's east end
+    const th = ((((Math.atan2(z - K.centre[1], x - K.centre[0]) * 180) / Math.PI - K.gallery.from + 8) % 360) + 360) % 360 - 8;
+    if (r > K.radius && r < K.gallery.outer + 0.05 && th < K.gallery.to - K.gallery.from) {
+      const overGorge = th > 34 - K.gallery.from && th < 165 - K.gallery.from;
+      return { surface: overGorge ? 'bridge' : 'wood', stairs: false, enclosure: 0, canopy: overGorge ? 0 : canopy };
+    }
+  }
+  const W = EXPANSION_SOUTH_DWELLINGS.waystation;
+  {
+    const f = (W.facingDeg * Math.PI) / 180;
+    const fx = Math.sin(f);
+    const fz = Math.cos(f);
+    const a = (x - W.centre[0]) * fx + (z - W.centre[1]) * fz;
+    const s = (x - W.centre[0]) * fz - (z - W.centre[1]) * fx;
+    if (a > -W.depth / 2 && a < W.depth / 2 + 0.4 && Math.abs(s) < W.width / 2) return { surface: 'wood', stairs: false, enclosure: 0, canopy };
   }
   return null;
 }

@@ -74,6 +74,34 @@ const southFrames = () => {
     log: (a, c = 0) => [SOUTH.mouth[0] + tx * a - tz * c, SOUTH.mouth[1] + tz * a + tx * c],
   };
 };
+/**
+ * layout.ts EXPANSION_SOUTH_DWELLINGS as expansionSouthDwellings.ts walks it: the keeper's gallery
+ * (deck top floorY + 0.01) between the closed hut (`hut`) and the railing's band (`railR` ± `railHalf`
+ * over `from` … `railTo`), boarded `from` … `to` (wall angles, deg: 0 east, 90 south); the waystation's
+ * floor (`facingDeg` compass, `a` toward the path, `s` toward the south end)
+ */
+const DWELLINGS = {
+  keeper: { centre: [7.1, 31.9], deckY: -0.07, hut: 1.4, railR: 2.17, railHalf: 0.18, from: -14, to: 228, railTo: 193.4 },
+  waystation: { centre: [5.12, 25.95], facingDeg: -74, floorY: 0.22 },
+};
+const keeperAt = (thetaDeg, r) => [DWELLINGS.keeper.centre[0] + Math.cos(rad(thetaDeg)) * r, DWELLINGS.keeper.centre[1] + Math.sin(rad(thetaDeg)) * r];
+const waystationAt = (a, s) => {
+  const W = DWELLINGS.waystation;
+  const fx = Math.sin(rad(W.facingDeg));
+  const fz = Math.cos(rad(W.facingDeg));
+  return [W.centre[0] + fx * a + fz * s, W.centre[1] + fz * a - fx * s];
+};
+/** where (x, z) stands against the keeper's hut: 'hut' | 'railing' | 'gallery' | null (off it) */
+const keeperZone = ([x, z]) => {
+  const K = DWELLINGS.keeper;
+  const r = Math.hypot(x - K.centre[0], z - K.centre[1]);
+  const th = deg(Math.atan2(z - K.centre[1], x - K.centre[0]));
+  const within = (a, b) => ((((th - a) % 360) + 360) % 360) <= b - a;
+  if (r <= K.hut) return 'hut';
+  if (Math.abs(r - K.railR) <= K.railHalf && within(K.from, K.railTo)) return 'railing';
+  if (r < K.railR - K.railHalf && within(K.from, K.to)) return 'gallery';
+  return null;
+};
 const flightFrame = (f) => {
   const l = Math.hypot(f.dir[0], f.dir[1]);
   const dx = f.dir[0] / l;
@@ -708,6 +736,10 @@ async function walkScenario(page, results) {
     // round 56 (expansion-south): out of the plaza down the south approach, between the giants'
     // roots to the ravine, over the rope bridge on its axis and into the hollow log to near its glow
     ['south-bridge-to-log', [[0.5, 3], [0.8, 10], [1, 16], [-0.5, 17.2], [-1.2, 19.4], [-1.32, 21.6], [-0.8, 23.55], [0.4, 25.15], [2.0, 26.55], [3.3, 27.9], [3.68, 28.95], sf.bridge(-0.6), sf.bridge(1.4), sf.bridge(4.1), sf.bridge(6.9), sf.bridge(9.8), sf.bridge(12.2), sf.bridge(sf.len + 0.5), [4.14, 45.2], sf.log(0), sf.log(2), sf.log(4.8)], 2400],
+    // exp-south2: off the path up the waystation's step onto its floor and out again, along the verge
+    // north of the toll pile to the bridge head, onto the keeper's gallery at its entrance, round the
+    // hut over the gorge, down the east step and back round the hut's north side to the path
+    ['south-dwellings', [[3.3, 27.9], [3.9, 26.6], waystationAt(0.915, 0), waystationAt(0.3, 0), waystationAt(0.3, 0.5), waystationAt(0.94, 0.3), [3.9, 27.4], [4.3, 29.0], [5.1, 30.1], keeperAt(221, 2.0), keeperAt(200, 1.7), keeperAt(170, 1.7), keeperAt(135, 1.7), keeperAt(100, 1.7), keeperAt(60, 1.7), keeperAt(20, 1.7), keeperAt(-8, 1.7), keeperAt(-20.5, 1.86), [9.35, 31.0], [9.0, 30.0], [8.0, 29.35], [6.6, 29.2], [5.6, 28.55], [3.68, 28.95]], 2400],
   ];
   results.walk = [];
   const pickRoutes = typeof args['walk-routes'] === 'string' ? new Set(args['walk-routes'].split(',')) : null;
@@ -719,6 +751,10 @@ async function walkScenario(page, results) {
   }
   if (!pickRoutes || pickRoutes.has('south-bridge-to-log')) {
     results.southProbes = await southProbes(page);
+    fs.writeFileSync(path.join(out, 'playtest.json'), JSON.stringify(results, null, 1));
+  }
+  if (!pickRoutes || pickRoutes.has('south-dwellings')) {
+    results.southDwellingProbes = await southDwellingProbes(page);
     fs.writeFileSync(path.join(out, 'playtest.json'), JSON.stringify(results, null, 1));
   }
 }
@@ -739,8 +775,11 @@ async function southProbes(page) {
   }
   // 1.5 m past a sill the gorge's slant can leave a probe 3 m off the axis on the rounded lip: walkable
   // there only while the ground is within 0.5 m of grade ('rim'); 3 m past a sill it is the wall
+  // (exp-south2: where a probe beside the north head now stands on the keeper's gallery it expects
+  // the gallery's boards — 'built': not blocked, far over the gorge floor)
+  for (const p of probes) if (p.where === 'deck-side' && keeperZone(p.at) === 'gallery') p.expect = 'built';
   for (const c of [3.0, -3.0]) probes.push({ where: 'rim-by-north-head', a: 1.5, c, at: sf.bridge(1.5, c), expect: 'rim' });
-  for (const c of [3.0, -3.0]) probes.push({ where: 'ravine-by-north-head', a: 3.0, c, at: sf.bridge(3.0, c), expect: 'blocked' });
+  for (const c of [3.0, -3.0]) probes.push({ where: 'ravine-by-north-head', a: 3.0, c, at: sf.bridge(3.0, c), expect: keeperZone(sf.bridge(3.0, c)) === 'gallery' ? 'built' : 'blocked' });
   for (const c of [3.0, -3.0]) probes.push({ where: 'ravine-by-south-head', a: sf.len - 1.5, c, at: sf.bridge(sf.len - 1.5, c), expect: 'blocked' });
   for (const c of [3.0, -3.0]) probes.push({ where: 'ravine-by-south-head', a: sf.len - 3.0, c, at: sf.bridge(sf.len - 3.0, c), expect: 'blocked' });
   for (const a of [1, 3, SOUTH.deadEnd - 0.4]) probes.push({ where: 'log-floor', a, c: 0, at: sf.log(a), expect: 'walk' });
@@ -750,8 +789,45 @@ async function southProbes(page) {
   const rows = probes.map((p, i) => {
     const g = got[i];
     const ok =
-      p.expect === 'blocked' ? g.blocked === true : p.expect === 'rim' ? g.blocked === true || g.terrain > -0.5 : g.blocked === false && (p.where !== 'deck' || g.walk - g.terrain > 2);
+      p.expect === 'blocked'
+        ? g.blocked === true
+        : p.expect === 'rim'
+          ? g.blocked === true || g.terrain > -0.5
+          : p.expect === 'built'
+            ? g.blocked === false && g.walk - g.terrain > 1
+            : g.blocked === false && (p.where !== 'deck' || g.walk - g.terrain > 2);
     return { where: p.where, a: +p.a.toFixed(2), c: p.c, x: +p.at[0].toFixed(2), z: +p.at[1].toFixed(2), walk: +g.walk.toFixed(3), terrain: +g.terrain.toFixed(3), blocked: g.blocked, expect: p.expect, ok };
+  });
+  return { ok: rows.every((r) => r.ok), failed: rows.filter((r) => !r.ok).length, rows };
+}
+
+/**
+ * exp-south2: the dwellings hold Link where they are built — the keeper's gallery walks at its
+ * boards' height all round the gorge side, its railing, the hut and the gorge past the railing
+ * block, both steps walk; the waystation's floor walks at its boards' height, its back wall (with
+ * the bench), its north wall and the firewood outside block, its step walks.
+ */
+async function southDwellingProbes(page) {
+  const K = DWELLINGS.keeper;
+  const W = DWELLINGS.waystation;
+  const probes = [];
+  for (const th of [-5, 30, 60, 90, 120, 150, 180, 210]) probes.push({ where: 'keeper-gallery', th, r: 1.7, at: keeperAt(th, 1.7), expect: 'deck', y: K.deckY });
+  probes.push({ where: 'keeper-entrance', th: 222, r: 2.0, at: keeperAt(222, 2.0), expect: 'deck', y: K.deckY });
+  for (const th of [10, 50, 90, 130, 170]) probes.push({ where: 'keeper-railing', th, r: 2.15, at: keeperAt(th, 2.15), expect: 'blocked' });
+  for (const th of [60, 90, 120]) probes.push({ where: 'keeper-past-railing', th, r: 2.6, at: keeperAt(th, 2.6), expect: 'blocked' });
+  for (const [th, r] of [[0, 0.3], [200, 1.0], [300, 1.2]]) probes.push({ where: 'keeper-hut', th, r, at: keeperAt(th, r), expect: 'blocked' });
+  probes.push({ where: 'keeper-step-east', th: -20.5, r: 1.86, at: keeperAt(-20.5, 1.86), expect: 'step' });
+  for (const [a, s] of [[0.3, 0], [0.3, 0.6], [0.3, -0.5], [0.5, 0.2]]) probes.push({ where: 'waystation-floor', a, s, at: waystationAt(a, s), expect: 'deck', y: W.floorY });
+  for (const [a, s] of [[-0.62, 0], [-0.62, 0.5], [-0.38, -0.2]]) probes.push({ where: 'waystation-back-wall', a, s, at: waystationAt(a, s), expect: 'blocked' });
+  for (const [a, s] of [[0, -0.95], [0.4, -0.95]]) probes.push({ where: 'waystation-north-wall', a, s, at: waystationAt(a, s), expect: 'blocked' });
+  probes.push({ where: 'waystation-firewood', a: 0, s: -1.28, at: waystationAt(0, -1.28), expect: 'blocked' });
+  probes.push({ where: 'waystation-step', a: 0.915, s: 0, at: waystationAt(0.915, 0), expect: 'step' });
+  const got = await page.evaluate((pts) => pts.map(([x, z]) => window.__ZR_PLAY__.ground(x, z)), probes.map((p) => p.at));
+  const rows = probes.map((p, i) => {
+    const g = got[i];
+    const ok = p.expect === 'blocked' ? g.blocked === true : p.expect === 'deck' ? g.blocked === false && Math.abs(g.walk - p.y) < 0.03 : g.blocked === false && g.walk - g.terrain > 0.08;
+    const { at, ...rest } = p;
+    return { ...rest, x: +at[0].toFixed(2), z: +at[1].toFixed(2), walk: +g.walk.toFixed(3), terrain: +g.terrain.toFixed(3), blocked: g.blocked, ok };
   });
   return { ok: rows.every((r) => r.ok), failed: rows.filter((r) => !r.ok).length, rows };
 }

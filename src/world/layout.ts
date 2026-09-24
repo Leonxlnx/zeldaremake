@@ -1062,7 +1062,9 @@ export function inExpansionSouth(x: number, z: number): boolean {
  * edge. Angles: `facingDeg` / `doorDeg` as the village huts (compass, from +Z toward +X; the
  * window watches the bridge, the door opens onto the gallery's entrance); `gallery` and
  * `entrance` are WALL angles (deg, atan2(dz, dx): 0 east, 90 south — the builder's own), the
- * gallery running from `from` round the south to `to` between the platform's rim and `outer`.
+ * gallery running from `from` round the south to `to` between the platform's rim and `outer`
+ * (walked onto at `entrance`, the path's side; left at `from` down a step onto the lip's
+ * north-east shoulder, where the ground is within a step of the boards).
  *
  * `waystation` — a lean-to by the path where it straightens for the bridge, between
  * `plaza-south`'s root flare (0.5 m off its north-east corner) and fable-3's waymarker (whose
@@ -1080,8 +1082,8 @@ export const EXPANSION_SOUTH_DWELLINGS = {
     capHeight: 1.1,
     facingDeg: -33,
     doorDeg: -97,
-    gallery: { from: 10, to: 228, outer: 2.1 },
-    entrance: [188, 228] as [number, number],
+    gallery: { from: -14, to: 228, outer: 2.25 },
+    entrance: [193.4, 228] as [number, number],
     mast: { radius: 0.3, top: 5.6 },
   },
   waystation: {

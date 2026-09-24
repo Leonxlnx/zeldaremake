@@ -7,7 +7,7 @@
  * fixed cameras; all ground contact is sampled through `ctx.terrain`;
  * randomness only through `ctx.rng.fork` / Noise2D; textures through `ctx.textures`.
  */
-import { Group, type Mesh, type Object3D, type PointLight } from 'three';
+import { Group, type Camera, type Mesh, type Object3D, type PointLight } from 'three';
 import type { WorldContext, WorldSystem } from '../system';
 import { ROPE_FENCES, LANTERN_POSTS, type FenceDef } from '../layout';
 import { buildCameraSolids, limbSpheres } from './cameraSolids';
@@ -15,6 +15,7 @@ import { buildFence, createRopeMaterial } from './fence';
 import { buildDistantHouses, distantGlowPeak } from './distantHouse';
 import { buildExpansion, EXPANSION_VISIBLE_M } from './expansion';
 import { buildExpansionSouth } from './expansionSouth';
+import { buildSouthDwellings } from './expansionSouthDwellings';
 import { SOUTH_VISIBLE_M } from '../util/expansionLocality';
 import { consolidateStaticMeshes } from './geometry';
 import { buildHouse, type HouseSharedMaterials } from './house';
@@ -186,6 +187,14 @@ export async function create(ctx: WorldContext): Promise<WorldSystem> {
   bases.push(...south.bases);
   owned.push(...south.owned);
   ctx.shared.walkSpans = [...(ctx.shared.walkSpans ?? []), ...south.walkSpans];
+  // exp-south2: the bridge keeper's hut and the waystation by the path (expansionSouthDwellings.ts),
+  // folded into the south group before its solids and buckets are built; the group draws while
+  // either its own casters or the dwellings' meet the frustum
+  const dwellings = buildSouthDwellings(ctx, mats, rng.fork('south-dwellings'), rope);
+  for (const child of [...dwellings.group.children]) south.group.add(child);
+  bases.push(...dwellings.bases);
+  ctx.shared.walkSurfaces = [...(ctx.shared.walkSurfaces ?? []), ...dwellings.walkSurfaces];
+  const southShown = (camera: Camera) => south.visible(camera) || dwellings.visible(camera);
 
   // the play camera's solids (cameraSolids.ts), voxelised from the parts by name before the merges
   // below rename them; never under a headless capture
@@ -234,7 +243,7 @@ export async function create(ctx: WorldContext): Promise<WorldSystem> {
   // round 56: the south group merged on its own too (its buckets span the bridge and the log, 30–55 m south)
   const southDraws = consolidateStaticMeshes(south.group, (m) => m.name === 'pod-lantern');
   group.add(south.group);
-  south.group.visible = south.visible(ctx.camera);
+  south.group.visible = southShown(ctx.camera);
   for (const d of [expansionNearDraws, expansionFarDraws, southDraws]) {
     draws.before += d.before;
     draws.after += d.after;
@@ -371,6 +380,8 @@ export async function create(ctx: WorldContext): Promise<WorldSystem> {
     },
     /** round 56 (expansion-south): the rope bridge over the ravine and the hollow log in the far bank (expansionSouth.ts); drawn only within `visibleWithinM` of the south boxes, in the frustum */
     south: { ...south.audit, draws: southDraws.after, visibleWithinM: SOUTH_VISIBLE_M, visible: south.group.visible },
+    /** exp-south2: the bridge keeper's hut and the waystation (expansionSouthDwellings.ts), drawn with the south group */
+    southDwellings: { ...dwellings.audit, triangles: dwellings.triangles },
     logArch: true,
     /** round 41 (structures-26): the arch's close-scale detail — grid, cushion tufts, rim splinters, skirt, plants */
     logDetail: log.detail41,
@@ -448,13 +459,13 @@ export async function create(ctx: WorldContext): Promise<WorldSystem> {
       north.visible = northVisible(c.camera.position.x, c.camera.position.z);
       expansion.near.visible = expansion.visible(c.camera);
       expansion.far.visible = expansion.farVisible(c.camera);
-      south.group.visible = south.visible(c.camera);
+      south.group.visible = southShown(c.camera);
     },
     onCameraMove(camera) {
       north.visible = northVisible(camera.position.x, camera.position.z);
       expansion.near.visible = expansion.visible(camera);
       expansion.far.visible = expansion.farVisible(camera);
-      south.group.visible = south.visible(camera);
+      south.group.visible = southShown(camera);
     },
     dispose() {
       // one-shot: every geometry, material and owned texture is released exactly once, however
