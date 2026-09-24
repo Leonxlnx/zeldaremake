@@ -1041,6 +1041,140 @@ export function inExpansionSouth(x: number, z: number): boolean {
   return false;
 }
 
+/**
+ * 2026-09-24 (expansion-north; owner 06:07: "more structures along the path further down"): the
+ * GROVE above the ledge terrace. A stone flight climbs the bank from the terrace's north edge, a
+ * stepping-stone trail winds on up between the north stand's trunks, and a level shelf cut into
+ * the hillside carries a second hamlet: a trunk house like the village's (structures/house.ts), a
+ * stilt house over the falling east slope reached by a plank gangway, and a tree hut on its own
+ * bark column, joined to the stilt house by a short rope walkway, a lookout nest above it.
+ *
+ * Everything here is 78–112 m north of the plaza, behind the log arch and the ledge: no fixed
+ * camera frames it (D, the one north-looking frame, ends in haze beyond the arch). Like
+ * `EXPANSION` / `EXPANSION_SOUTH` nothing is in a LAYOUT list the legacy streams iterate; the
+ * landform is in the heightfield's LIVE view only (terrain/north.ts) and the legacy-placed trees,
+ * rocks, props and vegetation on its ground are removed by post-placement filters (heightfield
+ * `expansionCull`, trees `northGroveClear`).
+ *
+ * Heights are absolute (the shelf's natural ground runs 10.2–11.9 m; the terrace is 5.62 m).
+ */
+export const EXPANSION_NORTH = {
+  /**
+   * The trail from the grove flight's landing (8.05 m) to the shelf (10.0 m), with its design
+   * heights: 24 % out of the landing easing to 15 % at the shelf's lip. The heightfield flattens
+   * the trail's width to this profile (cut ≤ 0.5 m into the natural slope) and lays set stepping
+   * stones along it.
+   */
+  trail: [
+    [-0.15, 8.05, -85.25],
+    [-0.95, 8.62, -87.45],
+    [-0.45, 9.16, -89.85],
+    [1.05, 9.58, -91.95],
+    [2.3, 9.94, -93.9],
+    [2.5, 10.0, -96.0],
+  ] as [number, number, number][],
+  /** the trail's flattened half width (m); the discs run down its middle */
+  trailHalfWidth: 0.95,
+  discs: { from: 0.45, spacing: 0.92, radius: [0.36, 0.44] as [number, number], wobble: 0.17 },
+  /**
+   * The level shelf: a superellipse (exponent 4) of half extents `hx` × `hz` round (`cx`, `cz`) at
+   * `y`, its edge blending back to the natural slope over `edge` m — a 2 m bank on the north side,
+   * a fill of ≤ 0.4 m on the south lip. `pads` are round level extensions at the same height (the
+   * gangway's foot).
+   */
+  shelf: { cx: -0.5, cz: -99.2, y: 10.0, hx: 8.2, hz: 5.4, edge: 2.6, pads: [{ x: 6.7, z: -94.35, r: 1.5 }] },
+  /** the hamlet's trunk house (structures/house.ts — the upper house's settings), its door toward the trail's arrival */
+  house: { id: 'grove-house', position: [-3.9, 10.0, -101.4], trunkRadius: 2.2, facing: [0.68, 0.73], roofHeight: 4.3, lanterns: 2 } as HouseDef,
+  /**
+   * The stilt house: a `distantHouse` hut with no bole through it, on a cut stump (the braces'
+   * seat, radius 0.55 R) and four log stilts at the rim over the east slope (natural ground 8.2–
+   * 9.2 m under the platform). Window toward the trail, door toward the gangway, walkway stub toward
+   * the tree hut (the rope walkway's start).
+   */
+  stilt: { host: [12.0, -91.5] as [number, number], floorY: 11.6, radius: 1.55, wall: 1.9, capHeight: 1.05, capOverhang: 0.5, facingDeg: -58, doorAbsDeg: -118.6, ladderAbsDeg: -18, stiltAbsDeg: [22, 92, 162, -52] },
+  /** the plank gangway from the shelf's pad up to the stilt house's door: horizontal run (m) and cleat spacing */
+  gangway: { run: 4.05, halfWidth: 0.42, cleat: 0.36 },
+  /**
+   * The tree hut round its own bark column (no published seat stands here): column base radius,
+   * top radius, height, the crown's limbs from `crownY`; the hut 4.3 m up it, window toward the
+   * trail, door toward the stilt house.
+   */
+  hut: { host: [16.8, -85.2] as [number, number], floorY: 11.3, radius: 1.45, wall: 1.8, capHeight: 0.95, capOverhang: 0.45, facingDeg: -86, doorAbsDeg: -142.7, ladderAbsDeg: -30, hoistAbsDeg: 40 },
+  column: { baseRadius: 0.8, topRadius: 0.4, height: 22, crownY: 17.5 },
+  /** the lookout nest on the column over the hut's cap: floor height (absolute), ring radius */
+  nest: { floorY: 16.3, radius: 1.2 },
+  /** the rope walkway between the two walkway stubs: stub length past each rim (m), sag (m) */
+  ropeWalk: { stub: 0.7, sag: 0.12, halfWidth: 0.42 },
+  lanternPosts: [
+    { id: 'grove-flight-head', position: [-1.35, -84.3], facing: [1, 0.15], height: 2.35, tint: 'orange' },
+    { id: 'grove-shelf-lip', position: [3.55, -94.4], facing: [-0.85, 0.55], height: 2.45, tint: 'lime' },
+  ] as LanternPostDef[],
+  /** the sign at the flight's foot on the terrace, facing the ledge stairs' head */
+  signpost: { id: 'grove-sign', position: [2.25, 5.62, -79.1] as [number, number, number], facing: [0.35, 0.94] as [number, number] },
+};
+
+/**
+ * The grove's stone flight up the bank from the ledge terrace's north edge (hardscape builds it
+ * with the ledge flight's log nosings; its trench, banks and landing are in the heightfield's
+ * live view). Not in `EXPANSION_STAIRS`: those are hidden with the west expansion's hardscape.
+ */
+export const NORTH_STAIRS: StairDef[] = [{ id: 'grove', base: [0.5, 5.62, -79.85], dir: [-0.12, -1], steps: 9, rise: 0.27, tread: 0.42, width: 1.4 }];
+
+/** the trail's stepping discs (terrain paves exactly these; hardscape lays a set stone on each) */
+export function northSteppingStones(): SteppingStone[] {
+  return steppingStonesAlong(EXPANSION_NORTH.trail, { ...EXPANSION_NORTH.discs, skip: [Infinity, Infinity] });
+}
+
+/** the stilt house's and the tree hut's `distantHouse` walkway ends: each stub `ropeWalk.stub` m past its rim toward the other hut */
+export function northRopeWalkEnds(): { stilt: [number, number, number]; hut: [number, number, number] } {
+  const N = EXPANSION_NORTH;
+  const [sx, sz] = N.stilt.host;
+  const [hx, hz] = N.hut.host;
+  const l = Math.hypot(hx - sx, hz - sz);
+  const ux = (hx - sx) / l;
+  const uz = (hz - sz) / l;
+  const sr = N.stilt.radius + 0.22 + N.ropeWalk.stub;
+  const hr = N.hut.radius + 0.22 + N.ropeWalk.stub;
+  return { stilt: [sx + ux * sr, N.stilt.floorY, sz + uz * sr], hut: [hx - ux * hr, N.hut.floorY, hz - uz * hr] };
+}
+
+/** the gangway: foot on the shelf's pad (x, y, z) and head on the stilt house's platform rim in front of its door */
+export function northGangway(): { foot: [number, number, number]; head: [number, number, number]; dir: [number, number] } {
+  const N = EXPANSION_NORTH;
+  const a = (N.stilt.doorAbsDeg * Math.PI) / 180;
+  const dx = Math.sin(a);
+  const dz = Math.cos(a);
+  const rim = N.stilt.radius + 0.22;
+  const head: [number, number, number] = [N.stilt.host[0] + dx * (rim - 0.05), N.stilt.floorY + 0.01, N.stilt.host[1] + dz * (rim - 0.05)];
+  const foot: [number, number, number] = [head[0] + dx * N.gangway.run, N.shelf.y, head[2] + dz * N.gangway.run];
+  return { foot, head, dir: [-dx, -dz] };
+}
+
+/** the grove's XZ box: the flight, the trail, the shelf and the east huts, with a 3 m margin — where the live view can differ from the legacy one */
+export const EXPANSION_NORTH_BOX = (() => {
+  const N = EXPANSION_NORTH;
+  const b = { x0: Infinity, x1: -Infinity, z0: Infinity, z1: -Infinity };
+  const add = (x: number, z: number, m: number) => {
+    b.x0 = Math.min(b.x0, x - m);
+    b.x1 = Math.max(b.x1, x + m);
+    b.z0 = Math.min(b.z0, z - m);
+    b.z1 = Math.max(b.z1, z + m);
+  };
+  for (const s of NORTH_STAIRS) add(s.base[0], s.base[2], 3);
+  for (const p of N.trail) add(p[0], p[2], 3);
+  add(N.shelf.cx - N.shelf.hx, N.shelf.cz - N.shelf.hz, N.shelf.edge + 3);
+  add(N.shelf.cx + N.shelf.hx, N.shelf.cz + N.shelf.hz, N.shelf.edge + 3);
+  add(N.stilt.host[0], N.stilt.host[1], N.stilt.radius + 4.5);
+  add(N.hut.host[0], N.hut.host[1], N.hut.radius + 4.5);
+  return b;
+})();
+
+/** true inside `EXPANSION_NORTH_BOX` */
+export function inExpansionNorth(x: number, z: number): boolean {
+  const b = EXPANSION_NORTH_BOX;
+  return x >= b.x0 && x <= b.x1 && z >= b.z0 && z <= b.z1;
+}
+
 export function v3(a: readonly [number, number, number]): Vector3 {
   return new Vector3(a[0], a[1], a[2]);
 }
