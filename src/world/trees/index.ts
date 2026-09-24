@@ -1624,16 +1624,15 @@ const TREE_LOD_NEAR_M = 28;
  */
 const DISTANT_NEAR_M = 72;
 /**
- * The medium→low rung (m). 44 m through round 55, and the 18:20 health check of these rungs found the
- * residual pop lives there: with every tree forced to its highest LOD (`?treelod=10`) the owner's two
- * walking poses change by 2.06 % and 2.24 % of the frame, and the diff puts almost all of it in two
- * columns at the corridor's mid-distance tree line — the crowns of trees at 44–60 m, which fill out as
- * he approaches. That is his "the trees … only get detailed when I come up close" at the range it still
- * happens. 59 m priced with `pose-counts.mjs`: the walking poses take +0.51 % and +0.75 % of their
- * triangles, and the six hero views +1.4 k (A) to +54 k (D) with 123 k of headroom left at the tightest
- * and at most four draws more, so the 700 / 9 M cap is not approached.
+ * The medium→low rung (m). 59 m was tried at 19:00 and backed out: it cost the owner's walking poses
+ * +0.51 % and +0.75 % of their triangles (+45 k, +51 k) and the hero views up to +54 k, and the frame
+ * did not change — with every tree forced high (`?treelod=10`) those poses differ from the shipped
+ * rungs by 2.06 % and 2.24 % at 44 m and by 2.06 % and 2.24 % at 59 m, to the second decimal. The
+ * medium and high LODs of a tree at 44-60 m read the same at that range; the close-only detail those
+ * two per cent measure belongs to another gate, and finding which is the open question (the candidates
+ * are `DISTANT_NEAR_M` and the giants' near-canopy swap band, both reachable with `?treelod=`).
  */
-const TREE_LOD_MID_M = 59;
+const TREE_LOD_MID_M = 44;
 /**
  * Dev measurement knob, the same shape as `?pool=large|small`: `?treelod=<multiplier>` scales every
  * instanced tree LOD swap distance (the white-barks' and columns' ladder, the distant layer's and the
