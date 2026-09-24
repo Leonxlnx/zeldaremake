@@ -162,6 +162,20 @@ E is B's camera; C sees the sitter (≈ −26); D sees no kid (557, unchanged). 
 from ≈ 100 to ≈ 50 submissions; the next halving (skin / cloth / leather on one canvas atlas → three submissions a kid) is
 there if the squad's layers need it.
 
+## Hands and standing arms (owner 23:00, `a0262ae1`)
+
+"I wish you could make the other characters look a bit better" (23:00, recording at 01:00): the quickest visible step at
+2–6 m without touching the six frames — a thumb on each mitten hand (`buildThumbs`, a skin ellipsoid on the palm's inner
+side, angled forward; it rides in the skin's skinned submission) and the standing arms: upper arm a touch back, elbow bent
+−0.46 rad with a slow breathe, so the hand rests forward by the hip instead of a straight doll arm (`poseWander` idle — the
+walker's dwells and the ledge / bank idles; the sitter keeps her hands on her knees; the plaza kids under capture pose
+through the puppet idle, so A–F are untouched by construction).
+
+![the walker at 2.6 m, hands and arms before / after](before-after-hands-arms.jpg)
+
+Pose: (2.3, 2.2, −0.66) → (4.4, 1.35, 0.9), vfov 40, broll t 12.0 (her dwell at (4.4, 0.9)); the before is the merged head
+`81430baf`. Modest, and meant to be: a safe landing an hour before the recording; the deeper JOB 7 items follow it.
+
 ## Play mode
 
 `kokiri-play-walk` (artifact): `?test=1` at 960 × 540, Link placed at (0.8, 6.2) facing the stair foot,

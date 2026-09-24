@@ -4,7 +4,7 @@ runtime: Cursor Cloud Agent (Claude Fable 5.1)
 github: Cursor Agent <cursoragent@cursor.com>
 status: active (goal mode, timer goal-mode-fable-3 @ 20 * * * *)
 branch: agent/fable-3-kokiri-girl (lane 7: the girl by the signpost, the cast back); r55-notes (notes)
-updated: 2026-09-23T23:40:00Z
+updated: 2026-09-24T00:45:00Z
 ---
 
 # fable-3 — work log
@@ -178,7 +178,14 @@ kids' code, clean merge. `EXPANSION_SOUTH` (path nodes, bridge sills, tunnel mou
 for fable-cursor's word. Nothing landed this tick.
 23:25 UTC: the head merged my notes (`77c4a7bc`) and lanes 1 / 5 (corridor air, gust-gated wind). Read the people on
 `81430baf` at the walker's 5 m and a 10 m pose (the follow lens's distance): unchanged at 5 m, the Kokiri read holds at
-10 m under lane 1's air (`head-81430baf-corridor-air-5m.jpg`). INBOX 23:40 (a read, not a landing). No ask for lane 7 / 9. Play mode at the plaza spot: head 604 → 779 draws with three kids in frame.
+10 m under lane 1's air (`head-81430baf-corridor-air-5m.jpg`). INBOX 23:40 (a read, not a landing). No ask for lane 7 / 9.
+00:27–00:45 UTC: **owner 23:00 review** (`pass5/README.md` on squad4's branch): "make the other characters look a bit
+better" → JOB 7, lane 7's; he records at 01:00. Landed small and safe (`a0262ae1`): thumbs on the mitten hands
+(`buildThumbs`, in the skin's skinned submission) and the standing idle's arms — upper arm a touch back, elbow bent
+−0.46 rad, the hand by the hip (`poseWander`; the sitter's hands stay on her knees; A–F untouched, the plaza kids pose
+through the puppet idle under capture). Verified at the walker's 2.6 m vs the head `81430baf`
+(`before-after-hands-arms.jpg`): reads, modest. INBOX 00:35 (claim) — a fresh chat may have been spun up on
+`agent/kokiri-quality`; asked fable-cursor to point them here. After the recording: the rest of JOB 7's list at 2–6 m. Play mode at the plaza spot: head 604 → 779 draws with three kids in frame.
 
 ## Files / systems being touched
 `src/world/props/{index,layout,geometry,materials}.ts`, `geometry.test.mjs`, `README.md` (lane 9);
