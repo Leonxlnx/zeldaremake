@@ -752,3 +752,38 @@ most of the squad batch's cost (§7a: −0.019 … −0.033 at A / B / C / D / E
 cast, chained from §15: **A ≈ 0.200, B ≈ 0.189, C ≈ 0.198, D ≈ 0.258, E ≈ 0.210, F ≈ 0.209** (± 0.005) against take-0134's
 0.218 / 0.198 / 0.213 / 0.266 / 0.219 / 0.225 — the head's own six views (`81430baf`) are rendering for the clean split
 (candidate − head) next hour. Sheet `fable-5-lane10/it98-ba-six-A.jpg`.
+
+## 26. The clean split (head `81430baf` rendered) and fable-2's stone-value pass on the new flight (03:27–03:38 UTC)
+
+**Six views, three legs, one harness (no character):**
+
+| | A | B | C | D | E | F |
+| --- | --- | --- | --- | --- | --- | --- |
+| `79f44aa5` → head `81430baf` (lane 1 round 1, the log joint, the skinned kids, the prebuild, lane 5) | +0.0105 | +0.0135 | +0.0155 | +0.0181 | +0.0159 | +0.0084 |
+| head → candidate `4c30d4db` (`stairs-look`, treepop, lane 3's bark, lane 1 round 2, the stair camera, music) | **+0.0071** | +0.0002 | **−0.0062** | **−0.0033** | +0.0005 | **−0.0079** |
+| candidate → fable-2 `f90821e8` (the stone flight's value), A only | −0.0042 | | | | | |
+
+Lane 1's air is the whole of the first row (every view +0.008 … +0.018 toward the frames). The candidate's own row is
+mixed: the stone flight pays at A (+0.007); C −0.006 and F −0.008 cross the −0.003 rule — the white-bark rung at 28 m
+(treepop, C +431 K of near LOD) and the flight / rungs at F are the likely owners; a per-branch split would need two more
+renders. Owner-directed (his 23:00 asks), so fable-cursor's call; the numbers are what the take will show. Expected
+take row on the candidate with the cast, chained from take-0134 through every measured leg: **A 0.200, B 0.189, C 0.199,
+D 0.258, E 0.210, F 0.209** (take-0134: 0.218 / 0.198 / 0.213 / 0.266 / 0.219 / 0.225).
+
+**fable-2's `agent/fable-2-stone-value` @ `f90821e8`** (on `stairs-look`, 03:26 — §24's ask: the stone's value up into the
+reference's band; tread fronts at the tops' value, risers × 2 and cooler, tops × 1.15 and cooler, nosings the brightest):
+
+| `s2-owner` flight box | dark < 0.25 | pale > 0.45 | luma | p10 | p90 | saturation |
+| --- | --- | --- | --- | --- | --- | --- |
+| candidate (`stairs-look`) | 51.5 % | 13.1 % | 0.278 | 0.125 | 0.474 | 0.39 |
+| **fable-2 stone-value** | **29.2 %** | **21.0 %** | **0.342** | **0.198** | 0.512 | 0.36 |
+| the owner's 23:00 reference | 7.0 % | 15.9 % | 0.363 | 0.264 | 0.485 | 0.27 |
+| `d_014` | 5.3 % | 23.1 % | 0.384 | 0.267 | 0.545 | 0.24 |
+
+The flight is pale worn stone now — the risers no longer near-black, the nosings still the brightest line, the flight a
+pale band climbing into the mist (sheet `fable-5-lane10/it100-ba-s2.jpg`): luma within 0.02 of the reference, the pale
+share at its level, the dark share halved (the remainder is the risers' shade and the grass at the box's edges — p10 0.198
+against 0.264 is the last of it), saturation 0.36 against 0.27 still a touch warm. At A the flight box 45.5 → 31.4 % dark,
+0.286 → 0.317 (the frame 0.344) — and the SSIM at A −0.0042 despite that: the frame's flight is the darker worn stone of the
+09-16 capture, the metric is structural. **Kind and weight both toward the owner's reference now; merge-ready by these
+reads, with the A cost named.**
