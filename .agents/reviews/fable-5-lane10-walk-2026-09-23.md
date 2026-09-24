@@ -695,3 +695,39 @@ the walk is the smoothest measured today. `perf96/playtest-61db16c8-prebuild.jso
 flights read exactly as `e3475dd8` (main 506 °/s², south-bank 439, house-west 556; vertical max 18.3 / 4.7 / 4.6), and the
 ledge route's vertical-acceleration max falls **270 → 46 m/s²** — the 0.15 m one-frame ceiling drops at the ledge were that
 spike (§8 named it as the *lowered* state releasing). Routes 9 / 9, no stuck. `perf96/walk-squad4-stairs-5bd1aeee.json`.
+
+## 24. The squad's integration candidate (`agent/squad4-integration-candidate` @ `4c30d4db`, 01:21 — the head `81430baf` + lane 1 round 2, lane 3's bark, lane 5's music rests, lane 2's treepop, `stairs-look`) read at the caps and the owner's poses (01:33–01:5x UTC)
+
+Not in the candidate: squad4's stair-camera fix (`5bd1aeee`, §22) and the verge blade tier (`6457b723`, §22).
+
+**Caps** (`submission.mjs`, vs `39e63437` ≈ the head for counts): A **638 / 8.91 M**, B / E 627 / 8.32 M, C 501 / **7.20 M**
+(+431 K, treepop's white-bark rung), D 561 / 8.60 M, F 598 / 7.99 M — under both caps everywhere; A has 62 draws and 90 K
+of room. `perf98/submission-candidate-4c30d4db.json`.
+
+**The hero flight — the owner's 23:00 reference.** He sent the real game's main stairway (`stairs-look/owner-2300-reference-zoom.png`,
+the same climb as `demo61/d_010–d_016`): a long flight of many shallow *worn stone* treads whose thin wavy nosings catch the
+light over the treads, climbing into mist between grass banks — **pale stone**: the flight inside his circle reads dark
+(< 0.25) **7.0 %**, pale (> 0.45) 15.9 %, luma **0.363**, p10 0.264, saturation 0.27; `d_014`'s flight box 5.3 % / 23.1 % /
+0.384 / 0.267 / 0.24. So §10.3 / §14 / §16 measured the main flight against the wrong kind — the log-risered `d_094` /
+`d_104` steps are the *ledge* flight's (he never circled them for the main flight); the earth-and-timber main flight
+was an answer to my read of the 06:50 brief, and his 23:00 reference retires it. `stairs-look` (`f5015962`) does exactly
+that: the main flight leaves `LOG_FLIGHTS`, 20 × 0.27 × 0.54 → 26 × 0.208 × 0.415 (the run, rise and foot unchanged).
+
+| `s2-owner` flight box (x 0.50–0.95 × y 0.20–0.95) | dark < 0.25 | pale > 0.45 | luma | p10 | saturation | bright rows |
+| --- | --- | --- | --- | --- | --- | --- |
+| head `81430baf` (earth treads, timbers) | 35.8 % | 10.9 % | 0.308 | 0.192 | 0.47 | 20 % |
+| candidate (`stairs-look`: stone, 26 treads) | **51.5 %** | 13.1 % | **0.278** | **0.125** | 0.39 | 24 % |
+| the owner's 23:00 reference | **7.0 %** | 15.9 % | **0.363** | **0.264** | 0.27 | 13 % |
+| `d_014` | 5.3 % | 23.1 % | 0.384 | 0.267 | 0.24 | 22 % |
+
+**Kind: right** — many thin treads, wavy lit nosings, stone (the sheet `fable-5-lane10/it98-ba-s2.jpg`). **Weight: the
+wrong way** — the new flight is darker than the earth one it replaces (dark 35.8 → 51.5 %, luma 0.308 → 0.278, p10 0.192 →
+0.125) where the reference is pale worn stone with only thin shadow lines (dark 7 %, p10 0.264). The risers and tread faces
+carry near-black; the reference's whole flight sits between 0.26 and 0.49. Saturation 0.39 is still warm against 0.27.
+Ask, `stairs-look`'s author: the stone's value up to the reference's band (tread tops *and* risers ≈ 0.3–0.45), the nosings
+as the brightest line, the light on the slope kept — the same box measures it. 44 % of the `s2-owner` frame moved (13 %
+by more than 40 levels): the take's A / F rows will move again with this (the flight is 3 % of A and F).
+
+**The other owner poses:** `u-open-up` 0.509 → 0.512 (treepop / lane 3 — nothing visible), **`b-upper-2` 0.270 → 0.274,
+dark 54.2 → 52.7 %** — lane 1's round 2 and lane 3's bark do not bring the upper house's light back (§10.2 stays; the
+04:30 frame read 0.454), `h-west-front` 0.309 → 0.324 (lane 1's air on the column). Sheet `it98-ba-b-upper-2.jpg`.
