@@ -208,3 +208,11 @@ the door).
 
 Scores now on the dwellings' own checks: #1 4, #6 3, #13 3, #18 3, #25 4, #27 3, #36 3, #41 4, #42 4, #43 3, **#44 3**, **#46 ★ 2**
 (the far bank 810 / 9.48 M — the head's trees and vegetation), #50 3.
+
+## Re-read of `exp-south2` @ `86e9b380` (19:29 — far-bank LOD parts 2 and 3a) — the far bank, 19:34–19:59 UTC
+
+The frame at the south sill **863 → 810 → 731 draws / 10.48 → 9.48 → 9.32 M** across the three pushes; structures 171 → 84 in the
+`isolate` row; the composer's small-caster rule takes 34 casters inside the zone (the five kids' shadows among them). Over the
+caps by 31 draws / 0.32 M, all of it the head's trees and vegetation (`fable-5-lane10-lookback-costs.md` §86e9b380). The log's
+dead end looking back 695 / 9.75 M, the bridge's south end 719 / 9.03 M. **#46 ★ stays 2 by the letter, and the branch has done
+its share** — the rest of the bill is rows 2 and 4.

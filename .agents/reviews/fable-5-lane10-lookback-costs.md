@@ -72,3 +72,33 @@ nothing, item 1, would have absorbed it), fable-3's contact-AO decals and crates
 vegetation, terrain: unchanged to the draw. `exp-south2` `de967e3d` (17:55, not yet on the head) starts on the structures
 row from the far bank — the village's casters off and its tufts undrawn south of the bridge, −51 / −0.63 M and −2 /
 −0.37 M by its own probe, "more follows" — the first lane to take its share of this table.
+
+## `exp-south2` `86e9b380` (19:29 — far-bank LOD parts 2 and 3a: the village's pods folded to one draw per material inside the zone; its centimetre dressing undrawn; a shadow distance rule for casters ≤ 1.5 m beyond 25 m) — the far bank, 19:34–19:59 UTC
+
+| system | head `31146062` | `86e9b380` (carries the head) | Δ |
+| --- | --- | --- | --- |
+| trees | 256 / 3.60 M | 256 / 3.60 M | — |
+| vegetation | 142 / 2.16 M | 142 / 2.15 M | — |
+| character | 127 / 0.23 M | 127 / 0.23 M | — (see below) |
+| **structures** | **171 / 2.36 M** | **84 / 1.60 M** | **−87 / −0.76 M** |
+| terrain / rocks / props / hardscape | 50 / 30 / 29 / 16 | 50 / 30 / 29 / 16 | — |
+| **isolate sum** | 832 / 10.18 M | **745 / 9.41 M** | −87 / −0.77 M |
+| **the frame** (spot, the composer's path) | 863 / 10.48 M *(3c6cc553)* | **731 / 9.32 M** | −132 / −1.16 M |
+
+The structures row is halved in three pushes (171 → 126 → 84). The frame at the sill: 863 → 810 (part 1) → **731 / 9.32 M**
+(parts 2 + 3a with the head's pebble gate) — **31 draws and 0.32 M over the caps**; the log's dead end looking back **695 / 9.75 M**
+(under the draw cap, over the triangles), the bridge's south end 719 / 9.03 M, the bridge's middle 811 / 9.59 M (outside the
+zone, the head's number).
+
+**The shadow rule fires** (`cull-audit.mjs`, the composer's counts on drawn frames): inside the zone it switches off **34 small
+casters** at the sill and at the dead end — the five kids' 30 shadow meshes (the character system still flags them casting;
+the composer takes them) and four props — against 0 outside. So the character row's cheap half is already taken on this
+branch; its other half, **the kids' 66 colour draws** (12 rig meshes a kid, one per material, plus the belts), is what the
+`isolate` row still shows, and it is lane 7's. A method note: `isolate` renders through `renderer.render`, not the composer,
+so it cannot see the composer's shadow cull — its character row overstates casters where the rule applies; the frame's own
+count is the one to quote. And the audit only refreshes on a *drawn* step (`step(1, dt, true)`); read after a simulated step
+it repeats the load frame.
+
+What is left over the caps at the sill is now entirely the head's: **trees 256 / 3.60 M and vegetation 142 / 2.15 M are 398
+of 745 draws and 5.75 of 9.41 M.** The trees' far tier (row 2) and the vegetation's one pack per LOD (row 4) take the frame
+under 700 / 9.0 M; nothing left in `exp-south2`'s own files does.
