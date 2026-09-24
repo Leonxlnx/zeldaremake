@@ -247,3 +247,36 @@ Both routes and the probes (`walk-ruins-abc597f9.json`); six poses (`it115-ruins
 
 **#44: 2 → 3** (no step, no inside, 61 / 61; the corner's pull-in keeps it from 4). #46 ★ 3 as before (the site's own poses
 78–200 draws; the look-back east is the head's). 174 / 200 stands with #44 up one: **175 / 200**.
+
+## Re-read on `fdb4d338` (19:39–21:24 — the site's haze rule for the south exit `3776cc81`, the shore route wading `da369023`, the rubble seated `4789b70c`, **a water stair down the wall's pool face to the fall's foot `526b7feb`**, the fall's sheet in two layers `6289aa78`, two tests) — 21:33–21:43 UTC
+
+Three routes, the probes and the sweep (`walk-ruins-fdb4d338.json`); ten poses (`it118-ruins-fdb4d338.jpg`).
+
+- **Closed — the terrace's look-back east is under the caps:** 731 / 9.04 M → **660 draws / 8.52 M** (`3776cc81`: the south exit's
+  60 m haze rule measured to the content's spheres inside the site, and the small vegetation's LODs sharing draws). From the quay
+  looking east along the pool 639 / 8.34 M. The site's own poses 83–138 draws.
+- **Routes:** `plaza-to-ruins-terrace` 26 / 26; `ruins-trail-to-shore` now wades (**10 / 10**, 28.2 m, the boots under the water,
+  lowest −3.4 cm); **`ruins-water-stair` 15 / 15**, 0 stuck, 27.2 m. Probes **80 / 80** (19 new for the stair, the quay and the
+  platform); the sweep 360 headings at 15 spots, none inside a solid; no page errors.
+- **The water stair's camera — #44 = 1 on the new structure.** On the branch's own route the camera jumps **3.90 m** (row 213, Link
+  (−67.5, 1.86, −0.76) five treads up: the camera on the terrace 4.5 m behind him is cut by the wall's top, keep 1 → 0.13, pulled to
+  0.6 m in one frame, 3,479 m/s²), **2.67 m** at the landing (−64.4, 3.69) and **3.26 m** coming back up (−67.3, 2.07); camera speed
+  max 117 m/s, turn acceleration max 37,000 °/s². The sweep: `water-stair-mid` 13 of 24 headings at 0.60 m (keep 0.132), `water-stair-
+  quay` 14 (0.074), `water-stair-platform` 17 (0.087). The frames say why: mid-flight the follow camera stands on the terrace above
+  and Link is a cap behind the wall's lip; on the 1.2 m quay facing the fall the camera is 0.5 m behind him at the wall's face, Link
+  out of frame; **from the platform at the fall's foot, looking up 60°, the frame is the wall's overhanging slabs, not the fall.** The
+  stair is the grove's veranda and the keeper's gallery again — a walk 1.2 m wide against a wall — and wants the same two things
+  (the wall as an exact camera solid the orbit swings off; a pull-in floor ≈ 1.2 m with the camera raised), plus a lowered camera
+  on the flight so it stays under the wall's top.
+- **Shaders:** the programs count climbs 123 → 125 at the fall's corner (the two-layer sheet) → 126 at the stair's head → 127 mid-
+  flight: four programs compile on first sight, and the first frame at the stair's head took **3.85 s** to render here (2–8 ms
+  elsewhere; SwiftShader's compile — a GPU's would be shorter but real). At 14:55 the site held 204 programs constant with the
+  default warm-up; the new sheet and the stair are outside it.
+- **The fall's sheet in two layers** reads (the front core parting from the back as it falls — `fall-close` before / after, in kind).
+  **The rubble seating** I could not judge at my east-shore pose (the blocks are 10 m off); a pose in the shallows at the wall's foot
+  is the read, next tick. The boots on the stair: p95 1.4 cm, one frame at 20 cm (the landing's edge).
+
+**Scores:** #46 ★ 3 → **4** (the look-back east under both caps; every pose of the site's own 83–660); **#44 3 → 2** (the stair's
+three pops and its 0.6 m headings — the site's older poses hold at 3). 175 stands at **175 / 200 with one check at 2** — not
+shippable by the letter until the water stair's camera is done; the stair itself is the site's best new picture (the flight
+down the wall's face to the quay, the fall ahead) once the camera can be on it.
