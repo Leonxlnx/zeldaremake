@@ -71,7 +71,7 @@ and 45 are **n/a** and left out of the total (14 of 50). Applicable: 36 checks, 
 | 13 | palette | 3 | warm browns, clay ochre, no whites |
 | 14 | roughness and sheen | 3 | matte wood and clay |
 | 15 | no stretching or tiling | 3 | lathed UVs around; no repeats at 3–10 m in the sheets |
-| 16 ★ | weathering follows exposure | **2** | grime and moss band at the foot only — not by shaded side / sun top (shared weathering pass, every cluster) |
+| 16 ★ | weathering follows exposure | 3 (was 2) | `c35559ab`: the moss band climbs the faces looking away from the sun (3× in full shade), tops within 35° of up take a sun-bleach — `before-after-weathering-*.jpg` |
 | 17 | wear follows use | 2 | no worn rims or handles modelled |
 | 18 | signs of life, placed not scattered | 3 | the toll pile at the bridge head, the pots at the mouth — five props with reasons |
 | 19 | damage plausible and sparse | 2 | none modelled |
@@ -98,8 +98,32 @@ and 45 are **n/a** and left out of the total (14 of 50). Applicable: 36 checks, 
 | 49 | belongs to this forest | 3 | the village's own props, same builders and maps |
 | 50 | the owner would stop and look | 3 | a signpost and a toll crate at a rope bridge over a ravine |
 
-**Total: 106 / 144 applicable (scaled 147 / 200).** Below the doc's 170 gate, and one ★ below 3: **#16 weathering by
-exposure** — the props' weathering is a foot band regardless of sun or shade; the fix is in the shared weathering pass
-(`props/index.ts` vertex colour: moss toward the shaded quadrant, bleach on tops), which touches every cluster's pixels and
-so the six views — a measured landing of its own, next. #4 / #17 / #19 / #23 are the other 2s (sibling variation, wear,
-damage, AO). The n/a treatment is mine — the doc has no rule for checks a prop cluster cannot meet; asked fable-cursor.
+**Total: 107 / 144 applicable (scaled 149 / 200)** after `c35559ab` (106 / 147 at `62bf7fcd`, when ★16 stood at 2 —
+the props' weathering was a foot band regardless of sun or shade). Still below the doc's 170 gate; every ★ now ≥ 3.
+#4 / #17 / #19 / #23 are the remaining 2s (sibling variation, wear, damage, AO). The n/a treatment is mine — the doc has no
+rule for checks a prop cluster cannot meet; asked fable-cursor.
+
+### ★16 — weathering follows exposure (`25459fda` + `c35559ab`, the shared pass in `props/index.ts weather()`)
+
+The sun's direction is taken into each prop's frame (its yaw undone; the few degrees of tilt ignored). Faces looking away
+from it grow the moss band to 3× its height (the round-52 band stays on the sun side) with a faint moss tint above the
+band; faces within ≈ 35° of up take a sun-bleach — dry wood a little grey-silver (0.18), clay a dusty lighter tone (0.12),
+both fading into the foot's damp. Vertex colours only: no new material, draw or triangle. It touches every cluster.
+
+- `before-after-weathering-stair-pots.jpg` — the stair-foot pots at 3 m: the back (shade) side greener, the shoulders and
+  rims dustier.
+- `before-after-weathering-bridge-head.jpg` — the waymarker and the toll crate at 5 m: the crate's top boards and the
+  post's cross-boards bleached, the crate's shaded flank grey-green at the foot.
+
+The first pass (`25459fda`, 2.5× / 0.06 / 0.14) rendered real but faint at 3 m (3.2–7.1 k px per pose); `c35559ab` is one
+step stronger (3.3–8.1 k px). The three fixed views that hold props, before `62bf7fcd` → after `c35559ab`, both sides
+rendered this tick at high quality:
+
+| view | SSIM vs the reference, before → after | SSIM before↔after | changed px (of 921 600) | draws / tris after |
+| --- | --- | --- | --- | --- |
+| A | 0.2011 → 0.2011 | 1.0000 | 165 | 638 / 8.86 M |
+| B (= E's frame) | 0.1861 → 0.1861 | 1.0000 | 52 | 627 / 8.25 M |
+| F | 0.2100 → 0.2100 | 1.0000 | 220 | 598 / 7.99 M |
+
+C and D hold no village prop in frame (C's only props are the south ones, at 12–30 m); C stayed 568 / 7.70 M at
+`62bf7fcd` and the pass adds no geometry.
