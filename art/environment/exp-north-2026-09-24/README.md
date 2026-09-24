@@ -66,7 +66,20 @@ Link on the real controller and the follow camera.
 side, the trunk house's door, low over the lawn, from above, the look back over the hamlet from the bank behind the
 trunk house (`g-back`), from the veranda to the rope walk, and under the tree hut.
 
-*The details, play-mode and pods before/after sheets on 59e970d6 are being rendered and land with the next commit.*
+*The details sheet on 59e970d6 is being rendered and lands with the next commit.*
+
+![Six play-mode frames](play-views.jpg)
+
+`play-views.jpg` (59e970d6): Link at the trunk house's door, the stilt house's door and the tree hut's door, on the
+rope walk, on the gangway and on the veranda.
+
+![The pods before and after](pods-before-after.jpg)
+
+`pods-before-after.jpg`: ea78715e (before e994114a) against 59e970d6, the same five shots at the same clock, and in the
+last row the play camera on the rope walk (e994114a against 59e970d6). The gangway's pod hung over the treads at Link's
+hip and now hangs from a bracket off the trestle's leg outboard of the hand rail; the huts' walkway post pods hung on
+the rail line and now hang 0.28 m outboard; the walkway's square posts and rail are round poles and a rope; the pods
+cast no husk shadow.
 
 ![The ledge terrace before and after](before-after-terrace.jpg)
 
