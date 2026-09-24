@@ -103,6 +103,7 @@ export interface SouthDwellingsBuild {
       footings: number;
       mastTop: [number, number, number];
       pods: [number, number, number][];
+      steps: { west: { top: number; deckRiser: number; groundRiser: number[] }; east: { top: number[]; deckRiser: number[]; groundRiser: number[] } };
       triangles: number;
     };
     waystation: {
@@ -112,6 +113,7 @@ export interface SouthDwellingsBuild {
       posts: number;
       rafters: number;
       pods: [number, number, number][];
+      step: { top: number[]; floorRiser: number[]; groundRiser: number[]; stumps: number };
       triangles: number;
     };
     pointLights: number;
@@ -842,6 +844,8 @@ export function buildSouthDwellings(ctx: WorldContext, mats: StructureMaterials,
 
   // ---- steps: a split log at the entrance, a log at the east end ----
   const kSteps: WalkSurface[] = [];
+  /** audit: the steps' tops and risers (m) — deck to top, top to the ground under its ends */
+  const keeperSteps = { west: { top: 0, deckRiser: 0, groundRiser: [0, 0] }, east: { top: [0, 0], deckRiser: [0, 0], groundRiser: [0, 0] } };
   {
     const sr = kRng.fork('steps');
     // west: a half log flat side up across the entrance, just off the boards
@@ -892,6 +896,9 @@ export function buildSouthDwellings(ctx: WorldContext, mats: StructureMaterials,
     const tq = Math.max(terrain.height(q.x, q.z) + 0.2, tp);
     kSteps.push(deckSurface('south-keeper-step-east', p.clone().setY(tp), q.clone().setY(tq), 0.15));
     halfLog(p, q, tp, tq, 0.13, 'keeper-steps', 'east');
+    const r2 = (v: number) => +v.toFixed(2);
+    keeperSteps.west = { top: r2(top), deckRiser: r2(DECK_TOP - top), groundRiser: [r2(top - terrain.height(a.x, a.z)), r2(top - terrain.height(b.x, b.z))] };
+    keeperSteps.east = { top: [r2(tp), r2(tq)], deckRiser: [r2(DECK_TOP - tp), r2(DECK_TOP - tq)], groundRiser: [r2(tp - terrain.height(p.x, p.z)), r2(tq - terrain.height(q.x, q.z))] };
   }
 
   // ---- by the north wall: firewood stacked under the eave, a chopping block ----
@@ -1298,13 +1305,25 @@ export function buildSouthDwellings(ctx: WorldContext, mats: StructureMaterials,
     wPods.push(staticPod(hook, 0.08, S, ir.fork('pod'), 1.0));
   }
 
-  // ---- the step up from the path: a split log along the front ----
+  /** audit: the step's top and its risers at either end (m), the stumps under it */
+  const waystationStep = { top: [0, 0], floorRiser: [0, 0], groundRiser: [0, 0], stumps: 0 };
+  // ---- the step up from the path: a split log along the front, its top halfway between the
+  // ground in front of it and the floor at either end (the ground falls 0.33 m along it: two even
+  // risers of 0.2 m at the north end, 0.37 m at the south), on stumps where it clears the ground ----
   {
     const sr = wRng.fork('step');
-    const p = at(HD + 0.24, -0.78, 0);
-    const q = at(HD + 0.24, 0.58, 0);
-    const tp = terrain.height(p.x, p.z) + 0.16;
-    const tq = terrain.height(q.x, q.z) + 0.16;
+    const SA = HD + 0.24;
+    const p = at(SA, -0.78, 0);
+    const q = at(SA, 0.58, 0);
+    const frontY = (s: number) => {
+      const g = at(SA + 0.17, s, 0);
+      return terrain.height(g.x, g.z);
+    };
+    const tp = (frontY(-0.78) + FT) / 2;
+    const tq = (frontY(0.58) + FT) / 2;
+    waystationStep.top = [+tp.toFixed(2), +tq.toFixed(2)];
+    waystationStep.floorRiser = [+(FT - tp).toFixed(2), +(FT - tq).toFixed(2)];
+    waystationStep.groundRiser = [+(tp - frontY(-0.78)).toFixed(2), +(tq - frontY(0.58)).toFixed(2)];
     const ax = q.clone().sub(p).setY(0);
     const len = ax.length();
     ax.normalize();
@@ -1327,7 +1346,21 @@ export function buildSouthDwellings(ctx: WorldContext, mats: StructureMaterials,
     put('waystation-floor', mats.fenceWood, board({ centre: p.clone().lerp(q, 0.5).setY((tp + tq) / 2), along: q.clone().setY(tq).sub(p.clone().setY(tp)), across: F, L: len + 0.08, w0: 0.27, w1: 0.27, t: 0.02, tone: 0.85, age: 0.35, moss: 0.3, board: 5, seed: 33 }, noise));
     tuftSpecs.push(...footMoss(ctx, p.clone().setY(terrain.height(p.x, p.z)), sr.fork('m0'), { postRadius: 0.15, count: 8, color: FOOT_MOSS }));
     tuftSpecs.push(...footMoss(ctx, q.clone().setY(terrain.height(q.x, q.z)), sr.fork('m1'), { postRadius: 0.15, count: 8, color: FOOT_MOSS }));
-    walkSurfaces.push(deckSurface('south-waystation-step', at(HD + 0.24, -0.72, tp), at(HD + 0.24, 0.52, tq), 0.13));
+    // the round underside reaches 0.13 m under the top
+    for (const k of [0.4, 0.85]) {
+      const c = p.clone().lerp(q, k);
+      const gy = terrain.height(c.x, c.z);
+      const topY = lerp(tp, tq, k) - 0.15 * 0.85 + 0.01;
+      if (gy > topY - 0.05) continue;
+      waystationStep.stumps++;
+      const foot = new Vector3(c.x, gy - 0.2, c.z);
+      const head = new Vector3(c.x, topY, c.z);
+      put('waystation-floor', mats.bark, barkPole([foot, head], 0.085, 0.08, noise, 620 + k * 10, { moss: 0.5, groundY: gy, ts: 2, rs: 10 }));
+      capPole('waystation-floor', [foot, head], 2, 0.08, false, sr.fork(`stump/${k}`));
+      tuftSpecs.push(...footMoss(ctx, new Vector3(c.x, gy, c.z), sr.fork(`stump-moss/${k}`), { postRadius: 0.085, count: 7, color: FOOT_MOSS, favour: SHADE_SIDE }));
+      bases.push([c.x, gy, c.z]);
+    }
+    walkSurfaces.push(deckSurface('south-waystation-step', at(SA, -0.72, tp), at(SA, 0.52, tq), 0.13));
   }
 
   // ---- the waystation's walk: the floor; the back wall with the bench and basket along it, the
@@ -1403,6 +1436,7 @@ export function buildSouthDwellings(ctx: WorldContext, mats: StructureMaterials,
         footings,
         mastTop: p3(mastTop),
         pods: keeperPods.map((p) => p3(p)),
+        steps: keeperSteps,
         triangles: keeperTris,
       },
       waystation: {
@@ -1412,6 +1446,7 @@ export function buildSouthDwellings(ctx: WorldContext, mats: StructureMaterials,
         posts: wPosts,
         rafters,
         pods: wPods.map((p) => p3(p)),
+        step: waystationStep,
         triangles: wayTris,
       },
       pointLights: hut.lights.length,
