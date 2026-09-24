@@ -108,7 +108,10 @@ Four items, each scored 0–4 per check, judged at player height in play mode an
 - **H**: the tree hut with its column, walkway stub, rope walk and lookout nest.
 - **G**: the grove as a place (the sign, the flight, the trail, the lantern posts, the shelf and its lawn, the understory).
 
-Evidence names a tile on one of the sheets: *views* (`grove-views.jpg`), *details* (`grove-details.jpg`), *play* (`play-views.jpg`), *pods* (`pods-before-after.jpg`) or *terrace* (`before-after-terrace.jpg`); or it names a number. The numbers come from the structures audit and the probes on the final build (59e970d6) unless the row says otherwise.
+Evidence names a tile on one of the sheets: *views* (`grove-views.jpg`), *details* (`grove-details.jpg`), *play*
+(`play-views.jpg`), *pods* (`pods-before-after.jpg`) or *terrace* (`before-after-terrace.jpg`); or it names a number.
+The numbers come from the structures audit and the probes on the grove's last code commit (59e970d6) unless the row
+says otherwise.
 
 | # | check | T | S | H | G | evidence |
 | --- | --- | --- | --- | --- | --- | --- |
@@ -424,5 +427,5 @@ Not the grove's, seen while checking:
   (818 draws, 9.30 M triangles; exp-south2's, flagged in f04d9529) and the perf lane's `perf-stairs2-base` (622 draws,
   9.45 M triangles). Both count the same on e994114a and on phase1 (3c6cc553).
 - The views that look back over the village carry its background characters, a few pixels tall 100 m off: 57 draws
-  and 6 more in the shadow pass at `g-back` (node count; 60 and 6 on the merge with phase1). A distance cull in the character lane is the largest saving
-  left there.
+  and 6 more in the shadow pass at `g-back` (node count; 60 and 6 on the merge with phase1). A distance cull in the
+  character lane is the largest saving left there.
