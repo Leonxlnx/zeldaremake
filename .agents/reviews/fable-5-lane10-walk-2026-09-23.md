@@ -838,3 +838,11 @@ ambient base air on a 4–16 m distance ramp, "the veil mixes toward the air's o
 23:00 bough pose (job 5, a 12 m bough) and not at these three. The trade is job 5's bough against the owner's look-up and
 his upper-house pose; the way through is the veil's ramp *and* the roof's air (§10.2's `hazeShadeVeil` / closed-roof grade)
 read together at the four poses. Sheets `fable-5-lane10/it102-ba-u-open-up.jpg`, `it102-ba-b-upper-2.jpg`.
+
+## 29. fable-2's riser shade on the stone flight (`agent/fable-2-riser-shade` @ `7649f308`, on §26's residual; 10:37–10:49 UTC)
+
+`s2-owner` flight box: dark 27.1 → **25.8 %**, pale 21.8 → 23.0 %, luma 0.347 → 0.351, p10 0.204 → 0.207, saturation
+0.36 → **0.34** (the owner's reference 7.0 / 15.9 / 0.363 / 0.264 / 0.27); at A the box 31.4 → 29.0 % dark, 0.317 → 0.324
+(the frame 0.344), SSIM −0.001. Small and in the right direction on every number; the box's remaining dark quarter is the
+banks' shade at its edges and the flight's own shadow side more than the risers now. Merge-neutral by the frames.
+Sheet `fable-5-lane10/it107-ba-s2.jpg`.

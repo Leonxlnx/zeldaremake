@@ -63,3 +63,23 @@ the rails as shells the pull-in eases against, and a floor on the pull-in distan
 17 checks scored, 57 / 68; the rest (materials at 2–5 m, weathering, grounding, the 60° / 35° views, texel density,
 determinism) need the author's evidence or a read once the branch settles. **The one blocker by the rubric is #44**;
 everything ★ that I could score is 3–4.
+
+## Re-read on `e156566f` (10:29 — `d7432cc9` the huts' walls as exact round camera solids and a follow camera that does not pop round them; `137cee05` taller hut walls; 10:37–10:50 UTC)
+
+**The pops are gone.** The same route's camera trace: the worst one-frame jump **3.89 → 0.36 m** (at the yard door),
+acceleration max 3,564 → 125 m/s², vertical max 211 → 27, the camera's minimum height 1.37 → 1.53 m; 28 / 28, 0 stuck,
+probes 64 / 64 as before. From the gangway's head the stilt house is the grove's picture — the round bark hut under its
+mossy cap, the lit arch with pots inside, the pods, the rail, the rope walk behind (`it107-gangway-head.jpg`). One cost of
+the easing: the turn acceleration's p95 556 → 909 °/s² on the route — the camera swings round the round walls faster than
+before; below the flights' old 2,370 but above the flat routes' 440–560.
+
+**Two camera cases remain** (`it107-ba-hut-platform.jpg`, `it107-ba-veranda.jpg`):
+- **the tree hut's platform** — Link 1 m from the column facing it: the frame is still bark (luma 0.14 → 0.21, 76 % of it
+  under 0.25). The platform is 1.67 m of radius round a 0.8 m column; a camera 3.5 m behind Link has nowhere to be. A
+  deck mode (the camera pulled to ≈ 1.2 m and raised, the pitch down) is the shape of the fix.
+- **the veranda at the rail** — the roof's underside and the leaf cards are out of the frame now, but the camera pulls so
+  close that **Navi fills half the frame** (a white blob with wings between the lens and Link). The fairy should fade when
+  she is within ≈ 0.6 m of the camera — the same rule the village's lanterns follow for the near plane.
+
+**#44: 1 → 2** — no pop over 0.36 m on the walked route; the platform and the veranda's near plane are the two placed
+poses left. Everything else as the 09:45 read.
