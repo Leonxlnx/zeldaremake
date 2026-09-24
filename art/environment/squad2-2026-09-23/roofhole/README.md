@@ -196,6 +196,32 @@ One observation from making them: at the log's mouth itself the follow camera si
 (`play-south-after.jpg` in the first attempt), so the two builds are pixel-identical there. The south bands
 matter on the bridge and the far bank, which is where the pair above stands, not in the log.
 
+## A coverage sweep of the rest of the walkable world (23:30)
+
+Three gaps in three hours came from checking new content, so the remaining question is whether there is a
+fourth. The upper half of a look-up is the tell: the three gaps read **115–172 levels** there before they
+were closed (bare sky), while a properly roofed spot reads dark and structured.
+
+Positions taken from the **playtest's own route traces**, so each is ground the walker demonstrably reaches:
+
+| spot (route it comes from) | upper-half mean | within-column sd | reading |
+| --- | --- | --- | --- |
+| the east plateau's upper house (`plaza-to-upper-house`, end) | 70.0 | 36.0 | canopy |
+| the west deck (`west-deck`, end) | 64.4 | 45.1 | canopy |
+| the ledge's north end (`north-clearing-ledge`, end) | 53.2 | 19.9 | canopy |
+| the knoll (authored white-bark coordinates) | 94.2 | 28.0 | a glade, framed |
+
+![the ledge's north end, looking up](sweep-ledge-end-up.png)
+
+No fourth gap. The knoll is the one open sky in the set, and it is open by nature rather than by a grid
+ending: two large crowns frame it and the treehouse stands in it (`sweep-knoll-up.png`), which is how the
+reference's clearings read, so **no band was added there** — the roof is not owed every patch of sky.
+
+A method note, because it cost me two frames: my first three probes used coordinates guessed from the
+layout's prose, and two of them put the camera inside a trunk and inside a tree's canopy (means 15.8 and
+46.3, unreadable). The walk traces in `playtest.json` are the reliable source of standable positions, and
+that is what the table above uses.
+
 ## The test
 
 `roof.test.mjs` pinned the old rule exactly (it failed with 111 offenders the moment this changed), so it
