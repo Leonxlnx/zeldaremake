@@ -12,3 +12,9 @@ The crates already carry their wear in `board()` (the arrises a fifth lighter, `
 lighter than the sides (`shade × 1.04`); the markers' boards the same.
 
 Six views: A / B / F before `c6a2e74d` → after, both at high — table below.
+
+| view | SSIM vs the reference, before → after | Δ | SSIM before↔after | changed px | draws / tris after |
+| --- | --- | --- | --- | --- | --- |
+| A | 0.2014 → 0.2013 | −0.0001 | 1.0000 | 130 | 639 / 8.87 M |
+| B (= E's frame) | 0.1862 → 0.1862 | +0.0000 | 1.0000 | 16 | 628 / 8.29 M |
+| F | 0.2105 → 0.2105 | +0.0000 | 1.0000 | 179 | 599 / 8.01 M |

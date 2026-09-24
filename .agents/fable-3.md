@@ -337,3 +337,7 @@ Evidence sheets under `art/environment/props-fable-3/` and `art/environment/peop
   `props-fable-3/crates/`. Lesson: a fresh `createRng(seed)` in a probe is not the runtime's state — the placement
   draws first (size jitter); mirror them, or better record the decision in `userData` as the builder now does.
 - South scorecard 110 / 144 (153 / 200); #17 wear is the last 2.
+- **#17 landing** (`ca05e910`, `potGeometry`): the pots' lips rubbed pale where hands take them (seeded angle, top 4 %,
+  never inside). Stair pots at 2 m and the bridge's squat pot at 3.5 m before/after in `props-fable-3/wear/`; A / B / F
+  to before 1.0000 (16–179 px), vs the reference −0.0001 / 0 / 0. South scorecard 111 / 144 (154 / 200), no check
+  below 3 — the rest is 3 → 4, a look call (the reference's pots are plainer).
