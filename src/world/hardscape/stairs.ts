@@ -307,7 +307,17 @@ export function buildStairway(def: StairDef, terrain: Terrain, rng: Rng, seed: s
       const worn = wornFront(
         cut,
         depth,
-        (ax) => 0.02 * nosing.noise(ax * 1.0 + i * 5.1, i * 2.7 + 0.5),
+        // 2026-09-23: the owner's reference (`pass5/owner-2300-reference-stairs.png`, `demo61/d_014`)
+        // shows the lit lip of every tread WANDERING several centimetres along its length — a slow
+        // S over the flight's width with a shorter ripple on it — and no two alike. At ±2 cm on one
+        // octave ours read as ruled lines. Two octaves to ±4.5 cm; still a smooth, low-slope curve,
+        // so the tread stays star-shaped from its centroid (see the note above).
+        // Biased toward the front (+z pulls the edge back into the stone), so the wander is
+        // −4.3 … +2.1 cm against a 6.5–9.5 cm overhang: the lit lip moves 6.4 cm peak to peak
+        // along a tread — three times the old ±2 cm — and can never be eaten by its own riser.
+        (ax) =>
+          0.016 * (nosing.noise(ax * 0.9 + i * 5.1, i * 2.7 + 0.5) - 0.2) +
+          0.009 * (nosing.noise(ax * 2.6 + i * 3.3 + 17.4, i * 1.9 + 9.2) - 0.2),
         (ax) => 0.03 * chipAt(ax),
         cxl,
         pieceTaper,
