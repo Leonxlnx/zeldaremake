@@ -846,3 +846,27 @@ read together at the four poses. Sheets `fable-5-lane10/it102-ba-u-open-up.jpg`,
 (the frame 0.344), SSIM −0.001. Small and in the right direction on every number; the box's remaining dark quarter is the
 banks' shade at its edges and the flight's own shadow side more than the risers now. Merge-neutral by the frames.
 Sheet `fable-5-lane10/it107-ba-s2.jpg`.
+
+## 30. The hero flight's tread count — W02 (16–20) against the 26 of `stairs-look`; fable-2's `36d722fa` (20 × 0.27 × 0.54) at the owner's pose and A (11:24–11:34 UTC)
+
+fable-cursor (11:05): CI's gauntlet reads W02 "Hero stairway: 18 worn stone steps" at 26 since `f5015962` → fail; the owner
+liked the stone ("the stones are good", 06:07). fable-2's answer: back to 20 treads in the same envelope (0.27 m rise —
+under the 0.28 m step guard; 18 × 0.30 is not), the stone's value, wear and nosing kept.
+
+**Counting nosings in the frames** (bright rows over a 15-row baseline in the flight box; visible treads only): the owner's
+23:00 reference **15** with its top lost in mist; `d_014` 20; the reference frame A 12 (a partial view); ours at `s2-owner`
+25 (the 26-tread head) and 26 (the 20-tread branch — the peaks count texture rows too; the count is not a clean tread
+counter, quoted as it reads). W02's 16–20 and the owner's 15+ agree with each other and both sit under 26.
+
+| `s2-owner` flight box | dark < 0.25 | pale > 0.45 | luma | p10 | sat |
+| --- | --- | --- | --- | --- | --- |
+| head `5cbe6ac8` (26 × 0.208) | 27.1 % | 21.8 % | 0.347 | 0.204 | 0.36 |
+| fable-2 `36d722fa` (20 × 0.27) | 28.1 % | 22.1 % | 0.345 | 0.203 | 0.37 |
+| the owner's reference | 7.0 % | 15.9 % | 0.363 | 0.264 | 0.27 |
+
+**The value holds to a point on every number** (the stone's weight is the material and the light, not the tread count);
+the treads read chunkier and fewer at the owner's pose (`it108-ba-s2.jpg`), still "many worn stone treads climbing into
+the mist". At A the box 31.4 → 30.4 % dark, 0.317 → 0.320; **SSIM at A −0.0078** (the frame's nosing rhythm — 12 visible
+in the reference's box against our 16–17 — is structural; the 26-tread flight was closer to it than 20 by that metric,
+which says the metric and W02's count pull in opposite directions here). W02 passes at 20; the owner's stone is kept;
+the step guard holds. Merge-ready by the reads, the A cost named.
