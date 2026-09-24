@@ -47,7 +47,7 @@ const vec3 = (c: Color | [number, number, number]) => (Array.isArray(c) ? `vec3(
 export const RUINS_MOSS = {
   bright: new Color(0.3, 0.36, 0.07),
   deep: new Color(0.1, 0.14, 0.032),
-  damp: new Color(0.045, 0.072, 0.02),
+  damp: new Color(0.066, 0.098, 0.029),
 };
 
 export function sunDirOf(config: WorldConfig): Vector3 {

@@ -124,7 +124,7 @@ export function cliffPoint(z: number, v: number, ground: Ground): { p: Vector3; 
   const nearFall = 1 - smoothstep(F.width * 0.6, F.width * 2.4, Math.abs(z - F.z));
   const byPool = poolSigned(face + 0.6, z) < 1.5 ? 1 - smoothstep(0.0, 1.4, y - Q.water) : 0;
   const wet = clamp(nearFall * (0.55 + 0.45 * (1 - hRel)) + byPool, 0, 1);
-  const moss = clamp(0.25 * ledge + 0.35 * (1 - hRel) + 0.15 * nearFall * (1 - fallChannel(z)) + 0.2 * n2.noise(z * 0.4, y * 0.3), 0, 1);
+  const moss = clamp(0.25 * ledge + 0.26 * (1 - hRel) + 0.15 * nearFall * (1 - fallChannel(z)) + 0.2 * n2.noise(z * 0.4, y * 0.3), 0, 1);
   return { p: new Vector3(x, y, z), c: [k, k * 0.99, k * 0.96], moss, wet };
 }
 

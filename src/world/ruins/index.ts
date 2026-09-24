@@ -99,7 +99,7 @@ export async function create(ctx: WorldContext): Promise<WorldSystem> {
   // (before the boulders are built: the posts' foot stones go into their builder)
   const lanterns = await buildLanterns(rng.fork('lanterns'), (x, z) => terrain.height(x, z), ctx.textures, ctx.config.palette.lanternGlow, rock.boulder);
   const [cliffMat, boulderMat] = await Promise.all([
-    createStone(ctx.textures, ctx.config, { name: 'cliff', set: 'rock_face_03', meanL: 0.163, tile: 3.2, tint: [0.34, 0.335, 0.315], keep: 0.3, contrast: 1.0, normalScale: 1.0, roughness: 0.92, tone: 0.14 }),
+    createStone(ctx.textures, ctx.config, { name: 'cliff', set: 'rock_face_03', meanL: 0.163, tile: 3.2, tint: [0.365, 0.363, 0.352], keep: 0.3, contrast: 1.0, normalScale: 1.0, roughness: 0.92, tone: 0.14 }),
     createStone(ctx.textures, ctx.config, { name: 'boulder', set: 'rock_boulder_cracked', meanL: 0.35, tile: 2.2, tint: [0.44, 0.425, 0.39], keep: 0.3, contrast: 0.95, normalScale: 0.9, roughness: 0.9, rough: true, tone: 0.1 }),
   ]);
   materials.push(cliffMat, boulderMat);

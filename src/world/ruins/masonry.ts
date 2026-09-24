@@ -283,6 +283,28 @@ export function buildMasonry(rng: Rng, ground: Ground, sun: Vector3): Masonry {
     });
     counts.slabs++;
   };
+  /** a lost slab's bed, grown over: moss cushions humped a little, bare dark soil between, damp at the rim */
+  const hole = (sx0: number, sx1: number, sz0: number, sz1: number) => {
+    const w = sx1 - sx0;
+    const d = sz1 - sz0;
+    const nu = Math.max(4, Math.round(w / 0.07));
+    const nv = Math.max(4, Math.round(d / 0.07));
+    const v0 = mb.vertexCount;
+    const t0 = mb.idx.length;
+    mb.grid(
+      nu,
+      nv,
+      (u, v) => {
+        const x = sx0 + w * u;
+        const z = sz0 + d * v;
+        const rim = Math.min(u * w, (1 - u) * w, v * d, (1 - v) * d);
+        const cushion = smoothstep(-0.3, 0.2, mossNoise.fbm(x * 3.1 + 17, z * 3.1 - 5, 3)) * smoothstep(0.01, 0.08, rim);
+        return { p: new Vector3(x, top - 0.071 + 0.024 * cushion, z), c: [0.24, 0.19, 0.135], moss: 0.12 + 0.85 * cushion, wet: 0.4 * (1 - smoothstep(0, 0.12, rim)) };
+      },
+      true,
+    );
+    mb.smoothNormals(v0, mb.vertexCount, t0);
+  };
   for (let z = wallIn - 0.04; z > T.z0 + 0.3; ) {
     const wz = rng.range(0.55, 0.85);
     const za = z - wz;
@@ -316,6 +338,7 @@ export function buildMasonry(rng: Rng, ground: Ground, sun: Vector3): Masonry {
       const r = rng();
       if (r < 0.06) {
         // lost: a couple of broken pieces left in the bed
+        hole(sx0, sx1, sz0, sz1);
         for (let k = rng.int(1, 3); k > 0; k--) {
           const px = sx0 + rng.range(0.15, 0.85) * (sx1 - sx0);
           const pz = sz0 + rng.range(0.2, 0.8) * (sz1 - sz0);
