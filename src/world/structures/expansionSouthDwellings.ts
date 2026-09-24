@@ -73,6 +73,8 @@ const JOIST_Y = RING_Y - RING_R - JOIST_R;
 /** railing: post tops and the rope's height over the boards */
 const RAIL_H = 0.9;
 const ROPE_H = 0.42;
+/** the railing's lamp post: right of the window as the bridge sees it (the window watches the bridge from 123°) */
+const LAMP_TH = 150 * DEG;
 /** the mast leans toward the gorge above the cap (m of lean at the top, direction) */
 const MAST_LEAN = 0.22;
 const MAST_LEAN_DIR: [number, number] = [Math.cos(100 * DEG), Math.sin(100 * DEG)];
@@ -389,7 +391,9 @@ export function buildSouthDwellings(ctx: WorldContext, mats: StructureMaterials,
     facingDeg: K.facingDeg,
     doorDeg: K.doorDeg,
     walkway: { deg: 0, length: 0, none: true },
-    pods: 2,
+    // no builder pod: its eave pod would hang at chest height over the gallery's walk; the gallery's
+    // own pods hang from the gate post and the lamp post, clear of it
+    pods: 1,
     dressing: { interior: true, fringe: true },
     // herbs drying by the door (compass −100°), flowers on the ledge of the window that watches the bridge, a brow over it
     character: { flowerBox: true, awning: true, herbs: { deg: -67 } },
@@ -668,18 +672,24 @@ export function buildSouthDwellings(ctx: WorldContext, mats: StructureMaterials,
   const railRng = kRng.fork('railing');
   const railArc = RAIL_TO - GAL_FROM;
   const posts = Math.round((railArc * RAIL_R) / 0.7) + 1;
+  const postTh = (k: number) => GAL_FROM + 0.6 * DEG + ((railArc - 1.2 * DEG) * k) / (posts - 1);
+  // the lamp post: the railing post facing the bridge's middle
+  let lampK = 0;
+  for (let k = 1; k < posts - 1; k++) if (Math.abs(postTh(k) - LAMP_TH) < Math.abs(postTh(lampK) - LAMP_TH)) lampK = k;
   const postTops: Vector3[] = [];
   const ropePts: Vector3[] = [];
   for (let k = 0; k < posts; k++) {
-    const th = GAL_FROM + 0.6 * DEG + ((railArc - 1.2 * DEG) * k) / (posts - 1);
+    const th = postTh(k);
     const out = new Vector3(Math.cos(th), 0, Math.sin(th));
     const gate = k === posts - 1;
-    const h = gate ? 2.0 : RAIL_H + railRng.range(-0.02, 0.03);
+    const lamp = k === lampK;
+    const tall = gate || lamp;
+    const h = gate ? 2.25 : lamp ? 1.95 : RAIL_H + railRng.range(-0.02, 0.03);
     const p0 = new Vector3(cx + out.x * RAIL_R, JOIST_Y - 0.08, cz + out.z * RAIL_R);
-    const p1 = new Vector3(cx + out.x * (RAIL_R + (gate ? 0.01 : 0.02)), DECK_TOP + h, cz + out.z * (RAIL_R + (gate ? 0.01 : 0.02)));
-    const ts = gate ? 10 : 6;
-    put('keeper-rail-posts', mats.bark, barkPole([p0, p1], gate ? 0.055 : 0.045, gate ? 0.042 : 0.037, noise, 160 + k, { tone: 0.9, moss: 0.3, ts, rs: 8 }));
-    capPole('keeper-rail-posts', [p0, p1], ts, gate ? 0.042 : 0.037, false, railRng.fork(`cap/${k}`));
+    const p1 = new Vector3(cx + out.x * (RAIL_R + (tall ? 0.01 : 0.02)), DECK_TOP + h, cz + out.z * (RAIL_R + (tall ? 0.01 : 0.02)));
+    const ts = tall ? 10 : 6;
+    put('keeper-rail-posts', mats.bark, barkPole([p0, p1], tall ? 0.055 : 0.045, tall ? 0.042 : 0.037, noise, 160 + k, { tone: 0.9, moss: 0.3, ts, rs: 8 }));
+    capPole('keeper-rail-posts', [p0, p1], ts, tall ? 0.042 : 0.037, false, railRng.fork(`cap/${k}`));
     const railY = DECK_TOP + RAIL_H - 0.03;
     postTops.push(p0.clone().lerp(p1, (railY - p0.y) / (p1.y - p0.y)));
     const rp = p0.clone().lerp(p1, (DECK_TOP + ROPE_H - p0.y) / (p1.y - p0.y));
@@ -698,6 +708,16 @@ export function buildSouthDwellings(ctx: WorldContext, mats: StructureMaterials,
       const hook = bTip.clone().add(new Vector3(0, -0.035, 0)).addScaledVector(into, -0.04);
       keeperPods.push(staticPod(hook, 0.2, out, railRng.fork('gate-pod'), 0.95));
       foliage.addLeafCluster(p1.clone().add(new Vector3(0, 0.02, 0)), 0.11, 8, { size: 0.085, droop: 0.4, flatten: 0.5 });
+    } else if (lamp) {
+      // the lamp post's pod: on a bracket out over the drop, outside the railing, toward the bridge
+      const tan = new Vector3(-out.z, 0, out.x);
+      const bFrom = p1.clone().add(new Vector3(0, -0.12, 0));
+      const bTip = bFrom.clone().addScaledVector(out, 0.34).addScaledVector(tan, 0.04).add(new Vector3(0, 0.05, 0));
+      const bPts = [bFrom, bFrom.clone().lerp(bTip, 0.5).add(new Vector3(0, 0.02, 0)), bTip];
+      put('keeper-rail-posts', mats.bark, barkPole(bPts, 0.03, 0.021, noise, 198, { moss: 0.1, ts: 4, rs: 6 }));
+      capPole('keeper-rail-posts', bPts, 4, 0.021, false, railRng.fork('lamp-cap'));
+      keeperPods.push(staticPod(bTip.clone().add(new Vector3(0, -0.033, 0)).addScaledVector(out, -0.035), 0.22, tan, railRng.fork('lamp-pod'), 1.0));
+      foliage.addLeafCluster(p1.clone().add(new Vector3(0, 0.02, 0)), 0.1, 7, { size: 0.08, droop: 0.45, flatten: 0.5 });
     } else if (k === 0) {
       bases.push([p0.x, terrain.height(p0.x, p0.z), p0.z]);
     }
@@ -1268,9 +1288,10 @@ export function buildSouthDwellings(ctx: WorldContext, mats: StructureMaterials,
       const c = at(a, -HW - 0.28, FT);
       walkSurfaces.push(solidDisc(`south-waystation-firewood-${i}`, c.x, c.z, 0.36, FT));
     });
-    // the pod under the front plate, toward the south end (the path's side)
+    // the pod under the front plate, toward the south end (the path's side), on a short cord: its
+    // foot 1.4 m over the floor, clear of Link's hat where he stands at the open front
     const hook = at(POST_A + 0.02, 0.55, frontTop - PLATE_R - 0.012);
-    wPods.push(staticPod(hook, 0.26, S, ir.fork('pod'), 1.0));
+    wPods.push(staticPod(hook, 0.08, S, ir.fork('pod'), 1.0));
   }
 
   // ---- the step up from the path: a split log along the front ----
