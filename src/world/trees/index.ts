@@ -1623,7 +1623,17 @@ const TREE_LOD_NEAR_M = 28;
  * and unchanged.
  */
 const DISTANT_NEAR_M = 72;
-const TREE_LOD_MID_M = 44;
+/**
+ * The medium→low rung (m). 44 m through round 55, and the 18:20 health check of these rungs found the
+ * residual pop lives there: with every tree forced to its highest LOD (`?treelod=10`) the owner's two
+ * walking poses change by 2.06 % and 2.24 % of the frame, and the diff puts almost all of it in two
+ * columns at the corridor's mid-distance tree line — the crowns of trees at 44–60 m, which fill out as
+ * he approaches. That is his "the trees … only get detailed when I come up close" at the range it still
+ * happens. 59 m priced with `pose-counts.mjs`: the walking poses take +0.51 % and +0.75 % of their
+ * triangles, and the six hero views +1.4 k (A) to +54 k (D) with 123 k of headroom left at the tightest
+ * and at most four draws more, so the 700 / 9 M cap is not approached.
+ */
+const TREE_LOD_MID_M = 59;
 /**
  * Dev measurement knob, the same shape as `?pool=large|small`: `?treelod=<multiplier>` scales every
  * instanced tree LOD swap distance (the white-barks' and columns' ladder, the distant layer's and the
