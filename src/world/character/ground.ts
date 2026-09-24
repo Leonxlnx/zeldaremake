@@ -11,9 +11,12 @@
  * tread tops with their nosing overhangs, for the character's footprint planting (glbLink.ts).
  */
 import { Box3, BufferAttribute, BufferGeometry, Mesh, type Object3D } from 'three';
-import { EXPANSION_STAIRS, type Layout } from '../layout';
-import type { SharedGeometry, WalkSurface } from '../system';
+import { EXPANSION_STAIRS, southBridgeFrame, type Layout } from '../layout';
+import type { SharedGeometry, WalkSpan, WalkSurface } from '../system';
 import { archTunnel, surfaceMask, type Terrain } from '../terrain/heightfield';
+import { bridgeLocal, inFarCorridor, ravineCut, southOfRavine } from '../terrain/south';
+
+const BRIDGE_LEN = southBridgeFrame().len;
 
 export interface Ground {
   height(x: number, z: number): number;
@@ -170,9 +173,47 @@ export function createGround(terrain: Terrain, layout: Layout, shared?: SharedGe
   });
   const walkSurfaces: WalkSurface[] = shared?.walkSurfaces ?? [];
   const propBlockers = shared?.propBlockers ?? [];
+  // round 56: the rope bridge's deck and the log tunnel's floor (polylines of built tops), each with its XZ box
+  const walkSpans = (shared?.walkSpans ?? []).map((s: WalkSpan) => {
+    const b = { x0: Infinity, x1: -Infinity, z0: Infinity, z1: -Infinity };
+    for (const p of s.pts) {
+      b.x0 = Math.min(b.x0, p[0] - s.hw);
+      b.x1 = Math.max(b.x1, p[0] + s.hw);
+      b.z0 = Math.min(b.z0, p[2] - s.hw);
+      b.z1 = Math.max(b.z1, p[2] + s.hw);
+    }
+    return { ...s, box: b };
+  });
+  /** the span's top under (x, z) — within `hw` of its centre line, between its end points — or null */
+  const spanTop = (x: number, z: number): number | null => {
+    let best: number | null = null;
+    for (const s of walkSpans) {
+      if (x < s.box.x0 || x > s.box.x1 || z < s.box.z0 || z > s.box.z1) continue;
+      let bd = Infinity;
+      let by = 0;
+      for (let i = 0; i + 1 < s.pts.length; i++) {
+        const a = s.pts[i];
+        const b = s.pts[i + 1];
+        const dx = b[0] - a[0];
+        const dz = b[2] - a[2];
+        const len2 = dx * dx + dz * dz;
+        if (len2 < 1e-12) continue;
+        const t = ((x - a[0]) * dx + (z - a[2]) * dz) / len2;
+        if ((t < 0 && i > 0) || (t > 1 && i + 2 < s.pts.length) || t < -0.02 || t > 1.02) continue;
+        const tc = Math.min(Math.max(t, 0), 1);
+        const d = Math.hypot(x - a[0] - dx * tc, z - a[2] - dz * tc);
+        if (d < bd) {
+          bd = d;
+          by = a[1] + (b[1] - a[1]) * tc;
+        }
+      }
+      if (bd <= s.hw) best = Math.max(best ?? -Infinity, by);
+    }
+    return best;
+  };
   /** the built surface (platform / deck top) under (x, z), or null off every walk surface */
   const builtTop = (x: number, z: number): number | null => {
-    let best: number | null = null;
+    let best: number | null = spanTop(x, z);
     for (const w of walkSurfaces) {
       const d = Math.hypot(x - w.disc.x, z - w.disc.z);
       if (d <= w.disc.r) best = Math.max(best ?? -Infinity, w.disc.y);
@@ -300,6 +341,13 @@ export function createGround(terrain: Terrain, layout: Layout, shared?: SharedGe
       // ground's structure pad (the bole under the floor) does not
       if (wallBlocked(x, z)) return true;
       if (builtTop(x, z) !== null) return false;
+      // round 56: off the bridge's deck the ravine is a drop (its cut deeper than a kerb; beside the
+      // deck between the sills whatever the cut), and the far bank is walkable only along the far
+      // path to the log's mouth (terrain/south.ts)
+      const bl = bridgeLocal(x, z);
+      if (bl.a > 0.3 && bl.a < BRIDGE_LEN - 0.3 && Math.abs(bl.c) < 2.0) return true;
+      if (ravineCut(x, z) > 0.3) return true;
+      if (southOfRavine(x, z) && !inFarCorridor(x, z)) return true;
       // the log arch's structure band is walkable where the path runs under its raised belly
       // (heightfield `archTunnel`, round 47); its grounded walls and root masses stay blocked
       return surfaceMask(x, z, 'live').structure > 0.5 && archTunnel(x, z) < 0.5;
@@ -335,8 +383,10 @@ export function createGround(terrain: Terrain, layout: Layout, shared?: SharedGe
       const north = hardscape?.getObjectByName('flagstones-north') as Mesh | undefined;
       // round 49: the expansion's stepping discs are a third mesh (hidden by distance for rendering too)
       const expansion = hardscape?.getObjectByName('flagstones-expansion') as Mesh | undefined;
+      // round 56: the south route's paving (the path to the bridge and the far path to the log)
+      const south = hardscape?.getObjectByName('flagstones-south') as Mesh | undefined;
       let merged: BufferGeometry | null = null;
-      for (const extra of [north, expansion]) {
+      for (const extra of [north, expansion, south]) {
         if (!worldSpace(extra)) continue;
         const next = concatPositions(merged ?? slabs.geometry, extra.geometry);
         merged?.dispose();

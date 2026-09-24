@@ -13,10 +13,12 @@
  * group use it, so the house and its stair appear and vanish together.
  */
 import { Frustum, Matrix4, Sphere, Vector3, type Camera } from 'three';
-import { EXPANSION, EXPANSION_BOX, EXPANSION_ROPE_FENCES, EXPANSION_STAIRS, expansionSteppingStones } from '../layout';
+import { EXPANSION, EXPANSION_BOX, EXPANSION_ROPE_FENCES, EXPANSION_SOUTH, EXPANSION_SOUTH_BOXES, EXPANSION_STAIRS, expansionSteppingStones, southPathLine } from '../layout';
 
 /** beyond this distance from the box the content is hidden regardless of the frustum (haze) */
 export const EXPANSION_VISIBLE_M = 60;
+/** round 56: the same for the south exit, measured to the nearest of `EXPANSION_SOUTH_BOXES` */
+export const SOUTH_VISIBLE_M = 60;
 
 /**
  * A vertical caster: a circle on the ground (`x, z, r`), its ground height `y0`, its top `y1`
@@ -122,6 +124,52 @@ export function expansionVisible(camera: Camera, spheres: Sphere[]): boolean {
   const dz = Math.max(box.z0 - _p.z, 0, _p.z - box.z1);
   if (Math.hypot(dx, dz) >= EXPANSION_VISIBLE_M) return false;
   return frustumMeets(camera, spheres);
+}
+
+/**
+ * Round 56 (expansion-south): true when the camera is within SOUTH_VISIBLE_M of one of
+ * `EXPANSION_SOUTH_BOXES` AND its frustum meets one of `spheres` — the structures' bridge and
+ * log (their casters and shadow footprints), the hardscape's south paving, the vegetation's
+ * south dressing and the ravine's mist each pass their own.
+ */
+export function southVisible(camera: Camera, spheres: Sphere[]): boolean {
+  camera.updateMatrixWorld();
+  camera.getWorldPosition(_p);
+  let near = false;
+  for (const b of EXPANSION_SOUTH_BOXES) {
+    const dx = Math.max(b.x0 - _p.x, 0, _p.x - b.x1);
+    const dz = Math.max(b.z0 - _p.z, 0, _p.z - b.z1);
+    if (Math.hypot(dx, dz) < SOUTH_VISIBLE_M) {
+      near = true;
+      break;
+    }
+  }
+  return near && frustumMeets(camera, spheres);
+}
+
+/**
+ * Round 56: the south paving as spheres (no shadow): along the path's line from the spine's end
+ * to the north sill and along the far path to the log's mouth, every ≤ 1.2 m, each covering
+ * the paved half width plus a margin, from under the slabs to a little over them. `yAt` gives
+ * the ground there (the live terrain).
+ */
+export function southPathSpheres(yAt: (x: number, z: number) => number): Sphere[] {
+  const out: Sphere[] = [];
+  const line = southPathLine();
+  for (let i = 0; i < line.length; i += 3) {
+    const [x, , z] = line[i];
+    out.push(new Sphere(new Vector3(x, yAt(x, z), z), EXPANSION_SOUTH.pathHalfWidth.start + 0.6));
+  }
+  const far: [number, number][] = [...EXPANSION_SOUTH.farPath.map((p) => [p[0], p[2]] as [number, number]), [EXPANSION_SOUTH.tunnel.mouth[0], EXPANSION_SOUTH.tunnel.mouth[1]]];
+  for (let i = 0; i + 1 < far.length; i++) {
+    const n = Math.max(1, Math.ceil(Math.hypot(far[i + 1][0] - far[i][0], far[i + 1][1] - far[i][1]) / 1.2));
+    for (let k = 0; k <= n; k++) {
+      const x = far[i][0] + ((far[i + 1][0] - far[i][0]) * k) / n;
+      const z = far[i][1] + ((far[i + 1][1] - far[i][1]) * k) / n;
+      out.push(new Sphere(new Vector3(x, yAt(x, z), z), EXPANSION_SOUTH.farPathHalfWidth + 0.8));
+    }
+  }
+  return out;
 }
 
 /** true when the camera's frustum meets one of `spheres` (world matrix refreshed first, see above) */
