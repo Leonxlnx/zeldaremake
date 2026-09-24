@@ -364,3 +364,17 @@ export function northGroveClear(x: number, z: number, r = 0.8): boolean {
   if (Math.hypot(x - N.signpost.position[0], z - N.signpost.position[2]) < 1.0 + r) return true;
   return false;
 }
+
+/**
+ * The grove's raised buildings as keep-out cylinders for tree crowns: centre, radius (m) and the
+ * absolute height of their top — the stilt house's cap over its veranda, the tree hut's cap and
+ * the lookout nest's railing, the trunk house's dome.
+ */
+export function northGroveHuts(): { id: string; x: number; z: number; r: number; top: number }[] {
+  const H = N.house;
+  return [
+    { id: 'stilt', x: N.stilt.host[0], z: N.stilt.host[1], r: VERANDA_R + 0.4, top: N.stilt.floorY + N.stilt.wall + N.stilt.capHeight + 0.5 },
+    { id: 'hut', x: N.hut.host[0], z: N.hut.host[1], r: Math.max(N.hut.radius + N.hut.capOverhang, N.nest.radius) + 0.4, top: N.nest.floorY + 1.3 },
+    { id: 'house', x: H.position[0], z: H.position[2], r: H.trunkRadius + 2.8, top: H.position[1] + (H.roofHeight ?? 4.3) + 3.5 },
+  ];
+}

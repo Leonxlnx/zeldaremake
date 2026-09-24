@@ -33,6 +33,8 @@ import { expansionCull, getTerrain, southFooting, southRouteSurface, westExpansi
 import { smoothstep } from '../util/noise';
 import { casterSpheres, expansionVisible, type Caster } from '../util/expansionLocality';
 import { EXPANSION, EXPANSION_SOUTH, inExpansionSouth, southPathLine } from '../layout';
+import { inExpansionNorth } from '../layout';
+import { northGroveClear, northGroveHuts } from '../terrain/north';
 import { createGiantTree, LOBE_SECONDARY_REACH, LOBE_TWIG_REACH, LOBE_TWIG_TINT, NEAR_BASE_CUT_Y, NEAR_BASE_RADIUS_OVERRIDE, NEAR_BASE_RADIUS_OVERRIDE_LARGE, type CanopyBough, type GiantAsset, type GiantProfile } from './giant';
 import { NEAR_CANOPY_IN_M, NEAR_CANOPY_MAX_Y, NEAR_CANOPY_OUT_M, type NearCanopyPart } from './nearCanopy';
 import { LodPool, type PoolBuilt, type PoolItem } from './lodPool';
@@ -3370,6 +3372,42 @@ export async function create(ctx: WorldContext): Promise<WorldSystem> {
     return true;
   });
   distantPlacements.push(...midPlacements);
+  // 2026-09-24 (expansion-north): the grove (terrain/north.ts) keeps every bole off its flight,
+  // trail, shelf and walkways and out from under its huts (`northGroveClear` with the bole's own
+  // foot radius), and every crown whose base hangs below a hut's top clear of it; a tree left in the
+  // grove's box stands on the live ground the grove shaped. Only the 60–215 m layer reaches the box
+  // (76.9 m+ from the plaza); a filter after every sampler, so nothing else re-rolls.
+  const northGrove = { culled: [] as [number, number][], reseated: 0 };
+  {
+    const reach = distantVariants.map((v) => {
+      const pos = v.near.attributes.position;
+      let bole = 0;
+      let crown = 0;
+      for (let i = 0; i < pos.count; i++) {
+        const r = Math.hypot(pos.getX(i), pos.getZ(i));
+        if (pos.getY(i) < 1.2) bole = Math.max(bole, r);
+        crown = Math.max(crown, r);
+      }
+      let base = v.height;
+      for (let i = 0; i < pos.count; i++) if (Math.hypot(pos.getX(i), pos.getZ(i)) > bole * 1.6 + 0.4) base = Math.min(base, pos.getY(i));
+      return { bole, crown, base };
+    });
+    const huts = northGroveHuts();
+    for (let i = distantPlacements.length - 1; i >= 0; i--) {
+      const p = distantPlacements[i];
+      if (p.z > -76 || !inExpansionNorth(p.x, p.z)) continue;
+      const f = reach[p.variant];
+      const crownHits = huts.some((h) => Math.hypot(p.x - h.x, p.z - h.z) < f.crown * p.scale * 0.85 + h.r && liveTerrain.height(p.x, p.z) + f.base * p.scale < h.top);
+      if (northGroveClear(p.x, p.z, f.bole * p.scale + 0.3) || crownHits) {
+        northGrove.culled.push([Math.round(p.x * 10) / 10, Math.round(p.z * 10) / 10]);
+        distantPlacements.splice(i, 1);
+        continue;
+      }
+      p.y = liveTerrain.height(p.x, p.z);
+      midLive.add(p);
+      northGrove.reseated++;
+    }
+  }
   // round 47: the crown cards (the geometry's second group) draw with their own material (distant.ts createDistantCrownMaterial: far-crown atlas, spherical shading, soft alpha, wind)
   const distantCrown = createDistantCrownMaterial(ctx.wind, rng, palette, sunDir);
   // the mid-canopy crowns share that atlas and turn off the treatments the far layer applies inside
@@ -4151,6 +4189,8 @@ export async function create(ctx: WorldContext): Promise<WorldSystem> {
         farLodM: MID_FAR_LOD_M,
         material: midCrown.name,
       },
+      /** 2026-09-24 (expansion-north): the 60–215 m layer's trees the grove dropped ([x, z] dm) and how many of its box it re-seated on the live ground */
+      northGrove,
       /** round 45: the near LOD bole's basal flare [share at the foot, e-folding m] and the near-bark tone [overall, band amplitude, grime at the foot] (distant.ts, materials.ts DISTANT_NEAR_TONE) */
       distantNearBark: { flare: [DISTANT_FLARE, DISTANT_FLARE_FALL], tone: DISTANT_NEAR_TONE, withinM: DISTANT_BARK_M, limbReach: LIMB_REACH, limbTint: [LIMB_TIP_TINT, LIMB_TINT_FROM, LIMB_TINT_TO] },
       /** round 46: the near LOD bole's geometric cords [furrows around a broad / a slender, depth share], sides [broad, slender], the furrow floor's vertex shade, the root buttresses' arc sides (distant.ts) */
