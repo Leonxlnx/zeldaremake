@@ -83,6 +83,8 @@ export interface Footsteps {
   step(surface: Surface, t: number, strength: number, pan: number): void;
   /** integrate the player's motion; `t` is the context time the step would sound at */
   drive(t: number, dt: number, d: StepDrive): void;
+  /** both boots arriving at once after a fall of `fallM` metres */
+  land(t: number, surface: Surface, fallM: number): void;
   /** what has been heard so far, for the play-mode evidence (`__ZR_AUDIO__.stats()`) */
   stats(): FootstepStats;
   dispose(): void;
@@ -96,6 +98,8 @@ export interface FootstepStats {
   /** how many surfaces have been heard, and the last one */
   surfaces: Partial<Record<Surface, number>>;
   lastSurface: Surface | null;
+  /** landings after a jump or a drop */
+  landings: number;
 }
 
 /** above this ground speed the gait is a run: shorter contact, harder heel, the toe close behind */
@@ -114,9 +118,15 @@ export function strideFor(speed: number, onStairs: boolean): number {
   return Math.max(0.35, speed / cadence(speed));
 }
 
-/** how hard the step lands: a stroll is soft, a full run is not */
+/**
+ * How hard the step lands: a stroll is soft, a full run is not — but the curve is flatter than it
+ * was (0.14 per m/s → 0.10). Running already multiplies the steps by cadence as well as by weight,
+ * and at 0.14 a run's steps were the loudest thing in the game by a clear margin, pulsing over the
+ * music at the step rate (owner, 23:00: "the music … shakes whenever I run"). A run is still
+ * plainly heavier than a walk; it just no longer out-punches everything else.
+ */
 export function strengthFor(speed: number): number {
-  return Math.max(0.3, Math.min(1, 0.3 + speed * 0.14));
+  return Math.max(0.3, Math.min(1, 0.3 + speed * 0.1));
 }
 
 const body = (at: number, f0: number, f1: number, glide: number, peak: number, attack: number, decay: number, wave: OscillatorType = 'sine'): BodyPart => ({
@@ -263,6 +273,28 @@ export function designStep(surface: Surface, strength: number, running: boolean,
   return { parts, reverb, end };
 }
 
+/**
+ * A landing: both boots arrive together, so the toe folds into the heel, the body goes deeper and
+ * rings longer, and the gear settles a moment afterwards. Coming down off the ledge or the stair
+ * flight used to make no sound at all — the world did not answer the drop.
+ */
+export function designLanding(surface: Surface, strength: number, rnd: () => number): StepDesign {
+  const base = designStep(surface, strength, true, rnd);
+  const parts: StepPart[] = base.parts.map((p) => (p.kind === 'body' && p.at > 0.03 ? { ...p, at: p.at * 0.3, peak: p.peak * 1.3 } : p));
+  const heel = parts.find((p): p is BodyPart => p.kind === 'body' && p.at <= 0.004 && p.f0 < 400);
+  // the weight under the impact: an octave below the step's own body, and it rings on
+  if (heel) parts.push({ ...heel, at: 0.002, f0: heel.f0 * 0.6, f1: Math.max(26, heel.f1 * 0.6), peak: heel.peak * 0.8, decay: heel.decay * 2.4 });
+  // belt, strap and tunic settling after the boots
+  parts.push(band(0.045 + rnd() * 0.03, 760 * (1 + (rnd() - 0.5) * 0.2), 520, 0.7, 2600, 0.03 * strength, 0.012, 0.09));
+  for (let i = 0; i < 3; i++) parts.push(grain(0.05 + rnd() * 0.09, 2100 + rnd() * 3000, 0.005 * strength, 0.005));
+  return { parts, reverb: Math.min(0.8, base.reverb * 1.2), end: base.end + 0.3 };
+}
+
+/** how hard a landing is, from how far Link fell (m) */
+export function landingStrength(fallM: number): number {
+  return Math.max(0.45, Math.min(1, 0.45 + fallM * 0.32));
+}
+
 export function createFootsteps(ctx: BaseAudioContext, out: AudioNode, reverbSend: AudioNode, rng: Rng, startAt = 0): Footsteps {
   // 5.3 s, not the old 2 s: a short loop hands consecutive steps the same noise (at two steps a
   // second every fourth step was identical), and an odd length keeps it off any cadence
@@ -334,7 +366,15 @@ export function createFootsteps(ctx: BaseAudioContext, out: AudioNode, reverbSen
   /** while the gait's stance flags are driving the steps the distance integrator stays out of the way */
   let gaitUntil = -1e9;
   let wasStance: boolean[] = [];
-  const counts: FootstepStats = { steps: 0, gaitSteps: 0, surfaces: {}, lastSurface: null };
+  const counts: FootstepStats = { steps: 0, gaitSteps: 0, surfaces: {}, lastSurface: null, landings: 0 };
+
+  const land = (t: number, surface: Surface, fallM: number) => {
+    counts.landings++;
+    counts.lastSurface = surface;
+    lastStepAt = t;
+    travelled = 0;
+    play(designLanding(surface, landingStrength(fallM), stepRng), t, 0);
+  };
 
   const fire = (t: number, speed: number, surface: Surface, pan: number, fromGait = false) => {
     if (t - lastStepAt < MIN_STEP_GAP) return false;
@@ -385,6 +425,7 @@ export function createFootsteps(ctx: BaseAudioContext, out: AudioNode, reverbSen
   return {
     step,
     drive,
+    land,
     stats: () => ({ ...counts, surfaces: { ...counts.surfaces } }),
     dispose() {
       try {

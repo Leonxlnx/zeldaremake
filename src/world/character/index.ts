@@ -17,12 +17,12 @@
  * (`samplePositions.feet`), both soles' gaps (`linkFeetContact`), the planting (`linkIk`) and the
  * GLB's blink (`blink*`: blink.ts — inert, `blinkMorphs` 0, on an asset without the morphs).
  */
-import { Group, MathUtils, Mesh, Object3D, PerspectiveCamera, Vector3, type Camera } from 'three';
+import { Frustum, Group, MathUtils, Matrix4, Mesh, Object3D, PerspectiveCamera, Sphere, Vector3, type Camera } from 'three';
 import type { WorldContext, WorldSystem } from '../system';
 import { GAIT_SPEED, GAITS, HERO_PHASE, PLAYER_ACCEL, PLAYER_DECEL, PLAYER_SPEED, type Gait } from './animation';
 import { createGround } from './ground';
 import { createKokiri } from './kokiri';
-import { createNpcs } from './npc';
+import { createNpcs, LEDGE_SLOT } from './npc';
 import { createLink } from './link';
 import { createNavi, naviHoverAnchor, TRAIL_COUNT } from './navi';
 import { headingOf, marchToGround, matchViewpoint, NPC_SOUTH_BANK, pointAtDepth, projectPoint, VIEW_TABLE, type CamPose, type V3 } from './placement';
@@ -65,6 +65,10 @@ interface Actor extends GaitChain {
 
 /** kokiri-a (wander), kokiri-b (seat), the boy at Saria's door, kokiri-ledge (round 48: the stand on the raised ledge), kokiri-south-bank (round 50: the stand on the south bank) */
 const KID_COUNT = 5;
+/** how far a kid's sun shadow can lie from them (1.12 m tall under the 38° sun → 1.43 m on level ground; margin for a slope and a frame of camera lag) */
+const KID_SHADOW_REACH_M = 2.6;
+/** the ledge girl stands 4 m over the north clearing: her shadow can fall down the ledge face onto its floor */
+const LEDGE_SHADOW_REACH_M = 7;
 
 type LinkSource = 'glb' | 'procedural';
 
@@ -154,6 +158,39 @@ export async function create(ctx: WorldContext): Promise<WorldSystem> {
     rigDraws.after += r.after;
     rigDraws.merged += r.merged;
   }
+
+  // Shadow-pass scoping (lane 7): the sun's shadow window is a 92 m box fitted ahead of the camera
+  // (lighting/index.ts), so every kid in the village is drawn into it each frame — a full set of
+  // submissions per kid whether the camera sees them or not (the cast's return put A at 723
+  // draws). A kid's shadow lies within KID_SHADOW_REACH_M of them: a kid whose sphere of that
+  // radius misses the view frustum cannot shadow a visible pixel, and stops casting until it can.
+  // `castShadow` is no program key, so the toggle recompiles nothing.
+  const kidCasters: Mesh[][] = kids.map((k) => {
+    const meshes: Mesh[] = [];
+    k.puppet.group.traverse((o) => {
+      if ((o as Mesh).isMesh && o.castShadow) meshes.push(o as Mesh);
+    });
+    return meshes;
+  });
+  const kidCasting: boolean[] = kids.map(() => true);
+  const shadowFrustum = new Frustum();
+  const shadowPV = new Matrix4();
+  const shadowSphere = new Sphere();
+  const scopeKidShadows = (camera: Camera) => {
+    camera.updateMatrixWorld();
+    shadowPV.multiplyMatrices(camera.projectionMatrix, shadowPV.copy(camera.matrixWorld).invert());
+    shadowFrustum.setFromProjectionMatrix(shadowPV);
+    for (let i = 0; i < kids.length; i++) {
+      const k = kids[i];
+      k.puppet.group.getWorldPosition(shadowSphere.center);
+      shadowSphere.center.y += 0.7;
+      shadowSphere.radius = i === LEDGE_SLOT ? LEDGE_SHADOW_REACH_M : KID_SHADOW_REACH_M;
+      const on = shadowFrustum.intersectsSphere(shadowSphere);
+      if (on === kidCasting[i]) continue;
+      kidCasting[i] = on;
+      for (const m of kidCasters[i]) m.castShadow = on;
+    }
+  };
 
   const navi = createNavi();
   group.add(navi.group);
@@ -310,19 +347,45 @@ export async function create(ctx: WorldContext): Promise<WorldSystem> {
   };
   ctx.scene.userData[PLAYER_KEY] = player;
 
-  /** move the root by (dx, dz) if the step is walkable (no structure pad, no riser above the 0.55 m step guard); returns the distance moved */
-  const moveRoot = (dx: number, dz: number, dt: number): number => {
+  /** a step is walkable onto no structure pad and no riser above the 0.55 m step guard */
+  const walkable = (dx: number, dz: number, h0: number) => {
     const nx = link.pos.x + dx;
     const nz = link.pos.z + dz;
+    return ground.height(nx, nz) - h0 < 0.55 && !ground.blocked(nx, nz);
+  };
+  /**
+   * Turns (rad) tried when the straight step is blocked: the step turned either way and shortened
+   * to its component along the turn, so Link slides along an edge he meets at a slant (the rope
+   * bridge's 1 m walk, a wall) instead of stopping dead; head-on he still stops.
+   */
+  const SLIDE_TURNS = [0.6, 1.1];
+  /** move the root by (dx, dz), or along the blocking edge; returns the distance moved */
+  const moveRoot = (dx: number, dz: number, dt: number): number => {
     const h0 = ground.height(link.pos.x, link.pos.z);
-    const h1 = ground.height(nx, nz);
-    if (h1 - h0 < 0.55 && !ground.blocked(nx, nz)) {
-      velocity.set(dx / Math.max(dt, 1e-4), 0, dz / Math.max(dt, 1e-4));
-      link.pos.set(nx, 0, nz);
-      return Math.hypot(dx, dz);
+    let sx = dx;
+    let sz = dz;
+    let ok = walkable(dx, dz, h0);
+    for (let i = 0; !ok && i < SLIDE_TURNS.length; i++) {
+      const c = Math.cos(SLIDE_TURNS[i]);
+      for (const side of [1, -1]) {
+        const s = Math.sin(SLIDE_TURNS[i]) * side;
+        const rx = (dx * c - dz * s) * c;
+        const rz = (dx * s + dz * c) * c;
+        if (walkable(rx, rz, h0)) {
+          sx = rx;
+          sz = rz;
+          ok = true;
+          break;
+        }
+      }
     }
-    velocity.set(0, 0, 0);
-    return 0;
+    if (!ok) {
+      velocity.set(0, 0, 0);
+      return 0;
+    }
+    velocity.set(sx / Math.max(dt, 1e-4), 0, sz / Math.max(dt, 1e-4));
+    link.pos.set(link.pos.x + sx, 0, link.pos.z + sz);
+    return Math.hypot(sx, sz);
   };
 
   const stepPlayer = (dt: number, t: number) => {
@@ -473,6 +536,11 @@ export async function create(ctx: WorldContext): Promise<WorldSystem> {
       rigMeshesBeforeMerge: rigDraws.before,
       rigMeshes: rigDraws.after,
       rigMergedMeshes: rigDraws.merged,
+      /** lane 7: which kids cast a sun shadow this frame (their shadow reach meets the view) and the shadow-pass meshes each holds */
+      kidShadowCasting: kidCasting.slice(),
+      kidShadowMeshes: kidCasters.map((m) => m.length),
+      /** lane 7 (skin.ts): each kid's part meshes before → skinned meshes after, and the bones they ride */
+      kidSkinned: kidChars.map((c) => c.rig.root.userData.skinned ?? null),
       mode,
       view,
       linkGait: link.gait,
@@ -575,8 +643,16 @@ export async function create(ctx: WorldContext): Promise<WorldSystem> {
       navi.velocity.copy(mode === 'play' ? velocity : tmpD.set(0, 0, 0));
       navi.position(t, naviPos);
       poseActor(link, t, naviPos);
-      for (let i = 0; i < kids.length; i++) if (!npcs.drive(i, kids[i], t, mode === 'view')) poseActor(kids[i], t, null);
+      // the kids notice Link off the fixed views (npc.ts noticePlayer): the driven kids inside drive(),
+      // the boy at the door after his idle pose here
+      const player = mode === 'view' ? null : link.pos;
+      for (let i = 0; i < kids.length; i++) {
+        if (npcs.drive(i, kids[i], t, mode === 'view', player)) continue;
+        poseActor(kids[i], t, null);
+        if (player) npcs.notice(kidChars[i].rig, kids[i], player);
+      }
       npcs.updateFairies(t);
+      scopeKidShadows(c.camera);
       navi.update(t, c.renderer.getPixelRatio());
     },
   };

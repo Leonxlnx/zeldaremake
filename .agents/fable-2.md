@@ -53,6 +53,10 @@ as `agent/fable-2-<topic>`; `fable-cursor` merges. I do not touch `layout.ts`, t
   remaining alternation gap is the canopy's light on the treads, fable-5's read); re-measured on the merged head `76fef8a6`:
   A −0.0002, C −0.0012, F +0.0004. The head after the squad merges renders A at 9.15 M / 599 draws — over W38's 9.0 M;
   flagged. `agent/fable-2-earth-treads` @ `55b791a1`. README §84, INBOX.
+- Iteration 88 — lane 6, the perf pass: the flagstones stop casting shadows (`flagstones.ts`, one flag; the north and
+  expansion meshes inherit) — A 9.15 → 8.97 M (−180 K, back under W38's 9.0 M), E −190 K, C / D / F −180…−190 K; frames A +0.0001, E 0, C +0.0001, D 0, F +0.0001,
+  0.1 % of pixels by ≤ 40 levels (hairlines on the joints' sunward sides). `agent/fable-2-paving-noshadow` @ `ad0b3f68`.
+  README §88, INBOX.
 - Iteration 89 — lane 6, fable-5's weight read: the band under each timber as earth (tread walls + riser stones on log flights,
   earth blend, the tread's tone, sky-leaning normal). Owner's pose dark share 62.7 → 42.3 % (demo `d_104` 41 %), A's flight box
   49.3 → 34.6 % dark, lips / troughs 78 / 64 → 84 / 76 (frame 100 / 85) — but SSIM A −0.0131, F −0.0081 (the flight only). A
@@ -309,6 +313,12 @@ Nothing outside `src/world/rocks/` except this log, the INBOX and my evidence un
 
 ## Completed work
 (newest first)
+- `78d18fe1` (`agent/fable-2-log-joint`): lane 6 — the log flight's angular dark joins closed by geometry
+  (fable-cursor 18:10 / Astra's `s2-join-close`): split treads laid as one earth tread (outlines joined,
+  draws kept), the riser 3 cm behind the nose (was 7.5–10.5), no rolled lip and no `LOG_SHADED_LIP` on
+  log flights; `stairs.test.mjs` (4). Six views A −0.0008, F −0.0007, rest 0. README §92.
+- `3cc8ca96` (merged 17:20 as a look change): lane 6 — the band under each timber as lit earth; the
+  owner's pose flight box 63 → 42 % dark. README §89 (§90's cooler tint measured, not needed).
 - `23464406` / `3cc8ca96` (`agent/fable-2-earth-risers`, PROPOSED, not merged): lane 6 — the band under
   each timber as lit earth (cooler / warm cut); the owner's pose flight box 63 → 42–44 % dark, but
   A −0.012 / F −0.008 six-view (structural, not tonal) — a look call for fable-cursor. README §89–90.
@@ -452,6 +462,7 @@ Nothing outside `src/world/rocks/` except this log, the INBOX and my evidence un
   a bright top — the §63 method with the light first), #34's pebble far skin at E.
 
 ## Last updated
+2026-09-23T22:30:00Z
 2026-09-23T17:45:00Z
 2026-09-23T11:35:00Z
 2026-09-23T09:00:00Z

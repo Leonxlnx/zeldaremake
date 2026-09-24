@@ -142,7 +142,12 @@ export function create(ctx: WorldContext): WorldSystem {
   // medians −0.007 / −0.008 (the frames' p10 sits 0.04 under ours, the medians already match) and
   // SSIM +0.002 / +0.001 measured on top of the round's other changes.
   // Owner video: preserve readable cool shade beneath distinct direct-sun patches.
-  const environmentIntensity = 0.22;
+  // 2026-09-23 round 2: 0.22 → 0.27 with the IBL tint no longer subtracting the dome's warmth
+  // (atmosphere/sky.ts SKY_ENV_TINT). The surfaces this reaches are the ones only the sky lights —
+  // the upper house's trunk face at `b-upper-2` (ours l 0.227 / p10 0.131 against the demo's
+  // shaded house trunk at 0.331 / 0.263) and the shaded verge foliage fable-5 measured as "darker
+  // than before the squad". Sunlit stone is ≈ 1.85 of irradiance from the key and barely moves.
+  const environmentIntensity = 0.27;
   try {
     const envSky = createSkyDome(ctx.config, dir);
     const envTex = buildSkyEnvironment(ctx.renderer, envSky.createEnvMaterial());

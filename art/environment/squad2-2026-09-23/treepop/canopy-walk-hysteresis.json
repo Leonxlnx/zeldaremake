@@ -1,0 +1,650 @@
+{
+ "from": [
+  1.4,
+  6
+ ],
+ "to": [
+  1.5,
+  -38
+ ],
+ "steps": 45,
+ "settle": 2,
+ "rows": [
+  {
+   "step": 0,
+   "at": [
+    1.4,
+    6
+   ],
+   "activeLobes": 227,
+   "slotOverflow": 163,
+   "slots": 64,
+   "farthestShownM": 17.3,
+   "shown": 79,
+   "entered": 0,
+   "left": 0
+  },
+  {
+   "step": 1,
+   "at": [
+    1.4,
+    5
+   ],
+   "activeLobes": 227,
+   "slotOverflow": 163,
+   "slots": 64,
+   "farthestShownM": 16.9,
+   "shown": 79,
+   "entered": 0,
+   "left": 0
+  },
+  {
+   "step": 2,
+   "at": [
+    1.4,
+    4
+   ],
+   "activeLobes": 227,
+   "slotOverflow": 163,
+   "slots": 64,
+   "farthestShownM": 16.6,
+   "shown": 79,
+   "entered": 0,
+   "left": 0
+  },
+  {
+   "step": 3,
+   "at": [
+    1.4,
+    3
+   ],
+   "activeLobes": 227,
+   "slotOverflow": 163,
+   "slots": 64,
+   "farthestShownM": 16.8,
+   "shown": 79,
+   "entered": 0,
+   "left": 0
+  },
+  {
+   "step": 4,
+   "at": [
+    1.4,
+    2
+   ],
+   "activeLobes": 227,
+   "slotOverflow": 163,
+   "slots": 64,
+   "farthestShownM": 17.6,
+   "shown": 79,
+   "entered": 0,
+   "left": 0
+  },
+  {
+   "step": 5,
+   "at": [
+    1.4,
+    1
+   ],
+   "activeLobes": 229,
+   "slotOverflow": 165,
+   "slots": 64,
+   "farthestShownM": 18.4,
+   "shown": 79,
+   "entered": 0,
+   "left": 0
+  },
+  {
+   "step": 6,
+   "at": [
+    1.4,
+    0
+   ],
+   "activeLobes": 233,
+   "slotOverflow": 169,
+   "slots": 64,
+   "farthestShownM": 17.6,
+   "shown": 79,
+   "entered": 2,
+   "left": 2
+  },
+  {
+   "step": 7,
+   "at": [
+    1.4,
+    -1
+   ],
+   "activeLobes": 231,
+   "slotOverflow": 167,
+   "slots": 64,
+   "farthestShownM": 18.1,
+   "shown": 79,
+   "entered": 3,
+   "left": 3
+  },
+  {
+   "step": 8,
+   "at": [
+    1.4,
+    -2
+   ],
+   "activeLobes": 231,
+   "slotOverflow": 167,
+   "slots": 64,
+   "farthestShownM": 18.7,
+   "shown": 79,
+   "entered": 1,
+   "left": 1
+  },
+  {
+   "step": 9,
+   "at": [
+    1.4,
+    -3
+   ],
+   "activeLobes": 234,
+   "slotOverflow": 170,
+   "slots": 64,
+   "farthestShownM": 19.1,
+   "shown": 79,
+   "entered": 3,
+   "left": 3
+  },
+  {
+   "step": 10,
+   "at": [
+    1.4,
+    -4
+   ],
+   "activeLobes": 237,
+   "slotOverflow": 173,
+   "slots": 64,
+   "farthestShownM": 19.2,
+   "shown": 79,
+   "entered": 2,
+   "left": 2
+  },
+  {
+   "step": 11,
+   "at": [
+    1.4,
+    -5
+   ],
+   "activeLobes": 237,
+   "slotOverflow": 173,
+   "slots": 64,
+   "farthestShownM": 19.5,
+   "shown": 79,
+   "entered": 4,
+   "left": 4
+  },
+  {
+   "step": 12,
+   "at": [
+    1.4,
+    -6
+   ],
+   "activeLobes": 241,
+   "slotOverflow": 177,
+   "slots": 64,
+   "farthestShownM": 19.7,
+   "shown": 79,
+   "entered": 2,
+   "left": 2
+  },
+  {
+   "step": 13,
+   "at": [
+    1.4,
+    -7
+   ],
+   "activeLobes": 241,
+   "slotOverflow": 177,
+   "slots": 64,
+   "farthestShownM": 19.4,
+   "shown": 79,
+   "entered": 3,
+   "left": 3
+  },
+  {
+   "step": 14,
+   "at": [
+    1.4,
+    -8
+   ],
+   "activeLobes": 243,
+   "slotOverflow": 179,
+   "slots": 64,
+   "farthestShownM": 19.7,
+   "shown": 79,
+   "entered": 3,
+   "left": 3
+  },
+  {
+   "step": 15,
+   "at": [
+    1.4,
+    -9
+   ],
+   "activeLobes": 241,
+   "slotOverflow": 177,
+   "slots": 64,
+   "farthestShownM": 19.9,
+   "shown": 79,
+   "entered": 6,
+   "left": 6
+  },
+  {
+   "step": 16,
+   "at": [
+    1.4,
+    -10
+   ],
+   "activeLobes": 234,
+   "slotOverflow": 170,
+   "slots": 64,
+   "farthestShownM": 20.2,
+   "shown": 79,
+   "entered": 3,
+   "left": 3
+  },
+  {
+   "step": 17,
+   "at": [
+    1.4,
+    -11
+   ],
+   "activeLobes": 234,
+   "slotOverflow": 170,
+   "slots": 64,
+   "farthestShownM": 20.1,
+   "shown": 79,
+   "entered": 5,
+   "left": 5
+  },
+  {
+   "step": 18,
+   "at": [
+    1.4,
+    -12
+   ],
+   "activeLobes": 235,
+   "slotOverflow": 171,
+   "slots": 64,
+   "farthestShownM": 20.4,
+   "shown": 79,
+   "entered": 3,
+   "left": 3
+  },
+  {
+   "step": 19,
+   "at": [
+    1.4,
+    -13
+   ],
+   "activeLobes": 239,
+   "slotOverflow": 175,
+   "slots": 64,
+   "farthestShownM": 20.4,
+   "shown": 79,
+   "entered": 3,
+   "left": 3
+  },
+  {
+   "step": 20,
+   "at": [
+    1.4,
+    -14
+   ],
+   "activeLobes": 237,
+   "slotOverflow": 173,
+   "slots": 64,
+   "farthestShownM": 21.3,
+   "shown": 79,
+   "entered": 2,
+   "left": 2
+  },
+  {
+   "step": 21,
+   "at": [
+    1.4,
+    -15
+   ],
+   "activeLobes": 240,
+   "slotOverflow": 176,
+   "slots": 64,
+   "farthestShownM": 22.2,
+   "shown": 79,
+   "entered": 4,
+   "left": 4
+  },
+  {
+   "step": 22,
+   "at": [
+    1.5,
+    -16
+   ],
+   "activeLobes": 236,
+   "slotOverflow": 172,
+   "slots": 64,
+   "farthestShownM": 20.8,
+   "shown": 79,
+   "entered": 2,
+   "left": 2
+  },
+  {
+   "step": 23,
+   "at": [
+    1.5,
+    -17
+   ],
+   "activeLobes": 232,
+   "slotOverflow": 168,
+   "slots": 64,
+   "farthestShownM": 21.6,
+   "shown": 79,
+   "entered": 0,
+   "left": 0
+  },
+  {
+   "step": 24,
+   "at": [
+    1.5,
+    -18
+   ],
+   "activeLobes": 234,
+   "slotOverflow": 170,
+   "slots": 64,
+   "farthestShownM": 22.5,
+   "shown": 79,
+   "entered": 3,
+   "left": 3
+  },
+  {
+   "step": 25,
+   "at": [
+    1.5,
+    -19
+   ],
+   "activeLobes": 229,
+   "slotOverflow": 165,
+   "slots": 64,
+   "farthestShownM": 22.7,
+   "shown": 79,
+   "entered": 4,
+   "left": 4
+  },
+  {
+   "step": 26,
+   "at": [
+    1.5,
+    -20
+   ],
+   "activeLobes": 231,
+   "slotOverflow": 167,
+   "slots": 64,
+   "farthestShownM": 23.6,
+   "shown": 79,
+   "entered": 0,
+   "left": 0
+  },
+  {
+   "step": 27,
+   "at": [
+    1.5,
+    -21
+   ],
+   "activeLobes": 226,
+   "slotOverflow": 162,
+   "slots": 64,
+   "farthestShownM": 21.7,
+   "shown": 79,
+   "entered": 5,
+   "left": 5
+  },
+  {
+   "step": 28,
+   "at": [
+    1.5,
+    -22
+   ],
+   "activeLobes": 228,
+   "slotOverflow": 164,
+   "slots": 64,
+   "farthestShownM": 22.7,
+   "shown": 79,
+   "entered": 2,
+   "left": 2
+  },
+  {
+   "step": 29,
+   "at": [
+    1.5,
+    -23
+   ],
+   "activeLobes": 217,
+   "slotOverflow": 153,
+   "slots": 64,
+   "farthestShownM": 23.6,
+   "shown": 79,
+   "entered": 2,
+   "left": 2
+  },
+  {
+   "step": 30,
+   "at": [
+    1.5,
+    -24
+   ],
+   "activeLobes": 221,
+   "slotOverflow": 157,
+   "slots": 64,
+   "farthestShownM": 24.5,
+   "shown": 79,
+   "entered": 1,
+   "left": 1
+  },
+  {
+   "step": 31,
+   "at": [
+    1.5,
+    -25
+   ],
+   "activeLobes": 220,
+   "slotOverflow": 156,
+   "slots": 64,
+   "farthestShownM": 25.5,
+   "shown": 79,
+   "entered": 2,
+   "left": 2
+  },
+  {
+   "step": 32,
+   "at": [
+    1.5,
+    -26
+   ],
+   "activeLobes": 215,
+   "slotOverflow": 151,
+   "slots": 64,
+   "farthestShownM": 26.4,
+   "shown": 79,
+   "entered": 4,
+   "left": 4
+  },
+  {
+   "step": 33,
+   "at": [
+    1.5,
+    -27
+   ],
+   "activeLobes": 215,
+   "slotOverflow": 151,
+   "slots": 64,
+   "farthestShownM": 27.3,
+   "shown": 79,
+   "entered": 3,
+   "left": 3
+  },
+  {
+   "step": 34,
+   "at": [
+    1.5,
+    -28
+   ],
+   "activeLobes": 213,
+   "slotOverflow": 149,
+   "slots": 64,
+   "farthestShownM": 28.3,
+   "shown": 79,
+   "entered": 2,
+   "left": 2
+  },
+  {
+   "step": 35,
+   "at": [
+    1.5,
+    -29
+   ],
+   "activeLobes": 209,
+   "slotOverflow": 145,
+   "slots": 64,
+   "farthestShownM": 29.3,
+   "shown": 79,
+   "entered": 1,
+   "left": 1
+  },
+  {
+   "step": 36,
+   "at": [
+    1.5,
+    -30
+   ],
+   "activeLobes": 208,
+   "slotOverflow": 144,
+   "slots": 64,
+   "farthestShownM": 30.2,
+   "shown": 79,
+   "entered": 3,
+   "left": 3
+  },
+  {
+   "step": 37,
+   "at": [
+    1.5,
+    -31
+   ],
+   "activeLobes": 201,
+   "slotOverflow": 137,
+   "slots": 64,
+   "farthestShownM": 31.2,
+   "shown": 79,
+   "entered": 1,
+   "left": 1
+  },
+  {
+   "step": 38,
+   "at": [
+    1.5,
+    -32
+   ],
+   "activeLobes": 199,
+   "slotOverflow": 135,
+   "slots": 64,
+   "farthestShownM": 32.1,
+   "shown": 79,
+   "entered": 2,
+   "left": 2
+  },
+  {
+   "step": 39,
+   "at": [
+    1.5,
+    -33
+   ],
+   "activeLobes": 190,
+   "slotOverflow": 126,
+   "slots": 64,
+   "farthestShownM": 33.1,
+   "shown": 79,
+   "entered": 2,
+   "left": 2
+  },
+  {
+   "step": 40,
+   "at": [
+    1.5,
+    -34
+   ],
+   "activeLobes": 185,
+   "slotOverflow": 121,
+   "slots": 64,
+   "farthestShownM": 34.1,
+   "shown": 79,
+   "entered": 2,
+   "left": 2
+  },
+  {
+   "step": 41,
+   "at": [
+    1.5,
+    -35
+   ],
+   "activeLobes": 185,
+   "slotOverflow": 121,
+   "slots": 64,
+   "farthestShownM": 35.1,
+   "shown": 79,
+   "entered": 2,
+   "left": 2
+  },
+  {
+   "step": 42,
+   "at": [
+    1.5,
+    -36
+   ],
+   "activeLobes": 181,
+   "slotOverflow": 117,
+   "slots": 64,
+   "farthestShownM": 36.1,
+   "shown": 79,
+   "entered": 2,
+   "left": 2
+  },
+  {
+   "step": 43,
+   "at": [
+    1.5,
+    -37
+   ],
+   "activeLobes": 177,
+   "slotOverflow": 113,
+   "slots": 64,
+   "farthestShownM": 37,
+   "shown": 79,
+   "entered": 3,
+   "left": 3
+  },
+  {
+   "step": 44,
+   "at": [
+    1.5,
+    -38
+   ],
+   "activeLobes": 176,
+   "slotOverflow": 112,
+   "slots": 64,
+   "farthestShownM": 38,
+   "shown": 79,
+   "entered": 3,
+   "left": 3
+  }
+ ],
+ "summary": {
+  "overflowSteps": 45,
+  "churn": 200,
+  "perStep": 4.545454545454546,
+  "perMetre": 4.545442806206259
+ }
+}

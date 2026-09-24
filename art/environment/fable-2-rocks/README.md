@@ -31,6 +31,73 @@ The branch carries the head `76fef8a6` merged (fable-cursor's rule for squad lan
 (0 / 0 / 11 px at §83's base). Draws and triangles are the head's: **A 599 draws / 9.15 M triangles** — the squad's mid-canopy
 and understory took A from 8.55 M (`73402409`) over W38's 9.0 M ceiling; C 473 / 6.77 M, F 550 / 7.99 M. Not mine to cut;
 flagged to fable-cursor. A frame here now takes ≈ 680 s to render at A (was 350).
+## Iteration 88 — lane 6, the perf pass: the flagstones stop casting shadows — camera A 9.15 → 8.97 M (back under W38's 9.0 M), the frames unchanged (A +0.0001, E 0; 0.1 % of pixels by ≤ 40 levels, hairlines on the joints' sunward sides)
+
+fable-cursor's 12:55: "perf is next after the owner's visual asks"; my §87 map put the shadow pass at 3.03 M of A's 9.15 M
+and hardscape's at 0.23 M. The paving's share of that is a shadow-pass draw of the whole plaza + north + expansion meshes for
+slabs that stand 6–10 cm proud of a fill the shader already paints dark (the seam soil, the stain band, the mottle): each
+slab's own shadow bought a hairline on the sunward side of its joint. `flagstones.ts`: `mesh.castShadow = false` (the north
+and expansion meshes copy the flag; the stairs, kerbs, cheeks and the timbers keep casting).
+
+Before `be123deb` → after `ad0b3f68` (`paving88-noshadow-sheet.jpg`: E's and A's plaza foreground ×2.5, before | after | changed
+pixels):
+
+| view | before | after | Δ | changed px (> 8 / > 40) | draws / triangles |
+|---|---|---|---|---|---|
+| A_stairs | 0.2035 | 0.2036 | +0.0001 | 1 098 / 0 (0.12 %) | 597 / 9.15 M → 596 / **8.97 M** (−180 K) |
+| E_ground (≡ B) | 0.1946 | 0.1946 | 0 | 779 / 0 (0.08 %) | 589 / 8.30 M → 588 / 8.11 M (−190 K) |
+| C_lookback | 0.1794 | 0.1795 | +0.0001 | 1 003 / 0 (0.11 %) | 472 / 6.77 M → 471 / 6.59 M (−180 K) |
+| D_log | 0.2430 | 0.2430 | 0 | 343 / 0 (0.04 %) | 557 / 8.53 M → 556 / 8.34 M (−190 K) |
+| F_canopy | 0.2159 | 0.2160 | +0.0001 | 1 178 / 1 (0.13 %) | 547 / 7.99 M → 546 / 7.81 M (−180 K) |
+
+`tsc` green, hardscape tests 9 / 9. The joints keep their darkness (the fill's paint, not the slabs' shadow); at A the only
+pixels that move are the hairlines along the sunward edges, none by more than 40 levels.
+## Iteration 92 — lane 6: the log flight's angular dark joins closed by geometry (`agent/fable-2-log-joint` @ `78d18fe1`)
+
+fable-cursor 18:10 (Astra's `s2-join-close`, PR #2 18:04): "large dark angular recesses under successive log nosings — the central
+wedges ≈ (675, 245) and (660, 423) — fix the geometry / normal / material / shadow cause, not the tone." Diagnosed on the CPU with a
+ray through the owner's camera into the flight's own builder (production seed and forks, `/tmp/f2/ray92.mjs`), then rendered at the
+same pose. Three causes, all stone-flight devices that are wrong in kind under a timber; the fix is `logNosed`-only in `stairs.ts`,
+the stone flights (house-west, expansion) are byte-identical, and every rng draw is taken in the stream's order so the log flight's
+composition — outlines, noses, tones, riser splits — is the one the head had:
+
+1. **The central wedges are the split treads' joints.** One tread in five is cut as two stones with a 2–4 cm joint (the pieces'
+   corner chips up to 9 cm either side of it). The ray at (676, 245) landed on step 5's tread 5 cm behind its nose on a wall facing
+   *across* the run — the far piece's joint wall, unlit — where the ray at (750, 245) beside it hits the front wall. Under the log the
+   joint is a black slot with a chipped, angular outline. Now: both pieces are still cut (the draws), their outlines are **joined**
+   across the joint (`joinOutlines`: each piece's joint end with its chips dropped, the two runs chained) and one earth tread is laid.
+2. **The recess under the slab.** Round 31's stone flight overhangs its riser by 7.5–10.5 cm ("a lit lip over a deep shadow line").
+   Under a log what showed beneath the belly was the overhang's unlit ceiling and the riser face in the dark. Now the log flight's
+   riser stands **3 cm behind the nose line** (0–5 cm under the slab's wandering edge, never proud of it by more than a chip) — the
+   face runs straight down from the timber to the tread below, as earth retained by a log does. The outline is cut at the stone depth
+   (jitteredRect's segment count follows the aspect, so the draws are the stream's) and stretched forward.
+3. **The rolled lip inside the log.** The 5–7 cm quarter-round with its shoulder 9–13 cm back sat inside the log's girth and peeked
+   out under the thinner logs as the "ragged white sliver" fable-cursor's pass 3 hid with `LOG_SHADED_LIP = 0.5`. A log tread has a
+   **1.2 cm edge** instead (no roll, no shoulder push-back) and the tone is gone, as asked.
+
+`stairs.test.mjs` (new, 4 tests): the stone build and the log build of the main flight share tones, noses and unsplit outlines; the
+riser stands within 5 cm of the nose under a timber and 4–11 cm behind it on stone; the log tread's top ring sits on its wall while
+the stone's shoulder is 5–18 cm back; no wall faces across the run inside the flanks on the log flight (the stone split's joint walls
+are the positive control). 97 / 97 tests. Draws and triangles unchanged on every view (A 692 / 8.87 M).
+
+| pose | before (head `393fce60`) | after `78d18fe1` |
+|---|---|---|
+| s2-join-close wedge 1 (658–694 × 234–256) / the face beside it | l 0.164 (flat) / 0.423 → contrast 0.39 | 0.277 / 0.300 → 0.92 (one textured face) |
+| s2-join-close wedge 2 (640–700 × 405–430) / beside | 0.217 / 0.317 → 0.68 | 0.255 / 0.260 → 0.98 |
+| s2-join-close dark blobs (l < 0.21, ≥ 300 px) | 41 | 34 |
+| s2-owner flight box dark / mean l | 42.3 % / 0.283 | 40.6 % / 0.288 |
+| pixels > 8 levels: join-close / ends-right / ends-left / owner / ledge foot | — | 36.6 / 16.2 / 17.8 / 9.0 / 16.5 % |
+
+Six views against the same head (`/tmp/cap92-base` → `/tmp/cap92-d`): **A −0.0008, B 0, C +0.0004, D 0, E 0, F −0.0007**; pixels > 8
+levels A 1.33 %, C 0.34 %, F 1.47 %, B/D/E 0. Determinism 0.00 %. A's flight box 34.9 → 34.7 % dark, mean l 0.303 → 0.306.
+
+Two wrong turns on the way, for the record: the first cut (riser forward with the outline cut at the new depth) *looked* right at the
+pose and was luck — jitteredRect's segment count changed with the depth, the stream diverged, and those treads simply were not split
+any more; the ray probe found the true cause. And §90's cooler earth tint was measured (A −0.0120 vs the warm cut's −0.0131: the SSIM
+cost is the band pattern, not the hue) after fable-cursor had already taken the warm cut at 17:20 — not needed.
+
+![join close pair](steps92-join-close-pair.jpg)
+![poses](steps92-poses-sheet.jpg)
 ## Iteration 90 — the earth under the timbers, cooler (`23464406`; the warm cut stays at `3cc8ca96`)
 
 Pre-empting the likely reply to §89 ("a cooler earth under the timbers first"): the riser-band and tread-wall earth tinted toward the

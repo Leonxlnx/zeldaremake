@@ -1,0 +1,254 @@
+[
+ {
+  "pick": [
+   0.5,
+   0.5
+  ],
+  "distance": 18.11,
+  "world": [
+   1.5,
+   22.58,
+   -40.27
+  ],
+  "hits": [
+   {
+    "name": "column-col-2-328830636-high@-1.000,-35.500",
+    "instance": 0,
+    "materials": [
+     "MeshStandardMaterial"
+    ],
+    "volume": 3153.9
+   },
+   {
+    "name": "canopy-roof-1",
+    "materials": [
+     "canopy-roof"
+    ],
+    "volume": 10048.9
+   },
+   {
+    "name": "distant-5-near",
+    "instance": 4,
+    "materials": [
+     "MeshStandardMaterial",
+     "distant-crown"
+    ],
+    "volume": 17129.1
+   },
+   {
+    "name": "distant-5-near",
+    "instance": 3,
+    "materials": [
+     "MeshStandardMaterial",
+     "distant-crown"
+    ],
+    "volume": 18291.7
+   },
+   {
+    "name": "canopy-roof-0",
+    "materials": [
+     "canopy-roof"
+    ],
+    "volume": 19979
+   },
+   {
+    "name": "distant-0-near",
+    "instance": 3,
+    "materials": [
+     "MeshStandardMaterial",
+     "distant-crown"
+    ],
+    "volume": 42766.4
+   },
+   {
+    "name": "distant-1-near",
+    "instance": 0,
+    "materials": [
+     "MeshStandardMaterial",
+     "distant-crown"
+    ],
+    "volume": 51345.6
+   },
+   {
+    "name": "giants-canopy-0-lantern-tree+north-west-near+north-west+north-east",
+    "materials": [
+     "MeshStandardMaterial"
+    ],
+    "volume": 68562.7
+   },
+   {
+    "name": "distant-1-near",
+    "instance": 2,
+    "materials": [
+     "MeshStandardMaterial",
+     "distant-crown"
+    ],
+    "volume": 70611
+   },
+   {
+    "name": "giants-canopy-1-plateau-oak+far-plateau+east-giant+stair-bank-giant",
+    "materials": [
+     "MeshStandardMaterial"
+    ],
+    "volume": 72103.2
+   },
+   {
+    "name": "giants-sector-0-lantern-tree+north-west-near+north-west+north-east",
+    "materials": [
+     "MeshStandardMaterial",
+     "MeshStandardMaterial",
+     "MeshStandardMaterial",
+     "MeshStandardMaterial",
+     "MeshStandardMaterial",
+     "MeshStandardMaterial",
+     "MeshStandardMaterial",
+     "MeshStandardMaterial",
+     "MeshStandardMaterial",
+     "MeshStandardMaterial",
+     "MeshStandardMaterial",
+     "MeshStandardMaterial"
+    ],
+    "volume": 79111.1
+   },
+   {
+    "name": "giants-sector-1-plateau-oak+far-plateau+east-giant+stair-bank-giant",
+    "materials": [
+     "MeshStandardMaterial",
+     "MeshStandardMaterial",
+     "MeshStandardMaterial",
+     "MeshStandardMaterial",
+     "MeshStandardMaterial",
+     "MeshStandardMaterial",
+     "MeshStandardMaterial",
+     "MeshStandardMaterial",
+     "MeshStandardMaterial",
+     "MeshStandardMaterial",
+     "MeshStandardMaterial",
+     "MeshStandardMaterial"
+    ],
+    "volume": 80851.7
+   }
+  ]
+ },
+ {
+  "pick": [
+   0.3,
+   0.35
+  ],
+  "distance": 21.74,
+  "world": [
+   -4.74,
+   25.55,
+   -38.12
+  ],
+  "hits": [
+   {
+    "name": "canopy-roof-1",
+    "materials": [
+     "canopy-roof"
+    ],
+    "volume": 10048.9
+   },
+   {
+    "name": "distant-5-near",
+    "instance": 1,
+    "materials": [
+     "MeshStandardMaterial",
+     "distant-crown"
+    ],
+    "volume": 16532.3
+   },
+   {
+    "name": "distant-5-near",
+    "instance": 4,
+    "materials": [
+     "MeshStandardMaterial",
+     "distant-crown"
+    ],
+    "volume": 17129.1
+   },
+   {
+    "name": "distant-5-near",
+    "instance": 3,
+    "materials": [
+     "MeshStandardMaterial",
+     "distant-crown"
+    ],
+    "volume": 18291.7
+   },
+   {
+    "name": "canopy-roof-0",
+    "materials": [
+     "canopy-roof"
+    ],
+    "volume": 19979
+   },
+   {
+    "name": "distant-5-near",
+    "instance": 2,
+    "materials": [
+     "MeshStandardMaterial",
+     "distant-crown"
+    ],
+    "volume": 19997
+   },
+   {
+    "name": "distant-0-near",
+    "instance": 3,
+    "materials": [
+     "MeshStandardMaterial",
+     "distant-crown"
+    ],
+    "volume": 42766.4
+   },
+   {
+    "name": "giants-canopy-0-lantern-tree+north-west-near+north-west+north-east",
+    "materials": [
+     "MeshStandardMaterial"
+    ],
+    "volume": 68562.7
+   },
+   {
+    "name": "distant-1-near",
+    "instance": 2,
+    "materials": [
+     "MeshStandardMaterial",
+     "distant-crown"
+    ],
+    "volume": 70611
+   },
+   {
+    "name": "giants-sector-0-lantern-tree+north-west-near+north-west+north-east",
+    "materials": [
+     "MeshStandardMaterial",
+     "MeshStandardMaterial",
+     "MeshStandardMaterial",
+     "MeshStandardMaterial",
+     "MeshStandardMaterial",
+     "MeshStandardMaterial",
+     "MeshStandardMaterial",
+     "MeshStandardMaterial",
+     "MeshStandardMaterial",
+     "MeshStandardMaterial",
+     "MeshStandardMaterial",
+     "MeshStandardMaterial"
+    ],
+    "volume": 79111.1
+   },
+   {
+    "name": "sky",
+    "materials": [
+     "kokiri-sky"
+    ],
+    "volume": 3796416000
+   }
+  ]
+ },
+ {
+  "pick": [
+   0.7,
+   0.6
+  ],
+  "sky": true
+ }
+]

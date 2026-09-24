@@ -580,6 +580,12 @@ export interface GiantOptions {
   sunDir?: Vector3;
   /** 0–1 path / paving mask under local (x, z): near fins shrink and sink there, nothing grows on it */
   pathAt?: (x: number, z: number) => number;
+  /**
+   * 0–1 paving under local (x, z) that the FAR tree's plain and side roots dive under (the
+   * slabs laid over them; they surface again past its edge). Unset: they ride the ground
+   * everywhere, as every giant's did before round 56's south paving (trees index).
+   */
+  rootPressAt?: (x: number, z: number) => number;
   /** near-base plant colours (the palette's ferns / ground leaves / litter) */
   basePalette?: Parameters<typeof basePlants>[2]['palette'];
   /**
@@ -812,6 +818,8 @@ export function createGiantTree(def: GiantTreeDef, rng: Rng, o: GiantOptions): G
       const dive = smoothstep(0, 0.45, t);
       p.y = (1 - dive) * (collar * (1 - t * 0.8) + g) + dive * (g + radius * 0.4);
       if (k === segments) p.y = g - 0.25;
+      const pressed = o.rootPressAt ? smoothstep(0.15, 0.6, o.rootPressAt(p.x, p.z)) : 0;
+      if (pressed > 0) p.y = Math.min(p.y, p.y + (g - radius * 1.25 - 0.05 - p.y) * pressed);
       path.push(p);
       radii.push(radius);
     }
@@ -858,6 +866,8 @@ export function createGiantTree(def: GiantTreeDef, rng: Rng, o: GiantOptions): G
         const g = o.groundAt(p.x, p.z);
         p.y = k === 0 ? origin.y : g + rad * 0.35 * (1 - t) - 0.05 * t;
         if (k === n) p.y = g - 0.15;
+        const pressed = o.rootPressAt ? smoothstep(0.15, 0.6, o.rootPressAt(p.x, p.z)) : 0;
+        if (pressed > 0) p.y = Math.min(p.y, p.y + (g - rad * 1.25 - 0.05 - p.y) * pressed);
         sp.push(p);
         sr.push(rad);
       }

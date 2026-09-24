@@ -37,20 +37,25 @@ const { buildLogNosings, LOG_FLIGHTS, LOG_RADIUS, LOG_PROUD_R, STAIR_LOGS } = lo
 const { stairFrame, worldToStair } = loadTs(path.join(here, 'stairs.ts'));
 const { LAYOUT } = loadTs(path.join(here, '../layout.ts'));
 
-const main = LAYOUT.stairs.find((s) => s.id === 'main');
+// 2026-09-23 23:00: the hero flight went back to stone (the owner's own reference for it is the
+// real game's stone stairway); the ledge flight is the one the timbers belong to — ref-03's right
+// bank and the demo's `d_094` / `d_104`.
+const main = LAYOUT.stairs.find((s) => s.id === 'ledge');
 const build = buildLogNosings(main, 'test-seed');
 const f = stairFrame(main);
 
-test('the hero flight takes the logs: one timber per riser, stakes where needed (not a fence rhythm), one mesh', () => {
+test('the log flight takes the logs: one timber per riser, stakes where needed (not a fence rhythm), one mesh', () => {
   assert.equal(STAIR_LOGS, true);
-  assert.ok(LOG_FLIGHTS.has('main'));
+  assert.ok(LOG_FLIGHTS.has('ledge'));
+  assert.ok(!LOG_FLIGHTS.has('main'), 'the hero flight is stone');
   assert.equal(build.logs, main.steps);
   // 2026-09-23 (owner: the flight's "odd repeated pattern"): stakes no longer stand in a pair at every
   // second riser — most even steps and an odd one now and then, an end that sat firm gets none
   assert.ok(build.stakes >= main.steps * 0.6 && build.stakes <= main.steps * 1.2 && build.stakes !== Math.ceil(main.steps / 2) * 2, `${build.stakes} stakes`);
   for (const name of ['position', 'normal', 'uv', 'color']) assert.ok(build.geometry.attributes[name], `attribute ${name}`);
   assert.ok(build.geometry.index, 'indexed');
-  assert.ok(build.triangles > 10000 && build.triangles < 40000, `${build.triangles} triangles`);
+  // per riser, so the bound means the same on whichever flight carries the timbers
+  assert.ok(build.triangles > 500 * main.steps && build.triangles < 2000 * main.steps, `${build.triangles} triangles over ${main.steps} steps`);
 });
 
 test('every timber rides its step: crown above the tread top, the log across the whole width and past both flanks', () => {
@@ -92,7 +97,7 @@ test('the crowns carry moss and the undersides are darker; the build is determin
     if (ny > 0.7) (upG += C.getY(v) - (C.getX(v) + C.getZ(v)) / 2), upN++;
     else if (ny < -0.7) (downL += l), downN++;
   }
-  assert.ok(upN > 500 && downN > 500, `up ${upN} / down ${downN} vertices`);
+  assert.ok(upN > 60 * main.steps && downN > 60 * main.steps, `up ${upN} / down ${downN} vertices over ${main.steps} steps`);
   assert.ok(upG / upN > 0.02, `the crowns lean green: mean G − (R+B)/2 = ${(upG / upN).toFixed(3)}`);
   assert.ok(downL / downN < 1.0, `the undersides are not lifted: mean l ${(downL / downN).toFixed(3)}`);
   const again = buildLogNosings(main, 'test-seed');

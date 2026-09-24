@@ -83,9 +83,12 @@ export interface Npcs {
    * ledge idle / bank idle); writes the actor's pos, yaw, contact and shadow. False = no
    * behaviour, the caller poses it as before. Under capture (`view` true) the wander and the
    * seat stand aside for the per-view placement (false), the ledge girl is posed on her spot but
-   * hidden, and the bank girl stays (she is outside every fixed frustum).
+   * hidden, and the bank girl stays (she is outside every fixed frustum). With `player` (Link's
+   * root, ground-relative x / z) the posed kid notices him (`noticePlayer`); capture passes none.
    */
-  drive(slot: number, actor: NpcActor, t: number, view?: boolean): boolean;
+  drive(slot: number, actor: NpcActor, t: number, view?: boolean, player?: Vector3 | null): boolean;
+  /** the notice for a kid the caller posed itself (the boy at the door): after its pose, before the fairies */
+  notice(rig: Rig, actor: NpcActor, player: Vector3, walk?: number): void;
   /** after every kid is posed: move the fairies to their faces (the walker's with a lag) */
   updateFairies(t: number): void;
   /** audit fields (`npcCount`, `npcWaypoints`, `npcSitting`, `npc` details) */
@@ -293,23 +296,32 @@ function poseWander(rig: Rig, s: WanderState, t: number, phase: number): void {
   const tl = tri(s.phi);
   const sn = Math.sin(s.phi);
   const cs = Math.cos(s.phi);
-  // idle: weight shift, breathing, a small sway
+  // idle: weight shift, breathing, a small sway. Owner 23:00 ("look a bit better" at 2–6 m — a
+  // held pose reads as a mannequin): the shift is 2.5 cm with a 0.05 rad lean and a slow yaw sway
+  // through the torso (round 47's 1 cm / 0.025 rad moved a pixel at 4 m), the breath 8 mm.
   const s1 = Math.sin(t * 0.45 + phase);
   const s2 = Math.sin(t * 0.31 + phase * 1.7);
+  const s3 = Math.sin(t * 0.19 + phase * 0.6);
   const breath = Math.sin(t * Math.PI * 2 * 0.3 + phase);
-  r.hips.position.x += 0.01 * s1 * idle + 0.012 * sn * w;
-  r.hips.rotation.z = -0.025 * s1 * idle + 0.035 * sn * w;
-  r.hips.rotation.y = 0.04 * s2 * idle + 0.09 * tl * w;
-  r.chest.position.y += 0.004 * breath * idle + 0.005 * Math.cos(2 * s.phi) * w;
-  r.chest.rotation.x = 0.02 + 0.012 * breath * idle + 0.045 * w;
-  r.chest.rotation.y = -0.02 * s2 * idle - 0.06 * tl * w;
+  // the weight shift moves the hips over planted feet: the thighs tilt back by the shift over the leg
+  // (below), so the soles stay where they are and the body leans, instead of the whole kid sliding
+  const shift = 0.025 * s1 * idle;
+  const legLen = r.props.hipY - r.props.ankleY;
+  r.hips.position.x += shift + 0.012 * sn * w;
+  r.hips.rotation.z = -0.05 * s1 * idle + 0.035 * sn * w;
+  r.hips.rotation.y = (0.04 * s2 + 0.05 * s3) * idle + 0.09 * tl * w;
+  r.chest.position.y += 0.008 * breath * idle + 0.005 * Math.cos(2 * s.phi) * w;
+  r.chest.rotation.x = 0.02 + 0.02 * breath * idle + 0.045 * w;
+  r.chest.rotation.y = (-0.02 * s2 - 0.03 * s3) * idle - 0.06 * tl * w;
+  r.chest.rotation.z = 0.02 * s1 * idle;
   // legs: the stance leg sweeps back at a near-constant rate (tri); the swing leg lifts its knee early
   const thetaL = AMP * w * tl;
   const thetaR = -thetaL;
   const kneeL = 0.05 + 1.15 * w * Math.max(0, cs) * (0.55 - 0.45 * sn);
   const kneeR = 0.05 + 1.15 * w * Math.max(0, -cs) * (0.55 + 0.45 * sn);
-  r.thighL.rotation.set(-thetaL + 0.02 * idle, 0, 0.05 + 0.01 * s1 * idle);
-  r.thighR.rotation.set(-thetaR + 0.02 * idle, 0, -0.05 + 0.01 * s1 * idle);
+  // the legs stay vertical under the pelvis' lean (+0.05 s1 cancels the hips' −0.05 s1) and tilt back by the shift
+  r.thighL.rotation.set(-thetaL + 0.02 * idle, 0, 0.05 + 0.06 * s1 * idle - shift / legLen);
+  r.thighR.rotation.set(-thetaR + 0.02 * idle, 0, -0.05 + 0.06 * s1 * idle - shift / legLen);
   r.kneeL.rotation.x = kneeL;
   r.kneeR.rotation.x = kneeR;
   // turn shuffle: alternate small steps in place
@@ -325,12 +337,14 @@ function poseWander(rig: Rig, s: WanderState, t: number, phase: number): void {
   // feet level with the ground (the sole marker plants), toe-off at the end of stance
   r.ankleL.rotation.set(-(r.thighL.rotation.x + r.kneeL.rotation.x) * 0.72 - 0.05 * idle + 0.14 * w * Math.max(0, -Math.sin(s.phi + 0.5)), 0, -r.thighL.rotation.z);
   r.ankleR.rotation.set(-(r.thighR.rotation.x + r.kneeR.rotation.x) * 0.72 - 0.05 * idle + 0.14 * w * Math.max(0, Math.sin(s.phi + 0.5)), 0, -r.thighR.rotation.z);
-  // arms: relaxed at the sides when standing; a slow, small contralateral swing walking
+  // arms: standing, the upper arm hangs a touch back and the elbow bends so the hand rests forward by
+  // the hip (owner 23:00 — a straight arm at the side read as a doll's); a slow, small contralateral
+  // swing walking, the bend easing toward the swing's
   const arm = 0.3 * w;
-  r.shoulderL.rotation.set(-0.05 * idle + 0.03 * Math.sin(t * 0.7 + phase) * idle + arm * tl, 0, 0.13);
-  r.shoulderR.rotation.set(-0.05 * idle - 0.03 * Math.sin(t * 0.7 + phase + 0.5) * idle - arm * tl, 0, -0.13);
-  r.elbowL.rotation.x = -0.2 - 0.25 * w - 0.2 * w * Math.max(0, -tl);
-  r.elbowR.rotation.x = -0.22 - 0.25 * w - 0.2 * w * Math.max(0, tl);
+  r.shoulderL.rotation.set(0.04 * idle + 0.03 * Math.sin(t * 0.7 + phase) * idle + arm * tl, 0, 0.13);
+  r.shoulderR.rotation.set(0.04 * idle - 0.03 * Math.sin(t * 0.7 + phase + 0.5) * idle - arm * tl, 0, -0.13);
+  r.elbowL.rotation.x = -0.2 - 0.26 * idle - 0.02 * Math.sin(t * 0.61 + phase) * idle - 0.25 * w - 0.2 * w * Math.max(0, -tl);
+  r.elbowR.rotation.x = -0.22 - 0.24 * idle - 0.02 * Math.sin(t * 0.61 + phase + 0.9) * idle - 0.25 * w - 0.2 * w * Math.max(0, tl);
   // head: the dwell look-around, a little walk nod, idle drift
   r.neck.rotation.y = s.headYaw + 0.04 * Math.sin(t * 0.37 + phase) * idle;
   r.neck.rotation.x = -s.headPitch + 0.025 * Math.sin(t * 0.53 + phase) * idle - 0.02 * w + 0.02 * Math.cos(2 * s.phi) * w;
@@ -365,6 +379,7 @@ function twoBone(l1: number, l2: number, reach: number, drop: number, midBehind 
 const _tmp = new Vector3();
 const _tmp2 = new Vector3();
 const _off = new Vector3();
+const _head = new Vector3();
 const _fwd = new Vector3();
 const _up = new Vector3(0, 1, 0);
 /** seated pelvis roll (rad): the pelvis tips back a little under a rounded lower back */
@@ -482,6 +497,41 @@ function seatedLook(t: number, phase: number, keys: [number, number, number][], 
     }
   }
   return [0, 0];
+}
+
+// ---- noticing Link (lane 7, 2026-09-23) ----
+
+/** Link within this of a kid: her head starts turning to him; fully on him by NOTICE_NEAR_M */
+const NOTICE_FAR_M = 5.0;
+const NOTICE_NEAR_M = 2.8;
+/** how far the neck turns (rad); past it the turn fades out over 0.7 rad rather than pinning to the shoulder */
+const NOTICE_YAW_MAX = 1.05;
+/** Link's eyes over his root (the GLB's 1.25 m to the cap) */
+const PLAYER_EYE_M = 1.1;
+
+/**
+ * The kids notice Link: within NOTICE_FAR_M the posed head turns toward him — fully by
+ * NOTICE_NEAR_M, within the neck's range (a fade past NOTICE_YAW_MAX, so someone walking round
+ * behind her is let go, never snapped to), the pitch to his eyes (the bank girl looks down at
+ * him from her terrace) — blended over the pose's own look. A pure function of his position
+ * and hers, so a zero-dt re-render repeats the pose and the play state carries nothing; a
+ * walking kid gives him half the turn. Capture never calls it: the six frames keep their heads.
+ */
+function noticePlayer(rig: Rig, kidX: number, kidZ: number, kidYaw: number, headY: number, playerX: number, playerY: number, playerZ: number, walk = 0): void {
+  const dx = playerX - kidX;
+  const dz = playerZ - kidZ;
+  const dist = Math.hypot(dx, dz);
+  if (dist >= NOTICE_FAR_M) return;
+  const rel = angleTo(kidYaw, Math.atan2(dx, dz));
+  const reach = 1 - smooth((Math.abs(rel) - NOTICE_YAW_MAX) / 0.7);
+  const w = smooth((NOTICE_FAR_M - dist) / (NOTICE_FAR_M - NOTICE_NEAR_M)) * reach * (1 - 0.5 * walk);
+  if (w <= 0) return;
+  const pitch = Math.atan2(playerY + PLAYER_EYE_M - headY, dist);
+  // the neck turns relative to the chest: take the pose's own hips / chest yaw (the idle turn, the walk's counter-rotation) out of the target
+  const body = rig.hips.rotation.y + rig.chest.rotation.y;
+  const n = rig.neck.rotation;
+  n.y += (MathUtils.clamp(rel - body, -NOTICE_YAW_MAX, NOTICE_YAW_MAX) - n.y) * w;
+  n.x += (MathUtils.clamp(-pitch, -0.35, 0.5) - n.x) * w;
 }
 
 // ---- the system ----
@@ -677,10 +727,18 @@ export function createNpcs(opts: NpcOptions): Npcs {
     return hoverAt(_tmp.x, _tmp.y, _tmp.z, c.rig.root.rotation.y, out);
   };
 
+  /** the notice for a posed kid: head height read off the rig, Link's root on the walkable ground */
+  const noticeFor = (rig: Rig, actor: NpcActor, player: Vector3 | null | undefined, walk = 0) => {
+    if (!player) return;
+    rig.root.updateMatrixWorld(true);
+    rig.head.getWorldPosition(_head);
+    noticePlayer(rig, actor.pos.x, actor.pos.z, actor.yaw, _head.y, player.x, ground.height(player.x, player.z), player.z, walk);
+  };
+
   let lastT = 0;
   return {
     group,
-    drive(slot, actor, t, view = false) {
+    drive(slot, actor, t, view = false, player = null) {
       lastT = t;
       if (slot === LEDGE_SLOT && ledgeChar) {
         // posed on her spot in every mode (the audit's contact stays true); shown only off the fixed views
@@ -689,6 +747,7 @@ export function createNpcs(opts: NpcOptions): Npcs {
         const [hy, hp] = seatedLook(t, ledgePhase, ledgeKeys, ledgeLookPeriod);
         poseLedgeIdle(ledgeChar.rig, ledge.x, ledge.z, ledge.y, ledge.yaw, t, 5.1, hy, hp, ledgeSt);
         plantFeet(ledgeChar.rig, ground.height, actor.contact);
+        noticeFor(ledgeChar.rig, actor, player);
         actor.shadow.position.set(ledge.x, ground.decalHeight(ledge.x, ledge.z, actor.shadowRadius), ledge.z);
         showLedge(!view);
         actor.shadow.visible = !view;
@@ -702,6 +761,7 @@ export function createNpcs(opts: NpcOptions): Npcs {
         const [hy, hp] = seatedLook(t, bankPhase, bankKeys, bankLookPeriod);
         poseLedgeIdle(bankChar.rig, bank.x, bank.z, bank.y, bank.yaw, t, 7.9, hy, hp, bankSt);
         plantFeet(bankChar.rig, ground.height, actor.contact);
+        noticeFor(bankChar.rig, actor, player);
         actor.shadow.position.set(bank.x, ground.decalHeight(bank.x, bank.z, actor.shadowRadius), bank.z);
         // her fairy's light is dimmed to nothing under capture (round 50 kept it out of the six
         // frames' light loop; the light itself stays in the scene — see the fairies above); the
@@ -720,6 +780,7 @@ export function createNpcs(opts: NpcOptions): Npcs {
         rig.root.rotation.y = wander.yaw;
         poseWander(rig, wander, t, 1.3);
         plantFeet(rig, ground.height, actor.contact);
+        noticeFor(rig, actor, player, wander.walk);
         actor.shadow.position.set(wander.x, ground.decalHeight(wander.x, wander.z, actor.shadowRadius), wander.z);
         driven.add(0);
         return true;
@@ -734,11 +795,15 @@ export function createNpcs(opts: NpcOptions): Npcs {
         sitter.rig.ankleL.localToWorld(_tmp.copy(sitter.rig.sole));
         sitter.rig.ankleR.localToWorld(_tmp2.copy(sitter.rig.sole));
         actor.contact.copy(_tmp.y <= _tmp2.y ? _tmp : _tmp2);
+        noticeFor(sitter.rig, actor, player);
         actor.shadow.position.set(feetMid.x, ground.decalHeight(feetMid.x, feetMid.z, actor.shadowRadius), feetMid.z);
         driven.add(1);
         return true;
       }
       return false;
+    },
+    notice(rig, actor, player, walk = 0) {
+      noticeFor(rig, actor, player, walk);
     },
     updateFairies(t) {
       lastT = t;

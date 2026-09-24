@@ -3,8 +3,8 @@ agent: fable-3
 runtime: Cursor Cloud Agent (Claude Fable 5.1)
 github: Cursor Agent <cursoragent@cursor.com>
 status: active (goal mode, timer goal-mode-fable-3 @ 20 * * * *)
-branch: agent/fable-3-trunk-avoid (props keep off published boles); r55-notes (notes)
-updated: 2026-09-23T12:55:00Z
+branch: agent/fable-3-kokiri-girl (lane 7: the girl by the signpost, the cast back); r55-notes (notes)
+updated: 2026-09-24T04:35:00Z
 ---
 
 # fable-3 — work log
@@ -113,6 +113,104 @@ north-posts precedent), positioned from `anchor + offset(t)` each frame, dimmed 
 fairy is hidden (ledge, under capture) or kept out of the six frames (bank) — no `visible` toggles.
 `character/index.ts` — `backgroundCast.visible = true`. Same meshes per kid. Six views WILL change where the
 kids stand (owner-approved: the cast returns) — measured against the exact head build below.
+Round 1 at 5 m (paler skin, lock shading, sheen) was too subtle to call a step — pushed: head joint ×1.14
+(`HEAD_SCALE`; face/hair/band grow together, the skull meets the shoulder line as in d_024), the footage's
+maroon (0x7e2f33) with stronger lock contrast, four fold ridges on the tunic upper (UVs turned to the skirt's
+convention so the canvas valleys sit in the lathe's own), thinner brows (a frown at 5 m under the grown head).
+Budget: the cast back put A at **723 draws** — the sun's 92 m shadow window draws every kid in the village each
+frame. Kids now cast only while their shadow reach (2.6 m; 7 m for the ledge girl) meets the view frustum
+(`scopeKidShadows`, no program key touched); belt / band / cuffs leave the shadow pass; no neck mesh (enclosed
+under the scale). Six views vs the exact head build (settle 12): A −0.0044 / 597 → 698 draws, B −0.0063 / 690,
+C −0.0001 / 525, D 0 (byte-identical, 557 → 557 — the scoping proven), E −0.0045 / 690, F −0.0014 / 648; every
+changed pixel a kid, her fairy, shadow or light pool. Play walk: programs 111 → 112 over 9 s, draws 711 → 537.
+Evidence `art/environment/people-fable-3/kokiri-girl/`.
+17:35–17:55 UTC: the final (`8651fce3`: thinner brows, cuffs out of the shadow pass, no neck mesh) re-captured at A / B —
+692 / 684 draws, 8 / 30 px from `b1ebee6b`'s frames. The walker probe (`__ZR__.audit().systems.character.npc`) showed the
+kid in my 5 m frames was the SITTER on the first tread (the walker dwells at (4.4, 0.9) at broll's t) — labels corrected;
+the walker rendered where she stands at 2.6 m / 5 m (`before-after-walker.jpg`, the clearest sheet). fable-cursor merged
+`8651fce3` into the head (`b39d395e`) before the report landed; INBOX note posted 17:55 with the list for next: legs 44 → 40 %, the boy's round-1 look, the understory over the walker's
+loop sightlines (lanes 2 / 4). (The note's first draft listed the sitter's knees at 177° — an audit read under per-view
+placement where the seat is not driven; in free / play mode she sits as designed. Corrected 17:58.)
+
+17:55–18:35 UTC: **the boy at Saria's door** (`e7a01c7e`) — the owner's threshold approach had round 1's boy (sphere-and-boxes
+bob, thin band, tan skin, flat near-black tunic) beside the door next to the girls' new look. He shares the pass now:
+`buildGirlHair` (no tube brows — `buildFace` has box brows), `buildGirlHeadband`, the cloth canvas + four fold ridges on both
+lathes (near-black lifted to 0x2f3320), skin 0xcfa07c on the ramp; materials keyed by name (`hairMaterial` / `clothMaterial` /
+`rampedSkin`). Before/after at the threshold pose + 2.5 m (`before-after-boy.jpg`; the before = the merged head with the girls'
+pass). Six views vs the merged head `bd0bd1ba`: B −0.0003 (685 px, his box), F 0 (515 px), draws/tris equal. INBOX 18:35.
+Chrome-free note: a broll `--test` render drives the loop — the walker is wherever the schedule has her at t ≈ 13.2 s
+((4.4, 0.9), facing SW); `where.mjs` (audit `systems.character.npc.walker`) finds her before aiming a pose.
+
+18:40–19:25 UTC: **the fairies** (`044fb636`) — d_026 / d_090 show the girl's fairy as a glowing ball with wings about as
+wide as her head; ours was a dot at 5 m (5 cm ball, 0.2 m halo at ¾ tint, 0.1 m wings). `navi.ts createFairy`: 0.05·s ball,
+0.4·s halo at full tint, 0.22·s wings → at the kids' 0.75: 7.5 cm / 0.3 m / 0.17 m, just under Navi's (8.4 cm / 0.3 m).
+Before/after at the two 5 m poses (`before-after-fairy.jpg`); six views vs the branch before the step on the merged head:
+A +0.0002, B −0.0004, F −0.0003 (the fairy's box each), draws/tris equal. INBOX 19:25. Baselines: a six-view "before"
+must be the exact commit under the change — `git worktree add` + `vite build --outDir` (1 min) beats reusing an older dist.
+
+19:25–20:15 UTC: **the kids notice Link** (`e43ae92f`) — nothing in the cast reacted to the player. `npc.ts noticePlayer`:
+within 5 m the posed head turns to him (fully by 2.8 m; a fade past ±1.05 rad instead of pinning to the shoulder; pitch to
+his eyes; the hips'/chest's own yaw taken out of the target), blended over the pose's look; the driven kids in `drive()`,
+the boy after his idle pose in `index.ts`; no state. Capture passes no player → B and F byte-identical (`cmp`); play draws
+702 = 702. Stills with Link 2 m from the sitter (`before-after-notice.jpg`), the walk-in clip (`kokiri-notice-walk-in.mp4`).
+Framing lesson: with Link facing a kid straight on, the follow camera hides her behind his head — aim him 15–20° off.
+Legs (44 → 40 %) measured and dropped: 42 % with the hair height, two centimetres. INBOX 20:15.
+
+20:20–21:50 UTC: fable-cursor merged the lane-7 round (`f1f93d77`, play link `b51f0954`). fable-5's lane-10 read (and
+their 20:15 note to me): a kid in view ≈ 50 draws, B / E two under the cap, "the kid as merged meshes next"; also "5 m
+from the girl is 10 m for the lens". **Skinned kids** (`814af6c9`, `character/skin.ts`): every Mesh under a joint → one
+SkinnedMesh per (material, shadow flags) per kid, the rig's own Groups as bones (weight 1), bound at rest in attached
+mode; ≈ 26 → 11 colour submissions, 16 → 5 shadow. First cut left the vertices in joint space (the kids came apart) —
+the joint's rest world matrix is baked in now. Six views on the same head: A 692 → 640 (0 px), B 683 → 631 (8 px),
+F 642 → 590 (2 px), tris equal; the play still with three kids 702 → 623 (8 px); the walker mid-stride (broll t 10.4)
+17 px, at her dwell (t 12.0) 1 px; the sitter's fold and the head turn intact. INBOX 21:50. Lesson: verify a rig-structure
+change on every pose class (stand, sit, stride, head turn), and `where.mjs` / the schedule to find a stride time.
+21:50–22:00 UTC: fable-5's 21:43 read confirms the skinning (A 640 / B 631 / F 590, merge-ready by the counts). Lane 7's
+ranked list is empty; the open people-visible defect (the walker behind an understory crown from the plaza's SW) is lane 2's
+— `nearestWalkLine` knows the four paved lines, not `NPC_LOOP`; asked fable-4 for a fifth line at 3–4 m (INBOX 21:58), and
+offered fable-cursor lane 9's signs of use for `exp-south` once its positions settle. Next tick: reads of a named branch, or
+the atlas step (3 submissions a kid) if the budget calls for it.
+22:25 UTC heartbeat: the skinning is merged and live (`276cd803`, play link `94d96536`; squad log 22:05). No ask for lane 7 /
+9 on the head; my 21:50 / 21:58 notes ride the next merge. Read fable-cursor's `exp-south` where it touches lane 7's files
+(`character/index.ts` `moveRoot` edge-slide — `ground.blocked()` now makes props slide-able edges; `ground.ts` walk spans for
+the deck / tunnel floor and the off-deck ravine block, `builtTop()` clearing the deck first): sound, no overlap with the
+kids' code, clean merge. `EXPANSION_SOUTH` (path nodes, bridge sills, tunnel mouth) is specified — the signs of use wait
+for fable-cursor's word. Nothing landed this tick.
+23:25 UTC: the head merged my notes (`77c4a7bc`) and lanes 1 / 5 (corridor air, gust-gated wind). Read the people on
+`81430baf` at the walker's 5 m and a 10 m pose (the follow lens's distance): unchanged at 5 m, the Kokiri read holds at
+10 m under lane 1's air (`head-81430baf-corridor-air-5m.jpg`). INBOX 23:40 (a read, not a landing). No ask for lane 7 / 9.
+00:27–00:45 UTC: **owner 23:00 review** (`pass5/README.md` on squad4's branch): "make the other characters look a bit
+better" → JOB 7, lane 7's; he records at 01:00. Landed small and safe (`a0262ae1`): thumbs on the mitten hands
+(`buildThumbs`, in the skin's skinned submission) and the standing idle's arms — upper arm a touch back, elbow bent
+−0.46 rad, the hand by the hip (`poseWander`; the sitter's hands stay on her knees; A–F untouched, the plaza kids pose
+through the puppet idle under capture). Verified at the walker's 2.6 m vs the head `81430baf`
+(`before-after-hands-arms.jpg`): reads, modest. INBOX 00:35 (claim) — a fresh chat may have been spun up on
+`agent/kokiri-quality`; asked fable-cursor to point them here. After the recording: the rest of JOB 7's list at 2–6 m.
+01:29–02:10 UTC: fable-5's 00:36 question (a compile at the flight's top on the prebuild head — the skinned kids?):
+measured with `programs.mjs` (`?warmup=1`, one frame per spot): 177 programs after the warm-up and 177 through the sitter,
+the door boy, the flight's top, the bank girl, the ledge girl — the warm-up passes each object to `getProgram` in both
+passes and the kids are casters before the scoping runs. INBOX 01:45. Then JOB 7's idle (`437b7166`): weight shift 2.5 cm
++ 0.05 rad lean + a slow torso yaw sway, breath 8 mm; thighs tilt back by shift / legLen and cancel the pelvis' lean so
+the soles stay planted. Verified at t 14.8 inside her dwell vs `a0262ae1`: the body over one leg, the boots in the same
+pixels (`before-after-idle-sway.jpg`). A two-time motion metric (t 13.6 vs 14.8) was swamped by the dwell look-around
+and the fairy in both builds — the same-instant pair is the honest measure. Play-mode note: the flight's top looking down
+draws 730 (not a fixed view).
+02:31–02:55 UTC: the head still at 23:05; squad4 built an integration candidate (`8fb5049c`, six branches) without my two
+JOB 7 landings — offered them (INBOX 02:40). Tried JOB 7's "faces as geometry" for the boy: `buildKidFace` parametrised
+(`KidFace`: skin / iris / blush / lips / lash / flick) and the boy on it (`ed5b43c6`). At 2.5 m it read WORSE (small dark
+eyes under the fringe vs round 1's big bright ones) → reverted (`2fab35f4`), pair kept (`tried-boy-modelled-face.jpg`),
+INBOX 02:55 correction. Lesson kept: the girls' face works because of the lashes' weight and the flick; a boy variant
+needs its own lid opening, not the girls' with the lashes thinned.
+03:33–03:55 UTC: head still at 23:05 (fable-cursor on the expansions; `exp-south` at "final verification" `9d32b7f1`).
+Planned its signs of use against the final layout (waymarker at the fork's west verge, crate + squat pot at the bridge
+head, pots either side of the log's mouth) and found the blocker: `expansionCull` drops props on the route / structures /
+cut / moved ground and props sample the LEGACY heightfield — a `south` cluster needs live-view heights and a verge-only
+exemption (props-side, reading `terrain/south.ts`). INBOX 03:55 with the plan; building when `exp-south` lands.
+04:20–04:30 UTC: the head moved to `ad4d5537` (the owner-23:00 squad round; fable-2's tracked `node_modules` link accident
+fixed — I add paths explicitly, never `-A`; my worktree links were never staged). My branch not in that round → merged the
+head into it (`6d28ad46`; INBOX conflict resolved by rebuilding both note lists newest-first, 185 notes), build + 119 tests
+green. INBOX 04:30: merge-ready with the two JOB 7 landings. Read the people on the merged branch vs the 23:05 head at the
+walker's 5 / 10 m (lane 1's sky light, lane 4's verge tier in): unchanged but for my own arms and sway — nothing to flag. Play mode at the plaza spot: head 604 → 779 draws with three kids in frame.
 
 ## Files / systems being touched
 `src/world/props/{index,layout,geometry,materials}.ts`, `geometry.test.mjs`, `README.md` (lane 9);
