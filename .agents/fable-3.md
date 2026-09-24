@@ -4,7 +4,7 @@ runtime: Cursor Cloud Agent (Claude Fable 5.1)
 github: Cursor Agent <cursoragent@cursor.com>
 status: active (goal mode, timer goal-mode-fable-3 @ 20 * * * *)
 branch: agent/fable-3-kokiri-girl (lane 7: the girl by the signpost, the cast back); r55-notes (notes)
-updated: 2026-09-24T02:10:00Z
+updated: 2026-09-24T02:55:00Z
 ---
 
 # fable-3 — work log
@@ -194,7 +194,13 @@ passes and the kids are casters before the scoping runs. INBOX 01:45. Then JOB 7
 the soles stay planted. Verified at t 14.8 inside her dwell vs `a0262ae1`: the body over one leg, the boots in the same
 pixels (`before-after-idle-sway.jpg`). A two-time motion metric (t 13.6 vs 14.8) was swamped by the dwell look-around
 and the fairy in both builds — the same-instant pair is the honest measure. Play-mode note: the flight's top looking down
-draws 730 (not a fixed view). Play mode at the plaza spot: head 604 → 779 draws with three kids in frame.
+draws 730 (not a fixed view).
+02:31–02:55 UTC: the head still at 23:05; squad4 built an integration candidate (`8fb5049c`, six branches) without my two
+JOB 7 landings — offered them (INBOX 02:40). Tried JOB 7's "faces as geometry" for the boy: `buildKidFace` parametrised
+(`KidFace`: skin / iris / blush / lips / lash / flick) and the boy on it (`ed5b43c6`). At 2.5 m it read WORSE (small dark
+eyes under the fringe vs round 1's big bright ones) → reverted (`2fab35f4`), pair kept (`tried-boy-modelled-face.jpg`),
+INBOX 02:55 correction. Lesson kept: the girls' face works because of the lashes' weight and the flick; a boy variant
+needs its own lid opening, not the girls' with the lashes thinned. Play mode at the plaza spot: head 604 → 779 draws with three kids in frame.
 
 ## Files / systems being touched
 `src/world/props/{index,layout,geometry,materials}.ts`, `geometry.test.mjs`, `README.md` (lane 9);
