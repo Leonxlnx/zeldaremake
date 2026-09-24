@@ -83,6 +83,40 @@ reading positions out of the scene graph:
   read a matrix from whenever the context started (with the bag open, or under a harness that steps
   the simulation without rendering). The fairy read brings its own matrix up to date.
 
+## The sky closes as you walk north
+
+Until now the only place the space changed was inside the log tunnel: the open plaza and the roofed
+north corridor sounded identical. The bed now follows how much wood is overhead, taken from the
+terrain's own `forestFloorZone(x, z)` — the litter is there *because* the crowns are, so the field
+that decides what is underfoot also says how closed the sky is, and `surfaceAt` already computed it.
+No other system's internals are read.
+
+Under a closed canopy the same filter the tunnel uses shuts part of the way (`CANOPY_CLOSE` 0.5 —
+about 4 kHz against 18 in the open), more of the bed goes to the hall (`CANOPY_HALL`), and the
+leaves overhead move more often (`CANOPY_FLUTTER`). The level is untouched: only the tunnel's wood
+ducks it, because only the tunnel puts something between him and the forest.
+
+The same 40 s with the canopy forced open and forced closed (`--stems bed-open,bed-crowns`; forcing
+it is the only way to A/B this — changing the flutter rate re-phases the whole seeded event stream,
+so comparing one leg of two ordinary renders measures which events happened to land there):
+
+| band | open sky | under the crowns | |
+| --- | ---: | ---: | --- |
+| 8–16 kHz | −86.5 | **−99.6** | −13.1 — the crowns take the top off |
+| 4–8 kHz | −72.7 | −74.0 | −1.3 |
+| 2–4 kHz | −51.1 | −53.4 | −2.3 |
+| 1–2 kHz | −55.2 | **−49.6** | +5.6 — leaves close above you |
+| 500–1000 Hz | −50.7 | −47.0 | +3.7 |
+| RMS | −46.9 | −46.5 | +0.4 — as present, differently coloured |
+| breathes | 22.1 dB | 24.8 dB | +2.7 |
+
+`canopy-open-vs-crowns.jpg` shows it: the top of the spectrogram goes dark and the middle fills with
+flutter streaks.
+
+Walking it (`walk-audio.json`), the field behaves: the plaza, the lawn, the main flight and the spot
+beside the girl all read 0; the north path rises to 0.51 as he goes up it; off the path on the
+forest floor it is 0.84–0.97; the log tunnel is 1 with its own enclosure on top.
+
 ## Tests
 
 `src/audio/music.test.mjs` is new: the rests fall inside `REST_SECONDS`, the duty cycle lands

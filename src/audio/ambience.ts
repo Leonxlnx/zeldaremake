@@ -47,6 +47,8 @@ export interface AmbienceState {
   fairies?: readonly Vec3[];
   /** 0 out in the open, 1 with wood closed over the listener (inside the log tunnel's bore) */
   enclosure?: number;
+  /** 0 under open sky, 1 under a closed canopy (index.ts `surfaceAt`) */
+  canopy?: number;
 }
 
 export interface Ambience {
@@ -117,6 +119,15 @@ const ENCLOSURE_OPEN_HZ = 18000;
 const ENCLOSURE_CLOSED_HZ = 900;
 /** how much of the forest is left when he is right inside the bore */
 const ENCLOSURE_DUCK = 0.45;
+/**
+ * How far a closed canopy shuts the same filter (a share of the tunnel's travel, so a roof of
+ * leaves is a hint of the tunnel's wood, not the same thing): at 1 the bed's top sits near 4 kHz.
+ * Under the crowns the air is also more reverberant and the leaves overhead move more often — in
+ * the open plaza you hear the sky, in the north corridor you hear the wood close above you.
+ */
+const CANOPY_CLOSE = 0.5;
+const CANOPY_HALL = 0.8;
+const CANOPY_FLUTTER = 0.7;
 
 type BirdKind = 'whistle' | 'trill' | 'chirps' | 'warble' | 'coo' | 'knock';
 /** how often each call is chosen, and how far away it tends to be (0 = overhead, 1 = deep in the wood) */
@@ -222,6 +233,8 @@ export function createAmbience(ctx: BaseAudioContext, outBus: AudioNode, reverbS
   const counts: AmbienceStats = { birds: 0, flutters: 0, glints: 0, fairiesNear: 0 };
   /** the gust as `update` last saw it: the schedulers run ahead of the clock, so they use it as a level */
   let gustNow = 0.4;
+  /** how closed the canopy was over the listener, likewise (leaves overhead move more often) */
+  let canopyNow = 0;
 
   /**
    * One leaf flutter: a short shaped grain of the bed's own pink noise. Several of these in a
@@ -267,7 +280,7 @@ export function createAmbience(ctx: BaseAudioContext, outBus: AudioNode, reverbS
       // the wood could otherwise fall to nothing for five seconds at a time, which reads as the
       // sound having broken rather than as a quiet forest. A leaf turning over is the answer to
       // that, not a floor put back under everything.
-      nextFlutter += Math.min(QUIET_GAP_MAX, (0.5 + eventRng() * 3.2) / (0.3 + g * 1.1));
+      nextFlutter += Math.min(QUIET_GAP_MAX, (0.5 + eventRng() * 3.2) / ((0.3 + g * 1.1) * (1 + canopyNow * CANOPY_FLUTTER)));
     }
   };
 
@@ -546,8 +559,14 @@ export function createAmbience(ctx: BaseAudioContext, outBus: AudioNode, reverbS
     // the log tunnel closing over the forest (index.ts surfaceAt: 0 at the mouth, 1 a metre and a
     // half in), geometric in frequency so the change is even as he walks in
     const enc = Math.max(0, Math.min(1, s.enclosure ?? 0));
-    enclosureLp.frequency.setTargetAtTime(ENCLOSURE_OPEN_HZ * Math.pow(ENCLOSURE_CLOSED_HZ / ENCLOSURE_OPEN_HZ, enc), t, 0.12);
+    canopyNow = Math.max(0, Math.min(1, s.canopy ?? 0));
+    // the crowns close the same filter part of the way and hand more of the bed to the hall; only
+    // the tunnel's wood ducks the level, because only the tunnel puts something between him and it
+    const closed = Math.max(enc, canopyNow * CANOPY_CLOSE);
+    enclosureLp.frequency.setTargetAtTime(ENCLOSURE_OPEN_HZ * Math.pow(ENCLOSURE_CLOSED_HZ / ENCLOSURE_OPEN_HZ, closed), t, 0.35);
     out.gain.setTargetAtTime(1 - (1 - ENCLOSURE_DUCK) * enc, t, 0.12);
+    canopySend.gain.setTargetAtTime(0.3 * (1 + canopyNow * CANOPY_HALL), t, 0.6);
+    hushSend.gain.setTargetAtTime(0.2 * (1 + canopyNow * CANOPY_HALL), t, 0.6);
   };
 
   return {

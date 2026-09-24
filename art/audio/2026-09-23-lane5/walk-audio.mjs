@@ -104,7 +104,8 @@ try {
           }
           window.__ZR_PLAY__.step(1, dt, false);
           const f = window.__ZR_PLAY__.state().feet;
-          rows.push([(f ?? []).map((x) => (x.stance ? 1 : 0)), window.__ZR_AUDIO__.stats()?.enclosure ?? 0]);
+          const st = window.__ZR_AUDIO__.stats();
+          rows.push([(f ?? []).map((x) => (x.stance ? 1 : 0)), st?.enclosure ?? 0, st?.canopy ?? 0]);
           await new Promise((r) => requestAnimationFrame(r));
         }
         return rows;
@@ -125,6 +126,7 @@ try {
     }
     const stance = gait.map((r) => r[0]);
     const enclosure = gait.map((r) => r[1]);
+    const canopy = gait.map((r) => r[2]);
     const feet = stance[0]?.length ?? 0;
     const pattern = Array.from({ length: feet }, (_, i) => stance.map((r) => (r[i] ? '#' : '.')).join(''));
     const plants = pattern.map((p) => (p.match(/\.#/g) ?? []).length);
@@ -149,6 +151,9 @@ try {
       /** the bed's enclosure over the route: how closed the space above the listener got */
       enclosureMax: Number(Math.max(...enclosure).toFixed(2)),
       enclosureTrace: enclosure.filter((_, i) => i % 6 === 0).map((v) => Number(v.toFixed(2))),
+      /** how closed the canopy got over the route: 0 open sky, 1 deep under the crowns */
+      canopyMax: Number(Math.max(...canopy).toFixed(2)),
+      canopyTrace: canopy.filter((_, i) => i % 6 === 0).map((v) => Number(v.toFixed(2))),
     };
     results.routes.push(row);
     log(
@@ -156,6 +161,7 @@ try {
     );
     for (const p of pattern) log(`  gait ${p.slice(0, 120)}`);
     if (row.enclosureMax > 0) log(`  enclosure peaks at ${row.enclosureMax}: ${row.enclosureTrace.join(' ')}`);
+    if (row.canopyMax > 0) log(`  canopy peaks at ${row.canopyMax}: ${row.canopyTrace.join(' ')}`);
   }
   results.end = await page.evaluate(() => window.__ZR_AUDIO__.stats());
 } finally {

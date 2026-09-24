@@ -50,6 +50,8 @@ export interface AudioStats extends FootstepStats, AmbienceStats {
   gaitDriven: boolean;
   /** how closed the space over the listener is — 1 inside the log tunnel's bore, 0 in the open */
   enclosure: number;
+  /** how closed the canopy over the listener is — 1 deep under the crowns, 0 under open sky */
+  canopy: number;
   /** where the audio thinks the fairies are (world), so a harness can stand beside one */
   fairySpots: [number, number, number][];
 }
@@ -67,6 +69,8 @@ export interface OfflineOptions {
   music?: boolean;
   /** mute the shared hall's return — the same stem dry, so the tail can be measured on its own */
   reverb?: boolean;
+  /** force the canopy over the whole render (0 open sky, 1 closed crowns) instead of the walk's own */
+  canopy?: number;
 }
 
 /** one leg of the offline walk: seconds, ground speed (m/s) and what is underfoot */
@@ -189,9 +193,13 @@ function gatherPods(scene: Scene): Vec3[] {
  *            mouth). The owner's 09-23 list names leaves as one of the four surfaces.
  *  - grass:  everything else
  */
-export function surfaceAt(x: number, z: number): { surface: Surface; stairs: boolean; enclosure: number } {
+export function surfaceAt(x: number, z: number): { surface: Surface; stairs: boolean; enclosure: number; canopy: number } {
   const m = surfaceMask(x, z, 'live');
-  if (m.stairs > 0.5) return { surface: 'stone', stairs: true, enclosure: 0 };
+  // how much wood is overhead: the terrain's own forest-floor zone. The litter is there BECAUSE the
+  // crowns are, so the same field that decides what is underfoot also says how closed the sky is —
+  // the plaza and the village are open, the north corridor past the arch is roofed.
+  const canopy = forestFloorZone(x, z);
+  if (m.stairs > 0.5) return { surface: 'stone', stairs: true, enclosure: 0, canopy };
   // the log tunnel: distance from the log's axis in its own frame
   const la = LAYOUT.logArch;
   {
@@ -206,7 +214,7 @@ export function surfaceAt(x: number, z: number): { surface: Surface; stairs: boo
       // how far in he is: the wood closes over the forest across the first 1.6 m of the bore
       const fromMouth = Math.min(u + 8.5, -0.5 - u) / 1.6;
       const fromWall = (la.radius * 0.8 - Math.abs(v)) / 0.5;
-      return { surface: 'hollow', stairs: false, enclosure: Math.max(0, Math.min(1, Math.min(fromMouth, fromWall))) };
+      return { surface: 'hollow', stairs: false, enclosure: Math.max(0, Math.min(1, Math.min(fromMouth, fromWall))), canopy };
     }
   }
   // the west house's platform and deck
@@ -214,7 +222,7 @@ export function surfaceAt(x: number, z: number): { surface: Surface; stairs: boo
     const wh = EXPANSION.westHouse;
     const hx = wh.host[0];
     const hz = wh.host[1];
-    if (Math.hypot(x - hx, z - hz) < wh.radius) return { surface: 'wood', stairs: false, enclosure: 0 };
+    if (Math.hypot(x - hx, z - hz) < wh.radius) return { surface: 'wood', stairs: false, enclosure: 0, canopy };
     const ex = wh.deckEnd[0];
     const ez = wh.deckEnd[2];
     const ax = ex - hx;
@@ -224,13 +232,13 @@ export function surfaceAt(x: number, z: number): { surface: Surface; stairs: boo
     if (t > 0 && t < 1) {
       const px = hx + ax * t;
       const pz = hz + az * t;
-      if (Math.hypot(x - px, z - pz) < 0.475) return { surface: 'wood', stairs: false, enclosure: 0 };
+      if (Math.hypot(x - px, z - pz) < 0.475) return { surface: 'wood', stairs: false, enclosure: 0, canopy };
     }
   }
-  if (m.path > 0.5) return { surface: 'stone', stairs: false, enclosure: 0 };
-  if (m.path > 0.12) return { surface: 'dirt', stairs: false, enclosure: 0 };
-  if (forestFloorZone(x, z) > 0.5) return { surface: 'leaf', stairs: false, enclosure: 0 };
-  return { surface: 'grass', stairs: false, enclosure: 0 };
+  if (m.path > 0.5) return { surface: 'stone', stairs: false, enclosure: 0, canopy };
+  if (m.path > 0.12) return { surface: 'dirt', stairs: false, enclosure: 0, canopy };
+  if (canopy > 0.5) return { surface: 'leaf', stairs: false, enclosure: 0, canopy };
+  return { surface: 'grass', stairs: false, enclosure: 0, canopy };
 }
 
 export const AUDIO_SEED = 'kokiri-audio-r47';
@@ -249,6 +257,7 @@ export function mountAudio(o: AudioOptions): AudioHandle {
   const fairyBuf: Vec3[] = [];
   let gaitDriven = false;
   let enclosure = 0;
+  let canopy = 0;
   /** the highest point of the jump or drop in progress (m above the ground under him) */
   let peakAir = 0;
   const emit = () => o.onState?.(!live ? 'idle' : muted ? 'muted' : 'on');
@@ -273,6 +282,7 @@ export function mountAudio(o: AudioOptions): AudioHandle {
     // one ground lookup a frame, shared by the bed's enclosure and the boots' surface
     const s = surfaceAt(listener.x, listener.z);
     enclosure = s.enclosure;
+    canopy = s.canopy;
     // the fairies hover and their owners walk, so their positions are read fresh (and skipped
     // while the background cast is hidden)
     fairyBuf.length = 0;
@@ -280,7 +290,7 @@ export function mountAudio(o: AudioOptions): AudioHandle {
       const at = fairyAt(fairyObjects[i], fairySlots[i]);
       if (at) fairyBuf.push(at);
     }
-    ambience.update(t, { gust: o.wind?.uniforms.uGust.value ?? 0.4, listener, forward: { x: fwd[0] / fl, z: fwd[2] / fl }, pods, fairies: fairyBuf, enclosure: s.enclosure });
+    ambience.update(t, { gust: o.wind?.uniforms.uGust.value ?? 0.4, listener, forward: { x: fwd[0] / fl, z: fwd[2] / fl }, pods, fairies: fairyBuf, enclosure: s.enclosure, canopy: s.canopy });
     ambience.scheduleUntil(ctx.currentTime + 4);
     music.scheduleUntil(ctx.currentTime + 6);
     // footsteps: the gait's own boot plants when the character system reports them, the ground
@@ -373,6 +383,7 @@ export function mountAudio(o: AudioOptions): AudioHandle {
       pods: pods.length,
       gaitDriven,
       enclosure,
+      canopy,
       fairySpots: fairyBuf.map((f) => [Number(f.x.toFixed(2)), Number(f.y.toFixed(2)), Number(f.z.toFixed(2))] as [number, number, number]),
       ...(live?.footsteps.stats() ?? { steps: 0, gaitSteps: 0, surfaces: {}, lastSurface: null, landings: 0 }),
       ...(live?.ambience.stats() ?? { birds: 0, flutters: 0, glints: 0, fairiesNear: 0 }),
@@ -444,7 +455,8 @@ export async function renderOffline(o: AudioOptions, seed: string, seconds: numb
     // the closing stand is beside a fairy, so its glints are in the evidence WAV
     const beside = t >= standsBesideFairy && fairies.length ? fairies[0] : null;
     const listener: Vec3 = beside ? { x: beside.x + 0.9, y: beside.y, z: beside.z + 0.5 } : { x, y: 1.2, z };
-    ambience?.update(t, { gust: gust(t), listener, forward: { x: 0.6, z: -0.8 }, pods, fairies });
+    // the walk's `leaf` leg IS the north forest floor, so it carries its closed canopy with it
+    ambience?.update(t, { gust: gust(t), listener, forward: { x: 0.6, z: -0.8 }, pods, fairies, canopy: options.canopy ?? (leg.surface === 'leaf' ? 1 : 0) });
     footsteps?.drive(t, step, { speed: leg.speed, surface: leg.surface, onStairs: !!leg.stairs });
   }
   ambience?.scheduleUntil(seconds);
