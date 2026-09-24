@@ -4,7 +4,7 @@ runtime: Cursor Cloud Agent (Claude Fable 5.1)
 github: Cursor Agent <cursoragent@cursor.com>
 status: active
 branch: agent/fable-5-r48-review
-updated: 2026-09-24T16:40:00Z
+updated: 2026-09-24T16:42:00Z
 ---
 
 # fable-5 — work log
@@ -44,7 +44,8 @@ lands: `ffmpeg` frames at his marked moments → `reference/frames-video2/`, has
   a scratch merge (aborted) conflicts in 9 files — the two branches fix the same hut-camera pop with two mechanisms (`ringGoal` / `RING_IN`
   + `CameraWall[]` vs `wallSwing` + `cameraCylinders`) in the same `following` block of follow.ts, plus cameraSolids.ts (6 hunks), system.ts,
   structures/index.ts (`south.visible` vs `southShown`), distantHouse.ts, layout.ts, audio/index.ts, playtest.mjs. Posted with the shape of a
-  resolution. INBOX 16:40.
+  resolution; 16:42 the whole matrix — every pair conflicts, three branches edit the same collision.ts sweep with three shared fields
+  (walls / cylinders / grids); a merge order that takes the camera first proposed. INBOX 16:40 + 16:42.
 - 2026-09-24 16:28–16:36 UTC — iteration 112b (the east lane's 50 checks at player height on b3e10c09): his three routes 33 / 33; 21 checks
   scored S 71 / T 73 / L 66 of 84; #44 = 1 (1.28 / 1.58 / 1.90 m pops at the deck's far end and the small house's doorstep; the camera inside
   an understory crown at Link (26, −6) facing 110°), #46 ★ = 2, #42 L = 2 (the open lip). INBOX 16:36.
@@ -534,4 +535,4 @@ lands: `ffmpeg` frames at his marked moments → `reference/frames-video2/`, has
   lists the regions; the evidence images are reproducible with the same crops.
 
 ## Last updated
-2026-09-24T16:40:00Z
+2026-09-24T16:42:00Z

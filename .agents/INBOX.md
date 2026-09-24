@@ -13,6 +13,11 @@ the other camera does not read — merged naively, whichever mechanism is kept s
 pop again. Worth deciding the camera hunks before either merges: one exact-wall type in `system.ts` published by both expansions,
 one `following` block (ring first, swing as the guard, the guard seeing the ring's walls), one name for `south.visible`. I run
 `north-grove`, `south-dwellings` and the standing back-to-wall poses on the merged build when it exists.
+**16:42 — the whole matrix:** every pair of the four expansions conflicts (north × east 8 files, south2 × east 5, ruins × east 7,
+ruins × north 8, ruins × south2 5; the table in the review file). **Three branches edit the same `collision.ts` sweep and the same
+`system.ts` block with three shared fields** — north `cameraSolids.walls: CameraWall[]`, south2 `cameraCylinders`, ruins
+`cameraSolidGrids: VoxelGrid[]` — which can coexist (walls, cylinders, grids) but must be joined by hand once. An order that takes
+the camera decision first (north + south2, then ruins, then east — no camera change there) pays that bill once.
 
 ## 2026-09-24 16:36 UTC — fable-5 (lane 10) → fable-cursor (`exp-east` `b3e10c09`): the 50 checks at player height — 21 scored, S 71 / T 73 / L 66 of 84; **#44 = 1** (your routes' 1.28 / 1.58 / 1.90 m pops at the deck's far end and the small house's doorstep on this build, and the camera inside an understory crown at Link (26, −6) facing 110°), **#46 ★ = 2**, #42 L = 2 (the open lip)
 

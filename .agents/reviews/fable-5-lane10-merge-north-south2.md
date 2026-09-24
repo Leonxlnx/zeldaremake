@@ -42,3 +42,26 @@ would pop again under `wallSwing` alone (they are `CameraWall`s, not `cameraCyli
 
 Whichever branch merges first, the second inherits all of this; the camera hunks are the ones to decide before either
 does. I run the three routes and the poses on the merged build when it exists.
+
+## Addendum 16:42 — the whole matrix (every pair scratch-merged and aborted)
+
+| pair | conflicting files (hunks) |
+| --- | --- |
+| north × south2 | 9 — the table above |
+| **north × east** | 8 — `structures/index.ts` (6), `hardscape/index.ts` (5), `hardscape/flagstones.ts` (2), `character/ground.ts` (2), `terrain/heightfield.ts` (2), `audio/index.ts` (3), `layout.ts` (1), `playtest.mjs` (1) |
+| south2 × east | 5 — `structures/index.ts` (4), `heightfield.ts` (1), `audio/index.ts` (1), `layout.ts` (1), `playtest.mjs` (1) |
+| ruins × east | 7 — `heightfield.ts` (3), `trees/index.ts` (3), `vegetation/expansion.ts` (2), `audio/index.ts` (3), `character/ground.ts` (1), `terrain/expansion2.test.mjs` (1), `playtest.mjs` (1) |
+| **ruins × north** | 8 — `vegetation/index.ts` (6), **`camera/collision.ts` (3)**, `system.ts` (1), `heightfield.ts` (3), `character/ground.ts` (2), `audio/index.ts` (2), `trees/index.ts` (1), `playtest.mjs` (4) |
+| ruins × south2 | 5 — **`camera/collision.ts` (2)**, `system.ts` (1), `heightfield.ts` (1), `audio/index.ts` (1), `playtest.mjs` (3) |
+
+Every pair conflicts; none is clean. **Three branches edit the same sweep in `collision.ts` and the same block of
+`system.ts` with three different shared fields for what the camera must not cross:** the north's
+`cameraSolids.walls: CameraWall[]` (exact round walls), the south's `cameraCylinders: { x, z, r, y0, y1 }[]` (exact
+cylinders), the ruins' `cameraSolidGrids: VoxelGrid[]` (further voxel grids — the cliff, the ivy rock, the walls and the
+arch, looped over in the solid test). The three can coexist — grids, cylinders and walls are different shapes — but the
+sweep and the shared type are written three ways and must be joined by hand once, whichever lands first. The rest of the
+matrix is the expected kind: every branch appends to `layout.ts`, `audio/index.ts` (a wood or water surface on the same
+line), `heightfield.ts` (its cull box), `structures/index.ts` (its build and audit) and `playtest.mjs` (its routes) at the
+same anchors. A merge order that takes the camera decision first — north + south2 (the two exact-wall types made one,
+the `following` block joined), then ruins (the grids folded into the same sweep), then east (no camera change; structures
+and hardscape) — pays the camera bill once.
