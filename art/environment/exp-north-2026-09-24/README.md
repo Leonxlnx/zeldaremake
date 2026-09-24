@@ -24,6 +24,13 @@ On 59e970d6, the grove's last code commit:
   `node --test src/camera/*.test.mjs` passes (16 tests).
 - **Checks**: `npx tsc --noEmit` and `npm run build` are green, and `node --test src/world/*/*.test.mjs
   src/camera/*.test.mjs src/audio/*.test.mjs gauntlet/scripts/lib/*.test.mjs src/perfFlags.test.mjs` passes 159 / 159.
+- **Merged with phase1** (6c4c918d, phase1 at eb8b727e): no conflicts, and tsc, the build and the same tests (178 / 178,
+  the camera's 16 among them) are green. The merge changes none of the grove's code, its ground, its camera or the
+  walk script: phase1 brings the hero flight back to 20 treads, the girls' belt, props wear and contact shadows, far
+  pebbles, the crown veil and audio. The grove's 54 structure meshes hash as on 59e970d6 and the 132 outside it as on
+  phase1's own. In a node count of the six heaviest grove views, each is 2–16 draws and 0.02–0.05 M triangles lighter
+  on the merge (phase1's far pebble tiles stop drawing there), which puts `g-back` near 675 draws / 8.84 M. The
+  Chrome walk, probes and counts in this README are on 59e970d6.
 
 ## What is where (world metres; y is absolute height)
 
@@ -223,9 +230,10 @@ to 15 %. All of it is well under the 0.55 m step guard. Along the route the feet
 stubs, the rope walk and the tree hut's platform; the trail's discs play stone and the lawn grass
 (`src/world/terrain/expansionNorth.test.mjs` checks each).
 
-**Not the grove's.** `climb.main.reachedTop` is false on this branch and on phase1-based builds alike: the same end
-point (13.74, ·, −5.12) after the same 255 frames, with no stalled frame. The hero flight has 26 treads now and the
-climb's frame budget ends before its top (W02). The pad's look reaches 60.2° up and −35.5° down, as on phase1.
+**Not the grove's.** On e156566f `climb.main.reachedTop` is false on this branch and on phase1-based builds alike: the
+same end point (13.74, ·, −5.12) after the same 255 frames, with no stalled frame. The hero flight had 26 treads then
+and the climb's frame budget ended before its top (W02). Phase1's 36d722fa, merged here in 6c4c918d, puts the flight
+back to 20 treads; the climb was not re-run on the merge. The pad's look reaches 60.2° up and −35.5° down, as on phase1.
 
 ## Cost (checks 46–47)
 
@@ -254,6 +262,21 @@ plants draw as one pack per LOD: the village splits these per variant because it
 the grove holds tens to a few hundred. Only whole merge buckets changed (`consolidateStaticMeshes` keys on
 `castShadow`, so half a bucket costs a draw). The triangles stay where they were: the shadow pass lost 87 k and a
 pack's unused slots draw zero-area triangles.
+
+**On the merge with phase1** (6c4c918d), a node count of the same six poses: every system built from source, the
+lighting system's sun and shadow box, the renderer's frustum and shadow culling. On 59e970d6 it reads −39 to +4 draws
+and −0.01 to +0.29 M triangles against Chrome, so only the change between the builds is the evidence:
+
+| view | 59e970d6 (node) | 6c4c918d (node) | change |
+| --- | --- | --- | --- |
+| `g-back` | 693 / 9.17 M | 679 / 9.13 M | −14 / −0.04 M |
+| `d-stilts-east` | 648 / 8.90 M | 633 / 8.86 M | −15 / −0.04 M |
+| `g-veranda` | 640 / 8.49 M | 624 / 8.44 M | −16 / −0.05 M |
+| `d-hut-deck` | 538 / 7.36 M | 525 / 7.32 M | −13 / −0.04 M |
+| `d-rope-walk` | 525 / 7.48 M | 511 / 7.44 M | −14 / −0.04 M |
+| `d-stilts-below` | 478 / 7.47 M | 476 / 7.45 M | −2 / −0.02 M |
+
+At `g-back`, phase1's far pebbles take 18 tiles off, the background characters add 3 draws and the clearing's props 1.
 
 **The hero views.** Every fixed camera stands 74 m or more from the grove's box, where the grove draws nothing, and
 59e970d6 changes nothing outside the grove (the 139 meshes outside it hash identically). On 59e970d6 they count A 639
@@ -395,10 +418,11 @@ Not the grove's, seen while checking:
 - The west house's wall ring (round 49's `distantHouse.ts` walk surface) is still ±0.2 m round its eave's radius, so
   where the wall's wobble swells Link's shoulder can overlap the wall (on the stilt house, before `WALL_CLEAR`, that
   was 0.16 m).
-- `climb.main.reachedTop` is false since the hero flight grew to 26 treads (W02).
+- `climb.main.reachedTop` was false while the hero flight had 26 treads (W02, e156566f); phase1's 36d722fa, merged
+  here, puts it back to 20 and the climb has not been re-run on the merge.
 - Two views outside the grove are over budget, and the grove draws nothing in either: the south far bank's look-back
   (818 draws, 9.30 M triangles; exp-south2's, flagged in f04d9529) and the perf lane's `perf-stairs2-base` (622 draws,
   9.45 M triangles). Both count the same on e994114a and on phase1 (3c6cc553).
 - The views that look back over the village carry its background characters, a few pixels tall 100 m off: 57 draws
-  and 6 more in the shadow pass at `g-back` (node count). A distance cull in the character lane is the largest saving
+  and 6 more in the shadow pass at `g-back` (node count; 60 and 6 on the merge with phase1). A distance cull in the character lane is the largest saving
   left there.
