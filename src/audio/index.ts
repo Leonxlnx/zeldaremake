@@ -16,10 +16,10 @@
 import type { Object3D, Scene, Vector3 } from 'three';
 import type { Wind } from '../world/wind/wind';
 import type { PlayerHandle } from '../world/character/player';
-import { expansionDiscMask, steppingStoneMask, surfaceMask } from '../world/terrain/heightfield';
+import { expansionDiscMask, getTerrain, steppingStoneMask, surfaceMask } from '../world/terrain/heightfield';
 import { forestFloorZone } from '../world/terrain/material';
 import { buildTrailProfile, inStairCut, inTerrace, outcropCover, trailInfluence } from '../world/terrain/ruins';
-import { EXPANSION, EXPANSION_SOUTH, LAYOUT, inExpansionRuins } from '../world/layout';
+import { EXPANSION, EXPANSION_RUINS, EXPANSION_SOUTH, LAYOUT, inExpansionRuins } from '../world/layout';
 import { createBuses, createRng, voices as liveVoices, type Buses } from './graph';
 import { createAmbience, type Ambience, type AmbienceStats, type Vec3 } from './ambience';
 import { createFootsteps, type Footsteps, type FootstepStats, type Surface } from './footsteps';
@@ -307,13 +307,15 @@ const RUINS_TRAIL = buildTrailProfile(() => 0);
 /**
  * The waterfall ruins (`EXPANSION_RUINS`, terrain/ruins.ts): the worn flight and the terrace's
  * paving are masonry and the outcrop is bare rock, which the masks call lawn; the trail is packed
- * earth, which the path mask calls flagstones. The stepping discs it leaves from stay stone.
+ * earth, which the path mask calls flagstones. The stepping discs it leaves from stay stone. Past
+ * the pool's waterline (the ground under its surface) he wades.
  */
 function ruinsSurfaceAt(x: number, z: number, canopy: number, gorge: number): { surface: Surface; stairs: boolean; enclosure: number; canopy: number; gorge: number } | null {
   if (x > -12 || !inExpansionRuins(x, z)) return null;
   if (x < -40) {
     if (inStairCut(x, z, 0.05)) return { surface: 'stone', stairs: true, enclosure: 0, canopy, gorge };
     if (inTerrace(x, z) || outcropCover(x, z) > 0.5) return { surface: 'stone', stairs: false, enclosure: 0, canopy, gorge };
+    if (getTerrain().height(x, z) < EXPANSION_RUINS.pool.water - 0.02) return { surface: 'water', stairs: false, enclosure: 0, canopy, gorge };
   }
   const trail = trailInfluence(RUINS_TRAIL, x, z);
   if (trail && trail.surface > 0.12 && Math.max(expansionDiscMask(x, z), steppingStoneMask(x, z)) < 0.5) return { surface: 'dirt', stairs: false, enclosure: 0, canopy, gorge };

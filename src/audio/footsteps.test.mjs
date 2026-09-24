@@ -33,7 +33,7 @@ const here = path.dirname(new URL(import.meta.url).pathname);
 const { designStep, designLanding, landingStrength, cadence, strideFor, strengthFor, RUN_SPEED, MIN_STEP_GAP } = loadTs(path.join(here, 'footsteps.ts'));
 const { createRng } = loadTs(path.join(here, '../world/util/prng.ts'));
 
-const SURFACES = ['stone', 'stair', 'grass', 'dirt', 'wood', 'hollow', 'leaf', 'bridge'];
+const SURFACES = ['stone', 'stair', 'grass', 'dirt', 'wood', 'hollow', 'leaf', 'bridge', 'water'];
 const rng = (seed) => createRng(seed);
 /** every design of a surface over many seeds, so a rare branch (the plank's creak) is covered too */
 const designs = (surface, running = false, strength = 0.6, n = 40) => Array.from({ length: n }, (_, i) => designStep(surface, strength, running, rng(`step/${surface}/${i}`)));
@@ -90,6 +90,19 @@ test('a plank over a ravine answers lower and longer than a deck on the ground',
   const rope = designs('bridge').filter((d) => d.parts.some((p) => p.kind === 'noise' && p.q >= 6)).length;
   assert.ok(rope > 12 && rope < 38, `the rope creaks on ${rope} of 40 steps — it should be most, not all`);
   assert.equal(designs('wood').filter((d) => d.parts.some((p) => p.kind === 'noise' && p.q >= 6 && p.freq < 500)).length > 0, true, 'a deck plank keeps its own creak');
+});
+
+test('wading splashes: a bright band falling at the heel, and drops pattering back after the boot', () => {
+  for (const d of designs('water')) {
+    const splash = d.parts.filter((p) => p.kind === 'noise' && p.at <= 0.004 && p.freq > 2000);
+    assert.equal(splash.length, 1, 'one splash over the heel');
+    assert.ok(splash[0].freqTo < splash[0].freq * 0.6, 'the splash falls in pitch as the skin closes');
+    const drops = d.parts.filter((p) => p.kind === 'noise' && p.q === 1.6 && p.at > 0.05);
+    assert.ok(drops.length >= 5, `${drops.length} drops falling back`);
+    assert.ok(Math.max(...drops.map((p) => p.at)) > 0.25, 'the last drops land well after the toe');
+  }
+  // a plank, a flagstone and the earth throw no water
+  for (const surface of ['wood', 'stone', 'dirt']) assert.equal(designs(surface).some((d) => d.parts.some((p) => p.kind === 'noise' && p.at <= 0.004 && p.freq > 2000 && p.freqTo < p.freq * 0.6)), false, `${surface} splashes`);
 });
 
 test('the hollow log rings longer than anything else and sends more to the hall', () => {
