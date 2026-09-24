@@ -148,7 +148,6 @@ uniform float uMaxDist;
 uniform vec4 uFogParams;   // baseHeight, falloff, northStartZ, northFullZ
 uniform vec2 uDensity;     // height-fog density weight, base air density
 uniform vec2 uAirFade;     // world heights (m) between which the base-air in-scatter fades in
-uniform float uAirLift;    // (m) the fade band's rise with the ground under the camera (0 on the plaza)
 uniform vec2 uMistNear;    // marched distances (m) between which the mist-layer in-scatter ramps in (x >= y disables)
 uniform vec2 uColumnNear;  // marched distances (m) over which a gained column's extra gain fades in
 uniform vec2 uAltitude;    // aerosol profile: uniform height (m), scale height (m) above it
@@ -238,9 +237,8 @@ void main() {
     // mist keeps its own profile. Inside a gained canopy-hole column (gain > 1, shafts.ts) the air
     // stays lit down to the ground — the reference's F shafts land on the stairs. The plain plaza
     // columns keep the fade: shot D's rays to the arch cross their 2.5–4 m air, and lighting it
-    // striped the arch body. A camera on raised ground (the east plateau) lifts the band with it,
-    // so the air at its own eye level stays as crisp as the plaza's
-    float upperAir = max( smoothstep( uAirFade.x + uAirLift, uAirFade.y + uAirLift, pw.y ), clamp( column - 1.0, 0.0, 1.0 ) );
+    // striped the arch body
+    float upperAir = max( smoothstep( uAirFade.x, uAirFade.y, pw.y ), clamp( column - 1.0, 0.0, 1.0 ) );
     // optional ramp of the mist-layer in-scatter along the ray (see ComposerSettings.rayMistNearStart;
     // off in production): with every surface black the rays + mist add 0.05 display to D's 9–17 m
     // floor (0.209 → 0.260) and 0.02 to B's, but ramping the mist in over 6–18 m cost −0.006 SSIM

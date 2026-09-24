@@ -135,8 +135,6 @@ export interface ComposerOptions {
   exposure: number;
   headless: boolean;
   overlay?: ComposerOverlay;
-  /** terrain height (m) at a point: the god rays' crisp eye-level air rides on the ground under the camera (`rayAirLiftFrom`) */
-  groundAt?: (x: number, z: number) => number;
 }
 
 export interface Composer {
@@ -178,12 +176,6 @@ export interface ComposerSettings {
   /** world heights (m) between which the base-air in-scatter fades in (the lit air is the upper air) */
   rayAirFadeLo: number;
   rayAirFadeHi: number;
-  /**
-   * ground height (m) under the camera above which the base-air fade band rises with it (by the
-   * ground's excess over this): a camera standing on the east plateau (5.2–5.9 m) keeps the crisp
-   * eye-level air the plaza's cameras (ground ≈ 0 m, no lift) have
-   */
-  rayAirLiftFrom: number;
   /** marched distances (m) between which the mist-layer in-scatter ramps in (start >= end disables the ramp) */
   rayMistNearStart: number;
   rayMistNearEnd: number;
@@ -453,10 +445,6 @@ export function createComposer(opts: ComposerOptions): Composer {
     // crowns standing in it (reference/ANALYSIS_CLARITY.md §5, fable-5 lane 10, INBOX 08:40).
     rayAirFadeLo: 3,
     rayAirFadeHi: 6.5,
-    // 2026-09-23 (the east lane on the plateau): a canopy gap's beam crossing the lane at eye level
-    // (≈ 7 m up, above the band) laid a flat grey slab over the houses' dark doorways from 4–6 m;
-    // standing there, the band rises by the ground's height over 1.5 m (A–F: no lift)
-    rayAirLiftFrom: 1.5,
     // the mist term's ramp along the ray (0 / 0 = off; see RAY_MARCH_FRAG mistNear)
     rayMistNearStart: 0,
     rayMistNearEnd: 0,
@@ -702,8 +690,6 @@ export function createComposer(opts: ComposerOptions): Composer {
   const sunDirView = new Vector3();
   const sunUv = new Vector2(0.5, 0.5);
   const dirSign = { value: 1 };
-  /** metres the base-air fade band rises this frame (`rayAirLiftFrom`) */
-  const airLift = { value: 0 };
   const fog = HEIGHT_FOG_DEFAULTS;
   // world basis of the plane perpendicular to the sun: the canopy-gap mask lives in it, so a gap is
   // a column of lit air along the sun direction wherever the camera stands
@@ -740,7 +726,6 @@ export function createComposer(opts: ComposerOptions): Composer {
       // (mist-layer density, base air density) in 1/m — see ComposerSettings
       uDensity: { value: new Vector2(settings.rayMistDensity, settings.rayBaseDensity) },
       uAirFade: { value: new Vector2(settings.rayAirFadeLo, settings.rayAirFadeHi) },
-      uAirLift: airLift,
       uMistNear: { value: new Vector2(settings.rayMistNearStart, settings.rayMistNearEnd) },
       uColumnNear: { value: new Vector2(settings.rayColumnNearStart, settings.rayColumnNearEnd) },
       // the base air clears above the canopy like the distance haze (same profile as heightfog.ts):
@@ -912,7 +897,6 @@ export function createComposer(opts: ComposerOptions): Composer {
     const maxR = 4.0;
     if (len > maxR) sunUv.set(0.5 + (dx / len) * maxR, 0.5 + (dy / len) * maxR);
     rayIntensity.value = s.rayIntensity;
-    airLift.value = opts.groundAt ? Math.max(0, opts.groundAt(camPos.x, camPos.z) - s.rayAirLiftFrom) : 0;
   };
 
   /** the frame's settings: the live object, or a copy with the numeric tuning overrides applied */
@@ -1315,8 +1299,6 @@ export function createComposer(opts: ComposerOptions): Composer {
       godRayExtinctionPerM: settings.rayExtinction,
       godRayMaxDistM: settings.rayMaxDist,
       godRayAirFadeM: [settings.rayAirFadeLo, settings.rayAirFadeHi],
-      godRayAirLiftFromM: settings.rayAirLiftFrom,
-      godRayAirLiftM: +airLift.value.toFixed(3),
       godRayMistNearM: [settings.rayMistNearStart, settings.rayMistNearEnd],
       godRayColumnNearM: [settings.rayColumnNearStart, settings.rayColumnNearEnd],
       godRayAnisotropy: settings.rayAnisotropy,
