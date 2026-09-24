@@ -8,7 +8,7 @@
   "license": "MIT",
   "environment": "client",
   "entrypoints": {
-    "client": ["dev.vista.VistaClient"]
+    "client": ["dev.vista.client.VistaClient"]
   },
   "mixins": ["vista.mixins.json"],
   "depends": {

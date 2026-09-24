@@ -355,7 +355,17 @@ public final class LodEngine implements AutoCloseable {
      *                        so synthesising a base for the column would be wasted work
      */
     public void ingestChunk(int chunkX, int chunkZ, int minChunkSectionY, int[][] sections, boolean neighboursKnown) {
-        workers.submit(-1, () -> doIngest(chunkX, chunkZ, minChunkSectionY, sections, neighboursKnown));
+        workers.submit(-1, () -> ingestChunkNow(chunkX, chunkZ, minChunkSectionY, sections, neighboursKnown));
+    }
+
+    /** Runs arbitrary work on the engine's worker pool (lower priority value runs first). */
+    public void submitWork(double priority, Runnable task) {
+        workers.submit(priority, task);
+    }
+
+    /** Synchronous variant of {@link #ingestChunk}; call from a worker thread. */
+    public void ingestChunkNow(int chunkX, int chunkZ, int minChunkSectionY, int[][] sections, boolean neighboursKnown) {
+        doIngest(chunkX, chunkZ, minChunkSectionY, sections, neighboursKnown);
     }
 
     private void doIngest(int chunkX, int chunkZ, int minCsy, int[][] sections, boolean neighboursKnown) {

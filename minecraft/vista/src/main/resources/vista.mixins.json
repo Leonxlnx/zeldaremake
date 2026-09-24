@@ -4,9 +4,10 @@
   "package": "dev.vista.mixin",
   "compatibilityLevel": "JAVA_21",
   "client": [
+    "BlockStateMixin",
+    "DebugScreenOverlayMixin",
     "FogRendererMixin",
-    "LevelRendererMixin",
-    "GameRendererMixin"
+    "LevelRendererMixin"
   ],
   "injectors": {
     "defaultRequire": 1
