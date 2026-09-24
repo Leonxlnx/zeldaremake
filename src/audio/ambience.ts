@@ -74,7 +74,29 @@ export interface AmbienceStats {
   fairiesNear: number;
   /** where the canopy roll is sitting: −1 hard left, +1 hard right (the wind's lean) */
   windLean: number;
+  /**
+   * Where the last few bird calls came from — `[kind, bearing, distance]`, newest last, bearing
+   * −1 hard left to +1 hard right and distance 0 overhead to 1 deep in the wood.
+   *
+   * Published for the same reason `fairySpots` is: it is the only way a harness can see what the
+   * scheduler decided, and "how many birds does this wood have in it" is not a question a
+   * recording can answer.
+   */
+  birdSpots: [BirdKind, number, number][];
 }
+/** how many calls back `birdSpots` remembers */
+export const BIRD_SPOT_MEMORY = 24;
+/** the wood holds one bird of each kind within earshot; the weights decide who calls */
+/**
+ * How far the listener walks before the wood he is in is a different wood (m).
+ *
+ * Birds do not follow you, and they are not the same birds a hundred metres on. Holding the perches
+ * in world coordinates for ever would leave them all behind by the time he reached the ruins;
+ * re-seeding every step would be the random stream this replaces. Re-seeding once he has walked out
+ * of earshot of the last lot is both — consistent individuals while he is among them, new ones when
+ * he is somewhere else. `FALL_AUDIBLE_M` is 42 m for a waterfall; a bird carries less far than that.
+ */
+export const PERCH_RESEED_M = 25;
 
 /** the lantern flame's distance scale (m: half level this far from one pod) and its peak level */
 export const LANTERN_REACH_M = 1.3;
@@ -328,11 +350,13 @@ export function createAmbience(ctx: BaseAudioContext, outBus: AudioNode, reverbS
 
   // ---- scheduled events: leaf flutters and birds ------------------------------------------------
   const eventRng = rng.fork('events');
-  const counts: AmbienceStats = { birds: 0, flutters: 0, glints: 0, fairiesNear: 0, windLean: 0 };
+  const counts: AmbienceStats = { birds: 0, flutters: 0, glints: 0, fairiesNear: 0, windLean: 0, birdSpots: [] };
   /** the gust as `update` last saw it: the schedulers run ahead of the clock, so they use it as a level */
   let gustNow = 0.4;
   /** how closed the canopy was over the listener, likewise (leaves overhead move more often) */
   let canopyNow = 0;
+  /** which way he was facing, likewise: the perches keep a world bearing, not a stereo position */
+  let forwardNow = { x: 0, z: 1 };
 
   /**
    * One leaf flutter: a short shaped grain of the bed's own pink noise. Several of these in a
@@ -406,6 +430,8 @@ export function createAmbience(ctx: BaseAudioContext, outBus: AudioNode, reverbS
 
   const birdCall = (kind: BirdKind, t: number, pan: number, level: number, distance: number) => {
     counts.birds++;
+    counts.birdSpots.push([kind, Number(pan.toFixed(3)), Number(distance.toFixed(3))]);
+    if (counts.birdSpots.length > BIRD_SPOT_MEMORY) counts.birdSpots.shift();
     // distance takes the level down; a far call is also slower to start (the air rounds its attack)
     const lv = level * (1 - 0.66 * distance);
     const soft = 1 + distance * 1.6;
@@ -559,8 +585,8 @@ export function createAmbience(ctx: BaseAudioContext, outBus: AudioNode, reverbS
 
   let nextGlint = startAt + 1;
 
-  const pickBird = () => {
-    let r = eventRng() * BIRD_WEIGHT;
+  const pickBird = (rnd: () => number) => {
+    let r = rnd() * BIRD_WEIGHT;
     for (const b of BIRDS) {
       r -= b.weight;
       if (r <= 0) return b;
@@ -568,21 +594,68 @@ export function createAmbience(ctx: BaseAudioContext, outBus: AudioNode, reverbS
     return BIRDS[0];
   };
 
+  /**
+   * The birds themselves. Until now there were none: the scheduler picked a kind and then drew a
+   * fresh bearing and a fresh distance for it, so 216 calls over twenty minutes came from 216
+   * places and a kind's calls scattered 0.47 across a ±0.85 field — indistinguishable from
+   * uniform. A wood does not do that. It holds a handful of individuals, each in its own tree,
+   * each calling from the same direction over and over, and that is most of what makes one sound
+   * inhabited rather than sprinkled.
+   *
+   * A perch keeps a world direction rather than a stereo position, so the bearing is worked out
+   * against the listener's facing when the call is scheduled — turn your head and the birds stay
+   * where they were, which a random pan can never do. They sit in slots round the compass so the
+   * wood is not all on one side, jittered inside the slot so it is not a ring.
+   */
+  const perchRng = rng.fork('perches');
+  let perches: { kind: BirdKind; weight: number; dirX: number; dirZ: number; distance: number }[] = [];
+  let perchWeight = 0;
+  let perchAnchor: { x: number; z: number } | null = null;
+  let lastPerch = -1;
+  const seedPerches = (at: Vec3) => {
+    perchAnchor = { x: at.x, z: at.z };
+    // One bird of each kind, not six drawn from the weighted list: drawing doubled kinds up and
+    // left a wood with three species in it. The weights belong on how often a bird calls, which is
+    // what they always meant — a wood has one of everything and you hear the common ones more.
+    const order = BIRDS.map((b, i) => ({ b, k: perchRng() + i * 1e-6 })).sort((p, q) => p.k - q.k);
+    perches = order.map(({ b }, i) => {
+      // a slot each round the compass, jittered inside it: spread, but not a ring
+      const a = ((i + 0.2 + perchRng() * 0.6) / order.length) * Math.PI * 2;
+      return { kind: b.kind, weight: b.weight, dirX: Math.sin(a), dirZ: Math.cos(a), distance: b.near + perchRng() * (b.far - b.near) };
+    });
+    perchWeight = perches.reduce((s, p) => s + p.weight, 0);
+    lastPerch = -1;
+  };
+  /** which bird calls next: the commoner kinds more often, and never the one that just called */
+  const pickPerch = (avoid: number) => {
+    let r = eventRng() * perchWeight;
+    for (let i = 0; i < perches.length; i++) {
+      r -= perches[i].weight;
+      if (r <= 0) return i === avoid ? (i + 1) % perches.length : i;
+    }
+    return perches.length - 1 === avoid ? 0 : perches.length - 1;
+  };
+  /** the bearing of a perch as the listener is facing now: −1 hard left, +1 hard right */
+  const perchPan = (p: { dirX: number; dirZ: number }) => Math.max(-1, Math.min(1, (p.dirX * -forwardNow.z + p.dirZ * forwardNow.x) * 0.85));
+
   // its own stream: the lull trigger is drawn from `update`, whose call rate differs between the
   // live tick and an offline render, and it must not shift what the schedulers draw
   const lullRng = rng.fork('lull');
   let nextBird = startAt + 2 + eventRng() * 3;
   const scheduleBirds = (until: number) => {
     while (nextBird < until) {
-      const b = pickBird();
-      const distance = b.near + eventRng() * (b.far - b.near);
-      const pan = (eventRng() * 2 - 1) * 0.85;
+      if (!perches.length) seedPerches({ x: 0, y: 0, z: 0 });
+      const i = pickPerch(lastPerch);
+      const p = perches[i];
+      lastPerch = i;
       const level = 0.03 + eventRng() * 0.045;
-      birdCall(b.kind, nextBird, pan, level, distance);
-      // sometimes one answers from the other side, always further off
-      if (eventRng() < 0.3) {
-        const a = pickBird();
-        birdCall(a.kind, nextBird + 1.1 + eventRng() * 1.4, -pan * 0.8, level * 0.6, Math.min(1, distance + 0.2));
+      birdCall(p.kind, nextBird, perchPan(p), level, p.distance);
+      // and sometimes another answers — a different bird in its own tree, not this one mirrored
+      if (eventRng() < 0.3 && perches.length > 1) {
+        const j = pickPerch(i);
+        const q = perches[j];
+        lastPerch = j;
+        birdCall(q.kind, nextBird + 1.1 + eventRng() * 1.4, perchPan(q), level * 0.6, q.distance);
       }
       // Birds shelter and stop calling in a blow, and sing when it drops. Measured, the world's
       // wind falls under the gust knee about twice a minute for three seconds at a time
@@ -611,6 +684,10 @@ export function createAmbience(ctx: BaseAudioContext, outBus: AudioNode, reverbS
     // read before anything uses it: the roll's own level is the first thing that does, and it used
     // to sit above this line and take the previous tick's roof
     canopyNow = Math.max(0, Math.min(1, s.canopy ?? 0));
+    const fl = Math.hypot(s.forward.x, s.forward.z) || 1;
+    forwardNow = { x: s.forward.x / fl, z: s.forward.z / fl };
+    // a different part of the wood holds different birds (PERCH_RESEED_M)
+    if (!perchAnchor || Math.hypot(s.listener.x - perchAnchor.x, s.listener.z - perchAnchor.z) > PERCH_RESEED_M) seedPerches(s.listener);
     const sw = swell(gust);
     const gorge = Math.max(0, Math.min(1, s.gorge ?? 0));
     // the wind funnels along the gorge: the roll gains with it, the hush does not (there are no
@@ -698,7 +775,7 @@ export function createAmbience(ctx: BaseAudioContext, outBus: AudioNode, reverbS
   return {
     scheduleUntil,
     update,
-    stats: () => ({ ...counts }),
+    stats: () => ({ ...counts, birdSpots: counts.birdSpots.map((s) => [...s] as [BirdKind, number, number]) }),
     dispose() {
       for (const n of nodes) {
         try {
