@@ -12,7 +12,7 @@
  *      flight down the wall's pool face → the quay → the platform at the fall's foot, and back,
  *      every 0.1 m free and no rise a stride can't take; each tread, the quay and the platform at
  *      their heights; off its open edges, past the landing's east face and on the wall either side
- *      of the crossing held;
+ *      of the crossing held; the ground a fifth of a metre under its tops all over its footprint;
  *   3. the holds: the wall, the parapet, the cliff, the ivy rock (its foot over the notch too), the
  *      gate boulders, the columns, the piers, the plunge, the lantern posts, the offering, a step
  *      off each of the terrace's open edges, and the pool past a paddle of at most a metre (the
@@ -26,8 +26,12 @@
  *   7. the loose stone: every rubble block, drum and the lintel reaches down to what it lies on (the
  *      ground, the outcrop's skin, the slabs or a lost slab's bed) and stands out of it; every
  *      boulder's underside meets the ground all round it;
- *   8. determinism: the same seed builds the same stone, bit for bit;
- *   9. locality: the site's casters and their shadow footprints (what `ruinsVisible` tests) meet no
+ *   8. the water: the pool's surface covers every open point of the basin under its waterline; the
+ *      fall's run-in lies on the brow's rock as built (over it, never in it), its arc keeps clear
+ *      of the face and of the water stair, every column lands in the pool's water, and the front
+ *      layer stays in front of the back one;
+ *   9. determinism: the same seed builds the same stone, bit for bit;
+ *  10. locality: the site's casters and their shadow footprints (what `ruinsVisible` tests) meet no
  *      fixed camera's frustum, and the zone's own views do meet them.
  * (The gauntlet's playtest walks the same route and probes in the browser, over every system's
  * blockers; this is the ruins' share of it, without one.)
@@ -75,7 +79,8 @@ const { ruinsColumnBlockers } = loadTs(path.join(here, 'cameraSolid.ts'));
 const { buildLanterns } = loadTs(path.join(here, 'lanterns.ts'));
 const { buildOfferings } = loadTs(path.join(here, 'offerings.ts'));
 const { hangArchIvy } = loadTs(path.join(here, 'ivy.ts'));
-const { waterStairFootprint, waterStairTop, WATER_STAIR_LANDING_X } = loadTs(path.join(here, '../terrain/ruins.ts'));
+const { buildWater } = loadTs(path.join(here, 'water.ts'));
+const { waterStairFootprint, waterStairTop, WATER_STAIR_LANDING_X, cliffFaceX, cliffFaceAt, poolSigned } = loadTs(path.join(here, '../terrain/ruins.ts'));
 
 const terrain = getTerrain();
 const ground = (x, z) => terrain.height(x, z);
@@ -171,6 +176,16 @@ test("the water stair walks from the paving over the wall and down its pool face
   for (const x of [Qy.head[0] - 0.6, Qy.head[1] + 0.55]) held('the wall beside the crossing', [x, R.wall.z]);
   // and the strip itself stays walkable to its margins (the platform to the cliff's reach, 0.8 m off its rock)
   for (const p of [[-66.2, Qy.z0 + 0.15], [-66.2, Qy.z1 - 0.3], [Qy.east - 0.35, zc], [-73.3, Qy.fallZ - 0.3]]) assert.equal(walker.blocked(...p), false, `the strip's margin ${fmt(p)} held`);
+  // the ground as rendered stays a fifth of a metre under its walked tops everywhere on its footprint
+  // (nothing pokes through a tread or a slab)
+  let worst = -Infinity;
+  for (let x = R.cliff.x - 0.9; x <= Qy.east; x += 0.05) {
+    for (let z = Qy.z0; z <= Qy.fallZ; z += 0.05) {
+      if (!waterStairFootprint(x, z)) continue;
+      worst = Math.max(worst, terrain.height(x, z) - waterStairTop(x));
+    }
+  }
+  assert.ok(worst < -0.2, `the ground comes ${(worst + 0.2).toFixed(3)} m too near a walked top`);
 });
 
 test('the ruins hold Link off their stone, their edges and the deep water', async () => {
@@ -423,6 +438,118 @@ test('every loose stone meets what it lies on and stands out of it', () => {
   }
   assert.ok(rock.boulders.length >= 20, `${rock.boulders.length} boulders`);
   assert.deepEqual(bad, []);
+});
+
+test('the water meets its banks, the rock and itself', () => {
+  const water = buildWater(seed().fork('water'), ground);
+  const [pool, fall] = water.meshes;
+  const Q = R.pool;
+  const Y = Q.water;
+  // the pool's surface covers every open point of the basin whose ground is under the waterline (no dry
+  // gap between the water and the bank, the wall's face or the cliff's foot): its triangles in 0.35 m cells
+  const pp = pool.geometry.getAttribute('position');
+  const pi = pool.geometry.getIndex();
+  const cells = new Map();
+  const tri = [];
+  for (let t = 0; t < pi.count; t += 3) {
+    const v = [0, 1, 2].map((j) => [pp.getX(pi.getX(t + j)), pp.getZ(pi.getX(t + j))]);
+    tri.push(v);
+    const key = `${Math.floor(Math.min(...v.map((p) => p[0])) / 0.35)}:${Math.floor(Math.min(...v.map((p) => p[1])) / 0.35)}`;
+    (cells.get(key) ?? cells.set(key, []).get(key)).push(v);
+  }
+  const inside = ([ax, az], [bx, bz], [cx, cz], x, z) => {
+    const d1 = (x - bx) * (az - bz) - (ax - bx) * (z - bz);
+    const d2 = (x - cx) * (bz - cz) - (bx - cx) * (z - cz);
+    const d3 = (x - ax) * (cz - az) - (cx - ax) * (z - az);
+    return !((d1 < -1e-9 || d2 < -1e-9 || d3 < -1e-9) && (d1 > 1e-9 || d2 > 1e-9 || d3 > 1e-9));
+  };
+  const covered = (x, z) => {
+    for (let i = -1; i <= 0; i++) for (let j = -1; j <= 0; j++) for (const v of cells.get(`${Math.floor(x / 0.35) + i}:${Math.floor(z / 0.35) + j}`) ?? []) if (inside(...v, x, z)) return true;
+    return false;
+  };
+  const W = R.wall;
+  let wet = 0;
+  const dry = [];
+  for (let x = Q.x - Q.hx - 1; x <= Q.x + Q.hx + 1; x += 0.1) {
+    for (let z = Q.z - Q.hz - 1; z <= Q.z + Q.hz + 1; z += 0.1) {
+      if (terrain.height(x, z) > Y - 0.005) continue;
+      // under the wall, the water stair or the cliff's rock the water is not seen
+      if (z < W.z + W.half || waterStairFootprint(x, z) || x < cliffFaceX(z, 0.5)) continue;
+      wet++;
+      if (!covered(x, z)) dry.push(fmt([x, z]));
+    }
+  }
+  assert.ok(wet > 10000, `${wet} wet points`);
+  assert.equal(dry.length, 0, `the water leaves ${dry.length} wet points of the basin bare: ${dry.slice(0, 5).join(', ')}`);
+  // the fall: its run-in lies on the brow's rock (≤ 0.15 m off the rock as built, never in it), its arc keeps
+  // clear of the face and of the water stair, every column ends in the pool's water (not on a bank, in
+  // its bed or on the platform), and the front layer keeps in front of the back one
+  const cliffGeo = buildRock(seed().fork('rock'), ground, sun).cliff.build();
+  const cliff = new THREE.Mesh(cliffGeo, new THREE.MeshBasicMaterial({ side: THREE.DoubleSide }));
+  const ray = new THREE.Raycaster();
+  const fp = fall.geometry.getAttribute('position');
+  const fu = fall.geometry.getAttribute('uv');
+  const fl = fall.geometry.getAttribute('aLayer');
+  // the brow's triangles round the run-in, for the nearest rock to each of its vertices (straight down
+  // is no measure at the lip's corner, where a ray just past the corner meets the face far below)
+  const runPts = [];
+  for (let k = 0; k < fp.count; k++) if (fu.getY(k) < 0) runPts.push(new THREE.Vector3(fp.getX(k), fp.getY(k), fp.getZ(k)));
+  const box = new THREE.Box3().setFromPoints(runPts).expandByScalar(1.5);
+  const cp = cliffGeo.getAttribute('position');
+  const ci = cliffGeo.getIndex();
+  const brow = [];
+  for (let t = 0; t < ci.count; t += 3) {
+    const v = [0, 1, 2].map((j) => new THREE.Vector3().fromBufferAttribute(cp, ci.getX(t + j)));
+    if (v.some((p) => box.containsPoint(p))) brow.push(new THREE.Triangle(...v));
+  }
+  const near = new THREE.Vector3();
+  const rockGap = (p) => {
+    let d = Infinity;
+    for (const tr of brow) d = Math.min(d, tr.closestPointToPoint(p, near).distanceTo(p));
+    return d;
+  };
+  const cols = new Map();
+  let runIn = 0;
+  let gapMax = 0;
+  let gapMin = Infinity;
+  let faceMin = Infinity;
+  for (let k = 0; k < fp.count; k++) {
+    const [x, y, z, s, layer] = [fp.getX(k), fp.getY(k), fp.getZ(k), fu.getY(k), fl.getX(k)];
+    const key = `${layer}:${fu.getX(k).toFixed(3)}`;
+    (cols.get(key) ?? cols.set(key, []).get(key)).push([x, y, z, s]);
+    if (s < 0) {
+      // the first rock under it is below it (it is not in the rock), and the nearest rock is a skin away
+      ray.set(new THREE.Vector3(x, y + 0.5, z), new THREE.Vector3(0, -1, 0));
+      const hit = ray.intersectObject(cliff, false)[0];
+      assert.ok(hit && hit.point.y < y, `the run-in at ${fmt([x, z])} is in the rock or off it`);
+      const gap = rockGap(new THREE.Vector3(x, y, z));
+      gapMax = Math.max(gapMax, gap);
+      gapMin = Math.min(gapMin, gap);
+      runIn++;
+    } else if (s > 0.05) faceMin = Math.min(faceMin, x - cliffFaceAt(z, y, ground));
+    assert.ok(!waterStairFootprint(x, z, 0.3), `the fall's sheet at ${fmt([x, z])} meets the water stair`);
+  }
+  assert.ok(runIn >= 100 && gapMin > 0.02 && gapMax <= 0.15, `the run-in lies ${gapMin.toFixed(3)}…${gapMax.toFixed(3)} m off the rock (${runIn} vertices)`);
+  assert.ok(faceMin >= 0.1, `the arc comes within ${faceMin.toFixed(3)} m of the face`);
+  let thin = Infinity;
+  for (const [key, col] of cols) {
+    const [x, y, z] = col[col.length - 1];
+    // it ends under the waterline, a tenth of a metre or more over the bed, inside the pool
+    assert.ok(y < Y && terrain.height(x, z) < y - 0.1 && poolSigned(x, z) < 0, `the column ${key} lands at ${fmt([x, z])} (y ${y.toFixed(2)}, the ground ${terrain.height(x, z).toFixed(2)})`);
+    if (!key.startsWith('1:')) continue;
+    // the back layer's x at the front vertex's height, same column
+    const back = cols.get(`0:${key.slice(2)}`).filter((q) => q[3] >= 0);
+    for (const [fx, fy] of col) {
+      for (let j = 0; j + 1 < back.length; j++) {
+        const [x0, y0] = back[j];
+        const [x1, y1] = back[j + 1];
+        if ((fy - y0) * (fy - y1) > 0) continue;
+        thin = Math.min(thin, fx - (x0 + ((x1 - x0) * (fy - y0)) / (y1 - y0 || 1)));
+        break;
+      }
+    }
+  }
+  assert.ok(cols.size === 42 && thin >= 0.05, `${cols.size} columns; the front layer comes within ${thin.toFixed(3)} m of the back`);
 });
 
 test('the same seed builds the same stone', () => {
