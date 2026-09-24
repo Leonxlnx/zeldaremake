@@ -1,5 +1,11 @@
 #version 430 core
 
+#ifndef MASKED
+// No discard in this variant, so depth can be tested and written before shading: hidden far terrain costs
+// no fragment work. Fading nodes and nodes near vanilla chunks use the MASKED variant.
+layout(early_fragment_tests) in;
+#endif
+
 uniform sampler2D uAtlas;
 uniform sampler2D uLightmap;
 uniform usampler2D uVanillaMask;  // 256x256 torus of chunks vanilla is drawing
@@ -11,7 +17,7 @@ uniform float uVanillaRadius;     // horizontal blocks; beyond this the mask can
 uniform vec2 uAtlasSize;
 uniform int uTextures;
 uniform float uAlpha;             // 1 for the opaque pass; <0 means "use the state's alpha" (translucent)
-uniform int uDebug;               // 1 = colour by LOD level, 2 = light (R sky, G block)
+uniform int uDebug;               // 1 LOD level (translucent magenta), 2 light (R sky, G block), 3 tint, 4 ids
 
 in vec3 vRel;
 in vec2 vUV;
@@ -33,17 +39,18 @@ float ign(vec2 p) {
 }
 
 void main() {
+    float hd = length(vRel.xz);
+#ifdef MASKED
     if (vFade.y > 0.5) {
         float n = ign(gl_FragCoord.xy);
         if (vFade.y < 1.5) { if (n >= vFade.x) discard; }
         else if (n < vFade.x) discard;
     }
-
-    float hd = length(vRel.xz);
     if (hd < uVanillaRadius) {
         ivec2 ch = uCamChunk + ivec2(floor((vRel.xz + uCamChunkOffset) / 16.0));
         if (texelFetch(uVanillaMask, ch & 255, 0).r != 0u) discard;
     }
+#endif
 
     vec3 avg = vAvg.rgb;
     vec3 base = avg;
@@ -79,14 +86,9 @@ void main() {
                                      vec3(0.15, 0.3, 1), vec3(0.95, 0.95, 0.95), vec3(0.5, 0.5, 0.5), vec3(0.1, 0.1, 0.1));
         vec3 lc = LEVEL[min(int(vLevel + 0.5), 7)];
         color = mix(base * vShade, lc, 0.65);
-    } else if ((uDebug == 3 || uDebug == 7 || uDebug == 8) && uAlpha < 0.0) {
-        fragColor = vec4(1.0, 0.0, 1.0, 1.0);
-        return;
+    } else if (uDebug == 3) {
+        color = vTint;
     } else if (uDebug == 4) {
-        float third = gl_FragCoord.x / (uAtlasSize.x > 0.0 ? 1.0 : 1.0);
-        vec3 lm = texture(uLightmap, lmUV).rgb;
-        color = third < 426.0 ? vTint : third < 853.0 ? lm : base;
-    } else if (uDebug == 5) {
         color = vIds;
     } else if (uDebug == 2) {
         color = vec3(vLight.y, vLight.x, 0.0) / 15.0 * vShade;

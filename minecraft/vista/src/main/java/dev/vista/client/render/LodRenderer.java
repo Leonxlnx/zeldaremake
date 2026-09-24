@@ -82,8 +82,8 @@ public final class LodRenderer implements AutoCloseable {
 
     private boolean initialised, failed;
     private boolean clipControl;
-    private GlProgram lodProgram, compositeProgram;
-    private int quadBuffer, metaBuffer, indirectBuffer, transIndirectBuffer, vao, emptyVao;
+    private GlProgram maskedProgram, solidProgram, compositeProgram;
+    private int quadBuffer, metaBuffer, indirectBuffer, vao, emptyVao;
     private RangeAllocator allocator;
     private long maxQuads;
     private int fbo, colorRb, depthRb, resolveFbo, resolveTex, fbW, fbH, fbSamples;
@@ -101,7 +101,6 @@ public final class LodRenderer implements AutoCloseable {
     private double[] transDist = new double[1024];
     private int[] transMeta = new int[1024];
     private long frame;
-    private boolean loggedState;
 
     // Stats for the debug overlay / benchmarks.
     public volatile int statVisible, statCommands, statSelected, statTransCommands;
@@ -138,7 +137,8 @@ public final class LodRenderer implements AutoCloseable {
             if (!isSupported()) throw new IllegalStateException("OpenGL 4.3 is required (shader storage buffers, multi-draw indirect)");
             GLCapabilities caps = GL.getCapabilities();
             clipControl = caps.OpenGL45 || caps.GL_ARB_clip_control;
-            lodProgram = new GlProgram("lod.vsh", "lod.fsh");
+            maskedProgram = new GlProgram("lod.vsh", "lod.fsh", "MASKED");
+            solidProgram = new GlProgram("lod.vsh", "lod.fsh");
             compositeProgram = new GlProgram("composite.vsh", "composite.fsh");
             long maxBlock = GL43C.glGetInteger64(GL43C.GL_MAX_SHADER_STORAGE_BLOCK_SIZE);
             maxQuads = Math.min((long) config.maxGpuMemoryMiB * 1048576L, maxBlock) / 8;
@@ -150,7 +150,6 @@ public final class LodRenderer implements AutoCloseable {
             allocator = new RangeAllocator(initial);
             metaBuffer = GL15C.glGenBuffers();
             indirectBuffer = GL15C.glGenBuffers();
-            transIndirectBuffer = GL15C.glGenBuffers();
             vao = GL30C.glGenVertexArrays();
             GL30C.glBindVertexArray(vao);
             GL15C.glBindBuffer(GL15C.GL_ARRAY_BUFFER, metaBuffer);
@@ -424,14 +423,21 @@ public final class LodRenderer implements AutoCloseable {
 
     // ------------------------------------------------------------------------------------------ commands
 
-    private int metaCount, cmdCount;
+    private int metaCount, cmdCount, maskedCmds;
+    private int[] solid = new int[4096];
+    private int solidInts;
 
-    /** Fills the meta and command buffers; returns the number of opaque commands (translucent ones follow). */
+    /**
+     * Fills the meta and command buffers as [masked opaque][solid opaque][translucent]; returns the number of
+     * opaque commands. "Masked" nodes (fading, or near vanilla chunks) need the discarding shader variant.
+     */
     private int buildCommands(Vec3 cam, FrustumIntersection frustum, long now) {
         meta.clear();
         cmds.clear();
         metaCount = 0;
         cmdCount = 0;
+        solidInts = 0;
+        double maskRadius = maskRadiusBlocks();
         int transCount = 0;
         long quadsDrawn = 0;
         long T = fadeMs();
@@ -471,6 +477,8 @@ public final class LodRenderer implements AutoCloseable {
             visible++;
             int[] gs = g.groups;
             int seamMask = fading ? fadeSeams.get(key) : current.seams[i];
+            double hx = Math.max(0, Math.max(rx, -(rx + size))), hz = Math.max(0, Math.max(rz, -(rz + size)));
+            boolean masked = mode != 0 || hx * hx + hz * hz < maskRadius * maskRadius;
             for (int d = 0; d < Dir.COUNT; d++) {
                 if (!facesCamera(d, x0, y0, z0, size, cam)) continue;
                 int start = gs[MeshData.normalGroup(d)];
@@ -478,13 +486,19 @@ public final class LodRenderer implements AutoCloseable {
                 int seam = gs[MeshData.seamGroup(d) + 1] - gs[MeshData.seamGroup(d)];
                 if (seam > 0 && (seamMask & (1 << d)) != 0) count += seam;
                 if (count == 0) continue;
-                addCommand(count, g.offset + start, metaIndex);
+                if (masked) {
+                    addCommand(count, g.offset + start, metaIndex);
+                } else {
+                    if (solidInts + 4 > solid.length) solid = Arrays.copyOf(solid, solid.length * 2);
+                    solid[solidInts++] = count * 6;
+                    solid[solidInts++] = 1;
+                    solid[solidInts++] = (g.offset + start) * 6;
+                    solid[solidInts++] = metaIndex;
+                }
                 quadsDrawn += count;
             }
             int tc = gs[MeshData.GROUPS] - gs[MeshData.TRANSLUCENT_GROUP];
-            if (tc > 0 && config.debugView == 6) {
-                addCommand(tc, g.offset + gs[MeshData.TRANSLUCENT_GROUP], metaIndex);
-            } else if (tc > 0) {
+            if (tc > 0) {
                 if (transCount == transKeys.length) {
                     transKeys = Arrays.copyOf(transKeys, transCount * 2);
                     transDist = Arrays.copyOf(transDist, transCount * 2);
@@ -496,6 +510,8 @@ public final class LodRenderer implements AutoCloseable {
                 transMeta[transCount++] = metaIndex;
             }
         }
+        maskedCmds = cmdCount;
+        for (int i = 0; i < solidInts; i += 4) addCommandRaw(solid[i], solid[i + 1], solid[i + 2], solid[i + 3]);
         int opaqueCmds = cmdCount;
         statTransCommands = transCount;
         if (transCount > 0) {
@@ -515,6 +531,10 @@ public final class LodRenderer implements AutoCloseable {
         statCommands = cmdCount;
         statQuadsDrawn = quadsDrawn;
         return opaqueCmds;
+    }
+
+    private float maskRadiusBlocks() {
+        return (mask.radiusChunks() + 1) * 16f * 1.4143f;
     }
 
     private static boolean facesCamera(int d, double x0, double y0, double z0, int size, Vec3 cam) {
@@ -539,6 +559,10 @@ public final class LodRenderer implements AutoCloseable {
     }
 
     private void addCommand(int quads, int firstQuad, int metaIndex) {
+        addCommandRaw(quads * 6, 1, firstQuad * 6, metaIndex);
+    }
+
+    private void addCommandRaw(int count, int instances, int first, int baseInstance) {
         if (cmds.remaining() < CMD_STRIDE) {
             ByteBuffer nb = MemoryUtil.memAlloc(cmds.capacity() * 2);
             cmds.flip();
@@ -546,11 +570,34 @@ public final class LodRenderer implements AutoCloseable {
             MemoryUtil.memFree(cmds);
             cmds = nb;
         }
-        cmds.putInt(quads * 6).putInt(1).putInt(firstQuad * 6).putInt(metaIndex);
+        cmds.putInt(count).putInt(instances).putInt(first).putInt(baseInstance);
         cmdCount++;
     }
 
     // ------------------------------------------------------------------------------------------ GL pass
+
+    private void setupUniforms(GlProgram p, Matrix4f vp, Vec3 cam, int camCX, int camCZ) {
+        GL20C.glUseProgram(p.id);
+        try (var stack = org.lwjgl.system.MemoryStack.stackPush()) {
+            FloatBuffer m = stack.mallocFloat(16);
+            vp.get(m);
+            GL20C.glUniformMatrix4fv(p.uniform("uViewProj"), false, m);
+        }
+        double fx = cam.x - Math.floor(cam.x), fy = cam.y - Math.floor(cam.y), fz = cam.z - Math.floor(cam.z);
+        GL20C.glUniform3f(p.uniform("uCamFrac"), (float) fx, (float) fy, (float) fz);
+        float[] fogColor = RenderSystem.getShaderFogColor();
+        GL20C.glUniform4f(p.uniform("uFogColor"), fogColor[0], fogColor[1], fogColor[2], fogColor[3]);
+        GL20C.glUniform3f(p.uniform("uFog"), RenderSystem.getShaderFogStart(), RenderSystem.getShaderFogEnd(), VistaClient.hazeStrength());
+        GL20C.glUniform2i(p.uniform("uCamChunk"), camCX, camCZ);
+        GL20C.glUniform2f(p.uniform("uCamChunkOffset"), (float) (cam.x - camCX * 16.0), (float) (cam.z - camCZ * 16.0));
+        GL20C.glUniform1f(p.uniform("uVanillaRadius"), maskRadiusBlocks());
+        GL20C.glUniform2f(p.uniform("uAtlasSize"), appearance.atlasWidth(), appearance.atlasHeight());
+        GL20C.glUniform1i(p.uniform("uTextures"), config.textures ? 1 : 0);
+        GL20C.glUniform1i(p.uniform("uDebug"), config.debugView);
+        GL20C.glUniform1i(p.uniform("uAtlas"), 0);
+        GL20C.glUniform1i(p.uniform("uLightmap"), 1);
+        GL20C.glUniform1i(p.uniform("uVanillaMask"), 2);
+    }
 
     private void drawPass(Matrix4f vp, Vec3 cam, int camCX, int camCZ, int opaqueCmds, int transCmds, RenderTarget main) {
         Minecraft mc = Minecraft.getInstance();
@@ -579,26 +626,8 @@ public final class LodRenderer implements AutoCloseable {
             RenderSystem.enableCull();
             RenderSystem.disableBlend();
 
-            GL20C.glUseProgram(lodProgram.id);
-            try (var stack = org.lwjgl.system.MemoryStack.stackPush()) {
-                FloatBuffer m = stack.mallocFloat(16);
-                vp.get(m);
-                GL20C.glUniformMatrix4fv(lodProgram.uniform("uViewProj"), false, m);
-            }
-            double fx = cam.x - Math.floor(cam.x), fy = cam.y - Math.floor(cam.y), fz = cam.z - Math.floor(cam.z);
-            GL20C.glUniform3f(lodProgram.uniform("uCamFrac"), (float) fx, (float) fy, (float) fz);
-            float[] fogColor = RenderSystem.getShaderFogColor();
-            GL20C.glUniform4f(lodProgram.uniform("uFogColor"), fogColor[0], fogColor[1], fogColor[2], fogColor[3]);
-            GL20C.glUniform3f(lodProgram.uniform("uFog"), RenderSystem.getShaderFogStart(), RenderSystem.getShaderFogEnd(), VistaClient.hazeStrength());
-            GL20C.glUniform2i(lodProgram.uniform("uCamChunk"), camCX, camCZ);
-            GL20C.glUniform2f(lodProgram.uniform("uCamChunkOffset"), (float) (cam.x - camCX * 16.0), (float) (cam.z - camCZ * 16.0));
-            GL20C.glUniform1f(lodProgram.uniform("uVanillaRadius"), (mask.radiusChunks() + 1) * 16f * 1.4143f);
-            GL20C.glUniform2f(lodProgram.uniform("uAtlasSize"), appearance.atlasWidth(), appearance.atlasHeight());
-            GL20C.glUniform1i(lodProgram.uniform("uTextures"), config.textures ? 1 : 0);
-            GL20C.glUniform1i(lodProgram.uniform("uDebug"), config.debugView);
-            GL20C.glUniform1i(lodProgram.uniform("uAtlas"), 0);
-            GL20C.glUniform1i(lodProgram.uniform("uLightmap"), 1);
-            GL20C.glUniform1i(lodProgram.uniform("uVanillaMask"), 2);
+            setupUniforms(maskedProgram, vp, cam, camCX, camCZ);
+            setupUniforms(solidProgram, vp, cam, camCX, camCZ);
 
             GlStateManager._activeTexture(GL13C.GL_TEXTURE0);
             GlStateManager._bindTexture(mc.getTextureManager().getTexture(TextureAtlas.LOCATION_BLOCKS).getId());
@@ -613,31 +642,23 @@ public final class LodRenderer implements AutoCloseable {
             GL30C.glBindBufferBase(GL43C.GL_SHADER_STORAGE_BUFFER, 2, appearance.biomeBuffer());
             GL30C.glBindVertexArray(vao);
 
-            if (opaqueCmds > 0) {
-                GL20C.glUniform1f(lodProgram.uniform("uAlpha"), 1f);
-                GL43C.glMultiDrawArraysIndirect(GL11C.GL_TRIANGLES, 0L, opaqueCmds, CMD_STRIDE);
+            if (maskedCmds > 0) {
+                GL20C.glUseProgram(maskedProgram.id);
+                GL20C.glUniform1f(maskedProgram.uniform("uAlpha"), 1f);
+                GL43C.glMultiDrawArraysIndirect(GL11C.GL_TRIANGLES, 0L, maskedCmds, CMD_STRIDE);
+            }
+            if (opaqueCmds > maskedCmds) {
+                GL20C.glUseProgram(solidProgram.id);
+                GL20C.glUniform1f(solidProgram.uniform("uAlpha"), 1f);
+                GL43C.glMultiDrawArraysIndirect(GL11C.GL_TRIANGLES, (long) maskedCmds * CMD_STRIDE, opaqueCmds - maskedCmds, CMD_STRIDE);
             }
             if (transCmds > 0) {
-                GL20C.glUniform1f(lodProgram.uniform("uAlpha"), -1f);
+                GL20C.glUseProgram(maskedProgram.id);
+                GL20C.glUniform1f(maskedProgram.uniform("uAlpha"), -1f);
                 RenderSystem.enableBlend();
                 GlStateManager._blendFuncSeparate(GL11C.GL_ONE, GL11C.GL_ONE_MINUS_SRC_ALPHA, GL11C.GL_ONE, GL11C.GL_ONE_MINUS_SRC_ALPHA);
                 GlStateManager._depthMask(false);
-                if (config.debugView == 7) RenderSystem.disableDepthTest();
-                if (config.debugView == 8) GlStateManager._depthFunc(GL11C.GL_GEQUAL);
-                if (!loggedState && Boolean.getBoolean("vista.debugAppearance")) {
-                    loggedState = true;
-                    VistaClient.LOG.info("translucent pass GL state: depthFunc {} depthTest {} depthMask {} clipDepth {} cull {}",
-                            GL11C.glGetInteger(GL11C.GL_DEPTH_FUNC), GL11C.glIsEnabled(GL11C.GL_DEPTH_TEST),
-                            GL11C.glGetBoolean(GL11C.GL_DEPTH_WRITEMASK), GL11C.glGetInteger(GL45C.GL_CLIP_DEPTH_MODE), GL11C.glIsEnabled(GL11C.GL_CULL_FACE));
-                }
-                // Separate buffer drawn from offset 0: a non-zero indirect offset is ignored by some drivers
-                // (observed on Mesa llvmpipe), which silently dropped all water.
-                GL15C.glBindBuffer(GL40C.GL_DRAW_INDIRECT_BUFFER, transIndirectBuffer);
-                GL15C.glBufferData(GL40C.GL_DRAW_INDIRECT_BUFFER, (long) transCmds * CMD_STRIDE, GL15C.GL_STREAM_DRAW);
-                GL15C.glBufferSubData(GL40C.GL_DRAW_INDIRECT_BUFFER, 0, cmds.slice(opaqueCmds * CMD_STRIDE, transCmds * CMD_STRIDE));
-                GL43C.glMultiDrawArraysIndirect(GL11C.GL_TRIANGLES, 0L, transCmds, CMD_STRIDE);
-                if (config.debugView == 7) RenderSystem.enableDepthTest();
-                if (config.debugView == 8) GlStateManager._depthFunc(GL11C.GL_GREATER);
+                GL43C.glMultiDrawArraysIndirect(GL11C.GL_TRIANGLES, (long) opaqueCmds * CMD_STRIDE, transCmds, CMD_STRIDE);
                 GlStateManager._depthMask(true);
             }
 
@@ -685,10 +706,10 @@ public final class LodRenderer implements AutoCloseable {
             GL15C.glDeleteBuffers(quadBuffer);
             GL15C.glDeleteBuffers(metaBuffer);
             GL15C.glDeleteBuffers(indirectBuffer);
-            GL15C.glDeleteBuffers(transIndirectBuffer);
             GL30C.glDeleteVertexArrays(vao);
             GL30C.glDeleteVertexArrays(emptyVao);
-            lodProgram.close();
+            maskedProgram.close();
+            solidProgram.close();
             compositeProgram.close();
             appearance.close();
             mask.close();

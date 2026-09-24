@@ -99,10 +99,6 @@ final class BlockAppearance implements AutoCloseable {
                 b.putInt(i * 16, bio.getGrassColor(0, 0) & 0xFFFFFF);
                 b.putInt(i * 16 + 4, bio.getFoliageColor() & 0xFFFFFF);
                 b.putInt(i * 16 + 8, bio.getWaterColor() & 0xFFFFFF);
-                if (Boolean.getBoolean("vista.debugAppearance")) {
-                    dev.vista.client.VistaClient.LOG.info("biome {} {} grass {} foliage {} water {}", i, h.unwrapKey().orElse(null),
-                            Integer.toHexString(bio.getGrassColor(0, 0)), Integer.toHexString(bio.getFoliageColor()), Integer.toHexString(bio.getWaterColor()));
-                }
             }
             GL15C.glBindBuffer(GL43C.GL_SHADER_STORAGE_BUFFER, biomeBuffer);
             GL15C.glBufferSubData(GL43C.GL_SHADER_STORAGE_BUFFER, 0, b);
@@ -161,10 +157,6 @@ final class BlockAppearance implements AutoCloseable {
                 }
             }
             buf.putInt(base + 64 + fc * 4, tint);
-            if (water && fc == 1 && Boolean.getBoolean("vista.debugAppearance")) {
-                dev.vista.client.VistaClient.LOG.info("appearance slot {} state {} sprite {} tint {} avg {}", slot, s,
-                        sprite.contents().name(), Integer.toHexString(tint), Integer.toHexString(buf.getInt(base + 48 + fc * 4)));
-            }
         }
         buf.putInt(base + 60, s.getLightEmission());
     }

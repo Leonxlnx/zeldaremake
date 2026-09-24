@@ -7,7 +7,9 @@
     "BlockStateMixin",
     "DebugScreenOverlayMixin",
     "FogRendererMixin",
-    "LevelRendererMixin"
+    "LevelRendererAccessor",
+    "LevelRendererMixin",
+    "ViewAreaInvoker"
   ],
   "injectors": {
     "defaultRequire": 1

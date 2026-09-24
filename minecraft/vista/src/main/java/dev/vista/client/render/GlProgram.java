@@ -13,9 +13,9 @@ final class GlProgram implements AutoCloseable {
     final int id;
     private final Map<String, Integer> uniforms = new HashMap<>();
 
-    GlProgram(String vertexResource, String fragmentResource) {
-        int vs = compile(GL20C.GL_VERTEX_SHADER, read(vertexResource), vertexResource);
-        int fs = compile(GL20C.GL_FRAGMENT_SHADER, read(fragmentResource), fragmentResource);
+    GlProgram(String vertexResource, String fragmentResource, String... defines) {
+        int vs = compile(GL20C.GL_VERTEX_SHADER, withDefines(read(vertexResource), defines), vertexResource);
+        int fs = compile(GL20C.GL_FRAGMENT_SHADER, withDefines(read(fragmentResource), defines), fragmentResource);
         id = GL20C.glCreateProgram();
         GL20C.glAttachShader(id, vs);
         GL20C.glAttachShader(id, fs);
@@ -27,6 +27,14 @@ final class GlProgram implements AutoCloseable {
             GL20C.glDeleteProgram(id);
             throw new IllegalStateException("Vista shader link failed: " + log);
         }
+    }
+
+    private static String withDefines(String src, String... defines) {
+        if (defines.length == 0) return src;
+        int eol = src.indexOf('\n');
+        StringBuilder sb = new StringBuilder(src.substring(0, eol + 1));
+        for (String d : defines) sb.append("#define ").append(d).append('\n');
+        return sb.append(src.substring(eol + 1)).toString();
     }
 
     private static String read(String path) {

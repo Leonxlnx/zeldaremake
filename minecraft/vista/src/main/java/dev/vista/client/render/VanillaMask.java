@@ -44,7 +44,7 @@ final class VanillaMask implements LodEngine.VanillaCoverage, AutoCloseable {
                 for (int dz = -1; dz <= 1 && all; dz++) for (int dx = -1; dx <= 1; dx++) {
                     if ((dx | dz) != 0 && !src.hasChunk(x + dx, z + dz)) { all = false; break; }
                 }
-                if (all) flags[(x & 255) | (z & 255) << 8] = 1;
+                if (all && drawnByVanilla(src, x, z)) flags[(x & 255) | (z & 255) << 8] = 1;
             }
         }
         lastMinX = minX; lastMaxX = maxX; lastMinZ = minZ; lastMaxZ = maxZ;
@@ -70,6 +70,21 @@ final class VanillaMask implements LodEngine.VanillaCoverage, AutoCloseable {
         GL11C.glTexSubImage2D(GL11C.GL_TEXTURE_2D, 0, 0, 0, SIZE, SIZE, GL30C.GL_RED_INTEGER, GL11C.GL_UNSIGNED_BYTE, upload);
         GL11C.glPixelStorei(GL11C.GL_UNPACK_ALIGNMENT, 4);
         GlStateManager._bindTexture(0);
+    }
+
+    /**
+     * With the vanilla renderer, a chunk only counts once the section holding its surface has been compiled;
+     * until then far terrain keeps drawing it, so slow section compilation never shows as holes. Other
+     * renderers (Sodium) do not use the vanilla view area; there the loaded-with-neighbours rule applies.
+     */
+    private boolean drawnByVanilla(net.minecraft.client.multiplayer.ClientChunkCache src, int x, int z) {
+        var viewArea = ((dev.vista.mixin.LevelRendererAccessor) net.minecraft.client.Minecraft.getInstance().levelRenderer).vista$viewArea();
+        if (viewArea == null) return true;
+        var chunk = src.getChunk(x, z, false);
+        if (chunk == null) return false;
+        int y = chunk.getHeight(net.minecraft.world.level.levelgen.Heightmap.Types.WORLD_SURFACE, 8, 8);
+        var section = ((dev.vista.mixin.ViewAreaInvoker) viewArea).vista$sectionAt(new net.minecraft.core.BlockPos(x * 16 + 8, y, z * 16 + 8));
+        return section == null || section.getCompiled() != net.minecraft.client.renderer.chunk.SectionRenderDispatcher.CompiledSection.UNCOMPILED;
     }
 
     @Override

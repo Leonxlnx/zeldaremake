@@ -44,7 +44,7 @@ public final class VistaConfig {
         return FabricLoader.getInstance().getConfigDir().resolve("vista.json");
     }
 
-    /** Diagnostic view: 0 off, 1 colour by LOD level, 2 light levels. Also settable with -Dvista.debug=N. */
+    /** Diagnostic view: 0 off, 1 LOD level, 2 light, 3 tint, 4 state/biome ids. Also -Dvista.debug=N. */
     public int debugView = 0;
 
     public static VistaConfig load() {

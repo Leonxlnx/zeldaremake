@@ -12,7 +12,8 @@ package dev.vista.core;
  *   resolves upward, so the surface height is biased by at most half a voxel.</li>
  *   <li>The representative opaque block is the highest one in the cell (the one most likely to be seen
  *   from above: grass over dirt, snow over stone), ties broken by frequency.</li>
- *   <li>Non-solid cells become translucent (water/glass) if any child is translucent, else air.</li>
+ *   <li>Non-solid cells become translucent (water/glass) if any child is translucent, else air. Water covering
+ *   the top layer of a cell wins over the solid rule, so shallow seas and rivers survive coarse levels.</li>
  *   <li>Light of a non-opaque cell is the per-channel max over its non-opaque children, so faces keep
  *   their sky exposure and emissive glow at every level.</li>
  * </ul>
@@ -29,7 +30,6 @@ public final class Downsampler {
      */
     public static void downsample(int[] child, int[] parent, int octant, StateClasses classes) {
         int ox = (octant & 1) * 16, oy = ((octant >> 1) & 1) * 16, oz = ((octant >> 2) & 1) * 16;
-        int[] cand = new int[8];
         byte[] cls = classes.raw();
         for (int py = 0; py < 16; py++) {
             for (int pz = 0; pz < 16; pz++) {
@@ -39,7 +39,6 @@ public final class Downsampler {
                     int bestOpaque = 0, bestOpaqueY = -1;
                     int translucentVoxel = 0;
                     int airVoxel = 0;
-                    int nOpaque = 0;
                     int topOpaque = 0, topTranslucent = 0;
                     for (int c = 0; c < 8; c++) {
                         int cx = px * 2 + (c & 1), cy = py * 2 + ((c >> 1) & 1), cz = pz * 2 + ((c >> 2) & 1);
@@ -52,7 +51,6 @@ public final class Downsampler {
                         }
                         if (k == StateClasses.OPAQUE) {
                             opaque++;
-                            cand[nOpaque++] = v;
                             int yy = (c >> 1) & 1;
                             if (yy > bestOpaqueY) {
                                 bestOpaqueY = yy;
@@ -76,7 +74,7 @@ public final class Downsampler {
                         // shallow seas and rivers from turning into land at coarse levels.
                         out = Voxel.withLight(translucentVoxel, light);
                     } else if (opaque >= SOLID_THRESHOLD) {
-                        out = mostFrequentTop(cand, nOpaque, bestOpaque, bestOpaqueY, child, px, py, pz, cls);
+                        out = mostFrequentTop(bestOpaque, bestOpaqueY, child, px, py, pz, cls);
                         out = Voxel.withLight(out, light);
                     } else if (translucent > 0) {
                         out = Voxel.withLight(translucentVoxel, light);
@@ -89,7 +87,7 @@ public final class Downsampler {
         }
     }
 
-    private static int mostFrequentTop(int[] cand, int n, int best, int bestY, int[] child, int px, int py, int pz, byte[] cls) {
+    private static int mostFrequentTop(int best, int bestY, int[] child, int px, int py, int pz, byte[] cls) {
         // Among the opaque children on the highest occupied child layer, pick the most frequent state.
         int top0 = 0, top1 = 0, top2 = 0, top3 = 0;
         int count = 0;

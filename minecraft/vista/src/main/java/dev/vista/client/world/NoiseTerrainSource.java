@@ -61,7 +61,10 @@ public final class NoiseTerrainSource implements LodEngine.TerrainSource {
         this.biomes = biomes;
         this.minY = level.getMinBuildHeight();
         this.maxY = level.getMaxBuildHeight();
-        this.seaLevel = generator.getSeaLevel();
+        // Dimensions whose generator fluid is not water (the End: sea level 0, fluid air) get no synthetic sea.
+        boolean waterSea = !(generator instanceof NoiseBasedChunkGenerator nb)
+                || nb.generatorSettings().value().defaultFluid().getFluidState().getType().isSame(net.minecraft.world.level.material.Fluids.WATER);
+        this.seaLevel = waterSea ? generator.getSeaLevel() : level.getMinBuildHeight() - 1;
         this.water = states.water();
         this.seed = level.getSeed();
     }
