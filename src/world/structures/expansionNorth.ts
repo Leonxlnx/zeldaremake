@@ -9,7 +9,10 @@
  *    by a cleated plank gangway on a trestle; a wooden ladder down its south side (decorative);
  *  - the TREE HUT high on its own bark column, joined to the stilt house's veranda by a short
  *    rope walkway; a rope ladder, a hoist, and a lookout nest on the column over its cap;
- *  - two pod-lantern posts and the signpost at the flight's foot.
+ *  - two pod-lantern posts and the signpost at the flight's foot;
+ *  - use and repair: worn sill planks at both huts' doors, the veranda's boards trodden pale before
+ *    the door and one replaced in fresh wood, the gangway's rails rubbed pale and one cleat lost, a
+ *    rope-walk plank snapped in half and a hand rope spliced, a sapling in the stilt house's cap.
  *
  * No light joins the scene: every glow is emissive (the pods, the huts' lamps and lit rooms); the
  * trunk house's and the posts' point lights are taken out of their groups (a light that joins or
@@ -90,6 +93,22 @@ const PLANK: RGB = [0.42, 0.35, 0.27];
 const PLANK_DARK: RGB = [0.26, 0.21, 0.16];
 const ROPE_TINT: RGB = [0.9, 0.84, 0.72];
 const MOSS: RGB = [0.32, 0.44, 0.09];
+/** fresh-cut wood of a repair: paler and yellower than the weathered planks */
+const FRESH_PLANK: RGB = [0.6, 0.47, 0.31];
+/** the replaced veranda board's angle from the door (rad): on the south side the walk goes round by */
+const PATCH_FROM_DOOR = -1.1;
+/** veranda boards within this angle of the door (rad) are trodden pale */
+const TRODDEN_HALF = 0.34;
+/** the gangway's lost cleat (0 at the foot): 2.4 m up the run, just past the trestle */
+const LOST_CLEAT = 6;
+/** the rope walk's broken plank (0 at the stilt house's stub): half of it gone, past the middle */
+const BROKEN_PLANK = 6;
+/** wood worn by feet or hands (w 0 … 1): greyer and paler */
+const trodden = (c: RGB, w: number): RGB => {
+  const l = (c[0] + c[1] + c[2]) / 3;
+  const k = 1 + 0.18 * w;
+  return [lerp(c[0], l, 0.32 * w) * k, lerp(c[1], l, 0.32 * w) * k, lerp(c[2], l, 0.32 * w) * k];
+};
 /** planks map (weathered_planks): nine vertical boards per tile, seams at x = 62 + 113.9 k px of 1024 */
 const BOARD_U0 = 62 / 1024;
 const BOARD_W = 113.9 / 1024;
@@ -519,6 +538,18 @@ export function buildExpansionNorth(ctx: WorldContext, mats: StructureMaterials,
   };
   walkSurfaces.push({ id: 'grove-stilt', disc: { ...stiltWalk.disc, r: VERANDA_R }, deck: stiltWalk.deck, wall: shut(stiltWalk, SH.radius) });
   walkSurfaces.push({ id: 'grove-tree-hut', disc: hutWalk.disc, deck: hutWalk.deck, wall: shut(hutWalk, TH.radius) });
+  // worn thresholds: a sill plank across each hut's door on the platform, dished and trodden pale
+  for (const a of huts.audit) {
+    const def = GROVE_HUTS.find((d) => d.id === a.id);
+    if (!def?.doorSize) continue;
+    const out = new Vector3(a.door[0] - a.centre[0], 0, a.door[2] - a.centre[2]);
+    const rDoor = out.length();
+    out.divideScalar(rDoor);
+    const across = new Vector3(-out.z, 0, out.x);
+    const half = def.doorSize[0] / 2 + 0.04;
+    const c = new Vector3(a.centre[0], a.floorY + 0.045, a.centre[2]).addScaledVector(out, rDoor + 0.05);
+    deckParts.push(board(c.clone().addScaledVector(across, -half), c.clone().addScaledVector(across, half), out, 0.16, 0.05, trodden(PLANK, 1), 5, noise, 310 + a.floorY, 0.01));
+  }
 
   // ================= the stilt house: stump, stilts, ring beam, veranda, railing, ladder =================
   const sr = rng.fork('stilt-frame');
@@ -635,8 +666,10 @@ export function buildExpansionNorth(ctx: WorldContext, mats: StructureMaterials,
     );
   }
 
-  // the veranda's boards: 64 wedges from the platform's rim to the fascia
+  // the veranda's boards: 64 wedges from the platform's rim to the fascia; the few before the door
+  // trodden pale, and one past the work corner replaced in fresh wood where the old one gave way
   const nBoards = 64;
+  const patchedBoard = Math.round(((((aDoor + PATCH_FROM_DOOR) / TAU) % 1) + 1) % 1 * nBoards) % nBoards;
   {
     const br = sr.fork('boards');
     for (let k = 0; k < nBoards; k++) {
@@ -644,7 +677,10 @@ export function buildExpansionNorth(ctx: WorldContext, mats: StructureMaterials,
       const a1 = ((k + 0.96) / nBoards) * TAU;
       const tone = br.range(0.82, 1.14);
       const age = br() < 0.14 ? br.range(0.55, 0.8) : 1;
-      const tint: RGB = [PLANK[0] * tone * lerp(1.05, 1, age), PLANK[1] * tone, PLANK[2] * tone * lerp(0.85, 1, age)];
+      let tint: RGB = [PLANK[0] * tone * lerp(1.05, 1, age), PLANK[1] * tone, PLANK[2] * tone * lerp(0.85, 1, age)];
+      const offDoor = Math.abs(Math.atan2(Math.sin((a0 + a1) / 2 - aDoor), Math.cos((a0 + a1) / 2 - aDoor)));
+      if (k === patchedBoard) tint = scaleRGB(FRESH_PLANK, 0.94 + 0.12 * (tone - 0.82) / 0.32);
+      else if (offDoor < TRODDEN_HALF) tint = trodden(tint, 1 - offDoor / TRODDEN_HALF);
       deckParts.push(wedgeBoard(sc, platR - 0.03, vR + 0.015, a0, a1, fy + 0.016, 0.05, tint, Math.floor(br() * 9), noise, k * 1.37 + 0.5));
     }
   }
@@ -785,12 +821,22 @@ export function buildExpansionNorth(ctx: WorldContext, mats: StructureMaterials,
       treads++;
       d += w + gr.range(0.012, 0.022);
     }
-    // cleats every `cleat` m of run: battens across the treads for the climb
+    // cleats every `cleat` m of run: battens across the treads for the climb; one is lost, its two
+    // pegs left standing in the tread
     const run = gFoot.distanceTo(gHead.clone().setY(gFoot.y));
+    let cleatSlot = 0;
     for (let x = N.gangway.cleat * 0.6; x < run - 0.15; x += N.gangway.cleat) {
       const s = x / run;
       const c = gTop(s).addScaledVector(gUp, 0.024);
-      railParts.push(board(c.clone().addScaledVector(gSide, -0.34), c.clone().addScaledVector(gSide, 0.34), gAlong, 0.04, 0.026, scaleRGB(PLANK_DARK, gr.range(1.1, 1.4)), 4, noise, cleats * 3.1 + 1));
+      const tint = scaleRGB(PLANK_DARK, gr.range(1.1, 1.4));
+      if (cleatSlot++ === LOST_CLEAT) {
+        for (const e of [-0.26, 0.26]) {
+          const peg = gTop(s).addScaledVector(gSide, e);
+          railParts.push(rod(peg.clone().addScaledVector(gUp, -0.02), peg.clone().addScaledVector(gUp, 0.014), 0.009, scaleRGB(PLANK_DARK, 0.85), 6));
+        }
+        continue;
+      }
+      railParts.push(board(c.clone().addScaledVector(gSide, -0.34), c.clone().addScaledVector(gSide, 0.34), gAlong, 0.04, 0.026, tint, 4, noise, cleats * 3.1 + 1));
       cleats++;
     }
     // the stringers under the treads' ends, running on 0.1 m under the veranda's boards to bear on the ring beam
@@ -848,7 +894,8 @@ export function buildExpansionNorth(ctx: WorldContext, mats: StructureMaterials,
       const legTop = legTops[gSide.dot(new Vector3(feet[0][0] - tTop.x, 0, feet[0][1] - tTop.z)) * s > 0 ? 0 : 1];
       const head = headPost(s);
       const pts = [footTop.clone().setY(footTop.y - 0.04), legTop.clone().setY(legTop.y - 0.04), head];
-      railParts.push(sweepTube(new CatmullRomCurve3(pts, false, 'catmullrom', 0.3), { radius: () => 0.03, tubularSegments: 24, radialSegments: 7, uvMetres: 1.6, capStart: true, capEnd: true, color: (_t, _a, up) => scaleRGB(PLANK, 0.9 + 0.25 * Math.max(0, up)) }));
+      // the hand rails' tops rubbed pale by hands
+      railParts.push(sweepTube(new CatmullRomCurve3(pts, false, 'catmullrom', 0.3), { radius: () => 0.03, tubularSegments: 24, radialSegments: 7, uvMetres: 1.6, capStart: true, capEnd: true, color: (_t, _a, up) => trodden(scaleRGB(PLANK, 0.9 + 0.25 * Math.max(0, up)), Math.max(0, up) ** 2) }));
       const mids = pts.map((p) => p.clone().setY(p.y - RAIL_H * 0.52));
       ropeParts.push(ropeTube(new CatmullRomCurve3([mids[0], mids[0].clone().lerp(mids[1], 0.5).add(new Vector3(0, -0.04, 0)), mids[1], mids[1].clone().lerp(mids[2], 0.5).add(new Vector3(0, -0.04, 0)), mids[2]]), 0.012, gr() * 10, ropeTint(gr), noise, s * 3.3));
     }
@@ -896,7 +943,22 @@ export function buildExpansionNorth(ctx: WorldContext, mats: StructureMaterials,
       const along = rDir.clone().applyAxisAngle(new Vector3(0, 1, 0), yaw);
       const slope = (rDeckY(Math.min(1, s + 0.02)) - rDeckY(Math.max(0, s - 0.02))) / (0.04 * rLen);
       along.y = slope;
-      deckParts.push(board(c.clone().addScaledVector(across, -0.45), c.clone().addScaledVector(across, 0.45), along.normalize(), w, 0.04, scaleRGB(PLANK, rr.range(0.8, 1.15)), Math.floor(rr() * 9), noise, 200 + ropePlanks * 1.9, 0.005));
+      along.normalize();
+      const tint = scaleRGB(PLANK, rr.range(0.8, 1.15));
+      const idx = Math.floor(rr() * 9);
+      const broken = ropePlanks === BROKEN_PLANK;
+      const reach = broken ? 0.02 : 0.45;
+      deckParts.push(board(c.clone().addScaledVector(across, -0.45), c.clone().addScaledVector(across, reach), along, w, 0.04, tint, idx, noise, 200 + ropePlanks * 1.9, 0.005));
+      if (broken) {
+        // the snapped end: splinters of the lost half standing out of the break
+        const sp = rng.fork('rope-walk-break');
+        const end = c.clone().addScaledVector(across, reach);
+        for (let k = 0; k < 4; k++) {
+          const at = end.clone().addScaledVector(along, lerp(-0.38, 0.38, (k + sp.range(0.2, 0.8)) / 4) * w).addScaledVector(across, -0.01);
+          const tip = at.clone().addScaledVector(across, sp.range(0.03, 0.09)).addScaledVector(along, sp.range(-0.015, 0.015)).add(new Vector3(0, sp.range(-0.012, 0.004), 0));
+          railParts.push(bar(at.clone().add(new Vector3(0, -0.02, 0)), tip.add(new Vector3(0, -0.02, 0)), sp.range(0.012, 0.022), scaleRGB(FRESH_PLANK, 0.9), 0.012));
+        }
+      }
       ropePlanks++;
       d += w + rr.range(0.035, 0.06);
     }
@@ -913,7 +975,14 @@ export function buildExpansionNorth(ctx: WorldContext, mats: StructureMaterials,
       const pa = rwA.clone().addScaledVector(rSide, s * 0.42).setY(rwA.y - 0.06 + 1.0);
       const pb = rwB.clone().addScaledVector(rSide, s * 0.42).setY(rwB.y - 0.06 + 1.0);
       const handPts = [pa, rwAt(0.33, s * 0.46, 0.94), rwAt(0.67, s * 0.46, 0.94), pb];
-      ropeParts.push(ropeTube(new CatmullRomCurve3(handPts, false, 'catmullrom', 0.5), 0.02, rr() * 10, ropeTint(rr), noise, s * 7.1));
+      const handRope = new CatmullRomCurve3(handPts, false, 'catmullrom', 0.5);
+      ropeParts.push(ropeTube(handRope, 0.02, rr() * 10, ropeTint(rr), noise, s * 7.1));
+      if (s > 0) {
+        // a splice where the hand rope parted: a whipping of newer, paler cord round the join
+        const at = handRope.getPointAt(0.56);
+        const tan = handRope.getTangentAt(0.56);
+        ropeParts.push(lashing((q) => at.clone().addScaledVector(tan, q), 0.029, 5, 0.018, 0.0075, scaleRGB(ROPE_TINT, 1.08), noise, 13.7, 0.4, tan));
+      }
       for (const p of [pa, pb]) ropeParts.push(lashing((q) => p.clone().add(new Vector3(0, q, 0)), 0.06, 2.5, 0.028, 0.011, ropeTint(rr), noise, s * 2.1 + p.x, rr.range(0, TAU)));
       // the zig-zag net from the hand rope down to the floor rope
       let prev: Vector3 | null = null;
@@ -1336,6 +1405,30 @@ export function buildExpansionNorth(ctx: WorldContext, mats: StructureMaterials,
     const wp = hc.clone().addScaledVector(dirAt(aPile), COL.baseRadius + 0.95);
     woodpile('grove-hut-woodpile', wp, dirAt(aPile), 1.0, 3, 0.45);
     basketAt('grove-hut-basket', hc.clone().addScaledVector(az(TH.ladderAbsDeg + 22), TH.radius + 1.4), 0.3, 0.22, 'leaves');
+  }
+
+  // a sapling seeded in the stilt house's moss cap, rooted in its crown and leaning out toward the
+  // open shelf (its leaves last: the foliage stream of everything above is unchanged)
+  {
+    const yr = rng.fork('stilt-sapling');
+    const apexY = SH.floorY + SH.wall + SH.capHeight;
+    const toShelf = new Vector3(N.shelf.cx - sc.x, 0, N.shelf.cz - sc.z).normalize();
+    const base = sc.clone().addScaledVector(toShelf, -0.3).setY(apexY - 0.3);
+    const tip = base.clone().addScaledVector(toShelf, 0.4).add(new Vector3(0, 1.5, 0));
+    const mid = base.clone().lerp(tip, 0.5).add(new Vector3(yr.range(-0.08, 0.08), 0, yr.range(-0.08, 0.08)));
+    const stem = new CatmullRomCurve3([base, mid, tip]);
+    frameParts.push(logTube(stem, (t) => 0.045 - 0.028 * t, barkN, 131, 0.8, 8, 6, true));
+    for (const [t, side, len] of [
+      [0.55, 1, 0.45],
+      [0.74, -1, 0.34],
+    ] as const) {
+      const p = stem.getPointAt(t);
+      const out = new Vector3().crossVectors(stem.getTangentAt(t), new Vector3(0, 1, 0)).normalize().multiplyScalar(side);
+      const end = p.clone().addScaledVector(out, len).add(new Vector3(0, len * 0.55, 0));
+      frameParts.push(logTube(new LineCurve3(p, end), (u) => 0.018 - 0.01 * u, barkN, 137 + t, 0.8, 3, 5, true));
+      foliage.addLeafCluster(end, 0.2, 14, { size: 0.09, droop: 0.3, flatten: 0.45 });
+    }
+    foliage.addLeafCluster(tip, 0.26, 18, { size: 0.1, droop: 0.25, flatten: 0.4 });
   }
 
   // ================= meshes =================
