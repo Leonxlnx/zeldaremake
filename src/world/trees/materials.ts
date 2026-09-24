@@ -1439,6 +1439,8 @@ export async function createTreeMaterials(ctx: WorldContext): Promise<TreeMateri
     vertexColors: true,
     side: DoubleSide,
   });
+  // so a probe can mark it: probe-look.mjs matches materials by name, and this one was anonymous
+  giantCanopy.name = 'giant-canopy';
   injectWind(
     giantCanopy,
     wind,

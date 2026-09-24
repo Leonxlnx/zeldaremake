@@ -204,8 +204,14 @@ export const CROWN_FLOOR_ROUND: [number, number] = [0.9, 1.1];
  * survives is ramped over `soft` (a wider blended band instead of one step). The core of a card is
  * unaffected at every distance, so a crown never thins out into a hole — the owner's "the trees do
  * not populate" is not being traded away for this.
+ *
+ * The window is where the cards that read as shapes actually stand: a probe at `u-open-up` with each
+ * crown material marked puts them at 21-33 m (`distant-5-near`, `distant-0-near`, `distant-1-near`),
+ * not out at the ring — a first ramp of 26-64 m was almost off where it was needed and changed the
+ * outline hardness by 0.1 points. `erode` stays small and `soft` does most of the work, because a
+ * softer border costs no coverage: the mid canopy the owner asked for must not thin to buy this.
  */
-export const CROWN_FAR_DISSOLVE: { m: [number, number]; erode: number; soft: number } = { m: [26, 64], erode: 0.3, soft: 0.62 };
+export const CROWN_FAR_DISSOLVE: { m: [number, number]; erode: number; soft: number } = { m: [16, 42], erode: 0.18, soft: 0.7 };
 /**
  * 2026-09-24 (owner review 23:00, `owner-2300-foliage-lookup.png`: "the foliage in the beginning
  * looks great, but when you go outward … something's wrong"): the shade gate above is a distance,
@@ -252,16 +258,23 @@ export const CROWN_SHADE_M: [number, number] = [12, 26];
  * reference frame the review names, the veil's premise does not hold there: our foliage is already at
  * the reference's own level (leaf lightness 0.287 against r_025's 0.277 and r_026's 0.293) — what is
  * wrong is our SKY, 0.672 against their 0.518, so every leaf edge is a maximum-contrast cut-out. A
- * wash cannot tell those apart, so the veil is now a floor: it fades out over `lift` (the fragment's
- * own luminance) and lifts only foliage still below the band, which is the dark mid-distance mass the
- * owner circled. A card already as pale as the air gets nothing.
+ * wash cannot tell those apart, so the veil is now a floor: it fades out over `lift` — the fragment's
+ * own luminance as a share of the air's, so the test lives in the material's space and not the
+ * screen's (an absolute threshold read nothing: the god-ray in-scatter is a post pass, so a leaf at
+ * 0.31 on screen is a third of that in the shader) — and lifts only foliage still below the band.
+ *
+ * And it is laid on the giants' leaf cards ONLY, not on the crown cards. That is the other half of
+ * the review: a probe at `u-open-up` marks the pale shapes as the crown layer's near LOD at 21-33 m,
+ * while the plaza's gain is the giants' canopy at the same distances. Dense overlapping foliage with
+ * depth behind it can take the air's colour; an isolated card cannot, because paling it prints its
+ * geometry. The crown cards keep the shade-gate repair and take the dissolve instead.
  */
 /** how much of the veil a crown's floor cards give up, so a pale one never prints its quad's edge */
 export const CROWN_VEIL_FLAT_DAMP = 0.8;
 export const CANOPY_DEPTH_VEIL: { share: number; m: [number, number]; ray: [number, number]; tint: [number, number, number]; lift: [number, number] } = {
   share: 0.42,
-  // full below the first, nothing above the second (screen luminance after tone mapping)
-  lift: [0.16, 0.34],
+  // full at or below the first share of the air's own level, nothing at or above the second
+  lift: [0.5, 0.95],
   m: [8, 30],
   ray: [0.05, 0.45],
   // the mist's colour alone veiled the far layers to a dead grey-green (first render at m 10-32; the
@@ -285,8 +298,10 @@ export function canopyVeilGlsl(veil: { share: number; m: [number, number]; ray?:
     {
       float veilClimb = smoothstep(${ray[0].toFixed(3)}, ${ray[1].toFixed(3)}, normalize(-vViewPosition * mat3(viewMatrix)).y);
       float veilDepth = smoothstep(${veil.m[0].toFixed(1)}, ${veil.m[1].toFixed(1)}, length(vViewPosition));
-      // the floor (CANOPY_DEPTH_VEIL.lift): only foliage still darker than the band takes the veil
-      float veilLift = 1.0 - smoothstep(${lift[0].toFixed(3)}, ${lift[1].toFixed(3)}, dot(gl_FragColor.rgb, vec3(0.2126, 0.7152, 0.0722)));
+      // the floor (CANOPY_DEPTH_VEIL.lift): only foliage still darker than the air takes the veil,
+      // measured as a share of the air's own level so the test holds in the material's space
+      const vec3 veilW = vec3(0.2126, 0.7152, 0.0722);
+      float veilLift = 1.0 - smoothstep(${lift[0].toFixed(3)}, ${lift[1].toFixed(3)}, dot(gl_FragColor.rgb, veilW) / max(1e-4, dot(kfColor, veilW)));
       gl_FragColor.rgb = mix(gl_FragColor.rgb, kfColor * vec3(${t}), ${veil.share.toFixed(3)} * veilClimb * veilDepth * veilLift${flat});
     }
     #endif
@@ -616,7 +631,6 @@ export function createDistantCrownMaterial(wind: Wind, rng: Rng, palette: Palett
       float climbF = smoothstep(${f(CROWN_UNDER_FOG_RAY[0])}, ${f(CROWN_UNDER_FOG_RAY[1])}, normalize(-vViewPosition * mat3(viewMatrix)).y);
       gl_FragColor.rgb = mix(gl_FragColor.rgb, crownPreFog, roofNearF * climbF * ${f(fogCut)});
     }
-    ${canopyVeilGlsl(look?.veil, CROWN_VEIL_FLAT_DAMP)}
     `,
         )
         .replace(
