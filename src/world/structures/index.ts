@@ -18,7 +18,7 @@ import { buildExpansion, EXPANSION_VISIBLE_M } from './expansion';
 import { buildExpansionSouth } from './expansionSouth';
 import { SOUTH_VISIBLE_M } from '../util/expansionLocality';
 import { consolidateStaticMeshes } from './geometry';
-import { buildHouse, type HouseSharedMaterials } from './house';
+import { buildHouse, HOUSE_CLONES, type HouseSharedMaterials } from './house';
 import { swingLanterns, type LanternRig } from './lantern';
 import { buildLanternBranch } from './lanternBranch';
 import { buildLanternPost } from './lanternPost';
@@ -30,6 +30,9 @@ import { buildSignpost } from './signpost';
 
 /** the village houses' moss tufts draw within this distance of either trunk (the east houses' detail reach, util/eastLane.ts EAST_DETAIL_M) */
 const VILLAGE_TUFTS_M = 34;
+/** a village room still draws while the camera is this far behind its doorway's plane */
+const VILLAGE_ROOM_MARGIN_M = 0.5;
+const _toDoor = new Vector3();
 
 export async function create(ctx: WorldContext): Promise<WorldSystem> {
   const group = new Group();
@@ -304,6 +307,38 @@ export async function create(ctx: WorldContext): Promise<WorldSystem> {
     { skip: east.group },
   );
   /**
+   * The village rooms (exp-east): what a house clones with its doorway's fog plane (house.ts
+   * HOUSE_CLONES — the room, its props, rug, plants and lamps) shows through the doorway alone (the
+   * round window is a closed glowing socket), so it draws only while the camera is in front of that
+   * plane (VILLAGE_ROOM_MARGIN_M behind it still counts) or inside the trunk. Every fixed camera
+   * stands in front of both doors; from the east lane both are turned away.
+   */
+  const villageRooms = new Map<string, { point: Vector3; normal: Vector3; x: number; z: number; radius: number; meshes: Mesh[] }>();
+  const collectRooms = (o: Object3D) => {
+    if (o === east.group) return;
+    const m = o as Mesh;
+    const door = m.isMesh && !Array.isArray(m.material) ? HOUSE_CLONES.get(m.material)?.door : undefined;
+    if (door) {
+      const key = door.point.toArray().join();
+      let room = villageRooms.get(key);
+      if (!room) {
+        const h = ctx.layout.houses.reduce((a, b) => (Math.hypot(b.position[0] - door.point.x, b.position[2] - door.point.z) < Math.hypot(a.position[0] - door.point.x, a.position[2] - door.point.z) ? b : a));
+        room = { point: door.point, normal: door.normal, x: h.position[0], z: h.position[2], radius: h.trunkRadius, meshes: [] };
+        villageRooms.set(key, room);
+      }
+      room.meshes.push(m);
+    }
+    for (const c of o.children) collectRooms(c);
+  };
+  collectRooms(group);
+  const scopeVillageRooms = (p: Vector3) => {
+    for (const r of villageRooms.values()) {
+      const on = Math.hypot(p.x - r.x, p.z - r.z) < r.radius || _toDoor.subVectors(p, r.point).dot(r.normal) > -VILLAGE_ROOM_MARGIN_M;
+      for (const m of r.meshes) m.visible = on;
+    }
+  };
+  scopeVillageRooms(ctx.camera.position);
+  /**
    * The merged buckets' culling bounds (audit, round 20): what three.js frustum-tests each static
    * draw against — geometry bounding sphere at the identity transform — with its triangle count and
    * whether it belongs to the hero group or the detached village. A hero bucket whose sphere spans
@@ -442,6 +477,13 @@ export async function create(ctx: WorldContext): Promise<WorldSystem> {
       saved: villageShadowLod.reduce((n, p) => n + p.fine - p.coarse, 0),
       list: villageShadowLod.map((p) => ({ name: p.name, fine: p.fine, coarse: p.coarse, cell: p.cell, farM: +p.farM.toFixed(1) })),
     },
+    /** exp-east: per village room (house.ts HOUSE_CLONES door plane), its meshes / triangles and whether they draw for the current camera */
+    villageRooms: [...villageRooms.values()].map((r) => ({
+      door: r.point.toArray().map((v) => +v.toFixed(2)),
+      meshes: r.meshes.length,
+      triangles: r.meshes.reduce((n, m) => n + rangedTriangles(m.geometry), 0),
+      visible: r.meshes.some((m) => m.visible),
+    })),
     logArch: true,
     /** round 41 (structures-26): the arch's close-scale detail — grid, cushion tufts, rim splinters, skirt, plants */
     logDetail: log.detail41,
@@ -524,6 +566,7 @@ export async function create(ctx: WorldContext): Promise<WorldSystem> {
     update(_dt, t, c) {
       swingLanterns(lanterns, t, windDir.x, windDir.y);
       scopeVillageTufts(c.camera.position.x, c.camera.position.z);
+      scopeVillageRooms(c.camera.position);
       north.visible = northVisible(c.camera.position.x, c.camera.position.z);
       expansion.near.visible = expansion.visible(c.camera);
       expansion.far.visible = expansion.farVisible(c.camera);
@@ -532,6 +575,7 @@ export async function create(ctx: WorldContext): Promise<WorldSystem> {
     },
     onCameraMove(camera) {
       scopeVillageTufts(camera.position.x, camera.position.z);
+      scopeVillageRooms(camera.position);
       north.visible = northVisible(camera.position.x, camera.position.z);
       expansion.near.visible = expansion.visible(camera);
       expansion.far.visible = expansion.farVisible(camera);
