@@ -7,7 +7,7 @@
  * fixed cameras; all ground contact is sampled through `ctx.terrain`;
  * randomness only through `ctx.rng.fork` / Noise2D; textures through `ctx.textures`.
  */
-import { Group, type Mesh, type Object3D, type PointLight } from 'three';
+import { Group, Vector3, type Material, type Mesh, type Object3D, type PointLight } from 'three';
 import type { WorldContext, WorldSystem } from '../system';
 import { ROPE_FENCES, LANTERN_POSTS, type FenceDef } from '../layout';
 import { buildCameraSolids, limbSpheres } from './cameraSolids';
@@ -25,7 +25,7 @@ import { buildLanternPost } from './lanternPost';
 import { buildLogArch } from './logArch';
 import { loadMaterials } from './materials';
 import { NORTH_LANTERN_POSTS, NORTH_ROPE_FENCES, NORTH_SIGNPOSTS, NORTH_VISIBLE_M } from './north';
-import { rangedTriangles } from './shadowProxy';
+import { attachShadowLod, rangedTriangles } from './shadowProxy';
 import { buildSignpost } from './signpost';
 
 /** the village houses' moss tufts draw within this distance of either trunk (the east houses' detail reach, util/eastLane.ts EAST_DETAIL_M) */
@@ -279,6 +279,31 @@ export async function create(ctx: WorldContext): Promise<WorldSystem> {
   draws.after += eastDraws.after;
   draws.merged += eastDraws.merged;
   /**
+   * The village's shadow LOD (exp-east): its caps, pale roof branches, sign / fence wood, ropes,
+   * vines, lantern hangers and pods cast from a vertex-clustered proxy (shadowProxy.ts) while the
+   * camera is farther from them than every fixed camera is (+2 m, ≥ 20 m) — the six scored frames
+   * keep every shadow triangle; from the east lane's green and lookout (the caps 31–36 m off) the
+   * village casts ≈ 0.25 M fewer. Cells as the east lane's: 12 cm on the caps and branches, 8 cm on
+   * wood and rope, 5 cm on vines and hangers, 4 cm on pods — ≤ 2.5 cm outside the surface where
+   * they switch, under the sun's 2.8 cm normal bias. The bark, the root arches, the eave bands and
+   * the log's bark keep their full shadow: at a cell that saves a third, their furrows put 2–7 % of
+   * the vertices over 2 cm outside.
+   */
+  const villageShadowCells = new Map<Material, number>([
+    [mats.capMoss, 0.12],
+    [mats.barkPale, 0.12],
+    [mats.fenceWood, 0.08],
+    [rope, 0.08],
+    [mats.vine, 0.05],
+    [mats.woodDark, 0.05],
+  ]);
+  const villageShadowLod = attachShadowLod(
+    [group],
+    (m) => (m.name === 'pod-lantern' ? 0.04 : villageShadowCells.get(m.material as Material) ?? null),
+    ctx.layout.viewpoints.map((v) => new Vector3(...v.position)),
+    { skip: east.group },
+  );
+  /**
    * The merged buckets' culling bounds (audit, round 20): what three.js frustum-tests each static
    * draw against — geometry bounding sphere at the identity transform — with its triangle count and
    * whether it belongs to the hero group or the detached village. A hero bucket whose sphere spans
@@ -411,6 +436,12 @@ export async function create(ctx: WorldContext): Promise<WorldSystem> {
     south: { ...south.audit, draws: southDraws.after, visibleWithinM: SOUTH_VISIBLE_M, visible: south.group.visible },
     /** round 56 (exp-east): the east plateau's lane — three houses, the deck, the shop's counter / sign / crates, pod posts, the lookout (east.ts) */
     east: east.audit(),
+    /** exp-east: the village casters that switch to a shadow proxy beyond every fixed camera's distance (+2 m, ≥ 20 m) — triangles fine / coarse, cell, switch distance */
+    villageShadowLod: {
+      casters: villageShadowLod.length,
+      saved: villageShadowLod.reduce((n, p) => n + p.fine - p.coarse, 0),
+      list: villageShadowLod.map((p) => ({ name: p.name, fine: p.fine, coarse: p.coarse, cell: p.cell, farM: +p.farM.toFixed(1) })),
+    },
     logArch: true,
     /** round 41 (structures-26): the arch's close-scale detail — grid, cushion tufts, rim splinters, skirt, plants */
     logDetail: log.detail41,

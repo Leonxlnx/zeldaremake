@@ -34,7 +34,7 @@ function loadTs(file) {
   return module.exports;
 }
 const here = path.dirname(fileURLToPath(import.meta.url));
-const { clusterIndex, attachShadowProxy, rangedTriangles } = loadTs(path.join(here, 'shadowProxy.ts'));
+const { clusterIndex, attachShadowProxy, attachShadowLod, rangedTriangles } = loadTs(path.join(here, 'shadowProxy.ts'));
 
 const ball = () => new THREE.SphereGeometry(1, 160, 80);
 const caster = (g) => {
@@ -138,6 +138,83 @@ test('attach refuses what it cannot or need not proxy', () => {
   const ranged = caster(ball());
   ranged.geometry.setDrawRange(0, 300);
   assert.equal(attachShadowProxy(ranged, 0.1), null, 'already ranged');
+});
+
+const eye = (x, y, z) => {
+  const c = new THREE.PerspectiveCamera();
+  c.position.set(x, y, z);
+  c.updateMatrixWorld(true);
+  return c;
+};
+const range = (g) => [g.drawRange.start, g.drawRange.count];
+
+test('a distance LOD: the shadow pass keeps the fine list within farM of the sphere, the proxy beyond, and puts back any range', () => {
+  const m = caster(ball());
+  m.updateMatrixWorld(true);
+  const g = m.geometry;
+  const fine = g.index.count;
+  const p = attachShadowProxy(m, 0.1, 0.3, 10);
+  assert.ok(p && p.farM === 10);
+  assert.deepEqual(m.userData.shadowProxy, p);
+  m.onBeforeShadow(null, m, eye(0, 0, 8));
+  assert.deepEqual(range(g), [0, fine], '7 m off the sphere: the fine list casts');
+  m.onAfterShadow();
+  assert.deepEqual(range(g), [0, fine]);
+  m.onBeforeShadow(null, m, eye(0, 12, 0));
+  assert.deepEqual(range(g), [fine, p.coarse * 3], '11 m off: the proxy casts');
+  m.onAfterShadow();
+  assert.deepEqual(range(g), [0, fine]);
+  g.setDrawRange(0, 3);
+  for (const c of [eye(0, 0, 3), eye(30, 0, 0)]) {
+    m.onBeforeShadow(null, m, c);
+    m.onAfterShadow();
+    assert.deepEqual(range(g), [0, 3], 'the warm-up range survives near and far');
+  }
+  g.setDrawRange(0, fine);
+  m.position.set(0, 0, 20);
+  m.updateMatrixWorld(true);
+  m.onBeforeShadow(null, m, eye(0, 0, 12));
+  assert.deepEqual(range(g), [0, fine], 'the sphere follows the mesh: 7 m off again');
+  m.onAfterShadow();
+});
+
+test('attachShadowLod: every keep point draws the full shadow, the rest switch past the farthest of them; glass, alpha cards, cell-less and skipped meshes stay as built', () => {
+  const near = caster(ball());
+  near.name = 'near';
+  const far = caster(ball());
+  far.name = 'far';
+  far.position.set(40, 0, 0);
+  const glass = caster(ball());
+  glass.material.transparent = true;
+  const card = caster(ball());
+  card.material.alphaTest = 0.5;
+  const plain = caster(ball());
+  plain.name = 'plain';
+  const skipped = new THREE.Group();
+  const inside = caster(ball());
+  skipped.add(inside);
+  const root = new THREE.Group();
+  root.add(near, far, glass, card, plain, skipped);
+  const keep = [new THREE.Vector3(0, 0, 5), new THREE.Vector3(10, 0, 0)];
+  const list = attachShadowLod([root], (m) => (m.name === 'plain' ? null : 0.1), keep, { skip: skipped });
+  assert.deepEqual(list.map((p) => p.name).sort(), ['far', 'near']);
+  const by = Object.fromEntries(list.map((p) => [p.name, p]));
+  assert.equal(by.near.farM, 20, 'keep points 4 and 9 m off: the 20 m floor');
+  assert.ok(Math.abs(by.far.farM - (Math.hypot(40, 5) - 1 + 2)) < 1e-4, `the farthest keep point + 2 m: ${by.far.farM}`);
+  for (const m of [glass, card, plain, inside]) {
+    assert.equal(m.userData.shadowProxy, undefined);
+    assert.equal(m.geometry.drawRange.count, Infinity);
+  }
+  for (const k of keep) {
+    for (const m of [near, far]) {
+      m.onBeforeShadow(null, m, eye(k.x, k.y, k.z));
+      assert.deepEqual(range(m.geometry), [0, m.userData.shadowProxy.fine * 3], `${m.name} from (${k.toArray()}): full shadow`);
+      m.onAfterShadow();
+    }
+  }
+  far.onBeforeShadow(null, far, eye(-5, 0, 0));
+  assert.deepEqual(range(far.geometry), [far.userData.shadowProxy.fine * 3, far.userData.shadowProxy.coarse * 3], '44 m off: the proxy');
+  far.onAfterShadow();
 });
 
 test('rangedTriangles follows the draw range', () => {

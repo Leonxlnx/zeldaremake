@@ -10,9 +10,12 @@
  * keepers are vertices of the fine surface, so the coarse one runs through it; what it gives up is
  * relief finer than a cell. The depth a receiver compares against moves by that much at most, and
  * the sun's normal bias (lighting/index.ts, 2.8 cm) absorbs it where it stays under ≈ 2.5 cm — the
- * cell per material is chosen so (east.ts).
+ * cell per material is chosen so (east.ts, `attachShadowLod`).
+ *
+ * With a `farM` the proxy is a distance LOD: the shadow pass keeps the fine list while the camera is
+ * within `farM` of the caster's bounding sphere and draws the coarse one beyond.
  */
-import { BufferAttribute, type BufferGeometry, type Mesh } from 'three';
+import { BufferAttribute, Sphere, Vector3, type BufferGeometry, type Camera, type Mesh, type Object3D } from 'three';
 
 export interface ShadowProxy {
   /** triangles the colour pass draws */
@@ -20,6 +23,19 @@ export interface ShadowProxy {
   /** triangles the shadow pass draws */
   coarse: number;
   cell: number;
+  /** the shadow pass draws the coarse list only while the camera is farther than this from the caster's sphere (0 = always) */
+  farM: number;
+}
+
+const _sphere = new Sphere();
+const _eye = new Vector3();
+
+/** distance (m) from `point` to the surface of `mesh`'s world bounding sphere (≤ 0 inside) */
+export function sphereDistance(mesh: Mesh, point: Vector3): number {
+  const g = mesh.geometry;
+  if (!g.boundingSphere) g.computeBoundingSphere();
+  _sphere.copy(g.boundingSphere!).applyMatrix4(mesh.matrixWorld);
+  return point.distanceTo(_sphere.center) - _sphere.radius;
 }
 
 /** the coarse triangle list (vertex indices) of `index` over `position`, clustered on a `cell`-metre grid */
@@ -79,9 +95,11 @@ export function clusterIndex(position: { count: number; getX(i: number): number;
 
 /**
  * Give `mesh` a shadow proxy clustered on `cell` metres, unless the geometry is unindexed, already
- * ranged or the proxy would save less than `minSaving` of the triangles. Returns what it attached.
+ * ranged or the proxy would save less than `minSaving` of the triangles. With `farM` > 0 the shadow
+ * pass switches to it only while the camera is farther than `farM` from the caster's bounding
+ * sphere. Returns what it attached.
  */
-export function attachShadowProxy(mesh: Mesh, cell: number, minSaving = 0.3): ShadowProxy | null {
+export function attachShadowProxy(mesh: Mesh, cell: number, minSaving = 0.3, farM = 0): ShadowProxy | null {
   const g: BufferGeometry = mesh.geometry;
   const index = g.index;
   if (!index || !mesh.castShadow || g.drawRange.start !== 0 || g.drawRange.count < index.count || g.groups.length > 0) return null;
@@ -96,17 +114,53 @@ export function attachShadowProxy(mesh: Mesh, cell: number, minSaving = 0.3): Sh
   g.setDrawRange(0, fine);
   let start = 0;
   let count = fine;
-  mesh.onBeforeShadow = () => {
+  let swapped = false;
+  mesh.onBeforeShadow = (_renderer, _object, camera: Camera) => {
+    swapped = farM <= 0 || sphereDistance(mesh, _eye.setFromMatrixPosition(camera.matrixWorld)) >= farM;
+    if (!swapped) return;
     start = g.drawRange.start;
     count = g.drawRange.count;
     g.setDrawRange(fine, coarse.length);
   };
   mesh.onAfterShadow = () => {
-    g.setDrawRange(start, count);
+    if (swapped) g.setDrawRange(start, count);
+    swapped = false;
   };
-  const proxy = { fine: fine / 3, coarse: coarse.length / 3, cell };
+  const proxy = { fine: fine / 3, coarse: coarse.length / 3, cell, farM };
   mesh.userData.shadowProxy = proxy;
   return proxy;
+}
+
+/**
+ * A shadow LOD over every mesh under `roots` (not below `skip`) that casts, is opaque and not
+ * alpha-tested, and for which `cellOf` names a cell: each switches to its proxy only while the
+ * camera is farther from its bounding sphere than every one of `keep` is (+ `marginM`, and never
+ * nearer than `nearM`), so the frames taken from `keep` draw every shadow triangle.
+ */
+export function attachShadowLod(
+  roots: Object3D[],
+  cellOf: (m: Mesh) => number | null,
+  keep: Vector3[],
+  options: { skip?: Object3D; nearM?: number; marginM?: number; minTriangles?: number } = {},
+): (ShadowProxy & { name: string })[] {
+  const { skip, nearM = 20, marginM = 2, minTriangles = 1000 } = options;
+  const out: (ShadowProxy & { name: string })[] = [];
+  const visit = (o: Object3D) => {
+    if (o === skip) return;
+    const m = o as Mesh;
+    if (m.isMesh && m.castShadow && !Array.isArray(m.material) && !m.material.transparent && !m.material.alphaTest && rangedTriangles(m.geometry) >= minTriangles) {
+      const cell = cellOf(m);
+      if (cell) {
+        m.updateWorldMatrix(true, false);
+        const farM = Math.max(nearM, ...keep.map((p) => sphereDistance(m, p) + marginM));
+        const p = attachShadowProxy(m, cell, 0.3, farM);
+        if (p) out.push({ name: m.name, ...p });
+      }
+    }
+    for (const c of o.children) visit(c);
+  };
+  for (const r of roots) visit(r);
+  return out;
 }
 
 /** the triangles a geometry's draw range submits (the fine list of a proxied caster) */
