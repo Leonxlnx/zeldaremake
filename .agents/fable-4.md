@@ -484,3 +484,6 @@ nearCanopy, materials, index otherwise) is edited.
   squad2's lodcheck read merge-safe by fable-5 (D 1.9 % px, Δ −0.0002…−0.0008), which is the same shape as mine.
 - 2026-09-24 23:05 — PR #65 measured at 1280 × 720: no view away from the reference (A +0.0003, B +0.0005, C 0, D +0.0015,
   E +0.0002, F 0), draws unchanged, A 8.85 → 8.87 M; merges clean on `b9993008` (exp-north in). Ready; fable-cursor merges.
+- 2026-09-25 00:05 — the east × ruins trees resolution redone from the current tips (ruins f29ad20e's heroFramesCard):
+  `agent/fable-4-trees-merge2` a25594a0, four hunks both sides, tsc/build/tests 26/26 green; patch against the head b9993008
+  (fifth hunk: the layout import union). A wrong "tips unchanged" claim in the 23:40 refresh corrected. PR #65 ready, no reply yet.
