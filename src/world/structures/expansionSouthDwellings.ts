@@ -997,7 +997,8 @@ export function buildSouthDwellings(ctx: WorldContext, mats: StructureMaterials,
   const roofU = (a: number) => lerp(backTop, frontTop, (a + POST_A) / (2 * POST_A)) + PLATE_R + 2 * RAFTER_R;
   const wPods: Vector3[] = [];
 
-  // ---- floor: boards along a on two bearer logs along s, the bearers on sunk stumps ----
+  // ---- floor: boards along a on two bearer logs along s, the bearers on sunk stumps; the north
+  // corner board's front end broken off, clear of the step ----
   const floorBoards = 12;
   const bw = (2 * HW) / floorBoards;
   for (let i = 0; i < floorBoards; i++) {
@@ -1006,7 +1007,7 @@ export function buildSouthDwellings(ctx: WorldContext, mats: StructureMaterials,
     put(
       'waystation-floor',
       mats.fenceWood,
-      board({ centre: at(wRng.range(-0.015, 0.015), s, FT + wRng.range(-0.003, 0.003)), along: F, across: S, L, w0: bw - 0.012, w1: bw - 0.012, t: 0.045, tone: 0.62 + wRng() * 0.3, age: i === 7 ? 0.8 : wRng() * 0.3, moss: i < 2 || i > 9 ? 0.4 : wRng() * 0.15, board: Math.floor(wRng() * 8), seed: wRng() * 100 }, noise),
+      board({ centre: at(wRng.range(-0.015, 0.015), s, FT + wRng.range(-0.003, 0.003)), along: F, across: S, L, w0: bw - 0.012, w1: bw - 0.012, t: 0.045, tone: 0.62 + wRng() * 0.3, age: i === 7 ? 0.8 : wRng() * 0.3, moss: i < 2 || i > 9 ? 0.4 : wRng() * 0.15, board: Math.floor(wRng() * 8), seed: wRng() * 100, broken: i === 0 ? 0.13 : 0 }, noise),
     );
   }
   const BEARER_R = 0.075;
