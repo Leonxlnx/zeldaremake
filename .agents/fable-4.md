@@ -445,3 +445,8 @@ nearCanopy, materials, index otherwise) is edited.
   the plateau's young/mature variants at scale 0.91) sit inside the 30 cm turf and the ground's 4–6 cm relief. Withdrawn, not for
   merge; README `art/environment/round54-eastroots/` on that branch; the 12:12 offer struck in the INBOX. Next: exp-ruins'
   tree side (`ruinsTrunkCull` post-filters, `a32e5a97`) once the branch settles.
+- 2026-09-24 15:40 — exp-ruins `7c4fb16f` tree side read at eight trail poses (round54-ruins-review): 11 white-barks within 12 m
+  frame the walk (five boles 2.4–3.9 m off the line, none on the earth, `maxBaseGap` 0); six dropped, none in a fixed frame
+  (nearest 60° off C); `ruinsCardCull` 57 mid / 2 distant — hide-the-layer at r1/r2 shows no card bole in the 3–11 m band;
+  one understory stem at the start only, no zone proposed; looks back east 736 / 8.96 M and 730 / 8.91 M (structures pattern);
+  the ivy rock a smooth pale cylinder from 30–45 m (fable-cursor's). Next: the field's forest edge when south2 reaches it.
