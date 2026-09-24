@@ -191,11 +191,11 @@ export async function create(ctx: WorldContext): Promise<WorldSystem> {
   // ---- round 56 (exp-east): the lane on the east plateau past the main stairway's head — the shop,
   // the tall house with its deck, the small house, two pod posts, the lookout (east.ts). Own forks
   // after every stream above; no point lights (the pods and room glow are emissive); its tiers are
-  // consolidated apart and hidden by distance / frustum like the expansion's. Its deck and steps are
-  // appended to ctx.shared.walkSurfaces after every existing surface (props index them by position). ----
+  // consolidated apart and hidden by distance / frustum like the expansion's; its pods swing on the
+  // GPU (east.consolidate bakes them), not in `lanterns`. Its deck and steps are appended to
+  // ctx.shared.walkSurfaces after every existing surface (props index them by position). ----
   const east = buildEast(ctx, mats, rng.fork('east'), rope, sharedHouseMats);
   bases.push(...east.bases);
-  lanterns.push(...east.lanterns);
   owned.push(...east.owned);
   ctx.shared.walkSurfaces = [...(ctx.shared.walkSurfaces ?? []), ...east.walk];
 

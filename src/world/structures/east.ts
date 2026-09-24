@@ -10,30 +10,42 @@
  * The houses are `buildHouse` builds: the trunk, cap, roots, pods and room of Saria's and the upper
  * house. Their point lights are dropped: a light joining or leaving the scene recompiles every lit
  * program, and the lane hides by distance — the pods, the room glow and the window sockets are
- * emissive and carry the warmth. The deck's strip and steps go to `ctx.shared.walkSurfaces`; its
+ * emissive and carry the warmth, and each dropped eaves or post light leaves its pool on the ground
+ * (`buildLightPools`, a blended grid). The deck's strip and steps go to `ctx.shared.walkSurfaces`; its
  * railing, the posts and the bench are walls in the live structure mask (heightfield.ts).
  *
  * Tiers (structures/index.ts consolidates each group on its own and calls `update`):
- *  - `core`: the houses' trunks and caps — one bucket per material across the lane, drawn within
- *    EAST_VISIBLE_M of the lane's box when the frustum meets its casters or their shadows;
- *  - `base`: the houses' roots, porches, thresholds, door and window frames and rooms and the
- *    counter's niche (everything that closes an opening in a trunk), with `core` while the camera is
- *    within EAST_MID_M of the green or the terrain lets it see a house's foot (`eastFootSeen`:
- *    camera F on the plaza sees over the plateau's lip, its lee on the plain does not);
+ *  - `core`: the houses' trunks and caps — one bucket per material across the lane, drawn when the
+ *    lane is in reach (`eastInReach`: within EAST_VISIBLE_M of its box, and within EAST_SEEN_M of
+ *    a trunk unless the eye is over EAST_OVER_Y — no fixed camera is) and the frustum meets its
+ *    casters or their shadows;
+ *  - `base`: the houses' roots, porches, thresholds, door and window frames and the counter's niche
+ *    (everything that closes an opening in a trunk), with `core` while the camera is within
+ *    EAST_MID_M of the green or the terrain lets it see a house's foot (`eastFootSeen`: the lip's
+ *    lee on the plain sees none);
+ *  - `rooms` (the room shells, with `base`) and `rooms-near` (their furniture, lamps, embers and
+ *    plants, with `near`), only while the camera can see through a doorway: from the lookout and
+ *    the green every door is turned away or seen too far off its axis;
  *  - `mid`: the counter's woodwork, the sign, the deck, the posts' wood, the lookout's fence, stumps
- *    and bench, with `base` when the frustum meets them;
- *  - `near`: the houses' close detail (cap tufts and plants, trunk moss and lichen, the rooms'
- *    furniture, the pods, the goods, the crates, the flowers) — one group across the three houses,
- *    so one bucket per material — within EAST_DETAIL_M of any trunk when the frustum meets a house;
- *  - `lane`: the posts' pods and the lookout's moss and plants, within EAST_DETAIL_M of the green.
+ *    and bench, with `core` when the frustum meets them, within EAST_MID_M of the green or while
+ *    the terrain lets the camera see one of their own tops;
+ *  - `near`: the close detail (the houses' cap tufts and plants, trunk moss and lichen, pods, goods,
+ *    crates and flowers, the posts' pods and plants, the lookout's foot moss, the light pools) — one
+ *    group across the lane, so one bucket per material — within EAST_DETAIL_M of any trunk or of
+ *    the green, with `core`.
  *
  * Own rng forks (structures / 'east' / …), after every existing stream: nothing built before moves.
  */
 import {
+  AddEquation,
   BoxGeometry,
-  type BufferGeometry,
+  BufferGeometry,
   CatmullRomCurve3,
+  type Color,
+  CustomBlending,
   CylinderGeometry,
+  DstColorFactor,
+  Float32BufferAttribute,
   Group,
   LatheGeometry,
   type Material,
@@ -42,28 +54,34 @@ import {
   type MeshBasicMaterial,
   MeshStandardMaterial,
   type Object3D,
+  OneFactor,
   PlaneGeometry,
+  type PointLight,
   Raycaster,
+  ShaderMaterial,
   type Sphere,
   SphereGeometry,
   TorusGeometry,
   Vector2,
   Vector3,
+  Vector4,
+  ZeroFactor,
   type Camera,
 } from 'three';
 import { EXPANSION_EAST, eastDeckPlan, eastHouseBlocks, eastShopSpots, eastSteppingStones, type EastHouse, type LanternPostDef } from '../layout';
 import { applyShadeFloor } from '../materials/shadeFloor';
 import type { WalkSurface, WorldContext } from '../system';
-import { EAST_DETAIL_M, EAST_GREEN, EAST_MID_M, EAST_VISIBLE_M, eastBoxDistance, eastFootSeen, eastHouseCasters, eastLookoutCasters, eastPostCasters, eastSpheres } from '../util/eastLane';
+import { EAST_DETAIL_M, EAST_GREEN, EAST_MID_M, EAST_OVER_Y, EAST_SEEN_M, EAST_VISIBLE_M, eastFootSeen, eastHouseCasters, eastInReach, eastLookoutCasters, eastPostCasters, eastSpheres } from '../util/eastLane';
 import { frustumMeets, sunVector, type Caster } from '../util/expansionLocality';
+import { seesAny } from '../util/sight';
 import { Noise2D, clamp, lerp, smoothstep } from '../util/noise';
 import type { Rng } from '../util/prng';
 import { buildFence, ropeTube, type FenceBuild } from './fence';
 import { FoliageBuilder } from './foliage';
 import { consolidateStaticMeshes, gridSurface, merge, setColorAttribute, sweepTube, TAU } from './geometry';
 import { glyphDistance, type GlyphStroke } from './glyphs';
-import { buildHouse, type HouseBuild, type HouseSharedMaterials } from './house';
-import type { LanternRig } from './lantern';
+import { buildHouse, HOUSE_CLONES, indoorFogByVertex, type HouseBuild, type HouseSharedMaterials } from './house';
+import { bakeSwingingPods, type LanternRig } from './lantern';
 import { buildLanternPost } from './lanternPost';
 import { Noise3D, type StructureMaterials } from './materials';
 import { buildMossTufts, type MossTuftSpec } from './mossTufts';
@@ -76,9 +94,17 @@ type RGB = [number, number, number];
 const UP = new Vector3(0, 1, 0);
 
 /** a house's parts that draw only near it (names from house.ts; foliage builders by prefix) */
-const HOUSE_NEAR = /^(roof-tufts|trunk-moss-tufts|trunk-lichen|interior-props|interior-furnishing|interior-rug|door-lamp|door-lamp-cord|door-embers|door-ember-glow|lantern-peg|lantern-hanger)$|^house-.+-(tufts|flowers)$|^house(21|40|41)-.+$/;
+const HOUSE_NEAR = /^(roof-tufts|trunk-moss-tufts|trunk-lichen|lantern-peg|lantern-hanger)$|^house-.+-(tufts|flowers)$|^house(21|40|41)-.+$/;
 /** a house's parts at the foot of its trunk, no higher than its window's head (names from house.ts) */
-const HOUSE_BASE = /^(roots|roots-arch|porch|threshold|door-frame|window-frame|window-socket|interior)$/;
+const HOUSE_BASE = /^(roots|roots-arch|porch|threshold|door-frame|window-frame|window-socket)$/;
+/** a house's room and what stands in it — seen through the doorway alone (the round window is a closed glowing socket) */
+const HOUSE_ROOM = /^(interior|interior-props|interior-furnishing|interior-rug|door-lamp|door-lamp-cord|door-embers|door-ember-glow|room47-(leaves|vines|tufts|flowers))$/;
+/**
+ * A doorway's porch mouth for the rooms' sight test, as a share of the trunk's radius: this much
+ * wider than the jambs on each side and this far out from their plane (house.ts cuts it 0.17–0.27 R
+ * wider at 0.25 R out, so the test errs toward drawing the room).
+ */
+const ROOM_MOUTH = { wide: 0.35, out: 0.2 };
 
 /** the shop's counter window: angle round the trunk from the door, clear width, sill and head over the floor */
 const COUNTER = { a: 1.02, w: 1.25, y0: 0.92, y1: 1.72 };
@@ -394,19 +420,186 @@ const FRUIT: RGB[] = [
   [0.7, 0.16, 0.1],
 ];
 
+/** a lamp's dropped point light, as the ground pool that stands in for it reads it (world position, linear colour, cd, m) */
+interface PoolLight {
+  name: string;
+  at: Vector3;
+  color: Color;
+  intensity: number;
+  range: number;
+}
+
+/**
+ * The light pools (rubric 37): the ground under the lane's lamps as their dropped point lights lit
+ * it — the posts' 3.2 cd over 5 m (lanternPost.ts), each house's 4 cd over 6 m under its first two
+ * eaves pods (house.ts `lanternLight`). A grid over the ground (7 cm up, onto the threshold slabs,
+ * clear of the trunks, the deck and its flight) carries three.js's decay-2 irradiance — I·cosθ/d²
+ * under its range window, cut by the trunks between lamp and ground — and lifts what is drawn behind
+ * it by (1 + lift × the light's colour): the ground's own colour, warmed and brightened. `lift` is
+ * `gain` per unit of irradiance, capped at `max` — against the 0.55 hemisphere fill a true pool
+ * would lift the shade 2–3×; this keeps it a soft warm patch. The lift thins with the haze
+ * (heightfog.ts HEIGHT_FOG_DEFAULTS' hazeDensity / hazeStart / hazeFarDensity / hazeFarStart) and
+ * is gone by `fade[1]` m, inside the detail tier's EAST_DETAIL_M.
+ */
+const POOL = { cell: 0.3, above: 0.07, gain: 0.22, max: 0.45, fade: [24, 32] as const };
+
+function lightPoolMaterial(): ShaderMaterial {
+  return new ShaderMaterial({
+    uniforms: {
+      uHaze: { value: new Vector4(0.013, 5, 0.018, 34) },
+      uFade: { value: new Vector2(POOL.fade[0], POOL.fade[1]) },
+    },
+    vertexShader: /* glsl */ `
+      varying vec3 vLift;
+      varying float vDist;
+      void main() {
+        vec4 wp = modelMatrix * vec4(position, 1.0);
+        vLift = color;
+        vDist = distance(cameraPosition, wp.xyz);
+        gl_Position = projectionMatrix * viewMatrix * wp;
+      }
+    `,
+    fragmentShader: /* glsl */ `
+      uniform vec4 uHaze;
+      uniform vec2 uFade;
+      varying vec3 vLift;
+      varying float vDist;
+      void main() {
+        float t = exp(-uHaze.x * max(vDist - uHaze.y, 0.0) - uHaze.z * max(vDist - uHaze.w, 0.0));
+        gl_FragColor = vec4(vLift * t * (1.0 - smoothstep(uFade.x, uFade.y, vDist)), 1.0);
+      }
+    `,
+    vertexColors: true,
+    // dst × src + dst: the ground behind lifted by its own colour
+    blending: CustomBlending,
+    blendEquation: AddEquation,
+    blendSrc: DstColorFactor,
+    blendDst: OneFactor,
+    blendSrcAlpha: ZeroFactor,
+    blendDstAlpha: OneFactor,
+    transparent: true,
+    depthWrite: false,
+    fog: false,
+    toneMapped: false,
+  });
+}
+
+/**
+ * One mesh of every lamp's pool. `trunks` shade the ground behind them (and no cell reaches inside
+ * one), `skip` keeps cells off the deck and its flight, `slabs` (the thresholds) raise the grid
+ * onto their tops where they stand.
+ */
+function buildLightPools(lights: PoolLight[], ctx: WorldContext, trunks: { x: number; z: number; r: number }[], skip: (x: number, z: number) => boolean, slabs: Mesh[]) {
+  const terrain = ctx.terrain;
+  const pos: number[] = [];
+  const col: number[] = [];
+  const index: number[] = [];
+  const n = new Vector3();
+  const ray = new Raycaster();
+  const down = new Vector3(0, -1, 0);
+  const origin = new Vector3();
+  const boxes = slabs.map((m) => {
+    m.updateWorldMatrix(true, false);
+    if (!m.geometry.boundingBox) m.geometry.computeBoundingBox();
+    return m.geometry.boundingBox!.clone().applyMatrix4(m.matrixWorld);
+  });
+  const audit: { light: string; at: P3; height: number; reach: number; peakLift: number; cells: number }[] = [];
+  for (const L of lights) {
+    const h0 = L.at.y - terrain.height(L.at.x, L.at.z);
+    if (!(h0 > 0.2 && h0 < L.range)) continue;
+    const reach = Math.sqrt(L.range * L.range - h0 * h0);
+    const cells = Math.ceil((2 * reach) / POOL.cell);
+    const step = (2 * reach) / cells;
+    const vn = cells + 1;
+    const ys = new Float32Array(vn * vn);
+    const lift = new Float32Array(vn * vn);
+    const blocked = new Uint8Array(vn * vn);
+    let peak = 0;
+    for (let j = 0; j < vn; j++) {
+      for (let i = 0; i < vn; i++) {
+        const k = j * vn + i;
+        const x = L.at.x - reach + i * step;
+        const z = L.at.z - reach + j * step;
+        let y = terrain.height(x, z);
+        slabs.forEach((m, s) => {
+          const b = boxes[s];
+          if (x < b.min.x || x > b.max.x || z < b.min.z || z > b.max.z) return;
+          ray.set(origin.set(x, L.at.y, z), down);
+          const hit = ray.intersectObject(m, false)[0];
+          if (hit) y = Math.max(y, hit.point.y);
+        });
+        ys[k] = y;
+        blocked[k] = skip(x, z) || trunks.some((t) => Math.hypot(x - t.x, z - t.z) < t.r + 0.12) ? 1 : 0;
+        const dx = L.at.x - x;
+        const dy = L.at.y - y;
+        const dz = L.at.z - z;
+        const d = Math.hypot(dx, dy, dz);
+        if (d >= L.range || dy <= 0) continue;
+        terrain.normal(x, z, n);
+        const cos = Math.max(0, (n.x * dx + n.y * dy + n.z * dz) / d);
+        const w = clamp(1 - (d / L.range) ** 4, 0, 1) ** 2;
+        // a trunk between lamp and ground: how near the ray's plan passes its axis, softened over half a metre
+        let open = 1;
+        for (const t of trunks) {
+          const sx = x - L.at.x;
+          const sz = z - L.at.z;
+          const u = clamp(((t.x - L.at.x) * sx + (t.z - L.at.z) * sz) / Math.max(1e-6, sx * sx + sz * sz), 0, 1);
+          const miss = Math.hypot(L.at.x + sx * u - t.x, L.at.z + sz * u - t.z);
+          open *= smoothstep(t.r - 0.2, t.r + 0.3, miss);
+        }
+        lift[k] = Math.min(POOL.max, ((L.intensity * cos * w) / (d * d)) * POOL.gain * open);
+        peak = Math.max(peak, lift[k]);
+      }
+    }
+    const out = new Int32Array(vn * vn).fill(-1);
+    const vert = (k: number) => {
+      if (out[k] < 0) {
+        out[k] = pos.length / 3;
+        pos.push(L.at.x - reach + (k % vn) * step, ys[k] + POOL.above, L.at.z - reach + Math.floor(k / vn) * step);
+        col.push(L.color.r * lift[k], L.color.g * lift[k], L.color.b * lift[k]);
+      }
+      return out[k];
+    };
+    let kept = 0;
+    for (let j = 0; j < cells; j++) {
+      for (let i = 0; i < cells; i++) {
+        const q = [j * vn + i, (j + 1) * vn + i, j * vn + i + 1, (j + 1) * vn + i + 1];
+        if (q.every((k) => lift[k] < 0.004) || q.some((k) => blocked[k])) continue;
+        // a cell across a raised edge higher than a threshold's (a root, the deck's rim) stays off
+        if (Math.max(...q.map((k) => ys[k])) - Math.min(...q.map((k) => ys[k])) > 0.35) continue;
+        const [a, b, c, e] = q.map(vert);
+        index.push(a, b, c, c, b, e);
+        kept++;
+      }
+    }
+    audit.push({ light: L.name, at: [+L.at.x.toFixed(2), +L.at.y.toFixed(2), +L.at.z.toFixed(2)], height: +h0.toFixed(2), reach: +reach.toFixed(2), peakLift: +peak.toFixed(3), cells: kept });
+  }
+  if (!index.length) return { mesh: null, audit };
+  const geo = new BufferGeometry();
+  geo.setAttribute('position', new Float32BufferAttribute(pos, 3));
+  geo.setAttribute('color', new Float32BufferAttribute(col, 3));
+  geo.setIndex(index);
+  geo.computeBoundingSphere();
+  const mesh = new Mesh(geo, lightPoolMaterial());
+  mesh.name = 'east-light-pools';
+  mesh.castShadow = mesh.receiveShadow = false;
+  // before every other blended draw: it lifts the opaque ground, not the glows and sheets over it
+  mesh.renderOrder = -10;
+  mesh.userData.depthAudit = false;
+  return { mesh, audit };
+}
+
 export interface EastBuild {
   group: Group;
   core: Group;
   base: Group;
   mid: Group;
   near: Group;
-  lane: Group;
-  lanterns: LanternRig[];
   walk: WalkSurface[];
   bases: P3[];
   /** materials this build created (house clones, goods, glow), disposed by the system */
   owned: { dispose(): void }[];
-  /** consolidate each tier on its own (after the camera solids are voxelised) */
+  /** bake the pods (they swing on the GPU from here on) and consolidate each tier on its own — after the camera solids are voxelised */
   consolidate(): { before: number; after: number; merged: number };
   /** tier visibility for this camera */
   update(camera: Camera): void;
@@ -422,9 +615,9 @@ export function buildEast(ctx: WorldContext, mats: StructureMaterials, rng: Rng,
   base.name = 'structures-east-base';
   const mid = new Group();
   mid.name = 'structures-east-mid';
+  // the posts' pods and plants and the lookout's foot moss, gathered here until `near` is assembled
   const lane = new Group();
-  lane.name = 'structures-east-lane';
-  group.add(core, base, mid, lane);
+  group.add(core, base, mid);
   const lanterns: LanternRig[] = [];
   const walk: WalkSurface[] = [];
   const bases: P3[] = [];
@@ -463,7 +656,56 @@ export function buildEast(ctx: WorldContext, mats: StructureMaterials, rng: Rng,
   const houses: HouseBuild[] = [];
   const near: Group[] = [];
   let lightsDropped = 0;
+  const poolLights: PoolLight[] = [];
+  const poolLightOf = (l: PointLight): PoolLight => {
+    l.updateWorldMatrix(true, false);
+    return { name: `${l.parent?.name || 'post'}/${l.name}`, at: l.getWorldPosition(new Vector3()), color: l.color.clone(), intensity: l.intensity, range: l.distance };
+  };
   let movedNear = 0;
+  /**
+   * The three rooms share their materials: each house clones its room, props, lamps, leaves and
+   * vines onto its own doorway plane (house.ts `indoorFog`) and its window glow for vertex colour,
+   * so every tier held three buckets of each. Here each clone gives way to one material per kind
+   * for the lane — `indoorFogByVertex` reading the plane from `aDoorPoint` / `aDoorNormal`, written
+   * per vertex — and the three merge into one draw. The rugs keep their own (each weaves its own
+   * braid texture). Room and props bases are built per house from the same parameters, so they are
+   * matched by those.
+   */
+  const roomShared = new Map<string, Material>();
+  let roomSwaps = 0;
+  const baseKey = (m: Material) => {
+    const s = m as MeshStandardMaterial;
+    return [s.type, s.color?.getHexString(), s.emissive?.getHexString(), s.emissiveIntensity, s.map?.uuid, s.normalMap?.uuid, s.normalScale?.x, s.roughness, s.side, s.vertexColors].join('/');
+  };
+  const shareRooms = (hb: HouseBuild) => {
+    hb.group.traverse((o) => {
+      const mesh = o as Mesh;
+      if (!mesh.isMesh || Array.isArray(mesh.material)) return;
+      const src = HOUSE_CLONES.get(mesh.material);
+      if (!src || src.kind === 'rug') return;
+      const key = `${src.kind}|${src.kind === 'room' || src.kind === 'props' ? baseKey(src.base) : src.base.uuid}`;
+      let shared = roomShared.get(key);
+      if (!shared) {
+        shared = src.door ? indoorFogByVertex(src.base as MeshStandardMaterial) : mesh.material;
+        roomShared.set(key, shared);
+        if (shared !== mesh.material) owned.push(shared);
+      }
+      if (src.door) {
+        const g = mesh.geometry;
+        const n = g.attributes.position.count;
+        const point = new Float32Array(n * 3);
+        const normal = new Float32Array(n * 3);
+        for (let i = 0; i < n; i++) {
+          src.door.point.toArray(point, i * 3);
+          src.door.normal.toArray(normal, i * 3);
+        }
+        g.setAttribute('aDoorPoint', new Float32BufferAttribute(point, 3));
+        g.setAttribute('aDoorNormal', new Float32BufferAttribute(normal, 3));
+      }
+      mesh.material = shared;
+      roomSwaps++;
+    });
+  };
   EXPANSION_EAST.houses.forEach((h, i) => {
     const s = sites[i];
     const hb = buildHouse(
@@ -476,10 +718,12 @@ export function buildEast(ctx: WorldContext, mats: StructureMaterials, rng: Rng,
     );
     houses.push(hb);
     for (const l of hb.lights) {
+      if (l.name === 'lantern-light') poolLights.push(poolLightOf(l));
       l.removeFromParent();
       l.dispose();
       lightsDropped++;
     }
+    shareRooms(hb);
     owned.push(...hb.materials);
     lanterns.push(...hb.lanterns);
     bases.push(...hb.bases);
@@ -1174,6 +1418,7 @@ export function buildEast(ctx: WorldContext, mats: StructureMaterials, rng: Rng,
     const def: LanternPostDef = { id: p.id, position: [p.x, p.z], facing: [Math.sin(f), Math.cos(f)], height: p.height, tint: p.tint };
     const pb = buildLanternPost(def, ctx, mats, rng.fork(`lantern-post/${p.id}`), rope);
     for (const l of pb.lights) {
+      poolLights.push(poolLightOf(l));
       l.removeFromParent();
       l.dispose();
       lightsDropped++;
@@ -1528,12 +1773,47 @@ export function buildEast(ctx: WorldContext, mats: StructureMaterials, rng: Rng,
     return { centre: [B.x, +gy.toFixed(3), B.z] as P3, seatY, length: len, legs };
   })();
 
-  // ---- sort each house's parts into core, base and near ----
+  // ---- the lamps' light pools on the ground ----
+  const pools = (() => {
+    const tall = sites[tallI];
+    const onDeck = (x: number, z: number) => {
+      const rx = x - tall.h.x;
+      const rz = z - tall.h.z;
+      const out = rx * plan.d[0] + rz * plan.d[1];
+      const along = rx * plan.t[0] + rz * plan.t[1];
+      return (out > D.inner - 0.15 && out < D.outer + 0.15 && Math.abs(along) < D.half + 0.15) || (out > D.stepInner - 0.15 && out < D.stepOuter + 0.15 && along < -D.half && along > -D.half - D.stepRun - 0.2);
+    };
+    const slabs = houses.flatMap((hb) => hb.group.children.filter((c) => (c as Mesh).isMesh && c.name === 'threshold') as Mesh[]);
+    const built = buildLightPools(poolLights, ctx, sites.map((s) => ({ x: s.h.x, z: s.h.z, r: s.h.radius })), onDeck, slabs);
+    if (built.mesh) {
+      lane.add(built.mesh);
+      owned.push(built.mesh.material as Material);
+    }
+    return built;
+  })();
+
+  // ---- sort each house's parts into core, base, near and the rooms ----
+  /** the rooms' lamps: pods on the doorway-fogged clone, not the eaves' orange or lime */
+  const roomPivots = new Set<Object3D>();
+  for (const hb of houses) {
+    for (const r of hb.lanterns) {
+      const pod = r.pivot.children.find((c) => (c as Mesh).isMesh) as Mesh | undefined;
+      if (pod && pod.material !== mats.lantern && pod.material !== mats.lanternLime) roomPivots.add(r.pivot);
+    }
+  }
+  const rooms = new Group();
+  rooms.name = 'structures-east-rooms';
+  const roomsNear = new Group();
+  roomsNear.name = 'structures-east-rooms-near';
   let movedBase = 0;
+  let movedRoom = 0;
   houses.forEach((hb, i) => {
     for (const child of [...hb.group.children]) {
       const m = child as Mesh;
-      if (!m.isMesh || HOUSE_NEAR.test(m.name)) {
+      if (roomPivots.has(child) || (m.isMesh && HOUSE_ROOM.test(m.name))) {
+        (m.name === 'interior' ? rooms : roomsNear).add(child);
+        movedRoom++;
+      } else if (!m.isMesh || HOUSE_NEAR.test(m.name)) {
         near[i].add(child);
         movedNear++;
       } else if (HOUSE_BASE.test(m.name)) {
@@ -1543,9 +1823,10 @@ export function buildEast(ctx: WorldContext, mats: StructureMaterials, rng: Rng,
     }
     for (const child of [...hb.group.children]) core.add(child);
   });
-  // the three houses' close detail as one tier: the houses stand within 13 m of each other (every
-  // pose on the lane is within EAST_DETAIL_M of all three), and their shared-material buckets — cap
-  // tufts, trunk moss, hangers, foliage, goods — merge across the lane
+  group.add(rooms, roomsNear);
+  // the lane's close detail as one tier: the houses stand within 13 m of each other and of the green
+  // (every pose on the lane is within EAST_DETAIL_M of all three), and the shared-material buckets —
+  // cap and foot moss, pods, hangers, foliage, goods — merge across the lane
   const countTris = (root: Object3D) => {
     let n = 0;
     root.traverse((o) => {
@@ -1557,7 +1838,7 @@ export function buildEast(ctx: WorldContext, mats: StructureMaterials, rng: Rng,
   const nearTris = near.map(countTris);
   const detail = new Group();
   detail.name = 'structures-east-near';
-  for (const g of near) {
+  for (const g of [...near, lane]) {
     for (const child of [...g.children]) detail.add(child);
     g.removeFromParent();
   }
@@ -1569,46 +1850,134 @@ export function buildEast(ctx: WorldContext, mats: StructureMaterials, rng: Rng,
   const groundAt = (x: number, z: number) => terrain.height(x, z);
   const laneCasters: Caster[] = [...eastLookoutCasters(groundAt), ...eastPostCasters(groundAt)];
   const coreSpheres: Sphere[] = eastSpheres([...houseCasters.flat(), ...laneCasters], sunToward);
-  const nearSpheres: Sphere[] = eastSpheres(houseCasters.flat(), sunToward);
-  const laneSpheres: Sphere[] = eastSpheres(laneCasters, sunToward);
   const midSpheres: Sphere[] = eastSpheres([...laneCasters, ...houseCasters[tallI].slice(1), houseCasters[shopI][0]], sunToward);
   /**
    * The plateau's lip hides the lane's ground-level work from its lee on the plain south of the
-   * plaza. Beyond EAST_MID_M of the green, `base` and `mid` draw only while the terrain lets the
-   * camera see a house's foot (eastLane.ts `eastFootSeen`, up to the head of its door or window —
-   * camera F sees over the lip, so they draw there); whatever the ground hides casts its shadow onto
-   * ground the camera cannot see either. Re-tested when the camera has moved 0.3 m.
+   * plaza. Beyond EAST_MID_M of the green, `base` draws only while the terrain lets the camera see a
+   * house's foot (eastLane.ts `eastFootSeen`, up to the head of its door or window); whatever the
+   * ground hides casts its shadow onto ground the camera cannot see either. Re-tested when the
+   * camera has moved 0.3 m.
    */
   const baseTops = houses.map((hb) => Math.max(hb.door.height + 0.3, hb.window.height + hb.window.radius + 0.25));
   const heightAt = (x: number, z: number) => terrain.height(x, z);
+  /**
+   * `mid` (the deck, the lookout, the posts, the sign) spreads over the plateau away from the doors,
+   * so beyond EAST_MID_M it goes by its own tops: the highest vertex of its geometry in each
+   * MID_CELL-m plan square, tested at the square's point nearest the camera (a camera below the lip
+   * sees that one first). From F the lip hides them all.
+   */
+  const MID_CELL = 1.5;
+  const midCells: { x: number; z: number; y: number }[] = [];
+  {
+    const cells = new Map<string, { x: number; z: number; y: number }>();
+    const v = new Vector3();
+    mid.updateMatrixWorld(true);
+    mid.traverse((o) => {
+      const m = o as Mesh;
+      if (!m.isMesh) return;
+      const pos = m.geometry.attributes.position;
+      for (let i = 0; i < pos.count; i++) {
+        v.fromBufferAttribute(pos, i).applyMatrix4(m.matrixWorld);
+        const cx = Math.floor(v.x / MID_CELL);
+        const cz = Math.floor(v.z / MID_CELL);
+        const c = cells.get(`${cx},${cz}`);
+        if (!c) cells.set(`${cx},${cz}`, { x: cx * MID_CELL, z: cz * MID_CELL, y: v.y });
+        else if (v.y > c.y) c.y = v.y;
+      }
+    });
+    midCells.push(...cells.values());
+  }
+  const midPoints = midCells.map(() => new Vector3());
+  const midTopsFrom = (p: Vector3) => {
+    midCells.forEach((c, i) => midPoints[i].set(clamp(p.x, c.x, c.x + MID_CELL), c.y, clamp(p.z, c.z, c.z + MID_CELL)));
+    return midPoints;
+  };
+  /**
+   * The rooms show through their doorways alone (the round window is a closed glowing socket, the
+   * counter's niche a closed box): they draw, with `base` and `near`, while a sight line from the
+   * camera through a door's opening clears its porch mouth (ROOM_MOUTH), in plan — or while the
+   * camera is inside a trunk. From the lookout and the green every door is turned away or seen
+   * past 80° off its axis, down a porch it cannot see into.
+   */
+  const doors = houses.map((hb, i) => {
+    const s = sites[i];
+    const L = new Vector3(...hb.door.left).sub(s.C);
+    const R = new Vector3(...hb.door.right).sub(s.C);
+    return {
+      s,
+      plane: (L.dot(s.F) + R.dot(s.F)) / 2,
+      w0: Math.min(L.dot(s.Rt), R.dot(s.Rt)),
+      w1: Math.max(L.dot(s.Rt), R.dot(s.Rt)),
+      wide: ROOM_MOUTH.wide * s.h.radius,
+      out: ROOM_MOUTH.out * s.h.radius,
+    };
+  });
+  const doorFaces = (p: Vector3) =>
+    doors.some(({ s, plane, w0, w1, wide, out }) => {
+      const x = p.x - s.C.x;
+      const z = p.z - s.C.z;
+      if (Math.hypot(x, z) < s.h.radius) return true;
+      const d = x * s.F.x + z * s.F.z - plane;
+      if (d <= 0) return false;
+      if (d <= out) return true;
+      // where the lines from the camera through the opening's two jambs cross the mouth's plane
+      const t = out / d;
+      const w = x * s.Rt.x + z * s.Rt.z;
+      return w0 * (1 - t) + w * t <= w1 + wide && w1 * (1 - t) + w * t >= w0 - wide;
+    });
+  let roomsFaced = true;
   let seenFrom: Vector3 | null = null;
   let seen = true;
+  let midSeen = true;
   let sightTests = 0;
   const _p = new Vector3();
   const update = (camera: Camera) => {
     camera.getWorldPosition(_p);
-    const on = eastBoxDistance(camera) < EAST_VISIBLE_M && frustumMeets(camera, coreSpheres);
+    const on = eastInReach(_p) && frustumMeets(camera, coreSpheres);
     const toGreen = Math.hypot(_p.x - EAST_GREEN.x, _p.z - EAST_GREEN.z);
-    let low = on && toGreen < EAST_MID_M;
-    if (on && !low) {
-      if (!seenFrom || seenFrom.distanceToSquared(_p) > 0.09) {
-        seen = eastFootSeen(_p, heightAt, baseTops);
-        seenFrom = (seenFrom ?? new Vector3()).copy(_p);
-        sightTests++;
-      }
-      low = seen;
+    const close = toGreen < EAST_MID_M;
+    if (on && !close && (!seenFrom || seenFrom.distanceToSquared(_p) > 0.09)) {
+      seen = eastFootSeen(_p, heightAt, baseTops);
+      midSeen = seesAny(_p, midTopsFrom(_p), heightAt);
+      seenFrom = (seenFrom ?? new Vector3()).copy(_p);
+      sightTests++;
     }
     core.visible = on;
-    base.visible = low;
-    mid.visible = low && frustumMeets(camera, midSpheres);
-    detail.visible = on && sites.some((s) => Math.hypot(_p.x - s.h.x, _p.z - s.h.z) < EAST_DETAIL_M) && frustumMeets(camera, nearSpheres);
-    lane.visible = on && toGreen < EAST_DETAIL_M && frustumMeets(camera, laneSpheres);
+    base.visible = on && (close || seen);
+    mid.visible = on && (close || midSeen) && frustumMeets(camera, midSpheres);
+    detail.visible = on && (toGreen < EAST_DETAIL_M || sites.some((s) => Math.hypot(_p.x - s.h.x, _p.z - s.h.z) < EAST_DETAIL_M));
+    roomsFaced = doorFaces(_p);
+    rooms.visible = base.visible && roomsFaced;
+    roomsNear.visible = detail.visible && roomsFaced;
   };
 
   let draws = { before: 0, after: 0, merged: 0 };
+  const podMeshes: Mesh[] = [];
+  // (the system copies `owned` when the build returns, before `consolidate` makes the pods' materials)
+  owned.push({ dispose: () => podMeshes.forEach((m) => (m.material as Material).dispose()) });
   const consolidate = () => {
+    // the pods: one mesh per tier and material, swinging on the GPU (lantern.ts bakeSwingingPods) —
+    // the eaves' and posts' orange and lime, and each room's two lamps on its doorway-fogged clone
+    const podSets = new Map<string, { into: Object3D; material: Material; rigs: LanternRig[] }>();
+    for (const r of lanterns) {
+      const into = r.pivot.parent;
+      const pod = r.pivot.children.find((c) => (c as Mesh).isMesh) as Mesh | undefined;
+      if (!into || !pod) continue;
+      const material = pod.material as Material;
+      const key = `${into.uuid}|${material.uuid}`;
+      const set = podSets.get(key);
+      if (set) set.rigs.push(r);
+      else podSets.set(key, { into, material, rigs: [r] });
+    }
+    for (const { into, material, rigs } of podSets.values()) {
+      const mesh = bakeSwingingPods(rigs, into);
+      // a room's lamps hang inside the closed trunk, where no sun reaches to cast from them
+      if (material !== mats.lantern && material !== mats.lanternLime) mesh.castShadow = false;
+      into.add(mesh);
+      podMeshes.push(mesh);
+    }
     const out = { before: 0, after: 0, merged: 0 };
-    for (const g of [core, base, mid, lane, detail]) {
+    for (const g of [core, base, mid, detail, rooms, roomsNear]) {
       const r = consolidateStaticMeshes(g, (m) => m.name === 'pod-lantern');
       out.before += r.before;
       out.after += r.after;
@@ -1640,8 +2009,14 @@ export function buildEast(ctx: WorldContext, mats: StructureMaterials, rng: Rng,
       nearVisible: detail.visible,
     })),
     pointLightsDropped: lightsDropped,
+    /** the dropped eaves and post lights' ground pools (drawn with `near`) */
+    lightPools: { lights: pools.audit, triangles: pools.mesh ? tri(pools.mesh.geometry) : 0, gain: POOL.gain, maxLift: POOL.max, fade: POOL.fade },
+    /** the rooms' per-house clones swapped for one lane material per kind (and how many kinds) */
+    roomMaterialSwaps: roomSwaps,
+    roomMaterials: roomShared.size,
     partsMovedNear: movedNear,
     partsMovedBase: movedBase,
+    partsMovedRoom: movedRoom,
     baseTops: baseTops.map((t) => +t.toFixed(2)),
     counter: counterAudit,
     crates: crateAudit,
@@ -1652,22 +2027,33 @@ export function buildEast(ctx: WorldContext, mats: StructureMaterials, rng: Rng,
     lookout: { fencePosts: fence.posts, bench: benchAudit, anchors: anchorAudit },
     walkSurfaces: walk,
     pods: lanterns.length,
+    /** the pods' meshes after the bake (one per tier and material) and how many of those cast */
+    podMeshes: podMeshes.length,
+    podCasters: podMeshes.filter((m) => m.castShadow).length,
     coreTriangles: countTris(core),
     baseTriangles: countTris(base),
     midTriangles: countTris(mid),
-    laneTriangles: countTris(lane),
     nearTriangles: countTris(detail),
+    roomTriangles: countTris(rooms),
+    roomNearTriangles: countTris(roomsNear),
     draws,
     visibleWithinM: EAST_VISIBLE_M,
+    /** and, with the eye under `overY`, within `withinM` of a trunk (util/eastLane.ts EAST_SEEN_M) */
+    seen: { withinM: EAST_SEEN_M, overY: EAST_OVER_Y },
     detailWithinM: EAST_DETAIL_M,
     midWithinM: EAST_MID_M,
     coreVisible: core.visible,
     baseVisible: base.visible,
     baseSeenByTerrain: seen,
+    midSeenByTerrain: midSeen,
+    midCells: midCells.length,
     sightTests,
     midVisible: mid.visible,
-    laneVisible: lane.visible,
+    /** a doorway's plane faces the camera (or the camera is in a trunk), and the rooms' tiers */
+    roomsFaced,
+    roomsVisible: rooms.visible,
+    roomsNearVisible: roomsNear.visible,
   });
 
-  return { group, core, base, mid, near: detail, lane, lanterns, walk, bases, owned, consolidate, update, audit };
+  return { group, core, base, mid, near: detail, walk, bases, owned, consolidate, update, audit };
 }

@@ -853,6 +853,13 @@ const southNear = (x, z, pad = 0) => z > 10 - pad && layout.EXPANSION_SOUTH_BOXE
     assert.equal(footSeen(p, 4.0), false, `the plateau's lip hides the houses' feet from ${fmt(x, z)} (eye height)`);
   }
   for (const p of [[17.4, 6.95, -7.5], [49.6, 7.25, 8.9], [-10, 30, 20]]) assert.equal(footSeen(p, 2.0), true, `the houses' feet show from ${fmt(p[0], p[2])} (${p[1]} m up)`);
+  // Nothing of the lane draws beyond EAST_SEEN_M of every trunk with the eye under EAST_OVER_Y:
+  // every fixed camera and the owner's poses (the plaza, the north path, the south bridge and far
+  // bank, the north's rise 55 m off) are out of reach; the lane's own poses, the stairway's foot and
+  // a camera high over the village are in it
+  for (const v of LAYOUT.viewpoints) assert.equal(E.eastInReach(at(v.position)), false, `${v.id}: the east lane is out of reach`);
+  for (const p of [[-0.2, 2.1, 3.1], [1.4, 1.75, -10.2], [4.8, 2.6, 43.6], [4.45, 1.0, 35.8], [5.2, 6.05, -50]]) assert.equal(E.eastInReach(at(p)), false, `the east lane is out of reach from ${fmt(p[0], p[2])} (${p[1]} m up)`);
+  for (const p of [[17.4, 6.95, -7.5], [31.3, 7.3, -4.5], [46.4, 7.45, 5.2], [49.6, 7.25, 8.9], [7.3, 1.75, -0.1], [-10, 30, 20]]) assert.equal(E.eastInReach(at(p)), true, `the east lane is in reach from ${fmt(p[0], p[2])} (${p[1]} m up)`);
 }
 
 console.log('expansion2.test.mjs: ok');

@@ -12,16 +12,27 @@
 import { Frustum, Matrix4, Sphere, Vector3, type Camera } from 'three';
 import { EAST_BOX, EXPANSION_EAST, eastDeckPlan, eastSteppingStones, type EastHouse } from '../layout';
 import { casterSpheres, frustumMeets, type Caster } from './expansionLocality';
+import { groundHides } from './sight';
 
 /** beyond this distance from the lane's box nothing of it draws (haze) */
 export const EAST_VISIBLE_M = 70;
+/**
+ * Nor while the camera is farther than EAST_SEEN_M from every trunk with its eye under EAST_OVER_Y:
+ * from below the plateau's ground (5.1–5.9 m) the lip hides the lane's ground-level work, and past
+ * 35 m the houses' upper storeys show at most in glimpses through the village's canopy. Every fixed
+ * camera and owner pose stands 36.9–49.6 m off under 2.7 m (the north's rise, 55 m off, puts an eye
+ * at 6.05 m); the lane's own views are within 23 m; a camera high over the village keeps the lane.
+ */
+export const EAST_SEEN_M = 35;
+export const EAST_OVER_Y = 6.5;
 /** a house's detail (cap tufts and plants, trunk moss, lichen, the room) draws within this distance of its trunk */
 export const EAST_DETAIL_M = 34;
 /**
  * the houses' feet and the lane's built extras (the counter's woodwork, the sign, the deck, the
  * posts, the lookout) always draw within this distance of the green — everywhere on the plateau and
- * on the plain under its south lip — and beyond it while `eastFootSeen` (camera F, 46.5 m off,
- * sees over the lip to the doors' heads; the lip's lee on the plain south of the plaza does not)
+ * on the plain under its south lip — and beyond it while `eastFootSeen` (the ground alone lets the
+ * plaza see over the lip to the doors' heads, but the plaza is out of EAST_SEEN_M; the lip's lee on
+ * the plain south of the plaza sees none)
  */
 export const EAST_MID_M = 40;
 /** the green between the three houses, the centre the lane's distance rules measure from */
@@ -159,19 +170,6 @@ export function eastHouseFloor(h: EastHouse, heightAt: (x: number, z: number) =>
   return heightAt(h.x + Math.sin(f) * h.radius * 1.15, h.z + Math.cos(f) * h.radius * 1.15);
 }
 
-/** true when the ground rises over the straight line from `from` to (x, y, z) (ends excluded, 0.5 m steps) */
-function groundHides(from: { x: number; y: number; z: number }, x: number, y: number, z: number, heightAt: (x: number, z: number) => number): boolean {
-  const dx = x - from.x;
-  const dy = y - from.y;
-  const dz = z - from.z;
-  const n = Math.ceil(Math.hypot(dx, dz) / 0.5);
-  for (let k = 2; k < n - 2; k++) {
-    const t = k / n;
-    if (heightAt(from.x + dx * t, from.z + dz * t) > from.y + dy * t + 0.05) return true;
-  }
-  return false;
-}
-
 /** per house: angle off the bearing to the camera, radius × R, at the base's top (else the roots' tips 0.5 m up) */
 const FOOT_SIGHT: [number, number, boolean][] = [
   [0, 1.1, true],
@@ -203,12 +201,27 @@ const _m = new Matrix4();
 const _f = new Frustum();
 const _p = new Vector3();
 
+/** distance (m) from (x, z) to the lane's box in plan */
+export function eastBoxDistanceAt(x: number, z: number): number {
+  const dx = Math.max(EAST_BOX.x0 - x, 0, x - EAST_BOX.x1);
+  const dz = Math.max(EAST_BOX.z0 - z, 0, z - EAST_BOX.z1);
+  return Math.hypot(dx, dz);
+}
+
 /** distance (m) from the camera to the lane's box in plan */
 export function eastBoxDistance(camera: Camera): number {
   camera.getWorldPosition(_p);
-  const dx = Math.max(EAST_BOX.x0 - _p.x, 0, _p.x - EAST_BOX.x1);
-  const dz = Math.max(EAST_BOX.z0 - _p.z, 0, _p.z - EAST_BOX.z1);
-  return Math.hypot(dx, dz);
+  return eastBoxDistanceAt(_p.x, _p.z);
+}
+
+/** plan distance (m) from (x, z) to the nearest house's trunk axis */
+export function eastTrunkDistance(x: number, z: number): number {
+  return Math.min(...EXPANSION_EAST.houses.map((h) => Math.hypot(x - h.x, z - h.z)));
+}
+
+/** whether the lane may draw at all for an eye at `p` (EAST_VISIBLE_M, EAST_SEEN_M, EAST_OVER_Y); the frustum and sight tests come after */
+export function eastInReach(p: { x: number; y: number; z: number }): boolean {
+  return eastBoxDistanceAt(p.x, p.z) < EAST_VISIBLE_M && (p.y > EAST_OVER_Y || eastTrunkDistance(p.x, p.z) < EAST_SEEN_M);
 }
 
 /** true when the camera is within `within` m (plan) of (x, z) and its frustum meets one of `spheres` (world matrix refreshed first) */
