@@ -114,6 +114,12 @@ export const ROOF_STAND_BANDS: readonly RoofStandBand[] = [
   // the mouth itself, both hanging at the height the south trees' crowns carry.
   { xMin: -16, xMax: 26, zMin: 41, zMax: 54, crownAbove: 22, feather: 16 },
   { xMin: -6, xMax: 16, zMin: 54, zMax: 62, crownAbove: 21, feather: 12 },
+  // the north grove (expansion-north, merged 22:20; the owner's "more structures along the path further
+  // down"): its shelf hamlet stands 94-112 m north at 10-12 m of elevation, and BOTH grids ended before
+  // it — the plaza's at z -70, the stand's at -96 — so a walker at the shelf lip looking up saw bare sky
+  // with a few crowns at the frame's edges (rendered first, `northgrove/` in this lane's evidence). The
+  // trail below the shelf is already under the flanks, so this is one band over the shelf and its houses.
+  { xMin: -16, xMax: 14, zMin: -112, zMax: -94, crownAbove: 20, feather: 18 },
   // and the ravine's own airspace: the first two bands closed the far bank and the mouth but left a
   // pale field over the gorge (z 28-41), which the plaza grid reaches (zMax 40) but no giant supports
   // — the nearest is 14 m north of the sill. The trees on both lips already carry the lower canopy
@@ -136,8 +142,13 @@ export const ROOF_STAND_BOUNDS = { xMin: -46, xMax: 52, zMin: -96, zMax: -52 } a
  * the canopy simply stopped in a line over the new exit.
  */
 export const ROOF_SOUTH_BOUNDS = { xMin: -20, xMax: 30, zMin: 27, zMax: 64 } as const;
+/**
+ * …and the grove's, sampled last so the north's and the south's clumps draw exactly what they drew
+ * before it existed. It reaches past the shelf's houses (z -101) to the hillside above them.
+ */
+export const ROOF_GROVE_BOUNDS = { xMin: -26, xMax: 26, zMin: -120, zMax: -94 } as const;
 /** the stand pass's grids, in the order it samples them */
-export const ROOF_STAND_GRIDS = [ROOF_STAND_BOUNDS, ROOF_SOUTH_BOUNDS] as const;
+export const ROOF_STAND_GRIDS = [ROOF_STAND_BOUNDS, ROOF_SOUTH_BOUNDS, ROOF_GROVE_BOUNDS] as const;
 /** a stand cell whose giant support exceeds this is the plaza pass's (skipped here) */
 export const ROOF_STAND_GIANT_SKIP = 0.5;
 /**
