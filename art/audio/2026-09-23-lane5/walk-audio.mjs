@@ -109,7 +109,7 @@ try {
           window.__ZR_PLAY__.step(1, dt, false);
           const f = window.__ZR_PLAY__.state().feet;
           const st = window.__ZR_AUDIO__.stats();
-          rows.push([(f ?? []).map((x) => (x.stance ? 1 : 0)), st?.enclosure ?? 0, st?.canopy ?? 0, st?.windLean ?? 0, window.__ZR_PLAY__.state().heading ?? 0, !!window.__ZR_PLAY__.state().playMode]);
+          rows.push([(f ?? []).map((x) => (x.stance ? 1 : 0)), st?.enclosure ?? 0, st?.canopy ?? 0, st?.windLean ?? 0, st?.gorge ?? 0]);
           await new Promise((r) => requestAnimationFrame(r));
         }
         return rows;
@@ -132,6 +132,7 @@ try {
     const enclosure = gait.map((r) => r[1]);
     const canopy = gait.map((r) => r[2]);
     const lean = gait.map((r) => r[3]);
+    const gorge = gait.map((r) => r[4]);
     const feet = stance[0]?.length ?? 0;
     const pattern = Array.from({ length: feet }, (_, i) => stance.map((r) => (r[i] ? '#' : '.')).join(''));
     const plants = pattern.map((p) => (p.match(/\.#/g) ?? []).length);
@@ -160,6 +161,8 @@ try {
       canopyMax: Number(Math.max(...canopy).toFixed(2)),
       canopyTrace: canopy.filter((_, i) => i % 6 === 0).map((v) => Number(v.toFixed(2))),
       /** where the canopy roll sat over the route: −1 hard left … +1 hard right */
+      gorgeMax: Number(Math.max(...gorge).toFixed(2)),
+      gorgeTrace: gorge.filter((_, i) => i % 8 === 0).map((v) => Number(v.toFixed(2))),
       windLeanRange: [Number(Math.min(...lean).toFixed(2)), Number(Math.max(...lean).toFixed(2))],
       windLeanTrace: lean.filter((_, i) => i % 12 === 0).map((v) => Number(v.toFixed(2))),
     };
@@ -170,11 +173,8 @@ try {
     for (const p of pattern) log(`  gait ${p.slice(0, 120)}`);
     if (row.enclosureMax > 0) log(`  enclosure peaks at ${row.enclosureMax}: ${row.enclosureTrace.join(' ')}`);
     if (row.canopyMax > 0) log(`  canopy peaks at ${row.canopyMax}: ${row.canopyTrace.join(' ')}`);
-    if (route.turn) {
-      const head = gait.map((r) => r[4]);
-      log(`  wind lean ${row.windLeanRange[0]} … ${row.windLeanRange[1]}: ${row.windLeanTrace.join(' ')}`);
-      log(`  link heading ${Math.min(...head).toFixed(2)} … ${Math.max(...head).toFixed(2)} rad, playMode ${gait[0][5]}`);
-    }
+    if (row.gorgeMax > 0) log(`  gorge peaks at ${row.gorgeMax}: ${row.gorgeTrace.join(' ')}`);
+
   }
   results.end = await page.evaluate(() => window.__ZR_AUDIO__.stats());
 } finally {

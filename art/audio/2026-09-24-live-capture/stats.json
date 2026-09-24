@@ -1,0 +1,49 @@
+{
+  "state": "on",
+  "music": "procedural",
+  "pods": 45,
+  "gaitDriven": true,
+  "enclosure": 0,
+  "canopy": 0,
+  "fairySpots": [
+    [
+      2.31,
+      1.4,
+      2.61
+    ],
+    [
+      8.46,
+      1.38,
+      0.63
+    ],
+    [
+      -0.28,
+      7.09,
+      -78.32
+    ],
+    [
+      -18.82,
+      3.25,
+      16.78
+    ],
+    [
+      1.49,
+      4.78,
+      -38.81
+    ]
+  ],
+  "load": null,
+  "voices": 9,
+  "steps": 68,
+  "gaitSteps": 67,
+  "surfaces": {
+    "stone": 68
+  },
+  "lastSurface": "stone",
+  "landings": 0,
+  "birds": 7,
+  "flutters": 29,
+  "glints": 8,
+  "fairiesNear": 1,
+  "windLean": -0.25269587179039843
+}

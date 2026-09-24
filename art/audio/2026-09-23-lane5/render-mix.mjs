@@ -47,10 +47,12 @@ try {
     const t0 = Date.now();
     const dry = stem.endsWith('-dry');
     const canopy = stem.endsWith('-crowns') ? 1 : stem.endsWith('-open') ? 0 : null;
-    const base = dry ? stem.slice(0, -4) : canopy === 1 ? stem.slice(0, -7) : canopy === 0 ? stem.slice(0, -5) : stem;
+    const gorge = stem.endsWith('-gorge') ? 1 : stem.endsWith('-flat') ? 0 : null;
+    const suffix = dry ? 4 : canopy === 1 ? 7 : canopy === 0 ? 5 : gorge === 1 ? 6 : gorge === 0 ? 5 : 0;
+    const base = suffix ? stem.slice(0, -suffix) : stem;
     const { b64, music, peak, rms } = await page.evaluate(
-      async (secs, rate, s, noReverb, forceCanopy) => {
-        const r = await window.__ZR_AUDIO__.renderOffline(secs, rate, { stem: s, ...(noReverb ? { reverb: false } : {}), ...(forceCanopy === null ? {} : { canopy: forceCanopy }) });
+      async (secs, rate, s, noReverb, forceCanopy, forceGorge) => {
+        const r = await window.__ZR_AUDIO__.renderOffline(secs, rate, { stem: s, ...(noReverb ? { reverb: false } : {}), ...(forceCanopy === null ? {} : { canopy: forceCanopy }), ...(forceGorge === null ? {} : { gorge: forceGorge }) });
         const bytes = r.wav;
         // 16-bit PCM levels straight off the WAV payload, so the numbers come from the shipped bytes
         let peak = 0;
@@ -73,6 +75,7 @@ try {
       base,
       dry,
       canopy,
+      gorge,
     );
     const file = path.join(out, `${stem}.wav`);
     fs.writeFileSync(file, Buffer.from(b64, 'base64'));

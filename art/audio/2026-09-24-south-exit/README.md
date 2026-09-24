@@ -51,6 +51,11 @@ itself, and a good reminder to read the end position before believing a route.
 
 ## Offline
 
+> **Corrected.** The bridge leg below was read as 19 detections by the offline onset detector; it
+> is 10 steps. The bridge's plank rings on several modes and the detector was re-triggering mid-decay
+> (`art/audio/2026-09-24-detector/`). The 32 bridge steps counted in play mode are unaffected — that
+> figure comes from the audio system's own counter.
+
 `OFFLINE_WALK` gains a `bridge` leg **after** the closing stand, so every earlier leg keeps its
 times and older before/after renders stay comparable. `clips/bridge.mp3` is that leg beside
 `clips/deck.mp3`, the west house's planks from the same render — the two woods, a few seconds apart,

@@ -228,6 +228,8 @@ export const FLOWER_CLUMP_SPREAD = 0.12;
 export const FLOWER_CLUMP_LEAN = 0.08;
 /** frame 56's sunlit bud stalks are khaki-yellow against the green bank */
 const TALL_BUD_TINT = new Color(1.55, 1.38, 0.82);
+/** 2026-09-24 — the shot-D bud coils' width as a multiple of their height scale (was 1.7, an anamorphic cheat) */
+const TALL_BUD_WIDTH = 1.25;
 
 class Spacing {
   private cells = new Map<number, number[]>();
@@ -709,10 +711,16 @@ export function buildPlants(ctx: WorldContext, field: VegField, parent: Group): 
       field.sample(x, z, s);
       if (!field.allowed(x, z, s) || field.insideGiantTrunk(x, z) || field.boulderDistance(x, z) < 0.15) continue;
       // lit khaki-yellow like the footage's buds (sunlit above the green fronds, so they separate
-      // from the bank behind); stretched sideways so the stalks read as thumb-thick and the coils
-      // as fist-sized bulbs
+      // from the bank behind), and widened so the stalks read as thumb-thick and the coils as
+      // fist-sized bulbs.
+      // 2026-09-24: the widening was × 1.7, an anamorphic cheat tuned from camera D alone. The
+      // coil geometry is a flat spiral, and at twice scale and 1.7 × width it reads from every
+      // other angle as a pale ring cut from cardboard — the owner walks within 4 m of these on his
+      // main route (`bud-close`, and they are the pale blobs in his west verge). × 1.25 keeps the
+      // coil wider than its stalk without magnifying its flatness. The HEIGHT is untouched, so
+      // frame 56's tall stalks and every plants.test contract on them stand.
       const scale = 1.95 + rng() * 0.3;
-      placeInstance(fiddleheads, x, z, s, rng, scale, 0.3, 0.015, greenVar(rng, 0.1).multiply(TALL_BUD_TINT), scale * 1.7);
+      placeInstance(fiddleheads, x, z, s, rng, scale, 0.3, 0.015, greenVar(rng, 0.1).multiply(TALL_BUD_TINT), scale * TALL_BUD_WIDTH);
     }
   }
 
