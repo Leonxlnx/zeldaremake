@@ -11,7 +11,7 @@
  */
 import { Vector3 } from 'three';
 import { EXPANSION_RUINS } from '../layout';
-import { CLIFF_ROWS, CLIFF_Z, PILLAR_BEDS, cliffFaceX, cliffSurface, fallChannel, outcropCover, pillarRadius, platformSigned, poolSigned, rockNoise3 as noise3 } from '../terrain/ruins';
+import { CLIFF_FACE_V, CLIFF_ROWS, CLIFF_Z, PILLAR_BEDS, cliffFaceX, cliffSurface, fallChannel, outcropCover, pillarRadius, platformSigned, poolSigned, rockNoise3 as noise3 } from '../terrain/ruins';
 import { Noise2D, clamp, lerp, smoothstep } from '../util/noise';
 import type { Rng } from '../util/prng';
 import { MeshBuilder, type RGB } from './geom';
@@ -126,7 +126,10 @@ export function cliffPoint(z: number, v: number, ground: Ground): { p: Vector3; 
   const nearFall = 1 - smoothstep(F.width * 0.5, F.width * 1.8, Math.abs(z - F.z));
   const byPool = poolSigned(face + 0.6, z) < 1.5 ? 1 - smoothstep(0.0, 1.4, y - Q.water) : 0;
   const wet = clamp(nearFall * (0.45 + 0.4 * (1 - hRel)) + byPool, 0, 1);
-  const moss = clamp(0.25 * ledge + 0.14 * (1 - hRel) + 0.12 * nearFall * (1 - fallChannel(z)) + 0.14 * n2.noise(z * 0.4, y * 0.3), 0, 1);
+  // the top is turned to the sun, so it carries a cap like the boulders': from the brow's lip (seen
+  // from the site as a fringe on the skyline) over the top, patchy, bare in the fall's worn channel
+  const cap = v > CLIFF_FACE_V ? smoothstep(0.03, 0.14, (v - CLIFF_FACE_V) / (1 - CLIFF_FACE_V)) * (1 - fallChannel(z)) : 0;
+  const moss = clamp(0.25 * ledge + 0.14 * (1 - hRel) + 0.12 * nearFall * (1 - fallChannel(z)) + 0.14 * n2.noise(z * 0.4, y * 0.3) + 0.5 * cap * (0.65 + 0.55 * n3.noise(z * 0.9, x * 0.9)), 0, 1);
   return { p: new Vector3(x, y, z), c: [k * 0.96, k * 0.99, k], moss, wet };
 }
 
