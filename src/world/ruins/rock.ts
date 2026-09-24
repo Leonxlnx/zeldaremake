@@ -24,6 +24,8 @@ export interface Rock {
   boulder: MeshBuilder;
   blockers: { x: number; z: number; r: number; top: number }[];
   counts: Record<string, number>;
+  /** each boulder's vertex range in its builder and its middle (ruins.test.mjs seats them) */
+  boulders: { mb: MeshBuilder; v0: number; v1: number; x: number; z: number }[];
 }
 
 const n1 = new Noise2D('ruins-rock-a');
@@ -138,6 +140,7 @@ export function buildRock(rng: Rng, ground: Ground, sun: Vector3): Rock {
   const boulder = new MeshBuilder();
   const blockers: Rock['blockers'] = [];
   const counts: Record<string, number> = { boulders: 0 };
+  const boulders: Rock['boulders'] = [];
   const C = R.cliff;
   const F = R.fall;
   const Q = R.pool;
@@ -203,6 +206,7 @@ export function buildRock(rng: Rng, ground: Ground, sun: Vector3): Rock {
     const cy = g + ry * 0.55;
     const cs = Math.cos(yaw);
     const sn = Math.sin(yaw);
+    const v0 = mb.vertexCount;
     patch(
       mb,
       28,
@@ -229,6 +233,7 @@ export function buildRock(rng: Rng, ground: Ground, sun: Vector3): Rock {
       new Vector3(-sn, 0, cs),
     );
     counts.boulders++;
+    boulders.push({ mb, v0, v1: mb.vertexCount, x, z });
     if (block) blockers.push({ x, z, r: Math.max(rx, rz) * 0.9, top: cy + ry });
   };
   // the gate: the two boulders the trail passes between (terrain/ruins.ts blocks them)
@@ -330,5 +335,5 @@ export function buildRock(rng: Rng, ground: Ground, sun: Vector3): Rock {
     rock(cliff, b.x - 1.3, b.z + 0.9, 1.0, 1.0, 0.9, pr.range(0, 3), 0.6, 37.1);
     rock(cliff, b.x + 1.5, b.z + 1.2, 0.9, 0.8, 0.8, pr.range(0, 3), 0.6, 41.9);
   }
-  return { cliff, boulder, blockers, counts };
+  return { cliff, boulder, blockers, counts, boulders };
 }

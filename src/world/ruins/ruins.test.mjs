@@ -17,8 +17,11 @@
  *      than 0.1 m under the springing, most of it on the approach's (east) face;
  *   5. the offering: finite, on the paving and clear of the arch's plinth and the flight, its
  *      blocker round every stone of it over the paving;
- *   6. determinism: the same seed builds the same stone, bit for bit;
- *   7. locality: the site's casters and their shadow footprints (what `ruinsVisible` tests) meet no
+ *   6. the loose stone: every rubble block, drum and the lintel reaches down to what it lies on (the
+ *      ground, the outcrop's skin, the slabs or a lost slab's bed) and stands out of it; every
+ *      boulder's underside meets the ground all round it;
+ *   7. determinism: the same seed builds the same stone, bit for bit;
+ *   8. locality: the site's casters and their shadow footprints (what `ruinsVisible` tests) meet no
  *      fixed camera's frustum, and the zone's own views do meet them.
  * (The gauntlet's playtest walks the same route and probes in the browser, over every system's
  * blockers; this is the ruins' share of it, without one.)
@@ -61,7 +64,7 @@ const { createRng } = loadTs(path.join(here, '../util/prng.ts'));
 const { createGround } = loadTs(path.join(here, '../character/ground.ts'));
 const { MeshBuilder } = loadTs(path.join(here, 'geom.ts'));
 const { buildMasonry, ARCH_RING: G } = loadTs(path.join(here, 'masonry.ts'));
-const { buildRock } = loadTs(path.join(here, 'rock.ts'));
+const { buildRock, outcropSkin } = loadTs(path.join(here, 'rock.ts'));
 const { ruinsColumnBlockers } = loadTs(path.join(here, 'cameraSolid.ts'));
 const { buildLanterns } = loadTs(path.join(here, 'lanterns.ts'));
 const { buildOfferings } = loadTs(path.join(here, 'offerings.ts'));
@@ -299,6 +302,72 @@ test('the offering stands on the paving, clear of the plinth and the flight, ins
   assert.ok(box.x0 > A.x + 0.34 + 0.1, `${(box.x0 - A.x - 0.34).toFixed(2)} m off the arch plinth's east face`);
   assert.ok(box.z1 < R.stairs.base[2] - R.stairs.width / 2 - 0.2, `${(R.stairs.base[2] - R.stairs.width / 2 - box.z1).toFixed(2)} m off the flight's north edge`);
   assert.ok(far <= b.r, `a stone ${far.toFixed(2)} m from the blocker's centre (r ${b.r})`);
+});
+
+test('every loose stone meets what it lies on and stands out of it', () => {
+  const rng = seed();
+  const masonry = buildMasonry(rng.fork('masonry'), ground, sun);
+  const rock = buildRock(rng.fork('rock'), ground, sun);
+  const TOL = 0.015;
+  // the paving under (x, z): a lost slab's bed (its lowest, between the cushions), else the lowest
+  // slab top (a stone across a joint lies on the slabs either side of it)
+  const pave = (x, z) => (masonry.lost.some(([x0, x1, z0, z1]) => x > x0 && x < x1 && z > z0 && z < z1) ? T.y - 0.071 : T.y - 0.012);
+  const land = (x, z) => {
+    const g = ground(x, z);
+    return Math.max(g, outcropSkin(x, z, g));
+  };
+  const kinds = {};
+  const bad = [];
+  const P = masonry.stone.pos;
+  for (const p of masonry.loose) {
+    kinds[p.kind] = (kinds[p.kind] ?? 0) + 1;
+    const under = p.onTop ? pave : land;
+    let y0 = Infinity;
+    let cx = 0;
+    let cz = 0;
+    for (let k = p.v0; k < p.v1; k++) {
+      y0 = Math.min(y0, P[k * 3 + 1]);
+      cx += P[k * 3] / (p.v1 - p.v0);
+      cz += P[k * 3 + 2] / (p.v1 - p.v0);
+    }
+    let hover = -Infinity;
+    let stands = -Infinity;
+    for (let k = p.v0; k < p.v1; k++) {
+      const d = P[k * 3 + 1] - under(P[k * 3], P[k * 3 + 2]);
+      if (P[k * 3 + 1] < y0 + 0.002) hover = Math.max(hover, d);
+      stands = Math.max(stands, d);
+    }
+    if (hover > TOL || stands < 0.03) bad.push(`${p.kind} at ${fmt([cx, cz])}: its foot ${hover.toFixed(3)} m over what it lies on, ${stands.toFixed(2)} m of it out of it`);
+  }
+  assert.ok(kinds.rubble >= 25 && kinds.drum >= 3 && kinds.lintel === 1, JSON.stringify(kinds));
+  // the boulders' undersides: in each sixteenth round the boulder's middle, some vertex of its
+  // lower half between 35 % and 75 % of the way out is in the ground (so no side of it hovers)
+  for (const b of rock.boulders) {
+    const Q = b.mb.pos;
+    let y0 = Infinity;
+    let y1 = -Infinity;
+    let out = -Infinity;
+    for (let k = b.v0; k < b.v1; k++) {
+      y0 = Math.min(y0, Q[k * 3 + 1]);
+      y1 = Math.max(y1, Q[k * 3 + 1]);
+      out = Math.max(out, Q[k * 3 + 1] - ground(Q[k * 3], Q[k * 3 + 2]));
+    }
+    const reach = new Array(16).fill(0);
+    const sector = (k) => Math.floor(((Math.atan2(Q[k * 3 + 2] - b.z, Q[k * 3] - b.x) / (Math.PI * 2) + 1) % 1) * 16) % 16;
+    for (let k = b.v0; k < b.v1; k++) reach[sector(k)] = Math.max(reach[sector(k)], Math.hypot(Q[k * 3] - b.x, Q[k * 3 + 2] - b.z));
+    const contact = new Array(16).fill(Infinity);
+    for (let k = b.v0; k < b.v1; k++) {
+      const s = sector(k);
+      const rho = Math.hypot(Q[k * 3] - b.x, Q[k * 3 + 2] - b.z);
+      if (Q[k * 3 + 1] > (y0 + y1) / 2 || rho < 0.35 * reach[s] || rho > 0.75 * reach[s]) continue;
+      contact[s] = Math.min(contact[s], Q[k * 3 + 1] - ground(Q[k * 3], Q[k * 3 + 2]));
+    }
+    const worst = Math.max(...contact);
+    if (worst > TOL) bad.push(`boulder at ${fmt([b.x, b.z])}: a side of its underside ${worst.toFixed(3)} m over the ground`);
+    if (out < 0.1) bad.push(`boulder at ${fmt([b.x, b.z])}: ${out.toFixed(2)} m of it out of the ground`);
+  }
+  assert.ok(rock.boulders.length >= 20, `${rock.boulders.length} boulders`);
+  assert.deepEqual(bad, []);
 });
 
 test('the same seed builds the same stone', () => {

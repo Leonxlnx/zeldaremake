@@ -22,6 +22,7 @@ import { STAIR_RUN, inTerrace, stairLocal } from '../terrain/ruins';
 import { Noise2D, clamp, smoothstep } from '../util/noise';
 import type { Rng } from '../util/prng';
 import { MeshBuilder, block, lathe, type RGB } from './geom';
+import { outcropSkin } from './rock';
 
 const R = EXPANSION_RUINS;
 const T = R.terrace;
@@ -47,6 +48,10 @@ export interface Masonry {
   /** where growth can root in the paving as laid (`SharedGeometry.pavingSeats`) */
   seats: [number, number, number][];
   counts: Record<string, number>;
+  /** the pieces lying loose on the paving or the ground: their vertex ranges in `stone` (ruins.test.mjs seats them) */
+  loose: { kind: 'rubble' | 'drum' | 'lintel'; v0: number; v1: number; onTop: boolean }[];
+  /** the lost slabs' beds (x0, x1, z0, z1): the paving's holes */
+  lost: [number, number, number, number][];
 }
 
 /** the parapet's panel: its centre line (z), half thickness, the tile band's and the carving's heights */
@@ -90,6 +95,8 @@ export function buildMasonry(rng: Rng, ground: Ground, sun: Vector3): Masonry {
   const carving = new MeshBuilder();
   const blockers: Blocker[] = [];
   const counts: Record<string, number> = { ashlar: 0, coping: 0, slabs: 0, treads: 0, voussoirs: 0, rubble: 0 };
+  const loose: Masonry['loose'] = [];
+  const lost: Masonry['lost'] = [];
 
   /**
    * Moss on a face: `amount` scaled up on the faces turned from the sun (the sun is in the north-west,
@@ -349,6 +356,7 @@ export function buildMasonry(rng: Rng, ground: Ground, sun: Vector3): Masonry {
       if (r < 0.06) {
         // lost: a couple of broken pieces left in the bed
         hole(sx0, sx1, sz0, sz1);
+        lost.push([sx0, sx1, sz0, sz1]);
         const pieces: [number, number, number][] = [];
         for (let k = rng.int(1, 3); k > 0; k--) {
           const px = sx0 + rng.range(0.15, 0.85) * (sx1 - sx0);
@@ -688,6 +696,7 @@ export function buildMasonry(rng: Rng, ground: Ground, sun: Vector3): Masonry {
   }
   // the fallen: a broken lintel and three drums on the terrace, one drum tumbled off its north face
   const lyingDrum = (x: number, z: number, yaw: number, r: number, len: number, y0: number) => {
+    const v0 = mb.vertexCount;
     const cs = Math.cos(yaw);
     const sn = Math.sin(yaw);
     const place = (lx: number, ly: number, lz: number) => {
@@ -711,6 +720,7 @@ export function buildMasonry(rng: Rng, ground: Ground, sun: Vector3): Masonry {
       () => 0.35,
       (th, _y, rr) => rr * (1 - 0.045 * Math.pow(Math.max(0, Math.cos(th * 10)), 0.6)),
     );
+    loose.push({ kind: 'drum', v0, v1: mb.vertexCount, onTop: y0 > top - 0.1 });
     blockers.push({ x, z, r: Math.max(r, len / 2) * 0.9, top: y0 + 2 * r });
   };
   lyingDrum(-68.1, -7.7, 0.35, 0.28, 0.85, top - 0.03);
@@ -719,7 +729,9 @@ export function buildMasonry(rng: Rng, ground: Ground, sun: Vector3): Masonry {
   {
     const x = -70.9;
     const z = -7.35;
+    const v0 = mb.vertexCount;
     block(mb, x, top + 0.19, z, 1.05, 0.21, 0.27, 0.42, { bevel: 0.05, color: stoneCol(rng, 0.97), skip: ['-y'], sag: [0.02, -0.03, 0.0, -0.05], mossFn: (p, n) => moss(p, n, 0.55) });
+    loose.push({ kind: 'lintel', v0, v1: mb.vertexCount, onTop: true });
     blockers.push({ x: x - 0.45, z: z - 0.2, r: 0.55, top: top + 0.4 });
     blockers.push({ x: x + 0.45, z: z + 0.2, r: 0.55, top: top + 0.4 });
   }
@@ -788,12 +800,30 @@ export function buildMasonry(rng: Rng, ground: Ground, sun: Vector3): Masonry {
   // ------------------------------------------------------------------------------------------
   // rubble: fallen blocks at the terrace's foot, on the terrace by the broken arch, in the shallows
   // ------------------------------------------------------------------------------------------
+  /** the ground as seen: the outcrop's pale skin where it covers the live ground */
+  const land = (x: number, z: number) => {
+    const h = ground(x, z);
+    return Math.max(h, outcropSkin(x, z, h));
+  };
   const rubble = (x: number, z: number, s: number, onTop: boolean) => {
-    const g = onTop ? top : ground(x, z);
+    const g = onTop ? top : land(x, z);
     const ha = s * rng.range(0.8, 1.3);
     const hy = s * rng.range(0.45, 0.75);
     const hb = s * rng.range(0.6, 1.0);
-    block(mb, x, g + hy - (onTop ? 0.02 : hy * 0.45), z, ha, hy, hb, rng.range(0, Math.PI), {
+    const yaw = rng.range(0, Math.PI);
+    // the top where the stone's size and the ground (as seen) under its middle put it; the bottom reaches under
+    // the lowest ground round its footprint (on the shelf's slope and the banks a block seated by its
+    // middle alone left its downhill corners, and its open underside, over the ground), and on the
+    // paving under the slabs' bed (a joint or a lost slab beside it shows the bed, not a gap)
+    const yTop = g + hy * 2 - (onTop ? 0.02 : hy * 0.45);
+    let yBot = onTop ? top - 0.08 : g - hy * 0.45;
+    if (!onTop) {
+      const cs = Math.cos(yaw);
+      const sn = Math.sin(yaw);
+      for (const [a, b] of [[1, 1], [1, -1], [-1, 1], [-1, -1], [1, 0], [-1, 0], [0, 1], [0, -1]]) yBot = Math.min(yBot, land(x + a * ha * cs - b * hb * sn, z + a * ha * sn + b * hb * cs) - 0.04);
+    }
+    const loose0 = mb.vertexCount;
+    block(mb, x, (yTop + yBot) / 2, z, ha, (yTop - yBot) / 2, hb, yaw, {
       bevel: rng.range(0.03, 0.07),
       color: stoneCol(rng, 0.94),
       skip: ['-y'],
@@ -802,6 +832,7 @@ export function buildMasonry(rng: Rng, ground: Ground, sun: Vector3): Masonry {
       wetFn: g < R.pool.water + 0.3 ? wetUnder(R.pool.water + 0.35) : undefined,
     });
     counts.rubble++;
+    loose.push({ kind: 'rubble', v0: loose0, v1: mb.vertexCount, onTop });
     if (s > 0.2) blockers.push({ x, z, r: Math.max(ha, hb) * 0.85, top: g + hy * 1.5 });
     // nothing roots in the paving under a stone lying on it
     if (onTop) {
@@ -842,5 +873,5 @@ export function buildMasonry(rng: Rng, ground: Ground, sun: Vector3): Masonry {
   band('north', T.notchZ, cutN, T.x1 - 0.05);
   band('back', T.z0 + 0.05, T.notchZ, T.notchX - 0.05);
 
-  return { stone: mb, tiles, carving, spans, blockers, seats, counts };
+  return { stone: mb, tiles, carving, spans, blockers, seats, counts, loose, lost };
 }
