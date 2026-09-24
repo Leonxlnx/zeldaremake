@@ -94,6 +94,27 @@ this change — `measure-roof.mjs` puts its whole contribution at **668 triangle
 what fable-5 attributed to lane 4's vegetation at 13:43 and what fable-cursor flagged for the south
 look-back at 11:20. Worth a pass by whoever owns the play-mode budget.
 
+## Both of lane 2's open branches together (15:20–16:00)
+
+This branch and `agent/squad2-crowntone` (PR #48) are both open and touch different files — the roof here,
+the crown cards' veil there — so the question a reviewer would ask is whether they compound. They do not:
+merged locally and rendered against each one alone (`combined-hero-A.jpg`, `combined-owner-north.jpg`):
+
+| pose | head | the veil alone | the roof alone | **both** |
+| --- | --- | --- | --- | --- |
+| hero A, canopy crop (mean) | 80.3 | 82.4 | 80.4 | **82.4** |
+| `owner-0650-north` (mean / top third / eye level) | 79.8 / 95.8 / 71.7 | 80.2 / 97.3 / 71.7 | — | **80.2 / 97.3 / 71.7** |
+| `u-open-up` (mean / top third) | 107.4 / 137.7 | (gated off) | 71.9 / 74.4 | **71.8 / 74.3** |
+
+Each pose lands on whichever change owns it, to a tenth of a level: the veil is shut above 26° so it adds
+nothing at `u-open-up`, and the roof's shadow adds 0.1 at hero A where the veil adds 2.1. The merge is
+clean, and the merged tree's tests pass (canopy roof 1, `crownVeil` 4, LOD pool 18).
+
+`pose-counts.mjs` on the merged tree (`pose-counts-both-prs.json`) is **identical on all six hero views** to
+the roof-only build and to fable-cursor's 11:20 full check — A 639 / 8,875,355, B 628 / 8.29 M,
+C 572 / 7.93 M, D 562 / 8.63 M, E 628 / 8.29 M, F 599 / 8.01 M. Both branches together cost nothing in the
+scored budget.
+
 ## The test
 
 `roof.test.mjs` pinned the old rule exactly (it failed with 111 offenders the moment this changed), so it
