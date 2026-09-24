@@ -124,7 +124,7 @@ export function buildRavineRocks(rng: Rng, seed: string, shadeDir: [number, numb
 
   // --- the outcrops --------------------------------------------------------------------------------
   const oRng = rng.fork('outcrops');
-  const stoneTint = new Color(0.6, 0.58, 0.53);
+  const stoneTint = new Color(0.72, 0.7, 0.64);
   for (const [key, cands] of [...wallBuckets.entries()].sort((a, b) => (a[0] < b[0] ? -1 : 1))) {
     const [sideS, bucketS] = key.split('/');
     const bucket = Number(bucketS);
@@ -144,8 +144,9 @@ export function buildRavineRocks(rng: Rng, seed: string, shadeDir: [number, numb
     }
     if (!best) continue;
     const h = hash2(bucket, side * 7 + 13, 11);
-    // 1.2–2 m across, a little bigger where the gorge is deep
-    const r = 0.58 + 0.32 * h + 0.06 * Math.min(1, (best.D - MIN_DEPTH_M) / 6);
+    // 1.6–2.8 m across, a little bigger where the gorge is deep (the first cut's 1.2–2 m, half-sunk along
+    // the wall's normal and toned like the splat, did not read from the deck at all)
+    const r = 0.8 + 0.4 * h + 0.1 * Math.min(1, (best.D - MIN_DEPTH_M) / 6);
     // the long axis runs along the gorge: yaw the rock's local x onto the wall's strike
     const strike = Math.atan2(-best.fz, best.fx) + (hash2(bucket, side * 7 + 17, 11) - 0.5) * 0.5;
     const g = buildRock(oRng.fork(key), `${seed}/ravine-${key}`, {
@@ -157,9 +158,11 @@ export function buildRavineRocks(rng: Rng, seed: string, shadeDir: [number, numb
       cuts: 2,
       cutUp: [-0.2, 0.5],
       cutDepth: [0.82, 0.94],
-      squashY: 0.6,
+      // a thick bed: flattened on the world's vertical (the pose keeps the rock's up near world up),
+      // long along the strike, protruding from the wall
+      squashY: 0.5,
       creaseDeg: 34,
-      strata: 0.14,
+      strata: 0.16,
       strataCrown: 0.6,
       cracks: 0.4,
       crackDepth: 0.018,
@@ -169,25 +172,26 @@ export function buildRavineRocks(rng: Rng, seed: string, shadeDir: [number, numb
       chip: 0.012,
       rimRound: 0.12,
       // damp gorge stone: moss on the upper side toward the sky, the lower half wet and dark
-      moss: 0.42,
+      moss: 0.32,
       mossThickness: Math.min(0.1, 0.08 / r),
       mossLumpy: 0.8,
-      mossSide: 0.35,
+      mossSide: 0.3,
       mossShade: dirLocal(shadeDir, strike),
-      dirt: 0.55,
-      collarBand: [0.1, 0.5],
+      dirt: 0.5,
+      collarBand: [0.1, 0.45],
       tint: stoneTint,
       lichen: 0.12,
       freq: 0.95,
     });
     const ground = T.height(best.x, best.z);
-    // half-sunk into the wall along the terrain normal (the wall is ~75°, so mostly sideways)
+    // sunk into the wall along its horizontal normal (the wall is ~75°): half the bed protrudes
     T.normal(best.x, best.z, _n);
-    const sink = 0.42 * r;
-    const cx = best.x - _n.x * sink;
-    const cy = ground - _n.y * sink + 0.1 * r;
-    const cz = best.z - _n.z * sink;
-    const mtx = pose(T, best.x, cy, best.z, strike, 0.75);
+    const hn = Math.hypot(_n.x, _n.z) || 1;
+    const sink = 0.45 * r;
+    const cx = best.x - (_n.x / hn) * sink;
+    const cy = ground + 0.05 * r;
+    const cz = best.z - (_n.z / hn) * sink;
+    const mtx = pose(T, best.x, cy, best.z, strike, 0.2);
     mtx.setPosition(cx, cy, cz);
     parts.push({ geometry: g, matrix: mtx });
     contacts.push([best.x, ground, best.z]);
@@ -215,7 +219,7 @@ export function buildRavineRocks(rng: Rng, seed: string, shadeDir: [number, numb
       }
     }
     if (!best) continue;
-    const r = 0.62 + 0.55 * hash2(bucket, 37, 11);
+    const r = 0.75 + 0.6 * hash2(bucket, 37, 11);
     const yaw = Math.PI * 2 * hash2(bucket, 41, 11);
     const g = buildRock(fRng.fork(key), `${seed}/ravine-floor-${key}`, {
       radius: r,
