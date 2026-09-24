@@ -10,7 +10,7 @@
  */
 import { Vector3 } from 'three';
 import { EXPANSION_RUINS } from '../layout';
-import { CLIFF_DEPTH_M, cliffFaceX, pillarRadius, platformSigned, poolSigned } from '../terrain/ruins';
+import { CLIFF_DEPTH_M, cliffFaceX, outcropCover, pillarRadius, platformSigned, poolSigned } from '../terrain/ruins';
 import { Noise2D, clamp, lerp, smoothstep } from '../util/noise';
 import type { Rng } from '../util/prng';
 import { MeshBuilder, type RGB } from './geom';
@@ -284,8 +284,7 @@ export function buildRock(rng: Rng, ground: Ground, sun: Vector3): Rock {
         const z = lerp(zA, zB, v);
         const g = ground(x, z);
         const sd = platformSigned(x, z);
-        const edge = 0.25 * n1.noise(x * 0.9, z * 0.9) + 0.15 * n2.noise(x * 2.3, z * 2.3);
-        const cover = 1 - smoothstep(0.2 + edge, 0.9 + edge, sd);
+        const cover = outcropCover(x, z);
         const lump = 0.07 * Math.max(0, noise3(x * 0.8, z * 0.8, 2.2)) + 0.03 * noise3(x * 2.7, z * 2.7, 5.1);
         const k = 0.93 + 0.1 * n3.noise(x * 0.6, z * 0.6);
         const moss = clamp(0.2 + 0.55 * smoothstep(0.3, 0.9, n2.noise(x * 0.45 + 3, z * 0.45 - 2) * 0.5 + 0.5) + 0.3 * smoothstep(-0.8, 0.4, sd), 0, 1);

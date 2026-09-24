@@ -124,6 +124,20 @@ export function platformSigned(x: number, z: number): number {
   return d + 0.3 * edgeNoise.noise(x * 0.43 + 11, z * 0.43 - 4);
 }
 
+const outcropNoise = new Noise2D('ruins-outcrop');
+
+/**
+ * The outcrop's pale rock skin (0…1): whole over the platform, its ragged outline diving under the
+ * turf 0.2–1.2 m past the platform's edge. The ruins system lays the skin by it, the vegetation
+ * keeps its turf off it (a tuft or a moss cushion in its cracks, at most).
+ */
+export function outcropCover(x: number, z: number): number {
+  const sd = platformSigned(x, z);
+  if (sd > 1.6) return 0;
+  const edge = 0.25 * outcropNoise.noise(x * 0.9, z * 0.9) + 0.15 * outcropNoise.noise(x * 2.3 + 17, z * 2.3 - 5);
+  return 1 - smoothstep(0.2 + edge, 0.9 + edge, sd);
+}
+
 /** the stair's local frame: `u` up the flight from the first riser, `v` across (m) */
 export function stairLocal(x: number, z: number): { u: number; v: number } {
   const S = R.stairs;
