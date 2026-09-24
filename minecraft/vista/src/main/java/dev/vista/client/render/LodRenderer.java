@@ -92,6 +92,7 @@ public final class LodRenderer implements AutoCloseable {
     private LongOpenHashSet currentSet = new LongOpenHashSet();
     private final Long2LongOpenHashMap fadeIn = new Long2LongOpenHashMap();
     private final Long2LongOpenHashMap fadeOut = new Long2LongOpenHashMap();
+    private final it.unimi.dsi.fastutil.longs.Long2ByteOpenHashMap fadeSeams = new it.unimi.dsi.fastutil.longs.Long2ByteOpenHashMap();
 
     private ByteBuffer meta = MemoryUtil.memAlloc(64 * 1024);
     private ByteBuffer cmds = MemoryUtil.memAlloc(64 * 1024);
@@ -102,7 +103,7 @@ public final class LodRenderer implements AutoCloseable {
     private long frame;
 
     // Stats for the debug overlay / benchmarks.
-    public volatile int statVisible, statCommands, statSelected;
+    public volatile int statVisible, statCommands, statSelected, statTransCommands;
     public volatile long statQuadsDrawn, statUploadBytes, statGpuBytes;
     public volatile double statCpuMs;
 
@@ -200,8 +201,8 @@ public final class LodRenderer implements AutoCloseable {
         vp.m02(NEAR * vp.m03()).m12(NEAR * vp.m13()).m22(NEAR * vp.m23()).m32(NEAR * vp.m33());
         FrustumIntersection frustum = new FrustumIntersection(vp, false);
 
-        int drawCount = buildCommands(cam, frustum, now);
-        int opaqueCmds = drawCount >>> 16, transCmds = drawCount & 0xFFFF;
+        int opaqueCmds = buildCommands(cam, frustum, now);
+        int transCmds = cmdCount - opaqueCmds;
 
         drawPass(vp, cam, camCX, camCZ, opaqueCmds, transCmds, main);
         statCpuMs = (System.nanoTime() - t0) / 1e6;
@@ -383,11 +384,13 @@ public final class LodRenderer implements AutoCloseable {
         if (dl.id != current.id) {
             LongOpenHashSet next = new LongOpenHashSet(Math.max(16, dl.count));
             for (int i = 0; i < dl.count; i++) next.add(dl.keys[i]);
-            for (long k : currentSet) {
+            for (int i = 0; i < current.count; i++) {
+                long k = current.keys[i];
                 if (next.contains(k)) continue;
                 long start = fadeIn.remove(k);
                 double tin = start == fadeIn.defaultReturnValue() ? 1.0 : Math.min(1.0, (now - start) / (double) T);
                 fadeOut.put(k, now - (long) ((1 - tin) * T));
+                fadeSeams.put(k, current.seams[i]);
             }
             for (int i = 0; i < dl.count; i++) {
                 long k = dl.keys[i];
@@ -406,7 +409,11 @@ public final class LodRenderer implements AutoCloseable {
             if (now - it.next().getLongValue() >= T) it.remove();
         }
         for (ObjectIterator<Long2LongMap.Entry> it = fadeOut.long2LongEntrySet().fastIterator(); it.hasNext(); ) {
-            if (now - it.next().getLongValue() >= T) it.remove();
+            Long2LongMap.Entry e = it.next();
+            if (now - e.getLongValue() >= T) {
+                fadeSeams.remove(e.getLongKey());
+                it.remove();
+            }
         }
         statSelected = dl.count;
     }
@@ -415,6 +422,7 @@ public final class LodRenderer implements AutoCloseable {
 
     private int metaCount, cmdCount;
 
+    /** Fills the meta and command buffers; returns the number of opaque commands (translucent ones follow). */
     private int buildCommands(Vec3 cam, FrustumIntersection frustum, long now) {
         meta.clear();
         cmds.clear();
@@ -458,12 +466,13 @@ public final class LodRenderer implements AutoCloseable {
                     .putFloat(t).putFloat(mode).putFloat(level).putFloat(0);
             visible++;
             int[] gs = g.groups;
+            int seamMask = fading ? fadeSeams.get(key) : current.seams[i];
             for (int d = 0; d < Dir.COUNT; d++) {
                 if (!facesCamera(d, x0, y0, z0, size, cam)) continue;
                 int start = gs[MeshData.normalGroup(d)];
                 int count = gs[MeshData.normalGroup(d) + 1] - start;
                 int seam = gs[MeshData.seamGroup(d) + 1] - gs[MeshData.seamGroup(d)];
-                if (seam > 0 && (fading || !currentSet.contains(SectionKey.neighbor(key, d)))) count += seam;
+                if (seam > 0 && (seamMask & (1 << d)) != 0) count += seam;
                 if (count == 0) continue;
                 addCommand(count, g.offset + start, metaIndex);
                 quadsDrawn += count;
@@ -482,6 +491,7 @@ public final class LodRenderer implements AutoCloseable {
             }
         }
         int opaqueCmds = cmdCount;
+        statTransCommands = transCount;
         if (transCount > 0) {
             Integer[] order = new Integer[transCount];
             for (int i = 0; i < transCount; i++) order[i] = i;
@@ -498,7 +508,7 @@ public final class LodRenderer implements AutoCloseable {
         statVisible = visible;
         statCommands = cmdCount;
         statQuadsDrawn = quadsDrawn;
-        return Math.min(opaqueCmds, 0xFFFF) << 16 | Math.min(cmdCount - opaqueCmds, 0xFFFF);
+        return opaqueCmds;
     }
 
     private static boolean facesCamera(int d, double x0, double y0, double z0, int size, Vec3 cam) {
@@ -579,6 +589,7 @@ public final class LodRenderer implements AutoCloseable {
             GL20C.glUniform1f(lodProgram.uniform("uVanillaRadius"), (mask.radiusChunks() + 1) * 16f * 1.4143f);
             GL20C.glUniform2f(lodProgram.uniform("uAtlasSize"), appearance.atlasWidth(), appearance.atlasHeight());
             GL20C.glUniform1i(lodProgram.uniform("uTextures"), config.textures ? 1 : 0);
+            GL20C.glUniform1i(lodProgram.uniform("uDebug"), config.debugView);
             GL20C.glUniform1i(lodProgram.uniform("uAtlas"), 0);
             GL20C.glUniform1i(lodProgram.uniform("uLightmap"), 1);
             GL20C.glUniform1i(lodProgram.uniform("uVanillaMask"), 2);

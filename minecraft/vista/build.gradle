@@ -86,3 +86,11 @@ loom {
         }
     }
 }
+
+tasks.register('inspect', JavaExec) {
+    group = 'verification'
+    description = 'Inspect a Vista cache directory: -PinspectDir=<dir containing states.txt>'
+    classpath = sourceSets.bench.runtimeClasspath + sourceSets.main.compileClasspath
+    mainClass = 'dev.vista.bench.StoreInspect'
+    args = [project.findProperty('inspectDir') ?: '.']
+}

@@ -53,6 +53,10 @@ public final class VistaSession implements AutoCloseable {
         this.ingestor = new ChunkIngestor(engine, states, biomes);
         this.renderer = new LodRenderer(engine, states, biomes, cfg);
         VistaClient.LOG.info("Vista session opened at {} (generation: {}, top level {}, {} threads)", root, t != null, engine.topLevel(), ec.threads);
+        if (t != null) {
+            NoiseTerrainSource ft = t;
+            engine.submitWork(-10, () -> VistaClient.LOG.info("Vista terrain self-test: {}", ft.selfTest()));
+        }
     }
 
     public static VistaSession open(ClientLevel level, VistaConfig cfg) {

@@ -11,6 +11,7 @@ uniform float uVanillaRadius;     // horizontal blocks; beyond this the mask can
 uniform vec2 uAtlasSize;
 uniform int uTextures;
 uniform float uAlpha;             // 1 for the opaque pass; <0 means "use the state's alpha" (translucent)
+uniform int uDebug;               // 1 = colour by LOD level, 2 = light (R sky, G block)
 
 in vec3 vRel;
 in vec2 vUV;
@@ -21,6 +22,7 @@ flat in vec2 vLight;
 flat in float vShade;
 flat in vec2 vFade;
 flat in float vScale;
+flat in float vLevel;
 
 out vec4 fragColor;
 
@@ -69,6 +71,17 @@ void main() {
     float haze = uFog.z * (1.0 - exp(-r * r * 4.0));
     float f = clamp(max(fog, haze), 0.0, 1.0) * uFogColor.a;
     vec3 color = mix(lit, uFogColor.rgb, f);
+    if (uDebug == 1 && uAlpha < 0.0) {
+        color = vec3(1.0, 0.0, 1.0);
+    } else if (uDebug == 1) {
+        vec3 lc = 0.5 + 0.5 * cos(6.28318 * (vec3(0.0, 0.33, 0.67) + vLevel * 0.19));
+        color = mix(base * vShade, lc, 0.65);
+    } else if (uDebug == 3 && uAlpha < 0.0) {
+        fragColor = vec4(1.0, 0.0, 1.0, 1.0);
+        return;
+    } else if (uDebug == 2) {
+        color = vec3(vLight.y, vLight.x, 0.0) / 15.0 * vShade;
+    }
 
     float alpha = uAlpha < 0.0 ? max(vAvg.a, 0.55) : uAlpha;
     fragColor = vec4(color * alpha, alpha);

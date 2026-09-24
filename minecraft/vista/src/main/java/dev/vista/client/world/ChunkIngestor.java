@@ -126,7 +126,9 @@ public final class ChunkIngestor {
                     for (int x = 0; x < 16; x++) {
                         int id = states.id(s.states.get(x, y, z));
                         int bio = s.biomes[(x >> 2) | (z >> 2) << 2 | (y >> 2) << 4];
-                        int sky = s.sky != null ? s.sky.get(x, y, z) : (baseY + y >= heights[x | z << 4] ? 15 : 0);
+                        // Client sky light can lag behind chunk data; exposure from the heightmap is a floor for it.
+                        int exposed = baseY + y >= heights[x | z << 4] ? 15 : 0;
+                        int sky = s.sky != null ? Math.max(s.sky.get(x, y, z), exposed) : exposed;
                         int blk = s.block != null ? s.block.get(x, y, z) : 0;
                         int idx = y << 8 | z << 4 | x;
                         if (id == StateRegistry.SNOW_LAYER) {

@@ -26,6 +26,7 @@ flat out vec2 vLight;
 flat out float vShade;
 flat out vec2 vFade;
 flat out float vScale;
+flat out float vLevel;
 
 const float SHADE[6] = float[](0.5, 1.0, 0.8, 0.8, 0.6, 0.6);
 const vec2 CORNERS[6] = vec2[](vec2(0, 0), vec2(1, 0), vec2(1, 1), vec2(0, 0), vec2(1, 1), vec2(0, 1));
@@ -82,4 +83,5 @@ void main() {
     vShade = SHADE[dir];
     vFade = aParams.xy;
     vScale = scale;
+    vLevel = aParams.z;
 }

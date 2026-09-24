@@ -291,11 +291,11 @@ public final class LodEngine implements AutoCloseable {
     private void onSectionChanged(long key) {
         Node n = nodes.computeIfAbsent(key, k -> new Node());
         n.dataVersion.incrementAndGet();
-        if (n.meshVersion >= 0 || n.queued.get() || n.lastWanted != 0) requestMesh(key, distanceTo(key));
+        if (n.uploaded || n.queued.get()) requestMesh(key, distanceTo(key));
         for (int d = 0; d < Dir.COUNT; d++) {
             long nk = SectionKey.neighbor(key, d);
             Node nn = nodes.get(nk);
-            if (nn != null && nn.meshVersion >= 0) {
+            if (nn != null && (nn.uploaded || nn.queued.get())) {
                 nn.dataVersion.incrementAndGet();
                 requestMesh(nk, distanceTo(nk));
             }
@@ -406,13 +406,27 @@ public final class LodEngine implements AutoCloseable {
         if (SectionKey.level(child) >= topLevel) return;
         long parent = SectionKey.parent(child);
         int octant = (SectionKey.x(child) & 1) | (SectionKey.y(child) & 1) << 1 | (SectionKey.z(child) & 1) << 2;
-        boolean[] fresh = {false};
-        AtomicInteger bits = pendingPropagate.computeIfAbsent(parent, k -> {
-            fresh[0] = true;
-            return new AtomicInteger();
-        });
+        AtomicInteger bits = pendingPropagate.computeIfAbsent(parent, k -> new AtomicInteger());
         bits.getAndUpdate(b -> b | 1 << octant);
-        if (fresh[0]) workers.submit(64 + distanceTo(parent), () -> propagate(parent));
+        propagateDue.putIfAbsent(parent, System.currentTimeMillis() + PROPAGATE_DELAY_MS);
+    }
+
+    /**
+     * Parent updates wait a little so that the octants of many freshly ingested chunks are folded into one
+     * downsample + write + remesh (loading a world ingests hundreds of chunks per second).
+     */
+    private static final long PROPAGATE_DELAY_MS = 1500;
+    private final ConcurrentHashMap<Long, Long> propagateDue = new ConcurrentHashMap<>();
+
+    private void submitDuePropagations() {
+        long now = System.currentTimeMillis();
+        for (Iterator<Map.Entry<Long, Long>> it = propagateDue.entrySet().iterator(); it.hasNext(); ) {
+            Map.Entry<Long, Long> e = it.next();
+            if (e.getValue() > now) continue;
+            long parent = e.getKey();
+            it.remove();
+            workers.submit(64 + distanceTo(parent), () -> propagate(parent));
+        }
     }
 
     private void propagate(long parent) {
@@ -517,6 +531,7 @@ public final class LodEngine implements AutoCloseable {
                 } else {
                     Thread.sleep(8);
                 }
+                submitDuePropagations();
                 if (now - lastMetaFlush > 5_000_000_000L) {
                     lastMetaFlush = now;
                     workers.submit(1e9, this::flushRegionMeta);
@@ -567,11 +582,36 @@ public final class LodEngine implements AutoCloseable {
                 }
             }
         }
-        DrawList dl = new DrawList(++selId, Arrays.copyOf(selBuf, selCount), selCount);
+        long[] keys = Arrays.copyOf(selBuf, selCount);
+        sortByDistance(keys);
+        it.unimi.dsi.fastutil.longs.LongOpenHashSet selected = new it.unimi.dsi.fastutil.longs.LongOpenHashSet(keys);
+        byte[] seams = new byte[keys.length];
+        for (int i = 0; i < keys.length; i++) {
+            int m = 0;
+            for (int d = 0; d < Dir.COUNT; d++) {
+                long nk = SectionKey.neighbor(keys[i], d);
+                if (!selected.contains(nk) && !vanillaCovers(nk)) m |= 1 << d;
+            }
+            seams[i] = (byte) m;
+        }
+        DrawList dl = new DrawList(++selId, keys, seams, selCount);
         drawList = dl;
         stats.selections.incrementAndGet();
         stats.selectionNanos.addAndGet(System.nanoTime() - t0);
         return dl;
+    }
+
+    /** Near-to-far order lets the GPU reject hidden far terrain with early depth testing. */
+    private void sortByDistance(long[] keys) {
+        int n = keys.length;
+        long[] packed = new long[n];
+        for (int i = 0; i < n; i++) {
+            long d = (long) Math.min(distanceTo(keys[i]), 1e9);
+            packed[i] = d << 32 | i;
+        }
+        Arrays.sort(packed);
+        long[] copy = keys.clone();
+        for (int i = 0; i < n; i++) keys[i] = copy[(int) (packed[i] & 0xFFFFFFFFL)];
     }
 
     private double horizontalDistance(long key) {
@@ -658,7 +698,7 @@ public final class LodEngine implements AutoCloseable {
         long end = System.currentTimeMillis() + timeoutMs;
         int idle = 0;
         while (System.currentTimeMillis() < end) {
-            if (workers.pending() == 0 && pendingPropagate.isEmpty() && pendingGenerate.isEmpty()) {
+            if (workers.pending() == 0 && pendingPropagate.isEmpty() && pendingGenerate.isEmpty() && propagateDue.isEmpty()) {
                 if (++idle > 5) return;
             } else {
                 idle = 0;
