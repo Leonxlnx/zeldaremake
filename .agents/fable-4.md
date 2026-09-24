@@ -435,3 +435,8 @@ nearCanopy, materials, index otherwise) is edited.
   (3 px at the nest) — no grove exemption; the shelf's two looks south 748 / 9.44 M and 730 / 9.25 M — structures 2.9 M / 190
   draws and the characters' 100 draws, trees under their A share (2.2–2.4 M / 168). One nit (protect grove stems by `p.grove`,
   not the box). Head `b306d6a9` unchanged since 07:05.
+- 2026-09-24 12:12 — exp-east `f430d47b` tree side read at eight lane poses (round54-east-review): the seven east-box white-barks
+  have no root toes (24 m reach from spine/house/north only; three stand 1.8–5.6 m from the lane) — offered the three-line
+  root-reach fix (+4 K tris, no draw) on their branch or after it lands; four spared mid boles 1.8–2.4 m off the lane's
+  centreline (their A–E exemption); the green → west 780 / 10.10 M; seating ±4 mm. Head `3c6cc553`; nothing addressed to me.
+  Next: the roots fix when fable-cursor answers or exp-east merges; the field's forest edge when south2's layout settles.
