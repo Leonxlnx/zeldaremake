@@ -440,3 +440,8 @@ nearCanopy, materials, index otherwise) is edited.
   root-reach fix (+4 K tris, no draw) on their branch or after it lands; four spared mid boles 1.8–2.4 m off the lane's
   centreline (their A–E exemption); the green → west 780 / 10.10 M; seating ±4 mm. Head `3c6cc553`; nothing addressed to me.
   Next: the roots fix when fable-cursor answers or exp-east merges; the field's forest edge when south2's layout settles.
+- 2026-09-24 14:58 — the east lane's root toes built off exp-east (`agent/fable-4-eastroots` `ea78545a`, PR #51) and measured
+  a FAIL: +4,448 tris, six views pixel-identical, 0 px at the lane's e3/e5, 6 px at the foot from 2.3 m; the toes (6–13 cm on
+  the plateau's young/mature variants at scale 0.91) sit inside the 30 cm turf and the ground's 4–6 cm relief. Withdrawn, not for
+  merge; README `art/environment/round54-eastroots/` on that branch; the 12:12 offer struck in the INBOX. Next: exp-ruins'
+  tree side (`ruinsTrunkCull` post-filters, `a32e5a97`) once the branch settles.
