@@ -323,7 +323,7 @@ function southSurfaceAt(x: number, z: number, canopy: number, gorge: number): { 
     const th = ((((Math.atan2(z - K.centre[1], x - K.centre[0]) * 180) / Math.PI - K.gallery.from + 8) % 360) + 360) % 360 - 8;
     if (r > K.radius && r < K.gallery.outer + 0.05 && th < K.gallery.to - K.gallery.from) {
       const overGorge = th > 34 - K.gallery.from && th < 165 - K.gallery.from;
-      return { surface: overGorge ? 'bridge' : 'wood', stairs: false, enclosure: 0, canopy: overGorge ? 0 : canopy };
+      return { surface: overGorge ? 'bridge' : 'wood', stairs: false, enclosure: 0, canopy: overGorge ? 0 : canopy, gorge };
     }
   }
   const W = EXPANSION_SOUTH_DWELLINGS.waystation;
@@ -333,7 +333,7 @@ function southSurfaceAt(x: number, z: number, canopy: number, gorge: number): { 
     const fz = Math.cos(f);
     const a = (x - W.centre[0]) * fx + (z - W.centre[1]) * fz;
     const s = (x - W.centre[0]) * fz - (z - W.centre[1]) * fx;
-    if (a > -W.depth / 2 && a < W.depth / 2 + 0.4 && Math.abs(s) < W.width / 2) return { surface: 'wood', stairs: false, enclosure: 0, canopy };
+    if (a > -W.depth / 2 && a < W.depth / 2 + 0.4 && Math.abs(s) < W.width / 2) return { surface: 'wood', stairs: false, enclosure: 0, canopy, gorge };
   }
   return null;
 }
