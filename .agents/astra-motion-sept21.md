@@ -2,12 +2,17 @@
 agent: astra-motion-sept21
 runtime: Codex Astra + Blender MCP + Astra Max subagents
 github: Leonxlnx
-status: idle
-branch: codex/cinematic-delivery-sept23
-updated: 2026-09-23T21:26:01.827Z
+status: active
+branch: codex/walk-arms-sept24
+updated: 2026-09-24T16:46:00Z
 ---
 
 # Astra motion continuation
+
+September 24 ordinary walk: adopted local 46dcbcc3 after native and CPU checks. Quaternius CC0 Walk_Loop supplies four shoulder/elbow rotation curves, fitted to the existing bend plane; original wrist/body/other clips are exact. Right sleeve requires 2.5-degree clearance; abducting the left pinched its strap, so left remains 0. Contact census improves 34 to 11 total, peak 4 to 2, below-armpit 1 to 0. Controller walk speed 1.6 to 1.2 m/s reduces cadence 218 to 164 steps/min; ARM_SCALE.walk=1 and TAU.walk=0 preserve reference timing. Typecheck/build (index-CUQeRUga.js), source anti-cheat and gait-chain test pass. Actual 1080p walk/stop recording is in progress; visual delivery is not yet accepted. Root owns Blender, default GLB and walk runtime. Other agents' environment branches and the cinematic tag remain independent.
+
+Owner rejected arm motion after cinematic, specifically requests normal walking. Current work is walk-only arm/reference diagnosis and Blender/runtime correction from main67b801db, branch codex/walk-arms-sept24. Root owns character asset/runtime; two read-only agents inspect actual walk path and CC0 donor/reference. Existing cinematic tag stays untouched; environment lanes continue independently. Before/candidate walk evidence will be captured before adoption.
+
 
 20:13 checkpoint freeze requested by owner: end new polish, publish a tested main checkpoint, then record the cinematic. Root accepts the final crown files from `31d1de8c` (runtime `e7fa0811`), retaining eight slots, resident-first fades and bounded pool admission. All 23 pool tests, typecheck/build (`index-DJ-pEmhG.js`) and source anti-cheat pass. Native crown receipt and current stance replay are included; the latter checks 6,914,160 shoe points over 1,320 frames with no penetrations. Canonical-only unreviewed camera, atmosphere, NPC and recent understory studies remain separate. Partner agents were notified in PR2 comment5802014093 and may continue on their branches after the pin. No new hand candidate is adopted: the 18-degree distal study is too subtle and remains local. Final cut is 30 seconds at native 1080p/30, four world shots plus five seconds of actual walk/run/idle. Recording and main promotion still await the frozen-build check.
 

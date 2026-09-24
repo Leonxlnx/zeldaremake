@@ -142,7 +142,7 @@ import type { BlinkInfo, FootContact, JumpState, Locomotion, PlantInfo, Puppet, 
 /** served by Vite from public/ */
 export const LINK_GLB_FILE = 'models/link/link-runtime.glb';
 /** the delivered file's hash, recorded in public/models/link/SOURCE.md — reported, never recomputed at runtime */
-export const LINK_GLB_SHA256 = '7f406e40e65430ed3c11bd045e2e9482dae8cee8122e9869ed62a2c3cfecbbda';
+export const LINK_GLB_SHA256 = '46dcbcc36490ee5c86f6d9eb28d58d1743f60cfab02bb0c899b8388b6eda3de0';
 /** skull top above the `head` bone (m) on Astra's rig, measured on the 409b603 asset's skin mesh (cap excluded) */
 export const HEAD_TOP_ANATOMICAL_M = 0.276;
 
@@ -339,9 +339,10 @@ const LEAD_MAX_M = 0.15;
  * Arm swing per gait (the owner: "his arms should move slow, and when you run, a little bit
  * faster"): the shoulder / elbow rotation about the clip's own cycle-mean arm pose is scaled by
  * ARM_SCALE and low-passed with the time constant ARM_TAU (s), both blended by the gait weights.
+ * The authored walking arms retain their full motion and foot-relative timing.
  */
-const ARM_SCALE: Record<Gait, number> = { idle: 1, walk: 0.7, run: 1.15, stairs: 0.85 };
-const ARM_TAU: Record<Gait, number> = { idle: 0, walk: 0.06, run: 0.02, stairs: 0.05 };
+const ARM_SCALE: Record<Gait, number> = { idle: 1, walk: 1, run: 1.15, stairs: 0.85 };
+const ARM_TAU: Record<Gait, number> = { idle: 0, walk: 0, run: 0.02, stairs: 0.05 };
 /**
  * Jump overlay (JumpState phases). Crouch: the root sinks JUMP_CROUCH_M over the crouch (the leg
  * IK keeps the feet planted, so the knees bend) while the arms swing back; air: the legs blend

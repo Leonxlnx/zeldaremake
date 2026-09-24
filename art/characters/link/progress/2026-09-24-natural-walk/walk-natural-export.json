@@ -1,0 +1,30 @@
+{
+  "sha256": "46dcbcc36490ee5c86f6d9eb28d58d1743f60cfab02bb0c899b8388b6eda3de0",
+  "source_sha256": "7f406e40e65430ed3c11bd045e2e9482dae8cee8122e9869ed62a2c3cfecbbda",
+  "original_binary_preserved": true,
+  "rest_nodes_and_assets_exact": true,
+  "other_clips_and_unselected_channels_exact": true,
+  "gait": "walk",
+  "hips_preserved": true,
+  "changed": [
+    [
+      "shoulderL",
+      "rotation"
+    ],
+    [
+      "elbowL",
+      "rotation"
+    ],
+    [
+      "shoulderR",
+      "rotation"
+    ],
+    [
+      "elbowR",
+      "rotation"
+    ]
+  ],
+  "cycle_s": 0.55,
+  "stride_m": 0.88,
+  "status": "Export checked; game and visual acceptance pending"
+}
