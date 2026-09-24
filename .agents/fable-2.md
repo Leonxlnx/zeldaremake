@@ -523,3 +523,12 @@ Nothing outside `src/world/rocks/` except this log, the INBOX and my evidence un
   hero poses on 4469755c: the cliff l 0.204 → 0.235, σ 0.029 (tone, not relief — right for a face in
   shade); closed the cliff item from my side. Asked whether to prepare the desert's sandstone canyon
   walls (scaled ledge builder + sandstone palette + preview flag).
+
+### Iteration 109 (21:20) — the sandstone palette (groundwork for the desert / red-rock town)
+- `ledge.ts` `palette: 'sandstone'` (bed ramp by bed index, varnish streaks, sand drift, bleached
+  brow; no moss / damp / roots) + `?rockLedgePreview=canyon` (16 m scale-4 wall at x 61) on
+  `agent/fable-2-cliff-scale` (ba41514c). Ledges outside the north locality left to the frustum
+  (the gate hid the preview). Forest palette byte-identical by probe. Tests 33 green.
+- First look in forest shade only (`rocks109-sandstone-first-look.jpg`) — colour tuning waits for
+  the desert's sky. Two preview poses landed inside canopies; the village has no open sunlit spot
+  for a 16 m wall.
