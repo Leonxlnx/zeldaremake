@@ -1,0 +1,78 @@
+[
+ {
+  "id": "walk, the plaza flagstones",
+  "at": [
+   1.5,
+   -4,
+   180
+  ],
+  "run": false,
+  "seconds": 7,
+  "metres": 11.12166666666679,
+  "simulated": 7.016666666666647,
+  "steps": 25,
+  "gaitSteps": 24,
+  "edges": 25,
+  "surface": "stone",
+  "speed": 1.5850356294537038,
+  "rate": 3.5629453681710315,
+  "stride": 0.44486666666667163
+ },
+ {
+  "id": "run, the plaza flagstones",
+  "at": [
+   1.5,
+   -4,
+   180
+  ],
+  "run": true,
+  "seconds": 7,
+  "metres": 32.276666666667026,
+  "simulated": 7.016666666666647,
+  "steps": 34,
+  "gaitSteps": 34,
+  "edges": 35,
+  "surface": "grass",
+  "speed": 4.6000000000000645,
+  "rate": 4.8456057007126025,
+  "stride": 0.9493137254902067
+ },
+ {
+  "id": "walk, the lawn west of the spine",
+  "at": [
+   -6.5,
+   6,
+   180
+  ],
+  "run": false,
+  "seconds": 7,
+  "metres": 11.226666666666654,
+  "simulated": 7.016666666666647,
+  "steps": 26,
+  "gaitSteps": 26,
+  "edges": 26,
+  "surface": "grass",
+  "speed": 1.6000000000000028,
+  "rate": 3.705463182897873,
+  "stride": 0.4317948717948713
+ },
+ {
+  "id": "run, the lawn west of the spine",
+  "at": [
+   -6.5,
+   6,
+   180
+  ],
+  "run": true,
+  "seconds": 7,
+  "metres": 32.276666666666834,
+  "simulated": 7.016666666666647,
+  "steps": 35,
+  "gaitSteps": 35,
+  "edges": 35,
+  "surface": "leaf",
+  "speed": 4.600000000000037,
+  "rate": 4.988123515439444,
+  "stride": 0.922190476190481
+ }
+]
