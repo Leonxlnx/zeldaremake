@@ -289,6 +289,31 @@ export function onGrovePlanks(x: number, z: number): Surface | null {
   return null;
 }
 
+/**
+ * The fraction of a hut's radius its wall ring stands at, and how far in the doorway's fade runs.
+ *
+ * `distantHouse.ts` builds every hut — the west house, the grove's stilt house and tree hut — as a
+ * platform disc with a wall ring at `radius × WALL_TAPER` (0.96) and a gap in it for the door, and
+ * publishes exactly that to `ctx.shared.walkSurfaces` for the character ground. So the player can
+ * walk into all three of them, and until now doing so changed nothing at all: the forest arrived
+ * through the walls at full level and full brightness, which is the same fault the log arch's bore
+ * had before this lane closed it.
+ *
+ * A hut is not a tunnel, though. Its walls are planks and its door stands open, so it takes the top
+ * off the wood rather than shutting it out — `INDOORS_CLOSE` is 0.7 of the bore's full enclosure,
+ * which lands the bed's filter at 2.2 kHz against the bore's 900 Hz. Faded across the doorway
+ * rather than switched, like the bore's: 0 at the wall, all of it by `INDOORS_FULL` of the radius.
+ */
+export const WALL_AT = 0.96;
+export const INDOORS_FULL = 0.55;
+export const INDOORS_CLOSE = 0.7;
+
+/** how far inside a hut the listener is, 0 at its wall and 1 well in; 0 anywhere else */
+function indoors(x: number, z: number, cx: number, cz: number, radius: number): number {
+  const d = Math.hypot(x - cx, z - cz) / radius;
+  return INDOORS_CLOSE * (1 - smoothstep01(INDOORS_FULL, WALL_AT, d));
+}
+
 export function surfaceAt(x: number, z: number): { surface: Surface; stairs: boolean; enclosure: number; canopy: number; gorge: number } {
   const m = surfaceMask(x, z, 'live');
   const gorge = gorgeAt(x, z);
@@ -341,7 +366,7 @@ export function surfaceAt(x: number, z: number): { surface: Surface; stairs: boo
     const wh = EXPANSION.westHouse;
     const hx = wh.host[0];
     const hz = wh.host[1];
-    if (Math.hypot(x - hx, z - hz) < wh.radius) return { surface: 'wood', stairs: false, enclosure: 0, canopy, gorge };
+    if (Math.hypot(x - hx, z - hz) < wh.radius) return { surface: 'wood', stairs: false, enclosure: indoors(x, z, hx, hz, wh.radius), canopy, gorge };
     const ex = wh.deckEnd[0];
     const ez = wh.deckEnd[2];
     const ax = ex - hx;
@@ -356,7 +381,12 @@ export function surfaceAt(x: number, z: number): { surface: Surface; stairs: boo
   }
   {
     const plank = onGrovePlanks(x, z);
-    if (plank) return { surface: plank, stairs: false, enclosure: 0, canopy, gorge };
+    // the two huts are rooms with plank floors; their verandas and the walkway are outdoors
+    if (plank) {
+      const N = EXPANSION_NORTH;
+      const enc = Math.max(indoors(x, z, N.stilt.host[0], N.stilt.host[1], N.stilt.radius), indoors(x, z, N.hut.host[0], N.hut.host[1], N.hut.radius));
+      return { surface: plank, stairs: false, enclosure: enc, canopy, gorge };
+    }
   }
   if (m.path > 0.5) return { surface: 'stone', stairs: false, enclosure: 0, canopy, gorge };
   if (m.path > 0.12) return { surface: 'dirt', stairs: false, enclosure: 0, canopy, gorge };
