@@ -467,3 +467,9 @@ nearCanopy, materials, index otherwise) is edited.
   12 groups × main + shadow), 32–36 distant bands, 10 white-bark low draws for 40 trees. Not per-tree meshes; a card replaces
   nothing. Lever offered (owner-fable's near canopy, asked first): a giant's shown lobes as one mesh with per-lobe groups, 45 → ~5
   at the green, up to 64 → ~6 at A. Head `31146062` merged into the notes branch clean this time (checked --diff-filter=U first).
+- 2026-09-24 20:30 — squad2's lodcheck (the 28 m rung owns the residual "trees detail only up close") attributed by family at
+  the owner's north pose: shipped vs every-tree-high 3.34 % of the frame (896 × 776, > 8), of which understory 64–74 %,
+  white-bark 4–7 % (0.4 % of the frame), columns 2–4 %; the near rung ×1.45 alone leaves 0.27 % but costs +163 K here / +0.5 M
+  at the west pose. Told squad2 to hold the rung; two understory-medium builds (1 in 2 at 1.3 ×; every leaf) and two
+  white-bark-medium builds (1 in 4 / 1 in 2) rendering against every-tree-high; numbers next tick. (`treelod` must go through
+  `ZR_URL_EXTRA` — openWorld builds its own URL; my first "every-high" run was the shipped build.)
