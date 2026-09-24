@@ -1,7 +1,8 @@
 /**
  * The play camera's view of the structures (camera/collision.ts), voxelised BEFORE the static
  * consolidation merges the parts by material (their names are gone after it). Two grids at
- * CELL m, each grown by one cell:
+ * CELL m, each grown by one cell (the solid one keeps its cells as written too — collision.ts
+ * blocks the line of sight only where it meets a surface, the grown cells keep the camera off it):
  *  - SOLID: the shells the camera keeps Link in front of — house trunks, roofs, eaves, porches,
  *    root arches, door and window frames; the log arch's bark, ends, passage tube and cheeks; the
  *    huts' bark, caps and planks, the far hut's column; the grove's decks and bark column;
@@ -9,10 +10,11 @@
  *    the grove's rails, stilts and limbs,
  *    the buttress roots, the boughs, the plaza bough's sleeve and the bough itself (the trees
  *    system's limb path, as spheres). A slim part between Link and the camera is allowed to pass.
+ * A hut whose wall comes as an exact solid (`walls`, the grove's) keeps its bark out of the grid.
  * Built for play only (never under a headless capture): ~0.1–0.3 s once at load.
  */
 import { Box3, type BufferGeometry, InstancedMesh, Matrix4, type Mesh, type Object3D, Vector3 } from 'three';
-import type { TubePath } from '../system';
+import type { CameraWall, TubePath } from '../system';
 import { VoxelGrid, worldBounds } from '../util/voxelGrid';
 
 export const CAMERA_SOLID_CELL = 0.25;
@@ -24,8 +26,9 @@ const NOT_SLIM = /-(rope|foot-moss)$/;
 export interface CameraSolids {
   solid: VoxelGrid | null;
   slim: VoxelGrid | null;
+  walls: CameraWall[];
   /** part names per class and the build time (audit) */
-  report: { solidParts: Record<string, number>; slimParts: Record<string, number>; ms: number; solidCells: number; slimCells: number; bytes: number };
+  report: { solidParts: Record<string, number>; slimParts: Record<string, number>; walls: string[]; ms: number; solidCells: number; slimCells: number; bytes: number };
 }
 
 interface Part {
@@ -34,7 +37,7 @@ interface Part {
   name: string;
 }
 
-function collect(roots: Object3D[]): { solid: Part[]; slim: Part[] } {
+function collect(roots: Object3D[], exact: Set<string>): { solid: Part[]; slim: Part[] } {
   const solid: Part[] = [];
   const slim: Part[] = [];
   const inst = new Matrix4();
@@ -42,7 +45,7 @@ function collect(roots: Object3D[]): { solid: Part[]; slim: Part[] } {
     root.updateMatrixWorld(true);
     root.traverse((o) => {
       const m = o as Mesh;
-      if (!m.isMesh || !m.geometry?.attributes?.position) return;
+      if (!m.isMesh || !m.geometry?.attributes?.position || exact.has(m.name)) return;
       const cls = SOLID.test(m.name) ? solid : SLIM.test(m.name) && !NOT_SLIM.test(m.name) ? slim : null;
       if (!cls) return;
       if (m instanceof InstancedMesh) {
@@ -65,7 +68,7 @@ function tally(parts: Part[]): Record<string, number> {
   return out;
 }
 
-function voxelise(parts: Part[], spheres: { x: number; y: number; z: number; r: number }[]): VoxelGrid | null {
+function voxelise(parts: Part[], spheres: { x: number; y: number; z: number; r: number }[], keepCore = false): VoxelGrid | null {
   const box = worldBounds(parts, 1);
   const ball = new Box3();
   for (const s of spheres) box.union(ball.setFromCenterAndSize(new Vector3(s.x, s.y, s.z), new Vector3().setScalar(2 * s.r + 2)));
@@ -73,7 +76,7 @@ function voxelise(parts: Part[], spheres: { x: number; y: number; z: number; r: 
   const grid = new VoxelGrid(box, CAMERA_SOLID_CELL);
   for (const p of parts) grid.addGeometry(p.geometry, p.matrix);
   for (const s of spheres) grid.addSphere(s.x, s.y, s.z, s.r);
-  grid.dilate(1);
+  grid.dilate(1, keepCore);
   return grid;
 }
 
@@ -93,18 +96,20 @@ export function limbSpheres(limb: TubePath | undefined): { x: number; y: number;
   return out;
 }
 
-export function buildCameraSolids(roots: Object3D[], slimSpheres: { x: number; y: number; z: number; r: number }[] = []): CameraSolids {
+export function buildCameraSolids(roots: Object3D[], slimSpheres: { x: number; y: number; z: number; r: number }[] = [], walls: CameraWall[] = []): CameraSolids {
   const t0 = performance.now();
-  const { solid, slim } = collect(roots);
-  const solidGrid = voxelise(solid, []);
+  const { solid, slim } = collect(roots, new Set(walls.map((w) => `distant-house-bark:${w.id}`)));
+  const solidGrid = voxelise(solid, [], true);
   const slimGrid = voxelise(slim, slimSpheres);
   const ms = performance.now() - t0;
   return {
     solid: solidGrid,
     slim: slimGrid,
+    walls,
     report: {
       solidParts: tally(solid),
       slimParts: tally(slim),
+      walls: walls.map((w) => w.id),
       ms: Math.round(ms),
       solidCells: solidGrid?.count() ?? 0,
       slimCells: slimGrid?.count() ?? 0,

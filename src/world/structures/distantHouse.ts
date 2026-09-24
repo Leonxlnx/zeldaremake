@@ -73,7 +73,7 @@
  * y ≤ 0.20). None is in front of the stair, Saria's house or the arch opening.
  */
 import { BoxGeometry, BufferGeometry, CatmullRomCurve3, Color, CylinderGeometry, Float32BufferAttribute, Group, LatheGeometry, Mesh, PointLight, TorusGeometry, Vector2, Vector3 } from 'three';
-import type { TrunkSeat, WalkSurface, WorldContext } from '../system';
+import type { CameraWall, TrunkSeat, WalkSurface, WorldContext } from '../system';
 import type { Rng } from '../util/prng';
 import { FoliageBuilder } from './foliage';
 import { basisMatrix, ensureColor, faceTowards, gridSurface, merge, setColorAttribute, sweepTube, TAU } from './geometry';
@@ -269,6 +269,8 @@ const WOBBLE_7 = 0.02;
 const WALL_MIN_FACTOR = WALL_TAPER * (1 - WOBBLE_3 - WOBBLE_7);
 /** the largest (at the floor, where the wall has not tapered yet) */
 export const WALL_MAX_FACTOR = 1 + WOBBLE_3 + WOBBLE_7;
+/** the bark's stand-off over the wobbled barrel (m): the cords' 1 cm, the collars' 1.5 cm */
+const WALL_RELIEF = 0.02;
 /** recess depths (m): window tunnel, door tunnel */
 const WINDOW_DEPTH = 0.3;
 const DOOR_DEPTH = 0.35;
@@ -337,6 +339,8 @@ export interface DistantHouseBuild {
   lights: PointLight[];
   /** round 49: every hut's platform, deck and wall for the character ground */
   walk: HutWalkSurface[];
+  /** every hut's wall as its exact solid, for a caller that gives the play camera it in place of the voxels */
+  cameraWalls: CameraWall[];
   /** the one emissive mesh shared by all houses */
   glow: Mesh;
   /**
@@ -836,6 +840,7 @@ export function buildDistantHouses(ctx: WorldContext, mats: StructureMaterials, 
   const soffitParts: BufferGeometry[] = [];
   const audit: DistantHouseBuild['audit'] = [];
   const walk: HutWalkSurface[] = [];
+  const cameraWalls: CameraWall[] = [];
   let tris = 0;
   let degenerate = 0;
   const _axis = new Vector3();
@@ -887,6 +892,15 @@ export function buildDistantHouses(ctx: WorldContext, mats: StructureMaterials, 
       return out.set(c.x + Math.cos(a) * rr, y, c.z + Math.sin(a) * rr);
     };
     const wallAt = (dir: Vector3, y: number, out: number) => wallSurface(Math.atan2(dir.z, dir.x), y, new Vector3(), out);
+    cameraWalls.push({
+      id: def.id,
+      x: c.x,
+      z: c.z,
+      y0: floorY,
+      y1: eaveY,
+      rMax: R * WALL_MAX_FACTOR + WALL_RELIEF,
+      radiusAt: (a, y) => wallR(a) * lerp(1, WALL_TAPER, clamp((y - floorY) / def.wall, 0, 1)) + WALL_RELIEF,
+    });
 
     // ---- openings, in wall coordinates (angle a, height y) ----
     const aWin = Math.atan2(facing.z, facing.x);
@@ -2257,6 +2271,7 @@ export function buildDistantHouses(ctx: WorldContext, mats: StructureMaterials, 
     lanterns,
     lights,
     walk,
+    cameraWalls,
     glow,
     soffit,
     triangles: tris,

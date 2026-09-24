@@ -44,7 +44,7 @@ import {
   type Material,
 } from 'three';
 import { EXPANSION_NORTH, northGangway, northRopeWalkEnds } from '../layout';
-import type { WalkEdge, WalkSpan, WalkSurface, WorldContext } from '../system';
+import type { CameraWall, WalkEdge, WalkSpan, WalkSurface, WorldContext } from '../system';
 import type { Rng } from '../util/prng';
 import { Noise2D, clamp, lerp, smoothstep } from '../util/noise';
 import { applyShadeFloor, type ShadeFloor } from '../materials/shadeFloor';
@@ -167,6 +167,8 @@ export interface GroveBuild {
   group: Group;
   lanterns: LanternRig[];
   walkSurfaces: WalkSurface[];
+  /** the two huts' walls as exact solids for the play camera (the veranda's walk runs its line along the stilt house's) */
+  cameraWalls: CameraWall[];
   walkSpans: WalkSpan[];
   walkEdges: WalkEdge[];
   bases: P3[];
@@ -1441,6 +1443,7 @@ export function buildExpansionNorth(ctx: WorldContext, mats: StructureMaterials,
     group,
     lanterns,
     walkSurfaces,
+    cameraWalls: huts.cameraWalls,
     walkSpans,
     walkEdges,
     bases,

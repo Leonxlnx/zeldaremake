@@ -122,11 +122,26 @@ export interface SharedGeometry {
   /**
    * The play camera's collision grids over the structures (structures/cameraSolids.ts; never built
    * under a headless capture): `solid` shells it keeps Link in front of, `slim` parts it only
-   * refuses to stand inside.
+   * refuses to stand inside; `walls`, round walls it tests exactly instead of voxelised.
    */
-  cameraSolids?: { solid: VoxelGrid | null; slim: VoxelGrid | null };
+  cameraSolids?: { solid: VoxelGrid | null; slim: VoxelGrid | null; walls?: CameraWall[] };
   /** the slim trees' trunks (the white-barks, as placed): base centre, radius, the bare bole's height span (world y) */
   slimTrunks?: { x: number; z: number; r: number; y0: number; y1: number }[];
+}
+
+/**
+ * A round wall as a solid for the play camera (camera/collision.ts): centre, floor and eave heights,
+ * the radius at angle `a` (rad, from +x toward +z) and height `y`, and the largest radius anywhere.
+ * A walk round a barrel runs the line of sight along it inside the voxels' ±0.18 m surface cells.
+ */
+export interface CameraWall {
+  id: string;
+  x: number;
+  z: number;
+  y0: number;
+  y1: number;
+  rMax: number;
+  radiusAt(a: number, y: number): number;
 }
 
 /** a walkable polyline: (x, top y, z) along its centre line, walkable within `hw` m of it */

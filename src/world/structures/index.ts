@@ -205,8 +205,8 @@ export async function create(ctx: WorldContext): Promise<WorldSystem> {
 
   // the play camera's solids (cameraSolids.ts), voxelised from the parts by name before the merges
   // below rename them; never under a headless capture
-  const cameraSolids = ctx.headless ? null : buildCameraSolids([group, north, expansion.group, south.group, grove.group], limbSpheres(ctx.shared.lanternLimb));
-  if (cameraSolids) ctx.shared.cameraSolids = { solid: cameraSolids.solid, slim: cameraSolids.slim };
+  const cameraSolids = ctx.headless ? null : buildCameraSolids([group, north, expansion.group, south.group, grove.group], limbSpheres(ctx.shared.lanternLimb), grove.cameraWalls);
+  if (cameraSolids) ctx.shared.cameraSolids = { solid: cameraSolids.solid, slim: cameraSolids.slim, walls: cameraSolids.walls };
 
   // ---- draw-call budget: fold the static parts into one mesh per material (+ shadow flags) ----
   // The pods stay separate (their pivots swing), as do the transparent glow cards and the log's
