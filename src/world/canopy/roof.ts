@@ -57,6 +57,20 @@ export const ROOF_CARDS_PER_CLUMP: [number, number] = [3, 5];
 export const HERO_DROP_M = 120;
 /** frame margin (share of the frame) added around the hero frames for the exclusion */
 export const HERO_MARGIN = 0.03;
+/**
+ * …except across the frames' top edge, which a roof is the only thing that can reach. The exclusion
+ * as written drops every clump projecting anywhere inside a hero frame within 120 m, and since a roof
+ * hangs 20–37 m up, "anywhere" is in practice the top band — so the airspace over the plaza's northern
+ * approach (z ≈ −20…−52) had no roof at all, while the stand pass that would have covered it starts at
+ * z ≤ −52 (ROOF_STAND_BOUNDS). Looking up from the open north therefore showed haze where the canopy
+ * should close (lane 2's diagnosis, `art/environment/squad2-2026-09-23/upring`).
+ *
+ * A clump whose projected disc stays inside this share of a frame's height from its top edge is kept.
+ * The hero frames already carry canopy along that edge — hero A's top third is foliage — and so does
+ * the reference (r_025, r_026, d_108 all close over the top of the image), so this is the band where a
+ * roof belongs rather than one it must be kept out of. Everything below it still drops.
+ */
+export const HERO_TOP_KEEP = 0.18;
 
 /**
  * The north stand (round 52, GOAL_MODE owner-fable #3; opus-review #01 "no canopy over them",
@@ -250,6 +264,9 @@ export function buildRoof(ctx: WorldContext, rng: Rng, o: RoofOptions): RoofBuil
       const th = Math.tan((cam.fov * Math.PI) / 360);
       const dy = halfSize / (s[2] * 2 * th);
       const dx = dy / (16 / 9);
+      // s[1] = 0 is the frame's top edge (see projector): a clump whose whole disc sits within
+      // HERO_TOP_KEEP of it is the canopy closing over the frame, not an object in it
+      if (s[1] + dy <= HERO_TOP_KEEP) continue;
       if (s[0] + dx >= -HERO_MARGIN && s[0] - dx <= 1 + HERO_MARGIN && s[1] + dy >= -HERO_MARGIN && s[1] - dy <= 1 + HERO_MARGIN) return true;
     }
     return false;
