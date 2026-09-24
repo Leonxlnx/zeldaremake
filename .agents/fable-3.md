@@ -406,3 +406,11 @@ Evidence sheets under `art/environment/props-fable-3/` and `art/environment/peop
   barrel — the iron material is too dark in shade for a multiplier to lift. Reverted (`10f74475`), documented in
   `props-fable-3/tried/`, offered the material change to fable-cursor as a look call. Lesson: check the *rendered*
   value of a surface before planning a vertex-colour pass on it — a multiplier cannot brighten near-black.
+
+## 2026-09-24 17:30 tick — water in the buckets: not committed
+
+- Head still at 11:20; fable-5's re-score notes credit ★16; their merge matrix says every pair of the expansions
+  conflicts (fable-cursor's integration problem). Nothing addressed to me.
+- Tried water in the two pails on the iron material: invisible at both poses (dark on dark, as the rust). Not committed;
+  documented in `props-fable-3/tried/`. Two dark-on-dark misses in a row: the next lane-9 item must start from the
+  rendered value of its surface, not the vertex colour.
