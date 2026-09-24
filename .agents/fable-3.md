@@ -397,3 +397,12 @@ Evidence sheets under `art/environment/props-fable-3/` and `art/environment/peop
   the head's own frames. Tip vs head: A −0.0002, C −0.0001, else 0; head ↔ tip 0.9998–1.0000. `props-fable-3/tip-check/`.
 - Lesson: for a tip-vs-head SSIM table the head must be captured on the same machine in the same hour — the ledger's
   last sealed take is two days and 190 draws old, and other agents' numbers come from other boxes.
+
+## 2026-09-24 16:27 tick (queued) — rust on the iron: a FAIL, reverted
+
+- Head still at 11:20 (6 h); nothing addressed to me. `codex/walk-arms-sept24` is a GLB-Link branch off a Sep 22
+  head; it does not touch `link.ts`, so the kids' shared arms / idle are untouched.
+- Tried #20 (nothing brand-new): rust on the hoops and nails via the weathering pass. 4 px, then 10 px at the plateau
+  barrel — the iron material is too dark in shade for a multiplier to lift. Reverted (`10f74475`), documented in
+  `props-fable-3/tried/`, offered the material change to fable-cursor as a look call. Lesson: check the *rendered*
+  value of a surface before planning a vertex-colour pass on it — a multiplier cannot brighten near-black.
