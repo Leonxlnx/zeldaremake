@@ -264,11 +264,17 @@ export async function create(ctx: WorldContext): Promise<WorldSystem> {
   let speed = 0;
   const moveDir = new Vector3(0, 0, -1);
   let jumpHeld = false;
+  /** Navi's eased lead (m) and whether her play-mode anchor has been placed since the last reset */
+  let naviLead = 0;
+  let naviInit = false;
+  const naviGoal = new Vector3();
   const resetLocomotion = () => {
     loco = createLocomotion();
     speed = 0;
     jumpHeld = false;
     velocity.set(0, 0, 0);
+    naviLead = 0;
+    naviInit = false;
   };
   const player: PlayerHandle = {
     position: link.pos,
@@ -393,13 +399,23 @@ export async function create(ctx: WorldContext): Promise<WorldSystem> {
     // the clips follow the ground covered (Puppet.advance), the pose reads the step
     link.puppet.advance?.(link, t, ds, dt);
     loco.speed = ds / Math.max(dt, 1e-4);
-    // Navi orbits the head, leading when Link moves
-    const lead = velocity.length() > 0.2 ? 0.7 : 0;
-    naviAnchor.set(
-      link.pos.x + 0.45 * Math.sin(t * 0.5) + Math.sin(link.yaw) * lead,
+    // Navi hovers by the head, leading when Link moves. Opus 2026-09-25 (owner: his head turned
+    // slowly right → left, then snapped to the right): her world-space orbit used to carry her
+    // through his back every 12.6 s and the lead jumped 0.7 m at 0.2 m/s. The lead now eases with
+    // the speed, the orbit swings about his front-left (never behind him) and the anchor is
+    // low-passed, so the look target is continuous.
+    const leadTarget = 0.7 * MathUtils.smoothstep(velocity.length(), 0.1, 0.8);
+    naviLead += (leadTarget - naviLead) * (1 - Math.exp(-dt / 0.35));
+    const orbit = link.yaw + 0.5 + 0.9 * Math.sin(t * 0.5);
+    naviGoal.set(
+      link.pos.x + 0.45 * Math.sin(orbit) + Math.sin(link.yaw) * naviLead,
       ground.height(link.pos.x, link.pos.z) + 1.4 + 0.05 * Math.sin(t * 0.8),
-      link.pos.z + 0.45 * Math.cos(t * 0.5) + Math.cos(link.yaw) * lead,
+      link.pos.z + 0.45 * Math.cos(orbit) + Math.cos(link.yaw) * naviLead,
     );
+    if (!naviInit) {
+      naviAnchor.copy(naviGoal);
+      naviInit = true;
+    } else naviAnchor.lerp(naviGoal, 1 - Math.exp(-dt / 0.25));
   };
 
   const poseActor = (a: Actor, t: number, look: Vector3 | null) => {

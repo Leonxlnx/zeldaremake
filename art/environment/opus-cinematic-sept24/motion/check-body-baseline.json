@@ -1,0 +1,150 @@
+{
+  "assetSha256": "8d7efa783d4bbc97d053c0a627a28c3c163351d7828124e1bf10c8232f06cedd",
+  "sourceHashes": {
+    "src/world/character/glbLink.ts": "6b4cc8b6aec699b8a0f5b2ba1ee3db5fc943b0281544f7b6a85e5254174bf50e",
+    "src/world/character/animation.ts": "d86ac1e3786abc3b18f6a9dc0d4ae195af0a3c30a16456258525a256471dd367",
+    "src/world/character/puppet.ts": "89990ec5913dce53855788361891ff3feb084c7cad38b33527af8f5fdcc4ec82",
+    "src/world/character/gaitChain.ts": "e6a6e1c59459841d4a331a8703e8529ca9023a68347631634b4b13e211992ca8",
+    "src/world/character/index.ts": "a26d2ad1472f0e3fd6baa306969c11f9581e767deb07b34fe5e7ca2a6914848c"
+  },
+  "passed": false,
+  "errors": [],
+  "baseline": "7b0103fa",
+  "results": {
+    "head-play": {
+      "maxHeadYawStepRad": 0.8041387118292869,
+      "atT": 37.7,
+      "headYawRad": {
+        "min": -0.4235048436430926,
+        "max": 0.42209819457560754,
+        "mean": 0.023032196192315144
+      }
+    },
+    "head-capture": {
+      "maxHeadYawStepRad": 0.8041387118292869,
+      "atT": 37.7,
+      "headYawRad": {
+        "min": -0.4235048436430926,
+        "max": 0.42209819457560754,
+        "mean": 0.023032196192315144
+      }
+    },
+    "walk": {
+      "reachClamps": 0,
+      "maxZeroDtPose": 0.00029192622094203406,
+      "hipsLateralM": {
+        "min": 0,
+        "max": 0,
+        "mean": 0
+      },
+      "chestYawRad": {
+        "min": 0,
+        "max": 0,
+        "mean": 0
+      },
+      "headYawRad": {
+        "min": 0.16340933035910588,
+        "max": 0.20657773447616967,
+        "mean": 0.18512211364792142
+      },
+      "plantedSlideMps": [
+        {
+          "min": 2.861578563276844e-7,
+          "max": 0.0000489780461389529,
+          "mean": 0.000007615778620383777
+        },
+        {
+          "min": 8.182692581539804e-7,
+          "max": 0.0000637515666506935,
+          "mean": 0.000008968920823332807
+        }
+      ],
+      "minShoeGapM": [
+        -0.000002396046090813453,
+        -0.000002821738354238934
+      ],
+      "stanceFraction": [
+        0.5055555555555555,
+        0.49444444444444446
+      ]
+    },
+    "run": {
+      "reachClamps": 0,
+      "maxZeroDtPose": 0.000549695655195626,
+      "hipsLateralM": {
+        "min": -5.0903298798540835e-22,
+        "max": -2.0068505247060256e-23,
+        "mean": -2.292234345897564e-22
+      },
+      "chestYawRad": {
+        "min": 1.0611401401320738e-9,
+        "max": 1.1463186808623812e-9,
+        "mean": 1.1036527127469168e-9
+      },
+      "headYawRad": {
+        "min": 0.23701831625480008,
+        "max": 0.28406915832885105,
+        "mean": 0.2602679566104323
+      },
+      "plantedSlideMps": [
+        {
+          "min": 7.078541977480882e-8,
+          "max": 0.000048776028857659143,
+          "mean": 0.00001137381265463215
+        },
+        {
+          "min": 0.000011299471030271187,
+          "max": 0.000039366042777159374,
+          "mean": 0.000019165906457575515
+        }
+      ],
+      "minShoeGapM": [
+        -0.000001398501479205061,
+        -0.0000021063895836170854
+      ],
+      "stanceFraction": [
+        0.3037037037037037,
+        0.31851851851851853
+      ]
+    },
+    "transitions": {
+      "maxChestStepRad": 0.03957286356543862,
+      "maxHeadStepRad": 0.034824059031247794,
+      "maxHipsYStepM": 0.010200757188963405,
+      "reachClamps": 0,
+      "minShoeGapM": -0.000002763146356110635,
+      "maxZeroDtPose": 0.008645498325550161,
+      "endGait": "idle"
+    },
+    "idle": {
+      "hipsY": {
+        "min": 0.5110001325469141,
+        "max": 0.511994917972665,
+        "mean": 0.5117002564085272
+      },
+      "hipsX": {
+        "min": 0,
+        "max": 0,
+        "mean": 0
+      },
+      "minShoeGapM": -9.56902295318196e-8
+    },
+    "zeroDtWorstByBone": {
+      "hips": 5.16191365590357e-8,
+      "chest": 5.960464477539063e-8,
+      "neck": 0.0000018789649326978558,
+      "head": 0.00001871410250785518,
+      "shoulderL": 0.00002994157622728303,
+      "shoulderR": 0.00004166399844141499,
+      "elbowL": 0.0009350902938780809,
+      "elbowR": 0.001180154232344443,
+      "thighL": 0.000030864589248775575,
+      "kneeL": 0.008645498325550161,
+      "ankleL": 0.005046751560422685,
+      "thighR": 0.000030840393019091985,
+      "kneeR": 0.008063358390146005,
+      "ankleR": 0.005189978603051042
+    }
+  },
+  "failure": "AssertionError [ERR_ASSERTION]: play-mode head yaw step\n    at file:///E:/zeldaremake-opus-cinematic/art/environment/opus-cinematic-sept24/motion/check-body.mjs:138:10"
+}

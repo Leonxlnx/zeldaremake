@@ -341,8 +341,59 @@ const LEAD_MAX_M = 0.15;
  * ARM_SCALE and low-passed with the time constant ARM_TAU (s), both blended by the gait weights.
  * The authored walk/run arms retain their full motion and foot-relative timing.
  */
-const ARM_SCALE: Record<Gait, number> = { idle: 1, walk: 1, run: 1, stairs: 0.85 };
+const ARM_SCALE: Record<Gait, number> = { idle: 1, walk: 1.25, run: 1.12, stairs: 0.85 };
 const ARM_TAU: Record<Gait, number> = { idle: 0, walk: 0, run: 0, stairs: 0.05 };
+/**
+ * Opus 2026-09-25, play mode only — the body the clips leave rigid (owner: idle, walk and sprint
+ * "look shit"). None of these touch a leg: the torso overlays sit on the chest (not a leg
+ * ancestor), the arm ones on the shoulders / elbows, and the two root ones (the lateral weight
+ * shift and the idle's soft knees) move the root with the drops — the feet keep their targets and
+ * the leg IK bends to them.
+ *  - BODY_TWIST (rad): thorax counter-rotation against the legs — the shoulder of the forward arm
+ *    comes forward — peaking at each heel-strike (a quarter cycle off the mid-stances below).
+ *  - BODY_SWAY (m): the lateral weight shift over the stance foot, peaking at its mid-stance (from
+ *    the clip's own swing table), zero at double support where the trailing leg is at full reach.
+ *  - BODY_LIST (rad per m of sway): the trunk leans over the stance foot with the shift.
+ *  - IDLE_*: a slow weight shift, breathing, and knees that are no longer locked (the idle stood
+ *    5–6 cm taller than the walk and popped at every start / stop).
+ *  - ARM_ADDUCT / ELBOW_RELAX (rad): the idle / walk arms hung 16° out in a stiff A-pose with
+ *    near-straight elbows.
+ *  - LEAN_PER_ACCEL (rad per m/s²), BANK_PER_TURN (rad per rad/s · m/s): the upper body leans
+ *    into a start and into a turn; HEAD_STAB_*: the neck keeps the gaze level against it.
+ */
+const BODY_TWIST: Record<Gait, number> = { idle: 0, walk: 0.1, run: 0.13, stairs: 0.05 };
+const BODY_SWAY: Record<Gait, number> = { idle: 0, walk: 0.016, run: 0.007, stairs: 0.01 };
+const BODY_LIST = 1.5;
+const IDLE_SWAY_M = 0.01;
+const IDLE_SWAY_S = 7.3;
+const IDLE_SOFT_KNEE_M = 0.028;
+const BREATH_RAD = 0.022;
+const BREATH_S = 3.6;
+const WALK_UPRIGHT = 0.035;
+const ARM_ADDUCT: Record<Gait, number> = { idle: 0.1, walk: 0.1, run: 0.05, stairs: 0.08 };
+const ELBOW_RELAX: Record<Gait, number> = { idle: 0.22, walk: 0.16, run: 0, stairs: 0.12 };
+const LEAN_PER_ACCEL = 0.02;
+const LEAN_MIN = -0.06;
+const LEAN_MAX = 0.1;
+const BANK_PER_TURN = 0.035;
+const BANK_MAX = 0.14;
+const HEAD_STAB_YAW = 0.8;
+const HEAD_STAB_ROLL = 0.6;
+/**
+ * The jump's upper body (rad, play mode): the chest folds forward into the crouch, opens up over
+ * the rise, and absorbs forward at the landing with the root's compression; the elbows bend as the
+ * arms come up and the two arms rise a little apart (JUMP_ARM_SPLIT) — both arms moving as one
+ * read mechanical.
+ */
+const JUMP_CHEST_CROUCH = 0.14;
+const JUMP_CHEST_AIR = 0.06;
+const JUMP_CHEST_LAND = 0.2;
+const JUMP_ELBOW = 0.5;
+const JUMP_ARM_SPLIT = 0.15;
+/** the look's play-mode response: full tracking inside ±LOOK_BACK0 of his front, none past ±LOOK_BACK1, low-passed by LOOK_TAU (s) */
+const LOOK_BACK0 = MathUtils.degToRad(100);
+const LOOK_BACK1 = MathUtils.degToRad(150);
+const LOOK_TAU = 0.2;
 /**
  * Jump overlay (JumpState phases). Crouch: the root sinks JUMP_CROUCH_M over the crouch (the leg
  * IK keeps the feet planted, so the knees bend) while the arms swing back; air: the legs blend
@@ -1680,6 +1731,14 @@ export async function loadGlbLink(url: string, opts: GlbLinkOptions = {}): Promi
     const floor = Math.min(...height.map((y, i) => y - mean - cos * Math.cos(4 * Math.PI * i / TABLE_N) - sin * Math.sin(4 * Math.PI * i / TABLE_N)));
     pelvisCycle.set(gait, { mean: mean + floor - 0.0005, cos, sin, position, offset, floor: sole });
   }
+  // the cycle fraction of each gait's LEFT mid-stance, from its swing table (BODY_SWAY): the middle
+  // of the window between the left sole's landing and its next take-off
+  const swayMid = {} as Record<Gait, number>;
+  for (const gait of GAITS) {
+    const a = actions.get(gait);
+    const sw = tables[gait]?.[0];
+    swayMid[gait] = a && sw && sw.length === 1 ? mod((sw[0].tLand + sw[0].tOff + a.duration) / 2 / a.duration, 1) : NaN;
+  }
 
   const asset: LinkAssetInfo = {
     file,
@@ -1766,24 +1825,75 @@ export async function loadGlbLink(url: string, opts: GlbLinkOptions = {}): Promi
     return n;
   };
 
+  // the play-mode body overlays' state (applyBody): the chest's mixer output, the turn-rate and
+  // acceleration filters, the neck's stabilisation, and this pose's lateral root shift (m, + =
+  // Link's left) and soft-knee drop (m) — the two root terms are applied with the drops in step 4
+  const chestMix = new Quaternion();
+  let chestDirty = false;
+  let bodyLoco: Locomotion | null = null;
+  let bodyYaw = 0;
+  let bodyTurn = 0;
+  let bodySpeed = 0;
+  let bodyAccel = 0;
+  let stabYaw = 0;
+  let stabRoll = 0;
+  let bodySway = 0;
+  let bodyKnee = 0;
+  const _axisZ = new Vector3(0, 0, 1);
+  const _bFwd = new Vector3();
+  const _bRight = new Vector3();
+  const _bq = new Quaternion();
+  const _bq2 = new Quaternion();
+
   /**
    * Turn the neck (35 %) and head (65 %) pivots toward a world point, clamped, scaled by `weight`.
    * Angles are measured once in the neck pivot's frame (the chest frame at the neck's rest origin:
    * +Z forward, +Y up at rest) and split; for these small angles the two rotations add up.
+   *
+   * Opus 2026-09-25 (owner: the head turned slowly right → left, then snapped to the right):
+   * atan2's ±π cut sits directly behind Link and Navi's orbit crossed it — the clamp flipped the
+   * head from +0.8 to −0.8 rad (×0.5 weight) in one frame. In play mode the look now fades out
+   * toward his back (LOOK_BACK0..1 — continuous across the cut) and is low-passed (LOOK_TAU; a
+   * zero-dt re-render holds it), and the neck carries the body overlay's stabilisation. A fixed
+   * capture (loco null) keeps the old arithmetic exactly.
    */
-  const lookAt = (target: Vector3, weight: number) => {
-    root.updateMatrixWorld(true);
-    _target.copy(target);
-    neckPivot.worldToLocal(_target);
-    const yaw = MathUtils.clamp(Math.atan2(_target.x, _target.z), -0.8, 0.8) * weight;
-    const pitch = MathUtils.clamp(Math.atan2(_target.y, Math.hypot(_target.x, _target.z)), -0.4, 0.45) * weight;
-    const apply = (pivot: Object3D, k: number) => {
-      pivot.quaternion.setFromAxisAngle(_axisY, yaw * k);
+  let lookYawF = 0;
+  let lookPitchF = 0;
+  let lookLoco: Locomotion | null = null;
+  const lookAt = (target: Vector3 | null, weight: number, loco: Locomotion | null) => {
+    let yaw = 0;
+    let pitch = 0;
+    if (target && weight > 0) {
+      root.updateMatrixWorld(true);
+      _target.copy(target);
+      neckPivot.worldToLocal(_target);
+      const bearing = Math.atan2(_target.x, _target.z);
+      yaw = MathUtils.clamp(bearing, -0.8, 0.8) * weight;
+      pitch = MathUtils.clamp(Math.atan2(_target.y, Math.hypot(_target.x, _target.z)), -0.4, 0.45) * weight;
+      if (loco) {
+        const front = 1 - MathUtils.smoothstep(Math.abs(bearing), LOOK_BACK0, LOOK_BACK1);
+        yaw *= front;
+        pitch *= front;
+      }
+    }
+    if (loco) {
+      // a new Locomotion (play entered, a clock jump) starts on target
+      const a = lookLoco !== loco ? 1 : 1 - Math.exp(-Math.max(0, loco.dt) / LOOK_TAU);
+      lookLoco = loco;
+      yaw = lookYawF += (yaw - lookYawF) * a;
+      pitch = lookPitchF += (pitch - lookPitchF) * a;
+    } else {
+      lookLoco = null;
+      if (!target || weight <= 0) return;
+    }
+    const apply = (pivot: Object3D, k: number, stab: number, roll: number) => {
+      pivot.quaternion.setFromAxisAngle(_axisY, loco ? yaw * k + stab : yaw * k);
       _q.setFromAxisAngle(_axisX, -pitch * k);
       pivot.quaternion.multiply(_q);
+      if (roll !== 0) pivot.quaternion.multiply(_q.setFromAxisAngle(_axisZ, roll));
     };
-    apply(neckPivot, 0.35);
-    apply(headPivot, 0.65);
+    apply(neckPivot, 0.35, stabYaw, loco ? stabRoll : 0);
+    apply(headPivot, 0.65, 0, 0);
   };
 
   /** rotate `bone` in place by the WORLD rotation `q` (its parent's world matrix must be current) */
@@ -1854,6 +1964,113 @@ export async function loadGlbLink(url: string, opts: GlbLinkOptions = {}): Promi
       }
     }
   };
+  /**
+   * Opus 2026-09-25, play mode only: the body the clips leave rigid (BODY_* / IDLE_* / ARM_ADDUCT /
+   * ELBOW_RELAX / LEAN / BANK). The chest takes the counter-rotation, the list over the stance foot,
+   * the walk's upright carriage, breathing, and the lean into a start or a turn; the arms come in
+   * toward the body and the elbows soften. The lateral weight shift and the idle's soft knees are
+   * handed to step 4 (bodySway / bodyKnee), the neck's stabilisation to the look. Gait-cycle terms
+   * follow the blended clips' own times, the filters the step's dt (zero-dt holds them). Runs after
+   * applyArms (whose saved mixer output it builds on); world matrices are current on return.
+   */
+  const applyBody = (p: PuppetPose, loco: Locomotion, fx: number, fz: number, yaw: number) => {
+    let wIdle = 0;
+    let twist = 0;
+    let sway = 0;
+    let upright = 0;
+    let breathW = 0;
+    let adduct = 0;
+    let elbow = 0;
+    for (const c of chain) {
+      if (c.weight <= 0) continue;
+      const w = c.weight;
+      if (c.gait === 'idle') wIdle += w;
+      if (c.gait === 'walk') upright += w * WALK_UPRIGHT;
+      breathW += w * (c.gait === 'idle' ? 1 : c.gait === 'walk' ? 0.5 : c.gait === 'stairs' ? 0.3 : 0);
+      adduct += w * ARM_ADDUCT[c.gait];
+      elbow += w * ELBOW_RELAX[c.gait];
+      const mid = swayMid[c.gait];
+      if (!Number.isFinite(mid)) continue;
+      const a = actions.get(c.gait)!;
+      const ph = 2 * Math.PI * (a.action.time / a.duration - mid);
+      // over the left foot at its mid-stance, over the right half a cycle later; the right
+      // shoulder forward a quarter cycle before (the left heel-strike), the left one after
+      sway += w * BODY_SWAY[c.gait] * Math.cos(ph);
+      twist -= w * BODY_TWIST[c.gait] * Math.sin(ph);
+    }
+    sway += wIdle * IDLE_SWAY_M * Math.sin((2 * Math.PI * p.t) / IDLE_SWAY_S);
+    const dt = Math.max(0, loco.dt);
+    if (bodyLoco !== loco) {
+      // a new play session (or a clock jump) starts at rest
+      bodyLoco = loco;
+      bodyYaw = yaw;
+      bodyTurn = 0;
+      bodySpeed = loco.speed;
+      bodyAccel = 0;
+    } else if (dt > 0) {
+      bodyTurn += (Math.atan2(Math.sin(yaw - bodyYaw), Math.cos(yaw - bodyYaw)) / dt - bodyTurn) * (1 - Math.exp(-dt / 0.12));
+      // the air has no ground speed: the lean holds through a jump
+      if (!loco.jump) bodyAccel += ((loco.speed - bodySpeed) / dt - bodyAccel) * (1 - Math.exp(-dt / 0.18));
+      bodyYaw = yaw;
+      bodySpeed = loco.speed;
+    }
+    // a jump owns the body: the gait-cycle terms fade out over the crouch and back in over the landing
+    const j = loco.jump;
+    const k = !j ? 1 : j.phase === 'crouch' ? 1 - MathUtils.smoothstep((p.t - j.t0) / JUMP_CROUCH_S, 0, 1) : j.phase === 'land' ? MathUtils.smoothstep((p.t - j.t0) / JUMP_LAND_S, 0, 1) : 0;
+    twist *= k;
+    sway *= k;
+    const lean = MathUtils.clamp(bodyAccel * LEAN_PER_ACCEL, LEAN_MIN, LEAN_MAX);
+    // turning left (yaw rising) leans the top to his left: a negative roll about the facing
+    const bank = -MathUtils.clamp(bodyTurn * loco.speed * BANK_PER_TURN, -BANK_MAX, BANK_MAX);
+    const roll = bank - BODY_LIST * sway;
+    let pitch = upright * k + BREATH_RAD * breathW * Math.sin((2 * Math.PI * p.t) / BREATH_S) - lean;
+    // the jump's chest, elbows and arm split (JUMP_CHEST_* / JUMP_ELBOW / JUMP_ARM_SPLIT), continuous across its phases
+    let split = 0;
+    if (j) {
+      if (j.phase === 'crouch') pitch -= JUMP_CHEST_CROUCH * MathUtils.smoothstep((p.t - j.t0) / JUMP_CROUCH_S, 0, 1);
+      else if (j.phase === 'air') {
+        pitch += MathUtils.lerp(-JUMP_CHEST_CROUCH, JUMP_CHEST_AIR, MathUtils.smoothstep(j.air, 0, 0.3)) * (1 - MathUtils.smoothstep(j.air, 0.55, 0.95));
+        pitch -= JUMP_CHEST_LAND * 0.35 * MathUtils.smoothstep(j.air, 0.7, 1);
+      } else {
+        const u = MathUtils.clamp((p.t - j.t0) / JUMP_LAND_S, 0, 1);
+        pitch -= JUMP_CHEST_LAND * (0.35 + 0.65 * Math.sin(Math.PI * Math.pow(u, 0.6))) * (1 - MathUtils.smoothstep(u, 0.5, 1));
+      }
+      const up = Math.max(0, jumpArm(j, p.t)) / JUMP_ARM_UP;
+      elbow += JUMP_ELBOW * up;
+      split = JUMP_ARM_SPLIT * up;
+    }
+    bodySway = sway;
+    bodyKnee = IDLE_SOFT_KNEE_M * wIdle * k;
+    stabYaw = -HEAD_STAB_YAW * twist;
+    stabRoll = -HEAD_STAB_ROLL * roll;
+    // the chest: twist about up, extension about the right axis (+ = the top back), roll about the facing (+ = the top to his right)
+    _bFwd.set(fx, 0, fz);
+    _bRight.set(-fz, 0, fx);
+    root.updateMatrixWorld(true);
+    chestMix.copy(chest.quaternion);
+    _bq.setFromAxisAngle(_axisY, twist);
+    _bq.multiply(_bq2.setFromAxisAngle(_bRight, pitch));
+    _bq.multiply(_bq2.setFromAxisAngle(_bFwd, roll));
+    rotateWorld(chest, _bq);
+    chestDirty = true;
+    // the arms: in toward the body about the facing, the elbows softened about the right axis
+    chest.updateMatrixWorld(true);
+    if (adduct > 1e-5) {
+      rotateWorld(armBones[0], _bq.setFromAxisAngle(_bFwd, -adduct));
+      rotateWorld(armBones[1], _bq.setFromAxisAngle(_bFwd, adduct));
+    }
+    if (split > 1e-5) {
+      rotateWorld(armBones[0], _bq.setFromAxisAngle(_bRight, split));
+      rotateWorld(armBones[1], _bq.setFromAxisAngle(_bRight, -split));
+    }
+    if (elbow > 1e-5) {
+      armBones[0].updateMatrixWorld(true);
+      armBones[1].updateMatrixWorld(true);
+      rotateWorld(armBones[2], _bq.setFromAxisAngle(_bRight, elbow));
+      rotateWorld(armBones[3], _bq.setFromAxisAngle(_bRight, elbow));
+    }
+    root.updateMatrixWorld(true);
+  };
   /** put the mixer's own last output back on every bone the overlays rewrote, so the mixer's change detection sees its own values */
   const restoreOverlays = () => {
     if (armsDirty) {
@@ -1863,6 +2080,10 @@ export async function loadGlbLink(url: string, opts: GlbLinkOptions = {}): Promi
     if (hipsDirty) {
       hips.quaternion.copy(hipsMix);
       hipsDirty = false;
+    }
+    if (chestDirty) {
+      chest.quaternion.copy(chestMix);
+      chestDirty = false;
     }
   };
 
@@ -1908,9 +2129,16 @@ export async function loadGlbLink(url: string, opts: GlbLinkOptions = {}): Promi
         leg.kneePivot.quaternion.identity();
         leg.anklePivot.quaternion.identity();
       }
-      if (loco) applyArms(p, loco, fx, fz);
-      else armsLoco = null;
-      if (p.look && p.lookWeight > 0) lookAt(p.look, p.lookWeight);
+      if (loco) {
+        applyArms(p, loco, fx, fz);
+        applyBody(p, loco, fx, fz, yaw);
+      } else {
+        armsLoco = null;
+        bodyLoco = null;
+        bodySway = 0;
+        bodyKnee = 0;
+      }
+      lookAt(p.look && p.lookWeight > 0 ? p.look : null, p.lookWeight, loco);
       root.updateMatrixWorld(true);
 
       // 1. the posed legs: joints, soles and foot yaws (world) with the root at the placement
@@ -2306,6 +2534,8 @@ export async function loadGlbLink(url: string, opts: GlbLinkOptions = {}): Promi
           const target = cycle.mean + cycle.cos * Math.cos(phase) + cycle.sin * Math.sin(phase);
           pelvisDrop += c.weight * MathUtils.clamp(source - target, 0, 0.025);
         }
+        // Opus 2026-09-25: the idle's soft knees (applyBody, already faded by the jump)
+        pelvisDrop += bodyKnee;
         // Keep the correction continuous at jump entry/exit without altering the ballistic arc.
         if (jump) pelvisDrop *= jump.phase === 'crouch'
           ? 1 - MathUtils.smoothstep((p.t - jump.t0) / JUMP_CROUCH_S, 0, 1)
@@ -2462,6 +2692,25 @@ export async function loadGlbLink(url: string, opts: GlbLinkOptions = {}): Promi
           leg.kneeP.y -= down;
           leg.ankleP.y -= down;
           leg.soleP.y -= down;
+          leg.active = true;
+        }
+      }
+      // Opus 2026-09-25: the lateral weight shift (applyBody) — the root moves over the stance
+      // foot, the feet keep the targets set above and the legs are solved to them
+      if (loco && !airborne && Math.abs(bodySway) > 1e-7) {
+        const sx = fz * bodySway;
+        const sz = -fx * bodySway;
+        root.position.x += sx;
+        root.position.z += sz;
+        for (const leg of legs) {
+          leg.hip.x += sx;
+          leg.hip.z += sz;
+          leg.kneeP.x += sx;
+          leg.kneeP.z += sz;
+          leg.ankleP.x += sx;
+          leg.ankleP.z += sz;
+          leg.soleP.x += sx;
+          leg.soleP.z += sz;
           leg.active = true;
         }
       }
