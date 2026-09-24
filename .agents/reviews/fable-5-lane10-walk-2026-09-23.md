@@ -731,3 +731,7 @@ by more than 40 levels): the take's A / F rows will move again with this (the fl
 **The other owner poses:** `u-open-up` 0.509 → 0.512 (treepop / lane 3 — nothing visible), **`b-upper-2` 0.270 → 0.274,
 dark 54.2 → 52.7 %** — lane 1's round 2 and lane 3's bark do not bring the upper house's light back (§10.2 stays; the
 04:30 frame read 0.454), `h-west-front` 0.309 → 0.324 (lane 1's air on the column). Sheet `it98-ba-b-upper-2.jpg`.
+
+The 06:50 pose on the candidate (character on) reads as lane 1's round 1: far-centre 0.438, band 0.308, near-black 23.6 %,
+the top band 0.352 — round 2 and treepop move 7.6 % of pixels there by more than 6 levels and 0.2 % by more than 40. The
+six views of the candidate are rendering (§25 when they land).
