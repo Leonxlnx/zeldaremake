@@ -20,7 +20,8 @@
  * position (XZ_TAU), so a stair climb reads as a glide rather than a stepped rise, while the aim
  * keeps a fraction (AIM_AIR) of the jump's height so Link stays framed at the apex. Collision
  * (collision.ts): lifted over the ground and flights, kept in front of solid shells and big boles
- * (pulled in at once, eased back out), lowered under low ceilings, never inside a post or a pod.
+ * (pulled in at once, eased back out), lowered under low ceilings, never inside a post or a pod, and
+ * while Link walks round an exact wall (the keeper's hut) orbited off it before its line reaches it.
  */
 import { MathUtils, PerspectiveCamera, Vector3 } from 'three';
 import type { Terrain } from '../world/terrain/heightfield';
@@ -110,6 +111,8 @@ const RECENTRE_AFTER = 1.5;
 const RECENTRE_TAU = 0.9;
 /** while Link moves, the yaw eases behind his heading with this time constant (s) */
 const HEADING_TAU = 0.625;
+/** and turns off an exact wall its line would near (collision.ts wallSwing) with this one (s) */
+const WALL_SWING_TAU = 0.04;
 /** look rates: drag (rad/px), pointer lock (rad/px), right stick (rad/s at full deflection) */
 const DRAG_YAW = 0.0032;
 const DRAG_PITCH = 0.0028;
@@ -166,6 +169,7 @@ export function createFollowCam(host: HTMLElement, terrain: Terrain, camera: Per
   const aimPoint = new Vector3();
   const pos = new Vector3();
   const probe = new Vector3();
+  const swingAt = new Vector3();
 
   /** the first connected gamepad's left stick (x, y), right stick and A button, or null */
   const readGamepad = (): { lx: number; ly: number; rx: number; ry: number; a: boolean; run: boolean } | null => {
@@ -328,7 +332,8 @@ export function createFollowCam(host: HTMLElement, terrain: Terrain, camera: Per
       player.setInput({ moveX: mx, moveZ: mz, run, jump });
       // the camera eases behind the player's heading while he moves (drag / the right stick override),
       // and after RECENTRE_AFTER s of walking without look input the pitch settles back to rest
-      if (l > 0 && !dragging && document.pointerLockElement !== host && !stickLook) {
+      const following = l > 0 && !dragging && document.pointerLockElement !== host && !stickLook;
+      if (following) {
         let d = player.heading() - yawTarget;
         d = Math.atan2(Math.sin(d), Math.cos(d));
         yawTarget += d * (1 - Math.exp(-dt / HEADING_TAU));
@@ -339,6 +344,13 @@ export function createFollowCam(host: HTMLElement, terrain: Terrain, camera: Per
       const bLook = 1 - Math.exp(-dt / LOOK_TAU);
       yaw += (yawTarget - yaw) * bLook;
       pitch += (pitchTarget - pitch) * bLook;
+      if (following) {
+        // on the placed yaw: through the look smoothing the swing trailed a run round the keeper's hut by 9°
+        swingAt.set(player.position.x, aimY + FOLLOW.aimHeight, player.position.z);
+        const s = colliderFor().wallSwing(swingAt, yaw) * (1 - Math.exp(-dt / WALL_SWING_TAU));
+        yaw += s;
+        yawTarget += s;
+      }
       place(dt);
     },
     state: () => ({

@@ -46,11 +46,12 @@ const win = listeners();
 const pad = { value: null };
 globalThis.window = win;
 globalThis.document = { pointerLockElement: null };
+globalThis.HTMLInputElement = class {};
 Object.defineProperty(globalThis, 'navigator', { value: { getGamepads: () => [pad.value] }, configurable: true });
 
 const here = path.dirname(fileURLToPath(import.meta.url));
 const { createFollowCam, PITCH_REST, PITCH_UP, PITCH_DOWN, FOLLOW } = loadTs(path.join(here, 'follow.ts'));
-const { CLEARANCE, CAMERA_RADIUS, MIN_DISTANCE } = loadTs(path.join(here, 'collision.ts'));
+const { CLEARANCE, CAMERA_RADIUS, MIN_DISTANCE, WALL_LINE_MARGIN, WALL_SWING_SHARE, createCameraCollider } = loadTs(path.join(here, 'collision.ts'));
 const { VoxelGrid } = loadTs(path.join(here, '../world/util/voxelGrid.ts'));
 
 function rig({ groundAt = () => 0, shared = {}, invertY = false, heading = Math.PI } = {}) {
@@ -310,6 +311,110 @@ test('Link against an exact wall, facing away from it: the line into it is refus
   const d = r.camera.position.distanceTo(aim);
   assert.ok(d < MIN_DISTANCE + 0.05, `camera ${d.toFixed(3)} m from the aim: at its minimum (${MIN_DISTANCE}), not through the hut`);
   assert.equal(r.cam.state().hit, 'solid');
+});
+
+test('a line passing an exact wall inside the camera radius but clear of the line margin keeps its whole length', () => {
+  // the line (x 0, toward +z) passes 0.2 m off a 0.8 m wall; the camera, 4.3 m back, is 1.2 m off it
+  const wall = { ...HUT, r: 0.8, x: -1.0, z: 2.2 };
+  assert.ok(1.0 - wall.r > WALL_LINE_MARGIN && 1.0 - wall.r < CAMERA_RADIUS);
+  const r = rig({ shared: { cameraCylinders: [wall] } });
+  assert.ok(r.camera.position.z > FOLLOW.distance - 0.05, `camera ${r.camera.position.z.toFixed(3)} m back`);
+  assert.equal(r.cam.state().hit, null);
+});
+
+test('wallSwing turns a line that looks into an exact wall back out to its share of the line margin, and leaves a tangent alone', () => {
+  const c = createCameraCollider(() => 0, { cameraCylinders: [{ ...HUT, x: 0, z: 0 }] });
+  const d = 1.6;
+  const pivot = new THREE.Vector3(0, FOLLOW.aimHeight, d);
+  const may = WALL_SWING_SHARE * Math.acos((HUT.r + WALL_LINE_MARGIN) / d);
+  // the camera at pivot − (sin yaw, cos yaw)·dist: yaw π/2 lies along the tangent (−x) at Link
+  assert.equal(c.wallSwing(pivot, Math.PI / 2), 0);
+  for (const sign of [1, -1]) {
+    const tip = 0.7;
+    const yaw = sign * (Math.PI / 2 - tip);
+    const s = c.wallSwing(pivot, yaw);
+    assert.ok(Math.sign(s) === sign, `turned ${s.toFixed(3)} rad (outward is ${sign > 0 ? '+' : '−'})`);
+    assert.ok(Math.abs(Math.abs(s) - (tip - may)) < 1e-9, `turned ${Math.abs(s).toFixed(4)} rad, the tip past the allowance is ${(tip - may).toFixed(4)}`);
+  }
+  // 1.3 m out from the wall's face the swing has faded out
+  assert.equal(c.wallSwing(new THREE.Vector3(0, FOLLOW.aimHeight, HUT.r + 1.3), 0.2), 0);
+});
+
+/**
+ * Walking round the keeper's hut as the play-test steers (gauntlet/scripts/playtest.mjs walkRoute:
+ * the movement keys chosen against the camera every 3 frames, waypoints on the gallery 20–40° apart,
+ * reached within 0.5 m) — Link turns at 9 rad/s and slides round the hut's walk block 1.4 m from its
+ * axis, and the camera trails his turns by up to 45°. Before the swing its line cut the wall and it
+ * snapped in 3.87 m in one frame (the m8 walk: 3.863 m).
+ */
+function walkRoundHut(speed) {
+  const r = rig({ shared: { cameraCylinders: [{ ...HUT, x: 0, z: 0 }] } });
+  const at = (th, rr) => [Math.cos((th * Math.PI) / 180) * rr, Math.sin((th * Math.PI) / 180) * rr];
+  const points = [at(222, 2.69), at(221, 2.0), at(200, 1.7), at(170, 1.7), at(135, 1.7), at(100, 1.7), at(60, 1.7), at(20, 1.7), at(-8, 1.7), at(-20.5, 1.86), at(-21.8, 2.42)];
+  const p = r.player.position;
+  p.set(points[0][0], 0, points[0][1]);
+  r.face.heading = Math.atan2(points[1][0] - p.x, points[1][1] - p.z);
+  r.cam.snap();
+  const keys = new Set();
+  const setKeys = (want) => {
+    for (const k of [...keys]) if (!want.has(k)) (win.emit('keyup', { code: k, target: null }), keys.delete(k));
+    for (const k of want) if (!keys.has(k)) (win.emit('keydown', { code: k, target: null }), keys.add(k));
+  };
+  const dt = 1 / 30;
+  let v = 0;
+  const aim = new THREE.Vector3();
+  let prev = null;
+  let worstDrop = 0;
+  let nearest = Infinity;
+  let nearestAxis = Infinity;
+  let wp = 1;
+  let frames = 0;
+  while (wp < points.length && frames < 900) {
+    const [tx, tz] = points[wp];
+    const dist = Math.hypot(tx - p.x, tz - p.z);
+    if (dist < 0.5) {
+      wp++;
+      continue;
+    }
+    const dir = r.camera.getWorldDirection(new THREE.Vector3());
+    const c = Math.atan2(dir.x, dir.z);
+    const a = ((tx - p.x) * Math.sin(c) + (tz - p.z) * Math.cos(c)) / dist;
+    const b = ((tx - p.x) * -Math.cos(c) + (tz - p.z) * Math.sin(c)) / dist;
+    setKeys(new Set([a > 0.38 && 'KeyW', a < -0.38 && 'KeyS', b > 0.38 && 'KeyD', b < -0.38 && 'KeyA'].filter(Boolean)));
+    for (let f = 0; f < 3; f++, frames++) {
+      r.cam.update(dt);
+      // the character controller (character/index.ts): turn toward the input at 9 rad/s, ramp the speed
+      const { moveX, moveZ } = r.input();
+      const mag = Math.hypot(moveX, moveZ);
+      if (mag > 0.05) {
+        const turn = wrap(Math.atan2(moveX, moveZ) - r.face.heading);
+        r.face.heading += Math.max(-9 * dt, Math.min(9 * dt, turn));
+        v += Math.max(-16 * dt, Math.min(9 * dt, speed * mag - v));
+        p.x += (moveX / mag) * v * dt;
+        p.z += (moveZ / mag) * v * dt;
+        const hr = Math.hypot(p.x, p.z);
+        if (hr < 1.4) p.set((p.x / hr) * 1.4, 0, (p.z / hr) * 1.4);
+      }
+      const d = r.camera.position.distanceTo(aim.set(p.x, FOLLOW.aimHeight, p.z));
+      if (prev !== null) worstDrop = Math.max(worstDrop, prev - d);
+      prev = d;
+      if (Math.hypot(p.x, p.z) < 2.1) nearest = Math.min(nearest, d);
+      nearestAxis = Math.min(nearestAxis, Math.hypot(r.camera.position.x, r.camera.position.z));
+    }
+  }
+  setKeys(new Set());
+  return { reached: wp - 1, of: points.length - 1, worstDrop, nearest, nearestAxis };
+}
+
+test('walking and running round an exact wall as the play-test steers, the camera orbits off it — it never snaps in', () => {
+  for (const speed of [1.6, 4.6]) {
+    const w = walkRoundHut(speed);
+    const at = `at ${speed} m/s`;
+    assert.equal(w.reached, w.of, `${at}: waypoints ${w.reached}/${w.of}`);
+    assert.ok(w.worstDrop < 0.3, `${at}: the camera came ${w.worstDrop.toFixed(3)} m nearer Link in one frame (was 3.87)`);
+    assert.ok(w.nearest > 4.0, `${at}: the camera came within ${w.nearest.toFixed(2)} m of Link on the gallery (was 0.64)`);
+    assert.ok(w.nearestAxis > HUT.r + CAMERA_RADIUS, `${at}: the camera ${w.nearestAxis.toFixed(2)} m from the hut's axis`);
+  }
 });
 
 /**
