@@ -193,6 +193,20 @@ export const CROWN_UNDER_FOG_CUT = 0.6;
 export const CROWN_UNDER_FOG_RAY: [number, number] = [0.35, 0.7];
 export const CROWN_FLOOR_ROUND: [number, number] = [0.9, 1.1];
 /**
+ * 2026-09-24, fable-cursor's review of the depth veil (§Review notes: "what would pass: the crowns'
+ * silhouettes soften or break up … as they recede"). Measured at the pinned `u-open-up` pose, the
+ * outline is the defect and the tone is not: the mean step across a leaf-to-sky boundary is 15.4 % of
+ * the range in our frame against 3.4 % in the reference's r_025 and r_026 — our crowns end in one
+ * hard edge, the reference's break into lace that the air shows through.
+ *
+ * Over `m` metres a crown's alpha is eaten from the outside by `erode` (the fringe under it falls
+ * below the alpha test and goes, so the mass loses its outline and breaks into clumps) and what
+ * survives is ramped over `soft` (a wider blended band instead of one step). The core of a card is
+ * unaffected at every distance, so a crown never thins out into a hole — the owner's "the trees do
+ * not populate" is not being traded away for this.
+ */
+export const CROWN_FAR_DISSOLVE: { m: [number, number]; erode: number; soft: number } = { m: [26, 64], erode: 0.3, soft: 0.62 };
+/**
  * 2026-09-24 (owner review 23:00, `owner-2300-foliage-lookup.png`: "the foliage in the beginning
  * looks great, but when you go outward … something's wrong"): the shade gate above is a distance,
  * and the two treatments it carries are different claims. That a crown is a leaf roof in its own
@@ -231,11 +245,23 @@ export const CROWN_SHADE_M: [number, number] = [12, 26];
  * moved his look-up by nothing measurable (leaf lightness 0.226 → 0.229, outline hardness 11.5 %
  * → 11.3 %): a canopy overhead is 15-35 m away, so a ramp that reaches half strength at 40 m has
  * barely started where the leaves are. Depth for a look-up is the tree's height, not the forest's.
+ *
+ * `lift` is the answer to fable-cursor's review of 05:30 (the merge reverted: "at the pinned
+ * `u-open-up` pose the depth veil turns the crowns into pale beige flat shapes whose polygon edges
+ * read harder than before … a paler card is still a card"). Measured at that pose against the
+ * reference frame the review names, the veil's premise does not hold there: our foliage is already at
+ * the reference's own level (leaf lightness 0.287 against r_025's 0.277 and r_026's 0.293) — what is
+ * wrong is our SKY, 0.672 against their 0.518, so every leaf edge is a maximum-contrast cut-out. A
+ * wash cannot tell those apart, so the veil is now a floor: it fades out over `lift` (the fragment's
+ * own luminance) and lifts only foliage still below the band, which is the dark mid-distance mass the
+ * owner circled. A card already as pale as the air gets nothing.
  */
 /** how much of the veil a crown's floor cards give up, so a pale one never prints its quad's edge */
 export const CROWN_VEIL_FLAT_DAMP = 0.8;
-export const CANOPY_DEPTH_VEIL: { share: number; m: [number, number]; ray: [number, number]; tint: [number, number, number] } = {
+export const CANOPY_DEPTH_VEIL: { share: number; m: [number, number]; ray: [number, number]; tint: [number, number, number]; lift: [number, number] } = {
   share: 0.42,
+  // full below the first, nothing above the second (screen luminance after tone mapping)
+  lift: [0.16, 0.34],
   m: [8, 30],
   ray: [0.05, 0.45],
   // the mist's colour alone veiled the far layers to a dead grey-green (first render at m 10-32; the
@@ -244,9 +270,10 @@ export const CANOPY_DEPTH_VEIL: { share: number; m: [number, number]; ray: [numb
   tint: [1.08, 1.0, 0.88],
 };
 /** the veil as a fragment-shader line, for the crown cards and the giants' leaf cards alike */
-export function canopyVeilGlsl(veil: { share: number; m: [number, number]; ray?: [number, number]; tint?: [number, number, number] } = CANOPY_DEPTH_VEIL, flatDamp = 0): string {
+export function canopyVeilGlsl(veil: { share: number; m: [number, number]; ray?: [number, number]; tint?: [number, number, number]; lift?: [number, number] } = CANOPY_DEPTH_VEIL, flatDamp = 0): string {
   const ray = veil.ray ?? CANOPY_DEPTH_VEIL.ray;
   const tint = veil.tint ?? CANOPY_DEPTH_VEIL.tint;
+  const lift = veil.lift ?? CANOPY_DEPTH_VEIL.lift;
   const t = tint.map((c) => c.toFixed(3)).join(', ');
   // A crown's floor cards are near-horizontal quads, and paling one toward the sky prints the quad's
   // straight edge — the artefact CROWN_FLOOR_OWN_NORMAL and CROWN_FLOOR_ROUND exist to keep out of
@@ -258,7 +285,9 @@ export function canopyVeilGlsl(veil: { share: number; m: [number, number]; ray?:
     {
       float veilClimb = smoothstep(${ray[0].toFixed(3)}, ${ray[1].toFixed(3)}, normalize(-vViewPosition * mat3(viewMatrix)).y);
       float veilDepth = smoothstep(${veil.m[0].toFixed(1)}, ${veil.m[1].toFixed(1)}, length(vViewPosition));
-      gl_FragColor.rgb = mix(gl_FragColor.rgb, kfColor * vec3(${t}), ${veil.share.toFixed(3)} * veilClimb * veilDepth${flat});
+      // the floor (CANOPY_DEPTH_VEIL.lift): only foliage still darker than the band takes the veil
+      float veilLift = 1.0 - smoothstep(${lift[0].toFixed(3)}, ${lift[1].toFixed(3)}, dot(gl_FragColor.rgb, vec3(0.2126, 0.7152, 0.0722)));
+      gl_FragColor.rgb = mix(gl_FragColor.rgb, kfColor * vec3(${t}), ${veil.share.toFixed(3)} * veilClimb * veilDepth * veilLift${flat});
     }
     #endif
   `;
@@ -565,6 +594,15 @@ export function createDistantCrownMaterial(wind: Wind, rng: Rng, palette: Palett
       diffuseColor.a *= mix(steepFade, smoothstep(${f(CROWN_EDGE_FADE[0])}, ${f(CROWN_EDGE_FADE[1])}, edgeOn), flatCard);
       // CROWN_FLOOR_ROUND: inside the gate a floor card ends in the crown's round edge, not its quad's
       diffuseColor.a *= 1.0 - max(roofNear, ${f(look?.roundFloors ? 1 : 0)}) * flatCard * smoothstep(${f(CROWN_FLOOR_ROUND[0])}, ${f(CROWN_FLOOR_ROUND[1])}, length(vCrownOff.xz));
+      // CROWN_FAR_DISSOLVE: a receding crown must stop being a SHAPE. Its outline is eaten from the
+      // outside (the fringe under the erode vanishes at the alpha test, so the mass breaks into leafy
+      // clumps with air between them) and what survives blends over a wider band, so the border is no
+      // longer one step. The core keeps its alpha at every distance, so a crown never thins out.
+      {
+        float far = smoothstep(${f(CROWN_FAR_DISSOLVE.m[0])}, ${f(CROWN_FAR_DISSOLVE.m[1])}, length(vViewPosition));
+        float eaten = clamp((diffuseColor.a - ${f(CROWN_FAR_DISSOLVE.erode)}) / ${f(1 - CROWN_FAR_DISSOLVE.erode)}, 0.0, 1.0);
+        diffuseColor.a = mix(diffuseColor.a, eaten * smoothstep(0.0, ${f(CROWN_FAR_DISSOLVE.soft)}, eaten), far);
+      }
     }
     `,
         )
