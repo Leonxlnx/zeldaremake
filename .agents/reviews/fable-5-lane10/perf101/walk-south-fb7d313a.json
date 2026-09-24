@@ -1,0 +1,607 @@
+{
+ "dist": "/tmp/f5/wt-h101/dist",
+ "size": [
+  960,
+  540
+ ],
+ "quality": "high",
+ "started": "2026-09-24T04:36:56.106Z",
+ "baselineSha": null,
+ "walk": [
+  {
+   "name": "south-bridge-to-log",
+   "reached": true,
+   "waypointsReached": 21,
+   "of": 21,
+   "frames": 975,
+   "stuck": [],
+   "lengthM": 51.7,
+   "camera": {
+    "speedMps": {
+     "p50": 1.6,
+     "p95": 3.16,
+     "max": 8.88
+    },
+    "accelMps2": {
+     "p50": 0.11,
+     "p95": 35.48,
+     "max": 218.28
+    },
+    "verticalAccelMps2": {
+     "p50": 0.07,
+     "p95": 0.5,
+     "max": 12.62
+    },
+    "turnDegPerS": {
+     "p50": 0.32,
+     "p95": 39.42,
+     "max": 64.04
+    },
+    "turnAccelDegPerS2": {
+     "p50": 1.62,
+     "p95": 540.2,
+     "max": 771.13
+    },
+    "spikes": [
+     {
+      "row": 48,
+      "accelMps2": 218.3,
+      "jumpM": 0.296,
+      "before": {
+       "link": [
+        0.61,
+        0.03,
+        5.49
+       ],
+       "cam": [
+        0.41,
+        1.79,
+        0.97
+       ],
+       "hit": null,
+       "keep": 1,
+       "lift": 0,
+       "lowered": 0,
+       "slimPush": 0
+      },
+      "after": {
+       "link": [
+        0.61,
+        0.03,
+        5.55
+       ],
+       "cam": [
+        0.43,
+        1.78,
+        1.27
+       ],
+       "hit": null,
+       "keep": 1,
+       "lift": 0,
+       "lowered": 0,
+       "slimPush": 0.243
+      }
+     }
+    ]
+   },
+   "minCameraAboveGroundM": 1.383,
+   "feet": {
+    "stanceSamples": 949,
+    "soleGapAbsM": {
+     "p50": 0.0026,
+     "p95": 0.0214,
+     "max": 0.0324
+    },
+    "footprintLowestM": {
+     "p50": 0,
+     "p95": 0.018,
+     "max": 0.0277
+    },
+    "shareOver1cm": 0.1591,
+    "shareOver2cm": 0.0548,
+    "footprintMinGapM": -0.0165,
+    "shareFootprintInside5mm": 0.0053
+   }
+  }
+ ],
+ "southProbes": {
+  "ok": true,
+  "failed": 0,
+  "rows": [
+   {
+    "where": "deck",
+    "a": 3.31,
+    "c": 0,
+    "x": 3.81,
+    "z": 33.76,
+    "walk": -0.622,
+    "terrain": -7.162,
+    "blocked": false,
+    "expect": "walk",
+    "ok": true
+   },
+   {
+    "where": "deck",
+    "a": 3.31,
+    "c": 0.45,
+    "x": 3.36,
+    "z": 33.77,
+    "walk": -0.622,
+    "terrain": -7.063,
+    "blocked": false,
+    "expect": "walk",
+    "ok": true
+   },
+   {
+    "where": "deck",
+    "a": 3.31,
+    "c": -0.45,
+    "x": 4.26,
+    "z": 33.75,
+    "walk": -0.622,
+    "terrain": -7.287,
+    "blocked": false,
+    "expect": "walk",
+    "ok": true
+   },
+   {
+    "where": "deck-side",
+    "a": 3.31,
+    "c": 0.7,
+    "x": 3.11,
+    "z": 33.78,
+    "walk": -6.924,
+    "terrain": -6.924,
+    "blocked": true,
+    "expect": "blocked",
+    "ok": true
+   },
+   {
+    "where": "deck-side",
+    "a": 3.31,
+    "c": -0.7,
+    "x": 4.51,
+    "z": 33.74,
+    "walk": -7.373,
+    "terrain": -7.373,
+    "blocked": true,
+    "expect": "blocked",
+    "ok": true
+   },
+   {
+    "where": "deck-side",
+    "a": 3.31,
+    "c": 1,
+    "x": 2.81,
+    "z": 33.79,
+    "walk": -6.652,
+    "terrain": -6.652,
+    "blocked": true,
+    "expect": "blocked",
+    "ok": true
+   },
+   {
+    "where": "deck-side",
+    "a": 3.31,
+    "c": -1,
+    "x": 4.81,
+    "z": 33.74,
+    "walk": -7.405,
+    "terrain": -7.405,
+    "blocked": true,
+    "expect": "blocked",
+    "ok": true
+   },
+   {
+    "where": "deck-side",
+    "a": 3.31,
+    "c": 2.5,
+    "x": 1.31,
+    "z": 33.83,
+    "walk": -5.859,
+    "terrain": -5.859,
+    "blocked": true,
+    "expect": "blocked",
+    "ok": true
+   },
+   {
+    "where": "deck-side",
+    "a": 3.31,
+    "c": -2.5,
+    "x": 6.31,
+    "z": 33.69,
+    "walk": -7.67,
+    "terrain": -7.67,
+    "blocked": true,
+    "expect": "blocked",
+    "ok": true
+   },
+   {
+    "where": "deck",
+    "a": 6.63,
+    "c": 0,
+    "x": 3.9,
+    "z": 37.08,
+    "walk": -0.76,
+    "terrain": -9.476,
+    "blocked": false,
+    "expect": "walk",
+    "ok": true
+   },
+   {
+    "where": "deck",
+    "a": 6.63,
+    "c": 0.45,
+    "x": 3.45,
+    "z": 37.09,
+    "walk": -0.76,
+    "terrain": -9.553,
+    "blocked": false,
+    "expect": "walk",
+    "ok": true
+   },
+   {
+    "where": "deck",
+    "a": 6.63,
+    "c": -0.45,
+    "x": 4.35,
+    "z": 37.06,
+    "walk": -0.76,
+    "terrain": -9.299,
+    "blocked": false,
+    "expect": "walk",
+    "ok": true
+   },
+   {
+    "where": "deck-side",
+    "a": 6.63,
+    "c": 0.7,
+    "x": 3.2,
+    "z": 37.09,
+    "walk": -9.524,
+    "terrain": -9.524,
+    "blocked": true,
+    "expect": "blocked",
+    "ok": true
+   },
+   {
+    "where": "deck-side",
+    "a": 6.63,
+    "c": -0.7,
+    "x": 4.6,
+    "z": 37.06,
+    "walk": -9.158,
+    "terrain": -9.158,
+    "blocked": true,
+    "expect": "blocked",
+    "ok": true
+   },
+   {
+    "where": "deck-side",
+    "a": 6.63,
+    "c": 1,
+    "x": 2.9,
+    "z": 37.1,
+    "walk": -9.369,
+    "terrain": -9.369,
+    "blocked": true,
+    "expect": "blocked",
+    "ok": true
+   },
+   {
+    "where": "deck-side",
+    "a": 6.63,
+    "c": -1,
+    "x": 4.9,
+    "z": 37.05,
+    "walk": -9.337,
+    "terrain": -9.337,
+    "blocked": true,
+    "expect": "blocked",
+    "ok": true
+   },
+   {
+    "where": "deck-side",
+    "a": 6.63,
+    "c": 2.5,
+    "x": 1.4,
+    "z": 37.14,
+    "walk": -9.223,
+    "terrain": -9.223,
+    "blocked": true,
+    "expect": "blocked",
+    "ok": true
+   },
+   {
+    "where": "deck-side",
+    "a": 6.63,
+    "c": -2.5,
+    "x": 6.4,
+    "z": 37.01,
+    "walk": -9.504,
+    "terrain": -9.504,
+    "blocked": true,
+    "expect": "blocked",
+    "ok": true
+   },
+   {
+    "where": "deck",
+    "a": 9.94,
+    "c": 0,
+    "x": 3.99,
+    "z": 40.39,
+    "walk": -0.549,
+    "terrain": -7.528,
+    "blocked": false,
+    "expect": "walk",
+    "ok": true
+   },
+   {
+    "where": "deck",
+    "a": 9.94,
+    "c": 0.45,
+    "x": 3.54,
+    "z": 40.4,
+    "walk": -0.549,
+    "terrain": -7.704,
+    "blocked": false,
+    "expect": "walk",
+    "ok": true
+   },
+   {
+    "where": "deck",
+    "a": 9.94,
+    "c": -0.45,
+    "x": 4.44,
+    "z": 40.38,
+    "walk": -0.549,
+    "terrain": -7.272,
+    "blocked": false,
+    "expect": "walk",
+    "ok": true
+   },
+   {
+    "where": "deck-side",
+    "a": 9.94,
+    "c": 0.7,
+    "x": 3.29,
+    "z": 40.41,
+    "walk": -7.879,
+    "terrain": -7.879,
+    "blocked": true,
+    "expect": "blocked",
+    "ok": true
+   },
+   {
+    "where": "deck-side",
+    "a": 9.94,
+    "c": -0.7,
+    "x": 4.69,
+    "z": 40.37,
+    "walk": -7.148,
+    "terrain": -7.148,
+    "blocked": true,
+    "expect": "blocked",
+    "ok": true
+   },
+   {
+    "where": "deck-side",
+    "a": 9.94,
+    "c": 1,
+    "x": 2.99,
+    "z": 40.41,
+    "walk": -8.049,
+    "terrain": -8.049,
+    "blocked": true,
+    "expect": "blocked",
+    "ok": true
+   },
+   {
+    "where": "deck-side",
+    "a": 9.94,
+    "c": -1,
+    "x": 4.99,
+    "z": 40.36,
+    "walk": -6.964,
+    "terrain": -6.964,
+    "blocked": true,
+    "expect": "blocked",
+    "ok": true
+   },
+   {
+    "where": "deck-side",
+    "a": 9.94,
+    "c": 2.5,
+    "x": 1.49,
+    "z": 40.46,
+    "walk": -8.51,
+    "terrain": -8.51,
+    "blocked": true,
+    "expect": "blocked",
+    "ok": true
+   },
+   {
+    "where": "deck-side",
+    "a": 9.94,
+    "c": -2.5,
+    "x": 6.49,
+    "z": 40.32,
+    "walk": -6.897,
+    "terrain": -6.897,
+    "blocked": true,
+    "expect": "blocked",
+    "ok": true
+   },
+   {
+    "where": "rim-by-north-head",
+    "a": 1.5,
+    "c": 3,
+    "x": 0.76,
+    "z": 32.03,
+    "walk": -0.33,
+    "terrain": -0.33,
+    "blocked": false,
+    "expect": "rim",
+    "ok": true
+   },
+   {
+    "where": "rim-by-north-head",
+    "a": 1.5,
+    "c": -3,
+    "x": 6.76,
+    "z": 31.87,
+    "walk": -1.456,
+    "terrain": -1.456,
+    "blocked": true,
+    "expect": "rim",
+    "ok": true
+   },
+   {
+    "where": "ravine-by-north-head",
+    "a": 3,
+    "c": 3,
+    "x": 0.8,
+    "z": 33.53,
+    "walk": -4.318,
+    "terrain": -4.318,
+    "blocked": true,
+    "expect": "blocked",
+    "ok": true
+   },
+   {
+    "where": "ravine-by-north-head",
+    "a": 3,
+    "c": -3,
+    "x": 6.8,
+    "z": 33.37,
+    "walk": -6.562,
+    "terrain": -6.562,
+    "blocked": true,
+    "expect": "blocked",
+    "ok": true
+   },
+   {
+    "where": "ravine-by-south-head",
+    "a": 11.75,
+    "c": 3,
+    "x": 1.04,
+    "z": 42.28,
+    "walk": -2.34,
+    "terrain": -2.34,
+    "blocked": true,
+    "expect": "blocked",
+    "ok": true
+   },
+   {
+    "where": "ravine-by-south-head",
+    "a": 11.75,
+    "c": -3,
+    "x": 7.04,
+    "z": 42.12,
+    "walk": -0.377,
+    "terrain": -0.377,
+    "blocked": true,
+    "expect": "blocked",
+    "ok": true
+   },
+   {
+    "where": "ravine-by-south-head",
+    "a": 10.25,
+    "c": 3,
+    "x": 1,
+    "z": 40.78,
+    "walk": -7.639,
+    "terrain": -7.639,
+    "blocked": true,
+    "expect": "blocked",
+    "ok": true
+   },
+   {
+    "where": "ravine-by-south-head",
+    "a": 10.25,
+    "c": -3,
+    "x": 7,
+    "z": 40.62,
+    "walk": -5.359,
+    "terrain": -5.359,
+    "blocked": true,
+    "expect": "blocked",
+    "ok": true
+   },
+   {
+    "where": "log-floor",
+    "a": 1,
+    "c": 0,
+    "x": 4.28,
+    "z": 47.9,
+    "walk": -0.221,
+    "terrain": -0.743,
+    "blocked": false,
+    "expect": "walk",
+    "ok": true
+   },
+   {
+    "where": "log-floor",
+    "a": 3,
+    "c": 0,
+    "x": 4.34,
+    "z": 49.9,
+    "walk": -0.221,
+    "terrain": -0.743,
+    "blocked": false,
+    "expect": "walk",
+    "ok": true
+   },
+   {
+    "where": "log-floor",
+    "a": 5.2,
+    "c": 0,
+    "x": 4.41,
+    "z": 52.1,
+    "walk": -0.221,
+    "terrain": -0.743,
+    "blocked": false,
+    "expect": "walk",
+    "ok": true
+   },
+   {
+    "where": "log-wall",
+    "a": 3,
+    "c": 1.2,
+    "x": 3.14,
+    "z": 49.93,
+    "walk": -0.743,
+    "terrain": -0.743,
+    "blocked": true,
+    "expect": "blocked",
+    "ok": true
+   },
+   {
+    "where": "log-wall",
+    "a": 3,
+    "c": -1.2,
+    "x": 5.54,
+    "z": 49.86,
+    "walk": -0.489,
+    "terrain": -0.489,
+    "blocked": true,
+    "expect": "blocked",
+    "ok": true
+   },
+   {
+    "where": "log-past-dead-end",
+    "a": 5.9,
+    "c": 0,
+    "x": 4.43,
+    "z": 52.8,
+    "walk": -0.743,
+    "terrain": -0.743,
+    "blocked": true,
+    "expect": "blocked",
+    "ok": true
+   }
+  ]
+ },
+ "pageErrors": [],
+ "finished": "2026-09-24T04:38:19.524Z"
+}

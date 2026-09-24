@@ -787,3 +787,26 @@ against 0.264 is the last of it), saturation 0.36 against 0.27 still a touch war
 0.286 → 0.317 (the frame 0.344) — and the SSIM at A −0.0042 despite that: the frame's flight is the darker worn stone of the
 09-16 capture, the metric is structural. **Kind and weight both toward the owner's reference now; merge-ready by these
 reads, with the A cost named.**
+
+## 27. The head `fb7d313a` (04:25 — the owner's 23:00 merges, the verge tier, **the south expansion**) walked and counted (04:28–04:40 UTC)
+
+**Caps** (`submission.mjs`, vs `39e63437`): **A 643 / 8.89 M**, B / E 633 / 8.12 M, **C 559 / 7.25 M** (+32 draws / +482 K — the
+south expansion sits in C's view, fable-cursor's own +59 / +0.52 M), D 561 / 8.45 M, F 596 / 7.89 M. Under both caps everywhere;
+A has 57 draws and 110 K of room. `perf101/submission-fb7d313a.json`.
+
+**Walk QA — the nine routes on the head's harness:** 9 / 9 reached, 0 stuck, the flights' camera as §22 (main 506 °/s²),
+the west-house pull-in still 1.28 m. **The new `south-bridge-to-log` route** (51.7 m: plaza → the south approach → between
+the giants' roots → over the rope bridge → into the hollow log): **21 / 21 waypoints, 0 stuck, 975 frames**; the camera
+never below 1.38 m over the ground, vertical acceleration p95 0.5 / max 12.6 m/s² (the flat routes' level), one 0.30 m
+step at the plaza start; the boots on the deck p50 0 / max 2.8 cm — the deck carries Link. **The deck probes 41 / 41**
+(walkable to ±0.45 m of the axis, blocked from ±0.7 m, the rims and the ravine as expected; the deck at its quarter points
+0.62 m below grade over a floor 7.1 m down). `perf101/walk-south-fb7d313a.json`. (My first run used my own checkout's
+harness, which predates the route — the head's `gauntlet/scripts/playtest.mjs` is the one that knows it.)
+
+**At player height** (`spot.mjs`, the follow camera behind Link, sheet `fable-5-lane10/it101-south-sheet.jpg`, `it101-bridge-mid.jpg`):
+from the north sill, mid-bridge and the south sill the scene reads as one piece — the rope-and-plank bridge over the ravine,
+pod lanterns on its posts, the hollow log's warm mouth ahead between the banks' shrubs, the giants behind; nothing floats,
+nothing pops. **fable-cursor's open item confirmed:** Link at (3.5, 27.6) facing south puts the follow camera inside
+`plaza-south`'s root flare — the frame is the flare's bark, 90 % of it under 0.15 (`south-flare` on the sheet). A placed
+pose, off the walked line, but the first thing a player who turns south at the path's east edge will see; the camera
+lane's solid-shell pull-in should treat the flare as a shell.
