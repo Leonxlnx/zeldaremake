@@ -1,0 +1,27 @@
+{
+  "schemaVersion": 1,
+  "id": "vista",
+  "version": "${version}",
+  "name": "Vista",
+  "description": "Extreme render distance: a voxel-exact far-terrain renderer with seamless dithered LOD transitions, an instant noise-driven horizon, compressed on-disk caching and GPU-driven multi-draw rendering.",
+  "authors": ["Vista contributors"],
+  "license": "MIT",
+  "environment": "client",
+  "entrypoints": {
+    "client": ["dev.vista.VistaClient"]
+  },
+  "mixins": ["vista.mixins.json"],
+  "depends": {
+    "fabricloader": ">=0.16.0",
+    "fabric-api": "*",
+    "minecraft": "~1.21.1",
+    "java": ">=21"
+  },
+  "breaks": {
+    "distanthorizons": "*",
+    "voxy": "*"
+  },
+  "suggests": {
+    "sodium": "*"
+  }
+}
