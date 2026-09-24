@@ -269,7 +269,7 @@ export class MeshBuilder {
    * `wear` the face's weathering gate, `crack` the three vertices' crack coordinates (6 numbers)
    * and `mottle` their (moss, grey, green) mottle weights (9 numbers)
    */
-  tri(a: Vector3, b: Vector3, c: Vector3, uva: Vector2, uvb: Vector2, uvc: Vector2, col: Rgb, moss: [number, number, number], n?: Vector3, stain?: [number, number, number], wear = 0, crack?: readonly number[], mottle?: readonly number[]) {
+  tri(a: Vector3, b: Vector3, c: Vector3, uva: Vector2, uvb: Vector2, uvc: Vector2, col: Rgb | readonly [Rgb, Rgb, Rgb], moss: [number, number, number], n?: Vector3, stain?: [number, number, number], wear = 0, crack?: readonly number[], mottle?: readonly number[]) {
     let nx: number;
     let ny: number;
     let nz: number;
@@ -295,7 +295,13 @@ export class MeshBuilder {
     this.pos.push(a.x, a.y, a.z, b.x, b.y, b.z, c.x, c.y, c.z);
     this.nrm.push(nx, ny, nz, nx, ny, nz, nx, ny, nz);
     this.uv.push(uva.x, uva.y, uvb.x, uvb.y, uvc.x, uvc.y);
-    this.col.push(col[0], col[1], col[2], col[0], col[1], col[2], col[0], col[1], col[2]);
+    if (typeof col[0] === 'number') {
+      const k = col as Rgb;
+      this.col.push(k[0], k[1], k[2], k[0], k[1], k[2], k[0], k[1], k[2]);
+    } else {
+      const [ka, kb, kc] = col as readonly [Rgb, Rgb, Rgb];
+      this.col.push(ka[0], ka[1], ka[2], kb[0], kb[1], kb[2], kc[0], kc[1], kc[2]);
+    }
     this.moss.push(moss[0], moss[1], moss[2]);
     if (stain) this.stain.push(stain[0], stain[1], stain[2]);
     else this.stain.push(0, 0, 0);
@@ -431,6 +437,13 @@ export interface SlabOptions {
    * May return an RGB triple for a tinted multiplier (moss film, damp patches).
    */
   colorFn?: (x: number, z: number, part: 'top' | 'bevel' | 'side', edge: number) => number | [number, number, number];
+  /**
+   * shade the top face per vertex (the colour function sampled at each corner and interpolated)
+   * instead of one tone per quad: a quad of the top is 0.3–0.7 m on a tread, and one tone each
+   * reads as a patchwork of facets at arm's length (the flight's survey poses at 1.5–2 m); false
+   * (the default) keeps the per-quad tone the plaza's slabs were tuned with
+   */
+  vertexTone?: boolean;
   /**
    * smooth the bevel ring and the top face as one group so the rim rolls over softly (worn
    * flagstone) instead of showing a hard crease between bevel and top (cut stair nosing)
@@ -584,6 +597,7 @@ export function buildSlab(mb: MeshBuilder, outline: P2[], o: SlabOptions) {
   const mossAdd = o.mossAdd ?? (() => 0);
   const topNoise = o.topNoise ?? (() => 0);
   const colorFn = o.colorFn;
+  const vertexTone = o.vertexTone ?? false;
   const wear = o.wear ?? 0;
   const crackFn = o.crackFn;
   const NO_CRACK: readonly number[] = [9, 9, 9, 9, 9, 9];
@@ -727,7 +741,7 @@ export function buildSlab(mb: MeshBuilder, outline: P2[], o: SlabOptions) {
       _b.set(q.x, topY(q, 1) - 0.85 * dropAt(idx[1]), q.z);
       _c.set(r.x, topY(r, 1) - 0.85 * dropAt(idx[2]), r.z);
       const mossAt = (v: P2) => mossEdge * 0.7 * mossFn(v.x, v.z) + mossAdd(v.x, v.z, 1);
-      const tc = colorFn ? shade(col, 'top', (p.x + q.x + r.x) / 3, (p.z + q.z + r.z) / 3, 1, 1) : col;
+      const tc = colorFn ? (vertexTone ? ([shade(col, 'top', p.x, p.z, 1, 1), shade(col, 'top', q.x, q.z, 1, 1), shade(col, 'top', r.x, r.z, 1, 1)] as const) : shade(col, 'top', (p.x + q.x + r.x) / 3, (p.z + q.z + r.z) / 3, 1, 1)) : col;
       mb.tri(_a, _b, _c, topUv(p), topUv(q), topUv(r), tc, [mossAt(p), mossAt(q), mossAt(r)], undefined, undefined, wear, crackOf(p, q, r), mottleOf(p, q, r, 1, 1, 1));
     }
   } else {
@@ -759,6 +773,15 @@ export function buildSlab(mb: MeshBuilder, outline: P2[], o: SlabOptions) {
         const m2 = mA * mossFn(q.x, q.z) + mossAdd(q.x, q.z, sA);
         const m3 = mB * mossFn(qi.x, qi.z) + mossAdd(qi.x, qi.z, sB);
         const m4 = mB * mossFn(pi.x, pi.z) + mossAdd(pi.x, pi.z, sB);
+        if (vertexTone && colorFn) {
+          const cp = shade(col, 'top', p.x, p.z, 1, sA);
+          const cq = shade(col, 'top', q.x, q.z, 1, sA);
+          const cqi = shade(col, 'top', qi.x, qi.z, 1, sB);
+          const cpi = shade(col, 'top', pi.x, pi.z, 1, sB);
+          mb.tri(_a, _b, _c, topUv(p), topUv(q), topUv(qi), [cp, cq, cqi], [m1, m2, m3], undefined, undefined, wear, crackOf(p, q, qi), mottleOf(p, q, qi, sA, sA, sB));
+          mb.tri(_a, _c, _d, topUv(p), topUv(qi), topUv(pi), [cp, cqi, cpi], [m1, m3, m4], undefined, undefined, wear, crackOf(p, qi, pi), mottleOf(p, qi, pi, sA, sB, sB));
+          continue;
+        }
         const tc = colorFn ? shade(col, 'top', (p.x + q.x + pi.x + qi.x) / 4, (p.z + q.z + pi.z + qi.z) / 4, 1, (sA + sB) / 2) : col;
         mb.tri(_a, _b, _c, topUv(p), topUv(q), topUv(qi), tc, [m1, m2, m3], undefined, undefined, wear, crackOf(p, q, qi), mottleOf(p, q, qi, sA, sA, sB));
         mb.tri(_a, _c, _d, topUv(p), topUv(qi), topUv(pi), tc, [m1, m3, m4], undefined, undefined, wear, crackOf(p, qi, pi), mottleOf(p, qi, pi, sA, sB, sB));
@@ -775,7 +798,7 @@ export function buildSlab(mb: MeshBuilder, outline: P2[], o: SlabOptions) {
       _b.set(q.x, topY(q, sL), q.z);
       const mL = mossInner * mossFn(p.x, p.z) + mossAdd(p.x, p.z, sL);
       const mQ = mossInner * mossFn(q.x, q.z) + mossAdd(q.x, q.z, sL);
-      const tc = colorFn ? shade(col, 'top', (p.x + q.x + c.x) / 3, (p.z + q.z + c.z) / 3, 1, sL / 2) : col;
+      const tc = colorFn ? (vertexTone ? ([shade(col, 'top', p.x, p.z, 1, sL), shade(col, 'top', q.x, q.z, 1, sL), shade(col, 'top', c.x, c.z, 1, 0)] as const) : shade(col, 'top', (p.x + q.x + c.x) / 3, (p.z + q.z + c.z) / 3, 1, sL / 2)) : col;
       mb.tri(_a, _b, _c, topUv(p), topUv(q), topUv(c), tc, [mL, mQ, mC], undefined, undefined, wear, crackOf(p, q, c), mottleOf(p, q, c, sL, sL, 0));
     }
   }

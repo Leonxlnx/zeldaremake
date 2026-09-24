@@ -212,7 +212,9 @@ export function buildStairway(def: StairDef, terrain: Terrain, rng: Rng, seed: s
   const placeSlab = (outline: P2[], cx: number, cy: number, cz: number, yaw: number, tiltX: number, tiltZ: number, opts: Parameters<typeof buildSlab>[2], rough = 0) => {
     const mb = new MeshBuilder();
     mb.currentRough = rough;
-    buildSlab(mb, outline, opts);
+    // the flight's tops shade per vertex (geometry.ts `vertexTone`): the survey poses stand on the
+    // treads at 1.5–2 m, where one tone per 0.5 m quad read as a patchwork of facets
+    buildSlab(mb, outline, { ...opts, vertexTone: true });
     tmpM.makeRotationY(yaw);
     if (tiltX || tiltZ) {
       const t = new Matrix4().makeRotationX(tiltX).multiply(new Matrix4().makeRotationZ(tiltZ));
