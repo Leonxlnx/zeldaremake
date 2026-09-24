@@ -160,8 +160,27 @@ export function inStairCut(x: number, z: number, m = 0): boolean {
 export function inTerrace(x: number, z: number, m = 0): boolean {
   const T = R.terrace;
   if (x < T.x0 - m || x > T.x1 + m || z < T.z0 - m || z > T.z1 + m) return false;
-  if (z < T.notchZ + m && x > T.notchX + m) return false;
+  if (z < T.notchZ - m && x > T.notchX + m) return false;
   return !inStairCut(x, z, -m);
+}
+
+/**
+ * How far out from the terrace's open edges the walker is held (m) — the east front beside the
+ * stair's mouth, the notch's faces, the north face (the wall and the cliff hold the others). From
+ * the paving it is the drop he cannot step off (the walk spans stop at the faces); below, the
+ * masonry he cannot press his body into.
+ */
+export const TERRACE_EDGE_M = 0.45;
+
+/** true in the band TERRACE_EDGE_M wide outside the terrace's open edges (the approach to the first riser stays open) */
+export function terraceEdge(x: number, z: number): boolean {
+  const T = R.terrace;
+  const m = TERRACE_EDGE_M;
+  if (x < T.x0 || x > T.x1 + m || z < T.z0 - m || z > T.z1) return false;
+  if (z < T.notchZ - m && x > T.notchX + m) return false;
+  if (inTerrace(x, z) || inStairCut(x, z)) return false;
+  const { u, v } = stairLocal(x, z);
+  return !(u <= 0 && Math.abs(v) < R.stairs.width / 2);
 }
 
 /** radial signed distance (m) to the pool's shore, negative inside; ragged except along the wall */
@@ -367,7 +386,11 @@ export const CLIFF_DEPTH_M = 7.6;
  */
 export function ruinsStructure(x: number, z: number): number {
   if (!inBox(RUINS_SITE_BOX, x, z)) return 0;
-  if (inTerrace(x, z, 0.1)) return 1;
+  if (inTerrace(x, z, 0.1)) {
+    // the skirt runs along the cut's sides, not across the flight or the approach to its first riser
+    const { u, v } = stairLocal(x, z);
+    if (!(u < STAIR_RUN && Math.abs(v) < R.stairs.width / 2 - 0.1)) return 1;
+  }
   const W = R.wall;
   if (x > W.x0 - 0.1 && x < W.x1 + 0.1 && Math.abs(z - W.z) < W.half + 0.25) return 1;
   const C = R.cliff;
@@ -380,9 +403,9 @@ export function ruinsStructure(x: number, z: number): number {
 
 /**
  * The walker's rule (character/ground.ts `blocked`): the pool deeper than a paddle (the shelf's
- * first ≈ 0.45 m is wading), the wall and its parapet, the cliff (and everything behind it), the
- * ivy rock, the gate boulders, the columns and piers. Off the terrace's edges and the outcrop's
- * the walker simply steps down (drops are allowed); the rise back is what stops them.
+ * first ≈ 0.45 m is wading), the wall and its parapet, the terrace's open edges (`terraceEdge`),
+ * the cliff (and everything behind it), the ivy rock, the gate boulders, the columns and piers.
+ * The outcrop eases down to the forest floor, so off its edges the walker simply walks down.
  */
 export function ruinsBlocked(x: number, z: number): boolean {
   if (!inBox(RUINS_SITE_BOX, x, z)) return false;
@@ -394,11 +417,12 @@ export function ruinsBlocked(x: number, z: number): boolean {
   return false;
 }
 
-/** the pool past a paddle, the wall and its parapet, the gate boulders, the columns and piers */
+/** the pool past a paddle, the wall and its parapet, the terrace's open edges, the gate boulders, the columns and piers */
 function builtBlocked(x: number, z: number): boolean {
   if (poolSigned(x, z) < -0.45) return true;
   const W = R.wall;
   if (x > W.x0 - 0.2 && x < W.x1 + 0.12 && Math.abs(z - W.z) < W.half + 0.12) return true;
+  if (terraceEdge(x, z)) return true;
   for (const g of R.gate) if (Math.hypot(x - g[0], z - g[1]) < g[2] * 0.85) return true;
   for (const [cx, cz, r] of RUINS_COLUMN_FEET) if (Math.hypot(x - cx, z - cz) < r + 0.12) return true;
   return false;
