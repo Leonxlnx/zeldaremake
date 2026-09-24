@@ -216,6 +216,37 @@ function releaseAfterUpload(g: BufferGeometry): void {
 }
 
 /**
+ * Round 56 (the owner's rubric, #20 "nothing looks brand-new"): the iron — barrel and bucket hoops,
+ * the crates' nail heads — was painted clean grey. Rust now mottles it (a fine patch field, so no two
+ * hoops match), heaviest in the damp near the ground and along each hoop's lower edge where water
+ * sits, and every piece loses a little of its shine. Vertex colours on the iron material's dark grey.
+ */
+function rust(geometry: BufferGeometry, size: number): void {
+  const p = geometry.attributes.position;
+  const colors = geometry.attributes.color;
+  // orange-brown over the material's 0x6e6357: the multiplier that lands on ≈ 0x7a4a2a
+  const rustTint = new Color(1.11, 0.75, 0.48);
+  const c = new Color();
+  geometry.computeBoundingBox();
+  const box = geometry.boundingBox;
+  const bandBottom = box ? box.min.y : 0;
+  const bandHeight = box ? Math.max(1e-4, box.max.y - box.min.y) : 1;
+  for (let i = 0; i < p.count; i++) {
+    const px = p.getX(i);
+    const py = p.getY(i);
+    const pz = p.getZ(i);
+    const patch = 0.5 + 0.5 * Math.sin(px * 31 + pz * 47 + py * 19) * Math.cos(pz * 29 - px * 37 + py * 23);
+    const damp = 1 - Math.min(1, Math.max(0, py / (size * 0.35)));
+    const lowerEdge = 1 - Math.min(1, (py - bandBottom) / bandHeight);
+    const w = Math.min(0.85, 0.18 + 0.4 * patch + 0.25 * damp + 0.15 * lowerEdge);
+    c.fromBufferAttribute(colors, i);
+    c.multiplyScalar(0.92);
+    c.lerp(rustTint, w);
+    colors.setXYZ(i, c.r, c.g, c.b);
+  }
+}
+
+/**
  * Grime and moss where a prop meets the ground; continuous in space so shared edges stay seamless.
  * Round 56 (the owner's rubric, ★16 "weathering follows exposure"): `sunLocal` is the direction
  * toward the sun in the prop's own frame — the moss band climbs on the side facing away from it
@@ -223,7 +254,11 @@ function releaseAfterUpload(g: BufferGeometry): void {
  * ≈ 35° of up) take a sun-bleach: dry wood goes a little grey-silver, clay a dusty lighter tone.
  */
 function weather(geometry: BufferGeometry, material: MaterialKey, size: number, sunLocal: { x: number; z: number }): void {
-  if (material === 'iron' || material === 'glow') return;
+  if (material === 'glow') return;
+  if (material === 'iron') {
+    rust(geometry, size);
+    return;
+  }
   const p = geometry.attributes.position;
   const n = geometry.attributes.normal;
   const colors = geometry.attributes.color;
