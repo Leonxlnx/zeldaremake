@@ -670,15 +670,21 @@ export function buildSlab(mb: MeshBuilder, outline: P2[], o: SlabOptions) {
     _ub.set(u0 + len * uvS + uvO[0], uvO[1]);
     _uc.set(u0 + len * uvS + uvO[0], (t - bevel) * uvS + uvO[1]);
     _ud.set(u0 + uvO[0], (t - bevel) * uvS + uvO[1]);
-    // grime: darker toward the bottom → encode via colour; moss on the lower side
+    // grime: darker toward the bottom, as a foot → shoulder gradient in the vertex colour (the foot
+    // vertices a, b take the grime factor, the shoulder vertices c, d the clean tone). Until
+    // 2026-09-24 the factor sat on the quad's first triangle whole and the second went clean: every
+    // wall quad was a dark triangle beside a light one, split on its diagonal — the patchwork of
+    // facets on the flights' risers at the tread poses (fable-5's read of #61). Moss on the lower side.
     const mSide = mossEdge * 0.8 * mossFn(p.x, p.z);
     const aP = mossAdd(p.x, p.z, 1);
     const aQ = mossAdd(q.x, q.z, 1);
     const mx = (p.x + q.x) / 2;
     const mz = (p.z + q.z) / 2;
+    const cFoot = shade(scol, 'side', mx, mz, o.sideGrime ?? 0.75);
+    const cTop = shade(scol, 'side', mx, mz);
     // soil stain: a, b at the foot, c, d at the shoulder ring
-    mb.tri(_a, _b, _c, _ua, _ub, _uc, shade(scol, 'side', mx, mz, o.sideGrime ?? 0.75), [mSide + aP, mSide + aQ, mSide * 0.5 + aQ], sideN, [sideStain, sideStain, 0], sideWear, sideCrackOf(_a, _b, _c));
-    mb.tri(_a, _c, _d, _ua, _uc, _ud, shade(scol, 'side', mx, mz), [mSide + aP, mSide * 0.5 + aQ, mSide * 0.5 + aP], sideN, [sideStain, 0, 0], sideWear, sideCrackOf(_a, _c, _d));
+    mb.tri(_a, _b, _c, _ua, _ub, _uc, [cFoot, cFoot, cTop], [mSide + aP, mSide + aQ, mSide * 0.5 + aQ], sideN, [sideStain, sideStain, 0], sideWear, sideCrackOf(_a, _b, _c));
+    mb.tri(_a, _c, _d, _ua, _uc, _ud, [cFoot, cTop, cTop], [mSide + aP, mSide * 0.5 + aQ, mSide * 0.5 + aP], sideN, [sideStain, 0, 0], sideWear, sideCrackOf(_a, _c, _d));
   }
 
   // --- bevel ring (smooth): one chamfer band, or `bevelRings` bands on a quarter-round ---
