@@ -18,7 +18,7 @@ import type { Wind } from '../world/wind/wind';
 import type { PlayerHandle } from '../world/character/player';
 import { surfaceMask } from '../world/terrain/heightfield';
 import { forestFloorZone } from '../world/terrain/material';
-import { EXPANSION, EXPANSION_SOUTH, LAYOUT } from '../world/layout';
+import { EXPANSION, EXPANSION_NORTH, EXPANSION_SOUTH, LAYOUT, northGangway } from '../world/layout';
 import { createBuses, createRng, voices as liveVoices, type Buses } from './graph';
 import { createAmbience, type Ambience, type AmbienceStats, type Vec3 } from './ambience';
 import { createFootsteps, type Footsteps, type FootstepStats, type Surface } from './footsteps';
@@ -232,7 +232,10 @@ function gatherPods(scene: Scene): Vec3[] {
  * walking — gentle stone, grass, etc."). Analytic, from the layout and the live terrain masks the
  * paving is built from — no raycasts:
  *  - hollow: inside the log tunnel's bore (LAYOUT.logArch axis where the path passes through, within 0.8 of its radius)
- *  - wood:   the west house's platform disc and its walkway deck (EXPANSION.westHouse)
+ *  - wood:   the west house's platform disc and its walkway deck (EXPANSION.westHouse); the north
+ *            grove's planking — the stilt house's veranda, the gangway up to it, the rope walk
+ *            with its stubs and the tree hut's platform (EXPANSION_NORTH; character/ground.ts
+ *            stands him on these wherever he is over them, so the test is XZ like the ground's)
  *  - stone:  the flagstone paths and the stair treads (surfaceMask path / stairs, live view — the
  *            expansion's stepping discs count)
  *  - dirt:   the trodden shoulders beside the paving (path influence 0.12–0.5) and the stair aprons
@@ -241,6 +244,38 @@ function gatherPods(scene: Scene): Vec3[] {
  *            mouth). The owner's 09-23 list names leaves as one of the four surfaces.
  *  - grass:  everything else
  */
+const GROVE_PLANKS = (() => {
+  const N = EXPANSION_NORTH;
+  const g = northGangway();
+  const gl = Math.hypot(g.head[0] - g.foot[0], g.head[2] - g.foot[2]);
+  // the gangway's walk span starts 0.35 m before its foot (structures/expansionNorth.ts)
+  const lead = 0.35 / gl;
+  return {
+    discs: [
+      { x: N.stilt.host[0], z: N.stilt.host[1], r: N.stilt.radius + N.stilt.veranda },
+      { x: N.hut.host[0], z: N.hut.host[1], r: N.hut.radius + 0.22 },
+    ],
+    segs: [
+      { ax: g.foot[0] - (g.head[0] - g.foot[0]) * lead, az: g.foot[2] - (g.head[2] - g.foot[2]) * lead, bx: g.head[0], bz: g.head[2], hw: N.gangway.halfWidth },
+      // the stubs and the rope walk between them lie on the line joining the two huts
+      { ax: N.stilt.host[0], az: N.stilt.host[1], bx: N.hut.host[0], bz: N.hut.host[1], hw: N.ropeWalk.halfWidth },
+    ],
+  };
+})();
+
+/** true over the north grove's planking (GROVE_PLANKS: the two decks, the gangway, the stubs and the rope walk) */
+export function onGrovePlanks(x: number, z: number): boolean {
+  for (const d of GROVE_PLANKS.discs) if (Math.hypot(x - d.x, z - d.z) < d.r) return true;
+  for (const s of GROVE_PLANKS.segs) {
+    const dx = s.bx - s.ax;
+    const dz = s.bz - s.az;
+    const t = ((x - s.ax) * dx + (z - s.az) * dz) / (dx * dx + dz * dz);
+    if (t < 0 || t > 1) continue;
+    if (Math.hypot(x - s.ax - dx * t, z - s.az - dz * t) < s.hw) return true;
+  }
+  return false;
+}
+
 export function surfaceAt(x: number, z: number): { surface: Surface; stairs: boolean; enclosure: number; canopy: number; gorge: number } {
   const m = surfaceMask(x, z, 'live');
   const gorge = gorgeAt(x, z);
@@ -306,6 +341,7 @@ export function surfaceAt(x: number, z: number): { surface: Surface; stairs: boo
       if (Math.hypot(x - px, z - pz) < 0.475) return { surface: 'wood', stairs: false, enclosure: 0, canopy, gorge };
     }
   }
+  if (onGrovePlanks(x, z)) return { surface: 'wood', stairs: false, enclosure: 0, canopy, gorge };
   if (m.path > 0.5) return { surface: 'stone', stairs: false, enclosure: 0, canopy, gorge };
   if (m.path > 0.12) return { surface: 'dirt', stairs: false, enclosure: 0, canopy, gorge };
   if (canopy > 0.5) return { surface: 'leaf', stairs: false, enclosure: 0, canopy, gorge };
