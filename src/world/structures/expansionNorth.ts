@@ -62,7 +62,7 @@ import { sunVector } from '../util/expansionLocality';
 import { WALL_MAX_FACTOR, buildDistantHouses, type DistantHouseDef } from './distantHouse';
 import { ropeTube } from './fence';
 import { FoliageBuilder } from './foliage';
-import { TAU, basisMatrix, gridSurface, merge, setColorAttribute, sweepTube } from './geometry';
+import { TAU, basisMatrix, gridSurface, merge, repeatsRound, seamUV, setColorAttribute, sweepTube } from './geometry';
 import { buildHouse, type HouseSharedMaterials } from './house';
 import { buildLantern, lanternHanger, type LanternRig } from './lantern';
 import { buildLanternPost } from './lanternPost';
@@ -92,18 +92,6 @@ const dirAt = (a: number) => new Vector3(Math.cos(a), 0, Math.sin(a));
 const p3 = (p: Vector3): P3 => [+p.x.toFixed(3), +p.y.toFixed(3), +p.z.toFixed(3)];
 const scaleRGB = (c: RGB, k: number): RGB => [c[0] * k, c[1] * k, c[2] * k];
 const tri = (g: BufferGeometry) => Math.floor((g.index ? g.index.count : g.attributes.position.count) / 3);
-/** whole texture repeats round a ring of this radius at the structures' 1.6 m tile, so a map wraps onto itself */
-const repeatsRound = (radius: number) => Math.max(1, Math.round((TAU * radius) / 1.6));
-/**
- * gridSurface samples a closedU surface's seam column at u = 0, so a uv that grows round the ring
- * falls back to 0 across the last quad and the whole map squeezes into it backwards. Extrapolate
- * that column's u from the two before it (uv u = u × repeatsRound(r) then ends at a whole repeat).
- */
-function seamUV(g: BufferGeometry, cols: number): BufferGeometry {
-  const uv = g.attributes.uv;
-  for (let k = cols; k < uv.count; k += cols + 1) uv.setX(k, 2 * uv.getX(k - 1) - uv.getX(k - 2));
-  return g;
-}
 /** `noise.ridged` round a turn (ang ∈ [0, TAU]) that meets itself: the turn's last 0.8 rad blend into its start */
 function ridgedRound(noise: Noise2D, ang: number, freq: number, x0: number, y: number): number {
   return lerp(noise.ridged(ang * freq + x0, y, 2), noise.ridged((ang - TAU) * freq + x0, y, 2), smoothstep(TAU - 0.8, TAU, ang));
@@ -159,6 +147,7 @@ export const GROVE_HUTS: DistantHouseDef[] = [
     radius: SH.radius,
     wall: SH.wall,
     doorSize: [0.76, 1.55],
+    seamlessRings: true,
     capHeight: SH.capHeight,
     capOverhang: SH.capOverhang,
     facingDeg: SH.facingDeg,
@@ -179,6 +168,7 @@ export const GROVE_HUTS: DistantHouseDef[] = [
     radius: TH.radius,
     wall: TH.wall,
     doorSize: [0.72, 1.5],
+    seamlessRings: true,
     capHeight: TH.capHeight,
     capOverhang: TH.capOverhang,
     facingDeg: TH.facingDeg,
