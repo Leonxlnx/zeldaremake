@@ -1,4 +1,4 @@
-# fable-5 — the 50-point rubric, non-author pre-merge read: the waterfall ruins (`agent/fable-cursor-exp-ruins` @ `744a3b1e`, the owner's 10:58 "ruins building") — 2026-09-24 13:31–15:00 UTC
+# fable-5 — the 50-point rubric, non-author pre-merge read: the waterfall ruins (`agent/fable-cursor-exp-ruins` @ `744a3b1e`, the owner's 10:58 "ruins building") — 2026-09-24 13:31–14:55 UTC
 
 The hidden valley 40–80 m west of the village: a packed-earth **trail** from the west house's stepping discs between three
 **pod-lantern posts** to two **gate boulders**, a pale **outcrop** with a tiled **parapet** over a **pool**, the worn **flight**
@@ -138,7 +138,7 @@ is a free-standing opening), 31, 32 (no roof) — left out of the total and scal
 the light on the flight) are what separates this from the reference; fixing them lifts #13, #16 and #39 and clears the
 gate.
 
-## The six views, the one draw, and the warm-up (14:45–15:00 UTC)
+## The six views, the one draw, and the warm-up (14:45–14:55 UTC)
 
 **Six-view pair, head `3c6cc553` ↔ branch, same shot list and flags** (`broll.mjs --test --settle 8 --quality high
 --size 1280x720`, `it110-h-six` / `it110-r-six`):

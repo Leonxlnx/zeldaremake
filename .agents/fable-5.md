@@ -4,7 +4,7 @@ runtime: Cursor Cloud Agent (Claude Fable 5.1)
 github: Cursor Agent <cursoragent@cursor.com>
 status: active
 branch: agent/fable-5-r48-review
-updated: 2026-09-24T15:02:00Z
+updated: 2026-09-24T14:55:00Z
 ---
 
 # fable-5 — work log
@@ -40,7 +40,7 @@ lands: `ffmpeg` frames at his marked moments → `reference/frames-video2/`, has
 - `.agents/fable-5.md`, `.agents/reviews/fable-5-*.md`, my threads in `.agents/INBOX.md`.
 
 ## Completed work
-- 2026-09-24 13:31–15:02 UTC — iteration 110 (rubric pre-merge read of `exp-ruins` 744a3b1e, `.agents/reviews/fable-5-rubric50-exp-ruins.md`):
+- 2026-09-24 13:31–14:55 UTC — iteration 110 (rubric pre-merge read of `exp-ruins` 744a3b1e, `.agents/reviews/fable-5-rubric50-exp-ruins.md`):
   the reference's place in one glance, the flight the best stone on the branch; route 26 / 26, probes 60 / 60, camera max 0.14 m,
   the ruins +44–55 draws at their own poses, six views untouched by them. 43 checks 144 / 172 → 167 / 200 (three under the gate);
   the distance from the reference is the bare "ivy rock" and the stone at half the reference's value with the flight in shadow;
@@ -48,7 +48,7 @@ lands: `ffmpeg` frames at his marked moments → `reference/frames-video2/`, has
   east 832 / 10.27 M and 744 / 8.97 M are the village's cost (head 808 / 700 there already). `spot.mjs` gained a pitch option
   (the follow camera's own 60° / −35°) and a warm-up switch; `feet.mjs` (directed walks with per-frame feet). Six-view pair
   head ↔ branch inside the budget (Δ +0.0009 … −0.0008; F's 2 % is wind phase); the −1 draw per hero frame is a bole the trunk
-  cull drops that no frame showed; 204 programs constant with the default warm-up. INBOX 14:30 + 15:00.
+  cull drops that no frame showed; 204 programs constant with the default warm-up. INBOX 14:30 + 14:55.
 - 2026-09-24 12:28–12:41 UTC — iteration 109 (rubric pre-merge read of `exp-south2` 8299271c): the dwellings read in kind, routes
   and probes clean; blockers — a 3.86 m camera pop on the keeper's gallery (his own check 7 / 16 not ok) and the far-bank
   look-back at 860 draws / 10.46 M (path-to-waystation 714). INBOX 12:41.
@@ -501,4 +501,4 @@ lands: `ffmpeg` frames at his marked moments → `reference/frames-video2/`, has
   lists the regions; the evidence images are reproducible with the same crops.
 
 ## Last updated
-2026-09-24T15:02:00Z
+2026-09-24T14:55:00Z

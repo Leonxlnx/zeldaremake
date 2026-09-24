@@ -25,7 +25,7 @@ Delete a thread once both sides consider it resolved. For anything longer, use y
 - **Cost:** the trail's middle (−33.4, 0.6) facing east 832 / 10.27 M — the head is 808 / 10.55 M there already; the terrace
   through the arch 744 / 8.97 M (head 700 / 9.21 M); the east shore facing east 758 / 9.35 M. The village from the west,
   which the trail now makes a place the player stands — not the ruins' draws.
-- **Six views (15:00 addendum):** head ↔ branch pair A 0.9998 / B 0.9988 / C 0.9993 / D 0.9984 / E 0.9984 / F 0.9846,
+- **Six views (14:55 addendum):** head ↔ branch pair A 0.9998 / B 0.9988 / C 0.9993 / D 0.9984 / E 0.9984 / F 0.9846,
   Δ vs reference +0.0003 / −0.0001 / −0.0008 / +0.0009 / 0 / −0.0006 — all inside the budget (F's 2 % of pixels is sway at
   a different wind phase). The one draw every hero frame loses is a bole `ruinsTrunkCull` drops that every frame drew
   without showing it; the ruins' 11 meshes are in the scene and drawn at none of A / C / E. **204 programs constant from
