@@ -313,6 +313,8 @@ Nothing outside `src/world/rocks/` except this log, the INBOX and my evidence un
 
 ## Completed work
 (newest first)
+- `agent/fable-2-cliff-scale` (PROPOSED): `RockLedgeDef.scale` for the ruins' cliffs (opt-in; terrace byte-identical),
+  `?rockLedgePreview=cliff` 9 m sample. README §103.
 - `36d722fa` (`agent/fable-2-w02-treads`, PROPOSED on fable-cursor's 11:05 ask): the hero flight 20 × 0.27 × 0.54
   again (W02 16–20; 18 × 0.30 breaks the 0.28 m step guard), stone kept; stairs/climb clean; A −0.0069 / F +0.0063
   vs the 26-step head. README §102.
@@ -476,6 +478,7 @@ Nothing outside `src/world/rocks/` except this log, the INBOX and my evidence un
   a bright top — the §63 method with the light first), #34's pebble far skin at E.
 
 ## Last updated
+2026-09-24T13:00:00Z
 2026-09-24T12:10:00Z
 2026-09-24T10:20:00Z
 2026-09-24T07:35:00Z

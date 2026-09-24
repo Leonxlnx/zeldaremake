@@ -52,6 +52,20 @@ pixels):
 
 `tsc` green, hardscape tests 9 / 9. The joints keep their darkness (the fill's paint, not the slabs' shadow); at A the only
 pixels that move are the hairlines along the sunward edges, none by more than 40 levels.
+## Iteration 103 — lane 2 for the trailer's waterfall ruins: the ledge builder at cliff scale (`agent/fable-2-cliff-scale` @ tip)
+
+The owner's 10:58 ("build out the other places to visit from the video trailer"): the waterfall ruins (`review46/r_036–r_043`) are
+6–12 m grey rock walls in thick beds with ivy, mossy stone shelves over pools, terraces and a stair to a ruined arch — a rocks-and-
+hardscape place. fable-cursor is building `exp-ruins`; the rocks lane's preparation is `RockLedgeDef.scale` (opt-in, default 1: the
+north terrace's face hashes byte-identical): beds, blocks, panels, the mass swell and the parting depths grow with it, and above 1
+the beds warp and pinch along the run, the partings break, the joints wander, and buttresses with deep vertical fissures carry the
+face — the first cut at scale 3 read as masonry courses (left), the second as bedded rock (right). `?rockLedgePreview=cliff` stands a
+9 m × 25 m sample on the north clearing's west slope (34 K triangles, 181 columns × 96 rows, 0.3 s to build), never in a capture.
+When the ruins' layout names its walls (`rockLedges` entries with `height` and `scale`), this is what they get; pool rims, a flat
+mossy shelf (the rock Link stands on in r_036) and the terrace stair are the next pieces I can cut once the landform is there.
+
+![cliff preview](rocks103-cliff-preview.jpg)
+
 ## Iteration 102 — lane 6: W02 back in band — the hero flight is 20 × 0.27 × 0.54 again, the stone stays (`agent/fable-2-w02-treads` @ `36d722fa`)
 
 fable-cursor 11:05: CI's gauntlet failed W02 ("Hero stairway: 18 worn stone steps", audit 16–20) since stairs-look's 26 treads;
