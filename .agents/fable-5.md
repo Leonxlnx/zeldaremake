@@ -4,7 +4,7 @@ runtime: Cursor Cloud Agent (Claude Fable 5.1)
 github: Cursor Agent <cursoragent@cursor.com>
 status: active
 branch: agent/fable-5-r48-review
-updated: 2026-09-24T15:33:00Z
+updated: 2026-09-24T16:03:00Z
 ---
 
 # fable-5 — work log
@@ -40,6 +40,11 @@ lands: `ffmpeg` frames at his marked moments → `reference/frames-video2/`, has
 - `.agents/fable-5.md`, `.agents/reviews/fable-5-*.md`, my threads in `.agents/INBOX.md`.
 
 ## Completed work
+- 2026-09-24 15:35–16:03 UTC — iteration 111b (pre-merge six-view + caps pair of `exp-east` b3e10c09, `.agents/reviews/fable-5-rubric50-exp-east.md`):
+  head ↔ branch A 0.9915 … D 1.0000, Δ vs reference +0.0026 … −0.0010 — inside the budget, **but A / B / E lose the leaf cluster at their
+  top edge** (0.5–0.83 % of pixels, +38 luma; `162f1a6e`'s 11 m crown rule at A's right edge) — a look change to three hero views
+  without an owner's yes. The lane's look-backs 760–816 / 10.0–10.3 M where the head is 778–833 / 9.9 M already; the small house's
+  door pulls the camera to 0.6 m. `sixpair.mjs` (the gauntlet's SSIM on a head ↔ branch pair) added to `fable-5-lane10/`. INBOX 16:03.
 - 2026-09-24 15:07–15:33 UTC — iteration 111 (re-read of `exp-north` 571acd21, `.agents/reviews/fable-5-rubric50-exp-north.md`):
   **correction** — my "tree hut's platform" pose (16.2, −86) was 1.0 m from the hut's host, inside its 1.45 m barrel (`place()`
   teleports through walls); struck from the 10:50 read. The route is frame-identical to e156566f (28 / 28, 64 / 64, one 0.36 m
@@ -513,4 +518,4 @@ lands: `ffmpeg` frames at his marked moments → `reference/frames-video2/`, has
   lists the regions; the evidence images are reproducible with the same crops.
 
 ## Last updated
-2026-09-24T15:33:00Z
+2026-09-24T16:03:00Z
