@@ -37,6 +37,25 @@ export function outcropSkin(x: number, z: number, g: number): number {
   return g + lerp(-0.12, 0.03 + lump, cover);
 }
 
+/** the ivy rock's vertical span: its buried foot `y0` and where its domed crown starts `yTop` */
+export function pillarSpan(ground: Ground): { y0: number; yTop: number } {
+  const P = R.pillar;
+  let gMin = Infinity;
+  for (let a = 0; a < Math.PI * 2; a += Math.PI / 8) gMin = Math.min(gMin, ground(P.x + Math.cos(a) * P.r, P.z + Math.sin(a) * P.r));
+  return { y0: gMin - 0.6, yTop: P.top - 0.6 };
+}
+
+/** the ivy rock's radius as built at angle `a`, height `y` (its crown's closing aside): the bulging column, fissured and lumpy */
+export function pillarSideR(a: number, y: number, span: { y0: number; yTop: number }): number {
+  const ca = Math.cos(a);
+  const sa = Math.sin(a);
+  const base = pillarRadius(a, Math.max(0, Math.min(y, span.yTop) - span.y0 - 0.6));
+  const fiss = 0.09 * Math.pow(Math.abs(n1.noise(ca * 1.8 + sa * 0.4, y * 0.12)), 0.6) - 0.06;
+  const lump = 0.05 * noise3(ca * 1.6, y * 0.35, sa * 1.6) + 0.02 * noise3(ca * 4.1, y * 0.9, sa * 4.1);
+  // (the walker's rule is the plain radius + 0.15 m: the detail stays within 10 % of it)
+  return Math.min(base * (1 + fiss + lump), base * 1.1);
+}
+
 /**
  * A grid patch (MeshBuilder.grid) with smooth normals, turned to face `dir` at the probe cell
  * (u, v) — the winding is checked after the fact, so no caller has to get it right by hand.
@@ -96,10 +115,8 @@ export function buildRock(rng: Rng, ground: Ground, sun: Vector3): Rock {
   // ------------------------------------------------------------------------------------------
   {
     const P = R.pillar;
-    let gMin = Infinity;
-    for (let a = 0; a < Math.PI * 2; a += Math.PI / 8) gMin = Math.min(gMin, ground(P.x + Math.cos(a) * P.r, P.z + Math.sin(a) * P.r));
-    const y0 = gMin - 0.6;
-    const yTop = P.top - 0.6;
+    const span = pillarSpan(ground);
+    const { y0, yTop } = span;
     patch(
       cliff,
       56,
@@ -116,11 +133,7 @@ export function buildRock(rng: Rng, ground: Ground, sun: Vector3): Rock {
           y = yTop + 0.6 * Math.sin((w * Math.PI) / 2);
           close = Math.pow(Math.cos((w * Math.PI) / 2), 0.7);
         }
-        const base = pillarRadius(a, Math.max(0, Math.min(y, yTop) - y0 - 0.6));
-        const fiss = 0.09 * Math.pow(Math.abs(n1.noise(ca * 1.8 + sa * 0.4, y * 0.12)), 0.6) - 0.06;
-        const lump = 0.05 * noise3(ca * 1.6, y * 0.35, sa * 1.6) + 0.02 * noise3(ca * 4.1, y * 0.9, sa * 4.1);
-        // (the walker's rule is the plain radius + 0.15 m: the detail stays within 10 % of it)
-        const r = Math.max(0.01, Math.min(base * (1 + fiss + lump), base * 1.1) * close);
+        const r = Math.max(0.01, pillarSideR(a, y, span) * close);
         const crown = smoothstep(0.84, 1, v);
         const k = 0.8 + 0.12 * n2.noise(ca * 2 + y * 0.2, sa * 2) + 0.1 * smoothstep(y0 + 2, P.top - 1, y);
         const shade = 1 - smoothstep(-0.3, 0.5, ca * sun.x + sa * sun.z);

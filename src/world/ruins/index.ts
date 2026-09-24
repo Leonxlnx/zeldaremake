@@ -4,7 +4,8 @@
  * `EXPANSION_RUINS`; the reference is the trailer's ruins shot, reference/frames-dense/review46
  * r_036–r_043). The ground (the trail's grade, the outcrop, the pool's basin) is the heightfield's
  * live view (terrain/ruins.ts); this system builds everything standing on it: the masonry
- * (masonry.ts), the natural rock — cliff, ivy rock, boulders, the slab bridge (rock.ts) — and the
+ * (masonry.ts), the natural rock — cliff, ivy rock, boulders, the slab bridge (rock.ts) — the ivy
+ * hung over the great rock's stair-side face (ivy.ts), the trail's pod lanterns (lanterns.ts) and the
  * water — the pool, the fall, its spray and mist (water.ts) — and publishes the terrace's walk spans
  * and the fallen pieces' and boulders' blockers for the character ground.
  *
@@ -13,15 +14,17 @@
  * RUINS_VISIBLE_M of the site AND its frustum meets one of the casters' spheres or their shadow
  * footprints (util/expansionLocality.ts `ruinsVisible`).
  */
-import { Group, Mesh, Object3D, type Camera, type Material } from 'three';
+import { DoubleSide, Group, Mesh, MeshStandardMaterial, Object3D, type Camera, type Material } from 'three';
 import { EXPANSION_RUINS } from '../layout';
 import type { WorldContext, WorldSystem } from '../system';
+import { inTerrace } from '../terrain/ruins';
 import { casterSpheres, ruinsVisible, type Caster } from '../util/expansionLocality';
 import { buildRuinsCameraSolid, ruinsColumnBlockers } from './cameraSolid';
+import { buildIvy } from './ivy';
 import { buildLanterns } from './lanterns';
 import { buildMasonry } from './masonry';
 import { createCarving, createStone, createTiles, sunDirOf } from './materials';
-import { buildRock } from './rock';
+import { buildRock, outcropSkin, pillarSpan } from './rock';
 import { buildWater } from './water';
 
 const R = EXPANSION_RUINS;
@@ -100,6 +103,14 @@ export async function create(ctx: WorldContext): Promise<WorldSystem> {
   materials.push(cliffMat, boulderMat);
   const cliff = add('ruins-cliff', new Mesh(rock.cliff.build(), cliffMat), true);
   add('ruins-boulders', new Mesh(rock.boulder.build(), boulderMat), true);
+  // the ivy over the great rock's stair-side face, each strand stopping on the outcrop or the paving under it
+  const ivy = buildIvy(rng.fork('ivy'), pillarSpan((x, z) => terrain.height(x, z)), (x, z) => {
+    const g = terrain.height(x, z);
+    return Math.max(g, outcropSkin(x, z, g), inTerrace(x, z, 0.4) ? R.terrace.y : -Infinity);
+  });
+  const ivyMat = new MeshStandardMaterial({ name: 'ruins:ivy', vertexColors: true, roughness: 0.55, metalness: 0, side: DoubleSide });
+  materials.push(ivyMat);
+  add('ruins-ivy', new Mesh(ivy.builder.build(), ivyMat), true);
   const [postMesh, podMesh, poolMesh] = lanterns.meshes;
   add(postMesh.name, postMesh, true);
   add(podMesh.name, podMesh, true);
@@ -154,7 +165,7 @@ export async function create(ctx: WorldContext): Promise<WorldSystem> {
     walkSpans: masonry.spans.length,
     blockers: masonry.blockers.length + rock.blockers.length + columns.length + lanterns.blockers.length,
     cameraSolid: cameraSolid?.report ?? null,
-    counts: { ...masonry.counts, ...rock.counts, lanterns: lanterns.pods.length },
+    counts: { ...masonry.counts, ...rock.counts, lanterns: lanterns.pods.length, ivyStrands: ivy.strands, ivyLeaves: ivy.leaves },
     lanternTriangles: lanterns.triangles,
     pods: lanterns.pods.map((p) => [+p.x.toFixed(2), +p.y.toFixed(2), +p.z.toFixed(2)]),
     plunge: water.plunge.map((v) => +v.toFixed(2)),
