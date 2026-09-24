@@ -116,6 +116,16 @@ export const LEDGE_PREVIEW: RockLedgeDef[] = [
 export const CLIFF_PREVIEW: RockLedgeDef[] = [
   { id: 'cliff-preview', foot: [[-12.5, -61], [-12.2, -66], [-12.6, -71], [-12.1, -76], [-12.4, -81]], side: 'right', inset: 3.5, height: 9, lean: 0.6, taper: 2.5, roots: 0.3, scale: 3 },
 ];
+/**
+ * `?rockLedgePreview=canyon` (look-dev only): the same builder as a desert canyon wall for the trailer's
+ * desert and red-rock town (`docs/SQUAD_2026-09-23.md` §Places, `review46/r_009–r_010`, `r_044–r_046`:
+ * 15–30 m sandstone walls in thick warm beds, cream to red-brown, varnish streaks) — `palette`
+ * 'sandstone', `scale` 4, a 16 m face east of the plateau facing the village. Where the desert's walls
+ * stand is that place's layout; this is the rocks lane's sample of the palette.
+ */
+export const CANYON_PREVIEW: RockLedgeDef[] = [
+  { id: 'canyon-preview', foot: [[61, -16], [60.6, -8], [61.2, 0], [60.5, 8], [61, 16]], side: 'right', inset: 6, height: 16, lean: 0.8, taper: 4, roots: 0, scale: 4, palette: 'sandstone' },
+];
 /** the ledge material's near fade (m): its damp/moss terms stay legible from the path */
 export const LEDGE_FADE_M: [number, number] = [7, 14];
 /** the ledge material's damp band: the hero boulders' sheen raised to this power (ref-04's near-black foot) */
@@ -1254,6 +1264,7 @@ export async function create(ctx: WorldContext): Promise<WorldSystem> {
     const fromLayout = (ctx.layout as unknown as { rockLedges?: RockLedgeDef[] }).rockLedges ?? [];
     const flag = typeof window !== 'undefined' ? new URLSearchParams(window.location.search).get('rockLedgePreview') : null;
     if (flag === 'cliff') return [...fromLayout, ...CLIFF_PREVIEW];
+    if (flag === 'canyon') return [...fromLayout, ...CANYON_PREVIEW];
     if (fromLayout.length) return fromLayout;
     return flag === '1' ? LEDGE_PREVIEW : [];
   })();
@@ -1273,7 +1284,10 @@ export async function create(ctx: WorldContext): Promise<WorldSystem> {
       mesh.receiveShadow = true;
       mesh.name = `ledge-${def.id}`;
       group.add(mesh);
-      ledgeMeshes.push(mesh);
+      // the north locality's gate applies to faces standing in it; a face elsewhere (the canyon
+      // preview, a future place's walls) is left to the frustum
+      const [fx, fz] = def.foot[Math.floor(def.foot.length / 2)];
+      if (northVisible(nBox, fx, fz)) ledgeMeshes.push(mesh);
       let maxFootGap = 0;
       for (const c of built.contacts) maxFootGap = Math.max(maxFootGap, Math.abs(c[1] - T.height(c[0], c[2])));
       ledgeContacts.push(...built.contacts);

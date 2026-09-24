@@ -55,6 +55,13 @@ export interface RockLedgeDef {
    * north terrace's face is byte-identical at 1.
    */
   scale?: number;
+  /**
+   * the stone: 'forest' (default — the village's damp grey rock: moss sheets, a wet foot band, a
+   * soil collar, roots over the lip) or 'sandstone' (the trailer's desert and red-rock town,
+   * review46/r_009–r_010 and r_044–r_046: dry warm beds from cream through salmon to red-brown,
+   * desert varnish streaking down from the lip, a sand-toned brow — no moss, no damp, no roots)
+   */
+  palette?: 'forest' | 'sandstone';
 }
 
 export interface LedgeBuild {
@@ -309,9 +316,13 @@ export function buildRockLedge(def: RockLedgeDef, T: Terrain, rng: Rng, seed: st
   const gCol = new Float32Array(I * J * 3);
   // damp dark stone: the face stands in the sun at ref-04's hour, so the tint itself carries the
   // dark (the hero boulders' 0.72 rendered this wall pale tan); the wet band takes the foot darker
-  const stone = new Color(0.33, 0.34, 0.33);
-  const dark = new Color(0.1, 0.095, 0.085);
-  const soil = new Color(0.16, 0.14, 0.09);
+  const sandstone = def.palette === 'sandstone';
+  const stone = sandstone ? new Color(0.82, 0.62, 0.47) : new Color(0.33, 0.34, 0.33);
+  const dark = sandstone ? new Color(0.3, 0.17, 0.12) : new Color(0.1, 0.095, 0.085);
+  const soil = sandstone ? new Color(0.72, 0.58, 0.42) : new Color(0.16, 0.14, 0.09);
+  // the sandstone beds' ramp: cream, salmon and red-brown courses, each bed one of them
+  const SAND_BEDS = [new Color(0.9, 0.76, 0.58), new Color(0.84, 0.6, 0.44), new Color(0.7, 0.42, 0.3), new Color(0.86, 0.68, 0.5)];
+  const bedTint = (k: number) => SAND_BEDS[((k * 7 + 3) % SAND_BEDS.length + SAND_BEDS.length) % SAND_BEDS.length];
   const at = (i: number, j: number) => i * J + j;
   // bark: a warm mid brown — against the near-black damp stone a dark bark read as more stone
   // (fable-5 at 3–7 m); it separates in value and hue, and stays matte where the stone is wet
@@ -396,23 +407,30 @@ export function buildRockLedge(def: RockLedgeDef, T: Terrain, rng: Rng, seed: st
         // colour: bed tone ± 14 %, block tone ± 8 %, partings and joints dark, ridges a shade paler
         // (the mass in the tone too, a shade: a recess a little darker, a buttress a little paler)
         let tone = 1 + 0.14 * bed.step + 0.08 * blockOff + 0.14 * (rd - 0.5) + 0.2 * massN + 0.07 * Math.max(-1, Math.min(1, panelOff));
-        _tmp.copy(stone).multiplyScalar(tone);
-        _tmp.lerp(dark, 0.9 * Math.max(bed.groove, jn.joint * 0.9));
-        // drip streaks below the lip: dark vertical streaks fading down ~2 m
+        if (sandstone) {
+          // a bed is one course of the ramp, its tone swing halved (the beds separate by hue, and
+          // sunlit sandstone is flat in value); no mass darkening — the light does that
+          _tmp.copy(bedTint(bed.k)).multiplyScalar(1 + 0.5 * (tone - 1 - 0.2 * massN));
+        } else _tmp.copy(stone).multiplyScalar(tone);
+        _tmp.lerp(dark, (sandstone ? 0.6 : 0.9) * Math.max(bed.groove, jn.joint * 0.9));
+        // drip streaks below the lip: dark vertical streaks fading down ~2 m (on sandstone the
+        // desert varnish: longer, more of them, brown-black)
         const streakN = N.fbm(uu * 4.1 + seedOff * 0.5, 2.0, 0.7, 2) * 0.5 + 0.5;
-        const streak = smoothstep(0.54, 0.7, streakN) * smoothstep(0.45, 0.9, vf) * (1 - smoothstep(0.92, 1.0, vf));
-        _tmp.lerp(dark, 0.55 * streak);
-        // wet: the foot band (1.1 m, wobbled) and the streaks
+        const streak = sandstone
+          ? smoothstep(0.5, 0.66, streakN) * smoothstep(0.2, 0.75, vf) * (1 - smoothstep(0.94, 1.0, vf))
+          : smoothstep(0.54, 0.7, streakN) * smoothstep(0.45, 0.9, vf) * (1 - smoothstep(0.92, 1.0, vf));
+        _tmp.lerp(dark, (sandstone ? 0.5 : 0.55) * streak);
+        // wet: the foot band (1.1 m, wobbled) and the streaks — dry stone has neither
         const yAbove = y0 - footY[j];
-        wet = clamp(1 - smoothstep(0.25, 1.1, yAbove + 0.15 * (N.fbm(uu * 2.3, 1.1, 3.3, 2))) + 0.6 * streak, 0, 1);
+        wet = sandstone ? 0 : clamp(1 - smoothstep(0.25, 1.1, yAbove + 0.15 * (N.fbm(uu * 2.3, 1.1, 3.3, 2))) + 0.6 * streak, 0, 1);
         // moss sheets: damp patches under the lip and in the parting ledges (their up-facing
         // steps), big soft-edged patches ~0.6–1.4 m; none in the wet foot band
         const sheetN = N.fbm(uu * 0.9 + seedOff, y0 * 1.3, 9.9, 3) * 0.5 + 0.5;
         const ledgeMoss = smoothstep(0.35, 0.9, bed.groove) * (bed.step > 0 ? 0.8 : 0.35);
         const underLip = smoothstep(0.45, 0.85, vf);
-        moss = clamp((smoothstep(0.42, 0.62, sheetN) * (0.6 + 0.4 * underLip) + ledgeMoss) * (1 - smoothstep(0.1, 0.4, wet)) * (1 - 0.7 * jn.joint), 0, 1) * hs;
-        // the collar just above the ground: soil-dark
-        _tmp.lerp(soil, 0.7 * (1 - smoothstep(0.02, 0.28, yAbove)));
+        moss = sandstone ? 0 : clamp((smoothstep(0.42, 0.62, sheetN) * (0.6 + 0.4 * underLip) + ledgeMoss) * (1 - smoothstep(0.1, 0.4, wet)) * (1 - 0.7 * jn.joint), 0, 1) * hs;
+        // the collar just above the ground: soil-dark (on sandstone a drift of sand against the foot)
+        _tmp.lerp(soil, (sandstone ? 0.8 : 0.7) * (1 - smoothstep(0.02, sandstone ? 0.6 : 0.28, yAbove)));
         // the damp band is in the stone's own colour too (a third darker, cooler), so it reads
         // from the clearing and not only inside the material's near fade
         _tmp.lerp(_tmp2.set(0.09, 0.1, 0.12), 0.35 * wet);
@@ -420,7 +438,7 @@ export function buildRockLedge(def: RockLedgeDef, T: Terrain, rng: Rng, seed: st
         // darker, ribbed along its length, moss along its crest near the lip, thinning to the foot
         // (tapered with the relief at the foot row)
         const rt = rootAt(uu, vf);
-        if (rt.bump > 0) {
+        if (rt.bump > 0 && !sandstone) {
           out += hs * footTaper * rt.bump * 1.2;
           const barkTone = (0.7 + 0.6 * rt.rib) * (0.9 + 0.2 * (N.fbm(uu * 9.1 + seedOff, y0 * 9.1, 1.3, 2) * 0.5 + 0.5));
           _tmp.lerp(_tmp2.copy(bark).multiplyScalar(barkTone), rt.bark);
@@ -450,13 +468,15 @@ export function buildRockLedge(def: RockLedgeDef, T: Terrain, rng: Rng, seed: st
         const jn = joints(uu, lipY, 0);
         const slabW = (1 - smoothstep(0.999, 1.0, c)) * hs;
         y -= 0.05 * jn.joint * slabW;
-        moss = clamp(0.72 + 0.28 * jn.joint - 0.12 * (lump * 0.5 + 0.5) * (1 - jn.joint), 0, 1);
-        _tmp.copy(stone).multiplyScalar(0.9 + 0.08 * N.fbm(jn.block * 3.7 + 0.5, seedOff, 1.0, 1));
-        _tmp.lerp(dark, 0.7 * jn.joint);
+        moss = sandstone ? 0 : clamp(0.72 + 0.28 * jn.joint - 0.12 * (lump * 0.5 + 0.5) * (1 - jn.joint), 0, 1);
+        // (sandstone: the brow is the top bed bleached and sanded — the palest course, warm)
+        _tmp.copy(sandstone ? SAND_BEDS[0] : stone).multiplyScalar((sandstone ? 1.02 : 0.9) + 0.08 * N.fbm(jn.block * 3.7 + 0.5, seedOff, 1.0, 1));
+        _tmp.lerp(dark, (sandstone ? 0.45 : 0.7) * jn.joint);
+        if (sandstone) _tmp.lerp(soil, 0.6 * c);
         wet = 0;
         // the roots run on over the shoulder toward the trees they came from, thickening
         const rt = rootAt(uu, 1 + c);
-        if (rt.bump > 0 && c < 0.999) {
+        if (rt.bump > 0 && c < 0.999 && !sandstone) {
           y += hs * 0.6 * rt.bump * (1 - c);
           const barkTone = (0.7 + 0.6 * rt.rib) * (0.9 + 0.2 * (N.fbm(uu * 9.1 + seedOff, c * 9.1, 1.3, 2) * 0.5 + 0.5));
           _tmp.lerp(_tmp2.copy(bark).multiplyScalar(barkTone), rt.bark * (1 - c));
