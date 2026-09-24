@@ -13,7 +13,7 @@
  * group use it, so the house and its stair appear and vanish together.
  */
 import { Frustum, Matrix4, Sphere, Vector3, type Camera } from 'three';
-import { EXPANSION, EXPANSION_BOX, EXPANSION_ROPE_FENCES, EXPANSION_SOUTH, EXPANSION_SOUTH_BOXES, EXPANSION_STAIRS, expansionSteppingStones, southPathLine } from '../layout';
+import { EXPANSION, EXPANSION_BOX, EXPANSION_ROPE_FENCES, EXPANSION_RUINS_BOXES, EXPANSION_SOUTH, EXPANSION_SOUTH_BOXES, EXPANSION_STAIRS, expansionSteppingStones, southPathLine } from '../layout';
 
 /** beyond this distance from the box the content is hidden regardless of the frustum (haze) */
 export const EXPANSION_VISIBLE_M = 60;
@@ -135,6 +135,11 @@ export function expansionVisible(camera: Camera, spheres: Sphere[]): boolean {
 export function southVisible(camera: Camera, spheres: Sphere[]): boolean {
   camera.updateMatrixWorld();
   camera.getWorldPosition(_p);
+  // round 57: from the waterfall ruins' site the ravine box's west end is 45–50 m off but the
+  // content 55–80 m (the path ≥ 48 m from the site box, the bridge ≥ 55 m, through the village's
+  // forest), so there the distance is measured to the content's own spheres
+  const site = EXPANSION_RUINS_BOXES[1];
+  if (_p.x >= site.x0 && _p.x <= site.x1 && _p.z >= site.z0 && _p.z <= site.z1) return frustumMeetsWithin(camera, spheres, SOUTH_VISIBLE_M);
   let near = false;
   for (const b of EXPANSION_SOUTH_BOXES) {
     const dx = Math.max(b.x0 - _p.x, 0, _p.x - b.x1);
@@ -172,11 +177,36 @@ export function southPathSpheres(yAt: (x: number, z: number) => number): Sphere[
   return out;
 }
 
+/**
+ * Round 57 (expansion-ruins): true when the camera is within RUINS_VISIBLE_M of the waterfall
+ * ruins' site box (the trail to it carries no geometry of its own) AND its frustum meets one of
+ * `spheres` — the ruins system's casters with their shadow footprints.
+ */
+export const RUINS_VISIBLE_M = 60;
+export function ruinsVisible(camera: Camera, spheres: Sphere[]): boolean {
+  camera.updateMatrixWorld();
+  camera.getWorldPosition(_p);
+  const b = EXPANSION_RUINS_BOXES[1];
+  const dx = Math.max(b.x0 - _p.x, 0, _p.x - b.x1);
+  const dz = Math.max(b.z0 - _p.z, 0, _p.z - b.z1);
+  return Math.hypot(dx, dz) < RUINS_VISIBLE_M && frustumMeets(camera, spheres);
+}
+
 /** true when the camera's frustum meets one of `spheres` (world matrix refreshed first, see above) */
 export function frustumMeets(camera: Camera, spheres: Sphere[]): boolean {
   camera.updateMatrixWorld();
   _m.multiplyMatrices(camera.projectionMatrix, camera.matrixWorldInverse);
   _f.setFromProjectionMatrix(_m);
   for (const s of spheres) if (_f.intersectsSphere(s)) return true;
+  return false;
+}
+
+/** `frustumMeets` counting only the spheres within `m` of the camera */
+function frustumMeetsWithin(camera: Camera, spheres: Sphere[], m: number): boolean {
+  camera.updateMatrixWorld();
+  camera.getWorldPosition(_p);
+  _m.multiplyMatrices(camera.projectionMatrix, camera.matrixWorldInverse);
+  _f.setFromProjectionMatrix(_m);
+  for (const s of spheres) if (s.center.distanceTo(_p) - s.radius < m && _f.intersectsSphere(s)) return true;
   return false;
 }

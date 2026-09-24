@@ -8,7 +8,7 @@
 import { Color, Group, Vector3, type Material } from 'three';
 import { ROPE_FENCES, houseSteppingStones } from '../layout';
 import type { WorldContext } from '../system';
-import { STONE_CIRCLE_STONES } from '../terrain/heightfield';
+import { STONE_CIRCLE_STONES, expansionCull } from '../terrain/heightfield';
 import { smoothstep, clamp } from '../util/noise';
 import type { Rng } from '../util/prng';
 import { rimBandPlants, terracePlants } from './edges';
@@ -55,6 +55,8 @@ export interface PlantSets {
   expansionCulled: Record<string, number>;
   /** round 50 (edges.ts): what the rim band and the terraces seated, per pass */
   edges: Record<string, number>;
+  /** round 57: the flower clumps the butterflies anchor to — `flowers` as the rules before the ruins' prune leave it */
+  butterflyClumps: readonly { x: number; z: number }[];
 }
 
 interface ScatterOpts {
@@ -4066,9 +4068,13 @@ export function buildPlants(ctx: WorldContext, field: VegField, parent: Group): 
   // frame) and W05's terraces (tuft rows, foot moss, toe ferns and broad leaves on the C
   // embankment) — after every pass above, on their own forks
   const edges = { ...rimBandPlants(ctx, field, { moss, tufts }), ...terracePlants(ctx, field, { tufts, moss, ferns, weeds }) };
+  // round 57: butterflies.ts picks its clumps by index, so a clump fewer re-rolls every butterfly in
+  // the six fixed frames — they keep the list as it stood before the ruins' rule (ruins.test.mjs:
+  // none moves, and none flies over the ground that rule claims)
+  const butterflyClumps = flowers.items.filter((it) => !expansionCull(it.x, it.z, 0.3, false));
   const expansionCulled = pruneExpansion(all);
   for (const set of all) parent.add(set.build());
-  return { ferns, tufts, heroFerns, fiddleheads, bushes, hedge, flowers, yellowFlowers, whiteFlowers, weeds, seedheads, clover, moss, saplings, fernsNorth, weedsNorth, bushesNorth, tuftsNorth, north, all, materials, expansionCulled, edges };
+  return { ferns, tufts, heroFerns, fiddleheads, bushes, hedge, flowers, yellowFlowers, whiteFlowers, weeds, seedheads, clover, moss, saplings, fernsNorth, weedsNorth, bushesNorth, tuftsNorth, north, all, materials, expansionCulled, edges, butterflyClumps };
 }
 
 export { clamp };

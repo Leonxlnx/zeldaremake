@@ -68,6 +68,21 @@ const near = (a, b, tol, msg) => assert.ok(Math.abs(a - b) <= tol, `${msg}: ${a}
 const fmt = (x, z) => `(${x.toFixed(2)}, ${z.toFixed(2)})`;
 // round 56: within `pad` m of one of the south exit's boxes (its live ground is its own test's)
 const southNear = (x, z, pad = 0) => z > 10 - pad && layout.EXPANSION_SOUTH_BOXES.some((b) => x >= b.x0 - pad && x <= b.x1 + pad && z >= b.z0 - pad && z <= b.z1 + pad);
+// round 57: within `pad` m of the ruins trail's reach (terrain/ruins.ts `trailInfluence`: ≤ 2.9 m
+// off its centreline) or of the ruins site's box (their live ground is expansionRuins.test.mjs's)
+const RUINS_LINE = layout.ruinsTrailLine();
+const ruinsNear = (x, z, pad = 0) => {
+  const S = layout.EXPANSION_RUINS_BOXES[1];
+  if (x >= S.x0 - pad && x <= S.x1 + pad && z >= S.z0 - pad && z <= S.z1 + pad) return true;
+  for (let i = 0; i + 1 < RUINS_LINE.length; i++) {
+    const [ax, , az] = RUINS_LINE[i];
+    const dx = RUINS_LINE[i + 1][0] - ax;
+    const dz = RUINS_LINE[i + 1][2] - az;
+    const t = Math.max(0, Math.min(1, ((x - ax) * dx + (z - az) * dz) / (dx * dx + dz * dz || 1)));
+    if (Math.hypot(ax + dx * t - x, az + dz * t - z) < 3.0 + pad) return true;
+  }
+  return false;
+};
 
 // 1. live == legacy where the fixed frames look. Camera C's west edge on the ground is the ray
 // x = x0 + dxdz · (z − z0); every live-only feature is zero within `margin` of it (east side
@@ -104,7 +119,7 @@ const southNear = (x, z, pad = 0) => z > 10 - pad && layout.EXPANSION_SOUTH_BOXE
   let eastHeld = 0;
   for (let z = -48; z <= 48; z += 0.4) {
     for (let x = -48; x <= 48; x += 0.4) {
-      if (southNear(x, z, 0.35)) continue;
+      if (southNear(x, z, 0.35) || ruinsNear(x, z, 0.35)) continue;
       const westOfRay = rayX(z) - x;
       const inBox = x >= EXPANSION_BOX.x0 && x <= EXPANSION_BOX.x1 && z >= EXPANSION_BOX.z0 && z <= EXPANSION_BOX.z1;
       const farHut = Math.hypot(x - EXPANSION.farHut.host[0], z - EXPANSION.farHut.host[1]) < EXPANSION.farHutRise.radius + 0.6;
@@ -419,8 +434,8 @@ const southNear = (x, z, pad = 0) => z > 10 - pad && layout.EXPANSION_SOUTH_BOXE
   let culled = 0;
   for (let z = -48; z <= 48; z += 1.0) {
     for (let x = -48; x <= 48; x += 1.0) {
-      if (southNear(x, z)) continue;
-      // the west expansion's own cull (east lane off: what a rejection loop sees, section 7)
+      if (southNear(x, z) || ruinsNear(x, z)) continue;
+      // the west expansion's own cull (the east lane and the ruins off: what a rejection loop sees, section 7)
       const c = hf.expansionCull(x, z, 0.3, false);
       if (c) culled++;
       else kept++;

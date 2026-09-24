@@ -11,9 +11,10 @@
  * tread tops with their nosing overhangs, for the character's footprint planting (glbLink.ts).
  */
 import { Box3, BufferAttribute, BufferGeometry, Mesh, type Object3D } from 'three';
-import { EXPANSION_EAST, EXPANSION_STAIRS, southBridgeFrame, type Layout } from '../layout';
+import { EXPANSION_EAST, EXPANSION_RUINS, EXPANSION_STAIRS, southBridgeFrame, type Layout } from '../layout';
 import type { SharedGeometry, WalkSpan, WalkSurface } from '../system';
 import { archTunnel, surfaceMask, type Terrain } from '../terrain/heightfield';
+import { createRuinsBlocked } from '../terrain/ruins';
 import { bridgeLocal, inFarCorridor, ravineCut, southOfRavine } from '../terrain/south';
 
 const BRIDGE_LEN = southBridgeFrame().len;
@@ -193,14 +194,18 @@ function buildSurfaceGrid(geometry: BufferGeometry, CELL: number, timberTriangle
  * west house's platform disc, walkway deck and wall ring) become walkable / blocking here.
  */
 export function createGround(terrain: Terrain, layout: Layout, shared?: SharedGeometry): Ground {
-  // round 49: the expansion's flights (layout EXPANSION_STAIRS) climb like the layout's
-  const allStairs = [...layout.stairs, ...EXPANSION_STAIRS];
+  // round 49: the expansion's flights (layout EXPANSION_STAIRS) climb like the layout's; round 57:
+  // the ruins' stair from the outcrop to the terrace and the water stair from the terrace down the
+  // retaining wall to the quay (built by the ruins system, not hardscape)
+  const allStairs = [...layout.stairs, ...EXPANSION_STAIRS, EXPANSION_RUINS.stairs, EXPANSION_RUINS.waterStair];
   const frames: StairFrame[] = allStairs.map((s) => {
     const l = Math.hypot(s.dir[0], s.dir[1]);
     return { ox: s.base[0], oz: s.base[2], dx: s.dir[0] / l, dz: s.dir[1] / l, run: s.steps * s.tread, tread: s.tread, rise: s.rise, steps: s.steps, halfWidth: s.width / 2, baseY: s.base[1] };
   });
   const walkSurfaces: WalkSurface[] = shared?.walkSurfaces ?? [];
   const propBlockers = shared?.propBlockers ?? [];
+  // round 57: the ruins' rules, the cliff and the ivy rock held off by their surfaces on this ground
+  const ruinsBlocked = createRuinsBlocked((x, z) => terrain.height(x, z));
   // round 56: the rope bridge's deck and the log tunnel's floor (polylines of built tops), each with its XZ box
   const walkSpans = (shared?.walkSpans ?? []).map((s: WalkSpan) => {
     const b = { x0: Infinity, x1: -Infinity, z0: Infinity, z1: -Infinity };
@@ -372,6 +377,9 @@ export function createGround(terrain: Terrain, layout: Layout, shared?: SharedGe
       // round 49: the hut's wall ring blocks (its doorway is the gap); on its platform / deck the
       // ground's structure pad (the bole under the floor) does not
       if (wallBlocked(x, z)) return true;
+      // round 57: the ruins' pool (past a paddle), walls, cliff, ivy rock, gate boulders and
+      // columns (terrain/ruins.ts) — before the built surfaces: the columns stand on the terrace
+      if (ruinsBlocked(x, z)) return true;
       if (builtTop(x, z) !== null) return false;
       // round 56: off the bridge's deck the ravine is a drop (its cut deeper than a kerb; beside the
       // deck between the sills whatever the cut), and the far bank is walkable only along the far
