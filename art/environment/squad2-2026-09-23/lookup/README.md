@@ -32,6 +32,27 @@ The selectivity is the point: the outward band lifts 19 %, the near canopy he sa
 moves 1 %. The shallower `u-out25` (eye height, 25° up, the lantern bough over the plaza) lifts 4 %
 in its canopy and nothing in its level middle distance — `lookup-out25.jpg`.
 
+## Re-measured on the merged head (05:30)
+
+While this was being made, squad4 landed the other half of the same complaint: the grey wash in his
+screenshots is mostly the **god-ray in-scatter**, not the fog, and the ambient base air now has the
+distance ramp it never had (`pass5/VEIL-CORRECTED.md`, `RAYS.md`; `u-plaza-up` frame mean 103.6 →
+91.8). That changes the very background this veil is laid against, so the claim above was re-made on
+the merged head — `agent/squad2-lookup` merged with `03e1127a`, typecheck / build / 22 tests green —
+by rendering his pose twice, once with these two files reverted to the head (`lookup-merged-crop.jpg`,
+`merged-base-u-plaza-up.png`, `merged-veil-u-plaza-up.png`):
+
+| `u-plaza-up`, the crop of the outward band | merged base | with the veil |
+| --- | --- | --- |
+| mean level | 74.4 | 85.3 |
+| middle third (the outward foliage) | 64.0 | **79.9 (+25 %)** |
+| top third (the near canopy overhead) | 74.3 | **75.0 (+1 %)** |
+
+The two changes stack the way they should rather than fighting: squad4's ramp removes a wash that lay
+over *everything* (the band's base level fell 84.3 → 74.4, so the near foliage he likes is darker and
+reads better), and this veil puts back only what depth and a climbing ray justify, on the foliage
+only. The selectivity is unchanged on the new base.
+
 ## What was wrong
 
 Two causes, both a **distance carrying the wrong claim**.
