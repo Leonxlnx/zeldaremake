@@ -74,3 +74,40 @@ here. The author's README already names 1.3–1.9 m pulls at the turn-arounds.
 Evidence: `fable-5-rubric50-exp-east/it111-six-crops-head-vs-east.jpg`, `it111-A-head-over-east.jpg`,
 `it111-east-lane-spots.jpg`, `it111-small-house-door.jpg`; frames `/tmp/f5/it110-h-six`, `/tmp/f5/it111-e-six` (VM);
 probes `fable-5-lane10/spot.mjs`, the six-view pair `fable-5-lane10/sixpair.mjs`.
+
+## The 50 checks at player height — `b3e10c09` (16:28–16:36 UTC; `it112-east-rubric-poses.jpg`, `it111-east-lane-spots.jpg`, `walk-east-b3e10c09.json`)
+
+The author's own three routes run here on `b3e10c09` (his README's numbers are from `9a97df4b`): `stairs-to-east-lookout`
+20 / 20, 0 stuck, 59.5 m; `east-tall-deck` 8 / 8, 15.2 m; `east-small-door` 5 / 5, 7.5 m. Nine more poses shot with the follow
+camera (looking up 40–60°, down 20–35°, the details at 2–5 m, both doors, the steps, the lookout, the lane's middle).
+
+| # | check | S / T / L (shop, tall house, lane) | evidence |
+| --- | --- | --- | --- |
+| 1 ★ | reads in one glance from 20 m | 4 / 4 / 4 | from the stair head the lane's discs, a fence, a barrel and the shop's lit window lead the eye (`stairhead-lane`); the shop's counter, awning and sign read as a shop (`shop-side`); the tall house's deck on its stilts as a dwelling with a porch (`deck-steps`) |
+| 2 | Kokiri scale | 3 / 3 / 4 | doors ≈ 1.4 m, the counter's sill at Link's chest, the deck's rail at his shoulder; the discs a stride apart |
+| 4 | varies from siblings | 3 / 4 / — | three houses from one builder: the shop with a counter and awning, the tall house with a side deck and plank flight, the small house low with a round window and flower boxes — the shop's and the small house's domes read as the village's houses again |
+| 6 ★ | every part visibly held | 3 / 4 / 3 | the deck on posts with braces and a plank flight on stringers (`deck-steps`, `deck-below`); the awning on two poles; the lookout's rope on five posts; the sign on its post. The discs lie on the turf |
+| 10 | small detail at 2–5 m | 4 / 3 / 3 | the counter's shutter boards, pot and fruit, the fruit basket at the door (`shop-side`); the pods' hangers; the barrels and the log bench at the lookout |
+| 11 ★ | wood as wood, bark as bark, stone as stone | 3 / 3 / 3 | plank atlas on the deck and steps, bark on the posts, the discs stone; the flat-shaded awning boards read as painted |
+| 13 | palette | 3 / 3 / 3 | the village's bark, moss and amber; nothing chalk or neon |
+| 17 | wear follows use | 3 / 3 / 3 | the discs' tops pale, the doorsteps trodden; the lane's turf not worn between the discs |
+| 18 | signs of life | 4 / 3 / 4 | the counter's goods, the basket, the barrels, the bench facing back over the lane, the waymarker |
+| 25 | paths lead to the door | 4 / 4 / 4 | the discs from the stair head to every door and the lookout (his routes walk all of it) |
+| 27 | interiors lit with depth | 3 / 4 / — | the tall house's door shows a room with shelves and pots in warm light (`tall-door`); the shop's window a lit room behind the counter |
+| 31 ★ | soft roof edges | 4 / 4 / — | moss caps on all three, no polygon rims read (`deck-below`, `small-house-front`) |
+| 34 | tops carry growth | 4 / 4 / — | moss and ivy on the caps and the tall house's crown (`deck-below`) |
+| 36 ★ | pods glow warm and steady | 4 / 4 / 4 | the 16 pods and the two posts; emissive only, steady across the frames |
+| 37 | light pools where lanterns hang | 3 / 3 / 3 | `736fd44f`'s pools under the shop's and small house's lights and the posts — visible as warm ground at the doorsteps (`tall-door`, `shop-side`); soft, no disc edge |
+| 41 ★ | Link walks every surface | 4 / 4 / 4 | 33 / 33 waypoints on his three routes, 0 stuck; the deck's boots max 4.6 cm, footprint −3.8 cm; the stairs route's 17 cm is the head's main flight (his known issue) |
+| 42 | edges block him | 3 / 3 / 2 | the deck's railings and the lookout's rope stop him; **the lip past the fence's two ends is open** and no other fence in the world stops him (his README) |
+| 44 | camera never inside, never pops > 0.3 m | **1** | on his own routes: **1.28 + 1.58 + 0.64 m** in one frame each at the deck's far end (Link (49.0–49.1, 6.86, 2.4), camera speed max 47 m/s), **1.90 + 0.71 m** at the small house's doorstep turn-around (36.9, 1.1; 57 m/s), 0.43 / 0.55 / 0.32 m at the tall house's door spur (41.9–42.4, −0.3…−1.0); placed: the small house's door pulls to 0.6 m (`it111-small-house-door.jpg`), and **at Link (26, −6) facing 110° on the lane's first stretch the camera sits inside an understory crown** — a leaf card over 95 % of the frame, the occluder's peephole round Link (`it112-lane-camera-in-crown.jpg`) |
+| 46 ★ | caps at every hero view and its own | **2** | the six views pass; the green 816 / 10.29 M, the lookout 761 / 10.27 M, the deck 760 / 10.03 M (the head 833 / 778 at the first two) |
+| 47 | hidden when far or off-screen | 4 | `eastInReach`: nothing of the lane beyond 35 m of every trunk while the eye is under 6.5 m; A–F draw none of it (the six-view pair) |
+| 50 | the owner would stop and look | 3 / 4 / 3 | the counter with its goods; the deck's flight up to the porch with the pods lit; the lookout's bench over the gorge |
+
+21 checks scored, S 71 / T 73 / L 66 on those; **two under 3: #44 = 1 and #46 ★ = 2**, and #42 at 2 for the lane's open lip.
+The rest — weathering by exposure, seams at 3–10 m, texel density, the 60° / 35° views of the domes (my up-views caught
+canopy, not the caps), determinism — need the author's evidence or a settled branch. **Not shippable by the letter until the
+camera's pops (the turn-arounds at the deck and the doorstep want the ease-in he names; the crowns beside the lane want
+to be camera solids or to dissolve) and the look-backs' cost are answered; the leaf cluster gone from A / B / E's top edge
+is the owner's call.**
