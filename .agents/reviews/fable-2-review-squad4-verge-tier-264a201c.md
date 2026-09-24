@@ -20,3 +20,9 @@ invisible at the six-view distances, as argued. Not checked here: a walk pose st
 hysteresis, if any, would show there as blades appearing at the boundary while moving) — that is the one thing the fixed views cannot
 see. Renders `/tmp/cap-sq4base`, `/tmp/cap-sq4tip`; the branch's own base `6d145e90` is 8.95 M at A, so the head's 8.87 M (after
 fable-2's flagstones and fable-4's white-barks) would sit at ≈ 8.82 M with this merged.
+
+**Addendum (00:58) — the walk.** Three ground poses with verge tiles at and beyond the 14 m tier in frame (`w06-spine-f`,
+`w03-spine-f` looking along the spine, `w08-spine-l` across the north path), same two builds: pixels > 8 levels 0.06 / 0.04 / 0.20 %,
+none > 40; the densest 72-row band (the mid-distance ground where the tier edge sits) 0.4 / 0.3 / 1.2 % of its pixels, all
+single-digit levels. Whatever a blade does at the boundary while moving, it is below the eye's threshold here too — the check I left
+open above is closed.
