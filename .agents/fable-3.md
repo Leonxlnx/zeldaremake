@@ -446,3 +446,12 @@ Evidence sheets under `art/environment/props-fable-3/` and `art/environment/peop
 - Head still 19:10. fable-5's 18:04 isolate (their review branch; not on the head yet) ranked the kids' cost at the
   look-backs: 107–123 draws for five kids at 20–30 px. `0fcc4293`: beyond 25 m no kid shadow and no small parts. Far
   bank 822 → 765 on my pose, A / B / C unchanged, the frame 0 px. Their `rigMergedMeshes 0` is the old field; explained.
+
+## 2026-09-24 22:28 tick — exp-north on the head; the grove's first person
+
+- exp-north merged at 22:10 (`b9993008`); this branch merged clean, 167 / 167. The hamlet had no people: `664c1bcf`
+  puts a girl at the yard's washing line (GROVE_SLOT 5) on the bank girl's pattern — no fairy (light count), a shared
+  look, 60 m cull, her own rng fork last. +19 draws at the grove's poses, D unchanged; asked fable-cursor to confirm
+  `g-back` at their pose (675 → ≈ 694) and offered the no-shadow flag. Evidence `people-fable-3/grove-girl/`.
+- Lesson: never `&` a build while stashing for the before — check the built JS for the change's string before trusting
+  a before/after pair (I did; the stash build won).
