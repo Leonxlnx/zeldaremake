@@ -25,6 +25,7 @@ import * as trees from './trees';
 import * as canopy from './canopy';
 import * as vegetation from './vegetation';
 import * as props from './props';
+import * as ruins from './ruins';
 import * as character from './character';
 
 /**
@@ -47,6 +48,7 @@ const SYSTEMS: { name: string; create: SystemFactory; terrain?: 'legacy' }[] = [
   // props before vegetation: props publish their footprints (ctx.shared.propFootprints) so the
   // scatter can keep ferns out of the pots; forks are label-keyed, so the order moves no stream
   { name: 'props', create: props.create, terrain: 'legacy' },
+  { name: 'ruins', create: ruins.create }, // round 57: the waterfall ruins (live terrain; publishes its walk spans and blockers before the vegetation and the character)
   { name: 'vegetation', create: vegetation.create, terrain: 'legacy' },
   { name: 'character', create: character.create },
 ];

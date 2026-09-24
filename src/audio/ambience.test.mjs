@@ -254,6 +254,32 @@ test('the ravine opens the space where the tunnel and the crowns close it', () =
   assert.ok(read({ gorge: 1, enclosure: 1 }).top < 1200, 'and the tunnel shuts it whatever is outside');
 });
 
+test('the waterfall roars by its pool, fades down the trail and is silent in the village', () => {
+  // the ruins' plunge (ruins/index.ts marks it a metre over the waterline) and where Link stands
+  const plunge = [{ x: -72.9, y: 1.55, z: 2.7 }];
+  const terrace = { x: -70, y: 5.7, z: -3 };
+  const { ctx, amb } = bed();
+  const moved = respondsTo(ctx, amb, { listener: terrace, falls: [] }, { listener: terrace, falls: plunge });
+  const opened = moved.filter((r) => r.before === 0 && r.after > 0);
+  assert.equal(opened.length, 1, `${opened.length} gains open when a fall is in reach, expected the fall's own level`);
+  const level = opened[0].node;
+  const read = (listener, state = {}) => {
+    amb.update(5, { gust: 0.5, listener, forward: NORTH, pods: [], falls: plunge, ...state });
+    return level.gain.target;
+  };
+  const byPool = read(terrace);
+  const outcrop = read({ x: -57, y: 4.1, z: -4.3 });
+  const trail = read({ x: -41, y: 3.2, z: -1.6 });
+  assert.ok(byPool > outcrop * 2 && outcrop > trail && trail > 0, `the fall should fall away with distance (pool ${byPool}, outcrop ${outcrop}, trail ${trail})`);
+  assert.equal(read(LISTENER), 0, 'the village must not hear the fall at all');
+  assert.equal(A.fallAttenuation(A.FALL_AUDIBLE_M), 0);
+  assert.ok(read(plunge[0]) <= A.FALL_LEVEL + 1e-9, 'the fall must never exceed its own level');
+  // water, not weather: the gust and the lanterns leave it alone
+  assert.equal(read(terrace, { gust: 0 }), read(terrace, { gust: 1 }));
+  assert.equal(read(terrace, { pods: [{ x: -70, y: 6, z: -3 }] }), byPool);
+  assert.ok(amb.stats().fall > 0.3, `standing over the pool the stats should say the fall is near (${amb.stats().fall})`);
+});
+
 test('the bed is deterministic and draws only from the seeded stream', () => {
   const a = bed({ seed: 'same' });
   const b = bed({ seed: 'same' });

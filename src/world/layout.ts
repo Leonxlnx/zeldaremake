@@ -1366,3 +1366,140 @@ export function steppingStonesAlong(
   }
   return out;
 }
+
+/**
+ * Round 57 (expansion-ruins; the owner, 2026-09-24 10:58 UTC: "build out the other places to visit
+ * from the video trailer that I can go explore past the tree"): the WATERFALL RUINS — the trailer's
+ * 35–42 s location (reference/frames-dense/review46 r_036 … r_043): a pale mossy outcrop, a worn
+ * stair up to a round arch on twisted columns, a parapet with a tile band and basin finials over a
+ * pool on the left, a great ivy-clad rock on the right, a waterfall off a pale cliff behind.
+ *
+ * WHERE: west of the village, due west of every fixed camera (bearings −70° … −100° from the
+ * plaza; A–F look north-east to south and see none of it). A trail leaves the round-49 stepping
+ * discs at the west house's flight foot, climbs onto the 2.5 m ledge north of the house, runs west
+ * through the forest and enters the site between two boulders at x ≈ −54. The hero view looks
+ * WEST from the outcrop (sun azimuth −128°: backlit, ahead-right, like the reference's haze).
+ * The site is on the heightfield's 1 m mid lattice (x < −48): the landform (terrain/ruins.ts) is
+ * broad — the outcrop, the terrace pad, the pool's basin — and everything crisp is geometry.
+ *
+ * Like `EXPANSION` / `EXPANSION_SOUTH`, nothing here is in `LAYOUT`'s lists (the legacy streams
+ * iterate them): the heightfield's LIVE view shapes the ground, `ruinsCull` clears the legacy
+ * streams off it, and the ruins system (src/world/ruins/), the character ground, the vegetation
+ * and the audio read these exports.
+ */
+export const EXPANSION_RUINS = {
+  /**
+   * Trail nodes (x, 0, z): from beside the west house's flight foot (the discs' last stone at
+   * (−14.3, 7.7)) north onto the ledge (2.1 → 2.6 m over 3 m), west along it 2.5–3 m north of
+   * the house's wall ring, then west-north-west on the ledge's 2.2–2.6 m shoulder to the gate
+   * and onto the outcrop. Natural grade, smoothed; packed earth (the splat's path layer).
+   */
+  trail: [
+    [-13.7, 0, 8.3],
+    [-13.75, 0, 6.6],
+    // the first bend keeps ≥ 1.75 m (half width + verge) off the west house's landing props
+    [-14.0, 0, 4.9],
+    [-14.9, 0, 3.4],
+    [-17.0, 0, 2.55],
+    [-19.6, 0, 2.6],
+    [-23.0, 0, 2.6],
+    [-26.4, 0, 2.3],
+    [-29.8, 0, 1.6],
+    [-33.4, 0, 0.6],
+    [-37.2, 0, -0.5],
+    [-41.0, 0, -1.6],
+    [-44.8, 0, -2.6],
+    [-48.4, 0, -3.5],
+    [-51.4, 0, -4.1],
+    [-54.2, 0, -4.3],
+    [-57.0, 0, -4.3],
+  ] as [number, number, number][],
+  /** packed-earth half width (m) and the worn verge beyond it */
+  trailHalfWidth: 0.85,
+  trailVerge: 0.7,
+  /** the pale outcrop the trail climbs onto (an XZ rectangle, rounded by `corner`), its top at `y`, eased back to the forest floor over `edge` m */
+  platform: { x0: -61.0, x1: -54.4, z0: -8.2, z1: -1.85, y: 2.9, edge: 1.8, corner: 1.4 },
+  /** the worn stair from the outcrop up to the terrace: 8 × 0.2 m climbing west (`StairDef` conventions) */
+  stairs: { id: 'ruins-stair', base: [-61.0, 2.9, -4.2], dir: [-1, 0], steps: 8, rise: 0.2, tread: 0.4, width: 2.4 } as StairDef,
+  /**
+   * The paved upper terrace, a solid masonry block (x0 < x1, z0 < z1) with its slab tops at `y`
+   * (the stair's top), abutting the cliff at x0. The stair is cut into its east front (x1); north
+   * of `notchZ` the front steps back to `notchX` round the ivy rock's foot.
+   */
+  terrace: { x0: -74.9, x1: -61.0, z0: -9.8, z1: -1.85, y: 4.5, notchZ: -7.0, notchX: -63.0 },
+  /** the retaining wall along the pool's north shore: centre line z, half thickness, from the cliff to past the parapet */
+  wall: { z: -1.85, half: 0.35, x0: -74.9, x1: -55.3 },
+  /** the parapet on the outcrop's section of the wall: posts with basin finials at `posts` (x) */
+  parapet: { x0: -55.6, x1: -61.0, height: 0.95, half: 0.2, posts: [-55.6, -58.3, -61.0] },
+  /** the hero arch at the stair head: clear span, column radius and height (over the terrace) */
+  arch: { x: -64.75, z: -4.2, span: 2.9, columnR: 0.25, columnH: 2.9 },
+  /** an offering on the paving between the stair head, the arch's north column and the ivy rock: its centre */
+  offering: { x: -63.72, z: -6.28 },
+  /** the colonnade along the terrace's north edge ([x, height]; a negative height is a broken stump that tall) */
+  colonnade: { z: -9.1, columns: [[-66.8, 3.2], [-69.2, 3.2], [-71.6, -1.05]] as [number, number][] },
+  /** the half-fallen arch at the terrace's west end: two piers across z at `x` */
+  brokenArch: { x: -73.3, z: [-7.6, -4.2] as [number, number] },
+  /** the pool (a rounded rectangle, `n` its superellipse power) below the wall, its surface at `water` */
+  pool: { x: -64.9, z: 3.35, hx: 9.5, hz: 4.85, n: 4, water: 0.55, depth: 1.45, shelf: 1.6, bank: 2.2 },
+  /** the waterfall off the west cliff into the pool's west end: lip centre (x, z), lip height, sheet width */
+  fall: { x: -74.35, z: 2.7, top: 9.6, width: 3.0 },
+  /** the west cliff: its face runs along x ≈ `x` from `z0` to `z1`, up to `top` */
+  cliff: { x: -74.9, z0: -12.5, z1: 10.5, top: 10.8 },
+  /** the great ivy-clad rock right of the stair (its lobes stop ≥ 0.5 m short of the flight): base centre, radius, top */
+  pillar: { x: -60.6, z: -9.0, r: 2.4, top: 13.6 },
+  /** the two gate boulders the trail passes between (x, z, radius) */
+  gate: [
+    [-52.9, -7.2, 1.5],
+    [-53.2, -1.2, 1.3],
+  ] as [number, number, number][],
+  /**
+   * The trail's pod-lantern posts (x, z, facing x, facing z, height): bent posts on the verge,
+   * 0.6–0.7 m outside the packed earth, their hooks reaching toward the path — the last one on the
+   * outcrop by the parapet's east end. All west of x −44 (no fixed frame sees them).
+   */
+  lanterns: [
+    [-45.6, -1.14, 0.25, -0.97, 2.35],
+    [-49.74, -5.32, -0.21, 0.98, 2.25],
+    [-55.1, -2.62, -0.2, -0.98, 2.45],
+  ] as [number, number, number, number, number][],
+} as const;
+
+const RUINS_TRAIL_LINE = smoothLine(EXPANSION_RUINS.trail, 0.5);
+/** the trail's smoothed centreline (x, 0, z), every ≈ 0.5 m from the discs to the outcrop */
+export function ruinsTrailLine(): readonly [number, number, number][] {
+  return RUINS_TRAIL_LINE;
+}
+
+/**
+ * The ruins' XZ boxes (with margin): the trail corridor and the site. `inExpansionRuins` is their
+ * union — where the live view can differ from the legacy one on the ruins' account at all.
+ */
+export const EXPANSION_RUINS_BOXES = (() => {
+  const box = () => ({ x0: Infinity, x1: -Infinity, z0: Infinity, z1: -Infinity });
+  const add = (b: ReturnType<typeof box>, x: number, z: number, m: number) => {
+    b.x0 = Math.min(b.x0, x - m);
+    b.x1 = Math.max(b.x1, x + m);
+    b.z0 = Math.min(b.z0, z - m);
+    b.z1 = Math.max(b.z1, z + m);
+  };
+  const R = EXPANSION_RUINS;
+  const trail = box();
+  for (const p of RUINS_TRAIL_LINE) add(trail, p[0], p[2], R.trailHalfWidth + R.trailVerge + 1.6);
+  const site = box();
+  // the pool's shore, its rim easing out (terrain/ruins.ts POOL_RIM_OUT_M) and the ragged edge
+  add(site, R.pool.x - R.pool.hx, R.pool.z - R.pool.hz, R.pool.bank + 3.8);
+  add(site, R.pool.x + R.pool.hx, R.pool.z + R.pool.hz, R.pool.bank + 3.8);
+  add(site, R.terrace.x0, R.terrace.z0, 3);
+  add(site, R.platform.x1, R.platform.z0, 3);
+  add(site, R.pillar.x, R.pillar.z, R.pillar.r + 3);
+  add(site, R.cliff.x - 6, R.cliff.z0, 2);
+  add(site, R.cliff.x - 6, R.cliff.z1, 2);
+  for (const g of R.gate) add(site, g[0], g[1], g[2] + 2);
+  return [trail, site];
+})();
+
+/** true inside one of `EXPANSION_RUINS_BOXES` */
+export function inExpansionRuins(x: number, z: number): boolean {
+  for (const b of EXPANSION_RUINS_BOXES) if (x >= b.x0 && x <= b.x1 && z >= b.z0 && z <= b.z1) return true;
+  return false;
+}

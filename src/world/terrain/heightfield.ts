@@ -7,10 +7,11 @@
  * Owner: terrain agent. Interface (`Terrain`) is frozen; implementation may be refined.
  */
 import { Vector3 } from 'three';
-import { EAST_BOX, EXPANSION, EXPANSION_BOX, EXPANSION_EAST, EXPANSION_SOUTH, EXPANSION_SOUTH_BOXES, EXPANSION_STAIRS, LAYOUT, eastDeckPlan, eastHouseBlocks, eastShopSpots, eastSteppingStones, expansionSteppingStones, houseSteppingStones, inExpansionSouth, southBankFrameVectors, southBridgeFrame, southPathHalfWidth, southPathLine, type StairDef } from '../layout';
+import { EAST_BOX, eastDeckPlan, eastHouseBlocks, eastShopSpots, eastSteppingStones, EXPANSION, EXPANSION_BOX, EXPANSION_EAST, EXPANSION_SOUTH, EXPANSION_SOUTH_BOXES, EXPANSION_STAIRS, expansionSteppingStones, houseSteppingStones, inExpansionRuins, inExpansionSouth, LAYOUT, southBankFrameVectors, southBridgeFrame, southPathHalfWidth, southPathLine, type StairDef } from '../layout';
 import { WORLD } from '../config';
 import { Noise2D, smoothstep, clamp, lerp } from '../util/noise';
 import { BERM_BELOW_AXIS, bankHeight, bridgeDeckY, bridgeLocal, ravineProfile, tunnelBerm, tunnelCarve, tunnelFootprint, tunnelLocal } from './south';
+import { buildTrailProfile, inStairCut, poolSigned, ruinsLandform, ruinsStructure, trailHalfWidth, trailInfluence, trailNearest } from './ruins';
 
 /**
  * Round 49 (expansion-2): the heightfield has two VIEWS of the same world.
@@ -755,6 +756,8 @@ export const SOUTH_FLOOR_Y = SOUTH_ROUTE.floorY;
 export const SOUTH_NORTH_SILL_Y = SOUTH_ROUTE.pts[SOUTH_ROUTE.pts.length - 1][1];
 const SOUTH_BRIDGE_LEN = southBridgeFrame().len;
 const [SP_BOX, , SB_BOX] = EXPANSION_SOUTH_BOXES;
+/** Round 57 (expansion-ruins, live view only): the ruins trail's grade over the macro landform (terrain/ruins.ts) */
+const RUINS_TRAIL = buildTrailProfile((x, z) => landform(x, z).h);
 const inBox = (b: { x0: number; x1: number; z0: number; z1: number }, x: number, z: number) => x >= b.x0 && x <= b.x1 && z >= b.z0 && z <= b.z1;
 
 /**
@@ -862,9 +865,13 @@ function pathInfluence(x: number, z: number, live = false) {
       southClip = sr.clip;
     }
   }
-  let weight = 1 - smoothstep(bhw * 0.8, bhw * 1.9, best.dist);
-  let surface = paved ? (1 - smoothstep(bhw * 0.85, bhw * 1.05, best.dist)) * southClip : steppingStoneMask(x, z);
-  let y = best.y;
+  // round 57 (live view): the ruins trail (terrain/ruins.ts) — packed earth with its own ragged
+  // edge and a flattening faded in off the stepping discs — wherever its margin beats the others'
+  const trail = live && x < -12 && inExpansionRuins(x, z) ? trailInfluence(RUINS_TRAIL, x, z) : null;
+  const onTrail = trail !== null && trail.dist - trail.hw < best.dist - bhw;
+  let weight = onTrail ? trail.weight : 1 - smoothstep(bhw * 0.8, bhw * 1.9, best.dist);
+  let surface = onTrail ? trail.surface : paved ? (1 - smoothstep(bhw * 0.85, bhw * 1.05, best.dist)) * southClip : steppingStoneMask(x, z);
+  let y = onTrail ? trail.y : best.y;
   if (southApron > weight) {
     y = lerp(y, SOUTH_ROUTE.floorY, (southApron - weight) / Math.max(southApron, 1e-6));
     weight = southApron;
@@ -1166,6 +1173,15 @@ function macroHeight(x: number, z: number, live = false) {
     }
   }
 
+  // Round 57 (live view only): the waterfall ruins (layout `EXPANSION_RUINS`, terrain/ruins.ts) —
+  // the outcrop raised to its level and the pool's basin; the bed and the outcrop's top keep off
+  // the breakup and detail passes (they read as `logW`)
+  if (live && x < -40 && inExpansionRuins(x, z)) {
+    const rl = ruinsLandform(x, z, h);
+    h = rl.h;
+    logW = Math.max(logW, rl.flat);
+  }
+
   // how much authored flat surface is here (detail passes fade out on it); the south bank's toe
   // strip counts as one so the paving edge and the foot of the bank stay at plaza level
   const suppress = clamp(Math.max(p.surface, stairW, padW, logW, p.toe), 0, 1);
@@ -1396,6 +1412,8 @@ export function surfaceMask(x: number, z: number, view: TerrainView = 'legacy'):
       }
       for (const p of EAST_POSTS) if (Math.hypot(x - p.x, z - p.z) < p.r) structure = 1;
     }
+    // round 57: the ruins' masonry, the cliff's foot, the ivy rock and the gate boulders
+    if (x < -40 && inExpansionRuins(x, z)) structure = Math.max(structure, ruinsStructure(x, z));
   }
   return { path: p.surface, stairs, structure };
 }
@@ -1448,7 +1466,11 @@ export function southRouteSurface(x: number, z: number): number {
  * cascade (the white-barks feed the understory and mid samplers): there a new true re-rolls
  * every later draw.
  */
-export function expansionCull(x: number, z: number, lift = 0.3, east = true): boolean {
+export function expansionCull(x: number, z: number, lift = 0.3, all = true): boolean {
+  // round 56/57: `all` false — the rules as they stood before the east lane and the ruins — for a test
+  // INSIDE a sampling loop (trees' understory), which filters the lane and the ruins afterwards
+  // instead so no later draw moves (util/eastLane `eastUnderstoryCull`, `ruinsTrunkCull`)
+  if (all && ruinsCull(x, z, lift)) return true;
   // round 56: the south exit (`EXPANSION_SOUTH_BOXES`) — its paving, the log / sills / posts, and
   // wherever its live ground left the legacy ground (the ravine, the mound, the carve)
   // (an instance left FLOATING over lowered ground reads worse than one sunk a little: 4 cm down
@@ -1461,7 +1483,37 @@ export function expansionCull(x: number, z: number, lift = 0.3, east = true): bo
     const dh = getTerrain().height(x, z) - getLegacyTerrain().height(x, z);
     if (dh < -0.04 || dh > lift) return true;
   }
-  return westExpansionCull(x, z, lift, east);
+  return westExpansionCull(x, z, lift, all);
+}
+
+/**
+ * Round 57 (expansion-ruins): the ruins' rule for the legacy streams — true on the trail (its
+ * earth and a little past it), on the ruins' built footprints (the terrace, the stair, the walls,
+ * everything behind the cliff's face, the ivy rock, the gate boulders), in the pool and on its wet
+ * shore, and where the live ground left the legacy one (the outcrop, the basin's banks, the
+ * trail's flattening) by more than `lift` m up or 4 cm down. False outside `EXPANSION_RUINS_BOXES`.
+ */
+export function ruinsCull(x: number, z: number, lift = 0.3): boolean {
+  if (x > -12 || !inExpansionRuins(x, z)) return false;
+  const tr = trailNearest(RUINS_TRAIL, x, z);
+  if (tr && tr.dist < trailHalfWidth(tr.s) * 1.2) return true;
+  if (x < -40 && (ruinsStructure(x, z) > 0.5 || inStairCut(x, z, 0.3) || poolSigned(x, z) < 0.3)) return true;
+  const dh = getTerrain().height(x, z) - getLegacyTerrain().height(x, z);
+  return dh < -0.04 || dh > lift;
+}
+
+/**
+ * Round 57: a legacy-sampled trunk against the ruins — `ruinsCull` at its centre or anywhere on a
+ * ring `reach` m out (the bole, its flare and the root toes keep off the trail and the masonry).
+ */
+export function ruinsTrunkCull(x: number, z: number, reach: number): boolean {
+  if (x > -12 + reach) return false;
+  if (ruinsCull(x, z)) return true;
+  for (let i = 0; i < 8; i++) {
+    const t = (i / 8) * Math.PI * 2;
+    if (ruinsCull(x + Math.cos(t) * reach, z + Math.sin(t) * reach)) return true;
+  }
+  return false;
 }
 
 /**

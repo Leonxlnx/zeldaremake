@@ -16,9 +16,10 @@
 import type { Object3D, Scene, Vector3 } from 'three';
 import type { Wind } from '../world/wind/wind';
 import type { PlayerHandle } from '../world/character/player';
-import { surfaceMask } from '../world/terrain/heightfield';
+import { expansionDiscMask, getTerrain, steppingStoneMask, surfaceMask } from '../world/terrain/heightfield';
 import { forestFloorZone } from '../world/terrain/material';
-import { EXPANSION, EXPANSION_EAST, EXPANSION_SOUTH, LAYOUT, eastDeckPlan } from '../world/layout';
+import { eastDeckPlan, EXPANSION, EXPANSION_EAST, EXPANSION_RUINS, EXPANSION_SOUTH, inExpansionRuins, LAYOUT } from '../world/layout';
+import { buildTrailProfile, inStairCut, inTerrace, outcropCover, trailInfluence } from '../world/terrain/ruins';
 import { createBuses, createRng, voices as liveVoices, type Buses } from './graph';
 import { createAmbience, type Ambience, type AmbienceStats, type Vec3 } from './ambience';
 import { createFootsteps, type Footsteps, type FootstepStats, type Surface } from './footsteps';
@@ -54,6 +55,8 @@ export interface AudioStats extends FootstepStats, AmbienceStats {
   music: MusicSource;
   /** pod lanterns found in the scene (the flame's distance sources) */
   pods: number;
+  /** waterfalls found in the scene (the fall layer's sources) */
+  falls: number;
   /** true while the character system is reporting the gait's boot plants */
   gaitDriven: boolean;
   /** how closed the space over the listener is — 1 inside the log tunnel's bore, 0 in the open */
@@ -192,7 +195,10 @@ function fairyAt(f: FairyRef, out: Vec3): Vec3 | null {
   return out;
 }
 
-/** world-space centres of every `pod-lantern` mesh (structures/lantern.ts) */
+/**
+ * World-space centres of every `pod-lantern` (the meshes of structures/lantern.ts; the ruins' trail
+ * pods are merged into one mesh, so ruins/index.ts marks each with an empty of the same name)
+ */
 function gatherPods(scene: Scene): Vec3[] {
   const pods: Vec3[] = [];
   const tmp = { x: 0, y: 0, z: 0 };
@@ -210,6 +216,17 @@ function gatherPods(scene: Scene): Vec3[] {
 }
 
 const EAST_DECK = eastDeckPlan();
+/** every `waterfall-plunge` marker (ruins/index.ts: the fall's plunge, a metre over the waterline) */
+function gatherFalls(scene: Scene): Vec3[] {
+  const falls: Vec3[] = [];
+  scene.updateMatrixWorld(true);
+  scene.traverse((o: Object3D) => {
+    if (o.name !== 'waterfall-plunge') return;
+    const e = o.matrixWorld.elements;
+    falls.push({ x: e[12], y: e[13], z: e[14] });
+  });
+  return falls;
+}
 
 /**
  * What Link's boot lands on (owner, 2026-09-22: "his footsteps should correlate where he's
@@ -225,6 +242,7 @@ const EAST_DECK = eastDeckPlan();
  *            and humus patch covers, north of the log arch and off the path past the hollow's
  *            mouth). The owner's 09-23 list names leaves as one of the four surfaces.
  *  - grass:  everything else
+ * The waterfall ruins west of the village have their own (`ruinsSurfaceAt`).
  */
 export function surfaceAt(x: number, z: number): { surface: Surface; stairs: boolean; enclosure: number; canopy: number; gorge: number } {
   const m = surfaceMask(x, z, 'live');
@@ -287,10 +305,35 @@ export function surfaceAt(x: number, z: number): { surface: Surface; stairs: boo
     const onFlight = out > D.stepInner && out < D.stepOuter && along > -D.half - D.stepRun && along <= -D.half;
     if (onDeck || onFlight) return { surface: 'wood', stairs: false, enclosure: 0, canopy, gorge };
   }
+  {
+    const r = ruinsSurfaceAt(x, z, canopy, gorge);
+    if (r) return r;
+  }
   if (m.path > 0.5) return { surface: 'stone', stairs: false, enclosure: 0, canopy, gorge };
   if (m.path > 0.12) return { surface: 'dirt', stairs: false, enclosure: 0, canopy, gorge };
   if (canopy > 0.5) return { surface: 'leaf', stairs: false, enclosure: 0, canopy, gorge };
   return { surface: 'grass', stairs: false, enclosure: 0, canopy, gorge };
+}
+
+/** the ruins trail's line (its packed earth is a plan-view field: the grade does not enter it) */
+const RUINS_TRAIL = buildTrailProfile(() => 0);
+
+/**
+ * The waterfall ruins (`EXPANSION_RUINS`, terrain/ruins.ts): the worn flight and the terrace's
+ * paving are masonry and the outcrop is bare rock, which the masks call lawn; the trail is packed
+ * earth, which the path mask calls flagstones. The stepping discs it leaves from stay stone. Past
+ * the pool's waterline (the ground under its surface) he wades.
+ */
+function ruinsSurfaceAt(x: number, z: number, canopy: number, gorge: number): { surface: Surface; stairs: boolean; enclosure: number; canopy: number; gorge: number } | null {
+  if (x > -12 || !inExpansionRuins(x, z)) return null;
+  if (x < -40) {
+    if (inStairCut(x, z, 0.05)) return { surface: 'stone', stairs: true, enclosure: 0, canopy, gorge };
+    if (inTerrace(x, z) || outcropCover(x, z) > 0.5) return { surface: 'stone', stairs: false, enclosure: 0, canopy, gorge };
+    if (getTerrain().height(x, z) < EXPANSION_RUINS.pool.water - 0.02) return { surface: 'water', stairs: false, enclosure: 0, canopy, gorge };
+  }
+  const trail = trailInfluence(RUINS_TRAIL, x, z);
+  if (trail && trail.surface > 0.12 && Math.max(expansionDiscMask(x, z), steppingStoneMask(x, z)) < 0.5) return { surface: 'dirt', stairs: false, enclosure: 0, canopy, gorge };
+  return null;
 }
 
 /**
@@ -375,6 +418,7 @@ export function mountAudio(o: AudioOptions): AudioHandle {
   let starting: Promise<void> | null = null;
   let raf = 0;
   let pods: Vec3[] = [];
+  let falls: Vec3[] = [];
   let fairyObjects: FairyRef[] = [];
   /** reused per-fairy vectors so the per-frame read allocates nothing */
   const fairySlots: Vec3[] = [];
@@ -422,7 +466,7 @@ export function mountAudio(o: AudioOptions): AudioHandle {
       const at = fairyAt(fairyObjects[i], fairySlots[i]);
       if (at) fairyBuf.push(at);
     }
-    ambience.update(t, { gust: o.wind?.uniforms.uGust.value ?? 0.4, listener, forward: { x: fwd[0] / fl, z: fwd[2] / fl }, pods, fairies: fairyBuf, enclosure: s.enclosure, canopy: s.canopy, gorge: s.gorge, windDir: o.wind ? { x: o.wind.direction.x, z: o.wind.direction.y } : undefined });
+    ambience.update(t, { gust: o.wind?.uniforms.uGust.value ?? 0.4, listener, forward: { x: fwd[0] / fl, z: fwd[2] / fl }, pods, fairies: fairyBuf, enclosure: s.enclosure, canopy: s.canopy, gorge: s.gorge, falls, windDir: o.wind ? { x: o.wind.direction.x, z: o.wind.direction.y } : undefined });
     ambience.scheduleUntil(ctx.currentTime + 4);
     music.scheduleUntil(ctx.currentTime + 6);
     // footsteps: the gait's own boot plants when the character system reports them, the ground
@@ -467,6 +511,7 @@ export function mountAudio(o: AudioOptions): AudioHandle {
       live = { ctx, buses, ambience, footsteps, music };
       music.ready.then((s) => (musicSource = s)).catch(() => undefined);
       pods = gatherPods(o.scene);
+      falls = gatherFalls(o.scene);
       fairyObjects = gatherFairies(o.scene);
       fairySlots.length = 0;
       for (let i = 0; i < fairyObjects.length; i++) fairySlots.push({ x: 0, y: 0, z: 0 });
@@ -481,7 +526,7 @@ export function mountAudio(o: AudioOptions): AudioHandle {
         cap.start({ updateInterval: 0.25 });
       }
       await ctx.resume().catch(() => undefined);
-      console.info(`[audio] started (${ctx.sampleRate} Hz, ${pods.length} pod lanterns, ${fairyObjects.length} fairies)`);
+      console.info(`[audio] started (${ctx.sampleRate} Hz, ${pods.length} pod lanterns, ${falls.length} waterfalls, ${fairyObjects.length} fairies)`);
       emit();
       lastT = 0;
       raf = requestAnimationFrame(tick);
@@ -523,6 +568,7 @@ export function mountAudio(o: AudioOptions): AudioHandle {
       state: !live ? 'idle' : muted ? 'muted' : 'on',
       music: musicSource,
       pods: pods.length,
+      falls: falls.length,
       gaitDriven,
       enclosure,
       canopy,
@@ -531,7 +577,7 @@ export function mountAudio(o: AudioOptions): AudioHandle {
       load,
       voices: liveVoices(),
       ...(live?.footsteps.stats() ?? { steps: 0, gaitSteps: 0, surfaces: {}, lastSurface: null, landings: 0 }),
-      ...(live?.ambience.stats() ?? { birds: 0, flutters: 0, glints: 0, fairiesNear: 0, windLean: 0 }),
+      ...(live?.ambience.stats() ?? { birds: 0, flutters: 0, glints: 0, fairiesNear: 0, windLean: 0, fall: 0 }),
     }),
     renderOffline: (seconds, sampleRate = 44100, options) => renderOffline(o, seed, seconds, sampleRate, options),
     record: (seconds) => recordLive(live, seconds),
@@ -602,6 +648,7 @@ export async function renderOffline(o: AudioOptions, seed: string, seconds: numb
   const music = withMusic ? createMusic(ctx, buses.music, buses.reverb, musicRng, 0.5) : null;
   const musicSource = music ? await music.ready : 'none';
   const pods = gatherPods(o.scene);
+  const falls = gatherFalls(o.scene);
   // the fairies do not move in an offline render (nothing steps the character system), so one
   // sample of each is enough; the walk's last leg stands beside the nearest one so the glints are
   // in the evidence WAV — in play they are wherever their Kokiri is
@@ -627,7 +674,7 @@ export async function renderOffline(o: AudioOptions, seed: string, seconds: numb
     const beside = t >= standsBesideFairy && fairies.length ? fairies[0] : null;
     const listener: Vec3 = beside ? { x: beside.x + 0.9, y: beside.y, z: beside.z + 0.5 } : { x, y: 1.2, z };
     // the walk's `leaf` leg IS the north forest floor, so it carries its closed canopy with it
-    ambience?.update(t, { gust: gust(t), listener, forward: { x: 0.6, z: -0.8 }, pods, fairies, canopy: options.canopy ?? (leg.surface === 'leaf' ? 1 : 0), gorge: options.gorge ?? (leg.surface === 'bridge' ? 1 : 0), windDir: o.wind ? { x: o.wind.direction.x, z: o.wind.direction.y } : undefined });
+    ambience?.update(t, { gust: gust(t), listener, forward: { x: 0.6, z: -0.8 }, pods, fairies, falls, canopy: options.canopy ?? (leg.surface === 'leaf' ? 1 : 0), gorge: options.gorge ?? (leg.surface === 'bridge' ? 1 : 0), windDir: o.wind ? { x: o.wind.direction.x, z: o.wind.direction.y } : undefined });
     footsteps?.drive(t, step, { speed: leg.speed, surface: leg.surface, onStairs: !!leg.stairs });
   }
   ambience?.scheduleUntil(seconds);
