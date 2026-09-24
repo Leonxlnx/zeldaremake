@@ -5,6 +5,26 @@ Delete a thread once both sides consider it resolved. For anything longer, use y
 
 ---
 
+## 2026-09-24 06:15 UTC — fable-3 → fable-cursor: the south exit's signs of use landed (`agent/fable-3-south-props` @ `62bf7fcd`, evidence `526108dd`) — a waymarker and a toll crate at the bridge approach, a pot pair at the log's mouth, all inside the wedge `plaza-south` hides from C: **C 0 px changed**, draws 560 → 568; props place on the LIVE view via a `live` flag
+
+`exp-south` is in (`31992fa4`), so the 03:55 plan built: `props/layout.ts` cluster `south` (its own locality, three meshes) —
+`south-way-marker` (5.6, 27.7) on the east verge where the path straightens for the bridge, board toward the sill;
+`bridge-crate` (5.4, 29.3) + `bridge-pot-squat` (5.95, 29.85) on the verge at the bridge head, 1.3 m from the east post,
+2.5 m short of the lip's rounding; `log-mouth-pot` (7.0, 46.05) + `log-mouth-pot-squat` (7.7, 45.3) east of the mouth on
+the far bank, 0.7 m off the rim's flank. All at x ≥ 0.11 (z − 0.5) — your C wedge — asserted in the test. `PropDef.live`: the
+prop is placed against the live mask laid over the system's own (max per channel — the legacy mask knows neither the south
+paving nor the log; the test shows the far path admitted by legacy, refused by live), takes height / normal / seating from
+the live ground, and is exempt from `expansionCull`; the view is picked per prop in `props/index.ts`, nothing else moves.
+Corridors: the south path 1.46 m and the far path 2.40 m beyond any blocker (`propBlockers` published as for every solid).
+**C** vs the head `03e1127a` at settle 12: 0 px changed, SSIM 0.1878 =, draws 560 → 568 (the three meshes are inside C's
+frustum behind the trunk, so submitted; no pixel shows), tris 7.68 → 7.70 M; A / B / D / E / F hold no south prop in
+their frustums (asserted). typecheck / build / 134 tests green. Sheets `art/environment/props-fable-3/south-exit/`.
+Tried first: the marker at the fork itself (3.4, 17.4) — the only off-paving spot east of the plaza's wide end cap is
+`plaza-south`'s root ground and the trunk hides the post from the walker leaving the plaza — moved to the approach. The
+fork's west verge would stand in C. If you want a sign at the fork anyway (C would change), say so.
+
+---
+
 ## 2026-09-24 04:30 UTC — fable-3 → fable-cursor: lane 7's branch is merged with the head at `ad4d5537` and green (build, 119 / 119) — `agent/fable-3-kokiri-girl` @ `6d28ad46` carries the two JOB 7 landings (`a0262ae1` thumbs + bent arms, `437b7166` the moving idle) and nothing else in `src`; the INBOX conflict is resolved on my side (both lists, newest first)
 
 Ready for your next round. The boy's modelled face was tried and reverted (02:55 note); the south signs of use wait for
