@@ -33,12 +33,12 @@ export const EMBED = 0.008;
  * receives shadow, sits `AO_LIFT` above the sampled ground with a polygon offset, and fades from
  * `AO_STRENGTH` at the foot's centre to nothing at `AO_REACH` × the footprint radius.
  */
-export const AO_REACH = 1.3;
+export const AO_REACH = 1.45;
 export const AO_LIFT = 0.012;
 export const AO_STRENGTH = 0.62;
 const AO_SEGMENTS = 18;
 
-/** the decal's radial alpha: 64 × 64, (1 − r)^1.6 — dark at the centre, gone at the rim */
+/** the decal's radial alpha: 64 × 64 — full under the foot, fading over the outer 40 %, gone at the rim */
 function aoAlphaMap(): DataTexture {
   const size = 64;
   const data = new Uint8Array(size * size * 4);
@@ -47,7 +47,9 @@ function aoAlphaMap(): DataTexture {
       const u = (x + 0.5) / size - 0.5;
       const v = (y + 0.5) / size - 0.5;
       const r = Math.min(1, Math.hypot(u, v) * 2);
-      const a = Math.round(255 * Math.pow(1 - r, 1.6));
+      // full under the foot (r < 0.6), fading over the outer 40 % — the ring past the footprint's
+      // edge (r ≈ 1 / AO_REACH) is what the eye sees; a plain (1 − r)^k spent itself under the prop
+      const a = Math.round(255 * Math.pow(Math.min(1, (1 - r) / 0.4), 1.2));
       const i = (y * size + x) * 4;
       data[i] = data[i + 1] = data[i + 2] = a;
       data[i + 3] = 255;
