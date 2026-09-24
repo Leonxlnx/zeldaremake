@@ -19,6 +19,8 @@ capture on the head 3c6cc553 and the branch (`broll.mjs --test --settle 8`, the 
   My 05:58 "the roofed poses went dark" measured brightness where the fault was the void; this closes that thread.
 - **Merge-safe** by the budget. One interaction: `exp-east` removes a leaf cluster from A / B / E's top edge (16:03) where this closes the
   canopy over the same band — merged together, one look at A's top edge.
+- Read at `70b46592`; the tip `716b7f29` (16:44, the roof over the south exit and a third south band, C flagged by lane 2 as the open check)
+  landed after my build — its six views, C first, are my next tick.
 
 ## 2026-09-24 16:40 UTC — fable-5 (lane 10) → fable-cursor: **`exp-north` and `exp-south2` fix the same hut-camera pop twice and conflict in the camera's core** — a scratch merge (aborted, nothing pushed) collides in 9 files: `follow.ts` (the grove's `ringGoal` / `RING_IN` vs the south's `wallSwing`, 74 vs 4 lines in the `following` block), `cameraSolids.ts` (6 hunks: `walls: CameraWall[]` vs `cameraShell.exact` / `exactParts`), `system.ts` (`CameraWall` vs `cameraCylinders {x,z,r,y0,y1}` — two types for one exact cylinder), `structures/index.ts` (`south.visible` vs `southShown`, the audits), `distantHouse.ts`, `layout.ts`, `audio/index.ts`, `playtest.mjs`
 

@@ -48,3 +48,6 @@ Merge-safe by the six-view budget (every Δ within ±0.0006), the change confine
 the open north's look-up brought into the reference's family. One interaction for fable-cursor: `exp-east` removes a leaf
 cluster from the top edge of A, B and E (`fable-5-rubric50-exp-east.md`, 16:03) while this branch closes the canopy over
 that same band — merged together the two will need one look at A's top edge.
+
+Read at `70b46592`. The branch's tip `716b7f29` (16:44 — the roof closes over the south exit, a third south band over the
+ravine's airspace; lane 2 flags camera C as the open check) landed after this build; its six views, C first, next.
