@@ -410,3 +410,6 @@ nearCanopy, materials, index otherwise) is edited.
 - 2026-09-24 00:18 — squad2's treepop (white-bark rung 20 → 28 m) measured against the round-52 pop test: the switch
   never popped; head A 8.947 M / 643; treepop's six-view row pending on the box.
 - 2026-09-24 00:29 — treepop six-view row: draws +48…+56 (A 692), C +465 K; recommended hold with the round-52 pop numbers.
+- 2026-09-24 01:34 — heartbeat: head unchanged since 23:05 (`81430baf`); squad2 measured lever (c) themselves (0.00 %) and
+  re-priced treepop on the merged head — fable-cursor's call with my six-view row; exp-south carries the understory's
+  south zone. Nothing open in the lane; no INBOX note (nothing landed).
