@@ -698,7 +698,9 @@ spike (§8 named it as the *lowered* state releasing). Routes 9 / 9, no stuck. `
 
 ## 24. The squad's integration candidate (`agent/squad4-integration-candidate` @ `4c30d4db`, 01:21 — the head `81430baf` + lane 1 round 2, lane 3's bark, lane 5's music rests, lane 2's treepop, `stairs-look`) read at the caps and the owner's poses (01:33–01:5x UTC)
 
-Not in the candidate: squad4's stair-camera fix (`5bd1aeee`, §22) and the verge blade tier (`6457b723`, §22).
+In the candidate (its report `pass5/INTEGRATION-CANDIDATE.md`, 01:45): squad4's stair-camera fix `5bd1aeee` (§22), `stairs-look`,
+treepop, music rests, lane 3's bark, lane 1's round 2 — its caps table reads exactly as mine below (A 638 / 8.914 M). Not in it:
+the verge blade tier (`6457b723`, §22, A −54 K) and fable-3's newest kokiri commits (left out over the INBOX hunk).
 
 **Caps** (`submission.mjs`, vs `39e63437` ≈ the head for counts): A **638 / 8.91 M**, B / E 627 / 8.32 M, C 501 / **7.20 M**
 (+431 K, treepop's white-bark rung), D 561 / 8.60 M, F 598 / 7.99 M — under both caps everywhere; A has 62 draws and 90 K
@@ -735,3 +737,18 @@ dark 54.2 → 52.7 %** — lane 1's round 2 and lane 3's bark do not bring the u
 The 06:50 pose on the candidate (character on) reads as lane 1's round 1: far-centre 0.438, band 0.308, near-black 23.6 %,
 the top band 0.352 — round 2 and treepop move 7.6 % of pixels there by more than 6 levels and 0.2 % by more than 40. The
 six views of the candidate are rendering (§25 when they land).
+
+## 25. The candidate's six views (`79f44aa5` 17:20 → `4c30d4db`, no character, same list; 01:35–02:22 UTC) — every view moves toward the frames
+
+| | A | B | C | D | E | F |
+| --- | --- | --- | --- | --- | --- | --- |
+| Δ SSIM vs reference | **+0.0176** | **+0.0137** | **+0.0093** | **+0.0148** | **+0.0164** | +0.0005 |
+| pixels moved > 6 levels | 36 % | 36 % | 30 % | 45 % | 36 % | 21 % |
+
+Between the two builds: lane 1's corridor light (rounds 1 + 2), the log joint, the skinned kids, the crowns' prebuild,
+lane 3's bark, treepop, `stairs-look`, the understory's 6.5 m, lane 5. The air's brightness is the bulk of it — the frames
+are 0.07–0.10 brighter than ours and lane 1 moved the veil toward them (§20) — with the stone flight at A. This recovers
+most of the squad batch's cost (§7a: −0.019 … −0.033 at A / B / C / D / E). Expected take row on the candidate with the
+cast, chained from §15: **A ≈ 0.200, B ≈ 0.189, C ≈ 0.198, D ≈ 0.258, E ≈ 0.210, F ≈ 0.209** (± 0.005) against take-0134's
+0.218 / 0.198 / 0.213 / 0.266 / 0.219 / 0.225 — the head's own six views (`81430baf`) are rendering for the clean split
+(candidate − head) next hour. Sheet `fable-5-lane10/it98-ba-six-A.jpg`.
