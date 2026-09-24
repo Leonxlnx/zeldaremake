@@ -189,6 +189,15 @@ bank idles; the sitter keeps her own sway; the plaza kids under capture pose thr
 Pose (1.2, 2.4, −1.6) → (4.4, 1.2, 0.9), vfov 42, broll t 14.8 inside her dwell at (4.4, 0.9): the after has her weight over
 one leg, hips and shoulders turned a touch; the boots are in the same pixels in both frames.
 
+## Tried and reverted: the girls' modelled face on the boy (`ed5b43c6` → reverted)
+
+JOB 7's "faces as geometry" for the boy: he got `buildKidFace` with his skin, a light blush, skin-coloured lips and thin
+lashes without the flick. At 2.5 m by the door it read worse — the recessed sockets and the heavy lids made his eyes
+smaller and darker (squinty under the fringe's points) where round 1's link.ts face has big bright eyes with catch-lights.
+An after that is not better is not a landing: reverted the same tick, the pair kept as the record.
+
+![the boy: link.ts face vs the modelled face, 2.5 m](tried-boy-modelled-face.jpg)
+
 ## Play mode
 
 `kokiri-play-walk` (artifact): `?test=1` at 960 × 540, Link placed at (0.8, 6.2) facing the stair foot,
