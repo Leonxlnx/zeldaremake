@@ -86,7 +86,18 @@ const RUINS = {
   offering: [-63.72, -6.28],
   terrace: { x0: -74.9, x1: -61.0, z0: -9.8, z1: -1.85, y: 4.5, notchZ: -7.0, notchX: -63.0, edge: 0.45 },
   posts: [[-45.6, -1.14], [-49.74, -5.32], [-55.1, -2.62]],
+  // the water stair (layout EXPANSION_RUINS.waterStair / quay): the flight's foot (x), line (z), tread,
+  // rise and steps up to the landing; the quay's level and south edge, the platform's east end and south
+  // edge, the landing's east face, the crossing's middle (x) through the parapet's break
+  waterStair: { foot: -69.2, z: -0.9, tread: 0.35, rise: 0.2028, steps: 18, quay: 0.85, z1: -0.3, fallX: -71.5, fallZ: 0.0, east: -61.3, crossX: -61.9 },
 };
+/** the water stair's round trip (the strip is 0.83 m walkable: the turns get their own waypoints) */
+function waterStairRoute() {
+  const W = RUINS.waterStair;
+  const x = W.crossX;
+  const down = [[-63.6, -2.65], [x, -2.65], [x, -1.9], [x, -0.8], [-62.9, W.z], [-66.2, W.z], [W.foot - 1.3, W.z], [-72.6, -0.8], [-73.3, -0.7]];
+  return [...down, [W.foot - 1.3, W.z], [-66.2, W.z], [-62.9, W.z], [x, -1.3], [x, -2.0], [x, -2.65], [-63.6, -2.65]];
+}
 const flightFrame = (f) => {
   const l = Math.hypot(f.dir[0], f.dir[1]);
   const dx = f.dir[0] / l;
@@ -731,6 +742,10 @@ async function walkScenario(page, results) {
     // up the bank, round the south bank to the middle of the south shore, down to the water's edge (the
     // waypoint lies in its 0.25 m paddle, so the 0.5 m arrival leaves him on the bank's foot)
     ['ruins-trail-to-shore', [RUINS.trail[14], [-50.6, -1.2], [-51.6, 1.8], [-52.8, 3.35], [-55.9, 4.55], [-54.2, 5.0], [-53.5, 7.5], [-57.5, 10.0], [-62.0, 10.3], [-64.9, 9.3], [-64.9, 8.35]], 2600, { cams: true }],
+    // the water stair and back: from the paving's strip south of the outcrop stair's cut over the wall
+    // top through the parapet's break, onto the landing, down the flight along the wall's pool face,
+    // west along the quay onto the platform at the fall's foot; then back up the same way
+    ['ruins-water-stair', waterStairRoute(), 2600, { cams: true }],
   ];
   results.walk = [];
   const pickRoutes = typeof args['walk-routes'] === 'string' ? new Set(args['walk-routes'].split(',')) : null;
@@ -744,7 +759,7 @@ async function walkScenario(page, results) {
     results.southProbes = await southProbes(page);
     fs.writeFileSync(path.join(out, 'playtest.json'), JSON.stringify(results, null, 1));
   }
-  if (!pickRoutes || pickRoutes.has('plaza-to-ruins-terrace') || pickRoutes.has('ruins-trail-to-shore')) {
+  if (!pickRoutes || ['plaza-to-ruins-terrace', 'ruins-trail-to-shore', 'ruins-water-stair'].some((r) => pickRoutes.has(r))) {
     results.ruinsProbes = await ruinsProbes(page);
     results.ruinsCamera = await ruinsCamera(page);
     fs.writeFileSync(path.join(out, 'playtest.json'), JSON.stringify(results, null, 1));
@@ -756,7 +771,8 @@ async function walkScenario(page, results) {
  * the arch's passage and the paving walk (the paving at its height); the pool past its paddle, the
  * wall and parapet, the terrace's open edges (a step inside each walks, a step off it does not),
  * the cliff, the ivy rock, the gate boulders, the columns and piers, the plunge and the lantern
- * posts block.
+ * posts block; the water stair walks at its heights (the crossing, the landing, the treads, the quay,
+ * the platform) and holds him off its open edges, past the landing's end and on the wall beside it.
  */
 async function ruinsProbes(page) {
   const T = RUINS.terrace;
@@ -798,6 +814,19 @@ async function ruinsProbes(page) {
   P('plunge', [-73.8, 2.7], 'blocked');
   for (const at of RUINS.posts) P('lantern-post', at, 'blocked');
   P('offering', RUINS.offering, 'blocked');
+  // the water stair: the crossing and the landing at the paving's height, two treads at theirs, the
+  // quay and the platform; off its open edges, past the landing's east face and the wall either side
+  // of the crossing held
+  const W = RUINS.waterStair;
+  P('water-stair-crossing', [W.crossX, -1.85], 'walk', T.y);
+  P('water-stair-landing', [-62.4, W.z], 'walk', T.y);
+  for (const i of [1, 8, 15]) P(`water-stair-tread-${i}`, [W.foot + (i + 0.5) * W.tread, W.z], 'walk', +(W.quay + (i + 1) * W.rise).toFixed(3));
+  P('water-stair-quay', [W.foot - 1.3, W.z], 'walk', W.quay);
+  P('water-stair-platform', [-73.0, -0.6], 'walk', W.quay);
+  for (const x of [-70.5, -66.2, -63.0]) for (const dz of [0.2, 0.6]) P('water-stair-off-edge', [x, W.z1 + dz], 'blocked');
+  for (const dz of [0.2, 0.6]) P('water-stair-off-platform', [-73.0, W.fallZ + dz], 'blocked');
+  for (const dx of [0.2, 0.5]) P('water-stair-past-landing', [W.east + dx, W.z], 'blocked');
+  for (const at of [[-63.0, -1.85], [-60.8, -1.85]]) P('wall-beside-crossing', at, 'blocked');
   const got = await page.evaluate((pts) => pts.map(([x, z]) => window.__ZR_PLAY__.ground(x, z)), probes.map((p) => p.at));
   const rows = probes.map((p, i) => {
     const g = got[i];
@@ -838,7 +867,7 @@ async function ruinsProbes(page) {
 /**
  * Round 57: the follow camera round the ruins' tight spots — Link placed by the cliff, the broken
  * arch, the colonnade, in the arch, on the flight, by the ivy rock, the parapet and the gate, on the
- * pool's shore and in its shallows, the view swung round him (8 headings × 3 pitches, the collision
+ * pool's shore and in its shallows, on the water stair, the view swung round him (8 headings × 3 pitches, the collision
  * resolving at once): every camera position with its collision state, for an offline test against
  * the ruins' solids and the water's surface.
  */
@@ -855,6 +884,12 @@ async function ruinsCamera(page) {
     ['terrace-south-by-wall', [-68.5, -2.6]],
     ['south-shore-in-the-shallows', [-64.9, 8.35]],
     ['east-shore-by-the-water', [-54.9, 4.5]],
+    // the water stair: on its landing, halfway down the flight against the wall's face, on the quay,
+    // on the platform at the fall's foot
+    ['water-stair-landing', [-62.4, -0.95]],
+    ['water-stair-mid', [-66.2, -0.95]],
+    ['water-stair-quay', [-70.5, -0.95]],
+    ['water-stair-platform', [-73.0, -0.7]],
   ];
   const rows = [];
   for (const [id, [x, z]] of spots) {

@@ -1194,8 +1194,8 @@ export const EXPANSION_RUINS = {
    * The water stair down the retaining wall's pool face to the fall's foot: 18 risers climbing east
    * from `base` on the quay (`StairDef` conventions: the last tread is the top landing's level) to
    * a landing reached from the terrace through a break in its ruined parapet (`quay.head`, x);
-   * the quay runs west from the flight's foot along the wall's foot at `quay.y`, under the slab,
-   * to the fall's foot, where it widens south to `quay.fallZ` east as far as `quay.fallX`. The
+   * the quay runs west from the flight's foot along the wall's foot at `quay.y` to the fall's
+   * foot, where it widens south to `quay.fallZ` east as far as `quay.fallX`. The
    * landing's east face (`quay.east`) is where the character ground stops reading the flight
    * (1.6 m past its last riser), so the flight runs along x and nothing past the face walks at 4.5.
    */

@@ -16,7 +16,8 @@
  *   grazing view).
  * - sheet: one column per z across the fall, each following the cliff's own surface (rock.ts
  *   `cliffPoint`) down the brow to the lip, then a ballistic arc to the waterline, held clear of
- *   the face's relief.
+ *   the face's relief; a front layer (the flow's core, ropier and whiter) leaves the lip faster
+ *   and parts from it as it falls, so the sheet has thickness from the side (one draw).
  * - spray / mist: camera-facing quads animated in the vertex shader (one draw): droplets thrown up
  *   and out of the plunge, mist puffs rolling off it and up the fall's foot.
  */
@@ -46,6 +47,8 @@ type Ground = (x: number, z: number) => number;
 
 /** the sheet's speed over the lip (m/s, outward): enough to land it clear of the cliff's foot in the plunge */
 const LIP_SPEED = 1.5;
+/** the front layer's (the flow's core): it lands ≈ 0.6 m out past the back layer */
+const LIP_SPEED_FRONT = 1.9;
 /** the water's skin over the rock of the brow (m; the mesh's chord over the lip's corner stands ≈ 4 cm proud of the surface) */
 const SKIN = 0.09;
 const GRAVITY = 9.81;
@@ -128,8 +131,11 @@ interface SheetInfo {
 }
 
 /**
- * The fall's sheet: per column, the run-in over the brow (on the rock + SKIN), the lip, then the
- * arc to the waterline; uv = (across 0…1, time of flight in s — negative on the run-in).
+ * The fall's sheet in two layers (one mesh, the back layer's triangles first): the back, per column
+ * the run-in over the brow (on the rock + SKIN), the lip, then the arc to the waterline; the front,
+ * the flow's core, from a little proud of the lip at LIP_SPEED_FRONT, so it parts from the back as
+ * it falls and the sheet thickens toward the plunge. uv = (across 0…1, time of flight in s —
+ * negative on the run-in), `aLayer` 0 back / 1 front.
  */
 function sheetGeometry(ground: Ground): SheetInfo {
   const NU = 20;
@@ -138,68 +144,78 @@ function sheetGeometry(ground: Ground): SheetInfo {
   const pos: number[] = [];
   const uv: number[] = [];
   const nrm: number[] = [];
+  const layer: number[] = [];
+  const idx: number[] = [];
   let landX: number = F.x;
   let lipY: number = F.top;
   let runS0 = -1;
-  const rows = RUN.length + 1 + FALL;
-  for (let i = 0; i <= NU; i++) {
-    const u = i / NU;
-    const across = u - 0.5;
-    const zTop = F.z + across * F.width * 0.94;
-    // the run-in: over the brow toward the lip (texture time counts back from the lip at 1.1 m/s)
-    const path: { p: Vector3; s: number }[] = [];
-    const lip = cliffPoint(zTop, CLIFF_FACE_V, ground).p;
-    lip.x += 0.05;
-    lip.y += SKIN;
-    const brow: Vector3[] = RUN.map((s) => {
-      const p = cliffPoint(zTop, CLIFF_FACE_V + (1 - CLIFF_FACE_V) * s, ground).p;
-      p.y += SKIN;
-      return p;
-    });
-    let dist = 0;
-    const back: number[] = [];
-    for (let k = brow.length - 1; k >= 0; k--) {
-      dist += brow[k].distanceTo(k === brow.length - 1 ? lip : brow[k + 1]);
-      back[k] = dist;
+  for (const front of [false, true]) {
+    const v0 = pos.length / 3;
+    const rows = (front ? 0 : RUN.length) + 1 + FALL;
+    for (let i = 0; i <= NU; i++) {
+      const u = i / NU;
+      const across = u - 0.5;
+      const width = front ? 0.86 : 0.94;
+      const zTop = F.z + across * F.width * width;
+      const path: { p: Vector3; s: number }[] = [];
+      const lip = cliffPoint(zTop, CLIFF_FACE_V, ground).p;
+      lip.x += front ? 0.12 : 0.05;
+      lip.y += SKIN + (front ? 0.02 : 0);
+      if (!front) {
+        // the run-in: over the brow toward the lip (texture time counts back from the lip at 1.1 m/s)
+        const brow: Vector3[] = RUN.map((s) => {
+          const p = cliffPoint(zTop, CLIFF_FACE_V + (1 - CLIFF_FACE_V) * s, ground).p;
+          p.y += SKIN;
+          return p;
+        });
+        let dist = 0;
+        const back: number[] = [];
+        for (let k = brow.length - 1; k >= 0; k--) {
+          dist += brow[k].distanceTo(k === brow.length - 1 ? lip : brow[k + 1]);
+          back[k] = dist;
+        }
+        for (let k = 0; k < brow.length; k++) path.push({ p: brow[k], s: -back[k] / 1.1 });
+      }
+      path.push({ p: lip.clone(), s: 0 });
+      // the arc: ballistic from the lip, held clear of the face where it bulges
+      const drop = lip.y - (POOL_WATER_Y - 0.06);
+      const T = Math.sqrt((2 * drop) / GRAVITY);
+      for (let k = 1; k <= FALL; k++) {
+        const t = (T * k) / FALL;
+        const y = lip.y - 0.5 * GRAVITY * t * t;
+        const spread = width + (front ? 0.3 : 0.2) * (t / T);
+        const sway = front ? 0.09 * Math.sin(t * 2.3 + u * 7.0 + 1.7) : 0.06 * Math.sin(t * 3.1 + u * 9.0);
+        const z = F.z + across * F.width * spread + sway * (t / T);
+        const x = Math.max(lip.x + (front ? LIP_SPEED_FRONT : LIP_SPEED) * t, cliffFaceAt(z, y, ground) + (front ? 0.2 : 0.12));
+        path.push({ p: new Vector3(x, y, z), s: t });
+        if (!front && k === FALL && i === NU / 2) landX = x;
+      }
+      if (!front && i === NU / 2) {
+        lipY = lip.y;
+        runS0 = path[0].s;
+      }
+      for (const q of path) {
+        pos.push(q.p.x, q.p.y, q.p.z);
+        uv.push(u, q.s);
+        nrm.push(1, 0, 0);
+        layer.push(front ? 1 : 0);
+      }
     }
-    for (let k = 0; k < brow.length; k++) path.push({ p: brow[k], s: -back[k] / 1.1 });
-    path.push({ p: lip.clone(), s: 0 });
-    // the arc: ballistic from the lip, held clear of the face where it bulges
-    const drop = lip.y - (POOL_WATER_Y - 0.06);
-    const T = Math.sqrt((2 * drop) / GRAVITY);
-    for (let k = 1; k <= FALL; k++) {
-      const t = (T * k) / FALL;
-      const y = lip.y - 0.5 * GRAVITY * t * t;
-      const spread = 0.94 + 0.2 * (t / T);
-      const z = F.z + across * F.width * spread + 0.06 * Math.sin(t * 3.1 + u * 9.0) * (t / T);
-      const x = Math.max(lip.x + LIP_SPEED * t, cliffFaceAt(z, y, ground) + 0.12);
-      path.push({ p: new Vector3(x, y, z), s: t });
-      if (k === FALL && i === NU / 2) landX = x;
-    }
-    if (i === NU / 2) {
-      lipY = lip.y;
-      runS0 = path[0].s;
-    }
-    for (const q of path) {
-      pos.push(q.p.x, q.p.y, q.p.z);
-      uv.push(u, q.s);
-      nrm.push(1, 0, 0);
-    }
-  }
-  const idx: number[] = [];
-  for (let i = 0; i < NU; i++) {
-    for (let k = 0; k + 1 < rows; k++) {
-      const a = i * rows + k;
-      const b = a + 1;
-      const c = a + rows;
-      const d = c + 1;
-      idx.push(a, b, c, b, d, c);
+    for (let i = 0; i < NU; i++) {
+      for (let k = 0; k + 1 < rows; k++) {
+        const a = v0 + i * rows + k;
+        const b = a + 1;
+        const c = a + rows;
+        const d = c + 1;
+        idx.push(a, b, c, b, d, c);
+      }
     }
   }
   const g = new BufferGeometry();
   g.setAttribute('position', new Float32BufferAttribute(pos, 3));
   g.setAttribute('uv', new Float32BufferAttribute(uv, 2));
   g.setAttribute('normal', new Float32BufferAttribute(nrm, 3));
+  g.setAttribute('aLayer', new Float32BufferAttribute(layer, 1));
   g.setIndex(new Uint32BufferAttribute(idx, 1));
   g.computeVertexNormals();
   // face the normals out of the cliff (+x) whichever way the grid wound
@@ -355,32 +371,36 @@ function sheetMaterial(time: { value: number }, lipY: number, runS0: number): Me
   mat.onBeforeCompile = (shader: WebGLProgramParametersWithUniforms) => {
     shader.uniforms.uTime = time;
     shader.vertexShader = shader.vertexShader
-      .replace('#include <common>', '#include <common>\nvarying vec2 vFUv; varying vec3 vFPos;')
-      .replace('#include <worldpos_vertex>', '#include <worldpos_vertex>\nvFUv = uv; vFPos = (modelMatrix * vec4(transformed, 1.0)).xyz;');
+      .replace('#include <common>', '#include <common>\nattribute float aLayer; varying vec2 vFUv; varying vec3 vFPos; varying float vFLayer;')
+      .replace('#include <worldpos_vertex>', '#include <worldpos_vertex>\nvFUv = uv; vFPos = (modelMatrix * vec4(transformed, 1.0)).xyz; vFLayer = aLayer;');
     shader.fragmentShader = shader.fragmentShader
-      .replace('#include <common>', `#include <common>\nuniform float uTime; varying vec2 vFUv; varying vec3 vFPos;\n${NOISE_GLSL}`)
+      .replace('#include <common>', `#include <common>\nuniform float uTime; varying vec2 vFUv; varying vec3 vFPos; varying float vFLayer;\n${NOISE_GLSL}`)
       .replace(
         '#include <color_fragment>',
         /* glsl */ `
         float fFall = clamp((${f(lipY)} - vFPos.y) / ${f(lipY - POOL_WATER_Y)}, 0.0, 1.0);
-        float fPh = vFUv.y - uTime;
-        float fU = vFUv.x;
+        // the front layer's streaks are its own (shifted across and in phase)
+        float fPh = vFUv.y - uTime + 0.53 * vFLayer;
+        float fU = vFUv.x + 0.37 * vFLayer;
         // streaks: long along the flow, narrow across; finer as the water accelerates and breaks up
         float fA = wNoise(vec2(fU * 26.0, fPh * 1.6));
         float fB = wNoise(vec2(fU * 71.0 + 5.3, fPh * 4.2));
         float fC = wNoise(vec2(fU * 9.0 - 2.1, fPh * 0.7));
         float fDens = 0.45 * fA + 0.3 * fB + 0.25 * fC;
         // the sides thin and fray, more so lower down
-        float fEdge = min(fU, 1.0 - fU) * 2.0;
+        float fEdge = min(vFUv.x, 1.0 - vFUv.x) * 2.0;
         float fBody = smoothstep(0.0, 0.22 + 0.4 * fFall, fEdge + 0.35 * (fDens - 0.5));
+        // the front layer is ropes of white water, the back sheet showing between them
+        fBody *= mix(1.0, smoothstep(0.4, 0.6, fDens), vFLayer);
         // aeration: glassy over the brow, white once it has broken over the lip
         float fAir = smoothstep(-0.25, 0.3, vFUv.y);
-        float fWhite = fAir * smoothstep(0.3, 0.78, fDens) * (0.65 + 0.35 * fFall);
+        float fWhite = fAir * smoothstep(0.3 + 0.08 * vFLayer, 0.78 - 0.1 * vFLayer, fDens) * (0.65 + 0.35 * fFall);
         vec3 fCol = mix(vec3(0.1, 0.15, 0.14), vec3(0.34, 0.43, 0.43), fAir);
         fCol = mix(fCol, vec3(0.7, 0.735, 0.725), fWhite);
-        float fAlpha = fBody * mix(mix(0.72, 0.5, fAir), 0.93, fWhite);
-        // fade in at the run-in's start and out into the plunge's foam
-        fAlpha *= smoothstep(${f(runS0)}, ${f(runS0 + 0.3)}, vFUv.y) * smoothstep(${f(POOL_WATER_Y - 0.02)}, ${f(POOL_WATER_Y + 0.35)}, vFPos.y);
+        float fAlpha = fBody * mix(mix(0.72, 0.5, fAir), 0.93, fWhite) * mix(1.0, 0.85, vFLayer);
+        // fade in at the run-in's start (the front layer just under the lip) and out into the plunge's foam
+        fAlpha *= smoothstep(${f(runS0)}, ${f(runS0 + 0.3)}, vFUv.y) * mix(1.0, smoothstep(0.0, 0.14, vFUv.y), vFLayer);
+        fAlpha *= smoothstep(${f(POOL_WATER_Y - 0.02)}, ${f(POOL_WATER_Y + 0.35)}, vFPos.y);
         diffuseColor.rgb = fCol;
         diffuseColor.a = fAlpha;`,
       )
@@ -389,7 +409,7 @@ function sheetMaterial(time: { value: number }, lipY: number, runS0: number): Me
       .replace('#include <emissivemap_fragment>', '#include <emissivemap_fragment>\ntotalEmissiveRadiance += fCol * (0.05 + 0.13 * fWhite);')
       .replace('#include <lights_fragment_end>', '#include <lights_fragment_end>\nreflectedLight.directSpecular = min(reflectedLight.directSpecular, vec3(1.0));');
   };
-  mat.customProgramCacheKey = () => 'ruins-fall-v1';
+  mat.customProgramCacheKey = () => 'ruins-fall-v2';
   return mat;
 }
 

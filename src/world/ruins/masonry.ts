@@ -12,7 +12,7 @@
  * columns (thirteen voussoirs and a keystone with a hanging pendant), the colonnade's lintel on two
  * fluted columns beside a broken stump, the half-fallen arch against the cliff, and the rubble.
  * Down the wall's pool face, from a break in the ruined parapet, the water stair: a landing, a
- * flight of tread stones and a quay under the slab to a platform at the fall's foot.
+ * flight of tread stones and a quay along the wall's foot to a platform at the fall's foot.
  *
  * Returns the builders (stone, tile band, carving), the terrace's and the water stair's walk spans
  * (the character ground reads them through `ctx.shared.walkSpans`) and the fallen pieces' blockers.
