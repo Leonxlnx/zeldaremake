@@ -82,6 +82,8 @@ export function compactExpansionBlades(
   dropped?: (type: number, height: number, y: number, why: 'expansion' | 'terrace') => void,
   /** round 50 (edges.ts): a second drop — the C bank's riser bands thin their blades so the soil shows */
   alsoDrop?: (x: number, z: number) => boolean,
+  /** 2026-09-23 (grass.ts VERGE_NEAR_M): a per-blade flag stream compacted with the two above */
+  flags?: Uint8Array,
 ): number {
   let kept = 0;
   for (let i = 0; i < count; i++) {
@@ -96,6 +98,7 @@ export function compactExpansionBlades(
     if (kept !== i) {
       matrices.copyWithin(kept * 16, mo, mo + 16);
       data.copyWithin(kept * 4, i * 4, i * 4 + 4);
+      if (flags) flags[kept] = flags[i];
     }
     kept++;
   }

@@ -62,6 +62,40 @@ const DIST_UP = 2.9;
 /** position easing time constants (s): horizontal, and the slower vertical */
 const XZ_TAU = 0.125;
 const Y_TAU = 0.32;
+/**
+ * 2026-09-23 (the owner, on the stairs: "whenever I walk up or down the stairs, it glitches the
+ * frames up and forth every each step, which is annoying"). The walked surface is a STAIRCASE — it
+ * jumps a whole riser at every nosing — and only the orbit pivot (`baseY`) was smoothed against it.
+ * The AIM read the raw surface, so the view pitched a riser's worth on every tread, and the
+ * camera's own floor clamp read it raw as well, so descending a flight the camera fell a full riser
+ * in a single frame. Measured on a 22-step flight at run speed (art/environment/owner-2026-09-23/
+ * pass5/stair-cam.mjs): climbing, 2.26° of pitch and 24 mm of height peak-to-peak PER FRAME;
+ * descending, 4.62° and 237 mm. Both now have their own time constants.
+ *
+ * The floor stays a hard clamp — a smoothed one that lagged freely would let the camera sink into a
+ * tread — but it may trail the true ground by at most FLOOR_SLACK, which is well inside CLEARANCE,
+ * so the step it can still pass on is a riser less that slack (≈ 30 mm) instead of the whole riser.
+ */
+const AIM_TAU = 0.13;
+const FLOOR_TAU = 0.16;
+const FLOOR_SLACK = 0.14;
+/**
+ * The same for the collider's lift: it raises the camera so the LINE from Link clears the ground
+ * between, and on a flight the ground between is the treads behind him — so the lift itself steps
+ * once per tread. Eased on its own constant, and never allowed to trail the lift the line actually
+ * needs by more than LIFT_SLACK (the line's own clearance over the ground is 0.2 m).
+ */
+const LIFT_TAU = 0.15;
+const LIFT_SLACK = 0.12;
+/**
+ * The ceiling duck (collision.ts `resolve`) is quantised: it drops the camera in whole LOWER_STEP
+ * (0.15 m) increments, and `desired.y -= r.lowered` applied that inside one frame. Descending the
+ * main flight the camera passes under the lantern limb and the duck flips between steps, which the
+ * play-test read as 48 m/s² of vertical acceleration after the staircase easing had taken the climb
+ * down to 5. It now ramps in over LOWER_IN_TAU — about five frames for a step, so the camera is at
+ * most a few centimetres high while it ducks — and releases on RELEASE_TAU like the pull-in does.
+ */
+const LOWER_IN_TAU = 0.08;
 const AIM_AIR = 0.35;
 /** look smoothing (s) and the collision's ease back out (s) */
 const LOOK_TAU = 0.05;
@@ -107,6 +141,12 @@ export function createFollowCam(host: HTMLElement, terrain: Terrain, camera: Per
   let baseX = 0;
   let baseZ = 0;
   let baseY = 0;
+  /** eased walked-surface height under Link for the AIM, and under the camera for its floor (see AIM_TAU) */
+  let aimY = 0;
+  let floorY = 0;
+  /** eased collider lift (see LIFT_TAU) and ceiling duck (see LOWER_IN_TAU) */
+  let liftY = 0;
+  let lowerY = 0;
   /** the collision's kept fraction of the line (eased back out) */
   let keep = 1;
   let lastHit: string | null = null;
@@ -186,7 +226,9 @@ export function createFollowCam(host: HTMLElement, terrain: Terrain, camera: Per
     const p = player.position;
     baseX = p.x;
     baseZ = p.z;
-    baseY = ground(p.x, p.z);
+    baseY = aimY = floorY = ground(p.x, p.z);
+    liftY = 0;
+    lowerY = 0;
     keep = 1;
     initialised = true;
     place(0, true);
@@ -199,22 +241,34 @@ export function createFollowCam(host: HTMLElement, terrain: Terrain, camera: Per
     const bY = instant ? 1 : 1 - Math.exp(-dt / Y_TAU);
     baseX += (p.x - baseX) * bXZ;
     baseZ += (p.z - baseZ) * bXZ;
-    baseY += (g - baseY) * bY;
+    // the aim rides the surface on its own, shorter constant: unsmoothed it pitched the view a
+    // riser's worth on every tread (see AIM_TAU). The jump stays instant so Link keeps his frame.
+    aimY = instant ? g : aimY + (g - aimY) * (1 - Math.exp(-dt / AIM_TAU));
+    // and the orbit's height follows the AIM, not the raw surface: one lag on a staircase still
+    // steps its RATE once per tread (the treads arrive three times faster than Y_TAU decays, so
+    // the climb pulsed between a stand-still and twice its speed); two in series is a critically
+    // damped climb, which is what a glide looks like.
+    baseY += ((instant ? g : aimY) - baseY) * bY;
     const po = Math.min(pitch, ORBIT_UP);
     const dist = pitch > 0 ? MathUtils.lerp(DIST_REST, DIST_UP, smooth01(0, 0.9, pitch)) : DIST_REST;
     dirOf(yaw, po, dirPos);
     dirOf(yaw, pitch, dirView);
     pivotCam.set(baseX, baseY + FOLLOW.aimHeight, baseZ);
-    aimP.set(p.x, g + FOLLOW.aimHeight + player.airHeight() * AIM_AIR, p.z);
+    aimP.set(p.x, aimY + FOLLOW.aimHeight + player.airHeight() * AIM_AIR, p.z);
     desired.copy(pivotCam).addScaledVector(dirPos, -dist);
     // what the orbit camera looks at along the view direction at the orbit radius: the aim itself
     // while the camera orbits (pitch ≤ ORBIT_UP), a point above it once the camera tilts in place
     aimPoint.copy(aimP).addScaledVector(dirView, dist).addScaledVector(dirPos, -dist);
     const c = colliderFor();
-    lastLift = c.lift(aimP, desired);
+    const beforeLift = desired.y;
+    const wantLift = c.lift(aimP, desired);
+    liftY = instant ? wantLift : liftY + (wantLift - liftY) * (1 - Math.exp(-dt / LIFT_TAU));
+    lastLift = Math.max(liftY, wantLift - LIFT_SLACK);
+    desired.y = beforeLift + lastLift;
     const r = c.resolve(aimP, desired);
-    desired.y -= r.lowered;
-    lastLowered = r.lowered;
+    lowerY = instant ? r.lowered : lowerY + (r.lowered - lowerY) * (1 - Math.exp(-dt / (r.lowered > lowerY ? LOWER_IN_TAU : RELEASE_TAU)));
+    desired.y -= lowerY;
+    lastLowered = lowerY;
     lastHit = r.hit;
     const len = aimP.distanceTo(desired);
     const minT = len > 1e-6 ? Math.min(1, MIN_DISTANCE / len) : 1;
@@ -228,7 +282,11 @@ export function createFollowCam(host: HTMLElement, terrain: Terrain, camera: Per
     const lineLen = pos.distanceTo(aimP);
     if (push > 1e-4 && lineLen > MIN_DISTANCE) pos.lerp(aimP, Math.min(push, lineLen - MIN_DISTANCE) / lineLen);
     lastPush = push;
-    const floor = ground(pos.x, pos.z) + CLEARANCE;
+    // the camera's own floor: eased over the treads, but never more than FLOOR_SLACK under the
+    // ground it actually stands over, so it glides down a flight instead of dropping a riser a frame
+    const under = ground(pos.x, pos.z);
+    floorY = instant ? under : floorY + (under - floorY) * (1 - Math.exp(-dt / FLOOR_TAU));
+    const floor = Math.max(floorY, under - FLOOR_SLACK) + CLEARANCE;
     if (pos.y < floor) pos.y = floor;
     camera.position.copy(pos);
     camera.lookAt(aimPoint);
