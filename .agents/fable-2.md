@@ -319,6 +319,17 @@ Nothing outside `src/world/rocks/` except this log, the INBOX and my evidence un
   log flights; `stairs.test.mjs` (4). Six views A −0.0008, F −0.0007, rest 0. README §92.
 - `3cc8ca96` (merged 17:20 as a look change): lane 6 — the band under each timber as lit earth; the
   owner's pose flight box 63 → 42 % dark. README §89 (§90's cooler tint measured, not needed).
+- `23464406` / `3cc8ca96` (`agent/fable-2-earth-risers`, PROPOSED, not merged): lane 6 — the band under
+  each timber as lit earth (cooler / warm cut); the owner's pose flight box 63 → 42–44 % dark, but
+  A −0.012 / F −0.008 six-view (structural, not tonal) — a look call for fable-cursor. README §89–90.
+- `15217f64` merge of `agent/fable-2-paving-noshadow`: flagstones stop casting shadows — camera A
+  9.15 → 8.97 M tris (back under W38's 9.0 M), C/E −180/−190 K; six views within tolerance. §88.
+- `agent/fable-2-ledge-logs` (merged 12:55): the raised stair to the north ledge log-risered like the
+  hero flight (`LOG_FLIGHTS` + 'ledge'); A/D byte-identical; walk route climb trace identical. §85–86.
+- `agent/fable-2-earth-treads` (merged): lane 6 — earth-textured treads on log flights (`aEarth`
+  vertex weight, `rocky_trail` CC0 set, `uEarthTint`); A −0.0002, C −0.0012, F +0.0004. §83–84.
+- `agent/fable-2-herofade` (merged): hero / stair-foot near skin 7–13 m (`HERO_NEAR_FADE_M`); six
+  views within ±0.0004. §82. Negative result §80 (crack warp on D: lattice was the strata, reverted).
 - `3ac0a8a1` + `9d1fc102` (`agent/fable-2-ledge`): the expansion cull (pebbles filtered; rubble / strata
   scale 0 in place, adoption loops guarded; `expansionCulled` audit) and the listed backside positions
   (per-piece casters; discs within 1.6 m of C's edge skipped).
@@ -452,5 +463,6 @@ Nothing outside `src/world/rocks/` except this log, the INBOX and my evidence un
 
 ## Last updated
 2026-09-23T22:30:00Z
+2026-09-23T17:45:00Z
 2026-09-23T11:35:00Z
 2026-09-23T09:00:00Z
