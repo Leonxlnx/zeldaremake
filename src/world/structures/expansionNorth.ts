@@ -1641,7 +1641,7 @@ export function buildExpansionNorth(ctx: WorldContext, mats: StructureMaterials,
   addParts(columnParts, mats.bark, 'grove-column');
   addParts(frameParts, mats.bark, 'grove-frame');
   addParts(ropeParts, rope, 'grove-rope');
-  addParts(endParts, mats.endGrain, 'grove-ends');
+  addParts(endParts, mats.endGrain, 'grove-ends', false);
   addParts(stoneParts, mats.stone, 'grove-stone');
   addParts(basketParts, rope, 'grove-basket-rope');
   addParts(hangers, mats.woodDark, 'lantern-hanger');
@@ -1662,6 +1662,13 @@ export function buildExpansionNorth(ctx: WorldContext, mats: StructureMaterials,
   for (const m of foliageMeshes) group.add(m);
   const tufts = buildMossTufts(tuftSpecs, new Noise3D(rng.fork('moss-noise')), { topGain: 1.4, rimGain: 0.5, topTint: [1.0, 1.05, 0.8] });
   if (tufts.count > 0) add(tufts.geometry, mats.capMoss, 'grove-foot-moss', false, true);
+  // Every caster is a second draw, and the hamlet's look back over the village sits at the 700-draw
+  // budget: the pods glow (their husks' sun shadow is a smudge under a lit lamp), the lichen plates
+  // lie on the bark and the log ends (grove-ends) shade only inside their logs' own shadow. Only
+  // whole merge buckets may go: consolidateStaticMeshes keys on castShadow, so half a bucket costs a draw.
+  group.traverse((o) => {
+    if ((o as Mesh).isMesh && (o.name === 'pod-lantern' || o.name === 'trunk-lichen')) o.castShadow = false;
+  });
 
   // ================= walk spans and edges =================
   const r4 = (v: number) => +v.toFixed(4);
