@@ -457,3 +457,8 @@ nearCanopy, materials, index otherwise) is edited.
 - 2026-09-24 17:20 — exp-south2 `066144ad` tree side at the dwellings (round54-south2-review): no stem within 14 m of the hut
   or the waystation, no crown over them, `maxBaseGap` 0; far bank → north 759 / 9.26 M (fable-cursor's pattern). Head still
   `3c6cc553`; nothing addressed to me. Next: the field's forest edge when south2 reaches it.
+- 2026-09-24 18:05 — `trees/index.ts` pre-resolved for the expansions' merge (round54-trees-merge; branch
+  `agent/fable-4-trees-merge` `f0bc4b4d` = exp-east `b3e10c09` + exp-ruins `6bd9b870`): the three hunks kept both sides;
+  the other six files mechanical for compile (expansionCull's two fourth flags merged as `all`); tsc/build/tests green;
+  combined tree side run — counts add (culled 16, cards 57/2, understory 30, gap 0), trail poses 4/30 px. North's trees
+  hunk is the import line; collision.ts/system.ts are fable-cursor's. Head still `3c6cc553`.
