@@ -357,3 +357,12 @@ Evidence sheets under `art/environment/props-fable-3/` and `art/environment/peop
   A / B / D / E / F unchanged — `pose-counts.mjs` on the same merged head, both builds (`props-fable-3/cull-30/`).
   Lesson: my first comparison put the belt build (pre-#40–#46) against a merged-head build and read +1 at A and a
   changed canopy — the head's butterflies and veil, not the cull. Compare on one head, always.
+
+## 2026-09-24 12:39 tick (three queued) — "check everything" on my own landings
+
+- Head unchanged since 11:20; no replies; tip unmerged beyond `c35559ab`.
+- Checked: could a contact-AO decal (terrain + 1.2 cm) be buried under flagstones (tops 1.5–2.5 cm proud)? Probed the
+  mask under every prop: no prop stands on the flagstone mask — the stair-foot pots (`paving: true`) are on earth at the
+  paving's edge (path 0 / 0.01), the door pots on the house pad (structure mask), the plaza pots on the plateau mask.
+  A stone lift was written, tested and reverted as dead code; if a future prop stands on stone, lift its decal by
+  `AO_STONE_LIFT ≈ 2 cm` (the slabs' proud height) keyed on `T.mask(x, z).path > 0.18`.
