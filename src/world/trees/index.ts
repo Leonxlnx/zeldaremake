@@ -1599,6 +1599,51 @@ const nearLodTierFor = (deviceGB: number, poolParam: string | null): NearLodTier
   if (poolParam === 'large' || poolParam === 'small') return NEAR_LOD_TIERS[poolParam];
   return deviceGB >= 4 ? NEAR_LOD_TIERS.large : NEAR_LOD_TIERS.small;
 };
+/**
+ * The white-barks' and columns' three-LOD ladder: high inside `TREE_LOD_NEAR_M`, medium inside
+ * `TREE_LOD_MID_M`, low beyond (× `ctx.quality.distance`). The detail between the rungs is large —
+ * `writer.ts addLeaf` keeps every 4th lamina at medium and every 8th at low, enlarged to hold the
+ * crown's coverage, and `tube` drops the finest twigs — so where a rung falls inside what the player
+ * looks at, the crown visibly gains leaves as he walks in.
+ *
+ * 2026-09-23 (owner 20:08, "why don't the trees immediately spawn instead of needing me to get
+ * close"). Measured with `?treelod=` at his 06:50 north pose (`diffmap.mjs`, > 8 levels): drawing
+ * every tree at its highest LOD changes 5.57 % of the frame, and ALL of it is this first rung — the
+ * medium→low rung at 44 m accounts for 0.00 %. The rung was 20 m, i.e. inside the crowns he walks
+ * toward. 28 m is what the budget pays for: a white-bark's high LOD is ≈ 150 K triangles, so each
+ * extra tree promoted is expensive, and camera A sits 0.05 M under W38's 9 M gate. The 8 m is paid
+ * for out of `DISTANT_NEAR_M` below, which was buying nothing.
+ */
+const TREE_LOD_NEAR_M = 28;
+/**
+ * The distant / mid layers' near→far gate (m, × `ctx.quality.distance`). 120 m through round 51; the
+ * same measurement shows the near LOD's bent trunk, cords and root toes at 72–120 m — behind 60–86 %
+ * of the height fog — are worth 0.04 % of the frame, while they cost A 15 draws and the triangles the
+ * rung above needs. The mid grove's own 40 m gate and the north stand's 50 m gate are both under this
+ * and unchanged.
+ */
+const DISTANT_NEAR_M = 72;
+const TREE_LOD_MID_M = 44;
+/**
+ * Dev measurement knob, the same shape as `?pool=large|small`: `?treelod=<multiplier>` scales every
+ * instanced tree LOD swap distance (the white-barks' and columns' ladder, the distant layer's and the
+ * mid grove's near gates). `?treelod=10` draws every tree at its highest LOD from any range, so one
+ * pose rendered with and without it measures exactly how much of the frame is detail that appears
+ * only when the player gets close — the owner's "why don't the trees immediately spawn instead of
+ * needing me to get close" (2026-09-23 20:08). 1 = shipped, and the take / CI path never sets it.
+ */
+const TREE_LOD_SCALE: [number, number, number, number] = (() => {
+  if (typeof location === 'undefined') return [1, 1, 1, 1];
+  const raw = new URLSearchParams(location.search).get('treelod');
+  if (!raw) return [1, 1, 1, 1];
+  // "1.8" scales every gate; "1.8,2.6,0.6,1.5" scales the high→medium rung, the medium→low rung, the
+  // distant / mid layers' near gate and the giants' near-CANOPY swap band separately, so each can be
+  // priced and read on its own
+  const ok = (n: number) => (Number.isFinite(n) && n > 0 ? n : 1);
+  const parts = raw.split(',').map(Number);
+  if (parts.length === 1) return [ok(parts[0]), ok(parts[0]), ok(parts[0]), ok(parts[0])];
+  return [ok(parts[0]), ok(parts[1]), ok(parts[2] ?? parts[1]), ok(parts[3] ?? 1)];
+})();
 const NEAR_LOD_DEVICE_GB = deviceMemoryGB();
 const NEAR_LOD_TIER = nearLodTierFor(NEAR_LOD_DEVICE_GB, typeof location === 'undefined' ? null : new URLSearchParams(location.search).get('pool'));
 const NEAR_CANOPY_PREFETCH_M = NEAR_LOD_TIER.canopyPrefetchM;
@@ -3362,8 +3407,8 @@ export async function create(ctx: WorldContext): Promise<WorldSystem> {
   ctx.progress('trees', 0.95);
 
   // ------------------------------------------------------------------ LOD bucketing
-  const lodDist = [20 * ctx.quality.distance, 44 * ctx.quality.distance];
-  const distantNear = 120 * ctx.quality.distance;
+  const lodDist = [TREE_LOD_NEAR_M * ctx.quality.distance * TREE_LOD_SCALE[0], TREE_LOD_MID_M * ctx.quality.distance * TREE_LOD_SCALE[1]];
+  const distantNear = DISTANT_NEAR_M * ctx.quality.distance * TREE_LOD_SCALE[2];
   const camPos = new Vector3(Infinity, Infinity, Infinity);
   const white = new Color(1, 1, 1);
 
@@ -3408,10 +3453,10 @@ export async function create(ctx: WorldContext): Promise<WorldSystem> {
       // a mid tree is 8–15 m tall and never further than 58 m from the clearing's centre: its near
       // LOD (12-sided bole, limbs, toes, the layered crown) is worth drawing to MID_FAR_LOD_M and
       // no further — past it the crossed strips carry the same silhouette for a tenth of the wood
-      const kindNear = set.variant.kind === 'mid' ? Math.min(distantNear, MID_FAR_LOD_M * ctx.quality.distance) : distantNear;
+      const kindNear = set.variant.kind === 'mid' ? Math.min(distantNear, MID_FAR_LOD_M * ctx.quality.distance * TREE_LOD_SCALE[2]) : distantNear;
       for (let i = 0; i < set.placements.length; i++) {
         const p = set.placements[i];
-        const nearM = isStandPole(set, p) ? Math.min(distantNear, STAND_FAR_LOD_M * ctx.quality.distance) : kindNear;
+        const nearM = isStandPole(set, p) ? Math.min(distantNear, STAND_FAR_LOD_M * ctx.quality.distance * TREE_LOD_SCALE[2]) : kindNear;
         (Math.hypot(p.x - cam.x, p.z - cam.z) < nearM ? nearList : farList).push(i);
       }
       set.lists = [nearList, farList];
@@ -3719,9 +3764,36 @@ export async function create(ctx: WorldContext): Promise<WorldSystem> {
   // world-space rule; a part is never removed from the catalogue because of another camera.
   for (const nc of nearCanopies) {
     if (nc.fixedSwap || nc.persistent) continue;
-    nc.inM = Math.min(nc.inM, NEAR_LOD_TIER.canopySwapM[0]);
-    nc.outM = Math.min(nc.outM, NEAR_LOD_TIER.canopySwapM[1]);
+    // `TREE_LOD_SCALE[3]` is the dev knob's fourth component (`?treelod=,,,<mult>`): it scales this
+    // band so the crown swap's own share of "the trees spawn when I get close" can be read on its own,
+    // the way the white-barks' rungs were. 1 = shipped.
+    nc.inM = Math.min(nc.inM, NEAR_LOD_TIER.canopySwapM[0]) * TREE_LOD_SCALE[3];
+    nc.outM = Math.min(nc.outM, NEAR_LOD_TIER.canopySwapM[1]) * TREE_LOD_SCALE[3];
   }
+  /**
+   * How much nearer a challenger must be to take a shown part's slot (see byRank): an incumbent ranks
+   * at this share off its own distance. 0.25 is one step of the walk probe's 4 m at the ~16 m boundary
+   * the cap puts in the village, so ordinary forward walking still hands slots over — it is the
+   * near-ties that stop trading places.
+   */
+  const NEAR_CANOPY_KEEP = 0.25;
+  /**
+   * Why the ranking is DISTANCE and the cap is not raised (2026-09-24, lane 2, measured at the owner's
+   * 06:50 pose — `nearCanopy.shownCoverage / activeCoverage` in the audit is the share of the crown mass
+   * around the player that draws its near laminae):
+   *   • the 64 slots are a TRIANGLE budget, not a uniform-array limit. Uncapped, the plaza's 214 active
+   *     lobes would draw ≈ 1.81 M triangles of near foliage against the 0.56 M the 64 draw now, and
+   *     camera A sits 0.07 M under W38's 9 M gate. Raising `NEAR_CANOPY_SLOTS` is not available.
+   *   • ranking by apparent size (`dist / radius`) instead lifts coverage 57.6 % → 61.3 % but spends
+   *     10 % more triangles to do it — 3 % WORSE per triangle — and pushes the shown set out to 19.1 m,
+   *     away from where the near version earns its keep. It buys more, not better.
+   *   • ranking by coverage per triangle collapses to 3 shown lobes: it prefers cheap far crowns, which
+   *     the pool (prefetching by distance) has not built, so `resident` filters them out. Any ranking
+   *     that disagrees with the prefetch starves itself.
+   * Distance agrees with the prefetch and puts the detail nearest the eye, so it stays.
+   */
+  /** the parts shown by the previous non-reset update (byRank's incumbents) */
+  const shownLastFrame = new Set<NearCanopy>();
   const nearCanopyUpdate = (cam: Vector3, reset: boolean) => {
     nearCanopyPool.begin();
     for (const nc of nearCanopies) {
@@ -3730,11 +3802,33 @@ export async function create(ctx: WorldContext): Promise<WorldSystem> {
       else if (nc.active) nc.active = nc.dist <= nc.outM;
       else nc.active = nc.dist < nc.inM;
     }
+    /**
+     * 2026-09-24 (lane 2, the owner's 20:08 "why don't the trees immediately spawn instead of needing
+     * me to get close"): the in / out radii carry hysteresis, but the SLOT CAP had none, and the cap is
+     * what actually decides. Walked from the plaza to the north clearing (12 poses, the probe
+     * `art/environment/squad2-2026-09-23/canopy-walk.mjs`): 135–218 lobes are active against
+     * `NEAR_CANOPY_SLOTS` = 64 at EVERY step — an overflow of 71 to 154 — so the shown set is the "64
+     * nearest" and nothing damps it: 22.5 of the 79 shown parts were admitted or evicted per 4 m of
+     * walking, each one a crown flipping between its near laminae and its folded far foliage within
+     * 17 m of the camera. (It also means the effective swap boundary is not the nominal 26 m: the
+     * farthest shown part ran 16.3 m in the village and 42.2 m in the clearing, wherever the 64th
+     * nearest lobe happened to fall — which is why widening the 26 / 30 band changed 0.00 %.)
+     *
+     * An incumbent now ranks as if it were `NEAR_CANOPY_KEEP` nearer than it is, so a challenger must
+     * be meaningfully nearer to take its slot. Both are inside their own in-radius either way, so the
+     * frame is as correct as before and stops changing under the walker; it also spares the pool the
+     * rebuilds that the evictions caused. NOT applied on `reset` — an explicit re-pose (every capture)
+     * must draw the same parts whether the pool was cold or warm, so the six fixed frames are
+     * untouched by construction.
+     */
     const byDist = (a: NearCanopy, b: NearCanopy) => a.dist - b.dist || a.center.distanceToSquared(cam) - b.center.distanceToSquared(cam);
+    const keep = reset ? 1 : 1 - NEAR_CANOPY_KEEP;
+    const rankOf = (nc: NearCanopy) => nc.dist * (shownLastFrame.has(nc) ? keep : 1);
+    const byRank = (a: NearCanopy, b: NearCanopy) => rankOf(a) - rankOf(b) || byDist(a, b);
     const resident = (nc: NearCanopy) => nearCanopyPool.isResident(nc.item);
     const persistent = nearCanopies.filter((nc) => nc.persistent);
-    const lobeCandidates = nearCanopies.filter((nc) => !nc.persistent && nc.active && nc.kind === 'lobe').sort(byDist).slice(0, NEAR_CANOPY_SLOTS);
-    const limbCandidates = nearCanopies.filter((nc) => nc.active && nc.kind === 'limb').sort(byDist).slice(0, NEAR_CANOPY_LIMBS_MAX);
+    const lobeCandidates = nearCanopies.filter((nc) => !nc.persistent && nc.active && nc.kind === 'lobe').sort(byRank).slice(0, NEAR_CANOPY_SLOTS);
+    const limbCandidates = nearCanopies.filter((nc) => nc.active && nc.kind === 'limb').sort(byRank).slice(0, NEAR_CANOPY_LIMBS_MAX);
     if (reset) {
       // Explicit re-poses retain the capture contract: the same pose draws the same parts,
       // whether the pool was cold or warm. Ordinary updates keep their chunked prefetch.
@@ -3756,6 +3850,10 @@ export async function create(ctx: WorldContext): Promise<WorldSystem> {
     const shownLimbs = limbCandidates.filter(resident).filter(fits);
     // A walking camera keeps far foliage for parts still queued through work()'s frame budget.
     for (const nc of nearCanopies) nc.mesh.visible = shownPersistent.includes(nc) || shownLobes.includes(nc) || shownLimbs.includes(nc);
+    // the incumbents the next update ranks with NEAR_CANOPY_KEEP (see byRank)
+    shownLastFrame.clear();
+    for (const nc of shownLobes) shownLastFrame.add(nc);
+    for (const nc of shownLimbs) shownLastFrame.add(nc);
     for (const nc of [...shownPersistent, ...shownLobes, ...shownLimbs]) nearCanopyPool.pin(nc.item);
     if (reset) nearCanopyPool.work(0);
     const slots = mats.nearCanopy.value;
@@ -3995,6 +4093,11 @@ export async function create(ctx: WorldContext): Promise<WorldSystem> {
       whiteBarkReseated: whitePlaced.reseated,
       whiteBarkAges: whites.map((w) => w.params.age),
       whiteBarkLodInstances: lodInstances,
+      /**
+       * Mean per-instance triangles of each rung [high, medium, low], so the cost of moving a rung is
+       * arithmetic rather than a guess: the ladder's steps are what a walker sees change (`lodSwapM`).
+       */
+      whiteBarkLodTriangles: [0, 1, 2].map((l) => Math.round(whites.reduce((n, w) => n + w.lods[l].woodTriangles + w.lods[l].leafTriangles, 0) / Math.max(1, whites.length))),
       /** mature white-barks built as dark columns because their bole stood in a hero far wall */
       whiteBarkSwappedToColumns: swappedWhites.length,
       /** column trees (column.ts): the dark boles of the mid-distance forest wall */
@@ -4020,6 +4123,8 @@ export async function create(ctx: WorldContext): Promise<WorldSystem> {
           height: Math.round((seatedColumns.find((c) => c.placements[0] === p)?.params.height ?? 0) * 10) / 10,
         })),
       columnLodInstances,
+      /** the same per-rung cost for the seated columns (one family per seat, so this is the mean seat) */
+      columnLodTriangles: [0, 1, 2].map((l) => Math.round(seatedColumns.reduce((n, c) => n + c.lods[l].woodTriangles + c.lods[l].leafTriangles, 0) / Math.max(1, seatedColumns.length))),
       columnLeafCount: columnLeaves,
       leafGeometry: 'laminae',
       leafCount: leafCount + columnLeaves + giantLeaves,
@@ -4055,6 +4160,12 @@ export async function create(ctx: WorldContext): Promise<WorldSystem> {
       /** round 45: a giant lobe's fine wood reach [secondaries, twigs] as shares of hR and its outer tint toward the leaf tone (giant.ts LOBE_*) */
       lobeWood: { secondaryReach: LOBE_SECONDARY_REACH, twigReach: LOBE_TWIG_REACH, tint: LOBE_TWIG_TINT },
       lodLevels: 3,
+      /**
+       * The instanced ladders' swap distances as this build resolved them (m, quality and the
+       * `?treelod=` dev multiplier already applied): the white-barks' / columns' high→medium→low
+       * rungs, the distant layer's near gate, the mid grove's and the north stand's own gates.
+       */
+      lodSwapM: { tree: lodDist, distant: distantNear, mid: Math.min(distantNear, MID_FAR_LOD_M * ctx.quality.distance * TREE_LOD_SCALE[2]), standPole: Math.min(distantNear, STAND_FAR_LOD_M * ctx.quality.distance * TREE_LOD_SCALE[2]), scale: TREE_LOD_SCALE },
       windLayers: mats.windLayers,
       barkTextures: mats.barkTextureSets,
       /**
@@ -4137,8 +4248,8 @@ export async function create(ctx: WorldContext): Promise<WorldSystem> {
        */
       nearCanopy: {
         /** the parts' built radii (nearCanopy.ts) and the tier's cap on them as drawn (NEAR_LOD_TIERS.canopySwapM) */
-        inM: Math.min(NEAR_CANOPY_IN_M, NEAR_LOD_TIER.canopySwapM[0]),
-        outM: Math.min(NEAR_CANOPY_OUT_M, NEAR_LOD_TIER.canopySwapM[1]),
+        inM: Math.min(NEAR_CANOPY_IN_M, NEAR_LOD_TIER.canopySwapM[0]) * TREE_LOD_SCALE[3],
+        outM: Math.min(NEAR_CANOPY_OUT_M, NEAR_LOD_TIER.canopySwapM[1]) * TREE_LOD_SCALE[3],
         builtInM: NEAR_CANOPY_IN_M,
         builtOutM: NEAR_CANOPY_OUT_M,
         heroMargin: 0,
@@ -4186,10 +4297,33 @@ export async function create(ctx: WorldContext): Promise<WorldSystem> {
             const sum = (f: (p: NearCanopyPart) => number) => a.nearCanopy.reduce((n, p) => n + f(p), 0);
             return [c.placements[0].id, a.nearCanopy.length, a.nearCanopyHeroKept, a.nearCanopyHeroLimited, sum((p) => p.triangles), sum((p) => p.leaves), sum((p) => p.farLeaves)];
           }),
-        /** [id, distance, in-radius, triangles, laminae, nearest framing hero camera (m; null: none), world centre] */
+        /** [id, distance, in-radius, triangles, laminae, crown radius, world centre] */
         shown: nearCanopies
           .filter((nc) => nc.mesh.visible)
-          .map((nc) => [nc.id, Math.round(nc.dist * 10) / 10, Math.round(nc.inM * 10) / 10, nc.triangles, nc.leaves, null, nc.center.toArray().map((v) => Math.round(v * 10) / 10)]),
+          .map((nc) => [nc.id, Math.round(nc.dist * 10) / 10, Math.round(nc.inM * 10) / 10, nc.triangles, nc.leaves, Math.round(nc.radius * 10) / 10, nc.center.toArray().map((v) => Math.round(v * 10) / 10)]),
+        /**
+         * What the 64 slots actually buy: the shown lobes' summed apparent area (Σ r² / d², steradian-ish)
+         * against the same sum over every ACTIVE lobe. `shownCoverage / activeCoverage` is the share of
+         * the crown mass around the player that draws its near laminae, which is the thing a better
+         * ranking should raise for the same `shownTriangles` (see NEAR_CANOPY_SIZE_BIAS).
+         */
+        shownCoverage:
+          Math.round(
+            nearCanopies.filter((nc) => nc.mesh.visible && nc.kind === 'lobe').reduce((n, nc) => n + (nc.radius * nc.radius) / Math.max(1, nc.dist * nc.dist), 0) * 1000,
+          ) / 1000,
+        activeCoverage:
+          Math.round(nearCanopies.filter((nc) => nc.active && nc.kind === 'lobe').reduce((n, nc) => n + (nc.radius * nc.radius) / Math.max(1, nc.dist * nc.dist), 0) * 1000) / 1000,
+        /**
+         * How hard the SLOT CAP is pressing (2026-09-24, lane 2). `nearCanopyUpdate` takes the nearest
+         * `NEAR_CANOPY_SLOTS` active non-persistent lobes; `activeLobes` is how many were eligible, so
+         * `slotOverflow` above zero means the selection is decided by RANK, and a lobe can be admitted
+         * or evicted by a metre of walking with no hysteresis behind it — unlike the in / out radii,
+         * which have some. `farthestShownM` says where the effective boundary actually is, which is not
+         * the 26 m in-radius when the cap binds.
+         */
+        activeLobes: nearCanopies.filter((nc) => nc.active && nc.kind === 'lobe' && !nc.persistent).length,
+        slotOverflow: Math.max(0, nearCanopies.filter((nc) => nc.active && nc.kind === 'lobe' && !nc.persistent).length - NEAR_CANOPY_SLOTS),
+        farthestShownM: nearCanopies.filter((nc) => nc.mesh.visible).reduce((m, nc) => Math.max(m, Math.round(nc.dist * 10) / 10), 0),
         /** triangles drawn for the shown parts against the far triangles they fold away (≈ 5 per far lamina, 2 per card) */
         shownTriangles: nearCanopies.filter((nc) => nc.mesh.visible).reduce((n, nc) => n + nc.triangles, 0),
         /** parts inside their swap-in radius whose near buffers are not resident yet — the crown a walker sees pop in when its build lands (owner 2026-09-23 20:08) */
