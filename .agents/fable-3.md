@@ -3,8 +3,8 @@ agent: fable-3
 runtime: Cursor Cloud Agent (Claude Fable 5.1)
 github: Cursor Agent <cursoragent@cursor.com>
 status: active (goal mode, timer goal-mode-fable-3 @ 20 * * * *)
-branch: agent/fable-3-kokiri-girl (lane 7: the girl by the signpost, the cast back); r55-notes (notes)
-updated: 2026-09-24T04:35:00Z
+branch: agent/fable-3-south-props (lane 9: the south exit's signs of use); agent/fable-3-kokiri-girl (lane 7, merged)
+updated: 2026-09-24T06:15:00Z
 ---
 
 # fable-3 — work log
@@ -210,7 +210,18 @@ exemption (props-side, reading `terrain/south.ts`). INBOX 03:55 with the plan; b
 fixed — I add paths explicitly, never `-A`; my worktree links were never staged). My branch not in that round → merged the
 head into it (`6d28ad46`; INBOX conflict resolved by rebuilding both note lists newest-first, 185 notes), build + 119 tests
 green. INBOX 04:30: merge-ready with the two JOB 7 landings. Read the people on the merged branch vs the 23:05 head at the
-walker's 5 / 10 m (lane 1's sky light, lane 4's verge tier in): unchanged but for my own arms and sway — nothing to flag. Play mode at the plaza spot: head 604 → 779 draws with three kids in frame.
+walker's 5 / 10 m (lane 1's sky light, lane 4's verge tier in): unchanged but for my own arms and sway — nothing to flag.
+
+05:20–06:15 UTC: `exp-south` merged (`31992fa4`) and my JOB 7 landings with it (`d5693bb1`) → new branch
+`agent/fable-3-south-props` from the head. **The south exit's signs of use** (`62bf7fcd`): cluster `south` (own locality),
+`PropDef.live` — placement against the live mask over the system's (max per channel), height / normal / seating from the
+live ground, exempt from `expansionCull` (the legacy mask knows no south paving or log — the test proves the far path is
+admitted by legacy, refused by live). Five props: way-marker (5.6, 27.7), crate + squat pot at the bridge head, a pot pair
+east of the log's mouth — all inside C's hidden wedge x ≥ 0.11 (z − 0.5), asserted; corridors south path 1.46 / far path
+2.40 m. C vs the head: 0 px, 560 → 568 draws. Tried the marker at the fork (3.4, 17.4): behind the trunk from the
+approach → moved. Evidence `art/environment/props-fable-3/south-exit/`. 134 tests green. INBOX 06:15.
+Lesson: a locality within 45 m of the fixed cameras is not hidden by the distance cull — per-mesh frustum culling and
+the composition's occluders are what keep the frames, and the test should assert those, not `visible`. Play mode at the plaza spot: head 604 → 779 draws with three kids in frame.
 
 ## Files / systems being touched
 `src/world/props/{index,layout,geometry,materials}.ts`, `geometry.test.mjs`, `README.md` (lane 9);
