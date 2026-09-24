@@ -52,6 +52,42 @@ pixels):
 
 `tsc` green, hardscape tests 9 / 9. The joints keep their darkness (the fill's paint, not the slabs' shadow); at A the only
 pixels that move are the hairlines along the sunward edges, none by more than 40 levels.
+## Iteration 96 — lane 6: the hero stone flight's value up into the owner's reference band (`agent/fable-2-stone-value` @ `f90821e8`, on top of `agent/stairs-look`)
+
+The owner (23:00) sent the real game's main stairway as the reference for the hero flight (`pass5/owner-2300-reference-stairs.png`,
+`demo61/d_010–d_016`: many shallow worn-stone treads, thin wavy nosings catching light, **pale**). `agent/stairs-look` (`f5015962`,
+in squad4's integration candidate) took the hero flight back to stone — `main` off `LOG_FLIGHTS`, 26 × 0.2077 × 0.4154 in the same
+envelope, a two-octave nosing wander — and fable-5 §24 measured it right in kind and wrong in value: at `s2-owner` dark 51.5 %, luma
+0.278, p10 0.125, sat 0.39 against the reference's 7 % / 0.363 / 0.264 / 0.27; "the stone's value up into that band (tread tops and
+risers), the nosings the brightest line, the light on the slope kept". The earth-and-timber work stays right for the ledge flight.
+
+Where the dark was: with 26 shallow steps the fronts are most of what the plaza sees, and each front was round 31's device for a
+20-step flight — the slab's own face at × 0.5 (lum 0.09 in the shade), a 0.38–0.46 riser in the slab's shadow — a black bar on every
+tread. `stairs.ts`, the hero stone flight only (`stoneHero = isMain && !logNosed`; house-west and the expansion flights untouched,
+the ledge flight's earth untouched): the tread fronts at 0.9 / 0.92 / 0.98 of the top with a sky-leaning normal (0.6), the risers × 2
+and cooler (0.93 / 1 / 1.18), the tops × 1.15 and cooler (0.85 / 1 / 1.26 — the flight's tenth applies to the tone stream, so a log
+build of the flight carries the same `treadTone`), riser grime 0.75, foot stain halved. The nosing stays × 1.35–1.5 of the top; the
+foot → top gradient (V17) is untouched — the paving test's top / foot ≥ 1.2 and top ≤ 1.05 hold. Same draws, same geometry: A 641 /
+8.93 M on both builds.
+
+| pose / box | stairs-look `e6605f67` | + stone value `f90821e8` | reference |
+|---|---|---|---|
+| s2-owner flight box (0.50–0.88 × 0.22–0.78) dark / pale / mean l / p10 / p90 | 59.4 % / 8.3 % / 0.250 / 0.115 / 0.430 | **33.1 % / 13.9 % / 0.320 / 0.200 / 0.486** | d_014 5.3 % / 23.1 % / 0.384 / 0.267 |
+| s2-owner stone hue / sat | 50° / 0.362 | 53° / 0.332 | — / 0.27 |
+| A flight box (0.60–0.92 × 0.25–0.70) dark / pale / mean l | 42.3 % / 14.0 % / 0.299 | 26.3 % / 18.4 % / 0.334 | — |
+| w-d010 box (0.55–0.95 × 0.25–0.75) dark / mean l | 62.3 % / 0.251 | 58.5 % / 0.259 | — |
+
+Six views against stairs-look itself (`/tmp/cap-sv96base` → `/tmp/cap-sv96c`): **A −0.0043 (0.2058 → 0.2015), C +0.0001, D 0,
+F +0.0014**; pixels > 8 levels A 4.9 %, C 0.8 %, D 0, F 5.5 %. For scale, stairs-look moved A from the head's 0.1813 to 0.2058 — the
+stone flight's kind is worth +0.024 at A, and this value lift gives 0.004 of it back while the flight box moves toward the frame in every
+value number. SSIM's structure term likes the black bars; the owner's frame does not have them. A look call for fable-cursor with the
+candidate. Two cuts on the way (README's record): fronts at 0.82 / normal 0.35 / risers × 1.75 / tops × 1.1 read dark 41.1 % / 0.299;
+the landed cut is the second, and the third only cooled the stone (sat 0.354 → 0.332). 97 / 97 tests on the branch (the candidate's
+re-pinned hardscape tests included).
+
+![owner pose vs reference](steps96-owner-pose-vs-reference.jpg)
+![stone value sheet](steps96-stone-value-sheet.jpg)
+
 ## Iteration 94 — the owner's "stair nose zone" replicated on the CPU (analysis only; no source change)
 
 The owner's unfinished item 9: "the collision riser sits up to 10 cm behind the visible nose / timber; the root steps up late". A CPU

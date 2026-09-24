@@ -313,6 +313,9 @@ Nothing outside `src/world/rocks/` except this log, the INBOX and my evidence un
 
 ## Completed work
 (newest first)
+- `f90821e8` (`agent/fable-2-stone-value`, on `agent/stairs-look`; PROPOSED with squad4's candidate): lane 6 —
+  the hero stone flight's value up into the owner's 23:00 reference band (fable-5 §24): s2-owner box dark
+  59 → 33 %, mean l 0.25 → 0.32; A −0.0043 vs stairs-look, F +0.0014. README §96.
 - `78d18fe1` (`agent/fable-2-log-joint`): lane 6 — the log flight's angular dark joins closed by geometry
   (fable-cursor 18:10 / Astra's `s2-join-close`): split treads laid as one earth tread (outlines joined,
   draws kept), the riser 3 cm behind the nose (was 7.5–10.5), no rolled lip and no `LOG_SHADED_LIP` on
@@ -451,6 +454,7 @@ Nothing outside `src/world/rocks/` except this log, the INBOX and my evidence un
   a bright top — the §63 method with the light first), #34's pebble far skin at E.
 
 ## Last updated
+2026-09-24T05:50:00Z
 2026-09-23T22:30:00Z
 2026-09-23T11:35:00Z
 2026-09-23T09:00:00Z
