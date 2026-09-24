@@ -42,7 +42,7 @@ function loadTs(file) {
 
 const here = path.dirname(new URL(import.meta.url).pathname);
 const { surfaceAt } = loadTs(path.join(here, 'index.ts'));
-const { LAYOUT, EXPANSION, EXPANSION_SOUTH } = loadTs(path.join(here, '../world/layout.ts'));
+const { LAYOUT, EXPANSION, EXPANSION_SOUTH, EXPANSION_EAST, eastDeckPlan } = loadTs(path.join(here, '../world/layout.ts'));
 
 /** rotate (u along, v across) in a thing's own frame into the world */
 const inFrame = (x, z, yaw, u, v) => [x + Math.cos(yaw) * u - Math.sin(yaw) * v, z + Math.sin(yaw) * u + Math.cos(yaw) * v];
@@ -78,6 +78,13 @@ function standingPlaces() {
     const [x, z] = inFrame(lk.x, lk.z, lkYaw, u, v);
     p.push([`the dais at (${u.toFixed(1)}, ${v.toFixed(1)}) in its own frame`, x, z, 'stone']);
   }
+
+  // the east lane's tall house: a plank deck round the trunk's side and the plank flight down to the
+  // lane (layout `eastDeckPlan`, in the trunk's frame — `out` from the axis, `along` the deck)
+  const ed = eastDeckPlan();
+  const D = EXPANSION_EAST.tallDeck;
+  for (const along of [ed.walk.along[0], 0, ed.walk.along[1]]) p.push([`the east tall house's deck, ${along.toFixed(1)} m along`, ...ed.at(ed.walk.d, along), 'wood']);
+  for (const u of [0.2, 0.8]) p.push([`its plank flight, ${u} of the way down`, ...ed.at((D.stepInner + D.stepOuter) / 2, -D.half - D.stepRun * u), 'wood']);
   return p;
 }
 
@@ -103,6 +110,8 @@ test('the ground around them is still the ground', () => {
   assert.equal(surfaceAt(c.x, c.z + c.radius + 2).surface, 'leaf', 'the forest floor outside the clearing');
   const wh = EXPANSION.westHouse;
   assert.notEqual(surfaceAt(wh.host[0] + wh.radius + 1.5, wh.host[1]).surface, 'wood', 'the ground off the west house platform');
+  const ed = eastDeckPlan();
+  assert.notEqual(surfaceAt(...ed.at(EXPANSION_EAST.tallDeck.outer + 1.0, 0)).surface, 'wood', 'the ground a metre off the east deck\u2019s outer railing');
 });
 
 test('every surface the footstep designer knows is reachable somewhere in the world', () => {
