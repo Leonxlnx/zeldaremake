@@ -92,6 +92,22 @@ const dirAt = (a: number) => new Vector3(Math.cos(a), 0, Math.sin(a));
 const p3 = (p: Vector3): P3 => [+p.x.toFixed(3), +p.y.toFixed(3), +p.z.toFixed(3)];
 const scaleRGB = (c: RGB, k: number): RGB => [c[0] * k, c[1] * k, c[2] * k];
 const tri = (g: BufferGeometry) => Math.floor((g.index ? g.index.count : g.attributes.position.count) / 3);
+/** whole texture repeats round a ring of this radius at the structures' 1.6 m tile, so a map wraps onto itself */
+const repeatsRound = (radius: number) => Math.max(1, Math.round((TAU * radius) / 1.6));
+/**
+ * gridSurface samples a closedU surface's seam column at u = 0, so a uv that grows round the ring
+ * falls back to 0 across the last quad and the whole map squeezes into it backwards. Extrapolate
+ * that column's u from the two before it (uv u = u × repeatsRound(r) then ends at a whole repeat).
+ */
+function seamUV(g: BufferGeometry, cols: number): BufferGeometry {
+  const uv = g.attributes.uv;
+  for (let k = cols; k < uv.count; k += cols + 1) uv.setX(k, 2 * uv.getX(k - 1) - uv.getX(k - 2));
+  return g;
+}
+/** `noise.ridged` round a turn (ang ∈ [0, TAU]) that meets itself: the turn's last 0.8 rad blend into its start */
+function ridgedRound(noise: Noise2D, ang: number, freq: number, x0: number, y: number): number {
+  return lerp(noise.ridged(ang * freq + x0, y, 2), noise.ridged((ang - TAU) * freq + x0, y, 2), smoothstep(TAU - 0.8, TAU, ang));
+}
 
 /** the huts' plank tints (distantHouse.ts PLANK / PLANK_DARK): the veranda and gangway match the platforms */
 const PLANK: RGB = [0.42, 0.35, 0.27];
@@ -320,9 +336,9 @@ function logTube(curve: Curve<Vector3>, radius: (t: number) => number, noise: No
     radialSegments: rs,
     uvMetres: 0.9,
     capEnd,
-    displace: (t, ang) => (noise.ridged(ang * 1.4 + seed, t * 3 + seed * 0.7, 2) - 0.5) * 0.018 * Math.min(1, radius(t) * 8),
+    displace: (t, ang) => (ridgedRound(noise, ang, 1.4, seed, t * 3 + seed * 0.7) - 0.5) * 0.018 * Math.min(1, radius(t) * 8),
     color: (t, ang, up) => {
-      const ridge = noise.ridged(ang * 1.4 + seed, t * 3 + seed * 0.7, 2);
+      const ridge = ridgedRound(noise, ang, 1.4, seed, t * 3 + seed * 0.7);
       const d = tone * (0.72 + 0.4 * ridge) * (0.82 + 0.2 * Math.max(0, up));
       return [d, d * 0.93, d * 0.84];
     },
@@ -634,22 +650,27 @@ export function buildExpansionNorth(ctx: WorldContext, mats: StructureMaterials,
     const y0 = stumpGround - 0.4;
     const y1 = fy - 0.26;
     const phase = sr.range(0, TAU);
+    const stumpRepeats = repeatsRound((STILT_STUMP.top + STILT_STUMP.foot) / 2);
     columnParts.push(
-      gridSurface(
-        (u, v, out) => {
-          const a = u * TAU;
-          const y = lerp(y0, y1, v);
-          const hAbove = y - stumpGround;
-          const r0 = STILT_STUMP.top + (STILT_STUMP.foot - STILT_STUMP.top) * (1 - smoothstep(0, 1.5, hAbove));
-          const lobes = 0.3 * Math.max(0, Math.cos(5 * a + phase)) ** 3 * (1 - smoothstep(-0.1, 0.9, hAbove));
-          const ridge = 0.035 * (barkN.ridged(a * 2.2 + phase, y * 0.9, 2) - 0.5) + 0.012 * Math.sin(a * 23 + y * 3);
-          const r = (r0 + lobes) * (1 + ridge);
-          out.position.set(sc.x + Math.cos(a) * r, y, sc.z + Math.sin(a) * r);
-          out.uv = [(a * r0) / 1.6, y / 1.6];
-          const shade = (0.62 + 0.3 * barkN.ridged(a * 2.2 + phase, y * 0.9, 2)) * lerp(0.7, 1, smoothstep(-0.2, 1.2, hAbove)) * (0.85 + 0.15 * Math.cos(a - 2.4));
-          out.color = [shade, shade * 0.95, shade * 0.87];
-        },
-        { cols: 30, rows: 18, closedU: true },
+      seamUV(
+        gridSurface(
+          (u, v, out) => {
+            const a = u * TAU;
+            const y = lerp(y0, y1, v);
+            const hAbove = y - stumpGround;
+            const r0 = STILT_STUMP.top + (STILT_STUMP.foot - STILT_STUMP.top) * (1 - smoothstep(0, 1.5, hAbove));
+            const lobes = 0.3 * Math.max(0, Math.cos(5 * a + phase)) ** 3 * (1 - smoothstep(-0.1, 0.9, hAbove));
+            const ridged = ridgedRound(barkN, a, 2.2, phase, y * 0.9);
+            const ridge = 0.035 * (ridged - 0.5) + 0.012 * Math.sin(a * 23 + y * 3);
+            const r = (r0 + lobes) * (1 + ridge);
+            out.position.set(sc.x + Math.cos(a) * r, y, sc.z + Math.sin(a) * r);
+            out.uv = [u * stumpRepeats, y / 1.6];
+            const shade = (0.62 + 0.3 * ridged) * lerp(0.7, 1, smoothstep(-0.2, 1.2, hAbove)) * (0.85 + 0.15 * Math.cos(a - 2.4));
+            out.color = [shade, shade * 0.95, shade * 0.87];
+          },
+          { cols: 30, rows: 18, closedU: true },
+        ),
+        30,
       ),
     );
     bases.push([sc.x, stumpGround, sc.z]);
@@ -714,15 +735,19 @@ export function buildExpansionNorth(ctx: WorldContext, mats: StructureMaterials,
       const d = dirAt(a);
       deckParts.push(bar(sc.clone().addScaledVector(d, platR - 0.12).setY(fy - 0.1), sc.clone().addScaledVector(d, vR - 0.04).setY(fy - 0.1), 0.07, PLANK_DARK, 0.12));
     }
+    const fasciaRepeats = repeatsRound(vR);
     deckParts.push(
-      gridSurface(
-        (u, v, out) => {
-          const a = u * TAU;
-          out.position.set(sc.x + Math.cos(a) * vR, lerp(fy - 0.15, fy + 0.012, v), sc.z + Math.sin(a) * vR);
-          out.uv = [(a * vR) / 1.6, v * 0.2];
-          out.color = scaleRGB(PLANK, 0.78 + 0.08 * Math.sin(a * 13 + jp));
-        },
-        { cols: 64, rows: 2, closedU: true },
+      seamUV(
+        gridSurface(
+          (u, v, out) => {
+            const a = u * TAU;
+            out.position.set(sc.x + Math.cos(a) * vR, lerp(fy - 0.15, fy + 0.012, v), sc.z + Math.sin(a) * vR);
+            out.uv = [u * fasciaRepeats, v * 0.2];
+            out.color = scaleRGB(PLANK, 0.78 + 0.08 * Math.sin(a * 13 + jp));
+          },
+          { cols: 64, rows: 2, closedU: true },
+        ),
+        64,
       ),
     );
   }
@@ -1070,22 +1095,26 @@ export function buildExpansionNorth(ctx: WorldContext, mats: StructureMaterials,
   {
     const phase = cr.range(0, TAU);
     const y0 = colGround - 0.4;
+    const colRepeats = repeatsRound(colR(1.5));
     columnParts.push(
-      gridSurface(
-        (u, v, out) => {
-          const a = u * TAU;
-          const h = lerp(-0.4, COL.height, v);
-          const flare = 1 + 0.45 * Math.pow(Math.max(0, 1 - h / 1.6), 2);
-          const lobes = 0.22 * Math.max(0, Math.cos(5 * a + phase)) ** 3 * Math.max(0, 1 - h / 1.3);
-          const ridges = 1 + 0.05 * Math.sin(a * 9 + phase + h * 0.35) + 0.035 * barkN.fbm(Math.cos(a) * 2 + h * 0.3, Math.sin(a) * 2 - h * 0.3, 2);
-          const r0 = colR(Math.max(0, h));
-          const r = (r0 * flare + lobes) * ridges;
-          out.position.set(hc.x + Math.cos(a) * r, colGround + h, hc.z + Math.sin(a) * r);
-          out.uv = [(a * r0) / 1.6, h / 1.6];
-          const shade = (0.58 + 0.34 * (0.5 + 0.5 * Math.cos(a - 2.2))) * lerp(0.72, 1, smoothstep(0, 2.5, h)) * (0.9 + 0.1 * Math.sin(a * 9 + phase + h * 0.35));
-          out.color = [shade, shade * 0.95, shade * 0.88];
-        },
-        { cols: 30, rows: 64, closedU: true },
+      seamUV(
+        gridSurface(
+          (u, v, out) => {
+            const a = u * TAU;
+            const h = lerp(-0.4, COL.height, v);
+            const flare = 1 + 0.45 * Math.pow(Math.max(0, 1 - h / 1.6), 2);
+            const lobes = 0.22 * Math.max(0, Math.cos(5 * a + phase)) ** 3 * Math.max(0, 1 - h / 1.3);
+            const ridges = 1 + 0.05 * Math.sin(a * 9 + phase + h * 0.35) + 0.035 * barkN.fbm(Math.cos(a) * 2 + h * 0.3, Math.sin(a) * 2 - h * 0.3, 2);
+            const r0 = colR(Math.max(0, h));
+            const r = (r0 * flare + lobes) * ridges;
+            out.position.set(hc.x + Math.cos(a) * r, colGround + h, hc.z + Math.sin(a) * r);
+            out.uv = [u * colRepeats, h / 1.6];
+            const shade = (0.58 + 0.34 * (0.5 + 0.5 * Math.cos(a - 2.2))) * lerp(0.72, 1, smoothstep(0, 2.5, h)) * (0.9 + 0.1 * Math.sin(a * 9 + phase + h * 0.35));
+            out.color = [shade, shade * 0.95, shade * 0.88];
+          },
+          { cols: 30, rows: 64, closedU: true },
+        ),
+        30,
       ),
     );
     void y0;
@@ -1168,15 +1197,19 @@ export function buildExpansionNorth(ctx: WorldContext, mats: StructureMaterials,
       deckParts.push(wedgeBoard(hc.clone().setY(ny), nestColR - 0.02, nestR + 0.02, a0, a1, ny + 0.02, 0.045, scaleRGB(PLANK, nr.range(0.82, 1.12)), Math.floor(nr() * 9), noise, 300 + k));
       nestBoards++;
     }
+    const nestRepeats = repeatsRound(nestR);
     deckParts.push(
-      gridSurface(
-        (u, v, out) => {
-          const a = u * TAU;
-          out.position.set(hc.x + Math.cos(a) * nestR, lerp(ny - 0.12, ny + 0.02, v), hc.z + Math.sin(a) * nestR);
-          out.uv = [(a * nestR) / 1.6, v * 0.2];
-          out.color = scaleRGB(PLANK, 0.8);
-        },
-        { cols: 32, rows: 2, closedU: true },
+      seamUV(
+        gridSurface(
+          (u, v, out) => {
+            const a = u * TAU;
+            out.position.set(hc.x + Math.cos(a) * nestR, lerp(ny - 0.12, ny + 0.02, v), hc.z + Math.sin(a) * nestR);
+            out.uv = [u * nestRepeats, v * 0.2];
+            out.color = scaleRGB(PLANK, 0.8);
+          },
+          { cols: 32, rows: 2, closedU: true },
+        ),
+        32,
       ),
     );
     deckParts.push(
