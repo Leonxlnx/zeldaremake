@@ -473,7 +473,7 @@ test('giants register detail above 25 m without changing far geometry or the tre
 
 // Exercise the production closure itself, with real LodPool and small deterministic items.
 // Loading all of index.ts would construct browser materials unrelated to this state transition.
-const canopyUpdateFor = (parts, pool, slots = 64) => {
+const canopyUpdateFor = (parts, pool, slots = 64, keep = 0.25) => {
   const file = path.join(here, 'index.ts'), ast = ts.createSourceFile(file, readFileSync(file, 'utf8'), ts.ScriptTarget.Latest, true);
   let initializer;
   const visit = node => {
@@ -484,7 +484,21 @@ const canopyUpdateFor = (parts, pool, slots = 64) => {
   assert.ok(initializer);
   const expression = ts.transpileModule(`(${initializer.getText(ast)})`, { compilerOptions: { target: ts.ScriptTarget.ES2022 } }).outputText;
   const mats = { nearCanopy: { value: Array.from({ length: slots }, () => new THREE.Vector4()) } };
-  return { mats, update: new Function('nearCanopies', 'nearCanopyPool', 'mats', 'NEAR_CANOPY_PREFETCH_M', 'NEAR_CANOPY_SLOTS', 'NEAR_CANOPY_LIMBS_MAX', `return ${expression}`)(parts, pool, mats, 42, slots, 12) };
+  // `shownLastFrame` and NEAR_CANOPY_KEEP are the slot rank's hysteresis (index.ts byRank): the closure
+  // reads both, so the sandbox supplies them the way it supplies the caps.
+  const shownLastFrame = new Set();
+  const update = new Function(
+    'nearCanopies',
+    'nearCanopyPool',
+    'mats',
+    'NEAR_CANOPY_PREFETCH_M',
+    'NEAR_CANOPY_SLOTS',
+    'NEAR_CANOPY_LIMBS_MAX',
+    'NEAR_CANOPY_KEEP',
+    'shownLastFrame',
+    `return ${expression}`,
+  )(parts, pool, mats, 42, slots, 12, keep, shownLastFrame);
+  return { mats, update, shownLastFrame };
 };
 const canopyFixture = (item, group = 0) => ({ item, group, center: new THREE.Vector3(0, 40, 0), radius: 4, root: new THREE.Vector3(), kind: 'lobe', inM: 26, outM: 30, active: false, dist: Infinity, mesh: { visible: false } });
 
@@ -559,4 +573,52 @@ test('canopy selection retains the 64-slot limit and never pins beyond the byte 
     pool.work(0);
     assert.ok(pool.poolBytes <= cap);
   }
+});
+
+// 2026-09-24 (lane 2): the slot cap is what decides which crowns draw their near laminae — measured
+// on a walk, 135–218 lobes are active against the 64 slots at every step — and it had no hysteresis,
+// so a metre of walking traded parts by rank. An incumbent now ranks as if NEAR_CANOPY_KEEP nearer.
+test('a shown canopy part keeps its slot until a challenger is NEAR_CANOPY_KEEP nearer', () => {
+  // one slot, two parts: `near` starts nearer, then `far` closes in
+  const pool = new LodPool(10000);
+  const mk = (id, y) => {
+    const item = fakeItem(id, 100, []);
+    pool.add(item, { bytes: 100, dispose() {} });
+    return { ...canopyFixture(item, id === 'a' ? 0 : 1), center: new THREE.Vector3(0, y, 0), radius: 0, inM: 100, outM: 120 };
+  };
+  const a = mk('a', 30);
+  const b = mk('b', 50);
+  const { update } = canopyUpdateFor([a, b], pool, 1, 0.25);
+  pool.work(0);
+  // camera at y 0: a is 30 m, b is 50 m — a takes the only slot
+  update(new THREE.Vector3(0, 0, 0), false);
+  assert.equal(a.mesh.visible, true, 'the nearer part takes the slot first');
+  assert.equal(b.mesh.visible, false);
+  // camera at y 41: b is 9 m, a is 11 m. b is nearer but only by 18 %, under the 25 % the incumbent holds
+  update(new THREE.Vector3(0, 41, 0), false);
+  assert.equal(a.mesh.visible, true, 'a challenger 18 % nearer does not take the slot');
+  assert.equal(b.mesh.visible, false);
+  // camera at y 46: b is 4 m, a is 16 m — four times nearer, so the slot changes hands
+  update(new THREE.Vector3(0, 46, 0), false);
+  assert.equal(b.mesh.visible, true, 'a clearly nearer challenger does take it');
+  assert.equal(a.mesh.visible, false);
+});
+
+test('an explicit re-pose ranks canopy slots unbiased, so a capture of a pose is the same either way', () => {
+  const pool = new LodPool(10000);
+  const mk = (id, y) => {
+    const item = fakeItem(id, 100, []);
+    pool.add(item, { bytes: 100, dispose() {} });
+    return { ...canopyFixture(item, id === 'a' ? 0 : 1), center: new THREE.Vector3(0, y, 0), radius: 0, inM: 100, outM: 120 };
+  };
+  const a = mk('a', 30);
+  const b = mk('b', 50);
+  const { update } = canopyUpdateFor([a, b], pool, 1, 0.25);
+  pool.work(0);
+  update(new THREE.Vector3(0, 0, 0), false); // a incumbent at 30 m vs b at 50 m
+  assert.equal(a.mesh.visible, true);
+  // the pose where b is nearer by 18 %: a walk would keep `a` (previous test), a RE-POSE takes `b`
+  update(new THREE.Vector3(0, 41, 0), true);
+  assert.equal(b.mesh.visible, true, 'reset ignores the incumbent bias');
+  assert.equal(a.mesh.visible, false);
 });

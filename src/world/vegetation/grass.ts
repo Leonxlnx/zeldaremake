@@ -34,6 +34,14 @@ export interface GrassTile {
   cells: { sphere: Sphere; blades: number }[];
   /** cell index of every blade, in stream order */
   cellOf: Uint8Array;
+  /** 1 for the blades the walked-verge pass placed, in stream order (see VERGE_NEAR_M) */
+  vergeOf: Uint8Array;
+  /** how many of them there are (0: this tile never rewrites for the verge tier) */
+  vergeBlades: number;
+  /** set by `update()`: the tile is near enough to submit its verge blades */
+  wantVerge: boolean;
+  /** whether the last rewrite kept them */
+  vergeKept: boolean;
   /** cell bitmask submitted by the last cull (all cells until a cull trims the tile) */
   keptMask: number;
   /** the pristine instance streams, copied the first time the tile is trimmed */
@@ -359,6 +367,17 @@ const VERGE_EXTRA = 1.35;
 /** the same verge under the five passes above: their candidates are accepted this much more readily there */
 const VERGE_THICKEN = 0.5;
 /**
+ * 2026-09-23 (fable-5 13:43, relayed twice in the squad log: "A's 9.15 M triangles are lane 4's
+ * vegetation — lane 4, the turf's density or reach where A does not resolve it"). The verge pass is
+ * a NEAR detail: standing in the band its blades close the fringe at the slabs, and at the far end
+ * of the mid LOD's 26 m a blade is well under a pixel wide, where the carpet's cards, the base
+ * turf and the verge's own violets, leaves and fronds carry the read on their own. A tile whose
+ * near edge is further than this drops the verge pass's blades from its submitted stream — the
+ * cell cull's rewrite with one more filter, so nothing inside the band changes and the triangles
+ * come back at every camera looking down the path.
+ */
+const VERGE_NEAR_M = 14;
+/**
  * Round 47 — the coverage fill (the owner's review of 2026-09-19, item 12: "patches in the grass
  * where it's not full"; coverage.ts is the audit). After a tile's candidate passes, its ground is
  * swept on the audit's COVERAGE_CELL grid and every cell inside INFILL_REACH of the origin (the
@@ -394,7 +413,7 @@ const NORTH_FLOOR_DRY = 0.12;
 const THIN_ENABLED = perfFlags().grassDensity < 1 || perfFlags().governor;
 
 /** Fisher–Yates over the first `count` instances of the matrix (16 floats) and data (4 floats) streams */
-function shuffleInstances(matrices: Float32Array, data: Float32Array, count: number, rng: Rng) {
+function shuffleInstances(matrices: Float32Array, data: Float32Array, flags: Uint8Array, count: number, rng: Rng) {
   const m = new Float32Array(16);
   const d = new Float32Array(4);
   for (let i = count - 1; i > 0; i--) {
@@ -406,6 +425,9 @@ function shuffleInstances(matrices: Float32Array, data: Float32Array, count: num
     d.set(data.subarray(i * 4, i * 4 + 4));
     data.copyWithin(i * 4, j * 4, j * 4 + 4);
     data.set(d, j * 4);
+    const f = flags[i];
+    flags[i] = flags[j];
+    flags[j] = f;
   }
 }
 
@@ -451,6 +473,8 @@ export async function buildGrass(ctx: WorldContext, field: VegField, material: M
   const maxPerTile = Math.ceil(TILE * TILE * (BASE_PER_M2 + CANDIDATES_PER_M2 * (LAWN_BAND_EXTRA + FLANK_EXTRA + HOUSE_FLANK_EXTRA + A_FACE_EXTRA + VERGE_EXTRA)) * Math.max(q.density, 0.1)) + (TILE / COVERAGE_CELL) ** 2 * INFILL_BLADES;
   const matrices = new Float32Array(maxPerTile * 16);
   const data = new Float32Array(maxPerTile * 4);
+  /** 1 where the walked-verge pass placed the blade (VERGE_NEAR_M), in stream order */
+  const vergeFlags = new Uint8Array(maxPerTile);
 
   for (let ti = 0; ti < tileCoords.length; ti++) {
     const [cx, cz] = tileCoords[ti];
@@ -659,6 +683,7 @@ export async function buildGrass(ctx: WorldContext, field: VegField, material: M
       // the north corridor's forest floor (round 44): the same kind of drop, after every draw
       if (nfloor > 0 && hash01(x + 0.25, z - 0.25) < (1 - NORTH_FLOOR_KEEP) * nfloor) return;
       composeMatrix(matrices, count * 16, x, y, z, nx, s.ny, nz, 0.5, yaw, w, h, h);
+      vergeFlags[count] = vergePass ? 1 : 0;
       const o = count * 4;
       data[o] = phase;
       data[o + 1] = stiffness;
@@ -803,6 +828,7 @@ export async function buildGrass(ctx: WorldContext, field: VegField, material: M
           else terraceCulled++;
         },
         meetsTerrace ? (bx, bz) => terraceDropsBlade(T, bx, bz) : undefined,
+        vergeFlags,
       );
     }
     if (count === 0) continue;
@@ -813,7 +839,7 @@ export async function buildGrass(ctx: WorldContext, field: VegField, material: M
     // make every prefix a uniform thinning — as built, the extra passes (lawn band, flanks) sit at
     // the end and a prefix would take them first. Never on the shipped path: the order there is
     // the one the captures were sealed with.
-    if (THIN_ENABLED) shuffleInstances(matrices, data, count, ctx.rng.fork(`grass/thin/${cx}/${cz}`));
+    if (THIN_ENABLED) shuffleInstances(matrices, data, vergeFlags, count, ctx.rng.fork(`grass/thin/${cx}/${cz}`));
 
     const aData = new InstancedBufferAttribute(data.slice(0, count * 4), 4);
     const lods = bases.map((b) => {
@@ -864,7 +890,10 @@ export async function buildGrass(ctx: WorldContext, field: VegField, material: M
       blades: b.n,
       sphere: b.n === 0 ? new Sphere(new Vector3(mx, yc, mz), 0) : new Sphere(new Vector3((b.x0 + b.x1) / 2, (b.y0 + b.y1) / 2 + maxH * 0.5, (b.z0 + b.z1) / 2), Math.hypot((b.x1 - b.x0) / 2, (b.y1 - b.y0) / 2 + maxH * 0.5, (b.z1 - b.z0) / 2) + maxH + GRASS_CULL_PAD_M),
     }));
-    tiles.push({ mesh, cx, cz, count, lods, lod: 2, cells, cellOf, keptMask: (1 << cells.length) - 1, src: null });
+    const vergeOf = vergeFlags.slice(0, count);
+    let vergeBlades = 0;
+    for (let i = 0; i < count; i++) vergeBlades += vergeOf[i];
+    tiles.push({ mesh, cx, cz, count, lods, lod: 2, cells, cellOf, vergeOf, vergeBlades, wantVerge: true, vergeKept: true, keptMask: (1 << cells.length) - 1, src: null });
     total += count;
     onProgress((ti + 1) / tileCoords.length);
     if (ti % 6 === 5) await new Promise<void>((r) => setTimeout(r, 0));
@@ -910,6 +939,8 @@ export async function buildGrass(ctx: WorldContext, field: VegField, material: M
     const d2 = lodDistances[2] * scale;
     for (const t of tiles) {
       const d = Math.hypot(camPos.x - (t.cx * TILE + TILE / 2), camPos.z - (t.cz * TILE + TILE / 2)) - halfDiag;
+      // the walked verge's near tier (VERGE_NEAR_M): `cull()` rewrites the stream when this flips
+      t.wantVerge = t.vergeBlades === 0 || d < VERGE_NEAR_M * scale;
       const lod = d < d0 ? 0 : d < d1 ? 1 : 2;
       if (lod !== t.lod) {
         t.lod = lod;
@@ -943,7 +974,7 @@ export async function buildGrass(ctx: WorldContext, field: VegField, material: M
     return inside ? 1 : 0;
   };
   /** rewrite the tile's streams with the blades of the cells in `mask` (stream order kept) and draw that many */
-  const rewrite = (t: GrassTile, mask: number) => {
+  const rewrite = (t: GrassTile, mask: number, keepVerge: boolean) => {
     const im = t.mesh;
     const aData = t.lods[0].getAttribute('aData') as InstancedBufferAttribute;
     if (!t.src) {
@@ -959,6 +990,7 @@ export async function buildGrass(ctx: WorldContext, field: VegField, material: M
     let j = 0;
     for (let i = 0; i < t.count; i++) {
       if (!((mask >> t.cellOf[i]) & 1)) continue;
+      if (!keepVerge && t.vergeOf[i]) continue;
       const si = i * 16;
       const dj = j * 16;
       for (let k = 0; k < 16; k++) mat[dj + k] = sm[si + k];
@@ -972,6 +1004,7 @@ export async function buildGrass(ctx: WorldContext, field: VegField, material: M
     im.instanceMatrix.needsUpdate = true;
     aData.needsUpdate = true;
     t.keptMask = mask;
+    t.vergeKept = keepVerge;
     culled.rewrites++;
   };
   const cull = (camera: Camera, force = false) => {
@@ -1002,8 +1035,8 @@ export async function buildGrass(ctx: WorldContext, field: VegField, material: M
         culled.trimmed += t.count - t.mesh.count;
         continue;
       }
-      if (mask !== t.keptMask) rewrite(t, mask);
-      if (mask !== all) culled.trimmedTiles++;
+      if (mask !== t.keptMask || t.wantVerge !== t.vergeKept) rewrite(t, mask, t.wantVerge);
+      if (mask !== all || !t.wantVerge) culled.trimmedTiles++;
       culled.blades += t.mesh.count;
       culled.trimmed += t.count - t.mesh.count;
     }
