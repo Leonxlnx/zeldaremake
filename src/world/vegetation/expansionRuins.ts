@@ -9,12 +9,13 @@
  *    moss and tufts along it, a tuft in a crack of the skin here and there;
  *  - the pool's rim: damp moss and tufts at the water, turf, ferns and a few violets up the bank;
  *  - the cliff's foot and the ivy rock's: big ferns in the shade, moss, tufts;
- *  - the terrace and the stair: tufts in the paving and at the treads' ends, moss at the columns'
- *    feet and along the parapet, a fern in the north face's corners (seated at the masonry's
- *    level, not the ground's).
+ *  - the terrace and the stair: tufts and moss rooted in the paving's joints, cracks and lost
+ *    slabs' beds, moss cushions at the walls and the columns' feet, tufts at the treads' ends, a
+ *    fern in the north face's corners (seated at the masonry's level, not the ground's).
  *
  * Seats keep off the ruins' fallen pieces and boulders — the ruins system publishes them in
- * `ctx.shared.propBlockers` before this system builds (src/world/index.ts order). Own sets from
+ * `ctx.shared.propBlockers` before this system builds (src/world/index.ts order), with the
+ * paving's joints as laid in `ctx.shared.pavingSeats`. Own sets from
  * the disc sets' templates, own seeded streams (`expansion-ruins/…`), one group that
  * `vegetation/index.ts` shows only where the camera can see the locality
  * (util/expansionLocality.ts `ruinsVisible`), so the six fixed frames pay nothing for it.
@@ -441,39 +442,74 @@ export function buildExpansionRuinsVegetation(ctx: WorldContext, templates: Ruin
     Object.assign(counts, { footFerns, footHero, footMoss });
   }
 
-  // ---- the terrace and the stair: tufts in the paving and at the treads' ends, moss at the
-  // columns' feet and along the parapet, ferns in the north face's corners — seated on the stone
+  // ---- the terrace and the stair: grass and moss rooted in the paving's joints and lost slabs'
+  // beds, moss cushions at the walls and the columns' feet, tufts at the treads' ends, ferns in
+  // the north face's corners — seated on the stone
   {
     const Tr = R.terrace;
     const S = R.stairs;
     const rng = ctx.rng.fork('expansion-ruins/terrace');
-    let paveTufts = 0;
     let paveMoss = 0;
+    let jointTufts = 0;
+    let jointMoss = 0;
+    let bedTufts = 0;
     let treadTufts = 0;
     let cornerFerns = 0;
     const top = Tr.y - 0.012;
-    const onPaving = (x: number, z: number) => inTerrace(x, z, -0.35) && !nearBlocker(x, z, 0.2) && !RUINS_COLUMN_FEET.some(([cx, cz, r]) => Math.hypot(x - cx, z - cz) < r + 0.12);
+    const Pl = R.pillar;
+    // the paving runs on under the ivy rock's foot (widest at its bed; its mesh within 10 % of `pillarRadius`)
+    const underRock = (x: number, z: number) => Math.hypot(x - Pl.x, z - Pl.z) < pillarRadius(Math.atan2(z - Pl.z, x - Pl.x), 0) * 1.1 + 0.08;
+    const onPaving = (x: number, z: number) => inTerrace(x, z, -0.35) && !nearBlocker(x, z, 0.2) && !RUINS_COLUMN_FEET.some(([cx, cz, r]) => Math.hypot(x - cx, z - cz) < r + 0.12) && !underRock(x, z);
+    // the trodden line along the axis from the stair to the arch stays clean
+    const trodden = (x: number, z: number) => Math.abs(z - S.base[2]) < 0.9 && x > R.arch.x - 1;
+    // growth hugs the walls and the column feet, sparse in the open
+    const sheltered = (x: number, z: number) => Math.min(z - Tr.z0, Tr.z1 - z, x - Tr.x0) < 0.9 || RUINS_COLUMN_FEET.some(([cx, cz, r]) => Math.hypot(x - cx, z - cz) < r + 0.6);
     const area = (Tr.x1 - Tr.x0) * (Tr.z1 - Tr.z0);
     for (let i = 0; i < Math.round(area * 0.9); i++) {
       const x = mm(Tr.x0 + rng() * (Tr.x1 - Tr.x0));
       const z = mm(Tr.z0 + rng() * (Tr.z1 - Tr.z0));
       const kind = rng();
       const scale = rng();
-      const c = greenVar(rng, 0.18);
-      if (!onPaving(x, z)) continue;
-      // the trodden line along the axis from the stair to the arch stays clean
-      if (Math.abs(z - S.base[2]) < 0.9 && x > R.arch.x - 1) continue;
-      // hugging the walls and the column feet, sparse in the open
-      const nearWall = Math.min(z - Tr.z0, Tr.z1 - z, x - Tr.x0) < 0.9;
-      const nearFoot = RUINS_COLUMN_FEET.some(([cx, cz, r]) => Math.hypot(x - cx, z - cz) < r + 0.6);
-      if (!nearWall && !nearFoot && kind > 0.35) continue;
+      if (!onPaving(x, z) || trodden(x, z) || kind >= 0.55 || !sheltered(x, z)) continue;
       n.set(0, 1, 0);
-      if (kind < 0.55 && (nearWall || nearFoot)) {
-        cushionAt(x, top, z, rng, 0.08 + scale * 0.2, mossTint(rng));
-        paveMoss++;
-      } else {
-        plantAt(tufts, x, top - 0.01, z, rng, 0.35 + scale * 0.4, 0, c);
-        paveTufts++;
+      cushionAt(x, top, z, rng, 0.08 + scale * 0.2, mossTint(rng));
+      paveMoss++;
+    }
+    // the ruins system lays the paving and publishes where its joints, cracks and lost slabs' beds
+    // are; a tuft never stands on a slab's face
+    const jr = ctx.rng.fork('expansion-ruins/joints');
+    for (const [sx, sz, kind] of ctx.shared?.pavingSeats ?? []) {
+      const draw = jr();
+      const scale = jr();
+      const more = jr();
+      const offs = [0.07 + 0.09 * jr(), -(0.07 + 0.09 * jr())];
+      const c = greenVar(jr, 0.18);
+      const x = mm(sx);
+      const z = mm(sz);
+      if (!onPaving(x, z) || trodden(x, z)) continue;
+      n.set(0, 1, 0);
+      if (kind === 1) {
+        // a lost slab's soil, between the moss cushions over it
+        plantAt(tufts, x, top - 0.053, z, jr, 0.5 + scale * 0.35, 0, c);
+        bedTufts++;
+        continue;
+      }
+      const near = sheltered(x, z);
+      if (draw < (near ? 0.5 : 0.14)) {
+        // a short run of blades along the joint
+        const [ax, az] = kind === 2 ? [1, 0] : [0, 1];
+        const k = more < 0.2 ? 3 : more < 0.55 ? 2 : 1;
+        for (let j = 0; j < k; j++) {
+          const o = j === 0 ? 0 : offs[j - 1];
+          const tx = mm(x + ax * o);
+          const tz = mm(z + az * o);
+          if (j > 0 && !onPaving(tx, tz)) continue;
+          plantAt(tufts, tx, top - 0.02, tz, jr, (0.35 + scale * 0.35) * (j === 0 ? 1 : 0.75), 0, c);
+          jointTufts++;
+        }
+      } else if (draw < (near ? 0.8 : 0.26)) {
+        cushionAt(x, top + 0.012, z, jr, 0.06 + scale * 0.05, mossTint(jr));
+        jointMoss++;
       }
     }
     // the north face's corners and the notch's: a fern each, in the damp angle
@@ -504,7 +540,7 @@ export function buildExpansionRuinsVegetation(ctx: WorldContext, templates: Ruin
         treadTufts++;
       }
     }
-    Object.assign(counts, { paveTufts, paveMoss, treadTufts, cornerFerns });
+    Object.assign(counts, { paveMoss, jointTufts, jointMoss, bedTufts, treadTufts, cornerFerns });
   }
 
   for (const set of sets) group.add(set.build());

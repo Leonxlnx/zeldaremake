@@ -151,6 +151,8 @@ export async function create(ctx: WorldContext): Promise<WorldSystem> {
   const columns = ruinsColumnBlockers();
   (ctx.shared.walkSpans ??= []).push(...masonry.spans);
   (ctx.shared.propBlockers ??= []).push(...masonry.blockers, ...rock.blockers, ...columns, ...lanterns.blockers, ...offerings.blockers);
+  // and the vegetation (after this system too) roots the terrace's growth in the paving's joints
+  (ctx.shared.pavingSeats ??= []).push(...masonry.seats);
   // the play camera's shells over the rock and the masonry nobody walks on (cameraSolid.ts)
   const cameraSolid = ctx.headless ? null : buildRuinsCameraSolid(cliff.geometry, (x, z) => terrain.height(x, z));
   if (cameraSolid) (ctx.shared.cameraSolidGrids ??= []).push(cameraSolid.grid);
@@ -177,6 +179,7 @@ export async function create(ctx: WorldContext): Promise<WorldSystem> {
     triangles: tris,
     walkSpans: masonry.spans.length,
     blockers: masonry.blockers.length + rock.blockers.length + columns.length + lanterns.blockers.length + offerings.blockers.length,
+    pavingSeats: masonry.seats.length,
     cameraSolid: cameraSolid?.report ?? null,
     counts: { ...masonry.counts, ...rock.counts, lanterns: lanterns.pods.length, ivyStrands: ivy.strands, ivyLeaves: ivy.leaves, archIvyStrands: archIvy.strands, archIvyLeaves: archIvy.leaves, offerings: offerings.count, wisps: wisps.count },
     lanternTriangles: lanterns.triangles,

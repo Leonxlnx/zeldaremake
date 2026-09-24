@@ -44,6 +44,8 @@ export interface Masonry {
   carving: MeshBuilder;
   spans: WalkSpan[];
   blockers: Blocker[];
+  /** where growth can root in the paving as laid (`SharedGeometry.pavingSeats`) */
+  seats: [number, number, number][];
   counts: Record<string, number>;
 }
 
@@ -305,18 +307,22 @@ export function buildMasonry(rng: Rng, ground: Ground, sun: Vector3): Masonry {
     );
     mb.smoothNormals(v0, mb.vertexCount, t0);
   };
+  const seats: [number, number, number][] = [];
+  const seatRng = rng.fork('paving-seats');
   for (let z = wallIn - 0.04; z > T.z0 + 0.3; ) {
     const wz = rng.range(0.55, 0.85);
     const za = z - wz;
     const zb = z;
-    z = za - rng.range(0.025, 0.04);
+    const gz = rng.range(0.025, 0.04);
+    z = za - gz;
     for (let x = x0 + rng.range(0, 0.5); x < T.x1; ) {
       const L = rng.range(0.7, 1.3);
       let sx0 = x;
       let sx1 = x + L;
       let sz0 = za;
       let sz1 = zb;
-      x = sx1 + rng.range(0.025, 0.04);
+      const gx = rng.range(0.025, 0.04);
+      x = sx1 + gx;
       // shrink to the paveable area
       for (let it = 0; it < 40; it++) {
         const b00 = !paveable(sx0, sz0);
@@ -336,21 +342,42 @@ export function buildMasonry(rng: Rng, ground: Ground, sun: Vector3): Masonry {
       if (sx1 - sx0 < 0.28 || sz1 - sz0 < 0.25) continue;
       if (!paveable((sx0 + sx1) / 2, (sz0 + sz1) / 2)) continue;
       const r = rng();
+      const at = (a: number, b: number, pad: number) => {
+        const p = Math.min(pad, (b - a) / 2);
+        return a + p + seatRng() * (b - a - 2 * p);
+      };
       if (r < 0.06) {
         // lost: a couple of broken pieces left in the bed
         hole(sx0, sx1, sz0, sz1);
+        const pieces: [number, number, number][] = [];
         for (let k = rng.int(1, 3); k > 0; k--) {
           const px = sx0 + rng.range(0.15, 0.85) * (sx1 - sx0);
           const pz = sz0 + rng.range(0.2, 0.8) * (sz1 - sz0);
           const s = rng.range(0.08, 0.16);
           block(mb, px, top - 0.07, pz, s, 0.035, s * rng.range(0.6, 1), rng.range(0, Math.PI), { bevel: 0.02, color: stoneCol(rng, 0.9), skip: ['-y'], mossFn: (p, n) => moss(p, n, 0.5) });
+          pieces.push([px, pz, s * Math.SQRT2 + 0.05]);
         }
-      } else if (r < 0.15 && sx1 - sx0 > 0.6) {
-        // cracked across
-        const cxk = sx0 + (sx1 - sx0) * rng.range(0.35, 0.65);
-        slab(sx0, cxk - 0.007, sz0, sz1);
-        slab(cxk + 0.007, sx1, sz0, sz1);
-      } else slab(sx0, sx1, sz0, sz1);
+        for (let k = 0; k < 2; k++) {
+          for (let tries = 0; tries < 8; tries++) {
+            const bx = at(sx0, sx1, 0.1);
+            const bz = at(sz0, sz1, 0.1);
+            if (pieces.some(([px, pz, pr]) => Math.hypot(bx - px, bz - pz) < pr)) continue;
+            seats.push([bx, bz, 1]);
+            break;
+          }
+        }
+      } else {
+        if (r < 0.15 && sx1 - sx0 > 0.6) {
+          // cracked across
+          const cxk = sx0 + (sx1 - sx0) * rng.range(0.35, 0.65);
+          slab(sx0, cxk - 0.007, sz0, sz1);
+          slab(cxk + 0.007, sx1, sz0, sz1);
+          seats.push([cxk, at(sz0, sz1, 0.18), 0]);
+        } else slab(sx0, sx1, sz0, sz1);
+        // its joints: the one on its +x side (running along z, the seat kept 0.18 m off the row's
+        // ends so growth strung along it stays in the joint) and the one on its −z side (along x)
+        seats.push([sx1 + gx / 2, at(sz0, sz1, 0.18), 0], [at(sx0, sx1, 0.1), sz0 - gz / 2, 2]);
+      }
     }
   }
 
@@ -776,6 +803,11 @@ export function buildMasonry(rng: Rng, ground: Ground, sun: Vector3): Masonry {
     });
     counts.rubble++;
     if (s > 0.2) blockers.push({ x, z, r: Math.max(ha, hb) * 0.85, top: g + hy * 1.5 });
+    // nothing roots in the paving under a stone lying on it
+    if (onTop) {
+      const reach = Math.hypot(ha, hb) + 0.03;
+      for (let i = seats.length - 1; i >= 0; i--) if (Math.hypot(seats[i][0] - x, seats[i][1] - z) < reach) seats.splice(i, 1);
+    }
   };
   const rr = rng.fork('rubble');
   // by the broken arch and the colonnade's stump
@@ -810,5 +842,5 @@ export function buildMasonry(rng: Rng, ground: Ground, sun: Vector3): Masonry {
   band('north', T.notchZ, cutN, T.x1 - 0.05);
   band('back', T.z0 + 0.05, T.notchZ, T.notchX - 0.05);
 
-  return { stone: mb, tiles, carving, spans, blockers, counts };
+  return { stone: mb, tiles, carving, spans, blockers, seats, counts };
 }

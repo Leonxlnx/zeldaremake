@@ -119,6 +119,13 @@ export interface SharedGeometry {
    * camera treats them as it treats `cameraSolids.solid`; never built under a headless capture.
    */
   cameraSolidGrids?: VoxelGrid[];
+  /**
+   * Round 57 (expansion-ruins): where growth can root in the ruins' paving as laid (x, z, kind):
+   * 0 in a joint or a crack running along z, 2 in a joint running along x, 1 in a lost slab's bed
+   * (clear of the broken pieces in it). Published by the ruins system for the vegetation, which
+   * roots the terrace's tufts and joint moss there instead of on a slab's face.
+   */
+  pavingSeats?: [number, number, number][];
   /** the slim trees' trunks (the white-barks, as placed): base centre, radius, the bare bole's height span (world y) */
   slimTrunks?: { x: number; z: number; r: number; y0: number; y1: number }[];
 }
