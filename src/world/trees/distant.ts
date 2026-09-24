@@ -216,13 +216,24 @@ export const CROWN_SHADE_M: [number, number] = [12, 26];
  * bright. Laid after `<fog_fragment>` so the deep-forest shade in it (kfShade, which darkens with
  * distance) cannot take it back. `fogColor` is the mist's own colour (config fog.color, the uniform
  * three.js declares for every fogged material).
+ *
+ * `ray` is why this is a repair and not a second fog: it is the world y of the view ray, and the
+ * veil comes in over it. On a level ray the height fog already dissolves the middle distance (the
+ * mid layer at 30 m is half mist in a probe of the plaza looking north), so nothing is added there
+ * and a walker's forward view — and the six fixed frames, which look level — keep their air. It is
+ * only as the eye climbs out of the mist's layer that the veil replaces what the mist stops giving.
  */
-export const CANOPY_DEPTH_VEIL: { share: number; m: [number, number] } = { share: 0.42, m: [18, 62] };
+export const CANOPY_DEPTH_VEIL: { share: number; m: [number, number]; ray: [number, number] } = { share: 0.5, m: [18, 62], ray: [0.05, 0.45] };
 /** the veil as a fragment-shader line, for the crown cards and the giants' leaf cards alike */
-export function canopyVeilGlsl(veil: { share: number; m: [number, number] } = CANOPY_DEPTH_VEIL): string {
+export function canopyVeilGlsl(veil: { share: number; m: [number, number]; ray?: [number, number] } = CANOPY_DEPTH_VEIL): string {
+  const ray = veil.ray ?? CANOPY_DEPTH_VEIL.ray;
   return /* glsl */ `
     #ifdef USE_FOG
-      gl_FragColor.rgb = mix(gl_FragColor.rgb, fogColor, ${veil.share.toFixed(3)} * smoothstep(${veil.m[0].toFixed(1)}, ${veil.m[1].toFixed(1)}, length(vViewPosition)));
+    {
+      float veilClimb = smoothstep(${ray[0].toFixed(3)}, ${ray[1].toFixed(3)}, normalize(-vViewPosition * mat3(viewMatrix)).y);
+      float veilDepth = smoothstep(${veil.m[0].toFixed(1)}, ${veil.m[1].toFixed(1)}, length(vViewPosition));
+      gl_FragColor.rgb = mix(gl_FragColor.rgb, fogColor, ${veil.share.toFixed(3)} * veilClimb * veilDepth);
+    }
     #endif
   `;
 }
@@ -415,7 +426,7 @@ export interface CrownLook {
   /** the colour treatments' window (m); unset = `underM`, so a look tuned before CROWN_SHADE_M is unchanged */
   shadeM?: [number, number];
   /** the depth veil for this layer (see CANOPY_DEPTH_VEIL) */
-  veil?: { share: number; m: [number, number] };
+  veil?: { share: number; m: [number, number]; ray?: [number, number] };
   /** albedo at the crown's core (1 at its shell) */
   coreDark?: number;
   /** floor cards always end in the crown's round edge (the far layer only rounds them inside its near gate) */
@@ -1107,7 +1118,7 @@ export const MID_CROWN_LOOK: Omit<CrownLook, 'atlas'> = {
   roundFloors: true,
   // the mid layer stands in 13.7–58 m (placeMidTrees), so its veil is that band: a crown at the far
   // edge of it is nearly mist, which is what puts light and depth between the layers he looked through
-  veil: { share: 0.5, m: [16, 56] },
+  veil: { share: 0.55, m: [16, 56], ray: [0.05, 0.4] },
 };
 
 /**
