@@ -13,7 +13,7 @@
  * RUINS_VISIBLE_M of the site AND its frustum meets one of the casters' spheres or their shadow
  * footprints (util/expansionLocality.ts `ruinsVisible`).
  */
-import { Group, Mesh, type Camera, type Material } from 'three';
+import { Group, Mesh, Object3D, type Camera, type Material } from 'three';
 import { EXPANSION_RUINS } from '../layout';
 import type { WorldContext, WorldSystem } from '../system';
 import { casterSpheres, ruinsVisible, type Caster } from '../util/expansionLocality';
@@ -110,6 +110,19 @@ export async function create(ctx: WorldContext): Promise<WorldSystem> {
   for (const m of water.meshes) group.add(m);
   materials.push(...water.materials);
 
+  // the audio's sources, found by name (audio/index.ts): the fall's roar a metre over its plunge and
+  // a flame in each trail pod (a `pod-lantern`'s origin is its hook, the pod ~0.5 m under it)
+  const plunge = new Object3D();
+  plunge.name = 'waterfall-plunge';
+  plunge.position.set(water.plunge[0], R.pool.water + 1, water.plunge[1]);
+  group.add(plunge);
+  for (const p of lanterns.pods) {
+    const pod = new Object3D();
+    pod.name = 'pod-lantern';
+    pod.position.set(p.x, p.y + 0.5, p.z);
+    group.add(pod);
+  }
+
   // the character ground reads these at its creation (the character system comes after this one)
   const columns = ruinsColumnBlockers();
   (ctx.shared.walkSpans ??= []).push(...masonry.spans);
@@ -133,7 +146,7 @@ export async function create(ctx: WorldContext): Promise<WorldSystem> {
     return n;
   };
   const tris = triangles();
-  const meshes = group.children.length;
+  const meshes = group.children.filter((o) => (o as Mesh).isMesh).length;
   ctx.audit('ruins', () => ({
     visible: group.visible,
     meshes,
@@ -145,6 +158,7 @@ export async function create(ctx: WorldContext): Promise<WorldSystem> {
     lanternTriangles: lanterns.triangles,
     pods: lanterns.pods.map((p) => [+p.x.toFixed(2), +p.y.toFixed(2), +p.z.toFixed(2)]),
     plunge: water.plunge.map((v) => +v.toFixed(2)),
+    soundSources: { falls: 1, pods: lanterns.pods.length },
     pointLights: 0,
   }));
 
