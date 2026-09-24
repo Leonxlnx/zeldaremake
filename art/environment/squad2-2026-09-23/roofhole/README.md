@@ -145,11 +145,20 @@ band — the next measurement, not a claim.
 **Cost:** the roof is now 814 clumps / 3588 cards / **7176 triangles**, so the whole of this branch's roof
 work adds about **1,290 triangles** over the head — 0.014 % of the 9 M cap.
 
-**Camera C** is the only fixed camera that looks south (fable-3's note), so it is the one that can see these
-bands. Its after frame is `hero-C-after.png`; its before was not rendered in this hour, and what bounds the
-risk meanwhile is the test: no clump centre may sit below the kept top band inside any hero frame within its
-drop distance, so C's frame body cannot have gained roof by construction, only its top 18 %. Rendering C's
-pair is the first thing for the next hour.
+**Camera C**, the only fixed camera that looks south (fable-3's note), is therefore the one that can see
+these bands — and it is the cleanest answer of the six. Rendered as a pair, the branch against the head:
+mean 89.4 → 89.3, top third 87.5 → 87.1, and **0.55 % of the frame changed with every changed cell in the
+top row** (y 0–0.13, mean Δ 22 levels). `hero-C-diff.jpg` shows two small canopy patches at the very top
+edge and nothing else: the lantern post, the paving, the pots, the giants and the foliage are untouched.
+That is exactly what `HERO_TOP_KEEP` promises and what the test now pins, measured on the camera with the
+most to lose.
+
+| frame | changed > 8 levels | where |
+| --- | --- | --- |
+| A | 10.58 % | the plaza's vegetation, re-dappled by the new roof's shadow |
+| C | **0.55 %** | the top row only — the two patches in `hero-C-diff.jpg` |
+| D | 9.58 % | as A |
+| F | 0.00 % | — |
 
 ## The test
 
