@@ -176,9 +176,47 @@ one axis the owner has commented on twice, most recently "LOWER THE WHITE NOISE"
 not going to raise it unasked.** If he wants it, +6 dB puts the mix at −27.3 LUFS and still leaves
 the always-on 60–250 Hz band 5.7 dB below the head he was last playing.
 
+## The owner's two complaints are now tests
+
+Both of his sound complaints were fixed by changing what the bed *is*, and those fixes live in a
+handful of constants and a few lines of `update`. Until now the only way to check any of them was a
+four-minute browser render, which means the next person to touch the bed would not find out.
+
+`src/audio/ambience.test.mjs` runs `createAmbience` against a recording stand-in for WebAudio — every
+AudioParam keeps the value each call aimed it at, so an `update` can be read back as "what would this
+gain settle to". Nodes are identified by **what they respond to** (run `update` twice with one term
+of the state changed, take the gains that moved) rather than by shape, so adding a node to the graph
+does not silently rewire the assertions — which is exactly what happened when the wind lean added a
+second panner and a shape match started reading the wrong gain.
+
+It asserts the things that must not come back:
+
+- below the gust knee every wind gain is at or under its floor, and the floors are under −66 dB;
+- a full gust reaches the whole swell, and the swell never falls as the wind rises;
+- **no oscillator exists when the bed is built** — the 96 / 192 Hz lantern hum was the loudest band
+  in the forest, and the husk resonance that replaced it is a filter on the same noise;
+- 39 pods at village distances reach under a third of one pod overhead, and the flame is bounded
+  however many there are;
+- the bore shuts the bed under 1.2 kHz, the crowns close it part of the way, wood over you beats
+  leaves over you, and only the bore ducks the level;
+- two beds from one seed schedule the same forest;
+- a gust brings at least half again as many leaves, and in dead calm the wood is never left silent
+  for longer than `QUIET_GAP_MAX`.
+
+Checked by reverting each fix and watching the right test fail with the right message:
+
+| reverted | caught by |
+| --- | --- |
+| `CANOPY_FLOOR` back to the old always-on 0.012 | *below the gust knee the wind layers are silent* |
+| `LANTERN_CROWD_SHARE` back to summing every pod | *a village of lanterns does not sum to a drone* ("reaches 0.80 of one pod overhead") |
+| a 96 Hz oscillator put back under the bed | *no oscillator holds a tone under the bed* |
+
 ## Tests
 
-`src/audio/music.test.mjs` is new: the rests fall inside `REST_SECONDS`, the duty cycle lands
+`src/audio/ambience.test.mjs` (7) and `src/audio/music.test.mjs` (4) are new; 23 across the three
+audio files.
+
+`src/audio/music.test.mjs`: the rests fall inside `REST_SECONDS`, the duty cycle lands
 between 55 and 78 %, the first pass is never the voiced-down one, the voicing share is what
 `QUIET_PASS_SHARE` says, the schedule is a pure function of its seed, and — since this is the file
 that most invites it — the melody table is asserted to stay inside G major pentatonic with the
