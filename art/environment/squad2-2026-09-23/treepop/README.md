@@ -51,20 +51,25 @@ Two constants in `trees/index.ts`, and the second pays for the first:
 **Residual pop at the owner's pose, against an all-high reference rendered in the same session:
 6.37 % → 1.82 % of the frame** (SSIM 0.9463 → 0.9843).
 
-## Cost — draws down everywhere, triangles flat
+## Cost
 
-`pose-counts.mjs --settle 6`, one build with the knob selecting configurations:
+`pose-counts.mjs --settle 6`, one build with the knob selecting configurations. **Re-measured on the
+merged head `67c2e241`** (the first reading was on `6d145e90`, before lane 7's skinned kids, lane 1's
+corridor air and lane 6's log joint landed):
 
-| pose | before | after |
-| --- | --- | --- |
-| A_stairs | 695 draws / 8.95 M | **680 / 8.93** |
-| D_log | 561 / 8.49 | 555 / 8.59 |
-| owner-0650-north | 555 / 8.73 | 550 / 8.80 |
-| rec-r024-plaza-fork | **704** / 8.04 | **692** / 8.07 |
-| owner-0650-west | — | 502 / 6.78 |
+| pose | before (20 / 44 / 120) | after (28 / 44 / 72) | Δ draws | Δ triangles |
+| --- | --- | --- | --- | --- |
+| A_stairs | 628 draws / 8.98 M | 640 / **8.93** | +12 | **−0.05 M** |
+| D_log | 546 / 8.54 | 561 / 8.60 | +15 | +0.06 M |
+| owner-0650-north | 510 / 8.79 | 532 / 8.80 | +22 | +0.01 M |
+| rec-r024-plaza-fork | 624 / 8.08 | 639 / 8.07 | +15 | −0.01 M |
 
-Draws fall at every pose, and `rec-r024-plaza-fork` — **over** W38's 700-draw gate on the head at 704
-— comes back to 692. Every pose stays under the 9 M triangle gate.
+**Correction to the first reading.** On `6d145e90` this change *reduced* draws (A 695 → 680) because
+the old draw counts were near the 700 gate and emptying LOD meshes saved calls. On the merged head the
+baseline is 628 at A — lane 7's skinning removed ~80 — and the sign flips: the change now costs **+12
+to +22 draws**, peak 640 of the 700 gate. Triangles are flat to slightly better, and at camera A —
+the binding pose, 0.02 M under the gate on the head — they **fall** 8.98 → 8.93 M. Nothing here is
+close to either gate.
 
 ## What the frames show
 

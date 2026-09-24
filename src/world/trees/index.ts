@@ -1609,15 +1609,17 @@ const TREE_LOD_MID_M = 44;
  * only when the player gets close — the owner's "why don't the trees immediately spawn instead of
  * needing me to get close" (2026-09-23 20:08). 1 = shipped, and the take / CI path never sets it.
  */
-const TREE_LOD_SCALE: [number, number, number] = (() => {
-  if (typeof location === 'undefined') return [1, 1, 1];
+const TREE_LOD_SCALE: [number, number, number, number] = (() => {
+  if (typeof location === 'undefined') return [1, 1, 1, 1];
   const raw = new URLSearchParams(location.search).get('treelod');
-  if (!raw) return [1, 1, 1];
-  // "1.8" scales every gate; "1.8,2.6,0.6" scales the high→medium rung, the medium→low rung and the
-  // distant / mid layers' near gate separately, so each can be priced and read on its own
+  if (!raw) return [1, 1, 1, 1];
+  // "1.8" scales every gate; "1.8,2.6,0.6,1.5" scales the high→medium rung, the medium→low rung, the
+  // distant / mid layers' near gate and the giants' near-CANOPY swap band separately, so each can be
+  // priced and read on its own
   const ok = (n: number) => (Number.isFinite(n) && n > 0 ? n : 1);
   const parts = raw.split(',').map(Number);
-  return parts.length > 1 ? [ok(parts[0]), ok(parts[1]), ok(parts[2] ?? parts[1])] : [ok(parts[0]), ok(parts[0]), ok(parts[0])];
+  if (parts.length === 1) return [ok(parts[0]), ok(parts[0]), ok(parts[0]), ok(parts[0])];
+  return [ok(parts[0]), ok(parts[1]), ok(parts[2] ?? parts[1]), ok(parts[3] ?? 1)];
 })();
 const NEAR_LOD_DEVICE_GB = deviceMemoryGB();
 const NEAR_LOD_TIER = nearLodTierFor(NEAR_LOD_DEVICE_GB, typeof location === 'undefined' ? null : new URLSearchParams(location.search).get('pool'));
@@ -3675,8 +3677,11 @@ export async function create(ctx: WorldContext): Promise<WorldSystem> {
   // world-space rule; a part is never removed from the catalogue because of another camera.
   for (const nc of nearCanopies) {
     if (nc.fixedSwap || nc.persistent) continue;
-    nc.inM = Math.min(nc.inM, NEAR_LOD_TIER.canopySwapM[0]);
-    nc.outM = Math.min(nc.outM, NEAR_LOD_TIER.canopySwapM[1]);
+    // `TREE_LOD_SCALE[3]` is the dev knob's fourth component (`?treelod=,,,<mult>`): it scales this
+    // band so the crown swap's own share of "the trees spawn when I get close" can be read on its own,
+    // the way the white-barks' rungs were. 1 = shipped.
+    nc.inM = Math.min(nc.inM, NEAR_LOD_TIER.canopySwapM[0]) * TREE_LOD_SCALE[3];
+    nc.outM = Math.min(nc.outM, NEAR_LOD_TIER.canopySwapM[1]) * TREE_LOD_SCALE[3];
   }
   const nearCanopyUpdate = (cam: Vector3, reset: boolean) => {
     nearCanopyPool.begin();
@@ -4104,8 +4109,8 @@ export async function create(ctx: WorldContext): Promise<WorldSystem> {
        */
       nearCanopy: {
         /** the parts' built radii (nearCanopy.ts) and the tier's cap on them as drawn (NEAR_LOD_TIERS.canopySwapM) */
-        inM: Math.min(NEAR_CANOPY_IN_M, NEAR_LOD_TIER.canopySwapM[0]),
-        outM: Math.min(NEAR_CANOPY_OUT_M, NEAR_LOD_TIER.canopySwapM[1]),
+        inM: Math.min(NEAR_CANOPY_IN_M, NEAR_LOD_TIER.canopySwapM[0]) * TREE_LOD_SCALE[3],
+        outM: Math.min(NEAR_CANOPY_OUT_M, NEAR_LOD_TIER.canopySwapM[1]) * TREE_LOD_SCALE[3],
         builtInM: NEAR_CANOPY_IN_M,
         builtOutM: NEAR_CANOPY_OUT_M,
         heroMargin: 0,
