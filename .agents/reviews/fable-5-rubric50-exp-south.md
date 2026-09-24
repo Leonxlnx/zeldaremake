@@ -95,3 +95,29 @@ side, the bridge has its own footstep surface and the log closes over the sound.
 the bar is 170. Still under 2: **#17 wear and #19 damage**; the disc (#27 / #38) is the owner's own question and has a
 builder on it. The three that would carry it over the line remain the walk's wear, one sparse damage and the exit's
 depth; the ★ checks are all 3–4.
+
+## Pre-merge read of `agent/fable-cursor-exp-south2` @ `bc757dfa` (07:47 — "the hollow log opens onto daylight — no more white disc"; base `92a4fd66`; 08:35–08:44 UTC)
+
+Same spots protocol, before = the head `b306d6a9`. The glow disc and its veils are gone: the tube runs on to a snapped far
+end with a root curtain and opens into a sunlit cleft — ferns, saplings, a fallen branch, young white-barks (sheets
+`it105-ba-log-inside.jpg`, `it105-ba-log-mouth.jpg`, `it105-log-deadend.jpg`).
+
+| exit box | mean luma | p99 | share > 0.85 |
+| --- | --- | --- | --- |
+| from inside the log (`log-inside`) | 0.803 → **0.343** | 0.906 → 0.749 | 50.3 → **0.7 %** |
+| at the mouth (`log-mouth`) | 0.814 → 0.363 | 0.905 → 0.883 | 58.6 → 1.6 % |
+| from mid-bridge (`bridge-mid`) | 0.808 → 0.380 | 0.898 → 0.662 | 44.8 → 0.0 % |
+
+| # | check | was | now | why |
+| --- | --- | --- | --- | --- |
+| 27 | interiors lit with depth — never a white card | 2 | **4** | the far end is a broken rim, roots and a lit cleft with three planes of depth behind it |
+| 38 | no clipped whites | 2 | **4** | no pixel over 0.95 in the exit at any of the three distances; the brightest band 0.75–0.88 is the cleft's lit ground |
+| 30 | hanging leaves soften the opening | 3 | **4** | the root curtain across the snapped end (`it105-log-deadend.jpg`) |
+| 19 | damage plausible and sparse | 1 | **2** | the log's snapped, splintered far end with end grain is the first damage in the item |
+| 50 | the owner would stop and look | 3 | **4** | the walk into the log now ends at a picture — a lit glade through roots — instead of a wall of light |
+| 41 / 42 ★ | walk / edges | 4 / 4 | 4 / 4 | `south-bridge-to-log` 21 / 21, 0 stuck, camera ≥ 1.38 m, boots p50 0 / max 2.8 cm; probes 41 / 41 |
+| 46 ★ | caps | 4 | 4 | A 638 / 8.86 M, C 566 / 7.76 M — under both (the branch lacks the 07:05 merges, so the pair is not clean for triangles; the exit adds no light source) |
+
+**With this merged the item reads 138 / 176 (78 %, ≈ 157 / 200)** — from 129; the owner's 06:07 "why is it white?" is
+answered in kind and in the numbers. Still under 2: **#17 wear** alone (the trodden line and the worn plank centres);
+the ★ checks all 3–4. Merge-ready by this read.
