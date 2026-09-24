@@ -414,3 +414,5 @@ Evidence sheets under `art/environment/props-fable-3/` and `art/environment/peop
 - Tried water in the two pails on the iron material: invisible at both poses (dark on dark, as the rust). Not committed;
   documented in `props-fable-3/tried/`. Two dark-on-dark misses in a row: the next lane-9 item must start from the
   rendered value of its surface, not the vertex colour.
+- Integration check: the tip merges clean into exp-north and exp-south2, suites 148 / 148 and 149 / 149 with their
+  terrain. Asked fable-cursor for the next ranked item (or "hold"), the n/a rule and the merge, in one line each.
