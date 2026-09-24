@@ -57,7 +57,7 @@ import {
 import { hash2 } from '../util/prng';
 import { merge, ovalLathe, place, sweep } from './geometry';
 import { CHAR_COLORS, matte } from './palette';
-import { beginTally, buildArms, buildLegs, endTally, part, type Character } from './link';
+import { beginTally, buildArms, buildFace, buildLegs, endTally, part, type Character } from './link';
 import { buildRig, type Proportions, type Rig } from './rig';
 import { skinRig } from './skin';
 
@@ -305,35 +305,21 @@ function skullUv(x: number, y: number, z: number): [number, number] {
   return [0.25 + psi / (Math.PI * 2), 1 - th / Math.PI];
 }
 
-const skullTexCache = new Map<string, MeshStandardMaterial>();
-
-/** what a kid's face is made of: the skull canvas's key and colour, the iris, and the girl / boy touches */
-interface KidFace {
-  key: string;
-  skin: number;
-  iris: string;
-  /** cheek blush strength (the girls 0.42; the boy a touch, 0.2) */
-  blush: number;
-  /** rosy lips (the girls) or lips in the skin's own colour (the boy) */
-  rosyLips: boolean;
-  /** the lash tube's radius scale and whether it flicks past the outer corner (the girls 1 / yes; the boy 0.6 / no) */
-  lash: number;
-  flick: boolean;
-}
+const skullTexCache = new Map<number, MeshStandardMaterial>();
 
 /**
- * The skull's skin (round 48): the skin tone with a soft cheek blush, warm shading in the eye
- * sockets and under the brow, a shadow under the lower lip, plus flat colour patches in the
+ * The skull's skin (round 48): the look's skin tone with a soft cheek blush, warm shading in the
+ * eye sockets and under the brow, a shadow under the lower lip, plus flat colour patches in the
  * corners the merged features (lips, inner ear, plain skin) point their UVs at. Same tone as the
- * body's plain skin material, on the same warm ramp. Cached by `face.key`.
+ * body's plain skin material, on the same warm ramp.
  */
-function skullMaterial(face: KidFace): MeshStandardMaterial {
-  let m = skullTexCache.get(face.key);
+function skullMaterial(look: number): MeshStandardMaterial {
+  let m = skullTexCache.get(look);
   if (m) return m;
   const W = SKULL_TEX_W;
   const H = SKULL_TEX_H;
   const [c, g] = canvas(W, H);
-  const skin = new Color(face.skin);
+  const skin = new Color(KID.skin[look]);
   g.fillStyle = hex(skin.getHex());
   g.fillRect(0, 0, W, H);
   const blot = (uv: [number, number], rx: number, ry: number, color: string, alpha: number) => {
@@ -354,7 +340,7 @@ function skullMaterial(face: KidFace): MeshStandardMaterial {
   };
   for (const s of [1, -1]) {
     // cheek blush, low and wide
-    blot(skullUv(s * 0.052, -0.046, 0.115), 26, 17, 'rgba(214,112,96,1)', face.blush);
+    blot(skullUv(s * 0.052, -0.046, 0.115), 26, 17, 'rgba(214,112,96,1)', 0.42);
     // socket: a warm shade around the eye, deeper toward the inner corner and under the brow
     blot(skullUv(s * 0.04, -0.012, 0.121), 24, 20, 'rgba(150,78,58,1)', 0.38);
     blot(skullUv(s * 0.022, -0.004, 0.126), 9, 8, 'rgba(120,60,48,1)', 0.3);
@@ -367,17 +353,13 @@ function skullMaterial(face: KidFace): MeshStandardMaterial {
     g.fillStyle = color;
     g.fillRect(uv[0] * W - 14, (1 - uv[1]) * H - 14, 28, 28);
   };
-  patch(UV_LIP, face.rosyLips ? '#a35a52' : hex(new Color(face.skin).multiplyScalar(0.9).getHex()));
+  patch(UV_LIP, '#a35a52');
   patch(UV_EAR, '#8f5a48');
-  m = applySkinRamp(new MeshStandardMaterial({ map: canvasTex(c, `char-kid-skull-${face.key}`), color: 0xffffff, roughness: 0.74, metalness: 0 }));
-  m.name = `char-kid-skull-${face.key}`;
-  skullTexCache.set(face.key, m);
+  m = applySkinRamp(new MeshStandardMaterial({ map: canvasTex(c, `char-kid-skull-${look}`), color: 0xffffff, roughness: 0.74, metalness: 0 }));
+  m.name = `char-kid-skull-${look}`;
+  skullTexCache.set(look, m);
   return m;
 }
-
-const girlFace = (look: number): KidFace => ({ key: `girl-${look}`, skin: KID.skin[look], iris: KID.iris[look], blush: 0.42, rosyLips: true, lash: 1, flick: true });
-/** the boy at Saria's door (JOB 7): the girls' modelled face on his skin, a lighter blush, lips in his own skin, thinner lashes without the flick */
-const BOY_FACE: KidFace = { key: 'boy', skin: BOY_SKIN, iris: '#5a3a22', blush: 0.2, rosyLips: false, lash: 0.6, flick: false };
 
 const eyeTexCache = new Map<string, MeshStandardMaterial>();
 
@@ -534,10 +516,10 @@ const _v = new Vector3();
  * glossy) on the blink group whose pivot is the upper lid line, so the shared Y-squash blink
  * folds them up under the lid; lash tubes + the mouth line in one dark mesh.
  */
-function buildKidFace(rig: Rig, face: KidFace): void {
+function buildGirlFace(rig: Rig, look: number): void {
   const r = rig.props.headRadius;
   const head = rig.head;
-  const skinTex = skullMaterial(face);
+  const skinTex = skullMaterial(look);
 
   // -- skull with the sockets pressed in around each eye --
   const skull = new SphereGeometry(r, 36, 26);
@@ -593,12 +575,9 @@ function buildKidFace(rig: Rig, face: KidFace): void {
       const R = EYE_R + 0.0042;
       pts.push(new Vector3(c.x + R * Math.sin(th) * Math.sin(psi), c.y + R * Math.cos(th), c.z + R * Math.sin(th) * Math.cos(psi)));
     }
-    if (face.flick) {
-      const last = pts[pts.length - 1];
-      pts.push(new Vector3(last.x + s * 0.006, last.y + 0.005, last.z - 0.004));
-    }
-    const k = face.lash;
-    lash.push(sweep(pts, [0.0012 * k, 0.0018 * k, 0.0026 * k, 0.003 * k, 0.0026 * k, 0.0012 * k], { segments: 16, radial: 6, closeTip: true, closeStart: true }));
+    const last = pts[pts.length - 1];
+    pts.push(new Vector3(last.x + s * 0.006, last.y + 0.005, last.z - 0.004));
+    lash.push(sweep(pts, [0.0012, 0.0018, 0.0026, 0.003, 0.0026, 0.0012], { segments: 16, radial: 6, closeTip: true, closeStart: true }));
   }
   // mouth line: a thin dark curve between the lips, corners lifted (the small smile)
   lash.push(
@@ -650,7 +629,7 @@ function buildKidFace(rig: Rig, face: KidFace): void {
     const c = eyeCentre(s);
     return place(new SphereGeometry(EYE_R, 18, 12), c.x, c.y - lidY, c.z);
   });
-  part(eyes, merge(balls), eyeMaterial(face.iris), 'eyeballs', false);
+  part(eyes, merge(balls), eyeMaterial(KID.iris[look]), 'eyeballs', false);
   rig.eyes.push(eyes);
 }
 
@@ -899,9 +878,8 @@ function buildGirlTunic(rig: Rig, tunic: MeshStandardMaterial): void {
 /**
  * The boy at Saria's door (round 1; lane 7 brings him level with the girls): a near-black
  * sleeveless tunic on the cloth canvas with four fold ridges, a rope belt, the wide Kokiri band,
- * the girls' lobed bob in brown with its tube brows, a pouch and a Deku Stick. His face is the
- * girls' modelled one (`buildKidFace`, `BOY_FACE`: his skin, a light blush, skin-coloured lips,
- * thin lashes without the flick) — round 1's link.ts `buildFace` until JOB 7.
+ * the girls' lobed bob in brown (no tube brows — `buildFace` gives him his own), a pouch and a
+ * Deku Stick. His face stays link.ts's `buildFace`.
  */
 function buildBoy(rig: Rig, variant: number, skin: MeshStandardMaterial): void {
   const p = rig.props;
@@ -951,10 +929,8 @@ function buildBoy(rig: Rig, variant: number, skin: MeshStandardMaterial): void {
     place(new CylinderGeometry(0.008, 0.008, 0.06, 6), -0.015, hl(0.54), 0.09, [0.2, 0, -0.1]),
   ]);
   part(rig.hips, rope, matte('kidRope'), 'kid-rope-belt', false);
-  // the girls' modelled face on his skin (JOB 7, owner 23:00; round 1 used link.ts's `buildFace`) — and the
-  // hair's tube brows with it, since `buildFace`'s box brows go with it
-  buildKidFace(rig, BOY_FACE);
-  buildGirlHair(rig, hairMaterial(`boy-${variant}`, BOY_HAIR), true);
+  buildFace(rig, { skin, iris: matte('irisKid', { roughness: 0.3 }), earLength: 0.07 });
+  buildGirlHair(rig, hairMaterial(`boy-${variant}`, BOY_HAIR), false);
   buildGirlHeadband(rig, kidMat(`band-boy-${variant}`, CHAR_COLORS.kidHeadband));
   part(rig.hips, place(new BoxGeometry(0.05, 0.05, 0.03), -0.09, hl(0.52), 0.04, [0, 0.4, 0]), matte('leatherDark'), 'kid-pouch', false);
   // a Deku Stick held in the right hand like a staff (butt near the ground)
@@ -990,7 +966,7 @@ export function createKokiri(variant: number): Character {
     buildThumbs(rig, skin);
     buildWristbands(rig, kidMat('belt', KID.belt));
     buildGirlTunic(rig, girlCloth(look));
-    buildKidFace(rig, girlFace(look));
+    buildGirlFace(rig, look);
     buildGirlHair(rig, girlHair(look));
     buildGirlHeadband(rig, kidMat(`band-${look}`, KID.band[look]));
   } else buildBoy(rig, variant, skin);
