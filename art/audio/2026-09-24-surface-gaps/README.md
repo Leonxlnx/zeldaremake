@@ -14,6 +14,12 @@ looks west over the plaza and the stair.
 
 `surfaceAt()` returned **`grass`** across its whole footprint, so his boots were on the lawn.
 
+![the lookout](lookout.jpg)
+
+`lookout.jpg` is Link standing on it (`play-shot.mjs --at 21.6,2.2 --yaw -96 --pitch 6`), the pale
+slab under his boots and the rope railing around him; `lookout-approach.jpg` is the walk up to it
+from the fence side.
+
 It is stone, not timber, and this is settled in the world rather than a judgement call —
 `props/layout.ts` says so outright: the railing is "set into hardscape's stone dais … instead of a
 deck of its own (the character ground learns the slab top, so wood over the stone would swallow the
