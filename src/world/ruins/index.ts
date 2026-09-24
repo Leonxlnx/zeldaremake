@@ -38,7 +38,7 @@ const R = EXPANSION_RUINS;
 const MASONRY_TINT: [number, number, number] = [0.36, 0.354, 0.338];
 
 /** the site's casters (circle on the ground, its height span) for the locality */
-function ruinsCasters(): Caster[] {
+export function ruinsCasters(): Caster[] {
   const T = R.terrace;
   const out: Caster[] = [];
   for (let x = T.x0 + 2; x < T.x1; x += 3) out.push({ x, z: (T.z0 + T.z1) / 2, r: 4.3, y0: 1.5, y1: T.y + 0.8, shadow: true });

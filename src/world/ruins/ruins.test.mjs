@@ -17,7 +17,9 @@
  *      than 0.1 m under the springing, most of it on the approach's (east) face;
  *   5. the offering: finite, on the paving and clear of the arch's plinth and the flight, its
  *      blocker round every stone of it over the paving;
- *   6. determinism: the same seed builds the same stone, bit for bit.
+ *   6. determinism: the same seed builds the same stone, bit for bit;
+ *   7. locality: the site's casters and their shadow footprints (what `ruinsVisible` tests) meet no
+ *      fixed camera's frustum, and the zone's own views do meet them.
  * (The gauntlet's playtest walks the same route and probes in the browser, over every system's
  * blockers; this is the ruins' share of it, without one.)
  */
@@ -73,7 +75,7 @@ const T = R.terrace;
 const A = R.arch;
 const fmt = ([x, z]) => `(${x.toFixed(2)}, ${z.toFixed(2)})`;
 
-async function walkerOverSite() {
+async function buildSite() {
   const rng = seed();
   const masonry = buildMasonry(rng.fork('masonry'), ground, sun);
   const rock = buildRock(rng.fork('rock'), ground, sun);
@@ -83,9 +85,10 @@ async function walkerOverSite() {
     walkSpans: [...masonry.spans],
     propBlockers: [...masonry.blockers, ...rock.blockers, ...ruinsColumnBlockers(), ...lanterns.blockers, ...offerings.blockers],
   };
-  return createGround(terrain, LAYOUT, shared);
+  return { walker: createGround(terrain, LAYOUT, shared), lanterns };
 }
-const built = walkerOverSite();
+const site = buildSite();
+const built = site.then((s) => s.walker);
 
 test('the walk from the plaza reaches the paving through the arch', async () => {
   const walker = await built;
@@ -305,4 +308,27 @@ test('the same seed builds the same stone', () => {
   let diff = 0;
   for (let i = 0; i < a.pos.length; i++) if (a.pos[i] !== b.pos[i] || a.col[i] !== b.col[i]) diff++;
   assert.equal(diff, 0, `${diff} components differ`);
+});
+
+test('no fixed frame sees the ruins or their shadows, and the zone views do', async () => {
+  const { ruinsCasters } = loadTs(path.join(here, 'index.ts'));
+  const { sunDirOf } = loadTs(path.join(here, 'materials.ts'));
+  const L = loadTs(path.join(here, '../util/expansionLocality.ts'));
+  const { lanterns } = await site;
+  const spheres = [...ruinsCasters(), ...lanterns.casters].flatMap((c) => L.casterSpheres(c, sunDirOf(WORLD)));
+  const cam = (fov, p, t, aspect) => {
+    const c = new THREE.PerspectiveCamera(fov, aspect, 0.1, 400);
+    c.position.set(...p);
+    c.lookAt(...t);
+    c.updateMatrixWorld(true);
+    return c;
+  };
+  // at 2:1, wider than the captures' 1280 × 716, so a frame a little wider still misses them
+  for (const v of LAYOUT.viewpoints) assert.equal(L.ruinsVisible(cam(v.fov, v.position, v.target, 2), spheres), false, `${v.id} draws the ruins`);
+  for (const [name, p, t] of [
+    ['ruins-approach', [-47.5, 4.4, -2.8], [-60, 4.4, -5]],
+    ['ruins-pool', [-52.5, 3.6, 9.5], [-65, 3.8, -1.5]],
+    ['ruins-aerial', [-46, 21, 9], [-64, 3, -3]],
+    ['ruins-trail', [-38, 4.2, -0.8], [-52, 3.8, -4]],
+  ]) assert.equal(L.ruinsVisible(cam(55, p, t, 16 / 9), spheres), true, `${name} hides the ruins`);
 });
