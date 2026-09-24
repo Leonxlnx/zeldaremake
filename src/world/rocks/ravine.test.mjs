@@ -33,7 +33,7 @@ function loadTs(file) {
   return module.exports;
 }
 const here = path.dirname(fileURLToPath(import.meta.url));
-const { buildRavineRocks, BRIDGE_CLEAR_M, OUTCROP_BAND, MIN_DEPTH_M } = loadTs(path.join(here, 'ravine.ts'));
+const { buildRavineRocks, BRIDGE_CLEAR_M, OUTCROP_BAND, MIN_DEPTH_M, nearRavine } = loadTs(path.join(here, 'ravine.ts'));
 const { createRng } = loadTs(path.join(here, '../util/prng.ts'));
 const { expansionVisible, sunVector } = loadTs(path.join(here, '../util/expansionLocality.ts'));
 const { getTerrain } = loadTs(path.join(here, '../terrain/heightfield.ts'));
@@ -108,9 +108,15 @@ test('no fixed camera but C (which already sees the south) meets a ravine sphere
     cam.updateMatrixWorld();
     cam.updateProjectionMatrix();
     const sees = expansionVisible(cam, spheres);
-    if (vp.id === 'C_lookback') continue;
-    assert.equal(sees, false, `${vp.id} meets a ravine sphere`);
+    // the runtime draws only within RAVINE_DRAW_M of the gorge AND with a sphere in view: C's frustum
+    // reaches the spheres but C stands 38 m off; A stands 22 m off and looks north
+    const drawn = nearRavine(vp.position[0], vp.position[2]) && sees;
+    assert.equal(drawn, false, `${vp.id} would draw the ravine rock`);
+    if (vp.id === 'C_lookback') assert.equal(nearRavine(vp.position[0], vp.position[2]), false, 'C is inside the draw distance');
+    else assert.equal(sees, false, `${vp.id} meets a ravine sphere`);
   }
+  assert.equal(nearRavine(4.3, 37), true, 'the deck is inside the draw distance');
+  assert.equal(nearRavine(-1.5, 29.5), true, 'the north rim is inside the draw distance');
   const walker = new THREE.PerspectiveCamera(50, 1280 / 720, 0.1, 500);
   walker.position.set(4.3, 1.0, 37);
   walker.lookAt(new THREE.Vector3(-8, -4, 38.5));

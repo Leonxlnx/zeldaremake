@@ -45,6 +45,20 @@ export const OUTCROP_BAND: [number, number] = [0.26, 0.74];
 export const BRIDGE_CLEAR_M = 2.6;
 /** the gorge must be this deep for a wall to take an outcrop (its shallow ends stay soil) */
 export const MIN_DEPTH_M = 3.5;
+/**
+ * the rock draws only with the camera this close to the gorge's box (m): from the plaza and the hero
+ * flight the gorge is 40 m off behind the south giants and the mist — camera C's frame does not change
+ * by a pixel with the rock in it, but the locality spheres alone let it through and its shadow pass cost
+ * C +10 draws / +210 K triangles for nothing
+ */
+export const RAVINE_DRAW_M = 26;
+
+/** is the camera within `RAVINE_DRAW_M` of the gorge's box? */
+export function nearRavine(x: number, z: number): boolean {
+  const dx = Math.max(RAVINE_BOX.x0 - x, 0, x - RAVINE_BOX.x1);
+  const dz = Math.max(RAVINE_BOX.z0 - z, 0, z - RAVINE_BOX.z1);
+  return dx * dx + dz * dz <= RAVINE_DRAW_M * RAVINE_DRAW_M;
+}
 
 const _up = new Vector3(0, 1, 0);
 const _n = new Vector3();

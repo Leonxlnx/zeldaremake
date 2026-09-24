@@ -18,7 +18,7 @@ import { dressRock, mergeRockParts } from './dressing';
 import { buildRockLedge, type RockLedgeDef } from './ledge';
 import { buildClearingRocks, type ClearingLayout } from './clearing';
 import { buildBacksideRocks } from './backside';
-import { buildRavineRocks } from './ravine';
+import { buildRavineRocks, nearRavine } from './ravine';
 import { expansionVisible, sunVector } from '../util/expansionLocality';
 import { PEBBLE_DEFAULTS, PEBBLE_LOOKS, scatterPathPebbles, stairFootPebbles } from './pebbles';
 import { mergeGeometries } from 'three/examples/jsm/utils/BufferGeometryUtils.js';
@@ -1489,7 +1489,7 @@ export async function create(ctx: WorldContext): Promise<WorldSystem> {
       const show = northVisible(nBox, c.camera.position.x, c.camera.position.z);
       for (const m of ledgeMeshes) m.visible = show;
       if (backsideMesh) backsideMesh.visible = expansionVisible(c.camera, backsideSpheres);
-      if (ravineMesh) ravineMesh.visible = expansionVisible(c.camera, ravineSpheres);
+      if (ravineMesh) ravineMesh.visible = nearRavine(c.camera.position.x, c.camera.position.z) && expansionVisible(c.camera, ravineSpheres);
       // round 49 (perf-3): the cap / crevice plants submit only the instances that can reach the frame (materials/sprouts.ts `cull`)
       plants.cull(c.camera);
     },
@@ -1498,7 +1498,7 @@ export async function create(ctx: WorldContext): Promise<WorldSystem> {
       const show = northVisible(nBox, camera.position.x, camera.position.z);
       for (const m of ledgeMeshes) m.visible = show;
       if (backsideMesh) backsideMesh.visible = expansionVisible(camera, backsideSpheres);
-      if (ravineMesh) ravineMesh.visible = expansionVisible(camera, ravineSpheres);
+      if (ravineMesh) ravineMesh.visible = nearRavine(camera.position.x, camera.position.z) && expansionVisible(camera, ravineSpheres);
       plants.cull(camera, true);
     },
     dispose() {
