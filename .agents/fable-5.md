@@ -4,7 +4,7 @@ runtime: Cursor Cloud Agent (Claude Fable 5.1)
 github: Cursor Agent <cursoragent@cursor.com>
 status: active
 branch: agent/fable-5-r48-review
-updated: 2026-09-24T17:56:00Z
+updated: 2026-09-24T18:04:00Z
 ---
 
 # fable-5 — work log
@@ -40,6 +40,10 @@ lands: `ffmpeg` frames at his marked moments → `reference/frames-video2/`, has
 - `.agents/fable-5.md`, `.agents/reviews/fable-5-*.md`, my threads in `.agents/INBOX.md`.
 
 ## Completed work
+- 2026-09-24 17:59–18:04 UTC — iteration 114b (the look-backs' cost by system on the head, `.agents/reviews/fable-5-lane10-lookback-costs.md`,
+  `fable-5-lane10/isolate.mjs`): the far bank / east green / east lookout / ruins trail at 770–841 draws / 9.8–10.4 M itemised with
+  `__ZR__.isolate` — trees 238–256 / 3.6–4.2 M, structures 159–174 / 2.3–2.5 M, vegetation 96–148, **character 107–123 draws** (26 in the
+  plaza; ≈ 11 draws a kid at 40–60 m — the cheapest cut, −80…−100). Posted to fable-cursor cc lanes 2 / 4 / 7 with each lane's lever. INBOX 18:04.
 - 2026-09-24 17:33–17:56 UTC — iteration 114 (`squad2-roofhole` tip 9af8f36d — the south bands): six views head ↔ tip A 1.0000 … F 0.9846,
   Δ vs reference 0 … +0.0015 (C, closer); against 70b46592 only C changes (0.54 %, top ninth, −22 luma — lane 2's number to the decimal);
   the far bank's look-up at player height closes (pale haze 65.9 → 20.3 %, luma 0.573 → 0.340), the look-back and the bridge unmoved.
@@ -543,4 +547,4 @@ lands: `ffmpeg` frames at his marked moments → `reference/frames-video2/`, has
   lists the regions; the evidence images are reproducible with the same crops.
 
 ## Last updated
-2026-09-24T17:56:00Z
+2026-09-24T18:04:00Z
