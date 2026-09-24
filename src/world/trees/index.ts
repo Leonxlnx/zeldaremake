@@ -3690,6 +3690,21 @@ export async function create(ctx: WorldContext): Promise<WorldSystem> {
    * near-ties that stop trading places.
    */
   const NEAR_CANOPY_KEEP = 0.25;
+  /**
+   * Why the ranking is DISTANCE and the cap is not raised (2026-09-24, lane 2, measured at the owner's
+   * 06:50 pose — `nearCanopy.shownCoverage / activeCoverage` in the audit is the share of the crown mass
+   * around the player that draws its near laminae):
+   *   • the 64 slots are a TRIANGLE budget, not a uniform-array limit. Uncapped, the plaza's 214 active
+   *     lobes would draw ≈ 1.81 M triangles of near foliage against the 0.56 M the 64 draw now, and
+   *     camera A sits 0.07 M under W38's 9 M gate. Raising `NEAR_CANOPY_SLOTS` is not available.
+   *   • ranking by apparent size (`dist / radius`) instead lifts coverage 57.6 % → 61.3 % but spends
+   *     10 % more triangles to do it — 3 % WORSE per triangle — and pushes the shown set out to 19.1 m,
+   *     away from where the near version earns its keep. It buys more, not better.
+   *   • ranking by coverage per triangle collapses to 3 shown lobes: it prefers cheap far crowns, which
+   *     the pool (prefetching by distance) has not built, so `resident` filters them out. Any ranking
+   *     that disagrees with the prefetch starves itself.
+   * Distance agrees with the prefetch and puts the detail nearest the eye, so it stays.
+   */
   /** the parts shown by the previous non-reset update (byRank's incumbents) */
   const shownLastFrame = new Set<NearCanopy>();
   const nearCanopyUpdate = (cam: Vector3, reset: boolean) => {
@@ -4193,10 +4208,22 @@ export async function create(ctx: WorldContext): Promise<WorldSystem> {
             const sum = (f: (p: NearCanopyPart) => number) => a.nearCanopy.reduce((n, p) => n + f(p), 0);
             return [c.placements[0].id, a.nearCanopy.length, a.nearCanopyHeroKept, a.nearCanopyHeroLimited, sum((p) => p.triangles), sum((p) => p.leaves), sum((p) => p.farLeaves)];
           }),
-        /** [id, distance, in-radius, triangles, laminae, nearest framing hero camera (m; null: none), world centre] */
+        /** [id, distance, in-radius, triangles, laminae, crown radius, world centre] */
         shown: nearCanopies
           .filter((nc) => nc.mesh.visible)
-          .map((nc) => [nc.id, Math.round(nc.dist * 10) / 10, Math.round(nc.inM * 10) / 10, nc.triangles, nc.leaves, null, nc.center.toArray().map((v) => Math.round(v * 10) / 10)]),
+          .map((nc) => [nc.id, Math.round(nc.dist * 10) / 10, Math.round(nc.inM * 10) / 10, nc.triangles, nc.leaves, Math.round(nc.radius * 10) / 10, nc.center.toArray().map((v) => Math.round(v * 10) / 10)]),
+        /**
+         * What the 64 slots actually buy: the shown lobes' summed apparent area (Σ r² / d², steradian-ish)
+         * against the same sum over every ACTIVE lobe. `shownCoverage / activeCoverage` is the share of
+         * the crown mass around the player that draws its near laminae, which is the thing a better
+         * ranking should raise for the same `shownTriangles` (see NEAR_CANOPY_SIZE_BIAS).
+         */
+        shownCoverage:
+          Math.round(
+            nearCanopies.filter((nc) => nc.mesh.visible && nc.kind === 'lobe').reduce((n, nc) => n + (nc.radius * nc.radius) / Math.max(1, nc.dist * nc.dist), 0) * 1000,
+          ) / 1000,
+        activeCoverage:
+          Math.round(nearCanopies.filter((nc) => nc.active && nc.kind === 'lobe').reduce((n, nc) => n + (nc.radius * nc.radius) / Math.max(1, nc.dist * nc.dist), 0) * 1000) / 1000,
         /**
          * How hard the SLOT CAP is pressing (2026-09-24, lane 2). `nearCanopyUpdate` takes the nearest
          * `NEAR_CANOPY_SLOTS` active non-persistent lobes; `activeLobes` is how many were eligible, so

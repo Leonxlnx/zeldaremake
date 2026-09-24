@@ -143,12 +143,33 @@ any tolerance at all, SSIM 0.999999–1.000000** — SwiftShader's own run-to-ru
 pins both halves: an incumbent holds its slot against a challenger 18 % nearer and loses it to one four
 times nearer, and a re-pose ignores the bias.
 
-What this does **not** fix is the shortage behind it: 60–70 % of the eligible lobes can never hold a slot,
-so most crowns around the player stay on far foliage whatever happens. Raising real capacity is the next
-lever and it is not free — `NEAR_CANOPY_SLOTS` is the length of a uniform array the tree vertex shader
-loops over for every tagged foliage vertex, so 64 → 128 doubles that loop. A cheaper route worth
-measuring first: several lobes of the same tree could share one slot if a slot carried a group range
-rather than a single group.
+## The shortage behind it: the cap and its ranking are both already right
+
+At the owner's pose 214 lobes are active and 64 draw their near laminae, so most crowns around him stay
+on far foliage whatever the hysteresis does. I expected the next win to be raising the cap (the previous
+note guessed a group-range or bitmask slot encoding would make the uniform array go further). **That was
+the wrong guess, and the measurement says so before any shader was written.** The audit now reports
+`shownCoverage / activeCoverage` — the share of the crown mass around the player, by apparent area
+Σ r²/d², that draws near laminae — and three rankings were tried at his pose:
+
+| ranking | shown lobes | lobe triangles | coverage | share of active | coverage per 100 K triangles |
+| --- | --- | --- | --- | --- | --- |
+| **distance (shipped)** | 67 | 560 405 | 12.02 | **57.6 %** | **2.144** |
+| apparent size, `dist / radius` | 67 | 617 388 | 12.80 | 61.3 % | 2.073 |
+| coverage per triangle | 3 | 65 440 | 0.32 | 1.5 % | 0.491 |
+
+- **The cap is a triangle budget, not a uniform-array limit.** Uncapped, those 214 lobes would draw
+  ≈ 1.81 M triangles of near foliage against 0.56 M now — and camera A sits 0.07 M under W38's 9 M gate.
+  A cleverer slot encoding would have bought nothing it could afford to use.
+- **Size-weighting buys more, not better.** +3.7 points of coverage for +10 % triangles is 3 % *worse*
+  per triangle, and it pushes the shown set out to 19.1 m, away from where a near version earns its keep.
+- **Cost-efficiency ranking starves itself.** Preferring cheap far crowns picks parts the pool has not
+  built — it prefetches by distance — so `resident` filters them out and 3 lobes survive. Any ranking
+  that disagrees with the prefetch collapses.
+
+Distance agrees with the prefetch and puts the detail nearest the eye. It stays, and the finding is
+recorded on the rank in `index.ts` so the next person does not re-run it. What is left of the crown
+churn after the hysteresis is intrinsic to 64 slots for 214 lobes.
 
 ## What is left of the pop
 
