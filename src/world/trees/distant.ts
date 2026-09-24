@@ -321,10 +321,18 @@ export const CROWN_SHADE_M: [number, number] = [12, 26];
  */
 export const CROWN_VEIL: { share: number; m: [number, number]; ray: [number, number]; tint: [number, number, number]; lift: [number, number] } = {
   share: 0.85,
-  m: [14, 52],
+  // 16-38 m, not 14-52: at 25-30 m, where the level view's crowns stand, the long ramp was only a
+  // fifth to a third in, which is why hero A's foliage moved 0.273 → 0.284 against the reference's
+  // 0.436. The near edge stays where it is — a crown 17 m off takes 0.01 of the veil, because the
+  // reference's own trees at that range are still dark and saturated and this lane's mid canopy is
+  // what made the middle distance read as trees at all.
+  m: [16, 38],
   ray: [0.45, 0.06],
   tint: [1.02, 1.0, 0.96],
-  lift: [0.62, 1.0],
+  // and the floor stops at the reference's own relation: its foliage sits at 0.809 of its air
+  // (0.436 / 0.539), so a fragment already that bright takes nothing more. This is the review's
+  // "only as much as the reference's r_025 band" written as a rule the shader can apply.
+  lift: [0.55, 0.82],
 };
 export const CANOPY_DEPTH_VEIL: { share: number; m: [number, number]; ray: [number, number]; tint: [number, number, number]; lift: [number, number] } = {
   share: 0.42,
