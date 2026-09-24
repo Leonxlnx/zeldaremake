@@ -1090,9 +1090,11 @@ export const EXPANSION_NORTH = {
    * seat, radius 0.55 R) and four log stilts under the rim of a plank veranda `veranda` m wide
    * round the wall, over the east slope (natural ground 8.2–9.2 m under the platform). Window
    * toward the trail, door toward the gangway's head, the walkway stub (the rope walkway's start)
-   * leaving the veranda's rim toward the tree hut.
+   * leaving the veranda's rim toward the tree hut. Its wall (and the tree hut's) is taller than a
+   * far hut's: the cap's rim hangs over the deck Link walks, 2.2 m up (at the far huts' 1.75 m it
+   * brushed his head and the follow camera's aim).
    */
-  stilt: { host: [12.0, -91.5] as [number, number], floorY: 11.6, radius: 1.55, veranda: 1.1, wall: 1.9, capHeight: 1.05, capOverhang: 0.5, facingDeg: -58, doorAbsDeg: -118.6, ladderAbsDeg: -18, stiltAbsDeg: [22, 92, 162, -52] },
+  stilt: { host: [12.0, -91.5] as [number, number], floorY: 11.6, radius: 1.55, veranda: 1.1, wall: 2.35, capHeight: 1.05, capOverhang: 0.5, facingDeg: -58, doorAbsDeg: -118.6, ladderAbsDeg: -18, stiltAbsDeg: [22, 92, 162, -52] },
   /** the plank gangway from the shelf's pad up to the stilt house's door: horizontal run (m) and cleat spacing */
   gangway: { run: 4.05, halfWidth: 0.42, cleat: 0.36 },
   /**
@@ -1100,7 +1102,7 @@ export const EXPANSION_NORTH = {
    * top radius, height, the crown's limbs from `crownY`; the hut 4.3 m up it, window toward the
    * trail, door toward the stilt house.
    */
-  hut: { host: [16.8, -85.2] as [number, number], floorY: 11.3, radius: 1.45, wall: 1.8, capHeight: 0.95, capOverhang: 0.45, facingDeg: -86, doorAbsDeg: -142.7, ladderAbsDeg: -30, hoistAbsDeg: 40 },
+  hut: { host: [16.8, -85.2] as [number, number], floorY: 11.3, radius: 1.45, wall: 2.3, capHeight: 0.95, capOverhang: 0.45, facingDeg: -86, doorAbsDeg: -142.7, ladderAbsDeg: -30, hoistAbsDeg: 40 },
   column: { baseRadius: 0.9, topRadius: 0.45, height: 22, crownY: 17.5 },
   /** the lookout nest on the column over the hut's cap: floor height (absolute), ring radius */
   nest: { floorY: 16.3, radius: 1.2 },

@@ -51,7 +51,7 @@ import { applyShadeFloor, type ShadeFloor } from '../materials/shadeFloor';
 import { GANGWAY_TRESTLE_T, STILT_R, STILT_STUMP, VERANDA_R, gangwayTrestleFeet } from '../terrain/north';
 import { GROVE_VISIBLE_M, groveSpheres, groveVisible } from '../util/groveLocality';
 import { sunVector } from '../util/expansionLocality';
-import { buildDistantHouses, type DistantHouseDef } from './distantHouse';
+import { WALL_MAX_FACTOR, buildDistantHouses, type DistantHouseDef } from './distantHouse';
 import { ropeTube } from './fence';
 import { FoliageBuilder } from './foliage';
 import { TAU, basisMatrix, gridSurface, merge, setColorAttribute, sweepTube } from './geometry';
@@ -98,6 +98,8 @@ const BOARD_INSET = 7 / 1024;
 const RAIL_H = 0.92;
 /** walk edges' half width (m): a railing blocks this far either side of its line */
 const EDGE_HW = 0.13;
+/** Link's centre stays this far off a hut wall's widest bulge (m): his shoulder's half width */
+const WALL_CLEAR = 0.16;
 
 /** the homespun cloth on the washing line: mostly its own colour in the shade */
 const CLOTH_FLOOR: ShadeFloor = { lift: 3.0, texture: 0.9, canopy: 1, albedo: 0.22, chroma: 1 };
@@ -112,6 +114,7 @@ export const GROVE_HUTS: DistantHouseDef[] = [
     floorAbsolute: SH.floorY,
     radius: SH.radius,
     wall: SH.wall,
+    doorSize: [0.76, 1.55],
     capHeight: SH.capHeight,
     capOverhang: SH.capOverhang,
     facingDeg: SH.facingDeg,
@@ -131,6 +134,7 @@ export const GROVE_HUTS: DistantHouseDef[] = [
     floorAbsolute: TH.floorY,
     radius: TH.radius,
     wall: TH.wall,
+    doorSize: [0.72, 1.5],
     capHeight: TH.capHeight,
     capOverhang: TH.capOverhang,
     facingDeg: TH.facingDeg,
@@ -503,10 +507,16 @@ export function buildExpansionNorth(ctx: WorldContext, mats: StructureMaterials,
   }
   const stiltWalk = huts.walk.find((w) => w.id === 'grove-stilt')!;
   const hutWalk = huts.walk.find((w) => w.id === 'grove-tree-hut')!;
-  // the doors are shut: the wall ring has no gap (the play camera never enters a room)
-  const shut = (w: WalkSurface): WalkSurface['wall'] => ({ r: w.wall.r, half: w.wall.half, gap: [w.wall.gap[0], w.wall.gap[0]] });
-  walkSurfaces.push({ id: 'grove-stilt', disc: { ...stiltWalk.disc, r: VERANDA_R }, deck: stiltWalk.deck, wall: shut(stiltWalk) });
-  walkSurfaces.push({ id: 'grove-tree-hut', disc: hutWalk.disc, deck: hutWalk.deck, wall: shut(hutWalk) });
+  // The doors are shut: the wall ring has no gap (the play camera never enters a room). Its outer
+  // edge clears the wall's widest bulge: ±0.2 m round the eave's radius let Link's shoulder 0.16 m
+  // into the stilt house's wall where the wobble swells, and trail the play camera through it.
+  const shut = (w: WalkSurface, radius: number): WalkSurface['wall'] => {
+    const inner = w.wall.r - w.wall.half;
+    const outer = radius * WALL_MAX_FACTOR + WALL_CLEAR;
+    return { r: (inner + outer) / 2, half: (outer - inner) / 2, gap: [w.wall.gap[0], w.wall.gap[0]] };
+  };
+  walkSurfaces.push({ id: 'grove-stilt', disc: { ...stiltWalk.disc, r: VERANDA_R }, deck: stiltWalk.deck, wall: shut(stiltWalk, SH.radius) });
+  walkSurfaces.push({ id: 'grove-tree-hut', disc: hutWalk.disc, deck: hutWalk.deck, wall: shut(hutWalk, TH.radius) });
 
   // ================= the stilt house: stump, stilts, ring beam, veranda, railing, ladder =================
   const sr = rng.fork('stilt-frame');

@@ -103,6 +103,8 @@ export interface DistantHouseDef {
   radius: number;
   /** wall height floor → eave (m) */
   wall: number;
+  /** the round-topped door's width and height (m; default 0.7 × 1.35) — a hut Link walks up to takes his scale */
+  doorSize?: [number, number];
   /** cap rise above the eave (m) */
   capHeight: number;
   /**
@@ -265,6 +267,8 @@ const WOBBLE_3 = 0.045;
 const WOBBLE_7 = 0.02;
 /** the smallest factor the taper and the wobble ever apply to the nominal radius */
 const WALL_MIN_FACTOR = WALL_TAPER * (1 - WOBBLE_3 - WOBBLE_7);
+/** the largest (at the floor, where the wall has not tapered yet) */
+export const WALL_MAX_FACTOR = 1 + WOBBLE_3 + WOBBLE_7;
 /** recess depths (m): window tunnel, door tunnel */
 const WINDOW_DEPTH = 0.3;
 const DOOR_DEPTH = 0.35;
@@ -890,8 +894,8 @@ export function buildDistantHouses(ctx: WorldContext, mats: StructureMaterials, 
     const winR = R * 0.24;
     const doorDir = az(def.facingDeg + def.doorDeg);
     const aDoor = aWin + dAngle(Math.atan2(doorDir.z, doorDir.x), aWin);
-    const doorW = 0.7;
-    const doorH = 1.35;
+    const doorW = def.doorSize?.[0] ?? 0.7;
+    const doorH = def.doorSize?.[1] ?? 1.35;
     /** the arch's straight height (the semicircle sits above it) */
     const doorHs = doorH - doorW / 2;
     const inWindow = (a: number, y: number, margin: number) => Math.hypot(dAngle(a, aWin) * R, y - winY) < winR + margin;
