@@ -44,9 +44,9 @@ storey over the lip.)
 
 ![the (45.25, 5.89) foot: before, after, before without vegetation, after with the roots mesh alone](eastroots54-foot-before-after.jpg)
 
-If the owner wants readable feet on the plateau it is not this: it is the turf's clearance ring round the trunks (lane 4's
-`slimTrunks` avoidance is the trunk radius, the toes reach a metre past it) or taller toes for the young variants — both look
-changes to ask for, neither a tree-side default.
+If the owner wants readable feet on the plateau it is not this: it is a bare ring in the turf round the trunks (lane 4's grass
+grows to the bole here; the toes reach a metre out) or taller toes for the young variants — both look changes to ask for,
+neither a tree-side default.
 
 Renders `/tmp/f4/r185-cap-{base,roots}`, `/tmp/f4/r185/{B,R}`; dists `/tmp/f4/r184-dist-east`, `/tmp/f4/r185-dist-eastroots`.
 `npm run typecheck` green, `vite build` green, `node --test` trees 21 / 21.
