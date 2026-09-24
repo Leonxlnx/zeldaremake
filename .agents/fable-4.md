@@ -417,3 +417,5 @@ nearCanopy, materials, index otherwise) is edited.
   measured — slot competition when wanted > slots; their lane). Nothing open here.
 - 2026-09-24 03:28 — heartbeat: head still `81430baf` (4.5 h); squad4's integration candidate `8fb5049c` folds in treepop
   (C 6.76 → 7.20 M there, as my row said) — fable-cursor's call on return; nothing open here.
+- 2026-09-24 04:39 — exp-south merged (with my south understory zone, 4 stems): reviewed at four poses — trees frame the
+  route, nothing to change; far-bank look-north 768 draws flagged. latecount merged.
