@@ -54,8 +54,20 @@ timbers, same seed, same terrain):
 | as shipped — 20 earth treads + 20 timbers | 31 877 |
 | now — 26 stone treads | **16 956** |
 
-**−14 921 triangles** and one draw fewer (the flight's timber mesh is gone), so Camera A's 8.95 M /
-695 has more headroom than before, not less.
+**−14 921 triangles** and one draw fewer (the flight's timber mesh is gone). In the running build,
+`node gauntlet/scripts/pose-counts.mjs --dist dist --out /tmp/counts.json`:
+
+| pose | draws | triangles |
+| --- | --- | --- |
+| **A_stairs** | **641** | **8 929 809** |
+| B_house | 631 | 8 165 509 |
+| C_lookback | 498 | 6 737 457 |
+| D_log | 561 | 8 491 686 |
+| E_ground | 631 | 8 165 509 |
+| F_canopy | 594 | 7 871 166 |
+
+Camera A is the flight's own pose and it is the one under the cap with room to spare — 8.93 M of
+9.0 M and 641 of 700 draws, against the 8.95 M / 695 it sat at before.
 
 ## Tests
 
