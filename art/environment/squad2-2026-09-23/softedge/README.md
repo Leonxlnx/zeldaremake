@@ -110,6 +110,31 @@ it is granularity, the "depth-graded density" half of the review's phrase, and c
 smaller cards at 20–45 m, which is a triangle cost to weigh against W38 rather than a shader change.
 That is the next item, and it now has its number to aim at.
 
+## 3. Granularity: the lever tried, and what the silhouette is really made of (08:20–09:00)
+
+The number to aim at from §2 was the reference's **4.6 × our boundary density at a quarter of our step**.
+The cheap way to add clumps is lobes — each is two quads — so three builds were rendered at the pinned
+pose:
+
+| build | lobes | result |
+| --- | --- | --- |
+| mid 14 at 0.28–0.35 R, far 6 at 0.6 × the old radius | ×2.3 and ×3 as many, smaller | 1.29 % of the frame changed, all of it one dark corner; band and box statistics unchanged |
+| the same, pushed out to 0.62–0.9 R | on the rim, larger | **byte-identical statistics again** (0.66 % density, 10.3 % step in the box, to two decimals) |
+| both, at the plaza look-up | — | frames byte-identical: no mid or far crown is visible in that pose |
+
+So lobes cannot reach the silhouette at all, whatever their number, size or offset. What draws it is the
+crown's **three main axis cards** — each 2.8 R across, so the whole crown *is* one card's edge — and,
+seen from below, its **floor cards**, which `CROWN_FLOOR_FAR` now takes most of away at range. The atlas
+is not the problem either: it already paints 300 body clumps and 110 rim clumps per cell, but a 2.8 m
+card at 25 m is a four-times minified cell, so the mip averages that lace away and the alpha test leaves
+one smooth edge.
+
+The axis cards are therefore the open lever, and they cannot be made smaller and more numerous without
+changing the crown's span — `FAR_CROWN_CARD_HALF`'s own comment records that shot D's skyline is built on
+it. That is a change to be made with A–F rendered before and after, not in the tail of an hour, so the
+experiment is backed out (nothing unproven ships) and the finding is recorded at `FAR_CROWN_LOBES` in
+`distant.ts`, where the next person will be standing when they try the same thing.
+
 ## What is in the branch
 
 - `src/world/trees/distant.ts` — the veil off the crown cards, `CANOPY_DEPTH_VEIL.lift` (the relative
