@@ -203,11 +203,13 @@ export const PROP_LAYOUT: readonly PropDef[] = [
   // C, and every spot here is. The path leaves the spine's end cap (1, 16) south-west round that trunk's
   // foot (its paving reaches x 3.0 at z 17.4) and swings back east to the bridge's north sill (3.72, 30.45;
   // half width 1.2 by then); the far path runs from the south sill (4.08, 43.7) to the hollow log's mouth
-  // (4.25, 46.9). On the live ground (`live`): a waymarker on the verge where the path leaves the plaza, its
-  // board toward the bridge; a crate and a squat pot on the verge at the bridge head, 1.3 m from the east
-  // post and 2.5 m short of the lip's rounding — the toll pile every bridge has; a pot pair east of the
-  // log's mouth on the far bank, 0.7 m clear of the rim's flank.
-  { id: 'south-fork-marker', kind: 'marker', x: 3.4, z: 17.4, size: 1.7, yaw: 2.2, cluster: 'south', live: true },
+  // (4.25, 46.9). On the live ground (`live`): a waymarker on the east verge where the path straightens
+  // for the bridge (at the fork itself the verge is `plaza-south`'s root ground and the trunk hides a post
+  // from the walker leaving the plaza — tried at (3.4, 17.4)), its board toward the bridge; a crate and a
+  // squat pot on the verge at the bridge head, 1.3 m from the east post and 2.5 m short of the lip's
+  // rounding — the toll pile every bridge has; a pot pair east of the log's mouth on the far bank, 0.7 m
+  // clear of the rim's flank.
+  { id: 'south-way-marker', kind: 'marker', x: 5.6, z: 27.7, size: 1.7, yaw: 2.4, cluster: 'south', live: true },
   { id: 'bridge-crate', kind: 'crate', x: 5.4, z: 29.3, size: 0.62, yaw: 0.35, cluster: 'south', live: true },
   { id: 'bridge-pot-squat', kind: 'pot', x: 5.95, z: 29.85, size: 0.46, yaw: -1.6, cluster: 'south', variant: 2, live: true },
   { id: 'log-mouth-pot', kind: 'pot', x: 7.0, z: 46.05, size: 0.6, yaw: 0.9, cluster: 'south', variant: 1, live: true },
