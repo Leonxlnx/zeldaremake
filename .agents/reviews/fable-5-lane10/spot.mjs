@@ -21,7 +21,7 @@ try {
     await page.evaluate((dt) => window.__ZR_PLAY__.step(60, dt, false), DT);
     for (let k = 0; k < 2; k++) await page.evaluate((dt) => window.__ZR_PLAY__.step(1, dt, true), DT);
     const st = await page.evaluate(() => window.__ZR_PLAY__.state());
-    const p = await page.evaluate(() => window.__ZR__.perf());
+    const p = await page.evaluate(() => { const st = window.__ZR__.stats ? window.__ZR__.stats() : {}; const pf = window.__ZR__.perf ? window.__ZR__.perf() : {}; return { drawCalls: st.drawCalls, triangles: st.triangles, programs: st.programs, ...pf }; });
     const canvas = await page.$('canvas'); let buf = await canvas.screenshot({ type: 'png' });
     for (let retry = 0; retry < 3; retry++) {
       const sample = await page.evaluate(() => { const c = document.querySelector('canvas'); const g = c.getContext('webgl2'); const px = new Uint8Array(4); const o = []; for (let i = 0; i < 16; i++) { g.readPixels(Math.floor((i % 4 + 0.5) * c.width / 4), Math.floor((Math.floor(i / 4) + 0.5) * c.height / 4), 1, 1, g.RGBA, g.UNSIGNED_BYTE, px); o.push(px[0] + px[1] + px[2]); } return o; });

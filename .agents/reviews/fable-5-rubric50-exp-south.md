@@ -121,3 +121,34 @@ end with a root curtain and opens into a sunlit cleft — ferns, saplings, a fal
 **With this merged the item reads 138 / 176 (78 %, ≈ 157 / 200)** — from 129; the owner's 06:07 "why is it white?" is
 answered in kind and in the numbers. Still under 2: **#17 wear** alone (the trodden line and the worn plank centres);
 the ★ checks all 3–4. Merge-ready by this read.
+
+## Pre-merge read of `exp-south2` @ `8299271c` (12:24 — the south dwellings: the keeper's hut and gallery at the bridge head, the waystation by the path, the log's daylit exit; the branch is still moving) — 12:28–12:41 UTC
+
+Its own harness (`south-dwellings` route, 32 dwelling probes, a 16-spot camera check) run here, plus my spots
+(`spots-south2-8299271c.json`, sheet `it109-south2-sheet.jpg`, frames `it109-path-to-keeper.jpg`, `it109-keeper-gallery.jpg`,
+`it109-farbank-lookback.jpg`).
+
+**Kind:** the keeper's hut is a round bark hut under a mossy cap with pod lanterns and a rail gallery out over the gorge
+at the bridge head; the waystation an open-front shelter on posts by the path with a pod and a waymarker — both read as
+Kokiri structures in one glance from the path (#1 ★), lit warm (#36 ★), on the walk's line (#25), with a toll pile and a
+squat pot as signs of use (#18). The log's exit stands as read at 08:45.
+
+**Walk:** `south-dwellings` 23 / 23 waypoints, 0 stuck, 20.8 m; `south-bridge-to-log` 21 / 21; the dwelling probes 32 / 32
+and the deck probes 41 / 41; the boots on the gallery and the waystation's floor p50 0 / max 3.8 cm (#41 ★ / #42 / #43 = 4 / 4 / 3).
+
+**Two blockers by the rubric:**
+- **#44 the camera — the keeper's gallery.** The route's camera trace records a **3.86 m one-frame pop** at Link (5.60, −0.07,
+  32.31) on the gallery against a solid hit — the grove's case before `d7432cc9`, and the branch's own 16-spot camera check
+  reads **7 of 16 spots not ok** (Link off-screen at six gallery spots; a waystation squeeze with 9.6 % of the frame at the
+  near plane). The keeper's hut and rail want the same published camera walls the grove's huts got; the route's other
+  jumps are 0.32 m.
+- **#46 ★ the caps at the item's own views.** `farbank-lookback` (Link at the south sill facing the village) **860 draws /
+  10.46 M** — over both caps, up from the head's 818 / 9.30 M (the dwellings add ≈ 40 draws / 1.1 M in the look-back);
+  `path-to-waystation` **714 draws** / 8.78 M (over the draw cap); the other spots 189–461 draws. The look-back holds the
+  whole village, the bridge and both dwellings in one frame — it is the expansion's expensive view and the one the player
+  gets every time he turns round on the far bank. The six hero views are not in question (the grove and the dwellings are
+  out of them).
+
+On the 08:45 read this branch was merge-ready for the exit; with the dwellings it is not yet — the gallery's camera and the
+look-back's cost first. Scores I would give now on the dwellings' own checks: #1 4, #6 3, #13 3, #18 3, #25 4, #36 3, #41 4,
+#42 4, #43 3, **#44 1**, **#46 2**, #50 3.
