@@ -224,3 +224,26 @@ front l 0.232 → 0.238 (the reference's 0.581), the outcrop underfoot 0.364 →
 r_038's 0.469 and 40 % of it under 0.25 against the reference's 13 % — the pillar's shadow still lies across the outcrop
 and the flight. **Fail 2 stands as the light, not the stone's colour:** the stone is neutral now; it is in shadow where
 the reference has the sun through the arch onto the stair. Costs unchanged (the reference pose 151 / 1.01 M).
+
+## Re-read on `abc597f9` (18:36 — the camera kept off the terrace's ruined parapet `6fbfdf02`, a moss cap on the west cliff's top `7b0d8121`, a second route to the pool's shore `abc597f9`; the head merged at 18:26) — 19:04–19:11 UTC
+
+Both routes and the probes (`walk-ruins-abc597f9.json`); six poses (`it115-ruins-abc597f9.jpg`).
+
+- **Routes:** `plaza-to-ruins-terrace` 26 / 26, 0 stuck, 77.9 m; the new `ruins-trail-to-shore` (off the trail east of the gate
+  boulder, down the east shore, round the south bank, a step into the shallows) **8 / 8, 0 stuck, 25.8 m**. The camera records
+  **no step over 0.1 m** on either; the boots' lowest point max 15.0 / 13.5 cm (the flight), min −4.6 / −5.0 cm.
+- **Probes 61 / 61.** The 15:04 fail (`edge-inside:notch-east-face`, the rebuilt rock's footprint) is closed by the probe set: the
+  notch row is no longer in it (the edge-inside rows are now the east front's two, the ivy rock's west face and the north face).
+- **The sweep:** 264 samples (11 spots × 24 headings, the two shore spots new), **no camera inside a solid**; 67 headings stop
+  on one (the pull-in doing its job). `6fbfdf02`'s parapet case (the camera 6 mm inside a block, 1 of 216 on `e9ef6a05`) is
+  gone. **What stands: the fall's viewing corner** — `terrace-west-by-cliff` and `terrace-northwest-by-cliff` put the camera at
+  0.60 m from Link on 15 and 16 of their 24 headings (`keep` 0.139), and so do `outcrop-by-ivy-rock` (9) and `parapet` (3):
+  Link out of frame, Navi at the lens (`fall-close`, as at 14:30). The same ≈ 1.2 m pull-in floor as the grove's, the keeper's
+  and the east lane's — one camera item across four branches.
+- **Poses:** the parapet's edge facing the pool and turned from it frame cleanly (the camera 4.3 m back both ways); the terrace
+  looking up 45° shows the cliff's top with its new moss fringe on the skyline — a mossy brow, in kind with the boulders' caps;
+  `fall-close` 0.399 → 0.403 (the cap is above this frame). The terrace's look-back east **731 draws / 9.04 M** (744 at 14:30;
+  the pebble gate's −13) — over the draw cap by 31, the head's east look with the ruins' +44–55 on it.
+
+**#44: 2 → 3** (no step, no inside, 61 / 61; the corner's pull-in keeps it from 4). #46 ★ 3 as before (the site's own poses
+78–200 draws; the look-back east is the head's). 174 / 200 stands with #44 up one: **175 / 200**.

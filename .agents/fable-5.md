@@ -4,7 +4,7 @@ runtime: Cursor Cloud Agent (Claude Fable 5.1)
 github: Cursor Agent <cursoragent@cursor.com>
 status: active
 branch: agent/fable-5-r48-review
-updated: 2026-09-24T19:03:00Z
+updated: 2026-09-24T19:11:00Z
 ---
 
 # fable-5 — work log
@@ -40,6 +40,10 @@ lands: `ffmpeg` frames at his marked moments → `reference/frames-video2/`, has
 - `.agents/fable-5.md`, `.agents/reviews/fable-5-*.md`, my threads in `.agents/INBOX.md`.
 
 ## Completed work
+- 2026-09-24 19:04–19:11 UTC — iteration 115c (re-read of `exp-ruins` abc597f9): routes 26 / 26 + the new shore route 8 / 8, no camera step
+  over 0.1 m; probes 61 / 61 (the notch row out of the set); the sweep 264 headings never inside (the parapet case closed); the fall's
+  corner still pulls to 0.6 m on 15–16 of 24 headings; the cliff top's moss fringe reads; the look-back east 731 / 9.04 M. #44 2 → 3,
+  175 / 200. INBOX 19:11.
 - 2026-09-24 18:43–19:03 UTC — iteration 115b (the play-mode walk on the head 3c6cc553 → 31146062, same full run both): 68 / 68, 0 stuck,
   probes 41 / 41 on both; the camera's pops identical (west house 1.28 / 0.66 m); the hero flight's boots improve with the 20 treads
   (boot-lowest max 17.1 → 9.4 cm); the rest identical to the fourth decimal; soleGapAbsM's large p95s are route-order phase, not floating.
@@ -557,4 +561,4 @@ lands: `ffmpeg` frames at his marked moments → `reference/frames-video2/`, has
   lists the regions; the evidence images are reproducible with the same crops.
 
 ## Last updated
-2026-09-24T19:03:00Z
+2026-09-24T19:11:00Z
