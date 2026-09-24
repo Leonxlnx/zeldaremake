@@ -33,7 +33,7 @@ import { expansionCull, getTerrain, southFooting, southRouteSurface, westExpansi
 import { eastCardCrowds, eastTreeCrowds, eastUnderstoryCull } from '../util/eastLane';
 import { smoothstep } from '../util/noise';
 import { casterSpheres, expansionVisible, type Caster } from '../util/expansionLocality';
-import { EXPANSION, EXPANSION_SOUTH, inExpansionSouth, southPathLine } from '../layout';
+import { EXPANSION, EXPANSION_EAST, EXPANSION_SOUTH, inExpansionSouth, southPathLine } from '../layout';
 import { createGiantTree, LOBE_SECONDARY_REACH, LOBE_TWIG_REACH, LOBE_TWIG_TINT, NEAR_BASE_CUT_Y, NEAR_BASE_RADIUS_OVERRIDE, NEAR_BASE_RADIUS_OVERRIDE_LARGE, type CanopyBough, type GiantAsset, type GiantProfile } from './giant';
 import { NEAR_CANOPY_IN_M, NEAR_CANOPY_MAX_Y, NEAR_CANOPY_OUT_M, type NearCanopyPart } from './nearCanopy';
 import { LodPool, type PoolBuilt, type PoolItem } from './lodPool';
@@ -2337,8 +2337,9 @@ export async function create(ctx: WorldContext): Promise<WorldSystem> {
   whiteGroup.name = 'white-bark';
   familyMeshes(whites, 'whitebark', mats.whiteTree, mats.whiteTreeDepth, whiteGroup);
   // Root flares (fable-4) only on the white-barks a walker can get near: within WHITE_ROOT_REACH_M of
-  // the walkable network (spine, house branch, north path). The flare reads within ~20 m; on the 80
-  // trees it was one always-drawn mesh, +80 K triangles in camera A (W38 ceiling 9.0 M).
+  // the walkable network (spine, house branch, north path; the east lane below). The flare reads
+  // within ~20 m; on the 80 trees it was one always-drawn mesh, +80 K triangles in camera A (W38
+  // ceiling 9.0 M).
   const WHITE_ROOT_REACH_M = 24;
   const walkXZ: [number, number][][] = [
     ctx.layout.pathSpine.map((p) => [p[0], p[2]] as [number, number]),
@@ -2348,9 +2349,18 @@ export async function create(ctx: WorldContext): Promise<WorldSystem> {
   // round 56: each tree's toes keep the stream they had in the drawn order (`whiteClearance`) when a
   // south stem before them is dropped, and on the south exit they bed on the rendered ground
   const rootPlacements: RootPlacement[] = [];
+  const nearWalks = (lines: [number, number][][], p: { x: number; z: number }) => lines.some((poly) => poly.length > 1 && spineDistance(poly, p.x, p.z) <= WHITE_ROOT_REACH_M);
+  const walkRooted = whiteClearance.filter((p) => nearWalks(walkXZ, p));
+  walkRooted.forEach((p, toeStream) => whitePlacements.includes(p) && rootPlacements.push({ ...p, toeStream }));
+  // Round 57 (fable-4, expansion-east): the east lane and its spurs are a walk too — the seven
+  // white-barks beside them (1.8–12 m off the lane, 26–50 m from the three paths above) stood on
+  // plain cylinders (round54-east-review). Appended AFTER the three paths' trees with the streams
+  // past theirs, so every toe already built keeps its shape (a re-roll at the plaza moves pixels
+  // in the six views); the toes bed on the same ground the stems were seated on.
+  const eastWalkXZ: [number, number][][] = [EXPANSION_EAST.lane, ...EXPANSION_EAST.spurs].map((poly) => poly.map((p) => [p[0], p[2]] as [number, number]));
   whiteClearance
-    .filter((p) => walkXZ.some((poly) => poly.length > 1 && spineDistance(poly, p.x, p.z) <= WHITE_ROOT_REACH_M))
-    .forEach((p, toeStream) => whitePlacements.includes(p) && rootPlacements.push({ ...p, toeStream }));
+    .filter((p) => !nearWalks(walkXZ, p) && nearWalks(eastWalkXZ, p))
+    .forEach((p, k) => whitePlacements.includes(p) && rootPlacements.push({ ...p, toeStream: walkRooted.length + k }));
   const rootGround = { height: (x: number, z: number) => (z > 10 && inExpansionSouth(x, z) ? liveTerrain : terrain).height(x, z) };
   whiteGroup.add(createWhiteBarkRoots(whites.map((w) => w.params), rootPlacements, rootGround, palette, mats.whiteTree, mats.whiteTreeDepth, ctx.quality.shadows));
   group.add(whiteGroup);
