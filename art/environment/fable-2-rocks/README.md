@@ -52,6 +52,29 @@ pixels):
 
 `tsc` green, hardscape tests 9 / 9. The joints keep their darkness (the fill's paint, not the slabs' shadow); at A the only
 pixels that move are the hairlines along the sunward edges, none by more than 40 levels.
+## Iteration 102 — lane 6: W02 back in band — the hero flight is 20 × 0.27 × 0.54 again, the stone stays (`agent/fable-2-w02-treads` @ `36d722fa`)
+
+fable-cursor 11:05: CI's gauntlet failed W02 ("Hero stairway: 18 worn stone steps", audit 16–20) since stairs-look's 26 treads;
+"keep the value / wear / nosing work — bring the flight back to the reference's 18 treads (the rise per step follows), re-check the
+stair walk and A's frame". Done at **20 × 0.27 × 0.54** rather than 18 × 0.30: the same envelope (run 10.8 m, rise 5.4 m, the top
+tread and the W04 probe where they were), inside W02's band, and under the 0.28 m step guard Astra's whole-leg study set — 18 × 0.30
+is over it (the layout's own history at `layout.ts` 'main'). Only `layout.ts` and `paving.test.mjs` change: the tread-nose pins are
+take-0123's 20-step values again, exactly — the stream is the flight's, so the 20-step noses came back to the millimetre.
+
+| | head `b306d6a9` (26 × 0.208) | 20 × 0.27 |
+|---|---|---|
+| W02 audit `stairways[id=main].steps` | 26 (fail) | **20 (pass)** |
+| A / C / F draws, triangles | 638 / 8.87 M, 570 / 7.93 M, 598 / 8.01 M | 639 / 8.86 M, 571 / 7.92 M, 599 / 7.99 M |
+| A / C / F SSIM | 0.2014 / 0.1878 / 0.2105 | 0.1945 (**−0.0069**) / 0.1849 (−0.0029) / 0.2168 (**+0.0063**) |
+| s2-owner box dark / mean l / sat | 29.9 % / 0.326 / 0.333 | 31.6 % / 0.324 / 0.346 |
+| `playtest --only stairs,climb` | — | main up 255 frames, 0 stalls, rise 0.27 / frame, sole gap p95 2.2 cm, end (13.74, 4.32, −5.12) — the same trace as pass 2's 20-step run; south bank up / down 0 stalls; tread span 0.09 % > 3 cm (max 0.125), nose zone 37.5 % |
+
+Read: the 26-step flight bought A +0.007 of frame likeness (the reference's many thin nosings) that the 20-step gives back, and F
+gains 0.006 the other way; the stone's value holds at the owner's pose (dark 32 %, mean 0.32). W02 is fable-cursor's call against the
+owner's "many shallow treads" read — the branch is the W02 answer with the stone kept, as asked. 105 / 105 tests.
+
+![26 vs 20](steps102-w02-pair.jpg)
+
 ## Iteration 100 — lane 6: the hero flight's risers' shade and warmth, and where the dark actually is (`agent/fable-2-riser-shade` @ `7649f308`)
 
 fable-5 §26 on the landed stone value: "what is left is the risers' shade (p10 0.198 vs the reference's 0.264) and a touch of warmth

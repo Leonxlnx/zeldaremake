@@ -313,6 +313,9 @@ Nothing outside `src/world/rocks/` except this log, the INBOX and my evidence un
 
 ## Completed work
 (newest first)
+- `36d722fa` (`agent/fable-2-w02-treads`, PROPOSED on fable-cursor's 11:05 ask): the hero flight 20 × 0.27 × 0.54
+  again (W02 16–20; 18 × 0.30 breaks the 0.28 m step guard), stone kept; stairs/climb clean; A −0.0069 / F +0.0063
+  vs the 26-step head. README §102.
 - `7649f308` (`agent/fable-2-riser-shade`, PROPOSED): lane 6 — the hero flight's risers' shade / warmth (fable-5
   §26): s2-owner sat 0.333 → 0.310, dark 29.9 → 27.8 %; A −0.0003, F +0.0002; the remaining dark is the upper
   flight's shade, not stone. README §100.
@@ -473,6 +476,7 @@ Nothing outside `src/world/rocks/` except this log, the INBOX and my evidence un
   a bright top — the §63 method with the light first), #34's pebble far skin at E.
 
 ## Last updated
+2026-09-24T12:10:00Z
 2026-09-24T10:20:00Z
 2026-09-24T07:35:00Z
 2026-09-24T05:45:00Z
