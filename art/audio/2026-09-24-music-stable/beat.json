@@ -1,0 +1,128 @@
+{
+  "mix/walking stone": {
+    "before": {
+      "hz": 1.2004573170731707,
+      "dominance": 6.536725618808561,
+      "on_music_beat": true,
+      "music_share": 1.0
+    },
+    "after": {
+      "hz": 1.2004573170731707,
+      "dominance": 10.934878986087808,
+      "on_music_beat": true,
+      "music_share": 1.0
+    }
+  },
+  "mix/running stone": {
+    "before": {
+      "hz": 2.8010670731707314,
+      "dominance": 4.503588863015305,
+      "on_music_beat": false,
+      "music_share": 0.6722432062493604
+    },
+    "after": {
+      "hz": 1.2004573170731707,
+      "dominance": 6.950013605871162,
+      "on_music_beat": true,
+      "music_share": 1.0
+    }
+  },
+  "mix/standing": {
+    "before": {
+      "hz": 1.7501587445573294,
+      "dominance": 12.95312782849699,
+      "on_music_beat": false,
+      "music_share": 0.5456187618178535
+    },
+    "after": {
+      "hz": 1.7501587445573294,
+      "dominance": 12.94994714222313,
+      "on_music_beat": false,
+      "music_share": 0.5456419399453362
+    }
+  },
+  "music/walking stone": {
+    "before": {
+      "hz": 1.2004573170731707,
+      "dominance": 17.07844880974686,
+      "on_music_beat": true,
+      "music_share": 1.0
+    },
+    "after": {
+      "hz": 1.2004573170731707,
+      "dominance": 17.07854366659302,
+      "on_music_beat": true,
+      "music_share": 1.0
+    }
+  },
+  "music/running stone": {
+    "before": {
+      "hz": 1.2004573170731707,
+      "dominance": 17.84843370168057,
+      "on_music_beat": true,
+      "music_share": 1.0
+    },
+    "after": {
+      "hz": 1.2004573170731707,
+      "dominance": 17.848414073731636,
+      "on_music_beat": true,
+      "music_share": 1.0
+    }
+  },
+  "music/standing": {
+    "before": {
+      "hz": 1.7501587445573294,
+      "dominance": 13.786217822022627,
+      "on_music_beat": false,
+      "music_share": 0.5405174659899196
+    },
+    "after": {
+      "hz": 1.7501587445573294,
+      "dominance": 13.786210769291445,
+      "on_music_beat": false,
+      "music_share": 0.5405173996552375
+    }
+  },
+  "steps/walking stone": {
+    "before": {
+      "hz": 1.8006859756097562,
+      "dominance": 4.237351417400738,
+      "on_music_beat": false,
+      "music_share": 0.33589761213203867
+    },
+    "after": {
+      "hz": 1.8006859756097562,
+      "dominance": 4.6750876332527325,
+      "on_music_beat": false,
+      "music_share": 0.3326844292805745
+    }
+  },
+  "steps/running stone": {
+    "before": {
+      "hz": 2.8010670731707314,
+      "dominance": 7.1836536104002064,
+      "on_music_beat": false,
+      "music_share": 0.09366248128416235
+    },
+    "after": {
+      "hz": 2.8010670731707314,
+      "dominance": 8.457232022037164,
+      "on_music_beat": false,
+      "music_share": 0.07197441141576726
+    }
+  },
+  "steps/standing": {
+    "before": {
+      "hz": 7.000634978229318,
+      "dominance": 1.668973464622618,
+      "on_music_beat": false,
+      "music_share": 0.7776076523559808
+    },
+    "after": {
+      "hz": 4.250385522496371,
+      "dominance": 1.564699716695002,
+      "on_music_beat": false,
+      "music_share": 0.644484403377881
+    }
+  }
+}
