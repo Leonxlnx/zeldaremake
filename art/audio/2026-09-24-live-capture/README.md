@@ -46,7 +46,38 @@ measuring anything because it happens to be pumping frames. `capture.mjs` now st
 whole take, bounded by the **wall clock** rather than a frame count, because this page does not run
 at 60 Hz and a fixed number of frames does not take a known number of seconds.
 
-**2. The live graph takes about 5 s to come up to level; the offline twin is at full level at t = 0.**
+**2. The live graph was silent for the first six seconds of play. Found and fixed — see below.**
+
+Originally recorded here as "about 5 s, not explained". It is explained now.
+
+## The audio was tied to the render loop, and the render loop is busiest at start-up
+
+Standing Link completely still and pumping frames for the whole take (`startup-probe.mjs`), the
+probe's own loop managed about **ten iterations in the first 6.7 seconds**: `requestAnimationFrame`
+is starved while the world compiles its shaders and builds its LODs. The audio system ran its
+parameter update *and* its music and ambience schedulers on that same rAF. Ten ticks in six seconds
+is not enough for the bed's `setTargetAtTime` levels to reach their targets or for the music
+scheduler to lay down a pass, so the master sat at **−92 dBFS — digital silence — for six and a half
+seconds** after the game loaded.
+
+This is not a harness artefact. The starved period is exactly the one the squad already measures on
+the real build ("three shader compiles in twenty seconds", fable-squad4's pacing run): a player who
+loads the game and stands still hears nothing until the frame rate settles.
+
+The audio's clock is a `setInterval` at 30 Hz now. A timer does not care what the renderer is doing,
+and it keeps running when the tab is in the background (throttled to 1 Hz, which the 4 s ambience
+and 6 s music lookaheads absorb) where rAF stops dead.
+
+Recorded from the live master, half-second frames in dBFS, Link standing still throughout:
+
+```
+before (rAF):    −92 −92 −92 −92 −92 −92 −92 −92 −92 −92 −92 −92 −92 −33 −35 −35 −33 −31 …
+after (timer):   −67 −36 −34 −31 −31 −33 −30 −31 −33 −33 −34 −33 −35 −33 −35 −35 −32 −31 …
+```
+
+`clips/startup-before.mp3` and `clips/startup-after.mp3` are the first 12 s of each.
+
+### The original note, kept for the record
 Measured on the same page load, half-second frames in dBFS:
 
 ```
@@ -54,13 +85,11 @@ live:     −92 −92 −92 −92 −92 −92 −92 −92 −92 −92 −33 −3
 offline:  full level from the first frame (0.5–3 s measures −32.5 rms)
 ```
 
-This is **not explained** and is left as the next thing to chase rather than guessed at. It is not
-the frame pump (the fixed capture steps throughout and still shows it). Candidates, in the order I
-would check them: the bed's `setTargetAtTime` time constants ramping from zero at start-up (0.55–0.9 s
-each, which should give 2–3 s, not 5); the music's first pass starting at `startAt + 0.3` where
-`startAt` is `currentTime + 0.5`; the gust the world reports before its clock has advanced; or
-`MediaRecorder`'s own lead-in. It matters because a player who starts the game and stands still may
-hear nothing for the first few seconds.
+Written before the cause was known. The guess list had the right instinct (something at start-up is
+not running) and the wrong candidates — it was none of the time constants, the music's first pass or
+the recorder's lead-in. It was rAF starvation, which the list did not consider because the capture
+*was* pumping frames; what it missed is that pumping frames and frames actually arriving are not the
+same thing when the main thread is saturated.
 
 ## Reproduce
 
