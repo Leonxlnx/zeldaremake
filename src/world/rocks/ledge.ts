@@ -279,15 +279,21 @@ export function buildRockLedge(def: RockLedgeDef, T: Terrain, rng: Rng, seed: st
     // beds undulate along the run (slow) and pinch/swell (faster), so the ledges are not
     // evenly ruled lines
     const thick = bedThick * (1 - 0.45 * vf);
-    const h = (y + uu * bedTilt) / thick + bedPhase + 0.3 * N.fbm(uu * 0.22 + seedOff, y * 0.3, 3.3, 2) + 0.16 * N.fbm(uu * 0.7 + seedOff, y * 0.7, 6.1, 2);
+    // (a cliff's beds pinch, swell and die out along the run — at scale the ruled undulation of the
+    // terrace's beds read as masonry courses; a slow, deep warp and a broken parting break the rows)
+    const cliffWarp = S > 1 ? 0.9 * N.fbm((uu * 0.09) / S + seedOff * 0.3, (y * 0.11) / S + 1.3, 9.1, 2) : 0;
+    const h = (y + uu * bedTilt) / thick + bedPhase + 0.3 * N.fbm(uu * 0.22 + seedOff, y * 0.3, 3.3, 2) + 0.16 * N.fbm(uu * 0.7 + seedOff, y * 0.7, 6.1, 2) + cliffWarp;
     const k = Math.floor(h);
     const f = h - k;
-    const groove = 1 - smoothstep(0, 0.13, Math.min(f, 1 - f));
+    let groove = 1 - smoothstep(0, 0.13, Math.min(f, 1 - f));
+    if (S > 1) groove *= smoothstep(0.25, 0.6, N.fbm(uu * 0.35 + seedOff, y * 0.4 + 2.0, 10.3, 2) * 0.5 + 0.5);
     return { groove, step: bedOff[((k % 12) + 12) % 12], k };
   };
   /** vertical joints: { joint 0..1, block id } — the blocks are offset per bed so joints stagger */
   const joints = (uu: number, y: number, bedK: number) => {
-    const q = uu / blockLen + blockPhase + 0.37 * bedK + 0.12 * N.fbm(uu * 1.3 - seedOff, y * 1.9, 7.1, 2);
+    // (a cliff's joints are fewer and wander: the block length swings ± 40 % along the run)
+    const bl = S > 1 ? blockLen * (1 + 0.4 * N.fbm(uu * 0.2 + seedOff, y * 0.1, 11.7, 1)) : blockLen;
+    const q = uu / bl + blockPhase + 0.37 * bedK + 0.12 * N.fbm(uu * 1.3 - seedOff, y * 1.9, 7.1, 2);
     const k = Math.floor(q);
     const f = q - k;
     const joint = 1 - smoothstep(0, 0.07, Math.min(f, 1 - f));
@@ -379,10 +385,14 @@ export function buildRockLedge(def: RockLedgeDef, T: Terrain, rng: Rng, seed: st
         const recessBand = smoothstep(0.24, 0.4, vf) * (1 - smoothstep(0.46, 0.58, vf));
         const shelfN = N.fbm(uu * 0.6 + seedOff, 1.7, 8.8, 2) * 0.5 + 0.5;
         const shelf = smoothstep(0.35, 0.6, shelfN);
-        const mass = S * (0.12 * Math.max(-1, Math.min(1, panelOff)) + 0.22 * massN + 0.14 * shelf * shelfBand - 0.1 * shelf * recessBand);
+        // (a cliff is buttresses and clefts before it is courses: the mass swell doubles and deep vertical
+        // fissures cut it, so the wall reads as a rock face and not a stacked one)
+        const cliffMass = S > 1 ? 0.25 * massN : 0;
+        const fissure = S > 1 ? smoothstep(0.72, 0.9, N.fbm((uu * 0.9) / S + seedOff * 1.3, (y0 * 0.12) / S, 12.4, 2) * 0.5 + 0.5) : 0;
+        const mass = S * (0.12 * Math.max(-1, Math.min(1, panelOff)) + 0.22 * massN + cliffMass + 0.14 * shelf * shelfBand - 0.1 * shelf * recessBand) - 0.32 * S * fissure * (S > 1 ? 1 : 0);
         out = hs * footTaper * (mass + S * (0.2 * bed.step * (0.7 + 0.3 * thin) + 0.06 * blockOff * thin) + 0.05 * (rd - 0.5) * 2 * thin + 0.02 * mic);
         // the parting grooves and joints sink
-        out -= hs * footTaper * S * (0.12 * bed.groove + 0.06 * jn.joint);
+        out -= hs * footTaper * S * (0.12 * bed.groove + (S > 1 ? 0.03 : 0.06) * jn.joint);
         // colour: bed tone ± 14 %, block tone ± 8 %, partings and joints dark, ridges a shade paler
         // (the mass in the tone too, a shade: a recess a little darker, a buttress a little paler)
         let tone = 1 + 0.14 * bed.step + 0.08 * blockOff + 0.14 * (rd - 0.5) + 0.2 * massN + 0.07 * Math.max(-1, Math.min(1, panelOff));

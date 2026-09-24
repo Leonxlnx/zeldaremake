@@ -114,7 +114,7 @@ export const LEDGE_PREVIEW: RockLedgeDef[] = [
  * this is the rocks lane's sample of what `RockLedgeDef.scale` gives it.
  */
 export const CLIFF_PREVIEW: RockLedgeDef[] = [
-  { id: 'cliff-preview', foot: [[-12.5, -61], [-12.2, -66], [-12.6, -71], [-12.1, -76], [-12.4, -81]], side: 'left', inset: 3.5, height: 9, lean: 0.6, taper: 2.5, roots: 0.3, scale: 3 },
+  { id: 'cliff-preview', foot: [[-12.5, -61], [-12.2, -66], [-12.6, -71], [-12.1, -76], [-12.4, -81]], side: 'right', inset: 3.5, height: 9, lean: 0.6, taper: 2.5, roots: 0.3, scale: 3 },
 ];
 /** the ledge material's near fade (m): its damp/moss terms stay legible from the path */
 export const LEDGE_FADE_M: [number, number] = [7, 14];
