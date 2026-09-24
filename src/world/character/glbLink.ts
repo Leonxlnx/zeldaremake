@@ -131,7 +131,7 @@
  * captures sit in a scheduled slot's open phase, so the adopted morphs leave them unchanged
  * too. Movement and the IK above are untouched by it.
  */
-import { AnimationAction, AnimationMixer, Bone, Box3, Group, LoopRepeat, Material, MathUtils, Mesh, Object3D, Quaternion, SkinnedMesh, Vector3 } from 'three';
+import { AnimationAction, AnimationMixer, Bone, Box3, Group, LinearInterpolant, LoopRepeat, Material, MathUtils, Mesh, Object3D, Quaternion, SkinnedMesh, Vector3 } from 'three';
 import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
 import { GAIT_SPEED, GAITS, type Gait, type GroundSampler } from './animation';
 import { BLINK_HALF_MORPH, BLINK_MORPH, blinkPhase, blinkWeights, createBlinkSchedule, nextBlinkStart, type BlinkSchedule, type BlinkWeights } from './blink';
@@ -142,7 +142,7 @@ import type { BlinkInfo, FootContact, JumpState, Locomotion, PlantInfo, Puppet, 
 /** served by Vite from public/ */
 export const LINK_GLB_FILE = 'models/link/link-runtime.glb';
 /** the delivered file's hash, recorded in public/models/link/SOURCE.md — reported, never recomputed at runtime */
-export const LINK_GLB_SHA256 = '7f406e40e65430ed3c11bd045e2e9482dae8cee8122e9869ed62a2c3cfecbbda';
+export const LINK_GLB_SHA256 = '8d7efa783d4bbc97d053c0a627a28c3c163351d7828124e1bf10c8232f06cedd';
 /** skull top above the `head` bone (m) on Astra's rig, measured on the 409b603 asset's skin mesh (cap excluded) */
 export const HEAD_TOP_ANATOMICAL_M = 0.276;
 
@@ -162,7 +162,7 @@ interface ClipSpec {
 export const CLIP_SPEC: Record<Gait, ClipSpec> = {
   idle: { strideM: 0, cycleS: 3.0, heroClipTime: 0 },
   walk: { strideM: 0.88, cycleS: 0.55, heroClipTime: 16 / 60 },
-  run: { strideM: 1.82, cycleS: 28 / 60, heroClipTime: (15 / 60) * (28 / 34) },
+  run: { strideM: 1.2, cycleS: 28 / 60, heroClipTime: (15 / 60) * (28 / 34) },
   stairs: { strideM: 0.8066667, cycleS: 0.7333333, heroClipTime: 22 / 60 },
 };
 /** simulation time of the hero captures (capture.mjs DEFAULT_SIM_TIME 12.5 + 6 settle frames) */
@@ -339,9 +339,10 @@ const LEAD_MAX_M = 0.15;
  * Arm swing per gait (the owner: "his arms should move slow, and when you run, a little bit
  * faster"): the shoulder / elbow rotation about the clip's own cycle-mean arm pose is scaled by
  * ARM_SCALE and low-passed with the time constant ARM_TAU (s), both blended by the gait weights.
+ * The authored walk/run arms retain their full motion and foot-relative timing.
  */
-const ARM_SCALE: Record<Gait, number> = { idle: 1, walk: 0.7, run: 1.15, stairs: 0.85 };
-const ARM_TAU: Record<Gait, number> = { idle: 0, walk: 0.06, run: 0.02, stairs: 0.05 };
+const ARM_SCALE: Record<Gait, number> = { idle: 1, walk: 1, run: 1, stairs: 0.85 };
+const ARM_TAU: Record<Gait, number> = { idle: 0, walk: 0, run: 0, stairs: 0.05 };
 /**
  * Jump overlay (JumpState phases). Crouch: the root sinks JUMP_CROUCH_M over the crouch (the leg
  * IK keeps the feet planted, so the knees bend) while the arms swing back; air: the legs blend
@@ -1661,6 +1662,24 @@ export async function loadGlbLink(url: string, opts: GlbLinkOptions = {}): Promi
     mixer.update(0);
   }
   const runFloor = Math.min(...pathTable.run[0].soleY, ...pathTable.run[1].soleY);
+  // The source clips contain narrow pelvis notches at foot handover. Keep the two-step
+  // rise/fall, but fit it below the sampled height so the correction only bends the legs.
+  // Ankle targets stay fixed; this is phase based, never a frame-rate-dependent root filter.
+  const pelvisCycle = new Map<Gait, { mean: number; cos: number; sin: number; position: LinearInterpolant; offset: number; floor: Float64Array }>();
+  for (const gait of ['walk', 'run'] as const) {
+    const [left, right] = pathTable[gait];
+    const track = actions.get(gait)!.action.getClip().tracks.find(t => t.name === `${hips.name}.position`);
+    if (!track || track.getValueSize() !== 3) continue;
+    const position = track.InterpolantFactoryMethodLinear(new Float64Array(3));
+    const offset = (left.hip[0].y + right.hip[0].y) * 0.5 - position.evaluate(0)[1];
+    const sole = left.soleY.map((y, i) => gait === 'run' ? runFloor : Math.min(y, right.soleY[i]));
+    const height = left.hip.map((p, i) => (p.y + right.hip[i].y) * 0.5 - sole[i]);
+    const mean = height.reduce((s, y) => s + y, 0) / TABLE_N;
+    const cos = height.reduce((s, y, i) => s + y * Math.cos(4 * Math.PI * i / TABLE_N), 0) * 2 / TABLE_N;
+    const sin = height.reduce((s, y, i) => s + y * Math.sin(4 * Math.PI * i / TABLE_N), 0) * 2 / TABLE_N;
+    const floor = Math.min(...height.map((y, i) => y - mean - cos * Math.cos(4 * Math.PI * i / TABLE_N) - sin * Math.sin(4 * Math.PI * i / TABLE_N)));
+    pelvisCycle.set(gait, { mean: mean + floor - 0.0005, cos, sin, position, offset, floor: sole });
+  }
 
   const asset: LinkAssetInfo = {
     file,
@@ -2273,6 +2292,25 @@ export async function loadGlbLink(url: string, opts: GlbLinkOptions = {}): Promi
         leg.ankleP.y += shift;
         leg.soleP.y += shift;
       }
+      let pelvisDrop = 0;
+      if (loco && !airborne) {
+        for (const c of chain) {
+          const cycle = pelvisCycle.get(c.gait);
+          if (!cycle || c.weight <= 0) continue;
+          const a = actions.get(c.gait)!;
+          const phase = 4 * Math.PI * a.action.time / a.duration;
+          const sample = mod(a.action.time / a.duration * TABLE_N, TABLE_N);
+          const i = Math.floor(sample);
+          const source = cycle.position.evaluate(a.action.time)[1] + cycle.offset -
+            MathUtils.lerp(cycle.floor[i], cycle.floor[(i + 1) % TABLE_N], sample - i);
+          const target = cycle.mean + cycle.cos * Math.cos(phase) + cycle.sin * Math.sin(phase);
+          pelvisDrop += c.weight * MathUtils.clamp(source - target, 0, 0.025);
+        }
+        // Keep the correction continuous at jump entry/exit without altering the ballistic arc.
+        if (jump) pelvisDrop *= jump.phase === 'crouch'
+          ? 1 - MathUtils.smoothstep((p.t - jump.t0) / JUMP_CROUCH_S, 0, 1)
+          : MathUtils.smoothstep((p.t - jump.t0) / JUMP_LAND_S, 0, 1);
+      }
 
       // 4. per-foot targets: raise the sole by its support's excess over the root support, move
       // it by its shift along the facing, keep the clip's foot orientation, tilt a contact sole
@@ -2299,7 +2337,9 @@ export async function loadGlbLink(url: string, opts: GlbLinkOptions = {}): Promi
           if (-_p.y > hold) hold = -_p.y;
         }
         const floor = Math.max(leg.g, gMin + FOLD_MAX);
-        let target = Math.min(leg.g + lift, Math.max(leg.g + hold, gMin + FOLD_MAX));
+        // A gait blend can put a boot corner below its ankle marker. Enforce the
+        // measured sole floor as well as the upper lift bound before solving the leg.
+        let target = Math.max(leg.g + hold, Math.min(leg.g + lift, gMin + FOLD_MAX));
         leg.hold = Math.max(0, target - Math.min(leg.g + lift, floor));
         if (leg.hold > maxHold) maxHold = leg.hold;
         // round 47, play mode: a swing that climbs a riser follows its support's ramp (the eased
@@ -2413,9 +2453,9 @@ export async function loadGlbLink(url: string, opts: GlbLinkOptions = {}): Promi
       // the jump's crouch / landing compression (round 47): the root is lowered like an extra
       // drop — the feet keep their targets, so the knees bend — by the overlay's envelope
       const overlayDrop = jump && !airborne ? jumpDrop(jump, p.t) : 0;
-      if (extraDrop > 0 || overlayDrop > 0) {
+      if (extraDrop > 0 || overlayDrop > 0 || pelvisDrop > 0) {
         extraDrop = Math.min(extraDrop, MAX_CORRECTION);
-        const down = extraDrop + overlayDrop;
+        const down = extraDrop + overlayDrop + pelvisDrop;
         root.position.y -= down;
         for (const leg of legs) {
           leg.hip.y -= down;

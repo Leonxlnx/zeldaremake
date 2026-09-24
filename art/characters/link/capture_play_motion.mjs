@@ -1,5 +1,7 @@
 // Drive the actual player handle and inspect deformed shoe vertices against rendered ground.
 // Optional native capture size: --size 1920x1080 (default 1280x720; even dimensions for H.264).
+// --walk-video: four seconds of ordinary walking followed by one second of stopping.
+// --run-video: four seconds of running followed by one second of stopping.
 import fs from 'node:fs/promises';
 import path from 'node:path';
 import crypto from 'node:crypto';
@@ -134,7 +136,12 @@ try{
   const descentDetail=process.argv.includes('--descent-detail');
   const stairDetail=process.argv.includes('--stair-detail');
   report.stairDetail=stairDetail;
-  const flatVideo=process.argv.includes('--flat-video');
+  const walkVideo=process.argv.includes('--walk-video');
+  const runVideo=process.argv.includes('--run-video');
+  assert.ok(!(walkVideo&&runVideo),'Choose either --walk-video or --run-video');
+  const flatVideo=process.argv.includes('--flat-video')||walkVideo||runVideo;
+  report.walkOnly=walkVideo;
+  report.runOnly=runVideo;
   const flatStills=process.argv.includes('--flat-stills');
   const jumpOnly=process.argv.includes('--jump-only');
   const framesDir=path.join(out,'video-frames');let videoFrames=0;
@@ -153,13 +160,13 @@ try{
     const chunk=stairDetail?1:flatVideo||flatStills||jumpOnly?2:descentDetail?10:30;
     for(let start=0;start<frames;start+=chunk){
       const count=Math.min(chunk,frames-start);
-      const rows=await page.evaluate(async({scenario,start,count,stairDetail})=>{
+      const rows=await page.evaluate(async({scenario,start,count,stairDetail,walkVideo,runVideo})=>{
         const {player,hero,body,markers,stairs,point,ray,down,direction,soles,exactHeight}=__playReview;const rows=[];
         for(let j=0;j<count;j++){
           const i=start+j;const jumping=scenario==='run-jump';
           const moving=jumping?i<140:scenario!=='flat-transitions'||i<240;
           const d=scenario==='flat-transitions'||jumping?[0,-1]:direction.map(v=>v*(scenario==='stairs-up'?1:-1));
-          player.setInput({moveX:moving?d[0]:0,moveZ:moving?d[1]:0,run:jumping||scenario==='flat-transitions'&&i>=120,jump:jumping&&i===45});
+          player.setInput({moveX:moving?d[0]:0,moveZ:moving?d[1]:0,run:jumping||!walkVideo&&scenario==='flat-transitions'&&(runVideo||i>=120),jump:jumping&&i===45});
           const p=player.position;const ground=__ZR__.audit().systems.character.world.linkRoot[1];
           const offset=scenario==='flat-transitions'||jumping?[2.1,-1.2]
             :[-direction[0]*2.5-direction[1]*.5,-direction[1]*2.5+direction[0]*.5];
@@ -218,7 +225,7 @@ try{
           }
           rows.push(row);
         }return rows;
-      },{scenario,start,count,stairDetail});
+      },{scenario,start,count,stairDetail,walkVideo,runVideo});
       report.samples.push(...rows);
       if(flatVideo)await page.screenshot({path:path.join(framesDir,`frame-${String(videoFrames++).padStart(4,'0')}.png`)});
       const supportFrame=stairDetail&&scenario==='stairs-down'&&[274,449,475,476,477,478].includes(start);
@@ -322,7 +329,17 @@ try{
       shoeSamplesBelowMinus2cm:surface.filter(p=>p.gapM<-.02).length}];
   }));
   if(flatVideo){
-    const file=path.join(out,'walk-run-idle.mp4');
+    if(walkVideo){
+      assert.ok(report.samples.some(r=>r.gait==='walk'));
+      assert.ok(report.samples.some(r=>r.gait==='idle'));
+      assert.ok(report.samples.every(r=>r.gait!=='run'));
+    }
+    if(runVideo){
+      assert.ok(report.samples.some(r=>r.gait==='run'));
+      assert.ok(report.samples.some(r=>r.gait==='idle'));
+      assert.ok(report.samples.every(r=>r.gait!=='walk'));
+    }
+    const file=path.join(out,walkVideo?'walk-idle.mp4':runVideo?'run-idle.mp4':'walk-run-idle.mp4');
     execFileSync('ffmpeg',['-v','error','-framerate','30','-i',path.join(framesDir,'frame-%04d.png'),
       '-c:v','libx264','-threads','2','-crf','20','-pix_fmt','yuv420p','-movflags','+faststart',file],{windowsHide:true});
     const probe=JSON.parse(execFileSync('ffprobe',['-v','error','-count_frames','-select_streams','v:0',

@@ -1,0 +1,42 @@
+{
+  "capture": "art/characters/link/progress/2026-09-24T19-58-05-058Z-play-motion/",
+  "verifiedSourceCommit": "8a11e8811815a9daf852a8e45c3476c5dad71c13",
+  "assetSha256": "8d7efa783d4bbc97d053c0a627a28c3c163351d7828124e1bf10c8232f06cedd",
+  "runtimeSha256": "e547a5e5be1107302b08ad85370d5c45f31704477bc97516db58791945922020",
+  "committedRuntimeBlobSha256": "046b1ba7a65f5ae6ba46608a94016239161136e0811ce20febee25e64b413705",
+  "sourceComparison": "Equal after CRLF normalization",
+  "video": {
+    "file": "walk-run-idle.mp4",
+    "sha256": "c8f8ce3b2f694a21396ec9d223427be434aecfb3ec380f6e4bc4943903183be8",
+    "frames": 150,
+    "width": 1920,
+    "height": 1080,
+    "r_frame_rate": "30/1",
+    "nb_read_frames": "150"
+  },
+  "summary": {
+    "flat-transitions": {
+      "frames": 300,
+      "gaits": [
+        "walk",
+        "run",
+        "idle"
+      ],
+      "distanceXZ": 6.813333333333356,
+      "maxRootStepM": 0.008351421921264354,
+      "reachClampedFrames": 0,
+      "measuredShoePoints": 0,
+      "maxHipFlexDeg": 69.91904444515019,
+      "maxKneeFlexDeg": 128.21208349383005,
+      "minRenderedStairGapM": null,
+      "shoeSamplesBelowMinus2cm": 0
+    }
+  },
+  "errors": [],
+  "bundles": {
+    "index-Cd1OjRhz.js": "b803199dc88a982c1454acbf31a45e3b5d48f5eb4624f21821f3b19e97d0dad6"
+  },
+  "simulationTicks": 300,
+  "complete": true,
+  "note": "Actual world/player/IK; deterministic 60 Hz ticks encoded at30fps, not a realtime performance benchmark. Capture started before the source commit; hashes bind it to that commit."
+}

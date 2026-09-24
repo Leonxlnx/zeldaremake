@@ -1,0 +1,63 @@
+{
+  "sourceSha256": "7e907dd06a7a0cbce48ae157441832a834eb505305a38f3d53cfe33a75ef2692",
+  "baseGeometrySha256": "46dcbcc36490ee5c86f6d9eb28d58d1743f60cfab02bb0c899b8388b6eda3de0",
+  "candidateSha256": "aa0520e0d7aaedcc452103ad14c81113866ff3c5adbd5307fdcedf711a248c89",
+  "changedRows": 1548,
+  "allowedAccessorRebindings": [
+    [
+      2,
+      0,
+      "POSITION"
+    ],
+    [
+      2,
+      0,
+      "NORMAL"
+    ],
+    [
+      2,
+      0,
+      "TANGENT"
+    ]
+  ],
+  "originalBinaryPrefixBytesExact": 51006044,
+  "protectedMetadataClipsGeometryWeightsUvMorphsExact": true,
+  "nativeCorrespondence": {
+    "correspondence": "raw one-to-one nearest source; no registration or fitted transform",
+    "raw_native_source_error_m": 9.8843121241194e-08,
+    "raw_native_after_error_m": 9.8843121241194e-08,
+    "deformation_delta_error_m": 1.4901161193847656e-08,
+    "one_to_one_vertices": 1548,
+    "raw_source_tolerance_m": 3e-06,
+    "deformation_delta_tolerance_m": 1e-06
+  },
+  "nativeRowsSha256": "90b32a473d5e494832875a552aead1bf1a3d406a6af69846e62cf6b023d97753",
+  "native100umNegativeControlsRejected": true,
+  "portableChecks": {
+    "sourceVertices": 88153,
+    "sourceFaces": 68042,
+    "selectedRows": 2221,
+    "selectedUniquePoints": 1167,
+    "boundaryRows": 318,
+    "changedRows": 1548,
+    "protectedRows": 85932,
+    "minimumJacobianDeterminant": 0.5294958378118823,
+    "maximumFiniteDifferenceJacobianError": 1.5909018546977904e-10,
+    "maximumAliasErrorM": 0.0,
+    "positionRoundedUnchangedRows": 9,
+    "maximumSkippedJacobianDeviationFromIdentity": 0.0005881673217590366,
+    "affectedFaces": 1764,
+    "minimumFaceNormalCosine": 0.8218310833570183,
+    "maxDisplacementM": 0.00765918585436321,
+    "boundaryAndOutsideRowsExact": true,
+    "aliasesCompleteAndExactRigid": true,
+    "componentCountAndSeedIdentityStableAtHalfMillimeterOffsets": true,
+    "sourceUnchanged": true
+  },
+  "maximumNormalError": 4.1551602784259785e-08,
+  "maximumTangentError": 4.27148914077906e-08,
+  "minimumCandidateFaceNormalCosine": 0.8218310833570183,
+  "handMorphPositionDeltaZero": true,
+  "preservedHandMorphNormalRoundingResidue": 1.1920928955078125e-07,
+  "status": "Local append-only hand geometry candidate; final run/idle visual review remains required"
+}

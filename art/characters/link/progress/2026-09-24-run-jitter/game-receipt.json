@@ -1,0 +1,49 @@
+{
+  "capture": "2026-09-24T18-46-15-558Z-play-motion",
+  "assetSha256": "aa0520e0d7aaedcc452103ad14c81113866ff3c5adbd5307fdcedf711a248c89",
+  "runtimeSha256": "992071967117baaa5d4db18ae4e6e2af3b546c955cb19e66be341f96fe19bc69",
+  "video": {
+    "file": "run-idle.mp4",
+    "sha256": "3cc0d3d741456a460cf10d402b32a03ae8cb2157cdf44fdd6669da64fbaaed6a",
+    "frames": 150,
+    "width": 1920,
+    "height": 1080,
+    "r_frame_rate": "30/1",
+    "nb_read_frames": "150"
+  },
+  "summary": {
+    "flat-transitions": {
+      "frames": 300,
+      "gaits": [
+        "run",
+        "idle"
+      ],
+      "distanceXZ": 12.933333333333298,
+      "maxRootStepM": 0.004403417235548438,
+      "reachClampedFrames": 0,
+      "measuredShoePoints": 0,
+      "maxHipFlexDeg": 67.4909087737139,
+      "maxKneeFlexDeg": 90.04858530040046,
+      "minRenderedStairGapM": null,
+      "shoeSamplesBelowMinus2cm": 0
+    }
+  },
+  "errors": [],
+  "bundles": {
+    "index-D_KsP5a1.js": "9b09617329f26202f78d6cf6e94fc6961179f36d85280818e4af58585053e7ca"
+  },
+  "beforeRunVideo": "art\\characters\\link\\progress\\2026-09-23T21-08-00-874Z-play-motion\\walk-run-idle.mp4",
+  "beforeRunSha256": "99eef2144e02f5a7b3fa708c4c8ee865fc114950063739b870520e594ed085b4",
+  "comparison": {
+    "beforeStartS": 2,
+    "afterStartS": 0.5,
+    "durationS": 2,
+    "playback": "Original 30fps, no retiming; cameras follow different traveled distances"
+  },
+  "note": "300 deterministic simulation ticks, 150 encoded frames. A motion review, not a realtime performance benchmark or full terrain acceptance.",
+  "verifiedSourceCommit": "d3e933a022f67f52e2cc27e1ffeff3153dcaef02",
+  "committedRuntimeBlobSha256": "a15bb21a9d8b2b83e281e9fdb8cece13c8df478001c21e8f606d7ed0e84b1964",
+  "sourceComparison": "Committed and captured source are identical after CRLF-to-LF normalization; raw hashes are both recorded.",
+  "captureParentCommit": "11a749931df5691934ef747d848748ac88036a66",
+  "commitNote": "Capture started before the implementation commit; recorded source and bundle hashes identify the actual tested code."
+}
