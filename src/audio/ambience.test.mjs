@@ -315,25 +315,73 @@ test('a bird answers when the wind drops', () => {
   // seconds (art/audio/2026-09-24-wind/), and at the old flat 3.5–11.5 s gap roughly half of those
   // lulls had nothing in them: the one moment the forest is deliberately quiet was the one moment
   // it had nothing to say.
-  const at = (gusts) => {
+  // Enough cycles that the answer is not two small numbers being compared: one drop gives three or
+  // four calls either way, and which is larger is then a coin toss on the seeded stream.
+  const CYCLES = 30;
+  const at = (gustOf) => {
     const b = bed({ seed: 'lull' });
     let t = 0;
-    for (const g of gusts) {
-      b.amb.update(t, { gust: g, listener: LISTENER, forward: NORTH, pods: [] });
+    for (let i = 0; i < CYCLES * 24; i++) {
+      b.amb.update(t, { gust: gustOf(i), listener: LISTENER, forward: NORTH, pods: [] });
       t += 0.5;
     }
     b.amb.scheduleUntil(t + 2);
     return b.amb.stats().birds;
   };
-  const blowing = Array.from({ length: 24 }, () => 0.8);
-  const drops = [...Array.from({ length: 12 }, () => 0.8), ...Array.from({ length: 12 }, () => 0.1)];
-  assert.ok(at(drops) > at(blowing), `the wind dropping must bring a bird forward (${at(blowing)} while it blew, ${at(drops)} when it fell)`);
-  // the trigger is the EDGE, not the level: a take that was already still gets no extra call for it
-  const stillThroughout = Array.from({ length: 24 }, () => 0.1);
-  assert.ok(at(drops) <= at(stillThroughout) + 1, 'the edge must not stack on top of the still-air rate');
+  const blowing = at(() => 0.8);
+  const drops = at((i) => (i % 24 < 12 ? 0.8 : 0.1));
+  assert.ok(drops > blowing * 1.05, `over ${CYCLES} lulls the drops must bring calls forward (${blowing} while it blew, ${drops} with the drops)`);
+  // the trigger is the EDGE, not the level: still air throughout already calls at the still rate,
+  // and the edge must not stack a second helping on top of it
+  const stillThroughout = at(() => 0.1);
+  assert.ok(drops <= stillThroughout * 1.1, `the edge stacked on the still-air rate (${drops} with drops, ${stillThroughout} in still air throughout)`);
   assert.ok(A.BIRD_ANSWERS_LULL[0] > 0.2, 'answering inside a fifth of a second is a reflex, not a bird');
   assert.ok(A.BIRD_ANSWERS_LULL[1] < 3, 'a lull is about three seconds — an answer after it is not an answer');
   assert.ok(A.BIRD_LULL_GAP > 0.3 && A.BIRD_LULL_GAP < 1, 'the still-air gap is a share of the usual one, not a gate');
+});
+
+test('the wood has birds in it, not a stream of calls', () => {
+  // Before this, the scheduler picked a kind and then drew a fresh bearing and a fresh distance for
+  // it: 216 calls over twenty minutes came from 216 places, and a kind's calls scattered 0.47 across
+  // a ±0.85 field — indistinguishable from uniform (art/audio/2026-09-24-perches/).
+  const { amb } = bed({ seed: 'perch' });
+  for (let t = 0; t < 900; t += 0.5) {
+    amb.update(t, { gust: 0.5 + 0.5 * Math.sin(t * 0.37) * Math.sin(t * 0.11 + 1.3), listener: LISTENER, forward: NORTH, pods: [], canopy: 1 });
+    amb.scheduleUntil(t + 4);
+  }
+  const spots = amb.stats().birdSpots;
+  assert.ok(spots.length > 8, `only ${spots.length} calls remembered`);
+  // every call of a kind comes from that bird's own tree
+  const byKind = new Map();
+  for (const [kind, pan, distance] of spots) (byKind.get(kind) ?? byKind.set(kind, []).get(kind)).push([pan, distance]);
+  for (const [kind, cs] of byKind) {
+    const pans = new Set(cs.map((c) => c[0]));
+    const dists = new Set(cs.map((c) => c[1]));
+    assert.equal(pans.size, 1, `${kind} called from ${pans.size} directions — a bird sits somewhere`);
+    assert.equal(dists.size, 1, `${kind} called from ${dists.size} distances`);
+  }
+  // and the wood is not all on one side of him
+  const places = [...byKind.values()].map((cs) => cs[0][0]);
+  assert.ok(Math.max(...places) > 0.25 && Math.min(...places) < -0.25, `every bird is between ${Math.min(...places).toFixed(2)} and ${Math.max(...places).toFixed(2)} — they must be round him, not in a clump`);
+});
+
+test('walking far enough puts him among different birds', () => {
+  const heard = (moveM) => {
+    const { amb } = bed({ seed: 'perch/move' });
+    const seen = new Set();
+    for (let t = 0; t < 600; t += 0.5) {
+      const at = { x: (t / 600) * moveM, y: 1.2, z: 0 };
+      amb.update(t, { gust: 0.5, listener: at, forward: NORTH, pods: [], canopy: 1 });
+      amb.scheduleUntil(t + 4);
+      for (const [kind, pan] of amb.stats().birdSpots) seen.add(`${kind}|${pan}`);
+    }
+    return seen.size;
+  };
+  const still = heard(0);
+  const walked = heard(A.PERCH_RESEED_M * 6);
+  assert.ok(walked > still, `standing still heard ${still} birds and walking ${(A.PERCH_RESEED_M * 6).toFixed(0)} m heard ${walked} — the wood must change as he crosses it`);
+  assert.ok(still <= 6, `standing in one place heard ${still} birds; there are six kinds and one of each`);
+  assert.ok(A.PERCH_RESEED_M > 10, 'birds must not be re-seeded from under him as he walks');
 });
 
 test('moving the birds about does not add any', () => {
