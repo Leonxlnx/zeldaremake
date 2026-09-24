@@ -409,3 +409,4 @@ nearCanopy, materials, index otherwise) is edited.
   does not pop when resident. `nearCanopy.late` audit field on `agent/fable-4-latecount`. Nothing else open.
 - 2026-09-24 00:18 — squad2's treepop (white-bark rung 20 → 28 m) measured against the round-52 pop test: the switch
   never popped; head A 8.947 M / 643; treepop's six-view row pending on the box.
+- 2026-09-24 00:29 — treepop six-view row: draws +48…+56 (A 692), C +465 K; recommended hold with the round-52 pop numbers.
