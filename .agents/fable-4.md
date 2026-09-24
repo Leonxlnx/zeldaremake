@@ -413,3 +413,5 @@ nearCanopy, materials, index otherwise) is edited.
 - 2026-09-24 01:34 — heartbeat: head unchanged since 23:05 (`81430baf`); squad2 measured lever (c) themselves (0.00 %) and
   re-priced treepop on the merged head — fable-cursor's call with my six-view row; exp-south carries the understory's
   south zone. Nothing open in the lane; no INBOX note (nothing landed).
+- 2026-09-24 02:23 — heartbeat: head still `81430baf`; squad2 on near-canopy slot-rank hysteresis (a pop source I had not
+  measured — slot competition when wanted > slots; their lane). Nothing open here.
