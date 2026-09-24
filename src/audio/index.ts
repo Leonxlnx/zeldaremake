@@ -101,6 +101,21 @@ export interface OfflineOptions {
   canopy?: number;
   /** force the ravine over the whole render (0 well back from it, 1 out over it) */
   gorge?: number;
+  /**
+   * Stand still at (x, z) for the whole render instead of walking the scripted route.
+   *
+   * Every measurement on this lane so far has come from one fixed walk through the village, which
+   * answers "what does the game sound like" and cannot answer "what does **this place** sound
+   * like". That second question is the one that matters for the owner's standing complaint, because
+   * the metric for it — the level present in nine frames out of ten — is a property of a place and
+   * a listener who is not doing anything. It also needs no footsteps and no browser recording: with
+   * `stem: 'bed'` this is the world's own sound at a spot, rendered deterministically in a second.
+   *
+   * The space terms come from `surfaceAt(x, z)` unless `canopy` / `gorge` override them, so a spot
+   * under the crowns or out over the ravine carries its own. The wind still moves — a place with no
+   * weather in it is not a place.
+   */
+  at?: { x: number; z: number; y?: number; facing?: number };
 }
 
 /** one leg of the offline walk: seconds, ground speed (m/s) and what is underfoot */
@@ -229,10 +244,11 @@ function gatherPods(scene: Scene): Vec3[] {
 export function surfaceAt(x: number, z: number): { surface: Surface; stairs: boolean; enclosure: number; canopy: number; gorge: number } {
   const m = surfaceMask(x, z, 'live');
   const gorge = gorgeAt(x, z);
-  // how much wood is overhead: the terrain's own forest-floor zone. The litter is there BECAUSE the
-  // crowns are, so the same field that decides what is underfoot also says how closed the sky is —
-  // the plaza and the village are open, the north corridor past the arch is roofed.
-  const canopy = forestFloorZone(x, z);
+  // how much wood is overhead: the terrain's own forest-floor zone, less the openings cut in it.
+  // The litter is there BECAUSE the crowns are, so the same field that decides what is underfoot
+  // also says how closed the sky is — the plaza and the village are open, the north corridor past
+  // the arch is roofed — but the field does not know where the forest STOPS (see `skyOpening`).
+  const canopy = forestFloorZone(x, z) * (1 - skyOpening(x, z));
   if (m.stairs > 0.5) return { surface: 'stone', stairs: true, enclosure: 0, canopy, gorge };
   // the log tunnel: distance from the log's axis in its own frame
   const la = LAYOUT.logArch;
@@ -332,6 +348,31 @@ function southSurfaceAt(x: number, z: number, canopy: number, gorge: number): { 
     }
   }
   return null;
+}
+
+/**
+ * How open the sky is where the forest stops — 1 in the middle of a clearing, 0 back under the
+ * crowns.
+ *
+ * `forestFloorZone` is the terrain's litter field, and litter lies in a clearing exactly as it lies
+ * under the trees, so the field reads **1.00 at the centre of the north clearing**. The bed took
+ * that as a closed roof: the paved disc the layout describes as "banks rising on every side", with
+ * a stone circle on it and the sky over it, sounded like the inside of the corridor that leads to
+ * it — lowpassed by `CANOPY_CLOSE`, 1.8× the hall, 1.7× the leaf flutters.
+ *
+ * The cost is not one wrong number. It is that walking the north corridor and stepping out into
+ * the clearing — the one arrival in the north half of the world, the thing the owner asked for
+ * when he said he wanted "more to do afterwards" up the steps — made no change at all. A roof
+ * lifting is something you hear.
+ *
+ * Faded across the rim rather than switched, so the walk in is the sound of it opening, and never
+ * quite to nothing: a clearing nine metres across is ringed by trees that lean over it.
+ */
+export const CLEARING_OPEN_MAX = 0.85;
+export function skyOpening(x: number, z: number): number {
+  const c = LAYOUT.northClearing;
+  const d = Math.hypot(x - c.x, z - c.z);
+  return CLEARING_OPEN_MAX * (1 - smoothstep01(c.radius * 0.55, c.radius * 1.5, d));
 }
 
 /** how often the audio system updates its parameters and tops up its schedulers (ms) */
@@ -646,7 +687,24 @@ export async function renderOffline(o: AudioOptions, seed: string, seconds: numb
   let z = 2;
   const lastLeg = OFFLINE_WALK[OFFLINE_WALK.length - 1];
   const standsBesideFairy = OFFLINE_WALK[OFFLINE_WALK.length - 2].until;
+  // standing somewhere: the place's own space terms, and nothing underfoot
+  const spot = options.at ? surfaceAt(options.at.x, options.at.z) : null;
+  const facing = options.at?.facing ?? 0;
   for (let t = 0; t < seconds; t += step) {
+    if (options.at && spot) {
+      ambience?.update(t, {
+        gust: gust(t),
+        listener: { x: options.at.x, y: options.at.y ?? 1.2, z: options.at.z },
+        forward: { x: Math.sin(facing), z: Math.cos(facing) },
+        pods,
+        fairies,
+        enclosure: spot.enclosure,
+        canopy: options.canopy ?? spot.canopy,
+        gorge: options.gorge ?? spot.gorge,
+        windDir: o.wind ? { x: o.wind.direction.x, z: o.wind.direction.y } : undefined,
+      });
+      continue;
+    }
     const leg = OFFLINE_WALK.find((l) => t < l.until) ?? lastLeg;
     x += leg.speed * step * 0.6;
     z -= leg.speed * step * 0.8;
