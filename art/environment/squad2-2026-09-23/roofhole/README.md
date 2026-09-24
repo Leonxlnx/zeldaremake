@@ -66,6 +66,34 @@ the top of the frame. That is the added roof's **shadow** re-dappling the plaza,
 than taken away. It is a real change to the scored frames and it needs a pinned-pose re-read before any
 checkpoint leans on A or D; F, the canopy view, does not move at all.
 
+## The other look-ups, and play mode (14:20–14:50)
+
+The open north was the pose with the hole; the three other look-up poses are the check that closing it did
+not darken the places the owner already likes ("the foliage in the beginning looks great"). Each rendered
+twice on this branch, once with `canopy/roof.ts` reverted to the head:
+
+| pose | mean before → after | top third | pixels changed > 8 levels |
+| --- | --- | --- | --- |
+| `u-plaza-up` (his job-6 pose) | 96.2 → **95.8** | 74.2 → 76.6 | 22.4 % |
+| `u-saria-up` | 57.8 → 58.6 | 81.9 → 84.4 | 4.9 % |
+| `u-stairs-up` | 80.5 → 80.7 | 82.0 → 82.9 | 12.9 % |
+
+None of them darkens — the plaza look-up holds its level to within half a level and its top third comes up
+2.4 — so the −63 levels at `u-open-up` was the hole being filled and nothing else. `plaza-lookup-pair.jpg`
+shows the character kept: layered leaves with sky gaps, a little more canopy over the upper-left gap.
+
+![the plaza look-up, before and after the roof fix](plaza-lookup-pair.jpg)
+
+**Play mode** (`playtest.mjs --only look,walk,perf`, `playtest.json`): no page errors, all **ten walk routes
+reached with nothing stuck** (68 waypoints), south probes 41/41. A roof 20 m up cannot block a walker and
+does not.
+
+One thing to relay rather than to fix here: the perf spots report `stairs2-base` at **9.50 M triangles**
+(610–614 draws), above the 9 M figure the hero views are held to, and `saria-side` at 8.86 M. That is not
+this change — `measure-roof.mjs` puts its whole contribution at **668 triangles**, 0.007 % — and it matches
+what fable-5 attributed to lane 4's vegetation at 13:43 and what fable-cursor flagged for the south
+look-back at 11:20. Worth a pass by whoever owns the play-mode budget.
+
 ## The test
 
 `roof.test.mjs` pinned the old rule exactly (it failed with 111 offenders the moment this changed), so it
