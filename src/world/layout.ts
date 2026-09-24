@@ -1101,7 +1101,7 @@ export const EXPANSION_NORTH = {
    * trail, door toward the stilt house.
    */
   hut: { host: [16.8, -85.2] as [number, number], floorY: 11.3, radius: 1.45, wall: 1.8, capHeight: 0.95, capOverhang: 0.45, facingDeg: -86, doorAbsDeg: -142.7, ladderAbsDeg: -30, hoistAbsDeg: 40 },
-  column: { baseRadius: 0.8, topRadius: 0.4, height: 22, crownY: 17.5 },
+  column: { baseRadius: 0.9, topRadius: 0.45, height: 22, crownY: 17.5 },
   /** the lookout nest on the column over the hut's cap: floor height (absolute), ring radius */
   nest: { floorY: 16.3, radius: 1.2 },
   /** the rope walkway between the two walkway stubs: stub length past each rim (m), sag (m) */

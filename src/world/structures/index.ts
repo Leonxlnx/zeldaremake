@@ -15,6 +15,7 @@ import { buildFence, createRopeMaterial } from './fence';
 import { buildDistantHouses, distantGlowPeak } from './distantHouse';
 import { buildExpansion, EXPANSION_VISIBLE_M } from './expansion';
 import { buildExpansionSouth } from './expansionSouth';
+import { buildExpansionNorth, GROVE_VISIBLE_M } from './expansionNorth';
 import { SOUTH_VISIBLE_M } from '../util/expansionLocality';
 import { consolidateStaticMeshes } from './geometry';
 import { buildHouse, type HouseSharedMaterials } from './house';
@@ -187,9 +188,23 @@ export async function create(ctx: WorldContext): Promise<WorldSystem> {
   owned.push(...south.owned);
   ctx.shared.walkSpans = [...(ctx.shared.walkSpans ?? []), ...south.walkSpans];
 
+  // ---- 2026-09-24 (expansion-north): the grove hamlet above the ledge terrace — the trunk house and
+  // its yard, the stilt house and its gangway, the tree hut on its column, the rope walk and the
+  // lookout nest (expansionNorth.ts). Own fork after every stream above; its group is consolidated
+  // apart and hidden beyond GROVE_VISIBLE_M of the grove or when the frustum meets none of its
+  // spheres (util/groveLocality.ts). No lights: every glow is emissive. Its decks, walkways and
+  // railings go to ctx.shared for the character ground. ----
+  const grove = buildExpansionNorth(ctx, mats, rng.fork('expansion-north'), rope, sharedHouseMats);
+  lanterns.push(...grove.lanterns);
+  bases.push(...grove.bases);
+  owned.push(...grove.owned);
+  ctx.shared.walkSurfaces = [...(ctx.shared.walkSurfaces ?? []), ...grove.walkSurfaces];
+  ctx.shared.walkSpans = [...(ctx.shared.walkSpans ?? []), ...grove.walkSpans];
+  ctx.shared.walkEdges = [...(ctx.shared.walkEdges ?? []), ...grove.walkEdges];
+
   // the play camera's solids (cameraSolids.ts), voxelised from the parts by name before the merges
   // below rename them; never under a headless capture
-  const cameraSolids = ctx.headless ? null : buildCameraSolids([group, north, expansion.group, south.group], limbSpheres(ctx.shared.lanternLimb));
+  const cameraSolids = ctx.headless ? null : buildCameraSolids([group, north, expansion.group, south.group, grove.group], limbSpheres(ctx.shared.lanternLimb));
   if (cameraSolids) ctx.shared.cameraSolids = { solid: cameraSolids.solid, slim: cameraSolids.slim };
 
   // ---- draw-call budget: fold the static parts into one mesh per material (+ shadow flags) ----
@@ -235,7 +250,10 @@ export async function create(ctx: WorldContext): Promise<WorldSystem> {
   const southDraws = consolidateStaticMeshes(south.group, (m) => m.name === 'pod-lantern');
   group.add(south.group);
   south.group.visible = south.visible(ctx.camera);
-  for (const d of [expansionNearDraws, expansionFarDraws, southDraws]) {
+  const groveDraws = consolidateStaticMeshes(grove.group, (m) => m.name === 'pod-lantern');
+  group.add(grove.group);
+  grove.group.visible = grove.visible(ctx.camera);
+  for (const d of [expansionNearDraws, expansionFarDraws, southDraws, groveDraws]) {
     draws.before += d.before;
     draws.after += d.after;
     draws.merged += d.merged;
@@ -247,12 +265,12 @@ export async function create(ctx: WorldContext): Promise<WorldSystem> {
    * the village again would show here as a radius ≥ 15 m.
    */
   const mergedBuckets = () => {
-    const out: { name: string; group: 'hero' | 'distant' | 'north' | 'expansion' | 'south'; centre: [number, number, number]; radius: number; triangles: number }[] = [];
-    const visit = (root: Object3D, which: 'hero' | 'distant' | 'north' | 'expansion' | 'south') => {
+    const out: { name: string; group: 'hero' | 'distant' | 'north' | 'expansion' | 'south' | 'grove'; centre: [number, number, number]; radius: number; triangles: number }[] = [];
+    const visit = (root: Object3D, which: 'hero' | 'distant' | 'north' | 'expansion' | 'south' | 'grove') => {
       root.traverse((o) => {
         const m = o as Mesh;
         if (!m.isMesh) return;
-        if (which === 'hero' && (!m.name.startsWith('merged:') || distant.group.getObjectById(m.id) || north.getObjectById(m.id) || expansion.group.getObjectById(m.id) || south.group.getObjectById(m.id))) return;
+        if (which === 'hero' && (!m.name.startsWith('merged:') || distant.group.getObjectById(m.id) || north.getObjectById(m.id) || expansion.group.getObjectById(m.id) || south.group.getObjectById(m.id) || grove.group.getObjectById(m.id))) return;
         const g = m.geometry;
         if (!g.boundingSphere) g.computeBoundingSphere();
         const s = g.boundingSphere!;
@@ -270,6 +288,7 @@ export async function create(ctx: WorldContext): Promise<WorldSystem> {
     visit(north, 'north');
     visit(expansion.group, 'expansion');
     visit(south.group, 'south');
+    visit(grove.group, 'grove');
     return out;
   };
   ctx.progress('structures', 1);
@@ -371,6 +390,8 @@ export async function create(ctx: WorldContext): Promise<WorldSystem> {
     },
     /** round 56 (expansion-south): the rope bridge over the ravine and the hollow log in the far bank (expansionSouth.ts); drawn only within `visibleWithinM` of the south boxes, in the frustum */
     south: { ...south.audit, draws: southDraws.after, visibleWithinM: SOUTH_VISIBLE_M, visible: south.group.visible },
+    /** 2026-09-24 (expansion-north): the grove hamlet — trunk house, stilt house, tree hut, gangway, rope walk, nest, yard (expansionNorth.ts); drawn only within `visibleWithinM` of the grove, in the frustum */
+    grove: { ...grove.audit, draws: groveDraws.after, visibleWithinM: GROVE_VISIBLE_M, visible: grove.group.visible },
     logArch: true,
     /** round 41 (structures-26): the arch's close-scale detail — grid, cushion tufts, rim splinters, skirt, plants */
     logDetail: log.detail41,
@@ -449,12 +470,14 @@ export async function create(ctx: WorldContext): Promise<WorldSystem> {
       expansion.near.visible = expansion.visible(c.camera);
       expansion.far.visible = expansion.farVisible(c.camera);
       south.group.visible = south.visible(c.camera);
+      grove.group.visible = grove.visible(c.camera);
     },
     onCameraMove(camera) {
       north.visible = northVisible(camera.position.x, camera.position.z);
       expansion.near.visible = expansion.visible(camera);
       expansion.far.visible = expansion.farVisible(camera);
       south.group.visible = south.visible(camera);
+      grove.group.visible = grove.visible(camera);
     },
     dispose() {
       // one-shot: every geometry, material and owned texture is released exactly once, however

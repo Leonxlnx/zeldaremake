@@ -4,8 +4,9 @@
  * CELL m, each grown by one cell:
  *  - SOLID: the shells the camera keeps Link in front of — house trunks, roofs, eaves, porches,
  *    root arches, door and window frames; the log arch's bark, ends, passage tube and cheeks; the
- *    huts' bark, caps and planks, the far hut's column;
+ *    huts' bark, caps and planks, the far hut's column; the grove's decks and bark column;
  *  - SLIM: the parts it only refuses to stand inside — fence and lantern posts, the sign, the pods,
+ *    the grove's rails, stilts and limbs,
  *    the buttress roots, the boughs, the plaza bough's sleeve and the bough itself (the trees
  *    system's limb path, as spheres). A slim part between Link and the camera is allowed to pass.
  * Built for play only (never under a headless capture): ~0.1–0.3 s once at load.
@@ -16,8 +17,8 @@ import { VoxelGrid, worldBounds } from '../util/voxelGrid';
 
 export const CAMERA_SOLID_CELL = 0.25;
 
-const SOLID = /^(trunk|trunk-eave-band|porch|roof|roof-straw|roof-eave|roof-eave-bark|roots-arch|door-frame|window-frame|window-socket|log-bark|log-ends|log-tunnel|log-tunnel-cheeks|log-bark-plates|far-hut-column)$|^distant-house-(bark|cap|cap-skirt|planks):/;
-const SLIM = /^(roots|support-boughs|roof-branches|signpost-wood|lantern-post|lantern-peg|lantern-hanger|pod-lantern|lantern-branch-bark|fence-.+|distant-house-ladder:.+)$/;
+const SOLID = /^(trunk|trunk-eave-band|porch|roof|roof-straw|roof-eave|roof-eave-bark|roots-arch|door-frame|window-frame|window-socket|log-bark|log-ends|log-tunnel|log-tunnel-cheeks|log-bark-plates|far-hut-column|grove-deck|grove-column)$|^distant-house-(bark|cap|cap-skirt|planks):/;
+const SLIM = /^(roots|support-boughs|roof-branches|signpost-wood|lantern-post|lantern-peg|lantern-hanger|pod-lantern|lantern-branch-bark|fence-.+|distant-house-ladder:.+|grove-rails|grove-frame)$/;
 const NOT_SLIM = /-(rope|foot-moss)$/;
 
 export interface CameraSolids {
