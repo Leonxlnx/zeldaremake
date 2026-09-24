@@ -25,7 +25,16 @@ from PIL import Image, ImageDraw, ImageFont
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), '..', '2026-09-23-lane5'))
 from spectra import load, mono  # noqa: E402
 
-FONT = ImageFont.load_default()
+def _font(size, bold=False):
+    for p in (f'/usr/share/fonts/truetype/dejavu/DejaVuSans{"-Bold" if bold else ""}.ttf',):
+        if os.path.exists(p):
+            return ImageFont.truetype(p, size)
+    return ImageFont.load_default()
+
+
+FONT = _font(13)
+TITLE = _font(22, bold=True)
+SUB = _font(15)
 BG = (17, 19, 22)
 GRID = (44, 48, 54)
 BED = (72, 88, 72)
@@ -77,17 +86,43 @@ def panel(draw, box, title, wav_main, wav_bed, sr, seconds, lo, hi, top, bot, co
     xs = np.arange(n) / max(1, n - 1)
     trace(draw, xs, b[:n], box, top, bot, BED, fill=True)
     trace(draw, xs, m[:n], box, top, bot, colour)
-    draw.text((x0 + 2, y0 - 13), title, font=FONT, fill=INK)
+    draw.text((x0 + 2, y0 - 17), title, font=SUB, fill=INK)
+
+
+def single(args):
+    """one take on its own, wide — the background a playhead is swept across in the clip video"""
+    W, H = args.width, 480
+    im = Image.new('RGB', (W, H), BG)
+    d = ImageDraw.Draw(im)
+    a, sr = load(os.path.join(args.single, 'mix.wav'))
+    ab, _ = load(os.path.join(args.single, 'bed.wav'))
+    x, xb = mono(a), mono(ab)
+    y = 92
+    for title, lo, hi, top, bot, colour in [
+        ('the whole mix (forest bed in grey)', 0, 0, -24.0, -60.0, TUNE),
+        ('60-125 Hz only - where the pad sits', 60, 125, -34.0, -74.0, BAND),
+    ]:
+        box = (16, y, W - 16, y + 160)
+        panel(d, box, title, x, xb, sr, args.seconds, lo, hi, top, bot, colour)
+        y += 194
+    d.text((18, 16), args.label, font=TITLE, fill=INK)
+    d.text((18, 46), 'short-term level, 500 ms window; the forest bed is the same render in both takes', font=SUB, fill=(140, 146, 154))
+    im.save(args.out, quality=95)
+    print('wrote', args.out)
 
 
 def main():
     ap = argparse.ArgumentParser()
-    ap.add_argument('--before', required=True)
-    ap.add_argument('--after', required=True)
+    ap.add_argument('--before')
+    ap.add_argument('--after')
+    ap.add_argument('--single', help='render one take wide instead of a before/after pair')
+    ap.add_argument('--label', default='')
     ap.add_argument('--out', required=True)
     ap.add_argument('--seconds', type=int, default=120)
     ap.add_argument('--width', type=int, default=1240)
     args = ap.parse_args()
+    if args.single:
+        return single(args)
 
     W, H = args.width, 552
     im = Image.new('RGB', (W, H), BG)
