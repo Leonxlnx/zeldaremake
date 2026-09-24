@@ -17,6 +17,7 @@ layout(location = 1) in vec4 aParams; // fade progress, fade mode (0 none, 1 in,
 
 uniform mat4 uViewProj;
 uniform vec3 uCamFrac;
+uniform float uSeaSurface; // camera-relative y of vanilla's rendered sea surface (sea level - 1/9)
 
 out vec3 vRel;
 out vec2 vUV;
@@ -61,6 +62,13 @@ void main() {
     float scale = aOrigin.w;
     vec3 local = p + off + U * (c.x * w) + V * (c.y * h);
     vec3 rel = aOrigin.xyz + local * scale;
+    StateInfo s = states[q.y & 0xFFFFu];
+    if ((s.tint.w & 1u) != 0u && (dir == 1u || c.y > 0.5 && dir >= 2u)) {
+        // Fluid tops sit 8/9 of a block high like vanilla's. A voxel that contains the sea surface snaps to it
+        // exactly at every level, so the sea never steps between LOD levels or opens a seam at vanilla water.
+        float top = rel.y;
+        rel.y = (uSeaSurface > top - scale && uSeaSurface < top + 0.5) ? uSeaSurface : top - 1.0 / 9.0;
+    }
     vRel = rel;
     gl_Position = uViewProj * vec4(rel, 1.0);
 
@@ -73,7 +81,6 @@ void main() {
     uint biome = (q.y >> 16) & 0xFFu;
     uint light = q.y >> 24;
     uint fc = dir == 0u ? 0u : dir == 1u ? 1u : 2u;
-    StateInfo s = states[state];
     vSprite = s.uv[fc];
     uint col = s.color[fc];
     vAvg = vec4(float(col & 255u), float((col >> 8) & 255u), float((col >> 16) & 255u), float(col >> 24)) / 255.0;

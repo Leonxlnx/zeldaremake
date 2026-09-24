@@ -18,6 +18,8 @@ rm -rf "$WORK/saves/bench" "$WORK/vista" "$WORK/Distant_Horizons_server_data" "$
 # DH keeps its database inside the world folder, Bobby in .bobby/, Vista in vista/: all wiped above.
 JVM_ARGS="-Xms2G -Xmx${HEAP:-4G} -XX:+UseG1GC -Dbench.world=bench -Dbench.label=$LABEL -Dbench.out=$OUT $*"
 export LIBGL_ALWAYS_SOFTWARE=1 GALLIUM_DRIVER=llvmpipe MESA_GL_VERSION_OVERRIDE=4.6 MESA_GLSL_VERSION_OVERRIDE=460
-exec xvfb-run -a -s "-screen 0 ${RES}x24" \
-  "$HOME/.local/bin/portablemc" --main-dir "$MC/main" --work-dir "$WORK" --output human \
-  start fabric:1.21.1:0.19.5 --jvm /usr/bin/java --jvm-args "$JVM_ARGS" --resolution "$RES" -u Bench
+LAUNCH=("$HOME/.local/bin/portablemc" --main-dir "$MC/main" --work-dir "$WORK" --output human
+  start fabric:1.21.1:0.19.5 --jvm /usr/bin/java --jvm-args "$JVM_ARGS" --resolution "$RES" -u Bench)
+# NO_XVFB=1 renders on the current $DISPLAY (e.g. to screen-record a run).
+if [ "${NO_XVFB:-0}" = "1" ]; then exec "${LAUNCH[@]}"; fi
+exec xvfb-run -a -s "-screen 0 ${RES}x24" "${LAUNCH[@]}"

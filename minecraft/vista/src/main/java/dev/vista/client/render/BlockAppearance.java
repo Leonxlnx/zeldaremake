@@ -159,6 +159,9 @@ final class BlockAppearance implements AutoCloseable {
             buf.putInt(base + 64 + fc * 4, tint);
         }
         buf.putInt(base + 60, s.getLightEmission());
+        // Flag 1: fluid surface. Vanilla draws a still fluid's top 8/9 of a block high; matching it keeps the
+        // hand-off from vanilla water to far water free of a see-through seam.
+        buf.putInt(base + 76, s.getBlock() instanceof net.minecraft.world.level.block.LiquidBlock ? 1 : 0);
     }
 
     /** Alpha-weighted average in linear space, returned as RGBA8 (R in the low byte), alpha = coverage. */

@@ -83,8 +83,10 @@ final class VanillaMask implements LodEngine.VanillaCoverage, AutoCloseable {
         var chunk = src.getChunk(x, z, false);
         if (chunk == null) return false;
         int y = chunk.getHeight(net.minecraft.world.level.levelgen.Heightmap.Types.WORLD_SURFACE, 8, 8);
+        y = Math.max(chunk.getMinBuildHeight(), Math.min(chunk.getMaxBuildHeight() - 1, y));
         var section = ((dev.vista.mixin.ViewAreaInvoker) viewArea).vista$sectionAt(new net.minecraft.core.BlockPos(x * 16 + 8, y, z * 16 + 8));
-        return section == null || section.getCompiled() != net.minecraft.client.renderer.chunk.SectionRenderDispatcher.CompiledSection.UNCOMPILED;
+        // Outside vanilla's view-area grid there is no section: vanilla is not drawing that chunk.
+        return section != null && section.getCompiled() != net.minecraft.client.renderer.chunk.SectionRenderDispatcher.CompiledSection.UNCOMPILED;
     }
 
     @Override

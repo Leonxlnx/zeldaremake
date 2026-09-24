@@ -657,6 +657,9 @@ public final class LodRenderer implements AutoCloseable {
         }
         double fx = cam.x - Math.floor(cam.x), fy = cam.y - Math.floor(cam.y), fz = cam.z - Math.floor(cam.z);
         GL20C.glUniform3f(p.uniform("uCamFrac"), (float) fx, (float) fy, (float) fz);
+        var level = Minecraft.getInstance().level;
+        int sea = level != null ? level.getSeaLevel() : 63;
+        GL20C.glUniform1f(p.uniform("uSeaSurface"), (float) (sea - 1.0 / 9.0 - cam.y));
         float[] fogColor = RenderSystem.getShaderFogColor();
         GL20C.glUniform4f(p.uniform("uFogColor"), fogColor[0], fogColor[1], fogColor[2], fogColor[3]);
         GL20C.glUniform3f(p.uniform("uFog"), RenderSystem.getShaderFogStart(), RenderSystem.getShaderFogEnd(), VistaClient.hazeStrength());

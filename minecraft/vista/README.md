@@ -22,7 +22,7 @@ benchmarks (see *What was tried and replaced* below).
 | Distant terrain appears only after full chunk generation (DH generated 4–12 chunks/s here; a 2048-chunk radius would take hundreds of hours) | **Instant horizon**: sample the world generator's own density and biome noise directly (no chunks, no features, nothing saved), about 50 ms per 32×32 column at any LOD level. Real chunks replace it as they are explored |
 | Holes and pop-in while LODs stream | The LOD tree is only refined when *all* children are ready, and swaps use a complementary dithered cross-fade, so no pixel is ever covered twice or not at all |
 | Cracks and walls at LOD boundaries | Meshes keep boundary "seam" faces in separate groups; the selector decides per node and direction whether the neighbouring space is drawn at another level, and only then draws them. Never toward vanilla chunks |
-| Visible ring and overlap at the vanilla edge | Per-pixel mask of the chunks vanilla has actually *compiled*; far terrain fills everything else, including chunks still loading |
+| Visible ring and overlap at the vanilla edge | Per-pixel mask of the chunks vanilla has actually *compiled*; far terrain fills everything else, including chunks still loading. Water surfaces match vanilla's height exactly |
 | Z-fighting and precision loss far away | Reversed-Z, infinite far plane, 32-bit float depth in Vista's own MSAA target |
 | Shimmering at distance | Block textures on the nearest levels with analytic mip selection, fading to the sprite's gamma-correct average colour; MSAA on the far pass |
 | Main-thread stutter from LOD bookkeeping | Selection runs on its own thread; the render thread only frustum-culls and fills one indirect buffer (0.3–3 ms CPU per frame measured, including uploads) |
@@ -130,6 +130,12 @@ floor of 2; on a real GPU it stays at the configured maximum. Vista is slower wh
 ingestion and uploads share the same four cores with the software rasteriser.
 
 <p>
+<img src="../bench/docs/vista_handoff.jpg" width="100%" alt="Vanilla water continuing into far water without a seam"/>
+</p>
+
+*Hand-off at the vanilla edge (bottom: vanilla chunks, everything beyond: Vista).*
+
+<p>
 <img src="../bench/docs/vista_adaptive_steady.jpg" width="49%" alt="Vista with adaptive detail at its floor"/>
 <img src="../bench/docs/debug_levels.jpg" width="49%" alt="LOD levels debug view"/>
 </p>
@@ -189,6 +195,10 @@ levels, `2` light, `3` tint, `4` ids):
   prerequisites, so the tree collapsed and rebuilt every ~25 s; eviction now skips recently wanted nodes.
 - **Vertex cost.** Non-indexed drawing ran the vertex shader 6 times per quad; a shared index pattern with
   base-vertex offsets brought that down to 4.
+- **Water seam.** Coarse levels put the sea surface up to a voxel above vanilla's (8/9-high) water, and
+  rays passing between the two surfaces left a 1-pixel dark outline around the vanilla area. Fluid tops now
+  use vanilla's height, and any water voxel containing the sea surface snaps to it exactly at every level,
+  which also stops the sea from stepping between levels.
 
 ## Using it
 
