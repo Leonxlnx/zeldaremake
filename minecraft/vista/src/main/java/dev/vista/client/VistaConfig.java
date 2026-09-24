@@ -37,6 +37,11 @@ public final class VistaConfig {
     public double fogStart = 0.12;
     /** Decoded sections kept in RAM (128 KiB each). */
     public int cacheSections = 768;
+    /**
+     * GPU time budget for the far-terrain pass in milliseconds. The detail factor is lowered (down to 2) when
+     * the pass is slower and raised back (up to {@link #detail}) when it is faster; 0 keeps detail fixed.
+     */
+    public double gpuBudgetMs = 3.0;
     /** Sample block textures on near LOD levels instead of flat average colours. */
     public boolean textures = true;
 
@@ -63,6 +68,8 @@ public final class VistaConfig {
         c.msaa = Integer.getInteger("vista.msaa", c.msaa);
         c.renderDistanceChunks = Integer.getInteger("vista.distance", c.renderDistanceChunks);
         c.threads = Integer.getInteger("vista.threads", c.threads);
+        String budget = System.getProperty("vista.gpuBudgetMs");
+        if (budget != null) c.gpuBudgetMs = Double.parseDouble(budget);
         return c;
     }
 

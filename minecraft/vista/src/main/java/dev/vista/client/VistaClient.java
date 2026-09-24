@@ -149,7 +149,8 @@ public final class VistaClient implements ClientModInitializer {
                         r.gpuBytes() / 1048576.0, r.gpuCapacityBytes() / 1048576.0, r.queuedMeshes(), r.queuedUploadBytes() / 1048576.0,
                         e.pendingJobs(), e.nodeCount(), s.ingestor.pending()),
                 "[Vista] " + e.stats().summary(),
-                String.format("[Vista] heap %d/%d MiB, distance %d chunks, detail %.1f, levels 0-%d",
-                        (rt.totalMemory() - rt.freeMemory()) >> 20, rt.maxMemory() >> 20, config.renderDistanceChunks, config.detail, e.topLevel()));
+                String.format("[Vista] heap %d/%d MiB, distance %d chunks, detail %.1f/%.1f, far pass GPU %.2f ms (budget %.1f), levels 0-%d",
+                        (rt.totalMemory() - rt.freeMemory()) >> 20, rt.maxMemory() >> 20, config.renderDistanceChunks, e.detail(), config.detail,
+                        r.statGpuMs, config.gpuBudgetMs, e.topLevel()));
     }
 }

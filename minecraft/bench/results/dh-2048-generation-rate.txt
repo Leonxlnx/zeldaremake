@@ -1,0 +1,2 @@
+[05:18:36] [DH-World Gen Progress Updater Thread[0]] [INFO] DH is generating chunks. 16,777,136 left. This message can be hidden in the DH config. ETA: 373h 11m 21s at 12 chunks/sec
+[05:22:22] [DH-World Gen Progress Updater Thread[0]] [INFO] DH is generating chunks. 16,775,536 left. ETA: 1178h 9m 52s at 4 chunks/sec

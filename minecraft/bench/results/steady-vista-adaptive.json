@@ -1,0 +1,92 @@
+{
+  "label": "steady-vista-adaptive",
+  "world": "bench",
+  "seed": 20260924,
+  "vanillaRenderDistance": 12,
+  "window": "1280x720",
+  "gpu": "llvmpipe (LLVM 20.1.2, 256 bits)",
+  "glVersion": "4.6 (Core Profile) Mesa 25.2.8-0ubuntu0.24.04.1",
+  "cores": 4,
+  "mods": [
+    "io_airlift_aircompressor@0.27",
+    "mixinextras@0.5.5",
+    "vista@0.1.0",
+    "vistabench@0.1.0"
+  ],
+  "phases": {
+    "load": {
+      "frames": 1284,
+      "seconds": 179.96,
+      "avgFps": 7.14,
+      "low1PctFps": 2.55,
+      "low01PctFps": 1.83,
+      "p50Ms": 123.56,
+      "p99Ms": 334.39,
+      "maxMs": 547.77,
+      "spikesOver50Ms": 1284,
+      "cpuUtilPct": 85.27
+    },
+    "steady": {
+      "frames": 256,
+      "seconds": 29.99,
+      "avgFps": 8.54,
+      "low1PctFps": 6.91,
+      "low01PctFps": 6.64,
+      "p50Ms": 116.13,
+      "p99Ms": 132.48,
+      "maxMs": 150.68,
+      "spikesOver50Ms": 256,
+      "cpuUtilPct": 80.99
+    },
+    "fly": {
+      "frames": 74,
+      "seconds": 19.86,
+      "avgFps": 3.73,
+      "low1PctFps": 2.65,
+      "low01PctFps": 2.65,
+      "p50Ms": 260.29,
+      "p99Ms": 377.17,
+      "maxMs": 377.17,
+      "spikesOver50Ms": 74,
+      "cpuUtilPct": 100.86
+    },
+    "spin": {
+      "frames": 30,
+      "seconds": 7.81,
+      "avgFps": 3.84,
+      "low1PctFps": 3.01,
+      "low01PctFps": 3.01,
+      "p50Ms": 262.25,
+      "p99Ms": 332.74,
+      "maxMs": 332.74,
+      "spikesOver50Ms": 30,
+      "cpuUtilPct": 101.66
+    },
+    "hold": {
+      "frames": 67,
+      "seconds": 19.84,
+      "avgFps": 3.38,
+      "low1PctFps": 2.37,
+      "low01PctFps": 2.37,
+      "p50Ms": 301.34,
+      "p99Ms": 421.78,
+      "maxMs": 421.78,
+      "spikesOver50Ms": 67,
+      "cpuUtilPct": 100.0
+    },
+    "high": {
+      "frames": 206,
+      "seconds": 19.86,
+      "avgFps": 10.37,
+      "low1PctFps": 7.05,
+      "low01PctFps": 6.79,
+      "p50Ms": 93.45,
+      "p99Ms": 131.23,
+      "maxMs": 147.25,
+      "spikesOver50Ms": 206,
+      "cpuUtilPct": 89.31
+    }
+  },
+  "maxHeapMiB": 1933,
+  "maxRssMiB": 3465
+}

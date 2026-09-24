@@ -50,7 +50,7 @@ import java.util.concurrent.atomic.AtomicLong;
 
 /**
  * Draws the far terrain. All section meshes live in one shader-storage buffer; each frame the visible,
- * camera-facing face groups of the current selection are turned into one {@code glMultiDrawArraysIndirect}
+ * camera-facing face groups of the current selection are turned into one {@code glMultiDrawElementsIndirect}
  * for opaque terrain and one for (back-to-front sorted) translucent terrain. The pass renders into its own
  * multisampled target with a reversed-Z, infinite-far projection and a 32-bit float depth buffer (no depth
  * fighting at any distance), then is composited under vanilla terrain with premultiplied alpha.
@@ -58,7 +58,7 @@ import java.util.concurrent.atomic.AtomicLong;
 public final class LodRenderer implements AutoCloseable {
     private static final float NEAR = 0.5f;
     private static final int META_STRIDE = 32;
-    private static final int CMD_STRIDE = 16;
+    private static final int CMD_STRIDE = 20;
 
     private record PendingMesh(long key, MeshData mesh, int version) {}
 
@@ -83,7 +83,8 @@ public final class LodRenderer implements AutoCloseable {
     private boolean initialised, failed;
     private boolean clipControl;
     private GlProgram maskedProgram, solidProgram, compositeProgram;
-    private int quadBuffer, metaBuffer, indirectBuffer, vao, emptyVao;
+    private int quadBuffer, metaBuffer, indirectBuffer, indexBuffer, vao, emptyVao;
+    private int indexQuads;
     private RangeAllocator allocator;
     private long maxQuads;
     private int fbo, colorRb, depthRb, resolveFbo, resolveTex, fbW, fbH, fbSamples;
@@ -105,7 +106,13 @@ public final class LodRenderer implements AutoCloseable {
     // Stats for the debug overlay / benchmarks.
     public volatile int statVisible, statCommands, statSelected, statTransCommands;
     public volatile long statQuadsDrawn, statUploadBytes, statGpuBytes;
-    public volatile double statCpuMs, statPrepMs;
+    public volatile double statCpuMs, statPrepMs, statGpuMs = Double.NaN;
+
+    private static final int QUERY_RING = 4;
+    private final int[] timeQueries = new int[QUERY_RING * 2];
+    private final boolean[] queryPending = new boolean[QUERY_RING];
+    private double gpuEma = Double.NaN;
+    private long lastDetailChange;
 
     public LodRenderer(LodEngine engine, StateRegistry states, BiomeRegistry biomes, VistaConfig config) {
         this.engine = engine;
@@ -160,9 +167,12 @@ public final class LodRenderer implements AutoCloseable {
             GL20C.glEnableVertexAttribArray(1);
             GL20C.glVertexAttribPointer(1, 4, GL11C.GL_FLOAT, false, META_STRIDE, 16);
             GL33C.glVertexAttribDivisor(1, 1);
+            indexBuffer = GL15C.glGenBuffers();
+            ensureIndexCapacity(65536);
             GL30C.glBindVertexArray(0);
             GL15C.glBindBuffer(GL15C.GL_ARRAY_BUFFER, 0);
             emptyVao = GL30C.glGenVertexArrays();
+            GL15C.glGenQueries(timeQueries);
             initialised = true;
             VistaClient.LOG.info("Vista renderer ready: GL {}, {} MiB geometry buffer (max {} MiB), clip control {}",
                     GL11C.glGetString(GL11C.GL_VERSION), initial * 8L >> 20, maxQuads * 8 >> 20, clipControl);
@@ -206,9 +216,66 @@ public final class LodRenderer implements AutoCloseable {
         int transCmds = cmdCount - opaqueCmds;
 
         long t1 = System.nanoTime();
+        int slot = (int) (frame % QUERY_RING);
+        readGpuTime(slot);
+        GL33C.glQueryCounter(timeQueries[slot * 2], GL33C.GL_TIMESTAMP);
         drawPass(vp, cam, camCX, camCZ, opaqueCmds, transCmds, main);
+        GL33C.glQueryCounter(timeQueries[slot * 2 + 1], GL33C.GL_TIMESTAMP);
+        queryPending[slot] = true;
+        adaptDetail();
         statPrepMs = (t1 - t0) / 1e6;
         statCpuMs = (System.nanoTime() - t0) / 1e6;
+    }
+
+    /** Collects the far-pass GPU time recorded {@code QUERY_RING} frames ago, without stalling. */
+    private void readGpuTime(int slot) {
+        if (!queryPending[slot]) return;
+        int end = timeQueries[slot * 2 + 1];
+        if (GL15C.glGetQueryObjecti(end, GL15C.GL_QUERY_RESULT_AVAILABLE) == 0) return;
+        long t0 = GL33C.glGetQueryObjecti64(timeQueries[slot * 2], GL15C.GL_QUERY_RESULT);
+        long t1 = GL33C.glGetQueryObjecti64(end, GL15C.GL_QUERY_RESULT);
+        queryPending[slot] = false;
+        double ms = (t1 - t0) / 1e6;
+        gpuEma = Double.isNaN(gpuEma) ? ms : gpuEma * 0.9 + ms * 0.1;
+        statGpuMs = gpuEma;
+    }
+
+    /**
+     * Holds the far pass inside the GPU budget by scaling the detail factor: a fast GPU keeps full detail, a
+     * weak one trades distant geometric detail for frame rate instead of the other way round. Changes are
+     * rate-limited and hysteretic because every change re-selects (and cross-fades) part of the tree.
+     */
+    private void adaptDetail() {
+        double budget = config.gpuBudgetMs;
+        if (budget <= 0 || Double.isNaN(gpuEma)) return;
+        long now = System.currentTimeMillis();
+        if (now - lastDetailChange < 1500) return;
+        double d = engine.detail();
+        if (gpuEma > budget * 1.2 && d > 2) {
+            engine.setDetail(d * 0.85);
+            lastDetailChange = now;
+        } else if (gpuEma < budget * 0.6 && d < config.detail) {
+            engine.setDetail(d * 1.1);
+            lastDetailChange = now;
+        }
+    }
+
+    /** Shared quad index pattern bound to the VAO; large enough for the biggest single draw. */
+    private void ensureIndexCapacity(int quads) {
+        if (quads <= indexQuads) return;
+        int n = Math.max(quads, indexQuads * 2);
+        ByteBuffer idx = MemoryUtil.memAlloc(n * 6 * 4);
+        for (int q = 0; q < n; q++) {
+            int v = q * 4;
+            idx.putInt(v).putInt(v + 1).putInt(v + 2).putInt(v).putInt(v + 2).putInt(v + 3);
+        }
+        idx.flip();
+        GL30C.glBindVertexArray(vao);
+        GL15C.glBindBuffer(GL15C.GL_ELEMENT_ARRAY_BUFFER, indexBuffer);
+        GL15C.glBufferData(GL15C.GL_ELEMENT_ARRAY_BUFFER, idx, GL15C.GL_STATIC_DRAW);
+        GL30C.glBindVertexArray(0);
+        MemoryUtil.memFree(idx);
+        indexQuads = n;
     }
 
     private void ensureFramebuffer(int w, int h) {
@@ -275,6 +342,7 @@ public final class LodRenderer implements AutoCloseable {
                 continue;
             }
             upload(off, pm.mesh.quads);
+            ensureIndexCapacity(quads);
             if (g == null) {
                 g = new GpuSection();
                 sections.put(pm.key, g);
@@ -345,7 +413,8 @@ public final class LodRenderer implements AutoCloseable {
             long k = e.getLongKey();
             if (currentSet.contains(k) || fadeOut.containsKey(k)) continue;
             keys[n] = k;
-            used[n++] = e.getValue().lastUsed;
+            // Nodes the selector still relies on (split prerequisites) go last.
+            used[n++] = e.getValue().lastUsed + (engine.recentlyWanted(k, 5000) ? 1L << 40 : 0);
         }
         Integer[] order = new Integer[n];
         for (int i = 0; i < n; i++) order[i] = i;
@@ -369,7 +438,9 @@ public final class LodRenderer implements AutoCloseable {
             long k = e.getLongKey();
             if (currentSet.contains(k) || fadeOut.containsKey(k)) continue;
             GpuSection g = e.getValue();
-            if (now - g.lastUsed > 20_000) {
+            // Intermediate nodes are never drawn while their children are, but the selector requires their
+            // meshes to keep the split; evicting them would collapse and rebuild whole subtrees.
+            if (now - g.lastUsed > 20_000 && !engine.recentlyWanted(k, 5000)) {
                 if (g.offset >= 0) allocator.free(g.offset, g.quads);
                 it.remove();
                 engine.onMeshEvicted(k);
@@ -492,7 +563,7 @@ public final class LodRenderer implements AutoCloseable {
                     if (solidInts + 4 > solid.length) solid = Arrays.copyOf(solid, solid.length * 2);
                     solid[solidInts++] = count * 6;
                     solid[solidInts++] = 1;
-                    solid[solidInts++] = (g.offset + start) * 6;
+                    solid[solidInts++] = (g.offset + start) * 4;
                     solid[solidInts++] = metaIndex;
                 }
                 quadsDrawn += count;
@@ -559,10 +630,11 @@ public final class LodRenderer implements AutoCloseable {
     }
 
     private void addCommand(int quads, int firstQuad, int metaIndex) {
-        addCommandRaw(quads * 6, 1, firstQuad * 6, metaIndex);
+        addCommandRaw(quads * 6, 1, firstQuad * 4, metaIndex);
     }
 
-    private void addCommandRaw(int count, int instances, int first, int baseInstance) {
+    /** DrawElementsIndirectCommand: count, instanceCount, firstIndex (always 0), baseVertex, baseInstance. */
+    private void addCommandRaw(int count, int instances, int baseVertex, int baseInstance) {
         if (cmds.remaining() < CMD_STRIDE) {
             ByteBuffer nb = MemoryUtil.memAlloc(cmds.capacity() * 2);
             cmds.flip();
@@ -570,7 +642,7 @@ public final class LodRenderer implements AutoCloseable {
             MemoryUtil.memFree(cmds);
             cmds = nb;
         }
-        cmds.putInt(count).putInt(instances).putInt(first).putInt(baseInstance);
+        cmds.putInt(count).putInt(instances).putInt(0).putInt(baseVertex).putInt(baseInstance);
         cmdCount++;
     }
 
@@ -645,12 +717,12 @@ public final class LodRenderer implements AutoCloseable {
             if (maskedCmds > 0) {
                 GL20C.glUseProgram(maskedProgram.id);
                 GL20C.glUniform1f(maskedProgram.uniform("uAlpha"), 1f);
-                GL43C.glMultiDrawArraysIndirect(GL11C.GL_TRIANGLES, 0L, maskedCmds, CMD_STRIDE);
+                GL43C.glMultiDrawElementsIndirect(GL11C.GL_TRIANGLES, GL11C.GL_UNSIGNED_INT, 0L, maskedCmds, CMD_STRIDE);
             }
             if (opaqueCmds > maskedCmds) {
                 GL20C.glUseProgram(solidProgram.id);
                 GL20C.glUniform1f(solidProgram.uniform("uAlpha"), 1f);
-                GL43C.glMultiDrawArraysIndirect(GL11C.GL_TRIANGLES, (long) maskedCmds * CMD_STRIDE, opaqueCmds - maskedCmds, CMD_STRIDE);
+                GL43C.glMultiDrawElementsIndirect(GL11C.GL_TRIANGLES, GL11C.GL_UNSIGNED_INT, (long) maskedCmds * CMD_STRIDE, opaqueCmds - maskedCmds, CMD_STRIDE);
             }
             if (transCmds > 0) {
                 GL20C.glUseProgram(maskedProgram.id);
@@ -658,7 +730,7 @@ public final class LodRenderer implements AutoCloseable {
                 RenderSystem.enableBlend();
                 GlStateManager._blendFuncSeparate(GL11C.GL_ONE, GL11C.GL_ONE_MINUS_SRC_ALPHA, GL11C.GL_ONE, GL11C.GL_ONE_MINUS_SRC_ALPHA);
                 GlStateManager._depthMask(false);
-                GL43C.glMultiDrawArraysIndirect(GL11C.GL_TRIANGLES, (long) opaqueCmds * CMD_STRIDE, transCmds, CMD_STRIDE);
+                GL43C.glMultiDrawElementsIndirect(GL11C.GL_TRIANGLES, GL11C.GL_UNSIGNED_INT, (long) opaqueCmds * CMD_STRIDE, transCmds, CMD_STRIDE);
                 GlStateManager._depthMask(true);
             }
 
@@ -706,8 +778,10 @@ public final class LodRenderer implements AutoCloseable {
             GL15C.glDeleteBuffers(quadBuffer);
             GL15C.glDeleteBuffers(metaBuffer);
             GL15C.glDeleteBuffers(indirectBuffer);
+            GL15C.glDeleteBuffers(indexBuffer);
             GL30C.glDeleteVertexArrays(vao);
             GL30C.glDeleteVertexArrays(emptyVao);
+            GL15C.glDeleteQueries(timeQueries);
             maskedProgram.close();
             solidProgram.close();
             compositeProgram.close();

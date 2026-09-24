@@ -33,6 +33,7 @@ import java.util.Map;
  * Scripted, mod-agnostic benchmark. Identical camera script and settings for every renderer under test:
  * <ol>
  *   <li>load: hover at the start point for {@code bench.warmup} s, screenshots at fixed times (fill speed)</li>
+ *   <li>steady (optional): keep hovering for {@code bench.steady} s once loading is done (pure render cost)</li>
  *   <li>fly: straight line at {@code bench.speed} blocks/s for {@code bench.fly} s (streaming under load)</li>
  *   <li>spin: one full turn in {@code bench.spin} s (culling / submission cost)</li>
  *   <li>hold: settle and take the final comparison screenshots (level view and high-altitude view)</li>
@@ -42,7 +43,7 @@ import java.util.Map;
 public final class BenchClient implements ClientModInitializer {
     private static final Logger LOG = LoggerFactory.getLogger("vistabench");
 
-    private enum Phase { IDLE, LOADING, SETUP, LOAD, FLY, SPIN, HOLD, HIGH, DONE }
+    private enum Phase { IDLE, LOADING, SETUP, LOAD, STEADY, FLY, SPIN, HOLD, HIGH, DONE }
 
     private final String world = System.getProperty("bench.world");
     private final String label = System.getProperty("bench.label", "run");
@@ -51,6 +52,8 @@ public final class BenchClient implements ClientModInitializer {
     private final int rd = Integer.getInteger("bench.rd", 12);
     private final double warmup = dbl("bench.warmup", 60), fly = dbl("bench.fly", 30), spin = dbl("bench.spin", 10), hold = dbl("bench.hold", 20);
     private final double speed = dbl("bench.speed", 40);
+    /** Optional steady-state phase after load: camera still, streaming finished, measures pure render cost. */
+    private final double steady = dbl("bench.steady", 0);
     private final double sx = dbl("bench.x", 0), sy = dbl("bench.y", 140), sz = dbl("bench.z", 0);
     private final float pitch = (float) dbl("bench.pitch", 4);
     private final float yaw = (float) dbl("bench.yaw", -90);
@@ -162,7 +165,14 @@ public final class BenchClient implements ClientModInitializer {
                     shot(mc, String.format("load_%03ds", (int) loadShots[shotIndex]));
                     shotIndex++;
                 }
-                if (elapsed() >= warmup) enter(Phase.FLY);
+                if (elapsed() >= warmup) enter(steady > 0 ? Phase.STEADY : Phase.FLY);
+            }
+            case STEADY -> {
+                place(mc, new Vec3(sx, sy, sz), yaw, pitch);
+                if (elapsed() >= steady) {
+                    shot(mc, "steady");
+                    enter(Phase.FLY);
+                }
             }
             case FLY -> {
                 double t = Math.min(elapsed(), fly);

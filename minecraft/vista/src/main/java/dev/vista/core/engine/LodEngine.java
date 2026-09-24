@@ -33,7 +33,10 @@ public final class LodEngine implements AutoCloseable {
         public int threads = Math.max(1, Runtime.getRuntime().availableProcessors() - 2);
         public int cacheSections = 768;
         public boolean generate = true;
-        /** A node at level L is split into its children while the camera is closer than {@code subdivide * size(L)}. */
+        /**
+         * A node at level L is split into its children while the camera is closer than {@code subdivide * size(L)}.
+         * This is the maximum; {@link LodEngine#setDetail} may lower the effective value at runtime.
+         */
         public double subdivide = 8;
         public double maxDistance = 32768;
 
@@ -144,6 +147,25 @@ public final class LodEngine implements AutoCloseable {
     }
 
     public void markSelectionDirty() { selectionDirty = true; }
+
+    private volatile double detail = Double.NaN;
+
+    /** Effective detail factor (clamped to the configured maximum); used by adaptive quality. */
+    public void setDetail(double d) {
+        double v = Math.max(2, Math.min(config.subdivide, d));
+        if (v != detail) {
+            detail = v;
+            selectionDirty = true;
+        }
+    }
+
+    public double detail() { return Double.isNaN(detail) ? config.subdivide : detail; }
+
+    /** True if the selector needed this node (drawn, or as a split prerequisite) within the last {@code ms}. */
+    public boolean recentlyWanted(long key, long ms) {
+        Node n = nodes.get(key);
+        return n != null && System.currentTimeMillis() - n.lastWanted < ms;
+    }
 
     // ------------------------------------------------------------------------------------------ geometry
 
@@ -706,7 +728,7 @@ public final class LodEngine implements AutoCloseable {
         if (d > config.maxDistance) return;
         if (vanillaCovers(key)) return;
         int level = SectionKey.level(key);
-        if (level > 0 && d < config.subdivide * SectionKey.size(level)) {
+        if (level > 0 && d < detail() * SectionKey.size(level)) {
             if (childrenReady(key, d, now)) {
                 int cl = level - 1;
                 int base = minSy(cl);

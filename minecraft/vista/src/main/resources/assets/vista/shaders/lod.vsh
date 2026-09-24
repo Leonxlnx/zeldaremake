@@ -1,6 +1,7 @@
 #version 430 core
 
-// One quad = 2 uints (see MeshData). Vertices are generated from gl_VertexID; no vertex buffers.
+// One quad = 2 uints (see MeshData). Vertices are generated from gl_VertexID (base vertex = 4 x quad offset);
+// no vertex buffers.
 layout(std430, binding = 0) readonly buffer Quads { uvec2 quads[]; };
 
 struct StateInfo {
@@ -30,8 +31,9 @@ flat out float vLevel;
 flat out vec3 vIds;
 
 const float SHADE[6] = float[](0.5, 1.0, 0.8, 0.8, 0.6, 0.6);
-const vec2 CORNERS[6] = vec2[](vec2(0, 0), vec2(1, 0), vec2(1, 1), vec2(0, 0), vec2(1, 1), vec2(0, 1));
-const vec2 CORNERS_FLIP[6] = vec2[](vec2(0, 0), vec2(1, 1), vec2(1, 0), vec2(0, 0), vec2(0, 1), vec2(1, 1));
+// 4 vertices per quad, shared index pattern (0 1 2, 0 2 3): reversing the corner order flips the winding.
+const vec2 CORNERS[4] = vec2[](vec2(0, 0), vec2(1, 0), vec2(1, 1), vec2(0, 1));
+const vec2 CORNERS_FLIP[4] = vec2[](vec2(0, 0), vec2(0, 1), vec2(1, 1), vec2(1, 0));
 
 vec3 rgb(uint c) {
     return vec3(float((c >> 16) & 255u), float((c >> 8) & 255u), float(c & 255u)) / 255.0;
@@ -39,8 +41,8 @@ vec3 rgb(uint c) {
 
 void main() {
     uint vid = uint(gl_VertexID);
-    uvec2 q = quads[vid / 6u];
-    uint corner = vid % 6u;
+    uvec2 q = quads[vid >> 2];
+    uint corner = vid & 3u;
     uint w0 = q.x;
     vec3 p = vec3(float(w0 & 31u), float((w0 >> 5) & 31u), float((w0 >> 10) & 31u));
     float w = float(((w0 >> 15) & 31u) + 1u);

@@ -1,0 +1,78 @@
+{
+  "label": "final-vanilla-rd12",
+  "world": "bench",
+  "seed": 20260924,
+  "vanillaRenderDistance": 12,
+  "window": "1280x720",
+  "gpu": "llvmpipe (LLVM 20.1.2, 256 bits)",
+  "glVersion": "4.6 (Core Profile) Mesa 25.2.8-0ubuntu0.24.04.1",
+  "cores": 4,
+  "mods": [
+    "mixinextras@0.5.5",
+    "vistabench@0.1.0"
+  ],
+  "phases": {
+    "load": {
+      "frames": 2341,
+      "seconds": 90.01,
+      "avgFps": 26.01,
+      "low1PctFps": 9.57,
+      "low01PctFps": 6.22,
+      "p50Ms": 37.13,
+      "p99Ms": 86.51,
+      "maxMs": 199.5,
+      "spikesOver50Ms": 178,
+      "cpuUtilPct": 72.37
+    },
+    "fly": {
+      "frames": 644,
+      "seconds": 19.98,
+      "avgFps": 32.24,
+      "low1PctFps": 11.49,
+      "low01PctFps": 9.1,
+      "p50Ms": 28.04,
+      "p99Ms": 80.45,
+      "maxMs": 109.85,
+      "spikesOver50Ms": 66,
+      "cpuUtilPct": 95.71
+    },
+    "spin": {
+      "frames": 169,
+      "seconds": 7.97,
+      "avgFps": 21.21,
+      "low1PctFps": 7.36,
+      "low01PctFps": 7.36,
+      "p50Ms": 43.06,
+      "p99Ms": 113.19,
+      "maxMs": 135.96,
+      "spikesOver50Ms": 70,
+      "cpuUtilPct": 93.63
+    },
+    "hold": {
+      "frames": 357,
+      "seconds": 19.98,
+      "avgFps": 17.87,
+      "low1PctFps": 8.5,
+      "low01PctFps": 8.01,
+      "p50Ms": 51.23,
+      "p99Ms": 111.14,
+      "maxMs": 124.86,
+      "spikesOver50Ms": 211,
+      "cpuUtilPct": 71.74
+    },
+    "high": {
+      "frames": 2429,
+      "seconds": 19.98,
+      "avgFps": 121.57,
+      "low1PctFps": 72.47,
+      "low01PctFps": 41.07,
+      "p50Ms": 7.89,
+      "p99Ms": 11.52,
+      "maxMs": 31.27,
+      "spikesOver50Ms": 0,
+      "cpuUtilPct": 83.59
+    }
+  },
+  "maxHeapMiB": 1938,
+  "maxRssMiB": 3312
+}
