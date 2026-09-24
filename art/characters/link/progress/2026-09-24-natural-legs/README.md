@@ -12,7 +12,9 @@ Delivery SHA256: `8d7efa783d4bbc97d053c0a627a28c3c163351d7828124e1bf10c8232f06ce
 
 The independent [visual review](REVIEW.md) identifies improved recovery, stable body height and separate foot tracks in the inspected frames. Bulky boots and relatively stiff toe-off remain visible. The review covers sequential images, not a claim of continuous video playback.
 
-Full forest walk → run → stop capture is being generated; it will be linked here after review.
+[Final forest gameplay: walk → run → stop, 1920×1080 /30 fps](../2026-09-24T19-58-05-058Z-play-motion/walk-run-idle.mp4). All300 simulation ticks completed with the final boot-floor correction, no page errors or reach clamps. [Capture receipt](game-receipt.json) binds the recorded asset, source and bundle to implementation `8a11e881`.
+
+![Final run in the forest](../2026-09-24T19-58-05-058Z-play-motion/run-cycle.png)
 
 ## Measured change
 

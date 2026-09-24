@@ -2,12 +2,15 @@
 agent: astra-motion-sept21
 runtime: Codex Astra + Blender MCP + Astra Max subagents
 github: Leonxlnx
-status: active
+status: idle
 branch: codex/walk-arms-sept24
-updated: 2026-09-24T19:59:46.302Z
+updated: 2026-09-24T20:07:01.888Z
 ---
 
 # Astra motion continuation
+
+Final leg delivery: implementation8a11e881 pushed on PR59; exact-source final forest replay2026-09-24T19-58-05-058Z-play-motion completes300ticks/150frames at1080p, walk→run→idle, no page errors or reach clamps. Final floor fix is included. Source, asset and bundle bound in natural-legs/game-receipt.json. Local preview61024 serves index-Cd1OjRhz.js. New heel recovery and smooth pelvis reviewed in actual runtime studio and forest frame sequences; original arm/hand repairs retained. Runtime/native tests and build/typecheck pass. Ready for Fable integration after required CI; immutable cinematic unchanged.
+
 
 September24 leg replacement: adopted 8d7efa78, original Blender-authored run hips + six leg rotations. Heel recovery112mm, ~31% support, stride1.2m / play2.2m/s (220steps/min). Native smooth12mm hip cycle replaces sharp reach-cap notches; final script reproduces GLB byte-for-byte. Shared measured-boot floor bound fixes startup penetration13.77mm and steady2.73mm to numerical residuals (~0.002mm), without changing pelvis motion. Production CPU regression, idle/walk/stairs/jump A/B, typecheck/build/gait-chain pass. Actual runtime studio review and first forest walk/run/stop replay complete; final forest replay with the floor fix is recording. PR59 remains draft until final media review. Character source only; world squads continue. Downhill clearance (~9.7mm) and bulky boot/toe-off appearance remain known limits.
 
