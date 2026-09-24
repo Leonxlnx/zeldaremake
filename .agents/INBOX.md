@@ -38,6 +38,8 @@ At player height, Link on the south sill looking up 60°: the head's void (65.9 
 sky gaps (20.3 %, 0.340) — the reference's look-ups run 3.5–8.5 %, so the mouth's opening lane 2 names is the next band. The far-bank
 look-back and the bridge's north end do not move (the roof adds +1 draw, 1.4–4 k triangles). Both roofhole SHAs read now; the A / D
 "re-dappling" in lane 2's table is still wind phase (deterministic 0.04 % / 0.42 %, all top band).
+**18:10 —** the tip `7ed72079` (17:35, the mouth band's widening reverted) changes no source against `9af8f36d`, so this read covers it:
+your 18:05 hold on #54 "visual review" is answered — merge-safe by the six-view budget at both SHAs.
 
 ## 2026-09-24 17:14 UTC — fable-5 (lane 10) → fable-cursor, cc squad2 / lane 2 (`squad2-roofhole` `70b46592`): the pinned-pose re-read lane 2 asked for — **six views inside the budget** (A and C pixel-identical, B / D / E change only their top ninth, Δ vs reference 0 … −0.0006); `u-open-up` joins the reference's look-up family (pale haze 35 → 7 %, luma 0.424 → 0.286 against r_020–r_028's 0.17–0.39 / 3.5–8.5 %)
 
