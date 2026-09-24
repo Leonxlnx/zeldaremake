@@ -30,6 +30,79 @@ export const MUSIC_FILES = ['audio/music.ogg', 'audio/music.mp3'];
 declare const __ZR_MUSIC_FILES__: string[] | undefined;
 const PRESENT_MUSIC_FILES: string[] = typeof __ZR_MUSIC_FILES__ !== 'undefined' ? __ZR_MUSIC_FILES__ : MUSIC_FILES;
 
+// ---- the file slot's level ----------------------------------------------------------------------
+/**
+ * The gated RMS the music bus should be fed (dBFS), measured as the level the placeholder plays at.
+ *
+ * The placeholder is synthesised, so its level is whatever this file asks for, and every balance
+ * the sound lane has measured was measured against it. A dropped-in track is not: it arrives
+ * already mastered, and masters run −14 to −8 LUFS — thirty-odd decibels over a forest that sits
+ * at −40. Nothing between the fetch and the bus looked at it, so whatever the track's mastering
+ * engineer chose became this game's mix.
+ *
+ * Measured: an original track normalised to −10 LUFS dropped into this slot rendered at −22.7
+ * LUFS against the bed's −40.4 — **17.7 dB over the wood**, where the placeholder sits 5.6 over —
+ * and took the whole mix from −33.0 to −22.6 LUFS with the true peak up from −16.8 to −11.0 dBFS.
+ * The forest was inaudible under it, and none of that was a decision anybody made.
+ *
+ * −24.9 is the placeholder's own bus level: its rendered stem measures −36.9 dBFS gated over the
+ * blocks where it is sounding, and the bus is 12 dB down (graph.ts).
+ */
+export const MUSIC_BUS_TARGET_DB = -24.9;
+/** how far the match may move a file either way (dB) — a rail against a silent or a clipped track */
+export const MUSIC_MATCH_RANGE_DB: [number, number] = [-30, 12];
+
+/** the decoded audio `gatedRmsDb` needs; an AudioBuffer satisfies it, and so does a test stub */
+export interface PcmBuffer {
+  numberOfChannels: number;
+  length: number;
+  sampleRate: number;
+  getChannelData(channel: number): Float32Array;
+}
+
+/**
+ * How loud a decoded track is *while it is sounding*: mean power over 400 ms blocks, dropping every
+ * block more than `down` dB under the 95th percentile so a quiet intro, a fade or the gap between
+ * two movements does not pull the answer down. That gate is the part of BS.1770 that matters here;
+ * leaving out the K-weighting costs a decibel or two on music, which is well inside what a gain
+ * match needs and keeps this a single pass over the samples at load time.
+ */
+export function gatedRmsDb(buffer: PcmBuffer, block = 0.4, down = 20): number {
+  const n = Math.max(1, Math.round(block * buffer.sampleRate));
+  const frames = Math.floor(buffer.length / n);
+  if (frames < 1) return -120;
+  const data: Float32Array[] = [];
+  for (let c = 0; c < buffer.numberOfChannels; c++) data.push(buffer.getChannelData(c));
+  const power = new Float64Array(frames);
+  for (let f = 0; f < frames; f++) {
+    let sum = 0;
+    for (let i = f * n; i < (f + 1) * n; i++) {
+      let m = 0;
+      for (const d of data) m += d[i];
+      m /= data.length || 1;
+      sum += m * m;
+    }
+    power[f] = sum / n;
+  }
+  const sorted = Float64Array.from(power).sort();
+  const gate = sorted[Math.min(frames - 1, Math.floor(frames * 0.95))] * Math.pow(10, -down / 10);
+  let kept = 0;
+  let total = 0;
+  for (const p of power) {
+    if (p <= gate) continue;
+    total += p;
+    kept++;
+  }
+  if (!kept) return -120;
+  return 10 * Math.log10(Math.max(total / kept, 1e-12));
+}
+
+/** the gain a decoded file plays at so it meets the level the placeholder was balanced at */
+export function fileGain(rmsDb: number): number {
+  const [lo, hi] = MUSIC_MATCH_RANGE_DB;
+  return Math.pow(10, Math.max(lo, Math.min(hi, MUSIC_BUS_TARGET_DB - rmsDb)) / 20);
+}
+
 // ---- the score --------------------------------------------------------------------------------
 const BPM = 76;
 const BEAT = 60 / BPM;
@@ -318,12 +391,14 @@ export function createMusic(ctx: BaseAudioContext, out: AudioNode, reverbSend: A
       const src = ctx.createBufferSource();
       src.buffer = buffer;
       src.loop = true;
-      const g = gain(ctx, 1);
+      // the owner's own track arrives mastered; meet the placeholder's level rather than its own
+      const rms = gatedRmsDb(buffer);
+      const g = gain(ctx, fileGain(rms));
       src.connect(g).connect(out);
       src.start(Math.max(startAt, ctx.currentTime + 0.05));
       nodes.push(src);
       source = 'file';
-      console.info(`[audio] music: file (${buffer.duration.toFixed(1)} s loop)`);
+      console.info(`[audio] music: file (${buffer.duration.toFixed(1)} s loop, ${rms.toFixed(1)} dBFS gated, ${(20 * Math.log10(fileGain(rms))).toFixed(1)} dB to meet the placeholder)`);
     } else {
       procedural = setupProcedural();
       source = 'procedural';
