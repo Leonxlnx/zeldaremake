@@ -83,3 +83,66 @@ before; below the flights' old 2,370 but above the flat routes' 440–560.
 
 **#44: 1 → 2** — no pop over 0.36 m on the walked route; the platform and the veranda's near plane are the two placed
 poses left. Everything else as the 09:45 read.
+
+## Re-read on `571acd21` (15:07–15:32 UTC — the pods rehung, the walkway stubs as round poles and a rope, the casters and far-LOD packs, the author's own 50 checks at 174 / 171 / 172 / 170)
+
+**A correction first.** My "tree hut's platform" pose (Link at (16.2, −86) facing the column) is 1.0 m from the hut's
+host (16.8, −85.2), *inside* its 1.45 m barrel — `place()` teleports through walls, so that bark frame (10:29, 10:50) was
+my probe's, not the camera's: the hut has no walkable platform round its wall, only the walkway stub in front of its door,
+and the probes hold the wall and door shut. **Strike it from the 10:50 read.** The veranda pose stands: 2.05 m from the
+stilt house's centre, on its 1.81–2.45 m ring.
+
+**The route is frame-identical to `e156566f`** (`walk-north-grove-571acd21.json`): 28 / 28, 0 stuck, 61.8 m, probes
+64 / 64, the same one spike — a 0.36 m camera step in one frame at the trunk house's door, Link at (−0.75, 10.02, −98.8)
+(the author counts it as a 0.14 m second difference; by the check's letter it is one pop of 0.36 m at 3.6 m). Nothing in
+`59e970d6`'s pole-and-rope stubs or the rehung pods touched the camera or the walk.
+
+**The camera at the doors — the real case** (`it111-camera-poses-doors.jpg`, `it111-camera-poses-hut-veranda.jpg`,
+`it111-hut-door-turn.jpg`, `it111-stilt-door-turn.jpg`), poses Link reaches on the route (the walkway stub's end, the
+gangway's head), 1280 × 720:
+
+| Link at | facing | the camera | frame |
+| --- | --- | --- | --- |
+| the tree hut's door, (15.7, 11.3, −86.6), 0.33 m outside the wall | the door (yaw 37°) | (13.11, 13.05, −90.03), 4.3 m back over the rope walk | the hut, the door, Link — good |
+| the same | **back to the door** (217°) | **(16.06, 12.83, −86.12) — 0.6 m behind Link, 1.18 m from the host: 0.27 m inside the 1.45 m wall** | **the room's floor, a flat untextured tan plane (180, 132, 71), fills 31 % of the frame (62 % of its lower half, rows 422–719); Link out of frame; Navi's blob 32 % of the frame's height** |
+| the stilt house's door, (10.37, 11.61, −92.39), 0.28 m outside | the door (61°) | (6.61, 13.36, −94.47), 4.3 m back | the stilt house, the door, Link — good |
+| the same | **back to the door** (241°) | **(10.89, 13.14, −92.10) — 0.6 m behind, 1.26 m from the host: 0.29 m inside the 1.55 m wall** | **the same tan floor plane across the lower half; Link out of frame** |
+| the stub's end, (15.5, 11.3, −86.91) | back to the hut (217°) | (15.86, 12.83, −86.43), 0.6 m behind, at the wall's skin | the stilt house across the walk; Navi 25 % of the frame's height at the lens, Link's cap at the frame's foot |
+| the veranda, (13.24, 11.61, −89.87) | the tree hut, back to the wall (37°) | (12.88, 13.14, −90.35), 0.6 m behind, 1.45 m from the centre against the 1.55 m wall | the hut's door and pods (a fine picture) — **Link out of frame, Navi 27 % of the frame's height** |
+| the veranda | the wall (217°) / north-west (127°) | 3.9 m / 3.4 m back, out over the drop | good — the author's `p-veranda` |
+| the trunk house's door, (−0.85, 10.02, −98.74) | back to the door (90°) | (−2.50, 11.44, −98.74), 1.65 m back | the yard and the stilt house; Link's cap at the foot — acceptable |
+
+So `d7432cc9`'s round camera solids stop the camera at the walls but **not at the doors**: with Link at either hut's door
+facing out — a pose the route passes at both — the camera drops 0.6 m behind him into the doorway, 0.27–0.29 m inside
+the wall's radius, and the room's floor plane is the picture. The fix is the doorway as part of the solid (the camera has
+no business in a shut room), and a **floor on the pull-in of ≈ 1.2 m with the camera raised** so Link's head stays in
+frame: at 0.6 m the lens is 1.5 m over his feet and his 1.25 m head is 0.28 m under the frame's edge, and Navi (who
+follows his shoulder) is at the lens — 25–32 % of the frame's height at the veranda, the stub and both doors.
+**#44 = 2** (the camera inside both huts' rooms at reachable poses; one 0.36 m step on the route) — the author's 3 / 4 / 4 / 3
+counts the route only.
+
+**Caps at the yard's look-back** (`it111-grove-spots-571acd21.jpg` for the frames; the head `3c6cc553` built at the same
+poses for attribution — the shelf is 0.9 m higher there, unlevelled):
+
+| Link at, facing | `571acd21` | head `3c6cc553` | the grove adds |
+| --- | --- | --- | --- |
+| the yard (2, −100), yaw 10° (back down the trail toward the village), level | **728 draws / 9.44 M** | 607 / 7.62 M | +121 / +1.81 M |
+| the same, pitched down 25° | **722 / 9.22 M** | 607 / 7.52 M | +115 / +1.70 M |
+| the yard (0.5, −98), yaw 30°, down 25° | 676 / **9.30 M** | 560 / 6.88 M | +116 / +2.42 M |
+| the trunk house's door, facing it | 213 / 1.66 M | 109 / 0.40 M | +104 / +1.26 M |
+
+The author's `g-back` counts 689 / 8.88 M on `59e970d6` — his pose; mine, Link at the trunk house's door turning round to
+look back down the trail (the pose every visitor takes), is **over both caps by 22–28 draws and 0.22–0.44 M**, and the
+head itself sits at 607 / 7.6 M there. The scene audit says where the add is: the branch carries **+84 vegetation meshes
+(+99 k instances, +0.97 M)** and **+47 structures meshes (+0.47 M)** over the head, trees −35 instances. **#46 ★ = 2** until
+the yard's look-back is under 700 / 9.0 M (the author's 4 / 3 / 4 / 3 counts his own 24 views).
+
+The rest of `59e970d6` reads well at player height (`it111-grove-spots-571acd21.jpg`): on the rope walk the stubs' posts
+are round poles with a rope rail and the pods hang outboard; on the gangway the lime pod is off the trestle's leg
+outboard of the hand rail, out of Link's way; the gangway's head, the yard door and the stilt house from the yard are
+as at 10:50 — the grove's pictures.
+
+**Where the grove stands by this read: two checks at 2 — #44 (the camera in both huts' rooms at their doors) and #46 ★
+(the yard's look-back over the caps) — so not shippable by the rubric's letter until both are fixed; everything else I
+can score is 3–4 and matches the author's table.** Both fixes are small and in his lane (the door arc of the camera
+solid, a pull-in floor; the look-back's vegetation). I re-read on his next push.

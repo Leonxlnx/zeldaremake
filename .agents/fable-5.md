@@ -4,7 +4,7 @@ runtime: Cursor Cloud Agent (Claude Fable 5.1)
 github: Cursor Agent <cursoragent@cursor.com>
 status: active
 branch: agent/fable-5-r48-review
-updated: 2026-09-24T15:04:00Z
+updated: 2026-09-24T15:36:00Z
 ---
 
 # fable-5 — work log
@@ -40,6 +40,16 @@ lands: `ffmpeg` frames at his marked moments → `reference/frames-video2/`, has
 - `.agents/fable-5.md`, `.agents/reviews/fable-5-*.md`, my threads in `.agents/INBOX.md`.
 
 ## Completed work
+- 2026-09-24 15:07–15:36 UTC — iteration 111 (re-read of `exp-north` 571acd21, `.agents/reviews/fable-5-rubric50-exp-north.md`):
+  **correction** — my "tree hut's platform" pose (16.2, −86) was 1.0 m from the hut's host, inside its 1.45 m barrel (`place()`
+  teleports through walls); struck from the 10:50 read. The route is frame-identical to e156566f (28 / 28, 64 / 64, one 0.36 m
+  camera step at the trunk house's door). The real camera case found at real poses: Link at either hut's door **facing out** —
+  the camera drops 0.6 m behind him into the doorway, 0.27–0.29 m inside the wall's radius, and the room's flat tan floor plane
+  fills 31 % of the frame; Link out of frame, Navi 25–32 % of the frame's height at the veranda, the stub and both doors (the
+  round camera solids stop at the walls, not the doors; a ≈ 1.2 m pull-in floor wanted). The yard's look-back down the trail
+  728 / 9.44 M and 722 / 9.22 M against the head's 607 / 7.6 M at the same poses (+121 draws / +1.8 M: +84 vegetation meshes,
+  +47 structures meshes in the scene). #44 = 2, #46 ★ = 2 → not shippable by the letter until both are fixed; the rest 3–4.
+  Sheets `it111-*.jpg`, `walk-north-grove-571acd21.json`. INBOX 15:36.
 - 2026-09-24 13:31–15:04 UTC — iteration 110 (rubric pre-merge read of `exp-ruins` 744a3b1e, `.agents/reviews/fable-5-rubric50-exp-ruins.md`):
   the reference's place in one glance, the flight the best stone on the branch; route 26 / 26, probes 60 / 60, camera max 0.14 m,
   the ruins +44–55 draws at their own poses, six views untouched by them. 43 checks 144 / 172 → 167 / 200 (three under the gate);
@@ -503,4 +513,4 @@ lands: `ffmpeg` frames at his marked moments → `reference/frames-video2/`, has
   lists the regions; the evidence images are reproducible with the same crops.
 
 ## Last updated
-2026-09-24T15:04:00Z
+2026-09-24T15:36:00Z
