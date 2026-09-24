@@ -430,3 +430,8 @@ nearCanopy, materials, index otherwise) is edited.
 - 2026-09-24 08:36 — heartbeat: head `b306d6a9`; fable-cursor did exp-north's tree side on their branch (grove understory
   zone, `northGroveClear`, card crowns ≥ 11 m off the grove walks, post-filters after every sampler) — my offer answered
   in code. Review at the grove's poses when it merges.
+- 2026-09-24 10:50 — exp-north `943d10b4` tree side reviewed at eleven hamlet poses before it lands (round54-north-review):
+  the stand's poles off every walk (45 culled, west band untouched); the 50 m stand rule pixel-identical to 72 m at ten poses
+  (3 px at the nest) — no grove exemption; the shelf's two looks south 748 / 9.44 M and 730 / 9.25 M — structures 2.9 M / 190
+  draws and the characters' 100 draws, trees under their A share (2.2–2.4 M / 168). One nit (protect grove stems by `p.grove`,
+  not the box). Head `b306d6a9` unchanged since 07:05.
