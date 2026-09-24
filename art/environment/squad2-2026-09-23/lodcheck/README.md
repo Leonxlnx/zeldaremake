@@ -77,6 +77,28 @@ round.
 
 ![the owner's north pose, rung 28 / gate 72 against rung 32 / gate 45](north-rung32-pair.jpg)
 
+## Behaviour and the walk-mode spots (20:20)
+
+The rung and the gate both change what geometry exists near the player, so the pools' behaviour is part of
+the evidence, not an afterthought (`playtest-rung32.json`, `playtest.mjs --only look,walk,perf`):
+
+- no page errors; **ten of ten walk routes reached with nothing stuck**; south probes 41/41.
+- the perf spots' draws fall everywhere, and their triangles move as the trade predicts:
+
+| spot | draws before → after | triangles before → after |
+| --- | --- | --- |
+| plaza | 610 → **593** | 7.74 M → 7.85 M |
+| `stairs2-base` | 614 → **603** | 9.50 M → 9.54 M |
+| `saria-side` | 590 → **576** | 8.86 M → 8.91 M |
+| `west-house` | 488 → **477** | 5.07 M → **5.46 M** |
+
+`west-house` is the one to note: +0.39 M triangles, its 32 m ring being thick with white-barks. Play-mode
+spots are not what W38 caps (that is the six hero views, all measured under 700 / 9 M above), and the
+render time there is the lowest of the four (7.5 ms), but it is the largest single cost of this round and
+belongs in the record rather than in a footnote. `stairs2-base` remains above 9 M as it was before this
+change (9.50 → 9.54 M) — the pre-existing play-spot budget item already relayed to whoever owns it, which
+fable-5 attributed to lane 4's vegetation at 13:43.
+
 ## What is still open, with its number
 
 The rest of the pop — 1.85 % at the north pose — is still this rung's, and reaching it means 40 m, which A
