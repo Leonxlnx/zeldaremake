@@ -5,10 +5,10 @@
  * r_036–r_043). The ground (the trail's grade, the outcrop, the pool's basin) is the heightfield's
  * live view (terrain/ruins.ts); this system builds everything standing on it: the masonry
  * (masonry.ts), the natural rock — cliff, ivy rock, boulders, the slab bridge (rock.ts) — the ivy
- * hung over the great rock's stair-side face (ivy.ts), the trail's pod lanterns (lanterns.ts) and the
- * water — the pool, the fall, its spray and mist (water.ts), the green motes over it (wisps.ts) —
- * and publishes the terrace's walk spans and the fallen pieces' and boulders' blockers for the
- * character ground.
+ * hung over the great rock's stair-side face and the hero arch's ring (ivy.ts), the trail's pod
+ * lanterns (lanterns.ts) and the water — the pool, the fall, its spray and mist (water.ts), the
+ * green motes over it (wisps.ts) — and publishes the terrace's walk spans and the fallen pieces'
+ * and boulders' blockers for the character ground.
  *
  * Locality: the whole site is in the west sector no fixed frame looks at, but its casters are tall
  * (the arch to 9.6 m), so like the south exit it is drawn only while the camera is within
@@ -21,7 +21,7 @@ import type { WorldContext, WorldSystem } from '../system';
 import { inTerrace } from '../terrain/ruins';
 import { casterSpheres, ruinsVisible, type Caster } from '../util/expansionLocality';
 import { buildRuinsCameraSolid, ruinsColumnBlockers } from './cameraSolid';
-import { buildIvy } from './ivy';
+import { buildIvy, hangArchIvy } from './ivy';
 import { buildLanterns } from './lanterns';
 import { buildMasonry } from './masonry';
 import { createCarving, createStone, createTiles, sunDirOf } from './materials';
@@ -110,6 +110,8 @@ export async function create(ctx: WorldContext): Promise<WorldSystem> {
     const g = terrain.height(x, z);
     return Math.max(g, outcropSkin(x, z, g), inTerrace(x, z, 0.4) ? R.terrace.y : -Infinity);
   });
+  // and over the hero arch's ring, hanging into its opening
+  const archIvy = hangArchIvy(rng.fork('arch-ivy'), ivy.builder);
   const ivyMat = new MeshStandardMaterial({ name: 'ruins:ivy', vertexColors: true, roughness: 0.55, metalness: 0, side: DoubleSide });
   materials.push(ivyMat);
   add('ruins-ivy', new Mesh(ivy.builder.build(), ivyMat), true);
@@ -170,7 +172,7 @@ export async function create(ctx: WorldContext): Promise<WorldSystem> {
     walkSpans: masonry.spans.length,
     blockers: masonry.blockers.length + rock.blockers.length + columns.length + lanterns.blockers.length,
     cameraSolid: cameraSolid?.report ?? null,
-    counts: { ...masonry.counts, ...rock.counts, lanterns: lanterns.pods.length, ivyStrands: ivy.strands, ivyLeaves: ivy.leaves, wisps: wisps.count },
+    counts: { ...masonry.counts, ...rock.counts, lanterns: lanterns.pods.length, ivyStrands: ivy.strands, ivyLeaves: ivy.leaves, archIvyStrands: archIvy.strands, archIvyLeaves: archIvy.leaves, wisps: wisps.count },
     lanternTriangles: lanterns.triangles,
     pods: lanterns.pods.map((p) => [+p.x.toFixed(2), +p.y.toFixed(2), +p.z.toFixed(2)]),
     plunge: water.plunge.map((v) => +v.toFixed(2)),

@@ -55,6 +55,8 @@ const CARVE_Y: [number, number] = [PARAPET_BASE + 0.39, PARAPET_BASE + 0.69];
 const RAIL_Y = PARAPET_BASE + P.height - 0.16;
 /** where the parapet's posts stand (the last one clear of the terrace's face) */
 export const PARAPET_POSTS = P.posts.map((x) => Math.max(x, P.x1 + 0.25));
+/** the hero arch's voussoir ring (the (z, y) plane at x = arch.x): its springing height, intrados and extrados radii, half depth */
+export const ARCH_RING = { spring: T.y + A.columnH, r0: A.span / 2, r1: A.span / 2 + 0.5, half: 0.28 };
 
 const mossNoise = new Noise2D('ruins-moss');
 const up = new Vector3(0, 1, 0);
@@ -462,7 +464,7 @@ export function buildMasonry(rng: Rng, ground: Ground, sun: Vector3): Masonry {
   // the hero arch: plinths, twisted shafts, capitals, voussoirs, the keystone and its pendant
   // ------------------------------------------------------------------------------------------
   const off = A.span / 2 + A.columnR;
-  const spring = top + A.columnH;
+  const spring = ARCH_RING.spring;
   const shaft0 = top + 0.64;
   const shaft1 = spring - 0.46;
   for (const zc of [A.z - off, A.z + off]) {
@@ -483,8 +485,9 @@ export function buildMasonry(rng: Rng, ground: Ground, sun: Vector3): Masonry {
       () => 0.35,
     );
     const prof: [number, number][] = [];
-    for (let k = 0; k <= 30; k++) prof.push([A.columnR, shaft0 + ((shaft1 - shaft0) * k) / 30]);
-    lathe(mb, prof, 28, place, stoneCol(rng, 1.0), (y) => 0.16 * (1 - smoothstep(shaft0, shaft0 + 0.8, y)) + 0.1 * smoothstep(shaft1 - 0.5, shaft1, y), (th, y, r) => r * (0.915 + 0.085 * Math.cos(4 * th - (2 * Math.PI * (y - shaft0)) / 1.05)));
+    for (let k = 0; k <= 72; k++) prof.push([A.columnR, shaft0 + ((shaft1 - shaft0) * k) / 72]);
+    // a three-strand barley twist: rounded ridges, sharp grooves, a turn every 0.85 m (the ridges' crest is the column's radius)
+    lathe(mb, prof, 36, place, stoneCol(rng, 1.0), (y) => 0.16 * (1 - smoothstep(shaft0, shaft0 + 0.8, y)) + 0.1 * smoothstep(shaft1 - 0.5, shaft1, y), (th, y, r) => r * (0.8 + 0.2 * Math.sqrt(0.5 + 0.5 * Math.cos(3 * th - (2 * Math.PI * (y - shaft0)) / 0.85))));
     lathe(
       mb,
       [
@@ -505,9 +508,7 @@ export function buildMasonry(rng: Rng, ground: Ground, sun: Vector3): Masonry {
   // the voussoir ring in the (z, y) plane at x = A.x
   {
     const N = 13;
-    const r0 = A.span / 2;
-    const r1 = r0 + 0.5;
-    const d = 0.28;
+    const { r0, r1, half: d } = ARCH_RING;
     for (let k = 0; k < N; k++) {
       const key = k === (N - 1) / 2;
       const a0 = (k / N) * Math.PI + 0.006;
