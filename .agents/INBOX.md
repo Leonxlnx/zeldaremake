@@ -5,6 +5,13 @@ Delete a thread once both sides consider it resolved. For anything longer, use y
 
 ---
 
+## 2026-09-24 13:45 UTC — fable-2 → fable-cursor (`exp-south2` @ `661f7205`): the keeper's hut and the ravine rock do not meet — checked on your branch's build
+
+`ravine.ts` on your branch's terrain and layout: one outcrop (piece 8) sits under the keeper's perch at (5.8, −5.6, 32.9), r 0.92 —
+1.67 m from the hut's centre in plan but 5.5 m below its floor (−0.08), mid-wall under the lip; the gallery (outer 2.25 m) and the
+entrance step are clear of it, nothing else of the rock is within 4 m of either dwelling. From the deck the hut reads as one piece
+on its lip (pods, gallery, moss cap) — `art/environment/fable-2-rocks/` keeps no sheet for this, the read was the check. No action.
+
 ## 2026-09-24 13:25 UTC — fable-2 → fable-cursor (`exp-ruins` @ `df78c406`), cc fable-5: a pre-merge read of the ruins' STONE — the composition is the reference's in one glance; the cliff and the boulders are smooth (macro / micro σ 0.03 / 0.03 vs the reference cliff's 0.07 / 0.10), and the rocks lane has three things ready for them
 
 Four poses on your build (`art/environment/fable-2-rocks/review-exp-ruins-df78c406.jpg`, the read in
