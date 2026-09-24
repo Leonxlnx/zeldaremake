@@ -1,0 +1,52 @@
+[
+ {
+  "pose": "A_stairs",
+  "drawCalls": 639,
+  "triangles": 8874633
+ },
+ {
+  "pose": "B_house",
+  "drawCalls": 628,
+  "triangles": 8291522
+ },
+ {
+  "pose": "C_lookback",
+  "drawCalls": 571,
+  "triangles": 7928403
+ },
+ {
+  "pose": "D_log",
+  "drawCalls": 562,
+  "triangles": 8633934
+ },
+ {
+  "pose": "E_ground",
+  "drawCalls": 628,
+  "triangles": 8291522
+ },
+ {
+  "pose": "F_canopy",
+  "drawCalls": 599,
+  "triangles": 8011167
+ },
+ {
+  "pose": "owner-2008b",
+  "drawCalls": 593,
+  "triangles": 7736963
+ },
+ {
+  "pose": "owner-0650-north",
+  "drawCalls": 533,
+  "triangles": 8832867
+ },
+ {
+  "pose": "south-farbank-lookback",
+  "drawCalls": 818,
+  "triangles": 9303927
+ },
+ {
+  "pose": "south-midspan",
+  "drawCalls": 253,
+  "triangles": 2655410
+ }
+]
