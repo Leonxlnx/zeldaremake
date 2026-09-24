@@ -13,7 +13,7 @@
  * group use it, so the house and its stair appear and vanish together.
  */
 import { Frustum, Matrix4, Sphere, Vector3, type Camera } from 'three';
-import { EXPANSION, EXPANSION_BOX, EXPANSION_ROPE_FENCES, EXPANSION_SOUTH, EXPANSION_SOUTH_BOXES, EXPANSION_STAIRS, expansionSteppingStones, southPathLine } from '../layout';
+import { EXPANSION, EXPANSION_BOX, EXPANSION_ROPE_FENCES, EXPANSION_RUINS_BOXES, EXPANSION_SOUTH, EXPANSION_SOUTH_BOXES, EXPANSION_STAIRS, expansionSteppingStones, southPathLine } from '../layout';
 
 /** beyond this distance from the box the content is hidden regardless of the frustum (haze) */
 export const EXPANSION_VISIBLE_M = 60;
@@ -170,6 +170,21 @@ export function southPathSpheres(yAt: (x: number, z: number) => number): Sphere[
     }
   }
   return out;
+}
+
+/**
+ * Round 57 (expansion-ruins): true when the camera is within RUINS_VISIBLE_M of the waterfall
+ * ruins' site box (the trail to it carries no geometry of its own) AND its frustum meets one of
+ * `spheres` — the ruins system's casters with their shadow footprints.
+ */
+export const RUINS_VISIBLE_M = 60;
+export function ruinsVisible(camera: Camera, spheres: Sphere[]): boolean {
+  camera.updateMatrixWorld();
+  camera.getWorldPosition(_p);
+  const b = EXPANSION_RUINS_BOXES[1];
+  const dx = Math.max(b.x0 - _p.x, 0, _p.x - b.x1);
+  const dz = Math.max(b.z0 - _p.z, 0, _p.z - b.z1);
+  return Math.hypot(dx, dz) < RUINS_VISIBLE_M && frustumMeets(camera, spheres);
 }
 
 /** true when the camera's frustum meets one of `spheres` (world matrix refreshed first, see above) */

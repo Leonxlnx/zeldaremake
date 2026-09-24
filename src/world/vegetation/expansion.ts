@@ -31,7 +31,7 @@
  */
 import { Group, Sphere, Vector3, type Material } from 'three';
 import type { BufferGeometry } from 'three';
-import { EXPANSION, EXPANSION_BOX, EXPANSION_NPC_SPOTS, EXPANSION_ROPE_FENCES, EXPANSION_SOUTH_BOXES, EXPANSION_STAIRS, expansionSteppingStones, southBankFrameVectors, southBankPoint } from '../layout';
+import { EXPANSION, EXPANSION_BOX, EXPANSION_NPC_SPOTS, EXPANSION_ROPE_FENCES, EXPANSION_RUINS_BOXES, EXPANSION_SOUTH_BOXES, EXPANSION_STAIRS, expansionSteppingStones, southBankFrameVectors, southBankPoint } from '../layout';
 import type { WorldContext } from '../system';
 import { expansionCull, getTerrain, type Terrain } from '../terrain/heightfield';
 import { clamp, smoothstep } from '../util/noise';
@@ -47,10 +47,10 @@ const KNOLL_BOX = (() => {
   return { x0: hx - r, x1: hx + r, z0: hz - r, z1: hz + r };
 })();
 
-/** true when the world box [x0, z0] … [x1, z1] overlaps the expansion box, the knoll's or one of round 56's south boxes — where `expansionCull` can be true */
+/** true when the world box [x0, z0] … [x1, z1] overlaps the expansion box, the knoll's, one of round 56's south boxes or round 57's ruins boxes — where `expansionCull` can be true */
 export function tileMeetsExpansion(x0: number, z0: number, x1: number, z1: number): boolean {
   const meets = (b: { x0: number; x1: number; z0: number; z1: number }) => x1 >= b.x0 && x0 <= b.x1 && z1 >= b.z0 && z0 <= b.z1;
-  return meets(EXPANSION_BOX) || meets(KNOLL_BOX) || EXPANSION_SOUTH_BOXES.some(meets);
+  return meets(EXPANSION_BOX) || meets(KNOLL_BOX) || EXPANSION_SOUTH_BOXES.some(meets) || EXPANSION_RUINS_BOXES.some(meets);
 }
 
 /** true where a legacy-placed instance at (x, z) stands in the expansion (heightfield.ts `expansionCull`) */

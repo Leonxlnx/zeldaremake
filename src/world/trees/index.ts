@@ -29,7 +29,7 @@ import { authoredWhiteBarks, createWhiteBarkRoots, createWhiteBarkTree, whiteBar
 import { createUnderstoryTree, understoryParams, type UnderstoryParams } from './understory';
 import { placeWhiteBark, treeGroundBlocked, viewProjector, type WhiteBarkPlacement } from './placement';
 import { columnParams, createColumnTree, emergentParams, hutHostParams, type ColumnAsset, type ColumnParams } from './column';
-import { expansionCull, getTerrain, southFooting, southRouteSurface, westExpansionCull, type Terrain, type TerrainView } from '../terrain/heightfield';
+import { expansionCull, getTerrain, ruinsTrunkCull, southFooting, southRouteSurface, westExpansionCull, type Terrain, type TerrainView } from '../terrain/heightfield';
 import { smoothstep } from '../util/noise';
 import { casterSpheres, expansionVisible, type Caster } from '../util/expansionLocality';
 import { EXPANSION, EXPANSION_SOUTH, inExpansionSouth, southPathLine } from '../layout';
@@ -1359,6 +1359,14 @@ function spineDistance(spine: [number, number][], x: number, z: number): number 
 const SOUTH_TRUNK_REACH_M = 1.5;
 /** … and its own rim this far off the gorge's lip (m): rim trees stay, their crowns over the ravine */
 const SOUTH_LIP_MARGIN_M = 0.3;
+/**
+ * Round 57 (expansion-ruins): how far past its trunk radius a legacy-sampled bole keeps off the
+ * ruins trail and the ruins' masonry, pool and outcrop (heightfield `ruinsTrunkCull`) — the flare
+ * and the root toes (m). A filter after each stream's sampling, so nothing else moves.
+ */
+const RUINS_TRUNK_MARGIN_M = 0.9;
+/** the same ring for the distant layer's boles, whose trunk radii the placement does not carry (m) */
+const DISTANT_RUINS_REACH_M = 2.2;
 /** round 56: the mid grove's crown cards keep this far off the south route's line — fable-5's 3–7 m "flat card piles" band (m) */
 const MID_SOUTH_WALK_MIN_M = 7.5;
 /** the south route's walk line: the path to the north sill, the bridge's axis, the far path to the log's mouth */
@@ -2196,7 +2204,7 @@ export async function create(ctx: WorldContext): Promise<WorldSystem> {
   // root toes) stand off IT, so a dropped south stem re-rolls none of them.
   const drawnWhites = whitePlaced.placements.filter((p) => !westExpansionCull(p.x, p.z));
   const southFootings = new Map(drawnWhites.map((p) => [p, southFooting(p.x, p.z, SOUTH_TRUNK_REACH_M, whites[p.variant].params.trunkRadius * p.scale + SOUTH_LIP_MARGIN_M)]));
-  const sampledWhites = drawnWhites.filter((p) => southFootings.get(p) !== 'cull');
+  const sampledWhites = drawnWhites.filter((p) => southFootings.get(p) !== 'cull' && !ruinsTrunkCull(p.x, p.z, whites[p.variant].params.trunkRadius * p.scale + RUINS_TRUNK_MARGIN_M));
   const whiteBarkCulled = whitePlaced.placements.filter((p) => !sampledWhites.includes(p)).map((p) => [Math.round(p.x * 100) / 100, Math.round(p.z * 100) / 100]);
   const drawnSwaps = drawnWhites.filter((p) => whites[p.variant].params.age === 'mature' && inFarWall(p.x, p.y, p.z));
   const swappedWhites = drawnSwaps.filter((p) => southFootings.get(p) !== 'cull');
@@ -2415,7 +2423,7 @@ export async function create(ctx: WorldContext): Promise<WorldSystem> {
         // the corridor keeps its trees on both sides (the reference's D frames the arch with trees)
         const pathMin = z < UNDERSTORY_ARCH_STRETCH_Z ? UNDERSTORY_PATH_MIN_ARCH_M : UNDERSTORY_PATH_MIN_M;
         if (d < pathMin || (!zone.live && d > UNDERSTORY_PATH_MAX_M)) continue;
-        if (!zone.live && expansionCull(x, z)) continue;
+        if (!zone.live && expansionCull(x, z, 0.3, false)) continue;
         if (zone.south && (southWalkDistance(x, z) < UNDERSTORY_WALK_CLEAR_M || southFooting(x, z, SOUTH_TRUNK_REACH_M, 0.5) === 'cull')) continue;
         const m = t.mask(x, z);
         if (m.path > 0.05 || m.stairs > 0 || m.structure > 0 || m.cliff > 0.3) continue;
@@ -2439,7 +2447,9 @@ export async function create(ctx: WorldContext): Promise<WorldSystem> {
    * post-filter over the sampled list, so no other stem moves (a rule inside the loop shifts every
    * later draw).
    */
-  const understoryKept = understoryPlacements.filter((p) => understoryPathDistance(p.x, p.z) >= UNDERSTORY_WALK_CLEAR_M);
+  const understoryKept = understoryPlacements.filter(
+    (p) => understoryPathDistance(p.x, p.z) >= UNDERSTORY_WALK_CLEAR_M && !ruinsTrunkCull(p.x, p.z, understory[p.variant].params.trunkRadius * p.scale + RUINS_TRUNK_MARGIN_M),
+  );
   understoryPlacements.length = 0;
   understoryPlacements.push(...understoryKept);
   for (const p of understoryPlacements) seatFamily(understory, p, p.variant);
@@ -3361,7 +3371,7 @@ export async function create(ctx: WorldContext): Promise<WorldSystem> {
     if (nearWalk(p.x, p.z) || southWalkDistance(p.x, p.z) < MID_SOUTH_WALK_MIN_M) return false;
     const trunkR = MID_TRUNK_R * (MID_SPECS[p.variant - midSpec0]?.height ?? 12) * p.scale;
     const south = southFooting(p.x, p.z, SOUTH_TRUNK_REACH_M, trunkR + SOUTH_LIP_MARGIN_M);
-    if (south === null) return !expansionCull(p.x, p.z);
+    if (south === null) return !expansionCull(p.x, p.z) && !ruinsTrunkCull(p.x, p.z, trunkR + RUINS_TRUNK_MARGIN_M);
     if (south === 'cull' || westExpansionCull(p.x, p.z)) return false;
     if (south === 'live') {
       p.y = liveTerrain.height(p.x, p.z);
@@ -3369,6 +3379,9 @@ export async function create(ctx: WorldContext): Promise<WorldSystem> {
     }
     return true;
   });
+  // round 57: the distant layer's inner rows reach the ruins site (60 m out); dropped after the mid
+  // grove has read them as occupied, so the grove keeps its draws
+  for (let i = distantPlacements.length - 1; i >= 0; i--) if (ruinsTrunkCull(distantPlacements[i].x, distantPlacements[i].z, DISTANT_RUINS_REACH_M)) distantPlacements.splice(i, 1);
   distantPlacements.push(...midPlacements);
   // round 47: the crown cards (the geometry's second group) draw with their own material (distant.ts createDistantCrownMaterial: far-crown atlas, spherical shading, soft alpha, wind)
   const distantCrown = createDistantCrownMaterial(ctx.wind, rng, palette, sunDir);
