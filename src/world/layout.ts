@@ -832,6 +832,11 @@ export const EXPANSION_BOX = (() => {
  * Saria's ledge, sweeps 5.5 k out over flat ground — across the lane at the shop (1.45 m over the
  * discs) and along the tall house's deck steps. `doorstep`: a disc (m out along the door axis,
  * radius) the character stops at — the small house's arch hangs 1.5–1.6 m over its threshold.
+ *
+ * Walked lines keep off an entrance arch's right side (jamb leg, shoulder knot, buttress: solid
+ * shells to the play camera, grown by a cell): the lane rounds the shop's door ≥ 5.3 m from its
+ * trunk's axis and the deck's steps start 1.7 m right of the tall house's arch. Nearer, the line
+ * from Link's head back to the trailing camera runs inside the shell and the camera snaps to 0.6 m.
  */
 export const EXPANSION_EAST = {
   houses: [
@@ -852,9 +857,9 @@ export const EXPANSION_EAST = {
     [28.9, 0, -4.3],
     [31.3, 0, -4.5],
     [33.7, 0, -4.45],
-    [36.1, 0, -3.75],
-    [38.9, 0, -2.1],
-    [40.9, 0, -2.2],
+    [35.48, 0, -3.45],
+    [38.27, 0, -1.52],
+    [41.03, 0, -1.8],
     [42.6, 0, -0.3],
     [43.0, 0, 2.3],
     [43.2, 0, 4.6],
@@ -879,8 +884,8 @@ export const EXPANSION_EAST = {
       [44.3, 0, -1.1],
     ],
     [
-      [38.9, 0, -2.1],
-      [38.0, 0, -0.6],
+      [38.27, 0, -1.52],
+      [37.65, 0, -0.05],
       [37.0, 0, 1.4],
       [35.96, 0, 2.14],
     ],
@@ -903,7 +908,7 @@ export const EXPANSION_EAST = {
    * `stepRun` m down from its door-side end between `stepInner` and `stepOuter`; a short ladder
    * leans on its far end.
    */
-  tallDeck: { a: 1.25, rise: 1.15, inner: 2.45, outer: 4.45, half: 1.5, walkHw: 0.5, stepRun: 1.65, stepInner: 3.5, stepOuter: 4.4 },
+  tallDeck: { a: 1.5, rise: 1.15, inner: 2.45, outer: 4.45, half: 1.5, walkHw: 0.5, stepRun: 1.65, stepInner: 3.5, stepOuter: 4.4 },
   /** the shop's hanging sign: its post north of the lane, the arm reaching `armDeg` (bearing) over the verge */
   shopSign: { x: 35.7, z: -6.95, armDeg: 4, height: 2.35 },
   /**

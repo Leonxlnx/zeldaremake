@@ -10,7 +10,7 @@
  * `EXPANSION_EAST` note); F sees the plateau's upper storey over the lip and loses a few crowns.
  */
 import { Frustum, Matrix4, Sphere, Vector3, type Camera } from 'three';
-import { EAST_BOX, EXPANSION_EAST, eastSteppingStones, type EastHouse } from '../layout';
+import { EAST_BOX, EXPANSION_EAST, eastDeckPlan, eastSteppingStones, type EastHouse } from '../layout';
 import { casterSpheres, frustumMeets, type Caster } from './expansionLocality';
 
 /** beyond this distance from the lane's box nothing of it draws (haze) */
@@ -119,11 +119,14 @@ function lookoutNear(x: number, z: number, m: number): boolean {
 export function eastHouseCasters(h: EastHouse, groundY: number): Caster[] {
   const out: Caster[] = [{ x: h.x, z: h.z, r: eastCapRadius(h) + 0.3, y0: groundY - 0.6, y1: groundY + h.roofHeight + 0.9, shadow: true }];
   if (h.kind === 'tall') {
-    const a = (h.facingDeg * Math.PI) / 180;
-    const F: [number, number] = [Math.sin(a), Math.cos(a)];
-    const Rt: [number, number] = [F[1], -F[0]];
-    const d = eastCapRadius(h) + 0.4;
-    out.push({ x: h.x + (F[0] * 0.5 + Rt[0]) * d * 0.72, z: h.z + (F[1] * 0.5 + Rt[1]) * d * 0.72, r: 2.4, y0: groundY - 0.3, y1: groundY + 2.4, shadow: true });
+    // round the deck's outer corners, its steps' foot and the ladder's foot (structures/east.ts)
+    const plan = eastDeckPlan();
+    const D = EXPANSION_EAST.tallDeck;
+    const pts = [plan.at(D.outer, -D.half), plan.at(D.outer, D.half), plan.steps.bottom, plan.at(3.95, D.half + 0.55)];
+    const x = pts.reduce((s, p) => s + p[0], 0) / pts.length;
+    const z = pts.reduce((s, p) => s + p[1], 0) / pts.length;
+    const r = Math.max(...pts.map((p) => Math.hypot(p[0] - x, p[1] - z))) + 0.5;
+    out.push({ x, z, r, y0: groundY - 0.3, y1: groundY + 2.4, shadow: true });
   }
   return out;
 }
