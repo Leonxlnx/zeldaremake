@@ -31,7 +31,7 @@ function loadTs(file) {
 }
 
 const here = path.dirname(new URL(import.meta.url).pathname);
-const { LOOP_SECONDS, REST_SECONDS, QUIET_PASS_SHARE, restAfter, passIsQuiet, PHRASE_BEATS, PHRASE_LEVEL, PHRASE_PAD_BEATS, phraseGain } = loadTs(path.join(here, 'music.ts'));
+const { LOOP_SECONDS, REST_SECONDS, QUIET_PASS_SHARE, restAfter, passIsQuiet, PHRASE_BEATS, PHRASE_LEVEL, PHRASE_PAD_BEATS, phraseGain, gatedRmsDb, fileGain, MUSIC_BUS_TARGET_DB, MUSIC_MATCH_RANGE_DB } = loadTs(path.join(here, 'music.ts'));
 const { createRng } = loadTs(path.join(here, '../world/util/prng.ts'));
 
 /** the pass schedule the live scheduler walks: pass, rest, pass, rest … from one seeded stream */
@@ -113,6 +113,45 @@ test('the score is written with dynamics, not played at one level', () => {
   }
   assert.equal(Math.max(...PHRASE_LEVEL), PHRASE_LEVEL[2], 'B is the lift — it should be the loudest phrase');
   assert.equal(Math.min(...PHRASE_LEVEL), PHRASE_LEVEL[1], "A' answers A — it should be the softest");
+});
+
+/** a decoded track: `seconds` of noise at `rms` full-scale, optionally with a silent lead-in */
+function fakeTrack(rms, seconds = 8, sampleRate = 8000, quietLeadS = 0) {
+  const n = Math.round(seconds * sampleRate);
+  const a = new Float32Array(n);
+  // a fixed low-discrepancy sequence rather than Math.random: the test has to be reproducible
+  let s = 0.37;
+  for (let i = 0; i < n; i++) {
+    s = (s * 9301 + 0.49297) % 1;
+    a[i] = (s * 2 - 1) * Math.sqrt(3) * rms * (i < quietLeadS * sampleRate ? 0.0002 : 1);
+  }
+  return { numberOfChannels: 1, length: n, sampleRate, getChannelData: () => a };
+}
+
+test('a dropped-in track is measured while it is sounding, not averaged over its gaps', () => {
+  for (const db of [-30, -20, -14, -8]) {
+    const got = gatedRmsDb(fakeTrack(Math.pow(10, db / 20)));
+    assert.ok(Math.abs(got - db) < 0.5, `a ${db} dBFS track measured ${got.toFixed(1)}`);
+  }
+  // the reason for the gate: a quiet intro over half the take must not halve the answer
+  const flat = gatedRmsDb(fakeTrack(Math.pow(10, -12 / 20), 8));
+  const withLead = gatedRmsDb(fakeTrack(Math.pow(10, -12 / 20), 8, 8000, 4));
+  assert.ok(Math.abs(flat - withLead) < 0.5, `the gate let a silent half move the level ${flat.toFixed(1)} → ${withLead.toFixed(1)}`);
+  assert.ok(gatedRmsDb({ numberOfChannels: 1, length: 0, sampleRate: 44100, getChannelData: () => new Float32Array(0) }) < -100, 'an empty buffer must not divide by zero');
+});
+
+test("a mastered track meets the placeholder's level instead of setting the mix", () => {
+  // commercial masters run -14 to -8 LUFS; a forest bed sits at -40. Whatever the owner drops in,
+  // the bus should receive the level every balance on this lane was measured against.
+  for (const db of [-8, -10, -14, -20, -24.9, -30]) {
+    const bus = db + 20 * Math.log10(fileGain(gatedRmsDb(fakeTrack(Math.pow(10, db / 20)))));
+    assert.ok(Math.abs(bus - MUSIC_BUS_TARGET_DB) < 0.6, `a ${db} dBFS track reaches the bus at ${bus.toFixed(1)}, wanted ${MUSIC_BUS_TARGET_DB}`);
+  }
+  // the rails: a silent or a clipped file must not ask for an absurd gain
+  const [lo, hi] = MUSIC_MATCH_RANGE_DB;
+  assert.equal(fileGain(-120), Math.pow(10, hi / 20), 'a near-silent file is lifted only as far as the rail');
+  assert.equal(fileGain(0), Math.pow(10, Math.max(lo, MUSIC_BUS_TARGET_DB) / 20), 'a full-scale file is cut, not boosted');
+  assert.ok(fileGain(-8) < 1, 'a mastered track is turned DOWN');
 });
 
 test('the placeholder is original: pentatonic, and no Nintendo melody ships', () => {
